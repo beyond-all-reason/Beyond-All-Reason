@@ -33,6 +33,7 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		dirty 				= false,
 		numVertices 		= 0,
 		primitiveType 		= GL.TRIANGLES,
+		debugZombies 		= false,  -- this is new, and its for debugging non-existing stuff on unitdestroyed
 	}
 
 	if unitIDattribID ~= nil then
@@ -92,6 +93,7 @@ end
 
 
 local function dbgt(t, name)
+	name = name or ""
 	local gf = Spring.GetGameFrame()
 	local count = 0
 	local res = ''
@@ -100,11 +102,12 @@ local function dbgt(t, name)
 		count = count + 1
 	end
 	Spring.Echo(tostring(gf).. " " ..name .. ' #' .. tostring(count) .. ' {'..res .. '}')
+	return res
 end
 
 local function counttable(t)
 	local count = 0
-	if type(t) ~= table then return 0 end 
+	if type(t) ~= type({}) then return 0 end 
 	for k, v in pairs(t) do count = count + 1 end 
 	return count
 end
@@ -131,12 +134,11 @@ local function validateInstanceVBOTable(iT, calledfrom)
 			end
 		end
 	end
-	local indextoInstanceIDsize = counttable(iT.indextoInstanceIDsize)
+	local indextoInstanceIDsize = counttable(iT.indextoInstanceID)
 	local instanceIDtoIndexsize = counttable(iT.instanceIDtoIndex)
 	local indextoUnitID = counttable(iT.indextoUnitID)
 	if (indextoInstanceIDsize ~= instanceIDtoIndexsize) or (instanceIDtoIndexsize ~= indextoUnitID) then
-	
-	Spring.Echo(indextoInstanceIDsize, instanceIDtoIndexsize, indextoUnitID)
+		Spring.Echo("Table size mismatch during validation of", iT.myName, indextoInstanceIDsize, instanceIDtoIndexsize, indextoUnitID)
 	end
 
 end
@@ -244,7 +246,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	if instanceID == nil then instanceID = iTusedElements + 1 end
 	local thisInstanceIndex = iT.instanceIDtoIndex[instanceID] 
 
-	if iTusedElements >= iT.maxElements then
+	if (iTusedElements + 1 ) >= iT.maxElements then -- add 1 extra for safety (not the best idea, but we seem to be running over it by 1)
 		resizeInstanceVBOTable(iT)
 		iTusedElements = iT.usedElements -- because during validation of unitIDs during resizing, we can decrease the actual size of the table!
 		thisInstanceIndex = iT.instanceIDtoIndex[instanceID]  -- this too, can change, TODO, also do this in VBOIDtable!
@@ -252,7 +254,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 
 	if thisInstanceIndex == nil then -- new, register it
 		thisInstanceIndex = iTusedElements + 1
-		iT.usedElements   = iTusedElements + 1 --THE WHOLE THING IS PROBABLY OFF BY 1 !!!
+		iT.usedElements   = iTusedElements + 1
 		iT.instanceIDtoIndex[instanceID] = thisInstanceIndex
 		iT.indextoInstanceID[thisInstanceIndex] = instanceID
 	else -- pre-existing ID, update or bail
@@ -297,6 +299,42 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	return thisInstanceIndex
 end
 
+function locateInvalidUnits(iT)
+	if iT.validinfo == nil then iT.validinfo = {} end 
+	local invalidcount = 0
+	for i, unitID in ipairs(iT.indextoUnitID) do 
+		if iT.featureIDs then 
+			if Spring.ValidFeatureID(unitID) then 
+				local px, py, pz = Spring.GetFeaturePosition(unitID)
+				local fdefname = FeatureDefs[Spring.GetFeatureDefID(unitID)].name
+				iT.validinfo[unitID] = {px = px, py = py, pz = pz, fdefname = fdefname}
+			else
+				Spring.SendCommands({"pause 1"})
+				Spring.Echo("INVALID feature, last seen at", unitID)
+				local vi = iT.validinfo[unitID]
+				local markertext = tostring(unitID) .. "," .. dbgt(vi)
+				Spring.MarkerAddPoint(vi.px, vi.py, vi.pz, markertext )
+				invalidcount = invalidcount + 1 
+			end
+		else
+			if Spring.ValidUnitID(unitID) then 
+				local px, py, pz = Spring.GetUnitPosition(unitID)
+				local fdefname = UnitDefs[Spring.GetUnitDefID(unitID)].name
+				iT.validinfo[unitID] = {px = px, py = py, pz = pz, unitdefname = fdefname}
+			else
+				Spring.SendCommands({"pause 1"})
+				Spring.Echo(iT.myName, " INVALID unitID",unitID,"#elements", iT.usedElements, "last seen at tablepos:", i)
+
+				local vi = iT.validinfo[unitID]
+				local markertext = tostring(unitID) .. "," .. dbgt(vi)
+				Spring.MarkerAddPoint(vi.px, vi.py, vi.pz, markertext )
+				invalidcount = invalidcount + 1 
+			end
+		end
+	end
+	return invalidcount
+end
+
 
 function popElementInstance(iT, instanceID, noUpload) 
 	-- iT: instanceTable created with makeInstanceTable
@@ -327,11 +365,20 @@ function popElementInstance(iT, instanceID, noUpload)
 		--Spring.Echo("Removed end element of instanceTable", iT.myName)
 		iT.usedElements = iT.usedElements - 1	
 		-- if it had a related unitID stored, remove that:
+		if iT.debugZombies then
+			--Spring.Echo("Popping end", instanceID )
+			if iT.zombies and iT.zombies[instanceID] then  
+				--Spring.Echo("Good, we are killing a stupid zombie at the end", instanceID, iT.numZombies)
+				iT.zombies[instanceID] = nil 
+				iT.numZombies = iT.numZombies - 1
+			end 
+		end		
 		if iT.indextoUnitID then iT.indextoUnitID[oldElementIndex] = nil end
+		
 	else
 		local lastElementInstanceID = iT.indextoInstanceID[lastElementIndex]
 		if lastElementInstanceID == nil then --
-			Spring.Echo("We somehow have a nil element at the back of the array, which is completely invalid, probably about to crash")
+			Spring.Echo("We somehow have a nil element at the back of the array, which is completely invalid, probably about to crash", iT.myName)
 			dbgt(iT.instanceIDtoIndex, "instanceIDtoIndex")
 			dbgt(iT.indextoInstanceID, "indextoInstanceID")
 			dbgt(iT.indextoUnitID, "indextoUnitID")
@@ -364,55 +411,68 @@ function popElementInstance(iT, instanceID, noUpload)
 			if popunitID == nil then
 				Spring.Echo("TODO: what the f is happening here?, how the f could we have popped a nil from the back of?", iT.myName) -- TODO TODO
 			end
-			
-			if iT.debug then 
+
+			if iT.debugZombies then 
 				local gf = Spring.GetGameFrame()
-				if iT.popUnitIDFailuresInGameFrame[gf] and iT.popUnitIDFailuresInGameFrame[gf][popunitID] then
-					Spring.Echo("We did good, as we removed it the same frame it became invalid:", popunitID)
-					iT.popUnitIDFailuresInGameFrame[gf][popunitID]  = nil
+				--Spring.Echo("Popping", instanceID)
+				if iT.lastpopgameframe == nil then
+					iT.lastpopgameframe = gf
+					iT.zombies = {}
+					iT.numZombies = 0
+				else 
+					if iT.lastpopgameframe ~= gf then -- New gameframe
+						iT.lastpopgameframe = gf
+						if iT.numZombies and iT.numZombies > 0 then -- WE HAVE ZOMBIES AAAAARGH
+							local s = "Warning: We have " .. tostring(iT.numZombies) .. " zombie units left over in " .. iT.myName
+							for zombie, gf in pairs(iT.zombies) do 
+								s = s .. " " .. tostring(zombie)
+								Spring.Echo("ZOMBIE AT", zombie, Spring.GetUnitPosition(zombie))
+								Spring.SendCommands({"pause 1"})
+							end 
+							Spring.Echo(s)
+							iT.zombies = {}
+							iT.numZombies = 0
+						end
+					else -- same gameframe
+						if iT.zombies[instanceID] then 
+							--Spring.Echo("Good, we are killing a stupid zombie", gf, instanceID, iT.numZombies)
+							iT.zombies[instanceID] = nil 
+							iT.numZombies = iT.numZombies - 1 
+						end
+					end
 				end
 			end
 
-			--Spring.Echo("Pop", popunitID, "is valid?", Spring.ValidUnitID(popunitID), oldElementIndex, lastElementIndex)
 			iT.indextoUnitID[oldElementIndex] = popunitID
 			iT.indextoUnitID[lastElementIndex] = nil
-
-			if iT.featureIDs then
-				if Spring.ValidFeatureID(popunitID) then 
-					if noUpload ~= true then iT.instanceVBO:InstanceDataFromFeatureIDs(popunitID, iT.unitIDattribID, oldElementIndex-1) end
-				else
-					Spring.Echo("Warning: Tried to pop back an invalid featureID", popunitID, "from", iT.myName, "while removing instance", instanceID, counttable(iT.instanceIDtoIndex), counttable(iT.indextoInstanceID), counttable(iT.indextoUnitID))
-					if iT.debug then 
-						local gf = Spring.GetGameFrame()
-						-- so if we failed, then we must store the failed IDs
-						if iT.popUnitIDFailuresInGameFrame[gf] == nil then  -- this is a new failure, lets save it, and hope for the best
-							iT.popUnitIDFailuresInGameFrame[gf] = {[popunitID] = true}
-						else
-							iT.popUnitIDFailuresInGameFrame[gf][popunitID] = true
-						end
-					end
+			
+			if (iT.featureIDs and Spring.ValidFeatureID(popunitID)) or Spring.ValidUnitID(popunitID) then
+				if noUpload ~= true then
+					if iT.featureIDs then
+						iT.instanceVBO:InstanceDataFromFeatureIDs(popunitID, iT.unitIDattribID, oldElementIndex-1)
+					else
+						iT.instanceVBO:InstanceDataFromUnitIDs(popunitID, iT.unitIDattribID, oldElementIndex-1)
+					end 
 				end
 			else
-				if Spring.ValidUnitID(popunitID) then
-					if noUpload ~= true then iT.instanceVBO:InstanceDataFromUnitIDs(popunitID, iT.unitIDattribID, oldElementIndex-1) end
-				else
-					Spring.Echo("Warning: Tried to pop back an invalid unitID", popunitID, "from", iT.myName, "while removing instance", instanceID, counttable(iT.instanceIDtoIndex), counttable(iT.indextoInstanceID), counttable(iT.indextoUnitID) )
-					if iT.debug then 
-						local gf = Spring.GetGameFrame()
-						-- so if we failed, then we must store the failed IDs
-						if iT.popUnitIDFailuresInGameFrame[gf] == nil then  -- this is a new failure, lets save it, and hope for the best
-							iT.popUnitIDFailuresInGameFrame[gf] = {[popunitID] = true}
-						else
-							iT.popUnitIDFailuresInGameFrame[gf][popunitID] = true
-						end
-					end
+				if iT.debugZombies then 
+					Spring.Echo("Warning: Tried to pop back an invalid" .. ((iT.featureIDs and "featureID") or "unitID"), popunitID, "from", iT.myName, "while removing instance", instanceID, counttable(iT.instanceIDtoIndex), counttable(iT.indextoInstanceID), counttable(iT.indextoUnitID))
+					local gf = Spring.GetGameFrame()
+					if iT.lastpopgameframe == nil or iT.lastpopgameframe ~= gf then -- New gameframe
+						iT.lastpopgameframe = gf
+						iT.zombies = {}
+						iT.numZombies = 0
+					end 
+					iT.zombies[popunitID] = gf
+					iT.numZombies = iT.numZombies + 1 
 				end
-			end
+			end 
 		end
 		iT.usedElements = iT.usedElements - 1
 	end
 	
-	if iT.debug then  validateInstanceVBOTable(iT,'pop') end 
+	if iT.debug then validateInstanceVBOTable(iT,'pop') end 
+	return oldElementIndex
 end
 
 function getElementInstanceData(iT, instanceID)
