@@ -73,6 +73,8 @@ function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a vertex b
 	return newVAO
 end
 
+
+--------------- DEBUG HELPERS --------------------------
 local function comparetables(t1, t2, name)
 	for k,v in pairs(t1) do
 		if t2[k] == nil then
@@ -90,7 +92,6 @@ local function comparetables(t1, t2, name)
 		end
 	end
 end
-
 
 local function dbgt(t, name)
 	name = name or ""
@@ -143,16 +144,53 @@ local function validateInstanceVBOTable(iT, calledfrom)
 
 end
 
+function locateInvalidUnits(iT)
+	if iT.validinfo == nil then iT.validinfo = {} end 
+	local invalidcount = 0
+	for i, unitID in ipairs(iT.indextoUnitID) do 
+		if iT.featureIDs then 
+			if Spring.ValidFeatureID(unitID) then 
+				local px, py, pz = Spring.GetFeaturePosition(unitID)
+				local fdefname = FeatureDefs[Spring.GetFeatureDefID(unitID)].name
+				iT.validinfo[unitID] = {px = px, py = py, pz = pz, fdefname = fdefname}
+			else
+				Spring.SendCommands({"pause 1"})
+				Spring.Echo("INVALID feature, last seen at", unitID)
+				local vi = iT.validinfo[unitID]
+				local markertext = tostring(unitID) .. "," .. dbgt(vi)
+				Spring.MarkerAddPoint(vi.px, vi.py, vi.pz, markertext )
+				invalidcount = invalidcount + 1 
+			end
+		else
+			if Spring.ValidUnitID(unitID) then 
+				local px, py, pz = Spring.GetUnitPosition(unitID)
+				local fdefname = UnitDefs[Spring.GetUnitDefID(unitID)].name
+				iT.validinfo[unitID] = {px = px, py = py, pz = pz, unitdefname = fdefname}
+			else
+				Spring.SendCommands({"pause 1"})
+				Spring.Echo(iT.myName, " INVALID unitID",unitID,"#elements", iT.usedElements, "last seen at tablepos:", i)
+
+				local vi = iT.validinfo[unitID]
+				local markertext = tostring(unitID) .. "," .. dbgt(vi)
+				Spring.MarkerAddPoint(vi.px, vi.py, vi.pz, markertext )
+				invalidcount = invalidcount + 1 
+			end
+		end
+	end
+	return invalidcount
+end
+
+------------------------------END DEBUG HELPERS ---------------------------
+
 function resizeInstanceVBOTable(iT)
 	-- iT: the InstanceVBOTable to double in size 'dynamically' resize the VBO, to double its size
+	-- this is called automatically when the existing instanceVBO gets full
+	-- Also performs a busload of sanity checking 
+	-- Spring.Echo("instanceVBOTable full, resizing to double size",iT.myName, iT.usedElements,iT.maxElements)
 	iT.maxElements = iT.maxElements * 2
 	local newInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	newInstanceVBO:Define(iT.maxElements, iT.layout)
-	for i = (iT.maxElements/2) * iT.instanceStep + 1, (iT.maxElements) * iT.instanceStep do
-		--iT.instanceData[i] = 0 -- TODO, this is inefficient, dont reserve this huge table, as it will screw with resizing later on, and it hurts full uploads when doing partial uploads. we NEVER do full on uploads, do we?
-		-- Double TODO: this will also get fucked up by the sanity checking on resizing for unitIDs
-		break
-	end
+	
 	if iT.instanceVBO then iT.instanceVBO:Delete() end -- release if previous one existed
 	iT.instanceVBO = newInstanceVBO
 	-- ok this needs some sanitation right here, with reporting.
@@ -165,7 +203,6 @@ function resizeInstanceVBOTable(iT)
 		local new_indextoInstanceID = {}
 		local new_indextoUnitID = {}
 		local invalidcount = 0
-
 
 		for i, objectID in ipairs(iT.indextoUnitID) do
 			local isValidID = false
@@ -201,14 +238,13 @@ function resizeInstanceVBOTable(iT)
 		iT.indextoUnitID = new_indextoUnitID
 	end
 
-
-	iT.instanceVBO:Upload(iT.instanceData,nil,0,1,iT.usedElements * iT.instanceStep) --(iT.instanceData,nil,0, 1, iT.usedElements * iT.instanceStep)
-	--iT.instanceVBO:Upload(iT.instanceData) -- TODO: still, only upload as much as is actually being used!
+	iT.instanceVBO:Upload(iT.instanceData,nil,0,1,iT.usedElements * iT.instanceStep)
+	
 	if iT.VAO then -- reattach new if updated :D
 		iT.VAO:Delete()
 		iT.VAO = makeVAOandAttach(iT.vertexVBO,iT.instanceVBO, iT.indexVBO)
 	end
-	--Spring.Echo("instanceVBOTable full, resizing to double size",iT.myName, iT.usedElements,iT.maxElements)
+	
 	if iT.indextoUnitID then
 		if iT.featureIDs then
 			iT.instanceVBO:InstanceDataFromFeatureIDs(iT.indextoUnitID, iT.unitIDattribID)
@@ -299,43 +335,6 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	return thisInstanceIndex
 end
 
-function locateInvalidUnits(iT)
-	if iT.validinfo == nil then iT.validinfo = {} end 
-	local invalidcount = 0
-	for i, unitID in ipairs(iT.indextoUnitID) do 
-		if iT.featureIDs then 
-			if Spring.ValidFeatureID(unitID) then 
-				local px, py, pz = Spring.GetFeaturePosition(unitID)
-				local fdefname = FeatureDefs[Spring.GetFeatureDefID(unitID)].name
-				iT.validinfo[unitID] = {px = px, py = py, pz = pz, fdefname = fdefname}
-			else
-				Spring.SendCommands({"pause 1"})
-				Spring.Echo("INVALID feature, last seen at", unitID)
-				local vi = iT.validinfo[unitID]
-				local markertext = tostring(unitID) .. "," .. dbgt(vi)
-				Spring.MarkerAddPoint(vi.px, vi.py, vi.pz, markertext )
-				invalidcount = invalidcount + 1 
-			end
-		else
-			if Spring.ValidUnitID(unitID) then 
-				local px, py, pz = Spring.GetUnitPosition(unitID)
-				local fdefname = UnitDefs[Spring.GetUnitDefID(unitID)].name
-				iT.validinfo[unitID] = {px = px, py = py, pz = pz, unitdefname = fdefname}
-			else
-				Spring.SendCommands({"pause 1"})
-				Spring.Echo(iT.myName, " INVALID unitID",unitID,"#elements", iT.usedElements, "last seen at tablepos:", i)
-
-				local vi = iT.validinfo[unitID]
-				local markertext = tostring(unitID) .. "," .. dbgt(vi)
-				Spring.MarkerAddPoint(vi.px, vi.py, vi.pz, markertext )
-				invalidcount = invalidcount + 1 
-			end
-		end
-	end
-	return invalidcount
-end
-
-
 function popElementInstance(iT, instanceID, noUpload) 
 	-- iT: instanceTable created with makeInstanceTable
 	-- instanceID: an optional key given to the item, so it can be easily removed by reference, defaults to the last element of the buffer, but this will screw up the instanceIDtoIndex table if used in mixed keys mode
@@ -361,19 +360,19 @@ function popElementInstance(iT, instanceID, noUpload)
 	local lastElementIndex = iT.usedElements
 	
 	-- if this one was already at the end of the queue, do nothing but decrement usedElements and clear mappings 
-	if oldElementIndex == lastElementIndex then -- EARLY OPT DEVILRY BAD!
+	if oldElementIndex == lastElementIndex then
 		--Spring.Echo("Removed end element of instanceTable", iT.myName)
 		iT.usedElements = iT.usedElements - 1	
 		-- if it had a related unitID stored, remove that:
+		if iT.indextoUnitID then iT.indextoUnitID[oldElementIndex] = nil end
+	
 		if iT.debugZombies then
-			--Spring.Echo("Popping end", instanceID )
 			if iT.zombies and iT.zombies[instanceID] then  
 				--Spring.Echo("Good, we are killing a stupid zombie at the end", instanceID, iT.numZombies)
 				iT.zombies[instanceID] = nil 
 				iT.numZombies = iT.numZombies - 1
 			end 
-		end		
-		if iT.indextoUnitID then iT.indextoUnitID[oldElementIndex] = nil end
+		end
 		
 	else
 		local lastElementInstanceID = iT.indextoInstanceID[lastElementIndex]
@@ -388,7 +387,7 @@ function popElementInstance(iT, instanceID, noUpload)
 
 		iT.instanceIDtoIndex[lastElementInstanceID] = oldElementIndex -- lastElementInstanceID was somehow nil here? 
 		iT.indextoInstanceID[oldElementIndex] = lastElementInstanceID 
-		iT.indextoInstanceID[lastElementIndex] = nil --- somehow this got forgotten? TODO vor VBOIDtable
+		iT.indextoInstanceID[lastElementIndex] = nil --- somehow this got forgotten? TODO for VBOIDtable
 
 		local oldOffset = (oldElementIndex-1)*iTStep 
 		for i= 1, iTStep do 
@@ -405,7 +404,6 @@ function popElementInstance(iT, instanceID, noUpload)
 		end
 		-- Do the unitID shuffle if needed:
 		if iT.indextoUnitID then
-			--Spring.Echo("Shuffling",lastElementIndex,"->", oldElementIndex)
 			--Spring.Echo("popElementInstance,unitID, iT.unitIDattribID, thisInstanceIndex",unitID, iT.unitIDattribID, oldElementIndex)
 			local popunitID = iT.indextoUnitID[lastElementIndex]
 			if popunitID == nil then
