@@ -1142,6 +1142,16 @@ function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam,
 	return true
 end
 
+function gadgetHandler:AllowUnitCaptureStep(builderID, builderTeam,
+										  unitID, unitDefID, part)
+	for _, g in ipairs(self.AllowUnitCaptureStepList) do
+		if not g:AllowUnitCaptureStep(builderID, builderTeam, unitID, unitDefID, part) then
+			return false
+		end
+	end
+	return true
+end
+
 function gadgetHandler:AllowUnitCloak(unitID, enemyID)
 	for _, g in ipairs(self.AllowUnitCloakList) do
 		if not g:AllowUnitCloak(unitID, enemyID) then

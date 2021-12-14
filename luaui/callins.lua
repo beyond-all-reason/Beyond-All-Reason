@@ -104,6 +104,7 @@ CallInsList = {
 	"AllowUnitCreation",
 	"AllowUnitTransfer",
 	"AllowUnitBuildStep",
+	"AllowUnitCaptureStep",
 	"AllowFeatureCreation",
 	"AllowFeatureBuildStep",
 	"AllowResourceLevel",
