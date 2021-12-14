@@ -24,7 +24,7 @@ local parentPos = {}
 local drawlistsCountdown = {}
 local drawlistsPlayername = {}
 local fontSize = 12    -- 14 to be alike with advplayerslist_lockcamera widget
-local top, left, bottom, right, widgetScale = 0, 0, 0, 0, 1
+local top, left, bottom, right = 0, 0, 0, 0
 local rejoining = false
 local initGameframe = Spring.GetGameFrame()
 local prevOrderID = 1
@@ -41,6 +41,7 @@ local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.7 + (vsx * vsy / 5000000))
 
 local toggled = false
+local forceRefresh = false
 local drawlist = {}
 local widgetHeight = 22
 
@@ -54,7 +55,7 @@ for i = 1, #teams do
 end
 teams = nil
 
-local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, backgroundGuishader, prevGameframeClock, chobbyInterface
+local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, backgroundGuishader, chobbyInterface
 local RectRound, elementCorner, bgpadding
 
 local math_isInRect = math.isInRect
@@ -79,7 +80,7 @@ local function addPlayerTsOrdered(ts, playerID, teamID, spec)
 	tsOrderedPlayers = table.copy(newTsOrderedPlayers)
 end
 
-function tsOrderPlayers()
+local function tsOrderPlayers()
 	local playersList = Spring.GetPlayerList()
 	for _, playerID in ipairs(playersList) do
 		local _, _, spec, teamID = Spring.GetPlayerInfo(playerID, false)
@@ -89,7 +90,7 @@ function tsOrderPlayers()
 	end
 end
 
-function GetSkill(playerID)
+local function GetSkill(playerID)
 	local customtable = select(11, Spring.GetPlayerInfo(playerID)) -- player custom table
 	local tsMu = customtable.skill
 	local tskill = ""
@@ -99,7 +100,7 @@ function GetSkill(playerID)
 	return tskill
 end
 
-function SelectTrackingPlayer(playerID)
+local function SelectTrackingPlayer(playerID)
 	local newTrackedPlayer
 	if playerID then
 		newTrackedPlayer = playerID
@@ -125,8 +126,7 @@ function SelectTrackingPlayer(playerID)
 	end
 end
 
-function createCountdownLists()
-	--if parentPos ~= nil then
+local function createCountdownLists()
 	for i = 1, #drawlistsCountdown do
 		gl.DeleteList(drawlistsCountdown[i])
 	end
@@ -145,11 +145,9 @@ function createCountdownLists()
 		end)
 		i = i + 1
 	end
-	--end
 end
 
-
-function createList()
+local function createList()
 	for i = 1, #drawlist do
 		gl.DeleteList(drawlist[i])
 	end
@@ -224,7 +222,7 @@ function createList()
 	end
 end
 
-function updatePosition(force)
+local function updatePosition(force)
 	local prevPos = parentPos
 	if WG['displayinfo'] ~= nil then
 		parentPos = WG['displayinfo'].GetPosition()        -- returns {top,left,bottom,right,widgetScale}
@@ -315,9 +313,7 @@ function widget:PlayerChanged(playerID)
 	end
 end
 
-local passedTime = 1
 local passedTime = 0
-local passedTime2 = 0
 local uiOpacitySec = 0.5
 function widget:Update(dt)
 
@@ -405,7 +401,6 @@ function widget:GameFrame(n)
 		elseif rejoining and WG['advplayerlist_api'] and WG['advplayerlist_api'].GetLockPlayerID() ~= nil then
 			WG['advplayerlist_api'].SetLockPlayerID()
 		end
-		prevGameframeClock = os.clock()
 
 		if currentTrackedPlayer ~= nil and not rejoining then
 			local _, active, spec = Spring.GetPlayerInfo(currentTrackedPlayer, false)
@@ -415,7 +410,6 @@ function widget:GameFrame(n)
 		end
 	end
 end
-
 
 function widget:MousePress(mx, my, mb)
 	if isSpec and (Spring.GetGameFrame() > 0 or lockPlayerID) then
@@ -449,13 +443,14 @@ function widget:ViewResize()
 
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
-
 	RectRound = WG.FlowUI.Draw.RectRound
 
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 	font2 = WG['fonts'].getFont(fontfile2, 2, 0.2, 1.3)
 
-	if prevVsx ~= vsx or prevVsy ~= vsy then
+	if forceRefresh or prevVsx ~= vsx or prevVsy ~= vsy then
+		forceRefresh = false
+
 		for i = 1, #drawlistsCountdown do
 			gl.DeleteList(drawlistsCountdown[i])
 		end
@@ -596,4 +591,9 @@ function widget:SetConfigData(data)
 	if data.playerChangeDelay then
 		playerChangeDelay = data.playerChangeDelay
 	end
+end
+
+function widget:LanguageChanged()
+	forceRefresh = true
+	widget:ViewResize()
 end

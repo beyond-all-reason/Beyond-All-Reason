@@ -30,13 +30,16 @@ local localTeamID = nil
 local isCommander = {}
 local unitHumanName = {}
 local unitUnderattackSounds = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
-		isCommander[unitDefID] = true
-	end
-	unitHumanName[unitDefID] = unitDef.translatedHumanName
-	if (unitDef.sounds.underattack and (#unitDef.sounds.underattack > 0)) then
-		unitUnderattackSounds[unitDefID] = unitDef.sounds.underattack
+
+local function refreshUnitInfo()
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.customParams.iscommander then
+			isCommander[unitDefID] = true
+		end
+		unitHumanName[unitDefID] = unitDef.translatedHumanName
+		if (unitDef.sounds.underattack and (#unitDef.sounds.underattack > 0)) then
+			unitUnderattackSounds[unitDefID] = unitDef.sounds.underattack
+		end
 	end
 end
 
@@ -52,9 +55,12 @@ function widget:GameStart()
 end
 
 function widget:Initialize()
+	refreshUnitInfo()
+
 	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
 		widget:PlayerChanged()
 	end
+
 	localTeamID = spGetLocalTeamID()
 	lastAlarmTime = spGetTimer()
 	lastCommanderAlarmTime = spGetTimer()
@@ -83,7 +89,6 @@ function widget:UnitDamaged (unitID, unitDefID, unitTeam, damage, paralyzer)
 		end
 	end
 	lastAlarmTime = now
-
 	spEcho( Spring.I18N('ui.moveAttackNotify.underAttack', { unit = unitHumanName[unitDefID] }) )
 
 	if unitUnderattackSounds[unitDefID] then
@@ -102,4 +107,8 @@ end
 
 function widget:UnitMoveFailed(unitID, unitDefID, unitTeam)
 	spEcho( Spring.I18N('ui.moveAttackNotify.cantMove', { unit = unitHumanName[unitDefID] }) )
+end
+
+function widget:LanguageChanged()
+	refreshUnitInfo()
 end
