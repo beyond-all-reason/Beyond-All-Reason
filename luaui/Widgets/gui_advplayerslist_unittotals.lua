@@ -11,7 +11,6 @@ function widget:GetInfo()
 	}
 end
 
-
 local vsx, vsy = Spring.GetViewGeometry()
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
@@ -44,10 +43,6 @@ local uiOpacitySec = 0.5
 
 local math_isInRect = math.isInRect
 
-local textUnits = Spring.I18N('ui.unitTotals.units')
-local textTotal = Spring.I18N('ui.unitTotals.total')
-
-
 function widget:Initialize()
 	widget:ViewResize()
 	updatePosition()
@@ -68,8 +63,10 @@ local function updateValues()
 		local titleColor = '\255\210\210\210'
 		local valueColor = '\255\255\255\255'
 		local myTotalUnits = Spring.GetTeamUnitCount(Spring.GetMyTeamID())
-        font:Begin()
-		font:Print(titleColor..textUnits..'  '..valueColor..myTotalUnits..titleColor..' / '..valueColor..gameMaxUnits..'      '..titleColor..textTotal..'  '..valueColor..totalUnits, left+textXPadding, bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+		local text = Spring.I18N('ui.unitTotals.totals', { titleColor = titleColor, textColor = valueColor, units = myTotalUnits, maxUnits = gameMaxUnits, totalUnits = totalUnits })
+
+		font:Begin()
+		font:Print(text, left+textXPadding, bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
         font:End()
     end)
 end
@@ -144,7 +141,6 @@ function widget:Update(dt)
 		passedTime2 = passedTime2 - 1
 	end
 end
-
 
 function updatePosition(force)
 	if (WG['advplayerlist_api'] ~= nil) then

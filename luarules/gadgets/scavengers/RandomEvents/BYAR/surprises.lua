@@ -118,6 +118,7 @@ local function transport1(currentFrame)
 				if globalScore < scavconfig.timers.T1low then
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*8) do
+						DestroyOldBuildings()
 						local unit = unitsT1[math_random(1,#unitsT1)]
 						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
@@ -129,6 +130,7 @@ local function transport1(currentFrame)
 				elseif globalScore < scavconfig.timers.T1high then
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*12) do
+						DestroyOldBuildings()
 						local unit = unitsT1[math_random(1,#unitsT1)]
 						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
@@ -140,6 +142,7 @@ local function transport1(currentFrame)
 				elseif globalScore < scavconfig.timers.T2start then
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*16) do
+						DestroyOldBuildings()
 						local unit = unitsT1[math_random(1,#unitsT1)]
 						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
@@ -151,6 +154,7 @@ local function transport1(currentFrame)
 				elseif globalScore < scavconfig.timers.T2low then
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*20) do
+						DestroyOldBuildings()
 						local unit = unitsT1[math_random(1,#unitsT1)]
 						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
@@ -162,6 +166,7 @@ local function transport1(currentFrame)
 				elseif globalScore < scavconfig.timers.T2high then
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*24) do
+						DestroyOldBuildings()
 						local unit = unitsT1[math_random(1,#unitsT1)]
 						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
@@ -173,6 +178,7 @@ local function transport1(currentFrame)
 				elseif globalScore < scavconfig.timers.T3start then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*20) do
+						DestroyOldBuildings()
 						local unit = unitsT2[math_random(1,#unitsT2)]
 						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
@@ -184,6 +190,7 @@ local function transport1(currentFrame)
 				elseif globalScore < scavconfig.timers.T3low then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*22) do
+						DestroyOldBuildings()
 						local unit = unitsT2[math_random(1,#unitsT2)]
 						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
@@ -195,6 +202,7 @@ local function transport1(currentFrame)
 				elseif globalScore < scavconfig.timers.T3high then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*24) do
+						DestroyOldBuildings()
 						local unit = unitsT2[math_random(1,#unitsT2)]
 						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
@@ -206,6 +214,7 @@ local function transport1(currentFrame)
 				elseif globalScore < scavconfig.timers.T4start then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*26) do
+						DestroyOldBuildings()
 						local unit = unitsT2[math_random(1,#unitsT2)]
 						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
@@ -217,6 +226,7 @@ local function transport1(currentFrame)
 				elseif globalScore < scavconfig.timers.T4low then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*28) do
+						DestroyOldBuildings()
 						local unit = unitsT2[math_random(1,#unitsT2)]
 						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
@@ -228,6 +238,7 @@ local function transport1(currentFrame)
 				elseif globalScore < scavconfig.timers.T4high then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*30) do
+						DestroyOldBuildings()
 						local unit = unitsT2[math_random(1,#unitsT2)]
 						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
@@ -239,6 +250,7 @@ local function transport1(currentFrame)
 				else
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*32) do
+						DestroyOldBuildings()
 						local unit = unitsT2[math_random(1,#unitsT2)]
 						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)

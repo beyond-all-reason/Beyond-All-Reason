@@ -53,7 +53,7 @@ local GetPlayerInfo = Spring.GetPlayerInfo
 local GetTeamColor = Spring.GetTeamColor
 local GetTeamResources = Spring.GetTeamResources
 
-local RectRound, UiElement, elementPadding
+local RectRound, UiElement
 
 local font, chobbyInterface, sideImageList
 
@@ -66,11 +66,11 @@ local widgetHeight = 0
 local widgetWidth = 130
 local tH = 40 -- team row height
 local WBadge = 14 -- width of player badge (side icon)
-local iPosX, iPosY
 local cW = 100 -- column width
 local ctrlDown = false
 local textsize = 14
 local maxPlayers = 0
+local refreshCaptions = false
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
@@ -81,7 +81,6 @@ local borderPadding = 4.5
 local avgFrames = 8
 local xRelPos, yRelPos = 1, 1
 local widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
-local widgetRight = widgetPosX + widgetWidth
 local singleTeams = (#Spring.GetTeamList() - 1 == #Spring.GetAllyTeamList() - 1)
 local enableStartposbuttons = not Spring.GetModOptions().ffa_mode	-- spots wont match when ffa
 local myFullview = select(2, Spring.GetSpectatingState())
@@ -124,14 +123,12 @@ local function formatRes(number)
 	elseif number > 1000 then
 		label = tconcat({ strsub(round(number / 1000, 1), 1, 2 + (strfind(round(number / 1000, 1), ".", nil, true) or 0)), "k" })
 	elseif number > 10 then
-		--label = strsub(round(number, 0), 1, 3 + strfind(round(number, 0), ".", nil, true))
 		label = strsub(round(number, 0), 1, 3 + (strfind(round(number, 0), ".", nil, true) or 0))
 	else
 		label = strsub(round(number, 1), 1, 2 + (strfind(round(number, 1), ".", nil, true) or 0))
 	end
 	return tostring(label)
 end
-
 
 local function getTeamSum(allyIndex, param)
 	local tValue = 0
@@ -237,7 +234,6 @@ local function updateButtons()
 		widgetPosY = topbarArea[2] - widgetHeight
 	end
 
-	widgetRight = widgetPosX + widgetWidth
 	if widgetPosX + widgetWidth / 2 > vsx / 2 then
 		right = true
 	else
@@ -340,7 +336,6 @@ local function setTeamTable(teamID)
 		side = cp.side
 	end
 
-	-- code from ecostats widget
 	local teamside
 	if Spring.GetTeamRulesParam(teamID, 'startUnit') then
 		local startunit = Spring.GetTeamRulesParam(teamID, 'startUnit')
@@ -437,10 +432,7 @@ local function Init()
 
 	teamData = {}
 	allyData = {}
-
 	Button = {}
-	iPosX = {}
-	iPosY = {}
 
 	right = widgetPosX / vsx > 0.5
 	widgetHeight = getNbTeams() * tH + (2 * sizeMultiplier)
@@ -488,7 +480,6 @@ local function Init()
 	lastPlayerChange = GetGameFrame()
 end
 
-
 local function setReclaimerUnits()
 	reclaimerUnits = {}
 	local teamList = GetTeamList()
@@ -509,10 +500,8 @@ end
 function widget:Initialize()
 	if not (Spring.GetSpectatingState() or isReplay) then
 		inSpecMode = false
-		Spring.Echo("Ecostats: widget loaded in active player mode")
 	else
 		inSpecMode = true
-		Spring.Echo("Ecostats: widget loaded in spectator mode")
 		setReclaimerUnits()
 	end
 	if GetGameSeconds() > 0 then
@@ -570,7 +559,6 @@ function widget:Shutdown()
 	WG['ecostats'] = nil
 end
 
-
 local function makeSideImageList()
 	if not inSpecMode then
 		return
@@ -597,7 +585,6 @@ local function UpdateAllTeams()
 		for _, teamID in pairs(data.teams) do
 			if inSpecMode or teamData[teamID] and teamData[teamID].allyID == myAllyID then
 				setTeamTable(teamID)
-				--Echo("Updated team:",teamID,"dead:",teamData[teamID].isAI and "AI" or teamData[teamID].isDead)
 			end
 		end
 	end
@@ -885,17 +872,13 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 	local y2 = math.ceil(widgetPosY - posY + tH + widgetHeight)
 	local area = { widgetPosX, y1, widgetPosX + widgetWidth, y2 }
 
-	local borderPaddingRight = elementPadding
-	if (widgetPosX + widgetWidth) >= vsx - 0.2 then
-		borderPaddingRight = 0
-	end
-
 	UiElement(widgetPosX + sideimagesWidth, y1, widgetPosX + widgetWidth, y2, (posY > tH and 1 or 0), 0, 0, 1, 0, 1, 1, 1)
 
 	guishaderRects['ecostats_' .. allyID] = { widgetPosX + sideimagesWidth, y1, widgetPosX + widgetWidth, y2, 4 * widgetScale }
 
 	area[1] = area[1] + (widgetWidth / 12)
-	if WG['tooltip'] ~= nil and (tooltipAreas['ecostats_' .. allyID] == nil or tooltipAreas['ecostats_' .. allyID] ~= area[1] .. '_' .. area[2] .. '_' .. area[3] .. '_' .. area[4]) then
+	if WG['tooltip'] ~= nil and (tooltipAreas['ecostats_' .. allyID] == nil or tooltipAreas['ecostats_' .. allyID] ~= area[1] .. '_' .. area[2] .. '_' .. area[3] .. '_' .. area[4] or refreshCaptions) then
+		refreshCaptions = false
 		WG['tooltip'].AddTooltip('ecostats_' .. allyID, area, Spring.I18N('ui.teamEconomy.tooltip'))
 		tooltipAreas['ecostats_' .. allyID] = area[1] .. '_' .. area[2] .. '_' .. area[3] .. '_' .. area[4]
 	end
@@ -962,18 +945,15 @@ local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mou
 	if WG['tooltip'] then
 		WG['tooltip'].AddTooltip('ecostats_team_' .. tID, area, teamData[tID]["leaderName"])
 	end
-	--glTexture(sideImage)
+
 	RectRound(
 			area[1], area[2] + floor(borderPadding * 0.5), area[3], area[4] + floor(borderPadding * 0.5),
 			(area[3] - area[1]) * 0.055,
 			1, 1, 1, 1, { r * 0.75, g * 0.75, b * 0.75, 1 }, { r, g, b, 1 }
 	)
-	--glTexRect(area[1],area[2]+(borderPadding*0.5),area[3],area[4]+(borderPadding*0.5))
-	--glTexture(false)
 end
 
 function DrawSideImages()
-
 	-- do dynamic stuff without display list
 	local t = GetGameSeconds()
 
@@ -1131,15 +1111,9 @@ function widget:PlayerChanged(playerID)
 
 	lastPlayerChange = GetGameFrame()
 	if not (Spring.GetSpectatingState() or isReplay) then
-		if inSpecMode then
-			Spring.Echo("Ecostats: widget now in active player mode.")
-		end
 		inSpecMode = false
 		UpdateAllies()
 	else
-		if not inSpecMode then
-			Spring.Echo("Ecostats: widget now in spectator mode.")
-		end
 		inSpecMode = true
 		setReclaimerUnits()
 		Reinit()
@@ -1161,16 +1135,10 @@ function widget:TeamDied(teamID)
 	removeGuiShaderRects()
 
 	if not (Spring.GetSpectatingState() or isReplay) then
-		if inSpecMode then
-			Spring.Echo("Ecostats: widget now in active player mode.")
-		end
 		inSpecMode = false
 		UpdateAllies()
 		UpdateAllTeams()
 	else
-		if not inSpecMode then
-			Spring.Echo("Ecostats: widget now in spectator mode.")
-		end
 		inSpecMode = true
 		UpdateAllTeams()
 		Reinit()
@@ -1264,7 +1232,6 @@ function widget:ViewResize()
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 	widgetScale = (((vsy) / 2000) * 0.5) * (0.95 + (ui_scale - 1) / 1.5)        -- only used for rounded corners atm
 
-	elementPadding = WG.FlowUI.elementPadding
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 
@@ -1307,7 +1274,6 @@ function widget:GameFrame(frameNum)
 		gamestarted = true
 	end
 end
-
 
 local uiOpacitySec = 0.5
 function widget:Update(dt)
@@ -1366,4 +1332,9 @@ function widget:DrawScreen()
 	if math_isInRect(mx, my, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight) then
 		Spring.SetMouseCursor('cursornormal')
 	end
+end
+
+function widget:LanguageChanged()
+	refreshCaptions = true
+	Reinit()
 end
