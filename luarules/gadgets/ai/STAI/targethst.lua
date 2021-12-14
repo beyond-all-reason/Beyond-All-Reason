@@ -561,11 +561,13 @@ function TargetHST:UpdateEnemies()
 		local los = e.los
 		local ghost = e.ghost
 		local name = e.unitName
+		self.game:StartTimer(name)
+
 		local ut = self.ai.armyhst.unitTable[name]
 		if ghost and not ghost.position and not e.beingBuilt then
 			-- count ghosts with unknown positions as non-positioned threats
 			self:DangerCheck(name, e.unitID)
--- 			local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
+			-- 			local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
 			local threatLayers = self.ai.armyhst.unitTable[name].threatLayers
 			for groundAirSubmerged, layer in pairs(threatLayers) do
 				self:CountEnemyThreat(e.unitID, name, layer.threat)
@@ -601,7 +603,7 @@ function TargetHST:UpdateEnemies()
 						table.insert(cell.buildingIDs, e.unitID)
 					end
 					local hurtBy = self.ai.tool:WhatHurtsUnit(name)
--- 					local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
+					-- 					local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
 					local threatLayers = self.ai.armyhst.unitTable[name].threatLayers
 					local threatToTurtles = threatLayers.ground.threat + threatLayers.submerged.threat
 					local maxRange = max(threatLayers.ground.range, threatLayers.submerged.range)
@@ -655,18 +657,19 @@ function TargetHST:UpdateEnemies()
 		end
 		-- we dont want to target the center of the cell encase its a ledge with nothing
 		-- on it etc so target this units position instead
-		if cell then
-			cell.pos = pos
+			if cell then
+				cell.pos = pos
+			end
 		end
+	self.game:StopTimer(name)
 	end
-end
-if highestValueCell then
-	self.enemyBaseCell = highestValueCell
-	self.ai.enemyBasePosition = highestValueCell.pos
-else
-	self.enemyBaseCell = nil
-	self.ai.enemyBasePosition = nil
-end
+	if highestValueCell then
+		self.enemyBaseCell = highestValueCell
+		self.ai.enemyBasePosition = highestValueCell.pos
+	else
+		self.enemyBaseCell = nil
+		self.ai.enemyBasePosition = nil
+	end
 end
 
 function TargetHST:UpdateDamagedUnits()

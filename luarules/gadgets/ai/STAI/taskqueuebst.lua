@@ -218,7 +218,7 @@ function TaskQueueBST:CategoryEconFilter(cat,param,name)
 	elseif cat == '_convs_' then
 		check =   E.income > E.usage * 1.1 and E.full > 0.8
 	elseif cat == '_fus_' then
-		check =  (E.full < 0.5 or E.income < E.usage) or E.full < 0.3
+		check =  (E.full < 0.7 and E.income < E.usage * 1.1) or E.full < 0.4
 	elseif cat == '_geo_' then
 		check =  E.income > 100 and M.income > 15 and E.full > 0.3 and M.full > 0.2
 	elseif cat == '_jam_' then

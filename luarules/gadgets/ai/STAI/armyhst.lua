@@ -1216,7 +1216,7 @@ function ArmyHST:GetUnitTable()
 		if longRange then
 			utable.threat = utable.metalCost
 		end
-		if self.antinukes[unitName] or self.nukeList[unitName] or self.bigPlasmaList[unitName] or self._shield_[unitName] then
+		if self.antinukes[unitName] or self.nukeList[unitName] or self.bigPlasmaList[unitName] or self._shield_[unitName] or self._juno_ then
 			utable.threat = 0
 			utable.maxRange = 0
 		end

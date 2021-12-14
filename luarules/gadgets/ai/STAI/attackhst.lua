@@ -12,7 +12,7 @@ local floor = math.floor
 local ceil = math.ceil
 
 function AttackHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.visualdbg = true
 	self.recruits = {}
 	self.count = {}
@@ -228,7 +228,7 @@ function AttackHST:targetCell(representative, position, ourThreat)
 		self.lastAttackCell = TG.cell
 		return TG.cell
 	end
-	self:Warn('notargetfoundforattackhst')
+	self:EchoDebug('no target found for attackhst')
 end
 
 function AttackHST:SquadDisband(squad, squadIndex)
@@ -367,7 +367,7 @@ end
 function AttackHST:SquadAdvance(squad)
 	self:EchoDebug("advance")
 	squad.idleCount = 0
-	self:Warn('squad.pathStep',squad.pathStep,'#squad.path',#squad.path)
+	self:EchoDebug('squad.pathStep',squad.pathStep,'#squad.path',#squad.path)
 	if squad.pathStep == #squad.path then
 		self:EchoDebug('advance retarget')
 		self:SquadReTarget(squad)
