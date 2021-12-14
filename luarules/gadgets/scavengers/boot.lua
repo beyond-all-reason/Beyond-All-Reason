@@ -144,9 +144,12 @@ end
 
 function DestroyOldBuildings()
 	local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-	local unitCountBuffer = scavMaxUnits*0.05
+	local unitCountBuffer = scavMaxUnits*0.1
 	if unitCount + unitCountBuffer > scavMaxUnits then 
 		for i = 1,((unitCount + unitCountBuffer)-scavMaxUnits) do
+			if i > 20 then
+				break
+			end
 			if #BaseCleanupQueue > 0 then
 				Spring.DestroyUnit(BaseCleanupQueue[1], true, false)
 				table.remove(BaseCleanupQueue, 1)
