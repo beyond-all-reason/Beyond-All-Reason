@@ -607,8 +607,7 @@
 				"reconnected": "No Owner Mode: Team %{team} reconnected"
 			},
 			"unitTotals": {
-				"units": "units",
-				"total": "total"
+				"totals": "%{titleColor}Units  %{textColor}%{units} / %{maxUnits}      %{titleColor}Total  %{textColor}%{totalUnits}"
 			},
 			"factionPicker": {
 				"pick": "Pick your faction"

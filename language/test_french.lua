@@ -673,8 +673,7 @@ return {
 				reconnected= "No Owner Mode: Team %{team} reconnected",
 			},
 			unitTotals = {
-				units = "Le units",
-				total = "Le total",
+				totals = "Le %{titleColor}Units  %{textColor}%{units} / %{maxUnits}      %{titleColor}Total  %{textColor}%{totalUnits}",
 			},
 			factionPicker = {
 				pick = "Le Pick your faction",
