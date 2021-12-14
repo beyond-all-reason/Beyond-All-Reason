@@ -84,6 +84,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			SetUnitCOBValue(unitID, COB_CRASHING, 1)
 			SetUnitNoSelect(unitID,true)
 			SetUnitNoMinimap(unitID,true)
+			Spring.SetUnitAlwaysVisible(unitID, true)
 			for weaponID, weapon in pairs(UnitDefs[unitDefID].weapons) do
 				SetUnitWeaponState(unitID, weaponID, "reloadTime", 9999)
 				SetUnitWeaponState(unitID, weaponID, "range", 0)
@@ -102,7 +103,7 @@ function gadget:GameFrame(gf)
 	if crashingCount > 0 and gf % 44 == 1 then
 		for unitID,deathGameFrame in pairs(crashing) do
 			if gf >= deathGameFrame then
-				DestroyUnit(unitID, false, false)
+				DestroyUnit(unitID, false, true) --dont seld, but also dont leave wreck at all
 			end
 		end
 	end
