@@ -84,6 +84,63 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
+	if Spring.GetModOptions().newdgun then
+		if name == 'armcom' or name == 'corcom' then
+			uDef.weapondefs.disintegrator = {
+				areaofeffect = 200,
+				avoidGround = false,
+				avoidFriendly = false,
+				avoidFeature = false,
+				avoidNeutral = false,
+				collideEnemy = false,
+				collideFriendly = false,
+				collideFeature = false,
+				collideGround = false,
+				collideNeutral = false,
+				burnblow = true, --this fixes passing through the targeted unit and missing
+				bouncerebound = 0,
+				commandfire = true,
+				craterboost = 0,
+				cratermult = 0.15,
+				edgeeffectiveness = 0.75,
+				energypershot = 500,
+				explosiongenerator = "custom:genericshellexplosion-large-aoe",
+				firestarter = 100,
+				firesubmersed = false,
+				impulseboost = 0,
+				impulsefactor = 0,
+				name = "Disintegrator",
+				noexplode = false,
+				noselfdamage = true,
+				range = 250,
+				reloadtime = 3,
+				size = 8,
+				soundhit = "xplomas2",
+				soundhitwet = "sizzle",
+				soundstart = "disigun1",
+				soundhitvolume = 36,
+				soundstartvolume = 96,
+				soundtrigger = true,
+				tolerance = 20000,
+				turret = true,
+				waterweapon = true,
+				weapontype = "Cannon",
+				weaponvelocity = 600,
+				customparams = {
+					expl_light_heat_radius = 12,
+					expl_light_opacity = 0.32,
+					expl_light_radius = 340,
+					expl_light_color = "1 0.83 0.53",
+				},
+				damage = {
+					default = 1000000,
+					scavboss = 1000,
+					armcom = 500,
+					corcom = 500,
+				},
+			}
+		end
+	end
 	-- disable wrecks for Control Points mode
 	if Spring.GetModOptions().scoremode ~= "disabled" then
 		uDef.corpse = nil
@@ -593,6 +650,15 @@ end
 
 -- process weapondef
 function WeaponDef_Post(name, wDef)
+	if Spring.GetModOptions().newdgun then
+		if name == 'commanderexplosion' then
+			wDef.damage = {
+				default = 50000,
+				commanders = 1000,
+			}
+		end
+	end
+
 	if not SaveDefsToCustomParams then
 		-------------- EXPERIMENTAL MODOPTIONS
 		---- SHIELD CHANGES
@@ -696,7 +762,6 @@ function WeaponDef_Post(name, wDef)
 		ProcessSoundDefaults(wDef)
 	end
 end
-
 -- process effects
 function ExplosionDef_Post(name, eDef)
 	--[[
