@@ -98,18 +98,21 @@ function BehaviourFactory:defaultBehaviours(unit)
 	end
 	if army.raiders[un] then
 -- 		table.insert(b, AttackerBST)
-		table.insert(b, RaiderBST)
+-- 		table.insert(b, RaiderBST)
+		table.insert(b, RaidBST)
  		table.insert(b, ScoutBST)
-		table.insert(b, DefendBST)
+		--table.insert(b, DefendBST)
 		--self:EchoDebug()
 	end
 	if army.breaks[un] then
 		table.insert(b, AttackerBST)
+		--table.insert(b, RaiderBST)
 		table.insert(b, DefendBST)
 		--self:EchoDebug()
 	end
 	if army.artillerys[un] then
 		table.insert(b, AttackerBST)
+		table.insert(b, DefendBST)
 		--self:EchoDebug()
 	end
 	if army.battles[un] then
@@ -124,7 +127,8 @@ function BehaviourFactory:defaultBehaviours(unit)
 	end
 	if army.airgun[un] then
 		table.insert(b, RaiderBST)
-		table.insert(b, AttackerBST)
+		table.insert(b, DefendBST)
+		--table.insert(b, AttackerBST)
 		--self:EchoDebug()
 	end
 	if army.fighterairs[un] then
@@ -146,7 +150,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 		--self:EchoDebug()
 	end
 	if army.amphibious[un] then
--- 		table.insert(b, AttackerBST)
+		table.insert(b, AttackerBST)
 		table.insert(b, RaiderBST)
 		table.insert(b, DefendBST)
 		--self:EchoDebug()
@@ -161,7 +165,8 @@ function BehaviourFactory:defaultBehaviours(unit)
 		--self:EchoDebug()
 	end
 	if army.spiders[un] then
-		table.insert(b, AttackerBST)
+		table.insert(b, ScoutBST)
+		table.insert(b, RaiderBST)
 		--self:EchoDebug()
 	end
 	if army.antinukes[un] then

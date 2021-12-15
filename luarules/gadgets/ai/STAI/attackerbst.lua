@@ -1,5 +1,5 @@
 function IsAttacker(unit)
--- 	return self.ai.armyhst.attackerlist[unit:Internal():Name()] or false
+	-- 	return self.ai.armyhst.attackerlist[unit:Internal():Name()] or false
 	return self.ai.armyhst.unitTable[unit:Internal():Name()].isAttacker
 end
 
@@ -14,6 +14,7 @@ AttackerBST.DebugEnabled = false
 function AttackerBST:Init()
 	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
+	self.network = network
 	self.name = self.unit:Internal():Name()
 	local ut = self.ai.armyhst.unitTable[self.name]
 	self.level = ut.techLevel - 1
@@ -22,7 +23,7 @@ function AttackerBST:Init()
 	self.congSize = self.size * 0.67 -- how much self.ai.tool:distance between it and other attackers when congregating
 	self.range = math.max(ut.groundRange, ut.airRange, ut.submergedRange)
 	self.weaponDistance = self.range * 0.9
-	self.sightDistance = ut.losRadius * 0.9
+	self.sightDistance = ut.losRadius --* 0.9
 	self.sturdy = self.ai.armyhst.battles[self.name] or self.ai.armyhst.breaks[self.name]
 	if ut.groundRange > 0 then
 		self.hits = "ground"
@@ -48,7 +49,7 @@ function AttackerBST:OwnerDead()
 	self.attacking = nil
 	self.active = nil
 	self.unit = nil
-	self.ai.attackhst:NeedMore(self)
+	--self.ai.attackhst:NeedMore(self)
 	self.ai.attackhst:RemoveRecruit(self)
 	self.ai.attackhst:RemoveMember(self)
 end
@@ -69,7 +70,7 @@ function AttackerBST:Priority()
 	if not self.attacking then
 		return 0
 	else
-		return 100
+		return 200
 	end
 end
 
@@ -86,14 +87,23 @@ function AttackerBST:Deactivate()
 end
 
 function AttackerBST:Update()
+	local f = self.game:Frame()
+	if f % 19 ~= 0 then
+		return
+	end
+	if not self.active and self.squad and self.target then
+		self.unit:ElectBehaviour()
+	end
+	if not self.mtype then
+		self:Warn('no mtype and network')
+	end
 	if self.damaged then
-		local f = self.game:Frame()
 		if f > self.damaged + 450 then
 			self.damaged = nil
 		end
 	end
 	if self.timeout then
-		if self.game:Frame() >= self.timeout	then
+		if f >= self.timeout	then
 			self.game:SendToConsole("timeout triggered")
 			self.timeout = nil
 			-- self.ai.attackhst:RemoveMember(self)
@@ -105,7 +115,7 @@ function AttackerBST:Update()
 	end
 	if self.active and self.needToMoveToTarget then
 		self.needToMoveToTarget = false
--- 		self.unit:Internal():Move(self.target)
+		--self.unit:Internal():Move(self.target)
 		self.unit:Internal():AttackMove(self.target) --need to check this
 
 	end
@@ -115,6 +125,7 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 	self.idle = false
 	self.attacking = true
 	if reverseAttackAngle then
+		self:EchoDebug('adv reverse')
 		local awayDistance = math.min(self.sightDistance, self.weaponDistance)
 		if not self.sturdy or self.ai.loshst:IsInLos(pos) then
 			awayDistance = self.weaponDistance
@@ -122,21 +133,27 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 		local myAngle = self.ai.tool:AngleAdd(reverseAttackAngle, self.formationAngle)
 		self.target = self.ai.tool:RandomAway( pos, awayDistance, nil, myAngle)
 	else
+		self:EchoDebug('adv drit')
 		self.target = self.ai.tool:RandomAway( pos, self.formationDist, nil, perpendicularAttackAngle)
 	end
 	local canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
+
 	if canMoveThere and self.squad then
+		self:EchoDebug('adv', canMoveThere)
 		self.squad.lastValidMove = self.target
 	elseif self.squad and self.squad.lastValidMove then
+		self:EchoDebug('adv lastvalidMove',self.squad.lastValidMove)
 		self.target = self.ai.tool:RandomAway( self.squad.lastValidMove, self.congSize)
 		canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
 	end
+	self:EchoDebug('adv',self.attacking,self.active,self.target.x,self.target.z)
 	if self.active and canMoveThere then
+		self:EchoDebug('adv move',self.target.x,self.target.z)
 		-- local framesToArrive = 30 * (self.ai.tool:Distance(self.unit:Internal():GetPosition(), self.target) / self.speed) * 2
 		-- game:SendToConsole("frames to arrive", framesToArrive)
 		-- self.timeout = self.game:Frame() + framesToArrive
-		self.unit:Internal():AttackMove(self.target) --need to check this
-		--self.unit:Internal():Move(self.target)
+		--self.unit:Internal():AttackMove(self.target) --need to check this
+		self.unit:Internal():Move(self.target)
 	end
 	return canMoveThere
 end
@@ -161,15 +178,17 @@ function AttackerBST:SetMoveState()
 	local thisUnit = self.unit
 	if thisUnit then
 		local unitName = self.name
-		local floats = api.vectorFloat()
+		--local floats = api.vectorFloat()
 		if self.ai.armyhst.battles[unitName] then
-			-- floats:push_back(MOVESTATE_ROAM)
-			floats:push_back(MOVESTATE_MANEUVER)
+			thisUnit:Internal():HoldPosition()
+			--floats:push_back(MOVESTATE_MANEUVER)
 		elseif self.ai.armyhst.breaks[unitName] then
-			floats:push_back(MOVESTATE_MANEUVER)
+			thisUnit:Internal():HoldPosition()
+			--floats:push_back(MOVESTATE_MANEUVER)
 		else
-			floats:push_back(MOVESTATE_HOLDPOS)
+			thisUnit:Internal():HoldPosition()
+			--floats:push_back(MOVESTATE_HOLDPOS)
 		end
-		thisUnit:Internal():ExecuteCustomCommand(CMD_MOVE_STATE, floats)
+		--thisUnit:Internal():ExecuteCustomCommand(CMD_MOVE_STATE, floats)
 	end
 end

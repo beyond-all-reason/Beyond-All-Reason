@@ -38,8 +38,8 @@ local layerNames = {"ground", "air", "submerged"}
 local unitThreatLayers = {}
 local whatHurtsUnit = {}
 local whatHurtsMtype = {}
-local unitWeaponLayers = {}
-local unitWeaponMtypes = {}
+-- local unitWeaponLayers = {}
+-- local unitWeaponMtypes = {}
 
 local quadX = { -1, 1, -1, 1 }
 local quadZ = { -1, -1, 1, 1 }
@@ -186,30 +186,29 @@ end
 
 function Tool:RectsOverlap(rectA, rectB)
 	return rectA.x1 < rectB.x2 and
-           rectB.x1 < rectA.x2 and
-           rectA.z1 < rectB.z2 and
-           rectB.z1 < rectA.z2
+		rectB.x1 < rectA.x2 and
+		rectA.z1 < rectB.z2 and
+		rectB.z1 < rectA.z2
 end
 
 function Tool:pairsByKeys(t, f)
-  local a = {}
-  for n in pairs(t) do table.insert(a, n) end
-  table.sort(a, f)
-  local i = 0      -- iterator variable
-  local iter = function ()   -- iterator function
-    i = i + 1
-    if a[i] == nil then return nil
-    else return a[i], t[a[i]]
-    end
-  end
-  return iter
+	local a = {}
+	for n in pairs(t) do table.insert(a, n) end
+	table.sort(a, f)
+	local i = 0      -- iterator variable
+	local iter = function ()   -- iterator function
+		i = i + 1
+		if a[i] == nil then return nil
+	else return a[i], t[a[i]]
 end
-
+end
+return iter
+end
 
 function Tool:listHasKey( value, list )
 	for k,v in pairs(list) do
 		if k == value then
-			return true
+			return v
 		end
 	end
 	return false
@@ -218,7 +217,7 @@ end
 function Tool:listHasValue( list,value )
 	for k,v in pairs(list) do
 		if v == value then
-			return true
+			return k
 		end
 	end
 	return false
@@ -254,10 +253,7 @@ function Tool:countMyUnit( targets )
 	local counter = 0
 	for i,target in pairs(targets) do
 		self:EchoDebug('target',target)
-
 		if type(target) == 'number' then
-			self:EchoDebug()
--- 			local id = self.ai.armyhst.unitTable[name].defId --TODO ????? self.name????
 			counter = counter + self.game:GetTeamUnitDefCount(team,target)
 		elseif self.ai.armyhst[target] then
 			for name,t in pairs(self.ai.armyhst[target]) do
@@ -299,6 +295,143 @@ function Tool:CustomCommand(unit, cmdID, cmdParams)
 	end
 	return unit:ExecuteCustomCommand(cmdID, floats)
 end
+
+
+
+function Tool:WhatHurtsUnit(unitName, mtype, position)
+	local hurts = whatHurtsMtype[mtype] or whatHurtsUnit[unitName]
+	if hurts ~= nil then return hurts else hurts = {} end
+	if unitName then
+		--game:SendToConsole('testparam',self.ai.armyhst.testparam)
+		local ut = self.ai.armyhst.unitTable[unitName]
+		if ut then
+			mtype = ut.mtype
+		end
+	end
+	if mtype == "veh" or mtype == "bot" or mtype == "amp" or mtype == "hov" or mtype == "shp" then
+		hurts["ground"] = true
+	end
+	if mtype == "air" then
+		hurts["air"] = true
+	end
+	if mtype == "sub" or mtype == "shp" or mtype == "amp" then
+		hurts["submerged"] = true
+	end
+	if unitName then whatHurtsUnit[unitName] = hurts end
+	if mtype then whatHurtsMtype[mtype] = hurts end
+	if mtype == "amp" and position ~= nil then
+		-- special case: amphibious need to check whether underwater or not
+		local underwater = position.y < 0
+		if underwater then
+			return { ground = false, air = false, submerged = true}
+		else
+			return { ground = true, air = false, submerged = true }
+		end
+	end
+	return hurts
+end
+
+function Tool:BehaviourPosition(behaviour)
+	if behaviour == nil then return end
+	if behaviour.unit == nil then return end
+	local unit = behaviour.unit:Internal()
+	if unit == nil then return end
+	return unit:GetPosition()
+end
+
+function Tool:HorizontalLine(grid, x, z, tx, sets, adds)
+	for ix = x, tx do
+		grid[ix] = grid[ix] or {}
+		if type(sets) == 'table' or type(adds) == 'table' then
+			grid[ix][z] = grid[ix][z] or {}
+			local cell = grid[ix][z]
+			if sets then
+				for k, v in pairs(sets) do
+					cell[k] = v
+				end
+			end
+			if adds then
+				for k, v in pairs(adds) do
+					cell[k] = (cell[k] or 0) + v
+				end
+			end
+		else
+			if sets then
+				grid[ix][z] = sets
+			end
+			if adds then
+				grid[ix][z] = (grid[ix][z] or 0) + adds
+				if grid[ix][z] == 0 then grid[ix][z] = nil end
+			end
+		end
+	end
+	return grid
+end
+
+function Tool:Plot4(grid, cx, cz, x, z, sets, adds)
+	grid = self:HorizontalLine(grid, cx - x, cz + z, cx + x, sets, adds)
+	if x ~= 0 and z ~= 0 then
+		grid = self:HorizontalLine(grid, cx - x, cz - z, cx + x, sets, adds)
+	end
+	return grid
+end
+
+function Tool:FillCircle(grid, gridElmos, position, radius, sets, adds)
+	local cx = ceil(position.x / gridElmos)
+	local cz = ceil(position.z / gridElmos)
+	radius = max( 0, radius - (gridElmos/2) )
+	local cradius = floor(radius / gridElmos)
+	if cradius > 0 then
+		local err = -cradius
+		local x = cradius
+		local z = 0
+		while x >= z do
+			local lastZ = z
+			err = err + z
+			z = z + 1
+			err = err + z
+			grid = self:Plot4(grid, cx, cz, x, lastZ, sets, adds)
+			if err >= 0 then
+				if x ~= lastZ then grid = self:Plot4(grid, cx, cz, lastZ, x, sets, adds) end
+				err = err - x
+				x = x - 1
+				err = err - x
+			end
+		end
+	end
+	return grid
+end
+
+function Tool:SimplifyPath(path)
+	if #path < 3 then
+		return path
+	end
+	local lastAngle
+	local removeIds = {}
+	for i = 1, #path-1 do
+		local node1 = path[i]
+		local node2 = path[i+1]
+		local angle = Tool:AngleAtoB(node1.position.x, node1.position.z, node2.position.x, node2.position.z)
+		if lastAngle then
+			local adist = AngleDist(angle, lastAngle)
+			if adist < 0.2 then
+				removeIds[node1.id] = true
+			end
+		end
+		lastAngle = angle
+	end
+	for i = #path-1, 2, -1 do
+		local node = path[i]
+		if removeIds[node.id] then
+			table.remove(path, i)
+		end
+	end
+	return path
+end
+
+
+
+--[[
 
 function Tool:ThreatRange(unitName, groundAirSubmerged)
 	local threatLayers = unitThreatLayers[unitName]
@@ -363,99 +496,49 @@ function Tool:UnitThreatRangeLayers(unitName)
 	return threatLayers
 end
 
-function Tool:UnitWeaponLayerList(unitName)
-	local weaponLayers = unitWeaponLayers[unitName]
-	if weaponLayers then return weaponLayers end
-	weaponLayers = {}
-	local ut = self.ai.armyhst.unitTable[unitName]
-	if not ut then
-		return weaponLayers
-	end
-	if ut.groundRange > 0 then
-		table.insert(weaponLayers, "ground")
-	end
-	if ut.airRange > 0 then
-		table.insert(weaponLayers, "air")
-	end
-	if ut.submergedRange > 0 then
-		table.insert(weaponLayers, "submerged")
-	end
-	unitWeaponLayers[unitName] = weaponLayers
-	return weaponLayers
-end
-
-function Tool:UnitWeaponMtypeList(unitName)
-	if unitName == nil then return {} end
-	if unitName == self.ai.armyhst.DummyUnitName then return {} end
-	local mtypes = unitWeaponMtypes[unitName]
-	if mtypes then
-		return mtypes
-	end
-	local utable = self.ai.armyhst.unitTable[unitName]
-	mtypes = {}
-	if utable.groundRange > 0 then
-		table.insert(mtypes, "veh")
-		table.insert(mtypes, "bot")
-		table.insert(mtypes, "amp")
-		table.insert(mtypes, "hov")
-		table.insert(mtypes, "shp")
-	end
-	if utable.airRange > 0 then
-		table.insert(mtypes, "air")
-	end
-	if utable.submergedRange > 0 then
-		table.insert(mtypes, "sub")
-		table.insert(mtypes, "shp")
-		table.insert(mtypes, "amp")
-	end
-	unitWeaponMtypes[unitName] = mtypes
-	return mtypes
-end
-
-function Tool:WhatHurtsUnit(unitName, mtype, position)
-	local hurts = whatHurtsMtype[mtype] or whatHurtsUnit[unitName]
-	if hurts ~= nil then return hurts else hurts = {} end
-	if unitName then
-		--game:SendToConsole('testparam',self.ai.armyhst.testparam)
-		local ut = self.ai.armyhst.unitTable[unitName]
-		if ut then
-			mtype = ut.mtype
+function Tool:serialize (o, keylist,reset)
+if reset then output = '' end
+if keylist == nil then keylist = "" end
+if type(o) == "number" then
+output = output .. tostring(o)
+	elseif type(o) == "boolean" then
+output = output ..  tostring(o)
+	elseif type(o) == "string" then
+output = output .. string.format("%q", o)
+	elseif type(o) == "userdata" then
+-- assume it's a position
+output = output .. "api.Position()"
+table.insert(savepositions, {keylist = keylist, position = o})
+--mapdatafile:write("{ x = " .. math.ceil(o.x) .. ", y = " .. math.ceil(o.y) .. ", z = " .. math.ceil(o.z) .. " }")
+	elseif type(o) == "table" then
+output = output .. ("{\n")
+for k,v in pairs(o) do
+output = output .. ("  [")
+self:serialize(k,keylist)
+output = output .. ("] = ")
+local newkeylist
+if type(v) == "table" or type(v) == "userdata" then
+if type(k) == "string" then
+newkeylist = keylist .. "[\""  .. k .. "\"]"
+				elseif type(k) == "number" then
+newkeylist = keylist .. "["  .. k .. "]"
+				end
+			end
+self:serialize(v, newkeylist)
+output = output .. (",\n")
 		end
+output = output .. ("}\n")
+	else
+error("cannot self:serialize a " .. type(o))
 	end
-	if mtype == "veh" or mtype == "bot" or mtype == "amp" or mtype == "hov" or mtype == "shp" then
-		hurts["ground"] = true
-	end
-	if mtype == "air" then
-		hurts["air"] = true
-	end
-	if mtype == "sub" or mtype == "shp" or mtype == "amp" then
-		hurts["submerged"] = true
-	end
-	if unitName then whatHurtsUnit[unitName] = hurts end
-	if mtype then whatHurtsMtype[mtype] = hurts end
-	if mtype == "amp" and position ~= nil then
-		-- special case: amphibious need to check whether underwater or not
-		local underwater = position.y < 0
-		if underwater then
-			return { ground = false, air = false, submerged = true}
-		else
-			return { ground = true, air = false, submerged = true }
-		end
-	end
-	return hurts
+return output
 end
 
-function Tool:BehaviourPosition(behaviour)
-	if behaviour == nil then return end
-	if behaviour.unit == nil then return end
-	local unit = behaviour.unit:Internal()
-	if unit == nil then return end
-	return unit:GetPosition()
-end
+
 
 function Tool:ClosestBuildPos( utype,pos, searchRadius, minDistance, buildFacing, validFunction)
-	self.DebugEnabled = true
-	unitdefID = utype.id
+self.DebugEnabled = true
+unitdefID = utype.id
 -- 	if type(unitdefID) == 'table' then
 -- 		for i,v in pairs (unitdefID) do
 -- 			self:EchoDebug('i',i,'v',v)
@@ -464,180 +547,99 @@ function Tool:ClosestBuildPos( utype,pos, searchRadius, minDistance, buildFacing
 -- 		self:EchoDebug(id , unitdefID)
 --
 -- 	end
-	--Spring.ClosestBuildPos(teamID, unitdefID, worldx,worldy,worldz, searchRadius, minDistance, buildFacing) -> buildx,buildy,buildz  to LuaSyncedRead
-	if not unitdefID then
-		self:EchoDebug('non-valid unit def ID')
-		self.DebugEnabled = false
-		return
+--Spring.ClosestBuildPos(teamID, unitdefID, worldx,worldy,worldz, searchRadius, minDistance, buildFacing) -> buildx,buildy,buildz  to LuaSyncedRead
+if not unitdefID then
+self:EchoDebug('non-valid unit def ID')
+self.DebugEnabled = false
+return
 	end
-	if not pos then
-		self:EchoDebug('non-valid unit def ID')
-		self.DebugEnabled = false
-		return
+if not pos then
+self:EchoDebug('non-valid unit def ID')
+self.DebugEnabled = false
+return
 	end
-	self.DebugEnabled = false
-	buildFacing = buildFacing or 1
-	teamID = self.ai.id
-	searchRadius = searchRadius or 5000
-	minDistance = minDistance or 0
-	pos.y = pos.y or Spring.GetGroundHeight(pos.x,pos.z)
-	--self.game:StartTimer('toolpos')
-	local position = Spring.ClosestBuildPos(teamID, unitdefID, pos.x,pos.y,pos.z, searchRadius, minDistance, buildFacing)
-	--self.game:StopTimer('toolpos')
-	if not position then
-		self:EchoDebug('no position')
-		self.DebugEnabled = false
-		return end
+self.DebugEnabled = false
+buildFacing = buildFacing or 1
+teamID = self.ai.id
+searchRadius = searchRadius or 5000
+minDistance = minDistance or 0
+pos.y = pos.y or Spring.GetGroundHeight(pos.x,pos.z)
+--self.game:StartTimer('toolpos')
+local position = Spring.ClosestBuildPos(teamID, unitdefID, pos.x,pos.y,pos.z, searchRadius, minDistance, buildFacing)
+--self.game:StopTimer('toolpos')
+if not position then
+self:EchoDebug('no position')
+self.DebugEnabled = false
+return end
 
-	local buildable, position = self.ai.map:CanBuildHere(utype, {x = pos.x, y = pos.y, z = pos.z})
-	if not buildable then
-		self:EchoDebug('not buildable')
-		self.DebugEnabled = false
-		return
+local buildable, position = self.ai.map:CanBuildHere(utype, {x = pos.x, y = pos.y, z = pos.z})
+if not buildable then
+self:EchoDebug('not buildable')
+self.DebugEnabled = false
+return
 	end
 
 -- 	local lastDitch, lastDitchPos = self:CanBuildHere(unitdefID, builderpos)
 -- 	if not lastDitch then return end
-	validFunction = validFunction or function (position) return position end
-	position = validFunction(position)
-	if not position then
+validFunction = validFunction or function (position) return position end
+position = validFunction(position)
+if not position then
 
-		self:EchoDebug('position not valid')
-		self.DebugEnabled = false
-		return
+self:EchoDebug('position not valid')
+self.DebugEnabled = false
+return
 	end
-	self.DebugEnabled = false
-	return position
+self.DebugEnabled = false
+return position
 end
 
+-- function Tool:UnitWeaponMtypeList(unitName)
+-- 	if unitName == nil then return {} end
+-- 	if unitName == self.ai.armyhst.DummyUnitName then return {} end
+-- 	local mtypes = unitWeaponMtypes[unitName]
+-- 	if mtypes then
+-- 		return mtypes
+-- 	end
+-- 	local utable = self.ai.armyhst.unitTable[unitName]
+-- 	mtypes = {}
+-- 	if utable.groundRange > 0 then
+-- 		table.insert(mtypes, "veh")
+-- 		table.insert(mtypes, "bot")
+-- 		table.insert(mtypes, "amp")
+-- 		table.insert(mtypes, "hov")
+-- 		table.insert(mtypes, "shp")
+-- 	end
+-- 	if utable.airRange > 0 then
+-- 		table.insert(mtypes, "air")
+-- 	end
+-- 	if utable.submergedRange > 0 then
+-- 		table.insert(mtypes, "sub")
+-- 		table.insert(mtypes, "shp")
+-- 		table.insert(mtypes, "amp")
+-- 	end
+-- 	unitWeaponMtypes[unitName] = mtypes
+-- 	return mtypes
+-- end
 
-
-
-
-function Tool:HorizontalLine(grid, x, z, tx, sets, adds)
-	for ix = x, tx do
-		grid[ix] = grid[ix] or {}
-		if type(sets) == 'table' or type(adds) == 'table' then
-			grid[ix][z] = grid[ix][z] or {}
-			local cell = grid[ix][z]
-			if sets then
-				for k, v in pairs(sets) do
-					cell[k] = v
-				end
-			end
-			if adds then
-				for k, v in pairs(adds) do
-					cell[k] = (cell[k] or 0) + v
-				end
-			end
-		else
-			if sets then
-				grid[ix][z] = sets
-			end
-			if adds then
-				grid[ix][z] = (grid[ix][z] or 0) + adds
-				if grid[ix][z] == 0 then grid[ix][z] = nil end
-			end
-		end
+function Tool:UnitWeaponLayerList(unitName)
+local weaponLayers = unitWeaponLayers[unitName]
+if weaponLayers then return weaponLayers end
+weaponLayers = {}
+local ut = self.ai.armyhst.unitTable[unitName]
+if not ut then
+return weaponLayers
 	end
-	return grid
+if ut.groundRange > 0 then
+table.insert(weaponLayers, "ground")
+	end
+if ut.airRange > 0 then
+table.insert(weaponLayers, "air")
+	end
+if ut.submergedRange > 0 then
+table.insert(weaponLayers, "submerged")
+	end
+unitWeaponLayers[unitName] = weaponLayers
+return weaponLayers
 end
 
-function Tool:Plot4(grid, cx, cz, x, z, sets, adds)
-	grid = self:HorizontalLine(grid, cx - x, cz + z, cx + x, sets, adds)
-	if x ~= 0 and z ~= 0 then
-        grid = self:HorizontalLine(grid, cx - x, cz - z, cx + x, sets, adds)
-    end
-    return grid
-end
-
-function Tool:FillCircle(grid, gridElmos, position, radius, sets, adds)
-	local cx = ceil(position.x / gridElmos)
-	local cz = ceil(position.z / gridElmos)
-	radius = max( 0, radius - (gridElmos/2) )
-	local cradius = floor(radius / gridElmos)
-	if cradius > 0 then
-		local err = -cradius
-		local x = cradius
-		local z = 0
-		while x >= z do
-	        local lastZ = z
-	        err = err + z
-	        z = z + 1
-	        err = err + z
-	        grid = self:Plot4(grid, cx, cz, x, lastZ, sets, adds)
-	        if err >= 0 then
-	            if x ~= lastZ then grid = self:Plot4(grid, cx, cz, lastZ, x, sets, adds) end
-	            err = err - x
-	            x = x - 1
-	            err = err - x
-	        end
-	    end
-	end
-	return grid
-end
-
-function Tool:SimplifyPath(path)
-	if #path < 3 then
-		return path
-	end
-	local lastAngle
-	local removeIds = {}
-	for i = 1, #path-1 do
-		local node1 = path[i]
-		local node2 = path[i+1]
-		local angle = Tool:AngleAtoB(node1.position.x, node1.position.z, node2.position.x, node2.position.z)
-		if lastAngle then
-			local adist = AngleDist(angle, lastAngle)
-			if adist < 0.2 then
-				removeIds[node1.id] = true
-			end
-		end
-		lastAngle = angle
-	end
-	for i = #path-1, 2, -1 do
-		local node = path[i]
-		if removeIds[node.id] then
-			table.remove(path, i)
-		end
-	end
-	return path
-end
-
-function Tool:serialize (o, keylist,reset)
-	if reset then output = '' end
-	if keylist == nil then keylist = "" end
-	if type(o) == "number" then
-		output = output .. tostring(o)
-	elseif type(o) == "boolean" then
-		output = output ..  tostring(o)
-	elseif type(o) == "string" then
-		output = output .. string.format("%q", o)
-	elseif type(o) == "userdata" then
-		-- assume it's a position
-		output = output .. "api.Position()"
-		table.insert(savepositions, {keylist = keylist, position = o})
-		--mapdatafile:write("{ x = " .. math.ceil(o.x) .. ", y = " .. math.ceil(o.y) .. ", z = " .. math.ceil(o.z) .. " }")
-	elseif type(o) == "table" then
-		output = output .. ("{\n")
-		for k,v in pairs(o) do
-			output = output .. ("  [")
-			self:serialize(k,keylist)
-			output = output .. ("] = ")
-			local newkeylist
-			if type(v) == "table" or type(v) == "userdata" then
-				if type(k) == "string" then
-				newkeylist = keylist .. "[\""  .. k .. "\"]"
-				elseif type(k) == "number" then
-				newkeylist = keylist .. "["  .. k .. "]"
-				end
-			end
-			self:serialize(v, newkeylist)
-			output = output .. (",\n")
-		end
-		output = output .. ("}\n")
-	else
-		error("cannot self:serialize a " .. type(o))
-	end
-	return output
-end
+]]

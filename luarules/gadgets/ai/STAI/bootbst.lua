@@ -147,10 +147,10 @@ function BootBST:ExitFactory(face)
 		outX = 0
 		outZ = -200
 	elseif face == 3 then
-		outX = 200
+		outX = -200
 		outZ = 0
 	elseif face == 1 then
-		outX = -200
+		outX = 200
 		outZ = 0
 	end
 	local u = self.unit:Internal()
@@ -177,6 +177,7 @@ function BootBST:ExitFactory(face)
 -- 	out2.y = pos.y + 0
 -- 	out2.z = pos.z + outZ
  	u:Move(out)
+
 	self.lastOrderFrame = self.game:Frame()
 	self.lastExitSide = face
 end
