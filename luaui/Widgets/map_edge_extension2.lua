@@ -518,7 +518,7 @@ function widget:DrawWorldPreUnit()
 
 	--local q = gl.CreateQuery()
 	if hasClipDistance then
-		gl.ClipDistance(4, true)
+		gl.ClipDistance(1, true)
 	end
 	gl.DepthTest(GL.LEQUAL)
 	gl.DepthMask(true)
@@ -540,7 +540,7 @@ function widget:DrawWorldPreUnit()
 	gl.DepthMask(false)
 	gl.Culling(false)
 	if hasClipDistance then
-		gl.ClipDistance(4, false)
+		gl.ClipDistance(1, false)
 	end
 
 	--Spring.Echo(gl.GetQuery(q))
