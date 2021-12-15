@@ -246,7 +246,7 @@ function widget:ViewResize()
 	updateFontSize()
 end
 
-function widget:Initialize()
+local function refreshHeaders()
 	headerRemap = {
 		frame = {" ", Spring.I18N('ui.teamStats.player')},
 		metalProduced = {Spring.I18N('ui.teamStats.metal'), Spring.I18N('ui.teamStats.resourceProduced')},
@@ -261,7 +261,10 @@ function widget:Initialize()
 		unitsKilled = {Spring.I18N('ui.teamStats.units'), Spring.I18N('ui.teamStats.unitsKilled')},
 		aggressionLevel = {Spring.I18N('ui.teamStats.aggression'), Spring.I18N('ui.teamStats.aggressionLevel')},
 	}
+end
 
+function widget:Initialize()
+	refreshHeaders()
 	guiData.mainPanel.visible = false
 	widget:ViewResize()
 	local _,_, paused = Spring.GetGameSpeed()
@@ -691,4 +694,9 @@ function ReGenerateTextDisplayList()
 			lineCount = lineCount + 1 -- add line break after end of allyteam
 		end
 	font:End()
+end
+
+function widget:LanguageChanged()
+	refreshHeaders()
+	widget:ViewResize()
 end
