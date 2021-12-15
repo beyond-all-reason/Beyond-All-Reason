@@ -1022,6 +1022,16 @@ local options={
 	},
 
 	{
+		key = 'newdgun',
+		name = 'New D-Gun Mechanics',
+		desc = 'New D-Gun Mechanics',
+		type = 'bool',
+		section = 'options_experimental',
+		def = false,
+
+	},
+
+	{
 		key    = 'experimentalmorphs',
 		name   = 'Upgradeable Units',
 		desc   = 'Upgradeable Units',
