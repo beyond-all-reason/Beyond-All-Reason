@@ -219,9 +219,6 @@ function DrawWindow()
 	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(Spring.I18N('ui.gameInfo.title')) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
 
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
-
-	--UiElement(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 1, 1, 0, 0, 1,1,0,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2, {0.05,0.15,0,Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2})
-
 	gl.Color(0, 0, 0, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 
@@ -357,7 +354,8 @@ function toggle()
 	show = newShow
 end
 
-function widget:Initialize()
+local function refreshContent()
+	content = ''
 	content = content .. titlecolor .. Game.gameName .. valuegreycolor .. " (" .. Game.gameMutator .. ") " .. titlecolor .. Game.gameVersion .. "\n"
 	content = content .. keycolor .. Spring.I18N('ui.gameInfo.engine') .. separator .. valuegreycolor .. ((Game and Game.version) or (Engine and Engine.version) or Spring.I18N('ui.gameInfo.engineVersionError')) .. "\n"
 	content = content .. "\n"
@@ -402,6 +400,13 @@ function widget:Initialize()
 		content = content .. keycolor .. key .. separator .. valuegreycolor .. value .. "\n"
 	end
 
+	-- store changelog into array
+	fileLines = string.lines(content)
+end
+
+function widget:Initialize()
+	refreshContent()
+
 	widgetHandler:AddAction("customgameinfo", toggle)
 	Spring.SendCommands("unbind any+i gameinfo")
 	Spring.SendCommands("unbind i gameinfo")
@@ -421,11 +426,6 @@ function widget:Initialize()
 	WG['gameinfo'].isvisible = function()
 		return show
 	end
-	-- somehow there are a few characters added at the start that we need to remove
-	--content = string.sub(content, 4)
-
-	-- store changelog into array
-	fileLines = string.lines(content)
 
 	for i, line in ipairs(fileLines) do
 		totalFileLines = i
@@ -446,4 +446,9 @@ function widget:Shutdown()
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('gameinfo')
 	end
+end
+
+function widget:LanguageChanged()
+	refreshContent()
+	widget:ViewResize()
 end
