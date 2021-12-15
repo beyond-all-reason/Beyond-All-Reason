@@ -95,6 +95,7 @@ function UnitDef_Post(name, uDef)
 				collideEnemy = false,
 				collideFriendly = false,
 				collideFeature = false,
+				collideGround = false,
 				collideNeutral = false,
 				burnblow = true, --this fixes passing through the targeted unit and missing
 				bouncerebound = 0,
