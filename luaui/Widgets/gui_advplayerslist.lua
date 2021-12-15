@@ -2778,7 +2778,7 @@ function CreateShareSlider()
 end
 
 function GetCpuLvl(cpuUsage)
-	for level, data in pairs(pingLevelData) do
+	for level, data in ipairs(pingLevelData) do
 		if cpuUsage < data.cpuThreshold then
 			return level
 		end
@@ -2786,7 +2786,7 @@ function GetCpuLvl(cpuUsage)
 end
 
 function GetPingLvl(ping)
-	for level, data in pairs(pingLevelData) do
+	for level, data in ipairs(pingLevelData) do
 		if ping < data.pingThreshold then
 			return level
 		end
