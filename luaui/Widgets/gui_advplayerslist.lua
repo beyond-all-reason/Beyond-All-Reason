@@ -194,7 +194,7 @@ local screenshotVars = {} -- containing: finished, width, height, gameframe, dat
 
 local Background, ShareSlider, chobbyInterface, BackgroundGuishader, tipText, drawTipText, tipY, myLastCameraState
 local specJoinedOnce, scheduledSpecFullView
-local clickedName, prevClickedName
+local prevClickedPlayer
 local lockPlayerID, leftPosX, lastSliderSound, release
 local curFrame, PrevGameFrame, MainList, desiredLosmode, drawListOffset
 
@@ -2833,7 +2833,6 @@ function widget:MousePress(x, y, button)
             if i > -1 then
                 clickedPlayer = player[i]
                 clickedPlayer.id = i
-                clickedName = clickedPlayer.name
                 posY = widgetPosY + widgetHeight - clickedPlayer.posY
             end
 
@@ -2868,14 +2867,14 @@ function widget:MousePress(x, y, button)
                             return true
                         end
 
-                        if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedName == prevClickedName then
+                        if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
                             LockCamera(i)
-                            prevClickedName = ''
+                            prevClickedPlayer = {}
                             SortList()
                             CreateLists()
                             return true
                         end
-                        prevClickedName = clickedName
+                        prevClickedPlayer = clickedPlayer
                     end
                 end
 
@@ -2984,14 +2983,14 @@ function widget:MousePress(x, y, button)
                                 CreateLists()
                                 return true
                             end
-                            if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedName == prevClickedName then
+                            if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
                                 LockCamera(clickedPlayer.team)
-                                prevClickedName = ''
+                                prevClickedPlayer = {}
                                 SortList()
                                 CreateLists()
                                 return true
                             end
-                            prevClickedName = clickedName
+                            prevClickedPlayer = clickedPlayer
                         end
                     end
                 end
@@ -3375,7 +3374,6 @@ function Take(teamID, name, i)
     tookFrame = Spring.GetGameFrame()
 
     Spring_SendCommands("luarules take2 " .. teamID)
-    return
 end
 
 function widget:TeamDied(teamID)
