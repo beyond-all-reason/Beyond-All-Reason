@@ -345,3 +345,7 @@ function widget:SetConfigData(data)
 		show = false
 	end
 end
+
+function widget:LanguageChanged()
+	widget:ViewResize()
+end
