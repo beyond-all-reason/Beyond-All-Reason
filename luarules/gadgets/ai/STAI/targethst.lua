@@ -299,6 +299,7 @@ function TargetHST:Init()
 end
 
 function TargetHST:HorizontalLine(x, z, tx, threatResponse, groundAirSubmerged, val)
+	self.game:StartTimer('hl')
 	-- self:EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " with value " .. val .. " in " .. groundAirSubmerged)
 	for ix = x, tx do
 		local cell =self:GetOrCreateCellHere(ix,z)
@@ -308,16 +309,20 @@ function TargetHST:HorizontalLine(x, z, tx, threatResponse, groundAirSubmerged, 
 			--self:Warn('Cell not exist or is not in map in horizontalLine',ix,z)
 		end
 	end
+	self.game:StopTimer('hl')
 end
 
 function TargetHST:Plot4(cx, cz, x, z, threatResponse, groundAirSubmerged, val)
+	self.game:StartTimer('p4')
 	self:HorizontalLine(cx - x, cz + z, cx + x, threatResponse, groundAirSubmerged, val)
 	if x ~= 0 and z ~= 0 then
 		self:HorizontalLine(cx - x, cz - z, cx + x, threatResponse, groundAirSubmerged, val)
 	end
+	self.game:StopTimer('p4')
 end
 
 function TargetHST:FillCircle(cx, cz, radius, threatResponse, groundAirSubmerged, val)
+	self.game:StartTimer('fc')
 	local radius = mCeil(radius / cellElmos)
 	if radius > 0 then
 		local err = -radius
@@ -337,9 +342,11 @@ function TargetHST:FillCircle(cx, cz, radius, threatResponse, groundAirSubmerged
 			end
 		end
 	end
+	self.game:StopTimer('fc')
 end
 
 function TargetHST:CheckHorizontalLine(x, z, tx, threatResponse, groundAirSubmerged)
+	self.game:StartTimer('chl')
 	-- self:EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " in " .. groundAirSubmerged)
 	local value = 0
 	local threat = 0
@@ -348,13 +355,17 @@ function TargetHST:CheckHorizontalLine(x, z, tx, threatResponse, groundAirSubmer
 			local cell = self.cells[ix][z]
 			local value = cell.values[groundAirSubmerged].value -- can't hurt it
 			local threat = cell[threatResponse][groundAirSubmerged]
+			self.game:StopTimer('chl')
 			return value, threat
+
 		end
 	end
+	self.game:StopTimer('chl')
 	return value, threat
 end
 
 function TargetHST:Check4(cx, cz, x, z, threatResponse, groundAirSubmerged)
+	self.game:StartTimer('c4')
 	local value = 0
 	local threat = 0
 	local v, t = self:CheckHorizontalLine(cx - x, cz + z, cx + x, threatResponse, groundAirSubmerged)
@@ -365,10 +376,12 @@ function TargetHST:Check4(cx, cz, x, z, threatResponse, groundAirSubmerged)
 		value = value + v
 		threat = threat + t
 	end
+	self.game:StopTimer('c4')
 	return value, threat
 end
 
 function TargetHST:CheckInRadius(cx, cz, radius, threatResponse, groundAirSubmerged)
+	self.game:StartTimer('cr')
 	local radius = mCeil(radius / cellElmos)
 	local value = 0
 	local threat = 0
@@ -396,6 +409,7 @@ function TargetHST:CheckInRadius(cx, cz, radius, threatResponse, groundAirSubmer
 			end
 		end
 	end
+	self.game:StopTimer('cr')
 	return value, threat
 end
 
@@ -587,10 +601,10 @@ function TargetHST:UpdateEnemies()
 					if ut.isBuilding then
 						cell.value = cell.value + baseBuildingValue
 					else
-						-- if it moves, assume it's out to get you
-						self:FillCircle(px, pz, baseUnitRange, "threat", "ground", baseUnitThreat)
-						self:FillCircle(px, pz, baseUnitRange, "threat", "air", baseUnitThreat)
-						self:FillCircle(px, pz, baseUnitRange, "threat", "submerged", baseUnitThreat)
+						-- if it moves, assume it's out to get you--TEST
+						--self:FillCircle(px, pz, baseUnitRange, "threat", "ground", baseUnitThreat)
+						--self:FillCircle(px, pz, baseUnitRange, "threat", "air", baseUnitThreat)
+						--self:FillCircle(px, pz, baseUnitRange, "threat", "submerged", baseUnitThreat)
 					end
 				elseif los == 2 then
 					local mtype = ut.mtype
@@ -609,12 +623,16 @@ function TargetHST:UpdateEnemies()
 					local maxRange = max(threatLayers.ground.range, threatLayers.submerged.range)
 					for groundAirSubmerged, layer in pairs(threatLayers) do
 						if threatToTurtles ~= 0 and hurtBy[groundAirSubmerged] then
-							self:FillCircle(px, pz, maxRange, "response", groundAirSubmerged, threatToTurtles)
+							if ut.isBuilding then--TEST
+								self:FillCircle(px, pz, maxRange, "response", groundAirSubmerged, threatToTurtles)
+							end
 						end
 						local threat, range = layer.threat, layer.range
 						if mtype == "air" and groundAirSubmerged == "ground" or groundAirSubmerged == "submerged" then threat = 0 end -- because air units are pointless to run from
 						if threat ~= 0 then
-							self:FillCircle(px, pz, range, "threat", groundAirSubmerged, threat)
+							if ut.isBuilding then--TEST
+								self:FillCircle(px, pz, range, "threat", groundAirSubmerged, threat)
+							end
 							self:CountEnemyThreat(e.unitID, name, threat)
 						elseif mtype ~= "air" then -- air units are too hard to attack
 						local health = e.health
