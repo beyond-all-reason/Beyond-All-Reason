@@ -55,7 +55,7 @@ local spec, fullview = Spring.GetSpectatingState()
 
 local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload)
 	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then
-		Spring.Echo("Warning: Ground AO Plates GL4 attempted to add an invalid unitID:", unitID)
+		--Spring.Echo("Warning: Ground AO Plates GL4 attempted to add an invalid unitID:", unitID)
 		return nil
 	end
 	local gf = Spring.GetGameFrame()
