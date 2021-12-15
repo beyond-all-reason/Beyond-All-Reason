@@ -42,10 +42,36 @@ function LosHST:Init()
 	self:Update()
 end
 
+function LosHST:getCenter()
+	self.CENTER = api.Position()
+	local count = 0
+	self.distal = 0
+	local media = 0
+	local mediaz = 0
+	local countmedia = 0
+	self.distalUnit = nil
+	local myunits = game:GetUnits() --game:GetFriendlies()???
+	self:EchoDebug('myunits',#myunits)
+	if not myunits then return end
+	for i,u in pairs(myunits) do
+		local ut = self.ai.armyhst.unitTable[u:Name()]
+		if not ut.isWeapon then
+			local upos = u:GetPosition()
+			self.CENTER.x = self.CENTER.x + upos.x
+			self.CENTER.y = self.CENTER.y + upos.y
+			self.CENTER.z = self.CENTER.z + upos.z
+			count = count+1
+		end
+	end
+	self.CENTER.x = self.CENTER.x / count
+	self.CENTER.y = self.CENTER.y / count
+	self.CENTER.z = self.CENTER.z / count
+end
+
 function LosHST:Update()
 	local f = self.game:Frame()
 	if f % 23 == 0 then
-		--self.RADAR = scanEnemies2()
+		self:getCenter()
         self.ai.friendlyTeamID = {}
         self.ai.friendlyTeamID[self.game:GetTeamID()] = true
         for teamID, _ in pairs(self.ai.alliedTeamIds) do
@@ -332,14 +358,15 @@ function LosHST:UpdateEnemies(enemyList)
 			if self.ai.IDsWeAreAttacking[id] then
 				self.ai.attackhst:TargetDied(self.ai.IDsWeAreAttacking[id])
 			end
-			if self.ai.IDsWeAreRaiding[id] then
-				self.ai.raidhst:TargetDied(self.ai.IDsWeAreRaiding[id])
-			end
+			--if self.ai.IDsWeAreRaiding[id] then
+				--self.ai.raidhst:TargetDied(self.ai.IDsWeAreRaiding[id])
+			--end
 			self:EchoDebug("enemy " .. e.unitName .. " died!")
-			local mtypes = self.ai.tool:UnitWeaponMtypeList(e.unitName)
+
+			local mtypes = self.ai.armyhst.unitTable[e.unitName].weaponMtype--self.ai.tool:UnitWeaponMtypeList(e.unitName)
 			for i, mtype in pairs(mtypes) do
-				self.ai.raidhst:NeedMore(mtype)
-				self.ai.attackhst:NeedLess(mtype)
+-- 				self.ai.raidhst:NeedMore(mtype)
+-- 				self.ai.attackhst:NeedLess(mtype)
 				if mtype == "air" then self.ai.bomberhst:NeedLess() end
 			end
 			if DebugDrawEnabled then
@@ -368,7 +395,8 @@ function LosHST:UpdateEnemies(enemyList)
 				if e.los == 2 then
 					-- if we know what kind of unit it is, only count as a potential threat blip if it's a hurty unit
 					-- air doesn't count because there are no buildings in the air
-					local threatLayers = self.ai.tool:UnitThreatRangeLayers(e.unitName)
+-- 					local threatLayers = self.ai.tool:UnitThreatRangeLayers(e.unitName)
+					local threatLayers = self.ai.armyhst.unitTable[e.unitName].threatLayers
 					if threatLayers.ground.threat == 0 and threatLayers.submerged.threat == 0 then
 						count = false
 					end

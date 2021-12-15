@@ -11,7 +11,7 @@ local canDefend = {
 	hov = { hov = 1, bot = 1, veh = 1, shp = 1, sub = 1 },
 	shp = { shp = 1, sub = 1 },
 	sub = { sub = 1, shp = 1 },
-}
+	}
 
 DefendHST = class(Module)
 
@@ -436,6 +436,13 @@ end
 function DefendHST:RemoveDefender(dfndbehaviour)
 	-- Spring.Echo(self.ai.id, "remove defender", dfndbehaviour.hits, dfndbehaviour.mtype, self.defenders[dfndbehaviour.hits])
 	if dfndbehaviour.tough or dfndbehaviour.hits == "air" then
+-- 		print('defendersdebug',self.defenders)
+-- 		print(#self.defenders)
+-- 		print(self.defenders[dfndbehaviour.hits])
+-- 		print(#self.defenders[dfndbehaviour.hits])
+-- 		print(self.defenders[dfndbehaviour.hits][dfndbehaviour.mtype])
+-- 		print(#self.defenders[dfndbehaviour.hits][dfndbehaviour.mtype])
+
 		self:EchoDebug(self.defenders,#self.defenders,#self.defenders[dfndbehaviour.hits],#self.defenders[dfndbehaviour.hits][dfndbehaviour.mtype])
 		for i = #self.defenders[dfndbehaviour.hits][dfndbehaviour.mtype], 1, -1 do
 			local db = self.defenders[dfndbehaviour.hits][dfndbehaviour.mtype][i]
@@ -514,12 +521,14 @@ function DefendHST:FindFronts(troublingCells)
 				local nearestMobile
 				local nearestTurtleDist = 100000
 				local nearestTurtle
-				for wi = #self.wards, 1, -1 do
-					local ward = self.wards[wi]
+				for wardIndex , ward in pairs(self.wards) do
+					-- 				for wi = #self.wards, 1, -1 do
+					-- 					local ward = self.wards[wi]
+
 					if ward.behaviour ~= nil then
 						local behaviour = ward.behaviour
-						if not ward.behaviour.unit or not ward.behaviour.unit:Internal() then
-							table.remove(self.wards, wi)
+						if not ward.behaviour.unit or not ward.behaviour.unit:Internal() or not ward.behaviour.unit:Internal():IsAlive() then
+							table.remove(self.wards, wardIndex)
 						else
 							if water == behaviour.water then
 								local dist = self.ai.tool:Distance(behaviour.unit:Internal():GetPosition(), cell.pos)

@@ -230,11 +230,11 @@ function UnitHST:UnitDead(engineUnit)
 	local u = self:AIRepresentation(engineUnit)
 	if u ~= nil then
 		u:UnitDead(u)
--- 		for k,unit in pairs(self.myActiveUnits) do
--- 			if unit:HasBehaviours() then
--- 				unit:UnitDead(u)
--- 			end
--- 		end
+ 		for k,unit in pairs(self.myActiveUnits) do
+ 			if unit:HasBehaviours() then
+ 				unit:UnitDead(u)
+ 			end
+ 		end
 	end
 	-- game:SendToConsole(self.ai.id, "removing unit from unithst tables", engineUnit:ID(), engineUnit:Name())
 	self.units[engineUnit:ID()] = nil

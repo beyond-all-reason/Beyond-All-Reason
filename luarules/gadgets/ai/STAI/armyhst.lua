@@ -14,7 +14,7 @@ function ArmyHST:Init()
 	self.unitTable = {}
 	self.wrecks = {}
 	self.featureTable = {}
--------MOBILE----------------
+	-------MOBILE----------------
 
 	self.techs = {
 		corca = true,
@@ -39,7 +39,7 @@ function ArmyHST:Init()
 
 
 
-	}
+		}
 	self.engineers = {
 		armmls = true,
 		armfark = true,
@@ -47,31 +47,31 @@ function ArmyHST:Init()
 		corfast = true,
 		cormls = true,
 
-	}
+		}
 	self.wartechs = {
 		armdecom = true,
 		cordecom = true,
 		cormando = true,
 
 
-	} --decoy etc
+		} --decoy etc
 	self.rezs = {
 		armrectr = true,
 		cornecro = true,
 		armrecl = true,
 		correcl = true,
 
-	}
+		}
 	self.amptechs = {
 		armbeaver = true,
 		cormuskrat = true,
 
 
-	} --amphibious builders
+		} --amphibious builders
 	self.miners = {
 		armmlv = true,
 		cormlv = true,
-	}
+		}
 
 	self.jammers = {
 		armsjam = true,
@@ -82,7 +82,7 @@ function ArmyHST:Init()
 		corspec = true,
 
 
-	}
+		}
 	self.radars = {
 		corfink = true,--is a scout but is better used as radar cause no weapon
 		armpeep = true,--is a scout but is better used as radar cause no weapon
@@ -96,11 +96,11 @@ function ArmyHST:Init()
 		corhunt = true,
 
 
-	}
+		}
 	self.spys = {
 		armspy = true,
 		corspy = true,
-	}
+		}
 	self.transports = {
 		corvalk = true,
 		armatlas = true,
@@ -112,7 +112,7 @@ function ArmyHST:Init()
 		armtship = true,
 		corseah = true,
 
-	}
+		}
 
 	self.scouts = {
 
@@ -120,7 +120,7 @@ function ArmyHST:Init()
 		armfav = true,
 		corfav = true,
 
-	}
+		}
 	self.raiders = {
 		armfast = true,
 		armflash = true,
@@ -138,7 +138,7 @@ function ArmyHST:Init()
 		coresupp = true,
 		corkarg = true,
 
-	}
+		}
 	self.artillerys = {
 		armrock = true,
 		armart = true,
@@ -158,7 +158,7 @@ function ArmyHST:Init()
 		cortrem = true,
 		cormart = true,
 
-	}
+		}
 	self.battles = {
 		armzeus = true,
 		armmav = true,
@@ -178,7 +178,7 @@ function ArmyHST:Init()
 		corjugg = true,
 		corban = true,
 
-	}
+		}
 	self.breaks = {
 
 		armjanus = true,
@@ -197,19 +197,19 @@ function ArmyHST:Init()
 		armroy = true,
 		corroy = true,
 		corkorg = true,
-	}
+		}
 
 	self.spiders = {
 		cortermite = true,
 		armsptk = true,
 
-	}
+		}
 	self.paralyzers = {
 		corbw = true,
 		armspid = true,
 		armstil = true,
 
-	}
+		}
 	self.subkillers = {
 		armsubk = true,
 		armserp = true,
@@ -219,7 +219,7 @@ function ArmyHST:Init()
 		corshark = true,
 
 
-	} -- submarine weaponed
+		} -- submarine weaponed
 	self.bomberairs = {
 		corshad = true,
 		armthund = true,
@@ -228,7 +228,7 @@ function ArmyHST:Init()
 		armpnix = true,
 		armliche = true,
 		corsb = true,--plat
-	}
+		}
 
 	self.fighterairs = {
 		corveng = true,
@@ -237,14 +237,14 @@ function ArmyHST:Init()
 		armsfig = true, --plat
 		cortitan = true,
 		armhawk = true,
-	}
+		}
 
 	self.tpbombers = {
 		corvamp = true,
 		armlance = true,
 
 
-	}
+		}
 
 	self.airgun = {
 		armkam = true,
@@ -257,7 +257,7 @@ function ArmyHST:Init()
 		corseap = true,
 		corcut = true,
 
-	}
+		}
 
 	self.antiairs = {
 		armah = true,
@@ -274,14 +274,14 @@ function ArmyHST:Init()
 		corarch = true,
 		armpt = true, --aa+scout
 		corpt = true, --aa+scout
-	}
+		}
 
 	self.antinukes = {
 		armcarry = true,
 		corcarry = true,
 		cormabm = true,
 		armscab = true,
-	}
+		}
 
 	self.amphibious = {
 		armpincer = true,
@@ -294,26 +294,26 @@ function ArmyHST:Init()
 		armlun = true,
 		corshiva = true,
 		corsok = true,
-	}
+		}
 
 	self.crawlings = {
 		armvader = true,
 		corroach = true,
 		corsktl = true,
-	}
+		}
 
 	self.cloakables = {
 		armsnipe = true,
 		armgremlin = true,
-	}
+		}
 
--------IMMOBILE--------
+	-------IMMOBILE--------
 	self._targeting_ = {
 		armtarg = true ,
 		armfatf = true ,
 		cortarg = true ,
 		corfatf = true ,
-	}
+		}
 
 	self._geo_ = {
 		corageo = true ,
@@ -322,7 +322,7 @@ function ArmyHST:Init()
 		corgeo = true ,
 		corbhmth = true ,
 		armgmm = true ,
-	}
+		}
 
 
 	self._nano_ = {
@@ -331,18 +331,18 @@ function ArmyHST:Init()
 		cornanotc = true ,
 		cornanotcplat = true ,
 
-	}
+		}
 
 	self._solar_ = {
 		corsolar = 'coradvsol' ,
 		armsolar = 'armadvsol' ,
-	}
+		}
 
 
 	self._mex_ = {
 		cormex = 'cormoho' ,
--- 		armuwmex = 'armuwmme' ,
--- 		coruwmex = 'coruwmme' ,
+		-- 		armuwmex = 'armuwmme' ,
+		-- 		coruwmex = 'coruwmme' ,
 		cormexp = true ,
 		armmex = "armmoho" ,
 		armamex = 'armmoho' ,
@@ -351,7 +351,7 @@ function ArmyHST:Init()
 		corexp = 'cormexp' ,
 		armuwmme = true ,
 		coruwmme = true ,
-	}
+		}
 
 	-- what mexes upgrade to what
 	ArmyHST.mexUpgrade = {
@@ -362,14 +362,14 @@ function ArmyHST:Init()
 		armamex = "armmoho",
 		corexp = "cormexp",
 
-	}
+		}
 
 	self._flak_ = {
 		armfflak = true ,
 		armflak = true ,
 		corflak = true ,
 		corenaa = true ,
-	}
+		}
 
 	self._mine_ = {
 		armmine1 = true ,
@@ -381,17 +381,17 @@ function ArmyHST:Init()
 		cormine3 = true ,
 		cormine4 = true ,
 		corfmine3 = true ,
-	}
+		}
 
 	self._eyes_ = {
 		armeyes = true ,
 		coreyes = true ,
-	}
+		}
 
--- 	self._afus_ = {
--- 		armafus = true ,
--- 		corafus = true ,
--- 	}
+	-- 	self._afus_ = {
+	-- 		armafus = true ,
+	-- 		corafus = true ,
+	-- 	}
 
 
 	self._fus_ = {
@@ -399,32 +399,32 @@ function ArmyHST:Init()
 		armuwfus = 'armuwfus' , --no advuwfus
 		corfus = 'corafus' ,--will become afus in taskqueuebst:specialfilter()
 		coruwfus = 'coruwfus' ,--no advuwfus
--- 		armckfus = true , --clackable, better to think about it later
+		-- 		armckfus = true , --clackable, better to think about it later
 
--- 		armafus = true ,
--- 		corafus = true ,
+		-- 		armafus = true ,
+		-- 		corafus = true ,
 		--armdf = true, --fake fus
-	}
+		}
 
 	self._silo_ = {
 		armsilo = true ,
 		corsilo = true ,
-	}
+		}
 
 	self._wind_ ={
 		armwin = true ,
 		corwin = true ,
-	}
+		}
 
 	self._tide_ = {
 		cortide = true ,
 		armtide = true ,
-	}
+		}
 
 	self._plat_ = {
 		corplat = true ,
 		armplat = true ,
-	}
+		}
 
 	self._radar_ = {
 		armrad = true ,
@@ -433,136 +433,136 @@ function ArmyHST:Init()
 		corarad = true ,
 		corfrad = true ,
 		armfrad = true ,
-	}
+		}
 
 	self._jam_ = {
 		armjamt = true ,
 		corjamt = true ,
 		armveil = true ,
 		corshroud = true ,
-	}
+		}
 
 	self._sonar_ = {
 		armsonar = true ,
 		corsonar = true ,
 		armason = true,
 		corason = true,
-	}
+		}
 
 	self._shield_ = {
 		armgate = true ,
 		corgate = true ,
-	}
+		}
 
 	self._juno_ = {
 		corjuno = true ,
 		armjuno = true ,
-	}
+		}
 
 	self._popup1_ = {
 		armclaw = true,
 		cormaw = true,
-	}
+		}
 
 	self._llt_ = {
 		armllt = true,
 		corllt = true,
-	}
+		}
 
 	self._specialt_ = {
 		armbeamer = true,
 		corhllt = true,
-	}
+		}
 
 	self._heavyt_ = {
 		armhlt = true,
 		corhlt = true,
 		armfhlt = true,
 		corfhlt = true,
-	}
+		}
 
 	self._lol_ = {
 		corbuzz = true ,
 		armvulc = true ,
-	}
+		}
 
 	self._laser2_ = {
 		cordoom = true ,
 		armanni = true ,
-	}
+		}
 
 	self._coast1_ = {
 		corpun = true ,
 		armguard = true ,
-	}
+		}
 
 	self._coast2_ = {
 		cortoast = true ,
 		armamb = true ,
-	}
+		}
 
 	self._popup2_ = {
 		armpb = true ,
 		corvipe = true ,
-	}
+		}
 
 	self._plasma_ = {
 		armbrtha = true ,
 		corint = true ,
-	}
+		}
 
 	self._torpedo1_ = {
 		cortl = true ,
 		armtl = true ,
 		armptl = true ,
 		corptl = true ,
-	}
+		}
 
 	self._torpedo2_ = {
 		coratl = true ,
 		armatl = true ,
-	}
+		}
 
 	self._torpedoground_ = {
 		armdl = true ,
 		cordl = true ,
-	}
+		}
 
 	self._aa1_ = {
 		armrl = true ,
 		corrl = true ,
 		armfrt = true ,
 		corfrt = true ,
-	}
+		}
 
 	self._aabomb_ = {
 		corerad = true ,
 		armferret = true ,
-	}
+		}
 
 	self._aaheavy_ = {
 		cormadsam = true ,
 		armcir = true ,
-	}
+		}
 	self._aa2_ = {
 		corscreamer = true ,
 		armmercury = true ,
-	}
+		}
 
 	self._intrusion_ = {
 		corsd = true ,
 		armsd = true ,
-	}
+		}
 
 	self._antinuke_ = {
 		armamd = true ,
 		corfmd = true ,
-	}
+		}
 
 	self._airPlat_ = {
 		armasp = true ,
 		corasp = true ,
-	}
+		}
 
 	self._convs_ = {
 		armmmkr = true ,
@@ -572,7 +572,7 @@ function ArmyHST:Init()
 		cormmkr = true ,
 		corfmkr = true ,
 		cormakr = true ,
-	}
+		}
 
 	self._estor_ = {
 		armestor = true ,
@@ -581,7 +581,7 @@ function ArmyHST:Init()
 		corestor = true ,
 		coruwes = true ,
 		coruwadves = true ,
-	}
+		}
 
 	self._mstor_ = {
 		cormstor = true ,
@@ -591,12 +591,12 @@ function ArmyHST:Init()
 		coruwadvms = true ,
 		armuwadvms = true ,
 		coruwmmm = true ,
-	}
+		}
 
 	self._tactical_ = {
 		armemp = true ,
 		cortron = true ,
-	}
+		}
 
 	self._wall_ = {
 		corfdrag = true ,
@@ -604,7 +604,7 @@ function ArmyHST:Init()
 		armfort = true ,
 		cordrag = true ,
 		armfdrag = true ,
-	}
+		}
 
 	self:GetUnitTable()
 	self:GetFeatureTable()
@@ -614,7 +614,7 @@ function ArmyHST:Init()
 		eco = {},
 		expand = {},
 		support = {},
-	}
+		}
 end
 
 
@@ -625,7 +625,7 @@ ArmyHST.techPenalty = {
 	corfhp = -1,
 	armhp = -1,
 	corhp = -1,
-}
+	}
 
 ArmyHST.factoryMobilities = {
 	corap = {"air"},
@@ -656,7 +656,7 @@ ArmyHST.factoryMobilities = {
 	armshltx = {"bot", "amp"},
 	corgantuw = {"amp"},
 	armshltxuw = {"amp"},
-}
+	}
 
 -- for calculating what factories to build
 -- higher values mean more effecient
@@ -668,7 +668,7 @@ ArmyHST.mobilityEffeciencyMultiplier = {
 	hov = 0.7,
 	amp = 0.4,
 	air = 0.55,
-}
+	}
 
 ArmyHST.factoryExitSides = {
 	corap = 0,
@@ -699,15 +699,15 @@ ArmyHST.factoryExitSides = {
 	armshltx = 1,
 	corgantuw = 1,
 	armshltxuw = 1,
-}
+	}
 
-ArmyHST.littlePlasmaList = {
-	corpun = 1,
-	armguard = 1,
-	cortoast = 1,
-	armamb = 1,
-	corbhmth = 1,
-}
+-- ArmyHST.littlePlasmaList = {
+-- 	corpun = 1,
+-- 	armguard = 1,
+-- 	cortoast = 1,
+-- 	armamb = 1,
+-- 	corbhmth = 1,
+-- }
 
 -- what mexes upgrade to what
 ArmyHST.mexUpgrade = {
@@ -718,7 +718,7 @@ ArmyHST.mexUpgrade = {
 	armamex = "armmoho",
 	corexp = "cormexp",
 
-}
+	}
 
 -- factories that can build advanced construction units (i.e. moho mines)
 ArmyHST.advFactories = {
@@ -732,7 +732,7 @@ ArmyHST.advFactories = {
 	armasy = 1,
 	armaap = 1,
 	armplat = 1,
-}
+	}
 
 -- experimental factories
 ArmyHST.expFactories = {
@@ -740,7 +740,7 @@ ArmyHST.expFactories = {
 	armshltx = 1,
 	corgantuw = 1,
 	armshltxuw = 1,
-}
+	}
 
 -- leads to experimental
 ArmyHST.leadsToExpFactories = {
@@ -752,12 +752,12 @@ ArmyHST.leadsToExpFactories = {
 	armsy = 1,
 	corasy = 1,
 	armasy = 1,
-}
+	}
 
 ArmyHST.commanderList = {
 	armcom = 1,
 	corcom = 1,
-}
+	}
 
 ArmyHST.groundFacList = {
 	corvp = 1,
@@ -779,7 +779,7 @@ ArmyHST.groundFacList = {
 	corfast = 1,
 	armconsul = 1,
 	armfark = 1,
-}
+	}
 
 -- if any of these is found among enemy units, AA units and fighters will be built
 ArmyHST.airFacList = {
@@ -789,7 +789,7 @@ ArmyHST.airFacList = {
 	armaap = 1,
 	corplat = 1,
 	armplat = 1,
-}
+	}
 
 -- if any of these is found among enemy units, torpedo launchers and sonar will be built
 ArmyHST.subFacList = {
@@ -799,13 +799,13 @@ ArmyHST.subFacList = {
 	armasy = 1,
 	coramsub = 1,
 	armamsub = 1,
-}
+	}
 
 -- if any of these is found among enemy units, plasma shields will be built
 ArmyHST.bigPlasmaList = {
 	corint = 1,
 	armbrtha = 1,
-}
+	}
 
 -- if any of these is found among enemy units, antinukes will be built
 -- also used to assign nuke behaviour to own units
@@ -815,7 +815,7 @@ ArmyHST.nukeList = {
 	corsilo = 5400,
 	armemp = 2700,
 	cortron = 2250,
-}
+	}
 
 ArmyHST.cleanable = {
 	armsolar= 'ground',
@@ -830,28 +830,28 @@ ArmyHST.cleanable = {
 	armmakr = 'ground',
 	corwin = 'ground',
 	armwin = 'ground',
-}
+	}
 
 -- minimum, maximum, starting point units required to attack, bomb
-ArmyHST.minAttackCounter = 8
-ArmyHST.maxAttackCounter = 30
-ArmyHST.baseAttackCounter = 15
-ArmyHST.breakthroughAttackCounter = 16 -- build heavier battle units
-ArmyHST.siegeAttackCounter = 20 -- build siege units
-ArmyHST.minBattleCount = 4 -- how many battle units to build before building any breakthroughs, even if counter is too high
-ArmyHST.minBomberCounter = 0
-ArmyHST.maxBomberCounter = 16
-ArmyHST.baseBomberCounter = 8
-ArmyHST.breakthroughBomberCounter = 8 -- build atomic bombers or air fortresses
+-- ArmyHST.minAttackCounter = 4
+-- ArmyHST.maxAttackCounter = 16
+-- ArmyHST.baseAttackCounter = 8
+--ArmyHST.breakthroughAttackCounter = 10 -- build heavier battle units
+-- ArmyHST.siegeAttackCounter = 10 -- build siege units
+-- ArmyHST.minBattleCount = 4 -- how many battle units to build before building any breakthroughs, even if counter is too high
+ArmyHST.minBomberCounter = 10
+ArmyHST.maxBomberCounter = 20
+ArmyHST.baseBomberCounter = 10
+-- ArmyHST.breakthroughBomberCounter = 8 -- build atomic bombers or air fortresses
 
 -- raid counter works backwards: it determines the number of raiders to build
 -- if it reaches ArmyHST.minRaidCounter, none are built
-ArmyHST.minRaidCounter =2
-ArmyHST.maxRaidCounter = 8
-ArmyHST.baseRaidCounter = 5
+-- ArmyHST.minRaidCounter =2
+-- ArmyHST.maxRaidCounter = 8
+-- ArmyHST.baseRaidCounter = 5
 
 -- Taskqueuebehaviour was modified to skip this name
-ArmyHST.DummyUnitName = "skipthisorder"
+-- ArmyHST.DummyUnitName = "skipthisorder"
 -- this unit is used to check for underwater metal spots
 ArmyHST.UWMetalSpotCheckUnit = "coruwmex"
 
@@ -864,7 +864,7 @@ ArmyHST.mobUnitNames = {
 	hov = {"corsh", "armfdrag"},
 	shp = {"corcs"},
 	sub = {"coracsub"},
-}
+	}
 
 -- tests move orders of these units to determine mobility there
 ArmyHST.mobUnitExampleName = {
@@ -1099,6 +1099,10 @@ local function getTechTree(sideTechLv)
 	end
 	parent = 0
 end
+
+function ArmyHST:getThreatRange(unitName)
+end
+
 function ArmyHST:GetUnitTable()
 	local builtBy = GetBuiltBy()
 	local unitTable = {}
@@ -1109,205 +1113,257 @@ function ArmyHST:GetUnitTable()
 
 
 
-			-- --Spring.Echo(unitDef.name, "build slope", unitDef.maxHeightDif)
-			-- if unitDef.moveDef.maxSlope then
-			-- --Spring.Echo(unitDef.name, "move slope", unitDef.moveDef.maxSlope)
-			-- end
-			self.unitTable[unitDef.name] = {}
--- 			Spring:Echo(unitDef.name)
-			local utable = self.unitTable[unitDef.name]
-			utable.name = unitDef.name
-			utable.side = side
-			utable.defId = unitDefID
-			utable.radarRadius = unitDef["radarRadius"]
-			utable.airLosRadius = unitDef["airLosRadius"]
-			utable.losRadius = unitDef["losRadius"]
-			utable.sonarRadius = unitDef["sonarRadius"]
-			utable.jammerRadius = unitDef["jammerRadius"]
-			utable.stealth = unitDef.stealth
-			utable.metalCost = unitDef["metalCost"]
-			utable.energyCost = unitDef["energyCost"]
-			utable.buildTime = unitDef["buildTime"]
-			utable.totalEnergyOut = unitDef["totalEnergyOut"]
-			utable.extractsMetal = unitDef.extractsMetal
-			utable.energyMake = unitDef.energyMake
-			utable.energyUse = unitDef.energyUpkeep
-			utable.isTransport = unitDef.isTransport
-			utable.isImmobile = unitDef.isImmobile
-			utable.isBuilding = unitDef.isBuilding
-			utable.isBuilder = unitDef.isBuilder
-			utable.isMobileBuilder = unitDef.isMobileBuilder
-			utable.isStaticBuilder = unitDef.isStaticBuilder
-			utable.isLab = unitDef.isLab
-			utable.isExtractor = unitDef.Extractor
-			utable.isGroundUnit = unitDef.isGroundUnit
-			utable.isAirUnit = unitDef.isAirUnit
-			utable.isStrafingAirUnit = unitDef.isStrafingAirUnit
-			utable.isHoveringAirUnit = unitDef.isHoveringAirUnit
-			utable.isFighterAirUnit = unitDef.isFighterAirUnit
-			utable.isBomberAirUnit = unitDef.isBomberAirUnit
-			utable.noChaseCat = unitDef.noChaseCategories
-			utable.maxWeaponRange = unitDef.maxWeaponRange
-			utable.mclass = unitDef.moveDef.name
-			utable.speed = unitDef.speed
-			utable.accel = unitDef.maxAcc
-			utable.move = unitDef.speed * unitDef.maxAcc * unitDef.turnRate * unitDef.maxDec
-			utable.hp = unitDef.health
-			utable.buildSpeed = unitDef.buildSpeed
-			utable.canAssist = unitDef.canAssist
-			utable.canCloak = unitDef.canCloak
-			utable.upright = unitDef.upright
-			utable.canResurrect = unitDef.canResurrect
-			utable.windGenerator = unitDef.windGenerator
-			utable.tidalGenerator = unitDef.tidalGenerator
-			utable.energyStorage = unitDef.energyStorage
-			utable.metalStorage = unitDef.metalStorage
-			utable.energyConv = unitDef.customParams.energyconv
-			utable.groundRange = GetLongestWeaponRange(unitDefID, 0)
-			utable.airRange = GetLongestWeaponRange(unitDefID, 1)
-			utable.submergedRange = GetLongestWeaponRange(unitDefID, 2)
-			utable.dps = getDPS(unitDefID)
-			utable.antiNuke = getInterceptor(unitDefID)
-			utable.targetableWeapon = getTargetableWeapon(unitDefID)
-			utable.paralyzer = getParalyzer(unitDefID)
-			utable.techLevel = unitsLevels[unitDef["name"]] or 1
-			if unitDef["modCategories"]["weapon"] then
-				utable.isWeapon = true
-			else
-				utable.isWeapon = false
-			end
-			if unitDef["weapons"][1] then
-				local defWepon1 = unitDef["weapons"][1]
-				utable.onlyTargets = getOnlyTargets(unitDef["weapons"])
-				utable.badTargets = getBadTargets(unitDef["weapons"])
-				utable.firstWeapon = WeaponDefs[unitDef["weapons"][1]["weaponDef"]]
-				utable.weaponType = utable.firstWeapon['type']
-				utable.badTg = ''
-				if defWepon1.badTargets then
-					for ii,vv in pairs(defWepon1.badTargets) do
-						--Spring:Echo(ii)
-						utable.badTg = utable.badTg .. ii
+		-- --Spring.Echo(unitDef.name, "build slope", unitDef.maxHeightDif)
+		-- if unitDef.moveDef.maxSlope then
+		-- --Spring.Echo(unitDef.name, "move slope", unitDef.moveDef.maxSlope)
+		-- end
+		self.unitTable[unitDef.name] = {}
+		-- 			Spring:Echo(unitDef.name)
+		local utable = self.unitTable[unitDef.name]
+		utable.name = unitDef.name
+		utable.side = side
+		utable.defId = unitDefID
+		utable.radarRadius = unitDef["radarRadius"]
+		utable.airLosRadius = unitDef["airLosRadius"]
+		utable.losRadius = unitDef["losRadius"]
+		utable.sonarRadius = unitDef["sonarRadius"]
+		utable.jammerRadius = unitDef["jammerRadius"]
+		utable.stealth = unitDef.stealth
+		utable.metalCost = unitDef.metalCost
+		utable.energyCost = unitDef.energyCost
+		utable.buildTime = unitDef.buildTime
+		utable.totalEnergyOut = unitDef.totalEnergyOut
+		utable.extractsMetal = unitDef.extractsMetal
+		utable.energyMake = unitDef.energyMake
+		utable.energyUse = unitDef.energyUpkeep
+		utable.isTransport = unitDef.isTransport
+		utable.isImmobile = unitDef.isImmobile
+		utable.isBuilding = unitDef.isBuilding
+		utable.isBuilder = unitDef.isBuilder
+		utable.isMobileBuilder = unitDef.isMobileBuilder
+		utable.isStaticBuilder = unitDef.isStaticBuilder
+		utable.isLab = unitDef.isLab
+		utable.isExtractor = unitDef.Extractor
+		utable.isGroundUnit = unitDef.isGroundUnit
+		utable.isAirUnit = unitDef.isAirUnit
+		utable.isStrafingAirUnit = unitDef.isStrafingAirUnit
+		utable.isHoveringAirUnit = unitDef.isHoveringAirUnit
+		utable.isFighterAirUnit = unitDef.isFighterAirUnit
+		utable.isBomberAirUnit = unitDef.isBomberAirUnit
+		utable.noChaseCat = unitDef.noChaseCategories
+		utable.maxWeaponRange = unitDef.maxWeaponRange
+		utable.mclass = unitDef.moveDef.name
+		utable.speed = unitDef.speed
+		utable.accel = unitDef.maxAcc
+		utable.move = unitDef.speed * unitDef.maxAcc * unitDef.turnRate * unitDef.maxDec
+		utable.hp = unitDef.health
+		utable.buildSpeed = unitDef.buildSpeed
+		utable.canAssist = unitDef.canAssist
+		utable.canCloak = unitDef.canCloak
+		utable.upright = unitDef.upright
+		utable.canResurrect = unitDef.canResurrect
+		utable.windGenerator = unitDef.windGenerator
+		utable.tidalGenerator = unitDef.tidalGenerator
+		utable.energyStorage = unitDef.energyStorage
+		utable.metalStorage = unitDef.metalStorage
+		utable.energyConv = unitDef.customParams.energyconv
+		utable.groundRange = GetLongestWeaponRange(unitDefID, 0) or 0
+		utable.airRange = GetLongestWeaponRange(unitDefID, 1) or 0
+		utable.submergedRange = GetLongestWeaponRange(unitDefID, 2) or 0
+		utable.ground = GetLongestWeaponRange(unitDefID, 0) or 0
+		utable.air = GetLongestWeaponRange(unitDefID, 1) or 0
+		utable.submerged = GetLongestWeaponRange(unitDefID, 2) or 0
+		utable.weaponMtype = {}
+		utable.weaponLayer = {}
+		utable.longRange = nil
+		utable.maxRange = 0
+		utable.threat = 0
+		utable.airThreat = 0
+		utable.groundThreat = 0
+		utable.submergedThreat = 0
+		if utable.groundRange > 0 then
+			utable.longRange = 'ground'
+			utable.groundThreat = utable.metalCost
+			utable.maxRange = utable.groundRange
+			table.insert(utable.weaponLayer,'ground')
+			table.insert(utable.weaponMtype, "veh")
+			table.insert(utable.weaponMtype, "bot")
+			table.insert(utable.weaponMtype, "amp")
+			table.insert(utable.weaponMtype, "hov")
+			table.insert(utable.weaponMtype, "shp")
+		end
 
-					end
-				end
-				utable.onlyTg = ''
-				if defWepon1.onlyTargets then
-					for ii,vv in pairs(defWepon1.onlyTargets) do
-						utable.onlyTg = utable.onlyTg .. ii
-					end
-				end
-				utable.onlyBadTg = utable.onlyTg .. utable.badTg
+		if utable.airRange > 0 then
+			if utable.airRange > utable.groundRange and utable.airRange > utable.submergedRange then
+				utable.longRange = 'air'
+				utable.maxRange = utable.airRange
 			end
+			utable.airThreat = utable.metalCost
+			table.insert(utable.weaponLayer,'air')
+			table.insert(utable.weaponMtype, "air")
+		end
+		if utable.submergedRange > 0 then
+			if utable.submergedRange > utable.groundRange and utable.submergedRange > utable.airRange then
+				utable.longRange = 'submberged'
+				utable.maxRange = utable.submergedRange
+			end
+			utable.submergedThreat = utable.metalCost
+			table.insert(utable.weaponLayer,'submerged')
+			table.insert(utable.weaponMtype, "sub")
+			table.insert(utable.weaponMtype, "shp")
+			table.insert(utable.weaponMtype, "amp")
+		end
+		if longRange then
+			utable.threat = utable.metalCost
+		end
+		if self.antinukes[unitName] or self.nukeList[unitName] or self.bigPlasmaList[unitName] or self._shield_[unitName] or self._juno_ then
+			utable.threat = 0
+			utable.maxRange = 0
+		end
+		utable.threatLayers = {}
+		utable.threatLayers.air = { threat = utable.airThreat , range = utable.airRange }
+		utable.threatLayers.ground = { threat = utable.groundThreat , range = utable.groundRange }
+		utable.threatLayers.submerged = { threat = utable.submergedThreat , range = utable.submergedRange }
+		utable.dps = getDPS(unitDefID)
+		utable.antiNuke = getInterceptor(unitDefID)
+		utable.targetableWeapon = getTargetableWeapon(unitDefID)
+		utable.paralyzer = getParalyzer(unitDefID)
+		utable.techLevel = unitsLevels[unitDef["name"]] or 1
+		if unitDef["modCategories"]["weapon"] then
+			utable.isWeapon = true
+		end
+		if unitDef["weapons"][1] then
+			local defWepon1 = unitDef["weapons"][1]
+			utable.onlyTargets = getOnlyTargets(unitDef["weapons"])
+			utable.badTargets = getBadTargets(unitDef["weapons"])
+			utable.firstWeapon = WeaponDefs[unitDef["weapons"][1]["weaponDef"]]
+			utable.weaponType = utable.firstWeapon['type']
+			utable.badTg = ''
+			if defWepon1.badTargets then
+				for ii,vv in pairs(defWepon1.badTargets) do
+					--Spring:Echo(ii)
+					utable.badTg = utable.badTg .. ii
+
+				end
+			end
+			utable.onlyTg = ''
+			if defWepon1.onlyTargets then
+				for ii,vv in pairs(defWepon1.onlyTargets) do
+					utable.onlyTg = utable.onlyTg .. ii
+				end
+			end
+			utable.onlyBadTg = utable.onlyTg .. utable.badTg
+		end
 
 
 
-			--Spring:Echo(unitDef.name,utable.antiNuke)
-			if unitDef.speed > 0 and utable.isWeapon then
-				utable.isMobileWeapon = true
+		--Spring:Echo(unitDef.name,utable.antiNuke)
+		if unitDef.speed > 0 and utable.isWeapon then
+			utable.isMobileWeapon = true
+		end
+		if unitDef.speed == 0 and utable.isWeapon then
+			utable.isTurret = true
+			if unitDef.modCategories.mine then
+				utable.isMine = utable.techLevel
+			elseif utable.firstWeapon and utable.firstWeapon['type'] == ('StarburstLauncher' or 'MissileLauncher') then
+				utable.isTacticalTurret =  utable.techLevel
+			elseif utable.firstWeapon and utable.firstWeapon['type'] == 'Cannon' then
+				utable.isCannonTurret = utable.techLevel
+				if not utable.firstWeapon.selfExplode then
+					utable.isPlasmaCannon = utable.techLevel
+				end
+			elseif utable.firstWeapon and utable.firstWeapon['type'] == 'BeamLaser' then
+				utable.isLaserTurret = utable.techLevel
+			elseif utable.firstWeapon and utable.firstWeapon['type'] == 'TorpedoLauncher' then
+				utable.isTorpedoTurret = utable.techLevel
 			end
-			if unitDef.speed == 0 and utable.isWeapon then
-				utable.isTurret = true
-				if unitDef.modCategories.mine then
-					utable.isMine = utable.techLevel
-				elseif utable.firstWeapon and utable.firstWeapon['type'] == ('StarburstLauncher' or 'MissileLauncher') then
-					utable.isTacticalTurret =  utable.techLevel
-				elseif utable.firstWeapon and utable.firstWeapon['type'] == 'Cannon' then
-					utable.isCannonTurret = utable.techLevel
-					if not utable.firstWeapon.selfExplode then
-						utable.isPlasmaCannon = utable.techLevel
-					end
-				elseif utable.firstWeapon and utable.firstWeapon['type'] == 'BeamLaser' then
-					utable.isLaserTurret = utable.techLevel
-				elseif utable.firstWeapon and utable.firstWeapon['type'] == 'TorpedoLauncher' then
-					utable.isTorpedoTurret = utable.techLevel
-				end
-				if utable.groundRange and utable.groundRange > 0 then
-					utable.isGroundTurret = utable.groundRange
-				end
-				if utable.airRange and utable.airRange > 0 then
-					utable.isAirTurret = utable.airRange
-				end
-				if utable.submergedRange and utable.submergedRange > 0 then
-					utable.isSubTurret = utable.submergedRange
-				end
+			if utable.groundRange and utable.groundRange > 0 then
+				utable.isGroundTurret = utable.groundRange
 			end
-			if utable.isFighterAirUnit then
-				utable.airRange = utable.groundRange
+			if utable.airRange and utable.airRange > 0 then
+				utable.isAirTurret = utable.airRange
 			end
-			utable.needsWater = unitDef.minWaterDepth > 0
-			if unitDef["canFly"] then
-				utable.mtype = "air"
-			elseif	utable.isBuilding and utable.needsWater then
-				utable.mtype = 'sub'
-			elseif	utable.isBuilding and not utable.needsWater then
-				utable.mtype = 'veh'
-			elseif  unitDef.moveDef.name and (string.find(unitDef.moveDef.name, 'abot') or string.find(unitDef.moveDef.name, 'vbot')  or string.find(unitDef.moveDef.name,'atank'))  then
-				utable.mtype = 'amp'
-			elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'uboat') then
-				utable.mtype = 'sub'
-			elseif unitDef.moveDef.name and  string.find(unitDef.moveDef.name, 'hover') then
-				utable.mtype = 'hov'
-			elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'boat') then
+			if utable.submergedRange and utable.submergedRange > 0 then
+				utable.isSubTurret = utable.submergedRange
+			end
+		end
+		if utable.isFighterAirUnit then
+			utable.airRange = utable.groundRange
+		end
+		utable.needsWater = unitDef.minWaterDepth > 0
+		if unitDef["canFly"] then
+			utable.mtype = "air"
+		elseif	utable.isBuilding and utable.needsWater then
+			utable.mtype = 'sub'
+		elseif	utable.isBuilding and not utable.needsWater then
+			utable.mtype = 'veh'
+		elseif  unitDef.moveDef.name and (string.find(unitDef.moveDef.name, 'abot') or string.find(unitDef.moveDef.name, 'vbot')  or string.find(unitDef.moveDef.name,'atank'))  then
+			utable.mtype = 'amp'
+		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'uboat') then
+			utable.mtype = 'sub'
+		elseif unitDef.moveDef.name and  string.find(unitDef.moveDef.name, 'hover') then
+			utable.mtype = 'hov'
+		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'boat') then
+			utable.mtype = 'shp'
+		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'tank') then
+			utable.mtype = 'veh'
+		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'bot') then
+			utable.mtype = 'bot'
+		else
+			if unitDef.maxwaterdepth and unitDef.maxwaterdepth < 0 then
 				utable.mtype = 'shp'
-			elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'tank') then
-				utable.mtype = 'veh'
-			elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'bot') then
-				utable.mtype = 'bot'
 			else
-				if unitDef.maxwaterdepth and unitDef.maxwaterdepth < 0 then
-					utable.mtype = 'shp'
-				else
-					utable.mtype = 'veh'
+				utable.mtype = 'veh'
+			end
+		end
+
+		if unitDef["isBuilder"] and #unitDef["buildOptions"] < 1 and not unitDef.moveDef.name then
+			utable.isNano = true
+		end
+
+		if unitDef["isBuilder"] and #unitDef["buildOptions"] > 0 then
+			utable.buildOptions = true
+			if unitDef["isBuilding"] then
+				utable['isFactory'] = {}
+				utable.unitsCanBuild = {}
+				for i, oid in pairs (unitDef["buildOptions"]) do
+					local buildDef = UnitDefs[oid]
+					table.insert(utable.unitsCanBuild, buildDef["name"])
+					--and save all the mtype that can andle
+					--utable.isFactory[unitName[buildDef.name].mtype] = TODO
 				end
-			end
 
-			if unitDef["isBuilder"] and #unitDef["buildOptions"] < 1 and not unitDef.moveDef.name then
-				utable.isNano = true
-			end
+			else
+				utable.factoriesCanBuild = {}
+				utable.buildingsCanBuild = {}
+				for i, oid in pairs (unitDef["buildOptions"]) do
 
-			if unitDef["isBuilder"] and #unitDef["buildOptions"] > 0 then
-				utable.buildOptions = true
-				if unitDef["isBuilding"] then
-					utable['isFactory'] = {}
-					utable.unitsCanBuild = {}
-					for i, oid in pairs (unitDef["buildOptions"]) do
-						local buildDef = UnitDefs[oid]
-						table.insert(utable.unitsCanBuild, buildDef["name"])
-						--and save all the mtype that can andle
-						--utable.isFactory[unitName[buildDef.name].mtype] = TODO
-					end
+					local buildDef = UnitDefs[oid]
+					table.insert(utable.buildingsCanBuild, buildDef["name"])
+					if #buildDef["buildOptions"] > 0 and buildDef["isBuilding"] then
+						-- build option is a factory, add it to factories this unit can build
+						table.insert(utable.factoriesCanBuild, buildDef["name"])
 
-				else
-					utable.factoriesCanBuild = {}
-					utable.buildingsCanBuild = {}
-					for i, oid in pairs (unitDef["buildOptions"]) do
-
-						local buildDef = UnitDefs[oid]
-						table.insert(utable.buildingsCanBuild, buildDef["name"])
-						if #buildDef["buildOptions"] > 0 and buildDef["isBuilding"] then
-							-- build option is a factory, add it to factories this unit can build
-							table.insert(utable.factoriesCanBuild, buildDef["name"])
-
-						end
-					end
-					if #utable.factoriesCanBuild > 0 then
-						utable.isCon = true
-					else
-						utable.isEngineer = true
 					end
 				end
+				if #utable.factoriesCanBuild > 0 then
+					utable.isCon = true
+				else
+					utable.isEngineer = true
+				end
 			end
+		end
 
-			utable.mtypedLv = tostring(utable.mtype)..utable.techLevel
-			if self.scouts[utable.name] or self.raiders[utable.name] or self.battles[utable.name] or self.breaks[utable.name] or self.airgun[utable.name] or self.cloakables[utable.name] or self.amphibious[utable.name] or self.subkillers[utable.name] or self.spiders[utable.name] or self.paralyzers[utable.name] or self.artillerys[utable.name] or self.crawlings[utable.name]then
-				utable.isAttacker = true
-				--Spring:Echo(utable.name, 'isAttacker')
-			end
-			utable.bigExplosion = unitDef["deathExplosion"] == "atomic_blast"
-			utable.xsize = unitDef["xsize"]
-			utable.zsize = unitDef["zsize"]
-			utable.wreckName = unitDef["wreckName"]
-			self.wrecks[unitDef["wreckName"]] = unitDef["name"]
+		utable.mtypedLv = tostring(utable.mtype)..utable.techLevel
+		if self.scouts[utable.name] or self.raiders[utable.name] or self.battles[utable.name] or self.breaks[utable.name] or self.airgun[utable.name] or self.cloakables[utable.name] or self.amphibious[utable.name] or self.subkillers[utable.name] or self.spiders[utable.name] or self.paralyzers[utable.name] or self.artillerys[utable.name] or self.crawlings[utable.name]then
+			utable.isAttacker = true
+			--Spring:Echo(utable.name, 'isAttacker')
+		end
+		utable.bigExplosion = unitDef["deathExplosion"] == "atomic_blast"
+		utable.xsize = unitDef["xsize"]
+		utable.zsize = unitDef["zsize"]
+		utable.wreckName = unitDef["wreckName"]
+		self.wrecks[unitDef["wreckName"]] = unitDef["name"]
 		--end
 	end
 end
