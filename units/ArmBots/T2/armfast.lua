@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armfast')
-
 return {
 	armfast = {
 		acceleration = 0.414,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "25 37 11",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armfast'),
 		explodeas = "tinyExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -25,7 +22,6 @@ return {
 		maxvelocity = 3.71,
 		maxwaterdepth = 12,
 		movementclass = "BOT2",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMFAST.s3o",
 		script = "Units/ARMFAST.cob",
@@ -54,7 +50,6 @@ return {
 				collisionvolumescales = "50.1881866455 6.02409362793 37.503112793",
 				collisionvolumetype = "Box",
 				damage = 500,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +69,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 300,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

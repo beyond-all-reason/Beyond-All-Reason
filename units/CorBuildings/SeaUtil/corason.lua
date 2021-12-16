@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corason')
-
 return {
 	corason = {
 		acceleration = 0,
@@ -17,7 +15,6 @@ return {
 		collisionvolumescales = "45 28 45",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corason'),
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -27,7 +24,6 @@ return {
 		maxdamage = 2140,
 		maxslope = 10,
 		minwaterdepth = 24,
-		name = unitName,
 		objectname = "Units/CORASON.s3o",
 		onoffable = false,
 		script = "Units/CORASON.cob",
@@ -58,7 +54,6 @@ return {
 				collisionvolumescales = "43.173828125 10.1218109131 43.7690734863",
 				collisionvolumetype = "Box",
 				damage = 1284,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 3,
 				footprintz = 3,

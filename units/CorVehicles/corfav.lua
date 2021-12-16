@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corfav')
-
 return {
 	corfav = {
 		acceleration = 0.11933,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "28 17 33",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corfav'),
 		explodeas = "tinyExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -26,7 +23,6 @@ return {
 		maxvelocity = 4.6,
 		maxwaterdepth = 12,
 		movementclass = "TANK1",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORFAV.s3o",
 		script = "Units/CORFAV.cob",
@@ -45,7 +41,6 @@ return {
 			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "turret",
-			longdescription = Spring.I18N('units.longDescriptions.corfav'),
 			driftratio = "0.7",
 			firingceg = "",
 			flare1name = "flare",
@@ -68,7 +63,6 @@ return {
 				collisionvolumescales = "27.7855834961 9.28491210938 30.4499664307",
 				collisionvolumetype = "Box",
 				damage = 132,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -88,7 +82,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 66,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

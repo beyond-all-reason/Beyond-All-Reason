@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armannit3')
-
 return {
 	armannit3 = {
 		acceleration = 0,
@@ -17,7 +15,6 @@ return {
 		collisionvolumetype = "BoxY",
 		corpse = "DEAD",
 		damagemodifier = 0.25,
-		description = Spring.I18N('units.descriptions.armannit3'),
 		energystorage = 3000,
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 6,
@@ -29,7 +26,6 @@ return {
 		maxdamage = 37000,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/scavbuildings/ARMANNIT3.s3o",
 		onoffable = true,
@@ -61,7 +57,6 @@ return {
 				collisionvolumescales = "62.5 81.7362213135 62.5",
 				collisionvolumetype = "Box",
 				damage = 1800,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -81,7 +76,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 900,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

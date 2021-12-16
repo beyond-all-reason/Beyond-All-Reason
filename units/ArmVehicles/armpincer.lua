@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armpincer')
-
 return {
 	armpincer = {
 		acceleration = 0.03572,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "31 13 31",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armpincer'),
 		explodeas = "smallExplosionGeneric-phib",
 		footprintx = 3,
 		footprintz = 3,
@@ -27,7 +24,6 @@ return {
 		maxvelocity = 2.1,
 		maxwaterdepth = 125,
 		movementclass = "ATANK3",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMPINCER.s3o",
 		script = "Units/ARMPINCER.cob",
@@ -47,7 +43,6 @@ return {
 			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "barrel",
-			longdescription = Spring.I18N('units.longDescriptions.armpincer'),
 			driftratio = "0.3",
 			firingceg = "barrelshot-small",
 			flare1name = "emit",
@@ -71,7 +66,6 @@ return {
 				collisionvolumescales = "29.7029724121 10.5689086914 32.8999633789",
 				collisionvolumetype = "Box",
 				damage = 689,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

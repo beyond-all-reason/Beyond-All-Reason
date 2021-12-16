@@ -1,5 +1,4 @@
 local unitName = "Epic Skeeter"
-
 return {
 	armptt2 = {
 		acceleration = 0.03,
@@ -17,7 +16,6 @@ return {
 		collisionvolumescales = "60 60 120",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Anti-Sub and Anti-Air Support Ship",
 		explodeas = "hugeexplosiongeneric",
 		floater = true,
 		footprintx = 6,
@@ -29,7 +27,6 @@ return {
 		maxvelocity = 2.4,
 		minwaterdepth = 6,
 		movementclass = "EPICSHIP",
-		name = unitName,
 		nochasecategory = "VTOL UNDERWATER",
 		objectname = "Units/scavboss/ARMPTT2.s3o",
 		script = "Units/scavboss/ARMPTT2.cob",
@@ -60,7 +57,6 @@ return {
 				collisionvolumescales = "20.0704803467 16.0 67.0992736816",
 				collisionvolumetype = "Box",
 				damage = 12000,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 4,
@@ -79,7 +75,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 6000,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

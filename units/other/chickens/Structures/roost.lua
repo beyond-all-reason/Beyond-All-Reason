@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.roost')
-
 return {
 	roost = {
 		acceleration = 0,
@@ -17,7 +15,6 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "56 11 56",
 		collisionvolumetype = "box",
-		description = Spring.I18N('units.descriptions.roost'),
 		energystorage = 1000,
 		explodeas = "ROOST_DEATH",
 		footprintx = 2,
@@ -28,7 +25,6 @@ return {
 		mass = 165.75,
 		maxdamage = 1800,
 		maxvelocity = 0,
-		name = unitName,
 		noautofire = false,
 		objectname = "Chickens/chicken_hive.s3o",
 		radardistance = 900,

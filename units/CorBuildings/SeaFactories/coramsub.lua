@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.coramsub')
-
 return {
 	coramsub = {
 		acceleration = 0,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "115 36 112",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.coramsub'),
 		energystorage = 160,
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 8,
@@ -26,7 +23,6 @@ return {
 		maxdamage = 2500,
 		maxslope = 10,
 		minwaterdepth = 25,
-		name = unitName,
 		objectname = "Units/CORAMSUB.s3o",
 		script = "Units/CORAMSUB.cob",
 		seismicsignature = 0,
@@ -63,7 +59,6 @@ return {
 				collisionvolumescales = "111 34 86",
 				collisionvolumetype = "Box",
 				damage = 1500,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 7,

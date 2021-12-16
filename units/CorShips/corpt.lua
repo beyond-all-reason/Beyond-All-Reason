@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corpt')
-
 return {
 	corpt = {
 		acceleration = 0.05,
@@ -17,7 +15,6 @@ return {
 		collisionvolumescales = "23 30 70",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corpt'),
 		explodeas = "smallExplosionGeneric",
 		floater = true,
 		footprintx = 3,
@@ -29,7 +26,6 @@ return {
 		maxvelocity = 2.3,
 		minwaterdepth = 6,
 		movementclass = "BOAT3",
-		name = unitName,
 		nochasecategory = "VTOL UNDERWATER",
 		objectname = "Units/CORPT.s3o",
 		script = "Units/CORPT.cob",
@@ -58,7 +54,6 @@ return {
 				collisionvolumescales = "32.8984222412 14.8354034424 64.0",
 				collisionvolumetype = "Box",
 				damage = 500,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 2,
@@ -77,7 +72,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1432,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

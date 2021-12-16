@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.coralab')
-
 return {
 	coralab = {
 		acceleration = 0,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "101 51 90",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.coralab'),
 		energystorage = 200,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 7,
@@ -28,7 +25,6 @@ return {
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 200,
-		name = unitName,
 		objectname = "Units/CORALAB.s3o",
 		radardistance = 50,
 		script = "Units/CORALAB.lua",
@@ -77,7 +73,6 @@ return {
 				collisionvolumescales = "100 34 90",
 				collisionvolumetype = "Box",
 				damage = 2443,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -95,7 +90,6 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 1222,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

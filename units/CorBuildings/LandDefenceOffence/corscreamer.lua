@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corscreamer')
-
 return {
 	corscreamer = {
 		acceleration = 0,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "63 57 63",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corscreamer'),
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -26,7 +23,6 @@ return {
 		maxdamage = 1500,
 		maxslope = 20,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/CORSCREAMER.s3o",
 		script = "Units/CORSCREAMER.cob",
 		seismicsignature = 0,
@@ -54,7 +50,6 @@ return {
 				collisionvolumescales = "74.8988952637 49.1488647461 67.5134277344",
 				collisionvolumetype = "Box",
 				damage = 942,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +69,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 471,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

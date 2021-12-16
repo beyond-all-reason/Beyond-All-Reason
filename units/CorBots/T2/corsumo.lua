@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corsumo')
-
 return {
 	corsumo = {
 		acceleration = 0.0552,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "38 34 36",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corsumo'),
 		explodeas = "explosiont3med",
 		footprintx = 3,
 		footprintz = 3,
@@ -26,7 +23,6 @@ return {
 		maxvelocity = 0.75,
 		maxwaterdepth = 23,
 		movementclass = "HBOT3",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSUMO.s3o",
 		pushresistant = true,
@@ -54,7 +50,6 @@ return {
 				collisionvolumescales = "60.9344787598 36.418548584 64.3249511719",
 				collisionvolumetype = "Box",
 				damage = 8400,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +69,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4200,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

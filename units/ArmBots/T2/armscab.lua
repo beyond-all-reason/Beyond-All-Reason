@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armscab')
-
 return {
 	armscab = {
 		acceleration = 0.03663,
@@ -16,7 +14,6 @@ return {
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
-		description = Spring.I18N('units.descriptions.armscab'),
 		explodeas = "largeexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -27,7 +24,6 @@ return {
 		maxvelocity = 1.7,
 		maxwaterdepth = 0,
 		movementclass = "TBOT3",
-		name = unitName,
 		noautofire = true,
 		nochasecategory = "ALL",
 		objectname = "Units/ARMSCAB.s3o",
@@ -55,7 +51,6 @@ return {
 				collisionvolumescales = "55.2154541016 21.362487793 50.6700134277",
 				collisionvolumetype = "Box",
 				damage = 600,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -75,7 +70,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 500,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

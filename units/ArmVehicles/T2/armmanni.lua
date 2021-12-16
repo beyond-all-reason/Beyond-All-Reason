@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armmanni')
-
 return {
 	armmanni = {
 		acceleration = 0.00715,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "39 49 39",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armmanni'),
 		explodeas = "penetrator",
 		footprintx = 3,
 		footprintz = 3,
@@ -28,7 +25,6 @@ return {
 		maxvelocity = 1.4,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMMANNI.s3o",
 		script = "Units/ARMMANNI.cob",
@@ -70,7 +66,6 @@ return {
 				collisionvolumescales = "42.3086700439 54.9257049561 44.5536499023",
 				collisionvolumetype = "Box",
 				damage = 2000,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -90,7 +85,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1500,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

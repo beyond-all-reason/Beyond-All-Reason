@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corfmkr')
-
 return {
 	corfmkr = {
 		acceleration = 0,
@@ -12,7 +10,6 @@ return {
 		buildtime = 2682,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		description = Spring.I18N('units.descriptions.corfmkr'),
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -22,7 +19,6 @@ return {
 		maxdamage = 120,
 		maxslope = 10,
 		minwaterdepth = 11,
-		name = unitName,
 		objectname = "Units/CORFMKR.s3o",
 		script = "Units/CORFMKR.cob",
 		seismicsignature = 0,

@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armcv')
-
 return {
 	armcv = {
 		acceleration = 0.03329,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "35 22 50",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armcv'),
 		energymake = 10,
 		energystorage = 50,
 		energyuse = 10,
@@ -31,7 +28,6 @@ return {
 		maxvelocity = 1.8,
 		maxwaterdepth = 18,
 		movementclass = "TANK3",
-		name = unitName,
 		objectname = "Units/ARMCV.s3o",
 		radardistance = 50,
 		script = "Units/ARMCV.cob",
@@ -83,7 +79,6 @@ return {
 		customparams = {
 			unitgroup = 'builder',
 			area_mex_def = "armmex",
-			longdescription = Spring.I18N('units.longDescriptions.armcv'),
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles",
@@ -96,7 +91,6 @@ return {
 				collisionvolumescales = "39.296295166 32.5338897705 48.75",
 				collisionvolumetype = "Box",
 				damage = 744,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -116,7 +110,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 372,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armvadert4')
-
 return {
 	armvadert4 = {
 		acceleration = 0.1518,
@@ -14,7 +12,6 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "91 91 91",
 		collisionvolumetype = "sphere",
-		description = Spring.I18N('units.descriptions.armvadert4'),
 		explodeas = "crawl_blastsmlscavboss",
 		firestate = 2,
 		footprintx = 4,
@@ -27,7 +24,6 @@ return {
 		maxvelocity = 0.67,
 		maxwaterdepth = 112,
 		movementclass = "EPICALLTERRAIN",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/armvadert4.s3o",
 		pushresistant = true,

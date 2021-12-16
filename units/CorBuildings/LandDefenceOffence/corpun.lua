@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corpun')
-
 return {
 	corpun = {
 		acceleration = 0,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "52 60 52",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corpun'),
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -26,7 +23,6 @@ return {
 		maxdamage = 2940,
 		maxslope = 12,
 		maxwaterdepth = 0,
-		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORPUN.s3o",
 		onoffable = true,
@@ -56,7 +52,6 @@ return {
 				collisionvolumescales = "49.7204589844 16.4592132568 48.6775512695",
 				collisionvolumetype = "Box",
 				damage = 1764,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -76,7 +71,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 882,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

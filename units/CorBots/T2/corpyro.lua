@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corpyro')
-
 return {
 	corpyro = {
 		acceleration = 0.5175,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "25 31 25",
 		collisionvolumetype = "CylY",
 		corpse = "HEAP",
-		description = Spring.I18N('units.descriptions.corpyro'),
 		explodeas = "pyro",
 		footprintx = 2,
 		footprintz = 2,
@@ -25,7 +22,6 @@ return {
 		maxvelocity = 2.75,
 		maxwaterdepth = 25,
 		movementclass = "BOT3",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORPYRO.s3o",
 		script = "Units/CORPYRO.cob",
@@ -53,7 +49,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 650,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

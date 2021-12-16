@@ -1,5 +1,4 @@
 local unitName = "Kraken"
-
 return {
 	armkraken = {
 		acceleration = 0,
@@ -16,7 +15,6 @@ return {
 		collisionvolumescales = "84 60 84",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Floating Rapid-fire Plasma Tower",
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 5,
 		footprintz = 5,
@@ -25,7 +23,6 @@ return {
 		idletime = 1800,
 		maxdamage = 4000,
 		minwaterdepth = 2,
-		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMKRAKEN.s3o",
 		script = "Units/ARMKRAKEN.cob",
@@ -49,7 +46,6 @@ return {
 				collisionvolumescales = "84 60 84",
 				collisionvolumetype = "Box",
 				damage = 4000,
-				description = "Kraken Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 5,
@@ -68,7 +64,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1000,
-				description = "Kraken Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

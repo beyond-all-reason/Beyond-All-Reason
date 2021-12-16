@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cortron')
-
 return {
 	cortron = {
 		acceleration = 0,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "59 47 59",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.cortron'),
 		explodeas = "nukeBuilding",
 		footprintx = 4,
 		footprintz = 4,
@@ -24,7 +21,6 @@ return {
 		maxdamage = 3200,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/CORTRON.s3o",
 		script = "Units/CORTRON.cob",
 		seismicsignature = 0,
@@ -52,7 +48,6 @@ return {
 				collisionvolumescales = "54.9480133057 48.063583374 52.6346282959",
 				collisionvolumetype = "Box",
 				damage = 1920,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -72,7 +67,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 960,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

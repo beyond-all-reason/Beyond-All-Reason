@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armtide')
-
 return {
 	armtide = {
 		acceleration = 0,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "27 26 39",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armtide'),
 		energystorage = 50,
 		explodeas = "tidal",
 		footprintx = 3,
@@ -27,7 +24,6 @@ return {
 		maxdamage = 358,
 		maxslope = 10,
 		minwaterdepth = 20,
-		name = unitName,
 		objectname = "Units/ARMTIDE.s3o",
 		onoffable = false,
 		script = "Units/ARMTIDE.cob",
@@ -53,7 +49,6 @@ return {
 				collisionvolumescales = "33.9601745605 19.9999847412 45.7894287109",
 				collisionvolumetype = "Box",
 				damage = 145,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 3,
@@ -72,7 +67,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 185,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

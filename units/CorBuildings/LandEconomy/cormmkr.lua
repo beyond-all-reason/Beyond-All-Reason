@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cormmkr')
-
 return {
 	cormmkr = {
 		acceleration = 0,
@@ -13,7 +11,6 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.cormmkr'),
 		explodeas = "advmetalmaker",
 		footprintx = 4,
 		footprintz = 4,
@@ -23,7 +20,6 @@ return {
 		maxdamage = 500,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/CORMMKR.s3o",
 		script = "Units/CORMMKR.cob",
 		seismicsignature = 0,
@@ -55,7 +51,6 @@ return {
 				collisionvolumescales = "61.3712463379 53.8299407959 60.5937194824",
 				collisionvolumetype = "Box",
 				damage = 300,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -75,7 +70,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 150,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corspec')
-
 return {
 	corspec = {
 		acceleration = 0.115,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "24 27 25",
 		collisionvolumetype = "Box",
 		corpse = "dead",
-		description = Spring.I18N('units.descriptions.corspec'),
 		energyuse = 80,
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
@@ -28,7 +25,6 @@ return {
 		maxvelocity = 1.3,
 		maxwaterdepth = 112,
 		movementclass = "BOT3",
-		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORSPEC.s3o",
 		onoffable = true,
@@ -57,7 +53,6 @@ return {
 				collisionvolumescales = "23.679977417 24.5 24.0577850342",
 				collisionvolumetype = "Box",
 				damage = 300,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,
@@ -76,7 +71,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 248,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,
 				footprintz = 2,

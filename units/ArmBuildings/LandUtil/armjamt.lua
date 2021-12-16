@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armjamt')
-
 return {
 	armjamt = {
 		acceleration = 0,
@@ -18,7 +16,6 @@ return {
 		collisionvolumescales = "32 82 32",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armjamt'),
 		energyuse = 40,
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
@@ -30,7 +27,6 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		mincloakdistance = 35,
-		name = unitName,
 		objectname = "Units/ARMJAMT.s3o",
 		onoffable = true,
 		radardistancejam = 500,
@@ -55,7 +51,6 @@ return {
 				collisionvolumescales = "28.2096405029 67.270401001 28.2096252441",
 				collisionvolumetype = "Box",
 				damage = 427,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corestor')
-
 return {
 	corestor = {
 		acceleration = 0,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "60 35 60",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corestor'),
 		energystorage = 6000,
 		explodeas = "energystorage",
 		footprintx = 4,
@@ -27,7 +24,6 @@ return {
 		maxdamage = 1800,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/CORESTOR.s3o",
 		script = "Units/CORESTOR.cob",
 		seismicsignature = 0,
@@ -55,7 +51,6 @@ return {
 				collisionvolumescales = "61.5478820801 36.5253295898 59.2817077637",
 				collisionvolumetype = "Box",
 				damage = 1080,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -75,7 +70,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 540,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

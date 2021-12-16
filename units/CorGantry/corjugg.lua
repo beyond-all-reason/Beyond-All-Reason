@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corjugg')
-
 return {
 	corjugg = {
 		acceleration = 0.0552,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "90 80 90",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corjugg'),
 		explodeas = "juggernaut",
 		footprintx = 5,
 		footprintz = 5,
@@ -26,7 +23,6 @@ return {
 		maxvelocity = 0.55,
 		maxwaterdepth = 12,
 		movementclass = "HBOT5",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORJUGG.s3o",
 		power = 114200, --compensation for XP rank with high AoE weapons
@@ -56,7 +52,6 @@ return {
 				collisionvolumescales = "105.219192505 63.5703582764 119.881469727",
 				collisionvolumetype = "Box",
 				damage = 27000,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -76,7 +71,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 13500,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

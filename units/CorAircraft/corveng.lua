@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corveng')
-
 return {
 	corveng = {
 		acceleration = 0.3,
@@ -15,7 +13,6 @@ return {
 		category = "ALL MOBILE WEAPON VTOL NOTLAND NOTSUB NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 125,
-		description = Spring.I18N('units.descriptions.corveng'),
 		explodeas = "smallExplosionGenericAir",
 		footprintx = 2,
 		footprintz = 2,
@@ -30,7 +27,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 9.92,
 		maxwaterdepth = 0,
-		name = unitName,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORVENG.s3o",
 		script = "Units/CORVENG.cob",
@@ -49,7 +45,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft",
 			fighter = 1,
-			longdescription = Spring.I18N('units.longDescriptions.corveng'),
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

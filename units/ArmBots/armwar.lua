@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armwar')
-
 return {
 	armwar = {
 		acceleration = 0.0828,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "26 32 26",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armwar'),
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -25,7 +22,6 @@ return {
 		maxvelocity = 1.5,
 		maxwaterdepth = 12,
 		movementclass = "BOT3",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMWAR.s3o",
 		script = "Units/ARMWAR.cob",
@@ -39,7 +35,6 @@ return {
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
-			longdescription = Spring.I18N('units.longDescriptions.armwar'),
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots",
@@ -54,7 +49,6 @@ return {
 				collisionvolumescales = "37.3442840576 10.0486450195 42.9995422363",
 				collisionvolumetype = "Box",
 				damage = 880,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +68,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 490,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

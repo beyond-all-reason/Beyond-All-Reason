@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corflak')
-
 return {
 	corflak = {
 		acceleration = 0,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "28 34 28",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corflak'),
 		explodeas = "smallBuildingExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -26,7 +23,6 @@ return {
 		maxdamage = 1655,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "Units/CORFLAK.s3o",
 		script = "Units/CORFLAK.cob",
@@ -55,7 +51,6 @@ return {
 				collisionvolumescales = "37.281829834 27.9406890869 36.1777038574",
 				collisionvolumetype = "Box",
 				damage = 993,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -75,7 +70,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 497,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

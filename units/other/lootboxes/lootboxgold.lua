@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.lootboxgold')
-
 return {
 	lootboxgold = {
 		acceleration = 0,
@@ -23,7 +21,6 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 32 16",
 		collisionvolumetype = "box",
-		description = Spring.I18N('units.descriptions.lootboxgold'),
 		energymake = 800,
 		explodeas = "lootboxExplosion3",
 		floater = true,
@@ -41,7 +38,6 @@ return {
 		metalmake = 40,
 		movementclass = "HOVER3",
 		movestate = 0,
-		name = unitName,
 		noautofire = false,
 		objectname = "lootboxes/lootbox.s3o",
 		script = "lootboxes/lootboxgold.cob",

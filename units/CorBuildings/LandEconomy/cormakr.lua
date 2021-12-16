@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cormakr')
-
 return {
 	cormakr = {
 		acceleration = 0,
@@ -15,7 +13,6 @@ return {
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "32 25 32",
 		collisionvolumetype = "Box",
-		description = Spring.I18N('units.descriptions.cormakr'),
 		explodeas = "metalmaker",
 		footprintx = 3,
 		footprintz = 3,
@@ -25,7 +22,6 @@ return {
 		maxdamage = 150,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/CORMAKR.s3o",
 		script = "Units/CORMAKR.cob",
 		seismicsignature = 0,

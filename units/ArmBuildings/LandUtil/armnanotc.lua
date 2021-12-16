@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armnanotc')
-
 return {
 	armnanotc = {
 		acceleration = 0,
@@ -22,7 +20,6 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 32 31",
 		collisionvolumetype = "CylY",
-		description = Spring.I18N('units.descriptions.armnanotc'),
 		energyuse = 30,
 		explodeas = "nanoboom",
 		footprintx = 3,
@@ -35,7 +32,6 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		movementclass = "NANO",
-		name = unitName,
 		objectname = "Units/ARMNANOTC.s3o",
 		script = "Units/ARMNANOTC.cob",
 		seismicsignature = 0,

@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armgremlin')
-
 return {
 	armgremlin = {
 		acceleration = 0.0697,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "24 18 39",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armgremlin'),
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -29,7 +26,6 @@ return {
 		maxwaterdepth = 0,
 		mincloakdistance = 65,
 		movementclass = "TANK3",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMGREMLIN.s3o",
 		script = "Units/ARMGREMLIN.cob",
@@ -72,7 +68,6 @@ return {
 				collisionvolumescales = "28.9706878662 18.1388702393 29.5620422363",
 				collisionvolumetype = "Box",
 				damage = 800,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -92,7 +87,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 700,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

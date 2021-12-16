@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armtship')
-
 return {
 	armtship = {
 		acceleration = 0.02952,
@@ -17,7 +15,6 @@ return {
 		collisionvolumescales = "50 50 80",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armtship'),
 		explodeas = "hugeExplosionGeneric",
 		floater = true,
 		footprintx = 6,
@@ -28,7 +25,6 @@ return {
 		maxvelocity = 2.4,
 		minwaterdepth = 0,
 		movementclass = "BOAT5",
-		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "Units/ARMTSHIP.s3o",
 		pushresistant = true,
@@ -58,7 +54,6 @@ return {
 				collisionvolumescales = "68.6154174805 110.103820801 132.778900146",
 				collisionvolumetype = "Box",
 				damage = 13212,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 5,
@@ -75,7 +70,6 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 4032,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

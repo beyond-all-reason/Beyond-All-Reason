@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corvalk')
-
 return {
 	corvalk = {
 		acceleration = 0.09,
@@ -14,7 +12,6 @@ return {
 		category = "ALL MOBILE WEAPON NOTLAND VTOL NOTSUB NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 100,
-		description = Spring.I18N('units.descriptions.corvalk'),
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 3,
@@ -26,7 +23,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 6.6,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/CORVALK.s3o",
 		releaseheld = true,
 		script = "Units/CORVALK.cob",
@@ -41,7 +37,6 @@ return {
 		turnrate = 550,
 		verticalspeed = 3.75,
 		customparams = {
-			longdescription = Spring.I18N('units.longDescriptions.corvalk'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,

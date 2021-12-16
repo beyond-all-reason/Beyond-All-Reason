@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armrattet4')
-
 return {
 	armrattet4 = {
 		acceleration = 0.0138,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "80 51 98",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armrattet4'),
 		explodeas = "bantha",
 		footprintx = 5,
 		footprintz = 5,
@@ -28,7 +25,6 @@ return {
 		maxvelocity = 0.8,
 		maxwaterdepth = 12,
 		movementclass = "EPICVEH",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/armrattet4.s3o",
 		script = "Units/scavboss/armrattet4.cob",
@@ -47,7 +43,6 @@ return {
 			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "cannon1",
-			longdescription = Spring.I18N('units.longDescriptions.armrattet4'),
 			driftratio = "0.3",
 			firingceg = "barrelshot-large",
 			flare1name = "flare1",
@@ -72,7 +67,6 @@ return {
 				collisionvolumescales = "75.7996826172 57.2875671387 87.4318847656",
 				collisionvolumetype = "Box",
 				damage = 60000,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,
