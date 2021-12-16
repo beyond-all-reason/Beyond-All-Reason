@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corvoyr')
-
 return {
 	corvoyr = {
 		acceleration = 0.05635,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "23 28 23",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corvoyr'),
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -27,7 +24,6 @@ return {
 		maxvelocity = 1.5,
 		maxwaterdepth = 0,
 		movementclass = "BOT3",
-		name = unitName,
 		objectname = "Units/CORVOYR.s3o",
 		onoffable = false,
 		radardistance = 2200,
@@ -54,7 +50,6 @@ return {
 				collisionvolumescales = "36.3329315186 19.9079589844 23.0387420654",
 				collisionvolumetype = "Box",
 				damage = 300,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +69,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 250,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

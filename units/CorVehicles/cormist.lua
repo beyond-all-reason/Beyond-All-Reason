@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cormist')
-
 return {
 	cormist = {
 		acceleration = 0.02208,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "34 18 43",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.cormist'),
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -27,7 +24,6 @@ return {
 		maxvelocity = 1.4,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
-		name = unitName,
 		objectname = "Units/CORMIST.s3o",
 		script = "Units/CORMIST.cob",
 		seismicsignature = 0,
@@ -43,7 +39,6 @@ return {
 		turnrate = 370,
 		customparams = {
 			unitgroup = 'weaponaa',
-			longdescription = Spring.I18N('units.longDescriptions.cormist'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles",
@@ -56,7 +51,6 @@ return {
 				collisionvolumescales = "31.3571624756 22.0425262451 48.4261016846",
 				collisionvolumetype = "Box",
 				damage = 672,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -76,7 +70,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 336,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

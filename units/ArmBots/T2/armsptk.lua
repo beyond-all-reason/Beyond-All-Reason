@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armsptk')
-
 return {
 	armsptk = {
 		acceleration = 0.207,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "42 28 42",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armsptk'),
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -25,7 +22,6 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "TBOT3",
 		mygravity = 10000,
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSPTK.s3o",
 		script = "Units/ARMSPTK.cob",
@@ -52,7 +48,6 @@ return {
 				collisionvolumescales = "47.3038787842 18.2459106445 47.0814971924",
 				collisionvolumetype = "Box",
 				damage = 800,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -72,7 +67,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 500,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

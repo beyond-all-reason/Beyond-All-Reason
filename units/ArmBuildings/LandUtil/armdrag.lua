@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armdrag')
-
 return {
 	armdrag = {
 		acceleration = 0,
@@ -18,7 +16,6 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "ROCKTEETH",
 		crushresistance = 250,
-		description = Spring.I18N('units.descriptions.armdrag'),
 		explodeas = "WallExplosionMetal",
 		footprintx = 2,
 		footprintz = 2,
@@ -28,7 +25,6 @@ return {
 		maxdamage = 2500,
 		maxslope = 64,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/armdrag.s3o",
 		repairable = false,
 		script = "Units/armdrag.cob",
@@ -61,7 +57,6 @@ return {
 				collisionvolumetype = "cylY",
 				crushresistance = 0,
 				damage = 500,
-				description = "Rubble",
 				footprintx = 2,
 				footprintz = 2,
 				height = 20,

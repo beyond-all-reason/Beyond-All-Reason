@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armsnipe')
-
 return {
 	armsnipe = {
 		acceleration = 0.138,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "26 41 20",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armsnipe'),
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -28,7 +25,6 @@ return {
 		maxwaterdepth = 22,
 		mincloakdistance = 80,
 		movementclass = "BOT3",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSNIPE.s3o",
 		power = 750, --compensation for XP rank with super low AoE weapons
@@ -55,7 +51,6 @@ return {
 				collisionvolumescales = "49.6789398193 12.193939209 52.2985229492",
 				collisionvolumetype = "Box",
 				damage = 400,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -75,7 +70,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 300,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

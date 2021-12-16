@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cortrem')
-
 return {
 	cortrem = {
 		acceleration = 0.0098,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "37 61 51",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.cortrem'),
 		explodeas = "hugeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -29,7 +26,6 @@ return {
 		maxvelocity = 1.35,
 		maxwaterdepth = 15,
 		movementclass = "HTANK4",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORTREM.s3o",
 		script = "Units/CORTREM.cob",
@@ -59,7 +55,6 @@ return {
 				collisionvolumescales = "55.5426483154 42.2261505127 61.5749359131",
 				collisionvolumetype = "Box",
 				damage = 2000,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -79,7 +74,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1500,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

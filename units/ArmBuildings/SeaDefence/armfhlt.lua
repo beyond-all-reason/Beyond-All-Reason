@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armfhlt')
-
 return {
 	armfhlt = {
 		acceleration = 0,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "46 74 46",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armfhlt'),
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -25,7 +22,6 @@ return {
 		idletime = 1800,
 		maxdamage = 3837,
 		minwaterdepth = 2,
-		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMFHLT.s3o",
 		script = "Units/ARMFHLT.cob",
@@ -49,7 +45,6 @@ return {
 				collisionvolumescales = "50.0 45.7867279053 45.9999847412",
 				collisionvolumetype = "Box",
 				damage = 2302,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 4,
 				footprintz = 4,

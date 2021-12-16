@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corshad')
-
 return {
 	corshad = {
 		acceleration = 0.05,
@@ -14,7 +12,6 @@ return {
 		category = "ALL MOBILE WEAPON NOTLAND VTOL NOTSUB NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealt = 165,
-		description = Spring.I18N('units.descriptions.corshad'),
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -31,7 +28,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 7.8,
 		maxwaterdepth = 0,
-		name = unitName,
 		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSHAD.s3o",
@@ -47,7 +43,6 @@ return {
 		wingdrag = 0.145,
 		customparams = {
 			unitgroup = 'weapon',
-			longdescription = Spring.I18N('units.longDescriptions.corshad'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft",

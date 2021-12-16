@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armgeo')
-
 return {
 	armgeo = {
 		acceleration = 0,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "60 50 60",
 		collisionvolumetype = "Box",
 		corpse = "dead",
-		description = Spring.I18N('units.descriptions.armgeo'),
 		energymake = 300,
 		energystorage = 1000,
 		explodeas = "geo",
@@ -28,7 +25,6 @@ return {
 		maxdamage = 1750,
 		maxslope = 20,
 		maxwaterdepth = 99999,
-		name = unitName,
 		objectname = "Units/ARMGEO.s3o",
 		script = "Units/ARMGEO.cob",
 		seismicsignature = 0,
@@ -57,7 +53,6 @@ return {
 				collisionvolumescales = "68.1631622314 53.8843841553 59.4699707031",
 				collisionvolumetype = "Box",
 				damage = 1050,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -77,7 +72,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 525,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corhlt')
-
 return {
 	corhlt = {
 		acceleration = 0,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "38 90 38",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corhlt'),
 		energystorage = 200,
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 2,
@@ -26,7 +23,6 @@ return {
 		maxdamage = 2475,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORHLT.s3o",
 		script = "Units/CORHLT.cob",
@@ -55,7 +51,6 @@ return {
 				collisionvolumescales = "47.0663604736 80.2818603516 63.6924743652",
 				collisionvolumetype = "Box",
 				damage = 1485,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -75,7 +70,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 743,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corvrad')
-
 return {
 	corvrad = {
 		acceleration = 0.01043,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "24 18 29",
 		collisionvolumetype = "box",
 		corpse = "dead",
-		description = Spring.I18N('units.descriptions.corvrad'),
 		explodeas = "smallexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -28,7 +25,6 @@ return {
 		maxvelocity = 1.2,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
-		name = unitName,
 		objectname = "Units/CORVRAD.s3o",
 		onoffable = false,
 		radardistance = 2200,
@@ -58,7 +54,6 @@ return {
 				collisionvolumescales = "23.1105194092 8.20951843262 32.5806274414",
 				collisionvolumetype = "Box",
 				damage = 546,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -78,7 +73,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 450,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

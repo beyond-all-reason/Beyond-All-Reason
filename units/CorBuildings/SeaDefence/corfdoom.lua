@@ -1,5 +1,4 @@
 local unitName = "Devastator"
-
 return {
 	corfdoom = {
 		acceleration = 0,
@@ -17,7 +16,6 @@ return {
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		damagemodifier = 0.25,
-		description = "Floating Multi-Weapon Platform",
 		energystorage = 1000,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 6,
@@ -28,7 +26,6 @@ return {
 		losemitheight = 80,
 		maxdamage = 6000,
 		minwaterdepth = 5,
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORFDOOM.s3o",
 		onoffable = true,
@@ -54,7 +51,6 @@ return {
 				collisionvolumescales = "80.6815948486 91.7637634277 82.1471252441",
 				collisionvolumetype = "Box",
 				damage = 6000,
-				description = "Devastator Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +70,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 3000,
-				description = "Devastator Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

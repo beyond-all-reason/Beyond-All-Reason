@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armmls')
-
 return {
 	armmls = {
 		acceleration = 0.04059,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "25 25 66",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armmls'),
 		explodeas = "mediumexplosiongeneric",
 		floater = true,
 		footprintx = 4,
@@ -28,7 +25,6 @@ return {
 		maxvelocity = 2.2,
 		minwaterdepth = 15,
 		movementclass = "BOAT4",
-		name = unitName,
 		objectname = "Units/ARMMLS.s3o",
 		script = "Units/ARMMLS.cob",
 		seismicsignature = 0,
@@ -75,7 +71,6 @@ return {
 				collisionvolumescales = "37.140838623 18.7893829346 66.6114349365",
 				collisionvolumetype = "Box",
 				damage = 1576,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -95,7 +90,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4032,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corsolar')
-
 return {
 	corsolar = {
 		acceleration = 0,
@@ -17,7 +15,6 @@ return {
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
-		description = Spring.I18N('units.descriptions.corsolar'),
 		energystorage = 50,
 		energyuse = -20,
 		explodeas = "smallBuildingexplosiongeneric",
@@ -29,7 +26,6 @@ return {
 		maxdamage = 320,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/CORSOLAR.s3o",
 		onoffable = true,
 		script = "Units/CORSOLAR.cob",
@@ -59,7 +55,6 @@ return {
 				collisionvolumescales = "70 36 70",
 				collisionvolumetype = "Ell",
 				damage = 192,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -77,7 +72,6 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 96,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

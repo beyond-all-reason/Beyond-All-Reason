@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cormstor')
-
 return {
 	cormstor = {
 		acceleration = 0,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "75 34 75",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.cormstor'),
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 5,
 		footprintz = 5,
@@ -26,7 +23,6 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		metalstorage = 3000,
-		name = unitName,
 		objectname = "Units/CORMSTOR.s3o",
 		script = "Units/CORMSTOR.cob",
 		seismicsignature = 0,
@@ -54,7 +50,6 @@ return {
 				collisionvolumescales = "81.4313354492 33.987487793 63.1903381348",
 				collisionvolumetype = "Box",
 				damage = 1567,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -72,7 +67,6 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 784,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

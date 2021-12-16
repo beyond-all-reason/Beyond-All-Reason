@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corroy')
-
 return {
 	corroy = {
 		acceleration = 0.02757,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "34 34 82",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corroy'),
 		explodeas = "mediumexplosiongeneric",
 		floater = true,
 		footprintx = 4,
@@ -28,7 +25,6 @@ return {
 		maxvelocity = 2.08,
 		minwaterdepth = 12,
 		movementclass = "BOAT4",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORROY.s3o",
 		script = "Units/CORROY.cob",
@@ -54,7 +50,6 @@ return {
 				collisionvolumescales = "33.2652587891 20.5109710693 79.4415893555",
 				collisionvolumetype = "Box",
 				damage = 3360,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 5,
@@ -71,7 +66,6 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 4032,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corageo')
-
 return {
 	corageo = {
 		acceleration = 0,
@@ -15,7 +13,6 @@ return {
 		collisionvolumeoffsets = "3 -5 0",
 		collisionvolumescales = "76 48 76",
 		collisionvolumetype = "Box",
-		description = Spring.I18N('units.descriptions.corageo'),
 		energymake = 1250,
 		energystorage = 12000,
 		explodeas = "advancedFusionExplosion",
@@ -27,7 +24,6 @@ return {
 		maxdamage = 3720,
 		maxslope = 20,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/CORAGEO.s3o",
 		script = "Units/CORAGEO.lua",
 		seismicsignature = 0,

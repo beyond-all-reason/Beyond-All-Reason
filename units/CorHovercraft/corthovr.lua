@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corthovr')
-
 return {
 	corthovr = {
 		acceleration = 0.03101,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "60 60 80",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corthovr'),
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -27,7 +24,6 @@ return {
 		maxvelocity = 1.84,
 		minwaterdepth = 12,
 		movementclass = "HOVER4",
-		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "Units/CORTHOVR.s3o",
 		releaseheld = true,
@@ -56,7 +52,6 @@ return {
 				collisionvolumescales = "72.0837402344 61.3697357178 89.0081481934",
 				collisionvolumetype = "Box",
 				damage = 3012,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 4,
 				footprintz = 4,

@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.pbr_cube')
-
 return {
 	pbr_cube = {
 		acceleration = 0.207,
@@ -14,7 +12,6 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "28 15 28",
 		collisionvolumetype = "box",
-		description = Spring.I18N('units.descriptions.pbr_cube'),
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -25,7 +22,6 @@ return {
 		maxwaterdepth = 16,
 		movementclass = "TBOT2",
 		mygravity = 10000,
-		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "pbr_cube.s3o",
 		--script = "dbg_sphere.cob",

@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armspid')
-
 return {
 	armspid = {
 		acceleration = 0.207,
@@ -20,7 +18,6 @@ return {
 		collisionvolumescales = "28 15 28",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armspid'),
 		energymake = 0.7,
 		energyuse = 0.7,
 		explodeas = "smallexplosiongeneric",
@@ -33,7 +30,6 @@ return {
 		maxwaterdepth = 16,
 		movementclass = "TBOT2",
 		mygravity = 10000,
-		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "Units/ARMSPID.s3o",
 		script = "Units/ARMSPID.cob",
@@ -63,7 +59,6 @@ return {
 				collisionvolumescales = "31.362487793 12.4340515137 31.2150268555",
 				collisionvolumetype = "Box",
 				damage = 600,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -83,7 +78,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 400,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

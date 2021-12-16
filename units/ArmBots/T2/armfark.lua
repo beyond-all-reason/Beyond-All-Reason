@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armfark')
-
 return {
 	armfark = {
 		acceleration = 0.4968,
@@ -17,7 +15,6 @@ return {
 		collisionvolumescales = "21 24 17",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armfark'),
 		energymake = 12,
 		energystorage = 25,
 		energyuse = 12,
@@ -31,7 +28,6 @@ return {
 		maxvelocity = 2.5,
 		maxwaterdepth = 22,
 		movementclass = "BOT2",
-		name = unitName,
 		objectname = "Units/ARMFARK.s3o",
 		radardistance = 50,
 		script = "Units/ARMFARK.cob",
@@ -69,7 +65,6 @@ return {
 				collisionvolumescales = "23.4303741455 22.6852264404 21.335067749",
 				collisionvolumetype = "Box",
 				damage = 250,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -89,7 +84,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 150,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

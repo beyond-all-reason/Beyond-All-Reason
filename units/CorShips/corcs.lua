@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corcs')
-
 return {
 	corcs = {
 		acceleration = 0.03567,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "26 26 47",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corcs'),
 		energymake = 7,
 		energystorage = 50,
 		explodeas = "mediumexplosiongeneric-builder",
@@ -30,7 +27,6 @@ return {
 		maxvelocity = 2,
 		minwaterdepth = 15,
 		movementclass = "BOAT3",
-		name = unitName,
 		objectname = "Units/CORCS.s3o",
 		script = "Units/CORCS.cob",
 		seismicsignature = 0,
@@ -85,7 +81,6 @@ return {
 				collisionvolumescales = "45.9999694824 17.25 80.0749969482",
 				collisionvolumetype = "Box",
 				damage = 1380,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 5,
@@ -102,7 +97,6 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 4032,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

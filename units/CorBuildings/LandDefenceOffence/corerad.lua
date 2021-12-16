@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corerad')
-
 return {
 	corerad = {
 		acceleration = 0,
@@ -13,7 +11,6 @@ return {
 		canrepeat = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corerad'),
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -23,7 +20,6 @@ return {
 		maxdamage = 4000,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/CORERAD.s3o",
 		script = "Units/CORERAD.cob",
 		seismicsignature = 0,
@@ -52,7 +48,6 @@ return {
 				collisionvolumescales = "54.6322937012 35.8339996338 48.325302124",
 				collisionvolumetype = "Box",
 				damage = 1560,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -72,7 +67,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 780,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

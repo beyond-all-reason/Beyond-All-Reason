@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armpeep')
-
 return {
 	armpeep = {
 		acceleration = 0.3,
@@ -14,7 +12,6 @@ return {
 		category = "ALL MOBILE NOTLAND NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER LIGHTAIRSCOUT",
 		collide = false,
 		cruisealt = 180,
-		description = Spring.I18N('units.descriptions.armpeep'),
 		explodeas = "tinyExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -31,7 +28,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 12.5,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/ARMPEEP.s3o",
 		radardistance = 1140,
 		script = "Units/ARMPEEP.cob",
@@ -47,7 +43,6 @@ return {
 		wingdrag = 0.0575,
 		customparams = {
 			unitgroup = 'util',
-			longdescription = Spring.I18N('units.longDescriptions.armpeep'),
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft",

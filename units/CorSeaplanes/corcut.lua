@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corcut')
-
 return {
 	corcut = {
 		acceleration = 0.18,
@@ -15,7 +13,6 @@ return {
 		category = "ALL MOBILE WEAPON VTOL NOTLAND NOTSUB NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealt = 100,
-		description = Spring.I18N('units.descriptions.corcut'),
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -27,7 +24,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 5.08,
 		maxwaterdepth = 255,
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCUT.s3o",
 		script = "Units/CORCUT.cob",

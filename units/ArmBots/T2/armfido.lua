@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armfido')
-
 return {
 	armfido = {
 		acceleration = 0.138,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "26 32 28",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armfido'),
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -26,7 +23,6 @@ return {
 		maxvelocity = 2.3,
 		maxwaterdepth = 12,
 		movementclass = "BOT4",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMFIDO.s3o",
 		onoffable = true,
@@ -54,7 +50,6 @@ return {
 				collisionvolumescales = "32.719619751 19.6731262207 35.1108398438",
 				collisionvolumetype = "Box",
 				damage = 1000,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +69,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 600,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

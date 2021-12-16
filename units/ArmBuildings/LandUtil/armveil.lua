@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armveil')
-
 return {
 	armveil = {
 		acceleration = 0,
@@ -14,7 +12,6 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armveil'),
 		energyuse = 125,
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
@@ -25,7 +22,6 @@ return {
 		maxdamage = 750,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/ARMVEIL.s3o",
 		onoffable = true,
 		radardistancejam = 760,
@@ -57,7 +53,6 @@ return {
 				collisionvolumescales = "47.5629425049 83.2464294434 33.8293304443",
 				collisionvolumetype = "Box",
 				damage = 450,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -77,7 +72,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 225,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

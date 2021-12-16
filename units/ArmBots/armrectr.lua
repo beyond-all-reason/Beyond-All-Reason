@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armrectr')
-
 return {
 	armrectr = {
 		acceleration = 0.23,
@@ -18,7 +16,6 @@ return {
 		collisionvolumescales = "21 32 21",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armrectr'),
 		explodeas = "smallbuilder",
 		footprintx = 2,
 		footprintz = 2,
@@ -29,7 +26,6 @@ return {
 		maxvelocity = 2.6,
 		maxwaterdepth = 22,
 		movementclass = "BOT2",
-		name = unitName,
 		objectname = "Units/ARMRECTR.s3o",
 		radardistance = 50,
 		script = "Units/ARMRECTR.cob",
@@ -46,7 +42,6 @@ return {
 		workertime = 200,
 		customparams = {
 			unitgroup = 'builder',
-			longdescription = Spring.I18N('units.longDescriptions.armrectr'),
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots",
@@ -59,7 +54,6 @@ return {
 				collisionvolumescales = "20.0 11.0 10.0759887695",
 				collisionvolumetype = "Box",
 				damage = 764,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,
@@ -78,7 +72,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 344,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,
 				footprintz = 2,

@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corstorm')
-
 return {
 	corstorm = {
 		acceleration = 0.1242,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "26.637012481689 28.637012481689 17.637012481689",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corstorm'),
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -25,7 +22,6 @@ return {
 		maxvelocity = 1.59,
 		maxwaterdepth = 21,
 		movementclass = "BOT3",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSTORM.s3o",
 		script = "Units/CORSTORM.cob",
@@ -39,7 +35,6 @@ return {
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
-			longdescription = Spring.I18N('units.longDescriptions.corstorm'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots",
@@ -52,7 +47,6 @@ return {
 				collisionvolumescales = "22.6238861084 13.1411590576 35.857635498",
 				collisionvolumetype = "Box",
 				damage = 402,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -72,7 +66,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 251,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

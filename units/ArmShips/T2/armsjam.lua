@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armsjam')
-
 return {
 	armsjam = {
 		acceleration = 0.04059,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "22 22 64",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armsjam'),
 		energyuse = 80,
 		explodeas = "mediumexplosiongeneric",
 		floater = true,
@@ -28,7 +25,6 @@ return {
 		maxvelocity = 2.2,
 		minwaterdepth = 6,
 		movementclass = "BOAT3",
-		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMSJAM.s3o",
 		onoffable = true,
@@ -56,7 +52,6 @@ return {
 				collisionvolumescales = "28.1084594727 19.4736785889 64.0",
 				collisionvolumetype = "Box",
 				damage = 612,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 4,
@@ -75,7 +70,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4032,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

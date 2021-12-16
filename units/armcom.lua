@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armcom')
-
 return {
 	armcom = {
 		acceleration = 0.18,
@@ -24,7 +22,6 @@ return {
 		collisionvolumescales = "28 52 28",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armcom'),
 		energymake = 25,
 		energystorage = 500,
 		explodeas = "commanderExplosion",
@@ -45,7 +42,6 @@ return {
 		metalstorage = 500,
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
-		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "Units/ARMCOM.s3o",
 		pushresistant = true,
@@ -114,7 +110,6 @@ return {
 				collisionvolumescales = "47 10 47",
 				collisionvolumetype = "CylY",
 				damage = 10000,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -133,7 +128,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 5000,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

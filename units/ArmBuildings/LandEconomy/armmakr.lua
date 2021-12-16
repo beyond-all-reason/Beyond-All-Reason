@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armmakr')
-
 return {
 	armmakr = {
 		acceleration = 0,
@@ -15,7 +13,6 @@ return {
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "40 40 50",
 		collisionvolumetype = "Ell",
-		description = Spring.I18N('units.descriptions.armmakr'),
 		explodeas = "metalmaker",
 		footprintx = 3,
 		footprintz = 3,
@@ -25,7 +22,6 @@ return {
 		maxdamage = 150,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/ARMMAKR.s3o",
 		script = "Units/ARMMAKR.cob",
 		seismicsignature = 0,

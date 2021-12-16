@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armeyes')
-
 return {
 	armeyes = {
 		acceleration = 0,
@@ -16,7 +14,6 @@ return {
 		collisionvolumetype = "CylY",
 		cloakcost = 10,
 		corpse = "DRAGONSEYES_DEAD",
-		description = Spring.I18N('units.descriptions.armeyes'),
 		energyuse = 3,
 		footprintx = 1,
 		footprintz = 1,
@@ -29,7 +26,6 @@ return {
 		maxslope = 24,
 		maxwaterdepth = 0,
 		mincloakdistance = 36,
-		name = unitName,
 		objectname = "Units/ARMEYES.s3o",
 		script = "Units/ARMEYES.cob",
 		seismicsignature = 0,
@@ -53,7 +49,6 @@ return {
 				collisionvolumescales = "21.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 120,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 1,

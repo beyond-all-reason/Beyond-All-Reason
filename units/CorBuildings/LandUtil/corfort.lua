@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corfort')
-
 return {
 	corfort = {
 		acceleration = 0,
@@ -19,7 +17,6 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "ROCKTEETHX",
 		crushresistance = 1000,
-		description = Spring.I18N('units.descriptions.corfort'),
 		explodeas = "WallExplosionConcreteXL",
 		footprintx = 2,
 		footprintz = 2,
@@ -29,7 +26,6 @@ return {
 		maxdamage = 8000,
 		maxslope = 24,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/CORFORT.s3o",
 		repairable = false,
 		script = "Units/CORFORT.cob",
@@ -63,7 +59,6 @@ return {
 				collisionvolumetype = "cylY",
 				crushresistance = 0,
 				damage = 3000,
-				description = "Rubble",
 				footprintx = 2,
 				footprintz = 2,
 				height = 20,

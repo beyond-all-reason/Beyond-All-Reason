@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cormlv')
-
 return {
 	cormlv = {
 		acceleration = 0.05681,
@@ -23,7 +21,6 @@ return {
 		collisionvolumescales = "19 10 29",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.cormlv'),
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -36,7 +33,6 @@ return {
 		maxvelocity = 2.3,
 		maxwaterdepth = 0,
 		movementclass = "TANK2",
-		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "Units/CORMLV.s3o",
 		radardistancejam = 64,
@@ -64,7 +60,6 @@ return {
 		},
 		customparams = {
 			unitgroup = 'builder',
-			longdescription = Spring.I18N('units.longDescriptions.cormlv'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles",
@@ -77,7 +72,6 @@ return {
 				collisionvolumescales = "14.9514923096 10.4727783203 25.2945709229",
 				collisionvolumetype = "Box",
 				damage = 133,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -97,7 +91,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 60,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

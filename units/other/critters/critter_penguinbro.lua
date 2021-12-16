@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.critter_penguinbro')
-
 return {
 	critter_penguinbro = {
 		acceleration = 0.15,
@@ -20,7 +18,6 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "15 32 15",
 		collisionvolumetype = "CylY",
-		description = Spring.I18N('units.descriptions.critter_penguinbro'),
 		explodeas = "SMALLBUG_DEATH",
 		floater = true,
 		footprintx = 1,
@@ -36,7 +33,6 @@ return {
 		maxwaterdepth = 22,
 		movementclass = "CRITTERH",
 		movestate = -1,
-		name = unitName,
 		noautofire = false,
 		nochasecategory = "MOBILE ",
 		objectname = "Critters/critter_penguinbro.s3o",
