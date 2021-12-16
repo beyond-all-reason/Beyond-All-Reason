@@ -1036,7 +1036,10 @@ local function drawResbarValues(res, updateText)
 				TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, barWidth*0.33, 0)
 				gl.Texture(false)
 			end
+
+			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 		end)
+
 	end
 	glCallList(dlistResValuesBar[res][valueWidth])
 

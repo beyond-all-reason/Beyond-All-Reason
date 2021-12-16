@@ -11,13 +11,6 @@ function gadget:GetInfo()
 	}
 end
 
-local enableUnitDecorations = true		-- burst out xmas ball after unit death
-for _,teamID in ipairs(Spring.GetTeamList()) do
-	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
-		enableUnitDecorations = false
-	end
-end
-
 local decorationUdefIDs = {}
 local decorationUdefIDlist = {}
 for udefID,def in ipairs(UnitDefs) do
@@ -29,22 +22,17 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	VFS.Include("luarules/configs/map_biomes.lua")	-- used to place extra candy canes on snowy maps!
-
-	local isBuilder = {}
-	local unitSize = {}
-	local initiated
-
-	for unitDefID, unitDef in pairs(UnitDefs) do
-		if unitDef.isBuilder then
-			isBuilder[unitDefID] = true
-		end
-		unitSize[unitDefID] = { ((unitDef.xsize*8)+8)/2, ((unitDef.zsize*8)+8)/2 }
-	end
-
 	local maxDecorations = 200
+	local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/2000000)
+	local candycaneSnowMapMult = 2.5
+	local addGaiaBalls = false	-- if false, only own team colored balls are added
 
-	_G.itsXmas = false
+	local enableUnitDecorations = true		-- burst out xmas ball after unit death
+	for _,teamID in ipairs(Spring.GetTeamList()) do
+		if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
+			enableUnitDecorations = false
+		end
+	end
 
 	local isComWreck = {}
 	local xmasComwreckDefID
@@ -75,10 +63,15 @@ if gadgetHandler:IsSyncedCode() then
 		{12000, 8, 1.55},
 		{20000, 9, 1.7},
 	}
-
+	local isBuilder = {}
+	local unitSize = {}
 	local unitRadius = {}
 	local hasDecoration = {}
 	for udefID,def in ipairs(UnitDefs) do
+		if def.isBuilder then
+			isBuilder[udefID] = true
+		end
+		unitSize[udefID] = { ((def.xsize*8)+8)/2, ((def.zsize*8)+8)/2 }
 		unitRadius[udefID] = def.radius
 		if not def.isAirUnit and not def.modCategories["ship"] and not def.modCategories["hover"] and not def.modCategories["underwater"] and not def.modCategories["object"] then
 			if def.mass >= 35 then
@@ -105,21 +98,22 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local addGaiaBalls = false	-- if false, only own teamcolored balls are added
+	_G.itsXmas = false
 
 	local decorationCount = 0
 	local decorations = {}
 	local decorationsTerminal = {}
 	local createDecorations = {}
 	local createdDecorations = {}
-
-	local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/2200000)		-- snowy maps get more later
 	local candycanes = {}
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local random = math.random
 	local GetGroundHeight = Spring.GetGroundHeight
 	local receivedPlayerXmas = {}
 	local receivedPlayerCount = 0
+	local initiated
+
+	VFS.Include("luarules/configs/map_biomes.lua")
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,4)=="xmas" then
@@ -138,7 +132,7 @@ if gadgetHandler:IsSyncedCode() then
 				local currentMapname = Game.mapName:lower()
 				for _,keyword in pairs(snowKeywords) do
 					if string.find(currentMapname, keyword, nil, true) then
-						candycaneAmount = math.floor(candycaneAmount * 2.5)
+						candycaneAmount = math.floor(candycaneAmount * candycaneSnowMapMult)
 						break
 					end
 				end
@@ -381,7 +375,7 @@ else
 
 	function gadget:UnitCreated(unitID, unitDefID, team)
 		if decorationUdefIDs[unitDefID] then
-			xmasballs[unitID] = 0.8 + (math.random()*0.45)
+			xmasballs[unitID] = 0.8 + (math.random()*0.5)
 			Spring.UnitRendering.SetUnitLuaDraw(unitID, true)
 		end
 	end
