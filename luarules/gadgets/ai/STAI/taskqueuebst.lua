@@ -229,7 +229,7 @@ function TaskQueueBST:CategoryEconFilter(cat,param,name)
 		check =  M.full > 0.3 and M.income > 15 and E.income > 100
 
 	elseif cat == '_llt_' then
-		check =   (E.income > 5 and M.income > 1)
+		check =   (E.income > 40 and M.income > 7)
 	elseif cat == '_popup1_' then
 		check =   (E.income > 200 and M.income > 25  )
 	elseif cat == '_specialt_' then
