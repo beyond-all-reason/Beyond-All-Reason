@@ -34,10 +34,6 @@ local string = string
 local table  = table
 local base   = _G
 
-if base == nil then
-	return
-end
-
 -----------------------------------------------------------------------------
 -- Module declaration
 -----------------------------------------------------------------------------
