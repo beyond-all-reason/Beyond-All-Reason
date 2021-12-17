@@ -28,7 +28,7 @@ local function MaxBuildDist(unitName, speed)
 end
 
 function TaskQueueBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.role = nil
 	self.active = false
 	self.currentProject = nil
@@ -210,13 +210,15 @@ function TaskQueueBST:CategoryEconFilter(cat,param,name)
 	elseif cat == '_tide_' then
 		check =  map:TidalStrength() >= 10 and  ((E.full < 0.75 or E.income < E.usage * 1.1 )  or E.income < 30)
 	elseif cat == '_solar_' then
-		check =   ((E.full < 0.75 or E.income < E.usage * 1.1 )  or E.income < 40 ) and self.ai.Energy.income < 3000
+		check =   ((E.full < 0.75 or E.income < E.usage * 1.1 )  or E.income < 40 ) and self.ai.Energy.income < 3000 and map:AverageWind() < 10
+		
+		--check =   ((E.full < 0.75 or E.income < E.usage * 1.1 )  or E.income < 40 ) and self.ai.Energy.income < 3000 and M.full > .80 not map:Wind() --As long as you have 80% metal storage. You're ok to build.
 	elseif cat == '_estor_' then
 		check =   E.full > 0.8 and E.income > 400  and M.full > 0.1
 	elseif cat == '_mstor_' then
 		check =   E.full > 0.5  and M.full > 0.75 and M.income > 20 and E.income > 200
 	elseif cat == '_convs_' then
-		check =   E.income > E.usage * 1.1 and E.full > 0.8
+		check =   E.income > E.usage * 1.2 and E.full > 0.97
 	elseif cat == '_fus_' then
 		check =  (E.full < 0.7 and E.income < E.usage * 1.1) or E.full < 0.4
 	elseif cat == '_geo_' then
@@ -224,12 +226,12 @@ function TaskQueueBST:CategoryEconFilter(cat,param,name)
 	elseif cat == '_jam_' then
 		check =  M.full > 0.5 and M.income > 50 and E.income > 500
 	elseif cat == '_radar_' then
-		check =  M.full > 0.1 and M.income > 9 and E.income > 50
+		check =  M.full > 0.1 and M.income > 8 and E.income > 50
 	elseif cat == '_sonar_' then
 		check =  M.full > 0.3 and M.income > 15 and E.income > 100
 
 	elseif cat == '_llt_' then
-		check =   (E.income > 40 and M.income > 7)
+		check =   (E.income > 34 and M.income > 5)
 	elseif cat == '_popup1_' then
 		check =   (E.income > 200 and M.income > 25  )
 	elseif cat == '_specialt_' then

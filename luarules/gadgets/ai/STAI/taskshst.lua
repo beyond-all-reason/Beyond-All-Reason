@@ -9,15 +9,18 @@ function TasksHST:internalName()
 end
 
 function TasksHST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.roles = {}
 	self.roles.default = {
 		--category, eco,duplicate,limitedNumber,location,special
 		{'factoryMobilities',true,true,false,true,true},
-		{'_wind_',true,false,false,true,true},
-		{'_tide_',true,false,false,true,true},
-		{'_solar_',true,false,false,true,true},
 		{'_mex_',true,false,false,true,true},
+		{'_mex_',true,false,false,true,true},--Added a second one to the beginning of the queue so the AI does not build windmil first.
+		{'_wind_',true,false,false,true,true},
+		{'_wind_',true,false,false,true,true},
+		--{'_tide_',true,false,false,true,true}, --We are not testing water maps right now.
+		{'_solar_',true,false,false,true,true},  --How get more conditional? If wind good use more wind in preference? LIke 90% wind 10% Solar.#edit them in taskshst.lua 
+		--{'_mex_',true,false,false,true,true},	
 		{'_llt_',true,false,false,true,true},
 		{'_nano_',true,false,false,true,true},
 		{'_aa1_',true,false,false,true,true},
@@ -32,7 +35,7 @@ function TasksHST:Init()
 		{'_convs_',true,false,false,true,true},
 		{'_specialt_',true,false,false,true,true},
 		{'_jam_',true,true,1,true,true},
-		{'_radar_',true,true,false,true,true},
+		{'_radar_',true,true,false,true,true},  
 		{'_geo_',true,true,false,true,true},
 		{'_silo_',true,true,1,true,true},
 		{'_antinuke_',true,true,1,true,true},
@@ -54,7 +57,8 @@ function TasksHST:Init()
 
 	self.roles.expand = {
 		{'_mex_',true,false,false,true,true},
-		{'_llt_',true,false,false,true,true},
+		{'_specialt_',true,false,false,true,true},
+		{'_radar_',true,true,false,true,true},
 		{'_popup2_',true,false,false,true,true},
 	}
 
@@ -84,6 +88,7 @@ function TasksHST:Init()
 		{'_flak_',true,false,false,true,true},
 	}
 	self.roles.assistant = {
+		{'_nano_',true,false,false,true,true},
 		}
 
 
