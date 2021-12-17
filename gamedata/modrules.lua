@@ -99,7 +99,7 @@ local modrules = {
 	system = {
 		pathFinderSystem = 0,			-- Which pathfinder does the game use? Can be 0 - The legacy default pathfinder, 1 - Quad-Tree Pathfinder System (QTPFS) or -1 - disabled.
 		pathFinderUpdateRate = 0.0001,	-- default: 0.007.  Controls how often the pathfinder updates; larger values means more rapid updates.
-		pathFinderRawDistMult = 1.75,	-- default: 1.25.  Engine does raw move with a limited distance, this multiplier adjusts that
+		pathFinderRawDistMult = 100000,	-- default: 1.25.  Engine does raw move with a limited distance, this multiplier adjusts that
 		allowTake = true,				-- Enables and disables the /take UI command.
 	},
 
