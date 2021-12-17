@@ -4,7 +4,7 @@ local tga = VFS.Include(utilitiesDirectory .. 'image_tga.lua')
 local team = VFS.Include(utilitiesDirectory .. 'teamFunctions.lua')
 local syncFunctions = VFS.Include(utilitiesDirectory .. 'synced.lua')
 
-Spring.Utilities = {
+local utilities = {
 	LoadTGA = tga.LoadTGA,
 	SaveTGA = tga.SaveTGA,
 	NewTGA = tga.NewTGA,
@@ -26,11 +26,11 @@ Spring.Utilities = {
 	end,
 }
 
-Spring.Utilities.json = VFS.Include('common/luaUtilities/json.lua')
+local json = VFS.Include('common/luaUtilities/json.lua')
 
 local debugUtilities = VFS.Include(utilitiesDirectory .. 'debug.lua')
 
-Spring.Debug = {
+local debug = {
 	ParamsEcho = debugUtilities.ParamsEcho,
 	TableEcho = debugUtilities.TableEcho,
 }
@@ -64,3 +64,9 @@ if Spring.GetModOptions then
 		return table.copy(modOptions)
 	end
 end
+
+return {
+	Utilities = utilities,
+	Debug = debug,
+	json = json,
+}

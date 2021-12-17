@@ -3,6 +3,12 @@ if Spring.CommonFunctionsInitialized then
 	return
 end
 
+-- Universal Lua functions applicable to any Lua code
+-- These add missing base lua functionality
+VFS.Include('common/numberfunctions.lua')
+VFS.Include('common/stringFunctions.lua')
+VFS.Include('common/tablefunctions.lua')
+
 local environment = Script.GetName and Script.GetName() or "LuaParser"
 
 local commonFunctions = {
@@ -24,17 +30,15 @@ local commonFunctions = {
 	},
 }
 
--- Generic Lua functions applicable to any Lua code
-VFS.Include('common/numberfunctions.lua')
-VFS.Include('common/stringFunctions.lua')
-VFS.Include('common/tablefunctions.lua')
-
 if commonFunctions.spring[environment] then
-	VFS.Include('common/springFunctions.lua')
+	local springFunctions = VFS.Include('common/springFunctions.lua')
+	Spring.Utilities = Spring.Utilities or springFunctions.Utilities
+	Spring.Utilities.json = Spring.Utilities.json or springFunctions.json
+	Spring.Debug = Spring.Debug or springFunctions.Debug
 end
 
 if commonFunctions.i18n[environment] then
-	VFS.Include("modules/i18n/i18n.lua")
+	Spring.I18N = Spring.I18N or VFS.Include("modules/i18n/i18n.lua")
 end
 
 Spring.CommonFunctionsInitialized = true
