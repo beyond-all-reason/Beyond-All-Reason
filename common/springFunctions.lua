@@ -26,7 +26,7 @@ Spring.Utilities = {
 	end,
 }
 
-VFS.Include('common/luaUtilities/json.lua')
+Spring.Utilities.json = VFS.Include('common/luaUtilities/json.lua')
 
 local debugUtilities = VFS.Include(utilitiesDirectory .. 'debug.lua')
 
