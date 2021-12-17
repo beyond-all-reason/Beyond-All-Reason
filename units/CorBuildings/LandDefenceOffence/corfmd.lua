@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corfmd')
-
 return {
 	corfmd = {
 		acceleration = 0,
@@ -17,7 +15,6 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
-		description = Spring.I18N('units.descriptions.corfmd'),
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -27,7 +24,6 @@ return {
 		maxdamage = 3280,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		noautofire = true,
 		objectname = "Units/CORFMD.s3o",
 		radardistance = 50,
@@ -58,7 +54,6 @@ return {
 				collisionvolumescales = "48.0 37.2831726074 48.0",
 				collisionvolumetype = "Box",
 				damage = 1968,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -76,7 +71,6 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 984,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

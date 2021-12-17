@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armcroc')
-
 return {
 	armcroc = {
 		acceleration = 0.03252,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "53 23 53",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armcroc'),
 		explodeas = "largeExplosionGeneric-phib",
 		footprintx = 3,
 		footprintz = 3,
@@ -27,7 +24,6 @@ return {
 		maxvelocity = 1.8,
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMCROC.s3o",
 		script = "Units/ARMCROC.cob",
@@ -70,7 +66,6 @@ return {
 				collisionvolumescales = "50.9460906982 23.33152771 45.8317565918",
 				collisionvolumetype = "Box",
 				damage = 2000,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				featuredead = "HEAP",
 				footprintx = 2,
 				footprintz = 2,
@@ -88,7 +83,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1500,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

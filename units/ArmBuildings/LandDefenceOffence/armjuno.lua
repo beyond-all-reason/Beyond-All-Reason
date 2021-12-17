@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armjuno')
-
 return {
 	armjuno = {
 		acceleration = 0,
@@ -13,7 +11,6 @@ return {
 		collisionvolumescales = "44 88 44",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armjuno'),
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -23,7 +20,6 @@ return {
 		maxdamage = 2120,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/ARMJUNO.s3o",
 		script = "Units/ARMJUNO.cob",
 		seismicsignature = 0,
@@ -51,7 +47,6 @@ return {
 				collisionvolumescales = "65.8518981934 75.545135498 65.7558898926",
 				collisionvolumetype = "Box",
 				damage = 1272,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -71,7 +66,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 636,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

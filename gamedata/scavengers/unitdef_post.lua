@@ -101,22 +101,6 @@ local function scavUnitDef_Post(name, uDef)
         end
     end
 
-	-- add Scavenger name prefix to wrecks
-	if uDef.featuredefs then
-		if uDef.featuredefs.dead and uDef.featuredefs.dead.description then
-				uDef.featuredefs.dead.description = Spring.I18N('units.scavenger', { name = uDef.featuredefs.dead.description })
-		end
-
-		if uDef.featuredefs.heap and uDef.featuredefs.heap.description then
-				uDef.featuredefs.heap.description = Spring.I18N('units.scavenger', { name = uDef.featuredefs.heap.description })
-		end
-	end
-
-	-- add Scavenger name prefix to units
-	if uDef.name then
-		uDef.name = Spring.I18N('units.scavenger', { name = uDef.name })
-	end
-
 	local baseMultiplier = 0.85
 	local randomMultiplier = (math.random() * 0.25) + 0.875 -- results in random between 0.875 and 1.125
 

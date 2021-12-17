@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armassistdrone')
-
 return {
 	armassistdrone = {
 		acceleration = 1,
@@ -16,7 +14,6 @@ return {
 		category = "ALL MOBILE NOTLAND NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealt = 50,
-		description = Spring.I18N('units.descriptions.armassistdrone'),
 		explodeas = "smallexplosiongeneric-builder",
 		footprintx = 1,
 		footprintz = 1,
@@ -28,7 +25,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/scavboss/ARMASSISTDRONE.s3o",
 		script = "Units/ARMCA.cob",
 		seismicsignature = 0,

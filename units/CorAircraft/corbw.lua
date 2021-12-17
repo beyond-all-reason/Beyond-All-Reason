@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corbw')
-
 return {
 	corbw = {
 		acceleration = 0.25,
@@ -15,7 +13,6 @@ return {
 		category = "ALL WEAPON VTOL NOTSUB NOTHOVER",
 		collide = true,
 		cruisealt = 78,
-		description = Spring.I18N('units.descriptions.corbw'),
 		explodeas = "tinyExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -27,7 +24,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 9.35,
 		maxwaterdepth = 0,
-		name = unitName,
 		nochasecategory = "COMMANDER VTOL",
 		objectname = "Units/CORBW.s3o",
 		script = "Units/CORBW.cob",
@@ -40,7 +36,6 @@ return {
 		usesmoothmesh = 0,
 		customparams = {
 			unitgroup = 'emp',
-			longdescription = Spring.I18N('units.longDescriptions.corbw'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft",

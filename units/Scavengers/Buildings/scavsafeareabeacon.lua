@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.scavsafeareabeacon')
-
 return {
 	scavsafeareabeacon = {
 		acceleration = 0,
@@ -14,7 +12,6 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		cloakcost = 10,
-		description = Spring.I18N('units.descriptions.scavsafeareabeacon'),
 		explodeas = "scavcomexplosion",
 		footprintx = 5,
 		footprintz = 5,
@@ -27,7 +24,6 @@ return {
 		maxslope = 24,
 		maxwaterdepth = 0,
 		mincloakdistance = 250,
-		name = unitName,
 		objectname = "scavs/scavsafeareabeacon.s3o",
 		script = "Units/ARMEYES.cob",
 		seismicsignature = 0,

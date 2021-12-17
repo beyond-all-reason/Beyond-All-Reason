@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cortarg')
-
 return {
 	cortarg = {
 		acceleration = 0,
@@ -13,7 +11,6 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.cortarg'),
 		energyuse = 100,
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 5,
@@ -25,7 +22,6 @@ return {
 		maxdamage = 1800,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/CORTARG.s3o",
 		onoffable = true,
 		script = "Units/CORTARG.cob",
@@ -55,7 +51,6 @@ return {
 				collisionvolumescales = "62.75 20.2424926758 64.4927825928",
 				collisionvolumetype = "Box",
 				damage = 1080,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -75,7 +70,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 540,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

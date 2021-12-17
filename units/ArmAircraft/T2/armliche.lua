@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armliche')
-
 return {
 	armliche = {
 		acceleration = 0.15,
@@ -14,7 +12,6 @@ return {
 		category = "ALL WEAPON NOTSUB VTOL NOTHOVER",
 		collide = false,
 		cruisealt = 150,
-		description = Spring.I18N('units.descriptions.armliche'),
 		energyuse = 40,
 		explodeas = "hugeexplosiongeneric",
 		firestate = 0,
@@ -33,7 +30,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 9.83,
 		maxwaterdepth = 0,
-		name = unitName,
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMLICHE.s3o",

@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armca')
-
 return {
 	armca = {
 		acceleration = 0.07,
@@ -16,7 +14,6 @@ return {
 		category = "ALL MOBILE NOTLAND NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealt = 70,
-		description = Spring.I18N('units.descriptions.armca'),
 		energymake = 5,
 		energystorage = 25,
 		energyuse = 5,
@@ -31,7 +28,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 6.94,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/ARMCA.s3o",
 		script = "Units/ARMCA.cob",
 		seismicsignature = 0,
@@ -77,7 +73,6 @@ return {
 		customparams = {
 			unitgroup = 'builder',
 			area_mex_def = "armmex",
-			longdescription = Spring.I18N('units.longDescriptions.armca'),
 			model_author = "FireStorm, Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft",

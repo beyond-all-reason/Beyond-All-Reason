@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armseer')
-
 return {
 	armseer = {
 		acceleration = 0.04878,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "25.5 25.5 31.0",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armseer'),
 		explodeas = "smallexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -28,7 +25,6 @@ return {
 		maxvelocity = 1.9,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
-		name = unitName,
 		objectname = "Units/ARMSEER.s3o",
 		onoffable = false,
 		radardistance = 2300,
@@ -59,7 +55,6 @@ return {
 				collisionvolumescales = "24.7089538574 12.974822998 32.0",
 				collisionvolumetype = "Box",
 				damage = 700,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -79,7 +74,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 500,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

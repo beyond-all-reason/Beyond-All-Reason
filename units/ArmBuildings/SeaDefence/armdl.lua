@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armdl')
-
 return {
 	armdl = {
 		acceleration = 0,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "44 55 44",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armdl'),
 		explodeas = "smallBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -26,7 +23,6 @@ return {
 		maxdamage = 2000,
 		maxslope = 15,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/ARMDL.s3o",
 		script = "Units/ARMDL.cob",
 		seismicsignature = 0,
@@ -54,7 +50,6 @@ return {
 				collisionvolumescales = "46.5937194824 41.0 51.689743042",
 				collisionvolumetype = "Box",
 				damage = 609,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +69,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 305,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

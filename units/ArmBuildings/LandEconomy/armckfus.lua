@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armckfus')
-
 return {
 	armckfus = {
 		acceleration = 0,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "97 42 51",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armckfus'),
 		energymake = 1050,
 		energystorage = 2500,
 		explodeas = "fusionExplosion",
@@ -30,7 +27,6 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		mincloakdistance = 100,
-		name = unitName,
 		objectname = "Units/ARMCKFUS.s3o",
 		script = "Units/ARMCKFUS.cob",
 		seismicsignature = 0,
@@ -54,7 +50,6 @@ return {
 				collisionvolumescales = "83.349395752 31.1307525635 52.6837921143",
 				collisionvolumetype = "Box",
 				damage = 2880,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +69,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1440,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

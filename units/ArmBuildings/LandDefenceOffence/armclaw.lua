@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armclaw')
-
 return {
 	armclaw = {
 		acceleration = 0,
@@ -16,7 +14,6 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		decoyfor = "armdrag",
-		description = Spring.I18N('units.descriptions.armclaw'),
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -29,7 +26,6 @@ return {
 		maxdamage = 1200,
 		maxslope = 18,
 		maxwaterdepth = 0,
-		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMCLAW.s3o",
 		radardistancejam = 8,
@@ -62,7 +58,6 @@ return {
 				collisionvolumescales = "32.0 17.7499847412 31.375",
 				collisionvolumetype = "Box",
 				damage = 540,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "ROCKTEETH",
 				featurereclamate = "SMUDGE01",
@@ -84,7 +79,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 500,
-				description = "Rubble",
 				footprintx = 2,
 				footprintz = 2,
 				height = 20,

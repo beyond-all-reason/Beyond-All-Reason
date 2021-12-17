@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corplat')
-
 return {
 	corplat = {
 		acceleration = 0,
@@ -12,7 +10,6 @@ return {
 		canmove = true,
 		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corplat'),
 		energystorage = 200,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 7,
@@ -22,7 +19,6 @@ return {
 		idletime = 1800,
 		maxdamage = 2000,
 		minwaterdepth = 30,
-		name = unitName,
 		objectname = "Units/CORPLAT.s3o",
 		radardistance = 50,
 		script = "Units/CORPLAT.cob",
@@ -55,7 +51,6 @@ return {
 				collisionvolumescales = "117.5 41.25 112.5",
 				collisionvolumetype = "Box",
 				damage = 1200,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 7,
 				footprintz = 7,

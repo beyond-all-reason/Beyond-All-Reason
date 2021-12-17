@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.chip')
-
 return {
 	chip = {
 		blocking = true,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "12 1.7 12",
 		collisionvolumetype = "CylY",
 		crushresistance = 2500,
-		description = Spring.I18N('units.descriptions.chip'),
 		explodeas = "blank",
 		footprintx = 1,
 		footprintz = 1,
@@ -28,7 +25,6 @@ return {
 		maxvelocity = 1,
 		maxwaterdepth = 0,
 		movementclass = "CRITTERH",
-		name = unitName,
 		objectname = "chip.s3o",
 		reclaimable = false,
 		repairable = false,

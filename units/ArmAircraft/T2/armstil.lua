@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armstil')
-
 return {
 	armstil = {
 		acceleration = 0.25,
@@ -17,7 +15,6 @@ return {
 		collisionvolumescales = "24 9 24",
 		collisionvolumetype = "CylY",
 		cruisealt = 220,
-		description = Spring.I18N('units.descriptions.armstil'),
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -34,7 +31,6 @@ return {
 		maxslope = 15,
 		maxvelocity = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSTIL.s3o",
 		script = "Units/ARMSTIL.cob",

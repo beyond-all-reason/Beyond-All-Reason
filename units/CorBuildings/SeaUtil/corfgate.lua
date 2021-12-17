@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corfgate')
-
 return {
 	corfgate = {
 		acceleration = 0,
@@ -19,7 +17,6 @@ return {
 		collisionvolumescales = "60 70 60",
 		collisionvolumetype = "cyly",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corfgate'),
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -30,7 +27,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 0,
 		minwaterdepth = 16,
-		name = unitName,
 		noautofire = true,
 		norestrict = 1,
 		objectname = "Units/corfgate.s3o",
@@ -64,7 +60,6 @@ return {
 				collisionvolumescales = "57.2399902344 32.5033416748 63.3298492432",
 				collisionvolumetype = "Box",
 				damage = 1800,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -84,7 +79,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 900,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

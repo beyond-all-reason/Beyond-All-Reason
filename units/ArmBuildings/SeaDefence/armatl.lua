@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armatl')
-
 return {
 	armatl = {
 		acceleration = 0,
@@ -13,7 +11,6 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armatl'),
 		explodeas = "smallBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -22,7 +19,6 @@ return {
 		idletime = 1800,
 		maxdamage = 2500,
 		minwaterdepth = 12,
-		name = unitName,
 		objectname = "Units/ARMATL.s3o",
 		script = "Units/ARMATL.cob",
 		seismicsignature = 0,
@@ -47,7 +43,6 @@ return {
 				collisionvolumescales = "38.3841400146 24.7794494629 44.2891235352",
 				collisionvolumetype = "Box",
 				damage = 312,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 4,
 				footprintz = 4,

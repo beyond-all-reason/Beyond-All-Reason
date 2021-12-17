@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.resourcecheat')
-
 return {
 	resourcecheat = {
 		acceleration = 0,
@@ -16,7 +14,6 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		damagemodifier = 0.95,
-		description = Spring.I18N('units.descriptions.resourcecheat'),
 		energymake = 1000000,
 		energystorage = 1000000,
 		explodeas = "advancedFusionExplosion",
@@ -30,7 +27,6 @@ return {
 		maxwaterdepth = 0,
 		metalmake = 1000000,
 		metalstorage = 1000000,
-		name = unitName,
 		objectname = "Units/ARMAFUS.s3o",
 		script = "Units/ARMAFUS.cob",
 		seismicsignature = 0,
@@ -58,7 +54,6 @@ return {
 				collisionvolumescales = "117.043029785 57.3643035889 66.7071838379",
 				collisionvolumetype = "Box",
 				damage = 16290,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -78,7 +73,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 8145,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

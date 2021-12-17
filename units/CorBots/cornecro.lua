@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cornecro')
-
 return {
 	cornecro = {
 		acceleration = 0.23,
@@ -18,7 +16,6 @@ return {
 		collisionvolumescales = "28 36 24",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.cornecro'),
 		explodeas = "smallbuilder",
 		footprintx = 2,
 		footprintz = 2,
@@ -29,7 +26,6 @@ return {
 		maxvelocity = 2.6,
 		maxwaterdepth = 22,
 		movementclass = "BOT2",
-		name = unitName,
 		objectname = "Units/CORNECRO.s3o",
 		radardistance = 50,
 		script = "Units/CORNECRO.cob",
@@ -46,7 +42,6 @@ return {
 		workertime = 200,
 		customparams = {
 			unitgroup = 'builder',
-			longdescription = Spring.I18N('units.longDescriptions.cornecro'),
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots",
@@ -59,7 +54,6 @@ return {
 				collisionvolumescales = "33.9485473633 23.5305023193 36.0355987549",
 				collisionvolumetype = "Box",
 				damage = 794,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,
@@ -78,7 +72,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 394,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,
 				footprintz = 2,

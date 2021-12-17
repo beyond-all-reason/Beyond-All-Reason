@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armck')
-
 return {
 	armck = {
 		acceleration = 0.552,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "27 27 27",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armck'),
 		energymake = 7,
 		energystorage = 50,
 		energyuse = 7,
@@ -30,7 +27,6 @@ return {
 		maxvelocity = 1.2,
 		maxwaterdepth = 25,
 		movementclass = "BOT3",
-		name = unitName,
 		objectname = "Units/ARMCK.s3o",
 		script = "Units/ARMCK.cob",
 		seismicsignature = 0,
@@ -78,7 +74,6 @@ return {
 		customparams = {
 			unitgroup = 'builder',
 			area_mex_def = "armmex",
-			longdescription = Spring.I18N('units.longDescriptions.armck'),
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots",
@@ -91,7 +86,6 @@ return {
 				collisionvolumescales = "28.1473846436 25.0852355957 27.3032073975",
 				collisionvolumetype = "Box",
 				damage = 424,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -111,7 +105,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 262,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

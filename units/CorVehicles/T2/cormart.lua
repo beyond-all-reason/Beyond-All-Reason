@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cormart')
-
 return {
 	cormart = {
 		acceleration = 0.02556,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "36 22 38",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.cormart'),
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -27,7 +24,6 @@ return {
 		maxvelocity = 1.8,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
-		name = unitName,
 		nochasecategory = "NOTLAND VTOL",
 		objectname = "Units/CORMART.s3o",
 		script = "Units/CORMART.cob",
@@ -70,7 +66,6 @@ return {
 				collisionvolumescales = "41.4731445313 24.6765594482 38.8007202148",
 				collisionvolumetype = "Box",
 				damage = 450,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -90,7 +85,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 350,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cordoomt3')
-
 return {
 	cordoomt3 = {
 		acceleration = 0,
@@ -17,7 +15,6 @@ return {
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		damagemodifier = 0.25,
-		description = Spring.I18N('units.descriptions.cordoomt3'),
 		energystorage = 1000,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 6,
@@ -29,7 +26,6 @@ return {
 		maxdamage = 49000,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavbuildings/CORDOOMT3.s3o",
 		onoffable = true,
@@ -62,7 +58,6 @@ return {
 				collisionvolumescales = "80.6815948486 91.7637634277 82.1471252441",
 				collisionvolumetype = "Box",
 				damage = 5400,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -82,7 +77,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 2700,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

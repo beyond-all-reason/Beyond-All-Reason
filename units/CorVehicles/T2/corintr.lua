@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corintr')
-
 return {
 	corintr = {
 		acceleration = 0.01621,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "48.2 48.2 87.2",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corintr'),
 		explodeas = "hugeexplosiongeneric-phib",
 		footprintx = 3,
 		footprintz = 3,
@@ -29,7 +26,6 @@ return {
 		maxvelocity = 1.8,
 		maxwaterdepth = 255,
 		movementclass = "ATANK4",
-		name = unitName,
 		objectname = "Units/CORINTR.s3o",
 		releaseheld = true,
 		script = "Units/CORINTR.cob",
@@ -63,7 +59,6 @@ return {
 				collisionvolumescales = "50.3999938965 38.8000030518 83.4750061035",
 				collisionvolumetype = "Box",
 				damage = 7500,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -83,7 +78,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 3750,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

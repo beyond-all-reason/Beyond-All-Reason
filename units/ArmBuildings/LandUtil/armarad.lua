@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armarad')
-
 return {
 	armarad = {
 		acceleration = 0,
@@ -14,7 +12,6 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armarad'),
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -25,7 +22,6 @@ return {
 		maxdamage = 320,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/ARMARAD.s3o",
 		onoffable = false,
 		radardistance = 3500,
@@ -58,7 +54,6 @@ return {
 				collisionvolumescales = "37.4791870117 33.549987793 30.0109405518",
 				collisionvolumetype = "Box",
 				damage = 192,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -78,7 +73,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 96,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

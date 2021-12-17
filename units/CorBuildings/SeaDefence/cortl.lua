@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cortl')
-
 return {
 	cortl = {
 		acceleration = 0,
@@ -13,7 +11,6 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.cortl'),
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -23,7 +20,6 @@ return {
 		maxdamage = 1300,
 		maxslope = 10,
 		minwaterdepth = 12,
-		name = unitName,
 		objectname = "Units/CORTL.s3o",
 		script = "Units/CORTL.cob",
 		seismicsignature = 0,
@@ -47,7 +43,6 @@ return {
 				collisionvolumescales = "30.8800354004 19.4210968018 32.1831512451",
 				collisionvolumetype = "Box",
 				damage = 912,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 3,
 				footprintz = 3,

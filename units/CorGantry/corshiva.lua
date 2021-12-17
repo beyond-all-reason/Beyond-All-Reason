@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corshiva')
-
 return {
 	corshiva = {
 		acceleration = 0.069,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "61 45 67",
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corshiva'),
 		explodeas = "explosiont3",
 		footprintx = 4,
 		footprintz = 4,
@@ -26,7 +23,6 @@ return {
 		maxvelocity = 1.61,
 		maxwaterdepth = 32,
 		movementclass = "HABOT4",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSHIVA.s3o",
 		script = "Units/CORSHIVA.cob",
@@ -54,7 +50,6 @@ return {
 				collisionvolumescales = "48.4013214111 35.5686035156 49.8471069336",
 				collisionvolumetype = "Box",
 				damage = 1500,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +69,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 2000,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

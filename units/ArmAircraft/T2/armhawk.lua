@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armhawk')
-
 return {
 	armhawk = {
 		acceleration = 0.4,
@@ -15,7 +13,6 @@ return {
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB VTOL NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 160,
-		description = Spring.I18N('units.descriptions.armhawk'),
 		explodeas = "smallExplosionGenericAir",
 		footprintx = 2,
 		footprintz = 2,
@@ -30,7 +27,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 11.96,
 		maxwaterdepth = 0,
-		name = unitName,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMHAWK.s3o",
 		script = "Units/ARMHAWK.cob",

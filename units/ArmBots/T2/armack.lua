@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armack')
-
 return {
 	armack = {
 		acceleration = 0.4968,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "27 35 23",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armack'),
 		energymake = 14,
 		energystorage = 100,
 		energyuse = 14,
@@ -30,7 +27,6 @@ return {
 		maxvelocity = 1.1,
 		maxwaterdepth = 25,
 		movementclass = "BOT3",
-		name = unitName,
 		objectname = "Units/ARMACK.s3o",
 		radardistance = 50,
 		script = "Units/ARMACK.cob",
@@ -92,7 +88,6 @@ return {
 				collisionvolumescales = "29.6044616699 29.4648132324 28.049697876",
 				collisionvolumetype = "Box",
 				damage = 700,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -112,7 +107,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 500,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

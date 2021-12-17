@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.correcl')
-
 return {
 	correcl = {
 		acceleration = 0.05333,
@@ -18,7 +16,6 @@ return {
 		collisionvolumeoffsets = "0 -3 2",
 		collisionvolumescales = "37 15 48",
 		collisionvolumetype = "box",
-		description = Spring.I18N('units.descriptions.correcl'),
 		explodeas = "smallexplosiongeneric-uw",
 		footprintx = 3,
 		footprintz = 3,
@@ -29,7 +26,6 @@ return {
 		maxvelocity = 2.23,
 		minwaterdepth = 15,
 		movementclass = "UBOAT3",
-		name = unitName,
 		objectname = "Units/CORRECL.s3o",
 		reclaimspeed = 100,
 		script = "Units/CORRECL.cob",

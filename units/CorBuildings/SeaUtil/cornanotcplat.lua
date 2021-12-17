@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cornanotcplat')
-
 return {
 	cornanotcplat = {
 		acceleration = 0,
@@ -22,7 +20,6 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 50 31",
 		collisionvolumetype = "CylY",
-		description = Spring.I18N('units.descriptions.cornanotcplat'),
 		energyuse = 30,
 		explodeas = "nanoboom",
 		floater = true,
@@ -37,7 +34,6 @@ return {
 		maxwaterdepth = 50000000,
 		minwaterdepth = 12,
 		movementclass = "NANO",
-		name = unitName,
 		objectname = "Units/CORNANOTCPLAT.s3o",
 		script = "Units/CORNANOTCPLAT.cob",
 		seismicsignature = 0,

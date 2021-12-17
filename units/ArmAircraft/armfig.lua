@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armfig')
-
 return {
 	armfig = {
 		acceleration = 0.3,
@@ -15,7 +13,6 @@ return {
 		category = "ALL MOBILE WEAPON NOTSUB NOTLAND VTOL NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 125,
-		description = Spring.I18N('units.descriptions.armfig'),
 		explodeas = "smallExplosionGenericAir",
 		footprintx = 2,
 		footprintz = 2,
@@ -30,7 +27,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 9.64,
 		maxwaterdepth = 0,
-		name = unitName,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMFIG.s3o",
 		script = "Units/ARMFIG.cob",
@@ -45,7 +41,6 @@ return {
 		wingdrag = 0.185,
 		customparams = {
 			unitgroup = 'aa',
-			longdescription = Spring.I18N('units.longDescriptions.armfig'),
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft",

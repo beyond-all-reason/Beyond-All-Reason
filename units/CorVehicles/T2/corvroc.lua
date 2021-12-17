@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corvroc')
-
 return {
 	corvroc = {
 		acceleration = 0.02489,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "40 40 44",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corvroc'),
 		explodeas = "largeExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -26,7 +23,6 @@ return {
 		maxvelocity = 1.1,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
-		name = unitName,
 		nochasecategory = "MOBILE VTOL",
 		objectname = "Units/CORVROC.s3o",
 		script = "Units/CORVROC.cob",
@@ -56,7 +52,6 @@ return {
 				collisionvolumescales = "42.9068603516 14.9519805908 46.03515625",
 				collisionvolumetype = "Box",
 				damage = 1897,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -76,7 +71,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1500,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

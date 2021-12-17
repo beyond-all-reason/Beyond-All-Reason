@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.scavmistxl')
-
 return {
 	scavmistxl = {
 		acceleration = 0.207,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "64 24 64",
 		collisionvolumetype = "CylY",
 		--corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.scavmistxl'),
 		explodeas = "mistexploxl",
 		floater = true,
 		footprintx = 4,
@@ -28,7 +25,6 @@ return {
 		maxvelocity = 2.1,
 		maxwaterdepth = 0,
 		movementclass = "SCAVMIST",
-		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "scavs/scavmistflare.s3o",
 		script = "scavs/SCAVMIST.cob",

@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corak')
-
 return {
 	corak = {
 		acceleration = 0.4416,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "24 28 24",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corak'),
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -25,7 +22,6 @@ return {
 		maxvelocity = 2.8,
 		maxwaterdepth = 25,
 		movementclass = "BOT2",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORAK.s3o",
 		script = "Units/CORAK.cob",
@@ -39,7 +35,6 @@ return {
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
-			longdescription = Spring.I18N('units.longDescriptions.corak'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots",
@@ -54,7 +49,6 @@ return {
 				collisionvolumescales = "32.2373809814 13.5927429199 29.8415679932",
 				collisionvolumetype = "Box",
 				damage = 156,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +68,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 83,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

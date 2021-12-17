@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corch')
-
 return {
 	corch = {
 		acceleration = 0.03792,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "30 12 30",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corch'),
 		energymake = 11,
 		energystorage = 75,
 		energyuse = 11,
@@ -30,7 +27,6 @@ return {
 		maxvelocity = 2.03,
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
-		name = unitName,
 		objectname = "Units/CORCH.s3o",
 		radardistance = 50,
 		script = "Units/CORCH.cob",
@@ -103,7 +99,6 @@ return {
 				collisionvolumescales = "30.3070983887 10.39112854 31.9606170654",
 				collisionvolumetype = "Box",
 				damage = 805,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 3,
@@ -122,7 +117,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 403,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 3,
 				footprintz = 3,

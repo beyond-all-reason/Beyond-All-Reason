@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corsok')
-
 return {
 	corsok = {
 		acceleration = 0.01731,
@@ -20,7 +18,6 @@ return {
 		collisionvolumescales = "52 40 58",
 		collisionvolumetype = "CylY",
 		corpse = "dead",
-		description = Spring.I18N('units.descriptions.corsok'),
 		explodeas = "hugeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -31,7 +28,6 @@ return {
 		maxvelocity = 1.51,
 		maxwaterdepth = 0,
 		movementclass = "HHOVER4",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSOK.s3o",
 		radardistance = 0,
@@ -54,7 +50,6 @@ return {
 				blocking = true,
 				category = "corpses",
 				damage = 7000,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				featuredead = "heap",
 				featurereclamate = "smudge01",
 				footprintx = 4,
@@ -73,7 +68,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 3500,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				featurereclamate = "smudge01",
 				footprintx = 4,
 				footprintz = 4,

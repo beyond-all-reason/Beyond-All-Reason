@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armuwadves')
-
 return {
 	armuwadves = {
 		buildangle = 8192,
@@ -13,7 +11,6 @@ return {
 		collisionvolumescales = "62 39 62",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armuwadves'),
 		energystorage = 40000,
 		explodeas = "advenergystorage",
 		footprintx = 4,
@@ -24,7 +21,6 @@ return {
 		maxdamage = 10500,
 		maxslope = 20,
 		maxwaterdepth = 9999,
-		name = unitName,
 		objectname = "Units/ARMUWADVES.s3o",
 		script = "Units/ARMUWADVES.cob",
 		seismicsignature = 0,
@@ -53,7 +49,6 @@ return {
 				collisionvolumescales = "64.5971679688 44.2836761475 79.9999847412",
 				collisionvolumetype = "Box",
 				damage = 4200,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -73,7 +68,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 2100,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

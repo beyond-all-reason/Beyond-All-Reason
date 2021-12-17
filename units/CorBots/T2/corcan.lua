@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corcan')
-
 return {
 	corcan = {
 		acceleration = 0.138,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "32 29 30",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corcan'),
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -25,7 +22,6 @@ return {
 		maxvelocity = 1.25,
 		maxwaterdepth = 21,
 		movementclass = "BOT3",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCAN.s3o",
 		script = "Units/CORCAN.cob",
@@ -52,7 +48,6 @@ return {
 				collisionvolumescales = "39.2589111328 21.1636047363 24.3341522217",
 				collisionvolumetype = "Box",
 				damage = 3500,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -72,7 +67,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 2500,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

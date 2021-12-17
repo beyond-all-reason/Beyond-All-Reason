@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corssub')
-
 return {
 	corssub = {
 		acceleration = 0.018,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "52 14 67",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corssub'),
 		explodeas = "largeexplosiongeneric-uw",
 		footprintx = 4,
 		footprintz = 4,
@@ -26,7 +23,6 @@ return {
 		maxvelocity = 1.3,
 		minwaterdepth = 20,
 		movementclass = "UBOAT4",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSSUB.s3o",
 		script = "Units/CORSSUB.cob",
@@ -55,7 +51,6 @@ return {
 				collisionvolumescales = "39.0926055908 13.0902709961 63.9697265625",
 				collisionvolumetype = "Box",
 				damage = 2200,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 3,
@@ -74,7 +69,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4400,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

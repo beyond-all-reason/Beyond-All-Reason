@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corgarp')
-
 return {
 	corgarp = {
 		acceleration = 0.03226,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "30 21 36",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corgarp'),
 		explodeas = "smallexplosiongeneric-phib",
 		footprintx = 3,
 		footprintz = 3,
@@ -27,7 +24,6 @@ return {
 		maxvelocity = 1.95,
 		maxwaterdepth = 200,
 		movementclass = "ATANK3",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORGARP.s3o",
 		script = "Units/CORGARP.cob",
@@ -47,7 +43,6 @@ return {
 			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "barrel",
-			longdescription = Spring.I18N('units.longDescriptions.corgarp'),
 			driftratio = "0.5",
 			firingceg = "barrelshot-tiny",
 			flare1name = "emit",
@@ -71,7 +66,6 @@ return {
 				collisionvolumescales = "30.1485290527 10.4821014404 33.694442749",
 				collisionvolumetype = "Box",
 				damage = 731,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,
