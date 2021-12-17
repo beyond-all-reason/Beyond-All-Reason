@@ -8,6 +8,7 @@ end
 VFS.Include('common/numberfunctions.lua')
 VFS.Include('common/stringFunctions.lua')
 VFS.Include('common/tablefunctions.lua')
+Json = Json or VFS.Include('common/luaUtilities/json.lua')
 
 local environment = Script.GetName and Script.GetName() or "LuaParser"
 
@@ -33,7 +34,7 @@ local commonFunctions = {
 if commonFunctions.spring[environment] then
 	local springFunctions = VFS.Include('common/springFunctions.lua')
 	Spring.Utilities = Spring.Utilities or springFunctions.Utilities
-	Spring.Utilities.json = Spring.Utilities.json or springFunctions.json
+	Spring.Utilities.json = Spring.Utilities.json or Json -- will be removed once all calls are refactored to call Json
 	Spring.Debug = Spring.Debug or springFunctions.Debug
 end
 

@@ -26,8 +26,6 @@ local utilities = {
 	end,
 }
 
-local json = VFS.Include('common/luaUtilities/json.lua')
-
 local debugUtilities = VFS.Include(utilitiesDirectory .. 'debug.lua')
 
 local debug = {
@@ -68,5 +66,4 @@ end
 return {
 	Utilities = utilities,
 	Debug = debug,
-	json = json,
 }

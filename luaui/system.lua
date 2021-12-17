@@ -54,6 +54,8 @@ if (System == nil) then
     string = string,
     package = package,
     coroutine = coroutine,
+
+	Json = Json,
     
     -- luasocket
     socket          = socket,
