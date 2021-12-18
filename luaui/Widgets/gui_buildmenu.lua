@@ -48,7 +48,7 @@ local selectedCellZoom = 0.135 * zoomMult
 
 local bgpadding, chobbyInterface, activeAreaMargin, iconTypesMap
 local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2, cmdsCount
-local doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
+local hijackedlayout, doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize, priceFontSize
 local activeCmd, selBuildQueueDefID
 local prevHoveredCellID, hoverDlist
@@ -537,6 +537,20 @@ function widget:ViewResize()
 	doUpdate = true
 end
 
+local function hijacklayout()
+	local function dummylayouthandler(xIcons, yIcons, cmdCount, commands)
+		--gets called on selection change
+		widgetHandler.commands = commands
+		widgetHandler.commands.n = cmdCount
+		widgetHandler:CommandsChanged() --call widget:CommandsChanged()
+		local iconList = { [1337] = 9001 }
+		local custom_cmdz = widgetHandler.customCommands
+		return "", xIcons, yIcons, {}, custom_cmdz, {}, {}, {}, {}, {}, iconList
+	end
+	widgetHandler:ConfigLayoutHandler(dummylayouthandler) --override default build/ordermenu layout
+	Spring.ForceLayoutUpdate()
+end
+
 function buildFacingHandler(_, _, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
 		return
@@ -571,6 +585,7 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "t")
 
 	checkGeothermalFeatures()
+	hijacklayout()
 
 	iconTypesMap = {}
 	if Script.LuaRules('GetIconTypes') then
@@ -680,6 +695,10 @@ function clear()
 end
 
 function widget:Shutdown()
+	if hijackedlayout and not WG['red_buildmenu'] then
+		widgetHandler:ConfigLayoutHandler(true)
+		Spring.ForceLayoutUpdate()
+	end
 	clear()
 	hoverDlist = gl.DeleteList(hoverDlist)
 	if WG['guishader'] and dlistGuishader then

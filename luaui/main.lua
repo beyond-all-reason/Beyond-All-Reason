@@ -22,34 +22,45 @@ VFS.Include(LUAUI_DIRNAME .. "utils.lua",      nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "setupdefs.lua",  nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "savetable.lua",  nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "debug.lua",      nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "layout.lua",     nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "barwidgets.lua", nil, VFS.ZIP)
 
 local gl = Spring.Draw  --  easier to use
 
--- make default (cmd/buildmenu layout a dummy)
-function LayoutButtons(xIcons, yIcons, cmdCount, commands)
-	widgetHandler.commands   = commands
-	widgetHandler.commands.n = cmdCount
-	widgetHandler:CommandsChanged()
-	return "", xIcons, yIcons, {}, {}, {}, {}, {}, {}, {}, {}
-end
-
+--------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+--
+--  A few helper functions
+--
 
--- helper function
 function Say(msg)
 	spSendCommands('say ' .. msg)
 end
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
 
---  called every frame
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+--
+--  Update()  --  called every frame
+--
+
+activePage = 0
+
+forceLayout = true
+
 function Update()
+	local currentPage = Spring.GetActivePage()
+	if (forceLayout or (currentPage ~= activePage)) then
+		Spring.ForceLayoutUpdate()  --  for the page number indicator
+		forceLayout = false
+	end
+	activePage = currentPage
+
 	widgetHandler:Update()
+
 	return
 end
+
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -59,6 +70,10 @@ end
 
 function Shutdown()
 	return widgetHandler:Shutdown()
+end
+
+function ConfigureLayout(command)
+	return widgetHandler:ConfigureLayout(command)
 end
 
 function CommandNotify(id, params, options)
@@ -110,9 +125,12 @@ function GroupChanged(groupID)
 	return widgetHandler:GroupChanged(groupID)
 end
 
+
 --
 -- The unit (and some of the Draw) call-ins are handled
 -- differently (see LuaUI/widgets.lua / UpdateCallIns())
 --
 
+
+--------------------------------------------------------------------------------
 

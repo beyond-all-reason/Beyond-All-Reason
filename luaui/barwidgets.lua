@@ -540,6 +540,9 @@ function widgetHandler:NewWidget()
 	widget.include = function(f)
 		return include(f, widget)
 	end
+	wh.ForceLayout = function(_)
+		self:ForceLayout()
+	end
 	wh.RaiseWidget = function(_)
 		self:RaiseWidget(widget)
 	end
@@ -584,6 +587,14 @@ function widgetHandler:NewWidget()
 		return self.actionHandler:RemoveAction(widget, cmd, types)
 	end
 
+	wh.AddLayoutCommand = function(_, cmd)
+		if (self.inCommandsChanged) then
+			table.insert(self.customCommands, cmd)
+		else
+			Spring.Echo("AddLayoutCommand() can only be used in CommandsChanged()")
+		end
+	end
+
 	wh.RegisterGlobal = function(_, name, value)
 		return self:RegisterGlobal(widget, name, value)
 	end
@@ -592,6 +603,10 @@ function widgetHandler:NewWidget()
 	end
 	wh.SetGlobal = function(_, name, value)
 		return self:SetGlobal(widget, name, value)
+	end
+
+	wh.ConfigLayoutHandler = function(_, d)
+		self:ConfigLayoutHandler(d)
 	end
 
 	return widget
@@ -1073,6 +1088,14 @@ function widgetHandler:GetViewSizes()
 	return self.xViewSize, self.yViewSize
 end
 
+function widgetHandler:ForceLayout()
+	forceLayout = true  --  in main.lua
+end
+
+function widgetHandler:ConfigLayoutHandler(data)
+	ConfigLayoutHandler(data)
+end
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1113,6 +1136,47 @@ function widgetHandler:Update()
 		w:Update(deltaTime)
 	end
 	return
+end
+
+function widgetHandler:ConfigureLayout(command)
+	if (command == 'tweakgui') then
+		self.tweakMode = true
+		Spring.Echo("LuaUI TweakMode: ON")
+		return true
+	elseif (command == 'reconf') then
+		self:SendConfigData()
+		return true
+	elseif (command == 'selector') then
+		for _, w in ipairs(self.widgets) do
+			if (w.whInfo.basename == SELECTOR_BASENAME) then
+				return true  -- there can only be one
+			end
+		end
+		local sw = self:LoadWidget(LUAUI_DIRNAME .. SELECTOR_BASENAME) -- load the game's included widget_selector.lua, instead of the default selector.lua
+		self:InsertWidget(sw)
+		self:RaiseWidget(sw)
+		return true
+	elseif (string.find(command, 'togglewidget') == 1) then
+		self:ToggleWidget(string.sub(command, 14))
+		return true
+	elseif (string.find(command, 'enablewidget') == 1) then
+		self:EnableWidget(string.sub(command, 14))
+		return true
+	elseif (string.find(command, 'disablewidget') == 1) then
+		self:DisableWidget(string.sub(command, 15))
+		return true
+	end
+
+	if (self.actionHandler:TextAction(command)) then
+		return true
+	end
+
+	for _, w in ipairs(self.TextCommandList) do
+		if (w:TextCommand(command)) then
+			return true
+		end
+	end
+	return false
 end
 
 function widgetHandler:CommandNotify(id, params, options)
