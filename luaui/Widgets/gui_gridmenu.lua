@@ -173,7 +173,7 @@ local selectedCellZoom = 0.135 * zoomMult
 
 local bgpadding, chobbyInterface, activeAreaMargin, iconTypesMap
 local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font, font2, cmdsCount
-local hijackedlayout, doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
+local doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 
 local showWaterUnits = false
@@ -732,20 +732,6 @@ function widget:ViewResize()
 	doUpdate = true
 end
 
-local function hijacklayout()
-	local function dummylayouthandler(xIcons, yIcons, cmdCount, commands)
-		--gets called on selection change
-		widgetHandler.commands = commands
-		widgetHandler.commands.n = cmdCount
-		widgetHandler:CommandsChanged() --call widget:CommandsChanged()
-		local iconList = { [1337] = 9001 }
-		local custom_cmdz = widgetHandler.customCommands
-		return "", xIcons, yIcons, {}, custom_cmdz, {}, {}, {}, {}, {}, iconList
-	end
-	widgetHandler:ConfigLayoutHandler(dummylayouthandler) --override default build/ordermenu layout
-	Spring.ForceLayoutUpdate()
-end
-
 function reloadBindings()
 	local key
 	local actionHotkey = Spring.GetActionHotKeys('gridmenu_key 1 1')
@@ -834,8 +820,6 @@ function widget:Initialize()
 	ui_scale = WG.FlowUI.scale
 	glossMult = 1 + (2 - (ui_opacity * 2))		-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
-	hijacklayout()
-
 	iconTypesMap = {}
 	if Script.LuaRules('GetIconTypes') then
 		iconTypesMap = Script.LuaRules.GetIconTypes()
@@ -912,10 +896,6 @@ function clear()
 end
 
 function widget:Shutdown()
-	if hijackedlayout and not WG['red_buildmenu'] then
-		widgetHandler:ConfigLayoutHandler(true)
-		Spring.ForceLayoutUpdate()
-	end
 	clear()
 	hoverDlist = gl.DeleteList(hoverDlist)
 	if WG['guishader'] and dlistGuishader then
