@@ -44,7 +44,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local lootboxesListLow = {
+local lootboxesListT1 = {
     "lootboxbronze",
     "lootboxbronze",
 	"lootboxbronze",
@@ -67,7 +67,7 @@ local lootboxesListLow = {
 	"lootboxnano_t1_var4",
 }
 
-local lootboxesListMid = {
+local lootboxesListT2 = {
     "lootboxsilver",
 	"lootboxsilver",
 	"lootboxsilver",
@@ -90,7 +90,7 @@ local lootboxesListMid = {
 	"lootboxnano_t2_var4",
 }
 
-local lootboxesListHigh = {
+local lootboxesListT3 = {
     "lootboxgold",
 	"lootboxgold",
 	"lootboxgold",
@@ -113,7 +113,7 @@ local lootboxesListHigh = {
 	"lootboxnano_t3_var4",
 }
 
-local lootboxesListTop = {
+local lootboxesListT4 = {
     "lootboxplatinum",
 	"lootboxplatinum",
 	"lootboxplatinum",
@@ -166,6 +166,15 @@ local spGetUnitPosition 	= Spring.GetUnitPosition
 
 local aliveLootboxes        = {}
 local aliveLootboxesCount   = 0
+
+local aliveLootboxesT1        = {}
+local aliveLootboxesCountT1   = 0
+local aliveLootboxesT2        = {}
+local aliveLootboxesCountT2   = 0
+local aliveLootboxesT3        = {}
+local aliveLootboxesCountT3   = 0
+local aliveLootboxesT4        = {}
+local aliveLootboxesCountT4   = 0
 
 local LootboxesToSpawn = 0
 
@@ -384,27 +393,49 @@ function gadget:GameFrame(n)
 				local scavLoS = posFriendlyCheckOnlyLos(posx, posy, posz, scavengerAllyTeamID)
 				--local playerLoS = posLosCheck(posx, posy, posz, 128)
                 if #unitsCyl == 0 and terrainCheck and scavLoS == true then
-					if aliveLootboxesCount < 5 then
-						local spawnedUnit = spCreateUnit(lootboxesListLow[math_random(1,#lootboxesListLow)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+					--aliveLootboxesCountT1
+					if aliveLootboxesCountT3 > 5 then
+						local spawnedUnit = spCreateUnit(lootboxesListT4[math_random(1,#lootboxesListT4)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
 						if spawnedUnit then
 							Spring.SetUnitNeutral(spawnedUnit, true)
 						end
-					elseif aliveLootboxesCount < 10 then
-						local spawnedUnit = spCreateUnit(lootboxesListMid[math_random(1,#lootboxesListMid)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+					elseif aliveLootboxesCountT2 > 5 then
+						local spawnedUnit = spCreateUnit(lootboxesListT3[math_random(1,#lootboxesListT3)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
 						if spawnedUnit then
 							Spring.SetUnitNeutral(spawnedUnit, true)
 						end
-					elseif aliveLootboxesCount < 15 then
-						local spawnedUnit = spCreateUnit(lootboxesListHigh[math_random(1,#lootboxesListHigh)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+					elseif aliveLootboxesCountT1 > 5 then
+						local spawnedUnit = spCreateUnit(lootboxesListT2[math_random(1,#lootboxesListT2)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
 						if spawnedUnit then
 							Spring.SetUnitNeutral(spawnedUnit, true)
 						end
 					else
-						local spawnedUnit = spCreateUnit(lootboxesListTop[math_random(1,#lootboxesListTop)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+						local spawnedUnit = spCreateUnit(lootboxesListT1[math_random(1,#lootboxesListT1)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
 						if spawnedUnit then
 							Spring.SetUnitNeutral(spawnedUnit, true)
 						end
 					end
+					-- if aliveLootboxesCount < 5 then
+					-- 	local spawnedUnit = spCreateUnit(lootboxesListT1[math_random(1,#lootboxesListT1)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+					-- 	if spawnedUnit then
+					-- 		Spring.SetUnitNeutral(spawnedUnit, true)
+					-- 	end
+					-- elseif aliveLootboxesCount < 10 then
+					-- 	local spawnedUnit = spCreateUnit(lootboxesListT2[math_random(1,#lootboxesListT2)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+					-- 	if spawnedUnit then
+					-- 		Spring.SetUnitNeutral(spawnedUnit, true)
+					-- 	end
+					-- elseif aliveLootboxesCount < 15 then
+					-- 	local spawnedUnit = spCreateUnit(lootboxesListT3[math_random(1,#lootboxesListT3)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+					-- 	if spawnedUnit then
+					-- 		Spring.SetUnitNeutral(spawnedUnit, true)
+					-- 	end
+					-- else
+					-- 	local spawnedUnit = spCreateUnit(lootboxesListT4[math_random(1,#lootboxesListT4)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+					-- 	if spawnedUnit then
+					-- 		Spring.SetUnitNeutral(spawnedUnit, true)
+					-- 	end
+					-- end
 					spCreateUnit("lootdroppod_gold"..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
                     break
                 end
@@ -418,10 +449,38 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     local UnitName = UnitDefs[unitDefID].name
 	if isLootbox[unitDefID] then
 		Spring.SetUnitNeutral(unitID, true)
-		local uposx, uposy, uposz = spGetUnitPosition(unitID)
 		LootboxesToSpawn = LootboxesToSpawn-1
 		aliveLootboxes[#aliveLootboxes+1] = unitID
 		aliveLootboxesCount = aliveLootboxesCount + 1
+
+		for i = 1,#lootboxesListT1 do
+			if lootboxesListT1[i] == UnitName then
+				aliveLootboxesT1[#aliveLootboxesT1+1] = unitID
+				aliveLootboxesCountT1 = aliveLootboxesCountT1 + 1
+				break
+			end
+		end
+		for i = 1,#lootboxesListT2 do
+			if lootboxesListT2[i] == UnitName then
+				aliveLootboxesT2[#aliveLootboxesT2+1] = unitID
+				aliveLootboxesCountT2 = aliveLootboxesCountT2 + 1
+				break
+			end
+		end
+		for i = 1,#lootboxesListT3 do
+			if lootboxesListT3[i] == UnitName then
+				aliveLootboxesT3[#aliveLootboxesT3+1] = unitID
+				aliveLootboxesCountT3 = aliveLootboxesCountT3 + 1
+				break
+			end
+		end
+		for i = 1,#lootboxesListT4 do
+			if lootboxesListT4[i] == UnitName then
+				aliveLootboxesT4[#aliveLootboxesT4+1] = unitID
+				aliveLootboxesCountT4 = aliveLootboxesCountT4 + 1
+				break
+			end
+		end
 	end
 	if UnitName == "lootdroppod_gold" or UnitName == "lootdroppod_gold_scav" then
 		Spring.SetUnitNeutral(unitID, true)
@@ -433,9 +492,37 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	for i = 1,#aliveLootboxes do
 		if unitID == aliveLootboxes[i] then
-			LootboxesToSpawn = LootboxesToSpawn+0.25
+			LootboxesToSpawn = LootboxesToSpawn+0.5
 			table.remove(aliveLootboxes, i)
 			aliveLootboxesCount = aliveLootboxesCount - 1
+			break
+		end
+	end
+	for i = 1,#aliveLootboxesT1 do
+		if unitID == aliveLootboxesT1[i] then
+			table.remove(aliveLootboxesT1, i)
+			aliveLootboxesCountT1 = aliveLootboxesCountT1 - 1
+			break
+		end
+	end
+	for i = 1,#aliveLootboxesT2 do
+		if unitID == aliveLootboxesT2[i] then
+			table.remove(aliveLootboxesT2, i)
+			aliveLootboxesCountT2 = aliveLootboxesCountT2 - 1
+			break
+		end
+	end
+	for i = 1,#aliveLootboxesT3 do
+		if unitID == aliveLootboxesT3[i] then
+			table.remove(aliveLootboxesT3, i)
+			aliveLootboxesCountT3 = aliveLootboxesCountT3 - 1
+			break
+		end
+	end
+	for i = 1,#aliveLootboxesT4 do
+		if unitID == aliveLootboxesT4[i] then
+			table.remove(aliveLootboxesT4, i)
+			aliveLootboxesCountT4 = aliveLootboxesCountT4 - 1
 			break
 		end
 	end
