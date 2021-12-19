@@ -979,21 +979,23 @@ function drawBuildmenuBg()
 end
 
 local function drawButton(rect, text, opts)
-	opts = opts or {}
-	highlight = opts.highlight
-	fontSize = opts.fontSize
-	hovered = opts.hovered
 
-	color1 = { 0.6, 0.6, 0.6, math_max(0.35, math_min(0.55, ui_opacity/1.5)) }
+	local opts = opts or {}
+	local highlight = opts.highlight
+	local fontSize = opts.fontSize
+	local hovered = opts.hovered
+
+	local color1 = { 0.6, 0.6, 0.6, math_max(0.35, math_min(0.55, ui_opacity/1.5)) }
 	color1[4] = math_max(0, math_min(0.35, (ui_opacity-0.3)))
-	color2 = { 1,1,1, math_max(0, math_min(0.35, (ui_opacity-0.3))) }
+	local color2 = { 1,1,1, math_max(0, math_min(0.35, (ui_opacity-0.3))) }
 
-	local pad1 = 1
+	local padding = math_max(1, math_floor(bgpadding * 0.52))
+	local pad1 = padding
 
-	RectRound(rect[1] + pad1, rect[2] + pad1, rect[3] - pad1, rect[4] - pad1, 2, 2, 2, 2, 2, color1, color2)
+	RectRound(rect[1] + pad1, rect[2] + pad1, rect[3] - pad1, rect[4] - pad1, padding, 2, 2, 2, 2, color1, color2)
 	color1 = {0,0,0, color1[4]*0.85}
 	color2 = {0,0,0, color2[4]*0.85}
-	RectRound(rect[1] + 1 + pad1, rect[2] + 1 + pad1, rect[3] - 1 - pad1, rect[4] - 1 - pad1, 1, 2, 2, 2, 2, color1, color2)
+	RectRound(rect[1] + padding + pad1, rect[2] + padding + pad1, rect[3] - padding - pad1, rect[4] - padding - pad1, padding, 2, 2, 2, 2, color1, color2)
 
 	color1 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- bottom
 	color2 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- top
@@ -1003,7 +1005,7 @@ local function drawButton(rect, text, opts)
 		glColor(0, 0, 0, 0.75)
 	end
 
-	UiButton(rect[1] + 2 + pad1, rect[2] + 2 + pad1, rect[3] - 2 - pad1, rect[4] - 2 - pad1, 1,1,1,1, 1,1,1,1, nil, color1, color2, 2)
+	UiButton(rect[1] + padding + pad1, rect[2] + padding + pad1, rect[3] - padding - pad1, rect[4] - padding - pad1, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
 
 	if highlight then
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -1020,11 +1022,11 @@ local function drawButton(rect, text, opts)
 		local bottomMargin = 0
 
 		-- gloss highlight
-		local pad = math_max(1, math_floor(bgpadding * 0.52))
+		local pad = padding
 		local pad2 = pad
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(rect[1] + leftMargin + pad + pad2, rect[4] - topMargin - bgpadding - pad - pad2 - ((rect[4] - rect[2]) * 0.42), rect[3] - rightMargin - pad - pad2, (rect[4] - topMargin - pad - pad2), 2 * 0.025, 2, 2, 0, 0, { 1, 1, 1, 0.035 }, { 1, 1, 1, (disableInput and 0.11 or 0.24) })
-		RectRound(rect[1] + leftMargin + pad + pad2, rect[2] + bottomMargin + pad + pad2, rect[3] - rightMargin - pad - pad2, (rect[2] - bottomMargin - pad - pad2) + ((rect[4] - rect[2]) * 0.5), 2 * 0.025, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 or 0.075) }, { 1, 1, 1, 0 })
+		RectRound(rect[1] + leftMargin + pad + pad2, rect[4] - topMargin - bgpadding - pad - pad2 - ((rect[4] - rect[2]) * 0.42), rect[3] - rightMargin - pad - pad2, (rect[4] - topMargin - pad - pad2), padding, 2, 2, 0, 0, { 1, 1, 1, 0.035 }, { 1, 1, 1, (disableInput and 0.11 or 0.24) })
+		RectRound(rect[1] + leftMargin + pad + pad2, rect[2] + bottomMargin + pad + pad2, rect[3] - rightMargin - pad - pad2, (rect[2] - bottomMargin - pad - pad2) + ((rect[4] - rect[2]) * 0.5), padding, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 or 0.075) }, { 1, 1, 1, 0 })
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 
