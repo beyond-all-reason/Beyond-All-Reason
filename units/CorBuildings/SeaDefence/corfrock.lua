@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corfrock')
-
 return {
 	corfrock = {
 		acceleration = 0,
@@ -17,7 +15,6 @@ return {
 		collisionvolumescales = "36 59 36",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corfrock'),
 		energyuse = 0.1,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 4,
@@ -27,7 +24,6 @@ return {
 		idletime = 1800,
 		maxdamage = 1280,
 		minwaterdepth = 2,
-		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "Units/CORFROCK.s3o",
 		script = "Units/CORFROCK.cob",
@@ -50,7 +46,6 @@ return {
 				collisionvolumescales = "41.2024536133 67.0857849121 50.3104095459",
 				collisionvolumetype = "Box",
 				damage = 1280,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 3,
 				footprintz = 3,

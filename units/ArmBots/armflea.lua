@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armflea')
-
 return {
 	armflea = {
 		acceleration = 0.575,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "20 15 30",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armflea'),
 		explodeas = "tinyexplosiongeneric",
 		footprintx = 1,
 		footprintz = 1,
@@ -26,7 +23,6 @@ return {
 		maxvelocity = 4.4,
 		maxwaterdepth = 16,
 		movementclass = "BOT1",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMFLEA.s3o",
 		script = "Units/ARMFLEA.cob",
@@ -39,7 +35,6 @@ return {
 		turnrate = 1807.79993,
 		customparams = {
 			unitgroup = 'weapon',
-			longdescription = Spring.I18N('units.longDescriptions.armflea'),
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots",
@@ -52,7 +47,6 @@ return {
 				collisionvolumescales = "18.3164367676 15.4085083008 17.7548828125",
 				collisionvolumetype = "Box",
 				damage = 30,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -72,7 +66,6 @@ return {
 				collisionvolumescales = "21.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 15,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 1,

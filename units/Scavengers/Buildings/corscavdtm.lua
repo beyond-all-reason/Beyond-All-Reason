@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corscavdtm')
-
 return {
 	corscavdtm = {
 		acceleration = 0,
@@ -13,7 +11,6 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		decoyfor = "scavdrag",
-		description = Spring.I18N('units.descriptions.corscavdtf'), -- "Pop-up Flamethrower Turret" when it is added to i18n
 		explodeas = "flamethrower",
 		footprintx = 2,
 		footprintz = 2,
@@ -26,7 +23,6 @@ return {
 		maxdamage = 1450,
 		maxslope = 18,
 		maxwaterdepth = 0,
-		name = unitName, -- "Dragon's Maw" when it is added to i18n
 		nochasecategory = "MOBILE",
 		objectname = "scavs/SCAVDTM.s3o",
 		radardistancejam = 8,
@@ -59,7 +55,6 @@ return {
 				collisionvolumescales = "32.042388916 19.5953521729 32.6287231445",
 				collisionvolumetype = "Box",
 				damage = 600,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "ROCKTEETH",
 				featurereclamate = "SMUDGE01",
@@ -81,7 +76,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 500,
-				description = "Rubble",
 				footprintx = 2,
 				footprintz = 2,
 				height = 20,

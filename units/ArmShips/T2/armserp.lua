@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armserp')
-
 return {
 	armserp = {
 		acceleration = 0.02,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "45 19 57",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armserp'),
 		explodeas = "mediumExplosionGeneric-uw",
 		footprintx = 3,
 		footprintz = 3,
@@ -26,7 +23,6 @@ return {
 		maxvelocity = 1.5,
 		minwaterdepth = 20,
 		movementclass = "UBOAT4",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSERP.s3o",
 		script = "Units/ARMSERP.cob",
@@ -55,7 +51,6 @@ return {
 				collisionvolumescales = "42.614654541 20.1074523926 56.7760009766",
 				collisionvolumetype = "Box",
 				damage = 2000,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -75,7 +70,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4000,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 6,

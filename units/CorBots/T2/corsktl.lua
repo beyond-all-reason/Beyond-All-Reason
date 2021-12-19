@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corsktl')
-
 return {
 	corsktl = {
 		acceleration = 0.138,
@@ -16,7 +14,6 @@ return {
 		collisionvolumeoffsets = "0.5 0 0",
 		collisionvolumescales = "19 12 19",
 		collisionvolumetype = "CylY",
-		description = Spring.I18N('units.descriptions.corsktl'),
 		explodeas = "crawl_blast",
 		firestate = 2,
 		footprintx = 2,
@@ -30,7 +27,6 @@ return {
 		maxwaterdepth = 30,
 		mincloakdistance = 60,
 		movementclass = "ABOTBOMB2",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSKTL.s3o",
 		script = "Units/CORSKTL.cob",

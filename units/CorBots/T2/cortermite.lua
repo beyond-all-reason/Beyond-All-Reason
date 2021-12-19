@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cortermite')
-
 return {
 	cortermite = {
 		acceleration = 0.19665,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "40 24 48",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.cortermite'),
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -26,7 +23,6 @@ return {
 		maxwaterdepth = 30,
 		movementclass = "TBOT3",
 		mygravity = 10000,
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORTERMITE.s3o",
 		script = "Units/CORTERMITE.cob",
@@ -54,7 +50,6 @@ return {
 				collisionvolumescales = "32.3684997559 15.844833374 33.5386505127",
 				collisionvolumetype = "Box",
 				damage = 2000,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +69,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1500,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

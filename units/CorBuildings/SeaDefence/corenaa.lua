@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corenaa')
-
 return {
 	corenaa = {
 		acceleration = 0,
@@ -17,7 +15,6 @@ return {
 		collisionvolumescales = "42 44 42",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corenaa'),
 		energyuse = 0.1,
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,
@@ -27,7 +24,6 @@ return {
 		idletime = 1800,
 		maxdamage = 1820,
 		minwaterdepth = 2,
-		name = unitName,
 		objectname = "Units/CORENAA.s3o",
 		script = "Units/CORENAA.cob",
 		seismicsignature = 0,
@@ -52,7 +48,6 @@ return {
 				collisionvolumescales = "34.8984832764 33.2414093018 54.6983947754",
 				collisionvolumetype = "Box",
 				damage = 1092,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 1,

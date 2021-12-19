@@ -80,7 +80,6 @@ customDefs.corcom = {
 	builddistance = 250,
 	cloakcost = 50,
 	cloakcostmoving = 100,
-	description = Spring.I18N('units.descriptions.corcom_scav'),
 	explodeas = "scavcomexplosion",
 	footprintx = 0,
 	footprintz = 0,
@@ -94,7 +93,7 @@ customDefs.corcom = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 200,				-- can get multiplied in unitdef_post
+	--workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',
 	},
@@ -143,11 +142,10 @@ customDefs.corcom = {
 customDefs.corcomcon = {
 	autoheal = 15,
 	--blocking = false,
-	buildoptions = scavConstructorsList,
+	--buildoptions = scavConstructorsList,
 	builddistance = 175,
 	cloakcost = 50,
 	cloakcostmoving = 100,
-	description = Spring.I18N('units.descriptions.corcom_scav'),
 	explodeas = "scavcomexplosion",
 	footprintx = 0,
 	footprintz = 0,
@@ -161,7 +159,7 @@ customDefs.corcomcon = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 200,				-- can get multiplied in unitdef_post
+	--workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',
 	},
@@ -213,7 +211,6 @@ customDefs.armcom = {
 	builddistance = 250,
 	cloakcost = 50,
 	cloakcostmoving = 100,
-	description = Spring.I18N('units.descriptions.armcom_scav'),
 	explodeas = "scavcomexplosion",
 	footprintx = 0,
 	footprintz = 0,
@@ -227,7 +224,7 @@ customDefs.armcom = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 200,				-- can get multiplied in unitdef_post
+	--workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',
 	},
@@ -275,11 +272,10 @@ customDefs.armcom = {
 
 customDefs.armcomcon = {
 	autoheal = 15,
-	buildoptions = scavConstructorsList,
+	--buildoptions = scavConstructorsList,
 	builddistance = 175,
 	cloakcost = 50,
 	cloakcostmoving = 100,
-	description = Spring.I18N('units.descriptions.armcom_scav'),
 	explodeas = "scavcomexplosion",
 	footprintx = 0,
 	footprintz = 0,
@@ -293,7 +289,7 @@ customDefs.armcomcon = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 200,				-- can get multiplied in unitdef_post
+	--workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',
 	},
@@ -422,7 +418,6 @@ customDefs.armrock = {
 -- Rapid Fire AK + Cloak
 customDefs.corak = {
 	--cloakcost = 3,
-	description = Spring.I18N('units.descriptions.corak_scav'),
 	--mincloakdistance = 144,
 	maxvelocity = 3,
 	weapondefs = {
@@ -445,7 +440,6 @@ customDefs.corak = {
 -- Heavy Slow Fire Warrior + Cloak
 customDefs.armwar = {
 	--cloakcost = 3,
-	description = Spring.I18N('units.descriptions.armwar_scav'),
 	--mincloakdistance = 144,
 	script = "scavs/ARMWARSCAV.cob",
 	weapondefs = {
@@ -766,7 +760,6 @@ customDefs.corgator = {
 
 customDefs.cortermite = {
 	cloakcost = 12,
-	description = Spring.I18N('units.descriptions.cortermite_scav'),
 	maxdamage = 2300,
 	mincloakdistance = 144,
 	weapondefs = {
@@ -871,7 +864,6 @@ customDefs.corllt = {
 
 -- Custom ARM ambusher - NO cloak since looks weird/ugly atm
 customDefs.armamb = {
-	-- description = Spring.I18N('units.descriptions.armamb_scav'),
 	-- cancloak = false,
 	-- stealth = true,
 	weapondefs = {
@@ -883,7 +875,6 @@ customDefs.armamb = {
 }
 
 customDefs.cortoast = {
-	-- description = Spring.I18N('units.descriptions.cortoast_scav'),
 	-- cancloak = false,
 	-- stealth = true,
 	weapondefs = {
@@ -949,7 +940,6 @@ customDefs.corhllt = {
 -- }
 
 customDefs.armmercury = {
-	description = Spring.I18N('units.descriptions.armmercury_scav'),
 	weapondefs = {
 		arm_advsam = {
 			range = 1800,
@@ -960,7 +950,6 @@ customDefs.armmercury = {
 }
 
 customDefs.corscreamer = {
-	description = Spring.I18N('units.descriptions.corscreamer_scav'),
 	weapondefs = {
 		cor_advsam = {
 			range = 1800,
@@ -1008,11 +997,10 @@ customDefs.armrectr = {
 	--cloakcost = 10,
 	--cloakcostmoving = 100,
 	category = "ALL BOT MOBILE NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
-	description = Spring.I18N('units.descriptions.armrectr_scav'),
 	footprintx = 0,
 	footprintz = 0,
 	movementclass = "SCAVCOMMANDERBOT",
-	workertime = 100 * ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
+	-- workertime = 100 * ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
 }
 
 customDefs.cornecro = {
@@ -1020,11 +1008,10 @@ customDefs.cornecro = {
 	--cloakcost = 10,
 	--cloakcostmoving = 100,
 	category = "ALL BOT MOBILE NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
-	description = Spring.I18N('units.descriptions.cornecro_scav'),
 	footprintx = 0,
 	footprintz = 0,
 	movementclass = "SCAVCOMMANDERBOT",
-	workertime = 100 * ScavDifficultyMultiplier,		-- can get multiplied in unitdef_post
+	-- workertime = 100 * ScavDifficultyMultiplier,		-- can get multiplied in unitdef_post
 }
 
 -- LOOTBOXES
@@ -1052,7 +1039,6 @@ customDefs.lootboxplatinum = {
 -- Shorter ranged long range rockets
 
 customDefs.armmerl = {
-	description = Spring.I18N('units.descriptions.armmerl_scav'),
 	weapondefs = {
 		armtruck_rocket = {
 			areaofeffect = 200,
@@ -1070,7 +1056,6 @@ customDefs.armmerl = {
 }
 
 customDefs.corvroc = {
-	description = Spring.I18N('units.descriptions.corvroc_scav'),
 	weapondefs = {
 		cortruck_rocket = {
 			areaofeffect = 200,

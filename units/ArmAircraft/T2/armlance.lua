@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armlance')
-
 return {
 	armlance = {
 		acceleration = 0.2,
@@ -13,7 +11,6 @@ return {
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB VTOL NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealt = 90,
-		description = Spring.I18N('units.descriptions.armlance'),
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -30,7 +27,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 9.5,
 		maxwaterdepth = 0,
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMLANCE.s3o",
 		radardistance = 800,

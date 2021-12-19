@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cordl')
-
 return {
 	cordl = {
 		acceleration = 0,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "38 52 38",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.cordl'),
 		explodeas = "smallBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -26,7 +23,6 @@ return {
 		maxdamage = 2100,
 		maxslope = 15,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/CORDL.s3o",
 		script = "Units/CORDL.cob",
 		seismicsignature = 0,
@@ -54,7 +50,6 @@ return {
 				collisionvolumescales = "41.9183044434 28.9974060059 37.2331542969",
 				collisionvolumetype = "Box",
 				damage = 645,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +69,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 323,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

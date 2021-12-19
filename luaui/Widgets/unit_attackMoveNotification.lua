@@ -9,9 +9,9 @@ function widget:GetInfo()
 		enabled = true
 	}
 end
-----------------------------------------------------------------------------
+
 local alarmInterval = 15        --seconds
-----------------------------------------------------------------------------
+
 local spGetLocalTeamID = Spring.GetLocalTeamID
 local spPlaySoundFile = Spring.PlaySoundFile
 local spEcho = Spring.Echo
@@ -21,11 +21,10 @@ local spIsUnitInView = Spring.IsUnitInView
 local spGetUnitPosition = Spring.GetUnitPosition
 local spSetLastMessagePosition = Spring.SetLastMessagePosition
 local random = math.random
-----------------------------------------------------------------------------
+
 local lastAlarmTime = nil
 local lastCommanderAlarmTime = nil
 local localTeamID = nil
-----------------------------------------------------------------------------
 
 local isCommander = {}
 local unitHumanName = {}
@@ -37,7 +36,7 @@ local function refreshUnitInfo()
 			isCommander[unitDefID] = true
 		end
 		unitHumanName[unitDefID] = unitDef.translatedHumanName
-		if (unitDef.sounds.underattack and (#unitDef.sounds.underattack > 0)) then
+		if not unitDef.customParams.nohealthbars and unitDef.sounds.underattack and #unitDef.sounds.underattack > 0 then
 			unitUnderattackSounds[unitDefID] = unitDef.sounds.underattack
 		end
 	end

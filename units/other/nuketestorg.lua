@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.nuketestorg')
-
 return {
 	nuketestorg = {
 		acceleration = 0,
@@ -17,7 +15,6 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "0 0 0",
 		collisionvolumetype = "box",
-		description = Spring.I18N('units.descriptions.nuketestorg'),
 		energystorage = 1000,
 		footprintx = 2,
 		footprintz = 2,
@@ -27,7 +24,6 @@ return {
 		mass = 165.75,
 		maxdamage = 5300,
 		maxvelocity = 0,
-		name = unitName,
 		noautofire = false,
 		objectname = "scavs/cube.s3o",
 		radardistance = 900,

@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armthundt4')
-
 return {
 	armthundt4 = {
 		acceleration = 0.020,
@@ -13,7 +11,6 @@ return {
 		category = "ALL MOBILE WEAPON NOTLAND NOTSUB VTOL NOTSHIP NOTHOVER T4AIR",
 		collide = false,
 		cruisealt = 190,
-		description = Spring.I18N('units.descriptions.armthundt4'),
 		explodeas = "explosiont3xl",
 		footprintx = 3,
 		footprintz = 3,
@@ -30,7 +27,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 12.25,
 		maxwaterdepth = 0,
-		name = unitName,
 		noautofire = true,
 		nochasecategory = "MOBILE",
 		objectname = "Units/scavboss/ARMTHUNDT4.s3o",
@@ -46,7 +42,6 @@ return {
 		wingdrag = 0.135,
 		customparams = {
 			unitgroup = 'weapon',
-			longdescription = Spring.I18N('units.longDescriptions.armthundt4'),
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft",

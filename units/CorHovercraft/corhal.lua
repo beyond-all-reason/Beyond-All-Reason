@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corhal')
-
 return {
 	corhal = {
 		acceleration = 0.02428,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "48 20 48",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corhal'),
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -25,7 +22,6 @@ return {
 		maxvelocity = 1.51,
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORHAL.s3o",
 		script = "Units/CORHAL.cob",
@@ -50,7 +46,6 @@ return {
 				collisionvolumescales = "30.5680847168 11.9420166016 35.7424163818",
 				collisionvolumetype = "Box",
 				damage = 2079,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -70,7 +65,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1040,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

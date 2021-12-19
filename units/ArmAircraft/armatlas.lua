@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armatlas')
-
 return {
 	armatlas = {
 		acceleration = 0.1,
@@ -14,7 +12,6 @@ return {
 		category = "ALL MOBILE WEAPON NOTLAND NOTSUB VTOL NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 100,
-		description = Spring.I18N('units.descriptions.armatlas'),
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 3,
@@ -26,7 +23,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 6.9,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/ARMATLAS.s3o",
 		releaseheld = true,
 		script = "Units/ARMATLAS.cob",
@@ -41,7 +37,6 @@ return {
 		turnrate = 550,
 		verticalspeed = 3.75,
 		customparams = {
-			longdescription = Spring.I18N('units.longDescriptions.armatlas'),
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,

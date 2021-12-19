@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.coraca')
-
 return {
 	coraca = {
 		acceleration = 0.065,
@@ -16,7 +14,6 @@ return {
 		category = "ALL NOTLAND MOBILE NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealt = 70,
-		description = Spring.I18N('units.descriptions.coraca'),
 		energymake = 10,
 		energystorage = 50,
 		energyuse = 10,
@@ -31,7 +28,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 6.05,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/CORACA.s3o",
 		radardistance = 50,
 		script = "Units/CORACA.cob",

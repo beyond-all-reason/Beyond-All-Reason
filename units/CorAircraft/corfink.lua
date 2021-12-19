@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corfink')
-
 return {
 	corfink = {
 		acceleration = 0.3,
@@ -14,7 +12,6 @@ return {
 		category = "ALL MOBILE NOTLAND NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER LIGHTAIRSCOUT",
 		collide = false,
 		cruisealt = 110,
-		description = Spring.I18N('units.descriptions.corfink'),
 		explodeas = "tinyExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -31,7 +28,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 12,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/CORFINK.s3o",
 		radardistance = 1120,
 		script = "Units/CORFINK.cob",
@@ -47,7 +43,6 @@ return {
 		wingdrag = 0.06,
 		customparams = {
 			unitgroup = 'util',
-			longdescription = Spring.I18N('units.longDescriptions.corfink'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft",

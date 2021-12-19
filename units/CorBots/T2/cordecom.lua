@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cordecom')
-
 return {
 	cordecom = {
 		acceleration = 0.18,
@@ -23,7 +21,6 @@ return {
 		collisionvolumescales = "28 52 28",
 		collisionvolumetype = "CylY",
 		decoyfor = "corcom",
-		description = Spring.I18N('units.descriptions.cordecom'),
 		energymake = 15,
 		energystorage = 50,
 		explodeas = "decoycommander",
@@ -41,7 +38,6 @@ return {
 		maxwaterdepth = 35,
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCOM.s3o",
 		radardistance = 50,

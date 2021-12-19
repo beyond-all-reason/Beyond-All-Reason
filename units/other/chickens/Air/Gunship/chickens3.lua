@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.chickens3')
-
 return {
 	chickens3 = {
 		acceleration = 0.5,
@@ -24,7 +22,6 @@ return {
 		collisionvolumetype = "box",
 		cruisealt = 150,
 		defaultmissiontype = "VTOL_standby",
-		description = Spring.I18N('units.descriptions.chickens3'),
 		explodeas = "TALON_DEATH",
 		floater = true,
 		footprintx = 1,
@@ -36,7 +33,6 @@ return {
 		mass = 280,
 		maxdamage = 1900,
 		maxvelocity = 7,
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Chickens/spiker_gunship.s3o",
 		script = "Chickens/chickens3.cob",

@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armaca')
-
 return {
 	armaca = {
 		acceleration = 0.07,
@@ -16,7 +14,6 @@ return {
 		category = "ALL NOTLAND MOBILE NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealt = 80,
-		description = Spring.I18N('units.descriptions.armaca'),
 		energymake = 10,
 		energystorage = 50,
 		energyuse = 10,
@@ -31,7 +28,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 6.4,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/ARMACA.s3o",
 		radardistance = 50,
 		script = "Units/ARMACA.cob",

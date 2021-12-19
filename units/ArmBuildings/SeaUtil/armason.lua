@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armason')
-
 return {
 	armason = {
 		acceleration = 0,
@@ -15,7 +13,6 @@ return {
 		category = "ALL UNDERWATER NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		damagemodifier = 0.46,
-		description = Spring.I18N('units.descriptions.armason'),
 		explodeas = "mediumBuildingexplosiongeneric-uw",
 		footprintx = 4,
 		footprintz = 4,
@@ -25,7 +22,6 @@ return {
 		maxdamage = 2120,
 		maxslope = 10,
 		minwaterdepth = 24,
-		name = unitName,
 		objectname = "Units/ARMASON.s3o",
 		onoffable = false,
 		script = "Units/ARMASON.cob",
@@ -56,7 +52,6 @@ return {
 				collisionvolumescales = "30.2144622803 57.7799987793 23.5352478027",
 				collisionvolumetype = "Box",
 				damage = 1272,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 4,
 				footprintz = 4,

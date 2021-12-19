@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armsilo')
-
 return {
 	armsilo = {
 		acceleration = 0,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "90 26 90",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armsilo'),
 		explodeas = "nukeBuilding",
 		footprintx = 7,
 		footprintz = 7,
@@ -24,7 +21,6 @@ return {
 		maxdamage = 5300,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/ARMSILO.s3o",
 		radardistance = 50,
 		script = "Units/ARMSILO.cob",
@@ -53,7 +49,6 @@ return {
 				collisionvolumescales = "97.7549743652 23.7849884033 93.0073547363",
 				collisionvolumetype = "Box",
 				damage = 3180,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -73,7 +68,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1590,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

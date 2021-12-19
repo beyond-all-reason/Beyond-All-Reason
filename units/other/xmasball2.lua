@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.xmasball2')
-
 return {
 	xmasball2 = {
 		blocking = true,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "6.8 6.8 6.8",
 		collisionvolumetype = "Sphere",
 		crushresistance = 2500,
-		description = Spring.I18N('units.descriptions.xmasball2'),
 		explodeas = "blank",
 		footprintx = 1,
 		footprintz = 1,
@@ -28,7 +25,6 @@ return {
 		maxvelocity = 1,
 		maxwaterdepth = 0,
 		movementclass = "CRITTERH",
-		name = unitName,
 		objectname = "xmasball2.s3o",
 		reclaimable = false,
 		repairable = false,

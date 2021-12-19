@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corfhp')
-
 return {
 	corfhp = {
 		acceleration = 0,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "120 32 106",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corfhp'),
 		energystorage = 200,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 8,
@@ -25,7 +22,6 @@ return {
 		maxdamage = 3356,
 		metalstorage = 200,
 		minwaterdepth = 5,
-		name = unitName,
 		objectname = "Units/CORFHP.s3o",
 		radardistance = 50,
 		script = "Units/CORFHP.cob",
@@ -58,7 +54,6 @@ return {
 				collisionvolumescales = "120 26 108",
 				collisionvolumetype = "Box",
 				damage = 2014,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 8,
 				footprintz = 7,

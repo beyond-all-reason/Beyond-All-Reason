@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corca')
-
 return {
 	corca = {
 		acceleration = 0.06,
@@ -16,7 +14,6 @@ return {
 		category = "ALL MOBILE NOTLAND NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealt = 75,
-		description = Spring.I18N('units.descriptions.corca'),
 		energymake = 5,
 		energystorage = 25,
 		energyuse = 5,
@@ -31,7 +28,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 6.7,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/CORCA.s3o",
 		radardistance = 50,
 		script = "Units/CORCA.cob",
@@ -78,7 +74,6 @@ return {
 		customparams = {
 			unitgroup = 'builder',
 			area_mex_def = "cormex",
-			longdescription = Spring.I18N('units.longDescriptions.corca'),
 			model_author = "Mr Bob, Flaka",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft",

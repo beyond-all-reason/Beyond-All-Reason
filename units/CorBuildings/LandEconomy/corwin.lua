@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corwin')
-
 return {
 	corwin = {
 		acceleration = 0,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "34 89 34",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corwin'),
 		energystorage = 0.5,
 		explodeas = "windboom",
 		footprintx = 3,
@@ -26,7 +23,6 @@ return {
 		maxdamage = 179,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/CORWIN.s3o",
 		script = "Units/CORWIN.cob",
 		seismicsignature = 0,
@@ -55,7 +51,6 @@ return {
 				collisionvolumescales = "47.8161621094 48.6615753174 44.0332336426",
 				collisionvolumetype = "Box",
 				damage = 107,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -75,7 +70,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 54,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

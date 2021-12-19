@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armfatf')
-
 return {
 	armfatf = {
 		acceleration = 0,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "52 44 52",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armfatf'),
 		energyuse = 150,
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 4,
@@ -28,7 +25,6 @@ return {
 		maxdamage = 1451,
 		maxslope = 10,
 		minwaterdepth = 30,
-		name = unitName,
 		objectname = "Units/ARMFATF.s3o",
 		onoffable = true,
 		script = "Units/ARMFATF.cob",
@@ -54,7 +50,6 @@ return {
 				collisionvolumescales = "59.4412994385 29.0925292969 58.6490936279",
 				collisionvolumetype = "Box",
 				damage = 871,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +69,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 436,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

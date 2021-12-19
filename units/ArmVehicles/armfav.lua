@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armfav')
-
 return {
 	armfav = {
 		acceleration = 0.16659,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "25 18 32",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armfav'),
 		explodeas = "tinyExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -26,7 +23,6 @@ return {
 		maxvelocity = 5.6,
 		maxwaterdepth = 12,
 		movementclass = "TANK1",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMFAV.s3o",
 		script = "Units/ARMFAV.cob",
@@ -46,7 +42,6 @@ return {
 			basename = "base",
 			cannon1name = "flare1",
 			cannon2name = "flare2",
-			longdescription = Spring.I18N('units.longDescriptions.armfav'),
 			driftratio = "0.6",
 			firingceg = "",
 			flare1name = "flare1",
@@ -71,7 +66,6 @@ return {
 				collisionvolumescales = "26.3068695068 15.9473724365 28.9309844971",
 				collisionvolumetype = "Box",
 				damage = 111,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -91,7 +85,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 56,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,
