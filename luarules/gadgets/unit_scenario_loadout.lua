@@ -52,7 +52,7 @@ function gadget:GamePreload()
 		if Spring.GetModOptions().scenariooptions then
 			Spring.Echo("Scenario: Spawning on frame", Spring.GetGameFrame())
 			local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
-			scenariooptions = Spring.Utilities.json.decode(scenariooptions)
+			scenariooptions = Json.decode(scenariooptions)
 			if scenariooptions and scenariooptions.unitloadout then
 				Spring.Echo("Scenario: Creating unit loadout")
 				local unitloadout = scenariooptions.unitloadout

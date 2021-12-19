@@ -6,7 +6,7 @@ local translationFiles = VFS.DirList('language/', '*.json')
 
 for _, file in ipairs(translationFiles) do
 	local i18nJson = VFS.LoadFile(file)
-	local i18nLua = Spring.Utilities.json.decode(i18nJson)
+	local i18nLua = Json.decode(i18nJson)
 	i18n.load(i18nLua)
 end
 

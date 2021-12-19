@@ -33,7 +33,6 @@ local commonFunctions = {
 if commonFunctions.spring[environment] then
 	local springFunctions = VFS.Include('common/springFunctions.lua')
 	Spring.Utilities = Spring.Utilities or springFunctions.Utilities
-	Spring.Utilities.json = Spring.Utilities.json or Json -- will be removed once all calls are refactored to call Json
 	Spring.Debug = Spring.Debug or springFunctions.Debug
 end
 
