@@ -992,10 +992,10 @@ local function drawButton(rect, text, opts)
 	local padding = math_max(1, math_floor(bgpadding * 0.52))
 	local pad1 = padding
 
-	RectRound(rect[1] + pad1, rect[2] + pad1, rect[3] - pad1, rect[4] - pad1, padding, 2, 2, 2, 2, color1, color2)
+	RectRound(rect[1] + pad1, rect[2] + pad1, rect[3] - pad1, rect[4] - pad1, padding * 1.5, 2, 2, 2, 2, color1, color2)
 	color1 = {0,0,0, color1[4]*0.85}
 	color2 = {0,0,0, color2[4]*0.85}
-	RectRound(rect[1] + padding + pad1, rect[2] + padding + pad1, rect[3] - padding - pad1, rect[4] - padding - pad1, padding, 2, 2, 2, 2, color1, color2)
+	RectRound(rect[1] + padding + pad1, rect[2] + padding + pad1, rect[3] - padding - pad1, rect[4] - padding - pad1, padding * 1.2, 2, 2, 2, 2, color1, color2)
 
 	color1 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- bottom
 	color2 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- top
@@ -1023,10 +1023,10 @@ local function drawButton(rect, text, opts)
 
 		-- gloss highlight
 		local pad = padding
-		local pad2 = pad
+		local pad2 = 0
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(rect[1] + leftMargin + pad + pad2, rect[4] - topMargin - bgpadding - pad - pad2 - ((rect[4] - rect[2]) * 0.42), rect[3] - rightMargin - pad - pad2, (rect[4] - topMargin - pad - pad2), padding, 2, 2, 0, 0, { 1, 1, 1, 0.035 }, { 1, 1, 1, (disableInput and 0.11 or 0.24) })
-		RectRound(rect[1] + leftMargin + pad + pad2, rect[2] + bottomMargin + pad + pad2, rect[3] - rightMargin - pad - pad2, (rect[2] - bottomMargin - pad - pad2) + ((rect[4] - rect[2]) * 0.5), padding, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 or 0.075) }, { 1, 1, 1, 0 })
+		RectRound(rect[1] + leftMargin + pad + pad2, rect[4] - topMargin - bgpadding - pad - pad2 - ((rect[4] - rect[2]) * 0.42), rect[3] - rightMargin - pad - pad2, (rect[4] - topMargin - pad - pad2), padding * 1.5, 2, 2, 0, 0, { 1, 1, 1, 0.035 }, { 1, 1, 1, (disableInput and 0.11 or 0.24) })
+		RectRound(rect[1] + leftMargin + pad + pad2, rect[2] + bottomMargin + pad + pad2, rect[3] - rightMargin - pad - pad2, (rect[2] - bottomMargin - pad - pad2) + ((rect[4] - rect[2]) * 0.5), padding * 1.5, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 or 0.075) }, { 1, 1, 1, 0 })
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 
