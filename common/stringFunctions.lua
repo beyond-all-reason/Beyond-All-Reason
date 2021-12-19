@@ -26,13 +26,13 @@ if not string.base64Encode then
 end
 
 if not string.lines then
-	function string.lines(str)
+	function string:lines()
 		local text = {}
 		local function helper(line)
 			text[#text+1] = line
 			return ""
 		end
-		helper((str:gsub("(.-)\r?\n", helper)))
+		helper((self:gsub("(.-)\r?\n", helper)))
 		return text
 	end
 end
