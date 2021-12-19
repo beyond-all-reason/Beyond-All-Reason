@@ -1,24 +1,16 @@
-local function SpawnT1Raid(transport, unitsT1)
-	local unit = unitsT1[math_random(1,#unitsT1)]
-	local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-	local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-	if TransportID and LoadedUnitID then
-		local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
-		Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
-		Spring.GiveOrderToUnit(TransportID, CMD.LOAD_UNITS,{LoadedUnitID}, {0})
-		Spring.GiveOrderToUnit(TransportID, CMD.UNLOAD_UNIT,{ax+math_random(-300,300),ay,az+math_random(-300,300)}, {"shift"})
-	end
-end
-
-local function SpawnT2Raid(transport, unitsT2)
-	local unit = unitsT2[math_random(1,#unitsT2)]
-	local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-	local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-	if TransportID and LoadedUnitID then
-		local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
-		Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
-		Spring.GiveOrderToUnit(TransportID, CMD.LOAD_UNITS,{LoadedUnitID}, {0})
-		Spring.GiveOrderToUnit(TransportID, CMD.UNLOAD_UNIT,{ax+math_random(-300,300),ay,az+math_random(-300,300)}, {"shift"})
+local function SpawnAirRaid(transport, units, posx, posy, posz)
+	local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
+	local unitCountBuffer = scavMaxUnits*0.01
+	if unitCount + unitCountBuffer < scavMaxUnits then 
+		local unit = units[math_random(1,#units)]
+		local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+		local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+		if TransportID and LoadedUnitID then
+			local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
+			Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
+			Spring.GiveOrderToUnit(TransportID, CMD.LOAD_UNITS,{LoadedUnitID}, {0})
+			Spring.GiveOrderToUnit(TransportID, CMD.UNLOAD_UNIT,{ax+math_random(-300,300),ay,az+math_random(-300,300)}, {"shift"})
+		end
 	end
 end
 
@@ -143,62 +135,62 @@ local function transport1(currentFrame)
 				if globalScore < scavconfig.timers.T1low then
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*8) do
-						SpawnT1Raid(transport, unitsT1)
+						SpawnAirRaid(transport, unitsT1, posx, posy, posz)
 					end
 				elseif globalScore < scavconfig.timers.T1high then
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*12) do
-						SpawnT1Raid(transport, unitsT1)
+						SpawnAirRaid(transport, unitsT1, posx, posy, posz)
 					end
 				elseif globalScore < scavconfig.timers.T2start then
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*16) do
-						SpawnT1Raid(transport, unitsT1)
+						SpawnAirRaid(transport, unitsT1, posx, posy, posz)
 					end
 				elseif globalScore < scavconfig.timers.T2low then
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*20) do
-						SpawnT1Raid(transport, unitsT1)
+						SpawnAirRaid(transport, unitsT1, posx, posy, posz)
 					end
 				elseif globalScore < scavconfig.timers.T2high then
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*24) do
-						SpawnT1Raid(transport, unitsT1)
+						SpawnAirRaid(transport, unitsT1, posx, posy, posz)
 					end
 				elseif globalScore < scavconfig.timers.T3start then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*20) do
-						SpawnT2Raid(transport, unitsT2)
+						SpawnAirRaid(transport, unitsT2, posx, posy, posz)
 					end
 				elseif globalScore < scavconfig.timers.T3low then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*22) do
-						SpawnT2Raid(transport, unitsT2)
+						SpawnAirRaid(transport, unitsT2, posx, posy, posz)
 					end
 				elseif globalScore < scavconfig.timers.T3high then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*24) do
-						SpawnT2Raid(transport, unitsT2)
+						SpawnAirRaid(transport, unitsT2, posx, posy, posz)
 					end
 				elseif globalScore < scavconfig.timers.T4start then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*26) do
-						SpawnT2Raid(transport, unitsT2)
+						SpawnAirRaid(transport, unitsT2, posx, posy, posz)
 					end
 				elseif globalScore < scavconfig.timers.T4low then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*28) do
-						SpawnT2Raid(transport, unitsT2)
+						SpawnAirRaid(transport, unitsT2, posx, posy, posz)
 					end
 				elseif globalScore < scavconfig.timers.T4high then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*30) do
-						SpawnT2Raid(transport, unitsT2)
+						SpawnAirRaid(transport, unitsT2, posx, posy, posz)
 					end
 				else
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*32) do
-						SpawnT2Raid(transport, unitsT2)
+						SpawnAirRaid(transport, unitsT2, posx, posy, posz)
 					end
 				end
 				

@@ -93,7 +93,7 @@ customDefs.corcom = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 200,				-- can get multiplied in unitdef_post
+	--workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',
 	},
@@ -142,7 +142,7 @@ customDefs.corcom = {
 customDefs.corcomcon = {
 	autoheal = 15,
 	--blocking = false,
-	buildoptions = scavConstructorsList,
+	--buildoptions = scavConstructorsList,
 	builddistance = 175,
 	cloakcost = 50,
 	cloakcostmoving = 100,
@@ -159,7 +159,7 @@ customDefs.corcomcon = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 200,				-- can get multiplied in unitdef_post
+	--workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',
 	},
@@ -224,7 +224,7 @@ customDefs.armcom = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 200,				-- can get multiplied in unitdef_post
+	--workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',
 	},
@@ -272,7 +272,7 @@ customDefs.armcom = {
 
 customDefs.armcomcon = {
 	autoheal = 15,
-	buildoptions = scavConstructorsList,
+	--buildoptions = scavConstructorsList,
 	builddistance = 175,
 	cloakcost = 50,
 	cloakcostmoving = 100,
@@ -289,7 +289,7 @@ customDefs.armcomcon = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 200,				-- can get multiplied in unitdef_post
+	--workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',
 	},
@@ -1000,7 +1000,7 @@ customDefs.armrectr = {
 	footprintx = 0,
 	footprintz = 0,
 	movementclass = "SCAVCOMMANDERBOT",
-	workertime = 100 * ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
+	-- workertime = 100 * ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
 }
 
 customDefs.cornecro = {
@@ -1011,7 +1011,7 @@ customDefs.cornecro = {
 	footprintx = 0,
 	footprintz = 0,
 	movementclass = "SCAVCOMMANDERBOT",
-	workertime = 100 * ScavDifficultyMultiplier,		-- can get multiplied in unitdef_post
+	-- workertime = 100 * ScavDifficultyMultiplier,		-- can get multiplied in unitdef_post
 }
 
 -- LOOTBOXES
