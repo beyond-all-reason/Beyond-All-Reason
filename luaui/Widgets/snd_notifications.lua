@@ -1,14 +1,14 @@
 function widget:GetInfo()
-    return {
-        name      = "Notifications",
-        desc      = "Does various voice/text notifications",
-        author    = "Doo, Floris",
-        date      = "2018",
-        license   = "GNU GPL, v2 or later",
-        version   = 1,
-        layer     = 5,
-        enabled   = true  --  loaded by default?
-    }
+	return {
+		name      = "Notifications",
+		desc      = "Does various voice/text notifications",
+		author    = "Doo, Floris",
+		date      = "2018",
+		license   = "GNU GPL, v2 or later",
+		version   = 1,
+		layer     = 5,
+		enabled   = true
+	}
 end
 
 local silentTime = 0.7	-- silent time between queued notifications
@@ -36,7 +36,13 @@ local lockPlayerID
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local function addSound(name, file, minDelay, duration, message, unlisted)
-	Sound[name] = { file, minDelay, duration, message }
+	Sound[name] = {
+		file = file,
+		delay = minDelay,
+		duration = duration,
+		message = message,
+	 }
+
 	soundList[name] = true
 	if not unlisted then
 		SoundOrder[#SoundOrder + 1] = name
@@ -53,7 +59,7 @@ addSound('ChooseStartLoc', 'ChooseStartLoc.wav', 90, 2.2, Spring.I18N('tips.noti
 addSound('GameStarted', 'GameStarted.wav', 1, 2, Spring.I18N('tips.notifications.gameStarted'))
 addSound('GamePause', 'GamePause.wav', 5, 1, Spring.I18N('tips.notifications.gamePaused'))
 addSound('PlayerLeft', 'PlayerDisconnected.wav', 1, 1.65, Spring.I18N('tips.notifications.playerLeft'))
-addSound('PlayerAdded', 'PlayerAdded.wav', 1, 2.36,  Spring.I18N('tips.notifications.playerAdded'))
+addSound('PlayerAdded', 'PlayerAdded.wav', 1, 2.36, Spring.I18N('tips.notifications.playerAdded'))
 
 -- awareness
 --addSound('IdleBuilder', 'IdleBuilder.wav', 30, 1.9, 'A builder has finished building')
@@ -130,7 +136,6 @@ addSound('t_readyfortech2', td..'readyfortecht2.wav', 9999999, 9.4, Spring.I18N(
 addSound('t_duplicatefactory', td..'duplicatefactory.wav', 9999999, 6.1, Spring.I18N('tips.notifications.tutorialDuplicateFactory'), true)
 addSound('t_paralyzer', td..'paralyzer.wav', 9999999, 9.66, Spring.I18N('tips.notifications.tutorialParalyzer'), true)
 
-
 local unitsOfInterest = {}
 unitsOfInterest[UnitDefNames['armemp'].id] = 'EMPmissilesiloDetected'
 unitsOfInterest[UnitDefNames['cortron'].id] = 'TacticalNukeSiloDetected'
@@ -156,7 +161,6 @@ unitsOfInterest[UnitDefNames['armdfly'].id] = 'AirTransportDetected'
 unitsOfInterest[UnitDefNames['corseah'].id] = 'AirTransportDetected'
 unitsOfInterest[UnitDefNames['armtship'].id] = 'SeaTransportDetected'
 unitsOfInterest[UnitDefNames['cortship'].id] = 'SeaTransportDetected'
-
 
 local soundQueue = {}
 local nextSoundQueued = 0
@@ -248,7 +252,7 @@ for udefID,def in ipairs(UnitDefs) do
 		if def.isBuilder and def.canAssist then
 			isBuilder[udefID] = true
 		end
-		if def.windGenerator  and def.windGenerator  > 0 then
+		if def.windGenerator and def.windGenerator > 0 then
 			isWind[udefID] = true
 		end
 		if def.extractsMetal > 0 then
@@ -263,7 +267,7 @@ end
 local function updateCommanders()
 	local units = Spring.GetTeamUnits(myTeamID)
 	for i=1,#units do
-		local unitID    = units[i]
+		local unitID = units[i]
 		local unitDefID = spGetUnitDefID(unitID)
 		if isCommander[unitDefID] then
 			local health,maxHealth,paralyzeDamage,captureProgress,buildProgress = spGetUnitHealth(unitID)
@@ -274,7 +278,7 @@ end
 
 local function isInQueue(event)
 	for i,v in pairs(soundQueue) do
-		if v == event  then
+		if v == event then
 			return true
 		end
 	end
@@ -285,7 +289,7 @@ local function queueNotification(event, forceplay)
 	if Spring.GetGameFrame() > 20 or forceplay then
 		if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
 			if soundList[event] and Sound[event] then
-				if not LastPlay[event] or (spGetGameFrame() >= LastPlay[event] + (Sound[event][2] * 30)) then
+				if not LastPlay[event] or (spGetGameFrame() >= LastPlay[event] + (Sound[event].delay * 30)) then
 					if not isInQueue(event) then
 						soundQueue[#soundQueue+1] = event
 					end
@@ -319,12 +323,12 @@ local function eventBroadcast(msg)
 		local forceplay = string.sub(msg, string.find(msg, " ", nil, true)+2, string.len(msg))
 		forceplay = (forceplay ~= nil and forceplay ~= '')
 		if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
-            local event = string.sub(msg, 1, string.find(msg, " ", nil, true)-1)
-            local player = string.sub(msg, string.find(msg, " ", nil, true)+1, string.len(msg))
-            if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
+			local event = string.sub(msg, 1, string.find(msg, " ", nil, true)-1)
+			local player = string.sub(msg, string.find(msg, " ", nil, true)+1, string.len(msg))
+			if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
 				queueNotification(event, forceplay)
-            end
-        end
+			end
+		end
 	end
 end
 
@@ -347,8 +351,8 @@ function widget:Initialize()
 	end
 	WG['notifications'].getSoundList = function()
 		local soundInfo = {}
-		for i, v in pairs(SoundOrder) do
-			soundInfo[i] = {v, soundList[v], Sound[v][4]}
+		for i, event in pairs(SoundOrder) do
+			soundInfo[i] = { event, soundList[event], Sound[event].message }
 		end
 		return soundInfo
 	end
@@ -386,9 +390,9 @@ function widget:Initialize()
 	WG['notifications'].setMessages = function(value)
 		displayMessages = value
 	end
-    WG['notifications'].getPlayTrackedPlayerNotifs = function()
-        return playTrackedPlayerNotifs
-    end
+	WG['notifications'].getPlayTrackedPlayerNotifs = function()
+		return playTrackedPlayerNotifs
+	end
 	WG['notifications'].setPlayTrackedPlayerNotifs = function(value)
 		playTrackedPlayerNotifs = value
 	end
@@ -459,7 +463,6 @@ function widget:GameFrame(gf)
 	end
 end
 
-
 function widget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag)
 	idleBuilder[unitID] = nil
 end
@@ -475,7 +478,6 @@ function widget:UnitIdle(unitID)
 		idleBuilder[unitID] = spGetGameFrame() + idleBuilderNotificationDelay
 	end
 end
-
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	if not displayMessages and not spoken then return end
@@ -516,7 +518,6 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
-
 function widget:UnitEnteredLos(unitID, unitTeam)
 	if not displayMessages and not spoken then return end
 
@@ -549,23 +550,22 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 	end
 end
 
-
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-    if unitTeam == myTeamID and isCommander[unitDefID] then
-        commanders[unitID] = select(2, spGetUnitHealth(unitID))
-    end
+	if unitTeam == myTeamID and isCommander[unitDefID] then
+		commanders[unitID] = select(2, spGetUnitHealth(unitID))
+	end
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-    if unitTeam == myTeamID and isCommander[unitDefID] then
-        commanders[unitID] = select(2, spGetUnitHealth(unitID))
-    end
+	if unitTeam == myTeamID and isCommander[unitDefID] then
+		commanders[unitID] = select(2, spGetUnitHealth(unitID))
+	end
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if not displayMessages and not spoken then return end
 
-    if unitTeam == myTeamID then
+	if unitTeam == myTeamID then
 		if not hasMadeT2 and isT2[unitDefID] then
 			hasMadeT2 = true
 		end
@@ -617,7 +617,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 				end
 			end
 		end
-    end
+	end
 end
 
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
@@ -656,7 +656,7 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	taggedUnitsOfInterest[unitID] = nil
-    commandersDamages[unitID] = nil
+	commandersDamages[unitID] = nil
 
 	if tutorialMode then
 		if isFactoryAir[unitDefID] then
@@ -684,13 +684,13 @@ local function playNextSound()
 	if #soundQueue > 0 then
 		local event = soundQueue[1]
 		local isTutorialNotification = (string.sub(event, 1, 2) == 't_')
-		nextSoundQueued = sec + Sound[event][3] + silentTime
+		nextSoundQueued = sec + Sound[event].duration + silentTime
 		if not muteWhenIdle or not isIdle or isTutorialNotification then
-			if spoken and Sound[event][1] ~= '' then
-				Spring.PlaySoundFile(soundFolder..Sound[event][1], globalVolume, 'ui')
+			if spoken and Sound[event].file ~= '' then
+				Spring.PlaySoundFile(soundFolder..Sound[event].file, globalVolume, 'ui')
 			end
-			if displayMessages and WG['messages'] and Sound[event][4] then
-				WG['messages'].addMessage(Sound[event][4])
+			if displayMessages and WG['messages'] and Sound[event].message then
+				WG['messages'].addMessage(Sound[event].message)
 			end
 		end
 		LastPlay[event] = spGetGameFrame()
@@ -715,17 +715,16 @@ local function playNextSound()
 end
 
 function widget:Update(dt)
-
 	if not displayMessages and not spoken then return end
 
 	sec = sec + dt
 
-    passedTime = passedTime + dt
-    if passedTime > 0.2 then
-        passedTime = passedTime - 0.2
-        if WG['advplayerlist_api'] and WG['advplayerlist_api'].GetLockPlayerID ~= nil then
-            lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
-        end
+	passedTime = passedTime + dt
+	if passedTime > 0.2 then
+		passedTime = passedTime - 0.2
+		if WG['advplayerlist_api'] and WG['advplayerlist_api'].GetLockPlayerID ~= nil then
+			lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
+		end
 
 		-- process sound queue
 		if sec >= nextSoundQueued then
@@ -739,7 +738,7 @@ function widget:Update(dt)
 		end
 		lastMouseX, lastMouseY = mouseX, mouseY
 		-- set user idle when no mouse movement or no commands have been given
-		if lastUserInputTime < os.clock() - idleTime  or  spGetGameFrame() - lastUnitCommand > (idleTime*40) then
+		if lastUserInputTime < os.clock() - idleTime or spGetGameFrame() - lastUnitCommand > (idleTime*40) then
 			isIdle = true
 		else
 			isIdle = false
@@ -747,7 +746,7 @@ function widget:Update(dt)
 		if WG['topbar'] and WG['topbar'].showingRejoining and WG['topbar'].showingRejoining() then
 			isIdle = true
 		end
-    end
+	end
 end
 
 function widget:MousePress()
@@ -761,7 +760,6 @@ end
 function widget:KeyPress()
 	lastUserInputTime = os.clock()
 end
-
 
 function widget:GetConfigData(data)
 	return {
