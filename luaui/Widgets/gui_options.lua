@@ -4600,7 +4600,7 @@ function init()
 			if option.id == 'label_notif_messages_spacer' then
 				for k, v in pairs(soundList) do
 					count = count + 1
-					newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3],
+					newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
 											onchange = function(i, value)
 												saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
 											end,
