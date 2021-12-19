@@ -35,11 +35,11 @@ local gameframe = spGetGameFrame()
 local lockPlayerID
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
-function addSound(name, file, minDelay, duration, message, unlisted)
-	Sound[name] = {file, minDelay, duration, message}
+local function addSound(name, file, minDelay, duration, message, unlisted)
+	Sound[name] = { file, minDelay, duration, message }
 	soundList[name] = true
 	if not unlisted then
-		SoundOrder[#SoundOrder+1] = name
+		SoundOrder[#SoundOrder + 1] = name
 	end
 end
 
@@ -260,7 +260,7 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
-function updateCommanders()
+local function updateCommanders()
 	local units = Spring.GetTeamUnits(myTeamID)
 	for i=1,#units do
 		local unitID    = units[i]
@@ -269,6 +269,35 @@ function updateCommanders()
 			local health,maxHealth,paralyzeDamage,captureProgress,buildProgress = spGetUnitHealth(unitID)
 			commanders[unitID] = maxHealth
 		end
+	end
+end
+
+local function isInQueue(event)
+	for i,v in pairs(soundQueue) do
+		if v == event  then
+			return true
+		end
+	end
+	return false
+end
+
+local function queueNotification(event, forceplay)
+	if Spring.GetGameFrame() > 20 or forceplay then
+		if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
+			if soundList[event] and Sound[event] then
+				if not LastPlay[event] or (spGetGameFrame() >= LastPlay[event] + (Sound[event][2] * 30)) then
+					if not isInQueue(event) then
+						soundQueue[#soundQueue+1] = event
+					end
+				end
+			end
+		end
+	end
+end
+
+local function queueTutorialNotification(event)
+	if doTutorialMode and (not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit) then
+		queueNotification(event)
 	end
 end
 
@@ -281,13 +310,30 @@ function widget:PlayerChanged(playerID)
 	updateCommanders()
 end
 
+-- function that gadgets can call
+local function eventBroadcast(msg)
+	if gameframe < 60 then return end	-- dont alert stuff for first 2 secs so gadgets can still spawn stuff without it triggering notifications
+
+	if string.find(msg, "SoundEvents", nil, true) then
+		msg = string.sub(msg, 13)
+		local forceplay = string.sub(msg, string.find(msg, " ", nil, true)+2, string.len(msg))
+		forceplay = (forceplay ~= nil and forceplay ~= '')
+		if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
+            local event = string.sub(msg, 1, string.find(msg, " ", nil, true)-1)
+            local player = string.sub(msg, string.find(msg, " ", nil, true)+1, string.len(msg))
+            if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
+				queueNotification(event, forceplay)
+            end
+        end
+	end
+end
 
 function widget:Initialize()
 	if isReplay or spGetGameFrame() > 0 then
 		widget:PlayerChanged()
 	end
 
-	widgetHandler:RegisterGlobal('EventBroadcast', EventBroadcast)
+	widgetHandler:RegisterGlobal('EventBroadcast', eventBroadcast)
 	widgetHandler:RegisterGlobal('AddNotification', addSound)
 
 	WG['notifications'] = {}
@@ -351,7 +397,7 @@ function widget:Initialize()
 	end
 	WG['notifications'].addEvent = function(value, force)
 		if Sound[value] then
-			QueueNotification(value, force)
+			queueNotification(value, force)
 		end
 	end
 end
@@ -363,7 +409,6 @@ function widget:Shutdown()
 end
 
 function widget:GameFrame(gf)
-
 	gameframe = gf
 
 	if not displayMessages and not spoken then return end
@@ -371,7 +416,7 @@ function widget:GameFrame(gf)
 	if gameframe < 60 then return end	-- dont alert stuff for first 2 secs so gadgets can still spawn stuff without it triggering notifications
 
 	if gameframe == 70 and doTutorialMode then
-		QueueTutorialNotification('t_welcome')
+		queueTutorialNotification('t_welcome')
 	end
 	if gameframe % 30 == 15 then
 		e_currentLevel, e_storage, e_pull, e_income, e_expense, e_share, e_sent, e_received = spGetTeamResources(myTeamID,'energy')
@@ -380,16 +425,16 @@ function widget:GameFrame(gf)
 		-- tutorial
 		if doTutorialMode then
 			if gameframe > 300 and not hasBuildMex then
-				QueueTutorialNotification('t_buildmex')
+				queueTutorialNotification('t_buildmex')
 			end
 			if not hasBuildEnergy and hasBuildMex then
-				QueueTutorialNotification('t_buildenergy')
+				queueTutorialNotification('t_buildenergy')
 			end
 			if e_income >= 50 and m_income >= 4 then
-				QueueTutorialNotification('t_nowproduce')
+				queueTutorialNotification('t_nowproduce')
 			end
 			if not hasMadeT2 and e_income >= 600 and m_income >= 12 then
-				QueueTutorialNotification('t_readyfortech2')
+				queueTutorialNotification('t_readyfortech2')
 			end
 		end
 
@@ -397,7 +442,7 @@ function widget:GameFrame(gf)
 		if (e_currentLevel / e_storage) < 0.025 and e_currentLevel < 3000 then
 			lowpowerDuration = lowpowerDuration + 1
 			if lowpowerDuration >= lowpowerThreshold then
-				QueueNotification('LowPower')
+				queueNotification('LowPower')
 				lowpowerDuration = 0
 			end
 		end
@@ -447,25 +492,25 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
 
 		if unitDefID == vulcanDefID then
-			QueueNotification('VulcanIsReady')
+			queueNotification('VulcanIsReady')
 		elseif unitDefID == buzzsawDefID then
-			QueueNotification('BuzzsawIsReady')
+			queueNotification('BuzzsawIsReady')
 		elseif isT3mobile[unitDefID] then
-			QueueNotification('Tech3UnitReady')
+			queueNotification('Tech3UnitReady')
 
 		elseif doTutorialMode then
 			if isFactoryAir[unitDefID] then
-				QueueTutorialNotification('t_factoryair')
+				queueTutorialNotification('t_factoryair')
 			elseif isFactoryAirSea[unitDefID] then
-				QueueTutorialNotification('t_factoryairsea')
+				queueTutorialNotification('t_factoryairsea')
 			elseif isFactoryBot[unitDefID] then
-				QueueTutorialNotification('t_factorybots')
+				queueTutorialNotification('t_factorybots')
 			elseif isFactoryHover[unitDefID] then
-				QueueTutorialNotification('t_factoryhovercraft')
+				queueTutorialNotification('t_factoryhovercraft')
 			elseif isFactoryVeh[unitDefID] then
-				QueueTutorialNotification('t_factoryvehicles')
+				queueTutorialNotification('t_factoryvehicles')
 			elseif isFactoryShip[unitDefID] then
-				QueueTutorialNotification('t_factoryships')
+				queueTutorialNotification('t_factoryships')
 			end
 		end
 	end
@@ -481,26 +526,26 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 
 	-- single detection events below
 	if isAircraft[udefID] then
-		QueueNotification('AircraftSpotted')
+		queueNotification('AircraftSpotted')
 	end
 	if isT2[udefID] then
-		QueueNotification('T2Detected')
+		queueNotification('T2Detected')
 	end
 	if isT3mobile[udefID] then
-		QueueNotification('T3Detected')
+		queueNotification('T3Detected')
 	end
 	if isMine[udefID] then
 		local x,_,z = Spring.GetUnitPosition(unitID)
 		local units = Spring.GetUnitsInCylinder(x,z,1700, myTeamID)
 		if #units > 0 then		-- ignore when far away
-			QueueNotification('MinesDetected')
+			queueNotification('MinesDetected')
 		end
 	end
 
 	-- notify about units of interest
 	if udefID and unitsOfInterest[udefID] and not taggedUnitsOfInterest[unitID] then
 		taggedUnitsOfInterest[unitID] = true
-		QueueNotification(unitsOfInterest[udefID])
+		queueNotification(unitsOfInterest[udefID])
 	end
 end
 
@@ -529,7 +574,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 			commanders[unitID] = select(2, spGetUnitHealth(unitID))
 		end
 		if windNotGood and isWind[unitDefID] then
-			QueueNotification('WindNotGood')
+			queueNotification('WindNotGood')
 		end
 
 		if tutorialMode then
@@ -537,37 +582,37 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 				if isFactoryAir[unitDefID] then
 					numFactoryAir = numFactoryAir + 1
 					if numFactoryAir > 1 then
-						QueueNotification('t_duplicatefactory')
+						queueNotification('t_duplicatefactory')
 					end
 				end
 				if isFactoryAirSea[unitDefID] then
 					numFactoryAirSea = numFactoryAirSea + 1
 					if numFactoryAirSea > 1 then
-						QueueNotification('t_duplicatefactory')
+						queueNotification('t_duplicatefactory')
 					end
 				end
 				if isFactoryVeh[unitDefID] then
 					numFactoryVeh = numFactoryVeh + 1
 					if numFactoryVeh > 1 then
-						QueueNotification('t_duplicatefactory')
+						queueNotification('t_duplicatefactory')
 					end
 				end
 				if isFactoryBot[unitDefID] then
 					numFactoryBot = numFactoryBot + 1
 					if numFactoryBot > 1 then
-						QueueNotification('t_duplicatefactory')
+						queueNotification('t_duplicatefactory')
 					end
 				end
 				if isFactoryHover[unitDefID] then
 					numFactoryHover = numFactoryHover + 1
 					if numFactoryHover > 1 then
-						QueueNotification('t_duplicatefactory')
+						queueNotification('t_duplicatefactory')
 					end
 				end
 				if isFactoryShip[unitDefID] then
 					numFactoryShip = numFactoryShip + 1
 					if numFactoryShip > 1 then
-						QueueNotification('t_duplicatefactory')
+						queueNotification('t_duplicatefactory')
 					end
 				end
 			end
@@ -575,14 +620,13 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
     end
 end
 
-
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if not displayMessages and not spoken then return end
 
 	if unitTeam == myTeamID then
 
 		if paralyzer then
-			QueueTutorialNotification('t_paralyzer')
+			queueTutorialNotification('t_paralyzer')
 		end
 
 		-- notify when commander gets heavy damage
@@ -604,7 +648,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 				end
 			end
 			if totalDamage >= commanders[unitID] * 0.12 then
-				QueueNotification('ComHeavyDamage')
+				queueNotification('ComHeavyDamage')
 			end
 		end
 	end
@@ -636,7 +680,7 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	end
 end
 
-function playNextSound()
+local function playNextSound()
 	if #soundQueue > 0 then
 		local event = soundQueue[1]
 		local isTutorialNotification = (string.sub(event, 1, 2) == 't_')
@@ -704,55 +748,6 @@ function widget:Update(dt)
 			isIdle = true
 		end
     end
-end
-
--- function that gadgets can call
-function EventBroadcast(msg)
-
-	if gameframe < 60 then return end	-- dont alert stuff for first 2 secs so gadgets can still spawn stuff without it triggering notifications
-
-	if string.find(msg, "SoundEvents", nil, true) then
-		msg = string.sub(msg, 13)
-		local forceplay = string.sub(msg, string.find(msg, " ", nil, true)+2, string.len(msg))
-		forceplay = (forceplay ~= nil and forceplay ~= '')
-		if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
-            local event = string.sub(msg, 1, string.find(msg, " ", nil, true)-1)
-            local player = string.sub(msg, string.find(msg, " ", nil, true)+1, string.len(msg))
-            if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
-				QueueNotification(event, forceplay)
-            end
-        end
-	end
-end
-
-
-function QueueTutorialNotification(event)
-	if doTutorialMode and (not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit) then
-		QueueNotification(event)
-	end
-end
-
-function isInQueue(event)
-	for i,v in pairs(soundQueue) do
-		if v == event  then
-			return true
-		end
-	end
-	return false
-end
-
-function QueueNotification(event, forceplay)
-	if Spring.GetGameFrame() > 20 or forceplay then
-		if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
-			if soundList[event] and Sound[event] then
-				if not LastPlay[event] or (spGetGameFrame() >= LastPlay[event] + (Sound[event][2] * 30)) then
-					if not isInQueue(event) then
-						soundQueue[#soundQueue+1] = event
-					end
-				end
-			end
-		end
-	end
 end
 
 function widget:MousePress()
