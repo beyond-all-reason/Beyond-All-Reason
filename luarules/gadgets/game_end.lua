@@ -418,7 +418,7 @@ else	-- Unsynced
 		stats.scenariooptions = Spring.GetModOptions().scenariooptions -- pass it back so we know difficulty
 
 		if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
-			local message = Spring.Utilities.json.encode(stats)
+			local message = Json.encode(stats)
 			Spring.SendLuaMenuMsg("ScenarioGameEnd " .. message)
 		end
 	end

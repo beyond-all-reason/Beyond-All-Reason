@@ -15,7 +15,7 @@ end
 local function GetScenarioID()
     if Spring.GetModOptions().scenariooptions then
         local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
-        scenariooptions = Spring.Utilities.json.decode(scenariooptions)
+        scenariooptions = Json.decode(scenariooptions)
         return scenariooptions.scenarioid
     end
     return nil
