@@ -38,7 +38,7 @@ local LOG_SECTION = "" -- FIXME: "LuaRules" section is not registered anywhere
 
 
 VFS.Include(HANDLER_DIR .. 'setupdefs.lua', nil, VFSMODE)
-VFS.Include(HANDLER_DIR .. 'system.lua', nil, VFSMODE)
+VFS.Include(SCRIPT_DIR .. 'system.lua', nil, VFSMODE)
 VFS.Include(HANDLER_DIR .. 'callins.lua', nil, VFSMODE)
 VFS.Include(SCRIPT_DIR .. 'utilities.lua', nil, VFSMODE)
 
