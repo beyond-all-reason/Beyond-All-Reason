@@ -1,7 +1,4 @@
 -- This file includes common functionality that should be available globally
-if Spring.CommonFunctionsInitialized then
-	return
-end
 
 -- Universal Lua functions applicable to any Lua code
 -- These add missing base lua functionality
@@ -43,5 +40,3 @@ end
 if commonFunctions.i18n[environment] then
 	Spring.I18N = Spring.I18N or VFS.Include("modules/i18n/i18n.lua")
 end
-
-Spring.CommonFunctionsInitialized = true
