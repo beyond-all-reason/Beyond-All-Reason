@@ -68,6 +68,11 @@ if (System == nil) then
 		coroutine = coroutine,
 
 		--
+		--  Standard libraries
+		--
+		Json = Json,
+
+		--
 		--  Standard functions and variables
 		--
 		assert         = assert,
