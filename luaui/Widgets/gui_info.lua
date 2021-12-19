@@ -1050,25 +1050,27 @@ local function drawUnitInfo()
 		end
 
 		if unitDefInfo[displayUnitDefID].weapons then
-			local reloadTime = 1
+			local reloadTimeSpeedup = 1.0
+			local currentReloadTime = unitDefInfo[displayUnitDefID].reloadTime
 			if exp and exp > 0.009 then
 				addTextInfo(texts.xp, round(exp, 2))
 				addTextInfo(texts.maxhealth, '+' .. round((maxHealth / unitDefInfo[displayUnitDefID].health - 1) * 100, 0) .. '%')
-				reloadTime = spGetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, 'reloadTimeXP')
-				reloadTime = tonumber(round((1 - (reloadTime / unitDefInfo[displayUnitDefID].reloadTime)) * 100, 0))
-				if reloadTime > 0 then
-					addTextInfo(texts.reload, '-' .. reloadTime .. '%')
+				currentReloadTime = spGetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, 'reloadTimeXP')
+				reloadTimeSpeedup = currentReloadTime / unitDefInfo[displayUnitDefID].reloadTime
+				local reloadTimeSpeedupPercentage = tonumber(round((1 - reloadTimeSpeedup) * 100, 0))
+				if reloadTimeSpeedupPercentage > 0 then
+					addTextInfo(texts.reload, '-' .. reloadTimeSpeedupPercentage .. '%')
 				end
 			end
 			if dps then
-				dps = round(dps + (dps * (reloadTime / 100)), 0)
+				dps = round(dps / reloadTimeSpeedup, 0)
 				addTextInfo(texts.dps, dps)
 
 				if maxRange then
 					addTextInfo(texts.weaponrange, maxRange)
 				end
 
-				addTextInfo(texts.reloadtime, round(unitDefInfo[displayUnitDefID].reloadTime*reloadTime, 2))
+				addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
 			end
 
 			--addTextInfo('weapons', #unitWeapons[displayUnitDefID])
