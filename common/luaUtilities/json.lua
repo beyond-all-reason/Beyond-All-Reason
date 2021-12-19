@@ -8,11 +8,13 @@
 -- Please see LICENCE.txt for details.
 --
 -- USAGE:
--- This module exposes two functions:
---   encode(o)
+-- This module exposes three functions:
+--   encode(object)
 --     Returns the table / string / boolean / number / nil / json.null value as a JSON-encoded string.
 --   decode(json_string)
 --     Returns a Lua object populated with the data encoded in the JSON string json_string.
+--   null()
+--     Returns a JSON null value, as Lua nil values get discarded
 --
 -- REQUIREMENTS:
 --   compat-5.1 if using Lua 5.0
@@ -34,20 +36,6 @@ local string = string
 local table  = table
 local base   = _G
 
-if base == nil then
-	return
-end
-
------------------------------------------------------------------------------
--- Module declaration
------------------------------------------------------------------------------
-
-Spring.Utilities.json = {}
-setfenv(1,Spring.Utilities.json)
-
--- Public functions
-
--- Private functions
 local decode_scanArray
 local decode_scanComment
 local decode_scanConstant
@@ -62,10 +50,17 @@ local isEncodable
 -----------------------------------------------------------------------------
 -- PUBLIC FUNCTIONS
 -----------------------------------------------------------------------------
+
+--- The null function allows one to specify a null value in an associative array (which is otherwise
+-- discarded if you set the value with 'nil' in Lua. Simply set t = { first=json.null }
+local function null()
+	return null -- so json.null() will also return null ;-)
+  end
+
 --- Encodes an arbitrary Lua object / variable.
 -- @param v The Lua object / variable to be JSON encoded.
 -- @return String containing the JSON encoding in internal Lua string format (i.e. not unicode)
-function encode (v)
+local function encode (v)
   -- Handle nil values
   if v==nil then
     return "null"
@@ -121,7 +116,7 @@ end
 -- @param Lua object, number The object that was scanned, as a Lua table / string / number / boolean or nil,
 -- and the position of the first character after
 -- the scanned JSON object.
-function decode(s, startPos)
+local function decode(s, startPos)
   startPos = startPos and startPos or 1
   startPos = decode_scanWhitespace(s,startPos)
   base.assert(startPos<=string.len(s), 'Unterminated JSON encoded object found at position in [' .. s .. ']')
@@ -149,11 +144,6 @@ function decode(s, startPos)
   return decode_scanConstant(s,startPos)
 end
 
---- The null function allows one to specify a null value in an associative array (which is otherwise
--- discarded if you set the value with 'nil' in Lua. Simply set t = { first=json.null }
-function null()
-  return null -- so json.null() will also return null ;-)
-end
 -----------------------------------------------------------------------------
 -- Internal, PRIVATE functions.
 -- Following a Python-like convention, I have prefixed all these 'PRIVATE'
@@ -392,3 +382,8 @@ function isEncodable(o)
   return (t=='string' or t=='boolean' or t=='number' or t=='nil' or t=='table') or (t=='function' and o==null)
 end
 
+return {
+	encode = encode,
+	decode = decode,
+	null = null,
+}
