@@ -394,17 +394,32 @@ function gadget:GameFrame(n)
 				--local playerLoS = posLosCheck(posx, posy, posz, 128)
                 if #unitsCyl == 0 and terrainCheck and scavLoS == true then
 					--aliveLootboxesCountT1
-					if aliveLootboxesCountT3 > 5 then
+					if aliveLootboxesCountT4 >= 5 and aliveLootboxesCountT3 >= 5 and aliveLootboxesCountT2 >= 5 and aliveLootboxesCountT1 >= 5 then
+						local r = math.random(0,3)
+						local spawnedUnit
+						if r == 0 then
+							spawnedUnit = spCreateUnit(lootboxesListT4[math_random(1,#lootboxesListT4)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+						elseif r == 1 then
+							spawnedUnit = spCreateUnit(lootboxesListT3[math_random(1,#lootboxesListT3)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+						elseif r == 2 then
+							spawnedUnit = spCreateUnit(lootboxesListT2[math_random(1,#lootboxesListT2)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+						else
+							spawnedUnit = spCreateUnit(lootboxesListT1[math_random(1,#lootboxesListT1)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+						end
+						if spawnedUnit then
+							Spring.SetUnitNeutral(spawnedUnit, true)
+						end
+					elseif aliveLootboxesCountT3 >= 5 then
 						local spawnedUnit = spCreateUnit(lootboxesListT4[math_random(1,#lootboxesListT4)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
 						if spawnedUnit then
 							Spring.SetUnitNeutral(spawnedUnit, true)
 						end
-					elseif aliveLootboxesCountT2 > 5 then
+					elseif aliveLootboxesCountT2 >= 5 then
 						local spawnedUnit = spCreateUnit(lootboxesListT3[math_random(1,#lootboxesListT3)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
 						if spawnedUnit then
 							Spring.SetUnitNeutral(spawnedUnit, true)
 						end
-					elseif aliveLootboxesCountT1 > 5 then
+					elseif aliveLootboxesCountT1 >= 5 then
 						local spawnedUnit = spCreateUnit(lootboxesListT2[math_random(1,#lootboxesListT2)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
 						if spawnedUnit then
 							Spring.SetUnitNeutral(spawnedUnit, true)
@@ -454,28 +469,28 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		aliveLootboxesCount = aliveLootboxesCount + 1
 
 		for i = 1,#lootboxesListT1 do
-			if lootboxesListT1[i] == UnitName then
+			if lootboxesListT1[i] == UnitName..NameSuffix then
 				aliveLootboxesT1[#aliveLootboxesT1+1] = unitID
 				aliveLootboxesCountT1 = aliveLootboxesCountT1 + 1
 				break
 			end
 		end
 		for i = 1,#lootboxesListT2 do
-			if lootboxesListT2[i] == UnitName then
+			if lootboxesListT2[i] == UnitName..NameSuffix then
 				aliveLootboxesT2[#aliveLootboxesT2+1] = unitID
 				aliveLootboxesCountT2 = aliveLootboxesCountT2 + 1
 				break
 			end
 		end
 		for i = 1,#lootboxesListT3 do
-			if lootboxesListT3[i] == UnitName then
+			if lootboxesListT3[i] == UnitName..NameSuffix then
 				aliveLootboxesT3[#aliveLootboxesT3+1] = unitID
 				aliveLootboxesCountT3 = aliveLootboxesCountT3 + 1
 				break
 			end
 		end
 		for i = 1,#lootboxesListT4 do
-			if lootboxesListT4[i] == UnitName then
+			if lootboxesListT4[i] == UnitName..NameSuffix then
 				aliveLootboxesT4[#aliveLootboxesT4+1] = unitID
 				aliveLootboxesCountT4 = aliveLootboxesCountT4 + 1
 				break
