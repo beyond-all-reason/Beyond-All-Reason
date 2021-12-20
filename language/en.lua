@@ -475,8 +475,6 @@ return {
 			showbuilderqueue_descr = 'Shows ghosted buildings about to be built on the map',
 			unitenergyicons = 'Unit insufficient energy icons',
 			unitenergyicons_descr = 'Shows a red power bolt above units that cant fire their most e consuming weapon\nwhen you haven\'t enough energy available.',
-			unitenergyicons_self = 'limit to own units',
-			unitenergyicons_self_descr = 'Only show above your own units',
 			nametags_icon = 'Commander name on icon',
 			nametags_icon_descr = 'Show commander name when its displayed as icon',
 			commandsfx = 'Command FX',
