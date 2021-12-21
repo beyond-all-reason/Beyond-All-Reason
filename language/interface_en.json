@@ -125,6 +125,8 @@
 				"areaattack_tooltip": "Area attack everything within a circle (click-drag)",
 				"manualfire": "D-Gun",
 				"manualfire_tooltip": "Fire the powerful commander Disintegrator-gun",
+				"manuallaunch": "Launch",
+				"manuallaunch_tooltip": "Launch a missile at a target",
 				"patrol": "Patrol",
 				"patrol_tooltip": "Patrol along one or more waypoints",
 				"fight": "Fight",
