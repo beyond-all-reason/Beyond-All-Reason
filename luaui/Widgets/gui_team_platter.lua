@@ -66,6 +66,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local function AddPrimitiveAtUnit(unitID)
+	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then return end
 	local gf = Spring.GetGameFrame()
 
 	if not unitUnitDefID[unitID] then
@@ -141,12 +142,14 @@ function widget:DrawWorldPreUnit()
 		selectShader:SetUniform("addRadius", 0)
 		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
 
+		--[[ -- this second draw pass is only needed if we actually want to draw the unit's radius
 		glStencilFunc(GL_NOTEQUAL, 1, 1)
 		glStencilMask(0)
 		glDepthTest(true)
 
 		selectShader:SetUniform("addRadius", 0.15)
 		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
+		]]--
 
 		glStencilMask(1)
 		glStencilFunc(GL_ALWAYS, 1, 1)
@@ -182,6 +185,13 @@ end
 function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 	if unitTeam[unitID] then
 		RemoveUnit(unitID, unitDefID, oldTeamID)
+		AddUnit(unitID, unitDefID, unitTeam)
+	end
+end
+
+function widget:UnitGiven(unitID, unitDefID, unitTeamID)
+	if unitTeam[unitID] then
+		RemoveUnit(unitID, unitDefID, unitTeamID)
 		AddUnit(unitID, unitDefID, unitTeam)
 	end
 end

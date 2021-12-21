@@ -3022,15 +3022,7 @@ function init()
 
 		{ id = "showbuilderqueue", group = "ui", category = types.basic, widget = "Show Builder Queue", name = texts.option.showbuilderqueue, type = "bool", value = GetWidgetToggleValue("Show Builder Queue"), description = texts.option.showbuilderqueue_descr },
 
-		{ id = "unitenergyicons", group = "ui", category = types.basic, widget = "Unit energy icons", name = texts.option.unitenergyicons, type = "bool", value = GetWidgetToggleValue("Unit energy icons"), description = texts.option.unitenergyicons_descr },
-		{ id = "unitenergyicons_self", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.unitenergyicons_self, type = "bool", value = (WG['unitenergyicons'] ~= nil and WG['unitenergyicons'].getOnlyShowOwnTeam()), description = texts.option.unitenergyicons_self_descr,
-		  onload = function(i)
-			  loadWidgetData("Unit energy icons", "unitenergyicons_self", { 'onlyShowOwnTeam' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Unit energy icons', 'unitenergyicons', 'setOnlyShowOwnTeam', { 'onlyShowOwnTeam' }, value)
-		  end,
-		},
+		{ id = "unitenergyicons", group = "ui", category = types.advanced, widget = "Unit Energy Icons", name = texts.option.unitenergyicons, type = "bool", value = GetWidgetToggleValue("Unit Energy Icons"), description = texts.option.unitenergyicons_descr },
 
 		{ id = "commandsfx", group = "ui", category = types.basic, widget = "Commands FX", name = texts.option.commandsfx, type = "bool", value = GetWidgetToggleValue("Commands FX"), description = texts.option.commandsfx_descr },
 
@@ -4600,7 +4592,7 @@ function init()
 			if option.id == 'label_notif_messages_spacer' then
 				for k, v in pairs(soundList) do
 					count = count + 1
-					newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3],
+					newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3] and Spring.I18N(v[3]) or "",
 											onchange = function(i, value)
 												saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
 											end,

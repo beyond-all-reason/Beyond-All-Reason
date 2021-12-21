@@ -403,11 +403,12 @@ else
 		--end
 	end
 
-	function gadget:RecvFromSynced(arg1, ...)
-		if arg1 == 'RemoveGadget' then
-			gadgetHandler:RemoveGadget(self)
-		end
-	end
+	-- somehow shows expensive on /luarules profile
+	--function gadget:RecvFromSynced(arg1, ...)
+	--	if arg1 == 'RemoveGadget' then
+	--		gadgetHandler:RemoveGadget(self)
+	--	end
+	--end
 
 	function gadget:DrawUnit(unitID, drawMode)
 		if xmasballs[unitID] then

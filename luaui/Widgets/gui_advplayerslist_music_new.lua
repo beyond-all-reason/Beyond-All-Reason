@@ -111,10 +111,29 @@ local function ReloadMusicPlaylists()
 	warlowTracks 	= shuffleMusic(warlowTracks)
 	gameoverTracks 	= shuffleMusic(gameoverTracks)
 
-	peaceTracksPlayCounter 		= math.random(#peaceTracks)
-	warhighTracksPlayCounter 	= math.random(#warhighTracks)
-	warlowTracksPlayCounter 	= math.random(#warlowTracks)
-	gameoverTracksPlayCounter 	= math.random(#gameoverTracks)
+	if #peaceTracks > 1 then
+		peaceTracksPlayCounter = math.random(#peaceTracks)
+	else
+		peaceTracksPlayCounter = 1
+	end
+	
+	if #warhighTracks > 1 then
+		warhighTracksPlayCounter = math.random(#warhighTracks)
+	else
+		warhighTracksPlayCounter = 1
+	end
+	
+	if #warlowTracks > 1 then
+		warlowTracksPlayCounter = math.random(#warlowTracks)
+	else
+		warlowTracksPlayCounter = 1
+	end
+	
+	if #gameoverTracks > 1 then
+		gameoverTracksPlayCounter = math.random(#gameoverTracks)
+	else
+		gameoverTracksPlayCounter = 1
+	end
 end
 
 local currentTrackList = peaceTracks

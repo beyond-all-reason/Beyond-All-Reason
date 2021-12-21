@@ -1,5 +1,5 @@
 local unitI18Nfile = VFS.LoadFile('language/units_en.json')
-local unitI18Nlua = Spring.Utilities.json.decode(unitI18Nfile)
+local unitI18Nlua = Json.decode(unitI18Nfile)
 local i18nDescriptionEntries = unitI18Nlua.en.units.descriptions
 
 local function refreshUnitDefs()

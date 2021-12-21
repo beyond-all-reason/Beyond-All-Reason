@@ -103,29 +103,36 @@ local function scavUnitDef_Post(name, uDef)
 
 	local baseMultiplier = 0.85
 	local randomMultiplier = (math.random() * 0.25) + 0.875 -- results in random between 0.875 and 1.125
-
+	
 	if uDef.buildcostenergy then
+		local randomMultiplier = (math.random() * 0.25) + 0.875 -- results in random between 0.875 and 1.125
 		uDef.buildcostenergy = math.ceil(uDef.buildcostenergy * baseMultiplier * randomMultiplier)
 	end
 
 	if uDef.buildcostmetal then
+		local randomMultiplier = (math.random() * 0.25) + 0.875 -- results in random between 0.875 and 1.125
 		uDef.buildcostmetal = math.ceil(uDef.buildcostmetal * baseMultiplier * randomMultiplier)
 	end
 
 	if uDef.buildtime then
+		local randomMultiplier = (math.random() * 0.25) + 0.875 -- results in random between 0.875 and 1.125
 		uDef.buildtime = math.ceil(uDef.buildtime * baseMultiplier * randomMultiplier)
 	end
 
 	if uDef.energymake then
+		local randomMultiplier = (math.random() * 0.25) + 0.875 -- results in random between 0.875 and 1.125
 		uDef.energymake = math.ceil(uDef.energymake * baseMultiplier * randomMultiplier)
 	end
 
 	if uDef.metalmake then
+		local randomMultiplier = (math.random() * 0.25) + 0.875 -- results in random between 0.875 and 1.125
 		uDef.metalmake = math.ceil(uDef.metalmake * baseMultiplier * randomMultiplier)
 	end
 
+	
 	if uDef.maxdamage then
 		if name ~= 'armcomboss_scav' and name ~= 'corcomboss_scav' then
+			local randomMultiplier = (math.random() * 0.25) + 0.875 -- results in random between 0.875 and 1.125
 			uDef.maxdamage = math.ceil(uDef.maxdamage * baseMultiplier * randomMultiplier)
 		end
 	end
@@ -137,9 +144,9 @@ local function scavUnitDef_Post(name, uDef)
 	--if uDef.radardistancejam then
 		--uDef.radardistancejam = math.ceil(uDef.radardistancejam * 1.25 * randomMultiplier)
 	--end
-
 	if uDef.maxdamage then
 		if name ~= 'armcomboss_scav' and name ~= 'corcomboss_scav' then
+			local randomMultiplier = (math.random() * 0.25) + 0.875 -- results in random between 0.875 and 1.125
 			uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage * 0.1 * randomMultiplier))
 			uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage * 0.1 * randomMultiplier))
 		else
@@ -152,6 +159,7 @@ local function scavUnitDef_Post(name, uDef)
 	end
 
 	if uDef.turnrate then
+		local randomMultiplier = (math.random() * 0.25) + 0.875 -- results in random between 0.875 and 1.125
 		uDef.turnrate = uDef.turnrate * 1.2 * randomMultiplier
 	end
 
@@ -170,16 +178,18 @@ local function scavUnitDef_Post(name, uDef)
 		-- end
 		if uDef.canmove == true then
 			uDef.cancapture = true
-			if uDef.workertime then
-				uDef.workertime = uDef.workertime * 1.5 * ScavDifficultyMultiplier
-			end
+			-- if uDef.workertime then
+			-- 	uDef.workertime = uDef.workertime * 1.5 * ScavDifficultyMultiplier
+			-- end
 			if uDef.turnrate then
 				uDef.turnrate = uDef.turnrate * 1.5
 			end
 			if uDef.brakerate then
+				local randomMultiplier = (math.random() * 0.25) + 0.875 -- results in random between 0.875 and 1.125
 				uDef.brakerate = uDef.brakerate * 3 * randomMultiplier
 			end
 			if uDef.builddistance then
+				local randomMultiplier = (math.random() * 0.25) + 0.875 -- results in random between 0.875 and 1.125
 				uDef.builddistance = uDef.builddistance * 2 * randomMultiplier
 			end
 		end
@@ -201,6 +211,7 @@ local function scavUnitDef_Post(name, uDef)
 	if uDef.weapondefs then
 		for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
 			for category, damage in pairs (weaponDef.damage) do
+				local randomMultiplier = (math.random() * 0.25) + 0.875 -- results in random between 0.875 and 1.125
 				uDef.weapondefs[weaponDefName].damage[category] = math.floor((damage * randomMultiplier))
 			end
 		end

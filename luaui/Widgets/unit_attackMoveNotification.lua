@@ -9,9 +9,9 @@ function widget:GetInfo()
 		enabled = true
 	}
 end
-----------------------------------------------------------------------------
+
 local alarmInterval = 15        --seconds
-----------------------------------------------------------------------------
+
 local spGetLocalTeamID = Spring.GetLocalTeamID
 local spPlaySoundFile = Spring.PlaySoundFile
 local spEcho = Spring.Echo
@@ -21,11 +21,10 @@ local spIsUnitInView = Spring.IsUnitInView
 local spGetUnitPosition = Spring.GetUnitPosition
 local spSetLastMessagePosition = Spring.SetLastMessagePosition
 local random = math.random
-----------------------------------------------------------------------------
+
 local lastAlarmTime = nil
 local lastCommanderAlarmTime = nil
 local localTeamID = nil
-----------------------------------------------------------------------------
 
 local isCommander = {}
 local unitHumanName = {}
@@ -36,9 +35,11 @@ local function refreshUnitInfo()
 		if unitDef.customParams.iscommander then
 			isCommander[unitDefID] = true
 		end
-		unitHumanName[unitDefID] = unitDef.translatedHumanName
-		if (unitDef.sounds.underattack and (#unitDef.sounds.underattack > 0)) then
-			unitUnderattackSounds[unitDefID] = unitDef.sounds.underattack
+		if not unitDef.customParams.nohealthbars then
+			unitHumanName[unitDefID] = unitDef.translatedHumanName
+			if unitDef.sounds.underattack and #unitDef.sounds.underattack > 0 then
+				unitUnderattackSounds[unitDefID] = unitDef.sounds.underattack
+			end
 		end
 	end
 end
@@ -88,20 +89,22 @@ function widget:UnitDamaged (unitID, unitDefID, unitTeam, damage, paralyzer)
 			return
 		end
 	end
-	lastAlarmTime = now
-	spEcho( Spring.I18N('ui.moveAttackNotify.underAttack', { unit = unitHumanName[unitDefID] }) )
+	if unitHumanName[unitDefID] then
+		lastAlarmTime = now
+		spEcho( Spring.I18N('ui.moveAttackNotify.underAttack', { unit = unitHumanName[unitDefID] }) )
 
-	if unitUnderattackSounds[unitDefID] then
-		local id = random(1, #unitUnderattackSounds[unitDefID]) --pick a sound from the table by random --(id 138, name warning2, volume 1)
-		local soundFile = unitUnderattackSounds[unitDefID][id].name
-		--if not udef.decoyfor or (udef.decoyfor ~= 'armcom' and udef.decoyfor ~= 'corcom') then
-		spPlaySoundFile(soundFile, unitUnderattackSounds[unitDefID][id].volume, nil, "sfx")
-		--end
-	end
+		if unitUnderattackSounds[unitDefID] then
+			local id = random(1, #unitUnderattackSounds[unitDefID]) --pick a sound from the table by random --(id 138, name warning2, volume 1)
+			local soundFile = unitUnderattackSounds[unitDefID][id].name
+			--if not udef.decoyfor or (udef.decoyfor ~= 'armcom' and udef.decoyfor ~= 'corcom') then
+			spPlaySoundFile(soundFile, unitUnderattackSounds[unitDefID][id].volume, nil, "sfx")
+			--end
+		end
 
-	local x, y, z = spGetUnitPosition(unitID)
-	if x and y and z then
-		spSetLastMessagePosition(x, y, z)
+		local x, y, z = spGetUnitPosition(unitID)
+		if x and y and z then
+			spSetLastMessagePosition(x, y, z)
+		end
 	end
 end
 
