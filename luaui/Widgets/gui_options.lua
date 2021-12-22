@@ -1752,12 +1752,6 @@ function init()
 			  checkResolution()
 		  end,
 		},
-		--{ id = "windowpos", group = "gfx", category = types.basic, widget = "Move Window Position", name = texts.option.windowpos, type = "bool", value = GetWidgetToggleValue("Move Window Position"), description = texts.option.windowpos_descr,
-		--  onchange = function(i, value)
-		--	  Spring.SetConfigInt("FullscreenEdgeMove", (value and 1 or 0))
-		--	  Spring.SetConfigInt("WindowedEdgeMove", (value and 1 or 0))
-		--  end,
-		--},
 		{ id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync, type = "bool", value = vsyncEnabled, description = '',
 		  onchange = function(i, value)
 			vsyncEnabled = value

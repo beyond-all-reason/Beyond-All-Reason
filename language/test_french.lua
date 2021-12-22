@@ -274,11 +274,6 @@ return {
 					gauss_tooltip = "Le Switches between Gauss Cannon and Heavy Plasma Cannon",
 				}
 			},
-			moveGameWindow = {
-				moveWindow = "Le %{textColor}Move window position with the %{emphasisColor}arrow keys%{textColor} or %{emphasisColor}drag%{textColor} using the mouse.",
-				cancel = "Le %{emphasisColor}ESCAPE%{textColor} key will cancel changes",
-				apply = "Le Apply",
-			},
 			idleBuilders = {
 				name = "Le Idle builders",
 				idle = "Le %{textColor}Idle %{highlightColor}%{unit}",

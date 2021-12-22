@@ -148,8 +148,6 @@ return {
 			fullscreen = 'Fullscreen',
 			borderless = 'Borderless window',
 			borderless_descr = 'Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)',
-			windowpos = 'Move window position',
-			windowpos_descr = 'Toggle and move window position with the arrow keys or by dragging',
 			vsync = 'VSync',
 			limitidlefps = 'Limit FPS when idle/offscreen',
 			limitidlefps_descr = 'Reduces fps when idle (by setting vsync to a high number)\n(for borderless window and fullscreen need engine not have focus)\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode',

@@ -209,11 +209,6 @@
 					"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon"
 				}
 			},
-			"moveGameWindow": {
-				"moveWindow": "%{textColor}Move window position with the %{emphasisColor}arrow keys%{textColor} or %{emphasisColor}drag%{textColor} using the mouse.",
-				"cancel": "%{emphasisColor}ESCAPE%{textColor} key will cancel changes",
-				"apply": "Apply"
-			},
 			"idleBuilders": {
 				"name": "Idle builders",
 				"idle": "%{textColor}Idle %{highlightColor}%{unit}",
