@@ -540,9 +540,6 @@ function widgetHandler:NewWidget()
 	widget.include = function(f)
 		return include(f, widget)
 	end
-	wh.ForceLayout = function(_)
-		self:ForceLayout()
-	end
 	wh.RaiseWidget = function(_)
 		self:RaiseWidget(widget)
 	end
@@ -587,14 +584,6 @@ function widgetHandler:NewWidget()
 		return self.actionHandler:RemoveAction(widget, cmd, types)
 	end
 
-	wh.AddLayoutCommand = function(_, cmd)
-		if (self.inCommandsChanged) then
-			table.insert(self.customCommands, cmd)
-		else
-			Spring.Echo("AddLayoutCommand() can only be used in CommandsChanged()")
-		end
-	end
-
 	wh.RegisterGlobal = function(_, name, value)
 		return self:RegisterGlobal(widget, name, value)
 	end
@@ -605,9 +594,13 @@ function widgetHandler:NewWidget()
 		return self:SetGlobal(widget, name, value)
 	end
 
-	wh.ConfigLayoutHandler = function(_, d)
-		self:ConfigLayoutHandler(d)
+	local function dummylayouthandler(xIcons, yIcons, cmdCount, commands)
+		self.commands = commands
+		self.commands.n = cmdCount
+		self:CommandsChanged()
+		return "", xIcons, yIcons, {}, self.customCommands, {}, {}, {}, {}, {}, { [1337] = 9001 }
 	end
+	LayoutButtons = dummylayouthandler
 
 	return widget
 end
@@ -1086,10 +1079,6 @@ end
 
 function widgetHandler:GetViewSizes()
 	return self.xViewSize, self.yViewSize
-end
-
-function widgetHandler:ForceLayout()
-	forceLayout = true  --  in main.lua
 end
 
 function widgetHandler:ConfigLayoutHandler(data)

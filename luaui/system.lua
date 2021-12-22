@@ -12,94 +12,96 @@
 --------------------------------------------------------------------------------
 
 if (System == nil) then
+	System = {
+		--
+		--  Custom LuaUI variables
+		--
+		Commands = Commands,
+		fontHandler = fontHandler,
+		LUAUI_DIRNAME = LUAUI_DIRNAME,
 
-  System = {
-    --
-    --  Custom LuaUI variables
-    --
-    Commands = Commands,
-    fontHandler = fontHandler,
-    LUAUI_DIRNAME = LUAUI_DIRNAME,
+		--
+		--  Custom Spring tables
+		--
+		VFS = VFS,
+		Script = Script,
+		Spring = Spring,
+		Engine = Engine,
+		Platform = Platform,
+		Game = Game,
+		gl = gl,
+		GL = GL,
+		CMD = CMD,
+		CMDTYPE = CMDTYPE,
+		LOG = LOG,
 
-    --
-    --  Custom Spring tables
-    --
-    VFS = VFS,
-    Script = Script,
-    Spring = Spring,
-    Engine = Engine,
-    Platform = Platform,
-    Game = Game,
-    gl = gl,
-    GL = GL,
-    CMD = CMD,
-    CMDTYPE = CMDTYPE,
-    LOG = LOG,
-    
-    UnitDefs        = UnitDefs,
-    UnitDefNames    = UnitDefNames,
-    FeatureDefs     = FeatureDefs,
-    FeatureDefNames = FeatureDefNames,
-    WeaponDefs      = WeaponDefs,
-    WeaponDefNames  = WeaponDefNames,
+		UnitDefs        = UnitDefs,
+		UnitDefNames    = UnitDefNames,
+		FeatureDefs     = FeatureDefs,
+		FeatureDefNames = FeatureDefNames,
+		WeaponDefs      = WeaponDefs,
+		WeaponDefNames  = WeaponDefNames,
 
-    --
-    --  Standard libraries
-    --
-    io = io,
-    os = os,
-    math = math,
-    debug = debug,
-    table = table,
-    string = string,
-    package = package,
-    coroutine = coroutine,
-    
-    -- luasocket
-    socket          = socket,
+		--
+		--  Standard libraries
+		--
+		io = io,
+		os = os,
+		math = math,
+		debug = debug,
+		table = table,
+		string = string,
+		package = package,
+		coroutine = coroutine,
 
-    --  
-    --  Standard functions and variables
-    --
-    assert         = assert,
-    error          = error,
+		-- Custom libraries
 
-    print          = print,
-    
-    next           = next,
-    pairs          = pairs,
-    ipairs         = ipairs,
+		Json = Json,
 
-    tonumber       = tonumber,
-    tostring       = tostring,
-    type           = type,
+		-- luasocket
+		socket          = socket,
 
-    collectgarbage = collectgarbage,
-    gcinfo         = gcinfo,
+		--
+		--  Standard functions and variables
+		--
+		assert         = assert,
+		error          = error,
 
-    unpack         = unpack,
-    select         = select,
+		print          = print,
 
-    dofile         = dofile,
-    loadfile       = loadfile,
-    loadlib        = loadlib,
-    loadstring     = loadstring,
-    require        = require,
+		next           = next,
+		pairs          = pairs,
+		ipairs         = ipairs,
 
-    getmetatable   = getmetatable,
-    setmetatable   = setmetatable,
+		tonumber       = tonumber,
+		tostring       = tostring,
+		type           = type,
 
-    rawequal       = rawequal,
-    rawget         = rawget,
-    rawset         = rawset,
+		collectgarbage = collectgarbage,
+		gcinfo         = gcinfo,
 
-    getfenv        = getfenv,
-    setfenv        = setfenv,
+		unpack         = unpack,
+		select         = select,
 
-    pcall          = pcall,
-    xpcall         = xpcall,
+		dofile         = dofile,
+		loadfile       = loadfile,
+		loadlib        = loadlib,
+		loadstring     = loadstring,
+		require        = require,
 
-    _VERSION       = _VERSION
-  }
+		getmetatable   = getmetatable,
+		setmetatable   = setmetatable,
 
+		rawequal       = rawequal,
+		rawget         = rawget,
+		rawset         = rawset,
+
+		getfenv        = getfenv,
+		setfenv        = setfenv,
+
+		pcall          = pcall,
+		xpcall         = xpcall,
+
+		_VERSION       = _VERSION
+	}
 end

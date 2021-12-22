@@ -25,6 +25,7 @@ local shaderConfig = {
 	MAXVERTICES = 64, -- The max number of vertices we can emit, make sure this is consistent with what you are trying to draw (tris 3, quads 4, corneredrect 8, circle 64
 	USE_CIRCLES = 1, -- set to nil if you dont want circles
 	USE_CORNERRECT = 1, -- set to nil if you dont want cornerrect
+	USE_TRIANGLES = 1,
 	FULL_ROTATION = 0, -- the primitive is fully rotated in the units plane
 }
 
@@ -213,12 +214,14 @@ void main(){
 	float width = dataIn[0].v_lengthwidthcornerheight.y;
 	float cs = dataIn[0].v_lengthwidthcornerheight.z;
 	float height = dataIn[0].v_lengthwidthcornerheight.w;
-	if (numVertices == uint(3)){ // triangle pointing "forward"
-		offsetVertex4(0.0, 0.0, length, 0.5, 1.0); // xyz uv
-		offsetVertex4(-0.866 * width, 0.0, -0.5 * length, 0.0, 0.0);
-		offsetVertex4(0.866* width, 0.0, -0.5 * length, 1.0, 0.0);
-		EndPrimitive();
-	}
+	#ifdef USE_TRIANGLES
+		if (numVertices == uint(3)){ // triangle pointing "forward"
+			offsetVertex4(0.0, 0.0, length, 0.5, 1.0); // xyz uv
+			offsetVertex4(-0.866 * width, 0.0, -0.5 * length, 0.0, 0.0);
+			offsetVertex4(0.866* width, 0.0, -0.5 * length, 1.0, 0.0);
+			EndPrimitive();
+		}
+	#endif
 	if (numVertices == uint(4)){ // A quad
 		offsetVertex4( width * 0.5, 0.0,  length * 0.5, 0.0, 1.0);
 		offsetVertex4( width * 0.5, 0.0, -length * 0.5, 0.0, 0.0);

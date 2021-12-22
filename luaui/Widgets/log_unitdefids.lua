@@ -16,7 +16,7 @@ function widget:Initialize()
         result[key] = value.name
     end
 
-    local json = Spring.Utilities.json.encode(result);
+    local json = Json.encode(result);
 
     Spring.SendLuaRulesMsg('unitdefs:' .. VFS.ZlibCompress(json))
 end

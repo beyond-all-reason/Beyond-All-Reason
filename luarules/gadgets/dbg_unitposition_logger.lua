@@ -118,8 +118,7 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	local function sendLog(frame, part, attempts)
-		--Spring.Echo(Spring.Utilities.json.encode(log[frame].parts[part]))
-		Spring.SendLuaRulesMsg('log' .. validation .. frame ..';'.. part ..';'.. (#log[frame].participants) ..';'..attempts ..';'.. VFS.ZlibCompress(Spring.Utilities.json.encode(log[frame].parts[part])))
+		Spring.SendLuaRulesMsg('log' .. validation .. frame ..';'.. part ..';'.. (#log[frame].participants) ..';'..attempts ..';'.. VFS.ZlibCompress(Json.encode(log[frame].parts[part])))
 	end
 
 	local function receivedPart(_,frame,part,numParts,attempts)
