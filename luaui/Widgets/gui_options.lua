@@ -13,9 +13,15 @@ end
 -- Add new options at: function init
 
 local types = {
-	basic = 1,
+	basic    = 1,
 	advanced = 2,
-	dev = 3,
+	dev      = 3,
+}
+
+local windowType = {
+	fullscreen = 1,
+	borderless = 2,
+	windowed   = 3,
 }
 
 local texts = {}    -- loaded from external language file
@@ -1548,40 +1554,49 @@ function init()
 		custom = {},
 	}
 
-	local supportedResolutions = {}
+	local screenModes = {
+		{
+			name = texts.option.fullscreen,
+			type = windowType.fullscreen,
+			width = ssx,
+			height = ssy,
+		},
+		{
+			name = texts.option.borderless,
+			type = windowType.borderless,
+			width = ssx,
+			height = ssy,
+		}
+	}
+
+	for _, videoMode in ipairs(Platform.availableVideoModes) do
+		if videoMode.display == 1 and videoMode.w >= 800 and videoMode.h > 600 then
+			local resolution = {
+				name = videoMode.w .. " × " .. videoMode.h,
+				type = windowType.windowed,
+				width = videoMode.w,
+				height = videoMode.h,
+			}
+
+			table.insert(screenModes, resolution)
+		end
+	end
+
+	local resolutionNames = {}
+	for _, screenMode in ipairs(screenModes) do
+		table.insert(resolutionNames, screenMode.name)
+	end
+
 	local soundDevices = { 'default' }
 	local soundDevicesByName = { [''] = 1 }
 	local infolog = VFS.LoadFile("infolog.txt")
 	if infolog then
 		local fileLines = string.lines(infolog)
-		local desktop = ''
-		local addResolutions
 		for i, line in ipairs(fileLines) do
-			if string.find(line, 'Main tread CPU') or string.find(line, '%[f=-00000') then
+			if string.find(line, 'Main thread CPU') or string.find(line, '%[f=-00000') then
 				break
 			end
-			if addResolutions then
-				local resolution = string.match(line, '[0-9]*x[0-9]*')
-				if resolution and string.len(resolution) >= 7 then
-					local resolution = string.gsub(resolution, "x", " x ")
-					local resolutionX = string.match(resolution, '[0-9]*')
-					local resolutionY = string.gsub(string.match(resolution, 'x [0-9]*'), 'x ', '')
-					if tonumber(resolutionX) >= 640 and tonumber(resolutionY) >= 480 and resolution ~= desktop then
-						supportedResolutions[#supportedResolutions + 1] = resolution
-					end
-				else
-					addResolutions = nil
-				end
-			end
-			if not supportedResolutions[1] and (string.find(line, '	display=') or string.find(line, '	Display %(')) then
-				addResolutions = true
-				local width = string.sub(string.match(line, 'w=([0-9]*)'), 1)
-				local height = string.sub(string.match(line, 'h=([0-9]*)'), 1)
-				desktop = width .. ' x ' .. height
-				supportedResolutions[#supportedResolutions + 1] = desktop
-			end
 			if string.find(line, '     %[') then
-				addResolutions = nil
 				local device = string.sub(string.match(line, '     %[([0-9a-zA-Z _%/%%-%(%)]*)'), 1)
 				soundDevices[#soundDevices + 1] = device
 				soundDevicesByName[device] = #soundDevices
@@ -1601,6 +1616,7 @@ function init()
 					isPotatoCpu = true
 				end
 			end
+
 			if string.find(line, 'Logical CPU Cores') then
 				if tonumber(string.match(line, '([0-9].*)')) and tonumber(string.match(line, '([0-9].*)')) <= 2 then
 					isPotatoCpu = true
@@ -1620,13 +1636,7 @@ function init()
 			if string.find(line, "Loading widget:") then
 				break
 			end
-
 		end
-		-- Add some widescreen resolutions for local testing
-		--supportedResolutions[#supportedResolutions+1] = '3840 x 1440'
-		--supportedResolutions[#supportedResolutions+1] = '2560 x 1200'
-		--supportedResolutions[#supportedResolutions+1] = '2560 x 1080'
-		--supportedResolutions[#supportedResolutions+1] = '2560 x 900'
 	end
 
 	-- restrict options for potato systems
@@ -1669,7 +1679,6 @@ function init()
 
 	options = {
 		--GFX
-		-- PRESET
 		{ id = "preset", group = "gfx", category = types.basic, name = texts.option.preset, type = "select", options = presetNames, value = presetCodes[Spring.GetConfigString('graphicsPreset')],
 			onload = function(i)
 			end,
@@ -1686,71 +1695,37 @@ function init()
 		},
 		{ id = "label_gfx_screen", group = "gfx", name = texts.option.label_screen, category = types.basic },
 		{ id = "label_gfx_screen_spacer", group = "gfx", category = types.basic },
-		{ id = "resolution", group = "gfx", category = types.basic, name = texts.option.resolution, type = "select", options = supportedResolutions, value = 0, description = texts.option.resolution_descr,
-		  onchange = function(i, value)
-			  local resolutionX = string.match(options[i].options[options[i].value], '[0-9]*')
-			  local resolutionY = string.gsub(string.match(options[i].options[options[i].value], 'x [0-9]*'), 'x ', '')
-			  if tonumber(Spring.GetConfigInt("Fullscreen", 1) or 1) == 1 then
-				  Spring.SendCommands("Fullscreen 0")
-				  Spring.SetConfigInt("XResolution", tonumber(resolutionX))
-				  Spring.SetConfigInt("YResolution", tonumber(resolutionY))
-				  Spring.SendCommands("Fullscreen 1")
-			  else
-				  Spring.SendCommands("Fullscreen 1")
-				  Spring.SetConfigInt("XResolutionWindowed", tonumber(resolutionX))
-				  Spring.SetConfigInt("YResolutionWindowed", tonumber(resolutionY))
-				  Spring.SendCommands("Fullscreen 0")
-			  end
-			  checkResolution()
-		  end,
-		},
-		--{ id = "borderless", group = "gfx", category = types.basic, name = texts.option.borderless, type = "bool", value = tonumber(Spring.GetConfigInt("WindowBorderless", 1) or 1) == 1, description = texts.option.borderless_descr,
-		--  onchange = function(i, value)
-		--	  ssx, ssy, spx, spy = Spring.GetScreenGeometry()
-		--	  Spring.SetConfigInt("WindowPosX", 0)
-		--	  Spring.SetConfigInt("WindowPosY", 0)
-		--	  Spring.SetConfigInt("XResolutionWindowed", ssx)
-		--	  Spring.SetConfigInt("YResolutionWindowed", ssy)
-		--	  Spring.SetConfigInt("XResolution", ssx)
-		--	  Spring.SetConfigInt("YResolution", ssy)
-		--	  Spring.SetConfigInt("WindowBorderless", (value and 1 or 0))
-		--	  Spring.SetConfigInt("WindowState", 0)
-		--	  Spring.SetConfigInt("Fullscreen", (value and 0 or 1))
-		--	  Spring.SendCommands("Fullscreen " .. (value and 0 or 1))
-		--	  init()
-		--  end,
-		--},
-		{ id = "fullscreen", group = "gfx", category = types.basic, name = texts.option.fullscreen, type = "bool", value = tonumber(Spring.GetConfigInt("Fullscreen", 1) or 1) == 1,
-		  onchange = function(i, value)
-			  if value then
-				  options[getOptionByID('borderless')].value = false
-				  applyOptionValue(getOptionByID('borderless'))
-				  local xres = tonumber(Spring.GetConfigInt('XResolutionWindowed', ssx))
-				  local yres = tonumber(Spring.GetConfigInt('YResolutionWindowed', ssy))
-				  Spring.SetConfigInt("XResolution", xres)
-				  Spring.SetConfigInt("YResolution", yres)
-			  else
-				  local xres = tonumber(Spring.GetConfigInt('XResolution', ssx))
-				  local yres = tonumber(Spring.GetConfigInt('YResolution', ssy))
-				  Spring.SetConfigInt("XResolutionWindowed", xres)
-				  Spring.SetConfigInt("YResolutionWindowed", yres)
-			  end
-			  checkResolution()
-			  Spring.SendCommands("Fullscreen " .. (value and 1 or 0))
-			  Spring.SetConfigInt("Fullscreen", (value and 1 or 0))
-		  end, },
-		{ id = "borderless", group = "gfx", category = types.basic, name = texts.option.borderless, type = "bool", value = tonumber(Spring.GetConfigInt("WindowBorderless", 1) or 1) == 1, description = texts.option.borderless_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("WindowBorderless", (value and 1 or 0))
-			  if value then
-				  options[getOptionByID('fullscreen')].value = false
-				  applyOptionValue(getOptionByID('fullscreen'))
-			  end
-			  Spring.SetConfigInt("WindowPosX", 0)
-			  Spring.SetConfigInt("WindowPosY", 0)
-			  Spring.SetConfigInt("WindowState", (value and 0 or 1))
-			  checkResolution()
-		  end,
+		{ id = "resolution", group = "gfx", category = types.basic, name = texts.option.resolution, type = "select", options = resolutionNames, value = Spring.GetConfigInt('SelectedScreenMode', 1), description = texts.option.resolution_descr,
+			onchange = function(i, value)
+				Spring.SetConfigInt('SelectedScreenMode', value)
+				local screenMode = screenModes[value]
+
+				if screenMode.type == windowType.fullscreen then
+					Spring.SendCommands("Fullscreen 0")
+					Spring.SetConfigInt("WindowBorderless", 0)
+					Spring.SetConfigInt("XResolution", screenMode.width)
+					Spring.SetConfigInt("YResolution", screenMode.height)
+					Spring.SendCommands("Fullscreen 1")
+				elseif screenMode.type == windowType.borderless then
+					Spring.SendCommands("Fullscreen 1")
+					Spring.SetConfigInt("WindowBorderless", 1)
+					Spring.SetConfigInt("WindowPosX", 0)
+					Spring.SetConfigInt("WindowPosY", 0)
+					Spring.SetConfigInt("XResolutionWindowed", screenMode.width)
+					Spring.SetConfigInt("YResolutionWindowed", screenMode.height)
+					Spring.SendCommands("Fullscreen 0")
+				elseif screenMode.type == windowType.windowed then
+					Spring.SendCommands("Fullscreen 1")
+					Spring.SetConfigInt("WindowBorderless", 0)
+					Spring.SetConfigInt("WindowPosX", 25)
+					Spring.SetConfigInt("WindowPosY", 25)
+					Spring.SetConfigInt("XResolutionWindowed", screenMode.width)
+					Spring.SetConfigInt("YResolutionWindowed", screenMode.height)
+					Spring.SendCommands("Fullscreen 0")
+				end
+
+				-- checkResolution()
+			end,
 		},
 		{ id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync, type = "bool", value = vsyncEnabled, description = '',
 		  onchange = function(i, value)
@@ -4330,11 +4305,6 @@ function init()
 		--planeColor = {number r, number g, number b},
 	}
 
-	--if Spring.GetConfigInt("Fullscreen", 0) == 0 then
-	--	options[getOptionByID('resolution')] = nil
-	--end
-
-
 	if os.date("%m") ~= "12"  or  os.date("%d") < "12" then
 		options[getOptionByID('xmas')] = nil
 	end
@@ -4497,18 +4467,6 @@ function init()
 	end
 	if not aiDetected then
 		options[getOptionByID('commandsfxfilterai')] = nil
-	end
-	if getOptionByID('resolution') then
-		if #supportedResolutions < 2 then
-			options[getOptionByID('resolution')] = nil
-		else
-			for id, res in pairs(options[getOptionByID('resolution')].options) do
-				if res == vsx .. ' x ' .. vsy then
-					options[getOptionByID('resolution')].value = id
-					break
-				end
-			end
-		end
 	end
 
 	-- add sound notification widget sound toggle options
