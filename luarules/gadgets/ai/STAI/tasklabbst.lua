@@ -5,7 +5,7 @@ function TaskLabBST:Name()
 end
 
 function TaskLabBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self:EchoDebug('initialize tasklab')
 	local u = self.unit:Internal()
 	self.id = u:ID()
@@ -225,34 +225,38 @@ end
 
 function TaskLabBST:getQueue()
 	local queue = {
-
-		{'techs',3,nil,10,2},
-		{'scouts',1,10,2,2},
-		{'raiders',1,nil,20,self.ai.raidhst.wave},
-		{'techs',3,nil,10,1},
-		{'battles',3,nil,25,5},
-		{'techs',3,6,7,1},
-		{'artillerys',1,10,10,3},
-		{'techs',3,nil,10,1},
-		{'breaks',2,5,15,3},
-		{'techs',3,nil,10,1},
-		{'rezs',1,8,10,2}, -- rezzers
-		{'engineers',1,8,10}, --help builders and build thinghs
-		{'antiairs',1,7,8,2},
+		{'scouts',2,10,20,2},
+		{'techs',3,2,50,2},
+		{'raiders',5,15,40,5},
+		{'rezs',5,nil,50,2},-- We need more rezzers!
+		--{'raiders',5,15,40,self.ai.raidhst.wave},
+		{'techs',3,5,50,2},
+		{'battles',7,30,250,15},
+		{'techs',3,6,7,2},
+		{'raiders',5,15,40,5},
+		{'artillerys',4,10,50,5},
+		{'scouts',2,10,20,1},--This scout needs to attach to the artillery^^.
+		{'techs',3,5,10,1},
+		{'artillerys',4,10,50,5}, --It's so good, it's worth a second helping.
+		{'breaks',4,15,1500,3},
+		{'techs',3,5,50,1},
+		{'rezs',5,8,50,5}, -- rezzers
+		{'engineers',2,8,10}, --help builders and build thinghs
+		{'antiairs',3,7,80,2},
 		{'amptechs',1,7,5,1}, --amphibious builders
 		{'jammers',1,nil,1	},
 		{'radars',1,nil,1},
-		{'airgun',1,5,10,5},
-		{'bomberairs',10,4,20,5},
+		{'airgun',1,5,100,5},
+		{'bomberairs',10,4,200,5},
 		{'fighterairs',1,5,10},
-		{'paralyzers',1,10,5,3}, --have paralyzer weapon
+		{'paralyzers',1,10,150,3}, --have paralyzer weapon
 
 		{'wartechs',1,nil,1}, --decoy etc
-		{'techs',3,nil,5,3},
-		{'subkillers',1,7,5}, -- submarine weaponed
-		{'breaks',nil,nil,40,3},
-		{'amphibious',0,7,20}, -- weapon amphibious
-		{'spiders',nil,nil,15,10}, -- all terrain spider
+--		{'techs',3,nil,5,3},
+--		{'subkillers',1,7,5}, -- submarine weaponed
+--		{'breaks',nil,nil,40,3},
+--		{'amphibious',0,7,20}, -- weapon amphibious
+--		{'spiders',nil,nil,15,10}, -- all terrain spider
 
 
 
@@ -267,7 +271,52 @@ function TaskLabBST:getQueue()
 end
 
 TaskLabBST.queue = {
+		{'scouts',2,10,20,2},
+		{'techs',3,2,50,1},
+		{'raiders',5,15,40,10},
+		{'rezs',5,nil,50,5},-- We need more rezzers!
+		--{'raiders',5,15,40,self.ai.raidhst.wave},
+		{'techs',3,5,50,2},
+		{'battles',7,30,250,5},
+		{'techs',3,6,7,1},
+		{'artillerys',4,10,50,5},
+		{'scouts',2,10,20,1},--This scout needs to attach to the artillery^^.
+		{'techs',3,5,10,1},
+		{'artillerys',4,10,50,5}, --It's so good, it's worth a second helping.
+		{'breaks',4,15,1500,3},
+		{'techs',3,5,50,1},
+		{'rezs',5,8,50,5}, -- rezzers
+		{'engineers',2,8,10}, --help builders and build thinghs
+		{'antiairs',3,7,80,2},
+		{'amptechs',1,7,5,1}, --amphibious builders
+		{'jammers',1,nil,1	},
+		{'radars',1,nil,1},
+		{'airgun',1,5,100,5},
+		{'bomberairs',10,4,200,5},
+		{'fighterairs',1,5,10},
+		{'paralyzers',1,10,150,3}, --have paralyzer weapon
 
+		{'wartechs',1,nil,1}, --decoy etc
+--		{'techs',3,nil,5,3},
+--		{'subkillers',1,7,5}, -- submarine weaponed
+--		{'breaks',nil,nil,40,3},
+--		{'amphibious',0,7,20}, -- weapon amphibious
+--		{'spiders',nil,nil,15,10}, -- all terrain spider
+
+
+
+-- 		{'transports',1,nil,nil},
+-- 		{'spys',1,nil,1}, -- spy bot
+-- 		{'miners',1,nil,nil},
+-- 		{'antinukes',1,nil,nil},
+-- 		{'crawlings',1,nil,1},
+-- 		{'cloakables',0,0,10},
+}
+	
+	
+	
+	
+	--[[ BEGIN COMMENT OF ORIGINAL QUEUE
 		{'techs',3,nil,10,1},
 		{'scouts',1,10,2,2},
 		{'raiders',1,nil,20,5},
@@ -293,7 +342,7 @@ TaskLabBST.queue = {
 		{'techs',3,nil,5,3},
 		{'subkillers',1,7,5}, -- submarine weaponed
 		{'breaks',nil,nil,40,3},
-		{'amphibious',0,7,20}, -- weapon amphibious
+		{'amphibious',0,7,20,}, -- weapon amphibious
 		{'spiders',nil,nil,15,10}, -- all terrain spider
 
 
@@ -304,7 +353,7 @@ TaskLabBST.queue = {
 -- 		{'antinukes',1,nil,nil},
 -- 		{'crawlings',1,nil,1},
 -- 		{'cloakables',0,0,10},
-}
+}--END COMMENT OF ORIGINAL QUEUE]]
 
 function TaskLabBST:preFilter()
 	local spec = self.ai.armyhst.unitTable[self.name]

@@ -963,7 +963,7 @@ local function getOnlyTargets(weapons)
 			end
 		end
 	end
-	return targets
+	return targets                  
 end
 
 local function getBadTargets(weapons)

@@ -20,7 +20,7 @@ function BuildSiteHST:internalName()
 end
 
 function BuildSiteHST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.debugPlotDrawn = {}
 	local mapSize = self.map:MapDimensions()
 	self.ai.maxElmosX = mapSize.x * 8
@@ -129,8 +129,8 @@ function BuildSiteHST:GetBuildSpacing(unitTypeToBuild)
 		spacing = 50
 -- 	elseif army._nano_[un] then
 -- 		spacing = 0
---  	elseif army._wind_[un] then
---  		spacing = 80
+  	elseif army._wind_[un] then
+  		spacing = 130
 --  	elseif army._tide_[un] then
 --  		spacing = 80
 --  	elseif army._solar_[un] then

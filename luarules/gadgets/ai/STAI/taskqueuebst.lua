@@ -206,7 +206,7 @@ function TaskQueueBST:CategoryEconFilter(cat,param,name)
 		check =  (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100) or
 				(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 60 ))
 	elseif cat == '_wind_' then
-		check =   map:AverageWind() > 7 and ((E.full < 0.75 or E.income < E.usage * 1.1 )  or E.income < 30)
+		check =   map:AverageWind() > 7 and ((E.full < 0.75 or E.income < E.usage * 1.1 ))
 	elseif cat == '_tide_' then
 		check =  map:TidalStrength() >= 10 and  ((E.full < 0.75 or E.income < E.usage * 1.1 )  or E.income < 30)
 	elseif cat == '_solar_' then
@@ -231,7 +231,7 @@ function TaskQueueBST:CategoryEconFilter(cat,param,name)
 		check =  M.full > 0.3 and M.income > 15 and E.income > 100
 
 	elseif cat == '_llt_' then
-		check =   (E.income > 34 and M.income > 5)
+		check =   (E.income > 30 and M.income > 5)
 	elseif cat == '_popup1_' then
 		check =   (E.income > 200 and M.income > 25  )
 	elseif cat == '_specialt_' then
