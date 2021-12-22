@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armageo')
-
 return {
 	armageo = {
 		acceleration = 0,
@@ -15,7 +13,6 @@ return {
 		collisionvolumeoffsets = "0 10 0",
 		collisionvolumescales = "77 66 77",
 		collisionvolumetype = "CylY",
-		description = Spring.I18N('units.descriptions.armageo'),
 		energymake = 1250,
 		energystorage = 12000,
 		explodeas = "advancedFusionExplosion",
@@ -27,7 +24,6 @@ return {
 		maxdamage = 3240,
 		maxslope = 15,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/ARMAGEO.s3o",
 		script = "Units/ARMAGEO.cob",
 		seismicsignature = 0,

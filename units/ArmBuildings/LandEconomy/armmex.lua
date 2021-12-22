@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armmex')
-
 return {
 	armmex = {
 		acceleration = 0,
@@ -17,7 +15,6 @@ return {
 		collisionvolumescales = "48 33 48",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armmex'),
 		energyuse = 3,
 		explodeas = "smallBuildingExplosionGeneric",
 		extractsmetal = 0.001,
@@ -30,7 +27,6 @@ return {
 		maxslope = 30,
 		--maxwaterdepth = 20,
 		metalstorage = 50,
-		name = unitName,
 		objectname = "Units/ARMMEX.s3o",
 		onoffable = true,
 		script = "Units/ARMMEX.cob",
@@ -63,7 +59,6 @@ return {
 				collisionvolumescales = "52.280090332 25.2522125244 52.9224243164",
 				collisionvolumetype = "Box",
 				damage = 102,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -83,7 +78,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 51,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

@@ -13,16 +13,29 @@ end
 if (gadgetHandler:IsSyncedCode()) then
 
   local builder = {}
-
+  local destroyQueue = {}
+  local numtodestroy = 0
+  
   function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID) -- destroy created unit if builder is dead
     if Spring.ValidUnitID(builderID) and not Spring.GetUnitIsDead(builderID) then
     else
       local HP = Spring.GetUnitHealth(unitID)
       if HP <= 1 then -- avoid killing /give and Spring.CreateUnit()
-        Spring.DestroyUnit(unitID, false, true)
+        destroyQueue[numtodestroy + 1] = unitID
+        numtodestroy = numtodestroy + 1 
       end
     end
   end
+
+function gadget:GameFrame()
+    if numtodestroy > 0 then 
+        for i = numtodestroy, 1, -1 do 
+            Spring.DestroyUnit(destroyQueue[i], false, true)
+            destroyQueue[i] = nil
+        end
+        numtodestroy = 0
+    end
+end
 
   function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing) -- do not allow create unit if builder is dead
     if Spring.ValidUnitID(builderID) and not Spring.GetUnitIsDead(builderID) then

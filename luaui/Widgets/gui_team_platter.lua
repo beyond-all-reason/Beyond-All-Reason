@@ -48,6 +48,7 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 local unitScale = {}
 local unitCanFly = {}
 local unitBuilding = {}
+local unitDecoration = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitScale[unitDefID] = (7.5 * ( unitDef.xsize^2 + unitDef.zsize^2 ) ^ 0.5) + 8
 	if unitDef.canFly then
@@ -59,9 +60,13 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			unitDef.zsize * 8.2 + 12
 		}
 	end
+	if unitDef.name == 'xmasball' or unitDef.name == 'xmasball2' then
+		unitDecoration[unitDefID] = true
+	end
 end
 
 local function AddPrimitiveAtUnit(unitID)
+	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then return end
 	local gf = Spring.GetGameFrame()
 
 	if not unitUnitDefID[unitID] then
@@ -137,12 +142,14 @@ function widget:DrawWorldPreUnit()
 		selectShader:SetUniform("addRadius", 0)
 		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
 
+		--[[ -- this second draw pass is only needed if we actually want to draw the unit's radius
 		glStencilFunc(GL_NOTEQUAL, 1, 1)
 		glStencilMask(0)
 		glDepthTest(true)
 
 		selectShader:SetUniform("addRadius", 0.15)
 		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
+		]]--
 
 		glStencilMask(1)
 		glStencilFunc(GL_ALWAYS, 1, 1)
@@ -160,7 +167,7 @@ local function RemovePrimitive(unitID)
 end
 
 local function AddUnit(unitID, unitDefID, unitTeamID)
-	if (not skipOwnTeam or unitTeamID ~= myTeamID) and unitTeamID ~= gaiaTeamID then
+	if (not skipOwnTeam or unitTeamID ~= myTeamID) and unitTeamID ~= gaiaTeamID and not unitDecoration[unitDefID] then
 		unitTeam[unitID] = unitTeamID
 		unitUnitDefID[unitID] = unitDefID
 		AddPrimitiveAtUnit(unitID)
@@ -168,7 +175,7 @@ local function AddUnit(unitID, unitDefID, unitTeamID)
 end
 
 local function RemoveUnit(unitID, unitDefID, unitTeamID)
-	if (not skipOwnTeam or unitTeamID ~= myTeamID) and unitTeamID ~= gaiaTeamID then
+	if (not skipOwnTeam or unitTeamID ~= myTeamID) and unitTeamID ~= gaiaTeamID and not unitDecoration[unitDefID] then
 		RemovePrimitive(unitID)
 		unitTeam[unitID] = nil
 		unitUnitDefID[unitID] = nil
@@ -178,6 +185,13 @@ end
 function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 	if unitTeam[unitID] then
 		RemoveUnit(unitID, unitDefID, oldTeamID)
+		AddUnit(unitID, unitDefID, unitTeam)
+	end
+end
+
+function widget:UnitGiven(unitID, unitDefID, unitTeamID)
+	if unitTeam[unitID] then
+		RemoveUnit(unitID, unitDefID, unitTeamID)
 		AddUnit(unitID, unitDefID, unitTeam)
 	end
 end

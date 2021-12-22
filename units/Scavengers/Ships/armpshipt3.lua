@@ -1,5 +1,4 @@
 local unitName = "Epic Ellysaw"
-
 return {
 	armpshipt3 = {
 		acceleration = 0.04771,
@@ -17,7 +16,6 @@ return {
 		collisionvolumescales = "52 52 152",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Quad Gatling Hyper-Laser Assault Ship",
 		explodeas = "hugeexplosiongeneric",
 		floater = true,
 		footprintx = 6,
@@ -28,8 +26,7 @@ return {
 		maxdamage = 12500,
 		maxvelocity = 2.7,
 		minwaterdepth = 6,
-		movementclass = "BOAT6",
-		name = unitName,
+		movementclass = "EPICSHIP",
 		nochasecategory = "VTOL UNDERWATER",
 		objectname = "Units/scavboss/ARMPSHIPT3.s3o",
 		script = "Units/scavboss/ARMPSHIPT3.cob",
@@ -54,7 +51,6 @@ return {
 				collisionvolumescales = "52 52 152",
 				collisionvolumetype = "Box",
 				damage = 22000,
-				description = "Epic Ellysaw Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 6,
@@ -73,7 +69,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 11000,
-				description = "Epic Ellysaw Heap",
 				energy = 0,
 				footprintx = 3,
 				footprintz = 3,

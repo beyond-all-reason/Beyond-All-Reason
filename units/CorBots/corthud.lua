@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corthud')
-
 return {
 	corthud = {
 		acceleration = 0.12995,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "25 27 25",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corthud'),
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -27,7 +24,6 @@ return {
 		maxvelocity = 1.5,
 		maxwaterdepth = 12,
 		movementclass = "BOT3",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORTHUD.s3o",
 		script = "Units/CORTHUD.cob",
@@ -46,7 +42,6 @@ return {
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
-			longdescription = Spring.I18N('units.longDescriptions.corthud'),
 			model_author = "Mr Bob, Flaka",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots",
@@ -59,7 +54,6 @@ return {
 				collisionvolumescales = "27.809387207 16.8939208984 40.2852935791",
 				collisionvolumetype = "Box",
 				damage = 640,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -79,7 +73,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 370,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

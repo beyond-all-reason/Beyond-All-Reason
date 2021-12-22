@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corsent')
-
 return {
 	corsent = {
 		acceleration = 0.05823,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "40.5 40.5 43.5",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corsent'),
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -27,7 +24,6 @@ return {
 		maxvelocity = 2.3,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
-		name = unitName,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORSENT.s3o",
 		script = "Units/CORSENT.cob",
@@ -58,7 +54,6 @@ return {
 				collisionvolumescales = "32.4752197266 21.8393859863 34.3155517578",
 				collisionvolumetype = "Box",
 				damage = 2000,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -78,7 +73,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1500,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

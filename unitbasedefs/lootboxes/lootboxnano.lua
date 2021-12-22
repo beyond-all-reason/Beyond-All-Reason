@@ -88,7 +88,6 @@ local generateParameters = function(tier)
 
 	local parameters = {
 		[tiers.T1] = {
-			humanName = Spring.I18N('units.names.lootboxnano_t1'),
 			sizeMultiplier = 2,
 			collisionVolumeScales = "47 48 47",
 			footprintx = 3,
@@ -101,7 +100,6 @@ local generateParameters = function(tier)
 		},
 
 		[tiers.T2] = {
-			humanName = Spring.I18N('units.names.lootboxnano_t2'),
 			sizeMultiplier = 4,
 			collisionVolumeScales = "59 60 59",
 			footprintx = 3,
@@ -114,7 +112,6 @@ local generateParameters = function(tier)
 		},
 
 		[tiers.T3] = {
-			humanName = Spring.I18N('units.names.lootboxnano_t3'),
 			sizeMultiplier = 8,
 			collisionVolumeScales = "74 75 74",
 			footprintx = 4,
@@ -127,7 +124,6 @@ local generateParameters = function(tier)
 		},
 
 		[tiers.T4] = {
-			humanName = Spring.I18N('units.names.lootboxnano_t4'),
 			sizeMultiplier = 16,
 			collisionVolumeScales = "93 94 93",
 			footprintx = 4,
@@ -173,7 +169,6 @@ local createNanoUnitDef = function(tier)
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = parameters.collisionVolumeScales,
 		collisionvolumetype = "CylY",
-		description = Spring.I18N('units.descriptions.lootboxnano_t1'),
 		energyuse = 0,
 		explodeas = parameters.explodeas,
 		footprintx = parameters.footprintx,
@@ -188,7 +183,6 @@ local createNanoUnitDef = function(tier)
 		maxslope = 18,
 		maxwaterdepth = 0,
 		movementclass = "NANOLOOTBOX",
-		name = parameters.humanName,
 		objectname = parameters.objectName,
 		script = parameters.script,
 		seismicsignature = 0,

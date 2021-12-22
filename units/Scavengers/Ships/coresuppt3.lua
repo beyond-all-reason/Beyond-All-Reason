@@ -1,5 +1,4 @@
 local unitName = "Epic Supporter"
-
 return {
 	coresuppt3 = {
 		acceleration = 0.015,
@@ -15,7 +14,6 @@ return {
 		collisionvolumescales = "84 84 246",--"19 19 58",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Super Heavy Assault Corvette",
 		explodeas = "bantha",
 		floater = true,
 		footprintx = 8,
@@ -26,8 +24,7 @@ return {
 		maxdamage = 80000,
 		maxvelocity = 2.5,
 		minwaterdepth = 12,
-		movementclass = "BOAT8",
-		name = unitName,
+		movementclass = "EPICSHIP",
 		nochasecategory = "UNDERWATER VTOL",
 		objectname = "Units/scavboss/CORESUPPT3.s3o",
 		script = "Units/scavboss/CORESUPPT3.cob",
@@ -53,7 +50,6 @@ return {
 				collisionvolumescales = "84 84 246",
 				collisionvolumetype = "Box",
 				damage = 105000,
-				description = "Epic Supporter Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -71,7 +67,6 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 50250,
-				description = "Epic Supporter Heap",
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

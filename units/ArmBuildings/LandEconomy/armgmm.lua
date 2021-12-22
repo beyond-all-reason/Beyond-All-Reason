@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armgmm')
-
 return {
 	armgmm = {
 		acceleration = 0,
@@ -15,7 +13,6 @@ return {
 		collisionvolumeoffsets = "0 6 0",
 		collisionvolumescales = "62 53 62",
 		collisionvolumetype = "CylY",
-		description = Spring.I18N('units.descriptions.armgmm'),
 		energymake = 750,
 		energystorage = 1500,
 		explodeas = "largeBuildingExplosionGeneric",
@@ -27,7 +24,6 @@ return {
 		maxdamage = 12500,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/ARMGMM.s3o",
 		script = "Units/ARMGMM.cob",
 		seismicsignature = 0,

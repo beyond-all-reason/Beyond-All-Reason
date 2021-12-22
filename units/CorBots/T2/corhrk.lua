@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corhrk')
-
 return {
 	corhrk = {
 		acceleration = 0.1265,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "26 31 33",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corhrk'),
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -25,7 +22,6 @@ return {
 		maxvelocity = 1.8,
 		maxwaterdepth = 21,
 		movementclass = "BOT4",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORHRK.s3o",
 		script = "Units/CORHRK.cob",
@@ -52,7 +48,6 @@ return {
 				collisionvolumescales = "31.73046875 27.05418396 31.9737854004",
 				collisionvolumetype = "Box",
 				damage = 450,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -72,7 +67,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 350,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

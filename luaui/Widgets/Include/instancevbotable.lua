@@ -33,6 +33,7 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		dirty 				= false,
 		numVertices 		= 0,
 		primitiveType 		= GL.TRIANGLES,
+		debugZombies 		= false,  -- this is new, and its for debugging non-existing stuff on unitdestroyed
 	}
 
 	if unitIDattribID ~= nil then
@@ -72,6 +73,8 @@ function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a vertex b
 	return newVAO
 end
 
+
+--------------- DEBUG HELPERS --------------------------
 local function comparetables(t1, t2, name)
 	for k,v in pairs(t1) do
 		if t2[k] == nil then
@@ -90,8 +93,8 @@ local function comparetables(t1, t2, name)
 	end
 end
 
-
 local function dbgt(t, name)
+	name = name or ""
 	local gf = Spring.GetGameFrame()
 	local count = 0
 	local res = ''
@@ -100,11 +103,12 @@ local function dbgt(t, name)
 		count = count + 1
 	end
 	Spring.Echo(tostring(gf).. " " ..name .. ' #' .. tostring(count) .. ' {'..res .. '}')
+	return res
 end
 
 local function counttable(t)
 	local count = 0
-	if type(t) ~= table then return 0 end 
+	if type(t) ~= type({}) then return 0 end 
 	for k, v in pairs(t) do count = count + 1 end 
 	return count
 end
@@ -131,26 +135,62 @@ local function validateInstanceVBOTable(iT, calledfrom)
 			end
 		end
 	end
-	local indextoInstanceIDsize = counttable(iT.indextoInstanceIDsize)
+	local indextoInstanceIDsize = counttable(iT.indextoInstanceID)
 	local instanceIDtoIndexsize = counttable(iT.instanceIDtoIndex)
 	local indextoUnitID = counttable(iT.indextoUnitID)
 	if (indextoInstanceIDsize ~= instanceIDtoIndexsize) or (instanceIDtoIndexsize ~= indextoUnitID) then
-	
-	Spring.Echo(indextoInstanceIDsize, instanceIDtoIndexsize, indextoUnitID)
+		Spring.Echo("Table size mismatch during validation of", iT.myName, indextoInstanceIDsize, instanceIDtoIndexsize, indextoUnitID)
 	end
 
 end
 
+function locateInvalidUnits(iT)
+	if iT.validinfo == nil then iT.validinfo = {} end 
+	local invalidcount = 0
+	for i, unitID in ipairs(iT.indextoUnitID) do 
+		if iT.featureIDs then 
+			if Spring.ValidFeatureID(unitID) then 
+				local px, py, pz = Spring.GetFeaturePosition(unitID)
+				local fdefname = FeatureDefs[Spring.GetFeatureDefID(unitID)].name
+				iT.validinfo[unitID] = {px = px, py = py, pz = pz, fdefname = fdefname}
+			else
+				Spring.SendCommands({"pause 1"})
+				Spring.Echo("INVALID feature, last seen at", unitID)
+				local vi = iT.validinfo[unitID]
+				local markertext = tostring(unitID) .. "," .. dbgt(vi)
+				Spring.MarkerAddPoint(vi.px, vi.py, vi.pz, markertext )
+				invalidcount = invalidcount + 1 
+			end
+		else
+			if Spring.ValidUnitID(unitID) then 
+				local px, py, pz = Spring.GetUnitPosition(unitID)
+				local fdefname = UnitDefs[Spring.GetUnitDefID(unitID)].name
+				iT.validinfo[unitID] = {px = px, py = py, pz = pz, unitdefname = fdefname}
+			else
+				Spring.SendCommands({"pause 1"})
+				Spring.Echo(iT.myName, " INVALID unitID",unitID,"#elements", iT.usedElements, "last seen at tablepos:", i)
+
+				local vi = iT.validinfo[unitID]
+				local markertext = tostring(unitID) .. "," .. dbgt(vi)
+				Spring.MarkerAddPoint(vi.px, vi.py, vi.pz, markertext )
+				invalidcount = invalidcount + 1 
+			end
+		end
+	end
+	return invalidcount
+end
+
+------------------------------END DEBUG HELPERS ---------------------------
+
 function resizeInstanceVBOTable(iT)
 	-- iT: the InstanceVBOTable to double in size 'dynamically' resize the VBO, to double its size
+	-- this is called automatically when the existing instanceVBO gets full
+	-- Also performs a busload of sanity checking 
+	-- Spring.Echo("instanceVBOTable full, resizing to double size",iT.myName, iT.usedElements,iT.maxElements)
 	iT.maxElements = iT.maxElements * 2
 	local newInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	newInstanceVBO:Define(iT.maxElements, iT.layout)
-	for i = (iT.maxElements/2) * iT.instanceStep + 1, (iT.maxElements) * iT.instanceStep do
-		--iT.instanceData[i] = 0 -- TODO, this is inefficient, dont reserve this huge table, as it will screw with resizing later on, and it hurts full uploads when doing partial uploads. we NEVER do full on uploads, do we?
-		-- Double TODO: this will also get fucked up by the sanity checking on resizing for unitIDs
-		break
-	end
+	
 	if iT.instanceVBO then iT.instanceVBO:Delete() end -- release if previous one existed
 	iT.instanceVBO = newInstanceVBO
 	-- ok this needs some sanitation right here, with reporting.
@@ -163,7 +203,6 @@ function resizeInstanceVBOTable(iT)
 		local new_indextoInstanceID = {}
 		local new_indextoUnitID = {}
 		local invalidcount = 0
-
 
 		for i, objectID in ipairs(iT.indextoUnitID) do
 			local isValidID = false
@@ -199,14 +238,13 @@ function resizeInstanceVBOTable(iT)
 		iT.indextoUnitID = new_indextoUnitID
 	end
 
-
-	iT.instanceVBO:Upload(iT.instanceData,nil,0,1,iT.usedElements * iT.instanceStep) --(iT.instanceData,nil,0, 1, iT.usedElements * iT.instanceStep)
-	--iT.instanceVBO:Upload(iT.instanceData) -- TODO: still, only upload as much as is actually being used!
+	iT.instanceVBO:Upload(iT.instanceData,nil,0,1,iT.usedElements * iT.instanceStep)
+	
 	if iT.VAO then -- reattach new if updated :D
 		iT.VAO:Delete()
 		iT.VAO = makeVAOandAttach(iT.vertexVBO,iT.instanceVBO, iT.indexVBO)
 	end
-	--Spring.Echo("instanceVBOTable full, resizing to double size",iT.myName, iT.usedElements,iT.maxElements)
+	
 	if iT.indextoUnitID then
 		if iT.featureIDs then
 			iT.instanceVBO:InstanceDataFromFeatureIDs(iT.indextoUnitID, iT.unitIDattribID)
@@ -244,7 +282,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	if instanceID == nil then instanceID = iTusedElements + 1 end
 	local thisInstanceIndex = iT.instanceIDtoIndex[instanceID] 
 
-	if iTusedElements >= iT.maxElements then
+	if (iTusedElements + 1 ) >= iT.maxElements then -- add 1 extra for safety (not the best idea, but we seem to be running over it by 1)
 		resizeInstanceVBOTable(iT)
 		iTusedElements = iT.usedElements -- because during validation of unitIDs during resizing, we can decrease the actual size of the table!
 		thisInstanceIndex = iT.instanceIDtoIndex[instanceID]  -- this too, can change, TODO, also do this in VBOIDtable!
@@ -252,7 +290,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 
 	if thisInstanceIndex == nil then -- new, register it
 		thisInstanceIndex = iTusedElements + 1
-		iT.usedElements   = iTusedElements + 1 --THE WHOLE THING IS PROBABLY OFF BY 1 !!!
+		iT.usedElements   = iTusedElements + 1
 		iT.instanceIDtoIndex[instanceID] = thisInstanceIndex
 		iT.indextoInstanceID[thisInstanceIndex] = instanceID
 	else -- pre-existing ID, update or bail
@@ -297,7 +335,6 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	return thisInstanceIndex
 end
 
-
 function popElementInstance(iT, instanceID, noUpload) 
 	-- iT: instanceTable created with makeInstanceTable
 	-- instanceID: an optional key given to the item, so it can be easily removed by reference, defaults to the last element of the buffer, but this will screw up the instanceIDtoIndex table if used in mixed keys mode
@@ -323,15 +360,24 @@ function popElementInstance(iT, instanceID, noUpload)
 	local lastElementIndex = iT.usedElements
 	
 	-- if this one was already at the end of the queue, do nothing but decrement usedElements and clear mappings 
-	if oldElementIndex == lastElementIndex then -- EARLY OPT DEVILRY BAD!
+	if oldElementIndex == lastElementIndex then
 		--Spring.Echo("Removed end element of instanceTable", iT.myName)
 		iT.usedElements = iT.usedElements - 1	
 		-- if it had a related unitID stored, remove that:
 		if iT.indextoUnitID then iT.indextoUnitID[oldElementIndex] = nil end
+	
+		if iT.debugZombies then
+			if iT.zombies and iT.zombies[instanceID] then  
+				--Spring.Echo("Good, we are killing a stupid zombie at the end", instanceID, iT.numZombies)
+				iT.zombies[instanceID] = nil 
+				iT.numZombies = iT.numZombies - 1
+			end 
+		end
+		
 	else
 		local lastElementInstanceID = iT.indextoInstanceID[lastElementIndex]
 		if lastElementInstanceID == nil then --
-			Spring.Echo("We somehow have a nil element at the back of the array, which is completely invalid, probably about to crash")
+			Spring.Echo("We somehow have a nil element at the back of the array, which is completely invalid, probably about to crash", iT.myName)
 			dbgt(iT.instanceIDtoIndex, "instanceIDtoIndex")
 			dbgt(iT.indextoInstanceID, "indextoInstanceID")
 			dbgt(iT.indextoUnitID, "indextoUnitID")
@@ -341,7 +387,7 @@ function popElementInstance(iT, instanceID, noUpload)
 
 		iT.instanceIDtoIndex[lastElementInstanceID] = oldElementIndex -- lastElementInstanceID was somehow nil here? 
 		iT.indextoInstanceID[oldElementIndex] = lastElementInstanceID 
-		iT.indextoInstanceID[lastElementIndex] = nil --- somehow this got forgotten? TODO vor VBOIDtable
+		iT.indextoInstanceID[lastElementIndex] = nil --- somehow this got forgotten? TODO for VBOIDtable
 
 		local oldOffset = (oldElementIndex-1)*iTStep 
 		for i= 1, iTStep do 
@@ -358,61 +404,73 @@ function popElementInstance(iT, instanceID, noUpload)
 		end
 		-- Do the unitID shuffle if needed:
 		if iT.indextoUnitID then
-			--Spring.Echo("Shuffling",lastElementIndex,"->", oldElementIndex)
 			--Spring.Echo("popElementInstance,unitID, iT.unitIDattribID, thisInstanceIndex",unitID, iT.unitIDattribID, oldElementIndex)
 			local popunitID = iT.indextoUnitID[lastElementIndex]
 			if popunitID == nil then
 				Spring.Echo("TODO: what the f is happening here?, how the f could we have popped a nil from the back of?", iT.myName) -- TODO TODO
 			end
-			
-			if iT.debug then 
+
+			if iT.debugZombies then 
 				local gf = Spring.GetGameFrame()
-				if iT.popUnitIDFailuresInGameFrame[gf] and iT.popUnitIDFailuresInGameFrame[gf][popunitID] then
-					Spring.Echo("We did good, as we removed it the same frame it became invalid:", popunitID)
-					iT.popUnitIDFailuresInGameFrame[gf][popunitID]  = nil
+				--Spring.Echo("Popping", instanceID)
+				if iT.lastpopgameframe == nil then
+					iT.lastpopgameframe = gf
+					iT.zombies = {}
+					iT.numZombies = 0
+				else 
+					if iT.lastpopgameframe ~= gf then -- New gameframe
+						iT.lastpopgameframe = gf
+						if iT.numZombies and iT.numZombies > 0 then -- WE HAVE ZOMBIES AAAAARGH
+							local s = "Warning: We have " .. tostring(iT.numZombies) .. " zombie units left over in " .. iT.myName
+							for zombie, gf in pairs(iT.zombies) do 
+								s = s .. " " .. tostring(zombie)
+								Spring.Echo("ZOMBIE AT", zombie, Spring.GetUnitPosition(zombie))
+								Spring.SendCommands({"pause 1"})
+							end 
+							Spring.Echo(s)
+							iT.zombies = {}
+							iT.numZombies = 0
+						end
+					else -- same gameframe
+						if iT.zombies[instanceID] then 
+							--Spring.Echo("Good, we are killing a stupid zombie", gf, instanceID, iT.numZombies)
+							iT.zombies[instanceID] = nil 
+							iT.numZombies = iT.numZombies - 1 
+						end
+					end
 				end
 			end
 
-			--Spring.Echo("Pop", popunitID, "is valid?", Spring.ValidUnitID(popunitID), oldElementIndex, lastElementIndex)
 			iT.indextoUnitID[oldElementIndex] = popunitID
 			iT.indextoUnitID[lastElementIndex] = nil
-
-			if iT.featureIDs then
-				if Spring.ValidFeatureID(popunitID) then 
-					if noUpload ~= true then iT.instanceVBO:InstanceDataFromFeatureIDs(popunitID, iT.unitIDattribID, oldElementIndex-1) end
-				else
-					Spring.Echo("Warning: Tried to pop back an invalid featureID", popunitID, "from", iT.myName, "while removing instance", instanceID, counttable(iT.instanceIDtoIndex), counttable(iT.indextoInstanceID), counttable(iT.indextoUnitID))
-					if iT.debug then 
-						local gf = Spring.GetGameFrame()
-						-- so if we failed, then we must store the failed IDs
-						if iT.popUnitIDFailuresInGameFrame[gf] == nil then  -- this is a new failure, lets save it, and hope for the best
-							iT.popUnitIDFailuresInGameFrame[gf] = {[popunitID] = true}
-						else
-							iT.popUnitIDFailuresInGameFrame[gf][popunitID] = true
-						end
-					end
+			
+			if (iT.featureIDs and Spring.ValidFeatureID(popunitID)) or Spring.ValidUnitID(popunitID) then
+				if noUpload ~= true then
+					if iT.featureIDs then
+						iT.instanceVBO:InstanceDataFromFeatureIDs(popunitID, iT.unitIDattribID, oldElementIndex-1)
+					else
+						iT.instanceVBO:InstanceDataFromUnitIDs(popunitID, iT.unitIDattribID, oldElementIndex-1)
+					end 
 				end
 			else
-				if Spring.ValidUnitID(popunitID) then
-					if noUpload ~= true then iT.instanceVBO:InstanceDataFromUnitIDs(popunitID, iT.unitIDattribID, oldElementIndex-1) end
-				else
-					Spring.Echo("Warning: Tried to pop back an invalid unitID", popunitID, "from", iT.myName, "while removing instance", instanceID, counttable(iT.instanceIDtoIndex), counttable(iT.indextoInstanceID), counttable(iT.indextoUnitID) )
-					if iT.debug then 
-						local gf = Spring.GetGameFrame()
-						-- so if we failed, then we must store the failed IDs
-						if iT.popUnitIDFailuresInGameFrame[gf] == nil then  -- this is a new failure, lets save it, and hope for the best
-							iT.popUnitIDFailuresInGameFrame[gf] = {[popunitID] = true}
-						else
-							iT.popUnitIDFailuresInGameFrame[gf][popunitID] = true
-						end
-					end
+				if iT.debugZombies then 
+					Spring.Echo("Warning: Tried to pop back an invalid" .. ((iT.featureIDs and "featureID") or "unitID"), popunitID, "from", iT.myName, "while removing instance", instanceID, counttable(iT.instanceIDtoIndex), counttable(iT.indextoInstanceID), counttable(iT.indextoUnitID))
+					local gf = Spring.GetGameFrame()
+					if iT.lastpopgameframe == nil or iT.lastpopgameframe ~= gf then -- New gameframe
+						iT.lastpopgameframe = gf
+						iT.zombies = {}
+						iT.numZombies = 0
+					end 
+					iT.zombies[popunitID] = gf
+					iT.numZombies = iT.numZombies + 1 
 				end
-			end
+			end 
 		end
 		iT.usedElements = iT.usedElements - 1
 	end
 	
-	if iT.debug then  validateInstanceVBOTable(iT,'pop') end 
+	if iT.debug then validateInstanceVBOTable(iT,'pop') end 
+	return oldElementIndex
 end
 
 function getElementInstanceData(iT, instanceID)

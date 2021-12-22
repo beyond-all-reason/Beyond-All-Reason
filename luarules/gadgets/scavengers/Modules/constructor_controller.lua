@@ -264,10 +264,12 @@ local function ScavComGetClosestGaiaUnit(x, z, surroundingGaiaUnits)
 	if gaiaUnits then
 		for i = 1, #gaiaUnits do
 			local testUnit = gaiaUnits[i]
+			local testUnitDefID = Spring.GetUnitDefID(testUnit)
+			local capturable = UnitDefs[testUnitDefID].capturable
 			local testx, testy, testz = Spring.GetUnitPosition(testUnit)
 			local dx, dz = x - testx, z - testz
 			local dist = dx * dx + dz * dz
-			if dist < bestDist then
+			if capturable and dist < bestDist then
 				bestUnit = testUnit
 				bestDist = dist
 			end
@@ -281,18 +283,14 @@ local function constructNewBlueprint(n, unitID)
 	local x,y,z = Spring.GetUnitPosition(unitID)
 	local surroundingGaiaUnits = Spring.GetUnitsInCylinder(x, z, 1000, Spring.GetGaiaTeamID())
 	if surroundingGaiaUnits then
-		if #surroundingGaiaUnits > 1 then
+		if #surroundingGaiaUnits > 0 then
 			local target = ScavComGetClosestGaiaUnit(x, z, surroundingGaiaUnits)
-			local posx, posy, posz = Spring.GetUnitPosition(target)
-			Spring.GiveOrderToUnit(unitID, CMD.MOVE, { posx + math.random(-64,64), posy, posz + math.random(-64,64) }, {})
-			Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, {target}, {"shift"})
-			return
-		elseif #surroundingGaiaUnits == 1 then
-			local target = surroundingGaiaUnits[1]
-			local posx, posy, posz = Spring.GetUnitPosition(target)
-			Spring.GiveOrderToUnit(unitID, CMD.MOVE, { posx + math.random(-64,64), posy, posz + math.random(-64,64) }, {})
-			Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, {target}, {"shift"})
-			return
+			if target then
+				local posx, posy, posz = Spring.GetUnitPosition(target)
+				Spring.GiveOrderToUnit(unitID, CMD.MOVE, { posx + math.random(-64,64), posy, posz + math.random(-64,64) }, {})
+				Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, {target}, {"shift"})
+				return
+			end
 		end
 	end
 	local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)

@@ -100,7 +100,7 @@ local labGrids = {
 	},
 
 	corasy = {
-		"coracsub", "cormls", "corcrus", "cormmship",              -- T2 con sub, naval engineer, cruiser, rocket ship
+		"coracsub", "cormls", "corcrus", "cormship",              -- T2 con sub, naval engineer, cruiser, rocket ship
 		"corcarry", "corsjam", "corbats", "corblackhy",            -- carrier, jammer, battleship, flagship
 		"corshark", "corssub", "corarch",                          -- sub killer, battlesub, AA
 	},

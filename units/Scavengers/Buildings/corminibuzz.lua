@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corminibuzz')
-
 return {
 	corminibuzz = {
 		acceleration = 0,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "32 64 32",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corminibuzz'),
 		explodeas = "advancedFusionExplosion",
 		footprintx = 3,
 		footprintz = 3,
@@ -25,7 +22,6 @@ return {
 		maxdamage = 6000,
 		maxslope = 13,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/scavbuildings/CORMINIBUZZ.s3o",
 		script = "Units/scavbuildings/CORMINIBUZZ.lua",
 		seismicsignature = 0,
@@ -53,7 +49,6 @@ return {
 				collisionvolumescales = "83.9113311768 124.753143311 117.611557007",
 				collisionvolumetype = "Box",
 				damage = 3000,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -71,7 +66,6 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 1500,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

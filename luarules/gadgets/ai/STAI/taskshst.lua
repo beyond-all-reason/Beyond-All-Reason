@@ -83,93 +83,91 @@ function TasksHST:Init()
 		{'_aabomb_',true,false,false,true,true},
 		{'_flak_',true,false,false,true,true},
 	}
+	self.roles.assistant = {
+		}
+
+
 end
 
-function TasksHST:wrap( theTable, theFunction )
-	self:EchoDebug(theTable)
-	self:EchoDebug(theFunction)
-	return function( tb, ai ,bd)
-		return theTable[theFunction](theTable, tb, ai, bd)
-	end
-end
 
-function map(func, array)
-	local new_array = {}
-	for i,v in ipairs(array) do
-		new_array[i] = func(v)
-	end
-	return new_array
-end
 
-function TasksHST:multiwrap( tables )
-	local wrapped = {}
-	for i,v in ipairs( table ) do
-		wrapped[i] = self:wrap( v[1], v[2] )
-	end
-	return wrapped
-end
 
-random = math.random
-math.randomseed( os.time() + game:GetTeamID() )
-random(); random(); random()
-
-function TasksHST:MapHasWater()
-	return (self.ai.waterMap or self.ai.hasUWSpots) or false
-end
-
--- this is initialized in maphst
-function TasksHST:MapHasUnderwaterMetal()
-	return self.ai.hasUWSpots or false
-end
-
-function TasksHST:IsSiegeEquipmentNeeded()
-	return self.ai.overviewhst.needSiege
-end
-
-function TasksHST:IsAANeeded()
-	return self.ai.needAirDefense
-end
-
-function TasksHST:IsShieldNeeded()
-	return self.ai.needShields
-end
-
-function TasksHST:IsTorpedoNeeded()
-	return self.ai.needSubmergedDefense
-end
-
-function TasksHST:IsJammerNeeded()
-	return self.ai.needJammers
-end
-
-function TasksHST:IsAntinukeNeeded()
-	return self.ai.needAntinuke
-end
-
-function TasksHST:IsNukeNeeded()
-	local nuke = self.ai.needNukes and self.ai.canNuke
-	return nuke
-end
-
-function TasksHST:IsLandAttackNeeded()
-	return self.ai.areLandTargets or self.ai.needGroundDefense
-end
-
-function TasksHST:IsWaterAttackNeeded()
-	return self.ai.areWaterTargets or self.ai.needSubmergedDefense
-end
-
-function TasksHST:GetMtypedLv(unitName)
--- 	local mtype = self.ai.armyhst.unitTable[unitName].mtype
--- 	local level = self.ai.armyhst.unitTable[unitName].techLevel
--- 	local mtypedLv = mtype .. tostring(level)
+-- function TasksHST:wrap( theTable, theFunction )
+-- 	self:EchoDebug(theTable)
+-- 	self:EchoDebug(theFunction)
+-- 	return function( tb, ai ,bd)
+-- 		return theTable[theFunction](theTable, tb, ai, bd)
+-- 	end
+-- end
 --
--- 	local counter = self.ai.mtypeLvCount[mtypedLv] or 0
-	local counter = self.ai.tool:mtypedLvCount(self.ai.armyhst.unitTable[unitName].mtypedLv)
-	self:EchoDebug('mtypedLvmtype ' , counter)
-	return counter
-end
+-- function map(func, array)
+-- 	local new_array = {}
+-- 	for i,v in ipairs(array) do
+-- 		new_array[i] = func(v)
+-- 	end
+-- 	return new_array
+-- end
+--
+-- function TasksHST:multiwrap( tables )
+-- 	local wrapped = {}
+-- 	for i,v in ipairs( table ) do
+-- 		wrapped[i] = self:wrap( v[1], v[2] )
+-- 	end
+-- 	return wrapped
+-- end
+--
+-- random = math.random
+-- math.randomseed( os.time() + game:GetTeamID() )
+-- random(); random(); random()
+--
+-- function TasksHST:MapHasWater()
+-- 	return (self.ai.waterMap or self.ai.hasUWSpots) or false
+-- end
+--
+-- -- this is initialized in maphst
+-- function TasksHST:MapHasUnderwaterMetal()
+-- 	return self.ai.hasUWSpots or false
+-- end
+--
+-- function TasksHST:IsSiegeEquipmentNeeded()
+-- 	return self.ai.overviewhst.needSiege
+-- end
+--
+-- function TasksHST:IsAANeeded()
+-- 	return self.ai.needAirDefense
+-- end
+--
+-- function TasksHST:IsShieldNeeded()
+-- 	return self.ai.needShields
+-- end
+--
+-- function TasksHST:IsTorpedoNeeded()
+-- 	return self.ai.needSubmergedDefense
+-- end
+--
+-- function TasksHST:IsJammerNeeded()
+-- 	return self.ai.needJammers
+-- end
+--
+-- function TasksHST:IsAntinukeNeeded()
+-- 	return self.ai.needAntinuke
+-- end
+--
+-- function TasksHST:IsNukeNeeded()
+-- 	local nuke = self.ai.needNukes and self.ai.canNuke
+-- 	return nuke
+-- end
+--
+-- function TasksHST:IsLandAttackNeeded()
+-- 	return self.ai.areLandTargets or self.ai.needGroundDefense
+-- end
+--
+-- function TasksHST:IsWaterAttackNeeded()
+-- 	return self.ai.areWaterTargets or self.ai.needSubmergedDefense
+-- end
 
+
+--[[
 
 function TasksHST:BuildAAIfNeeded(unitName)
 	if self:IsAANeeded() then
@@ -334,4 +332,4 @@ function TasksHST:LandOrWater(tqb, landName, waterName)
 	else
 		return landName
 	end
-end
+end]]

@@ -1,20 +1,17 @@
-local unitName = Spring.I18N('units.names.armfboy')
-
 return {
 	armfboy = {
 		acceleration = 0.138,
 		brakerate = 0.43125,
-		buildcostenergy = 12000,
-		buildcostmetal = 1500,
+		buildcostenergy = 11000,
+		buildcostmetal = 1400,
 		buildpic = "ARMFBOY.DDS",
-		buildtime = 22397,
+		buildtime = 21000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "34 40 42",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armfboy'),
 		explodeas = "largeExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -26,7 +23,6 @@ return {
 		maxvelocity = 1,
 		maxwaterdepth = 25,
 		movementclass = "HBOT3",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMFBOY.s3o",
 		power = 5950, --compensation for XP rank with high AoE weapons
@@ -54,7 +50,6 @@ return {
 				collisionvolumescales = "33.431427002 25.3690338135 53.5839233398",
 				collisionvolumetype = "Box",
 				damage = 5000,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +69,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 3500,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

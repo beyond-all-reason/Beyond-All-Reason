@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.epic_chickenq')
-
 return {
 	epic_chickenq = {
 		acceleration = 3.45,
@@ -25,7 +23,6 @@ return {
 		collisionvolumetest = 1,
 		collisionvolumetype = "box",
 		defaultmissiontype = "Standby",
-		description = Spring.I18N('units.descriptions.epic_chickenq'),
 		explodeas = "QUEEN_DEATH",
 		footprintx = 3,
 		footprintz = 3,
@@ -37,7 +34,6 @@ return {
 		maxvelocity = 4.25,
 		maxwaterdepth = 70,
 		movementclass = "CHICKQUEEN",
-		name = unitName,
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Chickens/epic_chickenq.s3o",

@@ -54,8 +54,9 @@ local spValidUnitID = Spring.ValidUnitID
 local spec, fullview = Spring.GetSpectatingState()
 
 local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload)
-	if Spring.ValidUnitID(unitID) ~= true then
-		Spring.Echo("Warning: Ground AO Plates GL4 attempted to add an invalid unitID:", unitID)
+	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then
+		--Spring.Echo("Warning: Ground AO Plates GL4 attempted to add an invalid unitID:", unitID)
+		return nil
 	end
 	local gf = Spring.GetGameFrame()
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
@@ -71,7 +72,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload)
 	local p,q,s,t = gl.GetAtlasTexture(atlasID, decalInfo.texfile)
 	--Spring.Echo (unitDefID,decalInfo.texfile, width, length, alpha)
 
-	pushElementInstance(
+	return pushElementInstance(
 		groundPlateVBO, -- push into this Instance VBO Table
 			{decalInfo.sizey, decalInfo.sizex, 0, additionalheight,  -- lengthwidthcornerheight
 			Spring.GetUnitTeam(unitID), -- teamID
@@ -82,7 +83,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload)
 		unitID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		noUpload, -- noupload, dont use unless you know what you want to batch push/pop
-		unitID) -- last one should be UNITID!
+		unitID) -- last one should be UNITID! 
 end
 
 local doRefresh = false

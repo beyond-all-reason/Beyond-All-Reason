@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corsfig')
-
 return {
 	corsfig = {
 		acceleration = 0.37,
@@ -16,7 +14,6 @@ return {
 		category = "ALL NOTLAND MOBILE WEAPON VTOL NOTSUB NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 140,
-		description = Spring.I18N('units.descriptions.corsfig'),
 		explodeas = "smallExplosionGenericAir",
 		footprintx = 2,
 		footprintz = 2,
@@ -31,7 +28,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 10.52,
 		maxwaterdepth = 255,
-		name = unitName,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORSFIG.s3o",
 		script = "Units/CORSFIG.cob",

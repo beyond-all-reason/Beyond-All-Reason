@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armaser')
-
 return {
 	armaser = {
 		acceleration = 0.138,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "26 48 24",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armaser'),
 		energyuse = 80,
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
@@ -29,7 +26,6 @@ return {
 		maxvelocity = 1.61,
 		maxwaterdepth = 112,
 		movementclass = "BOT3",
-		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMASER.s3o",
 		onoffable = true,
@@ -57,7 +53,6 @@ return {
 				collisionvolumescales = "28.490814209 34.7166900635 16.3992004395",
 				collisionvolumetype = "Box",
 				damage = 250,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -77,7 +72,6 @@ return {
 				collisionvolumescales = "21.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 150,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 1,

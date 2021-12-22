@@ -1,10 +1,8 @@
-local versionNumber = "v2.6 - Doo Edit, BAR specific"
-
 function widget:GetInfo()
 	return {
 		name = "Area Mex",
-		desc = versionNumber .. " Adds a command to cap mexes in an area.",
-		author = "Google Frog, NTG (file handling), Chojin (metal map), Doo Edit on Dec 13, 2017 (multiple enhancements)",
+		desc = "Adds a command to cap mexes in an area.",
+		author = "Google Frog, NTG (file handling), Chojin (metal map), Doo (multiple enhancements), Floris (mex placer/upgrader)",
 		date = "Oct 23, 2010",
 		license = "GNU GPL, v2 or later",
 		handler = true,
@@ -13,26 +11,19 @@ function widget:GetInfo()
 	}
 end
 
---changelog (starting from 2.4)
--- v2.5 (21/04/2018)
--- Use Mex Snap's code to detect available positions for mexes
---
--- v2.4 (03/19/18 - Doo)
--- Using WG.metalSpots instead of analyzing map at initialize()
--- Erased non BA configs (since this version is only packed within BA)
+local moveIsAreamex = true		-- auto make move cmd an area mex cmd
 
-
-local maxMetalData = 40000 --2500000
-local pathToSave = "LuaUI/Widgets/MetalMaps/" -- where to store mexmaps
-
---command notification and mex placement
+local mexPlacementRadius = 750	-- (not actual ingame distance)
+local mexPlacementDragRadius = 20000	-- larger size so you can drag a move line over/near mex spots and it will auto queue mex there more easily
 
 local CMD_AREA_MEX = 10100
-
-local CMD_OPT_SHIFT = CMD.OPT_SHIFT
+local CMD_MOVE = CMD.MOVE
+local CMD_STOP = CMD.STOP
+local CMD_GUARD = CMD.GUARD
+local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
 local spGetSelectedUnits = Spring.GetSelectedUnits
-local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
+local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetGroundBlocked = Spring.GetGroundBlocked
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
@@ -40,26 +31,27 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetTeamUnits = Spring.GetTeamUnits
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetUnitDefID = Spring.GetUnitDefID
-local team = Spring.GetMyTeamID()
-local spTestBuildOrder = Spring.TestBuildOrder
 
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMapDrawMode = Spring.GetMapDrawMode
 local spSendCommands = Spring.SendCommands
 
-local toggledMetal, retoggleLos, chobbyInterface
+local toggledMetal, retoggleLos, chobbyInterface, lastInsertedOrder
 
-local mexes = {}
-
-local sqrt = math.sqrt
 local tasort = table.sort
 local taremove = table.remove
 
+local activeCmd = select(4, spGetActiveCommand())
+local buildmenuMexSelected = false
+local metalmap = false
+
+local mexes = {}
 local mexBuilder = {}
 
 local mexIds = {}
 local unitWaterDepth = {}
 local unitXsize = {}
+--local isCommander = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.extractsMetal > 0 then
 		mexIds[udid] = ud.extractsMetal
@@ -68,12 +60,19 @@ for udid, ud in pairs(UnitDefs) do
 		unitWaterDepth[udid] = { ud.minWaterDepth, ud.maxWaterDepth }
 		unitXsize[udid] = ud.xsize
 	end
+	--if ud.customParams.iscommander then
+	--	isCommander[udid] = true
+	--end
 end
+
 local mexBuilderDef = {}
+local t2mexBuilder = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.buildOptions then
+		local maxExtractmetal = 0
 		for i, option in ipairs(ud.buildOptions) do
 			if mexIds[option] then
+				maxExtractmetal = math.max(maxExtractmetal, mexIds[option])
 				if mexBuilderDef[udid] then
 					mexBuilderDef[udid].buildings = mexBuilderDef[udid].buildings + 1
 					mexBuilderDef[udid].building[mexBuilderDef[udid].buildings] = option * -1
@@ -81,6 +80,9 @@ for udid, ud in pairs(UnitDefs) do
 					mexBuilderDef[udid] = { buildings = 1, building = { [1] = option * -1 } }
 				end
 			end
+		end
+		if maxExtractmetal > 0.002 then
+			t2mexBuilder[udid] = true
 		end
 	end
 end
@@ -110,103 +112,6 @@ function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	end
 end
 
-
-local activeCmd = select(4, spGetActiveCommand())
-local buildmenuMexSelected = false
-function widget:Update()
-	if chobbyInterface then
-		return
-	end
-
-	-- swap build command to area mex when mex is selected
-	local prevActiveCmd = activeCmd
-	activeCmd = select(2, spGetActiveCommand())
-	if activeCmd ~= prevActiveCmd then
-		if activeCmd and activeCmd < 0 and mexIds[activeCmd * -1] then
-			buildmenuMexSelected = true
-			-- only transform to areamex cmd after user starts dragging
-		else
-			buildmenuMexSelected = false
-		end
-	end
-
-	--if mexSelectedPlacingPosX then
-	--	if buildmenuMexSelected then
-	--		local vsx, vsy = Spring.GetViewGeometry()
-	--		local gracePx = math.floor((vsx+vsy) * 0.005)
-	--		local x, y, b, b2, b3 = Spring.GetMouseState()
-	--		if b then
-	--			if x > mexSelectedPlacingPosX + gracePx or x < mexSelectedPlacingPosX - gracePx and y > mexSelectedPlacingPosY + gracePx or x < mexSelectedPlacingPosY - gracePx then
-	--				-- only transform to areamex cmd after user starts dragging
-	--				Spring.SetActiveCommand(Spring.GetCmdDescIndex(CMD_AREA_MEX), 1, true, false, Spring.GetModKeyState())
-	--				mexSelectedPlacingPosX = nil
-	--				mexSelectedPlacingPosY = nil
-	--			end
-	--		else
-	--			mexSelectedPlacingPosX = nil
-	--			mexSelectedPlacingPosY = nil
-	--		end
-	--	else
-	--		mexSelectedPlacingPosX = nil
-	--		mexSelectedPlacingPosY = nil
-	--	end
-	--end
-
-	local _, cmd, _ = spGetActiveCommand()
-	if cmd == CMD_AREA_MEX then
-		if spGetMapDrawMode() ~= 'metal' then
-			if Spring.GetMapDrawMode() == "los" then
-				retoggleLos = true
-			end
-			spSendCommands({ 'ShowMetalMap' })
-			toggledMetal = true
-		end
-	else
-		if toggledMetal then
-			spSendCommands({ 'ShowStandard' })
-			if retoggleLos then
-				Spring.SendCommands("togglelos")
-				retoggleLos = nil
-			end
-			toggledMetal = false
-		end
-	end
-end
-
-
-
---function widget:MousePress(x, y, button)
---	if button == 1 and buildmenuMexSelected and not mexSelectedPlacingPosX then
---		if Spring.IsGUIHidden() then
---			return
---		end
---		if WG['topbar'] and WG['topbar'].showingQuit() then
---			return
---		end
---
---		mexSelectedPlacingPosX = x
---		mexSelectedPlacingPosY = y
---	end
---end
-
-
-function AreAlliedUnits(unitID)
-	-- Is unitID allied with me ?
-	return Spring.AreTeamsAllied(Spring.GetMyTeamID(), Spring.GetUnitTeam(unitID))
-end
-
-function NoAlliedMex(x, z, batchextracts)
-	-- Is there any better and allied mex at this location (returns false if there is)
-	local mexesatspot = Spring.GetUnitsInCylinder(x, z, Game.extractorRadius)
-	for i = 1, #mexesatspot do
-		local uid = mexesatspot[i]
-		if mexIds[spGetUnitDefID(uid)] and AreAlliedUnits(uid) and mexIds[spGetUnitDefID(uid)] >= batchextracts then
-			return false
-		end
-	end
-	return true
-end
-
 local function GetClosestMetalSpot(x, z)
 	local bestSpot
 	local bestDist = math.huge
@@ -221,6 +126,18 @@ local function GetClosestMetalSpot(x, z)
 		end
 	end
 	return bestSpot
+end
+
+local function NoAlliedMex(x, z, batchextracts)
+	-- Is there any better and allied mex at this location (returns false if there is)
+	local mexesatspot = Spring.GetUnitsInCylinder(x, z, Game.extractorRadius)
+	for i = 1, #mexesatspot do
+		local uid = mexesatspot[i]
+		if mexIds[spGetUnitDefID(uid)] and Spring.AreTeamsAllied(Spring.GetMyTeamID(), Spring.GetUnitTeam(uid)) and mexIds[spGetUnitDefID(uid)] >= batchextracts then
+			return false
+		end
+	end
+	return true
 end
 
 local function GetClosestMexPosition(spot, x, z, uDefID, facing)
@@ -239,33 +156,169 @@ local function GetClosestMexPosition(spot, x, z, uDefID, facing)
 	return bestPos
 end
 
+local function IsSpotOccupied(spot)
+	local scale = 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
+	local units = Spring.GetUnitsInSphere(spot.x, spot.y, spot.z, 115*scale)
+	local occupied = false
+	for j=1, #units do
+		if mexIds[spGetUnitDefID(units[j])]  then
+			occupied = true
+			break
+		end
+	end
+	return occupied
+end
+
+function widget:Update()
+	if chobbyInterface then
+		return
+	end
+
+	-- swap build command to area mex when mex is selected
+	local prevActiveCmd = activeCmd
+	activeCmd = select(2, spGetActiveCommand())
+	if activeCmd ~= prevActiveCmd then
+		if activeCmd and activeCmd < 0 and mexIds[activeCmd * -1] then
+			buildmenuMexSelected = true
+			-- only transform to areamex cmd after user starts dragging
+		else
+			buildmenuMexSelected = false
+		end
+	end
+
+	local _, cmd, _ = spGetActiveCommand()
+	if cmd == CMD_AREA_MEX then
+		if spGetMapDrawMode() ~= 'metal' then
+			if Spring.GetMapDrawMode() == "los" then
+				retoggleLos = true
+			end
+			spSendCommands('ShowMetalMap')
+			toggledMetal = true
+		end
+	else
+		if toggledMetal then
+			spSendCommands('ShowStandard')
+			if retoggleLos then
+				Spring.SendCommands("togglelos")
+				retoggleLos = nil
+			end
+			toggledMetal = false
+		end
+
+		-- mex-upgrade mouse cursor
+		local mx, my = Spring.GetMouseState()
+		local type, params = Spring.TraceScreenRay(mx, my)
+		local isT1Mex = (type == 'unit' and mexIds[Spring.GetUnitDefID(params)] and mexIds[Spring.GetUnitDefID(params)] < 0.002)
+		local closestMex
+		if isT1Mex or type == 'ground' then
+			local proceed = false
+			if type == 'ground' then
+				closestMex = GetClosestMetalSpot(params[1], params[3])
+				if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
+					proceed = true
+				end
+			end
+			if isT1Mex or proceed then
+				proceed = false
+				local selUnitCounts = spGetSelectedUnitsCounts()
+				local hasT1builder, hasT2builder = false, false
+				-- search for builders
+				for k,v in pairs(selUnitCounts) do
+					if k ~= 'n' then
+						if mexBuilderDef[k] then
+							hasT1builder = true
+						end
+						if t2mexBuilder[k] then
+							hasT2builder = true
+							break
+						end
+					end
+				end
+				if isT1Mex then
+					if hasT2builder then
+						proceed = true
+					end
+				else
+					if (hasT1builder or hasT2builder) and not IsSpotOccupied(closestMex) then
+						proceed = true
+					end
+				end
+				if proceed then
+					Spring.SetMouseCursor('upgmex')
+				end
+			end
+		end
+	end
+end
+
 function widget:CommandNotify(id, params, options)
+	local isMove = (id == CMD_MOVE)
+	local isGuard = (id == CMD_GUARD)
+	if not (id == CMD_AREA_MEX or isMove or isGuard) then
+		return
+	end
+	if isGuard then
+		local mx, my = Spring.GetMouseState()
+		local type, unitID = Spring.TraceScreenRay(mx, my)
+		if not (type == 'unit' and mexIds[Spring.GetUnitDefID(unitID)] and mexIds[Spring.GetUnitDefID(unitID)] < 0.002) then
+			return
+		end
+	end
+
+	-- transform move (for mex builders) into area-mex command
+	local units = spGetSelectedUnits()
+	if (isGuard or (isMove and moveIsAreamex)) and mexBuilder[units[1]] then
+		--local proceed = true --#units == 1 or isGuard
+		--local selUnitCounts = spGetSelectedUnitsCounts()
+		--for k,v in pairs(selUnitCounts) do
+		--	if k ~= 'n' and not mexBuilderDef[k] then
+		--		proceed = false
+		--		break
+		--	end
+		--end
+		-- transform move into area-mex command
+		-- NOTE: not sure this is wanted for commanders ...when enemy is near
+		--if proceed then
+			if isGuard then
+				local ux, uy, uz = Spring.GetUnitPosition(params[1])
+				isGuard = { x = ux, y = uy, z = uz }
+				params[1], params[2], params[3] = ux, uy, uz
+				id = CMD_AREA_MEX
+				params[4] = 25
+				lastInsertedOrder = nil
+			else
+				local closestMex = GetClosestMetalSpot(params[1], params[3])
+				local spotRadius = mexPlacementRadius
+				if #units == 1 and #Spring.GetCommandQueue(units[1], 8) > 1 then
+					if (not lastInsertedOrder or (closestMex.x ~= lastInsertedOrder[1] and closestMex.z ~= lastInsertedOrder[2])) then
+						spotRadius = mexPlacementDragRadius		-- make move drag near mex spots be less strict
+					elseif lastInsertedOrder then
+						spotRadius = 0
+					end
+				else
+					lastInsertedOrder = nil
+				end
+				if spotRadius > 0 and closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < spotRadius then
+					id = CMD_AREA_MEX
+					params[4] = 25
+				else
+					return
+				end
+			end
+		--end
+	end
+
 	if id == CMD_AREA_MEX then
-		mexes = WG.metalSpots
+		local mexes = isGuard and { isGuard } or WG.metalSpots -- only need the mex we guard if that is the case
 		local cx, cy, cz, cr = params[1], params[2], params[3], params[4]
 		if not cr or cr < Game.extractorRadius then
 			cr = Game.extractorRadius
 		end
-		local cr = cr
-
-		local xmin = cx - cr
-		local xmax = cx + cr
-		local zmin = cz - cr
-		local zmax = cz + cr
 
 		local commands = {}
 		local commandsCount = 0
 		local orderedCommands = {}
-		local dis = {}
-
-		local ux = 0
-		local uz = 0
-		local us = 0
-
-		local aveX = 0
-		local aveZ = 0
-
-		local units = spGetSelectedUnits()
+		local ux, uz, us, aveX, aveZ = 0, 0, 0, 0, 0
 		local maxbatchextracts = 0
 		local batchMexBuilder = {}
 		local lastprocessedbestbuilder = nil
@@ -283,7 +336,6 @@ function widget:CommandNotify(id, params, options)
 
 		local batchSize = 0
 		local shift = options.shift
-
 		for i = 1, #units do
 			-- Check position, apply guard orders to "inferiors" builders and adds superior builders to current batch builders
 			local id = units[i]
@@ -298,19 +350,18 @@ function widget:CommandNotify(id, params, options)
 					batchMexBuilder[batchSize] = id
 				else
 					if not shift then
-						spGiveOrderToUnit(id, CMD.STOP, {}, CMD.OPT_RIGHT)
+						spGiveOrderToUnit(id, CMD_STOP, {}, CMD_OPT_RIGHT)
 					end
-					spGiveOrderToUnit(id, CMD.GUARD, { lastprocessedbestbuilder }, { "shift" })
+					spGiveOrderToUnit(id, CMD_GUARD, { lastprocessedbestbuilder }, { "shift" })
 				end
 			end
 		end
 
 		if us == 0 then
 			return
-		else
-			aveX = ux / us
-			aveZ = uz / us
 		end
+		aveX = ux / us
+		aveZ = uz / us
 
 		for k = 1, #mexes do
 			local mex = mexes[k]
@@ -351,11 +402,11 @@ function widget:CommandNotify(id, params, options)
 		for ct = 1, #batchMexBuilder do
 			local id = batchMexBuilder[ct]
 			if not shift then
-				spGiveOrderToUnit(id, CMD.STOP, {}, CMD.OPT_RIGHT)
+				spGiveOrderToUnit(id, CMD_STOP, {}, CMD_OPT_RIGHT)
 			end
 		end
 
-		local shift = true
+		local mexQueued = false
 		for ct = 1, #batchMexBuilder do
 			local id = batchMexBuilder[ct]
 
@@ -363,63 +414,25 @@ function widget:CommandNotify(id, params, options)
 				local command = orderedCommands[i]
 
 				local Y = spGetGroundHeight(command.x, command.z)
-				local spotSize = 0 -- GetSpotSize(x, z)
 				if ((i % batchSize == ct % batchSize or i % #orderedCommands == ct % #orderedCommands) and ctrl) or not ctrl then
 					for j = 1, mexBuilder[id].buildings do
 						local def = unitWaterDepth[-mexBuilder[id].building[j]]
-
 						local buildable = 0
 						local newx, newz = command.x, command.z
-						if not buildable ~= 0 then
-							-- If location unavailable, check surroundings (extractorRadius - 25). Should consider replacing 25 with avg mex x,z sizes
-							--local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx - 2 * Game.extractorRadius, newz - 2 * Game.extractorRadius, -mexBuilder[id].building[j], "s")
-							local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx, newz, -mexBuilder[id].building[j], "s")
-							if bestPos then
-								newx, newz = bestPos[1], bestPos[3]
-								buildable = true
-							end
+						-- If location unavailable, check surroundings (extractorRadius - 25). Should consider replacing 25 with avg mex x,z sizes
+						--local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx - 2 * Game.extractorRadius, newz - 2 * Game.extractorRadius, -mexBuilder[id].building[j], "s")
+						local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx, newz, -mexBuilder[id].building[j], "s")
+						if bestPos then
+							newx, newz = bestPos[1], bestPos[3]
+							buildable = true
 						end
-
-						-- for ox = 0, Game.extractorRadius do
-						-- for oz = 0, Game.extractorRadius do
-						-- if sqrt(ox^2 + oz^2) <= sqrt(Game.extractorRadius^2)-spotSize and spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1) ~= 0 then
-						-- buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1)
-						-- newx = command.x + ox
-						-- newz = command.z + oz
-						-- break
-						-- elseif sqrt(ox^2 + oz^2) <= sqrt(Game.extractorRadius^2)-spotSize and spTestBuildOrder(-mexBuilder[id].building[j],command.x - ox,spGetGroundHeight(command.x - ox,command.z + oz),command.z + oz,1) ~= 0 then
-						-- buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1)
-						-- newx = command.x - ox
-						-- newz = command.z + oz
-						-- break
-
-						-- elseif sqrt(ox^2 + oz^2) <= sqrt(Game.extractorRadius^2)-spotSize and spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z - oz),command.z - oz,1) ~= 0 then
-						-- buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1)
-						-- newx = command.x + ox
-						-- newz = command.z - oz
-						-- break
-
-						-- elseif sqrt(ox^2 + oz^2) <= sqrt(Game.extractorRadius^2)-spotSize and spTestBuildOrder(-mexBuilder[id].building[j],command.x - ox,spGetGroundHeight(command.x - ox,command.z - oz),command.z - oz,1) ~= 0 then
-						-- buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1)
-						-- command.x = command.x - ox
-						-- command.z = command.z - oz
-						-- break
-						-- end
-						-- if buildable ~= 0 then
-						-- break
-						-- end
-						-- end
-						-- if buildable ~= 0 then
-						-- break
-						-- end
-						-- end
-						-- end
 						if buildable ~= 0 then
+							mexQueued = true
 							spGiveOrderToUnit(id, mexBuilder[id].building[j], { newx, spGetGroundHeight(newx, newz), newz }, { "shift" })
+							lastInsertedOrder = {command.x, command.z}
 							break
 						elseif def[2] and -def[2] < Y and def[1] and -def[1] > Y then
 							local hsize = unitXsize[-mexBuilder[id].building[j]] * 4
-							--local unitsatmex = Spring.GetUnitsInRectangle(command.x-hsize, command.z-hsize, command.x+hsize, command.z + hsize)
 							local blockers = {}
 							for x = command.x - hsize, command.x + hsize, 8 do
 								for z = command.z - hsize, command.z + hsize, 8 do
@@ -430,35 +443,40 @@ function widget:CommandNotify(id, params, options)
 									end
 								end
 							end
+							mexQueued = true
 							spGiveOrderToUnit(id, CMD.INSERT, { -1, mexBuilder[id].building[j], CMD.OPT_INTERNAL, command.x, spGetGroundHeight(command.x, command.z), command.z }, { shift = true, internal = true, alt = true })
+							lastInsertedOrder = {command.x, command.z}
 							break
 						end
 					end
 				end
 			end
 		end
-
+		if (isMove or isGuard) and not mexQueued then
+			return		-- no mex buildorder made so let move go through!
+		end
 		return true
 	end
 end
 
-
 function widget:CommandsChanged()
-	local units = spGetSelectedUnits()
-	local unitCount = #units
-	if unitCount > 0 then
-		local customCommands = widgetHandler.customCommands
-		for i = 1, unitCount do
-			if mexBuilder[units[i]] then
-				customCommands[#customCommands + 1] = {
-					id = CMD_AREA_MEX,
-					type = CMDTYPE.ICON_AREA,
-					tooltip = 'Define an area (with metal spots in it) to make metal extractors in',
-					name = 'Mex',
-					cursor = 'areamex',
-					action = 'areamex',
-				}
-				return
+	if not metalmap then
+		local units = spGetSelectedUnits()
+		local unitCount = #units
+		if unitCount > 0 then
+			local customCommands = widgetHandler.customCommands
+			for i = 1, unitCount do
+				if mexBuilder[units[i]] then
+					customCommands[#customCommands + 1] = {
+						id = CMD_AREA_MEX,
+						type = CMDTYPE.ICON_AREA,
+						tooltip = 'Define an area (with metal spots in it) to make metal extractors in',
+						name = 'Mex',
+						cursor = 'areamex',
+						action = 'areamex',
+					}
+					return
+				end
 			end
 		end
 	end
@@ -466,9 +484,9 @@ end
 
 function widget:Initialize()
 	if not WG.metalSpots or (#WG.metalSpots > 0 and #WG.metalSpots <= 2) then
-		Spring.Echo("<Area Mex> No metalspots or metalmap")
-		widgetHandler:RemoveWidget(self)
-		return
+		metalmap = true
+		--widgetHandler:RemoveWidget(self)
+		--return
 	end
 	local units = spGetTeamUnits(spGetMyTeamID())
 	for i = 1, #units do

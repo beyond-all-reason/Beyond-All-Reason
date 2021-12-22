@@ -100,10 +100,10 @@ local function NewCell(px, pz)
 		return
 	end
 	local values = {
-	ground = {ground = 0, air = 0, submerged = 0, value = 0},
-	air = {ground = 0, air = 0, submerged = 0, value = 0},
-	submerged = {ground = 0, air = 0, submerged = 0, value = 0},
-	} -- value to our units first to who can be hurt by those things, then to those who have those kinds of weapons
+		ground = {ground = 0, air = 0, submerged = 0, value = 0},
+		air = {ground = 0, air = 0, submerged = 0, value = 0},
+		submerged = {ground = 0, air = 0, submerged = 0, value = 0},
+		} -- value to our units first to who can be hurt by those things, then to those who have those kinds of weapons
 	-- [GAS].value is just everything that doesn't hurt that kind of thing
 	local targets = { ground = {}, air = {}, submerged = {}, } -- just one target for each [GAS][hurtGAS]
 	local vulnerables = { ground = {}, air = {}, submerged = {}, } -- just one vulnerable for each [GAS][hurtGAS]
@@ -208,7 +208,7 @@ function TargetHST:CellValueThreat(unitName, cell)
 		unitName = "nothing"
 	else
 		gas = self.ai.tool:WhatHurtsUnit(unitName, nil, cell.pos)
-		weapons = self.ai.tool:UnitWeaponLayerList(unitName)
+		weapons = self.ai.armyhst.unitTable[unitName].weaponLayer--self.ai.tool:UnitWeaponLayerList(unitName)
 	end
 	local threat = 0
 	local value = 0
@@ -291,7 +291,7 @@ function TargetHST:Init()
 	self.ai.areLandTargets = true
 	self.ai.canNuke = true
 	self:InitializeDangers()
--- 	self.lastEnemyThreatUpdateFrame = 0
+	-- 	self.lastEnemyThreatUpdateFrame = 0
 	self.feints = {}
 	self.raiderCounted = {}
 	self.lastUpdateFrame = 0
@@ -299,6 +299,7 @@ function TargetHST:Init()
 end
 
 function TargetHST:HorizontalLine(x, z, tx, threatResponse, groundAirSubmerged, val)
+	self.game:StartTimer('hl')
 	-- self:EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " with value " .. val .. " in " .. groundAirSubmerged)
 	for ix = x, tx do
 		local cell =self:GetOrCreateCellHere(ix,z)
@@ -308,38 +309,44 @@ function TargetHST:HorizontalLine(x, z, tx, threatResponse, groundAirSubmerged, 
 			--self:Warn('Cell not exist or is not in map in horizontalLine',ix,z)
 		end
 	end
+	self.game:StopTimer('hl')
 end
 
 function TargetHST:Plot4(cx, cz, x, z, threatResponse, groundAirSubmerged, val)
+	self.game:StartTimer('p4')
 	self:HorizontalLine(cx - x, cz + z, cx + x, threatResponse, groundAirSubmerged, val)
 	if x ~= 0 and z ~= 0 then
-        self:HorizontalLine(cx - x, cz - z, cx + x, threatResponse, groundAirSubmerged, val)
-    end
+		self:HorizontalLine(cx - x, cz - z, cx + x, threatResponse, groundAirSubmerged, val)
+	end
+	self.game:StopTimer('p4')
 end
 
 function TargetHST:FillCircle(cx, cz, radius, threatResponse, groundAirSubmerged, val)
+	self.game:StartTimer('fc')
 	local radius = mCeil(radius / cellElmos)
 	if radius > 0 then
 		local err = -radius
 		local x = radius
 		local z = 0
 		while x >= z do
-	        local lastZ = z
-	        err = err + z
-	        z = z + 1
-	        err = err + z
-	        self:Plot4(cx, cz, x, lastZ, threatResponse, groundAirSubmerged, val)
-	        if err >= 0 then
-	            if x ~= lastZ then self:Plot4(cx, cz, lastZ, x, threatResponse, groundAirSubmerged, val) end
-	            err = err - x
-	            x = x - 1
-	            err = err - x
-	        end
-	    end
+			local lastZ = z
+			err = err + z
+			z = z + 1
+			err = err + z
+			self:Plot4(cx, cz, x, lastZ, threatResponse, groundAirSubmerged, val)
+			if err >= 0 then
+				if x ~= lastZ then self:Plot4(cx, cz, lastZ, x, threatResponse, groundAirSubmerged, val) end
+				err = err - x
+				x = x - 1
+				err = err - x
+			end
+		end
 	end
+	self.game:StopTimer('fc')
 end
 
 function TargetHST:CheckHorizontalLine(x, z, tx, threatResponse, groundAirSubmerged)
+	self.game:StartTimer('chl')
 	-- self:EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " in " .. groundAirSubmerged)
 	local value = 0
 	local threat = 0
@@ -348,27 +355,33 @@ function TargetHST:CheckHorizontalLine(x, z, tx, threatResponse, groundAirSubmer
 			local cell = self.cells[ix][z]
 			local value = cell.values[groundAirSubmerged].value -- can't hurt it
 			local threat = cell[threatResponse][groundAirSubmerged]
+			self.game:StopTimer('chl')
 			return value, threat
+
 		end
 	end
+	self.game:StopTimer('chl')
 	return value, threat
 end
 
 function TargetHST:Check4(cx, cz, x, z, threatResponse, groundAirSubmerged)
+	self.game:StartTimer('c4')
 	local value = 0
 	local threat = 0
 	local v, t = self:CheckHorizontalLine(cx - x, cz + z, cx + x, threatResponse, groundAirSubmerged)
 	value = value + v
 	threat = threat + t
 	if x ~= 0 and z ~= 0 then
-        local v, t = self:CheckHorizontalLine(cx - x, cz - z, cx + x, threatResponse, groundAirSubmerged)
-        value = value + v
-        threat = threat + t
-    end
-    return value, threat
+		local v, t = self:CheckHorizontalLine(cx - x, cz - z, cx + x, threatResponse, groundAirSubmerged)
+		value = value + v
+		threat = threat + t
+	end
+	self.game:StopTimer('c4')
+	return value, threat
 end
 
 function TargetHST:CheckInRadius(cx, cz, radius, threatResponse, groundAirSubmerged)
+	self.game:StartTimer('cr')
 	local radius = mCeil(radius / cellElmos)
 	local value = 0
 	local threat = 0
@@ -377,25 +390,26 @@ function TargetHST:CheckInRadius(cx, cz, radius, threatResponse, groundAirSubmer
 		local x = radius
 		local z = 0
 		while x >= z do
-	        local lastZ = z
-	        err = err + z
-	        z = z + 1
-	        err = err + z
-	        local v, t = self:Check4(cx, cz, x, lastZ, threatResponse, groundAirSubmerged)
-	        value = value + v
-	        threat = threat + t
-	        if err >= 0 then
-	            if x ~= lastZ then
-	            	local v, t = self:Check4(cx, cz, lastZ, x, threatResponse, groundAirSubmerged)
-	            	value = value + v
-	       			threat = threat + t
-	            end
-	            err = err - x
-	            x = x - 1
-	            err = err - x
-	        end
-	    end
+			local lastZ = z
+			err = err + z
+			z = z + 1
+			err = err + z
+			local v, t = self:Check4(cx, cz, x, lastZ, threatResponse, groundAirSubmerged)
+			value = value + v
+			threat = threat + t
+			if err >= 0 then
+				if x ~= lastZ then
+					local v, t = self:Check4(cx, cz, lastZ, x, threatResponse, groundAirSubmerged)
+					value = value + v
+					threat = threat + t
+				end
+				err = err - x
+				x = x - 1
+				err = err - x
+			end
+		end
 	end
+	self.game:StopTimer('cr')
 	return value, threat
 end
 
@@ -405,15 +419,15 @@ function TargetHST:adiaCells(px,pz,field)--return a list with 8 adiacent cells r
 		if self.cells[x] ~= nil then
 			for z = pz - 1, pz + 1 do
 				if (x ~= px or z ~= pz) and self.cells[x][z] then -- ignore center cell
-					if field and self.cells[x][z][field] == nil then
-						self.cells[x][z][field] = 0
-					end
-					adiacents[x] = z
+				if field and self.cells[x][z][field] == nil then
+					self.cells[x][z][field] = 0
 				end
+				adiacents[x] = z
 			end
 		end
 	end
-	return adiacents
+end
+return adiacents
 end
 
 function TargetHST:UnitNameSanity(unitOrName)--TODO move to tool
@@ -561,11 +575,14 @@ function TargetHST:UpdateEnemies()
 		local los = e.los
 		local ghost = e.ghost
 		local name = e.unitName
+		self.game:StartTimer(name)
+
 		local ut = self.ai.armyhst.unitTable[name]
 		if ghost and not ghost.position and not e.beingBuilt then
 			-- count ghosts with unknown positions as non-positioned threats
 			self:DangerCheck(name, e.unitID)
-			local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
+			-- 			local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
+			local threatLayers = self.ai.armyhst.unitTable[name].threatLayers
 			for groundAirSubmerged, layer in pairs(threatLayers) do
 				self:CountEnemyThreat(e.unitID, name, layer.threat)
 			end
@@ -573,7 +590,7 @@ function TargetHST:UpdateEnemies()
 			-- count those we know about and that aren't being built
 			local pos
 			if ghost then pos = ghost.position else pos = e.position end
- 			if self.ai.buildsitehst:isInMap(pos) then
+			if self.ai.buildsitehst:isInMap(pos) then
 
 				local px, pz = GetCellPosition(pos)
 				if not self:CellExist(px,pz) then
@@ -584,10 +601,10 @@ function TargetHST:UpdateEnemies()
 					if ut.isBuilding then
 						cell.value = cell.value + baseBuildingValue
 					else
-						-- if it moves, assume it's out to get you
-						self:FillCircle(px, pz, baseUnitRange, "threat", "ground", baseUnitThreat)
-						self:FillCircle(px, pz, baseUnitRange, "threat", "air", baseUnitThreat)
-						self:FillCircle(px, pz, baseUnitRange, "threat", "submerged", baseUnitThreat)
+						-- if it moves, assume it's out to get you--TEST
+						--self:FillCircle(px, pz, baseUnitRange, "threat", "ground", baseUnitThreat)
+						--self:FillCircle(px, pz, baseUnitRange, "threat", "air", baseUnitThreat)
+						--self:FillCircle(px, pz, baseUnitRange, "threat", "submerged", baseUnitThreat)
 					end
 				elseif los == 2 then
 					local mtype = ut.mtype
@@ -600,63 +617,69 @@ function TargetHST:UpdateEnemies()
 						table.insert(cell.buildingIDs, e.unitID)
 					end
 					local hurtBy = self.ai.tool:WhatHurtsUnit(name)
-					local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
+					-- 					local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
+					local threatLayers = self.ai.armyhst.unitTable[name].threatLayers
 					local threatToTurtles = threatLayers.ground.threat + threatLayers.submerged.threat
 					local maxRange = max(threatLayers.ground.range, threatLayers.submerged.range)
 					for groundAirSubmerged, layer in pairs(threatLayers) do
 						if threatToTurtles ~= 0 and hurtBy[groundAirSubmerged] then
-							self:FillCircle(px, pz, maxRange, "response", groundAirSubmerged, threatToTurtles)
+							if ut.isBuilding then--TEST
+								self:FillCircle(px, pz, maxRange, "response", groundAirSubmerged, threatToTurtles)
+							end
 						end
 						local threat, range = layer.threat, layer.range
 						if mtype == "air" and groundAirSubmerged == "ground" or groundAirSubmerged == "submerged" then threat = 0 end -- because air units are pointless to run from
 						if threat ~= 0 then
-							self:FillCircle(px, pz, range, "threat", groundAirSubmerged, threat)
+							if ut.isBuilding then--TEST
+								self:FillCircle(px, pz, range, "threat", groundAirSubmerged, threat)
+							end
 							self:CountEnemyThreat(e.unitID, name, threat)
 						elseif mtype ~= "air" then -- air units are too hard to attack
-							local health = e.health
-							for hurtGAS, hit in pairs(hurtBy) do
-								cell.values[groundAirSubmerged][hurtGAS] = cell.values[groundAirSubmerged][hurtGAS] + value
-								if cell.targets[groundAirSubmerged][hurtGAS] == nil then
+						local health = e.health
+						for hurtGAS, hit in pairs(hurtBy) do
+							cell.values[groundAirSubmerged][hurtGAS] = cell.values[groundAirSubmerged][hurtGAS] + value
+							if cell.targets[groundAirSubmerged][hurtGAS] == nil then
+								cell.targets[groundAirSubmerged][hurtGAS] = e
+							else
+								if value > self:Value(cell.targets[groundAirSubmerged][hurtGAS].unitName) then
 									cell.targets[groundAirSubmerged][hurtGAS] = e
-								else
-									if value > self:Value(cell.targets[groundAirSubmerged][hurtGAS].unitName) then
-										cell.targets[groundAirSubmerged][hurtGAS] = e
-									end
-								end
-								if health < vulnerableHealth then
-									cell.vulnerables[groundAirSubmerged][hurtGAS] = e
-								end
-								if groundAirSubmerged == "air" and hurtGAS == "ground" and threatLayers.ground.threat > cell.lastDisarmThreat then
-									cell.disarmTarget = e
-									cell.lastDisarmThreat = threatLayers.ground.threat
 								end
 							end
-							if ut.bigExplosion then
-								cell.explosionValue = cell.explosionValue + bomberExplosionValue
-								if cell.explosiveTarget == nil then
+							if health < vulnerableHealth then
+								cell.vulnerables[groundAirSubmerged][hurtGAS] = e
+							end
+							if groundAirSubmerged == "air" and hurtGAS == "ground" and threatLayers.ground.threat > cell.lastDisarmThreat then
+								cell.disarmTarget = e
+								cell.lastDisarmThreat = threatLayers.ground.threat
+							end
+						end
+						if ut.bigExplosion then
+							cell.explosionValue = cell.explosionValue + bomberExplosionValue
+							if cell.explosiveTarget == nil then
+								cell.explosiveTarget = e
+							else
+								if value > self:Value(cell.explosiveTarget.unitName) then
 									cell.explosiveTarget = e
-								else
-									if value > self:Value(cell.explosiveTarget.unitName) then
-										cell.explosiveTarget = e
-									end
 								end
 							end
 						end
 					end
-					cell.value = cell.value + value
-					if cell.value > highestValue then
-						highestValue = cell.value
-						highestValueCell = cell
+				end
+				cell.value = cell.value + value
+				if cell.value > highestValue then
+					highestValue = cell.value
+					highestValueCell = cell
 
-					end
+				end
 			end
 		end
-			-- we dont want to target the center of the cell encase its a ledge with nothing
-			-- on it etc so target this units position instead
+		-- we dont want to target the center of the cell encase its a ledge with nothing
+		-- on it etc so target this units position instead
 			if cell then
 				cell.pos = pos
 			end
 		end
+	self.game:StopTimer(name)
 	end
 	if highestValueCell then
 		self.enemyBaseCell = highestValueCell
@@ -669,7 +692,12 @@ end
 
 function TargetHST:UpdateDamagedUnits()
 	for unitID, engineUnit in pairs(self.ai.damagehst:GetDamagedUnits()) do
-		local cell = self:GetOrCreateCellHere(engineUnit:GetPosition())
+		local eUnitPos = engineUnit:GetPosition()
+		local cell = self:GetOrCreateCellHere(eUnitPos)
+		if not cell then
+			self:EchoDebug('no cell here', eUnitPos.x,eUnitPos.z)
+			return
+		end
 		cell.damagedUnits = cell.damagedUnits or {}
 		cell.damagedUnits[#cell.damagedUnits+1] = engineUnit
 	end
@@ -780,15 +808,9 @@ function TargetHST:Update()
 	if f == 0 or f % 71 == 0 then
 		self:UpdateMap()
 		self.map:EraseAll(4)
-		for x,t in pairs(self.cells) do
-			for z,cell in pairs(t) do
-
-				self.map:DrawCircle({x=x*256,y = Spring.GetGroundHeight(x*256,z*256),z=z*256},256, {1,1,1,1}, nil,true, 4)
-			end
-		end
 	end
-    if f == 0 or f % 1800 == 0 then
-	--if f > self.lastEnemyThreatUpdateFrame + 1800 or self.lastEnemyThreatUpdateFrame == 0 then TODO changed cause broked why??
+	if f == 0 or f % 1800 == 0 then
+		--if f > self.lastEnemyThreatUpdateFrame + 1800 or self.lastEnemyThreatUpdateFrame == 0 then TODO changed cause broked why??
 		-- store and reset the threat count
 		-- self:EchoDebug(self.currentEnemyThreatCount .. " enemy threat last 2000 frames")
 		self:EchoDebug(self.currentEnemyThreatCount)
@@ -812,14 +834,14 @@ function TargetHST:AddBadPosition(position, mtype, threat, duration)
 	for groundAirSubmerged, yes in pairs(gas) do
 		if yes then
 			local newRecord =
-			{
-				px = px,
-				pz = pz,
-				groundAirSubmerged = groundAirSubmerged,
-				frame = f,
-				threat = threat,
-				duration = duration,
-			}
+					{
+						px = px,
+						pz = pz,
+						groundAirSubmerged = groundAirSubmerged,
+						frame = f,
+						threat = threat,
+						duration = duration,
+						}
 			table.insert(self.badPositions, newRecord)
 		end
 	end
@@ -828,7 +850,7 @@ end
 function TargetHST:UpdateMap()
 	if self.ai.lastLOSUpdate > self.lastUpdateFrame then
 
--- 		game:SendToConsole("before target update", collectgarbage("count")/1024)
+		-- 		game:SendToConsole("before target update", collectgarbage("count")/1024)
 		self.raiderCounted = {}
 		self.cells = {}--TODO
 		--self:createGridCell()--create instead of delete all self:Cells() so the table is allways populated--TEST
@@ -840,7 +862,7 @@ function TargetHST:UpdateMap()
 		self:UpdateFronts(3)
 		self:UpdateDebug()
 		--self:UpdateWrecks()
-		-- self:UpdateMetalGeoSpots()
+		self:UpdateMetalGeoSpots()
 		self.lastUpdateFrame = self.game:Frame()
 		--game:SendToConsole("after target update", collectgarbage("count")/1024)
 		--collectgarbage()
@@ -867,7 +889,7 @@ function TargetHST:NearbyVulnerable(unit)
 	local px, pz = GetCellPosition(position)
 	local unitName = unit:Name()
 	local gas = self.ai.tool:WhatHurtsUnit(unitName, nil, position)
-	local weapons = self.ai.tool:UnitWeaponLayerList(unitName)
+	local weapons = self.ai.armyhst.unitTable[unitName].weaponLayer  --self.ai.tool:UnitWeaponLayerList(unitName)
 	-- check this cell
 	local vulnerable = nil
 	if self:CellExist(px,pz) then
@@ -891,56 +913,59 @@ function TargetHST:NearbyVulnerable(unit)
 	return vulnerable
 end
 
-function TargetHST:GetBestRaidCell(representative)
-	if not representative then return end
-	--self:UpdateMap()
-	local rpos = representative:GetPosition()
-	local inCell = self:GetCellHere(rpos)
-	local threatReduction = 0
-	if inCell ~= nil then
-		-- if we're near more raiders, these raiders can target more threatening targets together
-		if inCell.raiderHere then threatReduction = threatReduction + inCell.raiderHere end
-		if inCell.raiderAdjacent then threatReduction = threatReduction + inCell.raiderAdjacent end
-	end
-	local rname = representative:Name()
-	local maxThreat = baseUnitThreat
-	local rthreat, rrange = self.ai.tool:ThreatRange(rname)
-	self:EchoDebug(rname .. ": " .. rthreat .. " " .. rrange)
-	if rthreat > maxThreat then maxThreat = rthreat end
-	local best
-	local bestDist = math.huge
-	local cells
-	local minThreat = math.huge
-
- 	for i,cell in pairs (self.cellList) do
- 		local value, threat, gas = self:CellValueThreat(rname, cell)
- 		local dist = self.ai.tool:Distance(rpos, cell.pos)
- 		if value > 0 and threat < minThreat  and self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
- 			minThreat = threat
- 			best = cell
---  			map:DrawCircle(best.pos, 100, {255,0,0,255}, 'raid', true, 3)
- 		end
- 	end
---  	for i, cell in pairs(self.cellList) do
+-- function TargetHST:GetBestRaidCell(representative)
+-- 	if not representative then return end
+--
+-- 	local rpos = representative:GetPosition()
+-- 	local inCell = self:GetCellHere(rpos)
+-- 	local threatReduction = 0
+-- 	local TR = 0
+-- 	if inCell ~= nil then
+-- 		-- if we're near more raiders, these raiders can target more threatening targets together
+-- 		if inCell.raiderHere then threatReduction = threatReduction + inCell.raiderHere end
+-- 		if inCell.raiderAdjacent then threatReduction = threatReduction + inCell.raiderAdjacent end
+-- 	end
+-- 	self:Warn(threatReduction,TR)
+--
+-- 	local rname = representative:Name()
+-- 	local maxThreat = baseUnitThreat
+-- 	local rthreat, rrange = self.ai.tool:ThreatRange(rname)
+-- 	self:EchoDebug(rname .. ": " .. rthreat .. " " .. rrange)
+-- 	if rthreat > maxThreat then maxThreat = rthreat end
+-- 	local best
+-- 	local bestDist = math.huge
+-- 	local cells
+-- 	local minThreat = math.huge
+--  	for i,cell in pairs (self.cellList) do
 --  		local value, threat, gas = self:CellValueThreat(rname, cell)
---  		-- cells with other raiders in or nearby are better places to go for raiders
---  		if cell.raiderHere then threat = threat - cell.raiderHere end
---  		if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
---  		threat = threat - threatReduction
---  		if value > 0 and threat <= maxThreat then
---  			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
---  				local mod = value - (threat * 3)
---  				local dist = self.ai.tool:Distance(rpos, cell.pos) - mod
---  				if dist < bestDist then
---  					best = cell
---  					bestDist = dist
---  				end
---  			end
+--  		local dist = self.ai.tool:Distance(rpos, cell.pos)
+--  		if value > 0 and threat < minThreat  and self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
+--  			minThreat = threat
+--  			best = cell
+-- --  			map:DrawCircle(best.pos, 100, {255,0,0,255}, 'raid', true, 3)
 --  		end
 --  	end
-
-	return best
-end
+-- 	--[[
+--   	for i, cell in pairs(self.cellList) do
+--   		local value, threat, gas = self:CellValueThreat(rname, cell)
+--   		-- cells with other raiders in or nearby are better places to go for raiders
+--   		if cell.raiderHere then threat = threat - cell.raiderHere end
+--   		if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
+--   		threat = threat - threatReduction
+--   		if value > 0 and threat <= maxThreat then
+--   			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
+--   				local mod = value - (threat * 3)
+--   				local dist = self.ai.tool:Distance(rpos, cell.pos) - mod
+--   				if dist < bestDist then
+--   					best = cell
+--   					bestDist = dist
+--   				end
+--   			end
+--   		end
+--   	end]]
+--
+-- 	return best
+-- end
 
 function TargetHST:RaidableCell(representative, position)
 	position = position or representative:GetPosition()
@@ -952,7 +977,9 @@ function TargetHST:RaidableCell(representative, position)
 	if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
 	local rname = representative:Name()
 	local maxThreat = baseUnitThreat
-	local rthreat, rrange = self.ai.tool:ThreatRange(rname)
+	--local rthreat, rrange = self.ai.tool:ThreatRange(rname)
+	local rthreat = self.ai.armyhst.unitTable[rname].threat
+	local rrange = self.ai.armyhst.unitTable[rname].maxRange
 	self:EchoDebug(rname .. ": " .. rthreat .. " " .. rrange)
 	if rthreat > maxThreat then maxThreat = rthreat end
 	-- self:EchoDebug(value .. " " .. threat)
@@ -978,7 +1005,7 @@ function TargetHST:GetBestAttackCell(representative, position, ourThreat)
 	if mtype ~= "sub" and longrange then longrange = true end
 	local possibilities = {}
 	local highestDist = 0
-	local lowestDist = 100000
+	local lowestDist = math.huge
 	for i, cell in pairs(self.cellList) do
 		if cell.pos then
 			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) or longrange then
@@ -992,6 +1019,7 @@ function TargetHST:GetBestAttackCell(representative, position, ourThreat)
 	end
 	local distRange = highestDist - lowestDist
 	for i, pb in pairs(possibilities) do
+		self.map:DrawCircle(pb.cell.pos,100, {0,1,0,1}, i,true, 6)
 		local fraction = 1.5 - ((pb.dist - lowestDist) / distRange)
 		local value = pb.value * fraction
 		local threat = pb.threat * fraction
@@ -1065,6 +1093,14 @@ function TargetHST:GetNearestAttackCell(representative, position, ourThreat)
 			end
 		end
 	end
+	if closestValuableCell then
+
+		self.map:DrawCircle(closestValuableCell.pos  ,100, {1,0,0,1}, 'cvc',true, 6)
+	end
+	if closestThreateningCell then
+		self.map:DrawCircle(closestThreateningCell.pos ,100, {0,0,1,1}, 'ctc',true, 6)
+	end
+
 	return closestValuableCell or closestThreateningCell
 end
 
@@ -1126,7 +1162,8 @@ function TargetHST:GetBestBombardCell(position, range, minValueThreat, ignoreVal
 			if building then
 				local uname = building:Name()
 				local value = self:Value(uname)
-				local threat = self.ai.tool:ThreatRange(uname, "ground") + self.ai.tool:ThreatRange(uname, "air")
+				--local threat = self.ai.tool:ThreatRange(uname, "ground") + self.ai.tool:ThreatRange(uname, "air")
+				local threat = self.ai.armyhst.unitTable[uname].groundThreat + self.ai.armyhst.unitTable[uname].airThreat
 				local valueThreat = value + threat
 				if not bestBuildingVT or valueThreat > bestBuildingVT then
 					bestBuildingVT = valueThreat
@@ -1234,7 +1271,9 @@ function TargetHST:BestAdjacentPosition(unit, targetPosition)
 	local uname = unit:Name()
 	local f = self.game:Frame()
 	local maxThreat = baseUnitThreat
-	local uthreat, urange = self.ai.tool:ThreatRange(uname)
+	-- 	local uthreat, urange = self.ai.tool:ThreatRange(uname)
+	local uthreat = self.ai.armyhst.unitTable[uname].threat
+	local urange = self.ai.armyhst.unitTable[uname].maxRange
 	self:EchoDebug(uname .. ": " .. uthreat .. " " .. urange)
 	if uthreat > maxThreat then maxThreat = uthreat end
 	local doubleUnitRange = urange * 2
@@ -1288,7 +1327,9 @@ function TargetHST:RaiderHere(raidbehaviour)
 	if self.raiderCounted[raidbehaviour.id] then return end
 	local unit = raidbehaviour.unit:Internal()
 	if unit == nil then return end
-	local uthreat, urange = self.ai.tool:ThreatRange(unit:Name())
+	--local uthreat, urange = self.ai.tool:ThreatRange(unit:Name())
+	local uthreat = self.ai.armyhst.unitTable[unit:Name()].threat
+	local rrange = self.ai.armyhst.unitTable[unit:Name()].maxRange
 	local position = unit:GetPosition()
 	local px, pz = GetCellPosition(position)
 	local inCell

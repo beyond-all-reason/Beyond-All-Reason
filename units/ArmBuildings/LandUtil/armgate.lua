@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armgate')
-
 return {
 	armgate = {
 		acceleration = 0,
@@ -17,7 +15,6 @@ return {
 		collisionvolumescales = "57 37 57",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armgate'),
 		energystorage = 1000,
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 4,
@@ -28,7 +25,6 @@ return {
 		maxdamage = 3200,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		noautofire = true,
 		objectname = "Units/ARMGATE.s3o",
 		onoffable = false,
@@ -62,7 +58,6 @@ return {
 				collisionvolumescales = "57.2399902344 32.5033416748 63.3298492432",
 				collisionvolumetype = "Box",
 				damage = 1900,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -82,7 +77,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 900,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

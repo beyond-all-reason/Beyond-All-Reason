@@ -1,5 +1,4 @@
 local unitName = "Intimidator Ship"
-
 return {
 	corslrpc = {
 		acceleration = 0.005,
@@ -16,7 +15,6 @@ return {
 		collisionvolumescales = "75 75 182",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Long Range Plasma Cannon Ship",
 		explodeas = "hugeBuildingExplosionGeneric",
 		floater = true,
 		footprintx = 7,
@@ -27,8 +25,7 @@ return {
 		maxdamage = 6500,
 		maxvelocity = 1.11,
 		minwaterdepth = 12,
-		movementclass = "BOAT8",
-		name = unitName,
+		movementclass = "EPICSHIP",
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/CORSLRPC.s3o",
 		script = "Units/scavboss/CORSLRPC.cob",
@@ -55,7 +52,6 @@ return {
 				collisionvolumescales = "75 75 182",
 				collisionvolumetype = "Box",
 				damage = 13000,
-				description = "Intimidator Ship Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 5,
@@ -72,7 +68,6 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 6500,
-				description = "Intimidator Ship Heap",
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

@@ -1,21 +1,25 @@
 local currentDirectory = "modules/i18n/"
-I18N_PATH = currentDirectory .. "i18nlib/i18n/"
-Spring.I18N = VFS.Include(I18N_PATH .. "init.lua", nil, VFS.ZIP)
+I18N_PATH = currentDirectory .. "i18nlib/i18n/" -- I18N_PATH is expected to be global inside the i18n module
+local i18n = VFS.Include(I18N_PATH .. "init.lua", nil, VFS.ZIP)
 
-Spring.I18N.loadFile('language/interface_en.lua')
-Spring.I18N.loadFile('language/units_en.lua')
-Spring.I18N.loadFile('language/features_en.lua')
-Spring.I18N.loadFile('language/tips_en.lua')
-Spring.I18N.loadFile('language/scavengers_en.lua')
+local translationFiles = VFS.DirList('language/', '*.json')
 
-Spring.I18N.loadFile('language/test_french.lua')
+for _, file in ipairs(translationFiles) do
+	local i18nJson = VFS.LoadFile(file)
+	local i18nLua = Json.decode(i18nJson)
+	i18n.load(i18nLua)
+end
 
-Spring.I18N.languages = {
+i18n.loadFile('language/test_french.lua')
+
+i18n.languages = {
 	en = "English",
 	fr = "Français",
 }
 
-function Spring.I18N.setLanguage(language)
+function i18n.setLanguage(language)
 	--TODO: set font file for Latin vs Asian glyphs here
-	Spring.I18N.setLocale(language)
+	i18n.setLocale(language)
 end
+
+return i18n

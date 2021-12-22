@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corvp')
-
 return {
 	corvp = {
 		acceleration = 0,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "101 40 106",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corvp'),
 		energystorage = 100,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 7,
@@ -29,7 +26,6 @@ return {
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 100,
-		name = unitName,
 		objectname = "Units/CORVP.s3o",
 		radardistance = 50,
 		script = "Units/CORVP.lua",
@@ -70,7 +66,6 @@ return {
 				collisionvolumescales = "90 56 90",
 				collisionvolumetype = "CylZ",
 				damage = 1590,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -88,7 +83,6 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 795,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 7,

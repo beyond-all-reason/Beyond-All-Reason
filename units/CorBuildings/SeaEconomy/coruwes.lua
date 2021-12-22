@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.coruwes')
-
 return {
 	coruwes = {
 		acceleration = 0,
@@ -12,7 +10,6 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.coruwes'),
 		energystorage = 6000,
 		explodeas = "largeBuildingExplosionGeneric-uw",
 		footprintx = 4,
@@ -23,7 +20,6 @@ return {
 		maxdamage = 3042,
 		maxslope = 20,
 		minwaterdepth = 31,
-		name = unitName,
 		objectname = "Units/CORUWES.s3o",
 		script = "Units/CORUWES.cob",
 		seismicsignature = 0,
@@ -51,7 +47,6 @@ return {
 				collisionvolumescales = "57.7583618164 50.6997833252 64.7775878906",
 				collisionvolumetype = "Box",
 				damage = 1825,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 4,
@@ -70,7 +65,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 913,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 4,
 				footprintz = 4,

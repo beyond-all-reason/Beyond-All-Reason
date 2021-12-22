@@ -1,5 +1,4 @@
 local unitName = "Epic Decade"
-
 return {
 	armdecadet3 = {
 		acceleration = 0.03,
@@ -15,7 +14,6 @@ return {
 		collisionvolumescales = "52 52 153",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Rapid-fire Plasma Artillery Ship",
 		explodeas = "hugeexplosiongeneric",
 		floater = true,
 		footprintx = 6,
@@ -26,8 +24,7 @@ return {
 		maxdamage = 13000,
 		maxvelocity = 2.3,
 		minwaterdepth = 12,
-		movementclass = "BOAT6",
-		name = unitName,
+		movementclass = "EPICSHIP",
 		nochasecategory = "UNDERWATER VTOL",
 		objectname = "Units/scavboss/ARMDECADET3.s3o",
 		script = "Units/scavboss/ARMDECADET3.cob",
@@ -53,7 +50,6 @@ return {
 				collisionvolumescales = "52 52 153",
 				collisionvolumetype = "Box",
 				damage = 26000,
-				description = "Epic Decade Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -73,7 +69,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 13000,
-				description = "Epic Decade Heap",
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

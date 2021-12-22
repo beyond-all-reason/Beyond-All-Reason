@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.mission_command_tower')
-
 return {
 	mission_command_tower = {
 		acceleration = 0,
@@ -12,7 +10,6 @@ return {
 		buildtime = 100000,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		description = Spring.I18N('units.descriptions.mission_command_tower'),
 		energymake = 250,
 		energyuse = 0,
 		explodeas = "fusionExplosion",
@@ -24,7 +21,6 @@ return {
 		maxdamage = 10000,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/mission_command_tower.s3o",
 		script = "mission_command_tower.cob",
 		reclaimable = false,

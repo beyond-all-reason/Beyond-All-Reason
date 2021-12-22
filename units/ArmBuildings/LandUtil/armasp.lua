@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armasp')
-
 return {
 	armasp = {
 		acceleration = 0,
@@ -18,7 +16,6 @@ return {
 		collisionvolumescales = "135 27 135",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armasp'),
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 9,
 		footprintz = 9,
@@ -29,7 +26,6 @@ return {
 		maxdamage = 1500,
 		maxslope = 10,
 		maxwaterdepth = 1,
-		name = unitName,
 		objectname = "Units/ARMASP.s3o",
 		onoffable = true,
 		script = "Units/ARMASP.cob",
@@ -62,7 +58,6 @@ return {
 				collisionvolumescales = "135 24 135",
 				collisionvolumetype = "Box",
 				damage = 1116,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -82,7 +77,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 558,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 1,

@@ -576,8 +576,8 @@ local function initGL4()
         mask = 1,
         },
 	uniformFloat = {
-        jetuniforms = {1,1,1,1}, --unused
-		iconDistance = 1,
+        --jetuniforms = {1,1,1,1}, --unused
+		--iconDistance = 1,
       },
     },
     "jetShader GL4"
@@ -768,6 +768,10 @@ local function Activate(unitID, unitDefID, who, when)
 
 	if when ==  nil then when = 0 end --
 
+	if Spring.GetUnitIsDead(unitID) == true then  
+		--Spring.SendCommands({"pause 1"})
+		return 
+	end
 	local unitEffects = effectDefs[unitDefID]
 	for i = 1, #unitEffects do
 		local effectDef = unitEffects[i]
@@ -844,8 +848,7 @@ end
 --------------------------------------------------------------------------------
 
 function widget:Update(dt)
-
-	--if true then return end
+	if true then return end
 	updateSec = updateSec + dt
 	local gf = Spring.GetGameFrame()
 	if gf ~= lastGameFrame and updateSec > 0.51 then		-- to limit the number of unit status checks

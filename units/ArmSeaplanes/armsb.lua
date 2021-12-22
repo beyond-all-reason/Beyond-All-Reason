@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armsb')
-
 return {
 	armsb = {
 		acceleration = 0.055,
@@ -14,7 +12,6 @@ return {
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB VTOL NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 210,
-		description = Spring.I18N('units.descriptions.armsb'),
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -31,7 +28,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 8.91,
 		maxwaterdepth = 255,
-		name = unitName,
 		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSB.s3o",

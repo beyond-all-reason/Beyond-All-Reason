@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corcsa')
-
 return {
 	corcsa = {
 		acceleration = 0.072,
@@ -17,7 +15,6 @@ return {
 		category = "ALL NOTLAND MOBILE NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealt = 55,
-		description = Spring.I18N('units.descriptions.corcsa'),
 		energymake = 20,
 		energystorage = 75,
 		energyuse = 20,
@@ -32,7 +29,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 7.25,
 		maxwaterdepth = 255,
-		name = unitName,
 		objectname = "Units/CORCSA.s3o",
 		script = "Units/CORCSA.cob",
 		seismicsignature = 0,

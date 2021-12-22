@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corcrwt4')
-
 return {
 	corcrwt4 = {
 		acceleration = 0.08,
@@ -19,10 +17,9 @@ return {
 		collisionvolumescales = "80 51 120",
 		collisionvolumetype = "Box",
 		cruisealt = 110,
-		description = Spring.I18N('units.descriptions.corcrwt4'),
 		explodeas = "bantha",
-		footprintx = 6,
-		footprintz = 6,
+		footprintx = 5,
+		footprintz = 5,
 		hoverattack = true,
 		icontype = "air",
 		idleautoheal = 15,
@@ -31,7 +28,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 3.83,
 		maxwaterdepth = 0,
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/corcrwt4.s3o",
 		script = "Units/scavboss/corcrwt4.cob",

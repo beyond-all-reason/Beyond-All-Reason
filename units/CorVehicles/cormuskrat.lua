@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cormuskrat')
-
 return {
 	cormuskrat = {
 		acceleration = 0.01722,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "22 16 41",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.cormuskrat'),
 		energymake = 8,
 		energyuse = 8,
 		explodeas = "mediumexplosiongeneric-phib",
@@ -30,7 +27,6 @@ return {
 		maxvelocity = 1.35,
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
-		name = unitName,
 		objectname = "Units/CORMUSKRAT.s3o",
 		script = "Units/CORMUSKRAT.cob",
 		seismicsignature = 0,
@@ -95,7 +91,6 @@ return {
 		customparams = {
 			unitgroup = 'builder',
 			area_mex_def = "cormex",
-			longdescription = Spring.I18N('units.longDescriptions.cormuskrat'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles",
@@ -108,7 +103,6 @@ return {
 				collisionvolumescales = "25.27003479 12.0197296143 44.3021697998",
 				collisionvolumetype = "Box",
 				damage = 697,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -128,7 +122,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 299,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

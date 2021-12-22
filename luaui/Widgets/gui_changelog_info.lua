@@ -50,7 +50,7 @@ local RectRound, UiElement, UiScroller, elementCorner
 local versionOffsetX = 6
 local versionOffsetY = 14
 local versionFontSize = 16
-local versionWidth = 110
+local versionWidth = 140
 
 local versionQuickLinks = {}
 local maxLines = 20
@@ -480,4 +480,8 @@ function widget:Shutdown()
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('changelog')
 	end
+end
+
+function widget:LanguageChanged()
+	widget:ViewResize()
 end

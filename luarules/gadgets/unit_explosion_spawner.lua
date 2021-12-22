@@ -102,9 +102,12 @@ local function SpawnUnit(spawnData)
 				removeWreck = true
 			end
 			
-			local unitID = spCreateUnit(spawnDef.name, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
+			local unitID = nil
+			if validSurface == true then 
+				spCreateUnit(spawnDef.name, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
+			end
 			if not unitID then
-				-- unit limit hit
+				-- unit limit hit or invalid spawn surface
 				return
 			end
 
@@ -139,9 +142,7 @@ local function SpawnUnit(spawnData)
 			spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY_TABLE, 0)
 			spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY_TABLE, 0)
 
-			if validSurface == false and unitID then
-				spDestroyUnit(unitID, false, removeWreck)
-			end
+
 		end
 	end
 end

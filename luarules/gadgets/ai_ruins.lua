@@ -162,10 +162,11 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 			local mirrorX, mirrorZ, mirrorRotation = randomlyMirrorBlueprint(mirrored, mirroredDirection, (building.direction+rotation)%4)
 
 			local name = UnitDefs[building.unitDefID].name
+			local nonscavname = string.gsub(name, "_scav", "")
 			local r = math.random(1,100)
 			if r < 40 then
 				local posy = Spring.GetGroundHeight(posx + (xOffset*flipX*mirrorX), posz + (zOffset*flipZ*mirrorZ))
-				local unit = Spring.CreateUnit(building.unitDefID, posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
+				local unit = Spring.CreateUnit(UnitDefNames[nonscavname].id, posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
 				Spring.SpawnCEG("scav-spawnexplo", posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), 0,0,0)
 				local radarRange = UnitDefs[building.unitDefID].radarRadius
 				local canMove = UnitDefs[building.unitDefID].canMove
@@ -199,21 +200,21 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 end
 
 local landMexesList = {
-	"armmex_scav",
-	"cormex_scav",
+	"armmex",
+	"cormex",
 	--"armamex_scav",
-	"corexp_scav",
-	"armmoho_scav",
-	"cormoho_scav",
-	"cormexp_scav",
+	"corexp",
+	"armmoho",
+	"cormoho",
+	"cormexp",
 }
 local seaMexesList = {
-	"armmex_scav",
-	"cormex_scav",
-	"armuwmex_scav",
-	"coruwmex_scav",
-	"armuwmme_scav",
-	"coruwmme_scav",
+	"armmex",
+	"cormex",
+	"armuwmex",
+	"coruwmex",
+	"armuwmme",
+	"coruwmme",
 }
 
 local function SpawnMexes(mexSpots)

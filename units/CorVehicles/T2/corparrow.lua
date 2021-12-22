@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corparrow')
-
 return {
 	corparrow = {
 		acceleration = 0.0266,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "44 44 53",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corparrow'),
 		explodeas = "mediumexplosiongeneric-phib",
 		footprintx = 3,
 		footprintz = 3,
@@ -27,7 +24,6 @@ return {
 		maxvelocity = 1.7,
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORPARROW.s3o",
 		script = "Units/CORPARROW.cob",
@@ -70,7 +66,6 @@ return {
 				collisionvolumescales = "36.4536895752 11.1021575928 54.8021697998",
 				collisionvolumetype = "Box",
 				damage = 4000,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -90,7 +85,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 3000,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

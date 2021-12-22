@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armferret')
-
 return {
 	armferret = {
 		acceleration = 0,
@@ -18,7 +16,6 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		damagemodifier = 0.2,
-		description = Spring.I18N('units.descriptions.armferret'),
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -29,7 +26,6 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		mincloakdistance = 72,
-		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "Units/ARMFERRET.s3o",
 		script = "Units/ARMFERRET.cob",
@@ -59,7 +55,6 @@ return {
 				collisionvolumescales = "48.1152496338 19.0 48.1152496338",
 				collisionvolumetype = "Box",
 				damage = 720,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -79,7 +74,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 360,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

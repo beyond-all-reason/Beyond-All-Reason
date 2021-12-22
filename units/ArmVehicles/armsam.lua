@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armsam')
-
 return {
 	armsam = {
 		acceleration = 0.0236,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "26 33 41",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armsam'),
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -27,7 +24,6 @@ return {
 		maxvelocity = 1.5,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
-		name = unitName,
 		objectname = "Units/ARMSAM.s3o",
 		script = "Units/ARMSAM.cob",
 		seismicsignature = 0,
@@ -43,7 +39,6 @@ return {
 		turnrate = 370,
 		customparams = {
 			unitgroup = 'weaponaa',
-			longdescription = Spring.I18N('units.longDescriptions.armsam'),
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles",
@@ -56,7 +51,6 @@ return {
 				collisionvolumescales = "34.0520019531 26.7133789063 42.7676696777",
 				collisionvolumetype = "Box",
 				damage = 639,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -76,7 +70,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 320,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

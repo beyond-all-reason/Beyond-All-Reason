@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cornanotc')
-
 return {
 	cornanotc = {
 		acceleration = 0,
@@ -22,7 +20,6 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 32 31",
 		collisionvolumetype = "CylY",
-		description = Spring.I18N('units.descriptions.cornanotc'),
 		energyuse = 30,
 		explodeas = "nanoboom",
 		footprintx = 3,
@@ -35,7 +32,6 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		movementclass = "NANO",
-		name = unitName,
 		objectname = "Units/CORNANOTC.s3o",
 		script = "Units/CORNANOTC.cob",
 		seismicsignature = 0,

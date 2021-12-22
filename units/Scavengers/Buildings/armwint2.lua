@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armwint2')
-
 return {
 	armwint2 = {
 		acceleration = 0,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "68 174 68",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armwint2'),
 		energystorage = 0.5,
 		explodeas = "windboom",
 		footprintx = 6,
@@ -26,7 +23,6 @@ return {
 		maxdamage = 1125,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/scavbuildings/ARMWINT2.s3o",
 		script = "Units/scavbuildings/ARMWINT2.cob",
 		seismicsignature = 0,
@@ -57,7 +53,6 @@ return {
 				collisionvolumescales = "68 174 68",
 				collisionvolumetype = "CylY",
 				damage = 1125,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 6,

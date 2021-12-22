@@ -1,5 +1,4 @@
 local unitName = "Epic Serpent"
-
 return {
 	armserpt3 = {
 		acceleration = 0.02,
@@ -15,7 +14,6 @@ return {
 		collisionvolumescales = "90 38 114",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Multi-Target Battle Sub",
 		explodeas = "mediumExplosionGeneric-uw",
 		footprintx = 6,
 		footprintz = 6,
@@ -25,8 +23,7 @@ return {
 		maxdamage = 24000,
 		maxvelocity = 1.5,
 		minwaterdepth = 30,
-		movementclass = "UBOAT6",
-		name = unitName,
+		movementclass = "EPICSUBMARINE",
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/ARMSERPT3.s3o",
 		script = "Units/scavboss/ARMSERPT3.cob",
@@ -55,7 +52,6 @@ return {
 				collisionvolumescales = "42.614654541 20.1074523926 56.7760009766",
 				collisionvolumetype = "Box",
 				damage = 24000,
-				description = "Epic Serpent Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -75,7 +71,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 12000,
-				description = "Epic Serpent Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 6,

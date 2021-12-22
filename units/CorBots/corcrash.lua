@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corcrash')
-
 return {
 	corcrash = {
 		acceleration = 0.138,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "30.404109954834 37.404109954834 30.404109954834",
 		collisionvolumetype = "ell",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corcrash'),
 		explodeas = "smallexplosiongeneric-phib",
 		footprintx = 2,
 		footprintz = 2,
@@ -25,7 +22,6 @@ return {
 		maxslope = 15,
 		maxvelocity = 1.783,
 		movementclass = "ABOT2",
-		name = unitName,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORCRASH.s3o",
 		script = "Units/CORCRASH.cob",
@@ -39,7 +35,6 @@ return {
 		upright = true,
 		customparams = {
 			unitgroup = 'aa',
-			longdescription = Spring.I18N('units.longDescriptions.corcrash'),
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			prioritytarget = "air",
@@ -53,7 +48,6 @@ return {
 				collisionvolumescales = "30.2125091553 18.4767913818 33.4091796875",
 				collisionvolumetype = "Box",
 				damage = 448,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -73,7 +67,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 274,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

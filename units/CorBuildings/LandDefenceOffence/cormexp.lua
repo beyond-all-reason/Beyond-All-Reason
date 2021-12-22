@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.cormexp')
-
 return {
 	cormexp = {
 		acceleration = 0,
@@ -18,8 +16,7 @@ return {
 		collisionvolumescales = "75 44 75",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		damagemodifier = 0.3,
-		description = Spring.I18N('units.descriptions.cormexp'),
+		damagemodifier = 0.5,
 		energyuse = 20,
 		explodeas = "hugeBuildingexplosiongeneric",
 		extractsmetal = 0.004,
@@ -32,7 +29,6 @@ return {
 		maxslope = 30,
 		maxwaterdepth = 20,
 		metalstorage = 600,
-		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORMEXP.s3o",
 		onoffable = true,
@@ -64,7 +60,6 @@ return {
 				collisionvolumescales = "85.8415527344 30.0151062012 74.3409423828",
 				collisionvolumetype = "Box",
 				damage = 1200,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -82,7 +77,6 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 600,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

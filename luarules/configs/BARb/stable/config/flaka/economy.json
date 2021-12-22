@@ -104,8 +104,10 @@
 	"excess": -1.0, 	// Metal excess to income ratio, -1 to disable
 	"ms_pull": [[0.30, 0.0], [0.66, 0.34]], // If its <1.0 then expansion obeys ms_pull rule, if >=1.0 then ms_pull doesn't affect expansion (mex, pylon, energy). [[0.57, 0.0], [0.66, 0.34]]
 	"mex_max": 1.0,  //  0.1 = 10% ai stops expanding when it ahs 10% of map
-	"build_delay": -1, // Construction order delay in seconds, -1 to disable | used to make ai easier 	
-//	"switch": [540, 900], // factory switch intervall- each factory resets timer; event based also on eco & caretaker | switch = random(<min_interval>..<max_interval>)
+
+	// Construction order delay in seconds, -1 to disable | used to make ai easier
+	// [[<start_delay>, <start_time>], [<end_delay>, <end_time>]]
+	"build_delay": [[-1.0, 0], [-1.0, 0]],
 
 	// 1 constructor of each UnitDef that has no DefendTask is assigned to tasks near base
 	"base_builder": true,

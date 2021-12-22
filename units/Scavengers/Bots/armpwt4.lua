@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armpwt4')
-
 return {
 	armpwt4 = {
 		acceleration = 0.414,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "55 80 55",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armpwt4'),
 		explodeas = "bantha",
 		footprintx = 4,
 		footprintz = 4,
@@ -25,8 +22,7 @@ return {
 		maxslope = 17,
 		maxvelocity = 5,
 		maxwaterdepth = 120,
-		movementclass = "BOT2",
-		name = unitName,
+		movementclass = "EPICBOT",
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/armpwt4.s3o",
 		script = "Units/scavboss/armpwt4.cob",
@@ -40,7 +36,6 @@ return {
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
-			longdescription = Spring.I18N('units.longDescriptions.armpwt4'),
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "other/scavengers",
@@ -56,7 +51,6 @@ return {
 				collisionvolumescales = "60.1392364502 36.4953460693 58.797164917",
 				collisionvolumetype = "Box",
 				damage = 7500,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

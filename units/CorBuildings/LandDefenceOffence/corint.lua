@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corint')
-
 return {
 	corint = {
 		acceleration = 0,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "72 105 72",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corint'),
 		explodeas = "hugeBuildingExplosionGeneric",
 		footprintx = 5,
 		footprintz = 5,
@@ -25,7 +22,6 @@ return {
 		maxdamage = 4250,
 		maxslope = 13,
 		maxwaterdepth = 0,
-		name = unitName,
 		objectname = "Units/CORINT.s3o",
 		script = "Units/CORINT.cob",
 		seismicsignature = 0,
@@ -55,7 +51,6 @@ return {
 				collisionvolumescales = "86.25 91.6069641113 74.6947021484",
 				collisionvolumetype = "Box",
 				damage = 2760,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -75,7 +70,6 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1380,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

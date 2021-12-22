@@ -215,8 +215,6 @@ return {
 				canceltarget_tooltip = "Le Removes the priority target",
 				areamex = "Le Area Mex",
 				areamex_tooltip = "Le Click-drag an area to auto queue metal extractors for all available metal spots",
-				upgrademex = "Le Upgrade Mex",
-				upgrademex_tooltip = "Le Click on a T1 metal extractor to upgrade it to T2 (click-drag for area)",
 				loadunits = "Le Load units",
 				loadunits_tooltip = "Le Load unit or multiple units within an area in the transport",
 				unloadunits = "Le Unload units",
@@ -267,9 +265,6 @@ return {
 				['LandAt 80'] = "Le Retreat 80%%",
 				autorepairlevel_tooltip = "Le Set at which HP %% this aircraft retreats to nearest air repair pad",
 				apAirRepair_tooltip = "Le Air factory: Set at which health %% an aircraft should automatically move to and land on an air repair pad",
-				['UpgMex ON'] = "Le Auto Upgrade",
-				['UpgMex OFF'] = "Le Auto Upgrade",
-				automex_tooltip = "Le When toggled: Auto Upgrade all T1 metal extractors to T2",
 				customOnOff = {
 					lowTrajectory = "Le Low Trajectory",
 					highTrajectory = "Le High Trajectory",
@@ -642,7 +637,7 @@ return {
 				unitRemoved = "Le Removed %{unit} from autogroups.",
 			},
 			moveAttackNotify = {
-				underAttack = "Le -> %{unit} is being attacked!",
+				underAttack = "Le %{unit} is being attacked!",
 				cantMove = "Le %{unit}: Can't reach destination!",
 			},
 			unitShare = {
@@ -677,12 +672,8 @@ return {
 				disconnected = "Le No Owner Mode: Team %{team} has %{gracePeriod} minute(s) to reconnect",
 				reconnected= "No Owner Mode: Team %{team} reconnected",
 			},
-			mexUpgrader = {
-				noMexes = "Le %{unit}: No mexes to upgrade"
-			},
 			unitTotals = {
-				units = "Le units",
-				total = "Le total",
+				totals = "Le %{titleColor}Units  %{textColor}%{units} / %{maxUnits}      %{titleColor}Total  %{textColor}%{totalUnits}",
 			},
 			factionPicker = {
 				pick = "Le Pick your faction",

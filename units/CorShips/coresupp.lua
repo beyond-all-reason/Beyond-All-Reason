@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.coresupp')
-
 return {
 	coresupp = {
 		acceleration = 0.11054,
@@ -11,11 +9,10 @@ return {
 		buildtime = 1400,--2350,
 		canmove = true,
 		category = "ALL WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 -2 -1",
-		collisionvolumescales = "14 14 41",--"19 19 58",
+		collisionvolumeoffsets = "0 5 0",
+		collisionvolumescales = "14 14 36",--"19 19 58",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.coresupp'),
 		explodeas = "mediumexplosiongeneric",
 		floater = true,
 		footprintx = 2,
@@ -27,7 +24,6 @@ return {
 		maxvelocity = 3.66,
 		minwaterdepth = 4,
 		movementclass = "BOAT3",
-		name = unitName,
 		nochasecategory = "UNDERWATER VTOL",
 		objectname = "Units/CORESUPP.s3o",
 		script = "Units/CORESUPP.cob",
@@ -37,7 +33,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 500, --663,
-		waterline = 1,
+		waterline = 0.7,
 		customparams = {
 			unitgroup = 'weapon',
 			model_author = "Flaka",
@@ -52,7 +48,6 @@ return {
 				collisionvolumescales = "37.2419281006 12.2129974365 67.4956207275",
 				collisionvolumetype = "Box",
 				damage = 300,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -72,7 +67,6 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 500,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

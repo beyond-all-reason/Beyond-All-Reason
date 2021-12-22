@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.chickenc3c')
-
 return {
 	chickenc3c = {
 		acceleration = 1.4375,
@@ -20,7 +18,6 @@ return {
 		collisionvolumescales = "18 28 40",
 		collisionvolumetype = "box",
 		defaultmissiontype = "Standby",
-		description = Spring.I18N('units.descriptions.chickenc3c'),
 		explodeas = "BUG_DEATH",
 		footprintx = 2,
 		footprintz = 2,
@@ -33,7 +30,6 @@ return {
 		maxvelocity = 3.2,
 		maxwaterdepth = 15,
 		movementclass = "TBOT2",
-		name = unitName,
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Chickens/chickenc3c.s3o",

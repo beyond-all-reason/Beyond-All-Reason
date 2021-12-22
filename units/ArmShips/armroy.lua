@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armroy')
-
 return {
 	armroy = {
 		acceleration = 0.03061,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "35 35 83",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armroy'),
 		explodeas = "mediumExplosionGeneric",
 		floater = true,
 		footprintx = 4,
@@ -28,7 +25,6 @@ return {
 		maxvelocity = 2.24,
 		minwaterdepth = 12,
 		movementclass = "BOAT4",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMROY.s3o",
 		script = "Units/ARMROY.cob",
@@ -54,7 +50,6 @@ return {
 				collisionvolumescales = "31.5542297363 37.44581604 80.6425476074",
 				collisionvolumetype = "Box",
 				damage = 3090,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 5,
@@ -71,7 +66,6 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 4032,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

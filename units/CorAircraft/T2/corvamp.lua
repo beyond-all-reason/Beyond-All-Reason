@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corvamp')
-
 return {
 	corvamp = {
 		acceleration = 0.35,
@@ -15,7 +13,6 @@ return {
 		category = "ALL NOTLAND MOBILE WEAPON VTOL NOTSUB NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 160,
-		description = Spring.I18N('units.descriptions.corvamp'),
 		explodeas = "smallExplosionGenericAir",
 		footprintx = 2,
 		footprintz = 2,
@@ -30,7 +27,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 12.65,
 		maxwaterdepth = 0,
-		name = unitName,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORVAMP.s3o",
 		script = "Units/CORVAMP.cob",

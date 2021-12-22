@@ -60,6 +60,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local function AddPrimitiveAtUnit(unitID)
+	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then return end
 	local gf = Spring.GetGameFrame()
 
 	if not unitUnitDefID[unitID] then

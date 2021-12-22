@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corblackhy')
-
 return {
 	corblackhy = {
 		acceleration = 0.00809,
@@ -16,7 +14,6 @@ return {
 		collisionvolumescales = "80 80 186",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corblackhy'),
 		explodeas = "FlagshipExplosion",
 		floater = true,
 		footprintx = 8,
@@ -30,7 +27,6 @@ return {
 		maxvelocity = 1.65,
 		minwaterdepth = 15,
 		movementclass = "BOAT8",
-		name = unitName,
 		objectname = "Units/CORBLACKHY.s3o",
 		pushresistant = true,
 		radardistance = 1510,
@@ -59,7 +55,6 @@ return {
 				collisionvolumescales = "88.47706604 56.7307739258 178.029220581",
 				collisionvolumetype = "Box",
 				damage = 93000,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -77,7 +72,6 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 40032,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

@@ -20,6 +20,9 @@ local currentTrack
 local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, gameoverTracksPlayCounter
 local fadeOutCurrentTrack = false
 
+local interruptionEnabled
+local silenceTimerEnabled
+
 local function ReloadMusicPlaylists()
 	---------------------------------COLLECT MUSIC------------------------------------
 
@@ -46,8 +49,8 @@ local function ReloadMusicPlaylists()
 
 	-----------------------------------SETTINGS---------------------------------------
 	
-	local interruptionEnabled = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
-	local silenceTimerEnabled = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
+	interruptionEnabled = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
+	silenceTimerEnabled = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
 	local newSoundtrackEnabled = Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
 	local oldSoundtrackEnabled 	= Spring.GetConfigInt('UseSoundtrackOld', 0) == 1
 	local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1
@@ -108,10 +111,29 @@ local function ReloadMusicPlaylists()
 	warlowTracks 	= shuffleMusic(warlowTracks)
 	gameoverTracks 	= shuffleMusic(gameoverTracks)
 
-	peaceTracksPlayCounter 		= math.random(#peaceTracks)
-	warhighTracksPlayCounter 	= math.random(#warhighTracks)
-	warlowTracksPlayCounter 	= math.random(#warlowTracks)
-	gameoverTracksPlayCounter 	= math.random(#gameoverTracks)
+	if #peaceTracks > 1 then
+		peaceTracksPlayCounter = math.random(#peaceTracks)
+	else
+		peaceTracksPlayCounter = 1
+	end
+	
+	if #warhighTracks > 1 then
+		warhighTracksPlayCounter = math.random(#warhighTracks)
+	else
+		warhighTracksPlayCounter = 1
+	end
+	
+	if #warlowTracks > 1 then
+		warlowTracksPlayCounter = math.random(#warlowTracks)
+	else
+		warlowTracksPlayCounter = 1
+	end
+	
+	if #gameoverTracks > 1 then
+		gameoverTracksPlayCounter = math.random(#gameoverTracks)
+	else
+		gameoverTracksPlayCounter = 1
+	end
 end
 
 local currentTrackList = peaceTracks
@@ -585,10 +607,11 @@ end
 
 function PlayNewTrack()
 	Spring.StopSoundStream()
-	warMeter = warMeter * 0.5
+	silenceTimer = 0
+	appliedSilence = false
+	warMeter = warMeter * 0.75
 	fadelevel = 100
 	fadeOutCurrentTrack = false
-	appliedSilence = false
 	currentTrack = nil
 	currentTrackList = nil
 

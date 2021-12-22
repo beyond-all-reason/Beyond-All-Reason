@@ -16,104 +16,90 @@ end
 local mapsizeX = Game.mapSizeX
 local mapsizeZ = Game.mapSizeZ
 
-affectedUnits = {}
-local affectedUnitTypes = {
-    "armnanotc",
-    "cornanotc",
-}
-
-local function CheckIfUnitIsAffected(unitName)
-    for i = 1,#affectedUnitTypes do
-        if unitName == affectedUnitTypes[i] then
-            return true
-        end
-        if (string.find(unitName, "_scav")) then
-            local scavUnitName = string.sub(unitName, 1, string.len(unitName)-5)
-            if scavUnitName == affectedUnitTypes[i] then
-                return true
-            end
-        end
-    end
-    return false
+local isAffectedUnit = {}
+local canMove = {}
+for udid, ud in pairs(UnitDefs) do
+	if string.find(ud.id, "nanotc") then
+		isAffectedUnit[udid] = {
+			math.floor(((ud.xsize + ud.zsize)*0.5)*6),
+			ud.minWaterDepth,
+			ud.maxWaterDepth,
+		}
+	end
+	if ud.canMove then
+		canMove[udid] = true
+	end
 end
 
+local affectedUnits = {}
 
 function gadget:UnitCreated(unitID, unitDefID)
-    local unitName = UnitDefs[unitDefID].name
-    if CheckIfUnitIsAffected(unitName) then
-        --Spring.Echo("Added "..unitName)
-        table.insert(affectedUnits, unitID)
-    end
+	if isAffectedUnit[unitDefID] then
+		table.insert(affectedUnits, {unitID, unitDefID})
+	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID)
-    local unitName = UnitDefs[unitDefID].name
-    if #affectedUnits > 0 then
-        for i = 1,#affectedUnits do
-            if affectedUnits[i] == unitID then
-                --Spring.Echo("Removed "..unitName)
-                table.remove(affectedUnits, i)
-            end
-        end
-    end
+	if isAffectedUnit[unitDefID] then
+		for i = 1, #affectedUnits do
+			if affectedUnits[i][1] and affectedUnits[i][1] == unitID then
+				table.remove(affectedUnits, i)
+			end
+		end
+	end
 end
 
 function gadget:GameFrame(n)
-    if #affectedUnits > 0 then
-        for i = 1,#affectedUnits do
-            local unitID = affectedUnits[i]
-            local unitDefID = Spring.GetUnitDefID(unitID)
-            local testRange = math.floor(((UnitDefs[unitDefID].xsize + UnitDefs[unitDefID].zsize)*0.5)*6)
-            local nearestAlly = Spring.GetUnitNearestAlly(unitID, testRange)
-            if nearestAlly then
-                local nearestAllyName = UnitDefs[Spring.GetUnitDefID(nearestAlly)].name
-                local nearestAllyCanMove = UnitDefs[Spring.GetUnitDefID(nearestAlly)].canMove
-                if not nearestAllyCanMove then
-                    if not Spring.GetUnitTransporter(unitID) then
-                        local x,y,z = Spring.GetUnitPosition(unitID)
-                        local ax,ay,az = Spring.GetUnitPosition(nearestAlly)
-                        local r = math.random(1,3)
-                        local movementTargetX = 0
-                        local movementTargetZ = 0
-                        
-                        if r == 1 then
-                            if x == ax or z == az then
-                                movementTargetX = math.random(-testRange*2,testRange*2)
-                                movementTargetZ = math.random(-testRange*2,testRange*2)
-                            end
-                        elseif r == 2 then
-                            if x > ax then
-                                movementTargetX = math.random(1,10)
-                            end
-                            if x < ax then
-                                movementTargetX = -math.random(1,10)
-                            end
-                        elseif r == 3 then
-                            if z > az then
-                                movementTargetZ = math.random(1,10)
-                            end
-                            if z < az then
-                                movementTargetZ = -math.random(1,10)
-                            end
-                        end
-                        local movementTargetY = Spring.GetGroundHeight(x+movementTargetX, z+movementTargetZ)
-                        local aboveMinWaterDepth = -(UnitDefs[unitDefID].minWaterDepth) > movementTargetY
-                        local belowMaxWaterDepth = -(UnitDefs[unitDefID].maxWaterDepth) < movementTargetY
-                        
-                        local onMap = true
-                        if x+movementTargetX > mapsizeX or x+movementTargetX < 0 then
-                            onMap = false
-                        end
-                        if z+movementTargetZ > mapsizeZ or z+movementTargetZ < 0 then
-                            onMap = false
-                        end
-                        
-                        if aboveMinWaterDepth and belowMaxWaterDepth and onMap then
-                            Spring.SetUnitPosition(unitID, x+movementTargetX, z+movementTargetZ)
-                        end
-                    end
-                end
-            end
-        end
-    end
+	for i = 1, #affectedUnits do
+		local unitID = affectedUnits[i][1]
+		local unitDefID = affectedUnits[i][2]
+		local nearestAlly = Spring.GetUnitNearestAlly(unitID, isAffectedUnit[unitDefID][1])
+		if nearestAlly then
+			if not canMove[Spring.GetUnitDefID(nearestAlly)] then
+				if not Spring.GetUnitTransporter(unitID) then
+					local x,_,z = Spring.GetUnitPosition(unitID)
+					local ax,_,az = Spring.GetUnitPosition(nearestAlly)
+					local r = math.random(1,3)
+					local movementTargetX = 0
+					local movementTargetZ = 0
+
+					if r == 1 then
+						if x == ax or z == az then
+							local testRange = isAffectedUnit[unitDefID][1] * 2
+							movementTargetX = math.random(-testRange, testRange)
+							movementTargetZ = math.random(-testRange, testRange)
+						end
+					elseif r == 2 then
+						if x > ax then
+							movementTargetX = math.random(1,10)
+						end
+						if x < ax then
+							movementTargetX = -math.random(1,10)
+						end
+					elseif r == 3 then
+						if z > az then
+							movementTargetZ = math.random(1,10)
+						end
+						if z < az then
+							movementTargetZ = -math.random(1,10)
+						end
+					end
+					local movementTargetY = Spring.GetGroundHeight(x+movementTargetX, z+movementTargetZ)
+					local aboveMinWaterDepth = -(isAffectedUnit[unitDefID][2]) > movementTargetY
+					local belowMaxWaterDepth = -(isAffectedUnit[unitDefID][3]) < movementTargetY
+
+					local onMap = true
+					if x+movementTargetX > mapsizeX or x+movementTargetX < 0 then
+						onMap = false
+					elseif z+movementTargetZ > mapsizeZ or z+movementTargetZ < 0 then
+						onMap = false
+					end
+
+					if aboveMinWaterDepth and belowMaxWaterDepth and onMap then
+						Spring.SetUnitPosition(unitID, x+movementTargetX, z+movementTargetZ)
+					end
+				end
+			end
+		end
+	end
 end

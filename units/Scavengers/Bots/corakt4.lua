@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corakt4')
-
 return {
 	corakt4 = {
 		acceleration = 0.4416,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "54 63 54",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corakt4'),
 		explodeas = "smallexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -24,8 +21,7 @@ return {
 		maxslope = 17,
 		maxvelocity = 4.2,
 		maxwaterdepth = 25,
-		movementclass = "BOT4",
-		name = unitName,
+		movementclass = "EPICBOT",
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/CORAKT4.s3o",
 		script = "Units/scavboss/CORAKT4.cob",
@@ -53,7 +49,6 @@ return {
 				collisionvolumescales = "32.2373809814 13.5927429199 29.8415679932",
 				collisionvolumetype = "Box",
 				damage = 15000,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -73,7 +68,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 7500,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

@@ -1,3 +1,5 @@
+local airUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/air.lua")
+
 local function passiveAbilityController(currentFrame)
 	if not AbilityTimer then AbilityTimer = 0 end
 	if AbilityTimer < 1 then CurrentlyUsedPassiveAbility = "none" end
@@ -127,30 +129,19 @@ abilities.selfRepair = function(currentFrame)
 	end
 end
 
-abilities.fighterWave = function(n)
+abilities.airWave = function(n)
 	if FinalBossUnitID then
 		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 3000, false)
 		if nearestEnemy then
 			--Spring.Echo("[Scavengers] Boss Fighter Reinforcements Activated")
-			local fighters = {"armhawk_scav", "corvamp_scav",}
-			local fighter = fighters[math_random(1,2)]
+			local fighters = {}
+			table.mergeInPlace(fighters, airUnitList.T0)
+			table.mergeInPlace(fighters, airUnitList.T1)
+			table.mergeInPlace(fighters, airUnitList.T2)
+			table.mergeInPlace(fighters, airUnitList.T3)
+			local fighter = fighters[math_random(1,#fighters)]
 			local bossx, bossy, bossz = Spring.GetUnitPosition(FinalBossUnitID)
-			for i = 1,3*BossFightCurrentPhase*spawnmultiplier do
-				QueueSpawn(fighter, bossx+(math.random(-300, 300)), bossy+2000, bossz+(math.random(-300, 300)), math_random(0,3),GaiaTeamID, n+i+1)
-			end
-		end
-	end
-end
-
-abilities.licheOrKrowWave = function(n)
-	if FinalBossUnitID then
-		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 3000, false)
-		if nearestEnemy then
-			--Spring.Echo("[Scavengers] Boss Fighter Reinforcements Activated")
-			local fighters = {"armliche_scav", "corcrw_scav",}
-			local fighter = fighters[math_random(1,2)]
-			local bossx, bossy, bossz = Spring.GetUnitPosition(FinalBossUnitID)
-			for i = 1,3*BossFightCurrentPhase*spawnmultiplier do
+			for i = 1,2*BossFightCurrentPhase*spawnmultiplier do
 				QueueSpawn(fighter, bossx+(math.random(-300, 300)), bossy+2000, bossz+(math.random(-300, 300)), math_random(0,3),GaiaTeamID, n+i+1)
 			end
 		end
@@ -163,7 +154,7 @@ abilities.tacticalNuke = function(currentFrame)
 		if nearestEnemy then
 			--Spring.Echo("[Scavengers] Boss Is TacNuking")
 			local bossx,bossy,bossz = Spring.GetUnitPosition(FinalBossUnitID)
-			local NearestUnits = Spring.GetUnitsInSphere(bossx, bossy, bossz, 1500)
+			local NearestUnits = Spring.GetUnitsInSphere(bossx, bossy, bossz, 500)
 			if #NearestUnits > 5 then
 				for i = 1,BossFightCurrentPhase do
 					for t = 1,10 do
@@ -187,7 +178,7 @@ abilities.EMP = function(currentFrame)
 		if nearestEnemy then
 			--Spring.Echo("[Scavengers] Boss Is TacNuking")
 			local bossx,bossy,bossz = Spring.GetUnitPosition(FinalBossUnitID)
-			local NearestUnits = Spring.GetUnitsInSphere(bossx, bossy, bossz, 1000)
+			local NearestUnits = Spring.GetUnitsInSphere(bossx, bossy, bossz, 500)
 			if #NearestUnits > 5 then
 				for i = 1,BossFightCurrentPhase do
 					for t = 1,10 do
@@ -218,8 +209,8 @@ local earlyAbilities = {
 	abilities.dGun,
 	abilities.superDGun,
 	abilities.selfRepair,
-	abilities.fighterWave,
-	abilities.licheOrKrowWave,
+	abilities.airWave,
+	abilities.airWave,
 }
 
 local midgameAbilities = {
@@ -227,9 +218,8 @@ local midgameAbilities = {
 	abilities.dGunFrenzy,
 	abilities.superDGun,
 	abilities.selfRepair,
-	abilities.fighterWave,
-	abilities.fighterWave,
-	abilities.licheOrKrowWave,
+	abilities.airWave,
+	abilities.airWave,
 	abilities.tacticalNuke,
 	abilities.EMP,
 }
@@ -239,10 +229,10 @@ local endGameAbilities = {
 	abilities.dGunFrenzy,
 	abilities.superDGun,
 	abilities.selfRepair,
-	abilities.fighterWave,
-	abilities.fighterWave,
-	abilities.fighterWave,
-	abilities.licheOrKrowWave,
+	abilities.airWave,
+	abilities.airWave,
+	abilities.airWave,
+	abilities.airWave,
 	abilities.tacticalNuke,
 	abilities.EMP,
 }

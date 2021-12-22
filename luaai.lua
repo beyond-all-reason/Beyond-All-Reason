@@ -31,7 +31,7 @@ return {
   {
     name = 'STAI',
     desc = 'Medium AI. Contribute or report any bug to: @pandaro',
-	version = '0.43 experimental',
+	version = '0.53 exp',
   },
   {
     name = 'ControlModeAI',

@@ -1,3 +1,21 @@
+local function SpawnAirRaid(transport, units, posx, posy, posz, attackTarget)
+	local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
+	local unitCountBuffer = scavMaxUnits*0.01
+	if unitCount + unitCountBuffer < scavMaxUnits then 
+		local unit = units[math_random(1,#units)]
+		local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+		local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+		if TransportID and LoadedUnitID then
+			local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
+			Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
+			Spring.GiveOrderToUnit(TransportID, CMD.LOAD_UNITS,{LoadedUnitID}, {0})
+			local ax, ay, az = Spring.GetUnitPosition(attackTarget)
+			Spring.GiveOrderToUnit(TransportID, CMD.UNLOAD_UNIT,{ax+math_random(-300,300),ay,az+math_random(-300,300)}, {"shift"})
+		end
+	end
+end
+
+
 local function transport1(currentFrame)
 	if currentFrame > scavconfig.gracePeriod*2 then
 		local transportsT1 = {"armatlas_scav", "corvalk_scav",}
@@ -79,7 +97,7 @@ local function transport1(currentFrame)
 		for i = 1,1000 do
 			local posx = math_random(300,mapsizeX-300)
 			local posz = math_random(300,mapsizeZ-300)
-			local posy = Spring.GetGroundHeight(posx, posz)
+			local posy = Spring.GetGroundHeight(posx, posz, attackTarget)
 			CanSpawnEvent = posLosCheckNoRadar(posx, posy, posz, 300)
 			if CanSpawnEvent then
 				CanSpawnEvent = posLandCheck(posx, posy, posz, 300)
@@ -118,134 +136,62 @@ local function transport1(currentFrame)
 				if globalScore < scavconfig.timers.T1low then
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*8) do
-						local unit = unitsT1[math_random(1,#unitsT1)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
-						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.LOAD_UNITS,{LoadedUnitID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.UNLOAD_UNIT,{ax+math_random(-300,300),ay,az+math_random(-300,300)}, {"shift"})
+						SpawnAirRaid(transport, unitsT1, posx, posy, posz, attackTarget)
 					end
 				elseif globalScore < scavconfig.timers.T1high then
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*12) do
-						local unit = unitsT1[math_random(1,#unitsT1)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
-						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.LOAD_UNITS,{LoadedUnitID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.UNLOAD_UNIT,{ax+math_random(-300,300),ay,az+math_random(-300,300)}, {"shift"})
+						SpawnAirRaid(transport, unitsT1, posx, posy, posz, attackTarget)
 					end
 				elseif globalScore < scavconfig.timers.T2start then
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*16) do
-						local unit = unitsT1[math_random(1,#unitsT1)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
-						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.LOAD_UNITS,{LoadedUnitID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.UNLOAD_UNIT,{ax+math_random(-300,300),ay,az+math_random(-300,300)}, {"shift"})
+						SpawnAirRaid(transport, unitsT1, posx, posy, posz, attackTarget)
 					end
 				elseif globalScore < scavconfig.timers.T2low then
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*20) do
-						local unit = unitsT1[math_random(1,#unitsT1)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
-						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.LOAD_UNITS,{LoadedUnitID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.UNLOAD_UNIT,{ax+math_random(-300,300),ay,az+math_random(-300,300)}, {"shift"})
+						SpawnAirRaid(transport, unitsT1, posx, posy, posz, attackTarget)
 					end
 				elseif globalScore < scavconfig.timers.T2high then
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*24) do
-						local unit = unitsT1[math_random(1,#unitsT1)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
-						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.LOAD_UNITS,{LoadedUnitID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.UNLOAD_UNIT,{ax+math_random(-300,300),ay,az+math_random(-300,300)}, {"shift"})
+						SpawnAirRaid(transport, unitsT1, posx, posy, posz, attackTarget)
 					end
 				elseif globalScore < scavconfig.timers.T3start then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*20) do
-						local unit = unitsT2[math_random(1,#unitsT2)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
-						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.LOAD_UNITS,{LoadedUnitID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.UNLOAD_UNIT,{ax+math_random(-300,300),ay,az+math_random(-300,300)}, {"shift"})
+						SpawnAirRaid(transport, unitsT2, posx, posy, posz, attackTarget)
 					end
 				elseif globalScore < scavconfig.timers.T3low then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*22) do
-						local unit = unitsT2[math_random(1,#unitsT2)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
-						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.LOAD_UNITS,{LoadedUnitID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.UNLOAD_UNIT,{ax+math_random(-300,300),ay,az+math_random(-300,300)}, {"shift"})
+						SpawnAirRaid(transport, unitsT2, posx, posy, posz, attackTarget)
 					end
 				elseif globalScore < scavconfig.timers.T3high then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*24) do
-						local unit = unitsT2[math_random(1,#unitsT2)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
-						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.LOAD_UNITS,{LoadedUnitID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.UNLOAD_UNIT,{ax+math_random(-300,300),ay,az+math_random(-300,300)}, {"shift"})
+						SpawnAirRaid(transport, unitsT2, posx, posy, posz, attackTarget)
 					end
 				elseif globalScore < scavconfig.timers.T4start then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*26) do
-						local unit = unitsT2[math_random(1,#unitsT2)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
-						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.LOAD_UNITS,{LoadedUnitID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.UNLOAD_UNIT,{ax+math_random(-300,300),ay,az+math_random(-300,300)}, {"shift"})
+						SpawnAirRaid(transport, unitsT2, posx, posy, posz, attackTarget)
 					end
 				elseif globalScore < scavconfig.timers.T4low then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*28) do
-						local unit = unitsT2[math_random(1,#unitsT2)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
-						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.LOAD_UNITS,{LoadedUnitID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.UNLOAD_UNIT,{ax+math_random(-300,300),ay,az+math_random(-300,300)}, {"shift"})
+						SpawnAirRaid(transport, unitsT2, posx, posy, posz, attackTarget)
 					end
 				elseif globalScore < scavconfig.timers.T4high then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*30) do
-						local unit = unitsT2[math_random(1,#unitsT2)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
-						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.LOAD_UNITS,{LoadedUnitID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.UNLOAD_UNIT,{ax+math_random(-300,300),ay,az+math_random(-300,300)}, {"shift"})
+						SpawnAirRaid(transport, unitsT2, posx, posy, posz, attackTarget)
 					end
 				else
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*32) do
-						local unit = unitsT2[math_random(1,#unitsT2)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
-						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.LOAD_UNITS,{LoadedUnitID}, {0})
-						Spring.GiveOrderToUnit(TransportID, CMD.UNLOAD_UNIT,{ax+math_random(-300,300),ay,az+math_random(-300,300)}, {"shift"})
+						SpawnAirRaid(transport, unitsT2, posx, posy, posz, attackTarget)
 					end
 				end
 				

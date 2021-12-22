@@ -22,7 +22,7 @@ local layerMod = {
 	jam = 1000,
 	radar = 1000,
 	sonar = 1000,
-}
+	}
 
 local missingFactoryDefenseDistance = 1500 -- if a turtle with a factory has no defense, subtract this much from self.ai.tool:distance
 local modDistance = 1 -- how much Priority modifies self.ai.tool:distance, the higher the number the father builders will travel for the most/least turtled turtle

@@ -11,13 +11,6 @@ function gadget:GetInfo()
 	}
 end
 
-local enableUnitDecorations = true		-- burst out xmas ball after unit death
-for _,teamID in ipairs(Spring.GetTeamList()) do
-	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
-		enableUnitDecorations = false
-	end
-end
-
 local decorationUdefIDs = {}
 local decorationUdefIDlist = {}
 for udefID,def in ipairs(UnitDefs) do
@@ -29,21 +22,17 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	local isBuilder = {}
-	local unitSize = {}
-	local unitBuildSpeedTime = {}
-	local initiated
+	local maxDecorations = 200
+	local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/2000000)
+	local candycaneSnowMapMult = 2.5
+	local addGaiaBalls = false	-- if false, only own team colored balls are added
 
-	for unitDefID, unitDef in pairs(UnitDefs) do
-		if unitDef.isBuilder then
-			isBuilder[unitDefID] = true
+	local enableUnitDecorations = true		-- burst out xmas ball after unit death
+	for _,teamID in ipairs(Spring.GetTeamList()) do
+		if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
+			enableUnitDecorations = false
 		end
-		unitSize[unitDefID] = { ((unitDef.xsize*8)+8)/2, ((unitDef.zsize*8)+8)/2 }
 	end
-
-	local maxDecorations = 150
-
-	_G.itsXmas = false
 
 	local isComWreck = {}
 	local xmasComwreckDefID
@@ -74,16 +63,21 @@ if gadgetHandler:IsSyncedCode() then
 		{12000, 8, 1.55},
 		{20000, 9, 1.7},
 	}
-
+	local isBuilder = {}
+	local unitSize = {}
 	local unitRadius = {}
 	local hasDecoration = {}
 	for udefID,def in ipairs(UnitDefs) do
+		if def.isBuilder then
+			isBuilder[udefID] = true
+		end
+		unitSize[udefID] = { ((def.xsize*8)+8)/2, ((def.zsize*8)+8)/2 }
 		unitRadius[udefID] = def.radius
 		if not def.isAirUnit and not def.modCategories["ship"] and not def.modCategories["hover"] and not def.modCategories["underwater"] and not def.modCategories["object"] then
 			if def.mass >= 35 then
 				local balls = math.floor(((def.radius-13) / 7.5))
 				local cost = def.metalCost + (def.energyCost/100)
-				local impulse = 0.35
+				local impulse = 0.37
 				local radius = 0.8
 				for _,v in ipairs(costSettings) do
 					if cost > v[1] then
@@ -104,21 +98,22 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local addGaiaBalls = false	-- if false, only own teamcolored balls are added
+	_G.itsXmas = false
 
 	local decorationCount = 0
 	local decorations = {}
 	local decorationsTerminal = {}
 	local createDecorations = {}
 	local createdDecorations = {}
-
-	local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/1500000)
 	local candycanes = {}
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local random = math.random
 	local GetGroundHeight = Spring.GetGroundHeight
 	local receivedPlayerXmas = {}
 	local receivedPlayerCount = 0
+	local initiated
+
+	VFS.Include("luarules/configs/map_biomes.lua")
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,4)=="xmas" then
@@ -132,6 +127,17 @@ if gadgetHandler:IsSyncedCode() then
 	function initiateXmas()
 		if not initiated then
 			initiated = true
+
+			if snowKeywords then
+				local currentMapname = Game.mapName:lower()
+				for _,keyword in pairs(snowKeywords) do
+					if string.find(currentMapname, keyword, nil, true) then
+						candycaneAmount = math.floor(candycaneAmount * candycaneSnowMapMult)
+						break
+					end
+				end
+			end
+
 			-- spawn candy canes
 			for i=1, candycaneAmount do
 				local x = random(0, Game.mapSizeX)
@@ -175,9 +181,9 @@ if gadgetHandler:IsSyncedCode() then
 					local x,y,z = Spring.GetUnitPosition(unitID)
 					local gy = Spring.GetGroundHeight(x,z)
 
-					decorationsTerminal[unitID] = n+240+((y - gy) * 33)		-- allows if in sea to take longer to go under seafloor
-					if decorationsTerminal[unitID] > n+1400 then	-- limit time
-						decorationsTerminal[unitID] = n+1400
+					decorationsTerminal[unitID] = n+random(0,50)+225+((y - gy) * 33)		-- allows if in sea to take longer to go under seafloor
+					if decorationsTerminal[unitID] > n+1500 then	-- limit time
+						decorationsTerminal[unitID] = n+1500
 					end
 					local env = Spring.UnitScript.GetScriptEnv(unitID)
 					Spring.UnitScript.CallAsUnit(unitID,env.Sink)
@@ -186,10 +192,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if n % 90 == 1 then
 
-			if not _G.itsXmas then
-				SendToUnsynced('RemoveGadget') -- Remove unsynced side too
-				gadgetHandler:RemoveGadget(self)
-			end
+			--if not _G.itsXmas then
+			--	SendToUnsynced('RemoveGadget') -- Remove unsynced side too
+			--	gadgetHandler:RemoveGadget(self)
+			--end
 
 			for unitID, frame in pairs(decorationsTerminal) do
 
@@ -330,10 +336,6 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
-	function gadget:GameOver()
-		gadgetHandler:RemoveGadget(self)
-	end
-
 	function gadget:GameStart()
 		if not _G.itsXmas then
 			local xmasRatio = 0
@@ -360,10 +362,20 @@ else
 
 	--local itsXmas = SYNCED.itsXmas
 	local xmasballs = {}
+	local scaleMult = Spring.GetConfigFloat("decorationsize", 1)
+
+	local updateTimer = 0
+	function gadget:Update()
+		updateTimer = updateTimer + Spring.GetLastUpdateSeconds()
+		if updateTimer > 0.7 then
+			updateTimer = 0
+			scaleMult = Spring.GetConfigFloat("decorationsize", 1)
+		end
+	end
 
 	function gadget:UnitCreated(unitID, unitDefID, team)
 		if decorationUdefIDs[unitDefID] then
-			xmasballs[unitID] = 0.8 + (math.random()*0.45)
+			xmasballs[unitID] = 0.8 + (math.random()*0.5)
 			Spring.UnitRendering.SetUnitLuaDraw(unitID, true)
 		end
 	end
@@ -386,20 +398,22 @@ else
 			local team = Spring.GetUnitTeam(unitID)
 			gadget:UnitCreated(unitID, udID, team)
 		end
-		if Spring.GetGameFrame() > 1 then
-			gadgetHandler:RemoveGadget(self)
-		end
+		--if Spring.GetGameFrame() > 1 then
+		--	gadgetHandler:RemoveGadget(self)
+		--end
 	end
 
-	function gadget:RecvFromSynced(arg1, ...)
-		if arg1 == 'RemoveGadget' then
-			gadgetHandler:RemoveGadget(self)
-		end
-	end
+	-- somehow shows expensive on /luarules profile
+	--function gadget:RecvFromSynced(arg1, ...)
+	--	if arg1 == 'RemoveGadget' then
+	--		gadgetHandler:RemoveGadget(self)
+	--	end
+	--end
 
 	function gadget:DrawUnit(unitID, drawMode)
 		if xmasballs[unitID] then
-			gl.Scale( xmasballs[unitID], xmasballs[unitID], xmasballs[unitID] )
+			local scale = xmasballs[unitID] * scaleMult
+			gl.Scale( scale, scale, scale )
 			return false
 		end
 	end

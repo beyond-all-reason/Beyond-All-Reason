@@ -73,7 +73,6 @@ local sound_button2 = 'LuaUI/Sounds/buildbar_rem.wav'
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local backgroundRect = { 0, 0, 0, 0 }
 local currentTooltip = ''
@@ -133,7 +132,6 @@ local string_lines = string.lines
 
 local os_clock = os.clock
 
-local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 
 local GL_QUADS = GL.QUADS
@@ -161,147 +159,150 @@ local unitDefInfo = {}
 local unitRestricted = {}
 local isWaterUnit = {}
 local isGeothermalUnit = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	unitDefInfo[unitDefID] = {}
 
-	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'
-		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
-		if not (unitDef.modCategories['hover'] or (unitDef.modCategories['mobile'] and unitDef.modCategories['canbeuw'])) then
-			isWaterUnit[unitDefID] = true
-		end
-	end
+local function refreshUnitInfo()
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		unitDefInfo[unitDefID] = {}
 
-	if unitDef.needGeo then
-		isGeothermalUnit[unitDefID] = true
-	end
-
-	if unitDef.maxThisUnit == 0 then
-		unitRestricted[unitDefID] = true
-	end
-
-	if unitDef.isAirUnit then
-		unitDefInfo[unitDefID].airUnit = true
-	end
-
-	if unitDef.isImmobile or unitDef.isBuilding then
-		if not unitDef.cantBeTransported then
-			unitDefInfo[unitDefID].transportable = true
-		end
-	end
-
-	unitDefInfo[unitDefID].translatedHumanName = unitDef.translatedHumanName
-	if unitDef.maxWeaponRange > 16 then
-		unitDefInfo[unitDefID].maxWeaponRange = unitDef.maxWeaponRange
-	end
-	if unitDef.speed > 0 then
-		unitDefInfo[unitDefID].speed = round(unitDef.speed, 0)
-	end
-	if unitDef.rSpeed > 0 then
-		unitDefInfo[unitDefID].reverseSpeed = round(unitDef.rSpeed, 0)
-	end
-	if unitDef.stealth then
-		unitDefInfo[unitDefID].stealth = true
-	end
-	if unitDef.cloakCost and unitDef.canCloak then
-		unitDefInfo[unitDefID].cloakCost = unitDef.cloakCost
-		if unitDef.cloakCostMoving > unitDef.cloakCost then
-			unitDefInfo[unitDefID].cloakCostMoving = unitDef.cloakCostMoving
-		end
-	end
-	if unitDef.isTransport then
-		unitDefInfo[unitDefID].transport = { unitDef.transportMass, unitDef.transportSize, unitDef.transportCapacity }
-	end
-	if unitDef.customParams.paralyzemultiplier then
-		unitDefInfo[unitDefID].paralyzeMult = tonumber(unitDef.customParams.paralyzemultiplier)
-	end
-	unitDefInfo[unitDefID].armorType = Game.armorTypes[unitDef.armorType or 0] or '???'
-
-	if unitDef.losRadius > 0 then
-		unitDefInfo[unitDefID].losRadius = unitDef.losRadius
-	end
-	if unitDef.airLosRadius > 0 then
-		unitDefInfo[unitDefID].airLosRadius = unitDef.airLosRadius
-	end
-	if unitDef.radarRadius > 0 then
-		unitDefInfo[unitDefID].radarRadius = unitDef.radarRadius
-	end
-	if unitDef.sonarRadius > 0 then
-		unitDefInfo[unitDefID].sonarRadius = unitDef.sonarRadius
-	end
-	if unitDef.jammerRadius > 0 then
-		unitDefInfo[unitDefID].jammerRadius = unitDef.jammerRadius
-	end
-	if unitDef.sonarJamRadius > 0 then
-		unitDefInfo[unitDefID].sonarJamRadius = unitDef.sonarJamRadius
-	end
-	if unitDef.seismicRadius > 0 then
-		unitDefInfo[unitDefID].seismicRadius = unitDef.seismicRadius
-	end
-
-	if unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency then
-		unitDefInfo[unitDefID].metalmaker = { tonumber(unitDef.customParams.energyconv_capacity), tonumber(unitDef.customParams.energyconv_efficiency) }
-	end
-
-	unitDefInfo[unitDefID].tooltip = unitDef.translatedTooltip
-	unitDefInfo[unitDefID].iconType = unitDef.iconType
-	unitDefInfo[unitDefID].energyCost = unitDef.energyCost
-	unitDefInfo[unitDefID].metalCost = unitDef.metalCost
-	unitDefInfo[unitDefID].energyStorage = unitDef.energyStorage
-	unitDefInfo[unitDefID].metalStorage = unitDef.metalStorage
-
-	unitDefInfo[unitDefID].health = unitDef.health
-	unitDefInfo[unitDefID].buildTime = unitDef.buildTime
-	unitDefInfo[unitDefID].buildPic = unitDef.buildpicname and true or false
-	if unitDef.canStockpile then
-		unitDefInfo[unitDefID].canStockpile = true
-	end
-	if unitDef.buildSpeed > 0 then
-		unitDefInfo[unitDefID].buildSpeed = unitDef.buildSpeed
-	end
-	if unitDef.buildOptions[1] then
-		unitDefInfo[unitDefID].buildOptions = unitDef.buildOptions
-	end
-	if unitDef.extractsMetal > 0 then
-		unitDefInfo[unitDefID].mex = true
-	end
-	local totalDps = 0
-	local weapons = unitDef.weapons
-	for i = 1, #weapons do
-		if not unitDefInfo[unitDefID].weapons then
-			unitDefInfo[unitDefID].weapons = {}
-			unitDefInfo[unitDefID].dps = 0
-			unitDefInfo[unitDefID].reloadTime = 0
-			unitDefInfo[unitDefID].mainWeapon = i
-		end
-		unitDefInfo[unitDefID].weapons[i] = weapons[i].weaponDef
-		local weaponDef = WeaponDefs[weapons[i].weaponDef]
-		if weaponDef.damages then
-			-- get highest damage category
-			local maxDmg = 0
-			local reloadTime = 0
-			for _, v in pairs(weaponDef.damages) do
-				if v > maxDmg then
-					maxDmg = v
-					reloadTime = weaponDef.reload
-				end
+		if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'
+			or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
+			if not (unitDef.modCategories['hover'] or (unitDef.modCategories['mobile'] and unitDef.modCategories['canbeuw'])) then
+				isWaterUnit[unitDefID] = true
 			end
-			local dps = math_floor(maxDmg * weaponDef.salvoSize / weaponDef.reload)
-			if dps > unitDefInfo[unitDefID].dps then
-				--unitDefInfo[unitDefID].dps = dps
-				unitDefInfo[unitDefID].reloadTime = reloadTime	-- only main weapon is relevant
+		end
+
+		if unitDef.needGeo then
+			isGeothermalUnit[unitDefID] = true
+		end
+
+		if unitDef.maxThisUnit == 0 then
+			unitRestricted[unitDefID] = true
+		end
+
+		if unitDef.isAirUnit then
+			unitDefInfo[unitDefID].airUnit = true
+		end
+
+		if unitDef.isImmobile or unitDef.isBuilding then
+			if not unitDef.cantBeTransported then
+				unitDefInfo[unitDefID].transportable = true
+			end
+		end
+
+		unitDefInfo[unitDefID].translatedHumanName = unitDef.translatedHumanName
+		if unitDef.maxWeaponRange > 16 then
+			unitDefInfo[unitDefID].maxWeaponRange = unitDef.maxWeaponRange
+		end
+		if unitDef.speed > 0 then
+			unitDefInfo[unitDefID].speed = round(unitDef.speed, 0)
+		end
+		if unitDef.rSpeed > 0 then
+			unitDefInfo[unitDefID].reverseSpeed = round(unitDef.rSpeed, 0)
+		end
+		if unitDef.stealth then
+			unitDefInfo[unitDefID].stealth = true
+		end
+		if unitDef.cloakCost and unitDef.canCloak then
+			unitDefInfo[unitDefID].cloakCost = unitDef.cloakCost
+			if unitDef.cloakCostMoving > unitDef.cloakCost then
+				unitDefInfo[unitDefID].cloakCostMoving = unitDef.cloakCostMoving
+			end
+		end
+		if unitDef.isTransport then
+			unitDefInfo[unitDefID].transport = { unitDef.transportMass, unitDef.transportSize, unitDef.transportCapacity }
+		end
+		if unitDef.customParams.paralyzemultiplier then
+			unitDefInfo[unitDefID].paralyzeMult = tonumber(unitDef.customParams.paralyzemultiplier)
+		end
+		unitDefInfo[unitDefID].armorType = Game.armorTypes[unitDef.armorType or 0] or '???'
+
+		if unitDef.losRadius > 0 then
+			unitDefInfo[unitDefID].losRadius = unitDef.losRadius
+		end
+		if unitDef.airLosRadius > 0 then
+			unitDefInfo[unitDefID].airLosRadius = unitDef.airLosRadius
+		end
+		if unitDef.radarRadius > 0 then
+			unitDefInfo[unitDefID].radarRadius = unitDef.radarRadius
+		end
+		if unitDef.sonarRadius > 0 then
+			unitDefInfo[unitDefID].sonarRadius = unitDef.sonarRadius
+		end
+		if unitDef.jammerRadius > 0 then
+			unitDefInfo[unitDefID].jammerRadius = unitDef.jammerRadius
+		end
+		if unitDef.sonarJamRadius > 0 then
+			unitDefInfo[unitDefID].sonarJamRadius = unitDef.sonarJamRadius
+		end
+		if unitDef.seismicRadius > 0 then
+			unitDefInfo[unitDefID].seismicRadius = unitDef.seismicRadius
+		end
+
+		if unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency then
+			unitDefInfo[unitDefID].metalmaker = { tonumber(unitDef.customParams.energyconv_capacity), tonumber(unitDef.customParams.energyconv_efficiency) }
+		end
+
+		unitDefInfo[unitDefID].tooltip = unitDef.translatedTooltip
+		unitDefInfo[unitDefID].iconType = unitDef.iconType
+		unitDefInfo[unitDefID].energyCost = unitDef.energyCost
+		unitDefInfo[unitDefID].metalCost = unitDef.metalCost
+		unitDefInfo[unitDefID].energyStorage = unitDef.energyStorage
+		unitDefInfo[unitDefID].metalStorage = unitDef.metalStorage
+
+		unitDefInfo[unitDefID].health = unitDef.health
+		unitDefInfo[unitDefID].buildTime = unitDef.buildTime
+		unitDefInfo[unitDefID].buildPic = unitDef.buildpicname and true or false
+		if unitDef.canStockpile then
+			unitDefInfo[unitDefID].canStockpile = true
+		end
+		if unitDef.buildSpeed > 0 then
+			unitDefInfo[unitDefID].buildSpeed = unitDef.buildSpeed
+		end
+		if unitDef.buildOptions[1] then
+			unitDefInfo[unitDefID].buildOptions = unitDef.buildOptions
+		end
+		if unitDef.extractsMetal > 0 then
+			unitDefInfo[unitDefID].mex = true
+		end
+		local totalDps = 0
+		local weapons = unitDef.weapons
+		for i = 1, #weapons do
+			if not unitDefInfo[unitDefID].weapons then
+				unitDefInfo[unitDefID].weapons = {}
+				unitDefInfo[unitDefID].dps = 0
+				unitDefInfo[unitDefID].reloadTime = 0
 				unitDefInfo[unitDefID].mainWeapon = i
 			end
-			totalDps = totalDps + dps
-			unitDefInfo[unitDefID].dps = totalDps
-		end
-		if weapons[i].onlyTargets['vtol'] ~= nil then
-			unitDefInfo[unitDefID].isAaUnit = true
-		end
-		if weaponDef.energyCost > 0 and (not unitDefInfo[unitDefID].energyPerShot or weaponDef.energyCost > unitDefInfo[unitDefID].energyPerShot) then
-			unitDefInfo[unitDefID].energyPerShot = weaponDef.energyCost
-		end
-		if weaponDef.metalCost > 0 and (not unitDefInfo[unitDefID].metalPerShot or weaponDef.metalCost > unitDefInfo[unitDefID].metalPerShot) then
-			unitDefInfo[unitDefID].metalPerShot = weaponDef.metalCost
+			unitDefInfo[unitDefID].weapons[i] = weapons[i].weaponDef
+			local weaponDef = WeaponDefs[weapons[i].weaponDef]
+			if weaponDef.damages then
+				-- get highest damage category
+				local maxDmg = 0
+				local reloadTime = 0
+				for _, v in pairs(weaponDef.damages) do
+					if v > maxDmg then
+						maxDmg = v
+						reloadTime = weaponDef.reload
+					end
+				end
+				local dps = math_floor(maxDmg * weaponDef.salvoSize / weaponDef.reload)
+				if dps > unitDefInfo[unitDefID].dps then
+					--unitDefInfo[unitDefID].dps = dps
+					unitDefInfo[unitDefID].reloadTime = reloadTime	-- only main weapon is relevant
+					unitDefInfo[unitDefID].mainWeapon = i
+				end
+				totalDps = totalDps + dps
+				unitDefInfo[unitDefID].dps = totalDps
+			end
+			if weapons[i].onlyTargets['vtol'] ~= nil then
+				unitDefInfo[unitDefID].isAaUnit = true
+			end
+			if weaponDef.energyCost > 0 and (not unitDefInfo[unitDefID].energyPerShot or weaponDef.energyCost > unitDefInfo[unitDefID].energyPerShot) then
+				unitDefInfo[unitDefID].energyPerShot = weaponDef.energyCost
+			end
+			if weaponDef.metalCost > 0 and (not unitDefInfo[unitDefID].metalPerShot or weaponDef.metalCost > unitDefInfo[unitDefID].metalPerShot) then
+				unitDefInfo[unitDefID].metalPerShot = weaponDef.metalCost
+			end
 		end
 	end
 end
@@ -368,7 +369,6 @@ local function checkGuishader(force)
 end
 
 function widget:PlayerChanged(playerID)
-	isSpec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
 end
 
@@ -435,6 +435,8 @@ function widget:GameFrame(n)
 end
 
 function widget:Initialize()
+	refreshUnitInfo()
+
 	if WG['lang'] then
 		texts = WG['lang'].getText('info')
 	end
@@ -526,7 +528,6 @@ function widget:Update(dt)
 		end
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			glossMult = 1 + (2 - (ui_opacity * 2))
 			doUpdate = true
 		end
 		if not rankTextures and WG['rankicons'] then
@@ -1049,25 +1050,27 @@ local function drawUnitInfo()
 		end
 
 		if unitDefInfo[displayUnitDefID].weapons then
-			local reloadTime = 1
+			local reloadTimeSpeedup = 1.0
+			local currentReloadTime = unitDefInfo[displayUnitDefID].reloadTime
 			if exp and exp > 0.009 then
 				addTextInfo(texts.xp, round(exp, 2))
 				addTextInfo(texts.maxhealth, '+' .. round((maxHealth / unitDefInfo[displayUnitDefID].health - 1) * 100, 0) .. '%')
-				reloadTime = spGetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, 'reloadTimeXP')
-				reloadTime = tonumber(round((1 - (reloadTime / unitDefInfo[displayUnitDefID].reloadTime)) * 100, 0))
-				if reloadTime > 0 then
-					addTextInfo(texts.reload, '-' .. reloadTime .. '%')
+				currentReloadTime = spGetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, 'reloadTimeXP')
+				reloadTimeSpeedup = currentReloadTime / unitDefInfo[displayUnitDefID].reloadTime
+				local reloadTimeSpeedupPercentage = tonumber(round((1 - reloadTimeSpeedup) * 100, 0))
+				if reloadTimeSpeedupPercentage > 0 then
+					addTextInfo(texts.reload, '-' .. reloadTimeSpeedupPercentage .. '%')
 				end
 			end
 			if dps then
-				dps = round(dps + (dps * (reloadTime / 100)), 0)
+				dps = round(dps / reloadTimeSpeedup, 0)
 				addTextInfo(texts.dps, dps)
 
 				if maxRange then
 					addTextInfo(texts.weaponrange, maxRange)
 				end
 
-				addTextInfo(texts.reloadtime, round(unitDefInfo[displayUnitDefID].reloadTime*reloadTime, 2))
+				addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
 			end
 
 			--addTextInfo('weapons', #unitWeapons[displayUnitDefID])
@@ -1492,7 +1495,7 @@ function checkChanges()
 			local reclaimText = Spring.I18N('ui.reclaimInfo.metal', { metal = metal }) .. "\255\255\255\128" .. " " .. Spring.I18N('ui.reclaimInfo.energy', { energy = energy })
 			newTooltip = newTooltip .. "\n\n" .. reclaimText
 		end
-		local newTooltip = spGetCurrentTooltip()
+
 		if newTooltip ~= currentTooltip then
 			currentTooltip = newTooltip
 			doUpdate = true
@@ -1540,4 +1543,9 @@ function widget:SelectionChanged(sel)
 			doUpdateClock = os_clock() + 0.05  -- delay to save some performance
 		end
 	end
+end
+
+function widget:LanguageChanged()
+	refreshUnitInfo()
+	widget:ViewResize()
 end

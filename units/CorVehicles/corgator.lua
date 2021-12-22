@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.corgator')
-
 return {
 	corgator = {
 		acceleration = 0.04631,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "30 15 38",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.corgator'),
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -26,7 +23,6 @@ return {
 		maxvelocity = 2.85,
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORGATOR.s3o",
 		script = "Units/CORGATOR.cob",
@@ -45,7 +41,6 @@ return {
 			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "barrel",
-			longdescription = Spring.I18N('units.longDescriptions.corgator'),
 			driftratio = "0.6",
 			firingceg = "barrelshot-tiny",
 			flare1name = "flare",
@@ -68,7 +63,6 @@ return {
 				collisionvolumescales = "21.4374389648 12.6050109863 32.0003356934",
 				collisionvolumetype = "Box",
 				damage = 550,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -88,7 +82,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 225,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

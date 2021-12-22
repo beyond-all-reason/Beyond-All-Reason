@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armmart')
-
 return {
 	armmart = {
 		acceleration = 0.02159,
@@ -14,7 +12,6 @@ return {
 		collisionvolumescales = "36 20 38",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armmart'),
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -27,7 +24,6 @@ return {
 		maxvelocity = 1.7,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
-		name = unitName,
 		nochasecategory = "NOTLAND VTOL",
 		objectname = "Units/ARMMART.s3o",
 		script = "Units/ARMMART.cob",
@@ -70,7 +66,6 @@ return {
 				collisionvolumescales = "50.2839050293 32.1819000244 44.5333404541",
 				collisionvolumetype = "Box",
 				damage = 500,
-				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -90,7 +85,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 400,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

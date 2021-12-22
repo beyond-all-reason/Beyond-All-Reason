@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.coramph')
-
 return {
 	coramph = {
 		acceleration = 0.1035,
@@ -15,7 +13,6 @@ return {
 		collisionvolumescales = "32 29 32",
 		collisionvolumetype = "CylY",
 		corpse = "HEAP",
-		description = Spring.I18N('units.descriptions.coramph'),
 		explodeas = "smallExplosionGeneric-phib",
 		footprintx = 2,
 		footprintz = 2,
@@ -25,7 +22,6 @@ return {
 		maxslope = 14,
 		maxvelocity = 1.85,
 		movementclass = "ABOT2",
-		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORAMPH.s3o",
 		radardistance = 300,
@@ -54,7 +50,6 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 920,
-				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,
