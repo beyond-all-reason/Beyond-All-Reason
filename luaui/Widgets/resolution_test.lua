@@ -48,29 +48,25 @@ local function changeScreenMode(index)
 
 	local screenMode = screenModes[index]
 
-	if screenMode.type == windowType.fullscreen then
-		Spring.SendCommands("Fullscreen 0")
-		Spring.SetConfigInt("WindowBorderless", 0)
-		Spring.SetConfigInt("XResolution", screenMode.width)
-		Spring.SetConfigInt("YResolution", screenMode.height)
-		Spring.SendCommands("Fullscreen 1")
-	elseif screenMode.type == windowType.borderless then
-		Spring.SendCommands("Fullscreen 1")
-		Spring.SetConfigInt("WindowBorderless", 1)
-		Spring.SetConfigInt("WindowPosX", 0)
-		Spring.SetConfigInt("WindowPosY", 0)
-		Spring.SetConfigInt("XResolutionWindowed", screenMode.width)
-		Spring.SetConfigInt("YResolutionWindowed", screenMode.height)
-		Spring.SendCommands("Fullscreen 0")
-	elseif screenMode.type == windowType.windowed then
-		Spring.SendCommands("Fullscreen 1")
-		Spring.SetConfigInt("WindowBorderless", 0)
-		Spring.SetConfigInt("WindowPosX", 25)
-		Spring.SetConfigInt("WindowPosY", 25)
-		Spring.SetConfigInt("XResolutionWindowed", screenMode.width)
-		Spring.SetConfigInt("YResolutionWindowed", screenMode.height)
-		Spring.SendCommands("Fullscreen 0")
-	end
+    if screenMode.type == windowType.fullscreen then
+        Spring.SetConfigInt("XResolution", screenMode.width)
+        Spring.SetConfigInt("YResolution", screenMode.height)
+        Spring.SendCommands("Fullscreen 1")
+    elseif screenMode.type == windowType.borderless then
+        Spring.SetConfigInt("WindowPosX", 0)
+        Spring.SetConfigInt("WindowPosY", 0)
+        Spring.SetConfigInt("XResolutionWindowed", screenMode.width)
+        Spring.SetConfigInt("YResolutionWindowed", screenMode.height)
+        Spring.SetConfigInt("WindowBorderless", 1)
+        Spring.SendCommands("Fullscreen 0")
+    elseif screenMode.type == windowType.windowed then
+        Spring.SetConfigInt("WindowPosX", 25)
+        Spring.SetConfigInt("WindowPosY", 25)
+        Spring.SetConfigInt("XResolutionWindowed", screenMode.width)
+        Spring.SetConfigInt("YResolutionWindowed", screenMode.height)
+        Spring.SetConfigInt("WindowBorderless", 0)
+        Spring.SendCommands("Fullscreen 0")
+    end
 end
 
 function widget:Initialize()
