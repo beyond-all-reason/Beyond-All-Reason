@@ -236,7 +236,7 @@ function TaskLabBST:getQueue()
 		{'raiders',5,15,40,5},
 		{'artillerys',4,10,50,5},
 		{'scouts',2,10,20,1},--This scout needs to attach to the artillery^^.
-		{'techs',3,5,10,1},
+		{'techs',3,5,10,1},--test comment
 		{'artillerys',4,10,50,5}, --It's so good, it's worth a second helping.
 		{'breaks',4,15,1500,3},
 		{'techs',3,5,50,1},
