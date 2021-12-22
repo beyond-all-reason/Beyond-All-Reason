@@ -208,7 +208,7 @@ function TaskQueueBST:CategoryEconFilter(cat,param,name)
 	elseif cat == '_wind_' then
 		check =   map:AverageWind() > 7 and ((E.full < 0.75 or E.income < E.usage * 1.1 ))
 	elseif cat == '_tide_' then
-		check =  map:TidalStrength() >= 10 and  ((E.full < 0.75 or E.income < E.usage * 1.1 )  or E.income < 30)
+		check =  map:TidalStrength() >= 10 and  ((E.full < 0.75 or E.income < E.usage * 1.1 ))
 	elseif cat == '_solar_' then
 		check =   ((E.full < 0.75 or E.income < E.usage * 1.1 )  or E.income < 40 ) and self.ai.Energy.income < 3000 and map:AverageWind() < 10
 		
