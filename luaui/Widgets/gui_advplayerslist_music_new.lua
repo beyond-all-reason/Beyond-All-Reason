@@ -173,7 +173,8 @@ local vsx, vsy = Spring.GetViewGeometry()
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 
-local playing = (Spring.GetConfigInt('music', 1) == 1)
+--local playing = (Spring.GetConfigInt('music', 1) == 1)
+local playing = true
 local shutdown
 local guishaderEnabled = (WG['guishader'] ~= nil)
 
@@ -225,9 +226,10 @@ local function createList()
 	local padding2 = math.floor(2.5 * widgetScale) -- inner icon padding
 	local volumeWidth = math.floor(50 * widgetScale)
 	local heightoffset = -math.floor(0.9 * widgetScale)
-	buttons['playpause'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
+	--buttons['playpause'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
 
-	buttons['musicvolumeicon'] = {buttons['playpause'][3]+padding+padding, bottom+padding+heightoffset, buttons['playpause'][3]+((widgetHeight * widgetScale)), top-padding+heightoffset}
+	--buttons['musicvolumeicon'] = {buttons['playpause'][3]+padding+padding, bottom+padding+heightoffset, buttons['playpause'][3]+((widgetHeight * widgetScale)), top-padding+heightoffset}
+	buttons['musicvolumeicon'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
 	buttons['musicvolume'] = {buttons['musicvolumeicon'][3]+padding, bottom+padding+heightoffset, buttons['musicvolumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
 	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (getVolumePos(maxMusicVolume/100))
 
@@ -237,7 +239,8 @@ local function createList()
 
 	local textsize = 11 * widgetScale
 	local textXPadding = 7 * widgetScale
-	local maxTextWidth = right-buttons['playpause'][3]-textXPadding-textXPadding
+	--local maxTextWidth = right-buttons['playpause'][3]-textXPadding-textXPadding
+	local maxTextWidth = right-textXPadding-textXPadding
 
 	if drawlist[1] ~= nil then
 		for i=1, #drawlist do
@@ -263,7 +266,7 @@ local function createList()
 		end
 	end)
 	drawlist[2] = glCreateList( function()
-		local button = 'playpause'
+		local button = 'musicvolumeicon'
 		glColor(0.88,0.88,0.88,0.9)
 		if playing then
 			glTexture(pauseTex)
@@ -473,13 +476,13 @@ local function mouseEvent(x, y, button, release)
 			draggingSlider = nil
 		end
 		if button == 1 and not release and math_isInRect(x, y, left, bottom, right, top) then
-			if buttons['playpause'] ~= nil and math_isInRect(x, y, buttons['playpause'][1], buttons['playpause'][2], buttons['playpause'][3], buttons['playpause'][4]) then
-				playing = not playing
-				Spring.SetConfigInt('music', (playing and 1 or 0))
-				Spring.PauseSoundStream()
-				createList()
-				return true
-			end
+			-- if buttons['playpause'] ~= nil and math_isInRect(x, y, buttons['playpause'][1], buttons['playpause'][2], buttons['playpause'][3], buttons['playpause'][4]) then
+			-- 	playing = not playing
+			-- 	Spring.SetConfigInt('music', (playing and 1 or 0))
+			-- 	Spring.PauseSoundStream()
+			-- 	createList()
+			-- 	return true
+			-- end
 			return true
 		end
 	end
@@ -564,7 +567,7 @@ function widget:DrawScreen()
 	if drawlist[1] ~= nil then
 		glPushMatrix()
 		glCallList(drawlist[1])
-		glCallList(drawlist[2])
+		--glCallList(drawlist[2])
 		glCallList(drawlist[4])
 		if mouseover then
 
@@ -697,7 +700,15 @@ function widget:GameFrame(n)
 		fadeOutCurrentTrack = true
 	end
 
-	if n%30 == 15 then
+	if n%30 == 15 and musicVolume > 0 then
+		local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01
+		if musicVolume > 0 then
+			playing = true
+		else
+			playing = false
+			return
+		end
+
 		playedTime, totalTime = Spring.GetSoundStreamTime()
 
 		if warMeter > 0 then
@@ -707,9 +718,7 @@ function widget:GameFrame(n)
 		if not gameOver then
 			if playedTime > 0 and totalTime > 0 then -- music is playing
 				if not fadeOutCurrentTrack then
-					local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)) * 0.01
 					Spring.SetSoundStreamVolume(musicVolume)
-
 					if (currentTrackListString == "intro" and n > 30)
 						or ((currentTrackListString == "peace" and warMeter > warLowLevel * 2) and interruptionEnabled)
 						or (( (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.20 ) and interruptionEnabled)
