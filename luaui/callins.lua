@@ -89,6 +89,13 @@ CallInsList = {
 	"DrawScreenPost",
 	"DrawScreen",
 	"DrawInMiniMap",
+	
+	"DrawOpaqueUnitsLua",
+	"DrawOpaqueFeaturesLua",
+	"DrawAlphaUnitsLua",
+	"DrawAlphaFeaturesLua",
+	"DrawShadowUnitsLua",
+	"DrawShadowFeaturesLua",
 
 	"SunChanged",
 

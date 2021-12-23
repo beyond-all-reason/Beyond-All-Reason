@@ -148,6 +148,12 @@ local flexCallIns = {
 	'DrawScreenEffects',
 	'DrawScreenPost',
 	'DrawInMiniMap',
+	'DrawOpaqueUnitsLua',
+	'DrawOpaqueFeaturesLua',
+	'DrawAlphaUnitsLua',
+	'DrawAlphaFeaturesLua',
+	'DrawShadowUnitsLua',
+	'DrawShadowFeaturesLua',
 	'SunChanged',
 	'FeatureCreated',
 	'FeatureDestroyed',
@@ -1274,6 +1280,48 @@ end
 function widgetHandler:DrawWorldPreUnit()
 	for _, w in r_ipairs(self.DrawWorldPreUnitList) do
 		w:DrawWorldPreUnit()
+	end
+	return
+end
+
+function widgetHandler:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
+	for _, w in r_ipairs(self.DrawOpaqueUnitsLuaList) do
+		w:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
+	end
+	return
+end
+
+function widgetHandler:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefraction)
+	for _, w in r_ipairs(self.DrawOpaqueFeaturesLuaList) do
+		w:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefraction)
+	end
+	return
+end
+
+function widgetHandler:DrawAlphaUnitsLua(drawReflection, drawRefraction)
+	for _, w in r_ipairs(self.DrawAlphaUnitsLuaList) do
+		w:DrawAlphaUnitsLua(drawReflection, drawRefraction)
+	end
+	return
+end
+
+function widgetHandler:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
+	for _, w in r_ipairs(self.DrawAlphaFeaturesLuaList) do
+		w:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
+	end
+	return
+end
+
+function widgetHandler:DrawShadowUnitsLua()
+	for _, w in r_ipairs(self.DrawShadowUnitsLuaList) do
+		w:DrawShadowUnitsLua()
+	end
+	return
+end
+
+function widgetHandler:DrawShadowFeaturesLua()
+	for _, w in r_ipairs(self.DrawShadowFeaturesLuaList) do
+		w:DrawShadowFeaturesLua()
 	end
 	return
 end
