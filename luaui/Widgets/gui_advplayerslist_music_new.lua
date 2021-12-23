@@ -690,8 +690,7 @@ function widget:UnitDamaged(unitID, unitDefID, _, damage)
 end
 
 function widget:GameFrame(n)
-	if not playing then return end
-
+	
 	if fadeOutCurrentTrack then
 		fadeOutTrack()
 	end
@@ -706,6 +705,10 @@ function widget:GameFrame(n)
 			playing = true
 		else
 			playing = false
+			appliedSilence = true
+			silenceTimer = 0
+			fadeOutCurrentTrack = false
+			Spring.StopSoundStream()
 			return
 		end
 
