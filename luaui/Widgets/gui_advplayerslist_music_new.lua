@@ -700,7 +700,7 @@ function widget:GameFrame(n)
 		fadeOutCurrentTrack = true
 	end
 
-	if n%30 == 15 and musicVolume > 0 then
+	if n%30 == 15 then
 		local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01
 		if musicVolume > 0 then
 			playing = true
