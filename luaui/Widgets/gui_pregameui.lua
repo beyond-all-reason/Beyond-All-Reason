@@ -73,12 +73,6 @@ local function createButton()
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
-	vsx, vsy = Spring.GetViewGeometry()
-
-	uiScale = (0.75 + (vsx * vsy / 6000000))
-
-	buttonX = math.floor(vsx * 0.78)
-	buttonY = math.floor(vsy * 0.78)
 	if mySpec then
 		if not offeredAsSub then
 			buttonText = Spring.I18N('ui.substitutePlayers.offer')
@@ -86,8 +80,17 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 			buttonText = Spring.I18N('ui.substitutePlayers.withdraw')
 		end
 	else
-		buttonText = Spring.I18N('ui.initialSpawn.ready')
+		if readied then
+			buttonText = Spring.I18N('ui.initialSpawn.unready')
+		else
+			buttonText = Spring.I18N('ui.initialSpawn.ready')
+		end
 	end
+
+	vsx, vsy = Spring.GetViewGeometry()
+	uiScale = (0.75 + (vsx * vsy / 6000000))
+	buttonX = math.floor(vsx * 0.78)
+	buttonY = math.floor(vsy * 0.78)
 	orgbuttonW = font:GetTextWidth('       '..buttonText) * 24
 	buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
 	buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
@@ -101,10 +104,9 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 
 	UiElement = WG.FlowUI.Draw.Element
 	UiButton = WG.FlowUI.Draw.Button
+	RectRound = WG.FlowUI.Draw.RectRound
 	elementPadding = WG.FlowUI.elementPadding
 	uiPadding = math.floor(elementPadding * 4.5)
-
-	RectRound = WG.FlowUI.Draw.RectRound
 
 	createButton()
 end
@@ -136,9 +138,7 @@ function widget:GameSetup(state, ready, playerStates)
 		-- check if we just reconnected/dropped
 		ready = false
 	end
-	if ready then
-		readied = true
-	end
+	readied = ready
 	return true, ready
 end
 
@@ -151,11 +151,16 @@ function widget:MousePress(sx, sy)
 			if sx > buttonX - (buttonW / 2) and sx < buttonX + (buttonW / 2) and sy > buttonY - (buttonH / 2) and sy < buttonY + (buttonH / 2) then
 
 				-- ready
-				if not mySpec and not readied then
-					if startPointChosen then
-						pressedReady = true
+				if not mySpec then
+					if not readied then
+						if startPointChosen then
+							pressedReady = true
+						else
+							Spring.Echo(Spring.I18N('ui.initialSpawn.choosePoint'))
+						end
 					else
-						Spring.Echo(Spring.I18N('ui.initialSpawn.choosePoint'))
+						readied = false
+						pressedReady = false
 					end
 
 				-- substitute
