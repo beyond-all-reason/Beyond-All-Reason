@@ -162,6 +162,7 @@ function widget:MousePress(sx, sy)
 						readied = false
 						pressedReady = false
 					end
+					widget:ViewResize(vsx, vsy)
 
 				-- substitute
 				elseif eligibleAsSub then
