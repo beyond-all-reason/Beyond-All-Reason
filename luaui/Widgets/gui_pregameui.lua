@@ -24,6 +24,11 @@ local _, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 local ffaMode = Spring.GetModOptions().ffa_mode
 local isReplay = Spring.IsReplay()
 
+local readyButtonColor = {0.05, 0.3, 0}
+local unreadyButtonColor = {0.3, 0.05, 0}
+local subButtonColor = {0.3, 0.24, 0}
+local unsubButtonColor = {0.22, 0.18, 0.12}
+
 local readied = false	-- send readystate (in widget:GameSetup)
 local pressedReady = false	-- pressed button
 local startPointChosen = false
@@ -53,22 +58,35 @@ local eligibleAsSub = false
 local offeredAsSub = false
 
 local numPlayers = Spring.Utilities.GetPlayerCount()
-
 if numPlayers <= 4 then
 	-- not needed to show sub button for small games where restarting one the better option
 	--return
 end
 
 local function createButton()
+	local color = { 0.15, 0.15, 0.15 }
+	if not mySpec then
+		if not readied then
+			color = readyButtonColor
+		else
+			color = unreadyButtonColor
+		end
+	elseif eligibleAsSub then
+		if not offeredAsSub then
+			color = subButtonColor
+		else
+			color = unsubButtonColor
+		end
+	end
 	gl.DeleteList(buttonList)
 	buttonList = gl.CreateList(function()
 		UiElement(buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding, 1, 1, 1, 1, 1, 1, 1, 1)
-		UiButton(buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2), 1, 1, 1, 1, 1, 1, 1, 1, nil, { 0.15, 0.11, 0, 1 }, { 0.28, 0.21, 0, 1 })
+		UiButton(buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2), 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.55, color[2]*0.55, color[3]*0.55, 1 }, { color[1], color[2], color[3], 1 })
 	end)
 	gl.DeleteList(buttonHoverList)
 	buttonHoverList = gl.CreateList(function()
 		UiElement(buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding, 1, 1, 1, 1, 1, 1, 1, 1)
-		UiButton(buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2), 1, 1, 1, 1, 1, 1, 1, 1, nil, { 0.25, 0.20, 0, 1 }, { 0.44, 0.35, 0, 1 })
+		UiButton(buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2), 1, 1, 1, 1, 1, 1, 1, 1, nil, { color[1]*0.85, color[2]*0.85, color[3]*0.85, 1 }, { color[1]*1.5, color[2]*1.5, color[3]*1.5, 1 })
 	end)
 end
 
@@ -162,7 +180,6 @@ function widget:MousePress(sx, sy)
 						readied = false
 						pressedReady = false
 					end
-					widget:ViewResize(vsx, vsy)
 
 				-- substitute
 				elseif eligibleAsSub then
@@ -173,8 +190,9 @@ function widget:MousePress(sx, sy)
 						Spring.Echo(Spring.I18N('ui.substitutePlayers.offerWithdrawn'))
 					end
 					Spring.SendLuaRulesMsg(offeredAsSub and '\144' or '\145')
-					widget:ViewResize(vsx, vsy)
 				end
+
+				widget:ViewResize(vsx, vsy)
 			end
 			return true
 		end
@@ -219,7 +237,6 @@ function widget:Initialize()
 end
 
 function widget:DrawScreen()
-
 	if not startPointChosen then
 		checkStartPointChosen()
 	end
