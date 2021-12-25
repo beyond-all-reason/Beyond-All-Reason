@@ -32,6 +32,8 @@ local uiOpacitySec = 0
 local spGetCameraState = Spring.GetCameraState
 local math_isInRect = math.isInRect
 
+local wasOverview = false
+
 local RectRound, UiElement, elementCorner, elementPadding, elementMargin
 local dlistGuishader, dlistMinimap, oldMinimapGeometry, chobbyInterface
 
@@ -166,8 +168,14 @@ function widget:DrawScreen()
 	if st.name == "ov" then		-- overview camera
 		if dlistGuishader and WG['guishader'] then
 			WG['guishader'].RemoveDlist('minimap')
+			wasOverview = true
 		end
 	else
+		if wasOverview then
+			gl.SlaveMiniMap(true)
+			wasOverview = false
+		end
+
 		if dlistGuishader and WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
 		end
