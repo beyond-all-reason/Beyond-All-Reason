@@ -1858,9 +1858,9 @@ function init()
 			  }
 			  if ShadowMapSize == 0 then
 				  --options[getOptionByID('shadowslider')].value = 1
-			  else
+			  elseif ShadowMapSize ~= nil then
 				  for k,v in pairs( options[getOptionByID('shadowslider')].options) do
-					  if quality[v] <= ShadowMapSize then
+					  if quality[v] ~= nil and quality[v] <= ShadowMapSize then
 						  options[getOptionByID('shadowslider')].value = k
 					  end
 				  end
