@@ -400,6 +400,7 @@ local options={
 		max    = 5000,
 		step   = 25,
 		section= "chicken_defense_options",
+		hidden = true,
 	},
 	{
 		key    = "chicken_spawncountmult",
