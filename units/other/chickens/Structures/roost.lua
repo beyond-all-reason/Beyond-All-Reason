@@ -13,7 +13,7 @@ return {
 		buildtime = 10500,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CHICKEN EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "56 11 56",
+		collisionvolumescales = "56 200 56",
 		collisionvolumetype = "box",
 		energystorage = 1000,
 		explodeas = "ROOST_DEATH",
