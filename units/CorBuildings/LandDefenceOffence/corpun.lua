@@ -42,7 +42,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			onoffname = "trajectory",
 			subfolder = "corbuildings/landdefenceoffence",
-			techlevel = 1,
 		},
 		featuredefs = {
 			dead = {

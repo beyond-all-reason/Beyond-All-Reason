@@ -178,7 +178,7 @@ function UnitDef_Post(name, uDef)
 
 	-- Unit Restrictions
 	if uDef.customparams then
-		if not uDef.customparams.techlevel then uDef.customparams.techlevel = 0 end
+		if not uDef.customparams.techlevel then uDef.customparams.techlevel = 1 end
 		if not uDef.customparams.subfolder then uDef.customparams.subfolder = "none" end
 
 		if Spring.GetModOptions().unit_restrictions_notech2 then
