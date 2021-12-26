@@ -1273,7 +1273,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if n % 90 == 0 then
-			removeFailChickens()
+			if not chickenteamhasplayers then
+				removeFailChickens()
+			end
 			if (queenAnger >= 100) then
 				damageMod = (damageMod + 0.005)
 			end
@@ -1307,7 +1309,9 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				SetGameRulesParam("queenAnger", queenAnger)
 			end
-			KillOldChicken()
+			if not chickenteamhasplayers then
+				KillOldChicken()
+			end
 
 			if t < config.gracePeriod then
 				-- do nothing in the grace period

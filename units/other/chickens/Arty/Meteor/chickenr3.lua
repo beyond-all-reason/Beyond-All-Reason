@@ -32,7 +32,7 @@ return {
 		maxdamage = 90000,
 		maxslope = 18,
 		maxvelocity = 2,
-		maxwaterdepth = 15,
+		maxwaterdepth = 0,
 		movementclass = "CHICKQUEEN",
 		noautofire = false,
 		nochasecategory = "VTOL",

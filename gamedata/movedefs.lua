@@ -442,12 +442,46 @@ local moveDatas = {
 
 	--Chicken Movedefs
 	CHICKQUEEN = {
-		footprintx=3,
-		footprintz=3,
-		maxwaterdepth=72,
-		maxslope=40,
-		crushstrength=15000,
-		avoidMobilesOnPath=false,
+		badslope = 22,
+		badwaterslope = 255,
+		crushstrength = 50,
+		depthmod = 0,
+		footprintx = 4,
+		footprintz = 4,
+		maxslope = 255,
+		maxwaterslope = 255,
+	},
+
+	CHICKSMALL = {
+		badslope = 22,
+		badwaterslope = 255,
+		crushstrength = 25,
+		footprintx = 3,
+		footprintz = 3,
+		maxslope = 22,
+		--slopeMod = 32,
+		maxwaterslope = 255,
+	},
+
+	CHICKBIG = {
+		badslope = 22,
+		badwaterslope = 255,
+		crushstrength = 25,
+		footprintx = 5,
+		footprintz = 5,
+		maxslope = 22,
+		--slopeMod = 32,
+		maxwaterslope = 255,
+	},
+
+	CHICKALLTERRAIN = {
+		crushstrength = 50,
+		depthmod = 0,
+		footprintx = 4,
+		footprintz = 4,
+		maxslope = 36,
+		maxwaterdepth = 5000,
+		maxwaterslope = 50,
 	},
 
 	NANO = {

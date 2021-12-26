@@ -29,7 +29,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 3.2,
 		maxwaterdepth = 15,
-		movementclass = "TBOT2",
+		movementclass = "CHICKALLTERRAIN",
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Chickens/chickenc3c.s3o",

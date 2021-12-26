@@ -35,7 +35,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 8,
 		maxwaterdepth = 0,
-		movementclass = "ABOTBOMB2",
+		movementclass = "CHICKSMALL",
 		noautofire = false,
 		nochasecategory = "VTOL HOVER",
 		objectname = "Chickens/big_chicken_dodo.s3o",
