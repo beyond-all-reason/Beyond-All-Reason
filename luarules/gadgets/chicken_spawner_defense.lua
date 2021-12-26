@@ -163,6 +163,36 @@ if gadgetHandler:IsSyncedCode() then
 
 	humanTeams[gaiaTeamID] = nil
 
+	function PutChickenAlliesInChickenTeam(n)
+		local players = Spring.GetPlayerList()
+		for i = 1,#players do
+			local player = players[i]
+			local name, active, spectator, teamID, allyTeamID = Spring.GetPlayerInfo(player)
+			if allyTeamID == chickenAllyTeamID and (not spectator) then
+				Spring.AssignPlayerToTeam(player, chickenTeamID)
+				local units = Spring.GetTeamUnits(teamID)
+				for u = 1,#units do
+					chickenteamhasplayers = true
+					Spring.DestroyUnit(units[u], false, true)
+					Spring.KillTeam(teamID)
+				end
+			end
+		end
+	
+		local chickenAllies = Spring.GetTeamList(chickenAllyTeamID)
+		for i = 1,#chickenAllies do
+			local _,_,_,AI = Spring.GetTeamInfo(chickenAllies[i])
+			local LuaAI = Spring.GetTeamLuaAI(chickenAllies[i])
+			if (AI or LuaAI) and chickenAllies[i] ~= chickenTeamID then
+				local units = Spring.GetTeamUnits(chickenAllies[i])
+				for u = 1,#units do
+					Spring.DestroyUnit(units[u], false, true)
+					Spring.KillTeam(chickenAllies[i])
+				end
+			end
+		end
+	end
+
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
 	--
@@ -871,6 +901,7 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 
 	function gadget:UnitIdle(unitID, unitDefID, unitTeam)
+		if chickenteamhasplayers then return end
 		if unitTeam ~= chickenTeamID or not chickenDefTypes[unitDefID] then
 			-- filter out non chicken units
 			return
@@ -1222,6 +1253,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- remove initial commander (no longer required)
 		if n == 1 then
+			PutChickenAlliesInChickenTeam(n)
 			local units = Spring.GetTeamUnits(chickenTeamID)
 			for _, unitID in ipairs(units) do
 				Spring.DestroyUnit(unitID, false, true)
@@ -1293,8 +1325,10 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				idleOrderQueue = {}
 				for unitID, order in pairs(processOrderQueue) do
-					GiveOrderToUnit(unitID, order.cmd, order.params, order.opts)
-					GiveOrderToUnit(unitID, CMD.MOVE_STATE, { mRandom(0, 2) }, { "shift" })
+					if not chickenteamhasplayers then
+						GiveOrderToUnit(unitID, order.cmd, order.params, order.opts)
+						GiveOrderToUnit(unitID, CMD.MOVE_STATE, { mRandom(0, 2) }, { "shift" })
+					end
 					if unitCanFly[GetUnitDefID(unitID)] then
 						GiveOrderToUnit(unitID, CMD.AUTOREPAIRLEVEL, { mRandom(0, 3) }, { "shift" })
 					end
