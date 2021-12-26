@@ -802,6 +802,8 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 			end
 		elseif gameOver and sfind(line,'left the game', nil, true) then
 			bypassThisMessage = true
+		elseif sfind(line, 'self%-destruct in ', nil, true) then
+			bypassThisMessage = true
 		end
 
 		line = convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..line
@@ -815,6 +817,7 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 	if sfind(line, 'My player ID is', nil, true) then
 		bypassThisMessage = true
 	end
+
 
 	-- ignore muted players
 	if ignoredPlayers[name] then

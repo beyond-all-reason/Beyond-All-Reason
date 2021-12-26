@@ -12,22 +12,22 @@ end
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx, vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx * vsy / 5700000))
+local fontfileScale = (0.5 + (vsx * vsy / 6200000))
 local fontfileSize = 50
 local fontfileOutlineSize = 10
 local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
-local uiScale = (0.75 + (vsx * vsy / 6000000))
+local uiScale = (0.7 + (vsx * vsy / 6500000))
 local myPlayerID = Spring.GetMyPlayerID()
 local _, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 local ffaMode = Spring.GetModOptions().ffa_mode
 local isReplay = Spring.IsReplay()
 
-local readyButtonColor = {0.05, 0.3, 0}
-local unreadyButtonColor = {0.3, 0.05, 0}
-local subButtonColor = {0.3, 0.24, 0}
-local unsubButtonColor = {0.22, 0.18, 0.12}
+local readyButtonColor = {0.05, 0.28, 0}
+local unreadyButtonColor = {0.28, 0.05, 0}
+local subButtonColor = {0.08, 0.22, 0}
+local unsubButtonColor = {0.22, 0.08, 0}
 
 local readied = false	-- send readystate (in widget:GameSetup)
 local pressedReady = false	-- pressed button
@@ -39,7 +39,7 @@ local gameStarting = false
 local timer = 0
 local timer2 = 0
 
-local buttonX = math.floor(vsx * 0.77)
+local buttonX = math.floor(vsx * 0.8)
 local buttonY = math.floor(vsy * 0.77)
 
 local orgbuttonH = 40
