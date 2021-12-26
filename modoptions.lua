@@ -107,6 +107,7 @@ local options={
 		max    = 10000, --- engine caps at lower limit if more than 3 team are ingame
 		step   = 1,  -- quantization is aligned to the def value, (step <= 0) means that there is no quantization
 		section= "restrictions",
+		hidden = true,
 	},
 	{
 		key="transportenemy",
