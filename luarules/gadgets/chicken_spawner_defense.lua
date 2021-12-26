@@ -1309,9 +1309,9 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				SetGameRulesParam("queenAnger", queenAnger)
 			end
-			if not chickenteamhasplayers then
-				KillOldChicken()
-			end
+			-- if not chickenteamhasplayers then
+			-- 	KillOldChicken()
+			-- end
 
 			if t < config.gracePeriod then
 				-- do nothing in the grace period
