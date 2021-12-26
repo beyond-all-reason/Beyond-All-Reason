@@ -2,10 +2,10 @@ return {
 	corakt4 = {
 		acceleration = 0.4416,
 		brakerate = 0.8625,
-		buildcostenergy = 15000,
+		buildcostenergy = 70000,
 		buildcostmetal = 7000,
 		buildpic = "CORAKT4.DDS",
-		buildtime = 15000,
+		buildtime = 90000,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -2 -3",
