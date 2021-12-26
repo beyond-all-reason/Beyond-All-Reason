@@ -103,11 +103,10 @@ local options={
 		desc   = 'Maximum number of units (including buildings) for each team allowed at the same time',
 		type   = 'number',
 		def    = 2000,
-		min    = 1,
+		min    = 500,
 		max    = 10000, --- engine caps at lower limit if more than 3 team are ingame
 		step   = 1,  -- quantization is aligned to the def value, (step <= 0) means that there is no quantization
 		section= "restrictions",
-		hidden = true,
 	},
 	{
 		key="transportenemy",
@@ -124,7 +123,7 @@ local options={
 	},
 	{
 		key    = "allowuserwidgets",
-		name   = "Allow user widgets",
+		name   = "Allow custom widgets",
 		desc   = "Allow custom user widgets or disallow them",
 		type   = "bool",
 		def    = true,
@@ -132,7 +131,7 @@ local options={
 	},
 	{
 		key    = 'fixedallies',
-		name   = 'Fixed ingame alliances',
+		name   = 'Disabled dynamic alliances',
 		desc   = 'Disables the possibility of players to dynamically change alliances ingame',
 		type   = 'bool',
 		def    = true,
