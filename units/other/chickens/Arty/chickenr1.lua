@@ -78,6 +78,8 @@ return {
 			goolauncher = {
 				accuracy = 512,
 				areaofeffect = 128,
+				collidefriendly = 0,
+				collidefeature = 0,
 				avoidfeature = 0,
 				avoidfriendly = 0,
 				burst = 3,

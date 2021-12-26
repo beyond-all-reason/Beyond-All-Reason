@@ -82,11 +82,12 @@ return {
 		weapondefs = {
 			controlblob = {
 				areaofeffect = 80,
+				collidefriendly = 0,
+				collidefeature = 0,
 				avoidfeature = 0,
 				avoidfriendly = 0,
 				camerashake = 0,
 				cegtag = "blood_trail",
-				collidefriendly = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.55,

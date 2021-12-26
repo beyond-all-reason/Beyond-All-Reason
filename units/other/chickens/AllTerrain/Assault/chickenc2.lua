@@ -74,7 +74,10 @@ return {
 			weapon = {
 				accuracy = 128,
 				areaofeffect = 160,
+				collidefriendly = 0,
+				collidefeature = 0,
 				avoidfeature = 0,
+				avoidfriendly = 0,
 				camerashake = 0,
 				cegtag = "ROCKTRAILsm",
 				craterboost = 0,

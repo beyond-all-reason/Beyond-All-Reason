@@ -68,9 +68,11 @@ return {
 			weapon = {
 				accuracy = 1100,
 				areaofeffect = 24,
-				avoidfriendly = false,
+				collidefriendly = 0,
+				collidefeature = 0,
+				avoidfeature = 0,
+				avoidfriendly = 0,
 				burnblow = true,
-				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.3,

@@ -86,9 +86,12 @@ return {
 		weapondefs = {
 			weapon = {
 				areaofeffect = 32,
+				collidefriendly = 0,
+				collidefeature = 0,
+				avoidfeature = 0,
+				avoidfriendly = 0,
 				avoidfriendly = false,
 				burnblow = true,
-				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.3,

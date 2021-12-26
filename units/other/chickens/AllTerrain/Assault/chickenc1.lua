@@ -75,7 +75,10 @@ return {
 			weapon = {
 				accuracy = 256,
 				areaofeffect = 96,
+				collidefriendly = 0,
+				collidefeature = 0,
 				avoidfeature = 0,
+				avoidfriendly = 0,
 				burst = 3,
 				burstrate = 0.03333,
 				camerashake = 0,

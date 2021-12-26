@@ -83,9 +83,11 @@ return {
 		weapondefs = {
 			waterweapon = {
 				areaofeffect = 16,
+				collidefriendly = 0,
+				collidefeature = 0,
+				avoidfeature = 0,
 				avoidfriendly = 0,
 				burnblow = 1,
-				collidefriendly = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.3,
