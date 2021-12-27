@@ -39,10 +39,9 @@ function makeInstanceVBOTable(layout, maxElements, myName, objectTypeAttribID, o
 	
 	if objectTypeAttribID ~= nil then
 		instanceTable.indextoUnitID = {}
-	instanceTable.indextoObjectType = {} -- ["unitID"|"unitDefID"|"featureID"|"featureDefID"]
+		instanceTable.indextoObjectType = {} -- ["unitID"|"unitDefID"|"featureID"|"featureDefID"]
 		instanceTable.objectTypeAttribID = objectTypeAttribID
-	instanceTable.objecttype = objecttype
-		
+		instanceTable.objecttype = objecttype
 	end
 	--Spring.Echo(myName,": VBO upload of #elements:",#instanceData)
 	newInstanceVBO:Upload(instanceData)
@@ -77,6 +76,16 @@ function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a vertex b
 end
 
 function resizeInstanceVBOTable(iT)
+	--[[
+		Spring.Echo("Resizing", iT.myName, "from size",iT.maxElements, "currently", iT.usedElements)
+		for i = 0, iT.usedElements - 1  do 
+			tstr = tostring(i)
+			for j = 1, iT.instanceStep do 
+				tstr =  tstr .. " " .. tostring(iT.instanceData[i* iT.instanceStep + j])
+			end
+			Spring.Echo(tstr)
+		end
+	]]--
 	-- iT: the InstanceVBOTable to double in size 'dynamically' resize the VBO, to double its size
 	iT.maxElements = iT.maxElements * 2
 	local newInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
@@ -91,36 +100,32 @@ function resizeInstanceVBOTable(iT)
 	
 	
 	for i, unitID in ipairs(iT.indextoUnitID) do
-	local objecttype = iT.indextoObjectType[i]
-	if objecttype == "unitID" then 
-		-- Sanity check for unitIDs
-		if Spring.ValidUnitID(unitID) ~= true then 
-		Spring.Echo("Invalid unitID",unitID, "at", i, "during resizing", iT.myName) 
-		else
-		iT.instanceVBO:InstanceDataFromUnitIDs(unitID, iT.objectTypeAttribID, i-1)
+		local objecttype = iT.indextoObjectType[i]
+		--Spring.Echo("Resize", iT.myName, i, unitID, objecttype)
+		if objecttype == "unitID" then 
+			-- Sanity check for unitIDs
+			if Spring.ValidUnitID(unitID) ~= true then 
+				Spring.Echo("Invalid unitID",unitID, "at", i, "during resizing", iT.myName) 
+			else
+				iT.instanceVBO:InstanceDataFromUnitIDs(unitID, iT.objectTypeAttribID, i-1)
+			end
+			iT.VAO:AddUnitsToSubmission(unitID)
+		elseif objecttype == "unitDefID" then	-- TODO 
+			iT.instanceVBO:InstanceDataFromUnitDefIDs(unitID, iT.objectTypeAttribID, nil, i-1)
+			iT.VAO:AddUnitDefsToSubmission(unitID)
+		elseif objecttype == "featureID" then 
+			if Spring.ValidFeatureID(unitID) ~= true then 
+				Spring.Echo("Invalid featureID",unitID, "at", i, "during resizing", iT.myName) 
+			else
+				iT.instanceVBO:InstanceDataFromFeatureIDs(unitID, iT.objectTypeAttribID, i-1)
+			end
+			iT.VAO:AddFeaturesToSubmission(unitID)
+		elseif objecttype == "featureDefID" then 
+			iT.instanceVBO:InstanceDataFromFeatureDefIDs(unitID, iT.objectTypeAttribID, i-1)
+			iT.VAO:AddFeatureDefsToSubmission(unitID)
 		end
-		iT.VAO:AddUnitsToSubmission(unitID)
-	elseif objecttype == "unitDefID" then	-- TODO 
-		iT.instanceVBO:InstanceDataFromUnitDefIDs(unitID, iT.objectTypeAttribID, nil, i-1)
-		iT.VAO:AddUnitDefsToSubmission(unitID)
-	elseif objecttype == "featureID" then 
-		if Spring.ValidFeatureID(unitID) ~= true then 
-		Spring.Echo("Invalid featureID",unitID, "at", i, "during resizing", iT.myName) 
-		else
-		iT.instanceVBO:InstanceDataFromFeatureIDs(unitID, iT.objectTypeAttribID, i-1)
-		end
-		iT.VAO:AddFeaturesToSubmission(unitID)
-	elseif objecttype == "featureDefID" then 
-		iT.instanceVBO:InstanceDataFromFeatureDefIDs(unitID, iT.objectTypeAttribID, i-1)
-		iT.VAO:AddFeatureDefsToSubmission(unitID)
-	end
 	end
 	
-	
-	--Spring.Echo("instanceVBOTable full, resizing to double size",iT.myName, iT.usedElements,iT.maxElements)
-	if iT.indextoUnitID then
-		iT.instanceVBO:InstanceDataFromUnitIDs(iT.indextoUnitID, iT.objectTypeAttribID)
-	end
 	return iT.maxElements
 end
 
@@ -176,31 +181,31 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	end
 	
 	if unitID ~= nil then --always upload?
-	iT.indextoUnitID[thisInstanceIndex] = unitID
-	iT.indextoObjectType[thisInstanceIndex] = objecttype
+		iT.indextoUnitID[thisInstanceIndex] = unitID
+		iT.indextoObjectType[thisInstanceIndex] = objecttype
 	end
 	
 	if noUpload ~= true then --upload or mark as dirty
 		iT.instanceVBO:Upload(thisInstance, nil, thisInstanceIndex - 1)
 	
 		if unitID ~= nil then --always upload?
-		-- [3:58 PM] ivand: InstanceDataFromUnitDefIDs(const sol::stack_table& ids, int attrID, sol::optional<int> teamIdOpt, sol::optional<int> elemOffsetOpt)
-		--[3:59 PM] ivand: teamId is the 3rd arg
+			-- [3:58 PM] ivand: InstanceDataFromUnitDefIDs(const sol::stack_table& ids, int attrID, sol::optional<int> teamIdOpt, sol::optional<int> elemOffsetOpt)
+			--[3:59 PM] ivand: teamId is the 3rd arg
 			--Spring.Echo("pushElementInstance,unitID, iT.objectTypeAttribID, thisInstanceIndex",unitID, iT.objectTypeAttribID, thisInstanceIndex)
-		if objecttype == "unitID" then 
-		iT.instanceVBO:InstanceDataFromUnitIDs(unitID, iT.objectTypeAttribID, thisInstanceIndex-1)
-		iT.VAO:AddUnitsToSubmission(unitID)
-		elseif objecttype == "unitDefID" then	-- TODO 
-		iT.instanceVBO:InstanceDataFromUnitDefIDs(unitID, iT.objectTypeAttribID, teamID, thisInstanceIndex-1)
-		iT.VAO:AddUnitDefsToSubmission(unitID)
-		elseif objecttype == "featureID" then 
-		iT.instanceVBO:InstanceDataFromFeatureIDs(unitID, iT.objectTypeAttribID, thisInstanceIndex-1)
-		iT.VAO:AddFeaturesToSubmission(unitID)
-		elseif objecttype == "featureDefID" then 
-		iT.instanceVBO:InstanceDataFromFeatureDefIDs(unitID, iT.objectTypeAttribID, thisInstanceIndex-1)
-		iT.VAO:AddFeatureDefsToSubmission(unitID)
-		end
-		
+			if objecttype == "unitID" then 
+				iT.instanceVBO:InstanceDataFromUnitIDs(unitID, iT.objectTypeAttribID, thisInstanceIndex-1)
+				iT.VAO:AddUnitsToSubmission(unitID)
+			elseif objecttype == "unitDefID" then	-- TODO 
+				iT.instanceVBO:InstanceDataFromUnitDefIDs(unitID, iT.objectTypeAttribID, teamID, thisInstanceIndex-1)
+				iT.VAO:AddUnitDefsToSubmission(unitID)
+			elseif objecttype == "featureID" then 
+				iT.instanceVBO:InstanceDataFromFeatureIDs(unitID, iT.objectTypeAttribID, thisInstanceIndex-1)
+				iT.VAO:AddFeaturesToSubmission(unitID)
+			elseif objecttype == "featureDefID" then 
+				iT.instanceVBO:InstanceDataFromFeatureDefIDs(unitID, iT.objectTypeAttribID, thisInstanceIndex-1)
+				iT.VAO:AddFeatureDefsToSubmission(unitID)
+			end
+			
 		end
 	else
 		iT.dirty = true
