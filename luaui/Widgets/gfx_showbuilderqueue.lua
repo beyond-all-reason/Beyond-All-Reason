@@ -1,6 +1,6 @@
 function widget:GetInfo()
 	return {
-		name      = "Show Builder Queue GL4",
+		name      = "Show Builder Queue",
 		desc      = "Shows buildings about to be built",
 		author    = "WarXperiment, Decay, Floris",
 		date      = "February 15, 2010",
