@@ -147,7 +147,7 @@ void main() {
 
 	uint teamIndex = (instData.y & 0x000000FFu); //leftmost ubyte is teamIndex
 	uint drawFlags = (instData.y & 0x0000FF00u) >> 8 ; // hopefully this works
-	if (overrideteam.x < 256u) teamIndex = overrideteam.x;
+	if (overrideteam.x < 255u) teamIndex = overrideteam.x;
 	
 	myTeamColor = vec4(teamColor[teamIndex].rgb, parameters.x); // pass alpha through
 	
@@ -229,8 +229,11 @@ local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, team
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
 	uniqueID = uniqueID + 1
 	teamID = teamID or 256
+	--teamID = Spring.GetUnitTeam(unitID)
+	highlight = highlight or 0	
 	teamcoloroverride = teamcoloroverride or 0
 	local DrawUnitVBOTable 
+	--Spring.Echo("DrawUnitGL4", objecttype, UnitDefs[unitDefID].name, unitID, "to uniqueID", uniqueID,"elemID", elementID)
 	if corUnitDefIDs[unitDefID] then DrawUnitVBOTable = corDrawUnitVBOTable 
 	elseif armUnitDefIDs[unitDefID] then DrawUnitVBOTable = armDrawUnitVBOTable 
 	else 
@@ -249,7 +252,6 @@ local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, team
 		nil,
 		unitID,
 		"unitID")
-	--Spring.Echo("Pushed", objecttype, unitID, "to uniqueID", uniqueID,"elemID", elementID)
 	return uniqueID
 end
 
@@ -258,7 +260,10 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID,
 	-- Documentation for DrawUnitShapeGL4:
 	--	unitDefID: which unitDef do you want to draw
 	-- px, py, py: where in the world to do you want to draw it
-	-- rotationY: Angle in radians on how much to rotate the unit around Y, usually 0
+	-- rotationY: Angle in radians on how much to rotate the unit around Y, 
+		-- 0 means it faces south, (+Z),  
+		-- pi/2 points west (-X)
+		-- -pi/2 points east
 	-- alpha: the transparency level of the unit
 	-- teamID: which teams teamcolor should this unit get, leave nil if you want to keep the original teamID
 	-- teamcoloroverride: much we should mix the teamcolor into the model color [0-1]
@@ -269,7 +274,9 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID,
 	
 	teamcoloroverride = teamcoloroverride or 0
 	teamID = teamID or 256
+	highlight = highlight or 0	
 	local DrawUnitShapeVBOTable 
+	--Spring.Echo("DrawUnitShapeGL4", "unitDefID", unitDefID, UnitDefs[unitDefID].name, "to unitDefID", uniqueID,"elemID", elementID)
 	if corUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = corDrawUnitShapeVBOTable 
 	elseif armUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = armDrawUnitShapeVBOTable 
 	else
@@ -288,7 +295,6 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID,
 		nil,
 		unitDefID,
 		"unitDefID")
-	--Spring.Echo("Pushed", "unitDefID", unitDefID, "to unitDefID", uniqueID,"elemID", elementID)
 	return uniqueID
 end
 
@@ -359,7 +365,7 @@ function widget:Initialize()
 			{id = 9, name = "instData", type = GL.UNSIGNED_INT, size = 4},
 		}
 
-	local maxElements = 32 -- start small for testing
+	local maxElements = 6 -- start small for testing
 	local unitIDAttributeIndex = 9
 	corDrawUnitVBOTable         = makeInstanceVBOTable(VBOLayout, maxElements, "corDrawUnitVBOTable", unitIDAttributeIndex, "unitID")
 	armDrawUnitVBOTable         = makeInstanceVBOTable(VBOLayout, maxElements, "armDrawUnitVBOTable", unitIDAttributeIndex, "unitID")
@@ -420,7 +426,7 @@ function widget:Initialize()
 		end
 	end
 	WG['DrawUnitGL4'] = DrawUnitGL4
-	WG['DrawUnitGL4'] = DrawUnitShapeGL4
+	WG['DrawUnitShapeGL4'] = DrawUnitShapeGL4
 	WG['StopDrawUnitGL4'] = StopDrawUnitGL4
 	WG['StopDrawUnitShapeGL4'] = StopDrawUnitShapeGL4
 end
@@ -434,7 +440,7 @@ function widget:Shutdown()
 	if unitShapeShader then unitShapeShader:Finalize() end
 	
 	WG['DrawUnitGL4'] = nil
-	WG['DrawUnitGL4'] = nil
+	WG['DrawUnitShapeGL4'] = nil
 	WG['StopDrawUnitGL4'] = nil
 	WG['StopDrawUnitShapeGL4'] = nil
 end
