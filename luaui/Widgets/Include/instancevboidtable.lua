@@ -111,7 +111,6 @@ function resizeInstanceVBOTable(iT)
 			end
 			iT.VAO:AddUnitsToSubmission(unitID)
 		elseif objecttype == "unitDefID" then	-- TODO 
-			Spring.Echo('iT.instanceVBO:InstanceDataFromUnitDefIDs',unitID, iT.objectTypeAttribID)
 			iT.instanceVBO:InstanceDataFromUnitDefIDs(unitID, iT.objectTypeAttribID, nil, i-1)
 			iT.VAO:AddUnitDefsToSubmission(unitID)
 		elseif objecttype == "featureID" then 
