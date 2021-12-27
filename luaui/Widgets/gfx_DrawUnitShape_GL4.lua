@@ -7,7 +7,7 @@ function widget:GetInfo()
     date      = "2021.11.04",
     license   = "GPL",
     layer     = 0,
-    enabled   = false,
+    enabled   = true,
   }
 end
 
@@ -17,7 +17,7 @@ end
   -- corunitVBO
   -- armunitVBO
 	-- for unitVBOs, we need to make sure we dont draw outside of disticon stuff, or else suffer for it
-	
+
   -- corunitShapeVBO
   -- armunitShapeVBO
 		-- for unitshape, we also need a teamID so that we can lookup the teamcolor!
@@ -31,7 +31,7 @@ end
 	-- clip when Icon
   -- for UnitIDs:
 	-- Dont clip when icon, doesnt make sense :D
-  
+
 -- unified shader -- needs matrix detection for unit offsets
 -- When to draw?
   --UnitShape is in Preunit
@@ -41,7 +41,7 @@ end
   --drawUnit is in drawworld
 	-- enable depth testing and backface culling
 	-- this usually additively blends with a 'flat' (usually team) color
-	
+
   -- NO REFLECTIONS, REFRACTIONS ET AL
 
 -- void LuaVAOImpl::RemoveFromSubmission(int idx)
@@ -123,12 +123,12 @@ out vec3 worldPos;
 void main() {
 	uint baseIndex = instData.x;
 	mat4 modelMatrix = mat[baseIndex];
-	
+
 	uint isDynamic = 1u; //default dynamic model
 	if (parameters.y > 0.5) isDynamic = 0u;  //if paramy == 1 then the unit is static
 	// dynamic models have one extra matrix, as their first matrix is their world pos/offset
-	mat4 pieceMatrix = mat4mix(mat4(1.0), mat[baseIndex + pieceIndex + isDynamic ], modelMatrix[3][3]); 
-	
+	mat4 pieceMatrix = mat4mix(mat4(1.0), mat[baseIndex + pieceIndex + isDynamic ], modelMatrix[3][3]);
+
 	vec4 localModelPos = pieceMatrix * vec4(pos, 1.0);
 	float sinrot = sin(worldposrot.w);
 	float cosrot = cos(worldposrot.w);
@@ -136,21 +136,21 @@ void main() {
 	float newz = sinrot * localModelPos.x + cosrot * localModelPos.z;
 	localModelPos.x = newx;
 	localModelPos.z = newz;
-  
+
 	vec4 modelPos = modelMatrix * localModelPos;
 
-	modelPos.xyz += worldposrot.xyz; //instOffset;	
+	modelPos.xyz += worldposrot.xyz; //instOffset;
 	//if (parameters.y > 0.5) modelPos.xyz += mouseWorldPos.xyz; // we offset drawn defs with mouse
-	
+
 	vec3 modelBaseToCamera = cameraViewInv[3].xyz - (modelMatrix[3].xyz + worldposrot.xyz);
 
 
 	uint teamIndex = (instData.y & 0x000000FFu); //leftmost ubyte is teamIndex
 	uint drawFlags = (instData.y & 0x0000FF00u) >> 8 ; // hopefully this works
 	if (overrideteam.x < 255u) teamIndex = overrideteam.x;
-	
+
 	myTeamColor = vec4(teamColor[teamIndex].rgb, parameters.x); // pass alpha through
-	
+
 	myTeamColor.a = parameters.x;
 	if ( dot (modelBaseToCamera, modelBaseToCamera) >  (iconDistance * iconDistance)) myTeamColor.a = 0.0; // do something if we are far out?
 	v_parameters = parameters;
@@ -185,13 +185,13 @@ void main() {
 	modelColor += modelColor * extraColor.r; // emission
 	modelColor.a *= extraColor.a; // basic model transparency
 	modelColor.rgb = mix(modelColor.rgb, myTeamColor.rgb, modelColor.a); // apply teamcolor
-	
+
 	modelColor.a *= myTeamColor.a; // shader define transparency
 	modelColor.rgb = mix(modelColor.rgb, myTeamColor.rgb, v_parameters.z); //globalteamcoloramount override
 	if (v_parameters.w > 0){
 		modelColor.rgb = mix(modelColor.rgb, vec3(1.0), v_parameters.w*fract(worldPos.y*0.03 + timeInfo.x*0.05));
 	}
-	
+
 	fragColor = vec4(modelColor.rgb, myTeamColor.a);
 
 }
@@ -224,19 +224,19 @@ local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, team
 	-- highlight: how much we should add a highlighting animation to the unit (blends white with [0-1])
 	-- returns: a unique handler ID number that you should store and call StopDrawUnitGL4(uniqueID) with to stop drawing it
 	-- note that widgets are responsible for stopping the drawing of every unit that they submit!
-	
-	
+
+
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
 	uniqueID = uniqueID + 1
 	teamID = teamID or 256
 	--teamID = Spring.GetUnitTeam(unitID)
-	highlight = highlight or 0	
+	highlight = highlight or 0
 	teamcoloroverride = teamcoloroverride or 0
-	local DrawUnitVBOTable 
+	local DrawUnitVBOTable
 	--Spring.Echo("DrawUnitGL4", objecttype, UnitDefs[unitDefID].name, unitID, "to uniqueID", uniqueID,"elemID", elementID)
-	if corUnitDefIDs[unitDefID] then DrawUnitVBOTable = corDrawUnitVBOTable 
-	elseif armUnitDefIDs[unitDefID] then DrawUnitVBOTable = armDrawUnitVBOTable 
-	else 
+	if corUnitDefIDs[unitDefID] then DrawUnitVBOTable = corDrawUnitVBOTable
+	elseif armUnitDefIDs[unitDefID] then DrawUnitVBOTable = armDrawUnitVBOTable
+	else
 		Spring.Echo("The given unitDefID", unitDefID, "is neither arm nor cor, only those two are supported at the moment")
 		return nil
 	end
@@ -244,7 +244,7 @@ local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, team
 	local elementID = pushElementInstance(DrawUnitVBOTable, {
 			px, py, pz, rotationY,
 			alpha, 0, teamcoloroverride,highlight ,
-			teamID, 0, 
+			teamID, 0,
 			0,0,0,0
 		},
 		uniqueID,
@@ -260,8 +260,8 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID,
 	-- Documentation for DrawUnitShapeGL4:
 	--	unitDefID: which unitDef do you want to draw
 	-- px, py, py: where in the world to do you want to draw it
-	-- rotationY: Angle in radians on how much to rotate the unit around Y, 
-		-- 0 means it faces south, (+Z),  
+	-- rotationY: Angle in radians on how much to rotate the unit around Y,
+		-- 0 means it faces south, (+Z),
 		-- pi/2 points west (-X)
 		-- -pi/2 points east
 	-- alpha: the transparency level of the unit
@@ -271,23 +271,23 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID,
 	-- returns: a unique handler ID number that you should store and call StopDrawUnitGL4(uniqueID) with to stop drawing it
 	-- note that widgets are responsible for stopping the drawing of every unit that they submit!
 	uniqueID = uniqueID + 1
-	
+
 	teamcoloroverride = teamcoloroverride or 0
 	teamID = teamID or 256
-	highlight = highlight or 0	
-	local DrawUnitShapeVBOTable 
+	highlight = highlight or 0
+	local DrawUnitShapeVBOTable
 	--Spring.Echo("DrawUnitShapeGL4", "unitDefID", unitDefID, UnitDefs[unitDefID].name, "to unitDefID", uniqueID,"elemID", elementID)
-	if corUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = corDrawUnitShapeVBOTable 
-	elseif armUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = armDrawUnitShapeVBOTable 
+	if corUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = corDrawUnitShapeVBOTable
+	elseif armUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = armDrawUnitShapeVBOTable
 	else
 		Spring.Echo("The given unitDefID", unitDefID, "is neither arm nor cor, only those two are supported at the moment")
 		return nil
 	end
-	
+
 	local elementID = pushElementInstance(DrawUnitShapeVBOTable, {
 			px, py, pz, rotationY,
 			alpha, 1, teamcoloroverride, highlight,
-			teamID, 0, 
+			teamID, 0,
 			0,0,0,0
 		},
 		uniqueID,
@@ -323,12 +323,12 @@ end
 local unitIDtoUniqueID = {}
 local unitDefIDtoUniqueID = {}
 
-local TESTMODE = true
+local TESTMODE = false
 
 function widget:UnitCreated(unitID, unitDefID)
-	if TESTMODE then 
+	if TESTMODE then
 		unitIDtoUniqueID[unitID] =  DrawUnitGL4(unitID, unitDefID,  0, 0, 0, math.random()*2, 0.6)
-		
+
 		local px, py, pz = Spring.GetUnitPosition(unitID)
 		unitDefIDtoUniqueID[unitID] = DrawUnitShapeGL4(Spring.GetUnitDefID(unitID), px+20, py + 50, pz+20, 0, 0.6)
 	end
@@ -338,7 +338,7 @@ function widget:UnitDestroyed(unitID)
 	if TESTMODE then
 		StopDrawUnitGL4(unitIDtoUniqueID[unitID])
 		unitIDtoUniqueID[unitID] = nil
-		
+
 		StopDrawUnitShapeGL4(unitDefIDtoUniqueID[unitID])
 		unitDefIDtoUniqueID[unitID] = nil
 	end
@@ -352,13 +352,13 @@ function widget:Initialize()
 			corUnitDefIDs[unitDefID] = true
 		end
 	end
-	
+
 	local vertVBO = gl.GetVBO(GL.ARRAY_BUFFER, false) -- GL.ARRAY_BUFFER, false
 	local indxVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false) -- GL.ARRAY_BUFFER, false
 	vertVBO:ModelsVBO()
 	indxVBO:ModelsVBO()
-	
-	local VBOLayout = { 
+
+	local VBOLayout = {
 			{id = 6, name = "worldposrot", size = 4},
 			{id = 7, name = "parameters" , size = 4},
 			{id = 8, name = "overrideteam" , type = GL.UNSIGNED_INT, size = 2},
@@ -372,13 +372,13 @@ function widget:Initialize()
 	corDrawUnitShapeVBOTable    = makeInstanceVBOTable(VBOLayout, maxElements, "corDrawUnitShapeVBOTable", unitIDAttributeIndex, "unitDefID")
 	armDrawUnitShapeVBOTable    = makeInstanceVBOTable(VBOLayout, maxElements, "armDrawUnitShapeVBOTable", unitIDAttributeIndex, "unitDefID")
 	VBOTables = {corDrawUnitVBOTable, corDrawUnitShapeVBOTable, armDrawUnitVBOTable, armDrawUnitShapeVBOTable}
-	
+
 	for i,VBOTable in ipairs(VBOTables) do -- attach everything together
 		VBOTable.VAO = makeVAOandAttach(vertVBO, VBOTable.instanceVBO, indxVBO)
 		VBOTable.indexVBO = indxVBO
 		VBOTable.vertexVBO = vertVBO
 	end
-	
+
 	local unitIDs = Spring.GetAllUnits()
 	local featuresIDs = Spring.GetAllFeatures()
 
@@ -389,7 +389,7 @@ function widget:Initialize()
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	
+
 	unitShader = LuaShader({
 		vertex = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unitShaderConfig)),
 		fragment = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unitShaderConfig)),
@@ -401,7 +401,7 @@ function widget:Initialize()
 			iconDistance = 1,
 		  },
 	}, "UnitGL4 API")
-	
+
 	unitShapeShader = LuaShader({
 		vertex = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unitShapeShaderConfig)),
 		fragment = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unitShapeShaderConfig)),
@@ -413,7 +413,7 @@ function widget:Initialize()
 			iconDistance = 1,
 		  },
 	}, "UnitShapeGL4 API")
-	
+
 	local unitshaderCompiled = unitShader:Initialize()
 	local unitshapeshaderCompiled = unitShapeShader:Initialize()
 	if unitshaderCompiled ~= true or  unitshapeshaderCompiled ~= true then
@@ -438,7 +438,7 @@ function widget:Shutdown()
 	end
 	if unitShader then unitShader:Finalize() end
 	if unitShapeShader then unitShapeShader:Finalize() end
-	
+
 	WG['DrawUnitGL4'] = nil
 	WG['DrawUnitShapeGL4'] = nil
 	WG['StopDrawUnitGL4'] = nil
@@ -446,50 +446,50 @@ function widget:Shutdown()
 end
 
 function widget:DrawWorldPreUnit() -- this is for UnitDef
-	if armDrawUnitShapeVBOTable.usedElements > 0 or corDrawUnitShapeVBOTable.usedElements > 0 then 
+	if armDrawUnitShapeVBOTable.usedElements > 0 or corDrawUnitShapeVBOTable.usedElements > 0 then
 		gl.Culling(GL.BACK)
 		gl.DepthMask(false)
 		gl.DepthTest(false)
-		gl.PolygonOffset ( 0.5,0.5 ) 
+		gl.PolygonOffset ( 0.5,0.5 )
 		unitShapeShader:Activate()
-		unitShapeShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200)) 
+		unitShapeShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200))
 		if (corDrawUnitShapeVBOTable.usedElements > 0 ) then
 			gl.UnitShapeTextures(corcomUnitDefID, true)
 			corDrawUnitShapeVBOTable.VAO:Submit()
 		end
-		
+
 		if (armDrawUnitShapeVBOTable.usedElements > 0 ) then
 			gl.UnitShapeTextures(armcomUnitDefID, true)
 			armDrawUnitShapeVBOTable.VAO:Submit()
 		end
-		
+
 		unitShapeShader:Deactivate()
 		gl.UnitShapeTextures(udefID, false)
-		gl.PolygonOffset( false ) 
+		gl.PolygonOffset( false )
 		gl.Culling(false)
 	end
 end
 
 function widget:DrawWorld()
-	if armDrawUnitVBOTable.usedElements > 0 or corDrawUnitVBOTable.usedElements > 0 then 
+	if armDrawUnitVBOTable.usedElements > 0 or corDrawUnitVBOTable.usedElements > 0 then
 		gl.Culling(GL.BACK)
 		gl.DepthMask(true)
 		gl.DepthTest(true)
-		gl.PolygonOffset( -2 ,-2) 
+		gl.PolygonOffset( -2 ,-2)
 		unitShader:Activate()
-		unitShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200)) 
+		unitShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200))
 		if (corDrawUnitVBOTable.usedElements > 0 ) then
 			gl.UnitShapeTextures(corcomUnitDefID, true)
 			corDrawUnitVBOTable.VAO:Submit()
 		end
-		
+
 		if (armDrawUnitVBOTable.usedElements > 0 ) then
 			gl.UnitShapeTextures(armcomUnitDefID, true)
 			armDrawUnitVBOTable.VAO:Submit()
 		end
 		unitShader:Deactivate()
 		gl.UnitShapeTextures(udefID, false)
-		gl.PolygonOffset( false ) 
+		gl.PolygonOffset( false )
 		gl.Culling(false)
 	end
 end

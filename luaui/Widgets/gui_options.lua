@@ -4670,6 +4670,11 @@ function widget:Initialize()
 			widgetHandler:DisableWidget("Ambient Player")
 		end
 
+	-- enable this previous default disabled widget
+	if widgetHandler.orderList["DrawUnitShape GL4"] and widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
+		widgetHandler:EnableWidget("DrawUnitShape GL4")
+	end
+
 	if widgetHandler.orderList["FlowUI"] and widgetHandler.orderList["FlowUI"] < 0.5 then
 		widgetHandler:EnableWidget("FlowUI")
 	end
