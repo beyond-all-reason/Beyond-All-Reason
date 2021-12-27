@@ -106,6 +106,9 @@ local function spawnConstructor(n)
 
 		local posx, posy, posz = Spring.GetUnitPosition(pickedBeacon)
 		local nearestEnemy = Spring.GetUnitNearestEnemy(pickedBeacon, 99999, false)
+		if nearestEnemy == nil then -- no enemy units left on the map, the humans are dead!
+			return  -- binary solo 1111001 11111001
+		end
 		local nearestEnemyTeam = Spring.GetUnitTeam(nearestEnemy)
 		local canSpawnCommanderHere
 
