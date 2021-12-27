@@ -1,18 +1,19 @@
 function widget:GetInfo()
 	return {
-		name      = "Show Builder Queue",
+		name      = "Show Builder Queue GL4",
 		desc      = "Shows buildings about to be built",
 		author    = "WarXperiment, Decay, Floris",
 		date      = "February 15, 2010",
 		license   = "GNU GPL, v2 or later",
-        version   = 7,
+        version   = 8,
         layer     = 55,
 		enabled   = true,
     }
 end
 
-local maxDisplayedUnits = 70
-local dontShowWhenDistIcon = true
+
+local shapeOpacity = 0.3
+local maxQueueDepth = 500	-- not literal depth
 
 --Changelog
 -- before v2 developed by WarXperiment
@@ -22,6 +23,7 @@ local dontShowWhenDistIcon = true
 -- v5 Floris - cleanup, polishing and fixes
 -- v6 Floris - limited to not show when (would be) icon
 -- v7 Floris - simplified/cleanup
+-- v8 Floris - GL4 unit shape rendering
 
 local myPlayerID = Spring.GetMyPlayerID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
@@ -31,26 +33,14 @@ local spGetCommandQueue = Spring.GetCommandQueue
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetGroundHeight = Spring.GetGroundHeight
-local spIsAABBInView = Spring.IsAABBInView
-local spGetCameraPosition = Spring.GetCameraPosition
 local spGetUnitPosition = Spring.GetUnitPosition
-local diag = math.diag
 local floor = math.floor
-
-local glPushMatrix = gl.PushMatrix
-local glLoadIdentity = gl.LoadIdentity
-local glTranslate = gl.Translate
-local glRotate = gl.Rotate
-local glUnitShape = gl.UnitShape
-local glPopMatrix = gl.PopMatrix
-
-local disticon = Spring.GetConfigInt("UnitIconDist", 200)
-
-local chobbyInterface
+local math_halfpi = math.pi / 2
 
 local sec = 0
 local lastUpdate = 0
 
+local unitshapes = {}
 local command = {}
 local builderCommands = {}
 local createdUnit = {}
@@ -64,9 +54,22 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
-local function getFootprintPos(value)	-- not entirely acurate, unsure why
-	local precision = 16		-- (footprint 1 = 16 map distance)
-	return (math.floor(value/precision)*precision)+(precision/2)
+local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID)
+	if not WG.DrawUnitShapeGL4 then
+		widget:Shutdown()
+	else
+		unitshapes[id] = WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, shapeOpacity, teamID)
+		return unitshapes[id]
+	end
+end
+
+local function removeUnitShape(id)
+	if not WG.StopDrawUnitShapeGL4 then
+		widget:Shutdown()
+	else
+		WG.StopDrawUnitShapeGL4(unitshapes[id])
+		unitshapes[id] = nil
+	end
 end
 
 local function clearbuilderCommands(unitID)
@@ -77,6 +80,7 @@ local function clearbuilderCommands(unitID)
 				command[id].builders = command[id].builders - 1
 				if command[id].builders == 0 then
 					command[id] = nil
+					removeUnitShape(id)
 				end
 			end
 		end
@@ -84,11 +88,17 @@ local function clearbuilderCommands(unitID)
 	end
 end
 
+--local function getFootprintPos(value)	-- not entirely acurate, unsure why
+--	local precision = 16		-- (footprint 1 = 16 map distance)
+--	return (math.floor(value/precision)*precision)+(precision/2)
+--end
+
+
 local function checkBuilder(unitID)
 	clearbuilderCommands(unitID)
 	local queueDepth = spGetCommandQueue(unitID, 0)
 	if queueDepth and queueDepth > 0 then
-		local queue = spGetCommandQueue(unitID, math.min(queueDepth, 200))
+		local queue = spGetCommandQueue(unitID, math.min(queueDepth, maxQueueDepth))
 		for i=1, #queue do
 			local cmd = queue[i]
 			if cmd.id < 0 then
@@ -105,6 +115,7 @@ local function checkBuilder(unitID)
 				if createdUnit[id] == nil then
 					if command[id] == nil then
 						command[id] = {id = myCmd, builders = 0}
+						addUnitShape(id, math.abs(cmd.id), floor(cmd.params[1]), spGetGroundHeight(floor(cmd.params[1]), floor(cmd.params[3])), floor(cmd.params[3]), cmd.params[4] and -(cmd.params[4] * math_halfpi) or 0, myCmd.id)
 					end
 					command[id][unitID] = true
 					command[id].builders = command[id].builders + 1
@@ -118,7 +129,12 @@ local function checkBuilder(unitID)
 	end
 end
 
-local function init()
+
+function widget:Initialize()
+	if not WG.DrawUnitShapeGL4 then
+		widgetHandler:RemoveWidget()
+	end
+
 	command = {}
 	local allUnits = Spring.GetAllUnits()
 	for i=1, #allUnits do
@@ -129,9 +145,11 @@ local function init()
 	end
 end
 
-function widget:Initialize()
-	if Spring.GetGameFrame() > 0 then
-		init()
+function widget:Shutdown()
+	if WG.StopDrawUnitShapeGL4 then
+		for id, shapeID in pairs(unitshapes) do
+			removeUnitShape(id)
+		end
 	end
 end
 
@@ -142,7 +160,8 @@ function widget:PlayerChanged(playerID)
 	spec, fullview,_ = Spring.GetSpectatingState()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	if playerID == myPlayerID or (spec and prevMyAllyTeamID ~= myAllyTeamID or prevFullview ~= fullview) then
-		init()
+		widget:Shutdown()
+		widget:Initialize()
 	end
 end
 
@@ -157,7 +176,6 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > lastUpdate + 0.12 then
 		lastUpdate = sec
-		disticon = math.min(350, Spring.GetConfigInt("UnitIconDist", 200))
 
 		-- process newly given commands (not done in widgetUnitCommand() because with huge build queue it eats memory and can crash lua)
 		local clock = os.clock()
@@ -173,6 +191,10 @@ end
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local x,_,z = spGetUnitPosition(unitID)
 	local id = unitTeam..'_'..unitDefID..'_'..floor(x)..'_'..floor(z)
+
+	if unitshapes[id] then
+		removeUnitShape(id)
+	end
 	command[id] = nil
 	-- we need to store all newly created units cause unitcreated can be earlier than our delayed processing of widget:UnitCommand (when a newly queued cmd is first and withing builder range)
 	createdUnit[id] = true
@@ -197,41 +219,4 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, builderID)
 		clearbuilderCommands(unitID)
 	end
 	clearCommandUnit(unitID)
-end
-
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
-
-function widget:DrawWorld()
-	if chobbyInterface or Spring.IsGUIHidden() then return end
-
-	local camX, camY, camZ = spGetCameraPosition()
-	local dist
-	local commandVisible = 0
-	for _, units in pairs(command) do
-		local myCmd = units.id
-		local params = myCmd.params
-		local x, y, z = params[1], params[2], params[3]
-		if spIsAABBInView(x-1,y-1,z-1,x+1,y+1,z+1) then
-			if dontShowWhenDistIcon then
-				dist = diag(camX-x, camY-y, camZ-z)		-- note it doesnt result in comparable distance as disticon
-			end
-			if not dontShowWhenDistIcon or dist < disticon*30 then
-				local degrees = params[4] ~= nil and params[4] * 90  or 0 -- mex command doesnt supply param 4
-				glPushMatrix()
-				glLoadIdentity()
-				glTranslate( x, y, z )
-				glRotate( degrees, 0, 1, 0 )
-				glUnitShape(myCmd.id, myCmd.teamid, false, false, false)
-				glPopMatrix()
-				commandVisible = commandVisible + 1
-				if commandVisible >= maxDisplayedUnits then
-					break
-				end
-			end
-		end
-	end
 end
