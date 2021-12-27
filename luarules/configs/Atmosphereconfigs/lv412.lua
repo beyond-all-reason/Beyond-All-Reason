@@ -24,46 +24,46 @@ function gadget:GameFrame(n)
 
 -- SND hive airbursts
     if n%860 == 450 then
-		SpawnCEGInAreaGround("ventairburst", 1814, 0, 5628, 75, _, _, _, "ventair", 0.35)
+		SpawnCEGInAreaGround("ventairburst", 1814, 0, 5628, 75, _, _, _, "ventair", 0.45)
 	end	
 
 	if n%880 == 100 then
-		SpawnCEGInAreaGround("ventairburst", 3229, 0, 6260, 60, _, _, _, "ventair", 0.36)
+		SpawnCEGInAreaGround("ventairburst", 3229, 0, 6260, 60, _, _, _, "ventair", 0.46)
 	end	
 
 	if n%900 == 690 then
-		SpawnCEGInAreaGround("ventairburst", 2327, 0, 2510, 80, _, _, _, "ventair", 0.37)
+		SpawnCEGInAreaGround("ventairburst", 2327, 0, 2510, 80, _, _, _, "ventair", 0.47)
 	end	
 
 	if n%890 == 785 then
-		SpawnCEGInAreaGround("ventairburst", 4083, 0, 6433, 100, _, _, _, "ventair", 0.34)
+		SpawnCEGInAreaGround("ventairburst", 4083, 0, 6433, 100, _, _, _, "ventair", 0.46)
 	end
 
 	if n%870 == 235 then
-		SpawnCEGInAreaGround("ventairburst", 4176, 0, 2049, 225, _, _, _, "ventair", 0.33)
+		SpawnCEGInAreaGround("ventairburst", 4176, 0, 2049, 225, _, _, _, "ventair", 0.45)
 	end	
 
 	if n%1010 == 500 then
-		SpawnCEGInAreaGround("ventairburst", 5786, 0, 5602, 75, _, _, _, "ventair", 0.35)
+		SpawnCEGInAreaGround("ventairburst", 5786, 0, 5602, 75, _, _, _, "ventair", 0.46)
 	end	
 
 	if n%820 == 810 then
-		SpawnCEGInAreaGround("ventairburst", 5869, 0, 6072, 125, _, _, _, "ventair", 0.36)
+		SpawnCEGInAreaGround("ventairburst", 5869, 0, 6072, 125, _, _, _, "ventair", 0.47)
 	end		
 
 -- SND windy locations
 	if n%1160 == 0 then
 		--SpawnCEGInPositionGround("noceg", 3500, 700, 800, _, _, _, "windy_mountains", 0.35)
-		SpawnCEGInRandomMapPosBelowY("noceg", 400, 300, _, _, _, "windy_mountains", 0.43)
+		SpawnCEGInRandomMapPosBelowY("noceg", 400, 300, _, _, _, "windy_mountains", 0.50)
 	end
 
 	if n%1270 == 300 then
 		--SpawnCEGInPositionGround("noceg", 2500, 700, 6800, _, _, _, "windy_mountains", 0.35)
-		SpawnCEGInRandomMapPosBelowY("noceg", 400, 300, _, _, _, "windy_mountains", 0.44)
+		SpawnCEGInRandomMapPosBelowY("noceg", 400, 300, _, _, _, "windy_mountains", 0.49)
 	end
 
 	if n%1130 == 600 then
-		SpawnCEGInRandomMapPosBelowY("noceg", 400, 400, _, _, _, "windy_mountains", 0.45)
+		SpawnCEGInRandomMapPosBelowY("noceg", 400, 400, _, _, _, "windy_mountains", 0.50)
 	end
 
 	-- if n%1200 == 300 then
@@ -73,7 +73,7 @@ function gadget:GameFrame(n)
 -- distant thunder
 
 if n%2000 == 0 then
-		SpawnCEGInRandomMapPosBelowY("noceg", 800, 400, _, _, _, "distantthunder", 0.60)
+		SpawnCEGInRandomMapPosBelowY("noceg", 800, 400, _, _, _, "distantthunder", 0.62)
 	end
 
 -- fireflies	
