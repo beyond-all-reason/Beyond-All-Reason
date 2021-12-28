@@ -92,14 +92,11 @@ void main() {
 	v_modelPosOrig = localModelPos.xyz + (modelMatrix[3].xyz)*0.3;
 	vec4 modelPos = modelMatrix * localModelPos;
 
-	//uint teamIndex = (instData.y & 0x000000FFu); //leftmost ubyte is teamIndex
-	//myTeamColor = vec4(teamColor[teamIndex].rgb, 1.0); // pass alpha through
-
 	v_endcolor_alpha.rgba = endcolor_endgameframe.rgba;
 	v_endcolor_alpha.a = clamp( (v_endcolor_alpha.a - timeInfo.x + 100) * 0.01, 0.0, 1.0); // fade out for end time
 
-	float paralyzestrength = uni[instData.y].userDefined[1].x;
-	v_endcolor_alpha.a = clamp(pow(paralyzestrength, 3.0), 0.0, 1.0);
+	float paralyzestrength = uni[instData.y].userDefined[1].x; // this (paralyzedamage/maxhealth), so >=1.0 is paralyzed
+	v_endcolor_alpha.a = clamp(pow(paralyzestrength, 2.0), 0.0, 1.1);
 	if ((uni[instData.y].composite & 0x00000003u) < 1u ) v_endcolor_alpha.a = 0.0; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon))
 
 	v_startcolorpower = startcolorpower;
@@ -157,8 +154,9 @@ in vec4 v_endcolor_alpha;
 out vec4 fragColor;
 #line 25000
 void main() {
-
-	vec4 noiseposition = 0.11*vec4(v_modelPosOrig, (timeInfo.x + timeInfo.w)*0.5);
+	float noisescale = 0.11;
+	//if (v_endcolor_alpha.a < 1.0) noisescale = 0.075;
+	vec4 noiseposition = noisescale*vec4(v_modelPosOrig, (timeInfo.x + timeInfo.w)*0.5);
 	float noisevalue;
 	noisevalue  = 0.5000*noise( noiseposition ); noiseposition = noisematrix*noiseposition*2.01;
 	noisevalue += 0.2500*noise( noiseposition ); noiseposition = noisematrix*noiseposition*2.02;
@@ -167,9 +165,22 @@ void main() {
 
 	float electricity = clamp(1.0 - abs(noisevalue  - 0.5)*5.0, 0.0, 1.0);
 	electricity = pow(electricity, v_startcolorpower.w);
-	vec3 lightcolor = mix(v_endcolor_alpha.rgb, v_startcolorpower.rgb, electricity);
-
-	fragColor = vec4(lightcolor, electricity*v_endcolor_alpha.a);
+	
+	
+	vec3 lightcolor;
+	float outalpha;
+	if (v_endcolor_alpha.a > 1.0) { // for fully paralyzed, increase transparency
+		lightcolor = mix(v_endcolor_alpha.rgb, v_startcolorpower.rgb, electricity);
+		outalpha = v_endcolor_alpha.a * 1.2;
+	}
+	else
+	{
+		lightcolor = mix(vec3(1.0, 1.0, 0.0), v_startcolorpower.rgb, electricity); // pee yellow for non fully-paralyzed units
+		//lightcolor = mix(vec3(0.0, 0.0, 1.0), v_startcolorpower.rgb, electricity); // pee yellow for non fully-paralyzed units
+		outalpha = v_endcolor_alpha.a * 0.7; // less transparency non-paralyzed
+	}
+	
+	fragColor = vec4(lightcolor, electricity*outalpha);
 	//fragColor = vec4(vec3(electricity), 1.0);
 	//fragColor = vec4(1.0);
 }
