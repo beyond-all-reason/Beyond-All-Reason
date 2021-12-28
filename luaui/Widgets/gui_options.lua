@@ -2971,7 +2971,7 @@ function init()
 		  end,
 		},
 
-		{ id = "showbuilderqueue", group = "ui", category = types.basic, widget = "Show Builder Queue", name = texts.option.showbuilderqueue, type = "bool", value = GetWidgetToggleValue("Show Builder Queue"), description = texts.option.showbuilderqueue_descr },
+		{ id = "showbuilderqueue", group = "ui", category = types.advanced, widget = "Show Builder Queue", name = texts.option.showbuilderqueue, type = "bool", value = GetWidgetToggleValue("Show Builder Queue"), description = texts.option.showbuilderqueue_descr },
 
 		{ id = "unitenergyicons", group = "ui", category = types.advanced, widget = "Unit Energy Icons", name = texts.option.unitenergyicons, type = "bool", value = GetWidgetToggleValue("Unit Energy Icons"), description = texts.option.unitenergyicons_descr },
 

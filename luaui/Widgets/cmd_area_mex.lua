@@ -45,7 +45,6 @@ local activeCmd = select(4, spGetActiveCommand())
 local buildmenuMexSelected = false
 local metalmap = false
 
-local mexes = {}
 local mexBuilder = {}
 
 local mexIds = {}
@@ -133,7 +132,7 @@ local function NoAlliedMex(x, z, batchextracts)
 	local mexesatspot = Spring.GetUnitsInCylinder(x, z, Game.extractorRadius)
 	for i = 1, #mexesatspot do
 		local uid = mexesatspot[i]
-		if mexIds[spGetUnitDefID(uid)] and Spring.AreTeamsAllied(Spring.GetMyTeamID(), Spring.GetUnitTeam(uid)) and mexIds[spGetUnitDefID(uid)] >= batchextracts then
+		if mexIds[spGetUnitDefID(uid)] and Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(uid)) and mexIds[spGetUnitDefID(uid)] >= batchextracts then
 			return false
 		end
 	end
@@ -208,7 +207,7 @@ function widget:Update()
 		-- mex-upgrade mouse cursor
 		local mx, my = Spring.GetMouseState()
 		local type, params = Spring.TraceScreenRay(mx, my)
-		local isT1Mex = (type == 'unit' and mexIds[Spring.GetUnitDefID(params)] and mexIds[Spring.GetUnitDefID(params)] < 0.002)
+		local isT1Mex = (type == 'unit' and mexIds[spGetUnitDefID(params)] and mexIds[spGetUnitDefID(params)] < 0.002)
 		local closestMex
 		if isT1Mex or type == 'ground' then
 			local proceed = false
@@ -260,7 +259,7 @@ function widget:CommandNotify(id, params, options)
 	if isGuard then
 		local mx, my = Spring.GetMouseState()
 		local type, unitID = Spring.TraceScreenRay(mx, my)
-		if not (type == 'unit' and mexIds[Spring.GetUnitDefID(unitID)] and mexIds[Spring.GetUnitDefID(unitID)] < 0.002) then
+		if not (type == 'unit' and mexIds[spGetUnitDefID(unitID)] and mexIds[spGetUnitDefID(unitID)] < 0.002) then
 			return
 		end
 	end
@@ -280,7 +279,7 @@ function widget:CommandNotify(id, params, options)
 		-- NOTE: not sure this is wanted for commanders ...when enemy is near
 		--if proceed then
 			if isGuard then
-				local ux, uy, uz = Spring.GetUnitPosition(params[1])
+				local ux, uy, uz = spGetUnitPosition(params[1])
 				isGuard = { x = ux, y = uy, z = uz }
 				params[1], params[2], params[3] = ux, uy, uz
 				id = CMD_AREA_MEX

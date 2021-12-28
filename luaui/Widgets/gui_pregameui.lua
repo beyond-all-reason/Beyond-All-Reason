@@ -263,7 +263,7 @@ function widget:DrawScreen()
 		local colorString
 		if x > buttonX - (buttonW / 2) and x < buttonX + (buttonW / 2) and y > buttonY - (buttonH / 2) and y < buttonY + (buttonH / 2) then
 			gl.CallList(buttonHoverList)
-			colorString = "\255\255\222\0"
+			colorString = "\255\210\210\210"
 		else
 			gl.CallList(buttonList)
 			timer2 = timer2 + Spring.GetLastUpdateSeconds()
@@ -281,7 +281,7 @@ function widget:DrawScreen()
 
 	if gameStarting and not isReplay then
 		timer = timer + Spring.GetLastUpdateSeconds()
-		local colorString = timer % 0.75 <= 0.375 and "\255\255\233\33" or "\255\255\250\210"
+		local colorString = timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
 		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1, 3 - math.floor(timer)) })
 		font:Begin()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
