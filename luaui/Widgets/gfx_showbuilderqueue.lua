@@ -12,7 +12,7 @@ function widget:GetInfo()
 end
 
 
-local shapeOpacity = 0.3
+local shapeOpacity = 0.22
 local maxQueueDepth = 500	-- not literal depth
 
 --Changelog
