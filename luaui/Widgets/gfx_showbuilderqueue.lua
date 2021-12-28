@@ -115,7 +115,8 @@ local function checkBuilder(unitID)
 				if createdUnit[id] == nil then
 					if command[id] == nil then
 						command[id] = {id = myCmd, builders = 0}
-						addUnitShape(id, math.abs(cmd.id), floor(cmd.params[1]), spGetGroundHeight(floor(cmd.params[1]), floor(cmd.params[3])), floor(cmd.params[3]), cmd.params[4] and -(cmd.params[4] * math_halfpi) or 0, myCmd.id)
+						addUnitShape(id, math.abs(cmd.id), floor(cmd.params[1]), spGetGroundHeight(floor(cmd.params[1]), floor(cmd.params[3])), floor(cmd.params[3]), cmd.params[4] and -(cmd.params[4] * math_halfpi) or 0, myCmd.teamid)
+						
 					end
 					command[id][unitID] = true
 					command[id].builders = command[id].builders + 1
