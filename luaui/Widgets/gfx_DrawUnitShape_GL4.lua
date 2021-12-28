@@ -145,8 +145,8 @@ void main() {
 	vec3 modelBaseToCamera = cameraViewInv[3].xyz - (modelMatrix[3].xyz + worldposrot.xyz);
 
 
-	uint teamIndex = (instData.y & 0x000000FFu); //leftmost ubyte is teamIndex
-	uint drawFlags = (instData.y & 0x0000FF00u) >> 8 ; // hopefully this works
+	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
+	uint drawFlags = (instData.z & 0x0000FF00u) >> 8 ; // hopefully this works
 	if (overrideteam.x < 255u) teamIndex = overrideteam.x;
 
 	myTeamColor = vec4(teamColor[teamIndex].rgb, parameters.x); // pass alpha through
