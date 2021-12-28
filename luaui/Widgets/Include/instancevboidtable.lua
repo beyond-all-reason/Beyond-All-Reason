@@ -54,6 +54,7 @@ function clearInstanceTable(iT)
 	iT.instanceIDtoIndex = {}
 	iT.indextoInstanceID = {}
 	if iT.indextoUnitID then iT.indextoUnitID = {} end
+	if iT.indextoObjectType then iT.indextoObjectType = {} end
 end
 
 function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a vertex buffer to an instance buffer, and optionally, an index buffer if one is supplied.
