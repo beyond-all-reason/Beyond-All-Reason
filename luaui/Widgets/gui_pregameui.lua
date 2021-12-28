@@ -246,7 +246,7 @@ function widget:DrawScreen()
 	end
 
 	buttonDrawn = false
-	if not readied and buttonList and Game.startPosType == 2 and not gameStarting and not isReplay and (not mySpec or eligibleAsSub) then
+	if buttonList and Game.startPosType == 2 and not gameStarting and not isReplay and (not mySpec or eligibleAsSub) then
 		buttonDrawn = true
 		if WG['guishader'] then
 			WG['guishader'].InsertRect(
