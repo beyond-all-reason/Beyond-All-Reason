@@ -7,15 +7,15 @@ function widget:GetInfo()
     date      = "2021.11.04",
     license   = "Lua Code: GPL V2, GLSL code: (c) Beherith (mysterme@gmail.com)",
     layer     = 0,
-    enabled   = false,
+    enabled   = true,
   }
 end
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevboidtable.lua") 
--- HUUUGE TODO: bring this one up to date with the regular instancevbotable
--- This depends on healthbars gl4 to place paralyze damage into the unituniforms 4th spot
+
+-- for testing: /luarules fightertest corak armpw 100 10 3000
 
 local paralyzedUnitShader, unitShapeShader
 
@@ -212,7 +212,6 @@ local function initGL4()
 		Spring.Echo("paralyzedUnitShaderCompiled shader compilation failed", paralyzedUnitShaderCompiled, unitshapeshaderCompiled)
 		widgetHandler:RemoveWidget()
 	end
-
 end
 
 local function DrawParalyzedUnitGL4(unitID, unitDefID, red_start,  green_start, blue_start,power_start, red_end, green_end, blue_end, time_end)
@@ -221,6 +220,9 @@ local function DrawParalyzedUnitGL4(unitID, unitDefID, red_start,  green_start, 
 	--	unitDefID: which unitDef is it (leave nil for autocomplete)
 	-- returns: a unique handler ID number that you should store and call StopDrawParalyzedUnitGL4(uniqueID) with to stop drawing it
 	-- note that widgets are responsible for stopping the drawing of every unit that they submit!
+	
+	--Spring.Echo("DrawParalyzedUnitGL4",unitID, unitDefID)
+	if paralyzedDrawUnitVBOTable.instanceIDtoIndex[unitID] then return end -- already got this unit
 	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then return end
 	red_start = red_start or 1.0
 	green_start = green_start or 1.0
@@ -232,7 +234,7 @@ local function DrawParalyzedUnitGL4(unitID, unitDefID, red_start,  green_start, 
 	time_end = 500000 --time_end or Spring.GetGameFrame()
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
 
-	local elementID = pushElementInstance(paralyzedDrawUnitVBOTable , {
+	pushElementInstance(paralyzedDrawUnitVBOTable , {
 			red_start, green_start,blue_start, power_start,
 			red_end, green_end, blue_end, time_end,
 			0,0,0,0
@@ -249,64 +251,87 @@ end
 local function StopDrawParalyzedUnitGL4(unitID)
 	if paralyzedDrawUnitVBOTable.instanceIDtoIndex[unitID] then
 		popElementInstance(paralyzedDrawUnitVBOTable, unitID)
-	else
-		Spring.Echo("Unable to remove what you wanted in StopDrawParalyzedUnitGL4", unitID)
 	end
 end
 
 ---  All the stuff from the old paralyze effect widget to make this shit work!
 local unitIDtoUniqueID = {}
-local TESTMODE = true
+local TESTMODE = false
 
-local paraUnits = {}
 local gameFrame = Spring.GetGameFrame()
 local prevGameFrame = gameFrame
 local numParaUnits = 0
-
-local function GetParalyzeTimeLeft(unitID)
-	
-end
+local myTeamID
+local spec, fullview
 
 local function init()
-	paraUnits = {}
-	numParaUnits = 0
+	clearInstanceTable(paralyzedDrawUnitVBOTable)
 	local allUnits = Spring.GetAllUnits()
 	for i=1, #allUnits do
 		local unitID = allUnits[i]
-		if GetUnitIsStunned(unitID) then
-			local health,maxHealth,paralyzeDamage,capture,build = GetUnitHealth(unitID)
-			if paralyzeDamage and paralyzeDamage > 0 then
-				paraUnits[unitID] = true
-				numParaUnits = numParaUnits + 1
-			end
+		local health,maxHealth,paralyzeDamage,capture,build = Spring.GetUnitHealth(unitID)
+		if paralyzeDamage and paralyzeDamage > 0 then
+			widget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 		end
 	end
 end
 
 function widget:PlayerChanged(playerID)
-	local myPlayerID = Spring.GetMyPlayerID()
-	if playerID == myPlayerID then
+	spec, fullview = Spring.GetSpectatingState()
+	local prevMyTeamID = myTeamID
+	myTeamID = Spring.GetMyTeamID()
+	if myTeamID ~= prevMyTeamID then -- TODO only really needed if onlyShowOwnTeam, or if allyteam changed?
 		init()
 	end
 end
 
 function widget:UnitCreated(unitID, unitDefID)
 	if TESTMODE then 
-		unitIDtoUniqueID[unitID] =  DrawParalyzedUnitGL4(unitID, unitDefID)
+		DrawParalyzedUnitGL4(unitID, unitDefID)
+	end
+	
+	local health,maxHealth,paralyzeDamage,capture,build = Spring.GetUnitHealth(unitID)
+	if paralyzeDamage and paralyzeDamage > 0 then 
+		DrawParalyzedUnitGL4(unitID, unitDefID)
 	end
 end
-
 
 function widget:UnitDestroyed(unitID)
-	if TESTMODE then
-		StopDrawParalyzedUnitGL4(unitIDtoUniqueID[unitID])
-		unitIDtoUniqueID[unitID] = nil
-	end
+	StopDrawParalyzedUnitGL4(unitID)
 end
 
-local function UnitParalyzeDamageEffect(unitID, unitDefID, damage)
-	Spring.Echo("UnitParalyzeDamageEffect",unitID, unitDefID, damage, Spring.GetUnitIsStunned(unitID)) -- DO NOTE THAT: return: nil | bool stunned_or_inbuild, bool stunned, bool inbuild
-	-- dont even need other checking, we are just gonna read the respective uniform buffer!
+function widget:UnitLeftLos(unitID)
+	StopDrawParalyzedUnitGL4(unitID)
+end
+
+function widget:UnitEnteredLos(unitID)
+	widget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+end
+
+local function UnitParalyzeDamageEffect(unitID, unitDefID, damage) -- called from Healthbars Widget Forwarding GADGET!!!
+	--Spring.Echo("UnitParalyzeDamageEffect",unitID, unitDefID, damage, Spring.GetUnitIsStunned(unitID)) -- DO NOTE THAT: return: nil | bool stunned_or_inbuild, bool stunned, bool inbuild
+	
+	widget:UnitCreated(unitID, unitDefID)
+end
+
+local uniformcache = {0}
+local toremove = {}
+
+function widget:GameFrame(n)
+	if n % 3 == 0 then
+		for unitID, index in pairs(paralyzedDrawUnitVBOTable.instanceIDtoIndex) do 
+			local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
+			uniformcache[1] = paralyzeDamage / maxHealth
+			gl.SetUnitBufferUniforms(unitID, uniformcache, 4) 
+			if paralyzeDamage == 0 then 
+				toremove[unitID] = true
+			end
+		end
+	end
+	for unitID, _ in pairs(toremove) do 
+		StopDrawParalyzedUnitGL4(unitID)
+		toremove[unitID] = nil
+	end
 end
 
 function widget:Initialize()
@@ -316,6 +341,7 @@ function widget:Initialize()
 			widget:UnitCreated(unitID)
 		end
 	end
+	init()
 	WG['DrawParalyzedUnitGL4'] = DrawParalyzedUnitGL4
 	WG['StopDrawParalyzedUnitGL4'] = StopDrawParalyzedUnitGL4
 	widgetHandler:RegisterGlobal("UnitParalyzeDamageEffect",UnitParalyzeDamageEffect )
@@ -329,6 +355,7 @@ end
 
 function widget:DrawWorld()
 	if paralyzedDrawUnitVBOTable.usedElements > 0 then 
+		--if Spring.GetGameFrame() % 90 == 0 then Spring.Echo("Drawing paralyzed units #", paralyzedDrawUnitVBOTable.usedElements) end
 		gl.Culling(GL.BACK)
 		gl.DepthMask(true)
 		gl.DepthTest(true)
