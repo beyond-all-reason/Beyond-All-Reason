@@ -448,9 +448,9 @@ end
 function widget:DrawWorldPreUnit() -- this is for UnitDef
 	if armDrawUnitShapeVBOTable.usedElements > 0 or corDrawUnitShapeVBOTable.usedElements > 0 then
 		gl.Culling(GL.BACK)
-		gl.DepthMask(false)
-		gl.DepthTest(false)
-		gl.PolygonOffset ( 0.5,0.5 )
+		gl.DepthMask(false) -- this might be a problem for non-transparent stuff?
+		gl.DepthTest(GL.LEQUAL)
+		--gl.PolygonOffset ( 0.5,0.5 )
 		unitShapeShader:Activate()
 		unitShapeShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200))
 		if (corDrawUnitShapeVBOTable.usedElements > 0 ) then
@@ -465,7 +465,7 @@ function widget:DrawWorldPreUnit() -- this is for UnitDef
 
 		unitShapeShader:Deactivate()
 		gl.UnitShapeTextures(udefID, false)
-		gl.PolygonOffset( false )
+		--gl.PolygonOffset( false )
 		gl.Culling(false)
 	end
 end

@@ -104,6 +104,7 @@ function widget:DrawWorldPreUnit()
 		local disticon = Spring.GetConfigInt("FeatureFadeDistance", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		glCulling(GL_BACK)
 		glDepthTest(GL_LEQUAL)
+		gl.DepthMask(false)
 		--glDepthTest(false)
 		glTexture(0, atlasID)
 		groundPlateShader:Activate()
