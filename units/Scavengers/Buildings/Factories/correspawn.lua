@@ -2,8 +2,8 @@ return {
 	correspawn = {
 		acceleration = 0,
 		brakerate = 4.5,
-		buildcostenergy = 500,
-		buildcostmetal = 5000,
+		buildcostenergy = 5000,
+		buildcostmetal = 500,
 		builddistance = 100,
 		builder = true,
 		buildpic = "CORNANOTCPLAT.DDS",
@@ -46,6 +46,7 @@ return {
 		buildoptions = {
 			"corcom",
 			"cordecom",
+			"corassistdrone",
 		},
 		customparams = {
 			usebuildinggrounddecal = false,
