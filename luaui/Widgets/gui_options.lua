@@ -2091,7 +2091,11 @@ function init()
 		{ id = "label_gfx_game", group = "gfx", name = texts.option.label_game, category = types.advanced },
 		{ id = "label_gfx_game_spacer", group = "gfx", category = types.basic },
 		{ id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos", name = texts.option.resurrectionhalos, type = "bool", value = GetWidgetToggleValue("Resurrection Halos"), description = texts.option.resurrectionhalos_descr },
-		{ id = "tombstones", group = "gfx", category = types.advanced, widget = "Tombstones", name = texts.option.tombstones, type = "bool", value = GetWidgetToggleValue("Tombstones"), description = texts.option.tombstones_descr },
+		{ id = "tombstones", group = "gfx", category = types.advanced, name = texts.option.tombstones, type = "bool", value = (Spring.GetConfigInt("tombstones", 1) == 1), description = texts.option.tombstones_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("tombstones", (value and 1 or 0))
+		  end,
+		},
 
 		{ id = "xmas", group = "gfx", name = texts.option.xmas, category = types.basic, type = "bool", value = (Spring.GetConfigFloat("decorationsize", 1) == 1), description = texts.option.xmas_descr,
 		  onchange = function(i, value)

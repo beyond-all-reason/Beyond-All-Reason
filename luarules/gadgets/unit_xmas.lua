@@ -42,7 +42,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if def.name == "xmascomwreck" then
 			xmasComwreckDefID = fdefID
-			break
 		end
 	end
 
@@ -394,9 +393,7 @@ else
 		local allUnits = Spring.GetAllUnits()
 		for i = 1, #allUnits do
 			local unitID = allUnits[i]
-			local udID = Spring.GetUnitDefID(unitID)
-			local team = Spring.GetUnitTeam(unitID)
-			gadget:UnitCreated(unitID, udID, team)
+			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
 		end
 		--if Spring.GetGameFrame() > 1 then
 		--	gadgetHandler:RemoveGadget(self)

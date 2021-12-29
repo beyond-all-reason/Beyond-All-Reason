@@ -35,14 +35,8 @@ end
 
 --------------------------------------------------------------------------------
 
-local iconScale = 1
-if Spring.GetConfigFloat then
-	iconScale = Spring.GetConfigFloat("UnitIconScale", 1)
-end
-
 local spSetUnitDefIcon = Spring.SetUnitDefIcon
 local spFreeUnitIcon = Spring.FreeUnitIcon
-local myPlayerID = Spring.GetMyPlayerID()
 
 local units = {
 	armaak = { "amphib_t2_aa.png", 1.67999995 },
@@ -577,7 +571,7 @@ local units = {
 	scavtacnukespawner = { "aa.png", 0.89249998 },
 	corscavdrag = { "wall_0.4.png", 0.41999999 },
 	corscavdtf = { "wall_0.4.png", 0.41999999 },
-	corscavdtl= { "wall_0.4.png", 0.41999999 },
+	corscavdtl = { "wall_0.4.png", 0.41999999 },
 	corscavdtm = { "wall_0.4.png", 0.41999999 },
 	corscavfort = { "wall_0.4.png", 0.41999999 },
 	ve_chickenq = { "chicken_queen.png", 4.19999981 },
@@ -587,64 +581,55 @@ local units = {
 	corfdoom = { "cordoom_1.95.png", 1.5 },
 }
 
-setmetatable(units, { __index =
-function(table, key)
+setmetatable(units, { __index = function(table, key)
 	if string.find(key, "_scav") then
 		local new_key = key:gsub("_scav", "")
 		local normal_icon = units[new_key]
 		local new_object;
 		if normal_icon then
-			local new_path = "inverted/"..normal_icon[1]
-			new_object = {new_path, normal_icon[2]} -- new path old
+			local new_path = "inverted/" .. normal_icon[1]
+			new_object = { new_path, normal_icon[2] } -- new path old
 		end
 		return new_object
 	end
-end})
+end })
 
 local iconTypes = {}
 local iconSizes = {}
-function addUnitIcon(name, path, size)
-    Spring.AddUnitIcon(name, path, size)
-    iconTypes[name] = path
-    iconSizes[name] = size
+local function addUnitIcon(name, path, size)
+	Spring.AddUnitIcon(name, path, size)
+	iconTypes[name] = path
+	iconSizes[name] = size
 end
 
-function loadUnitIcons()
+local function loadUnitIcons()
 	local root = 'icons/'
 	for id, unit in ipairs(UnitDefs) do
 		local name = unit.name
 		local icon = units[name]
 		if icon then
-			local path = root..icon[1]
+			local path = root .. icon[1]
 			local size = icon[2]
 			spFreeUnitIcon(name) --Free the icon so it can be used
-			addUnitIcon(name, path, size * iconScale) -- Create the icon in the enigne
+			addUnitIcon(name, path, size) -- Create the icon in the enigne
 			spSetUnitDefIcon(id, name)  -- Set the unit icon
 		else
-			Spring.Echo("No icon for: " ..name)
+			Spring.Echo("No icon for: " .. name)
 		end
 	end
 end
 
-function gadget:GotChatMsg(msg, playerID)
-	if playerID == myPlayerID then
-		if string.sub(msg, 1, 14) == "uniticonscale " then
-			iconScale = tonumber(string.sub(msg, 15))
-			Spring.SetConfigFloat("UnitIconScale", iconScale)
-			loadUnitIcons()
-		end
-	end
-end
-
-function GetIconTypes()
+local function GetIconTypes()
 	return iconTypes, iconSizes
 end
 
 function gadget:Initialize()
-  gadgetHandler:RegisterGlobal('GetIconTypes', GetIconTypes)
-  loadUnitIcons()
+	gadgetHandler:RegisterGlobal('GetIconTypes', GetIconTypes)
+	if Spring.GetGameFrame() <= 0 then
+		loadUnitIcons()
+	end
 end
 
 function gadget:Shutdown()
-  gadgetHandler:DeregisterGlobal("GetIconTypes")
-end 
+	gadgetHandler:DeregisterGlobal("GetIconTypes")
+end

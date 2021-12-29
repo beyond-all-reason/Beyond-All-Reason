@@ -19,7 +19,7 @@ return {
 		footprintz = 1,
 		hidedamage = true,
 		idleautoheal = 0,
-		mass = 50,
+		mass = 40,
 		maxdamage = 500000,
 		maxslope = 64,
 		maxvelocity = 1,
