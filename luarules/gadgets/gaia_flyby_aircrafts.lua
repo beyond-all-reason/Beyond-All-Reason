@@ -12,7 +12,7 @@ function gadget:GetInfo()
       author    = "Damgam",
       date      = "2021",
       layer     = -100,
-      enabled   = false --ruinSpawnEnabled,
+      enabled   = ruinSpawnEnabled,
     }
 end
 
@@ -29,8 +29,8 @@ local mapheightmin, mapheightmax = Spring.GetGroundExtremes()
 
 local lastFlyByFrame = 0
 
-local flyByChance = 45 -- bigger = less
-local minimumFlyByDelay = 15*30 -- seconds*framesPerSecond
+local flyByChance = 900 -- bigger = less
+local minimumFlyByDelay = 60*30 -- seconds*framesPerSecond
 
 -- for testing
 -- local flyByChance = 1 -- bigger = less

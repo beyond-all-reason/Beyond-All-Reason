@@ -645,6 +645,19 @@ local options={
 		step   = 1,
 	},
 
+	{
+		key="commanderbuildersenabled",
+		name="Commander Builders",
+		type="list",
+		def="scav_only",
+		section="options",
+		items={
+			{key="enabled", name="Enabled"},
+			{key="scav_only", name="Enabled for Scavengers only"},
+			{key="disabled", name="Disabled"},
+		}
+	},
+
 
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
