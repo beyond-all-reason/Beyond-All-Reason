@@ -377,11 +377,21 @@ m_side = {
 }
 position = position + 1
 
+-- m_skill = {
+--     name = "skill",
+--     spec = true,
+--     play = true,
+--     active = true,
+--     width = 18,
+--     position = position,
+--     posX = 0,
+--     pic = pics["tsPic"],
+-- }
 m_skill = {
     name = "skill",
-    spec = true,
-    play = true,
-    active = true,
+    spec = false,
+    play = false,
+    active = false,
     width = 18,
     position = position,
     posX = 0,
@@ -2077,7 +2087,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
                 DrawID(team, posY, dark, dead)
             end
             if m_skill.active then
-                DrawSkill(skill, posY, dark)
+                --DrawSkill(skill, posY, dark)
             end
         end
         gl_Color(red, green, blue, 1)
