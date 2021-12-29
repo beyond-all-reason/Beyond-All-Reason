@@ -58,8 +58,6 @@ function LosHST:Update()
 
 				if not e:IsAlive() then
 					self:cleanEnemy(e:ID())
--- 				elseif Spring.GetUnitNeutral(e:ID()) then
--- 					--dont try to attack neutrals
 				else
 					local upos = e:GetPosition()
 					if self.ai.buildsitehst:isInMap(upos) then
