@@ -43,6 +43,8 @@ local factories = {
 	"lootboxnano_t4_var2",
 	"lootboxnano_t4_var3",
 	"lootboxnano_t4_var4",
+	"armrespawn",
+	"correspawn",
 }
 
 local scavFactories = {}

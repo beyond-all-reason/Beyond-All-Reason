@@ -24,6 +24,8 @@ local playerCommanders = {
 	"cordecom_scav",
 	"armcomcon_scav",
 	"corcomcon_scav",
+	"armrespawn",
+	"correspawn",
 }
 
 local assisters = {
