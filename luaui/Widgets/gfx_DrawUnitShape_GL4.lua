@@ -275,14 +275,18 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID,
 	teamcoloroverride = teamcoloroverride or 0
 	teamID = teamID or 256
 	highlight = highlight or 0
+	
+	py = py - (UnitDefs[unitDefID].model.midy or 0) -- cause our midpos is somehow offset?
 	local DrawUnitShapeVBOTable
-	--Spring.Echo("DrawUnitShapeGL4", "unitDefID", unitDefID, UnitDefs[unitDefID].name, "to unitDefID", uniqueID,"elemID", elementID)
+	--Spring.Echo("DrawUnitShapeGL4", "unitDefID", unitDefID, UnitDefs[unitDefID].name, "to unitDefID", uniqueID,"elemID", elementID) 
 	if corUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = corDrawUnitShapeVBOTable
 	elseif armUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = armDrawUnitShapeVBOTable
 	else
 		Spring.Echo("The given unitDefID", unitDefID, "is neither arm nor cor, only those two are supported at the moment")
 		return nil
 	end
+	
+	
 
 	local elementID = pushElementInstance(DrawUnitShapeVBOTable, {
 			px, py, pz, rotationY,
