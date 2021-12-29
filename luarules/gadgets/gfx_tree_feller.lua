@@ -104,7 +104,7 @@ if gadgetHandler:IsSyncedCode() then
 	for featureDefID, featureDef in pairs(FeatureDefs) do
 		if featureDef.name:find('treetype') == nil then
 			treeName[featureDefID] = featureDef.name
-			treeMass[featureDefID] = featureDef.mass
+			treeMass[featureDefID] = math.max(1, featureDef.mass)
 			if featureDef.collisionVolume then
 				treeScaleY[featureDefID] = featureDef.collisionVolume.scaleY
 			end
@@ -229,7 +229,7 @@ if gadgetHandler:IsSyncedCode() then
 						fDefID = featureDefID,
 						dirx = dx, diry = dy, dirz = dz,
 						px = ppx, py = ppy, pz = ppz,
-						strength = treeMass[featureDefID] / dmg,
+						strength = math.max(1, treeMass[featureDefID] / dmg),
 						fire = fire,
 						size = size,
 						dissapearSpeed = dissapearSpeed,
@@ -257,7 +257,7 @@ if gadgetHandler:IsSyncedCode() then
 
 				-- FALLING
 				if featureinfo.frame + thisfeaturefalltime > gf then
-					local factor = (gf - featureinfo.frame) / thisfeaturefallspeed
+					local factor = math.max(1, (gf - featureinfo.frame) / thisfeaturefallspeed)
 					local fx, fy, fz = GetFeaturePosition(featureID)
 					local px, py, pz = featureinfo.px, featureinfo.py, featureinfo.pz
 					if fy ~= nil then
@@ -315,7 +315,7 @@ if gadgetHandler:IsSyncedCode() then
 								Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion[featureinfo.size])
 							end
 						end
-        
+
             local gh = Spring.GetGroundHeight(fx,fz)
             if featureinfo.destroyFrame <= gf or (gh > fy + 48) then
 							treesdying[featureID] = nil
