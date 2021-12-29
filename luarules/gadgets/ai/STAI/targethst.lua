@@ -571,22 +571,25 @@ function TargetHST:UpdateEnemies()
 	-- where is/are the party/parties tonight?
 	local highestValue = minNukeValue
 	local highestValueCell
-	for unitID, e in pairs(self.ai.knownEnemies) do
+	--for unitID, e in pairs(self.ai.knownEnemies) do
+		for unitID, e in pairs(self.ai.loshst.knownEnemies) do
 		local los = e.los
 		local ghost = e.ghost
 		local name = e.unitName
 		self.game:StartTimer(name)
 
 		local ut = self.ai.armyhst.unitTable[name]
-		if ghost and not ghost.position and not e.beingBuilt then
+		--if ghost and not ghost.position and not e.beingBuilt then
+		if e.view < 0 then
 			-- count ghosts with unknown positions as non-positioned threats
-			self:DangerCheck(name, e.unitID)
+			self:DangerCheck(name, unitID)
 			-- 			local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
 			local threatLayers = self.ai.armyhst.unitTable[name].threatLayers
 			for groundAirSubmerged, layer in pairs(threatLayers) do
-				self:CountEnemyThreat(e.unitID, name, layer.threat)
+				self:CountEnemyThreat(unitID, name, layer.threat)
 			end
-		elseif (los ~= 0 or (ghost and ghost.position)) and not e.beingBuilt then
+		--elseif (los ~= 0 or (ghost and ghost.position)) and not e.beingBuilt then
+		else
 			-- count those we know about and that aren't being built
 			local pos
 			if ghost then pos = ghost.position else pos = e.position end
@@ -597,7 +600,14 @@ function TargetHST:UpdateEnemies()
 					--self:Warn('warning cell is not already defined!!!!',px,pz)
 				end
 				local cell = self:GetOrCreateCellHere(pos)
-				if los == 1 then
+				if e.SPEED then
+					cell.target.x = math.max(cell.target.x , e.target.x)
+					cell.target.z = math.max(cell.target.z , e.target.z)
+					cell.target.y = Spring.GetGroundHeight(cell.target.x,cell.target.z)
+					cell.risksNum = cell.risksNum + 1 --TODO become metal amount
+				end
+-- 				if los == 1 then
+				if e.view == 0 then--radar
 					if ut.isBuilding then
 						cell.value = cell.value + baseBuildingValue
 					else
@@ -606,15 +616,16 @@ function TargetHST:UpdateEnemies()
 						--self:FillCircle(px, pz, baseUnitRange, "threat", "air", baseUnitThreat)
 						--self:FillCircle(px, pz, baseUnitRange, "threat", "submerged", baseUnitThreat)
 					end
-				elseif los == 2 then
+-- 				elseif los == 2 then
+				elseif e.view > 0 then --LOS, full view
 					local mtype = ut.mtype
-					self:DangerCheck(name, e.unitID)
+					self:DangerCheck(name, unitID)
 					local value = self:Value(name)
 					if self.ai.armyhst.unitTable[name].extractsMetal ~= 0 then
 						table.insert(self.ai.enemyMexSpots, { position = pos, unit = e })
 					end
 					if self.ai.armyhst.unitTable[name].isBuilding then
-						table.insert(cell.buildingIDs, e.unitID)
+						table.insert(cell.buildingIDs, unitID)
 					end
 					local hurtBy = self.ai.tool:WhatHurtsUnit(name)
 					-- 					local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
@@ -633,7 +644,7 @@ function TargetHST:UpdateEnemies()
 							if ut.isBuilding then--TEST
 								self:FillCircle(px, pz, range, "threat", groundAirSubmerged, threat)
 							end
-							self:CountEnemyThreat(e.unitID, name, threat)
+							self:CountEnemyThreat(unitID, name, threat)
 						elseif mtype ~= "air" then -- air units are too hard to attack
 						local health = e.health
 						for hurtGAS, hit in pairs(hurtBy) do
@@ -784,7 +795,8 @@ end
 function TargetHST:UnitDamaged(unit, attacker, damage)
 	-- even if the attacker can't be seen, human players know what weapons look like
 	-- in non-lua shard, the attacker is nil if it's an enemy unit, so this becomes useless
-	if attacker ~= nil and self.ai.loshst:IsKnownEnemy(attacker) ~= 2 then
+	if attacker ~= nil and attacker:AllyTeam() ~= self.ai.allyId then --   we know what is it and self.ai.loshst:IsKnownEnemy(attacker) ~= 2 then
+		--print(attacker:Name())
 		self:DangerCheck(attacker:Name(), attacker:ID())
 		local mtype
 		local ut = self.ai.armyhst.unitTable[unit:Name()]
@@ -793,7 +805,8 @@ function TargetHST:UnitDamaged(unit, attacker, damage)
 			local aut = self.ai.armyhst.unitTable[attacker:Name()]
 			if aut then
 				if aut.isBuilding then
-					self.ai.loshst:KnowEnemy(attacker)
+					--self.ai.loshst:KnowEnemy(attacker)
+					self.ai.loshst:scanEnemy(attacker,isShoting)
 					return
 				end
 				threat = aut.metalCost

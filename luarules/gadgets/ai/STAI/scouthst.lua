@@ -17,21 +17,21 @@ function ScoutHST:Init()
 	self.usingStarts = {}
 end
 
-function ScoutHST:ScoutLos(scoutbst, position)
-	local los
-	if self.ai.maphst:IsUnderWater(position) and self.ai.armyhst.unitTable[scoutbst.name].sonarRadius == 0 then
-		-- treat underwater spots as surface spots if the scout has no sonar, so that it moves on
-		local lt = self.ai.loshst:AllLos(position)
-		if lt[2] then
-			los = 2
-		else
-			los = 0
-		end
-	else
-		los = self.ai.loshst:GroundLos(position)
-	end
-	return los
-end
+-- function ScoutHST:ScoutLos(scoutbst, position)
+-- 	local los
+-- 	if self.ai.maphst:IsUnderWater(position) and self.ai.armyhst.unitTable[scoutbst.name].sonarRadius == 0 then
+-- 		-- treat underwater spots as surface spots if the scout has no sonar, so that it moves on
+-- 		local lt = self.ai.loshst:AllLos(position)
+-- 		if lt[2] then
+-- 			los = 2
+-- 		else
+-- 			los = 0
+-- 		end
+-- 	else
+-- 		los = self.ai.loshst:GroundLos(position)
+-- 	end
+-- 	return los
+-- end
 
 function ScoutHST:ClosestSpot(scoutbst)
 	local unit = scoutbst.unit:Internal()
@@ -81,18 +81,24 @@ function ScoutHST:ClosestSpot(scoutbst)
 	for i = #self.spotsToScout[mtype][network], 1, -1 do
 		local p = self.spotsToScout[mtype][network][i]
 		local los
+		local posViewed
 		if self.ai.maphst:IsUnderWater(p) and self.ai.armyhst.unitTable[scoutbst.name].sonarRadius == 0 then
 			-- treat underwater spots as surface spots if the scout has no sonar, so that it moves on
-			local lt = self.ai.loshst:AllLos(p)
-			if lt[2] then
-				los = 2
-			else
-				los = 0
+-- 			local lt = self.ai.loshst:AllLos(p)
+-- 			if lt[2] then
+-- 				los = 2
+-- 			else
+-- 				los = 0
+			posViewed = self.ai.loshst:viewPos(p)
+			if posViewed == -1 then
+				posViewed = 0
 			end
 		else
-			los = self.ai.loshst:GroundLos(p)
+			--los = self.ai.loshst:GroundLos(p)
+			posViewed = self.ai.loshst:viewPos(p)
 		end
-		if los == 2 or los == 3 or not self.ai.targethst:IsSafePosition(p, unit, 1) then
+		--if los == 2 or los == 3 or not self.ai.targethst:IsSafePosition(p, unit, 1) then
+		if type (posViewed) == 'number'  or not self.ai.targethst:IsSafePosition(p, unit, 1) then
 			table.remove(self.spotsToScout[mtype][network], i)
 		else
 			local dist = self.ai.tool:Distance(position, p)

@@ -46,9 +46,10 @@ function ScoutBST:Update()
 			local unit = self.unit:Internal()
 			-- reset target if it's in sight
 			if self.target ~= nil then
-				local los = self.ai.scouthst:ScoutLos(self, self.target)
-				self:EchoDebug("target los: " .. los)
-				if los == 2 or los == 3 then
+-- 				local los = self.ai.scouthst:ScoutLos(self, self.target)
+-- 				self:EchoDebug("target los: " .. los)
+-- 				if los == 2 or los == 3 then
+				if self.ai.loshst:viewPos(self.target) == 1 then--TEST
 					self.target = nil
 				end
 			end
