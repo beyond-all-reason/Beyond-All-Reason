@@ -344,14 +344,14 @@ local options={
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	{
 		key 	= 'chicken_defense_options',
-		name 	= 'Chickens',
-		desc 	= 'Various gameplay options that will change how the Chicken Defense is played.',
+		name 	= 'Raptors',
+		desc 	= 'Various gameplay options that will change how the Raptor Defense is played.',
 		type 	= 'section',
 	},
 	{
 		key="chicken_difficulty",
 		name="Difficulty",
-		desc="Chickens difficulty",
+		desc="Raptors difficulty",
 		type="list",
 		def="normal",
 		section="chicken_defense_options",
@@ -404,8 +404,8 @@ local options={
 	},
 	{
 		key    = "chicken_spawncountmult",
-		name   = "Chicken Spawn Multiplier",
-		desc   = "How many times more chickens spawn than normal.",
+		name   = "Raptor Spawn Multiplier",
+		desc   = "How many times more raptors spawn than normal.",
 		type   = "number",
 		def    = 1,
 		min    = 1,
@@ -416,7 +416,7 @@ local options={
 	{
 		key    = "chicken_graceperiod",
 		name   = "Grace Period (Seconds)",
-		desc   = "Time before chickens become active.",
+		desc   = "Time before Raptors become active.",
 		type   = "number",
 		def    = 300,
 		min    = 5,
