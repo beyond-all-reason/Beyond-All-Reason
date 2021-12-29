@@ -15,8 +15,9 @@ return {
 		paralyzetime = 35,
 		range = 1280,
 		reloadtime = 0.30000001192093,
-		soundhit = "xplomed4",
-		soundstart = "bombrel",
+		soundhit = "EMGPULS1",
+		soundstart = "arm-bot-medium-stealth-sel",
+		soundstartvolume = 50,
 		tolerance = 7000,
 		turret = 1,
 		damage = {
