@@ -18,11 +18,27 @@ end
 
 
 function LosHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.visualdbg = true
 	self.knownEnemies = {}
 	self.ai.friendlyTeamID = {}
+	self:areaCells(1,false)
 end
+
+function LosHST:areaCells(R,myself)
+	R = R or 0
+	myself = myself or false
+	local X = 10
+	local Z = 10
+	for x = X-R, X+R,1  do
+		for z = Z-R,Z+R,1 do
+			if myself or (x ~= X or z ~= Z) then
+				print('x=',x,'z=',z)
+			end
+		end
+	end
+end
+
 
 function LosHST:Update()
 	local f = self.game:Frame()
@@ -38,13 +54,19 @@ function LosHST:Update()
 		if enemies ~= nil then
 			local enemyList = {}
 			for i, e in pairs(enemies) do
-				local upos = e:GetPosition()
-				if not upos then
+
+
+				if not e:IsAlive() then
 					self:cleanEnemy(e:ID())
-				elseif self.ai.buildsitehst:isInMap(upos) then
-					enemy = self:scanEnemy(e)
-					if enemy then
-						self.knownEnemies[e:ID()] = enemy
+-- 				elseif Spring.GetUnitNeutral(e:ID()) then
+-- 					--dont try to attack neutrals
+				else
+					local upos = e:GetPosition()
+					if self.ai.buildsitehst:isInMap(upos) then
+						enemy = self:scanEnemy(e)
+						if enemy then
+							self.knownEnemies[e:ID()] = enemy
+						end
 					end
 				end
 			end
@@ -114,11 +136,11 @@ function LosHST:scanEnemy(enemy,isShoting)
 			--full view
 
 		elseif t.GULS == 2  or (t.GULS == 6) then -- blip RADAR check speed to hazard a mobile/immobile bet
-			t.view = 0
-			--pure radar
+			t.view = 0 --RADAR
+
 		elseif t.GULS == 4 then --mobile HIDDEN i see you one time, you are somewhere!!
-			t.view = -1
-			--pure radar
+			t.view = -1 --HIDDEN
+
 		else
 			t = nil
 			self:Warn('unespected GULS response',GULS,t.id,t.position.x,t.position.z,t.name)
@@ -157,6 +179,10 @@ function LosHST:viewPos(upos)
 	--if inRadar and upos.y < 0 and not jammed then return 'inSonar' -1 end
 	--if inRadar and upos.y >= 0 and not jammed then return 'inRadar' 0 end
 	return nil
+end
+
+function LosHST:posInLos(pos)
+	return type(self:viewPos(pos)) == 'number'
 end
 
 function LosHST:setPosLayer(unitName,Pos)
@@ -215,29 +241,29 @@ function LosHST:Draw()
 		u:EraseHighlight(nil, nil, 5 )
 -- 		self:Warn('unitidlosdraw',id,u:GetPosition())
 -- 		print(u:GetPosition())
- 		if not u:GetPosition() then
+ 		if not u:IsAlive() then
  			self:Warn('unit dead',id)
  			self:cleanEnemy(id)
 
 -- 		self:Warn('losname',data.name)
 
 		else
-			self:Warn('draw',data.name,data.GULS,data.id)
+			self:EchoDebug('draw',data.name,data.GULS,data.id)
 			if data.view ==1 then
-				if data.layer == 1 then
+				if data.layer == 1 then --A
 					u:DrawHighlight({1,1,0,1} , nil, 5 )
 				end
-				if data.layer == -1 then
+				if data.layer == -1 then--S
 					u:DrawHighlight({1,0,1,1} , nil, 5 )
 				end
-				if data.layer == 0 then
+				if data.layer == 0 then--G
 					u:DrawHighlight({0,1,1,1} , nil, 5 )
 				end
 			end
-			if data.view == 0 then
+			if data.view == 0 then --R
 				u:DrawHighlight({1,1,1,1} , nil, 5 )
 			end
-			if data.view == -1 then
+			if data.view == -1 then -- H
 				u:DrawHighlight({0,0,0,1} , nil, 5 )
 			end
 			self:EchoDebug('speeeed',data.SPEED,data.name)

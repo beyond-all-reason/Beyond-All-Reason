@@ -575,7 +575,7 @@ function TargetHST:UpdateEnemies()
 		for unitID, e in pairs(self.ai.loshst.knownEnemies) do
 		local los = e.los
 		local ghost = e.ghost
-		local name = e.unitName
+		local name = e.name
 		self.game:StartTimer(name)
 
 		local ut = self.ai.armyhst.unitTable[name]
@@ -601,10 +601,10 @@ function TargetHST:UpdateEnemies()
 				end
 				local cell = self:GetOrCreateCellHere(pos)
 				if e.SPEED then
-					cell.target.x = math.max(cell.target.x , e.target.x)
-					cell.target.z = math.max(cell.target.z , e.target.z)
-					cell.target.y = Spring.GetGroundHeight(cell.target.x,cell.target.z)
-					cell.risksNum = cell.risksNum + 1 --TODO become metal amount
+					--cell.target.x = math.max(cell.target.x , e.target.x)
+					--cell.target.z = math.max(cell.target.z , e.target.z)
+					--cell.target.y = Spring.GetGroundHeight(cell.target.x,cell.target.z)
+					--cell.risksNum = cell.risksNum + 1 --TODO become metal amount
 				end
 -- 				if los == 1 then
 				if e.view == 0 then--radar
@@ -720,7 +720,7 @@ function TargetHST:UpdateMetalGeoSpots()
 	local toGAS = {"ground", "submerged"}
 	for i = 1, #spots do
 		local spot = spots[i]
-		if not self.ai.loshst:IsInLos(spot) then
+		if not self.ai.loshst:posInLos(spot) then
 			local cell = self:GetOrCreateCellHere(spot)
 			-- cell.value = cell.value + unseenMetalGeoValue
 			local underwater = self.ai.maphst:IsUnderWater(spot)
@@ -861,7 +861,7 @@ function TargetHST:AddBadPosition(position, mtype, threat, duration)
 end
 
 function TargetHST:UpdateMap()
-	if self.ai.lastLOSUpdate > self.lastUpdateFrame then
+	--if self.ai.lastLOSUpdate > self.lastUpdateFrame then
 
 		-- 		game:SendToConsole("before target update", collectgarbage("count")/1024)
 		self.raiderCounted = {}
@@ -880,7 +880,7 @@ function TargetHST:UpdateMap()
 		--game:SendToConsole("after target update", collectgarbage("count")/1024)
 		--collectgarbage()
 		--game:SendToConsole("after collectgarbage", collectgarbage("count")/1024)
-	end
+	--end
 end
 ------------------------------------------------------------------------HERE BEGIN THE ON DEMAND FUNCTION---------------------------
 local function CellVulnerable(cell, hurtByGAS, weaponsGAS)

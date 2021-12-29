@@ -82,7 +82,10 @@ function ScoutHST:ClosestSpot(scoutbst)
 		local p = self.spotsToScout[mtype][network][i]
 		local los
 		local posViewed
+
+
 		if self.ai.maphst:IsUnderWater(p) and self.ai.armyhst.unitTable[scoutbst.name].sonarRadius == 0 then
+
 			-- treat underwater spots as surface spots if the scout has no sonar, so that it moves on
 -- 			local lt = self.ai.loshst:AllLos(p)
 -- 			if lt[2] then
@@ -100,13 +103,18 @@ function ScoutHST:ClosestSpot(scoutbst)
 		--if los == 2 or los == 3 or not self.ai.targethst:IsSafePosition(p, unit, 1) then
 		if type (posViewed) == 'number'  or not self.ai.targethst:IsSafePosition(p, unit, 1) then
 			table.remove(self.spotsToScout[mtype][network], i)
+		elseif not self.ai.maphst:UnitCanGoHere(unit, p) then
+			self:EchoDebug('unit cant go there',p.x,p.z)
+			table.remove(self.spotsToScout[mtype][network], i)
 		else
+
 			local dist = self.ai.tool:Distance(position, p)
 			if dist < bestDistance then
 				bestDistance = dist
 				pos = p
 				index = i
 			end
+
 		end
 	end
 	-- make sure we're not getting quixotic
