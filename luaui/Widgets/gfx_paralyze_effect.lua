@@ -165,8 +165,8 @@ void main() {
 
 	float electricity = clamp(1.0 - abs(noisevalue  - 0.5)*5.0, 0.0, 1.0);
 	electricity = pow(electricity, v_startcolorpower.w);
-	
-	
+
+
 	vec3 lightcolor;
 	float outalpha;
 	if (v_endcolor_alpha.a > 1.0) { // for fully paralyzed, increase transparency
@@ -179,7 +179,7 @@ void main() {
 		//lightcolor = mix(vec3(0.0, 0.0, 1.0), v_startcolorpower.rgb, electricity); // pee yellow for non fully-paralyzed units
 		outalpha = v_endcolor_alpha.a * 0.7; // less transparency non-paralyzed
 	}
-	
+
 	fragColor = vec4(lightcolor, electricity*outalpha);
 	//fragColor = vec4(vec3(electricity), 1.0);
 	//fragColor = vec4(1.0);
@@ -332,7 +332,7 @@ function widget:GameFrame(n)
 	if n % 3 == 0 then
 		for unitID, index in pairs(paralyzedDrawUnitVBOTable.instanceIDtoIndex) do
 			local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
-			uniformcache[1] = paralyzeDamage / maxHealth
+			uniformcache[1] = (paralyzeDamage or 0) / (maxHealth or 0)
 			gl.SetUnitBufferUniforms(unitID, uniformcache, 4)
 			if paralyzeDamage == 0 then
 				toremove[unitID] = true
