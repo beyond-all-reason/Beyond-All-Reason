@@ -20,12 +20,11 @@ local wavePeriod = 550
 
 local unitDecoration = {}
 for udefID,def in ipairs(UnitDefs) do
-	if def.name == 'xmasball' or def.name == 'xmasball2' then
+	if def.name == 'xmasball' or def.name == 'xmasball2' or string.find(def.name == 'stone') then
 		unitDecoration[udefID] = true
 	end
 end
 
---local spSpawnCEG = Spring.SpawnCEG
 local spDestroyUnit = Spring.DestroyUnit
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -43,7 +42,7 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 	local maxDeathFrame = 0
 	local teamUnits = Spring.GetTeamUnits(teamID)
 	for i=1, #teamUnits do
-		local unitID = teamUnits[i]
+		local unitID = teamUnits[i]x
 		if not unitDecoration[spGetUnitDefID(unitID)] then
 			local x,_,z = spGetUnitPosition(unitID)
 			local deathFrame

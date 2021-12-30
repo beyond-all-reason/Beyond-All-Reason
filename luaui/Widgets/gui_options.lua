@@ -3351,7 +3351,7 @@ function init()
 		},
 		{ id = "echocamerastate", group = "dev", category = types.dev, name = texts.option.echocamerastate, type = "bool", value = false, description = texts.option.echocamerastate_descr,
 		  onchange = function(i, value)
-			  options[getOptionByID('restart')].value = false
+			  options[getOptionByID('echocamerastate')].value = false
 			  Spring.Debug.TableEcho(Spring.GetCameraState())
 		  end,
 		},
