@@ -2742,7 +2742,7 @@ function init()
 			  Spring.SetConfigInt("UnitIconFadeVanish", fadeVanish)
 		  end,
 		},
-		{ id = "uniticon_hidewithui", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.uniticonhidewithui, type = "bool", value = (Spring.GetConfigInt("UnitIconsHideWithUI", 0) == 1), description = texts.option.uniticonhidewithui_descr,
+		{ id = "uniticon_hidewithui", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.uniticonhidewithui, type = "bool", value = (Spring.GetConfigInt("UnitIconsHideWithUI", 0) == 1), description = texts.option.uniticonhidewithui_descr,
 		  onchange = function(i, value)
 			  Spring.SendCommands("iconshidewithui " .. (value and 1 or 0))
 			  Spring.SetConfigInt("UnitIconsHideWithUI", (value and 1 or 0))
@@ -3349,6 +3349,13 @@ function init()
 			  Spring.SendCommands("DebugColVol " .. (value and '1' or '0'))
 		  end,
 		},
+		{ id = "echocamerastate", group = "dev", category = types.dev, name = texts.option.echocamerastate, type = "bool", value = false, description = texts.option.echocamerastate_descr,
+		  onchange = function(i, value)
+			  options[getOptionByID('restart')].value = false
+			  Spring.Debug.TableEcho(Spring.GetCameraState())
+		  end,
+		},
+
 
 		{ id = "label_dev_other", group = "dev", name = texts.option.label_other, category = types.dev },
 		{ id = "label_dev_other_spacer", group = "dev", category = types.dev },

@@ -566,6 +566,8 @@ return {
 			autocheat_descr = 'does: /cheat, /globallos, /godmode',
 			restart = 'Restart',
 			restart_descr = 'Restarts the game',
+			echocamerastate = 'Echo CameraState',
+			echocamerastate_descr = 'Echoes contents of Spring.GetCameraState()',
 			startboxeditor = 'Startbox editor',
 			startboxeditor_descr = 'LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to add a team startbox to startboxes_mapname.txt\n(S overwites the export file for the first team)',
 			tonemap = 'Unit tonemapping',
