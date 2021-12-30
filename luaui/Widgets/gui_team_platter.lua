@@ -99,7 +99,8 @@ local function AddPrimitiveAtUnit(unitID)
 		width = radius
 		length = radius
 	end
-
+	--Spring.Echo("AddPrimitiveAtUnit",unitID, unitTeam[unitID])
+	--Spring.Debug.TableEcho(unitTeam)
 	pushElementInstance(
 		selectionVBO, -- push into this Instance VBO Table
 		{
@@ -183,20 +184,23 @@ local function RemoveUnit(unitID, unitDefID, unitTeamID)
 end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
+	--Spring.Echo("widget:UnitTaken",unitID, unitDefID, oldTeamID, newTeamID)
 	if unitTeam[unitID] then
 		RemoveUnit(unitID, unitDefID, oldTeamID)
-		AddUnit(unitID, unitDefID, unitTeam)
+		AddUnit(unitID, unitDefID, newTeamID)
 	end
 end
 
-function widget:UnitGiven(unitID, unitDefID, unitTeamID)
+function widget:UnitGiven(unitID, unitDefID, newTeamID)
+	--Spring.Echo("widget:UnitGiven",unitID, unitDefID, newTeamID)
 	if unitTeam[unitID] then
-		RemoveUnit(unitID, unitDefID, unitTeamID)
-		AddUnit(unitID, unitDefID, unitTeam)
+		RemoveUnit(unitID, unitDefID, unitTeam[unitID]) -- this removes the old one
+		AddUnit(unitID, unitDefID, newTeamID)
 	end
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	--Spring.Echo("widget:UnitEnteredLos",unitID, unitTeam, allyTeam, unitDefID)
 	if spValidUnitID(unitID) then
 		unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
 		AddUnit(unitID, unitDefID, unitTeam)
