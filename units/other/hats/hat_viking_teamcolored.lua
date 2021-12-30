@@ -36,9 +36,11 @@ return {
 		stealth = true,
 		upright = false,
 		customparams = {
+			nohealthbars = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/hats",
+			decoration = 1,
 		},
 	},
 }

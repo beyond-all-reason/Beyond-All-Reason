@@ -39,7 +39,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local unitDecoration = {}
 	for udefID,def in ipairs(UnitDefs) do
-		if def.name == 'xmasball' or def.name == 'xmasball2' or string.find(def.name == 'stone') then
+		if def.customParams.decoration then
 			unitDecoration[udefID] = true
 		end
 	end

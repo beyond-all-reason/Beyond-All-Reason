@@ -285,7 +285,7 @@ if gadgetHandler:IsSyncedCode() then
 				decorationsTerminal[unitID] = nil
 			end
 			decorationCount = decorationCount - 1
-		elseif attackerID ~= nil and (not _G.destroyingTeam or not _G.destroyingTeam[select(6,Spring.GetTeamInfo(teamID,false))]) then	-- is not reclaimed and not lastcom death chain ripple explosion
+		elseif attackerID ~= nil then --and (not _G.destroyingTeam or not _G.destroyingTeam[select(6,Spring.GetTeamInfo(teamID,false))]) then	-- is not reclaimed and not lastcom death chain ripple explosion
 			if enableUnitDecorations and hasDecoration[unitDefID] ~= nil and (decorationCount < maxDecorations or hasDecoration[unitDefID][5]) then
 
 				local _,_,_,_,buildProgress=Spring.GetUnitHealth(unitID)

@@ -39,6 +39,7 @@ return {
 		customparams = {
 			nohealthbars = true,
 			subfolder = "other",
+			decoration = 1,
 		},
 	},
 }

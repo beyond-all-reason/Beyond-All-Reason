@@ -39,6 +39,7 @@ return {
 			nohealthbars = true,
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other",
+			decoration = 1,
 		},
 	},
 }

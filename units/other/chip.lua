@@ -41,6 +41,7 @@ return {
 			model_author = "Floris",
 			nohealthbars = true,
 			subfolder = "other",
+			decoration = 1,
 		},
 	},
 }
