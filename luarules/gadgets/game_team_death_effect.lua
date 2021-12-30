@@ -42,7 +42,7 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 	local maxDeathFrame = 0
 	local teamUnits = Spring.GetTeamUnits(teamID)
 	for i=1, #teamUnits do
-		local unitID = teamUnits[i]x
+		local unitID = teamUnits[i]
 		if not unitDecoration[spGetUnitDefID(unitID)] then
 			local x,_,z = spGetUnitPosition(unitID)
 			local deathFrame
