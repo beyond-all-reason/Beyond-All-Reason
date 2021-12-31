@@ -85,7 +85,7 @@ end
 
 function widget:Update()
 	if firstPassDrawFrame == nil then return end
-	if Spring.GetDrawFrame() - firstPassDrawFrame < 1 then return end
+	if Spring.GetDrawFrame() - firstPassDrawFrame <= 1 then return end
 
 	changeScreenMode(screenModeIndex)
 end
