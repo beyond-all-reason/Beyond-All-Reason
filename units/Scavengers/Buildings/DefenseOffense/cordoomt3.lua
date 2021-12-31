@@ -144,7 +144,7 @@ return {
 				scrollspeed = 5,
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundstart = "heatray2",
+				soundstart = "heatray2xl",
 				soundtrigger = 1,
 				targetmoveerror = 0.1,
 				thickness = 7,
