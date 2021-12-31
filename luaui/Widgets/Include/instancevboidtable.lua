@@ -55,6 +55,7 @@ function clearInstanceTable(iT)
 	iT.indextoInstanceID = {}
 	if iT.indextoUnitID then iT.indextoUnitID = {} end
 	if iT.indextoObjectType then iT.indextoObjectType = {} end
+	if iT.VAO then iT.VAO:ClearSubmission() end 
 end
 
 function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a vertex buffer to an instance buffer, and optionally, an index buffer if one is supplied.
@@ -162,12 +163,13 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 		iTusedElements = iT.usedElements -- because during validation of unitIDs during resizing, we can decrease the actual size of the table!
 		thisInstanceIndex = iT.instanceIDtoIndex[instanceID]	-- this too, can change, TODO, also do this in VBOIDtable!
 	end
-	
+	local isnewid = false
 	if thisInstanceIndex == nil then -- new, register it
 		thisInstanceIndex = iTusedElements + 1
 		iT.usedElements	 = iTusedElements + 1 
 		iT.instanceIDtoIndex[instanceID] = thisInstanceIndex
 		iT.indextoInstanceID[thisInstanceIndex] = instanceID
+		isnewid = true
 	else -- pre-existing ID, update or bail
 		if updateExisting == nil then
 			Spring.Echo("Tried to add existing element to an instanceTable",iT.myName, instanceID)
@@ -195,7 +197,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 			--Spring.Echo("pushElementInstance,unitID, iT.objectTypeAttribID, thisInstanceIndex",unitID, iT.objectTypeAttribID, thisInstanceIndex)
 			if objecttype == "unitID" then 
 				iT.instanceVBO:InstanceDataFromUnitIDs(unitID, iT.objectTypeAttribID, thisInstanceIndex-1)
-				iT.VAO:AddUnitsToSubmission(unitID)
+				if isnewid then iT.VAO:AddUnitsToSubmission(unitID) end 
 			elseif objecttype == "unitDefID" then	-- TODO 
 				iT.instanceVBO:InstanceDataFromUnitDefIDs(unitID, iT.objectTypeAttribID, teamID, thisInstanceIndex-1)
 				iT.VAO:AddUnitDefsToSubmission(unitID)
