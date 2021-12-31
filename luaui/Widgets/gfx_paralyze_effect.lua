@@ -100,6 +100,8 @@ void main() {
 	if ((uni[instData.y].composite & 0x00000003u) < 1u ) v_endcolor_alpha.a = 0.0; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon))
 
 	v_startcolorpower = startcolorpower;
+	
+	//v_endcolor_alpha.a = 0.99;
 	gl_Position = cameraViewProj * modelPos;
 }
 ]]
@@ -110,39 +112,103 @@ local fsSrc = [[
 #extension GL_ARB_shading_language_420pack: require
 #line 20000
 
-uniform sampler2D tex1;
+// 4D NOISE:
+//	Simplex 4D Noise 
+//	by Ian McEwan, Ashima Arts
+//
+vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
+float permute(float x){return floor(mod(((x*34.0)+1.0)*x, 289.0));}
+vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
+float taylorInvSqrt(float r){return 1.79284291400159 - 0.85373472095314 * r;}
 
-// NOISE:
-const vec2 zOffset = vec2(37.0,17.0);
-const vec2 wOffset = vec2(59.0,83.0);
+vec4 grad4(float j, vec4 ip){
+  const vec4 ones = vec4(1.0, 1.0, 1.0, -1.0);
+  vec4 p,s;
 
-vec4 tex(vec2 uv)	// Emulate a single texture fetch into the precalculated texture
-{
-	// NOTE: Precalculate texture (that somehow failed), so we can do a single fetch instead of 4.
-	float r = textureLod( tex1, (uv+0.5)/256.0, 0.0 ).b;
-	float g = textureLod( tex1, (uv+0.5 + zOffset)/256.0, 0.0 ).b;
-	float b = textureLod( tex1, (uv+0.5 + wOffset)/256.0, 0.0 ).b;
-	float a = textureLod( tex1, (uv+0.5 + zOffset + wOffset)/256.0, 0.0 ).b;
-	//vec4 rgba = textureLod( tex1, (uv+0.5)/256.0, 0.0 );
-	//return rgba.rgba;
-	return vec4(r, g, b, a);
+  p.xyz = floor( fract (vec3(j) * ip.xyz) * 7.0) * ip.z - 1.0;
+  p.w = 1.5 - dot(abs(p.xyz), ones.xyz);
+  s = vec4(lessThan(p, vec4(0.0)));
+  p.xyz = p.xyz + (s.xyz*2.0 - 1.0) * s.www; 
+
+  return p;
 }
 
-float noise( in vec4 x )
-{
-	vec4 p = floor(x);
-	vec4 f = fract(x);
-	f = f*f*(3.0-2.0*f);
-	vec2 uv = (p.xy + p.z*zOffset + p.w*wOffset) + f.xy;
-	vec4 s = tex(uv);
-	return mix(mix( s.x, s.y, f.z ), mix(s.z, s.w, f.z), f.w);
+float snoise(vec4 v){
+  const vec2  C = vec2( 0.138196601125010504,  // (5 - sqrt(5))/20  G4
+                        0.309016994374947451); // (sqrt(5) - 1)/4   F4
+// First corner
+  vec4 i  = floor(v + dot(v, C.yyyy) );
+  vec4 x0 = v -   i + dot(i, C.xxxx);
+
+// Other corners
+
+// Rank sorting originally contributed by Bill Licea-Kane, AMD (formerly ATI)
+  vec4 i0;
+
+  vec3 isX = step( x0.yzw, x0.xxx );
+  vec3 isYZ = step( x0.zww, x0.yyz );
+//  i0.x = dot( isX, vec3( 1.0 ) );
+  i0.x = isX.x + isX.y + isX.z;
+  i0.yzw = 1.0 - isX;
+
+//  i0.y += dot( isYZ.xy, vec2( 1.0 ) );
+  i0.y += isYZ.x + isYZ.y;
+  i0.zw += 1.0 - isYZ.xy;
+
+  i0.z += isYZ.z;
+  i0.w += 1.0 - isYZ.z;
+
+  // i0 now contains the unique values 0,1,2,3 in each channel
+  vec4 i3 = clamp( i0, 0.0, 1.0 );
+  vec4 i2 = clamp( i0-1.0, 0.0, 1.0 );
+  vec4 i1 = clamp( i0-2.0, 0.0, 1.0 );
+
+  //  x0 = x0 - 0.0 + 0.0 * C 
+  vec4 x1 = x0 - i1 + 1.0 * C.xxxx;
+  vec4 x2 = x0 - i2 + 2.0 * C.xxxx;
+  vec4 x3 = x0 - i3 + 3.0 * C.xxxx;
+  vec4 x4 = x0 - 1.0 + 4.0 * C.xxxx;
+
+// Permutations
+  i = mod(i, 289.0); 
+  float j0 = permute( permute( permute( permute(i.w) + i.z) + i.y) + i.x);
+  vec4 j1 = permute( permute( permute( permute (
+             i.w + vec4(i1.w, i2.w, i3.w, 1.0 ))
+           + i.z + vec4(i1.z, i2.z, i3.z, 1.0 ))
+           + i.y + vec4(i1.y, i2.y, i3.y, 1.0 ))
+           + i.x + vec4(i1.x, i2.x, i3.x, 1.0 ));
+// Gradients
+// ( 7*7*6 points uniformly over a cube, mapped onto a 4-octahedron.)
+// 7*7*6 = 294, which is close to the ring size 17*17 = 289.
+
+  vec4 ip = vec4(1.0/294.0, 1.0/49.0, 1.0/7.0, 0.0) ;
+
+  vec4 p0 = grad4(j0,   ip);
+  vec4 p1 = grad4(j1.x, ip);
+  vec4 p2 = grad4(j1.y, ip);
+  vec4 p3 = grad4(j1.z, ip);
+  vec4 p4 = grad4(j1.w, ip);
+
+// Normalise gradients
+  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+  p0 *= norm.x;
+  p1 *= norm.y;
+  p2 *= norm.z;
+  p3 *= norm.w;
+  p4 *= taylorInvSqrt(dot(p4,p4));
+
+// Mix contributions from the five corners
+  vec3 m0 = max(0.6 - vec3(dot(x0,x0), dot(x1,x1), dot(x2,x2)), 0.0);
+  vec2 m1 = max(0.6 - vec2(dot(x3,x3), dot(x4,x4)            ), 0.0);
+  m0 = m0 * m0;
+  m1 = m1 * m1;
+  return 49.0 * ( dot(m0*m0, vec3( dot( p0, x0 ), dot( p1, x1 ), dot( p2, x2 )))
+               + dot(m1*m1, vec2( dot( p3, x3 ), dot( p4, x4 ) ) ) ) ;
+
 }
 
-const mat4 noisematrix = mat4( 0.00,  0.80,  0.60, -0.4,
-                    -0.80,  0.36, -0.48, -0.5,
-                    -0.60, -0.48,  0.64,  0.2,
-                     0.40,  0.30,  0.20,  0.4);
-// END NOISE
+//END 4D NOISE
+
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
@@ -154,35 +220,73 @@ in vec4 v_endcolor_alpha;
 out vec4 fragColor;
 #line 25000
 void main() {
-	float noisescale = 0.11;
-	//if (v_endcolor_alpha.a < 1.0) noisescale = 0.075;
-	vec4 noiseposition = noisescale*vec4(v_modelPosOrig, (timeInfo.x + timeInfo.w)*0.5);
-	float noisevalue;
-	noisevalue  = 0.5000*noise( noiseposition ); noiseposition = noisematrix*noiseposition*2.01;
-	noisevalue += 0.2500*noise( noiseposition ); noiseposition = noisematrix*noiseposition*2.02;
-	noisevalue += 0.1250*noise( noiseposition ); noiseposition = noisematrix*noiseposition*2.03;
-	noisevalue += 0.0625*noise( noiseposition ); noiseposition = noisematrix*noiseposition*2.04;
+	float paralysis_level = v_endcolor_alpha.a; // values of 1 are fully paralyzed 
+	
+	float noisescale;
+	float persistance;
+	float lacunarity;
+	vec3 minlightningcolor;
+	vec3 maxlightningcolor;
+	vec4 wholeunitbasecolor;
+	float lightningalpha;
+	float lighting_sharpness; 
+	float lighting_width; 
+	float lightning_speed;
+	
+	// ------------------ CONFIG START --------------------
+	
+	if (paralysis_level < 0.9999) { // not fully paralyzed
+		noisescale = 0.1;
+		lacunarity = 2.5;
+		persistance = 0.4;
+		minlightningcolor = vec3(0.0, 0.0, 1.0); //blue
+		maxlightningcolor = vec3(1.0, 1.0, 1.0); //white
+		wholeunitbasecolor = vec4(0.0, 0.0, 0.0, 0.0); // none
+		lightningalpha = 0.7;
+		lighting_sharpness = 10.0; 
+		lighting_width = 3.0;
+		lightning_speed = 1.5;
+	}
+	else{ // fully paralyzed
+		noisescale = 0.31;
+		persistance = 0.4;
+		lacunarity = 2.5;
+		minlightningcolor = vec3(0.0, 0.0, 1.0); //blue
+		maxlightningcolor = vec3(1.0, 1.0, 1.0); //white
+		wholeunitbasecolor = vec4(0.2, 0.3, 1.0, 0.25); // light blue base tone
+		lightningalpha = 1.0;
+		lighting_sharpness = 3.0; 
+		lighting_width = 3.0;
+		lightning_speed = 0.5;
+	}
+	// ------------------ CONFIG END --------------------
+	
+	
+	vec4 noiseposition = noisescale*vec4(v_modelPosOrig, (timeInfo.x + timeInfo.w)*lightning_speed);
+	float noise4 = 0;
+	noise4 += pow(persistance, 1.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 1.0));
+	noise4 += pow(persistance, 2.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 2.0));
+	noise4 += pow(persistance, 3.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 3.0));
+	noise4 += pow(persistance, 4.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 4.0));
+	noise4 = (1.0 * noise4 + 0.5);
+	float electricity = clamp(1.0 - abs(noise4  - 0.5)*lighting_width, 0.0, 1.0);
+	electricity = clamp(pow(electricity, lighting_sharpness), 0.0, 1.0);
 
-	float electricity = clamp(1.0 - abs(noisevalue  - 0.5)*5.0, 0.0, 1.0);
-	electricity = pow(electricity, v_startcolorpower.w);
-
-
-	vec3 lightcolor;
-	float outalpha;
-	if (v_endcolor_alpha.a > 1.0) { // for fully paralyzed, increase transparency
-		lightcolor = mix(v_endcolor_alpha.rgb, v_startcolorpower.rgb, electricity);
-		outalpha = v_endcolor_alpha.a * 1.2;
+	vec3 lightningcolor;
+	float effectalpha;
+	if (paralysis_level < 0.9999) { 
+		// Calculate the lightning color based on the amount of electricity
+		lightningcolor = mix(minlightningcolor, maxlightningcolor, electricity); 
+		effectalpha = paralysis_level * lightningalpha; // less transparency non-paralyzed
 	}
 	else
 	{
-		lightcolor = mix(vec3(1.0, 1.0, 0.0), v_startcolorpower.rgb, electricity); // pee yellow for non fully-paralyzed units
-		//lightcolor = mix(vec3(0.0, 0.0, 1.0), v_startcolorpower.rgb, electricity); // pee yellow for non fully-paralyzed units
-		outalpha = v_endcolor_alpha.a * 0.7; // less transparency non-paralyzed
+		lightningcolor = mix(minlightningcolor, maxlightningcolor, electricity);
+		effectalpha = clamp(paralysis_level * lightningalpha, 0.0, 1.0);
 	}
-
-	fragColor = vec4(lightcolor, electricity*outalpha);
-	//fragColor = vec4(vec3(electricity), 1.0);
-	//fragColor = vec4(1.0);
+	
+	fragColor = vec4(lightningcolor, electricity*effectalpha);
+	fragColor = max(wholeunitbasecolor, fragColor); // apply whole unit base color	
 }
 ]]
 
@@ -214,7 +318,7 @@ local function initGL4()
 		vertex = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
 		fragment = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
 		uniformInt = {
-			tex1 = 0,
+			--tex1 = 0,
 		},
 	}, "paralyzedDrawparalyzedUnitShader")
 
@@ -232,13 +336,13 @@ local function DrawParalyzedUnitGL4(unitID, unitDefID, red_start,  green_start, 
 	-- returns: a unique handler ID number that you should store and call StopDrawParalyzedUnitGL4(uniqueID) with to stop drawing it
 	-- note that widgets are responsible for stopping the drawing of every unit that they submit!
 
-	--Spring.Echo("DrawParalyzedUnitGL4",unitID, unitDefID)
+	--Spring.Echo("DrawParalyzedUnitGL4",unitID, unitDefID, UnitDefs[unitDefID].name)
 	if paralyzedDrawUnitVBOTable.instanceIDtoIndex[unitID] then return end -- already got this unit
 	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then return end
 	red_start = red_start or 1.0
 	green_start = green_start or 1.0
 	blue_start = blue_start or 1.0
-	power_start = power_start or 4.0
+	power_start = power_start or 4.0 
 	red_end = red_end or 0
 	green_end = green_end or 0
 	blue_end = blue_end or 1.0
@@ -292,6 +396,7 @@ function widget:PlayerChanged(playerID)
 	local prevMyTeamID = myTeamID
 	myTeamID = Spring.GetMyTeamID()
 	if myTeamID ~= prevMyTeamID then -- TODO only really needed if onlyShowOwnTeam, or if allyteam changed?
+		--Spring.Echo("Initializing Paralyze Effect")
 		init()
 	end
 end
@@ -372,10 +477,10 @@ function widget:DrawWorld()
 		gl.DepthTest(true)
 		gl.PolygonOffset( -2 ,-2)
 		paralyzedUnitShader:Activate()
-		gl.Texture(0, "luaui/images/rgba_noise_256.tga")
+		--gl.Texture(0, "luaui/images/rgba_noise_256.tga")
 		paralyzedDrawUnitVBOTable.VAO:Submit()
 		paralyzedUnitShader:Deactivate()
-		gl.Texture(0, false)
+		--gl.Texture(0, false)
 		gl.PolygonOffset( false )
 		gl.Culling(false)
 	end
