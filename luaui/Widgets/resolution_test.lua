@@ -64,17 +64,16 @@ local function changeScreenMode(index)
 	local screenMode = screenModes[index]
 
 	if screenMode.type == windowType.fullscreen then
-		Spring.Echo("foo windowType.fullscreen", screenMode.width, screenMode.height)
+		Spring.Echo("windowType.fullscreen", screenMode.width, screenMode.height)
 		Spring.SetWindowGeometry(screenMode.display, 0, 0, screenMode.width, screenMode.height, true, true)
 	elseif screenMode.type == windowType.borderless then
-		Spring.Echo("foo windowType.borderless", 0, 0, screenMode.width, screenMode.height)
+		Spring.Echo("windowType.borderless", 0, 0, screenMode.width, screenMode.height)
 		Spring.SetWindowGeometry(screenMode.display, 0, 0, screenMode.width, screenMode.height, false, true)
 	elseif screenMode.type == windowType.windowed then
 		local w, h, x, y , borderTop, borderLeft, borderBottom, borderRight = Spring.GetWindowGeometry()
-		Spring.Echo("foo", w, h, x, y , borderTop, borderLeft, borderBottom, borderRight)
 		local width = screenMode.width - borderLeft - borderRight
 		local height = screenMode.height - borderTop - borderBottom
-		Spring.Echo("foo windowType.windowed", borderLeft, borderTop, width, height)
+		Spring.Echo("windowType.windowed", borderLeft, borderTop, width, height)
 		Spring.SetWindowGeometry(screenMode.display, borderLeft, borderTop, width, height, false, false)
 
 		if windowedFirstPass then
