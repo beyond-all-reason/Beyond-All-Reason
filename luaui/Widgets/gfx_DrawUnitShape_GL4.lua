@@ -276,7 +276,8 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID,
 	teamID = teamID or 256
 	highlight = highlight or 0
 	
-	py = py - (UnitDefs[unitDefID].model.midy or 0) -- cause our midpos is somehow offset?
+	--py = py - (UnitDefs[unitDefID].model.midy or 0) -- cause our midpos is somehow offset?
+	--py = py - (UnitDefs[unitDefID].model.midy or 0) -- cause our midpos is somehow offset?
 	local DrawUnitShapeVBOTable
 	--Spring.Echo("DrawUnitShapeGL4", "unitDefID", unitDefID, UnitDefs[unitDefID].name, "to unitDefID", uniqueID,"elemID", elementID) 
 	if corUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = corDrawUnitShapeVBOTable
