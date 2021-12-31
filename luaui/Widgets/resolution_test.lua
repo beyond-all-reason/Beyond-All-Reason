@@ -7,9 +7,8 @@ function widget:GetInfo()
 	}
 end
 
+local firstPassDrawFrame
 local screenModeIndex = 0
-local staleWindow = false
-local windowedFirstPass = true
 
 local windowType = {
 	fullscreen = 1,
@@ -70,34 +69,25 @@ local function changeScreenMode(index)
 		Spring.Echo("windowType.borderless", 0, 0, screenMode.width, screenMode.height)
 		Spring.SetWindowGeometry(screenMode.display, 0, 0, screenMode.width, screenMode.height, false, true)
 	elseif screenMode.type == windowType.windowed then
-		local w, h, x, y , borderTop, borderLeft, borderBottom, borderRight = Spring.GetWindowGeometry()
+		local _, _, _, _ , borderTop, borderLeft, borderBottom, borderRight = Spring.GetWindowGeometry()
 		local width = screenMode.width - borderLeft - borderRight
 		local height = screenMode.height - borderTop - borderBottom
 		Spring.Echo("windowType.windowed", borderLeft, borderTop, width, height)
 		Spring.SetWindowGeometry(screenMode.display, borderLeft, borderTop, width, height, false, false)
 
-		if windowedFirstPass then
-			staleWindow = true
-			windowedFirstPass = false
-			return
+		if firstPassDrawFrame then
+			firstPassDrawFrame = nil
+		else
+			firstPassDrawFrame = Spring.GetDrawFrame()
 		end
-
-		windowedFirstPass = true
 	end
-
-	staleWindow = false
 end
 
-local time = 0
-function widget:Update(delta)
-	time = time + delta
-	if time <= 0.1 then return end
+function widget:Update()
+	if firstPassDrawFrame == nil then return end
+	if Spring.GetDrawFrame() - firstPassDrawFrame < 1 then return end
 
-	if staleWindow then
-		time = 0
-		changeScreenMode(screenModeIndex)
-	end
-
+	changeScreenMode(screenModeIndex)
 end
 
 function widget:Initialize()
@@ -115,6 +105,6 @@ end
 function widget:TextCommand(command)
 	if string.sub(command, 1, 4) == "res " then
 		screenModeIndex = tonumber(string.sub(command, 5))
-		staleWindow = true
+		changeScreenMode(screenModeIndex)
 	end
 end
