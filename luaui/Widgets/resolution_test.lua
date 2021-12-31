@@ -7,7 +7,9 @@ function widget:GetInfo()
 	}
 end
 
-local ssx, ssy, _, _ = Spring.GetScreenGeometry()
+local screenModeIndex = 0
+local staleWindow = false
+local windowedFirstPass = true
 
 local windowType = {
 	fullscreen = 1,
@@ -15,70 +17,102 @@ local windowType = {
 	windowed   = 3,
 }
 
-local screenModes = {
-	{
-		name = "Fullscreen",
-		type = windowType.fullscreen,
-		width = ssx,
-		height = ssy,
-	},
-	{
-		name = "Borderless",
-		type = windowType.borderless,
-		width = ssx,
-		height = ssy,
-	}
-}
-
+local screenModes = {}
+local display = -1
 for _, videoMode in ipairs(Platform.availableVideoModes) do
-	if videoMode.display == 1 and videoMode.w >= 800 and videoMode.h > 600 then
-		local resolution = {
+	-- only capture the first occurance of the display index. Will contain maximum supported resolution
+	if display ~= videoMode.display then
+		display = videoMode.display
+		local fullscreen = {
+			display = display,
+			displayName = videoMode.displayName,
+			name = "Fullscreen",
+			type = windowType.fullscreen,
+			width = videoMode.w,
+			height = videoMode.h,
+		}
+
+		local borderless = {
+			display = display,
+			name = "Borderless",
+			displayName = videoMode.displayName,
+			type = windowType.borderless,
+			width = videoMode.w,
+			height = videoMode.h,
+		}
+		table.insert(screenModes, fullscreen)
+		table.insert(screenModes, borderless)
+	end
+
+	if videoMode.w >= 800 and videoMode.h > 600 then
+		local windowed = {
+			display = display,
+			displayName = videoMode.displayName,
 			name = videoMode.w .. " × " .. videoMode.h,
 			type = windowType.windowed,
 			width = videoMode.w,
 			height = videoMode.h,
 		}
 
-		table.insert(screenModes, resolution)
+		table.insert(screenModes, windowed)
 	end
 end
 
 local function changeScreenMode(index)
-	if index > #screenModes then return end
+	if index > #screenModes or index < 1 then return end
 
 	local screenMode = screenModes[index]
 
-    if screenMode.type == windowType.fullscreen then
-        Spring.SetConfigInt("XResolution", screenMode.width)
-        Spring.SetConfigInt("YResolution", screenMode.height)
-        Spring.SendCommands("Fullscreen 1")
-    elseif screenMode.type == windowType.borderless then
-        Spring.SetConfigInt("WindowPosX", 0)
-        Spring.SetConfigInt("WindowPosY", 0)
-        Spring.SetConfigInt("XResolutionWindowed", screenMode.width)
-        Spring.SetConfigInt("YResolutionWindowed", screenMode.height)
-        Spring.SetConfigInt("WindowBorderless", 1)
-        Spring.SendCommands("Fullscreen 0")
-    elseif screenMode.type == windowType.windowed then
-        Spring.SetConfigInt("WindowPosX", 25)
-        Spring.SetConfigInt("WindowPosY", 25)
-        Spring.SetConfigInt("XResolutionWindowed", screenMode.width)
-        Spring.SetConfigInt("YResolutionWindowed", screenMode.height)
-        Spring.SetConfigInt("WindowBorderless", 0)
-        Spring.SendCommands("Fullscreen 0")
-    end
+	if screenMode.type == windowType.fullscreen then
+		Spring.Echo("foo windowType.fullscreen", screenMode.width, screenMode.height)
+		Spring.SetWindowGeometry(screenMode.display, 0, 0, screenMode.width, screenMode.height, true, true)
+	elseif screenMode.type == windowType.borderless then
+		Spring.Echo("foo windowType.borderless", 0, 0, screenMode.width, screenMode.height)
+		Spring.SetWindowGeometry(screenMode.display, 0, 0, screenMode.width, screenMode.height, false, true)
+	elseif screenMode.type == windowType.windowed then
+		local w, h, x, y , borderTop, borderLeft, borderBottom, borderRight = Spring.GetWindowGeometry()
+		Spring.Echo("foo", w, h, x, y , borderTop, borderLeft, borderBottom, borderRight)
+		local width = screenMode.width - borderLeft - borderRight
+		local height = screenMode.height - borderTop - borderBottom
+		Spring.Echo("foo windowType.windowed", borderLeft, borderTop, width, height)
+		Spring.SetWindowGeometry(screenMode.display, borderLeft, borderTop, width, height, false, false)
+
+		if windowedFirstPass then
+			staleWindow = true
+			windowedFirstPass = false
+			return
+		end
+
+		windowedFirstPass = true
+	end
+
+	staleWindow = false
+end
+
+function widget:Update(delta)
+	if delta <= 0 then return end
+
+	if staleWindow then
+		changeScreenMode(screenModeIndex)
+	end
+
 end
 
 function widget:Initialize()
 	Spring.Echo("[Resolution Test] Use command '\\res #' to change screen specs")
+	local displayName
 	for i, mode in ipairs(screenModes) do
+		if mode.displayName ~= displayName then
+			Spring.Echo(mode.displayName)
+			displayName = mode.displayName
+		end
 		Spring.Echo(i .. ": " .. mode.name)
 	end
 end
 
 function widget:TextCommand(command)
 	if string.sub(command, 1, 4) == "res " then
-		local screenModeIndex = tonumber(string.sub(command, 5))
-		changeScreenMode(screenModeIndex)
+		screenModeIndex = tonumber(string.sub(command, 5))
+		staleWindow = true
 	end
 end
