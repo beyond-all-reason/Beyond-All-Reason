@@ -87,7 +87,7 @@ function UnitDef_Post(name, uDef)
 	if Spring.GetModOptions().newdgun then
 		if name == 'armcom' or name == 'corcom' then
 			uDef.weapondefs.disintegrator = {
-				areaofeffect = 200,
+				areaofeffect = 100,
 				avoidGround = false,
 				avoidFriendly = false,
 				avoidFeature = false,
@@ -99,6 +99,7 @@ function UnitDef_Post(name, uDef)
 				collideNeutral = false,
 				burnblow = true, --this fixes passing through the targeted unit and missing
 				bouncerebound = 0,
+				cegtag = "dgunprojectile",
 				commandfire = true,
 				craterboost = 0,
 				cratermult = 0.15,
