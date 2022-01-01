@@ -115,10 +115,18 @@ function gadget:GameFrame(n)
                         if #testUnits == 0 and canSpawnDefence then
                             if spawnPosY > 0 then
                                 local wall = Spring.CreateUnit(UnitDefNames["corscavfort"].id, spawnPosX, spawnPosY, spawnPosZ, 0, GaiaTeamID)
-                                table.insert(startboxWallsList, wall)
+                                if wall then
+                                    Spring.SetUnitMaxHealth(wall, 16000000)
+                                    Spring.SetUnitHealth(wall, 16000000)
+                                    table.insert(startboxWallsList, wall)
+                                end
                             else
                                 local wall = Spring.CreateUnit(UnitDefNames["corfdrag"].id, spawnPosX, spawnPosY, spawnPosZ, 0, GaiaTeamID)
-                                table.insert(startboxWallsList, wall)
+                                if wall then
+                                    Spring.SetUnitMaxHealth(wall, 16000000)
+                                    Spring.SetUnitHealth(wall, 16000000)
+                                    table.insert(startboxWallsList, wall)
+                                end
                             end
                         end
                     end
@@ -131,9 +139,10 @@ function gadget:GameFrame(n)
         end
     else
         if #startboxWallsList > 0 then
-            Spring.DestroyUnit(startboxWallsList[1], true, false)
+            if Spring.ValidUnitID(startboxWallsList[1]) then
+                Spring.DestroyUnit(startboxWallsList[1], true, false)
+            end
             table.remove(startboxWallsList, 1)
         end
     end
-
 end
