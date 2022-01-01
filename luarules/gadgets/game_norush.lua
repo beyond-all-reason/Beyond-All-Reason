@@ -118,6 +118,7 @@ function gadget:GameFrame(n)
                                 if wall then
                                     Spring.SetUnitMaxHealth(wall, 16000000)
                                     Spring.SetUnitHealth(wall, 16000000)
+                                    Spring.SetUnitCosts(wall, {buildTime = 9999999})
                                     table.insert(startboxWallsList, wall)
                                 end
                             else
@@ -125,6 +126,7 @@ function gadget:GameFrame(n)
                                 if wall then
                                     Spring.SetUnitMaxHealth(wall, 16000000)
                                     Spring.SetUnitHealth(wall, 16000000)
+                                    Spring.SetUnitCosts(wall, {buildTime = 9999999})
                                     table.insert(startboxWallsList, wall)
                                 end
                             end
