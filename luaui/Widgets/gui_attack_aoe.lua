@@ -238,10 +238,12 @@ local function SetupUnitDef(unitDefID, unitDef)
 				if weaponDef.type == "DGun" then
 					dgunInfo[unitDefID] = { range = dgunRange, aoe = weaponDef.damageAreaOfEffect, unitname = unitDef.name, requiredEnergy = unitDef.energyCost }
 				elseif weaponDef.canAttackGround
+					and not (weaponDef.manualFire and unitDef.canManualFire)
 					and not (weaponDef.type == "Shield")
 					and not ToBool(weaponDef.interceptor)
 					and (weaponDef.damageAreaOfEffect > maxSpread or weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle) > maxSpread)
 					and not string.find(weaponDef.name, "flak", nil, true) then
+
 					maxSpread = max(weaponDef.damageAreaOfEffect, weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle))
 					maxWeaponDef = weaponDef
 				end
