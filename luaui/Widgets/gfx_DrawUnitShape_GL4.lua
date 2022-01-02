@@ -115,35 +115,27 @@ mat4 GetPieceMatrix(bool staticModel) {
 #define NORM2SNORM(value) (value * 2.0 - 1.0)
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
 
-out vec2 vuv;
+out vec2 v_uv;
 out vec4 v_parameters;
 out vec4 myTeamColor;
 out vec3 worldPos;
 
 void main() {
 	uint baseIndex = instData.x;
-	mat4 modelMatrix = mat[baseIndex];
 
+	// dynamic models have one extra matrix, as their first matrix is their world pos/offset
 	uint isDynamic = 1u; //default dynamic model
 	if (parameters.y > 0.5) isDynamic = 0u;  //if paramy == 1 then the unit is static
-	// dynamic models have one extra matrix, as their first matrix is their world pos/offset
-	mat4 pieceMatrix = mat4mix(mat4(1.0), mat[baseIndex + pieceIndex + isDynamic ], modelMatrix[3][3]);
+	mat4 pieceMatrix = mat[baseIndex + pieceIndex + isDynamic];
 
 	vec4 localModelPos = pieceMatrix * vec4(pos, 1.0);
-	float sinrot = sin(worldposrot.w);
-	float cosrot = cos(worldposrot.w);
-	float newx = cosrot * localModelPos.x + -1.0 * sinrot * localModelPos.z;
-	float newz = sinrot * localModelPos.x + cosrot * localModelPos.z;
-	localModelPos.x = newx;
-	localModelPos.z = newz;
 	
-	vec4 modelPos = localModelPos;
-
-	modelPos.xyz += worldposrot.xyz; //instOffset;
-	//if (parameters.y > 0.5) modelPos.xyz += mouseWorldPos.xyz; // we offset drawn defs with mouse
-
-	vec3 modelBaseToCamera = cameraViewInv[3].xyz - (modelMatrix[3].xyz + worldposrot.xyz);
-
+	// Make the rotation matrix around Y and rotate the model
+	mat3 rotY = rotation3dY(worldposrot.w); 
+	localModelPos.xyz = rotY * localModelPos.xyz;
+	
+	vec4 worldModelPos = localModelPos;
+	worldModelPos.xyz += worldposrot.xyz; //Place it in the world
 
 	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
 	uint drawFlags = (instData.z & 0x0000FF00u) >> 8 ; // hopefully this works
@@ -151,12 +143,15 @@ void main() {
 
 	myTeamColor = vec4(teamColor[teamIndex].rgb, parameters.x); // pass alpha through
 
-	myTeamColor.a = parameters.x;
-	if ( dot (modelBaseToCamera, modelBaseToCamera) >  (iconDistance * iconDistance)) myTeamColor.a = 0.0; // do something if we are far out?
+	vec3 modelBaseToCamera = cameraViewInv[3].xyz - (pieceMatrix[3].xyz + worldposrot.xyz);
+	if ( dot (modelBaseToCamera, modelBaseToCamera) >  (iconDistance * iconDistance)) {
+		myTeamColor.a = 0.0; // do something if we are far out?
+	}
+	
 	v_parameters = parameters;
-	vuv = uv.xy;
-	worldPos = modelPos.xyz;
-	gl_Position = cameraViewProj * modelPos;
+	v_uv = uv.xy;
+	worldPos = worldModelPos.xyz;
+	gl_Position = cameraViewProj * worldModelPos;
 }
 ]]
 
@@ -172,7 +167,7 @@ uniform sampler2D tex2;
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
 
-in vec2 vuv;
+in vec2 v_uv;
 in vec4 v_parameters;
 in vec4 myTeamColor;
 in vec3 worldPos;
@@ -180,8 +175,8 @@ in vec3 worldPos;
 out vec4 fragColor;
 #line 25000
 void main() {
-	vec4 modelColor = texture(tex1, vuv.xy);
-	vec4 extraColor = texture(tex2, vuv.xy);
+	vec4 modelColor = texture(tex1, v_uv.xy);
+	vec4 extraColor = texture(tex2, v_uv.xy);
 	modelColor += modelColor * extraColor.r; // emission
 	modelColor.a *= extraColor.a; // basic model transparency
 	modelColor.rgb = mix(modelColor.rgb, myTeamColor.rgb, modelColor.a); // apply teamcolor
@@ -193,7 +188,6 @@ void main() {
 	}
 
 	fragColor = vec4(modelColor.rgb, myTeamColor.a);
-
 }
 ]]
 
