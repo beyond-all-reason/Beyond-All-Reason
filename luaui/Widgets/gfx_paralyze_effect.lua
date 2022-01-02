@@ -434,30 +434,33 @@ local uniformcache = {0}
 local toremove = {}
 
 function widget:GameFrame(n)
-	if n % 3 == 0 then
-		for unitID, index in pairs(paralyzedDrawUnitVBOTable.instanceIDtoIndex) do
-			local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
-			uniformcache[1] = (paralyzeDamage or 0) / (maxHealth or 1) -- 1 to avoid div0
-			gl.SetUnitBufferUniforms(unitID, uniformcache, 4)
-			if paralyzeDamage == 0 then
-				toremove[unitID] = true
+	if TESTMODE == false then 
+		if n % 3 == 0 then
+			for unitID, index in pairs(paralyzedDrawUnitVBOTable.instanceIDtoIndex) do
+				local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
+				uniformcache[1] = (paralyzeDamage or 0) / (maxHealth or 1) -- 1 to avoid div0
+				gl.SetUnitBufferUniforms(unitID, uniformcache, 4)
+				if paralyzeDamage == 0 then
+					toremove[unitID] = true
+				end
 			end
 		end
-	end
-	for unitID, _ in pairs(toremove) do
-		StopDrawParalyzedUnitGL4(unitID)
-		toremove[unitID] = nil
+		for unitID, _ in pairs(toremove) do
+			StopDrawParalyzedUnitGL4(unitID)
+			toremove[unitID] = nil
+		end
 	end
 end
 
 function widget:Initialize()
 	initGL4()
+	init()
 	if TESTMODE then
 		for i, unitID in ipairs(Spring.GetAllUnits()) do
 			widget:UnitCreated(unitID)
+			gl.SetUnitBufferUniforms(unitID, {1.01}, 4)
 		end
 	end
-	init()
 	WG['DrawParalyzedUnitGL4'] = DrawParalyzedUnitGL4
 	WG['StopDrawParalyzedUnitGL4'] = StopDrawParalyzedUnitGL4
 	widgetHandler:RegisterGlobal("UnitParalyzeDamageEffect",UnitParalyzeDamageEffect )
