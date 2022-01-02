@@ -42,7 +42,7 @@ end
 
 function LosHST:Update()
 	local f = self.game:Frame()
-	if f % 23 == 0 then
+	if f % 3 == 0 then
 		self:getCenter()
         self.ai.friendlyTeamID = {}
         self.ai.friendlyTeamID[self.game:GetTeamID()] = true
@@ -55,7 +55,7 @@ function LosHST:Update()
 			local enemyList = {}
 			for i, e in pairs(enemies) do
 
-
+				self:Warn(e:Name())
 				if not e:IsAlive() then
 					self:cleanEnemy(e:ID())
 				else
@@ -116,6 +116,7 @@ function LosHST:scanEnemy(enemy,isShoting)
 	t.hidden = false
 	t.mobile = ut.speed > 0
 	t.health = enemy:GetHealth()
+	t.M = ut.metalCost
 
 
 	t.mType =ut.mtype
@@ -186,11 +187,12 @@ end
 function LosHST:setPosLayer(unitName,Pos)
 	local ut = self.ai.armyhst.unitTable[unitName]
 	local float = false
+
 	if ut.mtype == 'air' then
 		self.ai.needAntiAir = true --TODO need to move from here
 		return 1
 	end
-	if Pos.y < 0 then
+	if (ut.mtype == 'sub' or ut.mtype == 'amp') and Pos.y < -5 then
 		return -1
 	end
 	if Spring.GetGroundHeight(Pos.x,Pos.z) < 0 then --TEST  WARNING

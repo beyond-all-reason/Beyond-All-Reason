@@ -232,7 +232,7 @@ function TaskLabBST:getQueue()
 		{'techs',3,nil,10,1},
 		{'battles',3,nil,25,5},
 		{'techs',3,6,7,1},
-		{'artillerys',1,10,10,3},
+		{'artillerys',1,10,10,5},
 		{'techs',3,nil,10,1},
 		{'breaks',2,5,15,3},
 		{'techs',3,nil,10,1},

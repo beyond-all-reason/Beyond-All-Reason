@@ -178,6 +178,67 @@ function RaidHST:getRaidCell(squad)
 	return best
 end
 
+function RaidHST:getRaidCell2(squad)
+	if not squad then return end
+	local leader = self.game:GetUnitByID(squad.members[1])
+-- 	local rpos = representative:GetPosition()
+	local inCell = self.ai.targethst:GetCellHere(squad.position)
+	local threatReduction = 0
+	local TR = self.ai.armyhst.unitTable[squad.unitName].metalCost * #squad.members
+	if inCell ~= nil then
+		-- if we're near more raiders, these raiders can target more threatening targets together
+		if inCell.raiderHere then threatReduction = threatReduction + inCell.raiderHere end
+		if inCell.raiderAdjacent then threatReduction = threatReduction + inCell.raiderAdjacent end
+	end
+	self:EchoDebug(threatReduction,TR)
+	local maxThreat = self.ai.armyhst.unitTable[squad.unitName].metalCost
+	local rthreat = self.ai.armyhst.unitTable[squad.unitName].threat
+	local rrange = self.ai.armyhst.unitTable[squad.unitName].maxRange
+	self:EchoDebug(squad.unitName .. ": " .. rthreat .. " " .. rrange)
+	if rthreat > maxThreat then maxThreat = rthreat end
+	local best
+	local bestDist = math.huge
+	local cells
+	local minThreat = math.huge
+	local centerdist = 0
+	local topDist = self.ai.tool:DistanceXZ(0,0, Game.mapSizeX, Game.mapSizeZ)
+	local bestValue = math.huge
+	local bestTarget = nil
+-- 	for i,cell in pairs (self.ai.targethst.cellList) do
+-- 		local dist = self.ai.tool:Distance(self.ai.loshst.CENTER, cell.pos)
+-- 		centerdist = math.max(dist,centerdist)
+-- 	end
+--
+--  	for i,cell in pairs (self.ai.targethst.cellList) do
+--  		local value, threat, gas = self.ai.targethst:CellValueThreat(squad.unitName, cell)
+-- 		self:EchoDebug('cell target raid value',value,cell.pos.x,cell.pos.z	)
+-- 		--local dist = self.ai.tool:Distance(self.ai.loshst.CENTER, cell.pos)
+--  		local dist = self.ai.tool:Distance(squad.position, cell.pos)
+--  		if value > 50 and threat < minThreat  and self.ai.maphst:UnitCanGoHere(leader, cell.pos) then
+--  			minThreat = threat
+--  			best = cell
+-- 			self:EchoDebug('have a cell')
+--  		end
+--  	end
+		for i, G in pairs(self.ai.targethst.ENEMYCELLS) do
+			local cell = self.ai.targethst.CELLS[G.x][G.z]
+
+			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
+				local Rdist = self.ai.tool:Distance(cell.pos,self.ai.loshst.CENTER)/topDist
+				local Rvalue = Rdist * cell.ENEMY
+				if Rvalue < bestValue then
+					bestTarget = cell
+					bestValue = Rvalue
+				end
+			end
+	end
+	if bestTarget then
+		print(bestTarget.gx,bestTarget.gz)
+		return bestTarget
+	end
+	return bestTarget
+end
+
 function RaidHST:FindPath(squad)
 	if not squad.pathfinder then
 		self:EchoDebug('no pathfinder??')

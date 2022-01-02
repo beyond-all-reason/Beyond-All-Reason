@@ -13,51 +13,51 @@ local DebugDrawEnabled = false
 local mFloor = math.floor
 local mCeil = math.ceil
 
-local function PlotSquareDebug(x, z, size, color, label, filled)
-	if DebugDrawEnabled then
-		x = mCeil(x)
-		z = mCeil(z)
-		size = mCeil(size)
-		local halfSize = size / 2
-		local pos1, pos2 = api.Position(), api.Position()
-		pos1.x, pos1.z = x - halfSize, z - halfSize
-		pos2.x, pos2.z = x + halfSize, z + halfSize
-		map:DrawRectangle(pos1, pos2, color, label, filled, 8)
-	end
-end
-
-function TargetHST:UpdateDebug()
-	if not DebugDrawEnabled then
-		return
-	end
-	map:EraseRectangle(nil, nil, nil, nil, true, 8)
-	map:EraseRectangle(nil, nil, nil, nil, false, 8)
-	local maxThreat = 0
-	local maxValue = 0
-	for cx, czz in pairs(self.cells) do
-		for cz, cell in pairs(czz) do
-			local value, threat = self:CellValueThreat("ALL", cell)
-			if threat > maxThreat then maxThreat = threat end
-			if value > maxValue then maxValue = value end
-		end
-	end
-	for cx, czz in pairs(self.cells) do
-		for cz, cell in pairs(czz) do
-			local x = cell.x * cellElmos - cellElmosHalf
-			local z = cell.z * cellElmos - cellElmosHalf
-			local value, threat = self:CellValueThreat("ALL", cell)
-			if value > 0 then
-				local g = value / maxValue
-				local b = 1 - g
-				PlotSquareDebug(x, z, cellElmos, {0,g,b}, tostring(value), false)
-			end
-			if threat > 0 then
-				local g = 1 - (threat / maxThreat)
-				PlotSquareDebug(x, z, cellElmos, {1,g,0}, tostring(threat), true)
-			end
-		end
-	end
-end
+-- local function PlotSquareDebug(x, z, size, color, label, filled)
+-- 	if DebugDrawEnabled then
+-- 		x = mCeil(x)
+-- 		z = mCeil(z)
+-- 		size = mCeil(size)
+-- 		local halfSize = size / 2
+-- 		local pos1, pos2 = api.Position(), api.Position()
+-- 		pos1.x, pos1.z = x - halfSize, z - halfSize
+-- 		pos2.x, pos2.z = x + halfSize, z + halfSize
+-- 		map:DrawRectangle(pos1, pos2, color, label, filled, 8)
+-- 	end
+-- end
+--
+-- function TargetHST:UpdateDebug()
+-- 	if not DebugDrawEnabled then
+-- 		return
+-- 	end
+-- 	map:EraseRectangle(nil, nil, nil, nil, true, 8)
+-- 	map:EraseRectangle(nil, nil, nil, nil, false, 8)
+-- 	local maxThreat = 0
+-- 	local maxValue = 0
+-- 	for cx, czz in pairs(self.cells) do
+-- 		for cz, cell in pairs(czz) do
+-- 			local value, threat = self:CellValueThreat("ALL", cell)
+-- 			if threat > maxThreat then maxThreat = threat end
+-- 			if value > maxValue then maxValue = value end
+-- 		end
+-- 	end
+-- 	for cx, czz in pairs(self.cells) do
+-- 		for cz, cell in pairs(czz) do
+-- 			local x = cell.x * cellElmos - cellElmosHalf
+-- 			local z = cell.z * cellElmos - cellElmosHalf
+-- 			local value, threat = self:CellValueThreat("ALL", cell)
+-- 			if value > 0 then
+-- 				local g = value / maxValue
+-- 				local b = 1 - g
+-- 				PlotSquareDebug(x, z, cellElmos, {0,g,b}, tostring(value), false)
+-- 			end
+-- 			if threat > 0 then
+-- 				local g = 1 - (threat / maxThreat)
+-- 				PlotSquareDebug(x, z, cellElmos, {1,g,0}, tostring(threat), true)
+-- 			end
+-- 		end
+-- 	end
+-- end
 
 local cellElmos = 256
 local cellElmosHalf = cellElmos / 2
@@ -84,10 +84,6 @@ local minNukeValue = factoryValue + techValue + 500
 local feintRepeatMod = 25
 
 local unitValue = {}
-
-
-
-
 
 local function NewCell(px, pz)
 	local x = px * cellElmos - cellElmosHalf
@@ -116,17 +112,236 @@ local function NewCell(px, pz)
 	return newcell
 end
 
+function TargetHST:NewCell(px, pz)
+	local x = px * cellElmos - cellElmosHalf
+	local z = pz * cellElmos - cellElmosHalf
+	local cellPos = api.Position()
+	cellPos.x, cellPos.z = x, z
+	cellPos.y = Spring.GetGroundHeight(x, z)
+	self.ai.buildsitehst:isInMap(cellPos)
+-- 	map:DrawCircle(cellPos, cellElmosHalf,{1,1,1,1} , 'G', true, 4)
+
+	local CELL = {}
+	CELL.pos = cellPos
+	--print(px,pz,CELL.pos.x,CELL.pos.y,CELL.pos.z)
+
+	CELL.gx = px
+	CELL.gz = pz
+	CELL.enemyUnits = {}
+	CELL.friendlyUnits = {}
+	CELL.myUnits = {}
+	--targets of this cell per layer is immobile unit NO weapon express in metal here is the layer that count
+	CELL.unarmGI = 0
+	CELL.unarmAI = 0
+	CELL.unarmSI = 0
+	CELL.unarmI = 0
+	--targets of this cell per layer is mobile unit NO weapon express in metal
+	CELL.unarmGM = 0
+	CELL.unarmAM = 0
+	CELL.unarmSM = 0
+	CELL.unarmM = 0
+	--the WEAPONED mobiles units express in metal amount
+	CELL.armedGM = 0
+	CELL.armedAM = 0
+	CELL.armedSM = 0
+	CELL.armedM = 0
+	--the WEAPONED immobiles units express in metal amount
+	CELL.armedGI = 0
+	CELL.armedAI = 0
+	CELL.armedSI = 0
+	CELL.armedI = 0
+
+	CELL.unarmG = 0
+	CELL.unarmA = 0
+	CELL.unarmS = 0
+	CELL.armedG = 0
+	CELL.armedA = 0
+	CELL.armedS = 0
+	CELL.G = 0
+	CELL.A = 0
+	CELL.S = 0
+	CELL.G_balance = 0
+	CELL.S_balance = 0
+	CELL.A_balance = 0
+
+	CELL.unarm = 0
+	CELL.armed = 0
+	CELL.ENEMY = 0
+	CELL.ENEMY_BALANCE = 0
+	CELL.resurrectables = {}
+	CELL.reclamables = {}
+	CELL.repairable = {}
+
+	CELL.CONTROL = nil --can be false for enemy and nil for no units
+	self.CELLS[px][pz] = CELL
+end
+
+
+
+function TargetHST:setCellEnemyValues(enemy,CELL)
+	CELL.enemyUnits[enemy.id] = enemy.name
+	local ut = self.ai.armyhst.unitTable[enemy.name]
+
+	if enemy.view == 1 then
+		if ut.isWeapon then
+			CELL.armed = CELL.armed + enemy.M
+			if ut.speed > 0 then
+				if enemy.layer == 0 then
+					CELL.armedGM = CELL.armedGM + enemy.M
+				elseif enemy.layer == 1 then
+					CELL.armedAM = CELL.armedAM + enemy.M
+				elseif enemy.layer == -1 then
+					CELL.armedSM = CELL.armedSM + enemy.M
+				end
+			else
+				if enemy.layer == 0 then
+					CELL.armedGI = CELL.armedGI + enemy.M
+				elseif enemy.layer == 1 then
+					CELL.armedAI = CELL.armedAI + enemy.M
+				elseif enemy.layer == -1 then
+					CELL.armedSI = CELL.armedSI + enemy.M
+				end
+			end
+
+		else
+			CELL.unarm = CELL.unarm + enemy.M
+			if ut.speed > 0 then
+				if enemy.layer > 0 then
+					CELL.unarmAM = CELL.unarmAM + enemy.M
+				elseif enemy.layer < 0  then
+					CELL.unarmSM = CELL.unarmSM + enemy.M
+				elseif enemy.layer == 0 then
+					CELL.unarmGM = CELL.unarmGM + enemy.M
+				end
+			else
+				if enemy.layer > 0 then
+					CELL.unarmAI = CELL.unarmAM + enemy.M
+				elseif enemy.layer < 0 then
+					CELL.unarmSI = CELL.unarmSM + enemy.M
+				elseif enemy.layer == 0 then
+					CELL.unarmGI = CELL.unarmGM + enemy.M
+				end
+			end
+		end
+		CELL.unarmG = CELL.unarmGM + CELL.unarmGI
+		CELL.unarmA = CELL.unarmAM + CELL.unarmAI
+		CELL.unarmS = CELL.unarmSM + CELL.unarmSI
+		CELL.armedG = CELL.armedGI + CELL.armedGM
+		CELL.armedA = CELL.armedAI + CELL.armedAM
+		CELL.armedS = CELL.armedSI + CELL.armedSM
+		CELL.ENEMY = CELL.armed + CELL.unarm --TOTAL VALUE
+		CELL.ENEMY_BALANCE = CELL.armed - CELL.unarm
+		CELL.G = CELL.armedG + CELL.unarmG
+		CELL.A = CELL.armedA + CELL.unarmA
+		CELL.S = CELL.armedS + CELL.unarmS
+		CELL.G_balance = CELL.armedG - CELL.unarmG
+		CELL.A_balance = CELL.armedA - CELL.unarmA
+		CELL.S_balance = CELL.armedS - CELL.unarmS
+	elseif enemy.view == 0 then --RADAR
+		CELL.ENEMY = CELL.ENEMY + 20 --(adjust for time or other param during game)
+		CELL.ENEMY_BALANCE = CELL.ENEMY_BALANCE - 20
+	elseif enemy.view == -1 then--HIDDEN
+		--hidden superflous for now
+
+	end
+	print(enemy.name,CELL.ENEMY)
+	if CELL.ENEMY > 0 then
+		if not self.ENEMYCELLS[CELL.gx..':'..CELL.gz] then
+			local grid = {x=CELL.gx,z=CELL.gz}
+			self.ENEMYCELLS[CELL.gx..':'..CELL.gz] = grid
+		end
+
+
+
+
+ 	end
+--  	if CELL.G > 0 then
+--  		self.G[x][y] = balanceG
+--  	end
+--  	if CELL.A > 0 then
+--  		self.A[x][y] = balanceA
+--  	end
+--  	if CELL.S > 0 then
+--  		self.S[x][y] = balanceS
+--  	end
+
+
+end
+
 function TargetHST:createGridCell()
-	self.cells = {}
+
+	self.CELLS = {}
+	--self.ENEMYCELLS = {}
 	for x = 1, Game.mapSizeX / cellElmos do
-		if not self.cells[x] then
-			self.cells[x] = {}
+		if not self.CELLS[x] then
+			self.CELLS[x] = {}
 		end
 		for z = 1, Game.mapSizeZ / cellElmos do
-			self.cells[x][z] = NewCell(x,z)
+			self.CELLS[x][z] = {}
+			self:NewCell(x,z)
+
 		end
 	end
 end
+
+function TargetHST:clearEnemies()---wrong, clear the cells by parsing enemycells
+	for x,Ztable in pairs(self.CELLS) do
+		for z, cell in pairs(Ztable)do
+			self:NewCell(x,z)
+		end
+	end
+	self.ENEMYCELLS = {}
+end
+
+function TargetHST:drawDBG()
+	self.map:EraseAll(4)
+	if not self.visualdbg then
+		return
+	end
+	local colours={
+			g = {1,0,0,1},--'red'
+			a = {0,1,0,1},--'green'
+			s = {0,0,1,1},--'blue'
+			unbalance = {1,1,1,1},
+			balance = {0,0,0,1},
+
+			}
+	for index,G in pairs (self.ENEMYCELLS) do
+		local cell = self.CELLS[G.x][G.z]
+		local p = cell.pos
+
+		--map:DrawCircle(p,cellElmosHalf, colours.balance, cell.ENEMY,false,  4)
+		local pos1, pos2 = api.Position(), api.Position()--z,api.Position(),api.Position(),api.Position()
+		pos1.x, pos1.z = p.x - cellElmosHalf, p.z - cellElmosHalf
+		pos2.x, pos2.z = p.x + cellElmosHalf, p.z + cellElmosHalf
+		pos1.y=Spring.GetGroundHeight(pos1.x,pos1.z)
+		pos2.y=Spring.GetGroundHeight(pos2.x,pos2.z)
+
+		self:EchoDebug('drawing',pos1.x,pos1.z,pos2.x,pos2.z)
+		if cell.ENEMY_BALANCE > 0 then
+			map:DrawRectangle(pos1, pos2, colours.balance, cell.ENEMY_BALANCE, false, 4)
+		else
+			map:DrawRectangle(pos1, pos2, colours.unbalance, cell.ENEMY_BALANCE, false, 4)
+		end
+		posG = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
+		posS = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
+		posB = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
+		posA = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
+
+		if cell.G > 0 then
+			map:DrawCircle(posG, cellElmosHalf/2,colours.g , cell.G, true, 4)
+		end
+		if cell.A > 0 then
+			map:DrawCircle(posA, cellElmosHalf/2,colours.a, cell.A, true, 4)
+		end
+		if cell.S > 0 then
+			map:DrawCircle(posS, cellElmosHalf/2, colours.s, cell.S, true, 4)
+		end
+		--map:DrawCircle(posB, cellElmosHalf/2, colours.s, cell.ENEMY_BALANCE, true, 4)
+
+	end
+end
+
 
 function TargetHST:CellExist(x,z)
 	if not self.cells[x] or not  self.cells[x][z] then
@@ -273,7 +488,7 @@ end
 
 function TargetHST:Init()
 	self.DebugEnabled = false
-	--self:createGridCell()
+	self.visualdbg = true
 	self.enemyAlreadyCounted = {}
 	self.currentEnemyThreatCount = 0
 	self.currentEnemyImmobileThreatCount = 0
@@ -296,6 +511,13 @@ function TargetHST:Init()
 	self.raiderCounted = {}
 	self.lastUpdateFrame = 0
 	self.pathModifierFuncs = {}
+
+
+
+
+
+
+	self:createGridCell()
 end
 
 function TargetHST:HorizontalLine(x, z, tx, threatResponse, groundAirSubmerged, val)
@@ -566,19 +788,33 @@ function TargetHST:UpdateDangers()
 	self.ai.needJammers = self.dangers.longrange.present or self.dangers.air.present or self.dangers.nuke.present or self.dangers.plasma.present
 end
 
+
 function TargetHST:UpdateEnemies()
 	self.ai.enemyMexSpots = {}
 	-- where is/are the party/parties tonight?
 	local highestValue = minNukeValue
 	local highestValueCell
 	--for unitID, e in pairs(self.ai.knownEnemies) do
-		for unitID, e in pairs(self.ai.loshst.knownEnemies) do
+	for unitID, e in pairs(self.ai.loshst.knownEnemies) do
 		local los = e.los
 		local ghost = e.ghost
 		local name = e.name
 		self.game:StartTimer(name)
 
 		local ut = self.ai.armyhst.unitTable[name]
+
+
+		local px, pz = GetCellPosition(e.position)
+		self:setCellEnemyValues(e,self.CELLS[px][pz])
+
+
+
+
+
+
+
+
+
 		--if ghost and not ghost.position and not e.beingBuilt then
 		if e.view < 0 then
 			-- count ghosts with unknown positions as non-positioned threats
@@ -820,7 +1056,6 @@ function TargetHST:Update()
 	local f = self.game:Frame()
 	if f == 0 or f % 71 == 0 then
 		self:UpdateMap()
-		self.map:EraseAll(4)
 	end
 	if f == 0 or f % 1800 == 0 then
 		--if f > self.lastEnemyThreatUpdateFrame + 1800 or self.lastEnemyThreatUpdateFrame == 0 then TODO changed cause broked why??
@@ -866,6 +1101,7 @@ function TargetHST:UpdateMap()
 		-- 		game:SendToConsole("before target update", collectgarbage("count")/1024)
 		self.raiderCounted = {}
 		self.cells = {}--TODO
+		self:clearEnemies()--delete just the enemy data inside cells, leave other living --TEST
 		--self:createGridCell()--create instead of delete all self:Cells() so the table is allways populated--TEST
 		self.cellList = {}
 		self:UpdateEnemies()
@@ -873,7 +1109,8 @@ function TargetHST:UpdateMap()
 		self:UpdateBadPositions()
 		self:UpdateDamagedUnits()
 		self:UpdateFronts(3)
-		self:UpdateDebug()
+		self:drawDBG()
+		--self:UpdateDebug()
 		--self:UpdateWrecks()
 		self:UpdateMetalGeoSpots()
 		self.lastUpdateFrame = self.game:Frame()
@@ -925,60 +1162,6 @@ function TargetHST:NearbyVulnerable(unit)
 	end
 	return vulnerable
 end
-
--- function TargetHST:GetBestRaidCell(representative)
--- 	if not representative then return end
---
--- 	local rpos = representative:GetPosition()
--- 	local inCell = self:GetCellHere(rpos)
--- 	local threatReduction = 0
--- 	local TR = 0
--- 	if inCell ~= nil then
--- 		-- if we're near more raiders, these raiders can target more threatening targets together
--- 		if inCell.raiderHere then threatReduction = threatReduction + inCell.raiderHere end
--- 		if inCell.raiderAdjacent then threatReduction = threatReduction + inCell.raiderAdjacent end
--- 	end
--- 	self:Warn(threatReduction,TR)
---
--- 	local rname = representative:Name()
--- 	local maxThreat = baseUnitThreat
--- 	local rthreat, rrange = self.ai.tool:ThreatRange(rname)
--- 	self:EchoDebug(rname .. ": " .. rthreat .. " " .. rrange)
--- 	if rthreat > maxThreat then maxThreat = rthreat end
--- 	local best
--- 	local bestDist = math.huge
--- 	local cells
--- 	local minThreat = math.huge
---  	for i,cell in pairs (self.cellList) do
---  		local value, threat, gas = self:CellValueThreat(rname, cell)
---  		local dist = self.ai.tool:Distance(rpos, cell.pos)
---  		if value > 0 and threat < minThreat  and self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
---  			minThreat = threat
---  			best = cell
--- --  			map:DrawCircle(best.pos, 100, {255,0,0,255}, 'raid', true, 3)
---  		end
---  	end
--- 	--[[
---   	for i, cell in pairs(self.cellList) do
---   		local value, threat, gas = self:CellValueThreat(rname, cell)
---   		-- cells with other raiders in or nearby are better places to go for raiders
---   		if cell.raiderHere then threat = threat - cell.raiderHere end
---   		if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
---   		threat = threat - threatReduction
---   		if value > 0 and threat <= maxThreat then
---   			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
---   				local mod = value - (threat * 3)
---   				local dist = self.ai.tool:Distance(rpos, cell.pos) - mod
---   				if dist < bestDist then
---   					best = cell
---   					bestDist = dist
---   				end
---   			end
---   		end
---   	end]]
---
--- 	return best
--- end
 
 function TargetHST:RaidableCell(representative, position)
 	position = position or representative:GetPosition()
