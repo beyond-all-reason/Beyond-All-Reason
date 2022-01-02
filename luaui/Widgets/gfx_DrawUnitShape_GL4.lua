@@ -136,8 +136,8 @@ void main() {
 	float newz = sinrot * localModelPos.x + cosrot * localModelPos.z;
 	localModelPos.x = newx;
 	localModelPos.z = newz;
-
-	vec4 modelPos = modelMatrix * localModelPos;
+	
+	vec4 modelPos = localModelPos;
 
 	modelPos.xyz += worldposrot.xyz; //instOffset;
 	//if (parameters.y > 0.5) modelPos.xyz += mouseWorldPos.xyz; // we offset drawn defs with mouse
