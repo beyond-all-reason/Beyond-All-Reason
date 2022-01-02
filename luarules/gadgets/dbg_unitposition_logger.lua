@@ -115,11 +115,9 @@ if not gadgetHandler:IsSyncedCode() then
 
 			-- clear frame when all parts have been received
 			local noParts = true
-			for k, v in ipairs(log[frame].parts) do
-				if k then
-					noParts = false
-					break
-				end
+			for k, v in pairs(log[frame].parts) do
+				noParts = false
+				break
 			end
 			if noParts then
 				log[frame] = nil
@@ -165,7 +163,6 @@ if not gadgetHandler:IsSyncedCode() then
 		-- check if all parts have been received, clear the logged frame if this is the case
 		if verifyQueue[gf] then
 			local frame = verifyQueue[gf]
-			local params = log[frame]
 			verifyQueue[gf] = nil
 
 			if log[frame] then
@@ -177,8 +174,7 @@ if not gadgetHandler:IsSyncedCode() then
 					end
 				else
 					-- loop leftover parts
-					for part, _ in ipairs(params.parts) do
-
+					for part, _ in pairs(log[frame].parts) do
 						-- resend part if you're the designated backup sender
 						local designatedBackupParticipant = myPlayerID
 						if log[frame].participants[part + log[frame].attempts] then
@@ -203,7 +199,7 @@ if not gadgetHandler:IsSyncedCode() then
 		if gf >= lastLogFrame+logRate then
 
 			-- cleanup incomplete old frames in case this has happened for some reason
-			for frame, params in ipairs(log) do
+			for frame, params in pairs(log) do
 				if frame < gf-maxLogMemoryDuration then
 					log[frame] = nil
 				end
