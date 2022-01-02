@@ -6,14 +6,9 @@ function gadget:GetInfo()
 		date = "February 2021",
 		license = "GNU GPL, v2 or later",
 		layer = -math.huge,
-		enabled = false,
+		enabled = true,
 	}
 end
-
---[[
-	disabled cause there is missing data, presumingly because or rejoining specs and whatnot.
-]]
-
 
 --[[
 	this gadget logs unit positions at intervals within the replay
@@ -28,10 +23,10 @@ if not gadgetHandler:IsSyncedCode() then
 	if Spring.IsReplay() then return end
 
 	local debug = select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) == '[teh]Flow'
-
 	local gameFramesPerSecond = 30	-- engine constant
 
 	local pingCutoff = 1500	-- players with higher ping wont participate in sending unit positions log
+	local pingCutoffFrames = math.ceil((pingCutoff / 1000) * gameFramesPerSecond )
 
 	-- based on the current number of units it will adjust the amount of gameframes between each log
 	local minLogRate = math.floor(gameFramesPerSecond * 6)
@@ -41,34 +36,27 @@ if not gadgetHandler:IsSyncedCode() then
 	local maxLogMemoryDuration = gameFramesPerSecond * 60
 
 	-- verify if every part of a log has been received every X amount of gameframes, and resend parts if not
-	local verifyRate = math.floor(gameFramesPerSecond * 2)
+	local verifyRate = math.floor(gameFramesPerSecond * 1) + pingCutoffFrames
 
 	---------------------------------------------------------------------------------------
 
-	local logRate = minLogRate
-	local pingCutoffFrames = (pingCutoff / (pingCutoff / gameFramesPerSecond))
-	local lastLogFrame = 30-minLogRate
-	local log = {}
-	local serverFrame = 0
-
 	local validation = SYNCED.validationLogger
 
-	local spGetUnitDefID = Spring.GetUnitDefID
 	local spGetUnitPosition = Spring.GetUnitPosition
-	local spGetUnitTeam = Spring.GetUnitTeam
 	local math_floor = math.floor
 	local math_ceil = math.ceil
-	local myPlayerID = Spring.GetMyPlayerID()
 
+	local myPlayerID = Spring.GetMyPlayerID()
 	local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+
+	local logRate = minLogRate
+	local lastLogFrame = 30-minLogRate
+	local log = {}
+	local verifyQueue = {}
+	local serverFrame = 0
 
 	local allUnits = {}
 	local allUnitsTotal = 0
-	function gadget:Initialize()
-		for ct, unitID in pairs(Spring.GetAllUnits()) do
-			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
-		end
-	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		allUnits[unitID] = {unitDefID, unitTeam}
@@ -88,7 +76,7 @@ if not gadgetHandler:IsSyncedCode() then
 		allUnitsTotal = allUnitsTotal - 1
 	end
 
-	-- store all unit positions (in case you're requested to send a missing part later)
+	-- remember all unit positions (in case you're designated to send a missing part later)
 	local function updateLog(frame, participants)
 		local numParticipants = #participants
 		log[frame] = {
@@ -100,7 +88,7 @@ if not gadgetHandler:IsSyncedCode() then
 		local i = 0
 		local teamID
 		for unitID, params in pairs(allUnits) do
-			local px, py, pz = spGetUnitPosition(unitID)
+			local px, _, pz = spGetUnitPosition(unitID)
 			if px then
 				i = i + 1
 				part = math_ceil(i / (allUnitsTotal/numParticipants))
@@ -111,35 +99,53 @@ if not gadgetHandler:IsSyncedCode() then
 				if log[frame].parts[part][teamID] == nil then
 					log[frame].parts[part][teamID] = {}
 				end
-				local count = #log[frame].parts[part][teamID]+1
-				log[frame].parts[part][teamID][count] = {unitID, params[1], math_floor(px), math_floor(pz)}--, math_floor(py)}	-- put height last so it can be left out easier
+				local count = #log[frame].parts[part][teamID] + 1
+				log[frame].parts[part][teamID][count] = {unitID, params[1], math_floor(px), math_floor(pz)}
 			end
 		end
+	end
+
+	-- receiving from SYNCED
+	local function receivedPart(_, frame, part, numParts, attempts)
+		frame, part = tonumber(frame), tonumber(part)
+
+		if log[frame] then
+			-- clear received part
+			log[frame].parts[part] = nil
+
+			-- clear frame when all parts have been received
+			local noParts = true
+			for k, v in ipairs(log[frame].parts) do
+				if k then
+					noParts = false
+					break
+				end
+			end
+			if noParts then
+				log[frame] = nil
+				if debug then
+					Spring.Echo('UNITLOG: "all received": frame:'..frame..' part:'..part..' parts:'..numParts..' attempts:'..attempts)
+				end
+			end
+		end
+	end
+
+	local function getFreeVerifyQueueKey(frame, depth)
+		if verifyQueue[frame] and (not depth or depth < 10) then	-- limit recursion depth
+			if not depth then depth = 1 end
+			frame = getFreeVerifyQueueKey(frame + 1, depth + 1)
+		end
+		return frame
 	end
 
 	local function sendLog(frame, part, attempts)
 		Spring.SendLuaRulesMsg('log' .. validation .. frame ..';'.. part ..';'.. (#log[frame].participants) ..';'..attempts ..';'.. VFS.ZlibCompress(Json.encode(log[frame].parts[part])))
 	end
 
-	local function receivedPart(_,frame,part,numParts,attempts)
-		frame = tonumber(frame)
-		part = tonumber(part)
-
-		if log[frame] then
-			log[frame].parts[part] = nil
-
-			-- clear the logged frame when all parts have been received
-			if #log[frame].parts == 0 then
-				log[frame] = nil
-			end
-		end
-
-		if debug and attempts ~= '0' then
-			Spring.Echo('LOG frame:'..frame..' part:'..part..' numparts:'..numParts..' attempts:'..attempts)
-		end
-	end
-
 	function gadget:Initialize()
+		for ct, unitID in pairs(Spring.GetAllUnits()) do
+			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+		end
 		gadgetHandler:AddSyncAction("receivedPart", receivedPart)
 	end
 
@@ -147,11 +153,7 @@ if not gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveSyncAction("receivedPart")
 	end
 
-	--function gadget:GameOver(winningAllyTeams)
-	--end
-
-	-- happens every 150 frames
-	function gadget:GameProgress(n)
+	function gadget:GameProgress(n)		-- occurs every 150 frames
 		serverFrame = n
 	end
 
@@ -161,35 +163,37 @@ if not gadgetHandler:IsSyncedCode() then
 		--end
 
 		-- check if all parts have been received, clear the logged frame if this is the case
-		if gf % verifyRate == 0 then
-			for frame, params in ipairs(log) do
+		if verifyQueue[gf] then
+			local frame = verifyQueue[gf]
+			local params = log[frame]
 
-				-- start checking after giving receiving the proper time
-				if gf-frame-pingCutoffFrames >= verifyRate then
+			if log[frame] then
+				log[frame].attempts = log[frame].attempts + 1
+				if log[frame].attempts > #log[frame].participants then	-- this should not happen... if so, something went wrong because we tried resending by all other participants already
+					log[frame] = nil
+					if debug then
+						Spring.Echo('UNITLOG: "max attempts reached": frame:'..frame..' attempts:'..log[frame].attempts..' participants:'..(#log[frame].participants))
+					end
+				else
+					-- loop leftover parts
+					for part, _ in ipairs(params.parts) do
 
-					log[frame].attempts = log[frame].attempts + 1
-					if log[frame].attempts > #log[frame].participants then
-						-- this should not happen... if so, something went wrong because we tried resending by all other participants already
-						log[frame] = nil
-					else
-						-- loop leftover parts
-						for part, _ in ipairs(params.parts) do
-
-							-- resend part if you're the designated backup sender
-							local designatedBackupParticipant = myPlayerID
-							if log[frame].participants[part + log[frame].attempts] then
-								-- goto next participant
-								designatedBackupParticipant = log[frame].participants[part + log[frame].attempts]
-							else
-								-- start from first participant onwards
-								local numParticipants = #log[frame].participants
-								designatedBackupParticipant = log[frame].participants[ log[frame].attempts - (numParticipants-part) ]
-							end
-							if designatedBackupParticipant == myPlayerID then
-								sendLog(frame, part, log[frame].attempts)
-							end
+						-- resend part if you're the designated backup sender
+						local designatedBackupParticipant = myPlayerID
+						if log[frame].participants[part + log[frame].attempts] then
+							-- goto next participant
+							designatedBackupParticipant = log[frame].participants[part + log[frame].attempts]
+						else
+							-- start from first participant onwards
+							local numParticipants = #log[frame].participants
+							designatedBackupParticipant = log[frame].participants[ log[frame].attempts - (numParticipants-part) ]
+						end
+						if designatedBackupParticipant == myPlayerID then
+							sendLog(frame, part, log[frame].attempts)
 						end
 					end
+
+					verifyQueue[ getFreeVerifyQueueKey(gf+verifyRate) ] = frame
 				end
 			end
 		end
@@ -216,8 +220,8 @@ if not gadgetHandler:IsSyncedCode() then
 			for _,playerID in ipairs(Spring.GetPlayerList()) do
 				local name,_,_,teamID,_,ping = Spring.GetPlayerInfo(playerID,false)
 
-				--if name == '[teh]Flow' and playerID == myPlayerID then
-				--	Spring.Echo('gameframe: '..gf..'  serverframe: '..serverFrame..'  ping: '..ping)
+				--if debug then
+				--	Spring.Echo('UNITLOG: gameframe: '..gf..'  serverframe: '..serverFrame..'  ping: '..ping)
 				--end
 
 				-- exclude lagged out players and AI
@@ -234,6 +238,7 @@ if not gadgetHandler:IsSyncedCode() then
 			if myPart then
 				updateLog(gf, participants)
 				sendLog(gf, myPart, 0)
+				verifyQueue[ getFreeVerifyQueueKey(gf+verifyRate) ] = gf
 			end
 		end
 	end
@@ -247,7 +252,6 @@ else	-- SYNCED
 		for c = 65, 90  do table.insert(charset, string.char(c)) end
 		for c = 97, 122 do table.insert(charset, string.char(c)) end
 	end
-
 	local function randomString(length)
 		if not length or length <= 0 then return '' end
 		return randomString(length - 1) .. charset[math.random(1, #charset)]
@@ -268,6 +272,7 @@ else	-- SYNCED
 		return arr
 	end
 
+	-- Synced code here only listens to what has been received and thus logged in the demo, notifies unsynced so that can handle re-sending if necessary
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,3)=="log" and msg:sub(4,5)==validation then
 			local params = explode(';', msg:sub(6, 40))	-- 1=frame, 2=part, 3=numParts, 4=attempts, 5=gzipped-json
