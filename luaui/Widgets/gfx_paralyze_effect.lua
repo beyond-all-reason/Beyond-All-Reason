@@ -236,28 +236,28 @@ void main() {
 	// ------------------ CONFIG START --------------------
 	
 	if (paralysis_level < 0.9999) { // not fully paralyzed
-		noisescale = 0.1;
+		noisescale = 0.15;
+		persistance = 0.45;
 		lacunarity = 2.5;
-		persistance = 0.4;
-		minlightningcolor = vec3(0.0, 0.0, 1.0); //blue
-		maxlightningcolor = vec3(1.0, 1.0, 1.0); //white
+		minlightningcolor = vec3(0.1, 0.1, 0.5); //blue
+		maxlightningcolor = vec3(0.9, 0.9, 0.9); //white
 		wholeunitbasecolor = vec4(0.0, 0.0, 0.0, 0.0); // none
-		lightningalpha = 0.7;
-		lighting_sharpness = 10.0; 
-		lighting_width = 3.0;
-		lightning_speed = 1.5;
+		lightningalpha = 1.4;
+		lighting_sharpness = 12.8; 
+		lighting_width = 3.95;
+		lightning_speed = 0.14;
 	}
 	else{ // fully paralyzed
 		noisescale = 0.31;
-		persistance = 0.4;
+		persistance = 0.45;
 		lacunarity = 2.5;
-		minlightningcolor = vec3(0.0, 0.0, 1.0); //blue
+		minlightningcolor = vec3(0.1, 0.1, 1.0); //blue
 		maxlightningcolor = vec3(1.0, 1.0, 1.0); //white
-		wholeunitbasecolor = vec4(0.2, 0.3, 1.0, 0.25); // light blue base tone
-		lightningalpha = 1.0;
-		lighting_sharpness = 3.0; 
-		lighting_width = 3.0;
-		lightning_speed = 0.5;
+		wholeunitbasecolor = vec4(0.39, 0.43, 0.94, 0.30); // light blue base tone
+		lightningalpha = 1.2;
+		lighting_sharpness = 4.8; 
+		lighting_width = 3.8;
+		lightning_speed = 0.95;
 	}
 	// ------------------ CONFIG END --------------------
 	
