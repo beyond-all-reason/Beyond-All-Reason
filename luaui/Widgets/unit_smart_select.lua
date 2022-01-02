@@ -41,6 +41,10 @@ local spGetCommandQueue = Spring.GetCommandQueue
 local GaiaTeamID = Spring.GetGaiaTeamID()
 local selectedUnits = Spring.GetSelectedUnits()
 
+local spec, fullview = Spring.GetSpectatingState()
+local myTeamID = Spring.GetMyTeamID()
+
+
 local ignoreUnits = {}
 local combatFilter = {}
 local builderFilter = {}
@@ -144,6 +148,11 @@ function widget:MousePress(x, y, button)
 	end
 end
 
+function widget:PlayerChanged(playerID)
+	spec, fullview = Spring.GetSpectatingState()
+	myTeamID = Spring.GetMyTeamID()
+end
+
 function widget:Update()
 
 	WG['smartselect'].updateSelection = true
@@ -183,12 +192,12 @@ function widget:Update()
 			local newSelection = {}
 			local uid, udid, tmp
 
-			-- filter gaia units + ignored units (objects)
+			-- filter gaia units + ignored units (objects) + only own units when not spectating
 			if not Spring.IsGodModeEnabled() then
 				tmp = {}
 				for i = 1, #mouseSelection do
 					uid = mouseSelection[i]
-					if spGetUnitTeam(uid) ~= GaiaTeamID and not ignoreUnits[spGetUnitDefID(uid)] then
+					if spGetUnitTeam(uid) ~= GaiaTeamID and not ignoreUnits[spGetUnitDefID(uid)] and (spec or spGetUnitTeam(uid) == myTeamID) then
 						tmp[#tmp + 1] = uid
 					end
 				end

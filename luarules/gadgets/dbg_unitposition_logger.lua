@@ -166,6 +166,7 @@ if not gadgetHandler:IsSyncedCode() then
 		if verifyQueue[gf] then
 			local frame = verifyQueue[gf]
 			local params = log[frame]
+			verifyQueue[gf] = nil
 
 			if log[frame] then
 				log[frame].attempts = log[frame].attempts + 1
