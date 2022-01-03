@@ -1573,7 +1573,7 @@ function init()
 					addResolutions = nil
 				end
 			end
-			if string.find(line, '	display=') and not supportedResolutions[1] then
+			if not supportedResolutions[1] and (string.find(line, '	display=') or string.find(line, '	Display %(')) then
 				addResolutions = true
 				local width = string.sub(string.match(line, 'w=([0-9]*)'), 1)
 				local height = string.sub(string.match(line, 'h=([0-9]*)'), 1)
