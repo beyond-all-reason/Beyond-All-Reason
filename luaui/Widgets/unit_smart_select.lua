@@ -122,35 +122,9 @@ function widget:SelectionChanged(sel)
 	end
 end
 
---function widget:MousePress(x, y, button)
---	if button == 1 then
---		referenceSelection = selectedUnits
---		referenceSelectionTypes = {}
---		for i = 1, #referenceSelection do
---			local udid = spGetUnitDefID(referenceSelection[i])
---			if udid then
---				referenceSelectionTypes[udid] = 1
---			end
---		end
---		referenceScreenCoords = { x, y }
---		lastMeta = nil
---		lastSelection = nil
---		filtered = false
---
---		if spIsAboveMiniMap(x, y) then
---			referenceCoords = { 0, 0, 0 }
---			lastCoords = { 0, 0, 0 }
---		else
---			local _, c = spTraceScreenRay(x, y, true, false, true)
---			referenceCoords = c
---			lastCoords = c
---		end
---	end
---end
-
 -- this widget gets called early due to its layer
 -- this function will get called after all widgets have had their chance with widget:MousePress
-WG.SmartSelect_MousePress2 = function(x, y, button)
+WG.SmartSelect_MousePress2 = function(x, y, button)	--function widget:MousePress(x, y, button)
 	if button == 1 then
 		referenceSelection = selectedUnits
 		referenceSelectionTypes = {}

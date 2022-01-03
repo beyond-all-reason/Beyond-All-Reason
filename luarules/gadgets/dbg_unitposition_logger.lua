@@ -11,11 +11,13 @@ function gadget:GetInfo()
 end
 
 --[[
-	this gadget logs unit positions at intervals within the replay
-	created this so a replay website service or the game-lobby could display a quick overview video of the match
+	this gadget includes unit positions at intervals within the replay using SendLuaRulesMsg
+	the purpose of this is so a replay website or a game-lobby could display an overview timeline-video of the match
 
-	every (non lagged behind) player and spectator will send an equal part of all units available to keep the data sending load shared equally
+	every catched-up player+spectator will participate in sending a part of all units
 	(parts that fail to be received are passed on to the next player/spec to re-send until everyone tried once)
+
+	SendLuaRulesMsg format: logXX framenum ; part ; numparts ; attempts ; gzipped-json
 ]]
 
 if not gadgetHandler:IsSyncedCode() then
@@ -92,7 +94,8 @@ if not gadgetHandler:IsSyncedCode() then
 			local px, _, pz = spGetUnitPosition(unitID)
 			if px then
 				i = i + 1
-				part = math_ceil(i / (allUnitsTotal/numParticipants))	-- divide all units among participants/parts
+				-- divide all units among participants/parts
+				part = math.min(numParticipants, math_ceil(i / (allUnitsTotal/numParticipants)))	-- (used math.min cause sometimes the part is numParticipants+1 which will result in error)
 				teamID = params[2]
 				if not log[frame].parts[part][teamID] then	-- params[2] = teamID
 					log[frame].parts[part][teamID] = {}
@@ -108,8 +111,7 @@ if not gadgetHandler:IsSyncedCode() then
 		frame, part = tonumber(frame), tonumber(part)
 
 		if log[frame] then
-			-- clear received part
-			log[frame].parts[part] = nil
+			log[frame].parts[part] = nil	-- clear received part
 
 			-- clear frame when all parts have been received
 			local noParts = true
@@ -150,6 +152,7 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameFrame(gf)
+		if gf < 30 then return end
 
 		-- check if all parts have been received, clear the logged frame if this is the case
 		if verifyQueue[gf] then
