@@ -1998,31 +1998,18 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
     local posY = widgetPosY + widgetHeight - vOffset
     local tipPosY = widgetPosY + ((widgetHeight - vOffset) * widgetScale)
 
-    local alpha = 0.44-- alpha used to show inactivity for specs
-
-    alpha = 0.33
+    local alpha = 0.33
     local alphaActivity = 0
+
     -- keyboard/mouse activity
     if lastActivity[playerID] ~= nil and type(lastActivity[playerID]) == "number" then
-        alphaActivity = (8 - math.floor(now - lastActivity[playerID])) / 5.5
-        if alphaActivity > 1 then
-            alphaActivity = 1
-        end
-        if alphaActivity < 0 then
-            alphaActivity = 0
-        end
+        alphaActivity = math.max(0, math.min(1, (8 - math.floor(now - lastActivity[playerID])) / 5.5))
         alphaActivity = 0.33 + (alphaActivity * 0.21)
         alpha = alphaActivity
     end
     -- camera activity
     if recentBroadcasters[playerID] ~= nil and type(recentBroadcasters[playerID]) == "number" then
-        local alphaCam = (13 - math.floor(recentBroadcasters[playerID])) / 8.5
-        if alphaCam > 1 then
-            alphaCam = 1
-        end
-        if alphaCam < 0 then
-            alphaCam = 0
-        end
+        local alphaCam =  math.max(0, math.min(1, (13 - math.floor(recentBroadcasters[playerID])) / 8.5))
         alpha = 0.33 + (alphaCam * 0.42)
         if alpha < alphaActivity then
             alpha = alphaActivity
@@ -2072,7 +2059,6 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
                     DrawDot(posY)
                 end
             end
-            gl_Color(red, green, blue, 1)
             if m_ID.active then
                 DrawID(team, posY, dark, dead)
             end
@@ -2080,18 +2066,15 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
                 DrawSkill(skill, posY, dark)
             end
         end
-        gl_Color(red, green, blue, 1)
         if m_rank.active then
             DrawRank(rank, posY)
         end
         if m_country.active and country ~= "" then
             DrawCountry(country, posY)
         end
-        gl_Color(1, 1, 1, 1)
         if name ~= absentName and m_side.active then
             DrawSidePic(team, playerID, posY, leader, dark, ai)
         end
-        gl_Color(red, green, blue, 1)
         if m_name.active then
             DrawName(name, team, posY, dark, playerID)
         end
@@ -2117,7 +2100,6 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
         end
     else
         -- spectator
-        gl_Color(1, 1, 1, 1)
         if specListShow and m_name.active then
 
             if playerSpecs[playerID] ~= nil and (lockPlayerID ~= nil and lockPlayerID ~= playerID or lockPlayerID == nil) then
@@ -2139,7 +2121,6 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
         end
     end
 
-    gl_Color(1, 1, 1, 1)
     if playerID < 64 then
         if m_chat.active and mySpecStatus == false and spec == false then
             if playerID ~= myPlayerID then
@@ -2159,7 +2140,6 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
         end
     end
 
-    leader = false
     gl_Texture(false)
 end
 
@@ -2267,6 +2247,7 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
 end
 
 function DrawSidePic(team, playerID, posY, leader, dark, ai)
+    gl_Color(1, 1, 1, 1)
     if gameStarted then
         if leader then
             gl_Texture(sidePics[team]) -- sets side image (for leaders)
@@ -2281,6 +2262,7 @@ function DrawSidePic(team, playerID, posY, leader, dark, ai)
 end
 
 function DrawRank(rank, posY)
+    gl_Color(1, 1, 1, 1)
     if rank == 0 then
         DrawRankImage(pics["rank0"], posY)
     elseif rank == 1 then
@@ -2300,11 +2282,10 @@ function DrawRank(rank, posY)
     else
 
     end
-    gl_Color(1, 1, 1, 1)
 end
 
 function DrawRankImage(rankImage, posY)
-    gl_Color(1, 1, 1)
+    gl_Color(1, 1, 1, 1)
     gl_Texture(rankImage)
     DrawRect(m_rank.posX + widgetPosX + 3, posY + 1, m_rank.posX + widgetPosX + 17, posY + 15)
 end
@@ -2326,11 +2307,10 @@ function DrawRect(px, py, sx, sy)
 end
 
 function DrawAlly(posY, team)
+    gl_Color(1, 1, 1, 0.66)
     if Spring_AreTeamsAllied(team, myTeamID) then
-        gl_Color(1, 1, 1, 0.66)
 		gl_Texture(pics["unallyPic"])
     else
-        gl_Color(1, 1, 1, 0.66)
 		gl_Texture(pics["allyPic"])
     end
     DrawRect(m_alliance.posX + widgetPosX + 3, posY + 1, m_alliance.posX + widgetPosX + 17, posY + 15)
@@ -2339,7 +2319,7 @@ end
 function DrawCountry(country, posY)
     if country ~= nil and country ~= "??" then
         gl_Texture(flagsDirectory .. string.upper(country) .. flagsExt)
-        gl_Color(1, 1, 1)
+        gl_Color(1, 1, 1, 1)
         DrawRect(m_country.posX + widgetPosX + 3, posY + 8 - (flagHeight/2), m_country.posX + widgetPosX + 17, posY + 8 + (flagHeight/2))
     end
 end
@@ -2404,15 +2384,19 @@ function DrawAlliances(alliances, posY)
     local posX = widgetPosX + m_name.posX
     local width = m_name.width / #alliances
     local padding = 2
+    local drawn = false
     for i, playerID in pairs(alliances) do
         if player[playerID] ~= nil and player[playerID].red ~= nil then
             gl_Color(0, 0, 0, 0.25)
             RectRound(posX + (width * (i - 1)), posY - 3, posX + (width * i), posY + 19, 2)
             gl_Color(player[playerID].red, player[playerID].green, player[playerID].blue, 0.5)
             RectRound(posX + (width * (i - 1)) + padding, posY - 3 + padding, posX + (width * i) - padding, posY + 19 - padding, 2)
+            drawn = true
         end
     end
-    gl_Color(1, 1, 1, 1)
+    if drawn then
+        gl_Color(1, 1, 1, 1)
+    end
 end
 
 function DrawName(name, team, posY, dark, playerID)
@@ -2453,16 +2437,15 @@ function DrawName(name, team, posY, dark, playerID)
 	font2:End()
 
     if ignored then
-        gl_Color(1, 1, 1, 0.9)
         local x = m_name.posX + widgetPosX + 2 + xPadding
         local y = posY + 7
         local w = font:GetTextWidth(nameText) * 14 + 2
         local h = 2
+        gl_Color(1, 1, 1, 0.9)
         gl_Texture(false)
         DrawRect(x, y, x + w, y + h)
+        gl_Color(1, 1, 1, 1)
     end
-
-    gl_Color(1, 1, 1)
 end
 
 function DrawSmallName(name, team, posY, dark, playerID, alpha)
@@ -2506,16 +2489,16 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
     end
 
     if ignored then
-        gl_Color(1, 1, 1, 0.7)
         local x = m_name.posX + textindent + widgetPosX + 2.2
         local y = posY + 6
         local w = font:GetTextWidth(name) * 10 + 2
         local h = 2
         gl_Texture(false)
+        gl_Color(1, 1, 1, 0.7)
         DrawRect(x, y, x + w, y + h)
+        gl_Color(1, 1, 1, 1)
     end
 
-    gl_Color(1, 1, 1)
 end
 
 function DrawID(playerID, posY, dark, dead)

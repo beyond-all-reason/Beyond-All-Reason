@@ -21,9 +21,9 @@ if gadgetHandler:IsSyncedCode() then
 end
 
 local maxRotation = tonumber(Spring.GetConfigInt('unitRotation', 0) or 0)
-local maxAllowedRotation = 10
 
 local unitRotation = {}
+local updateTimer = 0
 
 local glRotate = gl.Rotate
 local spurSetUnitLuaDraw  = Spring.UnitRendering.SetUnitLuaDraw
@@ -94,7 +94,6 @@ local function init()
 	end
 end
 
-local updateTimer = 0
 function gadget:Update()
 	updateTimer = updateTimer + Spring.GetLastUpdateSeconds()
 	if updateTimer > 0.6 then

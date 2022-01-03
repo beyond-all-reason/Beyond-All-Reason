@@ -53,7 +53,6 @@ if not gadgetHandler:IsSyncedCode() then
 	local lastLogFrame = 30-minLogRate
 	local log = {}
 	local verifyQueue = {}
-	local serverFrame = 0
 
 	local allUnits = {}
 	local allUnitsTotal = 0
@@ -77,26 +76,25 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	-- remember all unit positions (in case you're designated to send a missing part later)
-	local function updateLog(frame, participants)
+	local function updateLog(frame, participants)	-- participants = playerID table
 		local numParticipants = #participants
 		log[frame] = {
 			participants = participants,
 			parts = {},
-			attempts = 0,
+			attempts = 1,
 		}
-		local part = 1
+		for part=1, numParticipants do
+			log[frame].parts[part] = {}
+		end
+		local part, teamID
 		local i = 0
-		local teamID
 		for unitID, params in pairs(allUnits) do
 			local px, _, pz = spGetUnitPosition(unitID)
 			if px then
 				i = i + 1
-				part = math_ceil(i / (allUnitsTotal/numParticipants))
-				if log[frame].parts[part] == nil then
-					log[frame].parts[part] = {}
-				end
+				part = math_ceil(i / (allUnitsTotal/numParticipants))	-- divide all units among participants/parts
 				teamID = params[2]
-				if log[frame].parts[part][teamID] == nil then
+				if not log[frame].parts[part][teamID] then	-- params[2] = teamID
 					log[frame].parts[part][teamID] = {}
 				end
 				local count = #log[frame].parts[part][teamID] + 1
@@ -121,7 +119,7 @@ if not gadgetHandler:IsSyncedCode() then
 			end
 			if noParts then
 				log[frame] = nil
-				if debug then
+				if debug and (attempts ~= '1' or part > tonumber(numParts)) then
 					Spring.Echo('UNITLOG: "all received": frame:'..frame..' part:'..part..' parts:'..numParts..' attempts:'..attempts)
 				end
 			end
@@ -151,14 +149,7 @@ if not gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveSyncAction("receivedPart")
 	end
 
-	function gadget:GameProgress(n)		-- occurs every 150 frames
-		serverFrame = n
-	end
-
 	function gadget:GameFrame(gf)
-		--if gf < serverFrame then
-		--	return end
-		--end
 
 		-- check if all parts have been received, clear the logged frame if this is the case
 		if verifyQueue[gf] then
@@ -197,6 +188,7 @@ if not gadgetHandler:IsSyncedCode() then
 
 		-- save and send you part of all unit positions
 		if gf >= lastLogFrame+logRate then
+			lastLogFrame = gf
 
 			-- cleanup incomplete old frames in case this has happened for some reason
 			for frame, params in pairs(log) do
@@ -204,8 +196,6 @@ if not gadgetHandler:IsSyncedCode() then
 					log[frame] = nil
 				end
 			end
-
-			lastLogFrame = gf
 
 			-- adjust logRate based on number of units on the map (so earlygame log can stay frequent)
 			logRate = maxLogRate * (allUnitsTotal / maxLogRateUnits)
@@ -216,11 +206,6 @@ if not gadgetHandler:IsSyncedCode() then
 			local myPart
 			for _,playerID in ipairs(Spring.GetPlayerList()) do
 				local name,_,_,teamID,_,ping = Spring.GetPlayerInfo(playerID,false)
-
-				--if debug then
-				--	Spring.Echo('UNITLOG: gameframe: '..gf..'  serverframe: '..serverFrame..'  ping: '..ping)
-				--end
-
 				-- exclude lagged out players and AI
 				-- NOTE: ping is 0 when player is catching up or playing local (local can be slightly above 0 when low fps 0.033)
 				if (ping > 0.01 or isSinglePlayer) and ping < pingCutoff/1000 and not Spring.GetTeamLuaAI(teamID) and not select(4, Spring.GetTeamInfo(teamID)) then
@@ -234,7 +219,7 @@ if not gadgetHandler:IsSyncedCode() then
 			-- send log when you're included as participant
 			if myPart then
 				updateLog(gf, participants)
-				sendLog(gf, myPart, 0)
+				sendLog(gf, myPart, 1)
 				verifyQueue[ getFreeVerifyQueueKey(gf+verifyRate) ] = gf
 			end
 		end

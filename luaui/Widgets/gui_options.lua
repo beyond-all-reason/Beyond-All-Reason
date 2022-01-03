@@ -1772,9 +1772,9 @@ function init()
 		},
 		{ id = "limitidlefps", group = "gfx", category = types.advanced, widget = "Limit idle FPS", name = texts.option.limitidlefps, type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = texts.option.limitidlefps_descr },
 
-		{ id = "msaa", group = "gfx", category = types.basic, name = texts.option.msaa, type = "select", options = { 'off', 'x1', 'x2', 'x4', 'x8'}, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 1) or 2), description = texts.option.msaa_descr,
+		{ id = "msaa", group = "gfx", category = types.basic, name = texts.option.msaa, type = "select", options = { 'off', 'x1', 'x2', 'x4', 'x8'}, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0), description = texts.option.msaa_descr,
 		  onload = function(i)
-			  local msaa = tonumber(Spring.GetConfigInt("MSAALevel", 1) or 2)
+			  local msaa = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0)
 			  if msaa == 0 then
 				  options[getOptionByID('msaa')].value = 0
 			  else
@@ -2065,7 +2065,7 @@ function init()
 
 		{ id = "unitRotation", group = "gfx", category = types.advanced, name = texts.option.unitrotation, min = 0, max = 10, step = 1, type = "slider", value = tonumber(Spring.GetConfigInt("unitRotation", 0)), description = texts.option.unitrotation_descr,
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("unitRotation", value and math.floor(value) or 0)
+			  Spring.SetConfigInt("unitRotation", value)
 		  end
 		},
 
@@ -2443,7 +2443,7 @@ function init()
 		-- INTERFACE
 		{ id = "label_ui_interface", group = "ui", name = texts.option.label_interface, category = types.basic },
 		{ id = "label_ui_interface_spacer", group = "ui", category = types.basic },
-		{ id = "uiscale", group = "ui", category = types.basic, name = texts.option.interface .. widgetOptionColor .. "  " .. texts.option.uiscale, type = "slider", min = 0.8, max = 1.1, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
+		{ id = "uiscale", group = "ui", category = types.basic, name = texts.option.interface .. widgetOptionColor .. "  " .. texts.option.uiscale, type = "slider", min = 0.8, max = 1.15, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value, force)
@@ -2717,7 +2717,7 @@ function init()
 		{ id = "label_ui_visuals", group = "ui", name = texts.option.label_visuals, category = types.basic },
 		{ id = "label_ui_visuals_spacer", group = "ui", category = types.basic },
 
-		{ id = "uniticon_scaleui", group = "ui", category = types.basic, name = texts.option.uniticonscaleui, type = "slider", min = 0.85, max = 1.6, step = 0.05, value = tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1), description = texts.option.uniticonscaleui_descr,
+		{ id = "uniticon_scaleui", group = "ui", category = types.basic, name = texts.option.uniticonscaleui, type = "slider", min = 0.85, max = 2, step = 0.05, value = tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1), description = texts.option.uniticonscaleui_descr,
 		  onchange = function(i, value)
 			  Spring.SendCommands("iconscaleui " .. value)
 			  Spring.SetConfigFloat("UnitIconScaleUI", value)
@@ -4423,15 +4423,7 @@ function init()
 		end
 	end
 
-	-- fsaa is deprecated in 104.x
-	if tonumber(Spring.GetConfigInt("FSAALevel", 0)) > 0 then
-		local fsaa = tonumber(Spring.GetConfigInt("FSAALevel", 0))
-		if fsaa > 8 then
-			fsaa = 8
-		end
-		Spring.SetConfigInt("MSAALevel", fsaa)
-		Spring.SetConfigInt("FSAALevel", 0)
-	end
+	Spring.SetConfigInt("FSAALevel", 0)
 
 	-- reduce options for potatoes
 	if isPotatoGpu or isPotatoCpu then
