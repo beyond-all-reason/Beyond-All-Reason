@@ -42,7 +42,7 @@ end
 
 function LosHST:Update()
 	local f = self.game:Frame()
-	if f % 3 == 0 then
+	if f % 13 == 0 then
 		self:getCenter()
         self.ai.friendlyTeamID = {}
         self.ai.friendlyTeamID[self.game:GetTeamID()] = true
@@ -55,7 +55,7 @@ function LosHST:Update()
 			local enemyList = {}
 			for i, e in pairs(enemies) do
 
-				self:Warn(e:Name())
+
 				if not e:IsAlive() then
 					self:cleanEnemy(e:ID())
 				else

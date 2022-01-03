@@ -131,7 +131,7 @@ function AttackHST:DraftSquads()
 				self:EchoDebug(mtype, "has target, recruiting squad...")
 				squad.targetCell = bestCell
 				if not bestCell.buildingIDs then
-					bestCell.buildingIDs = bestCell.enemyUnits
+					bestCell.buildingIDs = bestCell.enemyBuildings
 -- 					for id,name in pairs(bestCell.enemyUnits) do
 -- 						if self.ai.armyhst.unitTable[name].speed == 0  then
 -- 							bestCell.buildingIDs = id
@@ -191,13 +191,7 @@ function AttackHST:SquadReTarget(squad, squadIndex)
 			squad.targetCell = bestCell
 			self.attackSent[squad.mtype] = f
 			if not bestCell.buildingIDs then
-				bestCell.buildingIDs = bestCell.enemyUnits
--- 					for id,name in pairs(bestCell.enemyUnits) do
--- 						if self.ai.armyhst.unitTable[name].speed == 0  then
--- 							bestCell.buildingIDs = id
--- 							break
--- 						end
--- 					end
+				bestCell.buildingIDs = bestCell.enemyBuildings
 			end
 			self:IDsWeAreAttacking(bestCell.buildingIDs, squad.mtype)
 			squad.buildingIDs = bestCell.buildingIDs
@@ -223,11 +217,13 @@ function AttackHST:targetCell2(representative, position, ourThreat)
 	local topDist = self.ai.tool:DistanceXZ(0,0, Game.mapSizeX, Game.mapSizeZ)
 
 	for i, G in pairs(self.ai.targethst.ENEMYCELLS) do
-			local cell = self.ai.targethst.CELLS[G.x][G.z]
 
-			for squadIndex,squad in pairs(self.squads) do
-				if squad.targetCell == cell or not cell.pos then return end
-			end
+		local cell = self.ai.targethst.CELLS[G.x][G.z]
+		for squadIndex,squad in pairs(self.squads) do
+			if squad.targetCell == cell or not cell.pos then return end
+		end
+		if cell.IMMOBILE > 0 then
+
 			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
 				local Rdist = self.ai.tool:Distance(cell.pos,refpos)/topDist
 				local Rvalue = Rdist * cell.ENEMY
@@ -236,6 +232,7 @@ function AttackHST:targetCell2(representative, position, ourThreat)
 					bestValue = Rvalue
 				end
 			end
+		end
 	end
 	if bestTarget then
 		print(bestTarget.gx,bestTarget.gz)

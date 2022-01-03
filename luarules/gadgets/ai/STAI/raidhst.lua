@@ -221,14 +221,16 @@ function RaidHST:getRaidCell2(squad)
 --  		end
 --  	end
 		for i, G in pairs(self.ai.targethst.ENEMYCELLS) do
-			local cell = self.ai.targethst.CELLS[G.x][G.z]
+			if cell.IM < 0 then
+				local cell = self.ai.targethst.CELLS[G.x][G.z]
 
-			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
-				local Rdist = self.ai.tool:Distance(cell.pos,self.ai.loshst.CENTER)/topDist
-				local Rvalue = Rdist * cell.ENEMY
-				if Rvalue < bestValue then
-					bestTarget = cell
-					bestValue = Rvalue
+				if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
+					local Rdist = self.ai.tool:Distance(cell.pos,self.ai.loshst.CENTER)/topDist
+					local Rvalue = Rdist * cell.ENEMY
+					if Rvalue < bestValue then
+						bestTarget = cell
+						bestValue = Rvalue
+					end
 				end
 			end
 	end
