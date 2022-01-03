@@ -23,8 +23,8 @@ if not gadgetHandler:IsSyncedCode() then
 	if Spring.IsReplay() then return end
 
 	local debug = select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) == '[teh]Flow'
-	local gameFramesPerSecond = 30	-- engine constant
 
+	local gameFramesPerSecond = 30	-- engine constant
 	local pingCutoff = 1500	-- players with higher ping wont participate in sending unit positions log
 	local pingCutoffFrames = math.ceil((pingCutoff / 1000) * gameFramesPerSecond )
 
@@ -79,9 +79,9 @@ if not gadgetHandler:IsSyncedCode() then
 	local function updateLog(frame, participants)	-- participants = playerID table
 		local numParticipants = #participants
 		log[frame] = {
+			attempts = 1,
 			participants = participants,
 			parts = {},
-			attempts = 1,
 		}
 		for part=1, numParticipants do
 			log[frame].parts[part] = {}
@@ -159,10 +159,17 @@ if not gadgetHandler:IsSyncedCode() then
 			if log[frame] then
 				log[frame].attempts = log[frame].attempts + 1
 				if log[frame].attempts > #log[frame].participants then	-- this should not happen... if so, something went wrong because we tried resending by all other participants already
-					log[frame] = nil
 					if debug then
-						Spring.Echo('UNITLOG: "max attempts reached": frame:'..frame..' attempts:'..log[frame].attempts..' participants:'..(#log[frame].participants))
+						local missingParts, missingUnits = 0, 0
+						for p, part in pairs(log[frame].parts) do
+							missingParts = missingParts + 1
+							for teamID, units in pairs(part) do
+								missingUnits = missingUnits + #units
+							end
+						end
+						Spring.Echo('UNITLOG: "max attempts reached": frame:'..frame..' attempts:'..log[frame].attempts..'of '..(#log[frame].participants)..' missing parts:'..missingParts..' missing units:'..missingUnits)
 					end
+					log[frame] = nil
 				else
 					-- loop leftover parts
 					for part, _ in pairs(log[frame].parts) do
@@ -193,6 +200,16 @@ if not gadgetHandler:IsSyncedCode() then
 			-- cleanup incomplete old frames in case this has happened for some reason
 			for frame, params in pairs(log) do
 				if frame < gf-maxLogMemoryDuration then
+					if debug then
+						local missingParts, missingUnits = 0, 0
+						for p, part in pairs(log[frame].parts) do
+							missingParts = missingParts + 1
+							for teamID, units in pairs(part) do
+								missingUnits = missingUnits + #units
+							end
+						end
+						Spring.Echo('UNITLOG: "timeout": frame:'..frame..' attempts:'..log[frame].attempts..'of '..(#log[frame].participants)..' missing parts:'..missingParts..' missing units:'..missingUnits)
+					end
 					log[frame] = nil
 				end
 			end
