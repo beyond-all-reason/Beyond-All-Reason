@@ -13,8 +13,8 @@ end
 
 local moveIsAreamex = true		-- auto make move cmd an area mex cmd
 
-local mexPlacementRadius = 750	-- (not actual ingame distance)
-local mexPlacementDragRadius = 20000	-- larger size so you can drag a move line over/near mex spots and it will auto queue mex there more easily
+local mexPlacementRadius = 1000	-- (not actual ingame distance)
+local mexPlacementDragRadius = 25000	-- larger size so you can drag a move line over/near mex spots and it will auto queue mex there more easily
 
 local CMD_AREA_MEX = 10100
 local CMD_MOVE = CMD.MOVE
@@ -330,7 +330,7 @@ local function doAreaMexCommand(params, options, isGuard, justDraw)
 			end
 		end
 	end
-	if (isMove or isGuard) and not mexQueued then
+	if isGuard and not mexQueued then
 		return		-- no mex buildorder made so let move go through!
 	end
 	if not justDraw then
@@ -439,7 +439,7 @@ function widget:Update()
 					drawUnitShape[2],
 					drawUnitShape[3],
 					drawUnitShape[4],
-					WG.DrawUnitShapeGL4(drawUnitShape[1], drawUnitShape[2], drawUnitShape[3], drawUnitShape[4], 0, 0.6, spGetMyTeamID())
+					WG.DrawUnitShapeGL4(drawUnitShape[1], drawUnitShape[2], drawUnitShape[3], drawUnitShape[4], 0, 0.6, spGetMyTeamID(), 0.2, 0.25)
 				}
 			end
 		elseif activeUnitShape then
