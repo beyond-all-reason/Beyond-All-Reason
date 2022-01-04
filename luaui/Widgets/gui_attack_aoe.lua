@@ -236,7 +236,7 @@ local function SetupUnitDef(unitDefID, unitDef)
 			local weaponDef = WeaponDefs[weapon.weaponDef]
 			if weaponDef then
 				if weaponDef.type == "DGun" then
-					dgunInfo[unitDefID] = { range = dgunRange, aoe = weaponDef.damageAreaOfEffect, unitname = unitDef.name, requiredEnergy = unitDef.energyCost }
+					dgunInfo[unitDefID] = { range = dgunRange, aoe = weaponDef.damageAreaOfEffect, unitname = unitDef.name, requiredEnergy = weaponDef.energyCost }
 				elseif weaponDef.canAttackGround
 					and not (weaponDef.manualFire and unitDef.canManualFire)
 					and not (weaponDef.type == "Shield")
@@ -730,7 +730,7 @@ function widget:DrawWorld()
 			dx = fx + offset_x
 			dz = fz + offset_z
 		end
-		DrawNoExplode(info.aoe, dx, fy, dz, tx, ty, tz, info.range + (info.aoe * 0.7), 500) --info.requiredEnergy, returns 26700 somehow so we put 500 manually now
+		DrawNoExplode(info.aoe, dx, fy, dz, tx, ty, tz, info.range + (info.aoe * 0.7), info.requiredEnergy)
 		glColor(1, 0, 0, 0.75)
 		glLineWidth(1.5)
 		glDrawGroundCircle(fx, fy, fz, info.range + (info.aoe * 0.7), circleDivs)
