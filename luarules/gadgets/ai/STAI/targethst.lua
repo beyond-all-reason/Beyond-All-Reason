@@ -221,17 +221,6 @@ function TargetHST:setCellEnemyValues(enemy,CELL)
 			self.ENEMYCELLS[CELL.gx..':'..CELL.gz] = grid
 		end
  	end
---  	if CELL.G > 0 then
---  		self.G[x][y] = balanceG
---  	end
---  	if CELL.A > 0 then
---  		self.A[x][y] = balanceA
---  	end
---  	if CELL.S > 0 then
---  		self.S[x][y] = balanceS
---  	end
-
-
 end
 
 function TargetHST:createGridCell()
@@ -478,6 +467,7 @@ function TargetHST:Init()
 	self.raiderCounted = {}
 	self.lastUpdateFrame = 0
 	self.pathModifierFuncs = {}
+
 	self:createGridCell()
 end
 

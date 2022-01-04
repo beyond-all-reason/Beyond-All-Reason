@@ -86,7 +86,7 @@ function LosHST:UnitDamaged(unit, attacker, damage)
 end
 
 function LosHST:cleanEnemy(id)
-
+	self:EchoDebug('try to clean',id)
 	if self.ai.IDsWeAreAttacking[id] then
 		--self.ai.attackhst:TargetDied(self.ai.IDsWeAreAttacking[id])
 	end
@@ -96,7 +96,10 @@ function LosHST:cleanEnemy(id)
 	if self.knownEnemies[id] then
 		self:EchoDebug('clean',id,self.knownEnemies[id].name,self.knownEnemies[id].guls,self.knownEnemies[id].SPEED>0)
 		table.remove(self.knownEnemies,id)
+		self.knownEnemies[id] = nil--WARNING double removing why i dont !!!
+		return
 	end
+	self:EchoDebug(id,'not cleaned')
 end
 
 function LosHST:scanEnemy(enemy,isShoting)
@@ -147,10 +150,10 @@ function LosHST:scanEnemy(enemy,isShoting)
 		if t then
 			t.layer = self:setPosLayer(t.name,t.position)
 			t.speedX,t.speedY,t.speedZ, t.SPEED = Spring.GetUnitVelocity ( t.id )
-			self:EchoDebug(t.name,'X-Z SPEED',t.speedX,t.speedZ,t.SPEED)
+			--self:EchoDebug(t.name,'X-Z SPEED',t.speedX,t.speedZ,t.SPEED)
 			t.target = {x = t.position.x+( t.speedX*30),y = t.position.y,z = t.position.z + (t.speedZ*30)}
 			t.dirX,t.dirY,t.dirZ = Spring.GetUnitDirection ( t.id )
-			self:EchoDebug(t.name,'dir X-Z',t.dirX,t.dirZ)
+			--self:EchoDebug(t.name,'dir X-Z',t.dirX,t.dirZ)
 
 		else
 			self:cleanEnemy(enemy:ID())
@@ -238,37 +241,38 @@ function LosHST:Draw()
 
 	for id,data in pairs(self.knownEnemies) do
 		local u = self.game:GetUnitByID(id)
-		u:EraseHighlight(nil, nil, 5 )
+-- 		u:EraseHighlight(nil, nil, 5 )
 -- 		self:Warn('unitidlosdraw',id,u:GetPosition())
 -- 		print(u:GetPosition())
  		if not u:IsAlive() then
- 			self:Warn('unit dead',id)
- 			self:cleanEnemy(id)
+ 			self:Warn('unit dead',id,u:Name())
+			u:DrawHighlight({1,1,1,1} , nil, 5 )
+ 			--self:cleanEnemy(id)
 
 -- 		self:Warn('losname',data.name)
 
 		else
-			self:EchoDebug('draw',data.name,data.GULS,data.id)
+			--self:EchoDebug('draw',data.name,data.GULS,data.id)
 			if data.view ==1 then
 				if data.layer == 1 then --A
-					u:DrawHighlight({1,1,0,1} , nil, 5 )
+					u:DrawHighlight({1,0,0,1} , nil, 5 )
 				end
 				if data.layer == -1 then--S
-					u:DrawHighlight({1,0,1,1} , nil, 5 )
+					u:DrawHighlight({0,0,1,1} , nil, 5 )
 				end
 				if data.layer == 0 then--G
-					u:DrawHighlight({0,1,1,1} , nil, 5 )
+					u:DrawHighlight({0,1,0,1} , nil, 5 )
 				end
 			end
 			if data.view == 0 then --R
-				u:DrawHighlight({1,1,1,1} , nil, 5 )
+				u:DrawHighlight({1,0,1,1} , nil, 5 )
 			end
 			if data.view == -1 then -- H
-				u:DrawHighlight({0,0,0,1} , nil, 5 )
+				u:DrawHighlight({1,1,0,1} , nil, 5 )
 			end
-			self:EchoDebug('speeeed',data.SPEED,data.name)
+			--self:EchoDebug('speeeed',data.SPEED,data.name)
 			if data.SPEED and data.SPEED > 0 then
-				map:DrawLine(data.position, {x=data.position.x+(data.speedX*30),y=data.position.y,z=data.position.z+(data.speedZ*30)}, {1,0,0,1}, nil, false, 5 )
+				map:DrawLine(data.position, {x=data.position.x+(data.speedX*30),y=data.position.y,z=data.position.z+(data.speedZ*30)}, {0,1,1,1}, nil, false, 5 )
 
 			end
 		end

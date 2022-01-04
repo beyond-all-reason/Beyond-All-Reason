@@ -11,12 +11,30 @@ end
 local minRaidCount = 5
 function RaidHST:Init()
 	self.visualdbg = true
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.raiders = {}
 	self.squads = {}
 	self.pathValidFuncs = {}
-	self.wave = 7
+	self.wave = 5
+
 end
+--[[
+function RaidHST:fff()
+	local X = 2000
+	local Z = 2000
+
+	local range = 50
+	for i = 0.1,1,0.1 do
+
+		print(i)
+		X =X + range * math.sin(i)
+		Z =Z + range * math.cos(i)
+		Y = Spring.GetGroundHeight(X,Z)
+ 		self.map:DrawPoint({x=X,y = Y,z=Z},{1,1,1,1},i,6)
+	end
+
+end
+]]
 
 function RaidHST:Update()
 	local f = self.game:Frame()
@@ -25,6 +43,11 @@ function RaidHST:Update()
 	self:EchoDebug('start update')
 	self:doSquads()
 	for squadID,squad in pairs(self.squads) do
+		if #squad.members < 1 then
+			self:resetSquad(squad)
+			return
+		end
+
 		self:EchoDebug('update squad',squadID)
 		self:getSquadPosition(squad)
 		local run = self:running(squad)
@@ -91,6 +114,8 @@ function RaidHST:doSquads()
 			local u = self.game:GetUnitByID(id)
 			self.squads[squadID] = {}
 			self.squads[squadID].members = {}
+			self.squads[squadID].formation = {}
+			self.squads[squadID].membersPos = {}
 			self.squads[squadID].squadID = squadID
 			self.squads[squadID].unitName = raider.name
 			self.squads[squadID].mclass = raider.mclass
@@ -117,7 +142,7 @@ function RaidHST:targeting(squad)
 		self:EchoDebug('have already a target')
 		return
 	end
-	local target = self:getRaidCell(squad)
+	local target = self:getRaidCell2(squad)
 	if not target then
 		self:EchoDebug('no target for ' ,squad.squadID)
 		return
@@ -136,6 +161,260 @@ function RaidHST:targeting(squad)
 	if squad.target and squad.path then return true end --tell me im ready to raids
 end
 
+function RaidHST:getRaidCell2(squad)
+	if not squad then return end
+	local leader = self.game:GetUnitByID(squad.members[1])
+	local raidPower = self.ai.armyhst.unitTable[squad.unitName].metalCost * #squad.members
+	self:EchoDebug('raidPower',raidPower)
+	local topDist = self.ai.tool:DistanceXZ(0,0, Game.mapSizeX, Game.mapSizeZ)
+	local bestValue = math.huge
+	local bestTarget = nil
+	for i, G in pairs(self.ai.targethst.ENEMYCELLS) do
+		local cell = self.ai.targethst.CELLS[G.x][G.z]
+		if cell.armed < raidPower then
+			self:EchoDebug('power',cell.armed,G.x,G.z)
+			if self.ai.maphst:UnitCanGoHere(leader, cell.pos) then
+				local Relativedistance = self.ai.tool:Distance(cell.pos,squad.position) / topDist
+				local RelativeValue = Relativedistance * cell.IMMOBILE
+				if RelativeValue < bestValue  then
+					bestTarget = cell
+					bestValue = RelativeValue
+				end
+			end
+		end
+	end
+	self:EchoDebug('bestTarget',bestTarget)
+	return bestTarget
+end
+
+function RaidHST:FindPath(squad)
+	if not squad.pathfinder then
+		self:EchoDebug('no pathfinder??')
+		return
+	end
+	local path, remaining, maxInvalid = squad.pathfinder:Find(10)
+	self:EchoDebug(tostring(remaining) .. " remaining to find path",path,maxInvalid)
+	if path then
+		local pt = {}
+		self:EchoDebug("got path of", #path, "nodes", maxInvalid, "maximum invalid neighbors!!!!!!!!!!!!!!!!!!")
+ 		for index,cell in pairs(path) do
+			table.insert(pt,cell.position)
+ 			self:EchoDebug('path','index',index,'pos',cell.x,cell.z)
+ 		end
+		squad.path = pt
+
+		if maxInvalid == 0 then
+			self:EchoDebug("path is entirely clear of danger, not using")
+		end
+		squad.pathfinder = nil
+	elseif remaining == 0 then
+		self:EchoDebug("no path found")
+		squad.pathfinder = nil
+	else
+		self:EchoDebug('no path found in findPATH()')
+	end
+end
+
+function RaidHST:getSquadPosition(squad)
+	local members = squad.members
+	self:EchoDebug(#members,'in squad',squad.squadID,'search pos')
+	local squadPos = {x=0,y=0,z=0}
+	squad.membersPos = {}
+	for index,id in pairs(members) do
+		local unit = self.game:GetUnitByID(id)
+		if unit:IsAlive() then
+			local unitPos = unit:GetPosition()
+			squad.membersPos[index] = unitPos
+			squadPos.x = squadPos.x + unitPos.x
+			squadPos.z = squadPos.z + unitPos.z
+		else
+			table.remove(self.raiders,self.id)
+			table.remove(squad.members,index)
+		end
+	end
+	squadPos.x = squadPos.x / # members
+	squadPos.z = squadPos.z / # members
+	squadPos.y = Spring.GetGroundHeight(squadPos.x,squadPos.z)
+	squad.position = {x = squadPos.x, y = squadPos.y, z = squadPos.z}
+	squad.Cell,squad.CellX,squad.CellZ = self.ai.targethst:GetCellHere(squad.position)
+	self:EchoDebug('actual squad.position',squad.position.x,squad.position.z)
+end
+
+function RaidHST:goToNextNode(squad)
+	if not squad.path or not squad.path[1]  then
+		self:EchoDebug('no next path')
+		self:resetSquad(squad)
+		return
+	end	self:EchoDebug('pos',squad.position.x,squad.position.z,'path1',squad.path[1].x,squad.path[1].z,'dist',self.ai.tool:Distance(squad.position,squad.path[1]))
+	local squadToPath1 = 0
+	local arrival = true
+	for index,mPos in pairs(squad.membersPos) do
+		if not squad.formation[index] then
+			self:EchoDebug('set start at',squad.path[1].x,squad.path[1].z)
+			squad.formation[index] = squad.path[1]
+		end
+
+		self:EchoDebug(index,mPos,squad.formation[index].x,squad.formation[index].y,squad.formation[index].z,squadToPath1)
+		squadToPath1 = squadToPath1 + self.ai.tool:Distance(mPos ,squad.formation[index])
+		if self.ai.tool:Distance(mPos ,squad.formation[index]) > 128 then
+			arrival = false
+		end
+
+
+	end
+	if arrival then
+		table.remove(squad.path,1)
+	end
+ 	if squad.path[1] then
+		self:EchoDebug('in moving')
+ 		self:squadMove(squad)
+	else
+		self:EchoDebug('end path??')
+ 	end
+end
+
+function RaidHST:squadMove(squad)
+	squad.formation = {}
+	local pos = squad.path[1]
+	local X
+	local Z
+	local range = self.ai.armyhst.unitTable[squad.unitName].losRadius / 2
+	for index,id in pairs(squad.members) do
+		ref = index/10
+
+		if squad.position.x < pos.x then
+			X = range * math.sin(ref) * -1
+		else
+			X = (range * math.sin(ref))
+		end
+		if squad.position.z < pos.z then
+			Z = range * math.cos(ref) * -1
+		else
+			Z = (range * math.cos(ref))
+		end
+
+		local unit = self.game:GetUnitByID(id)
+
+		local arch = api.Position()
+		arch.x = pos.x + X
+		arch.z = pos.z + Z
+		arch.y = Spring.GetGroundHeight(arch.x,arch.z)
+		self:EchoDebug('arch',arch.x,arch.z)
+		self:EchoDebug('go to next node',index,arch.x,arch.z)
+		squad.formation[index] = arch
+		unit:Move(arch)
+--  		unit:Move(pos)
+	end
+end
+
+
+function RaidHST:squadOnTarget(squad)
+	if not squad.target then
+		squad.onTarget = false
+		self:EchoDebug('no target on target')
+		return nil
+	end
+	if self.ai.tool:distance(squad.position,squad.target.pos) < 256 then
+		self:EchoDebug('im on target')
+		squad.onTarget = true
+		self:Roam(squad)
+		return true
+	else
+		self:EchoDebug('away from target')
+		squad.onTarget = false
+		self:Hold(squad)
+		return false
+	end
+end
+
+function RaidHST:doAttack(squad)
+	self:EchoDebug('do attack')
+	local vulnerable =  self:nearestEnemy(squad) --self:nearbyVulnerable(squad.members) or
+	for index,id in pairs(squad.members) do
+		local unit = self.game:GetUnitByID(id)
+		local rx = math.random(-50,50)
+		local rz = math.random(-50,50)
+		if vulnerable and vulnerable.position then
+			self:EchoDebug('nearby vulnerable',vulnerable)
+			local vpos = vulnerable.position
+			unit:AttackMove({x=vpos.x+rx,y= Spring.GetGroundHeight(vpos.x+rx,vpos.z+rz),z=vpos.z+rz})
+		elseif squad.target then
+			self:EchoDebug('random attack')
+			unit:AttackMove({x=squad.target.pos.x+rx,y= Spring.GetGroundHeight(squad.target.pos.x+rx,squad.target.pos.z+rz),z=squad.target.pos.z+rz})
+			squad.path = nil
+			squad.target = nil
+			self:resetSquad(squad)
+		end
+	end
+end
+
+function RaidHST:nearbyVulnerable(members)
+	for index,id in pairs(members) do
+		local unit = self.game:GetUnitByID(id)
+		local vulnerable = self.ai.targethst:NearbyVulnerable(unit)
+		if vulnerable then
+			return vulnerable
+		end
+	end
+end
+
+function RaidHST:Roam(squad)
+	for index,unitID in pairs(squad.members) do
+		local unit = self.game:GetUnitByID(unitID)
+		unit:Roam()
+	end
+end
+
+function RaidHST:Hold(squad)
+	for index,unitID in pairs(squad.members) do
+		local unit = self.game:GetUnitByID(unitID)
+		unit:HoldPosition()
+	end
+end
+
+function RaidHST:resetSquad(squad)
+	self:EchoDebug('reset ',squad.squadID)
+	for index,unitID in pairs(squad.members) do
+		self.raiders[unitID]['inSquad'] = nil
+	end
+	squad.members = {}
+	squad.formation = {}
+	squad.membersPos = {}
+	squad.lock = false
+	squad.onTarget = false
+	squad.position = nil
+	squad.target = nil
+	squad.path = nil
+end
+
+function RaidHST:nearestEnemy(squad)
+	local members = squad.members
+	for _,id in pairs(members) do
+
+		local enemy = Spring.GetUnitNearestEnemy(id,self.ai.armyhst.unitTable[squad.unitName].losRadius,true)
+		if enemy then
+			enemy = self.game:GetUnitByID(enemy)
+			if enemy:IsAlive() and Spring.GetGaiaTeamID() ~= enemy:isNeutral() then
+				self.map:DrawPoint(enemy:GetPosition(),{1,1,1,1},nil,6)
+				return enemy:GetPosition()
+
+			end
+		end
+	end
+end
+
+function RaidHST:GetPathValidFunc(unitName)
+	if self.pathValidFuncs[unitName] then
+		return self.pathValidFuncs[unitName]
+	end
+	local valid_node_func = function ( node )
+		return self.ai.targethst:IsSafePosition(node.position, unitName, 1)
+	end
+	self.pathValidFuncs[unitName] = valid_node_func
+	return valid_node_func
+end
+
+--[[
 function RaidHST:getRaidCell(squad)
 	if not squad then return end
 	local leader = self.game:GetUnitByID(squad.members[1])
@@ -177,240 +456,7 @@ function RaidHST:getRaidCell(squad)
  	end
 	return best
 end
-
-function RaidHST:getRaidCell2(squad)
-	if not squad then return end
-	local leader = self.game:GetUnitByID(squad.members[1])
--- 	local rpos = representative:GetPosition()
-	local inCell = self.ai.targethst:GetCellHere(squad.position)
-	local threatReduction = 0
-	local TR = self.ai.armyhst.unitTable[squad.unitName].metalCost * #squad.members
-	if inCell ~= nil then
-		-- if we're near more raiders, these raiders can target more threatening targets together
-		if inCell.raiderHere then threatReduction = threatReduction + inCell.raiderHere end
-		if inCell.raiderAdjacent then threatReduction = threatReduction + inCell.raiderAdjacent end
-	end
-	self:EchoDebug(threatReduction,TR)
-	local maxThreat = self.ai.armyhst.unitTable[squad.unitName].metalCost
-	local rthreat = self.ai.armyhst.unitTable[squad.unitName].threat
-	local rrange = self.ai.armyhst.unitTable[squad.unitName].maxRange
-	self:EchoDebug(squad.unitName .. ": " .. rthreat .. " " .. rrange)
-	if rthreat > maxThreat then maxThreat = rthreat end
-	local best
-	local bestDist = math.huge
-	local cells
-	local minThreat = math.huge
-	local centerdist = 0
-	local topDist = self.ai.tool:DistanceXZ(0,0, Game.mapSizeX, Game.mapSizeZ)
-	local bestValue = math.huge
-	local bestTarget = nil
--- 	for i,cell in pairs (self.ai.targethst.cellList) do
--- 		local dist = self.ai.tool:Distance(self.ai.loshst.CENTER, cell.pos)
--- 		centerdist = math.max(dist,centerdist)
--- 	end
---
---  	for i,cell in pairs (self.ai.targethst.cellList) do
---  		local value, threat, gas = self.ai.targethst:CellValueThreat(squad.unitName, cell)
--- 		self:EchoDebug('cell target raid value',value,cell.pos.x,cell.pos.z	)
--- 		--local dist = self.ai.tool:Distance(self.ai.loshst.CENTER, cell.pos)
---  		local dist = self.ai.tool:Distance(squad.position, cell.pos)
---  		if value > 50 and threat < minThreat  and self.ai.maphst:UnitCanGoHere(leader, cell.pos) then
---  			minThreat = threat
---  			best = cell
--- 			self:EchoDebug('have a cell')
---  		end
---  	end
-		for i, G in pairs(self.ai.targethst.ENEMYCELLS) do
-			if cell.IM < 0 then
-				local cell = self.ai.targethst.CELLS[G.x][G.z]
-
-				if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
-					local Rdist = self.ai.tool:Distance(cell.pos,self.ai.loshst.CENTER)/topDist
-					local Rvalue = Rdist * cell.ENEMY
-					if Rvalue < bestValue then
-						bestTarget = cell
-						bestValue = Rvalue
-					end
-				end
-			end
-	end
-	if bestTarget then
-		print(bestTarget.gx,bestTarget.gz)
-		return bestTarget
-	end
-	return bestTarget
-end
-
-function RaidHST:FindPath(squad)
-	if not squad.pathfinder then
-		self:EchoDebug('no pathfinder??')
-		return
-	end
-	local path, remaining, maxInvalid = squad.pathfinder:Find(10)
-	self:EchoDebug(tostring(remaining) .. " remaining to find path",path,maxInvalid)
-	if path then
-		local pt = {}
-		self:EchoDebug("got path of", #path, "nodes", maxInvalid, "maximum invalid neighbors!!!!!!!!!!!!!!!!!!")
- 		for index,cell in pairs(path) do
-			table.insert(pt,cell.position)
- 			self:EchoDebug('path','index',index,'pos',cell.x,cell.z)
- 		end
-		squad.path = pt
-
-		if maxInvalid == 0 then
-			self:EchoDebug("path is entirely clear of danger, not using")
-		end
-		squad.pathfinder = nil
-	elseif remaining == 0 then
-		self:EchoDebug("no path found")
-		squad.pathfinder = nil
-	else
-		self:EchoDebug('no path found in findPATH()')
-	end
-end
-
-function RaidHST:getSquadPosition(squad)
-	local members = squad.members
-	self:EchoDebug(#members,'in squad',squad.squadID,'search pos')
-	local squadPos = {x=0,y=0,z=0}
-	for index,id in pairs(members) do
-		local unit = self.game:GetUnitByID(id)
-		if unit:IsAlive() then
-			local unitPos = unit:GetPosition()
-			squadPos.x = squadPos.x + unitPos.x
-			squadPos.z = squadPos.z + unitPos.z
-		else
-			table.remove(self.raiders,self.id)
-			table.remove(squad.members,index)
-		end
-	end
-	squadPos.x = squadPos.x / # members
-	squadPos.z = squadPos.z / # members
-	squadPos.y = Spring.GetGroundHeight(squadPos.x,squadPos.z)
-	squad.position = {x = squadPos.x, y = squadPos.y, z = squadPos.z}
-	squad.Cell,squad.CellX,squad.CellZ = self.ai.targethst:GetCellHere(squad.position)
-	self:EchoDebug('actual squad.position',squad.position.x,squad.position.z)
-end
-
-function RaidHST:goToNextNode(squad)
-	if not squad.path or not squad.path[1]  then
-		self:EchoDebug('no next path')
-		self:resetSquad(squad)
-		return
-	end	self:EchoDebug('pos',squad.position.x,squad.position.z,'path1',squad.path[1].x,squad.path[1].z,'dist',self.ai.tool:Distance(squad.position,squad.path[1]))
-  	if self.ai.tool:Distance(squad.position,squad.path[1]) < 256 then
-  		Next = table.remove(squad.path,1)
-  	end
- 	if squad.path[1] then
-		self:EchoDebug('in moving')
- 		self:squadMove(squad.members,squad.path[1])
-	else
-		self:EchoDebug('end path??')
- 	end
-end
-
-function RaidHST:squadMove(members,pos)
-	for index,id in pairs(members) do
-		self:EchoDebug('go to next node',pos.x,pos.z)
-		local unit = self.game:GetUnitByID(id)
-		unit:Move(pos)
-	end
-end
-
-function RaidHST:squadOnTarget(squad)
-	if not squad.target then
-		squad.onTarget = false
-		self:EchoDebug('no target on target')
-		return nil
-	end
-	if self.ai.tool:distance(squad.position,squad.target.pos) < 256 then
-		self:EchoDebug('im on target')
-		squad.onTarget = true
-		self:Roam(squad)
-		return true
-	else
-		self:EchoDebug('away from target')
-		squad.onTarget = false
-		self:Hold(squad)
-		return false
-	end
-end
-
-function RaidHST:doAttack(squad)
-	self:EchoDebug('do attack')
-	local vulnerable = self:nearbyVulnerable(squad.members) or self:nearestEnemy(squad)
-	for index,id in pairs(squad.members) do
-		local unit = self.game:GetUnitByID(id)
-		local rx = math.random(-50,50)
-		local rz = math.random(-50,50)
-		if vulnerable and vulnerable.position then
-			self:EchoDebug('nearby vulnerable',vulnerable)
-			local vpos = vulnerable.position
-			unit:AttackMove({x=vpos.x+rx,y= Spring.GetGroundHeight(vpos.x+rx,vpos.z+rz),z=vpos.z+rz})
-		elseif squad.target then
-			self:EchoDebug('random attack')
-			unit:AttackMove({x=squad.target.pos.x+rx,y= Spring.GetGroundHeight(squad.target.pos.x+rx,squad.target.pos.z+rz),z=squad.target.pos.z+rz})
-			squad.path = nil
-			squad.target = nil
-		end
-	end
-end
-
-function RaidHST:nearbyVulnerable(members)
-	for index,id in pairs(members) do
-		local unit = self.game:GetUnitByID(id)
-		local vulnerable = self.ai.targethst:NearbyVulnerable(unit)
-		if vulnerable then
-			return vulnerable
-		end
-	end
-end
-
-function RaidHST:Roam(squad)
-	for index,unitID in pairs(squad.members) do
-		local unit = self.game:GetUnitByID(unitID)
-		unit:Roam()
-	end
-end
-
-function RaidHST:Hold(squad)
-	for index,unitID in pairs(squad.members) do
-		local unit = self.game:GetUnitByID(unitID)
-		unit:HoldPosition()
-	end
-end
-
-function RaidHST:resetSquad(squad)
-	self:EchoDebug('reset ',squad.squadID)
-	for index,unitID in pairs(squad.members) do
-		self.raiders[unitID]['inSquad'] = nil
-	end
-	squad.members = {}
-	squad.lock = false
-	squad.onTarget = false
-	squad.position = nil
-	squad.target = nil
-	squad.path = nil
-end
-
-function RaidHST:nearestEnemy(squad)
-	local members = squad.members
-	for _,id in pairs(members) do
-		local enemy = Spring.GetUnitNearestEnemy(id,self.ai.armyhst.unitTable[squad.unitName].losRadius,true)
-		if enemy then return self.game:GetUnitByID(enemy):GetPosition() end
-	end
-end
-
-function RaidHST:GetPathValidFunc(unitName)
-	if self.pathValidFuncs[unitName] then
-		return self.pathValidFuncs[unitName]
-	end
-	local valid_node_func = function ( node )
-		return self.ai.targethst:IsSafePosition(node.position, unitName, 1)
-	end
-	self.pathValidFuncs[unitName] = valid_node_func
-	return valid_node_func
-end
+]]
 
 -- function RaidHST:GetImmediateTargetUnit()
 -- 	if self.arrived and self.unitTarget then
