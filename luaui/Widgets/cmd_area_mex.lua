@@ -45,7 +45,10 @@ local activeCmd = select(4, spGetActiveCommand())
 local buildmenuMexSelected = false
 local metalmap = false
 
+local activeUnitShape
+
 local mexBuilder = {}
+local Game_extractorRadius = Game.extractorRadius
 
 local mexIds = {}
 local unitWaterDepth = {}
@@ -129,7 +132,7 @@ end
 
 local function NoAlliedMex(x, z, batchextracts)
 	-- Is there any better and allied mex at this location (returns false if there is)
-	local mexesatspot = Spring.GetUnitsInCylinder(x, z, Game.extractorRadius)
+	local mexesatspot = Spring.GetUnitsInCylinder(x, z, Game_extractorRadius)
 	for i = 1, #mexesatspot do
 		local uid = mexesatspot[i]
 		if mexIds[spGetUnitDefID(uid)] and Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(uid)) and mexIds[spGetUnitDefID(uid)] >= batchextracts then
@@ -185,6 +188,7 @@ function widget:Update()
 		end
 	end
 
+	local drawUnitShape = false
 	local _, cmd, _ = spGetActiveCommand()
 	if cmd == CMD_AREA_MEX then
 		if spGetMapDrawMode() ~= 'metal' then
@@ -244,9 +248,34 @@ function widget:Update()
 				end
 				if proceed then
 					Spring.SetMouseCursor('upgmex')
+					--drawUnitShape = { 123, closestMex.x, closestMex.y, closestMex.z }	-- errors, need work still
 				end
 			end
 		end
+	end
+	if WG.DrawUnitShapeGL4 then
+		if drawUnitShape then
+			if not activeUnitShape then
+				activeUnitShape = {
+					drawUnitShape[1],
+					drawUnitShape[2],
+					drawUnitShape[3],
+					drawUnitShape[4],
+					WG.DrawUnitShapeGL4(drawUnitShape[1], drawUnitShape[2], drawUnitShape[3], drawUnitShape[4], 0, 0.5, spGetMyTeamID())
+				}
+			end
+		elseif activeUnitShape then
+			WG.StopDrawUnitShapeGL4(activeUnitShape[5])
+			activeUnitShape = nil
+		end
+	end
+end
+
+
+function widget:Shutdown()
+	if WG.DrawUnitShapeGL4 and activeUnitShape then
+		WG.StopDrawUnitShapeGL4(activeUnitShape[5])
+		activeUnitShape = nil
 	end
 end
 
@@ -264,54 +293,42 @@ function widget:CommandNotify(id, params, options)
 		end
 	end
 
-	-- transform move (for mex builders) into area-mex command
+	-- transform move into area-mex command
 	local units = spGetSelectedUnits()
 	if (isGuard or (isMove and moveIsAreamex)) and mexBuilder[units[1]] then
-		--local proceed = true --#units == 1 or isGuard
-		--local selUnitCounts = spGetSelectedUnitsCounts()
-		--for k,v in pairs(selUnitCounts) do
-		--	if k ~= 'n' and not mexBuilderDef[k] then
-		--		proceed = false
-		--		break
-		--	end
-		--end
-		-- transform move into area-mex command
-		-- NOTE: not sure this is wanted for commanders ...when enemy is near
-		--if proceed then
-			if isGuard then
-				local ux, uy, uz = spGetUnitPosition(params[1])
-				isGuard = { x = ux, y = uy, z = uz }
-				params[1], params[2], params[3] = ux, uy, uz
+		if isGuard then
+			local ux, uy, uz = spGetUnitPosition(params[1])
+			isGuard = { x = ux, y = uy, z = uz }
+			params[1], params[2], params[3] = ux, uy, uz
+			id = CMD_AREA_MEX
+			params[4] = 25
+			lastInsertedOrder = nil
+		else
+			local closestMex = GetClosestMetalSpot(params[1], params[3])
+			local spotRadius = mexPlacementRadius
+			if #units == 1 and #Spring.GetCommandQueue(units[1], 8) > 1 then
+				if (not lastInsertedOrder or (closestMex.x ~= lastInsertedOrder[1] and closestMex.z ~= lastInsertedOrder[2])) then
+					spotRadius = mexPlacementDragRadius		-- make move drag near mex spots be less strict
+				elseif lastInsertedOrder then
+					spotRadius = 0
+				end
+			else
+				lastInsertedOrder = nil
+			end
+			if spotRadius > 0 and closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < spotRadius then
 				id = CMD_AREA_MEX
 				params[4] = 25
-				lastInsertedOrder = nil
 			else
-				local closestMex = GetClosestMetalSpot(params[1], params[3])
-				local spotRadius = mexPlacementRadius
-				if #units == 1 and #Spring.GetCommandQueue(units[1], 8) > 1 then
-					if (not lastInsertedOrder or (closestMex.x ~= lastInsertedOrder[1] and closestMex.z ~= lastInsertedOrder[2])) then
-						spotRadius = mexPlacementDragRadius		-- make move drag near mex spots be less strict
-					elseif lastInsertedOrder then
-						spotRadius = 0
-					end
-				else
-					lastInsertedOrder = nil
-				end
-				if spotRadius > 0 and closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < spotRadius then
-					id = CMD_AREA_MEX
-					params[4] = 25
-				else
-					return
-				end
+				return
 			end
-		--end
+		end
 	end
 
 	if id == CMD_AREA_MEX then
 		local mexes = isGuard and { isGuard } or WG.metalSpots -- only need the mex we guard if that is the case
 		local cx, cy, cz, cr = params[1], params[2], params[3], params[4]
-		if not cr or cr < Game.extractorRadius then
-			cr = Game.extractorRadius
+		if not cr or cr < Game_extractorRadius then
+			cr = Game_extractorRadius
 		end
 
 		local commands = {}
@@ -419,7 +436,7 @@ function widget:CommandNotify(id, params, options)
 						local buildable = 0
 						local newx, newz = command.x, command.z
 						-- If location unavailable, check surroundings (extractorRadius - 25). Should consider replacing 25 with avg mex x,z sizes
-						--local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx - 2 * Game.extractorRadius, newz - 2 * Game.extractorRadius, -mexBuilder[id].building[j], "s")
+						--local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx - 2 * Game_extractorRadius, newz - 2 * Game_extractorRadius, -mexBuilder[id].building[j], "s")
 						local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx, newz, -mexBuilder[id].building[j], "s")
 						if bestPos then
 							newx, newz = bestPos[1], bestPos[3]
