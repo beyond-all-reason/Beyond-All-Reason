@@ -74,7 +74,7 @@ local function removeUnitShape(id)
 	if not WG.StopDrawUnitShapeGL4 then
 		widget:Shutdown()
 	else
-		if id then 
+		if id and unitshapes[id] then 
 			WG.StopDrawUnitShapeGL4(unitshapes[id])
 			numunitshapes = numunitshapes - 1 
 			unitshapes[id] = nil
@@ -133,7 +133,7 @@ local function checkBuilder(unitID)
 							groundheight = math.max (groundheight, -1 * UnitDefs[unitDefID].waterline)
 						end
 						
-						addUnitShape(id, math.abs(cmd.id), floor(cmd.params[1]), groundheight, floor(cmd.params[3]), cmd.params[4] and -(cmd.params[4] * math_halfpi) or 0, myCmd.teamid)
+						addUnitShape(id, math.abs(cmd.id), floor(cmd.params[1]), groundheight, floor(cmd.params[3]), cmd.params[4] and (cmd.params[4] * math_halfpi) or 0, myCmd.teamid)
 
 					end
 					command[id][unitID] = true
