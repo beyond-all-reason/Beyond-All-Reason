@@ -69,7 +69,7 @@ return {
                 sizegrowth         = 11,
                 speed              = [[0, 1 0, 0]],
                 texture            = [[dirt]],
-                alwaysvisible      = true,
+                alwaysvisible      = false,
                 drawOrder          = 1,
             },
         },
@@ -125,7 +125,7 @@ return {
                 ttl                = 300,
                 sizegrowth         = 1.5,
                 texture            = [[groundflashwhite]],
-                alwaysvisible      = true,
+                alwaysvisible      = false,
             },
         },
         groundflash_white = {
@@ -141,7 +141,7 @@ return {
                 sizegrowth         = 0,
                 ttl                = 90,
                 texture            = [[groundflashwhite]],
-                alwaysvisible      = true,
+                alwaysvisible      = false,
             },
         },
         groundflash_scarglow = {
@@ -157,7 +157,7 @@ return {
                 sizegrowth         = 0,
                 ttl                = 130,
                 texture            = [[scar50glow]],
-                alwaysvisible      = true,
+                alwaysvisible      = false,
             },
         },
         groundflash_scar = {
@@ -207,7 +207,7 @@ return {
                 sizegrowth         = 0.5,
                 sizemod            = 1.0,
                 texture            = [[wake]],
-                alwaysvisible      = true,
+                alwaysvisible      = false,
             },
         },
         -- explosion_flames = {
@@ -267,7 +267,7 @@ return {
                 sizemod            = 1,
                 texture            = [[flashside3]],
                 useairlos          = false,
-                alwaysvisible      = true,
+                alwaysvisible      = false,
             },
         },
         sparks = {
@@ -297,7 +297,7 @@ return {
         sizemod            = 0.98,
         texture            = [[gunshotxl2]],
         useairlos          = false,
-        alwaysvisible      = true,
+        alwaysvisible      = false,
         drawOrder          = 1,
       },
     },
@@ -328,7 +328,7 @@ return {
         sizemod            = 1,
         texture            = [[blastwave]],
         useairlos          = false,
-        alwaysvisible      = true,
+        alwaysvisible      = false,
       },
     },
     shockwavefirst = {
@@ -398,7 +398,7 @@ return {
                 sizemod            = 1,
                 texture            = [[randomdots]],
                 useairlos          = false,
-                alwaysvisible      = true,
+                alwaysvisible      = false,
             },
         },
         clouddust = {
@@ -428,7 +428,7 @@ return {
                 sizegrowth         = 0.25,
                 sizemod            = 1.0,
                 texture            = [[bigexplosmoke]],
-                alwaysvisible      = true,
+                alwaysvisible      = false,
             },
         },
         dustparticles = {
@@ -458,7 +458,7 @@ return {
                 sizegrowth         = -0.30,
                 sizemod            = 1.0,
                 texture            = [[randomdots]],
-                alwaysvisible      = true,
+                alwaysvisible      = false,
             },
         },
         -- junoring = {
@@ -494,7 +494,7 @@ return {
             sizegrowth         = 0.68,
             ttl                = 50,
             pos                = [[0, 20, 0]],
-            alwaysvisible      = true,
+            alwaysvisible      = false,
           },
         },
     -- junocloudspawn = {
@@ -522,7 +522,7 @@ return {
             delay              = [[6 r70]],
             explosiongenerator = [[custom:lightning_stormbigalt]],
             pos                = [[-120 r240, 30 r30, -120 r240]],
-            alwaysvisible      = true,
+            alwaysvisible      = false,
         },
     },    
   },
