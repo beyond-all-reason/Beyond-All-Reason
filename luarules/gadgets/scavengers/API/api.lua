@@ -195,7 +195,7 @@ function collectScavStats()
 	spSetGameRulesParam("scavStatsTechLevel", scavStatsTechLevel)
 
 	-- scavStatsTechPercentage 			done
-	local techPercentage = math.ceil((globalScore/scavconfig.timers.Endless)*100)
+	local techPercentage = math.ceil((globalScore/scavconfig.timers.Endless1)*100)
 	if techPercentage > 100 then
 		scavStatsTechPercentage = 100
 	else
