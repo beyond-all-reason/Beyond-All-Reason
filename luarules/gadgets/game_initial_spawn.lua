@@ -372,20 +372,22 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameFrame(n)
-		if n == 60 then
-			for i = 1,#startUnitList do
-				local x = startUnitList[i].x
-				local y = startUnitList[i].y
-				local z = startUnitList[i].z
-				Spring.SpawnCEG("commander-spawn",x,y,z,0,0,0)
+		if not scenarioSpawnsUnits then
+			if n == 60 then
+				for i = 1,#startUnitList do
+					local x = startUnitList[i].x
+					local y = startUnitList[i].y
+					local z = startUnitList[i].z
+					Spring.SpawnCEG("commander-spawn",x,y,z,0,0,0)
+				end
 			end
-		end
-		if n == 90 then
-			for i = 1,#startUnitList do
-				local unitID = startUnitList[i].unitID
-				Spring.MoveCtrl.Disable(unitID)
-				Spring.SetUnitNoDraw(unitID, false)
-				Spring.SetUnitHealth(unitID, {paralyze = 0})
+			if n == 90 then
+				for i = 1,#startUnitList do
+					local unitID = startUnitList[i].unitID
+					Spring.MoveCtrl.Disable(unitID)
+					Spring.SetUnitNoDraw(unitID, false)
+					Spring.SetUnitHealth(unitID, {paralyze = 0})
+				end
 			end
 		end
 		if n == 91 then
@@ -405,13 +407,18 @@ else
 			Spring.SendMessageToPlayer(playerID, message)
 		end
 	end
-
+	
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("PositionTooClose", positionTooClose)
 	end
 
-	function gadget:GameFrame()
-		gadgetHandler:RemoveGadget(self)
+	function gadget:GameFrame(n)
+		if n == 60 then
+			Spring.PlaySoundFile("commanderspawn", 1, 'ui')
+		end
+		if n == 91 then
+			gadgetHandler:RemoveGadget(self)
+		end
 	end
 
 	function gadget:Shutdown()
