@@ -758,14 +758,18 @@ function widget:DrawWorld()
 		ty = 0
 	end
 
-	if manualFire then
+	local weaponType = info.type
+
+	-- Engine draws weapon range circles for attack, but does not for manual fire
+	-- For some reason, DGun weapon type has effective range slightly higher than weapon range,
+	-- so its range circle is handled separately
+	if manualFire and weaponType ~= 'dgun' then
 		glColor(1, 0, 0, 0.75)
 		glLineWidth(1.5)
 		glDrawGroundCircle(fx, fy, fz, info.range, circleDivs)
 		glColor(1, 1, 1, 1)
 	end
 
-	local weaponType = info.type
 
 	if (weaponType == "ballistic") then
 		local trajectory = select(7, Spring.GetUnitStates(aimingUnitID, false, true))
