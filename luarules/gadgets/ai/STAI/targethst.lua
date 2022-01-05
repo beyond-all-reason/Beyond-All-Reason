@@ -240,6 +240,26 @@ function TargetHST:createGridCell()
 	end
 end
 
+function TargetHST:areaCells(X,Z,R,this)
+	if not Z or not Z then
+		self:Warn('no grid XZ for areacells')
+	end
+	local AC = {}
+	R = R or 0
+	myself = myself or false
+	for x = X - R , X + R,1  do
+		for z = Z - R , Z + R,1 do
+			if this or (x ~= X or z ~= Z) then
+				if self.CELLS[x] and self.CELLS[x][z] then
+					print('x=',x,'z=',z)
+					table.insert(AC, {gx = x, gz = z})
+				end
+			end
+		end
+	end
+	return AC
+end
+
 function TargetHST:clearEnemies()---wrong, clear the cells by parsing enemycells
 	for x,Ztable in pairs(self.CELLS) do
 		for z, cell in pairs(Ztable)do
@@ -1114,26 +1134,7 @@ function TargetHST:NearbyVulnerable(unit)
 	return vulnerable
 end
 
-function TargetHST:RaidableCell(representative, position)
-	position = position or representative:GetPosition()
-	local cell = self:GetCellHere(position)
-	if not cell or cell.value == 0 then return end
-	local value, threat, gas = self:CellValueThreat(rname, cell)
-	-- cells with other raiders in or nearby are better places to go for raiders
-	if cell.raiderHere then threat = threat - cell.raiderHere end
-	if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
-	local rname = representative:Name()
-	local maxThreat = baseUnitThreat
-	--local rthreat, rrange = self.ai.tool:ThreatRange(rname)
-	local rthreat = self.ai.armyhst.unitTable[rname].threat
-	local rrange = self.ai.armyhst.unitTable[rname].maxRange
-	self:EchoDebug(rname .. ": " .. rthreat .. " " .. rrange)
-	if rthreat > maxThreat then maxThreat = rthreat end
-	-- self:EchoDebug(value .. " " .. threat)
-	if threat <= maxThreat then
-		return cell
-	end
-end
+
 
 function TargetHST:GetBestBombardCell(position, range, minValueThreat, ignoreValue, ignoreThreat)
 	if ignoreValue and ignoreThreat then
@@ -1266,6 +1267,8 @@ function TargetHST:GetPathModifierFunc(unitName, adjacent)
 	return modifier_node_func
 end
 
+
+--[[
 -- for on-the-fly enemy evasion
 function TargetHST:BestAdjacentPosition(unit, targetPosition)
 	local position = unit:GetPosition()
@@ -1332,29 +1335,52 @@ function TargetHST:BestAdjacentPosition(unit, targetPosition)
 	end
 end
 
-function TargetHST:RaiderHere(raidbehaviour)
-	if raidbehaviour == nil then return end
-	if raidbehaviour.unit == nil then return end
-	if self.raiderCounted[raidbehaviour.id] then return end
-	local unit = raidbehaviour.unit:Internal()
-	if unit == nil then return end
-	--local uthreat, urange = self.ai.tool:ThreatRange(unit:Name())
-	local uthreat = self.ai.armyhst.unitTable[unit:Name()].threat
-	local rrange = self.ai.armyhst.unitTable[unit:Name()].maxRange
-	local position = unit:GetPosition()
-	local px, pz = GetCellPosition(position)
-	local inCell
-	if self:CellExist(px,pz) then
-		inCell = self.cells[px][pz]
-		if inCell.raiderHere == nil then inCell.raiderHere = 0 end
-		inCell.raiderHere = inCell.raiderHere + (uthreat * 0.67)
+
+
+function TargetHST:RaidableCell(representative, position)
+	position = position or representative:GetPosition()
+	local cell = self:GetCellHere(position)
+	if not cell or cell.value == 0 then return end
+	local value, threat, gas = self:CellValueThreat(rname, cell)
+	-- cells with other raiders in or nearby are better places to go for raiders
+	if cell.raiderHere then threat = threat - cell.raiderHere end
+	if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
+	local rname = representative:Name()
+	local maxThreat = baseUnitThreat
+	--local rthreat, rrange = self.ai.tool:ThreatRange(rname)
+	local rthreat = self.ai.armyhst.unitTable[rname].threat
+	local rrange = self.ai.armyhst.unitTable[rname].maxRange
+	self:EchoDebug(rname .. ": " .. rthreat .. " " .. rrange)
+	if rthreat > maxThreat then maxThreat = rthreat end
+	-- self:EchoDebug(value .. " " .. threat)
+	if threat <= maxThreat then
+		return cell
 	end
-	local adjacentThreatReduction = uthreat * 0.33
-	for cx , cz in pairs(self:adiaCells(px,pz,'raiderAdjacent')) do
-		self.cells[cx][cz].raiderAdjacent  = self.cells[cx][cz].raiderAdjacent + adjacentThreatReduction
-	end
-	self.raiderCounted[raidbehaviour.id] = true -- reset with UpdateMap()
 end
+]]
+-- function TargetHST:RaiderHere(raidbehaviour)
+-- 	if raidbehaviour == nil then return end
+-- 	if raidbehaviour.unit == nil then return end
+-- 	if self.raiderCounted[raidbehaviour.id] then return end
+-- 	local unit = raidbehaviour.unit:Internal()
+-- 	if unit == nil then return end
+-- 	--local uthreat, urange = self.ai.tool:ThreatRange(unit:Name())
+-- 	local uthreat = self.ai.armyhst.unitTable[unit:Name()].threat
+-- 	local rrange = self.ai.armyhst.unitTable[unit:Name()].maxRange
+-- 	local position = unit:GetPosition()
+-- 	local px, pz = GetCellPosition(position)
+-- 	local inCell
+-- 	if self:CellExist(px,pz) then
+-- 		inCell = self.cells[px][pz]
+-- 		if inCell.raiderHere == nil then inCell.raiderHere = 0 end
+-- 		inCell.raiderHere = inCell.raiderHere + (uthreat * 0.67)
+-- 	end
+-- 	local adjacentThreatReduction = uthreat * 0.33
+-- 	for cx , cz in pairs(self:adiaCells(px,pz,'raiderAdjacent')) do
+-- 		self.cells[cx][cz].raiderAdjacent  = self.cells[cx][cz].raiderAdjacent + adjacentThreatReduction
+-- 	end
+-- 	self.raiderCounted[raidbehaviour.id] = true -- reset with UpdateMap()
+-- end
 
 
 

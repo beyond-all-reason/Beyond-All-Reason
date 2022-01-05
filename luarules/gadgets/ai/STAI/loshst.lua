@@ -22,23 +22,7 @@ function LosHST:Init()
 	self.visualdbg = true
 	self.knownEnemies = {}
 	self.ai.friendlyTeamID = {}
-	self:areaCells(1,false)
 end
-
-function LosHST:areaCells(R,myself)
-	R = R or 0
-	myself = myself or false
-	local X = 10
-	local Z = 10
-	for x = X-R, X+R,1  do
-		for z = Z-R,Z+R,1 do
-			if myself or (x ~= X or z ~= Z) then
-				print('x=',x,'z=',z)
-			end
-		end
-	end
-end
-
 
 function LosHST:Update()
 	local f = self.game:Frame()
@@ -51,6 +35,7 @@ function LosHST:Update()
         end
 		-- update enemy jamming and populate list of enemies
 		local enemies = self.game:GetEnemies()
+		self.knownEnemies = {}
 		if enemies ~= nil then
 			local enemyList = {}
 			for i, e in pairs(enemies) do

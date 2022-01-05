@@ -68,7 +68,8 @@ function ScoutBST:Update()
 				self.attacking = true
 			elseif self.target ~= nil then
 				-- evade enemies along the way if possible
-				local newPos, arrived = self.ai.targethst:BestAdjacentPosition(unit, self.target)
+				--local newPos, arrived = self.ai.targethst:BestAdjacentPosition(unit, self.target)
+				local newPos = self:bestAdjacentPos(unit)
 				if newPos then
 					unit:Move(newPos)
 					self.evading = true
@@ -117,4 +118,46 @@ function ScoutBST:Update()
 			self.lastCircleFrame = f
 		end
 	end
+end
+
+
+function ScoutBST:bestAdjacentPos()
+	local upos = unit:GetPosition()
+	local adjacells = self.ai.targethst:areaCells(upos)
+	local risky = {}
+	local greedy = {}
+	local neutral = {}
+	local gluttony = 0
+	local tg = nil
+	for index, G in pairs(adjacells) do
+		local cell = self.CELLS[G.gx][G.gz]
+		if cell.armed < 1 and cell.unarm > 0 then
+			table.insert(greedy,cell)
+		elseif cell.armed > 0 and cell.unarm > 0 then
+			table.insert(risky,cell)
+		else
+			table.insert(neutral,cell)
+		end
+	end
+	for index,cell in pairs(greedy)do
+		if cell.unarm > gluttony then
+			gluttony = cell.unarm
+			tg = cell
+		end
+	end
+	if tg then return tg.pos end
+	for index,cell in pairs(neutral)do
+		if cell.unarm > gluttony then
+			gluttony = cell.unarm
+			tg = cell
+		end
+	end
+	if tg then return tg.pos end
+	for index,cell in pairs(risky)do
+		if cell.unarm > gluttony then
+			gluttony = cell.unarm
+			tg = cell
+		end
+	end
+	if tg then return tg.pos end
 end
