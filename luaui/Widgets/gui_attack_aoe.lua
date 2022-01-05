@@ -32,13 +32,12 @@ local pointSizeMult = 2048
 --------------------------------------------------------------------------------
 --vars
 --------------------------------------------------------------------------------
-local aoeDefInfo = {}
-local dgunInfo = {}
+local weaponInfo = {}
+local manualWeaponInfo = {}
 local hasSelection = false
-local aoeUnitDefID
-local dgunUnitDefID
-local aoeUnitID
-local dgunUnitID
+local normalAttackUnitDefID
+local manualFireUnitDefID
+local aimingUnitID
 local circleList
 local secondPart = 0
 local mouseDistance = 1000
@@ -59,7 +58,7 @@ local GetUnitRadius = Spring.GetUnitRadius
 local GetUnitStates = Spring.GetUnitStates
 local TraceScreenRay = Spring.TraceScreenRay
 local CMD_ATTACK = CMD.ATTACK
-local CMD_DGUN = CMD.MANUALFIRE
+local CMD_MANUALFIRE = CMD.MANUALFIRE
 local g = Game.gravity
 local GAME_SPEED = 30
 local g_f = g / GAME_SPEED / GAME_SPEED
@@ -221,9 +220,9 @@ end
 --initialization
 --------------------------------------------------------------------------------
 
-local dgunRange = WeaponDefNames["armcom_disintegrator"].range --+ WeaponDefNames["armcom_disintegrator"].damageAreaOfEffect
-
 local function SetupUnitDef(unitDefID, unitDef)
+	local weaponTable
+
 	if not unitDef.weapons then
 		return
 	end
@@ -235,10 +234,7 @@ local function SetupUnitDef(unitDefID, unitDef)
 		if weapon.weaponDef then
 			local weaponDef = WeaponDefs[weapon.weaponDef]
 			if weaponDef then
-				if weaponDef.type == "DGun" then
-					dgunInfo[unitDefID] = { range = dgunRange, aoe = weaponDef.damageAreaOfEffect, unitname = unitDef.name, requiredEnergy = weaponDef.energyCost }
-				elseif weaponDef.canAttackGround
-					and not (weaponDef.manualFire and unitDef.canManualFire)
+				if weaponDef.canAttackGround
 					and not (weaponDef.type == "Shield")
 					and not ToBool(weaponDef.interceptor)
 					and (weaponDef.damageAreaOfEffect > maxSpread or weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle) > maxSpread)
@@ -246,6 +242,8 @@ local function SetupUnitDef(unitDefID, unitDef)
 
 					maxSpread = max(weaponDef.damageAreaOfEffect, weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle))
 					maxWeaponDef = weaponDef
+
+					weaponTable = (weaponDef.manualFire and unitDef.canManualFire) and manualWeaponInfo or weaponInfo
 				end
 			end
 		end
@@ -263,10 +261,12 @@ local function SetupUnitDef(unitDefID, unitDef)
 	local waterWeapon = maxWeaponDef.waterWeapon
 	local ee = maxWeaponDef.edgeEffectiveness
 
-	if maxWeaponDef.cylinderTargeting >= 100 then
-		aoeDefInfo[unitDefID] = { type = "orbital", scatter = scatter }
+	if weaponType == "DGun" then
+		weaponTable[unitDefID] = { type = "dgun", range = maxWeaponDef.range, unitname = unitDef.name, requiredEnergy = maxWeaponDef.energyCost }
+	elseif maxWeaponDef.cylinderTargeting >= 100 then
+		weaponTable[unitDefID] = { type = "orbital", scatter = scatter }
 	elseif weaponType == "Cannon" then
-		aoeDefInfo[unitDefID] = { type = "ballistic", scatter = scatter, v = maxWeaponDef.projectilespeed * 30, range = maxWeaponDef.range }
+		weaponTable[unitDefID] = { type = "ballistic", scatter = scatter, v = maxWeaponDef.projectilespeed * 30, range = maxWeaponDef.range }
 	elseif weaponType == "MissileLauncher" then
 		local turnRate = 0
 		if maxWeaponDef.tracks then
@@ -275,43 +275,44 @@ local function SetupUnitDef(unitDefID, unitDef)
 		if maxWeaponDef.wobble > turnRate * 1.4 then
 			scatter = (maxWeaponDef.wobble - maxWeaponDef.turnRate) * maxWeaponDef.projectilespeed * 30 * 16
 			local rangeScatter = (8 * maxWeaponDef.wobble - maxWeaponDef.turnRate)
-			aoeDefInfo[unitDefID] = { type = "wobble", scatter = scatter, rangeScatter = rangeScatter, range = maxWeaponDef.range }
+			weaponTable[unitDefID] = { type = "wobble", scatter = scatter, rangeScatter = rangeScatter, range = maxWeaponDef.range }
 		elseif (maxWeaponDef.wobble > turnRate) then
 			scatter = (maxWeaponDef.wobble - maxWeaponDef.turnRate) * maxWeaponDef.projectilespeed * 30 * 16
-			aoeDefInfo[unitDefID] = { type = "wobble", scatter = scatter }
+			weaponTable[unitDefID] = { type = "wobble", scatter = scatter }
 		elseif (maxWeaponDef.tracks) then
-			aoeDefInfo[unitDefID] = { type = "tracking" }
+			weaponTable[unitDefID] = { type = "tracking" }
 		else
-			aoeDefInfo[unitDefID] = { type = "direct", scatter = scatter, range = maxWeaponDef.range }
+			weaponTable[unitDefID] = { type = "direct", scatter = scatter, range = maxWeaponDef.range }
 		end
 	elseif weaponType == "AircraftBomb" then
-		aoeDefInfo[unitDefID] = { type = "dropped", scatter = scatter, v = unitDef.speed, h = unitDef.wantedHeight, salvoSize = maxWeaponDef.salvoSize, salvoDelay = maxWeaponDef.salvoDelay }
+		weaponTable[unitDefID] = { type = "dropped", scatter = scatter, v = unitDef.speed, h = unitDef.wantedHeight, salvoSize = maxWeaponDef.salvoSize, salvoDelay = maxWeaponDef.salvoDelay }
 	elseif weaponType == "StarburstLauncher" then
 		if maxWeaponDef.tracks then
-			aoeDefInfo[unitDefID] = { type = "tracking" }
+			weaponTable[unitDefID] = { type = "tracking" }
 		else
-			aoeDefInfo[unitDefID] = { type = "cruise" }
+			weaponTable[unitDefID] = { type = "cruise" }
 		end
 	elseif weaponType == "TorpedoLauncher" then
 		if maxWeaponDef.tracks then
-			aoeDefInfo[unitDefID] = { type = "tracking" }
+			weaponTable[unitDefID] = { type = "tracking" }
 		else
-			aoeDefInfo[unitDefID] = { type = "direct", scatter = scatter, range = maxWeaponDef.range }
+			weaponTable[unitDefID] = { type = "direct", scatter = scatter, range = maxWeaponDef.range }
 		end
 	elseif weaponType == "Flame" then
-		aoeDefInfo[unitDefID] = { type = "noexplode", range = maxWeaponDef.range }
+		weaponTable[unitDefID] = { type = "noexplode", range = maxWeaponDef.range }
 	else
-		aoeDefInfo[unitDefID] = { type = "direct", scatter = scatter, range = maxWeaponDef.range }
-	end
-	if maxWeaponDef.energyCost > 0 then
-		aoeDefInfo[unitDefID].requiredEnergy = maxWeaponDef.energyCost
+		weaponTable[unitDefID] = { type = "direct", scatter = scatter, range = maxWeaponDef.range }
 	end
 
-	aoeDefInfo[unitDefID].aoe = aoe
-	aoeDefInfo[unitDefID].cost = cost
-	aoeDefInfo[unitDefID].mobile = mobile
-	aoeDefInfo[unitDefID].waterWeapon = waterWeapon
-	aoeDefInfo[unitDefID].ee = ee
+	if maxWeaponDef.energyCost > 0 then
+		weaponTable[unitDefID].requiredEnergy = maxWeaponDef.energyCost
+	end
+
+	weaponTable[unitDefID].aoe = aoe
+	weaponTable[unitDefID].cost = cost
+	weaponTable[unitDefID].mobile = mobile
+	weaponTable[unitDefID].waterWeapon = waterWeapon
+	weaponTable[unitDefID].ee = ee
 end
 
 local function SetupDisplayLists()
@@ -333,25 +334,24 @@ local function UpdateSelection()
 	local sel = GetSelectedUnitsSorted()
 
 	local maxCost = 0
-	dgunUnitDefID = nil
-	aoeUnitDefID = nil
-	dgunUnitID = nil
-	aoeUnitID = nil
+	manualFireUnitDefID = nil
+	normalAttackUnitDefID = nil
+	aimingUnitID = nil
 	hasSelection = false
 
 	for unitDefID, unitIDs in pairs(sel) do
-		if dgunInfo[unitDefID] then
-			dgunUnitDefID = unitDefID
-			dgunUnitID = unitIDs[1]
+		if manualWeaponInfo[unitDefID] then
+			manualFireUnitDefID = unitDefID
+			aimingUnitID = unitIDs[1]
 			hasSelection = true
 		end
 
-		if aoeDefInfo[unitDefID] then
+		if weaponInfo[unitDefID] then
 			local currCost = unitCost[unitDefID] * #unitIDs
 			if currCost > maxCost then
 				maxCost = currCost
-				aoeUnitDefID = unitDefID
-				aoeUnitID = GetRepUnitID(unitIDs)
+				normalAttackUnitDefID = unitDefID
+				aimingUnitID = GetRepUnitID(unitIDs)
 				hasSelection = true
 			end
 		end
@@ -385,7 +385,6 @@ end
 --dgun/noexplode
 --------------------------------------------------------------------------------
 local function DrawNoExplode(aoe, fx, fy, fz, tx, ty, tz, range, requiredEnergy)
-
 	local dx = tx - fx
 	local dy = ty - fy
 	local dz = tz - fz
@@ -675,6 +674,27 @@ local function DrawOrbitalScatter(scatter, tx, ty, tz)
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
 end
+
+local function DrawDGun(aoe, fx, fy, fz, tx, ty, tz, range, requiredEnergy, unitName)
+	local angle = math.atan2(fx - tx, fz - tz) + (math.pi / 2.1)
+	local dx, dz, offset_x, offset_z = fx, fz, 0, 0
+	if unitName == 'armcom' then
+		offset_x = (sin(angle) * 10)
+		offset_z = (cos(angle) * 10)
+		dx = fx - offset_x
+		dz = fz - offset_z
+	elseif unitName == 'corcom' then
+		offset_x = (sin(angle) * 14)
+		offset_z = (cos(angle) * 14)
+		dx = fx + offset_x
+		dz = fz + offset_z
+	end
+	DrawNoExplode(aoe, dx, fy, dz, tx, ty, tz, range + (aoe * 0.7), requiredEnergy)
+	glColor(1, 0, 0, 0.75)
+	glLineWidth(1.5)
+	glDrawGroundCircle(fx, fy, fz, range + (aoe * 0.7), circleDivs)
+	glColor(1, 1, 1, 1)
+end
 --------------------------------------------------------------------------------
 --callins
 --------------------------------------------------------------------------------
@@ -704,68 +724,49 @@ function widget:DrawWorld()
 	if not hasSelection then
 		return
 	end
+
+	local info, manualFire
 	local _, cmd, _ = GetActiveCommand()
 
-	if (cmd == CMD_DGUN and dgunUnitDefID) then
-		mouseDistance = GetMouseDistance() or 1000
-		local tx, ty, tz = GetMouseTargetPosition(true)
-		if (not tx) then
-			return
-		end
-		local info = dgunInfo[dgunUnitDefID]
-		local fx, fy, fz = GetUnitPosition(dgunUnitID)
-		if (not fx) then
-			return
-		end
-		local angle = math.atan2(fx - tx, fz - tz) + (math.pi / 2.1)
-		local dx, dz, offset_x, offset_z
-		if dgunInfo[dgunUnitDefID].unitname == 'armcom' then
-			offset_x = (sin(angle) * 10)
-			offset_z = (cos(angle) * 10)
-			dx = fx - offset_x
-			dz = fz - offset_z
-		else
-			offset_x = (sin(angle) * 14)
-			offset_z = (cos(angle) * 14)
-			dx = fx + offset_x
-			dz = fz + offset_z
-		end
-		DrawNoExplode(info.aoe, dx, fy, dz, tx, ty, tz, info.range + (info.aoe * 0.7), info.requiredEnergy)
-		glColor(1, 0, 0, 0.75)
-		glLineWidth(1.5)
-		glDrawGroundCircle(fx, fy, fz, info.range + (info.aoe * 0.7), circleDivs)
-		glColor(1, 1, 1, 1)
-		return
-	end
-
-	if (cmd ~= CMD_ATTACK or not aoeUnitDefID) then
-		--UpdateSelection()
+	if (cmd == CMD_MANUALFIRE and manualFireUnitDefID) then
+		info = manualWeaponInfo[manualFireUnitDefID]
+		manualFire = true
+	elseif (cmd == CMD_ATTACK and normalAttackUnitDefID) then
+		info = weaponInfo[normalAttackUnitDefID]
+	else
 		return
 	end
 
 	mouseDistance = GetMouseDistance() or 1000
-	local tx, ty, tz = GetMouseTargetPosition()
+	local tx, ty, tz = GetMouseTargetPosition(true)
 	if (not tx) then
 		return
 	end
 
-	local info = aoeDefInfo[aoeUnitDefID]
-
-	local fx, fy, fz = GetUnitPosition(aoeUnitID)
+	local fx, fy, fz = GetUnitPosition(aimingUnitID)
 	if (not fx) then
 		return
 	end
+
 	if (not info.mobile) then
-		fy = fy + GetUnitRadius(aoeUnitID)
+		fy = fy + GetUnitRadius(aimingUnitID)
 	end
 
 	if not info.waterWeapon and ty < 0 then
 		ty = 0
 	end
+
+	if manualFire then
+		glColor(1, 0, 0, 0.75)
+		glLineWidth(1.5)
+		glDrawGroundCircle(fx, fy, fz, info.range, circleDivs)
+		glColor(1, 1, 1, 1)
+	end
+
 	local weaponType = info.type
 
 	if (weaponType == "ballistic") then
-		local trajectory = select(7, Spring.GetUnitStates(aoeUnitID, false, true))
+		local trajectory = select(7, Spring.GetUnitStates(aimingUnitID, false, true))
 		if trajectory then
 			trajectory = 1
 		else
@@ -779,7 +780,7 @@ function widget:DrawWorld()
 		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
 	elseif (weaponType == "direct") then
 		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
-		DrawDirectScatter(info.scatter, fx, fy, fz, tx, ty, tz, info.range, GetUnitRadius(aoeUnitID))
+		DrawDirectScatter(info.scatter, fx, fy, fz, tx, ty, tz, info.range, GetUnitRadius(aimingUnitID))
 	elseif (weaponType == "dropped") then
 		DrawDroppedScatter(info.aoe, info.ee, info.scatter, info.v, fx, info.h, fz, tx, ty, tz, info.salvoSize, info.salvoDelay)
 	elseif (weaponType == "wobble") then
@@ -788,6 +789,8 @@ function widget:DrawWorld()
 	elseif (weaponType == "orbital") then
 		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
 		DrawOrbitalScatter(info.scatter, tx, ty, tz)
+	elseif weaponType == "dgun" then
+		DrawDGun(info.aoe, fx, fy, fz, tx, ty, tz, info.range, info.requiredEnergy, info.unitname)
 	else
 		DrawAoE(tx, ty, tz, info.aoe, info.ee, info.requiredEnergy)
 	end
