@@ -55,44 +55,30 @@ function BossWaveTimer(n)
 				pickedBeacon = 16000000 -- high number that UnitID should never pick
 			end
 			if noSpawnerForBoss ~= true and pickedBeacon == 16000000 then
-				Spring.Echo("[Scavengers] Failed Attempt to spawn Final Boss")
+				--Spring.Echo("[Scavengers] Failed Attempt to spawn Final Boss")
 				ScavBossFailedSpawnAttempts = ScavBossFailedSpawnAttempts+1
 				return
 			else
-				if noSpawnerForBoss and ScavengerStartboxExists == true then
+				if noSpawnerForBoss then
 					local posx = math.floor((ScavengerStartboxXMin + ScavengerStartboxXMax)/2)
 					local posz = math.floor((ScavengerStartboxZMin + ScavengerStartboxZMax)/2)
 					local posy = Spring.GetGroundHeight(posx, posz)
 					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),GaiaTeamID)
 					FinalBossUnitSpawned = true
-					Spring.Echo("[Scavengers] Final Boss Spawned Successfully")
-				elseif noSpawnerForBoss then
-					local posx = math.floor(mapsizeX/2)
-					local posz = math.floor(mapsizeZ/2)
-					local posy = Spring.GetGroundHeight(posx, posz)
-					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),GaiaTeamID)
-					FinalBossUnitSpawned = true
-					Spring.Echo("[Scavengers] Final Boss Spawned Successfully")
+					--Spring.Echo("[Scavengers] Final Boss Spawned Successfully")
 				elseif pickedBeacon then
 					local posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
 					local posy = Spring.GetGroundHeight(posx, posz)
 					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),GaiaTeamID)
 					FinalBossUnitSpawned = true
-					Spring.Echo("[Scavengers] Final Boss Spawned Successfully")
-				elseif ScavengerStartboxExists == true then
+					--Spring.Echo("[Scavengers] Final Boss Spawned Successfully")
+				else
 					local posx = math.floor((ScavengerStartboxXMin + ScavengerStartboxXMax)/2)
 					local posz = math.floor((ScavengerStartboxZMin + ScavengerStartboxZMax)/2)
 					local posy = Spring.GetGroundHeight(posx, posz)
 					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),GaiaTeamID)
 					FinalBossUnitSpawned = true
-					Spring.Echo("[Scavengers] Final Boss Spawned Successfully")
-				else
-					local posx = math.floor(mapsizeX/2)
-					local posz = math.floor(mapsizeZ/2)
-					local posy = Spring.GetGroundHeight(posx, posz)
-					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),GaiaTeamID)
-					FinalBossUnitSpawned = true
-					Spring.Echo("[Scavengers] Final Boss Spawned Successfully")
+					--Spring.Echo("[Scavengers] Final Boss Spawned Successfully")
 				end
 			end
 			pickedBeacon = nil
