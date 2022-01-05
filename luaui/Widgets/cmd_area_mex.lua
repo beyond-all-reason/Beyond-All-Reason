@@ -171,27 +171,17 @@ local function IsSpotOccupied(spot)
 	return occupied
 end
 
-local function doAreaMexCommand(params, options, isGuard, justDraw)
-	local mexes = isGuard and { isGuard } or WG.metalSpots -- only need the mex we guard if that is the case
+local function doAreaMexCommand(params, options, isGuard, units, justDraw)
 	local cx, cy, cz, cr = params[1], params[2], params[3], params[4]
-	if not cr or cr < Game_extractorRadius then
-		cr = Game_extractorRadius
-	end
+	if not cr or cr < Game_extractorRadius then cr = Game_extractorRadius end
+	if not units then units = spGetSelectedUnits() end
 
-	local queuedMexes = {}
-	local commands = {}
-	local commandsCount = 0
-	local orderedCommands = {}
-	local ux, uz, us, aveX, aveZ = 0, 0, 0, 0, 0
+	-- Get best extract rates, save best builderID
 	local maxbatchextracts = 0
-	local batchMexBuilder = {}
-	local lastprocessedbestbuilder = nil
-
-	local units = spGetSelectedUnits()
+	local lastprocessedbestbuilder
 	for i = 1, #units do
 		local id = units[i]
 		if mexBuilder[id] then
-			-- Get best extract rates, save best builderID
 			if mexIds[(mexBuilder[id].building[1]) * -1] > maxbatchextracts then
 				maxbatchextracts = mexIds[(mexBuilder[id].building[1]) * -1]
 				lastprocessedbestbuilder = id
@@ -199,10 +189,11 @@ local function doAreaMexCommand(params, options, isGuard, justDraw)
 		end
 	end
 
+	-- Apply guard orders to "inferior" builders and adds superior builders to current batch builders
 	local batchSize = 0
-	local shift = options.shift
+	local batchMexBuilder = {}
+	local ux, uz, us, aveX, aveZ = 0, 0, 0, 0, 0
 	for i = 1, #units do
-		-- Check position, apply guard orders to "inferiors" builders and adds superior builders to current batch builders
 		local id = units[i]
 		if mexBuilder[id] then
 			if mexIds[(mexBuilder[id].building[1]) * -1] == maxbatchextracts then
@@ -215,7 +206,7 @@ local function doAreaMexCommand(params, options, isGuard, justDraw)
 				batchMexBuilder[batchSize] = id
 			else
 				if not justDraw then
-					if not shift then
+					if not options.shift then
 						spGiveOrderToUnit(id, CMD_STOP, {}, CMD_OPT_RIGHT)
 					end
 					spGiveOrderToUnit(id, CMD_GUARD, { lastprocessedbestbuilder }, { "shift" })
@@ -223,13 +214,15 @@ local function doAreaMexCommand(params, options, isGuard, justDraw)
 			end
 		end
 	end
-
 	if us == 0 then
 		return
 	end
-	aveX = ux / us
-	aveZ = uz / us
+	aveX, aveZ = ux/us, uz/us
 
+	--
+	local commands = {}
+	local commandsCount = 0
+	local mexes = isGuard and { isGuard } or WG.metalSpots -- only need the mex we guard if that is the case
 	for k = 1, #mexes do
 		local mex = mexes[k]
 		if not (mex.x % 16 == 8) then
@@ -242,15 +235,15 @@ local function doAreaMexCommand(params, options, isGuard, justDraw)
 		mex.z = mexes[k].z
 		if Distance(cx, cz, mex.x, mex.z) < cr * cr then
 			-- circle area, slower
-			if NoAlliedMex(mex.x, mex.z, maxbatchextracts) == true then
+			if NoAlliedMex(mex.x, mex.z, maxbatchextracts) then
 				commandsCount = commandsCount + 1
 				commands[commandsCount] = { x = mex.x, z = mex.z, d = Distance(aveX, aveZ, mex.x, mex.z) }
 			end
 		end
 	end
 
-	local noCommands = commandsCount
-	while noCommands > 0 do
+	local orderedCommands = {}
+	while commandsCount > 0 do
 		tasort(commands, function(a, b)
 			return a.d < b.d
 		end)
@@ -261,22 +254,20 @@ local function doAreaMexCommand(params, options, isGuard, justDraw)
 		for k, com in pairs(commands) do
 			com.d = Distance(aveX, aveZ, com.x, com.z)
 		end
-		noCommands = noCommands - 1
+		commandsCount = commandsCount - 1
 	end
-
-	local shift = options.shift
-	local ctrl = options.ctrl or options.meta
 
 	if not justDraw then
 		for ct = 1, #batchMexBuilder do
 			local id = batchMexBuilder[ct]
-			if not shift then
+			if not options.shift then
 				spGiveOrderToUnit(id, CMD_STOP, {}, CMD_OPT_RIGHT)
 			end
 		end
 	end
 
-	local mexQueued = false
+	local queuedMexes = {}
+	local ctrl = options.ctrl or options.meta
 	for ct = 1, #batchMexBuilder do
 		local id = batchMexBuilder[ct]
 
@@ -297,12 +288,10 @@ local function doAreaMexCommand(params, options, isGuard, justDraw)
 						buildable = true
 					end
 					if buildable ~= 0 then
-						mexQueued = true
 						if not justDraw then
 							spGiveOrderToUnit(id, mexBuilder[id].building[j], { newx, spGetGroundHeight(newx, newz), newz }, { "shift" })
-						else
-							queuedMexes[#queuedMexes+1] = {id, math.abs(mexBuilder[id].building[j]), newx, spGetGroundHeight(newx, newz), newz }
 						end
+						queuedMexes[#queuedMexes+1] = {id, math.abs(mexBuilder[id].building[j]), newx, spGetGroundHeight(newx, newz), newz }
 						lastInsertedOrder = {command.x, command.z}
 						break
 					elseif def[2] and -def[2] < Y and def[1] and -def[1] > Y then
@@ -317,12 +306,10 @@ local function doAreaMexCommand(params, options, isGuard, justDraw)
 								end
 							end
 						end
-						mexQueued = true
 						if not justDraw then
 							spGiveOrderToUnit(id, CMD.INSERT, { -1, mexBuilder[id].building[j], CMD.OPT_INTERNAL, command.x, spGetGroundHeight(command.x, command.z), command.z }, { shift = true, internal = true, alt = true })
-						else
-							queuedMexes[#queuedMexes+1] = {id, math.abs(mexBuilder[id].building[j]), command.x, spGetGroundHeight(command.x, command.z), command.z }
 						end
+						queuedMexes[#queuedMexes+1] = {id, math.abs(mexBuilder[id].building[j]), command.x, spGetGroundHeight(command.x, command.z), command.z }
 						lastInsertedOrder = {command.x, command.z}
 						break
 					end
@@ -330,19 +317,34 @@ local function doAreaMexCommand(params, options, isGuard, justDraw)
 			end
 		end
 	end
-	if isGuard and not mexQueued then
+	if isGuard and #queuedMexes == 0 then
 		return		-- no mex buildorder made so let move go through!
 	end
-	if not justDraw then
-		return true
-	else
+	if justDraw then
 		return queuedMexes
+	else
+		return true
 	end
 end
 
-function widget:Update()
+local selectedUnits = Spring.GetSelectedUnits()
+local selUnitCounts = spGetSelectedUnitsCounts()
+function widget:SelectionChanged(sel)
+	selectedUnits = sel
+	selUnitCounts = spGetSelectedUnitsCounts()
+end
+
+local sec = 0
+function widget:Update(dt)
 	if chobbyInterface then
 		return
+	end
+
+	local updateDrawUnitShape = activeUnitShape ~= nil
+	sec = sec + dt
+	if sec > 0.05 then
+		sec = 0
+		updateDrawUnitShape = true
 	end
 
 	-- swap build command to area mex when mex is selected
@@ -396,7 +398,6 @@ function widget:Update()
 			end
 			if isT1Mex or proceed then
 				proceed = false
-				local selUnitCounts = spGetSelectedUnitsCounts()
 				local hasT1builder, hasT2builder = false, false
 				-- search for builders
 				for k,v in pairs(selUnitCounts) do
@@ -421,17 +422,19 @@ function widget:Update()
 				end
 				if proceed then
 					Spring.SetMouseCursor('upgmex')
-					local queuedMexes = doAreaMexCommand({params[1], params[2], params[3], 80}, {}, false, true)
-					if #queuedMexes > 0 then
-						--Spring.Echo(#scopedMexes)
-						drawUnitShape = { queuedMexes[1][2], queuedMexes[1][3], queuedMexes[1][4], queuedMexes[1][5] }
+					if updateDrawUnitShape then
+						local queuedMexes = doAreaMexCommand({params[1], params[2], params[3]}, {}, false, nil, true)
+						if #queuedMexes > 0 then
+							--Spring.Echo(#scopedMexes)
+							drawUnitShape = { queuedMexes[1][2], queuedMexes[1][3], queuedMexes[1][4], queuedMexes[1][5] }
+						end
 					end
 				end
 			end
 		end
 	end
 
-	if WG.DrawUnitShapeGL4 then
+	if updateDrawUnitShape and WG.DrawUnitShapeGL4 then
 		if drawUnitShape then
 			if not activeUnitShape then
 				activeUnitShape = {
@@ -439,7 +442,7 @@ function widget:Update()
 					drawUnitShape[2],
 					drawUnitShape[3],
 					drawUnitShape[4],
-					WG.DrawUnitShapeGL4(drawUnitShape[1], drawUnitShape[2], drawUnitShape[3], drawUnitShape[4], 0, 0.6, spGetMyTeamID(), 0.2, 0.25)
+					WG.DrawUnitShapeGL4(drawUnitShape[1], drawUnitShape[2], drawUnitShape[3], drawUnitShape[4], 0, 0.66, spGetMyTeamID(), 0.15, 0.3)
 				}
 			end
 		elseif activeUnitShape then
@@ -484,7 +487,7 @@ function widget:CommandNotify(id, params, options)
 			local closestMex = GetClosestMetalSpot(params[1], params[3])
 			local spotRadius = mexPlacementRadius
 			if #units == 1 and #Spring.GetCommandQueue(units[1], 8) > 1 then
-				if (not lastInsertedOrder or (closestMex.x ~= lastInsertedOrder[1] and closestMex.z ~= lastInsertedOrder[2])) then
+				if not lastInsertedOrder or (closestMex.x ~= lastInsertedOrder[1] and closestMex.z ~= lastInsertedOrder[2]) then
 					spotRadius = mexPlacementDragRadius		-- make move drag near mex spots be less strict
 				elseif lastInsertedOrder then
 					spotRadius = 0
@@ -502,7 +505,7 @@ function widget:CommandNotify(id, params, options)
 	end
 
 	if id == CMD_AREA_MEX then
-		return doAreaMexCommand(params, options, isGuard)
+		return doAreaMexCommand(params, options, isGuard, units)
 	end
 end
 
