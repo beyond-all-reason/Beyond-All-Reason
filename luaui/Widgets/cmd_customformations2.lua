@@ -84,18 +84,7 @@ local positionCmds = {
 }
 
 local chobbyInterface
-
-function widget:Initialize()
-    if not requiresAlt[CMD.ATTACK] then
-        Spring.SendCommands('bind Alt+a areaattack')
-    end
-end
-
-function widget:Shutdown()
-    if not requiresAlt[CMD.ATTACK] then
-        Spring.SendCommands('unbind Alt+a areaattack')
-    end
-end
+local lineLength = 0
 
 --------------------------------------------------------------------------------
 -- Globals
@@ -269,8 +258,6 @@ local function GetExecutingUnits(cmdID)
     return units
 end
 
-local lineLength = 0
-
 local function AddFNode(pos)
 
     local px, pz = pos[1], pos[3]
@@ -293,6 +280,7 @@ local function AddFNode(pos)
         fNodes[n + 1] = pos
         fDists[n + 1] = fDists[n] + sqrt(distSq)
         lineLength = lineLength+distSq^0.5
+		WG.customformations_linelength = lineLength
     end
 
     totaldxy = 0
@@ -474,6 +462,7 @@ function widget:MousePress(mx, my, mButton)
     pathCandidate = (not overriddenCmd) and (selectedUnitsCount==1 or (alt and not requiresAlt[usingCmd]))
 
     -- We handled the mouse press
+	WG.customformations_linelength = lineLength
     return true
 end
 function widget:MouseMove(mx, my, dx, dy, mButton)
@@ -531,9 +520,12 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
         end
     end
 
+	WG.customformations_linelength = lineLength
     return false
 end
 function widget:MouseRelease(mx, my, mButton)
+	lineLength = 0
+	WG.customformations_linelength = lineLength
 
     -- It is possible for MouseRelease to fire after MouseRelease
     if #fNodes == 0 then
@@ -1322,4 +1314,19 @@ function stepFiveStar(colcover, rowcover, row, col, n, starscol, primescol)
             colcover[scol] = true
         end
     end
+end
+
+
+function widget:Initialize()
+	if not requiresAlt[CMD.ATTACK] then
+		Spring.SendCommands('bind Alt+a areaattack')
+	end
+	WG.customformations_linelength = 0
+end
+
+function widget:Shutdown()
+	if not requiresAlt[CMD.ATTACK] then
+		Spring.SendCommands('unbind Alt+a areaattack')
+	end
+	WG.customformations_linelength = 0
 end
