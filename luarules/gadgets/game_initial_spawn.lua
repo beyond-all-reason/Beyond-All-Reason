@@ -284,6 +284,10 @@ if gadgetHandler:IsSyncedCode() then
 					startUnitList[#startUnitList+1] = {unitID = unitID, teamID = teamID, x = x, y = y, z = z}
 					Spring.MoveCtrl.Enable(unitID)
 					Spring.SetUnitNoDraw(unitID, true)
+					local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(unitID)
+					local paralyzemult = 3*0.025 -- 3 seconds of paralyze
+					local paralyzedamage = (umaxhealth-uparalyze)+(umaxhealth*paralyzemult)
+					Spring.SetUnitHealth(unitID, {paralyze = paralyzedamage})
 				end
 			end
 		end
@@ -381,6 +385,7 @@ if gadgetHandler:IsSyncedCode() then
 				local unitID = startUnitList[i].unitID
 				Spring.MoveCtrl.Disable(unitID)
 				Spring.SetUnitNoDraw(unitID, false)
+				Spring.SetUnitHealth(unitID, {paralyze = 0})
 			end
 		end
 		if n == 91 then
