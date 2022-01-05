@@ -131,7 +131,7 @@ end
 
 abilities.airWave = function(n)
 	if FinalBossUnitID then
-		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 3000, false)
+		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 250, false)
 		if nearestEnemy then
 			--Spring.Echo("[Scavengers] Boss Fighter Reinforcements Activated")
 			local fighters = {}
@@ -141,7 +141,7 @@ abilities.airWave = function(n)
 			table.mergeInPlace(fighters, airUnitList.T3)
 			local fighter = fighters[math_random(1,#fighters)]
 			local bossx, bossy, bossz = Spring.GetUnitPosition(FinalBossUnitID)
-			for i = 1,2*BossFightCurrentPhase*spawnmultiplier do
+			for i = 1,5*BossFightCurrentPhase*spawnmultiplier do
 				QueueSpawn(fighter, bossx+(math.random(-300, 300)), bossy+2000, bossz+(math.random(-300, 300)), math_random(0,3),GaiaTeamID, n+i+1)
 			end
 		end
@@ -210,7 +210,6 @@ local earlyAbilities = {
 	abilities.superDGun,
 	abilities.selfRepair,
 	abilities.airWave,
-	abilities.airWave,
 }
 
 local midgameAbilities = {
@@ -218,8 +217,7 @@ local midgameAbilities = {
 	abilities.dGunFrenzy,
 	abilities.superDGun,
 	abilities.selfRepair,
-	abilities.airWave,
-	abilities.airWave,
+	abilities.airWave
 	abilities.tacticalNuke,
 	abilities.EMP,
 }
@@ -229,9 +227,6 @@ local endGameAbilities = {
 	abilities.dGunFrenzy,
 	abilities.superDGun,
 	abilities.selfRepair,
-	abilities.airWave,
-	abilities.airWave,
-	abilities.airWave,
 	abilities.airWave,
 	abilities.tacticalNuke,
 	abilities.EMP,

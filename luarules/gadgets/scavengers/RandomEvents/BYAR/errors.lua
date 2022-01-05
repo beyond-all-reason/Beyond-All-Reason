@@ -72,7 +72,7 @@ end
 
 return {
 	-- rebellion1,
-	-- rebellion2,
+	rebellion2,
 	blueScreenOfDeath,
 	blueScreenOfDeath,
 }
