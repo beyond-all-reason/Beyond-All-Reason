@@ -217,7 +217,7 @@ local midgameAbilities = {
 	abilities.dGunFrenzy,
 	abilities.superDGun,
 	abilities.selfRepair,
-	abilities.airWave
+	abilities.airWave,
 	abilities.tacticalNuke,
 	abilities.EMP,
 }
