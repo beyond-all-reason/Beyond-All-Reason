@@ -35,9 +35,8 @@ local pointSizeMult = 2048
 local weaponInfo = {}
 local manualWeaponInfo = {}
 local hasSelection = false
-local normalAttackUnitDefID
-local manualFireUnitDefID
-local aimingUnitID
+local attackUnitDefID, manualFireUnitDefID
+local attackUnitID, manualFireUnitID
 local circleList
 local secondPart = 0
 local mouseDistance = 1000
@@ -335,14 +334,15 @@ local function UpdateSelection()
 
 	local maxCost = 0
 	manualFireUnitDefID = nil
-	normalAttackUnitDefID = nil
-	aimingUnitID = nil
+	attackUnitDefID = nil
+	attackUnitID = nil
+	manualFireUnitID = nil
 	hasSelection = false
 
 	for unitDefID, unitIDs in pairs(sel) do
 		if manualWeaponInfo[unitDefID] then
 			manualFireUnitDefID = unitDefID
-			aimingUnitID = unitIDs[1]
+			manualFireUnitID = unitIDs[1]
 			hasSelection = true
 		end
 
@@ -350,8 +350,8 @@ local function UpdateSelection()
 			local currCost = unitCost[unitDefID] * #unitIDs
 			if currCost > maxCost then
 				maxCost = currCost
-				normalAttackUnitDefID = unitDefID
-				aimingUnitID = GetRepUnitID(unitIDs)
+				attackUnitDefID = unitDefID
+				attackUnitID = GetRepUnitID(unitIDs)
 				hasSelection = true
 			end
 		end
@@ -725,14 +725,16 @@ function widget:DrawWorld()
 		return
 	end
 
-	local info, manualFire
+	local info, manualFire, aimingUnitID
 	local _, cmd, _ = GetActiveCommand()
 
 	if (cmd == CMD_MANUALFIRE and manualFireUnitDefID) then
 		info = manualWeaponInfo[manualFireUnitDefID]
+		aimingUnitID = manualFireUnitID
 		manualFire = true
-	elseif (cmd == CMD_ATTACK and normalAttackUnitDefID) then
-		info = weaponInfo[normalAttackUnitDefID]
+	elseif (cmd == CMD_ATTACK and attackUnitDefID) then
+		info = weaponInfo[attackUnitDefID]
+		aimingUnitID = attackUnitID
 	else
 		return
 	end
