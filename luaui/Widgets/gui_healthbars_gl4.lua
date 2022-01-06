@@ -154,6 +154,10 @@ end
 -- enemy comms and fusions health? hide the ones which should be hidden!
 -- check for invalidness on addbars
 -- better maintenance of bartypes and watch lists 
+-- feature bars fade out faster
+-- CLOAKED UNITSES
+
+--/luarules fightertest corak armpw 100 10 2000
 
 
 local healthbartexture = "LuaUI/Images/healtbars_exo4.png"
@@ -164,6 +168,7 @@ local healthbartexture = "LuaUI/Images/healtbars_exo4.png"
 -- 2: timer based progress bar, with start and end times reading time left from uniformindex, uniformindex + 1 and timeInfo.x 
 -- 3: default percentage bar with overlayed texture progression
 -- 5: The stockpile bar, nasty as hell but whatevs, it 
+
 -- TODO: should be a freaking bitmask instead
 -- bit 0: use overlay texture
 -- bit 1: use percentage style display
@@ -285,12 +290,13 @@ local myTeamID = Spring.GetMyTeamID()
 local lastGameFrame = 0
 local chobbyInterface
 
-local unitBars = {} -- we need this additional table of {[unitID] = {barhealth, barrez, barreclaim}}
 local unitDefIgnore = {} -- commanders!
 local unitDefhasShield = {} -- value is shield max power
 local unitDefCanStockpile = {} -- 0/1?
 local unitDefReload = {} -- value is max reload time
 local unitDefHeights = {} -- maps unitDefs to height
+
+local unitBars = {} -- we need this additional table of {[unitID] = {barhealth, barrez, barreclaim}}
 local unitEmpWatch = {}
 local unitBeingBuiltWatch = {}
 local unitCaptureWatch = {}
@@ -298,7 +304,6 @@ local unitShieldWatch = {} -- maps unitID to last shield value
 local unitEmpDamagedWatch = {}
 local unitParalyzedWatch = {}
 local unitStockPileWatch = {}
-
 local unitReloadWatch = {}
 
 local featureDefHeights = {} -- maps FeatureDefs to height
@@ -328,6 +333,11 @@ local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
+
+-------------------- configurables -----------------------
+local additionalheightaboveunit = 0 --16?
+local debugmode = false
+
 local shaderConfig = { -- these are our shader defines
 	HEIGHTOFFSET = 0, -- Additional height added to everything
 	CLIPTOLERANCE = 1.1, -- At 1.0 it wont draw at units just outside of view (may pop in), 1.1 is a good safe amount
@@ -350,6 +360,8 @@ shaderConfig.BARFADEEND = 3000
 shaderConfig.ICONFADESTART = 750
 shaderConfig.ICONFADEEND = 1250
 shaderConfig.ATLASSTEP = 0.0625
+shaderConfig.MINALPHA = 0.2
+shaderConfig.DEBUGSHOW = 1 -- comment this to always show them
 
 local vsSrc =  [[
 #version 420
@@ -391,6 +403,7 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 #line 10000
 
 uniform float iconDistance;
+uniform float cameraDistancMult;
 
 out DataVS {
 	uint v_numvertices;
@@ -423,11 +436,11 @@ void main()
 	gl_Position = cameraViewProj * vec4(modelMatrix[3].xyz, 1.0); // We transform this vertex into the center of the model
 
 	v_centerpos = vec4( modelMatrix[3].xyz, 1.0); // We are going to pass the centerpoint to the GS
-
+	v_numvertices = 4u;
 	if (vertexClipped(gl_Position, CLIPTOLERANCE)) v_numvertices = 0; // Make no primitives on stuff outside of screen
 
 	// this sets the num prims to 0 for units further from cam than iconDistance
-	float cameraDistance = length((cameraViewInv[3]).xyz - v_centerpos.xyz);
+	float cameraDistance = length((cameraViewInv[3]).xyz - v_centerpos.xyz)* cameraDistancMult;
 	v_parameters.y = 1.0 - (clamp(cameraDistance, BARFADESTART, BARFADEEND) - BARFADESTART)/ ( BARFADEEND-BARFADESTART);
 	v_parameters.z = 1.0 - (clamp(cameraDistance, ICONFADESTART, ICONFADEEND) - ICONFADESTART)/ ( ICONFADEEND-ICONFADESTART);
 	v_parameters.w = height_timers.w;
@@ -444,7 +457,7 @@ void main()
 	v_centerpos.y += height_timers.x; // Add per-instance height offset
 	
 	//if ((UNITUNIFORMS.composite & 0x00000001u) == 0u ) v_numvertices = 0u; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon)) 
-
+	float relativehealth = UNITUNIFORMS.health / UNITUNIFORMS.maxHealth;
 	v_parameters.x = UNITUNIFORMS.health / UNITUNIFORMS.maxHealth; 
 	if (UNIFORMLOC < 20u) 
 	{
@@ -455,7 +468,10 @@ void main()
 		//v_parameters.x =  UNITUNIFORMS.userDefined[uint(i / 5u)][uint(mod(i,4u))];
 	}
 	if (UNIFORMLOC < 4u) v_parameters.x = UNITUNIFORMS.userDefined[0][bartype_index_ssboloc.z ];
-	if (UNIFORMLOC == 0u) v_parameters.x = UNITUNIFORMS.userDefined[0].x; //building
+	if (UNIFORMLOC == 0u) { //building
+		v_parameters.x = UNITUNIFORMS.userDefined[0].x;
+		if (abs(v_parameters.x - relativehealth )< 0.01) v_numvertices = 0; // dont draw if health = buildProgress
+	}
 	if (UNIFORMLOC == 1u) v_parameters.x = UNITUNIFORMS.userDefined[0].y; //hmm featureresurrect or timeleft?
 	if (UNIFORMLOC == 2u) v_parameters.x = UNITUNIFORMS.userDefined[0].z; // shield/reloadstart/stockpile / buildtimeleft?
 	if (UNIFORMLOC == 4u) v_parameters.x = UNITUNIFORMS.userDefined[1].x; //emp damage and paralyze
@@ -465,7 +481,7 @@ void main()
 		v_parameters.x = 
 			(timeInfo.x - UNITUNIFORMS.userDefined[0].z ) / 
 			(UNITUNIFORMS.userDefined[0].w - UNITUNIFORMS.userDefined[0].z);
-		//v_parameters.x = clamp(v_parameters.x * 1.0, 0.0, 1.0);
+		v_parameters.x = clamp(v_parameters.x * 1.0, 0.0, 1.0);
 	}
 	//v_parameters.x = float(v_bartype_index_ssboloc.z) / (100.0);
 	v_mincolor = mincolor;
@@ -554,6 +570,10 @@ void emitGlyph(vec2 bottomleft, vec2 uvbottomleft, vec2 uvsizes){
 }
 
 #define BARTYPE dataIn[0].v_bartype_index_ssboloc.x
+#define BARALPHA dataIn[0].v_parameters.y
+#define GLYPHALPHA dataIn[0].v_parameters.z
+#define UVOFFSET dataIn[0].v_parameters.w
+#define UNIFORMLOC dataIn[0].v_bartype_index_ssboloc.z
 
 #line 22000 
 void main(){
@@ -568,14 +588,32 @@ void main(){
 
 	uvoffsets = dataIn[0].v_uvoffsets; // if an atlas is used, then use this, otherwise dont
 
-	// lets keep all of the above garbage for now, and just keep adding shit below!
 	float health = dataIn[0].v_parameters.x;
 	if (health < 0.001) return;
-	if (dataIn[0].v_parameters.y < 0.5) return;
+	if (BARALPHA < MINALPHA) return; // Dont draw below 50% transparency
 	//if (health > 0.9999) return;
 	if (BARTYPE == 0u){ // TODO: hide small bars
 	//	if (health > 0.99) return;
 	} 
+	
+	// All the early bail conditions to not draw full/empty bars
+	#ifndef DEBUGSHOW 
+		if (BARTYPE == 0u) { // for percentage bars
+			if (health > 0.99) return;
+		}
+		if (BARTYPE == 2u) { // reload bar?
+			if (health > 0.99) return;
+		}
+		if (BARTYPE == 3u){ // for textured percentage bars bars
+			if (UNIFORMLOC == 0u) {
+				// TODO: hide build bars when health ~ buildprogress
+			};
+			if (health > 0.99) return;
+			if (health < 0.01) return;
+		}
+		if (dataIn[0].v_numvertices == 0u) return;
+	#endif
+	
 	
 	// STOCKPILE BAR:  128*numStockpileQued + numStockpiled + stockpileBuild
 	uint numStockpiled = 0u;
@@ -637,10 +675,10 @@ void main(){
 		truecolor.a = 1.0;
 		botcolor = truecolor;
 		botcolor.rgb *= BOTTOMDARKENFACTOR;
-		float bartextureoffset = 0;//dataIn[0].v_parameters.w;
-		if (BARTYPE == 3u ) bartextureoffset = dataIn[0].v_parameters.w; // if the bar type is a textured bar, we have a lot of work to do
-		if (BARTYPE == 5u ) bartextureoffset = dataIn[0].v_parameters.w; // if the bar type is a textured bar, we have a lot of work to do
-		if (BARTYPE == 2u ) bartextureoffset = dataIn[0].v_parameters.w; // if the bar type is a textured bar, we have a lot of work to do
+		float bartextureoffset = 0;
+		if (BARTYPE == 3u ) bartextureoffset = UVOFFSET; // if the bar type is a textured bar, we have a lot of work to do
+		if (BARTYPE == 5u ) bartextureoffset = UVOFFSET; // if the bar type is a textured bar, we have a lot of work to do
+		if (BARTYPE == 2u ) bartextureoffset = UVOFFSET; // if the bar type is a textured bar, we have a lot of work to do
 		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER,                                  SMALLERCORNER + BARCORNER            ), botcolor,  bartextureoffset); //1
 		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER,                                  BARHEIGHT - BARCORNER - SMALLERCORNER), truecolor, bartextureoffset); //2 
 		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER + SMALLERCORNER,                  BARCORNER                            ), botcolor,  bartextureoffset); //3
@@ -655,12 +693,13 @@ void main(){
 	
 	// try to emit text?
 	
-	if (dataIn[0].v_parameters.z < 0.5) return;
+	if (GLYPHALPHA < MINALPHA) return; // dont display glyphs below 50% transparency
+	
 	if (BARTYPE >= 20u)
 		{// this is emp or reload or buildtime...
 		}
 	else{ // draw a percentage number
-		emitGlyph(vec2(- BARWIDTH - 1 * BARHEIGHT , 0), vec2(ATLASSTEP, dataIn[0].v_parameters.w), vec2(ATLASSTEP, ATLASSTEP));	//glyph icon
+		emitGlyph(vec2(- BARWIDTH - 1 * BARHEIGHT , 0), vec2(ATLASSTEP, UVOFFSET), vec2(ATLASSTEP, ATLASSTEP));	//glyph icon
 		
 		if (BARTYPE == 5u){ // STOCKPILE FONTS THEN EH? xx/yy
 			vec4 numbers = vec4(numStockpiled, numStockpiled, numStockpileQueued, numStockpileQueued);
@@ -726,12 +765,14 @@ void main(void)
 	texcolor = texture(healthbartexture, g_uv.xy);
 	texcolor.a *= g_color.a;
 	fragColor.rgba = mix(g_color, texcolor, g_uv.z);
+	//fragColor.rgba += vec4(0.25);
+	//fragColor.a += 0.5;
 	//fragColor.a = 1.0;
 }
 ]]
 
 local function goodbye(reason)
-  Spring.Echo("DrawPrimitiveAtUnits GL4 widget exiting with reason: "..reason)
+  Spring.Echo("Healthbars GL4 widget exiting with reason: "..reason)
   widgetHandler:RemoveWidget()
 end
 
@@ -775,7 +816,8 @@ local function initGL4()
 			},
 		uniformFloat = {
 			--addRadius = 1,
-			--iconDistance = 1,
+			iconDistance = 27,
+			cameraDistancMult = 1.0,
 		  },
 		},
 		"health bars Shader GL4"
@@ -795,8 +837,11 @@ end
 
 local unitBars = {}
 
-local function addBarForUnit(unitID, unitDefID, barname)
+--'if DBGTRACE then Spring.Echo("%s:%d %s) | ", "caller:"..tostring(debug.getinfo(2).name) %s) end\n'
 
+local function addBarForUnit(unitID, unitDefID, barname)
+	if debugmode then Spring.Debug.TraceEcho(unitBars[unitID]) end 
+	--Spring.Echo("Caller1:", tostring()".name), "caller2:", tostring(debug.getinfo(3).name))
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
 	gf = Spring.GetGameFrame()
 	local bt = barTypeMap[barname]
@@ -807,9 +852,10 @@ local function addBarForUnit(unitID, unitDefID, barname)
 	if healthBarVBO.instanceIDtoIndex[instanceID] then return end -- we already have this bar !
 	unitBars[unitID] = unitBars[unitID] + 1
 	
+	
 	pushElementInstance(
 		healthBarVBO, -- push into this Instance VBO Table
-			{unitDefHeights[unitDefID] + 16,  -- height
+			{unitDefHeights[unitDefID] + additionalheightaboveunit,  -- height
 			gf - 10, -- timer start
 			gf + 300, -- timer end
 			bt.uvoffset, -- unused float
@@ -830,8 +876,9 @@ end
 local uniformcache = {0.0}
 
 local function addBarsForUnit(unitID, unitDefID, unitTeam) -- TODO, actually, we need to check for all of these for stuff entering LOS
-	if Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then 
-		Spring.Echo("Tried to add a bar to a dead or invalid unit", unitID, "at", Spring.GetUnitPosition(unitID))
+	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then 
+		if debugmode then Spring.Echo("Tried to add a bar to a dead or invalid unit", unitID, "at", Spring.GetUnitPosition(unitID)) end 
+		return
 	end
 	unitBars[unitID] = 0
 	addBarForUnit(unitID, unitDefID, "health")
@@ -873,6 +920,7 @@ end
 local function removeBarFromUnit(unitID, barname) -- this will bite me in the ass later, im sure, yes it did, we need to just update them :P
 	local instanceKey = unitID .. "_" .. barname	
 	if healthBarVBO.instanceIDtoIndex[instanceKey] then
+		if debugmode then Spring.Debug.TraceEcho() end 
 		unitBars[unitID] = unitBars[unitID] - 1
 		popElementInstance(healthBarVBO, instanceKey)
 	end
@@ -894,6 +942,7 @@ end
 
 
 local function addBarToFeature(featureID,  barname)
+	if debugmode then Spring.Debug.TraceEcho() end 
 	local featureDefID = Spring.GetFeatureDefID(featureID)
 
 	local bt = barTypeMap[barname]
@@ -904,6 +953,10 @@ local function addBarToFeature(featureID,  barname)
 	
 	--Spring.Echo("addBarToFeature", featureID,  barname, featureDefHeights[featureDefID])
 	if targetVBO.instanceIDtoIndex[featureID] then return end -- already exists, bail
+	if featureBars[featureID] == nil then 
+		--Spring.Echo("this feature did not exist yet?", FeatureDefs[Spring.GetFeatureDefID(featureID)].name, Spring.GetFeaturePosition(featureID))
+		featureBars[featureID] = 0
+	end
 	featureBars[featureID] = featureBars[featureID] + 1
 
 	--Spring.Debug.TableEcho(bt)
@@ -931,9 +984,11 @@ end
 
 local function removeBarFromFeature(featureID, targetVBO)
 	--Spring.Echo("removeBarFromFeature", featureID, targetVBO.myName)
-	featureBars[featureID] = featureBars[featureID] - 1
-	if targetVBO.instanceIDtoIndex[featureID] then
-		popElementInstance(targetVBO, featureID)
+	if featureBars[featureID] then 
+		featureBars[featureID] = featureBars[featureID] - 1 -- TODO ERROR
+		if targetVBO.instanceIDtoIndex[featureID] then
+			popElementInstance(targetVBO, featureID)
+		end
 	end
 end
 
@@ -945,8 +1000,17 @@ end
 
 
 local function init()
+	clearInstanceTable(healthBarVBO)
+	unitEmpWatch = {}
+	unitBeingBuiltWatch = {}
+	unitCaptureWatch = {}
+	unitShieldWatch = {} -- maps unitID to last shield value
+	unitEmpDamagedWatch = {}
+	unitParalyzedWatch = {}
+	unitStockPileWatch = {}
+	unitReloadWatch = {}
 	for i, unitID in ipairs(Spring.GetAllUnits()) do
-		widget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+		addBarsForUnit(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
 	end
 	
 	local gameFrame = Spring.GetGameFrame()
@@ -977,7 +1041,7 @@ local function FeatureReclaimStartedHealthbars (featureID, step) -- step is nega
 end
 
 local function UnitCaptureStartedHealthbars(unitID, step) -- step is negative for reclaim, positive for resurrect
-	--Spring.Echo("FeatureReclaimStartedHealthbars", featureID)
+	--Spring.Echo("UnitCaptureStartedHealthbars", featureID)
     --gl.SetFeatureBufferUniforms(featureID, 0.5, 2) -- update GL
 	local capture = select(4, Spring.GetUnitHealth(unitID))
 	unitCaptureWatch[unitID] = capture
@@ -1007,8 +1071,8 @@ local function UnitParalyzeDamageHealthbars(unitID, unitDefID, damage)
 end
 
 --function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-local function ProjectileCreatedReloadHealthbars(projectileID, ownerID, weaponID)
-	--Spring.Echo("ProjectileCreatedReloadHealthbars(",projectileID, ownerID, weaponID)
+local function ProjectileCreatedReloadHB(projectileID, ownerID, weaponID)
+	--Spring.Echo("W:ProjectileCreatedReloadHB(",projectileID, ownerID, weaponID)
 	local unitDefID = Spring.GetUnitDefID(ownerID)
 	if unitReloadWatch[ownerID] == nil then
 		addBarForUnit(ownerID, unitDefID, "reload")
@@ -1065,14 +1129,14 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal("FeatureReclaimStartedHealthbars",FeatureReclaimStartedHealthbars )
 	widgetHandler:RegisterGlobal("UnitCaptureStartedHealthbars",UnitCaptureStartedHealthbars )
 	widgetHandler:RegisterGlobal("UnitParalyzeDamageHealthbars",UnitParalyzeDamageHealthbars )
-	widgetHandler:RegisterGlobal("ProjectileCreatedReloadHealthbars",ProjectileCreatedReloadHealthbars )
+	widgetHandler:RegisterGlobal("ProjectileCreatedReloadHB",ProjectileCreatedReloadHB )
 end
 
 function widget:ShutDown()
 	widgetHandler:DeregisterGlobal("FeatureReclaimStartedHealthbars" )
 	widgetHandler:DeregisterGlobal("UnitCaptureStartedHealthbars" )
 	widgetHandler:DeregisterGlobal("UnitParalyzeDamageHealthbars" )
-	widgetHandler:DeregisterGlobal("ProjectileCreatedReloadHealthbars" )
+	widgetHandler:DeregisterGlobal("ProjectileCreatedReloadHB" )
 end
 	
 
@@ -1080,6 +1144,7 @@ function widget:PlayerChanged(playerID)
 	spec, fullview = Spring.GetSpectatingState()
 	local prevMyTeamID = myTeamID
 	myTeamID = Spring.GetMyTeamID()
+	if debugmode then Spring.Echo("widget:PlayerChanged",playerID) end 
 	if myTeamID ~= prevMyTeamID then -- TODO only really needed if onlyShowOwnTeam, or if allyteam changed?
 		init()
 	end
@@ -1091,6 +1156,7 @@ function widget:UnitCreated(unitID, unitDefID, teamID)
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, teamID)
+	if debugmode then Spring.Echo("HBGL4:UnitDestroyed",unitID, unitDefID, teamID) end 
 	removeBarsFromUnit(unitID)
 end
 
@@ -1100,7 +1166,7 @@ function widget:UnitFinished(unitID, unitDefID, teamID) -- reset bars on constru
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	addBarsForUnit(unitID, unitDefID, teamID)
+	addBarsForUnit(unitID, Spring.GetUnitDefID(unitID), nil)
 end
 
 function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
@@ -1248,13 +1314,17 @@ function widget:DrawWorld()
 	if healthBarVBO.usedElements > 0 or featureHealthVBO.usedElements > 0 then -- which quite strictly, is impossible anyway
 		local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		gl.DepthTest(true)
+		gl.DepthMask(false)
 		gl.Texture(0,healthbartexture)
 		healthBarShader:Activate()
 		healthBarShader:SetUniform("iconDistance",disticon) 
+		healthBarShader:SetUniform("cameraDistancMult",1.0) 
 		if healthBarVBO.usedElements > 0 then 
 			healthBarVBO.VAO:DrawArrays(GL.POINTS,healthBarVBO.usedElements)
 		end
 		--for i = 1, 10 do
+			
+			healthBarShader:SetUniform("cameraDistancMult",4) 
 			if featureHealthVBO.usedElements > 0 then		
 				featureHealthVBO.VAO:DrawArrays(GL.POINTS,featureHealthVBO.usedElements)
 			end

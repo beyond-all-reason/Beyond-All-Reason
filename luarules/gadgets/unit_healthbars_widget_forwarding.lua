@@ -29,9 +29,9 @@ local function MinEngineVersion(minver)
 end
 
 if MinEngineVersion(670) then 
-	Spring.Echo("Engine version is sufficient")
+	--Spring.Echo("Engine version is sufficient")
 else
-	Spring.Echo("Engine version is too old")
+	--Spring.Echo("Engine version is too old")
 	return
 end
 	
@@ -45,27 +45,27 @@ if gadgetHandler:IsSyncedCode() then
 	local minReloadTime = 5 -- in concerto with healthbars widget
 
 	function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, step)
-			-- VERY IMPORTANT: This also gets called on resurrect!, but its very hard to tell if its a reclaim, but we can make the mother of all assumptions: 
-			-- features die at 100% metal value
-			-- step is negative if 'reclaiming'
-			-- step is large positive if refilling
-			-- step is small positive if rezzing
-			
-			local gf = Spring.GetGameFrame()
-			--Spring.Echo("AllowFeatureBuildStep",gf,builderID, builderTeam, featureID, featureDefID, step)
-			if forwardedFeatureIDs[featureID] == nil or forwardedFeatureIDs[featureID] < gf then 
-				 forwardedFeatureIDs[featureID] = gf
-				 SendToUnsynced("featureReclaimFrame", featureID, step)
-			end
-			return true
+		-- VERY IMPORTANT: This also gets called on resurrect!, but its very hard to tell if its a reclaim, but we can make the mother of all assumptions: 
+		-- features die at 100% metal value
+		-- step is negative if 'reclaiming'
+		-- step is large positive if refilling
+		-- step is small positive if rezzing
+		
+		local gf = Spring.GetGameFrame()
+		--Spring.Echo("AllowFeatureBuildStep",gf,builderID, builderTeam, featureID, featureDefID, step)
+		if forwardedFeatureIDs[featureID] == nil or forwardedFeatureIDs[featureID] < gf then 
+			 forwardedFeatureIDs[featureID] = gf
+			 SendToUnsynced("featureReclaimFrame", featureID, step)
+		end
+		return true
 	end
 	
 	function gadget:AllowUnitCaptureStep(builderID, builderTeam, unitID, unitDefID, part)
 		if forwardedCaptureUnitIDs[unitID] == nil then 
-		forwardedCaptureUnitIDs[unitID] = true
-			 SendToUnsynced("unitCaptureFrame", unitID, part)
+			forwardedCaptureUnitIDs[unitID] = true
+			SendToUnsynced("unitCaptureFrame", unitID, part)
 		end
-			return true
+		return true
 	end
 	
 	function gadget:FeatureDestroyed(featureID, allyTeamID)
@@ -90,7 +90,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			if watchweaponID and longestreloadtime > minReloadTime then 
-				Spring.Echo("Unit with watched reload time:", unitDef.name, longestreloadtime)
+				--Spring.Echo("Unit with watched reload time:", unitDef.name, longestreloadtime)
 				weapondefsreload[udefID] = myreloadTime
 				Script.SetWatchProjectile(watchweaponID, true)
 			end
@@ -153,9 +153,9 @@ else
 	function projetileCreatedReload(cmd, projectileID, ownerID, weaponID)
 		--Spring.Echo("unsynced projetileCreatedReload", projectileID, ownerID, weaponID, fullview, Spring.GetUnitTeam(ownerID))
 		if fullview or Spring.GetUnitTeam(ownerID) == myTeamID then
-			if Script.LuaUI("ProjectileCreatedReloadHealthbars") then
-				Spring.Echo("ProjectileCreatedReloadHealthbars", projectileID, ownerID, weaponID)
-				Script.LuaUI.ProjectileCreatedReloadHealthbars(projectileID, ownerID, weaponID)
+			if Script.LuaUI("ProjectileCreatedReloadHB") then
+				--Spring.Echo("G:ProjectileCreatedReloadHB", projectileID, ownerID, weaponID)
+				Script.LuaUI.ProjectileCreatedReloadHB(projectileID, ownerID, weaponID)
 			end
 		end
 	end
