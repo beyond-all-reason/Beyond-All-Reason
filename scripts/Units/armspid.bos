@@ -683,8 +683,8 @@ Deactivate()
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	turn turret to y-axis heading speed <100.000000>;
-	turn turret to x-axis <0.000000> - pitch speed <75.000000>;
+	turn turret to y-axis heading speed <150.000000>;
+	turn turret to x-axis <0.000000> - pitch speed <100.000000>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
