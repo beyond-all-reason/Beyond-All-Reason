@@ -156,6 +156,8 @@ end
 -- better maintenance of bartypes and watch lists 
 -- feature bars fade out faster
 -- CLOAKED UNITSES
+-- Healthbars color correction
+-- Hide buildbars when at full hp
 
 --/luarules fightertest corak armpw 100 10 2000
 
@@ -335,7 +337,9 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 
 -------------------- configurables -----------------------
-local additionalheightaboveunit = 0 --16?
+local additionalheightaboveunit = 24 --16?
+local featuredistancemultiplier = 4 -- how many times closer features have to be for their bars to show
+
 local debugmode = false
 
 local shaderConfig = { -- these are our shader defines
@@ -361,7 +365,7 @@ shaderConfig.ICONFADESTART = 750
 shaderConfig.ICONFADEEND = 1250
 shaderConfig.ATLASSTEP = 0.0625
 shaderConfig.MINALPHA = 0.2
-shaderConfig.DEBUGSHOW = 1 -- comment this to always show them
+--shaderConfig.DEBUGSHOW = 1 -- comment this to always show all bars
 
 local vsSrc =  [[
 #version 420
@@ -589,27 +593,27 @@ void main(){
 	uvoffsets = dataIn[0].v_uvoffsets; // if an atlas is used, then use this, otherwise dont
 
 	float health = dataIn[0].v_parameters.x;
-	if (health < 0.001) return;
 	if (BARALPHA < MINALPHA) return; // Dont draw below 50% transparency
-	//if (health > 0.9999) return;
+
 	if (BARTYPE == 0u){ // TODO: hide small bars
 	//	if (health > 0.99) return;
 	} 
 	
 	// All the early bail conditions to not draw full/empty bars
 	#ifndef DEBUGSHOW 
+		if (health < 0.001) return;
 		if (BARTYPE == 0u) { // for percentage bars
-			if (health > 0.99) return;
+			if (health > 0.995) return;
 		}
 		if (BARTYPE == 2u) { // reload bar?
-			if (health > 0.99) return;
+			if (health > 0.995) return;
 		}
 		if (BARTYPE == 3u){ // for textured percentage bars bars
 			if (UNIFORMLOC == 0u) {
 				// TODO: hide build bars when health ~ buildprogress
 			};
-			if (health > 0.99) return;
-			if (health < 0.01) return;
+			if (health > 0.995) return;
+			if (health < 0.005) return;
 		}
 		if (dataIn[0].v_numvertices == 0u) return;
 	#endif
@@ -672,6 +676,7 @@ void main(){
 	
 		float healthbasedpos = (2*(BARWIDTH -  BARCORNER) - 2 * SMALLERCORNER) * health  ;
 		if (BARTYPE == 1u) healthbasedpos =  (2*(BARWIDTH -  BARCORNER) - 2 * SMALLERCORNER); // full bar for timer based shit
+		if (UNIFORMLOC > 20u) { truecolor.rgb = truecolor.rgb/max(truecolor.r, truecolor.g); } // color correction for health
 		truecolor.a = 1.0;
 		botcolor = truecolor;
 		botcolor.rgb *= BOTTOMDARKENFACTOR;
@@ -850,6 +855,9 @@ local function addBarForUnit(unitID, unitDefID, barname)
 	local instanceID = unitID .. '_' .. barname
 	--Spring.Echo(instanceID, barname, unitBars[unitID])
 	if healthBarVBO.instanceIDtoIndex[instanceID] then return end -- we already have this bar !
+	if unitBars[unitID] == nil then
+		Spring.Debug.TraceEcho()
+	end
 	unitBars[unitID] = unitBars[unitID] + 1
 	
 	
@@ -1009,6 +1017,7 @@ local function init()
 	unitParalyzedWatch = {}
 	unitStockPileWatch = {}
 	unitReloadWatch = {}
+	unitBars = {}
 	for i, unitID in ipairs(Spring.GetAllUnits()) do
 		addBarsForUnit(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
 	end
@@ -1324,7 +1333,7 @@ function widget:DrawWorld()
 		end
 		--for i = 1, 10 do
 			
-			healthBarShader:SetUniform("cameraDistancMult",4) 
+			healthBarShader:SetUniform("cameraDistancMult",featuredistancemultiplier) 
 			if featureHealthVBO.usedElements > 0 then		
 				featureHealthVBO.VAO:DrawArrays(GL.POINTS,featureHealthVBO.usedElements)
 			end
