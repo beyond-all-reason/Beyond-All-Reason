@@ -8,6 +8,10 @@ local constructorUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYA
 local xtable = {{-128, -64, -128}, {128, 64, 128}, {-128, -64, 0}, {128, 64, 0}}
 local ztable = {{-128, -64, 0}, {-128, -64, 0}, {128, 64, -128}, {-128, -64, 128}}
 
+local function countScavCommanders()
+	return Spring.GetTeamUnitDefCount(GaiaTeamID, UnitDefNames.corcom_scav.id) + Spring.GetTeamUnitDefCount(GaiaTeamID, UnitDefNames.armcom_scav.id)
+end
+
 function SpawnBeacon(n)
 	if n and n > spawningStartFrame then
 		if numOfSpawnBeacons < unitSpawnerModuleConfig.minimumspawnbeacons or numOfSpawnBeacons < 3 then
@@ -113,10 +117,12 @@ function SpawnBeacon(n)
 
 					if scavengerGamePhase ~= "initial" then
 						if constructorControllerModuleConfig.useconstructors then
-							local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-							local unitCountBuffer = scavMaxUnits*0.5
-							if not (unitCount + unitCountBuffer >= scavMaxUnits) then 
-								for i = 1,4 do
+							-- local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
+							-- local unitCountBuffer = scavMaxUnits*0.5
+							-- if not (unitCount + unitCountBuffer >= scavMaxUnits) then 
+							local neededcommanders = constructorControllerModuleConfig.minimumconstructors - countScavCommanders()
+							if neededcommanders > 0 then
+								for i = 1,neededcommanders do
 									local constructor = constructorUnitList.Constructors[math.random(#constructorUnitList.Constructors)]
 									local posx = posx+math.random(-128,128)
 									local posz = posz+math.random(-128,128)
