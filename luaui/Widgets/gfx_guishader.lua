@@ -15,25 +15,17 @@ function widget:GetInfo()
 	}
 end
 
---------------------------------------------------------------------------------
--------------------------------------------------------------------
 
 local defaultBlurIntensity = 0.0035
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 --hardware capability
-
 local canRTT = (gl.RenderToTexture ~= nil)
 local canCTT = (gl.CopyToTexture ~= nil)
 local canShader = (gl.CreateShader ~= nil)
 local canFBO = (gl.DeleteTextureFBO ~= nil)
-
 local NON_POWER_OF_TWO = gl.HasExtension("GL_ARB_texture_non_power_of_two")
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 local renderDlists = {}
 local deleteDlistQueue = {}
 local blurShader
@@ -57,6 +49,7 @@ local oldvs = 0
 local vsx, vsy = widgetHandler:GetViewSizes()
 local ivsx, ivsy = vsx, vsy
 local intensityMult = (vsx + vsy) / 1600
+
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx, vsy = viewSizeX, viewSizeY
 	ivsx, ivsy = vsx, vsy
@@ -97,16 +90,8 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	updateStencilTextureScreen = true
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 local function DrawStencilTexture(world, fullscreen)
-	local usedStencilTex
-	if world then
-		usedStencilTex = stenciltex
-	else
-		usedStencilTex = stenciltexScreen
-	end
+	local usedStencilTex = world and stenciltex or stenciltexScreen
 
 	if next(guishaderRects) or next(guishaderScreenRects) or next(guishaderDlists) then
 
@@ -166,9 +151,6 @@ local function DrawStencilTexture(world, fullscreen)
 	end
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 local function CheckHardware()
 	if not canCTT then
 		Spring.Echo("guishader api: your hardware is missing the necessary CopyToTexture feature")
@@ -211,7 +193,6 @@ local function CheckHardware()
 end
 
 function CreateShaders()
-
 	if blurShader then
 		gl.DeleteShader(blurShader or 0)
 	end
@@ -292,7 +273,7 @@ function CreateShaders()
 end
 
 function DeleteShaders()
-	if (gl.DeleteTextureFBO) then
+	if gl.DeleteTextureFBO then
 		gl.DeleteTextureFBO(blurtex)
 		gl.DeleteTextureFBO(blurtex2)
 		gl.DeleteTextureFBO(stenciltex)
@@ -300,7 +281,7 @@ function DeleteShaders()
 	end
 	gl.DeleteTexture(screencopy or 0)
 
-	if (gl.DeleteShader) then
+	if gl.DeleteShader then
 		gl.DeleteShader(blurShader or 0)
 	end
 	blurShader = nil
@@ -312,10 +293,6 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('GuishaderInsertRect')
 	widgetHandler:DeregisterGlobal('GuishaderRemoveRect')
 end
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function widget:DrawScreenEffects()
 	if Spring.IsGUIHidden() then
@@ -387,7 +364,6 @@ function widget:DrawScreenEffects()
 		gl.Texture(blurtex)
 		gl.TexRect(0, vsy, vsx, 0)
 		gl.Texture(false)
-
 		gl.Blending(true)
 	end
 end
@@ -603,7 +579,7 @@ function widget:Initialize()
 end
 
 function widget:GetConfigData(data)
-	return {blurIntensity = blurIntensity}
+	return { blurIntensity = blurIntensity }
 end
 
 function widget:SetConfigData(data)

@@ -330,7 +330,7 @@ function gadget:GameFrame(n)
 		end
 		local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
 		local scavUnitsCount = #scavUnits
-		if scavUnitsCount < (unitSpawnerModuleConfig.minimumspawnbeacons*4) and n > scavconfig.gracePeriod*3 then 
+		if (scavUnitsCount < (unitSpawnerModuleConfig.minimumspawnbeacons*4) or numOfSpawnBeacons == 0) and n > scavconfig.gracePeriod*3 then 
 			killedscavengers = killedscavengers + 1000
 			if BossWaveStarted and (BossWaveTimeLeft and BossWaveTimeLeft > 20) then
 				BossWaveTimeLeft = 20
@@ -708,11 +708,11 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 			-- CMD.CLOAK = 37382
 			Spring.GiveOrderToUnit(unitID,37382,{1},0)
 			-- Fire At Will
-			if scavengerGamePhase == "initial" then
-				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{1},0)
-			else
+			-- if scavengerGamePhase == "initial" then
+			-- 	Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{1},0)
+			-- else
 				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},0)
-			end
+			-- end
 			scavStructure[unitID] = UnitDefs[unitDefID].isBuilding
 			if staticUnitList.NoSelfDestructID[unitDefID] then
 				scavStructure[unitID] = true
@@ -878,11 +878,11 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		-- CMD.CLOAK = 37382
 		Spring.GiveOrderToUnit(unitID,37382,{1},0)
 		-- Fire At Will
-		if scavengerGamePhase == "initial" then
-			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{1},0)
-		else
+		-- if scavengerGamePhase == "initial" then
+		-- 	Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{1},0)
+		-- else
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},0)
-		end
+		-- end
 		scavStructure[unitID] = UnitDefs[unitDefID].isBuilding
 		if staticUnitList.NoSelfDestructID[unitDefID] then
 			scavStructure[unitID] = true
@@ -991,20 +991,20 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		Spring.GiveOrderToUnit(unitID,37382,{1},0)
 		-- Fire At Will
 		if scavConstructor[unitID] then
-			if scavengerGamePhase == "initial" then
-				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{1},0)
-			else
+			-- if scavengerGamePhase == "initial" then
+			-- 	Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{1},0)
+			-- else
 				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},0)
-			end
+			-- end
 			if scavteamhasplayers == false then
 				Spring.GiveOrderToUnit(unitID,CMD.MOVE_STATE,{0},0)
 			end
 		else
-			if scavengerGamePhase == "initial" then
-				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{1},0)
-			else
+			-- if scavengerGamePhase == "initial" then
+			-- 	Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{1},0)
+			-- else
 				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},0)
-			end
+			-- end
 			if scavteamhasplayers == false then
 				Spring.GiveOrderToUnit(unitID,CMD.MOVE_STATE,{2},0)
 			end

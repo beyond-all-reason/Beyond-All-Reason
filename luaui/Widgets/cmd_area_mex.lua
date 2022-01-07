@@ -13,7 +13,7 @@ end
 
 local moveIsAreamex = true		-- auto make move cmd an area mex cmd
 
-local mexPlacementRadius = 750	-- (not actual ingame distance)
+local mexPlacementRadius = 1500	-- (not actual ingame distance)
 local mexPlacementDragRadius = 20000	-- larger size so you can drag a move line over/near mex spots and it will auto queue mex there more easily
 
 local CMD_AREA_MEX = 10100
@@ -45,7 +45,10 @@ local activeCmd = select(4, spGetActiveCommand())
 local buildmenuMexSelected = false
 local metalmap = false
 
+local activeUnitShape
+
 local mexBuilder = {}
+local Game_extractorRadius = Game.extractorRadius
 
 local mexIds = {}
 local unitWaterDepth = {}
@@ -129,7 +132,7 @@ end
 
 local function NoAlliedMex(x, z, batchextracts)
 	-- Is there any better and allied mex at this location (returns false if there is)
-	local mexesatspot = Spring.GetUnitsInCylinder(x, z, Game.extractorRadius)
+	local mexesatspot = Spring.GetUnitsInCylinder(x, z, Game_extractorRadius)
 	for i = 1, #mexesatspot do
 		local uid = mexesatspot[i]
 		if mexIds[spGetUnitDefID(uid)] and Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(uid)) and mexIds[spGetUnitDefID(uid)] >= batchextracts then
@@ -168,9 +171,176 @@ local function IsSpotOccupied(spot)
 	return occupied
 end
 
-function widget:Update()
+local selectedUnits = spGetSelectedUnits()
+local selUnitCounts = spGetSelectedUnitsCounts()
+function widget:SelectionChanged(sel)
+	selectedUnits = sel
+	selUnitCounts = spGetSelectedUnitsCounts()
+end
+
+local function doAreaMexCommand(params, options, isGuard, justDraw)
+	local cx, cy, cz, cr = params[1], params[2], params[3], params[4]
+	if not cr or cr < Game_extractorRadius then cr = Game_extractorRadius end
+	local units = selectedUnits
+
+	-- Get best extract rates, save best builderID
+	local maxbatchextracts = 0
+	local lastprocessedbestbuilder
+	for i = 1, #units do
+		local id = units[i]
+		if mexBuilder[id] then
+			if mexIds[(mexBuilder[id].building[1]) * -1] > maxbatchextracts then
+				maxbatchextracts = mexIds[(mexBuilder[id].building[1]) * -1]
+				lastprocessedbestbuilder = id
+			end
+		end
+	end
+
+	-- Apply guard orders to "inferior" builders and adds superior builders to current batch builders
+	local batchSize = 0
+	local batchMexBuilder = {}
+	local ux, uz, us, aveX, aveZ = 0, 0, 0, 0, 0
+	for i = 1, #units do
+		local id = units[i]
+		if mexBuilder[id] then
+			if mexIds[(mexBuilder[id].building[1]) * -1] == maxbatchextracts then
+				local x, _, z = spGetUnitPosition(id)
+				ux = ux + x
+				uz = uz + z
+				us = us + 1
+				lastprocessedbestbuilder = id
+				batchSize = batchSize + 1
+				batchMexBuilder[batchSize] = id
+			else
+				if not justDraw then
+					if not options.shift then
+						spGiveOrderToUnit(id, CMD_STOP, {}, CMD_OPT_RIGHT)
+					end
+					spGiveOrderToUnit(id, CMD_GUARD, { lastprocessedbestbuilder }, { "shift" })
+				end
+			end
+		end
+	end
+	if us == 0 then
+		return
+	end
+	aveX, aveZ = ux/us, uz/us
+
+	--
+	local commands = {}
+	local commandsCount = 0
+	local mexes = isGuard and { isGuard } or WG.metalSpots -- only need the mex we guard if that is the case
+	for k = 1, #mexes do
+		local mex = mexes[k]
+		if not (mex.x % 16 == 8) then
+			mexes[k].x = mexes[k].x + 8 - (mex.x % 16)
+		end
+		if not (mex.z % 16 == 8) then
+			mexes[k].z = mexes[k].z + 8 - (mex.z % 16)
+		end
+		mex.x = mexes[k].x
+		mex.z = mexes[k].z
+		if Distance(cx, cz, mex.x, mex.z) < cr * cr then
+			-- circle area, slower
+			if NoAlliedMex(mex.x, mex.z, maxbatchextracts) then
+				commandsCount = commandsCount + 1
+				commands[commandsCount] = { x = mex.x, z = mex.z, d = Distance(aveX, aveZ, mex.x, mex.z) }
+			end
+		end
+	end
+
+	local orderedCommands = {}
+	while commandsCount > 0 do
+		tasort(commands, function(a, b)
+			return a.d < b.d
+		end)
+		orderedCommands[#orderedCommands + 1] = commands[1]
+		aveX = commands[1].x
+		aveZ = commands[1].z
+		taremove(commands, 1)
+		for k, com in pairs(commands) do
+			com.d = Distance(aveX, aveZ, com.x, com.z)
+		end
+		commandsCount = commandsCount - 1
+	end
+
+	if not justDraw then
+		for ct = 1, #batchMexBuilder do
+			local id = batchMexBuilder[ct]
+			if not options.shift then
+				spGiveOrderToUnit(id, CMD_STOP, {}, CMD_OPT_RIGHT)
+			end
+		end
+	end
+
+	local queuedMexes = {}
+	local ctrl = options.ctrl or options.meta
+	for ct = 1, #batchMexBuilder do
+		local id = batchMexBuilder[ct]
+
+		for i = 1, #orderedCommands do
+			local command = orderedCommands[i]
+
+			local Y = spGetGroundHeight(command.x, command.z)
+			if ((i % batchSize == ct % batchSize or i % #orderedCommands == ct % #orderedCommands) and ctrl) or not ctrl then
+				for j = 1, mexBuilder[id].buildings do
+					local def = unitWaterDepth[-mexBuilder[id].building[j]]
+					local buildable = 0
+					local newx, newz = command.x, command.z
+					-- If location unavailable, check surroundings (extractorRadius - 25). Should consider replacing 25 with avg mex x,z sizes
+					--local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx - 2 * Game_extractorRadius, newz - 2 * Game_extractorRadius, -mexBuilder[id].building[j], "s")
+					local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx, newz, -mexBuilder[id].building[j], "s")
+					if bestPos then
+						newx, newz = bestPos[1], bestPos[3]
+						buildable = true
+					end
+					if buildable ~= 0 then
+						if not justDraw then
+							spGiveOrderToUnit(id, mexBuilder[id].building[j], { newx, spGetGroundHeight(newx, newz), newz }, { "shift" })
+							lastInsertedOrder = {command.x, command.z}
+						end
+						queuedMexes[#queuedMexes+1] = {id, math.abs(mexBuilder[id].building[j]), newx, spGetGroundHeight(newx, newz), newz }
+						break
+					elseif def[2] and -def[2] < Y and def[1] and -def[1] > Y then
+						local hsize = unitXsize[-mexBuilder[id].building[j]] * 4
+						local blockers = {}
+						for x = command.x - hsize, command.x + hsize, 8 do
+							for z = command.z - hsize, command.z + hsize, 8 do
+								local _, blocker = spGetGroundBlocked(x, z, x + 7, z + 7)
+								if blocker and not blockers[blocker] then
+									spGiveOrderToUnit(id, CMD.RECLAIM, { blocker }, { "shift" })
+									blockers[blocker] = true
+								end
+							end
+						end
+						if not justDraw then
+							spGiveOrderToUnit(id, CMD.INSERT, { -1, mexBuilder[id].building[j], CMD.OPT_INTERNAL, command.x, spGetGroundHeight(command.x, command.z), command.z }, { shift = true, internal = true, alt = true })
+							lastInsertedOrder = {command.x, command.z}
+						end
+						queuedMexes[#queuedMexes+1] = {id, math.abs(mexBuilder[id].building[j]), command.x, spGetGroundHeight(command.x, command.z), command.z }
+						break
+					end
+				end
+			end
+		end
+	end
+	if isGuard and #queuedMexes == 0 then
+		return		-- no mex buildorder made so let move go through!
+	end
+	return queuedMexes
+end
+
+local sec = 0
+function widget:Update(dt)
 	if chobbyInterface then
 		return
+	end
+
+	local updateDrawUnitShape = activeUnitShape ~= nil
+	sec = sec + dt
+	if sec > 0.05 then
+		sec = 0
+		updateDrawUnitShape = true
 	end
 
 	-- swap build command to area mex when mex is selected
@@ -185,6 +355,7 @@ function widget:Update()
 		end
 	end
 
+	local drawUnitShape = false
 	local _, cmd, _ = spGetActiveCommand()
 	if cmd == CMD_AREA_MEX then
 		if spGetMapDrawMode() ~= 'metal' then
@@ -205,48 +376,83 @@ function widget:Update()
 		end
 
 		-- mex-upgrade mouse cursor
-		local mx, my = Spring.GetMouseState()
-		local type, params = Spring.TraceScreenRay(mx, my)
-		local isT1Mex = (type == 'unit' and mexIds[spGetUnitDefID(params)] and mexIds[spGetUnitDefID(params)] < 0.002)
-		local closestMex
-		if isT1Mex or type == 'ground' then
-			local proceed = false
-			if type == 'ground' then
-				closestMex = GetClosestMetalSpot(params[1], params[3])
-				if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
-					proceed = true
-				end
+		if not WG.customformations_linelength or WG.customformations_linelength < 10 then	-- dragging unit line
+			local mx, my = Spring.GetMouseState()
+			local type, params = Spring.TraceScreenRay(mx, my)
+			local isT1Mex = (type == 'unit' and mexIds[spGetUnitDefID(params)] and mexIds[spGetUnitDefID(params)] < 0.002)
+			local closestMex, unitID
+			if type == 'unit' then
+				unitID = params
+				params = {spGetUnitPosition(unitID)}
 			end
-			if isT1Mex or proceed then
-				proceed = false
-				local selUnitCounts = spGetSelectedUnitsCounts()
-				local hasT1builder, hasT2builder = false, false
-				-- search for builders
-				for k,v in pairs(selUnitCounts) do
-					if k ~= 'n' then
-						if mexBuilderDef[k] then
-							hasT1builder = true
-						end
-						if t2mexBuilder[k] then
-							hasT2builder = true
-							break
-						end
-					end
-				end
-				if isT1Mex then
-					if hasT2builder then
-						proceed = true
-					end
-				else
-					if (hasT1builder or hasT2builder) and not IsSpotOccupied(closestMex) then
+			if isT1Mex or type == 'ground' then
+				local proceed = false
+				if type == 'ground' then
+					closestMex = GetClosestMetalSpot(params[1], params[3])
+					if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
 						proceed = true
 					end
 				end
-				if proceed then
-					Spring.SetMouseCursor('upgmex')
+				if isT1Mex or proceed then
+					proceed = false
+					local hasT1builder, hasT2builder = false, false
+					-- search for builders
+					for k,v in pairs(selUnitCounts) do
+						if k ~= 'n' then
+							if mexBuilderDef[k] then
+								hasT1builder = true
+							end
+							if t2mexBuilder[k] then
+								hasT2builder = true
+								break
+							end
+						end
+					end
+					if isT1Mex then
+						if hasT2builder then
+							proceed = true
+						end
+					else
+						if (hasT1builder or hasT2builder) and not IsSpotOccupied(closestMex) then
+							proceed = true
+						end
+					end
+					if proceed then
+						Spring.SetMouseCursor('upgmex')
+						if updateDrawUnitShape then
+							local queuedMexes = doAreaMexCommand({params[1], params[2], params[3]}, {}, false, true)
+							if #queuedMexes > 0 then
+								drawUnitShape = { queuedMexes[1][2], queuedMexes[1][3], queuedMexes[1][4], queuedMexes[1][5] }
+							end
+						end
+					end
 				end
 			end
 		end
+	end
+
+	if updateDrawUnitShape and WG.DrawUnitShapeGL4 then
+		if drawUnitShape then
+			if not activeUnitShape then
+				activeUnitShape = {
+					drawUnitShape[1],
+					drawUnitShape[2],
+					drawUnitShape[3],
+					drawUnitShape[4],
+					WG.DrawUnitShapeGL4(drawUnitShape[1], drawUnitShape[2], drawUnitShape[3], drawUnitShape[4], 0, 0.66, spGetMyTeamID(), 0.15, 0.3)
+				}
+			end
+		elseif activeUnitShape then
+			WG.StopDrawUnitShapeGL4(activeUnitShape[5])
+			activeUnitShape = nil
+		end
+	end
+end
+
+function widget:Shutdown()
+	if WG.DrawUnitShapeGL4 and activeUnitShape then
+		WG.StopDrawUnitShapeGL4(activeUnitShape[5])
+		activeUnitShape = nil
 	end
 end
 
@@ -264,195 +470,42 @@ function widget:CommandNotify(id, params, options)
 		end
 	end
 
-	-- transform move (for mex builders) into area-mex command
-	local units = spGetSelectedUnits()
-	if (isGuard or (isMove and moveIsAreamex)) and mexBuilder[units[1]] then
-		--local proceed = true --#units == 1 or isGuard
-		--local selUnitCounts = spGetSelectedUnitsCounts()
-		--for k,v in pairs(selUnitCounts) do
-		--	if k ~= 'n' and not mexBuilderDef[k] then
-		--		proceed = false
-		--		break
-		--	end
-		--end
-		-- transform move into area-mex command
-		-- NOTE: not sure this is wanted for commanders ...when enemy is near
-		--if proceed then
-			if isGuard then
-				local ux, uy, uz = spGetUnitPosition(params[1])
-				isGuard = { x = ux, y = uy, z = uz }
-				params[1], params[2], params[3] = ux, uy, uz
-				id = CMD_AREA_MEX
-				params[4] = 25
-				lastInsertedOrder = nil
+	-- transform move into area-mex command
+	local moveReturn = false
+	if (isGuard or (isMove and moveIsAreamex)) and mexBuilder[selectedUnits[1]] then
+		if isGuard then
+			local ux, uy, uz = spGetUnitPosition(params[1])
+			isGuard = { x = ux, y = uy, z = uz }
+			params[1], params[2], params[3] = ux, uy, uz
+			id = CMD_AREA_MEX
+			params[4] = 25
+			lastInsertedOrder = nil
+		else
+			local closestMex = GetClosestMetalSpot(params[1], params[3])
+			local spotRadius = mexPlacementRadius
+			if #selectedUnits == 1 and #Spring.GetCommandQueue(selectedUnits[1], 8) > 1 then
+				if not lastInsertedOrder or (closestMex.x ~= lastInsertedOrder[1] and closestMex.z ~= lastInsertedOrder[2]) then
+					spotRadius = mexPlacementDragRadius		-- make move drag near mex spots be less strict
+				elseif lastInsertedOrder then
+					spotRadius = 0
+				end
 			else
-				local closestMex = GetClosestMetalSpot(params[1], params[3])
-				local spotRadius = mexPlacementRadius
-				if #units == 1 and #Spring.GetCommandQueue(units[1], 8) > 1 then
-					if (not lastInsertedOrder or (closestMex.x ~= lastInsertedOrder[1] and closestMex.z ~= lastInsertedOrder[2])) then
-						spotRadius = mexPlacementDragRadius		-- make move drag near mex spots be less strict
-					elseif lastInsertedOrder then
-						spotRadius = 0
-					end
-				else
-					lastInsertedOrder = nil
-				end
-				if spotRadius > 0 and closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < spotRadius then
-					id = CMD_AREA_MEX
-					params[4] = 25
-				else
-					return
-				end
+				lastInsertedOrder = nil
 			end
-		--end
+			if spotRadius > 0 and closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < spotRadius then
+				id = CMD_AREA_MEX
+				params[4] = 120		-- increase this too if you want to increase mexPlacementDragRadius
+				moveReturn = true
+			else
+				return false
+			end
+		end
 	end
 
 	if id == CMD_AREA_MEX then
-		local mexes = isGuard and { isGuard } or WG.metalSpots -- only need the mex we guard if that is the case
-		local cx, cy, cz, cr = params[1], params[2], params[3], params[4]
-		if not cr or cr < Game.extractorRadius then
-			cr = Game.extractorRadius
-		end
-
-		local commands = {}
-		local commandsCount = 0
-		local orderedCommands = {}
-		local ux, uz, us, aveX, aveZ = 0, 0, 0, 0, 0
-		local maxbatchextracts = 0
-		local batchMexBuilder = {}
-		local lastprocessedbestbuilder = nil
-
-		for i = 1, #units do
-			local id = units[i]
-			if mexBuilder[id] then
-				-- Get best extract rates, save best builderID
-				if mexIds[(mexBuilder[id].building[1]) * -1] > maxbatchextracts then
-					maxbatchextracts = mexIds[(mexBuilder[id].building[1]) * -1]
-					lastprocessedbestbuilder = id
-				end
-			end
-		end
-
-		local batchSize = 0
-		local shift = options.shift
-		for i = 1, #units do
-			-- Check position, apply guard orders to "inferiors" builders and adds superior builders to current batch builders
-			local id = units[i]
-			if mexBuilder[id] then
-				if mexIds[(mexBuilder[id].building[1]) * -1] == maxbatchextracts then
-					local x, _, z = spGetUnitPosition(id)
-					ux = ux + x
-					uz = uz + z
-					us = us + 1
-					lastprocessedbestbuilder = id
-					batchSize = batchSize + 1
-					batchMexBuilder[batchSize] = id
-				else
-					if not shift then
-						spGiveOrderToUnit(id, CMD_STOP, {}, CMD_OPT_RIGHT)
-					end
-					spGiveOrderToUnit(id, CMD_GUARD, { lastprocessedbestbuilder }, { "shift" })
-				end
-			end
-		end
-
-		if us == 0 then
-			return
-		end
-		aveX = ux / us
-		aveZ = uz / us
-
-		for k = 1, #mexes do
-			local mex = mexes[k]
-			if not (mex.x % 16 == 8) then
-				mexes[k].x = mexes[k].x + 8 - (mex.x % 16)
-			end
-			if not (mex.z % 16 == 8) then
-				mexes[k].z = mexes[k].z + 8 - (mex.z % 16)
-			end
-			mex.x = mexes[k].x
-			mex.z = mexes[k].z
-			if Distance(cx, cz, mex.x, mex.z) < cr * cr then
-				-- circle area, slower
-				if NoAlliedMex(mex.x, mex.z, maxbatchextracts) == true then
-					commandsCount = commandsCount + 1
-					commands[commandsCount] = { x = mex.x, z = mex.z, d = Distance(aveX, aveZ, mex.x, mex.z) }
-				end
-			end
-		end
-
-		local noCommands = commandsCount
-		while noCommands > 0 do
-			tasort(commands, function(a, b)
-				return a.d < b.d
-			end)
-			orderedCommands[#orderedCommands + 1] = commands[1]
-			aveX = commands[1].x
-			aveZ = commands[1].z
-			taremove(commands, 1)
-			for k, com in pairs(commands) do
-				com.d = Distance(aveX, aveZ, com.x, com.z)
-			end
-			noCommands = noCommands - 1
-		end
-
-		local shift = options.shift
-		local ctrl = options.ctrl or options.meta
-		for ct = 1, #batchMexBuilder do
-			local id = batchMexBuilder[ct]
-			if not shift then
-				spGiveOrderToUnit(id, CMD_STOP, {}, CMD_OPT_RIGHT)
-			end
-		end
-
-		local mexQueued = false
-		for ct = 1, #batchMexBuilder do
-			local id = batchMexBuilder[ct]
-
-			for i = 1, #orderedCommands do
-				local command = orderedCommands[i]
-
-				local Y = spGetGroundHeight(command.x, command.z)
-				if ((i % batchSize == ct % batchSize or i % #orderedCommands == ct % #orderedCommands) and ctrl) or not ctrl then
-					for j = 1, mexBuilder[id].buildings do
-						local def = unitWaterDepth[-mexBuilder[id].building[j]]
-						local buildable = 0
-						local newx, newz = command.x, command.z
-						-- If location unavailable, check surroundings (extractorRadius - 25). Should consider replacing 25 with avg mex x,z sizes
-						--local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx - 2 * Game.extractorRadius, newz - 2 * Game.extractorRadius, -mexBuilder[id].building[j], "s")
-						local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx, newz, -mexBuilder[id].building[j], "s")
-						if bestPos then
-							newx, newz = bestPos[1], bestPos[3]
-							buildable = true
-						end
-						if buildable ~= 0 then
-							mexQueued = true
-							spGiveOrderToUnit(id, mexBuilder[id].building[j], { newx, spGetGroundHeight(newx, newz), newz }, { "shift" })
-							lastInsertedOrder = {command.x, command.z}
-							break
-						elseif def[2] and -def[2] < Y and def[1] and -def[1] > Y then
-							local hsize = unitXsize[-mexBuilder[id].building[j]] * 4
-							local blockers = {}
-							for x = command.x - hsize, command.x + hsize, 8 do
-								for z = command.z - hsize, command.z + hsize, 8 do
-									local _, blocker = spGetGroundBlocked(x, z, x + 7, z + 7)
-									if blocker and not blockers[blocker] then
-										spGiveOrderToUnit(id, CMD.RECLAIM, { blocker }, { "shift" })
-										blockers[blocker] = true
-									end
-								end
-							end
-							mexQueued = true
-							spGiveOrderToUnit(id, CMD.INSERT, { -1, mexBuilder[id].building[j], CMD.OPT_INTERNAL, command.x, spGetGroundHeight(command.x, command.z), command.z }, { shift = true, internal = true, alt = true })
-							lastInsertedOrder = {command.x, command.z}
-							break
-						end
-					end
-				end
-			end
-		end
-		if (isMove or isGuard) and not mexQueued then
-			return		-- no mex buildorder made so let move go through!
+		local queuedMexes = doAreaMexCommand(params, options, isGuard)
+		if moveReturn and not queuedMexes[1] then	-- used when area_mex isnt queuing a mex, to let the move cmd still pass through
+			return false
 		end
 		return true
 	end
@@ -460,9 +513,9 @@ end
 
 function widget:CommandsChanged()
 	if not metalmap then
-		local units = spGetSelectedUnits()
-		local unitCount = #units
+		local unitCount = #selectedUnits
 		if unitCount > 0 then
+			local units = selectedUnits
 			local customCommands = widgetHandler.customCommands
 			for i = 1, unitCount do
 				if mexBuilder[units[i]] then

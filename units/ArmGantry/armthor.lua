@@ -6,6 +6,7 @@ return {
 		buildcostmetal = 9000,
 		buildpic = "ARMTHOR.DDS",
 		buildtime = 300000,
+		canManualFire = true,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE CANBEUW",
 		collisionvolumeoffsets = "0 0 0",

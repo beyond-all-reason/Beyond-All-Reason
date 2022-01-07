@@ -30,7 +30,7 @@ function SpawnAssistDrones(unitID, unitDefID, unitTeam)
 	local posx, posy, posz = Spring.GetUnitPosition(unitID)
     local spawnpadunit = spawnpads[unitDefID]
     local spawnpadID = Spring.CreateUnit(spawnpadunit, posx, posy, posz, 0, unitTeam)
-    Spring.SpawnCEG("scav-spawnexplo", posx, posy+10, posz,0,0,0)
+    --Spring.SpawnCEG("scav-spawnexplo", posx, posy+10, posz,0,0,0)
     Spring.GiveOrderToUnit(spawnpadID, CMD.GUARD, unitID, {})
     Spring.SetUnitBlocking(spawnpadID, false)
 end
@@ -43,7 +43,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadget:GameFrame(n)
-    if n == 60 then
+    if n == 90 then
         local units = Spring.GetAllUnits()
         for i = 1,#units do
             if commandersList[units[i]] then

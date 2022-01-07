@@ -20,6 +20,10 @@ local flankingShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local glTexture             = gl.Texture
 
+
+local spec, fullview = Spring.GetSpectatingState()
+local allyTeamID = Spring.GetMyAllyTeamID()
+ 
 local function AddPrimitiveAtUnit(unitID, gameframe) -- since the icon fades, gameframe specifies last update
 	if Spring.ValidUnitID(unitID) ~= true or  Spring.GetUnitIsDead(unitID) == true then return end
 	local gameframe = gameframe or Spring.GetGameFrame()
@@ -66,7 +70,10 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:UnitCreated(unitID)
-	if not Spring.IsUnitAllied(unitID) then return end
+	--Spring.Echo(spec, fullview, Spring.IsUnitAllied(unitID))
+	if not (spec and fullview) then 
+		if not Spring.IsUnitAllied(unitID) then return end
+	end
 	local unitDefID = Spring.GetUnitDefID(unitID)
 	if UnitDefs[unitDefID].speed and UnitDefs[unitDefID].speed > 0 then 
 		AddPrimitiveAtUnit(unitID, -300)
@@ -83,6 +90,13 @@ function widget:UnitDestroyed(unitID)
 	RemovePrimitive(unitID)
 end
 
+local function init()
+	local units = Spring.GetAllUnits()
+	for _, unitID in ipairs(units) do
+		widget:UnitCreated(unitID)
+	end
+end
+
 function widget:Initialize()
 	local DPatUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
@@ -97,9 +111,19 @@ function widget:Initialize()
 	shaderConfig.MAX_VERTICES = 4
 	shaderConfig.USE_CORNERRECT = nil
 	flankingVBO, flankingShader = InitDrawPrimitiveAtUnit(shaderConfig, "FlankingIcons")
+	
+	spec, fullview = Spring.GetSpectatingState()
+	init()
+end
 
-	local units = Spring.GetAllUnits()
-	for _, unitID in ipairs(units) do
-		widget:UnitCreated(unitID)
+
+function widget:PlayerChanged()
+	local prevFullview = fullview
+	local myPrevAllyTeamID = allyTeamID
+	spec, fullview = Spring.GetSpectatingState()
+	allyTeamID = Spring.GetMyAllyTeamID()
+	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
+		clearInstanceTable(flankingVBO)
+		init()
 	end
 end

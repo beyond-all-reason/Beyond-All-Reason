@@ -250,6 +250,7 @@ if gadgetHandler:IsSyncedCode() then
 		return permutedSpawns
 	end
 
+	local startUnitList = {}
 	local function spawnStartUnit(teamID, x, z)
 		local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 		local luaAI = Spring.GetTeamLuaAI (teamID)
@@ -279,6 +280,15 @@ if gadgetHandler:IsSyncedCode() then
 		if not scenarioSpawnsUnits then
 			if not (luaAI and (luaAI == "ScavengersAI" or luaAI == "ChickensAI")) then
 				local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
+				if unitID then
+					startUnitList[#startUnitList+1] = {unitID = unitID, teamID = teamID, x = x, y = y, z = z}
+					Spring.MoveCtrl.Enable(unitID)
+					Spring.SetUnitNoDraw(unitID, true)
+					local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(unitID)
+					local paralyzemult = 3*0.025 -- 3 seconds of paralyze
+					local paralyzedamage = (umaxhealth-uparalyze)+(umaxhealth*paralyzemult)
+					Spring.SetUnitHealth(unitID, {paralyze = paralyzedamage})
+				end
 			end
 		end
 
@@ -361,8 +371,28 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:GameFrame()
-		gadgetHandler:RemoveGadget(self)
+	function gadget:GameFrame(n)
+		if not scenarioSpawnsUnits then
+			if n == 60 then
+				for i = 1,#startUnitList do
+					local x = startUnitList[i].x
+					local y = startUnitList[i].y
+					local z = startUnitList[i].z
+					Spring.SpawnCEG("commander-spawn",x,y,z,0,0,0)
+				end
+			end
+			if n == 90 then
+				for i = 1,#startUnitList do
+					local unitID = startUnitList[i].unitID
+					Spring.MoveCtrl.Disable(unitID)
+					Spring.SetUnitNoDraw(unitID, false)
+					Spring.SetUnitHealth(unitID, {paralyze = 0})
+				end
+			end
+		end
+		if n == 91 then
+			gadgetHandler:RemoveGadget(self)
+		end
 	end
 
 
@@ -377,13 +407,18 @@ else
 			Spring.SendMessageToPlayer(playerID, message)
 		end
 	end
-
+	
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("PositionTooClose", positionTooClose)
 	end
 
-	function gadget:GameFrame()
-		gadgetHandler:RemoveGadget(self)
+	function gadget:GameFrame(n)
+		if n == 60 then
+			Spring.PlaySoundFile("commanderspawn", 1, 'ui')
+		end
+		if n == 91 then
+			gadgetHandler:RemoveGadget(self)
+		end
 	end
 
 	function gadget:Shutdown()

@@ -21,9 +21,9 @@ if gadgetHandler:IsSyncedCode() then
 end
 
 local maxRotation = tonumber(Spring.GetConfigInt('unitRotation', 0) or 0)
-local maxAllowedRotation = 10
 
 local unitRotation = {}
+local updateTimer = 0
 
 local glRotate = gl.Rotate
 local spurSetUnitLuaDraw  = Spring.UnitRendering.SetUnitLuaDraw
@@ -76,7 +76,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, team)
 	unitRotation[unitID] = nil
 end
 
-function init()
+local function init()
 	maxRotation = tonumber(Spring.GetConfigInt('unitRotation', 0) or 0)
 	if maxRotation <= 0 then
 		for unitID, rot in pairs(unitRotation) do
@@ -94,25 +94,24 @@ function init()
 	end
 end
 
-function gadget:Initialize()
-	init()
-	gadgetHandler:AddChatAction('unitrotation', setUnitRotation)
-end
-
-function gadget:Shutdown()
-	gadgetHandler:RemoveChatAction('unitrotation')
-	for unitID, rot in pairs(unitRotation) do
-		spurSetUnitLuaDraw(unitID, false)
+function gadget:Update()
+	updateTimer = updateTimer + Spring.GetLastUpdateSeconds()
+	if updateTimer > 0.6 then
+		updateTimer = 0
+		if maxRotation ~= Spring.GetConfigInt('unitRotation', 0) then
+			maxRotation = Spring.GetConfigInt('unitRotation', 0)
+			init()
+		end
 	end
 end
 
-function setUnitRotation(cmd, line, words, playerID)
-	if words[1] then
-		local value = tonumber(words[1])
-		if value >= 0 then
-			Spring.SetConfigInt('unitRotation', math.min(value, maxAllowedRotation))
-			init()
-		end
+function gadget:Initialize()
+	init()
+end
+
+function gadget:Shutdown()
+	for unitID, rot in pairs(unitRotation) do
+		spurSetUnitLuaDraw(unitID, false)
 	end
 end
 

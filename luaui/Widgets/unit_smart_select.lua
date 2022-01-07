@@ -41,6 +41,10 @@ local spGetCommandQueue = Spring.GetCommandQueue
 local GaiaTeamID = Spring.GetGaiaTeamID()
 local selectedUnits = Spring.GetSelectedUnits()
 
+local spec, fullview = Spring.GetSpectatingState()
+local myTeamID = Spring.GetMyTeamID()
+
+
 local ignoreUnits = {}
 local combatFilter = {}
 local builderFilter = {}
@@ -52,7 +56,7 @@ for udid, udef in pairs(UnitDefs) do
 	end
 
 	local mobile = (udef.canMove and udef.speed > 0.000001)  or  (includeNanosAsMobile and (udef.name == "armnanotc" or udef.name == "cornanotc"))
-	local builder = (udef.canReclaim and udef.reclaimSpeed > 0)  or  (udef.canResurrect and udef.resurrectSpeed > 0)  or  (udef.canRepair and udef.repairSpeed > 0)
+	local builder = (udef.canReclaim and udef.reclaimSpeed > 0)  or  (udef.canResurrect and udef.resurrectSpeed > 0)  or  (udef.canRepair and udef.repairSpeed > 0) or (udef.buildOptions and udef.buildOptions[1])
 	local building = (mobile == false)
 	local combat = (builder == false) and (mobile == true) and (#udef.weapons > 0)
 
@@ -118,7 +122,9 @@ function widget:SelectionChanged(sel)
 	end
 end
 
-function widget:MousePress(x, y, button)
+-- this widget gets called early due to its layer
+-- this function will get called after all widgets have had their chance with widget:MousePress
+WG.SmartSelect_MousePress2 = function(x, y, button)	--function widget:MousePress(x, y, button)
 	if button == 1 then
 		referenceSelection = selectedUnits
 		referenceSelectionTypes = {}
@@ -142,6 +148,11 @@ function widget:MousePress(x, y, button)
 			lastCoords = c
 		end
 	end
+end
+
+function widget:PlayerChanged(playerID)
+	spec, fullview = Spring.GetSpectatingState()
+	myTeamID = Spring.GetMyTeamID()
 end
 
 function widget:Update()
@@ -183,12 +194,12 @@ function widget:Update()
 			local newSelection = {}
 			local uid, udid, tmp
 
-			-- filter gaia units + ignored units (objects)
+			-- filter gaia units + ignored units (objects) + only own units when not spectating
 			if not Spring.IsGodModeEnabled() then
 				tmp = {}
 				for i = 1, #mouseSelection do
 					uid = mouseSelection[i]
-					if spGetUnitTeam(uid) ~= GaiaTeamID and not ignoreUnits[spGetUnitDefID(uid)] then
+					if spGetUnitTeam(uid) ~= GaiaTeamID and not ignoreUnits[spGetUnitDefID(uid)] and (spec or spGetUnitTeam(uid) == myTeamID) then
 						tmp[#tmp + 1] = uid
 					end
 				end

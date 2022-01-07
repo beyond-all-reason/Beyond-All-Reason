@@ -102,7 +102,7 @@ void main() {
 
 function widget:Initialize()
   local rectvbo, numVertices = makeRectVBO(0,0,1,1,0,0,1,1)
-  rectInstanceTable = makeInstanceVBOTable( {{id = 1,  name = "instances",size = 4}}, maxframes+1, "framegraphervbotable")
+  rectInstanceTable = makeInstanceVBOTable( {{id = 1,  name = "instances",size = 4}}, maxframes+100, "framegraphervbotable")
   rectInstanceTable.VAO = makeVAOandAttach(rectvbo,rectInstanceTable.instanceVBO)
   rectInstanceTable.numVertices = numVertices
 

@@ -469,28 +469,28 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		aliveLootboxesCount = aliveLootboxesCount + 1
 
 		for i = 1,#lootboxesListT1 do
-			if lootboxesListT1[i] == UnitName..NameSuffix then
+			if lootboxesListT1[i]..NameSuffix == UnitName then
 				aliveLootboxesT1[#aliveLootboxesT1+1] = unitID
 				aliveLootboxesCountT1 = aliveLootboxesCountT1 + 1
 				break
 			end
 		end
 		for i = 1,#lootboxesListT2 do
-			if lootboxesListT2[i] == UnitName..NameSuffix then
+			if lootboxesListT2[i]..NameSuffix == UnitName then
 				aliveLootboxesT2[#aliveLootboxesT2+1] = unitID
 				aliveLootboxesCountT2 = aliveLootboxesCountT2 + 1
 				break
 			end
 		end
 		for i = 1,#lootboxesListT3 do
-			if lootboxesListT3[i] == UnitName..NameSuffix then
+			if lootboxesListT3[i]..NameSuffix == UnitName then
 				aliveLootboxesT3[#aliveLootboxesT3+1] = unitID
 				aliveLootboxesCountT3 = aliveLootboxesCountT3 + 1
 				break
 			end
 		end
 		for i = 1,#lootboxesListT4 do
-			if lootboxesListT4[i] == UnitName..NameSuffix then
+			if lootboxesListT4[i]..NameSuffix == UnitName then
 				aliveLootboxesT4[#aliveLootboxesT4+1] = unitID
 				aliveLootboxesCountT4 = aliveLootboxesCountT4 + 1
 				break

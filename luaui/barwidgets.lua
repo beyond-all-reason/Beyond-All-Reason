@@ -1450,6 +1450,9 @@ function widgetHandler:MousePress(x, y, button)
 				return true
 			end
 		end
+		if widgetHandler.WG.SmartSelect_MousePress2 then
+			widgetHandler.WG.SmartSelect_MousePress2(x, y, button, 'abc')
+		end
 		return false
 	else
 		if (mo) then

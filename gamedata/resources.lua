@@ -14,6 +14,7 @@ local resources = {
 			circlefx2        = 'default/circlefx2.png',
 			circlefx3        = 'default/circlefx3.png',
 			radarfx2ground   = 'ui/radarping2.png',
+			scar50glow		 = 'projectiletextures/decal_scar_50_glow.tga',
 		 },
 		 projectiletextures = {
 			circularthingy    = 'default/circularthingy.tga',
@@ -70,6 +71,8 @@ local resources = {
 			waterrush         = 'projectiletextures/waterrush.tga',
 			waterfoam         = 'atmos/waterfoam.tga',
 			subwak            = 'projectiletextures/subwake.tga',
+			scar50			  = 'projectiletextures/decal_scar_50.tga',
+
 
 			--Animated Explosion effect (test)
 			-- barexplo_29 = 'anims/barexplo_29.png',

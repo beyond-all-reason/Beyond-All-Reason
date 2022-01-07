@@ -17,7 +17,7 @@ for defID, def in ipairs(UnitDefs) do
 	if string.find(def.name, "stone") then
 		isTombstone[defID] = def.name
 	end
-	if def.customParams.iscommander ~= nil then
+	if def.customParams.iscommander ~= nil and not string.find(def.name, "scav") then
 		isCommander[defID] = def.name == 'armcom' and UnitDefNames.armstone.id or UnitDefNames.corstone.id
 	end
 end

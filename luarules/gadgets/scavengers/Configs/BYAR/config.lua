@@ -120,7 +120,15 @@ scavconfig = {
 		T4high								= 30000 * ScavTechCurveModoption,
 		T4top								= 35000 * ScavTechCurveModoption,
 		BossFight							= 40000 * ScavTechCurveModoption,
-		Endless								= 40001 * ScavTechCurveModoption,
+		Endless1							= 40001 * ScavTechCurveModoption,
+		Endless2							= 50000 * ScavTechCurveModoption,
+		Endless3							= 60000 * ScavTechCurveModoption,
+		Endless4							= 70000 * ScavTechCurveModoption,
+		Endless5							= 80000 * ScavTechCurveModoption,
+		Endless6							= 90000 * ScavTechCurveModoption,
+		Endless7							= 100000 * ScavTechCurveModoption,
+		Endless8							= 110000 * ScavTechCurveModoption,
+		Endless9							= 120000 * ScavTechCurveModoption,
 		-- don't delete
 		NoRadar								= 2815 * ScavTechCurveModoption,
 	},
@@ -193,12 +201,76 @@ randomEventsConfig = {
 
 function UpdateTierChances(n)
 	-- Must be 100 in total
-	if globalScore > scavconfig.timers.Endless then
+	if globalScore > scavconfig.timers.Endless9 then
+		TierSpawnChances.T0 = 0
+		TierSpawnChances.T1 = 0
+		TierSpawnChances.T2 = 0
+		TierSpawnChances.T3 = 0
+		TierSpawnChances.T4 = 100
+		TierSpawnChances.Message = "Current tier: Endless"
+		TierSpawnChances.BPMult = 100
+	elseif globalScore > scavconfig.timers.Endless8 then
+		TierSpawnChances.T0 = 0
+		TierSpawnChances.T1 = 0
+		TierSpawnChances.T2 = 0
+		TierSpawnChances.T3 = 5
+		TierSpawnChances.T4 = 95
+		TierSpawnChances.Message = "Current tier: Endless"
+		TierSpawnChances.BPMult = 50
+	elseif globalScore > scavconfig.timers.Endless7 then
+		TierSpawnChances.T0 = 0
+		TierSpawnChances.T1 = 0
+		TierSpawnChances.T2 = 0
+		TierSpawnChances.T3 = 10
+		TierSpawnChances.T4 = 90
+		TierSpawnChances.Message = "Current tier: Endless"
+		TierSpawnChances.BPMult = 30
+	elseif globalScore > scavconfig.timers.Endless6 then
 		TierSpawnChances.T0 = 0
 		TierSpawnChances.T1 = 0
 		TierSpawnChances.T2 = 0
 		TierSpawnChances.T3 = 20
 		TierSpawnChances.T4 = 80
+		TierSpawnChances.Message = "Current tier: Endless"
+		TierSpawnChances.BPMult = 20
+	elseif globalScore > scavconfig.timers.Endless5 then
+		TierSpawnChances.T0 = 0
+		TierSpawnChances.T1 = 0
+		TierSpawnChances.T2 = 0
+		TierSpawnChances.T3 = 30
+		TierSpawnChances.T4 = 70
+		TierSpawnChances.Message = "Current tier: Endless"
+		TierSpawnChances.BPMult = 18
+	elseif globalScore > scavconfig.timers.Endless4 then
+		TierSpawnChances.T0 = 0
+		TierSpawnChances.T1 = 0
+		TierSpawnChances.T2 = 0
+		TierSpawnChances.T3 = 35
+		TierSpawnChances.T4 = 65
+		TierSpawnChances.Message = "Current tier: Endless"
+		TierSpawnChances.BPMult = 16
+	elseif globalScore > scavconfig.timers.Endless3 then
+		TierSpawnChances.T0 = 0
+		TierSpawnChances.T1 = 0
+		TierSpawnChances.T2 = 0
+		TierSpawnChances.T3 = 40
+		TierSpawnChances.T4 = 60
+		TierSpawnChances.Message = "Current tier: Endless"
+		TierSpawnChances.BPMult = 14
+	elseif globalScore > scavconfig.timers.Endless2 then
+		TierSpawnChances.T0 = 0
+		TierSpawnChances.T1 = 0
+		TierSpawnChances.T2 = 0
+		TierSpawnChances.T3 = 45
+		TierSpawnChances.T4 = 55
+		TierSpawnChances.Message = "Current tier: Endless"
+		TierSpawnChances.BPMult = 12
+	elseif globalScore > scavconfig.timers.Endless1 then
+		TierSpawnChances.T0 = 0
+		TierSpawnChances.T1 = 0
+		TierSpawnChances.T2 = 0
+		TierSpawnChances.T3 = 50
+		TierSpawnChances.T4 = 50
 		TierSpawnChances.Message = "Current tier: Endless"
 		TierSpawnChances.BPMult = 10
 	elseif globalScore > scavconfig.timers.T4top then

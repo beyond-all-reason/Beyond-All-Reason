@@ -31,6 +31,7 @@ local debugUtilities = VFS.Include(utilitiesDirectory .. 'debug.lua')
 local debug = {
 	ParamsEcho = debugUtilities.ParamsEcho,
 	TableEcho = debugUtilities.TableEcho,
+	TraceEcho = debugUtilities.TraceEcho,
 }
 
 return {
