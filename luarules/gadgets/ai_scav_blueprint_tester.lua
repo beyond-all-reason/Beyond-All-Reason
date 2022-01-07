@@ -59,12 +59,12 @@ if gadgetHandler:IsSyncedCode() then
             for i = 1,#blueprints do
                 for j = 1,#blueprints[i]().buildings do
                     local blueprintTable = blueprints[i]().buildings[j]
-                    blueprintTable.basePosX = blueprintpositions[i].posx
-                    blueprintTable.basePosZ = blueprintpositions[i].posz
-                    
-                    
-                    local unitAndPos = blueprintTable
-                    table.insert(queue, unitAndPos)
+                    if blueprintTable then
+                        blueprintTable.basePosX = blueprintpositions[i].posx
+                        blueprintTable.basePosZ = blueprintpositions[i].posz
+                        local unitAndPos = blueprintTable
+                        table.insert(queue, unitAndPos)
+                    end
                 end
             end
         end
@@ -87,8 +87,9 @@ if gadgetHandler:IsSyncedCode() then
                 Spring.Echo("zOffset: "..zOffset)
                 local direction = queue[1].direction
                 Spring.Echo("direction: "..direction)
-                
-                Spring.CreateUnit(unitDefID, basePosX+xOffset, 0, basePosZ+zOffset, direction, 0)
+                local nonscavname = string.gsub(UnitDefs[unitDefID].name, "_scav", "")
+                local nonscavDefID = UnitDefNames[nonscavname].id
+                Spring.CreateUnit(nonscavDefID, basePosX+xOffset, 0, basePosZ+zOffset, direction, 0)
             end
             table.remove(queue, 1)
         end
