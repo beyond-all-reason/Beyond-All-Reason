@@ -42,6 +42,8 @@ if gadgetHandler:IsSyncedCode() then
 	local forwardedCaptureUnitIDs = {}
 	
 	local weapondefsreload = {}
+	local unitlastfired = {} -- maps unitID to the last frame it fired its long-reload weapon, cause lasers retrigger projetileCreated every frame
+	
 	local minReloadTime = 5 -- in concerto with healthbars widget
 
 	function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, step)
@@ -74,6 +76,7 @@ if gadgetHandler:IsSyncedCode() then
 	
 	function gadget:UnitDestroyed(unitID)
 		forwardedCaptureUnitIDs[unitID] = nil
+		unitlastfired[unitID] = nil
 	end
 	
 	function gadget:Initialize()
@@ -90,16 +93,23 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			if watchweaponID and longestreloadtime > minReloadTime then 
-				--Spring.Echo("Unit with watched reload time:", unitDef.name, longestreloadtime)
-				weapondefsreload[udefID] = myreloadTime
+				--Spring.Echo("Unit with watched reload time:", unitDef.name, longestreloadtime, watchweaponID, udefID)
+				weapondefsreload[watchweaponID] = math.floor(longestreloadtime*30) -- in frames
 				Script.SetWatchProjectile(watchweaponID, true)
 			end
 		end
 	end
 	
 	function gadget:ProjectileCreated(projectileID, ownerID, weaponID)		-- needs: Script.SetWatchProjectile(weaponDefID, true)
-		--Spring.Echo("gadget:ProjectileCreated(",projectileID, ownerID, weaponID,")")
-		SendToUnsynced("projetileCreatedReload", projectileID, ownerID, weaponID)
+		--local unitDef = Spring.GetUnitDefID(ownerID)
+		--Spring.Echo("gadget:ProjectileCreated(",projectileID, ownerID, weaponID,weapondefsreload[weaponID],unitlastfired[ownerID], ")")
+		if weapondefsreload[weaponID] then  
+			local gf = Spring.GetGameFrame() 
+			if unitlastfired[ownerID] == nil or unitlastfired[ownerID] + weapondefsreload[weaponID] <= gf then 
+				SendToUnsynced("projetileCreatedReload", projectileID, ownerID, weaponID)
+				unitlastfired[ownerID] = gf
+			end
+		end
 	end
 else
 	local glSetFeatureBufferUniforms = gl.SetFeatureBufferUniforms
