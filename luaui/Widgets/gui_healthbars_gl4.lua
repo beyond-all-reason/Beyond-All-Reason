@@ -255,11 +255,11 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 		uvoffset = 0.8125, -- the X offset of the icon for this bar
 	},
 	featurehealth = {
-		mincolor = {0.0, 1.0, 0.0, 1.0},
-		maxcolor = {1.0, 1.0, 1.0, 1.0},
+		mincolor = {0.6, 0.6, 0.6, 1.0},
+		maxcolor = {0.8, 0.8, 0.8, 1.0},
 		bartype = 0,
 		hidethreshold = 0.99,
-		uniformindex = 32, -- if its >20, then its health/maxhealth
+		uniformindex = 33, -- if its >20, then its health/maxhealth
 		uvoffset = 0.125, -- the X offset of the icon for this bar
 	},
 	featurereclaim = {
@@ -676,7 +676,7 @@ void main(){
 	
 		float healthbasedpos = (2*(BARWIDTH -  BARCORNER) - 2 * SMALLERCORNER) * health  ;
 		if (BARTYPE == 1u) healthbasedpos =  (2*(BARWIDTH -  BARCORNER) - 2 * SMALLERCORNER); // full bar for timer based shit
-		if (UNIFORMLOC > 20u) { truecolor.rgb = truecolor.rgb/max(truecolor.r, truecolor.g); } // color correction for health
+		if (UNIFORMLOC == 32u) { truecolor.rgb = truecolor.rgb/max(truecolor.r, truecolor.g); } // color correction for health
 		truecolor.a = 1.0;
 		botcolor = truecolor;
 		botcolor.rgb *= BOTTOMDARKENFACTOR;
