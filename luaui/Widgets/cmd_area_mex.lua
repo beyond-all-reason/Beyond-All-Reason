@@ -286,11 +286,11 @@ local sec = 0
 function widget:Update(dt)
 	if chobbyInterface then return end
 
-	local updateDrawUnitShape = activeUnitShape ~= nil
+	local doUpdate = activeUnitShape ~= nil
 	sec = sec + dt
 	if sec > 0.05 then
 		sec = 0
-		updateDrawUnitShape = true
+		doUpdate = true
 	end
 
 	local drawUnitShape = false
@@ -314,49 +314,40 @@ function widget:Update(dt)
 		end
 
 		-- display mouse cursor/mex unitshape when hovering over a metalspot
-		if not WG.customformations_linelength or WG.customformations_linelength < 10 then	-- dragging multi-unit formation-move-line
-			local mx, my, mb = Spring.GetMouseState()
-			local type, params = Spring.TraceScreenRay(mx, my)
-			local isT1Mex = (type == 'unit' and mexIds[spGetUnitDefID(params)] and mexIds[spGetUnitDefID(params)] < 0.002)
-			local closestMex, unitID
-			if type == 'unit' then
-				unitID = params
-				params = {spGetUnitPosition(unitID)}
-			end
-			if isT1Mex or type == 'ground' then
-				local proceed = false
-				if type == 'ground' then
-					closestMex = GetClosestMetalSpot(params[1], params[3])
-					if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
-						proceed = true
-					end
+		if doUpdate then
+			if not WG.customformations_linelength or WG.customformations_linelength < 10 then	-- dragging multi-unit formation-move-line
+				local mx, my, mb = Spring.GetMouseState()
+				local type, params = Spring.TraceScreenRay(mx, my)
+				local isT1Mex = (type == 'unit' and mexIds[spGetUnitDefID(params)] and mexIds[spGetUnitDefID(params)] < 0.002)
+				local closestMex, unitID
+				if type == 'unit' then
+					unitID = params
+					params = {spGetUnitPosition(unitID)}
 				end
-				if isT1Mex or proceed then
-					proceed = false
-					local hasT1builder, hasT2builder = false, false
-					-- search for builders
-					for k,v in pairs(selUnitCounts) do
-						if k ~= 'n' then
-							if mexBuilderDef[k] then
-								hasT1builder = true
-							end
-							if t2mexBuilder[k] then
-								hasT2builder = true
-								break
-							end
-						end
-					end
-					if isT1Mex then
-						if hasT2builder then
-							proceed = true
-						end
-					else
-						if (hasT1builder or hasT2builder) and not IsSpotOccupied(closestMex) then
+				if isT1Mex or type == 'ground' then
+					local proceed = false
+					if type == 'ground' then
+						closestMex = GetClosestMetalSpot(params[1], params[3])
+						if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
 							proceed = true
 						end
 					end
-					if proceed then
-						if updateDrawUnitShape then
+					if isT1Mex or proceed then
+						local hasT1builder, hasT2builder = false, false
+						-- search for builders
+						for k,v in pairs(selUnitCounts) do
+							if k ~= 'n' then
+								if mexBuilderDef[k] then
+									hasT1builder = true
+									break
+								end
+								if t2mexBuilder[k] then
+									hasT2builder = true
+									break
+								end
+							end
+						end
+						if hasT1builder or hasT2builder then
 							local queuedMexes = doAreaMexCommand({params[1], params[2], params[3]}, {}, false, true)
 							if queuedMexes and #queuedMexes > 0 then
 								drawUnitShape = { queuedMexes[1][2], queuedMexes[1][3], queuedMexes[1][4], queuedMexes[1][5] }
@@ -369,7 +360,7 @@ function widget:Update(dt)
 		end
 	end
 
-	if updateDrawUnitShape and WG.DrawUnitShapeGL4 then
+	if doUpdate and WG.DrawUnitShapeGL4 then
 		if drawUnitShape then
 			if not activeUnitShape then
 				activeUnitShape = {
