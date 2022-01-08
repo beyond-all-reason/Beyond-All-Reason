@@ -74,11 +74,11 @@ local function changeScreenMode(index)
 	local screenMode = screenModes[index]
 
 	if screenMode.type == windowType.fullscreen then
-		Spring.Echo("foo Fullscreen", screenMode.display, 0, 0, screenMode.width, screenMode.height, true, true)
-		Spring.SetWindowGeometry(screenMode.display, 0, 0, screenMode.width, screenMode.height, true, true)
+		Spring.Echo("foo Fullscreen", screenMode.display, 0, 0, screenMode.width, screenMode.height, true, false)
+		Spring.SetWindowGeometry(screenMode.display, 0, 0, screenMode.width, screenMode.height, true, false)
 	elseif screenMode.type == windowType.borderless then
-		Spring.Echo("foo Borderless", screenMode.display, 0, 0, screenMode.width, screenMode.height, false, true)
-		Spring.SetWindowGeometry(screenMode.display, 0, 0, screenMode.width, screenMode.height, false, true)
+		Spring.Echo("foo Borderless", screenMode.display, 0, 0, screenMode.width, screenMode.height, true, true)
+		Spring.SetWindowGeometry(screenMode.display, 0, 0, screenMode.width, screenMode.height, true, true)
 	-- Windowed mode has a chicken-and-egg problem, where window borders can't be known until after switching to windowed mode
 	-- This cannot be done in two consecutive SetWindowGeometry() calls, as there must be a two draw frame delay
 	-- (one to write, one to read), before the values of GetWindowGeometry() are updated
