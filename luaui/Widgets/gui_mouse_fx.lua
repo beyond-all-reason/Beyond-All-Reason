@@ -16,9 +16,9 @@ end
 local scaleWithCamera			= true
 local showMouseclicks			= true
 
-local generalSize 				= 30		-- overall size
-local generalOpacity 			= 0.8		-- overall opacity
-local generalDuration			= 1.2		-- overall duration
+local generalSize 				= 45		-- overall size
+local generalOpacity 			= 0.7		-- overall opacity
+local generalDuration			= 0.66		-- overall duration
 
 local imageDir					= ":n:LuaUI/Images/"
 
