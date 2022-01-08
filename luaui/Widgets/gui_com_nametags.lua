@@ -13,7 +13,7 @@ end
 --------------------------------------------------------------------------------
 -- config
 --------------------------------------------------------------------------------
-
+local hideBelowGameframe = 150	-- delay to give spawn fx some time
 local drawForIcon = true      -- note that commander icon still gets drawn on top of the name
 local nameScaling = true
 local useThickLeterring = false  -- Sorry, the performance cost of this is quite high :( doubles the cost of a draw call
@@ -318,11 +318,10 @@ local function createComnameIconList(unitID, attributes)
 	end)
 end
 
-function widget:DrawScreenEffects()
-	-- using DrawScreenEffects so that guishader will blur it when needed
-	if Spring.IsGUIHidden() then
-		return
-	end
+function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader will blur it when needed
+	if chobbyInterface then return end
+	if Spring.IsGUIHidden() then return end
+	if Spring.GetGameFrame() < hideBelowGameframe then return end
 
 	for unitID, attributes in pairs(drawScreenUnits) do
 		if not comnameIconList[attributes[1]] then
@@ -378,12 +377,10 @@ end
 --END PROFILING CODE---
 
 function widget:DrawWorld()
-	if chobbyInterface then
-		return
-	end
-	if Spring.IsGUIHidden() then
-		return
-	end
+	if chobbyInterface then return end
+	if Spring.IsGUIHidden() then return end
+	if Spring.GetGameFrame() < hideBelowGameframe then return end
+
 	-- untested fix: when you resign, to also show enemy com playernames  (because widget:PlayerChanged() isnt called anymore)
 	if not CheckedForSpec and Spring.GetGameFrame() > 1 then
 		if spec then

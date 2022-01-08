@@ -235,7 +235,7 @@ function widget:GameFrame(n)
 end
 
 
-function widget:UnitCreated(unitID, unitDefID, teamID)
+function widget:UnitFinished(unitID, unitDefID, teamID)
 	if unitConf[unitDefID] and teamUnits[teamID] then
 		teamUnits[teamID][unitID] = unitDefID
 	end

@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
 		name      = "Mex Upgrade Reclaimer",
-		desc      = "Insta reclaims/refunds t1 mex when t2 on top has finished",
+		desc      = "Insta reclaims/refunds t1 mex when t2 on top has finished, also shares t2 mexes build upon ally t1 mex owner",
 		author    = "Floris",
 		date      = "October 2021",
 		license   = "",

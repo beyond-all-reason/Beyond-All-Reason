@@ -61,17 +61,17 @@ local function miniboss1(currentFrame)
 					end
 				elseif globalScore < scavconfig.timers.T4low then
 					local unit = T4bosses[math_random(1,#T4bosses)]
-					for a = 1,math.ceil(baseNumber*5) do
+					for a = 1,math.ceil(baseNumber*4) do
 						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 					end
 				elseif globalScore < scavconfig.timers.T4high then
 					local unit = T4bosses[math_random(1,#T4bosses)]
-					for a = 1,math.ceil(baseNumber*7) do
+					for a = 1,math.ceil(baseNumber*5) do
 						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 					end
 				else
 					local unit = T4bosses[math_random(1,#T4bosses)]
-					for a = 1,math.ceil(baseNumber*9) do
+					for a = 1,math.ceil(baseNumber*6) do
 						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 					end
 				end

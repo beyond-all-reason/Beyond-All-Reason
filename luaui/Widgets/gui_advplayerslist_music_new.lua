@@ -22,8 +22,10 @@ local fadeOutCurrentTrack = false
 
 local interruptionEnabled
 local silenceTimerEnabled
+local deviceLostSafetyCheck = 0
 
 local function ReloadMusicPlaylists()
+	deviceLostSafetyCheck = 0
 	---------------------------------COLLECT MUSIC------------------------------------
 
 	-- New Soundtrack List
@@ -609,6 +611,7 @@ local function fadeOutTrack()
 end
 
 function PlayNewTrack()
+	deviceLostSafetyCheck = deviceLostSafetyCheck + 1
 	Spring.StopSoundStream()
 	silenceTimer = 0
 	appliedSilence = false
@@ -690,7 +693,10 @@ function widget:UnitDamaged(unitID, unitDefID, _, damage)
 end
 
 function widget:GameFrame(n)
-	
+	if n%1800 == 0 then
+		deviceLostSafetyCheck = 0
+	end
+
 	if fadeOutCurrentTrack then
 		fadeOutTrack()
 	end
@@ -700,6 +706,11 @@ function widget:GameFrame(n)
 	end
 
 	if n%30 == 15 then
+		if deviceLostSafetyCheck >= 10 then
+			Spring.Echo("[MUSIC PLAYER]: Audio device failure detected. Removing Music Widget.")
+			widgetHandler:RemoveWidget()
+		end
+		
 		local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01
 		if musicVolume > 0 then
 			playing = true

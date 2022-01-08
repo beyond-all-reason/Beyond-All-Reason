@@ -20,9 +20,13 @@ CMD[CMD_LAND_AT_SPECIFIC_AIRBASE] = "LAND_AT_SPECIFIC_AIRBASE"
 
 local tractorDist = 100 ^ 2 -- default sqr tractor distance
 local isAirbase = {}
+local isAirUnit = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.isairbase then
 		isAirbase[unitDefID] = { tractorDist, unitDef.buildSpeed }
+	end
+	if unitDef.isAirUnit and unitDef.canFly then
+		isAirUnit[unitDefID] = true
 	end
 end
 
@@ -68,12 +72,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local toRemoveCount
 
-	local isAirUnit = {}
 	local unitBuildtime = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		if unitDef.isAirUnit and unitDef.canFly then
-			isAirUnit[unitDefID] = true
-		end
 		unitBuildtime[unitDefID] = unitDef.buildTime
 	end
 
@@ -515,7 +515,7 @@ if gadgetHandler:IsSyncedCode() then
 							local radius = spGetUnitRadius(unitID)
 							if radius then
 								local unitDefID = Spring.GetUnitDefID(unitID)
-								if UnitDefs[unitDefID] and UnitDefs[unitDefID].canFly then 
+								if isAirUnit[unitDefID] then
 									Spring.SetUnitLandGoal(unitID, px, py, pz, radius)	-- sometimes this gives an error: "not a flying unit"
 								end
 							end
@@ -641,13 +641,6 @@ else	-- Unsynced
 
 	local strUnit = "unit"
 
-	local unitCanFly = {}
-	for udid, unitDef in pairs(UnitDefs) do
-		if unitDef.canFly then
-			unitCanFly[udid] = true
-		end
-	end
-
 	function gadget:PlayerChanged()
 		myTeamID = Spring.GetMyTeamID()
 		myAllyTeamID = Spring.GetMyAllyTeamID()
@@ -672,7 +665,7 @@ else	-- Unsynced
 		local sUnits = spGetSelectedUnits()
 		for i = 1, #sUnits do
 			local unitID = sUnits[i]
-			if unitCanFly[spGetUnitDefID(unitID)] then
+			if isAirUnit[spGetUnitDefID(unitID)] then
 				return CMD_LAND_AT_SPECIFIC_AIRBASE
 			end
 		end

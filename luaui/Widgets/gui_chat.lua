@@ -975,6 +975,7 @@ end
 
 function widget:GetConfigData(data)
 	return {
+		gameFrame = Spring.GetGameFrame(),
 		orgLines = gameOver and nil or orgLines,
 		maxLines = maxLines,
 		maxConsoleLines = maxConsoleLines,
@@ -987,7 +988,7 @@ end
 
 function widget:SetConfigData(data)
 	if data.orgLines ~= nil then
-		if Spring.GetGameFrame() > 0 or (data.shutdownTime and data.shutdownTime > os.clock() - 10) then
+		if Spring.GetGameFrame() > 0 then
 			orgLines = data.orgLines
 		end
 	end
