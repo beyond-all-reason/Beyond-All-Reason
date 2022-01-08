@@ -29,7 +29,9 @@ local isAirplant = {
 	[UnitDefNames.corplat.id] = true,
 	[UnitDefNames.armap.id] = true,
 	[UnitDefNames.armaap.id] = true,
-	[UnitDefNames.armplat.id] = true
+	[UnitDefNames.armplat.id] = true,
+	[UnitDefNames.armapt3.id] = true,
+	[UnitDefNames.corapt3.id] = true
 }
 for udid, ud in pairs(UnitDefs) do
 	for id, v in pairs(isAirplant) do
