@@ -416,11 +416,11 @@ function widget:Update(dt)
 						end
 					end
 					if proceed then
-						Spring.SetMouseCursor('upgmex')
 						if updateDrawUnitShape then
 							local queuedMexes = doAreaMexCommand({params[1], params[2], params[3]}, {}, false, true)
-							if #queuedMexes > 0 then
+							if queuedMexes and #queuedMexes > 0 then
 								drawUnitShape = { queuedMexes[1][2], queuedMexes[1][3], queuedMexes[1][4], queuedMexes[1][5] }
+								Spring.SetMouseCursor('upgmex')
 							end
 						end
 					end
