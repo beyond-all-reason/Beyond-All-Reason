@@ -1,4 +1,9 @@
-﻿# December 2021
+﻿# January 2021
+ • [EMP-spider] health 850 -> 1000,  increased turret turn speed
+ • [T1 walls] Removed energy cost + land walls: reduced metal cost 11 -> 8
+
+
+# December 2021
 
  • [Fido] cost: 270m->300m, 5600->6300E
  • [Sniper] speed: 35.4->30
