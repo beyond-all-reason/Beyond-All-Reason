@@ -38,7 +38,7 @@ return {
 		script = "Units/CORNANOTCPLAT.cob",
 		seismicsignature = 0,
 		selfdestructas = "nanoselfd",
-		sightdistance = 380,
+		sightdistance = 1200,
 		terraformspeed = 1000,
 		turnrate = 1,
 		upright = true,
