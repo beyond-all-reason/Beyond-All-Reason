@@ -18,12 +18,6 @@ local types = {
 	dev      = 3,
 }
 
-local windowType = {
-	fullscreen = 1,
-	borderless = 2,
-	windowed   = 3,
-}
-
 local texts = {}    -- loaded from external language file
 
 local languageCodes = { 'en', 'fr' }
@@ -1554,32 +1548,12 @@ function init()
 		custom = {},
 	}
 
-	local screenModes = {
-		{
-			name = texts.option.fullscreen,
-			type = windowType.fullscreen,
-			width = ssx,
-			height = ssy,
-		},
-		{
-			name = texts.option.borderless,
-			type = windowType.borderless,
-			width = ssx,
-			height = ssy,
-		}
-	}
+	local screenModes = WG['screenMode'] and WG['screenMode'].GetScreenModes()
+	local displays = WG['screenMode'] and WG['screenMode'].GetDisplays()
 
-	for _, videoMode in ipairs(Platform.availableVideoModes) do
-		if videoMode.display == 1 and videoMode.w >= 800 and videoMode.h > 600 then
-			local resolution = {
-				name = videoMode.w .. " × " .. videoMode.h,
-				type = windowType.windowed,
-				width = videoMode.w,
-				height = videoMode.h,
-			}
-
-			table.insert(screenModes, resolution)
-		end
+	local displayNames = {}
+	for index, display in ipairs(displays) do
+			displayNames[index] = display.name .. " " .. display.width .. " × " .. display.height
 	end
 
 	local resolutionNames = {}
@@ -1695,36 +1669,17 @@ function init()
 		},
 		{ id = "label_gfx_screen", group = "gfx", name = texts.option.label_screen, category = types.basic },
 		{ id = "label_gfx_screen_spacer", group = "gfx", category = types.basic },
+		{ id = "display", group = "gfx", category = types.basic, name = texts.option.display, type = "select", options = displayNames, value = 0,
+			onchange = function(i, value)
+			end,
+		},
 		{ id = "resolution", group = "gfx", category = types.basic, name = texts.option.resolution, type = "select", options = resolutionNames, value = Spring.GetConfigInt('SelectedScreenMode', 1), description = texts.option.resolution_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt('SelectedScreenMode', value)
-				local screenMode = screenModes[value]
 
-				if screenMode.type == windowType.fullscreen then
-					Spring.SendCommands("Fullscreen 0")
-					Spring.SetConfigInt("WindowBorderless", 0)
-					Spring.SetConfigInt("XResolution", screenMode.width)
-					Spring.SetConfigInt("YResolution", screenMode.height)
-					Spring.SendCommands("Fullscreen 1")
-				elseif screenMode.type == windowType.borderless then
-					Spring.SendCommands("Fullscreen 1")
-					Spring.SetConfigInt("WindowBorderless", 1)
-					Spring.SetConfigInt("WindowPosX", 0)
-					Spring.SetConfigInt("WindowPosY", 0)
-					Spring.SetConfigInt("XResolutionWindowed", screenMode.width)
-					Spring.SetConfigInt("YResolutionWindowed", screenMode.height)
-					Spring.SendCommands("Fullscreen 0")
-				elseif screenMode.type == windowType.windowed then
-					Spring.SendCommands("Fullscreen 1")
-					Spring.SetConfigInt("WindowBorderless", 0)
-					Spring.SetConfigInt("WindowPosX", 25)
-					Spring.SetConfigInt("WindowPosY", 25)
-					Spring.SetConfigInt("XResolutionWindowed", screenMode.width)
-					Spring.SetConfigInt("YResolutionWindowed", screenMode.height)
-					Spring.SendCommands("Fullscreen 0")
+				if WG['screenMode'] then
+					WG['screenMode'].SetScreenMode(value)
 				end
-
-				-- checkResolution()
 			end,
 		},
 		{ id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync, type = "bool", value = vsyncEnabled, description = '',
@@ -4587,28 +4542,6 @@ function init()
 	windowList = gl.CreateList(DrawWindow)
 end
 
-function checkResolution()
-	-- resize resolution if is larger than screen resolution
-	wsx, wsy, wpx, wpy = Spring.GetWindowGeometry()
-	ssx, ssy, spx, spy = Spring.GetScreenGeometry()
-	if wsx > ssx or wsy > ssy then
-		if tonumber(Spring.GetConfigInt("Fullscreen", 1) or 1) == 1 then
-			Spring.SendCommands("Fullscreen 0")
-		else
-			Spring.SendCommands("Fullscreen 1")
-		end
-		Spring.SetConfigInt("XResolution", tonumber(ssx))
-		Spring.SetConfigInt("YResolution", tonumber(ssy))
-		Spring.SetConfigInt("XResolutionWindowed", tonumber(ssx))
-		Spring.SetConfigInt("YResolutionWindowed", tonumber(ssy))
-		if tonumber(Spring.GetConfigInt("Fullscreen", 1) or 1) == 1 then
-			Spring.SendCommands("Fullscreen 0")
-		else
-			Spring.SendCommands("Fullscreen 1")
-		end
-	end
-end
-
 function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 	if not waterDetected and Spring.GetGameFrame() > 30 then
 		if heightmapChangeClock == nil then
@@ -4762,8 +4695,6 @@ function widget:Initialize()
 
 	Spring.SendCommands("minimap unitsize " .. (Spring.GetConfigFloat("MinimapIconScale", 3.5)))        -- spring wont remember what you set with '/minimap iconssize #'
 	Spring.SendCommands({ "bind f10 options" })
-
-	checkResolution()
 
 	WG['options'] = {}
 	WG['options'].toggle = function(state)
