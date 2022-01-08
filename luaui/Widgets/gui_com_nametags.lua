@@ -13,7 +13,7 @@ end
 --------------------------------------------------------------------------------
 -- config
 --------------------------------------------------------------------------------
-local hideBelowGameframe = 135	-- delay to give spawn fx some time
+local hideBelowGameframe = 150	-- delay to give spawn fx some time
 local drawForIcon = true      -- note that commander icon still gets drawn on top of the name
 local nameScaling = true
 local useThickLeterring = false  -- Sorry, the performance cost of this is quite high :( doubles the cost of a draw call

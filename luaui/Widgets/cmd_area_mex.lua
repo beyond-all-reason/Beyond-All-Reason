@@ -256,16 +256,18 @@ local function doAreaMexCommand(params, options, isGuard, justDraw)		-- when isG
 		for i = 1, #orderedCommands do
 			local command = orderedCommands[i]
 			for j = 1, mexBuilder[id].buildings do
-				local targetPos
+				local targetPos, targetOwner
 				local occupiedMex = IsSpotOccupied({x = command.x, z =command.z})
 				if occupiedMex then
 					targetPos = { spGetUnitPosition(occupiedMex) }
+					targetOwner = Spring.GetUnitTeam(occupiedMex)	-- because gadget "Mex Upgrade Reclaimer" will share a t2 mex build upon ally t1 mex
 				else
 					targetPos = GetClosestMexPosition(GetClosestMetalSpot(command.x, command.z), command.x, command.z, -mexBuilder[id].building[j], "s")
+					targetOwner = spGetMyTeamID()
 				end
 				if targetPos then
 					local newx, newz = targetPos[1], targetPos[3]
-					queuedMexes[#queuedMexes+1] = {id, math.abs(mexBuilder[id].building[j]), newx, spGetGroundHeight(newx, newz), newz }
+					queuedMexes[#queuedMexes+1] = {id, math.abs(mexBuilder[id].building[j]), newx, spGetGroundHeight(newx, newz), newz, targetOwner }
 					if not justDraw then
 						spGiveOrderToUnit(id, mexBuilder[id].building[j], { newx, spGetGroundHeight(newx, newz), newz }, { "shift" })
 						lastInsertedOrder = {command.x, command.z}
@@ -350,37 +352,38 @@ function widget:Update(dt)
 						if hasT1builder or hasT2builder then
 							local queuedMexes = doAreaMexCommand({params[1], params[2], params[3]}, {}, false, true)
 							if queuedMexes and #queuedMexes > 0 then
-								drawUnitShape = { queuedMexes[1][2], queuedMexes[1][3], queuedMexes[1][4], queuedMexes[1][5] }
+								drawUnitShape = { queuedMexes[1][2], queuedMexes[1][3], queuedMexes[1][4], queuedMexes[1][5], queuedMexes[1][6] }
 								Spring.SetMouseCursor('upgmex')
 							end
 						end
 					end
 				end
 			end
-		end
-	end
 
-	if doUpdate and WG.DrawUnitShapeGL4 then
-		if drawUnitShape then
-			if not activeUnitShape then
-				activeUnitShape = {
-					drawUnitShape[1],
-					drawUnitShape[2],
-					drawUnitShape[3],
-					drawUnitShape[4],
-					WG.DrawUnitShapeGL4(drawUnitShape[1], drawUnitShape[2], drawUnitShape[3], drawUnitShape[4], 0, 0.66, spGetMyTeamID(), 0.15, 0.3)
-				}
+			if WG.DrawUnitShapeGL4 then
+				if drawUnitShape then
+					if not activeUnitShape then
+						activeUnitShape = {
+							drawUnitShape[1],
+							drawUnitShape[2],
+							drawUnitShape[3],
+							drawUnitShape[4],
+							drawUnitShape[5],
+							WG.DrawUnitShapeGL4(drawUnitShape[1], drawUnitShape[2], drawUnitShape[3], drawUnitShape[4], 0, 0.66, drawUnitShape[5], 0.15, 0.3)
+						}
+					end
+				elseif activeUnitShape then
+					WG.StopDrawUnitShapeGL4(activeUnitShape[6])
+					activeUnitShape = nil
+				end
 			end
-		elseif activeUnitShape then
-			WG.StopDrawUnitShapeGL4(activeUnitShape[5])
-			activeUnitShape = nil
 		end
 	end
 end
 
 function widget:Shutdown()
 	if WG.DrawUnitShapeGL4 and activeUnitShape then
-		WG.StopDrawUnitShapeGL4(activeUnitShape[5])
+		WG.StopDrawUnitShapeGL4(activeUnitShape[6])
 		activeUnitShape = nil
 	end
 end
