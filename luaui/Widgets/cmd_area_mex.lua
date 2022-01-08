@@ -25,7 +25,6 @@ local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
 local spGetGroundHeight = Spring.GetGroundHeight
-local spGetGroundBlocked = Spring.GetGroundBlocked
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetTeamUnits = Spring.GetTeamUnits
@@ -36,24 +35,18 @@ local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMapDrawMode = Spring.GetMapDrawMode
 local spSendCommands = Spring.SendCommands
 
-local toggledMetal, retoggleLos, chobbyInterface, lastInsertedOrder
+local toggledMetal, retoggleLos, chobbyInterface, lastInsertedOrder, activeUnitShape
 
 local tasort = table.sort
 local taremove = table.remove
 
-local activeCmd = select(4, spGetActiveCommand())
-local buildmenuMexSelected = false
 local metalmap = false
-
-local activeUnitShape
-
 local mexBuilder = {}
 local Game_extractorRadius = Game.extractorRadius
 
 local mexIds = {}
 local unitWaterDepth = {}
 local unitXsize = {}
---local isCommander = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.extractsMetal > 0 then
 		mexIds[udid] = ud.extractsMetal
@@ -62,9 +55,6 @@ for udid, ud in pairs(UnitDefs) do
 		unitWaterDepth[udid] = { ud.minWaterDepth, ud.maxWaterDepth }
 		unitXsize[udid] = ud.xsize
 	end
-	--if ud.customParams.iscommander then
-	--	isCommander[udid] = true
-	--end
 end
 
 local mexBuilderDef = {}
@@ -197,21 +187,20 @@ local function doAreaMexCommand(params, options, isGuard, justDraw)
 	end
 
 	-- Apply guard orders to "inferior" builders and adds superior builders to current batch builders
-	local batchSize = 0
-	local batchMexBuilder = {}
+	local superiorMexBuildersCount = 0
+	local superiorMexBuilders = {}
 	local ux, uz, us, aveX, aveZ = 0, 0, 0, 0, 0
 	for i = 1, #units do
 		local id = units[i]
 		if mexBuilder[id] then
 			if mexIds[(mexBuilder[id].building[1]) * -1] == maxbatchextracts then
 				local x, _, z = spGetUnitPosition(id)
-				ux = ux + x
-				uz = uz + z
-				us = us + 1
+				ux, uz, us = ux+x, uz+z, us+1
 				lastprocessedbestbuilder = id
-				batchSize = batchSize + 1
-				batchMexBuilder[batchSize] = id
+				superiorMexBuildersCount = superiorMexBuildersCount + 1
+				superiorMexBuilders[superiorMexBuildersCount] = id
 			else
+				-- guard to a superior
 				if not justDraw then
 					if not options.shift then
 						spGiveOrderToUnit(id, CMD_STOP, {}, CMD_OPT_RIGHT)
@@ -226,7 +215,6 @@ local function doAreaMexCommand(params, options, isGuard, justDraw)
 	end
 	aveX, aveZ = ux/us, uz/us
 
-	--
 	local commands = {}
 	local commandsCount = 0
 	local mexes = isGuard and { isGuard } or WG.metalSpots -- only need the mex we guard if that is the case
@@ -264,66 +252,33 @@ local function doAreaMexCommand(params, options, isGuard, justDraw)
 		commandsCount = commandsCount - 1
 	end
 
-	if not justDraw then
-		for ct = 1, #batchMexBuilder do
-			local id = batchMexBuilder[ct]
-			if not options.shift then
-				spGiveOrderToUnit(id, CMD_STOP, {}, CMD_OPT_RIGHT)
-			end
+	if not justDraw and not options.shift then
+		for ct = 1, superiorMexBuildersCount do
+			spGiveOrderToUnit(superiorMexBuilders[ct], CMD_STOP, {}, CMD_OPT_RIGHT)
 		end
 	end
 
+	-- give the actual mex build orders
 	local queuedMexes = {}
-	local ctrl = options.ctrl or options.meta
-	for ct = 1, #batchMexBuilder do
-		local id = batchMexBuilder[ct]
-
+	for ct = 1, superiorMexBuildersCount do
+		local id = superiorMexBuilders[ct]
 		for i = 1, #orderedCommands do
 			local command = orderedCommands[i]
-
-			local Y = spGetGroundHeight(command.x, command.z)
-			if ((i % batchSize == ct % batchSize or i % #orderedCommands == ct % #orderedCommands) and ctrl) or not ctrl then
-				for j = 1, mexBuilder[id].buildings do
-					local def = unitWaterDepth[-mexBuilder[id].building[j]]
-					local buildable = 0
-					local newx, newz = command.x, command.z
-					-- If location unavailable, check surroundings (extractorRadius - 25). Should consider replacing 25 with avg mex x,z sizes
-					--local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx - 2 * Game_extractorRadius, newz - 2 * Game_extractorRadius, -mexBuilder[id].building[j], "s")
-					local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx, newz, -mexBuilder[id].building[j], "s")
-					if bestPos then
-						newx, newz = bestPos[1], bestPos[3]
-						buildable = true
+			for j = 1, mexBuilder[id].buildings do
+				local bestPos = GetClosestMexPosition(GetClosestMetalSpot(command.x, command.z), command.x, command.z, -mexBuilder[id].building[j], "s")
+				if bestPos then
+					local newx, newz = bestPos[1], bestPos[3]
+					queuedMexes[#queuedMexes+1] = {id, math.abs(mexBuilder[id].building[j]), newx, spGetGroundHeight(newx, newz), newz }
+					if not justDraw then
+						spGiveOrderToUnit(id, mexBuilder[id].building[j], { newx, spGetGroundHeight(newx, newz), newz }, { "shift" })
+						lastInsertedOrder = {command.x, command.z}
 					end
-					if buildable ~= 0 then
-						if not justDraw then
-							spGiveOrderToUnit(id, mexBuilder[id].building[j], { newx, spGetGroundHeight(newx, newz), newz }, { "shift" })
-							lastInsertedOrder = {command.x, command.z}
-						end
-						queuedMexes[#queuedMexes+1] = {id, math.abs(mexBuilder[id].building[j]), newx, spGetGroundHeight(newx, newz), newz }
-						break
-					elseif def[2] and -def[2] < Y and def[1] and -def[1] > Y then
-						local hsize = unitXsize[-mexBuilder[id].building[j]] * 4
-						local blockers = {}
-						for x = command.x - hsize, command.x + hsize, 8 do
-							for z = command.z - hsize, command.z + hsize, 8 do
-								local _, blocker = spGetGroundBlocked(x, z, x + 7, z + 7)
-								if blocker and not blockers[blocker] then
-									spGiveOrderToUnit(id, CMD.RECLAIM, { blocker }, { "shift" })
-									blockers[blocker] = true
-								end
-							end
-						end
-						if not justDraw then
-							spGiveOrderToUnit(id, CMD.INSERT, { -1, mexBuilder[id].building[j], CMD.OPT_INTERNAL, command.x, spGetGroundHeight(command.x, command.z), command.z }, { shift = true, internal = true, alt = true })
-							lastInsertedOrder = {command.x, command.z}
-						end
-						queuedMexes[#queuedMexes+1] = {id, math.abs(mexBuilder[id].building[j]), command.x, spGetGroundHeight(command.x, command.z), command.z }
-						break
-					end
+					break
 				end
 			end
 		end
 	end
+
 	if isGuard and #queuedMexes == 0 then
 		return		-- no mex buildorder made so let move go through!
 	end
@@ -339,18 +294,6 @@ function widget:Update(dt)
 	if sec > 0.05 then
 		sec = 0
 		updateDrawUnitShape = true
-	end
-
-	-- swap build command to area mex when mex is selected
-	local prevActiveCmd = activeCmd
-	activeCmd = select(2, spGetActiveCommand())
-	if activeCmd ~= prevActiveCmd then
-		if activeCmd and activeCmd < 0 and mexIds[activeCmd * -1] then
-			buildmenuMexSelected = true
-			-- only transform to areamex cmd after user starts dragging
-		else
-			buildmenuMexSelected = false
-		end
 	end
 
 	local drawUnitShape = false
@@ -470,7 +413,7 @@ function widget:CommandNotify(id, params, options)
 
 	-- transform move into area-mex command
 	local moveReturn = false
-	if (isGuard or (isMove and moveIsAreamex)) and mexBuilder[selectedUnits[1]] then
+	if mexBuilder[selectedUnits[1]] then
 		if isGuard then
 			local ux, uy, uz = spGetUnitPosition(params[1])
 			isGuard = { x = ux, y = uy, z = uz }
@@ -478,7 +421,7 @@ function widget:CommandNotify(id, params, options)
 			id = CMD_AREA_MEX
 			params[4] = 30 		-- increase this too if you want to increase mexPlacementRadius
 			lastInsertedOrder = nil
-		else
+		elseif isMove and moveIsAreamex then
 			local closestMex = GetClosestMetalSpot(params[1], params[3])
 			local spotRadius = mexPlacementRadius
 			if #selectedUnits == 1 and #Spring.GetCommandQueue(selectedUnits[1], 8) > 1 then
