@@ -1,5 +1,10 @@
 -- bitmaps/projectiletextures/
 
+blastwave.tga
+decal_scar_50.tga
+decal_scar_glow.tga
+dirt.png
+dirtbar.png
 bubbletexture.tga
 explo.tga
 explofade.tga
@@ -9,6 +14,7 @@ flashside2.tga
 flashside3.tga
 glow3.tga
 gunshotxl.tga
+gunshotxl2.tga
 lightb.tga
 lightning.tga
 lightninginair.tga
@@ -18,6 +24,12 @@ new_dirta.png
 new_dirtb.png
 smoke.tga
 smoketrail.tga
+smoketrailaa.tga
+smoketrailaa2.tga
+smoketrailaa3.tga
+smoketrailaaflak.tga
+smoketrailbar.tga
+smoketraildark.tga
 subwake.tga
 trail.tga
 wake.tga
@@ -28,6 +40,11 @@ All above projectile-textures were made for Beyond All Reason by IceXuick
 all rights reserved (CC BY NC ND)
 
 -- bitmaps/atmos/*.*
+
+All textures in this folder (/bitmaps/atmos/) were made for Beyond All Reason by IceXuick
+all rights reserved (CC BY NC ND)
+
+-- bitmaps/ui/*.*
 
 All textures in this folder (/bitmaps/atmos/) were made for Beyond All Reason by IceXuick
 all rights reserved (CC BY NC ND)
