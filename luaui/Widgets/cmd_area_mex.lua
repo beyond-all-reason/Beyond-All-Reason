@@ -332,9 +332,7 @@ end
 
 local sec = 0
 function widget:Update(dt)
-	if chobbyInterface then
-		return
-	end
+	if chobbyInterface then return end
 
 	local updateDrawUnitShape = activeUnitShape ~= nil
 	sec = sec + dt
@@ -376,8 +374,8 @@ function widget:Update(dt)
 		end
 
 		-- mex-upgrade mouse cursor
-		if not WG.customformations_linelength or WG.customformations_linelength < 10 then	-- dragging unit line
-			local mx, my = Spring.GetMouseState()
+		if not WG.customformations_linelength or WG.customformations_linelength < 10 then	-- dragging multi-unit formation-move-line
+			local mx, my, mb = Spring.GetMouseState()
 			local type, params = Spring.TraceScreenRay(mx, my)
 			local isT1Mex = (type == 'unit' and mexIds[spGetUnitDefID(params)] and mexIds[spGetUnitDefID(params)] < 0.002)
 			local closestMex, unitID
@@ -478,7 +476,7 @@ function widget:CommandNotify(id, params, options)
 			isGuard = { x = ux, y = uy, z = uz }
 			params[1], params[2], params[3] = ux, uy, uz
 			id = CMD_AREA_MEX
-			params[4] = 25
+			params[4] = 30 		-- increase this too if you want to increase mexPlacementRadius
 			lastInsertedOrder = nil
 		else
 			local closestMex = GetClosestMetalSpot(params[1], params[3])
