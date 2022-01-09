@@ -10,58 +10,53 @@ end
 
 VFS.Include('luarules/configs/customcmds.h.lua')
 
-if gadgetHandler:IsSyncedCode() then
-	----------------
-	--   SYNCED   --
-	----------------
-	local manualLaunchUnits = {}
-	for unitDefId, unitDef in pairs(UnitDefs) do
-		if unitDef.canManualFire and not unitDef.customParams.iscommander then
-			manualLaunchUnits[unitDefId] = true
-		end
+if not gadgetHandler:IsSyncedCode() then
+	return
+end
+
+local manualLaunchUnits = {}
+Spring.Echo("foo")
+for unitDefId, unitDef in pairs(UnitDefs) do
+	local decoyFor = unitDef.customParams.decoyfor
+	unitDef = decoyFor and UnitDefNames[decoyFor] or unitDef
+
+	if unitDef.canManualFire and not unitDef.customParams.iscommander then
+		Spring.Echo(unitDef.name)
+		manualLaunchUnits[unitDefId] = true
 	end
+end
 
-	local launchCommand = {
-		id = CMD_MANUAL_LAUNCH,
-		action = "manuallaunch",
-		cursor = 'cursorattack',
-		type = CMDTYPE.ICON_UNIT_OR_MAP,
-	}
+local launchCommand = {
+	id = CMD_MANUAL_LAUNCH,
+	action = "manuallaunch",
+	cursor = 'cursorattack',
+	type = CMDTYPE.ICON_UNIT_OR_MAP,
+}
 
-	function gadget:CommandFallback(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
-		if cmdID == CMD_MANUAL_LAUNCH then
-			Spring.GiveOrderToUnit(unitID, CMD.MANUALFIRE, cmdParams, cmdOptions)
+function gadget:CommandFallback(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
+	if cmdID == CMD_MANUAL_LAUNCH then
+		Spring.GiveOrderToUnit(unitID, CMD.MANUALFIRE, cmdParams, cmdOptions)
 
-			for _, option in pairs(cmdOptions) do
-				if option == CMD.OPT_SHIFT then
-					return true, true
-				end
+		for _, option in pairs(cmdOptions) do
+			if option == CMD.OPT_SHIFT then
+				return true, true
 			end
-
-			return true, false
 		end
 
-		return false
+		return true, false
 	end
 
-	function gadget:UnitCreated(unitID, unitDefID, teamID)
-		if manualLaunchUnits[unitDefID] then
-			local manualFireCommand = Spring.FindUnitCmdDesc(unitID, CMD.MANUALFIRE)
-			Spring.RemoveUnitCmdDesc(unitID, manualFireCommand)
-			Spring.InsertUnitCmdDesc(unitID, launchCommand)
-		end
-	end
+	return false
+end
 
-	function gadget:Initialize()
-		gadgetHandler:RegisterCMDID(CMD_MANUAL_LAUNCH)
+function gadget:UnitCreated(unitID, unitDefID, teamID)
+	if manualLaunchUnits[unitDefID] then
+		local manualFireCommand = Spring.FindUnitCmdDesc(unitID, CMD.MANUALFIRE)
+		Spring.RemoveUnitCmdDesc(unitID, manualFireCommand)
+		Spring.InsertUnitCmdDesc(unitID, launchCommand)
 	end
+end
 
-else
-	------------------
-	--   UNSYNCED   --
-	------------------
-	function gadget:Initialize()
-		Spring.SetCustomCommandDrawData(CMD_MANUAL_LAUNCH, CMDTYPE.ICON_UNIT_OR_MAP, { 1, 0, 0, .8 }, false)
-	end
-
+function gadget:Initialize()
+	gadgetHandler:RegisterCMDID(CMD_MANUAL_LAUNCH)
 end
