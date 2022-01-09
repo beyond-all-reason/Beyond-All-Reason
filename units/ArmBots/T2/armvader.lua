@@ -14,7 +14,6 @@ return {
 		collisionvolumetype = "box",
 		corpse = "CORPSE",
 		explodeas = "crawl_blastsml",
-		firestate = 2,
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,

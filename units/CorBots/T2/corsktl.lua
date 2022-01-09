@@ -15,7 +15,6 @@ return {
 		collisionvolumescales = "19 12 19",
 		collisionvolumetype = "CylY",
 		explodeas = "crawl_blast",
-		firestate = 2,
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
