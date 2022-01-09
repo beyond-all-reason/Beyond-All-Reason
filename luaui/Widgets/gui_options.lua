@@ -2462,7 +2462,7 @@ function init()
 			  Spring.SetConfigFloat("ui_opacity", value)
 		  end,
 		},
-		{ id = "guitilescale", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guitilescale, type = "slider", min = 4, max = 40, step = 1, value = Spring.GetConfigFloat("ui_tilescale", 7), description = '',
+		{ id = "guitilescale", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.guitilescale, type = "slider", min = 4, max = 40, step = 1, value = Spring.GetConfigFloat("ui_tilescale", 7), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value, force)
@@ -2474,7 +2474,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "guitileopacity", group = "ui", category = types.basic, name = widgetOptionColor .. "      " .. texts.option.guitileopacity, type = "slider", min = 0, max = 0.03, step = 0.001, value = Spring.GetConfigFloat("ui_tileopacity", 0.011), description = '',
+		{ id = "guitileopacity", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. texts.option.guitileopacity, type = "slider", min = 0, max = 0.03, step = 0.001, value = Spring.GetConfigFloat("ui_tileopacity", 0.011), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value, force)
@@ -2487,13 +2487,21 @@ function init()
 		  end,
 		},
 
-		{ id = "guishader", group = "ui", category = types.basic, widget = "GUI Shader", name = widgetOptionColor .. "   " .. texts.option.guishader, type = "bool", value = GetWidgetToggleValue("GUI Shader"), description = texts.option.guishader_descr },
-		{ id = "guishaderintensity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishaderintensity, type = "slider", min = 0.001, max = 0.005, step = 0.0001, value = 0.0035, description = '',
+		{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishader, type = "slider", min = 0, max = 0.005, steps = {0, 0.001, 0.0015, 0.002, 0.0025, 0.003, 0.0035, 0.004}, step = 0.0001, value = 0.004, description = '',
 		  onload = function(i)
-			  loadWidgetData("GUI Shader", "guishaderintensity", { 'blurIntensity' })
+			  loadWidgetData("GUI Shader", "guishader", { 'blurIntensity' })
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)
+			  if value <= 0.000001 then
+				  if GetWidgetToggleValue('GUI Shader') then
+				 	 widgetHandler:DisableWidget('GUI Shader')
+				  end
+			  else
+				  if not GetWidgetToggleValue('GUI Shader') then
+				  	widgetHandler:EnableWidget('GUI Shader')
+				  end
+			  end
 		  end,
 		},
 
