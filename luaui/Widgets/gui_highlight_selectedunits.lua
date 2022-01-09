@@ -10,6 +10,7 @@ function widget:GetInfo()
 	}
 end
 
+local hideBelowGameframe = 100
 local useTeamcolor = true
 local highlightAlpha = 0.1
 local useHighlightShader = true
@@ -91,7 +92,7 @@ function CreateHighlightShader()
 		})
 	end
 end
---------------------------------------------------------------------------------
+
 
 function widget:Initialize()
 	WG['highlightselunits'] = {}
@@ -136,9 +137,6 @@ function widget:Shutdown()
 end
 
 
-
---------------------------------------------------------------------------------
-
 local selectedUnits = Spring.GetSelectedUnits()
 local selectedUnitsCount = Spring.GetSelectedUnitsCount()
 function widget:SelectionChanged(sel)
@@ -153,12 +151,9 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:DrawWorld()
-	if chobbyInterface then
-		return
-	end
-	if not selectedUnits or Spring.IsGUIHidden() then
-		return
-	end
+	if chobbyInterface then return end
+	if Spring.GetGameFrame() < hideBelowGameframe then return end
+	if not selectedUnits or Spring.IsGUIHidden() then return end
 
 	gl.DepthTest(true)
 	gl.PolygonOffset(-0.5, -0.5)
@@ -204,7 +199,6 @@ function widget:DrawWorld()
 end
 
 widget.DrawWorldReflection = widget.DrawWorld
-
 widget.DrawWorldRefraction = widget.DrawWorld
 
 function widget:GetConfigData()
