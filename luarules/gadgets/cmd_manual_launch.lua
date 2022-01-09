@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
 		name 	= "Manual launch command",
-		desc	= "Adds a distinct Launch command for manually fired missiles",
+		desc	= "Replaces manual fire command with a distinct Launch command for manually fired missiles",
 		date	= "December 2021",
 		layer	= 0,
 		enabled = true,
@@ -31,19 +31,23 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:CommandFallback(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
 		if cmdID == CMD_MANUAL_LAUNCH then
 			Spring.GiveOrderToUnit(unitID, CMD.MANUALFIRE, cmdParams, cmdOptions)
-		end
-	end
 
-	-- function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	-- 	if cmdID == CMD.MANUALFIRE then
-	-- 		return manualLaunchUnits[unitDefID]
-	-- 	end
-	-- end
+			for _, option in pairs(cmdOptions) do
+				if option == CMD.OPT_SHIFT then
+					return true, true
+				end
+			end
+
+			return true, false
+		end
+
+		return false
+	end
 
 	function gadget:UnitCreated(unitID, unitDefID, teamID)
 		if manualLaunchUnits[unitDefID] then
-			local manualFireCommand = Spring.FindUnitCmdDesc(unitID, CMD.DGUN)
-			-- Spring.RemoveUnitCmdDesc(unitID, manualFireCommand)
+			local manualFireCommand = Spring.FindUnitCmdDesc(unitID, CMD.MANUALFIRE)
+			Spring.RemoveUnitCmdDesc(unitID, manualFireCommand)
 			Spring.InsertUnitCmdDesc(unitID, launchCommand)
 		end
 	end
