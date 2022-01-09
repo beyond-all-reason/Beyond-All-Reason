@@ -1,7 +1,8 @@
-﻿# January 2021
+﻿# January 2022
  • [EMP-spider] health 850 -> 1000,  increased turret turn speed
  • [T1 walls] Removed energy cost + land walls: reduced metal cost 11 -> 8
  • [T2 walls] Halved energy cost (~1000 -> 500) + rounded up metal cost 38/39 -> 40
+ • [Thor] EMP missile weapon is by manual fire only
 
 
 # December 2021
