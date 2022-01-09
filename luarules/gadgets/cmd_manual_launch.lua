@@ -15,13 +15,11 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local manualLaunchUnits = {}
-Spring.Echo("foo")
 for unitDefId, unitDef in pairs(UnitDefs) do
 	local decoyFor = unitDef.customParams.decoyfor
 	unitDef = decoyFor and UnitDefNames[decoyFor] or unitDef
 
 	if unitDef.canManualFire and not unitDef.customParams.iscommander then
-		Spring.Echo(unitDef.name)
 		manualLaunchUnits[unitDefId] = true
 	end
 end
