@@ -17,6 +17,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local hideBelowGameframe = 100	-- delay to give spawn fx some time
+
 local CMD_RAW_MOVE = 39812
 local CMD_ATTACK = CMD.ATTACK --icon unit or map
 local CMD_CAPTURE = CMD.CAPTURE --icon unit or area
@@ -61,7 +63,7 @@ local GL_QUADS = GL.QUADS
 
 local GaiaTeamID  = Spring.GetGaiaTeamID()
 
-local chobbyInterface
+local chobbyInterface, hidden
 
 --------------------------------------------------------------------------------
 -- Config
@@ -98,8 +100,12 @@ local drawUnitHightlightMaxUnits = 70
 local glowImg			= ":n:LuaUI/Images/commandsfx/glow.dds"
 local lineImg			= ":n:LuaUI/Images/commandsfx/line.dds"
 
+local isCritter = {}
 local ignoreUnits = {}
 for udefID,def in ipairs(UnitDefs) do
+	if string.find(def.name, "critter_") then
+		isCritter[udefID] = true
+	end
 	if def.customParams['nohealthbars'] then
 		ignoreUnits[udefID] = true
 	end
@@ -209,7 +215,6 @@ local CONFIG = {
 local enabledTeams = {}
 local commands = {}
 local monitorCommands = {}
-local minQueueCommand = 1
 local maxCommand = 0
 local totalCommands = 0
 
@@ -220,7 +225,6 @@ local UNITCONF = {}
 local shapes = {}
 
 local drawFrame = 0
-local gameframeDrawFrame = 0
 
 local spGetUnitPosition	= Spring.GetUnitPosition
 local spGetCommandQueue	= Spring.GetCommandQueue
@@ -230,11 +234,8 @@ local spIsUnitIcon = Spring.IsUnitIcon
 local spValidUnitID = Spring.ValidUnitID
 local spValidFeatureID = Spring.ValidFeatureID
 local spGetFeaturePosition = Spring.GetFeaturePosition
-local spIsUnitSelected = Spring.IsUnitSelected
 local spIsGUIHidden = Spring.IsGUIHidden
-local spTraceScreenRay = Spring.TraceScreenRay
 local spIsUnitSelected = Spring.IsUnitSelected
-local spGetUnitDefID = Spring.GetUnitDefID
 local spLoadCmdColorsConfig	= Spring.LoadCmdColorsConfig
 local spGetFPS = Spring.GetFPS
 local spGetMyTeamID = Spring.GetMyTeamID
@@ -245,44 +246,9 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
 local MAX_UNITS = Game.maxUnits
-local find = string.find
-
-
-local isCritter = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if string.find(unitDef.name, "critter_") then
-		isCritter[unitDefID] = true
-	end
-end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
-
-function SetUnitConf()
-	local name, shape, xscale, zscale, scale, xsize, zsize, weaponcount, shapeName
-	for udid, unitDef in pairs(UnitDefs) do
-		xsize, zsize = unitDef.xsize, unitDef.zsize
-		scale = ( xsize^2 + zsize^2 )^0.5
-		name = unitDef.name
-
-		if (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) then
-			shapeName = 'square'
-			shape = shapes.square
-			xscale, zscale = xsize, zsize
-		elseif (unitDef.isAirUnit) then
-			shapeName = 'triangle'
-			shape = shapes.triangle
-			xscale, zscale = scale, scale
-		else
-			shapeName = 'circle'
-			shape = shapes.circle
-			xscale, zscale = scale, scale
-		end
-
-		UNITCONF[udid] = {name=name, shape=shape, shapeName=shapeName, xscale=xscale, zscale=zscale}
-	end
-end
 
 
 local function setCmdLineColors(alpha)
@@ -315,8 +281,6 @@ function resetEnabledTeams()
 end
 
 function widget:Initialize()
-	--SetUnitConf()
-
 	--spLoadCmdColorsConfig('useQueueIcons  0 ')
 	spLoadCmdColorsConfig('queueIconScale  0.66 ')
 	spLoadCmdColorsConfig('queueIconAlpha  0.5 ')
@@ -344,11 +308,8 @@ function widget:Shutdown()
 	--spLoadCmdColorsConfig('useQueueIcons  1 ')
 	spLoadCmdColorsConfig('queueIconScale  1 ')
 	spLoadCmdColorsConfig('queueIconAlpha  1 ')
-
 	setCmdLineColors(0.7)
 end
-
-
 
 
 local function DrawLineEnd(x1,y1,z1, x2,y2,z2, width)
@@ -565,8 +526,21 @@ local lastUpdate = 0
 local sec2 = 0
 local lastUpdate2 = 0
 function widget:Update(dt)
+
 	sec = sec + dt
 	if sec > lastUpdate + 0.1 then
+		local gf = spGetGameFrame()
+		if not hidden then
+			if gf < hideBelowGameframe then
+				hidden = true
+				spLoadCmdColorsConfig('queueIconAlpha  0 ')
+				setCmdLineColors(0)
+			end
+		elseif gf >= hideBelowGameframe then
+			hidden = nil
+			spLoadCmdColorsConfig('queueIconAlpha  0.5 ')
+			setCmdLineColors(0.5)
+		end
 		lastUpdate = sec
 
 		-- process newly given commands (not done in widgetUnitCommand() because with huge build queue it eats memory and can crash lua)
@@ -620,8 +594,8 @@ function widget:Update(dt)
 
 		if sec2 > lastUpdate2 + 0.3 then
 			lastUpdate2 = sec2
-			if prevGameframe ~= spGetGameFrame() then
-				prevGameframe = spGetGameFrame()
+			if prevGameframe ~= gf then
+				prevGameframe = gf
 				-- update queue (in case unit has reached the nearest queue coordinate)
 				local qsize
 				for i=1, #monitorCommands do
@@ -665,6 +639,8 @@ local prevOsClock = os_clock()
 
 function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
+	if hidden then return end
+	if hidden then return end
 	drawFrame = drawFrame + 1
 
 	if spIsGUIHidden() then return end
@@ -822,7 +798,7 @@ end
 
 function widget:DrawWorld()
 	if chobbyInterface then return end
-  if spIsGUIHidden() then return end
+	if spIsGUIHidden() then return end
 
 	if drawUnitHighlightSkipFPS > 0 and spGetFPS() < drawUnitHighlightSkipFPS then return end
 
