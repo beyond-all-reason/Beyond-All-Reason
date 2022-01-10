@@ -30,7 +30,7 @@ local subButtonColor = {0.08, 0.22, 0}
 local unsubButtonColor = {0.22, 0.08, 0}
 
 local readied = false	-- send readystate (in widget:GameSetup)
-local pressedReady = false	-- pressed button
+local pressedReady	-- pressed button
 local startPointChosen = false
 
 local NETMSG_STARTPLAYING = 4 -- see BaseNetProtocol.h, packetID sent during the 3.2.1 countdown
@@ -56,6 +56,7 @@ local RectRound, UiElement, UiButton, elementPadding, uiPadding
 
 local eligibleAsSub = false
 local offeredAsSub = false
+local allowUnready = false	-- not enabled cause unreadying doesnt work
 
 local numPlayers = Spring.Utilities.GetPlayerCount()
 
@@ -135,13 +136,20 @@ function widget:GameSetup(state, ready, playerStates)
 		return true, true
 	end
 
-	--Spring.Echo(ready, pressedReady, os.clock()) --, Spring.Debug.TableEcho(playerStates)
 	if not ready and pressedReady then	-- check if we just readied
 		ready = true
-	elseif ready and not readied then	-- check if we just reconnected/dropped
+	elseif ready and not pressedReady then 	-- check if we just reconnected/dropped
 		ready = false
 	end
+
+	local prevReadied = readied
+	pressedReady = playerStates[Spring.GetMyPlayerID()] == 'ready'
+
 	readied = ready
+	if prevReadied ~= readied then
+		widget:ViewResize(vsx, vsy)
+	end
+	--Spring.Echo(ready, pressedReady, os.clock(), Spring.Debug.TableEcho(playerStates)) --, Spring.Debug.TableEcho(playerStates)
 	return true, ready
 end
 
@@ -164,6 +172,7 @@ function widget:MousePress(sx, sy)
 					else
 						readied = false
 						pressedReady = false
+						--Spring.SendLuaRulesMsg( ) -- if it doesnt work, try implementing this
 					end
 
 				-- substitute
@@ -243,7 +252,7 @@ function widget:DrawScreen()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
 
-	elseif not readied and buttonList and Game.startPosType == 2 and not gameStarting and not isReplay and (not mySpec or eligibleAsSub) then
+	elseif (not readied or allowUnready) and buttonList and Game.startPosType == 2 and (not mySpec or eligibleAsSub) then
 		buttonDrawn = true
 		if WG['guishader'] then
 			WG['guishader'].InsertRect(
