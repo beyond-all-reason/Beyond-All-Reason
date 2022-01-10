@@ -32,6 +32,7 @@ local debug = {
 	ParamsEcho = debugUtilities.ParamsEcho,
 	TableEcho = debugUtilities.TableEcho,
 	TraceEcho = debugUtilities.TraceEcho,
+	TraceFullEcho = debugUtilities.TraceFullEcho,
 }
 
 return {
