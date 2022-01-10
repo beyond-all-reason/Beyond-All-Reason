@@ -31,20 +31,19 @@ local launchCommand = {
 	type = CMDTYPE.ICON_UNIT_OR_MAP,
 }
 
-function gadget:CommandFallback(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
-	if cmdID == CMD_MANUAL_LAUNCH then
-		Spring.GiveOrderToUnit(unitID, CMD.MANUALFIRE, cmdParams, cmdOptions)
-
-		for _, option in pairs(cmdOptions) do
-			if option == CMD.OPT_SHIFT then
-				return true, true
-			end
-		end
-
-		return true, false
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+	if cmdID == CMD.INSERT and cmdParams[2] == CMD_MANUAL_LAUNCH then
+		cmdParams[2] = CMD.MANUALFIRE
+		Spring.GiveOrderToUnit(unitID, CMD.INSERT, cmdParams, cmdOptions.coded)
+		return false
 	end
 
-	return false
+	if cmdID == CMD_MANUAL_LAUNCH then
+		Spring.GiveOrderToUnit(unitID, CMD.MANUALFIRE, cmdParams, cmdOptions.coded)
+		return false
+	end
+
+	return true
 end
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)
