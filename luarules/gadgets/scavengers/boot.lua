@@ -409,8 +409,8 @@ function gadget:GameFrame(n)
 					end
 				end
 
-				if scavteamhasplayers == false and scavconfig.modules.constructorControllerModule then
-					if constructorControllerModuleConfig.useconstructors then
+				if scavteamhasplayers == false  then
+					if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors then
 						if scavConstructor[scav] then
 							if Spring.GetCommandQueue(scav, 0) <= 0 then
 								constructorController.ConstructNewBlueprint(n, scav)
@@ -731,45 +731,43 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 				end
 			end
 
-			if scavconfig.modules.constructorControllerModule then
-				if constructorControllerModuleConfig.useconstructors then
-					if constructorUnitList.ConstructorsID[unitDefID] then
-						scavStatsScavCommanders = scavStatsScavCommanders+1
-						scavConstructor[unitID] = true
-						buffConstructorBuildSpeed(unitID)
-					end
-				end
-
-				if constructorControllerModuleConfig.useresurrectors then
-					if constructorUnitList.ResurrectorsID[unitDefID] then
-						buffConstructorBuildSpeed(unitID)
-						scavResurrector[unitID] = true
-					end
-
-					if constructorUnitList.ResurrectorsSeaID[unitDefID] then
-						buffConstructorBuildSpeed(unitID)
-						scavResurrector[unitID] = true
-					end
-				end
-
-				if constructorControllerModuleConfig.usecollectors then
-					if constructorUnitList.CollectorsID[unitDefID] then
-						buffConstructorBuildSpeed(unitID)
-						local r = math_random(0, 100)
-						if scavengerGamePhase == "initial" or r <= 10 then
-							scavCollector[unitID] = true
-						-- elseif r <= 50 then
-						-- 	scavCapturer[unitID] = true
-						else
-							scavReclaimer[unitID] = true
-						end
-					end
-				end
-
-				if constructorUnitList.AssistersID[unitDefID] then
+			if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors then
+				if constructorUnitList.ConstructorsID[unitDefID] then
+					scavStatsScavCommanders = scavStatsScavCommanders+1
+					scavConstructor[unitID] = true
 					buffConstructorBuildSpeed(unitID)
-					scavAssistant[unitID] = true
 				end
+			end
+
+			if constructorControllerModuleConfig.useresurrectors then
+				if constructorUnitList.ResurrectorsID[unitDefID] then
+					buffConstructorBuildSpeed(unitID)
+					scavResurrector[unitID] = true
+				end
+
+				if constructorUnitList.ResurrectorsSeaID[unitDefID] then
+					buffConstructorBuildSpeed(unitID)
+					scavResurrector[unitID] = true
+				end
+			end
+
+			if constructorControllerModuleConfig.usecollectors then
+				if constructorUnitList.CollectorsID[unitDefID] then
+					buffConstructorBuildSpeed(unitID)
+					local r = math_random(0, 100)
+					if scavengerGamePhase == "initial" or r <= 10 then
+						scavCollector[unitID] = true
+					elseif r <= 20 then
+						scavCapturer[unitID] = true
+					else
+						scavReclaimer[unitID] = true
+					end
+				end
+			end
+
+			if constructorUnitList.AssistersID[unitDefID] then
+				buffConstructorBuildSpeed(unitID)
+				scavAssistant[unitID] = true
 			end
 
 			factoryController.CheckNewUnit(unitID, unitDefID)
@@ -900,45 +898,43 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			end
 		end
 
-		if scavconfig.modules.constructorControllerModule then
-			if constructorControllerModuleConfig.useconstructors then
-				if constructorUnitList.ConstructorsID[unitDefID] then
-					scavStatsScavCommanders = scavStatsScavCommanders+1
-					scavConstructor[unitID] = true
-					buffConstructorBuildSpeed(unitID)
-				end
-			end
-
-			if constructorControllerModuleConfig.useresurrectors then
-				if constructorUnitList.ResurrectorsID[unitDefID] then
-					scavResurrector[unitID] = true
-					buffConstructorBuildSpeed(unitID)
-				end
-
-				if constructorUnitList.ResurrectorsSeaID[unitDefID] then
-					scavResurrector[unitID] = true
-					buffConstructorBuildSpeed(unitID)
-				end
-			end
-
-			if constructorControllerModuleConfig.usecollectors then
-				if constructorUnitList.CollectorsID[unitDefID] then
-					buffConstructorBuildSpeed(unitID)
-					local r = math_random(0,100)
-					if scavengerGamePhase == "initial" or r <= 10 then
-						scavCollector[unitID] = true
-					-- elseif r <= 75 then
-					-- 	scavCapturer[unitID] = true
-					else
-						scavReclaimer[unitID] = true
-					end
-				end
-			end
-
-			if constructorUnitList.AssistersID[unitDefID] then
+		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors then
+			if constructorUnitList.ConstructorsID[unitDefID] then
+				scavStatsScavCommanders = scavStatsScavCommanders+1
+				scavConstructor[unitID] = true
 				buffConstructorBuildSpeed(unitID)
-				scavAssistant[unitID] = true
 			end
+		end
+
+		if constructorControllerModuleConfig.useresurrectors then
+			if constructorUnitList.ResurrectorsID[unitDefID] then
+				scavResurrector[unitID] = true
+				buffConstructorBuildSpeed(unitID)
+			end
+
+			if constructorUnitList.ResurrectorsSeaID[unitDefID] then
+				scavResurrector[unitID] = true
+				buffConstructorBuildSpeed(unitID)
+			end
+		end
+
+		if constructorControllerModuleConfig.usecollectors then
+			if constructorUnitList.CollectorsID[unitDefID] then
+				buffConstructorBuildSpeed(unitID)
+				local r = math_random(0,100)
+				if scavengerGamePhase == "initial" or r <= 10 then
+					scavCollector[unitID] = true
+				elseif r <= 25 then
+					scavCapturer[unitID] = true
+				else
+					scavReclaimer[unitID] = true
+				end
+			end
+		end
+
+		if constructorUnitList.AssistersID[unitDefID] then
+			buffConstructorBuildSpeed(unitID)
+			scavAssistant[unitID] = true
 		end
 
 		factoryController.CheckNewUnit(unitID, unitDefID)

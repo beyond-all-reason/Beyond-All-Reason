@@ -23,25 +23,27 @@ local function rebellion1(currentFrame)
 end
 
 local function rebellion2(currentFrame)
-	ScavSendNotification("scav_eventmalfunctions")
 	local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
-	local rebelionCenter = scavUnits[math.random(1,#scavUnits)]
-	local posx, posy, posz = Spring.GetUnitPosition(rebelionCenter)
-	local areaUnits = Spring.GetUnitsInCylinder(posx, posz, math.random(200,500), GaiaTeamID)
-	for y = 1,#areaUnits do
-		local unitID = areaUnits[y]
-		local unitDefID = Spring.GetUnitDefID(unitID)
-		local unitName = UnitDefs[unitDefID].name
-		--local unitTeam = Spring.GetUnitTeam(unitID)
-		if unitName ~= "armcom_scav" and unitName ~= "corcom_scav" and unitName ~= "armcomboss_scav" and unitName ~= "corcomboss_scav" and unitName ~= "armcom" and unitName ~= "corcom" and unitName ~= "scavsafeareabeacon_scav" and unitName ~= "scavengerdroppodbeacon_scav" and unitName ~= "scavengerdroppod_scav" then										
-			for _,teamID in ipairs(Spring.GetTeamList()) do
-				if teamID ~= GaiaTeamID and teamID ~= Spring.GetGaiaTeamID() then
-					local i = teamID
-					local _,_,teamisDead = Spring.GetTeamInfo(i)
-					--local randomchance = math.random(0,teamcount)
-					if i == bestTeam and (not teamisDead or teamisDead ~= false) then
-						Spring.TransferUnit(unitID, i, true)
-						break
+	if #scavUnits > 1 then
+		ScavSendNotification("scav_eventmalfunctions")
+		local rebelionCenter = scavUnits[math.random(1,#scavUnits)]
+		local posx, posy, posz = Spring.GetUnitPosition(rebelionCenter)
+		local areaUnits = Spring.GetUnitsInCylinder(posx, posz, math.random(200,500), GaiaTeamID)
+		for y = 1,#areaUnits do
+			local unitID = areaUnits[y]
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			local unitName = UnitDefs[unitDefID].name
+			--local unitTeam = Spring.GetUnitTeam(unitID)
+			if unitName ~= "armcom_scav" and unitName ~= "corcom_scav" and unitName ~= "armcomboss_scav" and unitName ~= "corcomboss_scav" and unitName ~= "armcom" and unitName ~= "corcom" and unitName ~= "scavsafeareabeacon_scav" and unitName ~= "scavengerdroppodbeacon_scav" and unitName ~= "scavengerdroppod_scav" then										
+				for _,teamID in ipairs(Spring.GetTeamList()) do
+					if teamID ~= GaiaTeamID and teamID ~= Spring.GetGaiaTeamID() then
+						local i = teamID
+						local _,_,teamisDead = Spring.GetTeamInfo(i)
+						--local randomchance = math.random(0,teamcount)
+						if i == bestTeam and (not teamisDead or teamisDead ~= false) then
+							Spring.TransferUnit(unitID, i, true)
+							break
+						end
 					end
 				end
 			end

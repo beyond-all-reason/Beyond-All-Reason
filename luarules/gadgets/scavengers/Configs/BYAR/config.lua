@@ -57,6 +57,11 @@ if not teamcount then teamcount = 1 end
 		scavRandomEventsAmountModoption = 0.5
 	end
 
+	local constructorsEnabled = Spring.GetModOptions().scavconstructors
+	if constructorsEnabled == false then
+		ScavUnitSpawnFrequencyModoption = ScavUnitSpawnFrequencyModoption*2
+	end
+
 -- End of Modoptions
 
 
@@ -71,7 +76,7 @@ scavconfig = {
 	messenger = true, -- BYAR specific thing, don't enable otherwise (or get gui_messages.lua from BYAR)
 	modules = {
 		buildingSpawnerModule 			= false,
-		constructorControllerModule 	= true,
+		constructorControllerModule 	= constructorsEnabled,
 		factoryControllerModule 		= true,
 		unitSpawnerModule 				= true,
 		startBoxProtection				= true,
@@ -153,8 +158,8 @@ unitSpawnerModuleConfig = {
 		FinalBossMinionsActive				= 150, -- this/(teamcount*difficulty), how often does boss spawn minions when taking damage, frames.
 	BossWaveTimeLeft					= 300,
 	aircraftchance 						= 10, -- higher number = lower chance
-	globalscoreperoneunit 				= 2500/ScavUnitCountModoption,
-	spawnchance							= 120/ScavUnitSpawnFrequencyModoption,
+	globalscoreperoneunit 				= 1200/ScavUnitCountModoption,
+	spawnchance							= 240/ScavUnitSpawnFrequencyModoption,
 	beaconspawnchance					= 480,
 	beacondefences						= true,
 	minimumspawnbeacons					= math.ceil(teamcount*spawnmultiplier),
