@@ -191,6 +191,8 @@ return {
 				areaattack_tooltip = "Le Area attack everything within a circle (click-drag)",
 				manualfire = "Le D-Gun",
 				manualfire_tooltip = "Le Fire the powerful commander Disintegrator-gun",
+				manuallaunch = "Le Launch",
+				manuallaunch_tooltip = "Le Launch a missile at a target",
 				patrol = "Le Patrol",
 				patrol_tooltip = "Le Patrol along one or more waypoints",
 				fight = "Le Fight",
