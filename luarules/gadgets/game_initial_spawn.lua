@@ -396,10 +396,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 
-else
-	----------------------------------------------------------------
-	-- Unsynced
-	----------------------------------------------------------------
+else  -- UNSYNCED
+
 
 	local function positionTooClose(_, playerID)
 		if Script.LuaUI('GadgetMessageProxy') then
@@ -407,7 +405,7 @@ else
 			Spring.SendMessageToPlayer(playerID, message)
 		end
 	end
-	
+
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("PositionTooClose", positionTooClose)
 	end

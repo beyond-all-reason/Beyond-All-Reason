@@ -2487,9 +2487,12 @@ function init()
 		  end,
 		},
 
-		{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishader, type = "slider", min = 0, max = 0.005, steps = {0, 0.001, 0.0015, 0.002, 0.0025, 0.003, 0.0035, 0.004}, step = 0.0001, value = 0.004, description = '',
+		{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishader, type = "slider", min = 0, max = 0.005, steps = {0, 0.001, 0.0015, 0.002, 0.0025, 0.003, 0.0035, 0.004}, value = 0.0035, description = '',
 		  onload = function(i)
 			  loadWidgetData("GUI Shader", "guishader", { 'blurIntensity' })
+			  if type(options[getOptionByID('guishader')].value) ~= 'number' then
+				  options[getOptionByID('guishader')].value = 0
+			  end
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)

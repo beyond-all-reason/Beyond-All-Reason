@@ -12,8 +12,9 @@ function widget:GetInfo()
 end
 
 local moveIsAreamex = true		-- auto make move cmd an area mex cmd
+local addShift = true	-- when single clicking a sequence of mexes, no longer needed to hold shift!
 
-local mexPlacementRadius = 1500	-- (not actual ingame distance)
+local mexPlacementRadius = 1600	-- (not actual ingame distance)
 local mexPlacementDragRadius = 20000	-- larger size so you can drag a move line over/near mex spots and it will auto queue mex there more easily
 
 local CMD_AREA_MEX = 10100
@@ -288,6 +289,8 @@ local sec = 0
 function widget:Update(dt)
 	if chobbyInterface then return end
 
+	local mx, my, mb, mmb, mb2 = Spring.GetMouseState()
+
 	local doUpdate = activeUnitShape ~= nil
 	sec = sec + dt
 	if sec > 0.05 then
@@ -318,7 +321,6 @@ function widget:Update(dt)
 		-- display mouse cursor/mex unitshape when hovering over a metalspot
 		if doUpdate then
 			if not WG.customformations_linelength or WG.customformations_linelength < 10 then	-- dragging multi-unit formation-move-line
-				local mx, my, mb = Spring.GetMouseState()
 				local type, params = Spring.TraceScreenRay(mx, my)
 				local isT1Mex = (type == 'unit' and mexIds[spGetUnitDefID(params)] and mexIds[spGetUnitDefID(params)] < 0.002)
 				local closestMex, unitID
@@ -395,12 +397,13 @@ function widget:CommandNotify(id, params, options)
 		return
 	end
 	if isGuard then
-		local mx, my = Spring.GetMouseState()
+		local mx, my, mb = Spring.GetMouseState()
 		local type, unitID = Spring.TraceScreenRay(mx, my)
 		if not (type == 'unit' and mexIds[spGetUnitDefID(unitID)] and mexIds[spGetUnitDefID(unitID)] < 0.002) then
 			return
 		end
 	end
+
 
 	-- transform move into area-mex command
 	local moveReturn = false
@@ -411,6 +414,9 @@ function widget:CommandNotify(id, params, options)
 			params[1], params[2], params[3] = ux, uy, uz
 			id = CMD_AREA_MEX
 			params[4] = 30 		-- increase this too if you want to increase mexPlacementRadius
+			if addShift then
+				options.shift = true	-- this allows for separate clicks (of mex spot queuing).
+			end
 			lastInsertedOrder = nil
 		elseif isMove and moveIsAreamex then
 			local closestMex = GetClosestMetalSpot(params[1], params[3])
@@ -428,6 +434,9 @@ function widget:CommandNotify(id, params, options)
 				id = CMD_AREA_MEX
 				params[4] = 120		-- increase this too if you want to increase mexPlacementDragRadius
 				moveReturn = true
+				if addShift then
+					options.shift = true	-- this allows for separate clicks (of mex spot queuing). When movedragging: this is also dont to fix doing area mex twice undoing a queued mex
+				end
 			else
 				return false
 			end

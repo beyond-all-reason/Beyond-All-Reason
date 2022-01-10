@@ -32,6 +32,7 @@ local featureAlpha = 0.15
 local useShader = true
 local edgeExponent = 1.25
 local shaderUnitAlphaMultiplier = 0.7
+local hideBelowGameframe = 100
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -331,19 +332,11 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:DrawWorld()
-	if chobbyInterface then
-		return
-	end
-	if WG['topbar'] and WG['topbar'].showingQuit() then
-		return
-	end
-	if select(7, spGetMouseState()) then
-		-- when camera panning
-		return
-	end
-	if Spring.IsGUIHidden() then
-		return
-	end
+	if chobbyInterface then return end
+	if WG['topbar'] and WG['topbar'].showingQuit() then return end
+	if Spring.GetGameFrame() < hideBelowGameframe then return end
+	if select(7, spGetMouseState()) then return end -- when camera panning
+	if Spring.IsGUIHidden() then return end
 
 	if drawFeatureHighlight and (type == 'feature') then
 		HilightFeature(data)
