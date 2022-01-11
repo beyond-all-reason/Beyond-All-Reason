@@ -363,6 +363,7 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 -------------------- configurables -----------------------
 local additionalheightaboveunit = 24 --16?
 local featuredistancemultiplier = 4 -- how many times closer features have to be for their bars to show
+local unitDefSizeMultipliers = {} -- table of unitdefID to a size mult (default 1.0) to override sizing of bars per unitdef
 
 local debugmode = false
 
@@ -440,6 +441,7 @@ out DataVS {
 	vec4 v_centerpos;
 	vec4 v_uvoffsets;
 	vec4 v_parameters;
+	vec2 v_sizemodifiers;
 	uvec4 v_bartype_index_ssboloc;
 };
 
@@ -480,7 +482,7 @@ void main()
 	v_parameters.y = 1.0 - (clamp(cameraDistance, BARFADESTART, BARFADEEND) - BARFADESTART)/ ( BARFADEEND-BARFADESTART);
 	v_parameters.z = 1.0 - (clamp(cameraDistance, ICONFADESTART, ICONFADEEND) - ICONFADESTART)/ ( ICONFADEEND-ICONFADESTART);
 	v_parameters.w = height_timers.w;
-
+	v_sizemodifiers = height_timers.yz;
 	if (length((cameraViewInv[3]).xyz - v_centerpos.xyz) >  iconDistance){
 		v_parameters.yz = vec2(0.0);
 	}
@@ -552,6 +554,7 @@ in DataVS { // I recall the sane limit for cache coherence is like 48 floats per
 	vec4 v_centerpos;
 	vec4 v_uvoffsets;
 	vec4 v_parameters;
+	vec2 v_sizemodifiers;
 	uvec4 v_bartype_index_ssboloc;
 } dataIn[];
 
@@ -564,10 +567,11 @@ mat3 rotY;
 vec4 centerpos;
 vec4 uvoffsets;
 float zoffset;
+float sizemultiplier = dataIn[0].v_sizemodifiers.x;
 
 void emitVertexBG(in vec2 pos){
 	g_uv.xy = vec2(0.0,0.0);
-	vec3 primitiveCoords = vec3(pos.x,0.0,pos.y - zoffset) * BARSCALE;
+	vec3 primitiveCoords = vec3(pos.x,0.0,pos.y - zoffset) * BARSCALE *sizemultiplier;
 	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( primitiveCoords ), 1.0);
 	g_uv.z = 0.0; // this tells us to use color
 	g_color = mix(BGBOTTOMCOLOR, BGTOPCOLOR, pos.y);
@@ -583,7 +587,7 @@ void emitVertexBarBG(in vec2 pos, in vec4 botcolor, in float bartextureoffset){
 	g_uv.xy = g_uv.xy * vec2(ATLASSTEP * 9, ATLASSTEP) + vec2(2 * ATLASSTEP, bartextureoffset); // map uvs to the bar texture
 	g_uv.y = -1.0 * g_uv.y;
 	//vec3 primitiveCoords = vec3( (pos.x - sign(pos.x) * BARCORNER),0.0, (pos.y - sign(pos.y - 0.5) * BARCORNER - zoffset)) * BARSCALE;
-	vec3 primitiveCoords = vec3( pos.x,0.0, pos.y - zoffset) * BARSCALE;
+	vec3 primitiveCoords = vec3( pos.x,0.0, pos.y - zoffset) * BARSCALE *sizemultiplier;
 	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( primitiveCoords ), 1.0);
 	g_uv.z = clamp(10000 * bartextureoffset, 0, 1); // this tells us to use color if we are using bartextureoffset
 	g_color = botcolor;
@@ -595,7 +599,7 @@ void emitVertexBarBG(in vec2 pos, in vec4 botcolor, in float bartextureoffset){
 }
 void emitVertexGlyph(in vec2 pos, in vec2 uv){
 	g_uv.xy = vec2(uv.x, 1.0 - uv.y);
-	vec3 primitiveCoords = vec3(pos.x,0.0,pos.y - zoffset) * BARSCALE;
+	vec3 primitiveCoords = vec3(pos.x,0.0,pos.y - zoffset) * BARSCALE *sizemultiplier;
 	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( primitiveCoords ), 1.0);
 	g_uv.z = 1.0; // this tells us to use texture
 	g_color = vec4(1.0);
@@ -873,8 +877,9 @@ end
 --------------------------------------------------------------------------------
 
 local unitBars = {}
-
 --'if DBGTRACE then Spring.Echo("%s:%d %s) | ", "caller:"..tostring(debug.getinfo(2).name) %s) end\n'
+local healthBarTableCache = {}
+for i = 1, 20 do healthBarTableCache[i] = 0.0 end
 
 local function addBarForUnit(unitID, unitDefID, barname)
 	if debugmode then Spring.Debug.TraceEcho(unitBars[unitID]) end 
@@ -888,24 +893,34 @@ local function addBarForUnit(unitID, unitDefID, barname)
 	--Spring.Echo(instanceID, barname, unitBars[unitID])
 	if healthBarVBO.instanceIDtoIndex[instanceID] then return end -- we already have this bar !
 	if unitBars[unitID] == nil then
+		Spring.Echo("A unit has no bars yet", UnitDefs[Spring.GetUnitDefID(unitID)].name, Spring.GetUnitPosition(unitID))
 		Spring.Debug.TraceEcho()
+		unitBars[unitID] = 1
 	end
 	unitBars[unitID] = unitBars[unitID] + 1
 	
+	healthBarTableCache[1] = unitDefHeights[unitDefID] + additionalheightaboveunit  -- height
+	healthBarTableCache[2] = unitDefSizeMultipliers[unitDefID] or 1.0 -- sizemult
+	healthBarTableCache[3] = 0.0 -- unused
+	healthBarTableCache[4] = bt.uvoffset -- glyph uv offset
+	
+	healthBarTableCache[5] = bt.bartype -- bartype int
+	healthBarTableCache[6] = unitBars[unitID] - 1 -- bar index (how manyeth per unit)
+	healthBarTableCache[7] = bt.uniformindex -- ssbo location offset (> 20 for health)
+	
+	healthBarTableCache[9] = bt.mincolor[1]
+	healthBarTableCache[10] = bt.mincolor[2]
+	healthBarTableCache[11] = bt.mincolor[3]
+	healthBarTableCache[12] = bt.mincolor[4]
+	
+	healthBarTableCache[13] = bt.maxcolor[1]
+	healthBarTableCache[14] = bt.maxcolor[2]
+	healthBarTableCache[15] = bt.maxcolor[3]
+	healthBarTableCache[16] = bt.maxcolor[4]
 	
 	pushElementInstance(
 		healthBarVBO, -- push into this Instance VBO Table
-			{unitDefHeights[unitDefID] + additionalheightaboveunit,  -- height
-			gf - 10, -- timer start
-			gf + 300, -- timer end
-			bt.uvoffset, -- unused float
-			bt.bartype, -- bartype int
-			unitBars[unitID] - 1, -- bar index (how manyeth per unit)
-			bt.uniformindex, -- ssbo location offset (> 20 for health)
-			0, -- unused int
-			bt.mincolor[1], bt.mincolor[2], bt.mincolor[3], bt.mincolor[4],
-			bt.maxcolor[1], bt.maxcolor[2], bt.maxcolor[3], bt.maxcolor[4],
-			0, 0, 0, 0}, -- these are just padding zeros for instData, that will get filled in 
+		healthBarTableCache, 
 		instanceID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		nil, -- noupload, dont use unless you know what you want to batch push/pop
@@ -1006,7 +1021,7 @@ local function addBarToFeature(featureID,  barname)
 	pushElementInstance(
 		targetVBO, -- push into this Instance VBO Table
 			{featureDefHeights[featureDefID],  -- height
-			0, -- timer start
+			1.0, -- size mult
 			0, -- timer end
 			bt.uvoffset, -- unused float
 			
@@ -1301,12 +1316,12 @@ function widget:GameFrame(n)
 	if (n % 1) == 0 then 
 		for unitID, captureprogress in pairs(unitCaptureWatch) do
 			local capture = select(4, Spring.GetUnitHealth(unitID))
-			if capture ~= captureprogress then 
+			if capture and capture ~= captureprogress then 
 				uniformcache[1] = capture
 				gl.SetUnitBufferUniforms(unitID, uniformcache, 5)
 				unitCaptureWatch[unitID] = capture
 			end
-			if capture == 0 then 
+			if capture == 0 or capture == nil then 
 				removeBarFromUnit(unitID, 'capture')
 				unitCaptureWatch[unitID] = nil
 			end
