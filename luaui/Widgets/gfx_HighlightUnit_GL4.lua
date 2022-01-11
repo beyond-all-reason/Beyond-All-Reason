@@ -17,8 +17,10 @@ end
 -- support features too!
 -- Parameters: 
 	-- worldposrot (offset if unitID)
-	-- isstatic, teamcoloramount, animspeed
-	-- plainalpha, edgealpha, 
+	-- isstatic, teamcoloramount, 
+	-- animamount -- how much to the blend fracty stuff into it 
+	-- plainalpha, -- how much 
+	-- edgealpha, (exponent maybe hard-codeable?), 
 	-- color, alpha
 -- 
 
@@ -110,7 +112,7 @@ void main() {
 	myTeamColor = vec4(teamColor[teamIndex].rgb, parameters.x); // pass alpha through
 
 	vec4 viewpos = cameraView * worldModelPos;
-	v_toeye = viewpos.xyz;
+	v_toeye = cameraViewInv[3].xyz - worldModelPos.xyz ;
 	v_hcolor = hcolor;
 	
 	vec3 modelBaseToCamera = cameraViewInv[3].xyz - (pieceMatrix[3].xyz + worldposrot.xyz);
@@ -120,11 +122,15 @@ void main() {
 	}
 	
 	v_parameters = parameters;
-	v_normal = (cameraView * ((pieceMatrix*vec4(rotY *normal,1.0)))).xyz;
+	mat3 pieceMat3 = mat3(pieceMatrix);
+	mat3 modelMat3 = mat3(modelMatrix);
+	//v_normal = (((pieceMat3*vec4(rotY *normal,1.0)))).xyz;
+	v_normal = modelMat3*pieceMat3*rotY* normal;
 	worldPos = worldModelPos.xyz;
 	gl_Position = cameraViewProj * worldModelPos;
 }
 ]]
+
 
 local fsSrc = [[
 #version 330
@@ -145,6 +151,9 @@ in vec3 v_toeye;
 in vec3 v_normal;
 in vec4 v_hcolor;
 
+
+#define NORM2SNORM(value) (value * 2.0 - 1.0)
+#define SNORM2NORM(value) (value * 0.5 + 0.5)
 out vec4 fragColor;
 #line 25000
 void main() {
@@ -154,6 +163,9 @@ void main() {
 	opac = pow(opac, 2.0);
 	float worldposfactor = fract(worldPos.y * 0.033 + timeInfo.x*0.033);
 	fragColor = vec4(opac, 1.0, worldposfactor,worldposfactor);
+	
+	fragColor.rgb = vec3(1.0);
+	fragColor.a = opac;
 }
 ]]
 
