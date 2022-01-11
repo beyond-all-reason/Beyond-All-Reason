@@ -611,7 +611,7 @@ local function fadeOutTrack()
 end
 
 function PlayNewTrack(paused)
-	if not paused then
+	if (not paused) and Spring.GetGameFrame() > 1 then
 		deviceLostSafetyCheck = deviceLostSafetyCheck + 1
 	end
 	Spring.StopSoundStream()
