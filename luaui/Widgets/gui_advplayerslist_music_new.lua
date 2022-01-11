@@ -29,16 +29,16 @@ local function ReloadMusicPlaylists()
 	---------------------------------COLLECT MUSIC------------------------------------
 
 	-- New Soundtrack List
-	local musicDirNew 		= 'music/original'
-	local peaceTracksNew 		= VFS.DirList(musicDirNew..'/peace', '*.ogg')
-	local warhighTracksNew 	= VFS.DirList(musicDirNew..'/warhigh', '*.ogg')
-	local warlowTracksNew 		= VFS.DirList(musicDirNew..'/warlow', '*.ogg')
-	local gameoverTracksNew 	= VFS.DirList(musicDirNew..'/gameover', '*.ogg')
+	local musicDirNew 			= 'music/original'
+	local peaceTracksNew 			= VFS.DirList(musicDirNew..'/peace', '*.ogg')
+	local warhighTracksNew 			= VFS.DirList(musicDirNew..'/warhigh', '*.ogg')
+	local warlowTracksNew 			= VFS.DirList(musicDirNew..'/warlow', '*.ogg')
+	local gameoverTracksNew 		= VFS.DirList(musicDirNew..'/gameover', '*.ogg')
 
 	-- Old Soundtrack List
-	local musicDirOld 		= 'music/legacy'
-	local peaceTracksOld 		= VFS.DirList(musicDirOld..'/peace', '*.ogg')
-	local warTracksOld 			= VFS.DirList(musicDirOld..'/war', '*.ogg')
+	local musicDirOld 			= 'music/legacy'
+	local peaceTracksOld 			= VFS.DirList(musicDirOld..'/peace', '*.ogg')
+	local warTracksOld 				= VFS.DirList(musicDirOld..'/war', '*.ogg')
 
 	-- Custom Soundtrack List
 	local musicDirCustom 		= 'music/custom'
@@ -51,10 +51,10 @@ local function ReloadMusicPlaylists()
 
 	-----------------------------------SETTINGS---------------------------------------
 	
-	interruptionEnabled = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
-	silenceTimerEnabled = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
-	local newSoundtrackEnabled = Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
-	local oldSoundtrackEnabled 	= Spring.GetConfigInt('UseSoundtrackOld', 0) == 1
+	interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
+	silenceTimerEnabled 			= Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
+	local newSoundtrackEnabled 		= Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
+	local oldSoundtrackEnabled 		= Spring.GetConfigInt('UseSoundtrackOld', 0) == 1
 	local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1
 
 	-------------------------------CREATE PLAYLISTS-----------------------------------
@@ -538,7 +538,7 @@ function widget:Update(dt)
 		if totalTime == 0 then
 			silenceTimer = 0
 			warMeter = 0
-			PlayNewTrack()
+			PlayNewTrack(paused)
 		end
 	end
 end
@@ -610,8 +610,10 @@ local function fadeOutTrack()
 	end
 end
 
-function PlayNewTrack()
-	deviceLostSafetyCheck = deviceLostSafetyCheck + 1
+function PlayNewTrack(paused)
+	if not paused then
+		deviceLostSafetyCheck = deviceLostSafetyCheck + 1
+	end
 	Spring.StopSoundStream()
 	silenceTimer = 0
 	appliedSilence = false
