@@ -241,17 +241,17 @@ function TargetHST:createGridCell()
 end
 
 function TargetHST:areaCells(X,Z,R,this)
-	if not Z or not Z then
+	if not X or not Z then
 		self:Warn('no grid XZ for areacells')
 	end
 	local AC = {}
-	R = R or 0
+	R = R or 1
 	myself = myself or false
 	for x = X - R , X + R,1  do
 		for z = Z - R , Z + R,1 do
 			if this or (x ~= X or z ~= Z) then
 				if self.CELLS[x] and self.CELLS[x][z] then
-					print('x=',x,'z=',z)
+					--self:EchoDebug('x=',x,'z=',z)
 					table.insert(AC, {gx = x, gz = z})
 				end
 			end
@@ -332,6 +332,11 @@ local function GetCellPosition(pos)
 	return px, pz
 end
 
+function TargetHST:PosToGrid(pos)
+	local px = mCeil(pos.x / cellElmos)
+	local pz = mCeil(pos.z / cellElmos)
+	return px, pz
+end
 
 function TargetHST:GetCellHere(pos)
 	local px, pz = GetCellPosition(pos)
