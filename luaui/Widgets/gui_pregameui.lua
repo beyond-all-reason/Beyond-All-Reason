@@ -142,11 +142,10 @@ function widget:GameSetup(state, ready, playerStates)
 		ready = false
 	end
 
-	local prevReadied = readied
 	pressedReady = playerStates[Spring.GetMyPlayerID()] == 'ready'
-
-	readied = ready
-	if prevReadied ~= readied then
+	local prevReadied = readied
+	readied = pressedReady
+	if prevReadied ~= ready then
 		widget:ViewResize(vsx, vsy)
 	end
 	--Spring.Echo(ready, pressedReady, os.clock(), Spring.Debug.TableEcho(playerStates)) --, Spring.Debug.TableEcho(playerStates)
