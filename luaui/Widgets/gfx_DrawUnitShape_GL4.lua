@@ -124,17 +124,20 @@ void main() {
 	uint baseIndex = instData.x;
 
 	// dynamic models have one extra matrix, as their first matrix is their world pos/offset
+	mat4 modelMatrix = mat[baseIndex];
 	uint isDynamic = 1u; //default dynamic model
 	if (parameters.y > 0.5) isDynamic = 0u;  //if paramy == 1 then the unit is static
 	mat4 pieceMatrix = mat[baseIndex + pieceIndex + isDynamic];
 
 	vec4 localModelPos = pieceMatrix * vec4(pos, 1.0);
 	
+	
 	// Make the rotation matrix around Y and rotate the model
 	mat3 rotY = rotation3dY(worldposrot.w); 
 	localModelPos.xyz = rotY * localModelPos.xyz;
 	
 	vec4 worldModelPos = localModelPos;
+	if (parameters.y < 0.5) worldModelPos = modelMatrix*localModelPos;
 	worldModelPos.xyz += worldposrot.xyz; //Place it in the world
 
 	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
