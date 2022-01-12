@@ -25,8 +25,6 @@ local commonFunctions = {
 		LuaMenu   = true,
 		LuaIntro  = true,
 		LuaUI     = true,
-
-		LuaParser = true, -- will be removed once I18N calls are removed from defs
 	},
 }
 
