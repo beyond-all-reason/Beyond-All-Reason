@@ -11,7 +11,7 @@ end
 local minRaidCount = 5
 function RaidHST:Init()
 	self.visualdbg = true
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.raiders = {}
 	self.squads = {}
 	self.pathValidFuncs = {}

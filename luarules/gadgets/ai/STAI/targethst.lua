@@ -260,6 +260,8 @@ function TargetHST:areaCells(X,Z,R,this)
 	return AC
 end
 
+
+
 function TargetHST:clearEnemies()---wrong, clear the cells by parsing enemycells
 	for x,Ztable in pairs(self.CELLS) do
 		for z, cell in pairs(Ztable)do
@@ -333,9 +335,9 @@ local function GetCellPosition(pos)
 end
 
 function TargetHST:PosToGrid(pos)
-	local px = mCeil(pos.x / cellElmos)
-	local pz = mCeil(pos.z / cellElmos)
-	return px, pz
+	local gridX = mCeil(pos.x / cellElmos)
+	local gridZ = mCeil(pos.z / cellElmos)
+	return gridX, gridZ
 end
 
 function TargetHST:GetCellHere(pos)
@@ -369,103 +371,6 @@ function TargetHST:GetOrCreateCellHere(pos,posZ)--can be a position or 2 grid lo
 	end
 end
 
-function TargetHST:Value(unitName)
-	local v = unitValue[unitName]
-	if v then return v end
-	local utable = self.ai.armyhst.unitTable[unitName]
-	if not utable then return 0 end
-	local val = utable.metalCost + (utable.techLevel * techValue)
-	if utable.buildOptions ~= nil then
-		if utable.isBuilding then
-			-- factory
-			val = val + factoryValue
-		else
-			-- construction unit
-			val = val + conValue
-		end
-	end
-	if utable.extractsMetal > 0 then
-		val = val + 800000 * utable.extractsMetal
-	end
-	if utable.totalEnergyOut > 0 then
-		val = val + (utable.totalEnergyOut * energyOutValue)
-	end
-	unitValue[unitName] = val
-	return val
-end
-
--- need to change because: amphibs can't be hurt by non-submerged threats in water, and can't be hurt by anything but ground on land
-function TargetHST:CellValueThreat(unitName, cell)
-	if cell == nil then return 0, 0 end
-	local gas, weapons
-	if unitName == "ALL" then
-		gas = threatTypesAsKeys
-		weapons = threatTypes
-		unitName = "nothing"
-	else
-		gas = self.ai.tool:WhatHurtsUnit(unitName, nil, cell.pos)
-		weapons = self.ai.armyhst.unitTable[unitName].weaponLayer--self.ai.tool:UnitWeaponLayerList(unitName)
-	end
-	local threat = 0
-	local value = 0
-	local notThreat = 0
-	for i = 1, #threatTypes do
-		local GAS = threatTypes[i]
-		local yes = gas[GAS]
-		if yes then
-			threat = threat + cell.threat[GAS]
-			for i, weaponGAS in pairs(weapons) do
-				value = value + cell.values[GAS][weaponGAS]
-			end
-		elseif self.ai.armyhst.airgun[unitName] then
-			notThreat = notThreat + cell.threat[GAS]
-		end
-	end
-	if gas.air and self.ai.armyhst.raiders[unitName] and not self.ai.armyhst.airgun[unitName] then
-		threat = threat + cell.threat.ground * 0.1
-	end
-	if self.ai.armyhst.airgun[unitName] then
-		value = notThreat
-		-- if notThreat == 0 then value = 0 end
-	end
-	return value, threat, gas
-end
-
-
-function TargetHST:ValueHere(position, unitOrName)
-	--self:UpdateMap()
-	local uname = self:UnitNameSanity(unitOrName)
-	if not uname then return end
-	local cell, px, pz = self:GetCellHere(position)
-	if cell == nil then return 0, nil, uname end
-	local value, _ = self:CellValueThreat(uname, cell)
-	return value, cell, uname
-end
-
-function TargetHST:ThreatHere(position, unitOrName, adjacent)
-	--self:UpdateMap()
-	local uname = self:UnitNameSanity(unitOrName)
-	if not uname then return end
-	local cell, px, pz = self:GetCellHere(position)
-	if cell == nil then return 0, nil, uname end
-	local value, threat = self:CellValueThreat(uname, cell)
-	if adjacent then
-		for cx = px-1, px+1 do
-			if self.cells[cx] then
-				for cz = pz-1, pz+1 do
-					if not (cx == px and cz == pz) then
-						local c = self.cells[cx][cz]
-						if c then
-							local cvalue, cthreat = self:CellValueThreat(uname, c)
-							threat = threat + cthreat
-						end
-					end
-				end
-			end
-		end
-	end
-	return threat, cell, uname
-end
 
 function TargetHST:Init()
 	self.DebugEnabled = false
@@ -626,30 +531,6 @@ function TargetHST:adiaCells(px,pz,field)--return a list with 8 adiacent cells r
 	end
 end
 return adiacents
-end
-
-function TargetHST:UnitNameSanity(unitOrName)--TODO move to tool
-	if not unitOrName then
-		self.game:Warn('nil unit or name')
-		return
-	end
-	if type(unitOrName) == 'string' then
-		if not self.ai.armyhst.unitTable[unitOrName] then
-			self.game:Warn('invalid string name',unitOrName)
-			return
-		else
-			return unitOrName
-		end
-	else
-		local uName = unitOrName:Name()
-		if uName ~= nil  and self.ai.armyhst.unitTable[uName]then
-			return uName
-		else
-			self.game:Warn('invalid object unit give invalid name',unitOrName)
-			return
-		end
-	end
-	self.game:Warn('unknow reason to exit from unit name sanity')
 end
 
 function TargetHST:CountEnemyThreat(unitID, unitName, threat)
@@ -832,7 +713,8 @@ function TargetHST:UpdateEnemies()
 				elseif e.view > 0 then --LOS, full view
 					local mtype = ut.mtype
 					self:DangerCheck(name, unitID)
-					local value = self:Value(name)
+-- 					local value = self:Value(name)
+					local value = ut.metalCost
 					if self.ai.armyhst.unitTable[name].extractsMetal ~= 0 then
 						table.insert(self.ai.enemyMexSpots, { position = pos, unit = e })
 					end
@@ -864,7 +746,8 @@ function TargetHST:UpdateEnemies()
 							if cell.targets[groundAirSubmerged][hurtGAS] == nil then
 								cell.targets[groundAirSubmerged][hurtGAS] = e
 							else
-								if value > self:Value(cell.targets[groundAirSubmerged][hurtGAS].unitName) then
+-- 								if value > self:Value(cell.targets[groundAirSubmerged][hurtGAS].unitName) then
+								if value > self.ai.armyhst.unitTable[cell.targets[groundAirSubmerged][hurtGAS].unitName] then
 									cell.targets[groundAirSubmerged][hurtGAS] = e
 								end
 							end
@@ -1239,7 +1122,7 @@ function TargetHST:IsBombardPosition(position, unitName)
 end
 
 
-function TargetHST:IsSafePosition(position, unit, threshold, adjacent)
+function TargetHST:IsSafePositionORIGINAL(position, unit, threshold, adjacent)
 	local threat, cell, uname = self:ThreatHere(position, unit, adjacent)
 	if not cell then
 		return true
@@ -1251,13 +1134,35 @@ function TargetHST:IsSafePosition(position, unit, threshold, adjacent)
 	end
 end
 
+function TargetHST:IsSafePosition(position, unitName, threshold, adjacent)
+	if not position then
+		self:Warn('nil position in safe position check')
+		return
+	end
+-- 	local layer = --here implement a count of danger per layer, but now we count all danger layer as dangerous
+-- 	if unit then
+-- 		layer = self.ai.armyhst.unitTable[unitName].LAYER
+-- 	end
+	threshold = threshold or 0
+	local gridX, gridZ = self:PosToGrid(position)
+	local cell = self.CELLS[gridX][gridZ]
+	local danger = cell.armed
+	if adjacent then
+		for i,v in pairs(self:areaCells(gridX,gridZ,1)) do
+			danger = danger + self.CELLS[gx][gz].armed
+		end
+	end
+	return danger <= threshold
+end
+
 function TargetHST:GetPathModifierFunc(unitName, adjacent)
 	if self.pathModifierFuncs[unitName] then
 		return self.pathModifierFuncs[unitName]
 	end
 	local divisor = self.ai.armyhst.unitTable[unitName].metalCost / 40
 	local modifier_node_func = function ( node, distanceToGoal, distanceStartToGoal )
-		local threatMod = self:ThreatHere(node.position, unitName, adjacent) / divisor
+		--local threatMod = self:ThreatHere(node.position, unitName, adjacent) / divisor--BE CAREFULL DANGER CHECK
+		local threatMod = self:ThreatHere(node.position, unitName, adjacent) / divisor--BE CAREFULL DANGER CHECK
 		if distanceToGoal then
 			if distanceToGoal <= 500 then
 				return 0
@@ -1571,3 +1476,109 @@ end
 -- 		end
 -- 	end
 -- end
+
+
+
+
+--[[
+function TargetHST:Value(unitName)--used only here DEPRECATED
+	local v = unitValue[unitName]
+	if v then return v end
+	local utable = self.ai.armyhst.unitTable[unitName]
+	if not utable then return 0 end
+	local val = utable.metalCost + (utable.techLevel * techValue)
+	if utable.buildOptions ~= nil then
+		if utable.isBuilding then
+			-- factory
+			val = val + factoryValue
+		else
+			-- construction unit
+			val = val + conValue
+		end
+	end
+	if utable.extractsMetal > 0 then
+		val = val + 800000 * utable.extractsMetal
+	end
+	if utable.totalEnergyOut > 0 then
+		val = val + (utable.totalEnergyOut * energyOutValue)
+	end
+	unitValue[unitName] = val
+	return val
+end
+
+
+
+-- need to change because: amphibs can't be hurt by non-submerged threats in water, and can't be hurt by anything but ground on land
+function TargetHST:CellValueThreat(unitName, cell)--DEPRECATED
+	if cell == nil then return 0, 0 end
+	local gas, weapons
+	if unitName == "ALL" then
+		gas = threatTypesAsKeys
+		weapons = threatTypes
+		unitName = "nothing"
+	else
+		gas = self.ai.tool:WhatHurtsUnit(unitName, nil, cell.pos)
+		weapons = self.ai.armyhst.unitTable[unitName].weaponLayer--self.ai.tool:UnitWeaponLayerList(unitName)
+	end
+	local threat = 0
+	local value = 0
+	local notThreat = 0
+	for i = 1, #threatTypes do
+		local GAS = threatTypes[i]
+		local yes = gas[GAS]
+		if yes then
+			threat = threat + cell.threat[GAS]
+			for i, weaponGAS in pairs(weapons) do
+				value = value + cell.values[GAS][weaponGAS]
+			end
+		elseif self.ai.armyhst.airgun[unitName] then
+			notThreat = notThreat + cell.threat[GAS]
+		end
+	end
+	if gas.air and self.ai.armyhst.raiders[unitName] and not self.ai.armyhst.airgun[unitName] then
+		threat = threat + cell.threat.ground * 0.1
+	end
+	if self.ai.armyhst.airgun[unitName] then
+		value = notThreat
+		-- if notThreat == 0 then value = 0 end
+	end
+	return value, threat, gas
+end
+
+
+function TargetHST:ValueHere(position, unitOrName)--DEPRECATED APART ATTACK
+	--self:UpdateMap()
+	local uname = self.ai.tool:UnitNameSanity(unitOrName)
+	if not uname then return end
+	local cell, px, pz = self:GetCellHere(position)
+	if cell == nil then return 0, nil, uname end
+	local value, _ = self:CellValueThreat(uname, cell)
+	return value, cell, uname
+end
+
+function TargetHST:ThreatHere(position, unitOrName, check_adjacent)--DEPRECATED APART ATTACK
+	--self:UpdateMap()
+	local uname = self.ai.tool:UnitNameSanity(unitOrName)
+	if not uname then return end
+	local cell, px, pz = self:GetCellHere(position)
+	if cell == nil then return 0, nil, uname end
+	local value, threat = self:CellValueThreat(uname, cell)
+	if check_adjacent then
+		for cx = px-1, px+1 do
+			if self.cells[cx] then
+				for cz = pz-1, pz+1 do
+					if not (cx == px and cz == pz) then
+						local c = self.cells[cx][cz]
+						if c then
+							local cvalue, cthreat = self:CellValueThreat(uname, c)
+							threat = threat + cthreat
+						end
+					end
+				end
+			end
+		end
+	end
+	return threat, cell, uname
+end
+
+]]

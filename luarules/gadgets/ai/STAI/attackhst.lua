@@ -29,6 +29,7 @@ function AttackHST:Init()
 	self.baseAttackCounter = 8
 	self.idleTimeMult = 45  --originally set to 3 * 30
 	self.squadID = 1
+	self.fearFactor = 0.66
 end
 
 function AttackHST:Update()
@@ -46,9 +47,13 @@ function AttackHST:Update()
 		if squad.arrived then
 			squad.arrived = nil
 			if squad.pathStep < #squad.path - 1 then
-				local value = self.ai.targethst:ValueHere(squad.targetPos, squad.members[1].name)
-				local threat = self.ai.targethst:ThreatHere(squad.targetPos, squad.members[1].name)
-				if (value == 0 and threat == 0) or threat > squad.totalThreat * 0.67 then
+-- 				local value = self.ai.targethst:ValueHere(squad.targetPos, squad.members[1].name)
+-- 				local threat = self.ai.targethst:ThreatHere(squad.targetPos, squad.members[1].name)
+				local gridX,gridZ = self.ai.targethst:PosToGrid(squad.targetPos)
+				local cell = self.ai.targethst.CELLS[gridX][gridZ]
+				local value = cell.ENEMY
+				local threat = cell.armed
+				if (value == 0 and threat == 0) or threat > squad.totalThreat * self.fearFactor then
 					self:SquadReTarget(squad) -- get a new target, this one isn't valuable
 				else
 					self:SquadNewPath(squad) -- see if there's a better way from the point we're going to
@@ -240,46 +245,6 @@ function AttackHST:targetCell2(representative, position, ourThreat)
 	end
 	self:EchoDebug('no target found for attackhst')
 end
-function AttackHST:targetCell(representative, position, ourThreat)
-	if not representative then return end
-	position = position or representative:GetPosition()
-	local aName = representative:Name()
-	local targets = {}
-	local maxdist = 0
-	for i, cell in pairs(self.ai.targethst.cellList) do
-		for squadIndex,squad in pairs(self.squads) do
-			if squad.targetCell == cell or not cell.pos then return end
-		end
-		if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
-			local value, threat = self.ai.targethst:CellValueThreat(aName, cell)
-
-			if value > 50 then
-				local dist = self.ai.tool:Distance(position, cell.pos)
-
-				local rank =  value - threat
-				maxdist = math.max(dist,maxdist)
-				table.insert(targets, { cell = cell, value = value, threat = threat, dist = dist ,rank = rank})
-				self.map:DrawCircle(cell.pos,100, {0,1,0,1}, value,true, 6)
-				self:EchoDebug('is possible attack',cell.pos.x,cell.pos.z,value,threat,dist,rank)
-			end
-		end
-
-	end
-	local TG = nil
-	local distancedtarget = 0
-	for i, target in pairs(targets) do
-		if (1 - (target.dist / maxdist)) * target.rank > distancedtarget then
-			TG = target
-			distancedtarget = (1 - (target.dist / maxdist)) * target.rank
-		end
-	end
-	if TG then
-		self.lastAttackCell = TG.cell
-		return TG.cell
-	end
-	self:EchoDebug('no target found for attackhst')
-end
-
 
 
 function AttackHST:SquadDisband(squad, squadIndex)
@@ -566,8 +531,47 @@ function AttackHST:GetCounter(mtype)
 	end
 end
 
+
 --[[
+function AttackHST:targetCell(representative, position, ourThreat)
+	if not representative then return end
+	position = position or representative:GetPosition()
+	local aName = representative:Name()
+	local targets = {}
+	local maxdist = 0
+	for i, cell in pairs(self.ai.targethst.cellList) do
+		for squadIndex,squad in pairs(self.squads) do
+			if squad.targetCell == cell or not cell.pos then return end
+		end
+		if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
+			local value, threat = self.ai.targethst:CellValueThreat(aName, cell)
 
+			if value > 50 then
+				local dist = self.ai.tool:Distance(position, cell.pos)
 
+				local rank =  value - threat
+				maxdist = math.max(dist,maxdist)
+				table.insert(targets, { cell = cell, value = value, threat = threat, dist = dist ,rank = rank})
+				self.map:DrawCircle(cell.pos,100, {0,1,0,1}, value,true, 6)
+				self:EchoDebug('is possible attack',cell.pos.x,cell.pos.z,value,threat,dist,rank)
+			end
+		end
 
+	end
+	local TG = nil
+	local distancedtarget = 0
+	for i, target in pairs(targets) do
+		if (1 - (target.dist / maxdist)) * target.rank > distancedtarget then
+			TG = target
+			distancedtarget = (1 - (target.dist / maxdist)) * target.rank
+		end
+	end
+	if TG then
+		self.lastAttackCell = TG.cell
+		return TG.cell
+	end
+	self:EchoDebug('no target found for attackhst')
+end
 ]]
+
+

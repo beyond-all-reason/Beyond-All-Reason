@@ -28,7 +28,7 @@ local function MaxBuildDist(unitName, speed)
 end
 
 function TaskQueueBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.role = nil
 	self.active = false
 	self.currentProject = nil
@@ -417,6 +417,7 @@ function TaskQueueBST:findPlace(utype, value,cat)
 		local uw
 		local reclaimEnemyMex
 		POS, uw, reclaimEnemyMex = self.ai.maphst:ClosestFreeSpot(utype, builder)
+		self:EchoDebug(POS, uw, reclaimEnemyMex)
 		if POS  then
 			if reclaimEnemyMex then
 				value = {"ReclaimEnemyMex", reclaimEnemyMex}
