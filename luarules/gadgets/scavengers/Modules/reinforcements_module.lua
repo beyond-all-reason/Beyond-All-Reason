@@ -275,30 +275,32 @@ function spawnPlayerReinforcements(n)
 								local newposy = Spring.GetGroundHeight(posx, posz)
 								Spring.CreateUnit("scavengerdroppodfriendly", posx, posy, posz, math_random(0,3), teamID)
 								local ReUnit = Spring.CreateUnit(groupunit, posx, posy, posz, math_random(0,3), teamID)
-								Spring.SetUnitNoSelect(ReUnit, true)
-								Spring.GiveOrderToUnit(ReUnit,CMD.FIRE_STATE,{2},0)
-								Spring.GiveOrderToUnit(ReUnit,CMD.MOVE_STATE,{2},0)
-								table.insert(ActiveReinforcementUnits, ReUnit)
+								if ReUnit then
+									Spring.SetUnitNoSelect(ReUnit, true)
+									Spring.GiveOrderToUnit(ReUnit,CMD.FIRE_STATE,{2},0)
+									Spring.GiveOrderToUnit(ReUnit,CMD.MOVE_STATE,{2},0)
+									table.insert(ActiveReinforcementUnits, ReUnit)
 
-								local unitDefID = Spring.GetUnitDefID(ReUnit)
-								UnitSuffixLenght[ReUnit] = string.len(scavconfig.unitnamesuffix)
-								if scavconfig.modules.constructorControllerModule then
-									if constructorControllerModuleConfig.useresurrectors then
-										if constructorUnitList.ResurrectorsID[unitDefID] then
-											FriendlyResurrectors[ReUnit] = true
+									local unitDefID = Spring.GetUnitDefID(ReUnit)
+									UnitSuffixLenght[ReUnit] = string.len(scavconfig.unitnamesuffix)
+									if scavconfig.modules.constructorControllerModule then
+										if constructorControllerModuleConfig.useresurrectors then
+											if constructorUnitList.ResurrectorsID[unitDefID] then
+												FriendlyResurrectors[ReUnit] = true
+											end
+
+											if constructorUnitList.ResurrectorsSeaID[unitDefID] then
+												FriendlyResurrectors[ReUnit] = true
+											end
 										end
 
-										if constructorUnitList.ResurrectorsSeaID[unitDefID] then
-											FriendlyResurrectors[ReUnit] = true
-										end
-									end
-
-									if constructorControllerModuleConfig.usecollectors then
-										if constructorUnitList.CollectorsID[unitDefID] then
-											if math_random(0,100) <= 10 then
-												FriendlyCollectors[ReUnit] = true
-											else
-												FriendlyReclaimers[ReUnit] = true
+										if constructorControllerModuleConfig.usecollectors then
+											if constructorUnitList.CollectorsID[unitDefID] then
+												if math_random(0,100) <= 10 then
+													FriendlyCollectors[ReUnit] = true
+												else
+													FriendlyReclaimers[ReUnit] = true
+												end
 											end
 										end
 									end
