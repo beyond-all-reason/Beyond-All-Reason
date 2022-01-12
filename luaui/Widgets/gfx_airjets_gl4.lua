@@ -543,9 +543,9 @@ void main(void)
 		vec2 displacement = texCoords.pq;
 
 		vec2 txCoord = texCoords.st;
-		txCoord.s += (texture2D(noiseMap, displacement * DISTORTION * 20.0).y - 0.5) * 40.0 * DISTORTION;
-		txCoord.t +=  texture2D(noiseMap, displacement).x * (1.0-texCoords.t)        * 15.0 * DISTORTION;
-		float opac = texture2D(mask,txCoord.st).r;
+		txCoord.s += (texture(noiseMap, displacement * DISTORTION * 20.0).y - 0.5) * 40.0 * DISTORTION;
+		txCoord.t +=  texture(noiseMap, displacement).x * (1.0-texCoords.t)        * 15.0 * DISTORTION;
+		float opac = texture(mask,txCoord.st).r;
 
 		fragColor.rgb  = opac * jetcolor.rgb; //color
 		fragColor.rgb += pow(opac, 5.0 );     //white flame
