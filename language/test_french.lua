@@ -74,7 +74,6 @@ return {
 					lobby = "Le Lobby",
 					settings = "Le Settings",
 					changes = "Le Changes",
-					commands = "Le Commands",
 					keys = "Le Keys",
 					scavengers = "Le Scavengers",
 					stats = "Le Statistics",

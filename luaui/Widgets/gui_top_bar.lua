@@ -373,9 +373,6 @@ local function updateButtons()
 	if WG['teamstats'] ~= nil then
 		text = text .. Spring.I18N('ui.topbar.button.stats') .. '   '
 	end
-	if WG['commands'] ~= nil then
-		text = text .. Spring.I18N('ui.topbar.button.commands') .. '   '
-	end
 	if WG['keybinds'] ~= nil then
 		text = text .. Spring.I18N('ui.topbar.button.keys') .. '   '
 	end
@@ -471,17 +468,6 @@ local function updateButtons()
 				buttonsArea['buttons']['stats'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
 					firstButton = 'stats'
-				end
-			end
-			if WG['commands'] ~= nil then
-				buttons = buttons + 1
-				if buttons > 1 then
-					offset = math_floor(offset + width + 0.5)
-				end
-				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.commands')) * fontsize) + 0.5)
-				buttonsArea['buttons']['commands'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				if not firstButton then
-					firstButton = 'commands'
 				end
 			end
 			if WG['keybinds'] ~= nil then
@@ -1882,14 +1868,6 @@ local function applyButtonAction(button)
 		hideWindows()
 		if WG['keybinds'] ~= nil and isvisible ~= true then
 			WG['keybinds'].toggle()
-		end
-	elseif button == 'commands' then
-		if WG['commands'] ~= nil then
-			isvisible = WG['commands'].isvisible()
-		end
-		hideWindows()
-		if WG['commands'] ~= nil and isvisible ~= true then
-			WG['commands'].toggle()
 		end
 	elseif button == 'stats' then
 		if WG['teamstats'] ~= nil then
