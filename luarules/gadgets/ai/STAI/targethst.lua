@@ -10,62 +10,75 @@ end
 
 local DebugDrawEnabled = false
 
-local mFloor = math.floor
-local mCeil = math.ceil
-
-
-
 local cellElmos = 256
 local cellElmosHalf = cellElmos / 2
-local threatTypes = { "ground", "air", "submerged" }
-local threatTypesAsKeys = { ground = true, air = true, submerged = true }
-local baseUnitThreat = 0 -- 150
-local baseUnitRange = 0 -- 250
-local unseenMetalGeoValue = 50
-local baseBuildingValue = 150
-local bomberExplosionValue = 2000
-local vulnerableHealth = 400
-local wreckMult = 100
-local vulnerableReclaimDistMod = 100
-local badCellThreat = 300
-local attackDistMult = 0.5 -- between 0 and 1, the lower number, the less self.ai.tool:distance matters
-local reclaimModMult = 0.5 -- how much does the cell's metal & energy modify the self.ai.tool:distance to the cell for reclaim cells
 
-local factoryValue = 1000
-local conValue = 300
-local techValue = 50
-local energyOutValue = 2
-local minNukeValue = factoryValue + techValue + 500
+function TargetHST:Init()
+	self.DebugEnabled = false
+	self.visualdbg = true
+	self:createGridCell()
+	self.BAD_CELLS = {}
+	self.SPOT_CELLS = {}
+	self.pathModParam = 40
+	self.pathModifierFuncs = {}
+	self.enemyMexSpots = {}
+end
 
-local feintRepeatMod = 25
 
-local unitValue = {}
-
-local function NewCell(px, pz)
-	local x = px * cellElmos - cellElmosHalf
-	local z = pz * cellElmos - cellElmosHalf
-	local position = api.Position()
-	position.x, position.z = x, z
-	position.y = Spring.GetGroundHeight(x, z)
-	if x < 0 or z < 0 or x > Game.mapSizeX or z > Game.mapSizeZ  then
-		--print(px,pz,'cell not in map',x,z)
-		return
+function TargetHST:createGridCell()
+	self.CELLS = {}
+	self.ENEMYCELLS = {}
+	for x = 1, Game.mapSizeX / cellElmos do
+		if not self.CELLS[x] then
+			self.CELLS[x] = {}
+		end
+		for z = 1, Game.mapSizeZ / cellElmos do
+			self.CELLS[x][z] = {}
+			self:NewCell(x,z)
+		end
 	end
-	local values = {
-		ground = {ground = 0, air = 0, submerged = 0, value = 0},
-		air = {ground = 0, air = 0, submerged = 0, value = 0},
-		submerged = {ground = 0, air = 0, submerged = 0, value = 0},
-		} -- value to our units first to who can be hurt by those things, then to those who have those kinds of weapons
-	-- [GAS].value is just everything that doesn't hurt that kind of thing
-	local targets = { ground = {}, air = {}, submerged = {}, } -- just one target for each [GAS][hurtGAS]
-	local vulnerables = { ground = {}, air = {}, submerged = {}, } -- just one vulnerable for each [GAS][hurtGAS]
-	local threat = { ground = 0, air = 0, submerged = 0 } -- threats (including buildings) by what they hurt
-	local response = { ground = 0, air = 0, submerged = 0 } -- count mobile threat by what can hurt it
-	local preresponse = { ground = 0, air = 0, submerged = 0 } -- count where mobile threat will probably be by what can hurt it
+end
 
-	local newcell = { value = 0, explosionValue = 0, values = values, threat = threat, response = response, buildingIDs = {}, targets = targets, vulnerables = vulnerables, resurrectables = {}, reclaimables = {}, lastDisarmThreat = 0, metal = 0, energy = 0, x = px, z = pz, pos = position }
+function TargetHST:areaCells(X,Z,R)
+	if not X or not Z then
+		self:Warn('no grid XZ for areacells')
+	end
+	local AC = {}
+	R = R or 0
+	myself = myself or false
+	for x = X - R , X + R,1  do
+		for z = Z - R , Z + R,1 do
+			if self.CELLS[x] and self.CELLS[x][z] then
+				table.insert(AC, {gx = x, gz = z})
+			end
+		end
+	end
+	return AC
+end
 
-	return newcell
+
+function TargetHST:clearEnemies()---wrong, clear the cells by parsing enemycells
+	for x,Ztable in pairs(self.CELLS) do
+		for z, cell in pairs(Ztable)do
+			self:NewCell(x,z)
+		end
+	end
+	self.ENEMYCELLS = {}
+end
+
+function TargetHST:PosToGrid(pos)
+	local gridX = math.ceil(pos.x / cellElmos)
+	local gridZ = math.ceil(pos.z / cellElmos)
+	return gridX, gridZ
+end
+
+function TargetHST:GetCellHere(pos)
+	local gridX,gridZ = self:PosToGrid(pos)
+	if self.CELLS[gridX] and self.CELLS[gridX][gridZ] then
+		return self.CELLS[gridX][gridZ],gridX,gridZ
+	else
+		self:Warn('get cell here ask for a cell that not exist')
+	end
 end
 
 function TargetHST:NewCell(px, pz)
@@ -79,14 +92,15 @@ function TargetHST:NewCell(px, pz)
 
 	local CELL = {}
 	CELL.pos = cellPos
-	--print(px,pz,CELL.pos.x,CELL.pos.y,CELL.pos.z)
-
 	CELL.gx = px
 	CELL.gz = pz
 	CELL.enemyUnits = {}
 	CELL.enemyBuildings = {}
 	CELL.friendlyUnits = {}
 	CELL.myUnits = {}
+	CELL.badPositions = 0
+	CELL.spots = 0
+	CELL.damagedUnits = {}
 	--targets of this cell per layer is immobile unit NO weapon express in metal here is the layer that count
 	CELL.unarmGI = 0
 	CELL.unarmAI = 0
@@ -143,13 +157,9 @@ function TargetHST:NewCell(px, pz)
 	self.CELLS[px][pz] = CELL
 end
 
-
-
 function TargetHST:setCellEnemyValues(enemy,CELL)
 	CELL.enemyUnits[enemy.id] = enemy.name
 	if not enemy.mobile then
-
-
 		CELL.enemyBuildings[enemy.id] = enemy.name
 	end
 	local ut = self.ai.armyhst.unitTable[enemy.name]
@@ -219,7 +229,6 @@ function TargetHST:setCellEnemyValues(enemy,CELL)
 		CELL.G_balance = CELL.armedG - CELL.unarmG
 		CELL.A_balance = CELL.armedA - CELL.unarmA
 		CELL.S_balance = CELL.armedS - CELL.unarmS
-
 		CELL.ENEMY = CELL.armed + CELL.unarm --TOTAL VALUE
 		CELL.ENEMY_BALANCE = CELL.armed - CELL.unarm
 	elseif enemy.view == 0 then --RADAR
@@ -227,7 +236,6 @@ function TargetHST:setCellEnemyValues(enemy,CELL)
 		CELL.ENEMY_BALANCE = CELL.ENEMY_BALANCE - 20
 	elseif enemy.view == -1 then--HIDDEN
 		--hidden superflous for now
-
 	end
 	if CELL.ENEMY > 0 then
 		if not self.ENEMYCELLS[CELL.gx..':'..CELL.gz] then
@@ -235,37 +243,6 @@ function TargetHST:setCellEnemyValues(enemy,CELL)
 			self.ENEMYCELLS[CELL.gx..':'..CELL.gz] = grid
 		end
  	end
-end
-
-function TargetHST:createGridCell()
-	self.CELLS = {}
-	self.ENEMYCELLS = {}
-	for x = 1, Game.mapSizeX / cellElmos do
-		if not self.CELLS[x] then
-			self.CELLS[x] = {}
-		end
-		for z = 1, Game.mapSizeZ / cellElmos do
-			self.CELLS[x][z] = {}
-			self:NewCell(x,z)
-		end
-	end
-end
-
-function TargetHST:areaCells(X,Z,R)
-	if not X or not Z then
-		self:Warn('no grid XZ for areacells')
-	end
-	local AC = {}
-	R = R or 0
-	myself = myself or false
-	for x = X - R , X + R,1  do
-		for z = Z - R , Z + R,1 do
-			if self.CELLS[x] and self.CELLS[x][z] then
-				table.insert(AC, {gx = x, gz = z})
-			end
-		end
-	end
-	return AC
 end
 
 function TargetHST:getCellsFields(position,fields,range)--maybe we can run just through ENEMYCELLS
@@ -278,11 +255,9 @@ function TargetHST:getCellsFields(position,fields,range)--maybe we can run just 
 	local cells = self:areaCells(gridX,gridZ,range)
 	local VALUE = 0 --VALUE is a total count of all request fields
 	local subValues = {} --subValues is the sum of this fields of each asked cell
-
 	for i, f in pairs(fields) do
 		subValues[f] = 0
 	end
-
 	for index , grid in pairs(cells) do
 		local cell = self.CELLS[grid.gx][grid.gz]
 		for i, field in pairs(fields) do
@@ -293,187 +268,48 @@ function TargetHST:getCellsFields(position,fields,range)--maybe we can run just 
 	return VALUE , subValues , cells
 end
 
-function TargetHST:clearEnemies()---wrong, clear the cells by parsing enemycells
-	for x,Ztable in pairs(self.CELLS) do
-		for z, cell in pairs(Ztable)do
-			self:NewCell(x,z)
-		end
+function TargetHST:Update()
+	local f = self.game:Frame()
+	if f == 0 or f % 71 == 0 then
+		self.cells = {}--TODO
+		self:clearEnemies()--delete just the enemy data inside cells, leave other living --TEST
+		self.cellList = {}
+		self:UpdateEnemies()
+		self:UpdateDamagedUnits()
+		self:drawDBG()
+		self:UpdateMetalGeoSpots()
+		self:UpdateBadPositions()
 	end
-	self.ENEMYCELLS = {}
-end
-
-function TargetHST:drawDBG()
-	self.map:EraseAll(4)
-	if not self.visualdbg then
-		return
-	end
-	local colours={
-			g = {1,0,0,1},--'red'
-			a = {0,1,0,1},--'green'
-			s = {0,0,1,1},--'blue'
-			unbalance = {1,1,1,1},
-			balance = {0,0,0,1},
-
-			}
-	for index,G in pairs (self.ENEMYCELLS) do
-		local cell = self.CELLS[G.x][G.z]
-		local p = cell.pos
-
-		--map:DrawCircle(p,cellElmosHalf, colours.balance, cell.ENEMY,false,  4)
-		local pos1, pos2 = api.Position(), api.Position()--z,api.Position(),api.Position(),api.Position()
-		pos1.x, pos1.z = p.x - cellElmosHalf, p.z - cellElmosHalf
-		pos2.x, pos2.z = p.x + cellElmosHalf, p.z + cellElmosHalf
-		pos1.y=Spring.GetGroundHeight(pos1.x,pos1.z)
-		pos2.y=Spring.GetGroundHeight(pos2.x,pos2.z)
-
-		self:EchoDebug('drawing',pos1.x,pos1.z,pos2.x,pos2.z)
-		if cell.ENEMY_BALANCE > 0 then
-			map:DrawRectangle(pos1, pos2, colours.balance, cell.ENEMY_BALANCE, false, 4)
-		else
-			map:DrawRectangle(pos1, pos2, colours.unbalance, cell.ENEMY_BALANCE, false, 4)
-		end
-		posG = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
-		posS = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
-		posB = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
-		posA = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
-
-		if cell.G > 0 then
-			map:DrawCircle(posG, cellElmosHalf/2,colours.g , cell.G, true, 4)
-		end
-		if cell.A > 0 then
-			map:DrawCircle(posA, cellElmosHalf/2,colours.a, cell.A, true, 4)
-		end
-		if cell.S > 0 then
-			map:DrawCircle(posS, cellElmosHalf/2, colours.s, cell.S, true, 4)
-		end
-		--map:DrawCircle(posB, cellElmosHalf/2, colours.s, cell.ENEMY_BALANCE, true, 4)
-
-	end
-end
-
-
-function TargetHST:CellExist(x,z)
-	if not self.cells[x] or not  self.cells[x][z] then
-		return false
-	end
-	return self.cells[x][z],x,z
-end
-
-local function GetCellPosition(pos)
-	local px = mCeil(pos.x / cellElmos)
-	local pz = mCeil(pos.z / cellElmos)
-	return px, pz
-end
-
-function TargetHST:PosToGrid(pos)
-	local gridX = mCeil(pos.x / cellElmos)
-	local gridZ = mCeil(pos.z / cellElmos)
-	return gridX, gridZ
-end
-
-function TargetHST:GetCellHere(pos)
-	local px, pz = GetCellPosition(pos)
-	if self.cells[px] and self.cells[px][pz] then
-		return self.cells[px][pz], px, pz
-	end
-end
-
-function TargetHST:GetOrCreateCellHere(pos,posZ)--can be a position or 2 grid location(px,pz)
-	local px,pz
-	if type(pos) == 'table' then
-		px, pz = GetCellPosition(pos)
-	else
-		px = pos
-		pz = posZ
-	end
-
-	local cell = self:CellExist(px,pz)
-	if cell then
-		return cell
-
-	end
-	cell = NewCell(px,pz)
-	if cell then
-		table.insert(self.cellList, cell)
-		self:EchoDebug('#selfcelllist',#self.cellList)
-		if not self.cells[px] then self.cells[px] = {} end
-		self.cells[px][pz] = cell
-		return self.cells[px][pz]
-	end
-end
-
-
-function TargetHST:Init()
-	self.DebugEnabled = false
-	self.visualdbg = true
-	self.enemyAlreadyCounted = {}
-	self.currentEnemyThreatCount = 0
-	self.currentEnemyImmobileThreatCount = 0
-	self.currentEnemyMobileThreatCount = 0
-	self.cells = {}
-	self.cellList = {}
-	self.badPositions = {}
-	self.dangers = {}
-
-	self.ai.enemyMexSpots = {}
-	self.ai.totalEnemyThreat = 10000
-	self.ai.totalEnemyImmobileThreat = 5000
-	self.ai.totalEnemyMobileThreat = 5000
-	self.ai.needGroundDefense = true
-	self.ai.areLandTargets = true
-	self.ai.canNuke = true
-	--self:InitializeDangers()
-	-- 	self.lastEnemyThreatUpdateFrame = 0
-	self.feints = {}
-	self.raiderCounted = {}
-	self.lastUpdateFrame = 0
-	self.pathModifierFuncs = {}
-
-	self:createGridCell()
-	self.pathModParam = 40
 end
 
 function TargetHST:UpdateEnemies()
-	self.ai.enemyMexSpots = {}
+	self.enemyMexSpots = {}
 	-- where is/are the party/parties tonight?
-	local highestValue = minNukeValue
-	local highestValueCell
+-- 	local highestValue = minNukeValue
+-- 	local highestValueCell
 	--for unitID, e in pairs(self.ai.knownEnemies) do
 	for unitID, e in pairs(self.ai.loshst.knownEnemies) do
 		local los = e.los
 		local ghost = e.ghost
 		local name = e.name
 		local ut = self.ai.armyhst.unitTable[name]
-		local px, pz = GetCellPosition(e.position)
+		local px, pz = self:PosToGrid(e.position)
 		self:setCellEnemyValues(e,self.CELLS[px][pz])
+		if self.ai.armyhst.unitTable[name].extractsMetal ~= 0 then
+			table.insert(self.enemyMexSpots, { position = e.position, unit = e })
+		end
 	end
 end
 
-
-
 function TargetHST:UpdateMetalGeoSpots()
 	local spots = self.ai.scoutSpots.air[1]
-	local fromGAS = {"ground", "air", "submerged"}
-	local toGAS = {"ground", "submerged"}
-	for i = 1, #spots do
-		local spot = spots[i]
-		if not self.ai.loshst:posInLos(spot) then
-			local cell = self:GetOrCreateCellHere(spot)
-			-- cell.value = cell.value + unseenMetalGeoValue
-			local underwater = self.ai.maphst:IsUnderWater(spot)
-			for i = 1, #fromGAS do
-				local fgas = fromGAS[i]
-				if not underwater or fgas ~= 'submerged' then
-					cell.values[fgas] = cell.values[fgas] or {}
-					for ii = 1, #toGAS do
-						local tgas = toGAS[ii]
-						if not underwater or tgas == 'submerged' then
-							cell.values[fgas][tgas] = (cell.values[fgas][tgas] or 0) + unseenMetalGeoValue
-						end
-					end
-				end
-			end
-		end
+	for index,spot in pairs(spots) do
+		local underwater = self.ai.maphst:IsUnderWater(spot)
+		local inLos = self.ai.loshst:posInLos(spot)
+		local gridX,gridZ = self:PosToGrid(spot)
+		local cell = self.CELLS[gridX][gridZ]
+		self.SPOT_CELLS[gridX .. ':' .. gridZ] = {gridX = gridX, gridZ = gridZ, underwater = underwater,inLos = inLos}
+		cell.spots = cell.spots + 1
 	end
 end
 
@@ -481,7 +317,6 @@ function TargetHST:UnitDamaged(unit, attacker, damage)
 	-- even if the attacker can't be seen, human players know what weapons look like
 	-- in non-lua shard, the attacker is nil if it's an enemy unit, so this becomes useless
 	if attacker ~= nil and attacker:AllyTeam() ~= self.ai.allyId then --   we know what is it and self.ai.loshst:IsKnownEnemy(attacker) ~= 2 then
-
 		local mtype
 		local ut = self.ai.armyhst.unitTable[unit:Name()]
 		if ut then
@@ -499,55 +334,36 @@ function TargetHST:UnitDamaged(unit, attacker, damage)
 	end
 end
 
-function TargetHST:Update()
-	local f = self.game:Frame()
-	if f == 0 or f % 71 == 0 then
-		self.cells = {}--TODO
-		self:clearEnemies()--delete just the enemy data inside cells, leave other living --TEST
-		self.cellList = {}
-		self:UpdateEnemies()
-		self:UpdateDamagedUnits()
-		self:drawDBG()
-		self:UpdateMetalGeoSpots()
-		self:UpdateBadPositions()
-	end
-end
-
 function TargetHST:AddBadPosition(position, mtype, threat, duration)
 	threat = threat or badCellThreat
 	duration = duration or 1800
-	local px, pz = GetCellPosition(position)
+	local px, pz = self:PosToGrid(position)
 	local gas = self.ai.tool:WhatHurtsUnit(nil, mtype, position)
 	local f = self.game:Frame()
 	for groundAirSubmerged, yes in pairs(gas) do
 		if yes then
 			local newRecord =
 					{
-						px = px,
-						pz = pz,
+						gridX = px,
+						gridZ = pz,
 						groundAirSubmerged = groundAirSubmerged,
 						frame = f,
 						threat = threat,
 						duration = duration,
 						}
-			table.insert(self.badPositions, newRecord)
+			self.BAD_CELLS[px .. ':' ..pz] = newRecord
+			self.CELLS[px][pz].badPositions = self.CELLS[px][pz].badPositions + 1
 		end
 	end
 end
 
 function TargetHST:UpdateBadPositions()
 	local f = self.game:Frame()
-	for i = #self.badPositions, 1, -1 do
-		local r = self.badPositions[i]
-		if self:CellExist(r.px , r.pz) then
-			cell = self.cells[r.px][r.pz]
-			if cell then
-				cell.threat[r.groundAirSubmerged] = cell.threat[r.groundAirSubmerged] + r.threat
-			end
-		end
-		if f > r.frame + r.duration then
-			-- remove bad positions after 1 minute
-			table.remove(self.badPositions, i)
+	for index,G in pairs(self.BAD_CELLS) do
+		local cell = self.CELLS[G.gridX][G.gridZ]
+		if f - G.frame  > 300 then--reset  bad position every 10 seconds
+			cell.badPositions = 0
+			self.BAD_CELLS[G.gridX.. ':' ..G.gridZ] = nil
 		end
 	end
 end
@@ -555,17 +371,10 @@ end
 function TargetHST:UpdateDamagedUnits()
 	for unitID, engineUnit in pairs(self.ai.damagehst:GetDamagedUnits()) do
 		local eUnitPos = engineUnit:GetPosition()
-		local cell = self:GetOrCreateCellHere(eUnitPos)
-		if not cell then
-			self:EchoDebug('no cell here', eUnitPos.x,eUnitPos.z)
-			return
-		end
-		cell.damagedUnits = cell.damagedUnits or {}
+		local cell = self:GetCellHere(eUnitPos)
 		cell.damagedUnits[#cell.damagedUnits+1] = engineUnit
 	end
 end
-
-------------------------------------------------------------------------HERE BEGIN THE ON DEMAND FUNCTION---------------------------
 
 function TargetHST:NearbyVulnerable()
 	if unit == nil then return end
@@ -619,6 +428,56 @@ function TargetHST:GetPathModifierFunc(unitName, adjacent)
 	self.pathModifierFuncs[unitName] = modifier_node_func
 	return modifier_node_func
 end
+
+function TargetHST:drawDBG()
+	self.map:EraseAll(4)
+	if not self.visualdbg then
+		return
+	end
+	local colours={
+			g = {1,0,0,1},--'red'
+			a = {0,1,0,1},--'green'
+			s = {0,0,1,1},--'blue'
+			unbalance = {1,1,1,1},
+			balance = {0,0,0,1},
+
+			}
+	for index,G in pairs (self.ENEMYCELLS) do
+		local cell = self.CELLS[G.x][G.z]
+		local p = cell.pos
+		--map:DrawCircle(p,cellElmosHalf, colours.balance, cell.ENEMY,false,  4)
+		local pos1, pos2 = api.Position(), api.Position()--z,api.Position(),api.Position(),api.Position()
+		pos1.x, pos1.z = p.x - cellElmosHalf, p.z - cellElmosHalf
+		pos2.x, pos2.z = p.x + cellElmosHalf, p.z + cellElmosHalf
+		pos1.y=Spring.GetGroundHeight(pos1.x,pos1.z)
+		pos2.y=Spring.GetGroundHeight(pos2.x,pos2.z)
+		self:EchoDebug('drawing',pos1.x,pos1.z,pos2.x,pos2.z)
+		if cell.ENEMY_BALANCE > 0 then
+			map:DrawRectangle(pos1, pos2, colours.balance, cell.ENEMY_BALANCE, false, 4)
+		else
+			map:DrawRectangle(pos1, pos2, colours.unbalance, cell.ENEMY_BALANCE, false, 4)
+		end
+		posG = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
+		posS = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
+		posB = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
+		posA = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
+
+		if cell.G > 0 then
+			map:DrawCircle(posG, cellElmosHalf/2,colours.g , cell.G, true, 4)
+		end
+		if cell.A > 0 then
+			map:DrawCircle(posA, cellElmosHalf/2,colours.a, cell.A, true, 4)
+		end
+		if cell.S > 0 then
+			map:DrawCircle(posS, cellElmosHalf/2, colours.s, cell.S, true, 4)
+		end
+		--map:DrawCircle(posB, cellElmosHalf/2, colours.s, cell.ENEMY_BALANCE, true, 4)
+	end
+end
+
+
+
+
 
 
 --[[
@@ -1609,4 +1468,143 @@ end
 
 --[[
 
+
+
+--[[
+
+local mFloor = math.floor
+local mCeil = math.ceil
+
+local threatTypes = { "ground", "air", "submerged" }
+local threatTypesAsKeys = { ground = true, air = true, submerged = true }
+local baseUnitThreat = 0 -- 150
+local baseUnitRange = 0 -- 250
+local unseenMetalGeoValue = 50
+local baseBuildingValue = 150
+local bomberExplosionValue = 2000
+local vulnerableHealth = 400
+local wreckMult = 100
+local vulnerableReclaimDistMod = 100
+local badCellThreat = 300
+local attackDistMult = 0.5 -- between 0 and 1, the lower number, the less self.ai.tool:distance matters
+local reclaimModMult = 0.5 -- how much does the cell's metal & energy modify the self.ai.tool:distance to the cell for reclaim cells
+
+local factoryValue = 1000
+local conValue = 300
+local techValue = 50
+local energyOutValue = 2
+local minNukeValue = factoryValue + techValue + 500
+
+local feintRepeatMod = 25
+
+local unitValue = {}
+
+
+local function NewCell(px, pz)
+	local x = px * cellElmos - cellElmosHalf
+	local z = pz * cellElmos - cellElmosHalf
+	local position = api.Position()
+	position.x, position.z = x, z
+	position.y = Spring.GetGroundHeight(x, z)
+	if x < 0 or z < 0 or x > Game.mapSizeX or z > Game.mapSizeZ  then
+		--print(px,pz,'cell not in map',x,z)
+		return
+	end
+	local values = {
+		ground = {ground = 0, air = 0, submerged = 0, value = 0},
+		air = {ground = 0, air = 0, submerged = 0, value = 0},
+		submerged = {ground = 0, air = 0, submerged = 0, value = 0},
+		} -- value to our units first to who can be hurt by those things, then to those who have those kinds of weapons
+	-- [GAS].value is just everything that doesn't hurt that kind of thing
+	local targets = { ground = {}, air = {}, submerged = {}, } -- just one target for each [GAS][hurtGAS]
+	local vulnerables = { ground = {}, air = {}, submerged = {}, } -- just one vulnerable for each [GAS][hurtGAS]
+	local threat = { ground = 0, air = 0, submerged = 0 } -- threats (including buildings) by what they hurt
+	local response = { ground = 0, air = 0, submerged = 0 } -- count mobile threat by what can hurt it
+	local preresponse = { ground = 0, air = 0, submerged = 0 } -- count where mobile threat will probably be by what can hurt it
+
+	local newcell = { value = 0, explosionValue = 0, values = values, threat = threat, response = response, buildingIDs = {}, targets = targets, vulnerables = vulnerables, resurrectables = {}, reclaimables = {}, lastDisarmThreat = 0, metal = 0, energy = 0, x = px, z = pz, pos = position }
+
+	return newcell
+end
+
+
+function TargetHST:GetOrCreateCellHere(pos,posZ)--can be a position or 2 grid location(px,pz)
+	local px,pz
+	if type(pos) == 'table' then
+		px, pz = GetCellPosition(pos)
+	else
+		px = pos
+		pz = posZ
+	end
+
+	local cell = self:CellExist(px,pz)
+	if cell then
+		return cell
+
+	end
+	cell = NewCell(px,pz)
+	if cell then
+		table.insert(self.cellList, cell)
+		self:EchoDebug('#selfcelllist',#self.cellList)
+		if not self.cells[px] then self.cells[px] = {} end
+		self.cells[px][pz] = cell
+		return self.cells[px][pz]
+	end
+end
+
+local function GetCellPosition(pos)
+	local px = mCeil(pos.x / cellElmos)
+	local pz = mCeil(pos.z / cellElmos)
+	return px, pz
+end
+
+function TargetHST:GetCellHere(pos)
+	local px, pz = GetCellPosition(pos)
+	if self.cells[px] and self.cells[px][pz] then
+		return self.cells[px][pz], px, pz
+	end
+end
+
+function TargetHST:CellExist(x,z)
+	if not self.cells[x] or not  self.cells[x][z] then
+		return false
+	end
+	return self.cells[x][z],x,z
+end
+
+-- 	self.enemyAlreadyCounted = {}
+-- 	self.currentEnemyThreatCount = 0
+-- 	self.currentEnemyImmobileThreatCount = 0
+-- 	self.currentEnemyMobileThreatCount = 0
+-- 	self.cells = {}
+-- 	self.cellList = {}
+-- 	self.badPositions = {}
+-- 	self.dangers = {}
+
+-- 	self.ai.enemyMexSpots = {}
+-- 	self.ai.totalEnemyThreat = 10000
+-- 	self.ai.totalEnemyImmobileThreat = 5000
+-- 	self.ai.totalEnemyMobileThreat = 5000
+-- 	self.ai.needGroundDefense = true
+-- 	self.ai.areLandTargets = true
+-- 	self.ai.canNuke = true
+	--self:InitializeDangers()
+	-- 	self.lastEnemyThreatUpdateFrame = 0
+-- 	self.feints = {}
+-- 	self.raiderCounted = {}
+-- 	self.lastUpdateFrame = 0
+
+
+
+
+
+
+
+
+
+
+
+
 ]]
+
+

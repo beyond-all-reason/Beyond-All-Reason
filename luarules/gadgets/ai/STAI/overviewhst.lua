@@ -57,10 +57,10 @@ function OverviewHST:EvaluateSituation()
 	local attackTooExpensive = attackCounter == self.ai.armyhst.maxAttackCounter
 	local controlMetalSpots = self.ai.tool:countMyUnit({'extractsMetal'}) > #self.ai.mobNetworkMetals["air"][1] * 0.4
 	local needUpgrade = couldAttack or bombingTooExpensive or attackTooExpensive
-	self.keepCommanderSafe = self.ai.totalEnemyThreat > 3000 -- turn commander into assistant, for now above paranoidCommander because the assistant behaviour isn't helpful or safe
-	self.paranoidCommander = self.ai.totalEnemyThreat > 5000 -- move commander to safest place assisting a factory
+	--self.keepCommanderSafe = self.ai.totalEnemyThreat > 3000 -- turn commander into assistant, for now above paranoidCommander because the assistant behaviour isn't helpful or safe
+	--self.paranoidCommander = self.ai.totalEnemyThreat > 5000 -- move commander to safest place assisting a factory
 
-	self:EchoDebug(self.ai.totalEnemyThreat .. " " .. self.ai.totalEnemyImmobileThreat .. " " .. self.ai.totalEnemyMobileThreat)
+	--self:EchoDebug(self.ai.totalEnemyThreat .. " " .. self.ai.totalEnemyImmobileThreat .. " " .. self.ai.totalEnemyMobileThreat)
 	-- build siege units if the enemy is turtling, if a lot of our attackers are getting destroyed, or if we control over 40% of the metal spots
 	self.plasmaRocketBotRatio = 1
 	if self.ai.totalEnemyMobileThreat and self.ai.totalEnemyMobileThreat > 0 and self.ai.totalEnemyImmobileThreat and self.ai.totalEnemyImmobileThreat > 0 then
