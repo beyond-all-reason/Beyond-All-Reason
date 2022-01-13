@@ -240,7 +240,6 @@ function AttackHST:targetCell2(representative, position, ourThreat)
 		end
 	end
 	if bestTarget then
-		print(bestTarget.gx,bestTarget.gz)
 		return bestTarget
 	end
 	self:EchoDebug('no target found for attackhst')

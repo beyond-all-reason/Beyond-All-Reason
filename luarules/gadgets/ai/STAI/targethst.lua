@@ -422,7 +422,7 @@ function TargetHST:Init()
 	self.ai.needGroundDefense = true
 	self.ai.areLandTargets = true
 	self.ai.canNuke = true
-	self:InitializeDangers()
+	--self:InitializeDangers()
 	-- 	self.lastEnemyThreatUpdateFrame = 0
 	self.feints = {}
 	self.raiderCounted = {}
@@ -432,234 +432,6 @@ function TargetHST:Init()
 	self:createGridCell()
 	self.pathModParam = 40
 end
-
-function TargetHST:HorizontalLine(x, z, tx, threatResponse, groundAirSubmerged, val)
-	self.game:StartTimer('hl')
-	-- self:EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " with value " .. val .. " in " .. groundAirSubmerged)
-	for ix = x, tx do
-		local cell =self:GetOrCreateCellHere(ix,z)
-		if cell then
-			self.cells[ix][z][threatResponse][groundAirSubmerged] = self.cells[ix][z][threatResponse][groundAirSubmerged] + val
-		else
-			--self:Warn('Cell not exist or is not in map in horizontalLine',ix,z)
-		end
-	end
-	self.game:StopTimer('hl')
-end
-
-function TargetHST:Plot4(cx, cz, x, z, threatResponse, groundAirSubmerged, val)
-	self.game:StartTimer('p4')
-	self:HorizontalLine(cx - x, cz + z, cx + x, threatResponse, groundAirSubmerged, val)
-	if x ~= 0 and z ~= 0 then
-		self:HorizontalLine(cx - x, cz - z, cx + x, threatResponse, groundAirSubmerged, val)
-	end
-	self.game:StopTimer('p4')
-end
-
-function TargetHST:FillCircle(cx, cz, radius, threatResponse, groundAirSubmerged, val)
-	self.game:StartTimer('fc')
-	local radius = mCeil(radius / cellElmos)
-	if radius > 0 then
-		local err = -radius
-		local x = radius
-		local z = 0
-		while x >= z do
-			local lastZ = z
-			err = err + z
-			z = z + 1
-			err = err + z
-			self:Plot4(cx, cz, x, lastZ, threatResponse, groundAirSubmerged, val)
-			if err >= 0 then
-				if x ~= lastZ then self:Plot4(cx, cz, lastZ, x, threatResponse, groundAirSubmerged, val) end
-				err = err - x
-				x = x - 1
-				err = err - x
-			end
-		end
-	end
-	self.game:StopTimer('fc')
-end
-
-function TargetHST:CheckHorizontalLine(x, z, tx, threatResponse, groundAirSubmerged)
-	self.game:StartTimer('chl')
-	-- self:EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " in " .. groundAirSubmerged)
-	local value = 0
-	local threat = 0
-	for ix = x, tx do
-		if self:CellExist(ix,z) then
-			local cell = self.cells[ix][z]
-			local value = cell.values[groundAirSubmerged].value -- can't hurt it
-			local threat = cell[threatResponse][groundAirSubmerged]
-			self.game:StopTimer('chl')
-			return value, threat
-
-		end
-	end
-	self.game:StopTimer('chl')
-	return value, threat
-end
-
-function TargetHST:Check4(cx, cz, x, z, threatResponse, groundAirSubmerged)
-	self.game:StartTimer('c4')
-	local value = 0
-	local threat = 0
-	local v, t = self:CheckHorizontalLine(cx - x, cz + z, cx + x, threatResponse, groundAirSubmerged)
-	value = value + v
-	threat = threat + t
-	if x ~= 0 and z ~= 0 then
-		local v, t = self:CheckHorizontalLine(cx - x, cz - z, cx + x, threatResponse, groundAirSubmerged)
-		value = value + v
-		threat = threat + t
-	end
-	self.game:StopTimer('c4')
-	return value, threat
-end
-
-function TargetHST:CheckInRadius(cx, cz, radius, threatResponse, groundAirSubmerged)
-	self.game:StartTimer('cr')
-	local radius = mCeil(radius / cellElmos)
-	local value = 0
-	local threat = 0
-	if radius > 0 then
-		local err = -radius
-		local x = radius
-		local z = 0
-		while x >= z do
-			local lastZ = z
-			err = err + z
-			z = z + 1
-			err = err + z
-			local v, t = self:Check4(cx, cz, x, lastZ, threatResponse, groundAirSubmerged)
-			value = value + v
-			threat = threat + t
-			if err >= 0 then
-				if x ~= lastZ then
-					local v, t = self:Check4(cx, cz, lastZ, x, threatResponse, groundAirSubmerged)
-					value = value + v
-					threat = threat + t
-				end
-				err = err - x
-				x = x - 1
-				err = err - x
-			end
-		end
-	end
-	self.game:StopTimer('cr')
-	return value, threat
-end
-
-function TargetHST:CountEnemyThreat(unitID, unitName, threat)
-	if not self.enemyAlreadyCounted[unitID] then
-		self.currentEnemyThreatCount = self.currentEnemyThreatCount + threat
-		if self.ai.armyhst.unitTable[unitName].isBuilding then
-			self.currentEnemyImmobileThreatCount = self.currentEnemyImmobileThreatCount + threat
-		else
-			self.currentEnemyMobileThreatCount = self.currentEnemyMobileThreatCount + threat
-		end
-		self.enemyAlreadyCounted[unitID] = true
-	end
-end
-
-function TargetHST:CountDanger(layer, id)
-	local danger = self.dangers[layer]
-	if not danger.alreadyCounted[id] then
-		danger.count = danger.count + 1
-		self:EchoDebug("spotted " .. layer .. " threat")
-		danger.alreadyCounted[id] = true
-	end
-end
-
-function TargetHST:DangerCheck(unitName, unitID)
-	local un = unitName
-	local ut = self.ai.armyhst.unitTable[un]
-	local id = unitID
-	if ut.isBuilding then
-		if ut.needsWater then
-			self:CountDanger("watertarget", id)
-		else
-			self:CountDanger("landtarget", id)
-		end
-	end
-	if not ut.isBuilding and not self.ai.armyhst.commanderList[un] and ut.mtype ~= "air" and ut.mtype ~= "sub" and ut.groundRange > 0 then
-		self:CountDanger("ground", id)
-	elseif self.ai.armyhst.groundFacList[un] then
-		self:CountDanger("ground", id)
-	end
-	if ut.mtype == "air" and ut.groundRange > 0 then
-		self:CountDanger("air", id)
-	elseif self.ai.armyhst.airFacList[un] then
-		self:CountDanger("air", id)
-	end
-	if (ut.mtype == "sub" or ut.mtype == "shp") and ut.isWeapon and not ut.isBuilding then
-		self:CountDanger("submerged", id)
-	elseif self.ai.armyhst.subFacList[un] then
-		self:CountDanger("submerged", id)
-	end
-	if self.ai.armyhst.bigPlasmaList[un] then
-		self:CountDanger("plasma", id)
-	end
-	if self.ai.armyhst.nukeList[un] then
-		self:CountDanger("nuke", id)
-	end
-	if self.ai.armyhst.antinukes[un] then
-		self:CountDanger("antinuke", id)
-	end
-	if ut.mtype ~= "air" and ut.mtype ~= "sub" and ut.groundRange > 1000 then
-		self:CountDanger("longrange", id)
-	end
-end
-
-local function NewDangerLayer()
-	return { count = 0, alreadyCounted = {}, present = false, obsolesce = 0, threshold = 1, duration = 1800, }
-end
-
-function TargetHST:InitializeDangers()
-	self.dangers = {}
-	self.dangers["watertarget"] = NewDangerLayer()
-	self.dangers["landtarget"] = NewDangerLayer()
-	self.dangers["landtarget"].duration = 2400
-	self.dangers["landtarget"].present = true
-	self.dangers["landtarget"].obsolesce = self.game:Frame() + 5400
-	self.dangers["ground"] = NewDangerLayer()
-	self.dangers["ground"].duration = 2400 -- keep ground threat alive for one and a half minutes
-	-- assume there are ground threats for the first three minutes
-	self.dangers["ground"].present = true
-	self.dangers["ground"].obsolesce = self.game:Frame() + 5400
-	self.dangers["air"] = NewDangerLayer()
-	self.dangers["submerged"] = NewDangerLayer()
-	self.dangers["plasma"] = NewDangerLayer()
-	self.dangers["nuke"] = NewDangerLayer()
-	self.dangers["antinuke"] = NewDangerLayer()
-	self.dangers["longrange"] = NewDangerLayer()
-end
-
-function TargetHST:UpdateDangers()
-	local f = self.game:Frame()
-
-	for layer, danger in pairs(self.dangers) do
-		if danger.count >= danger.threshold then
-			danger.present = true
-			danger.obsolesce = f + danger.duration
-			danger.count = 0
-			danger.alreadyCounted = {}
-			self:EchoDebug(layer .. " danger present")
-		elseif danger.present and f >= danger.obsolesce then
-			self:EchoDebug(layer .. " obsolete")
-			danger.present = false
-		end
-	end
-
-	self.ai.areWaterTargets = self.dangers.watertarget.present
-	self.ai.areLandTargets = self.dangers.landtarget.present or not self.dangers.watertarget.present
-	self.ai.needGroundDefense = self.dangers.ground.present or (not self.dangers.air.present and not self.dangers.submerged.present) -- don't turn off ground defense if there aren't air or submerged self.dangers
-	self.ai.needAirDefense = self.dangers.air.present
-	self.ai.needSubmergedDefense = self.dangers.submerged.present
-	self.ai.needShields = self.dangers.plasma.present
-	self.ai.needAntinuke = self.dangers.nuke.present
-	self.ai.canNuke = not self.dangers.antinuke.present
-	self.ai.needJammers = self.dangers.longrange.present or self.dangers.air.present or self.dangers.nuke.present or self.dangers.plasma.present
-end
-
 
 function TargetHST:UpdateEnemies()
 	self.ai.enemyMexSpots = {}
@@ -671,162 +443,13 @@ function TargetHST:UpdateEnemies()
 		local los = e.los
 		local ghost = e.ghost
 		local name = e.name
-		self.game:StartTimer(name)
-
 		local ut = self.ai.armyhst.unitTable[name]
-
-
 		local px, pz = GetCellPosition(e.position)
 		self:setCellEnemyValues(e,self.CELLS[px][pz])
 	end
-
-
-
-
-
-
-
-
-
-		--if ghost and not ghost.position and not e.beingBuilt then
-		if e.view < 0 then
-			-- count ghosts with unknown positions as non-positioned threats
-			self:DangerCheck(name, unitID)
-			-- 			local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
-			local threatLayers = self.ai.armyhst.unitTable[name].threatLayers
-			for groundAirSubmerged, layer in pairs(threatLayers) do
-				self:CountEnemyThreat(unitID, name, layer.threat)
-			end
-		--elseif (los ~= 0 or (ghost and ghost.position)) and not e.beingBuilt then
-		else
-			-- count those we know about and that aren't being built
-			local pos
-			if ghost then pos = ghost.position else pos = e.position end
-			if self.ai.buildsitehst:isInMap(pos) then
-
-				local px, pz = GetCellPosition(pos)
-				if not self:CellExist(px,pz) then
-					--self:Warn('warning cell is not already defined!!!!',px,pz)
-				end
-				local cell = self:GetOrCreateCellHere(pos)
-				if e.SPEED then
-					--cell.target.x = math.max(cell.target.x , e.target.x)
-					--cell.target.z = math.max(cell.target.z , e.target.z)
-					--cell.target.y = Spring.GetGroundHeight(cell.target.x,cell.target.z)
-					--cell.risksNum = cell.risksNum + 1 --TODO become metal amount
-				end
--- 				if los == 1 then
-				if e.view == 0 then--radar
-					if ut.isBuilding then
-						cell.value = cell.value + baseBuildingValue
-					else
-						-- if it moves, assume it's out to get you--TEST
-						--self:FillCircle(px, pz, baseUnitRange, "threat", "ground", baseUnitThreat)
-						--self:FillCircle(px, pz, baseUnitRange, "threat", "air", baseUnitThreat)
-						--self:FillCircle(px, pz, baseUnitRange, "threat", "submerged", baseUnitThreat)
-					end
--- 				elseif los == 2 then
-				elseif e.view > 0 then --LOS, full view
-					local mtype = ut.mtype
-					self:DangerCheck(name, unitID)
--- 					local value = self:Value(name)
-					local value = ut.metalCost
-					if self.ai.armyhst.unitTable[name].extractsMetal ~= 0 then
-						table.insert(self.ai.enemyMexSpots, { position = pos, unit = e })
-					end
-					if self.ai.armyhst.unitTable[name].isBuilding then
-						table.insert(cell.buildingIDs, unitID)
-					end
-					local hurtBy = self.ai.tool:WhatHurtsUnit(name)
-					-- 					local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
-					local threatLayers = self.ai.armyhst.unitTable[name].threatLayers
-					local threatToTurtles = threatLayers.ground.threat + threatLayers.submerged.threat
-					local maxRange = max(threatLayers.ground.range, threatLayers.submerged.range)
-					for groundAirSubmerged, layer in pairs(threatLayers) do
-						if threatToTurtles ~= 0 and hurtBy[groundAirSubmerged] then
-							if ut.isBuilding then--TEST
-								self:FillCircle(px, pz, maxRange, "response", groundAirSubmerged, threatToTurtles)
-							end
-						end
-						local threat, range = layer.threat, layer.range
-						if mtype == "air" and groundAirSubmerged == "ground" or groundAirSubmerged == "submerged" then threat = 0 end -- because air units are pointless to run from
-						if threat ~= 0 then
-							if ut.isBuilding then--TEST
-								self:FillCircle(px, pz, range, "threat", groundAirSubmerged, threat)
-							end
-							self:CountEnemyThreat(unitID, name, threat)
-						elseif mtype ~= "air" then -- air units are too hard to attack
-						local health = e.health
-						for hurtGAS, hit in pairs(hurtBy) do
-							cell.values[groundAirSubmerged][hurtGAS] = cell.values[groundAirSubmerged][hurtGAS] + value
-							if cell.targets[groundAirSubmerged][hurtGAS] == nil then
-								cell.targets[groundAirSubmerged][hurtGAS] = e
-							else
--- 								if value > self:Value(cell.targets[groundAirSubmerged][hurtGAS].unitName) then
--- 								print(value)
--- 								print(self.ai.armyhst.unitTable[cell.targets[groundAirSubmerged][hurtGAS].name].metalCost)
-								if value > self.ai.armyhst.unitTable[cell.targets[groundAirSubmerged][hurtGAS].name].metalCost then
-									cell.targets[groundAirSubmerged][hurtGAS] = e
-								end
-							end
-							if health < vulnerableHealth then
-
-								cell.vulnerables[groundAirSubmerged][hurtGAS] = e
-							end
-							if groundAirSubmerged == "air" and hurtGAS == "ground" and threatLayers.ground.threat > cell.lastDisarmThreat then
-								cell.disarmTarget = e
-								cell.lastDisarmThreat = threatLayers.ground.threat
-							end
-						end
-						if ut.bigExplosion then
-							cell.explosionValue = cell.explosionValue + bomberExplosionValue
-							if cell.explosiveTarget == nil then
-								cell.explosiveTarget = e
-							else
-								if value > self:Value(cell.explosiveTarget.unitName) then
-									cell.explosiveTarget = e
-								end
-							end
-						end
-					end
-				end
-				cell.value = cell.value + value
-				if cell.value > highestValue then
-					highestValue = cell.value
-					highestValueCell = cell
-
-				end
-			end
-		end
-		-- we dont want to target the center of the cell encase its a ledge with nothing
-		-- on it etc so target this units position instead
-			if cell then
-				cell.pos = pos
-			end
-		end
-	self.game:StopTimer(name)
-	end
-	if highestValueCell then
-		self.enemyBaseCell = highestValueCell
-		self.ai.enemyBasePosition = highestValueCell.pos
-	else
-		self.enemyBaseCell = nil
-		self.ai.enemyBasePosition = nil
-	end
 end
 
-function TargetHST:UpdateDamagedUnits()
-	for unitID, engineUnit in pairs(self.ai.damagehst:GetDamagedUnits()) do
-		local eUnitPos = engineUnit:GetPosition()
-		local cell = self:GetOrCreateCellHere(eUnitPos)
-		if not cell then
-			self:EchoDebug('no cell here', eUnitPos.x,eUnitPos.z)
-			return
-		end
-		cell.damagedUnits = cell.damagedUnits or {}
-		cell.damagedUnits[#cell.damagedUnits+1] = engineUnit
-	end
-end
+
 
 function TargetHST:UpdateMetalGeoSpots()
 	local spots = self.ai.scoutSpots.air[1]
@@ -854,64 +477,11 @@ function TargetHST:UpdateMetalGeoSpots()
 	end
 end
 
-function TargetHST:UpdateBadPositions()
-	local f = self.game:Frame()
-	for i = #self.badPositions, 1, -1 do
-		local r = self.badPositions[i]
-		if self:CellExist(r.px , r.pz) then
-			cell = self.cells[r.px][r.pz]
-			if cell then
-				cell.threat[r.groundAirSubmerged] = cell.threat[r.groundAirSubmerged] + r.threat
-			end
-		end
-		if f > r.frame + r.duration then
-			-- remove bad positions after 1 minute
-			table.remove(self.badPositions, i)
-		end
-	end
-end
-
-function TargetHST:UpdateFronts(number)
-	local highestCells = {}
-	local highestResponses = {}
-	for n = 1, number do
-		local highestCell = {}
-		local highestResponse = { ground = 0, air = 0, submerged = 0 }
-		for i = 1, #self.cellList do
-			local cell = self.cellList[i]
-			for groundAirSubmerged, response in pairs(cell.response) do
-				local okay = true
-				if n > 1 then
-					local highCell = highestCells[n-1][groundAirSubmerged]
-					if highCell ~= nil then
-						if cell == highCell then
-							okay = false
-						elseif response >= highestResponses[n-1][groundAirSubmerged] then
-							okay = false
-						else
-							local dist = self.ai.tool:DistanceXZ(highCell.x, highCell.z, cell.x, cell.z)
-							if dist < 2 then okay = false end
-						end
-					end
-				end
-				if okay and response > highestResponse[groundAirSubmerged] then
-					highestResponse[groundAirSubmerged] = response
-					highestCell[groundAirSubmerged] = cell
-				end
-			end
-		end
-		highestResponses[n] = highestResponse
-		highestCells[n] = highestCell
-	end
-	self.ai.defendhst:FindFronts(highestCells)
-end
-
 function TargetHST:UnitDamaged(unit, attacker, damage)
 	-- even if the attacker can't be seen, human players know what weapons look like
 	-- in non-lua shard, the attacker is nil if it's an enemy unit, so this becomes useless
 	if attacker ~= nil and attacker:AllyTeam() ~= self.ai.allyId then --   we know what is it and self.ai.loshst:IsKnownEnemy(attacker) ~= 2 then
-		--print(attacker:Name())
-		self:DangerCheck(attacker:Name(), attacker:ID())
+
 		local mtype
 		local ut = self.ai.armyhst.unitTable[unit:Name()]
 		if ut then
@@ -919,7 +489,6 @@ function TargetHST:UnitDamaged(unit, attacker, damage)
 			local aut = self.ai.armyhst.unitTable[attacker:Name()]
 			if aut then
 				if aut.isBuilding then
-					--self.ai.loshst:KnowEnemy(attacker)
 					self.ai.loshst:scanEnemy(attacker,isShoting)
 					return
 				end
@@ -933,21 +502,14 @@ end
 function TargetHST:Update()
 	local f = self.game:Frame()
 	if f == 0 or f % 71 == 0 then
-		self:UpdateMap()
-	end
-	if f == 0 or f % 1800 == 0 then
-		--if f > self.lastEnemyThreatUpdateFrame + 1800 or self.lastEnemyThreatUpdateFrame == 0 then TODO changed cause broked why??
-		-- store and reset the threat count
-		-- self:EchoDebug(self.currentEnemyThreatCount .. " enemy threat last 2000 frames")
-		self:EchoDebug(self.currentEnemyThreatCount)
-		self.ai.totalEnemyThreat = self.currentEnemyThreatCount
-		self.ai.totalEnemyImmobileThreat = self.currentEnemyImmobileThreatCount
-		self.ai.totalEnemyMobileThreat = self.currentEnemyMobileThreatCount
-		self.currentEnemyThreatCount = 0
-		self.currentEnemyImmobileThreatCount = 0
-		self.currentEnemyMobileThreatCount = 0
-		self.enemyAlreadyCounted = {}
-		self.lastEnemyThreatUpdateFrame = f
+		self.cells = {}--TODO
+		self:clearEnemies()--delete just the enemy data inside cells, leave other living --TEST
+		self.cellList = {}
+		self:UpdateEnemies()
+		self:UpdateDamagedUnits()
+		self:drawDBG()
+		self:UpdateMetalGeoSpots()
+		self:UpdateBadPositions()
 	end
 end
 
@@ -973,30 +535,36 @@ function TargetHST:AddBadPosition(position, mtype, threat, duration)
 	end
 end
 
-function TargetHST:UpdateMap()
-	--if self.ai.lastLOSUpdate > self.lastUpdateFrame then
-
-		-- 		game:SendToConsole("before target update", collectgarbage("count")/1024)
-		self.raiderCounted = {}
-		self.cells = {}--TODO
-		self:clearEnemies()--delete just the enemy data inside cells, leave other living --TEST
-		--self:createGridCell()--create instead of delete all self:Cells() so the table is allways populated--TEST
-		self.cellList = {}
-		self:UpdateEnemies()
-		self:UpdateDangers()
-		self:UpdateBadPositions()
-		self:UpdateDamagedUnits()
-		self:UpdateFronts(3)
-		self:drawDBG()
-		--self:UpdateDebug()
-		--self:UpdateWrecks()
-		self:UpdateMetalGeoSpots()
-		self.lastUpdateFrame = self.game:Frame()
-		--game:SendToConsole("after target update", collectgarbage("count")/1024)
-		--collectgarbage()
-		--game:SendToConsole("after collectgarbage", collectgarbage("count")/1024)
-	--end
+function TargetHST:UpdateBadPositions()
+	local f = self.game:Frame()
+	for i = #self.badPositions, 1, -1 do
+		local r = self.badPositions[i]
+		if self:CellExist(r.px , r.pz) then
+			cell = self.cells[r.px][r.pz]
+			if cell then
+				cell.threat[r.groundAirSubmerged] = cell.threat[r.groundAirSubmerged] + r.threat
+			end
+		end
+		if f > r.frame + r.duration then
+			-- remove bad positions after 1 minute
+			table.remove(self.badPositions, i)
+		end
+	end
 end
+
+function TargetHST:UpdateDamagedUnits()
+	for unitID, engineUnit in pairs(self.ai.damagehst:GetDamagedUnits()) do
+		local eUnitPos = engineUnit:GetPosition()
+		local cell = self:GetOrCreateCellHere(eUnitPos)
+		if not cell then
+			self:EchoDebug('no cell here', eUnitPos.x,eUnitPos.z)
+			return
+		end
+		cell.damagedUnits = cell.damagedUnits or {}
+		cell.damagedUnits[#cell.damagedUnits+1] = engineUnit
+	end
+end
+
 ------------------------------------------------------------------------HERE BEGIN THE ON DEMAND FUNCTION---------------------------
 
 function TargetHST:NearbyVulnerable()
@@ -1627,5 +1195,418 @@ function TargetHST:adiaCells(px,pz,field)--return a list with 8 adiacent cells r
 end
 return adiacents
 end
+
+]]
+
+
+
+--[[
+function TargetHST:HorizontalLine(x, z, tx, threatResponse, groundAirSubmerged, val)
+	self.game:StartTimer('hl')
+	-- self:EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " with value " .. val .. " in " .. groundAirSubmerged)
+	for ix = x, tx do
+		local cell =self:GetOrCreateCellHere(ix,z)
+		if cell then
+			self.cells[ix][z][threatResponse][groundAirSubmerged] = self.cells[ix][z][threatResponse][groundAirSubmerged] + val
+		else
+			--self:Warn('Cell not exist or is not in map in horizontalLine',ix,z)
+		end
+	end
+	self.game:StopTimer('hl')
+end
+
+function TargetHST:Plot4(cx, cz, x, z, threatResponse, groundAirSubmerged, val)
+	self.game:StartTimer('p4')
+	self:HorizontalLine(cx - x, cz + z, cx + x, threatResponse, groundAirSubmerged, val)
+	if x ~= 0 and z ~= 0 then
+		self:HorizontalLine(cx - x, cz - z, cx + x, threatResponse, groundAirSubmerged, val)
+	end
+	self.game:StopTimer('p4')
+end
+
+function TargetHST:FillCircle(cx, cz, radius, threatResponse, groundAirSubmerged, val)
+	self.game:StartTimer('fc')
+	local radius = mCeil(radius / cellElmos)
+	if radius > 0 then
+		local err = -radius
+		local x = radius
+		local z = 0
+		while x >= z do
+			local lastZ = z
+			err = err + z
+			z = z + 1
+			err = err + z
+			self:Plot4(cx, cz, x, lastZ, threatResponse, groundAirSubmerged, val)
+			if err >= 0 then
+				if x ~= lastZ then self:Plot4(cx, cz, lastZ, x, threatResponse, groundAirSubmerged, val) end
+				err = err - x
+				x = x - 1
+				err = err - x
+			end
+		end
+	end
+	self.game:StopTimer('fc')
+end
+
+function TargetHST:CheckHorizontalLine(x, z, tx, threatResponse, groundAirSubmerged)
+	self.game:StartTimer('chl')
+	-- self:EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " in " .. groundAirSubmerged)
+	local value = 0
+	local threat = 0
+	for ix = x, tx do
+		if self:CellExist(ix,z) then
+			local cell = self.cells[ix][z]
+			local value = cell.values[groundAirSubmerged].value -- can't hurt it
+			local threat = cell[threatResponse][groundAirSubmerged]
+			self.game:StopTimer('chl')
+			return value, threat
+
+		end
+	end
+	self.game:StopTimer('chl')
+	return value, threat
+end
+
+function TargetHST:Check4(cx, cz, x, z, threatResponse, groundAirSubmerged)
+	self.game:StartTimer('c4')
+	local value = 0
+	local threat = 0
+	local v, t = self:CheckHorizontalLine(cx - x, cz + z, cx + x, threatResponse, groundAirSubmerged)
+	value = value + v
+	threat = threat + t
+	if x ~= 0 and z ~= 0 then
+		local v, t = self:CheckHorizontalLine(cx - x, cz - z, cx + x, threatResponse, groundAirSubmerged)
+		value = value + v
+		threat = threat + t
+	end
+	self.game:StopTimer('c4')
+	return value, threat
+end
+
+function TargetHST:CheckInRadius(cx, cz, radius, threatResponse, groundAirSubmerged)
+	self.game:StartTimer('cr')
+	local radius = mCeil(radius / cellElmos)
+	local value = 0
+	local threat = 0
+	if radius > 0 then
+		local err = -radius
+		local x = radius
+		local z = 0
+		while x >= z do
+			local lastZ = z
+			err = err + z
+			z = z + 1
+			err = err + z
+			local v, t = self:Check4(cx, cz, x, lastZ, threatResponse, groundAirSubmerged)
+			value = value + v
+			threat = threat + t
+			if err >= 0 then
+				if x ~= lastZ then
+					local v, t = self:Check4(cx, cz, lastZ, x, threatResponse, groundAirSubmerged)
+					value = value + v
+					threat = threat + t
+				end
+				err = err - x
+				x = x - 1
+				err = err - x
+			end
+		end
+	end
+	self.game:StopTimer('cr')
+	return value, threat
+end
+
+
+function TargetHST:CountEnemyThreat(unitID, unitName, threat)
+	if not self.enemyAlreadyCounted[unitID] then
+		self.currentEnemyThreatCount = self.currentEnemyThreatCount + threat
+		if self.ai.armyhst.unitTable[unitName].isBuilding then
+			self.currentEnemyImmobileThreatCount = self.currentEnemyImmobileThreatCount + threat
+		else
+			self.currentEnemyMobileThreatCount = self.currentEnemyMobileThreatCount + threat
+		end
+		self.enemyAlreadyCounted[unitID] = true
+	end
+end
+
+]]
+
+--[[
+function TargetHST:CountDanger(layer, id)
+	local danger = self.dangers[layer]
+	if not danger.alreadyCounted[id] then
+		danger.count = danger.count + 1
+		self:EchoDebug("spotted " .. layer .. " threat")
+		danger.alreadyCounted[id] = true
+	end
+end
+
+function TargetHST:DangerCheck(unitName, unitID)
+	local un = unitName
+	local ut = self.ai.armyhst.unitTable[un]
+	local id = unitID
+	if ut.isBuilding then
+		if ut.needsWater then
+			self:CountDanger("watertarget", id)
+		else
+			self:CountDanger("landtarget", id)
+		end
+	end
+	if not ut.isBuilding and not self.ai.armyhst.commanderList[un] and ut.mtype ~= "air" and ut.mtype ~= "sub" and ut.groundRange > 0 then
+		self:CountDanger("ground", id)
+	elseif self.ai.armyhst.groundFacList[un] then
+		self:CountDanger("ground", id)
+	end
+	if ut.mtype == "air" and ut.groundRange > 0 then
+		self:CountDanger("air", id)
+	elseif self.ai.armyhst.airFacList[un] then
+		self:CountDanger("air", id)
+	end
+	if (ut.mtype == "sub" or ut.mtype == "shp") and ut.isWeapon and not ut.isBuilding then
+		self:CountDanger("submerged", id)
+	elseif self.ai.armyhst.subFacList[un] then
+		self:CountDanger("submerged", id)
+	end
+	if self.ai.armyhst.bigPlasmaList[un] then
+		self:CountDanger("plasma", id)
+	end
+	if self.ai.armyhst.nukeList[un] then
+		self:CountDanger("nuke", id)
+	end
+	if self.ai.armyhst.antinukes[un] then
+		self:CountDanger("antinuke", id)
+	end
+	if ut.mtype ~= "air" and ut.mtype ~= "sub" and ut.groundRange > 1000 then
+		self:CountDanger("longrange", id)
+	end
+end
+
+local function NewDangerLayer()
+	return { count = 0, alreadyCounted = {}, present = false, obsolesce = 0, threshold = 1, duration = 1800, }
+end
+
+function TargetHST:InitializeDangers()
+	self.dangers = {}
+	self.dangers["watertarget"] = NewDangerLayer()
+	self.dangers["landtarget"] = NewDangerLayer()
+	self.dangers["landtarget"].duration = 2400
+	self.dangers["landtarget"].present = true
+	self.dangers["landtarget"].obsolesce = self.game:Frame() + 5400
+	self.dangers["ground"] = NewDangerLayer()
+	self.dangers["ground"].duration = 2400 -- keep ground threat alive for one and a half minutes
+	-- assume there are ground threats for the first three minutes
+	self.dangers["ground"].present = true
+	self.dangers["ground"].obsolesce = self.game:Frame() + 5400
+	self.dangers["air"] = NewDangerLayer()
+	self.dangers["submerged"] = NewDangerLayer()
+	self.dangers["plasma"] = NewDangerLayer()
+	self.dangers["nuke"] = NewDangerLayer()
+	self.dangers["antinuke"] = NewDangerLayer()
+	self.dangers["longrange"] = NewDangerLayer()
+end
+
+function TargetHST:UpdateDangers()
+	local f = self.game:Frame()
+
+	for layer, danger in pairs(self.dangers) do
+		if danger.count >= danger.threshold then
+			danger.present = true
+			danger.obsolesce = f + danger.duration
+			danger.count = 0
+			danger.alreadyCounted = {}
+			self:EchoDebug(layer .. " danger present")
+		elseif danger.present and f >= danger.obsolesce then
+			self:EchoDebug(layer .. " obsolete")
+			danger.present = false
+		end
+	end
+
+	self.ai.areWaterTargets = self.dangers.watertarget.present
+	self.ai.areLandTargets = self.dangers.landtarget.present or not self.dangers.watertarget.present
+	self.ai.needGroundDefense = self.dangers.ground.present or (not self.dangers.air.present and not self.dangers.submerged.present) -- don't turn off ground defense if there aren't air or submerged self.dangers
+	self.ai.needAirDefense = self.dangers.air.present
+	self.ai.needSubmergedDefense = self.dangers.submerged.present
+	self.ai.needShields = self.dangers.plasma.present
+	self.ai.needAntinuke = self.dangers.nuke.present
+	self.ai.canNuke = not self.dangers.antinuke.present
+	self.ai.needJammers = self.dangers.longrange.present or self.dangers.air.present or self.dangers.nuke.present or self.dangers.plasma.present
+end
+]]
+--[[
+
+
+
+
+
+
+
+
+		--if ghost and not ghost.position and not e.beingBuilt then
+		if e.view < 0 then
+			-- count ghosts with unknown positions as non-positioned threats
+			self:DangerCheck(name, unitID)
+			-- 			local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
+			local threatLayers = self.ai.armyhst.unitTable[name].threatLayers
+			for groundAirSubmerged, layer in pairs(threatLayers) do
+				self:CountEnemyThreat(unitID, name, layer.threat)
+			end
+		--elseif (los ~= 0 or (ghost and ghost.position)) and not e.beingBuilt then
+		else
+			-- count those we know about and that aren't being built
+			local pos
+			if ghost then pos = ghost.position else pos = e.position end
+			if self.ai.buildsitehst:isInMap(pos) then
+
+				local px, pz = GetCellPosition(pos)
+				if not self:CellExist(px,pz) then
+					--self:Warn('warning cell is not already defined!!!!',px,pz)
+				end
+				local cell = self:GetOrCreateCellHere(pos)
+				if e.SPEED then
+					--cell.target.x = math.max(cell.target.x , e.target.x)
+					--cell.target.z = math.max(cell.target.z , e.target.z)
+					--cell.target.y = Spring.GetGroundHeight(cell.target.x,cell.target.z)
+					--cell.risksNum = cell.risksNum + 1 --TODO become metal amount
+				end
+-- 				if los == 1 then
+				if e.view == 0 then--radar
+					if ut.isBuilding then
+						cell.value = cell.value + baseBuildingValue
+					else
+						-- if it moves, assume it's out to get you--TEST
+						--self:FillCircle(px, pz, baseUnitRange, "threat", "ground", baseUnitThreat)
+						--self:FillCircle(px, pz, baseUnitRange, "threat", "air", baseUnitThreat)
+						--self:FillCircle(px, pz, baseUnitRange, "threat", "submerged", baseUnitThreat)
+					end
+-- 				elseif los == 2 then
+				elseif e.view > 0 then --LOS, full view
+					local mtype = ut.mtype
+					self:DangerCheck(name, unitID)
+-- 					local value = self:Value(name)
+					local value = ut.metalCost
+					if self.ai.armyhst.unitTable[name].extractsMetal ~= 0 then
+						table.insert(self.ai.enemyMexSpots, { position = pos, unit = e })
+					end
+					if self.ai.armyhst.unitTable[name].isBuilding then
+						table.insert(cell.buildingIDs, unitID)
+					end
+					local hurtBy = self.ai.tool:WhatHurtsUnit(name)
+					-- 					local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
+					local threatLayers = self.ai.armyhst.unitTable[name].threatLayers
+					local threatToTurtles = threatLayers.ground.threat + threatLayers.submerged.threat
+					local maxRange = max(threatLayers.ground.range, threatLayers.submerged.range)
+					for groundAirSubmerged, layer in pairs(threatLayers) do
+						if threatToTurtles ~= 0 and hurtBy[groundAirSubmerged] then
+							if ut.isBuilding then--TEST
+								self:FillCircle(px, pz, maxRange, "response", groundAirSubmerged, threatToTurtles)
+							end
+						end
+						local threat, range = layer.threat, layer.range
+						if mtype == "air" and groundAirSubmerged == "ground" or groundAirSubmerged == "submerged" then threat = 0 end -- because air units are pointless to run from
+						if threat ~= 0 then
+							if ut.isBuilding then--TEST
+								self:FillCircle(px, pz, range, "threat", groundAirSubmerged, threat)
+							end
+							self:CountEnemyThreat(unitID, name, threat)
+						elseif mtype ~= "air" then -- air units are too hard to attack
+						local health = e.health
+						for hurtGAS, hit in pairs(hurtBy) do
+							cell.values[groundAirSubmerged][hurtGAS] = cell.values[groundAirSubmerged][hurtGAS] + value
+							if cell.targets[groundAirSubmerged][hurtGAS] == nil then
+								cell.targets[groundAirSubmerged][hurtGAS] = e
+							else
+-- 								if value > self:Value(cell.targets[groundAirSubmerged][hurtGAS].unitName) then
+-- 								print(value)
+-- 								print(self.ai.armyhst.unitTable[cell.targets[groundAirSubmerged][hurtGAS].name].metalCost)
+								if value > self.ai.armyhst.unitTable[cell.targets[groundAirSubmerged][hurtGAS].name].metalCost then
+									cell.targets[groundAirSubmerged][hurtGAS] = e
+								end
+							end
+							if health < vulnerableHealth then
+
+								cell.vulnerables[groundAirSubmerged][hurtGAS] = e
+							end
+							if groundAirSubmerged == "air" and hurtGAS == "ground" and threatLayers.ground.threat > cell.lastDisarmThreat then
+								cell.disarmTarget = e
+								cell.lastDisarmThreat = threatLayers.ground.threat
+							end
+						end
+						if ut.bigExplosion then
+							cell.explosionValue = cell.explosionValue + bomberExplosionValue
+							if cell.explosiveTarget == nil then
+								cell.explosiveTarget = e
+							else
+								if value > self:Value(cell.explosiveTarget.unitName) then
+									cell.explosiveTarget = e
+								end
+							end
+						end
+					end
+				end
+				cell.value = cell.value + value
+				if cell.value > highestValue then
+					highestValue = cell.value
+					highestValueCell = cell
+
+				end
+			end
+		end
+		-- we dont want to target the center of the cell encase its a ledge with nothing
+		-- on it etc so target this units position instead
+			if cell then
+				cell.pos = pos
+			end
+		end
+	self.game:StopTimer(name)
+	end
+	if highestValueCell then
+		self.enemyBaseCell = highestValueCell
+		self.ai.enemyBasePosition = highestValueCell.pos
+	else
+		self.enemyBaseCell = nil
+		self.ai.enemyBasePosition = nil
+	end
+	]]
+
+--[[
+
+
+function TargetHST:UpdateFronts(number)
+	local highestCells = {}
+	local highestResponses = {}
+	for n = 1, number do
+		local highestCell = {}
+		local highestResponse = { ground = 0, air = 0, submerged = 0 }
+		for i = 1, #self.cellList do
+			local cell = self.cellList[i]
+			for groundAirSubmerged, response in pairs(cell.response) do
+				local okay = true
+				if n > 1 then
+					local highCell = highestCells[n-1][groundAirSubmerged]
+					if highCell ~= nil then
+						if cell == highCell then
+							okay = false
+						elseif response >= highestResponses[n-1][groundAirSubmerged] then
+							okay = false
+						else
+							local dist = self.ai.tool:DistanceXZ(highCell.x, highCell.z, cell.x, cell.z)
+							if dist < 2 then okay = false end
+						end
+					end
+				end
+				if okay and response > highestResponse[groundAirSubmerged] then
+					highestResponse[groundAirSubmerged] = response
+					highestCell[groundAirSubmerged] = cell
+				end
+			end
+		end
+		highestResponses[n] = highestResponse
+		highestCells[n] = highestCell
+	end
+	self.ai.defendhst:FindFronts(highestCells)
+end
+]]
+
+--[[
 
 ]]
