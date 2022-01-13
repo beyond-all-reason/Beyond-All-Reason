@@ -20,7 +20,7 @@ local types = {
 
 local texts = {}    -- loaded from external language file
 
-local languageCodes = { 'en', 'fr' }
+local languageCodes = { 'en', 'fr', 'zh' }
 languageCodes = table.merge(languageCodes, table.invert(languageCodes))
 
 local languageNames = {}
