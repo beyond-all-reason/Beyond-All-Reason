@@ -11,7 +11,7 @@
 					//efficiency calculation: engy.cond.score = SQUARE(engy.make) / (cdef->GetCostM() * cdef->GetDef()->GetXSize() * cdef->GetDef()->GetZSize());
 					//higer value => more efficient | e-output * e-output / mcost*x*y
 					"armwin": [30, 60],
-					"armsolar": [10, 14, 0, 0, 0.100],  // efficiency=0.025806 --- increased eff to make it better against wind
+					"armsolar": [10, 14, 0, 0, 0.040],  // efficiency=0.025806 --- increased eff to make it better against wind
 					"armadvsol": [16, 20, 12, 210, 0.230], 	// efficiency=0.237542
 					//"armgeo": [4, 8, 16, 300, 0.6],
 					"armgmm":[4, 8, 25, 600, 2.2],
@@ -37,7 +37,7 @@
 			"cortex": {
 				"land": {
 					"corwin": [30, 60],
-					"corsolar": [8, 12, 0, 0, 0.027], // efficiency=0.026667
+					"corsolar": [9, 12, 0, 0, 0.035], // efficiency=0.026667
                     "coradvsol": [16, 20, 12, 180, 0.230], //efficiency=0.237542
                     //"corgeo": [4, 8, 16, 300, 0.6],
                    // "corageo": [0, 1, 35, 1000, 3.0],
