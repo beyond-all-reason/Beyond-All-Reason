@@ -19,7 +19,7 @@ function TargetHST:Init()
 	self:createGridCell()
 	self.BAD_CELLS = {}
 	self.SPOT_CELLS = {}
-	self.pathModParam = 40
+	self.pathModParam = 100
 	self.pathModifierFuncs = {}
 	self.enemyMexSpots = {}
 end
@@ -372,7 +372,7 @@ function TargetHST:UpdateDamagedUnits()
 	for unitID, engineUnit in pairs(self.ai.damagehst:GetDamagedUnits()) do
 		local eUnitPos = engineUnit:GetPosition()
 		local cell = self:GetCellHere(eUnitPos)
-		cell.damagedUnits[#cell.damagedUnits+1] = engineUnit
+		cell.damagedUnits[engineUnit:ID()] = engineUnit
 	end
 end
 
