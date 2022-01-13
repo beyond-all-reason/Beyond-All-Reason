@@ -10,7 +10,6 @@ return {
 					lobby = "ZH在尊嚴和權", -- Chinese traditional
 					settings = "Settings",
 					changes = "интеллегам",
-					commands = "Commands",
 					keys = "JP真ひげ登射", -- Japanese
 					scavengers = "ZH在尊严和权", -- Chinese simplified
 					stats = "âäçêëîşûÿİæœ",
