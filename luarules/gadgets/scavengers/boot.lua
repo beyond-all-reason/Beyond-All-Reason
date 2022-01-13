@@ -128,7 +128,7 @@ function SpawnFromQueue(n)
 		for i = 1,QueuedSpawnsForNow do
 			if n == QueuedSpawnsFrames[1] then
 				local unit = Spring.CreateUnit(QueuedSpawns[1][1],QueuedSpawns[1][2],QueuedSpawns[1][3],QueuedSpawns[1][4],QueuedSpawns[1][5],QueuedSpawns[1][6])
-				if QueuedSpawns[1][7] == false then
+				if unit and QueuedSpawns[1][7] == false then
 					Spring.SetUnitBlocking(unit, false, false, true)
 				end
 				Spring.SpawnCEG("scav-spawnexplo",QueuedSpawns[1][2],QueuedSpawns[1][3],QueuedSpawns[1][4],0,0,0)

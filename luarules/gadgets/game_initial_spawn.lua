@@ -412,7 +412,7 @@ else  -- UNSYNCED
 
 	function gadget:GameFrame(n)
 		if n == 60 then
-			Spring.PlaySoundFile("commanderspawn", 1, 'ui')
+			Spring.PlaySoundFile("commanderspawn", 0.6, 'ui')
 		end
 		if n == 91 then
 			gadgetHandler:RemoveGadget(self)
