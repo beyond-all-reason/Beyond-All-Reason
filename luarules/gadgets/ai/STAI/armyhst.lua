@@ -1170,9 +1170,9 @@ function ArmyHST:GetUnitTable()
 		utable.groundRange = GetLongestWeaponRange(unitDefID, 0) or 0
 		utable.airRange = GetLongestWeaponRange(unitDefID, 1) or 0
 		utable.submergedRange = GetLongestWeaponRange(unitDefID, 2) or 0
-		utable.ground = GetLongestWeaponRange(unitDefID, 0) or 0
-		utable.air = GetLongestWeaponRange(unitDefID, 1) or 0
-		utable.submerged = GetLongestWeaponRange(unitDefID, 2) or 0
+		utable.G_R = GetLongestWeaponRange(unitDefID, 0) or 0
+		utable.A_R = GetLongestWeaponRange(unitDefID, 1) or 0
+		utable.S_R = GetLongestWeaponRange(unitDefID, 2) or 0
 		utable.weaponMtype = {}
 		utable.weaponLayer = {}
 		utable.longRange = nil

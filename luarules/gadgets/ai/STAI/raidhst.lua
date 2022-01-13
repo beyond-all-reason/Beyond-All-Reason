@@ -387,7 +387,7 @@ function RaidHST:resetSquad(squad)
 	squad.path = nil
 end
 
-function RaidHST:nearestEnemy(squad)
+function RaidHST:nearestEnemy(squad) --TEST control this function can give false
 	local members = squad.members
 	for _,id in pairs(members) do
 

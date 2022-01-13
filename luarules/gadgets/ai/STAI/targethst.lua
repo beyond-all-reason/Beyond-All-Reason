@@ -125,6 +125,12 @@ function TargetHST:NewCell(px, pz)
 	CELL.armed = 0
 	CELL.ENEMY = 0
 	CELL.ENEMY_BALANCE = 0
+
+	CELL.offense = 0
+	CELL.defense = 0
+	CELL.economy = 0
+	CELL.intelligence = 0
+	CELL.base = 0
 	CELL.resurrectables = {}
 	CELL.reclamables = {}
 	CELL.repairable = {}
@@ -152,6 +158,7 @@ function TargetHST:setCellEnemyValues(enemy,CELL)
 		if ut.isWeapon then
 			CELL.armed = CELL.armed + enemy.M
 			if ut.speed > 0 then
+				CELL.offense = CELL.offense + enemy.M
 				CELL.MOBILE = CELL.MOBILE + enemy.M
 				if enemy.layer == 0 then
 					CELL.armedGM = CELL.armedGM + enemy.M
@@ -161,6 +168,7 @@ function TargetHST:setCellEnemyValues(enemy,CELL)
 					CELL.armedSM = CELL.armedSM + enemy.M
 				end
 			else
+				CELL.defense = CELL.defense + enemy.M
 				CELL.IMMOBILE = CELL.MOBILE + enemy.M
 				if enemy.layer == 0 then
 					CELL.armedGI = CELL.armedGI + enemy.M
@@ -174,6 +182,7 @@ function TargetHST:setCellEnemyValues(enemy,CELL)
 		else
 			CELL.unarm = CELL.unarm + enemy.M
 			if ut.speed > 0 then
+				CELL.intelligence = CELL.intelligence + enemy.M
 				CELL.MOBILE = CELL.MOBILE + enemy.M
 				if enemy.layer > 0 then
 					CELL.unarmAM = CELL.unarmAM + enemy.M
@@ -183,6 +192,10 @@ function TargetHST:setCellEnemyValues(enemy,CELL)
 					CELL.unarmGM = CELL.unarmGM + enemy.M
 				end
 			else
+				CELL.economy = CELL.economy + enemy.M
+				if ut.isFactory then
+					CELL.base = CELL.base + enemy.M
+				end
 				CELL.MOBILE = CELL.IMMOBILE + enemy.M
 				if enemy.layer > 0 then
 					CELL.unarmAI = CELL.unarmAM + enemy.M
@@ -200,14 +213,15 @@ function TargetHST:setCellEnemyValues(enemy,CELL)
 		CELL.armedG = CELL.armedGI + CELL.armedGM
 		CELL.armedA = CELL.armedAI + CELL.armedAM
 		CELL.armedS = CELL.armedSI + CELL.armedSM
-		CELL.ENEMY = CELL.armed + CELL.unarm --TOTAL VALUE
-		CELL.ENEMY_BALANCE = CELL.armed - CELL.unarm
 		CELL.G = CELL.armedG + CELL.unarmG
 		CELL.A = CELL.armedA + CELL.unarmA
 		CELL.S = CELL.armedS + CELL.unarmS
 		CELL.G_balance = CELL.armedG - CELL.unarmG
 		CELL.A_balance = CELL.armedA - CELL.unarmA
 		CELL.S_balance = CELL.armedS - CELL.unarmS
+
+		CELL.ENEMY = CELL.armed + CELL.unarm --TOTAL VALUE
+		CELL.ENEMY_BALANCE = CELL.armed - CELL.unarm
 	elseif enemy.view == 0 then --RADAR
 		CELL.ENEMY = CELL.ENEMY + 20 --(adjust for time or other param during game)
 		CELL.ENEMY_BALANCE = CELL.ENEMY_BALANCE - 20
@@ -224,10 +238,8 @@ function TargetHST:setCellEnemyValues(enemy,CELL)
 end
 
 function TargetHST:createGridCell()
-
 	self.CELLS = {}
 	self.ENEMYCELLS = {}
-	--self.ENEMYCELLS = {}
 	for x = 1, Game.mapSizeX / cellElmos do
 		if not self.CELLS[x] then
 			self.CELLS[x] = {}
@@ -235,32 +247,51 @@ function TargetHST:createGridCell()
 		for z = 1, Game.mapSizeZ / cellElmos do
 			self.CELLS[x][z] = {}
 			self:NewCell(x,z)
-
 		end
 	end
 end
 
-function TargetHST:areaCells(X,Z,R,this)
+function TargetHST:areaCells(X,Z,R)
 	if not X or not Z then
 		self:Warn('no grid XZ for areacells')
 	end
 	local AC = {}
-	R = R or 1
+	R = R or 0
 	myself = myself or false
 	for x = X - R , X + R,1  do
 		for z = Z - R , Z + R,1 do
-			if this or (x ~= X or z ~= Z) then
-				if self.CELLS[x] and self.CELLS[x][z] then
-					--self:EchoDebug('x=',x,'z=',z)
-					table.insert(AC, {gx = x, gz = z})
-				end
+			if self.CELLS[x] and self.CELLS[x][z] then
+				table.insert(AC, {gx = x, gz = z})
 			end
 		end
 	end
 	return AC
 end
 
+function TargetHST:getCellsFields(position,fields,range)--maybe we can run just through ENEMYCELLS
+	if not fields or not position or type(fields) ~= 'table' then
+		self:Warn('incomplete or incorrect params for get cells params',fields,position, range)
+		return
+	end
+	range = range or 0
+	local gridX, gridZ = self:PosToGrid(position)
+	local cells = self:areaCells(gridX,gridZ,range)
+	local VALUE = 0 --VALUE is a total count of all request fields
+	local subValues = {} --subValues is the sum of this fields of each asked cell
 
+	for i, f in pairs(fields) do
+		subValues[f] = 0
+	end
+
+	for index , grid in pairs(cells) do
+		local cell = self.CELLS[grid.gx][grid.gz]
+		for i, field in pairs(fields) do
+			VALUE = VALUE + cell[field]
+			subValues[field] = subValues[field] + cell[field]
+		end
+	end
+	return VALUE , subValues , cells
+end
 
 function TargetHST:clearEnemies()---wrong, clear the cells by parsing enemycells
 	for x,Ztable in pairs(self.CELLS) do
@@ -399,6 +430,7 @@ function TargetHST:Init()
 	self.pathModifierFuncs = {}
 
 	self:createGridCell()
+	self.pathModParam = 40
 end
 
 function TargetHST:HorizontalLine(x, z, tx, threatResponse, groundAirSubmerged, val)
@@ -514,23 +546,6 @@ function TargetHST:CheckInRadius(cx, cz, radius, threatResponse, groundAirSubmer
 	end
 	self.game:StopTimer('cr')
 	return value, threat
-end
-
-function TargetHST:adiaCells(px,pz,field)--return a list with 8 adiacent cells respect the reference cell
-	local adiacents = {}
-	for x = px - 1, px + 1 do
-		if self.cells[x] ~= nil then
-			for z = pz - 1, pz + 1 do
-				if (x ~= px or z ~= pz) and self.cells[x][z] then -- ignore center cell
-				if field and self.cells[x][z][field] == nil then
-					self.cells[x][z][field] = 0
-				end
-				adiacents[x] = z
-			end
-		end
-	end
-end
-return adiacents
 end
 
 function TargetHST:CountEnemyThreat(unitID, unitName, threat)
@@ -663,6 +678,7 @@ function TargetHST:UpdateEnemies()
 
 		local px, pz = GetCellPosition(e.position)
 		self:setCellEnemyValues(e,self.CELLS[px][pz])
+	end
 
 
 
@@ -747,11 +763,14 @@ function TargetHST:UpdateEnemies()
 								cell.targets[groundAirSubmerged][hurtGAS] = e
 							else
 -- 								if value > self:Value(cell.targets[groundAirSubmerged][hurtGAS].unitName) then
-								if value > self.ai.armyhst.unitTable[cell.targets[groundAirSubmerged][hurtGAS].unitName] then
+-- 								print(value)
+-- 								print(self.ai.armyhst.unitTable[cell.targets[groundAirSubmerged][hurtGAS].name].metalCost)
+								if value > self.ai.armyhst.unitTable[cell.targets[groundAirSubmerged][hurtGAS].name].metalCost then
 									cell.targets[groundAirSubmerged][hurtGAS] = e
 								end
 							end
 							if health < vulnerableHealth then
+
 								cell.vulnerables[groundAirSubmerged][hurtGAS] = e
 							end
 							if groundAirSubmerged == "air" and hurtGAS == "ground" and threatLayers.ground.threat > cell.lastDisarmThreat then
@@ -979,158 +998,18 @@ function TargetHST:UpdateMap()
 	--end
 end
 ------------------------------------------------------------------------HERE BEGIN THE ON DEMAND FUNCTION---------------------------
-local function CellVulnerable(cell, hurtByGAS, weaponsGAS)
-	hurtByGAS = hurtByGAS or threatTypesAsKeys
-	weaponsGAS = weaponsGAS or threatTypes
-	if cell == nil then return end
-	for GAS, yes in pairs(hurtByGAS) do
-		for i, wGAS in pairs(weaponsGAS) do
-			local vulnerable = cell.vulnerables[GAS][wGAS]
-			if vulnerable ~= nil then return vulnerable end
-		end
-	end
-end
 
-function TargetHST:NearbyVulnerable(unit)
+function TargetHST:NearbyVulnerable()
 	if unit == nil then return end
-	--self:UpdateMap()
 	local position = unit:GetPosition()
-	local px, pz = GetCellPosition(position)
-	local unitName = unit:Name()
-	local gas = self.ai.tool:WhatHurtsUnit(unitName, nil, position)
-	local weapons = self.ai.armyhst.unitTable[unitName].weaponLayer  --self.ai.tool:UnitWeaponLayerList(unitName)
-	-- check this cell
-	local vulnerable = nil
-	if self:CellExist(px,pz) then
-		vulnerable = CellVulnerable(self.cells[px][pz], gas, weapons)
-
-	end
-	-- check adjacent self.cells
-	if vulnerable == nil then
-		for ix = px - 1, px + 1 do
-			for iz = pz - 1, pz + 1 do
-				if self.cells[ix] ~= nil then
-					if self.cells[ix][iz] ~= nil then
-						vulnerable = CellVulnerable(self.cells[ix][iz], gas, weapons)
-						if vulnerable then break end
-					end
-				end
-			end
-			if vulnerable then break end
-		end
-	end
-	return vulnerable
-end
-
-
-
-function TargetHST:GetBestBombardCell(position, range, minValueThreat, ignoreValue, ignoreThreat)
-	if ignoreValue and ignoreThreat then
-		game:SendToConsole("trying to find a place to bombard but ignoring both value and threat doesn't work")
-		return
-	end
-	--self:UpdateMap()
-	if self.enemyBaseCell and not ignoreValue then
-		local dist = self.ai.tool:Distance(position, self.enemyBaseCell.pos)
-		if dist < range then
-			local value = self.enemyBaseCell.values.ground.ground + self.enemyBaseCell.values.air.ground + self.enemyBaseCell.values.submerged.ground
-			return self.enemyBaseCell, value + self.enemyBaseCell.response.ground
-		end
-	end
-	local best
-	local bestValueThreat = 0
-	if minValueThreat then bestValueThreat = minValueThreat end
-	for i, cell in pairs(self.cellList) do
-		if #cell.buildingIDs > 0 then
-			local dist = self.ai.tool:Distance(position, cell.pos)
-			if dist < range then
-				local value = cell.values.ground.ground + cell.values.air.ground + cell.values.submerged.ground
-				local valuethreat = 0
-				if not ignoreValue then valuethreat = valuethreat + value end
-				if not ignoreThreat then valuethreat = valuethreat + cell.response.ground end
-				if valuethreat > bestValueThreat then
-					best = cell
-					bestValueThreat = valuethreat
-				end
+	local danger,subValues, cells = getCellsFields(position,{'armed','unarm'},1)
+	if subValues.armed < 0 and subValues.unarm > 0 then
+		for index , grid in pairs(cells) do
+			local cell = self.CELLS[grid.gx][grid.gz]
+			for id,name in pairs (cell.enemyUnits ) do
+				return id
 			end
 		end
-	end
-	if best then
-		local bestBuildingID, bestBuildingVT
-		for i, buildingID in pairs(best.buildingIDs) do
-			local building = self.game:GetUnitByID(buildingID)
-			if building then
-				local uname = building:Name()
-				local value = self:Value(uname)
-				--local threat = self.ai.tool:ThreatRange(uname, "ground") + self.ai.tool:ThreatRange(uname, "air")
-				local threat = self.ai.armyhst.unitTable[uname].groundThreat + self.ai.armyhst.unitTable[uname].airThreat
-				local valueThreat = value + threat
-				if not bestBuildingVT or valueThreat > bestBuildingVT then
-					bestBuildingVT = valueThreat
-					bestBuildingID = buildingID
-				end
-			end
-		end
-	end
-	return best, bestValueThreat, bestBuildingID
-end
-
-function TargetHST:GetBestBomberTarget(torpedo)
-	--self:UpdateMap()
-	local best
-	local bestValue = 0
-	for i, cell in pairs(self.cellList) do
-		local value = cell.explosionValue
-		if torpedo then
-			value = value + cell.values.air.submerged
-		else
-			value = value + cell.values.air.ground
-		end
-		if value > 0 then
-			value = value - cell.threat.air
-			if value > bestValue then
-				best = cell
-				bestValue = value
-			end
-		end
-	end
-	if best then
-		local bestTarget
-		bestValue = 0
-		local target = best.explosiveTarget
-		if target == nil then
-			if torpedo then
-				target = best.targets.air.submerged.unit
-			else
-				target = best.targets.air.ground.unit
-			end
-		end
-		return target
-	end
-end
-
-function TargetHST:IsBombardPosition(position, unitName)
-	--self:UpdateMap()
-	local px, pz = GetCellPosition(position)
-	local radius = self.ai.armyhst.unitTable[unitName].groundRange
-	local groundValue, groundThreat = self:CheckInRadius(px, pz, radius, "threat", "ground")
-	if groundValue + groundThreat > self:Value(unitName) * 1.5 then
-		return true
-	else
-		return false
-	end
-end
-
-
-function TargetHST:IsSafePositionORIGINAL(position, unit, threshold, adjacent)
-	local threat, cell, uname = self:ThreatHere(position, unit, adjacent)
-	if not cell then
-		return true
-	end
-	if threshold then
-		return threat < self.ai.armyhst.unitTable[uname].metalCost * threshold, cell.response
-	else
-		return threat == 0, cell.response
 	end
 end
 
@@ -1139,30 +1018,26 @@ function TargetHST:IsSafePosition(position, unitName, threshold, adjacent)
 		self:Warn('nil position in safe position check')
 		return
 	end
+ 	threshold = threshold or 0
+ 	adjacent = adjacent or 0
 -- 	local layer = --here implement a count of danger per layer, but now we count all danger layer as dangerous
 -- 	if unit then
 -- 		layer = self.ai.armyhst.unitTable[unitName].LAYER
 -- 	end
-	threshold = threshold or 0
-	local gridX, gridZ = self:PosToGrid(position)
-	local cell = self.CELLS[gridX][gridZ]
-	local danger = cell.armed
-	if adjacent then
-		for i,v in pairs(self:areaCells(gridX,gridZ,1)) do
-			danger = danger + self.CELLS[gx][gz].armed
-		end
-	end
+	--WARNING here implement a count of danger per layer, but now we count all danger layer as dangerous
+	local danger = self:getCellsFields(position,{'armed'},adjacent)
 	return danger <= threshold
 end
+
 
 function TargetHST:GetPathModifierFunc(unitName, adjacent)
 	if self.pathModifierFuncs[unitName] then
 		return self.pathModifierFuncs[unitName]
 	end
-	local divisor = self.ai.armyhst.unitTable[unitName].metalCost / 40
+	local divisor = self.ai.armyhst.unitTable[unitName].metalCost / self.pathModParam
 	local modifier_node_func = function ( node, distanceToGoal, distanceStartToGoal )
 		--local threatMod = self:ThreatHere(node.position, unitName, adjacent) / divisor--BE CAREFULL DANGER CHECK
-		local threatMod = self:ThreatHere(node.position, unitName, adjacent) / divisor--BE CAREFULL DANGER CHECK
+		local threatMod = self:getCellsFields(node.position,{'armed'}) / divisor
 		if distanceToGoal then
 			if distanceToGoal <= 500 then
 				return 0
@@ -1579,6 +1454,178 @@ function TargetHST:ThreatHere(position, unitOrName, check_adjacent)--DEPRECATED 
 		end
 	end
 	return threat, cell, uname
+end
+
+function TargetHST:IsSafePositionORIGINAL(position, unit, threshold, adjacent)
+	local threat, cell, uname = self:ThreatHere(position, unit, adjacent)
+	if not cell then
+		return true
+	end
+	if threshold then
+		return threat < self.ai.armyhst.unitTable[uname].metalCost * threshold, cell.response
+	else
+		return threat == 0, cell.response
+	end
+end
+
+function TargetHST:IsBombardPosition(position, unitName)
+	--self:UpdateMap()
+	local px, pz = GetCellPosition(position)
+	local radius = self.ai.armyhst.unitTable[unitName].groundRange
+	local groundValue, groundThreat = self:CheckInRadius(px, pz, radius, "threat", "ground")
+	if groundValue + groundThreat > self:Value(unitName) * 1.5 then
+		return true
+	else
+		return false
+	end
+end
+
+
+function TargetHST:GetBestBomberTarget(torpedo)
+	--self:UpdateMap()
+	local best
+	local bestValue = 0
+	for i, cell in pairs(self.cellList) do
+		local value = cell.explosionValue
+		if torpedo then
+			value = value + cell.values.air.submerged
+		else
+			value = value + cell.values.air.ground
+		end
+		if value > 0 then
+			value = value - cell.threat.air
+			if value > bestValue then
+				best = cell
+				bestValue = value
+			end
+		end
+	end
+	if best then
+		local bestTarget
+		bestValue = 0
+		local target = best.explosiveTarget
+		if target == nil then
+			if torpedo then
+				target = best.targets.air.submerged.unit
+			else
+				target = best.targets.air.ground.unit
+			end
+		end
+		return target
+	end
+end
+
+
+
+function TargetHST:GetBestBombardCell(position, range, minValueThreat, ignoreValue, ignoreThreat)
+	if ignoreValue and ignoreThreat then
+		game:SendToConsole("trying to find a place to bombard but ignoring both value and threat doesn't work")
+		return
+	end
+	--self:UpdateMap()
+	if self.enemyBaseCell and not ignoreValue then
+		local dist = self.ai.tool:Distance(position, self.enemyBaseCell.pos)
+		if dist < range then
+			local value = self.enemyBaseCell.values.ground.ground + self.enemyBaseCell.values.air.ground + self.enemyBaseCell.values.submerged.ground
+			return self.enemyBaseCell, value + self.enemyBaseCell.response.ground
+		end
+	end
+	local best
+	local bestValueThreat = 0
+	if minValueThreat then bestValueThreat = minValueThreat end
+	for i, cell in pairs(self.cellList) do
+		if #cell.buildingIDs > 0 then
+			local dist = self.ai.tool:Distance(position, cell.pos)
+			if dist < range then
+				local value = cell.values.ground.ground + cell.values.air.ground + cell.values.submerged.ground
+				local valuethreat = 0
+				if not ignoreValue then valuethreat = valuethreat + value end
+				if not ignoreThreat then valuethreat = valuethreat + cell.response.ground end
+				if valuethreat > bestValueThreat then
+					best = cell
+					bestValueThreat = valuethreat
+				end
+			end
+		end
+	end
+	if best then
+		local bestBuildingID, bestBuildingVT
+		for i, buildingID in pairs(best.buildingIDs) do
+			local building = self.game:GetUnitByID(buildingID)
+			if building then
+				local uname = building:Name()
+				local value = self:Value(uname)
+				--local threat = self.ai.tool:ThreatRange(uname, "ground") + self.ai.tool:ThreatRange(uname, "air")
+				local threat = self.ai.armyhst.unitTable[uname].groundThreat + self.ai.armyhst.unitTable[uname].airThreat
+				local valueThreat = value + threat
+				if not bestBuildingVT or valueThreat > bestBuildingVT then
+					bestBuildingVT = valueThreat
+					bestBuildingID = buildingID
+				end
+			end
+		end
+	end
+	return best, bestValueThreat, bestBuildingID
+end
+
+local function CellVulnerable(cell, hurtByGAS, weaponsGAS)
+	hurtByGAS = hurtByGAS or threatTypesAsKeys
+	weaponsGAS = weaponsGAS or threatTypes
+	if cell == nil then return end
+	for GAS, yes in pairs(hurtByGAS) do
+		for i, wGAS in pairs(weaponsGAS) do
+			local vulnerable = cell.vulnerables[GAS][wGAS]
+			if vulnerable ~= nil then return vulnerable end
+		end
+	end
+end
+
+function TargetHST:NearbyVulnerable(unit)
+	if unit == nil then return end
+	--self:UpdateMap()
+	local position = unit:GetPosition()
+	local px, pz = GetCellPosition(position)
+	local unitName = unit:Name()
+	local gas = self.ai.tool:WhatHurtsUnit(unitName, nil, position)
+	local weapons = self.ai.armyhst.unitTable[unitName].weaponLayer  --self.ai.tool:UnitWeaponLayerList(unitName)
+	-- check this cell
+	local vulnerable = nil
+	if self:CellExist(px,pz) then
+		vulnerable = CellVulnerable(self.cells[px][pz], gas, weapons)
+
+	end
+	-- check adjacent self.cells
+	if vulnerable == nil then
+		for ix = px - 1, px + 1 do
+			for iz = pz - 1, pz + 1 do
+				if self.cells[ix] ~= nil then
+					if self.cells[ix][iz] ~= nil then
+						vulnerable = CellVulnerable(self.cells[ix][iz], gas, weapons)
+						if vulnerable then break end
+					end
+				end
+			end
+			if vulnerable then break end
+		end
+	end
+	return vulnerable
+end
+
+function TargetHST:adiaCells(px,pz,field)--return a list with 8 adiacent cells respect the reference cell
+	local adiacents = {}
+	for x = px - 1, px + 1 do
+		if self.cells[x] ~= nil then
+			for z = pz - 1, pz + 1 do
+				if (x ~= px or z ~= pz) and self.cells[x][z] then -- ignore center cell
+				if field and self.cells[x][z][field] == nil then
+					self.cells[x][z][field] = 0
+				end
+				adiacents[x] = z
+			end
+		end
+	end
+end
+return adiacents
 end
 
 ]]

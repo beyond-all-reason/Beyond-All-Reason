@@ -124,13 +124,13 @@ end
 function ScoutBST:bestAdjacentPos(unit,target)
 	local upos = unit:GetPosition()
 	local gx, gz = self.ai.targethst:PosToGrid(upos)
-	local adjacells = self.ai.targethst:areaCells(gx,gz)
+	local areacells = self.ai.targethst:areaCells(gx,gz)
 	local risky = {}
 	local greedy = {}
 	local neutral = {}
 	local gluttony = 0
 	local tg = nil
-	for index, G in pairs(adjacells) do
+	for index, G in pairs(areacells) do
 		local cell = self.ai.targethst.CELLS[G.gx][G.gz]
 		if cell.armed < 1 and cell.unarm > 0 then
 			table.insert(greedy,cell)

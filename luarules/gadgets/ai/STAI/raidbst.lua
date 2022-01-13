@@ -5,7 +5,7 @@ function RaidBST:Name()
 end
 
 function RaidBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	local u = self.unit:Internal()
 	self.id = u:ID()
 	self.name =u:Name()

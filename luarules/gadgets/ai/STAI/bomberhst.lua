@@ -74,7 +74,7 @@ function BomberHST:DoTargetting()
 		-- find somewhere to attack
 		self:EchoDebug("getting target for " .. weapon)
 		local torpedo = weapon == 'torpedo'
-		local targetUnit = self.ai.targethst:GetBestBomberTarget(torpedo)
+		local targetUnit = self:GetBestBomberTarget(torpedo)
 		if targetUnit ~= nil then
 			local tupos = targetUnit:GetPosition()
 			if tupos and tupos.x then
@@ -175,8 +175,50 @@ function BomberHST:GetPathValidFunc(unitName)
 		return self.pathValidFuncs[unitName]
 	end
 	local valid_node_func = function ( node )
-		return self.ai.targethst:IsSafePosition(node.position, unitName, nil, true)
+		return self.ai.targethst:IsSafePosition(node.position, unitName, nil, 1)
 	end
 	self.pathValidFuncs[unitName] = valid_node_func
 	return valid_node_func
 end
+
+function BomberHST:GetBestBomberTarget(torpedo)
+	local bestCell = nil
+	local bestValue = 0
+	for index,G in pairs(self.ai.targethst.ENEMYCELLS) do
+		local cell = self.ai.targethst.CELLS[G.x][G.z]
+		if torpedo then
+			if cell.pos.y < 5 then
+				if cell.base + cell.economy > bestValue then
+					bestValue = cell.base + cell.economy
+					bestCell = cell
+				end
+			end
+		else
+			if cell.pos.y > 5 then
+				if cell.base + cell.economy > bestValue then
+					bestValue = cell.base + cell.economy
+					bestCell = cell
+				end
+			end
+		end
+	end
+	if bestCell then
+		local bu
+		local bv = 0
+		for id,name in pairs(bestCell.enemyUnits) do
+			local ut = self.ai.armyhst.unitTable[name]
+			if ut.metalCost > bv then
+				bv = ut.metalCost
+				bu = id
+			end
+		end
+		if bu then return self.game:GetUnitByID(bu) end
+	end
+
+
+end
+
+
+
+
+
