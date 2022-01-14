@@ -158,7 +158,7 @@
 		"armckfus": {
 			"hub": [
 				[ 
-					{"unit": "armamd", "category": "defence", "offset": [120, -120], "condition": {"chance": 0.5}},
+					//{"unit": "armamd", "category": "defence", "offset": [120, -120], "condition": {"chance": 0.5}},
 					{"unit": "armpb", "category": "defence", "offset": [200, 500], "condition": {"chance": 0.3}},
 					{"unit": "armferret", "category": "defence", "offset": [-200, 200], "condition": {"air": true}},
                     {"unit": "armpb", "category": "defence", "offset": [200, 500], "condition": {"chance": 0.3}}
@@ -174,7 +174,7 @@
 					{"unit": "armmmkr", "category": "convert", "offset": [150, 150]},
 					{"unit": "armmmkr", "category": "convert", "offset": [120, -120], "condition": {"energy": true}},
                     {"unit": "armmmkr", "category": "convert", "offset": [120, -120], "condition": {"energy": true}},
-					{"unit": "armamd", "category": "defence", "offset": [-120, -120], "condition": {"chance": 0.5}},
+					//{"unit": "armamd", "category": "defence", "offset": [-120, -120], "condition": {"chance": 0.5}},
 					{"unit": "armanni", "category": "defence", "offset": [-180, -180]},
 					{"unit": "armpb", "category": "defence", "offset": [-80, -80], "condition": {"chance": 0.5}},
 					{"unit": "armferret", "category": "defence", "offset": [-80, 80], "condition": {"air":true}}
@@ -268,8 +268,8 @@
                     {"unit": "armllt", "category": "defence", "offset": {"back": 100}, "priority": "now"},
 					//{"unit": "armsolar", "category": "defence", "offset": [-120, 50]},
 					//{"unit": "armnanotc", "category": "defence", "offset": [-250, 90]},
-                    //{"unit": "armamd", "category": "defence", "offset": [-200, -90]},
-                    {"unit": "armpb", "category": "defence", "offset": [200, -50]} 
+                    {"unit": "armpb", "category": "defence", "offset": [200, -50]},
+                    {"unit": "armamd", "category": "defence", "offset": [-200, -90]}
                 ],
                 [ 
                     {"unit": "armckfus", "category": "defence", "offset": [-200, -50], "priority":"high"}, 
@@ -360,7 +360,7 @@
                 ],
                 [
                     {"unit": "corfus", "category": "energy", "offset": [-300, -100], "priority": "now"},
-                    {"unit": "corfus", "category": "energy", "offset": [-300, -100], "priority": "now"},
+                    {"unit": "cormmkr", "category": "energy", "offset": [-300, -300], "priority": "now"},
                     {"unit": "corarad", "category": "energy", "offset": [-300, -100], "priority": "now"},
                     {"unit": "corshroud", "category": "energy", "offset": [-300, -100], "priority": "high"}
                 ],
