@@ -342,7 +342,7 @@ local function constructNewBlueprint(n, unitID)
 		local canConstructHere = posOccupied(posX, posY, posZ, blueprintRadius)
 							 and posCheck(posX, posY, posZ, blueprintRadius)
 							 and posMapsizeCheck(posX, posY, posZ, blueprintRadius)
-							 and (not posStartboxCheck(posX, posY, posZ, blueprintRadius) or (not ScavengerStartboxExists))
+							 and (not posStartboxCheck(posX, posY, posZ, blueprintRadius) or (not scavconfig.modules.startBoxProtection))
 
 		if canConstructHere then
 			buffConstructorBuildSpeed(unitID)

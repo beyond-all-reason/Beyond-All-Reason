@@ -319,6 +319,22 @@ local options={
 		section = 'options_scavengers',
 		def  = true,
 	},
+	{
+		key    = 'scavstartboxcloud',
+		name   = 'Scavenger Startbox Cloud (Requires Startbox for Scavenger team)',
+		desc   = "Spawns purple cloud in Scav startbox area, giving them safe space.",
+		type   = 'bool',
+		section = 'options_scavengers',
+		def  = true,
+	},
+	{
+		key    = 'scavspawnarea',
+		name   = 'Scavenger Spawn Area (Requires Startbox for Scavenger team)',
+		desc   = "When enabled, Scavengers will only spawn beacons within an area that starts in their startbox and grows up with time. When disabled, they will spawn freely around the map",
+		type   = 'bool',
+		section = 'options_scavengers',
+		def  = true,
+	},
 
 
 	-- Hidden

@@ -62,6 +62,7 @@ if not teamcount then teamcount = 1 end
 		ScavUnitSpawnFrequencyModoption = ScavUnitSpawnFrequencyModoption*2
 	end
 
+	local startboxCloudEnabled = Spring.GetModOptions().scavstartboxcloud
 -- End of Modoptions
 
 
@@ -79,7 +80,7 @@ scavconfig = {
 		constructorControllerModule 	= constructorsEnabled,
 		factoryControllerModule 		= true,
 		unitSpawnerModule 				= true,
-		startBoxProtection				= true,
+		startBoxProtection				= startboxCloudEnabled,
 		reinforcementsModule			= true, --disabled for now for weird victory conditions and too much hp
 		randomEventsModule				= randomEventsEnabled,
 		stockpilers						= true,

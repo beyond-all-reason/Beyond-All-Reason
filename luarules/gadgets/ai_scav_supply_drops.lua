@@ -301,8 +301,9 @@ function gadget:GameFrame(n)
 				local terrainCheck = posCheck(posx, posy, posz, 128)
 				local scavLoS = posFriendlyCheckOnlyLos(posx, posy, posz, scavengerAllyTeamID)
 				local scavStartbox = posStartboxCheck(posx, posy, posz, 500, true)
+				local scavCloud = Spring.GetModOptions().scavstartboxcloud
 				--local playerLoS = posLosCheck(posx, posy, posz, 128)
-                if #unitsCyl == 0 and terrainCheck and scavLoS == true and scavStartbox == false then
+                if #unitsCyl == 0 and terrainCheck and scavLoS == true and (scavStartbox == false or scavCloud == false) then
 					--aliveLootboxesCountT1
 					if aliveLootboxesCountT4 >= 4 and aliveLootboxesCountT3 >= 4 and aliveLootboxesCountT2 >= 3 and aliveLootboxesCountT1 >= 3 then
 						local r = math.random(0,3)

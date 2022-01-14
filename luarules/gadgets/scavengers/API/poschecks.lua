@@ -296,23 +296,28 @@ end
 
 function posScavSpawnAreaCheck(posx, posy, posz, posradius)
 	local posradius = posradius or 1000
-	if not ScavengerStartboxExists then return true end
-	if posStartboxCheck(posx, posy, posz, posradius) == true then return true end
-	if not globalScore then return false end
-	
-	local ScavBoxCenterX = math.ceil((ScavengerStartboxXMin + ScavengerStartboxXMax)*0.5)
-	local ScavBoxCenterZ = math.ceil((ScavengerStartboxZMin + ScavengerStartboxZMax)*0.5)
-	local ScavTechPercentage = math.ceil((globalScore/scavconfig.timers.BossFight)*100)
-	
-	local SpawnBoxMinX = math.floor(ScavengerStartboxXMin-(((Game.mapSizeX)*0.01)*ScavTechPercentage))
-	local SpawnBoxMaxX = math.ceil(ScavengerStartboxXMax+(((Game.mapSizeX)*0.01)*ScavTechPercentage))
-	local SpawnBoxMinZ = math.floor(ScavengerStartboxZMin-(((Game.mapSizeZ)*0.01)*ScavTechPercentage))
-	local SpawnBoxMaxZ = math.ceil(ScavengerStartboxZMax+(((Game.mapSizeZ)*0.01)*ScavTechPercentage))
+	if Spring.GetModOptions().scavspawnarea then
+		
+		if not ScavengerStartboxExists then return true end
+		if posStartboxCheck(posx, posy, posz, posradius) == true then return true end
+		if not globalScore then return false end
+		
+		local ScavBoxCenterX = math.ceil((ScavengerStartboxXMin + ScavengerStartboxXMax)*0.5)
+		local ScavBoxCenterZ = math.ceil((ScavengerStartboxZMin + ScavengerStartboxZMax)*0.5)
+		local ScavTechPercentage = math.ceil((globalScore/scavconfig.timers.BossFight)*100)
+		
+		local SpawnBoxMinX = math.floor(ScavengerStartboxXMin-(((Game.mapSizeX)*0.01)*ScavTechPercentage))
+		local SpawnBoxMaxX = math.ceil(ScavengerStartboxXMax+(((Game.mapSizeX)*0.01)*ScavTechPercentage))
+		local SpawnBoxMinZ = math.floor(ScavengerStartboxZMin-(((Game.mapSizeZ)*0.01)*ScavTechPercentage))
+		local SpawnBoxMaxZ = math.ceil(ScavengerStartboxZMax+(((Game.mapSizeZ)*0.01)*ScavTechPercentage))
 
-	if posx < SpawnBoxMinX then return false end
-	if posx > SpawnBoxMaxX then return false end
-	if posz < SpawnBoxMinZ then return false end
-	if posz > SpawnBoxMaxZ then return false end
+		if posx < SpawnBoxMinX then return false end
+		if posx > SpawnBoxMaxX then return false end
+		if posz < SpawnBoxMinZ then return false end
+		if posz > SpawnBoxMaxZ then return false end
 
-	return true
+		return true
+	else
+		return true
+	end
 end
