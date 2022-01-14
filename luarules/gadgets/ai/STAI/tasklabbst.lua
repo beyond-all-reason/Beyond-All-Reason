@@ -56,9 +56,6 @@ function TaskLabBST:resetCounters()
 	if self.isAirFactory then
 		self.ai.couldBomb = 0
 		self.ai.hasBombed = 0
-	else
-		self.ai.couldAttack = 0
-		self.ai.hasAttacked = 0
 	end
 end
 

@@ -51,12 +51,12 @@ function OverviewHST:EvaluateSituation()
 	self.nukeLimit = math.ceil(self.ai.tool:countMyUnit({'isWeapon'}) / 50)
 	self.tacticalNukeLimit = math.ceil(self.ai.tool:countMyUnit({'isWeapon'}) / 40)
 
-	local attackCounter = self.ai.attackhst:GetCounter()
-	local couldAttack = self.ai.couldAttack >= 1 or self.ai.couldBomb >= 1
+	--local attackCounter = self.ai.attackhst:GetCounter()
+
 	local bombingTooExpensive = self.ai.bomberhst:GetCounter() == self.ai.armyhst.maxBomberCounter
-	local attackTooExpensive = attackCounter == self.ai.armyhst.maxAttackCounter
+	--local attackTooExpensive = attackCounter == self.ai.armyhst.maxAttackCounter
 	local controlMetalSpots = self.ai.tool:countMyUnit({'extractsMetal'}) > #self.ai.mobNetworkMetals["air"][1] * 0.4
-	local needUpgrade = couldAttack or bombingTooExpensive or attackTooExpensive
+	local needUpgrade = bombingTooExpensive or attackTooExpensive
 	--self.keepCommanderSafe = self.ai.totalEnemyThreat > 3000 -- turn commander into assistant, for now above paranoidCommander because the assistant behaviour isn't helpful or safe
 	--self.paranoidCommander = self.ai.totalEnemyThreat > 5000 -- move commander to safest place assisting a factory
 
@@ -67,8 +67,6 @@ function OverviewHST:EvaluateSituation()
 		self.plasmaRocketBotRatio = 1 - ((self.ai.totalEnemyImmobileThreat / self.ai.totalEnemyThreat) / 2.5)
 		self:EchoDebug("plasma/rocket bot ratio: " .. self.plasmaRocketBotRatio)
 	end
--- 	self.needSiege = (self.ai.totalEnemyImmobileThreat > self.ai.totalEnemyMobileThreat * 3.5 and self.ai.totalEnemyImmobileThreat > 50000) or attackCounter >= self.ai.armyhst.siegeAttackCounter or controlMetalSpots
-
 	local needAdvanced = self.ai.tool:countMyUnit({'isWeapon'}) > 35 and (self.ai.Metal.income > 18 or controlMetalSpots) and self.ai.tool:countMyUnit({'factoryMobilities'}) > 0 and (needUpgrade or self.ai.lotsOfMetal)
 	if needAdvanced ~= self.ai.needAdvanced then
 		self.ai.needAdvanced = needAdvanced
@@ -100,7 +98,7 @@ function OverviewHST:EvaluateSituation()
 	self:EchoDebug("metal income: " .. self.ai.Metal.income .. "  combat units: " .. self.ai.tool:countMyUnit({'isWeapon'}))
 	self:EchoDebug("have advanced? " .. tostring(self.ai.haveAdvFactory) .. " have experimental? " .. tostring(self.ai.haveExpFactory))
 	self:EchoDebug("need advanced? " .. tostring(self.ai.needAdvanced) .. "  need experimental? " .. tostring(self.ai.needExperimental))
-	self:EchoDebug("need advanced? " .. tostring(self.ai.needAdvanced) .. ", need upgrade? " .. tostring(needUpgrade) .. ", have attacked enough? " .. tostring(couldAttack) .. " (" .. self.ai.couldAttack .. "), have " .. self.ai.tool:countMyUnit({'factoryMobilities'}) .. " factories, " .. math.floor(self.ai.Metal.income) .. " metal income")
+	self:EchoDebug("need advanced? " .. tostring(self.ai.needAdvanced) .. ", need upgrade? " .. tostring(needUpgrade) .. self.ai.tool:countMyUnit({'factoryMobilities'}) .. " factories, " .. math.floor(self.ai.Metal.income) .. " metal income")
 end
 
 function OverviewHST:SetEconomyAliases()
@@ -120,9 +118,9 @@ function OverviewHST:SetEconomyAliases()
 	self.metalOkay = self.ai.Metal.reserves >= enoughMetalReserves
 	self.metalBelowHalf = self.ai.Metal.reserves < lotsMetalReserves
 	self.metalAboveHalf = self.ai.Metal.reserves >= lotsMetalReserves
-	local attackCounter = self.ai.attackhst:GetCounter()
-	self.notEnoughCombats = self.ai.tool:countMyUnit({'isWeapon'}) < attackCounter * 0.6
-	self.farTooFewCombats = self.ai.tool:countMyUnit({'isWeapon'}) < attackCounter * 0.2
+-- 	local attackCounter = self.ai.attackhst:GetCounter()
+-- 	self.notEnoughCombats = self.ai.tool:countMyUnit({'isWeapon'}) < attackCounter * 0.6
+-- 	self.farTooFewCombats = self.ai.tool:countMyUnit({'isWeapon'}) < attackCounter * 0.2
 
 	self.ai.underReserves = self.ai.Metal.full < 0.3 or self.ai.Energy.full < 0.3
 	self.ai.aboveReserves = self.ai.Metal.full > 0.7 and self.ai.Energy.full > 0.7
