@@ -188,13 +188,19 @@ function posLosCheckOnlyLOSNonScav(posx, posy, posz, posradius, TestAllyTeamID)
 	return true
 end
 
-function posStartboxCheck(posx, posy, posz, posradius)
+function posStartboxCheck(posx, posy, posz, posradius, reverseNoStartbox)
 	-- if true then position is within scav startbox
 	local posradius = posradius or 1000
 	if ScavengerStartboxExists and posx <= ScavengerStartboxXMax and posx >= ScavengerStartboxXMin and posz >= ScavengerStartboxZMin and posz <= ScavengerStartboxZMax then
-		return false
-	else
 		return true
+	elseif not ScavengerStartboxExists then
+		if reverseNoStartbox then
+			return false
+		else
+			return true
+		end
+	else
+		return false
 	end
 end
 
@@ -286,4 +292,27 @@ function posSeaCheck(posx, posy, posz, posradius)
 	else
 		return true
 	end
+end
+
+function posScavSpawnAreaCheck(posx, posy, posz, posradius)
+	local posradius = posradius or 1000
+	if not ScavengerStartboxExists then return true end
+	if posStartboxCheck(posx, posy, posz, posradius) == true then return true end
+	if not globalScore then return false end
+	
+	local ScavBoxCenterX = math.ceil((ScavengerStartboxXMin + ScavengerStartboxXMax)*0.5)
+	local ScavBoxCenterZ = math.ceil((ScavengerStartboxZMin + ScavengerStartboxZMax)*0.5)
+	local ScavTechPercentage = math.ceil((globalScore/scavconfig.timers.BossFight)*100)
+	
+	local SpawnBoxMinX = math.floor(ScavengerStartboxXMin-(((Game.mapSizeX)*0.01)*ScavTechPercentage))
+	local SpawnBoxMaxX = math.ceil(ScavengerStartboxXMax+(((Game.mapSizeX)*0.01)*ScavTechPercentage))
+	local SpawnBoxMinZ = math.floor(ScavengerStartboxZMin-(((Game.mapSizeZ)*0.01)*ScavTechPercentage))
+	local SpawnBoxMaxZ = math.ceil(ScavengerStartboxZMax+(((Game.mapSizeZ)*0.01)*ScavTechPercentage))
+
+	if posx < SpawnBoxMinX then return false end
+	if posx > SpawnBoxMaxX then return false end
+	if posz < SpawnBoxMinZ then return false end
+	if posz > SpawnBoxMaxZ then return false end
+
+	return true
 end

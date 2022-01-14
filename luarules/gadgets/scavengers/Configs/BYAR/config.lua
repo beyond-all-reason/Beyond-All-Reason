@@ -162,15 +162,15 @@ unitSpawnerModuleConfig = {
 	spawnchance							= 240/ScavUnitSpawnFrequencyModoption,
 	beaconspawnchance					= 480,
 	beacondefences						= true,
-	minimumspawnbeacons					= math.ceil(teamcount*spawnmultiplier),
+	minimumspawnbeacons					= math.ceil(teamcount*spawnmultiplier)*2,
 	landmultiplier 						= 0.75,
 	airmultiplier 						= 3,
 	seamultiplier 						= 0.75,
 	chanceforaircraftonsea				= 4, -- higher number = lower chance
 
-	t0multiplier						= 5,
-	t1multiplier						= 4,
-	t2multiplier						= 2,
+	t0multiplier						= 6,
+	t1multiplier						= 5,
+	t2multiplier						= 2.5,
 	t3multiplier						= 0.30,
 	t4multiplier						= 0.010,
 
@@ -195,7 +195,7 @@ unitControllerModuleConfig = {
 
 spawnProtectionConfig = {
 	useunit				= false, -- use starbox otherwise
-	spread				= 100,
+	spread				= 64,
 }
 
 randomEventsConfig = {
@@ -397,7 +397,7 @@ function UpdateTierChances(n)
 		TierSpawnChances.T3 = 0
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T2 Start"
-		TierSpawnChances.BPMult = 1
+		TierSpawnChances.BPMult = 1.1
 	elseif globalScore > scavconfig.timers.T1top then
 		TierSpawnChances.T0 = 50
 		TierSpawnChances.T1 = 50
@@ -405,7 +405,7 @@ function UpdateTierChances(n)
 		TierSpawnChances.T3 = 0
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T1 Top"
-		TierSpawnChances.BPMult = 0.8
+		TierSpawnChances.BPMult = 1
 	elseif globalScore > scavconfig.timers.T1high then
 		TierSpawnChances.T0 = 60
 		TierSpawnChances.T1 = 40
@@ -413,7 +413,7 @@ function UpdateTierChances(n)
 		TierSpawnChances.T3 = 0
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T1 High"
-		TierSpawnChances.BPMult = 0.6
+		TierSpawnChances.BPMult = 1
 	elseif globalScore > scavconfig.timers.T1med then
 		TierSpawnChances.T0 = 70
 		TierSpawnChances.T1 = 30
@@ -421,7 +421,7 @@ function UpdateTierChances(n)
 		TierSpawnChances.T3 = 0
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T1 Medium"
-		TierSpawnChances.BPMult = 0.4
+		TierSpawnChances.BPMult = 1
 	elseif globalScore > scavconfig.timers.T1low then
 		TierSpawnChances.T0 = 80
 		TierSpawnChances.T1 = 20
@@ -429,7 +429,7 @@ function UpdateTierChances(n)
 		TierSpawnChances.T3 = 0
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T1 Low"
-		TierSpawnChances.BPMult = 0.3
+		TierSpawnChances.BPMult = 1
 	elseif globalScore > scavconfig.timers.T1start then
 		TierSpawnChances.T0 = 90
 		TierSpawnChances.T1 = 10
@@ -437,7 +437,7 @@ function UpdateTierChances(n)
 		TierSpawnChances.T3 = 0
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T1 Start"
-		TierSpawnChances.BPMult = 0.2
+		TierSpawnChances.BPMult = 1
 	else
 		TierSpawnChances.T0 = 100
 		TierSpawnChances.T1 = 0
@@ -445,7 +445,7 @@ function UpdateTierChances(n)
 		TierSpawnChances.T3 = 0
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T0"
-		TierSpawnChances.BPMult = 0.1
+		TierSpawnChances.BPMult = 0.5
 	end
 end
 

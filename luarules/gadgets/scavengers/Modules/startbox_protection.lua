@@ -1,7 +1,7 @@
 local staticUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/staticunits.lua")
 
 function spawnStartBoxProtection(n)
-    if ScavSafeAreaExist then
+    if ScavengerStartboxExists then
 			local chance = 0--math_random(0,1)
 			if chance == 0 then
 			--mapsizeX
@@ -107,14 +107,16 @@ function executeStartBoxProtection(n)
 	--ScavSafeAreaMaxX
 	--ScavSafeAreaMinZ
 	--ScavSafeAreaMaxZ
-	if ScavSafeAreaExist then
+	if ScavengerStartboxExists then
 		local list = Spring.GetUnitsInRectangle(ScavSafeAreaMinX,ScavSafeAreaMinZ,ScavSafeAreaMaxX,ScavSafeAreaMaxZ)
 		for i = 1,#list do
 			local unitID = list[i]
 			local unitTeam = Spring.GetUnitTeam(unitID)
-			if unitTeam ~= GaiaTeamID then
+			if unitTeam == Spring.GetGaiaTeamID() then
+				Spring.DestroyUnit(unitID, true, true)
+			elseif unitTeam ~= GaiaTeamID then
 				local currentHealth,maxHealth = Spring.GetUnitHealth(unitID)
-				local damage = maxHealth*(ScavSafeAreaGenerator*0.01)
+				local damage = maxHealth*(ScavSafeAreaDamage*0.01)
 				if damage < currentHealth then
 					Spring.SetUnitHealth(unitID,currentHealth-damage)
 					local posx, posy, posz = Spring.GetUnitPosition(unitID)
@@ -128,7 +130,7 @@ function executeStartBoxProtection(n)
 end
 
 function spawnStartBoxEffect(n)
-	if ScavSafeAreaExist then
+	if ScavengerStartboxExists then
 		local x = math.random(ScavSafeAreaMinX,ScavSafeAreaMaxX)
 		local z = math.random(ScavSafeAreaMinZ,ScavSafeAreaMaxZ)
 		local y = Spring.GetGroundHeight(x,z)
@@ -137,7 +139,7 @@ function spawnStartBoxEffect(n)
 end
 
 function spawnStartBoxEffect2(n)
-	if ScavSafeAreaExist then
+	if ScavengerStartboxExists then
 		local x = math.random(ScavSafeAreaMinX,ScavSafeAreaMaxX)
 		local z = math.random(ScavSafeAreaMinZ,ScavSafeAreaMaxZ)
 		local y = Spring.GetGroundHeight(x,z)

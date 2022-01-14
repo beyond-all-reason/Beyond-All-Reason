@@ -22,7 +22,13 @@ if scavengersAIEnabled then
 	if ScavengerStartboxXMin == 0 and ScavengerStartboxZMin == 0 and ScavengerStartboxXMax == mapsizeX and ScavengerStartboxZMax == mapsizeZ then
 		ScavengerStartboxExists = false
 	else
-		--ScavengerStartboxExists = true
+		ScavengerStartboxExists = true
+		ScavSafeAreaMinX = ScavengerStartboxXMin
+		ScavSafeAreaMaxX = ScavengerStartboxXMax
+		ScavSafeAreaMinZ = ScavengerStartboxZMin
+		ScavSafeAreaMaxZ = ScavengerStartboxZMax
+		ScavSafeAreaSize = math.ceil(((ScavengerStartboxXMax - ScavengerStartboxXMin) + (ScavengerStartboxZMax - ScavengerStartboxZMin))*0.175)
+		ScavSafeAreaDamage = 5
 	end
 else
 	_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)

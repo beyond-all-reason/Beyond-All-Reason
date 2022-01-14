@@ -54,9 +54,9 @@ if scavconfig.modules.unitSpawnerModule then
 	VFS.Include("luarules/gadgets/scavengers/Modules/unit_spawner.lua")
 end
 
--- if scavconfig.modules.startBoxProtection then
--- 	VFS.Include("luarules/gadgets/scavengers/Modules/startbox_protection.lua")
--- end
+if scavconfig.modules.startBoxProtection then
+	VFS.Include("luarules/gadgets/scavengers/Modules/startbox_protection.lua")
+end
 
 if scavconfig.modules.reinforcementsModule then
 	VFS.Include("luarules/gadgets/scavengers/Modules/reinforcements_module.lua")
@@ -274,6 +274,21 @@ function gadget:GameFrame(n)
 	if n%30 == 0 and scavconfig.messenger == true then
 		pregameMessages(n)
 	end
+
+	if scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists == true then
+		if n%60 == 0 then
+			spawnStartBoxProtection(n)
+		end
+		if n%10 == 0 then
+			executeStartBoxProtection(n)
+			spawnStartBoxEffect2(n)
+		end
+		--if n%(math.ceil(450/(math.ceil(ScavSafeAreaSize/5)))) == 0 then
+		if n%(math.ceil(9600000/(ScavSafeAreaSize*ScavSafeAreaSize))) == 0 then
+			spawnStartBoxEffect(n)
+		end
+	end
+
 
 	randomEventsController.GameFrame(n)
 

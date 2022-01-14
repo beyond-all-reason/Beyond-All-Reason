@@ -51,6 +51,7 @@ end
 
 local function resurrectorOrders(n, unitID)
 	Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, generateOrderParams(), 0)
+	Spring.GiveOrderToUnit(unitID, CMD.REPAIR, generateOrderParams(), {"shift"})
 	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(), {"shift"})
 end
 
@@ -79,7 +80,7 @@ local function reclaimerOrders(n, unitID)
 end
 
 local function spawnConstructor(n)
-	local spawnOverdue = constructorTimer > constructorControllerModuleConfig.constructortimer or (countScavCommanders() < constructorControllerModuleConfig.minimumconstructors and constructorTimer > 20) 
+	local spawnOverdue = constructorTimer > constructorControllerModuleConfig.constructortimer or (countScavCommanders() < constructorControllerModuleConfig.minimumconstructors and constructorTimer > 0) 
 	local exclusionPeriodExpired = constructorTimer > 0
 
 	if spawnOverdue and numOfSpawnBeacons > 0 and exclusionPeriodExpired then
@@ -284,7 +285,7 @@ end
 ConstructorNumberOfRetries = {}
 local function constructNewBlueprint(n, unitID)
 	local x,y,z = Spring.GetUnitPosition(unitID)
-	local surroundingGaiaUnits = Spring.GetUnitsInCylinder(x, z, 1000, Spring.GetGaiaTeamID())
+	local surroundingGaiaUnits = Spring.GetUnitsInCylinder(x, z, 500, Spring.GetGaiaTeamID())
 	if surroundingGaiaUnits then
 		if #surroundingGaiaUnits > 0 then
 			local target = ScavComGetClosestGaiaUnit(x, z, surroundingGaiaUnits)
@@ -341,6 +342,7 @@ local function constructNewBlueprint(n, unitID)
 		local canConstructHere = posOccupied(posX, posY, posZ, blueprintRadius)
 							 and posCheck(posX, posY, posZ, blueprintRadius)
 							 and posMapsizeCheck(posX, posY, posZ, blueprintRadius)
+							 and (not posStartboxCheck(posX, posY, posZ, blueprintRadius) or (not ScavengerStartboxExists))
 
 		if canConstructHere then
 			buffConstructorBuildSpeed(unitID)

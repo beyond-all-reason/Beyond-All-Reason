@@ -33,6 +33,9 @@ function SpawnBeacon(n)
 					canSpawnBeaconHere = posOccupied(posx, posy, posz, 192)
 				end
 				if canSpawnBeaconHere then
+					canSpawnBeaconHere = posScavSpawnAreaCheck(posx, posy, posz, 192)
+				end
+				if canSpawnBeaconHere then
 					if globalScore then
 						--local g = math_random(0,20)
 						if scavengerGamePhase == "initial" then
@@ -42,7 +45,9 @@ function SpawnBeacon(n)
 								canSpawnBeaconHere = posLosCheck(posx, posy, posz,192)
 							end
 						else
-							if numOfSpawnBeacons == 0 then
+							if numOfSpawnBeacons < 2 then
+								canSpawnBeaconHere = posStartboxCheck(posx, posy, posz, posradius)
+							elseif numOfSpawnBeacons == 2 then
 								canSpawnBeaconHere = posOccupied(posx, posy, posz, 750)
 							elseif numOfSpawnBeacons < unitSpawnerModuleConfig.minimumspawnbeacons*0.2 then
 								canSpawnBeaconHere = posLosCheckOnlyLOS(posx, posy, posz,192)

@@ -1,10 +1,18 @@
 local teams = Spring.GetTeamList()
+mapsizeX = Game.mapSizeX
+mapsizeZ = Game.mapSizeZ
 for i = 1,#teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
 		scavengersAIEnabled = true
 		scavengerAITeamID = i - 1
 		_,_,_,_,_,scavengerAllyTeamID = Spring.GetTeamInfo(scavengerAITeamID)
+		ScavengerStartboxXMin, ScavengerStartboxZMin, ScavengerStartboxXMax, ScavengerStartboxZMax = Spring.GetAllyTeamStartBox(scavengerAllyTeamID)
+		if ScavengerStartboxXMin == 0 and ScavengerStartboxZMin == 0 and ScavengerStartboxXMax == mapsizeX and ScavengerStartboxZMax == mapsizeZ then
+			ScavengerStartboxExists = false
+		else
+			ScavengerStartboxExists = true
+		end
 		break
 	end
 end
@@ -292,8 +300,9 @@ function gadget:GameFrame(n)
 				local unitsCyl = spGetCylinder(posx, posz, 128)
 				local terrainCheck = posCheck(posx, posy, posz, 128)
 				local scavLoS = posFriendlyCheckOnlyLos(posx, posy, posz, scavengerAllyTeamID)
+				local scavStartbox = posStartboxCheck(posx, posy, posz, 500, true)
 				--local playerLoS = posLosCheck(posx, posy, posz, 128)
-                if #unitsCyl == 0 and terrainCheck and scavLoS == true then
+                if #unitsCyl == 0 and terrainCheck and scavLoS == true and scavStartbox == false then
 					--aliveLootboxesCountT1
 					if aliveLootboxesCountT4 >= 4 and aliveLootboxesCountT3 >= 4 and aliveLootboxesCountT2 >= 3 and aliveLootboxesCountT1 >= 3 then
 						local r = math.random(0,3)
