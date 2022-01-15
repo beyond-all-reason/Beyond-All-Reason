@@ -16,41 +16,15 @@ end
 
 local noTranslationText = '---'
 
--- todo: echo where language of choice is missing entries
---local debug = false		-- true = echo the missing entries of the additional languages
-
 local languageContent = {}
-local defaultLanguage = 'en'
-local language = Spring.GetConfigString('language', defaultLanguage)
-
-
-local languages = {}
-local files = VFS.DirList('language', '*')
-for k, file in ipairs(files) do
-	local name = string.sub(file, 10)
-	local ext = string.sub(name, string.len(name) - 2)
-	if ext == 'lua' then
-		name = string.sub(name, 1, string.len(name) - 4)
-		languages[name] = true
-	end
-end
 
 local function loadLanguage()
 	-- load base language file (english)
-	local file = "language/"..defaultLanguage..".lua"
+	local language = 'en'
+	local file = "language/"..language..".lua"
 	local s = assert(VFS.LoadFile(file, VFS.RAW_FIRST))
 	local func = loadstring(s, file)
-	local defaultLanguageContent = func()
-
-	if language == defaultLanguage then
-		languageContent = defaultLanguageContent
-	else
-		file = "language/"..language..".lua"
-		s = assert(VFS.LoadFile(file, VFS.RAW_FIRST))
-		func = loadstring(s, file)
-		-- merge default base file with custom language
-		languageContent = table.merge(defaultLanguageContent, func())
-	end
+	languageContent = func()
 end
 
 function gadget:Initialize()
