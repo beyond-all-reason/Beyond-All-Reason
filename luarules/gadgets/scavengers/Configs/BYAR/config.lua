@@ -63,6 +63,17 @@ if not teamcount then teamcount = 1 end
 	end
 
 	local startboxCloudEnabled = Spring.GetModOptions().scavstartboxcloud
+	local scavMaxTechLevel = Spring.GetModOptions().scavmaxtechlevel
+	local scavMaxTechLevelNumber = 4
+	if scavMaxTechLevel == "tech4" then
+		scavMaxTechLevelNumber = 4
+	elseif scavMaxTechLevel == "tech3" then
+		scavMaxTechLevelNumber = 3
+	elseif scavMaxTechLevel == "tech2" then
+		scavMaxTechLevelNumber = 2
+	elseif scavMaxTechLevel == "tech1" then
+		scavMaxTechLevelNumber = 1
+	end
 -- End of Modoptions
 
 
@@ -448,6 +459,29 @@ function UpdateTierChances(n)
 		TierSpawnChances.Message = "Current tier: T0"
 		TierSpawnChances.BPMult = 0.5
 	end
+
+	if scavMaxTechLevelNumber < 4 then
+		TierSpawnChances.T3 = TierSpawnChances.T3 + TierSpawnChances.T4
+		TierSpawnChances.T4 = 0
+		if globalScore > scavconfig.timers.T3top then
+			TierSpawnChances.Message = "Current tier: T3 Top (Capped)"
+		end
+	end
+	if scavMaxTechLevelNumber < 3 then
+		TierSpawnChances.T2 = TierSpawnChances.T2 + TierSpawnChances.T3
+		TierSpawnChances.T3 = 0
+		if globalScore > scavconfig.timers.T2top then
+			TierSpawnChances.Message = "Current tier: T2 Top (Capped)"
+		end
+	end
+	if scavMaxTechLevelNumber < 2 then
+		TierSpawnChances.T1 = TierSpawnChances.T1 + TierSpawnChances.T2
+		TierSpawnChances.T2 = 0
+		if globalScore > scavconfig.timers.T1top then
+			TierSpawnChances.Message = "Current tier: T1 Top (Capped)"
+		end
+	end
+
 end
 
 

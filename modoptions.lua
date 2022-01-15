@@ -261,6 +261,20 @@ local options={
 		step   = 1,
 	},
 	{
+		key    = 'scavmaxtechlevel',
+		name   = 'Maximum Scavengers Tech Level',
+		desc   = 'Caps Scav tech level at specific point.',
+		type   = 'list',
+		section = 'options_scavengers',
+		def  = "tech4",
+		items={
+			{key="tech4", name="Tech 4", desc="Tech 4"},
+			{key="tech3", name="Tech 3", desc="Tech 3"},
+			{key="tech2", name="Tech 2", desc="Tech 2"},
+			{key="tech1", name="Tech 1", desc="Tech 1"},
+		}
+	},
+	{
 		key    = 'scavendless',
 		name   = 'Endless Mode',
 		desc   = 'Disables final boss fight, turning Scavengers into an endless survival mode',

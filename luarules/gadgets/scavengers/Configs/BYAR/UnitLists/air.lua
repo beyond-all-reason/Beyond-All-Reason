@@ -17,8 +17,6 @@ return {
 		"armcsa_scav",
 		"corca_scav",
 		"corcsa_scav",
-		"armassistdrone",
-		"corassistdrone",
 	},
 
 	T2 = {
@@ -34,6 +32,8 @@ return {
 		-- Constructors
 		"armaca_scav",
 		"coraca_scav",
+		"armassistdrone",
+		"corassistdrone",
 	},
 
 	T3 = {
