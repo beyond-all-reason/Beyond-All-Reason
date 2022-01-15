@@ -951,7 +951,7 @@ return {
 				armrectr = "ZH在尊严和权",
 				armrectrt4 = "Epic Rector",
 				armrl = "Defender",
-				armrock = "âäçêëîşûÿİæœ             ",
+				armrock = "âäçêëîşûÿİæœ",
 				armroy = "Crusader",
 				armsaber = "Sabre",
 				armsam = "Samson",
