@@ -3374,12 +3374,9 @@ function init()
 
 		{ id = "language", group = "dev", category = types.dev, name = texts.option.language, type = "select", options = languageNames, value = languageCodes[Spring.I18N.getLocale()],
 			onchange = function(i, value)
-				Spring.SetConfigString('language', languageCodes[value])
-				Spring.I18N.setLanguage(languageCodes[value])
-				if Script.LuaUI('LanguageChanged') then
-					Script.LuaUI.LanguageChanged()
+				if WG['language'] then
+					WG['language'].setLanguage(languageCodes[value])
 				end
-				Spring.SendCommands("luarules reloadluaui")
 			end
 		},
 		{ id = "font", group = "dev", category = types.dev, name = texts.option.font, type = "select", options = {}, value = 1, description = texts.option.font_descr,
