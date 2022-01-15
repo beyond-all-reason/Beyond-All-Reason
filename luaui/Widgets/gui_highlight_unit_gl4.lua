@@ -11,15 +11,22 @@ function widget:GetInfo()
 end
 
 local highlightAlpha = 0.08
+local selectedHighlightAlpha = 0.05
 local edgeAlpha = 0.5
-local edgeExponent = 1.2
+local selectedEdgeAlpha = 0.35
+local edgeExponent = 1.25
+local selectedEdgeExponent = 1.6
 local hideBelowGameframe = 100
+local animationAlpha = 0.4
+local selectedAnimationAlpha = 0.33
+
 local useTeamcolor = true
 local teamColorAlphaMult = 1.25
 local teamColorMinAlpha = 0.7
-local animationAlpha = 0.4
 
 local hidden = (Spring.GetGameFrame() <= hideBelowGameframe)
+local selectedUnits = Spring.GetSelectedUnits()
+local unitIsSelected = false
 
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
@@ -36,12 +43,22 @@ for i = 1, #teams do
 end
 teams = nil
 
+local function isUnitSelected(unitID)
+	for i, selUnitID in ipairs(selectedUnits) do
+		if selUnitID == unitID then
+			return true
+		end
+	end
+	return false
+end
+
 local function addUnitShape(unitID)
 	if not WG.DrawUnitShapeGL4 then
 		widget:Shutdown()
 	else
 		local r,g,b
-		local a = highlightAlpha
+		unitIsSelected = isUnitSelected(unitID)
+		local a = unitIsSelected and selectedHighlightAlpha or highlightAlpha
 		if useTeamcolor then
 			local teamID = spGetUnitTeam(unitID)
 			if teamID then
@@ -49,7 +66,7 @@ local function addUnitShape(unitID)
 				a = a * teamColorAlphaMult
 			end
 		end
-		unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r,g,b, a, edgeAlpha, edgeExponent, animationAlpha)
+		unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r,g,b, a, unitIsSelected and selectedEdgeAlpha or edgeAlpha, unitIsSelected and selectedEdgeExponent or edgeExponent, unitIsSelected and selectedAnimationAlpha or animationAlpha)
 		return unitshapes[unitID]
 	end
 end
@@ -69,6 +86,25 @@ local function clearUnitshapes(keepUnitID)
 			removeUnitShape(unitID)
 		end
 	end
+end
+
+local function processSelection()
+	local prevUnitIsSelected = unitIsSelected
+	unitIsSelected = false
+	for unitID, v in next, unitshapes, nil do
+		if isUnitSelected(unitID) then
+			unitIsSelected = true
+		end
+		if prevUnitIsSelected ~= unitIsSelected then
+			removeUnitShape(unitID)
+			addUnitShape(unitID)
+		end
+	end
+end
+
+function widget:SelectionChanged(sel)
+	selectedUnits = sel
+	processSelection()
 end
 
 function widget:Update()
