@@ -746,7 +746,8 @@
 		},
 		"armthor":{
 			"role":["super"],
-			"threat": {"air": 0.0, "water": 0.0, "surf":1.0} 
+			"threat": {"air": 0.0, "water": 0.0, "surf":1.0},
+			"power": 0.1
 		},
 
 
