@@ -450,7 +450,7 @@ end
 function widget:DrawWorldPreUnit() -- this is for UnitDef
 	if armDrawUnitShapeVBOTable.usedElements > 0 or corDrawUnitShapeVBOTable.usedElements > 0 then
 		gl.Culling(GL.BACK)
-		gl.DepthMask(false) -- this might be a problem for non-transparent stuff?
+		gl.DepthMask(true)
 		gl.DepthTest(GL.LEQUAL)
 		--gl.PolygonOffset ( 0.5,0.5 )
 		unitShapeShader:Activate()
