@@ -71,7 +71,6 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG['underconstructiongfx'] = nil
 	if WG.StopHighlightUnitGL4 then
 		for id, _ in pairs(unitshapes) do
 			removeUnitShape(id)
@@ -110,4 +109,3 @@ function widget:Update(dt)
 		refresh()
 	end
 end
-

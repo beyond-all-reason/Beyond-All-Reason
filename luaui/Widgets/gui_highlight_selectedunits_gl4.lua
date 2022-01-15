@@ -14,6 +14,7 @@ local hideBelowGameframe = 100
 local useTeamcolor = true
 local highlightAlpha = 0.05
 local teamColorAlphaMult = 1.33
+local teamColorMinAlpha = 0.5
 local edgeExponent = 1.7
 local minEdgeAlpha = 0.2
 
@@ -28,7 +29,7 @@ local teamColor = {}
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
 	local r, g, b = Spring.GetTeamColor(teams[i])
-	local min = 0.5
+	local min = teamColorMinAlpha
 	teamColor[teams[i]] = { math.max(r, min), math.max(g, min), math.max(b, min) }
 end
 teams = nil
@@ -138,8 +139,8 @@ function widget:Shutdown()
 	end
 	WG['highlightselunits'] = nil
 	if WG.StopHighlightUnitGL4 then
-		for id, _ in pairs(unitshapes) do
-			removeUnitShape(id)
+		for unitID, _ in pairs(unitshapes) do
+			removeUnitShape(unitID)
 		end
 	end
 end
