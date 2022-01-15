@@ -332,16 +332,42 @@ function getElementInstanceData(iT, instanceID)
 	end
 	return iData
 end
---[[
+
 function uploadAllElements(iT)
 	-- upload all USED elements
 	if iT.usedElements == 0 then return end
 	iT.instanceVBO:Upload(iT.instanceData,nil,0, 1, iT.usedElements * iT.instanceStep)
 	iT.dirty = false
-	if iT.indextoUnitID then
-		iT.instanceVBO:InstanceDataFromUnitIDs(iT.indextoUnitID, iT.objectTypeAttribID)
+	
+	for i, unitID in ipairs(iT.indextoUnitID) do
+		local objecttype = iT.indextoObjectType[i]
+		--Spring.Echo("Resize", iT.myName, i, unitID, objecttype)
+		if objecttype == "unitID" then 
+			-- Sanity check for unitIDs
+			if Spring.ValidUnitID(unitID) ~= true then 
+				Spring.Echo("Invalid unitID",unitID, "at", i, "during resizing", iT.myName) 
+			else
+				iT.instanceVBO:InstanceDataFromUnitIDs(unitID, iT.objectTypeAttribID, i-1)
+			end
+			iT.VAO:AddUnitsToSubmission(unitID)
+		elseif objecttype == "unitDefID" then	-- TODO 
+			iT.instanceVBO:InstanceDataFromUnitDefIDs(unitID, iT.objectTypeAttribID, nil, i-1)
+			iT.VAO:AddUnitDefsToSubmission(unitID)
+		elseif objecttype == "featureID" then 
+			if Spring.ValidFeatureID(unitID) ~= true then 
+				Spring.Echo("Invalid featureID",unitID, "at", i, "during resizing", iT.myName) 
+			else
+				iT.instanceVBO:InstanceDataFromFeatureIDs(unitID, iT.objectTypeAttribID, i-1)
+			end
+			iT.VAO:AddFeaturesToSubmission(unitID)
+		elseif objecttype == "featureDefID" then 
+			iT.instanceVBO:InstanceDataFromFeatureDefIDs(unitID, iT.objectTypeAttribID, i-1)
+			iT.VAO:AddFeatureDefsToSubmission(unitID)
+		end
 	end
 end
+	
+--[[
 
 function uploadElementRange(iT, startElementIndex, endElementIndex)
 	iT.instanceVBO:Upload(iT.instanceData, -- The lua mirrored VBO data
