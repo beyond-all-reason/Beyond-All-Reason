@@ -53,7 +53,7 @@ local function isUnitSelected(unitID)
 end
 
 local function addUnitShape(unitID)
-	if not WG.DrawUnitShapeGL4 then
+	if not WG.HighlightUnitGL4 then
 		widget:Shutdown()
 	else
 		local r,g,b
@@ -72,7 +72,7 @@ local function addUnitShape(unitID)
 end
 
 local function removeUnitShape(unitID)
-	if not WG.StopDrawUnitShapeGL4 then
+	if not WG.StopHighlightUnitGL4 then
 		widget:Shutdown()
 	elseif unitID and unitshapes[unitID] then
 		WG.StopHighlightUnitGL4(unitshapes[unitID])

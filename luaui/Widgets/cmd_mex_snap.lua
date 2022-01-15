@@ -18,8 +18,9 @@ local mapBlackList = { "Brazillian_Battlefield_Remake_V2"  }
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
+local math_pi = math.pi
 
-local chobbyInterface
+local unitshape
 
 local isMex = {}
 for uDefID, uDef in pairs(UnitDefs) do
@@ -72,7 +73,18 @@ local function DoLine(x1, y1, z1, x2, y2, z2)
     gl.Vertex(x2, y2, z2)
 end
 
+
+local function clearShape()
+	if unitshape then
+		WG.StopDrawUnitShapeGL4(unitshape[6])
+		unitshape = nil
+	end
+end
+
 function widget:Initialize()
+	if not WG.DrawUnitShapeGL4 then
+		widgetHandler:RemoveWidget()
+	end
 	WG.MexSnap = {}
 	if not WG.metalSpots then
 		Spring.Echo("<Snap Mex> This widget requires the 'Metalspot Finder' widget to run.")
@@ -87,58 +99,67 @@ function widget:Initialize()
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+function widget:Shutdown()
+	if WG.StopDrawUnitShapeGL4 then
+		clearShape()
 	end
 end
 
+
 function widget:DrawWorld()
-	if chobbyInterface then return end
+	if not WG.DrawUnitShapeGL4 then
+		widget:Shutdown()
+	end
 
 	-- Check command is to build a mex
 	local _, cmdID = spGetActiveCommand()
-	if not (cmdID and isMex[-cmdID]) then return end
+	if not (cmdID and isMex[-cmdID]) then
+		clearShape()
+		return
+	end
 
 	-- Attempt to get position of command
 	local mx, my = spGetMouseState()
 	local _, pos = spTraceScreenRay(mx, my, true)
-	if not pos then return end
+	if not pos then
+		clearShape()
+		return
+	end
 
 	-- Find build position and check if it is valid (Would get 100% metal)
 	local bx, by, bz = Spring.Pos2BuildPos(-cmdID, pos[1], pos[2], pos[3])
 	local closestSpot = GetClosestMetalSpot(bx, bz)
-	if not closestSpot or WG.IsMexPositionValid(closestSpot, bx, bz) then return end
+	if not closestSpot or WG.IsMexPositionValid(closestSpot, bx, bz) then
+		clearShape()
+		return
+	end
 
 	-- Get the closet position that would give 100%
 	local bface = Spring.GetBuildFacing()
 	local bestPos = GetClosestMexPosition(closestSpot, bx, bz, -cmdID, bface)
 	if not bestPos then
 		WG.MexSnap.curPosition = nil
+		clearShape()
 		return
 	end
 
-	-- Draw
 	WG.MexSnap.curPosition = bestPos
-	gl.DepthTest(false)
 
+	-- Draw line
+	gl.DepthTest(false)
 	gl.LineWidth(1.49)
-    gl.Color(1, 1, 0, 0.5)
-    gl.BeginEnd(GL.LINE_STRIP, DoLine, bx, by, bz, bestPos[1], bestPos[2], bestPos[3])
+	gl.Color(1, 1, 0, 0.4)
+	gl.BeginEnd(GL.LINE_STRIP, DoLine, bx, by, bz, bestPos[1], bestPos[2], bestPos[3])
 	gl.LineWidth(1.0)
-
 	gl.DepthTest(true)
-	gl.DepthMask(true)
 
-	gl.Color(1, 1, 1, 0.5)
-	gl.PushMatrix()
-		gl.Translate(bestPos[1], bestPos[2], bestPos[3])
-		gl.Rotate(90 * bface, 0, 1, 0)
-		gl.UnitShape(-cmdID, Spring.GetMyTeamID(), false, true, false)
-	gl.PopMatrix()
-
-	gl.DepthTest(false)
-	gl.DepthMask(false)
+	-- Add/update unit shape rendering
+	local newUnitshape = {-cmdID, bestPos[1], bestPos[2], bestPos[3], bface}
+	if not unitshape or (unitshape[1]~= newUnitshape[1] or unitshape[2]~= newUnitshape[2] or unitshape[3]~= newUnitshape[3] or unitshape[4]~= newUnitshape[4] or unitshape[5]~= newUnitshape[5]) then
+		clearShape()
+		unitshape = newUnitshape
+		unitshape[6] = WG.DrawUnitShapeGL4(unitshape[1], unitshape[2], unitshape[3], unitshape[4], unitshape[5]*math_pi, 0.66, Spring.GetMyTeamID(), 0.15, 0.3)
+	end
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
