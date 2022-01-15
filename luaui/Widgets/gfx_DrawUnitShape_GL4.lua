@@ -6,7 +6,7 @@ function widget:GetInfo()
     author    = "ivand, Beherith",
     date      = "2021.11.04",
     license   = "GPL",
-    layer     = 0,
+    layer     = -9999,
     enabled   = true,
   }
 end
@@ -130,12 +130,12 @@ void main() {
 	mat4 pieceMatrix = mat[baseIndex + pieceIndex + isDynamic];
 
 	vec4 localModelPos = pieceMatrix * vec4(pos, 1.0);
-	
-	
+
+
 	// Make the rotation matrix around Y and rotate the model
-	mat3 rotY = rotation3dY(worldposrot.w); 
+	mat3 rotY = rotation3dY(worldposrot.w);
 	localModelPos.xyz = rotY * localModelPos.xyz;
-	
+
 	vec4 worldModelPos = localModelPos;
 	if (parameters.y < 0.5) worldModelPos = modelMatrix*localModelPos;
 	worldModelPos.xyz += worldposrot.xyz; //Place it in the world
@@ -150,7 +150,7 @@ void main() {
 	if ( dot (modelBaseToCamera, modelBaseToCamera) >  (iconDistance * iconDistance)) {
 		myTeamColor.a = 0.0; // do something if we are far out?
 	}
-	
+
 	v_parameters = parameters;
 	v_uv = uv.xy;
 	worldPos = worldModelPos.xyz;
@@ -272,19 +272,19 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID,
 	teamcoloroverride = teamcoloroverride or 0
 	teamID = teamID or 256
 	highlight = highlight or 0
-	
+
 	--py = py - (UnitDefs[unitDefID].model.midy or 0) -- cause our midpos is somehow offset?
 	--py = py - (UnitDefs[unitDefID].model.midy or 0) -- cause our midpos is somehow offset?
 	local DrawUnitShapeVBOTable
-	--Spring.Echo("DrawUnitShapeGL4", "unitDefID", unitDefID, UnitDefs[unitDefID].name, "to unitDefID", uniqueID,"elemID", elementID) 
+	--Spring.Echo("DrawUnitShapeGL4", "unitDefID", unitDefID, UnitDefs[unitDefID].name, "to unitDefID", uniqueID,"elemID", elementID)
 	if corUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = corDrawUnitShapeVBOTable
 	elseif armUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = armDrawUnitShapeVBOTable
 	else
 		Spring.Echo("The given unitDefID", unitDefID, "is neither arm nor cor, only those two are supported at the moment")
 		return nil
 	end
-	
-	
+
+
 
 	local elementID = pushElementInstance(DrawUnitShapeVBOTable, {
 			px, py, pz, rotationY,
