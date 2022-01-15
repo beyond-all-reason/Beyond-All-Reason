@@ -75,7 +75,7 @@ function widget:UnitCreated(unitID)
 		if not Spring.IsUnitAllied(unitID) then return end
 	end
 	local unitDefID = Spring.GetUnitDefID(unitID)
-	if UnitDefs[unitDefID].speed and UnitDefs[unitDefID].speed > 0 then 
+	if  (UnitDefs[unitDefID].speed and UnitDefs[unitDefID].speed > 0) or #UnitDefs[unitDefID].weapons > 0 then
 		AddPrimitiveAtUnit(unitID, -300)
 	end
 end
