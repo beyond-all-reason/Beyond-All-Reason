@@ -3,7 +3,7 @@ I18N_PATH = currentDirectory .. "i18nlib/i18n/" -- I18N_PATH is expected to be g
 local i18n = VFS.Include(I18N_PATH .. "init.lua", nil, VFS.ZIP)
 
 local translationFiles = VFS.DirList('language/', '*.json')
-local asianFont = 'SourceHanSansCN-Regular.otf'
+local asianFont = 'SourceHanSans-Regular.ttc'
 
 for _, file in ipairs(translationFiles) do
 	local i18nJson = VFS.LoadFile(file)
