@@ -6,8 +6,8 @@ function widget:GetInfo()
     author    = "Beherith,ivand",
     date      = "2022.01.04",
     license   = "GPL",
-    layer     = 0,
-    enabled   = false,
+    layer     = -9999,
+    enabled   = true,
   }
 end
 
@@ -24,7 +24,7 @@ local highlightunitShaderConfig = {
 	ANIMFREQUENCY = 0.033,
 }
 
-local vsSrc = 
+local vsSrc =
 [[#version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
@@ -81,21 +81,21 @@ out vec4 v_hcolor;
 
 void main() {
 	uint baseIndex = instData.x;
-	
+
 	mat4 modelWorldMatrix = mat[baseIndex];
-	
+
 	// dynamic models have one extra matrix, as their first matrix is their world pos/offset
 	uint isDynamic = 1u; //default dynamic model
 	if (parameters.x > 0.5) isDynamic = 0u;  //if paramy == 1 then the unit is static
 	mat4 pieceMatrix = mat[baseIndex + pieceIndex + isDynamic];
-	
+
 	vec4 localModelPos = pieceMatrix * vec4(pos, 1.0);
-	
+
 
 	// Make the rotation matrix around Y and rotate the model
-	mat3 rotY = rotation3dY(worldposrot.w); 
+	mat3 rotY = rotation3dY(worldposrot.w);
 	localModelPos.xyz = rotY * localModelPos.xyz;
-	
+
 	vec4 worldModelPos = localModelPos;
 	if (parameters.x < 0.5) worldModelPos = modelWorldMatrix * localModelPos; // dynamic models must be tranformed into their correct pos
 	worldModelPos.xyz += worldposrot.xyz; //Place it in the world
@@ -106,7 +106,7 @@ void main() {
 	vec4 viewpos = cameraView * worldModelPos;
 	v_toeye = cameraViewInv[3].xyz - worldModelPos.xyz ;
 	v_hcolor = hcolor;
-	
+
 	vec3 modelBaseToCamera = cameraViewInv[3].xyz - (pieceMatrix[3].xyz + worldposrot.xyz);
 	if ( dot (modelBaseToCamera, modelBaseToCamera) >  (iconDistance * iconDistance)) {
 		v_hcolor.a = 0.0;
@@ -116,10 +116,10 @@ void main() {
 		v_hcolor.a = 0.0;
 		v_parameters.yw = vec2(0.0);
 	}
-	
+
 	mat3 pieceMatrixRotationOnly = mat3(pieceMatrix);
 	mat3 modelWorldMatrixRotationOnly = mat3(modelWorldMatrix);
-	
+
 	v_normal = modelWorldMatrixRotationOnly * pieceMatrixRotationOnly * rotY * normal;
 	worldPos = worldModelPos.xyz;
 	gl_Position = cameraViewProj * worldModelPos;
@@ -147,17 +147,17 @@ out vec4 fragColor;
 #line 25000
 void main() {
 	float worldposfactor = fract(worldPos.y * ANIMFREQUENCY + timeInfo.x * ANIMSPEED);
-	
+
 	fragColor = v_hcolor; // Base highlight amount
-	fragColor.a = mix(fragColor.a, worldposfactor * fragColor.a, v_parameters.w); // mix in animation into plain highight 
-	
+	fragColor.a = mix(fragColor.a, worldposfactor * fragColor.a, v_parameters.w); // mix in animation into plain highight
+
 	float opac = dot(normalize(v_normal), normalize(v_toeye));
 	opac = 1.0 - abs(opac);
 	opac = pow(opac, v_parameters.z) * v_parameters.y;
 	fragColor.a +=   mix(opac, opac * worldposfactor, v_parameters.w) ; // edge highlighing mixed according to animation
 
 	fragColor.rgb += opac * 1.3; // brighten all, a bit more
-	
+
 	// debug all 3 components:
 	//fragColor.rgba = vec4(v_hcolor.a, opac * v_parameters.y, worldposfactor * v_parameters.w , 1.0);
 }
@@ -178,7 +178,7 @@ local function HighlightUnitGL4(objectID, objecttype, r, g, b, alpha, edgealpha,
 	-- rotationY: apply a rot offset, usually all 0
 	-- returns: a unique handler ID number that you should store and call StopHighlightUnitGL4(uniqueID) with to stop drawing it
 	-- note that widgets are responsible for stopping the drawing of every unit that they submit!
-	
+
 	uniqueID = uniqueID + 1
 	local staticmodel = (objecttype == "unitDefID" or objecttype == "featureDefID") and 1 or 0
 	-- Spring.Echo("HighlightUnitGL4", objecttype, objectID, staticmodel,"to uniqueID", uniqueID, r, g, b, alpha, edgealpha, edgeexponent, animamount, px, py, pz, rotationY, highlight)
@@ -203,7 +203,7 @@ end
 
 local unitIDtoUniqueID = {}
 local unitDefIDtoUniqueID = {}
-local TESTMODE = true
+local TESTMODE = false
 
 if TESTMODE then
 	function widget:UnitCreated(unitID, unitDefID)

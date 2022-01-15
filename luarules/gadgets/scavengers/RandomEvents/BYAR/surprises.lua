@@ -132,60 +132,19 @@ local function transport1(currentFrame)
 					attackTarget = Spring.GetUnitNearestEnemy(test, 200000, false)
 				end
 				local ax, ay, az = Spring.GetUnitPosition(attackTarget)
-				
-				if globalScore < scavconfig.timers.T1low then
-					local transport = transportsT1[math_random(1,#transportsT1)]
-					for a = 1,math.ceil(baseNumber*8) do
-						SpawnAirRaid(transport, unitsT1, posx, posy, posz, attackTarget)
-					end
-				elseif globalScore < scavconfig.timers.T1high then
+				if TierSpawnChances.T2 == 0 and TierSpawnChances.T3 == 0 and TierSpawnChances.T4 == 0 then
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*12) do
 						SpawnAirRaid(transport, unitsT1, posx, posy, posz, attackTarget)
 					end
-				elseif globalScore < scavconfig.timers.T2start then
-					local transport = transportsT1[math_random(1,#transportsT1)]
-					for a = 1,math.ceil(baseNumber*16) do
-						SpawnAirRaid(transport, unitsT1, posx, posy, posz, attackTarget)
-					end
-				elseif globalScore < scavconfig.timers.T2low then
-					local transport = transportsT1[math_random(1,#transportsT1)]
-					for a = 1,math.ceil(baseNumber*20) do
-						SpawnAirRaid(transport, unitsT1, posx, posy, posz, attackTarget)
-					end
-				elseif globalScore < scavconfig.timers.T2high then
-					local transport = transportsT1[math_random(1,#transportsT1)]
-					for a = 1,math.ceil(baseNumber*24) do
-						SpawnAirRaid(transport, unitsT1, posx, posy, posz, attackTarget)
-					end
-				elseif globalScore < scavconfig.timers.T3start then
+				elseif TierSpawnChances.T3 == 0 and TierSpawnChances.T4 == 0 then
 					local transport = transportsT2[math_random(1,#transportsT2)]
-					for a = 1,math.ceil(baseNumber*20) do
-						SpawnAirRaid(transport, unitsT2, posx, posy, posz, attackTarget)
+					for a = 1,math.ceil(baseNumber*12) do
+						SpawnAirRaid(transport, unitsT1, posx, posy, posz, attackTarget)
 					end
-				elseif globalScore < scavconfig.timers.T3low then
-					local transport = transportsT2[math_random(1,#transportsT2)]
-					for a = 1,math.ceil(baseNumber*22) do
-						SpawnAirRaid(transport, unitsT2, posx, posy, posz, attackTarget)
-					end
-				elseif globalScore < scavconfig.timers.T3high then
+				elseif TierSpawnChances.T4 == 0 then
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*24) do
-						SpawnAirRaid(transport, unitsT2, posx, posy, posz, attackTarget)
-					end
-				elseif globalScore < scavconfig.timers.T4start then
-					local transport = transportsT2[math_random(1,#transportsT2)]
-					for a = 1,math.ceil(baseNumber*26) do
-						SpawnAirRaid(transport, unitsT2, posx, posy, posz, attackTarget)
-					end
-				elseif globalScore < scavconfig.timers.T4low then
-					local transport = transportsT2[math_random(1,#transportsT2)]
-					for a = 1,math.ceil(baseNumber*28) do
-						SpawnAirRaid(transport, unitsT2, posx, posy, posz, attackTarget)
-					end
-				elseif globalScore < scavconfig.timers.T4high then
-					local transport = transportsT2[math_random(1,#transportsT2)]
-					for a = 1,math.ceil(baseNumber*30) do
 						SpawnAirRaid(transport, unitsT2, posx, posy, posz, attackTarget)
 					end
 				else

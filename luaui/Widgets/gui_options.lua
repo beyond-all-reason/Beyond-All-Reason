@@ -2825,21 +2825,21 @@ function init()
 		  end,
 		},
 
-		{ id = "highlightselunits", group = "ui", category = types.basic, widget = "Highlight Selected Units", name = texts.option.highlightselunits, type = "bool", value = GetWidgetToggleValue("Highlight Selected Units"), description = texts.option.highlightselunits_descr },
-		{ id = "highlightselunits_opacity", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_opacity, min = 0.05, max = 0.5, step = 0.01, type = "slider", value = 0.1, description = texts.option.highlightselunits_opacity_descr,
+		{ id = "highlightselunits", group = "ui", category = types.basic, widget = "Highlight Selected Units GL4", name = texts.option.highlightselunits, type = "bool", value = GetWidgetToggleValue("Highlight Selected Units GL4"), description = texts.option.highlightselunits_descr },
+		{ id = "highlightselunits_opacity", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_opacity, min = 0.02, max = 0.2, step = 0.01, type = "slider", value = 0.05, description = texts.option.highlightselunits_opacity_descr,
 		  onload = function(i)
-			  loadWidgetData("Highlight Selected Units", "highlightselunits_opacity", { 'highlightAlpha' })
+			  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_opacity", { 'highlightAlpha' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Highlight Selected Units', 'highlightselunits', 'setOpacity', { 'highlightAlpha' }, value)
+			  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setOpacity', { 'highlightAlpha' }, value)
 		  end,
 		},
 		{ id = "highlightselunits_teamcolor", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_teamcolor, type = "bool", value = false, description = texts.option.highlightselunits_teamcolor_descr,
 		  onload = function(i)
-			  loadWidgetData("Highlight Selected Units", "highlightselunits_teamcolor", { 'useTeamcolor' })
+			  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_teamcolor", { 'useTeamcolor' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Highlight Selected Units', 'highlightselunits', 'setTeamcolor', { 'useTeamcolor' }, value)
+			  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setTeamcolor', { 'useTeamcolor' }, value)
 		  end,
 		},
 
@@ -4678,14 +4678,17 @@ function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 end
 
 function widget:Initialize()
-		-- disable ambient player widget
-		if widgetHandler:IsWidgetKnown("Ambient Player") then
-			widgetHandler:DisableWidget("Ambient Player")
-		end
+	-- disable ambient player widget
+	if widgetHandler:IsWidgetKnown("Ambient Player") then
+		widgetHandler:DisableWidget("Ambient Player")
+	end
 
 	-- enable this previous default disabled widget
 	if widgetHandler.orderList["DrawUnitShape GL4"] and widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
 		widgetHandler:EnableWidget("DrawUnitShape GL4")
+	end
+	if widgetHandler.orderList["HighlightUnit GL4"] and widgetHandler.orderList["HighlightUnit GL4"] < 0.5 then
+		widgetHandler:EnableWidget("HighlightUnit GL4")
 	end
 
 	if widgetHandler.orderList["FlowUI"] and widgetHandler.orderList["FlowUI"] < 0.5 then

@@ -55,30 +55,27 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
-local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID)
-	--Spring.Echo("addUnitShape",id, unitDefID, UnitDefs[unitDefID].name, px, py, pz, rotationY, teamID)
+local function addUnitShape(unitID, unitDefID, px, py, pz, rotationY, teamID)
 	if not WG.DrawUnitShapeGL4 then
 		widget:Shutdown()
 	else
-		if numunitshapes < maxunitshapes then 
-			unitshapes[id] = WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, shapeOpacity, teamID)
+		if numunitshapes < maxunitshapes then
+			unitshapes[unitID] = WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, shapeOpacity, teamID)
 			numunitshapes = numunitshapes + 1
-			return unitshapes[id]
+			return unitshapes[unitID]
 		else
 			return nil
 		end
 	end
 end
 
-local function removeUnitShape(id)
+local function removeUnitShape(unitID)
 	if not WG.StopDrawUnitShapeGL4 then
 		widget:Shutdown()
-	else
-		if id and unitshapes[id] then 
-			WG.StopDrawUnitShapeGL4(unitshapes[id])
-			numunitshapes = numunitshapes - 1 
-			unitshapes[id] = nil
-		end
+	elseif unitID and unitshapes[unitID] then
+		WG.StopDrawUnitShapeGL4(unitshapes[unitID])
+		numunitshapes = numunitshapes - 1
+		unitshapes[unitID] = nil
 	end
 end
 
@@ -126,13 +123,13 @@ local function checkBuilder(unitID)
 					if command[id] == nil then
 						command[id] = {id = myCmd, builders = 0}
 						local unitDefID = math.abs(cmd.id)
-						
+
 						local groundheight = spGetGroundHeight(floor(cmd.params[1]), floor(cmd.params[3]))
-						if UnitDefs[unitDefID] and UnitDefs[unitDefID].waterline > 0 then 
+						if UnitDefs[unitDefID] and UnitDefs[unitDefID].waterline > 0 then
 							--Spring.Echo(unitDefID,"has a waterline", UnitDefs[unitDefID].waterline)
 							groundheight = math.max (groundheight, -1 * UnitDefs[unitDefID].waterline)
 						end
-						
+
 						addUnitShape(id, math.abs(cmd.id), floor(cmd.params[1]), groundheight, floor(cmd.params[3]), cmd.params[4] and (cmd.params[4] * math_halfpi) or 0, myCmd.teamid)
 
 					end
@@ -166,8 +163,8 @@ end
 
 function widget:Shutdown()
 	if WG.StopDrawUnitShapeGL4 then
-		for id, shapeID in pairs(unitshapes) do
-			removeUnitShape(id)
+		for unitID, _ in pairs(unitshapes) do
+			removeUnitShape(unitID)
 		end
 	end
 end
