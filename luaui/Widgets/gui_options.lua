@@ -3373,12 +3373,14 @@ function init()
 		-- BAR doesnt support ZK style startboxes{ id = "startboxeditor", group = "dev", category = optionTypes.dev, widget = "Startbox Editor", name = texts.option.startboxeditor, type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = texts.option.startboxeditor_descr },
 
 		{ id = "language", group = "dev", category = types.dev, name = texts.option.language, type = "select", options = languageNames, value = languageCodes[Spring.I18N.getLocale()],
-		  onchange = function(i, value)
-			  Spring.I18N.setLanguage(languageCodes[value])
-			  if Script.LuaUI('LanguageChanged') then
-				  Script.LuaUI.LanguageChanged()
-			  end
-		  end
+			onchange = function(i, value)
+				Spring.SetConfigString('language', languageCodes[value])
+				Spring.I18N.setLanguage(languageCodes[value])
+				if Script.LuaUI('LanguageChanged') then
+					Script.LuaUI.LanguageChanged()
+				end
+				Spring.SendCommands("luarules reloadluaui")
+			end
 		},
 		{ id = "font", group = "dev", category = types.dev, name = texts.option.font, type = "select", options = {}, value = 1, description = texts.option.font_descr,
 		  onload = function(i)

@@ -3,6 +3,7 @@ I18N_PATH = currentDirectory .. "i18nlib/i18n/" -- I18N_PATH is expected to be g
 local i18n = VFS.Include(I18N_PATH .. "init.lua", nil, VFS.ZIP)
 
 local translationFiles = VFS.DirList('language/', '*.json')
+local asianFont = 'SourceHanSansCN-Regular.otf'
 
 for _, file in ipairs(translationFiles) do
 	local i18nJson = VFS.LoadFile(file)
@@ -16,12 +17,22 @@ i18n.loadFile('language/test_unicode.lua')
 i18n.languages = {
 	en = "English",
 	fr = "Français",
-	zh = "中文"
+	zh = "中文",
 }
 
 function i18n.setLanguage(language)
-	--TODO: set font file for Latin vs Asian glyphs here
 	i18n.setLocale(language)
+
+	local asianLanguage = language == 'zh'
+	local currentFont = Spring.GetConfigString('bar_font')
+
+	if asianLanguage and currentFont ~= asianFont then
+		Spring.SetConfigString("bar_font", asianFont)
+		Spring.SetConfigString("bar_font2", asianFont)
+	elseif not asianLanguage and currentFont == asianFont then
+		Spring.SetConfigString("bar_font", "Poppins-Regular.otf")
+		Spring.SetConfigString("bar_font2", "Exo2-SemiBold.otf")
+	end
 end
 
 return i18n
