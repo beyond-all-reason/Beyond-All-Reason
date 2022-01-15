@@ -93,7 +93,8 @@ local convertedUnits = {
 }
 
 -- add for scavengers copies
-for id, v in pairs(convertedUnits) do
+local convertedUnitsCopy = table.copy(convertedUnits)
+for id, v in pairs(convertedUnitsCopy) do
 	if UnitDefNames[UnitDefs[id].name..'_scav'] then
 		convertedUnits[UnitDefNames[UnitDefs[id].name..'_scav'].id] = v
 	end
