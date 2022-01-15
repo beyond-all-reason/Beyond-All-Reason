@@ -73,7 +73,6 @@ local function DoLine(x1, y1, z1, x2, y2, z2)
     gl.Vertex(x2, y2, z2)
 end
 
-
 local function clearShape()
 	if unitshape then
 		WG.StopDrawUnitShapeGL4(unitshape[6])
@@ -142,13 +141,12 @@ function widget:DrawWorld()
 		clearShape()
 		return
 	end
-
 	WG.MexSnap.curPosition = bestPos
 
 	-- Draw line
 	gl.DepthTest(false)
 	gl.LineWidth(1.49)
-	gl.Color(1, 1, 0, 0.4)
+	gl.Color(1, 1, 0, 0.45)
 	gl.BeginEnd(GL.LINE_STRIP, DoLine, bx, by, bz, bestPos[1], bestPos[2], bestPos[3])
 	gl.LineWidth(1.0)
 	gl.DepthTest(true)
