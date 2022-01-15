@@ -72,9 +72,9 @@ end
 
 function LosHST:cleanEnemy(id)
 	self:EchoDebug('try to clean',id)
-	if self.ai.IDsWeAreAttacking[id] then
+	--if self.ai.IDsWeAreAttacking[id] then
 		--self.ai.attackhst:TargetDied(self.ai.IDsWeAreAttacking[id])
-	end
+	--end
 	--if self.ai.IDsWeAreRaiding[id] then
 		--self.ai.raidhst:TargetDied(self.ai.IDsWeAreRaiding[id])
 	--end

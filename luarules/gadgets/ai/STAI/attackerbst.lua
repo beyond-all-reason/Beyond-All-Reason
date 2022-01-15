@@ -152,8 +152,8 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 		-- local framesToArrive = 30 * (self.ai.tool:Distance(self.unit:Internal():GetPosition(), self.target) / self.speed) * 2
 		-- game:SendToConsole("frames to arrive", framesToArrive)
 		-- self.timeout = self.game:Frame() + framesToArrive
-		--self.unit:Internal():AttackMove(self.target) --need to check this
-		self.unit:Internal():Move(self.target)
+		self.unit:Internal():AttackMove(self.target) --need to check this
+		--self.unit:Internal():Move(self.target)
 	end
 	return canMoveThere
 end

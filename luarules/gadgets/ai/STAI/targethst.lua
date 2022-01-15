@@ -77,7 +77,7 @@ function TargetHST:GetCellHere(pos)
 	if self.CELLS[gridX] and self.CELLS[gridX][gridZ] then
 		return self.CELLS[gridX][gridZ],gridX,gridZ
 	else
-		self:Warn('get cell here ask for a cell that not exist')
+		self:Warn('try to get non-existing cell ',gridX,gridZ,pos.x,pos.z)
 	end
 end
 
@@ -206,7 +206,7 @@ function TargetHST:setCellEnemyValues(enemy,CELL)
 				if ut.isFactory then
 					CELL.base = CELL.base + enemy.M
 				end
-				CELL.MOBILE = CELL.IMMOBILE + enemy.M
+				CELL.IMMOBILE = CELL.IMMOBILE + enemy.M
 				if enemy.layer > 0 then
 					CELL.unarmAI = CELL.unarmAM + enemy.M
 				elseif enemy.layer < 0 then
