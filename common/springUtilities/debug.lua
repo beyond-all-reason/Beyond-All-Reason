@@ -92,11 +92,11 @@ local function traceFullEcho(maxdepth, maxwidth, maxtableelements, ...)
     end
 
 	local myargs = {...}
-	infostr = ""
+	infostr = "TraceFullEcho:["
 	for i,v in ipairs(myargs) do
 		infostr = infostr .. tostring(v) .. "\t"
 	end
-	if infostr ~= "" then infostr = "Trace:[" .. infostr .. "]\n" end 
+	infostr = infostr .. "]\n"
 	local functionstr = "" -- "Trace:["
 	for i = 2, maxdepth do
 		if debug.getinfo(i) then
