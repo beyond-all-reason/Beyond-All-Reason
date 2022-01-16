@@ -10,15 +10,15 @@ function widget:GetInfo()
 	}
 end
 
-local highlightAlpha = 0.08
-local selectedHighlightAlpha = 0.05
-local edgeAlpha = 0.5
-local selectedEdgeAlpha = 0.35
-local edgeExponent = 1.25
-local selectedEdgeExponent = 1.6
 local hideBelowGameframe = 100
-local animationAlpha = 0.4
-local selectedAnimationAlpha = 0.33
+local highlightAlpha = 0.12
+local selectedHighlightAlpha = 0.07
+local edgeAlpha = 0.75
+local selectedEdgeAlpha = 0.5
+local edgeExponent = 1.25
+local selectedEdgeExponent = 1.55
+local animationAlpha = 0.55
+local selectedAnimationAlpha = 0.4
 
 local useTeamcolor = true
 local teamColorAlphaMult = 1.25
