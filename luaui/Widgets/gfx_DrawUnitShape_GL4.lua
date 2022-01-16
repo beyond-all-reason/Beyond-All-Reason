@@ -235,6 +235,7 @@ local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, team
 	elseif armUnitDefIDs[unitDefID] then DrawUnitVBOTable = armDrawUnitVBOTable
 	else
 		Spring.Echo("The given unitDefID", unitDefID, "is neither arm nor cor, only those two are supported at the moment")
+		Spring.Debug.TraceFullEcho(nil,nil,nil,"DrawUnitGL4")
 		return nil
 	end
 
@@ -281,6 +282,8 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID,
 	elseif armUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = armDrawUnitShapeVBOTable
 	else
 		Spring.Echo("The given unitDefID", unitDefID, "is neither arm nor cor, only those two are supported at the moment")
+		
+		Spring.Debug.TraceFullEcho(nil,nil,nil,"DrawUnitGL4")
 		return nil
 	end
 
@@ -431,6 +434,8 @@ function widget:Initialize()
 	WG['DrawUnitShapeGL4'] = DrawUnitShapeGL4
 	WG['StopDrawUnitGL4'] = StopDrawUnitGL4
 	WG['StopDrawUnitShapeGL4'] = StopDrawUnitShapeGL4
+	WG['armDrawUnitShapeVBOTable'] = armDrawUnitShapeVBOTable
+	WG['corDrawUnitShapeVBOTable'] = corDrawUnitShapeVBOTable
 end
 
 
@@ -445,6 +450,8 @@ function widget:Shutdown()
 	WG['DrawUnitShapeGL4'] = nil
 	WG['StopDrawUnitGL4'] = nil
 	WG['StopDrawUnitShapeGL4'] = nil
+	WG['armDrawUnitShapeVBOTable'] = nil
+	WG['corDrawUnitShapeVBOTable'] = nil
 end
 
 function widget:DrawWorldPreUnit() -- this is for UnitDef
