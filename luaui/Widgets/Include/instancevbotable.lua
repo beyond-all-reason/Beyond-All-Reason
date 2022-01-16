@@ -455,6 +455,7 @@ function popElementInstance(iT, instanceID, noUpload)
 			else
 				if iT.debugZombies then 
 					Spring.Echo("Warning: Tried to pop back an invalid" .. ((iT.featureIDs and "featureID") or "unitID"), popunitID, "from", iT.myName, "while removing instance", instanceID, counttable(iT.instanceIDtoIndex), counttable(iT.indextoInstanceID), counttable(iT.indextoUnitID))
+					Spring.Debug.TraceFullEcho()
 					local gf = Spring.GetGameFrame()
 					if iT.lastpopgameframe == nil or iT.lastpopgameframe ~= gf then -- New gameframe
 						iT.lastpopgameframe = gf
