@@ -297,15 +297,21 @@ function popElementInstance(iT, instanceID, noUpload)
 		
 		if objecttype == "unitID" then 
 			if Spring.ValidUnitID(myunitID) then
-			iT.instanceVBO:InstanceDataFromUnitIDs(myunitID, iT.objectTypeAttribID, oldElementIndex-1)
+				iT.instanceVBO:InstanceDataFromUnitIDs(myunitID, iT.objectTypeAttribID, oldElementIndex-1)
 			 --iT.VAO:AddUnitDefsToSubmission(unitID)
 			else
-			Spring.Echo("Tried to pop back an invalid unitID", myunitID, "from", iT.myName, "while removing instance", instanceID,". Ensure that you remove invalid units from your instance tables")
+				Spring.Echo("Tried to pop back an invalid unitID", myunitID, "from", iT.myName, "while removing instance", instanceID,". Ensure that you remove invalid units from your instance tables")
+				Spring.Debug.TraceFullEcho()
 			end
 		elseif objecttype == "unitDefID" then 
 			iT.instanceVBO:InstanceDataFromUnitDefIDs(myunitID, iT.objectTypeAttribID,nil,	oldElementIndex-1)
 		elseif objecttype == "featureID" then 
-			iT.instanceVBO:InstanceDataFromFeatureIDs(myunitID, iT.objectTypeAttribID, oldElementIndex-1)
+			if Spring.ValidFeatureID(unitID) then
+				iT.instanceVBO:InstanceDataFromFeatureIDs(myunitID, iT.objectTypeAttribID, oldElementIndex-1)
+			else
+				Spring.Echo("Tried to pop back an invalid featureID", myunitID, "from", iT.myName, "while removing instance", instanceID,". Ensure that you remove invalid units from your instance tables")
+				Spring.Debug.TraceFullEcho()
+			end
 		elseif objecttype == "featureDefID" then 
 			iT.instanceVBO:InstanceDataFromFeatureDefIDs(myunitID, iT.objectTypeAttribID, oldElementIndex-1)
 		end
