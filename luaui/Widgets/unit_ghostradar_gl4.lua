@@ -20,6 +20,11 @@ local spIsUnitInView = Spring.IsUnitInView
 local unitshapes = {}
 local dots = {}
 local spec,specFullView = Spring.GetSpectatingState()
+local gaiaTeamID = Spring.GetGaiaTeamID()
+
+
+local corUnitDefIDs = {}
+local armUnitDefIDs = {}
 
 local unitCanMove = {}
 for udefID,udef in ipairs(UnitDefs) do
@@ -59,7 +64,8 @@ function widget:UnitEnteredRadar(unitID, unitTeam)
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam)
-	if unitCanMove then		-- update unitID info, ID could have been reused already!
+	local unitDefID = spGetUnitDefID(unitID)
+	if unitDefID and unitCanMove[unitDefID] and (armUnitDefIDs[unitDefID] or corUnitDefIDs[unitDefID]) and unitTeam ~= gaiaTeamID then		-- update unitID info, ID could have been reused already!
 		dots[unitID] = {
 			unitDefID = spGetUnitDefID(unitID),
 			teamID = unitTeam,
@@ -111,6 +117,16 @@ function widget:Initialize()
 	if not WG.DrawUnitGL4 then
 		widgetHandler:RemoveWidget()
 	end
+	
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.model and unitDef.model.textures and unitDef.model.textures.tex1:lower() == "arm_color.dds" then
+			armUnitDefIDs[unitDefID] = true
+		elseif unitDef.model and unitDef.model.textures and unitDef.model.textures.tex1:lower() == "cor_color.dds" then
+			corUnitDefIDs[unitDefID] = true
+		end
+	end
+	
+	
 	for unitID, _ in pairs(dots) do
 		if not dots[unitID].los and dots[unitID].radar then
 			local x, y, z = spGetUnitPosition(unitID)
@@ -138,6 +154,10 @@ function widget:Update(dt)
 		if WG.StopDrawUnitGL4 then
 			for unitID, _ in pairs(unitshapes) do
 				local x, y, z = spGetUnitPosition(unitID)
+				
+				
+				
+				
 				if x and spIsUnitInView(unitID) then
 					addUnitShape(unitID, dots[unitID].unitDefID, x, y, z, 0, dots[unitID].teamID)	-- update because unit position does change
 				end
