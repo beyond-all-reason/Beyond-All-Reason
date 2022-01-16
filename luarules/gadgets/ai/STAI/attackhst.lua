@@ -12,7 +12,7 @@ local floor = math.floor
 local ceil = math.ceil
 
 function AttackHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.visualdbg = true
 	self.recruits = {}
 	self.squads = {}
@@ -196,6 +196,7 @@ function AttackHST:targetCell(representative, position, ourThreat)
 	local bestValue = math.huge
 	local bestTarget = nil
 	local bestDefense = 0
+	local bestDefCell = nil
 	local topDist = self.ai.tool:DistanceXZ(0,0, Game.mapSizeX, Game.mapSizeZ)
 	for i, G in pairs(self.ai.targethst.ENEMYCELLS) do
 
@@ -204,20 +205,20 @@ function AttackHST:targetCell(representative, position, ourThreat)
 			if squad.targetCell == cell or not cell.pos then return end
 		end
 		self:EchoDebug('cell.IMMOBILE',cell.IMMOBILE,'cell.offense',cell.offense)
--- 		if cell.offense > 0 and cell.IMMOBILE < cell.offense / 10 then
--- 			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
--- 				self:EchoDebug('can go to cell')
--- 				local Rdist = self.ai.tool:Distance(cell.pos,refpos)/topDist
--- 				local Rvalue = Rdist * cell.offense
--- 				if Rvalue > bestDefense then
--- 					bestDefense = Rvalue
--- 					bestTarget = cell
--- 				end
--- 			end
--- 		end
+ 		if cell.offense > 0 and cell.IMMOBILE < cell.offense / 10 then
+ 			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
+ 				self:EchoDebug('can go to cell')
+ 				local Rdist = self.ai.tool:Distance(cell.pos,refpos)/topDist
+ 				local Rvalue = Rdist * cell.offense
+ 				if Rvalue > bestDefense then
+ 					bestDefense = Rvalue
+ 					bestDefCell = cell
+ 				end
+ 			end
+ 		end
 
 
-		if cell.IMMOBILE > 0 and not bestTarget then
+		if cell.IMMOBILE > 0   then
 			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
 				self:EchoDebug('cangohere')
 				local Rdist = self.ai.tool:Distance(cell.pos,refpos)/topDist
@@ -230,7 +231,9 @@ function AttackHST:targetCell(representative, position, ourThreat)
 			end
 		end
 	end
-	if bestTarget then
+	if bestDefCell then
+		return bestDefCell
+	elseif bestTarget then
 		return bestTarget
 	end
 	self:EchoDebug('no target found for attackhst')

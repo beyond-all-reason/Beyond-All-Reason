@@ -89,7 +89,17 @@ function TasksHST:Init()
 
 end
 
-
+TasksHST.testRole = {
+	1 = {
+         },
+	2 = {category = '_solar_',
+         economy = {Metal = {},Energy = {}},
+         duplicate = false,
+         location = {},
+         special = true,
+         number = false,
+         },
+	}
 
 
 -- function TasksHST:wrap( theTable, theFunction )
