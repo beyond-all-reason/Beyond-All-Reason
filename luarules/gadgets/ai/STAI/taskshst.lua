@@ -12,94 +12,455 @@ function TasksHST:Init()
 	self.DebugEnabled = false
 	self.roles = {}
 	self.roles.default = {
-		--category, eco,duplicate,limitedNumber,location,special
-		{'factoryMobilities',true,true,false,true,true},
-		{'_wind_',true,false,false,true,true},
-		{'_tide_',true,false,false,true,true},
-		{'_solar_',true,false,false,true,true},
-		{'_mex_',true,false,false,true,true},
-		{'_llt_',true,false,false,true,true},
-		{'_nano_',true,false,false,true,true},
-		{'_aa1_',true,false,false,true,true},
-		{'_flak_',true,false,false,true,true},
-		{'_specialt_',true,false,false,true,true},--limited number % Energy
-		{'_fus_',true,true,false,true,true},
-		{'_popup1_',true,false,false,true,true},
-		{'_popup2_',true,false,false,true,true},
-		{'_heavyt_',true,false,false,true,true},
-		{'_estor_',true,true,1,true,true},
-		{'_mstor_',true,true,1,true,true},
-		{'_convs_',true,false,false,true,true},
-		{'_specialt_',true,false,false,true,true},
-		{'_jam_',true,true,1,true,true},
-		{'_radar_',true,true,false,true,true},
-		{'_geo_',true,true,false,true,true},
-		{'_silo_',true,true,1,true,true},
-		{'_antinuke_',true,true,1,true,true},
-		{'_sonar_',true,false,false,true,true},
-		{'_shield_',true,true,3,true,true},
--- 		{'_juno_',true,true,1},
-		{'_laser2_',true,true,false,true,true},
-		{'_lol_',true,true,1,true,true},
--- 		{'_coast1_',true,true,2},
--- 		{'_coast2_',true,true,1},
-		{'_plasma_',true,true,2,true,true},
-		{'_torpedo1_',true,false,false,true,true},
-		{'_torpedo2_',true,false,false,true,true},
-	--	{'_torpedoground_',true,false,false},
-		{'_aabomb_',true,false,false,true,true},
-		{'_aaheavy_',true,true,false,true,true},
-		{'_aa2_',true,true,1,true,true},
-	}
 
+		{ 	category = 'factoryMobilities' ,
+			economy = {},--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true ,},
+
+		{ 	category = '_wind_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,},
+
+		{ 	category = '_tide_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,},
+
+		{ 	category = '_solar_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+			special = true } , --specialFilter
+
+		{ 	category = '_mstor_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 1 , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        },
+
+		{ 	category = '_estor_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 1 , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        },
+
+		{ 	category = '_convs_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        },
+
+		{ 	category = '_mex_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true , --positional category to search near
+	        },
+
+		{ 	category = '_nano_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true ,
+	        },
+
+		{ 	category = '_aa1_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_aa1_'}} ,
+	        },
+
+		{ 	category = '_flak_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_flak_'}} ,
+			special = true } , --specialFilter
+
+		{ 	category = '_specialt_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_specialt_'}} ,
+	        },
+
+		{ 	category = '_fus_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_nano_','factoryMobilities'}} ,
+			special = true } , --specialFilter
+
+		{ 	category = '_popup1_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_llt_','_popup2_','_popup1_'}} ,
+	        },
+
+		{ 	category = '_popup2_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_popup2_'}} ,
+	        },
+
+		{ 	category = '_heavyt_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {list = self.ai.hotSpot, min = 50 , neighbours = {'_heavyt_','_laser2_'}} ,
+	        },
+
+		{ 	category = '_jam_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 1 , --numericalParameter
+			location = {categories = {'factoryMobilities'},min = 100,neighbours = {'_jam_'}} ,
+	        },
+
+		{ 	category = '_radar_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_radar_'}} ,
+	        },
+
+		{ 	category = '_geo_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true , --positional category to search near
+	        },
+
+		{ 	category = '_silo_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 1 , --numericalParameter
+			location = {categories = {'_nano_'},min = 50} ,
+	        },
+
+		{ 	category = '_antinuke_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 1 , --numericalParameter
+			location = {categories = {'_nano_'},min = 50} ,
+	        },
+
+		{ 	category = '_sonar_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_sonar_'}} ,
+	        },
+
+		{ 	category = '_shield_' ,
+			economy = true,true,3,--numericalParameter
+			location = {categories = {'_nano_'},min = 50,neighbours = {'_shield_'}} ,
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+	        },
+
+-- 		{ 	category = '_juno_' ,			economy = true,true,1},
+		{ 	category = '_laser2_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_nano_'},min = 50,neighbours = {'_laser2_'},list = self.ai.hotSpot}
+	        } ,
+
+
+		{ 	category = '_lol_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 1 , --numericalParameter
+			location = {categories = {'_nano_'},min = 50}
+			},
+
+		{ 	category = '_plasma_' ,
+			economy = true,true,2,--numericalParameter
+			duplicate = true , --duplicateFilter
+			numeric = 2 , --numericalParameter
+			location = {categories = {'_nano_'},min = 50} ,
+	        },
+
+		{ 	category = '_torpedo1_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 50}
+			},
+
+		{ 	category = '_torpedo2_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 50}
+			},
+
+	--	{ 	category = '_torpedoground_' ,economy = true,false,false},
+		{ 	category = '_aabomb_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_heavyt_'},min = 50,neighbours = {'_aabomb_'}} ,
+			special = true } , --specialFilter
+
+		{ 	category = '_aaheavy_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'factoryMobilities'},min = 50,neighbours = {'_aaheavy_'}} ,
+			special = true } , --specialFilter
+
+		{ 	category = '_aa2_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 1 , --numericalParameter
+			location = {categories = {'factoryMobilities'},min = 50,neighbours = {'_aa2_'}} ,
+			special = true } , --specialFilter
+
+	}
+----------------------------------------------------------------------------------------------------------------------------------
 	self.roles.expand = {
-		{'_mex_',true,false,false,true,true},
-		{'_llt_',true,false,false,true,true},
-		{'_popup2_',true,false,false,true,true},
-	}
+		{ 	category = '_mex_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true ,
+	        },
 
+		{ 	category = '_llt_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_llt_','_popup2_','_popup1_'},list = {self.map:GetMetalSpots()}} ,
+			},
+
+		{ 	category = '_popup2_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_popup2_'}} ,
+	        },
+
+		{ 	category = '_solar_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_','_llt_',},himself = true} ,
+			special = true } , --specialFilter
+
+	}
+--------------------------------------------------------------------------------------------------------------------------------
 	self.roles.eco = {
-		{'factoryMobilities',true,true,false,true,true},
--- 		{'_specialt_',true,false,false,true,true},
-		{'_wind_',true,false,false,true,true},
-		{'_tide_',true,false,false,true,true},
-		{'_solar_',true,false,false,true,true},
-		{'_fus_',true,true,false,true,true},
-		{'_nano_',true,false,false,true,true},
-		{'_estor_',true,true,1,true,true},
-		{'_mstor_',true,true,1,true,true},
-		{'_convs_',true,false,false,true,true},
-		{'_jam_',true,true,1,true,true},
-		{'_antinuke_',true,true,1,true,true},
+		{ 	category = 'factoryMobilities' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true , --positional category to search near
+	        },
+
+--[[		{ 	category = '_specialt_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {} , --positional category to search near
+]]
+
+		{ 	category = '_wind_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        },
+
+		{ 	category = '_tide_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        },
+
+		{ 	category = '_solar_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+			special = true } , --specialFilter
+
+		{ 	category = '_fus_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = false , --numericalParameter
+			llocation = {categories = {'_nano_','factoryMobilities'},himself = true} ,
+			special = true } , --specialFilter
+
+		{ 	category = '_nano_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true , --positional category to search near
+	        },
+
+		{ 	category = '_estor_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 1 , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        },
+
+		{ 	category = '_mstor_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 1 , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        },
+
+		{ 	category = '_convs_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        },
+
+		{ 	category = '_jam_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 1 , --numericalParameter
+			location = {categories = {'factoryMobilities'},min = 100,neighbours = {'_jam_'}} ,
+	        },
+
+		{ 	category = '_antinuke_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 1 , --numericalParameter
+			location = {categories = {'_nano_'},min = 50} ,
+	        },
+
 	}
+------------------------------------------------------------------------------------------------------------------------------------
 	self.roles.support = {
-		{'_radar_',true,true,false,true,true},
-		{'_specialt_',true,false,false,true,true},
-		{'_popup1_',true,false,false,true,true},
-		{'_popup2_',true,false,false,true,true},
-		{'_heavyt_',true,true,false,true,true},
-		{'_laser2_',true,true,false,true,true},
-		{'_aa1_',true,false,false,true,true},
-		{'_aabomb_',true,false,false,true,true},
-		{'_flak_',true,false,false,true,true},
+		{ 	category = '_radar_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_radar_'}} ,
+	        },
+
+		{ 	category = '_specialt_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_specialt_'}} ,
+	        },
+
+		{ 	category = '_popup1_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_llt_','_popup2_','_popup1_'}} ,
+	        },
+
+		{ 	category = '_popup2_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_popup2_'}} ,
+	        },
+
+		{ 	category = '_heavyt_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {list = self.ai.hotSpot, min = 50 , neighbours = {'_heavyt_','_laser2_'}} ,
+	        },
+
+		{ 	category = '_laser2_' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_nano_'},min = 50,neighbours = {'_laser2_'},list = self.ai.hotSpot} ,
+	        },
+
+		{ 	category = '_aa1_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_aa1_'}} ,
+	        },
+
+		{ 	category = '_aabomb_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_heavyt_'},min = 50,neighbours = {'_aabomb_'}} ,
+			special = true } , --specialFilter
+
+		{ 	category = '_flak_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_flak_'}} ,
+			special = true } , --specialFilter
 	}
-	self.roles.assistant = {
+---------------------------------------------------------------------------------------------------------------------
+	self.roles.starter = {
+		{ 	category = 'factoryMobilities' ,
+			economy = true,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true ,
+	        },
+
+		{ 	category = '_wind_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        },
+
+		{ 	category = '_tide_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        },
+
+		{ 	category = '_solar_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+			special = true } , --specialFilter
+
+		{ 	category = '_llt_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'factoryMobilities'},min = 50,neighbours = {'_llt_','_popup2_','_popup1_'}}
+	        } ,
+		{ 	category = '_mex_' ,
+			economy = true,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true ,
+	        },
 		}
-
-
+	self.roles.assistant = {}
 end
 
-TasksHST.testRole = {
-	1 = {
-         },
-	2 = {category = '_solar_',
-         economy = {Metal = {},Energy = {}},
-         duplicate = false,
-         location = {},
-         special = true,
-         number = false,
-         },
-	}
+
 
 
 -- function TasksHST:wrap( theTable, theFunction )

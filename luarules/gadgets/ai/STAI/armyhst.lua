@@ -614,6 +614,7 @@ function ArmyHST:Init()
 		eco = {},
 		expand = {},
 		support = {},
+		starter = {},
 		}
 end
 
