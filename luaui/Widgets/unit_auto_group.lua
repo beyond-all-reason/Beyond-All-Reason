@@ -37,6 +37,7 @@ include("keysym.h.lua")
 
 local addall = true
 local immediate = true
+local persist = true
 local verbose = true
 
 local cutoffDistance = 3500
@@ -129,6 +130,13 @@ function widget:Initialize()
 	end
 	WG['autogroup'].setImmediate = function(value)
 		immediate = value
+	end
+
+	WG['autogroup'].getPersist = function()
+		return persist
+	end
+	WG['autogroup'].setPersist = function(value)
+		persist = value
 	end
 end
 
@@ -376,13 +384,16 @@ end
 
 function widget:GetConfigData()
 	local groups = {}
-	for id, gr in pairs(unit2group) do
-		table.insert(groups, { UnitDefs[id].name, gr })
+	if persist then
+		for id, gr in pairs(unit2group) do
+			table.insert(groups, { UnitDefs[id].name, gr })
+		end
 	end
 	local ret = {
 		version = versionNum,
 		groups = groups,
 		immediate = immediate,
+		persist = persist,
 		verbose = verbose,
 		addall = addall,
 	}
@@ -395,6 +406,9 @@ function widget:SetConfigData(data)
 			immediate = data.immediate
 			verbose = data.verbose
 			addall = data.addall
+		end
+		if data.persist ~= nil then
+			persist = data.persist
 		end
 		local groupData = data.groups
 		if groupData and type(groupData) == 'table' then

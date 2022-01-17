@@ -541,6 +541,8 @@ return {
 			unitreclaimer_descr = 'Reclaim units in an area. Hover over a unit and drag an area-reclaim circle',
 			autogroup_immediate = 'Autogroup immediate mode',
 			autogroup_immediate_descr = 'Units built/resurrected/received are added to autogroups immediately,\ninstead when they get to be idle.\n\n(add units to autogroup with ALT+number)',
+			autogroup_persist = 'Autogroup persist mode',
+			autogroup_persist_descr = 'Autogroups persist in new games.\nIf this is enabled units which were added to an autogroup in previous games\n will be added to the same group in this game.',
 			factory = 'Factory',
 			factoryguard = 'guard (builders)',
 			factoryguard_descr = 'Newly created builders will assist their source factory',

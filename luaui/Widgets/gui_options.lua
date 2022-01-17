@@ -3324,6 +3324,18 @@ function init()
 		  end,
 		},
 
+		{ id = "autogroup_persist", group = "game", category = types.basic, name = texts.option.autogroup_persist, type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getPersist ~= nil and WG['autogroup'].getPersist()), description = texts.option.autogroup_persist_descr,
+		  onload = function(i)
+			  loadWidgetData("Auto Group", "autogroup_persist", { 'persist' })
+		  end,
+		  onchange = function(i, value)
+			  if widgetHandler.configData["Auto Group"] == nil then
+				  widgetHandler.configData["Auto Group"] = {}
+			  end
+			  widgetHandler.configData["Auto Group"].persist = value
+			  saveOptionValue('Auto Group', 'autogroup', 'setPersist', { 'persist' }, value)
+		  end,
+		},
 
 
 		-- DEV
