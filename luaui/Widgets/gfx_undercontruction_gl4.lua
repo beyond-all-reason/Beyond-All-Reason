@@ -10,10 +10,12 @@ function widget:GetInfo()
 	}
 end
 
-local highlightAlpha = 0.33
+local highlightAlpha = 0.4
 local edgeExponent = 1.4
-local edgeAlpha = 0.6
+local edgeAlpha = 0.5
 
+local spValidUnitID = Spring.ValidUnitID
+local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitHealth = Spring.GetUnitHealth
 local prevMyAllyTeamID = Spring.GetMyAllyTeamID()
@@ -108,14 +110,13 @@ function widget:Update(dt)
 		prevMyAllyTeamID = Spring.GetMyAllyTeamID()
 		refresh()
 	end
-	
+end
 
-	if Spring.GetGameFrame()%30 == 0 then 
-		for unitID, _ in pairs(unitshapes) do
-			if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then 
-				removeUnitShape(unitID)
-				Spring.Echo("Under construction GFX encountered an invalid unitID", unitID)
-			end
+if Spring.GetGameFrame() % 30 == 0 then
+	for unitID, _ in pairs(unitshapes) do
+		if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then
+			removeUnitShape(unitID)
+			Spring.Echo("Under construction GFX encountered an invalid unitID", unitID)
 		end
 	end
 end

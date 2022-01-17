@@ -16,7 +16,7 @@ local highlightAlpha = 0.05
 local teamColorAlphaMult = 1.33
 local teamColorMinAlpha = 0.5
 local edgeExponent = 1.7
-local minEdgeAlpha = 0.2
+local minEdgeAlpha = 0.25
 
 local unitshapes = {}
 
