@@ -101,6 +101,7 @@ function TargetHST:NewCell(px, pz)
 	CELL.badPositions = 0
 	CELL.spots = 0
 	CELL.damagedUnits = {}
+	CELL.base
 	--targets of this cell per layer is immobile unit NO weapon express in metal here is the layer that count
 	CELL.unarmGI = 0
 	CELL.unarmAI = 0
@@ -165,6 +166,9 @@ function TargetHST:setCellEnemyValues(enemy,CELL)
 	local ut = self.ai.armyhst.unitTable[enemy.name]
 
 	if enemy.view == 1 then
+		if factoryMobilities[enemy.name] then
+			CELL.base = enemy.name
+		end
 		if ut.isWeapon then
 			CELL.armed = CELL.armed + enemy.M
 			if ut.speed > 0 then

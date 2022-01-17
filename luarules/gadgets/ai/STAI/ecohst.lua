@@ -55,6 +55,7 @@ function EcoHST:Average()
 			self.ai[name][property] = resources[name][property] / totalSamples
 		end
 		self.ai[name].extra = self.ai[name].income - self.ai[name].usage
+		self.ai[name].effective = self.ai[name].extra / self.ai[name].income
 		if self.ai[name].capacity == 0 then
 			self.ai[name].full = math.huge
 		else

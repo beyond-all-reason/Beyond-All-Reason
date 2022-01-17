@@ -193,96 +193,14 @@ function TaskQueueBST:Update()
 end
 
 function TaskQueueBST:CategoryEconFilter(cat,param,name)
-	self:EchoDebug(cat ,name,self.role, " (before econ filter)")
-	if not name then return end
-	local M = self.ai.Metal
-	local E = self.ai.Energy
-	local check = false
-	if cat == 'factoryMobilities' then
-		check =  M.income > 3 and E.income > 30
-	elseif cat == '_mex_' then
-		check =   (M.full < 0.5 or M.income < 6) or self.role == 'expand'
-	elseif cat == '_nano_' then
-		check =  (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100) or
-				(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 60 ))
-	elseif cat == '_wind_' then
-		check =   map:AverageWind() > 7 and ((E.full < 0.75 or E.income < E.usage * 1.1 )  or E.income < 30)
-	elseif cat == '_tide_' then
-		check =  map:TidalStrength() >= 10 and  ((E.full < 0.75 or E.income < E.usage * 1.1 )  or E.income < 30)
-	elseif cat == '_solar_' then
-		check =   ((E.full < 0.75 or E.income < E.usage * 1.1 )  or E.income < 40 ) and self.ai.Energy.income < 3000
-	elseif cat == '_estor_' then
-		check =   E.full > 0.8 and E.income > 400  and M.full > 0.1
-	elseif cat == '_mstor_' then
-		check =   E.full > 0.5  and M.full > 0.75 and M.income > 20 and E.income > 200
-	elseif cat == '_convs_' then
-		check =   E.income > E.usage * 1.1 and E.full > 0.8
-	elseif cat == '_fus_' then
-		check =  (E.full < 0.7 and E.income < E.usage * 1.1) or E.full < 0.4
-	elseif cat == '_geo_' then
-		check =  E.income > 100 and M.income > 15 and E.full > 0.3 and M.full > 0.2
-	elseif cat == '_jam_' then
-		check =  M.full > 0.5 and M.income > 50 and E.income > 500
-	elseif cat == '_radar_' then
-		check =  M.full > 0.1 and M.income > 9 and E.income > 50
-	elseif cat == '_sonar_' then
-		check =  M.full > 0.3 and M.income > 15 and E.income > 100
-
-	elseif cat == '_llt_' then
-		check =   (E.income > 40 and M.income > 7)
-	elseif cat == '_popup1_' then
-		check =   (E.income > 200 and M.income > 25  )
-	elseif cat == '_specialt_' then
-		check =   E.income > 40 and M.income > 4 and M.full > 0.1
-	elseif cat == '_heavyt_' then
-		check =   E.income > 100 and M.income > 15 and M.full > 0.3
-	elseif cat == '_popup2_' then
-		check =  M.full > 0.1
-	elseif cat == '_laser2_' then
-		check =   E.income > 2000 and M.income > 50 and E.full > 0.5 and M.full > 0.3
-	elseif cat == '_coast1_' then
-		check =  false
-	elseif cat == '_coast2_' then
-		check =  false
-	elseif cat == '_plasma_' then
-		check =  E.income > 5000 and M.income > 120 and E.full > 0.8 and M.full > 0.5
-	elseif cat == '_lol_' then
-		check =  E.income > 15000 and M.income > 200 and E.full > 0.8 and M.full > 0.5
-
-	elseif cat == '_torpedo1_' then
-		check =  (E.income > 20 and M.income > 2 and M.full < 0.5)
-	elseif cat == '_torpedo2_' then
-		check =  E.income > 100 and M.income > 15 and M.full > 0.2
-	elseif cat == '_torpedoground_' then
-		check =  false
-
-	elseif cat == '_aa1_' then
-		check =  E.full > 0.1 and E.full < 0.5 and M.income > 25 and E.income > 100
-	elseif cat == '_aabomb_' then
-		check =  E.full > 0.5 and M.full > 0.5
-	elseif cat == '_flak_' then
-		check =  E.full > 0.1 and E.full < 0.5 and E.income > 2000
-
-	elseif cat == '_aaheavy_' then
-		check =  E.income > 500 and M.income > 25 and E.full > 0.3 and M.full > 0.3
-	elseif cat == '_aa2_' then
-		check =  E.income > 7000 and M.income > 100 and E.full > 0.3 and M.full > 0.3
-	elseif cat == '_silo_' then
-		check =  E.income > 10000 and M.income > 100 and E.full > 0.8 and M.full > 0.5
-	elseif cat == '_antinuke_' then
-		check =  E.income > 4000 and M.income > 75 and E.full > 0.6 and M.full > 0.3
-	elseif cat == '_shield_' then
-		check =  E.income > 8000 and M.income > 100 and E.full > 0.6 and M.full > 0.5
-	elseif cat == '_juno_' then
-		check =  false
-	else
-		self:EchoDebug('economy category not handled')
+	self:EchoDebug(cat ,name,self.role,param(), " (before econ filter)")
+	if not name  or not param then
+		self:EchoDebug('ecofilter stop',name,cat, param)
+		return
 	end
-	if check then
-		self:EchoDebug('ecofilter',name)
+	if self.ai.taskshst.roles[self.role][self.idx]:economy() then
+		self:EchoDebug('after eco filtering',name,cat)
 		return name
-	else
-		self:EchoDebug('ecofilter stop')
 	end
 end
 
@@ -309,6 +227,10 @@ function TaskQueueBST:specialFilter(cat,param,name)
 			end
 		end
 		check =  true
+	elseif cat == '_wind_' then
+		check = map:AverageWind() > 7
+	elseif cat == '_tide_' then
+		check = map:TidalStrength() >= 10
 	elseif cat == '_aa1_' then
 		check =  self.ai.needAirDefense
 	elseif cat == '_flak_' then
@@ -322,22 +244,6 @@ function TaskQueueBST:specialFilter(cat,param,name)
 	else
 		self:EchoDebug('special filter block',cat,name)
 	end
-end
-
-function TaskQueueBST:GetAmpOrGroundWeapon()
-	if self.ai.enemyBasePosition then
-		if self.ai.maphst:MobilityNetworkHere('veh', self.position) ~= self.ai.maphst:MobilityNetworkHere('veh', self.ai.enemyBasePosition) and self.ai.maphst:MobilityNetworkHere('amp', self.position) == self.ai.maphst:MobilityNetworkHere('amp', self.ai.enemyBasePosition) then
-			self:EchoDebug('canbuild amphibious because of enemyBasePosition')
-			return true
-		end
-	end
-	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]
-	local network = self.ai.maphst:MobilityNetworkHere(mtype, self.position)
-	if not network or not self.ai.factoryBuilded[mtype] or not self.ai.factoryBuilded[mtype][network] then
-		self:EchoDebug('canbuild amphibious because ' .. mtype .. ' network here is too small or has not enough spots')
-		return true
-	end
-	return false
 end
 
 function TaskQueueBST:findPlace(utype, value,cat,loc)
@@ -426,6 +332,22 @@ function TaskQueueBST:findPlace(utype, value,cat,loc)
 	else
 		self:EchoDebug('pos not found for .. ' ,value)
 	end
+end
+
+function TaskQueueBST:GetAmpOrGroundWeapon()
+	if self.ai.enemyBasePosition then
+		if self.ai.maphst:MobilityNetworkHere('veh', self.position) ~= self.ai.maphst:MobilityNetworkHere('veh', self.ai.enemyBasePosition) and self.ai.maphst:MobilityNetworkHere('amp', self.position) == self.ai.maphst:MobilityNetworkHere('amp', self.ai.enemyBasePosition) then
+			self:EchoDebug('canbuild amphibious because of enemyBasePosition')
+			return true
+		end
+	end
+	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]
+	local network = self.ai.maphst:MobilityNetworkHere(mtype, self.position)
+	if not network or not self.ai.factoryBuilded[mtype] or not self.ai.factoryBuilded[mtype][network] then
+		self:EchoDebug('canbuild amphibious because ' .. mtype .. ' network here is too small or has not enough spots')
+		return true
+	end
+	return false
 end
 
 function TaskQueueBST:limitedNumber(name,number)
