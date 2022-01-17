@@ -11,6 +11,8 @@ function widget:GetInfo()
 	}
 end
 
+local allowSavegame = Spring.Utilities.ShowDevUI()
+
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.6)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
@@ -361,7 +363,7 @@ local function updateButtons()
 	local totalWidth = area[3] - area[1]
 	local text = '    '
 
-	if isSinglePlayer and WG['savegame'] ~= nil then
+	if isSinglePlayer and allowSavegame and WG['savegame'] ~= nil then
 		text = text .. Spring.I18N('ui.topbar.button.save') .. '   '
 	end
 	if WG['scavengerinfo'] ~= nil then
@@ -426,7 +428,7 @@ local function updateButtons()
 			local width = 0
 			local buttons = 0
 			firstButton = nil
-			if isSinglePlayer and WG['savegame'] ~= nil then
+			if isSinglePlayer and allowSavegame and WG['savegame'] ~= nil then
 				buttons = buttons + 1
 				if buttons > 1 then
 					offset = math_floor(offset + width + 0.5)
@@ -1833,7 +1835,7 @@ local function applyButtonAction(button)
 			WG['options'].toggle()
 		end
 	elseif button == 'save' then
-		if WG['savegame'] ~= nil and isSinglePlayer then
+		if isSinglePlayer and allowSavegame and WG['savegame'] ~= nil then
 			--local gameframe = Spring.GetGameFrame()
 			--local minutes = math.floor((gameframe / 30 / 60))
 			--local seconds = math.floor((gameframe - ((minutes*60)*30)) / 30)

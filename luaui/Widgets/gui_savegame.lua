@@ -1,65 +1,24 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function widget:GetInfo()
 	return {
-		name      = "Save Game Menu",
-		desc      = "bla",
-		author    = "KingRaptor, stripped down to nothing by beherith", --https://raw.githubusercontent.com/ZeroK-RTS/Zero-K/c765e592cb1cc6fc34438d274874f4c33f6e5f9c/LuaUI/Widgets/gui_savegame.lua
-		date      = "2021",
-		license   = "GNU GPL, v2 or later",
-		layer     = -9999,
-		enabled   = true  --  loaded by default?
+		name = "Save Game Menu",
+		desc = "bla",
+		author = "KingRaptor, stripped down to nothing by beherith", --https://raw.githubusercontent.com/ZeroK-RTS/Zero-K/c765e592cb1cc6fc34438d274874f4c33f6e5f9c/LuaUI/Widgets/gui_savegame.lua
+		date = "2021",
+		license = "GNU GPL, v2 or later",
+		layer = -9999,
+		enabled = true  --  loaded by default?
 	}
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-local SAVEGAME_BUTTON_HEIGHT = 128
 local SAVE_DIR = "Saves"
 local SAVE_DIR_LENGTH = string.len(SAVE_DIR) + 2
-local AUTOSAVE_DIR = SAVE_DIR .. "/auto"
-local MAX_SAVES = 999
 
 local LOAD_GAME_STRING = "loadFilename "
 local SAVE_TYPE = "save "
--- https://springrts.com/mantis/view.php?id=6219
--- https://springrts.com/mantis/view.php?id=6222
-
---------------------------------------------------------------------------------
--- Chili elements
---------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---[[options_path = 'Settings/Misc/Autosave'
-options =
-{
-	enableautosave = {
-		name = 'Enable Autosave',
-		type = 'bool',
-		value = false,
-		simpleMode = true,
-		everyMode = true,
-	},
-	autosaveFrequency = {
-		name = 'Autosave Frequency (minutes)',
-		type = 'number',
-		min = 1, max = 60, step = 1,
-		value = 10,
-		simpleMode = true,
-		everyMode = true,
-	},
-}]]--
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- Makes a control grey for disabled, or whitish for enabled
-
 
 local function WriteDate(dateTable)
 	return string.format("%02d/%02d/%04d", dateTable.day, dateTable.month, dateTable.year)
-	.. " " .. string.format("%02d:%02d:%02d", dateTable.hour, dateTable.min, dateTable.sec)
+		.. " " .. string.format("%02d:%02d:%02d", dateTable.hour, dateTable.min, dateTable.sec)
 end
 
 local function SecondsToClock(seconds)
@@ -68,28 +27,25 @@ local function SecondsToClock(seconds)
 	if seconds <= 0 then
 		return "00:00";
 	else
-		hours = string.format("%02d", math.floor(seconds/3600));
-		mins = string.format("%02d", math.floor(seconds/60 - (hours*60)));
-		secs = string.format("%02d", math.floor(seconds - hours*3600 - mins *60));
+		hours = string.format("%02d", math.floor(seconds / 3600));
+		mins = string.format("%02d", math.floor(seconds / 60 - (hours * 60)));
+		secs = string.format("%02d", math.floor(seconds - hours * 3600 - mins * 60));
 		if seconds >= 3600 then
-			return hours..":"..mins..":"..secs
+			return hours .. ":" .. mins .. ":" .. secs
 		else
-			return mins..":"..secs
+			return mins .. ":" .. secs
 		end
 	end
 end
 
-
 local function trim(str)
-  return str:match'^()%s*$' and '' or str:match'^%s*(.*%S)'
+	return str:match '^()%s*$' and '' or str:match '^%s*(.*%S)'
 end
 
 --------------------------------------------------------------------------------
 -- Savegame utlity functions
 --------------------------------------------------------------------------------
 -- FIXME: currently unused as it doesn't seem to give the correct order
-
-
 
 local function GetSaveExtension(path)
 	if VFS.FileExists(path .. ".ssf") then
@@ -108,7 +64,7 @@ local function GetSave(path)
 	local ret = nil
 	local success, err = pcall(function()
 		local saveData = VFS.Include(path)
-		saveData.filename = string.sub(path, SAVE_DIR_LENGTH, -5)	-- pure filename without directory or extension
+		saveData.filename = string.sub(path, SAVE_DIR_LENGTH, -5)    -- pure filename without directory or extension
 		saveData.path = path
 		ret = saveData
 	end)
@@ -125,24 +81,21 @@ local function GetSave(path)
 	end
 end
 
-
 local function GetSaveDescText(saveFile)
-	if not saveFile then return "" end
+	if not saveFile then
+		return ""
+	end
 	return (saveFile.description or "no description")
 		.. "\n" .. saveFile.gameName .. " " .. saveFile.gameVersion
 		.. "\n" .. saveFile.map
-		.. "\n" .. (WG.Translate("interface", "time_ingame") or "Ingame time").. ": " ..  SecondsToClock((saveFile.totalGameframe or saveFile.gameframe or 0)/30)
+		.. "\n" .. (WG.Translate("interface", "time_ingame") or "Ingame time") .. ": " .. SecondsToClock((saveFile.totalGameframe or saveFile.gameframe or 0) / 30)
 		.. "\n" .. WriteDate(saveFile.date)
 end
 
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 local function SaveGame(filename, description, requireOverwrite)
-  if WG.Analytics and WG.Analytics.SendRepeatEvent then
-			WG.Analytics.SendRepeatEvent("game_start:savegame",filename)
-  end
+	if WG.Analytics and WG.Analytics.SendRepeatEvent then
+		WG.Analytics.SendRepeatEvent("game_start:savegame", filename)
+	end
 	local success, err = pcall(
 		function()
 			Spring.CreateDir(SAVE_DIR)
@@ -240,18 +193,6 @@ local function DeleteSave(filename)
 	end
 end
 
---------------------------------------------------------------------------------
--- Save/Load UI
---------------------------------------------------------------------------------
-
-
---------------------------------------------------------------------------------
--- Make Chili controls
---------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
--- callins
---------------------------------------------------------------------------------
 function widget:Initialize()
 	WG['savegame'] = {}
 end
@@ -263,12 +204,12 @@ end
 local options = {}
 
 function widget:TextCommand(msg)
-		if string.sub(msg, 1, 8) == "savegame" then
+	if string.sub(msg, 1, 8) == "savegame" then
 
-    		Spring.Echo("Trying to save:",msg)
-		  local savefilename = string.sub(msg, 10)
-		  SaveGame(savefilename, savefilename, true)
-		end
+		Spring.Echo("Trying to save:", msg)
+		local savefilename = string.sub(msg, 10)
+		SaveGame(savefilename, savefilename, true)
+	end
 end
 
 --[[
