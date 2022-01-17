@@ -108,4 +108,14 @@ function widget:Update(dt)
 		prevMyAllyTeamID = Spring.GetMyAllyTeamID()
 		refresh()
 	end
+	
+
+	if Spring.GetGameFrame()%30 == 0 then 
+		for unitID, _ in pairs(unitshapes) do
+			if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then 
+				removeUnitShape(unitID)
+				Spring.Echo("Under construction GFX encountered an invalid unitID", unitID)
+			end
+		end
+	end
 end
