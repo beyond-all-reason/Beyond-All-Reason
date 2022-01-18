@@ -137,8 +137,8 @@ local function AddUnit(unitID, unitDefID, unitTeamID)
 	end
 end
 
-local function RemoveUnit(unitID, unitDefID, unitTeamID)
-	if (not skipOwnTeam or spGetUnitAllyTeam(unitID) ~= myAllyTeamID) and unitTeamID ~= gaiaTeamID and not unitDecoration[unitDefID] then
+local function RemoveUnit(unitID, unitDefID)
+	if (not skipOwnTeam or spGetUnitAllyTeam(unitID) ~= myAllyTeamID) and not unitDecoration[unitDefID] then
 		RemovePrimitive(unitID)
 		unitTeam[unitID] = nil
 		unitUnitDefID[unitID] = nil
@@ -148,7 +148,14 @@ end
 function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 	if unitTeam[unitID] then
 		RemoveUnit(unitID, unitDefID, oldTeamID)
-		AddUnit(unitID, unitDefID, unitTeam)
+		AddUnit(unitID, unitDefID, newTeamID)
+	end
+end
+
+function widget:UnitGiven(unitID, unitDefID, oldTeamID, newTeamID)
+	if unitTeam[unitID] then
+		RemoveUnit(unitID, unitDefID, oldTeamID)
+		AddUnit(unitID, unitDefID, newTeamID)
 	end
 end
 
