@@ -534,6 +534,7 @@ end
 -- adding a glow to Cannon projectiles
 function widget:DrawWorld()
 	local lights = pointLights
+	gl.DepthMask(false)
 	glBlending(GL.SRC_ALPHA, GL.ONE)
 	gl.Texture(glowImg)
 	local size = 1
@@ -553,6 +554,7 @@ function widget:DrawWorld()
 	end
 	gl.Billboard(false)
 	gl.Texture(false)
+	gl.DepthMask(true)
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
