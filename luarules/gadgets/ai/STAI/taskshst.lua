@@ -178,7 +178,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'_mex_'},min = 50,neighbours = {'_radar_'}} ,
+			location = {categories = {'_mex_'},min = 50,max = 1000,neighbours = {'_radar_'}} ,
 	        },
 
 		{ 	category = '_geo_' ,
@@ -542,19 +542,17 @@ function TasksHST:startRolesParams()
 	}
 ---------------------------------------------------------------------------------------------------------------------
 	self.roles.starter = {
-		{ 	category = 'factoryMobilities' ,
+		{ 	category = '_mex_' ,
 			economy = function()
-					print(M.income,E.income)
-					return M.income > 6 and E.income > 30
+					return M.income < 8 or self.ai.tool:countMyUnit({'_mex_'}) < 3
 				end,--economicParameters
-			duplicate = true , --duplicateFilter
+			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
 			location = true ,
 	        },
-
 		{ 	category = '_wind_' ,
 			economy = function()
-					return  ((E.full < 0.5 or E.income < E.usage  )  or E.income < 30) and self.ai.Energy.income < 3000
+					return  E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 3)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -564,7 +562,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_tide_' ,
 			economy = function()
-					return  ((E.full < 0.5 or E.income < E.usage  )  or E.income < 30) and self.ai.Energy.income < 3000
+					return  E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 3)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -574,7 +572,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_solar_' ,
 			economy = function()
-					return  ((E.full < 0.5 or E.income < E.usage  )  or E.income < 30) and self.ai.Energy.income < 3000
+					return  E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 3)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -583,18 +581,18 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_llt_' ,
 			economy = function()
-					return  E.income > 30 and M.income > 5
+					return  E.income > 20 and M.income > 5
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
 			location = {categories = {'factoryMobilities','_mex_'},min = 100,neighbours = {'_llt_','_popup2_','_popup1_'}}
 	        } ,
 
-		{ 	category = '_mex_' ,
+		{ 	category = 'factoryMobilities' ,
 			economy = function()
-					return true
+					return M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 3 and (E.income > 40 or M.full > 0.9)
 				end,--economicParameters
-			duplicate = false , --duplicateFilter
+			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
 			location = true ,
 	        },
