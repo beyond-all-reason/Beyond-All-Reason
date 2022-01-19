@@ -28,10 +28,10 @@
 					],
 					"armavp": [
 						[0.8, ["builderT2", "skirmish", "skirmish", "builderT2", "skirmish", "builderT2", "anti_heavy", "builderT2", "skirmish", "builderT2"]], 
-                        [0.2, ["builderT2", "skirmish", "builderT2", "skirmish", "builderT2", "skirmish", "builderT2", "builderT2"]]
+                        [0.2, ["builderT2", "skirmish", "builderT2", "skirmish", "builderT2", "skirmish", "builderT2", "raider", "raider", "raider", "raider", "builderT2"]]
 					],
 					"armshltx": [
-						[1.0, ["heavy", "artillery"]]	
+						[1.0, ["raider", "raider", "raider", "raider", "artillery", "heavy"]]	
 					],
 					"armsy":[
 						[0.3, ["scout", "builder", "scout", "builder", "raider", "scout",  "builder", "sub", "skirmish"]]

@@ -7,7 +7,7 @@
 
 	"quota": {
 		"scout": 3,  // max scout units out of raiders
-		"raid": [8.0, 160.0],  // [<min>, <avg>] power of raider squad 2.5,48
+		"raid": [8.0, 320.0],  // [<min>, <avg>] power of raider squad 2.5,48
 		"attack": 70.0,  // min power of attack group ---- was 40
 		"thr_mod": {				//AI attacks everything with final threat (after all calculations) <= 1
 			"attack": [0.6, 0.9],  // [<min>, <max>] enemy threat multiplier for target selection of attack task |  values <1 makes enemy group seem less of an thread for ai => ai attacks stronger groups than it own | org=0.25, 0.3
@@ -482,14 +482,6 @@
 		},
 
 		// ignore
-		"armdrag": {
-			"role": ["static"],
-			"ignore": true
-		},
-		"cordrag": {
-			"role": ["static"],
-			"ignore": true
-		},
 		"armfort": {
 			"role": ["static"],
 			"ignore": true
@@ -696,7 +688,8 @@
 		},
 		"armspid": {
 			"role": ["raider"],
-			"threat":{"air": 0.0, "water": 0.0, "surf": 0.2} 	
+			"threat":{"air": 0.0, "water": 0.0, "surf": 0.2},
+			"power": 0.2	
 		},
 		"armsptk": {
 			"role": ["raider"],
@@ -706,7 +699,7 @@
 		},
 		"armsnipe": {
 			"role": ["anti_heavy_ass"],
-			"attribute": ["support", "siege"],
+			"attribute": ["siege"],
 			"threat": {"air": 0.0, "water": 0.0,
 				"vs": {"scout":0.5, "raider":0.5}
 				}
@@ -718,7 +711,7 @@
 		},
 		"armspy": {
 			"role": ["scout"],
-			"limit": 0,
+			"limit": 1,
 			"threat":{"air": 0.0, "water": 0.0, "surf": 0.0} 
 		},
 		
@@ -730,12 +723,13 @@
 		},
 		"armraz": {
 			"role": ["heavy"],
-			"threat": {"air": 0.7, "water": 0.0, "surf":1.0},
+			"attribute": ["melee"],
+			"threat": {"air": 0.5, "water": 0.0, "surf":1.0},
 			"power": 1.5,
 			"retreat": 0.6
 		},
 		"armvang": {
-			"role": ["artillery", "heavy"],
+			"role": ["support", "heavy"], //artillery
 			"attribute": ["siege", "support"],
 			"threat": {"air": 0.0, "water": 0.0} 
 		},
@@ -845,7 +839,7 @@
 		},
 		"armmanni": {
 			"role": ["anti_heavy_ass"],
-			"attribute": ["support", "siege"],
+			"attribute": ["siege"],
 			"threat":{"air":0.0, "water":0.0,
 				"vs":{"anti_air": 2.0, "raider": 0.5, "heavy":2.0}	
 			}
@@ -911,7 +905,7 @@
 		},
 		"armawac": {
 			"role": ["scout", "air"],
-			"retreat": 0.8
+			"retreat": 0.5
 		},
 		"armhawk": {
 			"role": ["anti_air", "air"],
@@ -927,17 +921,17 @@
 			"retreat": 0.7
 		},
 		"armblade": {
-			"role": ["heavy", "air"],
-			"retreat": 0.7
+			"role": ["skirmish", "air"], //heavy
+			"retreat": 0.6
 		},
 		"armstil": {
-			"role": ["bomber", "air"],
-			"retreat": 0.7
+			"role": ["assault", "air"],  //skirmish
+			"power": 0.2,
+			"retreat": 0.6
 		},
 		"armliche": {
-			"role": ["bomber", "air"],
-			"attribute": ["heavy"],
-			"retreat": 0.7
+			"role": ["heavy", "air"],
+			"retreat": 0.6
 		},
 
 		// ships - armsy
@@ -1011,13 +1005,14 @@
 			"build_speed": 10.0
 		},
 		"armsh": {
-			"role": ["scout"]
+			"role": ["raider"]
 		},
 		"armanac": {
 			"role": ["assault"]
 		},
 		"armmh": {
-			"role": ["artillery"]
+			"role": ["artillery"],
+            "limit": 6
 		},
 		"armah": {
 			"role": ["anti_air"],
@@ -1136,7 +1131,7 @@
 		},
 		"corspy": {
 			"role": ["scout"],
-			"limit": 1
+			"limit": 3
 		},
 	
 		// T3 bot - corgant
@@ -1347,14 +1342,15 @@
 			"build_speed": 8.0
 		},
 		"corsh": {
-			"role": ["scout"]
+			"role": ["raider"]
 		},
 		"corsnap": {
 			"role": ["skirmish"]
 		},
 		"cormh": {
 			"role": ["artillery"],
-			"threat": {"surf": 0.2, "vs":{"static":5.0, "artillery":5.0}}
+			"threat": {"surf": 0.2, "vs":{"static":5.0, "artillery":5.0}},
+            "limit": 6
 		},
 		"corah": {
 			"role": ["anti_air"],
@@ -1387,7 +1383,9 @@
 			"retreat": 0.5
 		},
 		"corbw": {
-			"role": ["support", "air"], //skirmish with support doesnt work
+			"role": ["skirmish", "air"], //skirmish with support doesnt work
+            "threat": {"surf": 0.2},
+			"power": 0.1,
 			"retreat": 0.8
 		},
 	

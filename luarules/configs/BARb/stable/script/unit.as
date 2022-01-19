@@ -32,7 +32,7 @@ TypeMask ROLE6   = AiAddRole("turtle",          ASSAULT.type);
 TypeMask ROLE7   = AiAddRole("role7",           ASSAULT.type);
 TypeMask ROLE8   = AiAddRole("role8",           ASSAULT.type);
 TypeMask ROLE9   = AiAddRole("role9",           ASSAULT.type);
-TypeMask ROLE10  = AiAddRole("anti_heavy_ass",  ASSAULT.type);
+TypeMask ROLE10  = AiAddRole("anti_heavy_ass",  SUPPORT.type);
 TypeMask ROLE11  = AiAddRole("builderT2",       BUILDER.type);
 }  // namespace Role
 

@@ -53,25 +53,26 @@
 		},
 		"advsolar":{
 			"type": ["rectangle", "engy_mid"],
-			"yard": [2, 2],
+			"yard": [5, 5],
 			"ignore": ["mex", "engy_mid", "def_low", "nano"]
 		},
 		"wind": {
-			"type": ["circle", "engy_low"],
+			"type": ["rectangle", "engy_low"],
 // 			Integer radius of a blocker or description string.
 // 			Available string values: explosion, expl_ally
 //			"radius": "explosion",  // default: "explosion"
-			"yard": [6,6],  // "default": "explosion"
+			"yard": [8,8],  // "default": "explosion"
 			"ignore": ["engy_low"]
 		},
 		"geo": {
 			"type": ["rectangle", "geo"],
-			"yard": [2, 2],
-			"ignore": ["all"]
+			"yard": [4, 4],
+			"ignore": ["none"]
 		},
 		"geo2": {
 			"type": ["rectangle", "geo"],
-			"ignore": ["all"]
+			"yard": [6, 6],
+			"ignore": ["none"]
 		},
 		"fusion": {
 			"type": ["rectangle", "engy_high"],
@@ -110,8 +111,11 @@
 		},
 		"def_mid": {
 			"type": ["circle", "def_low"],
-			"radius": 2,
-			"not_ignore": ["def_low", "def_mid", "def_high"]
+			"radius": 7
+		},
+		"def_hvy": {
+			"type": ["circle", "def_low"],
+			"yard": [8, 8]	
 		},
 		"def_air": {
 			"type": ["rectangle", "unknown"],
@@ -124,7 +128,8 @@
 		},
 		"superweapon": {
 			"type": ["circle", "special"],
-			"ignore": ["mex", "def_low", "engy_high"]
+			"ignore": ["mex", "def_low", "engy_high"],
+			"yard": [8, 8]
 		},
 		"protector": {
 			"type": ["circle", "special"],
@@ -173,7 +178,8 @@
 		"mex2": ["armmoho", "cormoho", "armuwmme", "coruwmme"],
 		"converter": ["armmakr", "cormakr", "armmmkr", "cormmkr", "armfmkr", "corfmkr", "armuwmmm", "coruwmmm"],
 		"def_low": ["armllt", "corllt", "armbeamer", "corhllt"],
-		"def_mid": ["armclaw", "cormaw"],
+		"def_mid": ["armclaw", "cormaw", "armpb", "corvipe"],
+		"def_hvy":  ["armamb", "armanni", "cortoast", "cordoom"],
 		"def_air": ["armferret", "armcir", "corrl", "cormadsam", "corerad"],
 		"caretaker": ["armnanotc", "armasp", "cornanotc", "corasp"],
 		"small": ["armrad", "corrad"]
