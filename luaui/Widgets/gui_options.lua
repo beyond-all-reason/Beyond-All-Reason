@@ -666,7 +666,7 @@ function widget:Update(dt)
 		end
 	end
 
-	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
+	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() and WG['setcamera_bugfix'] == true then
 		Spring.SetCameraState(nil, cameraTransitionTime)
 	end
 
@@ -2273,6 +2273,14 @@ function init()
 		  onchange = function(i, value)
 			  Spring.SendCommands("HardwareCursor " .. (value and 1 or 0))
 			  Spring.SetConfigInt("HardwareCursor", (value and 1 or 0))
+		  end,
+		},
+		{ id = "setcamera_bugfix", group = "control", category = types.advanced, name = texts.option.setcamera_bugfix, type = "bool", value = true, description = texts.option.setcamera_bugfix_descr,
+		  onload = function(i)
+			WG['setcamera_bugfix'] = true
+		  end,
+		  onchange = function(i, value)
+			WG['setcamera_bugfix'] = value
 		  end,
 		},
 		{ id = "cursorsize", group = "control", category = types.basic, name = texts.option.cursorsize, type = "slider", min = 0.3, max = 1.7, step = 0.1, value = 1, description = texts.option.cursorsize_descr,

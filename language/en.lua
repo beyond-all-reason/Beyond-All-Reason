@@ -284,6 +284,8 @@ return {
 			notifications_playtrackedplayernotifs_descr = 'Displays notifications from the perspective of the currently camera tracked player',
 			hwcursor = 'Hardware cursor',
 			hwcursor_descr = 'When disabled: mouse cursor refresh rate will equal to your ingame fps',
+			setcamera_bugfix = "Per-frame camera smooth",
+			setcamera_bugfix_descr = "Enable SetCamera every frame",
 			cursorsize = 'Cursor size',
 			cursorsize_descr = 'Note that cursor already auto scales according to screen resolution\n\nFurther adjust size and snap to a smaller/larger size',
 			doubleclicktime = 'Double-click time',
