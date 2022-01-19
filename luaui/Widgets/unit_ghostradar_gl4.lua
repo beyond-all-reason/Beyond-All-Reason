@@ -106,6 +106,7 @@ function widget:UnitLeftLos(unitID, unitTeam)
 		dots[unitID].los = false
 		if not dots[unitID].radar then -- not on radar - forget unit type
 			dots[unitID].unitDefID = nil
+			removeUnitShape(unitID)
 		else
 			local x, y, z = spGetUnitPosition(unitID)
 			addUnitShape(unitID, dots[unitID].unitDefID, x, y, z, 0, unitTeam)
