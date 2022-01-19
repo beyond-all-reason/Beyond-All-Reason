@@ -515,7 +515,7 @@ if gadgetHandler:IsSyncedCode() then
 							local radius = spGetUnitRadius(unitID)
 							if radius then
 								local unitDefID = Spring.GetUnitDefID(unitID)
-								if isAirUnit[unitDefID] then
+								if isAirUnit[unitDefID] and uy > Spring.GetGroundHeight(ux,uz)+10 then -- maybe landed planes are "not a flying unit" so lets try checking ground height
 									Spring.SetUnitLandGoal(unitID, px, py, pz, radius)	-- sometimes this gives an error: "not a flying unit"
 								end
 							end
