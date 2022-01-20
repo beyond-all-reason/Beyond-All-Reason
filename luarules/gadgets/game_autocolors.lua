@@ -18,7 +18,7 @@ end
 local armBlueColor       = "#004DFF" -- Armada Blue
 local corRedColor        = "#FF1005" -- Cortex Red
 local scavPurpColor      = "#612461" -- Scav Purple
-local chickenOrangeColor = "#FF7D20" -- Chicken Orange
+local chickenOrangeColor = "#FFE178" -- Chicken Yellow
 local gaiaGrayColor      = "#7F7F7F" -- Gaia Grey
 
 if gadgetHandler:IsSyncedCode() then
@@ -249,6 +249,7 @@ if gadgetHandler:IsSyncedCode() then
     elseif not teamColors[allyTeamCount] then
         isFFA = true
     end
+    local isSurvival = Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsChickens()
 
     local ffaColorNum = 1 -- Starting from color #1
     local ffaColorVariation = 0 -- Current color variation
@@ -261,11 +262,15 @@ if gadgetHandler:IsSyncedCode() then
             Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(scavPurpColor)[1])
             Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(scavPurpColor)[2])
             Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(scavPurpColor)[3])
+        elseif isAI and string.find(isAI, "Chicken") then
+            Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(chickenOrangeColor)[1])
+            Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(chickenOrangeColor)[2])
+            Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(chickenOrangeColor)[3])
         elseif teamID == Spring.GetGaiaTeamID() then
             Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(gaiaGrayColor)[1])
             Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(gaiaGrayColor)[2])
             Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(gaiaGrayColor)[3])
-        elseif isFFA then
+        elseif isFFA or isSurvival then
             if not ffaColors[ffaColorNum] then -- If we have no color for this team anymore
                 ffaColorNum = 1 -- Starting from the first color again..
                 ffaColorVariation = ffaColorVariation + colorVariationDelta -- ..but adding random color variations with increasing amplitude with every cycle
