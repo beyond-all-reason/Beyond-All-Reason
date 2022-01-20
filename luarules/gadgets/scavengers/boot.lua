@@ -175,7 +175,6 @@ function DestroyFromQueue(n)
 				Spring.DestroyUnit(QueuedDestroys[1][1],QueuedDestroys[1][2],QueuedDestroys[1][3])
 				table.remove(QueuedDestroys, 1)
 				table.remove(QueuedDestroysFrames, 1)
-				scavStatsScavUnitsKilled = scavStatsScavUnitsKilled-1
 			--else
 				--break
 			end
@@ -474,7 +473,7 @@ function gadget:GameFrame(n)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	local unitName = UnitDefs[unitDefID].name
 	if unitTeam ~= GaiaTeamID and unitEnteredTeam == GaiaTeamID then
 		MasterMindTargetListTargetSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
@@ -496,8 +495,11 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 			end
 		end
 
-		
-		scavStatsScavUnitsKilled = scavStatsScavUnitsKilled+1
+		if attackerID and unitTeam == GaiaTeamID and attackerTeam ~= GaiaTeamID then
+			scavStatsScavUnitsKilled = scavStatsScavUnitsKilled + 1
+		end
+
+
 		killedscavengers = killedscavengers + scavconfig.scoreConfig.baseScorePerKill
 		if scavStructure[unitID] and not unitName == "scavengerdroppod_scav" and not unitName == "scavengerdroppodbeacon_scav"  then
 			killedscavengers = killedscavengers + scavconfig.scoreConfig.scorePerKilledBuilding
@@ -513,10 +515,6 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		end
 		if unitName == "scavengerdroppod_scav" then
 			killedscavengers = killedscavengers - scavconfig.scoreConfig.baseScorePerKill
-			scavStatsScavUnitsKilled = scavStatsScavUnitsKilled-1
-		end
-		if unitName == "lootdroppod_gold" then
-			scavStatsScavUnitsKilled = scavStatsScavUnitsKilled-1
 		end
 		scavConverted[unitID] = nil
 		selfdx[unitID] = nil

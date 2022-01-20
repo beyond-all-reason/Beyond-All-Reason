@@ -192,7 +192,7 @@ function collectScavStats()
 	scavStatsScavUnits = Spring.GetTeamUnitCount(GaiaTeamID)
 	spSetGameRulesParam("scavStatsScavUnits", scavStatsScavUnits)
 
-	-- scavStatsScavUnitsKilled			done
+	-- scavStatsScavUnitsKilled			deprecated
 	spSetGameRulesParam("scavStatsScavUnitsKilled", scavStatsScavUnitsKilled)
 
 	-- scavStatsGlobalScore				done

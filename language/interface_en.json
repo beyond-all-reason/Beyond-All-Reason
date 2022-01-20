@@ -534,14 +534,14 @@
 			},
 			"scavengers": {
 				"techPercentage": "Boss Anger: %{count}%%",
-				"techLevel": "Scav Tier: %{count}",
+				"techLevel": "Scavengers Tier: %{count}",
 				"bossFightCountdown": "Boss arrives in: %{count} seconds",
 				"bossHealth": "Boss Health: %{count}%%",
 				"gracePeriod": "Grace Period: %{count} seconds",
 				"killedScavengers": "Killed Scavengers: %{count}",
-				"aliveScavengers": "Alive Scavengers: %{count}",
-				"aliveBeacons": "Alive Scavenger Beacons: %{count}",
-				"aliveCommanders": "Alive Scavenger Commanders: %{count}",
+				"aliveScavengers": "Scavengers: %{count}",
+				"aliveBeacons": "Beacons: %{count}",
+				"aliveCommanders": "Commanders: %{count}",
 				"difficultyLevel": "Difficulty: %{count}"
 			},
 			"loadScreen": {
