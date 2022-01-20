@@ -202,7 +202,7 @@ local function CreatePanelDisplayList()
 		font:Print(Spring.I18N('ui.scavengers.gracePeriod', { count = gameInfo.scavStatsGracePeriodLeft }), panelMarginX, PanelRow(1), panelFontSize, "")
 	end
 
-	font:Print(Spring.I18N('ui.scavengers.killedScavengers', { count = gameInfo.scavStatsScavUnitsKilled }), panelMarginX, PanelRow(4), panelFontSize, "")
+	--font:Print(Spring.I18N('ui.scavengers.killedScavengers', { count = gameInfo.scavStatsScavUnitsKilled }), panelMarginX, PanelRow(4), panelFontSize, "")
 	font:Print(Spring.I18N('ui.scavengers.aliveScavengers', { count = gameInfo.scavStatsScavUnits }), panelMarginX, PanelRow(5), panelFontSize, "")
 	font:Print(Spring.I18N('ui.scavengers.aliveBeacons', { count = gameInfo.scavStatsScavSpawners }), panelMarginX, PanelRow(6), panelFontSize, "")
 	font:Print(Spring.I18N('ui.scavengers.aliveCommanders', { count = gameInfo.scavStatsScavCommanders }), panelMarginX, PanelRow(7), panelFontSize, "")
