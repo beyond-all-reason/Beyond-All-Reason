@@ -533,11 +533,11 @@
 				}
 			},
 			"scavengers": {
-				"techPercentage": "Boss Anger: %{count}%%",
+				"techPercentage": "Boss Assembly: %{count}%%",
 				"techLevel": "Scavengers Tier: %{count}",
-				"bossFightCountdown": "Boss arrives in: %{count} seconds",
+				"bossFightCountdown": "Boss Arrives in: %{count} Seconds",
 				"bossHealth": "Boss Health: %{count}%%",
-				"gracePeriod": "Grace Period: %{count} seconds",
+				"gracePeriod": "Grace Period: %{count} Seconds",
 				"killedScavengers": "Killed Scavengers: %{count}",
 				"aliveScavengers": "Scavengers: %{count}",
 				"aliveBeacons": "Beacons: %{count}",
