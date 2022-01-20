@@ -55,6 +55,39 @@ if gadgetHandler:IsSyncedCode() then
         "#9FFF25", -- Lime
     }
 
+    local survivalColors = {
+        "#004DFF", -- Armada Blue
+        "#FF1005", -- Cortex Red
+        "#0CE818", -- Green
+        "#FFD70D", -- Yellow
+        "#FF00DB", -- Fuchsia
+        "#0CC4E8", -- Turquoise
+        "#FF6B00", -- Orange
+        "#86FFD1", -- Light Turquoise Green
+        "#F6BB56", -- Light Brown
+        "#68B900", -- Dark Lime
+        "#6697FF", -- Very Light Blue
+        "#FF6058", -- Light Red
+        "#8DF492", -- Light Green
+        "#FFF2AE", -- Very Light Yellow
+        "#FFAAF3", -- Very Light Fuchsia
+        "#90E5F5", -- Light Turquoise
+        "#FF9055", -- Light Orange
+        "#00AA69", -- Dark Turquoise Green
+        "#9B6408", -- Dark Brown
+        "#C4FF79", -- Light Lime
+        "#3475FF", -- Light Blue
+        "#AD0800", -- Dark Red
+        "#089B10", -- Dark Green
+        "#FFE874", -- Light Yellow
+        "#FF68EA", -- Light Fuchsia
+        "#08839B", -- Dark Turquoise
+        "#FFC8AA", -- Very Light Orange
+        "#00FF9E", -- Turquoise Green
+        "#DB8E0E", -- Brown
+        "#9FFF25", -- Lime
+    }
+
     local teamColors = {
         { -- One Team (not possible)
             { -- First Team
@@ -251,6 +284,8 @@ if gadgetHandler:IsSyncedCode() then
     end
     local isSurvival = Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsChickens()
 
+    local survivalColorNum = 1 -- Starting from color #1
+    local survivalColorVariation = 0 -- Current color variation
     local ffaColorNum = 1 -- Starting from color #1
     local ffaColorVariation = 0 -- Current color variation
     local colorVariationDelta = 128 -- Delta for color variation
@@ -270,7 +305,18 @@ if gadgetHandler:IsSyncedCode() then
             Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(gaiaGrayColor)[1])
             Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(gaiaGrayColor)[2])
             Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(gaiaGrayColor)[3])
-        elseif isFFA or isSurvival then
+        elseif isSurvival then
+            if not survivalColors[survivalColorNum] then -- If we have no color for this team anymore
+                survivalColorNum = 1 -- Starting from the first color again..
+                survivalColorVariation = survivalColorVariation + colorVariationDelta -- ..but adding random color variations with increasing amplitude with every cycle
+            end
+
+            -- Assigning R,G,B values with specified color variations
+            Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(survivalColors[survivalColorNum])[1] + math.random(-survivalColorVariation, survivalColorVariation))
+            Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(survivalColors[survivalColorNum])[2] + math.random(-survivalColorVariation, survivalColorVariation))
+            Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(survivalColors[survivalColorNum])[3] + math.random(-survivalColorVariation, survivalColorVariation))
+            survivalColorNum = survivalColorNum + 1 -- Will start from the next color next time
+        elseif isFFA then
             if not ffaColors[ffaColorNum] then -- If we have no color for this team anymore
                 ffaColorNum = 1 -- Starting from the first color again..
                 ffaColorVariation = ffaColorVariation + colorVariationDelta -- ..but adding random color variations with increasing amplitude with every cycle
