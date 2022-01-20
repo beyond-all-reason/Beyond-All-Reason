@@ -33,6 +33,15 @@ function AttackHST:squadsTargetCheck()
 	end
 end
 
+function AttackHST:squadsIntegrityCheck()
+	for squadid,squad in pairs(self.squads) do
+		self:EchoDebug('integrity',squadid,#squad.members)
+		if #squad.members < 1 then
+			self:SquadDisband(squad, squadid)
+		end
+	end
+end
+
 function AttackHST:Update()
 	local f = self.game:Frame()
 	if f % 17 ~= 0 then
@@ -40,6 +49,7 @@ function AttackHST:Update()
 	end
 	self:DraftSquads()
 	self:squadsTargetCheck()
+	self:squadsIntegrityCheck()
 	for index , squad in pairs(self.squads) do
 		self:visualDBG(squad)
 		if not squad.arrived and squad.idleTimeout and f >= squad.idleTimeout then
