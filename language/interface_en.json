@@ -514,7 +514,7 @@
 				"wave": "Wave %{waveNumber}",
 				"waveCount": "%{count} Raptors!",
 				"chickenCount": "Raptors: %{count}",
-				"chickenKillCount": "Raptors Killed: %{count}",
+				"chickenKillCount": "Raptor Kills: %{count}",
 				"queenAnger": "Queen Anger: %{anger}%%",
 				"queenHealth": "Queen Health: %{health}%%",
 				"gracePeriod": "Grace Period: %{time}",
@@ -531,6 +531,18 @@
 					"epic": "Epic",
 					"survival": "Survival"
 				}
+			},
+			"scavengers": {
+				"techPercentage": "Boss Anger: %{count}%%",
+				"techLevel": "Scav Tier: %{count}",
+				"bossFightCountdown": "Boss arrives in: %{count} seconds",
+				"bossHealth": "Boss Health: %{count}%%",
+				"gracePeriod": "Grace Period: %{count} seconds",
+				"killedScavengers": "Killed Scavengers: %{count}",
+				"aliveScavengers": "Alive Scavengers: %{count}",
+				"aliveBeacons": "Alive Scavenger Beacons: %{count}",
+				"aliveCommanders": "Alive Scavenger Commanders: %{count}",
+				"difficultyLevel": "Difficulty: %{count}"
 			},
 			"loadScreen": {
 				"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.      Your experience might be sub optimal."

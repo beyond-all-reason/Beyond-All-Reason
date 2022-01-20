@@ -171,6 +171,8 @@ scavStatsGlobalScore = 0
 scavStatsTechLevel = "Null"
 scavStatsTechPercentage = 0
 scavStatsDifficulty = "Null"
+scavStatsGracePeriod = 999
+scavStatsGracePeriodLeft = 999
 
 spSetGameRulesParam("scavStatsAvailable", scavStatsAvailable)
 
@@ -187,6 +189,7 @@ function collectScavStats()
 	spSetGameRulesParam("scavStatsScavSpawners", scavStatsScavSpawners)
 
 	-- scavStatsScavUnits				done
+	scavStatsScavUnits = Spring.GetTeamUnitCount(GaiaTeamID)
 	spSetGameRulesParam("scavStatsScavUnits", scavStatsScavUnits)
 
 	-- scavStatsScavUnitsKilled			done
@@ -197,17 +200,23 @@ function collectScavStats()
 	spSetGameRulesParam("scavStatsGlobalScore", scavStatsGlobalScore)
 
 	-- scavStatsTechLevel				done
-	local scavStatsTechLevel = TierSpawnChances.Message
+	local scavStatsTechLevel = string.gsub(TierSpawnChances.Message, "Current tier: ","")
 	spSetGameRulesParam("scavStatsTechLevel", scavStatsTechLevel)
 
 	-- scavStatsTechPercentage 			done
-	local techPercentage = math.ceil((globalScore/scavconfig.timers.Endless1)*100)
+	local techPercentage = math.ceil((globalScore/scavconfig.timers.BossFight)*100)
 	if techPercentage > 100 then
 		scavStatsTechPercentage = 100
 	else
 		scavStatsTechPercentage = techPercentage
 	end
 	spSetGameRulesParam("scavStatsTechPercentage", scavStatsTechPercentage)
+
+	-- scavGracePeriod
+	local scavStatsGracePeriod = math.floor(scavconfig.gracePeriod/30)
+	local scavStatsGracePeriodLeft = math.floor((scavconfig.gracePeriod/30) - Spring.GetGameSeconds())
+	spSetGameRulesParam("scavStatsGracePeriod", scavStatsGracePeriod)
+	spSetGameRulesParam("scavStatsGracePeriodLeft", scavStatsGracePeriodLeft)
 
 
 	-- done
@@ -221,8 +230,7 @@ function collectScavStats()
 
 	-- done
 	if FinalBossUnitID then
-		local scavStatsBossMaxHealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
-		local scavStatsBossHealth = Spring.GetUnitHealth(FinalBossUnitID)
+		local scavStatsBossHealth, scavStatsBossMaxHealth = Spring.GetUnitHealth(FinalBossUnitID)
 		spSetGameRulesParam("scavStatsBossSpawned", 1)
 		spSetGameRulesParam("scavStatsBossMaxHealth", scavStatsBossMaxHealth)
 		spSetGameRulesParam("scavStatsBossHealth", scavStatsBossHealth)
