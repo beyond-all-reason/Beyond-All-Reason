@@ -188,7 +188,11 @@ local function CreatePanelDisplayList()
 	if currentTime > gameInfo.scavStatsGracePeriod then
 		if gameInfo.scavStatsBossFightCountdownStarted == 0 then
 			-- Tech Percentage
-			font:Print(Spring.I18N('ui.scavengers.techPercentage', { count = gameInfo.scavStatsTechPercentage }), panelMarginX, PanelRow(1), panelFontSize, "")
+			if Spring.GetModOptions().scavendless then
+				font:Print(Spring.I18N('ui.scavengers.techPercentageEndless', { count = gameInfo.scavStatsTechPercentage }), panelMarginX, PanelRow(1), panelFontSize, "")
+			else
+				font:Print(Spring.I18N('ui.scavengers.techPercentage', { count = gameInfo.scavStatsTechPercentage }), panelMarginX, PanelRow(1), panelFontSize, "")
+			end
 			font:Print(Spring.I18N('ui.scavengers.techLevel', { count = gameInfo.scavStatsTechLevel }), panelMarginX, PanelRow(2), panelFontSize, "")
 		elseif gameInfo.scavStatsBossSpawned == 0 then
 			-- Boss Countdown

@@ -101,7 +101,6 @@ end
 		allyteamcount = 1
 end
 
-local topGlobalScore = 0
 function teamsCheck()
 	bestTeamScore = 0
 	bestTeam = 0
@@ -144,11 +143,6 @@ function teamsCheck()
 	end
 	local timeScore = Spring.GetGameSeconds()*scavconfig.scoreConfig.scorePerSecond
 	globalScore = math.ceil((nonFinalGlobalScore/scoreTeamCount) + killedscavengers + timeScore)
-	if globalScore > topGlobalScore then
-		topGlobalScore = globalScore
-	else
-		globalScore = topGlobalScore
-	end
 	nonFinalGlobalScore = nil
 	scoreTeamCount = nil
 end
