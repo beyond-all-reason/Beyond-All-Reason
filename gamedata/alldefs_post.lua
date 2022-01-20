@@ -219,6 +219,12 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
+		if Spring.GetModOptions().unit_restrictions_noextractors then
+			if (uDef.extractsmetal and uDef.extractsmetal > 0) and (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
+				uDef.unitrestricted = 0
+			end
+		end
+		
 		if Spring.GetModOptions().unit_restrictions_noconverters then
 			if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
 				uDef.unitrestricted = 0

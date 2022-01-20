@@ -189,6 +189,14 @@ local options={
 		def    		= false,
 	},
 	{
+		key    		= 'unit_restrictions_noextractors',
+		name   		= 'Disable Metal Extractors',
+		desc   		= 'Disable Metal Extractors',
+		type   		= "bool",
+		section		= 'restrictions',
+		def    		= false,
+	},
+	{
 		key    		= 'unit_restrictions_noconverters',
 		name   		= 'Disable Energy Converters',
 		desc   		= 'Disable Energy Converters',
