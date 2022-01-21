@@ -33,7 +33,7 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		dirty 				= false,
 		numVertices 		= 0,
 		primitiveType 		= GL.TRIANGLES,
-		debugZombies 		= false,  -- this is new, and its for debugging non-existing stuff on unitdestroyed
+		debugZombies 		= true,  -- this is new, and its for debugging non-existing stuff on unitdestroyed
 	}
 
 	if unitIDattribID ~= nil then
@@ -425,7 +425,8 @@ function popElementInstance(iT, instanceID, noUpload)
 							for zombie, gf in pairs(iT.zombies) do 
 								s = s .. " " .. tostring(zombie)
 								Spring.Echo("ZOMBIE AT", zombie, Spring.GetUnitPosition(zombie))
-								Spring.SendCommands({"pause 1"})
+								--Spring.SendCommands({"pause 1"})
+								Spring.Debug.TraceFullEcho()
 							end 
 							Spring.Echo(s)
 							iT.zombies = {}
@@ -454,16 +455,18 @@ function popElementInstance(iT, instanceID, noUpload)
 				end
 			else
 				if iT.debugZombies then 
-					Spring.Echo("Warning: Tried to pop back an invalid" .. ((iT.featureIDs and "featureID") or "unitID"), popunitID, "from", iT.myName, "while removing instance", instanceID, counttable(iT.instanceIDtoIndex), counttable(iT.indextoInstanceID), counttable(iT.indextoUnitID))
-					Spring.Debug.TraceFullEcho()
+					--Spring.Echo("Warning: Tried to pop back an invalid" .. ((iT.featureIDs and "featureID") or "unitID"), popunitID, "from", iT.myName, "while removing instance", instanceID, counttable(iT.instanceIDtoIndex), counttable(iT.indextoInstanceID), counttable(iT.indextoUnitID))
+					--Spring.Debug.TraceFullEcho()
 					local gf = Spring.GetGameFrame()
 					if iT.lastpopgameframe == nil or iT.lastpopgameframe ~= gf then -- New gameframe
 						iT.lastpopgameframe = gf
 						iT.zombies = {}
 						iT.numZombies = 0
 					end 
-					iT.zombies[popunitID] = gf
-					iT.numZombies = iT.numZombies + 1 
+					if iT.zombies[popunitID] == nil then 
+						iT.zombies[popunitID] = gf
+						iT.numZombies = iT.numZombies + 1 
+					end
 				end
 			end 
 		end
