@@ -48,6 +48,7 @@ end
 local function addUnitShape(unitID)
 	if Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then 
 		--Spring.Echo("addUnitShape(unitID)", unitID," is already dead")
+		return nil
 	end
 	--Spring.Echo("addUnitShape",unitID)
 	--Spring.Debug.TraceFullEcho(nil,nil,nil,"addUnitShape", unitID)
