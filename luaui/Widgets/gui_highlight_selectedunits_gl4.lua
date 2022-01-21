@@ -46,6 +46,11 @@ local function SetupCommandColors(state)
 end
 
 local function addUnitShape(unitID)
+	if Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then 
+		--Spring.Echo("addUnitShape(unitID)", unitID," is already dead")
+	end
+	--Spring.Echo("addUnitShape",unitID)
+	--Spring.Debug.TraceFullEcho(nil,nil,nil,"addUnitShape", unitID)
 	if not WG.HighlightUnitGL4 then
 		widget:Shutdown()
 	else
@@ -64,6 +69,8 @@ local function addUnitShape(unitID)
 end
 
 local function removeUnitShape(unitID)
+
+	--Spring.Echo("removeUnitShape",unitID)
 	if not WG.StopHighlightUnitGL4 then
 		widget:Shutdown()
 	elseif unitID and unitshapes[unitID] then
@@ -96,8 +103,9 @@ local function refresh()
 end
 
 function widget:UnitDestroyed(unitID)	-- maybe not needed if widget:SelectionChanged(sel) is fast enough, but lets not risk it
+	--Spring.Echo("widget:UnitDestroyed",unitID)
 	if unitshapes[unitID] then
-		removeUnitShape(unitID)
+		--removeUnitShape(unitID)
 	end
 end
 
