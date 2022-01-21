@@ -552,7 +552,7 @@ function TasksHST:startRolesParams()
 	        },
 		{ 	category = '_wind_' ,
 			economy = function()
-					return  E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 3)
+					return  E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -562,7 +562,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_tide_' ,
 			economy = function()
-					return  E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 3)
+					return  E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -572,7 +572,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_solar_' ,
 			economy = function()
-					return  E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 3)
+					return  E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -581,7 +581,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_llt_' ,
 			economy = function()
-					return  E.income > 20 and M.income > 5
+					return  E.income > 20 and M.income > 5 and self.ai.tool:countMyUnit({'_mex_'}) >= 3
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -590,7 +590,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = 'factoryMobilities' ,
 			economy = function()
-					return M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 3 and (E.income > 40 or M.full > 0.9)
+					return M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2 and (E.income > 40 or M.full > 0.9)
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter

@@ -28,7 +28,7 @@ local function MaxBuildDist(unitName, speed)
 end
 
 function TaskQueueBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.role = nil
 	self.active = false
 	self.currentProject = nil
@@ -406,7 +406,6 @@ function TaskQueueBST:GetQueue()
 	local id = self.ai.armyhst.unitTable[self.name].defId
 	local counter = self.game:GetTeamUnitDefCount(team,id)
 	if self.isCommander then
-		print(self.ai.tool:countMyUnit({'techs'}))
 		if self.ai.tool:countMyUnit({'techs'}) < 1  then
 			self:removeOldBuildersRole(self.name,self.id)
 			table.insert(buildersRole.starter[self.name], self.id)

@@ -16,9 +16,12 @@ local cellElmosHalf = cellElmos / 2
 function TargetHST:Init()
 	self.DebugEnabled = false
 	self.visualdbg = true
-	self:createGridCell()
+	self.CELLS = {}
+	self.ENEMYCELLS = {}
 	self.BAD_CELLS = {}
 	self.SPOT_CELLS = {}
+	self:createGridCell()
+
 	self.pathModParam = 100
 	self.pathModifierFuncs = {}
 	self.enemyMexSpots = {}
@@ -26,8 +29,6 @@ end
 
 
 function TargetHST:createGridCell()
-	self.CELLS = {}
-	self.ENEMYCELLS = {}
 	for x = 1, Game.mapSizeX / cellElmos do
 		if not self.CELLS[x] then
 			self.CELLS[x] = {}
@@ -162,11 +163,12 @@ function TargetHST:setCellEnemyValues(enemy,CELL)
 	CELL.enemyUnits[enemy.id] = enemy.name
 	if not enemy.mobile then
 		CELL.enemyBuildings[enemy.id] = enemy.name
+
 	end
 	local ut = self.ai.armyhst.unitTable[enemy.name]
 
 	if enemy.view == 1 then
-		if self.ai.armyhst.factoryMobilities[enemy.name] then
+		if ut.isFactory then
 			CELL.base = enemy.name
 		end
 		if ut.isWeapon then
@@ -207,9 +209,6 @@ function TargetHST:setCellEnemyValues(enemy,CELL)
 				end
 			else
 				CELL.economy = CELL.economy + enemy.M
-				if ut.isFactory then
-					CELL.base = CELL.base + enemy.M
-				end
 				CELL.IMMOBILE = CELL.IMMOBILE + enemy.M
 				if enemy.layer > 0 then
 					CELL.unarmAI = CELL.unarmAM + enemy.M
@@ -275,23 +274,25 @@ end
 function TargetHST:Update()
 	local f = self.game:Frame()
 	if f == 0 or f % 71 == 0 then
-		self.cells = {}--TODO
+-- 		self.cells = {}--TODO
 		self:clearEnemies()--delete just the enemy data inside cells, leave other living --TEST
-		self.cellList = {}
+-- 		self.cellList = {}
 		self:UpdateEnemies()
-		self:UpdateDamagedUnits()
-		self:drawDBG()
+		self:EnemiesCellsAnalisy()
 		self:UpdateMetalGeoSpots()
+		self:UpdateDamagedUnits()
 		self:UpdateBadPositions()
+		self:drawDBG()
 	end
 end
 
 function TargetHST:UpdateEnemies()
-	self.enemyMexSpots = {}
+
 	-- where is/are the party/parties tonight?
 -- 	local highestValue = minNukeValue
 -- 	local highestValueCell
 	--for unitID, e in pairs(self.ai.knownEnemies) do
+	self.enemyMexSpots = {}
 	for unitID, e in pairs(self.ai.loshst.knownEnemies) do
 		local los = e.los
 		local ghost = e.ghost
@@ -305,7 +306,25 @@ function TargetHST:UpdateEnemies()
 	end
 end
 
+function TargetHST:EnemiesCellsAnalisy()
+	self.enemyBasePosition = {x=0,z=0}
+	enemybasecount = 0
+	for i, G in pairs(self.ai.targethst.ENEMYCELLS) do
+		local cell = self.ai.targethst.CELLS[G.x][G.z]
+		if cell.base then
+			self.enemyBasePosition.x = self.enemyBasePosition.x + cell.pos.x
+			self.enemyBasePosition.z = self.enemyBasePosition.z + cell.pos.z
+			enemybasecount = enemybasecount + 1
+		end
+	end
+	self.enemyBasePosition.x = self.enemyBasePosition.x / enemybasecount
+	self.enemyBasePosition.z = self.enemyBasePosition.z / enemybasecount
+	self.enemyBasePosition.y = Spring.GetGroundHeight(self.enemyBasePosition.x, self.enemyBasePosition.z)
+
+end
+
 function TargetHST:UpdateMetalGeoSpots()
+
 	local spots = self.ai.scoutSpots.air[1]
 	for index,spot in pairs(spots) do
 		local underwater = self.ai.maphst:IsUnderWater(spot)

@@ -12,7 +12,7 @@ local floor = math.floor
 local ceil = math.ceil
 
 function AttackHST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.visualdbg = true
 	self.recruits = {}
 	self.squads = {}
@@ -23,14 +23,7 @@ function AttackHST:Init()
 	self.idleTimeMult = 45  --originally set to 3 * 30
 	self.squadID = 1
 	self.fearFactor = 0.66
-end
-function AttackHST:squadsTargetCheck()
-	for squadid,squad in pairs(self.squads) do
-		self:EchoDebug('retarget',squadid,#squad.members)
-		if not squad.targetCell then
-			self:SquadReTarget(squad, squadid)
-		end
-	end
+	self.defensive = nil
 end
 
 function AttackHST:squadsIntegrityCheck()
@@ -42,6 +35,38 @@ function AttackHST:squadsIntegrityCheck()
 	end
 end
 
+function AttackHST:squadsTargetCheck()
+	for squadid,squad in pairs(self.squads) do
+		self:EchoDebug('retarget',squadid,#squad.members)
+		if not squad.targetCell or squad.Role == 'defensive' then
+			self:SquadReTarget(squad, squadid)
+		end
+	end
+end
+
+
+
+function AttackHST:squadsRoleCheck()
+	flag = false
+	self:EchoDebug('self.defensive',self.defensive)
+	if self.defensive and self.squads[self.defensive] and self.squads[self.defensive].Role == 'defensive' then
+		return self.defensive
+	elseif self.defensive and not self.squads[self.defensive]  then
+			self.defensive = nil
+	elseif self.defensive and self.squads[self.defensive] and  self.squads[self.defensive].Role ~= 'defensive' then
+		self.squads[self.defensive].Role = 'defensive'
+	elseif not self.defensive then
+		for squadid,squad in pairs(self.squads) do
+			squad.Role = 'defensive'
+			self.defensive = squadid
+			break
+		end
+	end
+end
+
+
+
+
 function AttackHST:Update()
 	local f = self.game:Frame()
 	if f % 17 ~= 0 then
@@ -50,6 +75,7 @@ function AttackHST:Update()
 	self:DraftSquads()
 	self:squadsTargetCheck()
 	self:squadsIntegrityCheck()
+	self:squadsRoleCheck()
 	for index , squad in pairs(self.squads) do
 		self:visualDBG(squad)
 		if not squad.arrived and squad.idleTimeout and f >= squad.idleTimeout then
@@ -126,12 +152,13 @@ function AttackHST:DraftSquads()
 				end
 				if representative then
 					self:EchoDebug(mtype,self.squadID, "has representative and ", #squad.members, ' members')
-					local bestCell = self:targetCell(representative)
+					local bestCell = self:targetCell(representative,nil,nil,squad)
 
 					self.squads[self.squadID] = squad
 					self.squads[self.squadID].squadID = self.squadID
 					self.squads[self.squadID].mtype = mtype
 					self.squadID = self.squadID + 1
+					squad.Role = 'offensive'
 
 					if bestCell ~= nil then
 						self:EchoDebug(mtype, "has target, recruiting squad...")
@@ -177,7 +204,7 @@ function AttackHST:SquadReTarget(squad)
 			local step = math.min(squad.pathStep+1, #squad.path)
 			position = squad.path[step].position
 		end
-		local bestCell =  self:targetCell(representative)
+		local bestCell =  self:targetCell(representative,nil,nil,squad)
 		if bestCell then
 			squad.targetPos = bestCell.pos
 			squad.targetCell = bestCell
@@ -195,7 +222,7 @@ function AttackHST:SquadReTarget(squad)
 	end
 end
 
-function AttackHST:targetCell(representative, position, ourThreat)
+function AttackHST:targetCell(representative, position, ourThreat,squad)
 	self:EchoDebug('targeting')
 	if not representative then return end
 	position = position or representative:GetPosition()
@@ -215,12 +242,12 @@ function AttackHST:targetCell(representative, position, ourThreat)
 			if squad.targetCell == cell or not cell.pos then return end
 		end
 		self:EchoDebug('cell.IMMOBILE',cell.IMMOBILE,'cell.offense',cell.offense)
- 		if cell.offense > 0 and cell.IMMOBILE < cell.offense / 10 then
+ 		if squad.Role == 'defensive' and cell.offense > 0 and cell.IMMOBILE < cell.offense / 10 then
  			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
  				self:EchoDebug('can go to cell')
  				local Rdist = self.ai.tool:Distance(cell.pos,refpos)/topDist
  				local Rvalue = Rdist * cell.offense
- 				if Rvalue > bestDefense then
+ 				if Rvalue > bestDefense and self.ai.tool:Distance(cell.pos,refpos) < topDist / 3 then
  					bestDefense = Rvalue
  					bestDefCell = cell
  				end
@@ -228,10 +255,10 @@ function AttackHST:targetCell(representative, position, ourThreat)
  		end
 
 
-		if cell.IMMOBILE > 0   then
+		if squad.Role ~= defensive and cell.IMMOBILE > 0   then
 			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
 				self:EchoDebug('cangohere')
-				local Rdist = self.ai.tool:Distance(cell.pos,refpos)/topDist
+				local Rdist = self.ai.tool:Distance(cell.pos,self.ai.targethst.enemyBasePosition)/topDist
 				local Rvalue = Rdist * cell.ENEMY
 				if Rvalue < bestValue then
 					self:EchoDebug('val')
