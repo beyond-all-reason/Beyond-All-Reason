@@ -321,12 +321,16 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
 			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
 			uDef.buildoptions[numBuildoptions+5] = "armmg"
+			uDef.buildoptions[numBuildoptions+6] = "leglab"
+			uDef.buildoptions[numBuildoptions+7] = "legvp"
 		elseif name == "corca" or name == "corck" or name == "corcv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
 			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
 			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
 			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
+			uDef.buildoptions[numBuildoptions+5] = "leglab"
+			uDef.buildoptions[numBuildoptions+6] = "legvp"
 		elseif name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armapt3"
@@ -353,6 +357,14 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corslrpc"
 			uDef.buildoptions[numBuildoptions+2] = "coresuppt3"
+		elseif name == "armcom" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "leglab"
+			uDef.buildoptions[numBuildoptions+2] = "legvp"
+		elseif name == "corcom" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "leglab"
+			uDef.buildoptions[numBuildoptions+2] = "legvp"
 		end
 	end
 
