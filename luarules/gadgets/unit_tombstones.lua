@@ -11,31 +11,12 @@ function gadget:GetInfo()
 	}
 end
 
-local isTombstone = {}
-local isCommander = {}
-for defID, def in ipairs(UnitDefs) do
-	if string.find(def.name, "stone") then
-		isTombstone[defID] = def.name
-	end
-	if def.customParams.iscommander ~= nil and not string.find(def.name, "scav") then
-		isCommander[defID] = def.name == 'armcom' and UnitDefNames.armstone.id or UnitDefNames.corstone.id
-	end
-end
-
 if gadgetHandler:IsSyncedCode() then
 
-	local function setGaiaUnitSpecifics(unitID)
-		Spring.SetUnitNeutral(unitID, true)
-		Spring.SetUnitNoSelect(unitID, true)
-		Spring.SetUnitStealth(unitID, true)
-		Spring.SetUnitNoMinimap(unitID, true)
-		Spring.SetUnitBlocking(unitID, true, true, false, false, true, false, false)
-		Spring.SetUnitSensorRadius(unitID, 'los', 0)
-		Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
-		Spring.SetUnitSensorRadius(unitID, 'radar', 0)
-		Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
-		for weaponID, _ in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
-			Spring.UnitWeaponHoldFire(unitID, weaponID)
+	local isCommander = {}
+	for defID, def in ipairs(UnitDefs) do
+		if def.customParams.iscommander ~= nil and not string.find(def.name, "scav") then
+			isCommander[defID] = def.name == 'armcom' and FeatureDefNames.armstone.id or FeatureDefNames.corstone.id
 		end
 	end
 
@@ -43,14 +24,13 @@ if gadgetHandler:IsSyncedCode() then
 		if isCommander[unitDefID] then
 			local px,py,pz = Spring.GetUnitPosition(unitID)
 			pz = pz - 40
-			local tombstoneID = Spring.CreateUnit(isCommander[unitDefID], px, Spring.GetGroundHeight(px,pz), pz, 0, teamID)
+			local tombstoneID = Spring.CreateFeature(isCommander[unitDefID], px, Spring.GetGroundHeight(px,pz), pz, 0, teamID)
 			if tombstoneID then
-				local rx,ry,rz = Spring.GetUnitRotation(tombstoneID)
+				local rx,ry,rz = Spring.GetFeatureRotation(tombstoneID)
 				rx = rx + 0.18 + (math.random(0, 6) / 50)
 				rz = rz - 0.12 + (math.random(0, 12) / 50)
 				ry = ry - 0.12 + (math.random(0, 12) / 50)
-				Spring.SetUnitRotation(tombstoneID, rx,ry,rz)
-				setGaiaUnitSpecifics(tombstoneID)
+				Spring.SetFeatureRotation(tombstoneID, rx,ry,rz)
 			end
 		end
 	end
@@ -63,17 +43,22 @@ else
 	local updateTimer = 0
 	local tombstones = {}
 
+	local isTombstone = {
+		[FeatureDefNames.armstone.id] = 'armstone',
+		[FeatureDefNames.corstone.id] = 'corstone',
+	}
+
 	function gadget:Initialize()
-		local allUnits = Spring.GetAllUnits()
-		for i = 1, #allUnits do
-			local unitID = allUnits[i]
-			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+		local allFeatures = Spring.GetAllFeatures()
+		for i = 1, #allFeatures do
+			local featureID = allFeatures[i]
+			gadget:FeatureCreated(featureID, Spring.GetFeatureDefID(featureID), Spring.GetFeatureTeam(featureID))
 		end
 	end
 
 	function gadget:Shutdown()
-		for unitID, v in pairs(tombstones) do
-			Spring.UnitRendering.SetUnitLuaDraw(unitID, not drawTombstones)
+		for featureID, v in pairs(tombstones) do
+			Spring.FeatureRendering.SetFeatureLuaDraw(featureID, not drawTombstones)
 		end
 	end
 
@@ -84,24 +69,24 @@ else
 			local prevDrawTombstones = drawTombstones
 			drawTombstones = Spring.GetConfigInt("tombstones", 1) == 1
 			if drawTombstones ~= prevDrawTombstones then
-				for unitID, v in pairs(tombstones) do
-					Spring.UnitRendering.SetUnitLuaDraw(unitID, not drawTombstones)
+				for featureID, v in pairs(tombstones) do
+					Spring.FeatureRendering.SetFeatureLuaDraw(featureID, not drawTombstones)
 				end
 			end
 		end
 	end
 
-	function gadget:UnitCreated(unitID, unitDefID, team)
-		if isTombstone[unitDefID] then
-			tombstones[unitID] = true
+	function gadget:FeatureCreated(featureID, featureDefID, teamID)
+		if isTombstone[featureDefID] then
+			tombstones[featureID] = true
 			if not drawTombstones then
-				Spring.UnitRendering.SetUnitLuaDraw(unitID, true)
+				Spring.FeatureRendering.SetFeatureLuaDraw(featureID, true)
 			end
 		end
 	end
 
-	function gadget:DrawUnit(unitID, drawMode)
-		if isTombstone[Spring.GetUnitDefID(unitID)] then
+	function gadget:DrawFeature(featureID, drawMode)
+		if isTombstone[Spring.GetFeatureDefID(featureID)] then
 			gl.Scale( 0, 0, 0 )
 			return false
 		end
