@@ -24,15 +24,8 @@ VFS.Include(LUAUI_DIRNAME .. "utils.lua",      nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "setupdefs.lua",  nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "savetable.lua",  nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "debug.lua",      nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "layout.lua",     nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "barwidgets.lua", nil, VFS.ZIP)
-
-local function dummylayouthandler(xIcons, yIcons, cmdCount, commands)
-	widgetHandler.commands = commands
-	widgetHandler.commands.n = cmdCount
-	widgetHandler:CommandsChanged()
-	return "", xIcons, yIcons, {}, widgetHandler.customCommands, {}, {}, {}, {}, {}, { [1337] = 9001 }
-end
-LayoutButtons = dummylayouthandler
 
 --------------------------------------------------------------------------------
 -------------------------------------------------------------------------------

@@ -594,14 +594,6 @@ function widgetHandler:NewWidget()
 		return self:SetGlobal(widget, name, value)
 	end
 
-	local function dummylayouthandler(xIcons, yIcons, cmdCount, commands)
-		self.commands = commands
-		self.commands.n = cmdCount
-		self:CommandsChanged()
-		return "", xIcons, yIcons, {}, self.customCommands, {}, {}, {}, {}, {}, { [1337] = 9001 }
-	end
-	LayoutButtons = dummylayouthandler
-
 	return widget
 end
 
