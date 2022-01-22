@@ -4,7 +4,7 @@ return {
 		brakerate = 0.076,
 		buildcostenergy = 2700,
 		buildcostmetal = 300,
-		buildpic = "ARMSTUMP.DDS",
+		buildpic = "LEGGAT.DDS",
 		buildtime = 3500,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
