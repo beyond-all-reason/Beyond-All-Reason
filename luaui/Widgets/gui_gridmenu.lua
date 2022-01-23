@@ -225,6 +225,7 @@ local pages = 1
 local paginatorRects = {}
 local labButtonRects = {}
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
+local unitshapes = {}
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -1496,6 +1497,21 @@ local function GetBuildingDimensions(uDefID, facing)
 	end
 end
 
+local function removeUnitShape(id)
+	if unitshapes[id] then
+		WG.StopDrawUnitShapeGL4(unitshapes[id])
+		unitshapes[id] = nil
+	end
+end
+
+local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID)
+	if unitshapes[id] then
+		removeUnitShape(id)
+	end
+	unitshapes[id] = WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, 1, teamID, nil, nil)
+	return unitshapes[id]
+end
+
 local function DrawBuilding(buildData, borderColor, buildingAlpha, drawRanges)
 	local bDefID, bx, by, bz, facing = buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]
 	local bw, bh = GetBuildingDimensions(bDefID, facing)
@@ -1509,7 +1525,6 @@ local function DrawBuilding(buildData, borderColor, buildingAlpha, drawRanges)
 	{ v = { bx - bw, by, bz + bh } } })
 
 	if drawRanges then
-
 		if isMex[bDefID] then
 			gl.Color(1.0, 0.3, 0.3, 0.7)
 			gl.DrawGroundCircle(bx, by, bz, Game.extractorRadius, 50)
@@ -1522,20 +1537,10 @@ local function DrawBuilding(buildData, borderColor, buildingAlpha, drawRanges)
 		end
 	end
 
-	gl.DepthTest(GL.LEQUAL)
-	gl.DepthMask(true)
-	gl.Color(1.0, 1.0, 1.0, buildingAlpha)
-
-	gl.PushMatrix()
-	gl.LoadIdentity()
-	gl.Translate(bx, by, bz)
-	gl.Rotate(90 * facing, 0, 1, 0)
-	gl.UnitShape(bDefID, Spring.GetMyTeamID(), false, false, true)
-	gl.PopMatrix()
-
-	gl.Lighting(false)
-	gl.DepthTest(false)
-	gl.DepthMask(false)
+	if WG.StopDrawUnitShapeGL4 then
+		local id = buildData[1]..'_'..buildData[2]..'_'..buildData[3]..'_'..buildData[4]..'_'..buildData[5]
+		addUnitShape(id, buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]*math.pi, myTeamID)
+	end
 end
 
 local function DrawUnitDef(uDefID, uTeam, ux, uy, uz, scale)
@@ -1903,6 +1908,13 @@ function widget:DrawWorld()
 
 	if Spring.GetGameFrame() == 0 then
 
+		-- remove unit shape queue to re-add again later
+		if WG.StopDrawUnitShapeGL4 then
+			for id, _ in pairs(unitshapes) do
+				removeUnitShape(id)
+			end
+		end
+
 		-- draw pregame build queue
 		if preGamestartPlayer then
 			local buildDistanceColor = { 0.3, 1.0, 0.3, 0.6 }
@@ -1999,6 +2011,12 @@ function widget:DrawWorld()
 			-- Reset gl
 			glColor(1, 1, 1, 1)
 			gl.LineWidth(1.0)
+		end
+	else
+		if WG.StopDrawUnitShapeGL4 then
+			for id, _ in pairs(unitshapes) do
+				removeUnitShape(id)
+			end
 		end
 	end
 end
@@ -2421,6 +2439,11 @@ function widget:Shutdown()
 		dlistGuishader = nil
 	end
 	WG['buildmenu'] = nil
+	if WG.StopDrawUnitShapeGL4 then
+		for id, _ in pairs(unitshapes) do
+			removeUnitShape(id)
+		end
+	end
 end
 
 function widget:GetConfigData()
