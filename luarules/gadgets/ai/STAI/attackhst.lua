@@ -343,6 +343,7 @@ function AttackHST:SquadNewPath(squad, representativeBehaviour)
 	self:EchoDebug('squadnewpath')
 	if not squad.targetPos then return end
 	representativeBehaviour = representativeBehaviour or squad.members[#squad.members]
+	if not representativeBehaviour then	return end
 	local representative = representativeBehaviour.unit:Internal()
 	local startPos
 	if squad.pathStep then
