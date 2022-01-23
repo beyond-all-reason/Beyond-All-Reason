@@ -8,7 +8,7 @@ function RaidHST:internalName()
 	return "raidhst"
 end
 
-local minRaidCount = 5
+local minRaidCount = 6
 function RaidHST:Init()
 	self.visualdbg = true
 	self.DebugEnabled = false
@@ -68,7 +68,6 @@ function RaidHST:visualDBG(squad)
 			self.map:DrawPoint(p, squad.colour, i, 6)
 		end
 	end
-
 	if squad.target then
 		self.map:DrawPoint(squad.target.pos, squad.colour, squad.squadID .. 'target', 6)
 	end
@@ -158,7 +157,7 @@ function RaidHST:getRaidCell2(squad)
 			self:EchoDebug('power',cell.armed,G.x,G.z)
 			if self.ai.maphst:UnitCanGoHere(leader, cell.pos) then
 -- 				local Relativedistance = self.ai.tool:Distance(cell.pos,squad.position) / topDist
-				local Relativedistance = self.ai.tool:Distance(cell.pos,self.ai.targethst.enemyBasePosition) / topDist
+				local Relativedistance = self.ai.tool:Distance(cell.pos, self.ai.targethst.enemyBasePositionor or squad.position) / topDist
 				local RelativeValue = Relativedistance * cell.IMMOBILE
 				if RelativeValue < bestValue  then
 					bestTarget = cell

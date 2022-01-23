@@ -67,7 +67,7 @@ function OverviewHST:EvaluateSituation()
 		self.plasmaRocketBotRatio = 1 - ((self.ai.totalEnemyImmobileThreat / self.ai.totalEnemyThreat) / 2.5)
 		self:EchoDebug("plasma/rocket bot ratio: " .. self.plasmaRocketBotRatio)
 	end
-	local needAdvanced = self.ai.tool:countMyUnit({'isWeapon'}) > 35 and (self.ai.Metal.income > 18 or controlMetalSpots) and self.ai.tool:countMyUnit({'factoryMobilities'}) > 0 and (needUpgrade or self.ai.lotsOfMetal)
+	local needAdvanced = self.ai.tool:countMyUnit({'isWeapon'}) > 15 and (self.ai.Metal.income > 18 or controlMetalSpots) and self.ai.tool:countMyUnit({'factoryMobilities'}) > 0
 	if needAdvanced ~= self.ai.needAdvanced then
 		self.ai.needAdvanced = needAdvanced
 		self.ai.labbuildhst:UpdateFactories()

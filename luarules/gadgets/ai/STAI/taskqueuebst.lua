@@ -74,15 +74,6 @@ function TaskQueueBST:OwnerDead()
 end
 
 function TaskQueueBST:removeOldBuildersRole()
-	--  	if not self.role then return end
-	--  	for index,unitID in pairs(self.ai.armyhst.buildersRole[self.role][self.Name]) do
-	--  		if id == unitID then
-	--  			table.remove(self.ai.armyhst.buildersRole[self.role][self.name],id)
-	--
-	--  		end
-	--  	end
-	--  	self.role = nil
-	--
 	for role,roleTable in pairs(self.ai.armyhst.buildersRole) do
 		for name,nameTable in pairs (roleTable) do
 			for index,unitID in pairs(nameTable) do
@@ -154,10 +145,10 @@ end
 
 function TaskQueueBST:Update()
 	local f = self.game:Frame()
-
-	-- 	if f % 180 == 0 then
-	-- 		self:VisualDBG()
-	-- 	end
+	if f % 69 ~= 0 then
+		return
+	end
+	self:VisualDBG()
 	if not self:IsActive() then
 		return
 	end
@@ -166,30 +157,27 @@ function TaskQueueBST:Update()
 		self:ProgressQueue()
 		return
 	end
-	if f % 60 == 0 then
-		if self.failOut and f > self.failOut + 360 then
-			self:EchoDebug("getting back to work " .. self.name .. " " .. self.id)
-			self.failOut = false
-			self.fails = 0
-			self.progress = true
-		elseif not self.constructing and not self.failOut then
-			self:EchoDebug('not constructing?')
-			if (self.lastWatchdogCheck + self.watchdogTimeout < f) or (self.currentProject == nil and (self.lastWatchdogCheck + 1 < f)) then
-				self:EchoDebug('watchdog')
-				-- we're probably stuck doing nothing
-				local tmpOwnName = self.unit:Internal():Name() or "no-unit"
-				local tmpProjectName = self.currentProject or "empty project"
-				if self.currentProject ~= nil then
-					self:EchoDebug("Watchdog: "..tmpOwnName.." abandoning "..tmpProjectName)
-					self:EchoDebug("last watchdog POS: "..self.lastWatchdogCheck .. ", watchdog timeout:"..self.watchdogTimeout)
-				end
-				self:ProgressQueue()
-				return
+
+	if self.failOut and f > self.failOut + 360 then
+		self:EchoDebug("getting back to work " .. self.name .. " " .. self.id)
+		self.failOut = false
+		self.fails = 0
+		self.progress = true
+	elseif not self.constructing and not self.failOut then
+		self:EchoDebug('not constructing?')
+		if (self.lastWatchdogCheck + self.watchdogTimeout < f) or (self.currentProject == nil and (self.lastWatchdogCheck + 1 < f)) then
+			self:EchoDebug('watchdog')
+			-- we're probably stuck doing nothing
+			local tmpOwnName = self.unit:Internal():Name() or "no-unit"
+			local tmpProjectName = self.currentProject or "empty project"
+			if self.currentProject ~= nil then
+				self:EchoDebug("Watchdog: "..tmpOwnName.." abandoning "..tmpProjectName)
+				self:EchoDebug("last watchdog POS: "..self.lastWatchdogCheck .. ", watchdog timeout:"..self.watchdogTimeout)
 			end
+			self:ProgressQueue()
+			return
 		end
-
 	end
-
 end
 
 function TaskQueueBST:CategoryEconFilter(cat,param,name)
@@ -273,9 +261,6 @@ function TaskQueueBST:findPlace(utype, value,cat,loc)
 			POS = site:ClosestBuildSpot(builder, builderPos, utype)
 		end
 	end
-
-
-
 	--factory will get position in labbuildhst
 	if cat == '_mex_' then
 		local uw
@@ -315,7 +300,6 @@ function TaskQueueBST:findPlace(utype, value,cat,loc)
 			local factoryPos = target.unit:Internal():GetPosition()
 
 			POS = site:ClosestBuildSpot(builder, factoryPos, utype,nil,nil,nil,390)
-
 		end
 		if not POS then
 			local factoryPos = site:ClosestHighestLevelFactory(builder:GetPosition(), 5000)
@@ -325,7 +309,6 @@ function TaskQueueBST:findPlace(utype, value,cat,loc)
 			end
 		end
 	end
-
 	if POS then
 		self:EchoDebug('found pos for .. ' ,value)
 		return utype, value, POS
@@ -383,7 +366,6 @@ function TaskQueueBST:getOrder(builder,params)
 			end
 		end
 	end
-
 end
 
 function TaskQueueBST:roleCounter(role)
@@ -391,13 +373,10 @@ function TaskQueueBST:roleCounter(role)
 		return 0
 	end
 	local counter = 0
-
 	for name, units in pairs(self.ai.armyhst.buildersRole[role]) do
 		counter = counter + #units
 	end
 	return counter
-
-
 end
 
 function TaskQueueBST:GetQueue()
@@ -423,26 +402,21 @@ function TaskQueueBST:GetQueue()
 			table.insert(buildersRole.default[self.name], self.id)
 			self.role = 'default'
 		end
-
 	end
 	if self.role then
 		return self.ai.taskshst.roles[self.role]
 	elseif #buildersRole.eco[self.name] < 1 then
 		table.insert(buildersRole.eco[self.name], self.id)
 		self.role = 'eco'
-
 	elseif #buildersRole.expand[self.name] < 2 then
 		table.insert(buildersRole.expand[self.name], self.id)
 		self.role = 'expand'
-
 	elseif #buildersRole.support[self.name] < 1 then
 		table.insert(buildersRole.support[self.name], self.id)
 		self.role = 'support'
-
 	elseif #buildersRole.default[self.name] < 1 then
 		table.insert(buildersRole.default[self.name], self.id)
 		self.role = 'default'
-
 	else
 		table.insert(buildersRole.expand[self.name], self.id)
 		self.role ='expand'
@@ -464,11 +438,9 @@ function TaskQueueBST:ProgressQueue()
 	if idx == nil then
 		self.queue = self:GetQueue(self.name)
 		self.progress = true
-
 		return
 	end
-	local utype = nil
--- 	local jobName = JOB theorical dont needed
+	local utype = niled
 	local utype = nil
 	local p
 	local jobName, p = self:getOrder(builder,JOB)
@@ -499,7 +471,6 @@ function TaskQueueBST:ProgressQueue()
 		if jobName and utype and not p then
 			utype, jobName, p = self:findPlace(utype, jobName,JOB.category,JOB.location)
 			self:EchoDebug('p',p)
-
 		end
 		if jobName and not utype   then
 			self:Warn('warning' , self.name , " cannot build:",jobName,", couldnt grab the unit type from the engine")
@@ -539,8 +510,6 @@ function TaskQueueBST:ProgressQueue()
 			self.target = nil
 			self.currentProject = nil
 			self.fails = self.fails + 1
-
-
 			if self.fails >  #self.queue +1 then
 				self.failOut = self.game:Frame()
 				self.progress = false
@@ -582,8 +551,6 @@ function TaskQueueBST:assist()
 
 	end
 end
-
-
 -- function TasksHST:repair(id)
 -- 	local builder = id:GetUintByID()
 -- 	local builderPos = builder:GetPosition()
@@ -635,100 +602,4 @@ function TaskQueueBST:VisualDBG()
 		}
 	self.unit:Internal():EraseHighlight(nil, self.id, 8 )
 	self.unit:Internal():DrawHighlight(colours[self.role] , self.id, 8 )
-
 end
-
-	--[[
-	elseif cat == '_wind_' then
-		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_wind_'}) or
-				site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
-				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
-				site:ClosestBuildSpot(builder, builderPos, utype)
-	elseif cat == '_tide_' then
-		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_tide_'}) or
-				site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
-				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
-				site:ClosestBuildSpot(builder, builderPos, utype)
-	elseif cat == '_solar_' then
-		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_solar_'}) or
-				site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
-				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
-				site:ClosestBuildSpot(builder, builderPos, utype)
-	elseif cat == '_fus_' then
-		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
-				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'})
-	elseif cat == '_estor_' then
-		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_estor_'}) or
-				site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
-				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
-				site:ClosestBuildSpot(builder, builderPos, utype)
-	elseif cat == '_mstor_' then
-		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_mstor_'}) or
-				site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
-				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
-				site:ClosestBuildSpot(builder, builderPos, utype)
-	elseif cat == '_convs_' then
-		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_convs_'}) or
-				site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
-				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
-				site:ClosestBuildSpot(builder, builderPos, utype)
-	elseif cat == '_llt_' then
-		POS = site:searchPosNearCategories(utype, builder, 50, nil,{'_mex_'},{'_llt_','_popup2_','_popup1_'}) or
-				site:searchPosInList(utype, builder, 50,nil,self.map:GetMetalSpots(),{'_llt_','_popup2_','_popup1_'})
-	elseif cat == '_popup1_' then
-		POS = site:searchPosNearCategories(utype, builder, 50, nil,{'_mex_'},{'_llt_','_popup2_','_popup1_'})
-		-- 		POS = site:buildOnCircle(self.ai.buildsitehst:ClosestHighestLevelFactory(builderPos),500,8,value)
-	elseif cat == '_specialt_' then
-		POS = site:searchPosNearCategories(utype, builder,100,nil,{'factoryMobilities'},{'_specialt_'})
-	elseif cat == '_heavyt_' then
-		POS = site:searchPosInList(utype, builder, nil,nil,self.ai.hotSpot,{'_heavyt_','_laser2_'})
-	elseif cat == '_popup2_' then
-		POS = site:searchPosNearCategories(utype, builder,50,nil,{'_mex_'},{'_popup2_'})
-	elseif cat == '_jam_' then
-		POS =  site:searchPosNearCategories(utype, builder,100,nil,{'factoryMobilities'},{'_jam_'})
-	elseif cat == '_radar_' then
-		POS = site:searchPosNearCategories(utype, builder,50,'radarRadius',{'_mex_'},{'_radar_'})
-	elseif cat == '_sonar_' then
-		POS = site:searchPosNearCategories(utype, builder,50,nil,{'_mex_'},{'_sonar_'})
-	elseif cat == '_geo_' then
-		POS =  self.ai.maphst:ClosestFreeGeo(utype, builder)
-	elseif cat == '_silo_' then
-		POS =  site:searchPosNearCategories(utype, builder,100,nil,{'_nano_'})
-	elseif cat == '_antinuke_' then
-		POS =  site:searchPosNearCategories(utype, builder,100,nil,{'_nano_'})
-	elseif cat == '_shield_' then
-		POS =  site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'},{'_shield_'})
-	elseif cat == '_juno_' then
-		POS =  site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'})
-	elseif cat == '_laser2_' then
-		POS =   site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'},{'_laser2_'}) or
-				site:searchPosInList(utype, builder, nil,nil,self.ai.hotSpot,{'_laser2_'})
-	elseif cat == '_lol_' then
-		POS =  site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'})
-	elseif cat == '_coast1_' then
-		POS = site:searchPosInList(utype, builder, nil,nil,self.ai.turtlehst:LeastTurtled(builder, value),{'_coast1_','_coast2_'})
-	elseif cat == '_coast2_' then
-		POS = site:searchPosInList(utype, builder, nil,nil,self.ai.turtlehst:LeastTurtled(builder, value),{'_coast2_'})
-	elseif cat == '_plasma_' then
-		POS =  site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'})
-	elseif cat == '_torpedo1_' then
-		POS = site:searchPosNearCategories(utype, builder,50,nil,{'_mex_'})
-	elseif cat == '_torpedo2_' then
-		POS = site:searchPosNearCategories(utype, builder,50,nil,{'_mex_'},{'_torpedo2_'})
-	elseif cat == '_torpedoground_' then
-		POS = site:searchPosNearCategories(utype, builder,50,nil,{'_mex_'},{'_torpedoground_'})
-	elseif cat == '_aabomb_' then
-		POS =  site:searchPosNearCategories(utype, builder,50,nil,{'_heavyt_'},{'_aabomb_'}) or
-			site:searchPosNearCategories(utype, builder,50,nil,{'_laser2_'},{'_aabomb_'})
-	elseif cat == '_aaheavy_' then
-		POS = site:searchPosNearCategories(utype, builder,50,nil,{'factoryMobilities'},{'_aaheavy_'})
-	elseif cat == '_aa2_' then
-		POS =  site:searchPosNearCategories(utype, builder,50,nil,{'factoryMobilities'},{'_aa2_'})
-	elseif cat == '_aa1_' then
-		POS = site:searchPosNearCategories(utype, builder,20,nil,{'_mex_'},{'_aa1_'})
-	elseif cat == '_flak_' then
-		POS = site:searchPosNearCategories(utype, builder,20,nil,{'_mex_'},{'_flak_'})
-	else
-		self:EchoDebug(' cant manage POS for ',value,cat)
-	end
-	]]

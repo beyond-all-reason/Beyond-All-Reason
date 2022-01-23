@@ -22,7 +22,7 @@ function TargetHST:Init()
 	self.SPOT_CELLS = {}
 	self:createGridCell()
 
-	self.pathModParam = 100
+	self.pathModParam = 0.33
 	self.pathModifierFuncs = {}
 	self.enemyMexSpots = {}
 end
@@ -76,7 +76,7 @@ end
 function TargetHST:GetCellHere(pos)
 	local gridX,gridZ = self:PosToGrid(pos)
 	if self.CELLS[gridX] and self.CELLS[gridX][gridZ] then
-		return self.CELLS[gridX][gridZ],gridX,gridZ
+		return self.CELLS[gridX][gridZ] , gridX , gridZ
 	else
 		self:Warn('try to get non-existing cell ',gridX,gridZ,pos.x,pos.z)
 	end
@@ -146,7 +146,7 @@ function TargetHST:NewCell(px, pz)
 	CELL.defense = 0
 	CELL.economy = 0
 	CELL.intelligence = 0
-	CELL.base = 0
+	CELL.base = nil
 	CELL.resurrectables = {}
 	CELL.reclamables = {}
 	CELL.repairable = {}
@@ -306,25 +306,27 @@ function TargetHST:UpdateEnemies()
 	end
 end
 
-function TargetHST:EnemiesCellsAnalisy()
-	self.enemyBasePosition = {x=0,z=0}
-	enemybasecount = 0
+function TargetHST:EnemiesCellsAnalisy() --MOVE TO TACTICALHST!!!
+	local enemybasecount = 0
+	self.enemyBasePosition = nil
 	for i, G in pairs(self.ai.targethst.ENEMYCELLS) do
 		local cell = self.ai.targethst.CELLS[G.x][G.z]
 		if cell.base then
+			self.enemyBasePosition = self.enemyBasePosition or {x=0,z=0}
 			self.enemyBasePosition.x = self.enemyBasePosition.x + cell.pos.x
 			self.enemyBasePosition.z = self.enemyBasePosition.z + cell.pos.z
 			enemybasecount = enemybasecount + 1
 		end
 	end
-	self.enemyBasePosition.x = self.enemyBasePosition.x / enemybasecount
-	self.enemyBasePosition.z = self.enemyBasePosition.z / enemybasecount
-	self.enemyBasePosition.y = Spring.GetGroundHeight(self.enemyBasePosition.x, self.enemyBasePosition.z)
+	if enemybasecount > 0 then
+		self.enemyBasePosition.x = self.enemyBasePosition.x / enemybasecount
+		self.enemyBasePosition.z = self.enemyBasePosition.z / enemybasecount
+		self.enemyBasePosition.y = Spring.GetGroundHeight(self.enemyBasePosition.x, self.enemyBasePosition.z)
+	end
 
 end
 
 function TargetHST:UpdateMetalGeoSpots()
-
 	local spots = self.ai.scoutSpots.air[1]
 	for index,spot in pairs(spots) do
 		local underwater = self.ai.maphst:IsUnderWater(spot)
@@ -394,7 +396,7 @@ end
 function TargetHST:UpdateDamagedUnits()
 	for unitID, engineUnit in pairs(self.ai.damagehst:GetDamagedUnits()) do
 		local eUnitPos = engineUnit:GetPosition()
-		local cell = self:GetCellHere(eUnitPos)
+		local cell = self:GetCellHere(eUnitPos) or return
 		cell.damagedUnits[engineUnit:ID()] = engineUnit
 	end
 end
@@ -434,7 +436,7 @@ function TargetHST:GetPathModifierFunc(unitName, adjacent)
 	if self.pathModifierFuncs[unitName] then
 		return self.pathModifierFuncs[unitName]
 	end
-	local divisor = self.ai.armyhst.unitTable[unitName].metalCost / self.pathModParam
+	local divisor = self.ai.armyhst.unitTable[unitName].metalCost * self.pathModParam
 	local modifier_node_func = function ( node, distanceToGoal, distanceStartToGoal )
 		--local threatMod = self:ThreatHere(node.position, unitName, adjacent) / divisor--BE CAREFULL DANGER CHECK
 		local threatMod = self:getCellsFields(node.position,{'armed'}) / divisor
@@ -465,6 +467,9 @@ function TargetHST:drawDBG()
 			balance = {0,0,0,1},
 
 			}
+	if self.enemyBasePosition then
+		map:DrawPoint(self.enemyBasePosition, {1,1,1,1}, 'BASE',  4)
+	end
 	for index,G in pairs (self.ENEMYCELLS) do
 		local cell = self.CELLS[G.x][G.z]
 		local p = cell.pos

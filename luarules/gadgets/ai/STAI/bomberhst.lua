@@ -188,15 +188,15 @@ function BomberHST:GetBestBomberTarget(torpedo)
 		local cell = self.ai.targethst.CELLS[G.x][G.z]
 		if torpedo then
 			if cell.pos.y < 5 then
-				if cell.base + cell.economy > bestValue then
-					bestValue = cell.base + cell.economy
+				if cell.economy > bestValue then
+					bestValue = cell.economy
 					bestCell = cell
 				end
 			end
 		else
 			if cell.pos.y > 5 then
-				if cell.base + cell.economy > bestValue then
-					bestValue = cell.base + cell.economy
+				if cell.economy > bestValue then
+					bestValue = cell.economy
 					bestCell = cell
 				end
 			end
