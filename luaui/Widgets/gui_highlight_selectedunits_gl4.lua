@@ -15,8 +15,8 @@ local useTeamcolor = true
 local highlightAlpha = 0.05
 local teamColorAlphaMult = 1.33
 local teamColorMinAlpha = 0.5
-local edgeExponent = 1.5
-local minEdgeAlpha = 0.33
+local edgeExponent = 1.4
+local minEdgeAlpha = 0.35
 
 local unitshapes = {}
 
@@ -46,7 +46,7 @@ local function SetupCommandColors(state)
 end
 
 local function addUnitShape(unitID)
-	if Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then 
+	if Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then
 		--Spring.Echo("addUnitShape(unitID)", unitID," is already dead")
 		return nil
 	end

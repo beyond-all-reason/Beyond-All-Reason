@@ -649,6 +649,11 @@ local function RefreshCommands()
 	end
 end
 
+local function clear()
+	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
+	dlistBuildmenuBg = gl.DeleteList(dlistBuildmenuBg)
+end
+
 function widget:ViewResize()
 	local widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding
@@ -888,21 +893,6 @@ function widget:Initialize()
 		reloadBindings()
 		doUpdate = true
 	end
-end
-
-function clear()
-	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
-	dlistBuildmenuBg = gl.DeleteList(dlistBuildmenuBg)
-end
-
-function widget:Shutdown()
-	clear()
-	hoverDlist = gl.DeleteList(hoverDlist)
-	if WG['guishader'] and dlistGuishader then
-		WG['guishader'].DeleteDlist('buildmenu')
-		dlistGuishader = nil
-	end
-	WG['buildmenu'] = nil
 end
 
 -- update queue number
@@ -1911,23 +1901,7 @@ function widget:DrawWorld()
 		return
 	end
 
-	-- draw pregamestart commander models on start positions
 	if Spring.GetGameFrame() == 0 then
-		glColor(1, 1, 1, 0.5)
-		glDepthTest(false)
-		for i = 1, #teamList do
-			local teamID = teamList[i]
-			local tsx, tsy, tsz = spGetTeamStartPosition(teamID)
-			if tsx and tsx > 0 then
-				local startUnitDefID = spGetTeamRulesParam(teamID, 'startUnit')
-				if startUnitDefID then
-					DrawUnitDef(startUnitDefID, teamID, tsx, spGetGroundHeight(tsx, tsz), tsz)
-				end
-			end
-		end
-		glColor(1, 1, 1, 1)
-		glTexture(false)
-
 
 		-- draw pregame build queue
 		if preGamestartPlayer then
@@ -2437,6 +2411,16 @@ function widget:MouseRelease(x, y, button)
 			end
 		end
 	end
+end
+
+function widget:Shutdown()
+	clear()
+	hoverDlist = gl.DeleteList(hoverDlist)
+	if WG['guishader'] and dlistGuishader then
+		WG['guishader'].DeleteDlist('buildmenu')
+		dlistGuishader = nil
+	end
+	WG['buildmenu'] = nil
 end
 
 function widget:GetConfigData()
