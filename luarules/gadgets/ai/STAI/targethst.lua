@@ -396,7 +396,8 @@ end
 function TargetHST:UpdateDamagedUnits()
 	for unitID, engineUnit in pairs(self.ai.damagehst:GetDamagedUnits()) do
 		local eUnitPos = engineUnit:GetPosition()
-		local cell = self:GetCellHere(eUnitPos) or return
+		local cell = self:GetCellHere(eUnitPos)
+		if not cell then return end
 		cell.damagedUnits[engineUnit:ID()] = engineUnit
 	end
 end
