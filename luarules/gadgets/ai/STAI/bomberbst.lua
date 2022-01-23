@@ -139,7 +139,8 @@ function BomberBST:FollowPathToTarget(path, unit)
 	-- floats:push_back(CMD_OPT_SHIFT)
 	floats:push_back(unit:ID())
 	-- self.unit:Internal():ExecuteCustomCommand(CMD_INSERT, floats, optFloats)
-	self.unit:Internal():ExecuteCustomCommand(CMD_ATTACK, floats, {"shift"})
+	--self.unit:Internal():ExecuteCustomCommand(CMD_ATTACK, floats, {"shift"})
+	self.unit:Internal():AreaAttack(unit:GetPosition(),20)--TODO set this better
 end
 
    -- Spring.GiveOrderToUnit(unitID,
@@ -150,7 +151,9 @@ end
 
 function BomberBST:BombUnit(unit)
 	self:EchoDebug("bomb unit")
-	self.unit:Internal():Attack(unit)
+	--self.unit:Internal():Attack(unit)
+	local p = self.unit:Internal():GetPosition()
+	self.unit:Internal():AreaAttack(p,20)
 end
 
 function BomberBST:BombTarget(targetUnit, path)

@@ -9,9 +9,7 @@ local valueThreatThreshold = 1600 -- any cell above this level of value+threat w
 
 function BombardBST:Init()
 	self.DebugEnabled = false
-
     self.lastFireFrame = 0
-    self.lastTargetFrame = 0
     self.targetFrame = 0
     local unit = self.unit:Internal()
     self.position = unit:GetPosition()
@@ -45,44 +43,67 @@ function BombardBST:OwnerIdle()
 end
 
 function BombardBST:Update()
-	if self.active then
-		local f = self.game:Frame()
-		if self.lastTargetFrame == 0 or f > self.lastTargetFrame + 300 then
-			self:EchoDebug("retargeting")
-			local bestCell, valueThreat, buildingID = self.ai.targethst:GetBestBombardCell(self.position, self.range, valueThreatThreshold)
-			if bestCell then
-				local newTarget
-				if buildingID then
-					local building = self.game:GetUnitByID(buildingID)
-					if building then
-						newTarget = building:GetPosition()
-					end
-				end
-				if not newTarget then newTarget = bestCell.pos end
-				if newTarget ~= self.target then
-					local newAngle = self.ai.tool:AngleAtoB(self.position.x, self.position.z, newTarget.x, newTarget.z)
-					local ago = f - self.targetFrame
-					self:EchoDebug(ago, newAngle, self.targetAngle)
-					if self.targetAngle then
-						if AngleDist(self.targetAngle, newAngle) > ago * self.radsPerFrame then
-							newTarget = nil
-						end
-					end
-					if newTarget then
-						self.target = newTarget
-						self.targetFrame = f
-						self.targetAngle = newAngle
-						self:EchoDebug("new high priority target: " .. valueThreat)
-						self:Fire()
-					end
-				end
-			else
-				self:EchoDebug("no target, ceasing manual controlled fire")
-				self:CeaseFire()
+	if not self.active then
+		return
+	end
+	local f = self.game:Frame()
+	if f % 307 ~= 0 then
+		return
+	end
+	self:EchoDebug("retargeting")
+	--local bestCell, valueThreat, buildingID = self.ai.targethst:GetBestBombardCell(self.position, self.range, valueThreatThreshold)
+	local bestCell, valueThreat, buildingID = self:GetTarget()
+	if bestCell then
+		local newTarget
+		if buildingID then
+			local building = self.game:GetUnitByID(buildingID)
+			if building then
+				newTarget = building:GetPosition()
 			end
-			self.lastTargetFrame = f
+		end
+		if not newTarget then newTarget = bestCell.pos end
+		if newTarget ~= self.target then
+			local newAngle = self.ai.tool:AngleAtoB(self.position.x, self.position.z, newTarget.x, newTarget.z)
+			local ago = f - self.targetFrame
+			self:EchoDebug(ago, newAngle, self.targetAngle)
+			if self.targetAngle then
+				if AngleDist(self.targetAngle, newAngle) > ago * self.radsPerFrame then
+					newTarget = nil
+				end
+			end
+			if newTarget then
+				self.target = newTarget
+				self.targetFrame = f
+				self.targetAngle = newAngle
+				self:EchoDebug("new high priority target: " .. valueThreat)
+				self:Fire()
+			end
+		end
+	else
+		self:EchoDebug("no target, ceasing manual controlled fire")
+		self:CeaseFire()
+	end
+end
+
+function BombardBST:GetTarget(unit)
+	local bestCell = nil
+	local bestValue = 0
+	for index,G in pairs(self.ai.targethst.ENEMYCELLS) do
+		local cell = self.ai.targethst.CELLS[G.gx][G.Gx]
+		if self.ai.tool:Distance(self.position,sell.pos) < self.range then
+			if cell.ENEMY > bestValue then
+				bestCell = cell
+				bestValue = cell.ENEMY
+			end
 		end
 	end
+	return bestValue
+end
+
+function BombardBST:IsBombardPosition(position, unitName) --example: there are more than bertha * 2 metal to bombard around?
+	local R = math.floor(self.ai.armyhst.unitTable[unitName].G_R / cellElmos)
+	local enemies = self:getCellsFields(position,{'ENEMY'},R)
+	return self.ai.armyhst.unitTable[unitName].metalCost * 2 < enemies
 end
 
 function BombardBST:Activate()

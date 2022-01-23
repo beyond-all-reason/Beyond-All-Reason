@@ -47,7 +47,7 @@ function NukeBST:Update()
 				elseif self.stunning then
 					bestCell = self.ai.targethst:GetBestBombardCell(self.position, self.range, 3000, true) -- only targets threats
 				else
-					bestCell = self.ai.targethst:GetBestNukeCell()
+					bestCell = self.ai.self:GetBestNukeCell()
 				end
 				if bestCell ~= nil then
 					local position = bestCell.pos
@@ -73,6 +73,21 @@ function NukeBST:Update()
 			end
 		end
 	end
+end
+
+function NukeBST:GetBestNukeCell()
+	local best
+	local bestValueThreat = 0
+	for i, G in pairs(self.ENEMYCELLS) do
+		local cell = self.ai.targethst.CELLS[G.x][G.z]
+		if cell.pos then
+			if CELL.ENEMY > bestValueThreat then
+				best = cell
+				bestValueThreat = valuethreat
+			end
+		end
+	end
+	return best, bestValueThreat
 end
 
 function NukeBST:Activate()

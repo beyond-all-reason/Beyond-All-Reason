@@ -614,6 +614,7 @@ function ArmyHST:Init()
 		eco = {},
 		expand = {},
 		support = {},
+		starter = {},
 		}
 end
 
@@ -1170,9 +1171,9 @@ function ArmyHST:GetUnitTable()
 		utable.groundRange = GetLongestWeaponRange(unitDefID, 0) or 0
 		utable.airRange = GetLongestWeaponRange(unitDefID, 1) or 0
 		utable.submergedRange = GetLongestWeaponRange(unitDefID, 2) or 0
-		utable.ground = GetLongestWeaponRange(unitDefID, 0) or 0
-		utable.air = GetLongestWeaponRange(unitDefID, 1) or 0
-		utable.submerged = GetLongestWeaponRange(unitDefID, 2) or 0
+		utable.G_R = GetLongestWeaponRange(unitDefID, 0) or 0
+		utable.A_R = GetLongestWeaponRange(unitDefID, 1) or 0
+		utable.S_R = GetLongestWeaponRange(unitDefID, 2) or 0
 		utable.weaponMtype = {}
 		utable.weaponLayer = {}
 		utable.longRange = nil
@@ -1293,27 +1294,38 @@ function ArmyHST:GetUnitTable()
 		utable.needsWater = unitDef.minWaterDepth > 0
 		if unitDef["canFly"] then
 			utable.mtype = "air"
+			utable.LAYER = 'A'
 		elseif	utable.isBuilding and utable.needsWater then
 			utable.mtype = 'sub'
+			utable.LAYER = 'S'
 		elseif	utable.isBuilding and not utable.needsWater then
 			utable.mtype = 'veh'
+			utable.LAYER = 'G'
 		elseif  unitDef.moveDef.name and (string.find(unitDef.moveDef.name, 'abot') or string.find(unitDef.moveDef.name, 'vbot')  or string.find(unitDef.moveDef.name,'atank'))  then
 			utable.mtype = 'amp'
+			utable.LAYER = 'X'
 		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'uboat') then
 			utable.mtype = 'sub'
+			utable.LAYER = 'S'
 		elseif unitDef.moveDef.name and  string.find(unitDef.moveDef.name, 'hover') then
 			utable.mtype = 'hov'
+			utable.LAYER = 'G'
 		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'boat') then
 			utable.mtype = 'shp'
+			utable.LAYER = 'G'
 		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'tank') then
 			utable.mtype = 'veh'
+			utable.LAYER = 'G'
 		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'bot') then
 			utable.mtype = 'bot'
+			utable.LAYER = 'G'
 		else
 			if unitDef.maxwaterdepth and unitDef.maxwaterdepth < 0 then
 				utable.mtype = 'shp'
+				utable.LAYER = 'G'
 			else
 				utable.mtype = 'veh'
+				utable.LAYER = 'G'
 			end
 		end
 
