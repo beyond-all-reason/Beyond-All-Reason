@@ -68,23 +68,20 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			damagedUnits[projectileID] = damagedUnits[projectileID] or {}
 
 			if damagedUnits[projectileID][unitID] then
-				Spring.Echo("foo zero", 0)
 				return 0
 			else
 				damagedUnits[projectileID][unitID] = true
-				Spring.Echo("foo fixed", dgunFixedDamage)
 				return dgunFixedDamage
 			end
 		end
 	end
 
-	Spring.Echo("foo damage", damage)
 	return damage
 end
 
 function gadget:Initialize()
 	for weaponDefID, weaponDef in ipairs(WeaponDefs) do
-		if weaponDef.type == 'DGun' --[[and not weaponDef.name == 'corjugg_juggernaut_fire']] then
+		if weaponDef.type == 'DGun' then
 			isDGun[weaponDefID] = true
 		end
 	end
