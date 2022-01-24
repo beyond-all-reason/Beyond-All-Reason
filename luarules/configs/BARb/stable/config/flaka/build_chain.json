@@ -55,7 +55,7 @@
 	"point_range": 600, 
 
 	// Base defence and time to build it, in seconds
-	"base":[[2, 240], [6, 700], [14, 900], [22, 1000], [7, 1100], [14, 1200], [22, 1320], [28, 1500]],
+	"base": [[6, 700], [14, 1000], [22, 1100], [7, 1200], [12, 1300], [22, 1400], [28, 1500]],
 	"superweapon": {
 		"unit": {
 			"armada": ["armbrtha", "armvulc", "armsilo"],
@@ -63,7 +63,7 @@
 		},
 		"weight":     [ 0.40,       0.20,      0.20],
 
-		"condition": [60, 400]  // [<Minimum income>, <maximum seconds to build based on total metal income>]
+		"condition": [60, 350]  // [<Minimum income>, <maximum seconds to build based on total metal income>]
     },
     
 
@@ -169,10 +169,11 @@
 					{"unit": "armmmkr", "category": "convert", "offset": [120, 150]},
 					{"unit": "armmmkr", "category": "convert", "offset": [150, 150]},
 					{"unit": "armmmkr", "category": "convert", "offset": [120, -120], "condition": {"energy": true}},
-                    {"unit": "armmmkr", "category": "convert", "offset": [120, -120], "condition": {"energy": true}},
-					//{"unit": "armamd", "category": "defence", "offset": [-120, -120], "condition": {"chance": 0.5}},
-					{"unit": "armanni", "category": "defence", "offset": [600, -180], "condition": {"chance": 0.5}}
-				]
+                    {"unit": "armmmkr", "category": "convert", "offset": [120, -120], "condition": {"energy": true}}	
+				],
+                [   {"unit": "armanni", "category": "defence", "offset": [600, -300], "condition": {"chance": 0.2}}],
+                [   {"unit": "armanni", "category": "defence", "offset": [600, 300], "condition": {"chance": 0.2}}],
+                [   {"unit": "armamb", "category": "defence", "offset": [200, 300], "condition": {"chance": 0.2}}]
 			]
 		},
 		"corsolar": {
@@ -246,26 +247,31 @@
 	"factory": {
 		"armlab": {
             "hub": [
-                [{"unit": "armllt", "category": "defence", "offset": [-150, -50], "priority":"now"}],
-                [{"unit": "armpb", "category": "defence", "offset": [200, 50]}]
+                [   
+                    {"unit": "armllt", "category": "defence", "offset": [-200, -48], "priority":"now"},
+                    {"unit": "armsolar", "category": "defence", "offset": [-180, -48], "priority":"now"}
+                ],
+                    [{"unit": "armsolar", "category": "defence", "offset": [-148, -48],  "priority":"low"},
+                    {"unit": "armnanotc", "category": "defence", "offset": [-180, -40], "priority":"low"}
+                ],
+                [   {"unit": "armpb", "category": "defence", "offset": [200, 50]}   ]
             ]
         },
         "armvp": {
             "hub": [
                 [
-                    {"unit": "armllt", "category": "defence", "offset": {"back": 150}, "priority": "now"},
-					//{"unit": "armsolar", "category": "defence", "offset": [-120, 50]},
-					//{"unit": "armnanotc", "category": "defence", "offset": [-250, 90]},
-                    {"unit": "armpb", "category": "defence", "offset": [200, -50]}
-                    //{"unit": "armamd", "category": "defence", "offset": [-200, -90]}
-                ]
+                    {"unit": "armllt", "category": "defence", "offset": {"back": 160}, "priority": "now"}
+					//{"unit": "armsolar", "category": "defence", "offset": [-120, 50], "priority": "now"}
+					//{"unit": "armnanotc", "category": "defence", "offset": [-250, 90], "priority": "now"}
+                ],
+                [{"unit": "armpb", "category": "defence", "offset": [200, -50]}]
             ]
         }, 
         "armalab": {
             "hub": [
                 [
 					//{"unit": "armnanotc", "category": "defence", "offset": [120, -50]},
-                    {"unit": "armpb", "category": "defence", "offset": {"front": 200}}                         
+                    {"unit": "armpb", "category": "defence", "offset": {"front": 200}, "priority": "low"}                         
                 ]
                 //[ 
                     //{"unit": "armamd", "category": "defence", "offset": [-180, -180]}
@@ -274,9 +280,8 @@
         },
         "armavp": {
             "hub": [
-                [
-					
-                    {"unit": "armpb", "category": "defence", "offset": [350, -160]}       
+                [			
+                    {"unit": "armpb", "category": "defence", "offset": [350, -160], "priority": "low"}       
                 ],
                 [
                     {"unit": "armnanotc", "category": "defence", "offset": [-200, 160], "priority":"now"},
@@ -291,10 +296,10 @@
         },
         "armshltx": {
             "hub": [
-                [
-                    {"unit": "armanni", "category": "defence", "offset": {"front": 200}}, 
-                    {"unit": "armpb", "category": "defence", "offset": [230, -50]}                 
-                ],
+             
+                [{"unit": "armpb", "category": "defence", "offset": [300, -160], "priority":"now"}],
+                [{"unit": "armanni", "category": "defence", "offset": [-100, 160]}],
+                [{"unit": "armamb", "category": "defence", "offset": [300, -200]}],
                 [
                     {"unit": "armnanotc", "category": "defence", "offset": [200, -160], "priority":"now"},
                     {"unit": "armnanotc", "category": "defence", "offset": [200, -160], "priority":"now"},
@@ -467,6 +472,7 @@
 	"defence": {  // name need to be one of these categories <category>: factory, nano, store, pylon, energy, defence, bunker, big_gun, radar, sonar, mex, repair | bunker, big_gun, stor should be save to use for other purposes
         "armrad": {
             "hub": [
+                [{"unit": "armllt", "category": "defence", "offset": [150, 0], "condition": {"chance": 1.0}, "priority":"now"}],
                 [{"unit": "armbeamer", "category": "defence", "offset": [150, 30], "condition": {"chance": 1.0}, "priority":"now"}],
                 [{"unit": "armclaw", "category": "defence", "offset": [150, -30], "condition": {"chance": 1.0}, "priority":"high"}],
                 [{"unit": "armrl", "category": "defence", "offset": {"back": 200}, "condition": {"air":true}, "priority":"now"}],
@@ -475,11 +481,11 @@
                     {"unit": "armjamt", "category": "defence", "offset": [-80, 40], "condition": {"chance": 1.0}}
                    // {"unit": "armarad", "category": "defence", "offset": {"back": 80}, "condition": {"chance": 0.5}}
                 ],
-                [{"unit": "armpb", "category": "defence", "offset": [200, 150], "condition": {"chance": 1.0}, "priority": "high"}],  
-                [{"unit": "armnanotc", "category": "defence", "offset": [0, 60], "condition": {"chance": 1.0}}],                
+                [{"unit": "armpb", "category": "defence", "offset": [200, 150], "condition": {"chance": 1.0}, "priority": "now"}],             
                 [{"unit": "armamb", "category": "defence", "offset": [100, 60], "condition": {"chance": 1.0}}],
                 [{"unit": "armanni", "category": "defence", "offset": [100, -60], "condition": {"chance": 1.0}}],
-                [{"unit": "armpb", "category": "defence", "offset": [200, -150], "condition": {"chance": 1.0}}]  
+                [{"unit": "armpb", "category": "defence", "offset": [200, -150], "condition": {"chance": 1.0}}],
+                [{"unit": "armarad", "category": "defence", "offset": [-200, 0], "condition": {"chance": 0.5}, "priority":"now"}]    
             ]
         },
         "cormaw": {

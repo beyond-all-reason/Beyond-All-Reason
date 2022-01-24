@@ -13,7 +13,7 @@
 			"offset": [0, 5],  // default: [0, 0]
 
 			// Size of a blocker without yard
-			//"size": [7, 7],  // default: size of a unit
+			"size": [8, 8],  // default: size of a unit
 
 			// Spacer, block_size = size + yard
 			"yard": [0, 30]  // default: [0, 0]
@@ -25,13 +25,13 @@
 		"fac_land_t2":{
 			"type": ["rectangle", "factory"],
 			"size": [8 ,8],
-			"yard": [-2, 20],
+			"yard": [0, 20],
 			"offset": [1, 10],
 			"ignore": ["none"]
 		},		
 		"fac_air": {
 			"type": ["rectangle", "factory"],
-			"yard": [6, 6],
+			//"yard": [6, 6],
 			"not_ignore": ["convert", "factory", "special"]
 		},
 		"fac_water": {
@@ -47,8 +47,8 @@
 		},
 		"solar": {
 			"type": ["rectangle", "engy_mid"],
-			"ignore": ["engy_mid", "engy_high", "def_low", "nano", "mex", "def_low"],
-			"yard": [5,5]
+			"ignore": ["engy_mid", "def_low", "mex", "def_low"],
+			"yard": [6, 6]
 			
 		},
 		"advsolar":{
@@ -101,7 +101,7 @@
 		},
 		"converter": {
 			"type": ["rectangle", "convert"],
-			"yard": [6, 6],
+			"yard": [7, 7],
 			"ignore": ["convert"]
 		},
 		"def_low": {

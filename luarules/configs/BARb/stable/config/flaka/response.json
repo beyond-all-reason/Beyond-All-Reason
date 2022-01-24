@@ -37,42 +37,42 @@
 	"assault": {
 		"vs":         ["static", "skirmish",   "riot"],
 		"ratio":      [0.40, 		0.50,		0.40],
-		"importance": [10.00, 		10.00,		10.00],
+		"importance": [5.00, 		5.00,		5.00],
 		"max_percent": 0.8,
 		"eps_step": 0.075
 	},
 	"skirmish": {
-		"vs":         ["assault",  "riot"],
-		"ratio":      [0.50,		0.50],
-		"importance": [10.00, 		10.00],
+		"vs":         ["assault",  "riot", "skirmish"],
+		"ratio":      [0.80,		0.50,		0.70],
+		"importance": [5.00, 		5.00,		10.00],
 		"max_percent": 0.8,
 		"eps_step": 0.075
 	},
 	"raider": {
-		"vs":         [ "scout",  "raider", "assault", "anti_heavy", "anti_heavy_ass",  "artillery"],
-		"ratio":      [     2.00,    2.00,   0.50,	 	0.20,  		 	0.20,		  0.10],
-		"importance": [     50.00,   50.00,  10.00,		10.00,		    10.00,	     10.00],
+		"vs":         [ "scout",  "raider",  "artillery"],
+		"ratio":      [     2.00,    1.00,     	 0.10],
+		"importance": [     20.00,   10.00,  	5.00],
 		"max_percent": 0.6,
 		"eps_step": 0.12
 	},
 	"riot": {
 		"vs":         ["raider", "skirmisher"],
-		"ratio":      [ 0.80,		0.40   ],
-		"importance": [ 10.00,		10.00 ],
+		"ratio":      [ 0.90,		0.40   ],
+		"importance": [ 5.00,		5.00 ],
 		"max_percent": 0.8,
 		"eps_step": 0.02
 	},
 	"scout": {
 		"vs":         ["scout", "artillery",  "static",  "anti_heavy", "anti_heavy_ass"],
 		"ratio":      [ 1.00,    0.05,         0.00,      0.05,			0.05],
-		"importance": [ 50.00,   0.10,         0.00,      10.00,		10.00],
+		"importance": [ 20.00,   0.05,         0.00,      5.00,			5.00],
 		"max_percent": 0.1,
 		"eps_step": 0.02
 	},
 	"artillery": {
 		"vs":         ["static"],
-		"ratio":      [ 0.30  ],
-		"importance": [ 10.00 ],
+		"ratio":      [ 0.20  ],
+		"importance": [ 5.00 ],
 		"max_percent": 0.20,
 		"eps_step": -0.075
 	},
@@ -99,29 +99,29 @@
 	},
 	"anti_heavy": {
 		"vs":         ["static",	"skirmish",	"heavy" ],
-		"ratio":      [ 0.30,		0.50,		2.00],
-		"importance": [ 20.00,		15.00,		50.00],
+		"ratio":      [ 0.30,		0.70,		1.50],
+		"importance": [ 10.00,		5.00,		20.00],
 		"max_percent": 0.40,
 		"eps_step": 0.00
 	},
 	"anti_heavy_ass": {
-		"vs":         ["static",	"skirmish", "heavy"],
-		"ratio":      [ 0.30,		0.50,		2.00],
-		"importance": [ 10.00,		15.00,		50.00],
+		"vs":         ["static",	"skirmish", "heavy", "anti_heavy_ass"],
+		"ratio":      [ 0.30,		0.40,		1.50,			1.00],
+		"importance": [ 10.00,		5.00,		20.00,			10.00],
 		"max_percent": 0.40,
 		"eps_step": 0.00
 	},
 	"heavy": {
 		"vs":         ["static", "skirmish"],
 		"ratio":      [  2.00,     1.50],
-		"importance": [  20.00,    20.00],
+		"importance": [  10.00,    10.00],
 		"max_percent": 0.50,
 		"eps_step": 0.00
 	},
 	"bomber": {
 		"vs":         ["static"],
 		"ratio":      [ 0.10],
-		"importance": [ 20.0],
+		"importance": [ 10.0],
 		"max_percent": 0.20,
 		"eps_step": 0.00
 	},
@@ -134,9 +134,9 @@
 	},
     "builderT2": {
         "vs":        ["skirmish",  "heavy", "super"],
-        "ratio":      [ 0.50,     0.30,		0.10],
-        "importance": [ 10.00,     10.00,		10.00],
-        "max_percent": 0.20,
+        "ratio":      [ 1.00,     1.00,		0.10],
+        "importance": [ 5.00,     5.00,		10.00],
+        "max_percent": 0.30,
         "eps_step": 0.00
         },
 	"support": {
@@ -146,6 +146,5 @@
 		"max_percent": 0.20,
 		"eps_step": 0.00
 	}
-
 }
 }
