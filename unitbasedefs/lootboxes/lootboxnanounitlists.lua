@@ -13,6 +13,9 @@ return {
 		"corstorm",
 		"corcrash",
 		"corkark",
+		"leggob",
+		"legbal",
+		"legcen",
 
 		-- Vehicles
 		"armflash",
@@ -26,6 +29,8 @@ return {
 		"corwolv",
 		"corlevlr",
 		"corraid",
+		"legrail",
+		"leggat",
 
 		-- Hovercraft
 		"armsh",
