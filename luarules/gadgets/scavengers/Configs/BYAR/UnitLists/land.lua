@@ -24,6 +24,9 @@ return {
 		"corstorm_scav",
 		"corcrash_scav",
 		"corkark_scav",
+		"leggob_scav",
+		"legcen_scav",
+		"legbal_scav",
 
 		-- Vehicles
 		"armflash_scav",
@@ -37,6 +40,8 @@ return {
 		"corwolv_scav",
 		"corlevlr_scav",
 		"corraid_scav",
+		"leggat_scav",
+		"legrail_scav",
 
 		-- Hovercraft
 		"armsh_scav",

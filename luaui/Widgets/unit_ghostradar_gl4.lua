@@ -94,9 +94,9 @@ end
 function widget:UnitLeftRadar(unitID, unitTeam)
 	if dots[unitID] then
 		dots[unitID].radar = false
-		if not dots[unitID].los then -- not in LOS - forget unit type
-			dots[unitID].unitDefID = nil
-		end
+		--if not dots[unitID].los then -- not in LOS - forget unit type
+		--	dots[unitID].unitDefID = nil
+		--end
 		removeUnitShape(unitID)
 	end
 end
@@ -105,7 +105,7 @@ function widget:UnitLeftLos(unitID, unitTeam)
 	if dots[unitID] then
 		dots[unitID].los = false
 		if not dots[unitID].radar then -- not on radar - forget unit type
-			dots[unitID].unitDefID = nil
+			--dots[unitID].unitDefID = nil
 			removeUnitShape(unitID)
 		else
 			local x, y, z = spGetUnitPosition(unitID)
@@ -121,7 +121,9 @@ function widget:Initialize()
 	for unitID, _ in pairs(dots) do
 		if not dots[unitID].los and dots[unitID].radar then
 			local x, y, z = spGetUnitPosition(unitID)
-			addUnitShape(unitID, dots[unitID].unitDefID, x, y, z, 0, dots[unitID].teamID)
+			if x then
+				addUnitShape(unitID, dots[unitID].unitDefID, x, y, z, 0, dots[unitID].teamID)
+			end
 		end
 	end
 end

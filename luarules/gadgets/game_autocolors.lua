@@ -18,7 +18,7 @@ end
 local armBlueColor       = "#004DFF" -- Armada Blue
 local corRedColor        = "#FF1005" -- Cortex Red
 local scavPurpColor      = "#612461" -- Scav Purple
-local chickenOrangeColor = "#FF7D20" -- Chicken Orange
+local chickenOrangeColor = "#FFE178" -- Chicken Yellow
 local gaiaGrayColor      = "#7F7F7F" -- Gaia Grey
 
 if gadgetHandler:IsSyncedCode() then
@@ -50,6 +50,39 @@ if gadgetHandler:IsSyncedCode() then
         "#FF68EA", -- Light Fuchsia
         "#08839B", -- Dark Turquoise
         "#FFC8AA", -- Very Light Orange
+        "#00FF9E", -- Turquoise Green
+        "#DB8E0E", -- Brown
+        "#9FFF25", -- Lime
+    }
+
+    local survivalColors = {
+        "#004DFF", -- Armada Blue
+        "#FF1005", -- Cortex Red
+        "#0CE818", -- Green
+        -- "#FFD70D", -- Yellow
+        "#FF00DB", -- Fuchsia
+        "#0CC4E8", -- Turquoise
+        "#FF6B00", -- Orange
+        "#86FFD1", -- Light Turquoise Green
+        -- "#F6BB56", -- Light Brown
+        "#68B900", -- Dark Lime
+        "#6697FF", -- Very Light Blue
+        "#FF6058", -- Light Red
+        "#8DF492", -- Light Green
+        -- "#FFF2AE", -- Very Light Yellow
+        "#FFAAF3", -- Very Light Fuchsia
+        "#90E5F5", -- Light Turquoise
+        "#FF9055", -- Light Orange
+        "#00AA69", -- Dark Turquoise Green
+        "#9B6408", -- Dark Brown
+        -- "#C4FF79", -- Light Lime
+        "#3475FF", -- Light Blue
+        "#AD0800", -- Dark Red
+        "#089B10", -- Dark Green
+        -- "#FFE874", -- Light Yellow
+        "#FF68EA", -- Light Fuchsia
+        "#08839B", -- Dark Turquoise
+        -- "#FFC8AA", -- Very Light Orange
         "#00FF9E", -- Turquoise Green
         "#DB8E0E", -- Brown
         "#9FFF25", -- Lime
@@ -249,7 +282,10 @@ if gadgetHandler:IsSyncedCode() then
     elseif not teamColors[allyTeamCount] then
         isFFA = true
     end
+    local isSurvival = Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsChickens()
 
+    local survivalColorNum = 1 -- Starting from color #1
+    local survivalColorVariation = 0 -- Current color variation
     local ffaColorNum = 1 -- Starting from color #1
     local ffaColorVariation = 0 -- Current color variation
     local colorVariationDelta = 128 -- Delta for color variation
@@ -261,10 +297,25 @@ if gadgetHandler:IsSyncedCode() then
             Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(scavPurpColor)[1])
             Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(scavPurpColor)[2])
             Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(scavPurpColor)[3])
+        elseif isAI and string.find(isAI, "Chicken") then
+            Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(chickenOrangeColor)[1])
+            Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(chickenOrangeColor)[2])
+            Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(chickenOrangeColor)[3])
         elseif teamID == Spring.GetGaiaTeamID() then
             Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(gaiaGrayColor)[1])
             Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(gaiaGrayColor)[2])
             Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(gaiaGrayColor)[3])
+        elseif isSurvival then
+            if not survivalColors[survivalColorNum] then -- If we have no color for this team anymore
+                survivalColorNum = 1 -- Starting from the first color again..
+                survivalColorVariation = survivalColorVariation + colorVariationDelta -- ..but adding random color variations with increasing amplitude with every cycle
+            end
+
+            -- Assigning R,G,B values with specified color variations
+            Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(survivalColors[survivalColorNum])[1] + math.random(-survivalColorVariation, survivalColorVariation))
+            Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(survivalColors[survivalColorNum])[2] + math.random(-survivalColorVariation, survivalColorVariation))
+            Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(survivalColors[survivalColorNum])[3] + math.random(-survivalColorVariation, survivalColorVariation))
+            survivalColorNum = survivalColorNum + 1 -- Will start from the next color next time
         elseif isFFA then
             if not ffaColors[ffaColorNum] then -- If we have no color for this team anymore
                 ffaColorNum = 1 -- Starting from the first color again..
@@ -352,10 +403,23 @@ local function updateTeamColors()
         
         if iconDevModeColor then
             spSetTeamColor(teamID, hex2RGB(iconDevModeColor)[1]/255, hex2RGB(iconDevModeColor)[2]/255, hex2RGB(iconDevModeColor)[3]/255)
-        elseif anonymousMode then
+        elseif Spring.GetConfigInt("SimpleTeamColors", 0) == 1 or (anonymousMode and not spGetSpectatingState()) then
             local _, leader, isDead, isAiTeam, side, allyTeamID, incomeMultiplier, customTeamKeys = spGetTeamInfo(teamID)
-            if allyTeamID == myAllyTeamID or spGetSpectatingState() then
-                spSetTeamColor(teamID, r, g, b)
+            if teamID == myTeamID then
+                spSetTeamColor(teamID, 
+                Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0)/255, 
+                Spring.GetConfigInt("SimpleTeamColorsPlayerG", 77)/255, 
+                Spring.GetConfigInt("SimpleTeamColorsPlayerB", 255)/255)
+            elseif allyTeamID == myAllyTeamID then
+                spSetTeamColor(teamID, 
+                Spring.GetConfigInt("SimpleTeamColorsAllyR", 0)/255, 
+                Spring.GetConfigInt("SimpleTeamColorsAllyG", 255)/255, 
+                Spring.GetConfigInt("SimpleTeamColorsAllyB", 0)/255)
+            elseif allyTeamID ~= myAllyTeamID and teamID ~= spGetGaiaTeamID then
+                spSetTeamColor(teamID, 
+                Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255)/255, 
+                Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16)/255, 
+                Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)/255)
             else
                 spSetTeamColor(teamID, hex2RGB(gaiaGrayColor)[1]/255, hex2RGB(gaiaGrayColor)[2]/255, hex2RGB(gaiaGrayColor)[3]/255)
             end
@@ -370,5 +434,9 @@ updateTeamColors()
 function gadget:Update()
     if math.random(0,60) == 0 then
         updateTeamColors()
+    elseif Spring.GetConfigInt("UpdateTeamColors", 0) == 1 then
+        updateTeamColors()
+        Spring.SetConfigInt("UpdateTeamColors", 0)
+        Spring.SetConfigInt("SimpleTeamColors_Reset", 0)
     end
 end

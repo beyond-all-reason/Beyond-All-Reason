@@ -881,7 +881,9 @@ local unitBars = {}
 local healthBarTableCache = {}
 for i = 1, 20 do healthBarTableCache[i] = 0.0 end
 
+
 local function addBarForUnit(unitID, unitDefID, barname)
+	--Spring.Debug.TraceFullEcho()
 	if debugmode then Spring.Debug.TraceEcho(unitBars[unitID]) end 
 	--Spring.Echo("Caller1:", tostring()".name), "caller2:", tostring(debug.getinfo(3).name))
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
@@ -1042,11 +1044,11 @@ end
 
 local function removeBarFromFeature(featureID, targetVBO)
 	--Spring.Echo("removeBarFromFeature", featureID, targetVBO.myName)
+	if targetVBO.instanceIDtoIndex[featureID] then
+		popElementInstance(targetVBO, featureID)
+	end
 	if featureBars[featureID] then 
 		featureBars[featureID] = featureBars[featureID] - 1 -- TODO ERROR
-		if targetVBO.instanceIDtoIndex[featureID] then
-			popElementInstance(targetVBO, featureID)
-		end
 	end
 end
 

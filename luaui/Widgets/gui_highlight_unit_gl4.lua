@@ -11,10 +11,10 @@ function widget:GetInfo()
 end
 
 local hideBelowGameframe = 100
-local highlightAlpha = 0.12
+local highlightAlpha = 0.125
 local selectedHighlightAlpha = 0.07
-local edgeAlpha = 0.75
-local selectedEdgeAlpha = 0.5
+local edgeAlpha = 0.85
+local selectedEdgeAlpha = 0.55
 local edgeExponent = 1.25
 local selectedEdgeExponent = 1.55
 local animationAlpha = 0.55

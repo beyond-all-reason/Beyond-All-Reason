@@ -79,8 +79,6 @@ local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
-local teamList = Spring.GetTeamList()
-
 local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 
 local buildQueue = {}
@@ -106,6 +104,7 @@ local currentPage = 1
 local pages = 1
 local paginatorRects = {}
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
+local unitshapes = {}
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -462,6 +461,11 @@ local function RefreshCommands()
 	end
 end
 
+local function clear()
+	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
+	dlistBuildmenuBg = gl.DeleteList(dlistBuildmenuBg)
+end
+
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
@@ -565,131 +569,6 @@ function buildFacingHandler(_, _, args)
 
 		return true
 	end
-end
-
-function widget:Initialize()
-	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "t")
-
-	checkGeothermalFeatures()
-
-	iconTypesMap = {}
-	if Script.LuaRules('GetIconTypes') then
-		iconTypesMap = Script.LuaRules.GetIconTypes()
-	end
-
-	-- Get our starting unit
-	if preGamestartPlayer then
-		SetBuildFacing()
-		if not startDefID or startDefID ~= spGetTeamRulesParam(myTeamID, 'startUnit') then
-			startDefID = spGetTeamRulesParam(myTeamID, 'startUnit')
-			doUpdate = true
-		end
-	end
-
-	widget:ViewResize()
-	widget:SelectionChanged(spGetSelectedUnits())
-
-	WG['buildmenu'] = {}
-	WG['buildmenu'].getGroups = function()
-		return groups, unitGroup
-	end
-	WG['buildmenu'].getOrder = function()
-		return unitOrder
-	end
-	WG['buildmenu'].getShowPrice = function()
-		return showPrice
-	end
-	WG['buildmenu'].setShowPrice = function(value)
-		showPrice = value
-		doUpdate = true
-	end
-	WG['buildmenu'].getAlwaysShow = function()
-		return alwaysShow
-	end
-	WG['buildmenu'].setAlwaysShow = function(value)
-		alwaysShow = value
-		doUpdate = true
-	end
-	WG['buildmenu'].getShowRadarIcon = function()
-		return showRadarIcon
-	end
-	WG['buildmenu'].setShowRadarIcon = function(value)
-		showRadarIcon = value
-		doUpdate = true
-	end
-	WG['buildmenu'].getShowGroupIcon = function()
-		return showGroupIcon
-	end
-	WG['buildmenu'].setShowGroupIcon = function(value)
-		showGroupIcon = value
-		doUpdate = true
-	end
-	WG['buildmenu'].getDynamicIconsize = function()
-		return dynamicIconsize
-	end
-	WG['buildmenu'].setDynamicIconsize = function(value)
-		dynamicIconsize = value
-		doUpdate = true
-	end
-	WG['buildmenu'].getMinColls = function()
-		return minColls
-	end
-	WG['buildmenu'].setMinColls = function(value)
-		minColls = value
-		doUpdate = true
-	end
-	WG['buildmenu'].getMaxColls = function()
-		return maxColls
-	end
-	WG['buildmenu'].setMaxColls = function(value)
-		maxColls = value
-		doUpdate = true
-	end
-	WG['buildmenu'].getDefaultColls = function()
-		return defaultColls
-	end
-
-	WG['buildmenu'].setDefaultColls = function(value)
-		defaultColls = value
-		doUpdate = true
-	end
-	WG['buildmenu'].getBottomPosition = function()
-		return stickToBottom
-	end
-	WG['buildmenu'].setBottomPosition = function(value)
-		stickToBottom = value
-		widget:Update(1000)
-		widget:ViewResize()
-		doUpdate = true
-	end
-	WG['buildmenu'].getSize = function()
-		return posY, posY2
-	end
-	WG['buildmenu'].getMaxPosY = function()
-		return maxPosY
-	end
-	WG['buildmenu'].setMaxPosY = function(value)
-		maxPosY = value
-		doUpdate = true
-	end
-end
-
-function clear()
-	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
-	dlistBuildmenuBg = gl.DeleteList(dlistBuildmenuBg)
-end
-
-function widget:Shutdown()
-	clear()
-	hoverDlist = gl.DeleteList(hoverDlist)
-	if WG['guishader'] and dlistGuishader then
-		WG['guishader'].DeleteDlist('buildmenu')
-		dlistGuishader = nil
-	end
-	if dlistCache then
-		dlistCache = gl.DeleteList(dlistCache)
-	end
-	WG['buildmenu'] = nil
 end
 
 -- update queue number
@@ -1022,6 +901,21 @@ local function GetBuildingDimensions(uDefID, facing)
 	end
 end
 
+local function removeUnitShape(id)
+	if unitshapes[id] then
+		WG.StopDrawUnitShapeGL4(unitshapes[id])
+		unitshapes[id] = nil
+	end
+end
+
+local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID)
+	if unitshapes[id] then
+		removeUnitShape(id)
+	end
+	unitshapes[id] = WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, 1, teamID, nil, nil)
+	return unitshapes[id]
+end
+
 local function DrawBuilding(buildData, borderColor, buildingAlpha, drawRanges)
 	local bDefID, bx, by, bz, facing = buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]
 	local bw, bh = GetBuildingDimensions(bDefID, facing)
@@ -1035,7 +929,6 @@ local function DrawBuilding(buildData, borderColor, buildingAlpha, drawRanges)
 							 { v = { bx - bw, by, bz + bh } } })
 
 	if drawRanges then
-
 		if isMex[bDefID] then
 			gl.Color(1.0, 0.3, 0.3, 0.7)
 			gl.DrawGroundCircle(bx, by, bz, Game.extractorRadius, 50)
@@ -1048,39 +941,10 @@ local function DrawBuilding(buildData, borderColor, buildingAlpha, drawRanges)
 		end
 	end
 
-	gl.DepthTest(GL.LEQUAL)
-	gl.DepthMask(true)
-	gl.Color(1.0, 1.0, 1.0, buildingAlpha)
-
-	gl.PushMatrix()
-	gl.LoadIdentity()
-	gl.Translate(bx, by, bz)
-	gl.Rotate(90 * facing, 0, 1, 0)
-	gl.UnitShape(bDefID, Spring.GetMyTeamID(), false, false, true)
-	gl.PopMatrix()
-
-	gl.Lighting(false)
-	gl.DepthTest(false)
-	gl.DepthMask(false)
-end
-
-local function DrawUnitDef(uDefID, uTeam, ux, uy, uz, scale)
-	gl.Color(1, 1, 1, 1)
-	gl.DepthTest(GL.LEQUAL)
-	gl.DepthMask(true)
-	gl.Lighting(true)
-
-	gl.PushMatrix()
-	gl.Translate(ux, uy, uz)
-	if scale then
-		gl.Scale(scale, scale, scale)
+	if WG.StopDrawUnitShapeGL4 then
+		local id = buildData[1]..'_'..buildData[2]..'_'..buildData[3]..'_'..buildData[4]..'_'..buildData[5]
+		addUnitShape(id, buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]*math.pi, myTeamID)
 	end
-	gl.UnitShape(uDefID, uTeam, false, true, true)
-	gl.PopMatrix()
-
-	gl.Lighting(false)
-	gl.DepthTest(false)
-	gl.DepthMask(false)
 end
 
 local function DoBuildingsClash(buildData1, buildData2)
@@ -1325,27 +1189,16 @@ function widget:DrawScreen()
 end
 
 function widget:DrawWorld()
-	if chobbyInterface then
-		return
-	end
+	if not WG.StopDrawUnitShapeGL4 then return end
 
-	-- draw pregamestart commander models on start positions
 	if Spring.GetGameFrame() == 0 then
-		glColor(1, 1, 1, 0.5)
-		glDepthTest(false)
-		for i = 1, #teamList do
-			local teamID = teamList[i]
-			local tsx, tsy, tsz = spGetTeamStartPosition(teamID)
-			if tsx and tsx > 0 then
-				local startUnitDefID = spGetTeamRulesParam(teamID, 'startUnit')
-				if startUnitDefID then
-					DrawUnitDef(startUnitDefID, teamID, tsx, spGetGroundHeight(tsx, tsz), tsz)
-				end
+
+		-- remove unit shape queue to re-add again later
+		if WG.StopDrawUnitShapeGL4 then
+			for id, _ in pairs(unitshapes) do
+				removeUnitShape(id)
 			end
 		end
-		glColor(1, 1, 1, 1)
-		glTexture(false)
-
 
 		-- draw pregame build queue
 		if preGamestartPlayer then
@@ -1382,9 +1235,6 @@ function widget:DrawWorld()
 				-- Correction for start positions in the air
 				sy = Spring.GetGroundHeight(sx, sz)
 
-				-- Draw the starting unit at start position
-				--DrawUnitDef(startDefID, myTeamID, sx, sy, sz)		--(disabled: faction change widget does this now)
-
 				-- Draw start units build radius
 				gl.Color(buildDistanceColor)
 				gl.DrawGroundCircle(sx, sy, sz, UnitDefs[startDefID].buildDistance, 40)
@@ -1407,6 +1257,7 @@ function widget:DrawWorld()
 				end
 			end
 
+			-- clean all previous frame buildings
 			-- Draw all the buildings
 			local queueLineVerts = startChosen and { { v = { sx, sy, sz } } } or {}
 			for b = 1, #buildQueue do
@@ -1439,6 +1290,12 @@ function widget:DrawWorld()
 			-- Reset gl
 			glColor(1, 1, 1, 1)
 			gl.LineWidth(1.0)
+		end
+	else
+		if WG.StopDrawUnitShapeGL4 then
+			for id, _ in pairs(unitshapes) do
+				removeUnitShape(id)
+			end
 		end
 	end
 end
@@ -1707,8 +1564,132 @@ function widget:MousePress(x, y, button)
 	end
 end
 
+function widget:Initialize()
+	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "t")
+
+	checkGeothermalFeatures()
+
+	iconTypesMap = {}
+	if Script.LuaRules('GetIconTypes') then
+		iconTypesMap = Script.LuaRules.GetIconTypes()
+	end
+
+	-- Get our starting unit
+	if preGamestartPlayer then
+		SetBuildFacing()
+		if not startDefID or startDefID ~= spGetTeamRulesParam(myTeamID, 'startUnit') then
+			startDefID = spGetTeamRulesParam(myTeamID, 'startUnit')
+			doUpdate = true
+		end
+	end
+
+	widget:ViewResize()
+	widget:SelectionChanged(spGetSelectedUnits())
+
+	WG['buildmenu'] = {}
+	WG['buildmenu'].getGroups = function()
+		return groups, unitGroup
+	end
+	WG['buildmenu'].getOrder = function()
+		return unitOrder
+	end
+	WG['buildmenu'].getShowPrice = function()
+		return showPrice
+	end
+	WG['buildmenu'].setShowPrice = function(value)
+		showPrice = value
+		doUpdate = true
+	end
+	WG['buildmenu'].getAlwaysShow = function()
+		return alwaysShow
+	end
+	WG['buildmenu'].setAlwaysShow = function(value)
+		alwaysShow = value
+		doUpdate = true
+	end
+	WG['buildmenu'].getShowRadarIcon = function()
+		return showRadarIcon
+	end
+	WG['buildmenu'].setShowRadarIcon = function(value)
+		showRadarIcon = value
+		doUpdate = true
+	end
+	WG['buildmenu'].getShowGroupIcon = function()
+		return showGroupIcon
+	end
+	WG['buildmenu'].setShowGroupIcon = function(value)
+		showGroupIcon = value
+		doUpdate = true
+	end
+	WG['buildmenu'].getDynamicIconsize = function()
+		return dynamicIconsize
+	end
+	WG['buildmenu'].setDynamicIconsize = function(value)
+		dynamicIconsize = value
+		doUpdate = true
+	end
+	WG['buildmenu'].getMinColls = function()
+		return minColls
+	end
+	WG['buildmenu'].setMinColls = function(value)
+		minColls = value
+		doUpdate = true
+	end
+	WG['buildmenu'].getMaxColls = function()
+		return maxColls
+	end
+	WG['buildmenu'].setMaxColls = function(value)
+		maxColls = value
+		doUpdate = true
+	end
+	WG['buildmenu'].getDefaultColls = function()
+		return defaultColls
+	end
+
+	WG['buildmenu'].setDefaultColls = function(value)
+		defaultColls = value
+		doUpdate = true
+	end
+	WG['buildmenu'].getBottomPosition = function()
+		return stickToBottom
+	end
+	WG['buildmenu'].setBottomPosition = function(value)
+		stickToBottom = value
+		widget:Update(1000)
+		widget:ViewResize()
+		doUpdate = true
+	end
+	WG['buildmenu'].getSize = function()
+		return posY, posY2
+	end
+	WG['buildmenu'].getMaxPosY = function()
+		return maxPosY
+	end
+	WG['buildmenu'].setMaxPosY = function(value)
+		maxPosY = value
+		doUpdate = true
+	end
+end
+
+function widget:Shutdown()
+	clear()
+	hoverDlist = gl.DeleteList(hoverDlist)
+	if WG['guishader'] and dlistGuishader then
+		WG['guishader'].DeleteDlist('buildmenu')
+		dlistGuishader = nil
+	end
+	if dlistCache then
+		dlistCache = gl.DeleteList(dlistCache)
+	end
+	WG['buildmenu'] = nil
+	if WG.StopDrawUnitShapeGL4 then
+		for id, _ in pairs(unitshapes) do
+			removeUnitShape(id)
+		end
+	end
+end
+
 function widget:GetConfigData()
-	--save config
 	return {
 		showPrice = showPrice,
 		showRadarIcon = showRadarIcon,
@@ -1726,7 +1707,6 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	--load config
 	if data.showPrice ~= nil then
 		showPrice = data.showPrice
 	end

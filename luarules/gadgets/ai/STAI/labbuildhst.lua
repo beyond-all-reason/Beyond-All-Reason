@@ -38,6 +38,14 @@ function LabBuildHST:MyUnitBuilt(engineUnit)
 	end
 end
 
+function LabBuildHST:Update()
+	local f = self.game:Frame()
+	if f % 401 ~= 0 then
+		return
+	end
+	self:UpdateFactories()
+end
+
 function LabBuildHST:UnitDead(engineUnit)
 	local uname = engineUnit:Name()
 	if not self.finishedConIDs[engineUnit:ID()] or not self.conTypesByName[uname] then
@@ -88,6 +96,8 @@ function LabBuildHST:PrePositionFilter()
 		local isExperimental = self.ai.armyhst.expFactories[factoryName] or self.ai.armyhst.leadsToExpFactories[factoryName]
 		local mtype = self.ai.armyhst.factoryMobilities[factoryName][1]
 		local team = self.ai.id
+		self:EchoDebug(factoryName,isAdvanced,isExperimental)
+
 		if self.game:GetTeamUnitDefCount(self.ai.id,utn.defId) > 0 then
 			self:EchoDebug(factoryName ..' already have ')
 			buildMe = false
@@ -165,7 +175,7 @@ function LabBuildHST:ConditionsToBuildFactories(builder)
 		if
 			(self.ai.Metal.income > (factoryCountSq * 10) + 3 + sameFactoryMetal
 				and self.ai.Energy.income > (factoryCountSq * 100) + 25 + sameFactoryEnergy
-				and self.ai.tool:countMyUnit({'isWeapon'}) >= self.ai.tool:countMyUnit({'factoryMobilities'}) * 20)
+				and self.ai.tool:countMyUnit({'isWeapon'}) >= self.ai.tool:countMyUnit({'factoryMobilities'}) * 15)
 			or (
 				self.ai.Metal.income > (factoryCountSq * 20) + (sameFactoryMetal * 2)
 				and self.ai.Energy.income > (factoryCountSq * 200) + (sameFactoryEnergy * 2)

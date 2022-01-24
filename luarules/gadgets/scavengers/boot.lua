@@ -334,6 +334,7 @@ function gadget:GameFrame(n)
 	end
 
 	if n%30 == 0 and globalScore then
+		
 		if scavteamhasplayers == false then
 			Spring.SetTeamResource(GaiaTeamID, "ms", 1000000)
 			Spring.SetTeamResource(GaiaTeamID, "es", 1000000)
@@ -354,8 +355,6 @@ function gadget:GameFrame(n)
 	end
 
 	if n%900 == 0 and n > 100 and FinalBossKilled == false then
-		teamsCheck()
-		UpdateTierChances(n)
 		if (BossWaveStarted == false) and globalScore > scavconfig.timers.BossFight and unitSpawnerModuleConfig.bossFightEnabled then
 			BossWaveStarted = true
 		elseif not FinalBossUnitSpawned and not BossWaveStarted then
@@ -363,13 +362,13 @@ function gadget:GameFrame(n)
 				if globalScore == 0 then globalScore = 1 end
 				if scavconfig.timers.BossFight == 0 then scavconfig.timers.BossFight = 1 end
 				if globalScore/scavconfig.timers.BossFight < 1 then
-					ScavSendMessage("Scavengers Tech: "..math.ceil((globalScore/scavconfig.timers.BossFight)*100).."%")
+					--ScavSendMessage("Scavengers Tech: "..math.ceil((globalScore/scavconfig.timers.BossFight)*100).."%")
 					--ScavSendMessage("Scav Score: "..globalScore)
-					ScavSendMessage(TierSpawnChances.Message)
+					--ScavSendMessage(TierSpawnChances.Message)
 				else
-					ScavSendMessage("Scavengers Tech: 100%")
+					--ScavSendMessage("Scavengers Tech: 100%")
 					--ScavSendMessage("Score: "..globalScore)
-					ScavSendMessage(TierSpawnChances.Message)
+					--ScavSendMessage(TierSpawnChances.Message)
 				end
 			end
 		end
@@ -388,6 +387,8 @@ function gadget:GameFrame(n)
 			scavengerGamePhase = "action"
 		end
 		if globalScore then
+			teamsCheck()
+			UpdateTierChances(n)
 			collectScavStats()
 		end
 		if scavconfig.modules.unitSpawnerModule and FinalBossKilled == false then --and (not FinalBossUnitSpawned) then
@@ -472,7 +473,7 @@ function gadget:GameFrame(n)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	local unitName = UnitDefs[unitDefID].name
 	if unitTeam ~= GaiaTeamID and unitEnteredTeam == GaiaTeamID then
 		MasterMindTargetListTargetSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
@@ -484,8 +485,6 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		if scavengerGamePhase == "initial" and (not scavConverted[unitID]) then
 			initialPhaseCountdown = initialPhaseCountdown + 1
 		end
-		scavStatsScavUnits = scavStatsScavUnits-1
-		scavStatsScavUnitsKilled = scavStatsScavUnitsKilled+1
 
 		if FinalBossUnitSpawned == true then
 			for i = 1,#bossUnitList.Bosses do
@@ -495,6 +494,11 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 				end
 			end
 		end
+
+		if attackerID and unitTeam == GaiaTeamID and attackerTeam ~= GaiaTeamID then
+			scavStatsScavUnitsKilled = scavStatsScavUnitsKilled + 1
+		end
+
 
 		killedscavengers = killedscavengers + scavconfig.scoreConfig.baseScorePerKill
 		if scavStructure[unitID] and not unitName == "scavengerdroppod_scav" and not unitName == "scavengerdroppodbeacon_scav"  then
@@ -573,7 +577,6 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 		MasterMindTargetListTargetGone(unitID, unitTeam, unitEnteredTeam, unitDefID)
 	end
 	if unitOldTeam == GaiaTeamID then
-		scavStatsScavUnits = scavStatsScavUnits-1
 		--AliveEnemyCommanders
 		if constructorUnitList.PlayerCommandersID[unitDefID] then
 			AliveEnemyCommandersCount = AliveEnemyCommandersCount + 1
@@ -647,7 +650,6 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 			if scavengerGamePhase == "initial" and (not scavConverted[unitID]) then
 				initialPhaseCountdown = initialPhaseCountdown + 1
 			end
-			scavStatsScavUnits = scavStatsScavUnits+1
 			for i = 1,#AliveEnemyCommanders do
 				local comID = AliveEnemyCommanders[i]
 				if unitID == comID then
@@ -800,7 +802,6 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 	end
 	if unitTeam == GaiaTeamID then
-		scavStatsScavUnits = scavStatsScavUnits+1
 		if (UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or scavNoSelfD[unitID]) and (unitName ~= "scavengerdroppodbeacon_scav") then
 			BaseCleanupQueue[#BaseCleanupQueue+1] = unitID 
 		end

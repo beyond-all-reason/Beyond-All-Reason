@@ -60,6 +60,12 @@ local allowUnready = false	-- not enabled cause unreadying doesnt work
 
 local numPlayers = Spring.Utilities.GetPlayerCount()
 
+local shapeOpacity = 0.6
+local unitshapes = {}
+local teamStartPositions = {}
+local buildQueueShapes = {}
+local teamList = Spring.GetTeamList()
+
 local function createButton()
 	local color = { 0.15, 0.15, 0.15 }
 	if not mySpec then
@@ -290,11 +296,54 @@ function widget:DrawScreen()
 	end
 end
 
+local function removeUnitShape(id)
+	if unitshapes[id] then
+		WG.StopDrawUnitShapeGL4(unitshapes[id])
+		unitshapes[id] = nil
+	end
+end
+
+local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID, opacity)
+	opacity = opacity or shapeOpacity
+	if unitshapes[id] then
+		removeUnitShape(id)
+	end
+	unitshapes[id] = WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, opacity, teamID, nil, nil)
+	return unitshapes[id]
+end
+
+function widget:DrawWorld()
+	if not WG.StopDrawUnitShapeGL4 then return end
+
+	-- draw pregamestart commander models at start positions
+	local id
+	for i = 1, #teamList do
+		local teamID = teamList[i]
+		local tsx, tsy, tsz = Spring.GetTeamStartPosition(teamID)
+		if tsx and tsx > 0 then
+			local startUnitDefID = Spring.GetTeamRulesParam(teamID, 'startUnit')
+			if startUnitDefID then
+				id = startUnitDefID..'_'..tsx..'_'..Spring.GetGroundHeight(tsx, tsz)..'_'..tsz
+				if teamStartPositions[teamID] ~= id then
+					removeUnitShape(teamStartPositions[teamID])
+					teamStartPositions[teamID] = id
+					addUnitShape(id, startUnitDefID, tsx, Spring.GetGroundHeight(tsx, tsz), tsz, 0, teamID, 1)
+				end
+			end
+		end
+	end
+end
+
 function widget:Shutdown()
 	gl.DeleteList(buttonList)
 	gl.DeleteList(buttonHoverList)
 	gl.DeleteFont(font)
 	if WG['guishader'] then
 		WG['guishader'].RemoveRect('pregameui')
+	end
+	if WG.StopDrawUnitShapeGL4 then
+		for id, _ in pairs(unitshapes) do
+			removeUnitShape(id)
+		end
 	end
 end
