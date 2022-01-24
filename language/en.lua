@@ -110,12 +110,12 @@ return {
 		madechanges = "made changes that require restart",
 		group = {
 			graphics = 'Graphics',
-			colors = 'Colors',
 			interface = 'Interface',
 			game = 'Game',
 			control = 'Control',
 			audio = 'Audio',
 			notifications = 'Notifications',
+			accessibility = 'Accessibility',
 			dev = 'Dev',
 		},
 		option = {
@@ -333,6 +333,7 @@ return {
 			sameteamcolors = 'team colorisation',
 			sameteamcolors_descr = 'Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors',
 			playercolors = 'Simple Team Colors',
+			label_teamcolors = 'Teamcolors',
 			simpleteamcolors = 'simple',
 			simpleteamcolors_reset = "Reset (Restart to reset sliders)",
 			simpleteamcolors_player_r = 'Player Red',
