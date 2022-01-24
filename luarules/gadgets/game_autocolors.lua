@@ -403,10 +403,23 @@ local function updateTeamColors()
         
         if iconDevModeColor then
             spSetTeamColor(teamID, hex2RGB(iconDevModeColor)[1]/255, hex2RGB(iconDevModeColor)[2]/255, hex2RGB(iconDevModeColor)[3]/255)
-        elseif anonymousMode then
+        elseif Spring.GetConfigInt("SimpleTeamColors", 0) == 1 or anonymousMode then
             local _, leader, isDead, isAiTeam, side, allyTeamID, incomeMultiplier, customTeamKeys = spGetTeamInfo(teamID)
-            if allyTeamID == myAllyTeamID or spGetSpectatingState() then
-                spSetTeamColor(teamID, r, g, b)
+            if teamID == myTeamID then
+                spSetTeamColor(teamID, 
+                Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0)/255, 
+                Spring.GetConfigInt("SimpleTeamColorsPlayerG", 77)/255, 
+                Spring.GetConfigInt("SimpleTeamColorsPlayerB", 255)/255)
+            elseif allyTeamID == myAllyTeamID then
+                spSetTeamColor(teamID, 
+                Spring.GetConfigInt("SimpleTeamColorsAllyR", 0)/255, 
+                Spring.GetConfigInt("SimpleTeamColorsAllyG", 255)/255, 
+                Spring.GetConfigInt("SimpleTeamColorsAllyB", 0)/255)
+            elseif allyTeamID ~= myAllyTeamID and teamID ~= spGetGaiaTeamID then
+                spSetTeamColor(teamID, 
+                Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255)/255, 
+                Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16)/255, 
+                Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)/255)
             else
                 spSetTeamColor(teamID, hex2RGB(gaiaGrayColor)[1]/255, hex2RGB(gaiaGrayColor)[2]/255, hex2RGB(gaiaGrayColor)[3]/255)
             end
@@ -421,5 +434,9 @@ updateTeamColors()
 function gadget:Update()
     if math.random(0,60) == 0 then
         updateTeamColors()
+    elseif Spring.GetConfigInt("UpdateTeamColors", 0) == 1 then
+        updateTeamColors()
+        Spring.SetConfigInt("UpdateTeamColors", 0)
+        Spring.SetConfigInt("SimpleTeamColors_Reset", 0)
     end
 end
