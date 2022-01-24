@@ -144,7 +144,7 @@ return {
 				soundhit = "SabotHit",
 				soundhitwet = "splshbig",
 				soundstart = "SabotFire",
-				soundstartvolume = 8,
+				soundstartvolume = 9,
 				thickness = 2,
 				tolerance = 6000,
 				turret = true,
