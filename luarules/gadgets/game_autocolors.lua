@@ -403,7 +403,7 @@ local function updateTeamColors()
         
         if iconDevModeColor then
             spSetTeamColor(teamID, hex2RGB(iconDevModeColor)[1]/255, hex2RGB(iconDevModeColor)[2]/255, hex2RGB(iconDevModeColor)[3]/255)
-        elseif Spring.GetConfigInt("SimpleTeamColors", 0) == 1 or anonymousMode then
+        elseif Spring.GetConfigInt("SimpleTeamColors", 0) == 1 or (anonymousMode and not spGetSpectatingState()) then
             local _, leader, isDead, isAiTeam, side, allyTeamID, incomeMultiplier, customTeamKeys = spGetTeamInfo(teamID)
             if teamID == myTeamID then
                 spSetTeamColor(teamID, 
