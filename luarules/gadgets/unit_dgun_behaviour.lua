@@ -1,10 +1,12 @@
+local enabled = Spring.GetModOptions().newdgun
+
 function gadget:GetInfo()
 	return {
 		name = "D-Gun Behaviour",
 		desc = "Alters D-Gun projectile behaviour, deterministic damage against Commanders",
 		author = "Anarchid, Sprung",
 		layer = 0,
-		enabled = true
+		enabled = enabled
 	}
 end
 
