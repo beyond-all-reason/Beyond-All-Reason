@@ -787,18 +787,12 @@ function buildFacingHandler(_, _, args)
 
 	local facing = Spring.GetBuildFacing()
 	if args and args[1] == "inc" then
-		facing = facing + 1
-		if facing > 3 then
-			facing = 0
-		end
+		facing = (facing + 1) % 4
 		Spring.SetBuildFacing(facing)
 
 		return true
 	elseif args and args[1] == "dec" then
-		facing = facing - 1
-		if facing < 0 then
-			facing = 3
-		end
+		facing = (facing - 1) % 4
 		Spring.SetBuildFacing(facing)
 
 		return true
@@ -1539,7 +1533,7 @@ local function DrawBuilding(buildData, borderColor, buildingAlpha, drawRanges)
 
 	if WG.StopDrawUnitShapeGL4 then
 		local id = buildData[1]..'_'..buildData[2]..'_'..buildData[3]..'_'..buildData[4]..'_'..buildData[5]
-		addUnitShape(id, buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]*math.pi, myTeamID)
+		addUnitShape(id, buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]*(math.pi/2), myTeamID)
 	end
 end
 
