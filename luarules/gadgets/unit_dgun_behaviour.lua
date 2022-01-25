@@ -82,6 +82,7 @@ end
 function gadget:Initialize()
 	for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 		if weaponDef.type == 'DGun' then
+			Script.SetWatchProjectile(weaponDefID, true)
 			isDGun[weaponDefID] = true
 		end
 	end
