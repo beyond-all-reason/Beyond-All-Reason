@@ -73,7 +73,7 @@ return {
 				footprintz = 2,
 				height = 20,
 				hitdensity = 100,
-				metal = 50,
+				metal = 40,
 				object = "Units/scavboss/leghades_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
