@@ -139,7 +139,7 @@ return {
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 3,
 				range = 550,
-				reloadtime = 5,
+				reloadtime = 6,
 				rgbcolor = "0.8 0.4 1",
 				soundhit = "SabotHit",
 				soundhitwet = "splshbig",
