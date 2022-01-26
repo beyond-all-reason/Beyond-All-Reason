@@ -33,26 +33,30 @@ function gadget:ProjectileDestroyed(proID)
 end
 
 function gadget:GameFrame()
-	for proID in pairs (flyingDGuns) do
-		local x, y, z = Spring.GetProjectilePosition (proID)
-		local h = Spring.GetGroundHeight (x, z)
+	for proID in pairs(flyingDGuns) do
+		local x, y, z = Spring.GetProjectilePosition(proID)
+		local h = Spring.GetGroundHeight(x, z)
+
 		if y < h + 1 then -- assume ground collision
+			-- normalize horizontal velocity
+			local dx, _, dz, speed = Spring.GetProjectileVelocity(proID)
+			local norm = speed / math.sqrt(dx^2 + dz^2)
+			local ndx = dx * norm
+			local ndz = dz * norm
+			Spring.SetProjectileVelocity(proID, ndx, 0, ndz)
+
 			groundedDGuns[proID] = true
-			flyingDGuns[proID] = false
+			flyingDGuns[proID] = nil
 		end
 	end
 
-	for proID in pairs (groundedDGuns) do
-		local x, y, z = Spring.GetProjectilePosition (proID)
-		local h = Spring.GetGroundHeight (x, z)
-		Spring.SetProjectilePosition (x, h, z)
-
-		-- normalize horizontal velocity
-		local dx, _, dz, speed = Spring.GetProjectileVelocity (proID)
-		local norm = speed / (dx^2 + dz^2)
-		local ndx = dx^2 * norm
-		local ndz = dz^2 * norm
-		Spring.SetProjectileVelocity (ndx, 0, ndz)
+	for proID in pairs(groundedDGuns) do
+		local x, y, z = Spring.GetProjectilePosition(proID)
+		local h = Spring.GetGroundHeight(x, z)
+		local weaponDefID = Spring.GetProjectileDefID(proID)
+		local size = WeaponDefs[weaponDefID].size
+		-- Projectile needs to be 2*effect size underground to leave nice fiery trail
+		Spring.SetProjectilePosition(proID, x, h - 2 * size, z)
 
 		-- NB: no removal; do this every frame so that
 		-- it doesn't fly off a cliff or something
@@ -62,14 +66,13 @@ end
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if isDGun[weaponDefID] then
 		if isCommander[unitDefID] and isCommander[attackerDefID] then
-			local armorClass = UnitDefs[unitDefID].armorType
-			local dgunFixedDamage = WeaponDefs[weaponDefID].damages[armorClass]
-
 			damagedUnits[projectileID] = damagedUnits[projectileID] or {}
 
 			if damagedUnits[projectileID][unitID] then
 				return 0
 			else
+				local armorClass = UnitDefs[unitDefID].armorType
+				local dgunFixedDamage = WeaponDefs[weaponDefID].damages[armorClass]
 				damagedUnits[projectileID][unitID] = true
 				return dgunFixedDamage
 			end
