@@ -85,37 +85,30 @@ end
 
 function UnitDef_Post(name, uDef)
 	if Spring.GetModOptions().newdgun then
-		if name == 'armcom' or name == 'corcom' then
+		if name == 'armcom' or name == 'corcom' or name == 'armcomcon' or name == 'corcomcon' then
 			uDef.weapondefs.disintegrator = {
-				areaofeffect = 100,
-				avoidGround = false,
-				avoidFriendly = false,
-				avoidFeature = false,
-				avoidNeutral = false,
-				collideEnemy = false,
-				collideFriendly = false,
-				collideFeature = false,
-				collideGround = false,
-				collideNeutral = false,
-				burnblow = true, --this fixes passing through the targeted unit and missing
+				areaofeffect = 36,
+				avoidfeature = false,
+				avoidfriendly = false,
+				avoidground = false,
 				bouncerebound = 0,
 				cegtag = "dgunprojectile",
 				commandfire = true,
 				craterboost = 0,
-				cratermult = 0.15,
-				edgeeffectiveness = 0.75,
+				cratermult = 0.05,
+				edgeeffectiveness = 1,
 				energypershot = 500,
-				explosiongenerator = "custom:genericshellexplosion-large-aoe",
+				explosiongenerator = "custom:expldgun",
 				firestarter = 100,
 				firesubmersed = false,
+				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Disintegrator",
-				noexplode = false,
+				noexplode = true,
 				noselfdamage = true,
 				range = 250,
-				reloadtime = 3,
-				size = 8,
+				reloadtime = 0.9,
 				soundhit = "xplomas2",
 				soundhitwet = "sizzle",
 				soundstart = "disigun1",
@@ -125,8 +118,9 @@ function UnitDef_Post(name, uDef)
 				tolerance = 20000,
 				turret = true,
 				waterweapon = true,
-				weapontype = "Cannon",
-				weaponvelocity = 600,
+				weapontimer = 4.2,
+				weapontype = "DGun",
+				weaponvelocity = 300,
 				customparams = {
 					expl_light_heat_radius = 12,
 					expl_light_opacity = 0.32,
@@ -134,10 +128,9 @@ function UnitDef_Post(name, uDef)
 					expl_light_color = "1 0.83 0.53",
 				},
 				damage = {
-					default = 1000000,
+					default = 99999,
+					commanders = 600,
 					scavboss = 1000,
-					armcom = 500,
-					corcom = 500,
 				},
 			}
 		end

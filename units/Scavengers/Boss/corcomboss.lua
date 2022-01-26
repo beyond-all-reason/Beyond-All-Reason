@@ -66,7 +66,6 @@ return {
 		customparams = {
 			unitgroup = 'buildert4',
 			area_mex_def = "cormex",
-			--iscommander = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.01,
