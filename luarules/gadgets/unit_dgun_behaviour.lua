@@ -3,7 +3,7 @@ local enabled = Spring.GetModOptions().newdgun
 function gadget:GetInfo()
 	return {
 		name = "D-Gun Behaviour",
-		desc = "Alters D-Gun projectile behaviour, deterministic damage against Commanders",
+		desc = "D-Gun projectiles hug ground, deterministic damage against Commanders",
 		author = "Anarchid, Sprung",
 		layer = 0,
 		enabled = enabled
@@ -55,7 +55,7 @@ function gadget:GameFrame()
 		local h = Spring.GetGroundHeight(x, z)
 		local weaponDefID = Spring.GetProjectileDefID(proID)
 		local size = WeaponDefs[weaponDefID].size
-		-- Projectile needs to be 2*effect size underground to leave nice fiery trail
+		-- Projectile placed 2x effect size underground to leave nice fiery trail
 		Spring.SetProjectilePosition(proID, x, h - 2 * size, z)
 
 		-- NB: no removal; do this every frame so that
@@ -64,18 +64,16 @@ function gadget:GameFrame()
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if isDGun[weaponDefID] then
-		if isCommander[unitDefID] and isCommander[attackerDefID] then
-			damagedUnits[projectileID] = damagedUnits[projectileID] or {}
+	if isDGun[weaponDefID] and isCommander[unitDefID] and isCommander[attackerDefID] then
+		damagedUnits[projectileID] = damagedUnits[projectileID] or {}
 
-			if damagedUnits[projectileID][unitID] then
-				return 0
-			else
-				local armorClass = UnitDefs[unitDefID].armorType
-				local dgunFixedDamage = WeaponDefs[weaponDefID].damages[armorClass]
-				damagedUnits[projectileID][unitID] = true
-				return dgunFixedDamage
-			end
+		if damagedUnits[projectileID][unitID] then
+			return 0
+		else
+			local armorClass = UnitDefs[unitDefID].armorType
+			local dgunFixedDamage = WeaponDefs[weaponDefID].damages[armorClass]
+			damagedUnits[projectileID][unitID] = true
+			return dgunFixedDamage
 		end
 	end
 
