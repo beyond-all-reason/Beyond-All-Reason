@@ -24,7 +24,7 @@ if not gadgetHandler:IsSyncedCode() then
 
 	if Spring.IsReplay() then return end
 
-	local debug = select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) == '[teh]Flow'
+	local DEBUG = select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) == '[teh]Flow'
 
 	local gameFramesPerSecond = 30	-- engine constant
 	local pingCutoff = 1500	-- players with higher ping wont participate in sending unit positions log
@@ -121,7 +121,7 @@ if not gadgetHandler:IsSyncedCode() then
 			end
 			if noParts then
 				log[frame] = nil
-				if debug and (attempts ~= '1' or part > tonumber(numParts)) then
+				if DEBUG and (attempts ~= '1' or part > tonumber(numParts)) then
 					Spring.Echo('UNITLOG: "all received": frame:'..frame..' part:'..part..' parts:'..numParts..' attempts:'..attempts)
 				end
 			end
@@ -162,7 +162,7 @@ if not gadgetHandler:IsSyncedCode() then
 			if log[frame] then
 				log[frame].attempts = log[frame].attempts + 1
 				if log[frame].attempts > #log[frame].participants then	-- this should not happen... if so, something went wrong because we tried resending by all other participants already
-					if debug then
+					if DEBUG then
 						local missingParts, missingUnits = 0, 0
 						for p, part in pairs(log[frame].parts) do
 							missingParts = missingParts + 1
@@ -203,7 +203,7 @@ if not gadgetHandler:IsSyncedCode() then
 			-- cleanup incomplete old frames in case this has happened for some reason
 			for frame, params in pairs(log) do
 				if frame < gf-maxLogMemoryDuration then
-					if debug then
+					if DEBUG then
 						local missingParts, missingUnits = 0, 0
 						for p, part in pairs(log[frame].parts) do
 							missingParts = missingParts + 1
