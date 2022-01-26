@@ -1,6 +1,6 @@
 function widget:GetInfo()
   return {
-    name      = "HighlightUnit GL4",
+    name      = "HighlightUnit API GL4",
     version   = "v0.2",
     desc      = "Highlight any unit, feature, unitDef or FeatureDef via WG.HighlightUnitGL4",
     author    = "Beherith,ivand",
