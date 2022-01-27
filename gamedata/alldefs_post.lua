@@ -666,7 +666,7 @@ function WeaponDef_Post(name, wDef)
 		if name == 'commanderexplosion' then
 			wDef.damage = {
 				default = 50000,
-				commanders = 1000,
+				commanders = 2000,
 			}
 		end
 	end
