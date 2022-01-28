@@ -63,7 +63,6 @@ local numPlayers = Spring.Utilities.GetPlayerCount()
 local shapeOpacity = 0.6
 local unitshapes = {}
 local teamStartPositions = {}
-local buildQueueShapes = {}
 local teamList = Spring.GetTeamList()
 
 local function createButton()
@@ -237,7 +236,7 @@ end
 
 function widget:DrawScreen()
 	if isReplay then
-		return
+		widgetHandler:RemoveWidget()
 	end
 	if not startPointChosen then
 		checkStartPointChosen()
@@ -292,7 +291,6 @@ function widget:DrawScreen()
 
 	if Spring.GetGameFrame() > 0 then
 		widgetHandler:RemoveWidget()
-		return
 	end
 end
 
@@ -313,7 +311,7 @@ local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID, opacit
 end
 
 function widget:DrawWorld()
-	if not WG.StopDrawUnitShapeGL4 then return end
+	if not WG.StopDrawUnitShapeGL4 or Spring.GetGameFrame() > 0 then return end
 
 	-- draw pregamestart commander models at start positions
 	local id
