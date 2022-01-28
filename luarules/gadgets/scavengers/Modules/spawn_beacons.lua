@@ -9,7 +9,7 @@ local xtable = {{-128, -64, -128}, {128, 64, 128}, {-128, -64, 0}, {128, 64, 0}}
 local ztable = {{-128, -64, 0}, {-128, -64, 0}, {128, 64, -128}, {-128, -64, 128}}
 
 local function countScavCommanders()
-	return Spring.GetTeamUnitDefCount(GaiaTeamID, UnitDefNames.corcom_scav.id) + Spring.GetTeamUnitDefCount(GaiaTeamID, UnitDefNames.armcom_scav.id)
+	return Spring.GetTeamUnitDefCount(ScavengerTeamID, UnitDefNames.corcom_scav.id) + Spring.GetTeamUnitDefCount(ScavengerTeamID, UnitDefNames.armcom_scav.id)
 end
 
 function SpawnBeacon(n)
@@ -62,8 +62,8 @@ function SpawnBeacon(n)
 				
 				if canSpawnBeaconHere then
 					BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
-					QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+1, false)
-					QueueSpawn("scavengerdroppodbeacon_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+150, false)
+					QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, n+1, false)
+					QueueSpawn("scavengerdroppodbeacon_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, n+150, false)
 					local spawnTier = math_random(1,100)
 					if spawnTier <= TierSpawnChances.T0 then
 						grouptier = landUnitList.T0
@@ -100,21 +100,21 @@ function SpawnBeacon(n)
 									local rx = posx+xtable[y][1]+math.random(-64,64)
 									local rz = posz+ztable[y][1]+math.random(-64,64)
 									if Spring.GetGroundHeight(rx, rz) > -20 then
-										QueueSpawn(grouptier[math_random(1,#grouptier)], rx, posy, rz, math_random(0,3),GaiaTeamID, n+150, false)
+										QueueSpawn(grouptier[math_random(1,#grouptier)], rx, posy, rz, math_random(0,3),ScavengerTeamID, n+150, false)
 									else
-										QueueSpawn(grouptiersea[math_random(1,#grouptiersea)], rx, posy, rz, math_random(0,3),GaiaTeamID, n+150, false)
+										QueueSpawn(grouptiersea[math_random(1,#grouptiersea)], rx, posy, rz, math_random(0,3),ScavengerTeamID, n+150, false)
 									end
-									Spring.CreateUnit("scavengerdroppod_scav", rx, posy, rz, math_random(0,3),GaiaTeamID)
+									Spring.CreateUnit("scavengerdroppod_scav", rx, posy, rz, math_random(0,3),ScavengerTeamID)
 								end
 								if math.random(0,3) == 0 or scavengerGamePhase ~= "initial" then
 									local rx = posx+xtable[y][2]+math.random(-64,64)
 									local rz = posz+ztable[y][2]+math.random(-64,64)
 									if Spring.GetGroundHeight(rx, rz) > -20 then
-										QueueSpawn(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], rx, posy, rz, math_random(0,3),GaiaTeamID, n+150, false)
+										QueueSpawn(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], rx, posy, rz, math_random(0,3),ScavengerTeamID, n+150, false)
 									else
-										QueueSpawn(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], rx, posy, rz, math_random(0,3),GaiaTeamID, n+150, false)
+										QueueSpawn(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], rx, posy, rz, math_random(0,3),ScavengerTeamID, n+150, false)
 									end
-									Spring.CreateUnit("scavengerdroppod_scav", rx, posy, rz, math_random(0,3),GaiaTeamID)
+									Spring.CreateUnit("scavengerdroppod_scav", rx, posy, rz, math_random(0,3),ScavengerTeamID)
 								end
 							end
 						end
@@ -123,7 +123,7 @@ function SpawnBeacon(n)
 
 					if scavengerGamePhase ~= "initial" then
 						if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors then
-							-- local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
+							-- local unitCount = Spring.GetTeamUnitCount(ScavengerTeamID)
 							-- local unitCountBuffer = scavMaxUnits*0.5
 							-- if not (unitCount + unitCountBuffer >= scavMaxUnits) then 
 							local neededcommanders = constructorControllerModuleConfig.minimumconstructors - countScavCommanders()
@@ -133,8 +133,8 @@ function SpawnBeacon(n)
 									local posx = posx+math.random(-128,128)
 									local posz = posz+math.random(-128,128)
 									local posy = Spring.GetGroundHeight(posx, posz)
-									QueueSpawn(constructor, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + 150)
-									Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
+									QueueSpawn(constructor, posx, posy, posz, math.random(0, 3), ScavengerTeamID, n + 150)
+									Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID)
 								end
 							end
 						end
@@ -171,12 +171,12 @@ function SpawnBeacon(n)
 								local rz = posz+ztable[y][3]
 								if Spring.GetGroundHeight(rx, rz) > -20 then
 									local turret = grouptier[math_random(1,#grouptier)]
-									QueueSpawn(turret, rx, posy, rz, math_random(0,3),GaiaTeamID, n+150, false)
+									QueueSpawn(turret, rx, posy, rz, math_random(0,3),ScavengerTeamID, n+150, false)
 								else
 									local turretSea = grouptiersea[math_random(1,#grouptiersea)]
-									QueueSpawn(turretSea, rx, posy, rz, math_random(0,3),GaiaTeamID, n+150, false)
+									QueueSpawn(turretSea, rx, posy, rz, math_random(0,3),ScavengerTeamID, n+150, false)
 								end
-								Spring.CreateUnit("scavengerdroppod_scav", rx, posy, rz, math_random(0,3),GaiaTeamID)
+								Spring.CreateUnit("scavengerdroppod_scav", rx, posy, rz, math_random(0,3),ScavengerTeamID)
 							end
 						end
 						grouptier = nil

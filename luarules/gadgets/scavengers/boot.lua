@@ -183,7 +183,7 @@ function DestroyFromQueue(n)
 end
 
 function DestroyOldBuildings()
-	local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
+	local unitCount = Spring.GetTeamUnitCount(ScavengerTeamID)
 	local unitCountBuffer = scavMaxUnits*0.1
 	if unitCount + unitCountBuffer > scavMaxUnits then 
 		for i = 1,((unitCount + unitCountBuffer)-scavMaxUnits) do
@@ -206,7 +206,7 @@ end
 		-- local player = players[i]
 		-- local name, active, spectator = Spring.GetPlayerInfo(player)
 		-- if spectator == true then
-			-- Spring.AssignPlayerToTeam(player, GaiaTeamID)
+			-- Spring.AssignPlayerToTeam(player, ScavengerTeamID)
 		-- end
 	-- end
 -- end
@@ -216,8 +216,8 @@ function PutScavAlliesInScavTeam(n)
 	for i = 1,#players do
 		local player = players[i]
 		local name, active, spectator, teamID, allyTeamID = Spring.GetPlayerInfo(player)
-		if allyTeamID == GaiaAllyTeamID and (not spectator) then
-			Spring.AssignPlayerToTeam(player, GaiaTeamID)
+		if allyTeamID == ScavengerAllyTeamID and (not spectator) then
+			Spring.AssignPlayerToTeam(player, ScavengerTeamID)
 			local units = Spring.GetTeamUnits(teamID)
 			for u = 1,#units do
 				scavteamhasplayers = true
@@ -228,11 +228,11 @@ function PutScavAlliesInScavTeam(n)
 		end
 	end
 
-	local scavAllies = Spring.GetTeamList(GaiaAllyTeamID)
+	local scavAllies = Spring.GetTeamList(ScavengerAllyTeamID)
 	for i = 1,#scavAllies do
 		local _,_,_,AI = Spring.GetTeamInfo(scavAllies[i])
 		local LuaAI = Spring.GetTeamLuaAI(scavAllies[i])
-		if (AI or LuaAI) and scavAllies[i] ~= GaiaTeamID then
+		if (AI or LuaAI) and scavAllies[i] ~= ScavengerTeamID then
 			local units = Spring.GetTeamUnits(scavAllies[i])
 			for u = 1,#units do
 				--scavteamhasplayers = true
@@ -268,7 +268,7 @@ function gadget:GameFrame(n)
 
 	if n == 300 then
 		--Spring.Echo("New Scavenger Spawner initialized")
-		Spring.SetTeamColor(GaiaTeamID, 0.38, 0.14, 0.38)
+		Spring.SetTeamColor(ScavengerTeamID, 0.38, 0.14, 0.38)
 	end
 
 	if n%30 == 0 and scavconfig.messenger == true then
@@ -317,7 +317,7 @@ function gadget:GameFrame(n)
 		ReinforcementsMoveOrder(n)
 	end
 
-	if n%30 == 0 and GaiaTeamID ~= Spring.GetGaiaTeamID() then
+	if n%30 == 0 and ScavengerTeamID ~= Spring.GetGaiaTeamID() then
 		if not disabledCommander then
 			DisableCommander()
 			disabledCommander = true
@@ -327,24 +327,24 @@ function gadget:GameFrame(n)
 
 	if n == 100 and globalScore then
 		if scavteamhasplayers == false then
-			Spring.SetTeamResource(GaiaTeamID, "ms", 1000000)
-			Spring.SetTeamResource(GaiaTeamID, "es", 1000000)
+			Spring.SetTeamResource(ScavengerTeamID, "ms", 1000000)
+			Spring.SetTeamResource(ScavengerTeamID, "es", 1000000)
 		end
-		Spring.SetGlobalLos(GaiaAllyTeamID, false)
+		Spring.SetGlobalLos(ScavengerAllyTeamID, false)
 	end
 
 	if n%30 == 0 and globalScore then
 		
 		if scavteamhasplayers == false then
-			Spring.SetTeamResource(GaiaTeamID, "ms", 1000000)
-			Spring.SetTeamResource(GaiaTeamID, "es", 1000000)
-			Spring.SetTeamResource(GaiaTeamID, "m", 1000000)
-			Spring.SetTeamResource(GaiaTeamID, "e", 1000000)
+			Spring.SetTeamResource(ScavengerTeamID, "ms", 1000000)
+			Spring.SetTeamResource(ScavengerTeamID, "es", 1000000)
+			Spring.SetTeamResource(ScavengerTeamID, "m", 1000000)
+			Spring.SetTeamResource(ScavengerTeamID, "e", 1000000)
 		end
 		if BossWaveStarted == true then
 			BossWaveTimer(n)
 		end
-		local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
+		local scavUnits = Spring.GetTeamUnits(ScavengerTeamID)
 		local scavUnitsCount = #scavUnits
 		if (scavUnitsCount < (unitSpawnerModuleConfig.minimumspawnbeacons*4) or numOfSpawnBeacons == 0) and n > scavconfig.gracePeriod*3 then 
 			killedscavengers = killedscavengers + 1000
@@ -398,7 +398,7 @@ function gadget:GameFrame(n)
 		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors and scavengerGamePhase ~= "initial" then
 			constructorController.SpawnConstructor(n)
 		end
-		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
+		local scavengerunits = Spring.GetTeamUnits(ScavengerTeamID)
 		if scavengerunits and scavengerGamePhase ~= "initial" then
 			for _, scav in ipairs(scavengerunits) do
 				local scavDef = Spring.GetUnitDefID(scav)
@@ -475,13 +475,13 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	local unitName = UnitDefs[unitDefID].name
-	if unitTeam ~= GaiaTeamID and unitEnteredTeam == GaiaTeamID then
+	if unitTeam ~= ScavengerTeamID and unitEnteredTeam == ScavengerTeamID then
 		MasterMindTargetListTargetSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
 	end
 	-- if unitName == "armassistdrone" or unitName == "corassistdrone" then
 	-- 	constructorController.AssistDroneRespawn(unitID, unitName)
 	-- end
-	if unitTeam == GaiaTeamID then
+	if unitTeam == ScavengerTeamID then
 		if scavengerGamePhase == "initial" and (not scavConverted[unitID]) then
 			initialPhaseCountdown = initialPhaseCountdown + 1
 		end
@@ -495,7 +495,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 			end
 		end
 
-		if attackerID and unitTeam == GaiaTeamID and attackerTeam ~= GaiaTeamID then
+		if attackerID and unitTeam == ScavengerTeamID and attackerTeam ~= ScavengerTeamID then
 			scavStatsScavUnitsKilled = scavStatsScavUnitsKilled + 1
 		end
 
@@ -573,10 +573,10 @@ end
 
 function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 	local unitName = UnitDefs[unitDefID].name
-	if unitNewTeam == GaiaTeamID and unitOldTeam ~= GaiaTeamID then
+	if unitNewTeam == ScavengerTeamID and unitOldTeam ~= ScavengerTeamID then
 		MasterMindTargetListTargetGone(unitID, unitTeam, unitEnteredTeam, unitDefID)
 	end
-	if unitOldTeam == GaiaTeamID then
+	if unitOldTeam == ScavengerTeamID then
 		--AliveEnemyCommanders
 		if constructorUnitList.PlayerCommandersID[unitDefID] then
 			AliveEnemyCommandersCount = AliveEnemyCommandersCount + 1
@@ -646,7 +646,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 		CaptureProgressForBeacons[unitID] = nil
 		Spring.SetUnitHealth(unitID, {capture = 0})
 	else
-		if unitNewTeam == GaiaTeamID then
+		if unitNewTeam == ScavengerTeamID then
 			if scavengerGamePhase == "initial" and (not scavConverted[unitID]) then
 				initialPhaseCountdown = initialPhaseCountdown + 1
 			end
@@ -678,20 +678,20 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 						scavConverted[unitID] = true
 						if heading >= -24576 and heading < -8192 then -- west
 							-- 3
-							QueueSpawn(unitName..suffix, posx, posy, posz, 3 ,GaiaTeamID, frame+1)
-							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 3,GaiaTeamID)
+							QueueSpawn(unitName..suffix, posx, posy, posz, 3 ,ScavengerTeamID, frame+1)
+							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 3,ScavengerTeamID)
 						elseif heading >= -8192 and heading < 8192 then -- south
 							-- 0
-							QueueSpawn(unitName..suffix, posx, posy, posz, 0 ,GaiaTeamID, frame+1)
-							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 0,GaiaTeamID)
+							QueueSpawn(unitName..suffix, posx, posy, posz, 0 ,ScavengerTeamID, frame+1)
+							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 0,ScavengerTeamID)
 						elseif heading >= 8192 and heading < 24576 then -- east
 							-- 1
-							QueueSpawn(unitName..suffix, posx, posy, posz, 1 ,GaiaTeamID, frame+1)
-							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 1,GaiaTeamID)
+							QueueSpawn(unitName..suffix, posx, posy, posz, 1 ,ScavengerTeamID, frame+1)
+							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 1,ScavengerTeamID)
 						else -- north
 							-- 2
-							QueueSpawn(unitName..suffix, posx, posy, posz, 2 ,GaiaTeamID, frame+1)
-							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,GaiaTeamID)
+							QueueSpawn(unitName..suffix, posx, posy, posz, 2 ,ScavengerTeamID, frame+1)
+							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,ScavengerTeamID)
 						end
 						return
 					end
@@ -710,7 +710,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 				QueueDestroy(unitID, false, true, Spring.GetGameFrame()+1)
 				--Spring.DestroyUnit(unitID, false, true)
 				scavConverted[unitID] = true
-				QueueSpawn("corcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,GaiaTeamID, frame+1)
+				QueueSpawn("corcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,ScavengerTeamID, frame+1)
 				return
 			end
 			if unitName == "armcomcon"..scavconfig.unitnamesuffix then
@@ -719,7 +719,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 				QueueDestroy(unitID, false, true, Spring.GetGameFrame()+1)
 				--Spring.DestroyUnit(unitID, false, true)
 				scavConverted[unitID] = true
-				QueueSpawn("armcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,GaiaTeamID, frame+1)
+				QueueSpawn("armcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,ScavengerTeamID, frame+1)
 				return
 			end
 			-- CMD.CLOAK = 37382
@@ -801,7 +801,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if unitName == "scavengerdroppodfriendly" then
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 	end
-	if unitTeam == GaiaTeamID then
+	if unitTeam == ScavengerTeamID then
 		if (UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or scavNoSelfD[unitID]) and (unitName ~= "scavengerdroppodbeacon_scav") then
 			BaseCleanupQueue[#BaseCleanupQueue+1] = unitID 
 		end
@@ -823,20 +823,20 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					scavConverted[unitID] = true
 					if heading >= -24576 and heading < -8192 then -- west
 						-- 3
-						QueueSpawn(unitName..suffix, posx, posy, posz, 3 ,GaiaTeamID, frame+1)
-						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 3,GaiaTeamID)
+						QueueSpawn(unitName..suffix, posx, posy, posz, 3 ,ScavengerTeamID, frame+1)
+						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 3,ScavengerTeamID)
 					elseif heading >= -8192 and heading < 8192 then -- south
 						-- 0
-						QueueSpawn(unitName..suffix, posx, posy, posz, 0 ,GaiaTeamID, frame+1)
-						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 0,GaiaTeamID)
+						QueueSpawn(unitName..suffix, posx, posy, posz, 0 ,ScavengerTeamID, frame+1)
+						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 0,ScavengerTeamID)
 					elseif heading >= 8192 and heading < 24576 then -- east
 						-- 1
-						QueueSpawn(unitName..suffix, posx, posy, posz, 1 ,GaiaTeamID, frame+1)
-						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 1,GaiaTeamID)
+						QueueSpawn(unitName..suffix, posx, posy, posz, 1 ,ScavengerTeamID, frame+1)
+						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 1,ScavengerTeamID)
 					else -- north
 						-- 2
-						QueueSpawn(unitName..suffix, posx, posy, posz, 2 ,GaiaTeamID, frame+1)
-						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,GaiaTeamID)
+						QueueSpawn(unitName..suffix, posx, posy, posz, 2 ,ScavengerTeamID, frame+1)
+						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,ScavengerTeamID)
 					end
 					return
 				end
@@ -848,7 +848,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				Spring.SetUnitArmored(unitID, true , 1/(spawnmultiplier))
 				initialbosshealth = Spring.GetUnitHealth(unitID)
 
-				local stopScavUnits = Spring.GetTeamUnits(GaiaTeamID)
+				local stopScavUnits = Spring.GetTeamUnits(ScavengerTeamID)
 				for y = 1,#stopScavUnits do
 					local unitID = stopScavUnits[y]							
 					Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
@@ -987,7 +987,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if unitTeam == GaiaTeamID then
+	if unitTeam == ScavengerTeamID then
 		-- CMD.CLOAK = 37382
 		local UnitName = UnitDefs[unitDefID].name
 		if string.find(UnitName, scavconfig.unitnamesuffix) then
@@ -1025,7 +1025,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam)
-	if unitTeam == GaiaTeamID then
+	if unitTeam == ScavengerTeamID then
 		local unitName = UnitDefs[unitDefID].name
 		for i = 1,#bossUnitList.Bosses do
 			if unitName == bossUnitList.Bosses[i] then
@@ -1043,13 +1043,13 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	if unitTeam ~= GaiaTeamID and allyTeam == GaiaTeamID then
+	if unitTeam ~= ScavengerTeamID and allyTeam == ScavengerTeamID then
 		MasterMindTargetListTargetSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
 	end
 end
 
 function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
-	if unitTeam ~= GaiaTeamID and allyTeam == GaiaTeamID then
+	if unitTeam ~= ScavengerTeamID and allyTeam == ScavengerTeamID then
 		if UnitDefs[unitDefID].canMove == true then
 			MasterMindTargetListTargetGone(unitID, unitTeam, unitEnteredTeam, unitDefID)
 		end

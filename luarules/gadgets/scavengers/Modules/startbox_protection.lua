@@ -10,8 +10,8 @@ function spawnStartBoxProtection(n)
 			--ScavengerStartboxZMin
 			--ScavengerStartboxXMax
 			--ScavengerStartboxZMax
-			--GaiaTeamID
-			--GaiaAllyTeamID
+			--ScavengerTeamID
+			--ScavengerAllyTeamID
 			--posCheck(posx, posy, posz, posradius)
 			--posOccupied(posx, posy, posz, posradius)
 			--ScavSafeAreaMinX
@@ -89,8 +89,8 @@ function spawnStartBoxProtection(n)
 				end
 
 				if canSpawnDefence then
-					QueueSpawn(pickedTurret, spawnPosX, spawnPosY, spawnPosZ, spawnDirection,GaiaTeamID,n+150)
-					Spring.CreateUnit("scavengerdroppod_scav", spawnPosX, spawnPosY, spawnPosZ, spawnDirection,GaiaTeamID)
+					QueueSpawn(pickedTurret, spawnPosX, spawnPosY, spawnPosZ, spawnDirection,ScavengerTeamID,n+150)
+					Spring.CreateUnit("scavengerdroppod_scav", spawnPosX, spawnPosY, spawnPosZ, spawnDirection,ScavengerTeamID)
 				end
 			end
 			spawnPosX = nil
@@ -114,7 +114,7 @@ function executeStartBoxProtection(n)
 			local unitTeam = Spring.GetUnitTeam(unitID)
 			if unitTeam == Spring.GetGaiaTeamID() then
 				Spring.DestroyUnit(unitID, true, true)
-			elseif unitTeam ~= GaiaTeamID then
+			elseif unitTeam ~= ScavengerTeamID then
 				local currentHealth,maxHealth = Spring.GetUnitHealth(unitID)
 				local damage = maxHealth*(ScavSafeAreaDamage*0.01)
 				if damage < currentHealth then

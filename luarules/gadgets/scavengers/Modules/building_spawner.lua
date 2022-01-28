@@ -52,17 +52,17 @@ function SpawnBlueprint(n)
 
 			if canBuildHere then
 				for _, building in ipairs(blueprint.buildings) do
-					Spring.CreateUnit( building.unitDefID, posx + building.xOffset, posy, posz + building.zOffset, building.direction, GaiaTeamID, false, false)
+					Spring.CreateUnit( building.unitDefID, posx + building.xOffset, posy, posz + building.zOffset, building.direction, ScavengerTeamID, false, false)
 				end
 
-				Spring.CreateUnit("scavengerdroppod_scav", posx + radius, posy, posz, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx - radius, posy, posz, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz + radius, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz - radius, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx + radius, posy, posz + radius, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx - radius, posy, posz + radius, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx - radius, posy, posz - radius, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx + radius, posy, posz - radius, math.random(0, 3), GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx + radius, posy, posz, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx - radius, posy, posz, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz + radius, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz - radius, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx + radius, posy, posz + radius, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx - radius, posy, posz + radius, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx - radius, posy, posz - radius, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx + radius, posy, posz - radius, math.random(0, 3), ScavengerTeamID)
 				break
 			end
 		end

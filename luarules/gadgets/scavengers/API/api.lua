@@ -4,7 +4,7 @@ math_random = math.random
 -- variables
 mapsizeX = Game.mapSizeX
 mapsizeZ = Game.mapSizeZ
-GaiaTeamID = Spring.GetGaiaTeamID()
+ScavengerTeamID = Spring.GetGaiaTeamID()
 ScavengerStartboxXMin = mapsizeX + 1
 ScavengerStartboxZMin = mapsizeZ + 1
 ScavengerStartboxXMax = mapsizeX + 1
@@ -16,9 +16,9 @@ if scavengersAIEnabled then
 	if spawnmultiplier == 0 then
 		spawnmultiplier = 0.5
 	end
-	GaiaTeamID = scavengerAITeamID
-	_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
-	ScavengerStartboxXMin, ScavengerStartboxZMin, ScavengerStartboxXMax, ScavengerStartboxZMax = Spring.GetAllyTeamStartBox(GaiaAllyTeamID)
+	ScavengerTeamID = scavengerAITeamID
+	_,_,_,_,_,ScavengerAllyTeamID = Spring.GetTeamInfo(ScavengerTeamID)
+	ScavengerStartboxXMin, ScavengerStartboxZMin, ScavengerStartboxXMax, ScavengerStartboxZMax = Spring.GetAllyTeamStartBox(ScavengerAllyTeamID)
 	if ScavengerStartboxXMin == 0 and ScavengerStartboxZMin == 0 and ScavengerStartboxXMax == mapsizeX and ScavengerStartboxZMax == mapsizeZ then
 		ScavengerStartboxExists = false
 	else
@@ -31,7 +31,7 @@ if scavengersAIEnabled then
 		ScavSafeAreaDamage = 5
 	end
 else
-	_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
+	_,_,_,_,_,ScavengerAllyTeamID = Spring.GetTeamInfo(ScavengerTeamID)
 	ScavengerStartboxExists = false
 end
 
@@ -81,7 +81,7 @@ BaseCleanupQueue = {}
 spawningStartFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 10
 scavMaxUnits = Spring.GetModOptions().maxunits
 
-if GaiaTeamID == Spring.GetGaiaTeamID() then
+if ScavengerTeamID == Spring.GetGaiaTeamID() then
 	scavMaxUnits = 10000
 end
 TierSpawnChances = {
@@ -109,7 +109,7 @@ function teamsCheck()
 	local scoreTeamCount = 0
 	scorePerTeam = {}
 	for _,teamID in ipairs(Spring.GetTeamList()) do
-		if teamID ~= GaiaTeamID and teamID ~= Spring.GetGaiaTeamID() then
+		if teamID ~= ScavengerTeamID and teamID ~= Spring.GetGaiaTeamID() then
 			if not numOfSpawnBeaconsTeams[teamID] then
 				numOfSpawnBeaconsTeams[teamID] = 0
 			end
@@ -184,7 +184,7 @@ function collectScavStats()
 	spSetGameRulesParam("scavStatsScavSpawners", scavStatsScavSpawners)
 
 	-- scavStatsScavUnits				done
-	scavStatsScavUnits = Spring.GetTeamUnitCount(GaiaTeamID)
+	scavStatsScavUnits = Spring.GetTeamUnitCount(ScavengerTeamID)
 	spSetGameRulesParam("scavStatsScavUnits", scavStatsScavUnits)
 
 	-- scavStatsScavUnitsKilled			deprecated

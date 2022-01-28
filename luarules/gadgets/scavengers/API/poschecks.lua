@@ -1,5 +1,5 @@
-local GaiaAllyTeamID = GaiaAllyTeamID or 999
-local _,_,_,_,_,RealGaiaAllyTeamID = Spring.GetTeamInfo(Spring.GetGaiaTeamID()) -- GaiaAllyTeamID is actually scav ally team, because i'm too lazy to do global rename.
+local ScavengerAllyTeamID = ScavengerAllyTeamID or 999
+local _,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(Spring.GetGaiaTeamID()) -- GaiaAllyTeamID is actually scav ally team, because i'm too lazy to do global rename.
 if not scavconfig then
 	heighttollerance = 30
 	noheightchecksforwater = true
@@ -71,7 +71,7 @@ function posLosCheck(posx, posy, posz, posradius)
 		return posOccupied(posx, posy, posz, posradius*4)
 	end
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-		if allyTeamID ~= GaiaAllyTeamID and allyTeamID ~= RealGaiaAllyTeamID then
+		if allyTeamID ~= ScavengerAllyTeamID and allyTeamID ~= GaiaAllyTeamID then
 			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
@@ -105,7 +105,7 @@ function posLosCheckNoRadar(posx, posy, posz, posradius)
 		return posOccupied(posx, posy, posz, posradius*3)
 	end
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-		if allyTeamID ~= GaiaAllyTeamID and allyTeamID ~= RealGaiaAllyTeamID then
+		if allyTeamID ~= ScavengerAllyTeamID and allyTeamID ~= GaiaAllyTeamID then
 			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
@@ -130,7 +130,7 @@ function posLosCheckReversed(posx, posy, posz, posradius)
 		return posOccupied(posx, posy, posz, posradius*3)
 	end
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-		if allyTeamID ~= GaiaAllyTeamID and allyTeamID ~= RealGaiaAllyTeamID then
+		if allyTeamID ~= ScavengerAllyTeamID and allyTeamID ~= GaiaAllyTeamID then
 			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
@@ -155,7 +155,7 @@ function posLosCheckOnlyLOS(posx, posy, posz, posradius)
 		return posOccupied(posx, posy, posz, posradius*2)
 	end
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-		if allyTeamID ~= GaiaAllyTeamID and allyTeamID ~= RealGaiaAllyTeamID then
+		if allyTeamID ~= ScavengerAllyTeamID and allyTeamID ~= GaiaAllyTeamID then
 			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or

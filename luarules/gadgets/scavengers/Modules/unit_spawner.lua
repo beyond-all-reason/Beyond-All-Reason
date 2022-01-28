@@ -26,7 +26,7 @@ function BossWaveTimer(n)
 
 			local bossunit = bossUnitList.Bosses[math_random(1, #bossUnitList.Bosses)]
 
-			local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
+			local scavengerunits = Spring.GetTeamUnits(ScavengerTeamID)
 			SpawnBeacons = {}
 			for i = 1,#scavengerunits do
 				local scav = scavengerunits[i]
@@ -64,20 +64,20 @@ function BossWaveTimer(n)
 					local posx = math.floor((ScavengerStartboxXMin + ScavengerStartboxXMax)/2)
 					local posz = math.floor((ScavengerStartboxZMin + ScavengerStartboxZMax)/2)
 					local posy = Spring.GetGroundHeight(posx, posz)
-					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),GaiaTeamID)
+					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),ScavengerTeamID)
 					FinalBossUnitSpawned = true
 					--Spring.Echo("[Scavengers] Final Boss Spawned Successfully")
 				elseif pickedBeacon then
 					local posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
 					local posy = Spring.GetGroundHeight(posx, posz)
-					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),GaiaTeamID)
+					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),ScavengerTeamID)
 					FinalBossUnitSpawned = true
 					--Spring.Echo("[Scavengers] Final Boss Spawned Successfully")
 				else
 					local posx = math.floor((ScavengerStartboxXMin + ScavengerStartboxXMax)/2)
 					local posz = math.floor((ScavengerStartboxZMin + ScavengerStartboxZMax)/2)
 					local posy = Spring.GetGroundHeight(posx, posz)
-					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),GaiaTeamID)
+					Spring.CreateUnit(bossunit, posx, posy, posz, math_random(0,3),ScavengerTeamID)
 					FinalBossUnitSpawned = true
 					--Spring.Echo("[Scavengers] Final Boss Spawned Successfully")
 				end
@@ -93,7 +93,7 @@ function BossWaveTimer(n)
 			--if FinalSelfDChance < 2 then
 			--	FinalSelfDChance = 2
 			--end
-			--local units = Spring.GetTeamUnits(GaiaTeamID)
+			--local units = Spring.GetTeamUnits(ScavengerTeamID)
 			--for i = 1,#units do
 			--	local r = math_random(1,FinalSelfDChance)
 			--	if r == 1 then
@@ -163,7 +163,7 @@ function BossMinionsSpawn(n)
 					minionUnit = seaUnitList.T0[math_random(1,#seaUnitList.T0)]
 				end
 			end
-			QueueSpawn(minionUnit, posx, posy, posz, math_random(0,3),GaiaTeamID, n+1)
+			QueueSpawn(minionUnit, posx, posy, posz, math_random(0,3),ScavengerTeamID, n+1)
 			Spring.SpawnCEG("scav-spawnexplo",posx,posy,posz,0,0,0)
 		end
 	end
@@ -172,7 +172,7 @@ end
 
 function UnitGroupSpawn(n)
 	if scavengerGamePhase ~= "initial" then
-		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
+		local gaiaUnitCount = Spring.GetTeamUnitCount(ScavengerTeamID)
 		if BossWaveTimeLeft then
 			if (not numOfSpawnBeacons) or numOfSpawnBeacons == 0 then
 				ActualUnitSpawnChance = math_random(0,math.ceil(UnitSpawnChance/1))
@@ -188,7 +188,7 @@ function UnitGroupSpawn(n)
 		end
 		if (ActualUnitSpawnChance == 0 or canSpawnHere == false) and numOfSpawnBeacons > 0 then
 			-- check positions
-			local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
+			local scavengerunits = Spring.GetTeamUnits(ScavengerTeamID)
 			SpawnBeacons = {}
 			for i = 1,#scavengerunits do
 				local scav = scavengerunits[i]
@@ -413,32 +413,32 @@ function UnitGroupSpawn(n)
 					local newposy = Spring.GetGroundHeight(posx, posz)
 					if posy >= -20 and newposy >= -20 then
 						if i then
-							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*2))
-							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),GaiaTeamID, n+150+(i*2))
+							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, n+(i*2))
+							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),ScavengerTeamID, n+150+(i*2))
 						else
-							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n)
-							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),GaiaTeamID, n+150)
+							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, n)
+							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),ScavengerTeamID, n+150)
 						end
 					elseif posy < -20 and newposy < -20 then
 						if i then
-							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*2))
-							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),GaiaTeamID, n+150+(i*2))
+							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, n+(i*2))
+							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),ScavengerTeamID, n+150+(i*2))
 						else
-							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n)
-							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),GaiaTeamID, n+150)
+							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, n)
+							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),ScavengerTeamID, n+150)
 						end
 					end
 					if math.random(0,1) == 0 then
 						local rx = posx+math.random(-64,64)
 						local rz = posz+math.random(-64,64)
 						if Spring.GetGroundHeight(rx, rz) > -20 then
-							QueueSpawn(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], rx, posy, rz, math_random(0,3),GaiaTeamID, n+150+(i*2), false)
+							QueueSpawn(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], rx, posy, rz, math_random(0,3),ScavengerTeamID, n+150+(i*2), false)
 						else
-							QueueSpawn(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], rx, posy, rz, math_random(0,3),GaiaTeamID, n+150+(i*2), false)
+							QueueSpawn(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], rx, posy, rz, math_random(0,3),ScavengerTeamID, n+150+(i*2), false)
 						end
-						QueueSpawn("scavengerdroppod_scav", rx, posy, rz, math_random(0,3),GaiaTeamID, n+(i*2))
+						QueueSpawn("scavengerdroppod_scav", rx, posy, rz, math_random(0,3),ScavengerTeamID, n+(i*2))
 					end
-					--Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
+					--Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID)
 				end
 				posx = nil
 				posy = nil

@@ -17,7 +17,7 @@ FriendlyCollectors = {}
 FriendlyReclaimers = {}
 
 function CaptureBeacons(n)
-	local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
+	local scavengerunits = Spring.GetTeamUnits(ScavengerTeamID)
 	local spGetUnitTeam = Spring.GetUnitTeam
 
 	for i = 1,#scavengerunits do
@@ -45,14 +45,14 @@ function CaptureBeacons(n)
 				local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
 				local LuaAI = Spring.GetTeamLuaAI(unitTeamID)
 				local _,_,_,isAI,_,_ = Spring.GetTeamInfo(unitTeamID)
-				if (not LuaAI) and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
+				if (not LuaAI) and unitTeamID ~= ScavengerTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
 					captureraiTeam = false
 				else
 					captureraiTeam = false -- true
 				end
 				if not CapturingUnitsTeamTest[unitAllyTeam] then
 					CapturingUnitsTeamTest[unitAllyTeam] = true
-					if unitTeamID ~= GaiaTeamID and captureraiTeam == false then
+					if unitTeamID ~= ScavengerTeamID and captureraiTeam == false then
 						TeamsCapturing = TeamsCapturing + 1
 						if TeamsCapturing > 1 then
 							break
@@ -72,7 +72,7 @@ function CaptureBeacons(n)
 				local LuaAI = Spring.GetTeamLuaAI(unitTeamID)
 				local _,_,_,isAI,_,_ = Spring.GetTeamInfo(unitTeamID)
 
-				if (not LuaAI) and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
+				if (not LuaAI) and unitTeamID ~= ScavengerTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
 					captureraiTeam = false
 				else
 					captureraiTeam = false -- true
@@ -95,7 +95,7 @@ function CaptureBeacons(n)
 				if unitDefID == scavDef then
 					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 0.0005
 					--Spring.Echo("uncapturing myself")
-				elseif captureraiTeam == false and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and IsUnitExcluded == false and (not UnitDefs[unitDefID].canFly) then
+				elseif captureraiTeam == false and unitTeamID ~= ScavengerTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and IsUnitExcluded == false and (not UnitDefs[unitDefID].canFly) then
 					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] + ((UnitDefs[unitDefID].metalCost)/800)*0.001
 					CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
 					--Spring.Echo("capturing scav beacon")
@@ -108,7 +108,7 @@ function CaptureBeacons(n)
 					CaptureProgressForBeacons[scav] = 1
 					--Spring.Echo("capture above 1")
 				end
-				if unitTeamID == GaiaTeamID and (not unitDefID == scavDef) then
+				if unitTeamID == ScavengerTeamID and (not unitDefID == scavDef) then
 					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 1
 					--Spring.Echo("uncapturing our beacon")
 				end
@@ -157,8 +157,8 @@ function spawnPlayerReinforcements(n)
     --ScavengerStartboxZMin
     --ScavengerStartboxXMax
     --ScavengerStartboxZMax
-    --GaiaTeamID
-    --GaiaAllyTeamID
+    --ScavengerTeamID
+    --ScavengerAllyTeamID
     --posCheck(posx, posy, posz, posradius)
     --posOccupied(posx, posy, posz, posradius)
 	if scavengerGamePhase ~= "initial" then
@@ -166,7 +166,7 @@ function spawnPlayerReinforcements(n)
 			local LuaAI = Spring.GetTeamLuaAI(teamID)
 			local _,teamLeader,isDead,isAI,_,allyTeamID = Spring.GetTeamInfo(teamID)
 
-			if (not LuaAI) and teamID ~= GaiaTeamID and teamID ~= Spring.GetGaiaTeamID() and (not isAI) then
+			if (not LuaAI) and teamID ~= ScavengerTeamID and teamID ~= Spring.GetGaiaTeamID() and (not isAI) then
 				local playerName = Spring.GetPlayerInfo(teamLeader)
 				if not numOfSpawnBeaconsTeams[teamID] then
 					numOfSpawnBeaconsTeams[teamID] = 0

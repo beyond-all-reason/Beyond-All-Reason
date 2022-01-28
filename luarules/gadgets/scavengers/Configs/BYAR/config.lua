@@ -489,8 +489,8 @@ local UDN = UnitDefNames
 local wallChance = 0
 local scavMaxUnits = Spring.GetModOptions().maxunits
 function BPWallOrPopup(faction, tier)
-	if GaiaTeamID then
-		wallChance = Spring.GetTeamUnitCount(GaiaTeamID)
+	if ScavengerTeamID then
+		wallChance = Spring.GetTeamUnitCount(ScavengerTeamID)
 	end
 	if math.random(1, scavMaxUnits*0.9) > wallChance then
 		local r = math.random(0,20)
