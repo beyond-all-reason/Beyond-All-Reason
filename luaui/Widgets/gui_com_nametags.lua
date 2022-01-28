@@ -435,6 +435,9 @@ function widget:PlayerChanged(playerID)
 	spec = Spring.GetSpectatingState()
 	local name, _ = GetPlayerInfo(playerID, false)
 	comnameList[name] = nil
+	if sameTeamColors then
+		RemoveLists()
+	end
 	CheckAllComs() -- handle substitutions, etc
 end
 
