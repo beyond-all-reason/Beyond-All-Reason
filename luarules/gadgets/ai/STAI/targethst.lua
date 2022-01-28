@@ -21,7 +21,7 @@ function TargetHST:Init()
 	self.BAD_CELLS = {}
 	self.SPOT_CELLS = {}
 	self:createGridCell()
-
+	self:pathTest('armflash')
 	self.pathModParam = 0.33
 	self.pathModifierFuncs = {}
 	self.enemyMexSpots = {}
@@ -67,6 +67,83 @@ function TargetHST:clearEnemies()---wrong, clear the cells by parsing enemycells
 	self.ENEMYCELLS = {}
 end
 
+function TargetHST:pathTest(unitName)
+	local ut = self.ai.armyhst.unitTable[unitName]
+	local mapX = Game.mapSizeX
+	local mapZ = Game.mapSizeZ
+	local strechX = mapX / 10
+	local strechZ = mapZ / 10
+	print('strechX,strechZ',strechX,strechZ,mapX,mapZ)
+	for X = 0,mapX,strechX do
+		--print(X + strechX / 2)
+		local OX = X + strechX / 2
+		for Z = 0,mapZ,strechZ do
+			--print(X + strechX / 2)
+			OZ = X + strechX / 2
+
+			local pos1 = {x = OX ,y = Spring.GetGroundHeight(OX,OZ),z = OZ}
+			map:DrawPoint(pos1, {1,1,1,1}, nil,  1)
+			for XX = 0,mapX,strechX do
+				local OOX = XX + strechX / 2
+				for ZZ = 0,mapZ,strechZ do
+					local OOZ = ZZ + strechX / 2
+					local pos2 = {x = OOX ,y = Spring.GetGroundHeight(OOX,OOZ),z = OOZ}
+					if pos1.x ~= pos2.x  and pos1.z ~= pos2.z then
+						local metapath = Spring.RequestPath(ut.mclass, pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
+						local waypoints, deep1,deep2,deep3 = metapath:GetPathWayPoints()
+						print(#waypoints,deep1[1],deep1[2],deep1[3])
+						for index,wp in pairs(waypoints) do
+
+							local C,gx,gz = self:GetCellHere({x=wp[1],y=wp[2],z=wp[3]})
+							if not C.botpath then
+								C.botpath = 0
+							end
+							C.botpath = C.botpath + 1
+
+							--print(C.gx,C.gz,C.botpath)
+						end
+						--if Spring.TestMoveOrder(number,pos1.x,pos1.y,pos1.z) == true and Spring.TestMoveOrder(number,pos2.x,pos2.y,pos2.z) == true then
+							--print
+						---end
+					end
+				end
+			end
+		end
+	end
+	local media = 0
+	local max = 0
+	local counter = 0
+
+	for x,t in pairs(self.CELLS) do
+		for z,C in pairs(t) do
+			if C.botpath then
+				max = math.max(max,C.botpath)
+				media = media + C.botpath
+			end
+			counter = counter + 1
+
+		end
+	end
+	media = media / counter
+	for x,t in pairs(self.CELLS) do
+		for z,C in pairs(t) do
+			if C.botpath then
+
+				if C.botpath < media then
+					C.botpath = nil
+				else
+					C.botpath = C.botpath / max
+				end
+			end
+		end
+	end
+
+
+
+
+end
+
+
 function TargetHST:PosToGrid(pos)
 	local gridX = math.ceil(pos.x / cellElmos)
 	local gridZ = math.ceil(pos.z / cellElmos)
@@ -89,9 +166,13 @@ function TargetHST:NewCell(px, pz)
 	cellPos.x, cellPos.z = x, z
 	cellPos.y = Spring.GetGroundHeight(x, z)
 	self.ai.buildsitehst:isInMap(cellPos)
+	local botpath = nil
 -- 	map:DrawCircle(cellPos, cellElmosHalf,{1,1,1,1} , 'G', true, 4)
-
+	if self.CELLS[px] and self.CELLS[px][pz] and self.CELLS[px][pz].botpath then
+		botpath = self.CELLS[px][pz].botpath
+	end
 	local CELL = {}
+	CELL.botpath = botpath
 	CELL.pos = cellPos
 	CELL.gx = px
 	CELL.gz = pz
@@ -457,6 +538,7 @@ end
 
 function TargetHST:drawDBG()
 	self.map:EraseAll(4)
+	self.map:EraseAll(2)
 	if not self.visualdbg then
 		return
 	end
@@ -470,6 +552,14 @@ function TargetHST:drawDBG()
 			}
 	if self.enemyBasePosition then
 		map:DrawPoint(self.enemyBasePosition, {1,1,1,1}, 'BASE',  4)
+	end
+	for x,t in pairs (self.CELLS) do
+		for z,CCC in pairs(t) do
+			if CCC.botpath then
+				map:DrawPoint(CCC.pos, {1,1,1,1}, CCC.botpath,  2)
+-- 				print(CCC.botpath)
+			end
+		end
 	end
 	for index,G in pairs (self.ENEMYCELLS) do
 		local cell = self.CELLS[G.x][G.z]
