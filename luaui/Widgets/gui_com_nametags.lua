@@ -117,7 +117,7 @@ local function GetCommAttributes(unitID, unitDefID)
 
 	local name = ''
 	local luaAI = Spring.GetTeamLuaAI(team)
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+	if luaAI and luaAI ~= "" and string.find(luaAI, 'Scavengers')  then
 
 	elseif Spring.GetGameRulesParam('ainame_' .. team) then
 		name = Spring.I18N('ui.playersList.aiName', { name = Spring.GetGameRulesParam('ainame_' .. team) })
