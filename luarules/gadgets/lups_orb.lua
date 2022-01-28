@@ -169,6 +169,14 @@ local GetUnitPosition = Spring.GetUnitPosition
 local particleIDs = {}
 local Lups, LupsAddFX
 
+local spGetTeamColor = Spring.GetTeamColor
+local teamColorKeys = {}
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local r, g, b = spGetTeamColor(teams[i])
+	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -298,4 +306,28 @@ end
 function gadget:Shutdown()
 	removeParticles()
 	Spring.SendLuaRulesMsg("lups shutdown", "allies")
+end
+
+-- check if team colors have changed
+local function CheckTeamColors()
+	local detectedChanges = false
+	for i = 1, #teams do
+		local r, g, b = spGetTeamColor(teams[i])
+		if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
+			teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+			detectedChanges = true
+		end
+	end
+	if detectedChanges then
+		gadget:Shutdown()
+		gadget:Initialize()
+	end
+end
+
+local updateTimer = 0
+function gadget:Update()
+	updateTimer = updateTimer + Spring.GetLastUpdateSeconds()
+	if updateTimer > 1.5 then
+		CheckTeamColors()
+	end
 end
