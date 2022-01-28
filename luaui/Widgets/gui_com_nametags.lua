@@ -81,7 +81,7 @@ local comnameIconList = {}
 local teamColorKeys = {}
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
-	local r, g, b, a = GetTeamColor(teams[i])
+	local r, g, b = GetTeamColor(teams[i])
 	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
 end
 teams = nil
@@ -190,27 +190,32 @@ local function createComnameList(attributes)
 end
 
 
-
 local function CheckCom(unitID, unitDefID, unitTeam)
 	if comDefs[unitDefID] and unitTeam ~= GaiaTeam then
 		comms[unitID] = GetCommAttributes(unitID, unitDefID)
 	end
 end
 
-local function CheckAllComs()
 
-	-- check if team colors have changed
-	local teams = Spring.GetTeamList()
+-- check if team colors have changed
+local function CheckTeamColors()
 	local detectedChanges = false
+	local teams = Spring.GetTeamList()
 	for i = 1, #teams do
-		local r, g, b, a = GetTeamColor(teams[i])
+		local r, g, b = GetTeamColor(teams[i])
 		if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
+			teamColorKeys[teams[i]] = r..'_'..g..'_'..b
 			detectedChanges = true
 		end
 	end
 	if detectedChanges then
 		RemoveLists()
 	end
+end
+
+
+local function CheckAllComs()
+	CheckTeamColors()
 
 	-- check commanders
 	local allUnits = GetAllUnits()
@@ -234,7 +239,7 @@ function widget:Update(dt)
 			CheckAllComs()
 			sec = 0
 		end
-	elseif sameTeamColors == true then
+	elseif sameTeamColors then
 		sameTeamColors = false
 		RemoveLists()
 		CheckAllComs()
@@ -260,7 +265,7 @@ function widget:Update(dt)
 			sec = 0
 		end
 	end
-	if not spec and sec > 1.5 then
+	if sec > 1.2 then
 		sec = 0
 		CheckAllComs()
 	end
@@ -416,13 +421,6 @@ function widget:DrawWorld()
 end
 
 function widget:Initialize()
-	--WG['nametags'] = {}
-	--WG['nametags'].getDrawForIcon = function()
-	--	return drawForIcon
-	--end
-	--WG['nametags'].setDrawForIcon = function(value)
-	--	drawForIcon = value
-	--end
 	CheckAllComs()
 end
 
@@ -435,9 +433,6 @@ function widget:PlayerChanged(playerID)
 	spec = Spring.GetSpectatingState()
 	local name, _ = GetPlayerInfo(playerID, false)
 	comnameList[name] = nil
-	if sameTeamColors then
-		RemoveLists()
-	end
 	CheckAllComs() -- handle substitutions, etc
 end
 
