@@ -63,6 +63,17 @@ function widget:UnitEnteredRadar(unitID, unitTeam)
 	end
 end
 
+function widget:UnitLeftRadar(unitID, unitTeam)
+	Spring.Echo('leftradar', unitID, os.clock())
+	if dots[unitID] then
+		dots[unitID].radar = false
+		--if not dots[unitID].los then -- not in LOS - forget unit type
+		--	dots[unitID].unitDefID = nil
+		--end
+		removeUnitShape(unitID)
+	end
+end
+
 function widget:UnitEnteredLos(unitID, unitTeam)
 	local unitDefID = spGetUnitDefID(unitID)
 	if unitDefID and includedUnitDefIDs[unitDefID] and unitTeam ~= gaiaTeamID then		-- update unitID info, ID could have been reused already!
@@ -78,29 +89,6 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 	removeUnitShape(unitID)
 end
 
-function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if dots[unitID] then
-		dots[unitID] = nil	-- kill the dot info if this unitID gets reused on own team
-	end
-end
-
-function widget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-	if dots[unitID] then
-		dots[unitID] = nil
-		removeUnitShape(unitID)
-	end
-end
-
-function widget:UnitLeftRadar(unitID, unitTeam)
-	if dots[unitID] then
-		dots[unitID].radar = false
-		--if not dots[unitID].los then -- not in LOS - forget unit type
-		--	dots[unitID].unitDefID = nil
-		--end
-		removeUnitShape(unitID)
-	end
-end
-
 function widget:UnitLeftLos(unitID, unitTeam)
 	if dots[unitID] then
 		dots[unitID].los = false
@@ -111,6 +99,19 @@ function widget:UnitLeftLos(unitID, unitTeam)
 			local x, y, z = spGetUnitPosition(unitID)
 			addUnitShape(unitID, dots[unitID].unitDefID, x, y, z, 0, unitTeam)
 		end
+	end
+end
+
+function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	if dots[unitID] then
+		dots[unitID] = nil	-- kill the dot info if this unitID gets reused
+	end
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
+	if dots[unitID] then
+		dots[unitID] = nil
+		removeUnitShape(unitID)
 	end
 end
 
@@ -146,7 +147,10 @@ function widget:Update(dt)
 	if not specFullView then
 		for unitID, shape in pairs(unitshapes) do
 			local x, y, z = spGetUnitPosition(unitID)
-			if x and spIsUnitInView(unitID) then
+			if not x then
+				dots[unitID] = nil
+				removeUnitShape(unitID)	-- needs to be done cause we dont know if unit has died
+			elseif spIsUnitInView(unitID) then
 				addUnitShape(unitID, dots[unitID].unitDefID, x, y, z, 0, dots[unitID].teamID)	-- update because unit position does change
 			end
 		end

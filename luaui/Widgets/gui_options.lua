@@ -561,27 +561,30 @@ function DrawWindow()
 							UiToggle(optionButtons[oid][1], optionButtons[oid][2], optionButtons[oid][3], optionButtons[oid][4], option.value)
 
 						elseif option.type == 'slider' then
-							local sliderSize = oHeight * 0.75
-							local sliderPos = 0
-							if option.steps then
-								local min, max = option.steps[1], option.steps[1]
-								for k, v in ipairs(option.steps) do
-									if v > max then
-										max = v
+							if type(option.value) == 'number' then	-- just to be safe
+								local sliderSize = oHeight * 0.75
+								local sliderPos = 0
+								if option.steps then
+									local min, max = option.steps[1], option.steps[1]
+									for k, v in ipairs(option.steps) do
+										if v > max then
+											max = v
+										end
+										if v < min then
+											min = v
+										end
 									end
-									if v < min then
-										min = v
-									end
+									sliderPos = (option.value - min) / (max - min)
+								else
+									sliderPos = (option.value - option.min) / (option.max - option.min)
 								end
-								sliderPos = (option.value - min) / (max - min)
-							else
-								sliderPos = (option.value - option.min) / (option.max - option.min)
+								if type(sliderPos) == 'number' then
+									UiSlider(math.floor(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding), math.floor(yPos - ((oHeight / 7) * 4.5)), math.floor(xPosMax - (sliderSize / 2) - rightPadding), math.floor(yPos - ((oHeight / 7) * 2.8)), option.steps and option.steps or option.step, option.min, option.max)
+									UiSliderKnob(math.floor(xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - rightPadding), math.floor(yPos - oHeight + ((oHeight) / 2)), math.floor(sliderSize / 2))
+									optionButtons[oid] = { xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - (sliderSize / 2) - rightPadding, yPos - oHeight + ((oHeight - sliderSize) / 2), xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) + (sliderSize / 2) - rightPadding, yPos - ((oHeight - sliderSize) / 2) }
+									optionButtons[oid].sliderXpos = { xPosMax - (sliderSize / 2) - sliderWidth - rightPadding, xPosMax - (sliderSize / 2) - rightPadding }
+								end
 							end
-							UiSlider(math.floor(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding), math.floor(yPos - ((oHeight / 7) * 4.5)), math.floor(xPosMax - (sliderSize / 2) - rightPadding), math.floor(yPos - ((oHeight / 7) * 2.8)), option.steps and option.steps or option.step, option.min, option.max)
-							UiSliderKnob(math.floor(xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - rightPadding), math.floor(yPos - oHeight + ((oHeight) / 2)), math.floor(sliderSize / 2))
-							optionButtons[oid] = { xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - (sliderSize / 2) - rightPadding, yPos - oHeight + ((oHeight - sliderSize) / 2), xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) + (sliderSize / 2) - rightPadding, yPos - ((oHeight - sliderSize) / 2) }
-							optionButtons[oid].sliderXpos = { xPosMax - (sliderSize / 2) - sliderWidth - rightPadding, xPosMax - (sliderSize / 2) - rightPadding }
-
 						elseif option.type == 'select' then
 							optionButtons[oid] = { math.floor(xPosMax - selectWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos) }
 							UiSelector(optionButtons[oid][1], optionButtons[oid][2], optionButtons[oid][3], optionButtons[oid][4], option.value)
@@ -3345,7 +3348,7 @@ function init()
 
 		{ id = "label_teamcolors", group = "accessibility", name = texts.option.label_teamcolors, category = types.basic },
 		{ id = "label_teamcolors_spacer", group = "accessibility", category = types.basic },
-		
+
 		{ id = "simpleteamcolors", group = "accessibility", category = types.basic, name = texts.option.playercolors, type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColors", 0) or 0) == 1, description = texts.option.simpleteamcolors_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColors", (value and 1 or 0))
