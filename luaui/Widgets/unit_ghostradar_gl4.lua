@@ -64,7 +64,6 @@ function widget:UnitEnteredRadar(unitID, unitTeam)
 end
 
 function widget:UnitLeftRadar(unitID, unitTeam)
-	Spring.Echo('leftradar', unitID, os.clock())
 	if dots[unitID] then
 		dots[unitID].radar = false
 		--if not dots[unitID].los then -- not in LOS - forget unit type
