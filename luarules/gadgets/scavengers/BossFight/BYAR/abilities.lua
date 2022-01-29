@@ -1,5 +1,3 @@
-local airUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/air.lua")
-
 local function passiveAbilityController(currentFrame)
 	if not AbilityTimer then AbilityTimer = 0 end
 	if AbilityTimer < 1 then CurrentlyUsedPassiveAbility = "none" end
@@ -9,7 +7,7 @@ local function passiveAbilityController(currentFrame)
 		return
 	elseif CurrentlyUsedPassiveAbility == "selfrepair" then -- TODO: Add sound and visual effects here
 		local currentbosshealth = Spring.GetUnitHealth(FinalBossUnitID)
-		--local initialbosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
+		--local initialbosshealth = scavconfig.unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
 		local healing = initialbosshealth*0.0000250*BossFightCurrentPhase
 		if currentbosshealth < initialbosshealth then
 			Spring.SetUnitHealth(FinalBossUnitID, currentbosshealth+healing)

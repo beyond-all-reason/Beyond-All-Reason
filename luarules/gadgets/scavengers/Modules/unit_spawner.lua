@@ -1,16 +1,10 @@
 Spring.Echo("[Scavengers] Unit Spawner initialized")
 
-local airUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/air.lua")
-local landUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/land.lua")
-local seaUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/sea.lua")
-local bossUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/boss.lua")
-local constructorUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/constructors.lua")
-
-local UnitSpawnChance = unitSpawnerModuleConfig.spawnchance
+local UnitSpawnChance = scavconfig.unitSpawnerModuleConfig.spawnchance
 
 function BossWaveTimer(n)
 	if not BossWaveTimeLeft then
-		BossWaveTimeLeft = unitSpawnerModuleConfig.BossWaveTimeLeft
+		BossWaveTimeLeft = scavconfig.unitSpawnerModuleConfig.BossWaveTimeLeft
 	end
 	if not FinalSelfDChance then
 		FinalSelfDChance = 60
@@ -22,7 +16,7 @@ function BossWaveTimer(n)
 		BossWaveTimeLeft = BossWaveTimeLeft - 1
 		BossFightMessages(BossWaveTimeLeft)
 	elseif BossWaveTimeLeft <= 0 then
-		if not FinalBossUnitSpawned and unitSpawnerModuleConfig.FinalBossUnit == true then
+		if not FinalBossUnitSpawned and scavconfig.unitSpawnerModuleConfig.FinalBossUnit == true then
 
 			local bossunit = bossUnitList.Bosses[math_random(1, #bossUnitList.Bosses)]
 
@@ -84,7 +78,7 @@ function BossWaveTimer(n)
 			end
 			pickedBeacon = nil
 
-		elseif (not unitSpawnerModuleConfig.FinalBossUnit) or FinalBossKilled == true then
+		elseif (not scavconfig.unitSpawnerModuleConfig.FinalBossUnit) or FinalBossKilled == true then
 			if not FinalMessagePlayed then
 				ScavSendNotification("scav_scavfinalvictory")
 				FinalMessagePlayed = true
@@ -123,7 +117,7 @@ function BossMinionsSpawn(n)
 			local posz = z + math_random(-500,500)
 			local posy = Spring.GetGroundHeight(posx, posz)
 			local r = math_random(0,100)
-			local rair = math_random(0, unitSpawnerModuleConfig.aircraftchance)
+			local rair = math_random(0, scavconfig.unitSpawnerModuleConfig.aircraftchance)
 
 			if rair == 0 then
 				if TierSpawnChances.T4 > 0 then
@@ -226,14 +220,14 @@ function UnitGroupSpawn(n)
 			if canSpawnHere then
 
 				if BossWaveTimeLeft then
-					UnitSpawnChance = math.ceil(unitSpawnerModuleConfig.spawnchance / (teamcount/2))
+					UnitSpawnChance = math.ceil(scavconfig.unitSpawnerModuleConfig.spawnchance / (teamcount/2))
 				else
-					UnitSpawnChance = unitSpawnerModuleConfig.spawnchance
+					UnitSpawnChance = scavconfig.unitSpawnerModuleConfig.spawnchance
 				end
 				if not globalScore then
 					teamsCheck()
 				end
-				if (globalScore/unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier < #scavengerunits then
+				if (globalScore/scavconfig.unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier < #scavengerunits then
 					UnitSpawnChance = math.ceil(UnitSpawnChance/2)
 				end
 				if math.random(1,100) == 1 then
@@ -245,11 +239,11 @@ function UnitGroupSpawn(n)
 				else
 					waveSizeMultiplier = 1
 				end
-				local groupsize = (globalScore / unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier*waveSizeMultiplier
+				local groupsize = (globalScore / scavconfig.unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier*waveSizeMultiplier
 				local groupsize = math.ceil(groupsize*bestTeamGroupMultiplier*(teamcount/2))
-				local aircraftchance = math_random(0,unitSpawnerModuleConfig.aircraftchance)
-				local aircraftchanceonsea = math_random(0,unitSpawnerModuleConfig.chanceforaircraftonsea)
-				local bossaircraftchance = math_random(0,unitSpawnerModuleConfig.aircraftchance*5)
+				local aircraftchance = math_random(0,scavconfig.unitSpawnerModuleConfig.aircraftchance)
+				local aircraftchanceonsea = math_random(0,scavconfig.unitSpawnerModuleConfig.chanceforaircraftonsea)
+				local bossaircraftchance = math_random(0,scavconfig.unitSpawnerModuleConfig.aircraftchance*5)
 				local spawnTier = math_random(1,100)
 				local groupunit = {}
 				local numOfTypes = 0
@@ -257,7 +251,7 @@ function UnitGroupSpawn(n)
 				--Spring.Echo(newTypeNumber)
 				if (posy <= -20 and aircraftchanceonsea == 0) or (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) then
 					if spawnTier <= TierSpawnChances.T0 then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t0multiplier)
+						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.airmultiplier*scavconfig.unitSpawnerModuleConfig.t0multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
@@ -265,7 +259,7 @@ function UnitGroupSpawn(n)
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t1multiplier)
+						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.airmultiplier*scavconfig.unitSpawnerModuleConfig.t1multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
@@ -273,7 +267,7 @@ function UnitGroupSpawn(n)
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t2multiplier)
+						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.airmultiplier*scavconfig.unitSpawnerModuleConfig.t2multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
@@ -281,7 +275,7 @@ function UnitGroupSpawn(n)
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t3multiplier)
+						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.airmultiplier*scavconfig.unitSpawnerModuleConfig.t3multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
@@ -289,7 +283,7 @@ function UnitGroupSpawn(n)
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t4multiplier)
+						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.airmultiplier*scavconfig.unitSpawnerModuleConfig.t4multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
@@ -297,7 +291,7 @@ function UnitGroupSpawn(n)
 							end
 						end
 					else
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t0multiplier)
+						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.airmultiplier*scavconfig.unitSpawnerModuleConfig.t0multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
@@ -307,7 +301,7 @@ function UnitGroupSpawn(n)
 					end
 				elseif posy > -20 then
 					if spawnTier <= TierSpawnChances.T0 then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t0multiplier)
+						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.landmultiplier*scavconfig.unitSpawnerModuleConfig.t0multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
@@ -315,7 +309,7 @@ function UnitGroupSpawn(n)
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t1multiplier)
+						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.landmultiplier*scavconfig.unitSpawnerModuleConfig.t1multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
@@ -323,7 +317,7 @@ function UnitGroupSpawn(n)
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t2multiplier)
+						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.landmultiplier*scavconfig.unitSpawnerModuleConfig.t2multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
@@ -331,7 +325,7 @@ function UnitGroupSpawn(n)
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t3multiplier)
+						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.landmultiplier*scavconfig.unitSpawnerModuleConfig.t3multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
@@ -339,7 +333,7 @@ function UnitGroupSpawn(n)
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t4multiplier)
+						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.landmultiplier*scavconfig.unitSpawnerModuleConfig.t4multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
@@ -347,7 +341,7 @@ function UnitGroupSpawn(n)
 							end
 						end
 					else
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t0multiplier)
+						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.landmultiplier*scavconfig.unitSpawnerModuleConfig.t0multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
@@ -357,7 +351,7 @@ function UnitGroupSpawn(n)
 					end
 				elseif posy <= -20 then
 					if spawnTier <= TierSpawnChances.T0 then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t0multiplier)
+						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.seamultiplier*scavconfig.unitSpawnerModuleConfig.t0multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
@@ -365,7 +359,7 @@ function UnitGroupSpawn(n)
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t1multiplier)
+						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.seamultiplier*scavconfig.unitSpawnerModuleConfig.t1multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
@@ -373,7 +367,7 @@ function UnitGroupSpawn(n)
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t2multiplier)
+						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.seamultiplier*scavconfig.unitSpawnerModuleConfig.t2multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
@@ -381,7 +375,7 @@ function UnitGroupSpawn(n)
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t3multiplier)
+						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.seamultiplier*scavconfig.unitSpawnerModuleConfig.t3multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
@@ -389,7 +383,7 @@ function UnitGroupSpawn(n)
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t4multiplier)
+						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.seamultiplier*scavconfig.unitSpawnerModuleConfig.t4multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
@@ -397,7 +391,7 @@ function UnitGroupSpawn(n)
 							end
 						end
 					else
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t0multiplier)
+						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.seamultiplier*scavconfig.unitSpawnerModuleConfig.t0multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1

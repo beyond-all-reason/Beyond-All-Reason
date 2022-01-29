@@ -29,8 +29,8 @@ end
 refreshEventsList()
 
 local lastRandomEventFrame = 1
-local randomEventMinimumDelay = randomEventsConfig.randomEventMinimumDelay
-local randomEventChance = randomEventsConfig.randomEventChance
+local randomEventMinimumDelay = scavconfig.randomEventsConfig.randomEventMinimumDelay
+local randomEventChance = scavconfig.randomEventsConfig.randomEventChance
 
 local function triggerRandomEvent(currentFrame)
 	local eventNumber

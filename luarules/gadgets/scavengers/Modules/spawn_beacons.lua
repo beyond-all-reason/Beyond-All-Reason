@@ -1,9 +1,4 @@
-local BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
-local staticUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/staticunits.lua")
-local airUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/air.lua")
-local landUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/land.lua")
-local seaUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/sea.lua")
-local constructorUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/constructors.lua")
+local BeaconSpawnChance = scavconfig.unitSpawnerModuleConfig.beaconspawnchance
 
 local xtable = {{-128, -64, -128}, {128, 64, 128}, {-128, -64, 0}, {128, 64, 0}}
 local ztable = {{-128, -64, 0}, {-128, -64, 0}, {128, 64, -128}, {-128, -64, 128}}
@@ -14,7 +9,7 @@ end
 
 function SpawnBeacon(n)
 	if n and n > spawningStartFrame then
-		if numOfSpawnBeacons < unitSpawnerModuleConfig.minimumspawnbeacons or numOfSpawnBeacons < 3 then
+		if numOfSpawnBeacons < scavconfig.unitSpawnerModuleConfig.minimumspawnbeacons or numOfSpawnBeacons < 3 then
 			BeaconSpawnChance = 0
 		elseif BeaconSpawnChance > 0 then
 			BeaconSpawnChance = math_random(0,BeaconSpawnChance)
@@ -39,7 +34,7 @@ function SpawnBeacon(n)
 					if globalScore then
 						--local g = math_random(0,20)
 						if scavengerGamePhase == "initial" then
-							if numOfSpawnBeacons > unitSpawnerModuleConfig.minimumspawnbeacons then
+							if numOfSpawnBeacons > scavconfig.unitSpawnerModuleConfig.minimumspawnbeacons then
 								canSpawnBeaconHere = false
 							else
 								canSpawnBeaconHere = posLosCheck(posx, posy, posz,192)
@@ -49,9 +44,9 @@ function SpawnBeacon(n)
 								canSpawnBeaconHere = posStartboxCheck(posx, posy, posz, posradius)
 							elseif numOfSpawnBeacons == 2 then
 								canSpawnBeaconHere = posOccupied(posx, posy, posz, 750)
-							elseif numOfSpawnBeacons < unitSpawnerModuleConfig.minimumspawnbeacons*0.2 then
+							elseif numOfSpawnBeacons < scavconfig.unitSpawnerModuleConfig.minimumspawnbeacons*0.2 then
 								canSpawnBeaconHere = posLosCheckOnlyLOS(posx, posy, posz,192)
-							elseif numOfSpawnBeacons < unitSpawnerModuleConfig.minimumspawnbeacons*0.4 then
+							elseif numOfSpawnBeacons < scavconfig.unitSpawnerModuleConfig.minimumspawnbeacons*0.4 then
 								canSpawnBeaconHere = posLosCheckNoRadar(posx, posy, posz,192)
 							else
 								canSpawnBeaconHere = posLosCheck(posx, posy, posz,192)
@@ -61,7 +56,7 @@ function SpawnBeacon(n)
 				end
 				
 				if canSpawnBeaconHere then
-					BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
+					BeaconSpawnChance = scavconfig.unitSpawnerModuleConfig.beaconspawnchance
 					QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, n+1, false)
 					QueueSpawn("scavengerdroppodbeacon_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, n+150, false)
 					local spawnTier = math_random(1,100)
@@ -122,11 +117,11 @@ function SpawnBeacon(n)
 					
 
 					if scavengerGamePhase ~= "initial" then
-						if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors then
+						if scavconfig.modules.constructorControllerModule and scavconfig.constructorControllerModuleConfig.useconstructors then
 							-- local unitCount = Spring.GetTeamUnitCount(ScavengerTeamID)
 							-- local unitCountBuffer = scavMaxUnits*0.5
 							-- if not (unitCount + unitCountBuffer >= scavMaxUnits) then 
-							local neededcommanders = constructorControllerModuleConfig.minimumconstructors - countScavCommanders()
+							local neededcommanders = scavconfig.constructorControllerModuleConfig.minimumconstructors - countScavCommanders()
 							if neededcommanders > 0 then
 								for i = 1,4 do
 									local constructor = constructorUnitList.Constructors[math.random(#constructorUnitList.Constructors)]
@@ -141,7 +136,7 @@ function SpawnBeacon(n)
 					end
 
 					
-					if unitSpawnerModuleConfig.beacondefences == true then
+					if scavconfig.unitSpawnerModuleConfig.beacondefences == true then
 						if spawnTier <= TierSpawnChances.T0 then
 							grouptier = staticUnitList.BeaconDefences.T0
 						elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
@@ -186,7 +181,7 @@ function SpawnBeacon(n)
 				end
 			end
 		else
-			BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
+			BeaconSpawnChance = scavconfig.unitSpawnerModuleConfig.beaconspawnchance
 			if BeaconSpawnChance < 1 then
 				BeaconSpawnChance = 1
 			end

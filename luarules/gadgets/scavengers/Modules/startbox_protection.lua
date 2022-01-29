@@ -1,4 +1,3 @@
-local staticUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/staticunits.lua")
 
 function spawnStartBoxProtection(n)
     if ScavengerStartboxExists then
@@ -20,7 +19,7 @@ function spawnStartBoxProtection(n)
 			--ScavSafeAreaMaxZ
 			local r = math_random(0,3)
 			local r2 = math_random(0,80)
-			local spread = spawnProtectionConfig.spread
+			local spread = scavconfig.spawnProtectionConfig.spread
 			local spawnPosX = math_random(ScavSafeAreaMinX,ScavSafeAreaMaxX)
 			local spawnPosZ = math_random(ScavSafeAreaMinZ,ScavSafeAreaMaxZ)
 			if r == 0 then -- south edge

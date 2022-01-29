@@ -3,8 +3,8 @@ local function invasion(currentFrame)
 ScavSendNotification("scav_eventswarm")
 local invasionUnitsLand = {"armflea_scav", "armfav_scav", "corfav_scav", "armbeaver_scav", "cormuskrat_scav",}
 local invasionUnitsSea = {"armbeaver_scav","cormuskrat_scav",}
-local groupsize = (globalScore / unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier
-local groupsize = groupsize*((unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.airmultiplier)*0.33)*unitSpawnerModuleConfig.t0multiplier*4
+local groupsize = (globalScore / scavconfig.unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier
+local groupsize = groupsize*((scavconfig.unitSpawnerModuleConfig.landmultiplier*scavconfig.unitSpawnerModuleConfig.seamultiplier*scavconfig.unitSpawnerModuleConfig.airmultiplier)*0.33)*scavconfig.unitSpawnerModuleConfig.t0multiplier*4
 local groupsize = math.ceil(groupsize*(teamcount/2))
 	for i = 1,groupsize do
 		for y = 1,100 do
@@ -52,8 +52,8 @@ local function chickenInvasion1(currentFrame)
 			EventChickenSpawner = unitID
 			local posx, posy, posz = Spring.GetUnitPosition(unitID)
 			
-			local groupsize = (globalScore / unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier
-			local groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t0multiplier
+			local groupsize = (globalScore / scavconfig.unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier
+			local groupsize = groupsize*scavconfig.unitSpawnerModuleConfig.landmultiplier*scavconfig.unitSpawnerModuleConfig.t0multiplier
 			local groupsize = math.ceil(groupsize*(teamcount/2))
 			for z = 1,groupsize do
 				Spring.CreateUnit(chickens[math_random(1,#chickens)], posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),ScavengerTeamID)
@@ -88,8 +88,8 @@ local function chickenInvasion1(currentFrame)
 					Spring.CreateUnit("chickend1_scav", posx+200+(math_random(-100,100)), posy, posz-200+(math_random(-100,100)), math_random(0,3),ScavengerTeamID)
 					Spring.CreateUnit("chickend1_scav", posx-200+(math_random(-100,100)), posy, posz+200+(math_random(-100,100)), math_random(0,3),ScavengerTeamID)
 					Spring.CreateUnit("chickend1_scav", posx+200+(math_random(-100,100)), posy, posz+200+(math_random(-100,100)), math_random(0,3),ScavengerTeamID)
-					local groupsize = (globalScore / unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier
-					local groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t0multiplier
+					local groupsize = (globalScore / scavconfig.unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier
+					local groupsize = groupsize*scavconfig.unitSpawnerModuleConfig.landmultiplier*scavconfig.unitSpawnerModuleConfig.t0multiplier
 					local groupsize = math.ceil(groupsize*(teamcount/2))*3
 					for z = 1,groupsize do
 						Spring.CreateUnit(chickens[math_random(1,#chickens)], posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),ScavengerTeamID)

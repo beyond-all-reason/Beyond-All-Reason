@@ -2,8 +2,11 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
+-- Base
 VFS.Include("luarules/gadgets/scavengers/API/init.lua")
-VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/config.lua")
+scavconfig = VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/config.lua")
+VFS.Include("luarules/gadgets/scavengers/API/api.lua")
+VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
 
 function ScavSendMessage(message)
 	if scavconfig.messenger then
@@ -23,14 +26,44 @@ function ScavSendVoiceMessage(filedirectory)
 	end
 end
 
-VFS.Include("luarules/gadgets/scavengers/API/api.lua")
-VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
-VFS.Include("luarules/gadgets/scavengers/Modules/mastermind_controller.lua")
-VFS.Include("luarules/gadgets/scavengers/Modules/unit_controller.lua")
+---- Unit Lists
+bossUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/boss.lua")
+constructorUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/constructors.lua")
+staticUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/staticunits.lua")
+factoryUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/factories.lua")
+airUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/air.lua")
+landUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/land.lua")
+seaUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/sea.lua")
 
-local bossUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/boss.lua")
-local constructorUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/constructors.lua")
-local staticUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/staticunits.lua")
+bossAbilities = VFS.Include("luarules/gadgets/scavengers/BossFight/" .. Game.gameShortName .. "/abilities.lua")
+
+---- Modules
+
+-- redone
+constructorController = VFS.Include("luarules/gadgets/scavengers/Modules/constructor_controller.lua")
+randomEventsController = VFS.Include("luarules/gadgets/scavengers/Modules/random_events.lua")
+factoryController = VFS.Include("luarules/gadgets/scavengers/Modules/factory_controller.lua")
+nukeController = VFS.Include("luarules/gadgets/scavengers/Modules/nuke_controller.lua")
+bossController = VFS.Include("luarules/gadgets/scavengers/Modules/bossfight_module.lua")
+
+-- not redone
+VFS.Include("luarules/gadgets/scavengers/Modules/unit_controller.lua")
+VFS.Include("luarules/gadgets/scavengers/Modules/spawn_beacons.lua")
+VFS.Include("luarules/gadgets/scavengers/Modules/messenger.lua")
+
+if scavconfig.modules.unitSpawnerModule then
+	VFS.Include("luarules/gadgets/scavengers/Modules/unit_spawner.lua")
+end
+if scavconfig.modules.startBoxProtection then
+	VFS.Include("luarules/gadgets/scavengers/Modules/startbox_protection.lua")
+end
+
+if scavconfig.modules.reinforcementsModule then
+	VFS.Include("luarules/gadgets/scavengers/Modules/reinforcements_module.lua")
+end
+if scavconfig.modules.stockpilers == true then
+	VFS.Include("luarules/gadgets/scavengers/Modules/stockpiling.lua")
+end
 
 if scavconfig.modules.buildingSpawnerModule then
 	ScavengerBlueprintsT0 = {}
@@ -46,31 +79,15 @@ if scavconfig.modules.buildingSpawnerModule then
 	VFS.Include("luarules/gadgets/scavengers/Modules/building_spawner.lua")
 end
 
-local constructorController = VFS.Include("luarules/gadgets/scavengers/Modules/constructor_controller.lua")
-local randomEventsController = VFS.Include("luarules/gadgets/scavengers/Modules/random_events.lua")
-local factoryController = VFS.Include("luarules/gadgets/scavengers/Modules/factory_controller.lua")
+----
 
-if scavconfig.modules.unitSpawnerModule then
-	VFS.Include("luarules/gadgets/scavengers/Modules/unit_spawner.lua")
-end
 
-if scavconfig.modules.startBoxProtection then
-	VFS.Include("luarules/gadgets/scavengers/Modules/startbox_protection.lua")
-end
 
-if scavconfig.modules.reinforcementsModule then
-	VFS.Include("luarules/gadgets/scavengers/Modules/reinforcements_module.lua")
-end
 
-if scavconfig.modules.stockpilers == true then
-	VFS.Include("luarules/gadgets/scavengers/Modules/stockpiling.lua")
-end
 
-local nukeController = VFS.Include("luarules/gadgets/scavengers/Modules/nuke_controller.lua")
 
-VFS.Include("luarules/gadgets/scavengers/Modules/spawn_beacons.lua")
-VFS.Include("luarules/gadgets/scavengers/Modules/messenger.lua")
-local bossController = VFS.Include("luarules/gadgets/scavengers/Modules/bossfight_module.lua")
+
+
 
 local function DisableUnit(unitID)
 	Spring.DestroyUnit(unitID, false, true)
@@ -244,7 +261,7 @@ function PutScavAlliesInScavTeam(n)
 	end
 end
 
-local minionFramerate = math.ceil(unitSpawnerModuleConfig.FinalBossMinionsPassive/(teamcount*spawnmultiplier))
+local minionFramerate = math.ceil(scavconfig.unitSpawnerModuleConfig.FinalBossMinionsPassive/(teamcount*spawnmultiplier))
 function gadget:GameFrame(n)
 	if n == 1 then
 		-- PutSpectatorsInScavTeam(n)
@@ -257,13 +274,6 @@ function gadget:GameFrame(n)
 		SpawnFromQueue(n)
 		DestroyFromQueue(n)
 		DestroyOldBuildings()
-	end
-
-	if n%900 then
-		MasterMindLandTargetsListUpdate(n)
-		MasterMindSeaTargetsListUpdate(n)
-		MasterMindAirTargetsListUpdate(n)
-		MasterMindAmphibiousTargetsListUpdate(n)
 	end
 
 	if n == 300 then
@@ -294,7 +304,7 @@ function gadget:GameFrame(n)
 
 	if n%30 == 0 and FinalBossUnitSpawned and not FinalBossKilled then
 		local currentbosshealth = Spring.GetUnitHealth(FinalBossUnitID)
-		--local initialbosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
+		--local initialbosshealth = scavconfig.unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
 		local bosshealthpercentage = math.floor(currentbosshealth/(initialbosshealth*0.01))
 		ScavSendMessage("Boss Health: "..math.ceil(currentbosshealth).. " ("..bosshealthpercentage.."%)")
 
@@ -346,7 +356,7 @@ function gadget:GameFrame(n)
 		end
 		local scavUnits = Spring.GetTeamUnits(ScavengerTeamID)
 		local scavUnitsCount = #scavUnits
-		if (scavUnitsCount < (unitSpawnerModuleConfig.minimumspawnbeacons*4) or numOfSpawnBeacons == 0) and n > scavconfig.gracePeriod*3 then 
+		if (scavUnitsCount < (scavconfig.unitSpawnerModuleConfig.minimumspawnbeacons*4) or numOfSpawnBeacons == 0) and n > scavconfig.gracePeriod*3 then 
 			killedscavengers = killedscavengers + 1000
 			if BossWaveStarted and (BossWaveTimeLeft and BossWaveTimeLeft > 20) then
 				BossWaveTimeLeft = 20
@@ -355,7 +365,7 @@ function gadget:GameFrame(n)
 	end
 
 	if n%900 == 0 and n > 100 and FinalBossKilled == false then
-		if (BossWaveStarted == false) and globalScore > scavconfig.timers.BossFight and unitSpawnerModuleConfig.bossFightEnabled then
+		if (BossWaveStarted == false) and globalScore > scavconfig.timers.BossFight and scavconfig.unitSpawnerModuleConfig.bossFightEnabled then
 			BossWaveStarted = true
 		elseif not FinalBossUnitSpawned and not BossWaveStarted then
 			if scavengersAIEnabled and scavengersAIEnabled == true then
@@ -378,7 +388,7 @@ function gadget:GameFrame(n)
 		SpawnBlueprint(n)
 	end
 
-	-- if n%(math.ceil(1800/spawnmultiplier)) == 0 and not scavteamhasplayers and scavengerGamePhase ~= "initial" and constructorControllerModuleConfig.useresurrectors and FinalBossKilled == false then
+	-- if n%(math.ceil(1800/spawnmultiplier)) == 0 and not scavteamhasplayers and scavengerGamePhase ~= "initial" and scavconfig.constructorControllerModuleConfig.useresurrectors and FinalBossKilled == false then
 	-- 	constructorController.SpawnResurrectorGroup(n)
 	-- end
 
@@ -395,7 +405,7 @@ function gadget:GameFrame(n)
 			SpawnBeacon(n)
 			UnitGroupSpawn(n)
 		end
-		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors and scavengerGamePhase ~= "initial" then
+		if scavconfig.modules.constructorControllerModule and scavconfig.constructorControllerModuleConfig.useconstructors and scavengerGamePhase ~= "initial" then
 			constructorController.SpawnConstructor(n)
 		end
 		local scavengerunits = Spring.GetTeamUnits(ScavengerTeamID)
@@ -426,7 +436,7 @@ function gadget:GameFrame(n)
 				end
 
 				if scavteamhasplayers == false  then
-					if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors then
+					if scavconfig.modules.constructorControllerModule and scavconfig.constructorControllerModuleConfig.useconstructors then
 						if scavConstructor[scav] then
 							if Spring.GetCommandQueue(scav, 0) <= 0 then
 								constructorController.ConstructNewBlueprint(n, scav)
@@ -434,13 +444,13 @@ function gadget:GameFrame(n)
 						end
 					end
 
-					if not scavteamhasplayers and constructorControllerModuleConfig.useresurrectors and collectorRNG == 0 then
+					if not scavteamhasplayers and scavconfig.constructorControllerModuleConfig.useresurrectors and collectorRNG == 0 then
 						if scavResurrector[scav] then
 							constructorController.ResurrectorOrders(n, scav)
 						end
 					end
 
-					if not scavteamhasplayers and constructorControllerModuleConfig.usecollectors and collectorRNG == 0 then
+					if not scavteamhasplayers and scavconfig.constructorControllerModuleConfig.usecollectors and collectorRNG == 0 then
 						if scavCollector[scav] then
 							constructorController.CollectorOrders(n, scav)
 						end
@@ -475,9 +485,6 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	local unitName = UnitDefs[unitDefID].name
-	if unitTeam ~= ScavengerTeamID and unitEnteredTeam == ScavengerTeamID then
-		MasterMindTargetListTargetSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
-	end
 	-- if unitName == "armassistdrone" or unitName == "corassistdrone" then
 	-- 	constructorController.AssistDroneRespawn(unitID, unitName)
 	-- end
@@ -573,9 +580,6 @@ end
 
 function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 	local unitName = UnitDefs[unitDefID].name
-	if unitNewTeam == ScavengerTeamID and unitOldTeam ~= ScavengerTeamID then
-		MasterMindTargetListTargetGone(unitID, unitTeam, unitEnteredTeam, unitDefID)
-	end
 	if unitOldTeam == ScavengerTeamID then
 		--AliveEnemyCommanders
 		if constructorUnitList.PlayerCommandersID[unitDefID] then
@@ -748,7 +752,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 				end
 			end
 
-			if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors then
+			if scavconfig.modules.constructorControllerModule and scavconfig.constructorControllerModuleConfig.useconstructors then
 				if constructorUnitList.ConstructorsID[unitDefID] then
 					scavStatsScavCommanders = scavStatsScavCommanders+1
 					scavConstructor[unitID] = true
@@ -756,7 +760,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 				end
 			end
 
-			if constructorControllerModuleConfig.useresurrectors then
+			if scavconfig.constructorControllerModuleConfig.useresurrectors then
 				if constructorUnitList.ResurrectorsID[unitDefID] then
 					buffConstructorBuildSpeed(unitID)
 					scavResurrector[unitID] = true
@@ -768,7 +772,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 				end
 			end
 
-			if constructorControllerModuleConfig.usecollectors then
+			if scavconfig.constructorControllerModuleConfig.usecollectors then
 				if constructorUnitList.CollectorsID[unitDefID] then
 					buffConstructorBuildSpeed(unitID)
 					local r = math_random(0, 100)
@@ -805,7 +809,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if (UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or scavNoSelfD[unitID]) and (unitName ~= "scavengerdroppodbeacon_scav") then
 			BaseCleanupQueue[#BaseCleanupQueue+1] = unitID 
 		end
-		Spring.SetUnitExperience(unitID, math_random() * (spawnmultiplier*0.01*unitControllerModuleConfig.veterancymultiplier))
+		Spring.SetUnitExperience(unitID, math_random() * (spawnmultiplier*0.01*scavconfig.unitControllerModuleConfig.veterancymultiplier))
 		if string.find(unitName, scavconfig.unitnamesuffix) then
 			UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
 		else
@@ -914,7 +918,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			end
 		end
 
-		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors then
+		if scavconfig.modules.constructorControllerModule and scavconfig.constructorControllerModuleConfig.useconstructors then
 			if constructorUnitList.ConstructorsID[unitDefID] then
 				scavStatsScavCommanders = scavStatsScavCommanders+1
 				scavConstructor[unitID] = true
@@ -922,7 +926,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			end
 		end
 
-		if constructorControllerModuleConfig.useresurrectors then
+		if scavconfig.constructorControllerModuleConfig.useresurrectors then
 			if constructorUnitList.ResurrectorsID[unitDefID] then
 				scavResurrector[unitID] = true
 				buffConstructorBuildSpeed(unitID)
@@ -934,7 +938,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			end
 		end
 
-		if constructorControllerModuleConfig.usecollectors then
+		if scavconfig.constructorControllerModuleConfig.usecollectors then
 			if constructorUnitList.CollectorsID[unitDefID] then
 				buffConstructorBuildSpeed(unitID)
 				local r = math_random(0,100)
@@ -1033,25 +1037,11 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam)
 				if not lastMinionFrame then
 					lastMinionFrame = n
 				end
-				if n > lastMinionFrame + math.ceil(unitSpawnerModuleConfig.FinalBossMinionsActive/(teamcount*spawnmultiplier)) and FinalBossUnitID then
+				if n > lastMinionFrame + math.ceil(scavconfig.unitSpawnerModuleConfig.FinalBossMinionsActive/(teamcount*spawnmultiplier)) and FinalBossUnitID then
 					lastMinionFrame = n
 					BossMinionsSpawn(n)
 				end
 			end
-		end
-	end
-end
-
-function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	if unitTeam ~= ScavengerTeamID and allyTeam == ScavengerTeamID then
-		MasterMindTargetListTargetSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
-	end
-end
-
-function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
-	if unitTeam ~= ScavengerTeamID and allyTeam == ScavengerTeamID then
-		if UnitDefs[unitDefID].canMove == true then
-			MasterMindTargetListTargetGone(unitID, unitTeam, unitEnteredTeam, unitDefID)
 		end
 	end
 end
