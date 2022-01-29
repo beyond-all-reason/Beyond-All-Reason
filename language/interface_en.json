@@ -533,7 +533,7 @@
 				}
 			},
 			"scavengers": {
-				"techPercentage": "Boss Angery: %{count}%%",
+				"techPercentage": "Boss Anger: %{count}%%",
 				"techPercentageEndless": "Tech Progress: %{count}%%",
 				"techLevel": "Scavengers Tier: %{count}",
 				"bossFightCountdown": "Boss Arrives in: %{count} Seconds",
