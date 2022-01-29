@@ -12,7 +12,7 @@ function widget:GetInfo()
 end
 
 local moveIsAreamex = true		-- auto make move cmd an area mex cmd
-local addShift = true	-- when single clicking a sequence of mexes, no longer needed to hold shift!
+local addShift = false	-- when single clicking a sequence of mexes, no longer needed to hold shift!
 
 local mexPlacementRadius = 1600	-- (not actual ingame distance)
 local mexPlacementDragRadius = 20000	-- larger size so you can drag a move line over/near mex spots and it will auto queue mex there more easily
