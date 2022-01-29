@@ -306,7 +306,7 @@ function gadget:GameFrame(n)
 		local currentbosshealth = Spring.GetUnitHealth(FinalBossUnitID)
 		--local initialbosshealth = scavconfig.unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
 		local bosshealthpercentage = math.floor(currentbosshealth/(initialbosshealth*0.01))
-		ScavSendMessage("Boss Health: "..math.ceil(currentbosshealth).. " ("..bosshealthpercentage.."%)")
+		--ScavSendMessage("Boss Health: "..math.ceil(currentbosshealth).. " ("..bosshealthpercentage.."%)")
 
 		bossController.UpdateFightPhase(bosshealthpercentage)
 		bossController.ActivateAbility(n)
