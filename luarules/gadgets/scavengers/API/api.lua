@@ -499,7 +499,7 @@ scavStatsScavSpawners = 0
 scavStatsScavUnits = 0
 scavStatsScavUnitsKilled = 0
 scavStatsGlobalScore = 0
-scavStatsTechLevel = "Null"
+scavStatsTechLevel = scavconfig.difficultyName
 scavStatsTechPercentage = 0
 scavStatsDifficulty = "Null"
 scavStatsGracePeriod = 999
@@ -571,6 +571,6 @@ function collectScavStats()
 		spSetGameRulesParam("scavStatsBossHealth", 0)
 	end
 
-	spSetGameRulesParam("scavStatsDifficulty", scavStatsDifficulty)
+	spSetGameRulesParam("scavStatsDifficulty", scavStatsTechLevel)
 end
 

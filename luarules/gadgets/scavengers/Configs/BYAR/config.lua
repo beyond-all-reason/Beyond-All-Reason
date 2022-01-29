@@ -79,6 +79,7 @@ if not teamcount then teamcount = 1 end
 
 local scavconfig = {
 	difficulty = scavDifficulty,
+	difficultyName = scavStatsDifficulty,
 	maxTechLevel = scavMaxTechLevelNumber,
 	unitnamesuffix = "_scav",
 	messenger = true, -- BYAR specific thing, don't enable otherwise (or get gui_messages.lua from BYAR)
