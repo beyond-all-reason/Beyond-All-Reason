@@ -3,6 +3,7 @@ mapsizeX = Game.mapSizeX
 mapsizeZ = Game.mapSizeZ
 GaiaTeamID = Spring.GetGaiaTeamID()
 GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
+math_random = math.random
 
 local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 
@@ -58,8 +59,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-VFS.Include('luarules/gadgets/scavengers/API/init.lua')
-VFS.Include('luarules/gadgets/scavengers/API/api.lua')
+-- VFS.Include('luarules/gadgets/scavengers/API/init.lua') -- Why the fuck...
+-- VFS.Include('luarules/gadgets/scavengers/API/api.lua') -- ... do we use scav API in Ruins.
 VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
 local blueprintController = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_controller.lua')
 
