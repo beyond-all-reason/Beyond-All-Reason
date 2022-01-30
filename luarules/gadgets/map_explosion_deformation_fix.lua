@@ -32,3 +32,14 @@ function gadget:GameFrame(n)
         end
     end
 end
+
+function gadget:UnitDestroyed(unitID)
+    if #deformationDisableList > 0 then
+        for i = 1,#deformationDisableList do
+            if deformationDisableList[i] == unitID then
+                table.remove(deformationDisableList, i)
+                break
+            end
+        end
+    end
+end
