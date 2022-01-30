@@ -60,7 +60,7 @@ local function addUnitShape(unitID, unitDefID, px, py, pz, rotationY, teamID)
 		widget:Shutdown()
 	else
 		if numunitshapes < maxunitshapes then
-			unitshapes[unitID] = WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, shapeOpacity, teamID)
+			unitshapes[unitID] = WG.DrawUnitShapeGL4(unitDefID, px, py-0.01, pz, rotationY, shapeOpacity, teamID)
 			numunitshapes = numunitshapes + 1
 			return unitshapes[unitID]
 		else
