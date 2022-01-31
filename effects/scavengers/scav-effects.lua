@@ -24,6 +24,7 @@ return {
             pos                = [[-75 r150, -50 r25, -75 r150]],
             rotParams          = [[-1.8 r3.6, -0.3 r0.6, -180 r360]],
             drawOrder          = 0,
+            alwaysvisible      = true,
       },
     },
     grounddust1 = {
