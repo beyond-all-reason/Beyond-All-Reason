@@ -119,6 +119,7 @@ local tipKeys = {
 	'useJuno',
 	'autogroups',
 	'reportUsers',
+	'ignoreUsers',
 }
 
 local randomTip = ''
