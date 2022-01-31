@@ -6,6 +6,7 @@
 piece  base, flare, turret, sleeve, launcher, barrel;
 
 static-var  gun_1;
+static-var  Stunned;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -72,8 +73,10 @@ Create()
 	spin turret around y-axis speed <25.0>;
 	start-script RockOnWaves();
 }
-
-static-var  Stunned;
+Stop()
+{
+	spin turret around y-axis speed <0.0>;
+}
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
@@ -85,10 +88,13 @@ ExecuteRestoreAfterDelay()
 SetStunned(State)
 {
     Stunned = State;
-	if (!Stunned) {
+	if (Stunned) {
+	    call-script Stop();
+	} else {
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
+
 RestoreAfterDelay()
 {
 	sleep 5000;

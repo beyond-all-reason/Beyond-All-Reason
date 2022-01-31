@@ -6,6 +6,7 @@
 piece  base, turret, spinner1, spinner2;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
 
 #define BASEPIECE base
@@ -23,13 +24,21 @@ Go()
 	spin spinner2 around y-axis speed <-100.000000>;
 	return (0);
 }
-
 Stop()
 {
 	stop-spin turret around y-axis;
 	stop-spin spinner1 around y-axis;
 	stop-spin spinner2 around y-axis;
 	return (0);
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script Go();
+	}
 }
 
 InitState()

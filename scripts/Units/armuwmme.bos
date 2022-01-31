@@ -7,6 +7,7 @@ piece  base, turret, arm, head1, head2, claw1, claw2;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5,
             Static_Var_6, Static_Var_7, statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -37,7 +38,6 @@ fixGo()
 
 Stop()
 {
-
 	stop-spin claw1 around z-axis decelerate Static_Var_1/100.0;
 	stop-spin claw2 around z-axis decelerate Static_Var_1/100.0;
 	stop-spin turret around y-axis decelerate Static_Var_1/300.0;
@@ -45,6 +45,16 @@ Stop()
 	move head1 to x-axis [0] speed [6];
 	move head2 to y-axis [0] speed [6];
 	sleep 3000;
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script fixGo();
+	}
 }
 
 InitState()
