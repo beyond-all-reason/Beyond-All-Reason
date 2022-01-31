@@ -1,9 +1,9 @@
 function gadget:GetInfo()
 	return {
 		name    = "Unit Scale",
-		desc    = "Scale all buildings slightly randomly (visually only))",
+		desc    = "Scale all units",
 		author  = "Floris",
-		date    = "May 2021",
+		date    = "January 2022",
 		license = "GNU LGPL, v2.1 or later",
 		layer   = 0,
 		enabled = true
