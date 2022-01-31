@@ -56,9 +56,6 @@ function TaskLabBST:resetCounters()
 	if self.isAirFactory then
 		self.ai.couldBomb = 0
 		self.ai.hasBombed = 0
-	else
-		self.ai.couldAttack = 0
-		self.ai.hasAttacked = 0
 	end
 end
 
@@ -232,7 +229,7 @@ function TaskLabBST:getQueue()
 		{'techs',3,nil,10,1},
 		{'battles',3,nil,25,5},
 		{'techs',3,6,7,1},
-		{'artillerys',1,10,10,3},
+		{'artillerys',1,10,10,5},
 		{'techs',3,nil,10,1},
 		{'breaks',2,5,15,3},
 		{'techs',3,nil,10,1},
@@ -270,12 +267,12 @@ TaskLabBST.queue = {
 
 		{'techs',3,nil,10,1},
 		{'scouts',1,10,2,2},
-		{'raiders',1,nil,20,5},
+		{'raiders',1,nil,20,10},
 		{'techs',3,nil,10,1},
 		{'battles',3,nil,25,5},
 		{'techs',3,6,7,1},
 		{'artillerys',1,10,10,3},
-		{'techs',3,nil,10,1},
+		{'techs',3,nil,10,3},
 		{'breaks',2,5,15,3},
 		{'techs',3,nil,10,1},
 		{'rezs',1,8,10,2}, -- rezzers

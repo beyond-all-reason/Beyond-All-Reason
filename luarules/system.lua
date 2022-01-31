@@ -68,7 +68,7 @@ if (System == nil) then
 		coroutine = coroutine,
 
 		--
-		--  Standard libraries
+		--  Custom libraries
 		--
 		Json = Json,
 

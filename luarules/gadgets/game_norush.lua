@@ -76,7 +76,7 @@ function gadget:GameFrame(n)
 
 
          -- spawn purple fog and cages
-        for a = 1,10 do
+        for a = 1,5 do
             local particleX = math.random(0, mapsizeX)
             local particleZ = math.random(0, mapsizeZ)
             local particleY = Spring.GetGroundHeight(particleX,particleZ)+math.random(-100,100)
@@ -116,17 +116,17 @@ function gadget:GameFrame(n)
                             if spawnPosY > 0 then
                                 local wall = Spring.CreateUnit(UnitDefNames["corscavfort"].id, spawnPosX, spawnPosY, spawnPosZ, 0, GaiaTeamID)
                                 if wall then
-                                    Spring.SetUnitMaxHealth(wall, 16000000)
-                                    Spring.SetUnitHealth(wall, 16000000)
-                                    Spring.SetUnitCosts(wall, {buildTime = 9999999})
+                                    Spring.SetUnitMaxHealth(wall, 10000000)
+                                    Spring.SetUnitHealth(wall, 10000000)
+                                    Spring.SetUnitCosts(wall, {buildTime = 999999})
                                     table.insert(startboxWallsList, wall)
                                 end
                             else
                                 local wall = Spring.CreateUnit(UnitDefNames["corfdrag"].id, spawnPosX, spawnPosY, spawnPosZ, 0, GaiaTeamID)
                                 if wall then
-                                    Spring.SetUnitMaxHealth(wall, 16000000)
-                                    Spring.SetUnitHealth(wall, 16000000)
-                                    Spring.SetUnitCosts(wall, {buildTime = 9999999})
+                                    Spring.SetUnitMaxHealth(wall, 10000000)
+                                    Spring.SetUnitHealth(wall, 10000000)
+                                    Spring.SetUnitCosts(wall, {buildTime = 999999})
                                     table.insert(startboxWallsList, wall)
                                 end
                             end
@@ -141,10 +141,24 @@ function gadget:GameFrame(n)
         end
     else
         if #startboxWallsList > 0 then
+            -- if Spring.GetUnitIsDead(startboxWallsList[1]) == false then
             if Spring.ValidUnitID(startboxWallsList[1]) then
                 Spring.DestroyUnit(startboxWallsList[1], true, false)
             end
-            table.remove(startboxWallsList, 1)
+            --table.remove(startboxWallsList, 1)
+        end
+
+        if #startboxWallsList == 0 then
+            gadgetHandler:RemoveGadget(self)
+        end
+    end
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+    for i = 1, #startboxWallsList do
+        if unitID == startboxWallsList[i] then
+            table.remove(startboxWallsList, i)
+            break
         end
     end
 end

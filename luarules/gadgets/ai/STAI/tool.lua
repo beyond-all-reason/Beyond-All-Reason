@@ -296,7 +296,29 @@ function Tool:CustomCommand(unit, cmdID, cmdParams)
 	return unit:ExecuteCustomCommand(cmdID, floats)
 end
 
-
+function Tool:UnitNameSanity(unitOrName)--TODO move to tool
+	if not unitOrName then
+		self.game:Warn('nil unit or name')
+		return
+	end
+	if type(unitOrName) == 'string' then
+		if not self.ai.armyhst.unitTable[unitOrName] then
+			self.game:Warn('invalid string name',unitOrName)
+			return
+		else
+			return unitOrName
+		end
+	else
+		local uName = unitOrName:Name()
+		if uName ~= nil  and self.ai.armyhst.unitTable[uName]then
+			return uName
+		else
+			self.game:Warn('invalid object unit give invalid name',unitOrName)
+			return
+		end
+	end
+	self.game:Warn('unknow reason to exit from unit name sanity')
+end
 
 function Tool:WhatHurtsUnit(unitName, mtype, position)
 	local hurts = whatHurtsMtype[mtype] or whatHurtsUnit[unitName]

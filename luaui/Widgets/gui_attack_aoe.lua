@@ -1,12 +1,7 @@
--- $Id: gui_attack_aoe.lua 3823 2009-01-19 23:40:49Z evil4zerggin $
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-local versionNumber = "v3.1c"
-
 function widget:GetInfo()
 	return {
 		name = "Attack AoE",
-		desc = versionNumber .. " Cursor indicator for area of effect and scatter when giving attack command.",
+		desc = "Cursor indicator for area of effect and scatter when giving attack command.",
 		author = "Evil4Zerggin",
 		date = "26 September 2008",
 		license = "GNU LGPL, v2.1 or later",
@@ -14,6 +9,8 @@ function widget:GetInfo()
 		enabled = true  --  loaded by default?
 	}
 end
+
+VFS.Include('luarules/configs/customcmds.h.lua')
 
 --------------------------------------------------------------------------------
 --config
@@ -728,7 +725,7 @@ function widget:DrawWorld()
 	local info, manualFire, aimingUnitID
 	local _, cmd, _ = GetActiveCommand()
 
-	if (cmd == CMD_MANUALFIRE and manualFireUnitDefID) then
+	if ((cmd == CMD_MANUALFIRE or cmd == CMD_MANUAL_LAUNCH) and manualFireUnitDefID) then
 		info = manualWeaponInfo[manualFireUnitDefID]
 		aimingUnitID = manualFireUnitID
 		manualFire = true

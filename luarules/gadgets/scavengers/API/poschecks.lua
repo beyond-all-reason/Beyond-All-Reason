@@ -1,5 +1,5 @@
-local GaiaAllyTeamID = GaiaAllyTeamID or 999
-local _,_,_,_,_,RealGaiaAllyTeamID = Spring.GetTeamInfo(Spring.GetGaiaTeamID()) -- GaiaAllyTeamID is actually scav ally team, because i'm too lazy to do global rename.
+local ScavengerAllyTeamID = ScavengerAllyTeamID or 999
+local _,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(Spring.GetGaiaTeamID()) -- GaiaAllyTeamID is actually scav ally team, because i'm too lazy to do global rename.
 if not scavconfig then
 	heighttollerance = 30
 	noheightchecksforwater = true
@@ -71,7 +71,7 @@ function posLosCheck(posx, posy, posz, posradius)
 		return posOccupied(posx, posy, posz, posradius*4)
 	end
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-		if allyTeamID ~= GaiaAllyTeamID and allyTeamID ~= RealGaiaAllyTeamID then
+		if allyTeamID ~= ScavengerAllyTeamID and allyTeamID ~= GaiaAllyTeamID then
 			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
@@ -105,7 +105,7 @@ function posLosCheckNoRadar(posx, posy, posz, posradius)
 		return posOccupied(posx, posy, posz, posradius*3)
 	end
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-		if allyTeamID ~= GaiaAllyTeamID and allyTeamID ~= RealGaiaAllyTeamID then
+		if allyTeamID ~= ScavengerAllyTeamID and allyTeamID ~= GaiaAllyTeamID then
 			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
@@ -130,7 +130,7 @@ function posLosCheckReversed(posx, posy, posz, posradius)
 		return posOccupied(posx, posy, posz, posradius*3)
 	end
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-		if allyTeamID ~= GaiaAllyTeamID and allyTeamID ~= RealGaiaAllyTeamID then
+		if allyTeamID ~= ScavengerAllyTeamID and allyTeamID ~= GaiaAllyTeamID then
 			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
@@ -155,7 +155,7 @@ function posLosCheckOnlyLOS(posx, posy, posz, posradius)
 		return posOccupied(posx, posy, posz, posradius*2)
 	end
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-		if allyTeamID ~= GaiaAllyTeamID and allyTeamID ~= RealGaiaAllyTeamID then
+		if allyTeamID ~= ScavengerAllyTeamID and allyTeamID ~= GaiaAllyTeamID then
 			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
@@ -188,13 +188,19 @@ function posLosCheckOnlyLOSNonScav(posx, posy, posz, posradius, TestAllyTeamID)
 	return true
 end
 
-function posStartboxCheck(posx, posy, posz, posradius)
+function posStartboxCheck(posx, posy, posz, posradius, reverseNoStartbox)
 	-- if true then position is within scav startbox
 	local posradius = posradius or 1000
 	if ScavengerStartboxExists and posx <= ScavengerStartboxXMax and posx >= ScavengerStartboxXMin and posz >= ScavengerStartboxZMin and posz <= ScavengerStartboxZMax then
-		return false
-	else
 		return true
+	elseif not ScavengerStartboxExists then
+		if reverseNoStartbox then
+			return false
+		else
+			return true
+		end
+	else
+		return false
 	end
 end
 
@@ -283,6 +289,34 @@ function posSeaCheck(posx, posy, posz, posradius)
 		return false
 	elseif deathwater > 0 then
 		return false
+	else
+		return true
+	end
+end
+
+function posScavSpawnAreaCheck(posx, posy, posz, posradius)
+	local posradius = posradius or 1000
+	if Spring.GetModOptions().scavspawnarea then
+		
+		if not ScavengerStartboxExists then return true end
+		if posStartboxCheck(posx, posy, posz, posradius) == true then return true end
+		if not globalScore then return false end
+		
+		local ScavBoxCenterX = math.ceil((ScavengerStartboxXMin + ScavengerStartboxXMax)*0.5)
+		local ScavBoxCenterZ = math.ceil((ScavengerStartboxZMin + ScavengerStartboxZMax)*0.5)
+		local ScavTechPercentage = math.ceil((globalScore/scavconfig.timers.BossFight)*100)
+		
+		local SpawnBoxMinX = math.floor(ScavengerStartboxXMin-(((Game.mapSizeX)*0.01)*ScavTechPercentage))
+		local SpawnBoxMaxX = math.ceil(ScavengerStartboxXMax+(((Game.mapSizeX)*0.01)*ScavTechPercentage))
+		local SpawnBoxMinZ = math.floor(ScavengerStartboxZMin-(((Game.mapSizeZ)*0.01)*ScavTechPercentage))
+		local SpawnBoxMaxZ = math.ceil(ScavengerStartboxZMax+(((Game.mapSizeZ)*0.01)*ScavTechPercentage))
+
+		if posx < SpawnBoxMinX then return false end
+		if posx > SpawnBoxMaxX then return false end
+		if posz < SpawnBoxMinZ then return false end
+		if posz > SpawnBoxMaxZ then return false end
+
+		return true
 	else
 		return true
 	end

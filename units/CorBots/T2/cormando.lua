@@ -126,6 +126,10 @@ return {
 				damage = {
 					default = 100,
 				},
+				customparams = {
+					expl_light_mult = 0.7,
+					light_mult = 0.7,
+				},
 			},
 			commando_minelayer = {
 				areaofeffect = 40,

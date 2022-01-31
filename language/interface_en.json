@@ -10,7 +10,6 @@
 					"lobby": "Lobby",
 					"settings": "Settings",
 					"changes": "Changes",
-					"commands": "Commands",
 					"keys": "Keys",
 					"scavengers": "Scavengers",
 					"stats": "Statistics",
@@ -125,6 +124,8 @@
 				"areaattack_tooltip": "Area attack everything within a circle (click-drag)",
 				"manualfire": "D-Gun",
 				"manualfire_tooltip": "Fire the powerful commander Disintegrator-gun",
+				"manuallaunch": "Launch",
+				"manuallaunch_tooltip": "Launch a missile at a target",
 				"patrol": "Patrol",
 				"patrol_tooltip": "Patrol along one or more waypoints",
 				"fight": "Fight",
@@ -508,7 +509,7 @@
 				"wave": "Wave %{waveNumber}",
 				"waveCount": "%{count} Raptors!",
 				"chickenCount": "Raptors: %{count}",
-				"chickenKillCount": "Raptors Killed: %{count}",
+				"chickenKillCount": "Raptor Kills: %{count}",
 				"queenAnger": "Queen Anger: %{anger}%%",
 				"queenHealth": "Queen Health: %{health}%%",
 				"gracePeriod": "Grace Period: %{time}",
@@ -525,6 +526,19 @@
 					"epic": "Epic",
 					"survival": "Survival"
 				}
+			},
+			"scavengers": {
+				"techPercentage": "Boss Anger: %{count}%%",
+				"techPercentageEndless": "Tech Progress: %{count}%%",
+				"techLevel": "Scavengers Tier: %{count}",
+				"bossFightCountdown": "Boss Arrives in: %{count} Seconds",
+				"bossHealth": "Boss Health: %{count}%%",
+				"gracePeriod": "Grace Period: %{count} Seconds",
+				"killedScavengers": "Killed Scavengers: %{count}",
+				"aliveScavengers": "Scavengers: %{count}",
+				"aliveBeacons": "Beacons: %{count}",
+				"aliveCommanders": "Commanders: %{count}",
+				"difficultyLevel": "Difficulty: %{count}"
 			},
 			"loadScreen": {
 				"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.      Your experience might be sub optimal."

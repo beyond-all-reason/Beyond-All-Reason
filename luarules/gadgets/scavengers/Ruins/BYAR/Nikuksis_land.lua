@@ -1,5 +1,5 @@
-local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
-local types = scavConfig.BlueprintTypes
+local blueprintConfig = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_tiers.lua')
+local types = blueprintConfig.BlueprintTypes
 
 
 

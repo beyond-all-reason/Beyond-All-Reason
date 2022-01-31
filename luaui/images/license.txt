@@ -1,6 +1,36 @@
+backgroundtile.png
 energy.png
+energy_red.png
+healthbars_exo4.png
 info_health.png
 metal.png
+new.dds
 nuke.png
+repeat.png
+skull.dds
+stripes.png
+wind-blades.png
 
 All above textures in this folder were made for Beyond All Reason by IceXuick and Floris, all rights reserved (CC BY NC ND)
+
+--in subfolder /advplayerlist/
+ally.dds
+armada_default.png
+cortex_default.png
+energy.dds
+low.dds
+metal.dds
+ping.dds
+point.dds
+unally.dds
+units.dds
+
+All above textures in this folder were made for Beyond All Reason by IceXuick, all rights reserved (CC BY NC ND)
+
+--in subfolder /advplayerlist/ranks
+
+All textures in this folder were made for Beyond All Reason by IceXuick, all rights reserved (CC BY NC ND)
+
+--in subfolder /groupicons
+
+All textures in this folder were made for Beyond All Reason by IceXuick, all rights reserved (CC BY NC ND)

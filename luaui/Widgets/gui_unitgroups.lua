@@ -153,7 +153,6 @@ local function checkGuishader(force)
 			WG['guishader'].InsertDlist(dlistGuishader, 'unitgroups')
 		end
 	elseif dlistGuishader then
-		WG['guishader'].RemoveDlist('unitgroups')
 		dlistGuishader = gl.DeleteList(dlistGuishader)
 	end
 end

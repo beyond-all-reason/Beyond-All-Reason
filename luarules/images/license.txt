@@ -1,3 +1,4 @@
 Award images are copyrighted by IceXuick, made for the game "Beyond All Reason" (CC BY NC ND)
 
-Exceptions are: blank.png
+Exceptions are:
+blank.png

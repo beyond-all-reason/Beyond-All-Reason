@@ -85,37 +85,30 @@ end
 
 function UnitDef_Post(name, uDef)
 	if Spring.GetModOptions().newdgun then
-		if name == 'armcom' or name == 'corcom' then
+		if name == 'armcom' or name == 'corcom' or name == 'armcomcon' or name == 'corcomcon' then
 			uDef.weapondefs.disintegrator = {
-				areaofeffect = 100,
-				avoidGround = false,
-				avoidFriendly = false,
-				avoidFeature = false,
-				avoidNeutral = false,
-				collideEnemy = false,
-				collideFriendly = false,
-				collideFeature = false,
-				collideGround = false,
-				collideNeutral = false,
-				burnblow = true, --this fixes passing through the targeted unit and missing
+				areaofeffect = 36,
+				avoidfeature = false,
+				avoidfriendly = false,
+				avoidground = false,
 				bouncerebound = 0,
 				cegtag = "dgunprojectile",
 				commandfire = true,
 				craterboost = 0,
-				cratermult = 0.15,
-				edgeeffectiveness = 0.75,
+				cratermult = 0.05,
+				edgeeffectiveness = 1,
 				energypershot = 500,
-				explosiongenerator = "custom:genericshellexplosion-large-aoe",
+				explosiongenerator = "custom:expldgun",
 				firestarter = 100,
 				firesubmersed = false,
+				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Disintegrator",
-				noexplode = false,
+				noexplode = true,
 				noselfdamage = true,
 				range = 250,
-				reloadtime = 3,
-				size = 8,
+				reloadtime = 0.9,
 				soundhit = "xplomas2",
 				soundhitwet = "sizzle",
 				soundstart = "disigun1",
@@ -125,8 +118,9 @@ function UnitDef_Post(name, uDef)
 				tolerance = 20000,
 				turret = true,
 				waterweapon = true,
-				weapontype = "Cannon",
-				weaponvelocity = 600,
+				weapontimer = 4.2,
+				weapontype = "DGun",
+				weaponvelocity = 300,
 				customparams = {
 					expl_light_heat_radius = 12,
 					expl_light_opacity = 0.32,
@@ -134,10 +128,9 @@ function UnitDef_Post(name, uDef)
 					expl_light_color = "1 0.83 0.53",
 				},
 				damage = {
-					default = 1000000,
+					default = 99999,
+					commanders = 600,
 					scavboss = 1000,
-					armcom = 500,
-					corcom = 500,
 				},
 			}
 		end
@@ -219,6 +212,12 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
+		if Spring.GetModOptions().unit_restrictions_noextractors then
+			if (uDef.extractsmetal and uDef.extractsmetal > 0) and (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
+				uDef.unitrestricted = 0
+			end
+		end
+		
 		if Spring.GetModOptions().unit_restrictions_noconverters then
 			if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
 				uDef.unitrestricted = 0
@@ -321,12 +320,16 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
 			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
 			uDef.buildoptions[numBuildoptions+5] = "armmg"
+			uDef.buildoptions[numBuildoptions+6] = "leglab"
+			uDef.buildoptions[numBuildoptions+7] = "legvp"
 		elseif name == "corca" or name == "corck" or name == "corcv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
 			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
 			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
 			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
+			uDef.buildoptions[numBuildoptions+5] = "leglab"
+			uDef.buildoptions[numBuildoptions+6] = "legvp"
 		elseif name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armapt3"
@@ -353,6 +356,14 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corslrpc"
 			uDef.buildoptions[numBuildoptions+2] = "coresuppt3"
+		elseif name == "armcom" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "leglab"
+			uDef.buildoptions[numBuildoptions+2] = "legvp"
+		elseif name == "corcom" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "leglab"
+			uDef.buildoptions[numBuildoptions+2] = "legvp"
 		end
 	end
 
@@ -655,7 +666,7 @@ function WeaponDef_Post(name, wDef)
 		if name == 'commanderexplosion' then
 			wDef.damage = {
 				default = 50000,
-				commanders = 1000,
+				commanders = 2000,
 			}
 		end
 	end

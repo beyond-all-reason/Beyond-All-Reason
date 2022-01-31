@@ -118,6 +118,8 @@ local tipKeys = {
 	'useMines',
 	'useJuno',
 	'autogroups',
+	'reportUsers',
+	'ignoreUsers',
 }
 
 local randomTip = ''

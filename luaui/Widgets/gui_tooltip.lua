@@ -164,7 +164,7 @@ local function drawTooltip(name, x, y)
 
 			local borderSize = 1
 			RectRound(addX-paddingW-borderSize, addY-maxHeight - paddingH-borderSize, addX+maxWidth + paddingW+borderSize, addY+paddingH+borderSize, bgpadding*1.4, 1,1,1,1, {0,0,0,0.08})
-			UiElement(addX-paddingW, addY-maxHeight-paddingH, addX+maxWidth + paddingW, addY+paddingH, 1,1,1,1, 1,1,1,1, nil, {0.85, 0.85, 0.85, (WG['guishader'] and 0.72 or 0.94)}, {0, 0, 0, (WG['guishader'] and 0.52 or 0.56)}, bgpadding)
+			UiElement(addX-paddingW, addY-maxHeight-paddingH, addX+maxWidth + paddingW, addY+paddingH, 1,1,1,1, 1,1,1,1, nil, {0.85, 0.85, 0.85, (WG['guishader'] and 0.7 or 0.93)}, {0, 0, 0, (WG['guishader'] and 0.5 or 0.56)}, bgpadding)
 
 			-- draw text
 			maxHeight = math_floor(-fontSize * 0.9)
@@ -247,6 +247,9 @@ function widget:DrawScreen()
 					else
 						drawTooltip(name, x + (xOffset * widgetScale), y + (yOffset * widgetScale))
 					end
+				else
+					cleanupGuishaderAreas[name] = true
+					--Spring.Echo(name, os.clock())
 				end
 			end
 		else

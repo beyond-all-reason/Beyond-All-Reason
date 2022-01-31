@@ -222,8 +222,7 @@ function widget:Update(dt)
 	isActive = #Spring.GetSelectedUnits() == 0
 end
 
-function widget:GameFrame(f)
-	if f == 1 then
-		buttons[1].text = "  ||"
-	end
+function widget:GameStart()
+	widget:ViewResize()
+	buttons[#buttons].text = "  ||"
 end

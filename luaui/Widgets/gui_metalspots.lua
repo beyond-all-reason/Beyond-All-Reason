@@ -10,6 +10,10 @@ function widget:GetInfo()
 	}
 end
 
+if Spring.GetModOptions().unit_restrictions_noextractors then
+	return
+end
+
 local showValue			= false
 local metalViewOnly		= false
 

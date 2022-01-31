@@ -54,7 +54,9 @@
 				"useSpotters": "Long-ranged units need scouting for accurate aiming.\nGenerate a constant stream of fast, cheap units for better vision.",
 				"vehiclesOrBots": "Vehicles are a good choice for flat and open battlefields. Bots are better on hills.",
 				"windEnergyBuffer": "If your economy is based on wind generators, always build an Energy Storage to have a reserve for when the wind speed drops.",
-				"windSpeed": "Go for Wind Generators when the average wind speed is over 7. Current, minimum, and maximum wind speeds are shown to the right of the energy bar."
+				"windSpeed": "Go for Wind Generators when the average wind speed is over 7. Current, minimum, and maximum wind speeds are shown to the right of the energy bar.",
+				"reportUsers": "We have moderators. If someone is breaking the code of conduct you can report them by right clicking their name and selecting: Report user.",
+				"ignoreUsers": "Don't want to hear from someone? Yon can right click their name in the lobby to ignore them, in a battle you can Control + Left click their name to ignore them there."
 			},
 			"notifications": {
 				"enemyCommanderDied": "An enemy commander has died",

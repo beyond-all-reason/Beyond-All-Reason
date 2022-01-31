@@ -185,21 +185,23 @@ local function updateStalling()
 
 					if spGetUnitRulesParam(unitID, "under_construction") ~= 1 and-- not under construction
 						energyIconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
-						pushElementInstance(
-							energyIconVBO, -- push into this Instance VBO Table
-								{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],  -- lengthwidthcornerheight
-								0, --Spring.GetUnitTeam(featureID), -- teamID
-								4, -- how many vertices should we make ( 2 is a quad)
-								gf, 0, 0.75 , 0, -- the gameFrame (for animations), and any other parameters one might want to add
-								0,1,0,1, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
-								0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
-							unitID, -- this is the key inside the VBO Table, should be unique per unit
-							false, -- update existing element
-							true, -- noupload, dont use unless you know what you want to batch push/pop
-							unitID) -- last one should be featureID!
+						if Spring.ValidUnitID(unitID) ~= true or  Spring.GetUnitIsDead(unitID) == true then
+						else
+							pushElementInstance(
+								energyIconVBO, -- push into this Instance VBO Table
+									{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],  -- lengthwidthcornerheight
+									0, --Spring.GetUnitTeam(featureID), -- teamID
+									4, -- how many vertices should we make ( 2 is a quad)
+									gf, 0, 0.75 , 0, -- the gameFrame (for animations), and any other parameters one might want to add
+									0,1,0,1, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+									0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
+								unitID, -- this is the key inside the VBO Table, should be unique per unit
+								false, -- update existing element
+								true, -- noupload, dont use unless you know what you want to batch push/pop
+								unitID) -- last one should be featureID!
+						end
 					end
-				elseif energyIconVBO.instanceIDtoIndex
-				[unitID] then
+				elseif energyIconVBO.instanceIDtoIndex[unitID] then
 					popElementInstance(energyIconVBO, unitID, true)
 				end
 			end
@@ -235,7 +237,7 @@ function widget:GameFrame(n)
 end
 
 
-function widget:UnitCreated(unitID, unitDefID, teamID)
+function widget:UnitFinished(unitID, unitDefID, teamID)
 	if unitConf[unitDefID] and teamUnits[teamID] then
 		teamUnits[teamID][unitID] = unitDefID
 	end

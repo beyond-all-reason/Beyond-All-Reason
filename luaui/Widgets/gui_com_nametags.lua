@@ -13,7 +13,7 @@ end
 --------------------------------------------------------------------------------
 -- config
 --------------------------------------------------------------------------------
-
+local hideBelowGameframe = 130	-- delay to give spawn fx some time
 local drawForIcon = true      -- note that commander icon still gets drawn on top of the name
 local nameScaling = true
 local useThickLeterring = false  -- Sorry, the performance cost of this is quite high :( doubles the cost of a draw call
@@ -81,7 +81,7 @@ local comnameIconList = {}
 local teamColorKeys = {}
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
-	local r, g, b, a = GetTeamColor(teams[i])
+	local r, g, b = GetTeamColor(teams[i])
 	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
 end
 teams = nil
@@ -117,7 +117,7 @@ local function GetCommAttributes(unitID, unitDefID)
 
 	local name = ''
 	local luaAI = Spring.GetTeamLuaAI(team)
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+	if luaAI and luaAI ~= "" and string.find(luaAI, 'Scavengers')  then
 
 	elseif Spring.GetGameRulesParam('ainame_' .. team) then
 		name = Spring.I18N('ui.playersList.aiName', { name = Spring.GetGameRulesParam('ainame_' .. team) })
@@ -190,27 +190,32 @@ local function createComnameList(attributes)
 end
 
 
-
 local function CheckCom(unitID, unitDefID, unitTeam)
 	if comDefs[unitDefID] and unitTeam ~= GaiaTeam then
 		comms[unitID] = GetCommAttributes(unitID, unitDefID)
 	end
 end
 
-local function CheckAllComs()
 
-	-- check if team colors have changed
-	local teams = Spring.GetTeamList()
+-- check if team colors have changed
+local function CheckTeamColors()
 	local detectedChanges = false
+	local teams = Spring.GetTeamList()
 	for i = 1, #teams do
-		local r, g, b, a = GetTeamColor(teams[i])
+		local r, g, b = GetTeamColor(teams[i])
 		if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
+			teamColorKeys[teams[i]] = r..'_'..g..'_'..b
 			detectedChanges = true
 		end
 	end
 	if detectedChanges then
 		RemoveLists()
 	end
+end
+
+
+local function CheckAllComs()
+	CheckTeamColors()
 
 	-- check commanders
 	local allUnits = GetAllUnits()
@@ -234,7 +239,7 @@ function widget:Update(dt)
 			CheckAllComs()
 			sec = 0
 		end
-	elseif sameTeamColors == true then
+	elseif sameTeamColors then
 		sameTeamColors = false
 		RemoveLists()
 		CheckAllComs()
@@ -260,7 +265,7 @@ function widget:Update(dt)
 			sec = 0
 		end
 	end
-	if not spec and sec > 1.5 then
+	if sec > 1.2 then
 		sec = 0
 		CheckAllComs()
 	end
@@ -318,11 +323,10 @@ local function createComnameIconList(unitID, attributes)
 	end)
 end
 
-function widget:DrawScreenEffects()
-	-- using DrawScreenEffects so that guishader will blur it when needed
-	if Spring.IsGUIHidden() then
-		return
-	end
+function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader will blur it when needed
+	if chobbyInterface then return end
+	if Spring.IsGUIHidden() then return end
+	if Spring.GetGameFrame() < hideBelowGameframe then return end
 
 	for unitID, attributes in pairs(drawScreenUnits) do
 		if not comnameIconList[attributes[1]] then
@@ -378,12 +382,10 @@ end
 --END PROFILING CODE---
 
 function widget:DrawWorld()
-	if chobbyInterface then
-		return
-	end
-	if Spring.IsGUIHidden() then
-		return
-	end
+	if chobbyInterface then return end
+	if Spring.IsGUIHidden() then return end
+	if Spring.GetGameFrame() < hideBelowGameframe then return end
+
 	-- untested fix: when you resign, to also show enemy com playernames  (because widget:PlayerChanged() isnt called anymore)
 	if not CheckedForSpec and Spring.GetGameFrame() > 1 then
 		if spec then
@@ -419,13 +421,6 @@ function widget:DrawWorld()
 end
 
 function widget:Initialize()
-	--WG['nametags'] = {}
-	--WG['nametags'].getDrawForIcon = function()
-	--	return drawForIcon
-	--end
-	--WG['nametags'].setDrawForIcon = function(value)
-	--	drawForIcon = value
-	--end
 	CheckAllComs()
 end
 

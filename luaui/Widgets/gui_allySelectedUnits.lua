@@ -392,7 +392,6 @@ function widget:Initialize()
 	end
 	WG['allyselectedunits'].setSelectPlayerUnits = function(value)
 		selectPlayerUnits = value
-		Spring.Echo(selectPlayerUnits)
 	end
 end
 
@@ -509,6 +508,8 @@ end
 function widget:SetConfigData(data)
     if data.version ~= nil and data.version == 1.1 then
         maxAlpha = data.maxAlpha or maxAlpha
-        selectPlayerUnits = data.selectPlayerUnits or selectPlayerUnits
+		if data.selectPlayerUnits ~= nil then
+			selectPlayerUnits = data.selectPlayerUnits
+		end
     end
 end

@@ -11,6 +11,8 @@ function widget:GetInfo()
 	}
 end
 
+local allowSavegame = Spring.Utilities.ShowDevUI()
+
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.6)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
@@ -361,7 +363,7 @@ local function updateButtons()
 	local totalWidth = area[3] - area[1]
 	local text = '    '
 
-	if isSinglePlayer and WG['savegame'] ~= nil then
+	if isSinglePlayer and allowSavegame and WG['savegame'] ~= nil then
 		text = text .. Spring.I18N('ui.topbar.button.save') .. '   '
 	end
 	if WG['scavengerinfo'] ~= nil then
@@ -372,9 +374,6 @@ local function updateButtons()
 	end
 	if WG['teamstats'] ~= nil then
 		text = text .. Spring.I18N('ui.topbar.button.stats') .. '   '
-	end
-	if WG['commands'] ~= nil then
-		text = text .. Spring.I18N('ui.topbar.button.commands') .. '   '
 	end
 	if WG['keybinds'] ~= nil then
 		text = text .. Spring.I18N('ui.topbar.button.keys') .. '   '
@@ -429,7 +428,7 @@ local function updateButtons()
 			local width = 0
 			local buttons = 0
 			firstButton = nil
-			if isSinglePlayer and WG['savegame'] ~= nil then
+			if isSinglePlayer and allowSavegame and WG['savegame'] ~= nil then
 				buttons = buttons + 1
 				if buttons > 1 then
 					offset = math_floor(offset + width + 0.5)
@@ -471,17 +470,6 @@ local function updateButtons()
 				buttonsArea['buttons']['stats'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
 					firstButton = 'stats'
-				end
-			end
-			if WG['commands'] ~= nil then
-				buttons = buttons + 1
-				if buttons > 1 then
-					offset = math_floor(offset + width + 0.5)
-				end
-				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.commands')) * fontsize) + 0.5)
-				buttonsArea['buttons']['commands'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
-				if not firstButton then
-					firstButton = 'commands'
 				end
 			end
 			if WG['keybinds'] ~= nil then
@@ -1512,19 +1500,25 @@ function widget:DrawScreen()
 				glCallList(dlistWindText[currentWind])
 			end
 		else
-			if now < 90 and WG['tooltip'] ~= nil then
-				if (minWind + maxWind) / 2 < 5.5 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth1'), windArea[1], windArea[2] - bgpadding)
-				elseif (minWind + maxWind) / 2 >= 5.5 and (minWind + maxWind) / 2 < 7 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth2'), windArea[1], windArea[2] - bgpadding)
-				elseif (minWind + maxWind) / 2 >= 7 and (minWind + maxWind) / 2 < 8.5 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth3'), windArea[1], windArea[2] - bgpadding)
-				elseif (minWind + maxWind) / 2 >= 8.5 and (minWind + maxWind) / 2 < 10 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth4'), windArea[1], windArea[2] - bgpadding)
-				elseif (minWind + maxWind) / 2 >= 10 and (minWind + maxWind) / 2 < 15 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth5'), windArea[1], windArea[2] - bgpadding)
-				elseif (minWind + maxWind) / 2 >= 15 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth6'), windArea[1], windArea[2] - bgpadding)
+			if WG['tooltip'] ~= nil then
+				if now < 90 then
+					windTooltipSet = true
+					if (minWind + maxWind) / 2 < 5.5 then
+						WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth1'), windArea[1], windArea[2] - bgpadding)
+					elseif (minWind + maxWind) / 2 >= 5.5 and (minWind + maxWind) / 2 < 7 then
+						WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth2'), windArea[1], windArea[2] - bgpadding)
+					elseif (minWind + maxWind) / 2 >= 7 and (minWind + maxWind) / 2 < 8.5 then
+						WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth3'), windArea[1], windArea[2] - bgpadding)
+					elseif (minWind + maxWind) / 2 >= 8.5 and (minWind + maxWind) / 2 < 10 then
+						WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth4'), windArea[1], windArea[2] - bgpadding)
+					elseif (minWind + maxWind) / 2 >= 10 and (minWind + maxWind) / 2 < 15 then
+						WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth5'), windArea[1], windArea[2] - bgpadding)
+					elseif (minWind + maxWind) / 2 >= 15 then
+						WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth6'), windArea[1], windArea[2] - bgpadding)
+					end
+				elseif windTooltipSet then
+					windTooltipSet = nil
+					WG['tooltip'].RemoveTooltip('topbar_windinfo')	-- should happen automatically, but sometimes it remained so adding just in case
 				end
 			end
 		end
@@ -1841,7 +1835,7 @@ local function applyButtonAction(button)
 			WG['options'].toggle()
 		end
 	elseif button == 'save' then
-		if WG['savegame'] ~= nil and isSinglePlayer then
+		if isSinglePlayer and allowSavegame and WG['savegame'] ~= nil then
 			--local gameframe = Spring.GetGameFrame()
 			--local minutes = math.floor((gameframe / 30 / 60))
 			--local seconds = math.floor((gameframe - ((minutes*60)*30)) / 30)
@@ -1876,14 +1870,6 @@ local function applyButtonAction(button)
 		hideWindows()
 		if WG['keybinds'] ~= nil and isvisible ~= true then
 			WG['keybinds'].toggle()
-		end
-	elseif button == 'commands' then
-		if WG['commands'] ~= nil then
-			isvisible = WG['commands'].isvisible()
-		end
-		hideWindows()
-		if WG['commands'] ~= nil and isvisible ~= true then
-			WG['commands'].toggle()
 		end
 	elseif button == 'stats' then
 		if WG['teamstats'] ~= nil then

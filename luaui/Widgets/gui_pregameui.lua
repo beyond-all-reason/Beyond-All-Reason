@@ -30,7 +30,7 @@ local subButtonColor = {0.08, 0.22, 0}
 local unsubButtonColor = {0.22, 0.08, 0}
 
 local readied = false	-- send readystate (in widget:GameSetup)
-local pressedReady = false	-- pressed button
+local pressedReady	-- pressed button
 local startPointChosen = false
 
 local NETMSG_STARTPLAYING = 4 -- see BaseNetProtocol.h, packetID sent during the 3.2.1 countdown
@@ -56,27 +56,21 @@ local RectRound, UiElement, UiButton, elementPadding, uiPadding
 
 local eligibleAsSub = false
 local offeredAsSub = false
+local allowUnready = false	-- not enabled cause unreadying doesnt work
 
 local numPlayers = Spring.Utilities.GetPlayerCount()
-if numPlayers <= 4 then
-	-- not needed to show sub button for small games where restarting one the better option
-	--return
-end
+
+local shapeOpacity = 0.6
+local unitshapes = {}
+local teamStartPositions = {}
+local teamList = Spring.GetTeamList()
 
 local function createButton()
 	local color = { 0.15, 0.15, 0.15 }
 	if not mySpec then
-		if not readied then
-			color = readyButtonColor
-		else
-			color = unreadyButtonColor
-		end
+		color = readied and unreadyButtonColor or readyButtonColor
 	elseif eligibleAsSub then
-		if not offeredAsSub then
-			color = subButtonColor
-		else
-			color = unsubButtonColor
-		end
+		color = offeredAsSub and unsubButtonColor or subButtonColor
 	end
 	gl.DeleteList(buttonList)
 	buttonList = gl.CreateList(function()
@@ -142,21 +136,24 @@ function widget:GameSetup(state, ready, playerStates)
 	end
 
 	-- set my readyState to true if ffa
-	if not readied or not ready then
-		if ffaMode then
-			readied = true
-			return true, true
-		end
+	if ffaMode and (not readied or not ready) then
+		readied = true
+		return true, true
 	end
 
-	if not ready and pressedReady then
-		-- check if we just readied
+	if not ready and pressedReady then	-- check if we just readied
 		ready = true
-	elseif ready and not readied then
-		-- check if we just reconnected/dropped
+	elseif ready and not pressedReady then 	-- check if we just reconnected/dropped
 		ready = false
 	end
-	readied = ready
+
+	pressedReady = playerStates[Spring.GetMyPlayerID()] == 'ready'
+	local prevReadied = readied
+	readied = pressedReady
+	if prevReadied ~= ready then
+		widget:ViewResize(vsx, vsy)
+	end
+	--Spring.Echo(ready, pressedReady, os.clock(), Spring.Debug.TableEcho(playerStates)) --, Spring.Debug.TableEcho(playerStates)
 	return true, ready
 end
 
@@ -179,6 +176,7 @@ function widget:MousePress(sx, sy)
 					else
 						readied = false
 						pressedReady = false
+						--Spring.SendLuaRulesMsg( ) -- if it doesnt work, try implementing this
 					end
 
 				-- substitute
@@ -237,6 +235,9 @@ function widget:Initialize()
 end
 
 function widget:DrawScreen()
+	if isReplay then
+		widgetHandler:RemoveWidget()
+	end
 	if not startPointChosen then
 		checkStartPointChosen()
 	end
@@ -246,7 +247,16 @@ function widget:DrawScreen()
 	end
 
 	buttonDrawn = false
-	if not readied and buttonList and Game.startPosType == 2 and not gameStarting and not isReplay and (not mySpec or eligibleAsSub) then
+
+	if gameStarting then
+		timer = timer + Spring.GetLastUpdateSeconds()
+		local colorString = timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
+		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1, 3 - math.floor(timer)) })
+		font:Begin()
+		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
+		font:End()
+
+	elseif (not readied or allowUnready) and buttonList and Game.startPosType == 2 and (not mySpec or eligibleAsSub) then
 		buttonDrawn = true
 		if WG['guishader'] then
 			WG['guishader'].InsertRect(
@@ -268,9 +278,9 @@ function widget:DrawScreen()
 			gl.CallList(buttonList)
 			timer2 = timer2 + Spring.GetLastUpdateSeconds()
 			if mySpec then
-				colorString = offeredAsSub and "\255\255\255\225" or "\255\233\233\233"
+				colorString = offeredAsSub and "\255\255\255\225" or "\255\222\222\222"
 			else
-				colorString = timer % 0.75 <= 0.375 and "\255\255\233\33" or "\255\255\250\210"
+				colorString = timer % 0.75 <= 0.375 and "\255\222\222\222" or "\255\255\255\255"
 			end
 		end
 		font:Begin()
@@ -279,18 +289,46 @@ function widget:DrawScreen()
 		gl.Color(1, 1, 1, 1)
 	end
 
-	if gameStarting and not isReplay then
-		timer = timer + Spring.GetLastUpdateSeconds()
-		local colorString = timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
-		local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1, 3 - math.floor(timer)) })
-		font:Begin()
-		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
-		font:End()
-	end
-
 	if Spring.GetGameFrame() > 0 then
 		widgetHandler:RemoveWidget()
-		return
+	end
+end
+
+local function removeUnitShape(id)
+	if unitshapes[id] then
+		WG.StopDrawUnitShapeGL4(unitshapes[id])
+		unitshapes[id] = nil
+	end
+end
+
+local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID, opacity)
+	opacity = opacity or shapeOpacity
+	if unitshapes[id] then
+		removeUnitShape(id)
+	end
+	unitshapes[id] = WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, opacity, teamID, nil, nil)
+	return unitshapes[id]
+end
+
+function widget:DrawWorld()
+	if not WG.StopDrawUnitShapeGL4 or Spring.GetGameFrame() > 0 then return end
+
+	-- draw pregamestart commander models at start positions
+	local id
+	for i = 1, #teamList do
+		local teamID = teamList[i]
+		local tsx, tsy, tsz = Spring.GetTeamStartPosition(teamID)
+		if tsx and tsx > 0 then
+			local startUnitDefID = Spring.GetTeamRulesParam(teamID, 'startUnit')
+			if startUnitDefID then
+				id = startUnitDefID..'_'..tsx..'_'..Spring.GetGroundHeight(tsx, tsz)..'_'..tsz
+				if teamStartPositions[teamID] ~= id then
+					removeUnitShape(teamStartPositions[teamID])
+					teamStartPositions[teamID] = id
+					addUnitShape(id, startUnitDefID, tsx, Spring.GetGroundHeight(tsx, tsz), tsz, 0, teamID, 1)
+				end
+			end
+		end
 	end
 end
 
@@ -300,5 +338,10 @@ function widget:Shutdown()
 	gl.DeleteFont(font)
 	if WG['guishader'] then
 		WG['guishader'].RemoveRect('pregameui')
+	end
+	if WG.StopDrawUnitShapeGL4 then
+		for id, _ in pairs(unitshapes) do
+			removeUnitShape(id)
+		end
 	end
 end

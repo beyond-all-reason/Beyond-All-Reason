@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
 		name      = "Mex Upgrade Reclaimer",
-		desc      = "Insta reclaims/refunds t1 mex when t2 on top has finished",
+		desc      = "Insta reclaims/refunds t1 mex when t2 on top has finished, also shares t2 mexes build upon ally t1 mex owner",
 		author    = "Floris",
 		date      = "October 2021",
 		license   = "",
@@ -42,15 +42,15 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 				end
 			end
 		end
-		local units = Spring.GetUnitsInCylinder(x, z, 96)
-		for k, uID in ipairs(units) do
-			if isT1Mex[Spring.GetUnitDefID(uID)] then
-				local t1MexTeamID = Spring.GetUnitTeam(uID)
-				if t1MexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(t1MexTeamID, false)) then -- and Spring.AreTeamsAllied(t1MexTeamID, unitTeam) then
-					Spring.TransferUnit(unitID, t1MexTeamID)
-					break
-				end
-			end
-		end
+		-- local units = Spring.GetUnitsInCylinder(x, z, 96)
+		-- for k, uID in ipairs(units) do
+		-- 	if isT1Mex[Spring.GetUnitDefID(uID)] then
+		-- 		local t1MexTeamID = Spring.GetUnitTeam(uID)
+		-- 		if t1MexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(t1MexTeamID, false)) then -- and Spring.AreTeamsAllied(t1MexTeamID, unitTeam) then
+		-- 			Spring.TransferUnit(unitID, t1MexTeamID)
+		-- 			break
+		-- 		end
+		-- 	end
+		-- end
 	end
 end

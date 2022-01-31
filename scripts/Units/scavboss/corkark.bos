@@ -78,7 +78,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 
 #define MIDDLE_RIGHT_BACK\
 	turn leg5a to y-axis <0> speed <12.5> *1000/(WALK_PERIOD);\
-	turn leg5b to z-axis <-10> speed <10> *1000/(WALK_PERIOD);
+	turn leg5b to z-axis <-5> speed <10> *1000/(WALK_PERIOD);
 
 #define MIDDLE_LEFT_UP\
 	turn leg2a to y-axis <-45> speed <22.5> *1000/(WALK_PERIOD);\
@@ -90,7 +90,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 
 #define MIDDLE_LEFT_BACK\
 	turn leg2a to y-axis <0> speed <12.5> *1000/(WALK_PERIOD);\
-	turn leg2b to z-axis <10> speed <10> *1000/(WALK_PERIOD);
+	turn leg2b to z-axis <5> speed <10> *1000/(WALK_PERIOD);
 
 #define REAR_RIGHT_UP\
 	turn leg4a to y-axis <-15> speed <22.5> *1000/(WALK_PERIOD);\
@@ -174,7 +174,7 @@ UnitSpeed()
 			//if (currentSpeed>300) currentSpeed=300;
 			//WALK_PERIOD=currentSpeed;
 			//get PRINT(1,WALK_PERIOD,moveSpeed);
-			WALK_PERIOD=98;
+			WALK_PERIOD=120;
 		}
 		sleep 142;
 		//get PRINT(bMoving, currentSpeed,0,0);
@@ -368,7 +368,7 @@ Create()
 //	turn leg1a to y-axis <-30> now;//2
 	turn leg3a to y-axis <30> now;//5
 	moveSpeed = (get MAX_SPEED);
-	WALK_PERIOD=600;
+	WALK_PERIOD=800;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	ReadyToAim = 0;

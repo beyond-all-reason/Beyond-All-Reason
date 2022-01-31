@@ -35,6 +35,7 @@ function makeInstanceVBOTable(layout, maxElements, myName, objectTypeAttribID, o
 		dirty 				= false,
 		numVertices 		= 0,
 		primitiveType 		= GL.TRIANGLES,
+		debugZombies 		= true,
 	}
 	
 	if objectTypeAttribID ~= nil then
@@ -75,6 +76,45 @@ function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a vertex b
 	newVAO:AttachIndexBuffer(indexVBO)		 
 	end
 	return newVAO
+end
+
+--------------- DEBUG HELPERS --------------------------
+local function comparetables(t1, t2, name)
+	for k,v in pairs(t1) do
+		if t2[k] == nil then
+			Spring.Echo("Key ",k,"with value",v,"existing in t1 does not exist in t2 in ", name)
+		elseif t2[k] ~= v then
+			Spring.Echo("Value ",v,"for",k,"existing in t1 does not match value for t2",t2[k]," in ", name)
+		end
+	end
+
+	for k,v in pairs(t2) do
+		if t1[k] == nil then
+			Spring.Echo("Key ",k,"with value",v,"existing in t2 does not exist in t1 in ", name)
+		elseif t1[k] ~= v then
+			Spring.Echo("Value ",v,"for",k,"existing in t2 does not match value for t1",t1[k]," in ", name)
+		end
+	end
+end
+
+local function dbgt(t, name)
+	name = name or ""
+	local gf = Spring.GetGameFrame()
+	local count = 0
+	local res = ''
+	for k,v in pairs(t) do
+		res = res .. tostring(k) .. ':' .. tostring(v) ..','
+		count = count + 1
+	end
+	Spring.Echo(tostring(gf).. " " ..name .. ' #' .. tostring(count) .. ' {'..res .. '}')
+	return res
+end
+
+local function counttable(t)
+	local count = 0
+	if type(t) ~= type({}) then return 0 end 
+	for k, v in pairs(t) do count = count + 1 end 
+	return count
 end
 
 function resizeInstanceVBOTable(iT)
@@ -149,6 +189,14 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	-- noUpload: prevent the VBO from being uploaded, if you feel like you are going to do a lot of ops and wish to manually upload when done instead
 	-- unitID: if given, it will store then unitID corresponding to this instance, and will try to update the InstanceDataFromUnitIDs for this unit
 	-- returns: the index of the instanceID in the table on success, else nil
+	if (objecttype == "unitID" and (Spring.ValidUnitID(unitID) == false)) or
+		(objecttype == "featureID" and (Spring.ValidFeatureID(unitID) == false)) or
+		(objecttype == "unitDefID" and (UnitDefs[unitID] == nil)) or
+		(objecttype == "featureDefID" and (FeatureDefs[unitID] == nil)) then
+		Spring.Echo("Tried to push invalid",objecttype,unitID,"into", iT.myName,"with instanceID", instanceID, "returning nil")
+		return nil
+	end
+	
 	if #thisInstance ~= iT.instanceStep then
 		Spring.Echo("Trying to upload an oddly sized instance into",iT.myName, #thisInstance, "instead of ",iT.instanceStep)
 	end
@@ -241,80 +289,141 @@ function popElementInstance(iT, instanceID, noUpload)
 
 	-- if it had a related unitID stored, remove that:
 
-
 	-- get the data of the last ones:
 	local lastElementIndex = iT.usedElements
-
+	
 	-- if this one was already at the end of the queue, do nothing but decrement usedElements and clear mappings 
 	if oldElementIndex == lastElementIndex then -- EARLY OPT DEVILRY BAD!
-	--Spring.Echo("Removed end element of instanceTable", iT.myName)
-	iT.usedElements = iT.usedElements - 1
-	if iT.indextoUnitID then iT.indextoUnitID[oldElementIndex] = nil end
-	if iT.indextoObjectType then	iT.indextoObjectType[oldElementIndex] = nil end 
-	if iT.VAO then
-		iT.VAO:RemoveFromSubmission(oldElementIndex-1)
-		--Spring.Echo("RemoveFromSubmissionLast",oldElementIndex-1 )
-	end
-	
-	else
-	local lastElementInstanceID = iT.indextoInstanceID[lastElementIndex]
-	local iTStep = iT.instanceStep
-	local endOffset = (iT.usedElements - 1)*iTStep 
-
-	iT.instanceIDtoIndex[lastElementInstanceID] = oldElementIndex
-	iT.indextoInstanceID[oldElementIndex] = lastElementInstanceID
-	iT.indextoInstanceID[lastElementIndex] = nil --- somehow this got forgotten? TODO for VBOIDtable				 
-
-	--oldElementIndex = (oldElementIndex)*iTStep
-	local oldOffset = (oldElementIndex-1)*iTStep 
-	for i= 1, iTStep do 
-		local data =	iT.instanceData[endOffset + i]
-		iT.instanceData[oldOffset + i ] = data
-	end
-	--size_t LuaVBOImpl::Upload(const sol::stack_table& luaTblData, const sol::optional<int> attribIdxOpt, const sol::optional<int> elemOffsetOpt, const sol::optional<int> luaStartIndexOpt, const sol::optional<int> luaFinishIndexOpt)
-	--Spring.Echo("Removing instanceID",instanceID,"from iT at position", oldElementIndex, "shuffling back at", iT.usedElements,"endoffset=",endOffset,'oldOffset=',oldOffset)
-	if noUpload ~= true then
-		--Spring.Echo("Upload", oldElementIndex -1, oldOffset+1, oldOffset+iTStep)
-		iT.instanceVBO:Upload(iT.instanceData,nil,oldElementIndex-1,oldOffset +1,oldOffset + iTStep)
-		-- Do the unitID shuffle if needed:
-		if iT.indextoUnitID then
-		--Spring.Echo("Shuffling",lastElementIndex,"->", oldElementIndex)
-		--Spring.Echo("popElementInstance,unitID, iT.objectTypeAttribID, thisInstanceIndex",unitID, iT.objectTypeAttribID, oldElementIndex)
-		local myunitID = iT.indextoUnitID[lastElementIndex]
-
-		--Spring.Echo("Pop", myunitID, "is valid?", Spring.ValidUnitID(myunitID), oldElementIndex, lastElementIndex)
-		iT.indextoUnitID[oldElementIndex] = myunitID
-		iT.indextoUnitID[lastElementIndex] = nil
-
-		local objecttype = iT.indextoObjectType[lastElementIndex]
-		iT.indextoObjectType[oldElementIndex] = objecttype
-		iT.indextoObjectType[lastElementIndex] = nil
-		
+		--Spring.Echo("Removed end element of instanceTable", lastElementIndex, instanceID, iT.indextoUnitID[oldElementIndex], iT.myName)
+		iT.usedElements = iT.usedElements - 1
+		if iT.indextoUnitID then iT.indextoUnitID[oldElementIndex] = nil end
+		if iT.indextoObjectType then	iT.indextoObjectType[oldElementIndex] = nil end 
 		if iT.VAO then
 			iT.VAO:RemoveFromSubmission(oldElementIndex-1)
-			--Spring.Echo("RemoveFromSubmission",objecttype,oldElementIndex-1)
+			--Spring.Echo("RemoveFromSubmissionLast",oldElementIndex-1 )
 		end
 		
-		if objecttype == "unitID" then 
-			if Spring.ValidUnitID(myunitID) then
-			iT.instanceVBO:InstanceDataFromUnitIDs(myunitID, iT.objectTypeAttribID, oldElementIndex-1)
-			 --iT.VAO:AddUnitDefsToSubmission(unitID)
-			else
-			Spring.Echo("Tried to pop back an invalid unitID", myunitID, "from", iT.myName, "while removing instance", instanceID,". Ensure that you remove invalid units from your instance tables")
-			end
-		elseif objecttype == "unitDefID" then 
-			iT.instanceVBO:InstanceDataFromUnitDefIDs(myunitID, iT.objectTypeAttribID,nil,	oldElementIndex-1)
-		elseif objecttype == "featureID" then 
-			iT.instanceVBO:InstanceDataFromFeatureIDs(myunitID, iT.objectTypeAttribID, oldElementIndex-1)
-		elseif objecttype == "featureDefID" then 
-			iT.instanceVBO:InstanceDataFromFeatureDefIDs(myunitID, iT.objectTypeAttribID, oldElementIndex-1)
+		if iT.debugZombies then
+			if iT.zombies and iT.zombies[instanceID] then  
+				--Spring.Echo("Good, we are killing a stupid zombie at the end", instanceID, iT.numZombies)
+				iT.zombies[instanceID] = nil 
+				iT.numZombies = iT.numZombies - 1
+			end 
 		end
-		end
+	
 	else
-		iT.dirty = true
-	end
+		local lastElementInstanceID = iT.indextoInstanceID[lastElementIndex]
+		local iTStep = iT.instanceStep
+		local endOffset = (iT.usedElements - 1)*iTStep 
 
-	iT.usedElements = iT.usedElements - 1
+		iT.instanceIDtoIndex[lastElementInstanceID] = oldElementIndex
+		iT.indextoInstanceID[oldElementIndex] = lastElementInstanceID
+		iT.indextoInstanceID[lastElementIndex] = nil --- somehow this got forgotten? TODO for VBOIDtable				 
+
+		--oldElementIndex = (oldElementIndex)*iTStep
+		local oldOffset = (oldElementIndex-1)*iTStep 
+		for i= 1, iTStep do 
+			local data =	iT.instanceData[endOffset + i]
+			iT.instanceData[oldOffset + i ] = data
+		end
+		--size_t LuaVBOImpl::Upload(const sol::stack_table& luaTblData, const sol::optional<int> attribIdxOpt, const sol::optional<int> elemOffsetOpt, const sol::optional<int> luaStartIndexOpt, const sol::optional<int> luaFinishIndexOpt)
+		--Spring.Echo("Removing instanceID",instanceID,"from iT at position", oldElementIndex, "shuffling back at", iT.usedElements,"endoffset=",endOffset,'oldOffset=',oldOffset)
+		if noUpload ~= true then
+			--Spring.Echo("Upload", oldElementIndex -1, oldOffset+1, oldOffset+iTStep)
+			iT.instanceVBO:Upload(iT.instanceData, nil, oldElementIndex-1, oldOffset +1, oldOffset + iTStep)
+			-- Do the unitID shuffle if needed:
+			if iT.indextoUnitID then
+				--Spring.Echo("Shuffling",lastElementIndex,"->", oldElementIndex)
+				--Spring.Echo("popElementInstance,unitID, iT.objectTypeAttribID, thisInstanceIndex",unitID, iT.objectTypeAttribID, oldElementIndex)
+				local myunitID = iT.indextoUnitID[lastElementIndex]
+
+				--Spring.Echo("Removing",instanceID,"/",iT.indextoUnitID[oldElementIndex], "Popping back", myunitID, "is it valid?", Spring.ValidUnitID(myunitID), oldElementIndex, lastElementIndex)
+				
+				if iT.debugZombies then 
+					local gf = Spring.GetGameFrame()
+					--Spring.Echo("Popping", instanceID)
+					if iT.lastpopgameframe == nil then
+						iT.lastpopgameframe = gf
+						iT.zombies = {}
+						iT.numZombies = 0
+					else 
+						if iT.lastpopgameframe ~= gf then -- New gameframe
+							iT.lastpopgameframe = gf
+							if iT.numZombies and iT.numZombies > 0 then -- WE HAVE ZOMBIES AAAAARGH
+								local s = "Warning: We have " .. tostring(iT.numZombies) .. " zombie units left over in " .. iT.myName
+								for zombie, gf in pairs(iT.zombies) do 
+									s = s .. " " .. tostring(zombie)
+									--Spring.SendCommands({"pause 1"})
+								end 
+								Spring.Echo(s)
+								Spring.Debug.TraceFullEcho(nil,nil, nil, dbgt(iT.indextoUnitID), dbgt(iT.indextoInstanceID))
+								iT.zombies = {}
+								iT.numZombies = 0
+							end
+						else -- same gameframe
+							if iT.zombies[instanceID] then 
+								--Spring.Echo("Good, we are killing a stupid zombie", gf, instanceID, iT.numZombies)
+								iT.zombies[instanceID] = nil 
+								iT.numZombies = iT.numZombies - 1 
+							end
+						end
+					end
+				end
+				
+				iT.indextoUnitID[oldElementIndex] = myunitID
+				iT.indextoUnitID[lastElementIndex] = nil
+
+				local objecttype = iT.indextoObjectType[lastElementIndex]
+				iT.indextoObjectType[oldElementIndex] = objecttype
+				iT.indextoObjectType[lastElementIndex] = nil
+				
+				if iT.VAO then
+					iT.VAO:RemoveFromSubmission(oldElementIndex-1)
+					--Spring.Echo("RemoveFromSubmission",objecttype,oldElementIndex-1)
+				end
+				
+				if objecttype == "unitID" or objecttype == "featureID" then 
+					if objecttype == "unitID" and Spring.ValidUnitID(myunitID) then
+						iT.instanceVBO:InstanceDataFromUnitIDs(myunitID, iT.objectTypeAttribID, oldElementIndex-1)
+					 --iT.VAO:AddUnitDefsToSubmission(unitID)
+					elseif objecttype == "featureID" and Spring.ValidFeatureID(myunitID)  then
+						iT.instanceVBO:InstanceDataFromFeatureIDs(myunitID, iT.objectTypeAttribID, oldElementIndex-1)
+					else
+						if iT.debugZombies then 
+							--Spring.Echo("Warning: Tried to pop back an invalid " .. ((iT.featureIDs and "featureID") or "unitID"), myunitID, "with instanceid:",lastElementInstanceID, "from", iT.myName, "while removing instance", instanceID, counttable(iT.instanceIDtoIndex), counttable(iT.indextoInstanceID), counttable(iT.indextoUnitID))
+							--Spring.Debug.TraceFullEcho()
+							--dbgt(iT.indextoUnitID)
+							--dbgt(iT.indextoInstanceID)
+							local gf = Spring.GetGameFrame()
+							if iT.lastpopgameframe == nil or iT.lastpopgameframe ~= gf then -- New gameframe
+								iT.lastpopgameframe = gf
+								iT.zombies = {}
+								iT.numZombies = 0
+							end 
+							if iT.zombies[lastElementInstanceID] then
+								-- ah, this is possible, because the same invalid unitID can be at the back of the queue twice!
+								--Spring.Echo("We are double-marking a unit as a zombie:",lastElementInstanceID, myunitID, instanceID)
+							else
+								iT.zombies[lastElementInstanceID] = gf
+								iT.numZombies = iT.numZombies + 1 
+							end
+						else
+							Spring.Echo("Tried to pop back an invalid unitID ", myunitID, "from", iT.myName, "while removing instance", instanceID,". Ensure that you remove invalid units from your instance tables")
+							Spring.Debug.TraceFullEcho()
+						end
+					end
+				elseif objecttype == "unitDefID" then 
+					iT.instanceVBO:InstanceDataFromUnitDefIDs(myunitID, iT.objectTypeAttribID,nil,	oldElementIndex-1)
+				elseif objecttype == "featureDefID" then 
+					iT.instanceVBO:InstanceDataFromFeatureDefIDs(myunitID, iT.objectTypeAttribID, oldElementIndex-1)
+				end
+			end
+		else
+			iT.dirty = true
+		end
+		iT.usedElements = iT.usedElements - 1
+		--dbgt(iT.indextoInstanceID, "indextoInstanceID")
+		--dbgt(iT.indextoUnitID, "indextoUnitID")
 	end
 	return oldElementIndex
 end
@@ -332,16 +441,70 @@ function getElementInstanceData(iT, instanceID)
 	end
 	return iData
 end
---[[
+
+function pullInstanceDataGPU(iT)
+	-- this function synchronizes all the data held in iT.instanceData with the per-unit attributes sent to the gpu via InstanceDataFromUnitIDs, so the _other_ instance parameters can be updated 
+	--local attrib7Table = vbo:Download(7, <optional element offset>, <optional count of elements>)
+	-- we are gonna live with an assumption here:
+	-- 1. its always the last 4 numbers of an instance that is the instanceData, 
+	local downloadvbo = iT.instanceVBO:Download(iT.objectTypeAttribID)
+	
+	local iTStep = iT.instanceStep
+	for i = 1, iT.usedElements do
+		for j = 0, 3 do 
+			iT.instanceData[i * iTStep - j] = downloadvbo[i * 4 - j]
+		end
+	end
+	
+	downloadvbo = nil
+	--dbgt(iT.instanceData, "instanceData")
+	--dbgt(downloadvbo, "downloadvbo")
+end
+
+function pushInstanceDataGPU(iT)
+	-- this function should be called after direct modification of the instance attributes in iT.instanceData
+	if iT.usedElements == 0 then return end
+	iT.instanceVBO:Upload(iT.instanceData,nil,0, 1, iT.usedElements * iT.instanceStep)
+	iT.dirty = false
+end
+
 function uploadAllElements(iT)
+	-- DANGER: stuff should be removed first!
 	-- upload all USED elements
 	if iT.usedElements == 0 then return end
 	iT.instanceVBO:Upload(iT.instanceData,nil,0, 1, iT.usedElements * iT.instanceStep)
 	iT.dirty = false
-	if iT.indextoUnitID then
-		iT.instanceVBO:InstanceDataFromUnitIDs(iT.indextoUnitID, iT.objectTypeAttribID)
+	
+	if iT.VAO then iT.VAO:ClearSubmission() end 
+	for i, unitID in ipairs(iT.indextoUnitID) do
+		local objecttype = iT.indextoObjectType[i]
+		--Spring.Echo("Resize", iT.myName, i, unitID, objecttype)
+		if objecttype == "unitID" then 
+			-- Sanity check for unitIDs
+			if Spring.ValidUnitID(unitID) ~= true then 
+				Spring.Echo("Invalid unitID",unitID, "at", i, "during resizing", iT.myName) 
+			else
+				iT.instanceVBO:InstanceDataFromUnitIDs(unitID, iT.objectTypeAttribID, i-1)
+			end
+			iT.VAO:AddUnitsToSubmission(unitID)
+		elseif objecttype == "unitDefID" then	-- TODO 
+			iT.instanceVBO:InstanceDataFromUnitDefIDs(unitID, iT.objectTypeAttribID, nil, i-1)
+			iT.VAO:AddUnitDefsToSubmission(unitID)
+		elseif objecttype == "featureID" then 
+			if Spring.ValidFeatureID(unitID) ~= true then 
+				Spring.Echo("Invalid featureID",unitID, "at", i, "during resizing", iT.myName) 
+			else
+				iT.instanceVBO:InstanceDataFromFeatureIDs(unitID, iT.objectTypeAttribID, i-1)
+			end
+			iT.VAO:AddFeaturesToSubmission(unitID)
+		elseif objecttype == "featureDefID" then 
+			iT.instanceVBO:InstanceDataFromFeatureDefIDs(unitID, iT.objectTypeAttribID, i-1)
+			iT.VAO:AddFeatureDefsToSubmission(unitID)
+		end
 	end
 end
+	
+--[[
 
 function uploadElementRange(iT, startElementIndex, endElementIndex)
 	iT.instanceVBO:Upload(iT.instanceData, -- The lua mirrored VBO data

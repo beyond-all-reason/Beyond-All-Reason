@@ -15,23 +15,23 @@
 					"armlab": [
 						// [<weight>, [<role>, <role>, ...]]
 						[0.3, ["scout", "builder", "raider", "raider", "builder", "raider", "builder", "raider", "raider", "raider", "raider", "raider", "builder", "raider"]], //push
-						[0.3, ["scout", "builder", "raider", "builder"]],
+						[0.6, ["builder", "raider", "builder", "raider", "builder", "builder"]],
 						[0.4, ["scout", "builder", "raider", "raider", "raider", "builder", "raider", "raider", "builder"]]    //standard
                     ],                 
 					"armvp": [
 						[0.4, ["scout", "builder", "raider", "builder", "raider", "builder", "raider", "raider", "raider", "builder", "raider"]], //standard
-						[0.3, ["scout", "scout", "scout", "scout", "builder", "raider", "builder", "raider" ]], //early scout push
-                        [0.3, ["builder", "raider", "builder", "raider", "builder", "raider", "raider", "raider", "raider", "builder"]]
+						[0.3, ["scout", "scout", "raider", "builder", "raider", "builder", "raider" ]], //early scout push
+                        [0.3, ["builder", "raider", "builder", "raider", "builder"]]
                     ],
 					"armalab": [
-						[1.0, ["builderT2", "skirmish", "skirmish", "builderT2", "skirmish", "skirmish", "builderT2", "skirmish", "skirmish", "skirmish", "builderT2", "builderT2"]]
+						[1.0, ["builderT2", "riot", "assault", "assault", "builderT2", "assault", "skirmish", "builderT2", "anti_heavy_ass", "anti_heavy_ass", "builderT2", "heavy", "builderT2"]]
 					],
 					"armavp": [
-						[0.8, ["builderT2", "skirmish", "skirmish", "builderT2", "skirmish", "builderT2", "anti_heavy", "builderT2", "skirmish", "builderT2"]], 
-                        [0.2, ["builderT2", "skirmish", "builderT2", "skirmish", "builderT2", "skirmish", "builderT2", "builderT2"]]
+						[0.4, ["builderT2", "skirmish", "skirmish", "builderT2", "skirmish", "builderT2", "anti_heavy_ass", "builderT2", "skirmish", "anti_heavy_ass", "builderT2"]], 
+                        [0.6, ["builderT2", "skirmish", "builderT2", "skirmish", "builderT2", "skirmish", "skirmish"]]
 					],
 					"armshltx": [
-						[1.0, ["heavy", "artillery"]]	
+						[1.0, ["raider", "raider", "raider", "raider", "artillery", "heavy"]]	
 					],
 					"armsy":[
 						[0.3, ["scout", "builder", "scout", "builder", "raider", "scout",  "builder", "sub", "skirmish"]]

@@ -278,7 +278,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 		if not scenarioSpawnsUnits then
-			if not (luaAI and (luaAI == "ScavengersAI" or luaAI == "ChickensAI")) then
+			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "ChickensAI")) then
 				local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
 				if unitID then
 					startUnitList[#startUnitList+1] = {unitID = unitID, teamID = teamID, x = x, y = y, z = z}
@@ -396,10 +396,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 
-else
-	----------------------------------------------------------------
-	-- Unsynced
-	----------------------------------------------------------------
+else  -- UNSYNCED
+
 
 	local function positionTooClose(_, playerID)
 		if Script.LuaUI('GadgetMessageProxy') then
@@ -407,14 +405,14 @@ else
 			Spring.SendMessageToPlayer(playerID, message)
 		end
 	end
-	
+
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("PositionTooClose", positionTooClose)
 	end
 
 	function gadget:GameFrame(n)
 		if n == 60 then
-			Spring.PlaySoundFile("commanderspawn", 1, 'ui')
+			Spring.PlaySoundFile("commanderspawn", 0.6, 'ui')
 		end
 		if n == 91 then
 			gadgetHandler:RemoveGadget(self)

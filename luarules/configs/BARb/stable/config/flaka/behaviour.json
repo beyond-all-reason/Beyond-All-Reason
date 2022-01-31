@@ -6,8 +6,8 @@
     //But there's possibility that AI will just run from enemy till it has big enough group, but it may loose its base. So if with attack=0.8..1.0 AI is not loosing base then everything is ok and i think this range is optimal.
 
 	"quota": {
-		"scout": 3,  // max scout units out of raiders
-		"raid": [8.0, 160.0],  // [<min>, <avg>] power of raider squad 2.5,48
+		"scout": 1,  // max scout units out of raiders
+		"raid": [8.0, 320.0],  // [<min>, <avg>] power of raider squad 2.5,48
 		"attack": 70.0,  // min power of attack group ---- was 40
 		"thr_mod": {				//AI attacks everything with final threat (after all calculations) <= 1
 			"attack": [0.6, 0.9],  // [<min>, <max>] enemy threat multiplier for target selection of attack task |  values <1 makes enemy group seem less of an thread for ai => ai attacks stronger groups than it own | org=0.25, 0.3
@@ -27,7 +27,7 @@
     // If unit's health drops below specified percent it will retreat
 	"retreat": {
 		"builder": [0.85, 1.0],  // [<default>, <UnitDef modifier>] for all builders
-		"fighter": [0.35, 1.0],  // [<default>, <UnitDef modifier>] for all not-builder units
+		"fighter": [0.50, 1.0],  // [<default>, <UnitDef modifier>] for all not-builder units
 		"shield": [0.25, 0.275]  // [<empty>, <full>] shield power
 	},
 
@@ -37,7 +37,7 @@
    		"infl_rad": 5,  // influenece cell radius for defendAlly map
     	"base_rad": [600.0, 1200.0],  // defend if enemy within clamp(distance(lane_pos, base_pos), 1000, 2000) 
     	"comm_rad": [800.0, 400.0],  // 0 distance from base ~ 1000, base_rad ~ 500.0 => comm_rad is radius within which it checks for enemy. It's largest near base and smaller at the edge of base_rad
-		"escort": [3, 1, 400]  // [<builders_count>, <defenders_count>, <escort rule until this time>] 
+		"escort": [3, 2, 540]  // [<builders_count>, <defenders_count>, <escort rule until this time>]  2,2,360
 	},
     // read of "escort":  [number of builders with defenders, number of defenders for each builder, timeframe were only escorted builders are able to expand (=build mex, porc)]
     // base radius: ai checks if is withing base_rad. if there is enemy it checks if it is withing comm radius which is variable and depend on distance from base
@@ -49,13 +49,20 @@
 	// threat categories: air, surface (= water & land), water (= underwater), default
 	// threat roles: scout, raider, skrimish, assualt, heavy, anti_heavy, artillery, super
 
-
     //when are thread modifiers needed?
     // => basically when the simple formula dps*hp does not work to calculate the thread/power of a unit:
     // - overshooting
     // -inability to hit a certain target due to slow/bad aiming or inability to attack at all (cause target is air or underwater etc. )
     // -aoe
     // -dps of paralyzer weapons or dgun
+    
+
+    // "build_mod": 1000.0,
+    // build_mod allows to de/increase the max amount of builder individually for each building type. values > 1000 => less builders; values <1000 more builders
+	// assign builders till targeted time to build reached
+	// default value specified in economy-> build_mod
+	// goal_build_time (economy.json)= build_mod / metal_income
+		
 
 
 	"behaviour": {
@@ -98,7 +105,7 @@
                 "surf": 1.0,  // surface, even on water
                 "water": 0.1,  // underwater
                 "default": 1.0,
-                "vs": {"artillery": 0.3, "assault": 0.8, "raider":1.2}
+                "vs": {"artillery": 0.3, "assault": 0.8, "raider":1.3}
             },
             "power": 1.0		
 		},
@@ -124,7 +131,6 @@
 		},
 		"armguard": {
 			"role": ["static"],
-			"attribute": ["artillery"],
 			"limit": 1,
 			"threat":{
 				"vs":{"raider": 0.5, "assault": 0.5, "skirmish": 0.5}
@@ -142,7 +148,6 @@
 		},
 		"armrl": {
 			"role": ["anti_air"],
-			"attribute": ["anti_air"],
 			"threat":{"air":3.0, "surf":0.0, "water":0.0}
 		},
 		"armcir": {
@@ -167,7 +172,6 @@
 		},
 		"armatl": {
 			"role": ["static"],
-			"attribute": ["heavy"],
 			"threat": {"air":0.0, "surf":1.0, "water":1.0}
 		},
 		"armpb": {
@@ -178,14 +182,12 @@
 		},
 		"armamb": {
 			"role": ["static"],
-			"attribute": ["artillery"],
 			"threat": {"air":0.0, "surf":1.0, "water":1.0, 
 				"vs": {"artillery":0.6, "assault": 0.8, "raiders":0.8}
 			}
 		},
 		"armanni": {
 			"role": ["static"],
-			"attribute": ["heavy"],
 			"threat": {"air":0.0, "surf":1.0, "water":1.0, 
 				"vs": {"raider":0.2}
 			}
@@ -200,7 +202,7 @@
 				"surf": 1.0, 
 				"water": 0.1, 
 				"default": 1.0,
-				"vs": {"artillery": 0.3, "assault": 0.8, "raider": 1.2}
+				"vs": {"artillery": 0.3, "assault": 0.8, "raider": 1.3}
 			}
 		},
 		"corhllt": {
@@ -233,7 +235,6 @@
 		},
 		"corpun": {
 			"role": ["static"],
-			"attribute": ["artillery"],
 			"threat": {"air": 0.0, "water": 0.1,"surf": 0.5}
 		},
 		"corrl": {
@@ -262,7 +263,6 @@
 		},
 		"coratl": {
 			"role": ["static"],
-			"attribute": ["heavy"],
 			"threat": {"air": 0.0, "water": 1.0,"surf": 2.0}
 		},
 		"corvipe": {
@@ -270,12 +270,10 @@
 		},
 		"cortoast": {
 			"role": ["static"],
-			"attribute": ["artillery"],
 			"threat": {"air": 0.0, "water": 0.1,"surf": 1.0}
 		},
 		"cordoom": {
 			"role": ["static"],
-			"attribute": ["heavy", "anti_heavy"],
 			"threat": {"air": 0.0, "water": 0.0,"surf": 1.0,
 				"vs": {"heavy": 1.5}
 			} 
@@ -391,11 +389,12 @@
 		// Factories - Nanos
 		"armnanotc": {
 			"role": ["support"],
-			"build_speed": 11.0 //lower values => more and earlier nanos (workaround) std=12, was 10 in v002
+			"build_speed": 10.0
+			 //lower values => more and earlier nanos (workaround) 
 		},
 		"cornanotc": {
 			"role": ["support"],
-			"build_speed": 11.0 //lower values => more and earlier nanos (workaround) std=12, was 10 in v002
+			"build_speed": 11.0 //lower values => more and earlier nanos (workaround)
 		},
 
 
@@ -462,19 +461,49 @@
 		},
 	                  
 		//energy & metal
+		"armmex" : {
+			"role": ["static"],
+			"build_mod": 500
+		},
+		"armmoho" : {
+			"role": ["static"],
+			"build_mod": 500
+		},
+		"armsolar" : {
+            "role": ["static"],
+            "build_mod": 500
+        },
+        "armfus" : {
+            "role": ["static"],
+            "build_mod": 2000
+        },
+        "armafus" : {
+            "role": ["static"],
+            "build_mod": 4000
+        },
+		"armestor" : {
+			"role": ["static"],
+			"since": 240,
+			"limit": 1
+		},
 		"armmstor" : {
-		"role": ["static"],
-		"since": 600,
-		"limit": 1
+			"role": ["static"],
+			"since": 500,
+			"limit": 1
+		},
+		"armuwadvms" : {
+			"role": ["static"],
+			"limit": 1
 		},
 		"cormstor" : {
 		"role": ["static"],
-		"since": 600,
+		"since": 500,
 		"limit": 1
 		},
-		"armuwadvms" : {
-		"role": ["static"],
-		"limit": 1
+		"corestor" : {
+			"role": ["static"],
+			"since": 240,
+			"limit": 1
 		},
 		"coruwadvms" : {
 		"role": ["static"],
@@ -482,14 +511,6 @@
 		},
 
 		// ignore
-		"armdrag": {
-			"role": ["static"],
-			"ignore": true
-		},
-		"cordrag": {
-			"role": ["static"],
-			"ignore": true
-		},
 		"armfort": {
 			"role": ["static"],
 			"ignore": true
@@ -523,18 +544,22 @@
 			"ignore": true
 		},
 
-		// bot - armlab
+		// Mobile Unit Behaviour Modifiers
 			// "role": [<main>, <enemy>, <enemy>, ...]
 			// <main> is the role to make desicions of when to build it and what task to assign
 			// <enemy> is to decide how to counter enemy unit, if missing then equals to <main>
+
 			// Roles: builder, scout, raider, riot, assault, skirmish, artillery, anti_air, anti_sub, anti_heavy, bomber, support, mine, transport, air, sub, static, heavy, super, commander
 			// Auto-assigned roles: builder, air, static, super, commander
 			// raider: units grouped apart from others, tries to find weak spots.
 			// riot: regular attacker, but according to response.json it is built when enemy has many raiders (1st riot is cons guardian/defender for the first 5 min)(in plans to make riot just con's defender).
 			// assault: regular attacker, according to response.json it is built when enemy has many statics.
-			// skirmish: regular attacker, according to response.json it is built when enemy has many riots or assaults. skirmish = main combat unit	
+			// skirmish: regular attacker, according to response.json it is built when enemy has many riots or assaults. skirmish = main combat unit
+            // Bomber:	avoid AA, attack everything where group can have no more than some percent of loss (aa threat * 0.25 < bomber power). 
+                // Bombers return to airpad for repairs, cons doesn't try to repair air units
 			
 			// Attributes - optional states
+            // units with a role inside attribute gets counted by the owning ai as such
 			// "melee" - always move close to target, disregard attack range
 			// "no_jump" - disable jump on retreat
 			// "boost" - boost speed on retreat
@@ -547,29 +572,31 @@
 			// "solo" - unit with "solo attribute" cannot work together on a task with other units with the same attribute
 			// "attribute": ["boost", "no_strafe"],
 
-			// Fire state (open by default)
+		// Fire state (open by default)
 			// "hold" - hold fire
 			// "return" - return fire
 			// "open" - fire at will
-		//		"fire_state": "open",
+		    // syntax::: "fire_state": "open",
 
-			// assign builders till targeted time to build reached
-			// default value specified in economy->build_mod
-			// goal_build_time = build_mod / metal_income
-		//		"build_mod": 1000.0,
-			
-		//		"reload": 1.0,  Overrides reloadTime in seconds
-		// 		"limit	Limits number of units			
-		//		"since": 60, 	 	Unit can be built only since specific time in seconds
-		//		"retreat": 0.8, 	Minimum hp percent before retreat	
-		//		"pwr_mod": 1.0,		Ally threat multiplier	
-		//		"thr_mod": 1.0,		Enemy threat multiplier
-		//		"ignore": false,	Ignore enemy
+
+		
+        //OTHER MODIFIERS
+		    //		"reload": 1.0,  Overrides reloadTime in seconds
+		    // 		"limit	Limits number of units			
+		    //		"since": 60, 	 	Unit can be built only since specific time in seconds
+		    //		"retreat": 0.8, 	Minimum hp percent before retreat	
+		    //		"pwr_mod": 1.0,		Ally threat multiplier	
+		    //		"thr_mod": 1.0,		Enemy threat multiplier
+		    //		"ignore": false,	Ignore enemy
+            //      "slow_target": true/false , activated the weapons switch - true to fire fast weapon on fast target (for fido).
+            // "coolddown":1, ----- Amount of seconds when unit is not available for construction after UnitFinished
+
 
 			// FIXME: Temporary tag to override buildSpeed
 		"armck": {
 			"role": ["builder"],
-			"limit": 15,
+            //"attribute": ["solo"],
+			"limit": 18,
 			"build_speed": 7.0
 		},
 		"armpw": {
@@ -608,7 +635,7 @@
 		},
 		"armwar": {
 			"role": ["riot"],
-			//"attribute": ["skirmish"],
+			"attribute": ["melee"],
 			"threat":{"air": 0.1, "water": 0.0,
 					"vs":{"artillery": 2.0, "anti_air": 2.0}
 			}
@@ -627,7 +654,7 @@
 			"role": ["builderT2"],
 			"attribute": ["solo"],
 			"limit": 10,
-			"build_speed": 8.0
+			"build_speed": 7.0
 		},
 		"armfark": {
 			"role": ["builder"], //support,mine
@@ -646,7 +673,7 @@
 				"threat": {"air": 1.0, "water": 0.0, "surf": 1.0} 	
 		},
 		"armzeus": {
-			"role": ["riot"],  //is it more skirmish or riot?
+			"role": ["skirmish"],  //is it more skirmish or riot?
 			"threat":{"air": 0.0, "water": 0.0, "surf": 1.2, 
 				"vs":{"artillery": 2.0, "anti_air": 2.0}
 			}
@@ -660,18 +687,18 @@
 		"armmav": {
 			"role": ["riot"], //riot
 			//"attribute": ["siege"],
-			"retreat": 0.6,
+			"retreat": 0.8,
 			"threat":{"air": 0.0, "water": 0.0, "surf": 1.2,
 				"vs":{"artillery": 2.0, "anti_air": 2.0, "heavy": 0.7}
 			}
 		},
 		"armfido": {
-			"role": ["skirmish"],
+			"role": ["assault"],
 			"attribute": ["siege"],
 			"slow_target": true,
 			"retreat": 0.5,
-			"threat":{"air": 0.0, "water": 0.0, "surf": 0.5},
-			"power": 0.5
+			"threat":{"air": 0.0, "water": 0.0, "surf": 1.0},
+			"power": 1.0
 		},
 		"armvader": {
 			"role": ["raider"],
@@ -685,7 +712,7 @@
 			"threat":{"air": 2.0, "water": 0.0, "surf":0.0}
 		},
 		"armmark": {
-			"role": ["support"],
+			"role": ["support"], //support
 			"limit": 2,
 			"threat":{"air": 0.0, "water": 0.0, "surf": 0.0}
 		},
@@ -696,20 +723,19 @@
 		},
 		"armspid": {
 			"role": ["raider"],
-			"threat":{"air": 0.0, "water": 0.0, "surf": 0.2} 	
+			"threat":{"air": 0.0, "water": 0.0, "surf": 0.2},
+			"power": 0.2	
 		},
 		"armsptk": {
-			"role": ["raider"],
-			"attribute": ["siege"],
+			"role": ["support"],
 			"threat":{"air": 0.0, "water": 0.0, "surf": 1.0}	
 			
 		},
 		"armsnipe": {
 			"role": ["anti_heavy_ass"],
-			"attribute": ["support", "siege"],
-			"threat": {"air": 0.0, "water": 0.0,
-				"vs": {"scout":0.5, "raider":0.5}
-				}
+			"attribute": ["siege"],
+			"threat": {"air": 0.0, "water": 0.0,"vs": {"scout":0.5, "raider":0.5}},
+            "retreat": 0.6
 		},
 		"armscab": {
 			"role": ["support"],
@@ -718,7 +744,7 @@
 		},
 		"armspy": {
 			"role": ["scout"],
-			"limit": 0,
+			"limit": 1,
 			"threat":{"air": 0.0, "water": 0.0, "surf": 0.0} 
 		},
 		
@@ -728,10 +754,15 @@
 			"role": ["raider", "heavy"],
 			"threat": {"air": 0.5, "water": 0.0, "surf": 0.5}	
 		},
+		"armlun": {
+			"role": ["skirmish", "heavy"], 
+			"threat": {"air": 0.0, "water": 1.0} 
+		},
 		"armraz": {
-			"role": ["heavy"],
-			"threat": {"air": 0.7, "water": 0.0, "surf":1.0},
-			"power": 1.5,
+			"role": ["riot", "heavy"],
+			"attribute": ["melee"],
+			"threat": {"air": 0.5, "water": 0.0, "surf":1.0},
+			"power": 1.0,
 			"retreat": 0.6
 		},
 		"armvang": {
@@ -746,14 +777,15 @@
 		},
 		"armthor":{
 			"role":["super"],
-			"threat": {"air": 0.0, "water": 0.0, "surf":1.0} 
+			"threat": {"air": 0.0, "water": 0.0, "surf":1.0},
+			"power": 0.1
 		},
 
 
 		// vehicles - armvp
 		"armcv": {
 			"role": ["builder"],
-			"limit": 6,
+			"limit": 9,
 			"build_speed": 7.0
 		},
 		"armbeaver": {
@@ -824,6 +856,7 @@
 			"role": ["builder"],
 			//"attribute": ["support"],
 			"build_speed": 8.0,
+            "since": 1000,
 			"limit": 15
 		},
 		"armlatnk": {
@@ -844,7 +877,7 @@
 		},
 		"armmanni": {
 			"role": ["anti_heavy_ass"],
-			"attribute": ["support", "siege"],
+			"attribute": ["siege"],
 			"threat":{"air":0.0, "water":0.0,
 				"vs":{"anti_air": 2.0, "raider": 0.5, "heavy":2.0}	
 			}
@@ -866,11 +899,11 @@
 			"threat":{"air":1.0, "water":0.0, "surf":0.0}
 		},
 		"armseer": {
-			"role": ["support"],
+			"role": ["support"], //support
 			"limit": 2
 		},
 		"armjam": {
-			"role": ["support"],
+			"role": ["support"], //support
 			"limit": 2
 		},
 
@@ -891,6 +924,7 @@
 		},
 		"armthund": {
 			"role": ["bomber", "air"],
+			"power": 0.5,
 			"limit": 30,
 			"retreat": 0.5
 		},
@@ -906,19 +940,20 @@
 			"attribute": ["solo"],
 			"retreat": 0.6,
 			"limit": 15,
-			"build_speed": 7.0
+			"build_speed": 5.0
 		},
 		"armawac": {
 			"role": ["scout", "air"],
-			"retreat": 0.8
+			"retreat": 0.6
 		},
 		"armhawk": {
 			"role": ["anti_air", "air"],
-			"retreat": 0.5
+			"retreat": 0.6
 		},
 		"armpnix": {
 			"role": ["bomber", "air"],
-			"retreat": 0.5
+			"power": 0.5,
+			"retreat": 0.7
 		},
 		"armbrawl": {
 			"role": ["raider", "air"],
@@ -926,17 +961,20 @@
 			"retreat": 0.7
 		},
 		"armblade": {
-			"role": ["heavy", "air"],
-			"retreat": 0.7
+			"role": ["heavy", "air"], //heavy
+            "attribute": "support",
+			"retreat": 0.6
 		},
 		"armstil": {
-			"role": ["bomber", "air"],
-			"retreat": 0.7
+			"role": ["assault", "air"],
+			"attribute": "support",
+			"power": 0.05,
+			"retreat": 0.6
 		},
 		"armliche": {
 			"role": ["bomber", "air"],
-			"attribute": ["heavy"],
-			"retreat": 0.7
+			"power": 0.5,
+			"retreat": 0.6
 		},
 
 		// ships - armsy
@@ -1010,13 +1048,14 @@
 			"build_speed": 10.0
 		},
 		"armsh": {
-			"role": ["scout"]
+			"role": ["raider"]
 		},
 		"armanac": {
 			"role": ["assault"]
 		},
 		"armmh": {
-			"role": ["artillery"]
+			"role": ["artillery"],
+            "limit": 6
 		},
 		"armah": {
 			"role": ["anti_air"],
@@ -1033,6 +1072,7 @@
 		"corak": {
 			"role": ["raider"],
 			"threat":{"vs":{"artillery": 4.0, "anti-heavy":3.0}},
+            "power": 0.9,
 			"limit": 40
 		},
 		"cornecro": {
@@ -1057,9 +1097,9 @@
 		// adv bot - coralab
 		"corack": {
 			"role": ["builderT2"],
-			//"attribute": ["solo"],
-			"limit": 14,
-			"build_speed": 8.0
+			"attribute": ["solo"],
+			"limit": 12,
+			"build_speed": 6.0  //8
 		},
 		"corfast": {
 			"role": ["builder"],
@@ -1134,7 +1174,7 @@
 		},
 		"corspy": {
 			"role": ["scout"],
-			"limit": 1
+			"limit": 3
 		},
 	
 		// T3 bot - corgant
@@ -1215,7 +1255,7 @@
 			"role": ["builderT2"],
 			"attribute": ["solo"],
 			"limit": 15,
-			"build_speed": 9.0
+			"build_speed": 9.0 
 		},
 		"corseal": {
 			"role": ["raider"]
@@ -1345,14 +1385,15 @@
 			"build_speed": 8.0
 		},
 		"corsh": {
-			"role": ["scout"]
+			"role": ["raider"]
 		},
 		"corsnap": {
 			"role": ["skirmish"]
 		},
 		"cormh": {
 			"role": ["artillery"],
-			"threat": {"surf": 0.2, "vs":{"static":5.0, "artillery":5.0}}
+			"threat": {"surf": 0.2, "vs":{"static":5.0, "artillery":5.0}},
+            "limit": 6
 		},
 		"corah": {
 			"role": ["anti_air"],
@@ -1385,7 +1426,9 @@
 			"retreat": 0.5
 		},
 		"corbw": {
-			"role": ["support", "air"], //skirmish with support doesnt work
+			"role": ["skirmish", "air"], //skirmish with support doesnt work
+            "threat": {"surf": 0.2},
+			"power": 0.1,
 			"retreat": 0.8
 		},
 	

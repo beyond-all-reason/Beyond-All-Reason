@@ -553,7 +553,12 @@ function widget:Initialize()
 		if value == nil then
 			value = defaultBlurIntensity
 		end
-		blurIntensity = value
+		if tonumber(value) == nil then
+			Spring.Echo("Attempted to set blurIntensity to a non-number:",value," resetting to default")
+			blurIntensity = defaultBlurIntensity
+		else
+			blurIntensity = value
+		end
 	end
 
 	WG['guishader'].setScreenBlur = function(value)
@@ -584,7 +589,12 @@ end
 
 function widget:SetConfigData(data)
 	if data.blurIntensity ~= nil then
-		blurIntensity = data.blurIntensity
+		if tonumber(data.blurIntensity) == nil then
+			Spring.Echo("Attempted to set blurIntensity to a non-number:",data.blurIntensity," resetting to default")
+			blurIntensity = defaultBlurIntensity
+		else
+			blurIntensity = data.blurIntensity
+		end
 	end
 end
 

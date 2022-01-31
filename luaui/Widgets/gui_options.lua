@@ -20,7 +20,7 @@ local types = {
 
 local texts = {}    -- loaded from external language file
 
-local languageCodes = { 'en', 'fr' }
+local languageCodes = { 'en', 'fr', 'zh' }
 languageCodes = table.merge(languageCodes, table.invert(languageCodes))
 
 local languageNames = {}
@@ -561,27 +561,30 @@ function DrawWindow()
 							UiToggle(optionButtons[oid][1], optionButtons[oid][2], optionButtons[oid][3], optionButtons[oid][4], option.value)
 
 						elseif option.type == 'slider' then
-							local sliderSize = oHeight * 0.75
-							local sliderPos = 0
-							if option.steps then
-								local min, max = option.steps[1], option.steps[1]
-								for k, v in ipairs(option.steps) do
-									if v > max then
-										max = v
+							if type(option.value) == 'number' then	-- just to be safe
+								local sliderSize = oHeight * 0.75
+								local sliderPos = 0
+								if option.steps then
+									local min, max = option.steps[1], option.steps[1]
+									for k, v in ipairs(option.steps) do
+										if v > max then
+											max = v
+										end
+										if v < min then
+											min = v
+										end
 									end
-									if v < min then
-										min = v
-									end
+									sliderPos = (option.value - min) / (max - min)
+								else
+									sliderPos = (option.value - option.min) / (option.max - option.min)
 								end
-								sliderPos = (option.value - min) / (max - min)
-							else
-								sliderPos = (option.value - option.min) / (option.max - option.min)
+								if type(sliderPos) == 'number' then
+									UiSlider(math.floor(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding), math.floor(yPos - ((oHeight / 7) * 4.5)), math.floor(xPosMax - (sliderSize / 2) - rightPadding), math.floor(yPos - ((oHeight / 7) * 2.8)), option.steps and option.steps or option.step, option.min, option.max)
+									UiSliderKnob(math.floor(xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - rightPadding), math.floor(yPos - oHeight + ((oHeight) / 2)), math.floor(sliderSize / 2))
+									optionButtons[oid] = { xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - (sliderSize / 2) - rightPadding, yPos - oHeight + ((oHeight - sliderSize) / 2), xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) + (sliderSize / 2) - rightPadding, yPos - ((oHeight - sliderSize) / 2) }
+									optionButtons[oid].sliderXpos = { xPosMax - (sliderSize / 2) - sliderWidth - rightPadding, xPosMax - (sliderSize / 2) - rightPadding }
+								end
 							end
-							UiSlider(math.floor(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding), math.floor(yPos - ((oHeight / 7) * 4.5)), math.floor(xPosMax - (sliderSize / 2) - rightPadding), math.floor(yPos - ((oHeight / 7) * 2.8)), option.steps and option.steps or option.step, option.min, option.max)
-							UiSliderKnob(math.floor(xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - rightPadding), math.floor(yPos - oHeight + ((oHeight) / 2)), math.floor(sliderSize / 2))
-							optionButtons[oid] = { xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - (sliderSize / 2) - rightPadding, yPos - oHeight + ((oHeight - sliderSize) / 2), xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) + (sliderSize / 2) - rightPadding, yPos - ((oHeight - sliderSize) / 2) }
-							optionButtons[oid].sliderXpos = { xPosMax - (sliderSize / 2) - sliderWidth - rightPadding, xPosMax - (sliderSize / 2) - rightPadding }
-
 						elseif option.type == 'select' then
 							optionButtons[oid] = { math.floor(xPosMax - selectWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos) }
 							UiSelector(optionButtons[oid][1], optionButtons[oid][2], optionButtons[oid][3], optionButtons[oid][4], option.value)
@@ -666,7 +669,7 @@ function widget:Update(dt)
 		end
 	end
 
-	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
+	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() and WG['setcamera_bugfix'] == true then
 		Spring.SetCameraState(nil, cameraTransitionTime)
 	end
 
@@ -1632,6 +1635,7 @@ function init()
 		{ id = 'control', name = texts.group.control },
 		{ id = 'sound', name = texts.group.audio },
 		{ id = 'notif', name = texts.group.notifications },
+		{ id = 'accessibility', name = texts.group.accessibility },
 		{ id = 'dev', name = texts.group.dev },
 	}
 
@@ -1993,6 +1997,12 @@ function init()
 		  end
 		},
 
+		{ id = "unitScale", group = "gfx", category = types.dev, name = "Unit Scale", min = 0.85, max = 1, step = 0.01, type = "slider", value = tonumber(Spring.GetConfigFloat("unitScale", 1)),
+		  onchange = function(i, value)
+			  Spring.SetConfigFloat("unitScale", value)
+		  end
+		},
+
 		{ id = "dof", group = "gfx", category = types.advanced, widget = "Depth of Field", name = texts.option.dof, type = "bool", value = GetWidgetToggleValue("Depth of Field"), description = texts.option.dof_descr },
 		{ id = "dof_autofocus", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.dof_autofocus, type = "bool", value = true, description = texts.option.dof_autofocus_descr,
 		  onload = function(i)
@@ -2199,6 +2209,14 @@ function init()
 			  Spring.SetConfigInt("HardwareCursor", (value and 1 or 0))
 		  end,
 		},
+		{ id = "setcamera_bugfix", group = "control", category = types.advanced, name = texts.option.setcamera_bugfix, type = "bool", value = true, description = texts.option.setcamera_bugfix_descr,
+		  onload = function(i)
+			WG['setcamera_bugfix'] = true
+		  end,
+		  onchange = function(i, value)
+			WG['setcamera_bugfix'] = value
+		  end,
+		},
 		{ id = "cursorsize", group = "control", category = types.basic, name = texts.option.cursorsize, type = "slider", min = 0.3, max = 1.7, step = 0.1, value = 1, description = texts.option.cursorsize_descr,
 		  onload = function(i)
 		  end,
@@ -2386,7 +2404,7 @@ function init()
 			  Spring.SetConfigFloat("ui_opacity", value)
 		  end,
 		},
-		{ id = "guitilescale", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guitilescale, type = "slider", min = 4, max = 40, step = 1, value = Spring.GetConfigFloat("ui_tilescale", 7), description = '',
+		{ id = "guitilescale", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.guitilescale, type = "slider", min = 4, max = 40, step = 1, value = Spring.GetConfigFloat("ui_tilescale", 7), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value, force)
@@ -2398,7 +2416,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "guitileopacity", group = "ui", category = types.basic, name = widgetOptionColor .. "      " .. texts.option.guitileopacity, type = "slider", min = 0, max = 0.03, step = 0.001, value = Spring.GetConfigFloat("ui_tileopacity", 0.011), description = '',
+		{ id = "guitileopacity", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. texts.option.guitileopacity, type = "slider", min = 0, max = 0.03, step = 0.001, value = Spring.GetConfigFloat("ui_tileopacity", 0.011), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value, force)
@@ -2411,13 +2429,24 @@ function init()
 		  end,
 		},
 
-		{ id = "guishader", group = "ui", category = types.basic, widget = "GUI Shader", name = widgetOptionColor .. "   " .. texts.option.guishader, type = "bool", value = GetWidgetToggleValue("GUI Shader"), description = texts.option.guishader_descr },
-		{ id = "guishaderintensity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishaderintensity, type = "slider", min = 0.001, max = 0.005, step = 0.0001, value = 0.0035, description = '',
+		{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishader, type = "slider", min = 0, max = 0.005, steps = {0, 0.001, 0.0015, 0.002, 0.0025, 0.003, 0.0035, 0.004}, value = 0.0035, description = '',
 		  onload = function(i)
-			  loadWidgetData("GUI Shader", "guishaderintensity", { 'blurIntensity' })
+			  loadWidgetData("GUI Shader", "guishader", { 'blurIntensity' })
+			  if type(options[getOptionByID('guishader')].value) ~= 'number' then
+				  options[getOptionByID('guishader')].value = 0
+			  end
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)
+			  if value <= 0.000001 then
+				  if GetWidgetToggleValue('GUI Shader') then
+				 	 widgetHandler:DisableWidget('GUI Shader')
+				  end
+			  else
+				  if not GetWidgetToggleValue('GUI Shader') then
+				  	widgetHandler:EnableWidget('GUI Shader')
+				  end
+			  end
 		  end,
 		},
 
@@ -2679,18 +2708,13 @@ function init()
 		  end,
 		},
 
-		{ id = "teamcolors", group = "ui", category = types.basic, widget = "Player Color Palette", name = texts.option.teamcolors, type = "bool", value = GetWidgetToggleValue("Player Color Palette"), description = texts.option.teamcolors_descr },
-		{ id = "sameteamcolors", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sameteamcolors, type = "bool", value = (WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil and WG['playercolorpalette'].getSameTeamColors()), description = texts.option.sameteamcolors_descr,
-		  onchange = function(i, value)
-			  saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', { 'useSameTeamColors' }, value)
-		  end,
-		},
+		-- { id = "teamcolors", group = "ui", category = types.basic, widget = "Player Color Palette", name = texts.option.teamcolors, type = "bool", value = GetWidgetToggleValue("Player Color Palette"), description = texts.option.teamcolors_descr },
+		-- { id = "sameteamcolors", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sameteamcolors, type = "bool", value = (WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil and WG['playercolorpalette'].getSameTeamColors()), description = texts.option.sameteamcolors_descr,
+		--   onchange = function(i, value)
+		-- 	  saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', { 'useSameTeamColors' }, value)
+		--   end,
+		-- },
 
-		{ id = "simpleteamcolors", group = "ui", category = types.basic, name = texts.option.playercolors .. widgetOptionColor .. "  " .. texts.option.simpleteamcolors, type = "bool", value = tonumber(Spring.GetConfigInt("simple_auto_colors", 0) or 0) == 1, description = texts.option.simpleteamcolors_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("simple_auto_colors", (value and 1 or 0))
-		  end,
-		},
 
 		{ id = "teamplatter", group = "ui", category = types.basic, widget = "TeamPlatter", name = texts.option.teamplatter, type = "bool", value = GetWidgetToggleValue("TeamPlatter"), description = texts.option.teamplatter_descr },
 		{ id = "teamplatter_opacity", category = types.advanced, group = "ui", name = widgetOptionColor .. "   " .. texts.option.teamplatter_opacity, min = 0.05, max = 0.4, step = 0.01, type = "slider", value = 0.25, description = texts.option.teamplatter_opacity_descr,
@@ -2738,21 +2762,21 @@ function init()
 		  end,
 		},
 
-		{ id = "highlightselunits", group = "ui", category = types.basic, widget = "Highlight Selected Units", name = texts.option.highlightselunits, type = "bool", value = GetWidgetToggleValue("Highlight Selected Units"), description = texts.option.highlightselunits_descr },
-		{ id = "highlightselunits_opacity", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_opacity, min = 0.05, max = 0.5, step = 0.01, type = "slider", value = 0.1, description = texts.option.highlightselunits_opacity_descr,
+		{ id = "highlightselunits", group = "ui", category = types.basic, widget = "Highlight Selected Units GL4", name = texts.option.highlightselunits, type = "bool", value = GetWidgetToggleValue("Highlight Selected Units GL4"), description = texts.option.highlightselunits_descr },
+		{ id = "highlightselunits_opacity", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_opacity, min = 0.02, max = 0.2, step = 0.01, type = "slider", value = 0.05, description = texts.option.highlightselunits_opacity_descr,
 		  onload = function(i)
-			  loadWidgetData("Highlight Selected Units", "highlightselunits_opacity", { 'highlightAlpha' })
+			  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_opacity", { 'highlightAlpha' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Highlight Selected Units', 'highlightselunits', 'setOpacity', { 'highlightAlpha' }, value)
+			  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setOpacity', { 'highlightAlpha' }, value)
 		  end,
 		},
 		{ id = "highlightselunits_teamcolor", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_teamcolor, type = "bool", value = false, description = texts.option.highlightselunits_teamcolor_descr,
 		  onload = function(i)
-			  loadWidgetData("Highlight Selected Units", "highlightselunits_teamcolor", { 'useTeamcolor' })
+			  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_teamcolor", { 'useTeamcolor' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Highlight Selected Units', 'highlightselunits', 'setTeamcolor', { 'useTeamcolor' }, value)
+			  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setTeamcolor', { 'useTeamcolor' }, value)
 		  end,
 		},
 
@@ -3237,7 +3261,102 @@ function init()
 		  end,
 		},
 
+		{ id = "autogroup_persist", group = "game", category = types.basic, name = texts.option.autogroup_persist, type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getPersist ~= nil and WG['autogroup'].getPersist()), description = texts.option.autogroup_persist_descr,
+		  onload = function(i)
+			  loadWidgetData("Auto Group", "autogroup_persist", { 'persist' })
+		  end,
+		  onchange = function(i, value)
+			  if widgetHandler.configData["Auto Group"] == nil then
+				  widgetHandler.configData["Auto Group"] = {}
+			  end
+			  widgetHandler.configData["Auto Group"].persist = value
+			  saveOptionValue('Auto Group', 'autogroup', 'setPersist', { 'persist' }, value)
+		  end,
+		},
 
+		-- ACCESSIBILITY
+
+		{ id = "label_teamcolors", group = "accessibility", name = texts.option.label_teamcolors, category = types.basic },
+		{ id = "label_teamcolors_spacer", group = "accessibility", category = types.basic },
+
+		{ id = "simpleteamcolors", group = "accessibility", category = types.basic, name = texts.option.playercolors, type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColors", 0) or 0) == 1, description = texts.option.simpleteamcolors_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("SimpleTeamColors", (value and 1 or 0))
+			  Spring.SetConfigInt("UpdateTeamColors", 1)
+		  end,
+		},
+
+		{ id = "simpleteamcolors_reset", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " ..  texts.option.simpleteamcolors_reset, type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColors_Reset", 0) or 0) == 1,
+		  onchange = function(i, value)
+			Spring.SetConfigInt("SimpleTeamColorsPlayerR", 0)
+			Spring.SetConfigInt("SimpleTeamColorsPlayerG", 77)
+			Spring.SetConfigInt("SimpleTeamColorsPlayerB", 255)
+			Spring.SetConfigInt("SimpleTeamColorsAllyR", 0)
+            Spring.SetConfigInt("SimpleTeamColorsAllyG", 255)
+            Spring.SetConfigInt("SimpleTeamColorsAllyB", 0)
+			Spring.SetConfigInt("SimpleTeamColorsEnemyR", 255)
+            Spring.SetConfigInt("SimpleTeamColorsEnemyG", 16)
+            Spring.SetConfigInt("SimpleTeamColorsEnemyB", 5)
+			Spring.SetConfigInt("UpdateTeamColors", 1)
+		  end,
+		},
+
+		{ id = "simpleteamcolors_player_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_player_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0)),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("SimpleTeamColorsPlayerR", value)
+			  Spring.SetConfigInt("UpdateTeamColors", 1)
+		  end,
+		},
+		{ id = "simpleteamcolors_player_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_player_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerG", 77)),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("SimpleTeamColorsPlayerG", value)
+			  Spring.SetConfigInt("UpdateTeamColors", 1)
+		  end,
+		},
+		{ id = "simpleteamcolors_player_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_player_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerB", 255)),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("SimpleTeamColorsPlayerB", value)
+			  Spring.SetConfigInt("UpdateTeamColors", 1)
+		  end,
+		},
+
+		{ id = "simpleteamcolors_ally_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_ally_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyR", 0)),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("SimpleTeamColorsAllyR", value)
+			  Spring.SetConfigInt("UpdateTeamColors", 1)
+		  end,
+		},
+		{ id = "simpleteamcolors_ally_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_ally_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyG", 255)),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("SimpleTeamColorsAllyG", value)
+			  Spring.SetConfigInt("UpdateTeamColors", 1)
+		  end,
+		},
+		{ id = "simpleteamcolors_ally_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_ally_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyB", 0)),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("SimpleTeamColorsAllyB", value)
+			  Spring.SetConfigInt("UpdateTeamColors", 1)
+		  end,
+		},
+
+		{ id = "simpleteamcolors_enemy_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_enemy_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255)),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("SimpleTeamColorsEnemyR", value)
+			  Spring.SetConfigInt("UpdateTeamColors", 1)
+		  end,
+		},
+		{ id = "simpleteamcolors_enemy_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_enemy_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16)),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("SimpleTeamColorsEnemyG", value)
+			  Spring.SetConfigInt("UpdateTeamColors", 1)
+		  end,
+		},
+		{ id = "simpleteamcolors_enemy_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_enemy_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("SimpleTeamColorsEnemyB", value)
+			  Spring.SetConfigInt("UpdateTeamColors", 1)
+		  end,
+		},
 
 		-- DEV
 		{ id = "usePlayerUI", group = "dev", category = types.dev, name = "View UI as player", type = "bool", value = not Spring.Utilities.ShowDevUI(),
@@ -3286,12 +3405,11 @@ function init()
 		-- BAR doesnt support ZK style startboxes{ id = "startboxeditor", group = "dev", category = optionTypes.dev, widget = "Startbox Editor", name = texts.option.startboxeditor, type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = texts.option.startboxeditor_descr },
 
 		{ id = "language", group = "dev", category = types.dev, name = texts.option.language, type = "select", options = languageNames, value = languageCodes[Spring.I18N.getLocale()],
-		  onchange = function(i, value)
-			  Spring.I18N.setLanguage(languageCodes[value])
-			  if Script.LuaUI('LanguageChanged') then
-				  Script.LuaUI.LanguageChanged()
-			  end
-		  end
+			onchange = function(i, value)
+				if WG['language'] then
+					WG['language'].setLanguage(languageCodes[value])
+				end
+			end
 		},
 		{ id = "font", group = "dev", category = types.dev, name = texts.option.font, type = "select", options = {}, value = 1, description = texts.option.font_descr,
 		  onload = function(i)
@@ -4296,7 +4414,7 @@ function init()
 		for k, file in ipairs(files) do
 			local name = string.sub(file, 7)
 			local ext = string.sub(name, string.len(name) - 2)
-			if name ~= 'FreeSansBold.otf' and ext == 'otf' or ext == 'ttf' then
+			if ext == 'otf' or ext == 'ttf' or ext == 'ttc' then
 				name = string.sub(name, 1, string.len(name) - 4)
 				if not fontsn[name:lower()] then
 					fonts[#fonts + 1] = name
@@ -4552,14 +4670,17 @@ function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 end
 
 function widget:Initialize()
-		-- disable ambient player widget
-		if widgetHandler:IsWidgetKnown("Ambient Player") then
-			widgetHandler:DisableWidget("Ambient Player")
-		end
+	-- disable ambient player widget
+	if widgetHandler:IsWidgetKnown("Ambient Player") then
+		widgetHandler:DisableWidget("Ambient Player")
+	end
 
 	-- enable this previous default disabled widget
 	if widgetHandler.orderList["DrawUnitShape GL4"] and widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
 		widgetHandler:EnableWidget("DrawUnitShape GL4")
+	end
+	if widgetHandler.orderList["HighlightUnit GL4"] and widgetHandler.orderList["HighlightUnit GL4"] < 0.5 then
+		widgetHandler:EnableWidget("HighlightUnit GL4")
 	end
 
 	if widgetHandler.orderList["FlowUI"] and widgetHandler.orderList["FlowUI"] < 0.5 then

@@ -90,10 +90,18 @@ local convertedUnits = {
 	[UnitDefNames.armcom.id] = 5,
 	[UnitDefNames.cordecom.id] = 5,
 	[UnitDefNames.armdecom.id] = 5,
+	[UnitDefNames.legbal.id] = 5,
+	[UnitDefNames.legcen.id] = 2,
+	[UnitDefNames.leggat.id] = 5,
+	[UnitDefNames.leggob.id] = 5,
+	[UnitDefNames.leghades.id] = 5,
+	[UnitDefNames.leghelios.id] = 5,
+	[UnitDefNames.legrail.id] = 5,
 }
 
 -- add for scavengers copies
-for id, v in pairs(convertedUnits) do
+local convertedUnitsCopy = table.copy(convertedUnits)
+for id, v in pairs(convertedUnitsCopy) do
 	if UnitDefNames[UnitDefs[id].name..'_scav'] then
 		convertedUnits[UnitDefNames[UnitDefs[id].name..'_scav'].id] = v
 	end

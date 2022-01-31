@@ -46,9 +46,10 @@ function ScoutBST:Update()
 			local unit = self.unit:Internal()
 			-- reset target if it's in sight
 			if self.target ~= nil then
-				local los = self.ai.scouthst:ScoutLos(self, self.target)
-				self:EchoDebug("target los: " .. los)
-				if los == 2 or los == 3 then
+-- 				local los = self.ai.scouthst:ScoutLos(self, self.target)
+-- 				self:EchoDebug("target los: " .. los)
+-- 				if los == 2 or los == 3 then
+				if self.ai.loshst:viewPos(self.target) == 1 then--TEST
 					self.target = nil
 				end
 			end
@@ -67,7 +68,8 @@ function ScoutBST:Update()
 				self.attacking = true
 			elseif self.target ~= nil then
 				-- evade enemies along the way if possible
-				local newPos, arrived = self.ai.targethst:BestAdjacentPosition(unit, self.target)
+				--local newPos, arrived = self.ai.targethst:BestAdjacentPosition(unit, self.target)
+				local newPos = self:bestAdjacentPos(unit)
 				if newPos then
 					unit:Move(newPos)
 					self.evading = true
@@ -116,4 +118,47 @@ function ScoutBST:Update()
 			self.lastCircleFrame = f
 		end
 	end
+end
+
+
+function ScoutBST:bestAdjacentPos(unit,target)
+	local upos = unit:GetPosition()
+	local gx, gz = self.ai.targethst:PosToGrid(upos)
+	local areacells = self.ai.targethst:areaCells(gx,gz)
+	local risky = {}
+	local greedy = {}
+	local neutral = {}
+	local gluttony = 0
+	local tg = nil
+	for index, G in pairs(areacells) do
+		local cell = self.ai.targethst.CELLS[G.gx][G.gz]
+		if cell.armed < 1 and cell.unarm > 0 then
+			table.insert(greedy,cell)
+		elseif cell.armed > 0 and cell.unarm > 0 then
+			table.insert(risky,cell)
+		else
+			table.insert(neutral,cell)
+		end
+	end
+	for index,cell in pairs(greedy)do
+		if cell.unarm > gluttony then
+			gluttony = cell.unarm
+			tg = cell
+		end
+	end
+	if tg then return tg.pos end
+	for index,cell in pairs(neutral)do
+		if cell.unarm > gluttony then
+			gluttony = cell.unarm
+			tg = cell
+		end
+	end
+	if tg then return tg.pos end
+	for index,cell in pairs(risky)do
+		if cell.unarm > gluttony then
+			gluttony = cell.unarm
+			tg = cell
+		end
+	end
+	if tg then return tg.pos end
 end

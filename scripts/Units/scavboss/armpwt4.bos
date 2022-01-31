@@ -331,15 +331,15 @@ StopWalking() {
 // REMEMBER TO animspeed = 2 in Create() !!
 UnitSpeed(){
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
-	animFramesPerKeyframe = 2; //we need to calc the frames per keyframe value, from the known animtime
+	animFramesPerKeyframe = 4; //we need to calc the frames per keyframe value, from the known animtime
 	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 2) / animSpeed; 
+		animSpeed = (maxSpeed * 4) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
-		if (animspeed>4) animSpeed = 4;
+		if (animspeed>12) animSpeed = 8;
 		sleep 65;
 	}
 }
@@ -1057,7 +1057,7 @@ Create()
 	Static_Var_3 = 1;
 	gun_1 = 0;
 	restore_delay = 3000;
-	animSpeed = 2;
+	animSpeed = 4;
 	burst1 = 1;
 	bAnimate = FALSE;
 	start-script InitialSetup1();

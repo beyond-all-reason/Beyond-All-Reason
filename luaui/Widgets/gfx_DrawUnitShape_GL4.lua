@@ -6,7 +6,7 @@ function widget:GetInfo()
     author    = "ivand, Beherith",
     date      = "2021.11.04",
     license   = "GPL",
-    layer     = 0,
+    layer     = -9999,
     enabled   = true,
   }
 end
@@ -124,17 +124,20 @@ void main() {
 	uint baseIndex = instData.x;
 
 	// dynamic models have one extra matrix, as their first matrix is their world pos/offset
+	mat4 modelMatrix = mat[baseIndex];
 	uint isDynamic = 1u; //default dynamic model
 	if (parameters.y > 0.5) isDynamic = 0u;  //if paramy == 1 then the unit is static
 	mat4 pieceMatrix = mat[baseIndex + pieceIndex + isDynamic];
 
 	vec4 localModelPos = pieceMatrix * vec4(pos, 1.0);
-	
+
+
 	// Make the rotation matrix around Y and rotate the model
-	mat3 rotY = rotation3dY(worldposrot.w); 
+	mat3 rotY = rotation3dY(worldposrot.w);
 	localModelPos.xyz = rotY * localModelPos.xyz;
-	
+
 	vec4 worldModelPos = localModelPos;
+	if (parameters.y < 0.5) worldModelPos = modelMatrix*localModelPos;
 	worldModelPos.xyz += worldposrot.xyz; //Place it in the world
 
 	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
@@ -147,7 +150,7 @@ void main() {
 	if ( dot (modelBaseToCamera, modelBaseToCamera) >  (iconDistance * iconDistance)) {
 		myTeamColor.a = 0.0; // do something if we are far out?
 	}
-	
+
 	v_parameters = parameters;
 	v_uv = uv.xy;
 	worldPos = worldModelPos.xyz;
@@ -232,6 +235,7 @@ local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, team
 	elseif armUnitDefIDs[unitDefID] then DrawUnitVBOTable = armDrawUnitVBOTable
 	else
 		Spring.Echo("The given unitDefID", unitDefID, "is neither arm nor cor, only those two are supported at the moment")
+		Spring.Debug.TraceFullEcho(nil,nil,nil,"DrawUnitGL4")
 		return nil
 	end
 
@@ -269,19 +273,21 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID,
 	teamcoloroverride = teamcoloroverride or 0
 	teamID = teamID or 256
 	highlight = highlight or 0
-	
+
 	--py = py - (UnitDefs[unitDefID].model.midy or 0) -- cause our midpos is somehow offset?
 	--py = py - (UnitDefs[unitDefID].model.midy or 0) -- cause our midpos is somehow offset?
 	local DrawUnitShapeVBOTable
-	--Spring.Echo("DrawUnitShapeGL4", "unitDefID", unitDefID, UnitDefs[unitDefID].name, "to unitDefID", uniqueID,"elemID", elementID) 
+	--Spring.Echo("DrawUnitShapeGL4", "unitDefID", unitDefID, UnitDefs[unitDefID].name, "to unitDefID", uniqueID,"elemID", elementID)
 	if corUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = corDrawUnitShapeVBOTable
 	elseif armUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = armDrawUnitShapeVBOTable
 	else
 		Spring.Echo("The given unitDefID", unitDefID, "is neither arm nor cor, only those two are supported at the moment")
+		
+		Spring.Debug.TraceFullEcho(nil,nil,nil,"DrawUnitGL4")
 		return nil
 	end
-	
-	
+
+
 
 	local elementID = pushElementInstance(DrawUnitShapeVBOTable, {
 			px, py, pz, rotationY,
@@ -428,6 +434,8 @@ function widget:Initialize()
 	WG['DrawUnitShapeGL4'] = DrawUnitShapeGL4
 	WG['StopDrawUnitGL4'] = StopDrawUnitGL4
 	WG['StopDrawUnitShapeGL4'] = StopDrawUnitShapeGL4
+	WG['armDrawUnitShapeVBOTable'] = armDrawUnitShapeVBOTable
+	WG['corDrawUnitShapeVBOTable'] = corDrawUnitShapeVBOTable
 end
 
 
@@ -442,12 +450,14 @@ function widget:Shutdown()
 	WG['DrawUnitShapeGL4'] = nil
 	WG['StopDrawUnitGL4'] = nil
 	WG['StopDrawUnitShapeGL4'] = nil
+	WG['armDrawUnitShapeVBOTable'] = nil
+	WG['corDrawUnitShapeVBOTable'] = nil
 end
 
 function widget:DrawWorldPreUnit() -- this is for UnitDef
 	if armDrawUnitShapeVBOTable.usedElements > 0 or corDrawUnitShapeVBOTable.usedElements > 0 then
 		gl.Culling(GL.BACK)
-		gl.DepthMask(false) -- this might be a problem for non-transparent stuff?
+		gl.DepthMask(true)
 		gl.DepthTest(GL.LEQUAL)
 		--gl.PolygonOffset ( 0.5,0.5 )
 		unitShapeShader:Activate()

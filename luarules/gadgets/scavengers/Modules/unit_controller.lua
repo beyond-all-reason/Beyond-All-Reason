@@ -1,7 +1,5 @@
 Spring.Echo("[Scavengers] Unit Controller initialized")
 
-VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/staticunits.lua")
-
 function SelfDestructionControls(n, scav, scavDef, friendly)
 	UnitRange = {}
 	Constructing = {}
@@ -139,7 +137,7 @@ function ArmyMoveOrders(n, scav, scavDef)
 			elseif not FinalBossUnitID then
 				if UnitDefs[scavDef].canFly then
 					Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
-				elseif UnitRange[scav] > unitControllerModuleConfig.minimumrangeforfight then
+				elseif UnitRange[scav] > scavconfig.unitControllerModuleConfig.minimumrangeforfight then
 					Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
 				else
 					Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})

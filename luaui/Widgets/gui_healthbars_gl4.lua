@@ -157,12 +157,13 @@ end
 -- feature bars fade out faster
 -- CLOAKED UNITSES
 -- Healthbars color correction
--- Hide buildbars when at full hp
+-- Hide buildbars when at full hp - or convert them to build bars?
+-- todo some tex filtering issues on healthbar tops and bottoms :/ 
 
 --/luarules fightertest corak armpw 100 10 2000
 
 
-local healthbartexture = "LuaUI/Images/healtbars_exo4.png"
+local healthbartexture = "LuaUI/Images/healtbars_exo4.dds"
 
 -- a little explanation for 'bartype'
 -- 0: default percentage progress bar
@@ -172,14 +173,26 @@ local healthbartexture = "LuaUI/Images/healtbars_exo4.png"
 -- 5: The stockpile bar, nasty as hell but whatevs, it 
 
 -- TODO: should be a freaking bitmask instead
--- bit 0: use overlay texture
--- bit 1: use percentage style display
--- bit 2: 
+-- bit 0: use overlay texture false/true
+-- bit 1: show glyph icon
+-- bit 2: use percentage style display
+-- bit 3: use timeleft style display    (2 and 3 mutually exclusive!) 
+-- bit 4: use integernumber style display (stockpile)
+-- bit 5: get progress from nowtime-uniform2 / (uniform3 - uniform2)
+-- bit 6: flash bar at 1hz
+local bitUseOverlay = 1
+local bitShowGlyph = 2
+local bitPercentage = 4
+local bitTimeLeft = 8
+local bitIntegerNumber = 16
+local bitGetProgress = 32
+local bitFlashBar = 64
+local bitColorCorrect = 128
 
 -- unit uniform index map:
 -- 0: building
--- 1: NONE , buildtimeleft?
--- 2: shield/reloadstart/stockpile / buildtimeleft?
+-- 1: NONE , 
+-- 2: shield/reloadstart/stockpile 
 -- 3: reloadend?
 -- 4: emp damage /paralyze
 -- 5: capture 
@@ -193,7 +206,8 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 	health = {
 		mincolor = {1.0, 0.0, 0.0, 1.0},
 		maxcolor = {0.0, 1.0, 0.0, 1.0},
-		bartype = 0,
+		--bartype = 0,
+		bartype = bitShowGlyph + bitPercentage + bitColorCorrect, 
 		hidethreshold = 0.99,
 		uniformindex = 32, -- if its >20, then its health/maxhealth
 		uvoffset = 0.0625, -- the X offset of the icon for this bar
@@ -201,7 +215,8 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 	shield = {
 		mincolor = {0.15, 0.4, 0.4, 1.0},
 		maxcolor = {0.3, 0.8, 0.8, 1.0},
-		bartype = 3,
+		--bartype = 3,
+		bartype = bitShowGlyph + bitUseOverlay + bitPercentage,
 		hidethreshold = 0.99,
 		uniformindex = 2, -- if its >20, then its health/maxhealth
 		uvoffset = 0.3125, -- the X offset of the icon for this bar
@@ -209,7 +224,8 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 	capture = {
 		mincolor = {0.5, 0.25, 0.0, 1.0},
 		maxcolor = {1.0, 0.5, 0.0, 1.0},
-		bartype = 3,
+		--bartype = 3,
+		bartype = bitShowGlyph + bitUseOverlay + bitPercentage,
 		hidethreshold = 0.99,
 		uniformindex = 5, -- if its >20, then its health/maxhealth
 		uvoffset = 0.375, -- the X offset of the icon for this bar
@@ -217,7 +233,8 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 	stockpile = {
 		mincolor = {1.0, 1.0, 0.0, 1.0},
 		maxcolor = {0.0, 1.0, 1.0, 1.0},
-		bartype = 5,
+		--bartype = 5,
+		bartype = bitShowGlyph + bitUseOverlay + bitIntegerNumber,
 		hidethreshold = 1.99,
 		uniformindex = 2, -- if its >20, then its health/maxhealth
 		uvoffset = 0.4375, -- the X offset of the icon for this bar
@@ -225,7 +242,8 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 	emp_damage = {
 		mincolor = {0.4, 0.4, 0.8, 1.0},
 		maxcolor = {0.6, 0.6, 1.0, 1.0},
-		bartype = 3,
+		--bartype = 3,
+		bartype = bitShowGlyph + bitUseOverlay + bitPercentage,
 		hidethreshold = 0.99,
 		uniformindex = 4, -- if its >20, then its health/maxhealth
 		uvoffset = 0.5, -- the X offset of the icon for this bar
@@ -233,7 +251,8 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 	reload = {
 		mincolor = {0.03, 0.4, 0.4, 1.0},
 		maxcolor = {0.05, 0.6, 0.6, 1.0},
-		bartype = 2,
+		--bartype = 2,
+		bartype = bitShowGlyph + bitUseOverlay + bitGetProgress,
 		hidethreshold = 0.99,
 		uniformindex = 2, -- and 3!
 		uvoffset = 0.6875, -- the X offset of the icon for this bar
@@ -241,7 +260,8 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 	building = {
 		mincolor = {1.0, 1.0, 1.0, 1.0},
 		maxcolor = {1.0, 1.0, 1.0, 1.0},
-		bartype = 3,
+		--bartype = 3,
+		bartype = bitShowGlyph + bitUseOverlay + bitPercentage,
 		hidethreshold = 0.99,
 		uniformindex = 0, -- if its >20, then its health/maxhealth
 		uvoffset = 0.75, -- the X offset of the icon for this bar
@@ -249,7 +269,8 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 	paralyzed = {
 		mincolor = {0.6, 0.6, 1.0, 1.0},
 		maxcolor = {0.6, 0.6, 1.0, 1.0},
-		bartype = 1,
+		--bartype = 1,
+		bartype = bitShowGlyph + bitUseOverlay + bitFlashBar + bitTimeLeft,
 		hidethreshold = 0.99,
 		uniformindex = 4, -- if its >20, then its health/maxhealth
 		uvoffset = 0.8125, -- the X offset of the icon for this bar
@@ -257,7 +278,8 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 	featurehealth = {
 		mincolor = {0.6, 0.6, 0.6, 1.0},
 		maxcolor = {0.8, 0.8, 0.8, 1.0},
-		bartype = 0,
+		--bartype = 0,
+		bartype = bitShowGlyph + bitPercentage, 
 		hidethreshold = 0.99,
 		uniformindex = 33, -- if its >20, then its health/maxhealth
 		uvoffset = 0.125, -- the X offset of the icon for this bar
@@ -265,7 +287,8 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 	featurereclaim = {
 		mincolor = {0.25, 0.25, 0.25, 1.0},
 		maxcolor = {0.75, 0.75, 0.75, 1.0},
-		bartype = 0,
+		--bartype = 0,
+		bartype = bitShowGlyph + bitPercentage, 
 		hidethreshold = 0.99,
 		uniformindex = 2, -- if its >20, then its health/maxhealth
 		uvoffset = 0.1875, -- the X offset of the icon for this bar
@@ -273,7 +296,8 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 	featureresurrect = {
 		mincolor = {0.5, 0.1, 0.5, 1.0},
 		maxcolor = {1.0, 0.2, 1.0, 1.0},
-		bartype = 0,
+		--bartype = 0,
+		bartype = bitShowGlyph + bitPercentage, 
 		hidethreshold = 0.99,
 		uniformindex = 1, -- if its >20, then its health/maxhealth
 		uvoffset = 0.25, -- the X offset of the icon for this bar
@@ -339,6 +363,7 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 -------------------- configurables -----------------------
 local additionalheightaboveunit = 24 --16?
 local featuredistancemultiplier = 4 -- how many times closer features have to be for their bars to show
+local unitDefSizeMultipliers = {} -- table of unitdefID to a size mult (default 1.0) to override sizing of bars per unitdef
 
 local debugmode = false
 
@@ -416,6 +441,7 @@ out DataVS {
 	vec4 v_centerpos;
 	vec4 v_uvoffsets;
 	vec4 v_parameters;
+	vec2 v_sizemodifiers;
 	uvec4 v_bartype_index_ssboloc;
 };
 
@@ -431,6 +457,14 @@ bool vertexClipped(vec4 clipspace, float tolerance) {
 #define UNIFORMLOC bartype_index_ssboloc.z
 #define BARTYPE bartype_index_ssboloc.x
 
+#define BITUSEOVERLAY 1u
+#define BITSHOWGLYPH 2u
+#define BITPERCENTAGE 4u
+#define BITTIMELEFT 8u
+#define BITINTEGERNUMBER 16u
+#define BITGETPROGRESS 32u
+#define BITFLASHBAR 64u
+#define BITCOLORCORRECT 128u
 
 void main()
 {
@@ -448,7 +482,7 @@ void main()
 	v_parameters.y = 1.0 - (clamp(cameraDistance, BARFADESTART, BARFADEEND) - BARFADESTART)/ ( BARFADEEND-BARFADESTART);
 	v_parameters.z = 1.0 - (clamp(cameraDistance, ICONFADESTART, ICONFADEEND) - ICONFADESTART)/ ( ICONFADEEND-ICONFADESTART);
 	v_parameters.w = height_timers.w;
-
+	v_sizemodifiers = height_timers.yz;
 	if (length((cameraViewInv[3]).xyz - v_centerpos.xyz) >  iconDistance){
 		v_parameters.yz = vec2(0.0);
 	}
@@ -461,6 +495,9 @@ void main()
 	v_centerpos.y += height_timers.x; // Add per-instance height offset
 	
 	//if ((UNITUNIFORMS.composite & 0x00000001u) == 0u ) v_numvertices = 0u; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon)) 
+	
+	
+	v_bartype_index_ssboloc = bartype_index_ssboloc;
 	float relativehealth = UNITUNIFORMS.health / UNITUNIFORMS.maxHealth;
 	v_parameters.x = UNITUNIFORMS.health / UNITUNIFORMS.maxHealth; 
 	if (UNIFORMLOC < 20u) 
@@ -469,28 +506,31 @@ void main()
 		//v_parameters.x =  UNITUNIFORMS.userDefined[uint(i / 5u)][uint(mod(i,4u))];
 		v_parameters.x =  UNITUNIFORMS.userDefined[0].y;
 	
-		//v_parameters.x =  UNITUNIFORMS.userDefined[uint(i / 5u)][uint(mod(i,4u))];
+	}else{ // this is a health bar, dont draw it if the unit is being built and its health doesnt really differ from the full health
+		// TODO: this is kinda buggy, as buildprogess in the the unit uniforms is somehow lagging behind health.
+		float buildprogress = UNITUNIFORMS.userDefined[0].x; // this is -1.0 for fully built units
+		if (abs(buildprogress - relativehealth )< 0.03) v_numvertices = 0u;  
 	}
 	if (UNIFORMLOC < 4u) v_parameters.x = UNITUNIFORMS.userDefined[0][bartype_index_ssboloc.z ];
 	if (UNIFORMLOC == 0u) { //building
-		v_parameters.x = UNITUNIFORMS.userDefined[0].x;
-		if (abs(v_parameters.x - relativehealth )< 0.01) v_numvertices = 0; // dont draw if health = buildProgress
+		// dont draw if health = buildProgress
+		//v_parameters.x = UNITUNIFORMS.userDefined[0].x;
+		//if (abs(v_parameters.x - relativehealth )< 0.02) v_numvertices = 0u; 
 	}
 	if (UNIFORMLOC == 1u) v_parameters.x = UNITUNIFORMS.userDefined[0].y; //hmm featureresurrect or timeleft?
 	if (UNIFORMLOC == 2u) v_parameters.x = UNITUNIFORMS.userDefined[0].z; // shield/reloadstart/stockpile / buildtimeleft?
 	if (UNIFORMLOC == 4u) v_parameters.x = UNITUNIFORMS.userDefined[1].x; //emp damage and paralyze
 	if (UNIFORMLOC == 5u) v_parameters.x = UNITUNIFORMS.userDefined[1].y; //capture
 	
-	if (BARTYPE == 2u) { // reload bar progress is calced from nowtime-shottime / (endtime - shottime)
+	if ((BARTYPE & BITGETPROGRESS) > 0u) { // reload bar progress is calced from nowtime-shottime / (endtime - shottime)
 		v_parameters.x = 
 			(timeInfo.x - UNITUNIFORMS.userDefined[0].z ) / 
 			(UNITUNIFORMS.userDefined[0].w - UNITUNIFORMS.userDefined[0].z);
 		v_parameters.x = clamp(v_parameters.x * 1.0, 0.0, 1.0);
 	}
-	//v_parameters.x = float(v_bartype_index_ssboloc.z) / (100.0);
+	
 	v_mincolor = mincolor;
 	v_maxcolor = maxcolor;
-	v_bartype_index_ssboloc = bartype_index_ssboloc;
 }
 ]]
 
@@ -514,6 +554,7 @@ in DataVS { // I recall the sane limit for cache coherence is like 48 floats per
 	vec4 v_centerpos;
 	vec4 v_uvoffsets;
 	vec4 v_parameters;
+	vec2 v_sizemodifiers;
 	uvec4 v_bartype_index_ssboloc;
 } dataIn[];
 
@@ -526,10 +567,11 @@ mat3 rotY;
 vec4 centerpos;
 vec4 uvoffsets;
 float zoffset;
+float sizemultiplier = dataIn[0].v_sizemodifiers.x;
 
 void emitVertexBG(in vec2 pos){
 	g_uv.xy = vec2(0.0,0.0);
-	vec3 primitiveCoords = vec3(pos.x,0.0,pos.y - zoffset) * BARSCALE;
+	vec3 primitiveCoords = vec3(pos.x,0.0,pos.y - zoffset) * BARSCALE *sizemultiplier;
 	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( primitiveCoords ), 1.0);
 	g_uv.z = 0.0; // this tells us to use color
 	g_color = mix(BGBOTTOMCOLOR, BGTOPCOLOR, pos.y);
@@ -545,7 +587,7 @@ void emitVertexBarBG(in vec2 pos, in vec4 botcolor, in float bartextureoffset){
 	g_uv.xy = g_uv.xy * vec2(ATLASSTEP * 9, ATLASSTEP) + vec2(2 * ATLASSTEP, bartextureoffset); // map uvs to the bar texture
 	g_uv.y = -1.0 * g_uv.y;
 	//vec3 primitiveCoords = vec3( (pos.x - sign(pos.x) * BARCORNER),0.0, (pos.y - sign(pos.y - 0.5) * BARCORNER - zoffset)) * BARSCALE;
-	vec3 primitiveCoords = vec3( pos.x,0.0, pos.y - zoffset) * BARSCALE;
+	vec3 primitiveCoords = vec3( pos.x,0.0, pos.y - zoffset) * BARSCALE *sizemultiplier;
 	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( primitiveCoords ), 1.0);
 	g_uv.z = clamp(10000 * bartextureoffset, 0, 1); // this tells us to use color if we are using bartextureoffset
 	g_color = botcolor;
@@ -557,7 +599,7 @@ void emitVertexBarBG(in vec2 pos, in vec4 botcolor, in float bartextureoffset){
 }
 void emitVertexGlyph(in vec2 pos, in vec2 uv){
 	g_uv.xy = vec2(uv.x, 1.0 - uv.y);
-	vec3 primitiveCoords = vec3(pos.x,0.0,pos.y - zoffset) * BARSCALE;
+	vec3 primitiveCoords = vec3(pos.x,0.0,pos.y - zoffset) * BARSCALE *sizemultiplier;
 	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( primitiveCoords ), 1.0);
 	g_uv.z = 1.0; // this tells us to use texture
 	g_color = vec4(1.0);
@@ -579,6 +621,15 @@ void emitGlyph(vec2 bottomleft, vec2 uvbottomleft, vec2 uvsizes){
 #define UVOFFSET dataIn[0].v_parameters.w
 #define UNIFORMLOC dataIn[0].v_bartype_index_ssboloc.z
 
+#define BITUSEOVERLAY 1u
+#define BITSHOWGLYPH 2u
+#define BITPERCENTAGE 4u
+#define BITTIMELEFT 8u
+#define BITINTEGERNUMBER 16u
+#define BITGETPROGRESS 32u
+#define BITFLASHBAR 64u
+#define BITCOLORCORRECT 128u
+
 #line 22000 
 void main(){
 	// bail super early like scum if simple bar with >0.99 value
@@ -594,35 +645,29 @@ void main(){
 
 	float health = dataIn[0].v_parameters.x;
 	if (BARALPHA < MINALPHA) return; // Dont draw below 50% transparency
-
-	if (BARTYPE == 0u){ // TODO: hide small bars
-	//	if (health > 0.99) return;
-	} 
 	
 	// All the early bail conditions to not draw full/empty bars
 	#ifndef DEBUGSHOW 
 		if (health < 0.001) return;
-		if (BARTYPE == 0u) { // for percentage bars
+		if ((BARTYPE & BITPERCENTAGE) > 0u) { // for percentage bars
 			if (health > 0.995) return;
+		}else{
+			if ((BARTYPE & BITGETPROGRESS) > 0u) { // reload bar?
+				if (health > 0.995) return;
+			}
+			if ((BARTYPE & BITUSEOVERLAY) > 0u){ // for textured percentage bars bars
+			//	if (health > 0.995) return;
+			//	if (health < 0.005) return;
+			}
 		}
-		if (BARTYPE == 2u) { // reload bar?
-			if (health > 0.995) return;
-		}
-		if (BARTYPE == 3u){ // for textured percentage bars bars
-			if (UNIFORMLOC == 0u) {
-				// TODO: hide build bars when health ~ buildprogress
-			};
-			if (health > 0.995) return;
-			if (health < 0.005) return;
-		}
-		if (dataIn[0].v_numvertices == 0u) return;
+		if (dataIn[0].v_numvertices == 0u) return; // for hiding the build bar when full health
 	#endif
 	
 	
 	// STOCKPILE BAR:  128*numStockpileQued + numStockpiled + stockpileBuild
 	uint numStockpiled = 0u;
 	uint numStockpileQueued = 0u;
-	if (BARTYPE == 5u){
+	if ((BARTYPE & BITINTEGERNUMBER) > 0u){
 		float oldhealth = health;
 		health = fract(oldhealth);
 		oldhealth = floor(oldhealth);
@@ -654,12 +699,10 @@ void main(){
 	// for this to work, we need the true color of the bar?
 	
 		vec4 truecolor = mix(dataIn[0].v_mincolor, dataIn[0].v_maxcolor, health);
-		// lumo preservations?
-		
-		//truecolor = truecolor/ min(max(truecolor.r,truecolor.g);
+
 		truecolor.a = 0.2;
 		topcolor = truecolor;
-	    
+
 		topcolor.rgb *= BOTTOMDARKENFACTOR;
 		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER, SMALLERCORNER + BARCORNER), truecolor, 0.0); //1
 		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER, BARHEIGHT - SMALLERCORNER - BARCORNER), topcolor,  0.0); //2 
@@ -675,15 +718,14 @@ void main(){
 	// EMIT BAR FOREGROUND, ok this is harder than i thought
 	
 		float healthbasedpos = (2*(BARWIDTH -  BARCORNER) - 2 * SMALLERCORNER) * health  ;
-		if (BARTYPE == 1u) healthbasedpos =  (2*(BARWIDTH -  BARCORNER) - 2 * SMALLERCORNER); // full bar for timer based shit
-		if (UNIFORMLOC == 32u) { truecolor.rgb = truecolor.rgb/max(truecolor.r, truecolor.g); } // color correction for health
+		if ((BARTYPE & BITTIMELEFT) > 0u) healthbasedpos =  (2*(BARWIDTH -  BARCORNER) - 2 * SMALLERCORNER); // full bar for timer based shit
+		if ((BARTYPE & BITCOLORCORRECT) > 0u) { truecolor.rgb = truecolor.rgb/max(truecolor.r, truecolor.g); } // color correction for health
 		truecolor.a = 1.0;
 		botcolor = truecolor;
 		botcolor.rgb *= BOTTOMDARKENFACTOR;
 		float bartextureoffset = 0;
-		if (BARTYPE == 3u ) bartextureoffset = UVOFFSET; // if the bar type is a textured bar, we have a lot of work to do
-		if (BARTYPE == 5u ) bartextureoffset = UVOFFSET; // if the bar type is a textured bar, we have a lot of work to do
-		if (BARTYPE == 2u ) bartextureoffset = UVOFFSET; // if the bar type is a textured bar, we have a lot of work to do
+		if ((BARTYPE & BITUSEOVERLAY) > 0u) bartextureoffset = UVOFFSET; // if the bar type is a textured bar, we have a lot of work to do
+
 		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER,                                  SMALLERCORNER + BARCORNER            ), botcolor,  bartextureoffset); //1
 		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER,                                  BARHEIGHT - BARCORNER - SMALLERCORNER), truecolor, bartextureoffset); //2 
 		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER + SMALLERCORNER,                  BARCORNER                            ), botcolor,  bartextureoffset); //3
@@ -700,49 +742,43 @@ void main(){
 	
 	if (GLYPHALPHA < MINALPHA) return; // dont display glyphs below 50% transparency
 	
-	if (BARTYPE >= 20u)
-		{// this is emp or reload or buildtime...
-		}
-	else{ // draw a percentage number
+	if ((BARTYPE & BITSHOWGLYPH) > 0u){ 
 		emitGlyph(vec2(- BARWIDTH - 1 * BARHEIGHT , 0), vec2(ATLASSTEP, UVOFFSET), vec2(ATLASSTEP, ATLASSTEP));	//glyph icon
+	}
+	
+	if ((BARTYPE & BITINTEGERNUMBER) > 0u){ // STOCKPILE FONTS THEN EH? xx/yy
+		vec4 numbers = vec4(numStockpiled, numStockpiled, numStockpileQueued, numStockpileQueued);
+		numbers = numbers * vec4(1.0, 0.1, 1.0, 0.1);
+		numbers = floor(mod(numbers, 10.0)) * ATLASSTEP;
+		float glyphpctsecatlas = 11 * ATLASSTEP; // TODO: slash sign in texture
+		// go right to left
 		
-		if (BARTYPE == 5u){ // STOCKPILE FONTS THEN EH? xx/yy
-			vec4 numbers = vec4(numStockpiled, numStockpiled, numStockpileQueued, numStockpileQueued);
-			numbers = numbers * vec4(1.0, 0.1, 1.0, 0.1);
-			numbers = floor(mod(numbers, 10.0)) * ATLASSTEP;
-			float glyphpctsecatlas = 11 * ATLASSTEP; // TODO: slash sign in texture
-			// go right to left
-			
-			//emitGlyph(vec2(-BARWIDTH - 2 * BARHEIGHT , 0), vec2(0, numbers.z ), vec2(ATLASSTEP, ATLASSTEP)); // lsb of numqueued
-			//emitGlyph(vec2(-BARWIDTH - 3 * BARHEIGHT + BARHEIGHT * 0.4, 0), vec2(0, numbers.w ), vec2(ATLASSTEP, ATLASSTEP)); // lsb of numqueued
-			//emitGlyph(vec2(-BARWIDTH - 4 * BARHEIGHT + BARHEIGHT * 0.7, 0), vec2(0, glyphpctsecatlas ), vec2(ATLASSTEP, ATLASSTEP)); // lsb of numqueued
-			emitGlyph(vec2(-BARWIDTH - 2 * BARHEIGHT  , 0), vec2(0, numbers.x ), vec2(ATLASSTEP, ATLASSTEP)); // lsb of numqueued
-			if (numbers.y > 0 ){
-				emitGlyph(vec2(-BARWIDTH - 3 * BARHEIGHT + BARHEIGHT * 0.4 , 0), vec2(0, numbers.y ), vec2(ATLASSTEP, ATLASSTEP)); // lsb of numqueued
-			}
-
-		}else{
-			float lsb ;
-			float msb ;
-			float glyphpctsecatlas;
-			if (BARTYPE == 1u){ //display time
-				health = (health - 1.0) / (1.0/40.0);
-				lsb = abs(floor(mod(health, 10.0)));
-				msb = abs( floor(mod(health*0.1, 10.0)));
-				glyphpctsecatlas = 14.0; // seconds
-			}else{
-				lsb = floor(mod(health*100.0, 10.0));
-				msb = floor(mod(health*10.0, 10.0));
-				glyphpctsecatlas = 11.0; // percent
-			}
-			emitGlyph(vec2(-BARWIDTH - 2 * BARHEIGHT , 0), vec2(0, glyphpctsecatlas * ATLASSTEP), vec2(ATLASSTEP, ATLASSTEP)); // % 
-			emitGlyph(vec2(-BARWIDTH - 3 * BARHEIGHT + BARHEIGHT * 0.2 , 0), vec2(0,  lsb * ATLASSTEP ), vec2(ATLASSTEP, ATLASSTEP)); // lsb
-			if (msb > 0){
-				emitGlyph(vec2(-BARWIDTH - 4 * BARHEIGHT + BARHEIGHT * 0.6 , 0), vec2(0,  msb * ATLASSTEP), vec2(ATLASSTEP, ATLASSTEP)); //msb
-			}
+		emitGlyph(vec2(-BARWIDTH - 2 * BARHEIGHT  , 0), vec2(0, numbers.x ), vec2(ATLASSTEP, ATLASSTEP)); // lsb of numqueued
+		if (numbers.y > 0 ){
+			emitGlyph(vec2(-BARWIDTH - 3 * BARHEIGHT + BARHEIGHT * 0.4 , 0), vec2(0, numbers.y ), vec2(ATLASSTEP, ATLASSTEP)); // msb of numqueued
 		}
-		
-		
+	}
+
+
+	if ((BARTYPE & (BITTIMELEFT | BITPERCENTAGE))  > 0u){
+		float lsb ;
+		float msb ;
+		float glyphpctsecatlas;
+		if ((BARTYPE & BITTIMELEFT) > 0u){ //display time
+			health = (health - 1.0) / (1.0/40.0);
+			lsb = abs(floor(mod(health, 10.0)));
+			msb = abs( floor(mod(health*0.1, 10.0)));
+			glyphpctsecatlas = 14.0; // seconds
+		}else{
+			lsb = floor(mod(health*100.0, 10.0));
+			msb = floor(mod(health*10.0, 10.0));
+			glyphpctsecatlas = 11.0; // percent
+		}
+		emitGlyph(vec2(-BARWIDTH - 2 * BARHEIGHT , 0), vec2(0, glyphpctsecatlas * ATLASSTEP), vec2(ATLASSTEP, ATLASSTEP)); // % 
+		emitGlyph(vec2(-BARWIDTH - 3 * BARHEIGHT + BARHEIGHT * 0.2 , 0), vec2(0,  lsb * ATLASSTEP ), vec2(ATLASSTEP, ATLASSTEP)); // lsb
+		if (msb > 0){
+			emitGlyph(vec2(-BARWIDTH - 4 * BARHEIGHT + BARHEIGHT * 0.6 , 0), vec2(0,  msb * ATLASSTEP), vec2(ATLASSTEP, ATLASSTEP)); //msb
+		}
 	}
 }
 ]]
@@ -841,10 +877,13 @@ end
 --------------------------------------------------------------------------------
 
 local unitBars = {}
-
 --'if DBGTRACE then Spring.Echo("%s:%d %s) | ", "caller:"..tostring(debug.getinfo(2).name) %s) end\n'
+local healthBarTableCache = {}
+for i = 1, 20 do healthBarTableCache[i] = 0.0 end
+
 
 local function addBarForUnit(unitID, unitDefID, barname)
+	--Spring.Debug.TraceFullEcho()
 	if debugmode then Spring.Debug.TraceEcho(unitBars[unitID]) end 
 	--Spring.Echo("Caller1:", tostring()".name), "caller2:", tostring(debug.getinfo(3).name))
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
@@ -856,24 +895,34 @@ local function addBarForUnit(unitID, unitDefID, barname)
 	--Spring.Echo(instanceID, barname, unitBars[unitID])
 	if healthBarVBO.instanceIDtoIndex[instanceID] then return end -- we already have this bar !
 	if unitBars[unitID] == nil then
+		Spring.Echo("A unit has no bars yet", UnitDefs[Spring.GetUnitDefID(unitID)].name, Spring.GetUnitPosition(unitID))
 		Spring.Debug.TraceEcho()
+		unitBars[unitID] = 1
 	end
 	unitBars[unitID] = unitBars[unitID] + 1
 	
+	healthBarTableCache[1] = unitDefHeights[unitDefID] + additionalheightaboveunit  -- height
+	healthBarTableCache[2] = unitDefSizeMultipliers[unitDefID] or 1.0 -- sizemult
+	healthBarTableCache[3] = 0.0 -- unused
+	healthBarTableCache[4] = bt.uvoffset -- glyph uv offset
+	
+	healthBarTableCache[5] = bt.bartype -- bartype int
+	healthBarTableCache[6] = unitBars[unitID] - 1 -- bar index (how manyeth per unit)
+	healthBarTableCache[7] = bt.uniformindex -- ssbo location offset (> 20 for health)
+	
+	healthBarTableCache[9] = bt.mincolor[1]
+	healthBarTableCache[10] = bt.mincolor[2]
+	healthBarTableCache[11] = bt.mincolor[3]
+	healthBarTableCache[12] = bt.mincolor[4]
+	
+	healthBarTableCache[13] = bt.maxcolor[1]
+	healthBarTableCache[14] = bt.maxcolor[2]
+	healthBarTableCache[15] = bt.maxcolor[3]
+	healthBarTableCache[16] = bt.maxcolor[4]
 	
 	pushElementInstance(
 		healthBarVBO, -- push into this Instance VBO Table
-			{unitDefHeights[unitDefID] + additionalheightaboveunit,  -- height
-			gf - 10, -- timer start
-			gf + 300, -- timer end
-			bt.uvoffset, -- unused float
-			bt.bartype, -- bartype int
-			unitBars[unitID] - 1, -- bar index (how manyeth per unit)
-			bt.uniformindex, -- ssbo location offset (> 20 for health)
-			0, -- unused int
-			bt.mincolor[1], bt.mincolor[2], bt.mincolor[3], bt.mincolor[4],
-			bt.maxcolor[1], bt.maxcolor[2], bt.maxcolor[3], bt.maxcolor[4],
-			0, 0, 0, 0}, -- these are just padding zeros for instData, that will get filled in 
+		healthBarTableCache, 
 		instanceID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		nil, -- noupload, dont use unless you know what you want to batch push/pop
@@ -902,6 +951,9 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam) -- TODO, actually, we
 			addBarForUnit(unitID, unitDefID, "building")
 			unitBeingBuiltWatch[unitID] = build
 			uniformcache[1] = build
+			gl.SetUnitBufferUniforms(unitID, uniformcache, 0) 
+		else
+			uniformcache[1] = -1.0 -- mean that the unit has been built, we init it to -1 always
 			gl.SetUnitBufferUniforms(unitID, uniformcache, 0) 
 		end
 		if  capture > 0 then
@@ -971,7 +1023,7 @@ local function addBarToFeature(featureID,  barname)
 	pushElementInstance(
 		targetVBO, -- push into this Instance VBO Table
 			{featureDefHeights[featureDefID],  -- height
-			0, -- timer start
+			1.0, -- size mult
 			0, -- timer end
 			bt.uvoffset, -- unused float
 			
@@ -992,11 +1044,11 @@ end
 
 local function removeBarFromFeature(featureID, targetVBO)
 	--Spring.Echo("removeBarFromFeature", featureID, targetVBO.myName)
+	if targetVBO.instanceIDtoIndex[featureID] then
+		popElementInstance(targetVBO, featureID)
+	end
 	if featureBars[featureID] then 
 		featureBars[featureID] = featureBars[featureID] - 1 -- TODO ERROR
-		if targetVBO.instanceIDtoIndex[featureID] then
-			popElementInstance(targetVBO, featureID)
-		end
 	end
 end
 
@@ -1141,11 +1193,12 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal("ProjectileCreatedReloadHB",ProjectileCreatedReloadHB )
 end
 
-function widget:ShutDown()
+function widget:Shutdown()
 	widgetHandler:DeregisterGlobal("FeatureReclaimStartedHealthbars" )
 	widgetHandler:DeregisterGlobal("UnitCaptureStartedHealthbars" )
 	widgetHandler:DeregisterGlobal("UnitParalyzeDamageHealthbars" )
 	widgetHandler:DeregisterGlobal("ProjectileCreatedReloadHB" )
+	Spring.Echo("Healthbars GL4 unloaded hooks")
 end
 	
 
@@ -1242,10 +1295,13 @@ function widget:GameFrame(n)
 	-- check build progress 
 	if (n % 1 == 0) then
 		for unitID, buildprogress in pairs(unitBeingBuiltWatch) do 
-			local build = select(5, Spring.GetUnitHealth(unitID))
+			local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
 			if build ~= buildprogress then
 				uniformcache[1] = build
+				--Spring.Echo("Health", health/maxHealth, build, math.abs(build - health/maxHealth))
+				--if math.abs(build - health/maxHealth) < 0.005 then uniformcache[1] = 1.0 end 
 				gl.SetUnitBufferUniforms(unitID,uniformcache, 0)
+				unitBeingBuiltWatch[unitID] = buildProgress
 				if build == 1 then 
 					removeBarFromUnit(unitID, "building")
 					unitBeingBuiltWatch[unitID] = nil
@@ -1262,12 +1318,12 @@ function widget:GameFrame(n)
 	if (n % 1) == 0 then 
 		for unitID, captureprogress in pairs(unitCaptureWatch) do
 			local capture = select(4, Spring.GetUnitHealth(unitID))
-			if capture ~= captureprogress then 
+			if capture and capture ~= captureprogress then 
 				uniformcache[1] = capture
 				gl.SetUnitBufferUniforms(unitID, uniformcache, 5)
 				unitCaptureWatch[unitID] = capture
 			end
-			if capture == 0 then 
+			if capture == 0 or capture == nil then 
 				removeBarFromUnit(unitID, 'capture')
 				unitCaptureWatch[unitID] = nil
 			end

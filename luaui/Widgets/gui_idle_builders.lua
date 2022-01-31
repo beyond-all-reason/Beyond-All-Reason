@@ -243,7 +243,6 @@ local function checkGuishader(force)
 			WG['guishader'].InsertDlist(dlistGuishader, 'idlebuilders')
 		end
 	elseif dlistGuishader then
-		WG['guishader'].RemoveDlist('idlebuilders')
 		dlistGuishader = gl.DeleteList(dlistGuishader)
 	end
 end

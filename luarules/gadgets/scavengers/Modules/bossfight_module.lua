@@ -1,4 +1,3 @@
-local bossAbilities = VFS.Include("luarules/gadgets/scavengers/BossFight/" .. Game.gameShortName .. "/abilities.lua")
 local currentPhaseBossAbilities = {}
 
 local function bossPhaseControl(bossHealthPercent)

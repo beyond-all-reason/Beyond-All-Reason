@@ -28,13 +28,14 @@ local utilities = {
 
 local debugUtilities = VFS.Include(utilitiesDirectory .. 'debug.lua')
 
-local debug = {
+local debugFuncs = {
 	ParamsEcho = debugUtilities.ParamsEcho,
 	TableEcho = debugUtilities.TableEcho,
 	TraceEcho = debugUtilities.TraceEcho,
+	TraceFullEcho = debugUtilities.TraceFullEcho,
 }
 
 return {
 	Utilities = utilities,
-	Debug = debug,
+	Debug = debugFuncs,
 }

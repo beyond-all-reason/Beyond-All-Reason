@@ -589,6 +589,7 @@ local moveDatas = {
 		footprintx = 5,
 		footprintz = 5,
 		maxslope = 255,
+		minwaterdepth = 12,
 		maxwaterdepth = 9999,
 		maxwaterslope = 255,
 		speedModClass = 3,
