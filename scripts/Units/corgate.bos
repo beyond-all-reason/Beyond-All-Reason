@@ -6,6 +6,7 @@
 piece  base, dish;
 
 static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
 
 ShieldOn()
@@ -50,10 +51,27 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = FALSE;
 }
 
-Create()
+Go()
 {
 	spin dish around y-axis speed <15.000000>;
+}
+Stop()
+{
+	spin dish around y-axis speed <0.000000>;
+}
+Create()
+{
+	call-script Go();
 	call-script InitState();
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script Go();
+	}
 }
 
 #define SMOKEPIECE base

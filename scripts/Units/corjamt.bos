@@ -7,6 +7,7 @@
 piece  base,dish;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
 
 Go()
@@ -14,11 +15,19 @@ Go()
 	spin dish around y-axis speed <150.000000>;
 	return (0);
 }
-
 Stop()
 {
 	stop-spin dish around y-axis;
 	return (0);
+}
+SetStunned(State)
+{c
+    Stunned = State;
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script Go();
+	}
 }
 
 InitState()
