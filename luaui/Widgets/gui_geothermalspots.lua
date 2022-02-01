@@ -126,7 +126,7 @@ void main()
 	if (visibility.x > 0.5 ){ // going into occupied, so fade out from visibility.y
 		circlealpha =  clamp(( (timeInfo.x + timeInfo.w) - visibility.y)/30, 0.0, 0.5);
 	}else{ // turned unoccipied, fading into visibility
-		circlealpha = clamp(0.5 - ((timeInfo.x timeInfo.w) - visibility.y)/30, 0.0, 0.5);
+		circlealpha = clamp(0.5 - ((timeInfo.x + timeInfo.w) - visibility.y)/30, 0.0, 0.5);
 	}
 	//circlealpha = visibility.x;
 }
