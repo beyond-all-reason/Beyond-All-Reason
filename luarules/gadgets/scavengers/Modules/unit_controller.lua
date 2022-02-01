@@ -1,6 +1,6 @@
 Spring.Echo("[Scavengers] Unit Controller initialized")
 
-function SelfDestructionControls(n, scav, scavDef, friendly)
+local function selfDestructionControls(n, scav, scavDef, friendly)
 	UnitRange = {}
 	Constructing = {}
 	--Constructing[scav] = false
@@ -56,7 +56,7 @@ function SelfDestructionControls(n, scav, scavDef, friendly)
 	Constructing[scav] = nil
 end
 
-function ArmyMoveOrdersInitialPhase(n, scav, scavDef)
+local function armyMoveOrdersInitialPhase(n, scav, scavDef)
 	UnitRange = {}
 	if UnitDefs[scavDef].maxWeaponRange and UnitDefs[scavDef].maxWeaponRange > 100 then
 		UnitRange[scav] = UnitDefs[scavDef].maxWeaponRange
@@ -76,7 +76,7 @@ function ArmyMoveOrdersInitialPhase(n, scav, scavDef)
 	end
 end
 
-function ArmyMoveOrders(n, scav, scavDef)
+local function armyMoveOrders(n, scav, scavDef)
 	UnitRange = {}
 	if UnitDefs[scavDef].maxWeaponRange and UnitDefs[scavDef].maxWeaponRange > 100 then
 		UnitRange[scav] = UnitDefs[scavDef].maxWeaponRange
@@ -163,3 +163,9 @@ function ArmyMoveOrders(n, scav, scavDef)
 	end
 	attackTarget = nil
 end
+
+return {
+	SelfDestructionControls = selfDestructionControls,
+	ArmyMoveOrdersInitialPhase = armyMoveOrdersInitialPhase,
+	ArmyMoveOrders = armyMoveOrders,
+}

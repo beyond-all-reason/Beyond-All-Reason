@@ -1,5 +1,5 @@
 
-function spawnStartBoxProtection(n)
+local function spawnStartBoxProtection(n)
     if ScavengerStartboxExists then
 			local chance = 0--math_random(0,1)
 			if chance == 0 then
@@ -18,7 +18,6 @@ function spawnStartBoxProtection(n)
 			--ScavSafeAreaMinZ
 			--ScavSafeAreaMaxZ
 			local r = math_random(0,3)
-			local r2 = math_random(0,80)
 			local spread = scavconfig.spawnProtectionConfig.spread
 			local spawnPosX = math_random(ScavSafeAreaMinX,ScavSafeAreaMaxX)
 			local spawnPosZ = math_random(ScavSafeAreaMinZ,ScavSafeAreaMaxZ)
@@ -35,10 +34,6 @@ function spawnStartBoxProtection(n)
 				spawnPosX = ScavSafeAreaMinX
 				spawnDirection = 3
 			end
-			if r2 == 0 then
-				spawnPosX = math_random(ScavSafeAreaMinX,ScavSafeAreaMaxX)
-				spawnPosZ = math_random(ScavSafeAreaMinZ,ScavSafeAreaMaxZ)
-			end
 			canSpawnDefence = true
 			if spawnPosX > mapsizeX - 128 or spawnPosX < 128 or spawnPosZ > mapsizeZ - 128 or spawnPosZ < 128 then
 				canSpawnDefence = false
@@ -54,31 +49,31 @@ function spawnStartBoxProtection(n)
 
 				if spawnPosY > 0 then
 					if spawnTier <= TierSpawnChances.T0 then
-						pickedTurret = staticUnitList.StartboxDefences.T0[math_random(1,#staticUnitList.StartboxDefences.T0)]
+						pickedTurret = staticUnitList.BeaconDefencesLand.T0[math_random(1,#staticUnitList.BeaconDefencesLand.T0)]
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-						pickedTurret = staticUnitList.StartboxDefences.T1[math_random(1,#staticUnitList.StartboxDefences.T1)]
+						pickedTurret = staticUnitList.BeaconDefencesLand.T1[math_random(1,#staticUnitList.BeaconDefencesLand.T1)]
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-						pickedTurret = staticUnitList.StartboxDefences.T2[math_random(1,#staticUnitList.StartboxDefences.T2)]
+						pickedTurret = staticUnitList.BeaconDefencesLand.T2[math_random(1,#staticUnitList.BeaconDefencesLand.T2)]
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-						pickedTurret = staticUnitList.StartboxDefences.T3[math_random(1,#staticUnitList.StartboxDefences.T3)]
+						pickedTurret = staticUnitList.BeaconDefencesLand.T3[math_random(1,#staticUnitList.BeaconDefencesLand.T3)]
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-						pickedTurret = staticUnitList.StartboxDefences.T4[math_random(1,#staticUnitList.StartboxDefences.T4)]
+						pickedTurret = staticUnitList.BeaconDefencesLand.T4[math_random(1,#staticUnitList.BeaconDefencesLand.T4)]
 					else
-						pickedTurret = staticUnitList.StartboxDefences.T0[math_random(1,#staticUnitList.StartboxDefences.T0)]
+						pickedTurret = staticUnitList.BeaconDefencesLand.T0[math_random(1,#staticUnitList.BeaconDefencesLand.T0)]
 					end
 				elseif spawnPosY <= 0 then
 					if spawnTier <= TierSpawnChances.T0 then
-						pickedTurret = staticUnitList.StartboxDefencesSea.T0[math_random(1,#staticUnitList.StartboxDefencesSea.T0)]
+						pickedTurret = staticUnitList.BeaconDefencesSea.T0[math_random(1,#staticUnitList.BeaconDefencesSea.T0)]
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-						pickedTurret = staticUnitList.StartboxDefencesSea.T1[math_random(1,#staticUnitList.StartboxDefencesSea.T1)]
+						pickedTurret = staticUnitList.BeaconDefencesSea.T1[math_random(1,#staticUnitList.BeaconDefencesSea.T1)]
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-						pickedTurret = staticUnitList.StartboxDefencesSea.T2[math_random(1,#staticUnitList.StartboxDefencesSea.T2)]
+						pickedTurret = staticUnitList.BeaconDefencesSea.T2[math_random(1,#staticUnitList.BeaconDefencesSea.T2)]
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-						pickedTurret = staticUnitList.StartboxDefencesSea.T3[math_random(1,#staticUnitList.StartboxDefencesSea.T3)]
+						pickedTurret = staticUnitList.BeaconDefencesSea.T3[math_random(1,#staticUnitList.BeaconDefencesSea.T3)]
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-						pickedTurret = staticUnitList.StartboxDefencesSea.T4[math_random(1,#staticUnitList.StartboxDefencesSea.T4)]
+						pickedTurret = staticUnitList.BeaconDefencesSea.T4[math_random(1,#staticUnitList.BeaconDefencesSea.T4)]
 					else
-						pickedTurret = staticUnitList.StartboxDefencesSea.T0[math_random(1,#staticUnitList.StartboxDefencesSea.T0)]
+						pickedTurret = staticUnitList.BeaconDefencesSea.T0[math_random(1,#staticUnitList.BeaconDefencesSea.T0)]
 					end
 				end
 
@@ -101,7 +96,7 @@ function spawnStartBoxProtection(n)
 	end
 end
 
-function executeStartBoxProtection(n)
+local function executeStartBoxProtection(n)
 	--ScavSafeAreaMinX
 	--ScavSafeAreaMaxX
 	--ScavSafeAreaMinZ
@@ -128,7 +123,7 @@ function executeStartBoxProtection(n)
 	end
 end
 
-function spawnStartBoxEffect(n)
+local function spawnStartBoxEffect(n)
 	if ScavengerStartboxExists then
 		local x = math.random(ScavSafeAreaMinX,ScavSafeAreaMaxX)
 		local z = math.random(ScavSafeAreaMinZ,ScavSafeAreaMaxZ)
@@ -137,7 +132,7 @@ function spawnStartBoxEffect(n)
 	end
 end
 
-function spawnStartBoxEffect2(n)
+local function spawnStartBoxEffect2(n)
 	if ScavengerStartboxExists then
 		local x = math.random(ScavSafeAreaMinX,ScavSafeAreaMaxX)
 		local z = math.random(ScavSafeAreaMinZ,ScavSafeAreaMaxZ)
@@ -145,3 +140,10 @@ function spawnStartBoxEffect2(n)
 		Spring.SpawnCEG("scavradiation-lightning",x,y+100,z,0,0,0)
 	end
 end
+
+return {
+	spawnStartBoxProtection = spawnStartBoxProtection,
+	executeStartBoxProtection = executeStartBoxProtection,
+	spawnStartBoxEffect = spawnStartBoxEffect,
+	spawnStartBoxEffect2 = spawnStartBoxEffect2,
+}

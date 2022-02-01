@@ -47,37 +47,39 @@ nukeController = VFS.Include("luarules/gadgets/scavengers/Modules/nuke_controlle
 bossController = VFS.Include("luarules/gadgets/scavengers/Modules/bossfight_module.lua")
 
 -- not redone
-VFS.Include("luarules/gadgets/scavengers/Modules/unit_controller.lua")
-VFS.Include("luarules/gadgets/scavengers/Modules/spawn_beacons.lua")
-VFS.Include("luarules/gadgets/scavengers/Modules/messenger.lua")
+unitController = VFS.Include("luarules/gadgets/scavengers/Modules/unit_controller.lua")
+spawnBeaconsController = VFS.Include("luarules/gadgets/scavengers/Modules/spawn_beacons.lua")
+messengerController = VFS.Include("luarules/gadgets/scavengers/Modules/messenger.lua")
 
 if scavconfig.modules.unitSpawnerModule then
-	VFS.Include("luarules/gadgets/scavengers/Modules/unit_spawner.lua")
+	unitSpawnerController = VFS.Include("luarules/gadgets/scavengers/Modules/unit_spawner.lua")
 end
 if scavconfig.modules.startBoxProtection then
-	VFS.Include("luarules/gadgets/scavengers/Modules/startbox_protection.lua")
+	startboxProtectionController = VFS.Include("luarules/gadgets/scavengers/Modules/startbox_protection.lua")
 end
 
 if scavconfig.modules.reinforcementsModule then
-	VFS.Include("luarules/gadgets/scavengers/Modules/reinforcements_module.lua")
+	reinforcementsController = VFS.Include("luarules/gadgets/scavengers/Modules/reinforcements_module.lua")
 end
 if scavconfig.modules.stockpilers == true then
-	VFS.Include("luarules/gadgets/scavengers/Modules/stockpiling.lua")
+	stockpilingController = VFS.Include("luarules/gadgets/scavengers/Modules/stockpiling.lua")
 end
 
-if scavconfig.modules.buildingSpawnerModule then
-	ScavengerBlueprintsT0 = {}
-	ScavengerBlueprintsT1 = {}
-	ScavengerBlueprintsT2 = {}
-	ScavengerBlueprintsT3 = {}
-	ScavengerBlueprintsT4 = {}
-	ScavengerBlueprintsT0Sea = {}
-	ScavengerBlueprintsT1Sea = {}
-	ScavengerBlueprintsT2Sea = {}
-	ScavengerBlueprintsT3Sea = {}
-	ScavengerBlueprintsT4Sea = {}
-	VFS.Include("luarules/gadgets/scavengers/Modules/building_spawner.lua")
-end
+-- Unused --
+
+-- if scavconfig.modules.buildingSpawnerModule then
+-- 	ScavengerBlueprintsT0 = {}
+-- 	ScavengerBlueprintsT1 = {}
+-- 	ScavengerBlueprintsT2 = {}
+-- 	ScavengerBlueprintsT3 = {}
+-- 	ScavengerBlueprintsT4 = {}
+-- 	ScavengerBlueprintsT0Sea = {}
+-- 	ScavengerBlueprintsT1Sea = {}
+-- 	ScavengerBlueprintsT2Sea = {}
+-- 	ScavengerBlueprintsT3Sea = {}
+-- 	ScavengerBlueprintsT4Sea = {}
+-- 	VFS.Include("luarules/gadgets/scavengers/Modules/building_spawner.lua")
+-- end
 
 ----
 
@@ -282,20 +284,20 @@ function gadget:GameFrame(n)
 	end
 
 	if n%30 == 0 and scavconfig.messenger == true then
-		pregameMessages(n)
+		messengerController.pregameMessages(n)
 	end
 
 	if scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists == true then
-		if n%60 == 0 then
-			spawnStartBoxProtection(n)
+		if n%30 == 0 then
+			startboxProtectionController.spawnStartBoxProtection(n)
 		end
 		if n%10 == 0 then
-			executeStartBoxProtection(n)
-			spawnStartBoxEffect2(n)
+			startboxProtectionController.executeStartBoxProtection(n)
+			startboxProtectionController.spawnStartBoxEffect2(n)
 		end
 		--if n%(math.ceil(450/(math.ceil(ScavSafeAreaSize/5)))) == 0 then
-		if n%(math.ceil(9600000/(ScavSafeAreaSize*ScavSafeAreaSize))) == 0 then
-			spawnStartBoxEffect(n)
+		if n%(math.ceil(4800000/(ScavSafeAreaSize*ScavSafeAreaSize))) == 0 then
+			startboxProtectionController.spawnStartBoxEffect(n)
 		end
 	end
 
@@ -317,14 +319,14 @@ function gadget:GameFrame(n)
 	end
 
 	if n%minionFramerate == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
-		BossMinionsSpawn(n)
+		unitSpawnerController.BossMinionsSpawn(n)
 	end
 
 	if n%30 == 0 and scavconfig.modules.reinforcementsModule and FinalBossKilled == false then
-		spawnPlayerReinforcements(n)
-		CaptureBeacons(n)
-		SetBeaconsResourceProduction(n)
-		ReinforcementsMoveOrder(n)
+		reinforcementsController.spawnPlayerReinforcements(n)
+		reinforcementsController.CaptureBeacons(n)
+		reinforcementsController.SetBeaconsResourceProduction(n)
+		reinforcementsController.ReinforcementsMoveOrder(n)
 	end
 
 	if n%30 == 0 and ScavengerTeamID ~= Spring.GetGaiaTeamID() then
@@ -352,7 +354,7 @@ function gadget:GameFrame(n)
 			Spring.SetTeamResource(ScavengerTeamID, "e", 1000000)
 		end
 		if BossWaveStarted == true then
-			BossWaveTimer(n)
+			unitSpawnerController.BossWaveTimer(n)
 		end
 		local scavUnits = Spring.GetTeamUnits(ScavengerTeamID)
 		local scavUnitsCount = #scavUnits
@@ -402,8 +404,8 @@ function gadget:GameFrame(n)
 			collectScavStats()
 		end
 		if scavconfig.modules.unitSpawnerModule and FinalBossKilled == false then --and (not FinalBossUnitSpawned) then
-			SpawnBeacon(n)
-			UnitGroupSpawn(n)
+			spawnBeaconsController.SpawnBeacon(n)
+			unitSpawnerController.UnitGroupSpawn(n)
 		end
 		if scavconfig.modules.constructorControllerModule and scavconfig.constructorControllerModuleConfig.useconstructors and scavengerGamePhase ~= "initial" then
 			constructorController.SpawnConstructor(n)
@@ -412,7 +414,7 @@ function gadget:GameFrame(n)
 		if scavengerunits and scavengerGamePhase ~= "initial" then
 			for _, scav in ipairs(scavengerunits) do
 				local scavDef = Spring.GetUnitDefID(scav)
-				local collectorRNG = math_random(0,2)
+				local collectorRNG = math_random(0,5)
 				local scavFirestate = Spring.GetUnitStates(scav)["firestate"]
 				if (scavFirestate ~= 2) or (scavFirestate ~= 1 and scavengerGamePhase == "initial") then
 					if scavengerGamePhase == "initial" then
@@ -425,7 +427,7 @@ function gadget:GameFrame(n)
 
 				if n%300 == 0 and scavconfig.modules.stockpilers == true then
 					if scavStockpiler[scav] == true then
-						ScavStockpile(n, scav)
+						stockpilingController.ScavStockpile(n, scav)
 					end
 				end
 
@@ -473,10 +475,10 @@ function gadget:GameFrame(n)
 
 				-- backup -- and not scavConstructor[scav] and not scavResurrector[scav] and not scavCollector[scav]
 				if scavteamhasplayers == false and n%900 == 0 and not scavStructure[scav] and not scavAssistant[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
-					SelfDestructionControls(n, scav, scavDef, false)
+					unitController.SelfDestructionControls(n, scav, scavDef, false)
 				end
 				if scavteamhasplayers == false and Spring.GetCommandQueue(scav, 0) <= 1 and not scavStructure[scav] and not scavConstructor[scav] and not scavReclaimer[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavCapturer[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
-					ArmyMoveOrders(n, scav, scavDef)
+					unitController.ArmyMoveOrders(n, scav, scavDef)
 				end
 			end
 		end
@@ -1039,7 +1041,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam)
 				end
 				if n > lastMinionFrame + math.ceil(scavconfig.unitSpawnerModuleConfig.FinalBossMinionsActive/(teamcount*spawnmultiplier)) and FinalBossUnitID then
 					lastMinionFrame = n
-					BossMinionsSpawn(n)
+					unitSpawnerController.BossMinionsSpawn(n)
 				end
 			end
 		end

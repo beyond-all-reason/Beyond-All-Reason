@@ -191,9 +191,9 @@ end
 function posStartboxCheck(posx, posy, posz, posradius, reverseNoStartbox)
 	-- if true then position is within scav startbox
 	local posradius = posradius or 1000
-	if ScavengerStartboxExists and posx <= ScavengerStartboxXMax and posx >= ScavengerStartboxXMin and posz >= ScavengerStartboxZMin and posz <= ScavengerStartboxZMax then
+	if (ScavengerStartboxExists and Spring.GetModOptions().scavstartboxcloud == true) and posx <= ScavengerStartboxXMax+posradius and posx >= ScavengerStartboxXMin-posradius and posz >= ScavengerStartboxZMin-posradius and posz <= ScavengerStartboxZMax+posradius then
 		return true
-	elseif not ScavengerStartboxExists then
+	elseif (not ScavengerStartboxExists) or Spring.GetModOptions().scavstartboxcloud == false then
 		if reverseNoStartbox then
 			return false
 		else

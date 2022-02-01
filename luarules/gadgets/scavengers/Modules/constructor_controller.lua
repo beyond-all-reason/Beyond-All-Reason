@@ -11,8 +11,10 @@ local mapCenterY = Spring.GetGroundHeight(mapCenterX, mapCenterZ)
 local mapDiagonal = math.ceil( math.sqrt((Game.mapSizeX * Game.mapSizeX) + (Game.mapSizeZ * Game.mapSizeZ)) )
 local initialCommanderSpawn = true
 
-local function generateOrderParams()
-	return { mapCenterX + math.random(-100, 100), mapCenterY, mapCenterZ + math.random(-100, 100), mapDiagonal}
+local function generateOrderParams(unitID, orderrange)
+	local posx, posy, posz = Spring.GetUnitPosition(unitID)
+	local posrange = orderrange*0.75
+	return { posx + math.random(-posrange, posrange), posy, posz + math.random(-posrange, posrange), orderrange}
 end
 
 local function countScavCommanders()
@@ -21,10 +23,7 @@ end
 
 local function assistantOrders(n, unitID)
 	local x,y,z = Spring.GetUnitPosition(unitID)
-	Spring.GiveOrderToUnit(unitID, CMD.PATROL,{x - 100, y, z}, {"shift"})
-	Spring.GiveOrderToUnit(unitID, CMD.PATROL,{x + 100, y, z}, {"shift"})
-	Spring.GiveOrderToUnit(unitID, CMD.PATROL,{x, y, z - 100}, {"shift"})
-	Spring.GiveOrderToUnit(unitID, CMD.PATROL,{x, y, z + 100}, {"shift"})
+	Spring.GiveOrderToUnit(unitID, CMD.PATROL,generateOrderParams(unitID, 500), {"shift"})
 end
 
 -- local function assistDroneRespawn(deadDroneID, drone)
@@ -49,33 +48,38 @@ end
 -- end
 
 local function resurrectorOrders(n, unitID)
-	Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, generateOrderParams(), 0)
-	Spring.GiveOrderToUnit(unitID, CMD.REPAIR, generateOrderParams(), {"shift"})
-	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(), {"shift"})
+	Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, generateOrderParams(unitID, 500), 0)
+	Spring.GiveOrderToUnit(unitID, CMD.REPAIR, generateOrderParams(unitID, 500), {"shift"})
+	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 500), {"shift"})
+	Spring.GiveOrderToUnit(unitID, CMD.MOVE, generateOrderParams(unitID, 2000), {"shift"})
 end
 
 local function capturerOrders(n, unitID)
-	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(), 0)
-	local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 999999, true)
+	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 500), 0)
+	local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, mapDiagonal*0.05, true)
 	if nearestenemy then
 		Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, { nearestEnemy }, 0)
 		local x,y,z = Spring.GetUnitPosition(nearestEnemy)
 		Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { x, y, z }, {"meta", "shift", "alt"})
 	end
+	Spring.GiveOrderToUnit(unitID, CMD.MOVE, generateOrderParams(unitID, 2000), {"shift"})
 end
 
 local function collectorOrders(n, unitID)
-	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, generateOrderParams(), 0)
-	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(), {"shift"})
+	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, generateOrderParams(unitID, 500), 0)
+	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 500), {"shift"})
+	Spring.GiveOrderToUnit(unitID, CMD.MOVE, generateOrderParams(unitID, 2000), {"shift"})
 end
 
 local function reclaimerOrders(n, unitID)
-	local nearestenemy = Spring.GetUnitNearestEnemy(unitID, 999999, true)
+	Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+	local nearestenemy = Spring.GetUnitNearestEnemy(unitID, mapDiagonal*0.05, true)
 	if nearestenemy then
 		Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { nearestenemy }, 0)
 		local x,y,z = Spring.GetUnitPosition(nearestenemy)
 		Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { x, y, z }, {"meta", "shift", "alt"})
 	end
+	Spring.GiveOrderToUnit(unitID, CMD.MOVE, generateOrderParams(unitID, 2000), {"shift"})
 end
 
 local function spawnConstructor(n)
@@ -148,7 +152,7 @@ local function spawnConstructor(n)
 			-- 	end
 			-- end
 
-			SpawnBeacon(n)
+			spawnBeaconsController.SpawnBeacon(n)
 
 			if scavconfig.constructorControllerModuleConfig.useresurrectors then
 				Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz, math.random(0, 3), ScavengerTeamID)
