@@ -146,7 +146,7 @@ in vec4 v_hcolor;
 out vec4 fragColor;
 #line 25000
 void main() {
-	float worldposfactor = fract(worldPos.y * ANIMFREQUENCY + timeInfo.x * ANIMSPEED);
+	float worldposfactor = fract(worldPos.y * ANIMFREQUENCY + (timeInfo.x + timeInfo.w)  * ANIMSPEED);
 
 	fragColor = v_hcolor; // Base highlight amount
 	fragColor.a = mix(fragColor.a, worldposfactor * fragColor.a, v_parameters.w); // mix in animation into plain highight

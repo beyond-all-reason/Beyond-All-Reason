@@ -187,7 +187,7 @@ void main() {
 	modelColor.a *= myTeamColor.a; // shader define transparency
 	modelColor.rgb = mix(modelColor.rgb, myTeamColor.rgb, v_parameters.z); //globalteamcoloramount override
 	if (v_parameters.w > 0){
-		modelColor.rgb = mix(modelColor.rgb, vec3(1.0), v_parameters.w*fract(worldPos.y*0.03 + timeInfo.x*0.05));
+		modelColor.rgb = mix(modelColor.rgb, vec3(1.0), v_parameters.w*fract(worldPos.y*0.03 + (timeInfo.x + timeInfo.w)*0.05));
 	}
 
 	fragColor = vec4(modelColor.rgb, myTeamColor.a);

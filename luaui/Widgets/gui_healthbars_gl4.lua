@@ -524,7 +524,7 @@ void main()
 	
 	if ((BARTYPE & BITGETPROGRESS) > 0u) { // reload bar progress is calced from nowtime-shottime / (endtime - shottime)
 		v_parameters.x = 
-			(timeInfo.x - UNITUNIFORMS.userDefined[0].z ) / 
+			((timeInfo.x + timeInfo.w) - UNITUNIFORMS.userDefined[0].z ) / 
 			(UNITUNIFORMS.userDefined[0].w - UNITUNIFORMS.userDefined[0].z);
 		v_parameters.x = clamp(v_parameters.x * 1.0, 0.0, 1.0);
 	}

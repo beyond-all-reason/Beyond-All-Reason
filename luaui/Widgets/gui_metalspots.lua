@@ -115,7 +115,7 @@ void main()
 	vec3 vertexWorldPos = vec3(localpos_dir_angle.x,0,localpos_dir_angle.y);
 
 	float s = sign(localpos_dir_angle.z);
-	mat3 roty = rotation3dY(s * timeInfo.x * 0.005);
+	mat3 roty = rotation3dY(s * (timeInfo.x + timeInfo.w) * 0.005);
 	vertexWorldPos.x *= s;
 
 	vertexWorldPos = roty * vertexWorldPos;
@@ -128,8 +128,8 @@ void main()
 	gl_Position = cameraViewProj * vec4(vertexWorldPos,1.0);
 
 	circlealpha = mix(
-		0.5 - (timeInfo.x - visibility.y) / 30.0, // turned unoccipied, fading into visibility
-		      (timeInfo.x - visibility.y) / 30.0, // going into occupied, so fade out from visibility.y
+		0.5 - ((timeInfo.x + timeInfo.w)- visibility.y) / 30.0, // turned unoccipied, fading into visibility
+		      ((timeInfo.x + timeInfo.w) - visibility.y) / 30.0, // going into occupied, so fade out from visibility.y
 		step(0.5, visibility.x)            // 1.0 if visibility is > 0.5
 	);
 	circlealpha = clamp(circlealpha, 0.0, 0.5);
