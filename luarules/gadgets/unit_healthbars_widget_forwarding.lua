@@ -125,6 +125,7 @@ else
 	local GetFeatureHealth = Spring.GetFeatureHealth 
 	local CMD_CAPTURE = CMD.CAPTURE
 	local forwardedCaptureTargets = {} -- unitID: gameFrame
+	local headless = false
 	
 	function gadget:PlayerChanged(playerID)
 	myTeamID = Spring.GetMyTeamID()
@@ -138,7 +139,7 @@ else
 		
 		--Spring.Echo('rezreclaim', rezreclaim[1], rezreclaim[2])
 		
-		glSetFeatureBufferUniforms(featureID, rezreclaim, 1) -- update GL, at offset of 1
+		if not headless then glSetFeatureBufferUniforms(featureID, rezreclaim, 1) end -- update GL, at offset of 1
 		
 		if step > 0 and forwardedFeatureIDsResurrect[featureID] == nil and Script.LuaUI("FeatureReclaimStartedHealthbars") then 
 				forwardedFeatureIDsResurrect[featureID] = true			
@@ -194,6 +195,7 @@ else
 	end
 	
 	function gadget:Initialize()
+		headless = Spring.GetConfigInt("Headless", 0) > 0
 		gadgetHandler:AddSyncAction("featureReclaimFrame", featureReclaimFrame)
 		gadgetHandler:AddSyncAction("unitCaptureFrame", unitCaptureFrame)
 		gadgetHandler:AddSyncAction("projetileCreatedReload", projetileCreatedReload)
