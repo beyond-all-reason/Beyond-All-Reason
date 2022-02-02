@@ -12,6 +12,10 @@ function widget:GetInfo()
 	}
 end
 
+--------------------------- INFO -------------------------------
+-- You can also add an exponential component to the load in ms with a second number param to the /****frameload commands
+
+
 ---------------------------Speedups-----------------------------
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers 
@@ -24,6 +28,10 @@ local timerstart = nil
 local drawtimer = 0
 local drawtimesmooth = 0
 local simtime = 0
+local camX, camY, camZ
+local cammovemean = 0
+local cammovespread = 0 
+local camalpha = 0.03
 
 function widget:Initialize()
 	drawtimer = Spring.GetTimer()
@@ -31,12 +39,18 @@ function widget:Initialize()
 	timerold = Spring.GetTimer()
 	viewSizeX, viewSizeY = gl.GetViewSizes()
 	--simtime = Spring.GetGameFrame()/30
+	camX, camY, camZ = Spring.GetCameraPosition()
 end
 
 local gameframeload = 0
 local drawframeload = 0
+local gameframespread = 0
+local drawframespread = 0
 
-local function Loadms(millisecs)
+
+local function Loadms(millisecs, spread)
+	if spread ~= nil then millisecs = millisecs + math.min(10*spread, -1.0 * spread * math.log(1.0 - math.random())) end 
+	--Spring.Echo(millisecs)
 	local starttimer = Spring.GetTimer()
 	local nowtimer
 	for i = 1, 10000000 do
@@ -49,15 +63,23 @@ local function Loadms(millisecs)
 end
 
 function widget:TextCommand(command)
-	if string.find(command,"gameframeload", nil, true ) == 1 then
-		gameframeload = tonumber(string.sub(command,14,nil)) or 0 
-		Spring.Echo("Setting gameframeload to ", gameframeload)
+	words = {}
+	for substring in command:gmatch("%S+") do
+		table.insert(words, substring)
 	end
 	
-	if string.find(command,"drawframeload", nil, true ) == 1 then
-		drawframeload = tonumber(string.sub(command,14,nil)) or 0 
-		Spring.Echo("Setting drawframeload to ", drawframeload)
+	if words and words[1] == "gameframeload" then
+		gameframeload = tonumber(words[2]) or 0 
+		gameframespread = tonumber(words[3]) or 0
+		Spring.Echo("Setting gameframeload to ", gameframeload, "spread", gameframespread)
 	end
+	
+	if words and words[1] == "drawframeload" then
+		drawframeload = tonumber(words[2]) or 0 
+		drawframespread = tonumber(words[3]) or 0
+		Spring.Echo("Setting drawframeload to ", drawframeload, "spread", drawframespread)
+	end
+	
 end
 
 function widget:ViewResize(vsx, vsy)
@@ -82,7 +104,7 @@ function widget:GameFrame(n)
   end
   actualdrawspergameframe = drawspergameframe
   drawspergameframe = 0
-  if gameframeload > 0 then Loadms(gameframeload) end
+  if gameframeload > 0 then Loadms(gameframeload, gameframespread) end
 end
 
 local timerwidth = 512
@@ -100,6 +122,15 @@ averageCTO = 0
 spreadCTO = 0
 
 function widget:DrawScreen()
+	local newcamx, newcamy, newcamz = Spring.GetCameraPosition()
+	local deltacam = math.sqrt(math.pow(newcamx- camX,2) + math.pow(newcamz - camZ, 2))-- + math.pow(newcamy - camY, 2))
+	cammovemean = (camalpha) * deltacam + (1.0 - camalpha) * cammovemean
+	cammovespread = camalpha * math.abs(cammovemean - deltacam) + (1.0 - camalpha) * cammovespread
+	camX = newcamx
+	camY = newcamy
+	camZ = newcamz
+	local camerarelativejitter = cammovespread / math.max(cammovemean, 0.001)
+
 	drawspergameframe = drawspergameframe + 1 
 	local drawpersimframe = math.floor(Spring.GetFPS()/30.0 +0.5 )
 	local fto = Spring.GetFrameTimeOffset()
@@ -151,12 +182,16 @@ function widget:DrawScreen()
 	gl.Text(string.format("mean jitter = %.3f  ", avgjitter* 30), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-32, 16, "d")
 	
 	gl.Text(string.format("averageCTO = %.3f, spreadCTO = %.3f  ", averageCTO, spreadCTO ), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-48, 16, "d")
+	
+	
+	--gl.Text(string.format("CamSpread = %.3f, CamMean = %.3f deltacam = %.3f jitter = %.3f",cammovespread, cammovemean, deltacam,camerarelativejitter), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-84, 16, "d")
+	gl.Text(string.format("CamJitter = %.3f",camerarelativejitter), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-84, 16, "d")
 
 	gl.Color(1.0, 1.0, 1.0, 1.0)
 	
 	gl.PopMatrix()
 	
-	if drawframeload > 0 then Loadms(drawframeload) end
+	if drawframeload > 0 then Loadms(drawframeload, drawframespread) end
 end
 
 
