@@ -152,7 +152,7 @@ return {
 				intensity = 0.6,
 				name = "FlameThrower",
 				noselfdamage = true,
-				range = 180,
+				range = 210,
 				reloadtime = 1.1,
 				rgbcolor = "1 0.94 0.88",
 				rgbcolor2 = "0.9 0.84 0.8",
@@ -168,7 +168,7 @@ return {
 				turret = true,
 				weapontimer = 1,
 				weapontype = "Flame",
-				weaponvelocity = 265,
+				weaponvelocity = 290,
 				customparams = {
 					expl_light_color = "1 0.33 0.04",
 					expl_light_life_mult = 1.1,
