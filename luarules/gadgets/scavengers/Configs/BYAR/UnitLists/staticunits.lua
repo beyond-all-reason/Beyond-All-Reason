@@ -119,6 +119,33 @@ local beaconDefencesLand = {
 		"armnanotc_scav",
 		"cornanotc_scav",
 
+		-- T1
+		"armrad_scav",
+		"armjamt_scav",
+		"armbeamer_scav",
+		"armhlt_scav",
+		"armguard_scav",
+		"armmg_scav",
+		"armrl_scav",
+		"armferret_scav",
+		"armcir_scav",
+		"armdl_scav",
+		"corrad_scav",
+		"corjamt_scav",
+		"corhllt_scav",
+		"corhlt_scav",
+		"corpun_scav",
+		"cormadsam_scav",
+		"corerad_scav",
+		"cordl_scav",
+		"corscavdtl_scav",
+		"corscavdtf_scav",
+		"corscavdtm_scav",
+		
+		-- Nanos
+		"armnanotc_scav",
+		"cornanotc_scav",
+
 		-- T2
 		"armarad_scav",
 		"armveil_scav",
@@ -144,6 +171,29 @@ local beaconDefencesLand = {
 		"armnanotc_scav",
 		"cornanotc_scav",
 
+		-- T2
+		"armarad_scav",
+		"armveil_scav",
+		"armsd_scav",
+		"armtarg_scav",
+		"armgate_scav",
+		"armpb_scav",
+		"armamb_scav",
+		"armflak_scav",
+		"corarad_scav",
+		"corshroud_scav",
+		"corsd_scav",
+		"cortarg_scav",
+		"corgate_scav",
+		"corhllllt_scav",
+		"corvipe_scav",
+		"cortoast_scav",
+		"corflak_scav",
+
+		-- Nanos
+		"armnanotc_scav",
+		"cornanotc_scav",
+
 		-- T3
 		"armanni_scav",
 		"armbrtha_scav",
@@ -160,6 +210,47 @@ local beaconDefencesLand = {
 	},
 
 	T4 = {
+		-- Nanos
+		"armnanotc_scav",
+		"cornanotc_scav",
+
+		-- T2
+		"armarad_scav",
+		"armveil_scav",
+		"armsd_scav",
+		"armtarg_scav",
+		"armgate_scav",
+		"armpb_scav",
+		"armamb_scav",
+		"armflak_scav",
+		"corarad_scav",
+		"corshroud_scav",
+		"corsd_scav",
+		"cortarg_scav",
+		"corgate_scav",
+		"corhllllt_scav",
+		"corvipe_scav",
+		"cortoast_scav",
+		"corflak_scav",
+
+		-- Nanos
+		"armnanotc_scav",
+		"cornanotc_scav",
+
+		-- T3
+		"armanni_scav",
+		"armbrtha_scav",
+		"armminivulc_scav",
+		"armmercury_scav",
+		"armemp_scav",
+		"armamd_scav",
+		"cordoom_scav",
+		"corint_scav",
+		"corminibuzz_scav",
+		"corscreamer_scav",
+		"cortron_scav",
+		"corfmd_scav",
+		
 		-- Nanos
 		"armnanotc_scav",
 		"cornanotc_scav",
