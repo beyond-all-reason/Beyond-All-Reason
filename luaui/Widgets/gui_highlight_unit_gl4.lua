@@ -11,11 +11,11 @@ function widget:GetInfo()
 end
 
 local hideBelowGameframe = 100
-local highlightAlpha = 0.135
-local selectedHighlightAlpha = 0.08
+local highlightAlpha = 0.14
+local selectedHighlightAlpha = 0.085
 local edgeAlpha = 1
-local selectedEdgeAlpha = 0.66
-local edgeExponent = 1.25
+local selectedEdgeAlpha = 0.7
+local edgeExponent = 1.22
 local selectedEdgeExponent = 1.5
 local animationAlpha = 0.66
 local selectedAnimationAlpha = 0.47
@@ -23,7 +23,7 @@ local selectedAnimationAlpha = 0.47
 local useTeamcolor = true
 local teamColorAlphaMult = 1.25
 local teamColorMinAlpha = 0.7
-local fadeTime = 0.1
+local fadeTime = 0.08
 
 local hidden = (Spring.GetGameFrame() <= hideBelowGameframe)
 local selectedUnits = Spring.GetSelectedUnits()
@@ -74,7 +74,7 @@ local function addUnitShape(unitID)
 			mult = 0.13
 		elseif fadeUnits[unitID] then
 			if fadeUnits[unitID] > 0 then
-				mult = 0.15 + (os.clock() - fadeUnits[unitID]) / fadeTime
+				mult = 0.05 + (os.clock() - fadeUnits[unitID]) / fadeTime + ((1/Spring.GetFPS())/fadeTime)
 				if mult >= 1 then
 					mult = 1
 					fadeUnits[unitID] = nil
@@ -91,7 +91,7 @@ local function addUnitShape(unitID)
 			unitshapes[unitID] = nil
 		end
 		if mult > 0 then
-			unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r,g,b, a*mult, (unitIsSelected and selectedEdgeAlpha or edgeAlpha)*mult, unitIsSelected and selectedEdgeExponent or edgeExponent, unitIsSelected and selectedAnimationAlpha or animationAlpha)
+			unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r,g,b, a*mult, (unitIsSelected and selectedEdgeAlpha or edgeAlpha)*mult, unitIsSelected and selectedEdgeExponent or edgeExponent, (unitIsSelected and selectedAnimationAlpha or animationAlpha) * mult)
 			return unitshapes[unitID]
 		end
 	end
@@ -181,6 +181,6 @@ end
 
 function widget:UnitDestroyed(unitID)	-- maybe not needed if widget:SelectionChanged(sel) is fast enough, but lets not risk it
 	if unitshapes[unitID] then
-		removeUnitShape(unitID)
+		removeUnitShape(unitID, true)
 	end
 end
