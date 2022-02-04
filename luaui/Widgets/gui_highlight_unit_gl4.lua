@@ -23,7 +23,7 @@ local selectedAnimationAlpha = 0.47
 local useTeamcolor = true
 local teamColorAlphaMult = 1.25
 local teamColorMinAlpha = 0.7
-local fadeTime = 0.11
+local fadeTime = 0.1
 
 local hidden = (Spring.GetGameFrame() <= hideBelowGameframe)
 local selectedUnits = Spring.GetSelectedUnits()
@@ -76,6 +76,7 @@ local function addUnitShape(unitID)
 			if fadeUnits[unitID] > 0 then
 				mult = 0.15 + (os.clock() - fadeUnits[unitID]) / fadeTime
 				if mult >= 1 then
+					mult = 1
 					fadeUnits[unitID] = nil
 				end
 			else
