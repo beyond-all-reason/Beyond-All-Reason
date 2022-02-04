@@ -159,6 +159,7 @@ end
 -- Healthbars color correction
 -- Hide buildbars when at full hp - or convert them to build bars?
 -- todo some tex filtering issues on healthbar tops and bottoms :/ 
+-- TODO: some GAIA shit?
 
 --/luarules fightertest corak armpw 100 10 2000
 
@@ -311,8 +312,6 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 local spIsGUIHidden				= Spring.IsGUIHidden
 local spGetUnitDefID			= Spring.GetUnitDefID
 
-local spec, fullview = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
 local lastGameFrame = 0
 local chobbyInterface
 
@@ -390,7 +389,9 @@ shaderConfig.ICONFADESTART = 750
 shaderConfig.ICONFADEEND = 1250
 shaderConfig.ATLASSTEP = 0.0625
 shaderConfig.MINALPHA = 0.2
---shaderConfig.DEBUGSHOW = 1 -- comment this to always show all bars
+if debugmode then 
+	shaderConfig.DEBUGSHOW = 1 -- comment this to always show all bars
+end
 
 local vsSrc =  [[
 #version 420
@@ -818,6 +819,7 @@ local function goodbye(reason)
 end
 
 
+
 local function initializeInstanceVBOTable(myName, usesFeatures)
 	local newVBOTable
 	newVBOTable = makeInstanceVBOTable(
@@ -871,6 +873,10 @@ local function initGL4()
 	featureHealthVBO = initializeInstanceVBOTable("featureHealthVBO", true) -- we need separate ones for all feature health bars, as they seem to be 
 	featureResurrectVBO = initializeInstanceVBOTable("featureResurrectVBO", true)
 	featureReclaimVBO = initializeInstanceVBOTable("featureReclaimVBO", true)
+	
+	if debugmode then 
+		healthBarVBO.debug = true
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -1070,8 +1076,20 @@ local function init()
 	unitStockPileWatch = {}
 	unitReloadWatch = {}
 	unitBars = {}
-	for i, unitID in ipairs(Spring.GetAllUnits()) do
-		addBarsForUnit(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+	for i, unitID in ipairs(Spring.GetAllUnits()) do -- gets radar blips too!
+		-- probably shouldnt be adding non-visible units
+		
+		if fullview then 
+			addBarsForUnit(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+		else
+			local losstate = Spring.GetUnitLosState(unitID, myAllyTeamID)
+			if losstate.los then 
+				addBarsForUnit(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+				--Spring.Echo(unitID, "IS in los")
+			else
+				--Spring.Echo(unitID, "is not in los for ", myAllyTeamID)
+			end
+		end
 	end
 	
 	local gameFrame = Spring.GetGameFrame()
@@ -1091,6 +1109,63 @@ local function init()
 			
 		end
 	end
+end
+
+local spec, fullview = Spring.GetSpectatingState()
+local myTeamID = Spring.GetMyTeamID()
+local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myPlayerID = Spring.GetMyPlayerID()
+local reInitOnTeamChange = false -- this is a boilerplate variable, that specifies wether a widget should reinitialize itself when the (spectated) team (not allyteam!) changes. 
+
+function widget:PlayerChanged(playerID)
+--12:32 PM] Beherith: widget:PlayerChanged generalizations
+--[12:33 PM] Beherith: So, I would like to ask if we have a general guideline or if @Floris  knows anything about what circumstances should trigger UI GFX widget reinitialization
+--[12:36 PM] Beherith: Here, I assume we can live with a few assumptions:
+--1. UI GFX widgets are LOS dependent things, that either 
+--    A. Should look the same for all players on an ALLYteam
+--    B. Could look different for each member of an ALLYTeam
+--2. Always render different things for different ALLYteams
+--This presents and interesting state for most widgets  especially for SPECFULLVIEW
+--Obviously, the biggest reason for needing to abstract this is to avoid boilerplate mistakes for most new GL4 widgets, which are --stateful, unlike most previous widgets (most of which collected things they wanted to draw every frame)
+--[12:39 PM] Beherith: So I assume widget:PlayerChanged gets called on any legal player change, and should keep track of the following:
+--1. spectating state
+--2. specfullview state
+--3. myAllyTeamID
+--4. myTeamID
+--[12:40 PM] Beherith: There are 3 real states someone can be in:
+--1. player
+--2. spectator no fullview
+--3. spectator with fullview
+
+--(excluding godmode /globallos et al)
+--[12:40 PM] Beherith: Transitions between any of the above 3 should trigger a full reinit
+--[12:41 PM] Beherith: But some internal transitions, for stuff that is draw differently for allies might require additional checks, for spectators who have fullview off?
+
+	local currentspec, currentfullview = Spring.GetSpectatingState()
+	local currentTeamID = Spring.GetMyTeamID()
+	local currentAllyTeamID = Spring.GetMyAllyTeamID()
+	local currentPlayerID = Spring.GetMyPlayerID()
+	
+	if debugmode then Spring.Echo("HBGL4 widget:PlayerChanged",'spec', currentspec, 'fullview', currentfullview, 'teamID', currentTeamID, 'allyTeamID', currentAllyTeamID, "playerID", currentPlayerID) end 
+	
+	-- cases where we need to trigger:
+	if (currentspec ~= spec) or -- we transition from spec to player, yes this is needed
+		(currentfullview ~= fullview) or -- we turn on or off fullview
+		((currentAllyTeamID ~= myAllyTeamID) and not currentfullview) or -- our ALLYteam changes, and we are not in fullview
+		((currentTeamID ~= myTeamID) and not currentfullview) 
+		
+		then 
+		init()
+		if debugmode then Spring.Echo("HBGL4 triggered a playerchanged reinit") end
+		-- do the actual reinit stuff:
+		
+	end
+	-- save the state:
+	spec = currentspec
+	fullview = currentfullview
+	myAllyTeamID = currentAllyTeamID
+	myTeamID = currentTeamID
+	myPlayerID = currentPlayerID
 end
 
 local function FeatureReclaimStartedHealthbars (featureID, step) -- step is negative for reclaim, positive for resurrect
@@ -1202,16 +1277,6 @@ function widget:Shutdown()
 end
 	
 
-function widget:PlayerChanged(playerID)
-	spec, fullview = Spring.GetSpectatingState()
-	local prevMyTeamID = myTeamID
-	myTeamID = Spring.GetMyTeamID()
-	if debugmode then Spring.Echo("widget:PlayerChanged",playerID) end 
-	if myTeamID ~= prevMyTeamID then -- TODO only really needed if onlyShowOwnTeam, or if allyteam changed?
-		init()
-	end
-end
-
 
 function widget:UnitCreated(unitID, unitDefID, teamID)
 	addBarsForUnit(unitID, unitDefID, teamID)
@@ -1242,6 +1307,11 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:GameFrame(n)
+
+	if debugmode then 
+		locateInvalidUnits(healthBarVBO)
+		locateInvalidUnits(featureHealthVBO)
+	end
 	-- Units:
 	-- check shields
 	if n % 3 == 0 then 
@@ -1337,6 +1407,9 @@ function widget:GameFrame(n)
 			if stockpileBuild ~= stockpilebuild then 
 				-- we somehow need to forward 3 vars, all 3 of the above. packed into a float, this is nasty
 				--Spring.Echo("Stockpiling", numStockpiled, numStockpileQued, stockpileBuild)
+				if numStockpiled == nil then Spring.Debug.TraceFullEcho() end 
+				
+				
 				uniformcache[1] =  128*numStockpileQued + numStockpiled + stockpileBuild -- the worlds nastiest hack
 				unitStockPileWatch[unitID] = stockpileBuild
 				gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
@@ -1363,6 +1436,7 @@ function widget:FeatureCreated(featureID)
 end
 
 function widget:FeatureDestroyed(featureID)
+	if debugmode then Spring.Echo("FeatureDestroyed",featureID, featureBars[featureID]) end 
 	removeBarsFromFeature(featureID)
 	featureBars[featureID] = nil
 end
