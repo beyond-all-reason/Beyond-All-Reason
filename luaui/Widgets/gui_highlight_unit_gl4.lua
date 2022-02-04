@@ -23,6 +23,7 @@ local selectedAnimationAlpha = 0.47
 local useTeamcolor = true
 local teamColorAlphaMult = 1.25
 local teamColorMinAlpha = 0.7
+local fadeTime = 0.11
 
 local hidden = (Spring.GetGameFrame() <= hideBelowGameframe)
 local selectedUnits = Spring.GetSelectedUnits()
@@ -33,6 +34,7 @@ local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitTeam = Spring.GetUnitTeam
 
 local unitshapes = {}
+local fadeUnits = {}
 
 local teamColor = {}
 local teams = Spring.GetTeamList()
@@ -66,24 +68,55 @@ local function addUnitShape(unitID)
 				a = a * teamColorAlphaMult
 			end
 		end
-		unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r,g,b, a, unitIsSelected and selectedEdgeAlpha or edgeAlpha, unitIsSelected and selectedEdgeExponent or edgeExponent, unitIsSelected and selectedAnimationAlpha or animationAlpha)
-		return unitshapes[unitID]
+		local mult = 1
+		if not unitshapes[unitID] then
+			fadeUnits[unitID] = os.clock()
+			mult = 0.13
+		elseif fadeUnits[unitID] then
+			if fadeUnits[unitID] > 0 then
+				mult = 0.15 + (os.clock() - fadeUnits[unitID]) / fadeTime
+				if mult >= 1 then
+					fadeUnits[unitID] = nil
+				end
+			else
+				mult = 1 - ((os.clock() - math.abs(fadeUnits[unitID])) / fadeTime)
+				if mult <= 0 then
+					fadeUnits[unitID] = nil
+				end
+			end
+		end
+		if unitshapes[unitID] then
+			WG.StopHighlightUnitGL4(unitshapes[unitID])
+			unitshapes[unitID] = nil
+		end
+		if mult > 0 then
+			unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r,g,b, a*mult, (unitIsSelected and selectedEdgeAlpha or edgeAlpha)*mult, unitIsSelected and selectedEdgeExponent or edgeExponent, unitIsSelected and selectedAnimationAlpha or animationAlpha)
+			return unitshapes[unitID]
+		end
 	end
 end
 
-local function removeUnitShape(unitID)
+local function removeUnitShape(unitID, force)
 	if not WG.StopHighlightUnitGL4 then
 		widget:Shutdown()
 	elseif unitID and unitshapes[unitID] then
-		WG.StopHighlightUnitGL4(unitshapes[unitID])
-		unitshapes[unitID] = nil
+		if force then
+			WG.StopHighlightUnitGL4(unitshapes[unitID])
+			unitshapes[unitID] = nil
+			fadeUnits[unitID] = nil
+		elseif not fadeUnits[unitID] then
+			fadeUnits[unitID] = -os.clock()
+		elseif fadeUnits[unitID] and fadeUnits[unitID] > 0 then
+			local mult = 1 - ((os.clock() - math.abs(fadeUnits[unitID])) / fadeTime)
+			fadeUnits[unitID] = -(os.clock() - (fadeTime * mult))
+		end
 	end
 end
 
-local function clearUnitshapes(keepUnitID)
+local function clearUnitshapes(keepUnitID, force)
 	for unitID, _ in pairs(unitshapes) do
 		if not keepUnitID or unitID ~= keepUnitID then
-			removeUnitShape(unitID)
+			removeUnitShape(unitID, force)
 		end
 	end
 end
@@ -115,13 +148,21 @@ function widget:Update()
 		local mx, my = spGetMouseState()
 		local type, data = spTraceScreenRay(mx, my)
 		local unitID
+		local addedUnitID
 		if type == 'unit' then
 			unitID = data
 			if not unitshapes[unitID] then
 				addUnitShape(unitID)
+				addedUnitID = unitID
 			end
 		end
 		clearUnitshapes(unitID)
+
+		for unitID, v in pairs(fadeUnits) do
+			if unitID ~= addedUnitID then
+				addUnitShape(unitID)
+			end
+		end
 	end
 end
 
@@ -133,7 +174,7 @@ end
 
 function widget:Shutdown()
 	if WG.StopHighlightUnitGL4 then
-		clearUnitshapes()
+		clearUnitshapes(nil, true)
 	end
 end
 
