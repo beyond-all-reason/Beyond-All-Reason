@@ -53,7 +53,7 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileScale = math.min(2, (0.5 + (vsx*vsy / 5700000)))
 local fontfileSize = 80
 local fontfileOutlineSize = 22
 local fontfileOutlineStrength = 1.15
@@ -264,7 +264,7 @@ end
 function widget:ViewResize()
 	local old_vsx, old_vsy = vsx, vsy
 	vsx,vsy = Spring.GetViewGeometry()
-	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	local newFontfileScale = math.min(2, (0.5 + (vsx*vsy / 5700000)))
 	if fontfileScale ~= newFontfileScale then
 		fontfileScale = newFontfileScale
 		gl.DeleteFont(font)
