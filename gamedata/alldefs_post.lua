@@ -135,9 +135,49 @@ function UnitDef_Post(name, uDef)
 			}
 		end
 	end
-	-- disable wrecks for Control Points mode
+	
+	-- Control Mode Tweaks
 	if Spring.GetModOptions().scoremode ~= "disabled" then
-		uDef.corpse = nil
+		if Spring.GetModOptions().scoremode_chess == true then
+			-- Disable Wrecks
+			uDef.corpse = nil
+			-- Disable Factories
+			local factories = {
+				armaap = true,
+				armalab = true,
+				armap = true,
+				armavp = true,
+				armhp = true,
+				armlab = true,
+				armshltx = true,
+				armvp = true,
+				armamsub = true,
+				armasy = true,
+				armfhp = true,
+				armplat = true,
+				armshltxuw = true,
+				armsy = true,
+				coraap = true,
+				coralab = true,
+				corap = true,
+				coravp = true,
+				corgant = true,
+				corhp = true,
+				corlab = true,
+				corvp = true,
+				coramsub = true,
+				corasy = true,
+				corfhp = true,
+				corplat = true,
+				corgantuw = true,
+				corsy = true,
+			}
+			if factories[name] then
+				uDef.unitrestricted = 0
+			end
+		else
+
+		end
 	end
 
 	-- test New sound system!
