@@ -3,14 +3,12 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
+piece  base, turret, sleeve, rtbarrel, ltbarrel, lempslv, lempbarrel, rempslv, rempbarrel, rlauncher,
+flare1, flare2, flare3, flare4, flare5, flare7;
+
+static-var  moveSpeed, currentSpeed, animSpeed, restore_delay, currentBarrel;
+
 #define SIG_MOVE 1
-
-piece  base, turret, sleeve, rtbarrel, ltbarrel, lempslv, lempbarrel, rempslv, rempbarrel, rlauncher, tracks,
-flare1, flare2, flare3, flare4, flare5, flare6, flare7, flare8, flare9;
-
-static-var  bMoving, moveSpeed, currentSpeed, animSpeed, restore_delay, gun_1;
-
-// Signal definitions
 #define SIG_AIM_1			2
 #define SIG_AIM_2			4
 #define SIG_AIM_3			8
@@ -20,27 +18,12 @@ UnitSpeed()
 {
 	while(TRUE)
 	{
-		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
-		if (currentSpeed<4) currentSpeed=4;
+		currentSpeed = (get CURRENT_SPEED) * 20 / moveSpeed;
+		if (currentSpeed < 4) currentSpeed = 4;
 		animSpeed = 1800 / currentSpeed;
 		sleep 142;
 	}
 }
-
-//Smoke()
-//{
-//	while( TRUE )
-//	{
-//		if ( bMoving )
-//		{
-//			emit-sfx 1024 + 1 from smoke1;
-//			emit-sfx 1024 + 1 from smoke2;
-//		}
-//		sleep animSpeed;
-//	}
-//}
-
-
 
 RockUnit(anglex, anglez)
 {
@@ -62,29 +45,15 @@ RockUnit(anglex, anglez)
 
 Create()
 {
-	hide flare8;
-	hide flare7;
-	hide flare6;
-	hide flare5;
-	hide flare9;
-	hide flare4;
-	hide flare3;
-	hide flare2;
 	hide flare1;
-	bMoving = FALSE;
+	hide flare2;
+	hide flare3;
+	hide flare4;
+	hide flare5;
+	hide flare7;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
-	hide flare1;
-	hide flare2;
-	hide flare3;
-	hide flare4;
-	hide flare5;
-	hide flare6;
-	hide flare6;
-	hide flare7;
-	hide flare8;
-	hide flare9;
-	gun_1 = flare1;
+	currentBarrel = flare1;
 	restore_delay = 3000;
 }
 
@@ -92,26 +61,24 @@ StartMoving()
 {
   signal SIG_MOVE;
   set-signal-mask SIG_MOVE;
-	bMoving = TRUE;
 	start-script UnitSpeed();
 }
-
 
 StopMoving()
 {
   signal SIG_MOVE;
-	bMoving = FALSE;
 }
 
-SetMaxReloadTime(Func_Var_1)
+SetMaxReloadTime(time)
 {
-	restore_delay = Func_Var_1 * 2;
+	restore_delay = time * 2;
 }
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
+    if (Stunned)
+	{
         return (1);
     }
     set-signal-mask 0;
@@ -120,13 +87,13 @@ ExecuteRestoreAfterDelay()
 	turn lempslv to y-axis <0> speed <90>;
 	turn rempslv to y-axis <0> speed <90>;
 	turn rlauncher to x-axis <0> speed <45>;
-
 }
 
 SetStunned(State)
 {
     Stunned = State;
-	if (!Stunned) {
+	if (!Stunned)
+	{
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
@@ -141,7 +108,6 @@ SweetSpot(piecenum)
 {
 	piecenum = base;
 }
-
 
 //Weapon 1: Double Heavy Tesla Cannon
 //===================================
@@ -159,7 +125,7 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	if( gun_1 == 0 )
+	if( currentBarrel == 0 )
 	{
 		move ltbarrel to z-axis [-2.400000] speed [500.000000];
 		spin ltbarrel around z-axis speed <360> accelerate <120>;
@@ -170,7 +136,7 @@ FireWeapon1()
 		wait-for-move ltbarrel along z-axis;
 		stop-spin ltbarrel around z-axis decelerate <15>;
 	}
-	if( gun_1 == 1 )
+	if( currentBarrel == 1 )
 	{
 		move rtbarrel to z-axis [-2.400000] speed [500.000000];
 		spin rtbarrel around z-axis speed <360> accelerate <120>;
@@ -181,9 +147,8 @@ FireWeapon1()
 		wait-for-move rtbarrel along z-axis;
 		stop-spin rtbarrel around z-axis decelerate <15>;
 	}
-	gun_1 = !gun_1;
+	currentBarrel = !currentBarrel;
 }
-
 
 AimFromWeapon1(piecenum)
 {
@@ -192,10 +157,9 @@ AimFromWeapon1(piecenum)
 
 QueryWeapon1(piecenum)
 {
-if (gun_1) piecenum = flare1;
-if (!gun_1) piecenum = flare2;
+	if (currentBarrel) piecenum = flare1;
+	if (!currentBarrel) piecenum = flare2;
 }
-
 
 //Weapon 2: EMP Missile Launcher
 //===================================
@@ -213,35 +177,33 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-	if( gun_1 == 0 )
+	if( currentBarrel == 0 )
 	{
 		emit-sfx 1024 + 0 from flare3;
 		sleep 100;
 	}
-	if( gun_1 == 1 )
+	if( currentBarrel == 1 )
 	{
 		emit-sfx 1024 + 0 from flare4;
 		sleep 100;
 	}
-	gun_1 = !gun_1;
+	currentBarrel = !currentBarrel;
 }
-
 
 AimFromWeapon2(piecenum)
 {
-	if (gun_1) piecenum = flare3;
-	if (!gun_1) piecenum = flare4;
+	if (currentBarrel) piecenum = flare3;
+	if (!currentBarrel) piecenum = flare4;
 }
 
 QueryWeapon2(piecenum)
 {
-if (gun_1) piecenum = flare3;
-if (!gun_1) piecenum = flare4;
+	if (currentBarrel) piecenum = flare3;
+	if (!currentBarrel) piecenum = flare4;
 }
 
 //Weapon 3: Left EMP
 //===================================
-
 AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM_3;
@@ -262,7 +224,6 @@ FireWeapon3()
 	wait-for-move lempbarrel along z-axis;
 }
 
-
 AimFromWeapon3(piecenum)
 {
 	piecenum = lempslv;
@@ -275,7 +236,6 @@ QueryWeapon3(piecenum)
 
 //Weapon 3: Right EMP
 //===================================
-
 AimWeapon4(heading, pitch)
 {
 	signal SIG_AIM_3;
@@ -285,7 +245,6 @@ AimWeapon4(heading, pitch)
 	start-script RestoreAfterDelay();
 	return (1);
 }
-
 
 FireWeapon4()
 {
@@ -297,7 +256,6 @@ FireWeapon4()
 	wait-for-move rempbarrel along z-axis;
 }
 
-
 AimFromWeapon4(piecenum)
 {
 	piecenum = rempslv;
@@ -307,8 +265,6 @@ QueryWeapon4(piecenum)
 {
 	piecenum = flare7;
 }
-
-
 
 Killed(severity, corpsetype)
 {
