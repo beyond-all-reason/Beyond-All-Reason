@@ -206,6 +206,7 @@ return {
 				tolerance = 4000,
 				trajectoryheight = 0.5,
 				turnrate = 20000,
+				turret = true,
 				weaponacceleration = 200,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 500,

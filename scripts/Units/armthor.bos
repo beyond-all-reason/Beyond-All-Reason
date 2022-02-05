@@ -6,7 +6,7 @@
 piece  base, turret, sleeve, rtbarrel, ltbarrel, lempslv, lempbarrel, rempslv, rempbarrel, rlauncher,
 flare1, flare2, flare3, flare4, flare5, flare7;
 
-static-var  moveSpeed, currentSpeed, animSpeed, restore_delay, currentBarrel;
+static-var  moveSpeed, currentSpeed, animSpeed, restore_delay, currentBarrel, currentLauncher;
 
 #define SIG_MOVE 1
 #define SIG_AIM_1			2
@@ -53,7 +53,8 @@ Create()
 	hide flare7;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
-	currentBarrel = flare1;
+	currentBarrel = 0;
+	currentLauncher = 0;
 	restore_delay = 3000;
 }
 
@@ -167,39 +168,39 @@ AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
-	//turn turret to y-axis heading speed <45.000000>;
+	turn turret to y-axis heading speed <45.000000>;
 	turn rlauncher to x-axis <0.000000> - pitch speed <30.000000>;
 	wait-for-turn turret around y-axis;
-	wait-for-turn sleeve around x-axis;
+	wait-for-turn rlauncher around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
 FireWeapon2()
 {
-	if( currentBarrel == 0 )
+	if( currentLauncher == 0 )
 	{
 		emit-sfx 1024 + 0 from flare3;
 		sleep 100;
 	}
-	if( currentBarrel == 1 )
+	if( currentLauncher == 1 )
 	{
 		emit-sfx 1024 + 0 from flare4;
 		sleep 100;
 	}
-	currentBarrel = !currentBarrel;
+	currentLauncher = !currentLauncher;
 }
 
 AimFromWeapon2(piecenum)
 {
-	if (currentBarrel) piecenum = flare3;
-	if (!currentBarrel) piecenum = flare4;
+	if (currentLauncher) piecenum = flare3;
+	if (!currentLauncher) piecenum = flare4;
 }
 
 QueryWeapon2(piecenum)
 {
-	if (currentBarrel) piecenum = flare3;
-	if (!currentBarrel) piecenum = flare4;
+	if (currentLauncher) piecenum = flare3;
+	if (!currentLauncher) piecenum = flare4;
 }
 
 //Weapon 3: Left EMP
@@ -238,8 +239,8 @@ QueryWeapon3(piecenum)
 //===================================
 AimWeapon4(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIG_AIM_4;
+	set-signal-mask SIG_AIM_4;
 	turn rempslv to y-axis heading speed <120>;
 	wait-for-turn rempslv around y-axis;
 	start-script RestoreAfterDelay();
