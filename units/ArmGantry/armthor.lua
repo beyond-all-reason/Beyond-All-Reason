@@ -134,9 +134,9 @@ return {
 				edgeeffectiveness = 0.15,
 				energypershot = 350,
 				explosiongenerator = "custom:genericshellexplosion-large-lightning2",
-				fallOffRate = 0.5, --new
+				fallOffRate = 0.5,
 				firestarter = 50,
-				hardStop = false, --new
+				hardStop = false,
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
@@ -168,6 +168,7 @@ return {
 					subs = 30,
 				},
 			},
+
 			empmissile = {
 				areaofeffect = 256,
 				avoidfeature = false,
@@ -190,12 +191,11 @@ return {
 				name = "Heavy long-range g2g EMP starburst rocket",
 				noselfdamage = true,
 				paralyzer = true,
-				paralyzetime = 12, --35
+				paralyzetime = 12,
 				range = 1100,
-				reloadtime = 3, --1
+				reloadtime = 3,
 				smoketrail = false,
 				soundhit = "emgpuls1",
-				--soundhitwet = "splslrg",
 				soundstart = "mismed1emp1",
 				startvelocity = 200,
 				stockpile = true,
@@ -207,8 +207,7 @@ return {
 				trajectoryheight = 0.5,
 				turnrate = 20000,
 				weaponacceleration = 200,
-				--weapontimer = 2,
-				weapontype = "MissileLauncher", --"StarburstLauncher",
+				weapontype = "MissileLauncher",
 				weaponvelocity = 500,
 				customparams = {
 					expl_light_color = "0.5 0.5 1",
@@ -223,7 +222,6 @@ return {
 					default = 70000,
 				},
 			},
-
 
 			emp = {
 				areaofeffect = 8,
@@ -267,9 +265,6 @@ return {
 					default = 300,
 				},
 			},
-
-
-
 		},
 		weapons = {
 			[1] = {
@@ -282,13 +277,13 @@ return {
 			},
 			[3] = {
 				def = "EMP",
-				maindir = "-1 0 2",
+				maindir = "-1 0 0",
                 maxangledif = 180,
 				onlytargetcategory = "EMPABLE",
 			},
 			[4] = {
 				def = "EMP",
-				maindir = "1 0 2",
+				maindir = "1 0 0",
                 maxangledif = 180,
 				onlytargetcategory = "EMPABLE",
 			},
