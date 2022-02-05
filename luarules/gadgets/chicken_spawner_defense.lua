@@ -1095,9 +1095,11 @@ if gadgetHandler:IsSyncedCode() then
 				if not lsx1 or not lsz1 or not lsx2 or not lsz2 then
 					config.burrowSpawnType = "avoid"
 					Spring.Log(gadget:GetInfo().name, LOG.INFO, "No Chicken start box available, Burrow Placement set to 'Avoid Players'")
+					noChickenStartbox = true
 				elseif lsx1 == 0 and lsz1 == 0 and lsx2 == Game.mapSizeX and lsz2 == Game.mapSizeX then
 					config.burrowSpawnType = "avoid"
 					Spring.Log(gadget:GetInfo().name, LOG.INFO, "No Chicken start box available, Burrow Placement set to 'Avoid Players'")
+					noChickenStartbox = true
 				end
 			end
 		end
@@ -1244,6 +1246,62 @@ if gadgetHandler:IsSyncedCode() then
 			if mRandom() < config.spawnChance / 7.5 then
 				for i = 1, mRandom(1, 3), 1 do
 					table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh4", team = chickenTeamID })
+				end
+			end
+		end
+	end
+
+
+	VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
+	local RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax = Spring.GetAllyTeamStartBox(chickenAllyTeamID)
+	local function spawnStartBoxProtection()
+		if not noChickenStartbox then
+			canSpawnDefence = true
+			-- lsx1 - xmin, lsz1 - zmin, lsx2 - xmax, lsz2 - zmax
+			local r = math.random(0,3)
+			local spread = 80
+			local spawnPosX = math.random(RaptorStartboxXMin,RaptorStartboxXMax)
+			local spawnPosZ = math.random(RaptorStartboxZMin,RaptorStartboxZMax)
+			if r == 0 then -- south edge
+				spawnPosZ = RaptorStartboxZMax
+				spawnDirection = 0
+			elseif r == 1 then  -- east edge
+				spawnPosX = RaptorStartboxXMax
+				spawnDirection = 1
+			elseif r == 2 then  -- south edge
+				spawnPosZ = RaptorStartboxZMin
+				spawnDirection = 2
+			elseif r == 3 then  -- west edge
+				spawnPosX = RaptorStartboxXMin
+				spawnDirection = 3
+			end
+			
+			if spawnPosX > MAPSIZEX - spread + 1 or spawnPosX < spread + 1 or spawnPosZ > MAPSIZEZ - spread + 1 or spawnPosZ < spread + 1 then
+				canSpawnDefence = false
+			end
+
+			local spawnPosX = spawnPosX + math.random(-spread*2,spread*2)
+			local spawnPosZ = spawnPosZ + math.random(-spread*2,spread*2)
+
+			if spawnPosX > MAPSIZEX or spawnPosX < 0 or spawnPosZ > MAPSIZEZ or spawnPosZ < 0 then
+				canSpawnDefence = false
+			end
+			
+			if canSpawnDefence then
+				local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+				local canSpawnDefence = posCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+				if canSpawnDefence then
+					canSpawnDefence = posOccupied(spawnPosX, spawnPosY, spawnPosZ, spread)
+				end
+				if canSpawnDefence then
+					local pickedTurret = "chickend1"
+					local unitID = Spring.CreateUnit(pickedTurret, spawnPosX, spawnPosY, spawnPosZ, spawnDirection, chickenTeamID)
+					if unitID then
+						Spring.GiveOrderToUnit(unitID, CMD.PATROL, {spawnPosX + math.random(-128,128), spawnPosY, spawnPosZ + math.random(-128,128)}, {"meta"})
+						Spring.SetUnitHealth(unitID, 10)
+						SetUnitBlocking(unitID, false, false)
+						SetUnitExperience(unitID, mRandom() * expMod)
+					end
 				end
 			end
 		end
@@ -1404,6 +1462,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			chickenCount = UpdateUnitCount()
 		end
+		spawnStartBoxProtection()
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
