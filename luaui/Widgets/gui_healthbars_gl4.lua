@@ -160,11 +160,12 @@ end
 -- Hide buildbars when at full hp - or convert them to build bars?
 -- todo some tex filtering issues on healthbar tops and bottoms :/ 
 -- TODO: some GAIA shit?
+-- TODO: enemy comms and fus and decoy fus should not get healthbars!
 
 --/luarules fightertest corak armpw 100 10 2000
 
 
-local healthbartexture = "LuaUI/Images/healtbars_exo4.dds"
+local healthbartexture = "LuaUI/Images/healtbars_exo4.tga"
 
 -- a little explanation for 'bartype'
 -- 0: default percentage progress bar
@@ -229,7 +230,7 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 		bartype = bitShowGlyph + bitUseOverlay + bitPercentage,
 		hidethreshold = 0.99,
 		uniformindex = 5, -- if its >20, then its health/maxhealth
-		uvoffset = 0.375, -- the X offset of the icon for this bar
+		uvoffset = 0.1875, -- the X offset of the icon for this bar
 	},
 	stockpile = {
 		mincolor = {1.0, 1.0, 0.0, 1.0},
@@ -247,7 +248,7 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 		bartype = bitShowGlyph + bitUseOverlay + bitPercentage,
 		hidethreshold = 0.99,
 		uniformindex = 4, -- if its >20, then its health/maxhealth
-		uvoffset = 0.5, -- the X offset of the icon for this bar
+		uvoffset = 0.5625, -- the X offset of the icon for this bar
 	},
 	reload = {
 		mincolor = {0.03, 0.4, 0.4, 1.0},
@@ -265,7 +266,7 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 		bartype = bitShowGlyph + bitUseOverlay + bitPercentage,
 		hidethreshold = 0.99,
 		uniformindex = 0, -- if its >20, then its health/maxhealth
-		uvoffset = 0.75, -- the X offset of the icon for this bar
+		uvoffset = 0.9375, -- the X offset of the icon for this bar
 	},
 	paralyzed = {
 		mincolor = {0.6, 0.6, 1.0, 1.0},
@@ -292,7 +293,7 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 		bartype = bitShowGlyph + bitPercentage, 
 		hidethreshold = 0.99,
 		uniformindex = 2, -- if its >20, then its health/maxhealth
-		uvoffset = 0.1875, -- the X offset of the icon for this bar
+		uvoffset = 0.5, -- the X offset of the icon for this bar
 	},
 	featureresurrect = {
 		mincolor = {0.5, 0.1, 0.5, 1.0},
@@ -309,6 +310,15 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+
+local spec, fullview = Spring.GetSpectatingState()
+local myTeamID = Spring.GetMyTeamID()
+local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myPlayerID = Spring.GetMyPlayerID()
+local reInitOnTeamChange = false -- this is a boilerplate variable, that specifies wether a widget should reinitialize itself when the (spectated) team (not allyteam!) changes. 
+
+
+
 local spIsGUIHidden				= Spring.IsGUIHidden
 local spGetUnitDefID			= Spring.GetUnitDefID
 
@@ -320,6 +330,7 @@ local unitDefhasShield = {} -- value is shield max power
 local unitDefCanStockpile = {} -- 0/1?
 local unitDefReload = {} -- value is max reload time
 local unitDefHeights = {} -- maps unitDefs to height
+local unitDefHideDamage = {}
 
 local unitBars = {} -- we need this additional table of {[unitID] = {barhealth, barrez, barreclaim}}
 local unitEmpWatch = {}
@@ -361,7 +372,9 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 -------------------- configurables -----------------------
 local additionalheightaboveunit = 24 --16?
-local featuredistancemultiplier = 4 -- how many times closer features have to be for their bars to show
+local featureHealthDistMult = 4 -- how many times closer features have to be for their bars to show
+local featureReclaimDistMult = 2 -- how many times closer features have to be for their bars to show
+local featureResurrectDistMult = 1 -- how many times closer features have to be for their bars to show
 local unitDefSizeMultipliers = {} -- table of unitdefID to a size mult (default 1.0) to override sizing of bars per unitdef
 
 local debugmode = false
@@ -373,7 +386,7 @@ local shaderConfig = { -- these are our shader defines
 }
 shaderConfig.CLIPTOLERANCE = 1.2
 shaderConfig.BARWIDTH = 3.0
-shaderConfig.BARHEIGHT = 0.80
+shaderConfig.BARHEIGHT = 0.90
 shaderConfig.BARCORNER = shaderConfig.BARHEIGHT /5
 shaderConfig.SMALLERCORNER = shaderConfig.BARCORNER * 0.6
 shaderConfig.BGBOTTOMCOLOR = "vec4(0.25, 0.25, 0.25, 0.8)"
@@ -381,7 +394,7 @@ shaderConfig.BGTOPCOLOR = "vec4(0.1, 0.1, 0.1, 0.8)"
 shaderConfig.BARSCALE = 4.0
 shaderConfig.PERCENT_VISIBILITY_MAX = 0.99
 shaderConfig.TIMER_VISIBILITY_MIN = 0.0
-shaderConfig.BARSTEP = 8 -- pixels to downshift per new bar
+shaderConfig.BARSTEP = 10 -- pixels to downshift per new bar
 shaderConfig.BOTTOMDARKENFACTOR = 0.5
 shaderConfig.BARFADESTART = 2000
 shaderConfig.BARFADEEND = 3000
@@ -569,6 +582,7 @@ vec4 centerpos;
 vec4 uvoffsets;
 float zoffset;
 float sizemultiplier = dataIn[0].v_sizemodifiers.x;
+#define HALFPIXEL 0.0019765625
 
 void emitVertexBG(in vec2 pos){
 	g_uv.xy = vec2(0.0,0.0);
@@ -585,7 +599,7 @@ void emitVertexBarBG(in vec2 pos, in vec4 botcolor, in float bartextureoffset){
 	g_uv.x = g_uv.x + 0.5; // map UVS to [0,1]x[0,1]
 	g_uv.y = (pos.y - BARCORNER) / (BARHEIGHT - 2 * BARCORNER);
 	vec2 uv01 = g_uv.xy*3.0;
-	g_uv.xy = g_uv.xy * vec2(ATLASSTEP * 9, ATLASSTEP) + vec2(2 * ATLASSTEP, bartextureoffset); // map uvs to the bar texture
+	g_uv.xy = g_uv.xy * vec2(ATLASSTEP * 9, ATLASSTEP) + vec2(3 * ATLASSTEP, bartextureoffset); // map uvs to the bar texture
 	g_uv.y = -1.0 * g_uv.y;
 	//vec3 primitiveCoords = vec3( (pos.x - sign(pos.x) * BARCORNER),0.0, (pos.y - sign(pos.y - 0.5) * BARCORNER - zoffset)) * BARSCALE;
 	vec3 primitiveCoords = vec3( pos.x,0.0, pos.y - zoffset) * BARSCALE *sizemultiplier;
@@ -609,10 +623,11 @@ void emitVertexGlyph(in vec2 pos, in vec2 uv){
 }
 
 void emitGlyph(vec2 bottomleft, vec2 uvbottomleft, vec2 uvsizes){
-	emitVertexGlyph(vec2(bottomleft.x, bottomleft.y), vec2(uvbottomleft.x, uvbottomleft.y));
-	emitVertexGlyph(vec2(bottomleft.x, bottomleft.y + BARHEIGHT), vec2(uvbottomleft.x, uvbottomleft.y + uvsizes.y));
-	emitVertexGlyph(vec2(bottomleft.x + BARHEIGHT, bottomleft.y), vec2(uvbottomleft.x + uvsizes.x, uvbottomleft.y));
-	emitVertexGlyph(vec2(bottomleft.x + BARHEIGHT, bottomleft.y + BARHEIGHT), vec2(uvbottomleft.x + uvsizes.x, uvbottomleft.y + uvsizes.y));
+	#define GROWSIZE 0.2
+	emitVertexGlyph(vec2(bottomleft.x, bottomleft.y), vec2(uvbottomleft.x + HALFPIXEL, uvbottomleft.y + HALFPIXEL));
+	emitVertexGlyph(vec2(bottomleft.x, bottomleft.y + BARHEIGHT), vec2(uvbottomleft.x + HALFPIXEL, uvbottomleft.y + uvsizes.y - HALFPIXEL));
+	emitVertexGlyph(vec2(bottomleft.x + BARHEIGHT, bottomleft.y), vec2(uvbottomleft.x + uvsizes.x - HALFPIXEL, uvbottomleft.y + HALFPIXEL));
+	emitVertexGlyph(vec2(bottomleft.x + BARHEIGHT, bottomleft.y + BARHEIGHT), vec2(uvbottomleft.x + uvsizes.x -HALFPIXEL, uvbottomleft.y + uvsizes.y-HALFPIXEL));
 	EndPrimitive();
 }
 
@@ -903,6 +918,11 @@ local function addBarForUnit(unitID, unitDefID, barname)
 	if unitBars[unitID] == nil then
 		Spring.Echo("A unit has no bars yet", UnitDefs[Spring.GetUnitDefID(unitID)].name, Spring.GetUnitPosition(unitID))
 		Spring.Debug.TraceEcho()
+						Spring.SendCommands({"pause 1"})
+				Spring.Echo("INVALID feature, last seen at", unitID)
+				local vi = iT.validinfo[unitID]
+				local markertext = tostring(unitID) .. "," .. dbgt(vi)
+				Spring.MarkerAddPoint(vi.px, vi.py, vi.pz, markertext )
 		unitBars[unitID] = 1
 	end
 	unitBars[unitID] = unitBars[unitID] + 1
@@ -943,8 +963,13 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam) -- TODO, actually, we
 		if debugmode then Spring.Echo("Tried to add a bar to a dead or invalid unit", unitID, "at", Spring.GetUnitPosition(unitID)) end 
 		return
 	end
+	
+	
 	unitBars[unitID] = 0
-	addBarForUnit(unitID, unitDefID, "health")
+	local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+	if fullview or (unitAllyTeam == myAllyTeamID) or (unitDefHideDamage[unitDefID] == nil) then
+		addBarForUnit(unitID, unitDefID, "health")
+	end
 	if unitDefhasShield[unitDefID] then
 		--Spring.Echo("hasshield")
 		unitShieldWatch[unitID] = -1.0
@@ -973,7 +998,7 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam) -- TODO, actually, we
 			
 		end
 		--Spring.Echo(unitID, unitDefID, unitDefCanStockpile[unitDefID])
-		if unitDefCanStockpile[unitDefID] then 
+		if unitDefCanStockpile[unitDefID] and ((unitAllyTeam == myAllyTeamID) or fullview) then 
 			unitStockPileWatch[unitID] = 0.0
 			addBarForUnit(unitID, unitDefID, "stockpile")
 		end 
@@ -1111,13 +1136,6 @@ local function init()
 	end
 end
 
-local spec, fullview = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
-local myPlayerID = Spring.GetMyPlayerID()
-local reInitOnTeamChange = false -- this is a boilerplate variable, that specifies wether a widget should reinitialize itself when the (spectated) team (not allyteam!) changes. 
-
-function widget:PlayerChanged(playerID)
 --12:32 PM] Beherith: widget:PlayerChanged generalizations
 --[12:33 PM] Beherith: So, I would like to ask if we have a general guideline or if @Floris  knows anything about what circumstances should trigger UI GFX widget reinitialization
 --[12:36 PM] Beherith: Here, I assume we can live with a few assumptions:
@@ -1141,23 +1159,26 @@ function widget:PlayerChanged(playerID)
 --[12:40 PM] Beherith: Transitions between any of the above 3 should trigger a full reinit
 --[12:41 PM] Beherith: But some internal transitions, for stuff that is draw differently for allies might require additional checks, for spectators who have fullview off?
 
+function widget:PlayerChanged(playerID)
+
 	local currentspec, currentfullview = Spring.GetSpectatingState()
 	local currentTeamID = Spring.GetMyTeamID()
 	local currentAllyTeamID = Spring.GetMyAllyTeamID()
 	local currentPlayerID = Spring.GetMyPlayerID()
+	local reinit = false
 	
 	if debugmode then Spring.Echo("HBGL4 widget:PlayerChanged",'spec', currentspec, 'fullview', currentfullview, 'teamID', currentTeamID, 'allyTeamID', currentAllyTeamID, "playerID", currentPlayerID) end 
 	
 	-- cases where we need to trigger:
 	if (currentspec ~= spec) or -- we transition from spec to player, yes this is needed
 		(currentfullview ~= fullview) or -- we turn on or off fullview
-		((currentAllyTeamID ~= myAllyTeamID) and not currentfullview) or -- our ALLYteam changes, and we are not in fullview
-		((currentTeamID ~= myTeamID) and not currentfullview) 
+		((currentAllyTeamID ~= myAllyTeamID) and not currentfullview)  -- our ALLYteam changes, and we are not in fullview
+		--((currentTeamID ~= myTeamID) and not currentfullview) 
 		
 		then 
-		init()
+		-- do the actual reinit stuff, but first change my own
+		reinit = true
 		if debugmode then Spring.Echo("HBGL4 triggered a playerchanged reinit") end
-		-- do the actual reinit stuff:
 		
 	end
 	-- save the state:
@@ -1166,6 +1187,7 @@ function widget:PlayerChanged(playerID)
 	myAllyTeamID = currentAllyTeamID
 	myTeamID = currentTeamID
 	myPlayerID = currentPlayerID
+	if reinit then init() end 
 end
 
 local function FeatureReclaimStartedHealthbars (featureID, step) -- step is negative for reclaim, positive for resurrect
@@ -1252,6 +1274,9 @@ function widget:Initialize()
 			--Spring.Echo("Unit with watched reload time:", unitDef.name, myreloadTime)
 			unitDefReload[udefID] = myreloadTime
 		end
+		if unitDef.hideDamage == true then 
+			unitDefHideDamage[udefID] = true
+		end
 		
 	end
 	
@@ -1293,7 +1318,7 @@ function widget:UnitFinished(unitID, unitDefID, teamID) -- reset bars on constru
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	addBarsForUnit(unitID, Spring.GetUnitDefID(unitID), nil)
+	addBarsForUnit(unitID, Spring.GetUnitDefID(unitID), unitTeam)
 end
 
 function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
@@ -1310,7 +1335,7 @@ function widget:GameFrame(n)
 
 	if debugmode then 
 		locateInvalidUnits(healthBarVBO)
-		locateInvalidUnits(featureHealthVBO)
+		--locateInvalidUnits(featureHealthVBO)
 	end
 	-- Units:
 	-- check shields
@@ -1407,10 +1432,10 @@ function widget:GameFrame(n)
 			if stockpileBuild ~= stockpilebuild then 
 				-- we somehow need to forward 3 vars, all 3 of the above. packed into a float, this is nasty
 				--Spring.Echo("Stockpiling", numStockpiled, numStockpileQued, stockpileBuild)
-				if numStockpiled == nil then Spring.Debug.TraceFullEcho() end 
+				if numStockpiled == nil then Spring.Debug.TraceFullEcho(nil,nil,nil, 'nostockpile', unitID, Spring.GetUnitPosition(unitID)) end 
 				
-				
-				uniformcache[1] =  128*numStockpileQued + numStockpiled + stockpileBuild -- the worlds nastiest hack
+				uniformcache[1] =  numStockpiled + stockpileBuild -- less hacky
+				--uniformcache[1] =  128*numStockpileQued + numStockpiled + stockpileBuild -- the worlds nastiest hack
 				unitStockPileWatch[unitID] = stockpileBuild
 				gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
 			end
@@ -1463,14 +1488,16 @@ function widget:DrawWorld()
 		end
 		--for i = 1, 10 do
 			
-			healthBarShader:SetUniform("cameraDistancMult",featuredistancemultiplier) 
-			if featureHealthVBO.usedElements > 0 then		
+			if featureHealthVBO.usedElements > 0 then
+				healthBarShader:SetUniform("cameraDistancMult",featureHealthDistMult) 
 				featureHealthVBO.VAO:DrawArrays(GL.POINTS,featureHealthVBO.usedElements)
 			end
 			if featureResurrectVBO.usedElements > 0 then		
+				healthBarShader:SetUniform("cameraDistancMult",featureResurrectDistMult) 
 				featureResurrectVBO.VAO:DrawArrays(GL.POINTS,featureResurrectVBO.usedElements)
 			end
 			if featureReclaimVBO.usedElements > 0 then		
+				healthBarShader:SetUniform("cameraDistancMult",featureReclaimDistMult) 
 				featureReclaimVBO.VAO:DrawArrays(GL.POINTS,featureReclaimVBO.usedElements)
 			end
 		--end
