@@ -55,7 +55,7 @@ local function isUnitSelected(unitID)
 end
 
 local function addUnitShape(unitID)
-	if not WG.HighlightUnitGL4 then
+	if not WG.HighlightUnitGL4 or not Spring.ValidUnitID(unitID) then
 		widget:Shutdown()
 	else
 		local r,g,b
@@ -136,6 +136,12 @@ local function processSelection()
 	end
 end
 
+function widget:UnitDestroyed(unitID)
+	if unitshapes[unitID] then
+		removeUnitShape(unitID, true)
+	end
+end
+
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
 	processSelection()
@@ -176,11 +182,5 @@ end
 function widget:Shutdown()
 	if WG.StopHighlightUnitGL4 then
 		clearUnitshapes(nil, true)
-	end
-end
-
-function widget:UnitDestroyed(unitID)	-- maybe not needed if widget:SelectionChanged(sel) is fast enough, but lets not risk it
-	if unitshapes[unitID] then
-		removeUnitShape(unitID, true)
 	end
 end
