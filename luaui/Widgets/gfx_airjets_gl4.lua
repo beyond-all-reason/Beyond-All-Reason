@@ -968,19 +968,20 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 function widget:PlayerChanged(playerID)
 	local currentspec, currentfullview = Spring.GetSpectatingState()
 	local currentAllyTeamID = Spring.GetMyAllyTeamID()
-
+	local reinit = false
 	if (currentspec ~= spec) or
 		(currentfullview ~= fullview) or 
 		((currentAllyTeamID ~= myAllyTeamID) and not currentfullview)  -- our ALLYteam changes, and we are not in fullview
 		then 
 		-- do the actual reinit stuff:
 		--Spring.Echo("Airjets reinit")
-		reInitialize()
+		reinit = true
 	end
 	
 	spec = currentspec
 	fullview = currentfullview
 	myAllyTeamID = currentAllyTeamID
+	if reinit then reInitialize() end
 end
 
 
