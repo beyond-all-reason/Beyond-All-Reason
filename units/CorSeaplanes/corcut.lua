@@ -12,7 +12,7 @@ return {
 		cansubmerge = true,
 		category = "ALL MOBILE WEAPON VTOL NOTLAND NOTSUB NOTSHIP NOTHOVER",
 		collide = true,
-		cruisealt = 100,
+		cruisealt = 85,
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
