@@ -216,8 +216,12 @@ function widget:LanguageChanged()
 end
 
 function widget:Initialize()
+	if Spring.GetGameFrame() > 0 then
+		widgetHandler:RemoveWidget()
+	end
+
 	if mySpec then
-		if not mySpec or numPlayers <= 4 or isReplay or ffaMode or Spring.GetGameFrame() > 0 then
+		if numPlayers <= 4 or isReplay or ffaMode then
 			eligibleAsSub = false
 		else
 			eligibleAsSub = true
@@ -232,6 +236,10 @@ function widget:Initialize()
 
 	widget:ViewResize(vsx, vsy)
 	checkStartPointChosen()
+end
+
+function widget:GameFrame(gf)
+	widgetHandler:RemoveWidget()
 end
 
 function widget:DrawScreen()
@@ -288,10 +296,6 @@ function widget:DrawScreen()
 		font:End()
 		gl.Color(1, 1, 1, 1)
 	end
-
-	if Spring.GetGameFrame() > 0 then
-		widgetHandler:RemoveWidget()
-	end
 end
 
 local function removeUnitShape(id)
@@ -311,7 +315,7 @@ local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID, opacit
 end
 
 function widget:DrawWorld()
-	if not WG.StopDrawUnitShapeGL4 or Spring.GetGameFrame() > 0 then return end
+	if not WG.StopDrawUnitShapeGL4 then return end
 
 	-- draw pregamestart commander models at start positions
 	local id

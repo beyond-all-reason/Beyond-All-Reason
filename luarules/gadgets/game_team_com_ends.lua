@@ -14,15 +14,21 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+
+local gaiaTeamID = Spring.GetGaiaTeamID()
+
 -- Exclude Scavengers / Chickens AI
-local ignoredAllyTeams = {}
-local teams = Spring.GetTeamList()
+local ignoredTeams = {
+	[gaiaTeamID] = true,
+}
+local teamList = Spring.GetTeamList()
 for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	local luaAI = Spring.GetTeamLuaAI(teamList[i])
 	if luaAI and (luaAI:find("Chickens") or luaAI:find("Scavengers")) then
-		ignoredAllyTeams[ select(6, Spring.GetTeamInfo(teams[i],false)) ] = true
+		ignoredTeams[teamList[i]] = true
 	end
 end
+teamList = nil
 
 local aliveComCount = {}
 local commanderDeathQueue = {}
@@ -82,14 +88,14 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	if isCommander[unitDefID] and unitTeam ~= gaiaTeamID and not ignoredAllyTeams[select(6,Spring.GetTeamInfo(unitTeam, false))] then
+	if isCommander[unitDefID] and not ignoredTeams[unitTeam] then
 		local x,_,z = Spring.GetUnitPosition(unitID)
 		commanderDeathQueue[unitID] = {unitTeam, attackerDefID, x, z}
 	end
 end
 
 function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	if isCommander[unitDefID] and unitTeam ~= gaiaTeamID and not ignoredAllyTeams[select(6,Spring.GetTeamInfo(unitTeam, false))]  then
+	if isCommander[unitDefID] and not ignoredTeams[unitTeam]  then
 		local x,_,z = Spring.GetUnitPosition(unitID)
 		commanderDeathQueue[unitID] = {unitTeam, nil, x, z}
 	end

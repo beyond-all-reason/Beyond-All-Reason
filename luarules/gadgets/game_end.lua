@@ -26,14 +26,15 @@ if gadgetHandler:IsSyncedCode() then
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
 
 	-- Exclude Scavengers / Chickens AI
-	local ignoredAllyTeams = {
-		[gaiaAllyTeamID] = true,
+	local ignoredTeams = {
+		[gaiaTeamID] = true,
 	}
-	local teams = Spring.GetTeamList()
-	for i = 1, #teams do
-		local luaAI = Spring.GetTeamLuaAI(teams[i])
+	local allyteamList = Spring.GetAllyTeamList()
+	local teamList = Spring.GetTeamList()
+	for i = 1, #teamList do
+		local luaAI = Spring.GetTeamLuaAI(teamList[i])
 		if luaAI and (luaAI:find("Chickens") or luaAI:find("Scavengers")) then
-			ignoredAllyTeams[ select(6, Spring.GetTeamInfo(teams[i],false)) ] = true
+			ignoredTeams[teamList[i]] = true
 		end
 	end
 
@@ -45,7 +46,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local KillTeam = Spring.KillTeam
-	local GetAllyTeamList = Spring.GetAllyTeamList
 	local GetTeamList = Spring.GetTeamList
 	local GetPlayerInfo = Spring.GetPlayerInfo
 	local GetPlayerList = Spring.GetPlayerList
@@ -161,7 +161,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local teamCount = 0
-		for _, teamID in ipairs(GetTeamList()) do
+		for _, teamID in ipairs(teamList) do
 			if teamID ~= gaiaTeamID then
 				teamCount = teamCount + 1
 			end
@@ -174,14 +174,16 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		-- at start, fill in the table of all alive allyteams
-		for _, allyTeamID in ipairs(GetAllyTeamList()) do
+		for _, allyTeamID in ipairs(allyteamList) do
 			if allyTeamID ~= gaiaAllyTeamID then
+				local allyteamTeams = GetTeamList(allyTeamID)
 				local allyTeamInfo = {
 					unitCount = 0,
 					unitDecorationCount = 0,
 					teams = {},
+					dead = (#allyteamTeams == 0),
 				}
-				for _, teamID in ipairs(GetTeamList(allyTeamID)) do
+				for _, teamID in ipairs(allyteamTeams) do
 					teamToAllyTeam[teamID] = allyTeamID
 					local teamInfo = {
 						players = {},
@@ -337,8 +339,8 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeamID)
-		local allyTeamID = teamToAllyTeam[unitTeamID]
-		if not ignoredAllyTeams[allyTeamID] then
+		if not ignoredTeams[unitTeamID] then
+			local allyTeamID = teamToAllyTeam[unitTeamID]
 			local allyTeamInfo = allyTeamInfos[allyTeamID]
 			allyTeamInfo.teams[unitTeamID].unitCount = allyTeamInfo.teams[unitTeamID].unitCount + 1
 			allyTeamInfo.unitCount = allyTeamInfo.unitCount + 1
@@ -353,8 +355,8 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID)
-		local allyTeamID = teamToAllyTeam[unitTeamID]
-		if not ignoredAllyTeams[allyTeamID] then
+		if not ignoredTeams[unitTeamID] then
+			local allyTeamID = teamToAllyTeam[unitTeamID]
 			local allyTeamInfo = allyTeamInfos[allyTeamID]
 			local teamUnitCount = allyTeamInfo.teams[unitTeamID].unitCount - 1
 			local allyTeamUnitCount = allyTeamInfo.unitCount - 1
@@ -380,7 +382,7 @@ if gadgetHandler:IsSyncedCode() then
 		if Spring.GetGameFrame() == 0 and string.sub(msg, 1, 2) == 'pc' then
 			local activeTeams = 0
 			local leaderPlayerID, isDead, isAiTeam, isLuaAI, active, spec
-			for _, teamID in ipairs(GetTeamList()) do
+			for _, teamID in ipairs(teamList) do
 				if teamID ~= gaiaTeamID then
 					leaderPlayerID, isDead, isAiTeam = Spring.GetTeamInfo(teamID)
 					if isDead == 0 and not isAiTeam then
