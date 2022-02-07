@@ -134,6 +134,7 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 		mirroredDirection = "null"
 	end
 	GaiaTeamID = Spring.GetGaiaTeamID()
+	GaiaAllyTeamID = Spring.GetTeamInfo(Spring.GetGaiaTeamID())
 	SpawnAsNeutral = true
 	for _, building in ipairs(ruin.buildings) do
 		if building.unitDefID then
@@ -207,9 +208,8 @@ local seaMexesList = {
 local function SpawnMexes(mexSpots)
 	for i = 1,#mexSpots do
 		if math.random(0,3) == 0 then
-			local GaiaTeamID
-			local SpawnAsNeutral
 			GaiaTeamID = Spring.GetGaiaTeamID()
+			GaiaAllyTeamID = Spring.GetTeamInfo(Spring.GetGaiaTeamID())
 			SpawnAsNeutral = true
 			
 			local spot = mexSpots[i]
@@ -224,7 +224,7 @@ local function SpawnMexes(mexSpots)
 			end
 
 			radius = 64
-			canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, radius, GaiaTeamID, true, true, true)
+			canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, radius, GaiaAllyTeamID, true, true, true)
 						and positionCheckLibrary.MapEdgeCheck(posx, posy, posz, radius)
 						and positionCheckLibrary.OccupancyCheck(posx, posy, posz, radius)
 						and positionCheckLibrary.FlatAreaCheck(posx, posy, posz, radius)
@@ -305,7 +305,7 @@ function gadget:GameFrame(n)
 
 		if ruin ~= nil then -- Nil check because Lua does not have a "continue" statement
 			radius = ruin.radius
-			canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, radius, GaiaTeamID, true, true, true)
+			canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, radius, GaiaAllyTeamID, true, true, true)
 						and positionCheckLibrary.MapEdgeCheck(posx, posy, posz, radius)
 						and positionCheckLibrary.OccupancyCheck(posx, posy, posz, radius)
 						and positionCheckLibrary.FlatAreaCheck(posx, posy, posz, radius)
