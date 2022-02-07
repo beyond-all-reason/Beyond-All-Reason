@@ -1252,7 +1252,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 
-	VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
+	--VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
+	local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 	local RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax = Spring.GetAllyTeamStartBox(chickenAllyTeamID)
 	local function spawnStartBoxProtection()
 		if not noChickenStartbox then
@@ -1289,9 +1290,9 @@ if gadgetHandler:IsSyncedCode() then
 			
 			if canSpawnDefence then
 				local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-				local canSpawnDefence = posCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+				local canSpawnDefence = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
 				if canSpawnDefence then
-					canSpawnDefence = posOccupied(spawnPosX, spawnPosY, spawnPosZ, spread)
+					canSpawnDefence = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
 				end
 				if canSpawnDefence then
 					local pickedTurret = "chickend1"

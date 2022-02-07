@@ -65,6 +65,9 @@ if scavconfig.modules.stockpilers == true then
 	stockpilingController = VFS.Include("luarules/gadgets/scavengers/Modules/stockpiling.lua")
 end
 
+spawnQueueLibrary = VFS.Include("luarules/utilities/damgam_lib/spawn_queue.lua")
+positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
+
 -- Unused --
 
 -- if scavconfig.modules.buildingSpawnerModule then
@@ -119,7 +122,7 @@ end
 
 
 
-spawnQueueLibrary = VFS.Include("luarules/utilities/damgam_lib/spawn_queue.lua")
+
 
 -- function spawnQueueLibrary.AddToSpawnQueue(unitName, posx, posy, posz, facing, team, frame, blocking)
 -- 	if blocking == nil then blocking = true end

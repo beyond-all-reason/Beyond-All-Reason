@@ -1,5 +1,5 @@
 local ScavengerAllyTeamID = ScavengerAllyTeamID or 999
-local _,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(Spring.GetGaiaTeamID()) -- GaiaAllyTeamID is actually scav ally team, because i'm too lazy to do global rename.
+local _,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(Spring.GetGaiaTeamID())
 if not scavconfig then
 	heighttollerance = 30
 	noheightchecksforwater = true

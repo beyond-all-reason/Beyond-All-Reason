@@ -17,11 +17,6 @@ for i = 1,#teams do
 	end
 end
 
--- if scavengerAITeamID then
--- 	GaiaTeamID = scavengerAITeamID
--- 	GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
--- end
-
 local ruinSpawnEnabled = false
 if Spring.GetModOptions().ruins == "enabled" or (Spring.GetModOptions().ruins == "scav_only" and scavengersAIEnabled) then
 	ruinSpawnEnabled = true
@@ -41,9 +36,6 @@ elseif ruinDensity == "verydense" then
 	ruinDensityMultiplier = 10
 end
 
-
-
-
 function gadget:GetInfo()
     return {
       name      = "ruin spawn",
@@ -59,12 +51,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
--- VFS.Include('luarules/gadgets/scavengers/API/init.lua') -- Why the fuck...
--- VFS.Include('luarules/gadgets/scavengers/API/api.lua') -- ... do we use scav API in Ruins.
-VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
+local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 local blueprintController = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_controller.lua')
 
---spawningStartFrame = (math.ceil( math.ceil(mapsizeX + mapsizeZ) / 750 ) + 30) * 5
 local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 10
 
 local function randomlyRotateBlueprint()
@@ -144,13 +133,8 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 		mirrored = false
 		mirroredDirection = "null"
 	end
-	-- if math.random(0,3) == 0 and (blueprintTierLevel == 0 or blueprintTierLevel == 1) and scavengersAIEnabled then
-	-- 	GaiaTeamID = scavengerAITeamID
-	-- 	SpawnAsNeutral = false
-	-- else
-		GaiaTeamID = Spring.GetGaiaTeamID()
-		SpawnAsNeutral = true
-	-- end	
+	GaiaTeamID = Spring.GetGaiaTeamID()
+	SpawnAsNeutral = true
 	for _, building in ipairs(ruin.buildings) do
 		if building.unitDefID then
 			if swapXandY == false then
@@ -225,13 +209,8 @@ local function SpawnMexes(mexSpots)
 		if math.random(0,3) == 0 then
 			local GaiaTeamID
 			local SpawnAsNeutral
-			-- if math.random(0,3) == 0 and scavengersAIEnabled then
-			-- 	GaiaTeamID = scavengerAITeamID
-			-- 	SpawnAsNeutral = false
-			-- else
-				GaiaTeamID = Spring.GetGaiaTeamID()
-				SpawnAsNeutral = true
-			-- end	
+			GaiaTeamID = Spring.GetGaiaTeamID()
+			SpawnAsNeutral = true
 			
 			local spot = mexSpots[i]
 			local posx = spot.x
@@ -243,17 +222,17 @@ local function SpawnMexes(mexSpots)
 			else
 				mexesList = seaMexesList
 			end
-			
+
 			radius = 64
-			canBuildHere = posLosCheck(posx, posy, posz, radius)
-						and posMapsizeCheck(posx, posy, posz, radius)
-						and posOccupied(posx, posy, posz, radius)
-						and posCheck(posx, posy, posz, radius)
+			canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, radius, GaiaTeamID, true, true, true)
+						and positionCheckLibrary.MapEdgeCheck(posx, posy, posz, radius)
+						and positionCheckLibrary.OccupancyCheck(posx, posy, posz, radius)
+						and positionCheckLibrary.FlatAreaCheck(posx, posy, posz, radius)
 
 			if posy > 0 then
-				canBuildHere = canBuildHere and posLandCheck(posx, posy, posz, radius)
+				canBuildHere = canBuildHere and positionCheckLibrary.SurfaceCheck(posx, posy, posz, radius)
 			elseif posy <= 0 then
-				canBuildHere = canBuildHere and posSeaCheck(posx, posy, posz, radius)
+				canBuildHere = canBuildHere and positionCheckLibrary.SurfaceCheck(posx, posy, posz, radius, true)
 			end
 
 			if canBuildHere then
@@ -326,15 +305,15 @@ function gadget:GameFrame(n)
 
 		if ruin ~= nil then -- Nil check because Lua does not have a "continue" statement
 			radius = ruin.radius
-			canBuildHere = posLosCheck(posx, posy, posz, radius)
-						and posMapsizeCheck(posx, posy, posz, radius)
-						and posOccupied(posx, posy, posz, radius)
-						and posCheck(posx, posy, posz, radius)
+			canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, radius, GaiaTeamID, true, true, true)
+						and positionCheckLibrary.MapEdgeCheck(posx, posy, posz, radius)
+						and positionCheckLibrary.OccupancyCheck(posx, posy, posz, radius)
+						and positionCheckLibrary.FlatAreaCheck(posx, posy, posz, radius)
 
 			if posy > 0 then
-				canBuildHere = canBuildHere and posLandCheck(posx, posy, posz, radius)
+				canBuildHere = canBuildHere and positionCheckLibrary.SurfaceCheck(posx, posy, posz, radius)
 			elseif posy <= 0 then
-				canBuildHere = canBuildHere and posSeaCheck(posx, posy, posz, radius)
+				canBuildHere = canBuildHere and positionCheckLibrary.SurfaceCheck(posx, posy, posz, radius, true)
 			end
 
 			if canBuildHere then
