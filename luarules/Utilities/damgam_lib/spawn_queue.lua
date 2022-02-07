@@ -100,7 +100,7 @@ local function AddToDestroyQueue(unitID, selfd, reclaimed, frame)
             QueuedDestroyList[1] = QueueDestroyCommand
         end
 	else
-		Spring.Echo("[Spawn Queue] Failed to queue destruction of unit "..unitID..", invalid unit")
+		--Spring.Echo("[Spawn Queue] Failed to queue destruction of unit "..unitID..", invalid unit")
 	end
 end
 
