@@ -215,8 +215,12 @@ function widget:LanguageChanged()
 	widget:ViewResize()
 end
 
+function widget:GameFrame(gf)
+	widgetHandler:RemoveWidget()
+end
+
 function widget:Initialize()
-	if Spring.GetGameFrame() > 0 then
+	if Spring.GetGameFrame() > 0 or isReplay then
 		widgetHandler:RemoveWidget()
 	end
 
@@ -238,14 +242,7 @@ function widget:Initialize()
 	checkStartPointChosen()
 end
 
-function widget:GameFrame(gf)
-	widgetHandler:RemoveWidget()
-end
-
 function widget:DrawScreen()
-	if isReplay then
-		widgetHandler:RemoveWidget()
-	end
 	if not startPointChosen then
 		checkStartPointChosen()
 	end
@@ -264,7 +261,7 @@ function widget:DrawScreen()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
 
-	elseif (not readied or allowUnready) and buttonList and Game.startPosType == 2 and (not mySpec or eligibleAsSub) then
+	elseif ((not readied or allowUnready) or (mySpec and eligibleAsSub)) and buttonList and Game.startPosType == 2 then
 		buttonDrawn = true
 		if WG['guishader'] then
 			WG['guishader'].InsertRect(
