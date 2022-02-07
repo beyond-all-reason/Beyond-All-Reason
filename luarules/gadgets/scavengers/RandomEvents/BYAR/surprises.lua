@@ -59,7 +59,6 @@ local function transport1(currentFrame)
 			"armbull_scav",
 			"armsptk_scav",
 			"armfboy_scav",
-			"armanni_scav",
 			"armmerl_scav",
 			"armfido_scav",
 			"armcroc_scav",

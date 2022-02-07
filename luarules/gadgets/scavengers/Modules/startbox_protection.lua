@@ -83,7 +83,7 @@ local function spawnStartBoxProtection(n)
 				end
 
 				if canSpawnDefence then
-					QueueSpawn(pickedTurret, spawnPosX, spawnPosY, spawnPosZ, spawnDirection,ScavengerTeamID,n+150)
+					spawnQueueLibrary.AddToSpawnQueue(pickedTurret, spawnPosX, spawnPosY, spawnPosZ, spawnDirection,ScavengerTeamID,n+150)
 					Spring.CreateUnit("scavengerdroppod_scav", spawnPosX, spawnPosY, spawnPosZ, spawnDirection,ScavengerTeamID)
 				end
 			end

@@ -25,12 +25,12 @@ local groupsize = math.ceil(groupsize*(teamcount/2))
 			end
 			if CanSpawnEvent then
 				if CanSpawnLand == true then
-					QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, currentFrame+(i))
-					QueueSpawn(invasionUnitsLand[math.random(1,#invasionUnitsLand)], posx, posy, posz, math_random(0,3),ScavengerTeamID, currentFrame+90+(i))
+					spawnQueueLibrary.AddToSpawnQueue("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, currentFrame+(i))
+					spawnQueueLibrary.AddToSpawnQueue(invasionUnitsLand[math.random(1,#invasionUnitsLand)], posx, posy, posz, math_random(0,3),ScavengerTeamID, currentFrame+90+(i))
 					--Spring.CreateUnit(invasionUnitsLand[pickedInvasionUnitLand], posx, posy, posz, math_random(0,3),ScavengerTeamID)
 				elseif CanSpawnSea == true then
-					QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, currentFrame+(i))
-					QueueSpawn(invasionUnitsSea[math.random(1,#invasionUnitsSea)], posx, posy, posz, math_random(0,3),ScavengerTeamID, currentFrame+90+(i))
+					spawnQueueLibrary.AddToSpawnQueue("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, currentFrame+(i))
+					spawnQueueLibrary.AddToSpawnQueue(invasionUnitsSea[math.random(1,#invasionUnitsSea)], posx, posy, posz, math_random(0,3),ScavengerTeamID, currentFrame+90+(i))
 					--Spring.CreateUnit(invasionUnitsSea[pickedInvasionUnitLand], posx, posy, posz, math_random(0,3),ScavengerTeamID)
 				end
 				break
