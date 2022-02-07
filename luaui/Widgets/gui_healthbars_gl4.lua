@@ -5,7 +5,7 @@ function widget:GetInfo()
       author    = "Beherith",
       date      = "October 2019",
       license   = "GNU GPL, v2 or later for Lua code, (c) Beherith (mysterme@gmail.com) for GLSL",
-      layer     = -40,
+      layer     = -10,
       enabled   = false
    }
 end
@@ -162,7 +162,7 @@ end
 -- TODO: some GAIA shit?
 -- TODO: enemy comms and fus and decoy fus should not get healthbars!
 -- TODO: allies dont get reload bars? Do Specs see them?
---
+-- TODO: correct draw order (after highlightunit)
 
 
 --/luarules fightertest corak armpw 100 10 2000
@@ -584,6 +584,7 @@ mat3 rotY;
 vec4 centerpos;
 vec4 uvoffsets;
 float zoffset;
+float depthbuffermod;
 float sizemultiplier = dataIn[0].v_sizemodifiers.x;
 #define HALFPIXEL 0.0019765625
 
@@ -591,6 +592,7 @@ void emitVertexBG(in vec2 pos){
 	g_uv.xy = vec2(0.0,0.0);
 	vec3 primitiveCoords = vec3(pos.x,0.0,pos.y - zoffset) * BARSCALE *sizemultiplier;
 	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( primitiveCoords ), 1.0);
+	gl_Position.z += depthbuffermod;
 	g_uv.z = 0.0; // this tells us to use color
 	g_color = mix(BGBOTTOMCOLOR, BGTOPCOLOR, pos.y);
 	g_color.a *= dataIn[0].v_parameters.y; // blend with bar fade alpha
@@ -607,6 +609,7 @@ void emitVertexBarBG(in vec2 pos, in vec4 botcolor, in float bartextureoffset){
 	//vec3 primitiveCoords = vec3( (pos.x - sign(pos.x) * BARCORNER),0.0, (pos.y - sign(pos.y - 0.5) * BARCORNER - zoffset)) * BARSCALE;
 	vec3 primitiveCoords = vec3( pos.x,0.0, pos.y - zoffset) * BARSCALE *sizemultiplier;
 	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( primitiveCoords ), 1.0);
+	gl_Position.z += depthbuffermod;
 	g_uv.z = clamp(10000 * bartextureoffset, 0, 1); // this tells us to use color if we are using bartextureoffset
 	g_color = botcolor;
 	//g_color = vec4(g_uv.x, g_uv.y, 0.0, 1.0);
@@ -703,7 +706,7 @@ void main(){
 	//start in bottom leftmost of this shit.
 		vec4 topcolor = BGTOPCOLOR;
 		vec4 botcolor = BGBOTTOMCOLOR;
-		
+		depthbuffermod = 0.001;
 		emitVertexBG(vec2(-BARWIDTH            , BARCORNER            )); //1
 		emitVertexBG(vec2(-BARWIDTH            , BARHEIGHT - BARCORNER)); //2 
 		emitVertexBG(vec2(-BARWIDTH + BARCORNER, 0                    )); //3
@@ -723,6 +726,7 @@ void main(){
 		topcolor = truecolor;
 
 		topcolor.rgb *= BOTTOMDARKENFACTOR;
+		depthbuffermod = 0.000;
 		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER, SMALLERCORNER + BARCORNER), truecolor, 0.0); //1
 		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER, BARHEIGHT - SMALLERCORNER - BARCORNER), topcolor,  0.0); //2 
 		emitVertexBarBG(vec2(-BARWIDTH + SMALLERCORNER + BARCORNER, BARCORNER            ), truecolor, 0.0); //3
@@ -745,6 +749,7 @@ void main(){
 		float bartextureoffset = 0;
 		if ((BARTYPE & BITUSEOVERLAY) > 0u) bartextureoffset = UVOFFSET; // if the bar type is a textured bar, we have a lot of work to do
 
+		depthbuffermod = -0.001;
 		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER,                                  SMALLERCORNER + BARCORNER            ), botcolor,  bartextureoffset); //1
 		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER,                                  BARHEIGHT - BARCORNER - SMALLERCORNER), truecolor, bartextureoffset); //2 
 		emitVertexBarBG(vec2(-BARWIDTH + BARCORNER + SMALLERCORNER,                  BARCORNER                            ), botcolor,  bartextureoffset); //3
@@ -1087,7 +1092,7 @@ local function addBarToFeature(featureID,  barname)
 	--Spring.Debug.TableEcho(bt)
 	pushElementInstance(
 		targetVBO, -- push into this Instance VBO Table
-			{featureDefHeights[featureDefID],  -- height
+			{featureDefHeights[featureDefID] + additionalheightaboveunit,  -- height
 			1.0, -- size mult
 			0, -- timer end
 			bt.uvoffset, -- unused float
@@ -1535,7 +1540,7 @@ function widget:DrawWorld()
 	if healthBarVBO.usedElements > 0 or featureHealthVBO.usedElements > 0 then -- which quite strictly, is impossible anyway
 		local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		gl.DepthTest(true)
-		gl.DepthMask(false)
+		gl.DepthMask(true)
 		gl.Texture(0,healthbartexture)
 		healthBarShader:Activate()
 		healthBarShader:SetUniform("iconDistance",disticon) 
