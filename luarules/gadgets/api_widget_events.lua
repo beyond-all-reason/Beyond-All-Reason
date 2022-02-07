@@ -66,28 +66,31 @@ end
 local scriptFeatureCreated = Script.LuaUI.FeatureCreated
 
 function gadget:FeatureCreated(featureID, allyTeam) -- assume that features are always in LOS
-  local myAllyTeamID = spGetMyAllyTeamID()
+	local myAllyTeamID = spGetMyAllyTeamID()
 	local spec, specFullView = spGetSpectatingState()
-	local isAllyUnit = spAreTeamsAllied(allyTeam, spGetMyTeamID())
-	--Spring.Echo("Gadget:UnitDest", unitID, Script.LuaUI('UnitDestroyedByTeam') , "isAllyUnit", isAllyUnit, "spec", spec, "specFullView", specFullView)
+	local isAllyUnit = (allyTeam == Spring.GetMyAllyTeamID()) 
+	--Spring.Echo("Gadget:FeatureCreated", featureID, FeatureDefs[Spring.GetFeatureDefID(featureID)].name, Script.LuaUI('FeatureCreated') , "isAllyUnit", isAllyUnit, "spec", spec, "specFullView", specFullView)
 	-- we need to check if any widget uses the callin, otherwise it is not bound and will produce error spam
-  if not isAllyUnit and (not (spec and specFullView)) and Script.LuaUI('FeatureCreated') then
-    --Spring.Echo("gadget:FeatureCreated",featureID, allyTeam)
-    scriptFeatureCreated(featureID, allyTeam)
-  end
+	if not isAllyUnit and (not (spec and specFullView)) and Script.LuaUI('FeatureCreated') then
+		--Spring.Echo("gadget:FeatureCreated",featureID, allyTeam)
+		scriptFeatureCreated(featureID, allyTeam)
+	end
 end
 
 
 local scriptFeatureDestroyed = Script.LuaUI.FeatureDestroyed
 
-function gadget:FeatureDestroyed(featureID, allyTeam) -- assume that features are always in LOS
-  local myAllyTeamID = spGetMyAllyTeamID()
+function gadget:FeatureDestroyed(featureID, allyTeam) 
+	-- assume that features are always in LOS
+	-- feauture allyTeam is equal to my allyteam when its a gaia feature, that is wierd
+	-- am i always allied with gaia?
+
 	local spec, specFullView = spGetSpectatingState()
-	local isAllyUnit = spAreTeamsAllied(allyTeam, spGetMyTeamID())
-	--Spring.Echo("Gadget:UnitDest", unitID, Script.LuaUI('UnitDestroyedByTeam') , "isAllyUnit", isAllyUnit, "spec", spec, "specFullView", specFullView)
+	local isAllyUnit = (allyTeam == Spring.GetMyAllyTeamID()) 
+	--Spring.Echo("Gadget:FeatureDestroyed", featureID, FeatureDefs[Spring.GetFeatureDefID(featureID)].name, Script.LuaUI('FeatureDestroyed') , "isAllyUnit", isAllyUnit, "spec", spec, "specFullView", specFullView, allyTeam, spGetMyTeamID())
 	-- we need to check if any widget uses the callin, otherwise it is not bound and will produce error spam
-  if not isAllyUnit and (not (spec and specFullView)) and Script.LuaUI('FeatureDestroyed')  then
-    --Spring.Echo("gadget:FeatureDestroyed",featureID, allyTeam)
-    scriptFeatureDestroyed(featureID, allyTeam)
-  end
+	if not isAllyUnit and (not (spec and specFullView)) and Script.LuaUI('FeatureDestroyed')  then
+		--Spring.Echo("gadget:FeatureDestroyed",featureID, allyTeam)
+		scriptFeatureDestroyed(featureID, allyTeam)
+	end
 end
