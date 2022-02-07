@@ -15,39 +15,35 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 
+
+local GetTeamList = Spring.GetTeamList
+local GetUnitAllyTeam = Spring.GetUnitAllyTeam
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 -- Exclude Scavengers / Chickens AI
 local ignoredTeams = {
 	[gaiaTeamID] = true,
 }
+local teamCount = 0
 local teamList = Spring.GetTeamList()
-for i = 1, #teams do
+for i = 1, #teamList do
 	local luaAI = Spring.GetTeamLuaAI(teamList[i])
 	if luaAI and (luaAI:find("Chickens") or luaAI:find("Scavengers")) then
 		ignoredTeams[teamList[i]] = true
+	end
+	if teamList[i] ~= gaiaTeamID then
+		teamCount = teamCount + 1
 	end
 end
 teamList = nil
 
 local aliveComCount = {}
 local commanderDeathQueue = {}
-local gaiaTeamID = Spring.GetGaiaTeamID()
-
-local GetTeamList = Spring.GetTeamList
-local GetUnitAllyTeam = Spring.GetUnitAllyTeam
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
-	end
-end
-
-local teamCount = 0
-for _,teamID in ipairs(GetTeamList()) do
-	if teamID ~= gaiaTeamID then
-		teamCount = teamCount + 1
 	end
 end
 

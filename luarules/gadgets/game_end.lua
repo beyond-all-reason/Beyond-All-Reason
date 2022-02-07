@@ -217,7 +217,14 @@ if gadgetHandler:IsSyncedCode() then
 				allyTeamInfos[allyTeamID] = allyTeamInfo
 			end
 		end
+
 		CheckAllPlayers()
+
+		for _, allyTeamID in ipairs(allyteamList) do
+			if allyTeamInfos[allyTeamID] and allyTeamInfos[allyTeamID].dead then
+				UpdateAllyTeamIsDead(allyTeamID)
+			end
+		end
 	end
 
 
