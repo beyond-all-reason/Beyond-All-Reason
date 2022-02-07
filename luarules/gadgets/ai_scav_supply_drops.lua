@@ -108,6 +108,7 @@ local zBorder               = math.floor(mapsizeZ/10)
 local math_random           = math.random
 local spGroundHeight        = Spring.GetGroundHeight
 local spGaiaTeam            = Spring.GetGaiaTeamID()
+local spGaiaAllyTeam        = Spring.GetTeamInfo(Spring.GetGaiaTeamID())
 local spCreateUnit          = Spring.CreateUnit
 local spGetCylinder			= Spring.GetUnitsInCylinder
 local spGetUnitPosition 	= Spring.GetUnitPosition
@@ -150,6 +151,7 @@ local TryToSpawn = false
 
 if scavengersAIEnabled then
 	spGaiaTeam = scavengerAITeamID
+	spGaiaAllyTeam = scavengerAllyTeamID
 end
 
 -- VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
@@ -300,8 +302,8 @@ function gadget:GameFrame(n)
                 local posy = spGroundHeight(posx, posz)
 				local unitsCyl = spGetCylinder(posx, posz, 128)
 				local terrainCheck = positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 128)
-				local scavLoS = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, 128, spGaiaTeam, true, true, true)
-				local scavStartbox = positionCheckLibrary.StartboxCheck(posx, posy, posz, 500, spGaiaTeam, false)
+				local scavLoS = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, 128, spGaiaAllyTeam, true, true, true)
+				local scavStartbox = positionCheckLibrary.StartboxCheck(posx, posy, posz, 500, spGaiaAllyTeam, false)
 				local scavCloud = Spring.GetModOptions().scavstartboxcloud
                 if #unitsCyl == 0 and terrainCheck and scavLoS == true and (scavStartbox == false or scavCloud == false) then
 					--aliveLootboxesCountT1

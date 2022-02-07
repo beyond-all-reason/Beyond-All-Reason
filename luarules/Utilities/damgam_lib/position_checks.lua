@@ -108,7 +108,6 @@ end
 local AllyTeamStartboxes = {}
 local function StartboxCheck(posx, posy, posz, posradius, allyTeamID, returnTrueWhenNoStartbox) -- Return True when position is within startbox.
     local posradius = posradius or 1000
-    local allyTeamID = allyTeamID+1 -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 everytime
     
     if #AllyTeamStartboxes == 0 then -- Cache team's startboxes on first run of this function
         for _,testAllyTeamID in ipairs(Spring.GetAllyTeamList()) do
@@ -127,7 +126,7 @@ local function StartboxCheck(posx, posy, posz, posradius, allyTeamID, returnTrue
         end
     end
 
-    if AllyTeamStartboxes[allyTeamID].allyTeamHasStartbox == false then
+    if AllyTeamStartboxes[allyTeamID+1].allyTeamHasStartbox == false then
         if returnTrueWhenNoStartbox then
             return true
         else
@@ -135,7 +134,7 @@ local function StartboxCheck(posx, posy, posz, posradius, allyTeamID, returnTrue
         end
     end
 
-    if posx >= AllyTeamStartboxes[allyTeamID].xMin and posz >= AllyTeamStartboxes[allyTeamID].zMin and posx <= AllyTeamStartboxes[allyTeamID].xMax and posz <= AllyTeamStartboxes[allyTeamID].zMax then
+    if posx >= AllyTeamStartboxes[allyTeamID+1].xMin and posz >= AllyTeamStartboxes[allyTeamID+1].zMin and posx <= AllyTeamStartboxes[allyTeamID+1].xMax and posz <= AllyTeamStartboxes[allyTeamID+1].zMax then -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 everytime
         return true
     else
         return false
