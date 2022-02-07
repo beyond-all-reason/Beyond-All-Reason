@@ -133,8 +133,6 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 		mirrored = false
 		mirroredDirection = "null"
 	end
-	GaiaTeamID = Spring.GetGaiaTeamID()
-	GaiaAllyTeamID = Spring.GetTeamInfo(Spring.GetGaiaTeamID())
 	SpawnAsNeutral = true
 	for _, building in ipairs(ruin.buildings) do
 		if building.unitDefID then
@@ -208,8 +206,6 @@ local seaMexesList = {
 local function SpawnMexes(mexSpots)
 	for i = 1,#mexSpots do
 		if math.random(0,3) == 0 then
-			GaiaTeamID = Spring.GetGaiaTeamID()
-			GaiaAllyTeamID = Spring.GetTeamInfo(Spring.GetGaiaTeamID())
 			SpawnAsNeutral = true
 			
 			local spot = mexSpots[i]
