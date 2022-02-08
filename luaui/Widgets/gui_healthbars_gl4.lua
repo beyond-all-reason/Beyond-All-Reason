@@ -924,19 +924,21 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	--Spring.Echo(instanceID, barname, unitBars[unitID])
 	if healthBarVBO.instanceIDtoIndex[instanceID] then return end -- we already have this bar !
 	
-	if Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then -- dead or invalid
+	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then -- dead or invalid
 		if debugmode then 
-			Spring.Debug.TraceEcho("Tried to add a bar to dead/invalid unit", unitID, unitdefID, barname)
+			Spring.Debug.TraceEcho("Tried to add a bar to dead/invalid/nounitdef unit", unitID, unitdefID, barname)
 		end
 		return nil
 	end
 	
 	if unitBars[unitID] == nil then
-		Spring.Echo("A unit has no bars yet", UnitDefs[Spring.GetUnitDefID(unitID)].name, Spring.GetUnitPosition(unitID))
+		Spring.Echo("A unit has no bars yet", UnitDefs[unitDefID].name, Spring.GetUnitPosition(unitID))
 		Spring.Debug.TraceFullEcho()
-						Spring.SendCommands({"pause 1"})
-				Spring.Echo("No bars unit, last seen at", unitID)
-				Spring.MarkerAddPoint(Spring.GetUnitPosition(unitID) )
+		if debugmode then 
+			Spring.SendCommands({"pause 1"})
+			Spring.Echo("No bars unit, last seen at", unitID)
+			Spring.MarkerAddPoint(Spring.GetUnitPosition(unitID) )
+		end
 		unitBars[unitID] = 1
 	end
 	unitBars[unitID] = unitBars[unitID] + 1

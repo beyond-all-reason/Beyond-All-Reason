@@ -155,6 +155,7 @@ else
 	end
 	
 	function unitCaptureFrame(cmd, unitID, step)
+		if not fullview and not CallAsTeam(myTeamID, IsUnitInView, unitID) then return end
 		if Script.LuaUI("UnitCaptureStartedHealthbars") then
 			--Spring.Echo("UnitCaptureStartedHealthbars", unitID, step)
 			Script.LuaUI.UnitCaptureStartedHealthbars(unitID, step)
