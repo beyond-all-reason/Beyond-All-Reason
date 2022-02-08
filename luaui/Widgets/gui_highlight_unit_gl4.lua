@@ -12,13 +12,13 @@ end
 
 local hideBelowGameframe = 100
 local highlightAlpha = 0.14
-local selectedHighlightAlpha = 0.085
-local edgeAlpha = 1
-local selectedEdgeAlpha = 0.7
-local edgeExponent = 1.22
-local selectedEdgeExponent = 1.5
-local animationAlpha = 0.66
-local selectedAnimationAlpha = 0.47
+local selectedHighlightAlpha = 0.09
+local edgeAlpha = 1.1
+local selectedEdgeAlpha = 0.77
+local edgeExponent = 1.2
+local selectedEdgeExponent = 1.45
+local animationAlpha = 0.75
+local selectedAnimationAlpha = 0.55
 
 local useTeamcolor = true
 local teamColorAlphaMult = 1.25

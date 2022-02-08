@@ -222,6 +222,7 @@ end
 function widget:Initialize()
 	if Spring.GetGameFrame() > 0 or isReplay then
 		widgetHandler:RemoveWidget()
+		return
 	end
 
 	if mySpec then
