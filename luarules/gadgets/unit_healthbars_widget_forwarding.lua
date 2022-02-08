@@ -120,16 +120,19 @@ else
 	local forwardedFeatureIDsResurrect = {} -- so we only forward the start event once
 	local forwardedFeatureIDsReclaim = {} -- so we only forward the start event once
 	local myTeamID = Spring.GetMyTeamID()
+	local myAllyTeamID = Spring.GetMyAllyTeamID()
 	local _, fullview = Spring.GetSpectatingState()
 	local IsUnitInView = Spring.IsUnitInView
+	local IsUnitInLos = Spring.IsUnitInLos
 	local GetFeatureHealth = Spring.GetFeatureHealth 
 	local CMD_CAPTURE = CMD.CAPTURE
 	local forwardedCaptureTargets = {} -- unitID: gameFrame
 	local headless = false
 	
 	function gadget:PlayerChanged(playerID)
-	myTeamID = Spring.GetMyTeamID()
-	_, fullview = Spring.GetSpectatingState()
+		myTeamID = Spring.GetMyTeamID()
+		myAllyTeamID = Spring.GetMyAllyTeamID()
+		_, fullview = Spring.GetSpectatingState()
 	end
 	
 	function featureReclaimFrame(cmd, featureID, step)
@@ -155,7 +158,7 @@ else
 	end
 	
 	function unitCaptureFrame(cmd, unitID, step)
-		if not fullview and not CallAsTeam(myTeamID, IsUnitInView, unitID) then return end
+		if not fullview and not IsUnitInLos(unitID, myAllyTeamID) then return end
 		if Script.LuaUI("UnitCaptureStartedHealthbars") then
 			--Spring.Echo("UnitCaptureStartedHealthbars", unitID, step)
 			Script.LuaUI.UnitCaptureStartedHealthbars(unitID, step)
@@ -180,7 +183,7 @@ else
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 		--Spring.Echo("gadget:UnitDamaged",unitID, unitDefID, unitTeam, damage, paralyzer)
 		if paralyzer then
-			if not fullview and not CallAsTeam(myTeamID, IsUnitInView, unitID) then return end
+			if not fullview and not IsUnitInLos(unitID, myAllyTeamID)  then return end
 			
 			if damage > 0 then
 				if Script.LuaUI("UnitParalyzeDamageHealthbars") then 
