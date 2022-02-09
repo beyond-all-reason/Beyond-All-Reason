@@ -7,11 +7,18 @@
 piece   door1, door3, door5, door2, door6, door4, base, fan1, fan2;
 
 static-var door;
+static-var  Stunned;
 
 Create()
 {
 	spin fan1 around y-axis speed <25>;
 	spin fan2 around y-axis speed <25>;
+	return (0);
+}
+Stop()
+{
+	spin fan1 around y-axis speed <0.0000>;
+	spin fan2 around y-axis speed <0.0000>;
 	return (0);
 }
 
@@ -68,6 +75,16 @@ Activate()
 		sleep 2000;
 	}
 	return (0);
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script Create();
+	}
 }
 
 SweetSpot(piecenum)

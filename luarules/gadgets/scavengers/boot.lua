@@ -47,37 +47,42 @@ nukeController = VFS.Include("luarules/gadgets/scavengers/Modules/nuke_controlle
 bossController = VFS.Include("luarules/gadgets/scavengers/Modules/bossfight_module.lua")
 
 -- not redone
-VFS.Include("luarules/gadgets/scavengers/Modules/unit_controller.lua")
-VFS.Include("luarules/gadgets/scavengers/Modules/spawn_beacons.lua")
-VFS.Include("luarules/gadgets/scavengers/Modules/messenger.lua")
+unitController = VFS.Include("luarules/gadgets/scavengers/Modules/unit_controller.lua")
+spawnBeaconsController = VFS.Include("luarules/gadgets/scavengers/Modules/spawn_beacons.lua")
+messengerController = VFS.Include("luarules/gadgets/scavengers/Modules/messenger.lua")
 
 if scavconfig.modules.unitSpawnerModule then
-	VFS.Include("luarules/gadgets/scavengers/Modules/unit_spawner.lua")
+	unitSpawnerController = VFS.Include("luarules/gadgets/scavengers/Modules/unit_spawner.lua")
 end
 if scavconfig.modules.startBoxProtection then
-	VFS.Include("luarules/gadgets/scavengers/Modules/startbox_protection.lua")
+	startboxProtectionController = VFS.Include("luarules/gadgets/scavengers/Modules/startbox_protection.lua")
 end
 
 if scavconfig.modules.reinforcementsModule then
-	VFS.Include("luarules/gadgets/scavengers/Modules/reinforcements_module.lua")
+	reinforcementsController = VFS.Include("luarules/gadgets/scavengers/Modules/reinforcements_module.lua")
 end
 if scavconfig.modules.stockpilers == true then
-	VFS.Include("luarules/gadgets/scavengers/Modules/stockpiling.lua")
+	stockpilingController = VFS.Include("luarules/gadgets/scavengers/Modules/stockpiling.lua")
 end
 
-if scavconfig.modules.buildingSpawnerModule then
-	ScavengerBlueprintsT0 = {}
-	ScavengerBlueprintsT1 = {}
-	ScavengerBlueprintsT2 = {}
-	ScavengerBlueprintsT3 = {}
-	ScavengerBlueprintsT4 = {}
-	ScavengerBlueprintsT0Sea = {}
-	ScavengerBlueprintsT1Sea = {}
-	ScavengerBlueprintsT2Sea = {}
-	ScavengerBlueprintsT3Sea = {}
-	ScavengerBlueprintsT4Sea = {}
-	VFS.Include("luarules/gadgets/scavengers/Modules/building_spawner.lua")
-end
+spawnQueueLibrary = VFS.Include("luarules/utilities/damgam_lib/spawn_queue.lua")
+positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
+
+-- Unused --
+
+-- if scavconfig.modules.buildingSpawnerModule then
+-- 	ScavengerBlueprintsT0 = {}
+-- 	ScavengerBlueprintsT1 = {}
+-- 	ScavengerBlueprintsT2 = {}
+-- 	ScavengerBlueprintsT3 = {}
+-- 	ScavengerBlueprintsT4 = {}
+-- 	ScavengerBlueprintsT0Sea = {}
+-- 	ScavengerBlueprintsT1Sea = {}
+-- 	ScavengerBlueprintsT2Sea = {}
+-- 	ScavengerBlueprintsT3Sea = {}
+-- 	ScavengerBlueprintsT4Sea = {}
+-- 	VFS.Include("luarules/gadgets/scavengers/Modules/building_spawner.lua")
+-- end
 
 ----
 
@@ -115,89 +120,93 @@ local function DisableCommander()
 	end
 end
 
-function QueueSpawn(unitName, posx, posy, posz, facing, team, frame, blocking)
-	if blocking == nil then blocking = true end
-	if UnitDefNames[unitName] then
-		local QueueSpawnCommand = {unitName, posx, posy, posz, facing, team, blocking,}
-		local QueueFrame = frame
-		if #QueuedSpawnsFrames > 0 then
-			for i = 1, #QueuedSpawnsFrames do
-				local CurrentQueueFrame = QueuedSpawnsFrames[i]
-				if (not(CurrentQueueFrame < QueueFrame)) or i == #QueuedSpawnsFrames then
-					table.insert(QueuedSpawns, i, QueueSpawnCommand)
-					table.insert(QueuedSpawnsFrames, i, QueueFrame)
-					break
-				end
-			end
-		else
-			table.insert(QueuedSpawns, 1, QueueSpawnCommand)
-			table.insert(QueuedSpawnsFrames, 1, QueueFrame)
-		end
-	else
-		Spring.Echo("[Scavengers] Failed to queue "..unitName..", invalid unit")
-	end
-	blocking = nil
-end
 
-function SpawnFromQueue(n)
-	local QueuedSpawnsForNow = #QueuedSpawns
-	if QueuedSpawnsForNow > 0 then
-		for i = 1,QueuedSpawnsForNow do
-			if n == QueuedSpawnsFrames[1] then
-				local unit = Spring.CreateUnit(QueuedSpawns[1][1],QueuedSpawns[1][2],QueuedSpawns[1][3],QueuedSpawns[1][4],QueuedSpawns[1][5],QueuedSpawns[1][6])
-				if unit and QueuedSpawns[1][7] == false then
-					Spring.SetUnitBlocking(unit, false, false, true)
-				end
-				Spring.SpawnCEG("scav-spawnexplo",QueuedSpawns[1][2],QueuedSpawns[1][3],QueuedSpawns[1][4],0,0,0)
-				table.remove(QueuedSpawns, 1)
-				table.remove(QueuedSpawnsFrames, 1)
-			--else
-				--break
-			end
-		end
-	end
-end
 
-function QueueDestroy(unitID, selfd, explode, frame)
-	if Spring.ValidUnitID(unitID) then
-		local QueueDestroyCommand = {unitID, selfd, explode}
-		local QueueFrame = frame
-		if #QueuedDestroysFrames > 0 then
-			for i = 1, #QueuedDestroysFrames do
-				local CurrentQueueFrame = QueuedDestroysFrames[i]
-				if (not(CurrentQueueFrame < QueueFrame)) or i == #QueuedDestroysFrames then
-					--Spring.Echo("[Scavengers] Queued destruction of unit "..unitID)
-					table.insert(QueuedDestroys, i, QueueDestroyCommand)
-					table.insert(QueuedDestroysFrames, i, QueueFrame)
-					break
-				end
-			end
-		else
-			--Spring.Echo("[Scavengers] Queued destruction of unit "..unitID)
-			table.insert(QueuedDestroys, 1, QueueDestroyCommand)
-			table.insert(QueuedDestroysFrames, 1, QueueFrame)
-		end
-	else
-		--Spring.Echo("[Scavengers] Failed to queue destruction of unit "..unitID..", invalid unit")
-	end
-	blocking = nil
-end
 
-function DestroyFromQueue(n)
-	local QueuedDestroysForNow = #QueuedDestroys
-	if QueuedDestroysForNow > 0 then
-		for i = 1,QueuedDestroysForNow do
-			if n == QueuedDestroysFrames[1] then
-				--Spring.Echo("[Scavengers] Attempting to destroy unit"..QueuedDestroys[1][1])
-				Spring.DestroyUnit(QueuedDestroys[1][1],QueuedDestroys[1][2],QueuedDestroys[1][3])
-				table.remove(QueuedDestroys, 1)
-				table.remove(QueuedDestroysFrames, 1)
-			--else
-				--break
-			end
-		end
-	end
-end
+
+-- function spawnQueueLibrary.AddToSpawnQueue(unitName, posx, posy, posz, facing, team, frame, blocking)
+-- 	if blocking == nil then blocking = true end
+-- 	if UnitDefNames[unitName] then
+-- 		local QueueSpawnCommand = {unitName, posx, posy, posz, facing, team, blocking,}
+-- 		local QueueFrame = frame
+-- 		if #QueuedSpawnsFrames > 0 then
+-- 			for i = 1, #QueuedSpawnsFrames do
+-- 				local CurrentQueueFrame = QueuedSpawnsFrames[i]
+-- 				if (not(CurrentQueueFrame < QueueFrame)) or i == #QueuedSpawnsFrames then
+-- 					table.insert(QueuedSpawns, i, QueueSpawnCommand)
+-- 					table.insert(QueuedSpawnsFrames, i, QueueFrame)
+-- 					break
+-- 				end
+-- 			end
+-- 		else
+-- 			table.insert(QueuedSpawns, 1, QueueSpawnCommand)
+-- 			table.insert(QueuedSpawnsFrames, 1, QueueFrame)
+-- 		end
+-- 	else
+-- 		Spring.Echo("[Scavengers] Failed to queue "..unitName..", invalid unit")
+-- 	end
+-- 	blocking = nil
+-- end
+
+-- function spawnQueueLibrary.SpawnUnitsFromQueue(n)
+-- 	local QueuedSpawnsForNow = #QueuedSpawns
+-- 	if QueuedSpawnsForNow > 0 then
+-- 		for i = 1,QueuedSpawnsForNow do
+-- 			if n == QueuedSpawnsFrames[1] then
+-- 				local unit = Spring.CreateUnit(QueuedSpawns[1][1],QueuedSpawns[1][2],QueuedSpawns[1][3],QueuedSpawns[1][4],QueuedSpawns[1][5],QueuedSpawns[1][6])
+-- 				if unit and QueuedSpawns[1][7] == false then
+-- 					Spring.SetUnitBlocking(unit, false, false, true)
+-- 				end
+-- 				Spring.SpawnCEG("scav-spawnexplo",QueuedSpawns[1][2],QueuedSpawns[1][3],QueuedSpawns[1][4],0,0,0)
+-- 				table.remove(QueuedSpawns, 1)
+-- 				table.remove(QueuedSpawnsFrames, 1)
+-- 			--else
+-- 				--break
+-- 			end
+-- 		end
+-- 	end
+-- end
+
+-- function spawnQueueLibrary.AddToDestroyQueue(unitID, selfd, explode, frame)
+-- 	if Spring.ValidUnitID(unitID) then
+-- 		local QueueDestroyCommand = {unitID, selfd, explode}
+-- 		local QueueFrame = frame
+-- 		if #QueuedDestroysFrames > 0 then
+-- 			for i = 1, #QueuedDestroysFrames do
+-- 				local CurrentQueueFrame = QueuedDestroysFrames[i]
+-- 				if (not(CurrentQueueFrame < QueueFrame)) or i == #QueuedDestroysFrames then
+-- 					--Spring.Echo("[Scavengers] Queued destruction of unit "..unitID)
+-- 					table.insert(QueuedDestroys, i, QueueDestroyCommand)
+-- 					table.insert(QueuedDestroysFrames, i, QueueFrame)
+-- 					break
+-- 				end
+-- 			end
+-- 		else
+-- 			--Spring.Echo("[Scavengers] Queued destruction of unit "..unitID)
+-- 			table.insert(QueuedDestroys, 1, QueueDestroyCommand)
+-- 			table.insert(QueuedDestroysFrames, 1, QueueFrame)
+-- 		end
+-- 	else
+-- 		--Spring.Echo("[Scavengers] Failed to queue destruction of unit "..unitID..", invalid unit")
+-- 	end
+-- 	blocking = nil
+-- end
+
+-- function spawnQueueLibrary.DestroyUnitsFromQueue(n)
+-- 	local QueuedDestroysForNow = #QueuedDestroys
+-- 	if QueuedDestroysForNow > 0 then
+-- 		for i = 1,QueuedDestroysForNow do
+-- 			if n == QueuedDestroysFrames[1] then
+-- 				--Spring.Echo("[Scavengers] Attempting to destroy unit"..QueuedDestroys[1][1])
+-- 				Spring.DestroyUnit(QueuedDestroys[1][1],QueuedDestroys[1][2],QueuedDestroys[1][3])
+-- 				table.remove(QueuedDestroys, 1)
+-- 				table.remove(QueuedDestroysFrames, 1)
+-- 			--else
+-- 				--break
+-- 			end
+-- 		end
+-- 	end
+-- end
 
 function DestroyOldBuildings()
 	local unitCount = Spring.GetTeamUnitCount(ScavengerTeamID)
@@ -208,7 +217,7 @@ function DestroyOldBuildings()
 				break
 			end
 			if #BaseCleanupQueue > 0 then
-				QueueDestroy(BaseCleanupQueue[1], true, false, Spring.GetGameFrame()+1)
+				spawnQueueLibrary.AddToDestroyQueue(BaseCleanupQueue[1], true, false, Spring.GetGameFrame()+1)
 				--Spring.DestroyUnit(BaseCleanupQueue[1], true, false)
 				table.remove(BaseCleanupQueue, 1)
 			end
@@ -238,7 +247,7 @@ function PutScavAlliesInScavTeam(n)
 			local units = Spring.GetTeamUnits(teamID)
 			for u = 1,#units do
 				scavteamhasplayers = true
-				QueueDestroy(units[u], false, true, n+1)
+				spawnQueueLibrary.AddToDestroyQueue(units[u], false, true, n+1)
 				--Spring.DestroyUnit(units[u], false, true)
 				Spring.KillTeam(teamID)
 			end
@@ -253,7 +262,7 @@ function PutScavAlliesInScavTeam(n)
 			local units = Spring.GetTeamUnits(scavAllies[i])
 			for u = 1,#units do
 				--scavteamhasplayers = true
-				QueueDestroy(units[u], false, true, n+1)
+				spawnQueueLibrary.AddToDestroyQueue(units[u], false, true, n+1)
 				--Spring.DestroyUnit(units[u], false, true)
 				Spring.KillTeam(scavAllies[i])
 			end
@@ -271,8 +280,8 @@ function gadget:GameFrame(n)
 	end
 
 	if n > 1 then
-		SpawnFromQueue(n)
-		DestroyFromQueue(n)
+		spawnQueueLibrary.SpawnUnitsFromQueue(n)
+		spawnQueueLibrary.DestroyUnitsFromQueue(n)
 		DestroyOldBuildings()
 	end
 
@@ -282,20 +291,20 @@ function gadget:GameFrame(n)
 	end
 
 	if n%30 == 0 and scavconfig.messenger == true then
-		pregameMessages(n)
+		messengerController.pregameMessages(n)
 	end
 
 	if scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists == true then
-		if n%60 == 0 then
-			spawnStartBoxProtection(n)
+		if n%30 == 0 then
+			startboxProtectionController.spawnStartBoxProtection(n)
 		end
 		if n%10 == 0 then
-			executeStartBoxProtection(n)
-			spawnStartBoxEffect2(n)
+			startboxProtectionController.executeStartBoxProtection(n)
+			startboxProtectionController.spawnStartBoxEffect2(n)
 		end
 		--if n%(math.ceil(450/(math.ceil(ScavSafeAreaSize/5)))) == 0 then
-		if n%(math.ceil(9600000/(ScavSafeAreaSize*ScavSafeAreaSize))) == 0 then
-			spawnStartBoxEffect(n)
+		if n%(math.ceil(4800000/(ScavSafeAreaSize*ScavSafeAreaSize))) == 0 then
+			startboxProtectionController.spawnStartBoxEffect(n)
 		end
 	end
 
@@ -317,14 +326,14 @@ function gadget:GameFrame(n)
 	end
 
 	if n%minionFramerate == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
-		BossMinionsSpawn(n)
+		unitSpawnerController.BossMinionsSpawn(n)
 	end
 
 	if n%30 == 0 and scavconfig.modules.reinforcementsModule and FinalBossKilled == false then
-		spawnPlayerReinforcements(n)
-		CaptureBeacons(n)
-		SetBeaconsResourceProduction(n)
-		ReinforcementsMoveOrder(n)
+		reinforcementsController.spawnPlayerReinforcements(n)
+		reinforcementsController.CaptureBeacons(n)
+		reinforcementsController.SetBeaconsResourceProduction(n)
+		reinforcementsController.ReinforcementsMoveOrder(n)
 	end
 
 	if n%30 == 0 and ScavengerTeamID ~= Spring.GetGaiaTeamID() then
@@ -352,7 +361,7 @@ function gadget:GameFrame(n)
 			Spring.SetTeamResource(ScavengerTeamID, "e", 1000000)
 		end
 		if BossWaveStarted == true then
-			BossWaveTimer(n)
+			unitSpawnerController.BossWaveTimer(n)
 		end
 		local scavUnits = Spring.GetTeamUnits(ScavengerTeamID)
 		local scavUnitsCount = #scavUnits
@@ -402,8 +411,8 @@ function gadget:GameFrame(n)
 			collectScavStats()
 		end
 		if scavconfig.modules.unitSpawnerModule and FinalBossKilled == false then --and (not FinalBossUnitSpawned) then
-			SpawnBeacon(n)
-			UnitGroupSpawn(n)
+			spawnBeaconsController.SpawnBeacon(n)
+			unitSpawnerController.UnitGroupSpawn(n)
 		end
 		if scavconfig.modules.constructorControllerModule and scavconfig.constructorControllerModuleConfig.useconstructors and scavengerGamePhase ~= "initial" then
 			constructorController.SpawnConstructor(n)
@@ -412,7 +421,7 @@ function gadget:GameFrame(n)
 		if scavengerunits and scavengerGamePhase ~= "initial" then
 			for _, scav in ipairs(scavengerunits) do
 				local scavDef = Spring.GetUnitDefID(scav)
-				local collectorRNG = math_random(0,2)
+				local collectorRNG = math_random(0,5)
 				local scavFirestate = Spring.GetUnitStates(scav)["firestate"]
 				if (scavFirestate ~= 2) or (scavFirestate ~= 1 and scavengerGamePhase == "initial") then
 					if scavengerGamePhase == "initial" then
@@ -425,7 +434,7 @@ function gadget:GameFrame(n)
 
 				if n%300 == 0 and scavconfig.modules.stockpilers == true then
 					if scavStockpiler[scav] == true then
-						ScavStockpile(n, scav)
+						stockpilingController.ScavStockpile(n, scav)
 					end
 				end
 
@@ -473,10 +482,10 @@ function gadget:GameFrame(n)
 
 				-- backup -- and not scavConstructor[scav] and not scavResurrector[scav] and not scavCollector[scav]
 				if scavteamhasplayers == false and n%900 == 0 and not scavStructure[scav] and not scavAssistant[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
-					SelfDestructionControls(n, scav, scavDef, false)
+					unitController.SelfDestructionControls(n, scav, scavDef, false)
 				end
 				if scavteamhasplayers == false and Spring.GetCommandQueue(scav, 0) <= 1 and not scavStructure[scav] and not scavConstructor[scav] and not scavReclaimer[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavCapturer[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
-					ArmyMoveOrders(n, scav, scavDef)
+					unitController.ArmyMoveOrders(n, scav, scavDef)
 				end
 			end
 		end
@@ -608,16 +617,16 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 		if unitName == "corcom"..scavconfig.unitnamesuffix then
 			local frame = Spring.GetGameFrame()
 			local posx, posy, posz = Spring.GetUnitPosition(unitID)
-			QueueDestroy(unitID, false, true, Spring.GetGameFrame()+1)
+			spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
 			--Spring.DestroyUnit(unitID, false, true)
-			QueueSpawn("corcomcon"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitNewTeam, frame+1)
+			spawnQueueLibrary.AddToSpawnQueue("corcomcon"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitNewTeam, frame+1)
 		end
 		if unitName == "armcom"..scavconfig.unitnamesuffix then
 			local frame = Spring.GetGameFrame()
 			local posx, posy, posz = Spring.GetUnitPosition(unitID)
-			QueueDestroy(unitID, false, true, Spring.GetGameFrame()+1)
+			spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
 			--Spring.DestroyUnit(unitID, false, true)
-			QueueSpawn("armcomcon"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitNewTeam, frame+1)
+			spawnQueueLibrary.AddToSpawnQueue("armcomcon"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitNewTeam, frame+1)
 		end
 		
 		if scavConstructor[unitID] then
@@ -677,24 +686,24 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 					-- Spring.Echo(UnitName..suffix)
 					if UnitDefNames[unitName..suffix] then
 						local posx, posy, posz = Spring.GetUnitPosition(unitID)
-						QueueDestroy(unitID, false, true, Spring.GetGameFrame()+1)
+						spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
 						--Spring.DestroyUnit(unitID, false, true)
 						scavConverted[unitID] = true
 						if heading >= -24576 and heading < -8192 then -- west
 							-- 3
-							QueueSpawn(unitName..suffix, posx, posy, posz, 3 ,ScavengerTeamID, frame+1)
+							spawnQueueLibrary.AddToSpawnQueue(unitName..suffix, posx, posy, posz, 3 ,ScavengerTeamID, frame+1)
 							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 3,ScavengerTeamID)
 						elseif heading >= -8192 and heading < 8192 then -- south
 							-- 0
-							QueueSpawn(unitName..suffix, posx, posy, posz, 0 ,ScavengerTeamID, frame+1)
+							spawnQueueLibrary.AddToSpawnQueue(unitName..suffix, posx, posy, posz, 0 ,ScavengerTeamID, frame+1)
 							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 0,ScavengerTeamID)
 						elseif heading >= 8192 and heading < 24576 then -- east
 							-- 1
-							QueueSpawn(unitName..suffix, posx, posy, posz, 1 ,ScavengerTeamID, frame+1)
+							spawnQueueLibrary.AddToSpawnQueue(unitName..suffix, posx, posy, posz, 1 ,ScavengerTeamID, frame+1)
 							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 1,ScavengerTeamID)
 						else -- north
 							-- 2
-							QueueSpawn(unitName..suffix, posx, posy, posz, 2 ,ScavengerTeamID, frame+1)
+							spawnQueueLibrary.AddToSpawnQueue(unitName..suffix, posx, posy, posz, 2 ,ScavengerTeamID, frame+1)
 							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,ScavengerTeamID)
 						end
 						return
@@ -711,19 +720,19 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 			if unitName == "corcomcon"..scavconfig.unitnamesuffix then
 				local frame = Spring.GetGameFrame()
 				local posx, posy, posz = Spring.GetUnitPosition(unitID)
-				QueueDestroy(unitID, false, true, Spring.GetGameFrame()+1)
+				spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
 				--Spring.DestroyUnit(unitID, false, true)
 				scavConverted[unitID] = true
-				QueueSpawn("corcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,ScavengerTeamID, frame+1)
+				spawnQueueLibrary.AddToSpawnQueue("corcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,ScavengerTeamID, frame+1)
 				return
 			end
 			if unitName == "armcomcon"..scavconfig.unitnamesuffix then
 				local frame = Spring.GetGameFrame()
 				local posx, posy, posz = Spring.GetUnitPosition(unitID)
-				QueueDestroy(unitID, false, true, Spring.GetGameFrame()+1)
+				spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
 				--Spring.DestroyUnit(unitID, false, true)
 				scavConverted[unitID] = true
-				QueueSpawn("armcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,ScavengerTeamID, frame+1)
+				spawnQueueLibrary.AddToSpawnQueue("armcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,ScavengerTeamID, frame+1)
 				return
 			end
 			-- CMD.CLOAK = 37382
@@ -822,24 +831,24 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				-- Spring.Echo(UnitName..suffix)
 				if UnitDefNames[unitName..suffix] then
 					local posx, posy, posz = Spring.GetUnitPosition(unitID)
-					QueueDestroy(unitID, false, true, Spring.GetGameFrame()+1)
+					spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
 					--Spring.DestroyUnit(unitID, false, true)
 					scavConverted[unitID] = true
 					if heading >= -24576 and heading < -8192 then -- west
 						-- 3
-						QueueSpawn(unitName..suffix, posx, posy, posz, 3 ,ScavengerTeamID, frame+1)
+						spawnQueueLibrary.AddToSpawnQueue(unitName..suffix, posx, posy, posz, 3 ,ScavengerTeamID, frame+1, nil, true)
 						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 3,ScavengerTeamID)
 					elseif heading >= -8192 and heading < 8192 then -- south
 						-- 0
-						QueueSpawn(unitName..suffix, posx, posy, posz, 0 ,ScavengerTeamID, frame+1)
+						spawnQueueLibrary.AddToSpawnQueue(unitName..suffix, posx, posy, posz, 0 ,ScavengerTeamID, frame+1, nil, true)
 						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 0,ScavengerTeamID)
 					elseif heading >= 8192 and heading < 24576 then -- east
 						-- 1
-						QueueSpawn(unitName..suffix, posx, posy, posz, 1 ,ScavengerTeamID, frame+1)
+						spawnQueueLibrary.AddToSpawnQueue(unitName..suffix, posx, posy, posz, 1 ,ScavengerTeamID, frame+1, nil, true)
 						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 1,ScavengerTeamID)
 					else -- north
 						-- 2
-						QueueSpawn(unitName..suffix, posx, posy, posz, 2 ,ScavengerTeamID, frame+1)
+						spawnQueueLibrary.AddToSpawnQueue(unitName..suffix, posx, posy, posz, 2 ,ScavengerTeamID, frame+1, nil, true)
 						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,ScavengerTeamID)
 					end
 					return
@@ -863,18 +872,18 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitName == "corcomcon"..scavconfig.unitnamesuffix then
 			local frame = Spring.GetGameFrame()
 			local posx, posy, posz = Spring.GetUnitPosition(unitID)
-			QueueDestroy(unitID, false, true, Spring.GetGameFrame()+1)
+			spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
 			--Spring.DestroyUnit(unitID, false, true)
 			scavConverted[unitID] = true
-			QueueSpawn("corcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitTeam, frame+1)
+			spawnQueueLibrary.AddToSpawnQueue("corcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitTeam, frame+1, nil, true)
 		end
 		if unitName == "armcomcon"..scavconfig.unitnamesuffix then
 			local frame = Spring.GetGameFrame()
 			local posx, posy, posz = Spring.GetUnitPosition(unitID)
-			QueueDestroy(unitID, false, true, Spring.GetGameFrame()+1)
+			spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
 			--Spring.DestroyUnit(unitID, false, true)
 			scavConverted[unitID] = true
-			QueueSpawn("armcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitTeam, frame+1)
+			spawnQueueLibrary.AddToSpawnQueue("armcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitTeam, frame+1, nil, true)
 		end
 		if unitName == "scavengerdroppod_scav" then
 			Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
@@ -968,16 +977,16 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitName == "corcom"..scavconfig.unitnamesuffix then
 			local frame = Spring.GetGameFrame()
 			local posx, posy, posz = Spring.GetUnitPosition(unitID)
-			QueueDestroy(unitID, false, true, Spring.GetGameFrame()+1)
+			spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
 			--Spring.DestroyUnit(unitID, false, true)
-			QueueSpawn("corcomcon"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitTeam, frame+1)
+			spawnQueueLibrary.AddToSpawnQueue("corcomcon"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitTeam, frame+1, nil, true)
 		end
 		if unitName == "armcom"..scavconfig.unitnamesuffix then
 			local frame = Spring.GetGameFrame()
 			local posx, posy, posz = Spring.GetUnitPosition(unitID)
-			QueueDestroy(unitID, false, true, Spring.GetGameFrame()+1)
+			spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
 			--Spring.DestroyUnit(unitID, false, true)
-			QueueSpawn("armcomcon"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitTeam, frame+1)
+			spawnQueueLibrary.AddToSpawnQueue("armcomcon"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitTeam, frame+1, nil, true)
 		end
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
 			numOfSpawnBeaconsTeams[unitTeam] = numOfSpawnBeaconsTeams[unitTeam] + 1
@@ -1039,7 +1048,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam)
 				end
 				if n > lastMinionFrame + math.ceil(scavconfig.unitSpawnerModuleConfig.FinalBossMinionsActive/(teamcount*spawnmultiplier)) and FinalBossUnitID then
 					lastMinionFrame = n
-					BossMinionsSpawn(n)
+					unitSpawnerController.BossMinionsSpawn(n)
 				end
 			end
 		end

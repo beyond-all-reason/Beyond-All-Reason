@@ -162,13 +162,13 @@ local scavconfig = {
 			FinalBossMinionsActive				= 150, -- this/(teamcount*difficulty), how often does boss spawn minions when taking damage, frames.
 		BossWaveTimeLeft					= 300,
 		aircraftchance 						= 10, -- higher number = lower chance
-		globalscoreperoneunit 				= 1200/ScavUnitCountModoption,
-		spawnchance							= 240/ScavUnitSpawnFrequencyModoption,
+		globalscoreperoneunit 				= 1500/ScavUnitCountModoption,
+		spawnchance							= 360/ScavUnitSpawnFrequencyModoption,
 		beaconspawnchance					= 480,
 		beacondefences						= true,
-		minimumspawnbeacons					= math.ceil(teamcount*spawnmultiplier)*2,
+		minimumspawnbeacons					= math.ceil(teamcount*spawnmultiplier)*8,
 		landmultiplier 						= 0.75,
-		airmultiplier 						= 3,
+		airmultiplier 						= 2,
 		seamultiplier 						= 0.75,
 		chanceforaircraftonsea				= 4, -- higher number = lower chance
 	
@@ -195,7 +195,8 @@ local scavconfig = {
 		veterancymultiplier					= ScavUnitVeterancyModoption,
 	},
 	spawnProtectionConfig = {
-		useunit				= false, -- use starbox otherwise
+		useunit				= false, -- use starbox otherwise -- currently unavailable
+		useturrets 			= false, -- Spawn turrets around the cloud
 		spread				= 64,
 	},
 	randomEventsConfig = {

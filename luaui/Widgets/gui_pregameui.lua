@@ -215,9 +215,18 @@ function widget:LanguageChanged()
 	widget:ViewResize()
 end
 
+function widget:GameFrame(gf)
+	widgetHandler:RemoveWidget()
+end
+
 function widget:Initialize()
+	if Spring.GetGameFrame() > 0 or isReplay then
+		widgetHandler:RemoveWidget()
+		return
+	end
+
 	if mySpec then
-		if not mySpec or numPlayers <= 4 or isReplay or ffaMode or Spring.GetGameFrame() > 0 then
+		if numPlayers <= 4 or isReplay or ffaMode then
 			eligibleAsSub = false
 		else
 			eligibleAsSub = true
@@ -235,9 +244,6 @@ function widget:Initialize()
 end
 
 function widget:DrawScreen()
-	if isReplay then
-		widgetHandler:RemoveWidget()
-	end
 	if not startPointChosen then
 		checkStartPointChosen()
 	end
@@ -256,7 +262,7 @@ function widget:DrawScreen()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
 
-	elseif (not readied or allowUnready) and buttonList and Game.startPosType == 2 and (not mySpec or eligibleAsSub) then
+	elseif ((not readied or allowUnready) or (mySpec and eligibleAsSub)) and buttonList and Game.startPosType == 2 then
 		buttonDrawn = true
 		if WG['guishader'] then
 			WG['guishader'].InsertRect(
@@ -288,10 +294,6 @@ function widget:DrawScreen()
 		font:End()
 		gl.Color(1, 1, 1, 1)
 	end
-
-	if Spring.GetGameFrame() > 0 then
-		widgetHandler:RemoveWidget()
-	end
 end
 
 local function removeUnitShape(id)
@@ -311,7 +313,7 @@ local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID, opacit
 end
 
 function widget:DrawWorld()
-	if not WG.StopDrawUnitShapeGL4 or Spring.GetGameFrame() > 0 then return end
+	if not WG.StopDrawUnitShapeGL4 then return end
 
 	-- draw pregamestart commander models at start positions
 	local id

@@ -11,7 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-local allowSavegame = Spring.Utilities.ShowDevUI()
+local allowSavegame = true--Spring.Utilities.ShowDevUI()
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.6)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
@@ -48,14 +48,11 @@ local corcomDefID = UnitDefNames.corcom.id
 local playSounds = true
 local leftclick = 'LuaUI/Sounds/tock.wav'
 local resourceclick = 'LuaUI/Sounds/buildbar_click.wav'
-local middleclick = 'LuaUI/Sounds/buildbar_click.wav'
-local rightclick = 'LuaUI/Sounds/buildbar_rem.wav'
 
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 local bladesTexture = ":n:LuaUI/Images/wind-blades.png"
 local comTexture = ":n:Icons/corcom.png"		-- will be changed later to unit icon depending on faction
-local glowTexture = ":l:LuaUI/Images/glow.dds"
 
 local math_floor = math.floor
 local math_min = math.min
@@ -91,7 +88,6 @@ local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMouseState = Spring.GetMouseState
 local spGetWind = Spring.GetWind
 
-
 local isMetalmap = false
 
 local widgetSpaceMargin, bgpadding, RectRound, TexturedRectRound, UiElement, UiButton, UiSliderKnob
@@ -113,14 +109,12 @@ local minWind = Game.windMin
 local maxWind = Game.windMax
 local windRotation = 0
 
-local startComs = 0
 local lastFrame = -1
 local topbarArea = {}
 local resbarArea = { metal = {}, energy = {} }
 local resbarDrawinfo = { metal = {}, energy = {} }
 local shareIndicatorArea = { metal = {}, energy = {} }
 local dlistResbar = { metal = {}, energy = {} }
-local energyconvArea = {}
 local windArea = {}
 local comsArea = {}
 local rejoinArea = {}
@@ -191,9 +185,6 @@ local CATCH_UP_THRESHOLD = 6 * Game.gameSpeed    -- only show the window if behi
 local UPDATE_RATE_F = 4 -- frames
 local UPDATE_RATE_S = UPDATE_RATE_F / Game.gameSpeed
 local serverFrame
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 local function RectQuad(px, py, sx, sy, offset)
 	gl.TexCoord(offset, 1 - offset)

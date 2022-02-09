@@ -108,6 +108,7 @@ local zBorder               = math.floor(mapsizeZ/10)
 local math_random           = math.random
 local spGroundHeight        = Spring.GetGroundHeight
 local spGaiaTeam            = Spring.GetGaiaTeamID()
+local spGaiaAllyTeam        = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
 local spCreateUnit          = Spring.CreateUnit
 local spGetCylinder			= Spring.GetUnitsInCylinder
 local spGetUnitPosition 	= Spring.GetUnitPosition
@@ -150,17 +151,19 @@ local TryToSpawn = false
 
 if scavengersAIEnabled then
 	spGaiaTeam = scavengerAITeamID
+	spGaiaAllyTeam = scavengerAllyTeamID
 end
 
-VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
+-- VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
+local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 
-local function posFriendlyCheckOnlyLos(posx, posy, posz, allyTeamID)
-	if scavengersAIEnabled == true then
-		return Spring.IsPosInLos(posx, posy, posz, allyTeamID)
-	else
-		return true
-	end
-end
+-- local function posFriendlyCheckOnlyLos(posx, posy, posz, allyTeamID)
+-- 	if scavengersAIEnabled == true then
+-- 		return Spring.IsPosInLos(posx, posy, posz, allyTeamID)
+-- 	else
+-- 		return true
+-- 	end
+-- end
 
 
 -- callins
@@ -298,11 +301,10 @@ function gadget:GameFrame(n)
                 local posz = math.floor(math_random(zBorder,mapsizeZ-zBorder)/16)*16
                 local posy = spGroundHeight(posx, posz)
 				local unitsCyl = spGetCylinder(posx, posz, 128)
-				local terrainCheck = posCheck(posx, posy, posz, 128)
-				local scavLoS = posFriendlyCheckOnlyLos(posx, posy, posz, scavengerAllyTeamID)
-				local scavStartbox = posStartboxCheck(posx, posy, posz, 500, true)
+				local terrainCheck = positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 128)
+				local scavLoS = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, 128, spGaiaAllyTeam, true, true, true)
+				local scavStartbox = positionCheckLibrary.StartboxCheck(posx, posy, posz, 500, spGaiaAllyTeam, false)
 				local scavCloud = Spring.GetModOptions().scavstartboxcloud
-				--local playerLoS = posLosCheck(posx, posy, posz, 128)
                 if #unitsCyl == 0 and terrainCheck and scavLoS == true and (scavStartbox == false or scavCloud == false) then
 					--aliveLootboxesCountT1
 					if aliveLootboxesCountT4 >= 4 and aliveLootboxesCountT3 >= 4 and aliveLootboxesCountT2 >= 3 and aliveLootboxesCountT1 >= 3 then

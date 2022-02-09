@@ -165,7 +165,7 @@ local starterLandUnitsList = {
                 "armassistdrone", 
                 "corassistdrone", 
             },                           
-            quantity = 2,
+            quantity = 1,
         },
         [4] = {    
             table = {
@@ -257,7 +257,7 @@ local starterSeaUnitsList = {
                 "armassistdrone", 
                 "corassistdrone", 
             },                           
-            quantity = 2,
+            quantity = 1,
         },
     },
 }

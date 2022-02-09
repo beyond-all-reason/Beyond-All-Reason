@@ -86,58 +86,75 @@ end
 function UnitDef_Post(name, uDef)
 	if Spring.GetModOptions().newdgun then
 		if name == 'armcom' or name == 'corcom' or name == 'armcomcon' or name == 'corcomcon' then
-			uDef.weapondefs.disintegrator = {
-				areaofeffect = 36,
-				avoidfeature = false,
-				avoidfriendly = false,
-				avoidground = false,
-				bouncerebound = 0,
-				cegtag = "dgunprojectile",
-				commandfire = true,
-				craterboost = 0,
-				cratermult = 0.05,
-				edgeeffectiveness = 1,
-				energypershot = 500,
-				explosiongenerator = "custom:expldgun",
-				firestarter = 100,
-				firesubmersed = false,
-				groundbounce = true,
-				impulseboost = 0,
-				impulsefactor = 0,
-				name = "Disintegrator",
-				noexplode = true,
-				noselfdamage = true,
-				range = 250,
-				reloadtime = 0.9,
-				soundhit = "xplomas2",
-				soundhitwet = "sizzle",
-				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
-				soundtrigger = true,
-				tolerance = 20000,
-				turret = true,
-				waterweapon = true,
-				weapontimer = 4.2,
-				weapontype = "DGun",
-				weaponvelocity = 300,
-				customparams = {
-					expl_light_heat_radius = 12,
-					expl_light_opacity = 0.32,
-					expl_light_radius = 340,
-					expl_light_color = "1 0.83 0.53",
-				},
-				damage = {
-					default = 99999,
-					commanders = 600,
-					scavboss = 1000,
-				},
+			local dgun = uDef.weapondefs.disintegrator
+			dgun.cratermult = 0.05
+			dgun.edgeeffectiveness = 1
+			dgun.damage = {
+				default = 99999,
+				commanders = 100,
+				scavboss = 1000,
+			}
+
+			local laser = uDef.weapondefs.armcomlaser or uDef.weapondefs.corcomlaser
+			local uwLaser = uDef.weapondefs.armcomsealaser or uDef.weapondefs.corcomsealaser
+			laser.damage = {
+				bombers = 180,
+				default = 75,
+				fighters = 110,
+				subs = 5,
+				commanders = 25,
+			}
+
+			uwLaser.damage = {
+				default = 200,
+				subs = 100,
+				commanders = 60,
 			}
 		end
 	end
-	-- disable wrecks for Control Points mode
+	
+	-- Control Mode Tweaks
 	if Spring.GetModOptions().scoremode ~= "disabled" then
-		uDef.corpse = nil
+		if Spring.GetModOptions().scoremode_chess == true then
+			-- Disable Wrecks
+			uDef.corpse = nil
+			-- Disable Factories
+			local factories = {
+				armaap = true,
+				armalab = true,
+				armap = true,
+				armavp = true,
+				armhp = true,
+				armlab = true,
+				armshltx = true,
+				armvp = true,
+				armamsub = true,
+				armasy = true,
+				armfhp = true,
+				armplat = true,
+				armshltxuw = true,
+				armsy = true,
+				coraap = true,
+				coralab = true,
+				corap = true,
+				coravp = true,
+				corgant = true,
+				corhp = true,
+				corlab = true,
+				corvp = true,
+				coramsub = true,
+				corasy = true,
+				corfhp = true,
+				corplat = true,
+				corgantuw = true,
+				corsy = true,
+			}
+			if factories[name] then
+				uDef.unitrestricted = 0
+			end
+		else
+
+		end
 	end
 
 	-- test New sound system!

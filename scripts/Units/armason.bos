@@ -6,18 +6,27 @@
 piece  base, dish;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
 
 Go()
 {
-
 	spin dish around y-axis speed <6.010989>;
 }
 
 Stop()
 {
 	stop-spin dish around y-axis;
+}
 
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script Go();
+	}
 }
 
 RequestState(requestedstate, currentstate)

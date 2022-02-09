@@ -504,10 +504,10 @@ void main()
 
 	texCoords.st = position_xy_uv.zw;
 	texCoords.pq = position_xy_uv.zw;
-	texCoords.q += timeInfo.x * 0.1;
+	texCoords.q += (timeInfo.x + timeInfo.w) * 0.1;
 
 	jetcolor.rgb = color;
-	jetcolor.a = clamp((timeInfo.x - widthlengthtime.z)*0.053, 0.0, 1.0);
+	jetcolor.a = clamp((timeInfo.x + timeInfo.w - widthlengthtime.z)*0.053, 0.0, 1.0);
 	if ((uni[instData.y].composite & 0x00000001u) == 0u )  jetcolor = vec4(0.0); // disable if drawflag is set to 0
 	/*
 		// VISIBILITY CULLING
@@ -703,15 +703,6 @@ local function DrawParticles(isReflection)
 		jetShader:Activate()
 
 		jetShader:SetUniformInt("reflectionPass", ((isReflection == true) and 1) or 0)
-		--zlocal disticon
-		--zif Spring.GetConfigInt("UnitIconsAsUI", 1) == 1 then
-		--z	disticon = Spring.GetConfigInt("uniticon_fadevanish", 1800)
-		--z	disticon = disticon * 3
-		--zelse
-		--z	disticon = Spring.GetConfigInt("UnitIconDist", 200)
-		--z	disticon = disticon * 27 -- should be sqrt(750) but not really
-		--zend
-		--jetShader:SetUniform("iconDistance", disticon)
 
 		drawInstanceVBO(jetInstanceVBO)
 
@@ -724,7 +715,6 @@ local function DrawParticles(isReflection)
 		glDepthTest(false)
 	end
 end
-
 
 --------------------------------------------------------------------------------
 -- Unit Handling
@@ -791,9 +781,6 @@ local function Activate(unitID, unitDefID, who, when)
 		pushElementInstance(jetInstanceVBO,effectdata,tostring(unitID).."_"..tostring(effectDef.piecenum), true, nil, unitID)
 	end
 end
-
-
-
 
 local function Deactivate(unitID, unitDefID, who)
 	--Spring.Echo(Spring.GetGameFrame(),who, "Deactivate(unitID, unitDefID)",unitID, unitDefID)
@@ -950,7 +937,7 @@ end
 
 
 function widget:Update(dt)
-	spec, fullview = Spring.GetSpectatingState()
+	--spec, fullview = Spring.GetSpectatingState()
 end
 
 function widget:DrawWorld()
@@ -962,15 +949,45 @@ function widget:DrawWorldReflection()
 	DrawParticles(true)
 end
 
-
-
-function widget:Initialize()
-	initGL4()
-
+local function reInitialize()
+	activePlanes = {}
+	inactivePlanes = {}
+	lights = {}
+	unitPieceOffset = {}
+	clearInstanceTable(jetInstanceVBO)
+	
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		AddUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
+end 
+
+--local spec, fullview = Spring.GetSpectatingState() -- already defined
+local myAllyTeamID = Spring.GetMyAllyTeamID()
+
+function widget:PlayerChanged(playerID)
+	local currentspec, currentfullview = Spring.GetSpectatingState()
+	local currentAllyTeamID = Spring.GetMyAllyTeamID()
+	local reinit = false
+	if (currentspec ~= spec) or
+		(currentfullview ~= fullview) or 
+		((currentAllyTeamID ~= myAllyTeamID) and not currentfullview)  -- our ALLYteam changes, and we are not in fullview
+		then 
+		-- do the actual reinit stuff:
+		--Spring.Echo("Airjets reinit")
+		reinit = true
+	end
+	
+	spec = currentspec
+	fullview = currentfullview
+	myAllyTeamID = currentAllyTeamID
+	if reinit then reInitialize() end
+end
+
+
+function widget:Initialize()
+	initGL4()
+	reInitialize()
 
 	WG['airjets'] = {}
 

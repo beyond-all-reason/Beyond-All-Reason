@@ -193,10 +193,12 @@ local function doAreaMexCommand(params, options, isGuard, justDraw)		-- when isG
 		if mexBuilder[id] then
 			if mexIds[(mexBuilder[id].building[1]) * -1] == maxbatchextracts then
 				local x, _, z = spGetUnitPosition(id)
-				ux, uz = ux+x, uz+z
-				lastprocessedbestbuilder = id
-				mainBuildersCount = mainBuildersCount + 1
-				mainBuilders[mainBuildersCount] = id
+				if z then
+					ux, uz = ux+x, uz+z
+					lastprocessedbestbuilder = id
+					mainBuildersCount = mainBuildersCount + 1
+					mainBuilders[mainBuildersCount] = id
+				end
 			else
 				-- guard to a main builder
 				if not justDraw then

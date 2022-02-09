@@ -132,7 +132,7 @@ return {
 				fallOffRate = 0.2,
 				firestarter = 0,
 				impulseboost = 0.4,
-				impulsefactor = 1.5,
+				impulsefactor = 1,
 				intensity = 0.8,
 				name = "Railgun",
 				noselfdamage = true,
@@ -172,6 +172,8 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR",
 				def = "RAILGUN",
+				maindir = "0 0 1",
+				maxangledif = 220,
 				onlytargetcategory = "NOTSUB",
 			},
 		},

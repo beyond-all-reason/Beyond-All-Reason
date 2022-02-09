@@ -12,7 +12,7 @@ function widget:GetInfo()
 end
 
 local shapeOpacity = 0.26
-local maxQueueDepth = 500	-- not literal depth
+local maxQueueDepth = 2000	-- not literal depth
 
 --Changelog
 -- before v2 developed by WarXperiment
@@ -40,6 +40,7 @@ local sec = 0
 local lastUpdate = 0
 
 local unitshapes = {}
+local removedUnitshapes = {}
 local numunitshapes = 0
 local maxunitshapes = 4096
 local command = {}
@@ -49,33 +50,38 @@ local createdUnitID = {}
 local newBuilderCmd = {}
 
 local isBuilder = {}
+local unitWaterline = {}
 for udefID,def in ipairs(UnitDefs) do
 	if def.isBuilder and not def.isFactory and def.buildOptions[1] then
 		isBuilder[udefID] = true
 	end
+	if def.waterline and def.waterline > 0 then
+		unitWaterline[udefID] = def.waterline
+	end
 end
 
-local function addUnitShape(unitID, unitDefID, px, py, pz, rotationY, teamID)
+local function addUnitShape(shapeID, unitDefID, px, py, pz, rotationY, teamID)
 	if not WG.DrawUnitShapeGL4 then
 		widget:Shutdown()
 	else
-		if numunitshapes < maxunitshapes then
-			unitshapes[unitID] = WG.DrawUnitShapeGL4(unitDefID, px, py-0.01, pz, rotationY, shapeOpacity, teamID)
+		if numunitshapes < maxunitshapes and not removedUnitshapes[shapeID] then
+			unitshapes[shapeID] = WG.DrawUnitShapeGL4(unitDefID, px, py-0.01, pz, rotationY, shapeOpacity, teamID)
 			numunitshapes = numunitshapes + 1
-			return unitshapes[unitID]
+			return unitshapes[shapeID]
 		else
 			return nil
 		end
 	end
 end
 
-local function removeUnitShape(unitID)
+local function removeUnitShape(shapeID)
 	if not WG.StopDrawUnitShapeGL4 then
 		widget:Shutdown()
-	elseif unitID and unitshapes[unitID] then
-		WG.StopDrawUnitShapeGL4(unitshapes[unitID])
+	elseif shapeID and unitshapes[shapeID] then
+		WG.StopDrawUnitShapeGL4(unitshapes[shapeID])
 		numunitshapes = numunitshapes - 1
-		unitshapes[unitID] = nil
+		unitshapes[shapeID] = nil
+		removedUnitshapes[shapeID] = true	-- in extreme cases the delayed widget:UnitCommand processing is slower than the actual UnitCreated/Finished, this table is to make sure a unitshape isnt created after
 	end
 end
 
@@ -125,13 +131,11 @@ local function checkBuilder(unitID)
 						local unitDefID = math.abs(cmd.id)
 
 						local groundheight = spGetGroundHeight(floor(cmd.params[1]), floor(cmd.params[3]))
-						if UnitDefs[unitDefID] and UnitDefs[unitDefID].waterline > 0 then
-							--Spring.Echo(unitDefID,"has a waterline", UnitDefs[unitDefID].waterline)
-							groundheight = math.max (groundheight, -1 * UnitDefs[unitDefID].waterline)
+						if unitWaterline[unitDefID] then
+							groundheight = math.max (groundheight, -1 * unitWaterline[unitDefID])
 						end
 
 						addUnitShape(id, math.abs(cmd.id), floor(cmd.params[1]), groundheight, floor(cmd.params[3]), cmd.params[4] and (cmd.params[4] * math_halfpi) or 0, myCmd.teamid)
-
 					end
 					command[id][unitID] = true
 					command[id].builders = command[id].builders + 1
@@ -170,7 +174,6 @@ function widget:Shutdown()
 end
 
 function widget:PlayerChanged(playerID)
-	local prevSpec = spec
 	local prevFullview = fullview
 	local prevMyAllyTeamID = myAllyTeamID
 	spec, fullview,_ = Spring.GetSpectatingState()
@@ -193,7 +196,7 @@ function widget:Update(dt)
 	if sec > lastUpdate + 0.12 then
 		lastUpdate = sec
 
-		-- process newly given commands (not done in widgetUnitCommand() because with huge build queue it eats memory and can crash lua)
+		-- process newly given commands (not done in widget:UnitCommand() because with huge build queue it eats memory and can crash lua)
 		local clock = os.clock()
 		for unitID, cmdClock in pairs(newBuilderCmd) do
 			if clock > cmdClock then
@@ -201,6 +204,7 @@ function widget:Update(dt)
 				newBuilderCmd[unitID] = nil
 			end
 		end
+		removedUnitshapes = {}	-- in extreme cases the delayed widget:UnitCommand processing is slower than the actual UnitCreated/Finished, this table is to make sure a unitshape isnt created after
 	end
 end
 
@@ -219,6 +223,10 @@ end
 
 local function clearCommandUnit(unitID)
 	if createdUnitID[unitID] then
+		if unitshapes[createdUnitID[unitID]] then
+			removeUnitShape(createdUnitID[unitID])
+		end
+		removedUnitshapes[createdUnitID[unitID]] = true		-- in extreme cases the delayed widget:UnitCommand processing is slower than the actual UnitCreated/Finished, this table is to make sure a unitshape isnt created after
 		command[createdUnitID[unitID]] = nil
 		createdUnit[createdUnitID[unitID]] = nil
 		createdUnitID[unitID] = nil

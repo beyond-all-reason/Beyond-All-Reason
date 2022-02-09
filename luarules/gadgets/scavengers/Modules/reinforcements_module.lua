@@ -9,7 +9,7 @@ FriendlyResurrectors = {}
 FriendlyCollectors = {}
 FriendlyReclaimers = {}
 
-function CaptureBeacons(n)
+local function captureBeacons(n)
 	local scavengerunits = Spring.GetTeamUnits(ScavengerTeamID)
 	local spGetUnitTeam = Spring.GetUnitTeam
 
@@ -124,7 +124,7 @@ function CaptureBeacons(n)
 	end
 end
 
-function SetBeaconsResourceProduction(n)
+local function setBeaconsResourceProduction(n)
 	if globalScore then
 		local units = Spring.GetAllUnits()
 		local minutes = math.ceil(Spring.GetGameSeconds()/300)
@@ -143,7 +143,7 @@ function SetBeaconsResourceProduction(n)
 end
 
 
-function spawnPlayerReinforcements(n)
+local function spawnPlayerReinforcements(n)
     --mapsizeX
     --mapsizeZ
     --ScavengerStartboxXMin
@@ -322,7 +322,7 @@ function spawnPlayerReinforcements(n)
 	pickedBeacon = nil
 end
 
-function ReinforcementsMoveOrder(n)
+local function reinforcementsMoveOrder(n)
 	if #ActiveReinforcementUnits > 0 then
 		for i = 1,#ActiveReinforcementUnits do
 			local unitID = ActiveReinforcementUnits[i]
@@ -395,10 +395,17 @@ function ReinforcementsMoveOrder(n)
 					end
 					FriendlyArmyOrders = nil
 					if n%600 == 0 then
-						SelfDestructionControls(n, unitID, unitDefID, true)
+						unitController.SelfDestructionControls(n, unitID, unitDefID, true)
 					end
 				end
 			end
 		end
 	end
 end
+
+return {
+	CaptureBeacons = captureBeacons,
+	SetBeaconsResourceProduction = setBeaconsResourceProduction,
+	spawnPlayerReinforcements = spawnPlayerReinforcements,
+	ReinforcementsMoveOrder = reinforcementsMoveOrder,
+}

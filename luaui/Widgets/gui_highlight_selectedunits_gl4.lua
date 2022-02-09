@@ -12,11 +12,11 @@ end
 
 local hideBelowGameframe = 100
 local useTeamcolor = true
-local highlightAlpha = 0.05
-local teamColorAlphaMult = 1.33
-local teamColorMinAlpha = 0.5
-local edgeExponent = 1.4
-local minEdgeAlpha = 0.35
+local highlightAlpha = 0.08
+local teamColorAlphaMult = 1.4
+local teamColorMinAlpha = 0.55
+local edgeExponent = 1.2
+local minEdgeAlpha = 0.4
 
 local unitshapes = {}
 

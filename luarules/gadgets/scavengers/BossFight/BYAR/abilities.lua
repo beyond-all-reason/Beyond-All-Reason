@@ -140,7 +140,7 @@ abilities.airWave = function(n)
 			local fighter = fighters[math_random(1,#fighters)]
 			local bossx, bossy, bossz = Spring.GetUnitPosition(FinalBossUnitID)
 			for i = 1,5*BossFightCurrentPhase*spawnmultiplier do
-				QueueSpawn(fighter, bossx+(math.random(-300, 300)), bossy+1500, bossz+(math.random(-300, 300)), math_random(0,3),ScavengerTeamID, n+i+1)
+				spawnQueueLibrary.AddToSpawnQueue(fighter, bossx+(math.random(-300, 300)), bossy+1500, bossz+(math.random(-300, 300)), math_random(0,3),ScavengerTeamID, n+i+1)
 			end
 		end
 	end
@@ -160,7 +160,7 @@ abilities.tacticalNuke = function(currentFrame)
 						local targetTeam = Spring.GetUnitTeam(target)
 						if targetTeam ~= ScavengerTeamID then
 							local x,y,z = Spring.GetUnitPosition(target)
-							QueueSpawn("scavtacnukespawner_scav", x+math_random(-50,50), y, z+math_random(-50,50), math_random(0,3),ScavengerTeamID, currentFrame+i+math.random(0,60))
+							spawnQueueLibrary.AddToSpawnQueue("scavtacnukespawner_scav", x+math_random(-50,50), y, z+math_random(-50,50), math_random(0,3),ScavengerTeamID, currentFrame+i+math.random(0,60))
 							break
 						end
 					end
@@ -184,7 +184,7 @@ abilities.EMP = function(currentFrame)
 						local targetTeam = Spring.GetUnitTeam(target)
 						if targetTeam ~= ScavengerTeamID then
 							local x,y,z = Spring.GetUnitPosition(target)
-							QueueSpawn("scavempspawner_scav", x+math_random(-50,50), y, z+math_random(-50,50), math_random(0,3),ScavengerTeamID, currentFrame+i+math.random(0,60))
+							spawnQueueLibrary.AddToSpawnQueue("scavempspawner_scav", x+math_random(-50,50), y, z+math_random(-50,50), math_random(0,3),ScavengerTeamID, currentFrame+i+math.random(0,60))
 							break
 						end
 					end

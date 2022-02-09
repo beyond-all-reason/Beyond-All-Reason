@@ -16,8 +16,8 @@ local opacity = 0.25
 local skipOwnTeam = false
 
 ---- GL4 Backend Stuff----
-local selectionVBO = nil
-local selectShader = nil
+local teamplatterVBO = nil
+local teamplatterShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
 
 -- Localize for speedups:
@@ -102,7 +102,7 @@ local function AddPrimitiveAtUnit(unitID)
 	--Spring.Echo("AddPrimitiveAtUnit",unitID, unitTeam[unitID])
 	--Spring.Debug.TableEcho(unitTeam)
 	pushElementInstance(
-		selectionVBO, -- push into this Instance VBO Table
+		teamplatterVBO, -- push into this Instance VBO Table
 		{
 			length, width, cornersize, additionalheight,  -- lengthwidthcornerheight
 			unitTeam[unitID], -- teamID
@@ -128,10 +128,10 @@ function widget:DrawWorldPreUnit()
 		return
 	end
 	drawFrame = drawFrame + 1
-	if selectionVBO.usedElements > 0 then
+	if teamplatterVBO.usedElements > 0 then
 		glTexture(0, texture)
-		selectShader:Activate()
-		selectShader:SetUniform("iconDistance", 99999) -- pass
+		teamplatterShader:Activate()
+		teamplatterShader:SetUniform("iconDistance", 99999) -- pass
 		glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 		glDepthTest(true)
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
@@ -140,30 +140,30 @@ function widget:DrawWorldPreUnit()
 		glStencilFunc(GL_NOTEQUAL, 1, 1) -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
 		glStencilMask(1)
 
-		selectShader:SetUniform("addRadius", 0)
-		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
+		teamplatterShader:SetUniform("addRadius", 0)
+		teamplatterVBO.VAO:DrawArrays(GL_POINTS, teamplatterVBO.usedElements)
 
 		--[[ -- this second draw pass is only needed if we actually want to draw the unit's radius
 		glStencilFunc(GL_NOTEQUAL, 1, 1)
 		glStencilMask(0)
 		glDepthTest(true)
 
-		selectShader:SetUniform("addRadius", 0.15)
-		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
+		teamplatterShader:SetUniform("addRadius", 0.15)
+		teamplatterVBO.VAO:DrawArrays(GL_POINTS, teamplatterVBO.usedElements)
 		]]--
 
 		glStencilMask(1)
 		glStencilFunc(GL_ALWAYS, 1, 1)
 		glDepthTest(true)
 
-		selectShader:Deactivate()
+		teamplatterShader:Deactivate()
 		glTexture(0, false)
 	end
 end
 
 local function RemovePrimitive(unitID)
-	if selectionVBO.instanceIDtoIndex[unitID] then
-		popElementInstance(selectionVBO, unitID)
+	if teamplatterVBO.instanceIDtoIndex[unitID] then
+		popElementInstance(teamplatterVBO, unitID)
 	end
 end
 
@@ -240,7 +240,7 @@ local function init()
 	shaderConfig.TRANSPARENCY = opacity
 	shaderConfig.ANIMATION = 0
 	shaderConfig.HEIGHTOFFSET = 3.99
-	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnits")
+	teamplatterVBO, teamplatterShader = InitDrawPrimitiveAtUnit(shaderConfig, "teamPlatters")
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		AddUnit(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))

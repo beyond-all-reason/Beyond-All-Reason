@@ -93,7 +93,7 @@ void main() {
 	vec4 modelPos = modelMatrix * localModelPos;
 
 	v_endcolor_alpha.rgba = endcolor_endgameframe.rgba;
-	v_endcolor_alpha.a = clamp( (v_endcolor_alpha.a - timeInfo.x + 100) * 0.01, 0.0, 1.0); // fade out for end time
+	v_endcolor_alpha.a = clamp( (v_endcolor_alpha.a - (timeInfo.x + timeInfo.w) + 100) * 0.01, 0.0, 1.0); // fade out for end time
 
 	float paralyzestrength = uni[instData.y].userDefined[1].x; // this (paralyzedamage/maxhealth), so >=1.0 is paralyzed
 	v_endcolor_alpha.a = clamp(pow(paralyzestrength, 2.0), 0.0, 1.1);
@@ -262,14 +262,14 @@ void main() {
 	// ------------------ CONFIG END --------------------
 	
 	
-	vec4 noiseposition = noisescale*vec4(v_modelPosOrig, (timeInfo.x + timeInfo.w)*lightning_speed);
+	vec4 noiseposition = noisescale * vec4(v_modelPosOrig, (timeInfo.x + timeInfo.w) * lightning_speed);
 	float noise4 = 0;
 	noise4 += pow(persistance, 1.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 1.0));
 	noise4 += pow(persistance, 2.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 2.0));
 	noise4 += pow(persistance, 3.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 3.0));
 	noise4 += pow(persistance, 4.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 4.0));
 	noise4 = (1.0 * noise4 + 0.5);
-	float electricity = clamp(1.0 - abs(noise4  - 0.5)*lighting_width, 0.0, 1.0);
+	float electricity = clamp(1.0 - abs(noise4 - 0.5) * lighting_width, 0.0, 1.0);
 	electricity = clamp(pow(electricity, lighting_sharpness), 0.0, 1.0);
 
 	vec3 lightningcolor;

@@ -14,34 +14,36 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
--- Exclude Scavengers / Chickens AI
-local ignoredAllyTeams = {}
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and (luaAI:find("Chickens") or luaAI:find("Scavengers")) then
-		ignoredAllyTeams[ select(6, Spring.GetTeamInfo(teams[i],false)) ] = true
-	end
-end
 
-local aliveComCount = {}
-local commanderDeathQueue = {}
-local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local GetTeamList = Spring.GetTeamList
 local GetUnitAllyTeam = Spring.GetUnitAllyTeam
+local gaiaTeamID = Spring.GetGaiaTeamID()
+
+-- Exclude Scavengers / Chickens AI
+local ignoredTeams = {
+	[gaiaTeamID] = true,
+}
+local teamCount = 0
+local teamList = Spring.GetTeamList()
+for i = 1, #teamList do
+	local luaAI = Spring.GetTeamLuaAI(teamList[i])
+	if luaAI and (luaAI:find("Chickens") or luaAI:find("Scavengers")) then
+		ignoredTeams[teamList[i]] = true
+	end
+	if teamList[i] ~= gaiaTeamID then
+		teamCount = teamCount + 1
+	end
+end
+teamList = nil
+
+local aliveComCount = {}
+local commanderDeathQueue = {}
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
-	end
-end
-
-local teamCount = 0
-for _,teamID in ipairs(GetTeamList()) do
-	if teamID ~= gaiaTeamID then
-		teamCount = teamCount + 1
 	end
 end
 
@@ -82,14 +84,14 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	if isCommander[unitDefID] and unitTeam ~= gaiaTeamID and not ignoredAllyTeams[select(6,Spring.GetTeamInfo(unitTeam, false))] then
+	if isCommander[unitDefID] and not ignoredTeams[unitTeam] then
 		local x,_,z = Spring.GetUnitPosition(unitID)
 		commanderDeathQueue[unitID] = {unitTeam, attackerDefID, x, z}
 	end
 end
 
 function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	if isCommander[unitDefID] and unitTeam ~= gaiaTeamID and not ignoredAllyTeams[select(6,Spring.GetTeamInfo(unitTeam, false))]  then
+	if isCommander[unitDefID] and not ignoredTeams[unitTeam]  then
 		local x,_,z = Spring.GetUnitPosition(unitID)
 		commanderDeathQueue[unitID] = {unitTeam, nil, x, z}
 	end
