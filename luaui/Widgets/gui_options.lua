@@ -1677,7 +1677,7 @@ function init()
 		},
 		{ id = "label_gfx_screen", group = "gfx", name = texts.option.label_screen, category = types.basic },
 		{ id = "label_gfx_screen_spacer", group = "gfx", category = types.basic },
-		{ id = "display", group = "gfx", category = types.basic, name = texts.option.display, type = "select", options = displayNames, value = 0,
+		{ id = "display", group = "gfx", category = types.dev, name = texts.option.display, type = "select", options = displayNames, value = 0,
 			onchange = function(i, value)
 			end,
 		},

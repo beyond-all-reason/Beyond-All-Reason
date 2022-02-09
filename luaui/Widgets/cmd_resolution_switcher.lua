@@ -74,19 +74,16 @@ local function changeScreenMode(index)
 	local screenMode = screenModes[index]
 
 	if screenMode.type == windowType.fullscreen then
-		Spring.Echo("foo Fullscreen", screenMode.display, 0, 0, screenMode.width, screenMode.height, true, false)
 		Spring.SetWindowGeometry(screenMode.display, 0, 0, screenMode.width, screenMode.height, true, false)
 	elseif screenMode.type == windowType.borderless then
-		Spring.Echo("foo Borderless", screenMode.display, 0, 0, screenMode.width, screenMode.height, true, true)
 		Spring.SetWindowGeometry(screenMode.display, 0, 0, screenMode.width, screenMode.height, true, true)
-	-- Windowed mode has a chicken-and-egg problem, where window borders can't be known until after switching to windowed mode
-	-- This cannot be done in two consecutive SetWindowGeometry() calls, as there must be a two draw frame delay
-	-- (one to write, one to read), before the values of GetWindowGeometry() are updated
 	elseif screenMode.type == windowType.windowed then
+		-- Windowed mode has a chicken-and-egg problem, where window borders can't be known until after switching to windowed mode
+		-- This cannot be done in two consecutive SetWindowGeometry() calls, as there must be a two draw frame delay
+		-- (one to write, one to read), before the values of GetWindowGeometry() are updated
 		local _, _, _, _ , borderTop, borderLeft, borderBottom, borderRight = Spring.GetWindowGeometry()
 		local width = screenMode.width - borderLeft - borderRight
 		local height = screenMode.height - borderTop - borderBottom
-		Spring.Echo("foo Windowed", screenMode.display, borderLeft, borderTop, width, height, false, false)
 		Spring.SetWindowGeometry(screenMode.display, borderLeft, borderTop, width, height, false, false)
 
 		if firstPassDrawFrame then
@@ -99,7 +96,7 @@ end
 
 function widget:Update()
 	if firstPassDrawFrame == nil then return end
-	if Spring.GetDrawFrame() - firstPassDrawFrame <= 1 then return end
+	if Spring.GetDrawFrame() - firstPassDrawFrame <= 2 then return end -- 2 draw frame delay for engine to update window borders
 	changeScreenMode(screenModeIndex)
 end
 
@@ -117,7 +114,6 @@ function widget:Initialize()
 	end
 
 	WG['screenMode'].SetScreenMode = function(index)
-		Spring.Echo("foo Changing screen mode", index)
 		screenModeIndex = index
 		changeScreenMode(screenModeIndex)
 	end
