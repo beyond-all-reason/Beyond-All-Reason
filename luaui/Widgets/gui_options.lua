@@ -670,7 +670,7 @@ function widget:Update(dt)
 	end
 
 	if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
-		Spring.SetCameraState(nil, 8)
+		Spring.SetCameraState(nil, 1)
 	else
 		if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() and WG['setcamera_bugfix'] == true then
 			Spring.SetCameraState(nil, cameraTransitionTime)
