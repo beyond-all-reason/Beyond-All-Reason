@@ -122,6 +122,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.3,
 				explosiongenerator = "custom:chickenspike-medium-sparks-burn",
+				firesubmersed = true,
 				impulseboost = 1,
 				impulsefactor = 2.2,
 				interceptedbyshieldtype = 0,

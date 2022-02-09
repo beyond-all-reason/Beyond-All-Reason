@@ -84,6 +84,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.55,
 				explosiongenerator = "custom:blood_explode_blue",
+				firesubmersed = true,
 				impulseboost = 0.22,
 				impulsefactor = 0.22,
 				intensity = 0.7,

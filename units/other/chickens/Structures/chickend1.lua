@@ -84,6 +84,7 @@ return {
 				flighttime = 5,
 				groundbounce = 1,
 				heightmod = 0.5,
+				firesubmersed = true,
 				impulseboost = 0,
 				impulsefactor = 0.4,
 				interceptedbyshieldtype = 4,

@@ -84,6 +84,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.45,
 				explosiongenerator = "custom:gundam_MISSILE_EXPLOSION",
+				firesubmersed = true,
 				impulseboost = 0.22,
 				impulsefactor = 0.22,
 				intensity = 0.7,
