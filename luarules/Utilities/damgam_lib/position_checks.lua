@@ -1,3 +1,7 @@
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------Locals ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 -- Fog of War check needed for some functions
 local noFogOfWar = false
 if Spring.GetModOptions().disable_fogofwar then
@@ -11,6 +15,58 @@ local _,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
 -- Map size
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
+
+-- Get TeamIDs and AllyTeamIDs of Scavengers and Chickens
+local teams = Spring.GetTeamList()
+local scavengerTeamID
+local scavengerAllyTeamID
+local chickenTeamID
+local chickenAllyTeamID
+if Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsChickens() then
+    local teams = Spring.GetTeamList()
+    for i = 1,#teams do
+        if scavengerTeamID and chickenTeamID then
+        local luaAI = Spring.GetTeamLuaAI(teams[i])
+            if not scavengerTeamID then
+                if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+                    scavengerTeamID = i - 1
+                    _,_,_,_,_,scavengerAllyTeamID = Spring.GetTeamInfo(scavengerTeamID)
+                end
+            end
+            if not chickenTeamID then
+                if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ChickensAI' then
+                    chickenTeamID = i - 1
+                    _,_,_,_,_,chickenAllyTeamID = Spring.GetTeamInfo(chickenTeamID)
+                end
+            end
+        end
+    end
+end
+
+-- Team Startboxes
+local AllyTeamStartboxes = {}
+for _,testAllyTeamID in ipairs(Spring.GetAllyTeamList()) do
+    local allyTeamHasStartbox = true
+    local xMin, zMin, xMax, zMax = Spring.GetAllyTeamStartBox(testAllyTeamID)
+    if xMin == 0 and zMin == 0 and xMax == mapSizeX and zMax == mapSizeZ then
+        allyTeamHasStartbox = false
+    end
+    AllyTeamStartboxes[testAllyTeamID+1] = { -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 everytime
+        allyTeamHasStartbox = allyTeamHasStartbox,
+        xMin = xMin,
+        zMin = zMin,
+        xMax = xMax,
+        zMax = zMax,
+    }
+end
+
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------- Position Check functions --------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 local function FlatAreaCheck(posx, posy, posz, posradius, heightTollerance, checkWater) -- Returns true if position is flat enough.
 	-- nil fixes
@@ -104,27 +160,8 @@ local function VisibilityCheckEnemy(posx, posy, posz, posradius, allyTeamID, che
     return true
 end
 
-
-local AllyTeamStartboxes = {}
 local function StartboxCheck(posx, posy, posz, posradius, allyTeamID, returnTrueWhenNoStartbox) -- Return True when position is within startbox.
     local posradius = posradius or 1000
-    
-    if #AllyTeamStartboxes == 0 then -- Cache team's startboxes on first run of this function
-        for _,testAllyTeamID in ipairs(Spring.GetAllyTeamList()) do
-            local allyTeamHasStartbox = true
-            local xMin, zMin, xMax, zMax = Spring.GetAllyTeamStartBox(testAllyTeamID)
-            if xMin == 0 and zMin == 0 and xMax == mapSizeX and zMax == mapSizeZ then
-                allyTeamHasStartbox = false
-            end
-            AllyTeamStartboxes[testAllyTeamID+1] = { -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 everytime
-                allyTeamHasStartbox = allyTeamHasStartbox,
-                xMin = xMin,
-                zMin = zMin,
-                xMax = xMax,
-                zMax = zMax,
-            }
-        end
-    end
 
     if AllyTeamStartboxes[allyTeamID+1].allyTeamHasStartbox == false then
         if returnTrueWhenNoStartbox then
@@ -186,7 +223,39 @@ local function SurfaceCheck(posx, posy, posz, posradius, sea) -- if true then po
     end
 
     return true -- nothing failed, so it's good.
+end
 
+local function ScavengerSpawnAreaCheck(posx, posy, posz, posradius) -- if true then position is within Scavengers spawn area.
+    if scavengerAllyTeamID then
+        local scavTechPercentage = Spring.GetGameRulesParam("scavStatsTechPercentage")
+        if scavTechPercentage then
+            if Spring.GetModOptions().scavspawnarea then
+                if not AllyTeamStartboxes[scavengerAllyTeamID].allyTeamHasStartbox then return true end -- Scavs do not have a startbox so we allow them to spawn anywhere
+                if StartboxCheck(posx, posy, posz, posradius, scavengerAllyTeamID) == true then return true end -- Area is within startbox, so it's for sure in the spawn box.
+                
+                -- Spawn Box grows with Scavengers tech, getting that into from GameRulesParameter set by Scav gadget
+                local SpawnBoxMinX = math.floor(ScavengerStartboxXMin-(((mapSizeX)*0.01)*ScavTechPercentage))
+                local SpawnBoxMaxX = math.ceil(ScavengerStartboxXMax+(((mapSizeX)*0.01)*ScavTechPercentage))
+                local SpawnBoxMinZ = math.floor(ScavengerStartboxZMin-(((mapSizeZ)*0.01)*ScavTechPercentage))
+                local SpawnBoxMaxZ = math.ceil(ScavengerStartboxZMax+(((mapSizeZ)*0.01)*ScavTechPercentage))      
+                
+                if posx < SpawnBoxMinX then return false end
+                if posx > SpawnBoxMaxX then return false end
+                if posz < SpawnBoxMinZ then return false end
+                if posz > SpawnBoxMaxZ then return false end       
+
+                return true
+            else
+                return true
+            end
+        else
+            if not AllyTeamStartboxes[scavengerAllyTeamID].allyTeamHasStartbox then return true end -- There's no info about tech percentage, but if there's no startbox, we assume they can spawn anywhere, right?
+            if StartboxCheck(posx, posy, posz, posradius, scavengerAllyTeamID) == true then return true end -- Area is within startbox, so it's for sure in the spawn box, even if we don't have info about how big spawn box is.
+            return false -- but otherwise, don't let them spawn, don't risk spawning in place they shouldn't spawn.
+        end
+    else
+        return false -- Scavs aren't in the game, so they don't have a spawn area.
+    end
 end
 
 return {
@@ -197,4 +266,7 @@ return {
     StartboxCheck = StartboxCheck,
     MapEdgeCheck = MapEdgeCheck,
     SurfaceCheck = SurfaceCheck,
+
+    -- Scavengers
+    ScavengerSpawnAreaCheck = ScavengerSpawnAreaCheck,
 }
