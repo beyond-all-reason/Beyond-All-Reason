@@ -945,7 +945,10 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	--if cnt == 2 then bt = barTypeMap.reload end
 	local instanceID = unitID .. '_' .. barname
 	--Spring.Echo(instanceID, barname, unitBars[unitID])
-	if healthBarVBO.instanceIDtoIndex[instanceID] then return end -- we already have this bar !
+	if healthBarVBO.instanceIDtoIndex[instanceID] then 
+		if debugmode then Spring.Echo("Trying to add duplicate bar", unitID, instanceID, barname, reason, unitBars[unitID]) end 
+		return
+	end -- we already have this bar !
 	
 	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then -- dead or invalid
 		if debugmode then 
@@ -1004,7 +1007,7 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 		return
 	end
 	
-	unitBars[unitID] = 0
+	unitBars[unitID] = unitBars[unitID] or 0
 	
 	-- This is optionally passed, and it only important in one edge case:
 	-- If a unit is captured and thus immediately become outside of LOS, then the getunitallyteam is still the old ally team according to getUnitAllyTEam, and not the new allyteam.
@@ -1387,8 +1390,8 @@ function widget:UnitFinished(unitID, unitDefID, teamID) -- reset bars on constru
 	widget:UnitCreated(unitID, unitDefID, teamID)
 end
 
-function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	addBarsForUnit(unitID, Spring.GetUnitDefID(unitID), unitTeam, nil, 'UnitEnteredLos')
+function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID) -- this is still called when in spectator mode :D
+	if not fullview then addBarsForUnit(unitID, Spring.GetUnitDefID(unitID), unitTeam, nil, 'UnitEnteredLos') end
 end
 
 function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
@@ -1573,7 +1576,7 @@ function widget:DrawWorld()
 		gl.Texture(0,healthbartexture)
 		healthBarShader:Activate()
 		healthBarShader:SetUniform("iconDistance",disticon) 
-		healthBarShader:SetUniform("cameraDistancMult",1.0) 
+		if not debugmode then healthBarShader:SetUniform("cameraDistancMult",1.0)  end
 		healthBarShader:SetUniform("skipGlyphsNumbers",skipGlyphsNumbers)  --0.0 is everything,  1.0 means only numbers, 2.0 means only bars, 
 		if healthBarVBO.usedElements > 0 then 
 			healthBarVBO.VAO:DrawArrays(GL.POINTS,healthBarVBO.usedElements)
@@ -1581,15 +1584,15 @@ function widget:DrawWorld()
 		--for i = 1, 10 do
 			
 			if featureHealthVBO.usedElements > 0 then
-				healthBarShader:SetUniform("cameraDistancMult",featureHealthDistMult) 
+				if not debugmode then healthBarShader:SetUniform("cameraDistancMult",featureHealthDistMult)  end
 				featureHealthVBO.VAO:DrawArrays(GL.POINTS,featureHealthVBO.usedElements)
 			end
 			if featureResurrectVBO.usedElements > 0 then		
-				healthBarShader:SetUniform("cameraDistancMult",featureResurrectDistMult) 
+				if not debugmode then healthBarShader:SetUniform("cameraDistancMult",featureResurrectDistMult)  end
 				featureResurrectVBO.VAO:DrawArrays(GL.POINTS,featureResurrectVBO.usedElements)
 			end
 			if featureReclaimVBO.usedElements > 0 then		
-				healthBarShader:SetUniform("cameraDistancMult",featureReclaimDistMult) 
+				if not debugmode then healthBarShader:SetUniform("cameraDistancMult",featureReclaimDistMult)  end
 				featureReclaimVBO.VAO:DrawArrays(GL.POINTS,featureReclaimVBO.usedElements)
 			end
 		--end
