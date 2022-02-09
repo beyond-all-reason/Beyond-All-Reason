@@ -152,18 +152,22 @@ end
 -- TODO
 -- 1. enemy paralyzed is not visible?
 -- enemy comms and fusions health? hide the ones which should be hidden!
--- check for invalidness on addbars
--- better maintenance of bartypes and watch lists 
--- feature bars fade out faster
--- CLOAKED UNITSES
--- Healthbars color correction
--- Hide buildbars when at full hp - or convert them to build bars?
--- todo some tex filtering issues on healthbar tops and bottoms :/ 
--- TODO: some GAIA shit?
--- TODO: enemy comms and fus and decoy fus should not get healthbars!
--- TODO: allies dont get reload bars? Do Specs see them?
--- TODO: correct draw order (after highlightunit)
-
+-- check for invalidness on addbars -- dont
+-- better maintenance of bartypes and watch lists  
+-- feature bars fade out faster -- done
+-- CLOAKED UNITSES -- done
+-- Healthbars color correction -- done 
+-- Hide buildbars when at full hp - or convert them to build bars? -- done
+-- todo some tex filtering issues on healthbar tops and bottoms :/  -- done
+-- TODO: some GAIA shit? -- done
+-- TODO: enemy comms and fus and decoy fus should not get healthbars! -- done
+-- TODO: allies dont get reload bars? Do Specs see them? -- done (it was f'ed up previously)
+-- TODO: correct draw order (after highlightunit) -- done
+-- TODO: when reiniting feature bars, also check for resurrect/reclaim status -- done, just dont reinit them on playerchanged, no point!
+	-- now this is problematic, as the gadget only sends us an event on first reclaim event
+	-- we must assume that all features 
+	-- feature bars dont actually need a reinit, now do they?
+-- TODO: make numbers, glyphs optional? -- done, but untested
 
 --/luarules fightertest corak armpw 100 10 2000
 
@@ -299,7 +303,7 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 		uvoffset = 0.5, -- the X offset of the icon for this bar
 	},
 	featureresurrect = {
-		mincolor = {0.5, 0.1, 0.5, 1.0},
+		mincolor = {0.75, 0.15, 0.75, 1.0},
 		maxcolor = {1.0, 0.2, 1.0, 1.0},
 		--bartype = 0,
 		bartype = bitShowGlyph + bitPercentage, 
@@ -563,6 +567,7 @@ layout(triangle_strip, max_vertices = MAXVERTICES) out;
 #line 20000
 
 uniform float iconDistance;
+uniform float skipGlyphsNumbers; // <0.5 means none, <1.5 means percent only, >1.5 means nothing, just bars
 
 in DataVS { // I recall the sane limit for cache coherence is like 48 floats per vertex? try to stay under that!
 	uint v_numvertices;
@@ -766,10 +771,18 @@ void main(){
 	
 	if (GLYPHALPHA < MINALPHA) return; // dont display glyphs below 50% transparency
 	
-	if ((BARTYPE & BITSHOWGLYPH) > 0u){ 
-		emitGlyph(vec2(- BARWIDTH - 1 * BARHEIGHT , 0), vec2(ATLASSTEP, UVOFFSET), vec2(ATLASSTEP, ATLASSTEP));	//glyph icon
-	}
+	if (skipGlyphsNumbers > 1.5) return;
 	
+	float currentglyphpos = 1.0;
+	
+	if (skipGlyphsNumbers < 0.5 ){
+		if ((BARTYPE & BITSHOWGLYPH) > 0u){ 
+			emitGlyph(vec2(- BARWIDTH - currentglyphpos * BARHEIGHT , 0), vec2(ATLASSTEP, UVOFFSET), vec2(ATLASSTEP, ATLASSTEP));	//glyph icon
+		}
+	}else{
+		currentglyphpos = 0.0;
+	}
+		
 	if ((BARTYPE & BITINTEGERNUMBER) > 0u){ // STOCKPILE FONTS THEN EH? xx/yy
 		vec4 numbers = vec4(numStockpiled, numStockpiled, numStockpileQueued, numStockpileQueued);
 		numbers = numbers * vec4(1.0, 0.1, 1.0, 0.1);
@@ -777,9 +790,9 @@ void main(){
 		float glyphpctsecatlas = 11 * ATLASSTEP; // TODO: slash sign in texture
 		// go right to left
 		
-		emitGlyph(vec2(-BARWIDTH - 2 * BARHEIGHT  , 0), vec2(0, numbers.x ), vec2(ATLASSTEP, ATLASSTEP)); // lsb of numqueued
+		emitGlyph(vec2(-BARWIDTH - (currentglyphpos + 1.0) * BARHEIGHT  , 0), vec2(0, numbers.x ), vec2(ATLASSTEP, ATLASSTEP)); // lsb of numqueued
 		if (numbers.y > 0 ){
-			emitGlyph(vec2(-BARWIDTH - 3 * BARHEIGHT + BARHEIGHT * 0.4 , 0), vec2(0, numbers.y ), vec2(ATLASSTEP, ATLASSTEP)); // msb of numqueued
+			emitGlyph(vec2(-BARWIDTH - (currentglyphpos + 2.0) * BARHEIGHT + BARHEIGHT * 0.4 , 0), vec2(0, numbers.y ), vec2(ATLASSTEP, ATLASSTEP)); // msb of numqueued
 		}
 	}
 
@@ -798,10 +811,10 @@ void main(){
 			msb = floor(mod(health*10.0, 10.0));
 			glyphpctsecatlas = 11.0; // percent
 		}
-		emitGlyph(vec2(-BARWIDTH - 2 * BARHEIGHT , 0), vec2(0, glyphpctsecatlas * ATLASSTEP), vec2(ATLASSTEP, ATLASSTEP)); // % 
-		emitGlyph(vec2(-BARWIDTH - 3 * BARHEIGHT + BARHEIGHT * 0.2 , 0), vec2(0,  lsb * ATLASSTEP ), vec2(ATLASSTEP, ATLASSTEP)); // lsb
+		emitGlyph(vec2(-BARWIDTH - (currentglyphpos + 1.0) * BARHEIGHT , 0), vec2(0, glyphpctsecatlas * ATLASSTEP), vec2(ATLASSTEP, ATLASSTEP)); // % 
+		emitGlyph(vec2(-BARWIDTH - (currentglyphpos + 2.0) * BARHEIGHT + BARHEIGHT * 0.2 , 0), vec2(0,  lsb * ATLASSTEP ), vec2(ATLASSTEP, ATLASSTEP)); // lsb
 		if (msb > 0){
-			emitGlyph(vec2(-BARWIDTH - 4 * BARHEIGHT + BARHEIGHT * 0.6 , 0), vec2(0,  msb * ATLASSTEP), vec2(ATLASSTEP, ATLASSTEP)); //msb
+			emitGlyph(vec2(-BARWIDTH - (currentglyphpos + 3.0) * BARHEIGHT + BARHEIGHT * 0.6 , 0), vec2(0,  msb * ATLASSTEP), vec2(ATLASSTEP, ATLASSTEP)); //msb
 		}
 	}
 }
@@ -833,6 +846,7 @@ void main(void)
 	//fragColor.rgba += vec4(0.25);
 	//fragColor.a += 0.5;
 	//fragColor.a = 1.0;
+	if (fragColor.a < 0.05) discard;
 }
 ]]
 
@@ -884,6 +898,7 @@ local function initGL4()
 			--addRadius = 1,
 			iconDistance = 27,
 			cameraDistancMult = 1.0,
+			skipGlyphsNumbers = 0.0,
 		  },
 		},
 		"health bars Shader GL4"
@@ -1158,6 +1173,9 @@ local function init()
 		end
 	end
 	
+end
+
+local function initfeaturebars()
 	clearInstanceTable(featureHealthVBO)
 	clearInstanceTable(featureResurrectVBO)
 	clearInstanceTable(featureReclaimVBO)
@@ -1171,7 +1189,7 @@ local function init()
 			-- or shall we only instantiate bars when needed? probably number 2 is smarter...
 		--end -- maybe store resurrect progress here? 
 	
-		if gameFrame > 0 then
+		if gameFrame > 0 and featureDefID then -- dont add features that we cant get the ID of
 			-- add a health bar for it (dont add one for pre-existing stuff)
 			widget:FeatureCreated(featureID)
 		else
@@ -1330,6 +1348,7 @@ function widget:Initialize()
 	-- TODO: dont even bother drawing health bars for features that were present on frame 0 - no point in doing so
 	-- This is stuff like trees and map features, and scenario features
 	init()
+	initfeaturebars()
 	widgetHandler:RegisterGlobal("FeatureReclaimStartedHealthbars",FeatureReclaimStartedHealthbars )
 	widgetHandler:RegisterGlobal("UnitCaptureStartedHealthbars",UnitCaptureStartedHealthbars )
 	widgetHandler:RegisterGlobal("UnitParalyzeDamageHealthbars",UnitParalyzeDamageHealthbars )
@@ -1547,6 +1566,7 @@ function widget:DrawWorld()
 		healthBarShader:Activate()
 		healthBarShader:SetUniform("iconDistance",disticon) 
 		healthBarShader:SetUniform("cameraDistancMult",1.0) 
+		healthBarShader:SetUniform("skipGlyphsNumbers",0.0)  --0.0 is everything,  1.0 means only numbers, 2.0 means only bars, 
 		if healthBarVBO.usedElements > 0 then 
 			healthBarVBO.VAO:DrawArrays(GL.POINTS,healthBarVBO.usedElements)
 		end
