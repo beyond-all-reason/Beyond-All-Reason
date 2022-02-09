@@ -669,11 +669,13 @@ function widget:Update(dt)
 		end
 	end
 
-	--if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 0 then	-- doing this results in choppy cam movement
+	if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
+		Spring.SetCameraState(nil, 8)
+	else
 		if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() and WG['setcamera_bugfix'] == true then
 			Spring.SetCameraState(nil, cameraTransitionTime)
 		end
-	--end
+	end
 
 	-- check if there is water shown 	(we do this because basic water 0 saves perf when no water is rendered)
 	if not waterDetected then

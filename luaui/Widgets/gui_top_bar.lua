@@ -11,7 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-local allowSavegame = Spring.Utilities.ShowDevUI()
+local allowSavegame = true--Spring.Utilities.ShowDevUI()
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.6)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
