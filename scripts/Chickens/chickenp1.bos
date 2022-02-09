@@ -65,6 +65,12 @@ AimFromSecondary(piecenum)
 QuerySecondary(piecenum)
 	{	piecenum=lsack; }
 
+AimFromTertiary(piecenum)
+	{	piecenum=head;	}
+
+QueryTertiary(piecenum)
+	{	piecenum=lsack; }
+
 
 
 AimPrimary(heading,pitch)
@@ -110,6 +116,21 @@ AimSecondary(heading,pitch)
 	return(1);
 	}
 
+AimTertiary(heading,pitch)
+	{
+  	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	
+	if (heading > <60>) heading = <60>;
+	if (heading < <-60>) heading = <-60>;
+	turn aimy1 to y-axis heading speed <175>;
+	turn aimy1 to x-axis 0 -pitch speed <175>;
+	wait-for-turn aimy1 around y-axis;
+	wait-for-turn aimy1 around x-axis;
+	start-script RestoreAfterDelay();
+	return(1);
+	}
+
 Shot1()
 	{ }
 Shot2()
@@ -126,4 +147,6 @@ Shot2()
 	call-script lua_FlameShot(2);
 	return (head);
 	}
+Shot3()
+	{ }
 
