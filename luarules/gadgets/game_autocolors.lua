@@ -375,7 +375,6 @@ if gadgetHandler:IsSyncedCode() then
         }
     end
 
-    Spring.Echo(Json.encode(AutoColors))
     Spring.SendLuaRulesMsg("AutoColors", Json.encode(AutoColors))
     
     return
