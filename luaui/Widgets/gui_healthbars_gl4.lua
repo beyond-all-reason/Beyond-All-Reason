@@ -383,6 +383,7 @@ local featureHealthDistMult = 4 -- how many times closer features have to be for
 local featureReclaimDistMult = 2 -- how many times closer features have to be for their bars to show
 local featureResurrectDistMult = 1 -- how many times closer features have to be for their bars to show
 local unitDefSizeMultipliers = {} -- table of unitdefID to a size mult (default 1.0) to override sizing of bars per unitdef
+local skipGlyphsNumbers = 0.0  -- 0.0 is draw glyph and number,  1.0 means only numbers, 2.0 means only bars, 
 
 local debugmode = false
 
@@ -502,6 +503,11 @@ void main()
 	float cameraDistance = length((cameraViewInv[3]).xyz - v_centerpos.xyz)* cameraDistancMult;
 	v_parameters.y = 1.0 - (clamp(cameraDistance, BARFADESTART, BARFADEEND) - BARFADESTART)/ ( BARFADEEND-BARFADESTART);
 	v_parameters.z = 1.0 - (clamp(cameraDistance, ICONFADESTART, ICONFADEEND) - ICONFADESTART)/ ( ICONFADEEND-ICONFADESTART);
+	#ifdef DEBUGSHOW
+		v_parameters.y = 1.0;
+		v_parameters.z = 1.0;
+	#endif
+	
 	v_parameters.w = height_timers.w;
 	v_sizemodifiers = height_timers.yz;
 	if (length((cameraViewInv[3]).xyz - v_centerpos.xyz) >  iconDistance){
@@ -515,7 +521,7 @@ void main()
 	v_centerpos.y += HEIGHTOFFSET; // Add some height to ensure above groundness
 	v_centerpos.y += height_timers.x; // Add per-instance height offset
 	
-	//if ((UNITUNIFORMS.composite & 0x00000003u) < 1u ) v_numvertices = 0u; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon)) 
+	if ((UNITUNIFORMS.composite & 0x00000003u) < 1u ) v_numvertices = 0u; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon)) 
 	
 	
 	v_bartype_index_ssboloc = bartype_index_ssboloc;
@@ -530,7 +536,9 @@ void main()
 	}else{ // this is a health bar, dont draw it if the unit is being built and its health doesnt really differ from the full health
 		// TODO: this is kinda buggy, as buildprogess in the the unit uniforms is somehow lagging behind health.
 		float buildprogress = UNITUNIFORMS.userDefined[0].x; // this is -1.0 for fully built units
-		if (abs(buildprogress - relativehealth )< 0.03) v_numvertices = 0u;  
+		#ifndef DEBUGSHOW
+			if (abs(buildprogress - relativehealth )< 0.03) v_numvertices = 0u;  
+		#endif
 	}
 	if (UNIFORMLOC < 4u) v_parameters.x = UNITUNIFORMS.userDefined[0][bartype_index_ssboloc.z ];
 	if (UNIFORMLOC == 0u) { //building
@@ -687,8 +695,8 @@ void main(){
 			//	if (health < 0.005) return;
 			}
 		}
-		if (dataIn[0].v_numvertices == 0u) return; // for hiding the build bar when full health
 	#endif
+	if (dataIn[0].v_numvertices == 0u) return; // for hiding the build bar when full health
 	
 	
 	// STOCKPILE BAR:  128*numStockpileQued + numStockpiled + stockpileBuild
@@ -867,7 +875,7 @@ local function initializeInstanceVBOTable(myName, usesFeatures)
 			{id = 3, name = 'endcolor', size = 4},
 			{id = 4, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 		},
-		64, -- maxelements
+		256, -- maxelements
 		myName, -- name
 		4 -- unitIDattribID (instData)
 	)
@@ -1566,7 +1574,7 @@ function widget:DrawWorld()
 		healthBarShader:Activate()
 		healthBarShader:SetUniform("iconDistance",disticon) 
 		healthBarShader:SetUniform("cameraDistancMult",1.0) 
-		healthBarShader:SetUniform("skipGlyphsNumbers",0.0)  --0.0 is everything,  1.0 means only numbers, 2.0 means only bars, 
+		healthBarShader:SetUniform("skipGlyphsNumbers",skipGlyphsNumbers)  --0.0 is everything,  1.0 means only numbers, 2.0 means only bars, 
 		if healthBarVBO.usedElements > 0 then 
 			healthBarVBO.VAO:DrawArrays(GL.POINTS,healthBarVBO.usedElements)
 		end
