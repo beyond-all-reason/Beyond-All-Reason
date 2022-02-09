@@ -356,12 +356,28 @@ if gadgetHandler:IsSyncedCode() then
 
     local spGetTeamInfo = Spring.GetTeamInfo
     local spGetTeamLuaAI = Spring.GetTeamLuaAI
+    local AutoColors = {}
     for i = 1,#teamList do
         local teamID = teamList[i]
         local _, leader, isDead, isAiTeam, side, allyTeamID, incomeMultiplier, customTeamKeys = spGetTeamInfo(teamID)
         local isAI = spGetTeamLuaAI(teamID)
         setUpTeamColor(teamID, allyTeamID, isAI)
+        
+        local r = Spring.GetTeamRulesParam(teamID, "AutoTeamColorRed")
+        local g = Spring.GetTeamRulesParam(teamID, "AutoTeamColorGreen")
+        local b = Spring.GetTeamRulesParam(teamID, "AutoTeamColorBlue")
+
+        AutoColors[i] = {
+            teamID = teamID,
+            r = r,
+            g = g,
+            b = b,
+        }
     end
+
+    Spring.Echo(Json.encode(AutoColors))
+    Spring.SendLuaRulesMsg("AutoColors", Json.encode(AutoColors))
+    
     return
 end
 
