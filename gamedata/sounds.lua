@@ -121,6 +121,7 @@ local soundData = {
 				['^mgun'] = 0.08,
 				['^minigun'] = 0.09,
 				['^lrpcshot'] = 0.12,
+				['^raptorlaser$'] = 0.04,
 				['^xplosml'] = 0.22,
 				['^xplomed'] = 0.25,
 				['^xplolrg'] = 0.3,

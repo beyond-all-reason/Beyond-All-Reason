@@ -1,5 +1,5 @@
 return {
-	roost_death = {
+	tentacle_death = {
 		areaofeffect = 16,
 		craterboost = 0,
 		cratermult = 0,
@@ -10,7 +10,7 @@ return {
 		range = 450,
 		reloadtime = 3.6,
 		soundhit = "bigbugdie",
-		soundhitvolume = 15,
+		soundhitvolume = 12,
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {
