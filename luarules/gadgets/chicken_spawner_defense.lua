@@ -1271,7 +1271,7 @@ if gadgetHandler:IsSyncedCode() then
 				canSpawnDefence = true
 				-- lsx1 - xmin, lsz1 - zmin, lsx2 - xmax, lsz2 - zmax
 				local spawnDirection = math.random(0,3)
-				local spread = 300
+				local spread = 210
 				local spawnPosX = math.random(lsx1,lsx2)
 				local spawnPosZ = math.random(lsz1,lsz2)
 				
