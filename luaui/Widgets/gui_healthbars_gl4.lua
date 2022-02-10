@@ -601,13 +601,32 @@ float depthbuffermod;
 float sizemultiplier = dataIn[0].v_sizemodifiers.x;
 #define HALFPIXEL 0.0019765625
 
+#define BARTYPE dataIn[0].v_bartype_index_ssboloc.x
+#define BARALPHA dataIn[0].v_parameters.y
+#define GLYPHALPHA dataIn[0].v_parameters.z
+#define UVOFFSET dataIn[0].v_parameters.w
+#define UNIFORMLOC dataIn[0].v_bartype_index_ssboloc.z
+
+#define BITUSEOVERLAY 1u
+#define BITSHOWGLYPH 2u
+#define BITPERCENTAGE 4u
+#define BITTIMELEFT 8u
+#define BITINTEGERNUMBER 16u
+#define BITGETPROGRESS 32u
+#define BITFLASHBAR 64u
+#define BITCOLORCORRECT 128u
+
 void emitVertexBG(in vec2 pos){
 	g_uv.xy = vec2(0.0,0.0);
 	vec3 primitiveCoords = vec3(pos.x,0.0,pos.y - zoffset) * BARSCALE *sizemultiplier;
 	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( primitiveCoords ), 1.0);
 	gl_Position.z += depthbuffermod;
 	g_uv.z = 0.0; // this tells us to use color
-	g_color = mix(BGBOTTOMCOLOR, BGTOPCOLOR, pos.y);
+	float extracolor = 0.0;
+	if (((BARTYPE & BITFLASHBAR) > 0u) && (mod(timeInfo.x, 30.0) > 15.0)){
+		extracolor = 0.5;
+	}
+	g_color = mix(BGBOTTOMCOLOR + extracolor, BGTOPCOLOR + extracolor, pos.y);
 	g_color.a *= dataIn[0].v_parameters.y; // blend with bar fade alpha
 	EmitVertex();
 }
@@ -650,25 +669,15 @@ void emitGlyph(vec2 bottomleft, vec2 uvbottomleft, vec2 uvsizes){
 	EndPrimitive();
 }
 
-#define BARTYPE dataIn[0].v_bartype_index_ssboloc.x
-#define BARALPHA dataIn[0].v_parameters.y
-#define GLYPHALPHA dataIn[0].v_parameters.z
-#define UVOFFSET dataIn[0].v_parameters.w
-#define UNIFORMLOC dataIn[0].v_bartype_index_ssboloc.z
-
-#define BITUSEOVERLAY 1u
-#define BITSHOWGLYPH 2u
-#define BITPERCENTAGE 4u
-#define BITTIMELEFT 8u
-#define BITINTEGERNUMBER 16u
-#define BITGETPROGRESS 32u
-#define BITFLASHBAR 64u
-#define BITCOLORCORRECT 128u
 
 #line 22000 
 void main(){
 	// bail super early like scum if simple bar with >0.99 value
-	zoffset =  1.15 * BARHEIGHT *  float(dataIn[0].v_bartype_index_ssboloc.y); 
+	//if (v_bartype_index_ssboloc.y < 32u){ // for paralyze and emp bars, which should always go above regular health bar
+		zoffset =  1.15 * BARHEIGHT *  float(dataIn[0].v_bartype_index_ssboloc.y); 
+	//}else{
+	//	zoffset =  1.15 * BARHEIGHT *  -1.0; 
+	//}
 	
 	centerpos = dataIn[0].v_centerpos;
 
@@ -717,8 +726,7 @@ void main(){
 	//   1 |              | 7
 	//     \-3----------5-/
 	//start in bottom leftmost of this shit.
-		vec4 topcolor = BGTOPCOLOR;
-		vec4 botcolor = BGBOTTOMCOLOR;
+
 		depthbuffermod = 0.001;
 		emitVertexBG(vec2(-BARWIDTH            , BARCORNER            )); //1
 		emitVertexBG(vec2(-BARWIDTH            , BARHEIGHT - BARCORNER)); //2 
@@ -733,6 +741,8 @@ void main(){
 	// EMIT THE COLORED BACKGROUND 
 	// for this to work, we need the true color of the bar?
 	
+		vec4 topcolor = BGTOPCOLOR;
+		vec4 botcolor = BGBOTTOMCOLOR;
 		vec4 truecolor = mix(dataIn[0].v_mincolor, dataIn[0].v_maxcolor, health);
 
 		truecolor.a = 0.2;
@@ -967,7 +977,15 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 		end
 		unitBars[unitID] = 1
 	end
+	
+
+	--local barpos = unitBars[unitID] 
+	--if bartype == 'emp_damage' or bartype == 'paralyze' then 
+	--	barpos = 33 
+	--else
 	unitBars[unitID] = unitBars[unitID] + 1
+	--end -- to keep these on top
+	
 	
 	healthBarTableCache[1] = unitDefHeights[unitDefID] + additionalheightaboveunit  -- height
 	healthBarTableCache[2] = unitDefSizeMultipliers[unitDefID] or 1.0 -- sizemult
@@ -975,7 +993,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	healthBarTableCache[4] = bt.uvoffset -- glyph uv offset
 	
 	healthBarTableCache[5] = bt.bartype -- bartype int
-	healthBarTableCache[6] = unitBars[unitID] - 1 -- bar index (how manyeth per unit)
+	healthBarTableCache[6] = unitBars[unitID] - 1   -- bar index (how manyeth per unit)
 	healthBarTableCache[7] = bt.uniformindex -- ssbo location offset (> 20 for health)
 	
 	healthBarTableCache[9] = bt.mincolor[1]
@@ -1037,6 +1055,11 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 			uniformcache[1] = -1.0 -- mean that the unit has been built, we init it to -1 always
 			gl.SetUnitBufferUniforms(unitID, uniformcache, 0) 
 		end
+		--Spring.Echo(unitID, unitDefID, unitDefCanStockpile[unitDefID])
+		if unitDefCanStockpile[unitDefID] and ((unitAllyTeam == myAllyTeamID) or fullview) then 
+			unitStockPileWatch[unitID] = 0.0
+			addBarForUnit(unitID, unitDefID, "stockpile", reason)
+		end 
 		if  capture > 0 then
 			addBarForUnit(unitID, unitDefID, "capture", reason)
 			uniformcache[1] = capture
@@ -1064,11 +1087,6 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 				end
 			end	
 		end
-		--Spring.Echo(unitID, unitDefID, unitDefCanStockpile[unitDefID])
-		if unitDefCanStockpile[unitDefID] and ((unitAllyTeam == myAllyTeamID) or fullview) then 
-			unitStockPileWatch[unitID] = 0.0
-			addBarForUnit(unitID, unitDefID, "stockpile", reason)
-		end 
 	end
 end
 
@@ -1079,7 +1097,11 @@ local function removeBarFromUnit(unitID, barname, reason) -- this will bite me i
 	local instanceKey = unitID .. "_" .. barname	
 	if healthBarVBO.instanceIDtoIndex[instanceKey] then
 		if debugmode then Spring.Debug.TraceEcho(reason) end 
-		unitBars[unitID] = unitBars[unitID] - 1
+		--if barname == 'emp_damage' or barname == 'paralyze' then 
+			-- dont decrease counter for these
+		--else
+			unitBars[unitID] = unitBars[unitID] - 1
+		--end
 		popElementInstance(healthBarVBO, instanceKey)
 	end
 end
