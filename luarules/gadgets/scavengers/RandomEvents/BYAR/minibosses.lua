@@ -9,9 +9,9 @@ local function miniboss1(currentFrame)
 			local posx = math_random(300,mapsizeX-300)
 			local posz = math_random(300,mapsizeZ-300)
 			local posy = Spring.GetGroundHeight(posx, posz)
-			CanSpawnEvent = posLosCheckNoRadar(posx, posy, posz, 300)
+			CanSpawnEvent = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, 300, ScavengerAllyTeamID, true, true, false)
 			if CanSpawnEvent then
-				CanSpawnEvent = posLandCheck(posx, posy, posz, 300)
+				CanSpawnEvent = positionCheckLibrary.SurfaceCheck(posx, posy, posz, 300)
 			end
 			if CanSpawnEvent then
 				if TierSpawnChances.T2 == 0 and TierSpawnChances.T3 == 0 and TierSpawnChances.T4 == 0 then
@@ -52,9 +52,9 @@ local function miniboss2(currentFrame)
 			local posx = math_random(300,mapsizeX-300)
 			local posz = math_random(300,mapsizeZ-300)
 			local posy = Spring.GetGroundHeight(posx, posz)
-			CanSpawnEvent = posLosCheckNoRadar(posx, posy, posz, 300)
+			CanSpawnEvent = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, radius, ScavengerAllyTeamID, true, true, false)
 			if CanSpawnEvent then
-				CanSpawnEvent = posLandCheck(posx, posy, posz, 300)
+				CanSpawnEvent = positionCheckLibrary.SurfaceCheck(posx, posy, posz, 300)
 			end
 			if CanSpawnEvent then
 				if TierSpawnChances.T2 == 0 and TierSpawnChances.T3 == 0 and TierSpawnChances.T4 == 0 then

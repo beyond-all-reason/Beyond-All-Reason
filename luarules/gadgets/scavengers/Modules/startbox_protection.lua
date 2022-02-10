@@ -11,8 +11,8 @@ local function spawnStartBoxProtection(n)
 			--ScavengerStartboxZMax
 			--ScavengerTeamID
 			--ScavengerAllyTeamID
-			--posCheck(posx, posy, posz, posradius)
-			--posOccupied(posx, posy, posz, posradius)
+			--positionCheckLibrary.FlatAreaCheck(posx, posy, posz, posradius)
+			--positionCheckLibrary.OccupancyCheck(posx, posy, posz, posradius)
 			--ScavSafeAreaMinX
 			--ScavSafeAreaMaxX
 			--ScavSafeAreaMinZ
@@ -77,9 +77,9 @@ local function spawnStartBoxProtection(n)
 					end
 				end
 
-				canSpawnDefence = posCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+				canSpawnDefence = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
 				if canSpawnDefence then
-					canSpawnDefence = posOccupied(spawnPosX, spawnPosY, spawnPosZ, spread)
+					canSpawnDefence = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
 				end
 
 				if canSpawnDefence then

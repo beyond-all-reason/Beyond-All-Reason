@@ -45,9 +45,9 @@ function SpawnBlueprint(n)
 			end
 
 			local radius = blueprint.radius
-			local canBuildHere = posLosCheck(posx, posy, posz, radius)
-						and posOccupied(posx, posy, posz, radius)
-						and	posCheck(posx, posy, posz, radius)
+			local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, radius, ScavengerAllyTeamID, true, true, true)
+						and positionCheckLibrary.OccupancyCheck(posx, posy, posz, radius)
+						and	positionCheckLibrary.FlatAreaCheck(posx, posy, posz, radius)
 
 
 			if canBuildHere then

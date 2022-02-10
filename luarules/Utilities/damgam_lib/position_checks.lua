@@ -25,19 +25,17 @@ local chickenAllyTeamID
 if Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsChickens() then
     local teams = Spring.GetTeamList()
     for i = 1,#teams do
-        if scavengerTeamID and chickenTeamID then
         local luaAI = Spring.GetTeamLuaAI(teams[i])
-            if not scavengerTeamID then
-                if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-                    scavengerTeamID = i - 1
-                    _,_,_,_,_,scavengerAllyTeamID = Spring.GetTeamInfo(scavengerTeamID)
-                end
+        if not scavengerTeamID then
+            if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+                scavengerTeamID = i - 1
+                _,_,_,_,_,scavengerAllyTeamID = Spring.GetTeamInfo(scavengerTeamID)
             end
-            if not chickenTeamID then
-                if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ChickensAI' then
-                    chickenTeamID = i - 1
-                    _,_,_,_,_,chickenAllyTeamID = Spring.GetTeamInfo(chickenTeamID)
-                end
+        end
+        if not chickenTeamID then
+            if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ChickensAI' then
+                chickenTeamID = i - 1
+                _,_,_,_,_,chickenAllyTeamID = Spring.GetTeamInfo(chickenTeamID)
             end
         end
     end
@@ -229,15 +227,15 @@ local function ScavengerSpawnAreaCheck(posx, posy, posz, posradius) -- if true t
     if scavengerAllyTeamID then
         local scavTechPercentage = Spring.GetGameRulesParam("scavStatsTechPercentage")
         if scavTechPercentage then
-            if Spring.GetModOptions().scavspawnarea then
+            if Spring.GetModOptions().scavspawnarea == true then
                 if not AllyTeamStartboxes[scavengerAllyTeamID].allyTeamHasStartbox then return true end -- Scavs do not have a startbox so we allow them to spawn anywhere
                 if StartboxCheck(posx, posy, posz, posradius, scavengerAllyTeamID) == true then return true end -- Area is within startbox, so it's for sure in the spawn box.
                 
                 -- Spawn Box grows with Scavengers tech, getting that into from GameRulesParameter set by Scav gadget
-                local SpawnBoxMinX = math.floor(ScavengerStartboxXMin-(((mapSizeX)*0.01)*ScavTechPercentage))
-                local SpawnBoxMaxX = math.ceil(ScavengerStartboxXMax+(((mapSizeX)*0.01)*ScavTechPercentage))
-                local SpawnBoxMinZ = math.floor(ScavengerStartboxZMin-(((mapSizeZ)*0.01)*ScavTechPercentage))
-                local SpawnBoxMaxZ = math.ceil(ScavengerStartboxZMax+(((mapSizeZ)*0.01)*ScavTechPercentage))      
+                local SpawnBoxMinX = math.floor(ScavengerStartboxXMin-(((mapSizeX)*0.01)*scavTechPercentage))
+                local SpawnBoxMaxX = math.ceil(ScavengerStartboxXMax+(((mapSizeX)*0.01)*scavTechPercentage))
+                local SpawnBoxMinZ = math.floor(ScavengerStartboxZMin-(((mapSizeZ)*0.01)*scavTechPercentage))
+                local SpawnBoxMaxZ = math.ceil(ScavengerStartboxZMax+(((mapSizeZ)*0.01)*scavTechPercentage))      
                 
                 if posx < SpawnBoxMinX then return false end
                 if posx > SpawnBoxMaxX then return false end

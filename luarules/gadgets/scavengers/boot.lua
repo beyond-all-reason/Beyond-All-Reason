@@ -6,7 +6,10 @@ end
 VFS.Include("luarules/gadgets/scavengers/API/init.lua")
 scavconfig = VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/config.lua")
 VFS.Include("luarules/gadgets/scavengers/API/api.lua")
-VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
+--VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
+
+spawnQueueLibrary = VFS.Include("luarules/utilities/damgam_lib/spawn_queue.lua")
+positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 
 function ScavSendMessage(message)
 	if scavconfig.messenger then
@@ -65,8 +68,7 @@ if scavconfig.modules.stockpilers == true then
 	stockpilingController = VFS.Include("luarules/gadgets/scavengers/Modules/stockpiling.lua")
 end
 
-spawnQueueLibrary = VFS.Include("luarules/utilities/damgam_lib/spawn_queue.lua")
-positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
+
 
 -- Unused --
 
@@ -295,9 +297,9 @@ function gadget:GameFrame(n)
 	end
 
 	if scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists == true then
-		if n%30 == 0 then
-			startboxProtectionController.spawnStartBoxProtection(n)
-		end
+		-- if n%30 == 0 then
+		-- 	startboxProtectionController.spawnStartBoxProtection(n)
+		-- end
 		if n%10 == 0 then
 			startboxProtectionController.executeStartBoxProtection(n)
 			startboxProtectionController.spawnStartBoxEffect2(n)

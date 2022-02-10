@@ -97,9 +97,9 @@ local function transport1(currentFrame)
 			local posx = math_random(300,mapsizeX-300)
 			local posz = math_random(300,mapsizeZ-300)
 			local posy = Spring.GetGroundHeight(posx, posz, attackTarget)
-			CanSpawnEvent = posLosCheckNoRadar(posx, posy, posz, 300)
+			CanSpawnEvent = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, 300, ScavengerAllyTeamID, true, true, false)
 			if CanSpawnEvent then
-				CanSpawnEvent = posLandCheck(posx, posy, posz, 300)
+				CanSpawnEvent = positionCheckLibrary.SurfaceCheck(posx, posy, posz, 300)
 			end
 			if CanSpawnEvent then
 				local testunit = Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID)

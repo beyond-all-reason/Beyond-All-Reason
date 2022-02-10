@@ -11,17 +11,17 @@ local groupsize = math.ceil(groupsize*(teamcount/2))
 			local posx = math_random(150,mapsizeX-150)
 			local posz = math_random(150,mapsizeZ-150)
 			local posy = Spring.GetGroundHeight(posx, posz)
-			local CanSpawnLand = posLandCheck(posx, posy, posz, 150)
-			local CanSpawnSea = posSeaCheck(posx, posy, posz, 150)
-			CanSpawnEvent = posOccupied(posx, posy, posz, 150)
+			local CanSpawnLand = positionCheckLibrary.SurfaceCheck(posx, posy, posz, 150)
+			local CanSpawnSea = positionCheckLibrary.SurfaceCheck(posx, posy, posz, 150, true)
+			CanSpawnEvent = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 150)
 			if CanSpawnEvent then
-				CanSpawnEvent = posCheck(posx, posy, posz, 150)
+				CanSpawnEvent = positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 150)
 			end
 			if CanSpawnEvent then
-				CanSpawnEvent = posLosCheckReversed(posx, posy, posz, 150)
+				CanSpawnEvent = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, 150, ScavengerAllyTeamID, true, true, false)
 			end
 			if CanSpawnEvent then
-				CanSpawnEvent = posMapsizeCheck(posx, posy, posz, 150)
+				CanSpawnEvent = positionCheckLibrary.MapEdgeCheck(posx, posy, posz, 150)
 			end
 			if CanSpawnEvent then
 				if CanSpawnLand == true then
@@ -65,18 +65,18 @@ local function chickenInvasion1(currentFrame)
 				local posx = math_random(300,mapsizeX-300)
 				local posz = math_random(300,mapsizeZ-300)
 				local posy = Spring.GetGroundHeight(posx, posz)
-				CanSpawnEvent = posOccupied(posx, posy, posz, 300)
+				CanSpawnEvent = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 300)
 				if CanSpawnEvent then
-					CanSpawnEvent = posCheck(posx, posy, posz, 300)
+					CanSpawnEvent = positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 300)
 				end
 				if CanSpawnEvent then
-					CanSpawnEvent = posLosCheckNoRadar(posx, posy, posz, 300)
+					CanSpawnEvent = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, radius, ScavengerAllyTeamID, true, true, false)
 				end
 				if CanSpawnEvent then
-					CanSpawnEvent = posLandCheck(posx, posy, posz, 300)
+					CanSpawnEvent = positionCheckLibrary.SurfaceCheck(posx, posy, posz, 300)
 				end
 				if CanSpawnEvent then
-					CanSpawnEvent = posMapsizeCheck(posx, posy, posz, 300)
+					CanSpawnEvent = positionCheckLibrary.MapEdgeCheck(posx, posy, posz, 300)
 				end
 				if CanSpawnEvent then
 					Spring.CreateUnit("roost_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID)

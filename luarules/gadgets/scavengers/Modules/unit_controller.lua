@@ -38,7 +38,7 @@ local function selfDestructionControls(n, scav, scavDef, friendly)
 						local posz = math.random(selfdz[scav] - 400, selfdz[scav] + 400)
 						local telstartposy = Spring.GetGroundHeight(selfdx[scav], selfdz[scav])
 						local telendposy = Spring.GetGroundHeight(posx, posz)
-						local poscheck = posLosCheckOnlyLOS(posx, telendposy, posz, 100)
+						local poscheck = positionCheckLibrary.VisibilityCheckEnemy(posx, telendposy, posz, 100, ScavengerAllyTeamID, true, false, false)
 						if (-(UnitDefs[scavDef].minWaterDepth) > telendposy) and (-(UnitDefs[scavDef].maxWaterDepth) < telendposy) and scavparalyze == 0 and (poscheck == true or friendly == true) then
 							Spring.SpawnCEG("scav-spawnexplo",selfdx[scav],telstartposy,selfdz[scav],0,0,0)
 							Spring.SpawnCEG("scav-spawnexplo",posx,telendposy,posz,0,0,0)
@@ -70,7 +70,7 @@ local function armyMoveOrdersInitialPhase(n, scav, scavDef)
 	local z = math.random(0, mapsizeZ)
 	local y = Spring.GetGroundHeight(x,z)
 	if (-(UnitDefs[scavDef].minWaterDepth) > y) and (-(UnitDefs[scavDef].maxWaterDepth) < y) or UnitDefs[scavDef].canFly then
-		if posLosCheck(x, y, z, range) then
+		if positionCheckLibrary.VisibilityCheckEnemy(x, y, z, range, ScavengerAllyTeamID, true, true, true) then
 			Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
 		end
 	end

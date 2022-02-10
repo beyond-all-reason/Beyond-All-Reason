@@ -152,8 +152,8 @@ local function spawnPlayerReinforcements(n)
     --ScavengerStartboxZMax
     --ScavengerTeamID
     --ScavengerAllyTeamID
-    --posCheck(posx, posy, posz, posradius)
-    --posOccupied(posx, posy, posz, posradius)
+    --positionCheckLibrary.FlatAreaCheck(posx, posy, posz, posradius)
+    --positionCheckLibrary.OccupancyCheck(posx, posy, posz, posradius)
 	if scavengerGamePhase ~= "initial" then
 		for _,teamID in ipairs(Spring.GetTeamList()) do
 			local LuaAI = Spring.GetTeamLuaAI(teamID)
