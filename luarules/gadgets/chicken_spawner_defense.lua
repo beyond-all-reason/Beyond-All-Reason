@@ -1262,7 +1262,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function spawnStartBoxProtectionHeavy()
 		if math.random(0,1800) == 0 or attemptingToSpawnHeavyTurret == true then
 			local burrowCount = SetCount(burrows)
-			if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) <= burrowCount*2 then
+			if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < burrowCount*2 then
 				attemptingToSpawnHeavyTurret = true
 				canSpawnDefence = true
 				-- lsx1 - xmin, lsz1 - zmin, lsx2 - xmax, lsz2 - zmax
@@ -1358,7 +1358,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function spawnStartBoxProtectionLight()
 		if math.random(0,1800) == 0 or attemptingToSpawnLightTurret == true then
 			local burrowCount = SetCount(burrows)
-			if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) <= burrowCount*10 then
+			if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < burrowCount*10 then
 				attemptingToSpawnLightTurret = true
 				canSpawnDefence = true
 				-- lsx1 - xmin, lsz1 - zmin, lsx2 - xmax, lsz2 - zmax
