@@ -1103,6 +1103,10 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
+		if not lsx1 then lsx1 = 0 end
+		if not lsz1 then lsz1 = 0 end
+		if not lsx2 then lsx2 = Game.mapSizeX end
+		if not lsz2 then lsz2 = Game.mapSizeZ end
 	end
 
 	local function SpawnChickens()
