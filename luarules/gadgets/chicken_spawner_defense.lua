@@ -1384,7 +1384,7 @@ if gadgetHandler:IsSyncedCode() then
 					if canSpawnDefence then
 						local StartBoxCheck = positionCheckLibrary.StartboxCheck(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID)
 						if StartBoxCheck == false then
-							canSpawnDefence = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, posradius, chickenAllyTeamID, true, true, false)
+							canSpawnDefence = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, false)
 						end
 					end
 					if canSpawnDefence then
