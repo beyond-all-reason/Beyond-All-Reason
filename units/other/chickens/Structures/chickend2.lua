@@ -123,10 +123,10 @@ return {
 				wobble = 32000,
 				damage = {
 					chicken = 0.1,
-					bombers = 180,
+					bombers = 400,
 					default = 900,
-					fighters = 180,
-					vtol = 180,
+					fighters = 400,
+					vtol = 400,
 				},
 				customparams = {
 					expl_light_life_mult = 1.5,
@@ -141,6 +141,7 @@ return {
 				areaofeffect = 64,
 				avoidfeature = false,
 				beamtime = 2.4,
+				cameraShake = 10000,
 				corethickness = 0.3,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -182,7 +183,7 @@ return {
 					light_mult = 2.5,
 				},
 				damage = {
-					chicken = -2000,
+					chicken = 0.1,
 					default = 28000,
 				},
 			},

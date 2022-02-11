@@ -113,7 +113,11 @@ return {
 				weaponvelocity = 500,
 				wobble = 32000,
 				damage = {
+					chicken = 0.1,
+					bombers = 200,
 					default = 400,
+					fighters = 200,
+					vtol = 200,
 				},
 			},
 		},
