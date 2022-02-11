@@ -87,6 +87,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.3,
 				explosiongenerator = "custom:chickenspike-large-sparks-burn",
+				firesubmersed = true,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				interceptedbyshieldtype = 0,
