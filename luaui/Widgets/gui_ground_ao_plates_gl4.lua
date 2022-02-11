@@ -43,6 +43,8 @@ local groundPlateVBO = nil
 local groundPlateShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
 
+local debugmode = false
+
 local glTexture = gl.Texture
 local glCulling = gl.Culling
 local glDepthTest = gl.DepthTest
@@ -53,7 +55,8 @@ local spValidUnitID = Spring.ValidUnitID
 
 local spec, fullview = Spring.GetSpectatingState()
 
-local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload)
+local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload,reason)
+	if debugmode then Spring.Debug.TraceEcho("add",unitID,reason) end
 	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then
 		--Spring.Echo("Warning: Ground AO Plates GL4 attempted to add an invalid unitID:", unitID)
 		return nil
@@ -102,6 +105,13 @@ function widget:Update(dt)
 	spec, fullview = Spring.GetSpectatingState()
 end
 
+function widget:GameFrame(n)
+	if debugmode then 
+		groundPlateVBO.debug = true
+		locateInvalidUnits(groundPlateVBO)
+	end
+end
+
 function widget:DrawWorldPreUnit()
 	if doRefresh then
 		ProcessAllUnits()
@@ -125,33 +135,34 @@ function widget:DrawWorldPreUnit()
 	end
 end
 
-local function RemovePrimitive(unitID)
+local function RemovePrimitive(unitID,reason)
+	if debugmode then Spring.Debug.TraceEcho("remove",unitID,reason) end
 	if groundPlateVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(groundPlateVBO, unitID)
 	end
 end
 
 function widget:UnitCreated(unitID)
-	AddPrimitiveAtUnit(unitID)
+	AddPrimitiveAtUnit(unitID,nil,nil,"UnitCreated")
 end
 
 function widget:UnitDestroyed(unitID)
-	RemovePrimitive(unitID)
+	RemovePrimitive(unitID,"UnitDestroyed")
 end
 
 function widget:RenderUnitDestroyed(unitID)
-	RemovePrimitive(unitID)
+	RemovePrimitive(unitID,"RenderUnitDestroyed")
 end
 
 function widget:UnitEnteredLos(unitID)
 	if spValidUnitID(unitID) then
-		AddPrimitiveAtUnit(unitID)
+		AddPrimitiveAtUnit(unitID,nil,nil,"UnitEnteredLos")
 	end
 end
 
 function widget:UnitLeftLos(unitID)
 	if not fullview then
-		RemovePrimitive(unitID)
+		RemovePrimitive(unitID,"UnitLeftLos")
 	end
 end
 
