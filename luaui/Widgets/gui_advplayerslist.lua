@@ -1177,7 +1177,7 @@ function GetSkill(playerID)
     local tsSigma = customtable.skilluncertainty
     local tskill = ""
     if tsMu then
-        tskill = tsMu and tonumber(tsMu:match("%d+%.?%d*")) or 0
+        tskill = tsMu and tonumber(tsMu:match("-?%d+%.?%d*")) or 0
         tskill = round(tskill, 0)
         if string.find(tsMu, ")", nil, true) then
             tskill = "\255" .. string.char(190) .. string.char(140) .. string.char(140) .. tskill -- ')' means inferred from lobby rank
