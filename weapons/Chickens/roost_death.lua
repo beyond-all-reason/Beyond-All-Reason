@@ -10,7 +10,7 @@ return {
 		range = 450,
 		reloadtime = 3.6,
 		soundhit = "bigbugdie",
-		soundhitvolume = 15,
+		soundhitvolume = 22,
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {

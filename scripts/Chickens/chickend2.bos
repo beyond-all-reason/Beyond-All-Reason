@@ -7,12 +7,14 @@ piece  body, firepoint;
 
 // Signal definitions
 #define SIG_AIM				2
+#define SIG_AIM_LASER		4
+
 
 Create()
 {
 	turn body to y-axis Rand(0, 65534) now;
 	emit-sfx 1024+2 from body;
-	move body to y-axis [-50] now;
+	move body to y-axis [-100] now;
 	move body to y-axis [0] speed [8];
 }
 
@@ -20,14 +22,14 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	sleep 30;
+	sleep 15;
 	return (TRUE);
 }
 
 AimSecondary(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIG_AIM_LASER;
+	set-signal-mask SIG_AIM_LASER;
 	sleep 30;
 	return (TRUE);
 }
