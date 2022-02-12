@@ -55,7 +55,7 @@ for i = 1, #teams do
 end
 teams = nil
 
-local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, backgroundGuishader, chobbyInterface
+local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, backgroundGuishader
 local RectRound, elementCorner, bgpadding
 
 local math_isInRect = math.isInRect
@@ -473,16 +473,7 @@ function widget:ViewResize()
 	createCountdownLists()
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
 	if not isSpec then
 		return
 	end

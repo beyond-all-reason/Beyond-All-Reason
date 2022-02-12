@@ -671,10 +671,10 @@ local function SafeWrapFuncGL(func, funcName)
 end
 
 local function SafeWrapFunc(func, funcName)
-	if (not SAFEDRAW) then
+	if not SAFEDRAW then
 		return SafeWrapFuncNoGL(func, funcName)
 	else
-		if (string.sub(funcName, 1, 4) ~= 'Draw') then
+		if string.sub(funcName, 1, 4) ~= 'Draw' then
 			return SafeWrapFuncNoGL(func, funcName)
 		else
 			return SafeWrapFuncGL(func, funcName)
@@ -683,20 +683,20 @@ local function SafeWrapFunc(func, funcName)
 end
 
 local function SafeWrapWidget(widget)
-	if (SAFEWRAP <= 0) then
+	if SAFEWRAP <= 0 then
 		return
-	elseif (SAFEWRAP == 1) then
-		if (widget.GetInfo and widget.GetInfo().unsafe) then
+	elseif SAFEWRAP == 1 then
+		if widget.GetInfo and widget.GetInfo().unsafe then
 			Spring.Echo('LuaUI: loaded unsafe widget: ' .. widget.whInfo.name)
 			return
 		end
 	end
 
 	for _, ciName in ipairs(callInLists) do
-		if (widget[ciName]) then
+		if widget[ciName] then
 			widget[ciName] = SafeWrapFunc(widget[ciName], ciName)
 		end
-		if (widget.Initialize) then
+		if widget.Initialize then
 			widget.Initialize = SafeWrapFunc(widget.Initialize, 'Initialize')
 		end
 	end
@@ -706,14 +706,14 @@ end
 --------------------------------------------------------------------------------
 
 local function ArrayInsert(t, f, w)
-	if (f) then
+	if f then
 		local layer = w.whInfo.layer
 		local index = 1
 		for i, v in ipairs(t) do
-			if (v == w) then
+			if v == w then
 				return -- already in the table
 			end
-			if (layer >= v.whInfo.layer) then
+			if layer >= v.whInfo.layer then
 				index = i + 1
 			end
 		end
@@ -723,15 +723,15 @@ end
 
 local function ArrayRemove(t, w)
 	for k, v in ipairs(t) do
-		if (v == w) then
+		if v == w then
 			table.remove(t, k)
-			-- break
+			--break
 		end
 	end
 end
 
 function widgetHandler:InsertWidget(widget)
-	if (widget == nil) then
+	if widget == nil then
 		return
 	end
 
@@ -740,28 +740,28 @@ function widgetHandler:InsertWidget(widget)
 	ArrayInsert(self.widgets, true, widget)
 	for _, listname in ipairs(callInLists) do
 		local func = widget[listname]
-		if (type(func) == 'function') then
+		if type(func) == 'function' then
 			ArrayInsert(self[listname .. 'List'], func, widget)
 		end
 	end
 	self:UpdateCallIns()
 
-	if (widget.Initialize) then
+	if widget.Initialize then
 		widget:Initialize()
 	end
 end
 
 function widgetHandler:RemoveWidget(widget)
-	if (widget == nil) or (widget.whInfo == nil) then
+	if widget == nil or widget.whInfo == nil then
 		return
 	end
 
 	local name = widget.whInfo.name
-	if (widget.GetConfigData) then
+	if widget.GetConfigData then
 		self.configData[name] = widget:GetConfigData()
 	end
 	self.knownWidgets[name].active = false
-	if (widget.Shutdown) then
+	if widget.Shutdown then
 		widget:Shutdown()
 	end
 	ArrayRemove(self.widgets, widget)
@@ -773,20 +773,14 @@ function widgetHandler:RemoveWidget(widget)
 	self:UpdateCallIns()
 end
 
-
 --------------------------------------------------------------------------------
 
 function widgetHandler:UpdateCallIn(name)
 	local listName = name .. 'List'
-	if ((name == 'Update') or
-		(name == 'DrawScreen')) then
+	if name == 'Update' or	name == 'DrawScreen' then
 		return
 	end
-
-	if ((#self[listName] > 0) or
-		(not flexCallInMap[name]) or
-		((name == 'GotChatMsg') and actionHandler.HaveChatAction()) or
-		((name == 'RecvFromSynced') and actionHandler.HaveSyncAction())) then
+	if #self[listName] > 0 or not flexCallInMap[name] or (name == 'GotChatMsg' and actionHandler.HaveChatAction()) or (name == 'RecvFromSynced' and actionHandler.HaveSyncAction()) then
 		-- always assign these call-ins
 		local selffunc = self[name]
 		_G[name] = function(...)
@@ -801,9 +795,9 @@ end
 function widgetHandler:UpdateWidgetCallIn(name, w)
 	local listName = name .. 'List'
 	local ciList = self[listName]
-	if (ciList) then
+	if ciList then
 		local func = w[name]
-		if (type(func) == 'function') then
+		if type(func) == 'function' then
 			ArrayInsert(ciList, func, w)
 		else
 			ArrayRemove(ciList, w)
@@ -817,7 +811,7 @@ end
 function widgetHandler:RemoveWidgetCallIn(name, w)
 	local listName = name .. 'List'
 	local ciList = self[listName]
-	if (ciList) then
+	if ciList then
 		ArrayRemove(ciList, w)
 		self:UpdateCallIn(name)
 	else
@@ -839,18 +833,18 @@ end
 
 function widgetHandler:EnableWidget(name)
 	local ki = self.knownWidgets[name]
-	if (not ki) then
+	if not ki then
 		Spring.Echo("EnableWidget(), could not find widget: " .. tostring(name))
 		return false
 	end
-	if (not ki.active) then
+	if not ki.active then
 		Spring.Echo('Loading:  ' .. ki.filename)
 		local order = widgetHandler.orderList[name]
-		if (not order or (order <= 0)) then
+		if not order or order <= 0 then
 			self.orderList[name] = 1
 		end
 		local w = self:LoadWidget(ki.filename)
-		if (not w) then
+		if not w then
 			return false
 		end
 		self:InsertWidget(w)
@@ -861,13 +855,13 @@ end
 
 function widgetHandler:DisableWidget(name)
 	local ki = self.knownWidgets[name]
-	if (not ki) then
+	if not ki then
 		Spring.Echo("DisableWidget(), could not find widget: " .. tostring(name))
 		return false
 	end
-	if (ki.active) then
+	if ki.active then
 		local w = self:FindWidget(name)
-		if (not w) then
+		if not w then
 			return false
 		end
 		Spring.Echo('Removed:  ' .. ki.filename)
@@ -880,13 +874,13 @@ end
 
 function widgetHandler:ToggleWidget(name)
 	local ki = self.knownWidgets[name]
-	if (not ki) then
+	if not ki then
 		Spring.Echo("ToggleWidget(), could not find widget: " .. tostring(name))
 		return
 	end
-	if (ki.active) then
+	if ki.active then
 		return self:DisableWidget(name)
-	elseif (self.orderList[name] <= 0) then
+	elseif self.orderList[name] <= 0 then
 		return self:EnableWidget(name)
 	else
 		-- the widget is not active, but enabled; disable it
@@ -901,7 +895,7 @@ end
 
 local function FindWidgetIndex(t, w)
 	for k, v in ipairs(t) do
-		if (v == w) then
+		if v == w then
 			return k
 		end
 	end
@@ -910,7 +904,7 @@ end
 
 local function FindLowestIndex(t, i, layer)
 	for x = (i - 1), 1, -1 do
-		if (t[x].whInfo.layer < layer) then
+		if t[x].whInfo.layer < layer then
 			return x + 1
 		end
 	end
@@ -918,19 +912,19 @@ local function FindLowestIndex(t, i, layer)
 end
 
 function widgetHandler:RaiseWidget(widget)
-	if (widget == nil) then
+	if widget == nil then
 		return
 	end
 	local function Raise(t, f, w)
-		if (f == nil) then
+		if f == nil then
 			return
 		end
 		local i = FindWidgetIndex(t, w)
-		if (i == nil) then
+		if i == nil then
 			return
 		end
 		local n = FindLowestIndex(t, i, w.whInfo.layer)
-		if (n and (n < i)) then
+		if n and n < i then
 			table.remove(t, i)
 			table.insert(t, n, w)
 		end
@@ -944,7 +938,7 @@ end
 local function FindHighestIndex(t, i, layer)
 	local ts = #t
 	for x = (i + 1), ts do
-		if (t[x].whInfo.layer > layer) then
+		if t[x].whInfo.layer > layer then
 			return (x - 1)
 		end
 	end
@@ -952,19 +946,19 @@ local function FindHighestIndex(t, i, layer)
 end
 
 function widgetHandler:LowerWidget(widget)
-	if (widget == nil) then
+	if widget == nil then
 		return
 	end
 	local function Lower(t, f, w)
-		if (f == nil) then
+		if f == nil then
 			return
 		end
 		local i = FindWidgetIndex(t, w)
-		if (i == nil) then
+		if i == nil then
 			return
 		end
 		local n = FindHighestIndex(t, i, w.whInfo.layer)
-		if (n and (n > i)) then
+		if n and n > i then
 			table.insert(t, n, w)
 			table.remove(t, i)
 		end
@@ -976,11 +970,11 @@ function widgetHandler:LowerWidget(widget)
 end
 
 function widgetHandler:FindWidget(name)
-	if (type(name) ~= 'string') then
+	if type(name) ~= 'string' then
 		return nil
 	end
 	for k, v in ipairs(self.widgets) do
-		if (name == v.whInfo.name) then
+		if name == v.whInfo.name then
 			return v, k
 		end
 	end
@@ -995,10 +989,7 @@ end
 --
 
 function widgetHandler:RegisterGlobal(owner, name, value)
-	if ((name == nil) or
-		(_G[name]) or
-		(self.globals[name]) or
-		(CallInsMap[name])) then
+	if name == nil or _G[name] or self.globals[name] or CallInsMap[name] then
 		return false
 	end
 	_G[name] = value
@@ -1007,7 +998,7 @@ function widgetHandler:RegisterGlobal(owner, name, value)
 end
 
 function widgetHandler:DeregisterGlobal(owner, name)
-	if (name == nil) then
+	if name == nil then
 		return false
 	end
 	_G[name] = nil
@@ -1016,7 +1007,7 @@ function widgetHandler:DeregisterGlobal(owner, name)
 end
 
 function widgetHandler:SetGlobal(owner, name, value)
-	if ((name == nil) or (self.globals[name] ~= owner)) then
+	if name == nil or self.globals[name] ~= owner then
 		return false
 	end
 	_G[name] = value
@@ -1026,7 +1017,7 @@ end
 function widgetHandler:RemoveWidgetGlobals(owner)
 	local count = 0
 	for name, o in pairs(self.globals) do
-		if (o == owner) then
+		if o == owner then
 			_G[name] = nil
 			self.globals[name] = nil
 			count = count + 1
@@ -1104,7 +1095,7 @@ function widgetHandler:ConfigureLayout(command)
 		return true
 	elseif command == 'selector' then
 		for _, w in ipairs(self.widgets) do
-			if (w.whInfo.basename == SELECTOR_BASENAME) then
+			if w.whInfo.basename == SELECTOR_BASENAME then
 				return true  -- there can only be one
 			end
 		end
@@ -1137,7 +1128,7 @@ end
 
 function widgetHandler:CommandNotify(id, params, options)
 	for _, w in ipairs(self.CommandNotifyList) do
-		if (w:CommandNotify(id, params, options)) then
+		if w:CommandNotify(id, params, options) then
 			return true
 		end
 	end
@@ -1190,7 +1181,6 @@ function widgetHandler:SetViewSize(vsx, vsy)
 	end
 end
 
-local xViewSizeOld
 function widgetHandler:ViewResize(vsx, vsy)
 	if type(vsx) == 'table' then
 		vsy = vsx.viewSizeY
@@ -1208,11 +1198,15 @@ end
 
 
 function widgetHandler:DrawScreen()
-	--if not self.chobbyInterface then
-		for _, w in r_ipairs(self.DrawScreenList) do
-			w:DrawScreen()
+	if not Spring.IsGUIHidden() then
+		if not self.chobbyInterface  then
+			for _, w in r_ipairs(self.DrawScreenList) do
+				w:DrawScreen()
+			end
+		elseif widgetHandler.WG.guishader and widgetHandler.WG.guishader.DrawScreen then
+			widgetHandler.WG.guishader.DrawScreen()
 		end
-	--end
+	end
 	return
 end
 
@@ -1319,7 +1313,7 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode)
 	end
 
 	for _, w in ipairs(self.KeyPressList) do
-		if (w:KeyPress(key, mods, isRepeat, label, unicode)) then
+		if w:KeyPress(key, mods, isRepeat, label, unicode) then
 			return true
 		end
 	end
@@ -1356,7 +1350,7 @@ end
 -- local helper (not a real call-in)
 function widgetHandler:WidgetAt(x, y)
 	for _, w in ipairs(self.IsAboveList) do
-		if (w:IsAbove(x, y)) then
+		if w:IsAbove(x, y) then
 			return w
 		end
 	end
@@ -1620,7 +1614,7 @@ end
 function widgetHandler:WorldTooltip(ttType, ...)
 	for _, w in ipairs(self.WorldTooltipList) do
 		local tt = w:WorldTooltip(ttType, ...)
-		if ((type(tt) == 'string') and (#tt > 0)) then
+		if type(tt) == 'string' and #tt > 0 then
 			return tt
 		end
 	end
@@ -1631,7 +1625,7 @@ function widgetHandler:MapDrawCmd(playerID, cmdType, px, py, pz, ...)
 	local retval = false
 	for _, w in ipairs(self.MapDrawCmdList) do
 		local takeEvent = w:MapDrawCmd(playerID, cmdType, px, py, pz, ...)
-		if (takeEvent) then
+		if takeEvent then
 			retval = true
 		end
 	end
@@ -1641,7 +1635,7 @@ end
 function widgetHandler:GameSetup(state, ready, playerStates)
 	for _, w in ipairs(self.GameSetupList) do
 		local success, newReady = w:GameSetup(state, ready, playerStates)
-		if (success) then
+		if success then
 			return true, newReady
 		end
 	end
@@ -1651,7 +1645,7 @@ end
 function widgetHandler:DefaultCommand(...)
 	for _, w in r_ipairs(self.DefaultCommandList) do
 		local result = w:DefaultCommand(...)
-		if (type(result) == 'number') then
+		if type(result) == 'number' then
 			return result
 		end
 	end
@@ -1735,8 +1729,7 @@ function widgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
 	return
 end
 
-function widgetHandler:UnitCommand(unitID, unitDefID, unitTeam,
-								   cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+function widgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	for _, w in ipairs(self.UnitCommandList) do
 		w:UnitCommand(unitID, unitDefID, unitTeam,
 			cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
@@ -1874,8 +1867,7 @@ function widgetHandler:RecvLuaMsg(msg, playerID)
 	return retval  --  FIXME  --  another actionHandler type?
 end
 
-function widgetHandler:StockpileChanged(unitID, unitDefID, unitTeam,
-										weaponNum, oldCount, newCount)
+function widgetHandler:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 	for _, w in ipairs(self.StockpileChangedList) do
 		w:StockpileChanged(unitID, unitDefID, unitTeam,
 			weaponNum, oldCount, newCount)
@@ -1902,11 +1894,7 @@ function widgetHandler:FeatureDestroyed(featureID, allyTeam)
 	return
 end
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 widgetHandler:Initialize()
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------

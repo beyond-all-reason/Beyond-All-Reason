@@ -368,12 +368,12 @@ function widget:DrawScreenEffects()
 	end
 end
 
-function widget:DrawScreen()
+local function DrawScreen()
 	if Spring.IsGUIHidden() then
 		return
 	end
 
-	if ((screenBlur or next(guishaderScreenRects) or next(guishaderScreenDlists))) and blurShader then
+	if (screenBlur or next(guishaderScreenRects) or next(guishaderScreenDlists)) and blurShader then
 		gl.Texture(false)
 		gl.Color(1, 1, 1, 1)
 		gl.Blending(false)
@@ -459,6 +459,10 @@ function widget:DrawScreen()
 		updateStencilTexture = true
 	end
 	deleteDlistQueue = {}
+end
+
+function widget:DrawScreen()
+	DrawScreen()
 end
 
 function widget:UpdateCallIns()
@@ -578,6 +582,8 @@ function widget:Initialize()
 			renderDlists[value] = nil
 		end
 	end
+
+	WG.guishader.DrawScreen = DrawScreen	-- widgethandler wont call DrawScreen when chobby interface is shown, but it will call this one as exception
 
 	widgetHandler:RegisterGlobal('GuishaderInsertRect', WG['guishader'].InsertRect)
 	widgetHandler:RegisterGlobal('GuishaderRemoveRect', WG['guishader'].RemoveRect)
