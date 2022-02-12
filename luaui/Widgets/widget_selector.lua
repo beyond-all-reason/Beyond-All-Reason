@@ -413,7 +413,7 @@ function widget:DrawScreen()
 
 
 	-- draw the widgets
-	local nd = not widgetHandler.tweakMode and self:AboveLabel(mx, my)
+	local nd = self:AboveLabel(mx, my)
 	local pointedY = nil
 	local pointedEnabled = false
 	local pointedName = (nd and nd[1]) or nil

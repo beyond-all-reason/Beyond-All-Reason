@@ -847,10 +847,6 @@ function widget:DrawScreen()
 
 		if (show or showOnceMore) and windowList then
 
-			if getOptionByID('tweakui') and widgetHandler.tweakMode ~= nil then
-				options[getOptionByID('tweakui')].value = widgetHandler.tweakMode
-			end
-
 			--on window
 			local mx, my, ml = Spring.GetMouseState()
 			if math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]) then

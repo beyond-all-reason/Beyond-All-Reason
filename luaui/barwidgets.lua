@@ -36,15 +36,11 @@ local glPushAttrib = gl.PushAttrib
 
 --------------------------------------------------------------------------------
 
--- install bindings for TweakMode and the Widget Selector
-
 Spring.SendCommands({
 	"unbindkeyset  Any+f11",
 	"unbindkeyset Ctrl+f11",
 	"bind    f11  luaui selector",
-	"bind  C+f11  luaui tweakgui",
 	"echo LuaUI: bound F11 to the widget selector",
-	"echo LuaUI: bound CTRL+F11 to tweak mode"
 })
 
 
@@ -82,7 +78,7 @@ widgetHandler = {
 	mouseOwner = nil,
 	ownedButton = 0,
 
-	tweakMode = false,
+	chobbyInterface = false,
 
 	xViewSize = 1,
 	yViewSize = 1,
@@ -182,22 +178,11 @@ local callInLists = {
 	'GroupChanged',
 	'GameProgress',
 	'CommandsChanged',
-	'TweakMousePress',
-	'TweakMouseWheel',
-	'TweakIsAbove',
-	'TweakGetTooltip',
 	'LanguageChanged',
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
 	--  'MouseRelease',
-	--  'TweakKeyPress',
-	--  'TweakKeyRelease',
-	--  'TweakMouseMove',
-	--  'TweakMouseRelease',
-
-	-- uses the DrawScreenList
-	--  'TweakDrawScreen',
 }
 
 -- append the flex call-ins
@@ -552,9 +537,6 @@ function widgetHandler:NewWidget()
 	wh.GetCommands = function(_)
 		return self.commands
 	end
-	wh.InTweakMode = function(_)
-		return self.tweakMode
-	end
 	wh.GetViewSizes = function(_)
 		return self:GetViewSizes()
 	end
@@ -627,11 +609,8 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 end
 
 function widgetHandler:ValidateWidget(widget)
-	if (widget.GetTooltip and not widget.IsAbove) then
+	if widget.GetTooltip and not widget.IsAbove then
 		return "Widget has GetTooltip() but not IsAbove()"
-	end
-	if (widget.TweakGetTooltip and not widget.TweakIsAbove) then
-		return "Widget has TweakGetTooltip() but not TweakIsAbove()"
 	end
 	return nil
 end
@@ -1120,14 +1099,10 @@ function widgetHandler:Update()
 end
 
 function widgetHandler:ConfigureLayout(command)
-	if (command == 'tweakgui') then
-		self.tweakMode = true
-		Spring.Echo("LuaUI TweakMode: ON")
-		return true
-	elseif (command == 'reconf') then
+	if command == 'reconf' then
 		self:SendConfigData()
 		return true
-	elseif (command == 'selector') then
+	elseif command == 'selector' then
 		for _, w in ipairs(self.widgets) do
 			if (w.whInfo.basename == SELECTOR_BASENAME) then
 				return true  -- there can only be one
@@ -1137,23 +1112,23 @@ function widgetHandler:ConfigureLayout(command)
 		self:InsertWidget(sw)
 		self:RaiseWidget(sw)
 		return true
-	elseif (string.find(command, 'togglewidget') == 1) then
+	elseif string.find(command, 'togglewidget') == 1 then
 		self:ToggleWidget(string.sub(command, 14))
 		return true
-	elseif (string.find(command, 'enablewidget') == 1) then
+	elseif string.find(command, 'enablewidget') == 1 then
 		self:EnableWidget(string.sub(command, 14))
 		return true
-	elseif (string.find(command, 'disablewidget') == 1) then
+	elseif string.find(command, 'disablewidget') == 1 then
 		self:DisableWidget(string.sub(command, 15))
 		return true
 	end
 
-	if (self.actionHandler:TextAction(command)) then
+	if self.actionHandler:TextAction(command) then
 		return true
 	end
 
 	for _, w in ipairs(self.TextCommandList) do
-		if (w:TextCommand(command)) then
+		if w:TextCommand(command) then
 			return true
 		end
 	end
@@ -1231,21 +1206,13 @@ function widgetHandler:ViewResize(vsx, vsy)
 	return
 end
 
+
 function widgetHandler:DrawScreen()
-	if self.tweakMode then
-		gl.Color(0, 0, 0, 0.5)
-		local sx, sy = self.xViewSize, self.yViewSize
-		gl.Shape(GL.QUADS, {
-			{ v = { 0, 0 } }, { v = { sx, 0 } }, { v = { sx, sy } }, { v = { 0, sy } }
-		})
-		gl.Color(1, 1, 1)
-	end
-	for _, w in r_ipairs(self.DrawScreenList) do
-		w:DrawScreen()
-		if self.tweakMode and w.TweakDrawScreen then
-			w:TweakDrawScreen()
+	--if not self.chobbyInterface then
+		for _, w in r_ipairs(self.DrawScreenList) do
+			w:DrawScreen()
 		end
-	end
+	--end
 	return
 end
 
@@ -1347,15 +1314,7 @@ end
 --
 
 function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode)
-	if (self.tweakMode) then
-		local mo = self.mouseOwner
-		if (mo and mo.TweakKeyPress) then
-			mo:TweakKeyPress(key, mods, isRepeat, label, unicode)
-		end
-		return true
-	end
-
-	if (self.actionHandler:KeyAction(true, key, mods, isRepeat)) then
+	if self.actionHandler:KeyAction(true, key, mods, isRepeat) then
 		return true
 	end
 
@@ -1368,23 +1327,12 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode)
 end
 
 function widgetHandler:KeyRelease(key, mods, label, unicode)
-	if (self.tweakMode) then
-		local mo = self.mouseOwner
-		if (mo and mo.TweakKeyRelease) then
-			mo:TweakKeyRelease(key, mods, label, unicode)
-		elseif (key == KEYSYMS.ESCAPE) then
-			Spring.Echo("LuaUI TweakMode: OFF")
-			self.tweakMode = false
-		end
-		return true
-	end
-
-	if (self.actionHandler:KeyAction(false, key, mods, false)) then
+	if self.actionHandler:KeyAction(false, key, mods, false) then
 		return true
 	end
 
 	for _, w in ipairs(self.KeyReleaseList) do
-		if (w:KeyRelease(key, mods, label, unicode)) then
+		if w:KeyRelease(key, mods, label, unicode) then
 			return true
 		end
 	end
@@ -1392,12 +1340,8 @@ function widgetHandler:KeyRelease(key, mods, label, unicode)
 end
 
 function widgetHandler:TextInput(utf8, ...)
-	if (self.tweakMode) then
-		return true
-	end
-
 	for _, w in r_ipairs(self.TextInputList) do
-		if (w:TextInput(utf8, ...)) then
+		if w:TextInput(utf8, ...) then
 			return true
 		end
 	end
@@ -1411,17 +1355,9 @@ end
 
 -- local helper (not a real call-in)
 function widgetHandler:WidgetAt(x, y)
-	if (not self.tweakMode) then
-		for _, w in ipairs(self.IsAboveList) do
-			if (w:IsAbove(x, y)) then
-				return w
-			end
-		end
-	else
-		for _, w in ipairs(self.TweakIsAboveList) do
-			if (w:TweakIsAbove(x, y)) then
-				return w
-			end
+	for _, w in ipairs(self.IsAboveList) do
+		if (w:IsAbove(x, y)) then
+			return w
 		end
 	end
 	return nil
@@ -1429,93 +1365,56 @@ end
 
 function widgetHandler:MousePress(x, y, button)
 	local mo = self.mouseOwner
-	if (not self.tweakMode) then
-		if (mo) then
-			mo:MousePress(x, y, button)
-			return true  --  already have an active press
-		end
-		for _, w in ipairs(self.MousePressList) do
-			if (w:MousePress(x, y, button)) then
-				if (not mo) then
-					self.mouseOwner = w
-				end
-				return true
-			end
-		end
-		if widgetHandler.WG.SmartSelect_MousePress2 then
-			widgetHandler.WG.SmartSelect_MousePress2(x, y, button, 'abc')
-		end
-		return false
-	else
-		if (mo) then
-			mo:TweakMousePress(x, y, button)
-			return true  --  already have an active press
-		end
-		for _, w in ipairs(self.TweakMousePressList) do
-			if (w:TweakMousePress(x, y, button)) then
-				self.mouseOwner = w
-				return true
-			end
-		end
-		return true  --  always grab the mouse
+	if mo then
+		mo:MousePress(x, y, button)
+		return true  --  already have an active press
 	end
+	for _, w in ipairs(self.MousePressList) do
+		if w:MousePress(x, y, button) then
+			if (not mo) then
+				self.mouseOwner = w
+			end
+			return true
+		end
+	end
+	if widgetHandler.WG.SmartSelect_MousePress2 then
+		widgetHandler.WG.SmartSelect_MousePress2(x, y, button, 'abc')
+	end
+	return false
 end
 
 function widgetHandler:MouseMove(x, y, dx, dy, button)
 	local mo = self.mouseOwner
-	if (not self.tweakMode) then
-		if (mo and mo.MouseMove) then
-			return mo:MouseMove(x, y, dx, dy, button)
-		end
-	else
-		if (mo and mo.TweakMouseMove) then
-			mo:TweakMouseMove(x, y, dx, dy, button)
-		end
-		return true
+	if mo and mo.MouseMove then
+		return mo:MouseMove(x, y, dx, dy, button)
 	end
 end
 
 function widgetHandler:MouseRelease(x, y, button)
 	local mo = self.mouseOwner
 	local mx, my, lmb, mmb, rmb = Spring.GetMouseState()
-	if (not (lmb or mmb or rmb)) then
+	if not (lmb or mmb or rmb) then
 		self.mouseOwner = nil
 	end
 
-	if (not self.tweakMode) then
-		if (mo and mo.MouseRelease) then
-			return mo:MouseRelease(x, y, button)
-		end
-		return false
-	else
-		if (mo and mo.TweakMouseRelease) then
-			mo:TweakMouseRelease(x, y, button)
-		end
-		return false
+	if mo and mo.MouseRelease then
+		return mo:MouseRelease(x, y, button)
 	end
+	return false
 end
 
 function widgetHandler:MouseWheel(up, value)
-	if (not self.tweakMode) then
-		for _, w in ipairs(self.MouseWheelList) do
-			if (w:MouseWheel(up, value)) then
-				return true
-			end
+	for _, w in ipairs(self.MouseWheelList) do
+		if w:MouseWheel(up, value) then
+			return true
 		end
-		return false
-	else
-		for _, w in ipairs(self.TweakMouseWheelList) do
-			if (w:TweakMouseWheel(up, value)) then
-				return true
-			end
-		end
-		return false -- FIXME: always grab in tweakmode?
 	end
+	return false
 end
 
 function widgetHandler:JoyAxis(axis, value)
 	for _, w in ipairs(self.JoyAxisList) do
-		if (w:JoyAxis(axis, value)) then
+		if w:JoyAxis(axis, value) then
 			return true
 		end
 	end
@@ -1524,7 +1423,7 @@ end
 
 function widgetHandler:JoyHat(hat, value)
 	for _, w in ipairs(self.JoyHatList) do
-		if (w:JoyHat(hat, value)) then
+		if w:JoyHat(hat, value) then
 			return true
 		end
 	end
@@ -1533,7 +1432,7 @@ end
 
 function widgetHandler:JoyButtonDown(button, state)
 	for _, w in ipairs(self.JoyButtonDownList) do
-		if (w:JoyButtonDown(button, state)) then
+		if w:JoyButtonDown(button, state) then
 			return true
 		end
 	end
@@ -1542,7 +1441,7 @@ end
 
 function widgetHandler:JoyButtonUp(button, state)
 	for _, w in ipairs(self.JoyButtonUpList) do
-		if (w:JoyButtonUp(button, state)) then
+		if w:JoyButtonUp(button, state) then
 			return true
 		end
 	end
@@ -1550,34 +1449,19 @@ function widgetHandler:JoyButtonUp(button, state)
 end
 
 function widgetHandler:IsAbove(x, y)
-	if (self.tweakMode) then
-		return true
-	end
 	return (widgetHandler:WidgetAt(x, y) ~= nil)
 end
 
 function widgetHandler:GetTooltip(x, y)
-	if (not self.tweakMode) then
-		for _, w in ipairs(self.GetTooltipList) do
-			if (w:IsAbove(x, y)) then
-				local tip = w:GetTooltip(x, y)
-				if ((type(tip) == 'string') and (#tip > 0)) then
-					return tip
-				end
+	for _, w in ipairs(self.GetTooltipList) do
+		if w:IsAbove(x, y) then
+			local tip = w:GetTooltip(x, y)
+			if ((type(tip) == 'string') and (#tip > 0)) then
+				return tip
 			end
 		end
-		return ""
-	else
-		for _, w in ipairs(self.TweakGetTooltipList) do
-			if (w:TweakIsAbove(x, y)) then
-				local tip = w:TweakGetTooltip(x, y) or ''
-				if ((type(tip) == 'string') and (#tip > 0)) then
-					return tip
-				end
-			end
-		end
-		return "Tweak Mode  --  hit ESCAPE to cancel"
 	end
+	return ""
 end
 
 
@@ -1978,8 +1862,12 @@ end
 
 function widgetHandler:RecvLuaMsg(msg, playerID)
 	local retval = false
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		self.chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+		retval = true
+	end
 	for _, w in ipairs(self.RecvLuaMsgList) do
-		if (w:RecvLuaMsg(msg, playerID)) then
+		if w:RecvLuaMsg(msg, playerID) then
 			retval = true
 		end
 	end
