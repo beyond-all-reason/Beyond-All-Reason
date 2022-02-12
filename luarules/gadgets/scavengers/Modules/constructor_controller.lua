@@ -48,11 +48,22 @@ end
 -- end
 
 local function resurrectorOrders(n, unitID)
-	Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, generateOrderParams(unitID, 500), 0)
-	Spring.GiveOrderToUnit(unitID, CMD.REPAIR, generateOrderParams(unitID, 500), {"shift"})
-	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 500), {"shift"})
-	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, generateOrderParams(unitID, 500), {"shift"})
-	Spring.GiveOrderToUnit(unitID, CMD.MOVE, generateOrderParams(unitID, 2000), {"shift"})
+	Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, generateOrderParams(unitID, 750), 0)
+	Spring.GiveOrderToUnit(unitID, CMD.REPAIR, generateOrderParams(unitID, 750), {"shift"})
+	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 750), {"shift"})
+	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, generateOrderParams(unitID, 750), {"shift"})
+	for i = 1,1000 do
+		local radius = 2000+(i*100)
+		local pos = generateOrderParams(unitID, radius)
+		local posx = pos[1]
+		local posy = pos[2]
+		local posz = pos[3]
+		local posIsStartbox = positionCheckLibrary.StartboxCheck(posx, posy, posz, 32, ScavengerAllyTeamID)
+		if posIsStartbox == false then
+			Spring.GiveOrderToUnit(unitID, CMD.MOVE, {posx, posy, posz}, {"shift"})
+			break
+		end
+	end
 end
 
 local function capturerOrders(n, unitID)
@@ -63,13 +74,35 @@ local function capturerOrders(n, unitID)
 		local x,y,z = Spring.GetUnitPosition(nearestEnemy)
 		Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { x, y, z }, {"meta", "shift", "alt"})
 	end
-	Spring.GiveOrderToUnit(unitID, CMD.MOVE, generateOrderParams(unitID, 2000), {"shift"})
+	for i = 1,1000 do
+		local radius = 2000+(i*100)
+		local pos = generateOrderParams(unitID, radius)
+		local posx = pos[1]
+		local posy = pos[2]
+		local posz = pos[3]
+		local posIsStartbox = positionCheckLibrary.StartboxCheck(posx, posy, posz, 32, ScavengerAllyTeamID)
+		if posIsStartbox == false then
+			Spring.GiveOrderToUnit(unitID, CMD.MOVE, {posx, posy, posz}, {"shift"})
+			break
+		end
+	end
 end
 
 local function collectorOrders(n, unitID)
 	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, generateOrderParams(unitID, 500), 0)
 	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 500), {"shift"})
-	Spring.GiveOrderToUnit(unitID, CMD.MOVE, generateOrderParams(unitID, 2000), {"shift"})
+	for i = 1,1000 do
+		local radius = 2000+(i*100)
+		local pos = generateOrderParams(unitID, radius)
+		local posx = pos[1]
+		local posy = pos[2]
+		local posz = pos[3]
+		local posIsStartbox = positionCheckLibrary.StartboxCheck(posx, posy, posz, 32, ScavengerAllyTeamID)
+		if posIsStartbox == false then
+			Spring.GiveOrderToUnit(unitID, CMD.MOVE, {posx, posy, posz}, {"shift"})
+			break
+		end
+	end
 end
 
 local function reclaimerOrders(n, unitID)
@@ -80,7 +113,21 @@ local function reclaimerOrders(n, unitID)
 		local x,y,z = Spring.GetUnitPosition(nearestenemy)
 		Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { x, y, z }, {"meta", "shift", "alt"})
 	end
-	Spring.GiveOrderToUnit(unitID, CMD.MOVE, generateOrderParams(unitID, 2000), {"shift"})
+	for i = 1,1000 do
+		local radius = 2000+(i*100)
+		local pos = generateOrderParams(unitID, radius)
+		local posx = pos[1]
+		local posy = pos[2]
+		local posz = pos[3]
+		local posIsStartbox = positionCheckLibrary.StartboxCheck(posx, posy, posz, 32, ScavengerAllyTeamID)
+		if posIsStartbox == false then
+			local posIsMapPos = positionCheckLibrary.MapEdgeCheck(posx, posy, posz, 32)
+			if posIsMapPos then
+				Spring.GiveOrderToUnit(unitID, CMD.MOVE, {posx, posy, posz}, {"shift"})
+				break
+			end
+		end
+	end
 end
 
 local function spawnConstructor(n)
