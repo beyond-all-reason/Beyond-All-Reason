@@ -93,8 +93,8 @@ addSound('NukeLaunched', 'NukeLaunched.wav', 3, 2, 'tips.notifications.nukeLaunc
 addSound('LrpcTargetUnits', 'LrpcTargetUnits.wav', 9999999, 3.8, 'tips.notifications.lrpcAttacking')
 
 -- unit ready
-addSound('VulcanIsReady', 'VulcanIsReady.wav', 30, 1.16, 'tips.notifications.vulcanReady')
-addSound('BuzzsawIsReady', 'BuzzsawIsReady.wav', 30, 1.31, 'tips.notifications.buzzsawReady')
+addSound('VulcanIsReady', 'RagnarokIsReady.wav', 30, 1.16, 'tips.notifications.vulcanReady')
+addSound('BuzzsawIsReady', 'CalamityIsReady.wav', 30, 1.31, 'tips.notifications.buzzsawReady')
 addSound('Tech3UnitReady', 'Tech3UnitReady.wav', 9999999, 1.78, 'tips.notifications.t3Ready')
 
 -- detections
@@ -111,9 +111,9 @@ addSound('EMPmissilesiloDetected', 'EmpSiloDetected.wav', 4, 2.1, 'tips.notifica
 addSound('TacticalNukeSiloDetected', 'TacticalNukeDetected.wav', 4, 2, 'tips.notifications.tacticalSiloDetected')
 addSound('NuclearSiloDetected', 'NuclearSiloDetected.wav', 4, 1.7, 'tips.notifications.nukeSiloDetected')
 addSound('NuclearBomberDetected', 'NuclearBomberDetected.wav', 60, 1.6, 'tips.notifications.nukeBomberDetected')
-addSound('JuggernautDetected', 'JuggernautDetected.wav', 9999999, 1.4, 'tips.notifications.t3MobileTurretDetected')
-addSound('KorgothDetected', 'KorgothDetected.wav', 9999999, 1.25, 'tips.notifications.t3AssaultBotDetected')
-addSound('BanthaDetected', 'BanthaDetected.wav', 9999999, 1.25, 'tips.notifications.t3AssaultMechDetected')
+addSound('JuggernautDetected', 'BehemothDetected.wav', 9999999, 1.4, 'tips.notifications.t3MobileTurretDetected')
+addSound('KorgothDetected', 'JuggernautDetected.wav', 9999999, 1.25, 'tips.notifications.t3AssaultBotDetected')
+addSound('BanthaDetected', 'TitanDetected.wav', 9999999, 1.25, 'tips.notifications.t3AssaultMechDetected')
 addSound('FlagshipDetected', 'FlagshipDetected.wav', 9999999, 1.4, 'tips.notifications.flagshipDetected')
 addSound('CommandoDetected', 'CommandoDetected.wav', 9999999, 1.28, 'tips.notifications.commandoDetected')
 addSound('TransportDetected', 'TransportDetected.wav', 9999999, 1.5, 'tips.notifications.transportDetected')
