@@ -1624,6 +1624,14 @@ function widget:DrawWorld()
 	end
 end
 
+function widget:TextCommand(command)
+	if string.find(command, "debughealthbars", nil, true) == 1 then
+		debugmode = not debugmode
+		Spring.Echo("Debug mode for HealthBars GL4 set to", debugmode)
+		healthBarVBO.debug = debugmode
+	end
+end
+
 function widget:GetConfigData(data)
 	return {onlyShowOwnTeam = onlyShowOwnTeam}
 end
@@ -1633,3 +1641,4 @@ function widget:SetConfigData(data)
 		onlyShowOwnTeam = data.onlyShowOwnTeam
 	end
 end
+

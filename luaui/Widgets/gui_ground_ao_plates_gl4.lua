@@ -105,9 +105,16 @@ function widget:Update(dt)
 	spec, fullview = Spring.GetSpectatingState()
 end
 
+function widget:TextCommand(command)
+	if string.find(command, "debuggroundaoplates", nil, true) == 1 then
+		debugmode = not debugmode
+		Spring.Echo("Debug mode for Ground AO plates set to", debugmode)
+		groundPlateVBO.debug = debugmode
+	end
+end
+
 function widget:GameFrame(n)
 	if debugmode then 
-		groundPlateVBO.debug = true
 		locateInvalidUnits(groundPlateVBO)
 	end
 end
