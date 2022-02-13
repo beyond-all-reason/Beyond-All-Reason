@@ -12,16 +12,17 @@
 					//higer value => more efficient | e-output * e-output / mcost*x*y
 					"armwin": [30, 60],
 					"armsolar": [10, 14, 0, 0, 0.030],  // efficiency=0.025806 --- increased eff to make it better against wind
-					"armadvsol": [16, 20, 12, 200, 0.200], 	// efficiency=0.237542
+					"armadvsol": [20, 30, 12, 200, 0.200], 	// efficiency=0.237542
 					//"armgeo": [4, 8, 16, 300, 0.6], //eff 0.6
 					"armgmm":[4, 8, 25, 600, 2.2],
 					//"armageo":[0, 1, 35, 1000, 3.0], //eff 3.0
 					"armfus": [3, 4, 30, 900, 1.9],		// efficiency=1.937984
 					"armckfus": [1, 3, 50, 2000, 0.230], // efficiency=2.400266
-					"armafus": [50,100, 70, 4000, 6.44]  // efficiency=6.443299
+					"armafus": [50,100, 70, 4000, 6.44],
+                    "armuwfus": [6, 12, 35, 600, 2.8]  // efficiency=6.443299
 				},
 				"water": {
-					"armtide": [20, 50],
+					"armtide": [25, 40],
 					"armwin": [30, 60],
                     "armsolar": [10, 14, 0, 0, 0.030],
                     "armadvsol": [16, 20, 12, 220, 0.220],
@@ -31,21 +32,22 @@
                     "armfus": [4, 6, 30, 900, 2.0],	
 					"armckfus": [1, 3, 50, 2000, 2.1], // efficiency=2.400266
 					"armafus": [50,100, 70, 4000, 6.44],  // efficiency=6.443299					
-					"armuwfus": [6, 12, 35, 600, 2.8]
+					"armuwfus": [50, 100, 35, 600, 2.8]
 				}
 			},
 			"cortex": {
 				"land": {
 					"corwin": [30, 60],
 					"corsolar": [9, 12, 0, 0, 0.060], // efficiency=0.026667
-                    "coradvsol": [16, 20, 12, 180, 0.220], //efficiency=0.237542
+                    "coradvsol": [20, 30, 12, 180, 0.220], //efficiency=0.237542
                     //"corgeo": [4, 8, 16, 300, 0.6], //0.6
                    // "corageo": [0, 1, 35, 1000, 3.0], //eff 3.0
-					"corfus": [4, 6, 25, 600, 2.06],  // efficiency=2.057844
-					"corafus": [50, 100, 60, 4000, 6.44] // efficiency=6.443299
+					"corfus": [4, 6, 30, 600, 2.06],  // efficiency=2.057844
+					"corafus": [50, 100, 60, 4000, 6.44],
+                    "coruwfus": [6, 12, 35, 600, 2.8] // efficiency=6.443299
 				},
 				"water": {
-					"cortide": [20, 40],
+					"cortide": [25, 40],
 					"corwin": [10, 20],
 					"corsolar": [6, 10, 0, 0, 0.027], // efficiency=0.026667
                     "coradvsol": [16, 20, 12, 150, 0.220], //efficiency=0.237542
@@ -53,7 +55,7 @@
                     //"corageo": [0, 1, 16, 1000, 3.0],
                     "corfus": [4, 6, 35, 600, 2.06],  // efficiency=2.057844
                     "corafus": [50, 100, 60, 4000, 6.44], // efficiency=6.443299
-					"coruwfus": [6, 12, 35, 600, 2.8]  // efficiency=2.756296
+					"coruwfus": [50, 100, 35, 600, 2.8]  // efficiency=2.756296
 				}
 			}
 		},

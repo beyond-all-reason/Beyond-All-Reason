@@ -78,22 +78,22 @@
 	},
 	"anti_air": {
 		"vs":         ["air"],
-		"ratio":      [ 1.0],
+		"ratio":      [ 1.5],
 		"importance": [ 100.0],
 		"max_percent": 0.1,
 		"eps_step": 0.8
 	},
 	"anti_sub": {
 		"vs":         ["sub"],
-		"ratio":      [ 0.0],
-		"importance": [ 0.0],
+		"ratio":      [ 0.5],
+		"importance": [ 5.0],
 		"max_percent": 0.20,
 		"eps_step": 0.0
 	},
 	"sub":{
-		"vs":         ["skirmish"],
-		"ratio":      [ 0.5],
-		"importance": [ 25.00],
+		"vs":         ["skirmish", "heavy"],
+		"ratio":      [ 0.50,        0.50],
+		"importance": [ 5.0,         5.0],
 		"max_percent": 0.50,
 		"eps_step": 0.0
 	},
