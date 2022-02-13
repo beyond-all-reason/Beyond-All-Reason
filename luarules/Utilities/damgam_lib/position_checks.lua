@@ -15,6 +15,8 @@ local _,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
 -- Map size
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
+local landLevel
+local seaLevel
 
 -- Get TeamIDs and AllyTeamIDs of Scavengers and Chickens
 local teams = Spring.GetTeamList()
@@ -256,6 +258,45 @@ local function ScavengerSpawnAreaCheck(posx, posy, posz, posradius) -- if true t
     end
 end
 
+local function MapIsLandOrSea()
+    if not landLevel then
+        local grid = (math.ceil(mapSizeX/16))*(math.ceil(mapSizeZ/16))
+        local x = 0
+        local z = 0
+        local y = 0
+        local landNodes = 0
+        local seaNodes = 0
+        for i = 1,grid do
+            if x <= mapSizeX then
+                y = Spring.GetGroundHeight(x,z)
+                if y > -15 then
+                    landNodes = landNodes + 1
+                elseif y <= -15 then
+                    seaNodes = seaNodes + 1
+                end
+                x = x + 16
+            elseif x > mapSizeX then
+                x = 0
+                z = z + 16
+                if z > mapSizeZ then
+                    break
+                end
+                
+                y = Spring.GetGroundHeight(x,z)
+                if y > 0 then
+                    landNodes = landNodes + 1
+                elseif y <= 0 then
+                    seaNodes = seaNodes + 1
+                end
+            end
+        end
+        landLevel = math.ceil((landNodes/grid)*10000)/100
+        seaLevel = math.ceil((seaNodes/grid)*10000)/100
+    end
+    --Spring.Echo("LandLevel", landLevel.." "..seaLevel)
+    return landLevel, seaLevel
+end
+
 return {
     FlatAreaCheck = FlatAreaCheck,
     OccupancyCheck = OccupancyCheck,
@@ -264,6 +305,7 @@ return {
     StartboxCheck = StartboxCheck,
     MapEdgeCheck = MapEdgeCheck,
     SurfaceCheck = SurfaceCheck,
+    MapIsLandOrSea = MapIsLandOrSea,
 
     -- Scavengers
     ScavengerSpawnAreaCheck = ScavengerSpawnAreaCheck,

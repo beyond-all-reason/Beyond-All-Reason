@@ -539,6 +539,22 @@ local moveDatas = {
 		maxwaterslope = 100,
 	},
 
+	SCAVREZZER = {
+		crushstrength = 50,
+		depthModParams = {
+			minHeight = 0,
+			maxScale = 1.5,
+			quadraticCoeff = (9.9/22090)/2,
+			linearCoeff = (0.1/470)/2,
+			constantCoeff = 1,
+			},
+		footprintx = 2,
+		footprintz = 2,
+		maxslope = 36,
+		maxwaterdepth = 99999,
+		maxwaterslope = 100,
+	},
+
 	-- Scav Mist
 	SCAVMIST = {
 		badwaterslope = 255,

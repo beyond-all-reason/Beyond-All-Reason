@@ -118,8 +118,9 @@ local function bossMinionsSpawn(n)
 			local posy = Spring.GetGroundHeight(posx, posz)
 			local r = math_random(0,100)
 			local rair = math_random(0, scavconfig.unitSpawnerModuleConfig.aircraftchance)
+			local landLevel, seaLevel = positionCheckLibrary.MapIsLandOrSea()
 
-			if rair == 0 then
+			if rair == 0 or (posy > 0 and landLevel < 40) or (posy < 0 and seaLevel < 30) then
 				if TierSpawnChances.T4 > 0 then
 					minionUnit = airUnitList.T4[math_random(1,#airUnitList.T4)]
 				elseif TierSpawnChances.T3 > 0 then
@@ -249,7 +250,8 @@ local function unitGroupSpawn(n)
 				local numOfTypes = 0
 				local newTypeNumber = 9999 --math.random(2,20)
 				--Spring.Echo(newTypeNumber)
-				if (posy <= -20 and aircraftchanceonsea == 0) or (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) then
+				local landLevel, seaLevel = positionCheckLibrary.MapIsLandOrSea()
+				if (posy <= -20 and aircraftchanceonsea == 0) or (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) or (posy > 0 and landLevel < 40) or (posy < 0 and seaLevel < 30) then
 					if spawnTier <= TierSpawnChances.T0 then
 						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.airmultiplier*scavconfig.unitSpawnerModuleConfig.t0multiplier)
 						for i = 1,groupsize do

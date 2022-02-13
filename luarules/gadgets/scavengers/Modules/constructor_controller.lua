@@ -48,10 +48,10 @@ end
 -- end
 
 local function resurrectorOrders(n, unitID)
-	Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, generateOrderParams(unitID, 750), 0)
-	Spring.GiveOrderToUnit(unitID, CMD.REPAIR, generateOrderParams(unitID, 750), {"shift"})
-	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 750), {"shift"})
-	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, generateOrderParams(unitID, 750), {"shift"})
+	Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, generateOrderParams(unitID, 1000), 0)
+	Spring.GiveOrderToUnit(unitID, CMD.REPAIR, generateOrderParams(unitID, 1000), {"shift"})
+	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 1000), {"shift"})
+	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, generateOrderParams(unitID, 1000), {"shift"})
 	for i = 1,1000 do
 		local radius = 2000+(i*100)
 		local pos = generateOrderParams(unitID, radius)
@@ -67,7 +67,7 @@ local function resurrectorOrders(n, unitID)
 end
 
 local function capturerOrders(n, unitID)
-	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 500), 0)
+	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 1000), 0)
 	local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, mapDiagonal*0.05, true)
 	if nearestenemy then
 		Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, { nearestEnemy }, 0)
@@ -89,8 +89,8 @@ local function capturerOrders(n, unitID)
 end
 
 local function collectorOrders(n, unitID)
-	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, generateOrderParams(unitID, 500), 0)
-	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 500), {"shift"})
+	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, generateOrderParams(unitID, 1000), 0)
+	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 1000), {"shift"})
 	for i = 1,1000 do
 		local radius = 2000+(i*100)
 		local pos = generateOrderParams(unitID, radius)

@@ -993,24 +993,26 @@ customDefs.armllt = {
 -- }
 
 customDefs.armrectr = {
-	--cancloak = true,
-	--cloakcost = 10,
+	-- cancloak = true,
+	-- cloakcost = 10,
 	--cloakcostmoving = 100,
+	canassist = true,
 	category = "ALL BOT MOBILE NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
-	footprintx = 0,
-	footprintz = 0,
-	movementclass = "SCAVCOMMANDERBOT",
+	footprintx = 2,
+	footprintz = 2,
+	movementclass = "SCAVREZZER",
 	-- workertime = 100 * ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
 }
 
 customDefs.cornecro = {
-	--cancloak = true,
-	--cloakcost = 10,
+	-- cancloak = true,
+	-- cloakcost = 10,
 	--cloakcostmoving = 100,
+	canassist = true,
 	category = "ALL BOT MOBILE NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
-	footprintx = 0,
-	footprintz = 0,
-	movementclass = "SCAVCOMMANDERBOT",
+	footprintx = 2,
+	footprintz = 2,
+	movementclass = "SCAVREZZER",
 	-- workertime = 100 * ScavDifficultyMultiplier,		-- can get multiplied in unitdef_post
 }
 
