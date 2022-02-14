@@ -1,6 +1,3 @@
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
-
 function gadget:GetInfo()
 	return {
 		name = "Stun Metal Storage",
@@ -18,11 +15,10 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local storageDefs = {
-	--Armada
 	[UnitDefNames.armmstor.id] = true,
 	[UnitDefNames.armuwms.id] = true,
 	[UnitDefNames.armuwadvms.id] = true,
-	--Cortex
+
 	[UnitDefNames.cormstor.id] = true,
 	[UnitDefNames.coruwms.id] = true,
 	[UnitDefNames.coruwadvms.id] = true,
@@ -38,28 +34,18 @@ end
 local storageunits = {}
 local stunnedstorage = {}
 
-local uDefs = UnitDefs
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
-local GetUnitDefID = Spring.GetUnitDefID
-local SpGetAllUnits = Spring.GetAllUnits
-
-local ipairs = ipairs
-local pairs = pairs
+local spGetUnitDefID = Spring.GetUnitDefID
 
 function gadget:GameFrame(n)
 	if ((n + 18) % 30) < 0.1 then
 		for unitID, _ in pairs(storageunits) do
-			local uDefID = GetUnitDefID(unitID)
-			if not uDefID then
+			if not spGetUnitDefID(unitID) then
 				break
 			end
-			local uDef = uDefs[uDefID]
-			local storage = storageunits[unitID].storage
-
 			if not storageunits[unitID].isEMPed and spGetUnitIsStunned(unitID)then
 				local currentLevel, totalstorage = Spring.GetTeamResources(Spring.GetUnitTeam(unitID), "metal")
-				local newstoragetotal = totalstorage - storage
-				--Spring.Echo("current storage level " .. currentLevel .. "   total storage " .. totalstorage .. "   new storage level " ..newstoragetotal)
+				local newstoragetotal = totalstorage - storageunits[unitID].storage
 				Spring.SetTeamResource(Spring.GetUnitTeam(unitID), "ms", newstoragetotal)
 				if currentLevel > newstoragetotal then
 					local x, y, z = Spring.GetUnitPosition(unitID)
@@ -73,16 +59,14 @@ function gadget:GameFrame(n)
 		for unitID, _ in pairs(stunnedstorage) do
 			local team = Spring.GetUnitTeam(unitID)
 			if team ~= nil and not spGetUnitIsStunned(unitID) then
-				local storage = storageunits[unitID].storage
 				local _, totalstorage = Spring.GetTeamResources(team, "metal")
-				Spring.SetTeamResource(Spring.GetUnitTeam(unitID), "ms", totalstorage + storage)
+				Spring.SetTeamResource(Spring.GetUnitTeam(unitID), "ms", totalstorage + storageunits[unitID].storage)
 				stunnedstorage[unitID] = nil
 				storageunits[unitID].isEMPed = false
 			end
 		end
 	end
 end
-
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if storageDefs[unitDefID] then
@@ -95,30 +79,21 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	if storageunits[unitID] and storageunits[unitID].isEMPed == true then
-		local storage = storageunits[unitID].storage
+	if storageunits[unitID] and storageunits[unitID].isEMPed then
 		local _, totalstorage = Spring.GetTeamResources(oldTeam, "metal")
-		Spring.SetTeamResource(oldTeam, "ms", totalstorage + storage)
+		Spring.SetTeamResource(oldTeam, "ms", totalstorage + storageunits[unitID].storage)
 		_, totalstorage = Spring.GetTeamResources(newTeam, "metal")
-		Spring.SetTeamResource(newTeam, "ms", totalstorage - storage)
+		Spring.SetTeamResource(newTeam, "ms", totalstorage - storageunits[unitID].storage)
 	end
 end
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
-	--we use UnitPreDamaged so as we get in before unit_transportfix has its effect
-	if storageDefs[unitDefID] then
-		local hp = Spring.GetUnitHealth(unitID)
-		if damage > hp and not paralyzer then
-			--unit's can have 0 health
-			if storageunits[unitID] and storageunits[unitID].isEMPed == true then
-				local _, totalstorage = Spring.GetTeamResources(unitTeam, "metal")
-				Spring.SetTeamResource(unitTeam, "ms", totalstorage + storageunits[unitID].storage) --Add back before unit is destoryed
-			end
-			storageunits[unitID] = nil
-			stunnedstorage[unitID] = nil
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	if stunnedstorage[unitID] then
+		if storageunits[unitID] and storageunits[unitID].isEMPed then
+			local _, totalstorage = Spring.GetTeamResources(unitTeam, "metal")
+			Spring.SetTeamResource(unitTeam, "ms", totalstorage + storageunits[unitID].storage) --Add back before unit is destoryed
 		end
+		stunnedstorage[unitID] = nil
+		storageunits[unitID] = nil
 	end
 end
-
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
