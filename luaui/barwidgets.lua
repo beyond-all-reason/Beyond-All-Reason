@@ -97,6 +97,7 @@ local flexCallIns = {
 	'UnitFromFactory',
 	'UnitDestroyed',
 	'UnitDestroyedByTeam', -- NB: called via gadget, not engine
+	'RenderUnitDestroyed',
 	'UnitExperience',
 	'UnitTaken',
 	'UnitGiven',
@@ -1676,6 +1677,14 @@ end
 function widgetHandler:UnitDestroyedByTeam(unitID, unitDefID, unitTeam, attackerTeamID)
 	for _, w in ipairs(self.UnitDestroyedByTeamList) do
 		w:UnitDestroyedByTeam(unitID, unitDefID, unitTeam, attackerTeamID)
+	end
+	return
+end
+
+function widgetHandler:RenderUnitDestroyed(unitID, unitDefID, unitTeam) 
+	-- at the time of committing, this does not get called by the widgethandler
+	for _, w in ipairs(self.RenderUnitDestroyedList) do
+		w:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 	return
 end
