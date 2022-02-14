@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
 		name = "UnitCallinsGadget", 
-		desc = "Echos each specific callin for debugging",
+		desc = "Draws and echos each gadget callin for debugging, enable with /luarules unitcallinsgadget",
 		author = "Beherith",
 		date = "2022.02.14",
 		license = "GNU GPL, v2 or later",
@@ -29,7 +29,14 @@ local startheight = 64
 
 local function addEvent(unitID,callin, param1, param2, param3, param4)
 	if unitID == nil then return end
-	local px, py, pz = Spring.GetUnitPosition(unitID)
+	local px, py, pz 
+	if type(unitID) == 'table' then 
+		px = unitID[1]
+		py = unitID[2]
+		pz = unitID[3]
+	elseif Spring.ValidUnitID(unitID) then 
+		px, py, pz = Spring.GetUnitPosition(unitID)
+	end
 	if px == nil then return end 
 	local caption = 'g:'..callin
 	if param1 ~= nil then caption = caption .. " " .. tostring(param1) end 
@@ -105,6 +112,12 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	if enabledcallins.UnitDestroyed == nil then return end
 	if printcallins then Spring.Echo("g:UnitDestroyed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam) end
 	if showcallins then addEvent(unitID, "UnitDestroyed") end 
+end
+
+function gadget:UnitReverseBuilt(unitID, unitDefID, unitTeam)
+	if enabledcallins.UnitReverseBuilt == nil then return end
+	if printcallins then Spring.Echo("g:UnitReverseBuilt",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam) end
+	if showcallins then addEvent(unitID, "UnitReverseBuilt") end 
 end
 
 function gadget:UnitDestroyedByTeam(unitID, unitDefID, unitTeam, attackerTeamID)
@@ -244,11 +257,50 @@ function gadget:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCoun
 	if showcallins then addEvent(unitID, "StockpileChanged") end 
 end
 
-
 function gadget:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 	if enabledcallins.RenderUnitDestroyed == nil then return end
 	if printcallins then Spring.Echo("g:RenderUnitDestroyed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam) end
 	if showcallins then addEvent(unitID, "RenderUnitDestroyed") end 
+end
+
+function gadget:UnitUnitCollision(colliderID, collideeID)
+	if enabledcallins.UnitUnitCollision == nil then return end
+	if printcallins then Spring.Echo("g:UnitUnitCollision",colliderID, collideeID) end
+	if showcallins then addEvent(colliderID, "UnitUnitCollision") end 
+end
+
+function gadget:UnitFeatureCollision(colliderID, collideeID)
+	if enabledcallins.UnitFeatureCollision == nil then return end
+	if printcallins then Spring.Echo("g:UnitFeatureCollision",colliderID, collideeID) end
+	if showcallins then addEvent(colliderID, "UnitFeatureCollision") end 
+end
+
+function gadget:UnitFeatureCollision(colliderID, collideeID)
+	if enabledcallins.UnitFeatureCollision == nil then return end
+	if printcallins then Spring.Echo("g:UnitFeatureCollision",colliderID, collideeID) end
+	if showcallins then addEvent(colliderID, "UnitFeatureCollision") end 
+end
+
+function gadget:FeatureCreated(featureID)
+	if enabledcallins.FeatureCreated == nil then return end
+	local featureDefID = Spring.GetFeatureDefID(featureID)
+	if printcallins then Spring.Echo("g:FeatureCreated",featureID, FeatureDefs[featureDefID].name) end
+	if showcallins then 	
+		local fx, fy, fz = Spring.GetFeaturePosition(featureID)
+		local pos = {fx,fy,fz}
+		addEvent(pos, "FeatureCreated") 
+	end 
+end
+
+function gadget:FeatureDestroyed(featureID)
+	if enabledcallins.FeatureDestroyed == nil then return end
+	local featureDefID = Spring.GetFeatureDefID(featureID)
+	if printcallins then Spring.Echo("g:FeatureDestroyed",featureID, FeatureDefs[featureDefID].name) end
+	if showcallins then 	
+		local fx, fy, fz = Spring.GetFeaturePosition(featureID)
+		local pos = {fx,fy,fz}
+		addEvent(pos, "FeatureDestroyed") 
+	end 
 end
 
 local function init()
@@ -292,6 +344,11 @@ local function togglegadget()
 			UnitMoveFailed = true,
 			StockpileChanged  = true,
 			RenderUnitDestroyed  = true,
+			UnitReverseBuilt  = true,
+			UnitUnitCollision  = true,
+			UnitFeatureCollision  = true,
+			FeatureCreated = true,
+			FeatureDestroyed = true,
 		}
 	end
 end

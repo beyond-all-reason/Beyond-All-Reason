@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "UnitCallinsWidget",
-		desc = "Echos each specific callin for debugging",
+		desc = "Draws and echos each widget callin for debugging",
 		author = "Beherith",
 		date = "2022.02.14",
 		license = "GNU GPL, v2 or later",
@@ -43,6 +43,8 @@ local enabledcallins = {
 	UnitMoveFailed = true,
 	StockpileChanged  = true,
 	RenderUnitDestroyed  = true,
+	FeatureCreated = true,
+	FeatureDestroyed = true,
 	}
 local taglife = 5 * 30
 local tagrise = 2
@@ -55,7 +57,14 @@ local startheight = 64
 
 local function addEvent(unitID,callin, param1, param2, param3, param4)
 	if unitID == nil then return end
-	local px, py, pz = Spring.GetUnitPosition(unitID)
+	local px, py, pz 
+	if type(unitID) == 'table' then 
+		px = unitID[1]
+		py = unitID[2]
+		pz = unitID[3]
+	elseif Spring.ValidUnitID(unitID) then 
+		px, py, pz = Spring.GetUnitPosition(unitID)
+	end
 	if px == nil then return end 
 	local caption = 'w:'..callin
 	if param1 ~= nil then caption = caption .. " " .. tostring(param1) end 
@@ -272,6 +281,28 @@ function widget:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 	if enabledcallins.RenderUnitDestroyed == nil then return end
 	if printcallins then Spring.Echo("w:RenderUnitDestroyed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam) end
 	if showcallins then addEvent(unitID, "RenderUnitDestroyed") end 
+end
+
+function widget:FeatureCreated(featureID)
+	if enabledcallins.FeatureCreated == nil then return end
+	local featureDefID = Spring.GetFeatureDefID(featureID)
+	if printcallins then Spring.Echo("w:FeatureCreated",featureID, FeatureDefs[featureDefID].name) end
+	if showcallins then 	
+		local fx, fy, fz = Spring.GetFeaturePosition(featureID)
+		local pos = {fx,fy,fz}
+		addEvent(pos, "FeatureCreated") 
+	end 
+end
+
+function widget:FeatureDestroyed(featureID)
+	if enabledcallins.FeatureDestroyed == nil then return end
+	local featureDefID = Spring.GetFeatureDefID(featureID)
+	if printcallins then Spring.Echo("w:FeatureDestroyed",featureID, FeatureDefs[featureDefID].name) end
+	if showcallins then 	
+		local fx, fy, fz = Spring.GetFeaturePosition(featureID)
+		local pos = {fx,fy,fz}
+		addEvent(pos, "FeatureDestroyed") 
+	end 
 end
 
 local function init()
