@@ -60,6 +60,9 @@ for udid, udef in pairs(UnitDefs) do
 	local building = (mobile == false)
 	local combat = (builder == false) and (mobile == true) and (#udef.weapons > 0)
 
+	if string.find(udef.name, 'armspid') then
+		builder = false
+	end
 	combatFilter[udid] = combat
 	builderFilter[udid] = builder
 	buildingFilter[udid] = building
