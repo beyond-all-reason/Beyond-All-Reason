@@ -234,17 +234,19 @@ function widget:DrawWorld()
 	local camDistance
 
 	for unitID, rank in pairs(unitRanks) do
-		if IsUnitInView(unitID) then
-			local x, y, z = GetUnitPosition(unitID)
-			camDistance = diag(camX - x, camY - y, camZ - z)
-			if camDistance < usedCutoffDistance then
-				local unitDefID = GetUnitDefID(unitID)
-				local opacity = min(1, 1 - (camDistance - usedFalloffDistance) / usedCutoffDistance)
-				unitUsedIconsize = ((usedIconsize * 0.12) + (camDistance / scaleIconAmount)) - ((1 - opacity) * (usedIconsize * 1.25))
-				unitUsedIconsize = unitUsedIconsize * unitIconMult[unitDefID]
-				glTexture(rankTextures[rank])
-				glColor(1, 1, 1, opacity)
-				glDrawFuncAtUnit(unitID, false, DrawUnitFunc, unitHeights[unitDefID])
+		if rank > 1 then
+			if IsUnitInView(unitID) then
+				local x, y, z = GetUnitPosition(unitID)
+				camDistance = diag(camX - x, camY - y, camZ - z)
+				if camDistance < usedCutoffDistance then
+					local unitDefID = GetUnitDefID(unitID)
+					local opacity = min(1, 1 - (camDistance - usedFalloffDistance) / usedCutoffDistance)
+					unitUsedIconsize = ((usedIconsize * 0.12) + (camDistance / scaleIconAmount)) - ((1 - opacity) * (usedIconsize * 1.25))
+					unitUsedIconsize = unitUsedIconsize * unitIconMult[unitDefID]
+					glTexture(rankTextures[rank])
+					glColor(1, 1, 1, opacity)
+					glDrawFuncAtUnit(unitID, false, DrawUnitFunc, unitHeights[unitDefID])
+				end
 			end
 		end
 	end
