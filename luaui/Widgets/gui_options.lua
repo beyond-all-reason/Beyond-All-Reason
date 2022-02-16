@@ -4981,7 +4981,7 @@ function widget:GetConfigData()
 		show = show,
 		waterDetected = waterDetected,
 		customPresets = customPresets,
-		guishaderIntensity = guishaderIntensity
+		guishaderIntensity = guishaderIntensity,
 
 		-- to restore init defaults
 		mapChecksum = Game.mapChecksum,
