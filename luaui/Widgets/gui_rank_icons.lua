@@ -26,11 +26,11 @@ local usedIconsize = iconsize * iconsizeMult
 local chobbyInterface
 
 local maximumRankXP = 2
-local numRanks = #VFS.DirList('LuaUI/Images/ranks', '*.png')
+local numRanks = #VFS.DirList('LuaUI/Images/ranks', '*.dds')
 local rankTextures = {}
 local unitRanks = {}
 for i = 1,numRanks do 
-	rankTextures[i] = 'LuaUI/Images/ranks/rank'..i..'.png'
+	rankTextures[i] = 'LuaUI/Images/ranks/rank'..i..'.dds'
 end
 local xpPerLevel = maximumRankXP/(numRanks-1)
 
