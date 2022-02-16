@@ -1553,12 +1553,12 @@ function init()
 		custom = {},
 	}
 
-	local screenModes = WG['screenMode'] and WG['screenMode'].GetScreenModes()
-	local displays = WG['screenMode'] and WG['screenMode'].GetDisplays()
+	local screenModes = WG['screenMode'] and WG['screenMode'].GetScreenModes() or {}
+	local displays = WG['screenMode'] and WG['screenMode'].GetDisplays() or {}
 
 	local displayNames = {}
 	for index, display in ipairs(displays) do
-			displayNames[index] = display.name .. " " .. display.width .. " × " .. display.height
+		displayNames[index] = display.name .. " " .. display.width .. " × " .. display.height
 	end
 
 	local resolutionNames = {}
