@@ -52,7 +52,7 @@ else
 		local allFeatures = Spring.GetAllFeatures()
 		for i = 1, #allFeatures do
 			local featureID = allFeatures[i]
-			gadget:FeatureCreated(featureID, Spring.GetFeatureDefID(featureID), Spring.GetFeatureTeam(featureID))
+			gadget:FeatureCreated(featureID)
 		end
 	end
 
@@ -76,8 +76,8 @@ else
 		end
 	end
 
-	function gadget:FeatureCreated(featureID, featureDefID, teamID)
-		if isTombstone[featureDefID] then
+	function gadget:FeatureCreated(featureID, allyTeamID)
+		if isTombstone[Spring.GetFeatureDefID(featureID)] then
 			tombstones[featureID] = true
 			if not drawTombstones then
 				Spring.FeatureRendering.SetFeatureLuaDraw(featureID, true)
