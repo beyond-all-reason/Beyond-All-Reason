@@ -29,7 +29,7 @@ local maximumRankXP = 2
 local numRanks = #VFS.DirList('LuaUI/Images/ranks', '*.dds')
 local rankTextures = {}
 local unitRanks = {}
-for i = 1,numRanks do 
+for i = 1,numRanks do
 	rankTextures[i] = 'LuaUI/Images/ranks/rank'..i..'.dds'
 end
 local xpPerLevel = maximumRankXP/(numRanks-1)
@@ -208,7 +208,7 @@ end
 local function DrawUnitFunc(yshift)
 	glTranslate(0, yshift, 0)
 	glBillboard()
-	glTexRect(-unitUsedIconsize * 0.5, -unitUsedIconsize * 0.5, unitUsedIconsize * 0.5, unitUsedIconsize * 0.5)
+	glTexRect(-unitUsedIconsize * 0.5, unitUsedIconsize * 0.5, unitUsedIconsize * 0.5, -unitUsedIconsize * 0.5)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
