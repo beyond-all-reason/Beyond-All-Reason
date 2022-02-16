@@ -11,8 +11,283 @@ end
 function TasksHST:Init()
 	self.DebugEnabled = false
 	self.roles = {}
+	self.labs = {}
 	self:startRolesParams()
+	self:startLabsParams()
+end
 
+function TasksHST:startLabsParams()
+	local M = self.ai.Metal
+	local E = self.ai.Energy
+	self.labs.default = {
+
+
+			{category = 'techs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 3, mtype = nil, max = 10,},
+			wave = 1},
+
+
+			{category = 'scouts',
+			economy = function(soldier)
+				return (E.income < 100 )
+			end,
+			numeric = {min = 1,mtype = 10,max = 2},
+			wawe = 2},
+
+
+			{category = 'raiders',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = nil,max = 20},
+			wawe = 10},
+
+
+			{category = 'techs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 3,mtype = nil,max = 10},
+			wawe = 1},
+
+
+			{category = 'battles',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 3,mtype = nil,max = 25},
+            wave = 5},
+
+
+			{category = 'techs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 3,mtype = 6,max = 7},
+			wawe = 1},
+
+
+			{category = 'artillerys',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = 10,max = 10},
+			wawe = 3},
+
+
+			{category = 'techs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 3,mtype = nil,max = 10},
+			wawe = 3},
+
+
+			{category = 'breaks',
+			economy = function()
+				return
+			end,
+			numeric = {min = 2,mtype = 5,max = 15},
+			wawe = 3},
+
+
+			{category = 'techs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 3,mtype = nil,max = 10},
+			wawe = 1},
+
+
+			{category = 'rezs',
+			economy = function()
+				return true
+			end,-- rezzers
+			numeric = {min = 1,mtype = 8,max = 10},
+			wawe = 2},
+
+
+
+			{category = 'engineers',
+			economy = function()
+				return true
+			end, --help builders and build thinghs
+			numeric = {min = 1,mtype = 8,max = 10},
+			wawe = 1},
+
+			{category = 'antiairs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = 7,max = 8},
+			wawe = 2},
+
+
+			{category = 'amptechs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = 7,max = 5},
+			wawe = 1},
+			 --amphibious builders
+
+			{category = 'jammers',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = nil,max = 1},
+			wave = 1},
+
+
+			{category = 'radars',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = 2,max = nil},
+			wawe = 1},
+
+
+			{category = 'airgun',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = 5,max = 10},
+			wawe = 5},
+
+
+			{category = 'bomberairs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 10,mtype = 4,max = 20},
+			wawe = 10},
+
+
+			{category = 'fighterairs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = 5,max = 10},
+            wave = 5},
+
+
+			{category = 'paralyzers',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = 10,max = 5},
+			wawe = 3},
+			 --have paralyzer weapon
+
+
+			{category = 'wartechs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = nil,max = 1},
+            wave = 1},
+			 --decoy etc
+
+			{category = 'techs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 3,mtype = nil,max = 5},
+			wawe = 3},
+
+
+			{category = 'subkillers',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = 7,max = 10},
+            wave = 3},
+			 -- submarine weaponed
+
+			{category = 'breaks',
+			economy = function()
+				return true
+			end,
+			numeric = {mtype = nil,max = 40},
+			wawe = 3},
+
+
+			{category = 'amphibious',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 0,mtype = 7,max = 20},
+            wave = 5},
+			 -- weapon amphibious
+
+			{category = 'spiders',
+			economy = function()
+				return true
+			end,
+			numeric = {mtype = nil,max = 15},
+			wawe = 10},
+			 -- all terrain spider
+
+
+--[[
+--
+			{category = 'transports',
+			economy = function()
+				return true
+			end,
+			1,
+			nil,
+			nil},
+
+--
+			{category = 'spys',
+			economy = function()
+				return true
+			end,
+			1,
+			nil,
+			1},
+			 -- spy bot
+--
+			{category = 'miners',
+			economy = function()
+				return true
+			end,
+			1,
+			nil,
+			nil},
+
+--
+			{category = 'antinukes',
+			economy = function()
+				return true
+			end,
+			1,
+			nil,
+			nil},
+
+--
+			{category = 'crawlings',
+			economy = function()
+				return true
+			end,
+			1,
+			nil,
+			1},
+
+--
+			{category = 'cloakables',
+			economy = function()
+				return true
+			end,
+			0,
+			0,
+			10},
+]]
+}
 end
 
 function TasksHST:startRolesParams()

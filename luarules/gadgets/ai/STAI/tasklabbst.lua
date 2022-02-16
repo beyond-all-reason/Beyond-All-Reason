@@ -5,32 +5,158 @@ function TaskLabBST:Name()
 end
 
 function TaskLabBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self:EchoDebug('initialize tasklab')
 	local u = self.unit:Internal()
 	self.id = u:ID()
 	self.name = u:Name()
 	self.position = u:GetPosition()
-	self.army = self.ai.armyhst.unitTable[self.name]
 	self:EchoDebug(self.name)
-	self.uDef = UnitDefNames[self.name]
-	self:EchoDebug(self.uDef)
-	self.unities = self.uDef.buildOptions
-	self.units = {}
+	self.spec = self.ai.armyhst.unitTable[self.name]
 	self.mtype = self.ai.armyhst.factoryMobilities[self.name]
 	self.isAirFactory = self.mtype == 'air'
-	for index,unit in pairs(self.unities) do
-		self:EchoDebug(index,unit)
-		local uName = UnitDefs[unit].name
-		self.units[uName] = {}
-		self.units[uName].name = uName
-		self.units[uName].type = self.game:GetTypeByName(uName)
-		self.units[uName].army = self.ai.armyhst.unitTable[uName]
-		self.units[uName].defId = unit
-	end
 	self.qIndex = 1
 	self:resetCounters()
-	self:ampRating()
+	self:ampRating() -- amph rating for this factory
+
+end
+
+function TaskLabBST:preFilter()
+	local techLv = self.spec.techLevel
+	local topLevel = self.ai.maxFactoryLevel
+ 	local threshold = 1 - (techLv / topLevel)+0.05
+-- 	local threshold = (0.4-(techLv / 10))+0.05 --TODO this is a shit
+	self:EchoDebug('prefilter threshold', threshold)
+	if self.ai.Energy.full > 0.1 then
+		self.unit:Internal():FactoryUnWait()
+	else
+		self.unit:Internal():FactoryWait()
+-- 		return true
+	end
+end
+
+function TaskLabBST:Update()
+	local f = self.game:Frame()
+	if f % 111 == 0 then
+		self:preFilter() -- work or no resource??
+		if Spring.GetFactoryCommands(self.id,0) > 1 then return end --factory alredy work
+		self:GetAmpOrGroundWeapon() -- need more amph to attack in this map?
+
+		local soldier, param, utype = self:getSoldier()
+		self:EchoDebug('update',soldier)
+		if soldier then
+			for i=1,param.wave or 1 do
+				utype = self.game:GetTypeByName(soldier)
+				self.unit:Internal():Build(utype,nil,nil,{-1})
+			end
+		end
+	end
+end
+
+function TaskLabBST:getQueue()
+	return self.ai.taskshst.labs.default
+end
+
+function TaskLabBST:getSoldier()
+	self:EchoDebug('soldier')
+	local soldier
+	local param
+	local utype
+	self.queue = self:getQueue(self.name)
+	for i = self.qIndex , #self.queue do
+		param = self.queue[i]
+		soldier,utype = self:getSoldierFromCategory(param.category)
+		self:EchoDebug('soldier',soldier)
+		soldier = self:ecoCheck(param.category,param.economy,soldier)
+		self:EchoDebug('eco',soldier)
+		soldier = self:countCheck(soldier,param.numeric)
+		self:EchoDebug('count',soldier)
+		soldier = self:toAmphibious(soldier)
+		self:EchoDebug('amp',soldier)
+		soldier = self:specialFilters(soldier,param.category)
+		self:EchoDebug('special',soldier)
+		self.qIndex = self.qIndex + 1
+		if self.qIndex > #self.queue then
+			self.qIndex = 1
+		end
+		if soldier then
+			return soldier,param,utype
+		end
+	end
+
+end
+
+function TaskLabBST:specialFilters(soldier,category)
+	if category == 'antiairs' and not self.ai.needAntiAir then
+		return nil
+	end
+	return soldier
+end
+
+function TaskLabBST:getSoldierFromCategory(category)--we will take care about only one soldier per category per lab, if there are more than create another category
+	for name,_ in pairs(self.ai.armyhst[category]) do
+		utype = self.game:GetTypeByName(name)
+		if self.unit:Internal():CanBuild(utype) then
+			return name,utype
+		end
+	end
+end
+
+function TaskLabBST:ecoCheck(category,param,name)
+	self:EchoDebug(category ,name, " (before eco check)")
+	if not name  or not param then
+		self:EchoDebug('ecofilter stop',name,cat, param)
+		return
+	end
+	if self.queue[self.qIndex]:economy() then
+		return name
+	end
+end
+
+function TaskLabBST:countCheck(soldier,numeric)
+	self:EchoDebug('countcheck',soldier)
+	if not soldier then return end
+	local Min = numeric.min or 0
+	local Max = numeric.max or math.huge
+	local mtypeFactor = numeric.mtype or 1
+	local team = game:GetTeamID()
+	local func = 0
+	local spec = self.ai.armyhst.unitTable[soldier]
+	local counter = self.game:GetTeamUnitDefCount(team,spec.defId)
+	local mtypeLvCount = self.ai.tool:mtypedLvCount(self.ai.armyhst.unitTable[soldier].mtypedLv)
+	local mTypeRelative = mtypeLvCount / mtypeFactor
+	func = math.min(math.max(Min , mTypeRelative), Max)
+	self:EchoDebug('mmType',mType , '/',counter,'func',func)
+	if counter < func then
+		self:EchoDebug('counter',soldier)
+		return soldier
+	end
+end
+
+function TaskLabBST:toAmphibious(soldier)
+	local army = self.ai.armyhst
+	local amphRank = (((ai.mobCount['shp']) / self.ai.mobilityGridArea ) +  ((#ai.UWMetalSpots) /(#ai.landMetalSpots + #ai.UWMetalSpots)))/ 2
+	amphRank = self.amphRank or 0.5
+	self:EchoDebug('amphRank',amphRank)
+	if army.raiders[soldier] or army.battles[soldier] or army.breaks[soldier] or army.artillerys[soldier] then
+		if math.random() < amphRank then
+			for name,v in pairs(self.units) do
+				if army.amphibious[name] then
+					soldier = name
+				end
+			end
+		end
+	elseif army.techs[soldier] then
+		if math.random() < amphRank then
+			for name,v in pairs(self.units) do
+				if army.amptechs[name] then
+					soldier = name
+				end
+			end
+		end
+	end
+	self:EchoDebug('toAmphibious', soldier)
+	return soldier
 end
 
 function TaskLabBST:ampRating()
@@ -44,12 +170,6 @@ function TaskLabBST:ampRating()
 		amphRank = 1
 	end
 	self.amphRank = amphRank
-end
-
-function TaskLabBST:GetMtypedLv(unitName)
-	local counter = self.ai.tool:mtypedLvCount(self.ai.armyhst.unitTable[unitName].mtypedLv)
-	self:EchoDebug('mtypedLvmtype ' , counter)
-	return counter
 end
 
 function TaskLabBST:resetCounters()
@@ -80,14 +200,16 @@ end
 
 
 
-function TaskLabBST:getSoldier()
+             --[[
+
+             function TaskLabBST:getSoldier()
 	self:EchoDebug('soldier')
 	local param
 	local soldiers
 	local queue = self:getQueue()
 	for i = 0 , #queue do
 		param = queue[self.qIndex]
-		soldiers = self:scanRanks(param[1])
+		soldiers = self:scanRanks(param.category)
 		if soldiers then
 			self.qIndex = self.qIndex + 1
 			if self.qIndex > #queue then
@@ -102,13 +224,13 @@ function TaskLabBST:getSoldier()
 		end
 	end
 
- 	soldier = self:ecoCheck(soldiers)
+ 	soldier = self:ecoCheck(soldiers,param.economy)
 	self:EchoDebug('eco',soldier)
- 	soldier = self:countCheck(soldier,param[2],param[3],param[4])
+ 	soldier = self:countCheck(soldier,param.numeric)
  	self:EchoDebug('count',soldier)
 	soldier = self:toAmphibious(soldier)
 	self:EchoDebug('amp',soldier)
-	soldier = self:specialFilters(soldier,param[1])
+	soldier = self:specialFilters(soldier,param.category)
 	self:EchoDebug('special',soldier)
 
  	if soldier then
@@ -116,12 +238,6 @@ function TaskLabBST:getSoldier()
  	end
 end
 
-function TaskLabBST:specialFilters(soldier,category)
-	if category == 'antiairs' and not self.ai.needAntiAir then
-		return nil
-	end
-	return soldier
-end
 
 function TaskLabBST:scanRanks(rank)
 	self:EchoDebug('rank',rank)
@@ -138,7 +254,7 @@ function TaskLabBST:scanRanks(rank)
 	end
 end
 
-function TaskLabBST:ecoCheck(soldiers)
+             function TaskLabBST:ecoCheck(soldiers)
 	if not soldiers then return end
 	self:EchoDebug('ecoCheck')
 	local metal = self.ai.Metal.full
@@ -169,58 +285,7 @@ function TaskLabBST:ecoCheck(soldiers)
 	return target
 end
 
-function TaskLabBST:countCheck(soldier,Min,mType,Max)
-	self:EchoDebug('countcheck',soldier)
-	if not soldier then return end
-	Min = Min or 0
-	Max = Max or math.huge
-	local team = self.game:GetTeamID()
-	local func = 0
-	local spec = self.ai.armyhst.unitTable[soldier]
-	local counter = self.game:GetTeamUnitDefCount(team,spec.defId)
-	local mtypeLv = self:GetMtypedLv(soldier)
-
-	if mType then
-		local mmType = (mtypeLv / mType) + 1
-		func = math.min(math.max(Min , mmType), Max)
-	else
-		func = math.max(Min,Max)
-	end
-	self:EchoDebug('mmType',mType , '/',counter,'func',func)
-	if counter < func then
-		self:EchoDebug('counter',soldier)
-		return soldier
-	end
-end
-
-function TaskLabBST:toAmphibious(soldier)
-	local army = self.ai.armyhst
-	local amphRank = (((ai.mobCount['shp']) / self.ai.mobilityGridArea ) +  ((#ai.UWMetalSpots) /(#ai.landMetalSpots + #ai.UWMetalSpots)))/ 2
-	amphRank = self.amphRank or 0.5
-	self:EchoDebug('amphRank',amphRank)
-	if army.raiders[soldier] or army.battles[soldier] or army.breaks[soldier] or army.artillerys[soldier] then
-		if math.random() < amphRank then
-			for name,v in pairs(self.units) do
-				if army.amphibious[name] then
-
-					soldier = name
-				end
-			end
-		end
-	elseif army.techs[soldier] then
-		if math.random() < amphRank then
-			for name,v in pairs(self.units) do
-				if army.amptechs[name] then
-					soldier = name
-				end
-			end
-		end
-	end
-	self:EchoDebug('toAmphibious', soldier)
-	return soldier
-end
-
-function TaskLabBST:getQueue()
+             function TaskLabBST:getQueue()
 	local queue = {
 
 		{'techs',3,nil,10,2},
@@ -303,35 +368,26 @@ TaskLabBST.queue = {
 -- 		{'cloakables',0,0,10},
 }
 
-function TaskLabBST:preFilter()
-	local spec = self.ai.armyhst.unitTable[self.name]
-	local techLv = spec.techLevel
-	local topLevel = self.ai.maxFactoryLevel
- 	local threshold = 1 - (techLv / self.ai.maxFactoryLevel)+0.05
--- 	local threshold = (0.4-(techLv / 10))+0.05 --TODO this is a shit
-	self:EchoDebug('prefilter threshold', threshold)
-	--if (self.ai.Energy.full > 0.2 and self.ai.Metal.full > threshold + 0.1) or  self.ai.Energy.full > 0.9 then--this is maen to manage levels but stall builders t1 productions when we have a t2
-	if self.ai.Metal.full > 0.2 then
-		self.unit:Internal():FactoryUnWait()
-	else
-		self.unit:Internal():FactoryWait()
--- 		return true
-	end
-end
 
-function TaskLabBST:Update()
-	local f = self.game:Frame()
-	if f % 111 == 0 then
-		self:preFilter()
-		self:GetAmpOrGroundWeapon()
-		self.isBuilding = self.game:GetUnitIsBuilding(self.id)--TODO better this?
-		if Spring.GetFactoryCommands(self.id,0) > 1 then return end
-		local soldier, param = self:getSoldier()
-		self:EchoDebug('update',soldier)
-		if soldier then
-			for i=1,param[5] or 1 do
-				self.unit:Internal():Build(self.units[soldier].type,nil,nil,{-1})
-			end
-		end
-	end
+
+-- 	for index,unit in pairs(self.unities) do
+-- 		self:EchoDebug(index,unit)
+-- 		local uName = UnitDefs[unit].name
+-- 		self.units[uName] = {}
+-- 		self.units[uName].name = uName
+-- 		self.units[uName].type = self.game:GetTypeByName(uName)
+-- 		self.units[uName].army = self.ai.armyhst.unitTable[uName]
+-- 		self.units[uName].defId = unit
+-- 	end
+-- 	self.uDef = UnitDefNames[self.name]
+-- 	self:EchoDebug(self.uDef)
+-- 	self.unities = self.uDef.buildOptions
+-- 	self.units = {}
+
+
+function TaskLabBST:GetMtypedLvCount(unitName)
+	local counter = self.ai.tool:mtypedLvCount(self.ai.armyhst.unitTable[unitName].mtypedLv)
+	self:EchoDebug('mtypedLvmtype ' , counter)
+	return counter
 end
+]]
