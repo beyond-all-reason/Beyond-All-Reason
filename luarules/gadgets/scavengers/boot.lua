@@ -68,34 +68,6 @@ if scavconfig.modules.stockpilers == true then
 	stockpilingController = VFS.Include("luarules/gadgets/scavengers/Modules/stockpiling.lua")
 end
 
-
-
--- Unused --
-
--- if scavconfig.modules.buildingSpawnerModule then
--- 	ScavengerBlueprintsT0 = {}
--- 	ScavengerBlueprintsT1 = {}
--- 	ScavengerBlueprintsT2 = {}
--- 	ScavengerBlueprintsT3 = {}
--- 	ScavengerBlueprintsT4 = {}
--- 	ScavengerBlueprintsT0Sea = {}
--- 	ScavengerBlueprintsT1Sea = {}
--- 	ScavengerBlueprintsT2Sea = {}
--- 	ScavengerBlueprintsT3Sea = {}
--- 	ScavengerBlueprintsT4Sea = {}
--- 	VFS.Include("luarules/gadgets/scavengers/Modules/building_spawner.lua")
--- end
-
-----
-
-
-
-
-
-
-
-
-
 local function DisableUnit(unitID)
 	Spring.DestroyUnit(unitID, false, true)
 	-- Spring.MoveCtrl.Enable(unitID)
@@ -122,94 +94,6 @@ local function DisableCommander()
 	end
 end
 
-
-
-
-
--- function spawnQueueLibrary.AddToSpawnQueue(unitName, posx, posy, posz, facing, team, frame, blocking)
--- 	if blocking == nil then blocking = true end
--- 	if UnitDefNames[unitName] then
--- 		local QueueSpawnCommand = {unitName, posx, posy, posz, facing, team, blocking,}
--- 		local QueueFrame = frame
--- 		if #QueuedSpawnsFrames > 0 then
--- 			for i = 1, #QueuedSpawnsFrames do
--- 				local CurrentQueueFrame = QueuedSpawnsFrames[i]
--- 				if (not(CurrentQueueFrame < QueueFrame)) or i == #QueuedSpawnsFrames then
--- 					table.insert(QueuedSpawns, i, QueueSpawnCommand)
--- 					table.insert(QueuedSpawnsFrames, i, QueueFrame)
--- 					break
--- 				end
--- 			end
--- 		else
--- 			table.insert(QueuedSpawns, 1, QueueSpawnCommand)
--- 			table.insert(QueuedSpawnsFrames, 1, QueueFrame)
--- 		end
--- 	else
--- 		Spring.Echo("[Scavengers] Failed to queue "..unitName..", invalid unit")
--- 	end
--- 	blocking = nil
--- end
-
--- function spawnQueueLibrary.SpawnUnitsFromQueue(n)
--- 	local QueuedSpawnsForNow = #QueuedSpawns
--- 	if QueuedSpawnsForNow > 0 then
--- 		for i = 1,QueuedSpawnsForNow do
--- 			if n == QueuedSpawnsFrames[1] then
--- 				local unit = Spring.CreateUnit(QueuedSpawns[1][1],QueuedSpawns[1][2],QueuedSpawns[1][3],QueuedSpawns[1][4],QueuedSpawns[1][5],QueuedSpawns[1][6])
--- 				if unit and QueuedSpawns[1][7] == false then
--- 					Spring.SetUnitBlocking(unit, false, false, true)
--- 				end
--- 				Spring.SpawnCEG("scav-spawnexplo",QueuedSpawns[1][2],QueuedSpawns[1][3],QueuedSpawns[1][4],0,0,0)
--- 				table.remove(QueuedSpawns, 1)
--- 				table.remove(QueuedSpawnsFrames, 1)
--- 			--else
--- 				--break
--- 			end
--- 		end
--- 	end
--- end
-
--- function spawnQueueLibrary.AddToDestroyQueue(unitID, selfd, explode, frame)
--- 	if Spring.ValidUnitID(unitID) then
--- 		local QueueDestroyCommand = {unitID, selfd, explode}
--- 		local QueueFrame = frame
--- 		if #QueuedDestroysFrames > 0 then
--- 			for i = 1, #QueuedDestroysFrames do
--- 				local CurrentQueueFrame = QueuedDestroysFrames[i]
--- 				if (not(CurrentQueueFrame < QueueFrame)) or i == #QueuedDestroysFrames then
--- 					--Spring.Echo("[Scavengers] Queued destruction of unit "..unitID)
--- 					table.insert(QueuedDestroys, i, QueueDestroyCommand)
--- 					table.insert(QueuedDestroysFrames, i, QueueFrame)
--- 					break
--- 				end
--- 			end
--- 		else
--- 			--Spring.Echo("[Scavengers] Queued destruction of unit "..unitID)
--- 			table.insert(QueuedDestroys, 1, QueueDestroyCommand)
--- 			table.insert(QueuedDestroysFrames, 1, QueueFrame)
--- 		end
--- 	else
--- 		--Spring.Echo("[Scavengers] Failed to queue destruction of unit "..unitID..", invalid unit")
--- 	end
--- 	blocking = nil
--- end
-
--- function spawnQueueLibrary.DestroyUnitsFromQueue(n)
--- 	local QueuedDestroysForNow = #QueuedDestroys
--- 	if QueuedDestroysForNow > 0 then
--- 		for i = 1,QueuedDestroysForNow do
--- 			if n == QueuedDestroysFrames[1] then
--- 				--Spring.Echo("[Scavengers] Attempting to destroy unit"..QueuedDestroys[1][1])
--- 				Spring.DestroyUnit(QueuedDestroys[1][1],QueuedDestroys[1][2],QueuedDestroys[1][3])
--- 				table.remove(QueuedDestroys, 1)
--- 				table.remove(QueuedDestroysFrames, 1)
--- 			--else
--- 				--break
--- 			end
--- 		end
--- 	end
--- end
-
 function DestroyOldBuildings()
 	local unitCount = Spring.GetTeamUnitCount(ScavengerTeamID)
 	local unitCountBuffer = scavMaxUnits*0.1
@@ -226,18 +110,6 @@ function DestroyOldBuildings()
 		end
 	end
 end
-
-
--- function PutSpectatorsInScavTeam(n)
-	-- local players = Spring.GetPlayerList()
-	-- for i = 1,#players do
-		-- local player = players[i]
-		-- local name, active, spectator = Spring.GetPlayerInfo(player)
-		-- if spectator == true then
-			-- Spring.AssignPlayerToTeam(player, ScavengerTeamID)
-		-- end
-	-- end
--- end
 
 function PutScavAlliesInScavTeam(n)
 	local players = Spring.GetPlayerList()
@@ -302,10 +174,12 @@ function gadget:GameFrame(n)
 		-- end
 		if n%10 == 0 then
 			startboxProtectionController.executeStartBoxProtection(n)
+		end
+		if n%45 == 15 then
 			startboxProtectionController.spawnStartBoxEffect2(n)
 		end
 		--if n%(math.ceil(450/(math.ceil(ScavSafeAreaSize/5)))) == 0 then
-		if n%(math.ceil(4800000/(ScavSafeAreaSize*ScavSafeAreaSize))) == 0 then
+		if n%(math.ceil(5600000/(ScavSafeAreaSize*ScavSafeAreaSize))) == 0 then
 			startboxProtectionController.spawnStartBoxEffect(n)
 		end
 	end
