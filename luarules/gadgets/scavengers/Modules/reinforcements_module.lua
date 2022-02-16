@@ -15,7 +15,7 @@ local function captureBeacons(n)
 	for i = 1,#scavengerunits do
 		local scav = scavengerunits[i]
 		if scavSpawnBeacon[scav] then
-			nearbyCaptureLibrary.NearbyCapture(unitID, 10, 256)
+			nearbyCaptureLibrary.NearbyCapture(scav, 10, 256)
 		end
 	end
 end
