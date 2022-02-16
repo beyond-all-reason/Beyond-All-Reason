@@ -11,10 +11,11 @@ local function NearbyCapture(unitID, difficulty, range)
     local x,y,z = Spring.GetUnitPosition(unitID)
     local nearbyUnits = Spring.GetUnitsInCylinder(x, z, range)
     
+    local captureDamage = 0
     for i = 1,#nearbyUnits do
         local attackerID = nearbyUnits[i]
         if attackerID ~= unitID then
-            local captureProgress = select(4, Spring.GetUnitHealth(unitID))
+            
             local buildProgress = select(5, Spring.GetUnitHealth(unitID))
             if buildProgress == 1 then
                 local attackerAllyTeamID = Spring.GetUnitAllyTeam(attackerID)
@@ -22,23 +23,27 @@ local function NearbyCapture(unitID, difficulty, range)
                 local attackerMetalCost = UnitDefs[attackerDefID].metalCost
                 local capturePower = ((attackerMetalCost/1000)*0.01)/difficulty
                 if attackerAllyTeamID == unitAllyTeam then
-                    Spring.SetUnitHealth(unitID, {capture = captureProgress - capturePower})
+                    captureDamage = captureDamage - capturePower
                 else
-                    Spring.SetUnitHealth(unitID, {capture = captureProgress + capturePower})
+                    captureDamage = captureDamage + capturePower
                 end
             end
         end
     end
+    if captureDamage ~= 0 then
+        local captureProgress = select(4, Spring.GetUnitHealth(unitID))
+        Spring.SetUnitHealth(unitID, {capture = captureProgress + captureDamage})
 
-    local captureProgress = select(4, Spring.GetUnitHealth(unitID))
-    if captureProgress < 0 then
-        Spring.SetUnitHealth(unitID, {capture = 0})
-    elseif captureProgress >= 1 then
-        Spring.SetUnitHealth(unitID, {capture = 0})
-        local nearestAttacker = Spring.GetUnitNearestEnemy(unitID, range*2, false)
-        if nearestAttacker then
-            local attackerTeamID = Spring.GetUnitTeam(nearestAttacker)
-            Spring.TransferUnit(unitID, attackerTeamID, false)
+        local captureProgress = select(4, Spring.GetUnitHealth(unitID))
+        if captureProgress < 0 then
+            Spring.SetUnitHealth(unitID, {capture = 0})
+        elseif captureProgress >= 1 then
+            Spring.SetUnitHealth(unitID, {capture = 0})
+            local nearestAttacker = Spring.GetUnitNearestEnemy(unitID, range*2, false)
+            if nearestAttacker then
+                local attackerTeamID = Spring.GetUnitTeam(nearestAttacker)
+                Spring.TransferUnit(unitID, attackerTeamID, false)
+            end
         end
     end
 end
