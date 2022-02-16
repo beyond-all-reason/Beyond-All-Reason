@@ -708,9 +708,8 @@ function widget:GameFrame(n)
 	end
 
 	if n%30 == 15 then
-		if deviceLostSafetyCheck >= 10 then
-			Spring.Echo("[MUSIC PLAYER]: Audio device failure detected. Removing Music Widget.")
-			widgetHandler:RemoveWidget()
+		if deviceLostSafetyCheck >= 3 then
+			return
 		end
 		
 		local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01
