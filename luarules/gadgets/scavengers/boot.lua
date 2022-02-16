@@ -10,6 +10,7 @@ VFS.Include("luarules/gadgets/scavengers/API/api.lua")
 
 spawnQueueLibrary = VFS.Include("luarules/utilities/damgam_lib/spawn_queue.lua")
 positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
+nearbyCaptureLibrary = VFS.Include("luarules/utilities/damgam_lib/nearby_capture.lua")
 
 function ScavSendMessage(message)
 	if scavconfig.messenger then
