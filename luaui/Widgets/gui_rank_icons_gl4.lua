@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 local iconsize = 40
-local iconoffset = 22
+local iconoffset = 18
 local scaleIconAmount = 90
 
 local falloffDistance = 1300
@@ -26,11 +26,11 @@ local usedIconsize = iconsize * iconsizeMult
 local chobbyInterface
 
 local maximumRankXP = 2
-local numRanks = #VFS.DirList('LuaUI/Images/ranks', '*.png')
+local numRanks = #VFS.DirList('LuaUI/Images/ranks', '*.dds')
 local rankTextures = {}
 local unitRanks = {}
 for i = 1,numRanks do 
-	rankTextures[i] = 'LuaUI/Images/ranks/rank'..i..'.png'
+	rankTextures[i] = 'LuaUI/Images/ranks/rank'..i..'.dds'
 end
 local xpPerLevel = maximumRankXP/(numRanks-1)
 
@@ -51,7 +51,7 @@ local debugmode = true
 
 local function addDirToAtlas(atlas, path)
 	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
-	local files = VFS.DirList(path, '*.png')
+	local files = VFS.DirList(path, '*.dds')
 	Spring.Echo("Adding",#files, "images to atlas from", path)
 	for i=1, #files do
 		if imgExts[string.sub(files[i],-3,-1)] then
