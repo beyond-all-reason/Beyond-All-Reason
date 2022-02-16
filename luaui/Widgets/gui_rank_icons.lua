@@ -32,7 +32,7 @@ local unitRanks = {}
 for i = 1,numRanks do 
 	rankTextures[i] = 'LuaUI/Images/ranks/rank'..i..'.png'
 end
-local xpPerLevel = maximumRankXP/numRanks
+local xpPerLevel = maximumRankXP/(numRanks-1)
 
 local unitHeights = {}
 
