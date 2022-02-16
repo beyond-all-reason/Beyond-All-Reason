@@ -124,6 +124,7 @@ local aliveLootboxesT3        = {}
 local aliveLootboxesCountT3   = 0
 local aliveLootboxesT4        = {}
 local aliveLootboxesCountT4   = 0
+local aliveLootboxCaptureDifficulty = {}
 
 local LootboxesToSpawn = 0
 
@@ -181,7 +182,7 @@ function gadget:GameFrame(n)
         if aliveLootboxesCount > 0 then
 			for i = 1,#aliveLootboxes do --for lootboxID,_ in pairs(aliveLootboxes) do
 				local lootboxID = aliveLootboxes[i]
-				nearbyCaptureLibrary.NearbyCapture(lootboxID, 4, 256)
+				nearbyCaptureLibrary.NearbyCapture(lootboxID, aliveLootboxCaptureDifficulty[lootboxID], 256)
 			end
         end
         if LootboxesToSpawn >= 1 and lootboxSpawnEnabled then
@@ -245,6 +246,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if lootboxesListT1[i]..NameSuffix == UnitName then
 				aliveLootboxesT1[#aliveLootboxesT1+1] = unitID
 				aliveLootboxesCountT1 = aliveLootboxesCountT1 + 1
+				aliveLootboxCaptureDifficulty[unitID] = 2
 				break
 			end
 		end
@@ -252,6 +254,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if lootboxesListT2[i]..NameSuffix == UnitName then
 				aliveLootboxesT2[#aliveLootboxesT2+1] = unitID
 				aliveLootboxesCountT2 = aliveLootboxesCountT2 + 1
+				aliveLootboxCaptureDifficulty[unitID] = 4
 				break
 			end
 		end
@@ -259,6 +262,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if lootboxesListT3[i]..NameSuffix == UnitName then
 				aliveLootboxesT3[#aliveLootboxesT3+1] = unitID
 				aliveLootboxesCountT3 = aliveLootboxesCountT3 + 1
+				aliveLootboxCaptureDifficulty[unitID] = 8
 				break
 			end
 		end
@@ -266,6 +270,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if lootboxesListT4[i]..NameSuffix == UnitName then
 				aliveLootboxesT4[#aliveLootboxesT4+1] = unitID
 				aliveLootboxesCountT4 = aliveLootboxesCountT4 + 1
+				aliveLootboxCaptureDifficulty[unitID] = 16
 				break
 			end
 		end
@@ -283,6 +288,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 			LootboxesToSpawn = LootboxesToSpawn+0.75
 			table.remove(aliveLootboxes, i)
 			aliveLootboxesCount = aliveLootboxesCount - 1
+			aliveLootboxCaptureDifficulty[unitID] = nil
 			break
 		end
 	end
