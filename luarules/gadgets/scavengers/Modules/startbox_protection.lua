@@ -96,7 +96,34 @@ local function spawnStartBoxProtection(n)
 	end
 end
 
-local function executeStartBoxProtection(n)
+-- local function executeStartBoxProtection(n) -- Deal damage
+-- 	--ScavSafeAreaMinX
+-- 	--ScavSafeAreaMaxX
+-- 	--ScavSafeAreaMinZ
+-- 	--ScavSafeAreaMaxZ
+-- 	if ScavengerStartboxExists then
+-- 		local list = Spring.GetUnitsInRectangle(ScavSafeAreaMinX,ScavSafeAreaMinZ,ScavSafeAreaMaxX,ScavSafeAreaMaxZ)
+-- 		for i = 1,#list do
+-- 			local unitID = list[i]
+-- 			local unitTeam = Spring.GetUnitTeam(unitID)
+-- 			if unitTeam == Spring.GetGaiaTeamID() then
+-- 				Spring.DestroyUnit(unitID, true, true)
+-- 			elseif unitTeam ~= ScavengerTeamID then
+-- 				local currentHealth,maxHealth = Spring.GetUnitHealth(unitID)
+-- 				local damage = maxHealth*(ScavSafeAreaDamage*0.01)
+-- 				if damage < currentHealth then
+-- 					Spring.SetUnitHealth(unitID,currentHealth-damage)
+-- 					local posx, posy, posz = Spring.GetUnitPosition(unitID)
+-- 					Spring.SpawnCEG("scavradiation-lightning",posx,posy+40,posz,0,0,0)
+-- 				else
+-- 					Spring.DestroyUnit(unitID, false, false)
+-- 				end
+-- 			end
+-- 		end
+-- 	end
+-- end
+
+local function executeStartBoxProtection(n) -- Capture
 	--ScavSafeAreaMinX
 	--ScavSafeAreaMaxX
 	--ScavSafeAreaMinZ
@@ -107,16 +134,21 @@ local function executeStartBoxProtection(n)
 			local unitID = list[i]
 			local unitTeam = Spring.GetUnitTeam(unitID)
 			if unitTeam == Spring.GetGaiaTeamID() then
-				Spring.DestroyUnit(unitID, true, true)
+				Spring.TransferUnit(unitID, ScavengerTeamID, false)
 			elseif unitTeam ~= ScavengerTeamID then
 				local currentHealth,maxHealth = Spring.GetUnitHealth(unitID)
 				local damage = maxHealth*(ScavSafeAreaDamage*0.01)
-				if damage < currentHealth then
-					Spring.SetUnitHealth(unitID,currentHealth-damage)
-					local posx, posy, posz = Spring.GetUnitPosition(unitID)
-					Spring.SpawnCEG("scavradiation-lightning",posx,posy+40,posz,0,0,0)
-				else
-					Spring.DestroyUnit(unitID, false, false)
+				local captureLevel = select(4, Spring.GetUnitHealth(unitID))
+				Spring.SetUnitHealth(unitID,{capture = captureLevel+0.01})
+				local posx, posy, posz = Spring.GetUnitPosition(unitID)
+				Spring.SpawnCEG("scavradiation-lightning",posx,posy+40,posz,0,0,0)
+				local captureLevel = select(4, Spring.GetUnitHealth(unitID))
+				if captureLevel >= 1 then
+					Spring.TransferUnit(unitID, ScavengerTeamID, false)
+					Spring.SpawnCEG("scavradiation-lightning",posx-64,posy+40,posz,0,0,0)
+					Spring.SpawnCEG("scavradiation-lightning",posx+64,posy+40,posz,0,0,0)
+					Spring.SpawnCEG("scavradiation-lightning",posx,posy+40,posz-64,0,0,0)
+					Spring.SpawnCEG("scavradiation-lightning",posx,posy+40,posz+64,0,0,0)
 				end
 			end
 		end
