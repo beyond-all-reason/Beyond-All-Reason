@@ -26,11 +26,11 @@ local usedIconsize = iconsize * iconsizeMult
 local chobbyInterface
 
 local maximumRankXP = 2
-local numRanks = #VFS.DirList('LuaUI/Images/ranks', '*.dds')
+local numRanks = #VFS.DirList('LuaUI/Images/ranks', '*.png')
 local rankTextures = {}
 local unitRanks = {}
 for i = 1,numRanks do 
-	rankTextures[i] = 'LuaUI/Images/ranks/rank'..i..'.dds'
+	rankTextures[i] = 'LuaUI/Images/ranks/rank'..i..'.png'
 end
 local xpPerLevel = maximumRankXP/(numRanks-1)
 
@@ -51,7 +51,7 @@ local debugmode = true
 
 local function addDirToAtlas(atlas, path)
 	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
-	local files = VFS.DirList(path, '*.dds')
+	local files = VFS.DirList(path, '*.png')
 	Spring.Echo("Adding",#files, "images to atlas from", path)
 	for i=1, #files do
 		if imgExts[string.sub(files[i],-3,-1)] then
