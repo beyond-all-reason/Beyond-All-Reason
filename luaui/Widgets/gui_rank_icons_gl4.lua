@@ -214,7 +214,7 @@ function initGL4()
 	shaderConfig.INITIALSIZE = 0.25
 	shaderConfig.BREATHERATE = 30.0
 	shaderConfig.BREATHESIZE = 0.05
-	shaderConfig.GROWTHRATE = 8.0
+	shaderConfig.GROWTHRATE = 16.0
 	
 	-- MATCH CUS position as seed to sin, then pass it through geoshader into fragshader
 	--shaderConfig.POST_VERTEX = "v_parameters.w = max(-0.2, sin((timeInfo.x + timeInfo.w) * 2.0/30.0 + (v_centerpos.x + v_centerpos.z) * 0.1)) + 0.2; // match CUS glow rate"
