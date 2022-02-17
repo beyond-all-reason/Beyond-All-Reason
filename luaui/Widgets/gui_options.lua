@@ -88,6 +88,8 @@ local show = false
 local prevShow = show
 local manualChange = true
 
+local guishaderIntensity = 0.0035
+
 local spIsGUIHidden = Spring.IsGUIHidden
 local spGetGroundHeight = Spring.GetGroundHeight
 
@@ -1483,7 +1485,7 @@ function init()
 			snow = false,
 			particles = 9000,
 			treeradius = 0,
-			guishader = false,
+			guishader = 0,
 			decals = false,
 			shadowslider = 1,
 			grass = false,
@@ -1498,7 +1500,7 @@ function init()
 			snow = false,
 			particles = 12000,
 			treeradius = 200,
-			guishader = false,
+			guishader = 0,
 			decals = true,
 			shadowslider = 2,
 			grass = false,
@@ -1513,7 +1515,7 @@ function init()
 		 	snow = true,
 		 	particles = 15000,
 		 	treeradius = 400,
-		 	guishader = true,
+		 	guishader = guishaderIntensity,
 		 	decals = true,
 			shadowslider = 3,
 		 	grass = true,
@@ -1528,7 +1530,7 @@ function init()
 			snow = true,
 			particles = 20000,
 			treeradius = 800,
-			guishader = true,
+			guishader = guishaderIntensity,
 			decals = true,
 			shadowslider = 4,
 			grass = true,
@@ -1543,7 +1545,7 @@ function init()
 			snow = true,
 			particles = 25000,
 			treeradius = 800,
-			guishader = true,
+			guishader = guishaderIntensity,
 			decals = true,
 			shadowslider = 5,
 			grass = true,
@@ -1551,12 +1553,12 @@ function init()
 		custom = {},
 	}
 
-	local screenModes = WG['screenMode'] and WG['screenMode'].GetScreenModes()
-	local displays = WG['screenMode'] and WG['screenMode'].GetDisplays()
+	local screenModes = WG['screenMode'] and WG['screenMode'].GetScreenModes() or {}
+	local displays = WG['screenMode'] and WG['screenMode'].GetDisplays() or {}
 
 	local displayNames = {}
 	for index, display in ipairs(displays) do
-			displayNames[index] = display.name .. " " .. display.width .. " × " .. display.height
+		displayNames[index] = display.name .. " " .. display.width .. " × " .. display.height
 	end
 
 	local resolutionNames = {}
@@ -2443,7 +2445,7 @@ function init()
 		  end,
 		},
 
-		{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishader, type = "slider", min = 0, max = 0.005, steps = {0, 0.001, 0.0015, 0.002, 0.0025, 0.003, 0.0035, 0.004}, value = 0.0035, description = '',
+		{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishader, type = "slider", min = 0, max = 0.005, steps = {0, 0.001, 0.0015, 0.002, 0.0025, 0.003, 0.0035, 0.004}, value = guishaderIntensity, description = '',
 		  onload = function(i)
 			  loadWidgetData("GUI Shader", "guishader", { 'blurIntensity' })
 			  if type(options[getOptionByID('guishader')].value) ~= 'number' then
@@ -2451,7 +2453,10 @@ function init()
 			  end
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)
+			  if type(value) == 'number' then
+				  guishaderIntensity = value
+				  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)
+			  end
 			  if value <= 0.000001 then
 				  if GetWidgetToggleValue('GUI Shader') then
 				 	 widgetHandler:DisableWidget('GUI Shader')
@@ -4506,7 +4511,7 @@ function init()
 				widgetHandler:DisableWidget(options[id].widget)
 			end
 			options[id] = nil
-			options[getOptionByID('guishaderintensity')] = nil
+			options[getOptionByID('guishader')] = nil
 
 			local id = getOptionByID('dof')
 			if id and GetWidgetToggleValue(options[id].widget) then
@@ -4976,6 +4981,7 @@ function widget:GetConfigData()
 		show = show,
 		waterDetected = waterDetected,
 		customPresets = customPresets,
+		guishaderIntensity = guishaderIntensity,
 
 		-- to restore init defaults
 		mapChecksum = Game.mapChecksum,
@@ -5007,6 +5013,9 @@ function widget:SetConfigData(data)
 	end
 	if data.currentGroupTab ~= nil then
 		currentGroupTab = data.currentGroupTab
+	end
+	if data.guishaderIntensity then
+		guishaderIntensity = data.guishaderIntensity
 	end
 	if Spring.GetGameFrame() > 0 then
 		if data.show ~= nil then

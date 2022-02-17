@@ -14,8 +14,6 @@ local iconsize = 40
 local iconoffset = 22
 local scaleIconAmount = 90
 
-local rankScopeDivider = 2.25    -- the higher the number the narrower the scope, the higher the assigned rank will be
-
 local falloffDistance = 1300
 local cutoffDistance = 2300
 
@@ -27,37 +25,15 @@ local usedIconsize = iconsize * iconsizeMult
 
 local chobbyInterface
 
-local rankTexBase = 'LuaUI/Images/ranks/'
-local rankTextures = {
-	[0] = nil,
-	[1] = rankTexBase .. 'rank1.png',
-	[2] = rankTexBase .. 'rank2.png',
-	[3] = rankTexBase .. 'rank3.png',
-	[4] = rankTexBase .. 'rank4.png',
-	[5] = rankTexBase .. 'rank5.png',
-	[6] = rankTexBase .. 'rank6.png',
-	[7] = rankTexBase .. 'rank7.png',
-	[8] = rankTexBase .. 'rank8.png',
-	[9] = rankTexBase .. 'rank9.png',
-	[10] = rankTexBase .. 'rank10.png',
-}
+local maximumRankXP = 2
+local numRanks = #VFS.DirList('LuaUI/Images/ranks', '*.png')
+local rankTextures = {}
+local unitRanks = {}
+for i = 1,numRanks do
+	rankTextures[i] = 'LuaUI/Images/ranks/rank'..i..'.png'
+end
+local xpPerLevel = maximumRankXP/(numRanks-1)
 
-local ranks = {
-	[0] = {},
-	[1] = {},
-	[2] = {},
-	[3] = {},
-	[4] = {},
-	[5] = {},
-	[6] = {},
-	[7] = {},
-	[8] = {},
-	[9] = {},
-	[10] = {},
-}
-local numRanks = #ranks
-
-local unitPowerXpCoeffient = {}
 local unitHeights = {}
 
 local unitUsedIconsize = usedIconsize
@@ -125,16 +101,21 @@ function widget:SetConfigData(data)
 end
 
 local function getRank(unitDefID, xp)
-	return max(0, min(floor(xp * (1.44 - xp) / unitPowerXpCoeffient[unitDefID]), numRanks))
+	local rankLevel = math.ceil(xp/xpPerLevel)
+	if rankLevel == 0 then
+		return 1
+	elseif rankLevel <= numRanks then
+		return rankLevel
+	else
+		return numRanks
+	end
 end
 
 local function updateUnitRank(unitID, unitDefID)
-	for i = 0, numRanks do
-		ranks[i][unitID] = nil
-	end
+	local currentRank = unitRanks[unitID]
 	local xp = GetUnitExperience(unitID)
 	if xp then
-		ranks[getRank(unitDefID, xp)][unitID] = unitDefID
+		unitRanks[unitID] = getRank(unitDefID, xp)
 	end
 end
 
@@ -164,7 +145,6 @@ function widget:Initialize()
 	end
 
 	for unitDefID, ud in pairs(UnitDefs) do
-		unitPowerXpCoeffient[unitDefID] = ((ud.power / 2000) ^ -0.2) / numRanks / rankScopeDivider -- dark magic
 		unitHeights[unitDefID] = ud.height + iconoffset
 	end
 
@@ -195,14 +175,8 @@ function widget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldXP)
 	local rank = getRank(unitDefID, xp)
 	local oldRank = getRank(unitDefID, oldXP)
 
-	if rank ~= oldRank then
-		--for i = 0, rank - 1 do
-		--	ranks[i][unitID] = nil
-		--end
-		for i = 0, numRanks do
-			ranks[i][unitID] = nil
-		end
-		ranks[rank][unitID] = unitDefID
+	if oldRank < rank then
+		unitRanks[unitID] = rank
 	end
 end
 
@@ -213,9 +187,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	for i = 0, numRanks do
-		ranks[i][unitID] = nil
-	end
+	unitRanks[unitID] = nil
 end
 
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
@@ -226,9 +198,7 @@ end
 
 function widget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 	if not IsUnitAllied(unitID) and not GetSpectatingState() then
-		for i = 0, numRanks do
-			ranks[i][unitID] = nil
-		end
+		unitRanks[unitID] = nil
 	end
 end
 
@@ -263,20 +233,19 @@ function widget:DrawWorld()
 	local camX, camY, camZ = GetCameraPosition()
 	local camDistance
 
-	for i = 1, numRanks do
-		if next(ranks[i]) then
-			glTexture(rankTextures[i])
-			for unitID, unitDefID in pairs(ranks[i]) do
-				if IsUnitInView(unitID) then
-					local x, y, z = GetUnitPosition(unitID)
-					camDistance = diag(camX - x, camY - y, camZ - z)
-					if camDistance < usedCutoffDistance then
-						local opacity = min(1, 1 - (camDistance - usedFalloffDistance) / usedCutoffDistance)
-						unitUsedIconsize = ((usedIconsize * 0.12) + (camDistance / scaleIconAmount)) - ((1 - opacity) * (usedIconsize * 1.25))
-						unitUsedIconsize = unitUsedIconsize * unitIconMult[unitDefID]
-						glColor(1, 1, 1, opacity)
-						glDrawFuncAtUnit(unitID, false, DrawUnitFunc, unitHeights[unitDefID])
-					end
+	for unitID, rank in pairs(unitRanks) do
+		if rank > 1 then
+			if IsUnitInView(unitID) then
+				local x, y, z = GetUnitPosition(unitID)
+				camDistance = diag(camX - x, camY - y, camZ - z)
+				if camDistance < usedCutoffDistance then
+					local unitDefID = GetUnitDefID(unitID)
+					local opacity = min(1, 1 - (camDistance - usedFalloffDistance) / usedCutoffDistance)
+					unitUsedIconsize = ((usedIconsize * 0.12) + (camDistance / scaleIconAmount)) - ((1 - opacity) * (usedIconsize * 1.25))
+					unitUsedIconsize = unitUsedIconsize * unitIconMult[unitDefID]
+					glTexture(rankTextures[rank])
+					glColor(1, 1, 1, opacity)
+					glDrawFuncAtUnit(unitID, false, DrawUnitFunc, unitHeights[unitDefID])
 				end
 			end
 		end

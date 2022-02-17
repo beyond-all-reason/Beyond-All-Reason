@@ -830,12 +830,12 @@ local function drawUnitInfo()
 	if displayUnitID then
 		exp = spGetUnitExperience(displayUnitID)
 		if exp and exp > 0.009 and WG['rankicons'] and rankTextures then
-			local rankIconSize = math_floor((height * vsy * 0.24) + 0.5)
-			local rankIconMarginX = math_floor((height * vsy * 0.015) + 0.5)
-			local rankIconMarginY = math_floor((height * vsy * 0.18) + 0.5)
 			if displayUnitID then
 				local rank = WG['rankicons'].getRank(displayUnitDefID, exp)
 				if rankTextures[rank] then
+					local rankIconSize = math_floor((height * vsy * 0.24) + 0.5)
+					local rankIconMarginX = math_floor((height * vsy * 0.015) + 0.5)
+					local rankIconMarginY = math_floor((height * vsy * 0.18) + 0.5)
 					glColor(1, 1, 1, 0.88)
 					glTexture(':lr' .. (rankIconSize * 2) .. ',' .. (rankIconSize * 2) .. ':' .. rankTextures[rank])
 					glTexRect(backgroundRect[3] - rankIconMarginX - rankIconSize, backgroundRect[4] - rankIconMarginY - rankIconSize, backgroundRect[3] - rankIconMarginX, backgroundRect[4] - rankIconMarginY)
@@ -843,6 +843,19 @@ local function drawUnitInfo()
 					glColor(1, 1, 1, 1)
 				end
 			end
+		end
+		local kills = Spring.GetUnitRulesParam(displayUnitID, "kills")
+		if kills then
+			local rankIconSize = math_floor((height * vsy * 0.16))
+			local rankIconMarginY = math_floor((height * vsy * 0.07) + 0.5)
+			local rankIconMarginX = math_floor((height * vsy * 0.053) + 0.5)
+			glColor(0.6,0.6,0.6,0.5)
+			glTexture(":l:LuaUI/Images/skull.dds")
+			glTexRect(backgroundRect[3] - rankIconMarginX - rankIconSize, backgroundRect[4] - rankIconMarginY - rankIconSize, backgroundRect[3] - rankIconMarginX, backgroundRect[4] - rankIconMarginY)
+			glTexture(false)
+			font2:Begin()
+			font2:Print('\255\205\205\205'..kills, backgroundRect[3] - rankIconMarginX - (rankIconSize * 0.5), backgroundRect[4] - (rankIconMarginY * 2.05) - (fontSize * 0.31), fontSize * 0.87, "c")
+			font2:End()
 		end
 	end
 

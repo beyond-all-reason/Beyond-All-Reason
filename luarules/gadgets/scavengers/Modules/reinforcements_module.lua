@@ -11,115 +11,11 @@ FriendlyReclaimers = {}
 
 local function captureBeacons(n)
 	local scavengerunits = Spring.GetTeamUnits(ScavengerTeamID)
-	local spGetUnitTeam = Spring.GetUnitTeam
 
 	for i = 1,#scavengerunits do
 		local scav = scavengerunits[i]
-		local scavDef = Spring.GetUnitDefID(scav)
 		if scavSpawnBeacon[scav] then
-			if not CaptureProgressForBeacons[scav] then
-				CaptureProgressForBeacons[scav] = 0
-				Spring.SetUnitHealth(scav, {capture = CaptureProgressForBeacons[scav]})
-			end
-			local posx,posy,posz = Spring.GetUnitPosition(scav)
-			--Spring.Echo("posx "..posx)
-			--Spring.Echo("posz "..posz)
-			unitsAround = Spring.GetUnitsInCylinder(posx, posz, 256)
-			--Spring.Echo("#unitsAround "..#unitsAround)
-			CapturingUnits = {}
-			CapturingUnitsTeam = {}
-			CapturingUnitsTeamTest = {}
-			local TeamsCapturing = 0
-			CapturingUnits[scav] = 0
-
-			for j = 1,#unitsAround do
-				local unitID = unitsAround[j]
-				local unitTeamID = spGetUnitTeam(unitID)
-				local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
-				local LuaAI = Spring.GetTeamLuaAI(unitTeamID)
-				local _,_,_,isAI,_,_ = Spring.GetTeamInfo(unitTeamID)
-				if (not LuaAI) and unitTeamID ~= ScavengerTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
-					captureraiTeam = false
-				else
-					captureraiTeam = false -- true
-				end
-				if not CapturingUnitsTeamTest[unitAllyTeam] then
-					CapturingUnitsTeamTest[unitAllyTeam] = true
-					if unitTeamID ~= ScavengerTeamID and captureraiTeam == false then
-						TeamsCapturing = TeamsCapturing + 1
-						if TeamsCapturing > 1 then
-							break
-						end
-					end
-				end
-				captureraiTeam = nil
-			end
-
-			for j = 1,#unitsAround do
-				local unitID = unitsAround[j]
-				local unitTeamID = spGetUnitTeam(unitID)
-				if not CapturingUnitsTeam[unitTeamID] then
-					CapturingUnitsTeam[unitTeamID] = 0
-				end
-				local unitDefID = Spring.GetUnitDefID(unitID)
-				local LuaAI = Spring.GetTeamLuaAI(unitTeamID)
-				local _,_,_,isAI,_,_ = Spring.GetTeamInfo(unitTeamID)
-
-				if (not LuaAI) and unitTeamID ~= ScavengerTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
-					captureraiTeam = false
-				else
-					captureraiTeam = false -- true
-				end
-
-				if not CapturingUnitsTeam[unitTeamID] then
-					CapturingUnitsTeam[unitTeamID] = 0
-				end
-
-				if staticUnitList.BeaconCaptureExclusionsID[unitDefID] then
-					IsUnitExcluded = true
-				else
-					IsUnitExcluded = false
-				end
-
-				local _,_,_,testCaptureProgress = Spring.GetUnitHealth(scav)
-				if testCaptureProgress ~= CaptureProgressForBeacons[scav] then
-					CaptureProgressForBeacons[scav] = testCaptureProgress
-				end
-				if unitDefID == scavDef then
-					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 0.0005
-					--Spring.Echo("uncapturing myself")
-				elseif captureraiTeam == false and unitTeamID ~= ScavengerTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and IsUnitExcluded == false and (not UnitDefs[unitDefID].canFly) then
-					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] + ((UnitDefs[unitDefID].metalCost)/800)*0.001
-					CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
-					--Spring.Echo("capturing scav beacon")
-				end
-				if CaptureProgressForBeacons[scav] < 0 then
-					CaptureProgressForBeacons[scav] = 0
-					--Spring.Echo("capture below 0")
-				end
-				if CaptureProgressForBeacons[scav] > 1 then
-					CaptureProgressForBeacons[scav] = 1
-					--Spring.Echo("capture above 1")
-				end
-				if unitTeamID == ScavengerTeamID and (not unitDefID == scavDef) then
-					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 1
-					--Spring.Echo("uncapturing our beacon")
-				end
-				Spring.SetUnitHealth(scav, {capture = CaptureProgressForBeacons[scav]})
-
-				if TeamsCapturing < 2 and captureraiTeam == false and CaptureProgressForBeacons[scav] >= 1 then
-					Spring.TransferUnit(scav, unitTeamID, false)
-					CaptureProgressForBeacons[scav] = 0
-					Spring.SetUnitHealth(scav, {capture = 0})
-					captureraiTeam = nil
-					break
-				end
-				captureraiTeam = nil
-				IsUnitExcluded = nil
-			end
-			CapturingUnits = nil
-			CapturingUnitsTeam = nil
-			unitsAround = nil
+			nearbyCaptureLibrary.NearbyCapture(scav, 10, 256)
 		end
 	end
 end

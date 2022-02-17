@@ -162,6 +162,8 @@ end
 
 local function StartboxCheck(posx, posy, posz, posradius, allyTeamID, returnTrueWhenNoStartbox) -- Return True when position is within startbox.
     local posradius = posradius or 1000
+    
+    if allyTeamID == GaiaAllyTeamID then return false end
 
     if AllyTeamStartboxes[allyTeamID+1].allyTeamHasStartbox == false then
         if returnTrueWhenNoStartbox then

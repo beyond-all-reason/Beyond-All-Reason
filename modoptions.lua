@@ -1038,16 +1038,6 @@ local options={
 		max    = 10,
 		step   = 0.1,
 	},
-
-	{
-		key    = 'experimentalxpsystem',
-		name   = 'New XP System',
-		desc   = 'New XP System',
-		hidden = true,
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = false,
-	},
 	{
 		key    = 'experimentalbuildrange',
 		name   = 'Build Range Multiplier',

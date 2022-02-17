@@ -42,9 +42,6 @@ function isAuthorized(playerID)
 end
 
 
--- SYNCED
-----------------------------------------
-
 if gadgetHandler:IsSyncedCode() then
 	function checkStartPlayers()
 		for _, playerID in ipairs(Spring.GetPlayerList()) do
@@ -81,7 +78,7 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SetUnitHealth(unitID, Spring.GetUnitHealth(unitID) / 2)
 		end
 	end
-	
+
 	local maxunits = 200
 	local feedstep = 20
 	local mapcx = Game.mapSizeX/2
@@ -94,9 +91,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	local team1unitDefName = "armbull"
 	local team2unitDefName = "armbull"
-	
 
-	
+
+
 	local seededrand = {}
 	local randindex = 1
 	local function initrandom(seed)
@@ -105,15 +102,15 @@ if gadgetHandler:IsSyncedCode() then
 			seededrand[i] = math.random()
 		end
 		randindex = 1
-	end 
-	
+	end
+
 	local function getrandom()
-		if #seededrand < 1 then initrandom(7654321) end 
-		randindex = randindex + 1 
+		if #seededrand < 1 then initrandom(7654321) end
+		randindex = randindex + 1
 		if randindex > #seededrand then randindex = 1 end
 		return seededrand[randindex]
 	end
-	
+
 	local function SpawnUnitDefsForTeam(teamID, unitDefName)
 		local unitcount = Spring.GetTeamUnits(teamID)
 		if (#unitcount < maxunits) then
@@ -129,12 +126,24 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SendCommands({cmd})
 			fightertesttotalunitsspawned = fightertesttotalunitsspawned + feedstep
 		end
-	end 
-	
+	end
+
 	function gadget:Initialize()
 		checkStartPlayers()
 		gadgetHandler:AddChatAction('loadmissiles', LoadMissiles, "")
 		gadgetHandler:AddChatAction('halfhealth', HalfHealth, "")
+	end
+
+	local function explode(div,str) -- credit: http://richard.warburton.it
+		if (div=='') then return false end
+		local pos,arr = 0,{}
+		-- for each divider found
+		for st,sp in function() return string.find(str,div,pos,true) end do
+			table.insert(arr,string.sub(str,pos,st-1)) -- Attach chars left of current divider
+			pos = sp + 1 -- Jump past current divider
+		end
+		table.insert(arr,string.sub(str,pos)) -- Attach chars right of last divider
+		return arr
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
@@ -154,6 +163,14 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if words[1] == "givecat" then
 			GiveCat(words)
+		elseif words[1] == "xpunits" then
+			local parts = explode(':',msg)
+			local words = {}
+			msg = parts[1]..':'..parts[2]
+			for word in msg:gmatch("[%-_%w]+") do
+				table.insert(words, word)
+			end
+			ExecuteSelUnits(words, playerID, 'xp', parts[3])
 		elseif words[1] == "destroyunits" then
 			ExecuteSelUnits(words, playerID)
 		elseif words[1] == "removeunits" then
@@ -164,11 +181,11 @@ if gadgetHandler:IsSyncedCode() then
 			ExecuteSelUnits(words, playerID, 'wreck')
 		elseif words[1] == "spawnceg" then
 			spawnceg(words)
-		elseif words[1] == "removeunitdef" then 
+		elseif words[1] == "removeunitdef" then
 			ExecuteRemoveUnitDefName(words[2])
-		elseif words[1] == "clearwrecks" then 
+		elseif words[1] == "clearwrecks" then
 			ClearWrecks()
-		elseif words[1] == "fightertest" then 
+		elseif words[1] == "fightertest" then
 			fightertest(words)
 		end
 	end
@@ -194,12 +211,12 @@ if gadgetHandler:IsSyncedCode() then
 		fightertesttotalunitsspawned = 0
 		initrandom(7654321)
 		if words[2] and UnitDefNames[words[2]] then	team1unitDefName = words[2]
-		else Spring.Echo(words[2], "is not a valid unitDefName, using", team1unitDefName, "instead") end 
-	
+		else Spring.Echo(words[2], "is not a valid unitDefName, using", team1unitDefName, "instead") end
+
 		if words[3] and UnitDefNames[words[3]] then	team2unitDefName = words[3]
-		else Spring.Echo(words[3], "is not a valid unitDefName, using", team2unitDefName, "instead") end 
-	
-		
+		else Spring.Echo(words[3], "is not a valid unitDefName, using", team2unitDefName, "instead") end
+
+
 		if words[4] then
 			maxunitsint = tonumber(words[4])
 			if maxunitsint == nil then
@@ -215,7 +232,7 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				feedstep = math.floor(feedstepint)
 			end
-		end		
+		end
 		if words[6] then
 			placementradiusint = tonumber(words[6])
 			if placementradiusint == nil then
@@ -224,8 +241,8 @@ if gadgetHandler:IsSyncedCode() then
 				placementradius = math.floor(placementradiusint)
 			end
 		end
-		
-		
+
+
 		Spring.Echo(string.format("Starting fightertest %s vs %s with %i maxunits and %i units per step in a %d radius",
 				team1unitDefName,
 				team2unitDefName,
@@ -233,7 +250,7 @@ if gadgetHandler:IsSyncedCode() then
 				feedstep,
 				placementradius))
 	end
-	
+
 	function gadget:GameFrame(n)
 		if (n % 3 == 0) and fightertestenabled then
 			SpawnUnitDefsForTeam(0, team1unitDefName)
@@ -270,7 +287,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function ExecuteSelUnits(words, playerID, action)
+	function ExecuteSelUnits(words, playerID, action, params)
 		if #words < 2 then
 			return
 		end
@@ -279,6 +296,11 @@ if gadgetHandler:IsSyncedCode() then
 			local h, mh = Spring.GetUnitHealth(unitID)
 			if not action then
 				Spring.DestroyUnit(unitID)
+			elseif action == 'xp' and params then
+				--Spring.SetUnitExperience(unitID, select(1, Spring.GetUnitExperience(unitID)) + tonumber(params))
+				if type(tonumber(params)) == 'number' then
+					Spring.SetUnitExperience(unitID, tonumber(params))
+				end
 			elseif action == 'remove' then
 				Spring.DestroyUnit(unitID, false, true, Spring.GetGaiaTeamID())
 			elseif action == 'reclaim' then
@@ -308,65 +330,65 @@ if gadgetHandler:IsSyncedCode() then
 			0 --radius
 		)
 	end
-	
+
 	function ExecuteRemoveUnitDefName(unitdefname)
 		local unitDefID = UnitDefNames[unitdefname].id
 		local wreckFeatureDefID
 		local heapFeatureDefID
-		if unitDefID then 
-			if FeatureDefNames[unitdefname .. "_dead"] then 
+		if unitDefID then
+			if FeatureDefNames[unitdefname .. "_dead"] then
 				wreckFeatureDefID = FeatureDefNames[unitdefname .. "_dead"].id
 			end
-			if FeatureDefNames[unitdefname .. "_heap"] then 
+			if FeatureDefNames[unitdefname .. "_heap"] then
 				heapFeatureDefID = FeatureDefNames[unitdefname .. "_heap"].id
 			end
 			local allunits = Spring.GetAllUnits()
 			local removedunits = 0
-			local removedwrecks = 0 
-			local removedheaps = 0 
+			local removedwrecks = 0
+			local removedheaps = 0
 			for i, unitID in ipairs(allunits) do
-				if unitDefID == Spring.GetUnitDefID(unitID) then 
+				if unitDefID == Spring.GetUnitDefID(unitID) then
 					Spring.DestroyUnit(unitID, false, true)
 					removedunits = removedunits + 1
-				end 
-			end
-			local allfeatures = Spring.GetAllFeatures()
-			for i, featureID in ipairs(allfeatures) do 
-				local featureDefID = Spring.GetFeatureDefID(featureID)
-				if featureDefID == wreckFeatureDefID then 
-					Spring.DestroyFeature(featureID)
-					removedwrecks = removedwrecks + 1
-				end 
-				if featureDefID == heapFeatureDefID then
-					Spring.DestroyFeature(featureID)
-					removedheaps = removedheaps + 1 
 				end
 			end
-			
+			local allfeatures = Spring.GetAllFeatures()
+			for i, featureID in ipairs(allfeatures) do
+				local featureDefID = Spring.GetFeatureDefID(featureID)
+				if featureDefID == wreckFeatureDefID then
+					Spring.DestroyFeature(featureID)
+					removedwrecks = removedwrecks + 1
+				end
+				if featureDefID == heapFeatureDefID then
+					Spring.DestroyFeature(featureID)
+					removedheaps = removedheaps + 1
+				end
+			end
+
 			Spring.Echo(string.format("Removed %i units, %i wrecks, %i heaps for unitDefName %s",removedunits, removedwrecks, removedheaps, unitdefname ))
 		else
 			Spring.Echo("Removeunitdef:", unitdefname, "is not a valid UnitDefName")
 		end
-	end 
-	
+	end
+
 	function ClearWrecks()
 		local allfeatures = Spring.GetAllFeatures()
 		local removedwrecks = 0
 		for i, featureID in pairs(allfeatures) do
 			local featureDefName = FeatureDefs[Spring.GetFeatureDefID(featureID)].name
-			if string.find(featureDefName, "_dead", nil, true) or string.find(featureDefName, "_heap", nil, true) then 
+			if string.find(featureDefName, "_dead", nil, true) or string.find(featureDefName, "_heap", nil, true) then
 				Spring.DestroyFeature(featureID)
-				removedwrecks = removedwrecks + 1 
+				removedwrecks = removedwrecks + 1
 			end
 		end
 		Spring.Echo(string.format("Removed %i wrecks and heaps", removedwrecks))
 	end
 
 
-	----------------------------------------
-	-- UNSYNCED
-else
-	----------------------------------------
+
+else	-- UNSYNCED
+
+
 
 	function gadget:Initialize()
 		-- doing it via GotChatMsg ensures it will only listen to the caller
@@ -375,14 +397,17 @@ else
 		gadgetHandler:AddChatAction('wreckunits', wreckUnits, "")  -- turns the selected units into wrecks /luarules wreckunits
 		gadgetHandler:AddChatAction('reclaimunits', reclaimUnits, "")  -- reclaims and refunds the selected units /luarules reclaimUnits
 		gadgetHandler:AddChatAction('removeunits', removeUnits, "")  -- removes the selected units /luarules removeunits
+
+		gadgetHandler:AddChatAction('xp', xpUnits, "")
+
 		gadgetHandler:AddChatAction('spawnceg', spawnceg, "") -- --/luarules spawnceg newnuke [int] -- spawns at cursor at height
-		
+
 		gadgetHandler:AddChatAction('dumpunits', dumpUnits, "") -- /luarules dumpunits dumps all units on may into infolog.txt
 		gadgetHandler:AddChatAction('dumpfeatures', dumpFeatures, "") -- /luarules dumpfeatures dumps all features into infolog.txt
 		gadgetHandler:AddChatAction('removeunitdef', removeUnitDef, "") -- /luarules removeunitdef armflash removes all units, their wrecks and heaps too
 		gadgetHandler:AddChatAction('clearwrecks', clearWrecks, "") -- /luarules clearwrecks removes all wrecks and heaps from the map
-		
-		gadgetHandler:AddChatAction('fightertest', fightertest, "") -- /luarules fightertest unitdefname1 unitdefname2 count 
+
+		gadgetHandler:AddChatAction('fightertest', fightertest, "") -- /luarules fightertest unitdefname1 unitdefname2 count
 	end
 
 	function gadget:Shutdown()
@@ -390,8 +415,9 @@ else
 		gadgetHandler:RemoveChatAction('destroyunits')
 		gadgetHandler:RemoveChatAction('reclaimunits')
 		gadgetHandler:RemoveChatAction('removeunits')
+		gadgetHandler:RemoveChatAction('xp')
 		gadgetHandler:RemoveChatAction('spawnceg')
-		
+
 		gadgetHandler:RemoveChatAction('dumpunits')
 		gadgetHandler:RemoveChatAction('dumpfeatures')
 		gadgetHandler:RemoveChatAction('removeunitdefs')
@@ -399,6 +425,9 @@ else
 		gadgetHandler:RemoveChatAction('fightertest')
 	end
 
+	function xpUnits(_, line, words, playerID)
+		processUnits(_, line, words, playerID, 'xpunits')
+	end
 	function destroyUnits(_, line, words, playerID)
 		processUnits(_, line, words, playerID, 'destroyunits')
 	end
@@ -411,27 +440,27 @@ else
 	function removeUnits(_, line, words, playerID)
 		processUnits(_, line, words, playerID, 'removeunits')
 	end
-	
+
 	function removeUnitDef(_, line, words, playerID)
 		if not isAuthorized(Spring.GetMyPlayerID()) then
-			return 
+			return
 		end
 		Spring.Echo(line)
 		Spring.Echo(words[1])
 		Spring.Echo(words[2])
 		Spring.Echo(words[3])
-		if words[1] and UnitDefNames[words[1]] then 
+		if words[1] and UnitDefNames[words[1]] then
 			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':removeunitdef '.. words[1])
 		end
 	end
-	
+
 	function clearWrecks(_, line, words, playerID)
 		if not isAuthorized(Spring.GetMyPlayerID()) then
-			return 
+			return
 		end
-		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':clearwrecks') 
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':clearwrecks')
 	end
-	
+
 	function processUnits(_, line, words, playerID, action)
 		if not isAuthorized(Spring.GetMyPlayerID()) then
 			return
@@ -441,14 +470,17 @@ else
 		for _, unitID in ipairs(selUnits) do
 			msg = msg .. " " .. tostring(unitID)
 		end
+		if words[1] then
+			msg = msg .. ':'.. words[1]
+		end
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
 	end
-	
+
 	function dumpFeatures(_)
 		if not isAuthorized(Spring.GetMyPlayerID()) then
 			return
 		end
-		local features=Spring.GetAllFeatures()		
+		local features=Spring.GetAllFeatures()
 		Spring.Echo("Dumping all features")
 		for k,featureID in pairs(features) do
 			local featureName = (FeatureDefs[Spring.GetFeatureDefID(featureID)].name or "nil")
@@ -458,8 +490,8 @@ else
 			if resurrectas then resurrectas = "\"" .. resurrectas .. "\"" else resurrectas = 'nil' end
 			Spring.Echo(string.format("{name = \'%s\', x = %d, y = %d, z = %d, rot = %d , scale = 1.0, resurrectas = %s},\n",featureName,x,y,z,r, resurrectas)) --{ name = 'ad0_aleppo_2', x = 2900, z = 52, rot = "-1" },
 		end
-	end	
-	
+	end
+
 	function dumpUnits(_)
 		if not isAuthorized(Spring.GetMyPlayerID()) then
 			return
@@ -475,7 +507,7 @@ else
 			Spring.Echo(string.format("{name = \'%s\', x = %d, y = %d, z = %d, rot = %d , team = %d, neutral = %s},\n",unitname,x,y,z,r,tid, isneutral)) --{ name = 'ad0_aleppo_2', x = 2900, z = 52, rot = "-1" },
 		end
 	end
-	
+
 	local function centerCamera()
 		local camState = Spring.GetCameraState()
 		if camState then
@@ -494,14 +526,14 @@ else
 			return
 		end
 		local msg = PACKET_HEADER .. ':fightertest'
-		for i=1,5 do 
-			if words[i] then msg = msg .. " " .. tostring(words[i]) end 
+		for i=1,5 do
+			if words[i] then msg = msg .. " " .. tostring(words[i]) end
 		end
 		centerCamera()
 		Spring.SendLuaRulesMsg(msg)
 	end
-	
-	
+
+
 	function spawnceg(_, line, words, playerID)
 		--spawnceg usage:
 		--spawnceg usage:

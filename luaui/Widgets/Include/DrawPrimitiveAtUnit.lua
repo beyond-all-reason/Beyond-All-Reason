@@ -125,7 +125,8 @@ void main()
 	// TODO: take into account size of primitive before clipping
 
 	// this sets the num prims to 0 for units further from cam than iconDistance
-	if (length((cameraViewInv[3]).xyz - v_centerpos.xyz) >  iconDistance) v_numvertices = 0;
+	float cameraDistance = length((cameraViewInv[3]).xyz - v_centerpos.xyz);
+	if (cameraDistance > iconDistance) v_numvertices = 0;
 
 	if (dot(v_centerpos.xyz, v_centerpos.xyz) < 1.0) v_numvertices = 0; // if the center pos is at (0,0,0) then we probably dont have the matrix yet for this unit, because it entered LOS but has not been drawn yet.
 
