@@ -421,6 +421,7 @@ function widget:UnitLeftLos(unitID)
 end
 
 function widget:UnitEnteredLos(unitID)
+	if fullview then return end
 	widget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 end
 

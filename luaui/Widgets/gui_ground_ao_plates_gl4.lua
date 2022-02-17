@@ -162,6 +162,7 @@ function widget:RenderUnitDestroyed(unitID)
 end
 
 function widget:UnitEnteredLos(unitID)
+	if fullview then return end
 	if spValidUnitID(unitID) then
 		AddPrimitiveAtUnit(unitID,nil,nil,"UnitEnteredLos")
 	end

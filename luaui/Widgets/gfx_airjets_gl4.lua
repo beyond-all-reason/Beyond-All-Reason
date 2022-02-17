@@ -896,6 +896,7 @@ function widget:Update(dt)
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	if fullview then return end
 	if spValidUnitID(unitID) then
 		unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
 		--Spring.Echo("UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)",unitID, unitTeam, allyTeam, unitDefID)

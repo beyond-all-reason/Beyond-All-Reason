@@ -160,6 +160,7 @@ function widget:UnitGiven(unitID, unitDefID, oldTeamID, newTeamID)
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	if fullview then return end
 	if spValidUnitID(unitID) then
 		AddUnit(unitID, unitDefID or Spring.GetUnitDefID(unitID), unitTeam)
 	end
