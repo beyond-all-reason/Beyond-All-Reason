@@ -11,8 +11,8 @@ function widget:GetInfo()
 end
 
 local iconsize = 40
-local iconoffset = 18
-local scaleIconAmount = 90
+local iconoffset = 25
+local scaleIconAmount = 86
 
 local falloffDistance = 1300
 local cutoffDistance = 2300
