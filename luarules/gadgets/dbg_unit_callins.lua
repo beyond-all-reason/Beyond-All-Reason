@@ -245,11 +245,11 @@ function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
 	if showcallins then addEvent(unitID, "UnitDecloaked") end 
 end
 
-function gadget:UnitMoveFailed(unitID, unitDefID, unitTeam)
-	if enabledcallins.UnitMoveFailed == nil then return end
-	if printcallins then Spring.Echo("g:UnitMoveFailed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam) end
-	if showcallins then addEvent(unitID, "UnitMoveFailed") end 
-end
+--function gadget:UnitMoveFailed(unitID, unitDefID, unitTeam)
+--	if enabledcallins.UnitMoveFailed == nil then return end
+--	if printcallins then Spring.Echo("g:UnitMoveFailed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam) end
+--	if showcallins then addEvent(unitID, "UnitMoveFailed") end 
+--end
 
 function gadget:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 	if enabledcallins.StockpileChanged == nil then return end
