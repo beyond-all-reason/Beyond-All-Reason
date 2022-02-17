@@ -44,7 +44,6 @@ if gadgetHandler:IsSyncedCode() then
 		for _, playerID in pairs(players) do
 			if teamID == select(4, Spring.GetPlayerInfo(playerID, false)) then
 				SendToUnsynced('forceResignMessage', playerID)
-				--Spring.SendMessageToPlayer(playerID, "\255\255\166\166You're being force-resigned: Self-destructing all units is considered unwanted behavior.")
 			end
 		end
 	end
@@ -107,11 +106,23 @@ else -- UNSYNCED
 
 
 	local myPlayerID = Spring.GetMyPlayerID()
+	local myTeamID = Spring.GetMyTeamID()
 
 	local function forceResignMessage(_, playerID)
 		if playerID == myPlayerID then
-			if Script.LuaUI('GadgetMessageProxy') then
-				Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy('ui.forceResignMessage'))
+			if not Spring.GetSpectatingState() then
+				-- check first if player has team players
+				local numActiveTeamPlayers = 0
+				local teamList = Spring.GetTeamList(select(6, Spring.GetTeamInfo(myTeamID,false)))
+				for _,tID in ipairs(teamList) do
+					local luaAI = Spring.GetTeamLuaAI(tID)
+					if tID ~= myTeamID and not select(4, Spring.GetTeamInfo(tID,false)) and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(tID, "numActivePlayers") > 0 then
+						numActiveTeamPlayers = numActiveTeamPlayers + 1
+					end
+				end
+				if numActiveTeamPlayers > 0 and Script.LuaUI('GadgetMessageProxy') then
+					Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy('ui.forceResignMessage'))
+				end
 			end
 		end
 	end

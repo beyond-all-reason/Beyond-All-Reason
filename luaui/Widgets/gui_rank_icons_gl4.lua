@@ -11,8 +11,8 @@ function widget:GetInfo()
 end
 
 local iconsize = 40
-local iconoffset = 18
-local scaleIconAmount = 90
+local iconoffset = 25
+local scaleIconAmount = 86
 
 local falloffDistance = 1300
 local cutoffDistance = 2300
@@ -47,7 +47,7 @@ local rankVBO = nil
 local rankShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
 
-local debugmode = true
+local debugmode = false
 
 local function addDirToAtlas(atlas, path)
 	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
@@ -57,17 +57,17 @@ local function addDirToAtlas(atlas, path)
 		if imgExts[string.sub(files[i],-3,-1)] then
 			gl.AddAtlasTexture(atlas,files[i])
 			atlassedImages[files[i]] = true
-			if debugmode then Spring.Echo("added", files[i]) end 
+			--if debugmode then Spring.Echo("added", files[i]) end 
 		end
 	end
 end
 
 local function makeAtlas()
-	atlasID = gl.CreateTextureAtlas(atlasSize,atlasSize,0)
+	atlasID = gl.CreateTextureAtlas(atlasSize,atlasSize,1)
 	addDirToAtlas(atlasID, "LuaUI/Images/ranks")
 	local result = gl.FinalizeTextureAtlas(atlasID)
 	if debugmode then 
-		Spring.Echo("atlas result", result)
+		--Spring.Echo("atlas result", result)
 	end
 end
 
@@ -140,7 +140,7 @@ for i = 1, 18 do vbocachetable[i] = 0 end -- init this caching table to preserve
 local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, flash)
 	if debugmode then Spring.Debug.TraceEcho("add",unitID,reason) end
 	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then
-		if debugmode then Spring.Echo("Warning: Ground AO Plates GL4 attempted to add an invalid unitID:", unitID) end
+		if debugmode then Spring.Echo("Warning: Rank Icons GL4 attempted to add an invalid unitID:", unitID) end
 		return nil
 	end
 	local gf = (flash and Spring.GetGameFrame()) or 0 
@@ -154,13 +154,13 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, fla
 	local numVertices = 4 -- default to circle
 	local additionalheight = 0
 
-	Spring.Echo (rank, rankTextures[rank])
+	--Spring.Echo (rank, rankTextures[rank], unitIconMult[unitDefID])
 	local p,q,s,t = gl.GetAtlasTexture(atlasID, rankTextures[rank])
 	
-	vbocachetable[1] = unitUsedIconsize -- length
-	vbocachetable[2] = unitUsedIconsize -- widgth
+	vbocachetable[1] = unitUsedIconsize/40.0 -- length
+	vbocachetable[2] = unitUsedIconsize/40.0 -- widgth
 	vbocachetable[3] = 0 -- cornersize
-	vbocachetable[4] = unitHeights[unitDefID] -- height
+	vbocachetable[4] = unitHeights[unitDefID] - 8 + ((debugmode and math.random()*16 ) or 0)-- height
 	
 	--vbocachetable[5] = 0 -- Spring.GetUnitTeam(unitID)
 	vbocachetable[6] = 4 -- numvertices
@@ -172,8 +172,8 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, fla
 	
 	vbocachetable[11] = q -- uv's of the atlas
 	vbocachetable[12] = p
-	vbocachetable[13] = s
-	vbocachetable[14] = t 
+	vbocachetable[13] = t
+	vbocachetable[14] = s
 	
 
 	return pushElementInstance(
@@ -210,18 +210,24 @@ function initGL4()
 	shaderConfig.BILLBOARD = 1
 	shaderConfig.HEIGHTOFFSET = 0
 	shaderConfig.TRANSPARENCY = 1.0
-	shaderConfig.ANIMATION = 0
+	shaderConfig.ANIMATION = 1
+	shaderConfig.INITIALSIZE = 0.25
+	shaderConfig.BREATHERATE = 30.0
+	shaderConfig.BREATHESIZE = 0.05
+	shaderConfig.GROWTHRATE = 8.0
+	
 	-- MATCH CUS position as seed to sin, then pass it through geoshader into fragshader
 	--shaderConfig.POST_VERTEX = "v_parameters.w = max(-0.2, sin((timeInfo.x + timeInfo.w) * 2.0/30.0 + (v_centerpos.x + v_centerpos.z) * 0.1)) + 0.2; // match CUS glow rate"
 	--shaderConfig.POST_GEOMETRY = "g_uv.w = dataIn[0].v_parameters.w; gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in depth buffer"
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(texcolor.rgb* (1.0 + g_uv.w), texcolor.a * g_uv.z);" -- i have no idea what this does
-	shaderConfig.POST_VERTEX = "v_lengthwidthcornerheight.xy *=  parameters.y * (1.1 - pow(cameraDistance/iconDistance, 0.2 ));" 
+	shaderConfig.POST_VERTEX = "v_lengthwidthcornerheight.xy *= parameters.y * 4.5 + (1250 - abs(cameraDistance-1250))*0.016;"
 	shaderConfig.MAXVERTICES = 4
 	shaderConfig.USE_CIRCLES = nil
 	shaderConfig.USE_CORNERRECT = nil
 
+	if debugmode then shaderConfig.POST_SHADING = shaderConfig.POST_SHADING .. " fragColor.a += 0.25;" end
 	rankVBO, rankShader = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit(shaderConfig, "Rank Icons")
-
+	if debugmode then rankVBO.debug = true end 
 	--ProcessAllUnits()
 end
 
@@ -323,6 +329,7 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	unitRanks[unitID] = nil
+	RemovePrimitive(unitID, "UnitDestroyed")
 end
 
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
@@ -334,66 +341,17 @@ end
 function widget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
 	if not IsUnitAllied(unitID) and not GetSpectatingState() then
 		unitRanks[unitID] = nil
+		RemovePrimitive(unitID, "UnitGiven")
 	end
 end
 
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
-
-local function DrawUnitFunc(yshift)
-	glTranslate(0, yshift, 0)
-	glBillboard()
-	glTexRect(-unitUsedIconsize * 0.5, -unitUsedIconsize * 0.5, unitUsedIconsize * 0.5, unitUsedIconsize * 0.5)
-end
 
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 	end
-end
-
-function widgetDrawWorld() -- OOOLD
-	if chobbyInterface then
-		return
-	end
-	if Spring.IsGUIHidden() then
-		return
-	end
-
-	glColor(1, 1, 1, 1)
-	glDepthMask(true)
-	glDepthTest(true)
-	glAlphaTest(GL_GREATER, 0.001)
-
-	local camX, camY, camZ = GetCameraPosition()
-	local camDistance
-
-	for unitID, rank in pairs(unitRanks) do
-		if rank > 1 then
-			if IsUnitInView(unitID) then
-				local x, y, z = GetUnitPosition(unitID)
-				camDistance = diag(camX - x, camY - y, camZ - z)
-				if camDistance < usedCutoffDistance then
-					local unitDefID = GetUnitDefID(unitID)
-					local opacity = min(1, 1 - (camDistance - usedFalloffDistance) / usedCutoffDistance)
-					unitUsedIconsize = ((usedIconsize * 0.12) + (camDistance / scaleIconAmount)) - ((1 - opacity) * (usedIconsize * 1.25))
-					unitUsedIconsize = unitUsedIconsize * unitIconMult[unitDefID]
-					
-					--unitUsedIconsize = ((usedIconsize * 0.12) + (camDistance / scaleIconAmount)) - ((1 - min(1, 1 - (camDistance - usedFalloffDistance) / usedCutoffDistance)) * (usedIconsize * 1.25)) * unitIconMult[unitDefID]
-					unitUsedIconsize = unitUsedIconsize * unitIconMult[unitDefID]
-					glTexture(rankTextures[rank])
-					glColor(1, 1, 1, opacity)
-					glDrawFuncAtUnit(unitID, false, DrawUnitFunc, unitHeights[unitDefID])
-				end
-			end
-		end
-	end
-
-	glColor(1, 1, 1, 1)
-	glTexture(false)
-	glAlphaTest(false)
-	glDepthTest(false)
-	glDepthMask(false)
 end
 
 function widget:DrawWorld()
@@ -411,8 +369,12 @@ function widget:DrawWorld()
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--Spring.Echo(rankVBO.usedElements)
 		--gl.Culling(GL.BACK)
-		gl.DepthTest(GL.LEQUAL)
-		gl.DepthMask(false)
+		
+		glDepthMask(true)
+		glDepthTest(true)
+		glAlphaTest(GL_GREATER, 0.001)
+		--gl.DepthTest(GL.LEQUAL)
+		--gl.DepthMask(false)
 		glTexture(0, atlasID)
 		rankShader:Activate()
 		rankShader:SetUniform("iconDistance",usedCutoffDistance)
@@ -421,6 +383,10 @@ function widget:DrawWorld()
 		rankShader:Deactivate()
 		glTexture(0, false)
 		--gl.Culling(false)
-		gl.DepthTest(false)
+		--gl.DepthTest(false)
+		
+		glAlphaTest(false)
+		glDepthTest(false)
+		glDepthMask(false)
 	end
 end
