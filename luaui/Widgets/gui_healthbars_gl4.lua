@@ -1031,7 +1031,7 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 	-- If a unit is captured and thus immediately become outside of LOS, then the getunitallyteam is still the old ally team according to getUnitAllyTEam, and not the new allyteam.
 	unitAllyTeam = unitAllyTeam or Spring.GetUnitAllyTeam(unitID) 
 	local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
-	if fullview or (unitAllyTeam == myAllyTeamID) or (unitDefHideDamage[unitDefID] == nil) then
+	if (fullview or (unitAllyTeam == myAllyTeamID) or (unitDefHideDamage[unitDefID] == nil)) and (unitDefIgnore[unitDefID] == nil ) then
 		if debugmode and health == nil then 
 			Spring.Echo("Trying to add a healthbar to nil health unit", unitID, unitDefID) 
 			local ux, uy, uz = Spring.GetUnitPosition(unitID) 
@@ -1342,8 +1342,10 @@ function widget:Initialize()
 	initGL4()
 	-- Walk through unitdefs for the stuff we need:
 	for udefID, unitDef in pairs(UnitDefs) do
-		if unitDef.customParams.nohealthbars then unitDefIgnore[udefID] = true end --ignore debug units
-		if unitDef.customParams.iscommander then unitDefIgnore[udefID] = true end --ignore commanders for now (enemy comms?)
+		if unitDef.customParams.nohealthbars then 
+			unitDefIgnore[udefID] = true
+		end --ignore debug units
+		--if unitDef.customParams.iscommander then unitDefIgnore[udefID] = true end --ignore commanders for now (enemy comms?)
 		local shieldDefID = unitDef.shieldWeaponDef
 		shieldPower = ((shieldDefID) and (WeaponDefs[shieldDefID].shieldPower)) or (-1)
 		if shieldPower > 1 then unitDefhasShield[udefID] = shieldPower 
