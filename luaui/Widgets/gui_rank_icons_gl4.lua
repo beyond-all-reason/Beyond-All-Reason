@@ -212,8 +212,8 @@ function initGL4()
 	shaderConfig.TRANSPARENCY = 1.0
 	shaderConfig.ANIMATION = 1
 	shaderConfig.INITIALSIZE = 0.25
-	shaderConfig.BREATHERATE = 30.0
-	shaderConfig.BREATHESIZE = 0.05
+	shaderConfig.BREATHERATE = 0.0
+	shaderConfig.BREATHESIZE = 0.0
 	shaderConfig.GROWTHRATE = 16.0
 	
 	-- MATCH CUS position as seed to sin, then pass it through geoshader into fragshader
