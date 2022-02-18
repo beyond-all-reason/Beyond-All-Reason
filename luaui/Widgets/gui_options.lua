@@ -4482,8 +4482,6 @@ function init()
 		end
 	end
 
-	Spring.SetConfigInt("FSAALevel", 0)
-
 	-- reduce options for potatoes
 	if isPotatoGpu or isPotatoCpu then
 		local id = getOptionByID('shadowslider')
