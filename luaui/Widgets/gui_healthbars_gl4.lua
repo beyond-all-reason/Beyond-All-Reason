@@ -388,12 +388,12 @@ local skipGlyphsNumbers = 0.0  -- 0.0 is draw glyph and number,  1.0 means only 
 local debugmode = false
 
 local shaderConfig = { -- these are our shader defines
-	HEIGHTOFFSET = 0, -- Additional height added to everything
+	HEIGHTOFFSET = 3, -- Additional height added to everything
 	CLIPTOLERANCE = 1.1, -- At 1.0 it wont draw at units just outside of view (may pop in), 1.1 is a good safe amount
 	MAXVERTICES = 64, -- The max number of vertices we can emit, make sure this is consistent with what you are trying to draw (tris 3, quads 4, corneredrect 8, circle 64
 }
 shaderConfig.CLIPTOLERANCE = 1.2
-shaderConfig.BARWIDTH = 2.5
+shaderConfig.BARWIDTH = 2.56
 shaderConfig.BARHEIGHT = 0.90
 shaderConfig.BARCORNER = shaderConfig.BARHEIGHT /5
 shaderConfig.SMALLERCORNER = shaderConfig.BARCORNER * 0.6
@@ -406,8 +406,8 @@ shaderConfig.BARSTEP = 10 -- pixels to downshift per new bar
 shaderConfig.BOTTOMDARKENFACTOR = 0.5
 shaderConfig.BARFADESTART = 2000
 shaderConfig.BARFADEEND = 3000
-shaderConfig.ICONFADESTART = 550
-shaderConfig.ICONFADEEND = 700
+shaderConfig.ICONFADESTART = 600
+shaderConfig.ICONFADEEND = 750
 shaderConfig.ATLASSTEP = 0.0625
 shaderConfig.MINALPHA = 0.2
 if debugmode then 
@@ -832,7 +832,7 @@ void main(){
 		emitGlyph(vec2(-BARWIDTH - (currentglyphpos + 1.0) * BARHEIGHT , 0), vec2(0, glyphpctsecatlas * ATLASSTEP), vec2(ATLASSTEP, ATLASSTEP)); // % 
 		emitGlyph(vec2(-BARWIDTH - (currentglyphpos + 2.0) * BARHEIGHT + BARHEIGHT * 0.2 , 0), vec2(0,  lsb * ATLASSTEP ), vec2(ATLASSTEP, ATLASSTEP)); // lsb
 		if (msb > 0){
-			emitGlyph(vec2(-BARWIDTH - (currentglyphpos + 3.0) * BARHEIGHT + BARHEIGHT * 0.6 , 0), vec2(0,  msb * ATLASSTEP), vec2(ATLASSTEP, ATLASSTEP)); //msb
+			emitGlyph(vec2(-BARWIDTH - (currentglyphpos + 3.0) * BARHEIGHT + BARHEIGHT * 0.5 , 0), vec2(0,  msb * ATLASSTEP), vec2(ATLASSTEP, ATLASSTEP)); //msb
 		}
 	}
 }
