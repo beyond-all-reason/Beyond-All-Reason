@@ -25,7 +25,7 @@ local usedIconsize = iconsize * iconsizeMult
 
 local chobbyInterface
 
-local maximumRankXP = 2
+local maximumRankXP = 0.8
 local numRanks = #VFS.DirList('LuaUI/Images/ranks', '*.png')
 local rankTextures = {}
 local unitRanks = {}
