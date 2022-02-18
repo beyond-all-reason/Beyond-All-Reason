@@ -480,8 +480,8 @@ function UnitDef_Post(name, uDef)
 	]]
 	if string.find(name, "chicken") and uDef.maxdamage then
 		local chickHealth = uDef.maxdamage
-		uDef.buildcostmetal = chickHealth*1
-		uDef.buildcostenergy = chickHealth*10
+		uDef.buildcostmetal = chickHealth*0.5
+		uDef.buildcostenergy = chickHealth*5
 		uDef.buildtime = chickHealth*10
 	end
 
