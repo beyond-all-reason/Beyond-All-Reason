@@ -11,6 +11,7 @@ VFS.Include("luarules/gadgets/scavengers/API/api.lua")
 spawnQueueLibrary = VFS.Include("luarules/utilities/damgam_lib/spawn_queue.lua")
 positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 nearbyCaptureLibrary = VFS.Include("luarules/utilities/damgam_lib/nearby_capture.lua")
+unitSwapLibrary = VFS.Include("luarules/utilities/damgam_lib/unit_swap.lua")
 
 function ScavSendMessage(message)
 	if scavconfig.messenger then
@@ -492,18 +493,12 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 		end
 
 		if unitName == "corcom"..scavconfig.unitnamesuffix then
-			local frame = Spring.GetGameFrame()
-			local posx, posy, posz = Spring.GetUnitPosition(unitID)
-			spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
-			--Spring.DestroyUnit(unitID, false, true)
-			spawnQueueLibrary.AddToSpawnQueue("corcomcon"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitNewTeam, frame+1)
+			unitSwapLibrary.SwapUnit(unitID, "corcomcon"..scavconfig.unitnamesuffix)
+			return
 		end
 		if unitName == "armcom"..scavconfig.unitnamesuffix then
-			local frame = Spring.GetGameFrame()
-			local posx, posy, posz = Spring.GetUnitPosition(unitID)
-			spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
-			--Spring.DestroyUnit(unitID, false, true)
-			spawnQueueLibrary.AddToSpawnQueue("armcomcon"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitNewTeam, frame+1)
+			unitSwapLibrary.SwapUnit(unitID, "armcomcon"..scavconfig.unitnamesuffix)
+			return
 		end
 		
 		if scavConstructor[unitID] then
@@ -562,27 +557,8 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 					-- Spring.Echo(UnitName)
 					-- Spring.Echo(UnitName..suffix)
 					if UnitDefNames[unitName..suffix] then
-						local posx, posy, posz = Spring.GetUnitPosition(unitID)
-						spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
-						--Spring.DestroyUnit(unitID, false, true)
 						scavConverted[unitID] = true
-						if heading >= -24576 and heading < -8192 then -- west
-							-- 3
-							spawnQueueLibrary.AddToSpawnQueue(unitName..suffix, posx, posy, posz, 3 ,ScavengerTeamID, frame+1)
-							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 3,ScavengerTeamID)
-						elseif heading >= -8192 and heading < 8192 then -- south
-							-- 0
-							spawnQueueLibrary.AddToSpawnQueue(unitName..suffix, posx, posy, posz, 0 ,ScavengerTeamID, frame+1)
-							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 0,ScavengerTeamID)
-						elseif heading >= 8192 and heading < 24576 then -- east
-							-- 1
-							spawnQueueLibrary.AddToSpawnQueue(unitName..suffix, posx, posy, posz, 1 ,ScavengerTeamID, frame+1)
-							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 1,ScavengerTeamID)
-						else -- north
-							-- 2
-							spawnQueueLibrary.AddToSpawnQueue(unitName..suffix, posx, posy, posz, 2 ,ScavengerTeamID, frame+1)
-							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,ScavengerTeamID)
-						end
+						unitSwapLibrary.SwapUnit(unitID, unitName..suffix)
 						return
 					end
 				end
@@ -595,21 +571,13 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 				scavSpawnBeacon[unitID] = true
 			end
 			if unitName == "corcomcon"..scavconfig.unitnamesuffix then
-				local frame = Spring.GetGameFrame()
-				local posx, posy, posz = Spring.GetUnitPosition(unitID)
-				spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
-				--Spring.DestroyUnit(unitID, false, true)
 				scavConverted[unitID] = true
-				spawnQueueLibrary.AddToSpawnQueue("corcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,ScavengerTeamID, frame+1)
+				unitSwapLibrary.SwapUnit(unitID, "corcom"..scavconfig.unitnamesuffix)
 				return
 			end
 			if unitName == "armcomcon"..scavconfig.unitnamesuffix then
-				local frame = Spring.GetGameFrame()
-				local posx, posy, posz = Spring.GetUnitPosition(unitID)
-				spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
-				--Spring.DestroyUnit(unitID, false, true)
 				scavConverted[unitID] = true
-				spawnQueueLibrary.AddToSpawnQueue("armcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,ScavengerTeamID, frame+1)
+				unitSwapLibrary.SwapUnit(unitID, "armcom"..scavconfig.unitnamesuffix)
 				return
 			end
 			-- CMD.CLOAK = 37382
@@ -707,27 +675,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				-- Spring.Echo(UnitName)
 				-- Spring.Echo(UnitName..suffix)
 				if UnitDefNames[unitName..suffix] then
-					local posx, posy, posz = Spring.GetUnitPosition(unitID)
-					spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
-					--Spring.DestroyUnit(unitID, false, true)
 					scavConverted[unitID] = true
-					if heading >= -24576 and heading < -8192 then -- west
-						-- 3
-						spawnQueueLibrary.AddToSpawnQueue(unitName..suffix, posx, posy, posz, 3 ,ScavengerTeamID, frame+1, nil, true)
-						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 3,ScavengerTeamID)
-					elseif heading >= -8192 and heading < 8192 then -- south
-						-- 0
-						spawnQueueLibrary.AddToSpawnQueue(unitName..suffix, posx, posy, posz, 0 ,ScavengerTeamID, frame+1, nil, true)
-						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 0,ScavengerTeamID)
-					elseif heading >= 8192 and heading < 24576 then -- east
-						-- 1
-						spawnQueueLibrary.AddToSpawnQueue(unitName..suffix, posx, posy, posz, 1 ,ScavengerTeamID, frame+1, nil, true)
-						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 1,ScavengerTeamID)
-					else -- north
-						-- 2
-						spawnQueueLibrary.AddToSpawnQueue(unitName..suffix, posx, posy, posz, 2 ,ScavengerTeamID, frame+1, nil, true)
-						--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,ScavengerTeamID)
-					end
+					unitSwapLibrary.SwapUnit(unitID, unitName..suffix)
 					return
 				end
 			end
@@ -747,20 +696,14 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			end
 		end
 		if unitName == "corcomcon"..scavconfig.unitnamesuffix then
-			local frame = Spring.GetGameFrame()
-			local posx, posy, posz = Spring.GetUnitPosition(unitID)
-			spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
-			--Spring.DestroyUnit(unitID, false, true)
 			scavConverted[unitID] = true
-			spawnQueueLibrary.AddToSpawnQueue("corcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitTeam, frame+1, nil, true)
+			unitSwapLibrary.SwapUnit(unitID, "corcom"..scavconfig.unitnamesuffix)
+			return
 		end
 		if unitName == "armcomcon"..scavconfig.unitnamesuffix then
-			local frame = Spring.GetGameFrame()
-			local posx, posy, posz = Spring.GetUnitPosition(unitID)
-			spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
-			--Spring.DestroyUnit(unitID, false, true)
 			scavConverted[unitID] = true
-			spawnQueueLibrary.AddToSpawnQueue("armcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitTeam, frame+1, nil, true)
+			unitSwapLibrary.SwapUnit(unitID, "armcom"..scavconfig.unitnamesuffix)
+			return
 		end
 		if unitName == "scavengerdroppod_scav" then
 			Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
@@ -852,18 +795,12 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		end
 
 		if unitName == "corcom"..scavconfig.unitnamesuffix then
-			local frame = Spring.GetGameFrame()
-			local posx, posy, posz = Spring.GetUnitPosition(unitID)
-			spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
-			--Spring.DestroyUnit(unitID, false, true)
-			spawnQueueLibrary.AddToSpawnQueue("corcomcon"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitTeam, frame+1, nil, true)
+			unitSwapLibrary.SwapUnit(unitID, "corcomcon"..scavconfig.unitnamesuffix)
+			return
 		end
 		if unitName == "armcom"..scavconfig.unitnamesuffix then
-			local frame = Spring.GetGameFrame()
-			local posx, posy, posz = Spring.GetUnitPosition(unitID)
-			spawnQueueLibrary.AddToDestroyQueue(unitID, false, true, Spring.GetGameFrame()+1)
-			--Spring.DestroyUnit(unitID, false, true)
-			spawnQueueLibrary.AddToSpawnQueue("armcomcon"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitTeam, frame+1, nil, true)
+			unitSwapLibrary.SwapUnit(unitID, "armcomcon"..scavconfig.unitnamesuffix)
+			return
 		end
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
 			numOfSpawnBeaconsTeams[unitTeam] = numOfSpawnBeaconsTeams[unitTeam] + 1
