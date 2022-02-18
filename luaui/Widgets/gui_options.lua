@@ -18,6 +18,9 @@ local types = {
 	dev      = 3,
 }
 
+local version = 1	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
+local newerVersion = false	-- configdata will set this true if it's a newer version
+
 local texts = {}    -- loaded from external language file
 
 local languageCodes = { 'en', 'fr', 'zh' }
@@ -4694,18 +4697,25 @@ function widget:Initialize()
 		widgetHandler:DisableWidget("Ambient Player")
 	end
 
-	-- enable this previous default disabled widget
-	if widgetHandler.orderList["DrawUnitShape GL4"] and widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
-		widgetHandler:EnableWidget("DrawUnitShape GL4")
-	end
-	if widgetHandler.orderList["HighlightUnit GL4"] and widgetHandler.orderList["HighlightUnit GL4"] < 0.5 then
-		widgetHandler:EnableWidget("HighlightUnit GL4")
+	-- enable previous default disabled widget(s) to their new default state
+	if newerVersion then
+		if version <= 1 then
+			if widgetHandler.orderList["DrawUnitShape GL4"] and widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
+				widgetHandler:EnableWidget("DrawUnitShape GL4")
+			end
+			if widgetHandler.orderList["HighlightUnit GL4"] and widgetHandler.orderList["HighlightUnit GL4"] < 0.5 then
+				widgetHandler:EnableWidget("HighlightUnit GL4")
+			end
+			if widgetHandler.orderList["Rank Icons GL4"] and widgetHandler.orderList["Rank Icons GL4"] < 0.5 then
+				widgetHandler:EnableWidget("Rank Icons GL4")
+			end
+		end
 	end
 
 	if widgetHandler.orderList["FlowUI"] and widgetHandler.orderList["FlowUI"] < 0.5 then
 		widgetHandler:EnableWidget("FlowUI")
 	end
-	if widgetHandler.orderList["Language"] < 0.5 then
+	if widgetHandler.orderList["Language"] and widgetHandler.orderList["Language"] < 0.5 then
 		widgetHandler:EnableWidget("Language")
 	end
 
@@ -4989,10 +4999,16 @@ function widget:GetConfigData()
 		defaultMapSunPos = defaultMapSunPos,
 		defaultSunLighting = defaultSunLighting,
 		resettedTonemapDefault = resettedTonemapDefault,
+		version = version,
 	}
 end
 
 function widget:SetConfigData(data)
+	if data.version ~= nil then
+		if data.version < version then
+			newerVersion = true
+		end
+	end
 	if data.vsyncEnabled ~= nil then
 		vsyncEnabled = data.vsyncEnabled
 	end
