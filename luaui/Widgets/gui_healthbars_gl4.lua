@@ -623,7 +623,7 @@ void emitVertexBG(in vec2 pos){
 	gl_Position.z += depthbuffermod;
 	g_uv.z = 0.0; // this tells us to use color
 	float extracolor = 0.0;
-	if (((BARTYPE & BITFLASHBAR) > 0u) && (mod(timeInfo.x, 30.0) > 15.0)){
+	if (((BARTYPE & BITFLASHBAR) > 0u) && (mod(timeInfo.x, 10.0) > 4.0)){
 		extracolor = 0.5;
 	}
 	g_color = mix(BGBOTTOMCOLOR + extracolor, BGTOPCOLOR + extracolor, pos.y);
