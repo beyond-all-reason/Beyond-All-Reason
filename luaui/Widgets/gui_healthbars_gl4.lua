@@ -240,8 +240,8 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 		uvoffset = 0.1875, -- the X offset of the icon for this bar
 	},
 	stockpile = {
-		mincolor = {1.0, 1.0, 0.0, 1.0},
-		maxcolor = {0.0, 1.0, 1.0, 1.0},
+		mincolor = {0.1, 0.1, 0.1, 1.0},
+		maxcolor = {0.1, 0.1, 0.1, 1.0},
 		--bartype = 5,
 		bartype = bitShowGlyph + bitUseOverlay + bitIntegerNumber,
 		hidethreshold = 1.99,
