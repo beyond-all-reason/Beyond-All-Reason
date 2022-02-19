@@ -154,6 +154,7 @@ UnitEffects = newEffects
 newEffects = nil
 
 local myTeamID = Spring.GetMyTeamID()
+local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local mySpec, fullview = Spring.GetSpectatingState()
 
@@ -192,7 +193,7 @@ local function AddFxs(unitID, fxID)
 end
 
 local function addUnit(unitID, unitDefID)
-	if not fullview and not CallAsTeam(myTeamID, IsPosInLos, GetUnitPosition(unitID)) then
+	if not fullview and select(6, Spring.GetTeamInfo(Spring.GetUnitTeam(unitID))) ~= myAllyTeamID and not CallAsTeam(myTeamID, IsPosInLos, GetUnitPosition(unitID)) then
 		return
 	end
 
@@ -231,7 +232,7 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	if UnitEffects[unitDefID] then
+	if UnitEffects[unitDefID] and not fullview and CallAsTeam(myTeamID, IsPosInLos, GetUnitPosition(unitID)) then
 		if not particleIDs[unitID] then
 			for _, fx in ipairs(UnitEffects[unitDefID]) do
 				if fx.options.onActive == true and spGetUnitIsActive(unitID) == nil then
@@ -279,6 +280,7 @@ end
 function gadget:PlayerChanged(playerID)
 	if playerID == myPlayerID then
 		myTeamID = Spring.GetMyTeamID()
+		myAllyTeamID = Spring.GetMyAllyTeamID()
 		if fullview ~= select(2, Spring.GetSpectatingState()) then
 			mySpec, fullview = Spring.GetSpectatingState()
 			removeParticles()
