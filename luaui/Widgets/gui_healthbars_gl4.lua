@@ -285,8 +285,8 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 		uvoffset = 0.8125, -- the X offset of the icon for this bar
 	},
 	featurehealth = {
-		mincolor = {0.6, 0.6, 0.6, 1.0},
-		maxcolor = {0.8, 0.8, 0.8, 1.0},
+		mincolor = {0.25, 0.25, 0.25, 1.0},
+		maxcolor = {0.65, 0.65, 0.65, 1.0},
 		--bartype = 0,
 		bartype = bitShowGlyph + bitPercentage, 
 		hidethreshold = 0.99,
@@ -382,7 +382,7 @@ local additionalheightaboveunit = 24 --16?
 local featureHealthDistMult = 5 -- how many times closer features have to be for their bars to show
 local featureReclaimDistMult = 2 -- how many times closer features have to be for their bars to show
 local featureResurrectDistMult = 1 -- how many times closer features have to be for their bars to show
-local glphydistmult = 4.0 -- how much closer than BARFADEEND the bar has to be to start drawing numbers/icons. Numbers closer to 1 will make the glyphs be drawn earlier, high numbers will only shows glyphs when zoomed in hard. 
+local glphydistmult = 3.5 -- how much closer than BARFADEEND the bar has to be to start drawing numbers/icons. Numbers closer to 1 will make the glyphs be drawn earlier, high numbers will only shows glyphs when zoomed in hard. 
 local glyphdistmultfeatures = 1.5 -- how much closer than BARFADEEND the bar has to be to start drawing numbers/icons
 
 
