@@ -382,6 +382,10 @@ local additionalheightaboveunit = 24 --16?
 local featureHealthDistMult = 4 -- how many times closer features have to be for their bars to show
 local featureReclaimDistMult = 2 -- how many times closer features have to be for their bars to show
 local featureResurrectDistMult = 1 -- how many times closer features have to be for their bars to show
+local glphydistmult = 4.0 -- how much closer than BARFADEEND the bar has to be to start drawing numbers/icons. Numbers closer to 1 will make the glyphs be drawn earlier, high numbers will only shows glyphs when zoomed in hard. 
+local glyphdistmultfeatures = 1.5 -- how much closer than BARFADEEND the bar has to be to start drawing numbers/icons
+
+
 local unitDefSizeMultipliers = {} -- table of unitdefID to a size mult (default 1.0) to override sizing of bars per unitdef
 local skipGlyphsNumbers = 0.0  -- 0.0 is draw glyph and number,  1.0 means only numbers, 2.0 means only bars, 
 
@@ -406,8 +410,6 @@ shaderConfig.BARSTEP = 10 -- pixels to downshift per new bar
 shaderConfig.BOTTOMDARKENFACTOR = 0.5
 shaderConfig.BARFADESTART = 2000
 shaderConfig.BARFADEEND = 3000
-shaderConfig.ICONFADESTART = 600
-shaderConfig.ICONFADEEND = 750
 shaderConfig.ATLASSTEP = 0.0625
 shaderConfig.MINALPHA = 0.2
 if debugmode then 
@@ -454,7 +456,8 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 #line 10000
 
 uniform float iconDistance;
-uniform float cameraDistancMult;
+uniform float cameraDistanceMult;
+uniform float cameraDistanceMultGlyph;
 
 out DataVS {
 	uint v_numvertices;
@@ -500,9 +503,9 @@ void main()
 	if (vertexClipped(gl_Position, CLIPTOLERANCE)) v_numvertices = 0; // Make no primitives on stuff outside of screen
 
 	// this sets the num prims to 0 for units further from cam than iconDistance
-	float cameraDistance = length((cameraViewInv[3]).xyz - v_centerpos.xyz)* cameraDistancMult;
-	v_parameters.y = 1.0 - (clamp(cameraDistance, BARFADESTART, BARFADEEND) - BARFADESTART)/ ( BARFADEEND-BARFADESTART);
-	v_parameters.z = 1.0 - (clamp(cameraDistance, ICONFADESTART, ICONFADEEND) - ICONFADESTART)/ ( ICONFADEEND-ICONFADESTART);
+	float cameraDistance = length((cameraViewInv[3]).xyz - v_centerpos.xyz);
+	v_parameters.y = 1.0 - (clamp(cameraDistance * cameraDistanceMult, BARFADESTART, BARFADEEND) - BARFADESTART)/ ( BARFADEEND-BARFADESTART);
+	v_parameters.z = 1.0 - (clamp(cameraDistance * cameraDistanceMult * cameraDistanceMultGlyph, BARFADESTART, BARFADEEND) - BARFADESTART)/ ( BARFADEEND-BARFADESTART);
 	#ifdef DEBUGSHOW
 		v_parameters.y = 1.0;
 		v_parameters.z = 1.0;
@@ -513,7 +516,6 @@ void main()
 	if (length((cameraViewInv[3]).xyz - v_centerpos.xyz) >  iconDistance){
 		v_parameters.yz = vec2(0.0);
 	}
-	//v_parameters.yz = vec2(1.0);
 
 
 	if (dot(v_centerpos.xyz, v_centerpos.xyz) < 1.0) v_numvertices = 0; // if the center pos is at (0,0,0) then we probably dont have the matrix yet for this unit, because it entered LOS but has not been drawn yet.
@@ -915,7 +917,8 @@ local function initGL4()
 		uniformFloat = {
 			--addRadius = 1,
 			iconDistance = 27,
-			cameraDistancMult = 1.0,
+			cameraDistanceMult = 1.0,
+			cameraDistanceMultGlyph = 4.0,
 			skipGlyphsNumbers = 0.0,
 		  },
 		},
@@ -1600,26 +1603,27 @@ function widget:DrawWorld()
 		gl.Texture(0,healthbartexture)
 		healthBarShader:Activate()
 		healthBarShader:SetUniform("iconDistance",disticon) 
-		if not debugmode then healthBarShader:SetUniform("cameraDistancMult",1.0)  end
+		if not debugmode then healthBarShader:SetUniform("cameraDistanceMult",1.0)  end
+		healthBarShader:SetUniform("cameraDistanceMultGlyph", glphydistmult) 
 		healthBarShader:SetUniform("skipGlyphsNumbers",skipGlyphsNumbers)  --0.0 is everything,  1.0 means only numbers, 2.0 means only bars, 
 		if healthBarVBO.usedElements > 0 then 
 			healthBarVBO.VAO:DrawArrays(GL.POINTS,healthBarVBO.usedElements)
 		end
-		--for i = 1, 10 do
-			
+		-- below its the feature bars being drawn:
+			healthBarShader:SetUniform("cameraDistanceMultGlyph", glyphdistmultfeatures) 
 			if featureHealthVBO.usedElements > 0 then
-				if not debugmode then healthBarShader:SetUniform("cameraDistancMult",featureHealthDistMult)  end
+				if not debugmode then healthBarShader:SetUniform("cameraDistanceMult",featureHealthDistMult)  end
 				featureHealthVBO.VAO:DrawArrays(GL.POINTS,featureHealthVBO.usedElements)
 			end
 			if featureResurrectVBO.usedElements > 0 then		
-				if not debugmode then healthBarShader:SetUniform("cameraDistancMult",featureResurrectDistMult)  end
+				if not debugmode then healthBarShader:SetUniform("cameraDistanceMult",featureResurrectDistMult)  end
 				featureResurrectVBO.VAO:DrawArrays(GL.POINTS,featureResurrectVBO.usedElements)
 			end
 			if featureReclaimVBO.usedElements > 0 then		
-				if not debugmode then healthBarShader:SetUniform("cameraDistancMult",featureReclaimDistMult)  end
+				if not debugmode then healthBarShader:SetUniform("cameraDistanceMult",featureReclaimDistMult)  end
 				featureReclaimVBO.VAO:DrawArrays(GL.POINTS,featureReclaimVBO.usedElements)
 			end
-		--end
+
 		healthBarShader:Deactivate()
 		gl.Texture(false)
 		gl.DepthTest(false)
