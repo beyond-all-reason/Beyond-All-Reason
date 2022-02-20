@@ -294,8 +294,8 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 		uvoffset = 0.125, -- the X offset of the icon for this bar
 	},
 	featurereclaim = {
-		mincolor = {0.25, 0.25, 0.25, 1.0},
-		maxcolor = {0.75, 0.75, 0.75, 1.0},
+		mincolor = {0.00, 1.00, 0.00, 1.0},
+		maxcolor = {0.85, 1.00, 0.85, 1.0},
 		--bartype = 0,
 		bartype = bitShowGlyph + bitPercentage, 
 		hidethreshold = 0.99,
@@ -379,7 +379,7 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 -------------------- configurables -----------------------
 local additionalheightaboveunit = 24 --16?
-local featureHealthDistMult = 4 -- how many times closer features have to be for their bars to show
+local featureHealthDistMult = 5 -- how many times closer features have to be for their bars to show
 local featureReclaimDistMult = 2 -- how many times closer features have to be for their bars to show
 local featureResurrectDistMult = 1 -- how many times closer features have to be for their bars to show
 local glphydistmult = 4.0 -- how much closer than BARFADEEND the bar has to be to start drawing numbers/icons. Numbers closer to 1 will make the glyphs be drawn earlier, high numbers will only shows glyphs when zoomed in hard. 
@@ -398,7 +398,7 @@ local shaderConfig = { -- these are our shader defines
 }
 shaderConfig.CLIPTOLERANCE = 1.2
 shaderConfig.BARWIDTH = 2.56
-shaderConfig.BARHEIGHT = 0.90
+shaderConfig.BARHEIGHT = 0.80
 shaderConfig.BARCORNER = shaderConfig.BARHEIGHT /5
 shaderConfig.SMALLERCORNER = shaderConfig.BARCORNER * 0.6
 shaderConfig.BGBOTTOMCOLOR = "vec4(0.25, 0.25, 0.25, 0.8)"
@@ -409,7 +409,7 @@ shaderConfig.TIMER_VISIBILITY_MIN = 0.0
 shaderConfig.BARSTEP = 10 -- pixels to downshift per new bar
 shaderConfig.BOTTOMDARKENFACTOR = 0.5
 shaderConfig.BARFADESTART = 2000
-shaderConfig.BARFADEEND = 3000
+shaderConfig.BARFADEEND = 2500
 shaderConfig.ATLASSTEP = 0.0625
 shaderConfig.MINALPHA = 0.2
 if debugmode then 
