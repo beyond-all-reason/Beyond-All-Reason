@@ -45,7 +45,7 @@ local spec = Spring.GetSpectatingState()
 local usedFontSize, chobbyInterface
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anynymousName = '?????'
+local anonymousName = '?????'
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -164,7 +164,7 @@ local function createComnameList(attributes)
 		end
 		local name = attributes[1]
 		if anonymousMode and not spec then
-			name = anynymousName
+			name = anonymousName
 		end
 		if useThickLeterring then
 			if outlineColor[1] == 1 and fontShadow then
@@ -316,10 +316,14 @@ local function createComnameIconList(unitID, attributes)
 			-- try to keep these values the same as the playerlist
 			outlineColor = { 1, 1, 1, 1 }
 		end
+		local name = attributes[1]
+		if anonymousMode and not spec then
+			name = anonymousName
+		end
 		fonticon:Begin()
 		fonticon:SetTextColor(attributes[2])
 		fonticon:SetOutlineColor(outlineColor)
-		fonticon:Print(attributes[1], 0, 0, fontSize * 1.9, "con")
+		fonticon:Print(name, 0, 0, fontSize * 1.9, "con")
 		fonticon:End()
 	end)
 end
@@ -448,27 +452,14 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	comms[unitID] = nil
-
-	if comnameIconList[unitID] then
-		gl.DeleteList(comnameIconList[unitID])
-		comnameIconList[unitID] = nil
-	end
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	CheckCom(unitID, unitDefID, unitTeam)
-	if comnameIconList[unitID] then
-		gl.DeleteList(comnameIconList[unitID])
-		comnameIconList[unitID] = nil
-	end
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	CheckCom(unitID, unitDefID, unitTeam)
-	if comnameIconList[unitID] then
-		gl.DeleteList(comnameIconList[unitID])
-		comnameIconList[unitID] = nil
-	end
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam)
