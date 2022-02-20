@@ -10,7 +10,7 @@ end
 
 -- GaiaTeamID and GaiaAllyTeamID
 local GaiaTeamID = Spring.GetGaiaTeamID()
-local _,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
+local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
 
 -- Map size
 local mapSizeX = Game.mapSizeX

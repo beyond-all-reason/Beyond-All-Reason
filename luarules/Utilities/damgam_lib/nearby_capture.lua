@@ -1,4 +1,6 @@
 -- To be done
+local GaiaTeamID = Spring.GetGaiaTeamID()
+local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
 
 local function NearbyCapture(unitID, difficulty, range)
     local difficulty = difficulty
@@ -23,7 +25,7 @@ local function NearbyCapture(unitID, difficulty, range)
                 local capturePower = ((attackerMetalCost/1000)*0.01)/difficulty
                 if attackerAllyTeamID == unitAllyTeam then
                     captureDamage = captureDamage - capturePower
-                else
+                elseif attackerAllyTeamID ~= GaiaAllyTeamID then
                     captureDamage = captureDamage + capturePower
                 end
             end
