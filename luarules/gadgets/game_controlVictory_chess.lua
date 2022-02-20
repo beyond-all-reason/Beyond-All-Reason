@@ -2,44 +2,31 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
-local gadgetEnabled
-
-if Spring.GetModOptions().scoremode ~= "disabled" and Spring.GetModOptions().scoremode_chess then
-    gadgetEnabled = true
-else
-    gadgetEnabled = false
-end
-
-ChessModeUnbalancedModoption = Spring.GetModOptions().scoremode_chess_unbalanced
-ChessModePhaseTimeModoption = Spring.GetModOptions().scoremode_chess_adduptime
-ChessModeSpawnPerPhaseModoption = Spring.GetModOptions().scoremode_chess_spawnsperphase
-
-local capturePointRadius = Spring.GetModOptions().captureradius
-local capturePointRadius = math.floor(capturePointRadius*0.75)
-
-local pveEnabled = Spring.Utilities.Gametype.IsPvE()
-
-if pveEnabled then
+local gadgetEnabled = false
+if Spring.Utilities.Gametype.IsPvE() then
 	Spring.Echo("[ControlVictory] Deactivated because Chickens or Scavengers are present!")
-	gadgetEnabled = false
+elseif Spring.GetModOptions().scoremode ~= "disabled" and Spring.GetModOptions().scoremode_chess then
+    gadgetEnabled = true
 end
 
 function gadget:GetInfo()
-    return {
-      name      = "Control Victory Chess Mode",
-      desc      = "123",
-      author    = "Damgam",
-      date      = "2021",
-      layer     = -100,
-      enabled   = gadgetEnabled,
-    }
+	return {
+		name      = "Control Victory Chess Mode",
+		desc      = "123",
+		author    = "Damgam",
+		date      = "2021",
+		layer     = -100,
+		enabled   = gadgetEnabled,
+	}
 end
 
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetTeamList = Spring.GetTeamList
-local spGetAllyTeamList= Spring.GetAllyTeamList
-local spGetTeamLuaAI = Spring.GetTeamLuaAI
-local spGetGaiaTeamID = Spring.GetGaiaTeamID
+local ChessModeUnbalancedModoption = Spring.GetModOptions().scoremode_chess_unbalanced
+local ChessModePhaseTimeModoption = Spring.GetModOptions().scoremode_chess_adduptime
+local ChessModeSpawnPerPhaseModoption = Spring.GetModOptions().scoremode_chess_spawnsperphase
+
+--local capturePointRadius = math.floor(Spring.GetModOptions().captureradius * 0.75)
+
+local gaiaTeamID = Spring.GetGaiaTeamID()
 local teams = Spring.GetTeamList()
 
 local teamSpawnPositions = {}
@@ -77,7 +64,7 @@ end
 -- function GetRandomAllyPoint(teamID, unitName)
 --     local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(teamID)
 --     local unitDefID = UnitDefNames[unitName].id
--- 	for i = 1,1000 do 
+-- 	for i = 1,1000 do
 -- 		local r = math.random(1,#controlPoints)
 -- 		local point = controlPoints[r]
 -- 		local pointAlly = controlPoints[r].pointOwner
@@ -141,40 +128,40 @@ end
 
 local starterLandUnitsList = {
     [1] = {
-        [1] = {    
+        [1] = {
             table = {
                 --bots
-                "armpw", 
+                "armpw",
                 "corak",
                 --vehicles
                 "armflash",
                 "corfav",
-            },                           
+            },
             quantity = 10,
         },
-        [2] = {    
+        [2] = {
             table = {
-                "armflea", 
+                "armflea",
                 "armfav",
                 "corfav" ,
-            },                           
+            },
             quantity = 5,
         },
-        [3] = {    
+        [3] = {
             table = {
-                "armassistdrone", 
-                "corassistdrone", 
-            },                           
+                "armassistdrone",
+                "corassistdrone",
+            },
             quantity = 1,
         },
-        [4] = {    
+        [4] = {
             table = {
-                "armmlv", 
-                "cormlv", 
-            },                           
+                "armmlv",
+                "cormlv",
+            },
             quantity = 2,
         },
-        [5] = {    
+        [5] = {
             table = {
                 "armjeth",
                 "corcrash",
@@ -182,18 +169,18 @@ local starterLandUnitsList = {
                 "corah",
                 "armsam",
                 "cormist",
-            },                           
+            },
             quantity = 1,
         },
     },
 }
-    
+
 local landUnitsList = {
     [1] = {
-        [1] = {    
+        [1] = {
             table = {
                 -- bots
-                "armpw", 
+                "armpw",
                 "corak",
                 "armrock",
                 "armham",
@@ -221,23 +208,23 @@ local landUnitsList = {
                 "cormh",
                 "armanac",
                 "corsnap",
-            },                           
+            },
             quantity = 10,
         },
-        [2] = {    
+        [2] = {
             table = {
-                "armassistdrone", 
-                "corassistdrone", 
-            },                           
+                "armassistdrone",
+                "corassistdrone",
+            },
             quantity = 1,
         },
-        [3] = {    
+        [3] = {
             table = {
                 "armjeth",
                 "corcrash",
                 "armah",
                 "corah",
-            },                           
+            },
             quantity = 1,
         },
     },
@@ -245,18 +232,18 @@ local landUnitsList = {
 
 local starterSeaUnitsList = {
     [1] = {
-        [1] = { 
+        [1] = {
             table = {
-                "armpt", 
+                "armpt",
                 "corpt",
-            },                          
+            },
             quantity = 10,
         },
-        [2] = {    
+        [2] = {
             table = {
-                "armassistdrone", 
-                "corassistdrone", 
-            },                           
+                "armassistdrone",
+                "corassistdrone",
+            },
             quantity = 1,
         },
     },
@@ -266,9 +253,9 @@ local seaUnitsList = {
     [1] = {
         [1] = {
             table = {
-                "armpt", 
+                "armpt",
                 "corpt",
-            },                          
+            },
             quantity = 10,
         },
     },
@@ -313,7 +300,7 @@ local function introSetUp()
     for i = 1,#teams do
         local teamID = teams[i]
         local teamUnits = Spring.GetTeamUnits(teamID)
-        if spGetGaiaTeamID() ~= teamID then
+        if teamID ~= gaiaTeamID then
             for _, unitID in ipairs(teamUnits) do
                 local x,y,z = Spring.GetUnitPosition(unitID)
                 teamSpawnPositions[teamID] = { x = x, y = y, z = z}
@@ -416,8 +403,10 @@ local function spawnUnitsFromQueue(teamID)
             local z = teamSpawnPositions[teamID].z + math.random(-64,64)
             local y = Spring.GetGroundHeight(x,z)
             spawnedUnit = Spring.CreateUnit(teamSpawnQueue[teamID][1], x, y, z, 0, teamID)
-            Spring.GiveOrderToUnit(spawnedUnit,CMD.MOVE_STATE,{0},0)
-            Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
+			if spawnedUnit then
+				Spring.GiveOrderToUnit(spawnedUnit,CMD.MOVE_STATE,{0},0)
+				Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
+			end
             table.remove(teamSpawnQueue[teamID], 1)
         end
     end
@@ -431,8 +420,10 @@ local function respawnUnitsFromQueue(teamID)
             local z = teamSpawnPositions[teamID].z + math.random(-64,64)
             local y = Spring.GetGroundHeight(x,z)
             spawnedUnit = Spring.CreateUnit(teamRespawnQueue[teamID][1], x, y, z, 0, teamID)
-            Spring.GiveOrderToUnit(spawnedUnit,CMD.MOVE_STATE,{0},0)
-            Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
+			if spawnedUnit then
+				Spring.GiveOrderToUnit(spawnedUnit,CMD.MOVE_STATE,{0},0)
+				Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
+			end
             table.remove(teamRespawnQueue[teamID], 1)
         end
     end
@@ -468,7 +459,7 @@ local function addNewUnitsToQueue(starter)
 	--local landRandom, landUnit, landUnitCount
 	--local seaRandom, seaUnit, seaUnitCount
     chooseNewUnits(starter)
-    
+
     for i = 1,#teams do
         local teamID = teams[i]
         if ChessModeUnbalancedModoption then
@@ -500,7 +491,7 @@ local function addNewUnitsToQueue(starter)
             end
         end
     end
-    
+
     if not starter then
         phaseSpawns = phaseSpawns + 1
         if phaseSpawns == spawnsPerPhase then
@@ -552,7 +543,7 @@ function gadget:GameFrame(n)
                 respawnUnitsFromQueue(teamID)
             end
         end
-        
+
         if teamSpawnQueue[teamID] and #teamSpawnQueue[teamID] > 0 then
             if teamRespawnQueue[teamID] and #teamRespawnQueue[teamID] > 0 then
                 if n > 25 and n%math.ceil(spawnTimer/(#teamRespawnQueue[teamID]+#teamSpawnQueue[teamID])) == 1 then
