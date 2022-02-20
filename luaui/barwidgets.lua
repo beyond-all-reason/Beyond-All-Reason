@@ -41,6 +41,9 @@ Spring.SendCommands({
 })
 
 local allowuserwidgets = Spring.GetModOptions().allowuserwidgets
+if Spring.GetModOptions().teamcolors_anonymous_mode then
+	allowuserwidgets = false
+end
 
 widgetHandler = {
 	widgets = {},
@@ -1681,7 +1684,7 @@ function widgetHandler:UnitDestroyedByTeam(unitID, unitDefID, unitTeam, attacker
 	return
 end
 
-function widgetHandler:RenderUnitDestroyed(unitID, unitDefID, unitTeam) 
+function widgetHandler:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 	-- at the time of committing, this does not get called by the widgethandler
 	for _, w in ipairs(self.RenderUnitDestroyedList) do
 		w:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
