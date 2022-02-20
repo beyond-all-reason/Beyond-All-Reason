@@ -232,7 +232,7 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	if UnitEffects[unitDefID] and not fullview and CallAsTeam(myTeamID, IsPosInLos, GetUnitPosition(unitID)) then
+	if UnitEffects[unitDefID] and (fullview or CallAsTeam(myTeamID, IsPosInLos, GetUnitPosition(unitID))) then
 		if not particleIDs[unitID] then
 			for _, fx in ipairs(UnitEffects[unitDefID]) do
 				if fx.options.onActive == true and spGetUnitIsActive(unitID) == nil then
