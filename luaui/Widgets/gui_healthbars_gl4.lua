@@ -1344,9 +1344,8 @@ function widget:Initialize()
 		local weapons = unitDef.weapons
 		local myreloadTime = unitDef.reloadTime
 		for i = 1, #weapons do
-			local WeaponDefID = weapons[i].weaponDef
-			local WeaponDef = WeaponDefs[WeaponDefID]
-			if WeaponDef.reload and WeaponDef.reload > unitDef.reloadTime then
+			local WeaponDef = WeaponDefs[weapons[i].weaponDef]
+			if WeaponDef and WeaponDef.reload and unitDef.reloadTime and WeaponDef.reload > unitDef.reloadTime then
 				unitDef.reloadTime = WeaponDef.reload
 				unitDef.primaryWeapon = i
 				myreloadTime = unitDef.reloadTime
