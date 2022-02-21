@@ -17,6 +17,49 @@ local function generateOrderParams(unitID, orderrange)
 	return { posx + math.random(-posrange, posrange), posy, posz + math.random(-posrange, posrange), orderrange}
 end
 
+local function generateOrderParamsPos(posx, posy, posz, orderrange)
+	local posrange = orderrange*0.75
+	return { posx + math.random(-posrange, posrange), posy, posz + math.random(-posrange, posrange), orderrange}
+end
+
+local function generateMoveOrder(unitID, shift)
+	if not shift then
+		Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+	end
+	
+	for i = 1,1000 do
+		if i == 1 then
+			local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 999999, true)
+			if nearestEnemy then
+				local nposx, nposy, nposz = Spring.GetUnitPosition(nearestEnemy)
+				for j = 1,10 do
+					local pos = generateOrderParamsPos(nposx, nposy, nposz, 2000)
+					local posx = pos[1]
+					local posy = pos[2]
+					local posz = pos[3]
+					if positionCheckLibrary.MapEdgeCheck(posx, posy, posz, 32) == true then
+						Spring.GiveOrderToUnit(unitID, CMD.MOVE, {posx, posy, posz}, {"shift"})
+						break
+					end
+				end
+				break
+			end
+		else
+			local radius = 2000+(i*100)
+			local pos = generateOrderParams(unitID, radius)
+			local posx = pos[1]
+			local posy = pos[2]
+			local posz = pos[3]
+			if positionCheckLibrary.StartboxCheck(posx, posy, posz, 32, ScavengerAllyTeamID) == false then
+				if positionCheckLibrary.MapEdgeCheck(posx, posy, posz, 32) == true then
+					Spring.GiveOrderToUnit(unitID, CMD.MOVE, {posx, posy, posz}, {"shift"})
+					break
+				end
+			end
+		end
+	end
+end
+
 local function countScavCommanders()
 	return Spring.GetTeamUnitDefCount(ScavengerTeamID, UnitDefNames.corcom_scav.id) + Spring.GetTeamUnitDefCount(ScavengerTeamID, UnitDefNames.armcom_scav.id)
 end
@@ -52,18 +95,7 @@ local function resurrectorOrders(n, unitID)
 	Spring.GiveOrderToUnit(unitID, CMD.REPAIR, generateOrderParams(unitID, 1000), {"shift"})
 	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 1000), {"shift"})
 	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, generateOrderParams(unitID, 1000), {"shift"})
-	for i = 1,1000 do
-		local radius = 2000+(i*100)
-		local pos = generateOrderParams(unitID, radius)
-		local posx = pos[1]
-		local posy = pos[2]
-		local posz = pos[3]
-		local posIsStartbox = positionCheckLibrary.StartboxCheck(posx, posy, posz, 32, ScavengerAllyTeamID)
-		if posIsStartbox == false then
-			Spring.GiveOrderToUnit(unitID, CMD.MOVE, {posx, posy, posz}, {"shift"})
-			break
-		end
-	end
+	generateMoveOrder(unitID, true)
 end
 
 local function capturerOrders(n, unitID)
@@ -74,35 +106,13 @@ local function capturerOrders(n, unitID)
 		local x,y,z = Spring.GetUnitPosition(nearestEnemy)
 		Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { x, y, z }, {"meta", "shift", "alt"})
 	end
-	for i = 1,1000 do
-		local radius = 2000+(i*100)
-		local pos = generateOrderParams(unitID, radius)
-		local posx = pos[1]
-		local posy = pos[2]
-		local posz = pos[3]
-		local posIsStartbox = positionCheckLibrary.StartboxCheck(posx, posy, posz, 32, ScavengerAllyTeamID)
-		if posIsStartbox == false then
-			Spring.GiveOrderToUnit(unitID, CMD.MOVE, {posx, posy, posz}, {"shift"})
-			break
-		end
-	end
+	generateMoveOrder(unitID, true)
 end
 
 local function collectorOrders(n, unitID)
 	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, generateOrderParams(unitID, 1000), 0)
 	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 1000), {"shift"})
-	for i = 1,1000 do
-		local radius = 2000+(i*100)
-		local pos = generateOrderParams(unitID, radius)
-		local posx = pos[1]
-		local posy = pos[2]
-		local posz = pos[3]
-		local posIsStartbox = positionCheckLibrary.StartboxCheck(posx, posy, posz, 32, ScavengerAllyTeamID)
-		if posIsStartbox == false then
-			Spring.GiveOrderToUnit(unitID, CMD.MOVE, {posx, posy, posz}, {"shift"})
-			break
-		end
-	end
+	generateMoveOrder(unitID, true)
 end
 
 local function reclaimerOrders(n, unitID)
@@ -113,21 +123,7 @@ local function reclaimerOrders(n, unitID)
 		local x,y,z = Spring.GetUnitPosition(nearestenemy)
 		Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { x, y, z }, {"meta", "shift", "alt"})
 	end
-	for i = 1,1000 do
-		local radius = 2000+(i*100)
-		local pos = generateOrderParams(unitID, radius)
-		local posx = pos[1]
-		local posy = pos[2]
-		local posz = pos[3]
-		local posIsStartbox = positionCheckLibrary.StartboxCheck(posx, posy, posz, 32, ScavengerAllyTeamID)
-		if posIsStartbox == false then
-			local posIsMapPos = positionCheckLibrary.MapEdgeCheck(posx, posy, posz, 32)
-			if posIsMapPos then
-				Spring.GiveOrderToUnit(unitID, CMD.MOVE, {posx, posy, posz}, {"shift"})
-				break
-			end
-		end
-	end
+	generateMoveOrder(unitID, true)
 end
 
 local function spawnConstructor(n)
@@ -207,10 +203,10 @@ local function spawnConstructor(n)
 				Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz, math.random(0, 3), ScavengerTeamID)
 				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
 				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
-				-- Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
-				-- Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
-				-- Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
-				-- Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
 
 				if posy > 0 then
 					local resurrector = constructorUnitList.Resurrectors[math.random(#constructorUnitList.Resurrectors)]
@@ -218,20 +214,20 @@ local function spawnConstructor(n)
 					spawnQueueLibrary.AddToSpawnQueue(resurrector, posx - 32, posy, posz, math.random(0, 3), ScavengerTeamID, n + 150 + 2)
 					spawnQueueLibrary.AddToSpawnQueue(resurrector, posx, posy, posz + 32, math.random(0, 3), ScavengerTeamID, n + 150 + 3)
 					spawnQueueLibrary.AddToSpawnQueue(resurrector, posx, posy, posz - 32, math.random(0, 3), ScavengerTeamID, n + 150 + 4)
-					-- spawnQueueLibrary.AddToSpawnQueue(resurrector, posx + 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID, n + 150 + 5)
-					-- spawnQueueLibrary.AddToSpawnQueue(resurrector, posx - 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID, n + 150 + 6)
-					-- spawnQueueLibrary.AddToSpawnQueue(resurrector, posx - 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID, n + 150 + 7)
-					-- spawnQueueLibrary.AddToSpawnQueue(resurrector, posx + 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID, n + 150 + 8)
+					spawnQueueLibrary.AddToSpawnQueue(resurrector, posx + 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID, n + 150 + 5)
+					spawnQueueLibrary.AddToSpawnQueue(resurrector, posx - 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID, n + 150 + 6)
+					spawnQueueLibrary.AddToSpawnQueue(resurrector, posx - 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID, n + 150 + 7)
+					spawnQueueLibrary.AddToSpawnQueue(resurrector, posx + 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID, n + 150 + 8)
 				elseif scavconfig.constructorControllerModuleConfig.searesurrectors then
 					local seaResurrector = constructorUnitList.ResurrectorsSea[math.random(#constructorUnitList.ResurrectorsSea)]
 					spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx + 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID, n + 150 + 1)
 					spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx - 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID, n + 150 + 2)
 					spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx - 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID, n + 150 + 3)
 					spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx + 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID, n + 150 + 4)
-					-- spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx + 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID, n + 150 + 5)
-					-- spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx - 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID, n + 150 + 6)
-					-- spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx - 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID, n + 150 + 7)
-					-- spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx + 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID, n + 150 + 8)
+					spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx + 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID, n + 150 + 5)
+					spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx - 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID, n + 150 + 6)
+					spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx - 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID, n + 150 + 7)
+					spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx + 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID, n + 150 + 8)
 				end
 			end
 
