@@ -37,11 +37,16 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	local armcomDefID = UnitDefNames.armcom.id
 	local corcomDefID = UnitDefNames.corcom.id
+	local legcomDefID = UnitDefNames.legcom.id
 
 	local validStartUnits = {
 		[armcomDefID] = true,
 		[corcomDefID] = true,
+		[legcomDefID] = true,
 	}
+	if Spring.GetModOptions().experimentallegionfaction == true then
+		validStartUnits[legcomDefID] = true
+	end
 	local spawnTeams = {} -- spawnTeams[teamID] = allyID
 	local spawnTeamsCount
 
@@ -89,7 +94,7 @@ if gadgetHandler:IsSyncedCode() then
 			if teamID ~= gaiaTeamID then
 				-- set & broadcast (current) start unit
 				local _, _, _, _, teamSide, teamAllyID = spGetTeamInfo(teamID, false)
-				spSetTeamRulesParam(teamID, startUnitParamName, teamSide == 'cortex' and corcomDefID or armcomDefID)
+				spSetTeamRulesParam(teamID, startUnitParamName, teamSide == 'cortex' and corcomDefID or armcomDefID or legcomDefID)
 				spawnTeams[teamID] = teamAllyID
 
 				-- record that this allyteam will spawn something

@@ -1097,6 +1097,15 @@ local options={
 	},
 
 	{
+		key    = 'experimentallegionfaction',
+		name   = 'Legion Faction',
+		desc   = '3rd experimental faction',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
+	{
 		key = 'newdgun',
 		name = 'New D-Gun Mechanics',
 		desc = 'New D-Gun Mechanics',

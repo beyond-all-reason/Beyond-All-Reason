@@ -9,11 +9,13 @@ function widget:GetInfo()
 		enabled = true
 	}
 end
-
 local factions = {
 	{ startUnit = UnitDefNames.corcom.id, faction = 'cor' },
 	{ startUnit = UnitDefNames.armcom.id, faction = 'arm' },
 }
+if Spring.GetModOptions().experimentallegionfaction == true then
+	factions[#factions+1] = { startUnit = UnitDefNames.legcom.id, faction = 'leg' }
+end
 
 local doUpdate
 local playSounds = true
