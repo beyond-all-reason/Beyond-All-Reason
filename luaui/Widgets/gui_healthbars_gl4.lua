@@ -1354,7 +1354,7 @@ function widget:Initialize()
 		unitDefHeights[udefID] = unitDef.height
 		if unitDef.reloadTime then unitDefReload[udefID] = unitDef.reloadTime end
 		if unitDef.canStockpile then unitDefCanStockpile[udefID] = unitDef.canStockpile end
-		if myreloadTime > minReloadTime then
+		if myreloadTime and myreloadTime > minReloadTime then
 			--Spring.Echo("Unit with watched reload time:", unitDef.name, myreloadTime)
 			unitDefReload[udefID] = myreloadTime
 		end
