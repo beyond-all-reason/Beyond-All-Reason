@@ -432,7 +432,6 @@ local options={
 			{key="normal", name="Medium", desc="Medium"},
 			{key="hard", name="Hard", desc="Hard"},
 			{key="veryhard", name="Very Hard", desc="Very Hard"},
-			{key="epic", name="Epic", desc="Epic"},
 			{key="survival", name="Survival", desc="Endless Mode"}
 		}
 	},
