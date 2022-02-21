@@ -21,6 +21,8 @@ local isCommando = {}
 for udid, ud in pairs(UnitDefs) do
 	if string.find(ud.name, 'cormando') then
 		isCommando[udid] = true
+	if string.find(ud.name, 'legcomt2off') then
+		isCommando[udid] = true
 	end
 	unitMass[udid] = ud.mass
 end

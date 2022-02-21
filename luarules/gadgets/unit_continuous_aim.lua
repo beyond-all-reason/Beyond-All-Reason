@@ -49,6 +49,7 @@ local convertedUnits = {
 	[UnitDefNames.armamph.id] = 3,
 	[UnitDefNames.armmav.id] = 2,
 	[UnitDefNames.armspid.id] = 3,
+	[UnitDefNames.armspid2.id] = 3,
 	[UnitDefNames.armsptk.id] = 5,
 	[UnitDefNames.armzeus.id] = 3,
 	[UnitDefNames.coramph.id] = 2,
@@ -97,6 +98,9 @@ local convertedUnits = {
 	[UnitDefNames.leghades.id] = 5,
 	[UnitDefNames.leghelios.id] = 5,
 	[UnitDefNames.legrail.id] = 5,
+	[UnitDefNames.legcomoff.id] = 5,
+	[UnitDefNames.legcomt2off.id] = 5,
+	[UnitDefNames.legcomt2com.id] = 5,
 }
 
 -- add for scavengers copies
