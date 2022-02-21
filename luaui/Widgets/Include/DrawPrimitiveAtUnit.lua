@@ -27,6 +27,7 @@ local shaderConfig = {
 	USE_CORNERRECT = 1, -- set to nil if you dont want cornerrect
 	USE_TRIANGLES = 1,
 	FULL_ROTATION = 0, -- the primitive is fully rotated in the units plane
+	DISCARD = 0, -- Enable alpha threshold to discard fragments below 0.01
 }
 
 ---- GL4 Backend Stuff----
@@ -294,6 +295,9 @@ void main(void)
 	fragColor.rgba = vec4(g_color.rgb * texcolor.rgb + addRadius, texcolor.a * TRANSPARENCY + addRadius);
 	POST_SHADING
 	//fragColor.rgba = vec4(1.0);
+	#if (DISCARD == 1)
+		if (fragColor.a < 0.01) discard;
+	#endif
 }
 ]]
 
