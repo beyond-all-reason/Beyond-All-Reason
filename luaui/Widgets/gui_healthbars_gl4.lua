@@ -1462,7 +1462,7 @@ function widget:GameFrame(n)
 	if (n + 1) % 3 == 0 then
 		for unitID, oldempvalue in pairs(unitEmpDamagedWatch) do
 			local health, maxHealth, newparalyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
-			if oldempvalue ~= newparalyzeDamage then
+			if newparalyzeDamage and oldempvalue ~= newparalyzeDamage then
 				if newparalyzeDamage == 0 then
 					unitEmpDamagedWatch[unitID] = nil
 					removeBarFromUnit(unitID, "emp_damage",'unitEmpDamagedWatch')
@@ -1497,7 +1497,7 @@ function widget:GameFrame(n)
 	if (n % 1 == 0) then
 		for unitID, buildprogress in pairs(unitBeingBuiltWatch) do
 			local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
-			if build ~= buildprogress then
+			if build and build ~= buildprogress then
 				uniformcache[1] = build
 				--Spring.Echo("Health", health/maxHealth, build, math.abs(build - health/maxHealth))
 				--if math.abs(build - health/maxHealth) < 0.005 then uniformcache[1] = 1.0 end
@@ -1535,7 +1535,7 @@ function widget:GameFrame(n)
 	if (n % 5) == 2 then
 		for unitID, stockpilebuild in pairs(unitStockPileWatch) do
 			local numStockpiled, numStockpileQued, stockpileBuild = Spring.GetUnitStockpile(unitID)
-			if stockpileBuild ~= stockpilebuild then
+			if stockpileBuild and stockpileBuild ~= stockpilebuild then
 				-- we somehow need to forward 3 vars, all 3 of the above. packed into a float, this is nasty
 				--Spring.Echo("Stockpiling", numStockpiled, numStockpileQued, stockpileBuild)
 				if numStockpiled == nil then Spring.Debug.TraceFullEcho(nil,nil,nil, 'nostockpile', unitID, Spring.GetUnitPosition(unitID)) end
