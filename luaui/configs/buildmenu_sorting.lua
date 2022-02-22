@@ -331,10 +331,10 @@ local unitOrderTable = {
 	[UDN["armtship"].id]       = 010540,
 	[UDN["cortship"].id]       = 010550,
 
-	-- [UDN["armthovr"].id]       = 010560,
-	-- [UDN["corthovr"].id]       = 010570,
+	[UDN["armthovr"].id]       = 010560,
+	[UDN["corthovr"].id]       = 010570,
 
-	-- [UDN["corintr"].id]        = 010600,
+	[UDN["corintr"].id]        = 010600,
 
 	[UDN["armdfly"].id]        = 010610,
 	[UDN["corseah"].id]        = 010620,

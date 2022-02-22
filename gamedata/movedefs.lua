@@ -54,16 +54,16 @@ local moveDatas = {
 		maxwaterslope = 80,
 	},
 	-- amphibious transport
-	-- ATANK4 = {
-	-- 	crushstrength = 30,
-	-- 	depthmod = 0,
-	-- 	footprintx = 4,
-	-- 	footprintz = 4, ------ Currently Unused
-	-- 	maxslope = 36,
-	-- 	--slopeMod = 32,
-	-- 	maxwaterdepth = 5000,
-	-- 	maxwaterslope = 80,
-	-- },
+	ATANK4 = {
+		crushstrength = 30,
+		depthmod = 0,
+		footprintx = 4,
+		footprintz = 4,
+		maxslope = 36,
+		--slopeMod = 32,
+		maxwaterdepth = 5000,
+		maxwaterslope = 80,
+	},
 	-- BOAT2 = {
 	-- 	crushstrength = 9,
 	-- 	footprintx = 2,     ------ Currently Unused
@@ -178,16 +178,16 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 	-- transports
-	-- HOVER4 = {
-	-- 	badslope = 22,
-	-- 	badwaterslope = 255,
-	-- 	crushstrength = 25,
-	-- 	footprintx = 4,
-	-- 	footprintz = 4, -- Currently Unused
-	-- 	maxslope = 22,
-	-- 	--slopeMod = 32,
-	-- 	maxwaterslope = 255,
-	-- },
+	HOVER4 = {
+		badslope = 22,
+		badwaterslope = 255,
+		crushstrength = 25,
+		footprintx = 4,
+		footprintz = 4, -- Currently Unused
+		maxslope = 22,
+		--slopeMod = 32,
+		maxwaterslope = 255,
+	},
 	-- armamph
 	HOVER5 = {
 		badslope = 36,
