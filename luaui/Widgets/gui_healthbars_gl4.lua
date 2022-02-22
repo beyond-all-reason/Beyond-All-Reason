@@ -1320,10 +1320,12 @@ local function ProjectileCreatedReloadHB(projectileID, ownerID, weaponID)
 		addBarForUnit(ownerID, unitDefID, "reload", 'ProjectileCreatedReloadHB')
 	end
 
-	uniformcache[1] = Spring.GetGameFrame()
-	gl.SetUnitBufferUniforms(ownerID,uniformcache, 2)
-	uniformcache[1] = uniformcache[1] + 30 * unitDefReload[unitDefID]
-	gl.SetUnitBufferUniforms(ownerID,uniformcache, 3)
+	if unitDefReload[unitDefID] then
+		uniformcache[1] = Spring.GetGameFrame()
+		gl.SetUnitBufferUniforms(ownerID,uniformcache, 2)
+		uniformcache[1] = uniformcache[1] + 30 * unitDefReload[unitDefID]
+		gl.SetUnitBufferUniforms(ownerID,uniformcache, 3)
+	end
 end
 
 
