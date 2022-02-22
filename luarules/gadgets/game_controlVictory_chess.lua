@@ -398,11 +398,10 @@ end
 local function spawnUnitsFromQueue(teamID)
     if teamSpawnQueue[teamID] then
         if teamSpawnQueue[teamID][1] then
-            local spawnedUnit
             local x = teamSpawnPositions[teamID].x + math.random(-64,64)
             local z = teamSpawnPositions[teamID].z + math.random(-64,64)
             local y = Spring.GetGroundHeight(x,z)
-            spawnedUnit = Spring.CreateUnit(teamSpawnQueue[teamID][1], x, y, z, 0, teamID)
+			local spawnedUnit = Spring.CreateUnit(teamSpawnQueue[teamID][1], x, y, z, 0, teamID)
 			if spawnedUnit then
 				Spring.GiveOrderToUnit(spawnedUnit,CMD.MOVE_STATE,{0},0)
 				Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
@@ -415,11 +414,10 @@ end
 local function respawnUnitsFromQueue(teamID)
     if teamRespawnQueue[teamID] then
         if teamRespawnQueue[teamID][1] then
-            local spawnedUnit
             local x = teamSpawnPositions[teamID].x + math.random(-64,64)
             local z = teamSpawnPositions[teamID].z + math.random(-64,64)
             local y = Spring.GetGroundHeight(x,z)
-            spawnedUnit = Spring.CreateUnit(teamRespawnQueue[teamID][1], x, y, z, 0, teamID)
+            local spawnedUnit = Spring.CreateUnit(teamRespawnQueue[teamID][1], x, y, z, 0, teamID)
 			if spawnedUnit then
 				Spring.GiveOrderToUnit(spawnedUnit,CMD.MOVE_STATE,{0},0)
 				Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)

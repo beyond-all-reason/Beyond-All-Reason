@@ -25,24 +25,12 @@ if gadgetHandler:IsSyncedCode() then
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
 
-	-- Exclude Scavengers / Chickens AI
+	-- Exclude Gaia
 	local ignoredTeams = {
 		[gaiaTeamID] = true,
 	}
 	local allyteamList = Spring.GetAllyTeamList()
 	local teamList = Spring.GetTeamList()
-	for i = 1, #teamList do
-		local luaAI = Spring.GetTeamLuaAI(teamList[i])
-		if luaAI and (luaAI:find("Chickens") or luaAI:find("Scavengers")) then
-			ignoredTeams[teamList[i]] = true
-
-			-- ignore all other teams in this allyteam as well
-			local teammates = Spring.GetTeamList(select(6, Spring.GetTeamInfo(teamList[i])))
-			for j = 1, #teammates do
-				ignoredTeams[teammates[j]] = true
-			end
-		end
-	end
 
 	local unitDecoration = {}
 	for udefID,def in ipairs(UnitDefs) do
@@ -73,25 +61,26 @@ if gadgetHandler:IsSyncedCode() then
 	local gameoverWinners
 
 	local allyTeamInfos = {}
-	--allyTeamInfos structure: (excluding gaia)
-	-- allyTeamInfos = {
-	--	[allyTeamID] = {
-	--		teams = {
-	--			[teamID]= {
-	--				players = {
-	--					[playerID] = isControlling
-	--				},
-	--				unitCount,
-	--				dead,
-	--				isAI,
-	--				isControlled,
-	--			},
-	--		},
-	--		unitCount,
-	--		unitDecorationCount,
-	--		dead,
-	--	},
-	--}
+	--[[ structure: (excluding gaia)
+		allyTeamInfos = {
+			[allyTeamID] = {
+				teams = {
+					[teamID]= {
+						players = {
+							[playerID] = isControlling
+						},
+						unitCount,
+						dead,
+						isAI,
+						isControlled,
+					},
+				},
+				unitCount,
+				unitDecorationCount,
+				dead,
+			},
+		}
+	]]--
 
 	local function UpdateAllyTeamIsDead(allyTeamID)
 		local allyTeamInfo = allyTeamInfos[allyTeamID]
