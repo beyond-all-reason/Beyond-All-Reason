@@ -3140,7 +3140,7 @@ function init()
 			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeBuildings', { 'selectBuildingsWithMobile' }, value)
 		  end,
 		},
-		{ id = "smartselect_includebuilders", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.smartselect_includebuilders, type = "bool", value = true, description = texts.option.smartselect_includebuilders_descr,
+		{ id = "smartselect_includebuilders", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.smartselect_includebuilders, type = "bool", value = false, description = texts.option.smartselect_includebuilders_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
