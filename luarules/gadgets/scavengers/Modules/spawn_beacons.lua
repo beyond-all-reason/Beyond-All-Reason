@@ -4,7 +4,11 @@ local xtable = {{-128, -64, -128}, {128, 64, 128}, {-128, -64, 0}, {128, 64, 0}}
 local ztable = {{-128, -64, 0}, {-128, -64, 0}, {128, 64, -128}, {-128, -64, 128}}
 
 local function countScavCommanders()
-	return Spring.GetTeamUnitDefCount(ScavengerTeamID, UnitDefNames.corcom_scav.id) + Spring.GetTeamUnitDefCount(ScavengerTeamID, UnitDefNames.armcom_scav.id)
+	local commanderCount = 0
+	for i = 1,#constructorUnitList.Constructors do
+		commanderCount = commanderCount + Spring.GetTeamUnitDefCount(ScavengerTeamID, UnitDefNames[constructorUnitList.Constructors[i]].id)
+	end
+	return commanderCount
 end
 
 local function spawnBeacon(n)

@@ -491,16 +491,10 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 			end
 			--SpawnDefencesAfterCapture(unitID, unitNewTeam)
 		end
-
-		if unitName == "corcom"..scavconfig.unitnamesuffix then
-			unitSwapLibrary.SwapUnit(unitID, "corcomcon"..scavconfig.unitnamesuffix)
+		if constructorUnitList.SwapUnitsFromScav[unitDefID] then
+			unitSwapLibrary.SwapUnit(unitID, constructorUnitList.SwapUnitsFromScav[unitDefID])
 			return
 		end
-		if unitName == "armcom"..scavconfig.unitnamesuffix then
-			unitSwapLibrary.SwapUnit(unitID, "armcomcon"..scavconfig.unitnamesuffix)
-			return
-		end
-		
 		if scavConstructor[unitID] then
 			scavStatsScavCommanders = scavStatsScavCommanders-1
 		end
@@ -570,14 +564,9 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 				numOfSpawnBeacons = numOfSpawnBeacons + 1
 				scavSpawnBeacon[unitID] = true
 			end
-			if unitName == "corcomcon"..scavconfig.unitnamesuffix then
+			if constructorUnitList.SwapUnitsToScav[unitDefID] then
 				scavConverted[unitID] = true
-				unitSwapLibrary.SwapUnit(unitID, "corcom"..scavconfig.unitnamesuffix)
-				return
-			end
-			if unitName == "armcomcon"..scavconfig.unitnamesuffix then
-				scavConverted[unitID] = true
-				unitSwapLibrary.SwapUnit(unitID, "armcom"..scavconfig.unitnamesuffix)
+				unitSwapLibrary.SwapUnit(unitID, constructorUnitList.SwapUnitsToScav[unitDefID])
 				return
 			end
 			-- CMD.CLOAK = 37382
@@ -695,14 +684,9 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				
 			end
 		end
-		if unitName == "corcomcon"..scavconfig.unitnamesuffix then
+		if constructorUnitList.SwapUnitsToScav[unitDefID] then
 			scavConverted[unitID] = true
-			unitSwapLibrary.SwapUnit(unitID, "corcom"..scavconfig.unitnamesuffix)
-			return
-		end
-		if unitName == "armcomcon"..scavconfig.unitnamesuffix then
-			scavConverted[unitID] = true
-			unitSwapLibrary.SwapUnit(unitID, "armcom"..scavconfig.unitnamesuffix)
+			unitSwapLibrary.SwapUnit(unitID, constructorUnitList.SwapUnitsToScav[unitDefID])
 			return
 		end
 		if unitName == "scavengerdroppod_scav" then
@@ -793,13 +777,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			AliveEnemyCommandersCount = AliveEnemyCommandersCount + 1
 			table.insert(AliveEnemyCommanders,unitID)
 		end
-
-		if unitName == "corcom"..scavconfig.unitnamesuffix then
-			unitSwapLibrary.SwapUnit(unitID, "corcomcon"..scavconfig.unitnamesuffix)
-			return
-		end
-		if unitName == "armcom"..scavconfig.unitnamesuffix then
-			unitSwapLibrary.SwapUnit(unitID, "armcomcon"..scavconfig.unitnamesuffix)
+		if constructorUnitList.SwapUnitsFromScav[unitDefID] then
+			unitSwapLibrary.SwapUnit(unitID, constructorUnitList.SwapUnitsFromScav[unitDefID])
 			return
 		end
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
