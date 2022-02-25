@@ -11,26 +11,35 @@ end
 local constructors = {
 	"armcom_scav",
 	"corcom_scav",
+	"legcom_scav",
+	"legcomoff_scav",
+	"legcomt2def_scav",
+	"legcomt2com_scav",
 }
 
 local constructorsT1 = {
 	"armcom_scav",
 	"corcom_scav",
+	"legcom_scav",
 }
 
 local constructorsT2 = {
 	"armcom_scav",
 	"corcom_scav",
+	"legcom_scav",
+	"legcomoff_scav",
 }
 
 local constructorsT3 = {
-	"armcom_scav",
-	"corcom_scav",
+	"legcomoff_scav",
+	"legcomt2def_scav",
+	"legcomt2com_scav",
 }
 
 local constructorsT4 = {
-	"armcom_scav",
-	"corcom_scav",
+	"legcomoff_scav",
+	"legcomt2def_scav",
+	"legcomt2com_scav",
 }
 
 local swapUnitsToScav = {

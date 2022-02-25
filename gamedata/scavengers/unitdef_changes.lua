@@ -108,27 +108,8 @@ customDefs.corcom = {
 		},
 	},
 	weapondefs = {
-		corcomlaser = {
-			range = 400,
-			damage = {
-				bombers = 320,
-				default = 75,
-				fighters = 220,
-				vtol = 320,
-				subs = 5,
-			},
-		},
 		disintegrator = {
 			commandfire = false,
-			reloadtime = 1.5/ScavDifficultyMultiplier,
-			weaponvelocity = 350,
-			damage = {
-				bombers = 9000,
-				default = 2250,
-				fighters = 9000,
-				vtol = 9000,
-				commanders = 100,
-			},
 		},
 	},
 	-- Extra Shield
@@ -174,27 +155,8 @@ customDefs.corcomcon = {
 		},
 	},
 	weapondefs = {
-		corcomlaser = {
-			range = 400,
-			damage = {
-				bombers = 320,
-				default = 75,
-				fighters = 220,
-				vtol = 320,
-				subs = 5,
-			},
-		},
 		disintegrator = {
 			commandfire = false,
-			reloadtime = 1.5/ScavDifficultyMultiplier,
-			weaponvelocity = 350,
-			damage = {
-				bombers = 9000,
-				default = 2250,
-				fighters = 9000,
-				vtol = 9000,
-				commanders = 100,
-			},
 		},
 	},
 	-- Extra Shield
@@ -239,27 +201,8 @@ customDefs.armcom = {
 		},
 	},
 	weapondefs = {
-		armcomlaser = {
-			range = 400,
-			damage = {
-				bombers = 320,
-				default = 75,
-				fighters = 220,
-				vtol = 320,
-				subs = 5,
-			},
-		},
 		disintegrator = {
 			commandfire = false,
-			reloadtime = 1.5/ScavDifficultyMultiplier,
-			weaponvelocity = 350,
-			damage = {
-				bombers = 9000,
-				default = 2250,
-				fighters = 9000,
-				vtol = 9000,
-				commanders = 100,
-			},
 		},
 	},
 	-- Extra Shield
@@ -304,27 +247,8 @@ customDefs.armcomcon = {
 		},
 	},
 	weapondefs = {
-		armcomlaser = {
-			range = 400,
-			damage = {
-				bombers = 320,
-				default = 75,
-				fighters = 220,
-				vtol = 320,
-				subs = 5,
-			},
-		},
 		disintegrator = {
 			commandfire = false,
-			reloadtime = 1.5/ScavDifficultyMultiplier,
-			weaponvelocity = 350,
-			damage = {
-				bombers = 9000,
-				default = 2250,
-				fighters = 9000,
-				vtol = 9000,
-				commanders = 100,
-			},
 		},
 	},
 	-- Extra Shield
@@ -333,6 +257,102 @@ customDefs.armcomcon = {
 	--			def = "REPULSOR1",
 	--		},
 	--	},
+}
+
+customDefs.legcom = {
+	corpse = "HEAP",
+	buildoptions = scavUnit,
+	maxdamage = 5000,
+	hidedamage = true,
+	explodeas = "scavcomexplosion",
+	selfdestructas = "scavcomexplosion",
+	movementclass = "SCAVCOMMANDERBOT",
+	showplayername = false,
+	customparams = {
+		iscommander = 'nil',
+	},
+	featuredefs = {
+		dead = {
+			--resurrectable = 0,
+			metal = 1500,
+		},
+		heap = {
+			--resurrectable = 0,
+			metal = 750,
+		},
+	},
+}
+
+customDefs.legcomoff = {
+	corpse = "HEAP",
+	buildoptions = scavUnit,
+	maxdamage = 10000,
+	hidedamage = true,
+	explodeas = "scavcomexplosion",
+	selfdestructas = "scavcomexplosion",
+	movementclass = "SCAVCOMMANDERBOT",
+	showplayername = false,
+	customparams = {
+		iscommander = 'nil',
+	},
+	featuredefs = {
+		dead = {
+			--resurrectable = 0,
+			metal = 3000,
+		},
+		heap = {
+			--resurrectable = 0,
+			metal = 1500,
+		},
+	},
+}
+
+customDefs.legcomt2com = {
+	corpse = "HEAP",
+	buildoptions = scavUnit,
+	maxdamage = 20000,
+	hidedamage = true,
+	explodeas = "scavcomexplosion",
+	selfdestructas = "scavcomexplosion",
+	movementclass = "SCAVCOMMANDERBOT",
+	showplayername = false,
+	customparams = {
+		iscommander = 'nil',
+	},
+	featuredefs = {
+		dead = {
+			--resurrectable = 0,
+			metal = 6000,
+		},
+		heap = {
+			--resurrectable = 0,
+			metal = 3000,
+		},
+	},
+}
+
+customDefs.legcomt2def = {
+	corpse = "HEAP",
+	buildoptions = scavUnit,
+	maxdamage = 10000,
+	hidedamage = true,
+	explodeas = "scavcomexplosion",
+	selfdestructas = "scavcomexplosion",
+	movementclass = "SCAVCOMMANDERBOT",
+	showplayername = false,
+	customparams = {
+		iscommander = 'nil',
+	},
+	featuredefs = {
+		dead = {
+			--resurrectable = 0,
+			metal = 3000,
+		},
+		heap = {
+			--resurrectable = 0,
+			metal = 1500,
+		},
+	},
 }
 
 customDefs.armdecom = {
