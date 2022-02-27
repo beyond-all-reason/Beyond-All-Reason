@@ -131,18 +131,29 @@ local function spawnBeacon(n)
 
 					if scavengerGamePhase ~= "initial" then
 						if scavconfig.modules.constructorControllerModule and scavconfig.constructorControllerModuleConfig.useconstructors then
-							-- local unitCount = Spring.GetTeamUnitCount(ScavengerTeamID)
-							-- local unitCountBuffer = scavMaxUnits*0.5
-							-- if not (unitCount + unitCountBuffer >= scavMaxUnits) then 
 							local neededcommanders = scavconfig.constructorControllerModuleConfig.minimumconstructors - countScavCommanders()
 							if neededcommanders > 0 then
 								for i = 1,4 do
-									local constructor = constructorUnitList.Constructors[math.random(#constructorUnitList.Constructors)]
-									local posx = posx+math.random(-128,128)
-									local posz = posz+math.random(-128,128)
-									local posy = Spring.GetGroundHeight(posx, posz)
-									spawnQueueLibrary.AddToSpawnQueue(constructor, posx, posy, posz, math.random(0, 3), ScavengerTeamID, n + 150)
-									Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID)
+									local constructor
+									local spawnTierChance = math.random(1,100)
+									if spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+										constructor = constructorUnitList.ConstructorsT1[math.random(#constructorUnitList.ConstructorsT1)]
+									elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+										constructor = constructorUnitList.ConstructorsT2[math.random(#constructorUnitList.ConstructorsT2)]
+									elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
+										constructor = constructorUnitList.ConstructorsT3[math.random(#constructorUnitList.ConstructorsT3)]
+									elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+										constructor = constructorUnitList.ConstructorsT4[math.random(#constructorUnitList.ConstructorsT4)]
+									else
+										constructor = constructorUnitList.ConstructorsT1[math.random(#constructorUnitList.ConstructorsT1)]
+									end
+									if constructor then
+										local posx = posx+math.random(-128,128)
+										local posz = posz+math.random(-128,128)
+										local posy = Spring.GetGroundHeight(posx, posz)
+										spawnQueueLibrary.AddToSpawnQueue(constructor, posx, posy, posz, math.random(0, 3), ScavengerTeamID, n + 150)
+										Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID)
+									end
 								end
 							end
 						end
