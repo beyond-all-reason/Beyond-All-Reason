@@ -30,10 +30,12 @@ for i = 1, #teamList do
 		ignoredTeams[teamList[i]] = true
 
 		-- ignore all other teams in this allyteam as well
-		-- local teammates = Spring.GetTeamList(select(6, Spring.GetTeamInfo(teamList[i])))
-		-- for j = 1, #teammates do
-		-- 	ignoredTeams[teammates[j]] = true
-		-- end
+		--Spring.Echo(select(6, Spring.GetTeamInfo(teamList[i])))  -- somehow this echos "1, 1, <table>"
+		local teamID, leader, isDead, isAiTeam, side, allyTeam, incomeMultiplier, customTeamKeys = Spring.GetTeamInfo(teamList[i])
+		local teammates = Spring.GetTeamList(allyTeam)
+		for j = 1, #teammates do
+			ignoredTeams[teammates[j]] = true
+		end
 	end
 	if teamList[i] ~= gaiaTeamID then
 		teamCount = teamCount + 1
