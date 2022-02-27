@@ -17,7 +17,7 @@ return {
 		corpse = "DEAD",
 		energyuse = 100,
 		explodeas = "largeBuildingexplosiongeneric",
-		extractsmetal = 0.005,
+		extractsmetal = 0.006,
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
