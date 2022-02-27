@@ -5,9 +5,11 @@ local unitOrderTable = {
 	--CONSTRUCTORS
 	[UDN["armck"].id]          = 001100, --BOTS
 	[UDN["corck"].id]          = 001110,
+	[UDN["legck"].id]          = 001115,
 
 	[UDN["armcv"].id]          = 001120, --VEH
 	[UDN["corcv"].id]          = 001130,
+	[UDN["legcv"].id]          = 001130,
 	[UDN["armbeaver"].id]      = 001140,
 	[UDN["cormuskrat"].id]     = 001150,
 
