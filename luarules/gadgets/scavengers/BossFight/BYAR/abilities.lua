@@ -32,63 +32,66 @@ end
 
 abilities.dGunFrenzy = function(currentFrame)
 	if FinalBossUnitID then
-		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 750, false)
-		if nearestEnemy then
-			--Spring.Echo("[Scavengers] Boss Frenzy Dgun Activated")
-			local r = math_random(1,4)
-			local x,y,z = Spring.GetUnitPosition(FinalBossUnitID)
-			if r == 1 then -- clockwise
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z-100}, {})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+50,y,z-100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z-100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z-50}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z+50}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z+100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+50,y,z+100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z+100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-50,y,z+100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z+100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z+50}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z-50}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z-100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-50,y,z-100}, {"shift"})
-			elseif r == 2 then -- anticlockwise
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z+100}, {})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+50,y,z+100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z+100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z+50}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z-50}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z-100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+50,y,z-100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z-100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-50,y,z-100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z-100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z-50}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z+50}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z+100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-50,y,z+100}, {"shift"})
-			elseif r == 3 then -- clockwise but less
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z-100}, {})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z-100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z+100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z+100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z+100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z-100}, {"shift"})
-			elseif r == 4 then -- anticlockwise but less
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z+100}, {})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z+100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z-100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z-100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z-100}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z}, {"shift"})
-				Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z+100}, {"shift"})
+		local posx, posy, posz = Spring.GetUnitPosition(FinalBossUnitID)
+		if posy > 0 then
+			local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 750, false)
+			if nearestEnemy then
+				--Spring.Echo("[Scavengers] Boss Frenzy Dgun Activated")
+				local r = math_random(1,4)
+				local x,y,z = Spring.GetUnitPosition(FinalBossUnitID)
+				if r == 1 then -- clockwise
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z-100}, {})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+50,y,z-100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z-100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z-50}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z+50}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z+100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+50,y,z+100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z+100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-50,y,z+100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z+100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z+50}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z-50}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z-100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-50,y,z-100}, {"shift"})
+				elseif r == 2 then -- anticlockwise
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z+100}, {})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+50,y,z+100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z+100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z+50}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z-50}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z-100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+50,y,z-100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z-100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-50,y,z-100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z-100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z-50}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z+50}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z+100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-50,y,z+100}, {"shift"})
+				elseif r == 3 then -- clockwise but less
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z-100}, {})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z-100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z+100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z+100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z+100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z-100}, {"shift"})
+				elseif r == 4 then -- anticlockwise but less
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z+100}, {})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z+100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x+100,y,z-100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x,y,z-100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z-100}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z}, {"shift"})
+					Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN,{x-100,y,z+100}, {"shift"})
+				end
 			end
 		end
 	end
@@ -96,22 +99,27 @@ end
 
 abilities.superDGun = function(currentFrame)
 	if FinalBossUnitID then
-		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 750, false)
-		if nearestEnemy then
-			--Spring.Echo("[Scavengers] Boss Super Dgun Activated")
-			local bossx,bossy,bossz = Spring.GetUnitPosition(FinalBossUnitID)
-			local NearestUnits = Spring.GetUnitsInSphere(bossx, bossy, bossz, 750)
-			SuperDgunTargets = 0
-			for e = 1,#NearestUnits do
-				local uID = NearestUnits[e]
-				local team = Spring.GetUnitTeam(uID)
-				if team ~= ScavengerTeamID then
-					local x,y,z = Spring.GetUnitPosition(uID)
-					if SuperDgunTargets == 0 then
-						Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN, uID, {0})
-						SuperDgunTargets = 1
-					else
-						Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN, uID, {"shift"})
+		local posx, posy, posz = Spring.GetUnitPosition(FinalBossUnitID)
+		if posy > 0 then
+			local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 750, false)
+			if nearestEnemy then
+				--Spring.Echo("[Scavengers] Boss Super Dgun Activated")
+				local bossx,bossy,bossz = Spring.GetUnitPosition(FinalBossUnitID)
+				local NearestUnits = Spring.GetUnitsInSphere(bossx, bossy, bossz, 750)
+				SuperDgunTargets = 0
+				for e = 1,#NearestUnits do
+					local uID = NearestUnits[e]
+					local team = Spring.GetUnitTeam(uID)
+					if team ~= ScavengerTeamID then
+						local x,y,z = Spring.GetUnitPosition(uID)
+						if y > 0 and y <= Spring.GetGroundHeight(x, z) + 20 then
+							if SuperDgunTargets == 0 then
+								Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN, uID, {0})
+								SuperDgunTargets = 1
+							else
+								Spring.GiveOrderToUnit(FinalBossUnitID, CMD.DGUN, uID, {"shift"})
+							end
+						end
 					end
 				end
 			end
@@ -140,7 +148,7 @@ abilities.airWave = function(n)
 			local fighter = fighters[math_random(1,#fighters)]
 			local bossx, bossy, bossz = Spring.GetUnitPosition(FinalBossUnitID)
 			for i = 1,5*BossFightCurrentPhase*spawnmultiplier do
-				spawnQueueLibrary.AddToSpawnQueue(fighter, bossx+(math.random(-300, 300)), bossy+1500, bossz+(math.random(-300, 300)), math_random(0,3),ScavengerTeamID, n+i+1)
+				spawnQueueLibrary.AddToSpawnQueue(fighter, bossx+(math.random(-500, 500)), bossy+1500, bossz+(math.random(-500, 500)), math_random(0,3),ScavengerTeamID, n+i+1)
 			end
 		end
 	end
@@ -160,8 +168,10 @@ abilities.tacticalNuke = function(currentFrame)
 						local targetTeam = Spring.GetUnitTeam(target)
 						if targetTeam ~= ScavengerTeamID then
 							local x,y,z = Spring.GetUnitPosition(target)
-							spawnQueueLibrary.AddToSpawnQueue("scavtacnukespawner_scav", x+math_random(-50,50), y, z+math_random(-50,50), math_random(0,3),ScavengerTeamID, currentFrame+i+math.random(0,60))
-							break
+							if y <= Spring.GetGroundHeight(x, z) + 20 then
+								spawnQueueLibrary.AddToSpawnQueue("scavtacnukespawner_scav", x+math_random(-250,250), y, z+math_random(-250,250), math_random(0,3),ScavengerTeamID, currentFrame+i+math.random(0,300))
+								break
+							end
 						end
 					end
 				end
@@ -184,8 +194,10 @@ abilities.EMP = function(currentFrame)
 						local targetTeam = Spring.GetUnitTeam(target)
 						if targetTeam ~= ScavengerTeamID then
 							local x,y,z = Spring.GetUnitPosition(target)
-							spawnQueueLibrary.AddToSpawnQueue("scavempspawner_scav", x+math_random(-50,50), y, z+math_random(-50,50), math_random(0,3),ScavengerTeamID, currentFrame+i+math.random(0,60))
-							break
+							if y <= Spring.GetGroundHeight(x, z) + 20 then
+								spawnQueueLibrary.AddToSpawnQueue("scavempspawner_scav", x+math_random(-250,250), y, z+math_random(-250,250), math_random(0,3),ScavengerTeamID, currentFrame+i+math.random(0,300))
+								break
+							end
 						end
 					end
 				end
