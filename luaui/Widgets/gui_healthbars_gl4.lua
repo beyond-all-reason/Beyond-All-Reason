@@ -1483,9 +1483,11 @@ function widget:GameFrame(n)
 			if Spring.GetUnitIsStunned(unitID) then
 				local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
 				--uniformcache[1] = math.floor((paralyzeDamage - maxHealth)) / (maxHealth * empDecline))
-				uniformcache[1] = paralyzeDamage / maxHealth
-				--Spring.Echo("Paralyze damage", paralyzeDamage, maxHealth)
-				gl.SetUnitBufferUniforms(unitID, uniformcache, 4)
+				if paralyzeDamage then 
+					uniformcache[1] = paralyzeDamage / maxHealth
+					--Spring.Echo("Paralyze damage", paralyzeDamage, maxHealth)
+					gl.SetUnitBufferUniforms(unitID, uniformcache, 4)
+				end
 			else
 				unitParalyzedWatch[unitID] = nil
 				removeBarFromUnit(unitID, "paralyzed", 'unitEmpDamagedWatch')
