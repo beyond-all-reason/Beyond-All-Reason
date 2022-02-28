@@ -2845,7 +2845,7 @@ function init()
 
 		{ id = "geospots", group = "ui", category = types.dev, widget = "Geothermalspots", name = texts.option.geospots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = texts.option.geospots_descr },
 
-		{ id = "rankicons", group = "ui", category = types.advanced, widget = "Rank Icons", name = texts.option.rankicons, type = "bool", value = GetWidgetToggleValue("Rank Icons"), description = texts.option.rankicons_descr },
+		{ id = "rankicons", group = "ui", category = types.advanced, widget = "Rank Icons GL4", name = texts.option.rankicons, type = "bool", value = GetWidgetToggleValue("Rank Icons GL4"), description = texts.option.rankicons_descr },
 		{ id = "rankicons_distance", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.rankicons_distance, type = "slider", min = 0.4, max = 2, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getDrawDistance ~= nil and WG['rankicons'].getDrawDistance()), description = '',
 		  onload = function(i)
 		  end,
