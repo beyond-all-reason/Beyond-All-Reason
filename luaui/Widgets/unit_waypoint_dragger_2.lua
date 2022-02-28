@@ -272,9 +272,11 @@ local function UpdateWayPoints(wpTbl)
 		-- don't wrap around within a unit's cmd queue
 		-- until 1 << 24 of them have been assigned, so
 		-- this should be safe)
-		for unitCmdNum = 1, #unitCmds do
-			if (unitCmds[unitCmdNum].tag == cmdTag) then
-				cmdValid = true; break
+		if unitCmds then
+			for unitCmdNum = 1, #unitCmds do
+				if (unitCmds[unitCmdNum].tag == cmdTag) then
+					cmdValid = true; break
+				end
 			end
 		end
 
