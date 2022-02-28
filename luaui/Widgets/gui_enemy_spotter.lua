@@ -181,7 +181,9 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget.RenderUnitDestroyed(unitID, unitDefID, unitTeam)
-	RemoveUnit(unitID, unitDefID, unitTeam)
+	if unitID and unitDefID then  -- as somehow this unitID can be nil
+		RemoveUnit(unitID, unitDefID, unitTeam)
+	end
 end
 
 -- wont be called for enemy units nor can it read spGetUnitMoveTypeData(unitID).aircraftState anyway
