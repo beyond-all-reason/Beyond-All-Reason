@@ -14,7 +14,7 @@ local factions = {
 	{ startUnit = UnitDefNames.armcom.id, faction = 'arm' },
 }
 if Spring.GetModOptions().experimentallegionfaction == true then
-	factions[#factions+1] = { startUnit = UnitDefNames.legcom.id, faction = 'leg' }
+	factions[#factions+1] = { startUnit = UnitDefNames.legcomdef.id, faction = 'leg' }
 end
 
 local doUpdate

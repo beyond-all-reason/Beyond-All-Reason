@@ -88,10 +88,10 @@ return {
 			-- Experimental:
 			[26] = "armhp",
 			[27] = "armfhp",
-			[28] = "armmg",
-			[29] = "armclaw",
-			[30] = "armferret",
-			[31] = "corjamt",
+			--[28] = "armmg",
+			[28] = "armclaw",
+			[29] = "armferret",
+			[30] = "corjamt",
 		},
 		customparams = {
 			unitgroup = 'builder',
