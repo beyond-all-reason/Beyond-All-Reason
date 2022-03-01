@@ -645,6 +645,19 @@ local function GetIconTypes()
 	return iconTypes, iconSizes
 end
 
+local reloadedsavegame = false
+
+function gadget:GameFrame(n)
+	if reloadedsavegame == false and (n % 31) == 0 then  -- this might break on the second reload of a savegame
+		local finishedLoading,  loadedFromSave = Spring.GetGameState()
+		--Spring.Echo("reloadedsavegame?", finishedLoading,  loadedFromSave)
+		if loadedFromSave then 
+			reloadedsavegame = true
+			loadUnitIcons()
+		end
+	end
+end
+
 function gadget:Initialize()
 	gadgetHandler:RegisterGlobal('GetIconTypes', GetIconTypes)
 	if Spring.GetGameFrame() <= 0 then

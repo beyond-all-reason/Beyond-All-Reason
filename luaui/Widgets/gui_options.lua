@@ -18,7 +18,7 @@ local types = {
 	dev      = 3,
 }
 
-local version = 1	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
+local version = 1.1	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
 local newerVersion = false	-- configdata will set this true if it's a newer version
 
 local texts = {}    -- loaded from external language file
@@ -2845,40 +2845,7 @@ function init()
 
 		{ id = "geospots", group = "ui", category = types.dev, widget = "Geothermalspots", name = texts.option.geospots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = texts.option.geospots_descr },
 
-		{ id = "healthbarsscale", group = "ui", category = types.advanced, name = texts.option.healthbars .. widgetOptionColor .. "  " .. texts.option.healthbarsscale, type = "slider", min = 0.6, max = 1.6, step = 0.1, value = 1, description = '',
-		  onload = function(i)
-			  loadWidgetData("Health Bars", "healthbarsscale", { 'barScale' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Health Bars', 'healthbars', 'setScale', { 'barScale' }, value)
-		  end,
-		},
-		{ id = "healthbarsdistance", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.healthbarsdistance, type = "slider", min = 0.4, max = 6, step = 0.1, value = 1, description = '',
-		  onload = function(i)
-			  loadWidgetData("Health Bars", "healthbarsdistance", { 'drawDistanceMult' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Health Bars', 'healthbars', 'setDrawDistance', { 'drawDistanceMult' }, value)
-		  end,
-		},
-		{ id = "healthbarsvariable", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.healthbarsvariable, type = "bool", value = (WG['healthbar'] ~= nil and WG['healthbar'].getVariableSizes()), description = texts.option.healthbarsvariable_descr,
-		  onload = function(i)
-			  loadWidgetData("Health Bars", "healthbarsvariable", { 'variableBarSizes' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Health Bars', 'healthbars', 'setVariableSizes', { 'variableBarSizes' }, value)
-		  end,
-		},
-		{ id = "healthbarshide", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.healthbarshide, type = "bool", value = (WG['nametags'] ~= nil and WG['nametags'].getDrawForIcon()), description = texts.option.healthbarshide_descr,
-		  onload = function(i)
-			  loadWidgetData("Health Bars", "healthbarshide", { 'hideHealthbars' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Health Bars', 'healthbars', 'setHideHealth', { 'hideHealthbars' }, value)
-		  end,
-		},
-
-		{ id = "rankicons", group = "ui", category = types.advanced, widget = "Rank Icons", name = texts.option.rankicons, type = "bool", value = GetWidgetToggleValue("Rank Icons"), description = texts.option.rankicons_descr },
+		{ id = "rankicons", group = "ui", category = types.advanced, widget = "Rank Icons GL4", name = texts.option.rankicons, type = "bool", value = GetWidgetToggleValue("Rank Icons GL4"), description = texts.option.rankicons_descr },
 		{ id = "rankicons_distance", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.rankicons_distance, type = "slider", min = 0.4, max = 2, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getDrawDistance ~= nil and WG['rankicons'].getDrawDistance()), description = '',
 		  onload = function(i)
 		  end,
@@ -3173,7 +3140,7 @@ function init()
 			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeBuildings', { 'selectBuildingsWithMobile' }, value)
 		  end,
 		},
-		{ id = "smartselect_includebuilders", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.smartselect_includebuilders, type = "bool", value = true, description = texts.option.smartselect_includebuilders_descr,
+		{ id = "smartselect_includebuilders", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.smartselect_includebuilders, type = "bool", value = false, description = texts.option.smartselect_includebuilders_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4616,12 +4583,6 @@ function init()
 		end
 	end
 
-	if WG['healthbars'] == nil then
-		options[getOptionByID('healthbarsscale')] = nil
-	elseif WG['healthbars'].getScale ~= nil then
-		options[getOptionByID('healthbarsscale')].value = WG['healthbars'].getScale()
-	end
-
 	if WG['smartselect'] == nil then
 		options[getOptionByID('smartselect_includebuildings')] = nil
 		options[getOptionByID('smartselect_includebuilders')] = nil
@@ -4706,6 +4667,11 @@ function widget:Initialize()
 			end
 			if widgetHandler.orderList["Rank Icons GL4"] and widgetHandler.orderList["Rank Icons GL4"] < 0.5 then
 				widgetHandler:EnableWidget("Rank Icons GL4")
+			end
+		end
+		if version <= 1.1 then
+			if widgetHandler.orderList["Health Bars GL4"] and widgetHandler.orderList["Health Bars GL4"] < 0.5 then
+				widgetHandler:EnableWidget("Health Bars GL4")
 			end
 		end
 	end
@@ -5006,6 +4972,8 @@ function widget:SetConfigData(data)
 		if data.version < version then
 			newerVersion = true
 		end
+	else
+		newerVersion = true
 	end
 	if data.vsyncEnabled ~= nil then
 		vsyncEnabled = data.vsyncEnabled

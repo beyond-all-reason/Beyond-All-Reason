@@ -164,8 +164,9 @@ function locateInvalidUnits(iT)
 		else
 			if Spring.ValidUnitID(unitID) then 
 				local px, py, pz = Spring.GetUnitPosition(unitID)
-				local fdefname = UnitDefs[Spring.GetUnitDefID(unitID)].name
-				iT.validinfo[unitID] = {px = px, py = py, pz = pz, unitdefname = fdefname}
+				local unitDefID = Spring.GetUnitDefID(unitID)
+				local unitdefname = (unitDefID and UnitDefs[unitDefID].name) or "unknown:nil"
+				iT.validinfo[unitID] = {px = px, py = py, pz = pz, unitdefname = unitdefname}
 			else
 				Spring.SendCommands({"pause 1"})
 				Spring.Echo(iT.myName, " INVALID unitID",unitID,"#elements", iT.usedElements, "last seen at tablepos:", i)

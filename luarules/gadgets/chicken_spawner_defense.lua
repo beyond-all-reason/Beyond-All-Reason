@@ -178,7 +178,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-	
+
 		local chickenAllies = Spring.GetTeamList(chickenAllyTeamID)
 		for i = 1,#chickenAllies do
 			local _,_,_,AI = Spring.GetTeamInfo(chickenAllies[i])
@@ -233,13 +233,6 @@ if gadgetHandler:IsSyncedCode() then
 	-- eggChance scales - 20% at 0-300 grace, 10% at 400 grace, 0% at 500+ grace
 	local eggChance = 0.20 * math.max(0, math.min(1, (500 - config.gracePeriod) / 200)) / config.chickenSpawnMultiplier
 	local bonusEggs = math.ceil(24 * math.max(0, math.min(1, (500 - config.gracePeriod) / 200))) / config.chickenSpawnMultiplier
-
-	if config.difficulty == config.difficulties.epic then
-		gracePenalty = gracePenalty + 15
-		maxBurrows = math.max(maxBurrows * 1.5, 50)
-		chickenDebtCount = math.max(chickenDebtCount, 150)
-		expMod = 1
-	end
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
@@ -1224,22 +1217,12 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 
-			if config.difficulty == config.difficulties.epic then
-				table.insert(spawnQueue, { burrow = queenID, unitName = "ve_chickenq", team = chickenTeamID })
-				table.insert(spawnQueue, { burrow = queenID, unitName = "ve_chickenq", team = chickenTeamID })
-				table.insert(spawnQueue, { burrow = queenID, unitName = "ve_chickenq", team = chickenTeamID })
-				table.insert(spawnQueue, { burrow = queenID, unitName = "ve_chickenq", team = chickenTeamID })
-			end
-
-			if config.queenName == "epic_chickenq" then
-				table.insert(spawnQueue, { burrow = queenID, unitName = "chickenr3", team = chickenTeamID })
-				table.insert(spawnQueue, { burrow = queenID, unitName = "chickenr3", team = chickenTeamID })
-			end
 			for i = 1, 150, 1 do
 				if mRandom() < config.spawnChance then
 					table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh4", team = chickenTeamID })
 				end
 			end
+
 			for i = 1, 10, 1 do
 				if mRandom() < config.spawnChance then
 					table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1", team = chickenTeamID })
@@ -1262,7 +1245,7 @@ if gadgetHandler:IsSyncedCode() then
 	local lightTurret = "chickend1"
 	local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 	local RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax = Spring.GetAllyTeamStartBox(chickenAllyTeamID)
-	
+
 	local function spawnStartBoxProtectionHeavy()
 		if math.random(0,1800) == 0 then
 			local burrowCount = SetCount(burrows)
@@ -1270,7 +1253,7 @@ if gadgetHandler:IsSyncedCode() then
 				attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + 1
 			end
 		end
-		
+
 		if attemptingToSpawnHeavyTurret > 0 and Spring.GetGameFrame() > config.gracePeriod*30 then
 			canSpawnDefence = true
 			-- lsx1 - xmin, lsz1 - zmin, lsx2 - xmax, lsz2 - zmax
@@ -1278,7 +1261,7 @@ if gadgetHandler:IsSyncedCode() then
 			local spread = 210
 			local spawnPosX = math.random(lsx1,lsx2)
 			local spawnPosZ = math.random(lsz1,lsz2)
-			
+
 			if spawnPosX > MAPSIZEX - spread + 1 or spawnPosX < spread + 1 or spawnPosZ > MAPSIZEZ - spread + 1 or spawnPosZ < spread + 1 then
 				canSpawnDefence = false
 			end
@@ -1300,7 +1283,7 @@ if gadgetHandler:IsSyncedCode() then
 					if heavyTurretUnitID then
 						attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret - 1
 						SetUnitExperience(heavyTurretUnitID, mRandom() * expMod)
-						for i = 1, math.random(1,8) do 
+						for i = 1, math.random(1,8) do
 							local spawnPosX = spawnPosX + math.random(-spread, spread)
 							local spawnPosZ = spawnPosZ + math.random(-spread, spread)
 							local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
@@ -1322,8 +1305,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-		
-		
+
+
 		-- if not noChickenStartbox then
 		-- 	canSpawnDefence = true
 		-- 	-- lsx1 - xmin, lsz1 - zmin, lsx2 - xmax, lsz2 - zmax
@@ -1331,7 +1314,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- 	local spread = 80
 		-- 	local spawnPosX = math.random(RaptorStartboxXMin,RaptorStartboxXMax)
 		-- 	local spawnPosZ = math.random(RaptorStartboxZMin,RaptorStartboxZMax)
-			
+
 		-- 	if spawnPosX > MAPSIZEX - spread + 1 or spawnPosX < spread + 1 or spawnPosZ > MAPSIZEZ - spread + 1 or spawnPosZ < spread + 1 then
 		-- 		canSpawnDefence = false
 		-- 	end
@@ -1342,7 +1325,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- 	if spawnPosX > MAPSIZEX or spawnPosX < 0 or spawnPosZ > MAPSIZEZ or spawnPosZ < 0 then
 		-- 		canSpawnDefence = false
 		-- 	end
-			
+
 		-- 	if canSpawnDefence then
 		-- 		local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
 		-- 		local canSpawnDefence = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
@@ -1369,7 +1352,7 @@ if gadgetHandler:IsSyncedCode() then
 				attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 1
 			end
 		end
-		
+
 		if attemptingToSpawnLightTurret > 0 and Spring.GetGameFrame() > config.gracePeriod*30 then
 			canSpawnDefence = true
 			-- lsx1 - xmin, lsz1 - zmin, lsx2 - xmax, lsz2 - zmax
@@ -1377,7 +1360,7 @@ if gadgetHandler:IsSyncedCode() then
 			local spread = 80
 			local spawnPosX = math.random(lsx1,lsx2)
 			local spawnPosZ = math.random(lsz1,lsz2)
-			
+
 			if spawnPosX > MAPSIZEX - spread + 1 or spawnPosX < spread + 1 or spawnPosZ > MAPSIZEZ - spread + 1 or spawnPosZ < spread + 1 then
 				canSpawnDefence = false
 			end
