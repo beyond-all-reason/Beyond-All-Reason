@@ -30,6 +30,7 @@ end
 
 function NukeBST:OwnerBuilt()
 	self.finished = true
+	self.unit:Internal():ExecuteCustomCommand(CMD_STOCKPILE, 5)
 end
 
 function NukeBST:Update()

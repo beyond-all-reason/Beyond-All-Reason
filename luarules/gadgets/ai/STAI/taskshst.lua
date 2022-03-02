@@ -19,14 +19,13 @@ end
 function TasksHST:startLabsParams()
 	local M = self.ai.Metal
 	local E = self.ai.Energy
+
 	self.labs.default = {
-
-
 			{category = 'techs',
 			economy = function()
 				return true
 			end,
-			numeric = {min = 3, mtype = nil, max = 10,},
+			numeric = {min = 3, mtype = 5, max = 10,},
 			wave = 1},
 
 
@@ -35,15 +34,15 @@ function TasksHST:startLabsParams()
 				return (E.income < 100 )
 			end,
 			numeric = {min = 1,mtype = 10,max = 2},
-			wawe = 2},
+			wave = 2},
 
 
 			{category = 'raiders',
 			economy = function()
 				return true
 			end,
-			numeric = {min = 1,mtype = nil,max = 20},
-			wawe = 10},
+			numeric = {min = 1,max = 20},
+			wave = 10},
 
 
 			{category = 'techs',
@@ -51,14 +50,14 @@ function TasksHST:startLabsParams()
 				return true
 			end,
 			numeric = {min = 3,mtype = nil,max = 10},
-			wawe = 1},
+			wave = 1},
 
 
 			{category = 'battles',
 			economy = function()
 				return true
 			end,
-			numeric = {min = 3,mtype = nil,max = 25},
+			numeric = {min = 3},
             wave = 5},
 
 
@@ -67,15 +66,16 @@ function TasksHST:startLabsParams()
 				return true
 			end,
 			numeric = {min = 3,mtype = 6,max = 7},
-			wawe = 1},
+			wave = 1},
 
 
 			{category = 'artillerys',
-			economy = function()
-				return true
+			economy = function(_,U)
+				local ut = self.ai.armyhst.unitTable[U]
+				return M.income > ut.techLevel * 400
 			end,
-			numeric = {min = 1,mtype = 10,max = 10},
-			wawe = 3},
+			numeric = {min = 0,mtype = 10,max = 10},
+			wave = 3},
 
 
 			{category = 'techs',
@@ -83,15 +83,15 @@ function TasksHST:startLabsParams()
 				return true
 			end,
 			numeric = {min = 3,mtype = nil,max = 10},
-			wawe = 3},
+			wave = 3},
 
 
 			{category = 'breaks',
 			economy = function()
-				return
+				return self.ai.Metal.full > 0.3 and self.ai.Energy.full > 0.3
 			end,
-			numeric = {min = 2,mtype = 5,max = 15},
-			wawe = 3},
+			numeric = {min = 0,max = 15},
+			wave = 3},
 
 
 			{category = 'techs',
@@ -99,7 +99,7 @@ function TasksHST:startLabsParams()
 				return true
 			end,
 			numeric = {min = 3,mtype = nil,max = 10},
-			wawe = 1},
+			wave = 1},
 
 
 			{category = 'rezs',
@@ -107,7 +107,7 @@ function TasksHST:startLabsParams()
 				return true
 			end,-- rezzers
 			numeric = {min = 1,mtype = 8,max = 10},
-			wawe = 2},
+			wave = 2},
 
 
 
@@ -116,14 +116,14 @@ function TasksHST:startLabsParams()
 				return true
 			end, --help builders and build thinghs
 			numeric = {min = 1,mtype = 8,max = 10},
-			wawe = 1},
+			wave = 1},
 
 			{category = 'antiairs',
 			economy = function()
 				return true
 			end,
 			numeric = {min = 1,mtype = 7,max = 8},
-			wawe = 2},
+			wave = 2},
 
 
 			{category = 'amptechs',
@@ -131,7 +131,7 @@ function TasksHST:startLabsParams()
 				return true
 			end,
 			numeric = {min = 1,mtype = 7,max = 5},
-			wawe = 1},
+			wave = 1},
 			 --amphibious builders
 
 			{category = 'jammers',
@@ -147,7 +147,7 @@ function TasksHST:startLabsParams()
 				return true
 			end,
 			numeric = {min = 1,mtype = 2,max = nil},
-			wawe = 1},
+			wave = 1},
 
 
 			{category = 'airgun',
@@ -155,7 +155,7 @@ function TasksHST:startLabsParams()
 				return true
 			end,
 			numeric = {min = 1,mtype = 5,max = 10},
-			wawe = 5},
+			wave = 5},
 
 
 			{category = 'bomberairs',
@@ -163,7 +163,7 @@ function TasksHST:startLabsParams()
 				return true
 			end,
 			numeric = {min = 10,mtype = 4,max = 20},
-			wawe = 10},
+			wave = 10},
 
 
 			{category = 'fighterairs',
@@ -179,7 +179,7 @@ function TasksHST:startLabsParams()
 				return true
 			end,
 			numeric = {min = 1,mtype = 10,max = 5},
-			wawe = 3},
+			wave = 3},
 			 --have paralyzer weapon
 
 
@@ -196,7 +196,7 @@ function TasksHST:startLabsParams()
 				return true
 			end,
 			numeric = {min = 3,mtype = nil,max = 5},
-			wawe = 3},
+			wave = 3},
 
 
 			{category = 'subkillers',
@@ -209,10 +209,10 @@ function TasksHST:startLabsParams()
 
 			{category = 'breaks',
 			economy = function()
-				return true
+				return self.ai.Metal.full > 0.7 and self.ai.Energy.full > 0.7
 			end,
-			numeric = {mtype = nil,max = 40},
-			wawe = 3},
+			numeric = {max = 40},
+			wave = 10},
 
 
 			{category = 'amphibious',
@@ -228,7 +228,7 @@ function TasksHST:startLabsParams()
 				return true
 			end,
 			numeric = {mtype = nil,max = 15},
-			wawe = 10},
+			wave = 10},
 			 -- all terrain spider
 
 
@@ -628,14 +628,14 @@ function TasksHST:startRolesParams()
 			location = true , --positional category to search near
 	        },
 
---[[		{ 	category = '_specialt_' ,
+		{ 	category = '_llt_' ,
 			economy = function()
-					return
+					return true
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
-			numeric = false , --numericalParameter
-			location = {} , --positional category to search near
-]]
+			numeric = 2 , --numericalParameter
+			location = {categories = {'factoryMobilities'},min = 100,neighbours = {'_llt_','_popup2_','_popup1_'}} ,
+			},
 
 		{ 	category = '_wind_' ,
 			economy = function()
@@ -672,13 +672,13 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
-			llocation = {categories = {'_nano_','factoryMobilities'}} ,
+			location = {categories = {'_nano_','factoryMobilities'}} ,
 			special = true } , --specialFilter
 
 		{ 	category = '_nano_' ,
 			economy = function()
-					return (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100) or
-					(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 60 ))
+					return (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100) --or
+					--(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 60 ))
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -819,7 +819,7 @@ function TasksHST:startRolesParams()
 	self.roles.starter = {
 		{ 	category = '_mex_' ,
 			economy = function()
-					return M.income < 8 or self.ai.tool:countMyUnit({'_mex_'}) < 3
+					return self.ai.tool:countMyUnit({'factoryMobilities'}) == 0
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -827,45 +827,45 @@ function TasksHST:startRolesParams()
 	        },
 		{ 	category = '_wind_' ,
 			economy = function()
-					return  E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
+					return  true --E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {min = 50,himself = true} ,
+			location = {min = 50,categories = {'_nano_','factoryMobilities'},himself = true} ,
 	        special = true,
 	        },
 
 		{ 	category = '_tide_' ,
 			economy = function()
-					return  E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
+					return  true --E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {min = 50,himself = true} ,
+			location = {min = 50,categories = {'_nano_','factoryMobilities'},himself = true} ,
 	        special = true,
 	        },
 
 		{ 	category = '_solar_' ,
 			economy = function()
-					return  E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
+					return  true --E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location ={min = 50,himself = true} ,
+			location ={min = 50,categories = {'_nano_','factoryMobilities'},himself = true} ,
 			special = true } , --specialFilter
 
 		{ 	category = '_llt_' ,
 			economy = function()
-					return  E.income > 20 and M.income > 5 and self.ai.tool:countMyUnit({'_mex_'}) >= 3
+					return self.ai.tool:countMyUnit({'factoryMobilities'}) > 0
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'factoryMobilities','_mex_'},min = 100,neighbours = {'_llt_','_popup2_','_popup1_'}}
+			location = {categories = {'factoryMobilities'},min = 100,neighbours = {'_llt_','_popup2_','_popup1_'}}
 	        } ,
 
 		{ 	category = 'factoryMobilities' ,
 			economy = function()
-					return M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2 and (E.income > 40 or M.full > 0.9)
+					return M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2 and E.income > 40
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter

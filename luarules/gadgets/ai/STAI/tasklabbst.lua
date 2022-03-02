@@ -5,7 +5,7 @@ function TaskLabBST:Name()
 end
 
 function TaskLabBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self:EchoDebug('initialize tasklab')
 	local u = self.unit:Internal()
 	self.id = u:ID()
@@ -18,16 +18,27 @@ function TaskLabBST:Init()
 	self.qIndex = 1
 	self:resetCounters()
 	self:ampRating() -- amph rating for this factory
+	self.uDef = UnitDefNames[self.name]
+	self.unities = self.uDef.buildOptions
+	self.units = {}
+	for index,unit in pairs(self.unities) do
+		self:EchoDebug(index,unit)
+		local uName = UnitDefs[unit].name
+		self.units[uName] = {}
+		self.units[uName].name = uName
+		self.units[uName].type = self.game:GetTypeByName(uName)
+		self.units[uName].army = self.ai.armyhst.unitTable[uName]
+		self.units[uName].defId = unit
+	end
 
 end
 
 function TaskLabBST:preFilter()
 	local techLv = self.spec.techLevel
 	local topLevel = self.ai.maxFactoryLevel
- 	local threshold = 1 - (techLv / topLevel)+0.05
--- 	local threshold = (0.4-(techLv / 10))+0.05 --TODO this is a shit
+ 	local threshold = 1 - (techLv / topLevel) + 0.05
 	self:EchoDebug('prefilter threshold', threshold)
-	if self.ai.Energy.full > 0.1 then
+	if self.ai.Energy.full > 0.1 and self.ai.Metal.full > threshold then
 		self.unit:Internal():FactoryUnWait()
 	else
 		self.unit:Internal():FactoryWait()
@@ -66,6 +77,7 @@ function TaskLabBST:getSoldier()
 	for i = self.qIndex , #self.queue do
 		param = self.queue[i]
 		soldier,utype = self:getSoldierFromCategory(param.category)
+		print('soldier11',soldier)
 		self:EchoDebug('soldier',soldier)
 		soldier = self:ecoCheck(param.category,param.economy,soldier)
 		self:EchoDebug('eco',soldier)
@@ -97,18 +109,20 @@ function TaskLabBST:getSoldierFromCategory(category)--we will take care about on
 	for name,_ in pairs(self.ai.armyhst[category]) do
 		utype = self.game:GetTypeByName(name)
 		if self.unit:Internal():CanBuild(utype) then
+			print(name)
 			return name,utype
 		end
 	end
 end
 
-function TaskLabBST:ecoCheck(category,param,name)
+function TaskLabBST:ecoCheck(category,param,name,test)
 	self:EchoDebug(category ,name, " (before eco check)")
 	if not name  or not param then
 		self:EchoDebug('ecofilter stop',name,cat, param)
 		return
 	end
-	if self.queue[self.qIndex]:economy() then
+	print('soldier22',name,test)
+	if self.queue[self.qIndex]:economy(name) then
 		return name
 	end
 end

@@ -29,6 +29,7 @@ end
 
 function TaskQueueBST:Init()
 	self.DebugEnabled = false
+	self.visualdbg = true
 	self.role = nil
 	self.active = false
 	self.currentProject = nil
@@ -39,6 +40,7 @@ function TaskQueueBST:Init()
 	self.id = u:ID()
 	self.mtype = mtype
 	self.name = u:Name()
+	self.idx = 1
 	self.fails = 0
 	self.side = self.ai.armyhst.unitTable[self.name].side
 	self.speed = self.ai.armyhst.unitTable[self.name].speed
@@ -181,13 +183,14 @@ function TaskQueueBST:Update()
 end
 
 function TaskQueueBST:CategoryEconFilter(cat,param,name)
-	self:EchoDebug(cat ,name,self.role,param(), " (before econ filter)")
+	self:EchoDebug(cat ,name,self.role,self.ai.taskshst.roles[self.role][self.idx]:economy(), " (before econ filter)")
 	if not name  or not param then
 		self:EchoDebug('ecofilter stop',name,cat, param)
 		return
 	end
-	if self.ai.taskshst.roles[self.role][self.idx]:economy() then
-		self:EchoDebug('after eco filtering',name,cat)
+	local ecoCheck = self.ai.taskshst.roles[self.role][self.idx]:economy()
+	self:EchoDebug('eco filter',name,cat,ecoCheck)
+	if ecoCheck then
 		return name
 	end
 end
@@ -385,7 +388,7 @@ function TaskQueueBST:GetQueue()
 	local id = self.ai.armyhst.unitTable[self.name].defId
 	local counter = self.game:GetTeamUnitDefCount(team,id)
 	if self.isCommander then
-		if self.ai.tool:countMyUnit({'techs'}) < 1  then
+		if  self.ai.tool:countMyUnit({'_llt_'}) < 1 then --self.ai.tool:countMyUnit({'techs'}) < 1 and
 			self:removeOldBuildersRole(self.name,self.id)
 			table.insert(buildersRole.starter[self.name], self.id)
 			self.role = 'starter'
@@ -426,94 +429,107 @@ function TaskQueueBST:GetQueue()
 end
 
 function TaskQueueBST:ProgressQueue()
-	self:EchoDebug(self.name," progress queue")
+	self:EchoDebug(self.name," progress queue",self.role,self.idx,#self.queue)
 	self.lastWatchdogCheck = self.game:Frame()
 	self.constructing = false
-	self.progress = false
+	self.progress = true
 	self.ai.buildsitehst:ClearMyPlans(self)
+	self.queue = self:GetQueue()
 	local builder = self.unit:Internal()
-	local idx, JOB = next(self.queue,self.idx)
-	self:EchoDebug('role',self.role,idx ,'JOB', JOB)
-	self.idx = idx
-	if idx == nil then
-		self.queue = self:GetQueue(self.name)
-		self.progress = true
-		return
+	if self.idx > #self.queue then
+		self.idx = 1
 	end
-	local utype = niled
-	local utype = nil
-	local p
-	local jobName, p = self:getOrder(builder,JOB)
-	self:EchoDebug('jobName',jobName)
-	if type(jobName) == "table" then
-		self:EchoDebug('table queue ', jobName,jobName[1],'think about mex upgrade')
-		-- not using this except for upgrading things
-	else
-		self:EchoDebug(self.name .. " filtering...")
-		local success = false
-		if JOB.special and jobName then
-			jobName = self:specialFilter(JOB.category,JOB.special,jobName)
-		end
-		if JOB.numeric and jobName then
-			jobName = self:limitedNumber(jobName, JOB.numeric)
-		end
-		if JOB.duplicate and jobName then
-			if self.ai.buildsitehst:CheckForDuplicates(jobName) then
-				jobName = nil
-			end
-		end
-		if JOB.economy and jobName then
-			jobName = self:CategoryEconFilter(JOB.category,JOB.economy,jobName)
-		end
-		if jobName  then
-			utype = self.game:GetTypeByName(jobName)
-		end
-		if jobName and utype and not p then
-			utype, jobName, p = self:findPlace(utype, jobName,JOB.category,JOB.location)
-			self:EchoDebug('p',p)
-		end
-		if jobName and not utype   then
-			self:Warn('warning' , self.name , " cannot build:",jobName,", couldnt grab the unit type from the engine")
-			self.progress = true
+	--local self.idx, JOB = next(self.queue,self.idx or 1)
+
+
+-- 	self.idx = idx
+	for index = self.idx, #self.queue + 1 do
+		if  not self.progress then
+			self.idx = index
 			return
 		end
-		if not self.unit:Internal():CanBuild(utype) then
-			self:EchoDebug("WARNING: bad taskque: ",self.name," cannot build ",jobName)
+		self:EchoDebug('role',self.role,'self.idx',self.idx ,'JOB', JOB)
+		JOB = self.queue[index]
+		if JOB == nil then
 			self.progress = true
+			self.idx = 1
 			return
 		end
-		if utype ~= nil and p ~= nil then
-			if type(jobName) == "table" and jobName[1] == "ReclaimEnemyMex" then
-				self:EchoDebug("reclaiming enemy mex...")
-				success = self.ai.tool:CustomCommand(self.unit:Internal(), CMD_RECLAIM, {jobName[2].unitID}) --TODO redo with shardify one
-				jobName = jobName[1]
-			else
-				self.ai.buildsitehst:NewPlan(jobName, p, self)
-				local facing = self.ai.buildsitehst:GetFacing(p)
-				success = self.unit:Internal():Build(utype, p, facing)
-			end
-		end
-		if success then
-			self:EchoDebug(self.name , " successful build command for ", utype:Name())
-			self.target = p
-			self.watchdogTimeout = math.max(self.ai.tool:Distance(self.unit:Internal():GetPosition(), p) * 1.5, 460)
-			self.currentProject = jobName
-			self.fails = 0
-			self.failOut = nil
-			self.progress = false
-			self.assistant = false
-			if jobName == "ReclaimEnemyMex" then
-				self.watchdogTimeout = self.watchdogTimeout + 450 -- give it 15 more seconds to reclaim it
-			end
+		self.idx = index
+		local utype = nil
+		local p
+		local jobName, p = self:getOrder(builder,JOB)
+		self:EchoDebug('jobName',jobName)
+		if type(jobName) == "table" then
+			self:EchoDebug('table queue ', jobName,jobName[1],'think about mex upgrade')
+			-- not using this except for upgrading things
 		else
-			self.progress = true
-			self.target = nil
-			self.currentProject = nil
-			self.fails = self.fails + 1
-			if self.fails >  #self.queue +1 then
-				self.failOut = self.game:Frame()
+			self:EchoDebug(self.name .. " filtering...")
+			local success = false
+			if JOB.special and jobName then
+				jobName = self:specialFilter(JOB.category,JOB.special,jobName)
+			end
+			if JOB.numeric and jobName then
+				jobName = self:limitedNumber(jobName, JOB.numeric)
+			end
+			if JOB.duplicate and jobName then
+				if self.ai.buildsitehst:CheckForDuplicates(jobName) then
+					jobName = nil
+				end
+			end
+			if JOB.economy and jobName then
+				jobName = self:CategoryEconFilter(JOB.category,JOB.economy,jobName)
+			end
+			if jobName  then
+				utype = self.game:GetTypeByName(jobName)
+			end
+			if jobName and utype and not p then
+				utype, jobName, p = self:findPlace(utype, jobName,JOB.category,JOB.location)
+				self:EchoDebug('p',p)
+			end
+			if jobName and not utype   then
+				self:Warn('warning' , self.name , " cannot build:",jobName,", couldnt grab the unit type from the engine")
+				self.progress = true
+				return
+			end
+			if not self.unit:Internal():CanBuild(utype) then
+				self:EchoDebug("WARNING: bad taskque: ",self.name," cannot build ",jobName)
+				self.progress = true
+				return
+			end
+			if utype ~= nil and p ~= nil then
+				if type(jobName) == "table" and jobName[1] == "ReclaimEnemyMex" then
+					self:EchoDebug("reclaiming enemy mex...")
+					success = self.ai.tool:CustomCommand(self.unit:Internal(), CMD_RECLAIM, {jobName[2].unitID}) --TODO redo with shardify one
+					jobName = jobName[1]
+				else
+					self.ai.buildsitehst:NewPlan(jobName, p, self)
+					local facing = self.ai.buildsitehst:GetFacing(p)
+					success = self.unit:Internal():Build(utype, p, facing)
+				end
+			end
+			if success then
+				self:EchoDebug(self.name , " successful build command for ", utype:Name())
+				self.target = p
+				self.watchdogTimeout = math.max(self.ai.tool:Distance(self.unit:Internal():GetPosition(), p) * 1.5, 460)
+				self.currentProject = jobName
+				self.fails = 0
+				self.failOut = nil
 				self.progress = false
-				self:assist()
+				self.assistant = false
+				if jobName == "ReclaimEnemyMex" then
+					self.watchdogTimeout = self.watchdogTimeout + 450 -- give it 15 more seconds to reclaim it
+				end
+			else
+				self.progress = true
+				self.target = nil
+				self.currentProject = nil
+				self.fails = self.fails + 1
+				if self.fails >  #self.queue +1 then
+					self.failOut = self.game:Frame()
+					self.progress = false
+					self:assist()
+				end
 			end
 		end
 	end
@@ -594,12 +610,17 @@ end
 -- end
 
 function TaskQueueBST:VisualDBG()
+	if not self.visualdbg then
+		return
+	end
 	local colours = {
-		default = {255,0,0,255},
-		eco = {0,255,0,255},
-		support = {0,0,255,255},
-		expand = {255,255,255,255},
+		starter = {1,1,0,1},
+		default = {1,0,0,1},
+		eco = {0,1,0,1},
+		support = {0,0,1,1},
+		expand = {0,1,1,1},
 		}
-	self.unit:Internal():EraseHighlight(nil, self.id, 8 )
-	self.unit:Internal():DrawHighlight(colours[self.role] , self.id, 8 )
+	self.unit:Internal():EraseHighlight(nil, nil, 8 )
+	self.unit:Internal():DrawHighlight(colours[self.role] , self.role, 8 )
+
 end

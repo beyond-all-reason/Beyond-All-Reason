@@ -219,7 +219,7 @@ function TargetHST:setCellEnemyValues(enemy,CELL)
 				end
 			end
 		end
-		CELL.IM = CELL.MOBILE - CELL.IMMOBILE
+
 		CELL.unarmG = CELL.unarmGM + CELL.unarmGI
 		CELL.unarmA = CELL.unarmAM + CELL.unarmAI
 		CELL.unarmS = CELL.unarmSM + CELL.unarmSI
@@ -234,9 +234,20 @@ function TargetHST:setCellEnemyValues(enemy,CELL)
 		CELL.S_balance = CELL.armedS - CELL.unarmS
 		CELL.ENEMY = CELL.armed + CELL.unarm --TOTAL VALUE
 		CELL.ENEMY_BALANCE = CELL.armed - CELL.unarm
-	elseif enemy.view == 0 then --RADAR
-		CELL.ENEMY = CELL.ENEMY + 20 --(adjust for time or other param during game)
-		CELL.ENEMY_BALANCE = CELL.ENEMY_BALANCE - 20
+		CELL.IM = CELL.MOBILE - CELL.IMMOBILE
+	elseif enemy.view == 0 then --RADAR--TODO this need to be refined
+		local f = self.game:Frame()
+		local radarValue = 20 + f / 300
+		print('radarValue',radarValue)
+		CELL.ENEMY = CELL.ENEMY + radarValue --(adjust for time or other param during game)
+		CELL.ENEMY_BALANCE = CELL.ENEMY_BALANCE + radarValue
+		if enemy.SPEED > 0 then --TODO refine
+			CELL. IMMOBILE = CELL.IMMOBILE - radarValue
+			CELL. MOBILE = CELL.MOBILE + radarValue
+		else
+			CELL. IMMOBILE = CELL.IMMOBILE + radarValue
+			CELL. MOBILE = CELL.MOBILE - radarValue
+		end
 	elseif enemy.view == -1 then--HIDDEN
 		--hidden superflous for now
 	end
@@ -282,6 +293,8 @@ function TargetHST:Update()
 		self:UpdateMetalGeoSpots()
 		self:UpdateDamagedUnits()
 		self:UpdateBadPositions()
+		self:perifericalTarget()
+		self:enemyFront()
 		self:drawDBG()
 	end
 end
@@ -289,9 +302,6 @@ end
 function TargetHST:UpdateEnemies()
 
 	-- where is/are the party/parties tonight?
--- 	local highestValue = minNukeValue
--- 	local highestValueCell
-	--for unitID, e in pairs(self.ai.knownEnemies) do
 	self.enemyMexSpots = {}
 	for unitID, e in pairs(self.ai.loshst.knownEnemies) do
 		local los = e.los
@@ -324,6 +334,82 @@ function TargetHST:EnemiesCellsAnalisy() --MOVE TO TACTICALHST!!!
 		self.enemyBasePosition.y = Spring.GetGroundHeight(self.enemyBasePosition.x, self.enemyBasePosition.z)
 	end
 
+end
+
+function TargetHST:enemyFront()
+	self.enemyFrontCellsX = {}
+	self.enemyFrontCellsZ = {}
+	if not self.enemyBasePosition then
+		return
+	end
+
+	local base = self.enemyBasePosition
+	local basecell,baseX,baseZ = self:GetCellHere(base)
+
+	for i, G in pairs(self.ENEMYCELLS) do
+		local cell = self.CELLS[G.x][G.z]
+		if cell.IMMOBILE > 0 then
+			if not self.enemyFrontCellsX[G.x] then
+				self.enemyFrontCellsX[G.x] = G.z
+			end
+			if not self.enemyFrontCellsZ[G.z] then
+				self.enemyFrontCellsZ[G.z] = G.x
+			end
+			if math.abs(G.z,baseZ) > math.abs(self.enemyFrontCellsX[G.x],baseZ) then
+				self.enemyFrontCellsX[G.x] = G.z
+			end
+
+			if math.abs(G.x,baseX) > math.abs(self.enemyFrontCellsZ[G.z],baseX) then
+				self.enemyFrontCellsZ[G.z] = G.x
+			end
+		end
+	end
+	self.enemyFrontList = {}
+	for X,Z in pairs(self.enemyFrontCellsX) do
+		table.insert(self.enemyFrontList,self.CELLS[X][Z])
+	end
+	for Z,X in pairs(self.enemyFrontCellsZ) do
+		table.insert(self.enemyFrontList,self.CELLS[X][Z])
+	end
+end
+
+function TargetHST:perifericalTarget()
+	self.distals = {}
+	if not self.enemyBasePosition then
+		return
+	end
+	local base = self.enemyBasePosition
+	local distX = 0
+	local distZ = 0
+	local distXZ = 0
+	local tgX = 0
+	local tgZ = 0
+	local tgXZ = 0
+	for i, G in pairs(self.ENEMYCELLS) do
+		local cell = self.CELLS[G.x][G.z]
+		if cell.IM < 0 then
+			print('IM',cell.IM)
+			if math.abs(cell.pos.x - base.x) > distX then
+				distX = math.abs(cell.pos.x - base.x)
+				tgX = cell
+			end
+			if math.abs(cell.pos.z - base.z) > distZ then
+				distZ = math.abs(cell.pos.z - base.z)
+				tgZ = cell
+			end
+			if self.ai.tool:Distance(base,cell.pos) > distXZ then
+				distXZ = self.ai.tool:Distance(base,cell.pos)
+				tgXZ = cell
+			end
+		end
+	end
+	tgX.distalX = true
+	tgZ.distalZ = true
+	tgXZ.distalXZ = true
+	self.distals.tgX = tgX
+	self.distals.tgZ = tgZ
+	self.distals.tgXZ = tgXZ
+	return tgX,tgZ,tgXZ
 end
 
 function TargetHST:UpdateMetalGeoSpots()
@@ -464,6 +550,8 @@ function TargetHST:drawDBG()
 			g = {1,0,0,1},--'red'
 			a = {0,1,0,1},--'green'
 			s = {0,0,1,1},--'blue'
+			p = {0,1,1,1},
+			f = {1,1,0,1},
 			unbalance = {1,1,1,1},
 			balance = {0,0,0,1},
 
@@ -500,7 +588,26 @@ function TargetHST:drawDBG()
 		if cell.S > 0 then
 			map:DrawCircle(posS, cellElmosHalf/2, colours.s, cell.S, true, 4)
 		end
-		--map:DrawCircle(posB, cellElmosHalf/2, colours.s, cell.ENEMY_BALANCE, true, 4)
+-- 		if cell.distalX or cell.distalZ or cell.distalXZ then
+-- 			map:DrawCircle(posB, cellElmosHalf/2, colours.p, cell.IM, true, 4)
+-- 		end
+-- 		if cell.frontX then
+-- 			map:DrawCircle(posB, cellElmosHalf/2, colours.p, cell.IM, true, 4)
+-- 		end
+-- 		if cell.frontZ then
+-- 			map:DrawCircle(posB, cellElmosHalf/2, colours.f, cell.IM, true, 4)
+-- 		end
+
+	end
+-- 	for X,Z in pairs(self.enemyFrontCellsX) do
+-- 		map:DrawCircle(self.CELLS[X][Z].pos, cellElmosHalf/2, colours.f, 'frontX', true, 4)
+-- 	end
+-- 	for Z,X in pairs(self.enemyFrontCellsZ) do
+-- 		map:DrawCircle(self.CELLS[X][Z].pos, cellElmosHalf/2, colours.f, 'frontZ', true, 4)
+-- 	end
+
+	for i,cell in pairs(self.enemyFrontList) do
+		map:DrawCircle(cell.pos, cellElmosHalf/2, colours.f, 'front', true, 4)
 	end
 end
 

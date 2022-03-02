@@ -115,88 +115,121 @@ function ArmyHST:Init()
 		}
 
 	self.scouts = {
-
-		armflea = true,
 		armfav = true,
 		corfav = true,
+		armflea = true,
+		armfast = true,
+		armdecade = true,
+		coresupp = true,
+
+
 
 		}
 	self.raiders = {
-		armfast = true,
 		armflash = true,
+		corgator = true,
 		corak = true,
 		armpw = true,
 		armlatnk = true,
-		corgator = true,
 		corseal = true,
 		corpyro = true,
+		armzeus = true,
 		armsh = true,
 		corsh = true,
-		corcrus = true,
-		armcrus = true,
-		armdecade = true,
-		coresupp = true,
+		corsub = true,
+		armsub = true,
+		armsubk = true,
+		corshark = true,
+		armraz = true,
 		corkarg = true,
 
 		}
 	self.artillerys = {
 		armrock = true,
+		corstorm = true,
 		armart = true,
+		corwolv = true,
 		armfido = true,
 		cormort = true,
-		corhrk = true,
-		armmerl = true,
 		armmart = true,
-		corwolv = true,
-		armvang = true,
-		armmh = true,
-		cormh = true,
-		cormship = true,
-		armmship = true,
-		corcat = true,
-		corvroc = true,
-		cortrem = true,
 		cormart = true,
-
-		}
-	self.battles = {
-		armzeus = true,
-		armmav = true,
-		armham = true,
-		armstump = true,
-		correap = true,
-		armbull = true,
-		corraid = true,
-		corstorm = true,
-		corthud = true,
-		corcan = true,
-		armraz = true,
-		corsnap = true,
+		armvang = true,--t3a
+		corcat = true,--t3c
 		corbats = true,
 		armbats = true,
-		armpship = true,
+
+		--cortrem = true,
 		corjugg = true,
-		corban = true,
+
+		}
+	self.rocketers = {
+		armmerl = true,
+		corvroc = true, -- T2C
+-- 		corban = true,T2C
+		corhrk = true,
+		cormship = true,
+		armmship = true,
+		armmh = true,
+		cormh = true,
+		}
+
+	self.battles = {
+		armham = true,
+		corthud = true,
+		armstump = true,
+		corraid = true,
+		armmav = true,
+		corcan = true,
+		armbull = true,
+		correap = true,
+		armanac = true,--ha
+		corsnap = true,--hc
+		armpship = true,--t1a
+		corpship = true,--t1c
+		corcrus = true,
+		armcrus = true,
+		armbanth = true,--t3a
+
+
+
+		--corhal = true,
+
+
+
+
 
 		}
 	self.breaks = {
-
+		armwar = true,
 		armjanus = true,
 		corlevlr = true,
-		corgol = true,
 		armfboy = true,
-		armmanni = true,
-		corblackhy = true,
-		armepoch = true,
-		corthud = true,
 		corsumo = true,
-		armwar = true,
-		armbanth = true,
-		armanac = true,
-		corhal = true,
+		corgol = true,
+		armmanni = true,
+		armlun = true,--hover
+		corsok = true,--hover
 		armroy = true,
 		corroy = true,
-		corkorg = true,
+
+
+
+		corblackhy = true,
+		armepoch = true,
+		armthor = true, --t3a
+		corkorg = true,--t3c
+
+		}
+	self.amphibious = {
+		armpincer = true,
+		corparrow = true,
+		armcroc = true,
+		armamph = true,
+		corgarp = true,
+		coramph = true,
+		armmar = true,
+		corshiva = true,
+
 		}
 
 	self.spiders = {
@@ -211,12 +244,9 @@ function ArmyHST:Init()
 
 		}
 	self.subkillers = {
-		armsubk = true,
 		armserp = true,
-		corsub = true,
-		armsub = true,
 		corssub = true,
-		corshark = true,
+
 
 
 		} -- submarine weaponed
@@ -281,19 +311,6 @@ function ArmyHST:Init()
 		corcarry = true,
 		cormabm = true,
 		armscab = true,
-		}
-
-	self.amphibious = {
-		armpincer = true,
-		corparrow = true,
-		armcroc = true,
-		armamph = true,
-		corgarp = true,
-		coramph = true,
-		armmar = true,
-		armlun = true,
-		corshiva = true,
-		corsok = true,
 		}
 
 	self.crawlings = {
@@ -1122,6 +1139,7 @@ function ArmyHST:GetUnitTable()
 		-- 			Spring:Echo(unitDef.name)
 		local utable = self.unitTable[unitDef.name]
 		utable.name = unitDef.name
+		utable.humanName = unitDef.humanName
 		utable.side = side
 		utable.defId = unitDefID
 		utable.radarRadius = unitDef["radarRadius"]

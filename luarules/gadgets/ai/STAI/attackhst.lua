@@ -12,7 +12,7 @@ local floor = math.floor
 local ceil = math.ceil
 
 function AttackHST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.visualdbg = true
 	self.recruits = {}
 	self.squads = {}
@@ -50,7 +50,7 @@ function AttackHST:Update()
 				local value = cell.ENEMY
 				local threat = cell.armed
 				if (value == 0 and threat == 0) or threat > squad.totalThreat * self.fearFactor then
-					self:SquadReTarget(squad) -- get a new target, this one isn't valuable
+					self:SquadReTarget(squad,1) -- get a new target, this one isn't valuable
 				else
 					self:SquadNewPath(squad) -- see if there's a better way from the point we're going to
 				end
@@ -109,7 +109,8 @@ function AttackHST:DraftSquads()
 				end
 				if representative then
 					self:EchoDebug(mtype,self.squadID, "has representative and ", #squad.members, ' members')
-					local bestCell = self:targetCell(representative,nil,nil,squad)
+					--local bestCell = self:targetCell(representative,nil,nil,squad)
+					local bestCell = self:SquadReTarget(squad,0)
 
 					self.squads[self.squadID] = squad
 					self.squads[self.squadID].squadID = self.squadID
@@ -147,7 +148,7 @@ function AttackHST:squadsTargetCheck()
 	for squadid,squad in pairs(self.squads) do
 		self:EchoDebug('retarget',squadid,#squad.members)
 		if not squad.targetCell  then
-			self:SquadReTarget(squad, squadid)
+			self:SquadReTarget(squad,1)
 		end
 	end
 end
@@ -172,8 +173,8 @@ function AttackHST:squadsRoleCheck()
 	end
 end
 
-function AttackHST:SquadReTarget(squad)
-	self:EchoDebug('retarget' , squad.squadID)
+function AttackHST:SquadReTarget(squad,TYPE)
+	self:EchoDebug('retarget' , squad.squadID,TYPE)
 	local representativeBehaviour
 	local representative
 	for iu, member in pairs(squad.members) do
@@ -199,7 +200,7 @@ function AttackHST:SquadReTarget(squad)
 			local step = math.min(squad.pathStep+1, #squad.path)
 			position = squad.path[step].position
 		end
-		local bestCell =  self:targetCell(representative,nil,nil,squad)
+		local bestCell =  self:targetCell(representative,nil,nil,squad,TYPE)
 		if bestCell then
 			squad.targetPos = bestCell.pos
 			squad.targetCell = bestCell
@@ -229,9 +230,20 @@ function AttackHST:targetCell(representative, position, ourThreat,squad)
 	local bestTarget = nil
 	local bestDefense = 0
 	local bestDefCell = nil
-	local topDist = self.ai.tool:DistanceXZ(0,0, Game.mapSizeX, Game.mapSizeZ)
-	for i, G in pairs(self.ai.targethst.ENEMYCELLS) do
 
+	local topDist = self.ai.tool:DistanceXZ(0,0, Game.mapSizeX, Game.mapSizeZ)
+	if TYPE == 0 then
+		local first = self:getFrontCell(squad,representative)
+		if first then return first end
+	end
+
+	if TYPE == 1 then
+		local first = self:getFrontCell(squad,representative)
+		if first then return first end
+	end
+
+
+	for i, G in pairs(self.ai.targethst.ENEMYCELLS) do
 		local cell = self.ai.targethst.CELLS[G.x][G.z]
 		for squadIndex,squad in pairs(self.squads) do
 			if squad.targetCell == cell or not cell.pos then return end
@@ -248,8 +260,6 @@ function AttackHST:targetCell(representative, position, ourThreat,squad)
  				end
  			end
  		end
-
-
 		if cell.IMMOBILE > 0   then--squad.Role ~= defensive and
 			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
 				self:EchoDebug('cangohere')
@@ -269,6 +279,44 @@ function AttackHST:targetCell(representative, position, ourThreat,squad)
 		return bestTarget
 	end
 	self:EchoDebug('no target found for attackhst')
+end
+
+function AttackHST:getDistCell(squad,representative)
+	if not squad then return end
+	if not self.ai.targethst.distals then return end
+	local bestDist = math.huge
+	local bestTarget = nil
+	for i, cell in pairs(self.ai.targethst.distals) do
+		--local cell = self.ai.targethst.CELLS[G.x][G.z]
+		if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
+			local dist = self.ai.tool:Distance(cell.pos,representative:GetPosition())
+			if dist < bestDist  then
+				bestTarget = cell
+				bestDist = dist
+			end
+		end
+	end
+	self:EchoDebug('best distals Target',bestTarget)
+	return bestTarget
+end
+
+function AttackHST:getFrontCell(squad,representative)
+	if not squad then return end
+	if not self.ai.targethst.distals then return end
+	local bestDist = math.huge
+	local bestTarget = nil
+	for i, cell in pairs(self.ai.targethst.enemyFrontList) do
+		--local cell = self.ai.targethst.CELLS[G.x][G.z]
+		if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
+			local dist = self.ai.tool:Distance(cell.pos,representative:GetPosition())
+			if dist < bestDist  then
+				bestTarget = cell
+				bestDist = dist
+			end
+		end
+	end
+	self:EchoDebug('best distals Target',bestTarget)
+	return bestTarget
 end
 
 function AttackHST:SquadDisband(squad, squadIndex)
@@ -392,8 +440,23 @@ function AttackHST:SquadPathfind(squad, squadIndex)
 		self:SquadAdvance(squad)
 	elseif remaining == 0 then
 		squad.pathfinder = nil
-		self:SquadReTarget(squad, squadIndex)
+		self:SquadReTarget(squad,1)
 	end
+end
+
+function AttackHST:SquadPosition(squad)
+	self:EchoDebug('squad position')
+	local p = {x=0,z=0}
+	for i,member in pairs(squad.members) do
+		local uPos = member:GetPosition()
+		p.x = p.x + uPos.x
+		p.z = p.z + uPos.z
+	end
+	p.x = p.x / #squad.members
+	p.z = p.z / #squad.members
+	p.y = Spring.GetGroundHeight(p.x,p.z)
+	squad.position = p
+
 end
 
 function AttackHST:MemberIdle(attkbhvr, squad)
@@ -415,7 +478,7 @@ function AttackHST:SquadAdvance(squad)
 	self:EchoDebug('squad.pathStep',squad.pathStep,'#squad.path',#squad.path)
 	if squad.pathStep == #squad.path then
 		self:EchoDebug('advance retarget')
-		self:SquadReTarget(squad)
+		self:SquadReTarget(squad,1)
 		return
 	end
 	if squad.hasMovedOnce then
