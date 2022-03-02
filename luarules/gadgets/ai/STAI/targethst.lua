@@ -25,6 +25,7 @@ function TargetHST:Init()
 	self.pathModParam = 0.33
 	self.pathModifierFuncs = {}
 	self.enemyMexSpots = {}
+	self.enemyFrontList = {}
 end
 
 
