@@ -1345,6 +1345,7 @@ function widget:Initialize()
 
 		local weapons = unitDef.weapons
 		local myreloadTime = unitDef.reloadTime
+		unitDef.reloadTime = myreloadTime or 0
 		for i = 1, #weapons do
 			local WeaponDef = WeaponDefs[weapons[i].weaponDef]
 			if WeaponDef and WeaponDef.reload and unitDef.reloadTime and WeaponDef.reload > unitDef.reloadTime then
@@ -1356,8 +1357,8 @@ function widget:Initialize()
 		unitDefHeights[udefID] = unitDef.height
 		if unitDef.reloadTime then unitDefReload[udefID] = unitDef.reloadTime end
 		if unitDef.canStockpile then unitDefCanStockpile[udefID] = unitDef.canStockpile end
+		if debugmode then Spring.Echo("Unit with watched reload time:", unitDef.name, myreloadTime,minReloadTime,unitDef.reloadTime) end
 		if myreloadTime and myreloadTime > minReloadTime then
-			--Spring.Echo("Unit with watched reload time:", unitDef.name, myreloadTime)
 			unitDefReload[udefID] = myreloadTime
 		end
 		if unitDef.hideDamage == true then
