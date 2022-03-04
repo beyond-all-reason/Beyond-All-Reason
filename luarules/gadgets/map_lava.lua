@@ -1,9 +1,9 @@
 function gadget:GetInfo()
   return {
-    name      = "Lava Gadget 2.3",
+    name      = "Map Lava Gadget 2.4",
     desc      = "lava",
-    author    = "knorke, Beherith, The_Yak, Anarchid, Kloot, Gajop, ivand",
-    date      = "Feb 2011, Nov 2013",
+    author    = "knorke, Beherith, The_Yak, Anarchid, Kloot, Gajop, ivand, Damgam",
+    date      = "Feb 2011, Nov 2013, 2022!",
     license   = "GNU GPL, v2 or later",
     layer     = -3,
     enabled   = true
@@ -100,7 +100,9 @@ function lavaDeathCheck ()
 		if (y ~= nil) then
 			if (y and y < lavaLevel) then
 				--This should be in config file to change damage + effects/cegs
-				Spring.AddUnitDamage (all_units[i], 100, 0, Spring.GetGaiaTeamID(), 1) 
+				-- local health, maxhealth = Spring.GetUnitHealth(all_units[i])
+				-- Spring.AddUnitDamage (all_units[i], health - maxhealth*0.033, 0, Spring.GetGaiaTeamID(), 1) 
+				Spring.AddUnitDamage (all_units[i], lavaDamage, 0, Spring.GetGaiaTeamID(), 1) 
 				--Spring.DestroyUnit (all_units[i], true, false, Spring.GetGaiaTeamID())
 				Spring.SpawnCEG("lavadamage", x, y+5, z)
 			end
@@ -111,14 +113,13 @@ function lavaDeathCheck ()
 		x,y,z = Spring.GetFeaturePosition(all_features[i])
 		if (y ~= nil) then
 			if (y and y < lavaLevel) then
-				
-				local featureHealth, featureMaxHealth = Spring.GetFeatureHealth(all_features[i])
-				if featureHealth and featureHealth < 0 then
+				local reclaimLeft = select(5, Spring.GetFeatureResources (all_features[i]))
+				if reclaimLeft <= 0 then
 					Spring.DestroyFeature(all_features[i])
 					Spring.SpawnCEG("lavadamage", x, y+5, z)
-				elseif featureHealth then
-					local newHealth = featureHealth - (featureMaxHealth*0.033)
-					Spring.SetFeatureHealth (all_features[i], newHealth)
+				else
+					local newReclaimLeft = reclaimLeft - 0.033
+					Spring.SetFeatureReclaim (all_features[i], newReclaimLeft)
 					Spring.SpawnCEG("lavadamage", x, y+5, z)
 				end
 			end
