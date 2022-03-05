@@ -7,6 +7,7 @@ addTideRhym(HeightLevel, Speed, Delay for next TideRhym in seconds)
 
 if string.find(mapName, "quicksilver") then
     lavaMap = true
+    lavaMinHeight = 137 -- minheight of map smf - otherwise will use 0
     if (gadgetHandler:IsSyncedCode()) then
         lavaLevel = 220
         lavaGrow = 0.25
@@ -23,6 +24,19 @@ if string.find(mapName, "quicksilver") then
 end
 
 ]]
+
+-- if string.find(mapName, "incandescence") then
+--     lavaMap = true
+--     lavaMinHeight = 137 -- minheight of map smf - otherwise will use 0
+
+--     if (gadgetHandler:IsSyncedCode()) then
+--         lavaLevel = 210 -- pre-game lava level
+--         lavaGrow = 0.25
+--         lavaDamage = 100 -- damage per second
+
+--         addTideRhym (209, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
+--     end
+-- end
 
 if string.find(mapName, "hotstepper") then
     lavaMap = true
