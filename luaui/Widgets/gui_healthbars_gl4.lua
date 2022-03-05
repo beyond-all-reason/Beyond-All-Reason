@@ -351,11 +351,8 @@ local featureHealthVBO
 local featureResurrectVBO
 local featureReclaimVBO
 
-local minUiScale = 0.8    -- FIXME: Get these values from "Options" widget, respectively min and max value from 'uiscale'
-local maxUiScale = 1.15
-local nMinScale = 0.9     -- Transpose and scale linearly default scale for healthbars
-local nMaxScale = 1.5
-local ui_scale
+local barScale = 1 -- Option 'healthbarsscale'
+local variableBarSizes = true -- Option 'healthbarsvariable'
 
 --local resurrectableFeaturesFast = {} -- value is  this is for keeping an eye on resurrectable features, maybe store resurrect progress here?
 --local resurrectableFeaturesSlow = {} -- this is for keeping an eye on resurrectable features, maybe store resurrect progress here?
@@ -981,11 +978,9 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	--else
 	unitBars[unitID] = unitBars[unitID] + 1
 	--end -- to keep these on top
-  local nFactor = (nMaxScale - nMinScale) / (maxUiScale - minUiScale)
-  local nScale = nFactor * ui_scale + nMinScale - nFactor * minUiScale
 
 	healthBarTableCache[1] = unitDefHeights[unitDefID] + additionalheightaboveunit  -- height
-	healthBarTableCache[2] = (unitDefSizeMultipliers[unitDefID] or 1.0) * nScale -- sizemult
+	healthBarTableCache[2] = ((variableBarSizes and unitDefSizeMultipliers[unitDefID]) or 1.0) * barScale
 	healthBarTableCache[3] = 0.0 -- unused
 	healthBarTableCache[4] = bt.uvoffset -- glyph uv offset
 
@@ -1017,7 +1012,6 @@ end
 local uniformcache = {0.0}
 
 local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason) -- TODO, actually, we need to check for all of these for stuff entering LOS
-	ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then
 		if debugmode then Spring.Echo("Tried to add a bar to a dead or invalid unit", unitID, "at", Spring.GetUnitPosition(unitID), reason) end
@@ -1340,6 +1334,22 @@ end
 
 
 function widget:Initialize()
+	WG['healthbars'] = {}
+	WG['healthbars'].getScale = function()
+		return barScale
+	end
+	WG['healthbars'].setScale = function(value)
+		barScale = value
+		init()
+	end
+	WG['healthbars'].getVariableSizes = function()
+		return variableBarSizes
+	end
+	WG['healthbars'].setVariableSizes = function(value)
+		variableBarSizes = value
+		init()
+	end
+
 	initGL4()
 	-- Walk through unitdefs for the stuff we need:
 	for udefID, unitDef in pairs(UnitDefs) do
@@ -1365,6 +1375,7 @@ function widget:Initialize()
 			end
 		end
 		unitDefHeights[udefID] = unitDef.height
+		unitDefSizeMultipliers[udefID] = math.min(1.45, math.max(0.85, (Spring.GetUnitDefDimensions(udefID).radius / 150) + math.min(0.6, unitDef.power / 4000))) + math.min(0.6, unitDef.health / 22000)
 		if unitDef.reloadTime then unitDefReload[udefID] = unitDef.reloadTime end
 		if unitDef.canStockpile then unitDefCanStockpile[udefID] = unitDef.canStockpile end
 		if debugmode then Spring.Echo("Unit with watched reload time:", unitDef.name, myreloadTime,minReloadTime,unitDef.reloadTime) end
