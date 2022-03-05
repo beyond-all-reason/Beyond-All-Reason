@@ -320,6 +320,7 @@ local spec, fullview = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
+local GetUnitWeaponState = Spring.GetUnitWeaponState
 
 local spIsGUIHidden				= Spring.IsGUIHidden
 local chobbyInterface
@@ -330,6 +331,7 @@ local unitDefCanStockpile = {} -- 0/1?
 local unitDefReload = {} -- value is max reload time
 local unitDefHeights = {} -- maps unitDefs to height
 local unitDefHideDamage = {}
+local unitDefPrimaryWeapon = {} -- the index for reloadable weapon on unitdef weapons
 
 local unitBars = {} -- we need this additional table of {[unitID] = {barhealth, barrez, barreclaim}}
 local unitEmpWatch = {}
@@ -350,6 +352,10 @@ local minReloadTime = 4 -- weapons reloading slower than this willget bars
 local featureHealthVBO
 local featureResurrectVBO
 local featureReclaimVBO
+
+local barScale = 1 -- Option 'healthbarsscale'
+local variableBarSizes = true -- Option 'healthbarsvariable'
+
 --local resurrectableFeaturesFast = {} -- value is  this is for keeping an eye on resurrectable features, maybe store resurrect progress here?
 --local resurrectableFeaturesSlow = {} -- this is for keeping an eye on resurrectable features, maybe store resurrect progress here?
 --local reclaimableFeaturesSlow = {} -- for faster updates of features being reclaimed/rezzed
@@ -975,9 +981,8 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	unitBars[unitID] = unitBars[unitID] + 1
 	--end -- to keep these on top
 
-
 	healthBarTableCache[1] = unitDefHeights[unitDefID] + additionalheightaboveunit  -- height
-	healthBarTableCache[2] = unitDefSizeMultipliers[unitDefID] or 1.0 -- sizemult
+	healthBarTableCache[2] = ((variableBarSizes and unitDefSizeMultipliers[unitDefID]) or 1.0) * barScale
 	healthBarTableCache[3] = 0.0 -- unused
 	healthBarTableCache[4] = bt.uvoffset -- glyph uv offset
 
@@ -1009,6 +1014,7 @@ end
 local uniformcache = {0.0}
 
 local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason) -- TODO, actually, we need to check for all of these for stuff entering LOS
+
 	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then
 		if debugmode then Spring.Echo("Tried to add a bar to a dead or invalid unit", unitID, "at", Spring.GetUnitPosition(unitID), reason) end
 		return
@@ -1032,6 +1038,20 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 		--Spring.Echo("hasshield")
 		addBarForUnit(unitID, unitDefID, "shield", reason)
 		unitShieldWatch[unitID] = -1.0
+	end
+
+	if unitDefReload[unitDefID] then
+		_, reloaded, reloadFrame = GetUnitWeaponState(unitID, unitDefPrimaryWeapon[unitDefID] or 1)
+		local reloadTime = unitDefReload[unitDefID]
+
+		if reloaded == false then -- and gf < reloadFrame + 30 * reloadTime then
+			addBarForUnit(unitID, unitDefID, "reload", reason)
+
+			uniformcache[1] = reloadFrame - 30 * reloadTime
+			gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
+			uniformcache[1] = reloadFrame
+			gl.SetUnitBufferUniforms(unitID, uniformcache, 3)
+		end
 	end
 
 	if health ~= nil then
@@ -1132,7 +1152,7 @@ local function addBarToFeature(featureID,  barname)
 	pushElementInstance(
 		targetVBO, -- push into this Instance VBO Table
 			{featureDefHeights[featureDefID] + additionalheightaboveunit,  -- height
-			1.0, -- size mult
+			1.0 * barScale, -- size mult
 			0, -- timer end
 			bt.uvoffset, -- unused float
 
@@ -1330,6 +1350,24 @@ end
 
 
 function widget:Initialize()
+	WG['healthbars'] = {}
+	WG['healthbars'].getScale = function()
+		return barScale
+	end
+	WG['healthbars'].setScale = function(value)
+		barScale = value
+		init()
+		initfeaturebars()
+	end
+	WG['healthbars'].getVariableSizes = function()
+		return variableBarSizes
+	end
+	WG['healthbars'].setVariableSizes = function(value)
+		variableBarSizes = value
+		init()
+		initfeaturebars()
+	end
+
 	initGL4()
 	-- Walk through unitdefs for the stuff we need:
 	for udefID, unitDef in pairs(UnitDefs) do
@@ -1344,22 +1382,23 @@ function widget:Initialize()
 		end
 
 		local weapons = unitDef.weapons
-		local myreloadTime = unitDef.reloadTime
-		unitDef.reloadTime = myreloadTime or 0
+		local reloadTime = unitDef.reloadTime or 0
+		local primaryWeapon = 1
 		for i = 1, #weapons do
 			local WeaponDef = WeaponDefs[weapons[i].weaponDef]
-			if WeaponDef and WeaponDef.reload and unitDef.reloadTime and WeaponDef.reload > unitDef.reloadTime then
-				unitDef.reloadTime = WeaponDef.reload
-				unitDef.primaryWeapon = i
-				myreloadTime = unitDef.reloadTime
+			if WeaponDef and WeaponDef.reload and WeaponDef.reload > reloadTime then
+				reloadTime = WeaponDef.reload
+				primaryWeapon = i
 			end
 		end
 		unitDefHeights[udefID] = unitDef.height
-		if unitDef.reloadTime then unitDefReload[udefID] = unitDef.reloadTime end
+		unitDefSizeMultipliers[udefID] = math.min(1.45, math.max(0.85, (Spring.GetUnitDefDimensions(udefID).radius / 150) + math.min(0.6, unitDef.power / 4000))) + math.min(0.6, unitDef.health / 22000)
 		if unitDef.canStockpile then unitDefCanStockpile[udefID] = unitDef.canStockpile end
-		if debugmode then Spring.Echo("Unit with watched reload time:", unitDef.name, myreloadTime,minReloadTime,unitDef.reloadTime) end
-		if myreloadTime and myreloadTime > minReloadTime then
-			unitDefReload[udefID] = myreloadTime
+		if reloadTime and reloadTime > minReloadTime then
+			if debugmode then Spring.Echo("Unit with watched reload time:", unitDef.name, reloadTime, minReloadTime) end
+
+			unitDefReload[udefID] = reloadTime
+			unitDefPrimaryWeapon[udefID] = primaryWeapon
 		end
 		if unitDef.hideDamage == true then
 			unitDefHideDamage[udefID] = true
@@ -1568,6 +1607,18 @@ function widget:FeatureCreated(featureID)
 		--Spring.Echo(FeatureDefs[featureDefID].name)
 		featureBars[featureID] = 0
 		addBarToFeature(featureID, 'featurehealth')
+
+		_, _, rezProgress = Spring.GetFeatureHealth(featureID)
+
+		if rezProgress > 0 then
+			addBarToFeature(featureID, 'featureresurrect')
+		end
+
+		_, _, _, _, reclaimLeft = Spring.GetFeatureResources(featureID)
+
+		if reclaimLeft < 1.0 then
+			addBarToFeature(featureID, 'featurereclaim')
+		end
 	end
 end
 
@@ -1629,12 +1680,15 @@ function widget:TextCommand(command)
 end
 
 function widget:GetConfigData(data)
-	--return {onlyShowOwnTeam = onlyShowOwnTeam}
+	return {
+		barScale = barScale,
+		variableBarSizes = variableBarSizes
+	}
 end
 
 function widget:SetConfigData(data)
-	--if data.onlyShowOwnTeam ~= nil then
-	--	onlyShowOwnTeam = data.onlyShowOwnTeam
-	--end
+	barScale = data.barScale or barScale
+	if data.variableBarSizes ~= nil then
+		variableBarSizes = data.variableBarSizes
+	end
 end
-
