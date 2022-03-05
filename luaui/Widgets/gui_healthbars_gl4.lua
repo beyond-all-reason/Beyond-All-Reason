@@ -1607,6 +1607,18 @@ function widget:FeatureCreated(featureID)
 		--Spring.Echo(FeatureDefs[featureDefID].name)
 		featureBars[featureID] = 0
 		addBarToFeature(featureID, 'featurehealth')
+
+		_, _, rezProgress = Spring.GetFeatureHealth(featureID)
+
+		if rezProgress > 0 then
+			addBarToFeature(featureID, 'featureresurrect')
+		end
+
+		_, _, _, _, reclaimLeft = Spring.GetFeatureResources(featureID)
+
+		if reclaimLeft < 1.0 then
+			addBarToFeature(featureID, 'featurereclaim')
+		end
 	end
 end
 
@@ -1668,12 +1680,15 @@ function widget:TextCommand(command)
 end
 
 function widget:GetConfigData(data)
-	--return {onlyShowOwnTeam = onlyShowOwnTeam}
+	return {
+		barScale = barScale,
+		variableBarSizes = variableBarSizes
+	}
 end
 
 function widget:SetConfigData(data)
-	--if data.onlyShowOwnTeam ~= nil then
-	--	onlyShowOwnTeam = data.onlyShowOwnTeam
-	--end
+	barScale = data.barScale or barScale
+	if data.variableBarSizes ~= nil then
+		variableBarSizes = data.variableBarSizes
+	end
 end
-
