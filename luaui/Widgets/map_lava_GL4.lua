@@ -35,11 +35,11 @@ local shaderConfig = {
 	vertex_displacement = 0, 
 	HEIGHTOFFSET = 2.0, 
 	COASTWIDTH = 20.0,
-	WORLDUVSCALE = 8.0,
+	WORLDUVSCALE = 4.0,
 	COASTCOLOR = "vec3(2.0, 0.5, 0.0)",
 	SPECULAREXPONENT = 64.0, 
 	SPECULARSTRENGTH = 1.0, 
-	LOSDARKNESS = 0.4,
+	LOSDARKNESS = 0.5,
 }
 
 local vsSrc = [[
