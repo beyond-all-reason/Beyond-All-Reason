@@ -273,11 +273,11 @@ function widget:DrawWorldPreUnit()
 		if not isPaused then 
 			local camX, camY, camZ = Spring.GetCameraDirection()
 			local camvlength = math.sqrt(camX*camX + camZ *camZ + 0.01)
-			local fps = Spring.GetFPS()
+			local fps = math.max(Spring.GetFPS(), 15)
 			heatdistortx = heatdistortx - camX / (camvlength * fps)
 			heatdistortz = heatdistortz - camZ / (camvlength * fps)
 		end
-		--Spring.Echo(camX, camZ, heatdistortx, heatdistortz)
+		--Spring.Echo(camX, camZ, heatdistortx, heatdistortz,gameSpeed, isPaused)
 
 		lavaShader:Activate()
 		lavaShader:SetUniform("lavaHeight",lavalevel)
