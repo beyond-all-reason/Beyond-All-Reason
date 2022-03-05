@@ -226,6 +226,7 @@ function GenEnvLut:Execute(saveDebug)
 					local gf = Spring.GetGameFrame()
 					gl.SaveImage(0, 0, 3, 3, string.format("envLut_%s.png", gf))
 				end
+				gl.Blending(true)
 			end)
 		gl.UseShader(0)
 		gl.Texture(7, false)
