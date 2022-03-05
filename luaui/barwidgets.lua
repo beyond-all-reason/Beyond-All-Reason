@@ -174,7 +174,7 @@ local callInLists = {
 	'LanguageChanged',
 	'VisibleUnitAdded',
 	'VisibleUnitRemoved',
-	'VisibleUnitsChanged'
+	'VisibleUnitsChanged',
 	'AlliedUnitAdded',
 	'AlliedUnitRemoved',
 	'AlliedUnitsChanged'
