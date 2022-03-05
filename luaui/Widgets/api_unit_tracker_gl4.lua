@@ -389,7 +389,9 @@ function widget:GameFrame()
 			Scream("cntvisibleunits ~= numVisibleUnits " .. tostring(cntvisibleunits) .. " vs " .. tostring(numVisibleUnits))
 		end
 		
-		locateInvalidUnits(unitTrackerVBO)
+		if drawdebugvisible then 
+			locateInvalidUnits(unitTrackerVBO)
+		end
 		
 		local cntalliedunits = 0
 		for unitID, unitDefID in pairs(alliedUnits) do 
