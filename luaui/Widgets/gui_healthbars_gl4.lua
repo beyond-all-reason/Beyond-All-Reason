@@ -350,6 +350,13 @@ local minReloadTime = 4 -- weapons reloading slower than this willget bars
 local featureHealthVBO
 local featureResurrectVBO
 local featureReclaimVBO
+
+local minUiScale = 0.8    -- FIXME: Get these values from "Options" widget, respectively min and max value from 'uiscale'
+local maxUiScale = 1.15
+local nMinScale = 0.9     -- Transpose and scale linearly default scale for healthbars
+local nMaxScale = 1.5
+local ui_scale
+
 --local resurrectableFeaturesFast = {} -- value is  this is for keeping an eye on resurrectable features, maybe store resurrect progress here?
 --local resurrectableFeaturesSlow = {} -- this is for keeping an eye on resurrectable features, maybe store resurrect progress here?
 --local reclaimableFeaturesSlow = {} -- for faster updates of features being reclaimed/rezzed
@@ -974,10 +981,11 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	--else
 	unitBars[unitID] = unitBars[unitID] + 1
 	--end -- to keep these on top
-
+  local nFactor = (nMaxScale - nMinScale) / (maxUiScale - minUiScale)
+  local nScale = nFactor * ui_scale + nMinScale - nFactor * minUiScale
 
 	healthBarTableCache[1] = unitDefHeights[unitDefID] + additionalheightaboveunit  -- height
-	healthBarTableCache[2] = unitDefSizeMultipliers[unitDefID] or 1.0 -- sizemult
+	healthBarTableCache[2] = (unitDefSizeMultipliers[unitDefID] or 1.0) * nScale -- sizemult
 	healthBarTableCache[3] = 0.0 -- unused
 	healthBarTableCache[4] = bt.uvoffset -- glyph uv offset
 
@@ -1009,6 +1017,8 @@ end
 local uniformcache = {0.0}
 
 local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason) -- TODO, actually, we need to check for all of these for stuff entering LOS
+	ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+
 	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then
 		if debugmode then Spring.Echo("Tried to add a bar to a dead or invalid unit", unitID, "at", Spring.GetUnitPosition(unitID), reason) end
 		return
