@@ -134,7 +134,11 @@ local function executeStartBoxProtection(n) -- Capture
 			local unitID = list[i]
 			local unitTeam = Spring.GetUnitTeam(unitID)
 			if unitTeam == Spring.GetGaiaTeamID() then
-				Spring.TransferUnit(unitID, ScavengerTeamID, false)
+				Spring.DestroyUnit(unitID, true, true)
+				Spring.SpawnCEG("scavradiation-lightning",posx-64,posy+40,posz,0,0,0)
+				Spring.SpawnCEG("scavradiation-lightning",posx+64,posy+40,posz,0,0,0)
+				Spring.SpawnCEG("scavradiation-lightning",posx,posy+40,posz-64,0,0,0)
+				Spring.SpawnCEG("scavradiation-lightning",posx,posy+40,posz+64,0,0,0)
 			elseif unitTeam ~= ScavengerTeamID then
 				local currentHealth,maxHealth = Spring.GetUnitHealth(unitID)
 				local damage = maxHealth*(ScavSafeAreaDamage*0.01)

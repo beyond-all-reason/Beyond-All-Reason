@@ -11,7 +11,7 @@ if string.find(mapName, "quicksilver") then
         lavaLevel = 220
         lavaGrow = 0.25
         lavaDamage = 100
-
+        
         addTideRhym (-21, 0.25, 5*10)
         addTideRhym (150, 0.25, 3)
         addTideRhym (-20, 0.25, 5*10)
