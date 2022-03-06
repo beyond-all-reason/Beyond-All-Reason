@@ -35,18 +35,7 @@ VFS.Include(luaShaderDir.."instancevbotable.lua") -- we are only gonna use the p
 
 
 local elmosPerSquare = 256 -- larger numbers are lower resolution 
-local lavashaderConfig = {
-	vertex_displacement = 0, 
-	HEIGHTOFFSET = 2.0, 
-	COASTWIDTH = 20.0,
-	WORLDUVSCALE = 4.0,
-	COASTCOLOR = "vec3(2.0, 0.5, 0.0)",
-	SPECULAREXPONENT = 64.0, 
-	SPECULARSTRENGTH = 1.0, 
-	LOSDARKNESS = 0.5,
-}
-
-local foglightShaderConfig = {
+local unifiedShaderConfig = {
 	vertex_displacement = 0, 
 	HEIGHTOFFSET = 2.0, 
 	COASTWIDTH = 20.0,
@@ -60,6 +49,7 @@ local foglightShaderConfig = {
 	FOGFACTOR = 0.1,
 	EXTRALIGHTCOAST = 0.4,
 }
+
 
 local lavaVSSrc = [[
 #version 420
@@ -427,8 +417,8 @@ function widget:Initialize()
 	lavaFSSrc = lavaFSSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	
 	lavaShader = LuaShader({
-		vertex = lavaVSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(lavashaderConfig)),
-		fragment = lavaFSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(lavashaderConfig)),
+		vertex = lavaVSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unifiedShaderConfig)),
+		fragment = lavaFSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unifiedShaderConfig)),
 		uniformInt = {
 			heightmapTex = 0,
 			lavaDiffuseEmit = 1,
@@ -448,8 +438,8 @@ function widget:Initialize()
 	fogLightVSSrc = fogLightVSSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	foglightFSSrc = foglightFSSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	foglightShader = LuaShader({
-		vertex = fogLightVSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(foglightShaderConfig)),
-		fragment = foglightFSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(foglightShaderConfig)),
+		vertex = fogLightVSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unifiedShaderConfig)),
+		fragment = foglightFSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unifiedShaderConfig)),
 		uniformInt = {
 			--heightmapTex = 0,
 			mapDepths = 0,
