@@ -5,7 +5,7 @@ function widget:GetInfo()
     author    = "Beherith",
     date      = "2022.03.04",
     license   = "Lua: GNU GPL, v2 or later, GLSL: (c) Beherith (mysterme@gmail.com)",
-    layer     = -3,
+    layer     = 500000,
     enabled   = false
   }
 end
@@ -13,12 +13,17 @@ end
 local lavaDiffuseEmit = ":l:LuaUI/images/lava2_diffuseemit.tga" -- pack emissiveness into alpha channel (this is also used as heat for distortion)
 local lavaNormalHeight = ":l:LuaUI/images/lava2_normalheight.tga"
 local lavaDistortion = ":l:LuaUI/images/lavadistortion.png"
-local heightTex = "$heightmap"
-local mapthdepthbuffer
 
 local lavaShader 
 local lavaPlaneVAO
 local lavalevel = 50
+
+local foglightShader
+local foglightVAO
+local numfoglightVerts
+
+local foglightenabled = true
+local fogheightabovelava = 50
 
 local heatdistortx = 0
 local heatdistortz = 0
@@ -29,9 +34,8 @@ local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua") -- we are only gonna use the plane maker func of this
 
 
-
 local elmosPerSquare = 256 -- larger numbers are lower resolution 
-local shaderConfig = {
+local lavashaderConfig = {
 	vertex_displacement = 0, 
 	HEIGHTOFFSET = 2.0, 
 	COASTWIDTH = 20.0,
@@ -42,7 +46,22 @@ local shaderConfig = {
 	LOSDARKNESS = 0.5,
 }
 
-local vsSrc = [[
+local foglightShaderConfig = {
+	vertex_displacement = 0, 
+	HEIGHTOFFSET = 2.0, 
+	COASTWIDTH = 20.0,
+	WORLDUVSCALE = 4.0,
+	COASTCOLOR = "vec3(2.0, 0.5, 0.0)",
+	SPECULAREXPONENT = 64.0, 
+	SPECULARSTRENGTH = 1.0, 
+	LOSDARKNESS = 0.5,
+	FOGHEIGHTABOVELAVA = fogheightabovelava,
+	FOGCOLOR = "vec3(2.0, 0.5, 0.0)",
+	FOGFACTOR = 0.1,
+	EXTRALIGHTCOAST = 0.4,
+}
+
+local lavaVSSrc = [[
 #version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
@@ -95,7 +114,7 @@ void main() {
 }
 ]]
 
-local fsSrc =  [[
+local lavaFSSrc =  [[
 #version 330
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
@@ -220,6 +239,169 @@ void main() {
 }
 ]]
 
+
+local fogLightVSSrc = [[
+#version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shader_storage_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+#line 10000
+layout (location = 0) in vec2 planePos;
+
+uniform float lavaHeight;
+
+out DataVS {
+	vec4 worldPos;
+	vec4 worldUV;
+	float inboundsness;
+};
+//__DEFINES__
+//__ENGINEUNIFORMBUFFERDEFS__
+
+#line 11000
+
+const vec2 inverseMapSize = 1.0 / mapSize.xy;
+
+float rand(vec2 co){ // a pretty crappy random function
+    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+void main() {
+	// mapSize.xy is the actual map size, 
+	//place the vertices into the world:
+	worldPos.y = lavaHeight;
+	worldPos.w = 1.0;
+	worldPos.xz =  (1.5 * planePos +0.5) * mapSize.xy; 
+	
+	// pass the world-space UVs out
+	float mapratio = mapSize.y / mapSize.x;
+	worldUV.xy = (1.5 * planePos +0.5);
+	worldUV.y *= mapratio;
+	
+	float gametime = (timeInfo.x + timeInfo.w) * 0.006666;
+	
+	vec4 randpervertex = vec4(rand(worldPos.xz), rand(worldPos.xz * vec2(17.876234, 9.283)), rand(worldPos.xz + gametime + 2.0), rand(worldPos.xz + gametime + 3.0));
+	worldUV.zw = sin(randpervertex.xy + gametime * (0.5 + randpervertex.xy));
+
+	// -- MAP OUT OF BOUNDS
+	vec2 mymin = min(worldPos.xz, mapSize.xy  - worldPos.xz) * inverseMapSize;
+	inboundsness = min(mymin.x, mymin.y);
+
+	// Assign world position:
+	gl_Position = cameraViewProj * worldPos;
+}
+]]
+
+local foglightFSSrc =  [[
+#version 330
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+
+#line 20000
+
+uniform float lavaHeight;
+uniform float heatdistortx;
+uniform float heatdistortz;
+
+uniform sampler2D mapDepths;
+uniform sampler2D modelDepths;
+uniform sampler2D lavaDistortion;
+//uniform sampler2D mapNormals;
+//uniform sampler2D modelNormals;
+
+in DataVS {
+	vec4 worldPos;
+	vec4 worldUV;
+	float inboundsness;
+};
+
+//__ENGINEUNIFORMBUFFERDEFS__
+//__DEFINES__
+
+const vec2 inverseMapSize = 1.0 / mapSize.xy;
+
+
+
+out vec4 fragColor;
+
+#line 22000
+
+
+void main() {
+	
+	vec4 camPos = cameraViewInv[3];
+	 
+	
+	// Sample emissive as heat indicator here for later displacement
+	vec4 nodiffuseEmit =  vec4(0.0);//texture(lavaDiffuseEmit, worldUV.xy * WORLDUVSCALE );
+	
+	vec2 rotatearoundvertices = worldUV.zw * 0.003;
+
+	// Calculate how far the fragment is from the coast
+	// We shift the distortion texture camera-upwards according to the uniforms that got passed in
+	vec2 camshift =  vec2(heatdistortx, heatdistortz) * 0.01;
+	vec4 distortionTexture = texture(lavaDistortion, (worldUV.xy * 22.0  + camshift)) ;
+	
+	//Get the fragment depth 
+	// note that WE CANT GO LOWER THAN THE ACTUAL LAVA LEVEL!
+	
+	vec2 screenUV = gl_FragCoord.xy/ viewGeometry.xy;
+	
+	float mapdepth = texture(mapDepths, screenUV).x;
+	float modeldepth = texture(modelDepths, screenUV).x;
+	
+	// we need to get the world position of each depth fragment... 
+	// the W weight factor here is incorrect, as it comes from the depth buffers, and not the fragments own depth.
+	
+	mapdepth = min(mapdepth, modeldepth); // choose map or model
+	
+	vec4 mapWorldPos =  vec4(  vec3(screenUV.xy * 2.0 - 1.0, mapdepth),  1.0);
+	mapWorldPos = cameraViewProjInv * mapWorldPos;
+	mapWorldPos.xyz = mapWorldPos.xyz/ mapWorldPos.w; // YAAAY this works!
+	float origmapy = mapWorldPos.y;
+	
+	// clip mapWorldPos according to true lava height
+	if (mapWorldPos.y< lavaHeight - FOGHEIGHTABOVELAVA) {
+		// we need to make a vector from cam to fogplane position
+		vec3 camtofogplane = mapWorldPos.xyz - camPos.xyz;
+		camtofogplane = 50* camtofogplane /abs(camtofogplane.y);
+		mapWorldPos.xyz = worldPos.xyz + camtofogplane;
+	}
+	
+	const float normalizingfactor = 4.0;
+	float fogdistort = (normalizingfactor + distortionTexture.x + distortionTexture.y)/ normalizingfactor ;
+	
+	float actualfogdepth = length(mapWorldPos.xyz - worldPos.xyz) ;
+	
+	float fogAmount = 1.0 - exp2(- FOGFACTOR * FOGFACTOR * actualfogdepth  * 0.5);
+	
+	fogAmount *= fogdistort;
+	
+	// ok good, lets add some extra brigtness near the coasts!
+	float disttocoast = abs(origmapy- (lavaHeight - FOGHEIGHTABOVELAVA - HEIGHTOFFSET));
+	
+	float extralightcoast =  clamp(1.0 - disttocoast * 0.05, 0.0, 1.0);
+	extralightcoast = pow(extralightcoast, 3.0) * EXTRALIGHTCOAST;
+	
+	fogAmount += extralightcoast;
+	
+	
+	//fragColor.rgb = mapnormal.xyz; // ok good normals works
+	//fragColor.rgb = fract(vec3(mapdepth) * 0.01);
+	
+	//fragColor.rgb = fract(vec3(gl_FragCoord.z * 11.1 )); // good this works too
+	//fragColor.rgb = fract(mapWorldPos.xyz * 0.02);
+	fragColor.rgb = FOGCOLOR;
+	fragColor.a = fogAmount;
+	
+	fragColor.a *= clamp(  inboundsness * 2.0 +2.0, 0.0, 1.0);
+	//fragColor.a += sin(heatdistortx+ heatdistortz) * 0.01;
+	//if (camPos.y < lavaHeight - FOGHEIGHTABOVELAVA) fragColor.a = 1.0;
+}
+]]
+
+
+
 function widget:GameFrame()
 	local gf = Spring.GetGameFrame()
 	lavalevel = math.sin(gf/1000) * 50 + 50
@@ -238,14 +420,15 @@ function widget:Initialize()
 	lavaPlaneVAO = gl.GetVAO()
 	lavaPlaneVAO:AttachVertexBuffer(vertexBuffer)
 	lavaPlaneVAO:AttachIndexBuffer(indexBuffer)
-
+	
+	
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	lavaVSSrc = lavaVSSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	lavaFSSrc = lavaFSSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	
 	lavaShader = LuaShader({
-		vertex = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
-		fragment = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
+		vertex = lavaVSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(lavashaderConfig)),
+		fragment = lavaFSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(lavashaderConfig)),
 		uniformInt = {
 			heightmapTex = 0,
 			lavaDiffuseEmit = 1,
@@ -259,10 +442,37 @@ function widget:Initialize()
 			heatdistortx = 1,
 			heatdistortz = 1,
 		  },
-	}, "highlightUnitShader API")
+	}, "Lava Shader API")
+	
+	
+	fogLightVSSrc = fogLightVSSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	foglightFSSrc = foglightFSSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	foglightShader = LuaShader({
+		vertex = fogLightVSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(foglightShaderConfig)),
+		fragment = foglightFSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(foglightShaderConfig)),
+		uniformInt = {
+			--heightmapTex = 0,
+			mapDepths = 0,
+			modelDepths = 1,
+			lavaDistortion = 2,
+			--mapNormals = 2, 
+			--modelNormals = 5,
+		},
+		uniformFloat = {
+			lavaHeight = 1,
+			heatdistortx = 1,
+			heatdistortz = 1,
+		  },
+	}, "FogLight shader ")
 	local shaderCompiled = lavaShader:Initialize()
 	if not shaderCompiled then 
 		Spring.Echo("Failed to compile Lava Shader")
+		widgetHandler:RemoveWidget()
+	end
+	
+	shaderCompiled = foglightShader:Initialize()
+	if not shaderCompiled then 
+		Spring.Echo("Failed to compile foglightShader")
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -284,7 +494,7 @@ function widget:DrawWorldPreUnit()
 		lavaShader:SetUniform("heatdistortx",heatdistortx)
 		lavaShader:SetUniform("heatdistortz",heatdistortz)
 
-		gl.Texture(0, heightTex)-- Texture file
+		gl.Texture(0, "$heightmap")-- Texture file
 		gl.Texture(1, lavaDiffuseEmit)-- Texture file
 		gl.Texture(2, lavaNormalHeight)-- Texture file
 		gl.Texture(3, lavaDistortion)-- Texture file
@@ -306,5 +516,41 @@ function widget:DrawWorldPreUnit()
 		gl.Texture(3, false)-- Texture file
 		gl.Texture(4, false)-- Texture file
 		gl.Texture(5, false)-- Texture file
+		
+		
+
+	end
+end
+function widget:DrawWorld()
+	if lavalevel and foglightenabled then 
+			--Now to draw the fog light a good 32 elmos above it :)
+		foglightShader:Activate()
+		foglightShader:SetUniform("lavaHeight",lavalevel + fogheightabovelava)
+		foglightShader:SetUniform("heatdistortx",heatdistortx)
+		foglightShader:SetUniform("heatdistortz",heatdistortz)
+
+		--gl.Texture(0, "$heightmap")-- Texture file
+		gl.Texture(0, "$map_gbuffer_zvaltex")-- Texture file
+		gl.Texture(1, "$model_gbuffer_zvaltex")-- Texture file
+		gl.Texture(2, lavaDistortion)-- Texture file
+		--gl.Texture(2, "$map_gbuffer_normtex")-- Texture file
+		--gl.Texture(5, "$model_gbuffer_normtex")-- Texture file
+
+		
+		gl.Blending(GL.SRC_ALPHA, GL.ONE)
+		gl.DepthTest(GL.LEQUAL)
+		gl.DepthMask(false)
+		
+		lavaPlaneVAO:DrawElements(GL.TRIANGLES)
+		foglightShader:Deactivate()
+		
+		gl.DepthTest(false)
+		gl.DepthMask(false)
+
+		gl.Texture(0, false)-- Texture file
+		gl.Texture(1, false)-- Texture file
+		gl.Texture(2, false)-- Texture file
+		
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
 end
