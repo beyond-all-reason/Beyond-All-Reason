@@ -432,7 +432,6 @@ local options={
 			{key="normal", name="Medium", desc="Medium"},
 			{key="hard", name="Hard", desc="Hard"},
 			{key="veryhard", name="Very Hard", desc="Very Hard"},
-			{key="epic", name="Epic", desc="Epic"},
 			{key="survival", name="Survival", desc="Endless Mode"}
 		}
 	},
@@ -1091,6 +1090,15 @@ local options={
 		key    = 'experimentalscavuniqueunits',
 		name   = 'Scavenger Units Buildable by Players',
 		desc   = 'Scavenger Units Buildable by Players',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
+	{
+		key    = 'experimentallegionfaction',
+		name   = 'Legion Faction',
+		desc   = '3rd experimental faction',
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,

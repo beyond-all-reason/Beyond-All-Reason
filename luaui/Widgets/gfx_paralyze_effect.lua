@@ -439,10 +439,11 @@ function widget:GameFrame(n)
 		if n % 3 == 0 then
 			for unitID, index in pairs(paralyzedDrawUnitVBOTable.instanceIDtoIndex) do
 				local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
-				uniformcache[1] = (paralyzeDamage or 0) / (maxHealth or 1) -- 1 to avoid div0
-				gl.SetUnitBufferUniforms(unitID, uniformcache, 4)
-				if paralyzeDamage == 0 then
+				if paralyzeDamage == 0 or paralyzeDamage == nil then
 					toremove[unitID] = true
+				else
+					uniformcache[1] = (paralyzeDamage or 0) / (maxHealth or 1) -- 1 to avoid div0
+					gl.SetUnitBufferUniforms(unitID, uniformcache, 4)
 				end
 			end
 		end
@@ -477,7 +478,7 @@ function widget:DrawWorld()
 	if paralyzedDrawUnitVBOTable.usedElements > 0 then
 		--if Spring.GetGameFrame() % 90 == 0 then Spring.Echo("Drawing paralyzed units #", paralyzedDrawUnitVBOTable.usedElements) end
 		gl.Culling(GL.BACK)
-		gl.DepthMask(true)
+		gl.DepthMask(false)
 		gl.DepthTest(true)
 		gl.PolygonOffset( -2 ,-2)
 		paralyzedUnitShader:Activate()
@@ -486,6 +487,7 @@ function widget:DrawWorld()
 		paralyzedUnitShader:Deactivate()
 		--gl.Texture(0, false)
 		gl.PolygonOffset( false )
+		gl.DepthMask(true)
 		gl.Culling(false)
 	end
 end

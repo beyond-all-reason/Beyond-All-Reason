@@ -61,7 +61,11 @@ local function generateMoveOrder(unitID, shift)
 end
 
 local function countScavCommanders()
-	return Spring.GetTeamUnitDefCount(ScavengerTeamID, UnitDefNames.corcom_scav.id) + Spring.GetTeamUnitDefCount(ScavengerTeamID, UnitDefNames.armcom_scav.id)
+	local commanderCount = 0
+	for i = 1,#constructorUnitList.Constructors do
+		commanderCount = commanderCount + Spring.GetTeamUnitDefCount(ScavengerTeamID, UnitDefNames[constructorUnitList.Constructors[i]].id)
+	end
+	return commanderCount
 end
 
 local function assistantOrders(n, unitID)
@@ -172,29 +176,6 @@ local function spawnConstructor(n)
 		end
 
 		if canSpawnCommanderHere then
-			-- if initialCommanderSpawn then
-			-- 	ScavSendNotification("scav_scavcomdetected")
-			-- 	initialCommanderSpawn = false
-			-- else
-			-- 	local s = math.random(0, voiceNotificationsCount)
-			-- 	if s == 0 then
-			-- 		ScavSendNotification("scav_scavadditionalcomdetected")
-			-- 	elseif s == 1 then
-			-- 		ScavSendNotification("scav_scavanotherscavcomdetected")
-			-- 	elseif s == 2 then
-			-- 		ScavSendNotification("scav_scavnewcomentered")
-			-- 	elseif s == 3 then
-			-- 		ScavSendNotification("scav_scavcomspotted")
-			-- 	elseif s == 4 then
-			-- 		ScavSendNotification("scav_scavcomnewdetect")
-			-- 	else
-			-- 		ScavSendMessage("A Scavenger Commander detected")
-			-- 	end
-
-			-- 	if voiceNotificationsCount < 20 then
-			-- 		voiceNotificationsCount = voiceNotificationsCount + 1
-			-- 	end
-			-- end
 
 			spawnBeaconsController.SpawnBeacon(n)
 
@@ -231,10 +212,24 @@ local function spawnConstructor(n)
 				end
 			end
 
-			constructorTimer = 0
-			local constructor = constructorUnitList.Constructors[math.random(#constructorUnitList.Constructors)]
-			spawnQueueLibrary.AddToSpawnQueue(constructor, posx, posy, posz, math.random(0, 3), ScavengerTeamID, n + 150)
-			Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), ScavengerTeamID)
+			local constructor
+			local spawnTierChance = math.random(1,100)
+			if spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+				constructor = constructorUnitList.ConstructorsT1[math.random(#constructorUnitList.ConstructorsT1)]
+			elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+				constructor = constructorUnitList.ConstructorsT2[math.random(#constructorUnitList.ConstructorsT2)]
+			elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
+				constructor = constructorUnitList.ConstructorsT3[math.random(#constructorUnitList.ConstructorsT3)]
+			elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+				constructor = constructorUnitList.ConstructorsT4[math.random(#constructorUnitList.ConstructorsT4)]
+			else
+				constructor = constructorUnitList.ConstructorsT1[math.random(#constructorUnitList.ConstructorsT1)]
+			end
+			if constructor then
+				constructorTimer = 0
+				spawnQueueLibrary.AddToSpawnQueue(constructor, posx, posy, posz, math.random(0, 3), ScavengerTeamID, n + 150)
+				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), ScavengerTeamID)
+			end
 		else
 			constructorTimer = constructorTimer +  math.ceil(n / scavconfig.constructorControllerModuleConfig.constructortimerreductionframes)
 		end

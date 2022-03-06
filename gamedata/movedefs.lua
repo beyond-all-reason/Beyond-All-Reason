@@ -64,12 +64,12 @@ local moveDatas = {
 		maxwaterdepth = 5000,
 		maxwaterslope = 80,
 	},
-	BOAT2 = {
-		crushstrength = 9,
-		footprintx = 2,
-		footprintz = 2,
-		minwaterdepth = 8,
-	},
+	-- BOAT2 = {
+	-- 	crushstrength = 9,
+	-- 	footprintx = 2,     ------ Currently Unused
+	-- 	footprintz = 2,
+	-- 	minwaterdepth = 8,
+	-- },
 	BOAT3 = {
 		crushstrength = 9,
 		footprintx = 3,
@@ -127,13 +127,13 @@ local moveDatas = {
 		subMarine = 1,
 	},
 -- T3 Scav Sub
-	UBOAT6 = {
-		footprintx = 6,
-		footprintz = 6,
-		minwaterdepth = 15,
-		crushstrength = 5,
-		subMarine = 1,
-	},
+	-- UBOAT6 = {
+	-- 	footprintx = 6,
+	-- 	footprintz = 6,
+	-- 	minwaterdepth = 15, -- Currently Unused
+	-- 	crushstrength = 5,
+	-- 	subMarine = 1,
+	-- },
 	
 	HOVER2 = {
 		badslope = 22,
@@ -156,16 +156,16 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 	-- lun/sokolov
-	HHOVER3 = {
-		badslope = 22,
-		badwaterslope = 255,
-		crushstrength = 252,
-		footprintx = 3,
-		footprintz = 3,
-		maxslope = 22,
-		--slopeMod = 32,
-		maxwaterslope = 255,
-	},
+	-- HHOVER3 = {
+	-- 	badslope = 22,
+	-- 	badwaterslope = 255,
+	-- 	crushstrength = 252, -- Currently Unused
+	-- 	footprintx = 3,
+	-- 	footprintz = 3,
+	-- 	maxslope = 22,
+	-- 	--slopeMod = 32,
+	-- 	maxwaterslope = 255,
+	-- },
 	-- lun/sokolov
 	HHOVER4 = {
 		badslope = 22,
@@ -183,7 +183,7 @@ local moveDatas = {
 		badwaterslope = 255,
 		crushstrength = 25,
 		footprintx = 4,
-		footprintz = 4,
+		footprintz = 4, -- Currently Unused
 		maxslope = 22,
 		--slopeMod = 32,
 		maxwaterslope = 255,
@@ -465,17 +465,17 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 
-	CHICKBIG = {
-		badslope = 22,
-		badwaterslope = 255,
-		crushstrength = 25,
-		depthmod = 0,
-		footprintx = 5,
-		footprintz = 5,
-		maxslope = 22,
-		--slopeMod = 32,
-		maxwaterslope = 255,
-	},
+	-- CHICKBIG = {
+	-- 	badslope = 22,
+	-- 	badwaterslope = 255,
+	-- 	crushstrength = 25,
+	-- 	depthmod = 0, -- Unused
+	-- 	footprintx = 5,
+	-- 	footprintz = 5,
+	-- 	maxslope = 22,
+	-- 	--slopeMod = 32,
+	-- 	maxwaterslope = 255,
+	-- },
 
 	CHICKALLTERRAIN = {
 		crushstrength = 50,
@@ -493,14 +493,6 @@ local moveDatas = {
 		footprintz = 3,
 		maxslope = 18,
 		maxwaterdepth = 0,
-	},
-	
-	NANOLOOTBOX = {
-		crushstrength = 0,
-		--footprintx = 3,
-		--footprintz = 3,
-		--maxslope = 18,
-		--maxwaterdepth = 0,
 	},
 
 	-- penguins/ducks
@@ -590,15 +582,15 @@ local moveDatas = {
 		speedModClass = 0,
 	},
 
-	EPICHOVER = {
-		crushstrength = 9999,
-		footprintx = 5,
-		footprintz = 5,
-		maxslope = 36,
-		maxwaterdepth = 9999,
-		maxwaterslope = 255,
-		speedModClass = 2,
-	},
+	-- EPICHOVER = {
+	-- 	crushstrength = 9999,
+	-- 	footprintx = 5,
+	-- 	footprintz = 5,
+	-- 	maxslope = 36, -- Unused
+	-- 	maxwaterdepth = 9999,
+	-- 	maxwaterslope = 255,
+	-- 	speedModClass = 2,
+	-- },
 
 	EPICSHIP = {
 		crushstrength = 9999,
