@@ -10,9 +10,10 @@ function widget:GetInfo()
   }
 end
 -----------------
-local lavaDiffuseEmit = ":l:LuaUI/images/lava2_diffuseemit.tga" -- pack emissiveness into alpha channel (this is also used as heat for distortion)
-local lavaNormalHeight = ":l:LuaUI/images/lava2_normalheight.tga"
-local lavaDistortion = ":l:LuaUI/images/lavadistortion.png"
+local texturesamplingmode = '' -- ':l:' causes MASSIVE load on zoom out and downsampling textures!
+local lavaDiffuseEmit = texturesamplingmode .. "LuaUI/images/lava2_diffuseemit.tga" -- pack emissiveness into alpha channel (this is also used as heat for distortion)
+local lavaNormalHeight = texturesamplingmode .."LuaUI/images/lava2_normalheight.tga"
+local lavaDistortion = texturesamplingmode .. "LuaUI/images/lavadistortion.png"
 
 local lavaShader 
 local lavaPlaneVAO
