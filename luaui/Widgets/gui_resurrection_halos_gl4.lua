@@ -15,7 +15,7 @@ local myvisibleUnits = {} -- table of unitID : unitDefID
 local resurrectionHalosVBO = nil
 local resurrectionHalosShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
-local texture = ':l:LuaUI/Images/halo.dds'
+local texture = 'LuaUI/Images/halo.dds'
 
 local OPTIONS = {
 	haloSize				= 0.8,
