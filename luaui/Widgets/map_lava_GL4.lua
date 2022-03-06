@@ -160,6 +160,7 @@ void main() {
 	
 	float localheight = heightAtWorldPos(worldPos.xz);
 	
+	if (localheight > lavaHeight - HEIGHTOFFSET ) discard; 
 	// Calculate how far the fragment is from the coast
 	float coastfactor = clamp((localheight-lavaHeight + COASTWIDTH + HEIGHTOFFSET) * 0.05,  0.0, 1.0);
 	
@@ -225,7 +226,6 @@ void main() {
 	//fragColor.rgb = fract(4*vec3(coastfactor));
 	fragColor.a = 1.0;
 	fragColor.a = clamp(  inboundsness * 2.0 +2.0, 0.0, 1.0);
-	if (localheight > lavaHeight - HEIGHTOFFSET ) discard; 
 }
 ]]
 
@@ -321,16 +321,13 @@ void main() {
 	
 	vec4 camPos = cameraViewInv[3];
 	 
-	
-	// Sample emissive as heat indicator here for later displacement
-	vec4 nodiffuseEmit =  vec4(0.0);//texture(lavaDiffuseEmit, worldUV.xy * WORLDUVSCALE );
+
 	
 	vec2 rotatearoundvertices = worldUV.zw * 0.003;
 
 	// Calculate how far the fragment is from the coast
 	// We shift the distortion texture camera-upwards according to the uniforms that got passed in
 	vec2 camshift =  vec2(heatdistortx, heatdistortz) * 0.01;
-	vec4 distortionTexture = texture(lavaDistortion, (worldUV.xy * 22.0  + camshift)) ;
 	
 	//Get the fragment depth 
 	// note that WE CANT GO LOWER THAN THE ACTUAL LAVA LEVEL!
@@ -358,6 +355,7 @@ void main() {
 		mapWorldPos.xyz = worldPos.xyz + camtofogplane;
 	}
 	
+	vec4 distortionTexture = texture(lavaDistortion, (worldUV.xy * 22.0  + camshift)) ;
 	const float normalizingfactor = 4.0;
 	float fogdistort = (normalizingfactor + distortionTexture.x + distortionTexture.y)/ normalizingfactor ;
 	
