@@ -1,6 +1,15 @@
 local mapName = Game.mapName:lower()
 Spring.Echo("Lava Mapname", mapName)
 lavaMap = false
+
+-- defaults:
+lavaLevel = 1 -- pre-game lava level
+lavaGrow = 0.25 -- what is this?
+lavaDamage = 100 -- damage per second
+lavaCoastColor = "vec3(2.0, 0.5, 0.0)" -- RGB "weight"
+lavaFogColor = "vec3(2.0, 0.5, 0.0)" -- RGB "weight"
+
+
 --[[ EXAMPLE
     
 addTideRhym(HeightLevel, Speed, Delay for next TideRhym in seconds)
@@ -26,10 +35,10 @@ end
 
 if string.find(mapName, "incandescence") then
     lavaMap = true
-    lavaMinHeight = 137 -- minheight of map smf - otherwise will use 0
     lavaLevel = 210 -- pre-game lava level
     lavaGrow = 0.25
     lavaDamage = 150 -- damage per second
+    
     if (gadgetHandler:IsSyncedCode()) then
         addTideRhym (209, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
     end
