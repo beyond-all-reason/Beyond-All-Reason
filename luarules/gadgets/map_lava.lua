@@ -125,17 +125,20 @@ function lavaDeathCheck ()
 	end
 	local all_features = Spring.GetAllFeatures()
 	for i in pairs(all_features) do
-		x,y,z = Spring.GetFeaturePosition(all_features[i])
-		if (y ~= nil) then
-			if (y and y < lavaLevel) then
-				local reclaimLeft = select(5, Spring.GetFeatureResources (all_features[i]))
-				if reclaimLeft <= 0 then
-					Spring.DestroyFeature(all_features[i])
-					Spring.SpawnCEG("lavadamage", x, y+5, z)
-				else
-					local newReclaimLeft = reclaimLeft - 0.033
-					Spring.SetFeatureReclaim (all_features[i], newReclaimLeft)
-					Spring.SpawnCEG("lavadamage", x, y+5, z)
+		local FeatureDefID = Spring.GetFeatureDefID(all_features[i])
+		if not FeatureDefs[FeatureDefID].geoThermal then
+			x,y,z = Spring.GetFeaturePosition(all_features[i])
+			if (y ~= nil) then
+				if (y and y < lavaLevel) then
+					local reclaimLeft = select(5, Spring.GetFeatureResources (all_features[i]))
+					if reclaimLeft <= 0 then
+						Spring.DestroyFeature(all_features[i])
+						Spring.SpawnCEG("lavadamage", x, y+5, z)
+					else
+						local newReclaimLeft = reclaimLeft - 0.033
+						Spring.SetFeatureReclaim (all_features[i], newReclaimLeft)
+						Spring.SpawnCEG("lavadamage", x, y+5, z)
+					end
 				end
 			end
 		end
