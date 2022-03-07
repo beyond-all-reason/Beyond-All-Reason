@@ -583,8 +583,10 @@ else --- UNSYCNED:
 	
 	
 	
-	function gadget:GameFrame()
-		lavatidelevel = math.sin(Spring.GetGameFrame() / tideperiod) * tideamplitude + SYNCED.lavaLevel
+	function gadget:GameFrame(f)
+		if f > 1 then
+			lavatidelevel = math.sin(Spring.GetGameFrame() / tideperiod) * tideamplitude + SYNCED.lavaLevel
+		end
 	end
 	
 	function gadget:Initialize()
