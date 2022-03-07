@@ -46,11 +46,13 @@ end
 
 if string.find(mapName, "incandescence") then
     lavaMap = true
-    lavaLevel = 210 -- pre-game lava level
+    lavaLevel = 209 -- pre-game lava level
     lavaDamage = 150 -- damage per second
+    lavaTideamplitude = 3
+    lavaTideperiod = 95
     
     if (gadgetHandler:IsSyncedCode()) then
-        addTideRhym (209, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
+        addTideRhym (208, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
     end
 
 
@@ -96,7 +98,7 @@ elseif string.find(mapName, "speedmetal") then
     lavaLevel = 2 -- pre-game lava level
     lavaColorCorrection = "vec3(0.3, 0.1, 1.5)"
     --lavaCoastWidth = 40.0
-    lavaCoastColor = "vec3(1.7, 0.02, 1.4)"
+    --lavaCoastColor = "vec3(1.7, 0.02, 1.4)"
     lavaFogColor = "vec3(0.60, 0.02, 1)"
     lavaswirlFreq = 0.025
     lavaswirlAmp = 0.002
