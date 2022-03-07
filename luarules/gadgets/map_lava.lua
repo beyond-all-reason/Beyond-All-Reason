@@ -37,6 +37,7 @@ function addTideRhym (targetLevel, speed, remainTime)
 end
 
 if (gadgetHandler:IsSyncedCode()) then
+	isLavaGadget = "synced"
 	VFS.Include("luarules/configs/lavaConfig.lua")
 	if lavaMap == false then
 		gadgetHandler:RemoveGadget(self)
@@ -190,6 +191,7 @@ end
 
 
 else --- UNSYCNED:
+	isLavaGadget = "unsynced"
 	VFS.Include("luarules/configs/lavaConfig.lua")
 	if lavaMap == false then
 		gadgetHandler:RemoveGadget(self)

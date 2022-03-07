@@ -50,8 +50,7 @@ if string.find(mapName, "incandescence") then
     lavaDamage = 150 -- damage per second
     lavaTideamplitude = 3
     lavaTideperiod = 95
-    
-    if (gadgetHandler:IsSyncedCode()) then
+    if isLavaGadget and isLavaGadget == "synced" then
         addTideRhym (208, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
     end
 
@@ -60,7 +59,7 @@ elseif string.find(mapName, "hotstepper") then
     lavaMap = true
     lavaLevel = 100 -- pre-game lava level
     lavaDamage = 150 -- damage per second
-    if (gadgetHandler:IsSyncedCode()) then
+    if isLavaGadget and isLavaGadget == "synced" then
         addTideRhym (99, 0.25, 5*60) -- needs to be -1 than pre-game lava level
         addTideRhym (236, 0.10, 5)
         addTideRhym (100, 0.25, 5*60)
@@ -87,7 +86,7 @@ elseif string.find(mapName, "acidicquarry") then
     lavaFogFactor = 0.09
     lavaTideamplitude = 20
     lavaTideperiod = 75
-    if (gadgetHandler:IsSyncedCode()) then
+    if isLavaGadget and isLavaGadget == "synced" then
         addTideRhym (1, 0.05, 1)
     end
 
@@ -104,14 +103,14 @@ elseif string.find(mapName, "speedmetal") then
     lavaswirlAmp = 0.002
     lavaTideamplitude = 3
     lavaTideperiod = 50
-    if (gadgetHandler:IsSyncedCode()) then
+    if isLavaGadget and isLavaGadget == "synced" then
         addTideRhym (1, 0.05, 5*6000)
     end
 
 
 elseif Game.waterDamage > 0 then -- Waterdamagemaps - keep at the very bottom
     lavaMap = true
-    if (gadgetHandler:IsSyncedCode()) then
+    if isLavaGadget and isLavaGadget == "synced" then
         addTideRhym (0, 0.25, 9999)
         addTideRhym (0, 0.25, 9999)
     end

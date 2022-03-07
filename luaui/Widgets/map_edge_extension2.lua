@@ -280,8 +280,8 @@ local mirrorParams = {}
 
 function widget:Initialize()
 	VFS.Include("luarules/configs/lavaConfig.lua")
-	if lavaMap == false then
-		gadgetHandler:RemoveGadget(self)
+	if lavaMap == true then
+		widgetHandler:RemoveWidget(self)
 	end
 
 	WG['mapedgeextension'] = {}
