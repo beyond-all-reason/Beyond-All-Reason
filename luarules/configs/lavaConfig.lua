@@ -5,19 +5,20 @@ lavaMap = false
 -- defaults:
 nolavaburstcegs = false
 lavaLevel = 1 -- pre-game lava level
-lavaGrow = 0.25 -- what is this?
+lavaGrow = 0.25 -- initial lavaGrow speed
 lavaDamage = 100 -- damage per second
-lavaColorCorrection = "vec3(1.0, 1.0, 1.0)"
-lavaSwirlFreq = 0.025
-lavaSwirlAmp = 0.003
-lavaSpecularExp = 64.0
-lavaCoastWidth = 20.0
-lavaCoastColor = "vec3(2.0, 0.5, 0.0)"
-lavaFogColor = "vec3(2.0, 0.5, 0.0)"
-lavaTideamplitude = 2
-lavaTideperiod = 200
-lavaFogFactor = 0.06
-lavaCoastLightBoost = 0.6
+lavaColorCorrection = "vec3(1.0, 1.0, 1.0)" -- final colorcorrection on all lava + shore coloring
+lavaSwirlFreq = 0.025 -- How fast the main lava texture swirls around default 0.025
+lavaSwirlAmp = 0.003 -- How much the main lava texture is swirled around default 0.003
+lavaSpecularExp = 64.0 -- the specular exponent of the lava plane
+lavaCoastWidth = 20.0 -- how wide the coast of the lava should be
+lavaCoastColor = "vec3(2.0, 0.5, 0.0)" -- the color of the lava coast
+lavaCoastLightBoost = 0.6 -- how much extra brightness should coastal areas get
+lavaFogColor = "vec3(2.0, 0.5, 0.0)" -- the color of the fog light
+lavaFogFactor = 0.06 -- how dense the fog is
+lavaTideamplitude = 2 -- how much lava should rise up-down on static level
+lavaTideperiod = 200 -- how much time between live rise up-down
+
 
 --[[ EXAMPLE
     
@@ -91,14 +92,15 @@ elseif string.find(mapName, "acidicquarry") then
 
 elseif string.find(mapName, "speedmetal") then
     lavaMap = true
-    lavaLevel = 1 -- pre-game lava level
+    nolavaburstcegs = true
+    lavaLevel = 2 -- pre-game lava level
     lavaColorCorrection = "vec3(0.3, 0.1, 1.5)"
     --lavaCoastWidth = 40.0
     lavaCoastColor = "vec3(1.7, 0.02, 1.4)"
     lavaFogColor = "vec3(0.60, 0.02, 1)"
     lavaswirlFreq = 0.025
     lavaswirlAmp = 0.002
-    lavaTideamplitude = 4
+    lavaTideamplitude = 3
     lavaTideperiod = 50
     if (gadgetHandler:IsSyncedCode()) then
         addTideRhym (1, 0.05, 5*6000)
