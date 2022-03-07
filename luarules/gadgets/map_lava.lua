@@ -90,12 +90,12 @@ function gadget:GameFrame (f)
 		--This should be in config file to customize effects on lava plane
 		if (f%5==0) then
 			Spring.SpawnCEG("lavasplash", x, lavaLevel+5, z)
-			local r = math.random(0,30)
+			local r = math.random(0,15)
 			if r == 0 then
 				Spring.PlaySoundFile("lavabubbles", math.random(50,100)/100, x, y, z, 'sfx')
-			elseif r == 10 then
+			elseif r == 5 then
 				Spring.PlaySoundFile("lavarumble", math.random(50,100)/100, x, y, z, 'sfx')
-			elseif r == 20 then
+			elseif r == 10 then
 				Spring.PlaySoundFile("lavarumble2", math.random(50,100)/100, x, y, z, 'sfx')
 			end
 		end
