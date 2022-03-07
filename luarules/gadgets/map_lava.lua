@@ -87,24 +87,41 @@ function gadget:GameFrame (f)
 	local x = math.random(1,Game.mapX*512)
 	local z = math.random(1,Game.mapY*512)
 	local y = Spring.GetGroundHeight(x,z)
-	if y  < lavaLevel then
+	if y < lavaLevel then
 		--This should be in config file to customize effects on lava plane
 		if (f%5==0) then
 			Spring.SpawnCEG("lavasplash", x, lavaLevel+5, z)
-			local r = math.random(0,15)
-			if r == 0 then
-				Spring.PlaySoundFile("lavabubbleshort1", math.random(50,100)/100, x, y, z, 'sfx')
-			elseif r == 1 then
-				Spring.PlaySoundFile("lavabubbleshort2", math.random(50,100)/100, x, y, z, 'sfx')
-			elseif r == 5 then
-				Spring.PlaySoundFile("lavarumbleshort1", math.random(50,100)/100, x, y, z, 'sfx')
-			elseif r == 10 then
-				Spring.PlaySoundFile("lavarumbleshort2", math.random(50,100)/100, x, y, z, 'sfx')
-			elseif r == 15 then
-				Spring.PlaySoundFile("lavarumbleshort3", math.random(50,100)/100, x, y, z, 'sfx')
+			local r = math.random(1,2)
+			if r == 1 then
+				Spring.PlaySoundFile("lavabubbleshort1", 1, x, y, z, 'sfx')
+			elseif r == 2 then
+				Spring.PlaySoundFile("lavabubbleshort2", 1, x, y, z, 'sfx')
 			end
 		end
 	end
+	if f%5 == 0 then
+		for i = 1,10 do
+			local x = math.random(1,Game.mapX*512)
+			local z = math.random(1,Game.mapY*512)
+			local y = Spring.GetGroundHeight(x,z)
+			if math.random(1,3) == 1 and y < lavaLevel then
+				local r = math.random(1,5)
+				if r == 1 then
+					Spring.PlaySoundFile("lavabubbleshort1", math.random(10,100)/100, x, y, z, 'sfx')
+				elseif r == 2 then
+					Spring.PlaySoundFile("lavabubbleshort2", math.random(10,100)/100, x, y, z, 'sfx')
+				elseif r == 3 then
+					Spring.PlaySoundFile("lavarumbleshort1", math.random(10,100)/100, x, y, z, 'sfx')
+				elseif r == 4 then
+					Spring.PlaySoundFile("lavarumbleshort2", math.random(10,100)/100, x, y, z, 'sfx')
+				elseif r == 5 then
+					Spring.PlaySoundFile("lavarumbleshort3", math.random(10,100)/100, x, y, z, 'sfx')
+				end
+				break
+			end
+		end
+	end
+
 	if lavaGrow and lavaGrow > 0 then
 		Spring.Echo("LavaIsRising")
 	elseif lavaGrow and lavaGrow < 0 then
@@ -121,7 +138,7 @@ function lavaDeathCheck ()
 				--This should be in config file to change damage + effects/cegs
 				-- local health, maxhealth = Spring.GetUnitHealth(all_units[i])
 				-- Spring.AddUnitDamage (all_units[i], health - maxhealth*0.033, 0, Spring.GetGaiaTeamID(), 1) 
-				Spring.AddUnitDamage (all_units[i], lavaDamage, 0, Spring.GetGaiaTeamID(), 1) 
+				Spring.AddUnitDamage (all_units[i], lavaDamage/3, 0, Spring.GetGaiaTeamID(), 1) 
 				--Spring.DestroyUnit (all_units[i], true, false, Spring.GetGaiaTeamID())
 				Spring.SpawnCEG("lavadamage", x, y+5, z)
 			end
