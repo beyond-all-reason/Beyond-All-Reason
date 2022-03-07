@@ -560,6 +560,10 @@ else --- UNSYCNED:
 	end
 	
 	function gadget:Initialize()
+		VFS.Include("luarules/configs/lavaConfig.lua")
+		if lavaMap == false then
+			gadgetHandler:RemoveGadget(self)
+		end
 		Spring.SetDrawWater(false)
 	
 		-- Now for all intents and purposes, we kinda need to make a lava plane that is 3x the rez of our map
