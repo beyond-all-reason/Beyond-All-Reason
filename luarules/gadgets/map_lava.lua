@@ -170,6 +170,11 @@ end
 
 
 else --- UNSYCNED:
+	VFS.Include("luarules/configs/lavaConfig.lua")
+	if lavaMap == false then
+		gadgetHandler:RemoveGadget(self)
+	end
+	
 	local texturesamplingmode = '' -- ':l:' causes MASSIVE load on zoom out and downsampling textures!
 	local lavaDiffuseEmit = texturesamplingmode .. "LuaUI/images/lava2_diffuseemit.tga" -- pack emissiveness into alpha channel (this is also used as heat for distortion)
 	local lavaNormalHeight = texturesamplingmode .."LuaUI/images/lava2_normalheight.tga"
@@ -177,7 +182,7 @@ else --- UNSYCNED:
 	
 	local lavaShader 
 	local lavaPlaneVAO
-	local lavalevel = SYNCED.lavaLevel
+	local lavalevel = lavaLevel
 	
 	local foglightShader
 	local foglightVAO
@@ -560,10 +565,6 @@ else --- UNSYCNED:
 	end
 	
 	function gadget:Initialize()
-		VFS.Include("luarules/configs/lavaConfig.lua")
-		if lavaMap == false then
-			gadgetHandler:RemoveGadget(self)
-		end
 		Spring.SetDrawWater(false)
 	
 		-- Now for all intents and purposes, we kinda need to make a lava plane that is 3x the rez of our map
