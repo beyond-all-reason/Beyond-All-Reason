@@ -93,9 +93,9 @@ function gadget:GameFrame (f)
 			Spring.SpawnCEG("lavasplash", x, lavaLevel+5, z)
 			local r = math.random(1,2)
 			if r == 1 then
-				Spring.PlaySoundFile("lavabubbleshort1", 1, x, y, z, 'sfx')
+				Spring.PlaySoundFile("lavaburst1", math.random(50,75)/100, x, y, z, 'sfx')
 			elseif r == 2 then
-				Spring.PlaySoundFile("lavabubbleshort2", 1, x, y, z, 'sfx')
+				Spring.PlaySoundFile("lavaburst2", math.random(50,75)/100, x, y, z, 'sfx')
 			end
 		end
 	end
@@ -107,15 +107,15 @@ function gadget:GameFrame (f)
 			if math.random(1,3) == 1 and y < lavaLevel then
 				local r = math.random(1,5)
 				if r == 1 then
-					Spring.PlaySoundFile("lavabubbleshort1", math.random(10,100)/100, x, y, z, 'sfx')
+					Spring.PlaySoundFile("lavabubbleshort1", math.random(25,75)/100, x, y, z, 'sfx')
 				elseif r == 2 then
-					Spring.PlaySoundFile("lavabubbleshort2", math.random(10,100)/100, x, y, z, 'sfx')
+					Spring.PlaySoundFile("lavabubbleshort2", math.random(25,75)/100, x, y, z, 'sfx')
 				elseif r == 3 then
-					Spring.PlaySoundFile("lavarumbleshort1", math.random(10,100)/100, x, y, z, 'sfx')
+					Spring.PlaySoundFile("lavarumbleshort1", math.random(25,100)/100, x, y, z, 'sfx')
 				elseif r == 4 then
-					Spring.PlaySoundFile("lavarumbleshort2", math.random(10,100)/100, x, y, z, 'sfx')
+					Spring.PlaySoundFile("lavarumbleshort2", math.random(25,100)/100, x, y, z, 'sfx')
 				elseif r == 5 then
-					Spring.PlaySoundFile("lavarumbleshort3", math.random(10,100)/100, x, y, z, 'sfx')
+					Spring.PlaySoundFile("lavarumbleshort3", math.random(25,100)/100, x, y, z, 'sfx')
 				end
 				break
 			end
@@ -233,7 +233,7 @@ else --- UNSYCNED:
 		LOSDARKNESS = 0.5, -- how much to darken the out-of-los areas of the lava plane
 		SHADOWSTRENGTH = 0.4, -- how much light a shadowed fragment can recieve
 		OUTOFMAPHEIGHT = -100, -- what value to use when we are sampling the heightmap outside of the true bounds
-		SWIRLFREQUENCY = 0.00666, -- How fast the main lava texture swirls around
+		SWIRLFREQUENCY = 0.025, -- How fast the main lava texture swirls around
 		SWIRLAMPLITUDE = 0.003, -- How much the main lava texture is swirled around 
 		
 		-- for foglight:
