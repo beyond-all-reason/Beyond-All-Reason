@@ -242,6 +242,9 @@ else --- UNSYCNED:
 		FOGFACTOR = 0.1, -- how dense the fog is
 		EXTRALIGHTCOAST = 0.4, -- how much extra brightness should coastal areas get
 		FOGLIGHTDISTORTION = 4.0, -- lower numbers are higher distortion amounts
+		
+		-- for both: 
+		SWIZZLECOLORS = 'fragColor.rgb = (fragColor.rgb * vec3(1.0, 1.0, 1.0)).rgb;', -- yes you can swap around and weight color channels, right after final color, default is 'rgb'
 	}
 	
 	
@@ -424,6 +427,7 @@ else --- UNSYCNED:
 		//fragColor.rgb = fract(4*vec3(coastfactor));
 		fragColor.a = 1.0;
 		fragColor.a = clamp(  inboundsness * 2.0 +2.0, 0.0, 1.0);
+		SWIZZLECOLORS
 	}
 	]]
 	
@@ -574,6 +578,7 @@ else --- UNSYCNED:
 		
 		// fade out the foglightplane if it is far out of bounds
 		fragColor.a *= clamp(  inboundsness * 2.0 +2.0, 0.0, 1.0);
+		SWIZZLECOLORS
 	}
 	]]
 	
