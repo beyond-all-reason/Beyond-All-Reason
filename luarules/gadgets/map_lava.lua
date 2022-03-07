@@ -13,11 +13,14 @@ end
 
 
 if (gadgetHandler:IsSyncedCode()) then
+VFS.Include("luarules/configs/lavaConfig.lua")
+if lavaMap == false then
+	gadgetHandler:RemoveGadget(self)
+end
 
 tideRhym = {}
 tideIndex = 1
 tideContinueFrame = 0
-lavaLevel = 0
 lavaGrow = 0
 --_G.Game.mapSizeX = Game.mapSizeX
 --_G.Game.mapSizeY = Game.mapSizeY
@@ -25,11 +28,7 @@ gameframe = 0
 
 function gadget:Initialize()
 	_G.frame = 0
-	--This should be in config file
-	VFS.Include("luarules/configs/lavaConfig.lua")
-	if lavaMap == false then
-		gadgetHandler:RemoveGadget(self)
-	end
+	
 	_G.lavaLevel = lavaLevel
 	_G.lavaGrow = lavaGrow
 end
@@ -210,7 +209,7 @@ else --- UNSYCNED:
 	
 	local tideamplitude = 2
 	local tideperiod = 200
-	local lavatidelevel = 0
+	local lavatidelevel = lavaLevel
 	
 	local heatdistortx = 0
 	local heatdistortz = 0
@@ -584,8 +583,12 @@ else --- UNSYCNED:
 	
 	
 	
-	function gadget:GameFrame()
-		lavatidelevel = math.sin(Spring.GetGameFrame() / tideperiod) * tideamplitude + SYNCED.lavaLevel
+	function gadget:GameFrame(f)
+		if f > 0 then
+			lavatidelevel = math.sin(Spring.GetGameFrame() / tideperiod) * tideamplitude + SYNCED.lavaLevel
+		else
+			lavatidelevel = math.sin(Spring.GetGameFrame() / tideperiod) * tideamplitude + lavaLevel
+		end
 	end
 	
 	function gadget:Initialize()
