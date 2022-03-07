@@ -226,7 +226,7 @@ else --- UNSYCNED:
 		-- for lavaplane
 		HEIGHTOFFSET = 2.0,  -- how many elmos above the 'actual' lava height we should render, to avoid ROAM clipping artifacts
 		COASTWIDTH = 20.0, -- how wide the coast of the lava should be
-		WORLDUVSCALE = 4.0, -- How many times to tile the lava texture across the entire map
+		WORLDUVSCALE = 2.5, -- How many times to tile the lava texture across the entire map
 		COASTCOLOR = "vec3(2.0, 0.5, 0.0)", -- the color of the lava coast
 		SPECULAREXPONENT = 64.0,  -- the specular exponent of the lava plane
 		SPECULARSTRENGTH = 1.0, -- The peak brightness of specular highlights
