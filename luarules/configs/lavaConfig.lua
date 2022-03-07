@@ -25,6 +25,25 @@ end
 
 ]]
 
+-- For testing purposes
+if string.find(mapName, "quicksilver") then
+    lavaMap = true
+    lavaMinHeight = 137 -- minheight of map smf - otherwise will use 0
+    if (gadgetHandler:IsSyncedCode()) then
+        lavaLevel = 220
+        lavaGrow = 0.25
+        lavaDamage = 100
+        
+        addTideRhym (-21, 0.25, 5*10)
+        addTideRhym (150, 0.25, 3)
+        addTideRhym (-20, 0.25, 5*10)
+        addTideRhym (150, 0.25, 5)
+        addTideRhym (-20, 1, 5*60)
+        addTideRhym (180, 0.5, 60)
+        addTideRhym (240, 0.2, 10)
+    end
+end
+
 -- if string.find(mapName, "incandescence") then
 --     lavaMap = true
 --     lavaMinHeight = 137 -- minheight of map smf - otherwise will use 0

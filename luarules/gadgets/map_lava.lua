@@ -22,6 +22,7 @@ lavaGrow = 0
 --_G.Game.mapSizeX = Game.mapSizeX
 --_G.Game.mapSizeY = Game.mapSizeY
 gameframe = 0
+lavaIsRaising = false
 
 function gadget:Initialize()
 	_G.frame = 0
@@ -89,6 +90,14 @@ function gadget:GameFrame (f)
 		--This should be in config file to customize effects on lava plane
 		if (f%5==0) then
 			Spring.SpawnCEG("lavasplash", x, lavaLevel+5, z)
+			local r = math.random(0,30)
+			if r == 0 then
+				Spring.PlaySoundFile("lavabubbles", math.random(50,100)/100, x, y, z, 'sfx')
+			elseif r == 10 then
+				Spring.PlaySoundFile("lavarumble", math.random(50,100)/100, x, y, z, 'sfx')
+			elseif r == 20 then
+				Spring.PlaySoundFile("lavarumble2", math.random(50,100)/100, x, y, z, 'sfx')
+			end
 		end
 	end
 end
