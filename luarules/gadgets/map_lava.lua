@@ -107,15 +107,15 @@ function gadget:GameFrame (f)
 			if math.random(1,3) == 1 and y < lavaLevel then
 				local r = math.random(1,5)
 				if r == 1 then
-					Spring.PlaySoundFile("lavabubbleshort1", math.random(25,75)/100, x, y, z, 'sfx')
+					Spring.PlaySoundFile("lavabubbleshort1", math.random(35,75)/100, x, y, z, 'sfx')
 				elseif r == 2 then
-					Spring.PlaySoundFile("lavabubbleshort2", math.random(25,75)/100, x, y, z, 'sfx')
+					Spring.PlaySoundFile("lavabubbleshort2", math.random(35,75)/100, x, y, z, 'sfx')
 				elseif r == 3 then
-					Spring.PlaySoundFile("lavarumbleshort1", math.random(25,100)/100, x, y, z, 'sfx')
+					Spring.PlaySoundFile("lavarumbleshort1", math.random(25,65)/100, x, y, z, 'sfx')
 				elseif r == 4 then
-					Spring.PlaySoundFile("lavarumbleshort2", math.random(25,100)/100, x, y, z, 'sfx')
+					Spring.PlaySoundFile("lavarumbleshort2", math.random(25,65)/100, x, y, z, 'sfx')
 				elseif r == 5 then
-					Spring.PlaySoundFile("lavarumbleshort3", math.random(25,100)/100, x, y, z, 'sfx')
+					Spring.PlaySoundFile("lavarumbleshort3", math.random(25,65)/100, x, y, z, 'sfx')
 				end
 				break
 			end
