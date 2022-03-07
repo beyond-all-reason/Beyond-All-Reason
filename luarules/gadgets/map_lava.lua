@@ -22,7 +22,6 @@ lavaGrow = 0
 --_G.Game.mapSizeX = Game.mapSizeX
 --_G.Game.mapSizeY = Game.mapSizeY
 gameframe = 0
-lavaIsRaising = false
 
 function gadget:Initialize()
 	_G.frame = 0
@@ -32,6 +31,7 @@ function gadget:Initialize()
 		gadgetHandler:RemoveGadget(self)
 	end
 	_G.lavaLevel = lavaLevel
+	_G.lavaGrow = lavaGrow
 end
 
 
@@ -64,6 +64,7 @@ function updateLava ()
 			lavaGrow = -tideRhym[tideIndex].speed
 		end
 	end
+	_G.lavaGrow = lavaGrow
 end
 
 local function clamp(low, x, high)
@@ -99,6 +100,11 @@ function gadget:GameFrame (f)
 				Spring.PlaySoundFile("lavarumble2", math.random(50,100)/100, x, y, z, 'sfx')
 			end
 		end
+	end
+	if lavaGrow and lavaGrow > 0 then
+		Spring.Echo("LavaIsRising")
+	elseif lavaGrow and lavaGrow < 0 then
+		Spring.Echo("LavaIsDropping")
 	end
 end
 
@@ -157,7 +163,6 @@ end
 
 
 else --- UNSYCNED:
-
 --This should be in config file to change used image
 local lavaTex = ":la:LuaRules/images/lavacolor3.png"
 local heightTex = "$heightmap"
