@@ -55,9 +55,9 @@ if string.find(mapName, "incandescence") then
 
         addTideRhym (209, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
     end
-end
 
-if string.find(mapName, "hotstepper") then
+
+elseif string.find(mapName, "hotstepper") then
     lavaMap = true
     lavaLevel = 100 -- pre-game lava level
     lavaGrow = 0.25
@@ -72,8 +72,6 @@ if string.find(mapName, "hotstepper") then
         addTideRhym (355, 0.10, 30)
         addTideRhym (395, 0.07, 9)
     end
-
-
 
 
 elseif Game.waterDamage > 0 then -- Waterdamagemaps - keep at the very bottom
