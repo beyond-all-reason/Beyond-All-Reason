@@ -233,6 +233,8 @@ else --- UNSYCNED:
 		LOSDARKNESS = 0.5, -- how much to darken the out-of-los areas of the lava plane
 		SHADOWSTRENGTH = 0.4, -- how much light a shadowed fragment can recieve
 		OUTOFMAPHEIGHT = -100, -- what value to use when we are sampling the heightmap outside of the true bounds
+		SWIRLFREQUENCY = 0.00666, -- How fast the main lava texture swirls around
+		SWIRLAMPLITUDE = 0.003, -- How much the main lava texture is swirled around 
 		
 		-- for foglight:
 		FOGHEIGHTABOVELAVA = fogheightabovelava, -- how much higher above the lava the fog light plane is
@@ -282,7 +284,7 @@ else --- UNSYCNED:
 		worldUV.xy = (1.5 * planePos +0.5);
 		worldUV.y *= mapratio;
 		
-		float gametime = (timeInfo.x + timeInfo.w) * 0.006666;
+		float gametime = (timeInfo.x + timeInfo.w) * SWIRLFREQUENCY;
 		
 		randpervertex = vec4(rand(worldPos.xz), rand(worldPos.xz * vec2(17.876234, 9.283)), rand(worldPos.xz + gametime + 2.0), rand(worldPos.xz + gametime + 3.0));
 		worldUV.zw = sin(randpervertex.xy + gametime * (0.5 + randpervertex.xy));
@@ -349,7 +351,7 @@ else --- UNSYCNED:
 		// Sample emissive as heat indicator here for later displacement
 		vec4 nodiffuseEmit =  texture(lavaDiffuseEmit, worldUV.xy * WORLDUVSCALE );
 		
-		vec2 rotatearoundvertices = worldUV.zw * 0.003;
+		vec2 rotatearoundvertices = worldUV.zw * SWIRLAMPLITUDE;
 		
 		float localheight = OUTOFMAPHEIGHT ;
 		if (inboundsness > 0)
