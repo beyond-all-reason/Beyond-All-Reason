@@ -981,8 +981,10 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	unitBars[unitID] = unitBars[unitID] + 1
 	--end -- to keep these on top
 
-	healthBarTableCache[1] = unitDefHeights[unitDefID] + additionalheightaboveunit  -- height
-	healthBarTableCache[2] = ((variableBarSizes and unitDefSizeMultipliers[unitDefID]) or 1.0) * barScale
+	local effectiveScale = ((variableBarSizes and unitDefSizeMultipliers[unitDefID]) or 1.0) * barScale
+
+	healthBarTableCache[1] = unitDefHeights[unitDefID] + additionalheightaboveunit * effectiveScale  -- height
+	healthBarTableCache[2] = effectiveScale
 	healthBarTableCache[3] = 0.0 -- unused
 	healthBarTableCache[4] = bt.uvoffset -- glyph uv offset
 
