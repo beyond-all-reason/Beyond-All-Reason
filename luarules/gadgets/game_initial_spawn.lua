@@ -282,7 +282,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 		if not scenarioSpawnsUnits then
-			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "ChickensAI")) then
+			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "ChickensAI"))  then
 				local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
 				if unitID then
 					startUnitList[#startUnitList+1] = {unitID = unitID, teamID = teamID, x = x, y = y, z = z}
@@ -377,20 +377,22 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(n)
 		if not scenarioSpawnsUnits then
-			if n == 60 then
-				for i = 1,#startUnitList do
-					local x = startUnitList[i].x
-					local y = startUnitList[i].y
-					local z = startUnitList[i].z
-					Spring.SpawnCEG("commander-spawn",x,y,z,0,0,0)
+			if Spring.GetModOptions().scoremode == "disabled" or Spring.GetModOptions().scoremode_chess == false then
+				if n == 60 then
+					for i = 1,#startUnitList do
+						local x = startUnitList[i].x
+						local y = startUnitList[i].y
+						local z = startUnitList[i].z
+						Spring.SpawnCEG("commander-spawn",x,y,z,0,0,0)
+					end
 				end
-			end
-			if n == 90 then
-				for i = 1,#startUnitList do
-					local unitID = startUnitList[i].unitID
-					Spring.MoveCtrl.Disable(unitID)
-					Spring.SetUnitNoDraw(unitID, false)
-					Spring.SetUnitHealth(unitID, {paralyze = 0})
+				if n == 90 then
+					for i = 1,#startUnitList do
+						local unitID = startUnitList[i].unitID
+						Spring.MoveCtrl.Disable(unitID)
+						Spring.SetUnitNoDraw(unitID, false)
+						Spring.SetUnitHealth(unitID, {paralyze = 0})
+					end
 				end
 			end
 		end

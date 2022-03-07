@@ -282,7 +282,23 @@ end
 local function disableUnit(unitID)
 	Spring.MoveCtrl.Enable(unitID)
 	Spring.MoveCtrl.SetNoBlocking(unitID, true)
-    Spring.MoveCtrl.SetPosition(unitID, Game.mapSizeX+1900, 2000, Game.mapSizeZ+1900)
+    local r = math.random(0,3)
+    local x = 0
+    local z = 0
+    if r == 0 then
+        x = 0 - math.random(200,1900)
+        z = 0 - math.random(200,1900)
+    elseif r == 1 then
+        x = Game.mapSizeX + math.random(200,1900)
+        z = 0 - math.random(200,1900)
+    elseif r == 2 then
+        x = 0 - math.random(200,1900)
+        z = Game.mapSizeZ + math.random(200,1900)
+    elseif r == 3 then
+        x = Game.mapSizeX + math.random(200,1900)
+        z = Game.mapSizeZ + math.random(200,1900)
+    end
+    Spring.MoveCtrl.SetPosition(unitID, x, 2000, z)
 	Spring.SetUnitNeutral(unitID, true)
 	Spring.SetUnitCloak(unitID, true)
 	--Spring.SetUnitHealth(unitID, {paralyze=99999999})
