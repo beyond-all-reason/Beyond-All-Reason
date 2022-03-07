@@ -3,11 +3,21 @@ Spring.Echo("Lava Mapname", mapName)
 lavaMap = false
 
 -- defaults:
+nolavaburstcegs = false
 lavaLevel = 1 -- pre-game lava level
 lavaGrow = 0.25 -- what is this?
 lavaDamage = 100 -- damage per second
 lavaColorCorrection = "vec3(1.0, 1.0, 1.0)"
-
+lavaSwirlFreq = 0.025
+lavaSwirlAmp = 0.003
+lavaSpecularExp = 64.0
+lavaCoastWidth = 20.0
+lavaCoastColor = "vec3(2.0, 0.5, 0.0)"
+lavaFogColor = "vec3(2.0, 0.5, 0.0)"
+lavaTideamplitude = 2
+lavaTideperiod = 200
+lavaFogFactor = 0.06
+lavaCoastLightBoost = 0.6
 
 --[[ EXAMPLE
     
@@ -31,6 +41,7 @@ if string.find(mapName, "quicksilver") then
 end
 
 ]]
+
 
 if string.find(mapName, "incandescence") then
     lavaMap = true
@@ -57,13 +68,42 @@ elseif string.find(mapName, "hotstepper") then
         addTideRhym (395, 0.07, 9)
     end
 
+
 elseif string.find(mapName, "acidicquarry") then
     lavaMap = true
+    nolavaburstcegs = true
+    lavaLevel = 1
     lavaColorCorrection = "vec3(0.2, 1.2, 0.05)"
+    --lavaCoastColor = "vec3(0.5, 1.1, 0.6)"
+    --lavaCoastLightBoost = 0.9
+    --lavaFogColor = "vec3(0.90, 0.60, 0.15)"
+    --lavaCoastWidth = 30.0
+    lavaswirlFreq = 0.035
+    lavaswirlAmp = 0.004
+    lavaSpecularExp = 12.0
+    lavaFogFactor = 0.09
+    lavaTideamplitude = 20
+    lavaTideperiod = 75
     if (gadgetHandler:IsSyncedCode()) then
-        addTideRhym (0, 0.01, 60)
-        addTideRhym (300, 0.01, 60)
+        addTideRhym (1, 0.05, 1)
     end
+
+
+elseif string.find(mapName, "speedmetal") then
+    lavaMap = true
+    lavaLevel = 1 -- pre-game lava level
+    lavaColorCorrection = "vec3(0.3, 0.1, 1.5)"
+    --lavaCoastWidth = 40.0
+    lavaCoastColor = "vec3(1.7, 0.02, 1.4)"
+    lavaFogColor = "vec3(0.60, 0.02, 1)"
+    lavaswirlFreq = 0.025
+    lavaswirlAmp = 0.002
+    lavaTideamplitude = 4
+    lavaTideperiod = 50
+    if (gadgetHandler:IsSyncedCode()) then
+        addTideRhym (1, 0.05, 5*6000)
+    end
+
 
 elseif Game.waterDamage > 0 then -- Waterdamagemaps - keep at the very bottom
     lavaMap = true
