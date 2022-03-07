@@ -6,8 +6,7 @@ lavaMap = false
 lavaLevel = 1 -- pre-game lava level
 lavaGrow = 0.25 -- what is this?
 lavaDamage = 100 -- damage per second
-lavaCoastColor = "vec3(2.0, 0.5, 0.0)" -- RGB "weight"
-lavaFogColor = "vec3(2.0, 0.5, 0.0)" -- RGB "weight"
+lavaColorCorrection = "vec3(1.0, 1.0, 1.0)"
 
 
 --[[ EXAMPLE
@@ -36,7 +35,6 @@ end
 if string.find(mapName, "incandescence") then
     lavaMap = true
     lavaLevel = 210 -- pre-game lava level
-    lavaGrow = 0.25
     lavaDamage = 150 -- damage per second
     
     if (gadgetHandler:IsSyncedCode()) then
@@ -47,7 +45,6 @@ if string.find(mapName, "incandescence") then
 elseif string.find(mapName, "hotstepper") then
     lavaMap = true
     lavaLevel = 100 -- pre-game lava level
-    lavaGrow = 0.25
     lavaDamage = 150 -- damage per second
     if (gadgetHandler:IsSyncedCode()) then
         addTideRhym (99, 0.25, 5*60) -- needs to be -1 than pre-game lava level
@@ -60,12 +57,16 @@ elseif string.find(mapName, "hotstepper") then
         addTideRhym (395, 0.07, 9)
     end
 
+elseif string.find(mapName, "acidicquarry") then
+    lavaMap = true
+    lavaColorCorrection = "vec3(0.2, 1.2, 0.05)"
+    if (gadgetHandler:IsSyncedCode()) then
+        addTideRhym (0, 0.01, 60)
+        addTideRhym (300, 0.01, 60)
+    end
 
 elseif Game.waterDamage > 0 then -- Waterdamagemaps - keep at the very bottom
     lavaMap = true
-    lavaLevel = 1 -- pre-game lava level
-    lavaGrow = 0.25
-    lavaDamage = 100 -- damage per second
     if (gadgetHandler:IsSyncedCode()) then
         addTideRhym (0, 0.25, 9999)
         addTideRhym (0, 0.25, 9999)

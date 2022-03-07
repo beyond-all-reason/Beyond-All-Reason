@@ -12,11 +12,7 @@ end
 -----------------
 
 
-if (gadgetHandler:IsSyncedCode()) then
-VFS.Include("luarules/configs/lavaConfig.lua")
-if lavaMap == false then
-	gadgetHandler:RemoveGadget(self)
-end
+
 
 tideRhym = {}
 tideIndex = 1
@@ -28,11 +24,9 @@ gameframe = 0
 
 function gadget:Initialize()
 	_G.frame = 0
-	
 	_G.lavaLevel = lavaLevel
 	_G.lavaGrow = lavaGrow
 end
-
 
 function addTideRhym (targetLevel, speed, remainTime)
 	local newTide = {}
@@ -42,6 +36,11 @@ function addTideRhym (targetLevel, speed, remainTime)
 	table.insert (tideRhym, newTide)
 end
 
+if (gadgetHandler:IsSyncedCode()) then
+	VFS.Include("luarules/configs/lavaConfig.lua")
+	if lavaMap == false then
+		gadgetHandler:RemoveGadget(self)
+	end
 
 function updateLava ()
 	if (lavaGrow < 0 and lavaLevel < tideRhym[tideIndex].targetLevel) 
@@ -131,15 +130,18 @@ end
 function lavaDeathCheck ()
 	local all_units = Spring.GetAllUnits()
 	for i in pairs(all_units) do
-		x,y,z = Spring.GetUnitBasePosition(all_units[i])
-		if (y ~= nil) then
-			if (y and y < lavaLevel) then
-				--This should be in config file to change damage + effects/cegs
-				-- local health, maxhealth = Spring.GetUnitHealth(all_units[i])
-				-- Spring.AddUnitDamage (all_units[i], health - maxhealth*0.033, 0, Spring.GetGaiaTeamID(), 1) 
-				Spring.AddUnitDamage (all_units[i], lavaDamage/3, 0, Spring.GetGaiaTeamID(), 1) 
-				--Spring.DestroyUnit (all_units[i], true, false, Spring.GetGaiaTeamID())
-				Spring.SpawnCEG("lavadamage", x, y+5, z)
+		local UnitDefID = Spring.GetUnitDefID(all_units[i])
+		if not UnitDefs[UnitDefID].canFly then
+			x,y,z = Spring.GetUnitBasePosition(all_units[i])
+			if (y ~= nil) then
+				if (y and y < lavaLevel) then
+					--This should be in config file to change damage + effects/cegs
+					-- local health, maxhealth = Spring.GetUnitHealth(all_units[i])
+					-- Spring.AddUnitDamage (all_units[i], health - maxhealth*0.033, 0, Spring.GetGaiaTeamID(), 1) 
+					Spring.AddUnitDamage (all_units[i], lavaDamage/3, 0, Spring.GetGaiaTeamID(), 1) 
+					--Spring.DestroyUnit (all_units[i], true, false, Spring.GetGaiaTeamID())
+					Spring.SpawnCEG("lavadamage", x, y+5, z)
+				end
 			end
 		end
 	end
@@ -226,7 +228,7 @@ else --- UNSYCNED:
 		HEIGHTOFFSET = 2.0,  -- how many elmos above the 'actual' lava height we should render, to avoid ROAM clipping artifacts
 		COASTWIDTH = 20.0, -- how wide the coast of the lava should be
 		WORLDUVSCALE = 2.5, -- How many times to tile the lava texture across the entire map
-		COASTCOLOR = lavaCoastColor, -- the color of the lava coast
+		COASTCOLOR = "vec3(2.0, 0.5, 0.0)", -- the color of the lava coast
 		SPECULAREXPONENT = 64.0,  -- the specular exponent of the lava plane
 		SPECULARSTRENGTH = 1.0, -- The peak brightness of specular highlights
 		LOSDARKNESS = 0.5, -- how much to darken the out-of-los areas of the lava plane
@@ -237,13 +239,13 @@ else --- UNSYCNED:
 		
 		-- for foglight:
 		FOGHEIGHTABOVELAVA = fogheightabovelava, -- how much higher above the lava the fog light plane is
-		FOGCOLOR = lavaFogColor, -- the color of the fog light
-		FOGFACTOR = 0.1, -- how dense the fog is
-		EXTRALIGHTCOAST = 0.4, -- how much extra brightness should coastal areas get
+		FOGCOLOR = "vec3(2.0, 0.5, 0.0)", -- the color of the fog light
+		FOGFACTOR = 0.08, -- how dense the fog is
+		EXTRALIGHTCOAST = 0.6, -- how much extra brightness should coastal areas get
 		FOGLIGHTDISTORTION = 4.0, -- lower numbers are higher distortion amounts
 		
 		-- for both: 
-		SWIZZLECOLORS = 'fragColor.rgb = (fragColor.rgb * vec3(1.0, 1.0, 1.0)).rgb;', -- yes you can swap around and weight color channels, right after final color, default is 'rgb'
+		SWIZZLECOLORS = 'fragColor.rgb = (fragColor.rgb * '..lavaColorCorrection..').rgb;', -- yes you can swap around and weight color channels, right after final color, default is 'rgb'
 	}
 	
 	
