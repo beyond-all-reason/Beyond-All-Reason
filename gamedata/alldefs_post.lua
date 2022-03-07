@@ -118,7 +118,7 @@ function UnitDef_Post(name, uDef)
 		if Spring.GetModOptions().scoremode_chess == true then
 			-- Disable Wrecks
 			uDef.corpse = nil
-			-- Disable Factories
+			-- Disable Bad Units
 			local factories = {
 				armaap = true,
 				armalab = true,
@@ -148,6 +148,13 @@ function UnitDef_Post(name, uDef)
 				corplat = true,
 				corgantuw = true,
 				corsy = true,
+				armapt3 = true,	-- scav T3 air factory
+				corapt3 = true,	-- scav T3 air factory
+				armnanotc = true,
+				armnanotcplat = true,
+				cornanotc = true,
+				cornanotcplat = true,
+				armbotrail = true, -- it spawns units so it will add dead launched peewees to respawn queue. 
 			}
 			if factories[name] then
 				uDef.unitrestricted = 0

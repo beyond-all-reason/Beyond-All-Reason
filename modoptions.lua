@@ -794,6 +794,7 @@ local options={
 		min    = 1,
 		max    = 10,
 		step   = 1,  -- quantization is aligned to the def value
+		hidden = true,
 		-- (step <= 0) means that there is no quantization
 	},
 	{

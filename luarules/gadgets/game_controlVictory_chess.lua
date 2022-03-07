@@ -128,102 +128,253 @@ end
 
 local starterLandUnitsList = {
     [1] = {
-        [1] = {
-            table = {
-                --bots
-                "armpw",
-                "corak",
-                --vehicles
-                "armflash",
-                "corfav",
-            },
-            quantity = 10,
+        table = {
+            --bots
+            "armpw",
+            "corak",
+            --vehicles
+            "armflash",
+            "corgator",
         },
-        [2] = {
-            table = {
-                "armflea",
-                "armfav",
-                "corfav" ,
-            },
-            quantity = 5,
+        quantity = 10,
+    },
+    [2] = {
+        table = {
+            "armflea",
+            "armfav",
+            "corfav" ,
         },
-        [3] = {
-            table = {
-                "armassistdrone",
-                "corassistdrone",
-            },
-            quantity = 1,
+        quantity = 5,
+    },
+    [3] = {
+        table = {
+            "armassistdrone",
+            "corassistdrone",
         },
-        [4] = {
-            table = {
-                "armmlv",
-                "cormlv",
-            },
-            quantity = 2,
+        quantity = 1,
+    },
+    [4] = {
+        table = {
+            "armmlv",
+            "cormlv",
         },
-        [5] = {
-            table = {
-                "armjeth",
-                "corcrash",
-                "armah",
-                "corah",
-                "armsam",
-                "cormist",
-            },
-            quantity = 1,
+        quantity = 2,
+    },
+    [5] = {
+        table = {
+            "armjeth",
+            "corcrash",
+            "armah",
+            "corah",
+            "armsam",
+            "cormist",
         },
+        quantity = 1,
     },
 }
 
 local landUnitsList = {
+    
+    -- Tier 1
     [1] = {
         [1] = {
             table = {
-                -- bots
+                -- Bots
                 "armpw",
-                "corak",
                 "armrock",
                 "armham",
+                "armjeth",
                 "armwar",
-                "corstorm",
+                "corak",
                 "corthud",
+                "corstorm",
+                "corcrash",
+                "corkark",
+                "leggob",
+                "legcen",
+                "legbal",
 
-                -- tanks
+                -- Vehicles
                 "armflash",
-                "corgator",
                 "armstump",
-                "corraid",
-                "armpincer",
-                "corgarp",
+                "armart",
                 "armsam",
-                "cormist",
+                "armpincer",
                 "armjanus",
-                "corlevlr",
+                "corgator",
+                "cormist",
                 "corwolv",
+                "corlevlr",
+                "corraid",
+                "leggat",
+                "legrail",
 
-                -- hover
+                -- Hovercraft
                 "armsh",
-                "corsh",
                 "armmh",
-                "cormh",
+                "armah",
                 "armanac",
+                "corsh",
+                "cormh",
+                "corah",
                 "corsnap",
             },
             quantity = 10,
         },
         [2] = {
             table = {
-                "armassistdrone",
-                "corassistdrone",
+                "armck",
+                "armcv",
+                "armbeaver",
+                "armch",
+                "corck",
+                "corcv",
+                "cormuskrat",
             },
             quantity = 1,
         },
-        [3] = {
+    },
+
+    -- Tier 2
+    [2] = {
+        [1] = {
             table = {
-                "armjeth",
-                "corcrash",
-                "armah",
-                "corah",
+                -- Bots
+                "armvader",
+                "armspid",
+                "armsptk",
+                "armfast",
+                "armamph",
+                "armfido",
+                "armzeus",
+                "armspy",
+                "armaak",
+                "armsnipe",
+                "armmav",
+                "corroach",
+                "corpyro",
+                "corfast",
+                "cormort",
+                "coramph",
+                "corsktl",
+                "corspy",
+                "corcan",
+                "coraak",
+                "cortermite",
+                "cormando",
+
+                -- Vehicles
+                "armgremlin",
+                "armmart",
+                "armlatnk",
+                "armyork",
+                "armcroc",
+                "armmerl",
+                "armbull",
+                "cormart",
+                "corsent",
+                "corseal",
+                "correap",
+                "corgatreap",
+                "corvroc",
+                "corban",
+                "corparrow",
+
+                -- Hovercraft
+                "corhal",
+            },
+            quantity = 5,
+        },
+        [2] = {
+            table = {
+                "armack",
+                "armdecom",
+                "armacv",
+                "armconsul",
+                "corack",
+                "cordecom",
+                "coracv",
+            },
+            quantity = 1,
+        },
+    },
+
+    -- Tier 3
+    [3] = {
+        [1] = {
+            table = {
+                -- Heavy T2s
+                "corgol",
+                "corsumo",
+                "armfboy",
+                "armmanni",
+                "cortrem",
+                "corhrk",
+
+                -- Bots
+                "armmar",
+                "armvang",
+                "armraz",
+                "corshiva",
+                "corkarg",
+                "corcat",
+                "armlunchbox",
+                "armmeatball",
+                "armassimilator",
+
+                -- Vehicles
+                "armthor",
+
+                -- Hovercraft
+                "armlun",
+                "corsok",
+                "armsptkt4",
+            },
+            quantity = 3,
+        },
+        [2] = {
+            table = {
+                "armack",
+                "armdecom",
+                "armacv",
+                "armconsul",
+                "corack",
+                "cordecom",
+                "coracv",
+            },
+            quantity = 1,
+        },
+    },
+
+    -- Tier 4
+    [4] = {
+        [1] = {
+            table = {
+                "corkorg",
+                "corjugg",
+                "armbanth",
+                "armthor",
+
+                -- Superboss
+                "armpwt4",
+                "armrattet4",
+                "armvadert4",
+                "corakt4",
+                "cordemont4",
+                "corkarganetht4",
+                "corgolt4",
+            },
+            quantity = 1,
+        },
+        [2] = {
+            table = {
+                "armack",
+                "armdecom",
+                "armacv",
+                "armconsul",
+                "corack",
+                "cordecom",
+                "coracv",
             },
             quantity = 1,
         },
@@ -232,6 +383,119 @@ local landUnitsList = {
 
 local starterSeaUnitsList = {
     [1] = {
+        table = {
+            "armpt",
+            "corpt",
+        },
+        quantity = 10,
+    },
+    [2] = {
+        table = {
+            "armassistdrone",
+            "corassistdrone",
+        },
+        quantity = 1,
+    },
+}
+
+local seaUnitsList = {
+    -- Tier 1
+    [1] = {
+        [1] = {
+            table = {
+                "armpt",
+                "armdecade",
+                "armpship",
+                "armsub",
+                "armpincer",
+                "corpt",
+                "coresupp",
+                "corpship",
+                "corsub",
+                "corgarp",
+        
+                -- Hovercraft
+                "armsh",
+                "armmh",
+                "armah",
+                "armanac",
+                "corsh",
+                "cormh",
+                "corah",
+                "corsnap",
+            },
+            quantity = 10,
+        },
+        [2] = {
+            table = {
+                "armbeaver",
+                "armch",
+                "armcs",
+                "cormuskrat",
+                "corcs",
+            },
+            quantity = 1,
+        },
+    },
+
+    -- Tier 2
+    [2] = {
+        [1] = {
+            table = {
+                "armbats",
+                "armepoch",
+                "armserp",
+                "corbats",
+                "corblackhy",
+                "corslrpc",
+                "armdecadet3",
+                "armpshipt3",
+                "armptt2",
+
+                -- Hovercraft
+                "armlun",
+                "corsok",
+            },
+            quantity = 3,
+        },
+        [2] = {
+            table = {
+                "armmls",
+                "armacsub",
+                "cormls",
+                "coracsub",
+            },
+            quantity = 1,
+        },
+    },
+
+    -- Tier 3
+    [3] = {
+        [1] = {
+            table = {
+                "armserpt3",
+                "armepoch",
+                "corblackhy",
+                "armvadert4",
+                "corkorg",
+                "armbanth",
+                "coresuppt3",
+            },
+            quantity = 1,
+        },
+        [2] = {
+            table = {
+                "armmls",
+                "armacsub",
+                "cormls",
+                "coracsub",
+            },
+            quantity = 1,
+        },
+    },
+
+    -- Tier 4
+    [4] = {
         [1] = {
             table = {
                 "armpt",
@@ -241,22 +505,12 @@ local starterSeaUnitsList = {
         },
         [2] = {
             table = {
-                "armassistdrone",
-                "corassistdrone",
+                "armmls",
+                "armacsub",
+                "cormls",
+                "coracsub",
             },
             quantity = 1,
-        },
-    },
-}
-
-local seaUnitsList = {
-    [1] = {
-        [1] = {
-            table = {
-                "armpt",
-                "corpt",
-            },
-            quantity = 10,
         },
     },
 }
@@ -286,17 +540,17 @@ local function disableUnit(unitID)
     local x = 0
     local z = 0
     if r == 0 then
-        x = 0 - math.random(200,1900)
-        z = 0 - math.random(200,1900)
+        x = 0 - math.random(0,1900)
+        z = 0 - math.random(0,1900)
     elseif r == 1 then
-        x = Game.mapSizeX + math.random(200,1900)
-        z = 0 - math.random(200,1900)
+        x = Game.mapSizeX + math.random(0,1900)
+        z = 0 - math.random(0,1900)
     elseif r == 2 then
-        x = 0 - math.random(200,1900)
-        z = Game.mapSizeZ + math.random(200,1900)
+        x = 0 - math.random(0,1900)
+        z = Game.mapSizeZ + math.random(0,1900)
     elseif r == 3 then
-        x = Game.mapSizeX + math.random(200,1900)
-        z = Game.mapSizeZ + math.random(200,1900)
+        x = Game.mapSizeX + math.random(0,1900)
+        z = Game.mapSizeZ + math.random(0,1900)
     end
     Spring.MoveCtrl.SetPosition(unitID, x, 2000, z)
 	Spring.SetUnitNeutral(unitID, true)
@@ -443,44 +697,59 @@ local function respawnUnitsFromQueue(teamID)
     end
 end
 
-local function chooseNewUnits(starter)
+local function chooseNewUnits(starter, tier)
     if starter then
-        landPhase = starterLandUnitsList[1]
-        landPhaseQuantity = #starterLandUnitsList[1]
+        landWave = starterLandUnitsList
+        landWaveQuantity = #starterLandUnitsList
 
-        seaPhase = starterSeaUnitsList[1]
-        seaPhaseQuantity = #starterSeaUnitsList[1]
+        seaWave = starterSeaUnitsList
+        seaWaveQuantity = #starterSeaUnitsList
     else
-        landPhase = landUnitsList[phase]
-        landPhaseQuantity = #landUnitsList[phase]
-
-        seaPhase = seaUnitsList[phase]
-        seaPhaseQuantity = #seaUnitsList[phase]
+        if (Spring.GetGameSeconds() > 1800 and tier > 80) or (Spring.GetGameSeconds() > 3000) then -- Tier 4 -- Big Tech 3 units
+            landWave = landUnitsList[4]
+            landWaveQuantity = #landUnitsList[4]
+            seaWave = seaUnitsList[4]
+            seaWaveQuantity = #seaUnitsList[4]
+        elseif (Spring.GetGameSeconds() > 1200 and tier > 60) or (Spring.GetGameSeconds() > 2400) then -- Tier 3 -- Expensive Tech 2 units and small Tech 3 units
+            landWave = landUnitsList[3]
+            landWaveQuantity = #landUnitsList[3]
+            seaWave = seaUnitsList[3]
+            seaWaveQuantity = #seaUnitsList[3]
+        elseif (Spring.GetGameSeconds() > 600 and tier > 40) or (Spring.GetGameSeconds() > 1800) then -- Tier 2 -- Less Expensive Tech 2 units
+            landWave = landUnitsList[2]
+            landWaveQuantity = #landUnitsList[2]
+            seaWave = seaUnitsList[2]
+            seaWaveQuantity = #seaUnitsList[2]
+        else  -- Tier 1
+            landWave = landUnitsList[1]
+            landWaveQuantity = #landUnitsList[1]
+            seaWave = seaUnitsList[1]
+            seaWaveQuantity = #seaUnitsList[1]
+        end
     end
-
+    
     landUnit = {}
     seaUnit = {}
-    for j = 1,landPhaseQuantity do
-        landUnit[j] = pickRandomUnit(landPhase[j].table, landPhase[j].quantity)
+    for j = 1,landWaveQuantity do
+        landUnit[j] = pickRandomUnit(landWave[j].table, landWave[j].quantity)
     end
-    for j = 1,seaPhaseQuantity do
-        seaUnit[j] = pickRandomUnit(seaPhase[j].table, seaPhase[j].quantity)
+    for j = 1,seaWaveQuantity do
+        seaUnit[j] = pickRandomUnit(seaWave[j].table, seaWave[j].quantity)
     end
-
 end
 
 local function addNewUnitsToQueue(starter)
 	--local landRandom, landUnit, landUnitCount
 	--local seaRandom, seaUnit, seaUnitCount
-    chooseNewUnits(starter)
-
+    local tier = math.random(1,100)
+    chooseNewUnits(starter, tier)
     for i = 1,#teams do
         local teamID = teams[i]
         if ChessModeUnbalancedModoption then
-            chooseNewUnits(starter)
+            chooseNewUnits(starter, tier)
         end
         if teamIsLandPlayer[teamID] then
-            for j = 1,landPhaseQuantity do
+            for j = 1,landWaveQuantity do
                 for k = 1, #landUnit[j] do
                     if teamSpawnQueue[teamID] then
                         if teamSpawnQueue[teamID][1] then
@@ -492,7 +761,7 @@ local function addNewUnitsToQueue(starter)
                 end
             end
         else
-            for j = 1,seaPhaseQuantity do
+            for j = 1,seaWaveQuantity do
                 for k = 1, #seaUnit[j] do
                     if teamSpawnQueue[teamID] then
                         if teamSpawnQueue[teamID][1] then
@@ -503,17 +772,6 @@ local function addNewUnitsToQueue(starter)
                     end
                 end
             end
-        end
-    end
-
-    if not starter then
-        phaseSpawns = phaseSpawns + 1
-        if phaseSpawns == spawnsPerPhase then
-            phaseSpawns = 0
-            phase = phase + 1
-        end
-        if phase > maxPhases then
-            phase = 1
         end
     end
 
