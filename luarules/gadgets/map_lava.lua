@@ -584,7 +584,7 @@ else --- UNSYCNED:
 	
 	
 	function gadget:GameFrame(f)
-		if f > 1 then
+		if SYNCED.lavaLevel then
 			lavatidelevel = math.sin(Spring.GetGameFrame() / tideperiod) * tideamplitude + SYNCED.lavaLevel
 		end
 	end
