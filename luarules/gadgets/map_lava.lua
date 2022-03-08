@@ -148,6 +148,7 @@ function lavaDeathCheck ()
 			end
 		end
 	end
+	-- Below is custom reclaim/damage module for wrecks/features
 	-- local all_features = Spring.GetAllFeatures()
 	-- for i in pairs(all_features) do
 	-- 	local FeatureDefID = Spring.GetFeatureDefID(all_features[i])
@@ -652,13 +653,13 @@ else --- UNSYCNED:
 		local shaderCompiled = lavaShader:Initialize()
 		if not shaderCompiled then 
 			Spring.Echo("Failed to compile Lava Shader")
-			widgetHandler:RemoveWidget()
+			widgetHandler:RemoveGadget()
 		end
 		
 		shaderCompiled = foglightShader:Initialize()
 		if not shaderCompiled then 
 			Spring.Echo("Failed to compile foglightShader")
-			widgetHandler:RemoveWidget()
+			widgetHandler:RemoveGadget()
 		end
 	end
 	
