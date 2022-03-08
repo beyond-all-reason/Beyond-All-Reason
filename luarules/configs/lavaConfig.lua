@@ -7,10 +7,12 @@ nolavaburstcegs = false
 lavaLevel = 1 -- pre-game lava level
 lavaGrow = 0.25 -- initial lavaGrow speed
 lavaDamage = 100 -- damage per second
+lavaUVscale = 2.5 -- How many times to tile the lava texture across the entire map
 lavaColorCorrection = "vec3(1.0, 1.0, 1.0)" -- final colorcorrection on all lava + shore coloring
 lavaSwirlFreq = 0.025 -- How fast the main lava texture swirls around default 0.025
 lavaSwirlAmp = 0.003 -- How much the main lava texture is swirled around default 0.003
 lavaSpecularExp = 64.0 -- the specular exponent of the lava plane
+lavaShadowStrength = 0.4 -- how much light a shadowed fragment can recieve
 lavaCoastWidth = 20.0 -- how wide the coast of the lava should be
 lavaCoastColor = "vec3(2.0, 0.5, 0.0)" -- the color of the lava coast
 lavaCoastLightBoost = 0.6 -- how much extra brightness should coastal areas get
@@ -52,6 +54,29 @@ if string.find(mapName, "incandescence") then
     lavaTideperiod = 95
     if isLavaGadget and isLavaGadget == "synced" then
         addTideRhym (208, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
+    end
+
+
+elseif string.find(mapName, "ghenna") then
+    lavaMap = true
+    lavaLevel = 251 -- pre-game lava level
+    lavaDamage = 750 -- damage per second
+    lavaColorCorrection = "vec3(0.7, 0.7, 0.7)"
+    lavaSwirlFreq = 0.017
+    lavaSwirlAmp = 0.0024
+    lavaTideamplitude = 3
+    lavaSpecularExp = 4.0
+    lavaShadowStrength = 0.9
+    lavaCoastLightBoost = 0.8
+    lavaUVscale = 1.5
+    if isLavaGadget and isLavaGadget == "synced" then
+        addTideRhym (250, 0.10, 5) -- needs to be -1 than pre-game lava level
+        addTideRhym (415, 0.05, 30)
+        addTideRhym (250, 0.10, 5*60)
+        addTideRhym (415, 0.05, 30)
+        addTideRhym (250, 0.10, 2.5*60)
+        addTideRhym (415, 0.05, 2.5*60)
+        addTideRhym (250, 0.10, 5*60)
     end
 
 

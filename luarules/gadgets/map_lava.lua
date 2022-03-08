@@ -148,26 +148,26 @@ function lavaDeathCheck ()
 			end
 		end
 	end
-	local all_features = Spring.GetAllFeatures()
-	for i in pairs(all_features) do
-		local FeatureDefID = Spring.GetFeatureDefID(all_features[i])
-		if not FeatureDefs[FeatureDefID].geoThermal then
-			x,y,z = Spring.GetFeaturePosition(all_features[i])
-			if (y ~= nil) then
-				if (y and y < lavaLevel) then
-					local reclaimLeft = select(5, Spring.GetFeatureResources (all_features[i]))
-					if reclaimLeft <= 0 then
-						Spring.DestroyFeature(all_features[i])
-						Spring.SpawnCEG("lavadamage", x, y+5, z)
-					else
-						local newReclaimLeft = reclaimLeft - 0.033
-						Spring.SetFeatureReclaim (all_features[i], newReclaimLeft)
-						Spring.SpawnCEG("lavadamage", x, y+5, z)
-					end
-				end
-			end
-		end
-	end
+	-- local all_features = Spring.GetAllFeatures()
+	-- for i in pairs(all_features) do
+	-- 	local FeatureDefID = Spring.GetFeatureDefID(all_features[i])
+	-- 	if not FeatureDefs[FeatureDefID].geoThermal then
+	-- 		x,y,z = Spring.GetFeaturePosition(all_features[i])
+	-- 		if (y ~= nil) then
+	-- 			if (y and y < lavaLevel) then
+	-- 				local reclaimLeft = select(5, Spring.GetFeatureResources (all_features[i]))
+	-- 				if reclaimLeft <= 0 then
+	-- 					Spring.DestroyFeature(all_features[i])
+	-- 					Spring.SpawnCEG("lavadamage", x, y+5, z)
+	-- 				else
+	-- 					local newReclaimLeft = reclaimLeft - 0.033
+	-- 					Spring.SetFeatureReclaim (all_features[i], newReclaimLeft)
+	-- 					Spring.SpawnCEG("lavadamage", x, y+5, z)
+	-- 				end
+	-- 			end
+	-- 		end
+	-- 	end
+	-- end
 end
 
 local DAMAGE_EXTSOURCE_WATER = -500
@@ -231,12 +231,12 @@ else --- UNSYCNED:
 		-- for lavaplane
 		HEIGHTOFFSET = 2.0,  -- how many elmos above the 'actual' lava height we should render, to avoid ROAM clipping artifacts
 		COASTWIDTH = lavaCoastWidth, -- how wide the coast of the lava should be
-		WORLDUVSCALE = 2.5, -- How many times to tile the lava texture across the entire map
+		WORLDUVSCALE = lavaUVscale, -- How many times to tile the lava texture across the entire map
 		COASTCOLOR = lavaCoastColor, -- the color of the lava coast
 		SPECULAREXPONENT = lavaSpecularExp,  -- the specular exponent of the lava plane
 		SPECULARSTRENGTH = 1.0, -- The peak brightness of specular highlights
 		LOSDARKNESS = 0.5, -- how much to darken the out-of-los areas of the lava plane
-		SHADOWSTRENGTH = 0.4, -- how much light a shadowed fragment can recieve
+		SHADOWSTRENGTH = lavaShadowStrength, -- how much light a shadowed fragment can recieve
 		OUTOFMAPHEIGHT = -100, -- what value to use when we are sampling the heightmap outside of the true bounds
 		SWIRLFREQUENCY = lavaSwirlFreq, -- How fast the main lava texture swirls around default 0.025
 		SWIRLAMPLITUDE = lavaSwirlAmp, -- How much the main lava texture is swirled around default 0.003
