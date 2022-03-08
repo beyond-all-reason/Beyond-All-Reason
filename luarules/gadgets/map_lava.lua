@@ -653,13 +653,13 @@ else --- UNSYCNED:
 		local shaderCompiled = lavaShader:Initialize()
 		if not shaderCompiled then 
 			Spring.Echo("Failed to compile Lava Shader")
-			widgetHandler:RemoveGadget()
+			gadgetHandler:RemoveGadget()
 		end
 		
 		shaderCompiled = foglightShader:Initialize()
 		if not shaderCompiled then 
 			Spring.Echo("Failed to compile foglightShader")
-			widgetHandler:RemoveGadget()
+			gadgetHandler:RemoveGadget()
 		end
 	end
 	
