@@ -70,7 +70,7 @@ elseif string.find(mapName, "ghenna") then
     lavaCoastLightBoost = 0.8
     lavaUVscale = 1.5
     if isLavaGadget and isLavaGadget == "synced" then
-        addTideRhym (250, 0.10, 5) -- needs to be -1 than pre-game lava level
+        addTideRhym (250, 0.10, 15) -- needs to be -1 than pre-game lava level
         addTideRhym (415, 0.05, 30)
         addTideRhym (250, 0.10, 5*60)
         addTideRhym (415, 0.05, 30)
