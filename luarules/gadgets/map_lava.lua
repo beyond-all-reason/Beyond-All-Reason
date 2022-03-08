@@ -275,7 +275,7 @@ else --- UNSYCNED:
 	
 	#line 11000
 	
-	const vec2 inverseMapSize = 1.0 / mapSize.xy;
+	vec2 inverseMapSize = 1.0 / mapSize.xy;
 	
 	float rand(vec2 co){ // a pretty crappy random function
 		return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
@@ -335,7 +335,7 @@ else --- UNSYCNED:
 	//__ENGINEUNIFORMBUFFERDEFS__
 	//__DEFINES__
 	
-	const vec2 inverseMapSize = 1.0 / mapSize.xy;
+	vec2 inverseMapSize = 1.0 / mapSize.xy;
 	
 	float heightAtWorldPos(vec2 w){
 		// Some texel magic to make the heightmap tex perfectly align:
@@ -458,7 +458,7 @@ else --- UNSYCNED:
 	
 	#line 11000
 	
-	const vec2 inverseMapSize = 1.0 / mapSize.xy;
+	vec2 inverseMapSize = 1.0 / mapSize.xy;
 	
 	float rand(vec2 co){ // a pretty crappy random function
 		return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
@@ -516,7 +516,7 @@ else --- UNSYCNED:
 	//__ENGINEUNIFORMBUFFERDEFS__
 	//__DEFINES__
 	
-	const vec2 inverseMapSize = 1.0 / mapSize.xy;
+	vec2 inverseMapSize = 1.0 / mapSize.xy;
 	
 	out vec4 fragColor;
 	
