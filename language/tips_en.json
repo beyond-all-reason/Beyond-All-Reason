@@ -112,6 +112,8 @@
 				"tutorialT2Ready": "Your economy is now strong enough to build a Tech 2 Factory and units. Or you can maximize t1 unit production and try to win in numbers.",
 				"tutorialDuplicateFactory": "It is more efficient to assist the existing factory than to make multiple factories of the same kind.",
 				"tutorialParalyzer": "You are being attacked by paralyzer units. Units that have been paralyzed cannot function and wont be able to shoot or move until they have been restored."
+				"lavaRising": "Lava level is rising!"
+				"lavaDropping": "Lava level is dropping!"
 			},
 			"deathMessages": {
 				"team": {
