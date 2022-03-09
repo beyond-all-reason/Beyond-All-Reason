@@ -15,7 +15,7 @@ local silentTime = 0.7	-- silent time between queued notifications
 local globalVolume = 0.7
 local playTrackedPlayerNotifs = false
 local muteWhenIdle = true
-local idleTime = 6		-- after this much sec: mark user as idle
+local idleTime = 10		-- after this much sec: mark user as idle
 local displayMessages = true
 local spoken = true
 local idleBuilderNotificationDelay = 10 * 30	-- (in gameframes)
@@ -177,7 +177,6 @@ local commanders = {}
 local commandersDamages = {}
 local passedTime = 0
 local sec = 0
-local lastUnitCommand = Spring.GetGameFrame()
 
 local windNotGood = ((Game.windMin + Game.windMax) / 2) < 5.5
 
@@ -471,11 +470,6 @@ function widget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmd
 end
 
 
-function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, playerID, fromSynced, fromLua)
-	lastUnitCommand = spGetGameFrame()
-end
-
-
 function widget:UnitIdle(unitID)
 	if isBuilder[spGetUnitDefID(unitID)] and not idleBuilder[unitID] and not spIsUnitInView(unitID) then
 		idleBuilder[unitID] = spGetGameFrame() + idleBuilderNotificationDelay
@@ -741,7 +735,7 @@ function widget:Update(dt)
 		end
 		lastMouseX, lastMouseY = mouseX, mouseY
 		-- set user idle when no mouse movement or no commands have been given
-		if lastUserInputTime < os.clock() - idleTime or spGetGameFrame() - lastUnitCommand > (idleTime*40) then
+		if lastUserInputTime < os.clock() - idleTime then
 			isIdle = true
 		else
 			isIdle = false
