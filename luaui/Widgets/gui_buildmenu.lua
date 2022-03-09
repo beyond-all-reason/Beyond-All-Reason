@@ -201,6 +201,8 @@ local groups = {
 	antinuke = folder..'antinuke.png',
 }
 
+local disableWind = ((Game.windMin + Game.windMax) / 2) <= 5
+
 local unitEnergyCost = {}
 local unitMetalCost = {}
 local unitGroup = {}
@@ -215,6 +217,9 @@ local isGeothermalUnit = {}
 local unitMaxWeaponRange = {}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
+	unitIconType[unitDefID] = unitDef.iconType
+	unitEnergyCost[unitDefID] = unitDef.energyCost
+	unitMetalCost[unitDefID] = unitDef.metalCost
 	unitGroup[unitDefID] = unitDef.customParams.unitgroup
 
 	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'
@@ -223,18 +228,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			isWaterUnit[unitDefID] = true
 		end
 	end
-
-	if unitDef.needGeo then
-		isGeothermalUnit[unitDefID] = true
-	end
-
 	if unitDef.maxWeaponRange > 16 then
 		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
 	end
-
-	unitIconType[unitDefID] = unitDef.iconType
-	unitEnergyCost[unitDefID] = unitDef.energyCost
-	unitMetalCost[unitDefID] = unitDef.metalCost
 	if unitDef.maxThisUnit == 0 then --or unitDef.name == 'armllt' or unitDef.name == 'armmakr' then
 		unitRestricted[unitDefID] = true
 	end
@@ -244,9 +240,14 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then
 		isFactory[unitDefID] = true
 	end
-
 	if unitDef.extractsMetal > 0 then
 		isMex[unitDefID] = true
+	end
+	if unitDef.needGeo then
+		isGeothermalUnit[unitDefID] = true
+	end
+	if unitDef.windGenerator > 0 and disableWind then
+		unitDisabled[unitDefID] = true
 	end
 end
 
