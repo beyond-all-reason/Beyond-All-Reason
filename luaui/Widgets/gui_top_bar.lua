@@ -52,6 +52,7 @@ local resourceclick = 'LuaUI/Sounds/buildbar_click.wav'
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 local bladesTexture = ":n:LuaUI/Images/wind-blades.png"
+local wavesTexture = ":n:LuaUI/Images/tidal-waves.png"
 local comTexture = ":n:Icons/corcom.png"		-- will be changed later to unit icon depending on faction
 
 local math_floor = math.floor
@@ -109,6 +110,7 @@ local sformat = string.format
 local minWind = Game.windMin
 local maxWind = Game.windMax
 local tidalSpeed = Game.tidal
+local tidalWaveAnimationHeight = 10
 local windRotation = 0
 
 local lastFrame = -1
@@ -118,7 +120,7 @@ local resbarDrawinfo = { metal = {}, energy = {} }
 local shareIndicatorArea = { metal = {}, energy = {} }
 local dlistResbar = { metal = {}, energy = {} }
 local windArea = {}
-local tidalArea = {}
+local tidalarea = {}
 local comsArea = {}
 local rejoinArea = {}
 local buttonsArea = {}
@@ -647,8 +649,25 @@ local function updateWind()
 	end
 end
 
+-- return true if tidal speed is *relevant*, enough water in the world (>= 10%)
+local function checkTidalRelevant()
+   water = 0
+   nowater = 0
+   for x = 0, Game.mapSizeX do
+      for z = 0, Game.mapSizeZ do
+         local height = Spring.GetGroundHeight(x, z)
+         if height > 0 then
+            nowater = nowater + 1
+         else
+            water = water + 1
+         end
+      end
+   end
+   return (water / nowater) >= 0.1
+end
+
 local function updateTidal()
-	local area = tidalArea
+	local area = tidalarea
 
 	-- add background blur
 	if dlistTidalGuishader ~= nil then
@@ -661,14 +680,29 @@ local function updateTidal()
 		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
 	end)
 
-	if dlistTidal ~= nil then
-		glDeleteList(dlistTidal)
+	if tidaldlist1 ~= nil then
+		glDeleteList(tidaldlist1)
 	end
-	dlistTidal = glCreateList(function()
+	if tidaldlist2 ~= nil then
+		glDeleteList(tidaldlist2)
+	end
+	local wavesSize = height*0.53 * widgetScale
+        tidalWaveAnimationHeight = height*0.1 * widgetScale
+	tidaldlist1 = glCreateList(function()
 		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistTidalGuishader, 'topbar_tidal')
 		end
+		-- waves icon
+		glPushMatrix()
+                -- translate will be done between this and tidaldlist2
+	end)
+	tidaldlist2 = glCreateList(function()
+		glColor(1, 1, 1, 0.2)
+		glTexture(wavesTexture)
+		glTexRect(-wavesSize, -wavesSize, wavesSize, wavesSize)
+		glTexture(false)
+		glPopMatrix()
 		-- tidal speed
 		local fontSize = (height / 2.66) * widgetScale
 		font2:Begin()
@@ -1121,10 +1155,14 @@ function init()
 
 	-- tidal
 	if displayTidalSpeed then
-		width = math_floor((height * 1.18) * widgetScale)
-		tidalArea = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
-		filledWidth = filledWidth + width + widgetSpaceMargin
-		updateTidal()
+		if not checkTidalRelevant() then
+			displayTidalSpeed = false
+		else
+			width = math_floor((height * 1.18) * widgetScale)
+			tidalarea = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
+			filledWidth = filledWidth + width + widgetSpaceMargin
+			updateTidal()
+                end
 	end
 
 	-- coms
@@ -1427,7 +1465,7 @@ local function hoveringElement(x, y)
 		if windArea[1] and math_isInRect(x, y, windArea[1], windArea[2], windArea[3], windArea[4]) then
 			return true
 		end
-		if displayTidalSpeed and tidalArea[1] and math_isInRect(x, y, tidalArea[1], tidalArea[2], tidalArea[3], tidalArea[4]) then
+		if displayTidalSpeed and tidalarea[1] and math_isInRect(x, y, tidalarea[1], tidalarea[2], tidalarea[3], tidalarea[4]) then
 			return true
 		end
 		if displayComCounter and comsArea[1] and math_isInRect(x, y, comsArea[1], comsArea[2], comsArea[3], comsArea[4]) then
@@ -1442,6 +1480,14 @@ local function hoveringElement(x, y)
 		return false
 	end
 	return false
+end
+
+function widget:drawTidal()
+   if displayTidalSpeed and tidaldlist1 then
+      glCallList(tidaldlist1)
+      glTranslate(tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2), math.sin(now/math.pi) * tidalWaveAnimationHeight + tidalarea[2] + (bgpadding/2) + ((tidalarea[4] - tidalarea[2]) / 2), 0)
+      glCallList(tidaldlist2)
+   end
 end
 
 function widget:DrawScreen()
@@ -1564,9 +1610,8 @@ function widget:DrawScreen()
 		end
 	end
 
-	if displayTidalSpeed and dlistTidal then
-		glCallList(dlistTidal)
-	end
+        self:drawTidal()
+
 	if displayComCounter and dlistComs1 then
 		glCallList(dlistComs1)
 		if allyComs == 1 and (gameFrame % 12 < 6) then
@@ -2156,7 +2201,8 @@ function shutdown()
 		dlistTidalGuishader = glDeleteList(dlistTidalGuishader)
 		dlistWind1 = glDeleteList(dlistWind1)
 		dlistWind2 = glDeleteList(dlistWind2)
-		dlistTidal = glDeleteList(dlistWind2)
+		tidaldlist1 = glDeleteList(tidaldlist1)
+		tidaldlist2 = glDeleteList(tidaldlist2)
 		dlistComsGuishader = glDeleteList(dlistComsGuishader)
 		dlistComs1 = glDeleteList(dlistComs1)
 		dlistComs2 = glDeleteList(dlistComs2)
