@@ -1605,7 +1605,9 @@ end
 
 function widget:FeatureCreated(featureID)
 	local featureDefID = Spring.GetFeatureDefID(featureID)
-	if FeatureDefs[featureDefID].name ~= 'geovent' then
+	
+	-- some map-supplied features dont have a model, in these cases modelpath == "" 
+	if FeatureDefs[featureDefID].name ~= 'geovent' and FeatureDefs[featureDefID].modelpath ~= ''  then
 		--Spring.Echo(FeatureDefs[featureDefID].name)
 		featureBars[featureID] = 0
 		addBarToFeature(featureID, 'featurehealth')
