@@ -63,6 +63,7 @@ local xPos = math_floor(vsx * relXpos)
 local currentWind = 0
 local gameStarted = (Spring.GetGameFrame() > 0)
 local displayComCounter = false
+local displayTidalSpeed = true
 local updateTextClock = os.clock()
 
 local glTranslate = gl.Translate
@@ -107,6 +108,7 @@ local sformat = string.format
 
 local minWind = Game.windMin
 local maxWind = Game.windMax
+local tidalSpeed = Game.tidal
 local windRotation = 0
 
 local lastFrame = -1
@@ -116,6 +118,7 @@ local resbarDrawinfo = { metal = {}, energy = {} }
 local shareIndicatorArea = { metal = {}, energy = {} }
 local dlistResbar = { metal = {}, energy = {} }
 local windArea = {}
+local tidalArea = {}
 local comsArea = {}
 local rejoinArea = {}
 local buttonsArea = {}
@@ -145,7 +148,7 @@ local draggingShareIndicatorValue = {}
 local font, font2, bgpadding, chobbyInterface, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover
 local draggingConversionIndicatorValue, draggingShareIndicator, draggingConversionIndicator
 local conversionIndicatorArea, quitscreenArea, quitscreenQuitArea, quitscreenResignArea, hoveringTopbar, hideQuitWindow
-local dlistButtonsGuishader, dlistRejoinGuishader, dlistComsGuishader, dlistButtonsGuishader, dlistWindGuishader, dlistQuit
+local dlistButtonsGuishader, dlistRejoinGuishader, dlistComsGuishader, dlistButtonsGuishader, dlistWindGuishader, dlistTidalGuishader, dlistQuit
 --local dlistButtons1, dlistButtons2, dlistRejoin, dlistComs1, dlistComs2, dlistWind1, dlistWind2
 
 local chobbyLoaded = false
@@ -644,6 +647,41 @@ local function updateWind()
 	end
 end
 
+local function updateTidal()
+	local area = tidalArea
+
+	-- add background blur
+	if dlistTidalGuishader ~= nil then
+		if WG['guishader'] then
+			WG['guishader'].RemoveDlist('topbar_tidal')
+		end
+		glDeleteList(dlistTidalGuishader)
+	end
+	dlistTidalGuishader = glCreateList(function()
+		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
+	end)
+
+	if dlistTidal ~= nil then
+		glDeleteList(dlistTidal)
+	end
+	dlistTidal = glCreateList(function()
+		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
+		if WG['guishader'] then
+			WG['guishader'].InsertDlist(dlistTidalGuishader, 'topbar_tidal')
+		end
+		-- tidal speed
+		local fontSize = (height / 2.66) * widgetScale
+		font2:Begin()
+		font2:Print("\255\255\255\255" .. tidalSpeed, area[1] + ((area[3] - area[1]) / 2), area[2] + ((area[4] - area[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Tidal speed text
+		font2:End()
+	end)
+
+	if WG['tooltip'] ~= nil then
+		WG['tooltip'].AddTooltip('tidal', area, Spring.I18N('ui.topbar.tidal.tooltip', { titleColor = textTitleColor, warnColor = textWarnColor }))
+	end
+end
+
+
 local function updateResbarText(res)
 
 	if dlistResbar[res][4] ~= nil then
@@ -1081,6 +1119,14 @@ function init()
 	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateWind()
 
+	-- tidal
+	if displayTidalSpeed then
+		width = math_floor((height * 1.18) * widgetScale)
+		tidalArea = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
+		filledWidth = filledWidth + width + widgetSpaceMargin
+		updateTidal()
+	end
+
 	-- coms
 	if displayComCounter then
 		comsArea = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
@@ -1381,6 +1427,9 @@ local function hoveringElement(x, y)
 		if windArea[1] and math_isInRect(x, y, windArea[1], windArea[2], windArea[3], windArea[4]) then
 			return true
 		end
+		if displayTidalSpeed and tidalArea[1] and math_isInRect(x, y, tidalArea[1], tidalArea[2], tidalArea[3], tidalArea[4]) then
+			return true
+		end
 		if displayComCounter and comsArea[1] and math_isInRect(x, y, comsArea[1], comsArea[2], comsArea[3], comsArea[4]) then
 			return true
 		end
@@ -1515,6 +1564,9 @@ function widget:DrawScreen()
 		end
 	end
 
+	if displayTidalSpeed and dlistTidal then
+		glCallList(dlistTidal)
+	end
 	if displayComCounter and dlistComs1 then
 		glCallList(dlistComs1)
 		if allyComs == 1 and (gameFrame % 12 < 6) then
@@ -2101,8 +2153,10 @@ end
 function shutdown()
 	if dlistButtons1 ~= nil then
 		dlistWindGuishader = glDeleteList(dlistWindGuishader)
+		dlistTidalGuishader = glDeleteList(dlistTidalGuishader)
 		dlistWind1 = glDeleteList(dlistWind1)
 		dlistWind2 = glDeleteList(dlistWind2)
+		dlistTidal = glDeleteList(dlistWind2)
 		dlistComsGuishader = glDeleteList(dlistComsGuishader)
 		dlistComs1 = glDeleteList(dlistComs1)
 		dlistComs2 = glDeleteList(dlistComs2)

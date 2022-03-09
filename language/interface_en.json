@@ -28,6 +28,9 @@
 				"catchingUp": "Catching up",
 				"catchingUpTooltip": "Displays the catch-up progress\nGame time: %{gameTime}",
 				"commanderCountTooltip": "%{titleColor}Commander Counter\nDisplays the number of ally\nand enemy commanders",
+				"tidal": {
+					"tooltip": "%{titleColor}Tidal Speed Display\nDisplays tidal speed on this map (always constant)."
+				},
 				"wind": {
 					"nowind1": "No",
 					"nowind2": "wind",
