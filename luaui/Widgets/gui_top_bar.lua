@@ -651,19 +651,8 @@ end
 
 -- return true if tidal speed is *relevant*, enough water in the world (>= 10%)
 local function checkTidalRelevant()
-   water = 0
-   nowater = 0
-   for x = 0, Game.mapSizeX do
-      for z = 0, Game.mapSizeZ do
-         local height = Spring.GetGroundHeight(x, z)
-         if height > 0 then
-            nowater = nowater + 1
-         else
-            water = water + 1
-         end
-      end
-   end
-   return (water / nowater) >= 0.1
+	local _, _, mapMinHeight, mapMaxHeight = Spring.GetGroundExtremes()
+	return mapMinHeight <= -2
 end
 
 local function updateTidal()
@@ -1162,7 +1151,7 @@ function init()
 			tidalarea = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
 			filledWidth = filledWidth + width + widgetSpaceMargin
 			updateTidal()
-                end
+       	end
 	end
 
 	-- coms
