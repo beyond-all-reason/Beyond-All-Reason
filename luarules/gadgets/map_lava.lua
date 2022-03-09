@@ -603,7 +603,7 @@ else --- UNSYCNED:
 	]]
 	
 	
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = tostring(Spring.GetMyPlayerID())
 	function gadget:GameFrame(f)
 		if SYNCED.lavaLevel then
 			lavatidelevel = math.sin(Spring.GetGameFrame() / tideperiod) * tideamplitude + SYNCED.lavaLevel
@@ -614,14 +614,12 @@ else --- UNSYCNED:
 				if lavaGrow > 0 and not lavaRisingNotificationPlayed then
 					lavaRisingNotificationPlayed = true
 					if Script.LuaUI("EventBroadcast") then
-						Spring.Echo("Lava level is rising")
-						--Script.LuaUI.EventBroadcast("SoundEvents LavaRising "..myPlayerID)
+						Script.LuaUI.EventBroadcast("SoundEvents LavaRising "..myPlayerID)
 					end
 				elseif lavaGrow < 0 and not lavaDroppingNotificationPlayed then
 					lavaDroppingNotificationPlayed = true
 					if Script.LuaUI("EventBroadcast") then
-						Spring.Echo("Lava level is dropping")
-						--Script.LuaUI.EventBroadcast("SoundEvents LavaDropping "..myPlayerID)
+						Script.LuaUI.EventBroadcast("SoundEvents LavaDropping "..myPlayerID)
 					end
 				elseif lavaGrow == 0 and (lavaRisingNotificationPlayed or lavaDroppingNotificationPlayed) then
 					lavaRisingNotificationPlayed = false

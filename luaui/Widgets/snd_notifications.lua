@@ -121,8 +121,8 @@ addSound('AirTransportDetected', 'AirTransportDetected.wav', 9999999, 1.38, 'tip
 addSound('SeaTransportDetected', 'SeaTransportDetected.wav', 9999999, 1.95, 'tips.notifications.seaTransportDetected')
 
 -- lava/liquid level change notifications
--- addSound('LavaRising', 'Lavarising.wav', 25, 3, 'tips.notifications.lavaRising', true)		-- Why the fuck
--- addSound('LavaDropping', 'Lavadropping.wav', 25, 2, 'tips.notifications.lavaDropping', true)	-- Does this thing kill entire notifications feature
+addSound('LavaRising', 'Lavarising.wav', 25, 3, 'tips.notifications.lavaRising', true)
+addSound('LavaDropping', 'Lavadropping.wav', 25, 2, 'tips.notifications.lavaDropping', true)
 
 -- tutorial explanations (unlisted)
 local td = 'tutorial/'
