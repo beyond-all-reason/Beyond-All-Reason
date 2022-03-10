@@ -7,7 +7,96 @@ function widget:GetInfo()
 	}
 end
 
+
+
+-- Beheriths notes
+
+-- Bins / separate VAO and IBO :
+	-- Flags (drawpass):
+		-- forward opaque + reflections
+		-- deferred opaque, all units
+	-- Shaders / shaderconfig:
+		-- Features
+		-- Trees
+		-- Regular Units
+		-- Tanks
+		-- Chickens
+		-- Scavengers
+	-- Textures:
+		-- arm/cor 
+		-- 10x chickensets
+		-- 5x featuresets
+		-- scavengers?
+	-- Objects (the VAO)
+		-- 8x 8x 16x -> 8192 different VAOs? damn thats horrible
+	-- Note that Units and Features cant share a VAO!
+	
+	-- Can we assume that all BAR units wont have transparency? 
+		-- if yes then we can say that forward and deferred can share! 
+	-- https://stackoverflow.com/questions/8923174/opengl-vao-best-practices 
+	
+	
+	
+-- TODO:
+	-- Under construction shader via uniform
+	-- normalmapping
+	-- chickens
+	-- tanktracks
+	-- Reflection camera
+	-- refraction camera
+	-- texture LOD bias of -0.5, maybe adaptive for others 
+	-- still extremely perf heavy
+	-- separate VAO and IBO for each 'bin' for less heavy updates 
+	-- Do alpha units also get drawn into deferred pass? Seems like no, because only flag == 1 is draw into that
+	-- todo: dynamically size IBOS instead of using the max of 8192!
+	-- TODO: new engine callins needed:
+		-- get the number of drawflaggable units (this is kind of gettable already from the API anyway) 
+		-- get the number of changed drawFlags
+		-- if the number of changed drawflags > log(numdrawflags) then do a full rebuild instead of push-popping
+		-- e.g if there are 100 units of a bin in view, then a change of ~ 8 units will trigger a full rebuild?
+			-- cant know ahead of time how many per-bin changes this will trigger though
+			
+	-- TODO: write an engine callin that, instead of the full list of unitdrawflags, only returns the list of units whos drawflags have changed!
+		-- reset this 'hashmap' when reading it
+		-- also a problem is handling units that died, what 'drawflag' should they get? 
+			-- probably 0 
+	-- TODO: handle fast rebuilds of the IBO's when large-magnitude changes happen
+	-- TODO: faster bitops maybe?
+	
+	-- TODO: GetTextures() is not the best implementation at the moment
+	
+	-- NOTE: in general, a function call is about 10x faster than a table lookup.... 
+	
+	-- TODO: fully blank normal map for non-normal mapped units (or else risk having to write a shader for that bin, which wont even get used
+	
+	-- GetTextures :
+		-- should return array table instead of hash table
+			-- fill in unused stuff with 'false' for contiguous array table
+			-- index -1 
+			-- oddly enough, accessing array tables instead of hash tables is only 25% faster, so the overhead of -1 might not even result in any perf gains
+			
+		-- Should also get the normalmaps for each unit!
+		-- PBR textures:
+			-- uniform sampler2D brdfLUT;			//9
+			-- uniform sampler2D envLUT;			//10
+			-- uniform sampler2D rgbNoise;			//11
+			-- uniform samplerCube reflectTex; 		// 7
+			
+			-- uniform sampler2D losMapTex;	//8 for features out of los maybe?
+			
+		-- We also need the skybox cubemap for PBR (samplerCube reflectTex)
+		-- We also need wrecktex for damaged units!
+	-- Create a default 'wrecktex' for features too? 
+	
+	
+
+-- DONE:
+	-- unit uniforms
+
 --inputs
+
+local debugmode = false
+
 local alphaMult = 0.35
 local alphaThresholdOpaque = 0.5
 local alphaThresholdAlpha  = 0.1
@@ -19,6 +108,7 @@ local overrideDrawFlags = {
 	[8]  = true , --SO_REFRAC_FLAG = 8,
 	[16] = true , --SO_SHADOW_FLAG = 16,
 }
+
 
 --implementation
 local overrideDrawFlag = 0
@@ -41,6 +131,28 @@ local overrideDrawFlagsCombined = {
 local overriddenUnits = {}
 local processedUnits = {}
 
+-- This is the main table of all the unit drawbins:
+-- It is organized like so:
+-- unitDrawBins[drawFlag][shaderID][textureKey] = {
+	-- textures = {
+	   -- 0 = %586:1 -- in this example, its just texture 1 
+	-- },
+	-- objects = {
+	   -- 31357 = true
+	   -- 20174 = true
+	   -- 29714 = true
+	   -- 3024 = true
+	   -- 24268 = true
+	   -- 5584 = true
+	   -- 5374 = true
+	   -- 26687 = true
+	-- },
+	-- VAO = vao,
+	-- IBO = ibo,			
+	-- objectsArray = {}, -- {index: objectID} 
+	-- objectsIndex = {}, -- {objectID : index} (this is needed for efficient removal of items, as RemoveFromSubmission takes an index as arg)
+	-- numobjects = 0,  -- a 'pointer to the end' 
+-- }
 local unitDrawBins = {
 	[0    ] = {},	-- deferred opaque
 	[1    ] = {},	-- forward  opaque
@@ -66,6 +178,13 @@ local ebo = nil
 local ibo = nil
 
 
+local MAX_DRAWN_UNITS = 8192
+local objectTypeAttribID = 6
+
+-- setting this to 1 enables the incrementally updated VBOs
+-- 0 updates it every frame
+-- 2 completely disables draw, so one can measure overhead sans draw
+local drawIncrementalMode = 1 -- 
 -----------------
 
 local function Bit(p)
@@ -143,7 +262,28 @@ local function SetShaderUniforms(drawPass, shaderID)
 	end
 end
 
+local gettexturescalls = 0
+
+-- Order of textures in shader:
+	-- uniform sampler2D texture1;			//0
+	-- uniform sampler2D texture2;			//1
+	-- uniform sampler2D normalTex;		//2
+
+	-- uniform sampler2D texture1w;		//3
+	-- uniform sampler2D texture2w;		//4
+	-- uniform sampler2D normalTexw;		//5
+
+	-- uniform sampler2DShadow shadowTex;	//6
+	-- uniform samplerCube reflectTex;		//7
+	
+	-- uniform sampler2D losMapTex;	//8
+	
+	-- uniform sampler2D brdfLUT;			//9
+	-- uniform sampler2D envLUT;			//10
+	-- uniform sampler2D rgbNoise;			//11
+
 local function GetTextures(drawPass, unitDef)
+	gettexturescalls = (gettexturescalls + 1 ) % (2^20)
 	if drawPass == 16 then
 		return {
 			[0] = string.format("%%%s:%i", unitDef, 1), --tex2 only
@@ -159,11 +299,17 @@ local function GetTextures(drawPass, unitDef)
 end
 
 local MAX_TEX_ID = 131072 --should be enough
+--- Hashes a table of textures to a unique integer
+-- @param textures a table of {bindposition:texture}
+-- @return a unique hash for binning
 local function GetTexturesKey(textures)
 	local cs = 0
-	for bp, tex in pairs(textures) do
-		local texInfo = gl.TextureInfo(tex) or {}
-		cs = cs + (texInfo.id or 0) + bp * MAX_TEX_ID
+	for bindPosition, tex in pairs(textures) do
+		local texInfo = gl.TextureInfo(tex)
+		
+		local texInfoid = 0
+		if texInfo and texInfo.id then texInfoid = texInfo.id end 
+		cs = cs + (texInfoid or 0) + bindPosition * MAX_TEX_ID
 	end
 
 	return cs
@@ -171,11 +317,22 @@ end
 
 -----------------
 
+local asssigncalls = 0
+
+--- Assigns a unit to a material bin
+-- This function gets called from AddUnit every time a unit enters drawrange (or gets its flags changed)
+-- @param unitID The unitID of the unit
+-- @param unitDefID Which unitdef it belongs to 
+-- @param flag which drawflags it has
+-- @param shader which shader should be assigned to it
+-- @param textures A table of {bindPosition:texturename} for this unit
+-- @param texKey A unique key hashed from the textures names, bindpositions
 local function AsssignUnitToBin(unitID, unitDefID, flag, shader, textures, texKey)
+	asssigncalls = (asssigncalls + 1 ) % (2^20)
 	shader = shader or GetShader(flag, unitDefID)
 	textures = textures or GetTextures(flag, unitDefID)
 	texKey = texKey or GetTexturesKey(textures)
-
+	
 	local unitDrawBinsFlag = unitDrawBins[flag]
 	if unitDrawBinsFlag[shader] == nil then
 		unitDrawBinsFlag[shader] = {}
@@ -183,18 +340,57 @@ local function AsssignUnitToBin(unitID, unitDefID, flag, shader, textures, texKe
 	local unitDrawBinsFlagShader = unitDrawBinsFlag[shader]
 
 	if unitDrawBinsFlagShader[texKey] == nil then
+		local mybinVAO = gl.GetVAO()
+		local mybinIBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
+		
+		if (mybinIBO == nil) or (mybinVAO == nil) then 
+			Spring.Echo("Failed to allocate IBO or VAO for CUS GL4", mybinIBO, mybinVAO)
+			Spring.Debug.TraceFullEcho()
+			widgetHandler:RemoveWidget()
+		end
+		
+		mybinIBO:Define(MAX_DRAWN_UNITS, {
+			{id = 6, name = "instData", type = GL.UNSIGNED_INT, size = 4},
+		})
+		
+		mybinVAO:AttachVertexBuffer(vbo)
+		mybinVAO:AttachIndexBuffer(ebo)
+		mybinVAO:AttachInstanceBuffer(mybinIBO)
+	
 		unitDrawBinsFlagShader[texKey] = {
-			textures = textures
+			textures = textures, -- hashmap of textures for this unit
+			IBO = mybinIBO, -- my own IBO, for incrementing
+			VAO = mybinVAO, -- my own VBO, for incremental updating
+			objectsArray = {}, -- {index: objectID} 
+			objectsIndex = {}, -- {objectID : index} (this is needed for efficient removal of items, as RemoveFromSubmission takes an index as arg)
+			numobjects = 0,  -- a 'pointer to the end' 
 		}
 	end
+	
 	local unitDrawBinsFlagShaderTexKey = unitDrawBinsFlagShader[texKey]
-
-	if unitDrawBinsFlagShaderTexKey.objects == nil then
-		unitDrawBinsFlagShaderTexKey.objects = {}
+	
+	if unitDrawBinsFlagShaderTexKey.objectsIndex[unitID] then 
+		Spring.Echo("Trying to add a unit to a bin that is already in it!")
 	end
-	local unitDrawBinsFlagShaderTexKeyObjs = unitDrawBinsFlagShaderTexKey.objects
-
-	unitDrawBinsFlagShaderTexKeyObjs[unitID] = true
+	
+	
+	local numobjects = unitDrawBinsFlagShaderTexKey.numobjects
+	unitDrawBinsFlagShaderTexKey.IBO:InstanceDataFromUnitIDs(unitID, objectTypeAttribID, numobjects)
+	unitDrawBinsFlagShaderTexKey.VAO:AddUnitsToSubmission   (unitID)
+	
+	numobjects = numobjects + 1 
+	unitDrawBinsFlagShaderTexKey.numobjects = numobjects
+	unitDrawBinsFlagShaderTexKey.objectsArray[numobjects] = unitID
+	unitDrawBinsFlagShaderTexKey.objectsIndex[unitID    ] = numobjects
+	
+	if debugmode and flag == 0 then 
+		Spring.Echo("AsssignUnitToBin", unitID, unitDefID, texKey,shader,flag, numobjects)
+		local objids = "objectsArray "
+		for k,v in pairs(unitDrawBinsFlagShaderTexKey.objectsArray) do 
+			objids = objids .. tostring(k) .. ":" ..tostring(v) .. " " 
+		end
+		Spring.Echo(objids) 
+	end
 end
 
 
@@ -233,11 +429,38 @@ local function RemoveUnitFromBin(unitID, unitDefID, texKey, shader, flag)
 	shader = shader or GetShader(flag, unitDefID)
 	textures = textures or GetTextures(flag, unitDefID)
 	texKey = texKey or GetTexturesKey(textures)
-
 	if unitDrawBins[flag][shader] then
 		if unitDrawBins[flag][shader][texKey] then
-			if unitDrawBins[flag][shader][texKey].objects then
-				unitDrawBins[flag][shader][texKey].objects[unitID] = nil
+			
+			-- do the pop magic
+			local unitDrawBinsFlagShaderTexKey = unitDrawBins[flag][shader][texKey]
+			local objectIndex = unitDrawBinsFlagShaderTexKey.objectsIndex[unitID]
+			
+			--if flag == 0 then Spring.Echo("RemoveUnitFromBin", unitID, unitDefID, texKey,shader,flag,objectIndex) end
+			if objectIndex == nil then 
+				--Spring.Echo("Remove failed")
+				return 
+				end
+			local numobjects = unitDrawBinsFlagShaderTexKey.numobjects
+			
+			unitDrawBinsFlagShaderTexKey.VAO:RemoveFromSubmission(objectIndex - 1) -- do we become out of order?
+			if objectIndex == numobjects then -- last element
+				unitDrawBinsFlagShaderTexKey.objectsIndex[unitID    ] = nil
+				unitDrawBinsFlagShaderTexKey.objectsArray[numobjects] = nil
+				unitDrawBinsFlagShaderTexKey.numobjects = numobjects -1 
+			else
+				local unitIDatEnd = unitDrawBinsFlagShaderTexKey.objectsArray[numobjects]
+				if debugmode and flag == 0 then Spring.Echo("Moving", unitIDatEnd, "from", numobjects, " to", objectIndex, "while removing", unitID) end
+				unitDrawBinsFlagShaderTexKey.objectsIndex[unitID     ] = nil -- pop back
+				unitDrawBinsFlagShaderTexKey.objectsIndex[unitIDatEnd] = objectIndex -- bring the last unitID to to this one
+				if Spring.ValidUnitID(unitIDatEnd) == true and Spring.GetUnitIsDead(unitIDatEnd) ~= true then
+					unitDrawBinsFlagShaderTexKey.IBO:InstanceDataFromUnitIDs(unitIDatEnd, objectTypeAttribID, objectIndex - 1)
+				else
+					Spring.Echo("Tried to remove invalid unitID", unitID)
+				end
+				unitDrawBinsFlagShaderTexKey.objectsArray[numobjects ] = nil -- pop back
+				unitDrawBinsFlagShaderTexKey.objectsArray[objectIndex] = unitIDatEnd -- Bring the last unitID here 
+				unitDrawBinsFlagShaderTexKey.numobjects = numobjects -1 
 			end
 		end
 	end
@@ -331,41 +554,80 @@ local function ProcessUnits(units, drawFlags)
 	end
 end
 
-local unitIDs = {}
+local unitIDscache = {}
+
+
 local function ExecuteDrawPass(drawPass)
+	--defersubmissionupdate = (defersubmissionupdate + 1) % 10;
+	local batches = 0
+	local units = 0
 	for shaderId, data in pairs(unitDrawBins[drawPass]) do
 		for _, texAndObj in pairs(data) do
-			for bp, tex in pairs(texAndObj.textures) do
-				gl.Texture(bp, tex)
-			end
+		
+			if drawIncrementalMode == 1 then 
+				if texAndObj.numobjects > 0  then 
+					batches = batches + 1
+					units = units + texAndObj.numobjects
+					local mybinVAO = texAndObj.VAO
+					for bindPosition, tex in pairs(texAndObj.textures) do
+						gl.Texture(bindPosition, tex)
+					end
+					
+					SetFixedStatePre(drawPass, shaderId)
+					
+					gl.UseShader(shaderId)
+					SetShaderUniforms(drawPass, shaderId)
+					
+					mybinVAO:Submit()
+					gl.UseShader(0)
 
-			unitIDs = {}
-			for unitID, _ in pairs(texAndObj.objects) do
-				unitIDs[#unitIDs + 1] = unitID
-			end
+					SetFixedStatePost(drawPass, shaderId)
 
-			SetFixedStatePre(drawPass, shaderId)
+					for bindPosition, tex in pairs(texAndObj.textures) do
+						gl.Texture(bindPosition, false)
+					end
+				end
+					
+			elseif drawIncrementalMode == 0 then 
+				batches = batches + 1
+				
+				for bindPosition, tex in pairs(texAndObj.textures) do
+					gl.Texture(bindPosition, tex)
+				end
+				
+				SetFixedStatePre(drawPass, shaderId)
+				
+				for unitID, _ in pairs(texAndObj.objectsIndex) do
+					unitIDscache[#unitIDscache + 1] = unitID
+					units = units + 1 
+				end
+				
+				ibo:InstanceDataFromUnitIDs(unitIDscache, 6) --id = 6, name = "instData"
+				vao:ClearSubmission()
+				vao:AddUnitsToSubmission(unitIDscache)
+				
+				for i=1, #unitIDscache do
+					unitIDscache[i] = nil
+				end
+				
+				gl.UseShader(shaderId)
+				SetShaderUniforms(drawPass, shaderId)
+				
+				vao:Submit()
+				gl.UseShader(0)
 
-			ibo:InstanceDataFromUnitIDs(unitIDs, 6) --id = 6, name = "instData"
-			vao:ClearSubmission()
-			vao:AddUnitsToSubmission(unitIDs)
+				SetFixedStatePost(drawPass, shaderId)
+				
 
-			gl.UseShader(shaderId)
-			SetShaderUniforms(drawPass, shaderId)
-			vao:Submit()
-			gl.UseShader(0)
-
-			SetFixedStatePost(drawPass, shaderId)
-
-
-			for bp, tex in pairs(texAndObj.textures) do
-				gl.Texture(bp, false)
+				for bindPosition, tex in pairs(texAndObj.textures) do
+					gl.Texture(bindPosition, false)
+				end
 			end
 		end
 	end
+	return batches, units
 end
 
-local MAX_DRAWN_UNITS = 8192
 function widget:Initialize()
 	local fwdShader = gl.CreateShader({
 		vertex   = VFS.LoadFile("luaui/Widgets/Shaders/ModelShaderGL4.vert.glsl"),
@@ -452,7 +714,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	Spring.Debug.TableEcho(unitDrawBins)
+	--Spring.Debug.TableEcho(unitDrawBins)
 
 	for unitID, _ in pairs(overriddenUnits) do
 		RemoveUnit(unitID)
@@ -463,16 +725,36 @@ function widget:Shutdown()
 	ibo = nil
 
 	vao = nil
-
-	gl.DeleteShader(shaders[0])
-	gl.DeleteShader(shaders[1])
+	unitDrawBins = nil
+	
+	gl.DeleteShader(shaders[0]) -- deferred
+	gl.DeleteShader(shaders[1]) -- forward
+	gl.DeleteShader(shaders[16]) -- shadow
 end
 
+local updateframe = 0
 function widget:Update()
-	local units, drawFlags = Spring.GetRenderUnits(overrideDrawFlag, true)
-	--Spring.Echo("#units", #units, overrideDrawFlag)
-	ProcessUnits(units, drawFlags)
-	--Spring.Debug.TableEcho(unitDrawBins)
+	
+	updateframe = (updateframe + 1) % 1
+	
+	if updateframe == 0 then 
+		-- this call has a massive mem load, at 1k units at 225 fps, its 7mb/sec, e.g. for each unit each frame, its 32 bytes alloc/dealloc
+		-- which isnt all that bad, but still far from optimal
+		-- it is, however, not that bad CPU wise
+		local units, drawFlags = Spring.GetRenderUnits(overrideDrawFlag, true) 
+		--units, drawFlags = Spring.GetRenderUnits(overrideDrawFlag, true)
+		--Spring.Echo("#units", #units, overrideDrawFlag)
+		ProcessUnits(units, drawFlags)
+		--Spring.Debug.TableEcho(unitDrawBins)
+	end
+	
+end
+
+function widget:GameFrame(n)
+	
+	if (n%60) == 0 then 
+		Spring.Echo(Spring.GetGameFrame(), "processedCounter", processedCounter, asssigncalls,gettexturescalls)
+	end
 end
 
 function widget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
@@ -490,8 +772,8 @@ function widget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 		drawPass = 1 + 8
 	end
 
-	--Spring.Echo("drawPass", drawPass)
-	ExecuteDrawPass(drawPass)
+	local batches, units = ExecuteDrawPass(drawPass)
+	--Spring.Echo("drawPass", drawPass, "batches", batches, "units", units)
 end
 
 function widget:DrawAlphaUnitsLua(drawReflection, drawRefraction)
@@ -505,8 +787,9 @@ function widget:DrawAlphaUnitsLua(drawReflection, drawRefraction)
 		drawPass = 2 + 8
 	end
 
-	--Spring.Echo("drawPass", drawPass)
-	ExecuteDrawPass(drawPass)
+	local batches, units = ExecuteDrawPass(drawPass)
+	--Spring.Echo("drawPass", drawPass, "batches", batches, "units", units)
+	
 end
 
 function widget:DrawShadowUnitsLua()
