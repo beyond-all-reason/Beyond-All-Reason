@@ -126,10 +126,6 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.metalmake = math.ceil(uDef.metalmake * baseMultiplier * randomMultiplier())
 	end
 
-	if uDef.maxdamage then
-		uDef.maxdamage = math.ceil(uDef.maxdamage * baseMultiplier * randomMultiplier())
-	end
-
 	-- Wrecks
 	if uDef.featuredefs then
 		if uDef.featuredefs.dead then
@@ -158,6 +154,7 @@ local function scavUnitDef_Post(name, uDef)
 
 	if uDef.maxdamage then
 		if name ~= 'armcomboss_scav' and name ~= 'corcomboss_scav' then
+			uDef.maxdamage = math.ceil(uDef.maxdamage * baseMultiplier * randomMultiplier())
 			uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage * 0.1 * randomMultiplier()))
 			uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage * 0.1 * randomMultiplier()))
 		else
