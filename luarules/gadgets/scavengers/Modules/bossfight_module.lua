@@ -48,7 +48,16 @@ local function activateAbility(currentFrame)
 		local ability = currentPhaseBossAbilities[math_random(1,#currentPhaseBossAbilities)]
 		if ability then
 			specialAbilityCountdown = (20 - (BossFightCurrentPhase*2))
-			ability(currentFrame)
+			abilitySuccess = nil
+			for i = 1,100 do
+				ability(currentFrame)
+				if abilitySuccess then
+					break
+				end
+				if i == 100 then
+					specialAbilityCountdown = 1
+				end
+			end
 		end
 	end
 end
