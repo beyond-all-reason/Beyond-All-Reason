@@ -94,23 +94,150 @@ uniform vec4 clipPlane2 = vec4(0.0, 0.0, 0.0, 1.0); //water clip plane
 
 uniform float teamColorAlpha = 1.0;
 
+uniform float intOptions = 0.0;
+
 out Data {
 	vec4 uvCoord;
 	vec4 teamCol;
 
 	vec4 worldPos;
 	vec3 worldNormal;
-
+	
+	vec4 modelVertexPos;
+	vec4 modelVertexPosOrig;
+	vec4 worldVertexPos;
+	// TBN matrix components
+	vec3 worldTangent;
+	vec3 worldBitangent;
 	// main light vector(s)
 	vec3 worldCameraDir;
+
 	// shadowPosition
 	vec4 shadowVertexPos;
-	// Auxilary
+
+	// auxilary varyings
+	float aoTerm;
+	float selfIllumMod;
 	float fogFactor;
 };
 //out float gl_ClipDistance[3];
 
-#line 1115
+#line 11000
+float simFrame = (timeInfo.x + timeInfo.w);
+/***********************************************************************/
+	// Misc functions
+
+	float Perlin3D( vec3 P ) {
+		//  https://github.com/BrianSharpe/Wombat/blob/master/Perlin3D.glsl
+
+		// establish our grid cell and unit position
+		vec3 Pi = floor(P);
+		vec3 Pf = P - Pi;
+		vec3 Pf_min1 = Pf - 1.0;
+
+		// clamp the domain
+		Pi.xyz = Pi.xyz - floor(Pi.xyz * ( 1.0 / 69.0 )) * 69.0;
+		vec3 Pi_inc1 = step( Pi, vec3( 69.0 - 1.5 ) ) * ( Pi + 1.0 );
+
+		// calculate the hash
+		vec4 Pt = vec4( Pi.xy, Pi_inc1.xy ) + vec2( 50.0, 161.0 ).xyxy;
+		Pt *= Pt;
+		Pt = Pt.xzxz * Pt.yyww;
+		const vec3 SOMELARGEFLOATS = vec3( 635.298681, 682.357502, 668.926525 );
+		const vec3 ZINC = vec3( 48.500388, 65.294118, 63.934599 );
+		vec3 lowz_mod = vec3( 1.0 / ( SOMELARGEFLOATS + Pi.zzz * ZINC ) );
+		vec3 highz_mod = vec3( 1.0 / ( SOMELARGEFLOATS + Pi_inc1.zzz * ZINC ) );
+		vec4 hashx0 = fract( Pt * lowz_mod.xxxx );
+		vec4 hashx1 = fract( Pt * highz_mod.xxxx );
+		vec4 hashy0 = fract( Pt * lowz_mod.yyyy );
+		vec4 hashy1 = fract( Pt * highz_mod.yyyy );
+		vec4 hashz0 = fract( Pt * lowz_mod.zzzz );
+		vec4 hashz1 = fract( Pt * highz_mod.zzzz );
+
+		// calculate the gradients
+		vec4 grad_x0 = hashx0 - 0.49999;
+		vec4 grad_y0 = hashy0 - 0.49999;
+		vec4 grad_z0 = hashz0 - 0.49999;
+		vec4 grad_x1 = hashx1 - 0.49999;
+		vec4 grad_y1 = hashy1 - 0.49999;
+		vec4 grad_z1 = hashz1 - 0.49999;
+		vec4 grad_results_0 = inversesqrt( grad_x0 * grad_x0 + grad_y0 * grad_y0 + grad_z0 * grad_z0 ) * ( vec2( Pf.x, Pf_min1.x ).xyxy * grad_x0 + vec2( Pf.y, Pf_min1.y ).xxyy * grad_y0 + Pf.zzzz * grad_z0 );
+		vec4 grad_results_1 = inversesqrt( grad_x1 * grad_x1 + grad_y1 * grad_y1 + grad_z1 * grad_z1 ) * ( vec2( Pf.x, Pf_min1.x ).xyxy * grad_x1 + vec2( Pf.y, Pf_min1.y ).xxyy * grad_y1 + Pf_min1.zzzz * grad_z1 );
+
+		// Classic Perlin Interpolation
+		vec3 blend = Pf * Pf * Pf * (Pf * (Pf * 6.0 - 15.0) + 10.0);
+		vec4 res0 = mix( grad_results_0, grad_results_1, blend.z );
+		vec4 blend2 = vec4( blend.xy, vec2( 1.0 - blend.xy ) );
+		float final = dot( res0, blend2.zxzx * blend2.wwyy );
+		return ( final * 1.1547005383792515290182975610039 );  // scale things to a strict -1.0->1.0 range  *= 1.0/sqrt(0.75)
+	}
+
+	float hash11(float p) {
+		const float HASHSCALE1 = 0.1031;
+		vec3 p3  = fract(vec3(p) * HASHSCALE1);
+		p3 += dot(p3, p3.yzx + 19.19);
+		return fract((p3.x + p3.y) * p3.z);
+	}
+
+	vec3 hash31(float p) {
+		const vec3 HASHSCALE3 = vec3(0.1031, 0.1030, 0.0973);
+		vec3 p3 = fract(vec3(p) * HASHSCALE3);
+		p3 += dot(p3, p3.yzx + 19.19);
+		return fract((p3.xxy + p3.yzz) * p3.zyx);
+	}
+
+	/***********************************************************************/
+
+#line 120000
+
+/***********************************************************************/
+	// Auxilary functions
+
+	vec2 GetWind(float period) {
+		vec2 wind;
+		wind.x = sin(period * 5.0);
+		wind.y = cos(period * 5.0);
+		return wind * 10.0f;
+	}
+
+	void DoWindVertexMove(inout vec4 mVP) {
+		vec2 curWind = GetWind(simFrame * 0.001333);
+		vec2 nextWind = GetWind(simFrame * 0.001333 + 1.0);
+		float tweenFactor = smoothstep(0.0f, 1.0f, max(mod(simFrame, 750.0) - 600, 0) / 150.0f);
+		vec2 wind = mix(curWind, nextWind, tweenFactor);
+
+		vec3 modelXYZ = 16.0 * hash31(intOptions);
+		
+		modelXYZ = fract(modelXYZ);
+		modelXYZ = clamp(modelXYZ, 0.4, 1.0);
+
+		// crude measure of wind intensity
+		float abswind = abs(wind.x) + abs(wind.y);
+
+		vec4 cosVec;
+		float simTime = 0.02 * simFrame;
+		// these determine the speed of the wind"s "cosine" waves.
+		cosVec.w = 0.0;
+		cosVec.x = simTime * modelXYZ.x + mVP.x;
+		cosVec.y = simTime * modelXYZ.z / 3.0 + modelXYZ.x;
+		cosVec.z = simTime * 1.0 + mVP.z;
+
+		// calculate "cosines" in parallel, using a smoothed triangle wave
+		vec4 tri = abs(fract(cosVec + 0.5) * 2.0 - 1.0);
+		cosVec = tri * tri *(3.0 - 2.0 * tri);
+
+		float limit = clamp((mVP.x * mVP.z * mVP.y) / 3000.0, 0.0, 0.2);
+
+		float diff = cosVec.x * limit;
+		float diff2 = cosVec.y * clamp(mVP.y / 30.0, 0.05, 0.2);
+
+		mVP.xyz += cosVec.z * limit * clamp(abswind, 1.2, 1.7);
+
+		mVP.xz += diff + diff2 * wind;
+	}
+
+
+	/***********************************************************************/
 
 void TransformPlayerCam(vec4 worldPos) {
 	gl_Position = cameraViewProj * worldPos;
@@ -128,21 +255,20 @@ void TransformPlayerCamStaticMat(vec4 worldPos) {
 
 void main(void)
 {
+	
 	mat4 pieceMatrix = GetPieceMatrix(bool(drawMode < 0));
 	mat4 worldMatrix = (drawMode >= 0) ? mat[instData.x] : staticModelMatrix;
 
 	mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
 
-	#if 0
-		mat3 normalMatrix = mat3(transpose(inverse(worldPieceMatrix)));
-	#else
-		mat3 normalMatrix = mat3(worldPieceMatrix);
-	#endif
+	mat3 normalMatrix = mat3(worldPieceMatrix);
+
 
 
 	vec4 piecePos = vec4(pos, 1.0);
 	vec4 modelPos = pieceMatrix * piecePos;
 	vec4 worldPos = worldPieceMatrix * piecePos;
+	worldPos.x += 32;
 
 	worldNormal = normalMatrix * normal;
 
@@ -168,10 +294,25 @@ void main(void)
 		fogFactor = clamp(fogFactor, 0.0, 1.0);
 	#endif
 
+	#if (OPTION_VERTEX_AO == 0) 
+		aoTerm = 1.0;
+	#else
+		aoTerm = clamp(1.0 * fract(gl_TexCoord[0].x * 16384.0), 0.1, 1.0);
+	#endif
+	
+	#if (OPTION_FLASHLIGHTS == 0)
+		selfIllumMod = 1.0;
+	#else
+		selfIllumMod = max(-0.2, sin(simFrame * 2.0/30.0 + (worldMatrix[3][0] + worldMatrix[3][2]) * 0.1)) + 0.2;
+	#endif
+
+	// TODO fogFactor
+	fogFactor = 1.0;
 
 	switch(drawMode) {
 		case  1: // water reflection
 			TransformPlayerReflCam(worldPos);
+			//TransformPlayerCam(worldPos);
 			break;
 		case  2: // water refraction
 			TransformPlayerCam(worldPos);

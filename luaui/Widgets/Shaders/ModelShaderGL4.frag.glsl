@@ -39,18 +39,29 @@ layout(std140, binding = 1) uniform UniformParamsBuffer {
 	vec4 teamColor[255]; //all team colors
 };
 
+
 in Data {
 	vec4 uvCoord;
 	vec4 teamCol;
 
 	vec4 worldPos;
 	vec3 worldNormal;
-
+	
+	vec4 modelVertexPos;
+	vec4 modelVertexPosOrig;
+	vec4 worldVertexPos;
+	// TBN matrix components
+	vec3 worldTangent;
+	vec3 worldBitangent;
 	// main light vector(s)
 	vec3 worldCameraDir;
+
 	// shadowPosition
 	vec4 shadowVertexPos;
-	// Auxilary
+
+	// auxilary varyings
+	float aoTerm;
+	float selfIllumMod;
 	float fogFactor;
 };
 
@@ -90,8 +101,9 @@ float GetShadowMult(vec3 shadowCoord, float NdotL) {
 
 void main(void)
 {
-	vec4 texColor1 = texture(tex1, uvCoord.xy);
-	vec4 texColor2 = texture(tex2, uvCoord.xy);
+	float lodbias = -0.5;
+	vec4 texColor1 = texture(tex1, uvCoord.xy, lodbias);
+	vec4 texColor2 = texture(tex2, uvCoord.xy, lodbias);
 
 	float alpha = teamCol.a * texColor2.a;
 	if (AlphaDiscard(alpha))
@@ -141,5 +153,6 @@ void main(void)
 		fragColor.a   = alpha;
 		fragColor *= colorMult;
 		fragColor.rgb *= vec3(2.0, 1.0, 1.0);
+		//fragColor.rgb = texColor1.rgb;
 	#endif
 }
