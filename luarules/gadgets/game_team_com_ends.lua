@@ -53,6 +53,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+
+
 local function commanderDeath(teamID, attackerUnitID, originX, originZ) -- optional: attackerUnitID, originX, originZ
 	local allyTeamID = select(6, Spring.GetTeamInfo(teamID, false))
 	aliveComCount[allyTeamID] = aliveComCount[allyTeamID] - 1
@@ -104,8 +106,9 @@ function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 end
 
 function gadget:Initialize()
-	if Spring.GetModOptions().deathmode ~= 'com' then
-		gadgetHandler:RemoveGadget(self) -- in particular, this gadget is removed if deathmode is "killall" or "none"
+	-- disable gadget when deathmode is "killall" or "none", or scoremode isnt regular
+	if Spring.GetModOptions().deathmode ~= 'com' or Spring.GetModOptions().scoremode ~= "disabled" then
+		gadgetHandler:RemoveGadget(self)
 	end
 
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do

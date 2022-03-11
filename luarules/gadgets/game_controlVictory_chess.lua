@@ -174,7 +174,7 @@ local starterLandUnitsList = {
 }
 
 local landUnitsList = {
-    
+
     -- Tier 1
     [1] = {
         [1] = {
@@ -413,7 +413,7 @@ local seaUnitsList = {
                 "corpship",
                 "corsub",
                 "corgarp",
-        
+
                 -- Hovercraft
                 "armsh",
                 "armmh",
@@ -534,36 +534,39 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local function disableUnit(unitID)
-	Spring.MoveCtrl.Enable(unitID)
-	Spring.MoveCtrl.SetNoBlocking(unitID, true)
-    local r = math.random(0,3)
-    local x = 0
-    local z = 0
-    if r == 0 then
-        x = 0 - math.random(0,1900)
-        z = 0 - math.random(0,1900)
-    elseif r == 1 then
-        x = Game.mapSizeX + math.random(0,1900)
-        z = 0 - math.random(0,1900)
-    elseif r == 2 then
-        x = 0 - math.random(0,1900)
-        z = Game.mapSizeZ + math.random(0,1900)
-    elseif r == 3 then
-        x = Game.mapSizeX + math.random(0,1900)
-        z = Game.mapSizeZ + math.random(0,1900)
-    end
-    Spring.MoveCtrl.SetPosition(unitID, x, 2000, z)
-	Spring.SetUnitNeutral(unitID, true)
-	Spring.SetUnitCloak(unitID, true)
-	--Spring.SetUnitHealth(unitID, {paralyze=99999999})
-	Spring.SetUnitMaxHealth(unitID, 10000000)
-	Spring.SetUnitHealth(unitID, 10000000)
-	Spring.SetUnitNoDraw(unitID, true)
-	Spring.SetUnitStealth(unitID, true)
-	Spring.SetUnitNoSelect(unitID, true)
-	Spring.SetUnitNoMinimap(unitID, true)
-	Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
-	Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
+	-- com ends now ignores this scoremode so we can delete the initial commanders
+	Spring.DestroyUnit(unitID, false, true, Spring.GetGaiaTeamID())
+
+	--Spring.MoveCtrl.Enable(unitID)
+	--Spring.MoveCtrl.SetNoBlocking(unitID, true)
+    --local r = math.random(0,3)
+    --local x = 0
+    --local z = 0
+    --if r == 0 then
+    --    x = 0 - math.random(0,1900)
+    --    z = 0 - math.random(0,1900)
+    --elseif r == 1 then
+    --    x = Game.mapSizeX + math.random(0,1900)
+    --    z = 0 - math.random(0,1900)
+    --elseif r == 2 then
+    --    x = 0 - math.random(0,1900)
+    --    z = Game.mapSizeZ + math.random(0,1900)
+    --elseif r == 3 then
+    --    x = Game.mapSizeX + math.random(0,1900)
+    --    z = Game.mapSizeZ + math.random(0,1900)
+    --end
+    --Spring.MoveCtrl.SetPosition(unitID, x, 2000, z)
+	--Spring.SetUnitNeutral(unitID, true)
+	--Spring.SetUnitCloak(unitID, true)
+	----Spring.SetUnitHealth(unitID, {paralyze=99999999})
+	--Spring.SetUnitMaxHealth(unitID, 10000000)
+	--Spring.SetUnitHealth(unitID, 10000000)
+	--Spring.SetUnitNoDraw(unitID, true)
+	--Spring.SetUnitStealth(unitID, true)
+	--Spring.SetUnitNoSelect(unitID, true)
+	--Spring.SetUnitNoMinimap(unitID, true)
+	--Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
+	--Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
 end
 
 local function introSetUp()
@@ -727,7 +730,7 @@ local function chooseNewUnits(starter, tier)
             seaWaveQuantity = #seaUnitsList[1]
         end
     end
-    
+
     landUnit = {}
     seaUnit = {}
     for j = 1,landWaveQuantity do
