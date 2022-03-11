@@ -255,6 +255,8 @@ else --- UNSYCNED:
 		OUTOFMAPHEIGHT = -100, -- what value to use when we are sampling the heightmap outside of the true bounds
 		SWIRLFREQUENCY = lavaSwirlFreq, -- How fast the main lava texture swirls around default 0.025
 		SWIRLAMPLITUDE = lavaSwirlAmp, -- How much the main lava texture is swirled around default 0.003
+		PARALLAXDEPTH = lavaParallaxDepth, -- set to >0 to enable
+		PARALLAXOFFSET = lavaParallaxOffset, -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
 		
 		-- for foglight:
 		FOGHEIGHTABOVELAVA = fogheightabovelava, -- how much higher above the lava the fog light plane is
@@ -370,6 +372,7 @@ else --- UNSYCNED:
 	void main() {
 		
 		vec4 camPos = cameraViewInv[3];
+		vec3 worldtocam = camPos.xyz - worldPos.xyz;
 		
 		// Sample emissive as heat indicator here for later displacement
 		vec4 nodiffuseEmit =  texture(lavaDiffuseEmit, worldUV.xy * WORLDUVSCALE );
@@ -412,8 +415,17 @@ else --- UNSYCNED:
 		distortion.xy *= clamp(nodiffuseEmit.a * 0.5 + coastfactor, 0.2, 2.0);
 	
 		vec2 diffuseNormalUVs =  worldUV.xy * WORLDUVSCALE + distortion.xy + rotatearoundvertices;
-		vec4 diffuseEmit =   texture(lavaDiffuseEmit , diffuseNormalUVs);
 		vec4 normalHeight =  texture(lavaNormalHeight, diffuseNormalUVs);
+		
+		// Perform optional parallax mapping
+		#if (PARALLAXDEPTH > 0 )
+			vec3 viewvec = normalize(worldtocam * -1.0);
+			float pdepth = PARALLAXDEPTH * (PARALLAXOFFSET - normalHeight.a ) * (1.0 - coastfactor);
+			diffuseNormalUVs += pdepth * viewvec.xz * 0.002;
+			normalHeight =  texture(lavaNormalHeight, diffuseNormalUVs);
+		#endif
+		
+		vec4 diffuseEmit =   texture(lavaDiffuseEmit , diffuseNormalUVs);
 		
 		fragColor.rgba = diffuseEmit;
 		
@@ -428,7 +440,6 @@ else --- UNSYCNED:
 		
 		// Specular Color
 		vec3 reflvect = reflect(normalize(-1.0 * sunDir.xyz), normalize(fragNormal));
-		vec3 worldtocam = camPos.xyz - worldPos.xyz;
 		float specular = clamp(pow(dot(normalize(worldtocam), normalize(reflvect)), SPECULAREXPONENT), 0.0, SPECULARSTRENGTH) * shadow;	
 		fragColor.rgb += fragColor.rgb * specular;
 	

@@ -16,6 +16,9 @@ lavaShadowStrength = 0.4 -- how much light a shadowed fragment can recieve
 lavaCoastWidth = 20.0 -- how wide the coast of the lava should be
 lavaCoastColor = "vec3(2.0, 0.5, 0.0)" -- the color of the lava coast
 lavaCoastLightBoost = 0.6 -- how much extra brightness should coastal areas get
+
+lavaParallaxDepth = 16.0 -- set to >0 to enable, how deep the parallax effect is
+lavaParallaxOffset = 0.5 -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
 lavaFogColor = "vec3(2.0, 0.5, 0.0)" -- the color of the fog light
 lavaFogFactor = 0.06 -- how dense the fog is
 lavaTideamplitude = 2 -- how much lava should rise up-down on static level
