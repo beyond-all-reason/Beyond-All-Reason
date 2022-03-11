@@ -282,6 +282,21 @@ local gettexturescalls = 0
 	-- uniform sampler2D envLUT;			//10
 	-- uniform sampler2D rgbNoise;			//11
 
+local objectDefTextures = {} -- contains the table of textures for each unitDefID/FeatureDefID
+
+local objectDefTextureKeys = {}
+
+local objectDefShaderBin = {} -- A table of {"armpw":"unit", "armpw_scav":"scavenger", "armpw_dead": "wrecks", "tree01":"featuretree", "rock1":"feature", "chickenx1":"chicken", "randomjunk":"vanilla"}
+
+local wreckTextureNames = {} -- A table of regular texture names to wreck texture names {"Arm_color.dds": "Arm_color_wreck.dds"}
+local blankNormalMap = "unittextures/blank_normal.dds"
+
+local function initTextures()
+	for unitDefID, unitDef in pairs(UnitDefs)
+	
+	
+end
+
 local function GetTextures(drawPass, unitDef)
 	gettexturescalls = (gettexturescalls + 1 ) % (2^20)
 	if drawPass == 16 then
@@ -297,6 +312,8 @@ local function GetTextures(drawPass, unitDef)
 		}
 	end
 end
+
+
 
 local MAX_TEX_ID = 131072 --should be enough
 --- Hashes a table of textures to a unique integer
@@ -709,6 +726,8 @@ function widget:Initialize()
 	vao:AttachVertexBuffer(vbo)
 	vao:AttachIndexBuffer(ebo)
 	vao:AttachInstanceBuffer(ibo)
+	
+	initTextures()
 
 	widget:Update()
 end
