@@ -26,6 +26,7 @@ function gadget:Initialize()
 	_G.frame = 0
 	_G.lavaLevel = lavaLevel
 	_G.lavaGrow = lavaGrow
+	Spring.SetGameRulesParam("lavaLevel", -99999)
 end
 
 function addTideRhym (targetLevel, speed, remainTime)
@@ -82,6 +83,7 @@ function gadget:GameFrame (f)
 
 	updateLava ()
 	lavaLevel = lavaLevel+lavaGrow
+	Spring.SetGameRulesParam("lavaLevel", lavaLevel)
 
 	local x = math.random(1,Game.mapX*512)
 	local z = math.random(1,Game.mapY*512)
