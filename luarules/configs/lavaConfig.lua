@@ -75,7 +75,7 @@ elseif string.find(mapName, "ghenna") then
         addTideRhym (250, 0.10, 5*60)
         addTideRhym (415, 0.05, 30)
         addTideRhym (250, 0.10, 5*60)
-        addTideRhym (415, 0.05, 2*60)
+        addTideRhym (415, 0.05, 3*30)
         addTideRhym (250, 0.10, 10*60)
     end
 
