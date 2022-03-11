@@ -20,7 +20,7 @@ local abilities = {}
 
 abilities.dGun = function(currentFrame)
 	if FinalBossUnitID then
-		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 2000, false)
+		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 1250, false)
 		if nearestEnemy then
 			local enemyDefID = Spring.GetUnitDefID(nearestEnemy)
 			if not UnitDefs[enemyDefID].canFly then
@@ -39,7 +39,7 @@ abilities.dGunFrenzy = function(currentFrame)
 	if FinalBossUnitID then
 		local posx, posy, posz = Spring.GetUnitPosition(FinalBossUnitID)
 		if posy > 0 then
-			local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 2000, false)
+			local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 1250, false)
 			if nearestEnemy then
 				local enemyDefID = Spring.GetUnitDefID(nearestEnemy)
 				if not UnitDefs[enemyDefID].canFly then
@@ -113,7 +113,7 @@ abilities.superDGun = function(currentFrame)
 	if FinalBossUnitID then
 		local posx, posy, posz = Spring.GetUnitPosition(FinalBossUnitID)
 		if posy > 0 then
-			local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 2000, false)
+			local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 1250, false)
 			if nearestEnemy then
 				local enemyDefID = Spring.GetUnitDefID(nearestEnemy)
 				if not UnitDefs[enemyDefID].canFly then
@@ -154,7 +154,7 @@ end
 
 abilities.airWave = function(n)
 	if FinalBossUnitID then
-		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 250, false)
+		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 1250, false)
 		if nearestEnemy then
 			--Spring.Echo("[Scavengers] Boss Fighter Reinforcements Activated")
 			local fighters = {}
@@ -174,7 +174,7 @@ end
 
 abilities.tacticalNuke = function(currentFrame)
 	if FinalBossUnitID then
-		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 2000, false)
+		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 1250, false)
 		if nearestEnemy then
 			local enemyDefID = Spring.GetUnitDefID(nearestEnemy)
 			if not UnitDefs[enemyDefID].canFly then
