@@ -15,6 +15,7 @@ end
 	-- Flags (drawpass):
 		-- forward opaque + reflections
 		-- deferred opaque, all units
+		-- shadows. Now all units need their vertex displacement for efficient shadows, so better to bind a separate shader for this
 	-- Shaders / shaderconfig:
 		-- Features
 		-- Trees
@@ -67,7 +68,13 @@ end
 	
 	-- NOTE: in general, a function call is about 10x faster than a table lookup.... 
 	
+	-- TODO: how to handle units under construction? They cant be their own completely separate shit, cause of textures...
+		-- might still make sense to do so
 	-- TODO: fully blank normal map for non-normal mapped units (or else risk having to write a shader for that bin, which wont even get used
+	
+	-- TODO: alpha cloaked unitses :/ 
+	
+	-- TODO: feature drawing bits too
 	
 	-- GetTextures :
 		-- should return array table instead of hash table
@@ -262,6 +269,108 @@ local function SetShaderUniforms(drawPass, shaderID)
 	end
 end
 
+local MAX_TEX_ID = 131072 --should be enough
+--- Hashes a table of textures to a unique integer
+-- @param textures a table of {bindposition:texture}
+-- @return a unique hash for binning
+local function GetTexturesKey(textures)
+	local cs = 0
+	for bindPosition, tex in pairs(textures) do
+		local texInfo = gl.TextureInfo(tex)
+		
+		local texInfoid = 0
+		if texInfo and texInfo.id then texInfoid = texInfo.id end 
+		cs = cs + (texInfoid or 0) + bindPosition * MAX_TEX_ID
+	end
+
+	return cs
+end
+
+local unitsNormalMapTemplate = table.merge(matTemplate, {
+	texUnits  = {
+		[0] = "%%UNITDEFID:0",
+		[1] = "%%UNITDEFID:1",
+		[2] = "%NORMALTEX",
+	},
+	shaderDefinitions = {
+		"#define RENDERING_MODE 0",
+		"#define SUNMULT pbrParams[6]",
+		"#define EXPOSURE pbrParams[7]",
+
+		"#define SPECULAR_AO",
+
+		"#define ROUGHNESS_AA 1.0",
+
+		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
+		"#define USE_ENVIRONMENT_DIFFUSE 1",
+		"#define USE_ENVIRONMENT_SPECULAR 1",
+
+		"#define TONEMAP(c) CustomTM(c)",
+	},
+	deferredDefinitions = {
+		"#define RENDERING_MODE 1",
+		"#define SUNMULT pbrParams[6]",
+		"#define EXPOSURE pbrParams[7]",
+
+		"#define SPECULAR_AO",
+
+		"#define ROUGHNESS_AA 1.0",
+
+		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
+		"#define USE_ENVIRONMENT_DIFFUSE 1",
+		"#define USE_ENVIRONMENT_SPECULAR 1",
+
+		"#define TONEMAP(c) CustomTM(c)",
+	},
+	shadowOptions = {
+		health_displace = true,
+	},
+	shaderOptions = {
+		normalmapping = true,
+		flashlights = true,
+		vertex_ao = true,
+		health_displace = true,
+		health_texturing = true,
+	},
+	deferredOptions = {
+		normalmapping = true,
+		flashlights = true,
+		vertex_ao = true,
+		health_displace = true,
+		health_texturing = true,
+	},
+})
+
+local shaderOptions = {
+	forward = {
+		unit = {},
+		scavenger = {},
+		chicken = {},
+		otherunit = {},
+		wreck = {},
+		tree = {},
+		feature = {},
+	},
+	deferred = {
+		unit = {},
+		scavenger = {},
+		chicken = {},
+		otherunit = {},
+		wreck = {},
+		tree = {},
+		feature = {},
+	},
+	shadow = {
+		unit = {},
+		scavenger = {},
+		chicken = {},
+		otherunit = {},
+		wreck = {},
+		tree = {},
+		feature = {},
+	},
+}
+
 local gettexturescalls = 0
 
 -- Order of textures in shader:
@@ -282,19 +391,139 @@ local gettexturescalls = 0
 	-- uniform sampler2D envLUT;			//10
 	-- uniform sampler2D rgbNoise;			//11
 
-local objectDefTextures = {} -- contains the table of textures for each unitDefID/FeatureDefID
 
-local objectDefTextureKeys = {}
+local unitDefIDtoTextureKeys = {}    -- table of  {unitDefID : TextureKey}
+local featureDefIDtoTextureKeys = {} -- table of {featureDefID : TextureKey}
 
-local objectDefShaderBin = {} -- A table of {"armpw":"unit", "armpw_scav":"scavenger", "armpw_dead": "wrecks", "tree01":"featuretree", "rock1":"feature", "chickenx1":"chicken", "randomjunk":"vanilla"}
+local textureKeytoSet = {} -- table of {TextureKey : {textureTable}}
+
+local unitDefShaderBin = {} -- A table of {"armpw".id:"unit", "armpw_scav".id:"scavenger", "chickenx1".id:"chicken", "randomjunk":"vanilla"}
+
+local featureDefShaderBin = {} --  A table of {"armpw_dead".id: "wrecks", "tree01".id:"featuretree", "rock1".id:"feature",}
 
 local wreckTextureNames = {} -- A table of regular texture names to wreck texture names {"Arm_color.dds": "Arm_color_wreck.dds"}
 local blankNormalMap = "unittextures/blank_normal.dds"
 
+local brdfLUT = false
+local envLUT = false
+
+local function GetNormal(unitDef, featureDef)
+	local normalMap = blankNormalMap
+
+	if unitDef and unitDef.customParams and unitDef.customParams.normaltex and VFS.FileExists(unitDef.customParams.normaltex) then
+		return unitDef.customParams.normaltex
+	end
+
+	if featureDef then
+		if featureDef.customParams and featureDef.customParams.normaltex and VFS.FileExists(featureDef.customParams.normaltex) then
+			return featureDef.customParams.normaltex
+		end
+		
+		local tex1 = featureDef.model.textures.tex1
+		local tex2 = featureDef.model.textures.tex2
+
+		local unittexttures = "unittextures/"
+		if (VFS.FileExists(unittexttures .. tex1)) and (VFS.FileExists(unittexttures .. tex2)) then
+			normalMap = unittexttures .. tex1:gsub("%.","_normals.")
+			-- Spring.Echo(normalMap)
+			if (VFS.FileExists(normalMap)) then
+				return normalMap
+			end
+			normalMap = unittexttures .. tex1:gsub("%.","_normal.")
+			-- Spring.Echo(normalMap)
+			if (VFS.FileExists(normalMap)) then
+				return normalMap
+			end
+		end
+	end
+
+	return normalMap
+end
+
 local function initTextures()
-	for unitDefID, unitDef in pairs(UnitDefs)
+	for unitDefID, unitDef in pairs(UnitDefs) end 
+		if unitDef.model then 
+			local normalTex = GetNormal(unitDef, nil)
+			local textureTable = {
+				--%-102:0 = featureDef 102 s3o tex1 
+				[0] = string.format("%%-%s:%i", unitDefID, 0),
+				[1] = string.format("%%-%s:%i", unitDefID, 1),
+				[2] = normalTex,
+				[3] = false,
+				[4] = false,
+				[5] = false,
+				[6] = "$shadow",
+				[7] = "$reflection",
+				[8] = "$info:los", 
+				[9] = brdfLUT,
+				[10] = envLUT,
+			}
+			-- is this a proper unitdef with a real 
+			
+			local lowercasetex1 = string.lower(unitDef.model.textures.tex1 or "")
+			local wreckTex1 = ((lowercasetex1:find("arm_color", nil, true) and "unittextures/Arm_wreck_color.dds") or 
+								(lowercasetex1:find("cor_color", nil, true) and "unittextures/Cor_wreck_color.dds") ) or false
+			local wreckTex2 = ((lowercasetex1:find("arm_other", nil, true) and "unittextures/Arm_wreck_other.dds") or 
+								(lowercasetex1:find("cor_other", nil, true) and "unittextures/Cor_wreck_other.dds") ) or false
+			local wreckNormalTex = ((lowercasetex1:find("arm_color") and "unittextures/Arm_wreck_color_normal.dds") or
+					(lowercasetex1:find("cor_color") and "unittextures/Cor_wreck_color_normal.dds") or false
+			
+			if unitDef.name:find("_scav", nil, true) then -- it better be a scavenger unit, or ill kill you
+				unitDefShaderBin[unitDefID] = 'scavenger'
+				textureTable[3] = wreckTex1
+				textureTable[4] = wreckTex2
+				textureTable[5] = wreckNormalTex
+			elseif unitDef.name:find("chicken", nil, true) then 
+				unitDefShaderBin[unitDefID] = 'chicken'
+			elseif wreckTex1 and wreckTex2 then -- just a true unit:
+				unitDefShaderBin[unitDefID] = 'unit'
+				textureTable[3] = wreckTex1
+				textureTable[4] = wreckTex2
+				textureTable[5] = wreckNormalTex
+			else
+				unitDefShaderBin[unitDefID] = 'otherunit'
+			end
+			
+			local texKey = GetTexturesKey(textureTable)
+			if textureKeytoSet[texKey] == nil then 
+				textureKeytoSet[texKey] = textureTable
+			end 
+			unitDefIDtoTextureKeys[unitDefID] = texKey
+			
+		end
+	end
 	
-	
+	for featureDefID, featureDef in pairs(FeatureDefs) do 
+		if featureDef.model then -- this is kind of a hack to work around specific modelless features metalspots found on Otago 1.4
+			local textureTable = {
+				[0] = string.format("%%-%s:%i", featureDefID, 0),
+				[1] = string.format("%%-%s:%i", featureDefID, 1),
+				[2] = GetNormal(nil, featureDef),
+				[3] = false,
+				[4] = false,
+				[5] = false,
+				[6] = "$shadow",
+				[7] = "$reflection",
+				[8] = "$info:los", 
+				[9] = brdfLUT,
+				[10] = envLUT,
+			}
+			local texKey = GetTexturesKey(textureTable)
+			if textureKeytoSet[texKey] == nil then 
+				textureKeytoSet[texKey] = textureTable
+			end 
+			featureDefIDtoTextureKeys[featureDefID] = texKey
+			
+			if featureDef.name:find("_dead", nil, true) or featureDef.name:find("_heap", nil, true) then 
+				featureDefShaderBin[featureDefID] = 'wreck'
+			elseif featureDef.customParams and featureDef.customParams.treeshader == 'yes' then 
+				featureDefShaderBin[featureDefID] = 'tree'
+			else
+				featureDefShaderBin[featureDefID] = 'feature'
+			end
+			
+		end
+	end
 end
 
 local function GetTextures(drawPass, unitDef)
@@ -315,22 +544,6 @@ end
 
 
 
-local MAX_TEX_ID = 131072 --should be enough
---- Hashes a table of textures to a unique integer
--- @param textures a table of {bindposition:texture}
--- @return a unique hash for binning
-local function GetTexturesKey(textures)
-	local cs = 0
-	for bindPosition, tex in pairs(textures) do
-		local texInfo = gl.TextureInfo(tex)
-		
-		local texInfoid = 0
-		if texInfo and texInfo.id then texInfoid = texInfo.id end 
-		cs = cs + (texInfoid or 0) + bindPosition * MAX_TEX_ID
-	end
-
-	return cs
-end
 
 -----------------
 
