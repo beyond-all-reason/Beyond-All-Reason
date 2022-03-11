@@ -534,41 +534,39 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local function disableUnit(unitID)
-	-- com ends now ignores this scoremode so we can delete the initial commanders
-	Spring.DestroyUnit(unitID, false, true, Spring.GetGaiaTeamID())
-
-	--Spring.MoveCtrl.Enable(unitID)
-	--Spring.MoveCtrl.SetNoBlocking(unitID, true)
-    --local r = math.random(0,3)
-    --local x = 0
-    --local z = 0
-    --if r == 0 then
-    --    x = 0 - math.random(0,1900)
-    --    z = 0 - math.random(0,1900)
-    --elseif r == 1 then
-    --    x = Game.mapSizeX + math.random(0,1900)
-    --    z = 0 - math.random(0,1900)
-    --elseif r == 2 then
-    --    x = 0 - math.random(0,1900)
-    --    z = Game.mapSizeZ + math.random(0,1900)
-    --elseif r == 3 then
-    --    x = Game.mapSizeX + math.random(0,1900)
-    --    z = Game.mapSizeZ + math.random(0,1900)
-    --end
-    --Spring.MoveCtrl.SetPosition(unitID, x, 2000, z)
-	--Spring.SetUnitNeutral(unitID, true)
-	--Spring.SetUnitCloak(unitID, true)
-	----Spring.SetUnitHealth(unitID, {paralyze=99999999})
-	--Spring.SetUnitMaxHealth(unitID, 10000000)
-	--Spring.SetUnitHealth(unitID, 10000000)
-	--Spring.SetUnitNoDraw(unitID, true)
-	--Spring.SetUnitStealth(unitID, true)
-	--Spring.SetUnitNoSelect(unitID, true)
-	--Spring.SetUnitNoMinimap(unitID, true)
-	--Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
-	--Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
+	Spring.MoveCtrl.Enable(unitID)
+	Spring.MoveCtrl.SetNoBlocking(unitID, true)
+    local r = math.random(0,3)
+    local x = 0
+    local z = 0
+    if r == 0 then
+        x = 0 - math.random(0,1900)
+        z = 0 - math.random(0,1900)
+    elseif r == 1 then
+        x = Game.mapSizeX + math.random(0,1900)
+        z = 0 - math.random(0,1900)
+    elseif r == 2 then
+        x = 0 - math.random(0,1900)
+        z = Game.mapSizeZ + math.random(0,1900)
+    elseif r == 3 then
+        x = Game.mapSizeX + math.random(0,1900)
+        z = Game.mapSizeZ + math.random(0,1900)
+    end
+    Spring.MoveCtrl.SetPosition(unitID, x, 2000, z)
+	Spring.SetUnitNeutral(unitID, true)
+	Spring.SetUnitCloak(unitID, true)
+	--Spring.SetUnitHealth(unitID, {paralyze=99999999})
+	Spring.SetUnitMaxHealth(unitID, 10000000)
+	Spring.SetUnitHealth(unitID, 10000000)
+	Spring.SetUnitNoDraw(unitID, true)
+	Spring.SetUnitStealth(unitID, true)
+	Spring.SetUnitNoSelect(unitID, true)
+	Spring.SetUnitNoMinimap(unitID, true)
+	Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
+	Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
 end
 
+local initialCommanders = {}
 local function introSetUp()
     for i = 1,#teams do
         local teamID = teams[i]
@@ -585,10 +583,21 @@ local function introSetUp()
 				teamSpawnQueue[teamID] = {}
 				teamRespawnQueue[teamID] = {}
                 disableUnit(unitID)
+				initialCommanders[unitID] = true
             end
         end
     end
     phase = 1
+end
+
+
+local function destroyCommanders()
+	for unitID, _ in pairs(initialCommanders) do
+		if Spring.ValidUnitID(unitID) then
+			Spring.DestroyUnit(unitID, false, true, Spring.GetGaiaTeamID())
+		end
+	end
+	initialCommanders = nil
 end
 
 local function addInfiniteResources()
@@ -801,6 +810,10 @@ function gadget:GameFrame(n)
     if n == 20 then
         introSetUp()
     end
+	if n == 110 then	-- killing it too early doesnt work somehow (probably due to spawn animation)
+		-- com-ends/game_end ignores this scoremode so we can delete the initial commanders
+		destroyCommanders()
+	end
     if n == 25 then
         addNewUnitsToQueue(true)
     end
