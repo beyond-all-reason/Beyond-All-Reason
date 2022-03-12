@@ -944,7 +944,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	if debugmode then Spring.Debug.TraceEcho(unitBars[unitID]) end
 	--Spring.Echo("Caller1:", tostring()".name), "caller2:", tostring(debug.getinfo(3).name))
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
-	gf = Spring.GetGameFrame()
+	local gf = Spring.GetGameFrame()
 	local bt = barTypeMap[barname]
 	--if cnt == 1 then bt = barTypeMap.building end
 	--if cnt == 2 then bt = barTypeMap.reload end
@@ -1015,6 +1015,27 @@ end
 
 local uniformcache = {0.0}
 
+local function updateReloadBar(unitID, unitDefID, reason)
+	if not unitDefPrimaryWeapon[unitDefID] then
+		return
+	end
+
+	local reloadFrame = GetUnitWeaponState(unitID, unitDefPrimaryWeapon[unitDefID], 'reloadFrame')
+	local reloadTime = GetUnitWeaponState(unitID, unitDefPrimaryWeapon[unitDefID], 'reloadTime')
+	local gf = Spring.GetGameFrame()
+
+	if (reloadFrame == nil or reloadFrame > gf) and unitReloadWatch[unitID] == nil then
+		addBarForUnit(unitID, unitDefID, "reload", reason)
+	end
+
+	if (reloadFrame and reloadTime) then
+		uniformcache[1] = reloadFrame - 30 * reloadTime
+		gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
+		uniformcache[1] = reloadFrame
+		gl.SetUnitBufferUniforms(unitID, uniformcache, 3)
+	end
+end
+
 local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason) -- TODO, actually, we need to check for all of these for stuff entering LOS
 
 	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then
@@ -1042,19 +1063,7 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 		unitShieldWatch[unitID] = -1.0
 	end
 
-	if unitDefReload[unitDefID] then
-		_, reloaded, reloadFrame = GetUnitWeaponState(unitID, unitDefPrimaryWeapon[unitDefID] or 1)
-		local reloadTime = unitDefReload[unitDefID]
-
-		if reloaded == false then -- and gf < reloadFrame + 30 * reloadTime then
-			addBarForUnit(unitID, unitDefID, "reload", reason)
-
-			uniformcache[1] = reloadFrame - 30 * reloadTime
-			gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
-			uniformcache[1] = reloadFrame
-			gl.SetUnitBufferUniforms(unitID, uniformcache, 3)
-		end
-	end
+	updateReloadBar(unitID, unitDefID, reason)
 
 	if health ~= nil then
 		if build < 1 then
@@ -1099,9 +1108,6 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 			end
 		end
 	end
-end
-
-local function updateBarIndex()
 end
 
 local function removeBarFromUnit(unitID, barname, reason) -- this will bite me in the ass later, im sure, yes it did, we need to just update them :P
@@ -1334,22 +1340,11 @@ local function UnitParalyzeDamageHealthbars(unitID, unitDefID, damage)
 	end
 end
 
---function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-local function ProjectileCreatedReloadHB(projectileID, ownerID, weaponID)
-	--Spring.Echo("W:ProjectileCreatedReloadHB(",projectileID, ownerID, weaponID)
-	local unitDefID = Spring.GetUnitDefID(ownerID)
-	if unitReloadWatch[ownerID] == nil then
-		addBarForUnit(ownerID, unitDefID, "reload", 'ProjectileCreatedReloadHB')
-	end
+local function ProjectileCreatedReloadHB(projectileID, unitID, weaponID, unitDefID)
+	local unitDefID = Spring.GetUnitDefID(unitID)
 
-	if unitDefReload[unitDefID] then
-		uniformcache[1] = Spring.GetGameFrame()
-		gl.SetUnitBufferUniforms(ownerID,uniformcache, 2)
-		uniformcache[1] = uniformcache[1] + 30 * unitDefReload[unitDefID]
-		gl.SetUnitBufferUniforms(ownerID,uniformcache, 3)
-	end
+	updateReloadBar(unitID, unitDefID, 'ProjectileCreatedReloadHB')
 end
-
 
 function widget:Initialize()
 	WG['healthbars'] = {}
@@ -1593,15 +1588,7 @@ function widget:GameFrame(n)
 			end
 		end
 	end
-
-	-- RELOADING:
-	-- shouldnt this be event driven?
-	-- BUILDING ETA
-
-	-- NOTHING TO DO FOR FEATURES! The gadget notifies us of everything we might need, YAY!
 end
-
-
 
 function widget:FeatureCreated(featureID)
 	local featureDefID = Spring.GetFeatureDefID(featureID)
