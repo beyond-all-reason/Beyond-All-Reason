@@ -2488,6 +2488,11 @@ function init()
 			  Spring.SendCommands("minimap unitsize " .. value)        -- spring wont remember what you set with '/minimap iconssize #'
 		  end,
 		},
+		{ id = "minimapleftclick", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.minimapleftclick, type = "bool", value = (WG['minimap'] ~= nil and WG['minimap'].getAlwaysShow ~= nil and WG['minimap'].getLeftClickMove()), description = texts.option.minimapleftclick_descr,
+		  onchange = function(i, value)
+			  saveOptionValue('Minimap', 'minimap', 'setLeftClickMove', { 'leftClickMove' }, value)
+		  end,
+		},
 
 		{ id = "buildmenu_bottom", group = "ui", category = types.basic, name = texts.option.buildmenu ..widgetOptionColor.. "  " .. texts.option.buildmenu_bottom, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getBottomPosition ~= nil and WG['buildmenu'].getBottomPosition()), description = texts.option.buildmenu_bottom_descr,
 		  onload = function(i)

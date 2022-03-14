@@ -351,6 +351,8 @@ return {
 			simpleminimapcolors = 'simple colors',
 			simpleminimapcolors_descr = 'Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!',
 			minimapiconsize = 'icon scale',
+			minimapleftclick = 'left click moves camera',
+			minimapleftclick_descr = 'Left mouse button will move the camera (it is middle mouse by default)',
 			gridmenu = 'grid',
 			gridmenu_descr = 'Alternative comprehensive build menu',
 			buildmenu = 'Build menu',

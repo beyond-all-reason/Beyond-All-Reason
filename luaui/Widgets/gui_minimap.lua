@@ -12,6 +12,7 @@ end
 
 local maxAllowedWidth = 0.29
 local maxAllowedHeight = 0.32
+local leftClickMove = false
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -33,6 +34,7 @@ local spGetCameraState = Spring.GetCameraState
 local math_isInRect = math.isInRect
 
 local wasOverview = false
+local leftclicked = false
 
 local RectRound, UiElement, elementCorner, elementPadding, elementMargin
 local dlistGuishader, dlistMinimap, oldMinimapGeometry, chobbyInterface
@@ -95,11 +97,17 @@ function widget:Initialize()
 		return usedHeight + elementPadding
 	end
 	WG['minimap'].getMaxHeight = function()
-		return math.floor(maxAllowedHeight*vsy), maxAllowedHeight
+		return math.floor(maxAllowedHeight * vsy), maxAllowedHeight
 	end
 	WG['minimap'].setMaxHeight = function(value)
 		maxAllowedHeight = value
-	    widget:ViewResize()
+		widget:ViewResize()
+	end
+	WG['minimap'].getLeftClickMove = function()
+		return leftClickMove
+	end
+	WG['minimap'].setLeftClickMove = function(value)
+		leftClickMove = value
 	end
 end
 
@@ -155,17 +163,18 @@ function widget:DrawScreen()
 	if chobbyInterface then
 		return
 	end
-	local x,y,b = Spring.GetMouseState()
+	local x, y, b = Spring.GetMouseState()
 	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4]) then
 		if not math_isInRect(x, y, backgroundRect[1], backgroundRect[2] + 1, backgroundRect[3] - 1, backgroundRect[4]) then
 			Spring.SetMouseCursor('cursornormal')
 		end
 	end
-  stframe = stframe + 1 
+	stframe = stframe + 1
 	if stframe % 10 == 0 then
-    st = spGetCameraState()
-  end
-	if st.name == "ov" then		-- overview camera
+		st = spGetCameraState()
+	end
+	if st.name == "ov" then
+		-- overview camera
 		if dlistGuishader and WG['guishader'] then
 			WG['guishader'].RemoveDlist('minimap')
 			wasOverview = true
@@ -193,6 +202,7 @@ end
 function widget:GetConfigData()
 	return {
 		maxHeight = maxAllowedHeight,
+		leftClickMove = leftClickMove
 	}
 end
 
@@ -200,15 +210,46 @@ function widget:SetConfigData(data)
 	if data.maxHeight ~= nil then
 		maxAllowedHeight = data.maxHeight
 	end
+	if data.leftClickMove ~= nil then
+		leftClickMove = data.leftClickMove
+	end
+end
+
+
+local function minimapToWorld(x, y)
+	local px = (x/usedWidth) * (Game.mapX * 512)
+	local pz = ((vsy-y)/usedHeight) * (Game.mapY * 512)
+	return px, Spring.GetGroundHeight(px,pz), pz
+end
+
+function widget:MouseMove(x, y)
+	if leftclicked and leftClickMove then
+		local px, py, pz = minimapToWorld(x, y)
+		if py then
+			Spring.SetCameraTarget(px, py, pz, 0.04)
+		end
+	end
 end
 
 function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
+	leftclicked = false
 	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4]) then
 		if not math_isInRect(x, y, backgroundRect[1], backgroundRect[2] + 1, backgroundRect[3] - 1, backgroundRect[4]) then
 			return true
+		elseif button == 1 and leftClickMove then
+			leftclicked = true
+			local px, py, pz = minimapToWorld(x, y)
+			if py then
+				Spring.SetCameraTarget(px, py, pz, 0.2)
+				return true
+			end
 		end
 	end
+end
+
+function widget:MouseRelease(x, y, button)
+	leftclicked = false
 end
