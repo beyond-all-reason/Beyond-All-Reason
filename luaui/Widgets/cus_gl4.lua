@@ -35,11 +35,15 @@ end
 	-- Can we assume that all BAR units wont have transparency? 
 		-- if yes then we can say that forward and deferred can share! 
 	-- https://stackoverflow.com/questions/8923174/opengl-vao-best-practices 
+	-- Some shader optimization info: https://community.khronos.org/t/profiling-optimizing-a-fragment-shader-in-linux/105144/3
 	
 	
 	
 -- TODO:
-	-- Under construction shader via uniform
+	-- Under construction shader via uniform 
+		-- (READ THE ONE FROM HEALTHBARS!)
+	-- TODO treadoffset unitUniform
+	-- TODO BITOPTIONS UNIFOOOOORM!
 	-- normalmapping
 	-- chickens
 	-- tanktracks
@@ -47,6 +51,13 @@ end
 	-- refraction camera
 	-- texture LOD bias of -0.5, maybe adaptive for others 
 	-- still extremely perf heavy
+		-- 1440p, Red Comet, fullscreen zoomed onto a corvp, SSAO on, Bloom On
+			-- 110 FPS on corvp with oldcus	
+			-- 180 FPS without disablecus 
+		-- 1440p, Red Comet, fullscreen zoomed onto a corvp, SSAO off, Bloom off
+			-- 130 fps oldcus
+			-- 256 fps disablecus
+		
 	-- separate VAO and IBO for each 'bin' for less heavy updates 
 	-- Do alpha units also get drawn into deferred pass? Seems like no, because only flag == 1 is draw into that
 	-- todo: dynamically size IBOS instead of using the max of 8192!
@@ -63,6 +74,11 @@ end
 			-- probably 0 
 	-- TODO: handle fast rebuilds of the IBO's when large-magnitude changes happen
 	-- TODO: faster bitops maybe?
+	-- TODO: we dont handle shaderOptions yet for batches, where we are to keep the same shader, but only change its relevant options uniform
+	
+	-- TODO: Too many varyings are passed from VS to FS. 
+		-- Specify some as flat, to avoid interpolation (e.g. teamcolor and selfillummod and maybe even fogfactor
+		-- reduce total number of these varyings 
 	
 	-- TODO: GetTextures() is not the best implementation at the moment
 	
@@ -176,7 +192,7 @@ local idToDefId = {}
 
 local processedCounter = 0
 
-local shaders = {}
+local shaders = {} -- double nested table of {drawflag : {"units":shaderID}}
 
 local vao = nil
 
@@ -219,7 +235,7 @@ end
 -----------------
 
 local function GetShader(drawPass, unitDef)
-	return shaders[drawPass]
+	return shaders[drawPass]['unit']
 end
 
 
@@ -246,6 +262,7 @@ drawMode:
 		default: // player, (-1) static model, (0) normal rendering
 ]]--
 local function SetShaderUniforms(drawPass, shaderID)
+	if true then return end
 	if drawPass <= 2 then
 		gl.UniformInt(gl.GetUniformLocation(shaderID, "drawMode"), 0)
 		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane2"), 0.0, 0.0, 0.0, 1.0)
@@ -275,8 +292,13 @@ local MAX_TEX_ID = 131072 --should be enough
 -- @return a unique hash for binning
 local function GetTexturesKey(textures)
 	local cs = 0
+	--Spring.Debug.TraceFullEcho(nil,nil,15)	
 	for bindPosition, tex in pairs(textures) do
-		local texInfo = gl.TextureInfo(tex)
+		local texInfo = nil
+		if tex ~= false then 
+			texInfo = gl.TextureInfo(tex)
+		end
+			
 		
 		local texInfoid = 0
 		if texInfo and texInfo.id then texInfoid = texInfo.id end 
@@ -286,7 +308,17 @@ local function GetTexturesKey(textures)
 	return cs
 end
 
-local unitsNormalMapTemplate = table.merge(matTemplate, {
+------------------------- SHADERS                   ----------------------
+------------------------- LOADING OLD CUS MATERIALS ----------------------
+local luaShaderDir = "LuaUI/Widgets/Include/"
+local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
+
+local MATERIALS_DIR = "modelmaterials_gl4/"
+
+local defaultMaterialTemplate = VFS.Include("modelmaterials_gl4/templates/defaultMaterialTemplate.lua")
+
+local unitsNormalMapTemplate = table.merge(defaultMaterialTemplate, {
 	texUnits  = {
 		[0] = "%%UNITDEFID:0",
 		[1] = "%%UNITDEFID:1",
@@ -371,6 +403,93 @@ local shaderOptions = {
 	},
 }
 
+
+local DEFAULT_VERSION = [[#version 430 core
+	#extension GL_ARB_uniform_buffer_object : require
+	#extension GL_ARB_shader_storage_buffer_object : require
+	#extension GL_ARB_shading_language_420pack: require
+	]]
+
+local function _CompileShader(shader, definitions, plugIns, addName)
+	if definitions == nil or definitions == {} then 
+		Spring.Echo(addName, "nul definitions", definitions)
+	end
+	definitions = definitions or {}
+
+	local hasVersion = false
+	if definitions[1] then -- #version must be 1st statement
+		hasVersion = string.find(definitions[1], "#version") == 1
+	end
+
+	if not hasVersion then
+		table.insert(definitions, 1, DEFAULT_VERSION)
+	end
+
+	shader.definitions = table.concat(definitions, "\n") .. "\n"
+	
+	shader.definitions = shader.definitions .. engineUniformBufferDefs
+
+	--// insert small pieces of code named `plugins`
+	--// this way we can use a basic shader and add some simple vertex animations etc.
+	do
+		local function InsertPlugin(str)
+			return (plugIns and plugIns[str]) or ""
+		end
+
+		if shader.vertex then
+			shader.vertex   = shader.vertex:gsub("%%%%([%a_]+)%%%%", InsertPlugin)
+		end
+		if shader.fragment then
+			shader.fragment = shader.fragment:gsub("%%%%([%a_]+)%%%%", InsertPlugin)
+		end
+		if shader.geometry then
+			shader.geometry = shader.geometry:gsub("%%%%([%a_]+)%%%%", InsertPlugin)
+		end
+	end
+
+	local luaShader = LuaShader(shader, "Custom Unit Shaders. " .. addName)
+	local compilationResult = luaShader:Initialize()
+	if compilationResult ~= true then 
+		Spring.Echo("Custom Unit Shaders. " .. addName .. " shader compilation failed")
+		local vsfile = io.open("cus_vs.glsl","w+")
+		vsfile:write(shader.vertex)
+		vsfile:close()
+
+		local fsfile = io.open("cus_fs.glsl","w+")
+		fsfile:write(shader.fragment)
+		fsfile:close()
+
+		
+		
+		widgetHandler:RemoveWidget()
+		
+		return nil
+	else
+		--Spring.Echo(addName, "Compiled successfully")
+	end
+	
+	-- luaShader:SetUniformFloatAlways("gamma", Spring.GetConfigFloat("modelGamma", 1.0)) -- only possible with active shaders wtf
+
+	return (compilationResult and luaShader) or nil
+end
+
+
+
+
+local function compileMaterialShader(template, name)
+	local forwardShader = _CompileShader(template.shader, template.shaderDefinitions, template.shaderPlugins, name .."_forward" )
+	local shadowShader = _CompileShader(template.shadow, template.shadowDefinitions, template.shaderPlugins, name .."_shadow" )
+	local deferredShader = _CompileShader(template.deferred, template.deferredDefinitions, template.shaderPlugins, name .."_deferred" )
+	
+	for k = 1, #drawBinKeys do
+		local flag = drawBinKeys[k]
+		shaders[flag][name] = forwardShader
+	end
+	shaders[0 ][name] = deferredShader
+	shaders[16][name] = shadowShader
+end
+
+
 local gettexturescalls = 0
 
 -- Order of textures in shader:
@@ -404,6 +523,20 @@ local featureDefShaderBin = {} --  A table of {"armpw_dead".id: "wrecks", "tree0
 local wreckTextureNames = {} -- A table of regular texture names to wreck texture names {"Arm_color.dds": "Arm_color_wreck.dds"}
 local blankNormalMap = "unittextures/blank_normal.dds"
 
+local wreckAtlases = {
+	["arm"] = {
+		"unittextures/Arm_wreck_color.dds",
+		"unittextures/Arm_wreck_other.dds",
+		"unittextures/Arm_wreck_color_normal.dds",
+	},
+	["cor"] = {
+		"unittextures/cor_color_wreck.dds",
+		"unittextures/cor_other_wreck.dds",
+		"unittextures/cor_color_wreck_normal.dds",
+	},
+}
+
+
 local brdfLUT = false
 local envLUT = false
 
@@ -419,8 +552,8 @@ local function GetNormal(unitDef, featureDef)
 			return featureDef.customParams.normaltex
 		end
 		
-		local tex1 = featureDef.model.textures.tex1
-		local tex2 = featureDef.model.textures.tex2
+		local tex1 = featureDef.model.textures.tex1 or "DOESNTEXIST.PNG"
+		local tex2 = featureDef.model.textures.tex2 or "DOESNTEXIST.PNG"
 
 		local unittexttures = "unittextures/"
 		if (VFS.FileExists(unittexttures .. tex1)) and (VFS.FileExists(unittexttures .. tex2)) then
@@ -441,13 +574,14 @@ local function GetNormal(unitDef, featureDef)
 end
 
 local function initTextures()
-	for unitDefID, unitDef in pairs(UnitDefs) end 
+	--if true then return end
+	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.model then 
 			local normalTex = GetNormal(unitDef, nil)
 			local textureTable = {
 				--%-102:0 = featureDef 102 s3o tex1 
-				[0] = string.format("%%-%s:%i", unitDefID, 0),
-				[1] = string.format("%%-%s:%i", unitDefID, 1),
+				[0] = string.format("%%%s:%i", unitDefID, 0),
+				[1] = string.format("%%%s:%i", unitDefID, 1),
 				[2] = normalTex,
 				[3] = false,
 				[4] = false,
@@ -455,17 +589,18 @@ local function initTextures()
 				[6] = "$shadow",
 				[7] = "$reflection",
 				[8] = "$info:los", 
-				[9] = brdfLUT,
-				[10] = envLUT,
+				[9] = "modelmaterials_gl4/brdf_0.png",
+				[10] = "modelmaterials_gl4/envlut_0.png",
+				[11] = "LuaUI/Images/rgbnoise.png",
 			}
 			-- is this a proper unitdef with a real 
 			
 			local lowercasetex1 = string.lower(unitDef.model.textures.tex1 or "")
-			local wreckTex1 = ((lowercasetex1:find("arm_color", nil, true) and "unittextures/Arm_wreck_color.dds") or 
-								(lowercasetex1:find("cor_color", nil, true) and "unittextures/Cor_wreck_color.dds") ) or false
-			local wreckTex2 = ((lowercasetex1:find("arm_other", nil, true) and "unittextures/Arm_wreck_other.dds") or 
-								(lowercasetex1:find("cor_other", nil, true) and "unittextures/Cor_wreck_other.dds") ) or false
-			local wreckNormalTex = ((lowercasetex1:find("arm_color") and "unittextures/Arm_wreck_color_normal.dds") or
+			local wreckTex1 = (lowercasetex1:find("arm_color", nil, true) and "unittextures/Arm_wreck_color.dds") or 
+								(lowercasetex1:find("cor_color", nil, true) and "unittextures/Cor_wreck_color.dds")  or false
+			local wreckTex2 = (lowercasetex1:find("arm_other", nil, true) and "unittextures/Arm_wreck_other.dds") or 
+								(lowercasetex1:find("cor_other", nil, true) and "unittextures/Cor_wreck_other.dds")  or false
+			local wreckNormalTex = (lowercasetex1:find("arm_color") and "unittextures/Arm_wreck_color_normal.dds") or
 					(lowercasetex1:find("cor_color") and "unittextures/Cor_wreck_color_normal.dds") or false
 			
 			if unitDef.name:find("_scav", nil, true) then -- it better be a scavenger unit, or ill kill you
@@ -489,6 +624,10 @@ local function initTextures()
 				textureKeytoSet[texKey] = textureTable
 			end 
 			unitDefIDtoTextureKeys[unitDefID] = texKey
+			if unitDef.name == 'corcom' or unitDef.name == 'armcom' then 
+				--Spring.Echo(unitDef.name, texKey,unitDefShaderBin[unitDefID] )
+				--Spring.Debug.TableEcho(textureTable)
+			end
 			
 		end
 	end
@@ -527,12 +666,20 @@ local function initTextures()
 end
 
 local function GetTextures(drawPass, unitDef)
+
+
 	gettexturescalls = (gettexturescalls + 1 ) % (2^20)
 	if drawPass == 16 then
 		return {
 			[0] = string.format("%%%s:%i", unitDef, 1), --tex2 only
 		}
 	else
+		--Spring.Echo("GetTextures",drawPass, unitDef,unitDefIDtoTextureKeys[unitDef], textureKeytoSet[unitDefIDtoTextureKeys[unitDef]])
+		if unitDefIDtoTextureKeys[unitDef] then 
+			if textureKeytoSet[unitDefIDtoTextureKeys[unitDef]] then 
+				return textureKeytoSet[unitDefIDtoTextureKeys[unitDef]]
+			end
+		end
 		return {
 			[0] = string.format("%%%s:%i", unitDef, 0),
 			[1] = string.format("%%%s:%i", unitDef, 1),
@@ -562,7 +709,7 @@ local function AsssignUnitToBin(unitID, unitDefID, flag, shader, textures, texKe
 	shader = shader or GetShader(flag, unitDefID)
 	textures = textures or GetTextures(flag, unitDefID)
 	texKey = texKey or GetTexturesKey(textures)
-	
+	--	Spring.Debug.TraceFullEcho()	
 	local unitDrawBinsFlag = unitDrawBins[flag]
 	if unitDrawBinsFlag[shader] == nil then
 		unitDrawBinsFlag[shader] = {}
@@ -800,12 +947,15 @@ local function ExecuteDrawPass(drawPass)
 					units = units + texAndObj.numobjects
 					local mybinVAO = texAndObj.VAO
 					for bindPosition, tex in pairs(texAndObj.textures) do
+						if Spring.GetGameFrame() % 60 == 0 then 
+							--Spring.Echo(bindPosition, tex)	
+						end
 						gl.Texture(bindPosition, tex)
 					end
 					
 					SetFixedStatePre(drawPass, shaderId)
 					
-					gl.UseShader(shaderId)
+					gl.UseShader(shaderId.shaderObj)
 					SetShaderUniforms(drawPass, shaderId)
 					
 					mybinVAO:Submit()
@@ -859,62 +1009,17 @@ local function ExecuteDrawPass(drawPass)
 end
 
 function widget:Initialize()
-	local fwdShader = gl.CreateShader({
-		vertex   = VFS.LoadFile("luaui/Widgets/Shaders/ModelShaderGL4.vert.glsl"),
-		fragment = VFS.LoadFile("luaui/Widgets/Shaders/ModelShaderGL4.frag.glsl"),
-		definitions = table.concat({
-			"#version 430 core",
-			"#define USE_SHADOWS 1",
-			"#define DEFERRED_MODE 0",
-		}, "\n") .. "\n",
-	})
-	Spring.Echo(gl.GetShaderLog())
-	if fwdShader == nil then
-		widgetHandler:RemoveWidget()
-	end
+	
 
-	local dfrShader = gl.CreateShader({
-		vertex   = VFS.LoadFile("luaui/Widgets/Shaders/ModelShaderGL4.vert.glsl"),
-		fragment = VFS.LoadFile("luaui/Widgets/Shaders/ModelShaderGL4.frag.glsl"),
-		definitions = table.concat({
-			"#version 430 core",
-			"#define USE_SHADOWS 1",
-			"#define DEFERRED_MODE 1",
-			"#define GBUFFER_NORMTEX_IDX 0",
-			"#define GBUFFER_DIFFTEX_IDX 1",
-			"#define GBUFFER_SPECTEX_IDX 2",
-			"#define GBUFFER_EMITTEX_IDX 3",
-			"#define GBUFFER_MISCTEX_IDX 4",
-			"#define GBUFFER_ZVALTEX_IDX 5",
-		}, "\n") .. "\n",
-	})
-
-	Spring.Echo(gl.GetShaderLog())
-	if dfrShader == nil then
-		widgetHandler:RemoveWidget()
-	end
-
-
-	local shdShader = gl.CreateShader({
-		vertex   = VFS.LoadFile("luaui/Widgets/Shaders/ModelShaderShadowGL4.vert.glsl"),
-		fragment = VFS.LoadFile("luaui/Widgets/Shaders/ModelShaderShadowGL4.frag.glsl"),
-		definitions = table.concat({
-			"#version 430 core",
-		}, "\n") .. "\n",
-	})
-
-	Spring.Echo(gl.GetShaderLog())
-	if shdShader == nil then
-		widgetHandler:RemoveWidget()
-	end
-
-
+	shaders[0 ] = {}
 	for k = 1, #drawBinKeys do
 		local flag = drawBinKeys[k]
-		shaders[flag] = fwdShader
+		shaders[flag] = {}
 	end
-	shaders[0 ] = dfrShader
-	shaders[16] = shdShader
+
+	compileMaterialShader(unitsNormalMapTemplate, "unit")
+	-- Initialize shaders types like so:
+	--shaders[0 ]['units] ...
 
 	vao = gl.GetVAO()
 	if vao == nil then
@@ -947,10 +1052,12 @@ end
 
 function widget:Shutdown()
 	--Spring.Debug.TableEcho(unitDrawBins)
+	
 
 	for unitID, _ in pairs(overriddenUnits) do
 		RemoveUnit(unitID)
 	end
+
 
 	vbo = nil
 	ebo = nil
@@ -959,6 +1066,7 @@ function widget:Shutdown()
 	vao = nil
 	unitDrawBins = nil
 	
+	if true then return end
 	gl.DeleteShader(shaders[0]) -- deferred
 	gl.DeleteShader(shaders[1]) -- forward
 	gl.DeleteShader(shaders[16]) -- shadow
@@ -972,7 +1080,7 @@ function widget:Update()
 	if updateframe == 0 then 
 		-- this call has a massive mem load, at 1k units at 225 fps, its 7mb/sec, e.g. for each unit each frame, its 32 bytes alloc/dealloc
 		-- which isnt all that bad, but still far from optimal
-		-- it is, however, not that bad CPU wise
+		-- it is, however, not that bad CPU wise, and it doesnt force GC load either
 		local units, drawFlags = Spring.GetRenderUnits(overrideDrawFlag, true) 
 		--units, drawFlags = Spring.GetRenderUnits(overrideDrawFlag, true)
 		--Spring.Echo("#units", #units, overrideDrawFlag)
@@ -985,7 +1093,7 @@ end
 function widget:GameFrame(n)
 	
 	if (n%60) == 0 then 
-		Spring.Echo(Spring.GetGameFrame(), "processedCounter", processedCounter, asssigncalls,gettexturescalls)
+		--Spring.Echo(Spring.GetGameFrame(), "processedCounter", processedCounter, asssigncalls,gettexturescalls)
 	end
 end
 

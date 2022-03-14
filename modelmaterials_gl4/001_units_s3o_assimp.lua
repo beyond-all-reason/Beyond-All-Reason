@@ -358,6 +358,18 @@ local wreckAtlases = {
 		"unittextures/cor_color_wreck_normal.dds",
 	},
 }
+local wreckAtlases = {
+	["arm"] = {
+		"unittextures/Arm_wreck_color.dds",
+		"unittextures/Arm_wreck_other.dds",
+		"unittextures/Arm_wreck_color_normal.dds",
+	},
+	["cor"] = {
+		"unittextures/cor_color_wreck.dds",
+		"unittextures/cor_other_wreck.dds",
+		"unittextures/cor_color_wreck_normal.dds",
+	},
+}
 
 local blankNormal = "unittextures/blank_normal.dds"
 

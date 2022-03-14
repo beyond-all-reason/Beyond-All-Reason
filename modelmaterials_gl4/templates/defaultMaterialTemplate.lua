@@ -1,6 +1,24 @@
 local shaderTemplate = {
 vertex = [[
-	//shader version is added via gadget
+	//shader version is added via widget
+	
+	layout (location = 0) in vec3 pos;
+	layout (location = 1) in vec3 normal;
+	layout (location = 2) in vec3 T;
+	layout (location = 3) in vec3 B;
+	layout (location = 4) in vec4 uv;
+	layout (location = 5) in uint pieceIndex;
+	
+	layout (location = 6) in uvec4 instData;
+	// u32 matOffset
+	// u32 uniOffset
+	// u32 {teamIdx, drawFlag, unused, unused}
+	// u32 unused
+	
+	
+	layout(std140, binding = 0) readonly buffer MatrixBuffer {
+		mat4 mat[];
+	};
 
 	%%GLOBAL_NAMESPACE%%
 
@@ -46,34 +64,34 @@ vertex = [[
 	/***********************************************************************/
 	// Matrix uniforms
 	uniform mat4 viewMatrix;
-	uniform mat4 projectionMatrix;
-	uniform mat4 shadowMatrix;
-
-	/***********************************************************************/
-	// Misc. uniforms
-	uniform float shadowDensity;
+	//uniform mat4 projectionMatrix;
+	//uniform mat4 shadowMatrix;
 
 
 	/***********************************************************************/
 	// Uniforms
-	uniform vec3 cameraPos; // world space camera position
-	uniform vec3 cameraDir; // forward vector of camera
+	//uniform vec3 cameraPos; // world space camera position
+	//uniform vec3 cameraDir; // forward vector of camera
+	vec3 cameraPos	 = cameraViewInv[3].xyz;
+	vec3 cameraDir = -1.0 * vec3(cameraView[0].z,cameraView[1].z,cameraView[2].z);
 
-	uniform vec3 rndVec;
-	uniform int simFrame;
-	uniform int drawFrame;
+	//uniform vec3 rndVec;
+	//uniform int drawFrame;
 
 	uniform int intOptions[1];
 
 	//[0]-healthMix, [1]-healthMod, [2]-vertDisplacement, [3]-tracks
 	uniform float floatOptions[4];
-	uniform int bitOptions;
+	//uniform int bitOptions;
+	int bitOptions = 1 +  2 + 8 + 16	;
 
-
+	uniform vec4 clipPlane0 = vec4(0.0, 0.0, 0.0, 1.0); //upper construction clip plane
+	uniform vec4 clipPlane1 = vec4(0.0, 0.0, 0.0, 1.0); //lower construction clip plane
+	uniform vec4 clipPlane2 = vec4(0.0, 0.0, 0.0, 1.0); //water clip plane
 
 	/***********************************************************************/
 	// Varyings
-	out Data {
+	out Data { // this amount of varyings is already more than 
 		vec4 modelVertexPos;
 		vec4 modelVertexPosOrig;
 		vec4 worldVertexPos;
@@ -81,6 +99,10 @@ vertex = [[
 		vec3 worldTangent;
 		vec3 worldBitangent;
 		vec3 worldNormal;
+		
+		vec2 uvCoords;
+		vec4 teamCol;
+		
 		// main light vector(s)
 		vec3 worldCameraDir;
 
@@ -95,6 +117,8 @@ vertex = [[
 
 	/***********************************************************************/
 	// Misc functions
+	
+	float simFrame = (timeInfo.x + timeInfo.w);
 
 	float Perlin3D( vec3 P ) {
 		//  https://github.com/BrianSharpe/Wombat/blob/master/Perlin3D.glsl
@@ -158,7 +182,7 @@ vertex = [[
 	/***********************************************************************/
 	// Auxilary functions
 
-	vec2 GetWind(int period) {
+	vec2 GetWind(float period) {
 		vec2 wind;
 		wind.x = sin(period * 5.0);
 		wind.y = cos(period * 5.0);
@@ -166,9 +190,9 @@ vertex = [[
 	}
 
 	void DoWindVertexMove(inout vec4 mVP) {
-		vec2 curWind = GetWind(simFrame / 750);
-		vec2 nextWind = GetWind(simFrame / 750 + 1);
-		float tweenFactor = smoothstep(0.0f, 1.0f, max(simFrame % 750 - 600, 0) / 150.0f);
+		vec2 curWind = GetWind(simFrame * 0.001333);
+		vec2 nextWind = GetWind(simFrame * 0.001333 + 1.0);
+		float tweenFactor = smoothstep(0.0f, 1.0f, max(mod(simFrame, 750.0) - 600.0, 0.0) / 150.0f);
 		vec2 wind = mix(curWind, nextWind, tweenFactor);
 
 		#if 0
@@ -208,11 +232,29 @@ vertex = [[
 
 	/***********************************************************************/
 	// Vertex shader main()
+	
+	#define GetPieceMatrix(staticModel) (mat[instData.x + pieceIndex + uint(!staticModel)])
+#line 12000
 	void main(void)
 	{
-		modelVertexPos = gl_Vertex;
+		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
+		mat4 worldMatrix = mat[instData.x];
+	
+		mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
+		mat3 normalMatrix = mat3(worldPieceMatrix);
+		
+		
+		vec4 piecePos = vec4(pos, 1.0);
+		vec4 modelPos = pieceMatrix * piecePos;
+		vec4 worldPos = worldPieceMatrix * piecePos;
+		worldPos.z += 32;
+		
+		uvCoords = uv.xy;
+		
+		
+		modelVertexPos = vec4(pos, 1.0);
 		modelVertexPosOrig = modelVertexPos;
-		vec3 modelVertexNormal = gl_Normal;
+		vec3 modelVertexNormal = normal;
 
 		%%VERTEX_PRE_TRANSFORM%%
 
@@ -230,7 +272,10 @@ vertex = [[
 				Perlin3D(seedVec) * normalize(modelVertexPos.xyz);
 		}
 
-		gl_TexCoord[0] = gl_MultiTexCoord0;
+		//gl_TexCoord[0] = gl_MultiTexCoord0;
+		uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
+		teamCol = teamColor[teamIndex];
+
 
 		#if (RENDERING_MODE != 2) //non-shadow pass
 
@@ -246,9 +291,9 @@ vertex = [[
 				// note, invert we invert Y axis
 				const vec4 treadBoundaries = vec4(2572.0, 3070.0, atlasSize - 1761.0, atlasSize - 1548.0) / atlasSize;
 				if (all(bvec4(
-						gl_TexCoord[0].x >= treadBoundaries.x, gl_TexCoord[0].x <= treadBoundaries.y,
-						gl_TexCoord[0].y >= treadBoundaries.z, gl_TexCoord[0].y <= treadBoundaries.w))) {
-					gl_TexCoord[0].x += texOffset;
+						uvCoords.x >= treadBoundaries.x, uvCoords.x <= treadBoundaries.y,
+						uvCoords.y >= treadBoundaries.z, uvCoords.y <= treadBoundaries.w))) {
+					uvCoords.x += texOffset;
 				}
 			}
 
@@ -262,75 +307,78 @@ vertex = [[
 				// note, invert we invert Y axis
 				const vec4 treadBoundaries = vec4(1536.0, 2048.0, atlasSize - 2048.0, atlasSize - 1792.0) / atlasSize;
 				if (all(bvec4(
-						gl_TexCoord[0].x >= treadBoundaries.x, gl_TexCoord[0].x <= treadBoundaries.y,
-						gl_TexCoord[0].y >= treadBoundaries.z, gl_TexCoord[0].y <= treadBoundaries.w))) {
-					gl_TexCoord[0].x += texOffset;
+						uvCoords.x >= treadBoundaries.x, uvCoords.x <= treadBoundaries.y,
+						uvCoords.y >= treadBoundaries.z, uvCoords.y <= treadBoundaries.w))) {
+					uvCoords.x += texOffset;
 				}
 			}
 
-			worldVertexPos = modelMatrix * modelVertexPos;
+			worldVertexPos = worldPos;
 			/***********************************************************************/
 			// Main vectors for lighting
 			// V
 			worldCameraDir = normalize(cameraPos - worldVertexPos.xyz); //from fragment to camera, world space
 
-			if (BITMASK_FIELD(bitOptions, OPTION_SHADOWMAPPING)) {
-				shadowVertexPos = shadowMatrix * worldVertexPos;
+			//if (BITMASK_FIELD(bitOptions, OPTION_SHADOWMAPPING)) {
+				shadowVertexPos = shadowView * worldPos;
+				//shadowVertexPos.xyz = shadowVertexPos.xyz / shadowVertexPos.w
 				shadowVertexPos.xy += vec2(0.5);  //no need for shadowParams anymore
-			}
+				//shadowVertexPos = shadowProj * shadowVertexPos;
+			//}
 
 			if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAPPING) || BITMASK_FIELD(bitOptions, OPTION_AUTONORMAL)) {
 				//no need to do Gram-Schmidt re-orthogonalization, because engine does it for us anyway
-				vec3 T = gl_MultiTexCoord5.xyz;
-				vec3 B = gl_MultiTexCoord6.xyz;
+				vec3 safeT = T; // already defined REM
+				vec3 safeB = B; // already defined REM
 
 				#if 1
-					if (dot(T, T) < 0.1 || dot(B, B) < 0.1) {
-						T = vec3(1.0, 0.0, 0.0);
-						B = vec3(0.0, 0.0, 1.0);
+					if (dot(safeT, safeT) < 0.1 || dot(safeB, safeB) < 0.1) {
+						safeT = vec3(1.0, 0.0, 0.0);
+						safeB = vec3(0.0, 0.0, 1.0);
 					}
 				#endif
 
 				// tangent --> world space transformation (for vectors)
-				worldTangent = modelNormalMatrix * T;
-				worldBitangent = modelNormalMatrix * B;
-				worldNormal = modelNormalMatrix * modelVertexNormal;
+				worldTangent = normalMatrix * safeT;
+				worldBitangent = normalMatrix * safeB;
+				worldNormal = normalMatrix * modelVertexNormal;
 			} else {
-				worldTangent = modelNormalMatrix * vec3(1.0, 0.0, 0.0);
-				worldBitangent = modelNormalMatrix * vec3(0.0, 1.0, 0.0);
-				worldNormal = modelNormalMatrix * modelVertexNormal;
+				worldTangent = normalMatrix * vec3(1.0, 0.0, 0.0);
+				worldBitangent = normalMatrix * vec3(0.0, 1.0, 0.0);
+				worldNormal = normalMatrix * modelVertexNormal;
 			}
 
 			if (BITMASK_FIELD(bitOptions, OPTION_VERTEX_AO)) {
-				//aoTerm = clamp(1.0 * fract(gl_TexCoord[0].x * 16384.0), shadowDensity, 1.0);
-				aoTerm = clamp(1.0 * fract(gl_TexCoord[0].x * 16384.0), 0.1, 1.0);
+				//aoTerm = clamp(1.0 * fract(uv.x * 16384.0), shadowDensity.y, 1.0);
+				aoTerm = clamp(1.0 * fract(uv.x * 16384.0), 0.1, 1.0);
 			} else {
 				aoTerm = 1.0;
 			}
 
 			if (BITMASK_FIELD(bitOptions, OPTION_FLASHLIGHTS)) {
 				// modelMatrix[3][0] + modelMatrix[3][2] are Tx, Tz elements of translation of matrix
-				selfIllumMod = max(-0.2, sin(simFrame * 2.0/30.0 + (modelMatrix[3][0] + modelMatrix[3][2]) * 0.1)) + 0.2;
+				selfIllumMod = max(-0.2, sin(simFrame * 2.0/30.0 + (worldMatrix[3][0] + worldMatrix[3][2]) * 0.1)) + 0.2;
 			} else {
 				selfIllumMod = 1.0;
 			}
 
-			gl_Position = projectionMatrix * viewMatrix * worldVertexPos;
+			//gl_Position = projectionMatrix * viewMatrix * worldVertexPos; // OOOOLD
 
 			if (BITMASK_FIELD(bitOptions, OPTION_MODELSFOG)) {
-				gl_ClipVertex = viewMatrix * worldVertexPos;
+				vec4 ClipVertex = cameraView * worldVertexPos;
 				// emulate linear fog
-				float fogCoord = length(gl_ClipVertex.xyz);
-				fogFactor = (gl_Fog.end - fogCoord) * gl_Fog.scale; // gl_Fog.scale == 1.0 / (gl_Fog.end - gl_Fog.start)
+				float fogCoord = length(ClipVertex.xyz);
+				//fogFactor = (gl_Fog.end - fogCoord) * gl_Fog.scale; // gl_Fog.scale == 1.0 / (gl_Fog.end - gl_Fog.start)
+				fogFactor = 0.5;
 				fogFactor = clamp(fogFactor, 0.0, 1.0);
 			}
-
+			gl_Position = cameraViewProj * worldPos;
 			%%VERTEX_POST_TRANSFORM%%
 
 		#elif (RENDERING_MODE == 2) //shadow pass
 
-			vec4 lightVertexPos = gl_ModelViewMatrix * modelVertexPos;
-			vec3 lightVertexNormal = normalize(gl_NormalMatrix * modelVertexNormal);
+			vec4 lightVertexPos = shadowView * worldPos;
+			vec3 lightVertexNormal = normal;
 
 			float NdotL = clamp(dot(lightVertexNormal, vec3(0.0, 0.0, 1.0)), 0.0, 1.0);
 
@@ -342,7 +390,7 @@ vertex = [[
 			lightVertexPos.xy += vec2(0.5);
 			lightVertexPos.z += bias;
 
-			gl_Position = gl_ProjectionMatrix * lightVertexPos; //TODO figure out gl_ProjectionMatrix replacement ?
+			gl_Position = shadowProj * lightVertexPos; //TODO figure out gl_ProjectionMatrix replacement ?
 		#endif
 	}
 ]],
@@ -421,7 +469,7 @@ fragment = [[
 
 	/***********************************************************************/
 	// Sunlight uniforms
-	uniform vec3 sunDir;
+	//uniform vec3 sunDir;
 	uniform vec3 sunDiffuse;
 	uniform vec3 sunAmbient;
 	uniform vec3 sunSpecular;
@@ -429,17 +477,15 @@ fragment = [[
 
 	/***********************************************************************/
 	// Misc. uniforms
-	uniform vec4 teamColor;
-	uniform float shadowDensity;
+	//uniform vec4 teamColor;
 
 	uniform vec2 autoNormalParams;
 
-	uniform int shadowsQuality;
+	//uniform int shadowsQuality;
+	int shadowsQuality = 0;
 	uniform int materialIndex;
 
-	uniform vec3 rndVec;
-	uniform int simFrame;
-	uniform int drawFrame;
+	//uniform vec3 rndVec;
 
 	#ifdef USE_LOSMAP
 		uniform vec2 mapSize;
@@ -447,14 +493,26 @@ fragment = [[
 		uniform sampler2D losMapTex;	//8
 	#endif
 
+	
 	/***********************************************************************/
 	// PBR uniforms
 	uniform sampler2D brdfLUT;			//9
 	uniform sampler2D envLUT;			//10
 	uniform sampler2D rgbNoise;			//11
 
-	uniform float pbrParams[8];
-	uniform float gamma;
+	//uniform float pbrParams[8];
+	
+	/*        Spring.GetConfigFloat("tonemapA", 4.75),
+        Spring.GetConfigFloat("tonemapB", 0.75),
+        Spring.GetConfigFloat("tonemapC", 3.5),
+        Spring.GetConfigFloat("tonemapD", 0.85),
+        Spring.GetConfigFloat("tonemapE", 1.0),
+        Spring.GetConfigFloat("envAmbient", 0.25),
+        Spring.GetConfigFloat("unitSunMult", 1.0),
+        Spring.GetConfigFloat("unitExposureMult", 1.0),*/
+	
+	
+	uniform float gamma = 1.0;
 
 	/***********************************************************************/
 	// Unit/Feature uniforms
@@ -466,9 +524,13 @@ fragment = [[
 
 	/***********************************************************************/
 	// Options
-	uniform int bitOptions;
-
-
+	//uniform int bitOptions;
+	int bitOptions = 1 +  2 + 8 + 16	;
+	
+	float simFrame = (timeInfo.x + timeInfo.w);
+	
+	float textureLODBias = -0.5; //0.85 * sin (simFrame * 0.1);
+	float pbrParams[8] = float[8](4.75, 0.75, 3.5, 0.85, 1.0, 0.25, 1.0, 1.0 );
 	/***********************************************************************/
 	// Shadow mapping quality params
 	struct ShadowQuality {
@@ -499,12 +561,15 @@ fragment = [[
 		vec3 worldTangent;
 		vec3 worldBitangent;
 		vec3 worldNormal;
-
+		
+		vec2 uvCoords;
+		vec4 teamCol;
 		// main light vector(s)
 		vec3 worldCameraDir;
 
 		// shadowPosition
 		vec4 shadowVertexPos;
+		
 
 		// auxilary varyings
 		float aoTerm;
@@ -577,7 +642,7 @@ fragment = [[
 	float BiasedZ(float z0, vec2 dZduv, vec2 offset) {
 		return z0 + dot(dZduv, offset);
 	}
-
+#line 20600
 	float GetShadowPCFRandom(float NdotL) {
 		float shadow = 0.0;
 
@@ -586,7 +651,7 @@ fragment = [[
 
 		float samplingRandomness = shadowQualityPresets[presetIndex].samplingRandomness;
 		float samplingDistance = shadowQualityPresets[presetIndex].samplingDistance;
-		int shadowSamples = shadowQualityPresets[presetIndex].shadowSamples;
+		int shadowSamples = 1;// shadowQualityPresets[presetIndex].shadowSamples;
 
 		if (shadowSamples > 1) {
 			vec2 dZduv = DepthGradient(shadowCoord.xyz);
@@ -604,7 +669,7 @@ fragment = [[
 
 				vec3 shadowSamplingCoord = vec3(shadowCoord.xy, 0.0) + vec3(offset, BiasedZ(shadowCoord.z, dZduv, offset));
 				//vec3 shadowSamplingCoord = vec3(shadowCoord.xy, 0.0) + vec3(offset, shadowCoord.z);
-				shadow += texture( shadowTex, shadowSamplingCoord );
+				shadow += texture( shadowTex, shadowSamplingCoord ).r;
 			}
 			shadow /= float(shadowSamples);
 		} else { //shadowSamples == 1
@@ -612,13 +677,18 @@ fragment = [[
 				const float cb = 0.00005;
 				float bias = cb * tan(acos(NdotL));
 				bias = clamp(bias, 0.0, 5.0 * cb);
-
+		
 				vec3 shadowSamplingCoord = shadowCoord;
-				shadowSamplingCoord.z -= bias;
+				//shadowSamplingCoord.xy += vec2(sin(simFrame * 0.02));
+				//shadowSamplingCoord.z -= bias;
 
-				shadow = texture( shadowTex, shadowSamplingCoord );
+				shadow = texture( shadowTex, shadowVertexPos.xyz ).r;
 			#else
-				shadow = texture( shadowTex, shadowCoord );
+				const float cb = 0.00005;
+				float bias = cb * tan(acos(NdotL));
+				bias = clamp(bias, 0.0, 5.0 * cb);
+				shadowCoord.z -= bias;
+				shadow = texture( shadowTex, shadowCoord ).r;
 			#endif
 		}
 		return shadow;
@@ -910,6 +980,8 @@ fragment = [[
 
 	/***********************************************************************/
 	// Environment sampling functions
+	
+#line 21000
 
 	#ifndef ENV_SMPL_NUM
 		#define ENV_SMPL_NUM 0
@@ -983,18 +1055,18 @@ fragment = [[
 		#if 0 //loop version
 			for (int x = 0; x < 3; ++x)
 				for (int y = 0; y < 3; ++y) {
-					vec3 sample = texelFetch(envLUT, ivec2(x, y), 0).rgb;
-					shR[x][y] = sample.r;
-					shG[x][y] = sample.g;
-					shB[x][y] = sample.b;
+					vec3 lutsample = texelFetch(envLUT, ivec2(x, y), 0).rgb;
+					shR[x][y] = lutsample.r;
+					shG[x][y] = lutsample.g;
+					shB[x][y] = lutsample.b;
 				}
 		#else //unrolled version
 			#define SH_FILL(x, y) \
 			{ \
-				vec3 sample = texelFetch(envLUT, ivec2(x, y), 0).rgb; \
-				shR[x][y] = sample.r; \
-				shG[x][y] = sample.g; \
-				shB[x][y] = sample.b; \
+				vec3 lutsample = texelFetch(envLUT, ivec2(x, y), 0).rgb; \
+				shR[x][y] = lutsample.r; \
+				shG[x][y] = lutsample.g; \
+				shB[x][y] = lutsample.b; \
 			}
 			SH_FILL(0, 0)
 			SH_FILL(0, 1)
@@ -1129,7 +1201,7 @@ fragment = [[
 	void main(void){
 		#line 30540
 
-		vec2 myUV = gl_TexCoord[0].xy;
+		vec2 myUV = uvCoords;
 
 		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAP_FLIP)) {
 			myUV.y = 1.0 - myUV.y;
@@ -1147,6 +1219,7 @@ fragment = [[
 
 		float healthMix;
 		vec3 seedVec;
+		
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
 			seedVec = modelVertexPosOrig.xyz * 0.6;
 			seedVec.y += 1024.0 * hash11(float(intOptions[0]));
@@ -1159,7 +1232,7 @@ fragment = [[
 		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAPPING)) {
 			tbnNormal = NORM2SNORM(normalTexVal.xyz);
 			if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
-				vec3 tbnNormalw = NORM2SNORM(texture(normalTexw, myUV).xyz);
+				vec3 tbnNormalw = NORM2SNORM(texture(normalTexw, myUV, textureLODBias).xyz);
 				tbnNormal = mix(tbnNormal, tbnNormalw, healthMix);
 			}
 			if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
@@ -1179,9 +1252,9 @@ fragment = [[
 			myUV.y = 1.0 - myUV.y;
 		}
 
-		vec4 texColor1 = texture(texture1, myUV);
-		vec4 texColor2 = texture(texture2, myUV);
-
+		vec4 texColor1 = texture(texture1, myUV, textureLODBias);
+		vec4 texColor2 = texture(texture2, myUV, textureLODBias);
+		/*
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
 			vec4 texColor1w = texture(texture1w, myUV);
 			vec4 texColor2w = texture(texture2w, myUV);
@@ -1189,8 +1262,7 @@ fragment = [[
 			texColor1 = mix(texColor1, texColor1w, healthMix);
 			texColor2.xyz = mix(texColor2.xyz, texColor2w.xyz, healthMix);
 			texColor2.z += 0.5 * healthMix; //additional roughness
-		}
-
+		}*/
 
 		#ifdef LUMAMULT
 		{
@@ -1199,9 +1271,9 @@ fragment = [[
 			texColor1.rgb = YCBCR2RGB * yCbCr;
 		}
 		#endif
-
-		vec3 albedoColor = SRGBtoLINEAR(mix(texColor1.rgb, teamColor.rgb, texColor1.a));
-
+		vec4 teeeeemcolor = teamCol;
+		vec3 albedoColor = SRGBtoLINEAR(mix(texColor1.rgb, teeeeemcolor.rgb, texColor1.a));
+		
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
 			float texHeight = normalTexVal.a;
 			float healthyness = clamp(healthMix * 2.0 - 0.5, 0.0, 1.0); //healthyness of 0 is near dead, 1 is fully healthy
@@ -1214,7 +1286,7 @@ fragment = [[
 			}
 		}
 
-
+		
 		N = normalize(worldTBN * tbnNormal);
 
 		// PBR Params
@@ -1258,7 +1330,7 @@ fragment = [[
 
 		// L - worldLightDir
 		/// Sun light is considered infinitely far, so it stays same no matter worldVertexPos.xyz
-		vec3 L = normalize(sunDir); //from fragment to light, world space
+		vec3 L = normalize(sunDir.xyz); //from fragment to light, world space
 
 		// V - worldCameraDir
 		vec3 V = normalize(worldCameraDir);
@@ -1281,19 +1353,20 @@ fragment = [[
 			float colorPerturbScale = mix(0.0, ROUGHNESS_PERTURB_COLOR, roughness);
 			albedoColor *= (1.0 + colorPerturbScale * rndValue); //try cheap way first (no RGB2YCBCR / YCBCR2RGB)
 		#endif
-
+		
 
 		/// shadows
 		float shadowMult;
+		float gShadow = 1.0; // shadow mapping
+		float nShadow = smoothstep(0.0, 0.35, NdotLu); //normal based shadowing, always on
 		{
-			float nShadow = smoothstep(0.0, 0.35, NdotLu); //normal based shadowing, always on
-			float gShadow = 1.0; // shadow mapping
 			if (BITMASK_FIELD(bitOptions, OPTION_SHADOWMAPPING)) {
 				gShadow = GetShadowPCFRandom(NdotL);
 			}
-			shadowMult = mix(1.0, min(nShadow, gShadow), shadowDensity);
+			shadowMult = mix(1.0, min(nShadow, gShadow), shadowDensity.y);
 		}
-
+		
+		
 
         ///
         // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
@@ -1313,7 +1386,7 @@ fragment = [[
 
 		vec3 energyCompensation = clamp(1.0 + F0 * (1.0 / max(envBRDF.x, EPS) - 1.0), vec3(1.0), vec3(2.0));
 
-
+		
 		//// Direct (sun) PBR lighting
         vec3 dirContrib = vec3(0.0);
 		vec3 outSpecularColor = vec3(0.0);
@@ -1398,7 +1471,8 @@ fragment = [[
 			#else
 				iblDiffuse = sunAmbient;
             #endif
-
+			
+			//vec4 debugColor = vec4(albedoColor.rgb ,1.0);
             vec3 diffuse = iblDiffuse * albedoColor * aoTerm;
 
             // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
@@ -1423,7 +1497,7 @@ fragment = [[
 
             outColor = ambientContrib + dirContrib;
         }
-
+		
 		// final color
 		outColor += emissiveness * albedoColor;
 
@@ -1438,16 +1512,19 @@ fragment = [[
 			outSpecularColor.rgb *= losValue;
 			emissiveness *= losValue;
 		#endif
-
+		
+		vec4 debugColor = vec4(outColor.rgb ,1.0);
 		#ifdef EXPOSURE
 			outSpecularColor.rgb *= EXPOSURE;
 			outColor *= EXPOSURE;
 		#endif
+		
+		
 
 		outColor = TONEMAP(outColor);
 
 		if (BITMASK_FIELD(bitOptions, OPTION_MODELSFOG)) {
-			outColor = mix(gl_Fog.color.rgb, outColor, fogFactor);
+			outColor = mix(fogColor.rgb, outColor, fogFactor);
 		}
 
 		// debug hook
@@ -1460,8 +1537,13 @@ fragment = [[
 
 		#if (RENDERING_MODE == 0)
 			fragData[0] = vec4(outColor, texColor2.a);
+			//fragData[0] = vec4(vec3(fract((shadowVertexPos.xyz )  ))	, 1.0); //debug
+			//fragData[0] = vec4(vec3(gShadow	)	, 1.0); //debug
+			//fragData[0] = vec4(cameraView[0].z,cameraView[1].z,cameraView[2].z, 1.0); //debug
+			//fragData[0] = vec4(N.xyz, 1.0); //debug
 		#elif (RENDERING_MODE == 1)
 			float alphaBin = (texColor2.a < 0.5) ? 0.0 : 1.0;
+			alphaBin = 1.0;
 
 			outSpecularColor = TONEMAP(outSpecularColor);
 
@@ -1473,7 +1555,12 @@ fragment = [[
 		#endif
 	}
 #else //shadow pass
-
+#line 25000
+void main(void)
+{
+	fragData[0] = vec4(1.0);
+}
+//FLUTYISBROÁFélő[]
 #endif
 ]],
 	uniformInt = {
@@ -1513,6 +1600,7 @@ local defaultMaterialTemplate = {
 	-- they need to be redefined on every child material that has its own {shader,deferred,shadow}Definitions
 	shaderDefinitions = {
 		"#define RENDERING_MODE 0",
+		"ARGLEBLARLG[]z",
 	},
 	deferredDefinitions = {
 		"#define RENDERING_MODE 1",
@@ -1582,9 +1670,9 @@ local defaultMaterialTemplate = {
 		[6] = "$shadow",
 		[7] = "$reflection",
 
-		[9] = GG.GetBrdfTexture(),
-		[10] = GG.GetEnvTexture(),
-		[11] = ":l:LuaUI/Images/rgbnoise.png",
+		[9] = "modelmaterials_gl4/brdf_0.png",
+		[10] = "modelmaterials_gl4/envlut_0.png",
+		[11] = "LuaUI/Images/rgbnoise.png",
 	},
 
 	predl = nil, -- `predl` is replaced with `prelist` later in api_cus
