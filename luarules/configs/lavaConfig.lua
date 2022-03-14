@@ -115,7 +115,7 @@ elseif string.find(mapName, "acidicquarry") then
     lavaTideamplitude = 20
     lavaTideperiod = 75
     if isLavaGadget and isLavaGadget == "synced" then
-        addTideRhym (1, 0.05, 1)
+
     end
 
 
@@ -138,10 +138,7 @@ elseif string.find(mapName, "speedmetal") then
 
 elseif Game.waterDamage > 0 then -- Waterdamagemaps - keep at the very bottom
     lavaMap = true
-    if isLavaGadget and isLavaGadget == "synced" then
-        addTideRhym (0, 0.25, 9999)
-        addTideRhym (0, 0.25, 9999)
-    end
+
 end
 
 
