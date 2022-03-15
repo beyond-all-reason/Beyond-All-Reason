@@ -79,8 +79,8 @@ Spring.SetConfigInt("LuaGarbageCollectionMemLoadMult", 2)
 
 -- ground mesh detail
 Spring.SetConfigInt("ROAM", 1)
-if tonumber(Spring.GetConfigInt("GroundDetail", 1) or 1) < 150 then
-	Spring.SetConfigInt("GroundDetail", 150)
+if tonumber(Spring.GetConfigInt("GroundDetail", 1) or 1) < 200 then
+	Spring.SetConfigInt("GroundDetail", 200)
 end
 
 Spring.SetConfigFloat("CrossAlpha", 0)	-- will be in effect next launch
