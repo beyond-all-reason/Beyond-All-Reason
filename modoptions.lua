@@ -762,7 +762,7 @@ local options={
 
 	{
 		key="commanderbuildersenabled",
-		name="Commander Builders",
+		name="Base Construction Turret",
 		type="list",
 		def="scav_only",
 		section="options",

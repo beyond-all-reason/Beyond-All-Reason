@@ -34,8 +34,8 @@ return {
 		maxwaterdepth = 50000000,
 		minwaterdepth = 12,
 		movementclass = "NANO",
-		objectname = "Units/ARMNANOTCPLAT.s3o",
-		script = "Units/ARMNANOTCPLAT.cob",
+		objectName = "lootboxes/lootboxnanoarmT2.s3o",
+		script = "lootboxes/lootboxnanoarm.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderExplosion",
 		sightdistance = 1500,
@@ -43,10 +43,10 @@ return {
 		turnrate = 1,
 		upright = true,
 		workertime = 500,
-		buildoptions = {
-			"armcom",
-			"armassistdrone",
-		},
+		-- buildoptions = {
+		-- 	"armcom",
+		-- 	"armassistdrone",
+		-- },
 		customparams = {
 			usebuildinggrounddecal = false,
 			buildinggrounddecaltype = "decals/armnanotc_aoplane.dds",
@@ -57,7 +57,7 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbuildings/seautil",
-			iscommander = true,
+			--iscommander = true,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 5000,
 		buildcostmetal = 500,
 		builddistance = 750,
-		builder = true,
+		builder = false,
 		buildpic = "CORNANOTCPLAT.DDS",
 		buildtime = 5312,
 		canassist = true,
@@ -34,8 +34,8 @@ return {
 		maxwaterdepth = 50000000,
 		minwaterdepth = 12,
 		movementclass = "NANO",
-		objectname = "Units/CORNANOTCPLAT.s3o",
-		script = "Units/CORNANOTCPLAT.cob",
+		objectName = "lootboxes/lootboxnanocorT2.s3o",
+		script = "lootboxes/lootboxnanocor.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderExplosion",
 		sightdistance = 1500,
@@ -43,10 +43,10 @@ return {
 		turnrate = 1,
 		upright = true,
 		workertime = 500,
-		buildoptions = {
-			"corcom",
-			"corassistdrone",
-		},
+		-- buildoptions = {
+		-- 	"corcom",
+		-- 	"corassistdrone",
+		-- },
 		customparams = {
 			usebuildinggrounddecal = false,
 			buildinggrounddecaltype = "decals/cornanotc_aoplane.dds",
@@ -57,7 +57,7 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/seautil",
-			iscommander = true,
+			--iscommander = true,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {
