@@ -101,34 +101,40 @@ elseif string.find(mapName, "hotstepper") then
 
 elseif string.find(mapName, "acidicquarry") then
     lavaMap = true
+    lavaGrow = 0
     nolavaburstcegs = true
     lavaLevel = 1
-    lavaColorCorrection = "vec3(0.2, 1.2, 0.05)"
-    --lavaCoastColor = "vec3(0.5, 1.1, 0.6)"
-    --lavaCoastLightBoost = 0.9
-    --lavaFogColor = "vec3(0.90, 0.60, 0.15)"
+    lavaColorCorrection = "vec3(0.15, 1.0, 0.03)"
+    lavaCoastColor = "vec3(0.15, 0.7, 0.03)"
+    lavaCoastLightBoost = 1.5
+    lavaCoastWidth = 15.0 -- how wide the coast of the lava should be
+    lavaFogColor = "vec3(0.90, 0.60, 0.15)"
     --lavaCoastWidth = 30.0
-    lavaswirlFreq = 0.035
-    lavaswirlAmp = 0.004
+    lavaParallaxDepth = 32.0 -- set to >0 to enable, how deep the parallax effect is
+    lavaParallaxOffset = 0.2 -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
+    lavaSwirlFreq = 0.008
+    lavaSwirlAmp = 0.017
+    lavaUVscale = 2.2
     lavaSpecularExp = 12.0
-    lavaFogFactor = 0.09
-    lavaTideamplitude = 20
+    lavaFogFactor = 0.08
+    lavaTideamplitude = 16
     lavaTideperiod = 75
     if isLavaGadget and isLavaGadget == "synced" then
-
+        addTideRhym (1, 0.05, 5*6000)
     end
 
 
 elseif string.find(mapName, "speedmetal") then
     lavaMap = true
+    lavaGrow = 0 
     nolavaburstcegs = true
-    lavaLevel = 2 -- pre-game lava level
+    lavaLevel = 1 -- pre-game lava level
     lavaColorCorrection = "vec3(0.3, 0.1, 1.5)"
     --lavaCoastWidth = 40.0
     --lavaCoastColor = "vec3(1.7, 0.02, 1.4)"
     lavaFogColor = "vec3(0.60, 0.02, 1)"
-    lavaswirlFreq = 0.025
-    lavaswirlAmp = 0.002
+    lavaSwirlFreq = 0.025
+    lavaSwirlAmp = 0.003
     lavaTideamplitude = 3
     lavaTideperiod = 50
     if isLavaGadget and isLavaGadget == "synced" then
