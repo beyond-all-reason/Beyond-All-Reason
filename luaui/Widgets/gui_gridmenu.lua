@@ -43,6 +43,8 @@ local PREV_PAGE_KEY = "N"
 local os_clock = os.clock
 local updateInFrames = -1
 
+local keySymCharsReverse = {}
+
 local Cfgs = {
 	disableInputWhenSpec = false, -- disable specs selecting buildoptions
 	cfgCellPadding = 0.007,
@@ -76,7 +78,6 @@ local Cfgs = {
 		QUOTE = "'",
 		PERIOD = ".",
 	},
-        keySymCharsReverse = {},
 	layoutKeys = {},
 	vKeyLayouts = {},
 	keyLayouts = {
@@ -790,7 +791,7 @@ end
 
 function reloadBindings()
 	-- initialise keySymCharsReverse from keySymChars
-	Cfgs.keySymCharsReverse = table.invert(Cfgs.keySymChars)
+	keySymCharsReverse = table.invert(Cfgs.keySymChars)
 
 	local layout
 	local actionHotkey = Spring.GetActionHotKeys('gridmenu_layout')
@@ -815,27 +816,21 @@ function reloadBindings()
 		Spring.SendCommands("bind " .. string.lower(PREV_PAGE_KEY) .. " gridmenu_prev_page")
 	end
 
-	local custom = {}
+        copyKeyLayout(currentLayout, 'custom')
 	local useCustom = false
 	for r=1,3 do
-		local row = {}
+		Cfgs.keyLayouts['custom'][r] = {}
 		for c=1,4 do
 			hotkey = 'gridmenu_' .. r .. '_' .. c
 			local key = Spring.GetActionHotKeys(hotkey)[1]
 			if key then
-				actionHotkey = Cfgs.keySymCharsReverse[string.upper(key)] or string.upper(key)
-				row[c] = actionHotkey
+				Cfgs.keyLayouts['custom'][r][c] = keySymCharsReverse[string.upper(key)] or string.upper(key)
 				useCustom = true
-			else
-				row[c] = Cfgs.keyLayouts[currentLayout][r][c]
 			end
 		end
-		custom[4 - r] = row
 	end
-	Cfgs.keyLayouts['custom'] = custom
-	genKeyLayout('custom')
 	if useCustom then
-		Spring.Echo("using 'custom' gridmenu keyboard layout, based on '" .. currentLayout .. "'")
+		genKeyLayout('custom')
 		currentLayout = 'custom'
 	end
 end
