@@ -837,6 +837,7 @@ function reloadBindings()
 	Cfgs.keyLayouts['custom'] = custom
 	genKeyLayout('custom')
 	if useCustom then
+		Spring.Echo("using 'custom' gridmenu keyboard layout, based on '" .. currentLayout .. "'")
 		currentLayout = 'custom'
 	end
 end
