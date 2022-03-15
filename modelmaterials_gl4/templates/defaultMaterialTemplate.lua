@@ -19,6 +19,31 @@ vertex = [[
 	layout(std140, binding = 0) readonly buffer MatrixBuffer {
 		mat4 mat[];
 	};
+	
+	struct SUniformsBuffer {
+		uint composite; //     u8 drawFlag; u8 unused1; u16 id;
+		
+		uint unused2;
+		uint unused3;
+		uint unused4;
+
+		float maxHealth;
+		float health;
+		float unused5;
+		float unused6;
+		
+		vec4 speed;    
+		vec4[5] userDefined; //can't use float[20] because float in arrays occupies 4 * float space
+	};
+
+	layout(std140, binding=1) readonly buffer UniformsBuffer {
+		SUniformsBuffer uni[];
+	}; 
+
+	
+	// Unit Uniforms:
+	#define UNITUNIFORMS uni[instData.y]
+	#define UNITID (uni[instData.y].composite >> 16)
 
 	%%GLOBAL_NAMESPACE%%
 
@@ -67,7 +92,7 @@ vertex = [[
 	//uniform mat4 projectionMatrix;
 	//uniform mat4 shadowMatrix;
 
-
+	
 	/***********************************************************************/
 	// Uniforms
 	//uniform vec3 cameraPos; // world space camera position
@@ -78,22 +103,32 @@ vertex = [[
 	//uniform vec3 rndVec;
 	//uniform int drawFrame;
 
-	uniform int intOptions[1];
+	//uniform int intOptions[1]; // I think its goddamned unitID
+	int unitID = int(UNITID);
 
-	//[0]-healthMix, [1]-healthMod, [2]-vertDisplacement, [3]-tracks
+	//[0]-healthMix, 0.0 for full health, ~0.8 for max damage
+	//[1]-healthMod, customparams.healthlookmod, 0.4 for scavengers
+	//[2]-vertDisplacement, for scavs, its min(10.0, 5.5 + (footprintx+footprintz) /12 )
+	//[3]-tracks speed = floor(4 * speed + 0.5) / 4 
+	
+	const float vertexDisplacement = 6.0;
+	const float healthLookMod = 0.4;
+	const float treadsvelocity = 0.5;
+	
 	uniform float floatOptions[4];
 	//uniform int bitOptions;
-	int bitOptions = 1 +  2 + 8 + 16	+ 128 + 256;
+	int bitOptions = 1 +  2 + 8 + 16 + 128 + 256 + 512;
 
 	uniform vec4 clipPlane0 = vec4(0.0, 0.0, 0.0, 1.0); //upper construction clip plane
 	uniform vec4 clipPlane1 = vec4(0.0, 0.0, 0.0, 1.0); //lower construction clip plane
 	uniform vec4 clipPlane2 = vec4(0.0, 0.0, 0.0, 1.0); //water clip plane
+	
 
 	/***********************************************************************/
 	// Varyings
 	out Data { 
 		// this amount of varyings is already more than we can handle safely
-		vec4 modelVertexPos;
+		//vec4 modelVertexPos;
 		vec4 modelVertexPosOrig;
 		vec4 worldVertexPos;
 		// TBN matrix components
@@ -113,7 +148,9 @@ vertex = [[
 		// auxilary varyings
 		float aoTerm;
 		flat float selfIllumMod;
+		flat float healthFraction;
 		float fogFactor;
+		
 	};
 	
 
@@ -201,7 +238,7 @@ vertex = [[
 			// fractional part of model position, clamped to >.4
 			vec3 modelXYZ = gl_ModelViewMatrix[3].xyz;
 		#else
-			vec3 modelXYZ = 16.0 * hash31(float(intOptions[0]));
+			vec3 modelXYZ = 16.0 * hash31(float(unitID));
 		#endif
 		modelXYZ = fract(modelXYZ);
 		modelXYZ = clamp(modelXYZ, 0.4, 1.0);
@@ -247,32 +284,34 @@ vertex = [[
 		
 		
 		vec4 piecePos = vec4(pos, 1.0);
-		vec4 modelPos = pieceMatrix * piecePos;
-		vec4 worldPos = worldPieceMatrix * piecePos;
-		worldPos.z += 32;
 		
 		uvCoords = uv.xy;
+		healthFraction = clamp(UNITUNIFORMS.health / UNITUNIFORMS.maxHealth, 0.0, 1.0);
 		
-		
-		modelVertexPos = vec4(pos, 1.0);
-		modelVertexPosOrig = modelVertexPos;
+		//modelVertexPos = piecePos;
+		modelVertexPosOrig = piecePos;
 		vec3 modelVertexNormal = normal;
 
 		%%VERTEX_PRE_TRANSFORM%%
 
 		if (BITMASK_FIELD(bitOptions, OPTION_TREEWIND)) {
-			DoWindVertexMove(modelVertexPos);
+			DoWindVertexMove(piecePos);
 		}
 
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_DISPLACE)) {
-			vec3 seedVec = 0.1 * modelVertexPos.xyz;
-			seedVec.y += 1024.0 * hash11(float(intOptions[0]));
-
-			modelVertexPos.xyz +=
-				max(floatOptions[0] + floatOptions[1], 0.0) *
-				floatOptions[2] *							//vertex displacement value
-				Perlin3D(seedVec) * normalize(modelVertexPos.xyz);
+			vec3 seedVec = 0.1 * piecePos.xyz;
+			seedVec.y += 1024.0 * hash11(float(unitID));
+			float damageAmount = (1.0 - healthFraction) * 0.8;
+			piecePos.xyz +=
+				max(damageAmount , 0.0) *
+				vertexDisplacement *							//vertex displacement value
+				Perlin3D(seedVec) * normalize(piecePos.xyz);
 		}
+
+
+		vec4 modelPos = pieceMatrix * piecePos;
+		vec4 worldPos = worldPieceMatrix * piecePos;
+		worldPos.z += 64;
 
 		//gl_TexCoord[0] = gl_MultiTexCoord0;
 		uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
@@ -526,7 +565,7 @@ fragment = [[
 	/***********************************************************************/
 	// Options
 	//uniform int bitOptions;
-	int bitOptions = 1 +  2 + 8 + 16	;
+	int bitOptions = 1 +  2 + 8 + 16 + 128 + 256 + 512;
 	
 	float simFrame = (timeInfo.x + timeInfo.w);
 	
@@ -555,7 +594,7 @@ fragment = [[
 	/***********************************************************************/
 	// Varyings
 	in Data {
-		vec4 modelVertexPos;
+		//vec4 modelVertexPos;
 		vec4 modelVertexPosOrig;
 		vec4 worldVertexPos;
 		// TBN matrix components
@@ -575,6 +614,7 @@ fragment = [[
 		// auxilary varyings
 		float aoTerm;
 		flat float selfIllumMod;
+		flat float healthFraction;
 		float fogFactor;
 	};
 	
@@ -1228,7 +1268,7 @@ fragment = [[
 			seedVec.y += 1024.0 * hash11(float(intOptions[0]));
 
 			healthMix = SNORM2NORM(Perlin3D(seedVec.xyz)) * (2.0 - floatOptions[1]);
-			healthMix = smoothstep(0.0, healthMix, max(floatOptions[0] + floatOptions[1], 0.0));
+			healthMix = smoothstep(0.0, healthMix, max((1.0 - healthFraction) + floatOptions[1], 0.0));
 		}
 
 		vec3 tbnNormal;
@@ -1450,7 +1490,7 @@ fragment = [[
 
             ///
 			#if (USE_ENVIRONMENT_DIFFUSE == 1) || (USE_ENVIRONMENT_SPECULAR == 1)
-				TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
+				//TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
 			#endif
             ///
 
