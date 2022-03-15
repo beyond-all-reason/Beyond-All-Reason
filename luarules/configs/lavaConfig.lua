@@ -144,7 +144,11 @@ elseif string.find(mapName, "speedmetal") then
 
 elseif Game.waterDamage > 0 then -- Waterdamagemaps - keep at the very bottom
     lavaMap = true
-
+    lavaGrow = 0
+    lavaLevel = 1
+    if isLavaGadget and isLavaGadget == "synced" then
+        addTideRhym (1, 0.25, 5*6000)
+    end
 end
 
 
