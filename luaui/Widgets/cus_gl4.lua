@@ -118,6 +118,39 @@ end
 
 --inputs
 
+---- SHADERUNITUNIFORMS / BITSHADEROPTIONS ----
+-- We are using the SUniformsBuffer vec4 uni[instData.y].userDefined[5] to pass data persistent unit-info
+-- floats 0-5 are already in use by HealthBars
+-- Buildprogress is in: UNITUNIFORMS.userDefined[0].x
+-- bitShaderOptions are in 6: UNITUNIFORMS.userDefined[1].z
+-- treadOffset goes into   7: UNITUNIFORMS.userDefined[1].w
+
+local OPTION_SHADOWMAPPING    = 1
+local OPTION_NORMALMAPPING    = 2
+local OPTION_NORMALMAP_FLIP   = 4
+local OPTION_VERTEX_AO        = 8
+local OPTION_FLASHLIGHTS      = 16
+local OPTION_THREADS_ARM      = 32
+local OPTION_THREADS_CORE     = 64
+local OPTION_HEALTH_TEXTURING = 128
+local OPTION_HEALTH_DISPLACE  = 256
+local OPTION_HEALTH_TEXCHICKS = 512
+local OPTION_MODELSFOG        = 1024
+local OPTION_TREEWIND         = 2048
+local OPTION_SCAVENGER        = 4096
+
+local objectDefToBitShaderOptions = {} -- This is a table containing positive UnitIDs, negative featureDefIDs to bitShaderOptions mapping
+local defaultBitShaderOptions = OPTION_SHADOWMAPPING + OPTION_NORMALMAPPING + OPTION_MODELSFOG
+
+local function GetBitShaderOptions(unitDefID, featureDefID)
+	if unitDefID and objectDefToBitShaderOptions[unitDefID] then 
+		return objectDefToBitShaderOptions[unitDefID]
+	elseif featureDefID and objectDefToBitShaderOptions[-1 * featureDefID] then 
+		return objectDefToBitShaderOptions[-1 * featureDefID] 
+	end
+	return defaultBitShaderOptions
+end
+
 local debugmode = false
 
 local alphaMult = 0.35
@@ -577,6 +610,18 @@ local function initTextures()
 	--if true then return end
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.model then 
+			local bitShaderOptions = defaultBitShaderOptions
+			if unitDef.name:sub(1,3) == 'arm' or  unitDef.name:sub(1,3) == 'cor' then 
+				bitShaderOptions = bitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE
+			end 
+			if unitDef.modCategories["tank"] then 
+				if unitDef.name:sub(1,3) == 'arm' then 
+					bitShaderOptions = bitShaderOptions + OPTION_THREADS_ARM
+				elseif unitDef.name:sub(1,3) == 'cor' then 
+					bitShaderOptions = bitShaderOptions + OPTION_THREADS_CORE
+				end
+			end
+			
 			local normalTex = GetNormal(unitDef, nil)
 			local textureTable = {
 				--%-102:0 = featureDef 102 s3o tex1 
@@ -596,20 +641,25 @@ local function initTextures()
 			-- is this a proper unitdef with a real 
 			
 			local lowercasetex1 = string.lower(unitDef.model.textures.tex1 or "")
+			local lowercasetex2 = string.lower(unitDef.model.textures.tex2 or "")
+			local lowercasenormaltex = string.lower(normalTex or "")
+			
 			local wreckTex1 = (lowercasetex1:find("arm_color", nil, true) and "unittextures/Arm_wreck_color.dds") or 
-								(lowercasetex1:find("cor_color", nil, true) and "unittextures/Cor_wreck_color.dds")  or false
-			local wreckTex2 = (lowercasetex1:find("arm_other", nil, true) and "unittextures/Arm_wreck_other.dds") or 
-								(lowercasetex1:find("cor_other", nil, true) and "unittextures/Cor_wreck_other.dds")  or false
-			local wreckNormalTex = (lowercasetex1:find("arm_color") and "unittextures/Arm_wreck_color_normal.dds") or
-					(lowercasetex1:find("cor_color") and "unittextures/Cor_wreck_color_normal.dds") or false
+								(lowercasetex1:find("cor_color", nil, true) and "unittextures/Cor_color_wreck.dds")  or false
+			local wreckTex2 = (lowercasetex2:find("arm_other", nil, true) and "unittextures/Arm_wreck_other.dds") or 
+								(lowercasetex2:find("cor_other", nil, true) and "unittextures/Cor_other_wreck.dds")  or false
+			local wreckNormalTex = (lowercasenormaltex:find("arm_normal") and "unittextures/Arm_wreck_color_normal.dds") or
+					(lowercasenormaltex:find("cor_normal") and "unittextures/Cor_color_wreck_normal.dds") or false
 			
 			if unitDef.name:find("_scav", nil, true) then -- it better be a scavenger unit, or ill kill you
 				unitDefShaderBin[unitDefID] = 'scavenger'
 				textureTable[3] = wreckTex1
 				textureTable[4] = wreckTex2
 				textureTable[5] = wreckNormalTex
+				bitShaderOptions = bitShaderOptions + OPTION_SCAVENGER
 			elseif unitDef.name:find("chicken", nil, true) then 
 				unitDefShaderBin[unitDefID] = 'chicken'
+				bitShaderOptions = bitShaderOptions + OPTION_HEALTH_TEXCHICKS + OPTION_HEALTH_DISPLACE
 			elseif wreckTex1 and wreckTex2 then -- just a true unit:
 				unitDefShaderBin[unitDefID] = 'unit'
 				textureTable[3] = wreckTex1
@@ -625,15 +675,17 @@ local function initTextures()
 			end 
 			unitDefIDtoTextureKeys[unitDefID] = texKey
 			if unitDef.name == 'corcom' or unitDef.name == 'armcom' then 
-				--Spring.Echo(unitDef.name, texKey,unitDefShaderBin[unitDefID] )
-				--Spring.Debug.TableEcho(textureTable)
+				Spring.Echo(unitDef.name, texKey,unitDefShaderBin[unitDefID] , lowercasetex1,lowercasetex2 , normalTex, wreckTex1, wreckTex2)
+				Spring.Debug.TableEcho(textureTable)
 			end
-			
+			objectDefToBitShaderOptions[unitDefID] = bitShaderOptions
 		end
 	end
 	
 	for featureDefID, featureDef in pairs(FeatureDefs) do 
 		if featureDef.model then -- this is kind of a hack to work around specific modelless features metalspots found on Otago 1.4
+			local bitShaderOptions = defaultBitShaderOptions
+			
 			local textureTable = {
 				[0] = string.format("%%-%s:%i", featureDefID, 0),
 				[1] = string.format("%%-%s:%i", featureDefID, 1),
@@ -657,10 +709,12 @@ local function initTextures()
 				featureDefShaderBin[featureDefID] = 'wreck'
 			elseif featureDef.customParams and featureDef.customParams.treeshader == 'yes' then 
 				featureDefShaderBin[featureDefID] = 'tree'
+				bitShaderOptions = bitShaderOptions + OPTION_TREEWIND
 			else
 				featureDefShaderBin[featureDefID] = 'feature'
 			end
 			
+			objectDefToBitShaderOptions[featureDefID] = bitShaderOptions
 		end
 	end
 end
