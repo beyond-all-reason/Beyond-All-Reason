@@ -790,10 +790,7 @@ end
 
 function reloadBindings()
 	-- initialise keySymCharsReverse from keySymChars
-	Cfgs.keySymCharsReverse = {}
-	for key,value in pairs(Cfgs.keySymChars) do
-		Cfgs.keySymCharsReverse[value] = key
-	end
+	Cfgs.keySymCharsReverse = table.invert(Cfgs.keySymChars)
 
 	local layout
 	local actionHotkey = Spring.GetActionHotKeys('gridmenu_layout')
@@ -817,6 +814,7 @@ function reloadBindings()
 	else
 		Spring.SendCommands("bind " .. string.lower(PREV_PAGE_KEY) .. " gridmenu_prev_page")
 	end
+
 	local custom = {}
 	local useCustom = false
 	for r=1,3 do
