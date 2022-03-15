@@ -245,7 +245,7 @@ end
 function widget:UnitIdle(unitID, unitDefID, unitTeam)
 	if unitTeam == myTeam and finiGroup[unitID] ~= nil then
 		local gr = unit2group[unitDefID]
-		if gr ~= nil then
+		if immediate ~= true and gr ~= nil then
 			SetUnitGroup(unitID, gr)
 		end
 		finiGroup[unitID] = nil
