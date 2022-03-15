@@ -239,14 +239,14 @@ local function ScavengerSpawnAreaCheck(posx, posy, posz, posradius) -- if true t
         local scavTechPercentage = Spring.GetGameRulesParam("scavStatsTechPercentage")
         if scavTechPercentage then
             if Spring.GetModOptions().scavspawnarea == true then
-                if not AllyTeamStartboxes[scavengerAllyTeamID].allyTeamHasStartbox then return true end -- Scavs do not have a startbox so we allow them to spawn anywhere
+                if not AllyTeamStartboxes[scavengerAllyTeamID+1].allyTeamHasStartbox then return true end -- Scavs do not have a startbox so we allow them to spawn anywhere
                 if StartboxCheck(posx, posy, posz, posradius, scavengerAllyTeamID) == true then return true end -- Area is within startbox, so it's for sure in the spawn box.
                 
                 -- Spawn Box grows with Scavengers tech, getting that into from GameRulesParameter set by Scav gadget
-                local SpawnBoxMinX = math.floor(ScavengerStartboxXMin-(((mapSizeX)*0.01)*scavTechPercentage))
-                local SpawnBoxMaxX = math.ceil(ScavengerStartboxXMax+(((mapSizeX)*0.01)*scavTechPercentage))
-                local SpawnBoxMinZ = math.floor(ScavengerStartboxZMin-(((mapSizeZ)*0.01)*scavTechPercentage))
-                local SpawnBoxMaxZ = math.ceil(ScavengerStartboxZMax+(((mapSizeZ)*0.01)*scavTechPercentage))      
+                local SpawnBoxMinX = math.floor(AllyTeamStartboxes[scavengerAllyTeamID+1].xMin-(((mapSizeX)*0.01)*scavTechPercentage))
+                local SpawnBoxMaxX = math.ceil(AllyTeamStartboxes[scavengerAllyTeamID+1].xMax+(((mapSizeX)*0.01)*scavTechPercentage))
+                local SpawnBoxMinZ = math.floor(AllyTeamStartboxes[scavengerAllyTeamID+1].zMin-(((mapSizeZ)*0.01)*scavTechPercentage))
+                local SpawnBoxMaxZ = math.ceil(AllyTeamStartboxes[scavengerAllyTeamID+1].zMax+(((mapSizeZ)*0.01)*scavTechPercentage))      
                 
                 if posx < SpawnBoxMinX then return false end
                 if posx > SpawnBoxMaxX then return false end
@@ -258,7 +258,7 @@ local function ScavengerSpawnAreaCheck(posx, posy, posz, posradius) -- if true t
                 return true
             end
         else
-            if not AllyTeamStartboxes[scavengerAllyTeamID].allyTeamHasStartbox then return true end -- There's no info about tech percentage, but if there's no startbox, we assume they can spawn anywhere, right?
+            if not AllyTeamStartboxes[scavengerAllyTeamID+1].allyTeamHasStartbox then return true end -- There's no info about tech percentage, but if there's no startbox, we assume they can spawn anywhere, right?
             if StartboxCheck(posx, posy, posz, posradius, scavengerAllyTeamID) == true then return true end -- Area is within startbox, so it's for sure in the spawn box, even if we don't have info about how big spawn box is.
             return false -- but otherwise, don't let them spawn, don't risk spawning in place they shouldn't spawn.
         end

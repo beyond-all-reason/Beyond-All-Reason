@@ -45,12 +45,7 @@ return {
 		workertime = 500,
 		buildoptions = {
 			"armcom",
-			"armdecom",
 			"armassistdrone",
-			"armllt",
-			"armrl",
-			"armsolar",
-			"armmex",
 		},
 		customparams = {
 			usebuildinggrounddecal = false,

@@ -45,12 +45,7 @@ return {
 		workertime = 500,
 		buildoptions = {
 			"corcom",
-			"cordecom",
 			"corassistdrone",
-			"corllt",
-			"corrl",
-			"corsolar",
-			"cormex",
 		},
 		customparams = {
 			usebuildinggrounddecal = false,
