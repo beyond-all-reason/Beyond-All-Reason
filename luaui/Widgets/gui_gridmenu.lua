@@ -43,8 +43,6 @@ local PREV_PAGE_KEY = "N"
 local os_clock = os.clock
 local updateInFrames = -1
 
-local keySymCharsReverse = {}
-
 local Cfgs = {
 	disableInputWhenSpec = false, -- disable specs selecting buildoptions
 	cfgCellPadding = 0.007,
@@ -791,7 +789,7 @@ end
 
 function reloadBindings()
 	-- initialise keySymCharsReverse from keySymChars
-	keySymCharsReverse = table.invert(Cfgs.keySymChars)
+	local keySymCharsReverse = table.invert(Cfgs.keySymChars)
 
 	local layout
 	local actionHotkey = Spring.GetActionHotKeys('gridmenu_layout')
@@ -816,10 +814,9 @@ function reloadBindings()
 		Spring.SendCommands("bind " .. string.lower(PREV_PAGE_KEY) .. " gridmenu_prev_page")
 	end
 
-        copyKeyLayout(currentLayout, 'custom')
+	copyKeyLayout(currentLayout, 'custom')
 	local useCustom = false
 	for r=1,3 do
-		Cfgs.keyLayouts['custom'][r] = {}
 		for c=1,4 do
 			hotkey = 'gridmenu_' .. r .. '_' .. c
 			local key = Spring.GetActionHotKeys(hotkey)[1]
