@@ -25,7 +25,7 @@ SYMKEYS = table.invert(KEYSYMS)
 local configs = VFS.Include('luaui/configs/gridmenu_layouts.lua')
 local labGrids = configs.LabGrids
 local unitGrids = configs.UnitGrids
-local currentLayout = 'qwerty'
+local currentLayout = 'custom'
 
 local BUILDCAT_ECONOMY = "Economy"
 local BUILDCAT_COMBAT = "Combat"
@@ -787,6 +787,20 @@ function widget:ViewResize()
 	doUpdate = true
 end
 
+local function map_key(k)
+   if k == ',' then
+      return 'COMMA'
+   elseif k == '.' then
+      return 'PERIOD'
+   elseif k == ';' then
+      return 'SEMICOLON'
+   elseif k == "'" then
+      return 'QUOTE'
+   else
+      return string.upper(k)
+   end
+end
+
 function reloadBindings()
 	local layout
 	local actionHotkey = Spring.GetActionHotKeys('gridmenu_layout')
@@ -810,6 +824,18 @@ function reloadBindings()
 	else
 		Spring.SendCommands("bind " .. string.lower(PREV_PAGE_KEY) .. " gridmenu_prev_page")
 	end
+        local custom = {}
+        for r=1,3 do
+           local row = {}
+           for c=1,4 do
+              hotkey = 'gridmenu_' .. r .. '_' .. c
+              actionHotkey = map_key(Spring.GetActionHotKeys(hotkey)[1])
+              row[c] = actionHotkey
+           end
+           custom[4 - r] = row
+        end
+        Cfgs.keyLayouts['custom'] = custom
+        genKeyLayout('custom')
 end
 
 function nextPageHandler()
