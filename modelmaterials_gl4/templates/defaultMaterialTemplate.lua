@@ -83,7 +83,7 @@ vertex = [[
 	//[0]-healthMix, [1]-healthMod, [2]-vertDisplacement, [3]-tracks
 	uniform float floatOptions[4];
 	//uniform int bitOptions;
-	int bitOptions = 1 +  2 + 8 + 16	;
+	int bitOptions = 1 +  2 + 8 + 16	+ 128 + 256;
 
 	uniform vec4 clipPlane0 = vec4(0.0, 0.0, 0.0, 1.0); //upper construction clip plane
 	uniform vec4 clipPlane1 = vec4(0.0, 0.0, 0.0, 1.0); //lower construction clip plane
@@ -91,7 +91,8 @@ vertex = [[
 
 	/***********************************************************************/
 	// Varyings
-	out Data { // this amount of varyings is already more than 
+	out Data { 
+		// this amount of varyings is already more than we can handle safely
 		vec4 modelVertexPos;
 		vec4 modelVertexPosOrig;
 		vec4 worldVertexPos;
@@ -101,19 +102,20 @@ vertex = [[
 		vec3 worldNormal;
 		
 		vec2 uvCoords;
-		vec4 teamCol;
+		flat vec4 teamCol;
 		
 		// main light vector(s)
-		vec3 worldCameraDir;
+		flat vec3 worldCameraDir;
 
 		// shadowPosition
 		vec4 shadowVertexPos;
 
 		// auxilary varyings
 		float aoTerm;
-		float selfIllumMod;
+		flat float selfIllumMod;
 		float fogFactor;
 	};
+	
 
 	/***********************************************************************/
 	// Misc functions
@@ -275,7 +277,6 @@ vertex = [[
 		//gl_TexCoord[0] = gl_MultiTexCoord0;
 		uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
 		teamCol = teamColor[teamIndex];
-
 
 		#if (RENDERING_MODE != 2) //non-shadow pass
 
@@ -529,7 +530,7 @@ fragment = [[
 	
 	float simFrame = (timeInfo.x + timeInfo.w);
 	
-	float textureLODBias = -0.5; //0.85 * sin (simFrame * 0.1);
+	float textureLODBias = -0.5 * sin (simFrame * 0.1) - 0.5;
 	float pbrParams[8] = float[8](4.75, 0.75, 3.5, 0.85, 1.0, 0.25, 1.0, 1.0 );
 	/***********************************************************************/
 	// Shadow mapping quality params
@@ -563,9 +564,9 @@ fragment = [[
 		vec3 worldNormal;
 		
 		vec2 uvCoords;
-		vec4 teamCol;
+		flat vec4 teamCol;
 		// main light vector(s)
-		vec3 worldCameraDir;
+		flat vec3 worldCameraDir;
 
 		// shadowPosition
 		vec4 shadowVertexPos;
@@ -573,9 +574,11 @@ fragment = [[
 
 		// auxilary varyings
 		float aoTerm;
-		float selfIllumMod;
+		flat float selfIllumMod;
 		float fogFactor;
 	};
+	
+		
 
 	/***********************************************************************/
 	// Generic constants
