@@ -818,7 +818,7 @@ function reloadBindings()
 	local useCustom = false
 	for r=1,3 do
 		for c=1,4 do
-			hotkey = 'gridmenu_' .. r .. '_' .. c
+			local hotkey = 'gridmenu_' .. r .. '_' .. c
 			local key = Spring.GetActionHotKeys(hotkey)[1]
 			if key then
 				Cfgs.keyLayouts['custom'][r][c] = keySymCharsReverse[string.upper(key)] or string.upper(key)
@@ -826,6 +826,7 @@ function reloadBindings()
 			end
 		end
 	end
+
 	if useCustom then
 		genKeyLayout('custom')
 		currentLayout = 'custom'
