@@ -25,7 +25,7 @@ SYMKEYS = table.invert(KEYSYMS)
 local configs = VFS.Include('luaui/configs/gridmenu_layouts.lua')
 local labGrids = configs.LabGrids
 local unitGrids = configs.UnitGrids
-local currentLayout = 'custom'
+local currentLayout = 'qwerty'
 
 local BUILDCAT_ECONOMY = "Economy"
 local BUILDCAT_COMBAT = "Combat"
@@ -76,6 +76,7 @@ local Cfgs = {
 		QUOTE = "'",
 		PERIOD = ".",
 	},
+        keySymCharsReverse = {},
 	layoutKeys = {},
 	vKeyLayouts = {},
 	keyLayouts = {
@@ -787,21 +788,13 @@ function widget:ViewResize()
 	doUpdate = true
 end
 
-local function map_key(k)
-   if k == ',' then
-      return 'COMMA'
-   elseif k == '.' then
-      return 'PERIOD'
-   elseif k == ';' then
-      return 'SEMICOLON'
-   elseif k == "'" then
-      return 'QUOTE'
-   else
-      return string.upper(k)
-   end
-end
-
 function reloadBindings()
+	-- initialise keySymCharsReverse from keySymChars
+	Cfgs.keySymCharsReverse = {}
+	for key,value in pairs(Cfgs.keySymChars) do
+		Cfgs.keySymCharsReverse[value] = key
+	end
+
 	local layout
 	local actionHotkey = Spring.GetActionHotKeys('gridmenu_layout')
 
@@ -824,18 +817,28 @@ function reloadBindings()
 	else
 		Spring.SendCommands("bind " .. string.lower(PREV_PAGE_KEY) .. " gridmenu_prev_page")
 	end
-        local custom = {}
-        for r=1,3 do
-           local row = {}
-           for c=1,4 do
-              hotkey = 'gridmenu_' .. r .. '_' .. c
-              actionHotkey = map_key(Spring.GetActionHotKeys(hotkey)[1])
-              row[c] = actionHotkey
-           end
-           custom[4 - r] = row
-        end
-        Cfgs.keyLayouts['custom'] = custom
-        genKeyLayout('custom')
+	local custom = {}
+	local useCustom = false
+	for r=1,3 do
+		local row = {}
+		for c=1,4 do
+			hotkey = 'gridmenu_' .. r .. '_' .. c
+			local key = Spring.GetActionHotKeys(hotkey)[1]
+			if key then
+				actionHotkey = Cfgs.keySymCharsReverse[string.upper(key)] or string.upper(key)
+				row[c] = actionHotkey
+				useCustom = true
+			else
+				row[c] = Cfgs.keyLayouts[currentLayout][r][c]
+			end
+		end
+		custom[4 - r] = row
+	end
+	Cfgs.keyLayouts['custom'] = custom
+	genKeyLayout('custom')
+	if useCustom then
+		currentLayout = 'custom'
+	end
 end
 
 function nextPageHandler()
