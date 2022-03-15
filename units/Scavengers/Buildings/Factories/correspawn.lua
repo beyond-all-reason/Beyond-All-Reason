@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 5000,
 		buildcostmetal = 500,
 		builddistance = 750,
-		builder = false,
+		builder = true,
 		buildpic = "CORNANOTCPLAT.DDS",
 		buildtime = 5312,
 		canassist = true,
