@@ -32,6 +32,9 @@ local function bossPhaseControl(bossHealthPercent)
 		BossFightCurrentPhase = 10
 		currentPhaseBossAbilities = bossAbilities.Endgame
 	end
+	if FinalBossUnitID then
+		Spring.SetUnitArmored(FinalBossUnitID, true , (5/BossFightCurrentPhase)/(spawnmultiplier))
+	end
 end
 
 local function activatePassiveAbilities(currentFrame)
@@ -47,7 +50,7 @@ local function activateAbility(currentFrame)
 	if specialAbilityCountdown <= 0 or bossFightPreviousPhase ~= BossFightCurrentPhase then
 		local ability = currentPhaseBossAbilities[math_random(1,#currentPhaseBossAbilities)]
 		if ability then
-			specialAbilityCountdown = (20 - (BossFightCurrentPhase*2))
+			specialAbilityCountdown = (5 - (BossFightCurrentPhase*0.5))
 			abilitySuccess = nil
 			for i = 1,100 do
 				ability(currentFrame)
