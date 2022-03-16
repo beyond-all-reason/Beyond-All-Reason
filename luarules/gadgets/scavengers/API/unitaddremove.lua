@@ -27,7 +27,6 @@ local function AddScavUnit(unitID, unitDefID, unitName, unitTeam)
 		if unitName == bossUnitList.Bosses[i] then
 			FinalBossUnitID = unitID
 			initialbosshealth = Spring.GetUnitHealth(unitID)
-
 			local stopScavUnits = Spring.GetTeamUnits(ScavengerTeamID)
 			for y = 1,#stopScavUnits do
 				local unitID = stopScavUnits[y]							
