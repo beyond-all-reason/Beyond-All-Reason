@@ -827,6 +827,16 @@ function reloadBindings()
 		end
 	end
 
+	Cfgs.keyLayouts['custom']['category'] = {}
+	for c=1,4 do
+		key = Spring.GetActionHotKeys('gridmenu_category ' .. c)[1]
+		if key then
+			useCustom = true
+			Cfgs.keyLayouts['custom']['category'][c] = keySymCharsReverse[string.upper(key)] or string.upper(key)
+		else
+			Cfgs.keyLayouts['custom']['category'][c] = Cfgs.keyLayouts['custom'][1][c]
+		end
+	end
 	if useCustom then
 		genKeyLayout('custom')
 		currentLayout = 'custom'
@@ -1103,7 +1113,7 @@ local function drawCategoryButtons()
 			drawnHoveredCat = cat
 		end
 
-		local catKey = Cfgs.keyLayouts[currentLayout][1][catIndex]
+		local catKey = Cfgs.keyLayouts[currentLayout]['category'] and Cfgs.keyLayouts[currentLayout]['category'][catIndex] or Cfgs.keyLayouts[currentLayout][1][catIndex]
 		local catText = currentBuildCategory and cat or cat .. " \255\215\255\215" .. "[" .. (Cfgs.keySymChars[catKey] or catKey) .. "]"
 
 		drawButton(rect, catText, opts)
@@ -1778,7 +1788,7 @@ function widget:DrawScreen()
 									end
 								end
 
-								local catKey = Cfgs.keyLayouts[currentLayout][1][index]
+								local catKey = Cfgs.keyLayouts[currentLayout]['category'] and Cfgs.keyLayouts[currentLayout]['category'][index] or Cfgs.keyLayouts[currentLayout][1][index]
 								text = text .. "\n\255\240\240\240Hotkey: " .. textColor .. "[" .. (Cfgs.keySymChars[catKey] or catKey) .. "]"
 
 								WG['tooltip'].ShowTooltip('buildmenu', text)
@@ -2301,8 +2311,8 @@ function widget:KeyPress(key, mods, isRepeat)
 	elseif not (mods['ctrl'] or mods['alt'] or mods['meta']) then
 		local catKeySet = Cfgs.layoutKeys[currentLayout][SYMKEYS[key]]
 
-		-- Only trigger category switch if first row and first four columns
-		if catKeySet and catKeySet[1] == 1 and catKeySet[2] >= 1 and catKeySet[2] <= 4 then
+		-- Only trigger category switch if (first row or category row) and first four columns
+		if catKeySet and (catKeySet[1] == 1 or catKeySet[1] == 'category') and catKeySet[2] >= 1 and catKeySet[2] <= 4 then
 			currentBuildCategory = categories[catKeySet[2]]
 			currentCategoryIndex = catKeySet[2]
 			switchedCategory = true
