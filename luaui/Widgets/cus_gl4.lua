@@ -485,11 +485,11 @@ local function _CompileShader(shader, definitions, plugIns, addName)
 	if compilationResult ~= true then 
 		Spring.Echo("Custom Unit Shaders. " .. addName .. " shader compilation failed")
 		local vsfile = io.open("cus_vs.glsl","w+")
-		vsfile:write(shader.vertex)
+		vsfile:write(shader.definitions .. shader.vertex)
 		vsfile:close()
 
 		local fsfile = io.open("cus_fs.glsl","w+")
-		fsfile:write(shader.fragment)
+		fsfile:write(shader.definitions .. shader.fragment)
 		fsfile:close()
 
 		
@@ -675,8 +675,8 @@ local function initTextures()
 			end 
 			unitDefIDtoTextureKeys[unitDefID] = texKey
 			if unitDef.name == 'corcom' or unitDef.name == 'armcom' then 
-				Spring.Echo(unitDef.name, texKey,unitDefShaderBin[unitDefID] , lowercasetex1,lowercasetex2 , normalTex, wreckTex1, wreckTex2)
-				Spring.Debug.TableEcho(textureTable)
+				--Spring.Echo(unitDef.name, texKey,unitDefShaderBin[unitDefID] , lowercasetex1,lowercasetex2 , normalTex, wreckTex1, wreckTex2)
+				--Spring.Debug.TableEcho(textureTable)
 			end
 			objectDefToBitShaderOptions[unitDefID] = bitShaderOptions
 		end
@@ -749,7 +749,7 @@ end
 -----------------
 
 local asssigncalls = 0
-
+local uniformCache = {defaultBitShaderOptions}
 --- Assigns a unit to a material bin
 -- This function gets called from AddUnit every time a unit enters drawrange (or gets its flags changed)
 -- @param unitID The unitID of the unit
@@ -769,7 +769,9 @@ local function AsssignUnitToBin(unitID, unitDefID, flag, shader, textures, texKe
 		unitDrawBinsFlag[shader] = {}
 	end
 	local unitDrawBinsFlagShader = unitDrawBinsFlag[shader]
-
+	uniformCache[1] = GetBitShaderOptions(unitDefID)
+	gl.SetUnitBufferUniforms(unitID, uniformCache, 6)
+	Spring.Echo("Setting UnitBufferUniforms", unitID, uniformCache[1])
 	if unitDrawBinsFlagShader[texKey] == nil then
 		local mybinVAO = gl.GetVAO()
 		local mybinIBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
