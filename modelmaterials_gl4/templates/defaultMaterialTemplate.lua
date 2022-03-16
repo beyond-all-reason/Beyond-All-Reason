@@ -151,7 +151,7 @@ vertex = [[
 		flat float healthFraction;
 		float fogFactor;
 		float bitShaderOptionsFloat;
-		uint bitShaderOptionsUint;
+		flat uint bitShaderOptionsUint;
 		
 	};
 	
@@ -622,7 +622,7 @@ fragment = [[
 		flat float healthFraction;
 		float fogFactor;
 		float bitShaderOptionsFloat;
-		uint bitShaderOptionsUint;
+		flat uint bitShaderOptionsUint;
 	};
 	
 		
