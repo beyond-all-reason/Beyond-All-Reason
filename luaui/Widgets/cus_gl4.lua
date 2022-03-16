@@ -16,13 +16,23 @@ end
 		-- forward opaque + reflections
 		-- deferred opaque, all units
 		-- shadows. Now all units need their vertex displacement for efficient shadows, so better to bind a separate shader for this
-	-- Shaders / shaderconfig:
+	-- Shaders / shaderconfig via bitoptions uniform:
 		-- Features
-		-- Trees
-		-- Regular Units
-		-- Tanks
-		-- Chickens
-		-- Scavengers
+			-- simplefeatures: metallic nonwrecks
+			-- treepbr: Real Trees with proper tex2
+			-- tree: Shitty Trees
+			-- wrecks: BAR wrecks
+		-- Units
+			-- tanks : -- these are units actually
+			-- barunits :
+			-- chickens
+			-- scavengers
+			-- 
+			
+		-- Cloakedunits for alpha
+		-- Underconstructionunits
+
+
 	-- Textures:
 		-- arm/cor 
 		-- 10x chickensets
@@ -1146,12 +1156,18 @@ function widget:Update()
 	
 end
 
+local seenbitsopaque = 0
+local seenbitsalpha = 0
+
 function widget:GameFrame(n)
 	
-	if (n%60) == 0 then 
-		--Spring.Echo(Spring.GetGameFrame(), "processedCounter", processedCounter, asssigncalls,gettexturescalls)
+	if (n%300) == 0 then 
+		Spring.Echo(Spring.GetGameFrame(), "processedCounter", processedCounter, asssigncalls,gettexturescalls, 'seenopaque', seenbitsopaque, 'seenalpha', seenbitsalpha)
 	end
+	
+
 end
+
 
 function widget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 	local drawPass = 1 --opaque
@@ -1168,6 +1184,7 @@ function widget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 		drawPass = 1 + 8
 	end
 
+	seenbitsopaque = math.bit_and(seenbitsopaque, drawPass)
 	local batches, units = ExecuteDrawPass(drawPass)
 	--Spring.Echo("drawPass", drawPass, "batches", batches, "units", units)
 end
@@ -1182,7 +1199,8 @@ function widget:DrawAlphaUnitsLua(drawReflection, drawRefraction)
 	if drawRefraction then
 		drawPass = 2 + 8
 	end
-
+	
+	seenbitsalpha = math.bit_and(seenbitsalpha, drawPass)
 	local batches, units = ExecuteDrawPass(drawPass)
 	--Spring.Echo("drawPass", drawPass, "batches", batches, "units", units)
 	
