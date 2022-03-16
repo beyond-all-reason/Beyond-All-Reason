@@ -113,6 +113,8 @@ local function Scream(reason, unitID) -- This will pause the game and play some 
 	if lastknownunitpos[unitID] then 
 		Spring.MarkerAddPoint(lastknownunitpos[unitID][1], lastknownunitpos[unitID][2], lastknownunitpos[unitID][3], lastknownunitpos[unitID][4], true)
 	end
+	local unittrackerapinil = nil
+	unittrackerapinil = unittrackerapinil + 1 -- this intentionally crashes this widget so that it will show up in analytics
 	if debuglevel >=3 then 
 		Spring.SendCommands({"pause 1"})
 		Spring.PlaySoundFile("commanderspawn", 1.0, 'ui')
