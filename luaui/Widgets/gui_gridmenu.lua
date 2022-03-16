@@ -788,6 +788,9 @@ function widget:ViewResize()
 end
 
 function reloadBindings()
+	-- initialise keySymCharsReverse from keySymChars
+	local keySymCharsReverse = table.invert(Cfgs.keySymChars)
+
 	local layout
 	local actionHotkey = Spring.GetActionHotKeys('gridmenu_layout')
 
@@ -809,6 +812,24 @@ function reloadBindings()
 		PREV_PAGE_KEY = string.upper(actionHotkey[1])
 	else
 		Spring.SendCommands("bind " .. string.lower(PREV_PAGE_KEY) .. " gridmenu_prev_page")
+	end
+
+	copyKeyLayout(currentLayout, 'custom')
+	local useCustom = false
+	for r=1,3 do
+		for c=1,4 do
+			local hotkey = 'gridmenu_' .. r .. '_' .. c
+			local key = Spring.GetActionHotKeys(hotkey)[1]
+			if key then
+				Cfgs.keyLayouts['custom'][r][c] = keySymCharsReverse[string.upper(key)] or string.upper(key)
+				useCustom = true
+			end
+		end
+	end
+
+	if useCustom then
+		genKeyLayout('custom')
+		currentLayout = 'custom'
 	end
 end
 
