@@ -158,8 +158,8 @@ local scavconfig = {
 		bossFightEnabled					= not endlessModeEnabled,
 		FinalBossUnit						= true,
 			FinalBossHealth						= 1000000*ScavBossHealthModoption, -- this*teamcount*difficulty
-			FinalBossMinionsPassive				= 3000, -- this/(teamcount*difficulty), how often does boss spawn minions passively, frames.
-			FinalBossMinionsActive				= 150, -- this/(teamcount*difficulty), how often does boss spawn minions when taking damage, frames.
+			FinalBossMinionsPassive				= 9000, -- this/(teamcount*difficulty), how often does boss spawn minions passively, frames.
+			FinalBossMinionsActive				= 2700, -- this/(teamcount*difficulty), how often does boss spawn minions when taking damage, frames.
 		BossWaveTimeLeft					= 300,
 		aircraftchance 						= 10, -- higher number = lower chance
 		globalscoreperoneunit 				= 1500/ScavUnitCountModoption,
