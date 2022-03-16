@@ -114,7 +114,7 @@ vertex = [[
 	const float vertexDisplacement = 6.0;
 	const float healthLookMod = 0.4;
 	const float treadsvelocity = 0.5;
-	
+#line 10200
 	uniform float floatOptions[4];
 	//uniform int bitOptions;
 	int bitOptions = 1 +  2 + 8 + 16 + 128 + 256 + 512;
@@ -150,6 +150,8 @@ vertex = [[
 		flat float selfIllumMod;
 		flat float healthFraction;
 		float fogFactor;
+		float bitShaderOptionsFloat;
+		uint bitShaderOptionsUint;
 		
 	};
 	
@@ -276,6 +278,9 @@ vertex = [[
 #line 12000
 	void main(void)
 	{
+		
+		bitShaderOptionsFloat = float(UNITUNIFORMS.userDefined[1].z);
+		bitShaderOptionsUint = uint(UNITUNIFORMS.userDefined[1].z);
 		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
 		mat4 worldMatrix = mat[instData.x];
 	
@@ -565,7 +570,7 @@ fragment = [[
 	/***********************************************************************/
 	// Options
 	//uniform int bitOptions;
-	int bitOptions = 1 +  2 + 8 + 16 + 128 + 256 + 512;
+	int bitOptions = 1 +  2 + 8 + 16 + 128 + 256;
 	
 	float simFrame = (timeInfo.x + timeInfo.w);
 	
@@ -616,6 +621,8 @@ fragment = [[
 		flat float selfIllumMod;
 		flat float healthFraction;
 		float fogFactor;
+		float bitShaderOptionsFloat;
+		uint bitShaderOptionsUint;
 	};
 	
 		
@@ -1027,15 +1034,15 @@ fragment = [[
 #line 21000
 
 	#ifndef ENV_SMPL_NUM
-		#define ENV_SMPL_NUM 0
+		#define ENV_SMPL_NUM 64
 	#endif
 
 	#ifndef USE_ENVIRONMENT_DIFFUSE
-		#define USE_ENVIRONMENT_DIFFUSE 0
+		#define USE_ENVIRONMENT_DIFFUSE 1
 	#endif
 
 	#ifndef USE_ENVIRONMENT_SPECULAR
-		#define USE_ENVIRONMENT_SPECULAR 0
+		#define USE_ENVIRONMENT_SPECULAR 1
 	#endif
 
 	#if (ENV_SMPL_NUM == 0)
@@ -1246,9 +1253,7 @@ fragment = [[
 
 		vec2 myUV = uvCoords;
 
-		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAP_FLIP)) {
-			myUV.y = 1.0 - myUV.y;
-		}
+
 
 		mat3 worldTBN = mat3(worldTangent, worldBitangent, worldNormal);
 
@@ -1272,10 +1277,12 @@ fragment = [[
 		}
 
 		vec3 tbnNormal;
+		vec3 wrecknormal;
 		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAPPING)) {
 			tbnNormal = NORM2SNORM(normalTexVal.xyz);
 			if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
 				vec3 tbnNormalw = NORM2SNORM(texture(normalTexw, myUV, textureLODBias).xyz);
+				wrecknormal = tbnNormalw;
 				tbnNormal = mix(tbnNormal, tbnNormalw, healthMix);
 			}
 			if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
@@ -1284,6 +1291,7 @@ fragment = [[
 
 				tbnNormal = mix(tbnNormal, tbnNormalw, healthMix);
 			}
+			tbnNormal = normalize(tbnNormal);
 		} else if (BITMASK_FIELD(bitOptions, OPTION_AUTONORMAL)) {
 			tbnNormal = GetNormalFromDiffuse(myUV);
 		} else {
@@ -1291,9 +1299,7 @@ fragment = [[
 		}
 
 
-		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAP_FLIP)) {
-			myUV.y = 1.0 - myUV.y;
-		}
+
 
 		vec4 texColor1 = texture(texture1, myUV, textureLODBias);
 		vec4 texColor2 = texture(texture2, myUV, textureLODBias);
@@ -1402,10 +1408,18 @@ fragment = [[
 		float shadowMult;
 		float gShadow = 1.0; // shadow mapping
 		float nShadow = smoothstep(0.0, 0.35, NdotLu); //normal based shadowing, always on
+		
+		
+		uint test = uint(bitShaderOptionsUint);
 		{
-			if (BITMASK_FIELD(bitOptions, OPTION_SHADOWMAPPING)) {
+			if (BITMASK_FIELD(test, OPTION_SHADOWMAPPING)) {
+			//if (float(test) > float(OPTION_SHADOWMAPPING)) {
+			//if (float(test) > 0.0	) {
+			//if (test > 0u	) {
 				gShadow = GetShadowPCFRandom(NdotL);
+				//gShadow = 0.0;
 			}
+			//gShadow = fract(bitShaderOptions/1);
 			shadowMult = mix(1.0, min(nShadow, gShadow), shadowDensity.y);
 		}
 		
@@ -1490,7 +1504,7 @@ fragment = [[
 
             ///
 			#if (USE_ENVIRONMENT_DIFFUSE == 1) || (USE_ENVIRONMENT_SPECULAR == 1)
-				//TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
+				TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
 			#endif
             ///
 
@@ -1583,7 +1597,7 @@ fragment = [[
 			//fragData[0] = vec4(vec3(fract((shadowVertexPos.xyz )  ))	, 1.0); //debug
 			//fragData[0] = vec4(vec3(gShadow	)	, 1.0); //debug
 			//fragData[0] = vec4(cameraView[0].z,cameraView[1].z,cameraView[2].z, 1.0); //debug
-			//fragData[0] = vec4(N.xyz, 1.0); //debug
+			//fragData[0] = vec4(SNORM2NORM(tbnNormal), 1.0); //debug
 		#elif (RENDERING_MODE == 1)
 			float alphaBin = (texColor2.a < 0.5) ? 0.0 : 1.0;
 			alphaBin = 1.0;
