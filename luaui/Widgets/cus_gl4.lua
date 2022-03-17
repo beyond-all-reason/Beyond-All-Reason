@@ -110,6 +110,10 @@ end
 	
 	-- TODO: reduce the amount of deferred buffers being used from 6 to 4
 	
+	-- TODO: check if LuaShader UniformLocations are cached
+	
+	-- TODO: Also add alpha units to deferred pass somehow?
+	
 	-- GetTextures :
 		-- should return array table instead of hash table
 			-- fill in unused stuff with 'false' for contiguous array table
@@ -173,6 +177,49 @@ local function GetBitShaderOptions(unitDefID, featureDefID)
 	end
 	return defaultBitShaderOptions
 end
+
+
+local unitDefToUniformBin = {} -- maps unitDefID/featuredefID to a uniform bin
+-- this will still use the same shader, but we gotta switch uniforms in between for efficiency
+-- a uniform bin contains an
+
+local function GetUniformBinID(unitDefID)
+	if unitDefToUniformBin[unitDefID] then
+		return  unitDefToUniformBin[unitDefID] 
+	else
+		return 'unit'
+	end
+end
+
+local uniformBins = {
+	unit = {
+		bitOptions = defaultBitShaderOptions
+	}
+	scavenger = {
+		bitOptions = defaultBitShaderOptions
+		vertexDisplacement = 0.4,
+	}
+	chicken = {
+		bitOptions = defaultBitShaderOptions
+	}
+	otherunit = {
+		bitOptions = defaultBitShaderOptions
+	}
+	feature = {
+		bitOptions = defaultBitShaderOptions
+	}
+	treepbr = {
+		bitOptions = defaultBitShaderOptions
+	}
+	tree = {
+		bitOptions = defaultBitShaderOptions
+	}
+	wreck = {
+		bitOptions = defaultBitShaderOptions
+	}
+} -- maps uniformbins to a table of uniform names/values
+
+local shaderIDtoLuaShader = {}
 
 local debugmode = false
 
@@ -317,7 +364,7 @@ drawMode:
 		case  2: // water refraction
 		default: // player, (-1) static model, (0) normal rendering
 ]]--
-local function SetShaderUniforms(drawPass, shaderID)
+local function SetShaderUniforms(drawPass, shaderID, uniformBinID)
 	--if true then return end
 	gl.UniformInt(gl.GetUniformLocation(shaderID, "drawPass"), drawPass)
 	if drawPass <= 2 then
@@ -327,20 +374,19 @@ local function SetShaderUniforms(drawPass, shaderID)
 		--gl.Uniform(gl.GetUniformLocation(shaderID, "alphaCtrl"), alphaThresholdOpaque, 1.0, 0.0, 0.0)
 		-- set properly by default
 	end
-
-	if HasBit(drawPass, 1) then
-		gl.Uniform(gl.GetUniformLocation(shaderID, "alphaCtrl"), alphaThresholdOpaque, 1.0, 0.0, 0.0)
-		gl.Uniform(gl.GetUniformLocation(shaderID, "colorMult"), 1.0, 1.0, 1.0, 1.0)
-	elseif HasBit(drawPass, 2) then
-		gl.Uniform(gl.GetUniformLocation(shaderID, "alphaCtrl"), alphaThresholdAlpha , 1.0, 0.0, 0.0)
-		gl.Uniform(gl.GetUniformLocation(shaderID, "colorMult"), 1.0, 1.0, 1.0, alphaMult)
-	elseif HasBit(drawPass, 4) then
+	
+	for uniformLocationName, uniformValue in pairs(uniformBins[uniformBinID]) do 
+		gl.Uniform(gl.GetUniformLocation(shaderID, uniformLocationName), uniformValue)
+	end
+	
+	if HasBit(drawPass, 4) then
 		gl.UniformInt(gl.GetUniformLocation(shaderID, "drawMode"), 1)
 		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane2"), 0.0, 1.0, 0.0, 0.0)
 	elseif HasBit(drawPass, 8) then
 		gl.UniformInt(gl.GetUniformLocation(shaderID, "drawMode"), 2)
 		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane2"), 0.0, -1.0, 0.0, 0.0)
 	end
+	
 end
 
 local MAX_TEX_ID = 131072 --should be enough
@@ -430,35 +476,7 @@ local unitsNormalMapTemplate = table.merge(defaultMaterialTemplate, {
 	},
 })
 
-local shaderOptions = {
-	forward = {
-		unit = {},
-		scavenger = {},
-		chicken = {},
-		otherunit = {},
-		wreck = {},
-		tree = {},
-		feature = {},
-	},
-	deferred = {
-		unit = {},
-		scavenger = {},
-		chicken = {},
-		otherunit = {},
-		wreck = {},
-		tree = {},
-		feature = {},
-	},
-	shadow = {
-		unit = {},
-		scavenger = {},
-		chicken = {},
-		otherunit = {},
-		wreck = {},
-		tree = {},
-		feature = {},
-	},
-}
+
 
 
 local DEFAULT_VERSION = [[#version 430 core
@@ -467,7 +485,7 @@ local DEFAULT_VERSION = [[#version 430 core
 	#extension GL_ARB_shading_language_420pack: require
 	]]
 
-local function _CompileShader(shader, definitions, plugIns, addName)
+local function CompileLuaShader(shader, definitions, plugIns, addName)
 	if definitions == nil or definitions == {} then 
 		Spring.Echo(addName, "nul definitions", definitions)
 	end
@@ -534,9 +552,9 @@ end
 
 
 local function compileMaterialShader(template, name)
-	local forwardShader = _CompileShader(template.shader, template.shaderDefinitions, template.shaderPlugins, name .."_forward" )
-	local shadowShader = _CompileShader(template.shadow, template.shadowDefinitions, template.shaderPlugins, name .."_shadow" )
-	local deferredShader = _CompileShader(template.deferred, template.deferredDefinitions, template.shaderPlugins, name .."_deferred" )
+	local forwardShader = CompileLuaShader(template.shader, template.shaderDefinitions, template.shaderPlugins, name .."_forward" )
+	local shadowShader = CompileLuaShader(template.shadow, template.shadowDefinitions, template.shaderPlugins, name .."_shadow" )
+	local deferredShader = CompileLuaShader(template.deferred, template.deferredDefinitions, template.shaderPlugins, name .."_deferred" )
 	
 	for k = 1, #drawBinKeys do
 		local flag = drawBinKeys[k]
@@ -782,21 +800,28 @@ local uniformCache = {defaultBitShaderOptions}
 -- @param shader which shader should be assigned to it
 -- @param textures A table of {bindPosition:texturename} for this unit
 -- @param texKey A unique key hashed from the textures names, bindpositions
-local function AsssignUnitToBin(unitID, unitDefID, flag, shader, textures, texKey)
+local function AsssignUnitToBin(unitID, unitDefID, flag, shader, textures, texKey, uniformBinID)
 	asssigncalls = (asssigncalls + 1 ) % (2^20)
 	shader = shader or GetShader(flag, unitDefID)
 	textures = textures or GetTextures(flag, unitDefID)
 	texKey = texKey or GetTexturesKey(textures)
+	uniformBinID = uniformBinID or GetUniformBinID(unitDefID)
 	--	Spring.Debug.TraceFullEcho()	
 	local unitDrawBinsFlag = unitDrawBins[flag]
 	if unitDrawBinsFlag[shader] == nil then
 		unitDrawBinsFlag[shader] = {}
 	end
 	local unitDrawBinsFlagShader = unitDrawBinsFlag[shader]
-	uniformCache[1] = GetBitShaderOptions(unitDefID)
-	gl.SetUnitBufferUniforms(unitID, uniformCache, 6)
-	Spring.Echo("Setting UnitBufferUniforms", unitID, uniformCache[1])
-	if unitDrawBinsFlagShader[texKey] == nil then
+	
+	if unitDrawBinsFlagShader[uniformBinID] == nil then 
+		unitDrawBinsFlagShader[uniformBinID] = {}
+	end
+	
+	local unitDrawBinsFlagShaderUniforms = unitDrawBinsFlagShader[uniformBinID]
+	--uniformCache[1] = GetBitShaderOptions(unitDefID)
+	--gl.SetUnitBufferUniforms(unitID, uniformCache, 6)
+	--Spring.Echo("Setting UnitBufferUniforms", unitID, uniformCache[1])
+	if unitDrawBinsFlagShaderUniforms[texKey] == nil then
 		local mybinVAO = gl.GetVAO()
 		local mybinIBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
 		
@@ -814,7 +839,7 @@ local function AsssignUnitToBin(unitID, unitDefID, flag, shader, textures, texKe
 		mybinVAO:AttachIndexBuffer(ebo)
 		mybinVAO:AttachInstanceBuffer(mybinIBO)
 	
-		unitDrawBinsFlagShader[texKey] = {
+		unitDrawBinsFlagShaderUniforms[texKey] = {
 			textures = textures, -- hashmap of textures for this unit
 			IBO = mybinIBO, -- my own IBO, for incrementing
 			VAO = mybinVAO, -- my own VBO, for incremental updating
@@ -824,26 +849,26 @@ local function AsssignUnitToBin(unitID, unitDefID, flag, shader, textures, texKe
 		}
 	end
 	
-	local unitDrawBinsFlagShaderTexKey = unitDrawBinsFlagShader[texKey]
+	local unitDrawBinsFlagShaderUniformsTexKey = unitDrawBinsFlagShaderUniforms[texKey]
 	
-	if unitDrawBinsFlagShaderTexKey.objectsIndex[unitID] then 
+	if unitDrawBinsFlagShaderUniformsTexKey.objectsIndex[unitID] then 
 		Spring.Echo("Trying to add a unit to a bin that is already in it!")
 	end
 	
 	
-	local numobjects = unitDrawBinsFlagShaderTexKey.numobjects
-	unitDrawBinsFlagShaderTexKey.IBO:InstanceDataFromUnitIDs(unitID, objectTypeAttribID, numobjects)
-	unitDrawBinsFlagShaderTexKey.VAO:AddUnitsToSubmission   (unitID)
+	local numobjects = unitDrawBinsFlagShaderUniformsTexKey.numobjects
+	unitDrawBinsFlagShaderUniformsTexKey.IBO:InstanceDataFromUnitIDs(unitID, objectTypeAttribID, numobjects)
+	unitDrawBinsFlagShaderUniformsTexKey.VAO:AddUnitsToSubmission   (unitID)
 	
 	numobjects = numobjects + 1 
-	unitDrawBinsFlagShaderTexKey.numobjects = numobjects
-	unitDrawBinsFlagShaderTexKey.objectsArray[numobjects] = unitID
-	unitDrawBinsFlagShaderTexKey.objectsIndex[unitID    ] = numobjects
+	unitDrawBinsFlagShaderUniformsTexKey.numobjects = numobjects
+	unitDrawBinsFlagShaderUniformsTexKey.objectsArray[numobjects] = unitID
+	unitDrawBinsFlagShaderUniformsTexKey.objectsIndex[unitID    ] = numobjects
 	
 	if debugmode and flag == 0 then 
-		Spring.Echo("AsssignUnitToBin", unitID, unitDefID, texKey,shader,flag, numobjects)
+		Spring.Echo("AsssignUnitToBin", unitID, unitDefID, texKey,uniformBinID, shader,flag, numobjects)
 		local objids = "objectsArray "
-		for k,v in pairs(unitDrawBinsFlagShaderTexKey.objectsArray) do 
+		for k,v in pairs(unitDrawBinsFlagShaderUniformsTexKey.objectsArray) do 
 			objids = objids .. tostring(k) .. ":" ..tostring(v) .. " " 
 		end
 		Spring.Echo(objids) 
@@ -871,7 +896,8 @@ local function AddUnit(unitID, drawFlag)
 			if overrideDrawFlagsCombined[flag] then
 				AsssignUnitToBin(unitID, unitDefID, flag)
 				if flag == 1 then
-					AsssignUnitToBin(unitID, unitDefID, 0) --deferred hack
+					AsssignUnitToBin(unitID, unitDefID, 0) --deferred hack - what the fuck is this, it probably runs every time the 'forward opaque' pass is added
+					
 				end
 			end
 		end
@@ -882,42 +908,44 @@ local function AddUnit(unitID, drawFlag)
 	--overriddenUnits[unitID] = overrideDrawFlag
 end
 
-local function RemoveUnitFromBin(unitID, unitDefID, texKey, shader, flag)
+local function RemoveUnitFromBin(unitID, unitDefID, texKey, shader, flag, uniformBinID)
 	shader = shader or GetShader(flag, unitDefID)
 	textures = textures or GetTextures(flag, unitDefID)
 	texKey = texKey or GetTexturesKey(textures)
 	if unitDrawBins[flag][shader] then
-		if unitDrawBins[flag][shader][texKey] then
-			
-			-- do the pop magic
-			local unitDrawBinsFlagShaderTexKey = unitDrawBins[flag][shader][texKey]
-			local objectIndex = unitDrawBinsFlagShaderTexKey.objectsIndex[unitID]
-			
-			--if flag == 0 then Spring.Echo("RemoveUnitFromBin", unitID, unitDefID, texKey,shader,flag,objectIndex) end
-			if objectIndex == nil then 
-				--Spring.Echo("Remove failed")
-				return 
-				end
-			local numobjects = unitDrawBinsFlagShaderTexKey.numobjects
-			
-			unitDrawBinsFlagShaderTexKey.VAO:RemoveFromSubmission(objectIndex - 1) -- do we become out of order?
-			if objectIndex == numobjects then -- last element
-				unitDrawBinsFlagShaderTexKey.objectsIndex[unitID    ] = nil
-				unitDrawBinsFlagShaderTexKey.objectsArray[numobjects] = nil
-				unitDrawBinsFlagShaderTexKey.numobjects = numobjects -1 
-			else
-				local unitIDatEnd = unitDrawBinsFlagShaderTexKey.objectsArray[numobjects]
-				if debugmode and flag == 0 then Spring.Echo("Moving", unitIDatEnd, "from", numobjects, " to", objectIndex, "while removing", unitID) end
-				unitDrawBinsFlagShaderTexKey.objectsIndex[unitID     ] = nil -- pop back
-				unitDrawBinsFlagShaderTexKey.objectsIndex[unitIDatEnd] = objectIndex -- bring the last unitID to to this one
-				if Spring.ValidUnitID(unitIDatEnd) == true and Spring.GetUnitIsDead(unitIDatEnd) ~= true then
-					unitDrawBinsFlagShaderTexKey.IBO:InstanceDataFromUnitIDs(unitIDatEnd, objectTypeAttribID, objectIndex - 1)
+		if unitDrawBins[flag][shader][uniformBinID] then 
+			if unitDrawBins[flag][shader][texKey] then
+				
+				-- do the pop magic
+				local unitDrawBinsFlagShaderTexKey = unitDrawBins[flag][shader][uniformBinID][texKey]
+				local objectIndex = unitDrawBinsFlagShaderTexKey.objectsIndex[unitID]
+				
+				--if flag == 0 then Spring.Echo("RemoveUnitFromBin", unitID, unitDefID, texKey,shader,flag,objectIndex) end
+				if objectIndex == nil then 
+					--Spring.Echo("Remove failed")
+					return 
+					end
+				local numobjects = unitDrawBinsFlagShaderTexKey.numobjects
+				
+				unitDrawBinsFlagShaderTexKey.VAO:RemoveFromSubmission(objectIndex - 1) -- do we become out of order?
+				if objectIndex == numobjects then -- last element
+					unitDrawBinsFlagShaderTexKey.objectsIndex[unitID    ] = nil
+					unitDrawBinsFlagShaderTexKey.objectsArray[numobjects] = nil
+					unitDrawBinsFlagShaderTexKey.numobjects = numobjects -1 
 				else
-					Spring.Echo("Tried to remove invalid unitID", unitID)
+					local unitIDatEnd = unitDrawBinsFlagShaderTexKey.objectsArray[numobjects]
+					if debugmode and flag == 0 then Spring.Echo("Moving", unitIDatEnd, "from", numobjects, " to", objectIndex, "while removing", unitID) end
+					unitDrawBinsFlagShaderTexKey.objectsIndex[unitID     ] = nil -- pop back
+					unitDrawBinsFlagShaderTexKey.objectsIndex[unitIDatEnd] = objectIndex -- bring the last unitID to to this one
+					if Spring.ValidUnitID(unitIDatEnd) == true and Spring.GetUnitIsDead(unitIDatEnd) ~= true then
+						unitDrawBinsFlagShaderTexKey.IBO:InstanceDataFromUnitIDs(unitIDatEnd, objectTypeAttribID, objectIndex - 1)
+					else
+						Spring.Echo("Tried to remove invalid unitID", unitID)
+					end
+					unitDrawBinsFlagShaderTexKey.objectsArray[numobjects ] = nil -- pop back
+					unitDrawBinsFlagShaderTexKey.objectsArray[objectIndex] = unitIDatEnd -- Bring the last unitID here 
+					unitDrawBinsFlagShaderTexKey.numobjects = numobjects -1 
 				end
-				unitDrawBinsFlagShaderTexKey.objectsArray[numobjects ] = nil -- pop back
-				unitDrawBinsFlagShaderTexKey.objectsArray[objectIndex] = unitIDatEnd -- Bring the last unitID here 
-				unitDrawBinsFlagShaderTexKey.numobjects = numobjects -1 
 			end
 		end
 	end
@@ -943,17 +971,18 @@ local function UpdateUnit(unitID, drawFlag)
 			local shader = GetShader(flag, unitDefID)
 			local textures = GetTextures(flag, unitDefID)
 			local texKey  = GetTexturesKey(textures)
+			local uniformBinID = GetUniformBinID(unitDefID)
 
 			if hasFlagOld then --had this flag, but no longer have
-				RemoveUnitFromBin(unitID, unitDefID, texKey, shader, flag)
+				RemoveUnitFromBin(unitID, unitDefID, texKey, shader, flag, uniformBinID)
 				if flag == 1 then
-					RemoveUnitFromBin(unitID, unitDefID, texKey, nil, 0)
+					RemoveUnitFromBin(unitID, unitDefID, texKey, nil, 0, uniformBinID)
 				end
 			end
 			if hasFlagNew then -- didn't have this flag, but now has
-				AsssignUnitToBin(unitID, unitDefID, flag, shader, textures, texKey)
+				AsssignUnitToBin(unitID, unitDefID, flag, shader, textures, texKey, uniformBinID)
 				if flag == 1 then
-					AsssignUnitToBin(unitID, unitDefID, 0, nil, textures, texKey) --deferred
+					AsssignUnitToBin(unitID, unitDefID, 0, nil, textures, texKey, uniformBinID) --deferred
 				end
 			end
 		end
@@ -974,9 +1003,10 @@ local function RemoveUnit(unitID)
 			local shader = GetShader(flag, unitDefID)
 			local textures = GetTextures(flag, unitDefID)
 			local texKey  = GetTexturesKey(textures)
-			RemoveUnitFromBin(unitID, unitDefID, texKey, shader, flag)
+			local uniformBinID = GetUniformBinID(unitDefID)
+			RemoveUnitFromBin(unitID, unitDefID, texKey, shader, flag, uniformBinID)
 			if flag == 1 then
-				RemoveUnitFromBin(unitID, unitDefID, texKey, nil, 0)
+				RemoveUnitFromBin(unitID, unitDefID, texKey, nil, 0, uniformBinID)
 			end
 		end
 	end
@@ -1013,74 +1043,91 @@ end
 
 local unitIDscache = {}
 
+local shaderactivations = 0
 
 local function ExecuteDrawPass(drawPass)
 	--defersubmissionupdate = (defersubmissionupdate + 1) % 10;
 	local batches = 0
 	local units = 0
 	for shaderId, data in pairs(unitDrawBins[drawPass]) do
-		for _, texAndObj in pairs(data) do
+		local unitscountforthisshader = 0 
 		
-			if drawIncrementalMode == 1 then 
-				if texAndObj.numobjects > 0  then 
-					batches = batches + 1
-					units = units + texAndObj.numobjects
-					local mybinVAO = texAndObj.VAO
-					for bindPosition, tex in pairs(texAndObj.textures) do
-						if Spring.GetGameFrame() % 60 == 0 then 
-							--Spring.Echo(bindPosition, tex)	
+		for _, uniformBin in pairs(data) do
+			for _, texAndObj in pairs(uniformBin) do
+				unitscountforthisshader = unitscountforthisshader + texAndObj.numobjects
+			end
+		end
+		
+		if unitscountforthisshader > 0 then 
+			gl.UseShader(shaderId.shaderObj)
+			
+			for uniformBinID, uniformBin in pairs(data) do
+				local uniforms = uniformBins[uniformBinID] 
+				
+				-- TODO: only activate shader if we actually have units in its bins?
+				SetShaderUniforms(drawPass, shaderID, uniformBinID)
+				
+				for _, texAndObj in pairs(uniformBin) do
+					if drawIncrementalMode == 1 then 
+						if texAndObj.numobjects > 0  then 
+							batches = batches + 1
+							units = units + texAndObj.numobjects
+							local mybinVAO = texAndObj.VAO
+							for bindPosition, tex in pairs(texAndObj.textures) do
+								if Spring.GetGameFrame() % 60 == 0 then 
+									--Spring.Echo(bindPosition, tex)	
+								end
+								gl.Texture(bindPosition, tex)
+							end
+							
+							SetFixedStatePre(drawPass, shaderId)
+							shaderactivations = shaderactivations + 1 
+							SetShaderUniforms(drawPass, shaderId.shaderObj)
+							
+							mybinVAO:Submit()
+							gl.UseShader(0)
+
+							SetFixedStatePost(drawPass, shaderId)
+
+							for bindPosition, tex in pairs(texAndObj.textures) do
+								gl.Texture(bindPosition, false)
+							end
 						end
-						gl.Texture(bindPosition, tex)
+					elseif drawIncrementalMode == 0 then 
+						batches = batches + 1
+						
+						for bindPosition, tex in pairs(texAndObj.textures) do
+							gl.Texture(bindPosition, tex)
+						end
+						
+						SetFixedStatePre(drawPass, shaderId)
+						
+						for unitID, _ in pairs(texAndObj.objectsIndex) do
+							unitIDscache[#unitIDscache + 1] = unitID
+							units = units + 1 
+						end
+						
+						ibo:InstanceDataFromUnitIDs(unitIDscache, 6) --id = 6, name = "instData"
+						vao:ClearSubmission()
+						vao:AddUnitsToSubmission(unitIDscache)
+						
+						for i=1, #unitIDscache do
+							unitIDscache[i] = nil
+						end
+						
+						gl.UseShader(shaderId)
+						SetShaderUniforms(drawPass, shaderId)
+						
+						vao:Submit()
+						gl.UseShader(0)
+
+						SetFixedStatePost(drawPass, shaderId)
+						
+
+						for bindPosition, tex in pairs(texAndObj.textures) do
+							gl.Texture(bindPosition, false)
+						end
 					end
-					
-					SetFixedStatePre(drawPass, shaderId)
-					
-					gl.UseShader(shaderId.shaderObj)
-					SetShaderUniforms(drawPass, shaderId.shaderObj)
-					
-					mybinVAO:Submit()
-					gl.UseShader(0)
-
-					SetFixedStatePost(drawPass, shaderId)
-
-					for bindPosition, tex in pairs(texAndObj.textures) do
-						gl.Texture(bindPosition, false)
-					end
-				end
-					
-			elseif drawIncrementalMode == 0 then 
-				batches = batches + 1
-				
-				for bindPosition, tex in pairs(texAndObj.textures) do
-					gl.Texture(bindPosition, tex)
-				end
-				
-				SetFixedStatePre(drawPass, shaderId)
-				
-				for unitID, _ in pairs(texAndObj.objectsIndex) do
-					unitIDscache[#unitIDscache + 1] = unitID
-					units = units + 1 
-				end
-				
-				ibo:InstanceDataFromUnitIDs(unitIDscache, 6) --id = 6, name = "instData"
-				vao:ClearSubmission()
-				vao:AddUnitsToSubmission(unitIDscache)
-				
-				for i=1, #unitIDscache do
-					unitIDscache[i] = nil
-				end
-				
-				gl.UseShader(shaderId)
-				SetShaderUniforms(drawPass, shaderId)
-				
-				vao:Submit()
-				gl.UseShader(0)
-
-				SetFixedStatePost(drawPass, shaderId)
-				
-
-				for bindPosition, tex in pairs(texAndObj.textures) do
-					gl.Texture(bindPosition, false)
 				end
 			end
 		end
