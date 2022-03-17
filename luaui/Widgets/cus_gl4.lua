@@ -193,30 +193,30 @@ end
 
 local uniformBins = {
 	unit = {
-		bitOptions = defaultBitShaderOptions
-	}
+		bitOptions = defaultBitShaderOptions,
+	},
 	scavenger = {
-		bitOptions = defaultBitShaderOptions
+		bitOptions = defaultBitShaderOptions,
 		vertexDisplacement = 0.4,
-	}
+	},
 	chicken = {
-		bitOptions = defaultBitShaderOptions
-	}
+		bitOptions = defaultBitShaderOptions,
+	},
 	otherunit = {
-		bitOptions = defaultBitShaderOptions
-	}
+		bitOptions = defaultBitShaderOptions,
+	},
 	feature = {
-		bitOptions = defaultBitShaderOptions
-	}
+		bitOptions = defaultBitShaderOptions,
+	},
 	treepbr = {
-		bitOptions = defaultBitShaderOptions
-	}
+		bitOptions = defaultBitShaderOptions,
+	},
 	tree = {
-		bitOptions = defaultBitShaderOptions
-	}
+		bitOptions = defaultBitShaderOptions,
+	},
 	wreck = {
-		bitOptions = defaultBitShaderOptions
-	}
+		bitOptions = defaultBitShaderOptions,
+	},
 } -- maps uniformbins to a table of uniform names/values
 
 local shaderIDtoLuaShader = {}
@@ -241,7 +241,8 @@ local overrideDrawFlag = 0
 for f, e in pairs(overrideDrawFlags) do
 	overrideDrawFlag = overrideDrawFlag + f * (e and 1 or 0)
 end
-
+--      deferred    fw  fwrfl  fwrfr  op oprfl  oprfr  shadow
+--         0         1    5     9     2    6     10     16
 local drawBinKeys = {1, 1 + 4, 1 + 8, 2, 2 + 4, 2 + 8, 16} --deferred is handled ad-hoc
 local overrideDrawFlagsCombined = {
 	[0    ] = overrideDrawFlags[0],
@@ -853,8 +854,9 @@ local function AsssignUnitToBin(unitID, unitDefID, flag, shader, textures, texKe
 	
 	if unitDrawBinsFlagShaderUniformsTexKey.objectsIndex[unitID] then 
 		Spring.Echo("Trying to add a unit to a bin that is already in it!")
+	else
+		Spring.Echo("AsssignUnitToBin success:",unitID, unitDefID, flag, shader, textures, texKey, uniformBinID	)
 	end
-	
 	
 	local numobjects = unitDrawBinsFlagShaderUniformsTexKey.numobjects
 	unitDrawBinsFlagShaderUniformsTexKey.IBO:InstanceDataFromUnitIDs(unitID, objectTypeAttribID, numobjects)
@@ -914,15 +916,16 @@ local function RemoveUnitFromBin(unitID, unitDefID, texKey, shader, flag, unifor
 	texKey = texKey or GetTexturesKey(textures)
 	if unitDrawBins[flag][shader] then
 		if unitDrawBins[flag][shader][uniformBinID] then 
-			if unitDrawBins[flag][shader][texKey] then
+			if unitDrawBins[flag][shader][uniformBinID][texKey] then
 				
 				-- do the pop magic
 				local unitDrawBinsFlagShaderTexKey = unitDrawBins[flag][shader][uniformBinID][texKey]
 				local objectIndex = unitDrawBinsFlagShaderTexKey.objectsIndex[unitID]
 				
 				--if flag == 0 then Spring.Echo("RemoveUnitFromBin", unitID, unitDefID, texKey,shader,flag,objectIndex) end
+				Spring.Echo("RemoveUnitFromBin", unitID, unitDefID, texKey,shader,flag,objectIndex) 
 				if objectIndex == nil then 
-					--Spring.Echo("Remove failed")
+					Spring.Echo("Remove failed")
 					return 
 					end
 				local numobjects = unitDrawBinsFlagShaderTexKey.numobjects
@@ -946,8 +949,14 @@ local function RemoveUnitFromBin(unitID, unitDefID, texKey, shader, flag, unifor
 					unitDrawBinsFlagShaderTexKey.objectsArray[objectIndex] = unitIDatEnd -- Bring the last unitID here 
 					unitDrawBinsFlagShaderTexKey.numobjects = numobjects -1 
 				end
+			else
+				Spring.Echo("didnt find texKey for", unitID, unitDefID, texKey, shader, flag, uniformBinID)
 			end
+		else
+			Spring.Echo("didnt find uniformBinID for", unitID, unitDefID, texKey, shader, flag, uniformBinID)
 		end
+	else
+		Spring.Echo("didnt find shader for", unitID, unitDefID, texKey, shader, flag, uniformBinID, UnitDefs[unitDefID].name) 
 	end
 end
 
@@ -1062,10 +1071,12 @@ local function ExecuteDrawPass(drawPass)
 			gl.UseShader(shaderId.shaderObj)
 			
 			for uniformBinID, uniformBin in pairs(data) do
-				local uniforms = uniformBins[uniformBinID] 
+
+				--Spring.Echo("uniformBinID", uniformBinID)
+				--local uniforms = uniformBins[uniformBinID] 
 				
 				-- TODO: only activate shader if we actually have units in its bins?
-				SetShaderUniforms(drawPass, shaderID, uniformBinID)
+				SetShaderUniforms(drawPass, shaderId.shaderObj, uniformBinID)
 				
 				for _, texAndObj in pairs(uniformBin) do
 					if drawIncrementalMode == 1 then 
@@ -1082,10 +1093,9 @@ local function ExecuteDrawPass(drawPass)
 							
 							SetFixedStatePre(drawPass, shaderId)
 							shaderactivations = shaderactivations + 1 
-							SetShaderUniforms(drawPass, shaderId.shaderObj)
+							--SetShaderUniforms(drawPass, shaderId.shaderObj)
 							
 							mybinVAO:Submit()
-							gl.UseShader(0)
 
 							SetFixedStatePost(drawPass, shaderId)
 
@@ -1130,6 +1140,8 @@ local function ExecuteDrawPass(drawPass)
 					end
 				end
 			end
+			
+			gl.UseShader(0)
 		end
 	end
 	return batches, units
@@ -1177,8 +1189,36 @@ function widget:Initialize()
 	widget:Update()
 end
 
+
+local function tableEcho(data, name, indent, tableChecked)
+	name = name or "TableEcho"
+	indent = indent or ""
+	if (not tableChecked) and type(data) ~= "table" then
+		Spring.Echo(indent .. name, data)
+		return
+	end
+	if type (name) == "table" then 
+		name = '<table>'
+	end
+	Spring.Echo(indent .. name .. " = {")
+	local newIndent = indent .. "    "
+	for name, v in pairs(data) do
+		local ty = type(v)
+		if ty == "table" then
+			tableEcho(v, name, newIndent, true)
+		elseif ty == "boolean" then
+			Spring.Echo(newIndent .. name .. " = " .. (v and "true" or "false"))
+		elseif ty == "string" or ty == "number" then
+			Spring.Echo(newIndent .. name .. " = " .. v)
+		else
+			Spring.Echo(newIndent .. name .. " = ", v)
+		end
+	end
+	Spring.Echo(indent .. "},")
+end
+
 function widget:Shutdown()
-	--Spring.Debug.TableEcho(unitDrawBins)
+	tableEcho(unitDrawBins, 'unitDrawBins')
 	
 
 	for unitID, _ in pairs(overriddenUnits) do
@@ -1247,7 +1287,7 @@ function widget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 
 	seenbitsopaque = math.bit_or(seenbitsopaque, drawPass)
 	local batches, units = ExecuteDrawPass(drawPass)
-	if gf % 61 == 0 then Spring.Echo("drawPass", drawPass, "batches", batches, "units", units) end 	
+	--if gf % 61 == 0 then Spring.Echo("drawPass", drawPass, "batches", batches, "units", units) end 	
 end
 
 function widget:DrawAlphaUnitsLua(drawReflection, drawRefraction)
@@ -1263,7 +1303,7 @@ function widget:DrawAlphaUnitsLua(drawReflection, drawRefraction)
 	
 	seenbitsalpha = math.bit_or(seenbitsalpha, drawPass)
 	local batches, units = ExecuteDrawPass(drawPass)
-	if gf % 61 == 0 then Spring.Echo("drawPass", drawPass, "batches", batches, "units", units) end
+	--if gf % 61 == 0 then Spring.Echo("drawPass", drawPass, "batches", batches, "units", units) end
 	
 end
 
