@@ -2,7 +2,7 @@
 -- Called when new unit is created for Scavengers ---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------------------
 local function AddScavUnit(unitID, unitDefID, unitName, unitTeam)
-	if (UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or scavNoSelfD[unitID]) and (unitName ~= "scavengerdroppodbeacon_scav") then
+	if (UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or scavNoSelfD[unitID]) and (unitName ~= staticUnitList.scavSpawnBeacon) then
 		BaseCleanupQueue[#BaseCleanupQueue+1] = unitID 
 	end
 	Spring.SetUnitExperience(unitID, math_random() * (spawnmultiplier*0.01*scavconfig.unitControllerModuleConfig.veterancymultiplier))
@@ -40,10 +40,10 @@ local function AddScavUnit(unitID, unitDefID, unitName, unitTeam)
 		unitSwapLibrary.SwapUnit(unitID, constructorUnitList.SwapUnitsToScav[unitDefID])
 		return
 	end
-	if unitName == "scavengerdroppod_scav" then
+	if unitName == staticUnitList.scavSpawnEffectUnit then
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 	end
-	if unitName == "scavengerdroppodbeacon_scav" then
+	if unitName == staticUnitList.scavSpawnBeacon then
 		scavStatsScavSpawners = scavStatsScavSpawners+1
 		scavSpawnBeacon[unitID] = true
 		numOfSpawnBeacons = numOfSpawnBeacons + 1
@@ -147,19 +147,19 @@ local function RemoveScavUnit(unitID, unitDefID, unitTeam, unitName, attackerID,
 	end
 
 	killedscavengers = killedscavengers + scavconfig.scoreConfig.baseScorePerKill
-	if scavStructure[unitID] and not unitName == "scavengerdroppod_scav" and not unitName == "scavengerdroppodbeacon_scav"  then
+	if scavStructure[unitID] and not unitName == staticUnitList.scavSpawnEffectUnit and not unitName == staticUnitList.scavSpawnBeacon  then
 		killedscavengers = killedscavengers + scavconfig.scoreConfig.scorePerKilledBuilding
 	end
 	if scavConstructor[unitID] then
 		scavStatsScavCommanders = scavStatsScavCommanders-1
 		killedscavengers = killedscavengers + scavconfig.scoreConfig.scorePerKilledConstructor
 	end
-	if unitName == "scavengerdroppodbeacon_scav" then
+	if unitName == staticUnitList.scavSpawnBeacon then
 		scavStatsScavSpawners = scavStatsScavSpawners-1
 		numOfSpawnBeacons = numOfSpawnBeacons - 1
 		killedscavengers = killedscavengers + scavconfig.scoreConfig.scorePerKilledSpawner
 	end
-	if unitName == "scavengerdroppod_scav" then
+	if unitName == staticUnitList.scavSpawnEffectUnit then
 		killedscavengers = killedscavengers - scavconfig.scoreConfig.baseScorePerKill
 	end
 	scavConverted[unitID] = nil
@@ -201,7 +201,7 @@ local function AddNonScavUnit(unitID, unitDefID, unitName, unitTeam)
 		unitSwapLibrary.SwapUnit(unitID, constructorUnitList.SwapUnitsFromScav[unitDefID])
 		return
 	end
-	if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
+	if UnitDefs[unitDefID].name == staticUnitList.scavSpawnBeacon then
 		numOfSpawnBeaconsTeams[unitTeam] = numOfSpawnBeaconsTeams[unitTeam] + 1
 		if scavconfig.modules.reinforcementsModule == true then
 			Spring.SetUnitNeutral(unitID, false)
@@ -241,7 +241,7 @@ local function RemoveNonScavUnit(unitID, unitDefID, unitTeam, unitName, attacker
 			break
 		end
 	end
-	if unitName == "scavengerdroppodbeacon_scav" then
+	if unitName == staticUnitList.scavSpawnBeacon then
 		numOfSpawnBeaconsTeams[unitTeam] = numOfSpawnBeaconsTeams[unitTeam] - 1
 	end
 end
@@ -263,7 +263,7 @@ local function CaptureScavUnit(unitID, unitDefID, unitName, unitNewTeam, unitOld
 			end
 		end
 	end
-	if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
+	if UnitDefs[unitDefID].name == staticUnitList.scavSpawnBeacon then
 		numOfSpawnBeacons = numOfSpawnBeacons - 1
 		numOfSpawnBeaconsTeams[unitNewTeam] = numOfSpawnBeaconsTeams[unitNewTeam] + 1
 		killedscavengers = killedscavengers + scavconfig.scoreConfig.scorePerCapturedSpawner
@@ -280,7 +280,7 @@ local function CaptureScavUnit(unitID, unitDefID, unitName, unitNewTeam, unitOld
 	if scavConstructor[unitID] then
 		scavStatsScavCommanders = scavStatsScavCommanders-1
 	end
-	if unitName == "scavengerdroppodbeacon_scav" then
+	if unitName == staticUnitList.scavSpawnBeacon then
 		scavStatsScavSpawners = scavStatsScavSpawners-1
 	end
 	scavConverted[unitID] = nil
@@ -324,7 +324,7 @@ local function CaptureNonScavUnit(unitID, unitDefID, unitName, unitNewTeam, unit
 			break
 		end
 	end
-	if (UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or scavNoSelfD[unitID]) and (unitName ~= "scavengerdroppodbeacon_scav") then
+	if (UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or scavNoSelfD[unitID]) and (unitName ~= staticUnitList.scavSpawnBeacon) then
 		BaseCleanupQueue[#BaseCleanupQueue+1] = unitID 
 	end
 	if string.find(unitName, scavconfig.unitnamesuffix) then
@@ -345,7 +345,7 @@ local function CaptureNonScavUnit(unitID, unitDefID, unitName, unitNewTeam, unit
 		end
 	end
 	--Spring.Echo("Scavs just captured me " .. UnitName .. " and my suffix lenght is " .. UnitSuffixLenght[unitID])
-	if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
+	if UnitDefs[unitDefID].name == staticUnitList.scavSpawnBeacon then
 		scavStatsScavSpawners = scavStatsScavSpawners + 1
 		numOfSpawnBeaconsTeams[unitOldTeam] = numOfSpawnBeaconsTeams[unitOldTeam] - 1
 		numOfSpawnBeacons = numOfSpawnBeacons + 1

@@ -1,6 +1,7 @@
 local UDN = UnitDefNames
 local wallChance = 0
 local scavMaxUnits = Spring.GetModOptions().maxunits
+
 function BPWallOrPopup(faction, tier)
 	if ScavengerTeamID then
 		wallChance = Spring.GetTeamUnitCount(ScavengerTeamID)

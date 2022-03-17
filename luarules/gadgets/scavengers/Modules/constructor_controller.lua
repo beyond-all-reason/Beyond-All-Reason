@@ -1,7 +1,7 @@
 Spring.Echo("[Scavengers] Constructor Controller initialized")
 
-local blueprintConfig = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_tiers.lua')
-local blueprintsController = VFS.Include("luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_controller.lua")
+local blueprintConfig = VFS.Include('luarules/gadgets/scavengers/Blueprints/' .. Game.gameShortName .. '/blueprint_tiers.lua')
+local blueprintsController = VFS.Include("luarules/gadgets/scavengers/Blueprints/" .. Game.gameShortName .. "/blueprint_controller.lua")
 local constructorTimer = scavconfig.constructorControllerModuleConfig.constructortimerstart
 
 local voiceNotificationsCount = 2
@@ -180,14 +180,14 @@ local function spawnConstructor(n)
 			spawnBeaconsController.SpawnBeacon(n)
 
 			if scavconfig.constructorControllerModuleConfig.useresurrectors then
-				Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + 32, posy, posz, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - 32, posy, posz, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
 
 				if posy > 0 then
 					local resurrector = constructorUnitList.Resurrectors[math.random(#constructorUnitList.Resurrectors)]
@@ -228,7 +228,7 @@ local function spawnConstructor(n)
 			if constructor then
 				constructorTimer = 0
 				spawnQueueLibrary.AddToSpawnQueue(constructor, posx, posy, posz, math.random(0, 3), ScavengerTeamID, n + 150)
-				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math.random(0, 3), ScavengerTeamID)
 			end
 		else
 			constructorTimer = constructorTimer +  math.ceil(n / scavconfig.constructorControllerModuleConfig.constructortimerreductionframes)
@@ -456,11 +456,11 @@ end
 -- 				for y = 1, resurrectorSpawnCount do
 -- 					if posy > -20 then
 -- 						local resurrector = constructorUnitList.Resurrectors[math.random(#constructorUnitList.Resurrectors)]
--- 						Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), ScavengerTeamID)
+-- 						Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math.random(0, 3), ScavengerTeamID)
 -- 						spawnQueueLibrary.AddToSpawnQueue(resurrector, posx, posy, posz, math.random(0, 3), ScavengerTeamID, n + (y * 1) + 150)
 -- 					else
 -- 						local seaResurrector = constructorUnitList.ResurrectorsSea[math.random(#constructorUnitList.ResurrectorsSea)]
--- 						Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), ScavengerTeamID)
+-- 						Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math.random(0, 3), ScavengerTeamID)
 -- 						spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx, posy, posz, math.random(0, 3), ScavengerTeamID, n + (y * 1) + 150)
 -- 					end
 -- 				end

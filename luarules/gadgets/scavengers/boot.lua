@@ -6,7 +6,6 @@ end
 VFS.Include("luarules/gadgets/scavengers/API/init.lua")
 scavconfig = VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/config.lua")
 VFS.Include("luarules/gadgets/scavengers/API/api.lua")
---VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
 
 spawnQueueLibrary = VFS.Include("luarules/utilities/damgam_lib/spawn_queue.lua")
 positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
@@ -32,26 +31,22 @@ function ScavSendVoiceMessage(filedirectory)
 end
 
 ---- Unit Lists
-bossUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/boss.lua")
-constructorUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/constructors.lua")
-staticUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/staticunits.lua")
-factoryUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/factories.lua")
-airUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/air.lua")
-landUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/land.lua")
-seaUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/sea.lua")
+bossUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/boss.lua")
+constructorUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/constructors.lua")
+staticUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/staticunits.lua")
+factoryUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/factories.lua")
+airUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/air.lua")
+landUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/land.lua")
+seaUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/sea.lua")
 
 bossAbilities = VFS.Include("luarules/gadgets/scavengers/BossFight/" .. Game.gameShortName .. "/abilities.lua")
 
 ---- Modules
-
--- redone
 constructorController = VFS.Include("luarules/gadgets/scavengers/Modules/constructor_controller.lua")
 randomEventsController = VFS.Include("luarules/gadgets/scavengers/Modules/random_events.lua")
 factoryController = VFS.Include("luarules/gadgets/scavengers/Modules/factory_controller.lua")
 nukeController = VFS.Include("luarules/gadgets/scavengers/Modules/nuke_controller.lua")
 bossController = VFS.Include("luarules/gadgets/scavengers/Modules/bossfight_module.lua")
-
--- not redone
 unitController = VFS.Include("luarules/gadgets/scavengers/Modules/unit_controller.lua")
 spawnBeaconsController = VFS.Include("luarules/gadgets/scavengers/Modules/spawn_beacons.lua")
 messengerController = VFS.Include("luarules/gadgets/scavengers/Modules/messenger.lua")
@@ -74,26 +69,11 @@ unitAddOrRemoveAPI = VFS.Include("luarules/gadgets/scavengers/API/unitaddremove.
 
 local function DisableUnit(unitID)
 	Spring.DestroyUnit(unitID, false, true)
-	-- Spring.MoveCtrl.Enable(unitID)
-	-- Spring.MoveCtrl.SetNoBlocking(unitID, true)
-	-- Spring.MoveCtrl.SetPosition(unitID, Game.mapSizeX+1900, 2000, Game.mapSizeZ+1900) --don't move too far out or prevent_aicraft_hax will explode it!
-	-- Spring.SetUnitNeutral(unitID, true)
-	-- Spring.SetUnitCloak(unitID, true)
-	-- --Spring.SetUnitHealth(unitID, {paralyze=99999999})
-	-- Spring.SetUnitMaxHealth(unitID, 10000000)
-	-- Spring.SetUnitHealth(unitID, 10000000)
-	-- --Spring.SetUnitNoDraw(unitID, true)
-	-- Spring.SetUnitStealth(unitID, true)
-	-- --Spring.SetUnitNoSelect(unitID, true)
-	-- Spring.SetUnitNoMinimap(unitID, true)
-	-- Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
-	-- Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
 end
 
 local function DisableCommander()
 	local teamUnits = Spring.GetTeamUnits(scavengerAITeamID)
 	for _, unitID in ipairs(teamUnits) do
-		--HiddenCommander = unitID
 		DisableUnit(unitID)
 	end
 end
@@ -108,7 +88,6 @@ function DestroyOldBuildings()
 			end
 			if #BaseCleanupQueue > 0 then
 				spawnQueueLibrary.AddToDestroyQueue(BaseCleanupQueue[1], true, false, Spring.GetGameFrame()+1)
-				--Spring.DestroyUnit(BaseCleanupQueue[1], true, false)
 				table.remove(BaseCleanupQueue, 1)
 			end
 		end
@@ -126,7 +105,6 @@ function PutScavAlliesInScavTeam(n)
 			for u = 1,#units do
 				scavteamhasplayers = true
 				spawnQueueLibrary.AddToDestroyQueue(units[u], false, true, n+1)
-				--Spring.DestroyUnit(units[u], false, true)
 				Spring.KillTeam(teamID)
 			end
 		end
@@ -139,9 +117,7 @@ function PutScavAlliesInScavTeam(n)
 		if (AI or LuaAI) and scavAllies[i] ~= ScavengerTeamID then
 			local units = Spring.GetTeamUnits(scavAllies[i])
 			for u = 1,#units do
-				--scavteamhasplayers = true
 				spawnQueueLibrary.AddToDestroyQueue(units[u], false, true, n+1)
-				--Spring.DestroyUnit(units[u], false, true)
 				Spring.KillTeam(scavAllies[i])
 			end
 		end
@@ -151,7 +127,6 @@ end
 local minionFramerate = math.ceil(scavconfig.unitSpawnerModuleConfig.FinalBossMinionsPassive/(teamcount*spawnmultiplier))
 function gadget:GameFrame(n)
 	if n == 1 then
-		-- PutSpectatorsInScavTeam(n)
 		PutScavAlliesInScavTeam(n)
 		teamsCheck()
 		UpdateTierChances(n)
@@ -164,7 +139,6 @@ function gadget:GameFrame(n)
 	end
 
 	if n == 300 then
-		--Spring.Echo("New Scavenger Spawner initialized")
 		Spring.SetTeamColor(ScavengerTeamID, 0.38, 0.14, 0.38)
 	end
 
@@ -182,12 +156,10 @@ function gadget:GameFrame(n)
 		if n%45 == 15 then
 			startboxProtectionController.spawnStartBoxEffect2(n)
 		end
-		--if n%(math.ceil(450/(math.ceil(ScavSafeAreaSize/5)))) == 0 then
 		if n%(math.ceil(5600000/(ScavSafeAreaSize*ScavSafeAreaSize))) == 0 then
 			startboxProtectionController.spawnStartBoxEffect(n)
 		end
 	end
-
 
 	randomEventsController.GameFrame(n)
 
@@ -221,7 +193,6 @@ function gadget:GameFrame(n)
 			DisableCommander()
 			disabledCommander = true
 		end
-		--Spring.SetUnitHealth(HiddenCommander, 10000000)
 	end
 
 	if n == 100 and globalScore then
@@ -260,15 +231,6 @@ function gadget:GameFrame(n)
 			if scavengersAIEnabled and scavengersAIEnabled == true then
 				if globalScore == 0 then globalScore = 1 end
 				if scavconfig.timers.BossFight == 0 then scavconfig.timers.BossFight = 1 end
-				if globalScore/scavconfig.timers.BossFight < 1 then
-					--ScavSendMessage("Scavengers Tech: "..math.ceil((globalScore/scavconfig.timers.BossFight)*100).."%")
-					--ScavSendMessage("Scav Score: "..globalScore)
-					--ScavSendMessage(TierSpawnChances.Message)
-				else
-					--ScavSendMessage("Scavengers Tech: 100%")
-					--ScavSendMessage("Score: "..globalScore)
-					--ScavSendMessage(TierSpawnChances.Message)
-				end
 			end
 		end
 	end
@@ -290,7 +252,7 @@ function gadget:GameFrame(n)
 			UpdateTierChances(n)
 			collectScavStats()
 		end
-		if scavconfig.modules.unitSpawnerModule and FinalBossKilled == false then --and (not FinalBossUnitSpawned) then
+		if scavconfig.modules.unitSpawnerModule and FinalBossKilled == false then
 			spawnBeaconsController.SpawnBeacon(n)
 			unitSpawnerController.UnitGroupSpawn(n)
 		end
@@ -309,7 +271,6 @@ function gadget:GameFrame(n)
 					else
 						Spring.GiveOrderToUnit(scav,CMD.FIRE_STATE,{2},0)
 					end
-					--Spring.Echo("Forced firestate of unitID: "..scav)
 				end
 
 				if n%300 == 0 and scavconfig.modules.stockpilers == true then
@@ -360,7 +321,6 @@ function gadget:GameFrame(n)
 					factoryController.BuildUnit(scav, scavDef)
 				end
 
-				-- backup -- and not scavConstructor[scav] and not scavResurrector[scav] and not scavCollector[scav]
 				if scavteamhasplayers == false and n%900 == 0 and not scavStructure[scav] and not scavAssistant[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
 					unitController.SelfDestructionControls(n, scav, scavDef, false)
 				end
@@ -375,7 +335,7 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	local unitName = UnitDefs[unitDefID].name
 	--Spring.Echo(Spring.GetUnitHeading(unitID))
-	if unitName == "scavengerdroppodfriendly" then
+	if unitName == staticUnitList.friendlySpawnEffectUnit then
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 	end
 	if unitTeam == ScavengerTeamID then
@@ -404,7 +364,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 	else
 		if unitNewTeam == ScavengerTeamID then
 			unitAddOrRemoveAPI.CaptureNonScavUnit(unitID, unitDefID, unitName, unitNewTeam, unitOldTeam)
-		elseif UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" then
+		elseif UnitDefs[unitDefID].name == staticUnitList.scavSpawnBeacon then
 			numOfSpawnBeaconsTeams[unitOldTeam] = numOfSpawnBeaconsTeams[unitOldTeam] - 1
 			numOfSpawnBeaconsTeams[unitNewTeam] = numOfSpawnBeaconsTeams[unitNewTeam] + 1
 		end

@@ -83,17 +83,6 @@ local function bossWaveTimer(n)
 				ScavSendNotification("scav_scavfinalvictory")
 				FinalMessagePlayed = true
 			end
-			--FinalSelfDChance = FinalSelfDChance - 1
-			--if FinalSelfDChance < 2 then
-			--	FinalSelfDChance = 2
-			--end
-			--local units = Spring.GetTeamUnits(ScavengerTeamID)
-			--for i = 1,#units do
-			--	local r = math_random(1,FinalSelfDChance)
-			--	if r == 1 then
-			--		Spring.DestroyUnit(units[i],false,false)
-			--	end
-			--end
 
 			-- kill whole allyteam  (game_end gadget will destroy leftover units)
 			if not killedScavengerAllyTeam then
@@ -407,18 +396,18 @@ local function unitGroupSpawn(n)
 					local newposy = Spring.GetGroundHeight(posx, posz)
 					if posy >= -20 and newposy >= -20 then
 						if i then
-							spawnQueueLibrary.AddToSpawnQueue("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, n+(i*2))
+							spawnQueueLibrary.AddToSpawnQueue(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math_random(0,3),ScavengerTeamID, n+(i*2))
 							spawnQueueLibrary.AddToSpawnQueue(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),ScavengerTeamID, n+150+(i*2))
 						else
-							spawnQueueLibrary.AddToSpawnQueue("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, n)
+							spawnQueueLibrary.AddToSpawnQueue(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math_random(0,3),ScavengerTeamID, n)
 							spawnQueueLibrary.AddToSpawnQueue(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),ScavengerTeamID, n+150)
 						end
 					elseif posy < -20 and newposy < -20 then
 						if i then
-							spawnQueueLibrary.AddToSpawnQueue("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, n+(i*2))
+							spawnQueueLibrary.AddToSpawnQueue(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math_random(0,3),ScavengerTeamID, n+(i*2))
 							spawnQueueLibrary.AddToSpawnQueue(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),ScavengerTeamID, n+150+(i*2))
 						else
-							spawnQueueLibrary.AddToSpawnQueue("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, n)
+							spawnQueueLibrary.AddToSpawnQueue(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math_random(0,3),ScavengerTeamID, n)
 							spawnQueueLibrary.AddToSpawnQueue(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),ScavengerTeamID, n+150)
 						end
 					end
@@ -429,8 +418,8 @@ local function unitGroupSpawn(n)
 					else
 						spawnQueueLibrary.AddToSpawnQueue(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], rx, posy, rz, math_random(0,3),ScavengerTeamID, n+150+(i*2), false)
 					end
-					spawnQueueLibrary.AddToSpawnQueue("scavengerdroppod_scav", rx, posy, rz, math_random(0,3),ScavengerTeamID, n+(i*2))
-					--Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID)
+					spawnQueueLibrary.AddToSpawnQueue(staticUnitList.scavSpawnEffectUnit, rx, posy, rz, math_random(0,3),ScavengerTeamID, n+(i*2))
+					--Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math_random(0,3),ScavengerTeamID)
 				end
 				posx = nil
 				posy = nil
