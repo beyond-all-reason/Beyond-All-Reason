@@ -116,9 +116,9 @@ vertex = [[
 	//[1]-healthMod, customparams.healthlookmod, 0.4 for scavengers
 	//[2]-vertDisplacement, for scavs, its min(10.0, 5.5 + (footprintx+footprintz) /12 )
 	//[3]-tracks speed = floor(4 * speed + 0.5) / 4 
-	uniform float baseVertexDisplacement = 0.0;
-	const float vertexDisplacement = 6.0;
-	const float healthLookMod = 0.4;
+	uniform float baseVertexDisplacement = 0.0; // this is for the scavengers, 
+	const float vertexDisplacement = 6.0; // Strength of vertex displacement on health change
+	const float healthLookMod = 0.4; // customparams.healthlookmod, 0.4 for scavengers
 	const float treadsvelocity = 0.5;
 #line 10200
 	uniform float floatOptions[4];
