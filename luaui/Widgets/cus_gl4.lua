@@ -102,6 +102,14 @@ end
 	
 	-- TODO: feature drawing bits too
 	
+	-- TODO: rewrite treewave
+	
+	-- TODO: fix flashlights to be piece-unique
+	
+	-- TODO: investigate why/how refraction pass doesnt ever seem to get called
+	
+	-- TODO: reduce the amount of deferred buffers being used from 6 to 4
+	
 	-- GetTextures :
 		-- should return array table instead of hash table
 			-- fill in unused stuff with 'false' for contiguous array table
@@ -125,6 +133,10 @@ end
 
 -- DONE:
 	-- unit uniforms
+-- KNOWN BUGS:
+	-- Unitdestroyed doesnt trigger removal?
+	-- CorCS doesnt always show up for reflection pass?
+	-- Hovers dont show up for reflection pass
 
 --inputs
 
@@ -305,7 +317,8 @@ drawMode:
 		default: // player, (-1) static model, (0) normal rendering
 ]]--
 local function SetShaderUniforms(drawPass, shaderID)
-	if true then return end
+	--if true then return end
+	gl.UniformInt(gl.GetUniformLocation(shaderID, "drawPass"), drawPass)
 	if drawPass <= 2 then
 		gl.UniformInt(gl.GetUniformLocation(shaderID, "drawMode"), 0)
 		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane2"), 0.0, 0.0, 0.0, 1.0)
@@ -1022,7 +1035,7 @@ local function ExecuteDrawPass(drawPass)
 					SetFixedStatePre(drawPass, shaderId)
 					
 					gl.UseShader(shaderId.shaderObj)
-					SetShaderUniforms(drawPass, shaderId)
+					SetShaderUniforms(drawPass, shaderId.shaderObj)
 					
 					mybinVAO:Submit()
 					gl.UseShader(0)
@@ -1158,9 +1171,9 @@ end
 
 local seenbitsopaque = 0
 local seenbitsalpha = 0
-
+local gf = 0
 function widget:GameFrame(n)
-	
+	gf = n
 	if (n%300) == 0 then 
 		Spring.Echo(Spring.GetGameFrame(), "processedCounter", processedCounter, asssigncalls,gettexturescalls, 'seenopaque', seenbitsopaque, 'seenalpha', seenbitsalpha)
 	end
@@ -1184,9 +1197,9 @@ function widget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 		drawPass = 1 + 8
 	end
 
-	seenbitsopaque = math.bit_and(seenbitsopaque, drawPass)
+	seenbitsopaque = math.bit_or(seenbitsopaque, drawPass)
 	local batches, units = ExecuteDrawPass(drawPass)
-	--Spring.Echo("drawPass", drawPass, "batches", batches, "units", units)
+	if gf % 61 == 0 then Spring.Echo("drawPass", drawPass, "batches", batches, "units", units) end 	
 end
 
 function widget:DrawAlphaUnitsLua(drawReflection, drawRefraction)
@@ -1200,9 +1213,9 @@ function widget:DrawAlphaUnitsLua(drawReflection, drawRefraction)
 		drawPass = 2 + 8
 	end
 	
-	seenbitsalpha = math.bit_and(seenbitsalpha, drawPass)
+	seenbitsalpha = math.bit_or(seenbitsalpha, drawPass)
 	local batches, units = ExecuteDrawPass(drawPass)
-	--Spring.Echo("drawPass", drawPass, "batches", batches, "units", units)
+	if gf % 61 == 0 then Spring.Echo("drawPass", drawPass, "batches", batches, "units", units) end
 	
 end
 

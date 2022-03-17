@@ -88,10 +88,18 @@ vertex = [[
 
 	/***********************************************************************/
 	// Matrix uniforms
-	uniform mat4 viewMatrix;
+	//uniform mat4 viewMatrix;
 	//uniform mat4 projectionMatrix;
 	//uniform mat4 shadowMatrix;
 
+	
+	uniform int drawPass = 1; 
+	//BITS: 
+	//1: deferred/forward, 
+	//2: opaque/alpha
+	//3: reflection
+	//4: refraction
+	//5: shadows
 	
 	/***********************************************************************/
 	// Uniforms
@@ -417,7 +425,16 @@ vertex = [[
 				fogFactor = 0.5;
 				fogFactor = clamp(fogFactor, 0.0, 1.0);
 			}
-			gl_Position = cameraViewProj * worldPos;
+			if ((uint(drawPass) & 4u ) == 4u){
+				gl_Position = reflectionViewProj * worldPos;
+				gl_ClipDistance[2] = dot(worldPos, clipPlane2);
+			}
+			else{
+				gl_Position = cameraViewProj * worldPos;
+				//gl_ClipVertex = cameraViewProj * worldPos;
+				
+				gl_ClipDistance[0] = dot(worldPos, vec4(0.0, -1.0, 0.0, -1.0));
+			}
 			%%VERTEX_POST_TRANSFORM%%
 
 		#elif (RENDERING_MODE == 2) //shadow pass
@@ -566,7 +583,7 @@ fragment = [[
 	//[0]-healthMix, [1]-healthMod, [2]-vertDisplacement, [3]-tracks
 	uniform float floatOptions[4];
 
-
+	uniform int drawPass = 1; 
 	/***********************************************************************/
 	// Options
 	//uniform int bitOptions;
@@ -1504,7 +1521,7 @@ fragment = [[
 
             ///
 			#if (USE_ENVIRONMENT_DIFFUSE == 1) || (USE_ENVIRONMENT_SPECULAR == 1)
-				TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
+				//TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
 			#endif
             ///
 
@@ -1583,6 +1600,10 @@ fragment = [[
 		if (BITMASK_FIELD(bitOptions, OPTION_MODELSFOG)) {
 			outColor = mix(fogColor.rgb, outColor, fogFactor);
 		}
+		
+		if ((uint(drawPass) & 4u ) == 4u){
+			if (worldVertexPos.y < -2.0) discard; // I cant figure out how clipspace works, so this is poor mans clip
+		}
 
 		// debug hook
 		#if 0
@@ -1595,7 +1616,7 @@ fragment = [[
 		#if (RENDERING_MODE == 0)
 			fragData[0] = vec4(outColor, texColor2.a);
 			//fragData[0] = vec4(vec3(fract((shadowVertexPos.xyz )  ))	, 1.0); //debug
-			//fragData[0] = vec4(vec3(gShadow	)	, 1.0); //debug
+			//fragData[0] = vec4(vec3(shadowMult	)	, 1.0); //debug
 			//fragData[0] = vec4(cameraView[0].z,cameraView[1].z,cameraView[2].z, 1.0); //debug
 			//fragData[0] = vec4(SNORM2NORM(tbnNormal), 1.0); //debug
 		#elif (RENDERING_MODE == 1)
