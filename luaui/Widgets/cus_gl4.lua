@@ -137,6 +137,7 @@ end
 	-- Unitdestroyed doesnt trigger removal?
 	-- CorCS doesnt always show up for reflection pass?
 	-- Hovers dont show up for reflection pass
+	-- Check the triangle tesselation artifacts on dbg_sphere!
 
 --inputs
 

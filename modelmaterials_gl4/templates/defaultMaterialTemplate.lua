@@ -71,8 +71,6 @@ vertex = [[
 
 	#define OPTION_TREEWIND 11
 
-	#define OPTION_AUTONORMAL 21
-
 	%%GLOBAL_OPTIONS%%
 
 	/***********************************************************************/
@@ -379,7 +377,7 @@ vertex = [[
 				//shadowVertexPos = shadowProj * shadowVertexPos;
 			//}
 
-			if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAPPING) || BITMASK_FIELD(bitOptions, OPTION_AUTONORMAL)) {
+			if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAPPING)) {
 				//no need to do Gram-Schmidt re-orthogonalization, because engine does it for us anyway
 				vec3 safeT = T; // already defined REM
 				vec3 safeB = B; // already defined REM
@@ -488,7 +486,6 @@ fragment = [[
 
 	#define OPTION_TREEWIND 11
 
-	#define OPTION_AUTONORMAL 21
 
 	%%GLOBAL_OPTIONS%%
 
@@ -530,18 +527,7 @@ fragment = [[
 	uniform samplerCube reflectTex;		//7
 
 	/***********************************************************************/
-	// Sunlight uniforms
-	//uniform vec3 sunDir;
-	uniform vec3 sunDiffuse;
-	uniform vec3 sunAmbient;
-	uniform vec3 sunSpecular;
 
-
-	/***********************************************************************/
-	// Misc. uniforms
-	//uniform vec4 teamColor;
-
-	uniform vec2 autoNormalParams;
 
 	//uniform int shadowsQuality;
 	int shadowsQuality = 0;
@@ -840,28 +826,6 @@ fragment = [[
 	}
 
 	#define smoothclamp(v, v0, v1) ( mix(v0, v1, smoothstep(v0, v1, v)) )
-
-	/***********************************************************************/
-	// Autonormal related function
-
-	#define GetDiffuseVal(tex, uv) length(texture(tex, fract(uv)).rgb)
-	//#define GetDiffuseVal(tex, uv) dot(LUMA, texture(tex, uv).rgb)
-	vec2 GetDiffuseGrad(vec2 uv, vec2 delta) {
-		vec3 d = vec3(delta, 0.0);
-		vec2 grad = vec2(
-			GetDiffuseVal(texture1, uv + d.xz) - GetDiffuseVal(texture1, uv - d.xz),
-			GetDiffuseVal(texture1, uv + d.zy) - GetDiffuseVal(texture1, uv - d.zy)
-		);
-		return grad / delta;
-	}
-
-	vec3 GetNormalFromDiffuse(vec2 uv) {
-		vec2 texDim = vec2(textureSize(texture1, 0));
-		return normalize(
-			vec3(GetDiffuseGrad(uv, autoNormalParams.x / texDim), 1.0 / autoNormalParams.y)
-		);
-	}
-
 
 	/***********************************************************************/
 	// Spherical Harmonics Lib
@@ -1269,9 +1233,7 @@ fragment = [[
 		#line 30540
 
 		vec2 myUV = uvCoords;
-
-
-
+		
 		mat3 worldTBN = mat3(worldTangent, worldBitangent, worldNormal);
 
 		// N - worldFragNormal
@@ -1309,8 +1271,6 @@ fragment = [[
 				tbnNormal = mix(tbnNormal, tbnNormalw, healthMix);
 			}
 			tbnNormal = normalize(tbnNormal);
-		} else if (BITMASK_FIELD(bitOptions, OPTION_AUTONORMAL)) {
-			tbnNormal = GetNormalFromDiffuse(myUV);
 		} else {
 			tbnNormal = vec3(0.0, 0.0, 1.0);
 		}
@@ -1473,7 +1433,7 @@ fragment = [[
 			float D = MicrofacetDistribution(NdotH, roughness4);
 			outSpecularColor = F * Vis * D /* * PI */;
 
-			vec3 maxSun = mix(sunSpecular, sunDiffuse, step(dot(sunSpecular, LUMA), dot(sunDiffuse, LUMA)));
+			vec3 maxSun = mix(sunSpecularModel.rgb, sunDiffuseModel.rgb, step(dot(sunSpecularModel.rgb, LUMA), dot(sunDiffuseModel.rgb, LUMA)));
 			#ifdef SUNMULT
 				maxSun *= SUNMULT;
 			#endif
@@ -1521,7 +1481,7 @@ fragment = [[
 
             ///
 			#if (USE_ENVIRONMENT_DIFFUSE == 1) || (USE_ENVIRONMENT_SPECULAR == 1)
-				//TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
+				TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
 			#endif
             ///
 
@@ -1529,7 +1489,7 @@ fragment = [[
 			{
 				#if 0
 					vec3 iblDiffuseYCbCr = RGB2YCBCR * iblDiffuse;
-					float sunAmbientLuma = dot(LUMA, sunAmbient);
+					float sunAmbientLuma = dot(LUMA, sunAmbientModel.rgb);
 
 					vec2 sunAmbientLumaLeeway = vec2(pbrParams[5]);
 
@@ -1539,11 +1499,11 @@ fragment = [[
 
 					iblDiffuse = YCBCR2RGB * iblDiffuseYCbCr;
 				#else
-					iblDiffuse = mix(sunAmbient, iblDiffuse, pbrParams[5]);
+					iblDiffuse = mix(sunAmbientModel.rgb, iblDiffuse, pbrParams[5]);
 				#endif
 			}
 			#else
-				iblDiffuse = sunAmbient;
+				iblDiffuse = sunAmbientModel.rgb;
             #endif
 			
 			//vec4 debugColor = vec4(albedoColor.rgb ,1.0);
@@ -1601,7 +1561,7 @@ fragment = [[
 			outColor = mix(fogColor.rgb, outColor, fogFactor);
 		}
 		
-		if ((uint(drawPass) & 4u ) == 4u){
+		if ((uint(drawPass) & 4u ) == 4u){ // reflections
 			if (worldVertexPos.y < -2.0) discard; // I cant figure out how clipspace works, so this is poor mans clip
 		}
 
@@ -1618,7 +1578,7 @@ fragment = [[
 			//fragData[0] = vec4(vec3(fract((shadowVertexPos.xyz )  ))	, 1.0); //debug
 			//fragData[0] = vec4(vec3(shadowMult	)	, 1.0); //debug
 			//fragData[0] = vec4(cameraView[0].z,cameraView[1].z,cameraView[2].z, 1.0); //debug
-			//fragData[0] = vec4(SNORM2NORM(tbnNormal), 1.0); //debug
+			//fragData[0] = vec4(SNORM2NORM(N), 1.0); //debug
 		#elif (RENDERING_MODE == 1)
 			float alphaBin = (texColor2.a < 0.5) ? 0.0 : 1.0;
 			alphaBin = 1.0;
@@ -1659,10 +1619,11 @@ void main(void)
 		rgbNoise     = 11,
 	},
 	uniformFloat = {
-		sunAmbient		= {gl.GetSun("ambient" ,"unit")},
-		sunDiffuse		= {gl.GetSun("diffuse" ,"unit")},
-		sunSpecular		= {gl.GetSun("specular" ,"unit")},
-		shadowDensity	=  gl.GetSun("shadowDensity" ,"unit"),
+		--sunAmbient		= {gl.GetSun("ambient" ,"unit")},
+		--sunDiffuse		= {gl.GetSun("diffuse" ,"unit")},
+		--sunSpecular		= {gl.GetSun("specular" ,"unit")},
+		--shadowDensity	=  gl.GetSun("shadowDensity" ,"unit"),
+		
 	},
 }
 
@@ -1707,11 +1668,9 @@ local defaultMaterialTemplate = {
 		modelsfog        = true,
 
 		treewind         = false,
-		autonormal       = false,
 
 		shadowsQuality   = 2,
 
-		autoNormalParams = {1.0, 0.00200}, -- Sampling distance, autonormal value
 	},
 
 	deferredOptions = {
@@ -1732,7 +1691,6 @@ local defaultMaterialTemplate = {
 		health_texchicks = false,
 
 		treewind         = false,
-		autonormal       = false,
 
 		shadowsQuality   = 0,
 		materialIndex    = 0,
@@ -1786,7 +1744,6 @@ local shaderPlugins = {
 
 	#define OPTION_TREEWIND 11
 
-	#define OPTION_AUTONORMAL 21
 ]]--
 
 -- bit = (index - 1)
@@ -1807,7 +1764,6 @@ local knownBitOptions = {
 	["modelsfog"] = 10,
 
 	["treewind"] = 11,
-	["autonormal"] = 21,
 }
 
 local knownIntOptions = {
@@ -1816,7 +1772,6 @@ local knownIntOptions = {
 
 }
 local knownFloatOptions = {
-	["autoNormalParams"] = 2,
 }
 
 local allOptions = nil
@@ -1926,9 +1881,9 @@ end
 local function SunChanged(luaShader)
 	luaShader:SetUniformAlways("shadowDensity", gl.GetSun("shadowDensity" ,"unit"))
 
-	luaShader:SetUniformAlways("sunAmbient", gl.GetSun("ambient" ,"unit"))
-	luaShader:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
-	luaShader:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
+	--luaShader:SetUniformAlways("sunAmbient", gl.GetSun("ambient" ,"unit"))
+	--luaShader:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
+	--luaShader:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
 
 	luaShader:SetUniformFloatArrayAlways("pbrParams", {
         Spring.GetConfigFloat("tonemapA", 4.75),
