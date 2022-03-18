@@ -127,7 +127,15 @@ modConfig["BYAR"]["unitList"] = {
 	corcarry =  { weapons = { 3 } },
 
 	-- SCAVENGERS
-	scavengerdroppodbeacon_scav = { weapons = { 1 } }
+	scavengerdroppodbeacon_scav = { weapons = { 1 } },
+
+	armannit3 = { weapons = { 1 } },
+	--armbotrail = { weapons = { 1 } },
+	armminivulc = { weapons = { 1 } },
+
+	cordoomt3 = { weapons = { 1 } },
+	corhllllt = { weapons = { 1 } },
+	corminibuzz = { weapons = { 1 } }
 }
 
 -- add scavs
@@ -807,7 +815,15 @@ function UnitDetected( unitID, allyTeam, teamId , unitDefID )
 	local instanceKeys = {}
 	if unitNumWeapons[unitDefID] then
 		for i=1, unitNumWeapons[unitDefID] do
-			if currentModConfig["unitList"][unitName[unitDefID]] == nil or currentModConfig["unitList"][unitName[unitDefID]]["weapons"][i] == nil then
+
+			--Used for showing scavenger unit ranges
+			local uName = unitName[unitDefID]
+			if currentModConfig["unitList"][uName] == nil or currentModConfig["unitList"][uName]["weapons"][i] == nil then
+				uName = string.gsub(unitName[unitDefID], "_scav", "")
+				uName = uName or unitName[unitDefID]
+			end		
+			
+			if currentModConfig["unitList"][uName] == nil or currentModConfig["unitList"][uName]["weapons"][i] == nil then
 				printDebug("Weapon skipped! Name: "..  unitName[unitDefID] .. " weaponidx: " .. i )
 			else
 				--get definition from weapon table
@@ -815,7 +831,7 @@ function UnitDetected( unitID, allyTeam, teamId , unitDefID )
 
 				range = weaponDef.range --get normal weapon range
 
-				weaponType = currentModConfig["unitList"][unitName[unitDefID]]["weapons"][i]
+				weaponType = currentModConfig["unitList"][uName]["weapons"][i]
 				printDebug("Weapon #" .. i .. " Range: " .. range )
 
 				local dam = weaponDef.damages
