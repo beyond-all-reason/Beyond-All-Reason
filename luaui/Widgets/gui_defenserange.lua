@@ -423,7 +423,7 @@ function UnitDetected( unitID, allyTeam, teamId )
 
 			--Used for showing scavenger unit ranges
 			local uName = unitName[unitDefID]
-			if currentModConfig["unitList"][uName] == nil or currentModConfig["unitList"][uName]["weapons"][i] == nil then
+			if string.find(uName, "_scav") then
 				uName = string.gsub(unitName[unitDefID], "_scav", "")
 				uName = uName or unitName[unitDefID]
 			end
