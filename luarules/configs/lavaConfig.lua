@@ -98,6 +98,21 @@ elseif string.find(mapName, "hotstepper") then
         addTideRhym (395, 0.07, 9)
     end
 
+elseif string.find(mapName, "zed remake") then
+    lavaMap = true
+    lavaGrow = 0
+    lavaLevel = 1 -- pre-game lava level
+    lavaDamage = 15 -- damage per second
+    lavaColorCorrection = "vec3(0.4, 0.09, 1.2)"
+    lavaCoastColor = "vec3(0.8, 0.03, 1.1)"
+    lavaFogColor = "vec3(0.60, 0.10, 1.1)"
+    lavaCoastLightBoost = 0.8
+    lavaTideamplitude = 1.5 -- how much lava should rise up-down on static level
+    lavaTideperiod = 150 -- how much time between live rise up-down
+    if isLavaGadget and isLavaGadget == "synced" then
+        addTideRhym (0, 0.3, 5*6000)
+    end
+
 
 elseif string.find(mapName, "acidicquarry") then
     lavaMap = true
