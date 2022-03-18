@@ -1,9 +1,8 @@
 Spring.Echo("[Scavengers] Constructor Controller initialized")
 
-local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
-local constructorUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/constructors.lua")
-local blueprintsController = VFS.Include("luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_controller.lua")
-local constructorTimer = constructorControllerModuleConfig.constructortimerstart
+local blueprintConfig = VFS.Include('luarules/gadgets/scavengers/Blueprints/' .. Game.gameShortName .. '/blueprint_tiers.lua')
+local blueprintsController = VFS.Include("luarules/gadgets/scavengers/Blueprints/" .. Game.gameShortName .. "/blueprint_controller.lua")
+local constructorTimer = scavconfig.constructorControllerModuleConfig.constructortimerstart
 
 local voiceNotificationsCount = 2
 local mapCenterX = Game.mapSizeX / 2
@@ -12,20 +11,66 @@ local mapCenterY = Spring.GetGroundHeight(mapCenterX, mapCenterZ)
 local mapDiagonal = math.ceil( math.sqrt((Game.mapSizeX * Game.mapSizeX) + (Game.mapSizeZ * Game.mapSizeZ)) )
 local initialCommanderSpawn = true
 
-local function generateOrderParams()
-	return { mapCenterX + math.random(-100, 100), mapCenterY, mapCenterZ + math.random(-100, 100), mapDiagonal}
+local function generateOrderParams(unitID, orderrange)
+	local posx, posy, posz = Spring.GetUnitPosition(unitID)
+	local posrange = orderrange*0.75
+	return { posx + math.random(-posrange, posrange), posy, posz + math.random(-posrange, posrange), orderrange}
+end
+
+local function generateOrderParamsPos(posx, posy, posz, orderrange)
+	local posrange = orderrange*0.75
+	return { posx + math.random(-posrange, posrange), posy, posz + math.random(-posrange, posrange), orderrange}
+end
+
+local function generateMoveOrder(unitID, shift)
+	if not shift then
+		Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+	end
+	
+	for i = 1,1000 do
+		if i == 1 then
+			local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 999999, true)
+			if nearestEnemy then
+				local nposx, nposy, nposz = Spring.GetUnitPosition(nearestEnemy)
+				for j = 1,10 do
+					local pos = generateOrderParamsPos(nposx, nposy, nposz, 2000)
+					local posx = pos[1]
+					local posy = pos[2]
+					local posz = pos[3]
+					if positionCheckLibrary.MapEdgeCheck(posx, posy, posz, 32) == true then
+						Spring.GiveOrderToUnit(unitID, CMD.MOVE, {posx, posy, posz}, {"shift"})
+						break
+					end
+				end
+				break
+			end
+		else
+			local radius = 2000+(i*100)
+			local pos = generateOrderParams(unitID, radius)
+			local posx = pos[1]
+			local posy = pos[2]
+			local posz = pos[3]
+			if positionCheckLibrary.StartboxCheck(posx, posy, posz, 32, ScavengerAllyTeamID) == false then
+				if positionCheckLibrary.MapEdgeCheck(posx, posy, posz, 32) == true then
+					Spring.GiveOrderToUnit(unitID, CMD.MOVE, {posx, posy, posz}, {"shift"})
+					break
+				end
+			end
+		end
+	end
 end
 
 local function countScavCommanders()
-	return Spring.GetTeamUnitDefCount(GaiaTeamID, UnitDefNames.corcom_scav.id) + Spring.GetTeamUnitDefCount(GaiaTeamID, UnitDefNames.armcom_scav.id)
+	local commanderCount = 0
+	for i = 1,#constructorUnitList.Constructors do
+		commanderCount = commanderCount + Spring.GetTeamUnitDefCount(ScavengerTeamID, UnitDefNames[constructorUnitList.Constructors[i]].id)
+	end
+	return commanderCount
 end
 
 local function assistantOrders(n, unitID)
 	local x,y,z = Spring.GetUnitPosition(unitID)
-	Spring.GiveOrderToUnit(unitID, CMD.PATROL,{x - 100, y, z}, {"shift"})
-	Spring.GiveOrderToUnit(unitID, CMD.PATROL,{x + 100, y, z}, {"shift"})
-	Spring.GiveOrderToUnit(unitID, CMD.PATROL,{x, y, z - 100}, {"shift"})
-	Spring.GiveOrderToUnit(unitID, CMD.PATROL,{x, y, z + 100}, {"shift"})
+	Spring.GiveOrderToUnit(unitID, CMD.PATROL,generateOrderParams(unitID, 500), {"shift"})
 end
 
 -- local function assistDroneRespawn(deadDroneID, drone)
@@ -50,41 +95,47 @@ end
 -- end
 
 local function resurrectorOrders(n, unitID)
-	Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, generateOrderParams(), 0)
-	Spring.GiveOrderToUnit(unitID, CMD.REPAIR, generateOrderParams(), {"shift"})
-	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(), {"shift"})
+	Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, generateOrderParams(unitID, 1000), 0)
+	Spring.GiveOrderToUnit(unitID, CMD.REPAIR, generateOrderParams(unitID, 1000), {"shift"})
+	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 1000), {"shift"})
+	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, generateOrderParams(unitID, 1000), {"shift"})
+	generateMoveOrder(unitID, true)
 end
 
 local function capturerOrders(n, unitID)
-	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(), 0)
-	local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 999999, true)
+	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 1000), 0)
+	local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, mapDiagonal*0.05, true)
 	if nearestenemy then
 		Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, { nearestEnemy }, 0)
 		local x,y,z = Spring.GetUnitPosition(nearestEnemy)
 		Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { x, y, z }, {"meta", "shift", "alt"})
 	end
+	generateMoveOrder(unitID, true)
 end
 
 local function collectorOrders(n, unitID)
-	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, generateOrderParams(), 0)
-	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(), {"shift"})
+	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, generateOrderParams(unitID, 1000), 0)
+	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 1000), {"shift"})
+	generateMoveOrder(unitID, true)
 end
 
 local function reclaimerOrders(n, unitID)
-	local nearestenemy = Spring.GetUnitNearestEnemy(unitID, 999999, true)
+	Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+	local nearestenemy = Spring.GetUnitNearestEnemy(unitID, mapDiagonal*0.05, true)
 	if nearestenemy then
 		Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { nearestenemy }, 0)
 		local x,y,z = Spring.GetUnitPosition(nearestenemy)
 		Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { x, y, z }, {"meta", "shift", "alt"})
 	end
+	generateMoveOrder(unitID, true)
 end
 
 local function spawnConstructor(n)
-	local spawnOverdue = constructorTimer > constructorControllerModuleConfig.constructortimer or (countScavCommanders() < constructorControllerModuleConfig.minimumconstructors and constructorTimer > 0) 
+	local spawnOverdue = constructorTimer > scavconfig.constructorControllerModuleConfig.constructortimer or (countScavCommanders() < scavconfig.constructorControllerModuleConfig.minimumconstructors and constructorTimer > 0) 
 	local exclusionPeriodExpired = constructorTimer > 0
 
 	if spawnOverdue and numOfSpawnBeacons > 0 and exclusionPeriodExpired then
-		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
+		local scavengerunits = Spring.GetTeamUnits(ScavengerTeamID)
 		local spawnBeacons = {}
 
 		for i = 1, #scavengerunits do
@@ -125,74 +176,65 @@ local function spawnConstructor(n)
 		end
 
 		if canSpawnCommanderHere then
-			-- if initialCommanderSpawn then
-			-- 	ScavSendNotification("scav_scavcomdetected")
-			-- 	initialCommanderSpawn = false
-			-- else
-			-- 	local s = math.random(0, voiceNotificationsCount)
-			-- 	if s == 0 then
-			-- 		ScavSendNotification("scav_scavadditionalcomdetected")
-			-- 	elseif s == 1 then
-			-- 		ScavSendNotification("scav_scavanotherscavcomdetected")
-			-- 	elseif s == 2 then
-			-- 		ScavSendNotification("scav_scavnewcomentered")
-			-- 	elseif s == 3 then
-			-- 		ScavSendNotification("scav_scavcomspotted")
-			-- 	elseif s == 4 then
-			-- 		ScavSendNotification("scav_scavcomnewdetect")
-			-- 	else
-			-- 		ScavSendMessage("A Scavenger Commander detected")
-			-- 	end
 
-			-- 	if voiceNotificationsCount < 20 then
-			-- 		voiceNotificationsCount = voiceNotificationsCount + 1
-			-- 	end
-			-- end
+			spawnBeaconsController.SpawnBeacon(n)
 
-			SpawnBeacon(n)
-
-			if constructorControllerModuleConfig.useresurrectors then
-				Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz + 32, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz - 32, math.random(0, 3), GaiaTeamID)
-				-- Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID)
-				-- Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID)
-				-- Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID)
-				-- Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID)
+			if scavconfig.constructorControllerModuleConfig.useresurrectors then
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + 32, posy, posz, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - 32, posy, posz, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
 
 				if posy > 0 then
 					local resurrector = constructorUnitList.Resurrectors[math.random(#constructorUnitList.Resurrectors)]
-					QueueSpawn(resurrector, posx + 32, posy, posz, math.random(0, 3), GaiaTeamID, n + 150 + 1)
-					QueueSpawn(resurrector, posx - 32, posy, posz, math.random(0, 3), GaiaTeamID, n + 150 + 2)
-					QueueSpawn(resurrector, posx, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 3)
-					QueueSpawn(resurrector, posx, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 4)
-					-- QueueSpawn(resurrector, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 5)
-					-- QueueSpawn(resurrector, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 6)
-					-- QueueSpawn(resurrector, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 7)
-					-- QueueSpawn(resurrector, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 8)
-				elseif constructorControllerModuleConfig.searesurrectors then
+					spawnQueueLibrary.AddToSpawnQueue(resurrector, posx + 32, posy, posz, math.random(0, 3), ScavengerTeamID, n + 150 + 1)
+					spawnQueueLibrary.AddToSpawnQueue(resurrector, posx - 32, posy, posz, math.random(0, 3), ScavengerTeamID, n + 150 + 2)
+					spawnQueueLibrary.AddToSpawnQueue(resurrector, posx, posy, posz + 32, math.random(0, 3), ScavengerTeamID, n + 150 + 3)
+					spawnQueueLibrary.AddToSpawnQueue(resurrector, posx, posy, posz - 32, math.random(0, 3), ScavengerTeamID, n + 150 + 4)
+					spawnQueueLibrary.AddToSpawnQueue(resurrector, posx + 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID, n + 150 + 5)
+					spawnQueueLibrary.AddToSpawnQueue(resurrector, posx - 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID, n + 150 + 6)
+					spawnQueueLibrary.AddToSpawnQueue(resurrector, posx - 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID, n + 150 + 7)
+					spawnQueueLibrary.AddToSpawnQueue(resurrector, posx + 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID, n + 150 + 8)
+				elseif scavconfig.constructorControllerModuleConfig.searesurrectors then
 					local seaResurrector = constructorUnitList.ResurrectorsSea[math.random(#constructorUnitList.ResurrectorsSea)]
-					QueueSpawn(seaResurrector, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 1)
-					QueueSpawn(seaResurrector, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 2)
-					QueueSpawn(seaResurrector, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 3)
-					QueueSpawn(seaResurrector, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 4)
-					-- QueueSpawn(seaResurrector, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 5)
-					-- QueueSpawn(seaResurrector, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 6)
-					-- QueueSpawn(seaResurrector, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 7)
-					-- QueueSpawn(seaResurrector, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 8)
+					spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx + 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID, n + 150 + 1)
+					spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx - 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID, n + 150 + 2)
+					spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx - 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID, n + 150 + 3)
+					spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx + 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID, n + 150 + 4)
+					spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx + 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID, n + 150 + 5)
+					spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx - 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID, n + 150 + 6)
+					spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx - 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID, n + 150 + 7)
+					spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx + 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID, n + 150 + 8)
 				end
 			end
 
-			constructorTimer = 0
-			local constructor = constructorUnitList.Constructors[math.random(#constructorUnitList.Constructors)]
-			QueueSpawn(constructor, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + 150)
-			Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), GaiaTeamID)
+			local constructor
+			local spawnTierChance = math.random(1,100)
+			if spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+				constructor = constructorUnitList.ConstructorsT1[math.random(#constructorUnitList.ConstructorsT1)]
+			elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+				constructor = constructorUnitList.ConstructorsT2[math.random(#constructorUnitList.ConstructorsT2)]
+			elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
+				constructor = constructorUnitList.ConstructorsT3[math.random(#constructorUnitList.ConstructorsT3)]
+			elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+				constructor = constructorUnitList.ConstructorsT4[math.random(#constructorUnitList.ConstructorsT4)]
+			else
+				constructor = constructorUnitList.ConstructorsT1[math.random(#constructorUnitList.ConstructorsT1)]
+			end
+			if constructor then
+				constructorTimer = 0
+				spawnQueueLibrary.AddToSpawnQueue(constructor, posx, posy, posz, math.random(0, 3), ScavengerTeamID, n + 150)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math.random(0, 3), ScavengerTeamID)
+			end
 		else
-			constructorTimer = constructorTimer +  math.ceil(n / constructorControllerModuleConfig.constructortimerreductionframes)
+			constructorTimer = constructorTimer +  math.ceil(n / scavconfig.constructorControllerModuleConfig.constructortimerreductionframes)
 		end
 	else
-		constructorTimer = constructorTimer +  math.ceil(n / constructorControllerModuleConfig.constructortimerreductionframes)
+		constructorTimer = constructorTimer +  math.ceil(n / scavconfig.constructorControllerModuleConfig.constructortimerreductionframes)
 	end
 end
 
@@ -297,7 +339,7 @@ local function constructNewBlueprint(n, unitID)
 			end
 		end
 	end
-	local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
+	local unitCount = Spring.GetTeamUnitCount(ScavengerTeamID)
 	local unitCountBuffer = scavMaxUnits*0.1
 
 	local landBlueprint, seaBlueprint, blueprint
@@ -310,17 +352,17 @@ local function constructNewBlueprint(n, unitID)
 	local spawnTierChance = math.random(1, 100)
 	local spawnTier
 	if spawnTierChance <= TierSpawnChances.T0 then
-		spawnTier = scavConfig.Tiers.T0
+		spawnTier = blueprintConfig.Tiers.T0
 	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-		spawnTier = scavConfig.Tiers.T1
+		spawnTier = blueprintConfig.Tiers.T1
 	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-		spawnTier = scavConfig.Tiers.T2
+		spawnTier = blueprintConfig.Tiers.T2
 	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-		spawnTier = scavConfig.Tiers.T3
+		spawnTier = blueprintConfig.Tiers.T3
 	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-		spawnTier = scavConfig.Tiers.T4
+		spawnTier = blueprintConfig.Tiers.T4
 	else
-		spawnTier = scavConfig.Tiers.T0
+		spawnTier = blueprintConfig.Tiers.T0
 	end
 
 	landBlueprint = blueprintsController.Constructor.GetRandomLandBlueprint(spawnTier)
@@ -339,10 +381,10 @@ local function constructNewBlueprint(n, unitID)
 
 		local blueprintRadiusBuffer = 64
 		local blueprintRadius = blueprint.radius + blueprintRadiusBuffer
-		local canConstructHere = posOccupied(posX, posY, posZ, blueprintRadius)
-							 and posCheck(posX, posY, posZ, blueprintRadius)
-							 and posMapsizeCheck(posX, posY, posZ, blueprintRadius)
-							 and (not posStartboxCheck(posX, posY, posZ, blueprintRadius) or (not scavconfig.modules.startBoxProtection))
+		local canConstructHere = positionCheckLibrary.OccupancyCheck(posX, posY, posZ, blueprintRadius)
+							 and positionCheckLibrary.FlatAreaCheck(posX, posY, posZ, blueprintRadius)
+							 and positionCheckLibrary.MapEdgeCheck(posX, posY, posZ, blueprintRadius)
+							 and (not positionCheckLibrary.StartboxCheck(posX, posY, posZ, blueprintRadius, ScavengerAllyTeamID) or (not scavconfig.modules.startBoxProtection))
 
 		if canConstructHere then
 			buffConstructorBuildSpeed(unitID)
@@ -408,18 +450,18 @@ end
 -- 		local canSpawnHere
 
 -- 		for i = 1, 100 do
--- 			canSpawnHere = posCheck(posx, posy, posz, radius) and posOccupied(posx, posy, posz, radius)
+-- 			canSpawnHere = positionCheckLibrary.FlatAreaCheck(posx, posy, posz, radius) and positionCheckLibrary.OccupancyCheck(posx, posy, posz, radius)
 
 -- 			if canSpawnHere then
 -- 				for y = 1, resurrectorSpawnCount do
 -- 					if posy > -20 then
 -- 						local resurrector = constructorUnitList.Resurrectors[math.random(#constructorUnitList.Resurrectors)]
--- 						Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), GaiaTeamID)
--- 						QueueSpawn(resurrector, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + (y * 1) + 150)
+-- 						Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math.random(0, 3), ScavengerTeamID)
+-- 						spawnQueueLibrary.AddToSpawnQueue(resurrector, posx, posy, posz, math.random(0, 3), ScavengerTeamID, n + (y * 1) + 150)
 -- 					else
 -- 						local seaResurrector = constructorUnitList.ResurrectorsSea[math.random(#constructorUnitList.ResurrectorsSea)]
--- 						Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), GaiaTeamID)
--- 						QueueSpawn(seaResurrector, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + (y * 1) + 150)
+-- 						Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math.random(0, 3), ScavengerTeamID)
+-- 						spawnQueueLibrary.AddToSpawnQueue(seaResurrector, posx, posy, posz, math.random(0, 3), ScavengerTeamID, n + (y * 1) + 150)
 -- 					end
 -- 				end
 

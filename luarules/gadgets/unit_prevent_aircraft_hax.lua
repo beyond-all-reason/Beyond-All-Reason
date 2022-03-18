@@ -27,7 +27,7 @@ local spGetUnitTeam = Spring.GetUnitTeam
 
 local isMobileUnit = {}
 for unitDefID, udef in pairs(UnitDefs) do
-	if not udef.isBuilding or udef.speed == 0 then
+	if not (udef.isBuilding or udef.speed == 0) then
 		isMobileUnit[unitDefID] = true
 	end
 end
@@ -49,7 +49,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:GameFrame(f)
-	if f % 61 == 0 then
+	if f % 69 == 0 then
 		local minMap = -rangeLimit
 		local maxMapX = mapX + rangeLimit
 		local maxMapZ = mapZ + rangeLimit
@@ -58,7 +58,7 @@ function gadget:GameFrame(f)
 		local maxMapZGaia = mapZ + rangeLimitGaia
 		for unitID, _ in pairs(allMobileUnits) do
 			local x, y, z = spGetUnitPosition(unitID)
-			if not (z == nil or x == nil) then
+			if z then
 				local unitTeam = spGetUnitTeam(unitID)
 				if unitTeam == gaiaTeamID then
 					if z < minMapGaia or x < minMapGaia or z > maxMapZGaia or x > maxMapXGaia then

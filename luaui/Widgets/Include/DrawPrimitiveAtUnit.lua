@@ -27,6 +27,7 @@ local shaderConfig = {
 	USE_CORNERRECT = 1, -- set to nil if you dont want cornerrect
 	USE_TRIANGLES = 1,
 	FULL_ROTATION = 0, -- the primitive is fully rotated in the units plane
+	DISCARD = 0, -- Enable alpha threshold to discard fragments below 0.01
 }
 
 ---- GL4 Backend Stuff----
@@ -116,7 +117,7 @@ void main()
 	v_centerpos = vec4( modelMatrix[3].xyz, 1.0); // We are going to pass the centerpoint to the GS
 	v_lengthwidthcornerheight = lengthwidthcornerheight;
 	#if (ANIMATION == 1)
-		float animation = clamp((timeInfo.x - parameters.x)/GROWTHRATE + INITIALSIZE, INITIALSIZE, 1.0) + sin((timeInfo.x)/BREATHERATE)*BREATHESIZE;
+		float animation = clamp(((timeInfo.x + timeInfo.w) - parameters.x)/GROWTHRATE + INITIALSIZE, INITIALSIZE, 1.0) + sin((timeInfo.x)/BREATHERATE)*BREATHESIZE;
 		v_lengthwidthcornerheight.xy *= animation; // modulate it with animation factor
 	#endif
 	POST_ANIM
@@ -125,7 +126,8 @@ void main()
 	// TODO: take into account size of primitive before clipping
 
 	// this sets the num prims to 0 for units further from cam than iconDistance
-	if (length((cameraViewInv[3]).xyz - v_centerpos.xyz) >  iconDistance) v_numvertices = 0;
+	float cameraDistance = length((cameraViewInv[3]).xyz - v_centerpos.xyz);
+	if (cameraDistance > iconDistance) v_numvertices = 0;
 
 	if (dot(v_centerpos.xyz, v_centerpos.xyz) < 1.0) v_numvertices = 0; // if the center pos is at (0,0,0) then we probably dont have the matrix yet for this unit, because it entered LOS but has not been drawn yet.
 
@@ -293,6 +295,9 @@ void main(void)
 	fragColor.rgba = vec4(g_color.rgb * texcolor.rgb + addRadius, texcolor.a * TRANSPARENCY + addRadius);
 	POST_SHADING
 	//fragColor.rgba = vec4(1.0);
+	#if (DISCARD == 1)
+		if (fragColor.a < 0.01) discard;
+	#endif
 }
 ]]
 

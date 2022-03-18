@@ -1,6 +1,6 @@
-local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
-local tiers = scavConfig.Tiers
-local types = scavConfig.BlueprintTypes
+local blueprintConfig = VFS.Include('luarules/gadgets/scavengers/Blueprints/' .. Game.gameShortName .. '/blueprint_tiers.lua')
+local tiers = blueprintConfig.Tiers
+local types = blueprintConfig.BlueprintTypes
 local UDN = UnitDefNames
 
 

@@ -280,7 +280,8 @@ local units = {
 	chickenc3 = { "chicken.png", 1.25999999 },
 	chickenc3b = { "chicken.png", 1.25999999 },
 	chickenc3c = { "chicken.png", 1.25999999 },
-	chickend1 = { "chicken_roost.png", 1.57499993 },
+	chickend1 = { "chicken_tentacle.png", 1.57499993 },
+	chickend2 = { "chicken_tentacle2.png", 2.9 },
 	chickenf1 = { "chicken_air.png", 1.78499997 },
 	chickenf1b = { "chicken_air.png", 1.78499997 },
 	chickenf2 = { "chicken_air.png", 1.78499997 },
@@ -536,6 +537,20 @@ local units = {
 	leghades = {"vehicle_t1_raid.png", 0.75},
 	leghelios = {"vehicle_t1_tank.png", 0.95},
 	legrail = {"vehicle_t1_missile.png", 1.3},
+	legcom = { "armcom.png", 1.5 },
+	legcomecon = { "armcom.png", 1.83749986 },
+	legcomdef = { "armcom.png", 1.83749986 },
+	legcomoff = { "armcom.png", 1.83749986 },
+	legcomt2def = { "armcom.png", 2.2 },
+	legcomt2off = { "armcom.png", 2.2 },
+	legcomt2com = { "armcom.png", 2.5 },
+	legck = { "bot_worker.png", 0.99749994 },
+	legcv = { "vehicle_worker.png", 0.99749994 },
+	legmex = { "mex_t1_0.77.png", 0.80849993 },
+	legmext15 = { "mex_t1_0.77.png", 1 },
+	legmext2 = { "mex_t2_1.15.png", 1.20749986 },
+	leglab = { "factory_bot.png", 1.52250004 },
+	legvp = { "factory_vehicle.png", 1.52250004 },
 	lootboxbronze = { "lootbox.png", 1.04999995 },
 	lootboxgold = { "lootboxt3.png", 1.20749986 },
 	lootboxnano_t1_var1 = { "scavnanotc_t1.png", 1.57499993 },
@@ -628,6 +643,19 @@ end
 
 local function GetIconTypes()
 	return iconTypes, iconSizes
+end
+
+local reloadedsavegame = false
+
+function gadget:GameFrame(n)
+	if reloadedsavegame == false and (n % 31) == 0 then  -- this might break on the second reload of a savegame
+		local finishedLoading,  loadedFromSave = Spring.GetGameState()
+		--Spring.Echo("reloadedsavegame?", finishedLoading,  loadedFromSave)
+		if loadedFromSave then 
+			reloadedsavegame = true
+			loadUnitIcons()
+		end
+	end
 end
 
 function gadget:Initialize()

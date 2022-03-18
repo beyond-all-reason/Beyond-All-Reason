@@ -30,7 +30,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "geo",
 		sightdistance = 273,
-		yardmap = "oooo oGGo oGGo oooo",
+		yardmap = "h yyyyyyyy yooooooy yoyyyyoy yoyggyoy yoyggyoy yoyyyyoy yooooooy yyyyyyyy",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/corgeo_aoplane.dds",
@@ -39,6 +39,7 @@ return {
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'energy',
 			cvbuildable = true,
+			geothermal = 1,
 			model_author = "Cremuss",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,

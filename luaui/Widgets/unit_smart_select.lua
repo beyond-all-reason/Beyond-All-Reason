@@ -13,7 +13,7 @@ end
 
 local selectBuildingsWithMobile = false		-- whether to select buildings when mobile units are inside selection rectangle
 local includeNanosAsMobile = true
-local includeBuilders = true
+local includeBuilders = false
 local sameSelectKey = 'z'	-- only select new units identical to those already selected
 local idleSelectKey = 'space'	-- only select new idle units
 
@@ -60,6 +60,9 @@ for udid, udef in pairs(UnitDefs) do
 	local building = (mobile == false)
 	local combat = (builder == false) and (mobile == true) and (#udef.weapons > 0)
 
+	if string.find(udef.name, 'armspid') then
+		builder = false
+	end
 	combatFilter[udid] = combat
 	builderFilter[udid] = builder
 	buildingFilter[udid] = building

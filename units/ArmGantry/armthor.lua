@@ -19,9 +19,10 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
+		mass = 100000,
 		maxdamage = 50000,
 		maxslope = 14,
-		maxvelocity = 1.9,
+		maxvelocity = 2.0,
 		maxwaterdepth = 20,
 		movementclass = "HTANK5",
 		nochasecategory = "VTOL",
@@ -44,7 +45,7 @@ return {
 			lumamult = "0.7",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
-			paralyzemultiplier = 0.33,
+			paralyzemultiplier = 0.0,
 			subfolder = "armgantry",
 			techlevel = 3,
 		},
@@ -74,7 +75,7 @@ return {
 				category = "heaps",
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
-				damage = 500,
+				damage = 10000,
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,
@@ -134,9 +135,9 @@ return {
 				edgeeffectiveness = 0.15,
 				energypershot = 350,
 				explosiongenerator = "custom:genericshellexplosion-large-lightning2",
-				fallOffRate = 0.5, --new
+				fallOffRate = 0.5,
 				firestarter = 50,
-				hardStop = false, --new
+				hardStop = false,
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
@@ -168,6 +169,7 @@ return {
 					subs = 30,
 				},
 			},
+
 			empmissile = {
 				areaofeffect = 256,
 				avoidfeature = false,
@@ -190,12 +192,11 @@ return {
 				name = "Heavy long-range g2g EMP starburst rocket",
 				noselfdamage = true,
 				paralyzer = true,
-				paralyzetime = 12, --35
+				paralyzetime = 12,
 				range = 1100,
-				reloadtime = 3, --1
+				reloadtime = 3,
 				smoketrail = false,
 				soundhit = "emgpuls1",
-				--soundhitwet = "splslrg",
 				soundstart = "mismed1emp1",
 				startvelocity = 200,
 				stockpile = true,
@@ -206,9 +207,9 @@ return {
 				tolerance = 4000,
 				trajectoryheight = 0.5,
 				turnrate = 20000,
+				turret = true,
 				weaponacceleration = 200,
-				--weapontimer = 2,
-				weapontype = "MissileLauncher", --"StarburstLauncher",
+				weapontype = "MissileLauncher",
 				weaponvelocity = 500,
 				customparams = {
 					expl_light_color = "0.5 0.5 1",
@@ -223,7 +224,6 @@ return {
 					default = 70000,
 				},
 			},
-
 
 			emp = {
 				areaofeffect = 8,
@@ -267,9 +267,6 @@ return {
 					default = 300,
 				},
 			},
-
-
-
 		},
 		weapons = {
 			[1] = {
@@ -282,14 +279,14 @@ return {
 			},
 			[3] = {
 				def = "EMP",
-				maindir = "-1 0 1",
-                maxangledif = 120,
+				maindir = "-1 0 0",
+                maxangledif = 180,
 				onlytargetcategory = "EMPABLE",
 			},
 			[4] = {
 				def = "EMP",
-				maindir = "1 0 1",
-                maxangledif = 120,
+				maindir = "1 0 0",
+                maxangledif = 180,
 				onlytargetcategory = "EMPABLE",
 			},
 		},

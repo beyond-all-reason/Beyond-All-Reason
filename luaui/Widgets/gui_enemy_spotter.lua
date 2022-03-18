@@ -17,8 +17,8 @@ local skipOwnTeam = true
 local sizeMultiplier = 1.25
 
 ---- GL4 Backend Stuff----
-local selectionVBO = nil
-local selectShader = nil
+local enemyspotterVBO = nil
+local enemyspotterShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
 
 -- Localize for speedups:
@@ -82,7 +82,7 @@ local function AddPrimitiveAtUnit(unitID)
 	end
 
 	pushElementInstance(
-		selectionVBO, -- push into this Instance VBO Table
+		enemyspotterVBO, -- push into this Instance VBO Table
 		{
 			radius, radius, 0, 0,  -- lengthwidthcornerheight
 			teamLeader[unitTeam[unitID]], -- teamID
@@ -108,24 +108,24 @@ function widget:DrawWorldPreUnit()
 		return
 	end
 	drawFrame = drawFrame + 1
-	if selectionVBO.usedElements > 0 then
+	if enemyspotterVBO.usedElements > 0 then
 		glTexture(0, texture)
-		selectShader:Activate()
-		selectShader:SetUniform("iconDistance", 99999) -- pass
+		enemyspotterShader:Activate()
+		enemyspotterShader:SetUniform("iconDistance", 99999) -- pass
 
 		glDepthTest(true)
 
-		selectShader:SetUniform("addRadius", 0)
-		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
+		enemyspotterShader:SetUniform("addRadius", 0)
+		enemyspotterVBO.VAO:DrawArrays(GL_POINTS, enemyspotterVBO.usedElements)
 
-		selectShader:Deactivate()
+		enemyspotterShader:Deactivate()
 		glTexture(0, false)
 	end
 end
 
 local function RemovePrimitive(unitID)
-	if selectionVBO.instanceIDtoIndex[unitID] then
-		popElementInstance(selectionVBO, unitID)
+	if enemyspotterVBO.instanceIDtoIndex[unitID] then
+		popElementInstance(enemyspotterVBO, unitID)
 	end
 end
 
@@ -160,6 +160,7 @@ function widget:UnitGiven(unitID, unitDefID, oldTeamID, newTeamID)
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	if fullview then return end
 	if spValidUnitID(unitID) then
 		AddUnit(unitID, unitDefID or Spring.GetUnitDefID(unitID), unitTeam)
 	end
@@ -180,7 +181,9 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget.RenderUnitDestroyed(unitID, unitDefID, unitTeam)
-	RemoveUnit(unitID, unitDefID, unitTeam)
+	if unitID and unitDefID then  -- as somehow this unitID can be nil
+		RemoveUnit(unitID, unitDefID, unitTeam)
+	end
 end
 
 -- wont be called for enemy units nor can it read spGetUnitMoveTypeData(unitID).aircraftState anyway
@@ -197,7 +200,7 @@ local function init()
 	shaderConfig.TRANSPARENCY = opacity
 	shaderConfig.ANIMATION = 0
 	shaderConfig.HEIGHTOFFSET = 3.99
-	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnits")
+	enemyspotterVBO, enemyspotterShader = InitDrawPrimitiveAtUnit(shaderConfig, "enemyspotter")
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		AddUnit(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))

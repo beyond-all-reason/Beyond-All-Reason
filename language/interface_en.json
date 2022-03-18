@@ -28,6 +28,9 @@
 				"catchingUp": "Catching up",
 				"catchingUpTooltip": "Displays the catch-up progress\nGame time: %{gameTime}",
 				"commanderCountTooltip": "%{titleColor}Commander Counter\nDisplays the number of ally\nand enemy commanders",
+				"tidal": {
+					"tooltip": "%{titleColor}Tidal Speed Display\nDisplays tidal speed on this map (always constant)."
+				},
 				"wind": {
 					"nowind1": "No",
 					"nowind2": "wind",
@@ -210,11 +213,6 @@
 					"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon"
 				}
 			},
-			"moveGameWindow": {
-				"moveWindow": "%{textColor}Move window position with the %{emphasisColor}arrow keys%{textColor} or %{emphasisColor}drag%{textColor} using the mouse.",
-				"cancel": "%{emphasisColor}ESCAPE%{textColor} key will cancel changes",
-				"apply": "Apply"
-			},
 			"idleBuilders": {
 				"name": "Idle builders",
 				"idle": "%{textColor}Idle %{highlightColor}%{unit}",
@@ -249,8 +247,6 @@
 					"settings": "Settings",
 					"widgetsKey": "f11",
 					"widgets": "Widget list",
-					"widgetsTweakKey": "ctrl + f11",
-					"widgetsTweak": "Widget tweak mode",
 					"shareKey": "h",
 					"share": "Share units / resources"
 				},
@@ -533,7 +529,7 @@
 				}
 			},
 			"scavengers": {
-				"techPercentage": "Boss Angery: %{count}%%",
+				"techPercentage": "Boss Anger: %{count}%%",
 				"techPercentageEndless": "Tech Progress: %{count}%%",
 				"techLevel": "Scavengers Tier: %{count}",
 				"bossFightCountdown": "Boss Arrives in: %{count} Seconds",

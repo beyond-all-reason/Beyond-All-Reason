@@ -22,127 +22,129 @@
 //MAX PERCENT: for example AA, max_percent=1.0 means 100% of army may consist of AA; max_percent=0.3  ~ only 30% of whole army can be AA
 //
 //ROLE DEFINITTION
-//SKIRMISH: good allround combat stats - good, dps & speed
-// RIOT: able to hit a lot of units via fast reload or aoe, fast targetting.
-// ASSAULT: first strong hit & good range. usually units with longer reload
+//SKIRMISH: good allround combat stats - good, dps & speed - Stumpy, Hammer
+// RIOT: able to hit a lot of units via fast reload or aoe, fast targetting. - Zeus, Warrior, Leveler
+// ASSAULT: first strong hit & good range. usually units with longer reload - Rocko, Banisher, Janus
 // Heavy: much armor, powerfull weapon, sluggish?
+
+//LOGIC
+// high ratio => respond only ai
 
 "response": {
 	"_weight_": 0.1,  // base weight of response probability, default=0.5 // was 30.00
 	"_importance_mod_": 1.0,  // global importance multiplier, default=1.0 => balance factory values to importance values
 
 	"assault": {
-		"vs":         ["riot", "static"],
-		"ratio":      [ 1.00,   2.00],
-		"importance": [ 25.00,  40.00],
+		"vs":         ["static", "skirmish",   "riot"],
+		"ratio":      [0.40, 		0.50,		0.40],
+		"importance": [5.00, 		5.00,		5.00],
 		"max_percent": 0.8,
 		"eps_step": 0.075
 	},
 	"skirmish": {
-		"vs":         ["static", "assault", "skirmish", "raider"],
-		"ratio":      [  1.00,     0.80, 		1.30,       0.50],
-		"importance": [  25.00,    30.00,		50.00,       30.00],
-		"max_percent": 1.00,
+		"vs":         ["assault",  "riot", "skirmish"],
+		"ratio":      [0.80,		0.50,		0.70],
+		"importance": [5.00, 		5.00,		10.00],
+		"max_percent": 0.8,
 		"eps_step": 0.075
 	},
 	"raider": {
-		"vs":         ["anti_air", "scout", "raider", "anti_heavy", "anti_heavy_ass",	"mine",  "artillery"],
-		"ratio":      [ 0.00,       1.00,    1.00,     0.40,  		 	0.40,			0.65,       0.15],
-		"importance": [ 15.00,      50.00,  50.00,    30.00,			30.00,			30.00,     10.00],
+		"vs":         [ "scout",  "raider",  "artillery"],
+		"ratio":      [     2.00,    1.00,     	 0.10],
+		"importance": [     20.00,   10.00,  	5.00],
 		"max_percent": 0.6,
 		"eps_step": 0.12
 	},
 	"riot": {
-		"vs":         ["raider", "scout",  "skirmish", "riot"],
-		"ratio":      [ 0.80,     1.00,		0.70,       1.00],
-		"importance": [ 50.00,   25.00, 	80.00,     50.00],
+		"vs":         ["raider", "skirmisher"],
+		"ratio":      [ 0.90,		0.40   ],
+		"importance": [ 5.00,		5.00 ],
 		"max_percent": 0.8,
 		"eps_step": 0.02
 	},
 	"scout": {
-		"vs":         ["mine", "artillery", "anti_air", "scout", "static",  "anti_heavy", "anti_heavy_ass"],
-		"ratio":      [ 0.15,   0.05,        0.10,       0.15,    0.00,      0.05,			0.05],
-		"importance": [ 50.00,  0.10,        0.10,       15.00,   0.00,      10.00,			10.00],
+		"vs":         ["scout", "artillery",  "static",  "anti_heavy", "anti_heavy_ass"],
+		"ratio":      [ 1.00,    0.05,         0.00,      0.05,			0.05],
+		"importance": [ 20.00,   0.05,         0.00,      5.00,			5.00],
 		"max_percent": 0.1,
 		"eps_step": 0.02
 	},
 	"artillery": {
-		"vs":         ["static", "artillery"],
-		"ratio":      [ 0.70,     0.50],
-		"importance": [ 40.00,    0.20],
+		"vs":         ["static"],
+		"ratio":      [ 0.20  ],
+		"importance": [ 5.00 ],
 		"max_percent": 0.20,
 		"eps_step": -0.075
 	},
 	"anti_air": {
 		"vs":         ["air"],
-		"ratio":      [ 0.75],
-		"importance": [ 150.0],
-		"max_percent": 0.4,
+		"ratio":      [ 1.5],
+		"importance": [ 100.0],
+		"max_percent": 0.1,
 		"eps_step": 0.8
 	},
 	"anti_sub": {
 		"vs":         ["sub"],
-		"ratio":      [ 0.0],
-		"importance": [ 0.0],
+		"ratio":      [ 0.5],
+		"importance": [ 5.0],
 		"max_percent": 0.20,
 		"eps_step": 0.0
 	},
 	"sub":{
-		"vs":         ["skirmish"],
-		"ratio":      [ 0.5],
-		"importance": [ 25.00],
+		"vs":         ["skirmish", "heavy"],
+		"ratio":      [ 0.50,        0.50],
+		"importance": [ 5.0,         5.0],
 		"max_percent": 0.50,
 		"eps_step": 0.0
 	},
 	"anti_heavy": {
-		"vs":         ["static",	"heavy", 	"artillery", "anti_heavy", "anti_heavy_ass", "super"],
-		"ratio":      [ 0.20,		2.00,    	0.00,       	0.70,              0.70,		0.50],
-		"importance": [ 10.00,		150.00,   	0.00,       	0.00,             30.00, 		30.00],
-		"max_percent": 0.60,
+		"vs":         ["static",	"skirmish",	"heavy" ],
+		"ratio":      [ 0.30,		0.70,		1.50],
+		"importance": [ 10.00,		5.00,		20.00],
+		"max_percent": 0.40,
 		"eps_step": 0.00
 	},
 	"anti_heavy_ass": {
-		"vs":         ["static",	"heavy", 	"artillery", "anti_heavy", "anti_heavy_ass", "super"],
-		"ratio":      [ 0.20,		2.00,    	0.00,       	0.70,              0.70,		0.50],
-		"importance": [ 10.00,		150.00,   	0.00,       	0.00,             30.00, 		30.00],
-		"max_percent": 0.60,
+		"vs":         ["static",	"skirmish", "heavy", "anti_heavy_ass"],
+		"ratio":      [ 0.30,		0.40,		1.50,			1.00],
+		"importance": [ 10.00,		5.00,		20.00,			10.00],
+		"max_percent": 0.40,
 		"eps_step": 0.00
 	},
 	"heavy": {
-		"vs":         ["heavy", "static", "skirmish", "riot", "super"],
-		"ratio":      [ 1.50,    2.00,     1.50,       1.00,	0.50],
-		"importance": [ 100.00,  25.00,    50.00,      1.00,	50.00],
-		"max_percent": 0.80,
+		"vs":         ["static", "skirmish"],
+		"ratio":      [  2.00,     1.50],
+		"importance": [  10.00,    10.00],
+		"max_percent": 0.50,
 		"eps_step": 0.00
 	},
 	"bomber": {
 		"vs":         ["static"],
-		"ratio":      [ 0.00],
-		"importance": [ 20.0],
-		"max_percent": 0.3,
+		"ratio":      [ 0.10],
+		"importance": [ 10.0],
+		"max_percent": 0.20,
 		"eps_step": 0.00
 	},
 	"super": {	//  korgoth, bantha, juggernaut
-		"vs":         ["heavy", "static", "support", "skirmish", "artillery", "super"],
-		"ratio":      [ 2.00,    2.00,     0.00,      3.00,       0.00,        2.00],
-		"importance": [ 25.00,   50.00,    0.00,      60.00,       0.00,        100.00],
+		"vs":         ["heavy", "static", "super"],
+		"ratio":      [ 2.00,    2.00,      2.00],
+		"importance": [ 20.00,   20.00,     40.00],
 		"max_percent": 0.8,
 		"eps_step": 0.00
 	},
     "builderT2": {
         "vs":        ["skirmish",  "heavy", "super"],
-        "ratio":      [ 0.40,     0.30,		0.10],
-        "importance": [ 10.00,     10.00,		10.00],
-        "max_percent": 0.20,
+        "ratio":      [ 1.00,     1.00,		0.10],
+        "importance": [ 5.00,     5.00,		10.00],
+        "max_percent": 0.30,
         "eps_step": 0.00
-        }
-	//"support": {
-	//	"vs":         ["skirmish", "assault", "heavy"],
-	//	"ratio":      [ 0.10,        0.10,        0.05],
-	//	"importance": [ 0.50,       0.50,       0.50],
-	//	"max_percent": 0.20,
-	//	"eps_step": 0.00
-	//},
-
+        },
+	"support": {
+		"vs":         ["skirmish", "assault"],
+		"ratio":      [ 0.10,        0.10],
+		"importance": [ 2.00,       2.00],
+		"max_percent": 0.20,
+		"eps_step": 0.00
+	}
 }
 }

@@ -12,7 +12,7 @@ function widget:GetInfo()
 end
 
 local moveIsAreamex = true		-- auto make move cmd an area mex cmd
-local addShift = true	-- when single clicking a sequence of mexes, no longer needed to hold shift!
+local addShift = false	-- when single clicking a sequence of mexes, no longer needed to hold shift!
 
 local mexPlacementRadius = 1600	-- (not actual ingame distance)
 local mexPlacementDragRadius = 20000	-- larger size so you can drag a move line over/near mex spots and it will auto queue mex there more easily
@@ -193,10 +193,12 @@ local function doAreaMexCommand(params, options, isGuard, justDraw)		-- when isG
 		if mexBuilder[id] then
 			if mexIds[(mexBuilder[id].building[1]) * -1] == maxbatchextracts then
 				local x, _, z = spGetUnitPosition(id)
-				ux, uz = ux+x, uz+z
-				lastprocessedbestbuilder = id
-				mainBuildersCount = mainBuildersCount + 1
-				mainBuilders[mainBuildersCount] = id
+				if z then
+					ux, uz = ux+x, uz+z
+					lastprocessedbestbuilder = id
+					mainBuildersCount = mainBuildersCount + 1
+					mainBuilders[mainBuildersCount] = id
+				end
 			else
 				-- guard to a main builder
 				if not justDraw then

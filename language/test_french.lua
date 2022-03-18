@@ -275,11 +275,6 @@ return {
 					gauss_tooltip = "Le Switches between Gauss Cannon and Heavy Plasma Cannon",
 				}
 			},
-			moveGameWindow = {
-				moveWindow = "Le %{textColor}Move window position with the %{emphasisColor}arrow keys%{textColor} or %{emphasisColor}drag%{textColor} using the mouse.",
-				cancel = "Le %{emphasisColor}ESCAPE%{textColor} key will cancel changes",
-				apply = "Le Apply",
-			},
 			idleBuilders = {
 				name = "Le Idle builders",
 				idle = "Le %{textColor}Idle %{highlightColor}%{unit}",
@@ -314,8 +309,6 @@ return {
 					settings = "Le Settings",
 					widgetsKey = "Le f11",
 					widgets = "Le Widget list",
-					widgetsTweakKey = "Le ctrl + f11",
-					widgetsTweak = "Le Widget tweak mode",
 					shareKey = "Le h",
 					share = "Le Share units / resources",
 				},
@@ -1918,8 +1911,8 @@ return {
 				resourcecheat = "Le INFINITE RESOURCES",
 				roost = "Le Spawns Chicken",
 				scavdrag = "Le Dragon's Teeth",
-        		scavdtf = "Le Flamethrower Turret", 
-        		scavdtl = "Le Lightning Turret", 
+        		scavdtf = "Le Flamethrower Turret",
+        		scavdtl = "Le Lightning Turret",
 				scavempspawner = "Le Spawning a new nuke",
 				scavengerdroppod = "\0", --ASCII NULL character, empty string crashes i18n
 				scavengerdroppodbeacon = "Le Calls in Scavenger drops",

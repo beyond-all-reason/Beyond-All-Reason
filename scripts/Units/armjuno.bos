@@ -7,6 +7,7 @@ piece  base, collar, tower, emit1, emit2, emit3, emit4,
        flare;
 
 static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -67,8 +68,8 @@ deactivatescr()
 	emit-sfx 257 from emit3;
 	emit-sfx 257 from emit4;
 	sleep 250;
-	spin tower around y-axis speed <25.005495>;
-	spin collar around y-axis speed <15.000000>;
+	spin tower around y-axis speed <0.000000>;
+	spin collar around y-axis speed <0.000000>;
 	emit-sfx 257 from emit1;
 	emit-sfx 257 from emit2;
 	emit-sfx 257 from emit3;
@@ -155,7 +156,6 @@ SetMaxReloadTime(Func_Var_1)
 	restore_delay = Func_Var_1 * 2;
 }
 
-static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
@@ -167,10 +167,14 @@ ExecuteRestoreAfterDelay()
 SetStunned(State)
 {
     Stunned = State;
-	if (!Stunned) {
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script Go();
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
+
 RestoreAfterDelay()
 {
 	sleep restore_delay;

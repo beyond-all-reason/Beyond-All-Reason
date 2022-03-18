@@ -53,7 +53,7 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileScale = math.min(2, (0.5 + (vsx*vsy / 5700000)))
 local fontfileSize = 80
 local fontfileOutlineSize = 22
 local fontfileOutlineStrength = 1.15
@@ -115,7 +115,7 @@ void main()
 	vec3 vertexWorldPos = vec3(localpos_dir_angle.x,0,localpos_dir_angle.y);
 
 	float s = sign(localpos_dir_angle.z);
-	mat3 roty = rotation3dY(s * timeInfo.x * 0.005);
+	mat3 roty = rotation3dY(s * (timeInfo.x + timeInfo.w) * 0.005);
 	vertexWorldPos.x *= s;
 
 	vertexWorldPos = roty * vertexWorldPos;
@@ -128,8 +128,8 @@ void main()
 	gl_Position = cameraViewProj * vec4(vertexWorldPos,1.0);
 
 	circlealpha = mix(
-		0.5 - (timeInfo.x - visibility.y) / 30.0, // turned unoccipied, fading into visibility
-		      (timeInfo.x - visibility.y) / 30.0, // going into occupied, so fade out from visibility.y
+		0.5 - ((timeInfo.x + timeInfo.w)- visibility.y) / 30.0, // turned unoccipied, fading into visibility
+		      ((timeInfo.x + timeInfo.w) - visibility.y) / 30.0, // going into occupied, so fade out from visibility.y
 		step(0.5, visibility.x)            // 1.0 if visibility is > 0.5
 	);
 	circlealpha = clamp(circlealpha, 0.0, 0.5);
@@ -264,7 +264,7 @@ end
 function widget:ViewResize()
 	local old_vsx, old_vsy = vsx, vsy
 	vsx,vsy = Spring.GetViewGeometry()
-	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	local newFontfileScale = math.min(2, (0.5 + (vsx*vsy / 5700000)))
 	if fontfileScale ~= newFontfileScale then
 		fontfileScale = newFontfileScale
 		gl.DeleteFont(font)

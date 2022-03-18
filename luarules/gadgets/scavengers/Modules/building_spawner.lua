@@ -1,15 +1,15 @@
 
 Spring.Echo("[Scavengers] Building spawner initialized")
 
-local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
-local blueprintsController = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_controller.lua')
+local blueprintConfig = VFS.Include('luarules/gadgets/scavengers/Blueprints/' .. Game.gameShortName .. '/blueprint_tiers.lua')
+local blueprintsController = VFS.Include('luarules/gadgets/scavengers/Blueprints/' .. Game.gameShortName .. '/blueprint_controller.lua')
 
 function SpawnBlueprint(n)
 	if scavengerGamePhase ~= "initial" then
 		return
 	end
 
-	local spawnchance = math.random(0, buildingSpawnerModuleConfig.spawnchance)
+	local spawnchance = math.random(0, scavconfig.buildingSpawnerModuleConfig.spawnchance)
 
 	if spawnchance == 0 then
 		local landBlueprint, seaBlueprint, blueprint
@@ -17,17 +17,17 @@ function SpawnBlueprint(n)
 		local spawnTier
 
 		if spawnTierChance <= TierSpawnChances.T0 then
-			spawnTier = scavConfig.Tiers.T0
+			spawnTier = blueprintConfig.Tiers.T0
 		elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-			spawnTier = scavConfig.Tiers.T1
+			spawnTier = blueprintConfig.Tiers.T1
 		elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-			spawnTier = scavConfig.Tiers.T2
+			spawnTier = blueprintConfig.Tiers.T2
 		elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-			spawnTier = scavConfig.Tiers.T3
+			spawnTier = blueprintConfig.Tiers.T3
 		elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-			spawnTier = scavConfig.Tiers.T4
+			spawnTier = blueprintConfig.Tiers.T4
 		else
-			spawnTier = scavConfig.Tiers.T0
+			spawnTier = blueprintConfig.Tiers.T0
 		end
 
 		landBlueprint = blueprintsController.Spawner.GetRandomLandBlueprint(spawnTier)
@@ -45,24 +45,24 @@ function SpawnBlueprint(n)
 			end
 
 			local radius = blueprint.radius
-			local canBuildHere = posLosCheck(posx, posy, posz, radius)
-						and posOccupied(posx, posy, posz, radius)
-						and	posCheck(posx, posy, posz, radius)
+			local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, radius, ScavengerAllyTeamID, true, true, true)
+						and positionCheckLibrary.OccupancyCheck(posx, posy, posz, radius)
+						and	positionCheckLibrary.FlatAreaCheck(posx, posy, posz, radius)
 
 
 			if canBuildHere then
 				for _, building in ipairs(blueprint.buildings) do
-					Spring.CreateUnit( building.unitDefID, posx + building.xOffset, posy, posz + building.zOffset, building.direction, GaiaTeamID, false, false)
+					Spring.CreateUnit( building.unitDefID, posx + building.xOffset, posy, posz + building.zOffset, building.direction, ScavengerTeamID, false, false)
 				end
 
-				Spring.CreateUnit("scavengerdroppod_scav", posx + radius, posy, posz, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx - radius, posy, posz, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz + radius, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz - radius, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx + radius, posy, posz + radius, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx - radius, posy, posz + radius, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx - radius, posy, posz - radius, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx + radius, posy, posz - radius, math.random(0, 3), GaiaTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + radius, posy, posz, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - radius, posy, posz, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz + radius, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz - radius, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + radius, posy, posz + radius, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - radius, posy, posz + radius, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - radius, posy, posz - radius, math.random(0, 3), ScavengerTeamID)
+				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + radius, posy, posz - radius, math.random(0, 3), ScavengerTeamID)
 				break
 			end
 		end

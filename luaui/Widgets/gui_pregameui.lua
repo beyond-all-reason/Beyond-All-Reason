@@ -63,7 +63,6 @@ local numPlayers = Spring.Utilities.GetPlayerCount()
 local shapeOpacity = 0.6
 local unitshapes = {}
 local teamStartPositions = {}
-local buildQueueShapes = {}
 local teamList = Spring.GetTeamList()
 
 local function createButton()
@@ -151,7 +150,7 @@ function widget:GameSetup(state, ready, playerStates)
 	pressedReady = playerStates[Spring.GetMyPlayerID()] == 'ready'
 	local prevReadied = readied
 	readied = pressedReady
-	if prevReadied ~= ready then
+	if readied ~= prevReadied then
 		widget:ViewResize(vsx, vsy)
 	end
 	--Spring.Echo(ready, pressedReady, os.clock(), Spring.Debug.TableEcho(playerStates)) --, Spring.Debug.TableEcho(playerStates)
@@ -216,9 +215,18 @@ function widget:LanguageChanged()
 	widget:ViewResize()
 end
 
+function widget:GameFrame(gf)
+	widgetHandler:RemoveWidget()
+end
+
 function widget:Initialize()
+	if Spring.GetGameFrame() > 0 or isReplay then
+		widgetHandler:RemoveWidget()
+		return
+	end
+
 	if mySpec then
-		if not mySpec or numPlayers <= 4 or isReplay or ffaMode or Spring.GetGameFrame() > 0 then
+		if numPlayers <= 4 or isReplay or ffaMode then
 			eligibleAsSub = false
 		else
 			eligibleAsSub = true
@@ -236,9 +244,6 @@ function widget:Initialize()
 end
 
 function widget:DrawScreen()
-	if isReplay then
-		return
-	end
 	if not startPointChosen then
 		checkStartPointChosen()
 	end
@@ -257,7 +262,7 @@ function widget:DrawScreen()
 		font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 		font:End()
 
-	elseif (not readied or allowUnready) and buttonList and Game.startPosType == 2 and (not mySpec or eligibleAsSub) then
+	elseif ((not readied or allowUnready) or (mySpec and eligibleAsSub)) and buttonList and Game.startPosType == 2 then
 		buttonDrawn = true
 		if WG['guishader'] then
 			WG['guishader'].InsertRect(
@@ -288,11 +293,6 @@ function widget:DrawScreen()
 		font:Print(colorString .. buttonText, buttonX, buttonY - (buttonH * 0.16), 24 * uiScale, "co")
 		font:End()
 		gl.Color(1, 1, 1, 1)
-	end
-
-	if Spring.GetGameFrame() > 0 then
-		widgetHandler:RemoveWidget()
-		return
 	end
 end
 

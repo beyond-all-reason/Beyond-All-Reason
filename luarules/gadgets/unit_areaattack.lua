@@ -95,7 +95,7 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 	function gadget:Initialize()
-		Spring.SetCustomCommandDrawData(CMD_AREAATTACK, CMDTYPE.ICON_AREA, {1,0,0,.8},true)
+		Spring.SetCustomCommandDrawData(CMD_AREAATTACK, CMDTYPE.ICON_UNIT_OR_AREA, {1,0,0,.8},true)
 	end
 
 end

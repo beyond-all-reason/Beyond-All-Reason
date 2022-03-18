@@ -13,10 +13,13 @@ end
 -- Add new options at: function init
 
 local types = {
-	basic = 1,
+	basic    = 1,
 	advanced = 2,
-	dev = 3,
+	dev      = 3,
 }
+
+local version = 1.1	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
+local newerVersion = false	-- configdata will set this true if it's a newer version
 
 local texts = {}    -- loaded from external language file
 
@@ -87,6 +90,8 @@ local useNetworkSmoothing = false
 local show = false
 local prevShow = show
 local manualChange = true
+
+local guishaderIntensity = 0.0035
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -561,27 +566,30 @@ function DrawWindow()
 							UiToggle(optionButtons[oid][1], optionButtons[oid][2], optionButtons[oid][3], optionButtons[oid][4], option.value)
 
 						elseif option.type == 'slider' then
-							local sliderSize = oHeight * 0.75
-							local sliderPos = 0
-							if option.steps then
-								local min, max = option.steps[1], option.steps[1]
-								for k, v in ipairs(option.steps) do
-									if v > max then
-										max = v
+							if type(option.value) == 'number' then	-- just to be safe
+								local sliderSize = oHeight * 0.75
+								local sliderPos = 0
+								if option.steps then
+									local min, max = option.steps[1], option.steps[1]
+									for k, v in ipairs(option.steps) do
+										if v > max then
+											max = v
+										end
+										if v < min then
+											min = v
+										end
 									end
-									if v < min then
-										min = v
-									end
+									sliderPos = (option.value - min) / (max - min)
+								else
+									sliderPos = (option.value - option.min) / (option.max - option.min)
 								end
-								sliderPos = (option.value - min) / (max - min)
-							else
-								sliderPos = (option.value - option.min) / (option.max - option.min)
+								if type(sliderPos) == 'number' then
+									UiSlider(math.floor(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding), math.floor(yPos - ((oHeight / 7) * 4.5)), math.floor(xPosMax - (sliderSize / 2) - rightPadding), math.floor(yPos - ((oHeight / 7) * 2.8)), option.steps and option.steps or option.step, option.min, option.max)
+									UiSliderKnob(math.floor(xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - rightPadding), math.floor(yPos - oHeight + ((oHeight) / 2)), math.floor(sliderSize / 2))
+									optionButtons[oid] = { xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - (sliderSize / 2) - rightPadding, yPos - oHeight + ((oHeight - sliderSize) / 2), xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) + (sliderSize / 2) - rightPadding, yPos - ((oHeight - sliderSize) / 2) }
+									optionButtons[oid].sliderXpos = { xPosMax - (sliderSize / 2) - sliderWidth - rightPadding, xPosMax - (sliderSize / 2) - rightPadding }
+								end
 							end
-							UiSlider(math.floor(xPosMax - (sliderSize / 2) - sliderWidth - rightPadding), math.floor(yPos - ((oHeight / 7) * 4.5)), math.floor(xPosMax - (sliderSize / 2) - rightPadding), math.floor(yPos - ((oHeight / 7) * 2.8)), option.steps and option.steps or option.step, option.min, option.max)
-							UiSliderKnob(math.floor(xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - rightPadding), math.floor(yPos - oHeight + ((oHeight) / 2)), math.floor(sliderSize / 2))
-							optionButtons[oid] = { xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - (sliderSize / 2) - rightPadding, yPos - oHeight + ((oHeight - sliderSize) / 2), xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) + (sliderSize / 2) - rightPadding, yPos - ((oHeight - sliderSize) / 2) }
-							optionButtons[oid].sliderXpos = { xPosMax - (sliderSize / 2) - sliderWidth - rightPadding, xPosMax - (sliderSize / 2) - rightPadding }
-
 						elseif option.type == 'select' then
 							optionButtons[oid] = { math.floor(xPosMax - selectWidth - rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos) }
 							UiSelector(optionButtons[oid][1], optionButtons[oid][2], optionButtons[oid][3], optionButtons[oid][4], option.value)
@@ -666,8 +674,12 @@ function widget:Update(dt)
 		end
 	end
 
-	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() and WG['setcamera_bugfix'] == true then
-		Spring.SetCameraState(nil, cameraTransitionTime)
+	if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
+		Spring.SetCameraState(nil, 1)
+	else
+		if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() and WG['setcamera_bugfix'] == true then
+			Spring.SetCameraState(nil, cameraTransitionTime)
+		end
 	end
 
 	-- check if there is water shown 	(we do this because basic water 0 saves perf when no water is rendered)
@@ -839,10 +851,6 @@ function widget:DrawScreen()
 		end
 
 		if (show or showOnceMore) and windowList then
-
-			if getOptionByID('tweakui') and widgetHandler.tweakMode ~= nil then
-				options[getOptionByID('tweakui')].value = widgetHandler.tweakMode
-			end
 
 			--on window
 			local mx, my, ml = Spring.GetMouseState()
@@ -1480,7 +1488,7 @@ function init()
 			snow = false,
 			particles = 9000,
 			treeradius = 0,
-			guishader = false,
+			guishader = 0,
 			decals = false,
 			shadowslider = 1,
 			grass = false,
@@ -1495,7 +1503,7 @@ function init()
 			snow = false,
 			particles = 12000,
 			treeradius = 200,
-			guishader = false,
+			guishader = 0,
 			decals = true,
 			shadowslider = 2,
 			grass = false,
@@ -1510,7 +1518,7 @@ function init()
 		 	snow = true,
 		 	particles = 15000,
 		 	treeradius = 400,
-		 	guishader = true,
+		 	guishader = guishaderIntensity,
 		 	decals = true,
 			shadowslider = 3,
 		 	grass = true,
@@ -1525,7 +1533,7 @@ function init()
 			snow = true,
 			particles = 20000,
 			treeradius = 800,
-			guishader = true,
+			guishader = guishaderIntensity,
 			decals = true,
 			shadowslider = 4,
 			grass = true,
@@ -1540,7 +1548,7 @@ function init()
 			snow = true,
 			particles = 25000,
 			treeradius = 800,
-			guishader = true,
+			guishader = guishaderIntensity,
 			decals = true,
 			shadowslider = 5,
 			grass = true,
@@ -1548,40 +1556,29 @@ function init()
 		custom = {},
 	}
 
-	local supportedResolutions = {}
+	local screenModes = WG['screenMode'] and WG['screenMode'].GetScreenModes() or {}
+	local displays = WG['screenMode'] and WG['screenMode'].GetDisplays() or {}
+
+	local displayNames = {}
+	for index, display in ipairs(displays) do
+		displayNames[index] = display.name .. " " .. display.width .. " × " .. display.height
+	end
+
+	local resolutionNames = {}
+	for _, screenMode in ipairs(screenModes) do
+		table.insert(resolutionNames, screenMode.name)
+	end
+
 	local soundDevices = { 'default' }
 	local soundDevicesByName = { [''] = 1 }
 	local infolog = VFS.LoadFile("infolog.txt")
 	if infolog then
 		local fileLines = string.lines(infolog)
-		local desktop = ''
-		local addResolutions
 		for i, line in ipairs(fileLines) do
-			if string.find(line, 'Main tread CPU') or string.find(line, '%[f=-00000') then
+			if string.find(line, 'Main thread CPU') or string.find(line, '%[f=-00000') then
 				break
 			end
-			if addResolutions then
-				local resolution = string.match(line, '[0-9]*x[0-9]*')
-				if resolution and string.len(resolution) >= 7 then
-					local resolution = string.gsub(resolution, "x", " x ")
-					local resolutionX = string.match(resolution, '[0-9]*')
-					local resolutionY = string.gsub(string.match(resolution, 'x [0-9]*'), 'x ', '')
-					if tonumber(resolutionX) >= 640 and tonumber(resolutionY) >= 480 and resolution ~= desktop then
-						supportedResolutions[#supportedResolutions + 1] = resolution
-					end
-				else
-					addResolutions = nil
-				end
-			end
-			if not supportedResolutions[1] and (string.find(line, '	display=') or string.find(line, '	Display %(')) then
-				addResolutions = true
-				local width = string.sub(string.match(line, 'w=([0-9]*)'), 1)
-				local height = string.sub(string.match(line, 'h=([0-9]*)'), 1)
-				desktop = width .. ' x ' .. height
-				supportedResolutions[#supportedResolutions + 1] = desktop
-			end
 			if string.find(line, '     %[') then
-				addResolutions = nil
 				local device = string.sub(string.match(line, '     %[([0-9a-zA-Z _%/%%-%(%)]*)'), 1)
 				soundDevices[#soundDevices + 1] = device
 				soundDevicesByName[device] = #soundDevices
@@ -1601,6 +1598,7 @@ function init()
 					isPotatoCpu = true
 				end
 			end
+
 			if string.find(line, 'Logical CPU Cores') then
 				if tonumber(string.match(line, '([0-9].*)')) and tonumber(string.match(line, '([0-9].*)')) <= 2 then
 					isPotatoCpu = true
@@ -1620,13 +1618,7 @@ function init()
 			if string.find(line, "Loading widget:") then
 				break
 			end
-
 		end
-		-- Add some widescreen resolutions for local testing
-		--supportedResolutions[#supportedResolutions+1] = '3840 x 1440'
-		--supportedResolutions[#supportedResolutions+1] = '2560 x 1200'
-		--supportedResolutions[#supportedResolutions+1] = '2560 x 1080'
-		--supportedResolutions[#supportedResolutions+1] = '2560 x 900'
 	end
 
 	-- restrict options for potato systems
@@ -1670,7 +1662,6 @@ function init()
 
 	options = {
 		--GFX
-		-- PRESET
 		{ id = "preset", group = "gfx", category = types.basic, name = texts.option.preset, type = "select", options = presetNames, value = presetCodes[Spring.GetConfigString('graphicsPreset')],
 			onload = function(i)
 			end,
@@ -1687,78 +1678,19 @@ function init()
 		},
 		{ id = "label_gfx_screen", group = "gfx", name = texts.option.label_screen, category = types.basic },
 		{ id = "label_gfx_screen_spacer", group = "gfx", category = types.basic },
-		{ id = "resolution", group = "gfx", category = types.basic, name = texts.option.resolution, type = "select", options = supportedResolutions, value = 0, description = texts.option.resolution_descr,
-		  onchange = function(i, value)
-			  local resolutionX = string.match(options[i].options[options[i].value], '[0-9]*')
-			  local resolutionY = string.gsub(string.match(options[i].options[options[i].value], 'x [0-9]*'), 'x ', '')
-			  if tonumber(Spring.GetConfigInt("Fullscreen", 1) or 1) == 1 then
-				  Spring.SendCommands("Fullscreen 0")
-				  Spring.SetConfigInt("XResolution", tonumber(resolutionX))
-				  Spring.SetConfigInt("YResolution", tonumber(resolutionY))
-				  Spring.SendCommands("Fullscreen 1")
-			  else
-				  Spring.SendCommands("Fullscreen 1")
-				  Spring.SetConfigInt("XResolutionWindowed", tonumber(resolutionX))
-				  Spring.SetConfigInt("YResolutionWindowed", tonumber(resolutionY))
-				  Spring.SendCommands("Fullscreen 0")
-			  end
-			  checkResolution()
-		  end,
+		{ id = "display", group = "gfx", category = types.dev, name = texts.option.display, type = "select", options = displayNames, value = 0,
+			onchange = function(i, value)
+			end,
 		},
-		--{ id = "borderless", group = "gfx", category = types.basic, name = texts.option.borderless, type = "bool", value = tonumber(Spring.GetConfigInt("WindowBorderless", 1) or 1) == 1, description = texts.option.borderless_descr,
-		--  onchange = function(i, value)
-		--	  ssx, ssy, spx, spy = Spring.GetScreenGeometry()
-		--	  Spring.SetConfigInt("WindowPosX", 0)
-		--	  Spring.SetConfigInt("WindowPosY", 0)
-		--	  Spring.SetConfigInt("XResolutionWindowed", ssx)
-		--	  Spring.SetConfigInt("YResolutionWindowed", ssy)
-		--	  Spring.SetConfigInt("XResolution", ssx)
-		--	  Spring.SetConfigInt("YResolution", ssy)
-		--	  Spring.SetConfigInt("WindowBorderless", (value and 1 or 0))
-		--	  Spring.SetConfigInt("WindowState", 0)
-		--	  Spring.SetConfigInt("Fullscreen", (value and 0 or 1))
-		--	  Spring.SendCommands("Fullscreen " .. (value and 0 or 1))
-		--	  init()
-		--  end,
-		--},
-		{ id = "fullscreen", group = "gfx", category = types.basic, name = texts.option.fullscreen, type = "bool", value = tonumber(Spring.GetConfigInt("Fullscreen", 1) or 1) == 1,
-		  onchange = function(i, value)
-			  if value then
-				  options[getOptionByID('borderless')].value = false
-				  applyOptionValue(getOptionByID('borderless'))
-				  local xres = tonumber(Spring.GetConfigInt('XResolutionWindowed', ssx))
-				  local yres = tonumber(Spring.GetConfigInt('YResolutionWindowed', ssy))
-				  Spring.SetConfigInt("XResolution", xres)
-				  Spring.SetConfigInt("YResolution", yres)
-			  else
-				  local xres = tonumber(Spring.GetConfigInt('XResolution', ssx))
-				  local yres = tonumber(Spring.GetConfigInt('YResolution', ssy))
-				  Spring.SetConfigInt("XResolutionWindowed", xres)
-				  Spring.SetConfigInt("YResolutionWindowed", yres)
-			  end
-			  checkResolution()
-			  Spring.SendCommands("Fullscreen " .. (value and 1 or 0))
-			  Spring.SetConfigInt("Fullscreen", (value and 1 or 0))
-		  end, },
-		{ id = "borderless", group = "gfx", category = types.basic, name = texts.option.borderless, type = "bool", value = tonumber(Spring.GetConfigInt("WindowBorderless", 1) or 1) == 1, description = texts.option.borderless_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("WindowBorderless", (value and 1 or 0))
-			  if value then
-				  options[getOptionByID('fullscreen')].value = false
-				  applyOptionValue(getOptionByID('fullscreen'))
-			  end
-			  Spring.SetConfigInt("WindowPosX", 0)
-			  Spring.SetConfigInt("WindowPosY", 0)
-			  Spring.SetConfigInt("WindowState", (value and 0 or 1))
-			  checkResolution()
-		  end,
+		{ id = "resolution", group = "gfx", category = types.basic, name = texts.option.resolution, type = "select", options = resolutionNames, value = Spring.GetConfigInt('SelectedScreenMode', 1), description = texts.option.resolution_descr,
+			onchange = function(i, value)
+				Spring.SetConfigInt('SelectedScreenMode', value)
+
+				if WG['screenMode'] then
+					WG['screenMode'].SetScreenMode(value)
+				end
+			end,
 		},
-		--{ id = "windowpos", group = "gfx", category = types.basic, widget = "Move Window Position", name = texts.option.windowpos, type = "bool", value = GetWidgetToggleValue("Move Window Position"), description = texts.option.windowpos_descr,
-		--  onchange = function(i, value)
-		--	  Spring.SetConfigInt("FullscreenEdgeMove", (value and 1 or 0))
-		--	  Spring.SetConfigInt("WindowedEdgeMove", (value and 1 or 0))
-		--  end,
-		--},
 		{ id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync, type = "bool", value = vsyncEnabled, description = '',
 		  onchange = function(i, value)
 			vsyncEnabled = value
@@ -1773,11 +1705,11 @@ function init()
 		},
 		{ id = "limitidlefps", group = "gfx", category = types.advanced, widget = "Limit idle FPS", name = texts.option.limitidlefps, type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = texts.option.limitidlefps_descr },
 
-		{ id = "msaa", group = "gfx", category = types.basic, name = texts.option.msaa, type = "select", options = { 'off', 'x1', 'x2', 'x4', 'x8'}, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0), description = texts.option.msaa_descr,
+		{ id = "msaa", group = "gfx", category = types.basic, name = texts.option.msaa, type = "select", options = { 'off', 'x2', 'x4', 'x8'}, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0), description = texts.option.msaa_descr,
 		  onload = function(i)
 			  local msaa = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0)
 			  if msaa == 0 then
-				  options[getOptionByID('msaa')].value = 0
+				  options[getOptionByID('msaa')].value = 1
 			  else
 				  for k,v in ipairs( options[getOptionByID('msaa')].options) do
 					  if v == 'x'..msaa then
@@ -2067,6 +1999,12 @@ function init()
 		{ id = "unitRotation", group = "gfx", category = types.advanced, name = texts.option.unitrotation, min = 0, max = 10, step = 1, type = "slider", value = tonumber(Spring.GetConfigInt("unitRotation", 0)), description = texts.option.unitrotation_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("unitRotation", value)
+		  end
+		},
+
+		{ id = "unitScale", group = "gfx", category = types.dev, name = "Unit Scale", min = 0.85, max = 1, step = 0.01, type = "slider", value = tonumber(Spring.GetConfigFloat("unitScale", 1)),
+		  onchange = function(i, value)
+			  Spring.SetConfigFloat("unitScale", value)
 		  end
 		},
 
@@ -2363,6 +2301,20 @@ function init()
 			  end
 		  end,
 		},
+		{ id = "camerasmoothing", group = "control", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.camerasmoothing, type = "bool", value = (tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1), description = "",
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("CameraSmoothing", (value and 1 or 0))
+			  if value then
+				  Spring.SendCommands("set CamFrameTimeCorrection 1")
+				  Spring.SendCommands("set SmoothTimeOffset 2")
+				else
+				  Spring.SendCommands("set CamFrameTimeCorrection 0")
+				  Spring.SendCommands("set SmoothTimeOffset 0")
+			  end
+		  end,
+		},
 		{ id = "camerasmoothness", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.camerasmoothness, type = "slider", min = 0.04, max = 2, step = 0.01, value = cameraTransitionTime, description = texts.option.camerasmoothness_descr,
 		  onload = function(i)
 		  end,
@@ -2496,7 +2448,7 @@ function init()
 		  end,
 		},
 
-		{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishader, type = "slider", min = 0, max = 0.005, steps = {0, 0.001, 0.0015, 0.002, 0.0025, 0.003, 0.0035, 0.004}, value = 0.0035, description = '',
+		{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishader, type = "slider", min = 0, max = 0.005, steps = {0, 0.001, 0.0015, 0.002, 0.0025, 0.003, 0.0035, 0.004}, value = guishaderIntensity, description = '',
 		  onload = function(i)
 			  loadWidgetData("GUI Shader", "guishader", { 'blurIntensity' })
 			  if type(options[getOptionByID('guishader')].value) ~= 'number' then
@@ -2504,7 +2456,10 @@ function init()
 			  end
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)
+			  if type(value) == 'number' then
+				  guishaderIntensity = value
+				  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)
+			  end
 			  if value <= 0.000001 then
 				  if GetWidgetToggleValue('GUI Shader') then
 				 	 widgetHandler:DisableWidget('GUI Shader')
@@ -2523,6 +2478,11 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Minimap', 'minimap', 'setMaxHeight', { 'maxHeight' }, value)
+		  end,
+		},
+		{ id = "minimapleftclick", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.minimapleftclick, type = "bool", value = (WG['minimap'] ~= nil and WG['minimap'].getAlwaysShow ~= nil and WG['minimap'].getLeftClickMove()), description = texts.option.minimapleftclick_descr,
+		  onchange = function(i, value)
+			  saveOptionValue('Minimap', 'minimap', 'setLeftClickMove', { 'leftClickMove' }, value)
 		  end,
 		},
 		{ id = "minimapiconsize", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.minimapiconsize, type = "slider", min = 2, max = 5, step = 0.25, value = tonumber(Spring.GetConfigFloat("MinimapIconScale", 3.5) or 1), description = '',
@@ -2890,40 +2850,23 @@ function init()
 
 		{ id = "geospots", group = "ui", category = types.dev, widget = "Geothermalspots", name = texts.option.geospots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = texts.option.geospots_descr },
 
-		{ id = "healthbarsscale", group = "ui", category = types.advanced, name = texts.option.healthbars .. widgetOptionColor .. "  " .. texts.option.healthbarsscale, type = "slider", min = 0.6, max = 1.6, step = 0.1, value = 1, description = '',
+    { id = "healthbarsscale", group = "ui", category = types.advanced, name = texts.option.healthbars .. widgetOptionColor .. "  " .. texts.option.healthbarsscale, type = "slider", min = 0.6, max = 2.0, step = 0.1, value = 1, description = '',
 		  onload = function(i)
-			  loadWidgetData("Health Bars", "healthbarsscale", { 'barScale' })
+			  loadWidgetData("Health Bars GL4", "healthbarsscale", { 'barScale' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Health Bars', 'healthbars', 'setScale', { 'barScale' }, value)
-		  end,
-		},
-		{ id = "healthbarsdistance", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.healthbarsdistance, type = "slider", min = 0.4, max = 6, step = 0.1, value = 1, description = '',
-		  onload = function(i)
-			  loadWidgetData("Health Bars", "healthbarsdistance", { 'drawDistanceMult' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Health Bars', 'healthbars', 'setDrawDistance', { 'drawDistanceMult' }, value)
+			  saveOptionValue('Health Bars GL4', 'healthbars', 'setScale', { 'barScale' }, value)
 		  end,
 		},
 		{ id = "healthbarsvariable", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.healthbarsvariable, type = "bool", value = (WG['healthbar'] ~= nil and WG['healthbar'].getVariableSizes()), description = texts.option.healthbarsvariable_descr,
 		  onload = function(i)
-			  loadWidgetData("Health Bars", "healthbarsvariable", { 'variableBarSizes' })
+			  loadWidgetData("Health Bars GL4", "healthbarsvariable", { "variableBarSizes" })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Health Bars', 'healthbars', 'setVariableSizes', { 'variableBarSizes' }, value)
+			  saveOptionValue("Health Bars GL4", "healthbars", "setVariableSizes", { "variableBarSizes" }, value)
 		  end,
 		},
-		{ id = "healthbarshide", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.healthbarshide, type = "bool", value = (WG['nametags'] ~= nil and WG['nametags'].getDrawForIcon()), description = texts.option.healthbarshide_descr,
-		  onload = function(i)
-			  loadWidgetData("Health Bars", "healthbarshide", { 'hideHealthbars' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Health Bars', 'healthbars', 'setHideHealth', { 'hideHealthbars' }, value)
-		  end,
-		},
-
-		{ id = "rankicons", group = "ui", category = types.advanced, widget = "Rank Icons", name = texts.option.rankicons, type = "bool", value = GetWidgetToggleValue("Rank Icons"), description = texts.option.rankicons_descr },
+		{ id = "rankicons", group = "ui", category = types.advanced, widget = "Rank Icons GL4", name = texts.option.rankicons, type = "bool", value = GetWidgetToggleValue("Rank Icons GL4"), description = texts.option.rankicons_descr },
 		{ id = "rankicons_distance", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.rankicons_distance, type = "slider", min = 0.4, max = 2, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getDrawDistance ~= nil and WG['rankicons'].getDrawDistance()), description = '',
 		  onload = function(i)
 		  end,
@@ -3218,7 +3161,7 @@ function init()
 			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeBuildings', { 'selectBuildingsWithMobile' }, value)
 		  end,
 		},
-		{ id = "smartselect_includebuilders", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.smartselect_includebuilders, type = "bool", value = true, description = texts.option.smartselect_includebuilders_descr,
+		{ id = "smartselect_includebuilders", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.smartselect_includebuilders, type = "bool", value = false, description = texts.option.smartselect_includebuilders_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3345,7 +3288,7 @@ function init()
 
 		{ id = "label_teamcolors", group = "accessibility", name = texts.option.label_teamcolors, category = types.basic },
 		{ id = "label_teamcolors_spacer", group = "accessibility", category = types.basic },
-		
+
 		{ id = "simpleteamcolors", group = "accessibility", category = types.basic, name = texts.option.playercolors, type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColors", 0) or 0) == 1, description = texts.option.simpleteamcolors_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColors", (value and 1 or 0))
@@ -4445,11 +4388,6 @@ function init()
 		--planeColor = {number r, number g, number b},
 	}
 
-	--if Spring.GetConfigInt("Fullscreen", 0) == 0 then
-	--	options[getOptionByID('resolution')] = nil
-	--end
-
-
 	if os.date("%m") ~= "12"  or  os.date("%d") < "12" then
 		options[getOptionByID('xmas')] = nil
 	end
@@ -4532,8 +4470,6 @@ function init()
 		end
 	end
 
-	Spring.SetConfigInt("FSAALevel", 0)
-
 	-- reduce options for potatoes
 	if isPotatoGpu or isPotatoCpu then
 		local id = getOptionByID('shadowslider')
@@ -4564,7 +4500,7 @@ function init()
 				widgetHandler:DisableWidget(options[id].widget)
 			end
 			options[id] = nil
-			options[getOptionByID('guishaderintensity')] = nil
+			options[getOptionByID('guishader')] = nil
 
 			local id = getOptionByID('dof')
 			if id and GetWidgetToggleValue(options[id].widget) then
@@ -4612,18 +4548,6 @@ function init()
 	end
 	if not aiDetected then
 		options[getOptionByID('commandsfxfilterai')] = nil
-	end
-	if getOptionByID('resolution') then
-		if #supportedResolutions < 2 then
-			options[getOptionByID('resolution')] = nil
-		else
-			for id, res in pairs(options[getOptionByID('resolution')].options) do
-				if res == vsx .. ' x ' .. vsy then
-					options[getOptionByID('resolution')].value = id
-					break
-				end
-			end
-		end
 	end
 
 	-- add sound notification widget sound toggle options
@@ -4678,12 +4602,6 @@ function init()
 		else
 			options[getOptionByID('cursorsize')] = nil
 		end
-	end
-
-	if WG['healthbars'] == nil then
-		options[getOptionByID('healthbarsscale')] = nil
-	elseif WG['healthbars'].getScale ~= nil then
-		options[getOptionByID('healthbarsscale')].value = WG['healthbars'].getScale()
 	end
 
 	if WG['smartselect'] == nil then
@@ -4744,28 +4662,6 @@ function init()
 	windowList = gl.CreateList(DrawWindow)
 end
 
-function checkResolution()
-	-- resize resolution if is larger than screen resolution
-	wsx, wsy, wpx, wpy = Spring.GetWindowGeometry()
-	ssx, ssy, spx, spy = Spring.GetScreenGeometry()
-	if wsx > ssx or wsy > ssy then
-		if tonumber(Spring.GetConfigInt("Fullscreen", 1) or 1) == 1 then
-			Spring.SendCommands("Fullscreen 0")
-		else
-			Spring.SendCommands("Fullscreen 1")
-		end
-		Spring.SetConfigInt("XResolution", tonumber(ssx))
-		Spring.SetConfigInt("YResolution", tonumber(ssy))
-		Spring.SetConfigInt("XResolutionWindowed", tonumber(ssx))
-		Spring.SetConfigInt("YResolutionWindowed", tonumber(ssy))
-		if tonumber(Spring.GetConfigInt("Fullscreen", 1) or 1) == 1 then
-			Spring.SendCommands("Fullscreen 0")
-		else
-			Spring.SendCommands("Fullscreen 1")
-		end
-	end
-end
-
 function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 	if not waterDetected and Spring.GetGameFrame() > 30 then
 		if heightmapChangeClock == nil then
@@ -4781,18 +4677,30 @@ function widget:Initialize()
 		widgetHandler:DisableWidget("Ambient Player")
 	end
 
-	-- enable this previous default disabled widget
-	if widgetHandler.orderList["DrawUnitShape GL4"] and widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
-		widgetHandler:EnableWidget("DrawUnitShape GL4")
-	end
-	if widgetHandler.orderList["HighlightUnit GL4"] and widgetHandler.orderList["HighlightUnit GL4"] < 0.5 then
-		widgetHandler:EnableWidget("HighlightUnit GL4")
+	-- enable previous default disabled widget(s) to their new default state
+	if newerVersion then
+		if version <= 1 then
+			if widgetHandler.orderList["DrawUnitShape GL4"] and widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
+				widgetHandler:EnableWidget("DrawUnitShape GL4")
+			end
+			if widgetHandler.orderList["HighlightUnit GL4"] and widgetHandler.orderList["HighlightUnit GL4"] < 0.5 then
+				widgetHandler:EnableWidget("HighlightUnit GL4")
+			end
+			if widgetHandler.orderList["Rank Icons GL4"] and widgetHandler.orderList["Rank Icons GL4"] < 0.5 then
+				widgetHandler:EnableWidget("Rank Icons GL4")
+			end
+		end
+		if version <= 1.1 then
+			if widgetHandler.orderList["Health Bars GL4"] and widgetHandler.orderList["Health Bars GL4"] < 0.5 then
+				widgetHandler:EnableWidget("Health Bars GL4")
+			end
+		end
 	end
 
 	if widgetHandler.orderList["FlowUI"] and widgetHandler.orderList["FlowUI"] < 0.5 then
 		widgetHandler:EnableWidget("FlowUI")
 	end
-	if widgetHandler.orderList["Language"] < 0.5 then
+	if widgetHandler.orderList["Language"] and widgetHandler.orderList["Language"] < 0.5 then
 		widgetHandler:EnableWidget("Language")
 	end
 
@@ -4812,6 +4720,14 @@ function widget:Initialize()
 	widget:ViewResize()
 
 	prevShow = show
+
+	if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
+		Spring.SendCommands("set CamFrameTimeCorrection 1")
+		Spring.SendCommands("set SmoothTimeOffset 2")
+	else
+		Spring.SendCommands("set CamFrameTimeCorrection 0")
+		Spring.SendCommands("set SmoothTimeOffset 0")
+	end
 
 	-- make sure new icon system is used
 	if Spring.GetConfigInt("UnitIconsAsUI", 0) == 0 then
@@ -4922,8 +4838,6 @@ function widget:Initialize()
 
 	Spring.SendCommands("minimap unitsize " .. (Spring.GetConfigFloat("MinimapIconScale", 3.5)))        -- spring wont remember what you set with '/minimap iconssize #'
 	Spring.SendCommands({ "bind f10 options" })
-
-	checkResolution()
 
 	WG['options'] = {}
 	WG['options'].toggle = function(state)
@@ -5062,6 +4976,7 @@ function widget:GetConfigData()
 		show = show,
 		waterDetected = waterDetected,
 		customPresets = customPresets,
+		guishaderIntensity = guishaderIntensity,
 
 		-- to restore init defaults
 		mapChecksum = Game.mapChecksum,
@@ -5069,10 +4984,18 @@ function widget:GetConfigData()
 		defaultMapSunPos = defaultMapSunPos,
 		defaultSunLighting = defaultSunLighting,
 		resettedTonemapDefault = resettedTonemapDefault,
+		version = version,
 	}
 end
 
 function widget:SetConfigData(data)
+	if data.version ~= nil then
+		if data.version < version then
+			newerVersion = true
+		end
+	else
+		newerVersion = true
+	end
 	if data.vsyncEnabled ~= nil then
 		vsyncEnabled = data.vsyncEnabled
 	end
@@ -5093,6 +5016,9 @@ function widget:SetConfigData(data)
 	end
 	if data.currentGroupTab ~= nil then
 		currentGroupTab = data.currentGroupTab
+	end
+	if data.guishaderIntensity then
+		guishaderIntensity = data.guishaderIntensity
 	end
 	if Spring.GetGameFrame() > 0 then
 		if data.show ~= nil then

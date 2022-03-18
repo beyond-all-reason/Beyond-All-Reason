@@ -15,7 +15,7 @@ local silentTime = 0.7	-- silent time between queued notifications
 local globalVolume = 0.7
 local playTrackedPlayerNotifs = false
 local muteWhenIdle = true
-local idleTime = 6		-- after this much sec: mark user as idle
+local idleTime = 10		-- after this much sec: mark user as idle
 local displayMessages = true
 local spoken = true
 local idleBuilderNotificationDelay = 10 * 30	-- (in gameframes)
@@ -93,8 +93,8 @@ addSound('NukeLaunched', 'NukeLaunched.wav', 3, 2, 'tips.notifications.nukeLaunc
 addSound('LrpcTargetUnits', 'LrpcTargetUnits.wav', 9999999, 3.8, 'tips.notifications.lrpcAttacking')
 
 -- unit ready
-addSound('VulcanIsReady', 'VulcanIsReady.wav', 30, 1.16, 'tips.notifications.vulcanReady')
-addSound('BuzzsawIsReady', 'BuzzsawIsReady.wav', 30, 1.31, 'tips.notifications.buzzsawReady')
+addSound('VulcanIsReady', 'RagnarokIsReady.wav', 30, 1.16, 'tips.notifications.vulcanReady')
+addSound('BuzzsawIsReady', 'CalamityIsReady.wav', 30, 1.31, 'tips.notifications.buzzsawReady')
 addSound('Tech3UnitReady', 'Tech3UnitReady.wav', 9999999, 1.78, 'tips.notifications.t3Ready')
 
 -- detections
@@ -111,14 +111,18 @@ addSound('EMPmissilesiloDetected', 'EmpSiloDetected.wav', 4, 2.1, 'tips.notifica
 addSound('TacticalNukeSiloDetected', 'TacticalNukeDetected.wav', 4, 2, 'tips.notifications.tacticalSiloDetected')
 addSound('NuclearSiloDetected', 'NuclearSiloDetected.wav', 4, 1.7, 'tips.notifications.nukeSiloDetected')
 addSound('NuclearBomberDetected', 'NuclearBomberDetected.wav', 60, 1.6, 'tips.notifications.nukeBomberDetected')
-addSound('JuggernautDetected', 'JuggernautDetected.wav', 9999999, 1.4, 'tips.notifications.t3MobileTurretDetected')
-addSound('KorgothDetected', 'KorgothDetected.wav', 9999999, 1.25, 'tips.notifications.t3AssaultBotDetected')
-addSound('BanthaDetected', 'BanthaDetected.wav', 9999999, 1.25, 'tips.notifications.t3AssaultMechDetected')
+addSound('JuggernautDetected', 'BehemothDetected.wav', 9999999, 1.4, 'tips.notifications.t3MobileTurretDetected')
+addSound('KorgothDetected', 'JuggernautDetected.wav', 9999999, 1.25, 'tips.notifications.t3AssaultBotDetected')
+addSound('BanthaDetected', 'TitanDetected.wav', 9999999, 1.25, 'tips.notifications.t3AssaultMechDetected')
 addSound('FlagshipDetected', 'FlagshipDetected.wav', 9999999, 1.4, 'tips.notifications.flagshipDetected')
 addSound('CommandoDetected', 'CommandoDetected.wav', 9999999, 1.28, 'tips.notifications.commandoDetected')
 addSound('TransportDetected', 'TransportDetected.wav', 9999999, 1.5, 'tips.notifications.transportDetected')
 addSound('AirTransportDetected', 'AirTransportDetected.wav', 9999999, 1.38, 'tips.notifications.airTransportDetected')
 addSound('SeaTransportDetected', 'SeaTransportDetected.wav', 9999999, 1.95, 'tips.notifications.seaTransportDetected')
+
+-- lava/liquid level change notifications
+addSound('LavaRising', 'Lavarising.wav', 25, 3, 'tips.notifications.lavaRising', true)
+addSound('LavaDropping', 'Lavadropping.wav', 25, 2, 'tips.notifications.lavaDropping', true)
 
 -- tutorial explanations (unlisted)
 local td = 'tutorial/'
@@ -173,7 +177,6 @@ local commanders = {}
 local commandersDamages = {}
 local passedTime = 0
 local sec = 0
-local lastUnitCommand = Spring.GetGameFrame()
 
 local windNotGood = ((Game.windMin + Game.windMax) / 2) < 5.5
 
@@ -467,11 +470,6 @@ function widget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmd
 end
 
 
-function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, playerID, fromSynced, fromLua)
-	lastUnitCommand = spGetGameFrame()
-end
-
-
 function widget:UnitIdle(unitID)
 	if isBuilder[spGetUnitDefID(unitID)] and not idleBuilder[unitID] and not spIsUnitInView(unitID) then
 		idleBuilder[unitID] = spGetGameFrame() + idleBuilderNotificationDelay
@@ -737,7 +735,7 @@ function widget:Update(dt)
 		end
 		lastMouseX, lastMouseY = mouseX, mouseY
 		-- set user idle when no mouse movement or no commands have been given
-		if lastUserInputTime < os.clock() - idleTime or spGetGameFrame() - lastUnitCommand > (idleTime*40) then
+		if lastUserInputTime < os.clock() - idleTime then
 			isIdle = true
 		else
 			isIdle = false

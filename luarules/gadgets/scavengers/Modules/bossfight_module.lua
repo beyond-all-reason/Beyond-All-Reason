@@ -1,4 +1,3 @@
-local bossAbilities = VFS.Include("luarules/gadgets/scavengers/BossFight/" .. Game.gameShortName .. "/abilities.lua")
 local currentPhaseBossAbilities = {}
 
 local function bossPhaseControl(bossHealthPercent)
@@ -33,6 +32,9 @@ local function bossPhaseControl(bossHealthPercent)
 		BossFightCurrentPhase = 10
 		currentPhaseBossAbilities = bossAbilities.Endgame
 	end
+	if FinalBossUnitID then
+		Spring.SetUnitArmored(FinalBossUnitID, true , (0.2*BossFightCurrentPhase)/(spawnmultiplier))
+	end
 end
 
 local function activatePassiveAbilities(currentFrame)
@@ -48,8 +50,17 @@ local function activateAbility(currentFrame)
 	if specialAbilityCountdown <= 0 or bossFightPreviousPhase ~= BossFightCurrentPhase then
 		local ability = currentPhaseBossAbilities[math_random(1,#currentPhaseBossAbilities)]
 		if ability then
-			specialAbilityCountdown = (20 - (BossFightCurrentPhase*2))
-			ability(currentFrame)
+			specialAbilityCountdown = (5 - (BossFightCurrentPhase*0.5))
+			abilitySuccess = nil
+			for i = 1,100 do
+				ability(currentFrame)
+				if abilitySuccess then
+					break
+				end
+				if i == 100 then
+					specialAbilityCountdown = 1
+				end
+			end
 		end
 	end
 end

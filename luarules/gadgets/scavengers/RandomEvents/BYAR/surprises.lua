@@ -1,10 +1,10 @@
 local function SpawnAirRaid(transport, units, posx, posy, posz, attackTarget)
-	local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
+	local unitCount = Spring.GetTeamUnitCount(ScavengerTeamID)
 	local unitCountBuffer = scavMaxUnits*0.01
 	if unitCount + unitCountBuffer < scavMaxUnits then 
 		local unit = units[math_random(1,#units)]
-		local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
-		local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+		local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),ScavengerTeamID)
+		local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),ScavengerTeamID)
 		if TransportID and LoadedUnitID then
 			local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
 			Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
@@ -59,7 +59,6 @@ local function transport1(currentFrame)
 			"armbull_scav",
 			"armsptk_scav",
 			"armfboy_scav",
-			"armanni_scav",
 			"armmerl_scav",
 			"armfido_scav",
 			"armcroc_scav",
@@ -98,12 +97,12 @@ local function transport1(currentFrame)
 			local posx = math_random(300,mapsizeX-300)
 			local posz = math_random(300,mapsizeZ-300)
 			local posy = Spring.GetGroundHeight(posx, posz, attackTarget)
-			CanSpawnEvent = posLosCheckNoRadar(posx, posy, posz, 300)
+			CanSpawnEvent = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, 300, ScavengerAllyTeamID, true, true, false)
 			if CanSpawnEvent then
-				CanSpawnEvent = posLandCheck(posx, posy, posz, 300)
+				CanSpawnEvent = positionCheckLibrary.SurfaceCheck(posx, posy, posz, 300)
 			end
 			if CanSpawnEvent then
-				local testunit = Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
+				local testunit = Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math_random(0,3),ScavengerTeamID)
 				if AliveEnemyCommanders and AliveEnemyCommandersCount > 0 and commanderOrNearestTarget == 1 then
 					if AliveEnemyCommandersCount > 1 then
 						for i = 1,AliveEnemyCommandersCount do
@@ -124,11 +123,11 @@ local function transport1(currentFrame)
 					end
 				end
 				if attackTarget == nil or commanderOrNearestTarget == 2 then
-					local test = Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), GaiaTeamID)
+					local test = Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math.random(0, 3), ScavengerTeamID)
 					attackTarget = Spring.GetUnitNearestEnemy(test, 200000, true)
 				end
 				if attackTarget == nil or commanderOrNearestTarget == 2 then
-					local test = Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), GaiaTeamID)
+					local test = Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math.random(0, 3), ScavengerTeamID)
 					attackTarget = Spring.GetUnitNearestEnemy(test, 200000, false)
 				end
 				local ax, ay, az = Spring.GetUnitPosition(attackTarget)

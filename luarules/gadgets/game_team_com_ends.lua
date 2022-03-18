@@ -14,22 +14,37 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
--- Exclude Scavengers / Chickens AI
-local ignoredAllyTeams = {}
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and (luaAI:find("Chickens") or luaAI:find("Scavengers")) then
-		ignoredAllyTeams[ select(6, Spring.GetTeamInfo(teams[i],false)) ] = true
+local GetTeamList = Spring.GetTeamList
+local GetUnitAllyTeam = Spring.GetUnitAllyTeam
+local gaiaTeamID = Spring.GetGaiaTeamID()
+
+-- Exclude Gaia / Scavengers / Raptors
+local ignoredTeams = {
+	[gaiaTeamID] = true,
+}
+local teamCount = 0
+local teamList = Spring.GetTeamList()
+for i = 1, #teamList do
+	local luaAI = Spring.GetTeamLuaAI(teamList[i])
+	if (luaAI and (luaAI:find("Chickens") or luaAI:find("Scavengers"))) or Spring.GetModOptions().scoremode ~= "disabled" then
+		ignoredTeams[teamList[i]] = true
+
+		-- ignore all other teams in this allyteam as well
+		--Spring.Echo(select(6, Spring.GetTeamInfo(teamList[i])))  -- somehow this echos "1, 1, <table>"
+		local teamID, leader, isDead, isAiTeam, side, allyTeam, incomeMultiplier, customTeamKeys = Spring.GetTeamInfo(teamList[i])
+		local teammates = Spring.GetTeamList(allyTeam)
+		for j = 1, #teammates do
+			ignoredTeams[teammates[j]] = true
+		end
+	end
+	if teamList[i] ~= gaiaTeamID then
+		teamCount = teamCount + 1
 	end
 end
+teamList = nil
 
 local aliveComCount = {}
 local commanderDeathQueue = {}
-local gaiaTeamID = Spring.GetGaiaTeamID()
-
-local GetTeamList = Spring.GetTeamList
-local GetUnitAllyTeam = Spring.GetUnitAllyTeam
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -38,12 +53,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local teamCount = 0
-for _,teamID in ipairs(GetTeamList()) do
-	if teamID ~= gaiaTeamID then
-		teamCount = teamCount + 1
-	end
-end
+
 
 local function commanderDeath(teamID, attackerUnitID, originX, originZ) -- optional: attackerUnitID, originX, originZ
 	local allyTeamID = select(6, Spring.GetTeamInfo(teamID, false))
@@ -82,22 +92,23 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	if isCommander[unitDefID] and unitTeam ~= gaiaTeamID and not ignoredAllyTeams[select(6,Spring.GetTeamInfo(unitTeam, false))] then
+	if isCommander[unitDefID] and not ignoredTeams[unitTeam] then
 		local x,_,z = Spring.GetUnitPosition(unitID)
 		commanderDeathQueue[unitID] = {unitTeam, attackerDefID, x, z}
 	end
 end
 
 function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	if isCommander[unitDefID] and unitTeam ~= gaiaTeamID and not ignoredAllyTeams[select(6,Spring.GetTeamInfo(unitTeam, false))]  then
+	if isCommander[unitDefID] and not ignoredTeams[unitTeam]  then
 		local x,_,z = Spring.GetUnitPosition(unitID)
 		commanderDeathQueue[unitID] = {unitTeam, nil, x, z}
 	end
 end
 
 function gadget:Initialize()
+	-- disable gadget when deathmode is "killall" or "none", or scoremode isnt regular
 	if Spring.GetModOptions().deathmode ~= 'com' then
-		gadgetHandler:RemoveGadget(self) -- in particular, this gadget is removed if deathmode is "killall" or "none"
+		gadgetHandler:RemoveGadget(self)
 	end
 
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do

@@ -43,7 +43,7 @@ local verbose = true
 local cutoffDistance = 3500
 local falloffDistance = 2500
 
-local debug = false --of true generates debug messages
+local hideBelowGameframe = 100
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -63,11 +63,8 @@ local myTeam = Spring.GetMyTeamID()
 local createdFrame = {}
 local textSize = 13
 
-local font, dlists, gameStarted, chobbyInterface
+local font, dlists, gameStarted
 
--- gr = groupe selected/wanted
-
--- speedups
 local SetUnitGroup = Spring.SetUnitGroup
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitDefID = Spring.GetUnitDefID
@@ -87,6 +84,9 @@ local spGetCameraPosition = Spring.GetCameraPosition
 local Echo = Spring.Echo
 local diag = math.diag
 local min = math.min
+
+local existingGroups = GetGroupList()
+local existingGroupsFrame = 0
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
@@ -150,44 +150,34 @@ function widget:Shutdown()
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
-local existingGroups = GetGroupList()
-local existingGroupsFrame = 0
-
 function widget:DrawWorld()
-	if chobbyInterface then
+	if IsGuiHidden() or GetGameFrame() < hideBelowGameframe then
 		return
 	end
-	if not IsGuiHidden() then
-    existingGroupsFrame = existingGroupsFrame + 1 
-    if existingGroupsFrame % 10 == 0 then 
-      existingGroups = GetGroupList()
-    end
-		local camX, camY, camZ = spGetCameraPosition()
-		local camDistance
-		for inGroup, _ in pairs(existingGroups) do
-			local units = GetGroupUnits(inGroup)
-			for i = 1, #units do
-				local unitID = units[i]
-				if spIsUnitInView(unitID) then
-					local ux, uy, uz = spGetUnitViewPosition(unitID)
-					local camDistance = diag(camX - ux, camY - uy, camZ - uz)
-					if camDistance < cutoffDistance then
-						local scale = min(1, 1 - (camDistance - falloffDistance) / cutoffDistance)
-						gl.PushMatrix()
-						gl.Translate(ux, uy, uz)
-						if scale <=1 then
-							gl.Scale(scale, scale, scale)
-						end
-						gl.Billboard()
-						gl.CallList(dlists[inGroup])
-						gl.PopMatrix()
+
+	existingGroupsFrame = existingGroupsFrame + 1
+	if existingGroupsFrame % 10 == 0 then
+	  existingGroups = GetGroupList()
+	end
+	local camX, camY, camZ = spGetCameraPosition()
+	local camDistance
+	for inGroup, _ in pairs(existingGroups) do
+		local units = GetGroupUnits(inGroup)
+		for i = 1, #units do
+			local unitID = units[i]
+			if spIsUnitInView(unitID) then
+				local ux, uy, uz = spGetUnitViewPosition(unitID)
+				local camDistance = diag(camX - ux, camY - uy, camZ - uz)
+				if camDistance < cutoffDistance then
+					local scale = min(1, 1 - (camDistance - falloffDistance) / cutoffDistance)
+					gl.PushMatrix()
+					gl.Translate(ux, uy, uz)
+					if scale <=1 then
+						gl.Scale(scale, scale, scale)
 					end
+					gl.Billboard()
+					gl.CallList(dlists[inGroup])
+					gl.PopMatrix()
 				end
 			end
 		end
@@ -255,7 +245,7 @@ end
 function widget:UnitIdle(unitID, unitDefID, unitTeam)
 	if unitTeam == myTeam and finiGroup[unitID] ~= nil then
 		local gr = unit2group[unitDefID]
-		if gr ~= nil then
+		if immediate ~= true and gr ~= nil then
 			SetUnitGroup(unitID, gr)
 		end
 		finiGroup[unitID] = nil

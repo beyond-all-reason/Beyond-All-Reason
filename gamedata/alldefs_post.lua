@@ -85,66 +85,83 @@ end
 
 function UnitDef_Post(name, uDef)
 	if Spring.GetModOptions().newdgun then
-		if name == 'armcom' or name == 'corcom' then
-			uDef.weapondefs.disintegrator = {
-				areaofeffect = 100,
-				avoidGround = false,
-				avoidFriendly = false,
-				avoidFeature = false,
-				avoidNeutral = false,
-				collideEnemy = false,
-				collideFriendly = false,
-				collideFeature = false,
-				collideGround = false,
-				collideNeutral = false,
-				burnblow = true, --this fixes passing through the targeted unit and missing
-				bouncerebound = 0,
-				cegtag = "dgunprojectile",
-				commandfire = true,
-				craterboost = 0,
-				cratermult = 0.15,
-				edgeeffectiveness = 0.75,
-				energypershot = 500,
-				explosiongenerator = "custom:genericshellexplosion-large-aoe",
-				firestarter = 100,
-				firesubmersed = false,
-				impulseboost = 0,
-				impulsefactor = 0,
-				name = "Disintegrator",
-				noexplode = false,
-				noselfdamage = true,
-				range = 250,
-				reloadtime = 3,
-				size = 8,
-				soundhit = "xplomas2",
-				soundhitwet = "sizzle",
-				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
-				soundtrigger = true,
-				tolerance = 20000,
-				turret = true,
-				waterweapon = true,
-				weapontype = "Cannon",
-				weaponvelocity = 600,
-				customparams = {
-					expl_light_heat_radius = 12,
-					expl_light_opacity = 0.32,
-					expl_light_radius = 340,
-					expl_light_color = "1 0.83 0.53",
-				},
-				damage = {
-					default = 1000000,
-					scavboss = 1000,
-					armcom = 500,
-					corcom = 500,
-				},
+		if name == 'armcom' or name == 'corcom' or name == 'armcomcon' or name == 'corcomcon' then
+			local dgun = uDef.weapondefs.disintegrator
+			dgun.cratermult = 0.05
+			dgun.edgeeffectiveness = 1
+			dgun.damage = {
+				default = 99999,
+				commanders = 100,
+				scavboss = 1000,
+			}
+
+			local laser = uDef.weapondefs.armcomlaser or uDef.weapondefs.corcomlaser
+			local uwLaser = uDef.weapondefs.armcomsealaser or uDef.weapondefs.corcomsealaser
+			laser.damage = {
+				bombers = 180,
+				default = 75,
+				fighters = 110,
+				subs = 5,
+				commanders = 25,
+			}
+
+			uwLaser.damage = {
+				default = 200,
+				subs = 100,
+				commanders = 60,
 			}
 		end
 	end
-	-- disable wrecks for Control Points mode
+	
+	-- Control Mode Tweaks
 	if Spring.GetModOptions().scoremode ~= "disabled" then
-		uDef.corpse = nil
+		if Spring.GetModOptions().scoremode_chess == true then
+			-- Disable Wrecks
+			uDef.corpse = nil
+			-- Disable Bad Units
+			local factories = {
+				armaap = true,
+				armalab = true,
+				armap = true,
+				armavp = true,
+				armhp = true,
+				armlab = true,
+				armshltx = true,
+				armvp = true,
+				armamsub = true,
+				armasy = true,
+				armfhp = true,
+				armplat = true,
+				armshltxuw = true,
+				armsy = true,
+				coraap = true,
+				coralab = true,
+				corap = true,
+				coravp = true,
+				corgant = true,
+				corhp = true,
+				corlab = true,
+				corvp = true,
+				coramsub = true,
+				corasy = true,
+				corfhp = true,
+				corplat = true,
+				corgantuw = true,
+				corsy = true,
+				armapt3 = true,	-- scav T3 air factory
+				corapt3 = true,	-- scav T3 air factory
+				armnanotc = true,
+				armnanotcplat = true,
+				cornanotc = true,
+				cornanotcplat = true,
+				armbotrail = true, -- it spawns units so it will add dead launched peewees to respawn queue. 
+			}
+			if factories[name] then
+				uDef.unitrestricted = 0
+			end
+		else
+
+		end
 	end
 
 	-- test New sound system!
@@ -327,16 +344,12 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
 			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
 			uDef.buildoptions[numBuildoptions+5] = "armmg"
-			uDef.buildoptions[numBuildoptions+6] = "leglab"
-			uDef.buildoptions[numBuildoptions+7] = "legvp"
 		elseif name == "corca" or name == "corck" or name == "corcv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
 			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
 			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
 			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
-			uDef.buildoptions[numBuildoptions+5] = "leglab"
-			uDef.buildoptions[numBuildoptions+6] = "legvp"
 		elseif name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armapt3"
@@ -363,14 +376,6 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corslrpc"
 			uDef.buildoptions[numBuildoptions+2] = "coresuppt3"
-		elseif name == "armcom" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "leglab"
-			uDef.buildoptions[numBuildoptions+2] = "legvp"
-		elseif name == "corcom" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "leglab"
-			uDef.buildoptions[numBuildoptions+2] = "legvp"
 		end
 	end
 
@@ -470,8 +475,8 @@ function UnitDef_Post(name, uDef)
 	]]
 	if string.find(name, "chicken") and uDef.maxdamage then
 		local chickHealth = uDef.maxdamage
-		uDef.buildcostmetal = chickHealth*1
-		uDef.buildcostenergy = chickHealth*10
+		uDef.buildcostmetal = chickHealth*0.5
+		uDef.buildcostenergy = chickHealth*5
 		uDef.buildtime = chickHealth*10
 	end
 
@@ -673,7 +678,7 @@ function WeaponDef_Post(name, wDef)
 		if name == 'commanderexplosion' then
 			wDef.damage = {
 				default = 50000,
-				commanders = 1000,
+				commanders = 2000,
 			}
 		end
 	end

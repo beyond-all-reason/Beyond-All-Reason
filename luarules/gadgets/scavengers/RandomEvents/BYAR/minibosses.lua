@@ -9,30 +9,30 @@ local function miniboss1(currentFrame)
 			local posx = math_random(300,mapsizeX-300)
 			local posz = math_random(300,mapsizeZ-300)
 			local posy = Spring.GetGroundHeight(posx, posz)
-			CanSpawnEvent = posLosCheckNoRadar(posx, posy, posz, 300)
+			CanSpawnEvent = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, 300, ScavengerAllyTeamID, true, true, false)
 			if CanSpawnEvent then
-				CanSpawnEvent = posLandCheck(posx, posy, posz, 300)
+				CanSpawnEvent = positionCheckLibrary.SurfaceCheck(posx, posy, posz, 300)
 			end
 			if CanSpawnEvent then
 				if TierSpawnChances.T2 == 0 and TierSpawnChances.T3 == 0 and TierSpawnChances.T4 == 0 then
 					local unit = T2bosses[math_random(1,#T2bosses)]
 					for a = 1,math.ceil(baseNumber*4) do
-						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),ScavengerTeamID)
 					end
 				elseif TierSpawnChances.T3 == 0 and TierSpawnChances.T4 == 0 then
 					local unit = T3bosses[math_random(1,#T3bosses)]
 					for a = 1,math.ceil(baseNumber*4) do
-						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),ScavengerTeamID)
 					end
 				elseif TierSpawnChances.T4 == 0 then
 					local unit = T4bosses[math_random(1,#T4bosses)]
 					for a = 1,math.ceil(baseNumber*4) do
-						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),ScavengerTeamID)
 					end
 				else
 					local unit = T4bosses[math_random(1,#T4bosses)]
 					for a = 1,math.ceil(baseNumber*8) do
-						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),ScavengerTeamID)
 					end
 				end
 				--ScavSendNotification("scav_eventminiboss")
@@ -52,30 +52,30 @@ local function miniboss2(currentFrame)
 			local posx = math_random(300,mapsizeX-300)
 			local posz = math_random(300,mapsizeZ-300)
 			local posy = Spring.GetGroundHeight(posx, posz)
-			CanSpawnEvent = posLosCheckNoRadar(posx, posy, posz, 300)
+			CanSpawnEvent = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, radius, ScavengerAllyTeamID, true, true, false)
 			if CanSpawnEvent then
-				CanSpawnEvent = posLandCheck(posx, posy, posz, 300)
+				CanSpawnEvent = positionCheckLibrary.SurfaceCheck(posx, posy, posz, 300)
 			end
 			if CanSpawnEvent then
 				if TierSpawnChances.T2 == 0 and TierSpawnChances.T3 == 0 and TierSpawnChances.T4 == 0 then
 					local unit = T2bosses[math_random(1,#T2bosses)]
 					for a = 1,math.ceil(baseNumber*4) do
-						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),ScavengerTeamID)
 					end
 				elseif TierSpawnChances.T3 == 0 and TierSpawnChances.T4 == 0 then
 					local unit = T3bosses[math_random(1,#T3bosses)]
 					for a = 1,math.ceil(baseNumber*4) do
-						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),ScavengerTeamID)
 					end
 				elseif TierSpawnChances.T4 == 0 then
 					local unit = T4bosses[math_random(1,#T4bosses)]
 					for a = 1,math.ceil(baseNumber*4) do
-						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),ScavengerTeamID)
 					end
 				else
 					local unit = T4bosses[math_random(1,#T4bosses)]
 					for a = 1,math.ceil(baseNumber*8) do
-						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),ScavengerTeamID)
 					end
 				end
 				ScavSendNotification("scav_eventcloud")

@@ -109,6 +109,7 @@ end
 function widget:Update(dt)
 	if Spring.GetMyAllyTeamID() ~= prevMyAllyTeamID or select(2, Spring.GetSpectatingState()) ~= prevMyFullView then
 		prevMyAllyTeamID = Spring.GetMyAllyTeamID()
+		prevMyFullView = select(2, Spring.GetSpectatingState()) -- missed this one, forced a refresh every frame after going into spec
 		refresh()
 	end
 end

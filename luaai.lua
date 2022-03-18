@@ -31,7 +31,7 @@ return {
   {
     name = 'STAI',
     desc = 'Medium ubiquitous AI. @pandaro',
-	version = '0.57 EX',
+	  -- version = '0.57 EX',
   },
   {
     name = 'ControlModeAI',
