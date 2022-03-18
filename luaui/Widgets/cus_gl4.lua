@@ -169,7 +169,7 @@ local OPTION_TREEWIND         = 2048
 local OPTION_SCAVENGER        = 4096
 
 local objectDefToBitShaderOptions = {} -- This is a table containing positive UnitIDs, negative featureDefIDs to bitShaderOptions mapping
-local defaultBitShaderOptions = OPTION_SHADOWMAPPING + OPTION_NORMALMAPPING -- + OPTION_MODELSFOG
+local defaultBitShaderOptions = OPTION_SHADOWMAPPING + OPTION_NORMALMAPPING  + OPTION_MODELSFOG
 
 local function GetBitShaderOptions(unitDefID, featureDefID)
 	if unitDefID and objectDefToBitShaderOptions[unitDefID] then 

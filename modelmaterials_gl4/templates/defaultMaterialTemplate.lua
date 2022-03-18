@@ -99,7 +99,6 @@ vertex = [[
 	//[3]-tracks speed = floor(4 * speed + 0.5) / 4 
 	uniform float baseVertexDisplacement = 0.0; // this is for the scavengers, 
 	const float vertexDisplacement = 6.0; // Strength of vertex displacement on health change
-	const float healthLookMod = 0.4; // customparams.healthlookmod, 0.4 for scavengers
 	const float treadsvelocity = 0.5;
 #line 10200
 	uniform float floatOptions[4];
@@ -127,18 +126,16 @@ vertex = [[
 		flat vec4 teamCol;
 		
 		// main light vector(s)
-		flat vec3 worldCameraDir;
+		vec3 worldCameraDir;
 
 		// shadowPosition
 		vec4 shadowVertexPos;
 
 		// auxilary varyings
 		float aoTerm;
+		float fogFactor;
 		flat float selfIllumMod;
 		flat float healthFraction;
-		float fogFactor;
-		float bitShaderOptionsFloat;
-		flat uint bitShaderOptionsUint;
 		flat int unitID;
 		
 	};
@@ -267,8 +264,6 @@ vertex = [[
 	void main(void)
 	{
 		unitID = int(UNITID);
-		bitShaderOptionsFloat = float(UNITUNIFORMS.userDefined[1].z);
-		bitShaderOptionsUint = uint(UNITUNIFORMS.userDefined[1].z);
 		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
 		mat4 worldMatrix = mat[instData.x];
 	
@@ -401,8 +396,7 @@ vertex = [[
 				vec4 ClipVertex = cameraView * worldVertexPos;
 				// emulate linear fog
 				float fogCoord = length(ClipVertex.xyz);
-				//fogFactor = (gl_Fog.end - fogCoord) * gl_Fog.scale; // gl_Fog.scale == 1.0 / (gl_Fog.end - gl_Fog.start)
-				fogFactor = 0.5;
+				fogFactor = (fogParams.y - fogCoord) * fogParams.w; // gl_Fog.scale == 1.0 / (gl_Fog.end - gl_Fog.start)
 				fogFactor = clamp(fogFactor, 0.0, 1.0);
 			}
 			if ((uint(drawPass) & 4u ) == 4u){
@@ -582,7 +576,6 @@ fragment = [[
 	/***********************************************************************/
 	// Varyings
 	in Data {
-		//vec4 modelVertexPos;
 		vec4 modelVertexPosOrig;
 		vec4 worldVertexPos;
 		// TBN matrix components
@@ -593,7 +586,7 @@ fragment = [[
 		vec2 uvCoords;
 		flat vec4 teamCol;
 		// main light vector(s)
-		flat vec3 worldCameraDir;
+		vec3 worldCameraDir;
 
 		// shadowPosition
 		vec4 shadowVertexPos;
@@ -601,11 +594,9 @@ fragment = [[
 
 		// auxilary varyings
 		float aoTerm;
+		float fogFactor;
 		flat float selfIllumMod;
 		flat float healthFraction;
-		float fogFactor;
-		float bitShaderOptionsFloat;
-		flat uint bitShaderOptionsUint;
 		flat int unitID;
 	};
 	
@@ -1243,7 +1234,10 @@ fragment = [[
 
 		vec4 texColor1 = texture(texture1, myUV, textureLODBias);
 		vec4 texColor2 = texture(texture2, myUV, textureLODBias);
-		/*
+		
+		#if (RENDERING_MODE == 0)
+		// disable this in deferred mode
+	
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
 			vec4 texColor1w = texture(texture1w, myUV);
 			vec4 texColor2w = texture(texture2w, myUV);
@@ -1251,7 +1245,9 @@ fragment = [[
 			texColor1 = mix(texColor1, texColor1w, healthMix);
 			texColor2.xyz = mix(texColor2.xyz, texColor2w.xyz, healthMix);
 			texColor2.z += 0.5 * healthMix; //additional roughness
-		}*/
+		}
+		
+		#endif
 
 		#ifdef LUMAMULT
 		{
@@ -1350,7 +1346,6 @@ fragment = [[
 		float nShadow = smoothstep(0.0, 0.35, NdotLu); //normal based shadowing, always on
 		
 		
-		uint test = uint(bitShaderOptionsUint);
 		{
 			if (BITMASK_FIELD(bitOptions, OPTION_SHADOWMAPPING)) {
 			//if (float(test) > float(OPTION_SHADOWMAPPING)) {
@@ -1444,7 +1439,10 @@ fragment = [[
 
             ///
 			#if (USE_ENVIRONMENT_DIFFUSE == 1) || (USE_ENVIRONMENT_SPECULAR == 1)
-				TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
+				
+				#if (RENDERING_MODE == 0)
+					TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
+				#endif
 			#endif
             ///
 
@@ -1473,8 +1471,13 @@ fragment = [[
             vec3 diffuse = iblDiffuse * albedoColor * aoTerm;
 
             // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
-            vec3 reflectionColor = SampleEnvironmentWithRoughness(Rv, roughness);
-
+			
+			#if (RENDERING_MODE == 0)
+				vec3 reflectionColor = SampleEnvironmentWithRoughness(Rv, roughness);
+			#else
+				vec3 reflectionColor = vec3(0.0);
+			#endif
+			
 			#if (USE_ENVIRONMENT_SPECULAR == 1)
 				reflectionColor = mix(reflectionColor, iblSpecular, roughness);
 			#endif
@@ -1539,9 +1542,10 @@ fragment = [[
 		#if (RENDERING_MODE == 0)
 			fragData[0] = vec4(outColor, texColor2.a);
 			//fragData[0] = vec4(vec3(fract((shadowVertexPos.xyz )  ))	, 1.0); //debug
-			//fragData[0] = vec4(vec3(gShadow	)	, 1.0); //debug
+			//fragData[0] = vec4(vec3(fract(healthMix	))	, 1.0); //debug
 			//fragData[0] = vec4(cameraView[0].z,cameraView[1].z,cameraView[2].z, 1.0); //debug
-			//fragData[0] = vec4(SNORM2NORM(N), 1.0); //debug
+			//fragData[0] = vec4(SNORM2NORM(V), 1.0); //debug
+			//fragData[0] = vec4(NORM2SNORM(worldNormal), 1.0); //debug
 		#elif (RENDERING_MODE == 1)
 			float alphaBin = (texColor2.a < 0.5) ? 0.0 : 1.0;
 			alphaBin = 1.0;
