@@ -40,7 +40,6 @@ vertex = [[
 		SUniformsBuffer uni[];
 	}; 
 
-	
 	// Unit Uniforms:
 	#define UNITUNIFORMS uni[instData.y]
 	#define UNITID (uni[instData.y].composite >> 16)
@@ -80,16 +79,6 @@ vertex = [[
 	#define NORM2SNORM(value) (value * 2.0 - 1.0)
 	#define SNORM2NORM(value) (value * 0.5 + 0.5)
 
-	//For a moment let's pretend we have passed OpenGL 2.0 gl_XYZ era
-	#define modelMatrix gl_ModelViewMatrix			// don't trust the ModelView name, it's modelMatrix in fact
-	#define modelNormalMatrix gl_NormalMatrix		// gl_NormalMatrix seems to represent world space model matrix
-
-	/***********************************************************************/
-	// Matrix uniforms
-	//uniform mat4 viewMatrix;
-	//uniform mat4 projectionMatrix;
-	//uniform mat4 shadowMatrix;
-
 	
 	uniform int drawPass = 1; 
 	//BITS: 
@@ -100,17 +89,9 @@ vertex = [[
 	//5: shadows
 	
 	/***********************************************************************/
-	// Uniforms
-	//uniform vec3 cameraPos; // world space camera position
-	//uniform vec3 cameraDir; // forward vector of camera
 	vec3 cameraPos	 = cameraViewInv[3].xyz;
 	vec3 cameraDir = -1.0 * vec3(cameraView[0].z,cameraView[1].z,cameraView[2].z);
 
-	//uniform vec3 rndVec;
-	//uniform int drawFrame;
-
-	//uniform int intOptions[1]; // I think its goddamned unitID
-	int unitID = int(UNITID);
 
 	//[0]-healthMix, 0.0 for full health, ~0.8 for max damage
 	//[1]-healthMod, customparams.healthlookmod, 0.4 for scavengers
@@ -122,8 +103,8 @@ vertex = [[
 	const float treadsvelocity = 0.5;
 #line 10200
 	uniform float floatOptions[4];
-	//uniform int bitOptions;
-	int bitOptions = 1 +  2 + 8 + 16 + 128 + 256 + 512;
+	uniform int bitOptions;
+	//int bitOptions = 1 +  2 + 8 + 16 + 128 + 256 + 512;
 
 	uniform vec4 clipPlane0 = vec4(0.0, 0.0, 0.0, 1.0); //upper construction clip plane
 	uniform vec4 clipPlane1 = vec4(0.0, 0.0, 0.0, 1.0); //lower construction clip plane
@@ -158,6 +139,7 @@ vertex = [[
 		float fogFactor;
 		float bitShaderOptionsFloat;
 		flat uint bitShaderOptionsUint;
+		flat int unitID;
 		
 	};
 	
@@ -284,7 +266,7 @@ vertex = [[
 #line 12000
 	void main(void)
 	{
-		
+		unitID = int(UNITID);
 		bitShaderOptionsFloat = float(UNITUNIFORMS.userDefined[1].z);
 		bitShaderOptionsUint = uint(UNITUNIFORMS.userDefined[1].z);
 		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
@@ -314,7 +296,7 @@ vertex = [[
 			seedVec.y += 1024.0 * hash11(float(unitID));
 			float damageAmount = (1.0 - healthFraction) * 0.8;
 			piecePos.xyz +=
-				max(damageAmount , 0.0) *
+				max(damageAmount , baseVertexDisplacement) *
 				vertexDisplacement *							//vertex displacement value
 				Perlin3D(seedVec) * normalize(piecePos.xyz);
 		}
@@ -562,18 +544,16 @@ fragment = [[
 	
 	uniform float gamma = 1.0;
 
-	/***********************************************************************/
-	// Unit/Feature uniforms
-	uniform int intOptions[1];
 
 	//[0]-healthMix, [1]-healthMod, [2]-vertDisplacement, [3]-tracks
 	uniform float floatOptions[4];
 
+	uniform float baseVertexDisplacement = 0.0; // this is for the scavengers,
 	uniform int drawPass = 1; 
 	/***********************************************************************/
 	// Options
-	//uniform int bitOptions;
-	int bitOptions = 1 +  2 + 8 + 16 + 128 + 256;
+	uniform int bitOptions;
+	//int bitOptions = 1 +  2 + 8 + 16 + 128 + 256;
 	
 	float simFrame = (timeInfo.x + timeInfo.w);
 	
@@ -626,6 +606,7 @@ fragment = [[
 		float fogFactor;
 		float bitShaderOptionsFloat;
 		flat uint bitShaderOptionsUint;
+		flat int unitID;
 	};
 	
 		
@@ -939,24 +920,6 @@ fragment = [[
 		return pow(c, vec3(gamma));
 	}
 
-	//https://mynameismjp.wordpress.com/2010/04/30/a-closer-look-at-tone-mapping/ (comments by STEVEM)
-	vec3 SteveMTM1(in vec3 x) {
-		const float a = 15.0; /// Mid
-		const float b = 0.3; /// Toe
-		const float c = 0.5; /// Shoulder
-		const float d = 1.5; /// Mid
-
-		return LINEARtoSRGB((x * (a * x + b)) / (x * (a * x + c) + d));
-	}
-
-	vec3 SteveMTM2(in vec3 x) {
-		const float a = 1.8; /// Mid
-		const float b = 1.4; /// Toe
-		const float c = 0.5; /// Shoulder
-		const float d = 1.5; /// Mid
-
-		return LINEARtoSRGB((x * (a * x + b)) / (x * (a * x + c) + d));
-	}
 
 	vec3 FilmicTM(in vec3 x) {
 		vec3 outColor = max(vec3(0.0), x - vec3(0.004));
@@ -1249,10 +1212,10 @@ fragment = [[
 		
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
 			seedVec = modelVertexPosOrig.xyz * 0.6;
-			seedVec.y += 1024.0 * hash11(float(intOptions[0]));
+			seedVec.y += 1024.0 * hash11(float(unitID));
 
-			healthMix = SNORM2NORM(Perlin3D(seedVec.xyz)) * (2.0 - floatOptions[1]);
-			healthMix = smoothstep(0.0, healthMix, max((1.0 - healthFraction) + floatOptions[1], 0.0));
+			healthMix = SNORM2NORM(Perlin3D(seedVec.xyz)) * (2.0 - baseVertexDisplacement);
+			healthMix = smoothstep(0.0, healthMix, max((1.0 - healthFraction) + baseVertexDisplacement, 0.0));
 		}
 
 		vec3 tbnNormal;
@@ -1389,12 +1352,12 @@ fragment = [[
 		
 		uint test = uint(bitShaderOptionsUint);
 		{
-			if (BITMASK_FIELD(test, OPTION_SHADOWMAPPING)) {
+			if (BITMASK_FIELD(bitOptions, OPTION_SHADOWMAPPING)) {
 			//if (float(test) > float(OPTION_SHADOWMAPPING)) {
 			//if (float(test) > 0.0	) {
 			//if (test > 0u	) {
-				gShadow = GetShadowPCFRandom(NdotL);
 				//gShadow = 0.0;
+				gShadow = GetShadowPCFRandom(NdotL);
 			}
 			//gShadow = fract(bitShaderOptions/1);
 			shadowMult = mix(1.0, min(nShadow, gShadow), shadowDensity.y);
@@ -1576,7 +1539,7 @@ fragment = [[
 		#if (RENDERING_MODE == 0)
 			fragData[0] = vec4(outColor, texColor2.a);
 			//fragData[0] = vec4(vec3(fract((shadowVertexPos.xyz )  ))	, 1.0); //debug
-			//fragData[0] = vec4(vec3(shadowMult	)	, 1.0); //debug
+			//fragData[0] = vec4(vec3(gShadow	)	, 1.0); //debug
 			//fragData[0] = vec4(cameraView[0].z,cameraView[1].z,cameraView[2].z, 1.0); //debug
 			//fragData[0] = vec4(SNORM2NORM(N), 1.0); //debug
 		#elif (RENDERING_MODE == 1)

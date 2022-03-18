@@ -114,6 +114,8 @@ end
 	
 	-- TODO: Also add alpha units to deferred pass somehow?
 	
+	-- TODO: engine side: optimize shadow camera as it stupidly overdraws
+	
 	-- GetTextures :
 		-- should return array table instead of hash table
 			-- fill in unused stuff with 'false' for contiguous array table
@@ -167,7 +169,7 @@ local OPTION_TREEWIND         = 2048
 local OPTION_SCAVENGER        = 4096
 
 local objectDefToBitShaderOptions = {} -- This is a table containing positive UnitIDs, negative featureDefIDs to bitShaderOptions mapping
-local defaultBitShaderOptions = OPTION_SHADOWMAPPING + OPTION_NORMALMAPPING + OPTION_MODELSFOG
+local defaultBitShaderOptions = OPTION_SHADOWMAPPING + OPTION_NORMALMAPPING -- + OPTION_MODELSFOG
 
 local function GetBitShaderOptions(unitDefID, featureDefID)
 	if unitDefID and objectDefToBitShaderOptions[unitDefID] then 
@@ -179,43 +181,60 @@ local function GetBitShaderOptions(unitDefID, featureDefID)
 end
 
 
-local unitDefToUniformBin = {} -- maps unitDefID/featuredefID to a uniform bin
+local objectDefToUniformBin = {} -- maps unitDefID/featuredefID to a uniform bin
 -- this will still use the same shader, but we gotta switch uniforms in between for efficiency
 -- a uniform bin contains an
 
-local function GetUniformBinID(unitDefID)
-	if unitDefToUniformBin[unitDefID] then
-		return  unitDefToUniformBin[unitDefID] 
+local function GetUniformBinID(unitDefID, featureDefID)
+	if unitDefID and objectDefToUniformBin[unitDefID] then
+		return objectDefToUniformBin[unitDefID] 
+	elseif featureDefID and objectDefToUniformBin[-1 * featureDefID]  then 
+		return objectDefToUniformBin[-1 * featureDefID] 
 	else
-		return 'unit'
+		return 'otherunit'
 	end
 end
 
 local uniformBins = {
-	unit = {
-		bitOptions = defaultBitShaderOptions,
+	armunit = {
+		bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+		baseVertexDisplacement = 0.0,
 	},
-	scavenger = {
-		bitOptions = defaultBitShaderOptions,
-		vertexDisplacement = 0.4,
+	corunit = {
+		bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+		baseVertexDisplacement = 0.0,
+	},
+	armscavenger = {
+		bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+		baseVertexDisplacement = 0.4,
+	},
+	corscavenger = {
+		bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+		baseVertexDisplacement = 0.4,
 	},
 	chicken = {
-		bitOptions = defaultBitShaderOptions,
+		bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE + OPTION_HEALTH_TEXCHICKS + OPTION_TREEWIND,
+		baseVertexDisplacement = 0.0,
 	},
 	otherunit = {
 		bitOptions = defaultBitShaderOptions,
+		baseVertexDisplacement = 0.0,
 	},
 	feature = {
 		bitOptions = defaultBitShaderOptions,
+		baseVertexDisplacement = 0.0,
 	},
 	treepbr = {
 		bitOptions = defaultBitShaderOptions,
+		baseVertexDisplacement = 0.0,
 	},
 	tree = {
-		bitOptions = defaultBitShaderOptions,
+		bitOptions = defaultBitShaderOptions + OPTION_TREEWIND,
+		baseVertexDisplacement = 0.0,
 	},
 	wreck = {
 		bitOptions = defaultBitShaderOptions,
+		baseVertexDisplacement = 0.0,
 	},
 } -- maps uniformbins to a table of uniform names/values
 
@@ -377,7 +396,12 @@ local function SetShaderUniforms(drawPass, shaderID, uniformBinID)
 	end
 	
 	for uniformLocationName, uniformValue in pairs(uniformBins[uniformBinID]) do 
-		gl.Uniform(gl.GetUniformLocation(shaderID, uniformLocationName), uniformValue)
+		--Spring.Echo("Setting uniform",uniformLocationName, uniformValue)
+		if uniformLocationName == 'bitOptions' then 
+			gl.UniformInt(gl.GetUniformLocation(shaderID, uniformLocationName), uniformValue)
+		else
+			gl.Uniform(gl.GetUniformLocation(shaderID, uniformLocationName), uniformValue)
+		end
 	end
 	
 	if HasBit(drawPass, 4) then
@@ -649,22 +673,17 @@ local function GetNormal(unitDef, featureDef)
 	return normalMap
 end
 
-local function initTextures()
+local function initBinsAndTextures()
 	--if true then return end
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.model then 
-			local bitShaderOptions = defaultBitShaderOptions
-			if unitDef.name:sub(1,3) == 'arm' or  unitDef.name:sub(1,3) == 'cor' then 
-				bitShaderOptions = bitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE
-			end 
-			if unitDef.modCategories["tank"] then 
-				if unitDef.name:sub(1,3) == 'arm' then 
-					bitShaderOptions = bitShaderOptions + OPTION_THREADS_ARM
-				elseif unitDef.name:sub(1,3) == 'cor' then 
-					bitShaderOptions = bitShaderOptions + OPTION_THREADS_CORE
-				end
+			unitDefShaderBin[unitDefID] = 'unit'
+			objectDefToUniformBin[unitDefID] = "otherunit"
+			if unitDef.name:sub(1,3) == 'arm' then
+				objectDefToUniformBin[unitDefID] = 'armunit'
+			elseif 	unitDef.name:sub(1,3) == 'cor' then 
+				objectDefToUniformBin[unitDefID] = 'corunit'
 			end
-			
 			local normalTex = GetNormal(unitDef, nil)
 			local textureTable = {
 				--%-102:0 = featureDef 102 s3o tex1 
@@ -695,21 +714,20 @@ local function initTextures()
 					(lowercasenormaltex:find("cor_normal") and "unittextures/Cor_color_wreck_normal.dds") or false
 			
 			if unitDef.name:find("_scav", nil, true) then -- it better be a scavenger unit, or ill kill you
-				unitDefShaderBin[unitDefID] = 'scavenger'
 				textureTable[3] = wreckTex1
 				textureTable[4] = wreckTex2
 				textureTable[5] = wreckNormalTex
-				bitShaderOptions = bitShaderOptions + OPTION_SCAVENGER
-			elseif unitDef.name:find("chicken", nil, true) then 
-				unitDefShaderBin[unitDefID] = 'chicken'
-				bitShaderOptions = bitShaderOptions + OPTION_HEALTH_TEXCHICKS + OPTION_HEALTH_DISPLACE
+				if unitDef.name:sub(1,3) == 'arm' then
+					objectDefToUniformBin[unitDefID] = 'armscavenger'
+				elseif 	unitDef.name:sub(1,3) == 'cor' then 
+					objectDefToUniformBin[unitDefID] = 'corscavenger'
+				end
+			elseif unitDef.name:find("chicken", nil, true) then 	
+				objectDefToUniformBin[unitDefID] = 'chicken'
 			elseif wreckTex1 and wreckTex2 then -- just a true unit:
-				unitDefShaderBin[unitDefID] = 'unit'
 				textureTable[3] = wreckTex1
 				textureTable[4] = wreckTex2
 				textureTable[5] = wreckNormalTex
-			else
-				unitDefShaderBin[unitDefID] = 'otherunit'
 			end
 			
 			local texKey = GetTexturesKey(textureTable)
@@ -721,13 +739,11 @@ local function initTextures()
 				--Spring.Echo(unitDef.name, texKey,unitDefShaderBin[unitDefID] , lowercasetex1,lowercasetex2 , normalTex, wreckTex1, wreckTex2)
 				--Spring.Debug.TableEcho(textureTable)
 			end
-			objectDefToBitShaderOptions[unitDefID] = bitShaderOptions
 		end
 	end
 	
 	for featureDefID, featureDef in pairs(FeatureDefs) do 
 		if featureDef.model then -- this is kind of a hack to work around specific modelless features metalspots found on Otago 1.4
-			local bitShaderOptions = defaultBitShaderOptions
 			
 			local textureTable = {
 				[0] = string.format("%%-%s:%i", featureDefID, 0),
@@ -746,18 +762,18 @@ local function initTextures()
 			if textureKeytoSet[texKey] == nil then 
 				textureKeytoSet[texKey] = textureTable
 			end 
-			featureDefIDtoTextureKeys[featureDefID] = texKey
 			
+			featureDefIDtoTextureKeys[featureDefID] = 'feature'
+			objectDefToUniformBin[-1 * featureDefID] = 'wreck'
 			if featureDef.name:find("_dead", nil, true) or featureDef.name:find("_heap", nil, true) then 
 				featureDefShaderBin[featureDefID] = 'wreck'
+				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
 			elseif featureDef.customParams and featureDef.customParams.treeshader == 'yes' then 
 				featureDefShaderBin[featureDefID] = 'tree'
-				bitShaderOptions = bitShaderOptions + OPTION_TREEWIND
+				objectDefToUniformBin[-1 * featureDefID] = 'tree'
 			else
 				featureDefShaderBin[featureDefID] = 'feature'
 			end
-			
-			objectDefToBitShaderOptions[featureDefID] = bitShaderOptions
 		end
 	end
 end
@@ -1184,7 +1200,7 @@ function widget:Initialize()
 	vao:AttachIndexBuffer(ebo)
 	vao:AttachInstanceBuffer(ibo)
 	
-	initTextures()
+	initBinsAndTextures()
 
 	widget:Update()
 end
@@ -1265,8 +1281,37 @@ function widget:GameFrame(n)
 	if (n%300) == 0 then 
 		Spring.Echo(Spring.GetGameFrame(), "processedCounter", processedCounter, asssigncalls,gettexturescalls, 'seenopaque', seenbitsopaque, 'seenalpha', seenbitsalpha)
 	end
+end
+
+local function markBin(drawPass)
+	local count = 0
+	for shaderId, data in pairs(unitDrawBins[drawPass]) do
+		for _, uniformBin in pairs(data) do
+			for uniformBinID, uniformBin in pairs(data) do
+				for _, texAndObj in pairs(uniformBin) do
+					for unitID, _ in pairs(texAndObj.objectsIndex) do
+						local px, py, pz = Spring.GetUnitPosition(unitID)
+						if px then 
+							Spring.MarkerAddPoint(px,py,pz, tostring(drawPass) .. "/" .. tostring(unitID))
+							count = count + 1
+						end
+					end
+				end
+			end
+		end
+	end
+	Spring.Echo("Added markers for", count, "units in drawPass", drawPass)
+end
 	
 
+function widget:TextCommand(command)
+	if string.find(command, "cusgl4markbin", nil, true) == 1 then
+		local startmatch, endmatch = string.find(command, "cusgl4markbin", nil, true)
+		local param = string.sub(command, endmatch + 2,nil)
+		if param and tonumber(param) then 
+			markBin(tonumber(param))
+		end
+	end
 end
 
 
