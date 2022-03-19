@@ -24,6 +24,10 @@ local mexPlacementDragRadius = 20000	-- larger size so you can drag a move line 
 
 local chobbyInterface, activeUnitShape, lastInsertedOrder
 
+local function Distance(x1, z1, x2, z2)
+	return (x1 - x2) * (x1 - x2) + (z1 - z2) * (z1 - z2)
+end
+
 local sec = 0
 function widget:Update(dt)
 	if chobbyInterface then return end
@@ -52,8 +56,8 @@ function widget:Update(dt)
 			if isT1Mex or type == 'ground' then
 				local proceed = false
 				if type == 'ground' then
-					closestMex = WG['helperBuildResourceSpot'].GetClosestMetalSpot(params[1], params[3])
-					if closestMex and WG['helperBuildResourceSpot'].Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
+					closestMex = WG['helperBuildResourceSpot'].GetClosestPosition(params[1], params[3], WG.metalSpots)
+					if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
 						proceed = true
 					end
 				end
@@ -130,7 +134,7 @@ function widget:CommandNotify(id, params, options)
 			end
 			lastInsertedOrder = nil
 		elseif isMove and moveIsAreaMex then
-			local closestMex = WG['helperBuildResourceSpot'].GetClosestMetalSpot(params[1], params[3])
+			local closestMex = WG['helperBuildResourceSpot'].GetClosestPosition(params[1], params[3], WG.metalSpots)
 			local spotRadius = mexPlacementRadius
 			if #(WG['helperBuildResourceSpot'].GetSelectedUnits()) == 1 and #Spring.GetCommandQueue(WG['helperBuildResourceSpot'].GetSelectedUnits()[1], 8) > 1 then
 				if not lastInsertedOrder or (closestMex.x ~= lastInsertedOrder[1] and closestMex.z ~= lastInsertedOrder[2]) then
@@ -141,7 +145,7 @@ function widget:CommandNotify(id, params, options)
 			else
 				lastInsertedOrder = nil
 			end
-			if spotRadius > 0 and closestMex and WG['helperBuildResourceSpot'].Distance(params[1], params[3], closestMex.x, closestMex.z) < spotRadius then
+			if spotRadius > 0 and closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < spotRadius then
 				id = CMD_CONSTRUCT_MEX
 				params[4] = 120		-- increase this too if you want to increase mexPlacementDragRadius
 				moveReturn = true

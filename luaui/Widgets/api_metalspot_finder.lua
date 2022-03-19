@@ -5,7 +5,7 @@ function widget:GetInfo()
 		desc      = "Finds metal spots for other widgets",
 		author    = "Niobium",
 		version   = "v1.1",
-		date      = "November 2010",
+		date      = "November 2010 ",
 		license   = "GNU GPL, v2 or later",
 		layer     = -99999999,
 		enabled   = true
@@ -83,7 +83,7 @@ function GetMexPositions(spot, uDefID, facing, testBuild)
 				gridSize do
 				local y = spGetGroundHeight(x, z)
 				if not (testBuild and spTestBuildOrder(uDefID, x, y, z, facing) == 0) then
-					positions[#positions + 1] = {x, y, z}
+					positions[#positions + 1] = {x=x, y=y, z=z}
 				end
 			end
 		end

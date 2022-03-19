@@ -29,20 +29,19 @@ for uDefID, uDef in pairs(UnitDefs) do
 	end
 end
 
-local function GetClosestMetalSpot(x, z)
-	local bestSpot
+local function GetClosestPosition(x, z, positions)
+	local bestPos
 	local bestDist = math.huge
-	local metalSpots = WG.metalSpots
-	for i = 1, #metalSpots do
-		local spot = metalSpots[i]
-		local dx, dz = x - spot.x, z - spot.z
-		local dist = dx*dx + dz*dz
+	for i = 1, #positions do
+		local pos = positions[i]
+		local dx, dz = x - pos.x, z - pos.z
+		local dist = dx * dx + dz * dz
 		if dist < bestDist then
-			bestSpot = spot
+			bestPos = pos
 			bestDist = dist
 		end
 	end
-	return bestSpot
+	return bestPos
 end
 
 local function GetClosestMexPosition(spot, x, z, uDefID, facing)
@@ -51,7 +50,7 @@ local function GetClosestMexPosition(spot, x, z, uDefID, facing)
 	local positions = WG.GetMexPositions(spot, uDefID, facing, true)
 	for i = 1, #positions do
 		local pos = positions[i]
-		local dx, dz = x - pos[1], z - pos[3]
+		local dx, dz = x - pos.x, z - pos.z
 		local dist = dx*dx + dz*dz
 		if dist < bestDist then
 			bestPos = pos
@@ -127,7 +126,7 @@ function widget:DrawWorld()
 
 	-- Find build position and check if it is valid (Would get 100% metal)
 	local bx, by, bz = Spring.Pos2BuildPos(-cmdID, pos[1], pos[2], pos[3])
-	local closestSpot = GetClosestMetalSpot(bx, bz)
+	local closestSpot = GetClosestPosition(bx, bz, WG.metalSpots)
 	if not closestSpot or WG.IsMexPositionValid(closestSpot, bx, bz) then
 		clearShape()
 		return
@@ -135,7 +134,8 @@ function widget:DrawWorld()
 
 	-- Get the closet position that would give 100%
 	local bface = Spring.GetBuildFacing()
-	local bestPos = GetClosestMexPosition(closestSpot, bx, bz, -cmdID, bface)
+	local mexPositions = WG.GetMexPositions(closestSpot, -cmdID, bface, true)
+	local bestPos = GetClosestPosition(bx, bz, mexPositions)
 	if not bestPos then
 		WG.MexSnap.curPosition = nil
 		clearShape()
@@ -147,12 +147,12 @@ function widget:DrawWorld()
 	gl.DepthTest(false)
 	gl.LineWidth(1.49)
 	gl.Color(1, 1, 0, 0.45)
-	gl.BeginEnd(GL.LINE_STRIP, DoLine, bx, by, bz, bestPos[1], bestPos[2], bestPos[3])
+	gl.BeginEnd(GL.LINE_STRIP, DoLine, bx, by, bz, bestPos.x, bestPos.y, bestPos.z)
 	gl.LineWidth(1.0)
 	gl.DepthTest(true)
 
 	-- Add/update unit shape rendering
-	local newUnitshape = {-cmdID, bestPos[1], bestPos[2], bestPos[3], bface}
+	local newUnitshape = {-cmdID, bestPos.x, bestPos.y, bestPos.z, bface}
 	if not unitshape or (unitshape[1]~= newUnitshape[1] or unitshape[2]~= newUnitshape[2] or unitshape[3]~= newUnitshape[3] or unitshape[4]~= newUnitshape[4] or unitshape[5]~= newUnitshape[5]) then
 		clearShape()
 		unitshape = newUnitshape
@@ -163,14 +163,15 @@ end
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if isMex[-cmdID] then
 		local bx, bz = cmdParams[1], cmdParams[3]
-		local closestSpot = GetClosestMetalSpot(bx, bz)
+		local closestSpot = GetClosestPosition(bx, bz, WG.metalSpots)
 		if closestSpot and not WG.IsMexPositionValid(closestSpot, bx, bz) then
 
 			local bface = cmdParams[4]
-			local bestPos = GetClosestMexPosition(closestSpot, bx, bz, -cmdID, bface)
+			local mexPositions = WG.GetMexPositions(closestSpot, -cmdID, bface, true)
+			local bestPos = GetClosestPosition(bx, bz, mexPositions)
 			if bestPos then
 
-				GiveNotifyingOrder(cmdID, {bestPos[1], bestPos[2], bestPos[3], bface}, cmdOpts)
+				GiveNotifyingOrder(cmdID, {bestPos.x, bestPos.y, bestPos.z, bface}, cmdOpts)
 				return true
 			end
 		end

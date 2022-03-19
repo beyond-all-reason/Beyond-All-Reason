@@ -104,29 +104,12 @@ local function Distance(x1, z1, x2, z2)
 	return (x1 - x2) * (x1 - x2) + (z1 - z2) * (z1 - z2)
 end
 
-local function GetClosestMetalSpot(x, z)
-	local bestSpot
-	local bestDist = math.huge
-	local metalSpots = WG.metalSpots
-	for i = 1, #metalSpots do
-		local spot = metalSpots[i]
-		local dx, dz = x - spot.x, z - spot.z
-		local dist = dx * dx + dz * dz
-		if dist < bestDist then
-			bestSpot = spot
-			bestDist = dist
-		end
-	end
-	return bestSpot
-end
-
-local function GetClosestMexPosition(spot, x, z, uDefID, facing)
+local function GetClosestPosition(x, z, positions)
 	local bestPos
 	local bestDist = math.huge
-	local positions = WG.GetMexPositions(spot, uDefID, facing, true)
 	for i = 1, #positions do
 		local pos = positions[i]
-		local dx, dz = x - pos[1], z - pos[3]
+		local dx, dz = x - pos.x, z - pos.z
 		local dist = dx * dx + dz * dz
 		if dist < bestDist then
 			bestPos = pos
@@ -255,14 +238,18 @@ local function BuildMetalExtractors(params, options, isGuard, justDraw)		-- when
 				local targetPos, targetOwner
 				local occupiedMex = IsSpotOccupied({x = command.x, z =command.z})
 				if occupiedMex then
-					targetPos = { spGetUnitPosition(occupiedMex) }
+					local occupiedPos = { spGetUnitPosition(occupiedMex) }
+					targetPos = {x=occupiedPos[1], y=occupiedPos[2], z=occupiedPos[3]}
 					targetOwner = Spring.GetUnitTeam(occupiedMex)	-- because gadget "Mex Upgrade Reclaimer" will share a t2 mex build upon ally t1 mex
 				else
-					targetPos = GetClosestMexPosition(GetClosestMetalSpot(command.x, command.z), command.x, command.z, -mexBuilder[id].building[j], "s")
+
+					local closestMetalSpot = GetClosestPosition(command.x, command.z, WG.metalSpots);
+					local mexPosition = WG.GetMexPositions(closestMetalSpot, -mexBuilder[id].building[j], "s", true)
+					targetPos = GetClosestPosition(command.x, command.z, mexPosition)
 					targetOwner = spGetMyTeamID()
 				end
 				if targetPos then
-					local newx, newz = targetPos[1], targetPos[3]
+					local newx, newz = targetPos.x, targetPos.z
 					queuedMexes[#queuedMexes+1] = { id, math.abs(mexBuilder[id].building[j]), newx, spGetGroundHeight(newx, newz), newz, targetOwner }
 					if not justDraw then
 						spGiveOrderToUnit(id, mexBuilder[id].building[j], { newx, spGetGroundHeight(newx, newz), newz }, { "shift" })
@@ -297,12 +284,8 @@ function widget:Initialize()
 	WG['helperBuildResourceSpot'] = { }
 
 
-	WG['helperBuildResourceSpot'].Distance = function(x1, z1, x2, z2)
-		return Distance (x1, z1, x2, z2)
-	end
-
-	WG['helperBuildResourceSpot'].GetClosestMetalSpot = function(x, z)
-		return GetClosestMetalSpot (x, z)
+	WG['helperBuildResourceSpot'].GetClosestPosition = function(x, z, positions)
+		return GetClosestPosition(x, z, positions)
 	end
 
 	WG['helperBuildResourceSpot'].BuildMetalExtractors = function(params, options, isGuard, justDraw)
