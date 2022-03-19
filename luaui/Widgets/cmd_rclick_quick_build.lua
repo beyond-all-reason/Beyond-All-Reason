@@ -48,7 +48,7 @@ function widget:Update(dt)
 	if doUpdate then
 		if not WG.customformations_linelength or WG.customformations_linelength < 10 then	-- dragging multi-unit formation-move-line
 			local type, params = Spring.TraceScreenRay(mx, my)
-			local isT1Mex = (type == 'unit' and WG['helperBuildResourceSpot'].GetMexIds()[spGetUnitDefID(params)] and WG['helperBuildResourceSpot'].GetMexIds()[spGetUnitDefID(params)] < 0.002)
+			local isT1Mex = (type == 'unit' and WG['metalspot_builder'].GetMexIds()[spGetUnitDefID(params)] and WG['metalspot_builder'].GetMexIds()[spGetUnitDefID(params)] < 0.002)
 			local closestMex, unitID
 			if type == 'unit' then
 				unitID = params
@@ -57,7 +57,7 @@ function widget:Update(dt)
 			if isT1Mex or type == 'ground' then
 				local proceed = false
 				if type == 'ground' then
-					closestMex = WG['helperBuildResourceSpot'].GetClosestPosition(params[1], params[3], WG.metalSpots)
+					closestMex = WG['metalspot_builder'].GetClosestPosition(params[1], params[3], WG.metalSpots)
 					if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
 						proceed = true
 					end
@@ -65,20 +65,20 @@ function widget:Update(dt)
 				if isT1Mex or proceed then
 					local hasT1builder, hasT2builder = false, false
 					-- search for builders
-					for k,v in pairs(WG['helperBuildResourceSpot'].GetSelectedUnitsCount()) do
+					for k,v in pairs(WG['metalspot_builder'].GetSelectedUnitsCount()) do
 						if k ~= 'n' then
-							if WG['helperBuildResourceSpot'].GetMexBuilderDef()[k] then
+							if WG['metalspot_builder'].GetMexBuilderDef()[k] then
 								hasT1builder = true
 								break
 							end
-							if WG['helperBuildResourceSpot'].GetMexBuilderT2()[k] then
+							if WG['metalspot_builder'].GetMexBuilderT2()[k] then
 								hasT2builder = true
 								break
 							end
 						end
 					end
 					if hasT1builder or hasT2builder then
-						local queuedMexes = WG['helperBuildResourceSpot'].BuildMetalExtractors({ params[1], params[2], params[3]}, {}, false, true)
+						local queuedMexes = WG['metalspot_builder'].BuildMetalExtractors({ params[1], params[2], params[3]}, {}, false, true)
 						if queuedMexes and #queuedMexes > 0 then
 							drawUnitShape = { queuedMexes[1][2], queuedMexes[1][3], queuedMexes[1][4], queuedMexes[1][5], queuedMexes[1][6] }
 							Spring.SetMouseCursor('upgmex')
@@ -122,9 +122,9 @@ function widget:CommandNotify(id, params, options)
 		return
 	end
 
-	-- transform move into area-mex command
+	-- transform move/guard into small area-mex command
 	local moveReturn = false
-	if WG['helperBuildResourceSpot'].GetMexBuilder()[WG['helperBuildResourceSpot'].GetSelectedUnits()[1]] then
+	if WG['metalspot_builder'].GetMexBuilder()[WG['metalspot_builder'].GetSelectedUnits()[1]] then
 		if isGuard then
 			local ux, uy, uz = spGetUnitPosition(params[1])
 			isGuard = { x = ux, y = uy, z = uz }
@@ -136,9 +136,9 @@ function widget:CommandNotify(id, params, options)
 			end
 			lastInsertedOrder = nil
 		elseif isMove and moveIsAreaMex then
-			local closestMex = WG['helperBuildResourceSpot'].GetClosestPosition(params[1], params[3], WG.metalSpots)
+			local closestMex = WG['metalspot_builder'].GetClosestPosition(params[1], params[3], WG.metalSpots)
 			local spotRadius = mexPlacementRadius
-			if #(WG['helperBuildResourceSpot'].GetSelectedUnits()) == 1 and #Spring.GetCommandQueue(WG['helperBuildResourceSpot'].GetSelectedUnits()[1], 8) > 1 then
+			if #(WG['metalspot_builder'].GetSelectedUnits()) == 1 and #Spring.GetCommandQueue(WG['metalspot_builder'].GetSelectedUnits()[1], 8) > 1 then
 				if not lastInsertedOrder or (closestMex.x ~= lastInsertedOrder[1] and closestMex.z ~= lastInsertedOrder[2]) then
 					spotRadius = mexPlacementDragRadius		-- make move drag near mex spots be less strict
 				elseif lastInsertedOrder then
@@ -161,7 +161,7 @@ function widget:CommandNotify(id, params, options)
 	end
 
 	if id == CMD_CONSTRUCT_MEX then
-		local queuedMexes = WG['helperBuildResourceSpot'].BuildMetalExtractors(params, options, isGuard)
+		local queuedMexes = WG['metalspot_builder'].BuildMetalExtractors(params, options, isGuard)
 		if moveReturn and not queuedMexes[1] then	-- used when area_mex isnt queuing a mex, to let the move cmd still pass through
 			return false
 		end

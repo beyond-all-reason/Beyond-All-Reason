@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
-		name = "Helper - Build on Resource Spots",
-		desc = "Provides shared methods/variables that are used to build extractors on resource spots",
+		name = "Metalspot Builder",
+		desc = "Handles construction of metal extractors for other widgets",
 		author = "Google Frog, NTG (file handling), Chojin (metal map), Doo (multiple enhancements), Floris (mex placer/upgrader), Tarte (maintenance)",
 		date = "Oct 23, 2010 (last update: March 3, 2022)",
 		license = "GNU GPL, v2 or later",
@@ -281,42 +281,42 @@ function widget:Initialize()
 
 
 	--make interfaces available to other widgets:
-	WG['helperBuildResourceSpot'] = { }
+	WG['metalspot_builder'] = { }
 
 
-	WG['helperBuildResourceSpot'].GetClosestPosition = function(x, z, positions)
+	WG['metalspot_builder'].GetClosestPosition = function(x, z, positions)
 		return GetClosestPosition(x, z, positions)
 	end
 
-	WG['helperBuildResourceSpot'].BuildMetalExtractors = function(params, options, isGuard, justDraw)
+	WG['metalspot_builder'].BuildMetalExtractors = function(params, options, isGuard, justDraw)
 		return BuildMetalExtractors (params, options, isGuard, justDraw)
 	end
 
-	WG['helperBuildResourceSpot'].GetSelectedUnits = function()
+	WG['metalspot_builder'].GetSelectedUnits = function()
 		return selectedUnits
 	end
 
-	WG['helperBuildResourceSpot'].GetSelectedUnitsCount = function()
+	WG['metalspot_builder'].GetSelectedUnitsCount = function()
 		return selUnitsCount
 	end
 
-	WG['helperBuildResourceSpot'].isMetalMap = function()
+	WG['metalspot_builder'].isMetalMap = function()
 		return metalMap
 	end
 
-	WG['helperBuildResourceSpot'].GetMexBuilder = function()
+	WG['metalspot_builder'].GetMexBuilder = function()
 		return mexBuilder
 	end
 
-	WG['helperBuildResourceSpot'].GetMexBuilderDef = function()
+	WG['metalspot_builder'].GetMexBuilderDef = function()
 		return mexBuilderDef
 	end
 
-	WG['helperBuildResourceSpot'].GetMexBuilderT2 = function()
+	WG['metalspot_builder'].GetMexBuilderT2 = function()
 		return mexBuilderT2
 	end
 
-	WG['helperBuildResourceSpot'].GetMexIds = function()
+	WG['metalspot_builder'].GetMexIds = function()
 		return mexIds
 	end
 end
