@@ -44,22 +44,6 @@ local function GetClosestPosition(x, z, positions)
 	return bestPos
 end
 
-local function GetClosestMexPosition(spot, x, z, uDefID, facing)
-	local bestPos
-	local bestDist = math.huge
-	local positions = WG.GetMexPositions(spot, uDefID, facing, true)
-	for i = 1, #positions do
-		local pos = positions[i]
-		local dx, dz = x - pos.x, z - pos.z
-		local dist = dx*dx + dz*dz
-		if dist < bestDist then
-			bestPos = pos
-			bestDist = dist
-		end
-	end
-	return bestPos
-end
-
 local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
 	if widgetHandler:CommandNotify(cmdID, cmdParams, cmdOpts) then
 		return
