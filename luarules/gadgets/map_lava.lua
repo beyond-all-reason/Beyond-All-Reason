@@ -187,7 +187,7 @@ function lavaDeathCheck ()
 	-- end
 end
 
-local DAMAGE_EXTSOURCE_WATER = -500
+local DAMAGE_EXTSOURCE_WATER = -5
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID)
     if (weaponDefID ~= DAMAGE_EXTSOURCE_WATER) then
@@ -216,7 +216,7 @@ else --- UNSYCNED:
 	
 	local texturesamplingmode = '' -- ':l:' causes MASSIVE load on zoom out and downsampling textures!
 	local lavaDiffuseEmit = texturesamplingmode .. "LuaUI/images/lava2_diffuseemit.tga" -- pack emissiveness into alpha channel (this is also used as heat for distortion)
-	local lavaNormalHeight = texturesamplingmode .."LuaUI/images/lava2_normalheight.tga"
+	local lavaNormalHeight = texturesamplingmode .."LuaUI/images/lava2_normalheight.tga" -- pack height into normals alpha
 	local lavaDistortion = texturesamplingmode .. "LuaUI/images/lavadistortion.png"
 	
 	local lavaShader 
@@ -252,7 +252,7 @@ else --- UNSYCNED:
 		COASTCOLOR = lavaCoastColor, -- the color of the lava coast
 		SPECULAREXPONENT = lavaSpecularExp,  -- the specular exponent of the lava plane
 		SPECULARSTRENGTH = 1.0, -- The peak brightness of specular highlights
-		LOSDARKNESS = 0.5, -- how much to darken the out-of-los areas of the lava plane
+		LOSDARKNESS = lavaLOSdarkness, -- how much to darken the out-of-los areas of the lava plane
 		SHADOWSTRENGTH = lavaShadowStrength, -- how much light a shadowed fragment can recieve
 		OUTOFMAPHEIGHT = -100, -- what value to use when we are sampling the heightmap outside of the true bounds
 		SWIRLFREQUENCY = lavaSwirlFreq, -- How fast the main lava texture swirls around default 0.025

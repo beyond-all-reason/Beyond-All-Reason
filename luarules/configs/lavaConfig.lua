@@ -9,6 +9,7 @@ lavaGrow = 0.25 -- initial lavaGrow speed
 lavaDamage = 100 -- damage per second
 lavaUVscale = 2.5 -- How many times to tile the lava texture across the entire map
 lavaColorCorrection = "vec3(1.0, 1.0, 1.0)" -- final colorcorrection on all lava + shore coloring
+lavaLOSdarkness = 0.5 -- how much to darken the out-of-los areas of the lava plane
 lavaSwirlFreq = 0.025 -- How fast the main lava texture swirls around default 0.025
 lavaSwirlAmp = 0.003 -- How much the main lava texture is swirled around default 0.003
 lavaSpecularExp = 64.0 -- the specular exponent of the lava plane
@@ -104,9 +105,10 @@ elseif string.find(mapName, "zed remake") then
     lavaLevel = 1 -- pre-game lava level
     lavaDamage = 15 -- damage per second
     lavaColorCorrection = "vec3(0.4, 0.09, 1.2)"
+    lavaLOSdarkness = 0.8
     lavaCoastColor = "vec3(0.8, 0.03, 1.1)"
     lavaFogColor = "vec3(0.60, 0.10, 1.1)"
-    lavaCoastLightBoost = 0.8
+    lavaCoastLightBoost = 1.3
     lavaTideamplitude = 1.5 -- how much lava should rise up-down on static level
     lavaTideperiod = 150 -- how much time between live rise up-down
     if isLavaGadget and isLavaGadget == "synced" then
