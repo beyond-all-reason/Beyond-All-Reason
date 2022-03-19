@@ -34,7 +34,7 @@ return {
 		maxwaterdepth = 50000000,
 		minwaterdepth = 12,
 		movementclass = "NANO",
-		objectName = "lootboxes/lootboxnanocorT2.s3o",
+		objectname = "lootboxes/lootboxnanocorT2.s3o",
 		script = "lootboxes/lootboxnanocor.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderExplosion",
