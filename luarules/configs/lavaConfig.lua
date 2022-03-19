@@ -104,6 +104,7 @@ elseif string.find(mapName, "zed remake") then
     lavaGrow = 0
     lavaLevel = 1 -- pre-game lava level
     lavaDamage = 15 -- damage per second
+    lavaUVscale = 1.5
     lavaColorCorrection = "vec3(0.4, 0.09, 1.2)"
     lavaLOSdarkness = 0.8
     lavaCoastColor = "vec3(0.8, 0.03, 1.1)"
