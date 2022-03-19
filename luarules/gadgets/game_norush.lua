@@ -109,9 +109,9 @@ function gadget:GameFrame(n)
                             Spring.DestroyUnit(unitID, false, false)
                             Spring.SpawnCEG("scavradiation-lightning", unitPosX,unitPosY+40,unitPosZ, 0,0,0)
                         end
+                    else
+                        unitPositionTable[unitID] = {x = unitPosX, z = unitPosZ}
                     end
-                else
-                    unitPositionTable[unitID] = {x = unitPosX, z = unitPosZ}
                 end
             end
         end
@@ -151,7 +151,6 @@ function gadget:GameFrame(n)
                         else
                             Spring.DestroyUnit(unitID, false, false)
                             Spring.SpawnCEG("scavradiation-lightning", unitPosX,unitPosY+40,unitPosZ, 0,0,0)
-                            
                         end
                     else
                         unitPositionTable[unitID] = {x = unitPosX, z = unitPosZ}
