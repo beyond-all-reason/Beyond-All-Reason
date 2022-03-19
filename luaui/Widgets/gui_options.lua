@@ -2480,7 +2480,7 @@ function init()
 			  saveOptionValue('Minimap', 'minimap', 'setMaxHeight', { 'maxHeight' }, value)
 		  end,
 		},
-		{ id = "minimapleftclick", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.minimapleftclick, type = "bool", value = (WG['minimap'] ~= nil and WG['minimap'].getAlwaysShow ~= nil and WG['minimap'].getLeftClickMove()), description = texts.option.minimapleftclick_descr,
+		{ id = "minimapleftclick", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.minimapleftclick, type = "bool", value = (WG['minimap'] ~= nil and WG['minimap'].getLeftClickMove ~= nil and WG['minimap'].getLeftClickMove()), description = texts.option.minimapleftclick_descr,
 		  onchange = function(i, value)
 			  saveOptionValue('Minimap', 'minimap', 'setLeftClickMove', { 'leftClickMove' }, value)
 		  end,

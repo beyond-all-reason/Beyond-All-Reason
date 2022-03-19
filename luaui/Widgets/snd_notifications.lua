@@ -323,8 +323,7 @@ local function eventBroadcast(msg)
 
 	if string.find(msg, "SoundEvents", nil, true) then
 		msg = string.sub(msg, 13)
-		local forceplay = string.sub(msg, string.find(msg, " ", nil, true)+2, string.len(msg))
-		forceplay = (forceplay ~= nil and forceplay ~= '')
+		local forceplay = (string.sub(msg, string.len(msg)-1) == ' y')
 		if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
 			local event = string.sub(msg, 1, string.find(msg, " ", nil, true)-1)
 			local player = string.sub(msg, string.find(msg, " ", nil, true)+1, string.len(msg))
