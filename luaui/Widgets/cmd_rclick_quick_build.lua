@@ -13,6 +13,7 @@ end
 
 
 local CMD_MOVE = CMD.MOVE
+local CMD_GUARD = CMD.GUARD
 
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -116,7 +117,8 @@ end
 
 function widget:CommandNotify(id, params, options)
 	local isMove = (id == CMD_MOVE)
-	if not (isMove) then
+	local isGuard = (id == CMD_GUARD)
+	if not (isMove or isGuard) then
 		return
 	end
 
