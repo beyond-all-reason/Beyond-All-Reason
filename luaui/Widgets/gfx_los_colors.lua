@@ -133,6 +133,8 @@ function toggleLOSRadars()
     else
         setLosWithRadars()
     end
+
+    return true
 end
 
 function toggleLOSColors()
@@ -141,15 +143,17 @@ function toggleLOSColors()
     else
         setLosWithoutColors()
     end
+
+    return true
 end
 
 function widget:Initialize()
-    widgetHandler:AddAction("losradar", toggleLOSRadars)
-    widgetHandler:AddAction("loscolor", toggleLOSColors)
+	widgetHandler:AddAction("losradar", toggleLOSRadars)
+	widgetHandler:AddAction("loscolor", toggleLOSColors)
 
-    spSendCommands('unbindkeyset Any+;')
-    spSendCommands('bind Any+; losradar')
-    spSendCommands('bind Any+0xf6 losradar') -- o-umlaut for German keyboards, located where the semicolon normally is
+	spSendCommands('unbindkeyset Any+;')
+	spSendCommands('bind Any+; losradar')
+	spSendCommands('bind Any+0xf6 losradar') -- o-umlaut for German keyboards, located where the semicolon normally is
 
 	WG['los'] = {}
 	WG['los'].getColorize = function()

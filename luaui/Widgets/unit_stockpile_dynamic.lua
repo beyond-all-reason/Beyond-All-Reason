@@ -59,9 +59,11 @@ function widget:GetConfigData()
 end
 
 function ChangeMaxStockPile(_,_,words)
-    MaxStockpile = tonumber(words[1]) or MaxStockpile
-    Spring.Echo("Automatic stockpile set to" .. MaxStockpile)
+	MaxStockpile = tonumber(words[1]) or MaxStockpile
+	Spring.Echo("Automatic stockpile set to" .. MaxStockpile)
 	UpdateStockPileAllUnits()
+
+	return true
 end
 
 function maybeRemoveSelf()
