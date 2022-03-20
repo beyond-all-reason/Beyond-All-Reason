@@ -51,6 +51,7 @@ local unifiedShaderConfig = {
 	LOSDARKNESS = 0.5, -- how much to darken the out-of-los areas of the lava plane
 	SHADOWSTRENGTH = 0.4, -- how much light a shadowed fragment can recieve
 	OUTOFMAPHEIGHT = -100, -- what value to use when we are sampling the heightmap outside of the true bounds
+	SWIZZLECOLORS = 'fragColor.rgb = (vec3(1.0, 0.5, 2.0) * fragColor.rgb).grb;', -- yes you can swap around and weight color channels, right after final color, default is 'rgb'
 	
 	-- for foglight:
 	FOGHEIGHTABOVELAVA = fogheightabovelava, -- how much higher above the lava the fog light plane is
@@ -58,6 +59,8 @@ local unifiedShaderConfig = {
 	FOGFACTOR = 0.1, -- how dense the fog is
 	EXTRALIGHTCOAST = 0.4, -- how much extra brightness should coastal areas get
 	FOGLIGHTDISTORTION = 4.0, -- lower numbers are higher distortion amounts
+	PARALLAXDEPTH = 16.0, -- set to >0 to enable
+	PARALLAXOFFSET = 0.5, -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
 }
 
 
@@ -163,6 +166,7 @@ out vec4 fragColor;
 void main() {
 	
 	vec4 camPos = cameraViewInv[3];
+	vec3 worldtocam = camPos.xyz - worldPos.xyz;
 	
 	// Sample emissive as heat indicator here for later displacement
 	vec4 nodiffuseEmit =  texture(lavaDiffuseEmit, worldUV.xy * WORLDUVSCALE );
@@ -205,8 +209,16 @@ void main() {
 	distortion.xy *= clamp(nodiffuseEmit.a * 0.5 + coastfactor, 0.2, 2.0);
 
 	vec2 diffuseNormalUVs =  worldUV.xy * WORLDUVSCALE + distortion.xy + rotatearoundvertices;
-	vec4 diffuseEmit =   texture(lavaDiffuseEmit , diffuseNormalUVs);
+	
 	vec4 normalHeight =  texture(lavaNormalHeight, diffuseNormalUVs);
+	#if (PARALLAXDEPTH > 0 )
+		vec3 viewvec = normalize(worldtocam * -1.0);
+		float pdepth = PARALLAXDEPTH * (PARALLAXOFFSET - normalHeight.a ) * (1.0 - coastfactor);
+		diffuseNormalUVs += pdepth * viewvec.xz * 0.002;
+		normalHeight =  texture(lavaNormalHeight, diffuseNormalUVs);
+	#endif
+	
+	vec4 diffuseEmit =   texture(lavaDiffuseEmit , diffuseNormalUVs);
 	
 	fragColor.rgba = diffuseEmit;
 	
@@ -221,7 +233,6 @@ void main() {
 	
 	// Specular Color
 	vec3 reflvect = reflect(normalize(-1.0 * sunDir.xyz), normalize(fragNormal));
-	vec3 worldtocam = camPos.xyz - worldPos.xyz;
 	float specular = clamp(pow(dot(normalize(worldtocam), normalize(reflvect)), SPECULAREXPONENT), 0.0, SPECULARSTRENGTH) * shadow;	
 	fragColor.rgb += fragColor.rgb * specular;
 
@@ -240,6 +251,10 @@ void main() {
 	//fragColor.rgb = fract(4*vec3(coastfactor));
 	fragColor.a = 1.0;
 	fragColor.a = clamp(  inboundsness * 2.0 +2.0, 0.0, 1.0);
+	SWIZZLECOLORS
+	#if (PARALLAXDEPTH > 0 )
+		//fragColor.rgb = vec3(normalHeight.a);
+	#endif
 }
 ]]
 
@@ -390,6 +405,7 @@ void main() {
 	
 	// fade out the foglightplane if it is far out of bounds
 	fragColor.a *= clamp(  inboundsness * 2.0 +2.0, 0.0, 1.0);
+	SWIZZLECOLORS
 }
 ]]
 
