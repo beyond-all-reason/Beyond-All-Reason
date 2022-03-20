@@ -858,13 +858,12 @@ function prevPageHandler()
 end
 
 function goToCategoriesHandler()
-	if currentBuildCategory then
-		currentBuildCategory = nil
-		doUpdate = true
-		return true
+	if not currentBuildCategory then
+		return false
 	end
-        return false
-
+	currentBuildCategory = nil
+	doUpdate = true
+	return true
 end
 
 function buildFacingHandler(_, _, args)
