@@ -862,9 +862,9 @@ function goToCategoriesHandler()
 		currentBuildCategory = nil
 		doUpdate = true
 		return true
-	else
-		return false
 	end
+        return false
+
 end
 
 function buildFacingHandler(_, _, args)
