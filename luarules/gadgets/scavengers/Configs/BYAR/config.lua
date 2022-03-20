@@ -189,6 +189,7 @@ local scavconfig = {
 		searesurrectors						= true,
 		useconstructors						= true,
 		usecollectors						= true,
+		usecapturers						= true,
 	},
 	unitControllerModuleConfig = {
 		minimumrangeforfight				= 650,

@@ -97,7 +97,9 @@ end
 local function resurrectorOrders(n, unitID)
 	Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, generateOrderParams(unitID, 1000), 0)
 	Spring.GiveOrderToUnit(unitID, CMD.REPAIR, generateOrderParams(unitID, 1000), {"shift"})
-	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 1000), {"shift"})
+	if scavconfig.constructorControllerModuleConfig.usecapturers then
+		Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 1000), {"shift"})
+	end
 	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, generateOrderParams(unitID, 1000), {"shift"})
 	generateMoveOrder(unitID, true)
 end
@@ -115,7 +117,9 @@ end
 
 local function collectorOrders(n, unitID)
 	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, generateOrderParams(unitID, 1000), 0)
-	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 1000), {"shift"})
+	if scavconfig.constructorControllerModuleConfig.usecapturers then
+		Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(unitID, 1000), {"shift"})
+	end
 	generateMoveOrder(unitID, true)
 end
 
@@ -327,15 +331,17 @@ end
 ConstructorNumberOfRetries = {}
 local function constructNewBlueprint(n, unitID)
 	local x,y,z = Spring.GetUnitPosition(unitID)
-	local surroundingGaiaUnits = Spring.GetUnitsInCylinder(x, z, 500, Spring.GetGaiaTeamID())
-	if surroundingGaiaUnits then
-		if #surroundingGaiaUnits > 0 then
-			local target = ScavComGetClosestGaiaUnit(x, z, surroundingGaiaUnits)
-			if target then
-				local posx, posy, posz = Spring.GetUnitPosition(target)
-				Spring.GiveOrderToUnit(unitID, CMD.MOVE, { posx + math.random(-64,64), posy, posz + math.random(-64,64) }, {})
-				Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, {target}, {"shift"})
-				return
+	if scavconfig.constructorControllerModuleConfig.usecapturers then
+		local surroundingGaiaUnits = Spring.GetUnitsInCylinder(x, z, 500, Spring.GetGaiaTeamID())
+		if surroundingGaiaUnits then
+			if #surroundingGaiaUnits > 0 then
+				local target = ScavComGetClosestGaiaUnit(x, z, surroundingGaiaUnits)
+				if target then
+					local posx, posy, posz = Spring.GetUnitPosition(target)
+					Spring.GiveOrderToUnit(unitID, CMD.MOVE, { posx + math.random(-64,64), posy, posz + math.random(-64,64) }, {})
+					Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, {target}, {"shift"})
+					return
+				end
 			end
 		end
 	end
