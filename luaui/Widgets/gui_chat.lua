@@ -21,7 +21,6 @@ local maxConsoleLines = 2
 local maxLinesScroll = 15
 local lineHeightMult = 1.27
 local lineTTL = 40
-local capitalize = false	-- capitalize first letter of chat text
 local backgroundOpacity = 0.18
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
@@ -53,8 +52,8 @@ local font, font3, chobbyInterface, hovering
 local RectRound, UiElement, UiScroller, elementCorner, elementPadding, elementMargin
 
 local playSound = true
-local SoundIncomingChat  = 'beep4'
-local SoundIncomingChatVolume = 0.85
+local sndChatFile  = 'beep4'
+local sndChatFileVolume = 0.55
 
 local colorOther = {1,1,1} -- normal chat color
 local colorAlly = {0,1,0}
@@ -161,11 +160,6 @@ local function addConsoleLine(gameFrame, lineType, text, isLive)
 	if scrolling ~= 'console' then
 		currentConsoleLine = consoleLinesCount
 	end
-
-	-- play sound for ...
-	--if isLive and playSound and not Spring.IsGUIHidden() then
-	--	spPlaySoundFile( SoundIncomingChat, SoundIncomingChatVolume, nil, "ui" )
-	--end
 end
 
 local function addChat(gameFrame, lineType, name, text, isLive)
@@ -202,7 +196,7 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 
 	-- play sound for player/spectator chat
 	if isLive and (lineType == 1 or lineType == 2) and playSound and not Spring.IsGUIHidden() then
-		spPlaySoundFile( SoundIncomingChat, SoundIncomingChatVolume, nil, "ui" )
+		spPlaySoundFile( sndChatFile, sndChatFileVolume, nil, "ui" )
 	end
 end
 
@@ -215,18 +209,17 @@ function widget:Initialize()
 	end
 
 	WG['chat'] = {}
+	WG['chat'].getChatVolume = function()
+		return sndChatFileVolume
+	end
+	WG['chat'].setChatVolume = function(value)
+		sndChatFileVolume = value
+	end
 	WG['chat'].getBackgroundOpacity = function()
 		return backgroundOpacity
 	end
 	WG['chat'].setBackgroundOpacity = function(value)
 		backgroundOpacity = value
-	end
-	WG['chat'].getCapitalize = function()
-		return capitalize
-	end
-	WG['chat'].setCapitalize = function(value)
-		capitalize = value
-		widget:ViewResize()
 	end
 	WG['chat'].getMaxLines = function()
 		return maxLines
@@ -641,9 +634,6 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 		if ssub(text,1,1) == ' ' then
 			text = ssub(text,2)
 		end
-		if capitalize and text:len() >= 10 then
-			text = ssub(text,1,1):upper()..ssub(text,2)
-		end
 
 		nameText = convertColor(spGetTeamColor(names[name][3]))..name
 		line = convertColor(c[1],c[2],c[3])..text
@@ -677,9 +667,6 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 		-- filter occasional starting space
 		if ssub(text,1,1) == ' ' then
 			text = ssub(text,2)
-		end
-		if capitalize and text:len() >= 10 then
-			text = ssub(text,1,1):upper()..ssub(text,2)
 		end
 
 		nameText = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])..'(s) '..name
@@ -717,10 +704,6 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 			end
 		end
 
-		if capitalize and text:len() >= 10 then
-			text = ssub(text,1,1):upper()..ssub(text,2)
-		end
-
 		nameText = namecolor..(spectator and '(s) ' or '')..name
 		line = textcolor..text
 
@@ -752,10 +735,6 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 		if ssub(text,1,1) == ' ' then
 			text = ssub(text,2)
 		end
-
-		--if capitalize and text:len() >= 10 then
-		--	text = ssub(text,1,1):upper()..ssub(text,2)
-		--end
 
 		nameText = convertColor(colorGame[1],colorGame[2],colorGame[3])..'<'..name..'>'
 		line = convertColor(colorGame[1],colorGame[2],colorGame[3])..text
@@ -979,9 +958,9 @@ function widget:GetConfigData(data)
 		orgLines = gameOver and nil or orgLines,
 		maxLines = maxLines,
 		maxConsoleLines = maxConsoleLines,
-		capitalize = capitalize,
 		fontsizeMult = fontsizeMult,
 		chatBackgroundOpacity = backgroundOpacity,
+		sndChatFileVolume = sndChatFileVolume,
 		shutdownTime = os.clock(),
 	}
 end
@@ -992,6 +971,9 @@ function widget:SetConfigData(data)
 			orgLines = data.orgLines
 		end
 	end
+	if data.sndChatFileVolume ~= nil then
+		sndChatFileVolume = data.sndChatFileVolume
+	end
 	if data.chatBackgroundOpacity ~= nil then
 		backgroundOpacity = data.chatBackgroundOpacity
 	end
@@ -1000,9 +982,6 @@ function widget:SetConfigData(data)
 	end
 	if data.maxConsoleLines ~= nil then
 		maxConsoleLines = data.maxConsoleLines
-	end
-	if data.capitalize ~= nil then
-		capitalize = data.capitalize
 	end
 	if data.fontsizeMult ~= nil then
 		fontsizeMult = data.fontsizeMult

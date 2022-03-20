@@ -2088,6 +2088,15 @@ function init()
 			  Spring.SetConfigInt("snd_volunitreply", value)
 		  end,
 		},
+		{ id = "console_chatvolume", group = "sound", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.console_chatvolume, type = "slider", min = 0, max = 1, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getChatVolume() or 0), description = texts.option.console_chatvolume_descr,
+		  onload = function(i)
+			  loadWidgetData("Chat", "console_chatvolume", { 'sndChatFileVolume' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Chat', 'chat', 'setChatVolume', { 'sndChatFileVolume' }, value)
+		  end,
+		},
+
 		{ id = "sndairabsorption", group = "sound", category = types.advanced, name = texts.option.sndairabsorption, type = "slider", min = 0.05, max = 0.4, step = 0.01, value = tonumber(Spring.GetConfigFloat("snd_airAbsorption", .35) or .35), description = texts.option.sndairabsorption_descr,
 		  onload = function(i)
 		  end,
@@ -2147,6 +2156,7 @@ function init()
 			  end
 		  end,
 		},
+
 		{ id = "loadscreen_music", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.loadscreen_music, type = "bool", value = (Spring.GetConfigInt("music_loadscreen", 1) == 1), description = texts.option.loadscreen_music_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("music_loadscreen", (value and 1 or 0))
