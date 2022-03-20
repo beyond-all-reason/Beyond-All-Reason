@@ -160,6 +160,7 @@ function widget:UnitGiven(unitID, unitDefID, oldTeamID, newTeamID)
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	if fullview then return end
 	if spValidUnitID(unitID) then
 		AddUnit(unitID, unitDefID or Spring.GetUnitDefID(unitID), unitTeam)
 	end
@@ -180,7 +181,9 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget.RenderUnitDestroyed(unitID, unitDefID, unitTeam)
-	RemoveUnit(unitID, unitDefID, unitTeam)
+	if unitID and unitDefID then  -- as somehow this unitID can be nil
+		RemoveUnit(unitID, unitDefID, unitTeam)
+	end
 end
 
 -- wont be called for enemy units nor can it read spGetUnitMoveTypeData(unitID).aircraftState anyway

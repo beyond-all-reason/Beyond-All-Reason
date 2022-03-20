@@ -18,6 +18,9 @@ local types = {
 	dev      = 3,
 }
 
+local version = 1.1	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
+local newerVersion = false	-- configdata will set this true if it's a newer version
+
 local texts = {}    -- loaded from external language file
 
 local languageCodes = { 'en', 'fr', 'zh' }
@@ -87,6 +90,8 @@ local useNetworkSmoothing = false
 local show = false
 local prevShow = show
 local manualChange = true
+
+local guishaderIntensity = 0.0035
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -1483,7 +1488,7 @@ function init()
 			snow = false,
 			particles = 9000,
 			treeradius = 0,
-			guishader = false,
+			guishader = 0,
 			decals = false,
 			shadowslider = 1,
 			grass = false,
@@ -1498,7 +1503,7 @@ function init()
 			snow = false,
 			particles = 12000,
 			treeradius = 200,
-			guishader = false,
+			guishader = 0,
 			decals = true,
 			shadowslider = 2,
 			grass = false,
@@ -1513,7 +1518,7 @@ function init()
 		 	snow = true,
 		 	particles = 15000,
 		 	treeradius = 400,
-		 	guishader = true,
+		 	guishader = guishaderIntensity,
 		 	decals = true,
 			shadowslider = 3,
 		 	grass = true,
@@ -1528,7 +1533,7 @@ function init()
 			snow = true,
 			particles = 20000,
 			treeradius = 800,
-			guishader = true,
+			guishader = guishaderIntensity,
 			decals = true,
 			shadowslider = 4,
 			grass = true,
@@ -1543,7 +1548,7 @@ function init()
 			snow = true,
 			particles = 25000,
 			treeradius = 800,
-			guishader = true,
+			guishader = guishaderIntensity,
 			decals = true,
 			shadowslider = 5,
 			grass = true,
@@ -1551,12 +1556,12 @@ function init()
 		custom = {},
 	}
 
-	local screenModes = WG['screenMode'] and WG['screenMode'].GetScreenModes()
-	local displays = WG['screenMode'] and WG['screenMode'].GetDisplays()
+	local screenModes = WG['screenMode'] and WG['screenMode'].GetScreenModes() or {}
+	local displays = WG['screenMode'] and WG['screenMode'].GetDisplays() or {}
 
 	local displayNames = {}
 	for index, display in ipairs(displays) do
-			displayNames[index] = display.name .. " " .. display.width .. " × " .. display.height
+		displayNames[index] = display.name .. " " .. display.width .. " × " .. display.height
 	end
 
 	local resolutionNames = {}
@@ -1700,11 +1705,11 @@ function init()
 		},
 		{ id = "limitidlefps", group = "gfx", category = types.advanced, widget = "Limit idle FPS", name = texts.option.limitidlefps, type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = texts.option.limitidlefps_descr },
 
-		{ id = "msaa", group = "gfx", category = types.basic, name = texts.option.msaa, type = "select", options = { 'off', 'x1', 'x2', 'x4', 'x8'}, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0), description = texts.option.msaa_descr,
+		{ id = "msaa", group = "gfx", category = types.basic, name = texts.option.msaa, type = "select", options = { 'off', 'x2', 'x4', 'x8'}, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0), description = texts.option.msaa_descr,
 		  onload = function(i)
 			  local msaa = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0)
 			  if msaa == 0 then
-				  options[getOptionByID('msaa')].value = 0
+				  options[getOptionByID('msaa')].value = 1
 			  else
 				  for k,v in ipairs( options[getOptionByID('msaa')].options) do
 					  if v == 'x'..msaa then
@@ -2083,6 +2088,26 @@ function init()
 			  Spring.SetConfigInt("snd_volunitreply", value)
 		  end,
 		},
+		{ id = "console_chatvolume", group = "sound", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.console_chatvolume, type = "slider", min = 0, max = 1, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getChatVolume() or 0), description = texts.option.console_chatvolume_descr,
+		  onload = function(i)
+			  loadWidgetData("Chat", "console_chatvolume", { 'sndChatFileVolume' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Chat', 'chat', 'setChatVolume', { 'sndChatFileVolume' }, value)
+		  end,
+		},
+		{ id = "sndvolmusic", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolmusic, type = "slider", min = 0, max = 100, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if WG['music'] and WG['music'].SetMusicVolume then
+				  WG['music'].SetMusicVolume(value)
+			  else
+				  Spring.SetConfigInt("snd_volmusic", value)
+			  end
+		  end,
+		},
+
 		{ id = "sndairabsorption", group = "sound", category = types.advanced, name = texts.option.sndairabsorption, type = "slider", min = 0.05, max = 0.4, step = 0.01, value = tonumber(Spring.GetConfigFloat("snd_airAbsorption", .35) or .35), description = texts.option.sndairabsorption_descr,
 		  onload = function(i)
 		  end,
@@ -2099,7 +2124,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackOld", group = "sound", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.soundtrackold, type = "bool", value = Spring.GetConfigInt('UseSoundtrackOld', 0) == 1,
+		{ id = "soundtrackOld", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.soundtrackold, type = "bool", value = Spring.GetConfigInt('UseSoundtrackOld', 0) == 1,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackOld', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
@@ -2107,7 +2132,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackCustom", group = "sound", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.soundtrackcustom, type = "bool", value = Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1,
+		{ id = "soundtrackCustom", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.soundtrackcustom, type = "bool", value = Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackCustom', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
@@ -2115,7 +2140,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackSilenceTimer", group = "sound", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.soundtracksilence, type = "bool", value = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1, description = texts.option.soundtracksilence_descr,
+		{ id = "soundtrackSilenceTimer", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.soundtracksilence, type = "bool", value = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1, description = texts.option.soundtracksilence_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackSilenceTimer', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
@@ -2123,7 +2148,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackInterruption", group = "sound", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.soundtrackinterruption, type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = texts.option.soundtrackinterruption_descr,
+		{ id = "soundtrackInterruption", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.soundtrackinterruption, type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = texts.option.soundtrackinterruption_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackInterruption', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
@@ -2131,17 +2156,7 @@ function init()
 				end
 			end
 		},
-		{ id = "sndvolmusic", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolmusic, type = "slider", min = 0, max = 100, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  if WG['music'] and WG['music'].SetMusicVolume then
-				  WG['music'].SetMusicVolume(value)
-			  else
-				  Spring.SetConfigInt("snd_volmusic", value)
-			  end
-		  end,
-		},
+
 		{ id = "loadscreen_music", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.loadscreen_music, type = "bool", value = (Spring.GetConfigInt("music_loadscreen", 1) == 1), description = texts.option.loadscreen_music_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("music_loadscreen", (value and 1 or 0))
@@ -2371,7 +2386,7 @@ function init()
 		},
 
 
-		{ id = "allyselunits_select", group = "control", category = types.advanced, name = widgetOptionColor .. "  " ..texts.option.allyselunits_select, type = "bool", value = (WG['allyselectedunits'] ~= nil and WG['allyselectedunits'].getSelectPlayerUnits()), description = texts.option.allyselunits_select_descr,
+		{ id = "allyselunits_select", group = "control", category = types.advanced, name = widgetOptionColor .. "   " ..texts.option.allyselunits_select, type = "bool", value = (WG['allyselectedunits'] ~= nil and WG['allyselectedunits'].getSelectPlayerUnits()), description = texts.option.allyselunits_select_descr,
 		  onload = function(i)
 			  loadWidgetData("Ally Selected Units", "allyselunits_select", { 'selectPlayerUnits' })
 		  end,
@@ -2443,7 +2458,7 @@ function init()
 		  end,
 		},
 
-		{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishader, type = "slider", min = 0, max = 0.005, steps = {0, 0.001, 0.0015, 0.002, 0.0025, 0.003, 0.0035, 0.004}, value = 0.0035, description = '',
+		{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishader, type = "slider", min = 0, max = 0.005, steps = {0, 0.001, 0.0015, 0.002, 0.0025, 0.003, 0.0035, 0.004}, value = guishaderIntensity, description = '',
 		  onload = function(i)
 			  loadWidgetData("GUI Shader", "guishader", { 'blurIntensity' })
 			  if type(options[getOptionByID('guishader')].value) ~= 'number' then
@@ -2451,7 +2466,10 @@ function init()
 			  end
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)
+			  if type(value) == 'number' then
+				  guishaderIntensity = value
+				  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)
+			  end
 			  if value <= 0.000001 then
 				  if GetWidgetToggleValue('GUI Shader') then
 				 	 widgetHandler:DisableWidget('GUI Shader')
@@ -2470,6 +2488,11 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Minimap', 'minimap', 'setMaxHeight', { 'maxHeight' }, value)
+		  end,
+		},
+		{ id = "minimapleftclick", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.minimapleftclick, type = "bool", value = (WG['minimap'] ~= nil and WG['minimap'].getLeftClickMove ~= nil and WG['minimap'].getLeftClickMove()), description = texts.option.minimapleftclick_descr,
+		  onchange = function(i, value)
+			  saveOptionValue('Minimap', 'minimap', 'setLeftClickMove', { 'leftClickMove' }, value)
 		  end,
 		},
 		{ id = "minimapiconsize", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.minimapiconsize, type = "slider", min = 2, max = 5, step = 0.25, value = tonumber(Spring.GetConfigFloat("MinimapIconScale", 3.5) or 1), description = '',
@@ -2837,40 +2860,23 @@ function init()
 
 		{ id = "geospots", group = "ui", category = types.dev, widget = "Geothermalspots", name = texts.option.geospots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = texts.option.geospots_descr },
 
-		{ id = "healthbarsscale", group = "ui", category = types.advanced, name = texts.option.healthbars .. widgetOptionColor .. "  " .. texts.option.healthbarsscale, type = "slider", min = 0.6, max = 1.6, step = 0.1, value = 1, description = '',
+    { id = "healthbarsscale", group = "ui", category = types.advanced, name = texts.option.healthbars .. widgetOptionColor .. "  " .. texts.option.healthbarsscale, type = "slider", min = 0.6, max = 2.0, step = 0.1, value = 1, description = '',
 		  onload = function(i)
-			  loadWidgetData("Health Bars", "healthbarsscale", { 'barScale' })
+			  loadWidgetData("Health Bars GL4", "healthbarsscale", { 'barScale' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Health Bars', 'healthbars', 'setScale', { 'barScale' }, value)
-		  end,
-		},
-		{ id = "healthbarsdistance", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.healthbarsdistance, type = "slider", min = 0.4, max = 6, step = 0.1, value = 1, description = '',
-		  onload = function(i)
-			  loadWidgetData("Health Bars", "healthbarsdistance", { 'drawDistanceMult' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Health Bars', 'healthbars', 'setDrawDistance', { 'drawDistanceMult' }, value)
+			  saveOptionValue('Health Bars GL4', 'healthbars', 'setScale', { 'barScale' }, value)
 		  end,
 		},
 		{ id = "healthbarsvariable", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.healthbarsvariable, type = "bool", value = (WG['healthbar'] ~= nil and WG['healthbar'].getVariableSizes()), description = texts.option.healthbarsvariable_descr,
 		  onload = function(i)
-			  loadWidgetData("Health Bars", "healthbarsvariable", { 'variableBarSizes' })
+			  loadWidgetData("Health Bars GL4", "healthbarsvariable", { "variableBarSizes" })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Health Bars', 'healthbars', 'setVariableSizes', { 'variableBarSizes' }, value)
+			  saveOptionValue("Health Bars GL4", "healthbars", "setVariableSizes", { "variableBarSizes" }, value)
 		  end,
 		},
-		{ id = "healthbarshide", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.healthbarshide, type = "bool", value = (WG['nametags'] ~= nil and WG['nametags'].getDrawForIcon()), description = texts.option.healthbarshide_descr,
-		  onload = function(i)
-			  loadWidgetData("Health Bars", "healthbarshide", { 'hideHealthbars' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Health Bars', 'healthbars', 'setHideHealth', { 'hideHealthbars' }, value)
-		  end,
-		},
-
-		{ id = "rankicons", group = "ui", category = types.advanced, widget = "Rank Icons", name = texts.option.rankicons, type = "bool", value = GetWidgetToggleValue("Rank Icons"), description = texts.option.rankicons_descr },
+		{ id = "rankicons", group = "ui", category = types.advanced, widget = "Rank Icons GL4", name = texts.option.rankicons, type = "bool", value = GetWidgetToggleValue("Rank Icons GL4"), description = texts.option.rankicons_descr },
 		{ id = "rankicons_distance", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.rankicons_distance, type = "slider", min = 0.4, max = 2, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getDrawDistance ~= nil and WG['rankicons'].getDrawDistance()), description = '',
 		  onload = function(i)
 		  end,
@@ -3165,7 +3171,7 @@ function init()
 			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeBuildings', { 'selectBuildingsWithMobile' }, value)
 		  end,
 		},
-		{ id = "smartselect_includebuilders", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.smartselect_includebuilders, type = "bool", value = true, description = texts.option.smartselect_includebuilders_descr,
+		{ id = "smartselect_includebuilders", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.smartselect_includebuilders, type = "bool", value = false, description = texts.option.smartselect_includebuilders_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3300,7 +3306,7 @@ function init()
 		  end,
 		},
 
-		{ id = "simpleteamcolors_reset", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " ..  texts.option.simpleteamcolors_reset, type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColors_Reset", 0) or 0) == 1,
+		{ id = "simpleteamcolors_reset", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " ..  texts.option.simpleteamcolors_reset, type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColors_Reset", 0) or 0) == 1,
 		  onchange = function(i, value)
 			Spring.SetConfigInt("SimpleTeamColorsPlayerR", 0)
 			Spring.SetConfigInt("SimpleTeamColorsPlayerG", 77)
@@ -3315,57 +3321,57 @@ function init()
 		  end,
 		},
 
-		{ id = "simpleteamcolors_player_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_player_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0)),
+		{ id = "simpleteamcolors_player_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_player_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsPlayerR", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-		{ id = "simpleteamcolors_player_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_player_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerG", 77)),
+		{ id = "simpleteamcolors_player_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_player_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerG", 77)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsPlayerG", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-		{ id = "simpleteamcolors_player_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_player_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerB", 255)),
+		{ id = "simpleteamcolors_player_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_player_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerB", 255)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsPlayerB", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
 
-		{ id = "simpleteamcolors_ally_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_ally_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyR", 0)),
+		{ id = "simpleteamcolors_ally_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_ally_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyR", 0)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsAllyR", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-		{ id = "simpleteamcolors_ally_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_ally_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyG", 255)),
+		{ id = "simpleteamcolors_ally_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_ally_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyG", 255)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsAllyG", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-		{ id = "simpleteamcolors_ally_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_ally_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyB", 0)),
+		{ id = "simpleteamcolors_ally_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_ally_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyB", 0)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsAllyB", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
 
-		{ id = "simpleteamcolors_enemy_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_enemy_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255)),
+		{ id = "simpleteamcolors_enemy_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_enemy_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsEnemyR", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-		{ id = "simpleteamcolors_enemy_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_enemy_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16)),
+		{ id = "simpleteamcolors_enemy_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_enemy_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsEnemyG", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-		{ id = "simpleteamcolors_enemy_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_enemy_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)),
+		{ id = "simpleteamcolors_enemy_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_enemy_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsEnemyB", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
@@ -4474,8 +4480,6 @@ function init()
 		end
 	end
 
-	Spring.SetConfigInt("FSAALevel", 0)
-
 	-- reduce options for potatoes
 	if isPotatoGpu or isPotatoCpu then
 		local id = getOptionByID('shadowslider')
@@ -4506,7 +4510,7 @@ function init()
 				widgetHandler:DisableWidget(options[id].widget)
 			end
 			options[id] = nil
-			options[getOptionByID('guishaderintensity')] = nil
+			options[getOptionByID('guishader')] = nil
 
 			local id = getOptionByID('dof')
 			if id and GetWidgetToggleValue(options[id].widget) then
@@ -4610,12 +4614,6 @@ function init()
 		end
 	end
 
-	if WG['healthbars'] == nil then
-		options[getOptionByID('healthbarsscale')] = nil
-	elseif WG['healthbars'].getScale ~= nil then
-		options[getOptionByID('healthbarsscale')].value = WG['healthbars'].getScale()
-	end
-
 	if WG['smartselect'] == nil then
 		options[getOptionByID('smartselect_includebuildings')] = nil
 		options[getOptionByID('smartselect_includebuilders')] = nil
@@ -4689,18 +4687,30 @@ function widget:Initialize()
 		widgetHandler:DisableWidget("Ambient Player")
 	end
 
-	-- enable this previous default disabled widget
-	if widgetHandler.orderList["DrawUnitShape GL4"] and widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
-		widgetHandler:EnableWidget("DrawUnitShape GL4")
-	end
-	if widgetHandler.orderList["HighlightUnit GL4"] and widgetHandler.orderList["HighlightUnit GL4"] < 0.5 then
-		widgetHandler:EnableWidget("HighlightUnit GL4")
+	-- enable previous default disabled widget(s) to their new default state
+	if newerVersion then
+		if version <= 1 then
+			if widgetHandler.orderList["DrawUnitShape GL4"] and widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
+				widgetHandler:EnableWidget("DrawUnitShape GL4")
+			end
+			if widgetHandler.orderList["HighlightUnit GL4"] and widgetHandler.orderList["HighlightUnit GL4"] < 0.5 then
+				widgetHandler:EnableWidget("HighlightUnit GL4")
+			end
+			if widgetHandler.orderList["Rank Icons GL4"] and widgetHandler.orderList["Rank Icons GL4"] < 0.5 then
+				widgetHandler:EnableWidget("Rank Icons GL4")
+			end
+		end
+		if version <= 1.1 then
+			if widgetHandler.orderList["Health Bars GL4"] and widgetHandler.orderList["Health Bars GL4"] < 0.5 then
+				widgetHandler:EnableWidget("Health Bars GL4")
+			end
+		end
 	end
 
 	if widgetHandler.orderList["FlowUI"] and widgetHandler.orderList["FlowUI"] < 0.5 then
 		widgetHandler:EnableWidget("FlowUI")
 	end
-	if widgetHandler.orderList["Language"] < 0.5 then
+	if widgetHandler.orderList["Language"] and widgetHandler.orderList["Language"] < 0.5 then
 		widgetHandler:EnableWidget("Language")
 	end
 
@@ -4976,6 +4986,7 @@ function widget:GetConfigData()
 		show = show,
 		waterDetected = waterDetected,
 		customPresets = customPresets,
+		guishaderIntensity = guishaderIntensity,
 
 		-- to restore init defaults
 		mapChecksum = Game.mapChecksum,
@@ -4983,10 +4994,18 @@ function widget:GetConfigData()
 		defaultMapSunPos = defaultMapSunPos,
 		defaultSunLighting = defaultSunLighting,
 		resettedTonemapDefault = resettedTonemapDefault,
+		version = version,
 	}
 end
 
 function widget:SetConfigData(data)
+	if data.version ~= nil then
+		if data.version < version then
+			newerVersion = true
+		end
+	else
+		newerVersion = true
+	end
 	if data.vsyncEnabled ~= nil then
 		vsyncEnabled = data.vsyncEnabled
 	end
@@ -5007,6 +5026,9 @@ function widget:SetConfigData(data)
 	end
 	if data.currentGroupTab ~= nil then
 		currentGroupTab = data.currentGroupTab
+	end
+	if data.guishaderIntensity then
+		guishaderIntensity = data.guishaderIntensity
 	end
 	if Spring.GetGameFrame() > 0 then
 		if data.show ~= nil then

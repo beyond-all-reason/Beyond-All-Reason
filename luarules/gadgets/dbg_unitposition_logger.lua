@@ -262,22 +262,10 @@ else	-- SYNCED
 	local validation = randomString(2)
 	_G.validationLogger = validation
 
-	local function explode(div,str) -- credit: http://richard.warburton.it
-		if (div=='') then return false end
-		local pos,arr = 0,{}
-		-- for each divider found
-		for st,sp in function() return string.find(str,div,pos,true) end do
-			table.insert(arr,string.sub(str,pos,st-1)) -- Attach chars left of current divider
-			pos = sp + 1 -- Jump past current divider
-		end
-		table.insert(arr,string.sub(str,pos)) -- Attach chars right of last divider
-		return arr
-	end
-
 	-- Synced code here only listens to what has been received and thus logged in the demo, notifies unsynced so that can handle re-sending if necessary
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,3)=="log" and msg:sub(4,5)==validation then
-			local params = explode(';', msg:sub(6, 40))	-- 1=frame, 2=part, 3=numParts, 4=attempts, 5=gzipped-json
+			local params = string.split(msg:sub(6, 40), ';')	-- 1=frame, 2=part, 3=numParts, 4=attempts, 5=gzipped-json
 			SendToUnsynced("receivedPart", params[1], params[2], params[3], params[4])
 			return true
 		end

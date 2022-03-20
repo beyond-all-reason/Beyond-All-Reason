@@ -83,17 +83,6 @@ local function bossWaveTimer(n)
 				ScavSendNotification("scav_scavfinalvictory")
 				FinalMessagePlayed = true
 			end
-			--FinalSelfDChance = FinalSelfDChance - 1
-			--if FinalSelfDChance < 2 then
-			--	FinalSelfDChance = 2
-			--end
-			--local units = Spring.GetTeamUnits(ScavengerTeamID)
-			--for i = 1,#units do
-			--	local r = math_random(1,FinalSelfDChance)
-			--	if r == 1 then
-			--		Spring.DestroyUnit(units[i],false,false)
-			--	end
-			--end
 
 			-- kill whole allyteam  (game_end gadget will destroy leftover units)
 			if not killedScavengerAllyTeam then
@@ -110,56 +99,55 @@ local function bossWaveTimer(n)
 end
 
 local function bossMinionsSpawn(n)
-	if BossFightCurrentPhase and math.random(1,40) == 1 then
-		for i = 1,10 do
-			local x,y,z = Spring.GetUnitPosition(FinalBossUnitID)
-			local posx = x + math_random(-500,500)
-			local posz = z + math_random(-500,500)
-			local posy = Spring.GetGroundHeight(posx, posz)
-			local r = math_random(0,100)
-			local rair = math_random(0, scavconfig.unitSpawnerModuleConfig.aircraftchance)
+	for i = 1,10 do
+		local x,y,z = Spring.GetUnitPosition(FinalBossUnitID)
+		local posx = x + math_random(-500,500)
+		local posz = z + math_random(-500,500)
+		local posy = Spring.GetGroundHeight(posx, posz)
+		local r = math_random(0,100)
+		local rair = math_random(0, scavconfig.unitSpawnerModuleConfig.aircraftchance)
+		local landLevel, seaLevel = positionCheckLibrary.MapIsLandOrSea()
 
-			if rair == 0 then
-				if TierSpawnChances.T4 > 0 then
-					minionUnit = airUnitList.T4[math_random(1,#airUnitList.T4)]
-				elseif TierSpawnChances.T3 > 0 then
-					minionUnit = airUnitList.T3[math_random(1,#airUnitList.T3)]
-				elseif TierSpawnChances.T2 > 0 then
-					minionUnit = airUnitList.T2[math_random(1,#airUnitList.T2)]
-				elseif TierSpawnChances.T1 > 0 then
-					minionUnit = airUnitList.T1[math_random(1,#airUnitList.T1)]
-				else
-					minionUnit = airUnitList.T0[math_random(1,#airUnitList.T0)]
-				end
-				posy = posy + 1500
-			elseif posy > -20 then
-				if TierSpawnChances.T4 > 0 then
-					minionUnit = landUnitList.T4[math_random(1,#landUnitList.T4)]
-				elseif TierSpawnChances.T3 > 0 then
-					minionUnit = landUnitList.T3[math_random(1,#landUnitList.T3)]
-				elseif TierSpawnChances.T2 > 0 then
-					minionUnit = landUnitList.T2[math_random(1,#landUnitList.T2)]
-				elseif TierSpawnChances.T1 > 0 then
-					minionUnit = landUnitList.T1[math_random(1,#landUnitList.T1)]
-				else
-					minionUnit = landUnitList.T0[math_random(1,#landUnitList.T0)]
-				end
-			elseif posy <= -20 then
-				if TierSpawnChances.T4 > 0 then
-					minionUnit = seaUnitList.T4[math_random(1,#seaUnitList.T4)]
-				elseif TierSpawnChances.T3 > 0 then
-					minionUnit = seaUnitList.T3[math_random(1,#seaUnitList.T3)]
-				elseif TierSpawnChances.T2 > 0 then
-					minionUnit = seaUnitList.T2[math_random(1,#seaUnitList.T2)]
-				elseif TierSpawnChances.T1 > 0 then
-					minionUnit = seaUnitList.T1[math_random(1,#seaUnitList.T1)]
-				else
-					minionUnit = seaUnitList.T0[math_random(1,#seaUnitList.T0)]
-				end
+		if rair == 0 or (posy > 0 and landLevel < 40) or (posy < 0 and seaLevel < 30) then
+			if TierSpawnChances.T4 > 0 then
+				minionUnit = airUnitList.T4[math_random(1,#airUnitList.T4)]
+			elseif TierSpawnChances.T3 > 0 then
+				minionUnit = airUnitList.T3[math_random(1,#airUnitList.T3)]
+			elseif TierSpawnChances.T2 > 0 then
+				minionUnit = airUnitList.T2[math_random(1,#airUnitList.T2)]
+			elseif TierSpawnChances.T1 > 0 then
+				minionUnit = airUnitList.T1[math_random(1,#airUnitList.T1)]
+			else
+				minionUnit = airUnitList.T0[math_random(1,#airUnitList.T0)]
 			end
-			spawnQueueLibrary.AddToSpawnQueue(minionUnit, posx, posy, posz, math_random(0,3),ScavengerTeamID, n+1)
-			Spring.SpawnCEG("scav-spawnexplo",posx,posy,posz,0,0,0)
+			posy = posy + 1500
+		elseif posy > -20 then
+			if TierSpawnChances.T4 > 0 then
+				minionUnit = landUnitList.T4[math_random(1,#landUnitList.T4)]
+			elseif TierSpawnChances.T3 > 0 then
+				minionUnit = landUnitList.T3[math_random(1,#landUnitList.T3)]
+			elseif TierSpawnChances.T2 > 0 then
+				minionUnit = landUnitList.T2[math_random(1,#landUnitList.T2)]
+			elseif TierSpawnChances.T1 > 0 then
+				minionUnit = landUnitList.T1[math_random(1,#landUnitList.T1)]
+			else
+				minionUnit = landUnitList.T0[math_random(1,#landUnitList.T0)]
+			end
+		elseif posy <= -20 then
+			if TierSpawnChances.T4 > 0 then
+				minionUnit = seaUnitList.T4[math_random(1,#seaUnitList.T4)]
+			elseif TierSpawnChances.T3 > 0 then
+				minionUnit = seaUnitList.T3[math_random(1,#seaUnitList.T3)]
+			elseif TierSpawnChances.T2 > 0 then
+				minionUnit = seaUnitList.T2[math_random(1,#seaUnitList.T2)]
+			elseif TierSpawnChances.T1 > 0 then
+				minionUnit = seaUnitList.T1[math_random(1,#seaUnitList.T1)]
+			else
+				minionUnit = seaUnitList.T0[math_random(1,#seaUnitList.T0)]
+			end
 		end
+		spawnQueueLibrary.AddToSpawnQueue(minionUnit, posx, posy, posz, math_random(0,3),ScavengerTeamID, n+1)
+		Spring.SpawnCEG("scav-spawnexplo",posx,posy,posz,0,0,0)
 	end
 end
 
@@ -249,7 +237,8 @@ local function unitGroupSpawn(n)
 				local numOfTypes = 0
 				local newTypeNumber = 9999 --math.random(2,20)
 				--Spring.Echo(newTypeNumber)
-				if (posy <= -20 and aircraftchanceonsea == 0) or (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) then
+				local landLevel, seaLevel = positionCheckLibrary.MapIsLandOrSea()
+				if (posy <= -20 and aircraftchanceonsea == 0) or (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) or (posy > 0 and landLevel < 40) or (posy < 0 and seaLevel < 30) then
 					if spawnTier <= TierSpawnChances.T0 then
 						groupsize = math.ceil(groupsize*scavconfig.unitSpawnerModuleConfig.airmultiplier*scavconfig.unitSpawnerModuleConfig.t0multiplier)
 						for i = 1,groupsize do
@@ -407,18 +396,18 @@ local function unitGroupSpawn(n)
 					local newposy = Spring.GetGroundHeight(posx, posz)
 					if posy >= -20 and newposy >= -20 then
 						if i then
-							spawnQueueLibrary.AddToSpawnQueue("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, n+(i*2))
+							spawnQueueLibrary.AddToSpawnQueue(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math_random(0,3),ScavengerTeamID, n+(i*2))
 							spawnQueueLibrary.AddToSpawnQueue(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),ScavengerTeamID, n+150+(i*2))
 						else
-							spawnQueueLibrary.AddToSpawnQueue("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, n)
+							spawnQueueLibrary.AddToSpawnQueue(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math_random(0,3),ScavengerTeamID, n)
 							spawnQueueLibrary.AddToSpawnQueue(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),ScavengerTeamID, n+150)
 						end
 					elseif posy < -20 and newposy < -20 then
 						if i then
-							spawnQueueLibrary.AddToSpawnQueue("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, n+(i*2))
+							spawnQueueLibrary.AddToSpawnQueue(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math_random(0,3),ScavengerTeamID, n+(i*2))
 							spawnQueueLibrary.AddToSpawnQueue(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),ScavengerTeamID, n+150+(i*2))
 						else
-							spawnQueueLibrary.AddToSpawnQueue("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID, n)
+							spawnQueueLibrary.AddToSpawnQueue(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math_random(0,3),ScavengerTeamID, n)
 							spawnQueueLibrary.AddToSpawnQueue(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),ScavengerTeamID, n+150)
 						end
 					end
@@ -429,8 +418,8 @@ local function unitGroupSpawn(n)
 					else
 						spawnQueueLibrary.AddToSpawnQueue(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], rx, posy, rz, math_random(0,3),ScavengerTeamID, n+150+(i*2), false)
 					end
-					spawnQueueLibrary.AddToSpawnQueue("scavengerdroppod_scav", rx, posy, rz, math_random(0,3),ScavengerTeamID, n+(i*2))
-					--Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID)
+					spawnQueueLibrary.AddToSpawnQueue(staticUnitList.scavSpawnEffectUnit, rx, posy, rz, math_random(0,3),ScavengerTeamID, n+(i*2))
+					--Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math_random(0,3),ScavengerTeamID)
 				end
 				posx = nil
 				posy = nil

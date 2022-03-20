@@ -58,6 +58,10 @@ local resources = {
 			radarfx1old       = 'ui/radar1xx.tga',
 			radarfx2old       = 'ui/radar2.tga',
 
+			lavachunk		  = 'atmos/lavachunk.tga',
+			lavasplats		  = 'atmos/lavasplats.tga',
+			lavaplosion		  = 'atmos/lavaplosion.tga',
+
 			fogdirty          = 'atmos/fogdirty.tga',
 			rain              = 'atmos/rain.tga',
 			cloudpuff         = 'atmos/cloudpuff.tga',

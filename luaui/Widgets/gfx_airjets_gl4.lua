@@ -465,10 +465,10 @@ void main()
 	mat4 modelMatrix = UnitPieces[baseIndex]; //Find our matrix
 
 	mat4 pieceMatrix = mat4mix(mat4(1.0), UnitPieces[baseIndex + pieceIndex + 1u], modelMatrix[3][3]);
-	
+
 	vec4 speedvector = uni[instData.y].speed;
 
-	vec2 modulatedsize = widthlengthtime.xy * 1.5; 
+	vec2 modulatedsize = widthlengthtime.xy * 1.5;
 	modulatedsize.y *= clamp(speedvector.y * 0.5 + 1.0 , 0.66, 2.0); // make the jet shorter/longer based on Y velocity
 	// modulatedsize += rndVec3.xy * modulatedsize * 0.25; // not very pretty
 	vec4 vertexPos = vec4(position_xy_uv.x * modulatedsize.x * 2.0, 0, position_xy_uv.y*modulatedsize.y * 0.66 ,1.0);
@@ -690,7 +690,7 @@ local function DrawParticles(isReflection)
 		--Spring.Echo("Numairjets", jetInstanceVBO.usedElements)
 	end
 
-	if jetInstanceVBO.usedElements > 0 then 
+	if jetInstanceVBO.usedElements > 0 then
 		gl.Culling(false)
 
 		glDepthTest(true)
@@ -758,9 +758,9 @@ local function Activate(unitID, unitDefID, who, when)
 
 	if when ==  nil then when = 0 end --
 
-	if Spring.GetUnitIsDead(unitID) == true then  
+	if Spring.GetUnitIsDead(unitID) == true then
 		--Spring.SendCommands({"pause 1"})
-		return 
+		return
 	end
 	local unitEffects = effectDefs[unitDefID]
 	for i = 1, #unitEffects do
@@ -802,7 +802,7 @@ end
 
 local function RemoveUnit(unitID, unitDefID, unitTeamID)
 	--Spring.Echo("RemoveUnit(unitID, unitDefID, unitTeamID)",unitID, unitDefID, unitTeamID)
-	if effectDefs[unitDefID] then
+	if effectDefs[unitDefID] and type(unitID) == 'number' then	-- checking for type(unitID) because we got: Error in RenderUnitDestroyed(): [string "LuaUI/Widgets/gfx_airjets_gl4.lua"]:812: attempt to concatenate local 'unitID' (a table value)
 		Deactivate(unitID, unitDefID, "died")
 		inactivePlanes[unitID] = nil
 		activePlanes[unitID] = nil
@@ -855,7 +855,6 @@ function widget:Update(dt)
 		updateSec = 0
 		for unitID, unitDefID in pairs(inactivePlanes) do
 			-- always activate enemy planes
-
 			if spGetUnitIsActive(unitID) or not Spring.IsUnitAllied(unitID) then
 				if xzVelocityUnits[unitDefID] then
 					local uvx,_,uvz = spGetUnitVelocity(unitID)
@@ -897,6 +896,7 @@ function widget:Update(dt)
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	if fullview then return end
 	if spValidUnitID(unitID) then
 		unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
 		--Spring.Echo("UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)",unitID, unitTeam, allyTeam, unitDefID)
@@ -955,12 +955,12 @@ local function reInitialize()
 	lights = {}
 	unitPieceOffset = {}
 	clearInstanceTable(jetInstanceVBO)
-	
+
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		AddUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
-end 
+end
 
 --local spec, fullview = Spring.GetSpectatingState() -- already defined
 local myAllyTeamID = Spring.GetMyAllyTeamID()
@@ -970,14 +970,14 @@ function widget:PlayerChanged(playerID)
 	local currentAllyTeamID = Spring.GetMyAllyTeamID()
 	local reinit = false
 	if (currentspec ~= spec) or
-		(currentfullview ~= fullview) or 
+		(currentfullview ~= fullview) or
 		((currentAllyTeamID ~= myAllyTeamID) and not currentfullview)  -- our ALLYteam changes, and we are not in fullview
-		then 
+		then
 		-- do the actual reinit stuff:
 		--Spring.Echo("Airjets reinit")
 		reinit = true
 	end
-	
+
 	spec = currentspec
 	fullview = currentfullview
 	myAllyTeamID = currentAllyTeamID
@@ -1022,5 +1022,4 @@ function widget:Shutdown()
 	for unitID, unitDefID in pairs(activePlanes) do
 		RemoveUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
-
 end

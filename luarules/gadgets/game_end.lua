@@ -33,8 +33,16 @@ if gadgetHandler:IsSyncedCode() then
 	local teamList = Spring.GetTeamList()
 	for i = 1, #teamList do
 		local luaAI = Spring.GetTeamLuaAI(teamList[i])
-		if luaAI and (luaAI:find("Chickens") or luaAI:find("Scavengers")) then
+		if (luaAI and (luaAI:find("Chickens") or luaAI:find("Scavengers"))) or Spring.GetModOptions().scoremode ~= "disabled" then
 			ignoredTeams[teamList[i]] = true
+
+			-- ignore all other teams in this allyteam as well
+			--Spring.Echo(select(6, Spring.GetTeamInfo(teamList[i])))  -- somehow this echos "1, 1, <table>"
+			local teamID, leader, isDead, isAiTeam, side, allyTeam, incomeMultiplier, customTeamKeys = Spring.GetTeamInfo(teamList[i])
+			local teammates = Spring.GetTeamList(allyTeam)
+			for j = 1, #teammates do
+				ignoredTeams[teammates[j]] = true
+			end
 		end
 	end
 
@@ -363,19 +371,21 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID)
 		if not ignoredTeams[unitTeamID] then
-			local allyTeamID = teamToAllyTeam[unitTeamID]
-			local allyTeamInfo = allyTeamInfos[allyTeamID]
-			local teamUnitCount = allyTeamInfo.teams[unitTeamID].unitCount - 1
-			local allyTeamUnitCount = allyTeamInfo.unitCount - 1
-			allyTeamInfo.teams[unitTeamID].unitCount = teamUnitCount
-			allyTeamInfo.unitCount = allyTeamUnitCount
-			if unitDecoration[unitDefID] then
-				allyTeamInfo.unitDecorationCount = allyTeamInfo.unitDecorationCount - 1
-			end
-			allyTeamInfos[allyTeamID] = allyTeamInfo
-			if allyTeamUnitCount <= allyTeamInfo.unitDecorationCount then
-				for teamID in pairs(allyTeamInfo.teams) do
-					KillTeam(teamID)
+			if Spring.GetModOptions().scoremode == "disabled" or Spring.GetModOptions().scoremode_chess == false then
+				local allyTeamID = teamToAllyTeam[unitTeamID]
+				local allyTeamInfo = allyTeamInfos[allyTeamID]
+				local teamUnitCount = allyTeamInfo.teams[unitTeamID].unitCount - 1
+				local allyTeamUnitCount = allyTeamInfo.unitCount - 1
+				allyTeamInfo.teams[unitTeamID].unitCount = teamUnitCount
+				allyTeamInfo.unitCount = allyTeamUnitCount
+				if unitDecoration[unitDefID] then
+					allyTeamInfo.unitDecorationCount = allyTeamInfo.unitDecorationCount - 1
+				end
+				allyTeamInfos[allyTeamID] = allyTeamInfo
+				if allyTeamUnitCount <= allyTeamInfo.unitDecorationCount then
+					for teamID in pairs(allyTeamInfo.teams) do
+						KillTeam(teamID)
+					end
 				end
 			end
 		end

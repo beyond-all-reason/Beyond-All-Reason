@@ -31,14 +31,17 @@
                         [0.6, ["builderT2", "skirmish", "builderT2", "skirmish", "builderT2", "skirmish", "skirmish"]]
 					],
 					"armshltx": [
-						[1.0, ["raider", "raider", "raider", "raider", "artillery", "heavy"]]	
+						[1.0, ["raider", "riot", "riot", "artillery", "artillery", "super"]]	
 					],
 					"armsy":[
 						[0.3, ["scout", "builder", "scout", "builder", "raider", "scout",  "builder", "sub", "skirmish"]]
+					],
+					"armasy":[
+						[0.5, ["builderT2", "skirmish", "builderT2", "skirmish", "builderT2", "builderT2"]]
 					]
 				},
 				
-				"default": ["builder", "raider", "raider", "raider", "builder", "raider", "support", "raider"]
+				"default": ["builder", "raider", "raider", "raider", "builder", "raider"]
 			},
 
 			// Morph params
@@ -87,6 +90,9 @@
 					],
                     "corsy":[
 						[0.3, ["scout", "builder", "scout", "builder", "raider", "scout",  "builder", "sub", "skirmish"]]
+					],
+                    "corasy":[
+						[0.5, ["builderT2", "skirmish", "builderT2", "skirmish", "builderT2", "builderT2"]]
 					]
 				},
 				"default": ["builder", "builder", "skirmish", "skirmish", "builder", "raider", "support", "raider"]

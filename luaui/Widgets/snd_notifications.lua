@@ -15,7 +15,7 @@ local silentTime = 0.7	-- silent time between queued notifications
 local globalVolume = 0.7
 local playTrackedPlayerNotifs = false
 local muteWhenIdle = true
-local idleTime = 6		-- after this much sec: mark user as idle
+local idleTime = 10		-- after this much sec: mark user as idle
 local displayMessages = true
 local spoken = true
 local idleBuilderNotificationDelay = 10 * 30	-- (in gameframes)
@@ -120,6 +120,10 @@ addSound('TransportDetected', 'TransportDetected.wav', 9999999, 1.5, 'tips.notif
 addSound('AirTransportDetected', 'AirTransportDetected.wav', 9999999, 1.38, 'tips.notifications.airTransportDetected')
 addSound('SeaTransportDetected', 'SeaTransportDetected.wav', 9999999, 1.95, 'tips.notifications.seaTransportDetected')
 
+-- lava/liquid level change notifications
+addSound('LavaRising', 'Lavarising.wav', 25, 3, 'tips.notifications.lavaRising', true)
+addSound('LavaDropping', 'Lavadropping.wav', 25, 2, 'tips.notifications.lavaDropping', true)
+
 -- tutorial explanations (unlisted)
 local td = 'tutorial/'
 addSound('t_welcome', td..'welcome.wav', 9999999, 9.19, 'tips.notifications.tutorialWelcome', true)
@@ -173,7 +177,6 @@ local commanders = {}
 local commandersDamages = {}
 local passedTime = 0
 local sec = 0
-local lastUnitCommand = Spring.GetGameFrame()
 
 local windNotGood = ((Game.windMin + Game.windMax) / 2) < 5.5
 
@@ -320,8 +323,7 @@ local function eventBroadcast(msg)
 
 	if string.find(msg, "SoundEvents", nil, true) then
 		msg = string.sub(msg, 13)
-		local forceplay = string.sub(msg, string.find(msg, " ", nil, true)+2, string.len(msg))
-		forceplay = (forceplay ~= nil and forceplay ~= '')
+		local forceplay = (string.sub(msg, string.len(msg)-1) == ' y')
 		if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
 			local event = string.sub(msg, 1, string.find(msg, " ", nil, true)-1)
 			local player = string.sub(msg, string.find(msg, " ", nil, true)+1, string.len(msg))
@@ -464,11 +466,6 @@ end
 
 function widget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag)
 	idleBuilder[unitID] = nil
-end
-
-
-function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, playerID, fromSynced, fromLua)
-	lastUnitCommand = spGetGameFrame()
 end
 
 
@@ -737,7 +734,7 @@ function widget:Update(dt)
 		end
 		lastMouseX, lastMouseY = mouseX, mouseY
 		-- set user idle when no mouse movement or no commands have been given
-		if lastUserInputTime < os.clock() - idleTime or spGetGameFrame() - lastUnitCommand > (idleTime*40) then
+		if lastUserInputTime < os.clock() - idleTime then
 			isIdle = true
 		else
 			isIdle = false

@@ -102,7 +102,7 @@ local function transport1(currentFrame)
 				CanSpawnEvent = positionCheckLibrary.SurfaceCheck(posx, posy, posz, 300)
 			end
 			if CanSpawnEvent then
-				local testunit = Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),ScavengerTeamID)
+				local testunit = Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math_random(0,3),ScavengerTeamID)
 				if AliveEnemyCommanders and AliveEnemyCommandersCount > 0 and commanderOrNearestTarget == 1 then
 					if AliveEnemyCommandersCount > 1 then
 						for i = 1,AliveEnemyCommandersCount do
@@ -123,11 +123,11 @@ local function transport1(currentFrame)
 					end
 				end
 				if attackTarget == nil or commanderOrNearestTarget == 2 then
-					local test = Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), ScavengerTeamID)
+					local test = Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math.random(0, 3), ScavengerTeamID)
 					attackTarget = Spring.GetUnitNearestEnemy(test, 200000, true)
 				end
 				if attackTarget == nil or commanderOrNearestTarget == 2 then
-					local test = Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), ScavengerTeamID)
+					local test = Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math.random(0, 3), ScavengerTeamID)
 					attackTarget = Spring.GetUnitNearestEnemy(test, 200000, false)
 				end
 				local ax, ay, az = Spring.GetUnitPosition(attackTarget)

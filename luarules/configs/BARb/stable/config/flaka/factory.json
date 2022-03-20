@@ -5,10 +5,10 @@
 "select": {
 	"air_map": 100,
 	"offset": [-20, 20],
-	// Speed factor: 8x8 ~ 0%, 24x24 ~ 40%
-	"speed": [0, 40],
+	"speed": [0, 40],  	// Speed factor: 8x8 ~ 0%, 24x24 ~ 40%
 	"map": [8, 24],
-	"no_air": 1
+	"no_air": 1,	//how many players have to start with non-air factories before ai considering starting the game with air factories
+	"min_land": 75.0 //minimum percent of land to consider map as land. 
 },
 
 // Utility param: warning on unit's total probability not equal to 100%
@@ -232,22 +232,19 @@
    
 
 	"armsy": {
-		"importance": [3.0, 3.0],
+		"importance": [2.0, 2.0],
 
 		"require_energy": false,
 
 		"income_tier": [20],
 
-		"unit":      ["armcs", "armpt", "armdecade", "armpship", "armsub", "armroy"],
+		"unit":      ["armcs", "armrecl", "armpt", "armdecade", "armsub", "armpship", "armroy"],
 
-		"land": {
-			"tier0": [ 0.10,    0.30,    0.25,        0.15,       0.20,     0.10],
-			"tier1": [ 0.05,    0.15,    0.40,        0.10,       0.10,     0.15]
+		"water": {
+			"tier0": [ 0.01,    0.10,       0.20,    0.30,        0.15,       0.15,     0.10],
+			"tier1": [ 0.01,    0.10,       0.10,    0.20,        0.10,       0.30,     0.15]
 		},
-		"air": {
-			"tier0": [ 0.10,    0.70,    0.15,        0.05,       0.10,     0.00],
-			"tier1": [ 0.05,    0.70,    0.10,        0.05,       0.15,     0.10]
-		},
+
 
 		"caretaker": 2
 	},
@@ -255,27 +252,50 @@
 	"armasy": {
 		"importance": [0.0, 3.0],
 
-		"require_energy": true,
+		"require_energy": false,
 
-		"income_tier": [70],
+		"income_tier": [40, 70],
 
-		"unit":      ["armacsub", "armsubk", "armaas", "armcrus", "armcarry", "armmship", "armbats", "armepoch"],
+		"unit":      ["armacsub", "armmls", "armsjam", "armsubk", "armserp", "armaas", "armcrus", "armcarry", "armmship", "armbats", "armepoch"],
 
-		"land": {
-			"tier0": [ 0.90,     0.20,       0.00,      0.30,       0.00,      0.10,      0.10,      0.00],
-			"tier1": [ 0.50,     0.15,       0.05,      0.10,       0.05,      0.20,      0.25,      0.10]
-		},
-		"air": {
-			"tier0": [ 0.90,     0.15,       0.60,      0.00,       0.00,      0.20,      0.05,      0.00],
-			"tier1": [ 0.50,     0.10,       0.50,      0.05,       0.02,      0.20,      0.03,      0.01]
+		"water": {
+			"tier0": [ 0.20,        0.05,      0.05,    0.10,      0.00,       0.01,      0.50,      0.05,      0.20,        0.10,        0.00],
+			"tier1": [ 0.20,        0.05,      0.05,    0.10,      0.10,       0.01,      0.30,      0.05,      0.20,         0.20,        0.10],
+            "tier2": [ 0.20,        0.05,      0.05,    0.10,      0.15,       0.01,      0.20,      0.05,      0.20,         0.20,        0.20]
 		},
 
-		"caretaker": 4
+
+		"caretaker": 5
 	},
 	// ARMADA HOVERS
 
 	"armhp": {
-		"importance": [0.3, 0.0],
+		"importance": [0.0, 0.0],
+
+		"require_energy": false,
+
+		"income_tier": [20, 40],
+
+		"unit":      ["armch", "armthovr", "armsh", "armanac", "armmh", "armah"],
+
+		"land": {
+			"tier0": [ 0.20,    0.00,     0.80,     0.20,       0.00,     0.00],
+			"tier1": [ 0.15,    0.00,     0.20,     0.60,       0.20,     0.00],
+			"tier2": [ 0.15,    0.00,     0.20,     0.60,       0.20,     0.00]
+		
+		},
+		"air": {
+			"tier0": [ 0.20,    0.00,     0.80,     0.20,       0.00,     0.10],
+			"tier1": [ 0.15,    0.00,     0.20,     0.60,       0.20,     0.10],
+			"tier2": [ 0.15,    0.00,     0.20,     0.60,       0.20,     0.10]
+
+		},
+
+		"caretaker": 2
+	},
+
+	"armfhp": {
+		"importance": [1.5, 1.0],
 
 		"require_energy": false,
 
@@ -340,7 +360,7 @@
 	
 			"income_tier": [40],
 	
-			"unit":      ["armcsa", "armsehak",	"armsfig", "armsabre", "armsb", "armseap"],
+			"unit":      ["armcsa", "armsehak",	"armsfig", "armsaber", "armsb", "armseap"],
 	
 			"land": {
 				"tier0": [0.10,    	  0.10,     0.00,     	0.50,       0.20,     0.00],
@@ -367,7 +387,7 @@
 		// CORTEX factories
 
 	"corlab": {
-		"importance": [0.8, 0.2],
+		"importance": [0.8, 0.1],
 
 		"require_energy": false,
 
@@ -386,15 +406,15 @@
 			"tier0": [ 0.25,    0.60,    0.09,       0.01,       0.08,      0.10],
 			"tier1": [ 0.30,    0.40,    0.20,       0.40,       0.30,      0.10],
 			"tier2": [ 0.30,    0.20,    0.20,       0.40,       0.50,      0.10],
-			"tier3": [ 0.10,    0.30,    0.20,       0.00,       0.00,      0.02],
-			"tier4": [ 0.10,	0.00,	 0.20,		0.00,		0.00,		0.00]
+			"tier3": [ 0.10,    0.30,    0.20,       0.00,       0.00,      0.00],
+			"tier4": [ 0.10,	0.00,	 0.20,		 0.00,		 0.00,		0.00]
 		},
 
 		"caretaker": 3
 	},
 
 	"coralab": {
-		"importance": [0.0, 0.8],
+		"importance": [0.0, 1.0],
 
 		"require_energy": true,
 
@@ -414,8 +434,8 @@
 		},	
 		"water": {                                                                                                                                                  
 			"tier0": [ 0.30,      0.20,      0.01,      0.05,     0.02,      0.10,      0.05,     0.02,     0.00,		0.00,       0.00,		0.00,		0.00,      0.03,		0.03,   	0.00,		0.01],  
-			"tier1": [ 0.30,      0.20,      0.02,      0.05,     0.05,      0.20,      0.10,     0.05,     0.20,		0.01,       0.04,		0.10,		0.00,      0.02,		0.03,   	0.00,		0.01], 
-			"tier2": [ 0.30,      0.20,      0.03,      0.05,     0.05,      0.07,      0.15,     0.05,     0.20,		0.01,       0.04,		0.10,		0.10,      0.02,		0.03,   	0.00,		0.01] 
+			"tier1": [ 0.30,      0.20,      0.05,      0.05,     0.05,      0.20,      0.10,     0.05,     0.20,		0.01,       0.04,		0.30,		0.00,      0.00,		0.03,   	0.00,		0.01], 
+			"tier2": [ 0.30,      0.20,      0.05,      0.05,     0.05,      0.00,      0.10,     0.05,     0.20,		0.01,       0.04,		0.10,		0.20,      0.00,		0.03,   	0.00,		0.01] 
 		},
 
 		"caretaker": 6
@@ -456,7 +476,7 @@
 	},
 
 	"coravp": {
-		"importance": [0.0, 0.8],
+		"importance": [0.0, 1.0],
 
 		"require_energy": true,
 
@@ -483,35 +503,11 @@
 		"caretaker": 6
 	},
 
-    //t1 hover
-	"corhp": {
-		"importance": [0.5, 0.5],
-
-		"require_energy": false,
-
-		"income_tier": [20, 30, 40],
-
-		"unit":      ["corch", "corthovr", "corsh", "corsnap", "cormh", "corah", "corhal"],
-
-		"land": {
-			"tier0": [ 0.20,    0.00,     1.00,     0.00,       0.00,     0.00,	    0.00],
-			"tier1": [ 0.15,    0.00,     0.30,     0.40,       0.20,     0.00,	    0.10],
-			"tier2": [ 0.15,    0.00,     0.10,     0.50,       0.20,     0.00,	    0.20],
-			"tier3": [ 0.12,    0.00,     0.10,     0.50,       0.10,     0.00,	    0.30]
-		},
-		"air": {
-			"tier0": [ 0.20,    0.00,     1.00,     0.00,       0.00,     0.10,	    0.00],
-			"tier1": [ 0.15,    0.00,     0.30,     0.35,       0.15,     0.10,	    0.10],
-			"tier2": [ 0.15,    0.00,     0.10,     0.45,       0.15,     0.10,	    0.20],
-			"tier3": [ 0.12,    0.00,     0.10,     0.45,       0.10,     0.10,	    0.25]
-		},
-
-		"caretaker": 2
-	},
+	
 
 	//T3 factory
 	"corgant": {
-		"importance": [0.0, 1.0],
+		"importance": [0.0, 2.0],
 
 		"require_energy": true,
 
@@ -527,6 +523,25 @@
 
 		"caretaker": 20
 	},
+	"corgantuw": {
+		"importance": [0.0, 0.5],
+
+		"require_energy": true,
+
+		"income_tier": [100,200],
+
+		"unit":      ["corshiva", "corkarg", "corcat", "corkorg", "corjugg"],
+
+		"water": {
+			"tier0": [ 0.50,       0.00,      0.00,     0.00,      0.00],
+			"tier1": [ 0.30,       0.00,      0.00,     0.20,      0.10],
+            "tier2": [ 0.00,       0.00,      0.00,     0.40,      0.20]
+		},
+
+		"caretaker": 20
+	},
+
+
 
 	// CORTEX Aircraft
 	"corap": {
@@ -574,45 +589,126 @@
 		},
 		// CORTEX Ships
 	"corsy": {
-		"importance": [1.0, 1.0],
+		"importance": [3.0, 1.0],
 
 		"require_energy": false,
 
-		"income_tier": [20],
+		"income_tier": [15],
 
 		"unit":      ["corcs", "correcl", "corpt", "coresupp",  "corsub", "corpship", "corroy"],
 
 		"land": {
-			"tier0": [ 0.20,    0.10,       0.10,      0.10,       0.10,     0.10,      0.10],
-			"tier1": [ 0.25,    0.10,       0.10,      0.10,       0.10,     0.10,      0.25]
-		},
-		"air": {
-			"tier0": [ 0.20,    0.10,       0.10,      0.10,       0.10,     0.10,      0.10],
-			"tier1": [ 0.20,    0.10,       0.10,      0.10,       0.10,     0.10,      0.25]
+			"tier0": [ 0.10,    0.10,       0.10,      0.40,       0.20,     0.20,      0.10],
+			"tier1": [ 0.15,    0.10,       0.10,      0.30,       0.10,     0.30,      0.20]
 		},
 
 		"caretaker": 3
 	},
 	
 	"corasy": {
-		"importance": [0.0, 2.0],
+		"importance": [0.0, 3.0],
 
 		"require_energy": true,
 
-		"income_tier": [70],
+		"income_tier": [40, 70],
 
-		"unit":      ["coracsub", "corshark", "corarch", "corcrus", "corcarry", "cormship", "corbats", "corblackhy"],
+		"unit":      ["coracsub", "cormls",  "corsjam",  "corshark", "corssub",  "corarch", "corcrus", "corcarry", "cormship", "corbats", "corblackhy"],
 
 		"land": {
-			"tier0": [ 0.01,     0.20,       0.00,      0.30,       0.00,      0.10,      0.10,      0.00],
-			"tier1": [ 0.02,     0.15,       0.05,      0.10,       0.05,      0.20,      0.25,      0.10]
-		},
-		"air": {
-			"tier0": [ 0.01,     0.15,       0.60,      0.00,       0.00,      0.20,      0.05,      0.00],
-			"tier1": [ 0.02,     0.10,       0.50,      0.05,       0.02,      0.20,      0.03,      0.01]
+			"tier0": [ 0.20,     	0.05,		0.05,		0.20,		0.00,       0.01,      0.40,       0.00,      0.15,      0.20,      0.00],
+			"tier1": [ 0.20,     	0.05,		0.05,		0.10,		0.15,       0.01,      0.20,       0.05,      0.20,      0.20,      0.20],
+			"tier2": [ 0.20,     	0.05,		0.05,		0.10,		0.15,       0.01,      0.20,       0.05,      0.25,      0.20,      0.40]
 		},
 
-		"caretaker": 7
+		"caretaker": 5
+	},
+    
+    //Cortex Hover
+	"corhp": {
+		"importance": [0.0, 0.0],
+
+		"require_energy": false,
+
+		"income_tier": [20, 30, 40],
+
+		"unit":      ["corch", "corthovr", "corsh", "corsnap", "cormh", "corah", "corhal"],
+
+		"land": {
+			"tier0": [ 0.01,    0.00,     1.00,     0.00,       0.00,     0.01,	    0.00],
+			"tier1": [ 0.01,    0.00,     0.30,     0.40,       0.05,     0.01,	    0.10],
+			"tier2": [ 0.01,    0.00,     0.10,     0.50,       0.05,     0.01,	    0.20],
+			"tier3": [ 0.01,    0.00,     0.10,     0.50,       0.05,     0.01,	    0.30]
+		},
+
+		"caretaker": 2
+	},
+    "corfhp": {
+		"importance": [1.5, 0.5],
+
+		"require_energy": false,
+
+		"income_tier": [20, 30, 40],
+
+		"unit":      ["corch", "corthovr", "corsh", "corsnap", "cormh", "corah", "corhal"],
+
+		"land": {
+			"tier0": [ 0.01,    0.00,     1.00,     0.00,       0.00,     0.01,	    0.00],
+			"tier1": [ 0.01,    0.00,     0.30,     0.40,       0.05,     0.01,	    0.10],
+			"tier2": [ 0.01,    0.00,     0.10,     0.50,       0.05,     0.01,	    0.20],
+			"tier3": [ 0.01,    0.00,     0.10,     0.50,       0.05,     0.01,	    0.30]
+		},
+
+		"caretaker": 3
+	},
+    
+    //Cortex Amphibic Factory
+	"coramsub": {
+		"importance": [0.0, 0.5],
+
+		"require_energy": false,
+
+		"income_tier": [30],
+
+		"unit":      ["cormuskrat", "corgarp", "corseal", "corparrow", "corcrash", "coraak", "corroach", "corsktl", "coramph"],
+
+		"land": {
+			"tier0": [ 0.10,        0.00,       0.30,       0.00,       0.00,       0.00,	    0.10,       0.00,       0.50],
+			"tier1": [ 0.10,        0.00,       0.30,       0.20,       0.00,       0.00,	    0.10,       0.10,       0.30]		
+		},
+		"air": {
+			"tier0": [ 0.10,        0.00,       0.20,       0.00,       0.10,       0.10,	    0.10,       0.00,       0.40],
+			"tier1": [ 0.10,        0.00,       0.20,       0.20,       0.10,       0.10,	    0.10,       0.10,       0.30]
+		},
+        "water": {
+			"tier0": [ 0.10,        0.00,       0.30,       0.00,       0.00,       0.00,	    0.10,       0.00,       0.50],
+			"tier1": [ 0.10,        0.00,       0.30,       0.20,       0.00,       0.00,	    0.10,       0.10,       0.30]	
+		},
+
+		"caretaker": 2
+	},
+    
+    // Cortex Seaplanes
+	"corplat": {
+		"importance": [0.0, 1.0],
+
+		"require_energy": false,
+
+		"income_tier": [20],
+
+		"unit":      ["corcsa", "corhunt", "corsfig", "corsb", "corcut", "corseap"],
+
+		"land": {
+			"tier0": [ 0.10,        0.10,     0.05,     0.20,     0.80,       0.00],
+			"tier1": [ 0.10,        0.10,     0.05,     0.20,     0.80,       0.00]
+		},
+
+        "water": {
+			"tier0": [ 0.10,        0.10,     0.20,     0.10,     0.50,       0.20],
+			"tier1": [ 0.10,        0.10,     0.20,     0.10,     0.50,       0.20]
+
+        },
+
+		"caretaker": 2
 	}
 	}
 }

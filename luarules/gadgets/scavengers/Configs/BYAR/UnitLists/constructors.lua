@@ -11,7 +11,47 @@ end
 local constructors = {
 	"armcom_scav",
 	"corcom_scav",
+	"legcom_scav",
+	"legcomoff_scav",
+	"legcomt2def_scav",
+	"legcomt2com_scav",
 }
+
+local constructorsT1 = {
+	"armcom_scav",
+	"corcom_scav",
+	"legcom_scav",
+}
+
+local constructorsT2 = {
+	"armcom_scav",
+	"corcom_scav",
+	"legcom_scav",
+	"legcomoff_scav",
+}
+
+local constructorsT3 = {
+	"legcomoff_scav",
+	"legcomt2def_scav",
+	"legcomt2com_scav",
+}
+
+local constructorsT4 = {
+	"legcomoff_scav",
+	"legcomt2def_scav",
+	"legcomt2com_scav",
+}
+
+local swapUnitsToScav = {
+	[UnitDefNames["armcomcon_scav"].id] = "corcom_scav",
+	[UnitDefNames["corcomcon_scav"].id] = "armcom_scav",
+}
+
+local swapUnitsFromScav = {
+	[UnitDefNames["armcom_scav"].id] = "armcomcon_scav",
+	[UnitDefNames["corcom_scav"].id] = "corcomcon_scav",
+}
+
 
 local playerCommanders = {
 	"armcom",
@@ -76,6 +116,10 @@ local collectors = {
 }
 
 local constructorsID = getUnitIDList(constructors)
+local constructorsT1ID = getUnitIDList(constructorsT1)
+local constructorsT2ID = getUnitIDList(constructorsT2)
+local constructorsT3ID = getUnitIDList(constructorsT3)
+local constructorsT4ID = getUnitIDList(constructorsT4)
 local playerCommandersID = getUnitIDList(playerCommanders)
 local assistersID = getUnitIDList(assisters)
 local resurrectorsID = getUnitIDList(resurrectors)
@@ -85,6 +129,16 @@ local collectorsID = getUnitIDList(collectors)
 return {
 	Constructors = constructors,
 	ConstructorsID = constructorsID,
+	ConstructorsT1 = constructorsT1,
+	ConstructorsT1ID = constructorsT1ID,
+	ConstructorsT2 = constructorsT2,
+	ConstructorsT2ID = constructorsT2ID,
+	ConstructorsT3 = constructorsT3,
+	ConstructorsT3ID = constructorsT3ID,
+	ConstructorsT4 = constructorsT4,
+	ConstructorsT4ID = constructorsT4ID,
+	SwapUnitsToScav = swapUnitsToScav,
+	SwapUnitsFromScav = swapUnitsFromScav,
 	PlayerCommanders = playerCommanders,
 	PlayerCommandersID = playerCommandersID,
 	Assisters = assisters,

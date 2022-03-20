@@ -10,11 +10,13 @@ end
 
 -- GaiaTeamID and GaiaAllyTeamID
 local GaiaTeamID = Spring.GetGaiaTeamID()
-local _,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
+local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
 
 -- Map size
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
+local landLevel
+local seaLevel
 
 -- Get TeamIDs and AllyTeamIDs of Scavengers and Chickens
 local teams = Spring.GetTeamList()
@@ -71,6 +73,7 @@ local function FlatAreaCheck(posx, posy, posz, posradius, heightTollerance, chec
     local posradius = posradius or 1000
     local heightTollerance = heightTollerance or 30
     local deathwater = Game.waterDamage
+    local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
 
     -- Check height of test points in all 8 directions.
 	local testpos1 = Spring.GetGroundHeight((posx + posradius), (posz + posradius) )
@@ -85,6 +88,7 @@ local function FlatAreaCheck(posx, posy, posz, posradius, heightTollerance, chec
     -- Compare with original height
     if (not checkWater) and (not deathwater or deathwater == 0) and posy <= 0 then return true end -- Is water, Not Deathwater, No water bottom check. 
 	if deathwater > 0 and posy <= 0 then return false end -- Is water, Deathwater
+    if lavaLevel and posy <= lavaLevel then return false end -- Is lava
 	if testpos1 < posy - heightTollerance or testpos1 > posy + heightTollerance then return false end
     if testpos2 < posy - heightTollerance or testpos2 > posy + heightTollerance then return false end
 	if testpos3 < posy - heightTollerance or testpos3 > posy + heightTollerance then return false end
@@ -160,6 +164,8 @@ end
 
 local function StartboxCheck(posx, posy, posz, posradius, allyTeamID, returnTrueWhenNoStartbox) -- Return True when position is within startbox.
     local posradius = posradius or 1000
+    
+    if allyTeamID == GaiaAllyTeamID then return false end
 
     if AllyTeamStartboxes[allyTeamID+1].allyTeamHasStartbox == false then
         if returnTrueWhenNoStartbox then
@@ -197,6 +203,10 @@ local function SurfaceCheck(posx, posy, posz, posradius, sea) -- if true then po
 	local testpos7 = Spring.GetGroundHeight((posx - posradius), posz )
 	local testpos8 = Spring.GetGroundHeight(posx, (posz - posradius) )
 	local deathwater = Game.waterDamage
+    local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+
+    if deathwater > 0 and posy <= 0 then return false end -- Is water, Deathwater
+    if lavaLevel and posy <= lavaLevel then return false end -- Is lava
 
     if not sea then -- Test for land units
         if testpos0 <= 0 then return false end
@@ -224,18 +234,19 @@ local function SurfaceCheck(posx, posy, posz, posradius, sea) -- if true then po
 end
 
 local function ScavengerSpawnAreaCheck(posx, posy, posz, posradius) -- if true then position is within Scavengers spawn area.
+    local posradius = posradius or 1000
     if scavengerAllyTeamID then
         local scavTechPercentage = Spring.GetGameRulesParam("scavStatsTechPercentage")
         if scavTechPercentage then
             if Spring.GetModOptions().scavspawnarea == true then
-                if not AllyTeamStartboxes[scavengerAllyTeamID].allyTeamHasStartbox then return true end -- Scavs do not have a startbox so we allow them to spawn anywhere
+                if not AllyTeamStartboxes[scavengerAllyTeamID+1].allyTeamHasStartbox then return true end -- Scavs do not have a startbox so we allow them to spawn anywhere
                 if StartboxCheck(posx, posy, posz, posradius, scavengerAllyTeamID) == true then return true end -- Area is within startbox, so it's for sure in the spawn box.
                 
                 -- Spawn Box grows with Scavengers tech, getting that into from GameRulesParameter set by Scav gadget
-                local SpawnBoxMinX = math.floor(ScavengerStartboxXMin-(((mapSizeX)*0.01)*scavTechPercentage))
-                local SpawnBoxMaxX = math.ceil(ScavengerStartboxXMax+(((mapSizeX)*0.01)*scavTechPercentage))
-                local SpawnBoxMinZ = math.floor(ScavengerStartboxZMin-(((mapSizeZ)*0.01)*scavTechPercentage))
-                local SpawnBoxMaxZ = math.ceil(ScavengerStartboxZMax+(((mapSizeZ)*0.01)*scavTechPercentage))      
+                local SpawnBoxMinX = math.floor(AllyTeamStartboxes[scavengerAllyTeamID+1].xMin-(((mapSizeX)*0.01)*scavTechPercentage))
+                local SpawnBoxMaxX = math.ceil(AllyTeamStartboxes[scavengerAllyTeamID+1].xMax+(((mapSizeX)*0.01)*scavTechPercentage))
+                local SpawnBoxMinZ = math.floor(AllyTeamStartboxes[scavengerAllyTeamID+1].zMin-(((mapSizeZ)*0.01)*scavTechPercentage))
+                local SpawnBoxMaxZ = math.ceil(AllyTeamStartboxes[scavengerAllyTeamID+1].zMax+(((mapSizeZ)*0.01)*scavTechPercentage))      
                 
                 if posx < SpawnBoxMinX then return false end
                 if posx > SpawnBoxMaxX then return false end
@@ -247,13 +258,59 @@ local function ScavengerSpawnAreaCheck(posx, posy, posz, posradius) -- if true t
                 return true
             end
         else
-            if not AllyTeamStartboxes[scavengerAllyTeamID].allyTeamHasStartbox then return true end -- There's no info about tech percentage, but if there's no startbox, we assume they can spawn anywhere, right?
+            if not AllyTeamStartboxes[scavengerAllyTeamID+1].allyTeamHasStartbox then return true end -- There's no info about tech percentage, but if there's no startbox, we assume they can spawn anywhere, right?
             if StartboxCheck(posx, posy, posz, posradius, scavengerAllyTeamID) == true then return true end -- Area is within startbox, so it's for sure in the spawn box, even if we don't have info about how big spawn box is.
             return false -- but otherwise, don't let them spawn, don't risk spawning in place they shouldn't spawn.
         end
     else
         return false -- Scavs aren't in the game, so they don't have a spawn area.
     end
+end
+
+local function LavaCheck(posx, posy, posz, posradius) -- Returns false if area is in lava
+    local posradius = posradius or 1000
+    local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
+    if lavaLevel and posy <= lavaLevel then return false end -- Is lava
+    return true
+end
+
+local function MapIsLandOrSea()
+    if not landLevel then
+        local grid = (math.ceil(mapSizeX/16))*(math.ceil(mapSizeZ/16))
+        local x = 0
+        local z = 0
+        local y = 0
+        local landNodes = 0
+        local seaNodes = 0
+        for i = 1,grid do
+            if x <= mapSizeX then
+                y = Spring.GetGroundHeight(x,z)
+                if y > -15 then
+                    landNodes = landNodes + 1
+                elseif y <= -15 then
+                    seaNodes = seaNodes + 1
+                end
+                x = x + 16
+            elseif x > mapSizeX then
+                x = 0
+                z = z + 16
+                if z > mapSizeZ then
+                    break
+                end
+                
+                y = Spring.GetGroundHeight(x,z)
+                if y > 0 then
+                    landNodes = landNodes + 1
+                elseif y <= 0 then
+                    seaNodes = seaNodes + 1
+                end
+            end
+        end
+        landLevel = math.ceil((landNodes/grid)*10000)/100
+        seaLevel = math.ceil((seaNodes/grid)*10000)/100
+    end
+    --Spring.Echo("LandLevel", landLevel.." "..seaLevel)
+    return landLevel, seaLevel
 end
 
 return {
@@ -264,6 +321,8 @@ return {
     StartboxCheck = StartboxCheck,
     MapEdgeCheck = MapEdgeCheck,
     SurfaceCheck = SurfaceCheck,
+    LavaCheck = LavaCheck,
+    MapIsLandOrSea = MapIsLandOrSea,
 
     -- Scavengers
     ScavengerSpawnAreaCheck = ScavengerSpawnAreaCheck,

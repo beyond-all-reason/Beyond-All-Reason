@@ -95,8 +95,191 @@
        	 "retreat": 0.6
         
 		},
+// FACTORIES - Ground (Surface)
+		"armlab": {
+			"role": ["static"],
+			"build_speed": 8.0,
+            "limit": 1
+		},
+		"armalab": {
+			"role": ["static"],
+			"attribute": ["support"], //facory with support is build only in base
+			"limit": 1,
+			"build_speed": 10.0
+		},
+		"armshltx": {
+			"role": ["static"],
+			"attribute": ["support"],
+			"midposoffset": [0, 0, 21],
+			"limit": 1,
+			"build_speed": 10.0
+		},
+		"armvp": {
+			"role": ["static"],
+			"build_speed": 8.0,
+            "limit": 1
+		},
+		"armavp": {
+			"role": ["static"],
+			"attribute": ["support"],
+			"limit": 1,
+			"build_speed": 10.0
+		},
 
-		// ARMADA defenses
+		"corlab": {
+			"role": ["static"],
+			"build_speed": 8.0,
+            "limit": 1,
+			"midposoffset": [-3.239746, 0, -2]
+		},
+		"coralab": {
+			"role": ["static"],
+			"midposoffset": [0, 0, -4],
+			//"attribute": ["support"],
+			"limit": 1,
+			"build_speed": 8.0
+		},
+		"corgant": {
+			"role": ["static"],
+			"attribute": ["support"],
+			"limit": 1,
+			"build_speed": 10.0
+		},
+		"corvp": {
+			"role": ["builder"],
+			"build_speed": 8.0,
+            "limit": 1
+
+		},
+		"coravp": {
+			"role": ["static"],
+			"attribute": ["support"],
+			"limit": 1,
+			"build_speed": 10.0
+		},
+
+// FACTORIES - air
+		"armap": {
+			"role": ["static"],
+			"attribute": ["support"],
+			"limit": 1,
+			"build_speed": 10.0
+		},
+		"armaap": {
+			"role": ["static"],
+			"attribute": ["support"],
+            "since": 420,
+			"limit": 1,
+			"build_speed": 10.0
+		},
+		"corap": {
+			"role": ["static"],
+			"attribute": ["support"],
+			"limit": 1,
+			"build_speed": 10.0
+		},
+		"coraap": {
+			"role": ["static"],
+			"attribute": ["support"],
+            "since": 420,
+			"limit": 1,
+			"build_speed": 10.0
+		},
+
+// FACTORIES - water
+		"armsy": {
+			"role": ["static"],
+			"build_speed": 8.0,
+			"limit": 1
+		},
+		"armasy": {
+			"role": ["static"],
+			"build_speed": 8.0,
+            //"since": 540,
+			"limit": 1
+		},
+		"armhp": {
+			"role": ["static"],
+			"build_speed": 8.0,
+			"limit": 1
+		},
+		"armfhp": {
+			"role": ["static"],
+			"build_speed": 8.0,
+			"limit": 1
+		},
+        "armamsub": {
+			"role": ["static"],
+			"build_speed": 10.0,
+			"limit": 1
+        },
+        "armplat": {
+			"role": ["static"],
+			"build_speed": 8.0,
+			"since": 420,
+			"limit": 1
+        },
+		"armshltxuw": {
+			"role": ["static"],
+			"attribute": ["support"],
+			"midposoffset": [0, 0, 21],
+			"build_speed": 10.0,
+			"limit": 1
+		},
+        "corsy": {
+			"role": ["static"],
+			"build_speed": 10.0,
+			"limit": 1
+		},
+		"corasy": {
+			"role": ["static"],
+			"build_speed": 8.0,
+            "since": 480,
+			"limit": 1
+		},
+		"corhp": {
+			"role": ["static"],
+			"build_speed": 8.0,
+			"limit": 1
+		},
+		"corfhp": {
+			"role": ["static"],
+			"build_speed": 8.0,
+			"since": 300,
+			"limit": 1
+		},
+        "coramsub": {
+			"role": ["builder"],
+			"build_speed": 10.0,
+			"limit": 1
+		},
+        "corplat": {
+			"role": ["builder"],
+			"build_speed": 8.0,
+			"since": 420,
+			"limit": 1
+		},
+
+
+// FACTORIES - Nanos
+		"armnanotc": {
+			"role": ["support"],		// nanos with role "support" are considered "low priority"
+			"build_speed": 10.0  //lower values => more and earlier nanos (workaround) 
+		},
+		"armnanotcplat": {
+			"role": ["support"],
+			"build_speed": 10.0  //lower values => more and earlier nanos (workaround) 
+		},
+		"cornanotc": {
+			"role": ["static"],
+			"build_speed": 10.0 
+		},
+		"cornanotcplat": {
+			"role": ["static"],
+			"build_speed": 10.0 
+		},
+
+// DEFENSE - Armada
 		"armllt": {
 		"role": ["static"],
 		"since": 70,
@@ -129,8 +312,14 @@
 				"vs": {"artillery": 0.5}
 			}
 		},
+        "armfhlt": {
+			"role": ["static"],
+            "since": 360,
+            "limit": 3	
+		},
 		"armguard": {
 			"role": ["static"],
+			"on": false,
 			"limit": 1,
 			"threat":{
 				"vs":{"raider": 0.5, "assault": 0.5, "skirmish": 0.5}
@@ -182,6 +371,7 @@
 		},
 		"armamb": {
 			"role": ["static"],
+			"on": false,
 			"threat": {"air":0.0, "surf":1.0, "water":1.0, 
 				"vs": {"artillery":0.6, "assault": 0.8, "raiders":0.8}
 			}
@@ -192,11 +382,16 @@
 				"vs": {"raider":0.2}
 			}
 		},
+		"armkraken": {
+			"role": ["static"],
+			"threat": {"air":0.0, "surf":1.0, "water":1.0}
+		},
 
-		// CORTEX defenses
+// DEFENSE - Cortex
 		"corllt": {
 			"role": ["static"],
 			"since": 70,
+			"midposoffset": [0, 0, 2.38],
 			"threat": {
 				"air": 0.2,  
 				"surf": 1.0, 
@@ -223,6 +418,12 @@
 				"vs": {"artillery": 0.5, "assault": 0.8}
 			}
 		},
+		"corfhlt": {
+			"role": ["static"],
+			"since": 360,
+			"limit": 3
+		},
+		
 		"cormaw": {
 			"role": ["static"],
 			"since": 300,
@@ -235,6 +436,7 @@
 		},
 		"corpun": {
 			"role": ["static"],
+			"on": false,
 			"threat": {"air": 0.0, "water": 0.1,"surf": 0.5}
 		},
 		"corrl": {
@@ -270,135 +472,21 @@
 		},
 		"cortoast": {
 			"role": ["static"],
+			"on": false,
 			"threat": {"air": 0.0, "water": 0.1,"surf": 1.0}
 		},
 		"cordoom": {
 			"role": ["static"],
-			"threat": {"air": 0.0, "water": 0.0,"surf": 1.0,
-				"vs": {"heavy": 1.5}
-			} 
-		},
-
-		// Factories -surf
-		"armlab": {
-			"role": ["builder"],
-			"build_speed": 8.0
-		},
-		"armalab": {
-			"role": ["static"],
-			"attribute": ["support"],
-			"limit": 1,
-			"build_speed": 10.0
-		},
-		"armshltx": {
-			"role": ["static"],
-			"attribute": ["support"],
-			"limit": 1,
-			"build_speed": 10.0
-		},
-		"armvp": {
-			"role": ["builder"],
-			"build_speed": 8.0
-		},
-		"armavp": {
-			"role": ["static"],
-			"attribute": ["support"],
-			"limit": 1,
-			"build_speed": 10.0
-		},
-
-		"corlab": {
-			"role": ["builder"],
-			"build_speed": 8.0
-		},
-		"coralab": {
-			"role": ["static"],
-			//"attribute": ["support"],
-			"limit": 1,
-			"build_speed": 8.0
-		},
-		"corgant": {
-			"role": ["static"],
-			"attribute": ["support"],
-			"limit": 1,
-			"build_speed": 10.0
-		},
-		"corvp": {
-			"role": ["builder"],
-			"build_speed": 8.0
-		},
-		"coravp": {
-			"role": ["static"],
-			"attribute": ["support"],
-			"limit": 1,
-			"build_speed": 10.0
-		},
-
-		// Factories - air
-		"armap": {
-			"role": ["static"],
-			"attribute": ["support"],
-			"limit": 1,
-			"build_speed": 10.0
-			},
-		"armaap": {
-			"role": ["static"],
-			"attribute": ["support"],
-			"limit": 1,
-			"build_speed": 10.0
-			},
-		"corap": {
-			"role": ["static"],
-			"attribute": ["support"],
-			"limit": 1,
-			"build_speed": 10.0
-			},
-		"coraap": {
-			"role": ["static"],
-			"attribute": ["support"],
-			"limit": 1,
-			"build_speed": 10.0
-			},
-
-		// Factories - water
-		"armsy": {
-			"role": ["builder"],
-			"build_speed": 10.0
-		},
-		"armasy": {
-			"role": ["builder"],
-			"build_speed": 10.0
-		},
-		"armhp": {
-			"role": ["builder"],
-			"build_speed": 10.0
-		},
-		"corhp": {
-			"role": ["builder"],
-			"build_speed": 10.0
-		},
-		"corsy": {
-			"role": ["builder"],
-			"build_speed": 10.0
-		},
-		"corasy": {
-			"role": ["builder"],
-			"build_speed": 10.0
-		},
-
-		// Factories - Nanos
-		"armnanotc": {
-			"role": ["support"],
-			"build_speed": 10.0
-			 //lower values => more and earlier nanos (workaround) 
-		},
-		"cornanotc": {
-			"role": ["support"],
-			"build_speed": 11.0 //lower values => more and earlier nanos (workaround)
+			"threat": {"air": 0.0, "water": 0.0,"surf": 1.0, "vs": {"heavy": 1.5}}
+        },
+        "corfdoom": {
+            "role": ["static"],
+            "threat": {"air": 0.0, "water": 0.0,"surf": 1.0,  "vs": {"heavy": 1.5}} 
 		},
 
 
-		//other structures & buildings
+
+// BUILDINGS
 		"armtarg": {
 			"role": ["static"],
 			"limit": 3
@@ -460,7 +548,7 @@
 			"ignore": true
 		},
 	                  
-		//energy & metal
+// ECO (energy & metal)
 		"armmex" : {
 			"role": ["static"],
 			"build_mod": 500
@@ -473,6 +561,10 @@
             "role": ["static"],
             "build_mod": 500
         },
+		"armgeo": {
+			"role": ["static"],
+			"midposoffset": [0, 0, -2]
+		},
         "armfus" : {
             "role": ["static"],
             "build_mod": 2000
@@ -481,7 +573,16 @@
             "role": ["static"],
             "build_mod": 4000
         },
+		"armuwfus" : {
+            "role": ["static"],
+            "build_mod": 4000
+        },
 		"armestor" : {
+			"role": ["static"],
+			"since": 240,
+			"limit": 1
+		},
+		"armuwes" : {
 			"role": ["static"],
 			"since": 240,
 			"limit": 1
@@ -495,22 +596,41 @@
 			"role": ["static"],
 			"limit": 1
 		},
+		"corfus" : {
+            "role": ["static"],
+            "build_mod": 4000
+        },
+		"coruwfus" : {
+            "role": ["static"],
+            "build_mod": 4000
+        },
 		"cormstor" : {
-		"role": ["static"],
-		"since": 500,
-		"limit": 1
+			"role": ["static"],
+			"since": 500,
+			"limit": 1
 		},
+		"coruwms" : {
+			"role": ["static"],
+			"since": 500,
+			"limit": 1
+		},
+		"coruwadvms" : {
+			"role": ["static"],
+			"limit": 1
+			},
 		"corestor" : {
 			"role": ["static"],
 			"since": 240,
 			"limit": 1
 		},
-		"coruwadvms" : {
-		"role": ["static"],
-		"limit": 1
+		"coruwes" : {
+			"role": ["static"],
+			"since": 240,
+			"limit": 1
 		},
 
-		// ignore
+
+// ignore
 		"armfort": {
 			"role": ["static"],
 			"ignore": true
@@ -543,6 +663,8 @@
 			"role": ["static"],
 			"ignore": true
 		},
+
+// MOBILE UNITS
 
 		// Mobile Unit Behaviour Modifiers
 			// "role": [<main>, <enemy>, <enemy>, ...]
@@ -577,6 +699,8 @@
 			// "return" - return fire
 			// "open" - fire at will
 		    // syntax::: "fire_state": "open",
+
+			//"on"/"off": true/false - syntax:: "on":false | use to modifiy trajectory mode for weapons
 
 
 		
@@ -630,7 +754,7 @@
 		},
 		"armjeth": {
 			"role": ["anti_air"],
-			"limit": 30,
+			"limit": 10,
 			"threat": {"air": 2.0, "water": 0.0, "surf":0.0}
 		},
 		"armwar": {
@@ -670,7 +794,8 @@
 		},
 		"armamph": {
 				"role": ["raider", "anti_air"],
-				"threat": {"air": 1.0, "water": 0.0, "surf": 1.0} 	
+				"threat": {"air": 1.0, "water": 0.0, "surf": 1.0},
+                "limit": 10	
 		},
 		"armzeus": {
 			"role": ["skirmish"],  //is it more skirmish or riot?
@@ -705,7 +830,7 @@
 			"attribute": ["melee"],
 			"retreat": 0,
 			"threat":{"air": 0.0, "water": 0.1, "surf":0.1},
-			"power":1.0 //how to manage that mine is attacking and not retreating and not making own groups too op in eyes of own ai?
+			"power":10.0 //how to manage that mine is attacking and not retreating and not making own groups too op in eyes of own ai?
 		},
 		"armaak": {
 			"role": ["anti_air"],
@@ -920,6 +1045,7 @@
 		},
 		"armfig": {
 			"role": ["anti_air", "air"],
+            "power": 0.5,
 			"retreat": 0.5
 		},
 		"armthund": {
@@ -948,6 +1074,7 @@
 		},
 		"armhawk": {
 			"role": ["anti_air", "air"],
+            "power": 0.5,
 			"retreat": 0.6
 		},
 		"armpnix": {
@@ -977,12 +1104,23 @@
 			"retreat": 0.6
 		},
 
+		// Naval Aircrafts
+		"armsaber": {
+			"role": ["skirmish", "air"],
+			"retreat": 0.6
+		},
+
 		// ships - armsy
 		"armcs": {
 			"role": ["builder"],
 			"retreat": 0.6,
-			"limit": 6,
-			"build_speed": 10.0
+			"limit": 8,
+			"build_speed": 7.0
+		},
+        "armrecl": {
+			"role": ["support"],
+			"retreat": 0.6,
+			"limit": 6
 		},
 		"armpt": {
 			"role": ["scout", "anti_air"]
@@ -991,11 +1129,13 @@
 			"role": ["raider"]
 		},
 		"armpship": {
-			"role": ["skirmish"]
+			"role": ["skirmish"],
+			"attribute": ["siege"]
 		},
 		"armsub": {
 			"role": ["sub"],
-			"attribute": ["anti_sub"]
+			"attribute": ["siege"]
+			
 		},
 		"armroy": {
 			"role": ["assault"],
@@ -1005,25 +1145,39 @@
 
 		// adv shipyard - armasy
 		"armacsub": {
-			"role": ["builder", "sub"],
+			"role": ["builderT2", "sub"],
 			"attribute": ["solo"],
-			"retreat": 0.3,
-			"limit": 4,
-			"build_speed": 10.0
+			"retreat": 0.5,
+			"limit": 8,
+			"build_speed": 7.0
+		},
+        "armmls": {
+			"role": ["builder"],
+			"retreat": 0.5,
+			"limit": 2,
+			"build_speed": 7.0
 		},
 		"armsubk": {
-			"role": ["sub"],
-			"attribute": ["anti_sub"]
+			"role": ["anti_sub", "sub"]	
 		},
+		"armserp": {
+			"role":["anti_heavy", "sub"],
+			"attribute": ["siege"]
+		},	
 		"armaas": {
 			"role": ["anti_air"]
 		},
 		"armcrus": {
-			"role": ["assault", "skirmish"],
+			"role": ["skirmish"],
 			"attribute": ["anti_sub"]
 		},
+        "armsjam": {
+			"role": ["support"],
+			"retreat": 0.75,
+            "limit": 3
+		},
 		"armcarry": {
-			"role": ["support", "heavy"],
+			"role": ["support"],
 			"retreat": 0.75
 		},
 		"armmship": {
@@ -1033,12 +1187,14 @@
 		},
 		"armbats": {
 			"role": ["heavy"],
-			"attribute": ["assault"]
+			"attribute": ["siege"]
 		},
 		"armepoch": {
-			"role": ["heavy"],
-			"attribute": ["artillery"],
-			"retreat": 0.3
+			"role": ["artillery", "super"],
+			"attribute": ["super"],
+			"retreat": 0.4
+
+			
 		},
 		// ARMADA HOVERS
 
@@ -1091,7 +1247,7 @@
 		"corcrash": {
 			"role": ["anti_air"],
 			"attribute": ["support"],
-			"limit": 30
+			"limit": 10
 		},
 	
 		// adv bot - coralab
@@ -1170,7 +1326,8 @@
 			"limit": 3
 		},
 		"coramph": {
-			"role": ["raider"]
+			"role": ["raider"],
+            "limit": 10
 		},
 		"corspy": {
 			"role": ["scout"],
@@ -1314,16 +1471,17 @@
 			"role": ["builder"],
 			"retreat": 0.6,
 			"limit": 6,
-			"build_speed": 10.0
+			"build_speed": 7.0
 		},
 		"correcl": {
 			"role": ["support"],
 			"retreat": 0.6,
-			"limit": 6,
-			"build_speed": 10.0
+			"limit": 10
 		},
 		"corpt": {
-			"role": ["scout", "anti_air"]
+			"role": ["scout", "anti_air"],
+			"attribute": ["anti_air", "siege"],
+			"limit": 8
 		},
 		"coresupp": {
 			"role": ["raider"]
@@ -1332,8 +1490,7 @@
 			"role": ["skirmish"]
 		},
 		"corsub": {
-			"role": ["sub"],
-			"attribute": ["anti_sub"]
+			"role": ["sub"]		
 		},
 		"corroy": {
 			"role": ["assault"],
@@ -1343,24 +1500,38 @@
 	
 		// adv shipyard - corasy
 		"coracsub": {
-			"role": ["builder", "sub"],
+			"role": ["builderT2", "sub"],
+            "attribute": ["solo"],
 			"retreat": 0.3,
-			"limit": 4,
-			"build_speed": 10.0
+			"limit": 6,
+			"build_speed": 7.0
 		},
+        "cormls": {
+			"role": ["builder"],
+			"build_speed": 7.0,
+			"retreat": 0.75,
+            "limit":2
+        },
 		"corshark": {
 			"role": ["sub"],
-			"attribute": ["anti_sub"]
+			"attribute": ["anti_sub","siege"]
+		},
+		"corssub": {
+			"role": ["anti_heavy", "sub"],
+			"attribute": ["siege"]
 		},
 		"corarch": {
 			"role": ["anti_air"]
 		},
 		"corcrus": {
-			"role": ["assault", "skirmish"],
-			"attribute": ["anti_sub"]
+			"role": ["skirmish"]
+		},
+		"corsjam": {
+			"role": ["support"],
+			"retreat": 0.75
 		},
 		"corcarry": {
-			"role": ["support", "heavy"],
+			"role": ["support"],
 			"retreat": 0.75
 		},
 		"cormship": {
@@ -1370,12 +1541,12 @@
 		},
 		"corbats": {
 			"role": ["heavy"],
-			"attribute": ["assault"]
+			"attribute": ["siege"]
 		},
 		"corblackhy": {
-			"role": ["heavy"],
-			"attribute": ["artillery"],
-			"retreat": 0.3
+			"role": ["artillery", "super"],
+            "attribute": ["super"],
+			"retreat": 0.4
 		},
 		// CORTEX HOVERS
 
@@ -1458,6 +1629,12 @@
 		"corcrw": {
 			"role": ["heavy", "air"],
 			"retreat": 0.4
+		},
+
+		// Naval Aircraft - corplat
+		"corcut": {
+			"role": ["raider", "air"],
+			"retreat": 0.8
 		}
 
 	}

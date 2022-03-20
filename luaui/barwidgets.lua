@@ -33,9 +33,6 @@ local SAFEDRAW = false  -- requires SAFEWRAP to work
 local glPopAttrib = gl.PopAttrib
 local glPushAttrib = gl.PushAttrib
 
-
---------------------------------------------------------------------------------
-
 Spring.SendCommands({
 	"unbindkeyset  Any+f11",
 	"unbindkeyset Ctrl+f11",
@@ -43,17 +40,12 @@ Spring.SendCommands({
 	"echo LuaUI: bound F11 to the widget selector",
 })
 
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---
---  the widgetHandler object
---
-
 local allowuserwidgets = Spring.GetModOptions().allowuserwidgets
+if Spring.GetModOptions().teamcolors_anonymous_mode then
+	allowuserwidgets = false
+end
 
 widgetHandler = {
-
 	widgets = {},
 
 	configData = {},
@@ -78,7 +70,7 @@ widgetHandler = {
 	mouseOwner = nil,
 	ownedButton = 0,
 
-	chobbyInterface = false,
+	chobbyInterface = false,	-- will be true when chobby interface is on top
 
 	xViewSize = 1,
 	yViewSize = 1,
@@ -108,6 +100,7 @@ local flexCallIns = {
 	'UnitFromFactory',
 	'UnitDestroyed',
 	'UnitDestroyedByTeam', -- NB: called via gadget, not engine
+	'RenderUnitDestroyed',
 	'UnitExperience',
 	'UnitTaken',
 	'UnitGiven',
@@ -179,6 +172,12 @@ local callInLists = {
 	'GameProgress',
 	'CommandsChanged',
 	'LanguageChanged',
+	'VisibleUnitAdded',
+	'VisibleUnitRemoved',
+	'VisibleUnitsChanged',
+	'AlliedUnitAdded',
+	'AlliedUnitRemoved',
+	'AlliedUnitsChanged'
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
@@ -190,14 +189,12 @@ for _, uci in ipairs(flexCallIns) do
 	table.insert(callInLists, uci)
 end
 
-
 -- initialize the call-in lists
 do
 	for _, listname in ipairs(callInLists) do
 		widgetHandler[listname .. 'List'] = {}
 	end
 end
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -206,7 +203,7 @@ end
 --
 
 local function rev_iter(t, key)
-	if (key <= 1) then
+	if key <= 1 then
 		return nil
 	else
 		local nkey = key - 1
@@ -218,18 +215,17 @@ local function r_ipairs(t)
 	return rev_iter, t, (1 + #t)
 end
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 function widgetHandler:LoadConfigData()
 	local chunk, err = loadfile(CONFIG_FILENAME)
-	if (chunk == nil) or (err) then
+	if chunk == nil or err then
 		if err then
 			Spring.Log("barwidgets.lua", LOG.INFO, err)
 		end
 		return {}
-	elseif (chunk() == nil) then
+	elseif chunk() == nil then
 		Spring.Log("barwidgets.lua", LOG.ERROR, 'Luaui config file was blank')
 		return {}
 	end
@@ -238,10 +234,10 @@ function widgetHandler:LoadConfigData()
 	self.orderList = chunk().order
 	self.configData = chunk().data
 	self.allowUserWidgets = chunk().allowUserWidgets
-	if (not self.orderList) then
+	if not self.orderList then
 		self.orderList = {} -- safety
 	end
-	if (not self.configData) then
+	if not self.configData then
 		self.configData = {} -- safety
 	end
 end
@@ -250,7 +246,7 @@ function widgetHandler:SaveConfigData()
 	--  self:LoadConfigData()
 	local filetable = {}
 	for i, w in ipairs(self.widgets) do
-		if (w.GetConfigData) then
+		if w.GetConfigData then
 			self.configData[w.whInfo.name] = w:GetConfigData()
 		end
 		self.orderList[w.whInfo.name] = i
@@ -265,7 +261,7 @@ function widgetHandler:SendConfigData()
 	self:LoadConfigData()
 	for i, w in ipairs(self.widgets) do
 		local data = self.configData[w.whInfo.name]
-		if (w.SetConfigData and data) then
+		if w.SetConfigData and data then
 			w:SetConfigData(data)
 		end
 	end
@@ -286,13 +282,13 @@ local function GetWidgetInfo(name, mode)
 	local infoLines = {}
 
 	for line in lines:gmatch('([^\n]*)\n') do
-		if (not line:find('^%s*%-%-')) then
-			if (line:find('[^\r]')) then
+		if not line:find('^%s*%-%-') then
+			if line:find('[^\r]') then
 				break -- not commented, not a blank line
 			end
 		end
 		local s, e, source = line:find('^%s*%-%-%>%>(.*)')
-		if (source) then
+		if source then
 			table.insert(infoLines, source)
 		end
 	end
@@ -446,7 +442,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
 
 	local knownInfo = self.knownWidgets[name]
 	if knownInfo then
-		if (knownInfo.active) then
+		if knownInfo.active then
 			Spring.Echo('Failed to load: ' .. basename .. '  (duplicate name)')
 			return nil
 		end
@@ -464,7 +460,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
 	end
 	knownInfo.active = true
 
-	if (widget.GetInfo == nil) then
+	if widget.GetInfo == nil then
 		Spring.Echo('Failed to load: ' .. basename .. '  (no GetInfo() call)')
 		return nil
 	end
@@ -494,7 +490,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
 
 	-- load the config data
 	local config = self.configData[name]
-	if (widget.SetConfigData and config) then
+	if widget.SetConfigData and config then
 		widget:SetConfigData(config)
 	end
 
@@ -503,7 +499,7 @@ end
 
 function widgetHandler:NewWidget()
 	local widget = {}
-	if (true) then
+	if true then
 		-- copy the system calls into the widget table
 		for k, v in pairs(System) do
 			widget[k] = v
@@ -547,7 +543,7 @@ function widgetHandler:NewWidget()
 		return (self.mouseOwner == widget)
 	end
 	wh.DisownMouse = function(_)
-		if (self.mouseOwner == widget) then
+		if self.mouseOwner == widget then
 			self.mouseOwner = nil
 		end
 	end
@@ -584,7 +580,7 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 
 	wi.filename = filename
 	wi.basename = basename
-	if (widget.GetInfo == nil) then
+	if widget.GetInfo == nil then
 		wi.name = basename
 		wi.layer = 0
 	else
@@ -621,16 +617,13 @@ end
 
 local function SafeWrapFuncNoGL(func, funcName)
 	local wh = widgetHandler
-
 	return function(w, ...)
-
 		local r = { pcall(func, w, ...) }
-
-		if (r[1]) then
+		if r[1] then
 			table.remove(r, 1)
 			return unpack(r)
 		else
-			if (funcName ~= 'Shutdown') then
+			if funcName ~= 'Shutdown' then
 				widgetHandler:RemoveWidget(w)
 			else
 				Spring.Echo('Error in Shutdown()')
@@ -646,18 +639,15 @@ end
 
 local function SafeWrapFuncGL(func, funcName)
 	local wh = widgetHandler
-
 	return function(w, ...)
-
 		glPushAttrib(GL.ALL_ATTRIB_BITS)
-		local r = { pcall(func, w, ...) }
 		glPopAttrib()
-
-		if (r[1]) then
+		local r = { pcall(func, w, ...) }
+		if r[1] then
 			table.remove(r, 1)
 			return unpack(r)
 		else
-			if (funcName ~= 'Shutdown') then
+			if funcName ~= 'Shutdown' then
 				widgetHandler:RemoveWidget(w)
 			else
 				Spring.Echo('Error in Shutdown()')
@@ -1365,7 +1355,7 @@ function widgetHandler:MousePress(x, y, button)
 	end
 	for _, w in ipairs(self.MousePressList) do
 		if w:MousePress(x, y, button) then
-			if (not mo) then
+			if not mo then
 				self.mouseOwner = w
 			end
 			return true
@@ -1450,7 +1440,7 @@ function widgetHandler:GetTooltip(x, y)
 	for _, w in ipairs(self.GetTooltipList) do
 		if w:IsAbove(x, y) then
 			local tip = w:GetTooltip(x, y)
-			if ((type(tip) == 'string') and (#tip > 0)) then
+			if type(tip) == 'string' and #tip > 0 then
 				return tip
 			end
 		end
@@ -1539,9 +1529,9 @@ local oldSelection = {}
 function widgetHandler:UpdateSelection()
 	local changed
 	local newSelection = Spring.GetSelectedUnits()
-	if (#newSelection == #oldSelection) then
+	if #newSelection == #oldSelection then
 		for i = 1, #oldSelection do
-			if (newSelection[i] ~= oldSelection[i]) then
+			if newSelection[i] ~= oldSelection[i] then
 				-- it seems the order stays
 				changed = true
 				break
@@ -1550,7 +1540,7 @@ function widgetHandler:UpdateSelection()
 	else
 		changed = true
 	end
-	if (changed) then
+	if changed then
 		local subselection = true
 		if #newSelection > #oldSelection then
 			subselection = false
@@ -1582,7 +1572,7 @@ function widgetHandler:SelectionChanged(selectedUnits, subselection)
 			return
 		end
 		local unitArray = w:SelectionChanged(selectedUnits, subselection)
-		if (unitArray) then
+		if unitArray then
 			Spring.SelectUnitArray(unitArray)
 			return true
 		end
@@ -1696,6 +1686,14 @@ end
 function widgetHandler:UnitDestroyedByTeam(unitID, unitDefID, unitTeam, attackerTeamID)
 	for _, w in ipairs(self.UnitDestroyedByTeamList) do
 		w:UnitDestroyedByTeam(unitID, unitDefID, unitTeam, attackerTeamID)
+	end
+	return
+end
+
+function widgetHandler:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
+	-- at the time of committing, this does not get called by the widgethandler
+	for _, w in ipairs(self.RenderUnitDestroyedList) do
+		w:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 	return
 end
@@ -1874,6 +1872,43 @@ function widgetHandler:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, 
 	end
 	return
 end
+
+function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	for _, w in ipairs(self.VisibleUnitAddedList) do
+		w:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	end
+end
+
+function widgetHandler:VisibleUnitRemoved(unitID)
+	for _, w in ipairs(self.VisibleUnitRemovedList) do
+		w:VisibleUnitRemoved(unitID)
+	end
+end
+
+function widgetHandler:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
+	for _, w in ipairs(self.VisibleUnitsChangedList) do
+		w:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
+	end
+end
+
+function widgetHandler:AlliedUnitAdded(unitID, unitDefID, unitTeam)
+	for _, w in ipairs(self.AlliedUnitAddedList) do
+		w:AlliedUnitAdded(unitID, unitDefID, unitTeam)
+	end
+end
+
+function widgetHandler:AlliedUnitRemoved(unitID)
+	for _, w in ipairs(self.AlliedUnitRemovedList) do
+		w:AlliedUnitRemoved(unitID)
+	end
+end
+
+function widgetHandler:AlliedUnitsChanged(visibleUnits, numVisibleUnits)
+	for _, w in ipairs(self.AlliedUnitsChangedList) do
+		w:AlliedUnitsChanged(alliedUnits, numAlliedUnits)
+	end
+end
+
 
 --------------------------------------------------------------------------------
 --

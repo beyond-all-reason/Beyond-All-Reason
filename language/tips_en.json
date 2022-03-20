@@ -79,8 +79,8 @@
 				"nukeLaunched": "Nuclear missile launch detected",
 				"lrpcAttacking": "Enemy Long Range Plasma Cannon(s) (LRPC) are targeting your units",
 				"t3Ready": "Tech 3 unit is ready",
-				"vulcanReady": "Vulcan is ready",
-				"buzzsawReady": "Buzzsaw is ready",
+				"vulcanReady": "Ragnarok is ready",
+				"buzzsawReady": "Calamity is ready",
 				"t2Detected": "Tech 2 unit detected",
 				"t3Detected": "Tech 3 unit detected",
 				"aircraftSpotted": "Aircraft spotted",
@@ -91,9 +91,9 @@
 				"tacticalSiloDetected": "Tactical nuke silo detected",
 				"nukeSiloDetected": "Nuclear silo detected",
 				"nukeBomberDetected": "Nuclear bomber detected",
-				"t3MobileTurretDetected": "Juggernaut detected",
-				"t3AssaultBotDetected": "Korgoth detected",
-				"t3AssaultMechDetected": "Bantha detected",
+				"t3MobileTurretDetected": "Behemoth detected",
+				"t3AssaultBotDetected": "Juggernaut detected",
+				"t3AssaultMechDetected": "Titan detected",
 				"flagshipDetected": "Flagship detected",
 				"commandoDetected": "Commando detected",
 				"transportDetected": "Transport located",
@@ -111,7 +111,9 @@
 				"tutorialFactoryShips": "You can now produce ships. The heaviest unit class with the most armor and weapon range. Be aware for submarines and torpedo aircraft that make ship graveyards.",
 				"tutorialT2Ready": "Your economy is now strong enough to build a Tech 2 Factory and units. Or you can maximize t1 unit production and try to win in numbers.",
 				"tutorialDuplicateFactory": "It is more efficient to assist the existing factory than to make multiple factories of the same kind.",
-				"tutorialParalyzer": "You are being attacked by paralyzer units. Units that have been paralyzed cannot function and wont be able to shoot or move until they have been restored."
+				"tutorialParalyzer": "You are being attacked by paralyzer units. Units that have been paralyzed cannot function and wont be able to shoot or move until they have been restored.",
+				"lavaRising": "Lava level is rising!",
+				"lavaDropping": "Lava level is dropping!"
 			},
 			"deathMessages": {
 				"team": {

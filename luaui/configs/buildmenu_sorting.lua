@@ -5,9 +5,11 @@ local unitOrderTable = {
 	--CONSTRUCTORS
 	[UDN["armck"].id]          = 001100, --BOTS
 	[UDN["corck"].id]          = 001110,
+	[UDN["legck"].id]          = 001115,
 
 	[UDN["armcv"].id]          = 001120, --VEH
 	[UDN["corcv"].id]          = 001130,
+	[UDN["legcv"].id]          = 001130,
 	[UDN["armbeaver"].id]      = 001140,
 	[UDN["cormuskrat"].id]     = 001150,
 
@@ -350,11 +352,14 @@ local unitOrderTable = {
    --ECO METAL MEX
    [UDN["armmex"].id]         = 100000,
    [UDN["cormex"].id]         = 100050,
+   [UDN["legmex"].id]         = 100060,
    [UDN["armamex"].id]        = 100100,
    [UDN["corexp"].id]         = 100150,
+   [UDN["legmext15"].id]      = 100160,
 
    [UDN["armmoho"].id]        = 100200,
    [UDN["cormoho"].id]        = 100250,
+   [UDN["legmext2"].id]       = 100260,
    [UDN["cormexp"].id]        = 100300,
 
    --ECO ENERGY CONVERTERS

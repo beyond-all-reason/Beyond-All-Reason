@@ -118,7 +118,7 @@ function UnitDef_Post(name, uDef)
 		if Spring.GetModOptions().scoremode_chess == true then
 			-- Disable Wrecks
 			uDef.corpse = nil
-			-- Disable Factories
+			-- Disable Bad Units
 			local factories = {
 				armaap = true,
 				armalab = true,
@@ -148,6 +148,13 @@ function UnitDef_Post(name, uDef)
 				corplat = true,
 				corgantuw = true,
 				corsy = true,
+				armapt3 = true,	-- scav T3 air factory
+				corapt3 = true,	-- scav T3 air factory
+				armnanotc = true,
+				armnanotcplat = true,
+				cornanotc = true,
+				cornanotcplat = true,
+				armbotrail = true, -- it spawns units so it will add dead launched peewees to respawn queue. 
 			}
 			if factories[name] then
 				uDef.unitrestricted = 0
@@ -337,16 +344,12 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
 			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
 			uDef.buildoptions[numBuildoptions+5] = "armmg"
-			uDef.buildoptions[numBuildoptions+6] = "leglab"
-			uDef.buildoptions[numBuildoptions+7] = "legvp"
 		elseif name == "corca" or name == "corck" or name == "corcv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
 			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
 			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
 			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
-			uDef.buildoptions[numBuildoptions+5] = "leglab"
-			uDef.buildoptions[numBuildoptions+6] = "legvp"
 		elseif name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armapt3"
@@ -373,14 +376,6 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corslrpc"
 			uDef.buildoptions[numBuildoptions+2] = "coresuppt3"
-		elseif name == "armcom" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "leglab"
-			uDef.buildoptions[numBuildoptions+2] = "legvp"
-		elseif name == "corcom" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "leglab"
-			uDef.buildoptions[numBuildoptions+2] = "legvp"
 		end
 	end
 
@@ -480,8 +475,8 @@ function UnitDef_Post(name, uDef)
 	]]
 	if string.find(name, "chicken") and uDef.maxdamage then
 		local chickHealth = uDef.maxdamage
-		uDef.buildcostmetal = chickHealth*1
-		uDef.buildcostenergy = chickHealth*10
+		uDef.buildcostmetal = chickHealth*0.5
+		uDef.buildcostenergy = chickHealth*5
 		uDef.buildtime = chickHealth*10
 	end
 

@@ -58,7 +58,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 161,
-				object = "Units/armwar_dead.s3o",
+				object = "Units/scavboss/corkark_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

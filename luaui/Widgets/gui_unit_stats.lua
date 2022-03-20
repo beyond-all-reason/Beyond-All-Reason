@@ -218,6 +218,8 @@ local textBufferCount = 0
 
 local spec = Spring.GetSpectatingState()
 
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.iscommander then
@@ -264,14 +266,12 @@ local function GetTeamColorCode(teamID)
 end
 
 local function GetTeamName(teamID)
-
 	if not teamID then return 'Error:NoTeamID' end
 
 	local _, teamLeader = spGetTeamInfo(teamID,false)
 	if not teamLeader then return 'Error:NoLeader' end
 
 	local leaderName = spGetPlayerInfo(teamLeader,false)
-
     if Spring.GetGameRulesParam('ainame_'..teamID) then
         leaderName = Spring.GetGameRulesParam('ainame_'..teamID)
     end
@@ -758,7 +758,11 @@ local function drawStats(uDefID, uID)
 	-- title
 	local text = "\255\190\255\190" .. UnitDefs[uDefID].translatedHumanName
 	if uID then
-		text = text .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   "..GetTeamColorCode(uTeam) .. GetTeamName(uTeam) .. grey .. effectivenessRate
+		local playername = ''
+		if not anonymousMode or spec then
+			playername = GetTeamColorCode(uTeam) .. GetTeamName(uTeam)
+		end
+		text = text .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   ".. playername .. grey .. effectivenessRate
 	end
 	local backgroundRect = {floor(cX-bgpadding), ceil(cYstart-bgpadding), floor(cX+(font:GetTextWidth(text)*titleFontSize)+(titleFontSize*3.5)), floor(cYstart+(titleFontSize*1.8)+bgpadding)}
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1,1,1,0, 1,1,0,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)

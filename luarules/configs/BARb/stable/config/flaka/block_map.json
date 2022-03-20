@@ -25,8 +25,8 @@
 		"fac_land_t2":{
 			"type": ["rectangle", "factory"],
 			"size": [8 ,8],
-			"yard": [0, 20],
-			"offset": [1, 10],
+			"yard": [5, 10],
+			"offset": [0, 4],
 			"ignore": ["none"]
 		},		
 		"fac_air": {
@@ -36,13 +36,15 @@
 		},
 		"fac_water": {
 			"type": ["rectangle", "factory"],
+			
 			"yard": [10, 12],
 			"offset": [0, 4]
 		},
-		"fac_strider": {                        //t3 factory
+		"fac_strider": {                        //t3 factory 9x9
 			"type": ["rectangle", "special"],
-			"yard": [8, 40],
-			"offset": [-2, 15],
+			"size": [9, 9],
+			"yard":[20, 5],
+			"offset": [0, 5],
 			"ignore":["none"]
 		},
 		"solar": {
@@ -61,7 +63,7 @@
 // 			Integer radius of a blocker or description string.
 // 			Available string values: explosion, expl_ally
 //			"radius": "explosion",  // default: "explosion"
-			"yard": [8,8],  // "default": "explosion"
+			"yard": [10,10],  // "default": "explosion"
 			"ignore": ["engy_low"]
 		},
 		"geo": {

@@ -31,7 +31,7 @@ return {
   {
     name = 'STAI',
     desc = 'Medium  AI by @pandaro',
-	version = '0.62 alvaro',
+	  version = '0.62 alvaro',
   },
   {
     name = 'ControlModeAI',

@@ -44,6 +44,9 @@ local spec = Spring.GetSpectatingState()
 
 local usedFontSize, chobbyInterface
 
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousName = '?????'
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -68,12 +71,8 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local glBlending = gl.Blending
 local glScale = gl.Scale
-
 local glCallList = gl.CallList
-
 local diag = math.diag
-
---------------------------------------------------------------------------------
 
 local comms = {}
 local comnameList = {}
@@ -106,9 +105,8 @@ if WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColor
 	sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
 end
 
---------------------------------------------------------------------------------
 
---gets the name, color, and height of the commander
+-- gets the name, color, and height of the commander
 local function GetCommAttributes(unitID, unitDefID)
 	local team = GetUnitTeam(unitID)
 	if team == nil then
@@ -124,6 +122,7 @@ local function GetCommAttributes(unitID, unitDefID)
 	else
 		local players = GetPlayerList(team)
 		name = (#players > 0) and GetPlayerInfo(players[1], false) or '------'
+
 		for _, pID in ipairs(players) do
 			local pname, active, isspec = GetPlayerInfo(pID, false)
 			if active and not isspec then
@@ -136,8 +135,7 @@ local function GetCommAttributes(unitID, unitDefID)
 	local r, g, b, a = GetTeamColor(team)
 	local bgColor = { 0, 0, 0, 1 }
 	if (r + g * 1.2 + b * 0.4) < 0.65 then
-		-- try to keep these values the same as the playerlist
-		bgColor = { 1, 1, 1, 1 }
+		bgColor = { 1, 1, 1, 1 }	-- try to keep these values the same as the playerlist
 	end
 
 	local height = comHeight[unitDefID] + heightOffset
@@ -162,8 +160,11 @@ local function createComnameList(attributes)
 	comnameList[attributes[1]] = gl.CreateList(function()
 		local outlineColor = { 0, 0, 0, 1 }
 		if (attributes[2][1] + attributes[2][2] * 1.2 + attributes[2][3] * 0.4) < 0.65 then
-			-- try to keep these values the same as the playerlist
-			outlineColor = { 1, 1, 1, 1 }
+			outlineColor = { 1, 1, 1, 1 }		-- try to keep these values the same as the playerlist
+		end
+		local name = attributes[1]
+		if anonymousMode and not spec then
+			name = anonymousName
 		end
 		if useThickLeterring then
 			if outlineColor[1] == 1 and fontShadow then
@@ -171,20 +172,20 @@ local function createComnameList(attributes)
 				shadowFont:Begin()
 				shadowFont:SetTextColor({ 0, 0, 0, shadowOpacity })
 				shadowFont:SetOutlineColor({ 0, 0, 0, shadowOpacity })
-				shadowFont:Print(attributes[1], 0, 0, fontSize, "con")
+				shadowFont:Print(name, 0, 0, fontSize, "con")
 				shadowFont:End()
 				glTranslate(0, (fontSize / 44), 0)
 			end
 			font:SetTextColor(outlineColor)
 			font:SetOutlineColor(outlineColor)
 
-			font:Print(attributes[1], -(fontSize / 38), -(fontSize / 33), fontSize, "con")
-			font:Print(attributes[1], (fontSize / 38), -(fontSize / 33), fontSize, "con")
+			font:Print(name, -(fontSize / 38), -(fontSize / 33), fontSize, "con")
+			font:Print(name, (fontSize / 38), -(fontSize / 33), fontSize, "con")
 		end
 		font:Begin()
 		font:SetTextColor(attributes[2])
 		font:SetOutlineColor(outlineColor)
-		font:Print(attributes[1], 0, 0, fontSize, "con")
+		font:Print(name, 0, 0, fontSize, "con")
 		font:End()
 	end)
 end
@@ -315,10 +316,14 @@ local function createComnameIconList(unitID, attributes)
 			-- try to keep these values the same as the playerlist
 			outlineColor = { 1, 1, 1, 1 }
 		end
+		local name = attributes[1]
+		if anonymousMode and not spec then
+			name = anonymousName
+		end
 		fonticon:Begin()
 		fonticon:SetTextColor(attributes[2])
 		fonticon:SetOutlineColor(outlineColor)
-		fonticon:Print(attributes[1], 0, 0, fontSize * 1.9, "con")
+		fonticon:Print(name, 0, 0, fontSize * 1.9, "con")
 		fonticon:End()
 	end)
 end
@@ -430,7 +435,12 @@ function widget:Shutdown()
 end
 
 function widget:PlayerChanged(playerID)
+	local prevSpec = spec
 	spec = Spring.GetSpectatingState()
+	if spec and prevSpec ~= spec then
+		CheckTeamColors()
+		RemoveLists()
+	end
 	local name, _ = GetPlayerInfo(playerID, false)
 	comnameList[name] = nil
 	CheckAllComs() -- handle substitutions, etc
@@ -442,27 +452,14 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	comms[unitID] = nil
-
-	if comnameIconList[unitID] then
-		gl.DeleteList(comnameIconList[unitID])
-		comnameIconList[unitID] = nil
-	end
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	CheckCom(unitID, unitDefID, unitTeam)
-	if comnameIconList[unitID] then
-		gl.DeleteList(comnameIconList[unitID])
-		comnameIconList[unitID] = nil
-	end
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	CheckCom(unitID, unitDefID, unitTeam)
-	if comnameIconList[unitID] then
-		gl.DeleteList(comnameIconList[unitID])
-		comnameIconList[unitID] = nil
-	end
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam)

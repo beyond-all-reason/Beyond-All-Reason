@@ -14,13 +14,11 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-
-
 local GetTeamList = Spring.GetTeamList
 local GetUnitAllyTeam = Spring.GetUnitAllyTeam
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
--- Exclude Scavengers / Chickens AI
+-- Exclude Gaia / Scavengers / Raptors
 local ignoredTeams = {
 	[gaiaTeamID] = true,
 }
@@ -28,8 +26,16 @@ local teamCount = 0
 local teamList = Spring.GetTeamList()
 for i = 1, #teamList do
 	local luaAI = Spring.GetTeamLuaAI(teamList[i])
-	if luaAI and (luaAI:find("Chickens") or luaAI:find("Scavengers")) then
+	if (luaAI and (luaAI:find("Chickens") or luaAI:find("Scavengers"))) or Spring.GetModOptions().scoremode ~= "disabled" then
 		ignoredTeams[teamList[i]] = true
+
+		-- ignore all other teams in this allyteam as well
+		--Spring.Echo(select(6, Spring.GetTeamInfo(teamList[i])))  -- somehow this echos "1, 1, <table>"
+		local teamID, leader, isDead, isAiTeam, side, allyTeam, incomeMultiplier, customTeamKeys = Spring.GetTeamInfo(teamList[i])
+		local teammates = Spring.GetTeamList(allyTeam)
+		for j = 1, #teammates do
+			ignoredTeams[teammates[j]] = true
+		end
 	end
 	if teamList[i] ~= gaiaTeamID then
 		teamCount = teamCount + 1
@@ -46,6 +52,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		isCommander[unitDefID] = true
 	end
 end
+
+
 
 local function commanderDeath(teamID, attackerUnitID, originX, originZ) -- optional: attackerUnitID, originX, originZ
 	local allyTeamID = select(6, Spring.GetTeamInfo(teamID, false))
@@ -98,8 +106,9 @@ function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 end
 
 function gadget:Initialize()
+	-- disable gadget when deathmode is "killall" or "none", or scoremode isnt regular
 	if Spring.GetModOptions().deathmode ~= 'com' then
-		gadgetHandler:RemoveGadget(self) -- in particular, this gadget is removed if deathmode is "killall" or "none"
+		gadgetHandler:RemoveGadget(self)
 	end
 
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do

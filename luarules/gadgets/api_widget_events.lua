@@ -3,7 +3,7 @@ if gadgetHandler:IsSyncedCode() then return end
 function gadget:GetInfo() return {
 	name      = "Widget Events",
 	desc      = "Tells widgets about events they can know about",
-	author    = "Sprung, Klon",
+	author    = "Sprung, Klon, Beherith",
 	date      = "2015-05-27",
 	license   = "PD",
 	layer     = 0,
@@ -18,6 +18,7 @@ local spGetUnitLosState    	= Spring.GetUnitLosState
 
 local myAllyTeamID
 local myTeamID
+local spec, specFullView 
 
 function gadget:Initialize()
   myTeamID = Spring.GetMyTeamID()
@@ -27,6 +28,7 @@ end
 function gadget:PlayerChanged()
   myTeamID = Spring.GetMyTeamID()
   myAllyTeamID = Spring.GetMyAllyTeamID()
+  spec, specFullView = spGetSpectatingState()
 end
 
 
@@ -36,9 +38,7 @@ local scriptUnitDestroyed		= Script.LuaUI.UnitDestroyed
 local scriptUnitDestroyedByTeam	= Script.LuaUI.UnitDestroyedByTeam
 
 function gadget:UnitDestroyed (unitID, unitDefID, unitTeam, attUnitID, attUnitDefID, attTeamID)
-	myAllyTeamID = spGetMyAllyTeamID()
-	local spec, specFullView = spGetSpectatingState()
-	local isAllyUnit = spAreTeamsAllied(unitTeam, spGetMyTeamID())
+	local isAllyUnit = spAreTeamsAllied(unitTeam, myTeamID)
 	--Spring.Echo("Gadget:UnitDest", unitID, Script.LuaUI('UnitDestroyedByTeam') , "isAllyUnit", isAllyUnit, "spec", spec, "specFullView", specFullView)
 	-- we need to check if any widget uses the callin, otherwise it is not bound and will produce error spam
 	if Script.LuaUI('UnitDestroyedByTeam') then
@@ -63,12 +63,32 @@ function gadget:UnitDestroyed (unitID, unitDefID, unitTeam, attUnitID, attUnitDe
 	end
 end
 
+local scriptUnitTaken		= Script.LuaUI.UnitTaken
+function gadget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
+	-- we need to notify my team if a unit transfer between two other teams happens, within my radar or los
+	local unitwasandisenemy = not (spAreTeamsAllied(oldTeamID, myTeamID) or spAreTeamsAllied(newTeamID, myTeamID))
+	local unitinmyradarorlos = (spGetUnitLosState(unitID, myAllyTeamID, true) % 4 > 0)
+	-- Spring.Echo("gadget:UnitGiven",unitID, unitDefID, oldTeamID, newTeamID, unitwasandisenemy, unitinmyradarorlos)
+	if unitwasandisenemy and unitinmyradarorlos then 
+		scriptUnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
+	end 
+end
+
+local scriptUnitGiven		= Script.LuaUI.UnitGiven
+function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
+	-- we need to notify my team if a unit transfer between two other teams happens, within my radar or los
+	local unitwasandisenemy = not (spAreTeamsAllied(oldTeamID, myTeamID) or spAreTeamsAllied(newTeamID, myTeamID))
+	local unitinmyradarorlos = (spGetUnitLosState(unitID, myAllyTeamID, true) % 4 > 0)
+	-- Spring.Echo("gadget:UnitGiven",unitID, unitDefID, newTeamID, oldTeamID, unitwasandisenemy, unitinmyradarorlos)
+	if unitwasandisenemy and unitinmyradarorlos then 
+		scriptUnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
+	end 
+end
+
 local scriptFeatureCreated = Script.LuaUI.FeatureCreated
 
 function gadget:FeatureCreated(featureID, allyTeam) -- assume that features are always in LOS
-	local myAllyTeamID = spGetMyAllyTeamID()
-	local spec, specFullView = spGetSpectatingState()
-	local isAllyUnit = (allyTeam == Spring.GetMyAllyTeamID()) 
+	local isAllyUnit = (allyTeam == myAllyTeamID) 
 	--Spring.Echo("Gadget:FeatureCreated", featureID, FeatureDefs[Spring.GetFeatureDefID(featureID)].name, Script.LuaUI('FeatureCreated') , "isAllyUnit", isAllyUnit, "spec", spec, "specFullView", specFullView)
 	-- we need to check if any widget uses the callin, otherwise it is not bound and will produce error spam
 	if not isAllyUnit and (not (spec and specFullView)) and Script.LuaUI('FeatureCreated') then
@@ -84,9 +104,7 @@ function gadget:FeatureDestroyed(featureID, allyTeam)
 	-- assume that features are always in LOS
 	-- feauture allyTeam is equal to my allyteam when its a gaia feature, that is wierd
 	-- am i always allied with gaia?
-
-	local spec, specFullView = spGetSpectatingState()
-	local isAllyUnit = (allyTeam == Spring.GetMyAllyTeamID()) 
+	local isAllyUnit = (allyTeam == myAllyTeamID) 
 	--Spring.Echo("Gadget:FeatureDestroyed", featureID, FeatureDefs[Spring.GetFeatureDefID(featureID)].name, Script.LuaUI('FeatureDestroyed') , "isAllyUnit", isAllyUnit, "spec", spec, "specFullView", specFullView, allyTeam, spGetMyTeamID())
 	-- we need to check if any widget uses the callin, otherwise it is not bound and will produce error spam
 	if not isAllyUnit and (not (spec and specFullView)) and Script.LuaUI('FeatureDestroyed')  then

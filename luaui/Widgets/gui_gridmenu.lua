@@ -25,6 +25,7 @@ SYMKEYS = table.invert(KEYSYMS)
 local configs = VFS.Include('luaui/configs/gridmenu_layouts.lua')
 local labGrids = configs.LabGrids
 local unitGrids = configs.UnitGrids
+local currentLayout = 'qwerty'
 
 local BUILDCAT_ECONOMY = "Economy"
 local BUILDCAT_COMBAT = "Combat"
@@ -35,13 +36,6 @@ local pageButtonHeight
 local paginatorCellWidth
 local paginatorFontSize
 local paginatorCellHeight
-
-local categoriesQwerty = {
-	[KEYSYMS.Z] = 1,
-	[KEYSYMS.X] = 2,
-	[KEYSYMS.C] = 3,
-	[KEYSYMS.V] = 4,
-}
 
 local RESET_MENU_KEY = KEYSYMS.LSHIFT
 local NEXT_PAGE_KEY = "B"
@@ -76,12 +70,14 @@ local Cfgs = {
 		BUILDCAT_UTILITY,
 		BUILDCAT_PRODUCTION
 	},
-	keyCategories = {
-		qwerty = categoriesQwerty
+	keySymChars = {
+		COMMA = ",",
+		SEMICOLON = ";",
+		QUOTE = "'",
+		PERIOD = ".",
 	},
-	categoryKeys = {
-		qwerty = table.invert(categoriesQwerty)
-	},
+	layoutKeys = {},
+	vKeyLayouts = {},
 	keyLayouts = {
 		qwerty = {
 			[3] = {
@@ -103,26 +99,79 @@ local Cfgs = {
 				[4] = "V",
 			}
 		},
-		vqwerty = {
+		dvorak = {
+			[3] = {
+				[1] = "QUOTE",
+				[2] = "COMMA",
+				[3] = "PERIOD",
+				[4] = "P",
+			},
 			[2] = {
 				[1] = "A",
-				[2] = "S",
-				[3] = "D",
-				[4] = "F",
-				[5] = "W",
-				[6] = "R",
+				[2] = "O",
+				[3] = "E",
+				[4] = "U",
 			},
 			[1] = {
-				[1] = "Z",
-				[2] = "X",
-				[3] = "C",
-				[4] = "V",
-				[5] = "Q",
-				[6] = "E",
+				[1] = "SEMICOLON",
+				[2] = "Q",
+				[3] = "J",
+				[4] = "K",
 			}
-		}
+		},
 	}
 }
+
+local function copyKeyLayout(layoutFrom, layoutTo)
+	Cfgs.keyLayouts[layoutTo] = {}
+	for rowIndex, rowKeySet in pairs(Cfgs.keyLayouts[layoutFrom]) do
+		Cfgs.keyLayouts[layoutTo][rowIndex] = {}
+
+		for colIndex, key in pairs(rowKeySet) do
+			Cfgs.keyLayouts[layoutTo][rowIndex][colIndex] = key
+		end
+	end
+end
+
+copyKeyLayout('qwerty', 'qwertz')
+Cfgs.keyLayouts['qwertz'][1][1] = 'Y'
+
+copyKeyLayout('qwerty', 'azerty')
+Cfgs.keyLayouts['azerty'][1][1] = 'W'
+Cfgs.keyLayouts['azerty'][2][1] = 'Q'
+Cfgs.keyLayouts['azerty'][3][1] = 'A'
+Cfgs.keyLayouts['azerty'][3][2] = 'Z'
+
+local function genKeyLayout(layoutName)
+	-- Generate inverse lookup key -> position for fast access on category keys
+	Cfgs.layoutKeys[layoutName] = {}
+
+	for rowIndex, rowKeySet in pairs(Cfgs.keyLayouts[layoutName]) do
+		for colIndex, key in pairs(rowKeySet) do
+			Cfgs.layoutKeys[layoutName][key] = { rowIndex, colIndex }
+		end
+	end
+
+	-- Autogenerate bottom layout keys
+	Cfgs.vKeyLayouts[layoutName] = {}
+
+	-- For bottom layout, 1-2 row x 1-4 col positions remain the same
+	for r=1,2 do
+		Cfgs.vKeyLayouts[layoutName][r] = {}
+		for c=1,4 do
+			Cfgs.vKeyLayouts[layoutName][r][c] = Cfgs.keyLayouts[layoutName][r][c]
+		end
+	end
+
+	Cfgs.vKeyLayouts[layoutName][1][5] = Cfgs.keyLayouts[layoutName][3][1]
+	Cfgs.vKeyLayouts[layoutName][1][6] = Cfgs.keyLayouts[layoutName][3][3]
+	Cfgs.vKeyLayouts[layoutName][2][5] = Cfgs.keyLayouts[layoutName][3][2]
+	Cfgs.vKeyLayouts[layoutName][2][6] = Cfgs.keyLayouts[layoutName][3][4]
+end
+
+for layoutName, keySet in pairs(Cfgs.keyLayouts) do
+	genKeyLayout(layoutName)
+end
 
 local unitCategories = {}
 local hotkeyActions = {}
@@ -739,17 +788,17 @@ function widget:ViewResize()
 end
 
 function reloadBindings()
-	local key
-	local actionHotkey = Spring.GetActionHotKeys('gridmenu_key 1 1')
+	-- initialise keySymCharsReverse from keySymChars
+	local keySymCharsReverse = table.invert(Cfgs.keySymChars)
 
-	if actionHotkey[1] then
-		key = string.upper(actionHotkey[1])
+	local layout
+	local actionHotkey = Spring.GetActionHotKeys('gridmenu_layout')
+
+	if actionHotkey[1] and Cfgs.keyLayouts[string.lower(actionHotkey[1])] then
+		currentLayout = string.lower(actionHotkey[1])
 	else
-		key = WG.swapYZbinds and 'Y' or 'Z'
+		currentLayout = WG.swapYZbinds and 'qwertz' or 'qwerty'
 	end
-
-	Cfgs.keyLayouts.qwerty[1][1] = key
-	Cfgs.keyLayouts.vqwerty[1][1] = key
 
 	actionHotkey = Spring.GetActionHotKeys('gridmenu_next_page')
 	if actionHotkey[1] then
@@ -763,6 +812,34 @@ function reloadBindings()
 		PREV_PAGE_KEY = string.upper(actionHotkey[1])
 	else
 		Spring.SendCommands("bind " .. string.lower(PREV_PAGE_KEY) .. " gridmenu_prev_page")
+	end
+
+	copyKeyLayout(currentLayout, 'custom')
+	local useCustom = false
+	for r=1,3 do
+		for c=1,4 do
+			local hotkey = 'gridmenu_' .. r .. '_' .. c
+			local key = Spring.GetActionHotKeys(hotkey)[1]
+			if key then
+				Cfgs.keyLayouts['custom'][r][c] = keySymCharsReverse[string.upper(key)] or string.upper(key)
+				useCustom = true
+			end
+		end
+	end
+
+	Cfgs.keyLayouts['custom']['category'] = {}
+	for c=1,4 do
+		key = Spring.GetActionHotKeys('gridmenu_category ' .. c)[1]
+		if key then
+			useCustom = true
+			Cfgs.keyLayouts['custom']['category'][c] = keySymCharsReverse[string.upper(key)] or string.upper(key)
+		else
+			Cfgs.keyLayouts['custom']['category'][c] = Cfgs.keyLayouts['custom'][1][c]
+		end
+	end
+	if useCustom then
+		genKeyLayout('custom')
+		currentLayout = 'custom'
 	end
 end
 
@@ -1036,7 +1113,8 @@ local function drawCategoryButtons()
 			drawnHoveredCat = cat
 		end
 
-		local catText = currentBuildCategory and cat or cat .. " \255\215\255\215" .. "[" .. SYMKEYS[Cfgs.categoryKeys.qwerty[catIndex]] .. "]"
+		local catKey = Cfgs.keyLayouts[currentLayout]['category'] and Cfgs.keyLayouts[currentLayout]['category'][catIndex] or Cfgs.keyLayouts[currentLayout][1][catIndex]
+		local catText = currentBuildCategory and cat or cat .. " \255\215\255\215" .. "[" .. (Cfgs.keySymChars[catKey] or catKey) .. "]"
 
 		drawButton(rect, catText, opts)
 	end
@@ -1126,10 +1204,16 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		)
 
 	elseif cmd.hotkey then
-		local fontWidth = font2:GetTextWidth(cmd.hotkey) * priceFontSize
+		local hotkeyText = string.upper(Cfgs.keySymChars[cmd.hotkey] or cmd.hotkey)
+		local fontWidth = font2:GetTextWidth(hotkeyText) * priceFontSize
 		local fontWidthOffset = fontWidth * 1.35
 
-		font2:Print("\255\215\255\215" .. string.upper(cmd.hotkey), cellRects[cellRectID][3] - cellPadding - fontWidthOffset, cellRects[cellRectID][4] - cellPadding - priceFontSize, priceFontSize * 1.1, "o")
+		-- If crazy char, put 50% to left
+		if Cfgs.keySymChars[cmd.hotkey] then
+			fontWidthOffset = 3 * fontWidthOffset / 2
+		end
+
+		font2:Print("\255\215\255\215" .. hotkeyText, cellRects[cellRectID][3] - cellPadding - fontWidthOffset, cellRects[cellRectID][4] - cellPadding - priceFontSize, priceFontSize * 1.1, "o")
 	end
 end
 
@@ -1375,7 +1459,7 @@ function drawGrid(activeArea)
 			if uDefID and uidcmds[uDefID] then
 				cellcmds[cellRectID] = uidcmds[uDefID]
 
-				local keyLayout = stickToBottom and Cfgs.keyLayouts.vqwerty or Cfgs.keyLayouts.qwerty
+				local keyLayout = stickToBottom and Cfgs.vKeyLayouts[currentLayout] or Cfgs.keyLayouts[currentLayout]
 				local hotkey = (currentBuildCategory or selectedFactory) and keyLayout[arow] and keyLayout[arow][coll]
 				if hotkey then
 					uidcmds[uDefID].hotkey = keyLayout[arow][coll]
@@ -1703,7 +1787,9 @@ function widget:DrawScreen()
 										index = k
 									end
 								end
-								text = text .. "\n\255\240\240\240Hotkey: " .. textColor .. "[" .. SYMKEYS[Cfgs.categoryKeys.qwerty[index]] .. "]"
+
+								local catKey = Cfgs.keyLayouts[currentLayout]['category'] and Cfgs.keyLayouts[currentLayout]['category'][index] or Cfgs.keyLayouts[currentLayout][1][index]
+								text = text .. "\n\255\240\240\240Hotkey: " .. textColor .. "[" .. (Cfgs.keySymChars[catKey] or catKey) .. "]"
 
 								WG['tooltip'].ShowTooltip('buildmenu', text)
 							end
@@ -2223,11 +2309,12 @@ function widget:KeyPress(key, mods, isRepeat)
 			return false
 		end
 	elseif not (mods['ctrl'] or mods['alt'] or mods['meta']) then
-		local keyCat = Cfgs.keyCategories.qwerty[key]
+		local catKeySet = Cfgs.layoutKeys[currentLayout][SYMKEYS[key]]
 
-		if keyCat then
-			currentBuildCategory = categories[keyCat]
-			currentCategoryIndex = keyCat
+		-- Only trigger category switch if (first row or category row) and first four columns
+		if catKeySet and (catKeySet[1] == 1 or catKeySet[1] == 'category') and catKeySet[2] >= 1 and catKeySet[2] <= 4 then
+			currentBuildCategory = categories[catKeySet[2]]
+			currentCategoryIndex = catKeySet[2]
 			switchedCategory = true
 			doUpdate = true
 

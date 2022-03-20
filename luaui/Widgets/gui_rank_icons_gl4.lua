@@ -1,0 +1,392 @@
+function widget:GetInfo()
+	return {
+		name = "Rank Icons GL4",
+		desc = "Shows a rank icon depending on experience next to units",
+		author = "trepan (idea quantum,jK), Floris, Beherith",
+		date = "Feb, 2008",
+		license = "GNU GPL, v2 or later",
+		layer = 5,
+		enabled = true  -- loaded by default?
+	}
+end
+
+local iconsize = 40
+local iconoffset = 24
+local scaleIconAmount = 84
+
+local falloffDistance = 1300
+local cutoffDistance = 2300
+
+local distanceMult = 1
+local usedFalloffDistance = falloffDistance * distanceMult
+local usedCutoffDistance = cutoffDistance * distanceMult
+local iconsizeMult = 1
+local usedIconsize = iconsize * iconsizeMult
+
+local chobbyInterface
+
+local maximumRankXP = 0.8
+local numRanks = #VFS.DirList('LuaUI/Images/ranks', '*.png')
+local rankTextures = {}
+local unitRanks = {}
+for i = 1,numRanks do
+	rankTextures[i] = 'LuaUI/Images/ranks/rank'..i..'.png'
+end
+local xpPerLevel = maximumRankXP/(numRanks-1)
+
+local unitHeights = {}
+
+local unitUsedIconsize = usedIconsize
+
+-- GL4 stuff:
+local atlasID = nil
+local atlasSize = 2048
+local atlassedImages = {}
+
+local rankVBO = nil
+local rankShader = nil
+local luaShaderDir = "LuaUI/Widgets/Include/"
+
+local debugmode = false
+
+local function addDirToAtlas(atlas, path)
+	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
+	local files = VFS.DirList(path, '*.png')
+	Spring.Echo("Adding",#files, "images to atlas from", path)
+	for i=1, #files do
+		if imgExts[string.sub(files[i],-3,-1)] then
+			gl.AddAtlasTexture(atlas,files[i])
+			atlassedImages[files[i]] = true
+			--if debugmode then Spring.Echo("added", files[i]) end
+		end
+	end
+end
+
+local function makeAtlas()
+	atlasID = gl.CreateTextureAtlas(atlasSize,atlasSize,1)
+	addDirToAtlas(atlasID, "LuaUI/Images/ranks")
+	local result = gl.FinalizeTextureAtlas(atlasID)
+	if debugmode then
+		--Spring.Echo("atlas result", result)
+	end
+end
+
+-- speed-ups
+
+local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
+local GetUnitDefID = Spring.GetUnitDefID
+local GetUnitExperience = Spring.GetUnitExperience
+local GetAllUnits = Spring.GetAllUnits
+local IsUnitAllied = Spring.IsUnitAllied
+local IsUnitInView = Spring.IsUnitInView
+local IsUnitIcon = Spring.IsUnitIcon
+local GetSpectatingState = Spring.GetSpectatingState
+local GetCameraPosition = Spring.GetCameraPosition
+local GetUnitPosition = Spring.GetUnitPosition
+
+local glDepthTest = gl.DepthTest
+local glDepthMask = gl.DepthMask
+local glAlphaTest = gl.AlphaTest
+local glTexture = gl.Texture
+local glTexRect = gl.TexRect
+local glTranslate = gl.Translate
+local glBillboard = gl.Billboard
+local glColor = gl.Color
+local glDrawFuncAtUnit = gl.DrawFuncAtUnit
+
+local GL_GREATER = GL.GREATER
+
+local min = math.min
+local max = math.max
+local floor = math.floor
+local diag = math.diag
+
+local unitIconMult = {}
+local isAirUnit = {}
+for udid, unitDef in pairs(UnitDefs) do
+	unitIconMult[udid] = math.min(1.4, math.max(1.25, (Spring.GetUnitDefDimensions(udid).radius / 40) + math.min(unitDef.power / 400, 2)))
+	if unitDef.canFly then
+		isAirUnit[udid] = true
+	end
+end
+
+-------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
+
+function widget:GetConfigData()
+	return {
+		distanceMult = distanceMult,
+		iconsizeMult = iconsizeMult,
+	}
+end
+
+function widget:SetConfigData(data)
+	--load config
+	if data.distanceMult ~= nil then
+		distanceMult = data.distanceMult
+		usedFalloffDistance = falloffDistance * distanceMult
+		usedCutoffDistance = cutoffDistance * distanceMult
+	end
+	if data.iconsizeMult ~= nil then
+		iconsizeMult = data.iconsizeMult
+		usedIconsize = iconsize * iconsizeMult
+	end
+end
+
+
+local vbocachetable = {}
+for i = 1, 18 do vbocachetable[i] = 0 end -- init this caching table to preserve mem allocs
+
+local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, flash)
+	if debugmode then Spring.Debug.TraceEcho("add",unitID,reason) end
+	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then
+		if debugmode then Spring.Echo("Warning: Rank Icons GL4 attempted to add an invalid unitID:", unitID) end
+		return nil
+	end
+	local gf = (flash and Spring.GetGameFrame()) or 0
+	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+
+	--if unitDefID == nil or unitDefIDtoDecalInfo[unitDefID] == nil then return end -- these cant have plates
+	--local decalInfo = unitDefIDtoDecalInfo[unitDefID]
+
+	--local texname = "unittextures/decals/".. UnitDefs[unitDefID].name .. "_aoplane.dds" --unittextures/decals/armllt_aoplane.dds
+
+	local numVertices = 4 -- default to circle
+	local additionalheight = 0
+
+	--Spring.Echo (rank, rankTextures[rank], unitIconMult[unitDefID])
+	local p,q,s,t = gl.GetAtlasTexture(atlasID, rankTextures[rank])
+
+	vbocachetable[1] = unitUsedIconsize/40.0 -- length
+	vbocachetable[2] = unitUsedIconsize/40.0 -- widgth
+	vbocachetable[3] = 0 -- cornersize
+	vbocachetable[4] = unitHeights[unitDefID] - 8 + ((debugmode and math.random()*16 ) or 0)-- height
+
+	--vbocachetable[5] = 0 -- Spring.GetUnitTeam(unitID)
+	vbocachetable[6] = 4 -- numvertices
+
+	vbocachetable[7] = gf -- gameframe for animations
+	vbocachetable[8] = unitIconMult[unitDefID] -- size mult
+	vbocachetable[9] = 1.0 -- alpha
+	--vbocachetable[10] = 0 -- unused
+
+	vbocachetable[11] = q -- uv's of the atlas
+	vbocachetable[12] = p
+	vbocachetable[13] = t
+	vbocachetable[14] = s
+
+
+	return pushElementInstance(
+		rankVBO, -- push into this Instance VBO Table
+		vbocachetable, -- yes we save 1 table alloc this way
+		unitID, -- this is the key inside the VBO Table, should be unique per unit
+		true, -- update existing element
+		noUpload, -- noupload, dont use unless you know what you want to batch push/pop
+		unitID) -- last one should be UNITID!
+end
+
+local function ProcessAllUnits()
+	clearInstanceTable(rankVBO)
+	local units = Spring.GetAllUnits()
+	--Spring.Echo("Refreshing Ground Plates", #units)
+	for _, unitID in ipairs(units) do
+		AddPrimitiveAtUnit(unitID, nil, true, 'ProcessAllUnits', unitID % numRanks + 1, true)
+	end
+	uploadAllElements(rankVBO)
+end
+
+local function RemovePrimitive(unitID,reason)
+	if debugmode then Spring.Debug.TraceEcho("remove",unitID,reason) end
+	if rankVBO.instanceIDtoIndex[unitID] then
+		popElementInstance(rankVBO, unitID)
+	end
+end
+
+function initGL4()
+	makeAtlas()
+
+	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
+	shaderConfig.BILLBOARD = 1
+	shaderConfig.HEIGHTOFFSET = 0
+	shaderConfig.TRANSPARENCY = 1.0
+	shaderConfig.ANIMATION = 1
+	shaderConfig.INITIALSIZE = 0.25
+	shaderConfig.BREATHERATE = 0.0
+	shaderConfig.BREATHESIZE = 0.0
+	shaderConfig.GROWTHRATE = 16.0
+
+	-- MATCH CUS position as seed to sin, then pass it through geoshader into fragshader
+	--shaderConfig.POST_VERTEX = "v_parameters.w = max(-0.2, sin((timeInfo.x + timeInfo.w) * 2.0/30.0 + (v_centerpos.x + v_centerpos.z) * 0.1)) + 0.2; // match CUS glow rate"
+	--shaderConfig.POST_GEOMETRY = "g_uv.w = dataIn[0].v_parameters.w; gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in depth buffer"
+	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(texcolor.rgb* (1.0 + g_uv.w), texcolor.a * g_uv.z);" -- i have no idea what this does
+	shaderConfig.POST_VERTEX = "v_lengthwidthcornerheight.xy *= parameters.y * 4.5 + (1250 - abs(cameraDistance-1250))*0.016;"
+	shaderConfig.MAXVERTICES = 4
+	shaderConfig.USE_CIRCLES = nil
+	shaderConfig.USE_CORNERRECT = nil
+
+	if debugmode then shaderConfig.POST_SHADING = shaderConfig.POST_SHADING .. " fragColor.a += 0.25;" end
+	rankVBO, rankShader = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit(shaderConfig, "Rank Icons")
+	if debugmode then rankVBO.debug = true end
+	--ProcessAllUnits()
+end
+
+local function getRank(unitDefID, xp)
+	local rankLevel = math.ceil(xp/xpPerLevel)
+	if rankLevel == 0 then
+		return 1
+	elseif rankLevel <= numRanks then
+		return rankLevel
+	else
+		return numRanks
+	end
+end
+
+local function updateUnitRank(unitID, unitDefID)
+	local currentRank = unitRanks[unitID]
+	local xp = GetUnitExperience(unitID)
+	if xp then
+		local newrank = getRank(unitDefID, xp)
+		unitRanks[unitID] = newrank
+		if newrank > 1 then
+			AddPrimitiveAtUnit(unitID, unitDefID, false, "updateUnitRank", newrank, false)
+		end
+
+	end
+end
+
+
+function widget:Initialize()
+
+	WG['rankicons'] = {}
+	WG['rankicons'].getDrawDistance = function()
+		return distanceMult
+	end
+	WG['rankicons'].setDrawDistance = function(value)
+		distanceMult = value
+		usedFalloffDistance = falloffDistance * distanceMult
+		usedCutoffDistance = cutoffDistance * distanceMult
+	end
+	WG['rankicons'].getScale = function()
+		return iconsizeMult
+	end
+	WG['rankicons'].setScale = function(value)
+		iconsizeMult = value
+		usedIconsize = iconsize * iconsizeMult
+	end
+	WG['rankicons'].getRank = function(unitDefID, xp)
+		return getRank(unitDefID, xp)
+	end
+	WG['rankicons'].getRankTextures = function(unitDefID, xp)
+		return rankTextures
+	end
+
+	for unitDefID, ud in pairs(UnitDefs) do
+		unitHeights[unitDefID] = ud.height + iconoffset
+	end
+
+	initGL4()
+
+	local allUnits = GetAllUnits()
+	for i = 1, #allUnits do
+		local unitID = allUnits[i]
+		updateUnitRank(unitID, GetUnitDefID(unitID))
+	end
+end
+
+function widget:Shutdown()
+	for _, rankTexture in ipairs(rankTextures) do
+		gl.DeleteTexture(rankTexture)
+	end
+end
+
+-------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
+
+function widget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldXP)
+	if xp < 0 then
+		xp = 0
+	end
+	if oldXP < 0 then
+		oldXP = 0
+	end
+
+	local rank = getRank(unitDefID, xp)
+	local oldRank = getRank(unitDefID, oldXP)
+
+	if oldRank < rank then
+		unitRanks[unitID] = rank
+		RemovePrimitive(unitID, "promoted")
+		AddPrimitiveAtUnit(unitID, unitDefID, false, "promoted", rank, 1)
+	end
+end
+
+function widget:UnitCreated(unitID, unitDefID, unitTeam)
+	if IsUnitAllied(unitID) or GetSpectatingState() then
+		updateUnitRank(unitID, GetUnitDefID(unitID))
+	end
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	unitRanks[unitID] = nil
+	RemovePrimitive(unitID, "UnitDestroyed")
+end
+
+function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+	if isAirUnit[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
+		widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	end
+end
+
+function widget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
+	if not IsUnitAllied(unitID) and not GetSpectatingState() then
+		unitRanks[unitID] = nil
+		RemovePrimitive(unitID, "UnitGiven")
+	end
+end
+
+-------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
+
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+	end
+end
+
+function widget:DrawWorld()
+	if chobbyInterface then
+		return
+	end
+	if Spring.IsGUIHidden() then
+		return
+	end
+	if doRefresh then
+		ProcessAllUnits()
+		doRefresh = false
+	end
+	if rankVBO.usedElements > 0 then
+		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
+		--Spring.Echo(rankVBO.usedElements)
+		--gl.Culling(GL.BACK)
+
+		glDepthMask(true)
+		glDepthTest(true)
+		glAlphaTest(GL_GREATER, 0.001)
+		--gl.DepthTest(GL.LEQUAL)
+		--gl.DepthMask(false)
+		glTexture(0, atlasID)
+		rankShader:Activate()
+		rankShader:SetUniform("iconDistance",usedCutoffDistance)
+		rankShader:SetUniform("addRadius",0)
+		rankVBO.VAO:DrawArrays(GL.POINTS,rankVBO.usedElements)
+		rankShader:Deactivate()
+		glTexture(0, false)
+		--gl.Culling(false)
+		--gl.DepthTest(false)
+
+		glAlphaTest(false)
+		glDepthTest(false)
+		glDepthMask(false)
+	end
+end

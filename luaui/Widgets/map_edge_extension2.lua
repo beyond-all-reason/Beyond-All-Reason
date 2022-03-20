@@ -279,6 +279,11 @@ local numPoints
 local mirrorParams = {}
 
 function widget:Initialize()
+	VFS.Include("luarules/configs/lavaConfig.lua")
+	if lavaMap == true then
+		widgetHandler:RemoveWidget(self)
+	end
+
 	WG['mapedgeextension'] = {}
 	WG['mapedgeextension'].getBrightness = function()
 		return brightness

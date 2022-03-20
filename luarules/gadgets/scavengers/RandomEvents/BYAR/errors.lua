@@ -6,7 +6,7 @@ local function rebellion1(currentFrame)
 		local unitID = scavUnits[y]
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local unitName = UnitDefs[unitDefID].name
-		if unitName ~= "armcom_scav" and unitName ~= "corcom_scav" and unitName ~= "armcomboss_scav" and unitName ~= "corcomboss_scav" and unitName ~= "armcom" and unitName ~= "corcom" and unitName ~= "scavsafeareabeacon_scav" and unitName ~= "scavengerdroppodbeacon_scav" and unitName ~= "scavengerdroppod_scav" then										
+		if unitName ~= "armcom_scav" and unitName ~= "corcom_scav" and unitName ~= "armcomboss_scav" and unitName ~= "corcomboss_scav" and unitName ~= "armcom" and unitName ~= "corcom" and unitName ~= "scavsafeareabeacon_scav" and unitName ~= staticUnitList.scavSpawnBeacon and unitName ~= staticUnitList.scavSpawnEffectUnit then										
 			for _,teamID in ipairs(Spring.GetTeamList()) do
 				if teamID ~= ScavengerTeamID and teamID ~= Spring.GetGaiaTeamID() then
 					local i = teamID
@@ -34,7 +34,7 @@ local function rebellion2(currentFrame)
 			local unitDefID = Spring.GetUnitDefID(unitID)
 			local unitName = UnitDefs[unitDefID].name
 			--local unitTeam = Spring.GetUnitTeam(unitID)
-			if unitName ~= "armcom_scav" and unitName ~= "corcom_scav" and unitName ~= "armcomboss_scav" and unitName ~= "corcomboss_scav" and unitName ~= "armcom" and unitName ~= "corcom" and unitName ~= "scavsafeareabeacon_scav" and unitName ~= "scavengerdroppodbeacon_scav" and unitName ~= "scavengerdroppod_scav" then										
+			if unitName ~= "armcom_scav" and unitName ~= "corcom_scav" and unitName ~= "armcomboss_scav" and unitName ~= "corcomboss_scav" and unitName ~= "armcom" and unitName ~= "corcom" and unitName ~= "scavsafeareabeacon_scav" and unitName ~= staticUnitList.scavSpawnBeacon and unitName ~= staticUnitList.scavSpawnEffectUnit then										
 				for _,teamID in ipairs(Spring.GetTeamList()) do
 					if teamID ~= ScavengerTeamID and teamID ~= Spring.GetGaiaTeamID() then
 						local i = teamID

@@ -48,18 +48,6 @@ if gadgetHandler:IsSyncedCode() then
 		checkStartPlayers()
 	end
 
-	function explode(div,str) -- credit: http://richard.warburton.it
-		if (div=='') then return false end
-		local pos,arr = 0,{}
-		-- for each divider found
-		for st,sp in function() return string.find(str,div,pos,true) end do
-			table.insert(arr,string.sub(str,pos,st-1)) -- Attach chars left of current divider
-			pos = sp + 1 -- Jump past current divider
-		end
-		table.insert(arr,string.sub(str,pos)) -- Attach chars right of last divider
-		return arr
-	end
-
 	function giveunits(amount, unitName, teamID, x, z, playerID, xp)
 		local unitDefID
 		for udid, unitDef in pairs(UnitDefs) do
@@ -114,7 +102,7 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SendMessageToPlayer(playerID, "You arent allowed to give units when you have been a player")
 			return
 		end
-		local params = explode(':', msg)
+		local params = string.split(msg, ':')
 		giveunits(tonumber(params[2]), params[3], tonumber(params[4]), tonumber(params[5]), tonumber(params[6]), playerID, (params[7] and tonumber(params[7]) or nil))
 		return true
 	end
