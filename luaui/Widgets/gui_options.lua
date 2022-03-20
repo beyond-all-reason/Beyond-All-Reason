@@ -2096,6 +2096,17 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setChatVolume', { 'sndChatFileVolume' }, value)
 		  end,
 		},
+		{ id = "sndvolmusic", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolmusic, type = "slider", min = 0, max = 100, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if WG['music'] and WG['music'].SetMusicVolume then
+				  WG['music'].SetMusicVolume(value)
+			  else
+				  Spring.SetConfigInt("snd_volmusic", value)
+			  end
+		  end,
+		},
 
 		{ id = "sndairabsorption", group = "sound", category = types.advanced, name = texts.option.sndairabsorption, type = "slider", min = 0.05, max = 0.4, step = 0.01, value = tonumber(Spring.GetConfigFloat("snd_airAbsorption", .35) or .35), description = texts.option.sndairabsorption_descr,
 		  onload = function(i)
@@ -2113,7 +2124,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackOld", group = "sound", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.soundtrackold, type = "bool", value = Spring.GetConfigInt('UseSoundtrackOld', 0) == 1,
+		{ id = "soundtrackOld", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.soundtrackold, type = "bool", value = Spring.GetConfigInt('UseSoundtrackOld', 0) == 1,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackOld', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
@@ -2121,7 +2132,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackCustom", group = "sound", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.soundtrackcustom, type = "bool", value = Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1,
+		{ id = "soundtrackCustom", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.soundtrackcustom, type = "bool", value = Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackCustom', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
@@ -2129,7 +2140,7 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackSilenceTimer", group = "sound", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.soundtracksilence, type = "bool", value = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1, description = texts.option.soundtracksilence_descr,
+		{ id = "soundtrackSilenceTimer", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.soundtracksilence, type = "bool", value = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1, description = texts.option.soundtracksilence_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackSilenceTimer', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
@@ -2137,24 +2148,13 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackInterruption", group = "sound", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.soundtrackinterruption, type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = texts.option.soundtrackinterruption_descr,
+		{ id = "soundtrackInterruption", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.soundtrackinterruption, type = "bool", value = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1, description = texts.option.soundtrackinterruption_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackInterruption', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
 					WG['music'].RefreshTrackList()
 				end
 			end
-		},
-		{ id = "sndvolmusic", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolmusic, type = "slider", min = 0, max = 100, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  if WG['music'] and WG['music'].SetMusicVolume then
-				  WG['music'].SetMusicVolume(value)
-			  else
-				  Spring.SetConfigInt("snd_volmusic", value)
-			  end
-		  end,
 		},
 
 		{ id = "loadscreen_music", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.loadscreen_music, type = "bool", value = (Spring.GetConfigInt("music_loadscreen", 1) == 1), description = texts.option.loadscreen_music_descr,
@@ -2386,7 +2386,7 @@ function init()
 		},
 
 
-		{ id = "allyselunits_select", group = "control", category = types.advanced, name = widgetOptionColor .. "  " ..texts.option.allyselunits_select, type = "bool", value = (WG['allyselectedunits'] ~= nil and WG['allyselectedunits'].getSelectPlayerUnits()), description = texts.option.allyselunits_select_descr,
+		{ id = "allyselunits_select", group = "control", category = types.advanced, name = widgetOptionColor .. "   " ..texts.option.allyselunits_select, type = "bool", value = (WG['allyselectedunits'] ~= nil and WG['allyselectedunits'].getSelectPlayerUnits()), description = texts.option.allyselunits_select_descr,
 		  onload = function(i)
 			  loadWidgetData("Ally Selected Units", "allyselunits_select", { 'selectPlayerUnits' })
 		  end,
