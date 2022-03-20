@@ -862,6 +862,7 @@ function goToCategoriesHandler()
 		return false
 	end
 	currentBuildCategory = nil
+        currentCategoryIndex = nil
 	doUpdate = true
 	return true
 end
