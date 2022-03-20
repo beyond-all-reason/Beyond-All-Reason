@@ -468,8 +468,6 @@ end
 
 function toggleNameScaling()
 	nameScaling = not nameScaling
-
-	return true
 end
 
 function widget:GetConfigData()

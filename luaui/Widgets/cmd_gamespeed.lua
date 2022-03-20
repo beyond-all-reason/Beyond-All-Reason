@@ -44,8 +44,6 @@ local function increaseSpeed()
 	end
 
 	setGameSpeed(speedLevels[i])
-
-	return true
 end
 
 local function decreaseSpeed()
@@ -61,8 +59,6 @@ local function decreaseSpeed()
 	end
 
 	setGameSpeed(speedLevels[i])
-
-	return true
 end
 
 function widget:Initialize()

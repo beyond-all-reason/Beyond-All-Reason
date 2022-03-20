@@ -352,8 +352,6 @@ function toggle()
 		WG['topbar'].hideWindows()
 	end
 	show = newShow
-
-	return true
 end
 
 local function refreshContent()
