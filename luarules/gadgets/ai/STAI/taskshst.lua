@@ -404,11 +404,11 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_fus_' ,
 			economy = function()
-					return (E.full < 0.5 and E.income < E.usage ) or E.full < 0.25
+					return ( E.income < E.usage ) or E.full < 0.25
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'_nano_','factoryMobilities'}} ,
+			location = {categories = {'_nano_'}} ,
 			special = true } , --specialFilter
 
 		{ 	category = '_popup1_' ,
@@ -668,11 +668,11 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_fus_' ,
 			economy = function()
-					return (E.full < 0.75 and E.income < E.usage * 1.25) or E.full < 0.3
+					return ( E.income < E.usage * 1.25) or E.full < 0.5
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'_nano_','factoryMobilities'}} ,
+			location = {categories = {'_nano_','factoryMobilities','selfCat'}} ,
 			special = true } , --specialFilter
 
 		{ 	category = '_nano_' ,
@@ -899,220 +899,3 @@ end
 -- 	return wrapped
 -- end
 --
--- random = math.random
--- math.randomseed( os.time() + game:GetTeamID() )
--- random(); random(); random()
---
--- function TasksHST:MapHasWater()
--- 	return (self.ai.waterMap or self.ai.hasUWSpots) or false
--- end
---
--- -- this is initialized in maphst
--- function TasksHST:MapHasUnderwaterMetal()
--- 	return self.ai.hasUWSpots or false
--- end
---
--- function TasksHST:IsSiegeEquipmentNeeded()
--- 	return self.ai.overviewhst.needSiege
--- end
---
--- function TasksHST:IsAANeeded()
--- 	return self.ai.needAirDefense
--- end
---
--- function TasksHST:IsShieldNeeded()
--- 	return self.ai.needShields
--- end
---
--- function TasksHST:IsTorpedoNeeded()
--- 	return self.ai.needSubmergedDefense
--- end
---
--- function TasksHST:IsJammerNeeded()
--- 	return self.ai.needJammers
--- end
---
--- function TasksHST:IsAntinukeNeeded()
--- 	return self.ai.needAntinuke
--- end
---
--- function TasksHST:IsNukeNeeded()
--- 	local nuke = self.ai.needNukes and self.ai.canNuke
--- 	return nuke
--- end
---
--- function TasksHST:IsLandAttackNeeded()
--- 	return self.ai.areLandTargets or self.ai.needGroundDefense
--- end
---
--- function TasksHST:IsWaterAttackNeeded()
--- 	return self.ai.areWaterTargets or self.ai.needSubmergedDefense
--- end
-
-
---[[
-
-function TasksHST:BuildAAIfNeeded(unitName)
-	if self:IsAANeeded() then
-		if not self.ai.armyhst.unitTable[unitName].isBuilding then
-			return self:BuildWithLimitedNumber(unitName, self.ai.overviewhst.AAUnitPerTypeLimit)
-		else
-			return unitName
-		end
-	else
-		return self.ai.armyhst.DummyUnitName
-	end
-end
-
-function TasksHST:BuildTorpedoIfNeeded(unitName)
-	if self:IsTorpedoNeeded() then
-		return unitName
-	else
-		return self.ai.armyhst.DummyUnitName
-	end
-end
-
-function TasksHST:BuildSiegeIfNeeded(unitName)
-	if unitName == self.ai.armyhst.DummyUnitName then return self.ai.armyhst.DummyUnitName end
-	if self:IsSiegeEquipmentNeeded() then
-		if self.ai.tool:countMyUnit({'artillerys'}) < (self.ai.tool:countMyUnit({'battles'}) + self.ai.tool:countMyUnit({'breaks'})) * 0.35 then
-			return unitName
-		end
-	end
-	return self.ai.armyhst.DummyUnitName
-end
-
-function TasksHST:BuildBreakthroughIfNeeded(unitName)
-	if unitName == self.ai.armyhst.DummyUnitName or unitName == nil then return self.ai.armyhst.DummyUnitName end
-	if self:IsSiegeEquipmentNeeded() then return unitName end
-	local mtype = self.ai.armyhst.unitTable[unitName].mtype
-	if mtype == "air" then
-		local bomberCounter = self.ai.bomberhst:GetCounter()
-		if bomberCounter >= self.ai.armyhst.breakthroughBomberCounter and bomberCounter < self.ai.armyhst.maxBomberCounter then
-			return unitName
-		else
-			return self.ai.armyhst.DummyUnitName
-		end
-	else
-		if self.ai.tool:countMyUnit({'battles'}) <= self.ai.armyhst.minBattleCount then return self.ai.armyhst.DummyUnitName end
-		local attackCounter = self.ai.attackhst:GetCounter(mtype)
-		if attackCounter < self.ai.armyhst.maxAttackCounter then
-			return unitName
-		elseif attackCounter >= self.ai.armyhst.breakthroughAttackCounter then
-			return unitName
-		else
-			return self.ai.armyhst.DummyUnitName
-		end
-	end
-end
-
-function TasksHST:BuildRaiderIfNeeded(unitName)
-	self:EchoDebug("build raider if needed: " .. unitName)
-
-	if unitName == self.ai.armyhst.DummyUnitName or unitName == nil then return self.ai.armyhst.DummyUnitName end
-	self:EchoDebug(unitName,self.ai.armyhst.unitTable[unitName],self.ai.armyhst.unitTable[unitName].mtype)
-	local mtype = self.ai.armyhst.unitTable[unitName].mtype
-	if self.ai.factoriesAtLevel[3] ~= nil and self.ai.factoriesAtLevel[3] ~= {} then
-		-- if we have a level 2 factory, don't build raiders until we have some battle units
-		local attackCounter = self.ai.attackhst:GetCounter(mtype)
-		if self.ai.tool:countMyUnit({'battles'}) + self.ai.breakthroughCount < attackCounter / 2 then
-			return self.ai.armyhst.DummyUnitName
-		end
-	end
-	local counter = self.ai.raidhst:GetCounter(mtype)
-	if counter == self.ai.armyhst.minRaidCounter then return self.ai.armyhst.DummyUnitName end
-	if self.ai.raiderCount[mtype] == nil then
-		-- fine
-	elseif self.ai.raiderCount[mtype] >= counter then
-		unitName = self.ai.armyhst.DummyUnitName
-	end
-	return unitName
-end
-
-function TasksHST:BuildBattleIfNeeded(unitName)
-	if unitName == self.ai.armyhst.DummyUnitName or unitName == nil then return self.ai.armyhst.DummyUnitName end
-	local mtype = self.ai.armyhst.unitTable[unitName].mtype
-	local attackCounter = self.ai.attackhst:GetCounter(mtype)
-	self:EchoDebug(mtype .. " " .. attackCounter .. " " .. self.ai.armyhst.maxAttackCounter)
-	if attackCounter == self.ai.armyhst.maxAttackCounter and self.ai.tool:countMyUnit({'battles'}) > self.ai.armyhst.minBattleCount then return self.ai.armyhst.DummyUnitName end
-	if mtype == "veh" and  self.ai.side == self.ai.armyhst.CORESideName and (self.ai.factoriesAtLevel[1] == nil or self.ai.factoriesAtLevel[1] == {}) then
-		-- core only has a lvl1 vehicle raider, so this prevents getting stuck
-		return unitName
-	end
-	if self.ai.factoriesAtLevel[3] ~= nil and self.ai.factoriesAtLevel[3] ~= {} then
-		-- if we have a level 2 factory, don't wait to build raiders first
-		return unitName
-	end
-	local raidCounter = self.ai.raidhst:GetCounter(mtype)
-	self:EchoDebug(mtype .. " " .. raidCounter .. " " .. self.ai.armyhst.maxRaidCounter)
-	if raidCounter == self.ai.armyhst.minRaidCounter then return unitName end
-	self:EchoDebug(self.ai.raiderCount[mtype])
-	if self.ai.raiderCount[mtype] == nil then
-		return unitName
-	elseif self.ai.raiderCount[mtype] < raidCounter / 2 then
-		return self.ai.armyhst.DummyUnitName
-	else
-		return unitName
-	end
-end
-
--- function TasksHST:CountOwnUnits(tmpUnitName)
--- 	if tmpUnitName == self.ai.armyhst.DummyUnitName then return 0 end -- don't count no-units
--- 	if self.ai.nameCount[tmpUnitName] == nil then return 0 end
--- 	return self.ai.nameCount[tmpUnitName]
--- end
-
-function TasksHST:BuildWithLimitedNumber(tmpUnitName, minNumber)
-	if tmpUnitName == self.ai.armyhst.DummyUnitName then return self.ai.armyhst.DummyUnitName end
-	if minNumber == 0 then return self.ai.armyhst.DummyUnitName end
--- 	if self.ai.nameCount[tmpUnitName] == nil then
--- 		return tmpUnitName
--- 	else
--- 		if self.ai.nameCount[tmpUnitName] == 0 or self.ai.nameCount[tmpUnitName] < minNumber then
--- 			return tmpUnitName
--- 		else
--- 			return self.ai.armyhst.DummyUnitName
--- 		end
--- 	end
-	return self.ai.tool:countMyUnit({tmpUnitName})
-end
-
-function TasksHST:GroundDefenseIfNeeded(unitName)
-	if not self.ai.needGroundDefense then
-		return self.ai.armyhst.DummyUnitName
-	else
-		return unitName
-	end
-end
-
-function TasksHST:BuildBomberIfNeeded(unitName)
-	if not self:IsLandAttackNeeded() then return self.ai.armyhst.DummyUnitName end
-	if unitName == self.ai.armyhst.DummyUnitName or unitName == nil then return self.ai.armyhst.DummyUnitName end
-	if self.ai.bomberhst:GetCounter() == self.ai.armyhst.maxBomberCounter then
-		return self.ai.armyhst.DummyUnitName
-	else
-		return unitName
-	end
-end
-
-function TasksHST:BuildTorpedoBomberIfNeeded(unitName)
-	if not IsWaterAttackNeeded() then return self.ai.armyhst.DummyUnitName end
-	if unitName == self.ai.armyhst.DummyUnitName or unitName == nil then return self.ai.armyhst.DummyUnitName end
-	if self.ai.bomberhst:GetCounter() == self.ai.armyhst.maxBomberCounter then
-		return self.ai.armyhst.DummyUnitName
-	else
-		return unitName
-	end
-end
-
-
-function TasksHST:LandOrWater(tqb, landName, waterName)
-	local builder = tqb.unit:Internal()
-	local bpos = builder:GetPosition()
-	local waterNet = self.ai.maphst:MobilityNetworkSizeHere("shp", bpos)
-	if waterNet ~= nil then
-		return waterName
-	else
-		return landName
-	end
-end]]

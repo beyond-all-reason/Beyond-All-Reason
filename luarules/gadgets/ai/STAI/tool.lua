@@ -209,7 +209,7 @@ function Tool:tableSorting(t)
 	local Tkey = {}
 	local Tvalue = {}
 	for key, value in self.ai.tool:pairsByKeys(t) do
-      print(key, value)
+      self:EchoDebug(key, value)
 	  table.insert(Tkey,key)
 	  table.insert(Tvalue,value)
     end

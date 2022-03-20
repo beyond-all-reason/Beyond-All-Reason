@@ -77,7 +77,6 @@ function TaskLabBST:getSoldier()
 	for i = self.qIndex , #self.queue do
 		param = self.queue[i]
 		soldier,utype = self:getSoldierFromCategory(param.category)
-		print('soldier11',soldier)
 		self:EchoDebug('soldier',soldier)
 		soldier = self:ecoCheck(param.category,param.economy,soldier)
 		self:EchoDebug('eco',soldier)
@@ -109,7 +108,6 @@ function TaskLabBST:getSoldierFromCategory(category)--we will take care about on
 	for name,_ in pairs(self.ai.armyhst[category]) do
 		utype = self.game:GetTypeByName(name)
 		if self.unit:Internal():CanBuild(utype) then
-			print(name)
 			return name,utype
 		end
 	end
@@ -121,7 +119,7 @@ function TaskLabBST:ecoCheck(category,param,name,test)
 		self:EchoDebug('ecofilter stop',name,cat, param)
 		return
 	end
-	print('soldier22',name,test)
+	--print('soldier22',name,test)
 	if self.queue[self.qIndex]:economy(name) then
 		return name
 	end

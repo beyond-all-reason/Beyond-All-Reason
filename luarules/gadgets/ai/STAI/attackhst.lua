@@ -12,7 +12,7 @@ local floor = math.floor
 local ceil = math.ceil
 
 function AttackHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.visualdbg = true
 	self.recruits = {}
 	self.squads = {}
