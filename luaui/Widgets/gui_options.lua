@@ -3306,7 +3306,7 @@ function init()
 		  end,
 		},
 
-		{ id = "simpleteamcolors_reset", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " ..  texts.option.simpleteamcolors_reset, type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColors_Reset", 0) or 0) == 1,
+		{ id = "simpleteamcolors_reset", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " ..  texts.option.simpleteamcolors_reset, type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColors_Reset", 0) or 0) == 1,
 		  onchange = function(i, value)
 			Spring.SetConfigInt("SimpleTeamColorsPlayerR", 0)
 			Spring.SetConfigInt("SimpleTeamColorsPlayerG", 77)
@@ -3321,57 +3321,57 @@ function init()
 		  end,
 		},
 
-		{ id = "simpleteamcolors_player_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_player_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0)),
+		{ id = "simpleteamcolors_player_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_player_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsPlayerR", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-		{ id = "simpleteamcolors_player_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_player_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerG", 77)),
+		{ id = "simpleteamcolors_player_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_player_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerG", 77)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsPlayerG", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-		{ id = "simpleteamcolors_player_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_player_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerB", 255)),
+		{ id = "simpleteamcolors_player_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_player_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsPlayerB", 255)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsPlayerB", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
 
-		{ id = "simpleteamcolors_ally_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_ally_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyR", 0)),
+		{ id = "simpleteamcolors_ally_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_ally_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyR", 0)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsAllyR", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-		{ id = "simpleteamcolors_ally_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_ally_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyG", 255)),
+		{ id = "simpleteamcolors_ally_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_ally_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyG", 255)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsAllyG", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-		{ id = "simpleteamcolors_ally_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_ally_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyB", 0)),
+		{ id = "simpleteamcolors_ally_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_ally_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsAllyB", 0)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsAllyB", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
 
-		{ id = "simpleteamcolors_enemy_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_enemy_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255)),
+		{ id = "simpleteamcolors_enemy_r", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_enemy_r, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsEnemyR", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-		{ id = "simpleteamcolors_enemy_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_enemy_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16)),
+		{ id = "simpleteamcolors_enemy_g", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_enemy_g, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsEnemyG", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
 		  end,
 		},
-		{ id = "simpleteamcolors_enemy_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.simpleteamcolors_enemy_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)),
+		{ id = "simpleteamcolors_enemy_b", group = "accessibility", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.simpleteamcolors_enemy_b, type = "slider", min = 0, max = 255, step = 1, value = tonumber(Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("SimpleTeamColorsEnemyB", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)
