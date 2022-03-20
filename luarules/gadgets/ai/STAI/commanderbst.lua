@@ -74,7 +74,7 @@ function CommanderBST:Priority()
 	self:EchoDebug('Spring.GetRealBuildQueue(self.id)',Spring.GetRealBuildQueue(self.id),'queueL',queueL)
 
 	if (self.ai.Metal.income > 22 and self.ai.Energy.full > 0.5 and queueL == 0) or
-			self.ai.haveAdvFactory or
+			self.ai.overviewhst.T2LAB or
 			((self.lowHealth or self.ai.overviewhst.paranoidCommander) and self.safeHouse) then
 		return 200
 	else

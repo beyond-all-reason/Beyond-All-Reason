@@ -205,6 +205,17 @@ end
 return iter
 end
 
+function Tool:tableSorting(t)
+	local Tkey = {}
+	local Tvalue = {}
+	for key, value in self.ai.tool:pairsByKeys(t) do
+      self:EchoDebug(key, value)
+	  table.insert(Tkey,key)
+	  table.insert(Tvalue,value)
+    end
+	return Tkey, Tvalue
+end
+
 function Tool:listHasKey( value, list )
 	for k,v in pairs(list) do
 		if k == value then
