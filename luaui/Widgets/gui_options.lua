@@ -18,7 +18,7 @@ local types = {
 	dev      = 3,
 }
 
-local version = 1.1	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
+local version = 1.2	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
 local newerVersion = false	-- configdata will set this true if it's a newer version
 
 local texts = {}    -- loaded from external language file
@@ -2028,7 +2028,7 @@ function init()
 
 		{ id = "label_gfx_game", group = "gfx", name = texts.option.label_game, category = types.advanced },
 		{ id = "label_gfx_game_spacer", group = "gfx", category = types.basic },
-		{ id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos", name = texts.option.resurrectionhalos, type = "bool", value = GetWidgetToggleValue("Resurrection Halos"), description = texts.option.resurrectionhalos_descr },
+		{ id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos GL4", name = texts.option.resurrectionhalos, type = "bool", value = GetWidgetToggleValue("Resurrection Halos GL4"), description = texts.option.resurrectionhalos_descr },
 		{ id = "tombstones", group = "gfx", category = types.advanced, name = texts.option.tombstones, type = "bool", value = (Spring.GetConfigInt("tombstones", 1) == 1), description = texts.option.tombstones_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("tombstones", (value and 1 or 0))
@@ -4687,7 +4687,7 @@ function widget:Initialize()
 		widgetHandler:DisableWidget("Ambient Player")
 	end
 
-	-- enable previous default disabled widget(s) to their new default state
+	-- enable previous default disabled widgets to their new default state
 	if newerVersion then
 		if version <= 1 then
 			if widgetHandler.orderList["DrawUnitShape GL4"] and widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
@@ -4705,6 +4705,11 @@ function widget:Initialize()
 				widgetHandler:EnableWidget("Health Bars GL4")
 			end
 		end
+		if version <= 1.2 then
+			if widgetHandler.orderList["Resurrection Halos GL4"] and widgetHandler.orderList["Resurrection Halos GL4"] < 0.5 then
+				widgetHandler:EnableWidget("Resurrection Halos GL4")
+			end
+		end
 	end
 
 	if widgetHandler.orderList["FlowUI"] and widgetHandler.orderList["FlowUI"] < 0.5 then
@@ -4713,6 +4718,7 @@ function widget:Initialize()
 	if widgetHandler.orderList["Language"] and widgetHandler.orderList["Language"] < 0.5 then
 		widgetHandler:EnableWidget("Language")
 	end
+
 
 	if WG['lang'] then
 		texts = WG['lang'].getText('options')
