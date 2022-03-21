@@ -1036,6 +1036,20 @@ local function updateReloadBar(unitID, unitDefID, reason)
 	end
 end
 
+local function removeBarFromUnit(unitID, barname, reason) -- this will bite me in the ass later, im sure, yes it did, we need to just update them :P
+	local instanceKey = unitID .. "_" .. barname
+	if healthBarVBO.instanceIDtoIndex[instanceKey] then
+		if debugmode then Spring.Debug.TraceEcho(reason) end
+		--if barname == 'emp_damage' or barname == 'paralyze' then
+			-- dont decrease counter for these
+		--else
+			unitBars[unitID] = unitBars[unitID] - 1
+		--end
+		popElementInstance(healthBarVBO, instanceKey)
+	end
+end
+
+
 local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason) -- TODO, actually, we need to check for all of these for stuff entering LOS
 
 	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then
@@ -1107,19 +1121,6 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 				end
 			end
 		end
-	end
-end
-
-local function removeBarFromUnit(unitID, barname, reason) -- this will bite me in the ass later, im sure, yes it did, we need to just update them :P
-	local instanceKey = unitID .. "_" .. barname
-	if healthBarVBO.instanceIDtoIndex[instanceKey] then
-		if debugmode then Spring.Debug.TraceEcho(reason) end
-		--if barname == 'emp_damage' or barname == 'paralyze' then
-			-- dont decrease counter for these
-		--else
-			unitBars[unitID] = unitBars[unitID] - 1
-		--end
-		popElementInstance(healthBarVBO, instanceKey)
 	end
 end
 
