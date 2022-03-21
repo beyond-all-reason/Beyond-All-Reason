@@ -133,6 +133,8 @@ local heightmapChangeBuffer = {}
 
 local widgetScale = (vsy / 1080)
 
+local edgeMoveWidth = tonumber(Spring.GetConfigFloat("EdgeMoveWidth", 1) or 0.02)
+
 local vsyncLevel = 1
 local vsyncEnabled = false
 
@@ -2268,10 +2270,16 @@ function init()
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("FullscreenEdgeMove", (value and 1 or 0))
 			  Spring.SetConfigInt("WindowedEdgeMove", (value and 1 or 0))
+				if value then
+					Spring.SetConfigFloat("EdgeMoveWidth", edgeMoveWidth)
+				else
+					Spring.SetConfigFloat("EdgeMoveWidth", 0)
+				end
 		  end,
 		},
-		{ id = "screenedgemovewidth", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.screenedgemovewidth, type = "slider", min = 0, max = 0.1, step = 0.01, value = tonumber(Spring.GetConfigFloat("EdgeMoveWidth", 1) or 0.02), description = texts.option.screenedgemovewidth_descr,
+		{ id = "screenedgemovewidth", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.screenedgemovewidth, type = "slider", min = 0, max = 0.1, step = 0.01, value = edgeMoveWidth, description = texts.option.screenedgemovewidth_descr,
 		  onchange = function(i, value)
+			  edgeMoveWidth = value
 			  Spring.SetConfigFloat("EdgeMoveWidth", value)
 		  end,
 		},
@@ -2839,8 +2847,7 @@ function init()
 		{ id = "label_ui_info", group = "ui", name = texts.option.label_info, category = types.basic },
 		{ id = "label_ui_info_spacer", group = "ui", category = types.basic },
 
-		--{ id = "metalspots", group = "ui", category = types.basic, widget = "Metalspots", name = texts.option.metalspots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = texts.option.metalpots_descr },
-		{ id = "metalspots_values", group = "ui", category = types.advanced, name = texts.option.metalspots..widgetOptionColor .. "   " .. texts.option.metalspots_values, type = "bool", value = true, description = texts.option.metalspots_values_descr,
+		{ id = "metalspots_values", group = "ui", category = types.advanced, name = texts.option.metalspots..widgetOptionColor .. "   " .. texts.option.metalspots_values, type = "bool", value = (WG['metalspots'] ~= nil and WG['metalspots'].getShowValue()), description = texts.option.metalspots_values_descr,
 		  onload = function(i)
 			  loadWidgetData("Metalspots", "metalspots_values", { 'showValues' })
 		  end,
@@ -5001,6 +5008,7 @@ function widget:GetConfigData()
 		defaultSunLighting = defaultSunLighting,
 		resettedTonemapDefault = resettedTonemapDefault,
 		version = version,
+		edgeMoveWidth = edgeMoveWidth,
 	}
 end
 
@@ -5035,6 +5043,9 @@ function widget:SetConfigData(data)
 	end
 	if data.guishaderIntensity then
 		guishaderIntensity = data.guishaderIntensity
+	end
+	if data.edgeMoveWidth then
+		edgeMoveWidth = data.edgeMoveWidth
 	end
 	if Spring.GetGameFrame() > 0 then
 		if data.show ~= nil then
