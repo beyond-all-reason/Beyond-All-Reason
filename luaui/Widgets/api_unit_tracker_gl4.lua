@@ -113,6 +113,7 @@ local function Scream(reason, unitID) -- This will pause the game and play some 
 	if lastknownunitpos[unitID] then 
 		Spring.MarkerAddPoint(lastknownunitpos[unitID][1], lastknownunitpos[unitID][2], lastknownunitpos[unitID][3], lastknownunitpos[unitID][4], true)
 	end
+	Spring.Debug.TraceFullEcho()
 	local unittrackerapinil = nil
 	unittrackerapinil = unittrackerapinil + 1 -- this intentionally crashes this widget so that it will show up in analytics
 	if debuglevel >=3 then 
@@ -354,7 +355,7 @@ end
 function widget:GameFrame() 
 	if debuglevel >= 1 then -- here we will scan all units and ensure that they match what we expect
 		local gf = Spring.GetGameFrame()
-		if (debuglevel <= 2) and ((gf % 37) ~= 0) then return end  -- lower frequency at smaller debug levels
+		if (debuglevel <= 2) and (math.random() > 0.05 ) then return end  -- lower frequency at smaller debug levels
 		local allunits = Spring.GetAllUnits()
 		local allunitsTable = {}
 		for i = 1, #allunits do 
