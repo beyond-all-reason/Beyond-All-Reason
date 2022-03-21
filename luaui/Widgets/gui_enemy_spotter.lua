@@ -138,7 +138,7 @@ local function AddUnit(unitID, unitDefID, unitTeamID)
 end
 
 local function RemoveUnit(unitID, unitDefID)
-	if (not skipOwnTeam or spGetUnitAllyTeam(unitID) ~= myAllyTeamID) and not unitDecoration[unitDefID] then
+	if unitID and (not skipOwnTeam or spGetUnitAllyTeam(unitID) ~= myAllyTeamID) and not unitDecoration[unitDefID] then
 		RemovePrimitive(unitID)
 		unitTeam[unitID] = nil
 		unitUnitDefID[unitID] = nil
