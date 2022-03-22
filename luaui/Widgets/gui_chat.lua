@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author    = "Floris",
 		date      = "May 2021",
 		license   = "GNU GPL, v2 or later",
-		layer     = 30000,
+		layer     = -9999999999,
 		enabled   = true
 	}
 end
@@ -128,6 +128,7 @@ local autocompleteCommands = {
 	'nospectatorchat',
 	'reloadcegs',
 	'reloadcob',
+	'reloadtextures',
 	'skip',
 	'take',
 	'advmapshading',
@@ -703,11 +704,11 @@ function widget:DrawScreen()
 			if inputButton and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
 				Spring.SetMouseCursor('cursornormal')
 				if inputTextPrefix == 'a:' then
-					glColor(0.1,0.1,0.1,0.3)
+					glColor(0,0.3,0,0.35)
 				elseif inputTextPrefix == 's:' then
-					glColor(0.05,0.33,0.05,0.3)
+					glColor(0.3,0.3,0,0.35)
 				else
-					glColor(0.33,0.33,0.05,0.3)
+					glColor(0.2,0.2,0.2,0.35)
 				end
 			else
 				if inputTextPrefix == 'a:' then
