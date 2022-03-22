@@ -2706,6 +2706,14 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setBackgroundOpacity', { 'chatBackgroundOpacity' }, value)
 		  end,
 		},
+		{ id = "console_handleinput", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.console_handleinput, type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getHandleInput() or 0), description = texts.option.console_handleinput_descr,
+		  onload = function(i)
+			  loadWidgetData("Chat", "console_handleinput", { 'handleTextInput' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Chat', 'chat', 'setHandleInput', { 'handleTextInput' }, value)
+		  end,
+		},
 
 		{ id = "unitgroups", group = "ui", category = types.basic, widget = "Unit Groups", name = texts.option.unitgroups, type = "bool", value = GetWidgetToggleValue("Unit Groups"), description = texts.option.unitgroups_descr },
 		{ id = "idlebuilders", group = "ui", category = types.basic, widget = "Idle Builders", name = texts.option.idlebuilders, type = "bool", value = GetWidgetToggleValue("Idle Builders"), description = texts.option.idlebuilders_descr },
@@ -3429,7 +3437,7 @@ function init()
 		{ id = "label_dev_other", group = "dev", name = texts.option.label_other, category = types.dev },
 		{ id = "label_dev_other_spacer", group = "dev", category = types.dev },
 
-		-- BAR doesnt support ZK style startboxes{ id = "startboxeditor", group = "dev", category = optionTypes.dev, widget = "Startbox Editor", name = texts.option.startboxeditor, type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = texts.option.startboxeditor_descr },
+		{ id = "startboxeditor", group = "dev", category = types.dev, widget = "Startbox Editor", name = texts.option.startboxeditor, type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = texts.option.startboxeditor_descr },
 
 		{ id = "language", group = "dev", category = types.dev, name = texts.option.language, type = "select", options = languageNames, value = languageCodes[Spring.I18N.getLocale()],
 			onchange = function(i, value)

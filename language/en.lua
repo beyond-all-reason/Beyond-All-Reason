@@ -415,6 +415,8 @@ return {
 			console_backgroundopacity_descr = 'Show a transparent background',
 			console_chatvolume = 'chat message',
 			console_chatvolume_descr = 'Customize the volume of incoming chat messages',
+			console_handleinput = 'handle chat input',
+			console_handleinput_descr = 'Integrates chat text input instead of using in-engine method',
 			idlebuilders = 'Idle builders',
 			idlebuilders_descr = 'Displays a row of idle builder units at the bottom of the screen',
 			buildbar = 'Factory dock',
