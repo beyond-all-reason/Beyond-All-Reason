@@ -369,7 +369,7 @@ end
 local function drawStats(uDefID, uID)
 	local mx, my = spGetMouseState()
 	local alt, ctrl, meta, shift = spGetModKeyState()
-	if WG['chat'].isInputActive then
+	if WG['chat'] and WG['chat'].isInputActive then
 		if WG['chat'].isInputActive() then
 			meta = false
 		end
@@ -818,7 +818,7 @@ function widget:DrawScreen()
 	end
 
 	local alt, ctrl, meta, shift = spGetModKeyState()
-	if WG['chat'].isInputActive then
+	if WG['chat'] and WG['chat'].isInputActive then
 		if WG['chat'].isInputActive() then
 			meta = false
 		end
