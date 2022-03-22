@@ -134,7 +134,7 @@ return {
 				size = 1.75,
 				soundhitwet = "splshbig",
 				soundstart = "flashemg",
-				sprayangle = 1250,
+				sprayangle = 900,
 				tolerance = 5000,
 				turret = true,
 				weapontimer = 0.1,
