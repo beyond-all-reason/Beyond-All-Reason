@@ -677,7 +677,7 @@ function widget:DrawScreen()
 	-- chat text input field
 	if handleTextInput then
 		if showTextInput then
-			local inputFontSize = usedFontSize * 1.05
+			local inputFontSize = floor(usedFontSize * 1.05)
 			local height = floor(lineHeight * 2.1)
 			local leftOffset = lineHeight*0.7
 			local distance =  (scrolling and height + elementMargin + elementMargin or elementMargin)
@@ -698,20 +698,24 @@ function widget:DrawScreen()
 			if isCmdInput then
 				prefixText = Spring.I18N('ui.chat.cmd')
 			end
-			local prefixTextPosX = activationArea[1]+elementPadding+elementPadding+leftOffset
-			local textPosX = prefixTextPosX + (usedFont:GetTextWidth(prefixText) * inputFontSize) + leftOffset + inputFontSize
+			local prefixTextPosX = floor(activationArea[1]+elementPadding+elementPadding+leftOffset)
+			local textPosX = floor(prefixTextPosX + (usedFont:GetTextWidth(prefixText) * inputFontSize) + leftOffset + inputFontSize)
 			inputButtonRect = {activationArea[1]+elementPadding, activationArea[2]+heightDiff-distance-height+elementPadding, textPosX-inputFontSize, activationArea[2]+heightDiff-distance-elementPadding}
 			if inputButton and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
 				Spring.SetMouseCursor('cursornormal')
-				if inputTextPrefix == 'a:' then
+				if isCmdInput then
+					glColor(0,0,0,0.35)
+				elseif inputTextPrefix == 'a:' then
 					glColor(0,0.3,0,0.35)
 				elseif inputTextPrefix == 's:' then
 					glColor(0.3,0.3,0,0.35)
 				else
-					glColor(0.2,0.2,0.2,0.35)
+					glColor(0.25,0.25,0.25,0.35)
 				end
 			else
-				if inputTextPrefix == 'a:' then
+				if isCmdInput then
+					glColor(0,0,0,0.3)
+				elseif inputTextPrefix == 'a:' then
 					glColor(0,0.1,0,0.3)
 				elseif inputTextPrefix == 's:' then
 					glColor(0.1,0.1,0,0.3)
@@ -720,7 +724,7 @@ function widget:DrawScreen()
 				end
 			end
 			RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
-			glColor(1,1,1,0.035)
+			glColor(1,1,1,0.033)
 			gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
 
 			usedFont:Begin()
@@ -1041,7 +1045,7 @@ function widget:KeyPress(key, mods, isRepeat)
 end
 
 function widget:MousePress(x, y, button)
-	if inputButton and button == 1 and inputButtonRect and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
+	if button == 1 and handleTextInput and showTextInput and inputButton and inputButtonRect and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
 		if inputTextPrefix == 'a:' then
 			inputTextPrefix = ''
 		elseif inputTextPrefix == 's:' then
