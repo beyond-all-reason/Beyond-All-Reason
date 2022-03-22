@@ -731,7 +731,7 @@ function widget:DrawScreen()
 			usedFont:Print(inputText, textPosX, activationArea[2]+heightDiff-distance-(height*0.61), inputFontSize, "o")
 			if autocompleteText then
 				usedFont:SetTextColor(r,g,b, 0.25)
-				usedFont:Print(autocompleteText, textPosX + textCursorPos, activationArea[2]+heightDiff-distance-(height*0.61), inputFontSize, "")
+				usedFont:Print(autocompleteText, textPosX + floor(usedFont:GetTextWidth(inputText) * inputFontSize), activationArea[2]+heightDiff-distance-(height*0.61), inputFontSize, "")
 			end
 
 			usedFont:End()
@@ -911,7 +911,16 @@ function widget:KeyPress(key, mods, isRepeat)
 				end
 				return true
 			end
-			if not alt and not ctrl then
+
+			if ctrl and key == 118 then -- CTRL + V
+				--Spring.SendCommands('PasteText')
+				local clipboardText = Spring.GetClipboard()
+				inputText = ssub(inputText, 1, inputTextPosition) .. clipboardText .. ssub(inputText, inputTextPosition+1)
+				inputTextPosition = inputTextPosition + slen(clipboardText)
+				cursorBlinkTimer = 0
+				autocomplete()
+
+			elseif not alt and not ctrl then
 				if key == 27 then -- ESC
 					cancelChatInput()
 					return true
