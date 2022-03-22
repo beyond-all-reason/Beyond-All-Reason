@@ -23,6 +23,7 @@ local lineHeightMult = 1.27
 local lineTTL = 40
 local backgroundOpacity = 0.18
 local handleTextInput = true	-- handle chat text input instead of using spring's input method
+local inputButton = true
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
@@ -86,6 +87,7 @@ local inputTextPrefix = ''
 local inputTextInsertActive = false
 local inputHistory = {}
 local inputHistoryCurrent = 0
+local inputButtonRect
 
 local glPopMatrix      = gl.PopMatrix
 local glPushMatrix     = gl.PushMatrix
@@ -439,6 +441,7 @@ function widget:Initialize()
 		if not handleTextInput then
 			cancelChatInput()
 		end
+		Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 	end
 	WG['chat'].getChatVolume = function()
 		return sndChatFileVolume
@@ -675,11 +678,8 @@ function widget:DrawScreen()
 		if showTextInput then
 			local inputFontSize = usedFontSize * 1.05
 			local height = floor(lineHeight * 2.1)
-			local distance =  elementMargin
-			if scrolling then
-				distance = distance + height + elementMargin
-			end
-			local leftOffset = lineHeight
+			local leftOffset = lineHeight*0.7
+			local distance =  (scrolling and height + elementMargin + elementMargin or elementMargin)
 			UiElement(activationArea[1], activationArea[2]+heightDiff-distance-height, activationArea[3], activationArea[2]+heightDiff-distance)
 			if WG['guishader'] then
 				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+heightDiff-distance-height, activationArea[3], activationArea[2]+heightDiff-distance, 'chatinput')
@@ -687,6 +687,7 @@ function widget:DrawScreen()
 
 			-- target chat mode
 			local isCmdInput = ssub(inputText, 1, 1) == '/'
+			local usedFont = isCmdInput and font3 or font
 			local prefixText = Spring.I18N('ui.chat.everyone')
 			if inputTextPrefix == 'a:' then
 				prefixText = Spring.I18N('ui.chat.allies')
@@ -696,8 +697,30 @@ function widget:DrawScreen()
 			if isCmdInput then
 				prefixText = Spring.I18N('ui.chat.cmd')
 			end
-			local textPosX = activationArea[1]+elementPadding+elementPadding+leftOffset
-			local usedFont = isCmdInput and font3 or font
+			local prefixTextPosX = activationArea[1]+elementPadding+elementPadding+leftOffset
+			local textPosX = prefixTextPosX + (usedFont:GetTextWidth(prefixText) * inputFontSize) + leftOffset + inputFontSize
+			inputButtonRect = {activationArea[1]+elementPadding, activationArea[2]+heightDiff-distance-height+elementPadding, textPosX-inputFontSize, activationArea[2]+heightDiff-distance-elementPadding}
+			if inputButton and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
+				Spring.SetMouseCursor('cursornormal')
+				if inputTextPrefix == 'a:' then
+					glColor(0.1,0.1,0.1,0.3)
+				elseif inputTextPrefix == 's:' then
+					glColor(0.05,0.33,0.05,0.3)
+				else
+					glColor(0.33,0.33,0.05,0.3)
+				end
+			else
+				if inputTextPrefix == 'a:' then
+					glColor(0,0.1,0,0.3)
+				elseif inputTextPrefix == 's:' then
+					glColor(0.1,0.1,0,0.3)
+				else
+					glColor(0,0,0,0.3)
+				end
+			end
+			RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
+			glColor(1,1,1,0.035)
+			gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
 
 			usedFont:Begin()
 			if isCmdInput then
@@ -709,9 +732,7 @@ function widget:DrawScreen()
 			else
 				usedFont:SetTextColor(0.6, 0.6, 0.6, 1)
 			end
-			usedFont:Print(prefixText, textPosX, activationArea[2]+heightDiff-distance-(height*0.61), inputFontSize, "o")
-
-			textPosX = textPosX + (usedFont:GetTextWidth(prefixText) * inputFontSize) + inputFontSize
+			usedFont:Print(prefixText, prefixTextPosX, activationArea[2]+heightDiff-distance-(height*0.61), inputFontSize, "o")
 
 			-- text cursor
 			local textCursorWidth = 1 + math.floor(inputFontSize / 14)
@@ -719,21 +740,21 @@ function widget:DrawScreen()
 				textCursorWidth = math.floor(textCursorWidth * 5)
 			end
 			local textCursorPos = floor(usedFont:GetTextWidth(ssub(inputText, 1, inputTextPosition)) * inputFontSize)
-			local a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.25
-			gl.Color(0.7,0.7,0.7,a)
+			local a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.2
+			glColor(0.7,0.7,0.7,a)
 			gl.Rect(textPosX + textCursorPos, activationArea[2]+heightDiff-distance-(height*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+heightDiff-distance-(height*0.5)+(inputFontSize*0.64))
-			gl.Color(1,1,1,1)
+			glColor(1,1,1,1)
 
 			-- text message
 			local r,g,b
 			if isCmdInput then
 				r, g, b = 0.75, 0.75, 0.75
 			elseif inputTextPrefix == 'a:' then
-				r, g, b = 0.3, 0.9, 0.3
+				r, g, b = 0.2, 1, 0.2
 			elseif inputTextPrefix == 's:' then
-				r, g, b = 0.9, 0.9, 0.3
+				r, g, b = 1, 1, 0.2
 			else
-				r, g, b = 0.93, 0.93, 0.93
+				r, g, b = 0.94, 0.94, 0.94
 			end
 			usedFont:SetTextColor(r,g,b, 1)
 			usedFont:Print(inputText, textPosX, activationArea[2]+heightDiff-distance-(height*0.61), inputFontSize, "o")
@@ -1018,6 +1039,18 @@ function widget:KeyPress(key, mods, isRepeat)
 	end
 end
 
+function widget:MousePress(x, y, button)
+	if inputButton and button == 1 and inputButtonRect and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
+		if inputTextPrefix == 'a:' then
+			inputTextPrefix = ''
+		elseif inputTextPrefix == 's:' then
+			inputTextPrefix = 'a:'
+		else
+			inputTextPrefix = 's:'
+		end
+		return true
+	end
+end
 
 function widget:MouseWheel(up, value)
 	if scrolling then
