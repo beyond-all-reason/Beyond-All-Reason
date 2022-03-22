@@ -857,6 +857,16 @@ function prevPageHandler()
 	return true
 end
 
+function goToCategoriesHandler()
+	if not currentBuildCategory then
+		return false
+	end
+	currentBuildCategory = nil
+        currentCategoryIndex = nil
+	doUpdate = true
+	return true
+end
+
 function buildFacingHandler(_, _, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
 		return
@@ -890,6 +900,7 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "t")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_next_page", nextPageHandler, nil, "t")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_prev_page", prevPageHandler, nil, "t")
+	widgetHandler.actionHandler:AddAction(self, "gridmenu_categories", goToCategoriesHandler, nil, "t")
 
 	reloadBindings()
 
