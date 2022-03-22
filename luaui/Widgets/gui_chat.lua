@@ -415,7 +415,14 @@ local function cancelChatInput()
 	WG['guishader'].RemoveRect('chatinput')
 end
 
+function widget:PlayerAdded(playerID)
+	local name = Spring.GetPlayerInfo(playerID, false)
+	autocompleteWords[#autocompleteWords+1] = name
+end
+
 function widget:Initialize()
+	Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+
 	widget:ViewResize()
 	Spring.SendCommands("console 0")
 
@@ -611,6 +618,9 @@ end
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+		if not chobbyInterface then
+			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		end
 	end
 end
 
@@ -709,12 +719,10 @@ function widget:DrawScreen()
 				textCursorWidth = math.floor(textCursorWidth * 5)
 			end
 			local textCursorPos = floor(usedFont:GetTextWidth(ssub(inputText, 1, inputTextPosition)) * inputFontSize)
-			--if cursorBlinkTimer < cursorBlinkDuration/2 then
-				local a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration))
-				gl.Color(0.66,0.66,0.66,a)
-				gl.Rect(textPosX + textCursorPos, activationArea[2]+heightDiff-distance-(height*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+heightDiff-distance-(height*0.5)+(inputFontSize*0.64))
-				gl.Color(1,1,1,1)
-			--end
+			local a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.25
+			gl.Color(0.7,0.7,0.7,a)
+			gl.Rect(textPosX + textCursorPos, activationArea[2]+heightDiff-distance-(height*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+heightDiff-distance-(height*0.5)+(inputFontSize*0.64))
+			gl.Color(1,1,1,1)
 
 			-- text message
 			local r,g,b
@@ -917,6 +925,7 @@ function widget:KeyPress(key, mods, isRepeat)
 				local clipboardText = Spring.GetClipboard()
 				inputText = ssub(inputText, 1, inputTextPosition) .. clipboardText .. ssub(inputText, inputTextPosition+1)
 				inputTextPosition = inputTextPosition + slen(clipboardText)
+				inputHistory[#inputHistory] = inputText
 				cursorBlinkTimer = 0
 				autocomplete()
 
@@ -928,12 +937,14 @@ function widget:KeyPress(key, mods, isRepeat)
 					if inputTextPosition > 0 then
 						inputText = ssub(inputText, 1, inputTextPosition-1) .. ssub(inputText, inputTextPosition+1)
 						inputTextPosition = inputTextPosition - 1
+						inputHistory[#inputHistory] = inputText
 					end
 					cursorBlinkTimer = 0
 					autocomplete()
 				elseif key == 127 then -- DELETE
 					if inputTextPosition < slen(inputText) then
 						inputText = ssub(inputText, 1, inputTextPosition) .. ssub(inputText, inputTextPosition+2)
+						inputHistory[#inputHistory] = inputText
 					end
 					cursorBlinkTimer = 0
 					autocomplete()
@@ -964,9 +975,11 @@ function widget:KeyPress(key, mods, isRepeat)
 					end
 					if inputHistory[inputHistoryCurrent] then
 						inputText = inputHistory[inputHistoryCurrent]
+						inputHistory[#inputHistory] = inputText
 					end
 					inputTextPosition = slen(inputText)
 					cursorBlinkTimer = 0
+					autocomplete()
 				elseif key == 274 then -- DOWN
 					inputHistoryCurrent = inputHistoryCurrent + 1
 					if inputHistoryCurrent >= #inputHistory then
@@ -975,10 +988,12 @@ function widget:KeyPress(key, mods, isRepeat)
 					inputText = inputHistory[inputHistoryCurrent]
 					inputTextPosition = slen(inputText)
 					cursorBlinkTimer = 0
+					autocomplete()
 				elseif key == 9 then -- TAB
 					if autocompleteText then
 						inputText = ssub(inputText, 1, inputTextPosition) .. autocompleteText .. ssub(inputText, inputTextPosition+1)
 						inputTextPosition = inputTextPosition + slen(autocompleteText)
+						inputHistory[#inputHistory] = inputText
 						autocompleteText = nil
 					end
 				else
