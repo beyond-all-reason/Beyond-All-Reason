@@ -7,7 +7,7 @@ function widget:GetInfo()
 		date      = "Jan 11, 2009",
 		version   = 1.7,
 		license   = "GNU GPL, v2 or later",
-		layer     = -9999999999,
+		layer     = -9999999990,
 		enabled   = true,  --  loaded by default?
 	}
 end
@@ -365,9 +365,15 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+
 local function drawStats(uDefID, uID)
 	local mx, my = spGetMouseState()
 	local alt, ctrl, meta, shift = spGetModKeyState()
+	if WG['chat'].isInputActive then
+		if WG['chat'].isInputActive() then
+			meta = false
+		end
+	end
 
 	local uDef = uDefs[uDefID]
 	local maxHP = uDef.health
@@ -812,6 +818,11 @@ function widget:DrawScreen()
 	end
 
 	local alt, ctrl, meta, shift = spGetModKeyState()
+	if WG['chat'].isInputActive then
+		if WG['chat'].isInputActive() then
+			meta = false
+		end
+	end
 	if (not meta and not showUnitID) or spIsUserWriting() then
 		RemoveGuishader()
 		return

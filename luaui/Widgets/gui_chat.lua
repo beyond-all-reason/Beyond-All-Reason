@@ -415,7 +415,9 @@ local function cancelChatInput()
 	inputTextInsertActive = false
 	inputHistoryCurrent = #inputHistory
 	autocompleteText = nil
-	WG['guishader'].RemoveRect('chatinput')
+	if WG['guishader'] then
+		WG['guishader'].RemoveRect('chatinput')
+	end
 end
 
 function widget:PlayerAdded(playerID)
@@ -434,6 +436,9 @@ function widget:Initialize()
 	end
 
 	WG['chat'] = {}
+	WG['chat'].isInputActive = function()
+		return showTextInput
+	end
 	WG['chat'].getHandleInput = function()
 		return handleTextInput
 	end
@@ -769,7 +774,7 @@ function widget:DrawScreen()
 			end
 
 			usedFont:End()
-		else
+		elseif WG['guishader'] then
 			WG['guishader'].RemoveRect('chatinput')
 		end
 	end
@@ -1462,9 +1467,10 @@ function widget:Shutdown()
 	clearDisplayLists()
 	WG['chat'] = nil
 	Spring.SendCommands("console 1")
-
-	WG['guishader'].RemoveRect('chat')
-	WG['guishader'].RemoveRect('chatinput')
+	if WG['guishader'] then
+		WG['guishader'].RemoveRect('chat')
+		WG['guishader'].RemoveRect('chatinput')
+	end
 end
 
 function widget:GameOver()
