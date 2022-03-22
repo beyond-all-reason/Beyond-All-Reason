@@ -60,6 +60,12 @@ if string.find(mapName, "incandescence") then
         addTideRhym (208, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
     end
 
+elseif string.find(mapName, "seths ravine") then
+    lavaMap = false
+    if isLavaGadget and isLavaGadget == "synced" then
+        addTideRhym (208, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
+    end
+
 
 elseif string.find(mapName, "ghenna") then
     lavaMap = true
