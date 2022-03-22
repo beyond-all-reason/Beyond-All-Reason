@@ -2714,6 +2714,14 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setHandleInput', { 'handleTextInput' }, value)
 		  end,
 		},
+		{ id = "console_inputbutton", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.console_inputbutton, type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getInputButton() or 0), description = texts.option.console_inputbutton_descr,
+		  onload = function(i)
+			  loadWidgetData("Chat", "console_inputbutton", { 'inputButton' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Chat', 'chat', 'setInputButton', { 'inputButton' }, value)
+		  end,
+		},
 
 		{ id = "unitgroups", group = "ui", category = types.basic, widget = "Unit Groups", name = texts.option.unitgroups, type = "bool", value = GetWidgetToggleValue("Unit Groups"), description = texts.option.unitgroups_descr },
 		{ id = "idlebuilders", group = "ui", category = types.basic, widget = "Idle Builders", name = texts.option.idlebuilders, type = "bool", value = GetWidgetToggleValue("Idle Builders"), description = texts.option.idlebuilders_descr },

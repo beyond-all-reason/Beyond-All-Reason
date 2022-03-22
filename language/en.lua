@@ -417,6 +417,8 @@ return {
 			console_chatvolume_descr = 'Customize the volume of incoming chat messages',
 			console_handleinput = 'handle chat input',
 			console_handleinput_descr = 'Integrates chat text input instead of using in-engine method',
+			console_inputbutton = 'input mode toggle button',
+			console_inputbutton_descr = 'Enable text input mode toggle button',
 			idlebuilders = 'Idle builders',
 			idlebuilders_descr = 'Displays a row of idle builder units at the bottom of the screen',
 			buildbar = 'Factory dock',

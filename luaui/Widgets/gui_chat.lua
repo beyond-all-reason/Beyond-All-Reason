@@ -47,6 +47,7 @@ local displayedChatLines = 0
 local hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
 
 local myName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+local isSpec = Spring.GetSpectatingState()
 
 local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 local font, font3, chobbyInterface, hovering
@@ -420,6 +421,10 @@ local function cancelChatInput()
 	end
 end
 
+function widget:PlayerChanged(playerID)
+	isSpec = Spring.GetSpectatingState()
+end
+
 function widget:PlayerAdded(playerID)
 	local name = Spring.GetPlayerInfo(playerID, false)
 	autocompleteWords[#autocompleteWords+1] = name
@@ -438,6 +443,12 @@ function widget:Initialize()
 	WG['chat'] = {}
 	WG['chat'].isInputActive = function()
 		return showTextInput
+	end
+	WG['chat'].getInputButton = function()
+		return inputButton
+	end
+	WG['chat'].setInputButton = function(value)
+		inputButton = value
 	end
 	WG['chat'].getHandleInput = function()
 		return handleTextInput
@@ -713,7 +724,7 @@ function widget:DrawScreen()
 				elseif inputTextPrefix == 'a:' then
 					glColor(0,0.3,0,0.35)
 				elseif inputTextPrefix == 's:' then
-					glColor(0.3,0.3,0,0.35)
+					glColor(0.3,0.27,0,0.35)
 				else
 					glColor(0.25,0.25,0.25,0.35)
 				end
@@ -723,7 +734,7 @@ function widget:DrawScreen()
 				elseif inputTextPrefix == 'a:' then
 					glColor(0,0.1,0,0.3)
 				elseif inputTextPrefix == 's:' then
-					glColor(0.1,0.1,0,0.3)
+					glColor(0.1,0.092,0,0.3)
 				else
 					glColor(0,0,0,0.3)
 				end
@@ -935,7 +946,7 @@ function widget:KeyPress(key, mods, isRepeat)
 			if key == 13 then -- RETURN	 (keypad enter = 271)
 				if alt or shift then
 					-- switch mode
-					if alt then
+					if alt and not isSpec then
 						inputTextPrefix = (inputTextPrefix == 'a:' and '' or 'a:')
 					else
 						inputTextPrefix = (inputTextPrefix == 's:' and '' or 's:')
@@ -1043,7 +1054,7 @@ function widget:KeyPress(key, mods, isRepeat)
 				inputHistory[inputHistoryCurrent] = ''
 			end
 			if alt then
-				inputTextPrefix = 'a:'
+				inputTextPrefix = isSpec and 's:' or 'a:'
 			elseif shift then
 				inputTextPrefix = 's:'
 			end
@@ -1059,7 +1070,7 @@ function widget:MousePress(x, y, button)
 		if inputTextPrefix == 'a:' then
 			inputTextPrefix = ''
 		elseif inputTextPrefix == 's:' then
-			inputTextPrefix = 'a:'
+			inputTextPrefix = isSpec and '' or 'a:'
 		else
 			inputTextPrefix = 's:'
 		end
@@ -1494,6 +1505,7 @@ function widget:GetConfigData(data)
 		sndChatFileVolume = sndChatFileVolume,
 		shutdownTime = os.clock(),
 		handleTextInput = handleTextInput,
+		inputButton = inputButton,
 		version = 1,
 	}
 end
@@ -1522,6 +1534,9 @@ function widget:SetConfigData(data)
 	end
 	if data.fontsizeMult ~= nil then
 		fontsizeMult = data.fontsizeMult
+	end
+	if data.inputButton ~= nil then
+		inputButton = data.inputButton
 	end
 	if data.version ~= nil then
 		if data.handleTextInput ~= nil then
