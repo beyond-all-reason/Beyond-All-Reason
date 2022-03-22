@@ -22,7 +22,7 @@ local maxLinesScroll = 15
 local lineHeightMult = 1.27
 local lineTTL = 40
 local backgroundOpacity = 0.18
-local handleTextInput = false	-- handle chat text input instead of using spring's input method
+local handleTextInput = true	-- handle chat text input instead of using spring's input method
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
@@ -1445,6 +1445,7 @@ function widget:GetConfigData(data)
 		sndChatFileVolume = sndChatFileVolume,
 		shutdownTime = os.clock(),
 		handleTextInput = handleTextInput,
+		version = 1,
 	}
 end
 
@@ -1473,7 +1474,9 @@ function widget:SetConfigData(data)
 	if data.fontsizeMult ~= nil then
 		fontsizeMult = data.fontsizeMult
 	end
-	if data.handleTextInput ~= nil then
-		handleTextInput = data.handleTextInput
+	if data.version ~= nil then
+		if data.handleTextInput ~= nil then
+			handleTextInput = data.handleTextInput
+		end
 	end
 end
