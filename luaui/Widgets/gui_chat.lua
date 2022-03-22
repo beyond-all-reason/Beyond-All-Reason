@@ -891,15 +891,18 @@ local function autocomplete()
 		return
 	end
 	local letters = ''
-	for word in (ssub(inputText, ssub(inputText, 1, 1) == '/' and 2 or 1)):gmatch("%S+") do
+	local isCmd = ssub(inputText, 1, 1) == '/'
+	local wordCount = 0
+	for word in (ssub(inputText, isCmd and 2 or 1)):gmatch("%S+") do
+		wordCount = wordCount + 1
 		letters = word
 	end
 	local charCount = slen(letters)
-	if charCount <= 1 then
+	if charCount <= 1 or (isCmd and wordCount > 1) then
 		autocompleteText = nil
 		return
 	end
-	for i, word in ipairs((ssub(inputText, 1, 1) == '/' and autocompleteCommands or autocompleteWords)) do
+	for i, word in ipairs(isCmd and autocompleteCommands or autocompleteWords) do
 		if letters == ssub(word, 1, charCount) and slen(word) > charCount then
 			autocompleteText = ssub(word, charCount+1)
 			return
@@ -1044,6 +1047,8 @@ function widget:KeyPress(key, mods, isRepeat)
 			elseif shift then
 				inputTextPrefix = 's:'
 			end
+			-- again just to be safe, had report locking could still happen
+			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 			return true
 		end
 	end
