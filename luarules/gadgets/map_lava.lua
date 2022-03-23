@@ -215,8 +215,8 @@ else --- UNSYCNED:
 	end
 	
 	local texturesamplingmode = '' -- ':l:' causes MASSIVE load on zoom out and downsampling textures!
-	local lavaDiffuseEmit = texturesamplingmode .. "LuaUI/images/lava2_diffuseemit.tga" -- pack emissiveness into alpha channel (this is also used as heat for distortion)
-	local lavaNormalHeight = texturesamplingmode .."LuaUI/images/lava2_normalheight.tga" -- pack height into normals alpha
+	local lavaDiffuseEmit = texturesamplingmode .. lavaDiffuseEmitTex -- pack emissiveness into alpha channel (this is also used as heat for distortion)
+	local lavaNormalHeight = texturesamplingmode .. lavaNormalHeightTex -- pack height into normals alpha
 	local lavaDistortion = texturesamplingmode .. "LuaUI/images/lavadistortion.png"
 	
 	local lavaShader 
@@ -265,8 +265,8 @@ else --- UNSYCNED:
 		FOGCOLOR = lavaFogColor, -- the color of the fog light
 		FOGFACTOR = lavaFogFactor, -- how dense the fog is
 		EXTRALIGHTCOAST = lavaCoastLightBoost, -- how much extra brightness should coastal areas get
-		FOGLIGHTDISTORTION = 4.0, -- lower numbers are higher distortion amounts
-		FOGABOVELAVA = 1.0, -- the multiplier for how much fog should be above lava fragments, ~0.2 means the lava itself gets hardly any fog, while 2.0 would mean the lava gets a lot of extra fog
+		FOGLIGHTDISTORTION = lavaFogDistortion, -- lower numbers are higher distortion amounts
+		FOGABOVELAVA = lavaFogAbove, -- the multiplier for how much fog should be above lava fragments, ~0.2 means the lava itself gets hardly any fog, while 2.0 would mean the lava gets a lot of extra fog
 		
 		-- for both: 
 		SWIZZLECOLORS = 'fragColor.rgb = (fragColor.rgb * '..lavaColorCorrection..').rgb;', -- yes you can swap around and weight color channels, right after final color, default is 'rgb'
