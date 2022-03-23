@@ -719,7 +719,7 @@ function widget:DrawScreen()
 			local textPosX = floor(prefixTextPosX + (usedFont:GetTextWidth(prefixText) * inputFontSize) + leftOffset + inputFontSize)
 
 			-- background
-			local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), activationArea[1]+lineHeight+((activationArea[3]-activationArea[1])/2))
+			local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), activationArea[1]+((activationArea[3]-activationArea[1])/3))
 			UiElement(activationArea[1], activationArea[2]+heightDiff-distance-height, x2, activationArea[2]+heightDiff-distance, nil,nil,nil,nil, nil,nil,nil,nil, math.min(0.36, ui_opacity*0.66))
 			if WG['guishader'] then
 				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+heightDiff-distance-height, x2, activationArea[2]+heightDiff-distance, 'chatinput')
