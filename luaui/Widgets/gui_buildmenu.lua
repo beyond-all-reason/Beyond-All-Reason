@@ -542,6 +542,7 @@ function widget:ViewResize()
 	doUpdate = true
 end
 
+-- Spring handles buildfacing already, this is for managing pregamestart
 function buildFacingHandler(_, _, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
 		return
@@ -1560,7 +1561,7 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:Initialize()
-	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "t")
+	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, 'p')
 
 	checkGeothermalFeatures()
 

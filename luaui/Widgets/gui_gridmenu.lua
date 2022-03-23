@@ -844,6 +844,9 @@ function reloadBindings()
 end
 
 function nextPageHandler()
+	if not (selectedBuilder or selectedFactory) then return end
+	if pages < 2 then return end
+
 	currentPage = math_min(pages, currentPage + 1)
 	doUpdate = true
 
@@ -851,6 +854,9 @@ function nextPageHandler()
 end
 
 function prevPageHandler()
+	if not (selectedBuilder or selectedFactory) then return end
+	if pages < 2 then return end
+
 	currentPage = math_max(1, currentPage - 1)
 	doUpdate = true
 
@@ -858,15 +864,16 @@ function prevPageHandler()
 end
 
 function goToCategoriesHandler()
-	if not currentBuildCategory then
-		return false
-	end
+	if not (selectedBuilder or currentBuildCategory) then return end
+
 	currentBuildCategory = nil
-        currentCategoryIndex = nil
+	currentCategoryIndex = nil
 	doUpdate = true
+
 	return true
 end
 
+-- Spring handles buildfacing already, this is for managing pregamestart
 function buildFacingHandler(_, _, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
 		return
@@ -897,10 +904,10 @@ function widget:Initialize()
 	end
 
 	-- For some reason when handler = true widgetHandler:AddAction is not available
-	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "t")
-	widgetHandler.actionHandler:AddAction(self, "gridmenu_next_page", nextPageHandler, nil, "t")
-	widgetHandler.actionHandler:AddAction(self, "gridmenu_prev_page", prevPageHandler, nil, "t")
-	widgetHandler.actionHandler:AddAction(self, "gridmenu_categories", goToCategoriesHandler, nil, "t")
+	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "p")
+	widgetHandler.actionHandler:AddAction(self, "gridmenu_next_page", nextPageHandler, nil, "p")
+	widgetHandler.actionHandler:AddAction(self, "gridmenu_prev_page", prevPageHandler, nil, "p")
+	widgetHandler.actionHandler:AddAction(self, "gridmenu_categories", goToCategoriesHandler, nil, "p")
 
 	reloadBindings()
 

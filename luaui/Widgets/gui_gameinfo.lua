@@ -352,6 +352,8 @@ function toggle()
 		WG['topbar'].hideWindows()
 	end
 	show = newShow
+
+	return true
 end
 
 local function refreshContent()
@@ -407,7 +409,7 @@ end
 function widget:Initialize()
 	refreshContent()
 
-	widgetHandler:AddAction("customgameinfo", toggle)
+	widgetHandler:AddAction("customgameinfo", toggle, nil, 'p')
 	Spring.SendCommands("unbind any+i gameinfo")
 	Spring.SendCommands("unbind i gameinfo")
 	Spring.SendCommands("bind i customgameinfo")
