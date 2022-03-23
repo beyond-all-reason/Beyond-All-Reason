@@ -285,7 +285,8 @@ vertex = [[
 		if (BITMASK_FIELD(bitOptions, OPTION_TREEWIND)) {
 			DoWindVertexMove(piecePos);
 		}
-
+		
+		#ifdef ENABLE_OPTION_HEALTH_DISPLACE
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_DISPLACE)) {
 			vec3 seedVec = 0.1 * piecePos.xyz;
 			seedVec.y += 1024.0 * hash11(float(unitID));
@@ -295,6 +296,7 @@ vertex = [[
 				vertexDisplacement *							//vertex displacement value
 				Perlin3D(seedVec) * normalize(piecePos.xyz);
 		}
+		#endif
 
 
 		vec4 modelPos = pieceMatrix * piecePos;
@@ -308,7 +310,7 @@ vertex = [[
 		#if (RENDERING_MODE != 2) //non-shadow pass
 
 			%%VERTEX_UV_TRANSFORM%%
-
+			#ifdef ENABLE_OPTION_THREADS
 			if (BITMASK_FIELD(bitOptions, OPTION_THREADS_ARM)) {
 				const float atlasSize = 4096.0;
 				const float gfMod = 8.0;
@@ -340,6 +342,7 @@ vertex = [[
 					uvCoords.x += texOffset;
 				}
 			}
+			#endif
 
 			worldVertexPos = worldPos;
 			/***********************************************************************/
@@ -354,27 +357,18 @@ vertex = [[
 				//shadowVertexPos = shadowProj * shadowVertexPos;
 			//}
 
-			if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAPPING)) {
-				//no need to do Gram-Schmidt re-orthogonalization, because engine does it for us anyway
-				vec3 safeT = T; // already defined REM
-				vec3 safeB = B; // already defined REM
-
-				#if 1
-					if (dot(safeT, safeT) < 0.1 || dot(safeB, safeB) < 0.1) {
-						safeT = vec3(1.0, 0.0, 0.0);
-						safeB = vec3(0.0, 0.0, 1.0);
-					}
-				#endif
-
-				// tangent --> world space transformation (for vectors)
-				worldTangent = normalMatrix * safeT;
-				worldBitangent = normalMatrix * safeB;
-				worldNormal = normalMatrix * modelVertexNormal;
-			} else {
-				worldTangent = normalMatrix * vec3(1.0, 0.0, 0.0);
-				worldBitangent = normalMatrix * vec3(0.0, 1.0, 0.0);
-				worldNormal = normalMatrix * modelVertexNormal;
+			// Calculate Normals:
+			//no need to do Gram-Schmidt re-orthogonalization, because engine does it for us anyway
+			vec3 safeT = T; // already defined REM
+			vec3 safeB = B; // already defined REM
+			if (dot(safeT, safeT) < 0.1 || dot(safeB, safeB) < 0.1) {
+				safeT = vec3(1.0, 0.0, 0.0);
+				safeB = vec3(0.0, 0.0, 1.0);
 			}
+			// tangent --> world space transformation (for vectors)
+			worldTangent = normalMatrix * safeT;
+			worldBitangent = normalMatrix * safeB;
+			worldNormal = normalMatrix * modelVertexNormal;
 
 			if (BITMASK_FIELD(bitOptions, OPTION_VERTEX_AO)) {
 				//aoTerm = clamp(1.0 * fract(uv.x * 16384.0), shadowDensity.y, 1.0);
@@ -399,14 +393,14 @@ vertex = [[
 				fogFactor = (fogParams.y - fogCoord) * fogParams.w; // gl_Fog.scale == 1.0 / (gl_Fog.end - gl_Fog.start)
 				fogFactor = clamp(fogFactor, 0.0, 1.0);
 			}
-			if ((uint(drawPass) & 4u ) == 4u){
+			
+			// are we drawing reflection pass, if yes, use reflection camera!
+			if ((uint(drawPass) & 4u ) == 4u){ 
 				gl_Position = reflectionViewProj * worldPos;
 				gl_ClipDistance[2] = dot(worldPos, clipPlane2);
 			}
 			else{
 				gl_Position = cameraViewProj * worldPos;
-				//gl_ClipVertex = cameraViewProj * worldPos;
-				
 				gl_ClipDistance[0] = dot(worldPos, vec4(0.0, -1.0, 0.0, -1.0));
 			}
 			%%VERTEX_POST_TRANSFORM%%
@@ -512,7 +506,7 @@ fragment = [[
 	//uniform vec3 rndVec;
 
 	#ifdef USE_LOSMAP
-		uniform vec2 mapSize;
+		//uniform vec2 mapSize;
 		uniform float inLosMode;
 		uniform sampler2D losMapTex;	//8
 	#endif
@@ -679,6 +673,7 @@ fragment = [[
 		int shadowSamples = 1;// shadowQualityPresets[presetIndex].shadowSamples;
 
 		if (shadowSamples > 1) {
+			/*
 			vec2 dZduv = DepthGradient(shadowCoord.xyz);
 
 			float rndRotAngle = NORM2SNORM(hash12L(gl_FragCoord.xy)) * PI / 2.0 * samplingRandomness;
@@ -697,24 +692,13 @@ fragment = [[
 				shadow += texture( shadowTex, shadowSamplingCoord ).r;
 			}
 			shadow /= float(shadowSamples);
+			*/
 		} else { //shadowSamples == 1
-			#if 0
-				const float cb = 0.00005;
-				float bias = cb * tan(acos(NdotL));
-				bias = clamp(bias, 0.0, 5.0 * cb);
-		
-				vec3 shadowSamplingCoord = shadowCoord;
-				//shadowSamplingCoord.xy += vec2(sin(simFrame * 0.02));
-				//shadowSamplingCoord.z -= bias;
-
-				shadow = texture( shadowTex, shadowVertexPos.xyz ).r;
-			#else
-				const float cb = 0.00005;
-				float bias = cb * tan(acos(NdotL));
-				bias = clamp(bias, 0.0, 5.0 * cb);
-				shadowCoord.z -= bias;
-				shadow = texture( shadowTex, shadowCoord ).r;
-			#endif
+			const float cb = 0.00005;
+			float bias = cb * tan(acos(NdotL));
+			bias = clamp(bias, 0.0, 5.0 * cb);
+			shadowCoord.z -= bias;
+			shadow = texture( shadowTex, shadowCoord ).r;
 		}
 		return shadow;
 	}
@@ -768,15 +752,6 @@ fragment = [[
 		return ( final * 1.1547005383792515290182975610039 );  // scale things to a strict -1.0->1.0 range  *= 1.0/sqrt(0.75)
 	}
 
-	float noiseTex3D(in vec3 x) {
-		const float noiseTexSizeInv = 1.0 / 256.0;
-		vec3 p = floor(x);
-		vec3 f = fract(x);
-		f = f * f * (3.0-2.0 * f);
-		vec2 uv = (p.xz + vec2(37.0,17.0) * p.y) + f.xz;
-		vec2 rg = texture(rgbNoise, (uv + 0.5) * noiseTexSizeInv).yx;
-		return smoothstep(-0.5, 0.5, 2.0 * (NORM2SNORM((mix(rg.x, rg.y, f.y)))));
-	}
 
 	float hash11(float p) {
 		const float HASHSCALE1 = 0.1031;
@@ -1131,14 +1106,6 @@ fragment = [[
 		return roughness4 / (/*PI */ f * f);
 	}
 
-	float ComputeSpecularAOBlender(float NoV, float diffuseAO, float roughness2) {
-		#if defined(SPECULAR_AO)
-			return clamp(pow(NoV + diffuseAO, roughness2) - 1.0 + diffuseAO, 0.0, 1.0);
-		#else
-			return diffuseAO;
-		#endif
-	}
-
 	float ComputeSpecularAOFilament(float NoV, float diffuseAO, float roughness2) {
 	#if defined(SPECULAR_AO)
 		return clamp(pow(NoV + diffuseAO, exp2(-16.0 * roughness2 - 1.0)) - 1.0 + diffuseAO, 0.0, 1.0);
@@ -1146,7 +1113,6 @@ fragment = [[
 		return diffuseAO;
 	#endif
 	}
-	#define ComputeSpecularAO ComputeSpecularAOFilament
 
 	float AdjustRoughnessByNormalMap(in float roughness, in vec3 normal) {
 		// Based on The Order : 1886 SIGGRAPH course notes implementation (page 21 notes)
@@ -1201,6 +1167,7 @@ fragment = [[
 		float healthMix;
 		vec3 seedVec;
 		
+		#ifdef ENABLE_OPTION_HEALTH_TEXTURING
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
 			seedVec = modelVertexPosOrig.xyz * 0.6;
 			seedVec.y += 1024.0 * hash11(float(unitID));
@@ -1208,16 +1175,20 @@ fragment = [[
 			healthMix = SNORM2NORM(Perlin3D(seedVec.xyz)) * (2.0 - baseVertexDisplacement);
 			healthMix = smoothstep(0.0, healthMix, max((1.0 - healthFraction) + baseVertexDisplacement, 0.0));
 		}
+		#endif
 
 		vec3 tbnNormal;
 		vec3 wrecknormal;
 		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAPPING)) {
 			tbnNormal = NORM2SNORM(normalTexVal.xyz);
-			if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
-				vec3 tbnNormalw = NORM2SNORM(texture(normalTexw, myUV, textureLODBias).xyz);
-				wrecknormal = tbnNormalw;
-				tbnNormal = mix(tbnNormal, tbnNormalw, healthMix);
-			}
+	
+			#ifdef ENABLE_OPTION_HEALTH_TEXTURING
+				if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
+					vec3 tbnNormalw = NORM2SNORM(texture(normalTexw, myUV, textureLODBias).xyz);
+					wrecknormal = tbnNormalw;
+					tbnNormal = mix(tbnNormal, tbnNormalw, healthMix);
+				}
+			#endif
 			if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
 				vec3 tbnNormalw = NORM2SNORM(texture(rgbNoise, 0.5 * myUV).rgb);
 				tbnNormalw = mix(tbnNormal, tbnNormalw, 0.5);
@@ -1235,19 +1206,21 @@ fragment = [[
 		vec4 texColor1 = texture(texture1, myUV, textureLODBias);
 		vec4 texColor2 = texture(texture2, myUV, textureLODBias);
 		
-		#if (RENDERING_MODE == 0)
-		// disable this in deferred mode
-	
-		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
-			vec4 texColor1w = texture(texture1w, myUV);
-			vec4 texColor2w = texture(texture2w, myUV);
-			healthMix *= (1.0 - 0.9 * texColor2.r); //emissive parts don't get too damaged
-			texColor1 = mix(texColor1, texColor1w, healthMix);
-			texColor2.xyz = mix(texColor2.xyz, texColor2w.xyz, healthMix);
-			texColor2.z += 0.5 * healthMix; //additional roughness
-		}
+		#ifdef ENABLE_OPTION_HEALTH_TEXTURING
+			#if (RENDERING_MODE == 0)
+			// disable this in deferred mode
 		
-		#endif
+				if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
+					vec4 texColor1w = texture(texture1w, myUV);
+					vec4 texColor2w = texture(texture2w, myUV);
+					healthMix *= (1.0 - 0.9 * texColor2.r); //emissive parts don't get too damaged
+					texColor1 = mix(texColor1, texColor1w, healthMix);
+					texColor2.xyz = mix(texColor2.xyz, texColor2w.xyz, healthMix);
+					texColor2.z += 0.5 * healthMix; //additional roughness
+				}
+			
+			#endif
+		#endif 
 
 		#ifdef LUMAMULT
 		{
@@ -1345,21 +1318,13 @@ fragment = [[
 		float gShadow = 1.0; // shadow mapping
 		float nShadow = smoothstep(0.0, 0.35, NdotLu); //normal based shadowing, always on
 		
-		
 		{
 			if (BITMASK_FIELD(bitOptions, OPTION_SHADOWMAPPING)) {
-			//if (float(test) > float(OPTION_SHADOWMAPPING)) {
-			//if (float(test) > 0.0	) {
-			//if (test > 0u	) {
-				//gShadow = 0.0;
 				gShadow = GetShadowPCFRandom(NdotL);
 			}
-			//gShadow = fract(bitShaderOptions/1);
 			shadowMult = mix(1.0, min(nShadow, gShadow), shadowDensity.y);
 		}
 		
-		
-
         ///
         // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
         // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
@@ -1485,7 +1450,7 @@ fragment = [[
             //vec3 specular = reflectionColor * (F * envBRDF.x + (1.0 - F) * envBRDF.y);
 
 			// specular ambient occlusion (see Filament)
-			float aoTermSpec = ComputeSpecularAO(NdotV, aoTerm, roughness2);
+			float aoTermSpec = ComputeSpecularAOFilament(NdotV, aoTerm, roughness2);
 			//vec3 specular = reflectionColor * mix(vec3(envBRDF.y), vec3(envBRDF.x), F);
 			vec3 specular = reflectionColor * (F0 * envBRDF.x + F90 * envBRDF.y);
 			specular *= aoTermSpec * energyCompensation;
@@ -1503,8 +1468,7 @@ fragment = [[
 
 		#ifdef USE_LOSMAP
 			vec2 losMapUV = worldVertexPos.xz;
-			//losMapUV /= exp2(ceil(log2((mapSize)))); // $infomap is next power of two of mapSize
-			losMapUV /= vec2(NPOT( ivec2(mapSize) ));
+			losMapUV /= mapSize.zw; //xz, xzPO2
 			float losValue = 0.5 + texture(losMapTex, losMapUV).r;
 			losValue = mix(1.0, losValue, inLosMode);
 
