@@ -227,8 +227,8 @@ else --- UNSYCNED:
 	local foglightVAO
 	local numfoglightVerts
 	
-	local foglightenabled = true
-	local fogheightabovelava = 50
+	local foglightenabled = lavaFogEnabled
+	local fogheightabovelava = lavaFogHeight
 	
 	local tideamplitude = lavaTideamplitude
 	local tideperiod = lavaTideperiod

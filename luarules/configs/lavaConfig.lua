@@ -7,7 +7,7 @@ nolavaburstcegs = false
 lavaLevel = 1 -- pre-game lava level
 lavaGrow = 0.25 -- initial lavaGrow speed
 lavaDamage = 100 -- damage per second
-lavaUVscale = 2.5 -- How many times to tile the lava texture across the entire map
+lavaUVscale = 2.0 -- How many times to tile the lava texture across the entire map
 lavaColorCorrection = "vec3(1.0, 1.0, 1.0)" -- final colorcorrection on all lava + shore coloring
 lavaLOSdarkness = 0.5 -- how much to darken the out-of-los areas of the lava plane
 lavaSwirlFreq = 0.025 -- How fast the main lava texture swirls around default 0.025
@@ -22,6 +22,8 @@ lavaParallaxDepth = 16.0 -- set to >0 to enable, how deep the parallax effect is
 lavaParallaxOffset = 0.5 -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
 lavaFogColor = "vec3(2.0, 0.5, 0.0)" -- the color of the fog light
 lavaFogFactor = 0.06 -- how dense the fog is
+lavaFogHeight = 20 -- how high the fog is above the lava plane
+lavaFogEnabled = true --if fog above lava adds light / is enabled
 lavaTideamplitude = 2 -- how much lava should rise up-down on static level
 lavaTideperiod = 200 -- how much time between live rise up-down
 
@@ -52,12 +54,29 @@ end
 
 if string.find(mapName, "incandescence") then
     lavaMap = true
-    lavaLevel = 209 -- pre-game lava level
     lavaDamage = 150 -- damage per second
     lavaTideamplitude = 3
     lavaTideperiod = 95
     if isLavaGadget and isLavaGadget == "synced" then
         addTideRhym (208, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
+    end
+
+elseif string.find(mapName, "cloud9") then
+    lavaMap = true
+    lavaGrow = 0
+    lavaLevel = 2 -- pre-game lava level
+    lavaDamage = 150 -- damage per second
+    lavaUVscale = 1.5 -- How many times to tile the lava texture across the entire map
+    lavaTideamplitude = 3
+    lavaTideperiod = 250
+    lavaCoastLightBoost = 1.5
+    lavaCoastWidth = 20.0 -- how wide the coast of the lava should be
+    lavaFogFactor = 0.09 -- how dense the fog is
+    --lavaFogColor = "vec3(0.3, 0.16, 0.0)"
+    lavaFogHeight = 20
+    --lavaShadowStrength = 0.4 -- how much light a shadowed fragment can recieve
+    if isLavaGadget and isLavaGadget == "synced" then
+        addTideRhym (1, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
     end
 
 elseif string.find(mapName, "seths ravine") then
