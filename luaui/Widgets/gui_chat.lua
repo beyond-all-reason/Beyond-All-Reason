@@ -704,12 +704,6 @@ function widget:DrawScreen()
 			local height = floor(lineHeight * 2.1)
 			local leftOffset = lineHeight*0.7
 			local distance =  (scrolling and height + elementMargin + elementMargin or elementMargin)
-			UiElement(activationArea[1], activationArea[2]+heightDiff-distance-height, activationArea[3], activationArea[2]+heightDiff-distance)
-			if WG['guishader'] then
-				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+heightDiff-distance-height, activationArea[3], activationArea[2]+heightDiff-distance, 'chatinput')
-			end
-
-			-- target chat mode
 			local isCmdInput = ssub(inputText, 1, 1) == '/'
 			local usedFont = isCmdInput and font3 or font
 			local prefixText = Spring.I18N('ui.chat.everyone')
@@ -723,6 +717,15 @@ function widget:DrawScreen()
 			end
 			local prefixTextPosX = floor(activationArea[1]+elementPadding+elementPadding+leftOffset)
 			local textPosX = floor(prefixTextPosX + (usedFont:GetTextWidth(prefixText) * inputFontSize) + leftOffset + inputFontSize)
+
+			-- background
+			local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), activationArea[1]+lineHeight+((activationArea[3]-activationArea[1])/2))
+			UiElement(activationArea[1], activationArea[2]+heightDiff-distance-height, x2, activationArea[2]+heightDiff-distance, nil,nil,nil,nil, nil,nil,nil,nil, math.min(0.36, ui_opacity*0.66))
+			if WG['guishader'] then
+				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+heightDiff-distance-height, x2, activationArea[2]+heightDiff-distance, 'chatinput')
+			end
+
+			-- mode button
 			inputButtonRect = {activationArea[1]+elementPadding, activationArea[2]+heightDiff-distance-height+elementPadding, textPosX-inputFontSize, activationArea[2]+heightDiff-distance-elementPadding}
 			if inputButton and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
 				Spring.SetMouseCursor('cursornormal')
@@ -925,15 +928,12 @@ local function autocomplete()
 					return
 				end
 			end
-		end
-		if charCount <= 1 then
-			autocompleteText = nil
-			return
-		end
-		for i, word in ipairs(autocompleteUnitCodename) do
-			if letters == ssub(word, 1, charCount) and slen(word) > charCount then
-				autocompleteText = ssub(word, charCount+1)
-				return
+		else
+			for i, word in ipairs(autocompleteUnitCodename) do
+				if letters == ssub(word, 1, charCount) and slen(word) > charCount then
+					autocompleteText = ssub(word, charCount+1)
+					return
+				end
 			end
 		end
 	else
@@ -963,11 +963,11 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 		if inputTextInsertActive then
 			inputText = ssub(inputText, 1, inputTextPosition) .. char .. ssub(inputText, inputTextPosition+2)
 			if inputTextPosition <= slen(inputText) then
-				inputTextPosition = inputTextPosition + 1
+				inputTextPosition = inputTextPosition + slen(char) -- utf8 can bu multiple chars
 			end
 		else
 			inputText = ssub(inputText, 1, inputTextPosition) .. char .. ssub(inputText, inputTextPosition+1)
-			inputTextPosition = inputTextPosition + 1
+			inputTextPosition = inputTextPosition + slen(char) -- utf8 can bu multiple chars
 		end
 		inputHistory[#inputHistory] = inputText
 		cursorBlinkTimer = 0
