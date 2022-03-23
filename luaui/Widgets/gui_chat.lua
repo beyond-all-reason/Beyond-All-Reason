@@ -215,7 +215,7 @@ local autocompleteCommands = {
 	'luagaia',
 	'luarules',
 	'luasave',
-	'luaui',
+	'luaui reload',
 	'mapborder',
 	'mapmarks',
 	'mapmeshdrawer',
@@ -923,7 +923,7 @@ local function autocomplete()
 end
 
 function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
-	if handleTextInput and showTextInput then
+	if handleTextInput and not Spring.IsGUIHidden() and showTextInput then
 		if inputTextInsertActive then
 			inputText = ssub(inputText, 1, inputTextPosition) .. char .. ssub(inputText, inputTextPosition+2)
 			if inputTextPosition <= slen(inputText) then
@@ -940,7 +940,7 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 end
 
 function widget:KeyPress(key, mods, isRepeat)
-	if handleTextInput then
+	if handleTextInput and not Spring.IsGUIHidden() then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if showTextInput then
 			if key == 13 then -- RETURN	 (keypad enter = 271)
@@ -1066,7 +1066,7 @@ function widget:KeyPress(key, mods, isRepeat)
 end
 
 function widget:MousePress(x, y, button)
-	if button == 1 and handleTextInput and showTextInput and inputButton and inputButtonRect and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
+	if button == 1 and handleTextInput and showTextInput and inputButton and inputButtonRect and not Spring.IsGUIHidden() and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
 		if inputTextPrefix == 'a:' then
 			inputTextPrefix = ''
 		elseif inputTextPrefix == 's:' then
@@ -1079,7 +1079,7 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:MouseWheel(up, value)
-	if scrolling then
+	if scrolling and not Spring.IsGUIHidden() then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if up then
 			if scrolling == 'console' then
