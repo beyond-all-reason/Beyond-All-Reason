@@ -307,6 +307,13 @@ for _, playerID in ipairs(playersList) do
 	autocompleteWords[#autocompleteWords+1] = name
 end
 
+local autocompleteUnitNames = {}
+local autocompleteUnitCodename = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	autocompleteUnitNames[#autocompleteUnitNames+1] = unitDef.translatedHumanName
+	autocompleteUnitCodename[#autocompleteUnitCodename+1] = unitDef.name:lower()
+end
+
 local teamColorKeys = {}
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
@@ -909,16 +916,45 @@ local function autocomplete()
 		letters = word
 	end
 	local charCount = slen(letters)
-	if charCount <= 1 or (isCmd and wordCount > 1) then
-		autocompleteText = nil
-		return
-	end
-	for i, word in ipairs(isCmd and autocompleteCommands or autocompleteWords) do
-		if letters == ssub(word, 1, charCount) and slen(word) > charCount then
-			autocompleteText = ssub(word, charCount+1)
+
+	if isCmd then
+		if wordCount <= 1 then
+			for i, word in ipairs(autocompleteCommands) do
+				if letters == ssub(word, 1, charCount) and slen(word) > charCount then
+					autocompleteText = ssub(word, charCount+1)
+					return
+				end
+			end
+		end
+		if charCount <= 1 then
+			autocompleteText = nil
 			return
 		end
+		for i, word in ipairs(autocompleteUnitCodename) do
+			if letters == ssub(word, 1, charCount) and slen(word) > charCount then
+				autocompleteText = ssub(word, charCount+1)
+				return
+			end
+		end
+	else
+		if charCount <= 1 then
+			autocompleteText = nil
+			return
+		end
+		for i, word in ipairs(autocompleteWords) do
+			if letters == ssub(word, 1, charCount) and slen(word) > charCount then
+				autocompleteText = ssub(word, charCount+1)
+				return
+			end
+		end
+		for i, word in ipairs(autocompleteUnitNames) do
+			if letters == ssub(word, 1, charCount) and slen(word) > charCount then
+				autocompleteText = ssub(word, charCount+1)
+				return
+			end
+		end
 	end
+
 	autocompleteText = nil
 end
 
