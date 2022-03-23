@@ -701,7 +701,7 @@ function widget:DrawScreen()
 	if handleTextInput then
 		if showTextInput then
 			local inputFontSize = floor(usedFontSize * 1.05)
-			local height = floor(lineHeight * 2.1)
+			local height = floor(lineHeight * 1.88)
 			local leftOffset = lineHeight*0.7
 			local distance =  (scrolling and height + elementMargin + elementMargin or elementMargin)
 			local isCmdInput = ssub(inputText, 1, 1) == '/'
@@ -719,7 +719,7 @@ function widget:DrawScreen()
 			local textPosX = floor(prefixTextPosX + (usedFont:GetTextWidth(prefixText) * inputFontSize) + leftOffset + inputFontSize)
 
 			-- background
-			local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), activationArea[1]+((activationArea[3]-activationArea[1])/3))
+			local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText..(autocompleteText and autocompleteText or '')) * inputFontSize), activationArea[1]+((activationArea[3]-activationArea[1])/3))
 			UiElement(activationArea[1], activationArea[2]+heightDiff-distance-height, x2, activationArea[2]+heightDiff-distance, nil,nil,nil,nil, nil,nil,nil,nil, math.min(0.36, ui_opacity*0.66))
 			if WG['guishader'] then
 				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+heightDiff-distance-height, x2, activationArea[2]+heightDiff-distance, 'chatinput')
@@ -755,13 +755,13 @@ function widget:DrawScreen()
 
 			usedFont:Begin()
 			if isCmdInput then
-				usedFont:SetTextColor(0.45, 0.45, 0.45, 1)
+				usedFont:SetTextColor(0.53, 0.53, 0.53, 1)
 			elseif inputTextPrefix == 'a:' then
-				usedFont:SetTextColor(0.53, 0.65, 0.53, 1)
+				usedFont:SetTextColor(0.53, 0.68, 0.53, 1)
 			elseif inputTextPrefix == 's:' then
-				usedFont:SetTextColor(0.66, 0.66, 0.5, 1)
+				usedFont:SetTextColor(0.7, 0.7, 0.5, 1)
 			else
-				usedFont:SetTextColor(0.6, 0.6, 0.6, 1)
+				usedFont:SetTextColor(0.65, 0.65, 0.65, 1)
 			end
 			usedFont:Print(prefixText, prefixTextPosX, activationArea[2]+heightDiff-distance-(height*0.61), inputFontSize, "o")
 
@@ -779,7 +779,7 @@ function widget:DrawScreen()
 			-- text message
 			local r,g,b
 			if isCmdInput then
-				r, g, b = 0.75, 0.75, 0.75
+				r, g, b = 0.8, 0.8, 0.8
 			elseif inputTextPrefix == 'a:' then
 				r, g, b = 0.2, 1, 0.2
 			elseif inputTextPrefix == 's:' then
@@ -790,7 +790,7 @@ function widget:DrawScreen()
 			usedFont:SetTextColor(r,g,b, 1)
 			usedFont:Print(inputText, textPosX, activationArea[2]+heightDiff-distance-(height*0.61), inputFontSize, "o")
 			if autocompleteText then
-				usedFont:SetTextColor(r,g,b, 0.25)
+				usedFont:SetTextColor(r,g,b, 0.27)
 				usedFont:Print(autocompleteText, textPosX + floor(usedFont:GetTextWidth(inputText) * inputFontSize), activationArea[2]+heightDiff-distance-(height*0.61), inputFontSize, "")
 			end
 
