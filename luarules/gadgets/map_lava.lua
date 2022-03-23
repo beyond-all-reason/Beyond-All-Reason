@@ -266,6 +266,7 @@ else --- UNSYCNED:
 		FOGFACTOR = lavaFogFactor, -- how dense the fog is
 		EXTRALIGHTCOAST = lavaCoastLightBoost, -- how much extra brightness should coastal areas get
 		FOGLIGHTDISTORTION = 4.0, -- lower numbers are higher distortion amounts
+		FOGABOVELAVA = 1.0, -- the multiplier for how much fog should be above lava fragments, ~0.2 means the lava itself gets hardly any fog, while 2.0 would mean the lava gets a lot of extra fog
 		
 		-- for both: 
 		SWIZZLECOLORS = 'fragColor.rgb = (fragColor.rgb * '..lavaColorCorrection..').rgb;', -- yes you can swap around and weight color channels, right after final color, default is 'rgb'
@@ -388,7 +389,7 @@ else --- UNSYCNED:
 		if (localheight > lavaHeight - HEIGHTOFFSET ) discard; 
 		
 		// Calculate how far the fragment is from the coast
-		float coastfactor = clamp((localheight-lavaHeight + COASTWIDTH + HEIGHTOFFSET) * 0.05,  0.0, 1.0);
+		float coastfactor = clamp((localheight-lavaHeight + COASTWIDTH + HEIGHTOFFSET) * (1.0 / COASTWIDTH),  0.0, 1.0);
 		
 		// this is ramp function that ramps up for 90% of the coast, then ramps down at the last 10% of coastwidth
 		if (coastfactor > 0.90)
@@ -574,19 +575,23 @@ else --- UNSYCNED:
 		mapWorldPos.xyz = mapWorldPos.xyz/ mapWorldPos.w; // YAAAY this works!
 		float trueFragmentHeight = mapWorldPos.y;
 		
+		float fogAboveLava = 1.0;
+		
 		// clip mapWorldPos according to true lava height
-		if (mapWorldPos.y< lavaHeight - FOGHEIGHTABOVELAVA) {
+		if (mapWorldPos.y< lavaHeight - FOGHEIGHTABOVELAVA - HEIGHTOFFSET) {
 			// we need to make a vector from cam to fogplane position
 			vec3 camtofogplane = mapWorldPos.xyz - camPos.xyz;
 			
 			// and scale it to make it 
 			camtofogplane = FOGHEIGHTABOVELAVA * camtofogplane /abs(camtofogplane.y);
 			mapWorldPos.xyz = worldPos.xyz + camtofogplane;
+			fogAboveLava = FOGABOVELAVA;
 		}
 		
 		// Calculate how long the vector from top of foglightplane to lava or world pos actually is
 		float actualfogdepth = length(mapWorldPos.xyz - worldPos.xyz) ;
 		float fogAmount = 1.0 - exp2(- FOGFACTOR * FOGFACTOR * actualfogdepth  * 0.5);
+		fogAmount *= fogAboveLava;
 		
 		// sample the distortiontexture according to camera shift and scale it down
 		vec4 distortionTexture = texture(lavaDistortion, (worldUV.xy * 22.0  + camshift)) ;
@@ -596,10 +601,11 @@ else --- UNSYCNED:
 		// apply some distortion to the fog
 		fogAmount *= fogdistort;
 		
+		
 		// lets add some extra brigtness near the coasts, by finding the distance of the lavaplane to the coast
 		float disttocoast = abs(trueFragmentHeight- (lavaHeight - FOGHEIGHTABOVELAVA - HEIGHTOFFSET));
 		
-		float extralightcoast =  clamp(1.0 - disttocoast * 0.05, 0.0, 1.0);
+		float extralightcoast =  clamp(1.0 - disttocoast * (1.0 / COASTWIDTH), 0.0, 1.0);
 		extralightcoast = pow(extralightcoast, 3.0) * EXTRALIGHTCOAST;
 		
 		fogAmount += extralightcoast;
