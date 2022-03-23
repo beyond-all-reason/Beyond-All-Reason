@@ -67,15 +67,16 @@ if string.find(mapName, "incandescence") then
     lavaTideperiod = 95
     lavaDiffuseEmitTex = "LuaUI/images/lava7_diffuseemit.dds"
     lavaNormalHeightTex = "LuaUI/images/lava7_normalheight.dds"
-    lavaColorCorrection = "vec3(1.1, 1.0, 0.9)"
-    lavaShadowStrength = 0.9 -- how much light a shadowed fragment can recieve
+    lavaLOSdarkness = 0.7
+    lavaColorCorrection = "vec3(1.1, 1.0, 0.88)"
+    lavaShadowStrength = 1.0 -- how much light a shadowed fragment can recieve
     lavaCoastColor = "vec3(2.2, 0.4, 0.0)"
     lavaCoastLightBoost = 0.7
-    lavaCoastWidth = 40.0
-    lavaFogFactor = 0.09 -- how dense the fog is
-    lavaFogColor = "vec3(1.7, 0.36, 0.0)"
-    lavaFogHeight = 110
-    lavaFogAbove = 0.2
+    lavaCoastWidth = 36.0
+    lavaFogFactor = 0.08 -- how dense the fog is
+    lavaFogColor = "vec3(2.0, 0.31, 0.0)"
+    lavaFogHeight = 85
+    lavaFogAbove = 0.18
 
     if isLavaGadget and isLavaGadget == "synced" then
         addTideRhym (206, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
