@@ -11,8 +11,8 @@ function widget:GetInfo()
 end
 -----------------
 local texturesamplingmode = '' -- ':l:' causes MASSIVE load on zoom out and downsampling textures!
-local lavaDiffuseEmit = texturesamplingmode .. "LuaUI/images/lava2_diffuseemit.tga" -- pack emissiveness into alpha channel (this is also used as heat for distortion)
-local lavaNormalHeight = texturesamplingmode .."LuaUI/images/lava2_normalheight.tga"
+local lavaDiffuseEmit = texturesamplingmode .. "LuaUI/images/lava6_diffuseemit.tga" -- pack emissiveness into alpha channel (this is also used as heat for distortion)
+local lavaNormalHeight = texturesamplingmode .."LuaUI/images/lava6_normalheight.tga"
 local lavaDistortion = texturesamplingmode .. "LuaUI/images/lavadistortion.png"
 
 local lavaShader 
@@ -51,7 +51,7 @@ local unifiedShaderConfig = {
 	LOSDARKNESS = 0.5, -- how much to darken the out-of-los areas of the lava plane
 	SHADOWSTRENGTH = 0.4, -- how much light a shadowed fragment can recieve
 	OUTOFMAPHEIGHT = -100, -- what value to use when we are sampling the heightmap outside of the true bounds
-	SWIZZLECOLORS = 'fragColor.rgb = (vec3(1.0, 0.5, 2.0) * fragColor.rgb).grb;', -- yes you can swap around and weight color channels, right after final color, default is 'rgb'
+	SWIZZLECOLORS = 'fragColor.rgba = (vec4(1.0, 0.5, 2.0, 1.0) * fragColor.rgba).rgba;', -- yes you can swap around and weight color and alpha channels, right after final color, default is 'rgba'
 	
 	-- for foglight:
 	FOGHEIGHTABOVELAVA = fogheightabovelava, -- how much higher above the lava the fog light plane is
@@ -507,7 +507,7 @@ function widget:DrawWorldPreUnit()
 		gl.Texture(5, "$info")-- Texture file
 
 		gl.DepthTest(GL.LEQUAL) -- dont draw fragments below terrain
-		gl.DepthMask(true) -- dont write to the depth buffer, it doesnt help later on when we are doing the glowy bits
+		gl.DepthMask(true) -- actually write to the depth buffer, because otherwise units below lava will fully render over this
 		
 		lavaPlaneVAO:DrawElements(GL.TRIANGLES)
 		lavaShader:Deactivate()
