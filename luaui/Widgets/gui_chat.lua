@@ -19,11 +19,13 @@ local consoleFontSizeMult = 0.85
 local maxLines = 5
 local maxConsoleLines = 2
 local maxLinesScroll = 15
-local lineHeightMult = 1.27
+local lineHeightMult = 1.33
 local lineTTL = 40
 local backgroundOpacity = 0.18
 local handleTextInput = true	-- handle chat text input instead of using spring's input method
 local inputButton = true
+local multiAutocomplete = true
+local multiAutocompleteMax = 8
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
@@ -89,6 +91,7 @@ local inputTextInsertActive = false
 local inputHistory = {}
 local inputHistoryCurrent = 0
 local inputButtonRect
+local autocompleteWords = {}
 
 local glPopMatrix      = gl.PopMatrix
 local glPushMatrix     = gl.PushMatrix
@@ -300,11 +303,11 @@ local autocompleteCommands = {
 	'wirewater',
 }
 local autocompleteText
-local autocompleteWords = {}
+local autocompletePlayernames = {}
 local playersList = Spring.GetPlayerList()
 for _, playerID in ipairs(playersList) do
 	local name = Spring.GetPlayerInfo(playerID, false)
-	autocompleteWords[#autocompleteWords+1] = name
+	autocompletePlayernames[#autocompletePlayernames+1] = name
 end
 
 local autocompleteUnitNames = {}
@@ -434,7 +437,7 @@ end
 
 function widget:PlayerAdded(playerID)
 	local name = Spring.GetPlayerInfo(playerID, false)
-	autocompleteWords[#autocompleteWords+1] = name
+	autocompletePlayernames[#autocompletePlayernames+1] = name
 end
 
 function widget:Initialize()
@@ -627,7 +630,8 @@ local function processLine(i)
 				if chatLines[i].lineType == 3 then
 					font:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), 0, usedFontSize, "oc")
 				else
-					font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.8), fontHeightOffset, usedFontSize, "oc")
+					font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")
+
 				end
 			end
 			font:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
@@ -671,7 +675,7 @@ function widget:DrawScreen()
 			-- player name background
 			if scrolling == 'chat' then
 				local gametimeEnd = floor(backgroundPadding+maxTimeWidth+(backgroundPadding*0.75))
-				local playernameEnd = gametimeEnd + maxPlayernameWidth+(lineSpaceWidth/2)
+				local playernameEnd = gametimeEnd + maxPlayernameWidth + (lineSpaceWidth/1.8)
 				glColor(1,1,1,0.045)
 				RectRound(activationArea[1]+gametimeEnd, activationArea[2]+elementPadding+heightDiff, activationArea[1]+playernameEnd, activationArea[4]-elementPadding, elementCorner*0.66, 0,0,0,0)
 				-- vertical line at start and end
@@ -700,8 +704,8 @@ function widget:DrawScreen()
 	-- chat text input field
 	if handleTextInput then
 		if showTextInput then
-			local inputFontSize = floor(usedFontSize * 1.05)
-			local height = floor(lineHeight * 1.88)
+			local inputFontSize = floor(usedFontSize * 1.06)
+			local height = floor(inputFontSize * 2.3)
 			local leftOffset = lineHeight*0.7
 			local distance =  (scrolling and height + elementMargin + elementMargin or elementMargin)
 			local isCmdInput = ssub(inputText, 1, 1) == '/'
@@ -725,7 +729,7 @@ function widget:DrawScreen()
 				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+heightDiff-distance-height, x2, activationArea[2]+heightDiff-distance, 'chatinput')
 			end
 
-			-- mode button
+			-- button background
 			inputButtonRect = {activationArea[1]+elementPadding, activationArea[2]+heightDiff-distance-height+elementPadding, textPosX-inputFontSize, activationArea[2]+heightDiff-distance-elementPadding}
 			if inputButton and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
 				Spring.SetMouseCursor('cursornormal')
@@ -753,17 +757,30 @@ function widget:DrawScreen()
 			glColor(1,1,1,0.033)
 			gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
 
+			-- button text
 			usedFont:Begin()
 			if isCmdInput then
-				usedFont:SetTextColor(0.53, 0.53, 0.53, 1)
-			elseif inputTextPrefix == 'a:' then
-				usedFont:SetTextColor(0.53, 0.68, 0.53, 1)
-			elseif inputTextPrefix == 's:' then
-				usedFont:SetTextColor(0.7, 0.7, 0.5, 1)
-			else
 				usedFont:SetTextColor(0.65, 0.65, 0.65, 1)
+			elseif inputTextPrefix == 'a:' then
+				usedFont:SetTextColor(0.55, 0.72, 0.55, 1)
+			elseif inputTextPrefix == 's:' then
+				usedFont:SetTextColor(0.73, 0.73, 0.54, 1)
+			else
+				usedFont:SetTextColor(0.7, 0.7, 0.7, 1)
 			end
 			usedFont:Print(prefixText, prefixTextPosX, activationArea[2]+heightDiff-distance-(height*0.61), inputFontSize, "o")
+
+			-- colon
+			if not isCmdInput then
+				if inputTextPrefix == 'a:' then
+					usedFont:SetTextColor(0.53,0.66,0.53, 1)
+				elseif inputTextPrefix == 's:' then
+					usedFont:SetTextColor(0.66,0.66,0.5, 1)
+				else
+					usedFont:SetTextColor(0.55,0.55,0.55, 1)
+				end
+				usedFont:Print(':', inputButtonRect[3]-0.5, activationArea[2]+heightDiff-distance-(height*0.61), inputFontSize, "co")
+			end
 
 			-- text cursor
 			local textCursorWidth = 1 + math.floor(inputFontSize / 14)
@@ -771,7 +788,7 @@ function widget:DrawScreen()
 				textCursorWidth = math.floor(textCursorWidth * 5)
 			end
 			local textCursorPos = floor(usedFont:GetTextWidth(ssub(inputText, 1, inputTextPosition)) * inputFontSize)
-			local a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.2
+			local a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.15
 			glColor(0.7,0.7,0.7,a)
 			gl.Rect(textPosX + textCursorPos, activationArea[2]+heightDiff-distance-(height*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+heightDiff-distance-(height*0.5)+(inputFontSize*0.64))
 			glColor(1,1,1,1)
@@ -779,18 +796,18 @@ function widget:DrawScreen()
 			-- text message
 			local r,g,b
 			if isCmdInput then
-				r, g, b = 0.8, 0.8, 0.8
+				r, g, b = 0.85, 0.85, 0.85
 			elseif inputTextPrefix == 'a:' then
 				r, g, b = 0.2, 1, 0.2
 			elseif inputTextPrefix == 's:' then
 				r, g, b = 1, 1, 0.2
 			else
-				r, g, b = 0.94, 0.94, 0.94
+				r, g, b = 0.95, 0.95, 0.95
 			end
 			usedFont:SetTextColor(r,g,b, 1)
 			usedFont:Print(inputText, textPosX, activationArea[2]+heightDiff-distance-(height*0.61), inputFontSize, "o")
 			if autocompleteText then
-				usedFont:SetTextColor(r,g,b, 0.27)
+				usedFont:SetTextColor(r,g,b, 0.28)
 				usedFont:Print(autocompleteText, textPosX + floor(usedFont:GetTextWidth(inputText) * inputFontSize), activationArea[2]+heightDiff-distance-(height*0.61), inputFontSize, "")
 			end
 
@@ -906,56 +923,61 @@ function widget:DrawScreen()
 	end
 end
 
-local function autocomplete()
-	if inputText == '' then
-		autocompleteText = nil
+local function runAutocompleteSet(words, letters)
+	local charCount = #letters
+	for i, word in ipairs(words) do
+		if letters == ssub(word, 1, charCount) and slen(word) > charCount then
+			if not autocompleteText then
+				autocompleteText = ssub(word, charCount+1)
+			end
+			if multiAutocomplete then
+				autocompleteWords[#autocompleteWords+1] = word
+				if #autocompleteWords >= multiAutocompleteMax then
+					return
+				end
+			else
+				return
+			end
+		end
+	end
+	return (autocompleteText and true or false)
+end
+
+local function autocomplete(text)
+	autocompleteText = nil
+	autocompleteWords = {}
+	if text == '' then
 		return
 	end
 	local letters = ''
-	local isCmd = ssub(inputText, 1, 1) == '/'
-	local wordCount = 0
-	for word in (ssub(inputText, isCmd and 2 or 1)):gmatch("%S+") do
-		wordCount = wordCount + 1
+	local isCmd = ssub(text, 1, 1) == '/'
+	local textWordCount = 0
+	for word in (ssub(text, isCmd and 2 or 1)):gmatch("%S+") do
+		textWordCount = textWordCount + 1
 		letters = word
 	end
-	local charCount = slen(letters)
 
+	if #letters >= 2 and runAutocompleteSet(autocompletePlayernames, letters) then
+		return
+	end
 	if isCmd then
-		if wordCount <= 1 then
-			for i, word in ipairs(autocompleteCommands) do
-				if letters == ssub(word, 1, charCount) and slen(word) > charCount then
-					autocompleteText = ssub(word, charCount+1)
-					return
-				end
+		if textWordCount <= 1 then
+			if runAutocompleteSet(autocompleteCommands, letters) then
+				return
 			end
 		else
-			for i, word in ipairs(autocompleteUnitCodename) do
-				if letters == ssub(word, 1, charCount) and slen(word) > charCount then
-					autocompleteText = ssub(word, charCount+1)
-					return
-				end
+			if runAutocompleteSet(autocompleteUnitCodename, letters) then
+				return
 			end
 		end
 	else
-		if charCount <= 1 then
-			autocompleteText = nil
+		if #letters <= 1 then
 			return
 		end
-		for i, word in ipairs(autocompleteWords) do
-			if letters == ssub(word, 1, charCount) and slen(word) > charCount then
-				autocompleteText = ssub(word, charCount+1)
-				return
-			end
-		end
-		for i, word in ipairs(autocompleteUnitNames) do
-			if letters == ssub(word, 1, charCount) and slen(word) > charCount then
-				autocompleteText = ssub(word, charCount+1)
-				return
-			end
+		if runAutocompleteSet(autocompleteUnitNames, letters) then
+			return
 		end
 	end
-
-	autocompleteText = nil
 end
 
 function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
@@ -971,7 +993,7 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 		end
 		inputHistory[#inputHistory] = inputText
 		cursorBlinkTimer = 0
-		autocomplete()
+		autocomplete(inputText)
 	end
 end
 
@@ -1008,7 +1030,7 @@ function widget:KeyPress(key, mods, isRepeat)
 				inputTextPosition = inputTextPosition + slen(clipboardText)
 				inputHistory[#inputHistory] = inputText
 				cursorBlinkTimer = 0
-				autocomplete()
+				autocomplete(inputText)
 
 			elseif not alt and not ctrl then
 				if key == 27 then -- ESC
@@ -1021,14 +1043,14 @@ function widget:KeyPress(key, mods, isRepeat)
 						inputHistory[#inputHistory] = inputText
 					end
 					cursorBlinkTimer = 0
-					autocomplete()
+					autocomplete(inputText)
 				elseif key == 127 then -- DELETE
 					if inputTextPosition < slen(inputText) then
 						inputText = ssub(inputText, 1, inputTextPosition) .. ssub(inputText, inputTextPosition+2)
 						inputHistory[#inputHistory] = inputText
 					end
 					cursorBlinkTimer = 0
-					autocomplete()
+					autocomplete(inputText)
 				elseif key == 277 then -- INSERT
 					inputTextInsertActive = not inputTextInsertActive
 				elseif key == 276 then -- LEFT
@@ -1060,7 +1082,7 @@ function widget:KeyPress(key, mods, isRepeat)
 					end
 					inputTextPosition = slen(inputText)
 					cursorBlinkTimer = 0
-					autocomplete()
+					autocomplete(inputText)
 				elseif key == 274 then -- DOWN
 					inputHistoryCurrent = inputHistoryCurrent + 1
 					if inputHistoryCurrent >= #inputHistory then
@@ -1069,7 +1091,7 @@ function widget:KeyPress(key, mods, isRepeat)
 					inputText = inputHistory[inputHistoryCurrent]
 					inputTextPosition = slen(inputText)
 					cursorBlinkTimer = 0
-					autocomplete()
+					autocomplete(inputText)
 				elseif key == 9 then -- TAB
 					if autocompleteText then
 						inputText = ssub(inputText, 1, inputTextPosition) .. autocompleteText .. ssub(inputText, inputTextPosition+1)
