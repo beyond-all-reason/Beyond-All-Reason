@@ -991,6 +991,7 @@ local function AddObject(objectID, drawFlag)
 		objectIDtoDefID[objectID] = objectDefID
 	end
 
+	Spring.Debug.TraceEcho("AddObject",objectID, drawFlag)
 	--Spring.Echo(unitID, UnitDefs[unitDefID].name)
 
 	for k = 1, #drawBinKeys do
@@ -1082,7 +1083,7 @@ local function RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, 
 			
 		
 		Spring.Echo("Failed to find shader for", objectID, objectDefID, texKey, shader, flag, uniformBinID, defName) 
-		Spring.Debug.TraceFullEcho(30,30,30)
+		--Spring.Debug.TraceFullEcho(30,30,30)
 	end
 end
 
@@ -1095,7 +1096,8 @@ local function UpdateObject(objectID, drawFlag)
 	end
 
 	local objectDefID = objectIDtoDefID[objectID]
-
+	
+	Spring.Debug.TraceEcho("UpdateObject", objectID, drawFlag, objectDefID)
 	for k = 1, #drawBinKeys do
 		local flag = drawBinKeys[k]
 		local hasFlagOld
@@ -1142,7 +1144,7 @@ local function RemoveObject(objectID) -- we get pos/neg objectID here
 	else 
 		objectDefID = -1 * Spring.GetFeatureDefID(-1 * objectID)
 	end
-		
+	Spring.Debug.TraceEcho("RemoveObject", objectID)
 	objectIDtoDefID[objectID] = objectDefID -- TODO this looks redundant
 
 	for k = 1, #drawBinKeys do
@@ -1160,7 +1162,7 @@ local function RemoveObject(objectID) -- we get pos/neg objectID here
 		end
 	end
 	objectIDtoDefID[objectID] = nil
-	if unitID then 
+	if objectID >= 0 then 
 		overriddenUnits[objectID] = nil
 		processedUnits[objectID] = nil
 		Spring.SetUnitEngineDrawMask(objectID, 255)
@@ -1226,6 +1228,7 @@ local function ExecuteDrawPass(drawPass)
 	--defersubmissionupdate = (defersubmissionupdate + 1) % 10;
 	local batches = 0
 	local units = 0
+	gl.Culling(GL.BACK)
 	for shaderId, data in pairs(unitDrawBins[drawPass]) do
 		local unitscountforthisshader = 0 
 		--Spring.Echo("uniformBinID", uniformBinID)
