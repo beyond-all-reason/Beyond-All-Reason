@@ -112,6 +112,10 @@ end
 	
 	-- TODO: check if LuaShader UniformLocations are cached
 	
+	-- TODO: add a wreck texture to chickens!
+	
+	-- TODO: separate out damaged units for better perf, damage shading is not free! (as damage is not dynamically uniform across all shader invocations)
+	
 	-- TODO: Also add alpha units to deferred pass somehow?
 	
 	-- TODO: engine side: optimize shadow camera as it stupidly overdraws
@@ -708,6 +712,9 @@ local wreckAtlases = {
 		"unittextures/cor_other_wreck.dds",
 		"unittextures/cor_color_wreck_normal.dds",
 	},
+	["chicken"] = {
+		"luaui/images/lavadistortion.png",
+	}
 }
 
 
@@ -797,6 +804,8 @@ local function initBinsAndTextures()
 					objectDefToUniformBin[unitDefID] = 'corscavenger'
 				end
 			elseif unitDef.name:find("chicken", nil, true) then 	
+				textureTable[5] = wreckAtlases['chicken'][0]
+			
 				objectDefToUniformBin[unitDefID] = 'chicken'
 			elseif wreckTex1 and wreckTex2 then -- just a true unit:
 				textureTable[3] = wreckTex1
@@ -809,10 +818,7 @@ local function initBinsAndTextures()
 				textureKeytoSet[texKey] = textureTable
 			end 
 			objectDefIDtoTextureKeys[unitDefID] = texKey
-			if unitDef.name == 'corcom' or unitDef.name == 'armcom' then 
-				--Spring.Echo(unitDef.name, texKey,unitDefShaderBin[unitDefID] , lowercasetex1,lowercasetex2 , normalTex, wreckTex1, wreckTex2)
-				--Spring.Debug.TableEcho(textureTable)
-			end
+
 		end
 	end
 	
@@ -944,7 +950,7 @@ local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures,
 	if unitDrawBinsFlagShaderUniformsTexKey.objectsIndex[objectID] then 
 		Spring.Echo("Trying to add a unit to a bin that is already in it!")
 	else
-		Spring.Echo("AsssignObjectToBin success:",objectID, objectDefID, flag, shader, textures, texKey, uniformBinID	)
+		if debugmode then Spring.Echo("AsssignObjectToBin success:",objectID, objectDefID, flag, shader, textures, texKey, uniformBinID	) end
 	end
 	
 	local numobjects = unitDrawBinsFlagShaderUniformsTexKey.numobjects
@@ -991,7 +997,7 @@ local function AddObject(objectID, drawFlag)
 		objectIDtoDefID[objectID] = objectDefID
 	end
 
-	Spring.Debug.TraceEcho("AddObject",objectID, drawFlag)
+	if debugmode then Spring.Debug.TraceEcho("AddObject",objectID, drawFlag) end
 	--Spring.Echo(unitID, UnitDefs[unitDefID].name)
 
 	for k = 1, #drawBinKeys do
@@ -1021,7 +1027,7 @@ local function RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, 
 	shader = shader or GetShader(flag, objectDefID)
 	textures = textures or GetTextures(flag, objectDefID)
 	texKey = texKey or GetTexturesKey(textures)
-	Spring.Echo("RemoveObjectFromBin", objectID, objectDefID, texKey,shader,flag,objectIndex) 
+	if debugmode then Spring.Echo("RemoveObjectFromBin", objectID, objectDefID, texKey,shader,flag,objectIndex)  end
 	if unitDrawBins[flag][shader] then
 		if unitDrawBins[flag][shader][uniformBinID] then 
 			if unitDrawBins[flag][shader][uniformBinID][texKey] then
@@ -1031,7 +1037,7 @@ local function RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, 
 				local objectIndex = unitDrawBinsFlagShaderTexKey.objectsIndex[objectID]
 				
 				--if flag == 0 then Spring.Echo("RemoveObjectFromBin", objectID, objectDefID, texKey,shader,flag,objectIndex) end
-				Spring.Echo("RemoveObjectFromBin really", objectID, objectDefID, texKey,shader,flag,objectIndex) 
+				if debugmode then Spring.Echo("RemoveObjectFromBin really", objectID, objectDefID, texKey,shader,flag,objectIndex) end
 				if objectIndex == nil then 
 					Spring.Echo("Remove failed")
 					return 
@@ -1067,6 +1073,7 @@ local function RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, 
 				end
 			else
 				Spring.Echo("Failed to find texKey for", objectID, objectDefID, texKey, shader, flag, uniformBinID)
+				Spring.Debug.TableEcho(textures)
 			end
 		else
 			Spring.Echo("Failed to find uniformBinID for", objectID, objectDefID, texKey, shader, flag, uniformBinID)
@@ -1082,7 +1089,7 @@ local function RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, 
 		end
 			
 		
-		Spring.Echo("Failed to find shader for", objectID, objectDefID, texKey, shader, flag, uniformBinID, defName) 
+		if debugmode then Spring.Echo("Failed to find shader for", objectID, objectDefID, texKey, shader, flag, uniformBinID, defName) end
 		--Spring.Debug.TraceFullEcho(30,30,30)
 	end
 end
@@ -1097,7 +1104,7 @@ local function UpdateObject(objectID, drawFlag)
 
 	local objectDefID = objectIDtoDefID[objectID]
 	
-	Spring.Debug.TraceEcho("UpdateObject", objectID, drawFlag, objectDefID)
+	if debugmode then Spring.Debug.TraceEcho("UpdateObject", objectID, drawFlag, objectDefID) end
 	for k = 1, #drawBinKeys do
 		local flag = drawBinKeys[k]
 		local hasFlagOld
@@ -1144,12 +1151,12 @@ local function RemoveObject(objectID) -- we get pos/neg objectID here
 	else 
 		objectDefID = -1 * Spring.GetFeatureDefID(-1 * objectID)
 	end
-	Spring.Debug.TraceEcho("RemoveObject", objectID)
+	if debugmode then Spring.Debug.TraceEcho("RemoveObject", objectID) end
 	objectIDtoDefID[objectID] = objectDefID -- TODO this looks redundant
 
 	for k = 1, #drawBinKeys do
 		local flag = drawBinKeys[k]
-		Spring.Echo("RemoveObject Flags", objectID, flag, overrideDrawFlagsCombined[flag] )
+		if debugmode then Spring.Echo("RemoveObject Flags", objectID, flag, overrideDrawFlagsCombined[flag] ) end
 		if overrideDrawFlagsCombined[flag] then
 			local shader = GetShader(flag, objectDefID)
 			local textures = GetTextures(flag, objectDefID)
@@ -1391,7 +1398,7 @@ local function tableEcho(data, name, indent, tableChecked)
 end
 
 function widget:Shutdown()
-	tableEcho(unitDrawBins, 'unitDrawBins')
+	if debugmode then tableEcho(unitDrawBins, 'unitDrawBins') end
 	
 
 	for unitID, _ in pairs(overriddenUnits) do
@@ -1410,7 +1417,7 @@ function widget:Shutdown()
 
 	vao = nil
 	unitDrawBins = nil
-	Spring.Debug.TraceFullEcho()
+	if debugmode then Spring.Debug.TraceFullEcho() end
 	if true then return end
 	gl.DeleteShader(shaders[0]) -- deferred
 	gl.DeleteShader(shaders[1]) -- forward
