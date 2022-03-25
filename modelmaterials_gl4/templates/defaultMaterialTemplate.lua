@@ -281,20 +281,22 @@ vertex = [[
 		vec3 modelVertexNormal = normal;
 
 		%%VERTEX_PRE_TRANSFORM%%
-
+		
 		if (BITMASK_FIELD(bitOptions, OPTION_TREEWIND)) {
 			DoWindVertexMove(piecePos);
-		}
+		}	
 		
 		#ifdef ENABLE_OPTION_HEALTH_DISPLACE
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_DISPLACE)) {
-			vec3 seedVec = 0.1 * piecePos.xyz;
-			seedVec.y += 1024.0 * hash11(float(unitID));
-			float damageAmount = (1.0 - healthFraction) * 0.8;
-			piecePos.xyz +=
-				max(damageAmount , baseVertexDisplacement) *
-				vertexDisplacement *							//vertex displacement value
-				Perlin3D(seedVec) * normalize(piecePos.xyz);
+			if (healthFraction < 0.95 || baseVertexDisplacement > 0.01){
+				vec3 seedVec = 0.1 * piecePos.xyz;
+				seedVec.y += 1024.0 * hash11(float(unitID));
+				float damageAmount = (1.0 - healthFraction) * 0.8;
+				piecePos.xyz +=
+					max(damageAmount , baseVertexDisplacement) *
+					vertexDisplacement *							//vertex displacement value
+					Perlin3D(seedVec) * normalize(piecePos.xyz);
+			}
 		}
 		#endif
 
@@ -433,6 +435,7 @@ fragment = [[
 			#extension GL_ARB_conservative_depth : require
 			//#extension GL_EXT_conservative_depth : require
 			// preserve early-z performance if possible
+			// for future reference: https://github.com/buildaworldnet/IrrlichtBAW/wiki/Early-Fragment-Tests,-Hi-Z,-Depth,-Stencil-and-other-benchmarks
 			layout(depth_unchanged) out float gl_FragDepth;
 		#endif
 	#endif
@@ -541,6 +544,8 @@ fragment = [[
 	/***********************************************************************/
 	// Options
 	uniform int bitOptions;
+	
+	uniform float hasAlphaShadows = 0.0;
 	//int bitOptions = 1 +  2 + 8 + 16 + 128 + 256;
 	
 	float simFrame = (timeInfo.x + timeInfo.w);
@@ -699,6 +704,12 @@ fragment = [[
 			bias = clamp(bias, 0.0, 5.0 * cb);
 			shadowCoord.z -= bias;
 			shadow = texture( shadowTex, shadowCoord ).r;
+			
+			// a neat trick i just learned
+			//float dShadowX = dFdx(shadow);
+			//float dShadowY = dFdy(shadow);
+			//shadow = shadow + (abs(dShadowX) + abs(dShadowY))*0.5; 
+			
 		}
 		return shadow;
 	}
@@ -1184,17 +1195,21 @@ fragment = [[
 	
 			#ifdef ENABLE_OPTION_HEALTH_TEXTURING
 				if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
-					vec3 tbnNormalw = NORM2SNORM(texture(normalTexw, myUV, textureLODBias).xyz);
-					wrecknormal = tbnNormalw;
-					tbnNormal = mix(tbnNormal, tbnNormalw, healthMix);
+					if (healthMix > 0.05){
+						vec3 tbnNormalw = NORM2SNORM(texture(normalTexw, myUV, textureLODBias).xyz);
+						wrecknormal = tbnNormalw;
+						tbnNormal = mix(tbnNormal, tbnNormalw, healthMix);
+					}
 				}
 			#endif
+			/* DISABLED
 			if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
 				vec3 tbnNormalw = NORM2SNORM(texture(rgbNoise, 0.5 * myUV).rgb);
 				tbnNormalw = mix(tbnNormal, tbnNormalw, 0.5);
 
 				tbnNormal = mix(tbnNormal, tbnNormalw, healthMix);
 			}
+			*/
 			tbnNormal = normalize(tbnNormal);
 		} else {
 			tbnNormal = vec3(0.0, 0.0, 1.0);
@@ -1211,12 +1226,14 @@ fragment = [[
 			// disable this in deferred mode
 		
 				if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
-					vec4 texColor1w = texture(texture1w, myUV);
-					vec4 texColor2w = texture(texture2w, myUV);
-					healthMix *= (1.0 - 0.9 * texColor2.r); //emissive parts don't get too damaged
-					texColor1 = mix(texColor1, texColor1w, healthMix);
-					texColor2.xyz = mix(texColor2.xyz, texColor2w.xyz, healthMix);
-					texColor2.z += 0.5 * healthMix; //additional roughness
+					if (healthMix > 0.05){
+						vec4 texColor1w = texture(texture1w, myUV);
+						vec4 texColor2w = texture(texture2w, myUV);
+						healthMix *= (1.0 - 0.9 * texColor2.r); //emissive parts don't get too damaged
+						texColor1 = mix(texColor1, texColor1w, healthMix);
+						texColor2.xyz = mix(texColor2.xyz, texColor2w.xyz, healthMix);
+						texColor2.z += 0.5 * healthMix; //additional roughness
+					}
 				}
 			
 			#endif
@@ -1406,7 +1423,7 @@ fragment = [[
 			#if (USE_ENVIRONMENT_DIFFUSE == 1) || (USE_ENVIRONMENT_SPECULAR == 1)
 				
 				#if (RENDERING_MODE == 0)
-					TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
+					//TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
 				#endif
 			#endif
             ///
@@ -1507,14 +1524,17 @@ fragment = [[
 			fragData[0] = vec4(outColor, texColor2.a);
 			//fragData[0] = vec4(vec3(fract((shadowVertexPos.xyz )  ))	, 1.0); //debug
 			//fragData[0] = vec4(vec3(fract(healthMix	))	, 1.0); //debug
+			//fragData[0] = vec4(vec3(gShadow)	, 1.0); //debug
 			//fragData[0] = vec4(cameraView[0].z,cameraView[1].z,cameraView[2].z, 1.0); //debug
 			//fragData[0] = vec4(SNORM2NORM(V), 1.0); //debug
 			//fragData[0] = vec4(NORM2SNORM(worldNormal), 1.0); //debug
+			if (texColor2.a < 0.5) discard;
 		#elif (RENDERING_MODE == 1)
 			float alphaBin = (texColor2.a < 0.5) ? 0.0 : 1.0;
-			alphaBin = 1.0;
+			//alphaBin = 1.0;
 
 			outSpecularColor = TONEMAP(outSpecularColor);
+			outSpecularColor = vec3(0.0);// DEBUG
 
 			fragData[GBUFFER_NORMTEX_IDX] = vec4(SNORM2NORM(N), alphaBin);
 			fragData[GBUFFER_DIFFTEX_IDX] = vec4(outColor, alphaBin);
@@ -1525,10 +1545,15 @@ fragment = [[
 	}
 #else //shadow pass
 #line 25000
-void main(void)
-{
-	fragData[0] = vec4(1.0);
-}
+
+	void main(void)
+	{
+	#ifdef HASALPHASHADOWS
+		vec4 texColor2 = texture(texture1, uvCoords, 0); // note that we bind tex2 to pos0 here!
+		if (texColor2.a < 0.5 ) discard;
+	#endif
+	}
+
 //FLUTYISBROÁFélő[]
 #endif
 ]],
@@ -1570,10 +1595,10 @@ local defaultMaterialTemplate = {
 	-- they need to be redefined on every child material that has its own {shader,deferred,shadow}Definitions
 	shaderDefinitions = {
 		"#define RENDERING_MODE 0",
-		"ARGLEBLARLG[]z",
+		"ARGLEBLARLG[]z  cuntshit + 1 ",
 	},
 	deferredDefinitions = {
-		"#define RENDERING_MODE 1",
+		"yesthisdoesnothing #define RENDERING_MODE 1",
 	},
 	shadowDefinitions = {
 		"#define RENDERING_MODE 2",

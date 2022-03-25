@@ -53,7 +53,7 @@ end
 	-- Under construction shader via uniform 
 		-- (READ THE ONE FROM HEALTHBARS!)
 	-- TODO treadoffset unitUniform
-	-- TODO BITOPTIONS UNIFOOOOORM!
+	-- DONE: BITOPTIONS UNIFOOOOORM!
 	-- normalmapping
 	-- chickens
 	-- tanktracks
@@ -83,8 +83,9 @@ end
 		-- also a problem is handling units that died, what 'drawflag' should they get? 
 			-- probably 0 
 	-- TODO: handle fast rebuilds of the IBO's when large-magnitude changes happen
+	
 	-- TODO: faster bitops maybe?
-	-- TODO: we dont handle shaderOptions yet for batches, where we are to keep the same shader, but only change its relevant options uniform
+	-- DONE: we dont handle shaderOptions yet for batches, where we are to keep the same shader, but only change its relevant options uniform
 	
 	-- TODO: Too many varyings are passed from VS to FS. 
 		-- Specify some as flat, to avoid interpolation (e.g. teamcolor and selfillummod and maybe even fogfactor
@@ -118,7 +119,9 @@ end
 	
 	-- TODO: Also add alpha units to deferred pass somehow?
 	
-	-- TODO: engine side: optimize shadow camera as it stupidly overdraws
+	-- TODO: engine side: optimize shadow camera as it massively overdraws
+	
+	-- TODO: Specular highlights should also bloom, not just emissive!
 	
 	-- GetTextures :
 		-- should return array table instead of hash table
@@ -147,7 +150,8 @@ end
 	-- Unitdestroyed doesnt trigger removal?
 	-- CorCS doesnt always show up for reflection pass?
 	-- Hovers dont show up for reflection pass
-	-- Check the triangle tesselation artifacts on dbg_sphere!
+	-- Check the triangle tesselation artifacts on dbg_sphere! -- was a result
+	-- 
 
 --inputs
 
@@ -236,12 +240,14 @@ local uniformBins = {
 		baseVertexDisplacement = 0.0,
 	},
 	treepbr = {
-		bitOptions = defaultBitShaderOptions,
+		bitOptions = defaultBitShaderOptions + OPTION_TREEWIND,
 		baseVertexDisplacement = 0.0,
+		hasAlphaShadows = 1.0,
 	},
 	tree = {
 		bitOptions = defaultBitShaderOptions + OPTION_TREEWIND,
 		baseVertexDisplacement = 0.0,
+		hasAlphaShadows = 1.0,
 	},
 	wreck = {
 		bitOptions = defaultBitShaderOptions,
@@ -469,6 +475,8 @@ local MATERIALS_DIR = "modelmaterials_gl4/"
 
 local defaultMaterialTemplate = VFS.Include("modelmaterials_gl4/templates/defaultMaterialTemplate.lua")
 
+Spring.Debug.TableEcho(defaultMaterialTemplate["shadowDefinitions"])
+
 local unitsNormalMapTemplate = table.merge(defaultMaterialTemplate, {
 	shaderDefinitions = {
 		"#define RENDERING_MODE 0",
@@ -506,6 +514,11 @@ local unitsNormalMapTemplate = table.merge(defaultMaterialTemplate, {
 		"#define ENABLE_OPTION_THREADS 1",
 		"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
 	},
+	shadowDefinitions = {
+		"#define RENDERING_MODE 2",
+		"#define SUPPORT_DEPTH_LAYOUT ".. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
+		"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
+	},
 	shadowOptions = {
 		health_displace = true,
 	},
@@ -525,7 +538,7 @@ local unitsNormalMapTemplate = table.merge(defaultMaterialTemplate, {
 	},
 })
 
-
+Spring.Debug.TableEcho(unitsNormalMapTemplate["shadowDefinitions"])
 
 local featuresNormalMapTemplate = table.merge(defaultMaterialTemplate, {
 
@@ -561,6 +574,12 @@ local featuresNormalMapTemplate = table.merge(defaultMaterialTemplate, {
 
 		"#define TONEMAP(c) CustomTM(c)",
 		"#define USE_LOSMAP",
+	},	
+	shadowDefinitions = {
+		"#define RENDERING_MODE 2",
+		"#define SUPPORT_DEPTH_LAYOUT ".. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
+		"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
+		"#define HASALPHASHADOWS",
 	},
 	shadowOptions = {
 		health_displace = true,
@@ -862,6 +881,7 @@ local function GetTextures(drawPass, objectDefID)
 	gettexturescalls = (gettexturescalls + 1 ) % (2^20)
 	if objectDefID == nil then Spring.Debug.TraceFullEcho() end 
 	if drawPass == 16 then
+		--Spring.Echo("Tex1 for", objectDefID, is ,string.format("%%%s:%i", objectDefID, 1))
 		return {
 			[0] = string.format("%%%s:%i", objectDefID, 1), --tex2 only
 		}
@@ -1013,11 +1033,15 @@ local function AddObject(objectID, drawFlag)
 			end
 		end
 	end
+	Spring.Echo("AddObject",objectID, objectDefID, drawFlag)
 	if objectID >= 0 then 
 		Spring.SetUnitEngineDrawMask(objectID, 255 - overrideDrawFlag) -- ~overrideDrawFlag & 255
 		overriddenUnits[objectID] = drawFlag
 	else
-		Spring.SetFeatureEngineDrawMask(-objectID, 255 - overrideDrawFlag) -- ~overrideDrawFlag & 255
+		if Spring.ValidFeatureID(-1 * objectID) == false then Spring.Echo("Invalid feature for drawmask", objectID, objectDefID) end 
+		Spring.SetFeatureEngineDrawMask(-1 * objectID, 255 - overrideDrawFlag) -- ~overrideDrawFlag & 255
+		Spring.SetFeatureNoDraw(-1 * objectID, false) -- ~overrideDrawFlag & 255
+		Spring.SetFeatureFade(-1 * objectID, true) -- ~overrideDrawFlag & 255
 		overriddenFeatures[-1 *objectID] = drawFlag
 	end
 	--overriddenUnits[unitID] = overrideDrawFlag
@@ -1427,7 +1451,7 @@ end
 local updateframe = 0
 function widget:Update()
 	
-	updateframe = (updateframe + 1) % 1
+	updateframe = (updateframe + 1) % 10
 	
 	if updateframe == 0 then 
 		-- this call has a massive mem load, at 1k units at 225 fps, its 7mb/sec, e.g. for each unit each frame, its 32 bytes alloc/dealloc
