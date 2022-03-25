@@ -43,6 +43,7 @@ vertex = [[
 	// Unit Uniforms:
 	#define UNITUNIFORMS uni[instData.y]
 	#define UNITID (uni[instData.y].composite >> 16)
+	#define TREADOFFSET uni[instData.y].speed.w
 
 	%%GLOBAL_NAMESPACE%%
 
@@ -131,6 +132,7 @@ vertex = [[
 		// shadowPosition
 		vec4 shadowVertexPos;
 
+		vec3 debugvarying; // for passing through debug garbage
 		// auxilary varyings
 		float aoTerm;
 		float fogFactor;
@@ -210,15 +212,18 @@ vertex = [[
 
 	vec2 GetWind(float period) {
 		vec2 wind;
-		wind.x = sin(period * 5.0);
-		wind.y = cos(period * 5.0);
+		wind = sin( vec2 (0, 1.56) + period * 5.0);
+		//wind.x = sin(period * 5.0);
+		//wind.y = cos(period * 5.0);
 		return wind * 10.0f;
 	}
 
 	void DoWindVertexMove(inout vec4 mVP) {
-		vec2 curWind = GetWind(simFrame * 0.001333);
-		vec2 nextWind = GetWind(simFrame * 0.001333 + 1.0);
-		float tweenFactor = smoothstep(0.0f, 1.0f, max(mod(simFrame, 750.0) - 600.0, 0.0) / 150.0f);
+		float simFrameFloor = floor(simFrame *  0.001333);
+		float simFrameFract = fract(simFrame *  0.001333);
+		vec2 curWind = GetWind(simFrameFloor);
+		vec2 nextWind = GetWind(simFrameFloor + 1.0);
+		float tweenFactor = smoothstep(0.0f, 1.0f, simFrameFract);
 		vec2 wind = mix(curWind, nextWind, tweenFactor);
 
 		#if 0
@@ -229,6 +234,7 @@ vertex = [[
 		#endif
 		modelXYZ = fract(modelXYZ);
 		modelXYZ = clamp(modelXYZ, 0.4, 1.0);
+
 
 		// crude measure of wind intensity
 		float abswind = abs(wind.x) + abs(wind.y);
@@ -253,6 +259,7 @@ vertex = [[
 		mVP.xyz += cosVec.z * limit * clamp(abswind, 1.2, 1.7);
 
 		mVP.xz += diff + diff2 * wind;
+		mVP.y += float(UNITID/256);// + sin(simFrame *0.1)+15;
 	}
 
 
@@ -317,8 +324,8 @@ vertex = [[
 				const float atlasSize = 4096.0;
 				const float gfMod = 8.0;
 				const float texSpeed = 4.0;
-
-				float texOffset = floatOptions[3] * mod(float(simFrame), gfMod) * (texSpeed / atlasSize);
+				float unitSpeed = uni[instData.y].speed.w;
+				float texOffset = unitSpeed * mod(float(simFrame), gfMod) * (texSpeed / atlasSize);
 
 				// note, invert we invert Y axis
 				const vec4 treadBoundaries = vec4(2572.0, 3070.0, atlasSize - 1761.0, atlasSize - 1548.0) / atlasSize;
@@ -333,14 +340,25 @@ vertex = [[
 				const float atlasSize = 2048.0;
 				const float gfMod = 6.0;
 				const float texSpeed = -6.0;
-
-				float texOffset = floatOptions[3] * mod(float(simFrame), gfMod) * (texSpeed / atlasSize);
+				float unitSpeed = uni[instData.y].speed.w;
+				float baseOffset =  unitSpeed * mod(float(simFrame), gfMod) / atlasSize;
+				float texOffset = baseOffset * texSpeed;
 
 				// note, invert we invert Y axis
 				const vec4 treadBoundaries = vec4(1536.0, 2048.0, atlasSize - 2048.0, atlasSize - 1792.0) / atlasSize;
 				if (all(bvec4(
 						uvCoords.x >= treadBoundaries.x, uvCoords.x <= treadBoundaries.y,
 						uvCoords.y >= treadBoundaries.z, uvCoords.y <= treadBoundaries.w))) {
+					uvCoords.x += texOffset;
+				}
+				
+				const float texSpeed2 = 3.0;
+				const vec4 treadBoundaries2 = vec4(93.0, 349.0, atlasSize - 400.0, atlasSize - 316.0) / atlasSize;
+				texOffset = baseOffset * texSpeed2;
+				
+				if (all(bvec4(
+						uvCoords.x >= treadBoundaries2.x, uvCoords.x <= treadBoundaries2.y,
+						uvCoords.y >= treadBoundaries2.z, uvCoords.y <= treadBoundaries2.w))) {
 					uvCoords.x += texOffset;
 				}
 			}
@@ -591,6 +609,7 @@ fragment = [[
 		vec4 shadowVertexPos;
 		
 
+		vec3 debugvarying; // for passing through debug garbage
 		// auxilary varyings
 		float aoTerm;
 		float fogFactor;

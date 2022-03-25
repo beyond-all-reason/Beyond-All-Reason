@@ -679,7 +679,9 @@ local function compileMaterialShader(template, name)
 	local forwardShader = CompileLuaShader(template.shader, template.shaderDefinitions, template.shaderPlugins, name .."_forward" )
 	local shadowShader = CompileLuaShader(template.shadow, template.shadowDefinitions, template.shaderPlugins, name .."_shadow" )
 	local deferredShader = CompileLuaShader(template.deferred, template.deferredDefinitions, template.shaderPlugins, name .."_deferred" )
-	
+	shaderIDtoLuaShader[forwardShader] = name .."_forward"
+	shaderIDtoLuaShader[shadowShader] = name .."_shadow"
+	shaderIDtoLuaShader[deferredShader] = name .."_deferred"
 	for k = 1, #drawBinKeys do
 		local flag = drawBinKeys[k]
 		shaders[flag][name] = forwardShader
@@ -719,6 +721,7 @@ local unitDefShaderBin = {} -- A table of {"armpw".id:"unit", "armpw_scav".id:"s
 
 local wreckTextureNames = {} -- A table of regular texture names to wreck texture names {"Arm_color.dds": "Arm_color_wreck.dds"}
 local blankNormalMap = "unittextures/blank_normal.dds"
+
 
 local wreckAtlases = {
 	["arm"] = {
@@ -902,12 +905,10 @@ local function GetTextures(drawPass, objectDefID)
 end
 
 
-
-
+local uniformCache = {0}
 -----------------
 
 local asssigncalls = 0
-local uniformCache = {defaultBitShaderOptions}
 --- Assigns a unit to a material bin
 -- This function gets called from AddUnit every time a unit enters drawrange (or gets its flags changed)
 -- @param objectID The unitID of the unit, or negative for featureID's
@@ -922,6 +923,7 @@ local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures,
 	textures = textures or GetTextures(flag, objectDefID)
 	texKey = texKey or GetTexturesKey(textures)
 	uniformBinID = uniformBinID or GetUniformBinID(objectDefID)
+	
 	--	Spring.Debug.TraceFullEcho()	
 	local unitDrawBinsFlag = unitDrawBins[flag]
 	if unitDrawBinsFlag[shader] == nil then
@@ -1052,6 +1054,7 @@ local function RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, 
 	textures = textures or GetTextures(flag, objectDefID)
 	texKey = texKey or GetTexturesKey(textures)
 	if debugmode then Spring.Echo("RemoveObjectFromBin", objectID, objectDefID, texKey,shader,flag,objectIndex)  end
+
 	if unitDrawBins[flag][shader] then
 		if unitDrawBins[flag][shader][uniformBinID] then 
 			if unitDrawBins[flag][shader][uniformBinID][texKey] then
