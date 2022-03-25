@@ -25,8 +25,6 @@ local function OnGroupSelected(cmd)
 	if spGetGroupUnitsCount(string.sub(cmd, 6, 6)) == 0 then
 		spSelectUnitMap({}, false)
 	end
-
-	return true
 end
 
 local function ManageAction(doAdd)
