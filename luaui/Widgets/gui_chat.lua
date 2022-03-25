@@ -849,7 +849,9 @@ local function drawChatInput()
 				end
 			end
 		else
-			WG['guishader'].RemoveRect('chatinputautocomplete')
+			if WG['guishader'] then
+				WG['guishader'].RemoveRect('chatinputautocomplete')
+			end
 		end
 
 		usedFont:End()
