@@ -461,6 +461,7 @@ local function cancelChatInput()
 		WG['guishader'].RemoveRect('chatinput')
 		WG['guishader'].RemoveRect('chatinputautocomplete')
 	end
+	widgetHandler:DisownText()
 end
 
 function widget:PlayerChanged(playerID)
@@ -1096,12 +1097,15 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 		end
 		inputHistory[#inputHistory] = inputText
 		cursorBlinkTimer = 0
+
 		autocomplete(inputText)
+    
+ 		return true
 	end
 end
 
 function widget:KeyPress(key, mods, isRepeat)
-	if handleTextInput and not Spring.IsGUIHidden() then
+	if not Spring.IsGUIHidden() and handleTextInput then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if showTextInput then
 			if key == 13 then -- RETURN	 (keypad enter = 271)
@@ -1210,6 +1214,7 @@ function widget:KeyPress(key, mods, isRepeat)
 		elseif key == 13 then -- RETURN	 (keypad enter = 271)
 			cancelChatInput()
 			showTextInput = true
+			widgetHandler:OwnText()
 			if not inputHistory[inputHistoryCurrent] or inputHistory[inputHistoryCurrent] ~= '' then
 				inputHistoryCurrent = inputHistoryCurrent + 1
 				inputHistory[inputHistoryCurrent] = ''
@@ -1221,6 +1226,7 @@ function widget:KeyPress(key, mods, isRepeat)
 			end
 			-- again just to be safe, had report locking could still happen
 			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+
 			return true
 		end
 	end
