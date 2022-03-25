@@ -133,7 +133,7 @@ local autocompleteCommands = {
 	'chatspec',
 	'cheat',
 	'clearmapmarks',
-	'clock',
+	--'clock',
 	'cmdcolors',
 	'commandhelp',
 	'commandlist',
@@ -273,7 +273,7 @@ local autocompleteCommands = {
 	'specfullview',
 	'spectator',
 	'specteam',
-	'speed',
+	--'speed',
 	'speedcontrol',
 	'speedup',
 	'take',
@@ -692,7 +692,7 @@ local function drawChatInput()
 	if showTextInput then
 		local x,y,_ = Spring.GetMouseState()
 		local chatlogHeightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
-		local inputFontSize = floor(usedFontSize * 1.06)
+		local inputFontSize = floor(usedFontSize * 1.04)
 		local inputHeight = floor(inputFontSize * 2.3)
 		local leftOffset = floor(lineHeight*0.7)
 		local distance =  (scrolling and inputHeight + elementMargin + elementMargin or elementMargin)
@@ -718,7 +718,7 @@ local function drawChatInput()
 		-- background
 		local r,g,b,a
 		local inputAlpha = math.min(0.36, ui_opacity*0.66)
-		local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText..(autocompleteText and autocompleteText or '')) * inputFontSize), activationArea[1]+((activationArea[3]-activationArea[1])/3))
+		local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText..(autocompleteText and autocompleteText or '')) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/3)))
 		UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, nil,nil,nil,nil, nil,nil,nil,nil, inputAlpha)
 		if WG['guishader'] then
 			WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'chatinput')
@@ -800,7 +800,7 @@ local function drawChatInput()
 		usedFont:SetTextColor(r,g,b, 1)
 		usedFont:Print(inputText, textPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
 		if autocompleteText then
-			usedFont:SetTextColor(r,g,b, 0.3)
+			usedFont:SetTextColor(r,g,b, 0.35)
 			usedFont:Print(autocompleteText, textPosX + floor(usedFont:GetTextWidth(inputText) * inputFontSize), activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "")
 		end
 
@@ -829,7 +829,7 @@ local function drawChatInput()
 			local yPos =  activationArea[2]+chatlogHeightDiff-distance-inputHeight
 			local height = (autocLineHeight * math.min(allowMultiAutocompleteMax, #autocompleteWords-1) + leftOffset) + (#autocompleteWords > allowMultiAutocompleteMax+1 and autocLineHeight or 0)
 			glColor(0,0,0,inputAlpha)
-			RectRound(xPos-leftOffset, yPos-height, x2-elementPadding, yPos, elementCorner*0.6, 0,0,1,1)
+			RectRound(xPos-leftOffset, yPos-height, x2-elementMargin, yPos, elementCorner*0.6, 0,0,1,1)
 			if WG['guishader'] then
 				WG['guishader'].InsertRect(xPos-leftOffset, yPos-height, x2-elementPadding, yPos, 'chatinputautocomplete')
 			end
@@ -837,13 +837,12 @@ local function drawChatInput()
 			for i, word in ipairs(autocompleteWords) do
 				if i > 1 then
 					addHeight = addHeight + autocLineHeight
-					usedFont:SetTextColor(r,g,b, 0.75)
+					usedFont:SetTextColor(r,g,b, 0.8)
 					usedFont:Print(letters, xPos, yPos-addHeight, inputFontSize*scale, "")
+					usedFont:SetTextColor(r,g,b, 0.35)
 					if i <= allowMultiAutocompleteMax+1 then
-						usedFont:SetTextColor(r,g,b, 0.3)
 						usedFont:Print(ssub(word, letterCount+1), xPos + lettersWidth, yPos-addHeight, inputFontSize*scale, "")
 					else
-						usedFont:SetTextColor(r,g,b, 0.3)
 						usedFont:Print('.........', xPos + lettersWidth, yPos-addHeight, inputFontSize*scale, "")
 						break
 					end
@@ -1097,10 +1096,8 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 		end
 		inputHistory[#inputHistory] = inputText
 		cursorBlinkTimer = 0
-
 		autocomplete(inputText)
-    
- 		return true
+		return true
 	end
 end
 
@@ -1109,9 +1106,11 @@ function widget:KeyPress(key, mods, isRepeat)
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if showTextInput then
 			if key == 13 then -- RETURN	 (keypad enter = 271)
-				if alt or shift then
+				if ctrl or alt or shift then
 					-- switch mode
-					if alt and not isSpec then
+					if ctrl then
+						inputMode = ''
+					elseif alt and not isSpec then
 						inputMode = (inputMode == 'a:' and '' or 'a:')
 					else
 						inputMode = (inputMode == 's:' and '' or 's:')
@@ -1219,14 +1218,15 @@ function widget:KeyPress(key, mods, isRepeat)
 				inputHistoryCurrent = inputHistoryCurrent + 1
 				inputHistory[inputHistoryCurrent] = ''
 			end
-			if alt then
+			if ctrl then
+				inputMode = ''
+			elseif alt then
 				inputMode = isSpec and 's:' or 'a:'
 			elseif shift then
 				inputMode = 's:'
 			end
 			-- again just to be safe, had report locking could still happen
 			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-
 			return true
 		end
 	end
