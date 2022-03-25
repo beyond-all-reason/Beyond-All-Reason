@@ -18,6 +18,7 @@ local defaultCellZoom = 0 * zoomMult
 local rightclickCellZoom = 0.065 * zoomMult
 local clickCellZoom = 0.065 * zoomMult
 local hoverCellZoom = 0.03 * zoomMult
+local showBuilderBuildlist = true
 
 local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
 	selectedunits = 'Selected units',
@@ -446,6 +447,12 @@ function widget:Initialize()
 	widget:ViewResize()
 
 	WG['info'] = {}
+	WG['info'].getShowBuilderBuildlist = function()
+		return showBuilderBuildlist
+	end
+	WG['info'].setShowBuilderBuildlist = function(value)
+		showBuilderBuildlist = value
+	end
 	WG['info'].displayUnitID = function(unitID)
 		cfgDisplayUnitID = unitID
 	end
@@ -906,7 +913,7 @@ local function drawUnitInfo()
 	-- custom unit info area
 	customInfoArea = { math_floor(backgroundRect[3] - width - bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3] - bgpadding), math_floor(backgroundRect[2] + height) }
 
-	if not displayMode == 'unitdef' or not unitDefInfo[displayUnitDefID].buildOptions or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
+	if not displayMode == 'unitdef' or not showBuilderBuildlist or not unitDefInfo[displayUnitDefID].buildOptions or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
 		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], elementCorner*0.66, 1, 0, 0, 0, { 0.8, 0.8, 0.8, 0.08 }, { 0.8, 0.8, 0.8, 0.15 })
 	end
 
@@ -967,7 +974,7 @@ local function drawUnitInfo()
 	font2:End()
 
 	-- draw unit buildoption icons
-	if displayMode == 'unitdef' and unitDefInfo[displayUnitDefID].buildOptions then
+	if displayMode == 'unitdef' and showBuilderBuildlist and unitDefInfo[displayUnitDefID].buildOptions then
 		local gridHeight = math_ceil(height * 0.975)
 		local rows = 2
 		local colls = math_ceil(#unitDefInfo[displayUnitDefID].buildOptions / rows)
@@ -1561,4 +1568,17 @@ end
 function widget:LanguageChanged()
 	refreshUnitInfo()
 	widget:ViewResize()
+end
+
+
+function widget:GetConfigData(data)
+	return {
+		showBuilderBuildlist = showBuilderBuildlist,
+	}
+end
+
+function widget:SetConfigData(data)
+	if data.showBuilderBuildlist ~= nil then
+		showBuilderBuildlist = data.showBuilderBuildlist
+	end
 end
