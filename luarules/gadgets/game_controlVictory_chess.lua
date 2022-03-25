@@ -20,13 +20,16 @@ function gadget:GetInfo()
 	}
 end
 
+local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
+
 local ChessModeUnbalancedModoption = Spring.GetModOptions().scoremode_chess_unbalanced
 local ChessModePhaseTimeModoption = Spring.GetModOptions().scoremode_chess_adduptime
 local ChessModeSpawnPerPhaseModoption = Spring.GetModOptions().scoremode_chess_spawnsperphase
 
---local capturePointRadius = math.floor(Spring.GetModOptions().captureradius * 0.75)
+local capturePointRadius = math.floor(Spring.GetModOptions().captureradius)
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
 local teams = Spring.GetTeamList()
 
 local teamSpawnPositions = {}
@@ -146,12 +149,19 @@ local starterLandUnitsList = {
         },
         quantity = 5,
     },
+    -- [3] = {
+    --     table = {
+    --         "armassistdrone",
+    --         "corassistdrone",
+    --     },
+    --     quantity = 1,
+    -- },
     [3] = {
         table = {
-            "armassistdrone",
-            "corassistdrone",
+            "armrectr",
+            "cornecro",
         },
-        quantity = 1,
+        quantity = 4,
     },
     [4] = {
         table = {
@@ -162,14 +172,14 @@ local starterLandUnitsList = {
     },
     [5] = {
         table = {
-            "armjeth",
-            "corcrash",
-            "armah",
-            "corah",
+            -- "armjeth",
+            -- "corcrash",
+            -- "armah",
+            -- "corah",
             "armsam",
             "cormist",
         },
-        quantity = 2,
+        quantity = 4,
     },
 }
 
@@ -223,16 +233,23 @@ local landUnitsList = {
         },
         [2] = {
             table = {
-                "armck",
-                "armcv",
-                "armbeaver",
-                "armch",
-                "corck",
-                "corcv",
-                "cormuskrat",
+                "armrectr",
+                "cornecro",
             },
-            quantity = 1,
+            quantity = 4,
         },
+        -- [2] = {
+        --     table = {
+        --         "armck",
+        --         "armcv",
+        --         "armbeaver",
+        --         "armch",
+        --         "corck",
+        --         "corcv",
+        --         "cormuskrat",
+        --     },
+        --     quantity = 1,
+        -- },
     },
 
     -- Tier 2
@@ -287,16 +304,23 @@ local landUnitsList = {
         },
         [2] = {
             table = {
-                "armack",
-                "armdecom",
-                "armacv",
-                --"armconsul",
-                "corack",
-                "cordecom",
-                "coracv",
+                "armrectr",
+                "cornecro",
             },
-            quantity = 1,
+            quantity = 3,
         },
+        -- [2] = {
+        --     table = {
+        --         "armack",
+        --         "armdecom",
+        --         "armacv",
+        --         --"armconsul",
+        --         "corack",
+        --         "cordecom",
+        --         "coracv",
+        --     },
+        --     quantity = 1,
+        -- },
     },
 
     -- Tier 3
@@ -334,16 +358,23 @@ local landUnitsList = {
         },
         [2] = {
             table = {
-                "armack",
-                "armdecom",
-                "armacv",
-                --"armconsul",
-                "corack",
-                "cordecom",
-                "coracv",
+                "armrectr",
+                "cornecro",
             },
-            quantity = 1,
+            quantity = 2,
         },
+        -- [2] = {
+        --     table = {
+        --         "armack",
+        --         "armdecom",
+        --         "armacv",
+        --         --"armconsul",
+        --         "corack",
+        --         "cordecom",
+        --         "coracv",
+        --     },
+        --     quantity = 1,
+        -- },
     },
 
     -- Tier 4
@@ -368,16 +399,23 @@ local landUnitsList = {
         },
         [2] = {
             table = {
-                "armack",
-                "armdecom",
-                "armacv",
-                --"armconsul",
-                "corack",
-                "cordecom",
-                "coracv",
+                "armrectr",
+                "cornecro",
             },
             quantity = 1,
         },
+        -- [2] = {
+        --     table = {
+        --         "armack",
+        --         "armdecom",
+        --         "armacv",
+        --         --"armconsul",
+        --         "corack",
+        --         "cordecom",
+        --         "coracv",
+        --     },
+        --     quantity = 1,
+        -- },
     },
 }
 
@@ -391,11 +429,18 @@ local starterSeaUnitsList = {
     },
     [2] = {
         table = {
-            "armassistdrone",
-            "corassistdrone",
+            "armrecl",
+            "correcl",
         },
-        quantity = 1,
+        quantity = 4,
     },
+    -- [2] = {
+    --     table = {
+    --         "armassistdrone",
+    --         "corassistdrone",
+    --     },
+    --     quantity = 1,
+    -- },
 }
 
 local seaUnitsList = {
@@ -428,18 +473,68 @@ local seaUnitsList = {
         },
         [2] = {
             table = {
-                "armbeaver",
-                "armch",
-                "armcs",
-                "cormuskrat",
-                "corcs",
+                "armrecl",
+                "correcl",
             },
-            quantity = 1,
+            quantity = 4,
         },
+        -- [2] = {
+        --     table = {
+        --         "armbeaver",
+        --         "armch",
+        --         "armcs",
+        --         "cormuskrat",
+        --         "corcs",
+        --     },
+        --     quantity = 1,
+        -- },
     },
 
     -- Tier 2
     [2] = {
+        [1] = {
+            table = {
+                "armroy",
+                "armmls",
+                "armsubk",
+                "armaas",
+                "armcrus",
+                "armmship",
+                "armcroc",
+                "corroy",
+                "cormls",
+                "corshark",
+                "corarch",
+                "corcrus",
+                "corssub",
+                "cormship",
+                "corseal",
+
+                -- Hovercraft
+                "corhal",
+            },
+            quantity = 5,
+        },
+        [2] = {
+            table = {
+                "armrecl",
+                "correcl",
+            },
+            quantity = 3,
+        },
+        -- [2] = {
+        --     table = {
+        --         "armmls",
+        --         "armacsub",
+        --         "cormls",
+        --         "coracsub",
+        --     },
+        --     quantity = 1,
+        -- },
+    },
+
+    -- Tier 3
+    [3] = {
         [1] = {
             table = {
                 "armbats",
@@ -460,17 +555,24 @@ local seaUnitsList = {
         },
         [2] = {
             table = {
-                "armmls",
-                "armacsub",
-                "cormls",
-                "coracsub",
+                "armrecl",
+                "correcl",
             },
-            quantity = 1,
+            quantity = 2,
         },
+        -- [2] = {
+        --     table = {
+        --         "armmls",
+        --         "armacsub",
+        --         "cormls",
+        --         "coracsub",
+        --     },
+        --     quantity = 1,
+        -- },
     },
 
-    -- Tier 3
-    [3] = {
+    -- Tier 4
+    [4] = {
         [1] = {
             table = {
                 "armserpt3",
@@ -485,40 +587,25 @@ local seaUnitsList = {
         },
         [2] = {
             table = {
-                "armmls",
-                "armacsub",
-                "cormls",
-                "coracsub",
+                "armrecl",
+                "correcl",
             },
             quantity = 1,
         },
-    },
-
-    -- Tier 4
-    [4] = {
-        [1] = {
-            table = {
-                "armpt",
-                "corpt",
-            },
-            quantity = 10,
-        },
-        [2] = {
-            table = {
-                "armmls",
-                "armacsub",
-                "cormls",
-                "coracsub",
-            },
-            quantity = 1,
-        },
+        -- [2] = {
+        --     table = {
+        --         "armmls",
+        --         "armacsub",
+        --         "cormls",
+        --         "coracsub",
+        --     },
+        --     quantity = 1,
+        -- },
     },
 }
 
 
 
-local maxPhases = #landUnitsList
-local phaseSpawns = 0
 local spawnsPerPhase = ChessModeSpawnPerPhaseModoption
 local addUpFrequency = ChessModePhaseTimeModoption*1800
 local spawnTimer = 9000
@@ -594,7 +681,7 @@ end
 local function destroyCommanders()
 	for unitID, _ in pairs(initialCommanders) do
 		if Spring.ValidUnitID(unitID) then
-			Spring.DestroyUnit(unitID, false, true, Spring.GetGaiaTeamID())
+			Spring.DestroyUnit(unitID, false, true, gaiaTeamID)
 		end
 	end
 	initialCommanders = nil
@@ -807,6 +894,34 @@ function gadget:GameFrame(n)
     if n%30 == 0 then
 		controlPointsList = GetControlPoints()
 	end
+    if n == 31 then
+        local capturePointPatrolRadius = capturePointRadius*1.5
+        for i = 1,#controlPointsList do
+            local x = controlPointsList[i].pointPosition.x
+            local z = controlPointsList[i].pointPosition.z
+            local y = Spring.GetGroundHeight(x, z)
+            local landRandomUnit = starterLandUnitsList[1].table[math.random(1,#starterLandUnitsList[1].table)]
+            local seaRandomUnit = starterSeaUnitsList[1].table[math.random(1,#starterSeaUnitsList[1].table)]
+            local losCheck = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, 1, gaiaAllyTeamID, true, true, true)
+            if losCheck == true then
+                for j = 1,5 do
+                    local unitID
+                    if y > -10 then
+                        unitID = Spring.CreateUnit(landRandomUnit, x+math.random(-32,32), y, z+math.random(-32,32), 0, gaiaTeamID)
+                    else
+                        unitID = Spring.CreateUnit(seaRandomUnit, x+math.random(-32,32), y, z+math.random(-32,32), 0, gaiaTeamID)
+                    end
+                    if unitID then
+                        Spring.GiveOrderToUnit(unitID,CMD.MOVE_STATE,{1},0)
+                        Spring.GiveOrderToUnit(unitID, CMD.FIGHT,  {x+math.random(-capturePointPatrolRadius, capturePointPatrolRadius), y, z+math.random(-capturePointPatrolRadius, capturePointPatrolRadius)}, {"alt", "ctrl"})
+                        for k = 1,10 do
+                            Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {x+math.random(-capturePointPatrolRadius, capturePointPatrolRadius), y, z+math.random(-capturePointPatrolRadius, capturePointPatrolRadius)}, {"shift", "alt", "ctrl"})
+                        end
+                    end
+                end
+            end
+        end
+    end
     if n == 20 then
         introSetUp()
     end
@@ -859,9 +974,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+    local unitName = UnitDefs[unitDefID].name
     if resurrectedUnits[unitID] then
         resurrectedUnits[unitID] = nil
-    else
+    elseif unitTeam ~= gaiaTeamID and unitName ~= "armcom" and unitName ~= "corcom" and unitName ~= "legcom" then
         local UnitName = UnitDefs[unitDefID].name
         respawnDeadUnit(UnitName, unitTeam)
     end
