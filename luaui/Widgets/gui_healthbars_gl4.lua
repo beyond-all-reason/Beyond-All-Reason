@@ -401,8 +401,8 @@ shaderConfig.PERCENT_VISIBILITY_MAX = 0.99
 shaderConfig.TIMER_VISIBILITY_MIN = 0.0
 shaderConfig.BARSTEP = 10 -- pixels to downshift per new bar
 shaderConfig.BOTTOMDARKENFACTOR = 0.5
-shaderConfig.BARFADESTART = 20000
-shaderConfig.BARFADEEND = 25000
+shaderConfig.BARFADESTART = 3200
+shaderConfig.BARFADEEND = 3800
 shaderConfig.ATLASSTEP = 0.0625
 shaderConfig.MINALPHA = 0.2
 if debugmode then
@@ -1521,7 +1521,7 @@ function widget:GameFrame(n)
 			if Spring.GetUnitIsStunned(unitID) then
 				local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
 				--uniformcache[1] = math.floor((paralyzeDamage - maxHealth)) / (maxHealth * empDecline))
-				if paralyzeDamage then 
+				if paralyzeDamage then
 					uniformcache[1] = paralyzeDamage / maxHealth
 					--Spring.Echo("Paralyze damage", paralyzeDamage, maxHealth)
 					gl.SetUnitBufferUniforms(unitID, uniformcache, 4)
@@ -1593,8 +1593,8 @@ end
 
 function widget:FeatureCreated(featureID)
 	local featureDefID = Spring.GetFeatureDefID(featureID)
-	
-	-- some map-supplied features dont have a model, in these cases modelpath == "" 
+
+	-- some map-supplied features dont have a model, in these cases modelpath == ""
 	if FeatureDefs[featureDefID].name ~= 'geovent' and FeatureDefs[featureDefID].modelpath ~= ''  then
 		--Spring.Echo(FeatureDefs[featureDefID].name)
 		featureBars[featureID] = 0
