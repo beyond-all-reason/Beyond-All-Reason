@@ -116,6 +116,7 @@ local spPlaySoundFile = Spring.PlaySoundFile
 local spGetGameFrame = Spring.GetGameFrame
 
 local autocompleteCommands = {
+	-- engine
 	'advmapshading',
 	'advmodelshading',
 	'aicontrol',
@@ -296,9 +297,7 @@ local autocompleteCommands = {
 	'wiretree',
 	'wirewater',
 
-
-	'luaui reload',
-	'luaui profile',
+	-- gadgets
 	'luarules battleroyaledebug',
 	'luarules buildicon',
 	'luarules cmd',
@@ -324,6 +323,27 @@ local autocompleteCommands = {
 	'luarules waterlevel',
 	'luarules wreckunits',
 	'luarules xpunits',
+
+	-- widgets
+	'luaui reload',
+	'luaui profile',
+	'luaui selector',
+	'luaui reset',
+	'luaui factoryreset',
+	'luaui disable',
+	'luaui enable',
+	'savegame',
+	'addmessage',
+	'radarpulse',
+	'snow',
+	'clearconsole',
+	'ecostatstext',
+	'defrange ally air',
+	'defrange ally nuke',
+	'defrange ally ground',
+	'defrange enemy air',
+	'defrange enemy nuke',
+	'defrange enemy ground',
 }
 local autocompleteText
 local autocompletePlayernames = {}
@@ -546,6 +566,14 @@ function widget:Update(dt)
 	uiSec = uiSec + dt
 	if uiSec > 1 then
 		uiSec = 0
+
+		if not addedOptionsList and WG['options'] and WG['options'].getOptionsList then
+			local optionsList = WG['options'].getOptionsList()
+			addedOptionsList = true
+			for i, option in ipairs(optionsList) do
+				autocompleteCommands[#autocompleteCommands+1] = 'option '..option
+			end
+		end
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) or ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66)  then
 			ui_scale = Spring.GetConfigFloat("ui_scale",1)
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.65)
@@ -843,7 +871,11 @@ local function drawChatInput()
 					if i <= allowMultiAutocompleteMax+1 then
 						usedFont:Print(ssub(word, letterCount+1), xPos + lettersWidth, yPos-addHeight, inputFontSize*scale, "")
 					else
-						usedFont:Print('.........', xPos + lettersWidth, yPos-addHeight, inputFontSize*scale, "")
+						local text = ''
+						for i=1, #word do
+							text = text .. '.'
+						end
+						usedFont:Print(text, xPos + lettersWidth, yPos-addHeight, inputFontSize*scale, "")
 						break
 					end
 				end

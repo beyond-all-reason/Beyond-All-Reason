@@ -16,8 +16,6 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	-- teams dying before this mark don't leave wrecks
-	local noWrecksLimit = Game.gameSpeed * 60 * 5 -- in frames
 	local earlyDropLimit = Game.gameSpeed * 60 * 2 -- in frames
 	local earlyDropGrace = Game.gameSpeed * 60 * 1 -- in frames
 	local lateDropGrace = Game.gameSpeed * 60 * 3 -- in frames
@@ -25,9 +23,6 @@ if gadgetHandler:IsSyncedCode() then
 	local GetPlayerInfo = Spring.GetPlayerInfo
 	local GetPlayerList = Spring.GetPlayerList
 	local GetTeamList = Spring.GetTeamList
-	local GetTeamUnits = Spring.GetTeamUnits
-	local DestroyUnit = Spring.DestroyUnit
-	local GetUnitTransporter = Spring.GetUnitTransporter
 	local GetAIInfo = Spring.GetAIInfo
 	local GetTeamLuaAI = Spring.GetTeamLuaAI
 	local deadTeam = {}
@@ -66,25 +61,11 @@ if gadgetHandler:IsSyncedCode() then
 		teamsWithUnitsToKill[teamID] = true
 	end
 
-	local function destroyTeam(teamID,dropTime)
-		local teamUnits = GetTeamUnits(teamID)
-		local nowrecks = dropTime < noWrecksLimit
-		for i=1, #teamUnits do
-			local unitID = teamUnits[i]
-			if not GetUnitTransporter(unitID) then
-				if nowrecks then
-					DestroyUnit(unitID, false, true)
-				else
-					DestroyUnit(unitID)
-				end
-			end
-		end
-		if nowrecks then
-			SendToUnsynced("TeamRemoved", teamID)
-		else
-			SendToUnsynced("TeamDestroyed", teamID)
-		end
+	local function destroyTeam(teamID, gameFrame)
+		-- old code also used Spring.GetUnitTransporter to exclude destroying transported units
+		Spring.KillTeam(teamID)
 		deadTeam[teamID] = true
+		SendToUnsynced("TeamDestroyed", teamID)
 	end
 
 	function gadget:GameFrame(gameFrame)
@@ -128,13 +109,6 @@ if gadgetHandler:IsSyncedCode() then
 
 else	-- UNSYNCED
 
-	local function teamRemoved(_, teamID)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy('ui.ffaNoOwner.removed', { team = teamID })
-			Spring.SendMessage(message)
-		end
-	end
-
 	local function teamDestroyed(_, teamID)
 		if Script.LuaUI('GadgetMessageProxy') then
 			local message = Script.LuaUI.GadgetMessageProxy('ui.ffaNoOwner.destroyed', { team = teamID })
@@ -157,7 +131,6 @@ else	-- UNSYNCED
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddSyncAction("TeamRemoved", teamRemoved)
 		gadgetHandler:AddSyncAction("TeamDestroyed", teamDestroyed)
 		gadgetHandler:AddSyncAction("PlayerWarned", playerWarned)
 		gadgetHandler:AddSyncAction("PlayerReconnected", playerReconnected)

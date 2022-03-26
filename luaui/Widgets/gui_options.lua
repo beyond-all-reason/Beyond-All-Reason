@@ -1819,23 +1819,22 @@ function init()
 		},
 
 		{ id = "ssao", group = "gfx", category = types.basic, widget = "SSAO", name = texts.option.ssao, type = "bool", value = GetWidgetToggleValue("SSAO"), description = texts.option.ssao_descr },
-
 		{ id = "ssao_strength", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.ssao_strength, type = "slider", min = 5, max = 11, step = 1, value = 8, description = '',
-		  onchange = function(i, value)
-			  saveOptionValue('SSAO', 'ssao', 'setStrength', { 'strength' }, value)
-		  end,
 		  onload = function(i)
 			  loadWidgetData("SSAO", "ssao_strength", { 'strength' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('SSAO', 'ssao', 'setStrength', { 'strength' }, value)
 		  end,
 		},
 
 		{ id = "bloomdeferred", group = "gfx", category = types.basic, widget = "Bloom Shader Deferred", name = texts.option.bloomdeferred, type = "bool", value = GetWidgetToggleValue("Bloom Shader Deferred"), description = texts.option.bloomdeferred_descr },
 		{ id = "bloomdeferredbrightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.bloomdeferredbrightness, type = "slider", min = 0.6, max = 1.5, step = 0.05, value = 1, description = '',
-		  onchange = function(i, value)
-			  saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setBrightness', { 'glowAmplifier' }, value)
-		  end,
 		  onload = function(i)
 			  loadWidgetData("Bloom Shader Deferred", "bloomdeferredbrightness", { 'glowAmplifier' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setBrightness', { 'glowAmplifier' }, value)
 		  end,
 		},
 
@@ -4896,6 +4895,13 @@ function widget:Initialize()
 			WG['topbar'].hideWindows()
 		end
 		show = newShow
+	end
+	WG['options'].getOptionsList = function()
+		local optionList = {}
+		for i, option in pairs(options) do
+			optionList[#optionList+1] = option.id
+		end
+		return optionList
 	end
 	WG['options'].isvisible = function()
 		return show
