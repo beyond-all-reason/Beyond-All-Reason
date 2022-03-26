@@ -401,8 +401,8 @@ shaderConfig.PERCENT_VISIBILITY_MAX = 0.99
 shaderConfig.TIMER_VISIBILITY_MIN = 0.0
 shaderConfig.BARSTEP = 10 -- pixels to downshift per new bar
 shaderConfig.BOTTOMDARKENFACTOR = 0.5
-shaderConfig.BARFADESTART = 2000
-shaderConfig.BARFADEEND = 2500
+shaderConfig.BARFADESTART = 20000
+shaderConfig.BARFADEEND = 25000
 shaderConfig.ATLASSTEP = 0.0625
 shaderConfig.MINALPHA = 0.2
 if debugmode then

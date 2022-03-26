@@ -464,6 +464,7 @@ return {
 			healthbarsvariable_descr = 'Increases healthbar sizes for bigger units',
 			healthbarshide = 'show health only when selected',
 			healthbarshide_descr = 'Hide the healthbar and rely on damaged unit looks',
+			healthbarsmaxdistance = "Healthbars max distance",
 			rankicons = 'Rank icons',
 			rankicons_descr = 'Shows a rank icon depending on experience next to units',
 			rankicons_distance = 'draw distance',
