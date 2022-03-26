@@ -644,7 +644,7 @@ local options={
 		section= "options",
 	},
 	{
-		key    = "ffa_mode_wreckage",
+		key    = "ffa_wreckage",
 		name   = "FFA Mode Wreckage",
 		desc   = "Killed players will blow up but leave wreckages",
 		hidden = true,

@@ -16,7 +16,7 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	local leaveWreckage = Spring.GetModOptions().ffa_mode_wreckage or false
+	local leaveWreckage = Spring.GetModOptions().ffa_wreckage or false
 	local leaveWreckageFromFrame = Game.gameSpeed * 60 * 5
 
 	local earlyDropLimit = Game.gameSpeed * 60 * 2 -- in frames
