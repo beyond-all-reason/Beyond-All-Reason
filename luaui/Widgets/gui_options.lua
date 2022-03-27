@@ -4496,7 +4496,7 @@ function init()
 		end
 	end
 
-	-- check is cus is disabled by auto disable cus widget (in case options widget has been reloaded)
+	-- check if cus is disabled by auto disable cus widget (in case options widget has been reloaded)
 	if getOptionByID('sun_y') then
 		if select(2, gl.GetSun("pos")) < options[getOptionByID('sun_y')].min then
 			Spring.SetSunDirection(select(1, gl.GetSun("pos")), options[getOptionByID('sun_y')].min, select(3, gl.GetSun("pos")))
