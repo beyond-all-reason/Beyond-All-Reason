@@ -173,6 +173,9 @@ function MakeBindsTable (swapYZ)
 		"bind any+alt+x buildspacing dec",
 		"bind shift+alt+x buildspacing dec",
 
+		-- camera
+		"bind ctrl+shift+o cameraflip",
+
 		-- area mex
 		"bind ctrl+alt+z areamex",
 
