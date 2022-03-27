@@ -327,7 +327,7 @@ local autocompleteCommands = {
 	-- widgets
 	'luaui reload',
 	'luaui profile',
-	'luaui selector',
+	--'luaui selector',	-- pops up engine version
 	'luaui reset',
 	'luaui factoryreset',
 	'luaui disable',
@@ -1116,7 +1116,7 @@ local function autocomplete(text, fresh)
 end
 
 function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
-	if handleTextInput and not Spring.IsGUIHidden() and showTextInput then
+	if handleTextInput and not chobbyInterface and not Spring.IsGUIHidden() and showTextInput then
 		if inputTextInsertActive then
 			inputText = ssub(inputText, 1, inputTextPosition) .. char .. ssub(inputText, inputTextPosition+2)
 			if inputTextPosition <= slen(inputText) then

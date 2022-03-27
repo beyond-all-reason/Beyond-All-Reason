@@ -42,11 +42,11 @@ function widget:Update(dt)
 end
 
 function widget:GameFrame(gameFrame)
-	if gameFrame % 24 == 0 and not chobbyInterface then
+	if gameFrame % 21 == 0 and not chobbyInterface then
 		if cusWanted and not disabledCus then
 			if WG['topbar'] and not WG['topbar'].showingRejoining() then
 				if not select(6, Spring.GetMouseState()) and Spring.GetConfigInt("VSync", 1) <= 2 then		-- mouse not offscreen
-					averageFps = ((averageFps * 29) + Spring.GetFPS()) / 30
+					averageFps = ((averageFps * 24) + Spring.GetFPS()) / 25
 					threshold = Spring.GetConfigInt("cusThreshold", defaultThreshold)
 					if not disabledCus then
 						if averageFps <= threshold then
@@ -57,6 +57,8 @@ function widget:GameFrame(gameFrame)
 							Spring.Echo(Spring.I18N('ui.disablingcus'))
 						end
 					end
+				else
+					averageFps = math.min(averageFps, threshold * 1.17)
 				end
 			end
 		end
