@@ -21,6 +21,7 @@ gameframe = 0
 function gadget:Initialize()
 	if lavaMap == false then
 		gadgetHandler:RemoveGadget(self)
+		return
 	end
 	_G.frame = 0
 	_G.lavaLevel = lavaLevel
@@ -643,6 +644,7 @@ else  -- UNSYCNED
 	function gadget:Initialize()
 		if lavaMap == false then
 			gadgetHandler:RemoveGadget(self)
+			return
 		end
 
 		Spring.SetDrawWater(false)
@@ -702,12 +704,14 @@ else  -- UNSYCNED
 		if not shaderCompiled then
 			Spring.Echo("Failed to compile Lava Shader")
 			gadgetHandler:RemoveGadget()
+			return
 		end
 
 		shaderCompiled = foglightShader:Initialize()
 		if not shaderCompiled then
 			Spring.Echo("Failed to compile foglightShader")
 			gadgetHandler:RemoveGadget()
+			return
 		end
 	end
 
