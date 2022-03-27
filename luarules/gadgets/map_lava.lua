@@ -736,7 +736,7 @@ else  -- UNSYCNED
 			gl.Texture(5, "$info")-- Texture file
 
 			gl.DepthTest(GL.LEQUAL) -- dont draw fragments below terrain
-			gl.DepthMask(true) -- dont write to the depth buffer, it doesnt help later on when we are doing the glowy bits
+			gl.DepthMask(true) -- actually write to the depth buffer, because otherwise units below lava will fully render over this
 
 			lavaPlaneVAO:DrawElements(GL.TRIANGLES)
 			lavaShader:Deactivate()
