@@ -10,7 +10,7 @@ return {
 		canmove = true,
 		category = "ALL WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 5 0",
-		collisionvolumescales = ""20 16 40"",--"19 19 58",
+		collisionvolumescales = "20 16 40",--"19 19 58",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		explodeas = "mediumexplosiongeneric",
