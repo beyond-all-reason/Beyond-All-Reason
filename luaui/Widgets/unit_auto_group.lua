@@ -125,23 +125,20 @@ function widget:Initialize()
 	widget:ViewResize()
 	widget:PlayerChanged()
 
-	widgetHandler:AddAction("add_to_autogroup", ChangeUnitTypeAutogroupHandler, nil, "t") -- With a parameter, adds all units of this type to a specific autogroup
-	widgetHandler:AddAction("remove_from_autogroup", ChangeUnitTypeAutogroupHandler, nil, "t") -- Without a parameter, removes all units of this type from autogroups
-	widgetHandler:AddAction("remove_one_unit_from_group", RemoveOneUnitFromGroupHandler, nil, "t") -- Removes the closest of selected units from groups and selects only it
+	widgetHandler:AddAction("add_to_autogroup", ChangeUnitTypeAutogroupHandler, nil, "p") -- With a parameter, adds all units of this type to a specific autogroup
+	widgetHandler:AddAction("remove_from_autogroup", ChangeUnitTypeAutogroupHandler, { removeAll = true }, "p") -- Without a parameter, removes all units of this type from autogroups
+	widgetHandler:AddAction("remove_one_unit_from_group", RemoveOneUnitFromGroupHandler, nil, "p") -- Removes the closest of selected units from groups and selects only it
 
 	-- unbind Any+ keybindings and binding default keybindings
 	for i = 0, 9 do
 		Spring.SendCommands({
 			"unbind Any+" .. i .. " group" .. i,
 			"bind Alt+" .. i .. " add_to_autogroup " .. i,
-			"bind Shift+" .. i .. " group" .. i,
 			"bind " .. i .. " group" .. i,
 			"bind Ctrl+" .. i .. " group" .. i
 		})
 	end
 	Spring.SendCommands({
-		"unbind Any+` drawlabel",
-		"unbind Any+` drawinmap",
 		"bind Alt+` remove_from_autogroup",
 		"bind Ctrl+` remove_one_unit_from_group",
 	})
@@ -162,8 +159,15 @@ function widget:Initialize()
 	end
 end
 
-function ChangeUnitTypeAutogroupHandler(_, _, args)
+function ChangeUnitTypeAutogroupHandler(_, _, args, data)
 	local gr = args[1]
+	local removeAll = data and data['removeAll']
+
+	if not removeAll and not gr then return end -- noop if add to autogroup and no argument
+
+	if removeAll then
+		gr = nil
+	end
 
 	local selUnitDefIDs = {}
 	local unit2groupDeleted = {}
@@ -261,7 +265,7 @@ function widget:DrawWorld()
 
 	existingGroupsFrame = existingGroupsFrame + 1
 	if existingGroupsFrame % 10 == 0 then
-	  existingGroups = GetGroupList()
+		existingGroups = GetGroupList()
 	end
 	local camX, camY, camZ = spGetCameraPosition()
 	local camDistance
