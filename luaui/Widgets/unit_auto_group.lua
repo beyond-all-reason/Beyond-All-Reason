@@ -129,20 +129,6 @@ function widget:Initialize()
 	widgetHandler:AddAction("remove_from_autogroup", ChangeUnitTypeAutogroupHandler, { removeAll = true }, "p") -- Without a parameter, removes all units of this type from autogroups
 	widgetHandler:AddAction("remove_one_unit_from_group", RemoveOneUnitFromGroupHandler, nil, "p") -- Removes the closest of selected units from groups and selects only it
 
-	-- unbind Any+ keybindings and binding default keybindings
-	for i = 0, 9 do
-		Spring.SendCommands({
-			"unbind Any+" .. i .. " group" .. i,
-			"bind Alt+" .. i .. " add_to_autogroup " .. i,
-			"bind " .. i .. " group" .. i,
-			"bind Ctrl+" .. i .. " group" .. i
-		})
-	end
-	Spring.SendCommands({
-		"bind Alt+` remove_from_autogroup",
-		"bind Ctrl+` remove_one_unit_from_group",
-	})
-
 	WG['autogroup'] = {}
 	WG['autogroup'].getImmediate = function()
 		return immediate

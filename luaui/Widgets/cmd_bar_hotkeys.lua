@@ -197,7 +197,15 @@ function MakeBindsTable (swapYZ)
 		"bind , buildfacing inc", --because some keyboards don't have [ and ] ke"..Y.."s
 		"bind . buildfacing dec",
 		"bind o buildfacing inc", --apparently some keyboards don't have , and . either...
+
+		-- autogroups
+		"bind Alt+` remove_from_autogroup",
+		"bind Ctrl+` remove_one_unit_from_group",
 	}
+
+	for i = 0, 9 do
+		table.insert(_binds, "bind Alt+" .. i .. " add_to_autogroup " .. i)
+	end
 
 	binds = _binds
 end
