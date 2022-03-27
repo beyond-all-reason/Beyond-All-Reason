@@ -78,6 +78,35 @@ for key, value in pairs(modoptions) do
 	end
 end
 
+local function SortFunc(myTable)
+	local function pairsByKeys(t, f)
+		local a = {}
+		for n in pairs(t) do
+			table.insert(a, n)
+		end
+		table.sort(a, f)
+		local i = 0      -- iterator variable
+		local iter = function ()   -- iterator function
+			i = i + 1
+			if a[i] == nil then
+				return nil
+			else
+				return a[i], t[a[i]]
+			end
+		end
+		return iter
+	end
+	local t = {}
+	for key,value in pairsByKeys(myTable) do
+		table.insert(t, { key = key, value = value })
+	end
+	return t
+end
+changedModoptions = SortFunc(changedModoptions)
+unchangedModoptions = SortFunc(unchangedModoptions)
+changedChickenModoptions = SortFunc(changedChickenModoptions)
+unchangedChickenModoptions = SortFunc(unchangedChickenModoptions)
+
 local screenHeightOrg = 540
 local screenWidthOrg = 540
 local screenHeight = screenHeightOrg
@@ -386,20 +415,20 @@ local function refreshContent()
 	if chickensEnabled then
 		-- filter chicken modoptions
 		content = content .. titlecolor .. Spring.I18N('ui.gameInfo.chickenOptions') .. "\n"
-		for key, value in pairs(changedChickenModoptions) do
-			content = content .. keycolor .. string.sub(key, 9) .. separator .. valuecolor .. value .. "\n"
+		for key, params in pairs(changedChickenModoptions) do
+			content = content .. keycolor .. string.sub(params.key, 9) .. separator .. valuecolor .. params.value .. "\n"
 		end
-		for key, value in pairs(unchangedChickenModoptions) do
-			content = content .. keycolor .. string.sub(key, 9) .. separator .. valuegreycolor .. value .. "\n"
+		for key, params in pairs(unchangedChickenModoptions) do
+			content = content .. keycolor .. string.sub(params.key, 9) .. separator .. valuegreycolor .. params.value .. "\n"
 		end
 		content = content .. "\n"
 	end
 	content = content .. titlecolor .. Spring.I18N('ui.gameInfo.modOptions') .. "\n"
-	for key, value in pairs(changedModoptions) do
-		content = content .. keycolor .. key .. separator .. valuecolor .. value .. "\n"
+	for key, params in pairs(changedModoptions) do
+		content = content .. keycolor .. params.key .. separator .. valuecolor .. params.value .. "\n"
 	end
-	for key, value in pairs(unchangedModoptions) do
-		content = content .. keycolor .. key .. separator .. valuegreycolor .. value .. "\n"
+	for key, params in pairs(unchangedModoptions) do
+		content = content .. keycolor .. params.key .. separator .. valuegreycolor .. params.value .. "\n"
 	end
 
 	-- store changelog into array

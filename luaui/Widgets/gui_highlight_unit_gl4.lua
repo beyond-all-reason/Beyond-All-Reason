@@ -156,7 +156,7 @@ function widget:Update()
 		local type, data = spTraceScreenRay(mx, my)
 		local unitID
 		local addedUnitID
-		if type == 'unit' then
+		if type == 'unit' and not Spring.IsGUIHidden() then
 			unitID = data
 			if not unitshapes[unitID] then
 				addUnitShape(unitID)
