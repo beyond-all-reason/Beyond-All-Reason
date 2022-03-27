@@ -252,6 +252,8 @@ else  -- UNSYCNED
 		SWIRLAMPLITUDE = lavaSwirlAmp, -- How much the main lava texture is swirled around default 0.003
 		PARALLAXDEPTH = lavaParallaxDepth, -- set to >0 to enable
 		PARALLAXOFFSET = lavaParallaxOffset, -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
+		GLOBALROTATEFREQUENCY = 0.0001, -- how fast the whole lava plane shifts around
+		GLOBALROTATEAMPLIDUE = 0.05, -- how big the radius of the circle we rotate around is
 
 		-- for foglight:
 		FOGHEIGHTABOVELAVA = fogheightabovelava, -- how much higher above the lava the fog light plane is
@@ -309,6 +311,11 @@ else  -- UNSYCNED
 
 		randpervertex = vec4(rand(worldPos.xz), rand(worldPos.xz * vec2(17.876234, 9.283)), rand(worldPos.xz + gametime + 2.0), rand(worldPos.xz + gametime + 3.0));
 		worldUV.zw = sin(randpervertex.xy + gametime * (0.5 + randpervertex.xy));
+
+		// global rotatemove, has 2 params, globalrotateamplitude, globalrotatefrequency
+		// Spin the whole texture around slowly
+		float worldRotTime = (timeInfo.x + timeInfo.w) ;
+		worldUV.xy += vec2( sin(worldRotTime * GLOBALROTATEFREQUENCY), cos(worldRotTime * GLOBALROTATEFREQUENCY)) * GLOBALROTATEAMPLIDUE;
 
 		// -- MAP OUT OF BOUNDS
 		vec2 mymin = min(worldPos.xz, mapSize.xy  - worldPos.xz) * inverseMapSize;

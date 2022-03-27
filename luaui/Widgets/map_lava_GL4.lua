@@ -55,8 +55,8 @@ end
 		SWIRLAMPLITUDE = 0.003, -- How much the main lava texture is swirled around default 0.003
 		PARALLAXDEPTH = 16.0, -- set to >0 to enable
 		PARALLAXOFFSET = 0.5, -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
-		GLOBALROTATEFREQUENCY = 0.0008, -- how fast the whole lava plane shifts around
-		GLOBALROTATEAMPLIDUE = 0.01, -- how big the radius of the circle we rotate around is
+		GLOBALROTATEFREQUENCY = 0.0001, -- how fast the whole lava plane shifts around
+		GLOBALROTATEAMPLIDUE = 0.05, -- how big the radius of the circle we rotate around is
 		
 		-- for foglight:
 		FOGHEIGHTABOVELAVA = fogheightabovelava, -- how much higher above the lava the fog light plane is
