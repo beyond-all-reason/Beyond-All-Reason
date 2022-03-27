@@ -1693,18 +1693,42 @@ function init()
 				end
 			end,
 		},
-		{ id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync, type = "bool", value = vsyncEnabled, description = '',
+		{ id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync,  type = "select", options = { 'off', 'enabled', 'adaptive'}, value = 1, description = texts.option.vsync_descr,
+		  onload = function(i)
+			  local vsync =  Spring.GetConfigInt("VSyncGame", 0)
+			  if vsync == 1 then
+			  	options[getOptionByID('vsync')].value = 2
+			  elseif vsync == -1 then
+			  	options[getOptionByID('vsync')].value = 3
+			  else
+				options[getOptionByID('vsync')].value = 1
+			  end
+		  end,
 		  onchange = function(i, value)
-			vsyncEnabled = value
-			local vsync = 0
-			if vsyncEnabled then
-				vsync = vsyncLevel
-				options[getOptionByID('vsync')].value = true
-			end
-			Spring.SetConfigInt("VSync", vsync)
-			Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
+			  local vsync = 0
+			  if value == 2 then
+				  vsync = 1
+			  elseif value == 3 then
+				  vsync = -1
+			  end
+			  vsyncEnabled = value ~= 1
+			  vsyncLevel = vsync
+			  Spring.SetConfigInt("VSync", vsync)
+			  Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
 		  end,
 		},
+		--{ id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync, type = "bool", value = vsyncEnabled, description = '',
+		--  onchange = function(i, value)
+		--	vsyncEnabled = value
+		--	local vsync = 0
+		--	if vsyncEnabled then
+		--		vsync = vsyncLevel
+		--		options[getOptionByID('vsync')].value = true
+		--	end
+		--	Spring.SetConfigInt("VSync", vsync)
+		--	Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
+		--  end,
+		--},
 		{ id = "limitidlefps", group = "gfx", category = types.advanced, widget = "Limit idle FPS", name = texts.option.limitidlefps, type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = texts.option.limitidlefps_descr },
 
 		{ id = "msaa", group = "gfx", category = types.basic, name = texts.option.msaa, type = "select", options = { 'off', 'x2', 'x4', 'x8'}, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0), description = texts.option.msaa_descr,

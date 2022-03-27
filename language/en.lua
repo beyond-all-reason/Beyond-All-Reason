@@ -148,6 +148,7 @@ return {
 			resolution = 'Resolution',
 			resolution_descr = 'WARNING: sometimes freezes game engine in windowed mode',
 			vsync = 'VSync',
+			vsync_descr = 'Prevent vertical screen tearing. Note this can introduce slight lag. Try adaptive for less screen draw delay.',
 			limitidlefps = 'Limit FPS when idle/offscreen',
 			limitidlefps_descr = 'Reduces fps when idle (by setting vsync to a high number)\n(for borderless window and fullscreen need engine not have focus)\nMakes your pc more responsive/cooler when you do stuff outside the game\nCamera movement will break idle mode',
 			msaa = 'Anti Aliasing',
