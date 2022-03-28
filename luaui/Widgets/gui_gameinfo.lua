@@ -21,7 +21,7 @@ local valuegreycolor = "\255\180\180\180"
 local separator = "::"
 
 local font, font2, loadedFontSize, mainDList, titleRect, chobbyInterface, backgroundGuishader, show
-local maxLines = 20
+local maxLines = 22
 local math_isInRect = math.isInRect
 
 local chickensEnabled = Spring.Utilities.Gametype.IsChickens()
@@ -47,9 +47,8 @@ end
 -- modoptions
 local defaultModoptions = VFS.Include("modoptions.lua")
 local modoptionsDefault = {}
-
 for key, value in pairs(defaultModoptions) do
-	modoptionsDefault[value.key] = value.def
+	modoptionsDefault[value.key] = {name = value.name, desc = value.desc, def = value.def}
 end
 
 local modoptions = Spring.GetModOptions()
@@ -57,11 +56,10 @@ local changedModoptions = {}
 local unchangedModoptions = {}
 local changedChickenModoptions = {}
 local unchangedChickenModoptions = {}
-
 for key, value in pairs(modoptions) do
 	if string.sub(key, 1, 8) == 'chicken_' then
 		if chickensEnabled then
-			if value == modoptionsDefault[key] then
+			if value == modoptionsDefault[key].def then
 				unchangedChickenModoptions[key] = tostring(value)
 			else
 				changedChickenModoptions[key] = tostring(value)
@@ -71,7 +69,7 @@ for key, value in pairs(modoptions) do
 end
 
 for key, value in pairs(modoptions) do
-	if value == modoptionsDefault[key] then
+	if value == modoptionsDefault[key].def then
 		unchangedModoptions[key] = tostring(value)
 	else
 		changedModoptions[key] = tostring(value)
@@ -425,10 +423,12 @@ local function refreshContent()
 	end
 	content = content .. titlecolor .. Spring.I18N('ui.gameInfo.modOptions') .. "\n"
 	for key, params in pairs(changedModoptions) do
-		content = content .. keycolor .. params.key .. separator .. valuecolor .. params.value .. "\n"
+		local name = params.key	--modoptionsDefault[params.key].name
+		content = content .. keycolor .. name .. separator .. valuecolor .. params.value .. "\n"
 	end
 	for key, params in pairs(unchangedModoptions) do
-		content = content .. keycolor .. params.key .. separator .. valuegreycolor .. params.value .. "\n"
+		local name = params.key --modoptionsDefault[params.key].name
+		content = content .. keycolor .. name .. separator .. valuegreycolor .. params.value .. "\n"
 	end
 
 	-- store changelog into array

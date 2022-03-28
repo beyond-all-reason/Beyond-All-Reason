@@ -1068,6 +1068,7 @@ local function runAutocompleteSet(wordsSet, searchStr, multi)
 	return autocompleteText ~= nil
 end
 
+local prevAutocompleteLetters
 local function autocomplete(text, fresh)
 	autocompleteText = nil
 	if fresh then
@@ -1083,35 +1084,46 @@ local function autocomplete(text, fresh)
 		words[#words+1] = word
 		letters = word
 	end
+	-- if there are still suggestions then try to continue before starting fresh with a new word
 	if ssub(inputText, #text) == ' ' then
 		letters = letters..' '
+		if autocompleteWords[1] then
+			prevAutocompleteLetters = letters
+		end
+	else
+		if prevAutocompleteLetters and autocompleteWords[1] then
+			letters = prevAutocompleteLetters .. letters
+		else
+			prevAutocompleteLetters = nil
+		end
 	end
 
+	-- find autocompleteWords
 	if autocompleteWords[2] then
 		runAutocompleteSet(autocompleteWords, letters, allowMultiAutocomplete)
-		return
 	else
-		if #letters >= 2 and runAutocompleteSet(autocompletePlayernames, letters) then
-			return
+		if #letters >= 2 then
+			runAutocompleteSet(autocompletePlayernames, letters)
 		end
-		if isCmd then
-			if #words <= 1 then
-				if runAutocompleteSet(autocompleteCommands, letters, allowMultiAutocomplete) then
-					return
+		if not autocompleteWords[1] then
+			if isCmd then
+				if #words <= 1 then
+					runAutocompleteSet(autocompleteCommands, letters, allowMultiAutocomplete)
+				else
+					runAutocompleteSet(autocompleteUnitCodename, letters, allowMultiAutocomplete)
 				end
 			else
-				if runAutocompleteSet(autocompleteUnitCodename, letters, allowMultiAutocomplete) then
-					return
+				if #letters >= 2 then
+					runAutocompleteSet(autocompleteUnitNames, letters, allowMultiAutocomplete)
 				end
 			end
-		else
-			if #letters <= 1 then
-				return
-			end
-			if runAutocompleteSet(autocompleteUnitNames, letters, allowMultiAutocomplete) then
-				return
-			end
 		end
+	end
+
+	-- if prev autocomplete words didnt result in suggestions, redo it freshly
+	if prevAutocompleteLetters and not autocompleteWords[1] and not ssub(inputText, #text) == ' ' then
+		prevAutocompleteLetters = nil
+		autocomplete(text, true)
 	end
 end
 
