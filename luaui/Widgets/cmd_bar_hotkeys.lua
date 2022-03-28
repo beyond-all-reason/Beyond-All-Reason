@@ -185,6 +185,10 @@ function MakeBindsTable (swapYZ)
 		"bind numpad3 movedown",
 		"bind numpad1 movefast",
 
+		-- customgameinfo
+		"bind i customgameinfo",
+		"bind esc customgameinfo_close",
+
 		-- set target
 		"bind "..Y.." settargetnoground",
 		"bind alt+"..Y.." settarget",
