@@ -229,7 +229,29 @@ function widget:Update(dt)
 	end
 end
 
+local function voteHandler(_, _, args)
+	if not voteDlist or not showButtons then return end
+
+	local voteOption = args[1] or 'nil'
+	if voteOption ~= 'y' or voteOption ~= 'n' or voteOption ~= 'b' then
+		Spring.Echo("Invalid vote argument: " .. voteOption ..". Valid arguments: b,y,n")
+		return
+	end
+
+	if not voteOwner then
+		Spring.SendCommands("say !vote " .. voteOption)
+	elseif voteOption == 'n' then
+		Spring.SendCommands("say !endvote")
+	end
+
+	HideVote()
+
+	return true
+end
+
 function widget:Initialize()
+	widgetHandler:AddAction("vote", voteHandler, nil, 'p')
+
 	widget:ViewResize()
 	if Spring.IsReplay() then
 		widgetHandler:RemoveWidget()
@@ -263,16 +285,6 @@ function widget:AddConsoleLine(lines, priority)
 				end
 			end
 		end
-	end
-end
-
-function widget:KeyPress(key)
-	-- ESC
-	if key == 27 and voteDlist and showButtons then
-		if not voteOwner then
-			Spring.SendCommands("say !vote b")
-		end
-		HideVote()
 	end
 end
 

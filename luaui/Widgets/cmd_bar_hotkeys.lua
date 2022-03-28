@@ -256,6 +256,7 @@ local function makeBindsTable(keyLayout)
 		{  "Alt+Shift+esc", "reloadforce"                },
 		{     "Any+escape", "edit_escape"                },
 		{      "Any+pause", "pause"                      },
+		{            "esc", "vote b"                     },
 		{            "esc", "teamstatus_close"           },
 		{            "esc", "customgameinfo_close"       },
 		{            "esc", "buildmenu_pregame_deselect" },
