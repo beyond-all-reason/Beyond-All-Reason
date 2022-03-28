@@ -92,6 +92,7 @@ local inputHistory = {}
 local inputHistoryCurrent = 0
 local inputButtonRect
 local autocompleteWords = {}
+local prevAutocompleteLetters
 
 local glPopMatrix      = gl.PopMatrix
 local glPushMatrix     = gl.PushMatrix
@@ -848,6 +849,8 @@ local function drawChatInput()
 			end
 			if ssub(inputText, #inputText) == ' ' then
 				letters = letters..' '
+			elseif prevAutocompleteLetters then
+				letters = prevAutocompleteLetters .. letters
 			end
 			local letterCount = #letters
 			local scale = 0.8
@@ -1068,7 +1071,6 @@ local function runAutocompleteSet(wordsSet, searchStr, multi)
 	return autocompleteText ~= nil
 end
 
-local prevAutocompleteLetters
 local function autocomplete(text, fresh)
 	autocompleteText = nil
 	if fresh then
@@ -1093,6 +1095,9 @@ local function autocomplete(text, fresh)
 	else
 		if prevAutocompleteLetters and autocompleteWords[1] then
 			letters = prevAutocompleteLetters .. letters
+			if isCmd then
+				words = {[1] = letters}
+			end
 		else
 			prevAutocompleteLetters = nil
 		end
@@ -1190,9 +1195,12 @@ function widget:KeyPress(key, mods, isRepeat)
 						inputText = ssub(inputText, 1, inputTextPosition-1) .. ssub(inputText, inputTextPosition+1)
 						inputTextPosition = inputTextPosition - 1
 						inputHistory[#inputHistory] = inputText
+						if not (prevAutocompleteLetters and inputTextPosition == #inputText and ssub(inputText, #inputText) ~= ' ') then
+							prevAutocompleteLetters = nil
+						end
 					end
 					cursorBlinkTimer = 0
-					autocomplete(inputText, true)
+					autocomplete(inputText, not prevAutocompleteLetters)
 				elseif key == 127 then -- DELETE
 					if inputTextPosition < slen(inputText) then
 						inputText = ssub(inputText, 1, inputTextPosition) .. ssub(inputText, inputTextPosition+2)
