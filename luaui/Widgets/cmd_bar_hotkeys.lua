@@ -214,6 +214,10 @@ function LoadBindings()
 	for k,v in ipairs(binds) do
 		Spring.SendCommands(v)
 	end
+
+	if WG['buildmenu'] and WG['buildmenu'].reloadBindings then
+		WG['buildmenu'].reloadBindings()
+	end
 end
 
 function UnloadBindings()
@@ -229,10 +233,6 @@ end
 function ReloadBindings()
 	UnloadBindings()
 	LoadBindings()
-
-	if WG['buildmenu'] and WG['buildmenu'].reloadBindings then
-		WG['buildmenu'].reloadBindings()
-	end
 end
 
 function widget:Initialize()
