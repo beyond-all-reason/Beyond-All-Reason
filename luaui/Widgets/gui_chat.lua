@@ -312,7 +312,6 @@ local autocompleteCommands = {
 	'luarules kill_profiler',
 	'luarules loadmissiles',
 	'luarules profile',
-	'luarules removeunits',
 	'luarules reclaimunits',
 	'luarules reloadcus',
 	'luarules removeunits',
