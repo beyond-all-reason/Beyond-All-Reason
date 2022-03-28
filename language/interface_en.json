@@ -99,7 +99,10 @@
 			},
 			"playerTV": {
 				"playerTV": "Player TV",
-				"cancelCamera": "Turn off",
+				"cancelCamera": "Turn off Player TV",
+				"playerView": "Player Viewpoint",
+				"globalView": "Turn off Player View",
+				"playerViewTooltip": "Only view what the player can see",
 				"tooltip": "Auto camera-track the top ranked players\n(switches player every 40 seconds by default)"
 			},
 			"teamEconomy": {
