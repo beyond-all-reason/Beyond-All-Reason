@@ -236,7 +236,7 @@ local uniformBins = {
 		baseVertexDisplacement = 0.4,
 	},
 	chicken = {
-		bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE + OPTION_HEALTH_TEXCHICKS + OPTION_TREEWIND,
+		bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS  + OPTION_HEALTH_DISPLACE + OPTION_HEALTH_TEXCHICKS + OPTION_TREEWIND,
 		baseVertexDisplacement = 0.0,
 	},
 	otherunit = {
@@ -562,7 +562,7 @@ local DEFAULT_VERSION = [[#version 430 core
 	#extension GL_ARB_shading_language_420pack: require
 	]]
 
-local function dumpShaderCodeToFile(defs, src, filename)
+local function dumpShaderCodeToFile(defs, src, filename) -- no IO in unsynced gadgets :/ 
 	local vsfile = io.open('cus_' .. filename .. ".glsl","w+")
 	vsfile:write(defs .. src)
 	vsfile:close()
@@ -611,8 +611,8 @@ local function CompileLuaShader(shader, definitions, plugIns, addName)
 	local compilationResult = luaShader:Initialize()
 	if compilationResult ~= true then 
 		Spring.Echo("Custom Unit Shaders. " .. addName .. " shader compilation failed")
-		dumpShaderCodeToFile(shader.definitions, shader.vertex, "vs" .. addName)
-		dumpShaderCodeToFile(shader.definitions, shader.fragment, "fs" .. addName)
+		--dumpShaderCodeToFile(shader.definitions, shader.vertex, "vs" .. addName)
+		--dumpShaderCodeToFile(shader.definitions, shader.fragment, "fs" .. addName)
 		gadgetHandler:RemoveGadget()
 		
 		return nil
@@ -772,9 +772,9 @@ local function initBinsAndTextures()
 					objectDefToUniformBin[unitDefID] = 'corscavenger'
 				end
 			elseif unitDef.name:find("chicken", nil, true) then 	
-				textureTable[5] = wreckAtlases['chicken'][0]
-			
+				textureTable[5] = wreckAtlases['chicken'][1]
 				objectDefToUniformBin[unitDefID] = 'chicken'
+				Spring.Echo("Chickenwreck", textureTable[5])
 			elseif wreckTex1 and wreckTex2 then -- just a true unit:
 				textureTable[3] = wreckTex1
 				textureTable[4] = wreckTex2

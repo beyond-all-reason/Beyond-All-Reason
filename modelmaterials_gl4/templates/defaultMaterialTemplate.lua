@@ -1213,7 +1213,7 @@ fragment = [[
 			tbnNormal = NORM2SNORM(normalTexVal.xyz);
 	
 			#ifdef ENABLE_OPTION_HEALTH_TEXTURING
-				if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
+				if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
 					if (healthMix > 0.05){
 						vec3 tbnNormalw = NORM2SNORM(texture(normalTexw, myUV, textureLODBias).xyz);
 						wrecknormal = tbnNormalw;
@@ -1221,14 +1221,7 @@ fragment = [[
 					}
 				}
 			#endif
-			/* DISABLED
-			if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
-				vec3 tbnNormalw = NORM2SNORM(texture(rgbNoise, 0.5 * myUV).rgb);
-				tbnNormalw = mix(tbnNormal, tbnNormalw, 0.5);
 
-				tbnNormal = mix(tbnNormal, tbnNormalw, healthMix);
-			}
-			*/
 			tbnNormal = normalize(tbnNormal);
 		} else {
 			tbnNormal = vec3(0.0, 0.0, 1.0);
