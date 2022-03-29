@@ -132,7 +132,7 @@ vertex = [[
 		// shadowPosition
 		vec4 shadowVertexPos;
 
-		vec3 debugvarying; // for passing through debug garbage
+		//vec3 debugvarying; // for passing through debug garbage
 		// auxilary varyings
 		float aoTerm;
 		float fogFactor;
@@ -537,7 +537,6 @@ fragment = [[
 	// PBR uniforms
 	uniform sampler2D brdfLUT;			//9
 	uniform sampler2D envLUT;			//10
-	uniform sampler2D rgbNoise;			//11
 
 	//uniform float pbrParams[8];
 	
@@ -609,7 +608,7 @@ fragment = [[
 		vec4 shadowVertexPos;
 		
 
-		vec3 debugvarying; // for passing through debug garbage
+		//vec3 debugvarying; // for passing through debug garbage
 		// auxilary varyings
 		float aoTerm;
 		float fogFactor;
@@ -1584,7 +1583,6 @@ fragment = [[
 		losMapTex    = 8,
 		brdfLUT      = 9,
 		envLUT       = 10,
-		rgbNoise     = 11,
 	},
 	uniformFloat = {
 		--sunAmbient		= {gl.GetSun("ambient" ,"unit")},
@@ -1676,7 +1674,6 @@ local defaultMaterialTemplate = {
 
 		[9] = "modelmaterials_gl4/brdf_0.png",
 		[10] = "modelmaterials_gl4/envlut_0.png",
-		[11] = "LuaUI/Images/rgbnoise.png",
 	},
 
 	predl = nil, -- `predl` is replaced with `prelist` later in api_cus

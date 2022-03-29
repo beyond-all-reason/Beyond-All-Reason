@@ -76,7 +76,7 @@ end
 		
 	-- separate VAO and IBO for each 'bin' for less heavy updates 
 	-- Do alpha units also get drawn into deferred pass? Seems like no, because only flag == 1 is draw into that
-	-- todo: dynamically size IBOS instead of using the max of 8192!
+	-- TODO: dynamically size IBOS instead of using the max of 8192!
 	-- TODO: new engine callins needed:
 		-- get the number of drawflaggable units (this is kind of gettable already from the API anyway) 
 		-- get the number of changed drawFlags
@@ -90,12 +90,17 @@ end
 			-- probably 0 
 	-- TODO: handle fast rebuilds of the IBO's when large-magnitude changes happen
 	
+	
 	-- TODO: faster bitops maybe?
 	-- DONE: we dont handle shaderOptions yet for batches, where we are to keep the same shader, but only change its relevant options uniform
 	
-	-- TODO: Too many varyings are passed from VS to FS. 
+	-- NOTE: It seems that we are generally, and heavily fragment shader limited in most synthetic tests with large numbers of units spreading into full view
+		-- in this case, the perf of oldcus and gl4cus is actually similar, (similar FS), but vanilla still outperforms
+		
+	-- DONE: Too many varyings are passed from VS to FS. 
 		-- Specify some as flat, to avoid interpolation (e.g. teamcolor and selfillummod and maybe even fogfactor
 		-- reduce total number of these varyings 
+		-- we can save a varying here and there, but mostly done
 	
 	-- TODO: GetTextures() is not the best implementation at the moment
 	
@@ -119,7 +124,7 @@ end
 	
 	-- TODO: check if LuaShader UniformLocations are cached
 	
-	-- TODO: add a wreck texture to chickens!
+	-- DONE: add a wreck texture to chickens! It uses lavadistortion texture, its fine
 	
 	-- TODO: separate out damaged units for better perf, damage shading is not free! (as damage is not dynamically uniform across all shader invocations)
 	
@@ -141,7 +146,6 @@ end
 		-- PBR textures:
 			-- uniform sampler2D brdfLUT;			//9
 			-- uniform sampler2D envLUT;			//10
-			-- uniform sampler2D rgbNoise;			//11
 			-- uniform samplerCube reflectTex; 		// 7
 			
 			-- uniform sampler2D losMapTex;	//8 for features out of los maybe?
@@ -220,7 +224,7 @@ end
 
 local uniformBins = {
 	armunit = {
-		bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+		bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_ARM, -- + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
 		baseVertexDisplacement = 0.0,
 	},
 	corunit = {
@@ -655,7 +659,6 @@ local gettexturescalls = 0
 	
 	-- uniform sampler2D brdfLUT;			//9
 	-- uniform sampler2D envLUT;			//10
-	-- uniform sampler2D rgbNoise;			//11
 
 
 local objectDefIDtoTextureKeys = {}    -- table of  {unitDefID : TextureKey, -featureDefID : TextureKey }
@@ -747,7 +750,6 @@ local function initBinsAndTextures()
 				[8] = "$info:los", 
 				[9] = brdfLUT,
 				[10] = envLUT,
-				[11] = "LuaUI/Images/rgbnoise.png",
 			}
 			-- is this a proper unitdef with a real 
 			
@@ -805,7 +807,6 @@ local function initBinsAndTextures()
 				[8] = "$info:los", 
 				[9] = brdfLUT,
 				[10] = envLUT,
-				[11] = "LuaUI/Images/rgbnoise.png",
 			}
 			local texKey = GetTexturesKey(textureTable)
 			if textureKeytoSet[texKey] == nil then 
@@ -981,7 +982,7 @@ local function AddObject(objectID, drawFlag)
 			end
 		end
 	end
-	Spring.Echo("AddObject",objectID, objectDefID, drawFlag)
+	-- Spring.Echo("AddObject",objectID, objectDefID, drawFlag)
 	if objectID >= 0 then 
 		Spring.SetUnitEngineDrawMask(objectID, 255 - overrideDrawFlag) -- ~overrideDrawFlag & 255
 		overriddenUnits[objectID] = drawFlag
@@ -1012,7 +1013,7 @@ local function RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, 
 				--if flag == 0 then Spring.Echo("RemoveObjectFromBin", objectID, objectDefID, texKey,shader,flag,objectIndex) end
 				if debugmode then Spring.Echo("RemoveObjectFromBin really", objectID, objectDefID, texKey,shader,flag,objectIndex) end
 				if objectIndex == nil then 
-					Spring.Echo("Remove failed")
+					-- Spring.Echo("Remove failed")
 					return 
 					end
 				local numobjects = unitDrawBinsFlagShaderTexKey.numobjects
@@ -1045,8 +1046,8 @@ local function RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, 
 					unitDrawBinsFlagShaderTexKey.numobjects = numobjects -1 
 				end
 			else
-				Spring.Echo("Failed to find texKey for", objectID, objectDefID, texKey, shader, flag, uniformBinID)
-				Spring.Debug.TableEcho(textures)
+				--Spring.Echo("Failed to find texKey for", objectID, objectDefID, texKey, shader, flag, uniformBinID)
+				--Spring.Debug.TableEcho(textures)
 			end
 		else
 			Spring.Echo("Failed to find uniformBinID for", objectID, objectDefID, texKey, shader, flag, uniformBinID)
@@ -1117,13 +1118,10 @@ end
 
 local function RemoveObject(objectID) -- we get pos/neg objectID here 
 	--remove the object from every bin and table
-	local objectDefID 
+	--Spring.Echo("RemoveObject", objectID)
+	local objectDefID = objectIDtoDefID[objectID]
 	if objectID == nil then Spring.Debug.TraceFullEcho() end 
-	if objectID >= 0 then 
-		objectDefID = Spring.GetUnitDefID(objectID)
-	else 
-		objectDefID = -1 * Spring.GetFeatureDefID(-1 * objectID)
-	end
+
 	if debugmode then Spring.Debug.TraceEcho("RemoveObject", objectID) end
 	objectIDtoDefID[objectID] = objectDefID -- TODO this looks redundant
 
@@ -1414,7 +1412,7 @@ local gf = 0
 function gadget:GameFrame(n)
 	gf = n
 	if (n%300) == 0 then 
-		Spring.Echo(Spring.GetGameFrame(), "processedCounter", processedCounter, asssigncalls,gettexturescalls, 'seenopaque', seenbitsopaque, 'seenalpha', seenbitsalpha)
+		--Spring.Echo(Spring.GetGameFrame(), "processedCounter", processedCounter, asssigncalls,gettexturescalls, 'seenopaque', seenbitsopaque, 'seenalpha', seenbitsalpha)
 	end
 end
 
