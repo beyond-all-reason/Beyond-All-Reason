@@ -345,12 +345,8 @@ local processedCounter = 0
 
 local shaders = {} -- double nested table of {drawflag : {"units":shaderID}}
 
-local vao = nil
-
 local vbo = nil
 local ebo = nil
-local ibo = nil
-
 
 local MAX_DRAWN_UNITS = 8192 -- this is per bin
 local objectTypeAttribID = 6 -- this is the attribute index for instancedata in our VBO
@@ -1363,31 +1359,16 @@ function gadget:Initialize()
 	-- Initialize shaders types like so:
 	--shaders[0 ]['units] ...
 
-	vao = gl.GetVAO()
-	if vao == nil then
-		Spring.Echo("CUS GL4 failed to initialize VAO, exiting")
-		gadgetHandler:RemoveGadget()
-	end
-
 	vbo = gl.GetVBO(GL.ARRAY_BUFFER, false)
 	ebo = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
-	ibo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 
-	if ((vbo == nil) or (ebo == nil) or (ibo == nil)) then
+	if ((vbo == nil) or (ebo == nil)) then
 		Spring.Echo("CUS GL4 failed to initialize VBO, exiting")
 		gadgetHandler:RemoveGadget()
 	end
 
-	ibo:Define(MAX_DRAWN_UNITS, {
-		{id = 6, name = "instData", type = GL.UNSIGNED_INT, size = 4},
-	})
-
 	vbo:ModelsVBO()
 	ebo:ModelsVBO()
-
-	vao:AttachVertexBuffer(vbo)
-	vao:AttachIndexBuffer(ebo)
-	vao:AttachInstanceBuffer(ibo)
 	
 	initBinsAndTextures()
 	
@@ -1446,9 +1427,7 @@ function gadget:Shutdown()
 
 	vbo = nil
 	ebo = nil
-	ibo = nil
 
-	vao = nil
 	unitDrawBins = nil
 	if debugmode then Spring.Debug.TraceFullEcho() end
 	if true then return end
