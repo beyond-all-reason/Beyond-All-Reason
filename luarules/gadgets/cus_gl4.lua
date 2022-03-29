@@ -1,13 +1,19 @@
-function widget:GetInfo()
+function gadget:GetInfo()
 	return {
 		name	= "CUS GL4",
-		author	= "ivand",
+		desc	= "Implements CustomUnitShaders for GL4 rendering pipeline",
+		version = "0.5",
+		author	= "ivand, Beherith",
+		date 	= "20220310",
+		license = "Private while in testing mode", 
 		layer	= 0,
 		enabled	= true,
 	}
 end
 
-
+if not gadgetHandler:IsSyncedCode() then
+	return false
+end
 
 -- Beheriths notes
 
@@ -101,7 +107,7 @@ end
 	
 	-- TODO: alpha cloaked unitses :/ 
 	
-	-- TODO: feature drawing bits too
+	-- Done: feature drawing bits too
 	
 	-- TODO: rewrite treewave
 	
@@ -122,6 +128,8 @@ end
 	-- TODO: engine side: optimize shadow camera as it massively overdraws
 	
 	-- TODO: Specular highlights should also bloom, not just emissive!
+	
+	-- TODO: Cleaner Shutdown and reloadcusgl4 and disablecusgl4
 	
 	-- GetTextures :
 		-- should return array table instead of hash table
@@ -660,7 +668,7 @@ local function CompileLuaShader(shader, definitions, plugIns, addName)
 
 		
 		
-		widgetHandler:RemoveWidget()
+		gadgetHandler:RemoveGadget()
 		
 		return nil
 	else
@@ -946,7 +954,7 @@ local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures,
 		if (mybinIBO == nil) or (mybinVAO == nil) then 
 			Spring.Echo("Failed to allocate IBO or VAO for CUS GL4", mybinIBO, mybinVAO)
 			Spring.Debug.TraceFullEcho()
-			widgetHandler:RemoveWidget()
+			gadgetHandler:RemoveGadget()
 		end
 		
 		mybinIBO:Define(MAX_DRAWN_UNITS, {
@@ -1353,7 +1361,25 @@ local function ExecuteDrawPass(drawPass)
 	return batches, units
 end
 
-function widget:Initialize()
+local function ReloadCUSGL4(optName, _, _, playerID)
+	if (playerID ~= Spring.GetMyPlayerID()) then
+		return
+	end
+	Spring.Echo("[CustomUnitShadersGL4] Reloading")
+	gadget:Shutdown()
+	gadget:Initialize()
+end
+
+local function DisableCUSGL4(optName, _, _, playerID)
+	if (playerID ~= Spring.GetMyPlayerID()) then
+		return
+	end
+	Spring.Echo("[CustomUnitShadersGL4] Disabling")
+	gadget:Shutdown()
+end
+
+
+function gadget:Initialize()
 	
 
 	shaders[0 ] = {}
@@ -1369,7 +1395,8 @@ function widget:Initialize()
 
 	vao = gl.GetVAO()
 	if vao == nil then
-		widgetHandler:RemoveWidget()
+		Spring.Echo("CUS GL4 failed to initialize VAO, exiting")
+		gadgetHandler:RemoveGadget()
 	end
 
 	vbo = gl.GetVBO(GL.ARRAY_BUFFER, false)
@@ -1377,7 +1404,8 @@ function widget:Initialize()
 	ibo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 
 	if ((vbo == nil) or (ebo == nil) or (ibo == nil)) then
-		widgetHandler:RemoveWidget()
+		Spring.Echo("CUS GL4 failed to initialize VBO, exiting")
+		gadgetHandler:RemoveGadget()
 	end
 
 	ibo:Define(MAX_DRAWN_UNITS, {
@@ -1392,8 +1420,12 @@ function widget:Initialize()
 	vao:AttachInstanceBuffer(ibo)
 	
 	initBinsAndTextures()
-
-	widget:Update()
+	
+	
+	gadgetHandler:AddChatAction("reloadcusgl4", ReloadCUSGL4)
+	gadgetHandler:AddChatAction("disablecusgl4", DisableCUSGL4)
+	
+	gadget:Update()
 end
 
 
@@ -1424,7 +1456,7 @@ local function tableEcho(data, name, indent, tableChecked)
 	Spring.Echo(indent .. "},")
 end
 
-function widget:Shutdown()
+function gadget:Shutdown()
 	if debugmode then tableEcho(unitDrawBins, 'unitDrawBins') end
 	
 
@@ -1449,10 +1481,15 @@ function widget:Shutdown()
 	gl.DeleteShader(shaders[0]) -- deferred
 	gl.DeleteShader(shaders[1]) -- forward
 	gl.DeleteShader(shaders[16]) -- shadow
+	
+	
+	gadgetHandler:RemoveChatAction("disablecusgl4")
+	gadgetHandler:RemoveChatAction("reloadcusgl4")
+	
 end
 
 local updateframe = 0
-function widget:Update()
+function gadget:Update()
 	
 	updateframe = (updateframe + 1) % 10
 	
@@ -1475,7 +1512,7 @@ end
 local seenbitsopaque = 0
 local seenbitsalpha = 0
 local gf = 0
-function widget:GameFrame(n)
+function gadget:GameFrame(n)
 	gf = n
 	if (n%300) == 0 then 
 		Spring.Echo(Spring.GetGameFrame(), "processedCounter", processedCounter, asssigncalls,gettexturescalls, 'seenopaque', seenbitsopaque, 'seenalpha', seenbitsalpha)
@@ -1503,7 +1540,7 @@ local function markBin(drawPass)
 end
 	
 
-function widget:TextCommand(command)
+function gadget:TextCommand(command)
 	if string.find(command, "cusgl4markbin", nil, true) == 1 then
 		local startmatch, endmatch = string.find(command, "cusgl4markbin", nil, true)
 		local param = string.sub(command, endmatch + 2,nil)
@@ -1514,7 +1551,7 @@ function widget:TextCommand(command)
 end
 
 
-function widget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
+function gadget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 	local drawPass = 1 --opaque
 
 	if deferredPass then
@@ -1534,7 +1571,7 @@ function widget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 	--if gf % 61 == 0 then Spring.Echo("drawPass", drawPass, "batches", batches, "units", units) end 	
 end
 
-function widget:DrawAlphaUnitsLua(drawReflection, drawRefraction)
+function gadget:DrawAlphaUnitsLua(drawReflection, drawRefraction)
 	local drawPass = 2 --alpha
 
 	if drawReflection then
@@ -1551,9 +1588,9 @@ function widget:DrawAlphaUnitsLua(drawReflection, drawRefraction)
 	
 end
 
-function widget:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefraction)
+function gadget:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefraction)
 
-	--Spring.Echo("widget:DrawOpaqueFeaturesLua",deferredPass, drawReflection, drawRefraction)
+	--Spring.Echo("gadget:DrawOpaqueFeaturesLua",deferredPass, drawReflection, drawRefraction)
 	local drawPass = 1 --opaque
 
 	if deferredPass then
@@ -1573,8 +1610,8 @@ function widget:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefracti
 	--if gf % 61 == 0 then Spring.Echo("drawPass", drawPass, "batches", batches, "units", units) end 	
 end
 
-function widget:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
-	--Spring.Echo("widget:DrawAlphaFeaturesLua",drawReflection, drawRefraction)
+function gadget:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
+	--Spring.Echo("gadget:DrawAlphaFeaturesLua",drawReflection, drawRefraction)
 	local drawPass = 2 --alpha
 
 	if drawReflection then
@@ -1591,6 +1628,6 @@ function widget:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
 	
 end
 
-function widget:DrawShadowUnitsLua()
+function gadget:DrawShadowUnitsLua()
 	ExecuteDrawPass(16)
 end
