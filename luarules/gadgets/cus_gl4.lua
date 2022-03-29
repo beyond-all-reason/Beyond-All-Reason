@@ -345,8 +345,8 @@ local processedCounter = 0
 
 local shaders = {} -- double nested table of {drawflag : {"units":shaderID}}
 
-local vbo = nil
-local ebo = nil
+local modelsVertexVBO = nil
+local modelsIndexVBO = nil
 
 local MAX_DRAWN_UNITS = 8192 -- this is per bin
 local objectTypeAttribID = 6 -- this is the attribute index for instancedata in our VBO
@@ -405,17 +405,11 @@ local function SetFixedStatePost(drawPass, shaderID)
 	end
 end
 
---[[
-drawMode:
-		case  1: // water reflection
-		case  2: // water refraction
-		default: // player, (-1) static model, (0) normal rendering
-]]--
+
 local function SetShaderUniforms(drawPass, shaderID, uniformBinID)
 	--if true then return end
 	gl.UniformInt(gl.GetUniformLocation(shaderID, "drawPass"), drawPass)
 	if drawPass <= 2 then
-		gl.UniformInt(gl.GetUniformLocation(shaderID, "drawMode"), 0)
 		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane2"), 0.0, 0.0, 0.0, 1.0)
 	elseif drawPass == 16 then
 		--gl.Uniform(gl.GetUniformLocation(shaderID, "alphaCtrl"), alphaThresholdOpaque, 1.0, 0.0, 0.0)
@@ -432,10 +426,8 @@ local function SetShaderUniforms(drawPass, shaderID, uniformBinID)
 	end
 	
 	if HasBit(drawPass, 4) then
-		gl.UniformInt(gl.GetUniformLocation(shaderID, "drawMode"), 1)
 		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane2"), 0.0, 1.0, 0.0, 0.0)
 	elseif HasBit(drawPass, 8) then
-		gl.UniformInt(gl.GetUniformLocation(shaderID, "drawMode"), 2)
 		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane2"), 0.0, -1.0, 0.0, 0.0)
 	end
 	
@@ -517,23 +509,6 @@ local unitsNormalMapTemplate = table.merge(defaultMaterialTemplate, {
 		"#define SUPPORT_DEPTH_LAYOUT ".. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
 		"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
 	},
-	shadowOptions = {
-		health_displace = true,
-	},
-	shaderOptions = {
-		normalmapping = true,
-		flashlights = true,
-		vertex_ao = true,
-		health_displace = true,
-		health_texturing = true,
-	},
-	deferredOptions = {
-		normalmapping = true,
-		flashlights = true,
-		vertex_ao = true,
-		health_displace = true,
-		health_texturing = true,
-	},
 })
 
 Spring.Debug.TableEcho(unitsNormalMapTemplate["shadowDefinitions"])
@@ -579,33 +554,19 @@ local featuresNormalMapTemplate = table.merge(defaultMaterialTemplate, {
 		"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
 		"#define HASALPHASHADOWS",
 	},
-	shadowOptions = {
-		health_displace = true,
-	},
-	shaderOptions = {
-		normalmapping = true,
-		flashlights = true,
-		vertex_ao = true,
-		health_displace = true,
-		health_texturing = true,
-	},
-	deferredOptions = {
-		normalmapping = true,
-		flashlights = true,
-		vertex_ao = true,
-		health_displace = true,
-		health_texturing = true,
-	},
 })
-
-
-
 
 local DEFAULT_VERSION = [[#version 430 core
 	#extension GL_ARB_uniform_buffer_object : require
 	#extension GL_ARB_shader_storage_buffer_object : require
 	#extension GL_ARB_shading_language_420pack: require
 	]]
+
+local function dumpShaderCodeToFile(defs, src, filename)
+	local vsfile = io.open('cus_' .. filename .. ".glsl","w+")
+	vsfile:write(defs .. src)
+	vsfile:close()
+end 
 
 local function CompileLuaShader(shader, definitions, plugIns, addName)
 	if definitions == nil or definitions == {} then 
@@ -614,16 +575,18 @@ local function CompileLuaShader(shader, definitions, plugIns, addName)
 	definitions = definitions or {}
 
 	local hasVersion = false
-	if definitions[1] then -- #version must be 1st statement
+	if definitions[1] then -- #version must be 1st statement or else AMD throws a fit
 		hasVersion = string.find(definitions[1], "#version") == 1
 	end
 
 	if not hasVersion then
 		table.insert(definitions, 1, DEFAULT_VERSION)
 	end
-
+	
+	-- First the default default defs
 	shader.definitions = table.concat(definitions, "\n") .. "\n"
 	
+	-- Then the engineUniformBufferDefs (see LuaShader.lua)
 	shader.definitions = shader.definitions .. engineUniformBufferDefs
 
 	--// insert small pieces of code named `plugins`
@@ -648,30 +611,15 @@ local function CompileLuaShader(shader, definitions, plugIns, addName)
 	local compilationResult = luaShader:Initialize()
 	if compilationResult ~= true then 
 		Spring.Echo("Custom Unit Shaders. " .. addName .. " shader compilation failed")
-		local vsfile = io.open("cus_vs.glsl","w+")
-		vsfile:write(shader.definitions .. shader.vertex)
-		vsfile:close()
-
-		local fsfile = io.open("cus_fs.glsl","w+")
-		fsfile:write(shader.definitions .. shader.fragment)
-		fsfile:close()
-
-		
-		
+		dumpShaderCodeToFile(shader.definitions, shader.vertex, "vs" .. addName)
+		dumpShaderCodeToFile(shader.definitions, shader.fragment, "fs" .. addName)
 		gadgetHandler:RemoveGadget()
 		
 		return nil
-	else
-		--Spring.Echo(addName, "Compiled successfully")
 	end
-	
-	-- luaShader:SetUniformFloatAlways("gamma", Spring.GetConfigFloat("modelGamma", 1.0)) -- only possible with active shaders wtf
 
 	return (compilationResult and luaShader) or nil
 end
-
-
-
 
 local function compileMaterialShader(template, name)
 	local forwardShader = CompileLuaShader(template.shader, template.shaderDefinitions, template.shaderPlugins, name .."_forward" )
@@ -951,8 +899,8 @@ local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures,
 			{id = 6, name = "instData", type = GL.UNSIGNED_INT, size = 4},
 		})
 		
-		mybinVAO:AttachVertexBuffer(vbo)
-		mybinVAO:AttachIndexBuffer(ebo)
+		mybinVAO:AttachVertexBuffer(modelsVertexVBO)
+		mybinVAO:AttachIndexBuffer(modelsIndexVBO)
 		mybinVAO:AttachInstanceBuffer(mybinIBO)
 	
 		unitDrawBinsFlagShaderUniforms[texKey] = {
@@ -1334,7 +1282,6 @@ end
 
 
 function gadget:Initialize()
-	
 
 	shaders[0 ] = {}
 	for k = 1, #drawBinKeys do
@@ -1353,22 +1300,21 @@ function gadget:Initialize()
 		[16   ] = {},	-- shadow
 	}
 
-
+	-- Initialize shaders types like so::
+	-- shaders[0]['unit_deferred'] = LuaShaderObject 
 	compileMaterialShader(unitsNormalMapTemplate, "unit")
 	compileMaterialShader(featuresNormalMapTemplate, "feature")
-	-- Initialize shaders types like so:
-	--shaders[0 ]['units] ...
 
-	vbo = gl.GetVBO(GL.ARRAY_BUFFER, false)
-	ebo = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+	modelsVertexVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	modelsIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
 
-	if ((vbo == nil) or (ebo == nil)) then
+	if ((modelsVertexVBO == nil) or (modelsIndexVBO == nil)) then
 		Spring.Echo("CUS GL4 failed to initialize VBO, exiting")
 		gadgetHandler:RemoveGadget()
 	end
 
-	vbo:ModelsVBO()
-	ebo:ModelsVBO()
+	modelsVertexVBO:ModelsVBO()
+	modelsIndexVBO:ModelsVBO()
 	
 	initBinsAndTextures()
 	
@@ -1425,8 +1371,8 @@ function gadget:Shutdown()
 		end
 	end
 
-	vbo = nil
-	ebo = nil
+	modelsVertexVBO = nil
+	modelsIndexVBO = nil
 
 	unitDrawBins = nil
 	if debugmode then Spring.Debug.TraceFullEcho() end
