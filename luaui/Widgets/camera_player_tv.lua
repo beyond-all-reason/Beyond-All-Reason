@@ -155,7 +155,7 @@ local function createList()
 	end
 	drawlist = {}
 	drawlist[1] = gl.CreateList(function()
-		-- Player TV
+		-- Player TV Button
 		local fontSize = (widgetHeight * widgetScale) * 0.5
 		local text, color1, color2
 		if not toggled and not lockPlayerID then
@@ -176,7 +176,7 @@ local function createList()
 		font:Print(text, toggleButton[3]-((toggleButton[3]-toggleButton[1])/2), toggleButton[2] + (7 * widgetScale), fontSize, 'oc')
 		font:End()
 
-		-- Player View
+		-- Player Viewpoint Button
 		if not toggled2 then
 			text = '\255\240\240\240   ' .. Spring.I18N('ui.playerTV.playerView') .. '   '
 			color1 = { 0.6, 0.6, 0.6, 0.66 }
@@ -188,15 +188,15 @@ local function createList()
 		end
 		textWidth = font:GetTextWidth(text) * fontSize
 		toggleButton2 = { toggleButton[1] - textWidth-bgpadding, bottom, toggleButton[1]-bgpadding, top }
-		RectRound(toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4], elementCorner, 1, 1, 0, 0, color1, color2)
-		RectRound(toggleButton2[1] + bgpadding, toggleButton2[2], toggleButton2[3]-bgpadding, toggleButton[4] - bgpadding, elementCorner*0.66, 1, 1, 0, 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
+		RectRound(toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4], elementCorner, 1, 1, 0, toggleButton2[1] < left and 1 or 0, color1, color2)
+		RectRound(toggleButton2[1] + bgpadding, toggleButton2[2], toggleButton2[3]-bgpadding, toggleButton[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton2[1] < left and 1 or 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
 
 		font:Begin()
 		font:Print(text, toggleButton2[3]-((toggleButton2[3]-toggleButton2[1])/2), toggleButton2[2] + (7 * widgetScale), fontSize, 'oc')
 		font:End()
 	end)
 	drawlist[2] = gl.CreateList(function()
-		-- Player TV
+		-- Player TV Button highlight
 		if toggled or lockPlayerID then
 			gl.Color(1, 0.2, 0.2, 0.4)
 		else
@@ -217,15 +217,15 @@ local function createList()
 		font:End()
 	end)
 	drawlist[3] = gl.CreateList(function()
-		-- Player View
+		-- Player Viewpoint Button highlight
 		if toggled2 then
 			gl.Color(0.85, 0.2, 0.2, 0.4)
 		else
 			gl.Color(0.85, 0.85, 0.85, 0.4)
 		end
-		RectRound(toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4], elementCorner, 1, 1, 0, 0)
+		RectRound(toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4], elementCorner, 1, 1, 0, toggleButton2[1] < left and 1 or 0)
 		gl.Color(0, 0, 0, 0.14)
-		RectRound(toggleButton2[1] + bgpadding, toggleButton2[2], toggleButton2[3], toggleButton2[4] - bgpadding, elementCorner*0.66, 1, 1, 0, 0)
+		RectRound(toggleButton2[1] + bgpadding, toggleButton2[2], toggleButton2[3], toggleButton2[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton2[1] < left and 1 or 0)
 
 		local text = '\255\255\255\244   ' .. Spring.I18N('ui.playerTV.globalView') .. '   '
 		if not toggled2 then
@@ -244,7 +244,7 @@ local function createList()
 		end
 		backgroundGuishader = gl.CreateList(function()
 			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], elementCorner, 1, 0, 0, 0)
-			RectRound(toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4], elementCorner, 1, 1, 0, 0)
+			RectRound(toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4], elementCorner, 1, 1, 0, toggleButton2[1] < left and 1 or 0)
 		end)
 		WG['guishader'].InsertDlist(backgroundGuishader, 'playertv')
 	end
@@ -329,6 +329,9 @@ function widget:GameStart()
 	if isSpec and not rejoining and toggled then
 		SelectTrackingPlayer()
 	end
+	if isSpec then
+		createList()
+	end
 end
 
 function widget:PlayerChanged(playerID)
@@ -384,7 +387,7 @@ function widget:Update(dt)
 			scheduledSpecFullView = nil
 		end
 	end
-	if desiredLosmodeChanged + 1 > os.clock() then
+	if desiredLosmodeChanged + 0.3 > os.clock() then
 		if desiredLosmode ~= Spring.GetMapDrawMode() then
 			-- this is needed else the minimap/world doesnt update properly
 			Spring.SendCommands("togglelos")
@@ -483,7 +486,7 @@ function widget:MousePress(mx, my, mb)
 				elseif not rejoining then
 					toggled = true
 					toggled2 = true
-					nextTrackingPlayerChange = os.clock() - 1
+					nextTrackingPlayerChange = os.clock() - 0.3
 					createList()
 				end
 			end
@@ -617,7 +620,7 @@ function widget:DrawScreen()
 						local posY = vsy * 0.0215
 						font2:Begin()
 						font2:SetTextColor(nameColourR, nameColourG, nameColourB, 1)
-						if (nameColourR + nameColourG * 1.2 + nameColourB * 0.4) < 0.8 then
+						if (nameColourR + nameColourG * 1.2 + nameColourB * 0.4) < 0.65 then
 							font2:SetOutlineColor(1, 1, 1, 1)
 						else
 							font2:SetOutlineColor(0, 0, 0, 1)
