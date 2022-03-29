@@ -154,7 +154,6 @@ local function createList()
 		gl.DeleteList(drawlist[i])
 	end
 	drawlist = {}
-	Spring.Echo(nextTrackingPlayerChange - os.clock())
 	drawlist[1] = gl.CreateList(function()
 		-- Player TV Button
 		local fontSize = (widgetHeight * widgetScale) * 0.5
