@@ -352,14 +352,8 @@ local ebo = nil
 local ibo = nil
 
 
-local MAX_DRAWN_UNITS = 8192
-local objectTypeAttribID = 6
-
--- setting this to 1 enables the incrementally updated VBOs
--- 0 updates it every frame
--- 2 completely disables draw, so one can measure overhead sans draw
-local drawIncrementalMode = 1 -- 
------------------
+local MAX_DRAWN_UNITS = 8192 -- this is per bin
+local objectTypeAttribID = 6 -- this is the attribute index for instancedata in our VBO
 
 local function Bit(p)
 	return 2 ^ (p - 1)  -- 1-based indexing
@@ -1293,60 +1287,24 @@ local function ExecuteDrawPass(drawPass)
 				SetShaderUniforms(drawPass, shaderId.shaderObj, uniformBinID)
 				
 				for _, texAndObj in pairs(uniformBin) do
-					if drawIncrementalMode == 1 then 
-						if texAndObj.numobjects > 0  then 
-							batches = batches + 1
-							units = units + texAndObj.numobjects
-							local mybinVAO = texAndObj.VAO
-							for bindPosition, tex in pairs(texAndObj.textures) do
-								if Spring.GetGameFrame() % 60 == 0 then 
-									--Spring.Echo(bindPosition, tex)	
-								end
-								gl.Texture(bindPosition, tex)
-							end
-							
-							SetFixedStatePre(drawPass, shaderId)
-							shaderactivations = shaderactivations + 1 
-							--SetShaderUniforms(drawPass, shaderId.shaderObj)
-							
-							mybinVAO:Submit()
-
-							SetFixedStatePost(drawPass, shaderId)
-
-							for bindPosition, tex in pairs(texAndObj.textures) do
-								gl.Texture(bindPosition, false)
-							end
-						end
-					elseif drawIncrementalMode == 0 then -- will no longer work when features are present!
+					if texAndObj.numobjects > 0  then 
 						batches = batches + 1
-						
+						units = units + texAndObj.numobjects
+						local mybinVAO = texAndObj.VAO
 						for bindPosition, tex in pairs(texAndObj.textures) do
+							if Spring.GetGameFrame() % 60 == 0 then 
+								--Spring.Echo(bindPosition, tex)	
+							end
 							gl.Texture(bindPosition, tex)
 						end
 						
 						SetFixedStatePre(drawPass, shaderId)
+						shaderactivations = shaderactivations + 1 
+						--SetShaderUniforms(drawPass, shaderId.shaderObj)
 						
-						for unitID, _ in pairs(texAndObj.objectsIndex) do
-							unitIDscache[#unitIDscache + 1] = unitID
-							units = units + 1 
-						end
-						
-						ibo:InstanceDataFromUnitIDs(unitIDscache, 6) --id = 6, name = "instData"
-						vao:ClearSubmission()
-						vao:AddUnitsToSubmission(unitIDscache)
-						
-						for i=1, #unitIDscache do
-							unitIDscache[i] = nil
-						end
-						
-						gl.UseShader(shaderId)
-						SetShaderUniforms(drawPass, shaderId)
-						
-						vao:Submit()
-						gl.UseShader(0)
+						mybinVAO:Submit()
 
 						SetFixedStatePost(drawPass, shaderId)
-						
 
 						for bindPosition, tex in pairs(texAndObj.textures) do
 							gl.Texture(bindPosition, false)
@@ -1387,6 +1345,18 @@ function gadget:Initialize()
 		local flag = drawBinKeys[k]
 		shaders[flag] = {}
 	end
+	
+	unitDrawBins = {
+		[0    ] = {},	-- deferred opaque
+		[1    ] = {},	-- forward  opaque
+		[1 + 4] = {},	-- forward  opaque + reflection
+		[1 + 8] = {},	-- forward  opaque + refraction
+		[2    ] = {},	-- alpha
+		[2 + 4] = {},	-- alpha + reflection
+		[2 + 8] = {},	-- alpha + refraction
+		[16   ] = {},	-- shadow
+	}
+
 
 	compileMaterialShader(unitsNormalMapTemplate, "unit")
 	compileMaterialShader(featuresNormalMapTemplate, "feature")
@@ -1420,7 +1390,6 @@ function gadget:Initialize()
 	vao:AttachInstanceBuffer(ibo)
 	
 	initBinsAndTextures()
-	
 	
 	gadgetHandler:AddChatAction("reloadcusgl4", ReloadCUSGL4)
 	gadgetHandler:AddChatAction("disablecusgl4", DisableCUSGL4)
@@ -1467,8 +1436,13 @@ function gadget:Shutdown()
 	for featureID, _ in pairs(overriddenFeatures) do
 		RemoveObject(-1 * featureID)
 	end
-
-
+	if unitDrawBins then 
+		for drawFlag, bins in pairs(unitDrawBins) do 
+			for shaderobj, _ in pairs(bins) do 
+				shaderobj:Finalize()
+			end
+		end
+	end
 
 	vbo = nil
 	ebo = nil
@@ -1490,7 +1464,7 @@ end
 
 local updateframe = 0
 function gadget:Update()
-	
+	if unitDrawBins == nil then return end
 	updateframe = (updateframe + 1) % 10
 	
 	if updateframe == 0 then 
@@ -1552,6 +1526,7 @@ end
 
 
 function gadget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
+	if unitDrawBins == nil then return end
 	local drawPass = 1 --opaque
 
 	if deferredPass then
@@ -1572,6 +1547,7 @@ function gadget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 end
 
 function gadget:DrawAlphaUnitsLua(drawReflection, drawRefraction)
+	if unitDrawBins == nil then return end
 	local drawPass = 2 --alpha
 
 	if drawReflection then
@@ -1589,6 +1565,7 @@ function gadget:DrawAlphaUnitsLua(drawReflection, drawRefraction)
 end
 
 function gadget:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefraction)
+	if unitDrawBins == nil then return end
 
 	--Spring.Echo("gadget:DrawOpaqueFeaturesLua",deferredPass, drawReflection, drawRefraction)
 	local drawPass = 1 --opaque
@@ -1611,6 +1588,7 @@ function gadget:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefracti
 end
 
 function gadget:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
+	if unitDrawBins == nil then return end
 	--Spring.Echo("gadget:DrawAlphaFeaturesLua",drawReflection, drawRefraction)
 	local drawPass = 2 --alpha
 
@@ -1629,5 +1607,11 @@ function gadget:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
 end
 
 function gadget:DrawShadowUnitsLua()
+	if unitDrawBins == nil then return end
 	ExecuteDrawPass(16)
+end
+
+
+function gadget:DrawShadowFeaturesLua()
+	if unitDrawBins == nil then return end
 end
