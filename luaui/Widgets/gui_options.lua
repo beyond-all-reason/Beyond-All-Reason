@@ -2631,7 +2631,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'id' }, value, { 'id', value })
 		  end,
 		},
-		{ id = "advplayerlist_country", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_country, type = "bool", value = true, description = texts.option.advplayerlist_country_descr,
+		{ id = "advplayerlist_country", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_country, type = "bool", value = true, description = texts.option.advplayerlist_country_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_country", { 'm_active_Table', 'country' })
 		  end,
@@ -2639,7 +2639,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'country' }, value, { 'country', value })
 		  end,
 		},
-		{ id = "advplayerlist_rank", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_rank, type = "bool", value = true, description = texts.option.advplayerlist_rank_descr,
+		{ id = "advplayerlist_rank", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_rank, type = "bool", value = true, description = texts.option.advplayerlist_rank_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_rank", { 'm_active_Table', 'rank' })
 		  end,
@@ -2655,7 +2655,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'side' }, value, { 'side', value })
 		  end,
 		},
-		{ id = "advplayerlist_skill", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_skill, type = "bool", value = true, description = texts.option.advplayerlist_skill_descr,
+		{ id = "advplayerlist_skill", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_skill, type = "bool", value = true, description = texts.option.advplayerlist_skill_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_skill", { 'm_active_Table', 'skill' })
 		  end,
