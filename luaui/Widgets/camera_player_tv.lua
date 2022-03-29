@@ -164,7 +164,7 @@ local function createList()
 			color1 = { 0, 0.8, 0, 0.66 }
 			color2 = { 0, 0.55, 0, 0.66 }
 		else
-			text = '\255\255\222\222   ' .. (nextTrackingPlayerChange - os.clock() > -1 and Spring.I18N('ui.playerTV.cancelPlayerTV') or Spring.I18N('ui.playerTV.cancelCamera')) .. '   '
+			text = '\255\255\222\222   ' .. (nextTrackingPlayerChange - os.clock() > -1 and Spring.I18N('ui.playerTV.cancelPlayerTV') or Spring.I18N('ui.playerTV.cancelCamera')) .. '    '
 			color1 = { 0.88, 0.1, 0.1, 0.66 }
 			color2 = { 0.6, 0.05, 0.05, 0.66 }
 		end
@@ -207,7 +207,7 @@ local function createList()
 		gl.Color(0, 0, 0, 0.14)
 		RectRound(toggleButton[1] + bgpadding, toggleButton[2], toggleButton[3], toggleButton[4] - bgpadding, elementCorner*0.66, 1, 1, 1, 0)
 
-		local text = '\255\255\225\225   ' .. (nextTrackingPlayerChange - os.clock() > -1 and Spring.I18N('ui.playerTV.cancelPlayerTV') or Spring.I18N('ui.playerTV.cancelCamera')) .. '   '
+		local text = '\255\255\225\225   ' .. (nextTrackingPlayerChange - os.clock() > -1 and Spring.I18N('ui.playerTV.cancelPlayerTV') or Spring.I18N('ui.playerTV.cancelCamera')) .. '    '
 		if not toggled and not lockPlayerID then
 			text = '\255\225\255\225   ' .. Spring.I18N('ui.playerTV.playerTV') .. '    '
 		end
@@ -348,6 +348,34 @@ function widget:PlayerChanged(playerID)
 	end
 end
 
+
+local function switchPlayerCam()
+	nextTrackingPlayerChange = os.clock() + playerChangeDelay
+	local scope = 1 + math.floor(1 + tsOrderedPlayerCount / 2)
+	if tsOrderedPlayerCount <= 2 then
+		scope = 2
+	elseif tsOrderedPlayerCount <= 6 then
+		scope = 1 + math.floor(1 + tsOrderedPlayerCount / 1.5)
+	elseif tsOrderedPlayerCount <= 10 then
+		scope = 1 + math.floor(1 + tsOrderedPlayerCount / 1.75)
+	end
+	local orderID = math.random(1, scope)
+
+	local r = math.random()
+	orderID = 1 + math.floor((r * (r * r)) * scope)
+	if orderID == prevOrderID then
+		-- prevent same player POV again
+		orderID = orderID - 1
+		if orderID < 1 then
+			orderID = 2
+		end
+	end
+	prevOrderID = orderID
+	if tsOrderedPlayers[orderID] then
+		SelectTrackingPlayer(tsOrderedPlayers[orderID][2])
+	end
+end
+
 local passedTime = 0
 local uiOpacitySec = 0.5
 function widget:Update(dt)
@@ -419,30 +447,7 @@ function widget:Update(dt)
 		if not rejoining and toggled then
 			if Spring.GetGameFrame() > initGameframe + 70 and os.clock() > nextTrackingPlayerChange then
 				--delay some gameframes so we know if we're rejoining or not
-				nextTrackingPlayerChange = os.clock() + playerChangeDelay
-				local scope = 1 + math.floor(1 + tsOrderedPlayerCount / 2)
-				if tsOrderedPlayerCount <= 2 then
-					scope = 2
-				elseif tsOrderedPlayerCount <= 6 then
-					scope = 1 + math.floor(1 + tsOrderedPlayerCount / 1.5)
-				elseif tsOrderedPlayerCount <= 10 then
-					scope = 1 + math.floor(1 + tsOrderedPlayerCount / 1.75)
-				end
-				local orderID = math.random(1, scope)
-
-				local r = math.random()
-				orderID = 1 + math.floor((r * (r * r)) * scope)
-				if orderID == prevOrderID then
-					-- prevent same player POV again
-					orderID = orderID - 1
-					if orderID < 1 then
-						orderID = 2
-					end
-				end
-				prevOrderID = orderID
-				if tsOrderedPlayers[orderID] then
-					SelectTrackingPlayer(tsOrderedPlayers[orderID][2])
-				end
+				switchPlayerCam()
 			end
 		end
 	end
@@ -488,7 +493,7 @@ function widget:MousePress(mx, my, mb)
 				elseif not rejoining then
 					toggled = true
 					toggled2 = true
-					nextTrackingPlayerChange = os.clock()-0.3
+					switchPlayerCam()
 					createList()
 				end
 			end
@@ -604,7 +609,7 @@ function widget:DrawScreen()
 	end
 	if displayPlayername then
 		if WG['advplayerlist_api'] then
-			if lockPlayerID == nil or lockPlayerID ~= WG['advplayerlist_api'].GetLockPlayerID() then
+			if lockPlayerID == nil or lockPlayerID ~= WG['advplayerlist_api'].GetLockPlayerID() and nextTrackingPlayerChange-os.clock() < 0 then
 				nextTrackingPlayerChange = os.clock() - 2
 				lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
 				if not toggled and prevLockPlayerID ~= lockPlayerID then
