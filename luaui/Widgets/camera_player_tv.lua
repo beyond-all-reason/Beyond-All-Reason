@@ -31,7 +31,7 @@ local prevOrderID = 1
 
 local currentTrackedPlayer
 local playersTS = {}
-local nextTrackingPlayerChange = os.clock()
+local nextTrackingPlayerChange = os.clock() - 200
 
 local tsOrderedPlayerCount = 0
 local tsOrderedPlayers = {}
@@ -154,16 +154,17 @@ local function createList()
 		gl.DeleteList(drawlist[i])
 	end
 	drawlist = {}
+	Spring.Echo(nextTrackingPlayerChange - os.clock())
 	drawlist[1] = gl.CreateList(function()
 		-- Player TV Button
 		local fontSize = (widgetHeight * widgetScale) * 0.5
 		local text, color1, color2
 		if not toggled and not lockPlayerID then
-			text = '\255\222\255\222   ' .. Spring.I18N('ui.playerTV.playerTV') .. '   '
+			text = '\255\222\255\222   ' .. Spring.I18N('ui.playerTV.playerTV') .. '    '
 			color1 = { 0, 0.8, 0, 0.66 }
 			color2 = { 0, 0.55, 0, 0.66 }
 		else
-			text = '\255\255\222\222   ' .. Spring.I18N('ui.playerTV.cancelCamera') .. '   '
+			text = '\255\255\222\222   ' .. (nextTrackingPlayerChange - os.clock() > -1 and Spring.I18N('ui.playerTV.cancelPlayerTV') or Spring.I18N('ui.playerTV.cancelCamera')) .. '   '
 			color1 = { 0.88, 0.1, 0.1, 0.66 }
 			color2 = { 0.6, 0.05, 0.05, 0.66 }
 		end
@@ -206,9 +207,9 @@ local function createList()
 		gl.Color(0, 0, 0, 0.14)
 		RectRound(toggleButton[1] + bgpadding, toggleButton[2], toggleButton[3], toggleButton[4] - bgpadding, elementCorner*0.66, 1, 1, 1, 0)
 
-		local text = '\255\255\225\225   ' .. Spring.I18N('ui.playerTV.cancelCamera') .. '   '
+		local text = '\255\255\225\225   ' .. (nextTrackingPlayerChange - os.clock() > -1 and Spring.I18N('ui.playerTV.cancelPlayerTV') or Spring.I18N('ui.playerTV.cancelCamera')) .. '   '
 		if not toggled and not lockPlayerID then
-			text = '\255\225\255\225   ' .. Spring.I18N('ui.playerTV.playerTV') .. '   '
+			text = '\255\225\255\225   ' .. Spring.I18N('ui.playerTV.playerTV') .. '    '
 		end
 		local fontSize = (widgetHeight * widgetScale) * 0.5
 		local textWidth = font:GetTextWidth(text) * fontSize
@@ -324,7 +325,7 @@ end
 
 function widget:GameStart()
 	isSpec, fullview = Spring.GetSpectatingState()
-	nextTrackingPlayerChange = os.clock()
+	nextTrackingPlayerChange = os.clock()-0.3
 	tsOrderPlayers()
 	if isSpec and not rejoining and toggled then
 		SelectTrackingPlayer()
@@ -470,6 +471,7 @@ end
 
 function widget:MousePress(mx, my, mb)
 	if isSpec and (Spring.GetGameFrame() > 0 or lockPlayerID) then
+		-- player tv
 		if toggleButton ~= nil and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
 			if mb == 1 then
 				prevOrderID = nil
@@ -486,13 +488,13 @@ function widget:MousePress(mx, my, mb)
 				elseif not rejoining then
 					toggled = true
 					toggled2 = true
-					nextTrackingPlayerChange = os.clock() - 0.3
+					nextTrackingPlayerChange = os.clock()-0.3
 					createList()
 				end
 			end
 			return true
 		end
-
+		-- player viewpoint
 		if toggleButton2 ~= nil and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4]) then
 			isSpec, fullview = Spring.GetSpectatingState()
 			if mb == 1 then
@@ -603,6 +605,7 @@ function widget:DrawScreen()
 	if displayPlayername then
 		if WG['advplayerlist_api'] then
 			if lockPlayerID == nil or lockPlayerID ~= WG['advplayerlist_api'].GetLockPlayerID() then
+				nextTrackingPlayerChange = os.clock() - 2
 				lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
 				if not toggled and prevLockPlayerID ~= lockPlayerID then
 					createList()
