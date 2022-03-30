@@ -118,6 +118,10 @@ end
 	
 	-- TODO: fix flashlights to be piece-unique
 	
+	-- TODO: AVOID DISCARD in FS AT ALL COST! 
+		-- 500 armcom fullview is 82 vs 108 fps with nodiscard!
+		-- Even if discard is in a never-called dynamically uniform!
+	
 	-- TODO: investigate why/how refraction pass doesnt ever seem to get called
 	
 	-- TODO: reduce the amount of deferred buffers being used from 6 to 4
@@ -467,98 +471,104 @@ local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 
 local MATERIALS_DIR = "modelmaterials_gl4/"
 
-local defaultMaterialTemplate = VFS.Include("modelmaterials_gl4/templates/defaultMaterialTemplate.lua")
+local defaultMaterialTemplate
 
-Spring.Debug.TableEcho(defaultMaterialTemplate["shadowDefinitions"])
+--Spring.Debug.TableEcho(defaultMaterialTemplate["shadowDefinitions"])
 
-local unitsNormalMapTemplate = table.merge(defaultMaterialTemplate, {
-	shaderDefinitions = {
-		"#define RENDERING_MODE 0",
-		"#define SUNMULT pbrParams[6]",
-		"#define EXPOSURE pbrParams[7]",
+local unitsNormalMapTemplate
+local featuresNormalMapTemplate 
 
-		"#define SPECULAR_AO",
+local function initMaterials()
+	defaultMaterialTemplate = VFS.Include("modelmaterials_gl4/templates/defaultMaterialTemplate.lua")
 
-		"#define ROUGHNESS_AA 1.0",
+	unitsNormalMapTemplate = table.merge(defaultMaterialTemplate, {
+		shaderDefinitions = {
+			"#define RENDERING_MODE 0",
+			"#define SUNMULT pbrParams[6]",
+			"#define EXPOSURE pbrParams[7]",
 
-		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
-		"#define USE_ENVIRONMENT_DIFFUSE 1",
-		"#define USE_ENVIRONMENT_SPECULAR 1",
+			"#define SPECULAR_AO",
 
-		"#define TONEMAP(c) CustomTM(c)",
-		"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
-		"#define ENABLE_OPTION_THREADS 1",
-		"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
-	},
-	deferredDefinitions = {
-		"#define RENDERING_MODE 1",
-		"#define SUNMULT pbrParams[6]",
-		"#define EXPOSURE pbrParams[7]",
+			"#define ROUGHNESS_AA 1.0",
 
-		"#define SPECULAR_AO",
+			"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
+			"#define USE_ENVIRONMENT_DIFFUSE 1",
+			"#define USE_ENVIRONMENT_SPECULAR 1",
 
-		"#define ROUGHNESS_AA 1.0",
+			"#define TONEMAP(c) CustomTM(c)",
+			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
+			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
+		},
+		deferredDefinitions = {
+			"#define RENDERING_MODE 1",
+			"#define SUNMULT pbrParams[6]",
+			"#define EXPOSURE pbrParams[7]",
 
-		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
-		"#define USE_ENVIRONMENT_DIFFUSE 1",
-		"#define USE_ENVIRONMENT_SPECULAR 1",
+			"#define SPECULAR_AO",
 
-		"#define TONEMAP(c) CustomTM(c)",
-		"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
-		"#define ENABLE_OPTION_THREADS 1",
-		"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
-	},
-	shadowDefinitions = {
-		"#define RENDERING_MODE 2",
-		"#define SUPPORT_DEPTH_LAYOUT ".. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
-		"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
-	},
-})
+			"#define ROUGHNESS_AA 1.0",
 
-Spring.Debug.TableEcho(unitsNormalMapTemplate["shadowDefinitions"])
+			"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
+			"#define USE_ENVIRONMENT_DIFFUSE 1",
+			"#define USE_ENVIRONMENT_SPECULAR 1",
 
-local featuresNormalMapTemplate = table.merge(defaultMaterialTemplate, {
+			"#define TONEMAP(c) CustomTM(c)",
+			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
+			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
+		},
+		shadowDefinitions = {
+			"#define RENDERING_MODE 2",
+			"#define SUPPORT_DEPTH_LAYOUT ".. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
+			"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
+		},
+	})
 
-	shaderDefinitions = {
-		"#define RENDERING_MODE 0",
-		"#define SUNMULT pbrParams[6]",
-		"#define EXPOSURE pbrParams[7]",
 
-		"#define SPECULAR_AO",
+	featuresNormalMapTemplate = table.merge(defaultMaterialTemplate, {
 
-		"#define ROUGHNESS_AA 1.0",
+		shaderDefinitions = {
+			"#define RENDERING_MODE 0",
+			"#define SUNMULT pbrParams[6]",
+			"#define EXPOSURE pbrParams[7]",
 
-		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
-		"#define USE_ENVIRONMENT_DIFFUSE 1",
-		"#define USE_ENVIRONMENT_SPECULAR 1",
+			"#define SPECULAR_AO",
 
-		"#define TONEMAP(c) CustomTM(c)",
-		"#define USE_LOSMAP",
-		
-	},
-	deferredDefinitions = {
-		"#define RENDERING_MODE 1",
-		"#define SUNMULT pbrParams[6]",
-		"#define EXPOSURE pbrParams[7]",
+			"#define ROUGHNESS_AA 1.0",
 
-		"#define SPECULAR_AO",
+			"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
+			"#define USE_ENVIRONMENT_DIFFUSE 1",
+			"#define USE_ENVIRONMENT_SPECULAR 1",
 
-		"#define ROUGHNESS_AA 1.0",
+			"#define TONEMAP(c) CustomTM(c)",
+			"#define USE_LOSMAP",
+			
+		},
+		deferredDefinitions = {
+			"#define RENDERING_MODE 1",
+			"#define SUNMULT pbrParams[6]",
+			"#define EXPOSURE pbrParams[7]",
 
-		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
-		"#define USE_ENVIRONMENT_DIFFUSE 1",
-		"#define USE_ENVIRONMENT_SPECULAR 1",
+			"#define SPECULAR_AO",
 
-		"#define TONEMAP(c) CustomTM(c)",
-		"#define USE_LOSMAP",
-	},	
-	shadowDefinitions = {
-		"#define RENDERING_MODE 2",
-		"#define SUPPORT_DEPTH_LAYOUT ".. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
-		"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
-		"#define HASALPHASHADOWS",
-	},
-})
+			"#define ROUGHNESS_AA 1.0",
+
+			"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
+			"#define USE_ENVIRONMENT_DIFFUSE 1",
+			"#define USE_ENVIRONMENT_SPECULAR 1",
+
+			"#define TONEMAP(c) CustomTM(c)",
+			"#define USE_LOSMAP",
+		},	
+		shadowDefinitions = {
+			"#define RENDERING_MODE 2",
+			"#define SUPPORT_DEPTH_LAYOUT ".. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
+			"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
+			"#define HASALPHASHADOWS",
+		},
+	})
+end
 
 local DEFAULT_VERSION = [[#version 430 core
 	#extension GL_ARB_uniform_buffer_object : require
@@ -1047,7 +1057,7 @@ local function RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, 
 				end
 			else
 				--Spring.Echo("Failed to find texKey for", objectID, objectDefID, texKey, shader, flag, uniformBinID)
-				--Spring.Debug.TableEcho(textures)
+				--	Spring.Debug.TableEcho(textures)
 			end
 		else
 			Spring.Echo("Failed to find uniformBinID for", objectID, objectDefID, texKey, shader, flag, uniformBinID)
@@ -1278,9 +1288,16 @@ local function DisableCUSGL4(optName, _, _, playerID)
 	gadget:Shutdown()
 end
 
+local function CUSGL4updaterate(optName, unk1, unk2, playerID)
+	if (playerID ~= Spring.GetMyPlayerID()) then
+		return
+	end
+	Spring.Echo(optName, unk1, unk2, playerID)
+end
+
 
 function gadget:Initialize()
-
+	
 	shaders[0 ] = {}
 	for k = 1, #drawBinKeys do
 		local flag = drawBinKeys[k]
@@ -1297,6 +1314,8 @@ function gadget:Initialize()
 		[2 + 8] = {},	-- alpha + refraction
 		[16   ] = {},	-- shadow
 	}
+	
+	initMaterials()
 
 	-- Initialize shaders types like so::
 	-- shaders[0]['unit_deferred'] = LuaShaderObject 
@@ -1318,6 +1337,7 @@ function gadget:Initialize()
 	
 	gadgetHandler:AddChatAction("reloadcusgl4", ReloadCUSGL4)
 	gadgetHandler:AddChatAction("disablecusgl4", DisableCUSGL4)
+	gadgetHandler:AddChatAction("cusgl4updaterate", CUSGL4updaterate)
 	
 	gadget:Update()
 end
@@ -1382,6 +1402,7 @@ function gadget:Shutdown()
 	
 	gadgetHandler:RemoveChatAction("disablecusgl4")
 	gadgetHandler:RemoveChatAction("reloadcusgl4")
+	gadgetHandler:RemoveChatAction("cusgl4updaterate")
 	
 end
 
