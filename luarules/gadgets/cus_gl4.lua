@@ -116,13 +116,17 @@ end
 	
 	-- TODO: rewrite treewave
 	
+	-- TODO: feature override metalness/roughness via uniforms
+	
 	-- TODO: fix flashlights to be piece-unique
 	
 	-- TODO: AVOID DISCARD in FS AT ALL COST! 
 		-- 500 armcom fullview is 82 vs 108 fps with nodiscard!
 		-- Even if discard is in a never-called dynamically uniform!
+		-- only transparent features need discard
 	
 	-- TODO: investigate why/how refraction pass doesnt ever seem to get called
+		-- kill the entire pass with fire (by ignoring its existence)
 	
 	-- TODO: reduce the amount of deferred buffers being used from 6 to 4
 	
@@ -389,6 +393,8 @@ local function GetShader(drawPass, objectDefID)
 		return false
 	end 
 	if objectDefID >= 0 then 
+		-- gotta check if the unit is under construction or cloaked!
+		
 		return shaders[drawPass]['unit']
 	else
 		return shaders[drawPass]['feature']
@@ -1042,13 +1048,13 @@ local function RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, 
 						if Spring.ValidUnitID(objectIDatEnd) == true and Spring.GetUnitIsDead(objectIDatEnd) ~= true then
 							unitDrawBinsFlagShaderTexKey.IBO:InstanceDataFromUnitIDs(objectIDatEnd, objectTypeAttribID, objectIndex - 1)
 						else
-							Spring.Echo("Tried to remove invalid unitID", objectID)
+							if debugmode then Spring.Echo("Tried to remove invalid unitID", objectID) end 
 						end
 					else -- feauture
 						if Spring.ValidFeatureID(-objectIDatEnd) == true then
 							unitDrawBinsFlagShaderTexKey.IBO:InstanceDataFromFeatureIDs(-1 * objectIDatEnd, objectTypeAttribID, objectIndex - 1)
 						else
-							Spring.Echo("Tried to remove invalid featureID", objectID)
+							if debugmode then Spring.Echo("Tried to remove invalid featureID", objectID) end 
 						end
 					end
 					unitDrawBinsFlagShaderTexKey.objectsArray[numobjects ] = nil -- pop back
@@ -1163,19 +1169,29 @@ local function RemoveObject(objectID) -- we get pos/neg objectID here
 	--Spring.Debug.TableEcho(unitDrawBins)
 end
 
+local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
+
 local function ProcessUnits(units, drawFlags)
 	processedCounter = (processedCounter + 1) % (2 ^ 16)
 
 	for i = 1, #units do
 		local unitID = units[i]
 		local drawFlag = drawFlags[i]
-		--Spring.Echo("ProcessUnit", unitID, drawFlag)
-		if overriddenUnits[unitID] == nil then --object was not seen
-			AddObject(unitID, drawFlag)
-		elseif overriddenUnits[unitID] ~= drawFlag then --flags have changed
-			UpdateObject(unitID, drawFlag)
+		local buildpercent = select(5, spGetUnitHealth(unitID))
+		if (buildpercent and buildpercent < 1) or spGetUnitIsCloaked(unitID) then
+			--under construction
+			--using processedUnits here actually good, as it will dynamically handle unitfinished and cloak on-off
+		else
+		
+			--Spring.Echo("ProcessUnit", unitID, drawFlag)
+			if overriddenUnits[unitID] == nil then --object was not seen
+				AddObject(unitID, drawFlag)
+			elseif overriddenUnits[unitID] ~= drawFlag then --flags have changed
+				UpdateObject(unitID, drawFlag)
+			end
+			processedUnits[unitID] = processedCounter
 		end
-		processedUnits[unitID] = processedCounter
 	end
 
 	for unitID, _ in pairs(overriddenUnits) do
@@ -1288,7 +1304,7 @@ local function DisableCUSGL4(optName, _, _, playerID)
 	gadget:Shutdown()
 end
 
-local updaterate = 10
+local updaterate = 1
 local function CUSGL4updaterate(optName, unk1, unk2, playerID)
 	if (playerID ~= Spring.GetMyPlayerID()) then
 		return

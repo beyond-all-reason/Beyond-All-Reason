@@ -310,7 +310,7 @@ vertex = [[
 
 		vec4 modelPos = pieceMatrix * piecePos;
 		vec4 worldPos = worldPieceMatrix * piecePos;
-		worldPos.z += 64;
+		//worldPos.z += 64; // for dem debuggins
 
 		//gl_TexCoord[0] = gl_MultiTexCoord0;
 		uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
