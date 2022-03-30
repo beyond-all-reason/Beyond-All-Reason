@@ -1288,11 +1288,17 @@ local function DisableCUSGL4(optName, _, _, playerID)
 	gadget:Shutdown()
 end
 
+local updaterate = 10
 local function CUSGL4updaterate(optName, unk1, unk2, playerID)
 	if (playerID ~= Spring.GetMyPlayerID()) then
 		return
 	end
-	Spring.Echo(optName, unk1, unk2, playerID)
+	if updaterate == 1 then 
+		updaterate = 10 
+	else 
+		updaterate = 1
+	end	
+	Spring.Echo("[CustomUnitShadersGL4] Updaterate set to", updaterate)
 end
 
 
@@ -1409,7 +1415,7 @@ end
 local updateframe = 0
 function gadget:Update()
 	if unitDrawBins == nil then return end
-	updateframe = (updateframe + 1) % 10
+	updateframe = (updateframe + 1) % updaterate
 	
 	if updateframe == 0 then 
 		-- this call has a massive mem load, at 1k units at 225 fps, its 7mb/sec, e.g. for each unit each frame, its 32 bytes alloc/dealloc
