@@ -1520,7 +1520,8 @@ fragment = [[
 		}
 		
 		if ((uint(drawPass) & 4u ) == 4u){ // reflections
-			if (worldVertexPos.y < -2.0) discard; // I cant figure out how clipspace works, so this is poor mans clip
+		// NODISCARD	if (worldVertexPos.y < -2.0) discard; // I cant figure out how clipspace works, so this is poor mans clip
+		// AVOID THIS DISCARD LIKE THE PLAGUE, even DYNAMICALLY UNIFORM DISCARDS ARENT FREE!
 		}
 
 		// debug hook
@@ -1539,7 +1540,7 @@ fragment = [[
 			//fragData[0] = vec4(cameraView[0].z,cameraView[1].z,cameraView[2].z, 1.0); //debug
 			//fragData[0] = vec4(SNORM2NORM(V), 1.0); //debug
 			//fragData[0] = vec4(NORM2SNORM(worldNormal), 1.0); //debug
-			if (texColor2.a < 0.5) discard;
+			// NODISCARD if (texColor2.a < 0.5) discard;
 		#elif (RENDERING_MODE == 1)
 			float alphaBin = (texColor2.a < 0.5) ? 0.0 : 1.0;
 			//alphaBin = 1.0;
@@ -1561,7 +1562,7 @@ fragment = [[
 	{
 	#ifdef HASALPHASHADOWS
 		vec4 texColor2 = texture(texture1, uvCoords, 0); // note that we bind tex2 to pos0 here!
-		if (texColor2.a < 0.5 ) discard;
+		// NODISCARD if (texColor2.a < 0.5 ) discard;
 	#endif
 	}
 
