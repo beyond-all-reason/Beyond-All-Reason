@@ -16,7 +16,7 @@ function gadget:GameFrame(n)
 
 -- SND windy locations
 	if n%500 == 0 then
-		SpawnCEGInRandomMapPosBelowY("noceg", 300, 75, _, _, _, "windy", 0.20)
+		SpawnCEGInRandomMapPosBelowY("noceg", 300, 75, _, _, _, "windy", 0.27)
 	end
 
 -- low middle foggy cliffs	
@@ -50,8 +50,8 @@ local windgustsounds = {
 	if n%75 == 11 then
 		local r = math.random(1,4)
 		if r == 1 then
-			SpawnCEGInAreaGround("dunecloud", 2940, 28, 2460, 750, _, _, _, windgustsounds[math.random(1,#windgustsounds)], 0.25)
-			SpawnCEGInAreaGround("dunecloud", 5180, 28, 3720, 750, _, _, _, windgustsounds[math.random(1,#windgustsounds)], 0.25)
+			SpawnCEGInAreaGround("dunecloud", 2940, 28, 2460, 750, _, _, _, windgustsounds[math.random(1,#windgustsounds)], 0.30)
+			SpawnCEGInAreaGround("dunecloud", 5180, 28, 3720, 750, _, _, _, windgustsounds[math.random(1,#windgustsounds)], 0.30)
 		end
 	end
 
@@ -64,11 +64,11 @@ local windgustsounds = {
 
 -- super rare foggy cliffs	
 	if n%1440 == 0 then
-		SpawnCEGInAreaGround("firefliespurple", 3262, 20, 2400, 75, _, _, _, "magicalhum", 0.20)
+		SpawnCEGInAreaGround("firefliespurple", 3262, 20, 2400, 75, _, _, _, "magicalhum", 0.26)
 	end
 
 	if n%1500 == 770 then
-		SpawnCEGInAreaGround("firefliespurple", 4988, 20, 3809, 75, _, _, _, "magicalhum", 0.20)
+		SpawnCEGInAreaGround("firefliespurple", 4988, 20, 3809, 75, _, _, _, "magicalhum", 0.26)
 	end
 
 -- fireflies
