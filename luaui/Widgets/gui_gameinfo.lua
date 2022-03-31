@@ -319,13 +319,6 @@ function widget:DrawScreen()
 	end
 end
 
-function widget:KeyPress(key)
-	if key == 27 then
-		-- ESC
-		show = false
-	end
-end
-
 function widget:MouseWheel(up, value)
 
 	if show then
@@ -435,13 +428,19 @@ local function refreshContent()
 	fileLines = string.lines(content)
 end
 
+local function closeInfoHandler()
+  if show then
+    show = false
+
+    return true
+  end
+end
+
 function widget:Initialize()
 	refreshContent()
 
 	widgetHandler:AddAction("customgameinfo", toggle, nil, 'p')
-	Spring.SendCommands("unbind any+i gameinfo")
-	Spring.SendCommands("unbind i gameinfo")
-	Spring.SendCommands("bind i customgameinfo")
+	widgetHandler:AddAction("customgameinfo_close", closeInfoHandler, nil, 'p')
 
 	WG['gameinfo'] = {}
 	WG['gameinfo'].toggle = function(state)
