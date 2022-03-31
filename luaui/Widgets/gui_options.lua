@@ -4961,6 +4961,16 @@ function widget:TextCommand(command)
 		end
 		show = newShow
 	end
+
+	if command == "devmode" then
+		Spring.SendCommands("option usePlayerUI")
+	end
+	if command == "profile" and widgetHandler:IsWidgetKnown("Widget Profiler") then
+		widgetHandler:ToggleWidget("Widget Profiler")
+	end
+	if command == "grapher" and widgetHandler:IsWidgetKnown("Frame Grapher") then
+		widgetHandler:ToggleWidget("Frame Grapher")
+	end
 	if os_clock() > lastOptionCommand + 1 and string.sub(command, 1, 7) == "option " then
 		-- clock check is needed because toggling widget will somehow do an identical call of widget:TextCommand(command)
 		local option = string.sub(command, 8)

@@ -325,6 +325,9 @@ local autocompleteCommands = {
 	'luarules xpunits',
 
 	-- widgets
+	'devmode',
+	'profile',
+	'grapher',
 	'luaui reload',
 	'luaui profile',
 	--'luaui selector',	-- pops up engine version
