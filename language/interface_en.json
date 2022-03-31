@@ -109,6 +109,9 @@
 			"teamEconomy": {
 				"tooltip": "Team metal/energy income\n(Lighter portion is income from reclaiming)"
 			},
+			"mapinfo": {
+				"author": "Author"
+			},
 			"clearMapmarks": {
 				"tooltip": "Clear mapmarks/drawings",
 				"tooltipctrl": "CTRL-click to continuously clear"

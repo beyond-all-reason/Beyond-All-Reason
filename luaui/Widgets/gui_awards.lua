@@ -99,8 +99,6 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 	secondName = secondTeamID >= 0 and findPlayerName(secondTeamID) or notAwardedText
 	thirdName  = thirdTeamID  >= 0 and findPlayerName(thirdTeamID)  or notAwardedText
 
-	offset = offset * widgetScale
-
 	thisAward = gl.CreateList(function()
 		font:Begin()
 		--names
