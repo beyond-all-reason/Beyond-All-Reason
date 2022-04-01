@@ -153,8 +153,17 @@ end
 function widget:Initialize()
 	if not WG.DrawUnitShapeGL4 then
 		widgetHandler:RemoveWidget()
+	else
+		widget:Shutdown()	-- to clear first
 	end
 
+	unitshapes = {}
+	removedUnitshapes = {}
+	numunitshapes = 0
+	builderCommands = {}
+	createdUnit = {}
+	createdUnitID = {}
+	newBuilderCmd = {}
 	command = {}
 	local allUnits = Spring.GetAllUnits()
 	for i=1, #allUnits do
@@ -167,8 +176,8 @@ end
 
 function widget:Shutdown()
 	if WG.StopDrawUnitShapeGL4 then
-		for unitID, _ in pairs(unitshapes) do
-			removeUnitShape(unitID)
+		for shapeID, _ in pairs(unitshapes) do
+			removeUnitShape(shapeID)
 		end
 	end
 end
@@ -178,8 +187,7 @@ function widget:PlayerChanged(playerID)
 	local prevMyAllyTeamID = myAllyTeamID
 	spec, fullview,_ = Spring.GetSpectatingState()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
-	if playerID == myPlayerID or (spec and prevMyAllyTeamID ~= myAllyTeamID or prevFullview ~= fullview) then
-		widget:Shutdown()
+	if playerID == myPlayerID and prevFullview ~= fullview then
 		widget:Initialize()
 	end
 end
@@ -217,7 +225,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 	command[id] = nil
 	-- we need to store all newly created units cause unitcreated can be earlier than our delayed processing of widget:UnitCommand (when a newly queued cmd is first and withing builder range)
-	createdUnit[id] = true
+	createdUnit[id] = unitID
 	createdUnitID[unitID] = id
 end
 
