@@ -310,7 +310,7 @@ vertex = [[
 
 		vec4 modelPos = pieceMatrix * piecePos;
 		vec4 worldPos = worldPieceMatrix * piecePos;
-		//worldPos.z += 64; // for dem debuggins
+		//worldPos.x += 64; // for dem debuggins
 
 		//gl_TexCoord[0] = gl_MultiTexCoord0;
 		uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
@@ -476,6 +476,7 @@ fragment = [[
 	#define OPTION_MODELSFOG 10
 
 	#define OPTION_TREEWIND 11
+	#define OPTION_PBROVERRIDE 12
 
 
 	%%GLOBAL_OPTIONS%%
@@ -1278,12 +1279,7 @@ fragment = [[
 		
 		N = normalize(worldTBN * tbnNormal);
 
-		// PBR Params
-		#ifdef EMISSIVENESS
-			float emissiveness = EMISSIVENESS;
-		#else
-			float emissiveness = texColor2.r;
-		#endif
+		float emissiveness = texColor2.r;
 
 		emissiveness = clamp(selfIllumMod * emissiveness, 0.0, 1.0);
 
@@ -1303,6 +1299,12 @@ fragment = [[
 		#else
 			float roughness = texColor2.b;
 		#endif
+		
+		if (BITMASK_FIELD(bitOptions, OPTION_PBROVERRIDE)){
+			emissiveness = 0.2;	
+			roughness = 0.8;
+			metalness = 0.1;
+		}
 
 		//roughness = SNORM2NORM( sin(simFrame * 0.25) );
 		//roughness = 0.5;
@@ -1521,19 +1523,14 @@ fragment = [[
 		if (BITMASK_FIELD(bitOptions, OPTION_MODELSFOG)) {
 			outColor = mix(fogColor.rgb, outColor, fogFactor);
 		}
-		
-		if ((uint(drawPass) & 4u ) == 4u){ // reflections
-		// NODISCARD	if (worldVertexPos.y < -2.0) discard; // I cant figure out how clipspace works, so this is poor mans clip
-		// AVOID THIS DISCARD LIKE THE PLAGUE, even DYNAMICALLY UNIFORM DISCARDS ARENT FREE!
-		}
-
-		// debug hook
-		#if 0
-			//outColor = dirContrib + ambientContrib;
-			//outColor = vec3( NdotV );
-			//outColor = LINEARtoSRGB(FresnelSchlick(F0, F90, NdotV));
-			outColor = vec3(normalTexVal.aaa);
+		#ifdef REFLECT_DISCARD
+			if ((uint(drawPass) & 4u ) == 4u){ // reflections
+				if (worldVertexPos.y < -2.0) discard; // I cant figure out how clipspace works, so this is poor mans clip
+			// AVOID THIS DISCARD LIKE THE PLAGUE, even DYNAMICALLY UNIFORM DISCARDS ARENT FREE!
+			}
 		#endif
+		
+		outColor.rgb *= 1.4; // this is to correct for lack of env mapping, the nastiest hack there has ever been...	
 
 		#if (RENDERING_MODE == 0)
 			fragData[0] = vec4(outColor, texColor2.a);
@@ -1543,7 +1540,9 @@ fragment = [[
 			//fragData[0] = vec4(cameraView[0].z,cameraView[1].z,cameraView[2].z, 1.0); //debug
 			//fragData[0] = vec4(SNORM2NORM(V), 1.0); //debug
 			//fragData[0] = vec4(NORM2SNORM(worldNormal), 1.0); //debug
-			// NODISCARD if (texColor2.a < 0.5) discard;
+			#ifdef HASALPHASHADOWS
+				if (texColor2.a < 0.5) discard;
+			#endif
 		#elif (RENDERING_MODE == 1)
 			float alphaBin = (texColor2.a < 0.5) ? 0.0 : 1.0;
 
@@ -1565,7 +1564,7 @@ fragment = [[
 	{
 	#ifdef HASALPHASHADOWS
 		vec4 texColor2 = texture(texture1, uvCoords, 0); // note that we bind tex2 to pos0 here!
-		// NODISCARD if (texColor2.a < 0.5 ) discard;
+		if (texColor2.a < 0.5 ) discard;
 	#endif
 	}
 
@@ -1597,23 +1596,63 @@ local defaultMaterialTemplate = {
 	--standardUniforms --locs, set by api_cus
 	--deferredUniforms --locs, set by api_cus
 
-	shader   = shaderTemplate, -- `shader` is replaced with standardShader later in api_cus
-	deferred = shaderTemplate, -- `deferred` is replaced with deferredShader later in api_cus
-	shadow   = shaderTemplate, -- `shadow` is replaced with deferredShader later in api_cus
+	shader     = shaderTemplate, -- `shader` is replaced with standardShader later in api_cus
+	deferred   = shaderTemplate, -- `deferred` is replaced with deferredShader later in api_cus
+	shadow     = shaderTemplate, -- `shadow` is replaced with deferredShader later in api_cus
+	reflection = shaderTemplate, -- `shadow` is replaced with deferredShader later in api_cus
 
 	-- note these definitions below are not inherited!!!
 	-- they need to be redefined on every child material that has its own {shader,deferred,shadow}Definitions
 	shaderDefinitions = {
 		"#define RENDERING_MODE 0",
-		"ARGLEBLARLG[]z  cuntshit + 1 ",
+		"#define SUNMULT pbrParams[6]",
+		"#define EXPOSURE pbrParams[7]",
+
+		"#define SPECULAR_AO",
+
+		"#define ROUGHNESS_AA 1.0",
+
+		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
+		"#define USE_ENVIRONMENT_DIFFUSE 1",
+		"#define USE_ENVIRONMENT_SPECULAR 1",
+		
+		"#define TONEMAP(c) CustomTM(c)",
 	},
 	deferredDefinitions = {
-		"yesthisdoesnothing #define RENDERING_MODE 1",
+		"#define RENDERING_MODE 1",
+		"#define SUNMULT pbrParams[6]",
+		"#define EXPOSURE pbrParams[7]",
+
+		"#define SPECULAR_AO",
+
+		"#define ROUGHNESS_AA 1.0",
+
+		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
+		"#define USE_ENVIRONMENT_DIFFUSE 1",
+		"#define USE_ENVIRONMENT_SPECULAR 1",
+
+		"#define TONEMAP(c) CustomTM(c)",
 	},
 	shadowDefinitions = {
 		"#define RENDERING_MODE 2",
 		"#define SUPPORT_DEPTH_LAYOUT ".. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
 		"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
+	},
+	reflectionDefinitions = {
+		"#define RENDERING_MODE 0",
+		"#define SUNMULT pbrParams[6]",
+		"#define EXPOSURE pbrParams[7]",
+
+		"#define SPECULAR_AO",
+
+		"#define ROUGHNESS_AA 1.0",
+
+		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
+		"#define USE_ENVIRONMENT_DIFFUSE 1",
+		"#define USE_ENVIRONMENT_SPECULAR 1",
+		
+		"#define TONEMAP(c) CustomTM(c)",
+		"#define REFLECT_DISCARD",
 	},
 
 	shaderOptions = {
@@ -1691,6 +1730,8 @@ local shaderPlugins = {
 }
 
 
+
+
 --[[
 	#define OPTION_SHADOWMAPPING 0
 	#define OPTION_NORMALMAPPING 1
@@ -1708,6 +1749,7 @@ local shaderPlugins = {
 	#define OPTION_MODELSFOG 10
 
 	#define OPTION_TREEWIND 11
+	#define OPTION_PBROVERRIDE 12
 
 ]]--
 

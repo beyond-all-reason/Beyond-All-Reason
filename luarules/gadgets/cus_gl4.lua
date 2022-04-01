@@ -194,7 +194,7 @@ local OPTION_HEALTH_DISPLACE  = 256
 local OPTION_HEALTH_TEXCHICKS = 512
 local OPTION_MODELSFOG        = 1024
 local OPTION_TREEWIND         = 2048
-local OPTION_SCAVENGER        = 4096
+local OPTION_PBROVERRIDE      = 4096
 
 local defaultBitShaderOptions = OPTION_SHADOWMAPPING + OPTION_NORMALMAPPING  + OPTION_MODELSFOG
 
@@ -256,18 +256,19 @@ local uniformBins = {
 		baseVertexDisplacement = 0.0,
 	},
 	feature = {
-		bitOptions = defaultBitShaderOptions,
+		bitOptions = defaultBitShaderOptions + OPTION_PBROVERRIDE,
 		baseVertexDisplacement = 0.0,
 	},
 	treepbr = {
-		bitOptions = defaultBitShaderOptions + OPTION_TREEWIND,
+		bitOptions = defaultBitShaderOptions + OPTION_TREEWIND + OPTION_PBROVERRIDE,
 		baseVertexDisplacement = 0.0,
 		hasAlphaShadows = 1.0,
 	},
 	tree = {
-		bitOptions = defaultBitShaderOptions + OPTION_TREEWIND,
+		bitOptions = defaultBitShaderOptions + OPTION_TREEWIND + OPTION_PBROVERRIDE,
 		baseVertexDisplacement = 0.0,
 		hasAlphaShadows = 1.0,
+		metalnessOverride 
 	},
 	wreck = {
 		bitOptions = defaultBitShaderOptions,
@@ -385,6 +386,9 @@ local function ClearBit(x, p)
 	return HasBit(x, p) and x - p or x
 end
 
+
+
+local featuresDefsWithAlpha = {}
 -----------------
 
 local function GetShader(drawPass, objectDefID)
@@ -397,9 +401,12 @@ local function GetShader(drawPass, objectDefID)
 		
 		return shaders[drawPass]['unit']
 	else
-		return shaders[drawPass]['feature']
+		if featuresDefsWithAlpha[objectDefID] then 
+			return shaders[drawPass]['tree']
+		else
+			return shaders[drawPass]['feature']
+		end
 	end
-	
 end
 
 
@@ -483,100 +490,89 @@ local defaultMaterialTemplate
 
 local unitsNormalMapTemplate
 local featuresNormalMapTemplate 
+local treesNormalMapTemplate
 
-local function appendShaderDefinitions(template )
+function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+local function appendShaderDefinitionsToTemplate(template, alldefinitions)
+	local copytemplate = deepcopy(template)
+	for i, singleShaderDefs in ipairs({"shaderDefinitions", "deferredDefinitions", "shadowDefinitions", "reflectionDefinitions"}) do 
+		if alldefinitions[singleShaderDefs] then 
+			if copytemplate[singleShaderDefs] == nil then 
+				copytemplate[singleShaderDefs] = {}
+			end
+			for j, defline in ipairs(alldefinitions[singleShaderDefs]) do 
+				copytemplate[singleShaderDefs][ #copytemplate[singleShaderDefs] + 1 ] = defline
+			end
+		end
+	end
+	return copytemplate
 end
 
 local function initMaterials()
 	defaultMaterialTemplate = VFS.Include("modelmaterials_gl4/templates/defaultMaterialTemplate.lua")
 
-	unitsNormalMapTemplate = table.merge(defaultMaterialTemplate, {
+	unitsNormalMapTemplate = appendShaderDefinitionsToTemplate(defaultMaterialTemplate, {
 		shaderDefinitions = {
-			"#define RENDERING_MODE 0",
-			"#define SUNMULT pbrParams[6]",
-			"#define EXPOSURE pbrParams[7]",
-
-			"#define SPECULAR_AO",
-
-			"#define ROUGHNESS_AA 1.0",
-
-			"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
-			"#define USE_ENVIRONMENT_DIFFUSE 1",
-			"#define USE_ENVIRONMENT_SPECULAR 1",
-
-			"#define TONEMAP(c) CustomTM(c)",
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
 			"#define ENABLE_OPTION_THREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
 		},
 		deferredDefinitions = {
-			"#define RENDERING_MODE 1",
-			"#define SUNMULT pbrParams[6]",
-			"#define EXPOSURE pbrParams[7]",
-
-			"#define SPECULAR_AO",
-
-			"#define ROUGHNESS_AA 1.0",
-
-			"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
-			"#define USE_ENVIRONMENT_DIFFUSE 1",
-			"#define USE_ENVIRONMENT_SPECULAR 1",
-
-			"#define TONEMAP(c) CustomTM(c)",
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
 			"#define ENABLE_OPTION_THREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
 		},
 		shadowDefinitions = {
-			"#define RENDERING_MODE 2",
-			"#define SUPPORT_DEPTH_LAYOUT ".. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
-			"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
+		},
+		reflectionDefinitions = {
 		},
 	})
 
 
-	featuresNormalMapTemplate = table.merge(defaultMaterialTemplate, {
-
+	featuresNormalMapTemplate = appendShaderDefinitionsToTemplate(defaultMaterialTemplate, {
 		shaderDefinitions = {
-			"#define RENDERING_MODE 0",
-			"#define SUNMULT pbrParams[6]",
-			"#define EXPOSURE pbrParams[7]",
-
-			"#define SPECULAR_AO",
-
-			"#define ROUGHNESS_AA 1.0",
-
-			"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
-			"#define USE_ENVIRONMENT_DIFFUSE 1",
-			"#define USE_ENVIRONMENT_SPECULAR 1",
-
-			"#define TONEMAP(c) CustomTM(c)",
 			"#define USE_LOSMAP",
-			
 		},
 		deferredDefinitions = {
-			"#define RENDERING_MODE 1",
-			"#define SUNMULT pbrParams[6]",
-			"#define EXPOSURE pbrParams[7]",
-
-			"#define SPECULAR_AO",
-
-			"#define ROUGHNESS_AA 1.0",
-
-			"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
-			"#define USE_ENVIRONMENT_DIFFUSE 1",
-			"#define USE_ENVIRONMENT_SPECULAR 1",
-
-			"#define TONEMAP(c) CustomTM(c)",
 			"#define USE_LOSMAP",
 		},	
 		shadowDefinitions = {
-			"#define RENDERING_MODE 2",
-			"#define SUPPORT_DEPTH_LAYOUT ".. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
-			"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
-			"#define HASALPHASHADOWS",
+			--"#define HASALPHASHADOWS",
+		},
+		reflectionDefinitions = {
 		},
 	})
+	
+	treesNormalMapTemplate = appendShaderDefinitionsToTemplate(defaultMaterialTemplate, {
+		shaderDefinitions = {
+			"#define USE_LOSMAP",
+			"#define HASALPHASHADOWS",
+		},
+		deferredDefinitions = {
+			"#define USE_LOSMAP",
+			"#define HASALPHASHADOWS",
+		},	
+		shadowDefinitions = {
+			"#define HASALPHASHADOWS",
+		},
+		reflectionDefinitions = {
+		},
+	})
+	
 end
 
 local DEFAULT_VERSION = [[#version 430 core
@@ -592,6 +588,7 @@ local function dumpShaderCodeToFile(defs, src, filename) -- no IO in unsynced ga
 end 
 
 local function CompileLuaShader(shader, definitions, plugIns, addName)
+	--Spring.Echo(" CompileLuaShader",shader, definitions, plugIns, addName)
 	if definitions == nil or definitions == {} then 
 		Spring.Echo(addName, "nul definitions", definitions)
 	end
@@ -645,17 +642,21 @@ local function CompileLuaShader(shader, definitions, plugIns, addName)
 end
 
 local function compileMaterialShader(template, name)
+	--Spring.Echo("Compiling", template, name)
 	local forwardShader = CompileLuaShader(template.shader, template.shaderDefinitions, template.shaderPlugins, name .."_forward" )
 	local shadowShader = CompileLuaShader(template.shadow, template.shadowDefinitions, template.shaderPlugins, name .."_shadow" )
 	local deferredShader = CompileLuaShader(template.deferred, template.deferredDefinitions, template.shaderPlugins, name .."_deferred" )
+	local reflectionShader = CompileLuaShader(template.reflection, template.reflectionDefinitions, template.shaderPlugins, name .."_reflection" )
 	shaderIDtoLuaShader[forwardShader] = name .."_forward"
 	shaderIDtoLuaShader[shadowShader] = name .."_shadow"
 	shaderIDtoLuaShader[deferredShader] = name .."_deferred"
+	shaderIDtoLuaShader[reflectionShader] = name .."_reflection"
 	for k = 1, #drawBinKeys do
 		local flag = drawBinKeys[k]
 		shaders[flag][name] = forwardShader
 	end
 	shaders[0 ][name] = deferredShader
+	shaders[5 ][name] = reflectionShader
 	shaders[16][name] = shadowShader
 end
 
@@ -795,7 +796,7 @@ local function initBinsAndTextures()
 			elseif unitDef.name:find("chicken", nil, true) then 	
 				textureTable[5] = wreckAtlases['chicken'][1]
 				objectDefToUniformBin[unitDefID] = 'chicken'
-				Spring.Echo("Chickenwreck", textureTable[5])
+				--Spring.Echo("Chickenwreck", textureTable[5])
 			elseif wreckTex1 and wreckTex2 then -- just a true unit:
 				textureTable[3] = wreckTex1
 				textureTable[4] = wreckTex2
@@ -839,6 +840,7 @@ local function initBinsAndTextures()
 				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
 			elseif featureDef.customParams and featureDef.customParams.treeshader == 'yes' then 
 				objectDefToUniformBin[-1 * featureDefID] = 'tree'
+				featuresDefsWithAlpha[-1 * featureDefID] = "yes"
 			else
 				
 			end
@@ -889,7 +891,7 @@ local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures,
 	textures = textures or GetTextures(flag, objectDefID)
 	texKey = texKey or GetTexturesKey(textures)
 	uniformBinID = uniformBinID or GetUniformBinID(objectDefID)
-	
+	--Spring.Echo("AsssignObjectToBin", objectID, objectDefID, flag, shader, textures, texKey, uniformBinID)
 	--	Spring.Debug.TraceFullEcho()	
 	local unitDrawBinsFlag = unitDrawBins[flag]
 	if unitDrawBinsFlag[shader] == nil then
@@ -1346,6 +1348,7 @@ function gadget:Initialize()
 	-- shaders[0]['unit_deferred'] = LuaShaderObject 
 	compileMaterialShader(unitsNormalMapTemplate, "unit")
 	compileMaterialShader(featuresNormalMapTemplate, "feature")
+	compileMaterialShader(treesNormalMapTemplate, "tree")
 
 	modelsVertexVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
 	modelsIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
