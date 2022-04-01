@@ -1281,7 +1281,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, disabled)
 			cellInnerSize * 0.29, "ro"
 		)
 
-	elseif cmd.hotkey then
+	elseif cmd.hotkey and (selectedFactory or (selectedBuilder and currentBuildCategory)) then
 		local hotkeyText = string.upper(Cfgs.keySymChars[cmd.hotkey] or cmd.hotkey)
 		local fontWidth = font2:GetTextWidth(hotkeyText) * priceFontSize
 		local fontWidthOffset = fontWidth * 1.35
