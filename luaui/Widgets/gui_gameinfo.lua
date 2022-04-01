@@ -21,7 +21,7 @@ local valuegreycolor = "\255\180\180\180"
 local separator = "::"
 
 local font, font2, loadedFontSize, mainDList, titleRect, chobbyInterface, backgroundGuishader, show
-local maxLines = 20
+local maxLines = 22
 local math_isInRect = math.isInRect
 
 local chickensEnabled = Spring.Utilities.Gametype.IsChickens()
@@ -47,9 +47,8 @@ end
 -- modoptions
 local defaultModoptions = VFS.Include("modoptions.lua")
 local modoptionsDefault = {}
-
 for key, value in pairs(defaultModoptions) do
-	modoptionsDefault[value.key] = value.def
+	modoptionsDefault[value.key] = {name = value.name, desc = value.desc, def = value.def}
 end
 
 local modoptions = Spring.GetModOptions()
@@ -57,11 +56,10 @@ local changedModoptions = {}
 local unchangedModoptions = {}
 local changedChickenModoptions = {}
 local unchangedChickenModoptions = {}
-
 for key, value in pairs(modoptions) do
 	if string.sub(key, 1, 8) == 'chicken_' then
 		if chickensEnabled then
-			if value == modoptionsDefault[key] then
+			if value == modoptionsDefault[key].def then
 				unchangedChickenModoptions[key] = tostring(value)
 			else
 				changedChickenModoptions[key] = tostring(value)
@@ -71,12 +69,41 @@ for key, value in pairs(modoptions) do
 end
 
 for key, value in pairs(modoptions) do
-	if value == modoptionsDefault[key] then
+	if value == modoptionsDefault[key].def then
 		unchangedModoptions[key] = tostring(value)
 	else
 		changedModoptions[key] = tostring(value)
 	end
 end
+
+local function SortFunc(myTable)
+	local function pairsByKeys(t, f)
+		local a = {}
+		for n in pairs(t) do
+			table.insert(a, n)
+		end
+		table.sort(a, f)
+		local i = 0      -- iterator variable
+		local iter = function ()   -- iterator function
+			i = i + 1
+			if a[i] == nil then
+				return nil
+			else
+				return a[i], t[a[i]]
+			end
+		end
+		return iter
+	end
+	local t = {}
+	for key,value in pairsByKeys(myTable) do
+		table.insert(t, { key = key, value = value })
+	end
+	return t
+end
+changedModoptions = SortFunc(changedModoptions)
+unchangedModoptions = SortFunc(unchangedModoptions)
+changedChickenModoptions = SortFunc(changedChickenModoptions)
+unchangedChickenModoptions = SortFunc(unchangedChickenModoptions)
 
 local screenHeightOrg = 540
 local screenWidthOrg = 540
@@ -292,13 +319,6 @@ function widget:DrawScreen()
 	end
 end
 
-function widget:KeyPress(key)
-	if key == 27 then
-		-- ESC
-		show = false
-	end
-end
-
 function widget:MouseWheel(up, value)
 
 	if show then
@@ -386,33 +406,41 @@ local function refreshContent()
 	if chickensEnabled then
 		-- filter chicken modoptions
 		content = content .. titlecolor .. Spring.I18N('ui.gameInfo.chickenOptions') .. "\n"
-		for key, value in pairs(changedChickenModoptions) do
-			content = content .. keycolor .. string.sub(key, 9) .. separator .. valuecolor .. value .. "\n"
+		for key, params in pairs(changedChickenModoptions) do
+			content = content .. keycolor .. string.sub(params.key, 9) .. separator .. valuecolor .. params.value .. "\n"
 		end
-		for key, value in pairs(unchangedChickenModoptions) do
-			content = content .. keycolor .. string.sub(key, 9) .. separator .. valuegreycolor .. value .. "\n"
+		for key, params in pairs(unchangedChickenModoptions) do
+			content = content .. keycolor .. string.sub(params.key, 9) .. separator .. valuegreycolor .. params.value .. "\n"
 		end
 		content = content .. "\n"
 	end
 	content = content .. titlecolor .. Spring.I18N('ui.gameInfo.modOptions') .. "\n"
-	for key, value in pairs(changedModoptions) do
-		content = content .. keycolor .. key .. separator .. valuecolor .. value .. "\n"
+	for key, params in pairs(changedModoptions) do
+		local name = params.key	--modoptionsDefault[params.key].name
+		content = content .. keycolor .. name .. separator .. valuecolor .. params.value .. "\n"
 	end
-	for key, value in pairs(unchangedModoptions) do
-		content = content .. keycolor .. key .. separator .. valuegreycolor .. value .. "\n"
+	for key, params in pairs(unchangedModoptions) do
+		local name = params.key --modoptionsDefault[params.key].name
+		content = content .. keycolor .. name .. separator .. valuegreycolor .. params.value .. "\n"
 	end
 
 	-- store changelog into array
 	fileLines = string.lines(content)
 end
 
+local function closeInfoHandler()
+  if show then
+    show = false
+
+    return true
+  end
+end
+
 function widget:Initialize()
 	refreshContent()
 
 	widgetHandler:AddAction("customgameinfo", toggle, nil, 'p')
-	Spring.SendCommands("unbind any+i gameinfo")
-	Spring.SendCommands("unbind i gameinfo")
-	Spring.SendCommands("bind i customgameinfo")
+	widgetHandler:AddAction("customgameinfo_close", closeInfoHandler, nil, 'p')
 
 	WG['gameinfo'] = {}
 	WG['gameinfo'].toggle = function(state)

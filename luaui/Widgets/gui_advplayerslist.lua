@@ -801,6 +801,7 @@ local function UpdateRecentBroadcasters()
 end
 
 local function LockCamera(playerID)
+	mySpecStatus, fullView, _ = Spring.GetSpectatingState()
     if playerID and playerID ~= myPlayerID and playerID ~= lockPlayerID and Spring_GetPlayerInfo(playerID) then
         if lockcameraHideEnemies and not select(3, Spring_GetPlayerInfo(playerID)) then
             Spring.SendCommands("specteam " .. select(4, Spring_GetPlayerInfo(playerID)))

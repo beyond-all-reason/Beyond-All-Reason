@@ -248,6 +248,10 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
 local function isValidLivingSeenUnit(unitID, unitDefID, verbose)
+	if type(myAllyTeamID) ~= "number" or (type(myAllyTeamID) == "number" and ((myAllyTeamID < 0 ) or (myAllyTeamID > 32))) then 
+		local localMyAllyTeamID = myAllyTeamID
+		Spring.Debug.TraceFullEcho(nil,nil,nil, "api_unit_tracker_gl4 error on myAllyTeamID")
+	end
 	if unitDefID == nil or 
 		spValidUnitID(unitID) ~= true or 
 		spGetUnitIsDead(unitID) == true or 

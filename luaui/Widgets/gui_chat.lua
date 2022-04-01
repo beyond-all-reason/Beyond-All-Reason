@@ -92,6 +92,7 @@ local inputHistory = {}
 local inputHistoryCurrent = 0
 local inputButtonRect
 local autocompleteWords = {}
+local prevAutocompleteLetters
 
 local glPopMatrix      = gl.PopMatrix
 local glPushMatrix     = gl.PushMatrix
@@ -311,7 +312,6 @@ local autocompleteCommands = {
 	'luarules kill_profiler',
 	'luarules loadmissiles',
 	'luarules profile',
-	'luarules removeunits',
 	'luarules reclaimunits',
 	'luarules reloadcus',
 	'luarules removeunits',
@@ -325,6 +325,9 @@ local autocompleteCommands = {
 	'luarules xpunits',
 
 	-- widgets
+	'devmode',
+	'profile',
+	'grapher',
 	'luaui reload',
 	'luaui profile',
 	--'luaui selector',	-- pops up engine version
@@ -848,6 +851,8 @@ local function drawChatInput()
 			end
 			if ssub(inputText, #inputText) == ' ' then
 				letters = letters..' '
+			elseif prevAutocompleteLetters then
+				letters = prevAutocompleteLetters .. letters
 			end
 			local letterCount = #letters
 			local scale = 0.8
@@ -1083,35 +1088,49 @@ local function autocomplete(text, fresh)
 		words[#words+1] = word
 		letters = word
 	end
+	-- if there are still suggestions then try to continue before starting fresh with a new word
 	if ssub(inputText, #text) == ' ' then
 		letters = letters..' '
-	end
-
-	if autocompleteWords[2] then
-		runAutocompleteSet(autocompleteWords, letters, allowMultiAutocomplete)
-		return
-	else
-		if #letters >= 2 and runAutocompleteSet(autocompletePlayernames, letters) then
-			return
+		if autocompleteWords[1] then
+			prevAutocompleteLetters = letters
 		end
-		if isCmd then
-			if #words <= 1 then
-				if runAutocompleteSet(autocompleteCommands, letters, allowMultiAutocomplete) then
-					return
-				end
-			else
-				if runAutocompleteSet(autocompleteUnitCodename, letters, allowMultiAutocomplete) then
-					return
-				end
+	else
+		if prevAutocompleteLetters and autocompleteWords[1] then
+			letters = prevAutocompleteLetters .. letters
+			if isCmd then
+				words = {[1] = letters}
 			end
 		else
-			if #letters <= 1 then
-				return
-			end
-			if runAutocompleteSet(autocompleteUnitNames, letters, allowMultiAutocomplete) then
-				return
+			prevAutocompleteLetters = nil
+		end
+	end
+
+	-- find autocompleteWords
+	if autocompleteWords[2] then
+		runAutocompleteSet(autocompleteWords, letters, allowMultiAutocomplete)
+	else
+		if #letters >= 2 then
+			runAutocompleteSet(autocompletePlayernames, letters)
+		end
+		if not autocompleteWords[1] then
+			if isCmd then
+				if #words <= 1 then
+					runAutocompleteSet(autocompleteCommands, letters, allowMultiAutocomplete)
+				else
+					runAutocompleteSet(autocompleteUnitCodename, letters, allowMultiAutocomplete)
+				end
+			else
+				if #letters >= 2 then
+					runAutocompleteSet(autocompleteUnitNames, letters, allowMultiAutocomplete)
+				end
 			end
 		end
+	end
+
+	-- if prev autocomplete words didnt result in suggestions, redo it freshly
+	if prevAutocompleteLetters and not autocompleteWords[1] and not ssub(inputText, #text) == ' ' then
+		prevAutocompleteLetters = nil
+		autocomplete(text, true)
 	end
 end
 
@@ -1178,9 +1197,12 @@ function widget:KeyPress(key, mods, isRepeat)
 						inputText = ssub(inputText, 1, inputTextPosition-1) .. ssub(inputText, inputTextPosition+1)
 						inputTextPosition = inputTextPosition - 1
 						inputHistory[#inputHistory] = inputText
+						if not (prevAutocompleteLetters and inputTextPosition == #inputText and ssub(inputText, #inputText) ~= ' ') then
+							prevAutocompleteLetters = nil
+						end
 					end
 					cursorBlinkTimer = 0
-					autocomplete(inputText, true)
+					autocomplete(inputText, not prevAutocompleteLetters)
 				elseif key == 127 then -- DELETE
 					if inputTextPosition < slen(inputText) then
 						inputText = ssub(inputText, 1, inputTextPosition) .. ssub(inputText, inputTextPosition+2)

@@ -135,9 +135,6 @@ local widgetScale = (vsy / 1080)
 
 local edgeMoveWidth = tonumber(Spring.GetConfigFloat("EdgeMoveWidth", 1) or 0.02)
 
-local vsyncLevel = 1
-local vsyncEnabled = false
-
 local defaultMapSunPos = { gl.GetSun("pos") }
 local defaultSunLighting = {
 	groundAmbientColor = { gl.GetSun("ambient") },
@@ -784,7 +781,7 @@ function widget:RecvLuaMsg(msg, playerID)
 				pauseGameWhenSingleplayerExecuted = chobbyInterface
 			end
 			if not chobbyInterface then
-				Spring.SetConfigInt('VSync', vsyncEnabled and vsyncLevel or 0)
+				Spring.SetConfigInt('VSync', Spring.GetConfigInt("VSyncGame", 0))
 			end
 		end
 	end
@@ -1703,6 +1700,7 @@ function init()
 			  else
 				options[getOptionByID('vsync')].value = 1
 			  end
+			  Spring.SetConfigInt("VSyncGame", vsync)
 		  end,
 		  onchange = function(i, value)
 			  local vsync = 0
@@ -1711,24 +1709,10 @@ function init()
 			  elseif value == 3 then
 				  vsync = -1
 			  end
-			  vsyncEnabled = value ~= 1
-			  vsyncLevel = vsync
 			  Spring.SetConfigInt("VSync", vsync)
 			  Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
 		  end,
 		},
-		--{ id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync, type = "bool", value = vsyncEnabled, description = '',
-		--  onchange = function(i, value)
-		--	vsyncEnabled = value
-		--	local vsync = 0
-		--	if vsyncEnabled then
-		--		vsync = vsyncLevel
-		--		options[getOptionByID('vsync')].value = true
-		--	end
-		--	Spring.SetConfigInt("VSync", vsync)
-		--	Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
-		--  end,
-		--},
 		{ id = "limitidlefps", group = "gfx", category = types.advanced, widget = "Limit idle FPS", name = texts.option.limitidlefps, type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = texts.option.limitidlefps_descr },
 
 		{ id = "msaa", group = "gfx", category = types.basic, name = texts.option.msaa, type = "select", options = { 'off', 'x2', 'x4', 'x8'}, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0), description = texts.option.msaa_descr,
@@ -2647,7 +2631,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'id' }, value, { 'id', value })
 		  end,
 		},
-		{ id = "advplayerlist_country", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_country, type = "bool", value = true, description = texts.option.advplayerlist_country_descr,
+		{ id = "advplayerlist_country", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_country, type = "bool", value = true, description = texts.option.advplayerlist_country_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_country", { 'm_active_Table', 'country' })
 		  end,
@@ -2655,7 +2639,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'country' }, value, { 'country', value })
 		  end,
 		},
-		{ id = "advplayerlist_rank", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_rank, type = "bool", value = true, description = texts.option.advplayerlist_rank_descr,
+		{ id = "advplayerlist_rank", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_rank, type = "bool", value = true, description = texts.option.advplayerlist_rank_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_rank", { 'm_active_Table', 'rank' })
 		  end,
@@ -2671,7 +2655,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'side' }, value, { 'side', value })
 		  end,
 		},
-		{ id = "advplayerlist_skill", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_skill, type = "bool", value = true, description = texts.option.advplayerlist_skill_descr,
+		{ id = "advplayerlist_skill", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_skill, type = "bool", value = true, description = texts.option.advplayerlist_skill_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_skill", { 'm_active_Table', 'skill' })
 		  end,
@@ -4844,12 +4828,7 @@ function widget:Initialize()
 		detectWater()
 
 		-- set vsync
-		local vsync = 0
-		if vsyncEnabled then
-			vsync = vsyncLevel
-		end
-		Spring.SetConfigInt("VSync", vsync)
-		Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
+		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", 0))
 
 		-- disable CUS
 		if tonumber(Spring.GetConfigInt("cus", 1) or 1) == 0 then
@@ -4982,6 +4961,16 @@ function widget:TextCommand(command)
 		end
 		show = newShow
 	end
+
+	if command == "devmode" then
+		Spring.SendCommands("option usePlayerUI")
+	end
+	if command == "profile" and widgetHandler:IsWidgetKnown("Widget Profiler") then
+		widgetHandler:ToggleWidget("Widget Profiler")
+	end
+	if command == "grapher" and widgetHandler:IsWidgetKnown("Frame Grapher") then
+		widgetHandler:ToggleWidget("Frame Grapher")
+	end
 	if os_clock() > lastOptionCommand + 1 and string.sub(command, 1, 7) == "option " then
 		-- clock check is needed because toggling widget will somehow do an identical call of widget:TextCommand(command)
 		local option = string.sub(command, 8)
@@ -5042,7 +5031,6 @@ function widget:GetConfigData()
 		cameraPanTransitionTime = cameraPanTransitionTime,
 		useNetworkSmoothing = useNetworkSmoothing,
 		desiredWaterValue = desiredWaterValue,			-- configint water cant be used since we will set water 0 when no water is present
-		vsyncEnabled = vsyncEnabled,			-- configint vsync cant be used since we will change vsync depending on idle state for example
 		pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayerExecuted,
 		pauseGameWhenSingleplayer = pauseGameWhenSingleplayer,
 
@@ -5073,9 +5061,6 @@ function widget:SetConfigData(data)
 		end
 	else
 		newerVersion = true
-	end
-	if data.vsyncEnabled ~= nil then
-		vsyncEnabled = data.vsyncEnabled
 	end
 	if data.desiredWaterValue ~= nil then
 		desiredWaterValue = data.desiredWaterValue

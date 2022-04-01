@@ -176,6 +176,9 @@ function MakeBindsTable (swapYZ)
 		-- team status
 		"bind esc teamstatus_close",
 
+		-- camera
+		"bind ctrl+shift+o cameraflip",
+
 		-- area mex
 		"bind ctrl+alt+z areamex",
 
@@ -187,6 +190,10 @@ function MakeBindsTable (swapYZ)
 		"bind numpad9 moveup",
 		"bind numpad3 movedown",
 		"bind numpad1 movefast",
+
+		-- customgameinfo
+		"bind i customgameinfo",
+		"bind esc customgameinfo_close",
 
 		-- set target
 		"bind "..Y.." settargetnoground",
@@ -217,6 +224,10 @@ function LoadBindings()
 	for k,v in ipairs(binds) do
 		Spring.SendCommands(v)
 	end
+
+	if WG['buildmenu'] and WG['buildmenu'].reloadBindings then
+		WG['buildmenu'].reloadBindings()
+	end
 end
 
 function UnloadBindings()
@@ -232,10 +243,6 @@ end
 function ReloadBindings()
 	UnloadBindings()
 	LoadBindings()
-
-	if WG['buildmenu'] and WG['buildmenu'].reloadBindings then
-		WG['buildmenu'].reloadBindings()
-	end
 end
 
 function widget:Initialize()

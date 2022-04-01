@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 2700,
 		builddistance = 200,
 		builder = true,
-		buildpic = "LEGCOM.DDS",
+		buildpic = "LEGCOMOFF.DDS",
 		buildtime = 75000,
 		cancapture = true,
 		canmanualfire = true,

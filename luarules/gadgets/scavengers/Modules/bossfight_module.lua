@@ -33,7 +33,7 @@ local function bossPhaseControl(bossHealthPercent)
 		currentPhaseBossAbilities = bossAbilities.Endgame
 	end
 	if FinalBossUnitID then
-		Spring.SetUnitArmored(FinalBossUnitID, true , (0.2*BossFightCurrentPhase)/(spawnmultiplier))
+		Spring.SetUnitArmored(FinalBossUnitID, true , (2/BossFightCurrentPhase)/(spawnmultiplier))
 	end
 end
 
