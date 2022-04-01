@@ -464,11 +464,6 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	Spring.SendCommands("unbind i customgameinfo")
-	Spring.SendCommands("bind any+i gameinfo")
-	Spring.SendCommands("bind i gameinfo")
-	widgetHandler:RemoveAction("customgameinfo", toggle)
-
 	if mainDList then
 		glDeleteList(mainDList)
 		mainDList = nil
