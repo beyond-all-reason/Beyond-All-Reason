@@ -1128,8 +1128,8 @@ function widget:DrawWorld()
 		
 		glTexture(0, false)
 		glTexture(1, false)
-		glDepthTest(GL.ALWAYS)
-		gl.DepthMask(false)
+		glDepthTest(GL.LEQUAL)
+		gl.DepthMask(true)
 	end
 end
 
