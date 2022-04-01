@@ -2263,13 +2263,24 @@ function init()
 		  end,
 		},
 
-		{ id = "keylayout", group = "control", category = types.dev, name = texts.option.keylayout, type = "select", options = keyLayouts, value = 1, description = texts.option.keylayout_descr,
+		{ id = "keylayout", group = "control", category = types.basic, name = texts.option.keylayout, type = "select", options = keyLayouts, value = 1, description = texts.option.keylayout_descr,
 			onload = function()
 				local keyLayout = Spring.GetConfigString("KeyboardLayout")
 
 				if not keyLayout or keyLayout == '' then
+					keyLayout = keyLayouts[1]
 					Spring.SetConfigString("KeyboardLayout", keyLayouts[1])
 				end
+
+				local value = 1
+				for i, v in ipairs(keyLayouts) do
+					if v == keyLayout then
+						value = i
+						break
+					end
+				end
+
+				options[getOptionByID('keylayout')].value = value
 			end,
 			onchange = function(_, value)
 				Spring.SetConfigString("KeyboardLayout", keyLayouts[value])
