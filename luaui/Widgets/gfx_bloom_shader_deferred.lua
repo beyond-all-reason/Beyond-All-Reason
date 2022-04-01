@@ -22,7 +22,7 @@ end
 local version = 1.0
 
 -- config params
-local dbgDraw = 0                -- draw only the bloom-mask? [0 | 1]
+local dbgDraw = 0               -- draw only the bloom-mask? [0 | 1]
 local globalBlursizeMult = 1
 
 local glowAmplifier = 1            -- intensity multiplier when filtering a glow source fragment [1, n]
@@ -33,7 +33,7 @@ local illumThreshold = 0            -- how bright does a fragment need to be bef
 --quality =1 : 90 fps, 9% memctrler load, 99% shader load
 --quality =2 : 113 fps, 57% memctrler load, 99% shader load
 --quality =4 : 123 fps, 9% memctrler load, 99% shader load
-local blursize = 16
+local blursize = 8
 local blurPasses = 3
 local quality = 2
 
@@ -227,20 +227,26 @@ local function MakeBloomShaders()
 				float modelDepth = texture2D(modelDepthTex, texCoors).r;
 				float mapDepth = texture2D(mapDepthTex, texCoors).r;
 
-				float unoccludedModel = float(modelDepth < mapDepth);
+				float unoccludedModel = float(modelDepth < mapDepth); // this is 1 for a model fragment
 
-				//float detectchangedbuffer = clamp(colorEmit.g,0.0,1.0); //this is required because some things overwrite all the buffers, and deferred rendering forces this to 0.0
-				//color = color *(1.0 - detectchangedbuffer);
+				//Handle transparency in color.a 
 				color.rgb = color.rgb * color.a;
-				color.rgb += color.rgb * colorEmit.r;
+				
+				//calculate the resulting color by adding the emit color
+				color.rgb += colorEmit.rgb;
 
+				//Make the bloom more sensitive to luminance in green channel
 				float illum = dot(color.rgb, vec3(0.2990, 0.4870, 0.2140)); //adjusted from the real values of  vec3(0.2990, 0.5870, 0.1140)
-
-				vec4 illumCond = vec4(illum > illuminationThreshold) ;
-
+				
+				// This results in an all 0/1 vector if its over the threshold
+				float illumCond = float(illum > illuminationThreshold) ;
+				
+				vec4 brightOutput = vec4(color.rgb * (illum-illuminationThreshold), 1.0) * fragGlowAmplifier * unoccludedModel ; 
+				
+				// mix each channel on wether 
 				gl_FragColor = mix(
 					vec4(0.0, 0.0, 0.0, 1.0),
-					vec4(color.rgb * (illum-illuminationThreshold), 1.0) * fragGlowAmplifier * unoccludedModel,
+					brightOutput,
 					illumCond);
 			}
 		]],
