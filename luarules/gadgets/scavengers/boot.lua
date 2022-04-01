@@ -324,8 +324,14 @@ function gadget:GameFrame(n)
 				if scavteamhasplayers == false and n%900 == 0 and not scavStructure[scav] and not scavAssistant[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
 					unitController.SelfDestructionControls(n, scav, scavDef, false)
 				end
-				if scavteamhasplayers == false and Spring.GetCommandQueue(scav, 0) <= 1 and not scavStructure[scav] and not scavConstructor[scav] and not scavReclaimer[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavCapturer[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
-					unitController.ArmyMoveOrders(n, scav, scavDef)
+				if scavteamhasplayers == false and not scavStructure[scav] and not scavConstructor[scav] and not scavReclaimer[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavCapturer[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
+					if Spring.GetCommandQueue(scav, 0) <= 3 then
+						unitController.ArmyMoveOrders(n, scav, scavDef)
+					elseif math.random(1,10) == 1 then
+						Spring.GiveOrderToUnit(scav, CMD.STOP, 0, 0)
+						Spring.GiveOrderToUnit(scav, CMD.STOP, 0, 0)
+						unitController.ArmyMoveOrders(n, scav, scavDef)
+					end
 				end
 			end
 		end
