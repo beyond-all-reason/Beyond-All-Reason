@@ -51,7 +51,6 @@ local header = {
 local headerRemap = {}	-- filled in initialize
 
 local aspectMult = vsx / vsy
-Spring.Echo(aspectMult, ((0.07*aspectMult)))
 local guiData = {
 	mainPanel = {
 		relSizes = {
@@ -263,7 +262,17 @@ local function refreshHeaders()
 	}
 end
 
+local function closeHandler()
+	if guiData.mainPanel.visible then
+		guiData.mainPanel.visible = false
+
+		return true
+	end
+end
+
 function widget:Initialize()
+	widgetHandler:AddAction("teamstatus_close", closeHandler, nil, "p")
+
 	refreshHeaders()
 	guiData.mainPanel.visible = false
 	widget:ViewResize()
@@ -285,13 +294,6 @@ function widget:Initialize()
 	end
 	WG['teamstats'].isvisible = function()
 		return guiData.mainPanel.visible
-	end
-end
-
-
-function widget:KeyPress(key)
-	if key == 27 then	-- ESC
-		guiData.mainPanel.visible = false
 	end
 end
 
