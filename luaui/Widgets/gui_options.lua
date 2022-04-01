@@ -2244,6 +2244,21 @@ function init()
 		  end,
 		},
 
+		{ id = "keylayout", group = "control", category = types.dev, name = texts.option.keylayout, type = "select", options = keyLayouts, value = 1, description = texts.option.keylayout_descr,
+			onload = function()
+				local keyLayout = Spring.GetConfigString("KeyboardLayout")
+
+				if not keyLayout or keyLayout == '' then
+					Spring.SetConfigString("KeyboardLayout", keyLayouts[1])
+				end
+			end,
+			onchange = function(_, value)
+				Spring.SetConfigString("KeyboardLayout", keyLayouts[value])
+				if WG['buildmenu'] and WG['buildmenu'].reloadBindings then
+					WG['buildmenu'].reloadBindings()
+				end
+			end,
+		},
 
 		{ id = "label_ui_camera", group = "control", name = texts.option.label_camera, category = types.basic },
 		{ id = "label_ui_camera_spacer", group = "control", category = types.basic },
@@ -3441,14 +3456,6 @@ function init()
 				  Spring.SetConfigString("bar_font2", options[i].optionsFont[value])
 				  Spring.SendCommands("luarules reloadluaui")
 			  end
-		  end,
-		},
-		{ id = "keylayout", group = "dev", category = types.dev, name = texts.option.keylayout, type = "select", options = keyLayouts, value = 1, description = texts.option.keylayout_descr,
-		  onchange = function(_, value)
-				Spring.SetConfigString("keyboard_layout", keyLayouts[value])
-				if WG['buildmenu'] and WG['buildmenu'].reloadBindings then
-					WG['buildmenu'].reloadBindings()
-				end
 		  end,
 		},
 

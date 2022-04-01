@@ -26,7 +26,7 @@ local configs = VFS.Include('luaui/configs/gridmenu_layouts.lua')
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local labGrids = configs.LabGrids
 local unitGrids = configs.UnitGrids
-local currentLayout = Spring.GetConfigString("keyboard_layout") or 'qwerty'
+local currentLayout = Spring.GetConfigString("KeyboardLayout") or 'qwerty'
 if currentLayout == "" then currentLayout = 'qwerty' end
 local userLayout
 
@@ -737,7 +737,7 @@ function reloadBindings()
 	local keySymCharsReverse = table.invert(Cfgs.keySymChars)
 	local actionHotkey
 
-	currentLayout = Spring.GetConfigString("keyboard_layout") or 'qwerty'
+	currentLayout = Spring.GetConfigString("KeyboardLayout") or 'qwerty'
 	if currentLayout == "" then currentLayout = 'qwerty' end
 
 	if not userLayout then
@@ -778,7 +778,8 @@ function reloadBindings()
 	for c=1,4 do
 		local action = 'gridmenu_category ' .. c
 
-		Spring.SendCommands('bind Any+' .. string.lower(Cfgs.categoryKeys[c]) .. ' ' .. action)
+		Spring.SendCommands('bind ' .. string.lower(Cfgs.categoryKeys[c]) .. ' ' .. action)
+		Spring.SendCommands('bind Shift+' .. string.lower(Cfgs.categoryKeys[c]) .. ' ' .. action)
 	end
 
 	-- bind grid key actions
@@ -788,7 +789,7 @@ function reloadBindings()
 			local action = 'gridmenu_key ' .. r .. ' ' .. c
 			local key = Cfgs.keySymChars[string.upper(Cfgs.keyLayout[r][c])] or string.lower(Cfgs.keyLayout[r][c])
 
-			Spring.SendCommands("bind Any+" .. key .. " " .. action)
+			Spring.SendCommands('bind Any+' .. key .. ' ' .. action)
 		end
 	end
 
@@ -827,7 +828,7 @@ local function gridmenuCategoryHandler(_, _, args, _, isRepeat)
 		return
 	end
 
-	if currentBuildCategory then
+	if not selectedBuilder or (currentBuildCategory and hotkeyActions['1' .. cIndex]) then
 		return
 	end
 
