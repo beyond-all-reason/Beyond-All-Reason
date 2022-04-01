@@ -2397,7 +2397,8 @@ local function restoreBindings()
 		local action = 'gridmenu_category ' .. c
 
 		if userLayout['categories'][c] then
-			Spring.SendCommands('bind Any+' .. string.lower(userLayout['categories'][c]) .. ' ' .. action)
+			Spring.SendCommands('bind ' .. string.lower(userLayout['categories'][c]) .. ' ' .. action)
+			Spring.SendCommands('bind Shift+' .. string.lower(userLayout['categories'][c]) .. ' ' .. action)
 		end
 	end
 
