@@ -232,7 +232,7 @@ end
 
 local uniformBins = {
 	armunit = {
-		bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_ARM, -- + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+		bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
 		baseVertexDisplacement = 0.0,
 	},
 	corunit = {
@@ -483,6 +483,9 @@ local defaultMaterialTemplate
 
 local unitsNormalMapTemplate
 local featuresNormalMapTemplate 
+
+local function appendShaderDefinitions(template )
+end
 
 local function initMaterials()
 	defaultMaterialTemplate = VFS.Include("modelmaterials_gl4/templates/defaultMaterialTemplate.lua")
@@ -1082,8 +1085,8 @@ local function RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, 
 		if debugmode then Spring.Echo("Failed to find shader for", objectID, objectDefID, texKey, shader, flag, uniformBinID, defName) end
 		--Spring.Debug.TraceFullEcho(30,30,30)
 	end
-end
 
+end
 local function UpdateObject(objectID, drawFlag)
 	if (drawFlag >= 128) then --icon
 		return
