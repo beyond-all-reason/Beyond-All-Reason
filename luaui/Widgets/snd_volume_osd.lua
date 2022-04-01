@@ -19,13 +19,6 @@ function widget:GetInfo()
 	}
 end
 
-include('keysym.h.lua')
-local pluskey = KEYSYMS.PLUS
-local equalskey = KEYSYMS.EQUALS -- same key as + on most qwerty keyboards
-local minuskey = KEYSYMS.MINUS
-local pluskey2 = KEYSYMS.KP_PLUS
-local minuskey2 = KEYSYMS.KP_MINUS
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- SETTINGS, internal, don't edit
@@ -62,48 +55,49 @@ local RectRound
 
 local chobbyInterface
 
-function widget:Initialize()
-	volume = Spring.GetConfigInt("snd_volmaster", 60)
-	widget:ViewResize(vsx, vsy)
+local function sndVolumeIncreaseHandler(_, _, _, _, isRepeat)
+	volume = Spring.GetConfigInt("snd_volmaster", 80)
+	volume = volume + step
+	if volume < 0 then
+		volume = 0
+	end
+	if volume > 200 then
+		volume = 200
+	end
+	Spring.SetConfigInt("snd_volmaster", volume)
+	--Spring.Echo("Volume = " .. volume)
+	if not isRepeat then
+		Spring.PlaySoundFile(TEST_SOUND, 1.0, 'ui')
+	end
+	dt = os.clock()
+	return true
 end
 
-function widget:KeyPress(key, mods, isRepeat)
-	if (key == pluskey or key == pluskey2 or key == equalskey) and (not mods.alt) and (not mods.shift) then
-		-- KEY = pluskey
-		volume = Spring.GetConfigInt("snd_volmaster", 80)
-		volume = volume + step
-		if volume < 0 then
-			volume = 0
-		end
-		if volume > 200 then
-			volume = 200
-		end
-		Spring.SetConfigInt("snd_volmaster", volume)
-		--Spring.Echo("Volume = " .. volume)
-		if not isRepeat then
-			Spring.PlaySoundFile(TEST_SOUND, 1.0, 'ui')
-		end
-		dt = os.clock()
-		return true
-	elseif (key == minuskey or key == minuskey2) and (not mods.alt) and (not mods.shift) then
-		-- KEY = minuskey
-		volume = Spring.GetConfigInt("snd_volmaster", 80)
-		volume = volume - step
-		if volume < 0 then
-			volume = 0
-		end
-		if volume > 200 then
-			volume = 200
-		end
-		Spring.SetConfigInt("snd_volmaster", volume)
-		--Spring.Echo("Volume = " .. volume)
-		if not isRepeat then
-			Spring.PlaySoundFile(TEST_SOUND, 1.0, 'ui')
-		end
-		dt = os.clock()
-		return true
+local function sndVolumeDecreaseHandler(_, _, _, _, isRepeat)
+	volume = Spring.GetConfigInt("snd_volmaster", 80)
+	volume = volume - step
+	if volume < 0 then
+		volume = 0
 	end
-	return false
+	if volume > 200 then
+		volume = 200
+	end
+	Spring.SetConfigInt("snd_volmaster", volume)
+	--Spring.Echo("Volume = " .. volume)
+	if not isRepeat then
+		Spring.PlaySoundFile(TEST_SOUND, 1.0, 'ui')
+	end
+	dt = os.clock()
+	return true
+end
+
+function widget:Initialize()
+	volume = Spring.GetConfigInt("snd_volmaster", 60)
+
+	widgetHandler:AddAction("snd_volume_increase", sndVolumeIncreaseHandler, nil, 'pR')
+	widgetHandler:AddAction("snd_volume_decrease", sndVolumeDecreaseHandler, nil, 'pR')
+
+	widget:ViewResize(vsx, vsy)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
