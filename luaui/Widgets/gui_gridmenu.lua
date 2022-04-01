@@ -23,9 +23,12 @@ VFS.Include('luarules/configs/customcmds.h.lua')
 SYMKEYS = table.invert(KEYSYMS)
 
 local configs = VFS.Include('luaui/configs/gridmenu_layouts.lua')
+local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local labGrids = configs.LabGrids
 local unitGrids = configs.UnitGrids
-local currentLayout = 'qwerty'
+local currentLayout = Spring.GetConfigString("keyboard_layout") or 'qwerty'
+if currentLayout == "" then currentLayout = 'qwerty' end
+local userLayout
 
 local BUILDCAT_ECONOMY = "Economy"
 local BUILDCAT_COMBAT = "Combat"
@@ -77,101 +80,59 @@ local Cfgs = {
 		PERIOD = ".",
 	},
 	categoryKeys = {},
-	layoutKeys = {},
-	vKeyLayouts = {},
-	keyLayouts = {
-		qwerty = {
-			[3] = {
-				[1] = "Q",
-				[2] = "W",
-				[3] = "E",
-				[4] = "R",
-			},
-			[2] = {
-				[1] = "A",
-				[2] = "S",
-				[3] = "D",
-				[4] = "F",
-			},
-			[1] = {
-				[1] = "Z",
-				[2] = "X",
-				[3] = "C",
-				[4] = "V",
-			}
-		},
-		dvorak = {
-			[3] = {
-				[1] = "QUOTE",
-				[2] = "COMMA",
-				[3] = "PERIOD",
-				[4] = "P",
-			},
-			[2] = {
-				[1] = "A",
-				[2] = "O",
-				[3] = "E",
-				[4] = "U",
-			},
-			[1] = {
-				[1] = "SEMICOLON",
-				[2] = "Q",
-				[3] = "J",
-				[4] = "K",
-			}
-		},
-	}
+	vKeyLayout = {},
+	keyLayout = {}
 }
 
-local function copyKeyLayout(layoutFrom, layoutTo)
-	Cfgs.keyLayouts[layoutTo] = {}
-	for rowIndex, rowKeySet in pairs(Cfgs.keyLayouts[layoutFrom]) do
-		Cfgs.keyLayouts[layoutTo][rowIndex] = {}
+local function genKeyLayout()
+	Cfgs.keyLayout = keyConfig.copyKeyLayout(currentLayout)
 
-		for colIndex, key in pairs(rowKeySet) do
-			Cfgs.keyLayouts[layoutTo][rowIndex][colIndex] = key
+	for r=1,3 do
+		for c=1,4 do
+			if userLayout[r] and userLayout[r][c] then
+				Cfgs.keyLayout[r][c] = userLayout[r][c]
+			end
 		end
 	end
-end
 
-copyKeyLayout('qwerty', 'qwertz')
-Cfgs.keyLayouts['qwertz'][1][1] = 'Y'
-
-copyKeyLayout('qwerty', 'azerty')
-Cfgs.keyLayouts['azerty'][1][1] = 'W'
-Cfgs.keyLayouts['azerty'][2][1] = 'Q'
-Cfgs.keyLayouts['azerty'][3][1] = 'A'
-Cfgs.keyLayouts['azerty'][3][2] = 'Z'
-
-local function genKeyLayout(layoutName)
-	-- Generate inverse lookup key -> position for fast access on category keys
-	Cfgs.layoutKeys[layoutName] = {}
-
-	for rowIndex, rowKeySet in pairs(Cfgs.keyLayouts[layoutName]) do
-		for colIndex, key in pairs(rowKeySet) do
-			Cfgs.layoutKeys[layoutName][key] = { rowIndex, colIndex }
+	for c=1,4 do
+		local key
+		if userLayout['categories'] and userLayout['categories'][c] then
+			key = userLayout['categories'][c]
+		else
+			key = Cfgs.keyLayout[1][c]
 		end
+
+		Cfgs.categoryKeys[c] = string.gsub(Cfgs.keySymChars[string.upper(key)] or string.upper(key), "ANY%+", '')
+	end
+
+	if userLayout['next_page'] then
+		NEXT_PAGE_KEY = string.upper(userLayout['next_page'])
+	else
+		NEXT_PAGE_KEY = Cfgs.keyLayout[1][5]
+	end
+
+	if userLayout['prev_page'] then
+		PREV_PAGE_KEY = string.upper(userLayout['prev_page'])
+	else
+		PREV_PAGE_KEY = Cfgs.keyLayout[1][6]
 	end
 
 	-- Autogenerate bottom layout keys
-	Cfgs.vKeyLayouts[layoutName] = {}
+	Cfgs.vKeyLayout = {}
 
 	-- For bottom layout, 1-2 row x 1-4 col positions remain the same
 	for r=1,2 do
-		Cfgs.vKeyLayouts[layoutName][r] = {}
+		Cfgs.vKeyLayout[r] = {}
 		for c=1,4 do
-			Cfgs.vKeyLayouts[layoutName][r][c] = Cfgs.keyLayouts[layoutName][r][c]
+			Cfgs.vKeyLayout[r][c] = Cfgs.keyLayout[r][c]
 		end
 	end
 
-	Cfgs.vKeyLayouts[layoutName][1][5] = Cfgs.keyLayouts[layoutName][3][1]
-	Cfgs.vKeyLayouts[layoutName][1][6] = Cfgs.keyLayouts[layoutName][3][3]
-	Cfgs.vKeyLayouts[layoutName][2][5] = Cfgs.keyLayouts[layoutName][3][2]
-	Cfgs.vKeyLayouts[layoutName][2][6] = Cfgs.keyLayouts[layoutName][3][4]
-end
-
-for layoutName, _ in pairs(Cfgs.keyLayouts) do
-	genKeyLayout(layoutName)
+	Cfgs.vKeyLayout[1][5] = Cfgs.keyLayout[3][1]
+	Cfgs.vKeyLayout[1][6] = Cfgs.keyLayout[3][3]
+	Cfgs.vKeyLayout[2][5] = Cfgs.keyLayout[3][2]
+	Cfgs.vKeyLayout[2][6] = Cfgs.keyLayout[3][4]
 end
 
 local unitCategories = {}
@@ -774,67 +735,69 @@ end
 function reloadBindings()
 	-- initialise keySymCharsReverse from keySymChars
 	local keySymCharsReverse = table.invert(Cfgs.keySymChars)
+	local actionHotkey
 
-	currentLayout = WG.swapYZbinds and 'qwertz' or 'qwerty'
+	currentLayout = Spring.GetConfigString("keyboard_layout") or 'qwerty'
+	if currentLayout == "" then currentLayout = 'qwerty' end
 
-	local actionHotkey = Spring.GetActionHotKeys('gridmenu_next_page')
-	if actionHotkey[1] then
-		NEXT_PAGE_KEY = string.upper(actionHotkey[1])
-	else
-		Spring.SendCommands("bind " .. string.lower(NEXT_PAGE_KEY) .. " gridmenu_next_page")
-	end
+	if not userLayout then
+		userLayout = { categories = {} }
 
-	actionHotkey = Spring.GetActionHotKeys('gridmenu_prev_page')
-	if actionHotkey[1] then
-		PREV_PAGE_KEY = string.upper(actionHotkey[1])
-	else
-		Spring.SendCommands("bind " .. string.lower(PREV_PAGE_KEY) .. " gridmenu_prev_page")
-	end
+		for r=1,3 do
+			for c=1,4 do
+				local action = 'gridmenu_key ' .. r .. ' ' .. c
+				local key = Spring.GetActionHotKeys(action)[1]
 
-	copyKeyLayout(currentLayout, 'custom')
-	local useCustom = false
-	for r=1,3 do
-		for c=1,4 do
-			local action = 'gridmenu_key ' .. r .. ' ' .. c
-			local key = Spring.GetActionHotKeys(action)[1]
-			if key then
-				Cfgs.keyLayouts['custom'][r][c] = keySymCharsReverse[string.upper(key)] or string.upper(key)
-				useCustom = true
+				if key then
+					userLayout[r] = userLayout[r] or {}
+					userLayout[r][c] = keySymCharsReverse[string.upper(key)] or string.upper(key)
+				end
 			end
 		end
-	end
 
-	if useCustom then
-		genKeyLayout('custom')
-		currentLayout = 'custom'
-	end
+		for c=1,4 do
+			local action = 'gridmenu_category ' .. c
+			local key = Spring.GetActionHotKeys(action)[1]
 
-	-- bind category actions
-	for c=1,4 do
-		local action = 'gridmenu_category ' .. c
-		local key = Spring.GetActionHotKeys(action)[1]
-		if not key then
-			key = Cfgs.keyLayouts[currentLayout][1][c]
-
-			Spring.SendCommands('bind Any+' .. string.lower(key) .. ' ' .. action)
+			if key then
+				userLayout['categories'][c] = key
+			end
 		end
 
-		Cfgs.categoryKeys[c] = string.gsub(Cfgs.keySymChars[string.upper(key)] or string.upper(key), "ANY%+", '')
+		local key = Spring.GetActionHotKeys('gridmenu_next_page')[1]
+		if key then userLayout['next_page'] = key end
+
+		key = Spring.GetActionHotKeys('gridmenu_prev_page')[1]
+		if key then userLayout['prev_page'] = key end
+	end
+
+	genKeyLayout()
+
+	-- bind category actions
+	Spring.SendCommands('unbindaction gridmenu_category')
+	for c=1,4 do
+		local action = 'gridmenu_category ' .. c
+
+		Spring.SendCommands('bind Any+' .. string.lower(Cfgs.categoryKeys[c]) .. ' ' .. action)
 	end
 
 	-- bind grid key actions
+	Spring.SendCommands('unbindaction gridmenu_key')
 	for r=1,3 do
 		for c=1,4 do
 			local action = 'gridmenu_key ' .. r .. ' ' .. c
-			local key = Spring.GetActionHotKeys(action)[1]
+			local key = Cfgs.keySymChars[string.upper(Cfgs.keyLayout[r][c])] or string.lower(Cfgs.keyLayout[r][c])
 
-			if not key then
-				key = Cfgs.keyLayouts[currentLayout][r][c]
-
-				Spring.SendCommands("bind Any+" .. string.lower(key) .. " " .. action)
-			end
+			Spring.SendCommands("bind Any+" .. key .. " " .. action)
 		end
 	end
+
+	-- bind page actions
+	Spring.SendCommands("unbindaction gridmenu_next_page")
+	Spring.SendCommands("bind " .. string.lower(NEXT_PAGE_KEY) .. " gridmenu_next_page")
+
+	Spring.SendCommands("unbindaction gridmenu_prev_page")
+	Spring.SendCommands("bind " .. string.lower(PREV_PAGE_KEY) .. " gridmenu_prev_page")
 end
 
 local function setPreGamestartDefID(uDefID)
@@ -1552,7 +1515,7 @@ function drawGrid(activeArea)
 			if uDefID and uidcmds[uDefID] then
 				cellcmds[cellRectID] = uidcmds[uDefID]
 
-				local keyLayout = stickToBottom and Cfgs.vKeyLayouts[currentLayout] or Cfgs.keyLayouts[currentLayout]
+				local keyLayout = stickToBottom and Cfgs.vKeyLayout or Cfgs.keyLayout
 
 				uidcmds[uDefID].hotkey = string.gsub(string.upper(keyLayout[arow][coll]), "ANY%+", '')
 				hotkeyActions[tostring(arow) .. tostring(coll)] = -uDefID
@@ -1828,7 +1791,7 @@ function widget:DrawScreen()
 									end
 								end
 
-								local catKey = Cfgs.keyLayouts[currentLayout][1][index]
+								local catKey = Cfgs.keyLayout[1][index]
 								text = text .. "\n\255\240\240\240Hotkey: " .. textColor .. "[" .. (Cfgs.keySymChars[catKey] or catKey) .. "]"
 
 								WG['tooltip'].ShowTooltip('buildmenu', text)
@@ -2426,7 +2389,44 @@ function widget:MousePress(x, y, button)
 	end
 end
 
+local function restoreBindings()
+	-- unbind grid category actions and restore user binds
+	Spring.SendCommands('unbindaction gridmenu_category')
+	for c=1,4 do
+		local action = 'gridmenu_category ' .. c
+
+		if userLayout['categories'][c] then
+			Spring.SendCommands('bind Any+' .. string.lower(userLayout['categories'][c]) .. ' ' .. action)
+		end
+	end
+
+	-- unbind grid key actions and restore user binds
+	Spring.SendCommands('unbindaction gridmenu_key')
+	for r=1,3 do
+		for c=1,4 do
+			local action = 'gridmenu_key ' .. r .. ' ' .. c
+
+			if userLayout[r] and userLayout[r][c] then
+				Spring.SendCommands("bind Any+" .. string.lower(userLayout[r][c]) .. " " .. action)
+			end
+		end
+	end
+
+	-- unbind page actions and restore user binds
+	Spring.SendCommands("unbindaction gridmenu_next_page")
+	if userLayout['next_page'] then
+		Spring.SendCommands("bind " .. userLayout['next_page'] .. " gridmenu_next_page")
+	end
+
+	Spring.SendCommands("unbindaction gridmenu_prev_page")
+	if userLayout['prev_page'] then
+		Spring.SendCommands("bind " .. userLayout['prev_page'] .. " gridmenu_prev_page")
+	end
+end
+
 function widget:Shutdown()
+	restoreBindings()
+
 	clear()
 	hoverDlist = gl.DeleteList(hoverDlist)
 	if WG['guishader'] and dlistGuishader then

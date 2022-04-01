@@ -26,6 +26,8 @@ local texts = {}    -- loaded from external language file
 local languageCodes = { 'en', 'fr', 'zh' }
 languageCodes = table.merge(languageCodes, table.invert(languageCodes))
 
+local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua").layouts
+
 local languageNames = {}
 for key, code in ipairs(languageCodes) do
 	languageNames[key] = Spring.I18N.languages[code]
@@ -3439,6 +3441,14 @@ function init()
 				  Spring.SetConfigString("bar_font2", options[i].optionsFont[value])
 				  Spring.SendCommands("luarules reloadluaui")
 			  end
+		  end,
+		},
+		{ id = "keylayout", group = "dev", category = types.dev, name = texts.option.keylayout, type = "select", options = keyLayouts, value = 1, description = texts.option.keylayout_descr,
+		  onchange = function(_, value)
+				Spring.SetConfigString("keyboard_layout", keyLayouts[value])
+				if WG['buildmenu'] and WG['buildmenu'].reloadBindings then
+					WG['buildmenu'].reloadBindings()
+				end
 		  end,
 		},
 

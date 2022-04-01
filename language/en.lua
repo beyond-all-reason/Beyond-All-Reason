@@ -355,6 +355,8 @@ return {
 			minimapleftclick_descr = 'Left mouse button will move the camera (it is middle mouse by default)',
 			gridmenu = 'grid',
 			gridmenu_descr = 'Alternative comprehensive build menu',
+			keylayout = 'Keyboard Layout',
+			keylayout_descr = 'Set the keyboard layout',
 			buildmenu = 'Build menu',
 			buildmenu_bottom = 'bottom position',
 			buildmenu_bottom_descr = 'Relocate the buildmenu to the bottom of the screen',
