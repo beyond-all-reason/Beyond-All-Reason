@@ -98,12 +98,19 @@
 				}
 			},
 			"playerTV": {
-				"playerTV": "Player TV",
-				"cancelCamera": "Turn off",
+				"playerTV": "TV",
+				"cancelPlayerTV": "Turn off TV",
+				"cancelCamera": "Turn off Player Cam",
+				"playerView": "Player Viewpoint",
+				"globalView": "Turn off Player View",
+				"playerViewTooltip": "Only view what the player can see",
 				"tooltip": "Auto camera-track the top ranked players\n(switches player every 40 seconds by default)"
 			},
 			"teamEconomy": {
 				"tooltip": "Team metal/energy income\n(Lighter portion is income from reclaiming)"
+			},
+			"mapinfo": {
+				"author": "Author"
 			},
 			"clearMapmarks": {
 				"tooltip": "Clear mapmarks/drawings",
@@ -419,7 +426,11 @@
 			"chat": {
 				"ignored": "ignored",
 				"scroll": "%{textColor}Press %{highlightColor}CTRL %{textColor}+ %{highlightColor}SHIFT %{textColor}to activate chatlog viewing/scrolling",
-				"shortcut": "CTRL + SHIFT"
+				"shortcut": "CTRL + SHIFT",
+				"everyone": "everyone",
+				"allies": "allies",
+				"spectators": "spectators",
+				"cmd": "COMMAND"
 			},
 			"teamStats": {
 				"player": "Player",

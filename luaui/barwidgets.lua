@@ -67,6 +67,7 @@ widgetHandler = {
 
 	globals = {}, -- global vars/funcs
 
+	textOwner = nil,
 	mouseOwner = nil,
 	ownedButton = 0,
 
@@ -547,6 +548,24 @@ function widgetHandler:NewWidget()
 			self.mouseOwner = nil
 		end
 	end
+	wh.OwnText = function(_)
+		if self.textOwner then
+			return false
+		end
+
+		self.textOwner = widget
+
+		return true
+	end
+	wh.DisownText = function(_)
+		if self.textOwner == widget then
+			self.textOwner = nil
+
+			return true
+		else
+			return false
+		end
+	end
 
 	wh.UpdateCallIn = function(_, name)
 		self:UpdateWidgetCallIn(name, widget)
@@ -744,6 +763,10 @@ end
 function widgetHandler:RemoveWidget(widget)
 	if widget == nil or widget.whInfo == nil then
 		return
+	end
+
+	if self.textOwner == widget then
+		self.textOwner = nil
 	end
 
 	local name = widget.whInfo.name
@@ -1298,6 +1321,16 @@ end
 --
 
 function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode)
+	local textOwner = self.textOwner
+
+	if textOwner then
+		if textOwner.KeyPress then
+			textOwner:KeyPress(key, mods, isRepeat, label, unicode)
+		end
+
+		return true
+	end
+
 	if self.actionHandler:KeyAction(true, key, mods, isRepeat) then
 		return true
 	end
@@ -1311,6 +1344,16 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode)
 end
 
 function widgetHandler:KeyRelease(key, mods, label, unicode)
+	local textOwner = self.textOwner
+
+	if textOwner then
+		if textOwner.KeyRelease then
+			textOwner:KeyRelease(key, mods, label, unicode)
+		end
+
+		return true
+	end
+
 	if self.actionHandler:KeyAction(false, key, mods, false) then
 		return true
 	end
@@ -1324,6 +1367,16 @@ function widgetHandler:KeyRelease(key, mods, label, unicode)
 end
 
 function widgetHandler:TextInput(utf8, ...)
+	local textOwner = self.textOwner
+
+	if textOwner then
+		if textOwner.TextInput then
+			textOwner:TextInput(utf8, ...)
+		end
+
+		return true
+	end
+
 	for _, w in r_ipairs(self.TextInputList) do
 		if w:TextInput(utf8, ...) then
 			return true

@@ -11,19 +11,19 @@ function widget:GetInfo()
 end
 
 local hideBelowGameframe = 100
-local highlightAlpha = 0.14
+local highlightAlpha = 0.1
 local selectedHighlightAlpha = 0.09
-local edgeAlpha = 1.1
-local selectedEdgeAlpha = 0.77
+local edgeAlpha = 1
+local selectedEdgeAlpha = 0.75
 local edgeExponent = 1.2
 local selectedEdgeExponent = 1.45
-local animationAlpha = 0.75
-local selectedAnimationAlpha = 0.55
+local animationAlpha = 0.7
+local selectedAnimationAlpha = 0.5
 
 local useTeamcolor = true
 local teamColorAlphaMult = 1.25
 local teamColorMinAlpha = 0.7
-local fadeTime = 0.08
+local fadeTime = 0.085
 
 local hidden = (Spring.GetGameFrame() <= hideBelowGameframe)
 local selectedUnits = Spring.GetSelectedUnits()
@@ -156,7 +156,7 @@ function widget:Update()
 		local type, data = spTraceScreenRay(mx, my)
 		local unitID
 		local addedUnitID
-		if type == 'unit' then
+		if type == 'unit' and not Spring.IsGUIHidden() then
 			unitID = data
 			if not unitshapes[unitID] then
 				addUnitShape(unitID)

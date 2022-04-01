@@ -16,15 +16,15 @@
 local MaxStockpile = 100 -- set this to desired stockpile levels
 
 function widget:GetInfo()
-  return {
-    name      = "Stockpiler (dynamic)",
-    desc      = "keeps stockpiled units at max " .. MaxStockpile .. " in storage",
-    author    = "BD",
-    date      = "tomorrow",
-    license   = "WTFPL",
-    layer     = 0,
-    enabled   = true,  --  loaded by default?
-  }
+	return {
+		name      = "Stockpiler (dynamic)",
+		desc      = "keeps stockpiled units at max " .. MaxStockpile .. " in storage",
+		author    = "BD",
+		date      = "tomorrow",
+		license   = "WTFPL",
+		layer     = 0,
+		enabled   = true,  --  loaded by default?
+	}
 end
 
 local GetTeamUnits 		= Spring.GetTeamUnits
@@ -59,33 +59,36 @@ function widget:GetConfigData()
 end
 
 function ChangeMaxStockPile(_,_,words)
-    MaxStockpile = tonumber(words[1]) or MaxStockpile
-    Spring.Echo("Automatic stockpile set to" .. MaxStockpile)
+	MaxStockpile = tonumber(words[1]) or MaxStockpile
+	Spring.Echo("Automatic stockpile set to" .. MaxStockpile)
+
 	UpdateStockPileAllUnits()
+
+	return true
 end
 
 function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
-        widgetHandler:RemoveWidget()
-    end
+	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+		widgetHandler:RemoveWidget()
+	end
 end
 
 function widget:GameStart()
-    gameStarted = true
-    maybeRemoveSelf()
+	gameStarted = true
+	maybeRemoveSelf()
 end
 
 function widget:PlayerChanged(playerID)
-    maybeRemoveSelf()
+	maybeRemoveSelf()
 	myTeamID = Spring.GetMyTeamID()
 end
 
 function widget:Initialize()
-    if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
-        maybeRemoveSelf()
-    end
-    --Spring.SendCommands{"luaui disablewidget Stockpiler"} -- Disable the old stockpiler widget which could conflict
-    widgetHandler:AddAction("stockpilecount", ChangeMaxStockPile, nil, "t")
+	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+		maybeRemoveSelf()
+	end
+	--Spring.SendCommands{"luaui disablewidget Stockpiler"} -- Disable the old stockpiler widget which could conflict
+	widgetHandler:AddAction("stockpilecount", ChangeMaxStockPile, nil, 'p')
 
 	-- stockpile all existing units
 	UpdateStockPileAllUnits()
@@ -166,4 +169,3 @@ function widget:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCoun
 		DoStockPile( unitID )
 	end
 end
-

@@ -70,7 +70,6 @@ function BuildSiteHST:PlansOverlap(position, unitName)
 	end
 	return false
 end
-
 -- keeps amphibious/hover cons from zigzagging from the water to the land too far
 function BuildSiteHST:LandWaterFilter(pos, unitTypeToBuild, builder)
 	local builderName = builder:Name()
@@ -284,7 +283,6 @@ end
 
 function BuildSiteHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minimumDistance, attemptNumber, buildDistance, maximumDistance)
 	self:EchoDebug("looking for build spot for " .. builder:Name() .. " to build " .. unitTypeToBuild:Name())
-
 	maximumDistance = maximumDistance or 390
 	minimumDistance = minimumDistance or 1
 	buildDistance = buildDistance or 100
@@ -371,7 +369,7 @@ function BuildSiteHST:searchPosNearCategories(utype,builder,minDist,maxDist,cate
 	if type(maxDist) == 'string' then
 		maxDist = army.unitTable[builderName][maxDist]
 	end
-	local sortedUnits = {}
+	local Units = {}
 	for i,cat in pairs(categories) do
 		for name, _ in pairs(army[cat]) do
 			local defId = army.unitTable[name].defId
@@ -380,11 +378,12 @@ function BuildSiteHST:searchPosNearCategories(utype,builder,minDist,maxDist,cate
 				self:EchoDebug('unit', index,uId)
 				local dist = self.game:GetUnitSeparation(uID,builder:ID())
 				self:EchoDebug('dist = ', dist)
-				table.insert(sortedUnits,dist,uID)
+				table.insert(Units,dist,uID)
 			end
 		end
 	end
-	for dist, uID in pairs(sortedUnits) do
+	local k,sortedUnits = self.ai.tool:tableSorting(Units)
+	for index, uID in pairs(sortedUnits) do
 		local unit = self.game:GetUnitByID(uID)
 		local unitName = unit:Name()
 		local unitPos = unit:GetPosition()
@@ -465,22 +464,19 @@ function BuildSiteHST:BuildNearLastNano(builder, utype)
 	return p
 end
 
-function BuildSiteHST:buildOnCircle(center,uname)
-	local posx
-	local posz
-	for i=1,8 do
-		local x = radius *  math.cos(math.ceil((360/8)*i))
-		local z = radius *  math.sin(math.ceil((360/8)*i))
-		posx=posx+x
-		posz=posz+z
-		local posy = Spring.getGroundHeight(posx,posz)
-		local neighbours = self:unitsNearCheck({x=posx,y=posy,z=posz},500,1,uname)
-		if not neighbours then return {x=posx,y=posy,z=posz} end
-	end
-end
-
-
-
+-- function BuildSiteHST:buildOnCircle(center,uname)
+-- 	local posx
+-- 	local posz
+-- 	for i=1,8 do
+-- 		local x = radius *  math.cos(math.ceil((360/8)*i))
+-- 		local z = radius *  math.sin(math.ceil((360/8)*i))
+-- 		posx=posx+x
+-- 		posz=posz+z
+-- 		local posy = Spring.getGroundHeight(posx,posz)
+-- 		local neighbours = self:unitsNearCheck({x=posx,y=posy,z=posz},500,1,uname)
+-- 		if not neighbours then return {x=posx,y=posy,z=posz} end
+-- 	end
+-- end
 
 function BuildSiteHST:unitsNearCheck(pos,range,number,targets)
 	number = number or 1
@@ -503,8 +499,7 @@ function BuildSiteHST:unitsNearCheck(pos,range,number,targets)
 	return false
 end
 
-function BuildSiteHST:UnitCreated(unit)---TODO track test from unithandler
-	--self.game:StartTimer('unitCreatedt')
+function BuildSiteHST:UnitCreated(unit)
 	local unitName = unit:Name()
 	local position = unit:GetPosition()
 	local unitID = unit:ID()
@@ -512,24 +507,24 @@ function BuildSiteHST:UnitCreated(unit)---TODO track test from unithandler
 	for i = #self.plans, 1, -1 do
 		local plan = self.plans[i]
 		if plan.unitName == unitName and self.ai.tool:PositionWithinRect(position, plan) then
-			if plan.resurrect then
-				-- so that BootBST will hold it in place while it gets repaired
-				self:EchoDebug("resurrection of " .. unitName .. " begun")
-				self.resurrectionRepair[unitID] = plan.behaviour
-			else
-				self:EchoDebug(plan.behaviour.name .. " began constructing " .. unitName)
-				if self.ai.armyhst.unitTable[unitName].isBuilding or self.ai.armyhst._nano_[unitName] then
-					-- so that oversized factory lane rectangles will overlap with existing buildings
-					self:DontBuildRectangle(plan.x1, plan.z1, plan.x2, plan.z2, unitID)
-					self.ai.turtlehst:PlanCreated(plan, unitID)
-				end
-				-- tell the builder behaviour that construction has begun
-				plan.behaviour:ConstructionBegun(unitID, plan.unitName, plan.position)
-				-- pass on to the table of what we're actually building
-				plan.frame = self.game:Frame()
-				self.constructing[unitID] = plan
-				table.remove(self.plans, i)
+-- 			if plan.resurrect then
+-- 				-- so that BootBST will hold it in place while it gets repaired
+-- 				self:EchoDebug("resurrection of " .. unitName .. " begun")
+-- 				self.resurrectionRepair[unitID] = plan.behaviour
+-- 			else
+			self:EchoDebug(plan.behaviour.name .. " began constructing " .. unitName)
+			if self.ai.armyhst.unitTable[unitName].isBuilding or self.ai.armyhst._nano_[unitName] then
+				-- so that oversized factory lane rectangles will overlap with existing buildings
+				self:DontBuildRectangle(plan.x1, plan.z1, plan.x2, plan.z2, unitID)
+				self.ai.turtlehst:PlanCreated(plan, unitID)
 			end
+			-- tell the builder behaviour that construction has begun
+			plan.behaviour:ConstructionBegun(unitID, plan.unitName, plan.position)
+			-- pass on to the table of what we're actually building
+			plan.frame = self.game:Frame()
+			self.constructing[unitID] = plan
+			table.remove(self.plans, i)
+-- 			end
 			planned = true
 			break
 		end

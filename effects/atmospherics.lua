@@ -265,6 +265,33 @@ return {
     },
   },
 
+  ["mistycloudbrownmistxl"] = {
+    usedefaultexplosions = false,
+    cloud = {
+              air                = true,
+              class              = [[CBitmapMuzzleFlame]],
+              count              = 2,
+              ground             = true,
+              underwater         = false,
+              water              = false,
+              properties = {
+            colormap           = [[0 0 0 0.01  0.24 0.18 0.14 0.22   0.17 0.13 0.11 0.08   0 0 0 0.01]],
+            dir                = [[-0.06 r0.12, 1, -0.06 r0.12]],
+            gravity            = [[-0.008 r0.016, -0.03 r0.06, -0.008 r0.016]],
+            frontoffset        = 0.9,
+            fronttexture       = [[barmist]],
+            length             = 90,
+            sidetexture        = [[none]],
+            size               = [[550 r290]],
+            sizegrowth         = [[0.3 r0.55]],
+            ttl                = 550,
+            pos                = [[-150 r300, -5 r35, -150 r300]],
+            rotParams          = [[-1.8 r3.6, -0.3 r0.6, -180 r360]],
+            drawOrder          = 1,
+      },
+    },
+  },
+
   ["thickcloud"] = {
     usedefaultexplosions = false,
     cloud = {

@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "19 Jan 2008",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true	--	loaded by default?
+		enabled = true    --	loaded by default?
 	}
 end
 
@@ -16,8 +16,9 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	-- teams dying before this mark don't leave wrecks
-	local noWrecksLimit = Game.gameSpeed * 60 * 5 -- in frames
+	local leaveWreckage = Spring.GetModOptions().ffa_wreckage or false
+	local leaveWreckageFromFrame = Game.gameSpeed * 60 * 5
+
 	local earlyDropLimit = Game.gameSpeed * 60 * 2 -- in frames
 	local earlyDropGrace = Game.gameSpeed * 60 * 1 -- in frames
 	local lateDropGrace = Game.gameSpeed * 60 * 3 -- in frames
@@ -25,15 +26,18 @@ if gadgetHandler:IsSyncedCode() then
 	local GetPlayerInfo = Spring.GetPlayerInfo
 	local GetPlayerList = Spring.GetPlayerList
 	local GetTeamList = Spring.GetTeamList
-	local GetTeamUnits = Spring.GetTeamUnits
-	local DestroyUnit = Spring.DestroyUnit
-	local GetUnitTransporter = Spring.GetUnitTransporter
 	local GetAIInfo = Spring.GetAIInfo
 	local GetTeamLuaAI = Spring.GetTeamLuaAI
 	local deadTeam = {}
 	local droppedTeam = {}
 	local teamsWithUnitsToKill = {}
 	local gaiaTeamID = Spring.GetGaiaTeamID()
+
+	function gadget:Initialize()
+		if Spring.GetGameFrame() >= leaveWreckageFromFrame then
+			GG.wipeoutWithWreckage = leaveWreckage
+		end
+	end
 
 	local function GetTeamIsTakeable(teamID)
 		local players = GetPlayerList(teamID)
@@ -46,16 +50,16 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		for _, playerID in pairs(players) do
-			local name, active, spec = GetPlayerInfo(playerID,false)
+			local name, active, spec = GetPlayerInfo(playerID, false)
 			allResigned = allResigned and spec
-			noneControlling = noneControlling and ( not active or spec )
+			noneControlling = noneControlling and (not active or spec)
 		end
 
 		-- team is handled by skirmish AI, make sure the hosting player is present
 		if GetAIInfo(teamID) then
 			allResigned = false
-			local hostingPlayerID = select(3,GetAIInfo(teamID))
-			noneControlling = noneControlling and not select(2,GetPlayerInfo(hostingPlayerID,false))
+			local hostingPlayerID = select(3, GetAIInfo(teamID))
+			noneControlling = noneControlling and not select(2, GetPlayerInfo(hostingPlayerID, false))
 		end
 		return noneControlling, allResigned
 	end
@@ -66,30 +70,20 @@ if gadgetHandler:IsSyncedCode() then
 		teamsWithUnitsToKill[teamID] = true
 	end
 
-	local function destroyTeam(teamID,dropTime)
-		local teamUnits = GetTeamUnits(teamID)
-		local nowrecks = dropTime < noWrecksLimit
-		for i=1, #teamUnits do
-			local unitID = teamUnits[i]
-			if not GetUnitTransporter(unitID) then
-				if nowrecks then
-					DestroyUnit(unitID, false, true)
-				else
-					DestroyUnit(unitID)
-				end
-			end
-		end
-		if nowrecks then
-			SendToUnsynced("TeamRemoved", teamID)
-		else
-			SendToUnsynced("TeamDestroyed", teamID)
-		end
+	local function destroyTeam(teamID, gameFrame)
+		-- old code also used Spring.GetUnitTransporter to exclude destroying transported units
+		Spring.KillTeam(teamID)
 		deadTeam[teamID] = true
+		SendToUnsynced("TeamDestroyed", teamID)
 	end
 
 	function gadget:GameFrame(gameFrame)
+		if gameFrame == leaveWreckageFromFrame then
+			GG.wipeoutWithWreckage = leaveWreckage
+		end
+
 		for teamID in pairs(teamsWithUnitsToKill) do
-			destroyTeam(teamID,gameFrame)
+			destroyTeam(teamID, gameFrame)
 			teamsWithUnitsToKill[teamID] = nil
 		end
 		for _, teamID in pairs(GetTeamList()) do
@@ -97,7 +91,7 @@ if gadgetHandler:IsSyncedCode() then
 				local noneControlling, allResigned = GetTeamIsTakeable(teamID)
 				if noneControlling then
 					if allResigned then
-						destroyTeam(teamID,gameFrame) -- destroy the team immediately if all players in it resigned
+						destroyTeam(teamID, gameFrame) -- destroy the team immediately if all players in it resigned
 					elseif not droppedTeam[teamID] then
 						local gracePeriod = gameFrame < earlyDropLimit and earlyDropGrace or lateDropGrace
 						local minutesGrace = math.floor(gracePeriod / (Game.gameSpeed * 60))
@@ -110,7 +104,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		for teamID,time in pairs(droppedTeam) do
+		for teamID, time in pairs(droppedTeam) do
 			if gameFrame - time > (time < earlyDropLimit and earlyDropGrace or lateDropGrace) then
 				destroyTeam(teamID, time)
 				droppedTeam[teamID] = nil
@@ -126,14 +120,7 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveGadget(self)
 	end
 
-else	-- UNSYNCED
-
-	local function teamRemoved(_, teamID)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy('ui.ffaNoOwner.removed', { team = teamID })
-			Spring.SendMessage(message)
-		end
-	end
+else  -- UNSYNCED
 
 	local function teamDestroyed(_, teamID)
 		if Script.LuaUI('GadgetMessageProxy') then
@@ -157,7 +144,6 @@ else	-- UNSYNCED
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddSyncAction("TeamRemoved", teamRemoved)
 		gadgetHandler:AddSyncAction("TeamDestroyed", teamDestroyed)
 		gadgetHandler:AddSyncAction("PlayerWarned", playerWarned)
 		gadgetHandler:AddSyncAction("PlayerReconnected", playerReconnected)

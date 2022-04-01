@@ -804,6 +804,11 @@ function widget:TextCommand(s)
 		widgetHandler.__allowUserWidgets = false
 		Spring.SendCommands("luarules reloadluaui")
 	end
+	if n == 1 and token[1] == "profile" then
+		if widgetHandler:IsWidgetKnown("Widget Profiler") then
+			widgetHandler:ToggleWidget("Widget Profiler")
+		end
+	end
 end
 
 function widget:Shutdown()

@@ -1,14 +1,14 @@
 function widget:GetInfo()
-    return {
-        name      = "LOS colors",
-        desc      = "custom colors for LOS",
-        author    = "[teh]decay (thx to Floris, BrainDamage, hokomoko, [teh]Teddy)",
-        date      = "23 jul 2015",
-        license   = "public domain",
-        layer     = 0,
-        version   = 2,
-        enabled   = true  -- loaded by default
-    }
+	return {
+		name      = "LOS colors",
+		desc      = "custom colors for LOS",
+		author    = "[teh]decay (thx to Floris, BrainDamage, hokomoko, [teh]Teddy)",
+		date      = "23 jul 2015",
+		license   = "public domain",
+		layer     = 0,
+		version   = 2,
+		enabled   = true  -- loaded by default
+	}
 end
 
 --Changelog
@@ -22,52 +22,52 @@ local opacity = 1
 local always, LOS, radar, jam, radar2
 
 local losColorsWithRadarsGray = {
-    fog =    {0.20, 0.20, 0.20},
-    los =    {0.25, 0.25, 0.25},
-    radar =  {0.12, 0.12, 0.12},
-    jam =    {0.10, 0.02, 0.02},
-    radar2 = {0.40, 0.40, 0.40},
+	fog =    {0.20, 0.20, 0.20},
+	los =    {0.25, 0.25, 0.25},
+	radar =  {0.12, 0.12, 0.12},
+	jam =    {0.10, 0.02, 0.02},
+	radar2 = {0.40, 0.40, 0.40},
 }
 
 local losColorsWithRadarsColor = {
-    fog =    {0.17, 0.17, 0.17},
-    los =    {0.30, 0.30, 0.30},
-    radar2 = {0.08, 0.16, 0.00},
-    jam =    {0.20, 0.00, 0.00},
-    radar =  {0.08, 0.16, 0.00},
+	fog =    {0.17, 0.17, 0.17},
+	los =    {0.30, 0.30, 0.30},
+	radar2 = {0.08, 0.16, 0.00},
+	jam =    {0.20, 0.00, 0.00},
+	radar =  {0.08, 0.16, 0.00},
 }
 
 local losColorsWithoutRadars = {
-    fog =    {0.30, 0.30, 0.30},
-    los =    {0.20, 0.20, 0.20},
-    radar =  {0.00, 0.00, 0.00},
-    jam =    {0.10, 0.02, 0.02},
-    radar2 = {0.00, 0.00, 0.00},
+	fog =    {0.30, 0.30, 0.30},
+	los =    {0.20, 0.20, 0.20},
+	radar =  {0.00, 0.00, 0.00},
+	jam =    {0.10, 0.02, 0.02},
+	radar2 = {0.00, 0.00, 0.00},
 }
 
 local spSendCommands = Spring.SendCommands
 local spSetLosViewColors = Spring.SetLosViewColors
 
 function setLosWithRadars()
-    losWithRadarEnabled = true
-    withRadars()
+	losWithRadarEnabled = true
+	withRadars()
 end
 
 function setLosWithoutRadars()
-    losWithRadarEnabled = false
-    withoutRadars()
+	losWithRadarEnabled = false
+	withoutRadars()
 end
 
 function withRadars()
-    if not colorize then
-        updateLOS(losColorsWithRadarsGray)
-    else
-        updateLOS(losColorsWithRadarsColor)
-    end
+	if not colorize then
+		updateLOS(losColorsWithRadarsGray)
+	else
+		updateLOS(losColorsWithRadarsColor)
+	end
 end
 
 function withoutRadars()
-    updateLOS(losColorsWithoutRadars)
+	updateLOS(losColorsWithoutRadars)
 end
 
 function applyOpacity(colors)
@@ -80,33 +80,33 @@ end
 
 function updateLOS(colors)
 	colors = applyOpacity(colors)
-    spSetLosViewColors(colors.fog, colors.los, colors.radar, colors.jam, colors.radar2)
+	spSetLosViewColors(colors.fog, colors.los, colors.radar, colors.jam, colors.radar2)
 end
 
 function widget:PlayerChanged(playerID)
-    if playerID == Spring.GetMyPlayerID() then
-        if Spring.GetSpectatingState() then
-            specDetected = true
-            if losWithRadarEnabled then
-                withRadars()
-            else
-                withoutRadars()
-            end
-        end
-    end
+	if playerID == Spring.GetMyPlayerID() then
+		if Spring.GetSpectatingState() then
+			specDetected = true
+			if losWithRadarEnabled then
+				withRadars()
+			else
+				withoutRadars()
+			end
+		end
+	end
 end
 
 function widget:Shutdown()
-    spSendCommands('unbindkeyset Any+;')
-    spSetLosViewColors(always, LOS, radar, jam, radar2)
+	spSendCommands('unbindkeyset Any+;')
+	spSetLosViewColors(always, LOS, radar, jam, radar2)
 end
 
 
 function widget:GetConfigData()
-    return {
-        losWithRadarEnabled = losWithRadarEnabled,
-        colorize = colorize
-    }
+	return {
+		losWithRadarEnabled = losWithRadarEnabled,
+		colorize = colorize
+	}
 end
 
 function refreshLOS()
@@ -118,38 +118,42 @@ function refreshLOS()
 end
 
 function setLosWithColors()
-    colorize = true
-    setLosWithRadars()
+	colorize = true
+	setLosWithRadars()
 end
 
 function setLosWithoutColors()
-    colorize = false
-    setLosWithRadars()
+	colorize = false
+	setLosWithRadars()
 end
 
 function toggleLOSRadars()
-    if losWithRadarEnabled then
-        setLosWithoutRadars()
-    else
-        setLosWithRadars()
-    end
+	if losWithRadarEnabled then
+		setLosWithoutRadars()
+	else
+		setLosWithRadars()
+	end
+
+	return true
 end
 
 function toggleLOSColors()
-    if not colorize then
-        setLosWithColors()
-    else
-        setLosWithoutColors()
-    end
+	if not colorize then
+		setLosWithColors()
+	else
+		setLosWithoutColors()
+	end
+
+	return true
 end
 
 function widget:Initialize()
-    widgetHandler:AddAction("losradar", toggleLOSRadars)
-    widgetHandler:AddAction("loscolor", toggleLOSColors)
+	widgetHandler:AddAction("losradar", toggleLOSRadars, nil, 'p')
+	widgetHandler:AddAction("loscolor", toggleLOSColors, nil, 'p')
 
-    spSendCommands('unbindkeyset Any+;')
-    spSendCommands('bind Any+; losradar')
-    spSendCommands('bind Any+0xf6 losradar') -- o-umlaut for German keyboards, located where the semicolon normally is
+	spSendCommands('unbindkeyset Any+;')
+	spSendCommands('bind Any+; losradar')
+	spSendCommands('bind Any+0xf6 losradar') -- o-umlaut for German keyboards, located where the semicolon normally is
 
 	WG['los'] = {}
 	WG['los'].getColorize = function()
@@ -171,21 +175,21 @@ function widget:Initialize()
 		end
 	end
 
-    always, LOS, radar, jam, radar2 = Spring.GetLosViewColors()
+	always, LOS, radar, jam, radar2 = Spring.GetLosViewColors()
 
-    if losWithRadarEnabled == true then
-        setLosWithRadars()
-    else
-        setLosWithoutRadars()
-    end
+	if losWithRadarEnabled == true then
+		setLosWithRadars()
+	else
+		setLosWithoutRadars()
+	end
 end
 
 function widget:SetConfigData(data)
-    if data.losWithRadarEnabled ~= nil then
-        losWithRadarEnabled = data.losWithRadarEnabled
-    else
-        losWithRadarEnabled = true
-    end
+	if data.losWithRadarEnabled ~= nil then
+		losWithRadarEnabled = data.losWithRadarEnabled
+	else
+		losWithRadarEnabled = true
+	end
 
 	if data.colorize ~= nil then
 		colorize = data.colorize

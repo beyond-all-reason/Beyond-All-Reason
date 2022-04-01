@@ -81,7 +81,7 @@ return {
 				accuracy = 100,
 				areaofeffect = 20,
 				avoidfeature = false,
-				burnblow = true,
+				burnblow = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -103,6 +103,7 @@ return {
 				thickness = 4,
 				tolerance = 10000,
 				turret = false,
+				weapontimer = 1,
 				weapontype = "LaserCannon",
 				weaponvelocity = 1000,
 				customparams = {

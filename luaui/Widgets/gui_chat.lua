@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author    = "Floris",
 		date      = "May 2021",
 		license   = "GNU GPL, v2 or later",
-		layer     = 30000,
+		layer     = -9999999999,
 		enabled   = true
 	}
 end
@@ -19,10 +19,13 @@ local consoleFontSizeMult = 0.85
 local maxLines = 5
 local maxConsoleLines = 2
 local maxLinesScroll = 15
-local lineHeightMult = 1.27
+local lineHeightMult = 1.33
 local lineTTL = 40
-local capitalize = false	-- capitalize first letter of chat text
 local backgroundOpacity = 0.18
+local handleTextInput = true	-- handle chat text input instead of using spring's input method
+local inputButton = true
+local allowMultiAutocomplete = true
+local allowMultiAutocompleteMax = 10
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
@@ -46,6 +49,7 @@ local displayedChatLines = 0
 local hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
 
 local myName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+local isSpec = Spring.GetSpectatingState()
 
 local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 local font, font3, chobbyInterface, hovering
@@ -53,8 +57,8 @@ local font, font3, chobbyInterface, hovering
 local RectRound, UiElement, UiScroller, elementCorner, elementPadding, elementMargin
 
 local playSound = true
-local SoundIncomingChat  = 'beep4'
-local SoundIncomingChatVolume = 0.85
+local sndChatFile  = 'beep4'
+local sndChatFileVolume = 0.55
 
 local colorOther = {1,1,1} -- normal chat color
 local colorAlly = {0,1,0}
@@ -77,6 +81,19 @@ local consoleLineMaxWidth = 0
 local backgroundPadding = usedFontSize
 local gameOver = false
 
+local showTextInput = false
+local inputText = ''
+local inputTextPosition = 0
+local cursorBlinkTimer = 0
+local cursorBlinkDuration = 1
+local inputMode = ''
+local inputTextInsertActive = false
+local inputHistory = {}
+local inputHistoryCurrent = 0
+local inputButtonRect
+local autocompleteWords = {}
+local prevAutocompleteLetters
+
 local glPopMatrix      = gl.PopMatrix
 local glPushMatrix     = gl.PushMatrix
 local glDeleteList     = gl.DeleteList
@@ -98,6 +115,260 @@ local spGetTeamColor = Spring.GetTeamColor
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spPlaySoundFile = Spring.PlaySoundFile
 local spGetGameFrame = Spring.GetGameFrame
+
+local autocompleteCommands = {
+	-- engine
+	'advmapshading',
+	'advmodelshading',
+	'aicontrol',
+	'aikill',
+	'ailist',
+	'aireload',
+	'airmesh',
+	'allmapmarks',
+	'ally',
+	'atm',
+	'buffertext',
+	'chat',
+	'chatall',
+	'chatally',
+	'chatspec',
+	'cheat',
+	'clearmapmarks',
+	--'clock',
+	'cmdcolors',
+	'commandhelp',
+	'commandlist',
+	'console',
+	'controlunit',
+	'crash',
+	'createvideo',
+	'cross',
+	'ctrlpanel',
+	'debug',
+	'debugcolvol',
+	'debugdrawai',
+	'debuggl',
+	'debugglerrors',
+	'debuginfo',
+	'debugpath',
+	'debugtraceray',
+	'decguiopacity',
+	'decreaseviewradius',
+	'deselect',
+	'destroy',
+	'devlua',
+	'distdraw',
+	'disticon',
+	'divbyzero',
+	'drawinmap',
+	'drawlabel',
+	'drawtrees',
+	'dumpstate',
+	'dynamicsky',
+	'echo',
+	'editdefs',
+	'endgraph',
+	'exception',
+	'font',
+	'fps',
+	'fpshud',
+	'fullscreen',
+	'gameinfo',
+	'gathermode',
+	'give',
+	'globallos',
+	'godmode',
+	'grabinput',
+	'grounddecals',
+	'grounddetail',
+	'group',
+	'group0',
+	'group1',
+	'group2',
+	'group3',
+	'group4',
+	'group5',
+	'group6',
+	'group7',
+	'group8',
+	'group9',
+	'hardwarecursor',
+	'hideinterface',
+	'incguiopacity',
+	'increaseviewradius',
+	'info',
+	'inputtextgeo',
+	'lastmsgpos',
+	'lessclouds',
+	'lesstrees',
+	'lodscale',
+	'luagaia',
+	'luarules',
+	'luasave',
+	'luaui',
+	'mapborder',
+	'mapmarks',
+	'mapmeshdrawer',
+	'mapshadowpolyoffset',
+	'maxnanoparticles',
+	'maxparticles',
+	'minimap',
+	'moreclouds',
+	'moretrees',
+	'mouse1',
+	'mouse2',
+	'mouse3',
+	'mouse4',
+	'mouse5',
+	'moveback',
+	'movedown',
+	'movefast',
+	'moveforward',
+	'moveleft',
+	'moveright',
+	'moveslow',
+	'moveup',
+	'mutesound',
+	'nocost',
+	'nohelp',
+	'noluadraw',
+	'nospecdraw',
+	'nospectatorchat',
+	'pastetext',
+	'pause',
+	'quitforce',
+	'quitmenu',
+	'quitmessage',
+	'reloadcegs',
+	'reloadcob',
+	'reloadforce',
+	'reloadgame',
+	'reloadshaders',
+	'reloadtextures',
+	'resbar',
+	'resync',
+	'safegl',
+	'save',
+	'savegame',
+	'say',
+	'screenshot',
+	'select',
+	'selectcycle',
+	'selectunits',
+	'send',
+	'set',
+	'shadows',
+	'sharedialog',
+	'showelevation',
+	'showmetalmap',
+	'showpathcost',
+	'showpathflow',
+	'showpathheat',
+	'showpathtraversability',
+	'showpathtype',
+	'showstandard',
+	'skip',
+	'slowdown',
+	'soundchannelenablec',
+	'sounddevice',
+	'specfullview',
+	'spectator',
+	'specteam',
+	--'speed',
+	'speedcontrol',
+	'speedup',
+	'take',
+	'team',
+	'teamhighlight',
+	'toggleinfo',
+	'togglelos',
+	'tooltip',
+	'track',
+	'trackmode',
+	'trackoff',
+	'tset',
+	'viewselection',
+	'vsync',
+	'water',
+	'wbynum',
+	'wiremap',
+	'wiremodel',
+	'wiresky',
+	'wiretree',
+	'wirewater',
+
+	-- gadgets
+	'luarules battleroyaledebug',
+	'luarules buildicon',
+	'luarules cmd',
+	'luarules clearwrecks',
+	'luarules destroyunits',
+	'luarules disablecus',
+	'luarules fightertest',
+	'luarules give',
+	'luarules givecat',
+	'luarules halfhealth',
+	'luarules kill_profiler',
+	'luarules loadmissiles',
+	'luarules profile',
+	'luarules reclaimunits',
+	'luarules reloadcus',
+	'luarules removeunits',
+	'luarules removeunitdef',
+	'luarules spawnceg',
+	'luarules undo',
+	'luarules unitcallinsgadget',
+	'luarules updatesun',
+	'luarules waterlevel',
+	'luarules wreckunits',
+	'luarules xpunits',
+
+	-- widgets
+	'devmode',
+	'profile',
+	'grapher',
+	'luaui reload',
+	'luaui profile',
+	--'luaui selector',	-- pops up engine version
+	'luaui reset',
+	'luaui factoryreset',
+	'luaui disable',
+	'luaui enable',
+	'savegame',
+	'addmessage',
+	'radarpulse',
+	'snow',
+	'clearconsole',
+	'ecostatstext',
+	'defrange ally air',
+	'defrange ally nuke',
+	'defrange ally ground',
+	'defrange enemy air',
+	'defrange enemy nuke',
+	'defrange enemy ground',
+}
+local autocompleteText
+local autocompletePlayernames = {}
+local playersList = Spring.GetPlayerList()
+for _, playerID in ipairs(playersList) do
+	local name = Spring.GetPlayerInfo(playerID, false)
+	autocompletePlayernames[#autocompletePlayernames+1] = name
+end
+
+local autocompleteUnitNames = {}
+local autocompleteUnitCodename = {}
+local uniqueHumanNames = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if not uniqueHumanNames[unitDef.translatedHumanName] then
+		uniqueHumanNames[unitDef.translatedHumanName] = true
+		autocompleteUnitNames[#autocompleteUnitNames+1] = unitDef.translatedHumanName
+	end
+	if not string.find(unitDef.name, "_scav", nil, true) then
+		autocompleteUnitCodename[#autocompleteUnitCodename+1] = unitDef.name:lower()
+	end
+end
+uniqueHumanNames = nil
 
 local teamColorKeys = {}
 local teams = Spring.GetTeamList()
@@ -161,11 +432,6 @@ local function addConsoleLine(gameFrame, lineType, text, isLive)
 	if scrolling ~= 'console' then
 		currentConsoleLine = consoleLinesCount
 	end
-
-	-- play sound for ...
-	--if isLive and playSound and not Spring.IsGUIHidden() then
-	--	spPlaySoundFile( SoundIncomingChat, SoundIncomingChatVolume, nil, "ui" )
-	--end
 end
 
 local function addChat(gameFrame, lineType, name, text, isLive)
@@ -202,11 +468,37 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 
 	-- play sound for player/spectator chat
 	if isLive and (lineType == 1 or lineType == 2) and playSound and not Spring.IsGUIHidden() then
-		spPlaySoundFile( SoundIncomingChat, SoundIncomingChatVolume, nil, "ui" )
+		spPlaySoundFile( sndChatFile, sndChatFileVolume, nil, "ui" )
 	end
 end
 
+local function cancelChatInput()
+	showTextInput = false
+	inputText = ''
+	inputTextPosition = 0
+	inputTextInsertActive = false
+	inputHistoryCurrent = #inputHistory
+	autocompleteText = nil
+	autocompleteWords = {}
+	if WG['guishader'] then
+		WG['guishader'].RemoveRect('chatinput')
+		WG['guishader'].RemoveRect('chatinputautocomplete')
+	end
+	widgetHandler:DisownText()
+end
+
+function widget:PlayerChanged(playerID)
+	isSpec = Spring.GetSpectatingState()
+end
+
+function widget:PlayerAdded(playerID)
+	local name = Spring.GetPlayerInfo(playerID, false)
+	autocompletePlayernames[#autocompletePlayernames+1] = name
+end
+
 function widget:Initialize()
+	Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+
 	widget:ViewResize()
 	Spring.SendCommands("console 0")
 
@@ -215,18 +507,36 @@ function widget:Initialize()
 	end
 
 	WG['chat'] = {}
+	WG['chat'].isInputActive = function()
+		return showTextInput
+	end
+	WG['chat'].getInputButton = function()
+		return inputButton
+	end
+	WG['chat'].setInputButton = function(value)
+		inputButton = value
+	end
+	WG['chat'].getHandleInput = function()
+		return handleTextInput
+	end
+	WG['chat'].setHandleInput = function(value)
+		handleTextInput = value
+		if not handleTextInput then
+			cancelChatInput()
+		end
+		Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+	end
+	WG['chat'].getChatVolume = function()
+		return sndChatFileVolume
+	end
+	WG['chat'].setChatVolume = function(value)
+		sndChatFileVolume = value
+	end
 	WG['chat'].getBackgroundOpacity = function()
 		return backgroundOpacity
 	end
 	WG['chat'].setBackgroundOpacity = function(value)
 		backgroundOpacity = value
-	end
-	WG['chat'].getCapitalize = function()
-		return capitalize
-	end
-	WG['chat'].setCapitalize = function(value)
-		capitalize = value
-		widget:ViewResize()
 	end
 	WG['chat'].getMaxLines = function()
 		return maxLines
@@ -253,9 +563,20 @@ end
 
 local uiSec = 0
 function widget:Update(dt)
+	cursorBlinkTimer = cursorBlinkTimer + dt
+	if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
+
 	uiSec = uiSec + dt
 	if uiSec > 1 then
 		uiSec = 0
+
+		if not addedOptionsList and WG['options'] and WG['options'].getOptionsList then
+			local optionsList = WG['options'].getOptionsList()
+			addedOptionsList = true
+			for i, option in ipairs(optionsList) do
+				autocompleteCommands[#autocompleteCommands+1] = 'option '..option
+			end
+		end
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) or ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66)  then
 			ui_scale = Spring.GetConfigFloat("ui_scale",1)
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.65)
@@ -299,7 +620,7 @@ function widget:Update(dt)
 
 	local x,y,b = Spring.GetMouseState()
 
-	local heightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
+	local chatlogHeightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
 	if WG['topbar'] and WG['topbar'].showingQuit() then
 		scrolling = false
 	elseif math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
@@ -311,7 +632,7 @@ function widget:Update(dt)
 				scrolling = 'chat'
 			end
 		end
-	elseif scrolling and math_isInRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[2]) then
+	elseif scrolling and math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[2]) then
 		-- do nothing
 	else
 		scrolling = false
@@ -373,7 +694,8 @@ local function processLine(i)
 				if chatLines[i].lineType == 3 then
 					font:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), 0, usedFontSize, "oc")
 				else
-					font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.8), fontHeightOffset, usedFontSize, "oc")
+					font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")
+
 				end
 			end
 			font:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
@@ -391,54 +713,241 @@ end
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+		if not chobbyInterface then
+			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		end
 	end
 end
+
+local function drawChatInput()
+	if showTextInput then
+		local x,y,_ = Spring.GetMouseState()
+		local chatlogHeightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
+		local inputFontSize = floor(usedFontSize * 1.04)
+		local inputHeight = floor(inputFontSize * 2.3)
+		local leftOffset = floor(lineHeight*0.7)
+		local distance =  (scrolling and inputHeight + elementMargin + elementMargin or elementMargin)
+		local isCmd = ssub(inputText, 1, 1) == '/'
+		local usedFont = isCmd and font3 or font
+		local modeText = Spring.I18N('ui.chat.everyone')
+		if inputMode == 'a:' then
+			modeText = Spring.I18N('ui.chat.allies')
+		elseif inputMode == 's:' then
+			modeText = Spring.I18N('ui.chat.spectators')
+		end
+		if isCmd then
+			modeText = Spring.I18N('ui.chat.cmd')
+		end
+		local modeTextPosX = floor(activationArea[1]+elementPadding+elementPadding+leftOffset)
+		local textPosX = floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
+		local textCursorWidth = 1 + math.floor(inputFontSize / 14)
+		if inputTextInsertActive then
+			textCursorWidth = math.floor(textCursorWidth * 5)
+		end
+		local textCursorPos = floor(usedFont:GetTextWidth(ssub(inputText, 1, inputTextPosition)) * inputFontSize)
+
+		-- background
+		local r,g,b,a
+		local inputAlpha = math.min(0.36, ui_opacity*0.66)
+		local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText..(autocompleteText and autocompleteText or '')) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/3)))
+		UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, nil,nil,nil,nil, nil,nil,nil,nil, inputAlpha)
+		if WG['guishader'] then
+			WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'chatinput')
+		end
+
+		-- button background
+		inputButtonRect = {activationArea[1]+elementPadding, activationArea[2]+chatlogHeightDiff-distance-inputHeight+elementPadding, textPosX-inputFontSize, activationArea[2]+chatlogHeightDiff-distance-elementPadding}
+		if inputButton and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
+			Spring.SetMouseCursor('cursornormal')
+			if isCmd then
+				r, g, b = 0, 0, 0
+			elseif inputMode == 'a:' then
+				r, g, b = 0, 0.3, 0
+			elseif inputMode == 's:' then
+				r, g, b = 0.3, 0.27, 0
+			else
+				r, g, b = 0.25, 0.25, 0.25
+			end
+			glColor(r, g, b, 0.35)
+		else
+			if isCmd then
+				r, g, b = 0, 0, 0
+			elseif inputMode == 'a:' then
+				r, g, b = 0, 0.1, 0
+			elseif inputMode == 's:' then
+				r, g, b = 0.1, 0.094, 0
+			else
+				r, g, b = 0, 0, 0
+			end
+			glColor(r, g, b, 0.3)
+		end
+		RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
+		glColor(1,1,1,0.033)
+		gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
+
+		-- button text
+		usedFont:Begin()
+		if isCmd then
+			r, g, b = 0.65, 0.65, 0.65
+		elseif inputMode == 'a:' then
+			r, g, b = 0.55, 0.72, 0.55
+		elseif inputMode == 's:' then
+			r, g, b = 0.73, 0.73, 0.54
+		else
+			r, g, b = 0.7, 0.7, 0.7
+		end
+		usedFont:SetTextColor(r, g, b, 1)
+		usedFont:Print(modeText, modeTextPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
+
+		-- colon
+		if not isCmd then
+			if inputMode == 'a:' then
+				r, g, b = 0.53, 0.66, 0.53
+			elseif inputMode == 's:' then
+				r, g, b = 0.66, 0.66, 0.5
+			else
+				r, g, b = 0.55, 0.55, 0.55
+			end
+			usedFont:SetTextColor(r, g, b, 1)
+			usedFont:Print(':', inputButtonRect[3]-0.5, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "co")
+		end
+
+		-- text cursor
+		a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.15
+		glColor(0.7,0.7,0.7,a)
+		gl.Rect(textPosX + textCursorPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64))
+		glColor(1,1,1,1)
+
+		-- text message
+		if isCmd then
+			r, g, b = 0.85, 0.85, 0.85
+		elseif inputMode == 'a:' then
+			r, g, b = 0.2, 1, 0.2
+		elseif inputMode == 's:' then
+			r, g, b = 1, 1, 0.2
+		else
+			r, g, b = 0.95, 0.95, 0.95
+		end
+		usedFont:SetTextColor(r,g,b, 1)
+		usedFont:Print(inputText, textPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
+		if autocompleteText then
+			usedFont:SetTextColor(r,g,b, 0.35)
+			usedFont:Print(autocompleteText, textPosX + floor(usedFont:GetTextWidth(inputText) * inputFontSize), activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "")
+		end
+
+		-- autocomplete multi-suggestions
+		if autocompleteText and autocompleteWords[2] then
+			--local letters = ''
+			--local isCmd = ssub(inputText, 1, 1) == '/'
+			--local textWordCount = 0
+			--for word in (ssub(inputText, isCmd and 2 or 1)):gmatch("%S+") do
+			--	textWordCount = textWordCount + 1
+			--	letters = word
+			--end
+
+			local letters = ''
+			for word in (isCmd and ssub(inputText, 2) or inputText):gmatch("%S+") do
+				letters = word
+			end
+			if ssub(inputText, #inputText) == ' ' then
+				letters = letters..' '
+			elseif prevAutocompleteLetters then
+				letters = prevAutocompleteLetters .. letters
+			end
+			local letterCount = #letters
+			local scale = 0.8
+			local autocLineHeight = floor(inputFontSize * scale * 1.3)
+			local lettersWidth = floor(usedFont:GetTextWidth(letters) * inputFontSize * scale)
+			local xPos = floor(textPosX + textCursorPos - lettersWidth)
+			local yPos =  activationArea[2]+chatlogHeightDiff-distance-inputHeight
+			local height = (autocLineHeight * math.min(allowMultiAutocompleteMax, #autocompleteWords-1) + leftOffset) + (#autocompleteWords > allowMultiAutocompleteMax+1 and autocLineHeight or 0)
+			glColor(0,0,0,inputAlpha)
+			RectRound(xPos-leftOffset, yPos-height, x2-elementMargin, yPos, elementCorner*0.6, 0,0,1,1)
+			if WG['guishader'] then
+				WG['guishader'].InsertRect(xPos-leftOffset, yPos-height, x2-elementPadding, yPos, 'chatinputautocomplete')
+			end
+			local addHeight = floor((inputFontSize*scale) * 1.35) - autocLineHeight
+			for i, word in ipairs(autocompleteWords) do
+				if i > 1 then
+					addHeight = addHeight + autocLineHeight
+					usedFont:SetTextColor(r,g,b, 0.8)
+					usedFont:Print(letters, xPos, yPos-addHeight, inputFontSize*scale, "")
+					usedFont:SetTextColor(r,g,b, 0.35)
+					if i <= allowMultiAutocompleteMax+1 then
+						usedFont:Print(ssub(word, letterCount+1), xPos + lettersWidth, yPos-addHeight, inputFontSize*scale, "")
+					else
+						local text = ''
+						for i=1, #word do
+							text = text .. '.'
+						end
+						usedFont:Print(text, xPos + lettersWidth, yPos-addHeight, inputFontSize*scale, "")
+						break
+					end
+				end
+			end
+		else
+			if WG['guishader'] then
+				WG['guishader'].RemoveRect('chatinputautocomplete')
+			end
+		end
+
+		usedFont:End()
+	elseif WG['guishader'] then
+		WG['guishader'].RemoveRect('chatinput')
+		WG['guishader'].RemoveRect('chatinputautocomplete')
+	end
+end
+
 
 function widget:DrawScreen()
 	if chobbyInterface then return end
 	if not chatLines[1] and not consoleLines[1] then return end
 
 	local x,y,b = Spring.GetMouseState()
-	local heightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
+	local chatlogHeightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
 	if hovering and WG['guishader'] then
 		WG['guishader'].RemoveRect('chat')
 	end
-	if math_isInRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4]) or  (scrolling and math_isInRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[2]))  then
+	if math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4]) or  (scrolling and math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[2]))  then
 		hovering = true
 		if scrolling then
-			UiElement(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4])
+			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4])
+			if WG['guishader'] then
+				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4], 'chat')
+			end
 
 			-- player name background
 			if scrolling == 'chat' then
 				local gametimeEnd = floor(backgroundPadding+maxTimeWidth+(backgroundPadding*0.75))
-				local playernameEnd = gametimeEnd + maxPlayernameWidth+(lineSpaceWidth/2)
+				local playernameEnd = gametimeEnd + maxPlayernameWidth + (lineSpaceWidth/1.8)
 				glColor(1,1,1,0.045)
-				RectRound(activationArea[1]+gametimeEnd, activationArea[2]+elementPadding+heightDiff, activationArea[1]+playernameEnd, activationArea[4]-elementPadding, elementCorner*0.66, 0,0,0,0)
+				RectRound(activationArea[1]+gametimeEnd, activationArea[2]+elementPadding+chatlogHeightDiff, activationArea[1]+playernameEnd, activationArea[4]-elementPadding, elementCorner*0.66, 0,0,0,0)
 				-- vertical line at start and end
 				glColor(1,1,1,0.045)
-				RectRound(activationArea[1]+playernameEnd-1, activationArea[2]+elementPadding+heightDiff, activationArea[1]+playernameEnd, activationArea[4]-elementPadding, 0, 0,0,0,0)
-				RectRound(activationArea[1]+gametimeEnd, activationArea[2]+elementPadding+heightDiff, activationArea[1]+gametimeEnd+1, activationArea[4]-elementPadding, 0, 0,0,0,0)
+				RectRound(activationArea[1]+playernameEnd-1, activationArea[2]+elementPadding+chatlogHeightDiff, activationArea[1]+playernameEnd, activationArea[4]-elementPadding, 0, 0,0,0,0)
+				RectRound(activationArea[1]+gametimeEnd, activationArea[2]+elementPadding+chatlogHeightDiff, activationArea[1]+gametimeEnd+1, activationArea[4]-elementPadding, 0, 0,0,0,0)
 			end
 
 			local scrollbarMargin = floor(16 * widgetScale)
 			local scrollbarWidth = floor(11 * widgetScale)
 			UiScroller(
 				floor(activationArea[3]-scrollbarMargin-scrollbarWidth),
-				floor(activationArea[2]+heightDiff+scrollbarMargin),
+				floor(activationArea[2]+chatlogHeightDiff+scrollbarMargin),
 				floor(activationArea[3]-scrollbarMargin),
 				floor(activationArea[4]-scrollbarMargin),
 				scrolling == 'console' and #consoleLines*lineHeight or #chatLines*lineHeight,
 				scrolling == 'console' and (currentConsoleLine-maxLinesScroll)*lineHeight or (currentChatLine-maxLinesScroll)*lineHeight
 			)
-
-			if WG['guishader'] then
-				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], 'chat')
-			end
 		end
 	else
 		hovering = false
 		scrolling = false
 		currentChatLine = #chatLines
+	end
+
+	-- draw chat input
+	if handleTextInput then
+		drawChatInput()
 	end
 
 	-- draw background
@@ -448,7 +957,7 @@ function widget:DrawScreen()
 		RectRound(activationArea[1]-borderSize, activationArea[2]-borderSize, activationArea[3]+borderSize, activationArea[2]+borderSize+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner*1.2)
 
 		glColor(0,0,0,backgroundOpacity)
-		--RectRound(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], elementCorner)
+		--RectRound(activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4], elementCorner)
 		RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner)
 		if hovering and Spring.GetGameFrame() < 30*60*7 then
 			font:Begin()
@@ -547,8 +1056,251 @@ function widget:DrawScreen()
 	end
 end
 
+local function runAutocompleteSet(wordsSet, searchStr, multi)
+	autocompleteWords = {}
+	local charCount = slen(searchStr)
+	for i, word in ipairs(wordsSet) do
+		if searchStr == ssub(word, 1, charCount) and slen(word) > charCount then
+			autocompleteWords[#autocompleteWords+1] = word
+			if not autocompleteText then
+				autocompleteText = ssub(word, charCount+1)
+				if not multi then
+					return true
+				end
+			end
+		end
+	end
+	return autocompleteText ~= nil
+end
+
+local function autocomplete(text, fresh)
+	autocompleteText = nil
+	if fresh then
+		autocompleteWords = {}
+	end
+	if text == '' then
+		return
+	end
+	local letters = ''
+	local isCmd = ssub(text, 1, 1) == '/'
+	local words = {}
+	for word in (ssub(text, isCmd and 2 or 1)):gmatch("%S+") do
+		words[#words+1] = word
+		letters = word
+	end
+	-- if there are still suggestions then try to continue before starting fresh with a new word
+	if ssub(inputText, #text) == ' ' then
+		letters = letters..' '
+		if autocompleteWords[1] then
+			prevAutocompleteLetters = letters
+		end
+	else
+		if prevAutocompleteLetters and autocompleteWords[1] then
+			letters = prevAutocompleteLetters .. letters
+			if isCmd then
+				words = {[1] = letters}
+			end
+		else
+			prevAutocompleteLetters = nil
+		end
+	end
+
+	-- find autocompleteWords
+	if autocompleteWords[2] then
+		runAutocompleteSet(autocompleteWords, letters, allowMultiAutocomplete)
+	else
+		if #letters >= 2 then
+			runAutocompleteSet(autocompletePlayernames, letters)
+		end
+		if not autocompleteWords[1] then
+			if isCmd then
+				if #words <= 1 then
+					runAutocompleteSet(autocompleteCommands, letters, allowMultiAutocomplete)
+				else
+					runAutocompleteSet(autocompleteUnitCodename, letters, allowMultiAutocomplete)
+				end
+			else
+				if #letters >= 2 then
+					runAutocompleteSet(autocompleteUnitNames, letters, allowMultiAutocomplete)
+				end
+			end
+		end
+	end
+
+	-- if prev autocomplete words didnt result in suggestions, redo it freshly
+	if prevAutocompleteLetters and not autocompleteWords[1] and not ssub(inputText, #text) == ' ' then
+		prevAutocompleteLetters = nil
+		autocomplete(text, true)
+	end
+end
+
+function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
+	if handleTextInput and not chobbyInterface and not Spring.IsGUIHidden() and showTextInput then
+		if inputTextInsertActive then
+			inputText = ssub(inputText, 1, inputTextPosition) .. char .. ssub(inputText, inputTextPosition+2)
+			if inputTextPosition <= slen(inputText) then
+				inputTextPosition = inputTextPosition + slen(char) -- utf8 can bu multiple chars
+			end
+		else
+			inputText = ssub(inputText, 1, inputTextPosition) .. char .. ssub(inputText, inputTextPosition+1)
+			inputTextPosition = inputTextPosition + slen(char) -- utf8 can bu multiple chars
+		end
+		inputHistory[#inputHistory] = inputText
+		cursorBlinkTimer = 0
+		autocomplete(inputText)
+		return true
+	end
+end
+
+function widget:KeyPress(key, mods, isRepeat)
+	if not Spring.IsGUIHidden() and handleTextInput then
+		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		if showTextInput then
+			if key == 13 then -- RETURN	 (keypad enter = 271)
+				if ctrl or alt or shift then
+					-- switch mode
+					if ctrl then
+						inputMode = ''
+					elseif alt and not isSpec then
+						inputMode = (inputMode == 'a:' and '' or 'a:')
+					else
+						inputMode = (inputMode == 's:' and '' or 's:')
+					end
+				else
+					-- send chat/cmd
+					if inputText ~= '' then
+						if ssub(inputText, 1, 1) == '/' then
+							Spring.SendCommands(ssub(inputText, 2))
+						else
+							Spring.SendCommands("say "..inputMode..inputText)
+						end
+					end
+					cancelChatInput()
+				end
+				return true
+			end
+
+			if ctrl and key == 118 then -- CTRL + V
+				local clipboardText = Spring.GetClipboard()
+				inputText = ssub(inputText, 1, inputTextPosition) .. clipboardText .. ssub(inputText, inputTextPosition+1)
+				inputTextPosition = inputTextPosition + slen(clipboardText)
+				inputHistory[#inputHistory] = inputText
+				cursorBlinkTimer = 0
+				autocomplete(inputText, true)
+
+			elseif not alt and not ctrl then
+				if key == 27 then -- ESC
+					cancelChatInput()
+					return true
+				elseif key == 8 then -- BACKSPACE
+					if inputTextPosition > 0 then
+						inputText = ssub(inputText, 1, inputTextPosition-1) .. ssub(inputText, inputTextPosition+1)
+						inputTextPosition = inputTextPosition - 1
+						inputHistory[#inputHistory] = inputText
+						if not (prevAutocompleteLetters and inputTextPosition == #inputText and ssub(inputText, #inputText) ~= ' ') then
+							prevAutocompleteLetters = nil
+						end
+					end
+					cursorBlinkTimer = 0
+					autocomplete(inputText, not prevAutocompleteLetters)
+				elseif key == 127 then -- DELETE
+					if inputTextPosition < slen(inputText) then
+						inputText = ssub(inputText, 1, inputTextPosition) .. ssub(inputText, inputTextPosition+2)
+						inputHistory[#inputHistory] = inputText
+					end
+					cursorBlinkTimer = 0
+					autocomplete(inputText, true)
+				elseif key == 277 then -- INSERT
+					inputTextInsertActive = not inputTextInsertActive
+				elseif key == 276 then -- LEFT
+					inputTextPosition = inputTextPosition - 1
+					if inputTextPosition < 0 then
+						inputTextPosition = 0
+					end
+					cursorBlinkTimer = 0
+				elseif key == 275 then -- RIGHT
+					inputTextPosition = inputTextPosition + 1
+					if inputTextPosition > slen(inputText) then
+						inputTextPosition = slen(inputText)
+					end
+					cursorBlinkTimer = 0
+				elseif key == 278 or key == 280 then -- HOME / PGUP
+					inputTextPosition = 0
+					cursorBlinkTimer = 0
+				elseif key == 279 or key == 281 then -- END / PGDN
+					inputTextPosition = slen(inputText)
+					cursorBlinkTimer = 0
+				elseif key == 273 then -- UP
+					inputHistoryCurrent = inputHistoryCurrent - 1
+					if inputHistoryCurrent < 1 then
+						inputHistoryCurrent = 1
+					end
+					if inputHistory[inputHistoryCurrent] then
+						inputText = inputHistory[inputHistoryCurrent]
+						inputHistory[#inputHistory] = inputText
+					end
+					inputTextPosition = slen(inputText)
+					cursorBlinkTimer = 0
+					autocomplete(inputText, true)
+				elseif key == 274 then -- DOWN
+					inputHistoryCurrent = inputHistoryCurrent + 1
+					if inputHistoryCurrent >= #inputHistory then
+						inputHistoryCurrent = #inputHistory
+					end
+					inputText = inputHistory[inputHistoryCurrent]
+					inputTextPosition = slen(inputText)
+					cursorBlinkTimer = 0
+					autocomplete(inputText, true)
+				elseif key == 9 then -- TAB
+					if autocompleteText then
+						inputText = ssub(inputText, 1, inputTextPosition) .. autocompleteText .. ssub(inputText, inputTextPosition+1)
+						inputTextPosition = inputTextPosition + slen(autocompleteText)
+						inputHistory[#inputHistory] = inputText
+						autocompleteText = nil
+						autocompleteWords = {}
+					end
+				else
+					-- regular chars/keys handled in widget:TextInput
+				end
+			end
+			return true
+		elseif key == 13 then -- RETURN	 (keypad enter = 271)
+			cancelChatInput()
+			showTextInput = true
+			widgetHandler:OwnText()
+			if not inputHistory[inputHistoryCurrent] or inputHistory[inputHistoryCurrent] ~= '' then
+				inputHistoryCurrent = inputHistoryCurrent + 1
+				inputHistory[inputHistoryCurrent] = ''
+			end
+			if ctrl then
+				inputMode = ''
+			elseif alt then
+				inputMode = isSpec and 's:' or 'a:'
+			elseif shift then
+				inputMode = 's:'
+			end
+			-- again just to be safe, had report locking could still happen
+			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			return true
+		end
+	end
+end
+
+function widget:MousePress(x, y, button)
+	if button == 1 and handleTextInput and showTextInput and inputButton and inputButtonRect and not Spring.IsGUIHidden() and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
+		if inputMode == 'a:' then
+			inputMode = ''
+		elseif inputMode == 's:' then
+			inputMode = isSpec and '' or 'a:'
+		else
+			inputMode = 's:'
+		end
+		return true
+	end
+end
+
 function widget:MouseWheel(up, value)
-	if scrolling then
+	if scrolling and not Spring.IsGUIHidden() then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if up then
 			if scrolling == 'console' then
@@ -589,8 +1341,8 @@ end
 
 function widget:WorldTooltip(ttType,data1,data2,data3)
 	local x,y,_ = Spring.GetMouseState()
-	local heightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
-	if #chatLines > 0 and math_isInRect(x, y, activationArea[1],activationArea[2]+heightDiff,activationArea[3],activationArea[4]) then
+	local chatlogHeightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
+	if #chatLines > 0 and math_isInRect(x, y, activationArea[1],activationArea[2]+chatlogHeightDiff,activationArea[3],activationArea[4]) then
 		return Spring.I18N('ui.chat.scroll', { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" })
 	end
 end
@@ -641,9 +1393,6 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 		if ssub(text,1,1) == ' ' then
 			text = ssub(text,2)
 		end
-		if capitalize and text:len() >= 10 then
-			text = ssub(text,1,1):upper()..ssub(text,2)
-		end
 
 		nameText = convertColor(spGetTeamColor(names[name][3]))..name
 		line = convertColor(c[1],c[2],c[3])..text
@@ -677,9 +1426,6 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 		-- filter occasional starting space
 		if ssub(text,1,1) == ' ' then
 			text = ssub(text,2)
-		end
-		if capitalize and text:len() >= 10 then
-			text = ssub(text,1,1):upper()..ssub(text,2)
 		end
 
 		nameText = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])..'(s) '..name
@@ -717,10 +1463,6 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 			end
 		end
 
-		if capitalize and text:len() >= 10 then
-			text = ssub(text,1,1):upper()..ssub(text,2)
-		end
-
 		nameText = namecolor..(spectator and '(s) ' or '')..name
 		line = textcolor..text
 
@@ -752,10 +1494,6 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 		if ssub(text,1,1) == ' ' then
 			text = ssub(text,2)
 		end
-
-		--if capitalize and text:len() >= 10 then
-		--	text = ssub(text,1,1):upper()..ssub(text,2)
-		--end
 
 		nameText = convertColor(colorGame[1],colorGame[2],colorGame[3])..'<'..name..'>'
 		line = convertColor(colorGame[1],colorGame[2],colorGame[3])..text
@@ -817,7 +1555,6 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 	if sfind(line, 'My player ID is', nil, true) then
 		bypassThisMessage = true
 	end
-
 
 	-- ignore muted players
 	if ignoredPlayers[name] then
@@ -967,6 +1704,11 @@ function widget:Shutdown()
 	clearDisplayLists()
 	WG['chat'] = nil
 	Spring.SendCommands("console 1")
+	if WG['guishader'] then
+		WG['guishader'].RemoveRect('chat')
+		WG['guishader'].RemoveRect('chatinput')
+		WG['guishader'].RemoveRect('chatinputautocomplete')
+	end
 end
 
 function widget:GameOver()
@@ -977,12 +1719,16 @@ function widget:GetConfigData(data)
 	return {
 		gameFrame = Spring.GetGameFrame(),
 		orgLines = gameOver and nil or orgLines,
+		inputHistory = inputHistory,
 		maxLines = maxLines,
 		maxConsoleLines = maxConsoleLines,
-		capitalize = capitalize,
 		fontsizeMult = fontsizeMult,
 		chatBackgroundOpacity = backgroundOpacity,
+		sndChatFileVolume = sndChatFileVolume,
 		shutdownTime = os.clock(),
+		handleTextInput = handleTextInput,
+		inputButton = inputButton,
+		version = 1,
 	}
 end
 
@@ -991,6 +1737,13 @@ function widget:SetConfigData(data)
 		if Spring.GetGameFrame() > 0 then
 			orgLines = data.orgLines
 		end
+		if data.inputHistory ~= nil then
+			inputHistory = data.inputHistory
+			inputHistoryCurrent = #inputHistory
+		end
+	end
+	if data.sndChatFileVolume ~= nil then
+		sndChatFileVolume = data.sndChatFileVolume
 	end
 	if data.chatBackgroundOpacity ~= nil then
 		backgroundOpacity = data.chatBackgroundOpacity
@@ -1001,10 +1754,15 @@ function widget:SetConfigData(data)
 	if data.maxConsoleLines ~= nil then
 		maxConsoleLines = data.maxConsoleLines
 	end
-	if data.capitalize ~= nil then
-		capitalize = data.capitalize
-	end
 	if data.fontsizeMult ~= nil then
 		fontsizeMult = data.fontsizeMult
+	end
+	if data.inputButton ~= nil then
+		inputButton = data.inputButton
+	end
+	if data.version ~= nil then
+		if data.handleTextInput ~= nil then
+			handleTextInput = data.handleTextInput
+		end
 	end
 end

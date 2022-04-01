@@ -138,7 +138,7 @@ local function AddUnit(unitID, unitDefID, unitTeamID)
 end
 
 local function RemoveUnit(unitID, unitDefID)
-	if (not skipOwnTeam or spGetUnitAllyTeam(unitID) ~= myAllyTeamID) and not unitDecoration[unitDefID] then
+	if unitID and (not skipOwnTeam or spGetUnitAllyTeam(unitID) ~= myAllyTeamID) and not unitDecoration[unitDefID] then
 		RemovePrimitive(unitID)
 		unitTeam[unitID] = nil
 		unitUnitDefID[unitID] = nil
@@ -181,7 +181,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget.RenderUnitDestroyed(unitID, unitDefID, unitTeam)
-	if unitID and unitDefID then  -- as somehow this unitID can be nil
+	if unitID and unitDefID and type(unitID) == 'number' then  -- as somehow this unitID can be nil
 		RemoveUnit(unitID, unitDefID, unitTeam)
 	end
 end

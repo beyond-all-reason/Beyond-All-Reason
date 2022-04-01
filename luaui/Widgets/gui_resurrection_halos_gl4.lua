@@ -6,7 +6,7 @@ function widget:GetInfo()
       date      = "2022.03.05",
       license   = "GNU GPL, v2 or later",
       layer     = -50,
-      enabled   = false
+      enabled   = true
    }
 end
 
@@ -37,7 +37,7 @@ local function initGL4()
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
-	shaderConfig.TRANSPARENCY = 0.5	
+	shaderConfig.TRANSPARENCY = 0.5
 	shaderConfig.ANIMATION = 1
 	shaderConfig.HEIGHTOFFSET = 3.99
 	shaderConfig.BREATHERATE = 15.0 -- how fast it periodicly grows
@@ -46,14 +46,14 @@ local function initGL4()
 	shaderConfig.INITIALSIZE = 0.5 -- What size the stuff starts off at when spawned
 	shaderConfig.GROWTHRATE = 15 -- How fast it grows to full size
 	shaderConfig.POST_SHADING = "fragColor.rgba = texcolor;"
-	
+
 	resurrectionHalosVBO, resurrectionHalosShader = InitDrawPrimitiveAtUnit(shaderConfig, "ResurrectionHalos")
 end
 
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	if unitConf[unitDefID] == nil or Spring.GetUnitRulesParam(unitID, "resurrected") == nil then return end
-	
+
 	local gf = Spring.GetGameFrame()
 	myvisibleUnits[unitID] = unitDefID
 	pushElementInstance(
@@ -75,14 +75,14 @@ end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	clearInstanceTable(resurrectionHalosVBO)
-	for unitID, unitDefID in pairs(extVisibleUnits) do 
+	for unitID, unitDefID in pairs(extVisibleUnits) do
 		widget:VisibleUnitAdded(unitID, unitDefID, Spring.GetUnitTeam(unitID))
 	end
 end
 
 function widget:VisibleUnitRemoved(unitID)
 	--Spring.Echo("widget:VisibleUnitRemoved",unitID)
-	if resurrectionHalosVBO.instanceIDtoIndex[unitID] then 
+	if resurrectionHalosVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(resurrectionHalosVBO, unitID)
 		myvisibleUnits[unitID] = nil
 	end
@@ -115,10 +115,10 @@ end
 
 function widget:Initialize()
 	initGL4()
-	
-	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then 
+
+	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		local visibleUnits =  WG['unittrackerapi'].visibleUnits
-		for unitID, unitDefID in pairs(visibleUnits) do 
+		for unitID, unitDefID in pairs(visibleUnits) do
 			widget:VisibleUnitAdded(unitID, unitDefID)
 		end
 	end

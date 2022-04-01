@@ -372,7 +372,7 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 -------------------- configurables -----------------------
 local additionalheightaboveunit = 24 --16?
-local featureHealthDistMult = 5 -- how many times closer features have to be for their bars to show
+local featureHealthDistMult = 3.5 -- how many times closer features have to be for their bars to show
 local featureReclaimDistMult = 2 -- how many times closer features have to be for their bars to show
 local featureResurrectDistMult = 1 -- how many times closer features have to be for their bars to show
 local glphydistmult = 3.5 -- how much closer than BARFADEEND the bar has to be to start drawing numbers/icons. Numbers closer to 1 will make the glyphs be drawn earlier, high numbers will only shows glyphs when zoomed in hard.
@@ -401,8 +401,8 @@ shaderConfig.PERCENT_VISIBILITY_MAX = 0.99
 shaderConfig.TIMER_VISIBILITY_MIN = 0.0
 shaderConfig.BARSTEP = 10 -- pixels to downshift per new bar
 shaderConfig.BOTTOMDARKENFACTOR = 0.5
-shaderConfig.BARFADESTART = 2000
-shaderConfig.BARFADEEND = 2500
+shaderConfig.BARFADESTART = 3200
+shaderConfig.BARFADEEND = 3800
 shaderConfig.ATLASSTEP = 0.0625
 shaderConfig.MINALPHA = 0.2
 if debugmode then
@@ -1036,6 +1036,20 @@ local function updateReloadBar(unitID, unitDefID, reason)
 	end
 end
 
+local function removeBarFromUnit(unitID, barname, reason) -- this will bite me in the ass later, im sure, yes it did, we need to just update them :P
+	local instanceKey = unitID .. "_" .. barname
+	if healthBarVBO.instanceIDtoIndex[instanceKey] then
+		if debugmode then Spring.Debug.TraceEcho(reason) end
+		--if barname == 'emp_damage' or barname == 'paralyze' then
+			-- dont decrease counter for these
+		--else
+			unitBars[unitID] = unitBars[unitID] - 1
+		--end
+		popElementInstance(healthBarVBO, instanceKey)
+	end
+end
+
+
 local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason) -- TODO, actually, we need to check for all of these for stuff entering LOS
 
 	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then
@@ -1107,19 +1121,6 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 				end
 			end
 		end
-	end
-end
-
-local function removeBarFromUnit(unitID, barname, reason) -- this will bite me in the ass later, im sure, yes it did, we need to just update them :P
-	local instanceKey = unitID .. "_" .. barname
-	if healthBarVBO.instanceIDtoIndex[instanceKey] then
-		if debugmode then Spring.Debug.TraceEcho(reason) end
-		--if barname == 'emp_damage' or barname == 'paralyze' then
-			-- dont decrease counter for these
-		--else
-			unitBars[unitID] = unitBars[unitID] - 1
-		--end
-		popElementInstance(healthBarVBO, instanceKey)
 	end
 end
 
@@ -1520,7 +1521,7 @@ function widget:GameFrame(n)
 			if Spring.GetUnitIsStunned(unitID) then
 				local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
 				--uniformcache[1] = math.floor((paralyzeDamage - maxHealth)) / (maxHealth * empDecline))
-				if paralyzeDamage then 
+				if paralyzeDamage then
 					uniformcache[1] = paralyzeDamage / maxHealth
 					--Spring.Echo("Paralyze damage", paralyzeDamage, maxHealth)
 					gl.SetUnitBufferUniforms(unitID, uniformcache, 4)
@@ -1592,8 +1593,8 @@ end
 
 function widget:FeatureCreated(featureID)
 	local featureDefID = Spring.GetFeatureDefID(featureID)
-	
-	-- some map-supplied features dont have a model, in these cases modelpath == "" 
+
+	-- some map-supplied features dont have a model, in these cases modelpath == ""
 	if FeatureDefs[featureDefID].name ~= 'geovent' and FeatureDefs[featureDefID].modelpath ~= ''  then
 		--Spring.Echo(FeatureDefs[featureDefID].name)
 		featureBars[featureID] = 0

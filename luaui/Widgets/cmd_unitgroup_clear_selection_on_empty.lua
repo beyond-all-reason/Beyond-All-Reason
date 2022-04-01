@@ -13,8 +13,15 @@ end
 
 local spGetGroupUnitsCount = Spring.GetGroupUnitsCount
 local spSelectUnitMap = Spring.SelectUnitMap
+local spGetModKeyState = Spring.GetModKeyState
 
 local function OnGroupSelected(cmd)
+	local alt, ctrl, meta, shift = spGetModKeyState()
+
+	-- When ctrl engine handles for group assignment, when any other mod key let
+	-- it be handled elsewhere
+	if ctrl or alt or meta or shift then return end
+
 	if spGetGroupUnitsCount(string.sub(cmd, 6, 6)) == 0 then
 		spSelectUnitMap({}, false)
 	end
@@ -23,9 +30,9 @@ end
 local function ManageAction(doAdd)
 	for i = 0, 9 do
 		if doAdd then
-			widgetHandler:AddAction("group" .. i, OnGroupSelected)
+			widgetHandler:AddAction("group" .. i, OnGroupSelected, nil, 'p')
 		else
-			widgetHandler:RemoveAction("group" .. i, OnGroupSelected)
+			widgetHandler:RemoveAction("group" .. i, OnGroupSelected, 'p')
 		end
 	end
 end

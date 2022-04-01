@@ -902,6 +902,9 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 end
 
 local function nextPageHandler()
+	if not (selectedBuilder or selectedFactory) then return end
+	if pages < 2 then return end
+
 	currentPage = math_min(pages, currentPage + 1)
 	doUpdate = true
 
@@ -909,12 +912,26 @@ local function nextPageHandler()
 end
 
 local function prevPageHandler()
+	if not (selectedBuilder or selectedFactory) then return end
+	if pages < 2 then return end
+
 	currentPage = math_max(1, currentPage - 1)
 	doUpdate = true
 
 	return true
 end
 
+local function gridmenuCategoriesHandler()
+	if not (selectedBuilder and currentBuildCategory) then return end
+
+	currentBuildCategory = nil
+	currentCategoryIndex = nil
+	doUpdate = true
+
+	return true
+end
+
+-- Spring handles buildfacing already, this is for managing pregamestart
 local function buildFacingHandler(_, _, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
 		return
@@ -949,6 +966,7 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_prev_page", prevPageHandler, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_key", gridmenuKeyHandler, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_category", gridmenuCategoryHandler, nil, "p")
+	widgetHandler.actionHandler:AddAction(self, "gridmenu_categories", gridmenuCategoriesHandler, nil, "p")
 
 	reloadBindings()
 
