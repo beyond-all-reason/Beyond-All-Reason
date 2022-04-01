@@ -173,6 +173,9 @@ function MakeBindsTable (swapYZ)
 		"bind any+alt+x buildspacing dec",
 		"bind shift+alt+x buildspacing dec",
 
+		-- team status
+		"bind esc teamstatus_close",
+
 		-- camera
 		"bind ctrl+shift+o cameraflip",
 
