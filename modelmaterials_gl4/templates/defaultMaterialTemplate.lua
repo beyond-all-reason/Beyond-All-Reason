@@ -102,7 +102,7 @@ vertex = [[
 	const float vertexDisplacement = 6.0; // Strength of vertex displacement on health change
 	const float treadsvelocity = 0.5;
 #line 10200
-	uniform float floatOptions[4];
+
 	uniform int bitOptions;
 	//int bitOptions = 1 +  2 + 8 + 16 + 128 + 256 + 512;
 
@@ -538,23 +538,14 @@ fragment = [[
 	uniform sampler2D brdfLUT;			//9
 	uniform sampler2D envLUT;			//10
 
-	//uniform float pbrParams[8];
-	
-	/*        Spring.GetConfigFloat("tonemapA", 4.75),
-        Spring.GetConfigFloat("tonemapB", 0.75),
-        Spring.GetConfigFloat("tonemapC", 3.5),
-        Spring.GetConfigFloat("tonemapD", 0.85),
-        Spring.GetConfigFloat("tonemapE", 1.0),
-        Spring.GetConfigFloat("envAmbient", 0.25),
-        Spring.GetConfigFloat("unitSunMult", 1.0),
-        Spring.GetConfigFloat("unitExposureMult", 1.0),*/
+
 	
 	
 	uniform float gamma = 1.0;
 
 
 	//[0]-healthMix, [1]-healthMod, [2]-vertDisplacement, [3]-tracks
-	uniform float floatOptions[4];
+	//uniform float floatOptions[4];
 
 	uniform float baseVertexDisplacement = 0.0; // this is for the scavengers,
 	uniform int drawPass = 1; 
@@ -568,6 +559,18 @@ fragment = [[
 	float simFrame = (timeInfo.x + timeInfo.w);
 	
 	float textureLODBias = -0.5 * sin (simFrame * 0.1) - 0.5;
+	
+	//uniform float pbrParams[8];
+	
+	/*  Spring.GetConfigFloat("tonemapA", 4.75),
+        Spring.GetConfigFloat("tonemapB", 0.75),
+        Spring.GetConfigFloat("tonemapC", 3.5),
+        Spring.GetConfigFloat("tonemapD", 0.85),
+        Spring.GetConfigFloat("tonemapE", 1.0),
+        Spring.GetConfigFloat("envAmbient", 0.25),
+        Spring.GetConfigFloat("unitSunMult", 1.0),
+        Spring.GetConfigFloat("unitExposureMult", 1.0),*/
+	
 	float pbrParams[8] = float[8](4.75, 0.75, 3.5, 0.85, 1.0, 0.25, 1.0, 1.0 );
 	/***********************************************************************/
 	// Shadow mapping quality params
@@ -1543,15 +1546,15 @@ fragment = [[
 			// NODISCARD if (texColor2.a < 0.5) discard;
 		#elif (RENDERING_MODE == 1)
 			float alphaBin = (texColor2.a < 0.5) ? 0.0 : 1.0;
-			//alphaBin = 1.0;
 
 			outSpecularColor = TONEMAP(outSpecularColor);
-			outSpecularColor = vec3(0.0);// DEBUG
 
+			// Important note: even if you do not write any data in fragData, that will still write vec4(0.0) into that buffer. 
 			fragData[GBUFFER_NORMTEX_IDX] = vec4(SNORM2NORM(N), alphaBin);
 			fragData[GBUFFER_DIFFTEX_IDX] = vec4(outColor, alphaBin);
+			
 			fragData[GBUFFER_SPECTEX_IDX] = vec4(outSpecularColor, alphaBin);
-			fragData[GBUFFER_EMITTEX_IDX] = vec4(vec3(emissiveness), alphaBin);
+			fragData[GBUFFER_EMITTEX_IDX] = vec4(vec3(albedoColor * emissiveness * 2.0)+outSpecularColor, alphaBin);
 			fragData[GBUFFER_MISCTEX_IDX] = vec4(float(materialIndex) / 255.0, 0.0, 0.0, alphaBin);
 		#endif
 	}
@@ -1586,11 +1589,7 @@ fragment = [[
 		envLUT       = 10,
 	},
 	uniformFloat = {
-		--sunAmbient		= {gl.GetSun("ambient" ,"unit")},
-		--sunDiffuse		= {gl.GetSun("diffuse" ,"unit")},
-		--sunSpecular		= {gl.GetSun("specular" ,"unit")},
-		--shadowDensity	=  gl.GetSun("shadowDensity" ,"unit"),
-		
+
 	},
 }
 
@@ -1845,11 +1844,6 @@ local function GetAllOptions()
 end
 
 local function SunChanged(luaShader)
-	luaShader:SetUniformAlways("shadowDensity", gl.GetSun("shadowDensity" ,"unit"))
-
-	--luaShader:SetUniformAlways("sunAmbient", gl.GetSun("ambient" ,"unit"))
-	--luaShader:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
-	--luaShader:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
 
 	luaShader:SetUniformFloatArrayAlways("pbrParams", {
         Spring.GetConfigFloat("tonemapA", 4.75),
