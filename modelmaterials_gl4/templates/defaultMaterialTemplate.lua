@@ -529,7 +529,7 @@ fragment = [[
 
 	#ifdef USE_LOSMAP
 		//uniform vec2 mapSize;
-		uniform float inLosMode;
+		//uniform float inLosMode;
 		uniform sampler2D losMapTex;	//8
 	#endif
 
@@ -1498,12 +1498,13 @@ fragment = [[
 
 		// final color
 		outColor += emissiveness * albedoColor;
-
+		//vec3 debugloscolor;
 		#ifdef USE_LOSMAP
 			vec2 losMapUV = worldVertexPos.xz;
 			losMapUV /= mapSize.zw; //xz, xzPO2
-			float losValue = 0.5 + texture(losMapTex, losMapUV).r;
-			losValue = mix(1.0, losValue, inLosMode);
+			//debugloscolor = texture(losMapTex, losMapUV).rgb * 2.0 ; 
+			float losValue =  texture(losMapTex, losMapUV).r * 2.0;
+			losValue = clamp(losValue,0.5, 1.0);
 
 			outColor *= losValue;
 			outSpecularColor.rgb *= losValue;
@@ -1536,7 +1537,7 @@ fragment = [[
 			fragData[0] = vec4(outColor, texColor2.a);
 			//fragData[0] = vec4(vec3(fract((shadowVertexPos.xyz )  ))	, 1.0); //debug
 			//fragData[0] = vec4(vec3(fract(healthMix	))	, 1.0); //debug
-			//fragData[0] = vec4(vec3(gShadow)	, 1.0); //debug
+			//fragData[0] = vec4(debugloscolor	, 1.0); //debug
 			//fragData[0] = vec4(cameraView[0].z,cameraView[1].z,cameraView[2].z, 1.0); //debug
 			//fragData[0] = vec4(SNORM2NORM(V), 1.0); //debug
 			//fragData[0] = vec4(NORM2SNORM(worldNormal), 1.0); //debug
@@ -1551,9 +1552,12 @@ fragment = [[
 			// Important note: even if you do not write any data in fragData, that will still write vec4(0.0) into that buffer.
 			fragData[GBUFFER_NORMTEX_IDX] = vec4(SNORM2NORM(N), alphaBin);
 			fragData[GBUFFER_DIFFTEX_IDX] = vec4(outColor, alphaBin);
-
+		
 			fragData[GBUFFER_SPECTEX_IDX] = vec4(outSpecularColor, alphaBin);
-			fragData[GBUFFER_EMITTEX_IDX] = vec4(vec3(albedoColor * emissiveness * 2.0), alphaBin);
+			
+			#ifndef HASALPHASHADOWS 
+				fragData[GBUFFER_EMITTEX_IDX] = vec4(vec3(albedoColor * emissiveness * 2.0) + outSpecularColor * 0.3, alphaBin);
+			#endif
 			fragData[GBUFFER_MISCTEX_IDX] = vec4(float(materialIndex) / 255.0, 0.0, 0.0, alphaBin);
 		#endif
 	}
