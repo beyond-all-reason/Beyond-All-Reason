@@ -1531,7 +1531,7 @@ fragment = [[
 			}
 		#endif
 
-		outColor.rgb *= 1.4; // this is to correct for lack of env mapping, the nastiest hack there has ever been...
+		outColor.rgb *= 1.5; // this is to correct for lack of env mapping, the nastiest hack there has ever been...
 
 		#if (RENDERING_MODE == 0)
 			fragData[0] = vec4(outColor, texColor2.a);
