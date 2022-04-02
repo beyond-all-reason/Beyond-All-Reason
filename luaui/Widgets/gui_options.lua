@@ -1783,7 +1783,7 @@ function init()
 		  end,
 		},
 
-		{ id = "cus2", group = "gfx", name = texts.option.cus2, category = types.dev, type = "bool", value = (Spring.GetConfigInt("cus2", 0) == 1), description = texts.option.cus_descr,
+		{ id = "cusgl4", group = "gfx", name = texts.option.cusgl4, category = types.dev, type = "bool", value = (Spring.GetConfigInt("cusgl4", 0) == 1), description = texts.option.cus_descr,
 		  onchange = function(i, value)
 			  if value == 0.5 then
 				  Spring.SendCommands("luarules disablecusgl4")
@@ -1793,7 +1793,7 @@ function init()
 				  elseif Spring.GetConfigInt("cus", 1) == 1 then
 					  Spring.SendCommands("luarules reloadcus")
 				  end
-				  Spring.SetConfigInt("cus2", (value and 1 or 0))
+				  Spring.SetConfigInt("cusgl4", (value and 1 or 0))
 				  Spring.SendCommands("luarules "..(value and 'reloadcus' or 'disablecus')..'gl4')
 			  end
 		  end,
@@ -4880,7 +4880,7 @@ function widget:Initialize()
 		end
 
 		-- enable CUS GL4
-		if tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
+		if tonumber(Spring.GetConfigInt("cusgl4", 0) or 0) == 1 then
 			Spring.SendCommands("luarules disablecus")
 			Spring.SendCommands("luarules reloadcusgl4")
 		end
