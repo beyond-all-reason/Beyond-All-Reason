@@ -44,6 +44,7 @@ function widget:Update(dt)
 
 	local drawUnitShape = false
 
+
 	-- display mouse cursor/mex unitshape when hovering over a metalspot
 	if doUpdate then
 		if not WG.customformations_linelength or WG.customformations_linelength < 10 then	-- dragging multi-unit formation-move-line
@@ -120,6 +121,14 @@ function widget:CommandNotify(id, params, options)
 	local isGuard = (id == CMD_GUARD)
 	if not (isMove or isGuard) then
 		return
+	end
+
+	if isGuard then
+		local mx, my, mb = Spring.GetMouseState()
+		local type, unitID = Spring.TraceScreenRay(mx, my)
+		if not (type == 'unit' and WG['metalspot_builder'].GetMexIds()[spGetUnitDefID(unitID)] and WG['metalspot_builder'].GetMexIds()[spGetUnitDefID(unitID)] < 0.002) then
+			return
+		end
 	end
 
 	-- transform move/guard into small area-mex command
