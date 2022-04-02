@@ -33,9 +33,9 @@ local illumThreshold = 0            -- how bright does a fragment need to be bef
 --quality =1 : 90 fps, 9% memctrler load, 99% shader load
 --quality =2 : 113 fps, 57% memctrler load, 99% shader load
 --quality =4 : 123 fps, 9% memctrler load, 99% shader load
-local blursize = 8
-local blurPasses = 3
-local quality = 2
+local blursize = 9
+local blurPasses = 5
+local quality = 1	-- higher than 1 introduces flicker when moving camera/units
 
 -- non-editables
 local vsx = 1                        -- current viewport width
@@ -229,21 +229,21 @@ local function MakeBloomShaders()
 
 				float unoccludedModel = float(modelDepth < mapDepth); // this is 1 for a model fragment
 
-				//Handle transparency in color.a 
+				//Handle transparency in color.a
 				color.rgb = color.rgb * color.a;
-				
+
 				//calculate the resulting color by adding the emit color
 				color.rgb += colorEmit.rgb;
 
 				//Make the bloom more sensitive to luminance in green channel
 				float illum = dot(color.rgb, vec3(0.2990, 0.4870, 0.2140)); //adjusted from the real values of  vec3(0.2990, 0.5870, 0.1140)
-				
+
 				// This results in an all 0/1 vector if its over the threshold
 				float illumCond = float(illum > illuminationThreshold) ;
-				
-				vec4 brightOutput = vec4(color.rgb * (illum-illuminationThreshold), 1.0) * fragGlowAmplifier * unoccludedModel ; 
-				
-				// mix each channel on wether 
+
+				vec4 brightOutput = vec4(color.rgb * (illum-illuminationThreshold), 1.0) * fragGlowAmplifier * unoccludedModel ;
+
+				// mix each channel on wether
 				gl_FragColor = mix(
 					vec4(0.0, 0.0, 0.0, 1.0),
 					brightOutput,

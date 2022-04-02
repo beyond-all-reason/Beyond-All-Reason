@@ -347,6 +347,10 @@ local autocompleteCommands = {
 	'defrange enemy air',
 	'defrange enemy nuke',
 	'defrange enemy ground',
+	'luarules disablecus',
+	'luarules reloadcus',
+	'luarules disablecusgl4',
+	'luarules reloadcusgl4',
 }
 local autocompleteText
 local autocompletePlayernames = {}
