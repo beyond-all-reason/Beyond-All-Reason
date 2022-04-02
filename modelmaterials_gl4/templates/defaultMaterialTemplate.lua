@@ -572,7 +572,9 @@ fragment = [[
         Spring.GetConfigFloat("unitSunMult", 1.0),
         Spring.GetConfigFloat("unitExposureMult", 1.0),*/
 
-	float pbrParams[8] = float[8](4.75, 0.75, 3.5, 0.85, 1.0, 0.25, 1.0, 1.0 );
+	//float pbrParams[8] = float[8](4.75, 0.75, 3.5, 0.85, 1.0, 0.25, 1.0, 1.0 );	// old pre gl4 cus values
+	float pbrParams[8] = float[8](4.85, 0.85, 3.5, 0.85, 1.0, 0.23, 1.0, 1.0 );
+
 	/***********************************************************************/
 	// Shadow mapping quality params
 	struct ShadowQuality {
@@ -1502,7 +1504,7 @@ fragment = [[
 		#ifdef USE_LOSMAP
 			vec2 losMapUV = worldVertexPos.xz;
 			losMapUV /= mapSize.zw; //xz, xzPO2
-			//debugloscolor = texture(losMapTex, losMapUV).rgb * 2.0 ; 
+			//debugloscolor = texture(losMapTex, losMapUV).rgb * 2.0 ;
 			float losValue =  texture(losMapTex, losMapUV).r * 2.0;
 			losValue = clamp(losValue,0.5, 1.0);
 
@@ -1552,10 +1554,10 @@ fragment = [[
 			// Important note: even if you do not write any data in fragData, that will still write vec4(0.0) into that buffer.
 			fragData[GBUFFER_NORMTEX_IDX] = vec4(SNORM2NORM(N), alphaBin);
 			fragData[GBUFFER_DIFFTEX_IDX] = vec4(outColor, alphaBin);
-		
+
 			fragData[GBUFFER_SPECTEX_IDX] = vec4(outSpecularColor, alphaBin);
-			
-			#ifndef HASALPHASHADOWS 
+
+			#ifndef HASALPHASHADOWS
 				fragData[GBUFFER_EMITTEX_IDX] = vec4(vec3(albedoColor * emissiveness * 2.0) + outSpecularColor * 0.3, alphaBin);
 			#endif
 			fragData[GBUFFER_MISCTEX_IDX] = vec4(float(materialIndex) / 255.0, 0.0, 0.0, alphaBin);
