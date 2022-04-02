@@ -243,9 +243,7 @@ local spGetActiveCommand = Spring.GetActiveCommand
 local spGetActiveCmdDescs = Spring.GetActiveCmdDescs
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetTeamStartPosition = Spring.GetTeamStartPosition
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
-local spGetGroundHeight = Spring.GetGroundHeight
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitHealth = Spring.GetUnitHealth
@@ -261,7 +259,6 @@ local math_min = math.min
 local math_isInRect = math.isInRect
 
 local glTexture = gl.Texture
-local glTexRect = gl.TexRect
 local glColor = gl.Color
 local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -269,7 +266,6 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_DST_ALPHA = GL.DST_ALPHA
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
-local glDepthTest = gl.DepthTest
 
 -- Get from FlowUI
 local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner
@@ -1095,7 +1091,7 @@ function widget:Update(dt)
 		end
 	end
 
-	if selectNextFrame then
+	if selectNextFrame and not preGamestartPlayer then
 		local cmdIndex = spGetCmdDescIndex(selectNextFrame)
 		if cmdIndex then
 			Spring.SetActiveCommand(cmdIndex, 1, true, false, Spring.GetModKeyState())
