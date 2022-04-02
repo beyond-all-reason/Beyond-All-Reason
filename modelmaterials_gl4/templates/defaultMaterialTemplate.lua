@@ -559,7 +559,7 @@ fragment = [[
 	
 	float simFrame = (timeInfo.x + timeInfo.w);
 	
-	float textureLODBias = -0.5 * sin (simFrame * 0.1) - 0.5;
+	float textureLODBias =  -0.5; //-0.5 * sin (simFrame * 0.1) - 0.5;
 	
 	//uniform float pbrParams[8];
 	

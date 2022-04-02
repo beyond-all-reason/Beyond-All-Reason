@@ -340,16 +340,7 @@ local processedFeatures = {}
 	-- objectsIndex = {}, -- {objectID : index} (this is needed for efficient removal of items, as RemoveFromSubmission takes an index as arg)
 	-- numobjects = 0,  -- a 'pointer to the end' 
 -- }
-local unitDrawBins = {
-	[0    ] = {},	-- deferred opaque
-	[1    ] = {},	-- forward  opaque
-	[1 + 4] = {},	-- forward  opaque + reflection
-	[1 + 8] = {},	-- forward  opaque + refraction
-	[2    ] = {},	-- alpha
-	[2 + 4] = {},	-- alpha + reflection
-	[2 + 8] = {},	-- alpha + refraction
-	[16   ] = {},	-- shadow
-}
+local unitDrawBins = nil
 
 
 local objectIDtoDefID = {}
@@ -976,7 +967,6 @@ local function AddObject(objectID, drawFlag)
 	if (drawFlag >=  32) then --far tex
 		return
 	end
-
 	
 	local objectDefID
 	if objectID >= 0 then 
@@ -1071,20 +1061,20 @@ local function RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, 
 				--	Spring.Debug.TableEcho(textures)
 			end
 		else
-			Spring.Echo("Failed to find uniformBinID for", objectID, objectDefID, texKey, shader, flag, uniformBinID)
+			if debugmode then Spring.Echo("Failed to find uniformBinID for", objectID, objectDefID, texKey, shader, flag, uniformBinID) end
 		end
 	else
-		local defName ='niiiil'
-		if objectDefID then
-			if objectDefID >= 0 then 
-				defName =  UnitDefs[objectDefID].name
-			else
-				defName =  FeatureDefs[-1 * objectDefID].name
+		if debugmode then 
+			local defName ='niiiil'
+			if objectDefID then
+				if objectDefID >= 0 then 
+					defName =  UnitDefs[objectDefID].name
+				else
+					defName =  FeatureDefs[-1 * objectDefID].name
+				end
 			end
+			Spring.Echo("Failed to find shader for", objectID, objectDefID, texKey, shader, flag, uniformBinID, defName) 
 		end
-			
-		
-		if debugmode then Spring.Echo("Failed to find shader for", objectID, objectDefID, texKey, shader, flag, uniformBinID, defName) end
 		--Spring.Debug.TraceFullEcho(30,30,30)
 	end
 
@@ -1292,39 +1282,7 @@ local function ExecuteDrawPass(drawPass)
 	return batches, units
 end
 
-local function ReloadCUSGL4(optName, _, _, playerID)
-	if (playerID ~= Spring.GetMyPlayerID()) then
-		return
-	end
-	Spring.Echo("[CustomUnitShadersGL4] Reloading")
-	gadget:Shutdown()
-	gadget:Initialize()
-end
-
-local function DisableCUSGL4(optName, _, _, playerID)
-	if (playerID ~= Spring.GetMyPlayerID()) then
-		return
-	end
-	Spring.Echo("[CustomUnitShadersGL4] Disabling")
-	gadget:Shutdown()
-end
-
-local updaterate = 1
-local function CUSGL4updaterate(optName, unk1, unk2, playerID)
-	if (playerID ~= Spring.GetMyPlayerID()) then
-		return
-	end
-	if updaterate == 1 then 
-		updaterate = 10 
-	else 
-		updaterate = 1
-	end	
-	Spring.Echo("[CustomUnitShadersGL4] Updaterate set to", updaterate)
-end
-
-
-function gadget:Initialize()
-	
+local function initGL4()
 	shaders[0 ] = {}
 	for k = 1, #drawBinKeys do
 		local flag = drawBinKeys[k]
@@ -1363,11 +1321,46 @@ function gadget:Initialize()
 	
 	initBinsAndTextures()
 	
+	gadget:DrawWorldPreUnit	()
+end
+
+local function ReloadCUSGL4(optName, _, _, playerID)
+	if (playerID ~= Spring.GetMyPlayerID()) then
+		return
+	end
+	Spring.Echo("[CustomUnitShadersGL4] Reloading")
+	gadget:Shutdown()
+	gadget:Initialize()
+	initGL4()
+end
+
+local function DisableCUSGL4(optName, _, _, playerID)
+	if (playerID ~= Spring.GetMyPlayerID()) then
+		return
+	end
+	Spring.Echo("[CustomUnitShadersGL4] Disabling")
+	gadget:Shutdown()
+end
+
+local updaterate = 1
+local function CUSGL4updaterate(optName, unk1, unk2, playerID)
+	if (playerID ~= Spring.GetMyPlayerID()) then
+		return
+	end
+	if updaterate == 1 then 
+		updaterate = 10 
+	else 
+		updaterate = 1
+	end	
+	Spring.Echo("[CustomUnitShadersGL4] Updaterate set to", updaterate)
+end
+
+
+
+function gadget:Initialize()
 	gadgetHandler:AddChatAction("reloadcusgl4", ReloadCUSGL4)
 	gadgetHandler:AddChatAction("disablecusgl4", DisableCUSGL4)
 	gadgetHandler:AddChatAction("cusgl4updaterate", CUSGL4updaterate)
-	
-	gadget:Update()
 end
 
 
@@ -1434,9 +1427,25 @@ function gadget:Shutdown()
 	
 end
 
+
+local totalbatches = 0 
+local totalunits = 0
+
 local updateframe = 0
-function gadget:Update()
+
+local updatecount = 0
+local updatetimer = 31
+
+function gadget:DrawWorldPreUnit()
+	updatecount = updatecount + 1 
 	if unitDrawBins == nil then return end
+	
+	if updatecount % updatetimer == 0 then 
+		-- Spring.Echo("Total number of unit models drawn per frame", totalunits / updatetimer, "in ", totalbatches/updatetimer, "batches")
+		totalbatches = 0 
+		totalunits = 0 
+	end
+	
 	updateframe = (updateframe + 1) % updaterate
 	
 	if updateframe == 0 then 
@@ -1496,7 +1505,6 @@ function gadget:TextCommand(command)
 	end
 end
 
-
 function gadget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 	if unitDrawBins == nil then return end
 	local drawPass = 1 --opaque
@@ -1515,7 +1523,9 @@ function gadget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 
 	seenbitsopaque = math.bit_or(seenbitsopaque, drawPass)
 	local batches, units = ExecuteDrawPass(drawPass)
-	--if gf % 61 == 0 then Spring.Echo("drawPass", drawPass, "batches", batches, "units", units) end 	
+	totalbatches = totalbatches + batches
+	totalunits = totalunits + units
+	-- if gf % 61 == 0 then Spring.Echo("drawPass", drawPass, "batches", batches, "units", units) end 	
 end
 
 function gadget:DrawAlphaUnitsLua(drawReflection, drawRefraction)
