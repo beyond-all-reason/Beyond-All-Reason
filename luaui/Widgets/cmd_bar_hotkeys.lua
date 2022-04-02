@@ -30,6 +30,14 @@ local unbinds={
 	"bind any+i gameinfo",
 	"bind i gameinfo",
 	"bind shift+esc quitmenu",
+
+	"bind Alt+insert speedup",
+	"bind Alt+delete slowdown",
+	"bind Alt+= speedup",
+	"bind Alt++ speedup",
+	"bind Alt+- slowdown",
+	"bind Alt+numpad+ speedup",
+	"bind Alt+numpad- slowdown",
 }
 
 -- table of stuff that we bind on load
@@ -211,6 +219,16 @@ function MakeBindsTable (swapYZ)
 		-- autogroups
 		"bind Alt+` remove_from_autogroup",
 		"bind Ctrl+` remove_one_unit_from_group",
+
+		-- customformations
+		"bind Alt+a areaattack",
+
+		-- gamespeed
+		"bind Alt++        increasespeed",
+		"bind Alt+=        increasespeed",
+		"bind Alt+-        decreasespeed",
+		"bind Alt+numpad+  increasespeed",
+		"bind Alt+numpad-  decreasespeed",
 	}
 
 	for i = 0, 9 do

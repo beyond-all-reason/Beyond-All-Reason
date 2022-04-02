@@ -1316,17 +1316,10 @@ function stepFiveStar(colcover, rowcover, row, col, n, starscol, primescol)
     end
 end
 
-
 function widget:Initialize()
-	if not requiresAlt[CMD.ATTACK] then
-		Spring.SendCommands('bind Alt+a areaattack')
-	end
 	WG.customformations_linelength = 0
 end
 
 function widget:Shutdown()
-	if not requiresAlt[CMD.ATTACK] then
-		Spring.SendCommands('unbind Alt+a areaattack')
-	end
 	WG.customformations_linelength = 0
 end
