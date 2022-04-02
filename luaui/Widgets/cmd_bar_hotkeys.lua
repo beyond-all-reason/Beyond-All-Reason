@@ -216,6 +216,13 @@ function MakeBindsTable (swapYZ)
 		"bind . buildfacing dec",
 		"bind o buildfacing inc", --apparently some keyboards don't have , and . either...
 
+		-- snd_volume_osd
+		"bind +       snd_volume_increase",
+		"bind numpad+ snd_volume_increase",
+		"bind =       snd_volume_increase",
+		"bind -       snd_volume_decrease",
+		"bind numpad- snd_volume_decrease",
+
 		-- autogroups
 		"bind Alt+` remove_from_autogroup",
 		"bind Ctrl+` remove_one_unit_from_group",
