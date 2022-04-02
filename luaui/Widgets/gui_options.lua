@@ -26,6 +26,8 @@ local texts = {}    -- loaded from external language file
 local languageCodes = { 'en', 'fr', 'zh' }
 languageCodes = table.merge(languageCodes, table.invert(languageCodes))
 
+local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua").layouts
+
 local languageNames = {}
 for key, code in ipairs(languageCodes) do
 	languageNames[key] = Spring.I18N.languages[code]
@@ -2261,6 +2263,32 @@ function init()
 		  end,
 		},
 
+		{ id = "keylayout", group = "control", category = types.basic, name = texts.option.keylayout, type = "select", options = keyLayouts, value = 1, description = texts.option.keylayout_descr,
+			onload = function()
+				local keyLayout = Spring.GetConfigString("KeyboardLayout")
+
+				if not keyLayout or keyLayout == '' then
+					keyLayout = keyLayouts[1]
+					Spring.SetConfigString("KeyboardLayout", keyLayouts[1])
+				end
+
+				local value = 1
+				for i, v in ipairs(keyLayouts) do
+					if v == keyLayout then
+						value = i
+						break
+					end
+				end
+
+				options[getOptionByID('keylayout')].value = value
+			end,
+			onchange = function(_, value)
+				Spring.SetConfigString("KeyboardLayout", keyLayouts[value])
+				if WG['buildmenu'] and WG['buildmenu'].reloadBindings then
+					WG['buildmenu'].reloadBindings()
+				end
+			end,
+		},
 
 		{ id = "label_ui_camera", group = "control", name = texts.option.label_camera, category = types.basic },
 		{ id = "label_ui_camera_spacer", group = "control", category = types.basic },

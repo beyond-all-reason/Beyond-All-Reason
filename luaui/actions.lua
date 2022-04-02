@@ -73,7 +73,7 @@ function actionHandler:AddAction(widget, cmd, func, data, types)
 
   -- default to text and keyPress  (not repeat or releases)
   local text, keyPress, keyRepeat, keyRelease = ParseTypes(types, "tp")
-  
+
   local tSuccess, pSuccess, RSuccess, rSuccess = false, false, false, false
 
   if (text)       then tSuccess = add(self.textActions)       end
