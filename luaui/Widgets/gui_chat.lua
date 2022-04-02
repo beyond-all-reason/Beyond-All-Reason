@@ -305,6 +305,7 @@ local autocompleteCommands = {
 	'luarules clearwrecks',
 	'luarules destroyunits',
 	'luarules disablecus',
+	'luarules disablecusgl4',
 	'luarules fightertest',
 	'luarules give',
 	'luarules givecat',
@@ -314,6 +315,7 @@ local autocompleteCommands = {
 	'luarules profile',
 	'luarules reclaimunits',
 	'luarules reloadcus',
+	'luarules reloadcusgl4',
 	'luarules removeunits',
 	'luarules removeunitdef',
 	'luarules spawnceg',
@@ -347,10 +349,6 @@ local autocompleteCommands = {
 	'defrange enemy air',
 	'defrange enemy nuke',
 	'defrange enemy ground',
-	'luarules disablecus',
-	'luarules reloadcus',
-	'luarules disablecusgl4',
-	'luarules reloadcusgl4',
 }
 local autocompleteText
 local autocompletePlayernames = {}
@@ -373,6 +371,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 uniqueHumanNames = nil
+for featureDefID, featureDef in pairs(FeatureDefs) do
+	autocompleteUnitCodename[#autocompleteUnitCodename+1] = featureDef.name:lower()
+end
 
 local teamColorKeys = {}
 local teams = Spring.GetTeamList()
