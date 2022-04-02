@@ -1783,6 +1783,22 @@ function init()
 		  end,
 		},
 
+		{ id = "cus2", group = "gfx", name = texts.option.cus2, category = types.dev, type = "bool", value = (Spring.GetConfigInt("cus2", 0) == 1), description = texts.option.cus_descr,
+		  onchange = function(i, value)
+			  if value == 0.5 then
+				  Spring.SendCommands("luarules disablecusgl4")
+			  else
+				  if value then
+					  Spring.SendCommands("luarules disablecus")
+				  elseif Spring.GetConfigInt("cus", 1) == 1 then
+					  Spring.SendCommands("luarules reloadcus")
+				  end
+				  Spring.SetConfigInt("cus2", (value and 1 or 0))
+				  Spring.SendCommands("luarules "..(value and 'reloadcus' or 'disablecus')..'gl4')
+			  end
+		  end,
+		},
+
 		{ id = "cus_threshold", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cus_threshold, min = 0, max = 90, step = 1, type = "slider", value = Spring.GetConfigInt("cusThreshold", 30), description = texts.option.cus_threshold_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("cusThreshold", value)
@@ -4861,6 +4877,12 @@ function widget:Initialize()
 		-- disable CUS
 		if tonumber(Spring.GetConfigInt("cus", 1) or 1) == 0 then
 			Spring.SendCommands("luarules disablecus")
+		end
+
+		-- enable CUS GL4
+		if tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
+			Spring.SendCommands("luarules disablecus")
+			Spring.SendCommands("luarules reloadcusgl4")
 		end
 	end
 	if not waterDetected then

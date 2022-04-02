@@ -156,6 +156,7 @@ return {
 			cas_sharpness = 'Sharpness',
 			cas_sharpness_descr = 'How much sharpening should be applied to 3d world space',
 			cus = 'Advanced Model Shading',
+			cus2 = 'Advanced Model Shading GL4',
 			cus_descr = 'Enables: depth texture, looking damaged, lights that blink, environment lighting, moving tank tracks.',
 			cus_threshold = 'disable below fps',
 			cus_threshold_descr = 'auto disable advanced model shading when average fps gets below this amount.',
