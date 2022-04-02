@@ -19,13 +19,13 @@ function widget:GetInfo()
 	}
 end
 
-local version = 1.0
+local version = 1.1
 
 -- config params
 local dbgDraw = 0               -- draw only the bloom-mask? [0 | 1]
 local globalBlursizeMult = 1
 
-local glowAmplifier = 1            -- intensity multiplier when filtering a glow source fragment [1, n]
+local glowAmplifier = 0.85            -- intensity multiplier when filtering a glow source fragment [1, n]
 local blurAmplifier = 1        -- intensity multiplier when applying a blur pass [1, n] (should be set close to 1)
 local drawWorldAlpha = 0		-- darken world so bloom doesnt blown-white out the brightest areas too much
 local illumThreshold = 0            -- how bright does a fragment need to be before being considered a glow source? [0, 1]
@@ -33,8 +33,8 @@ local illumThreshold = 0            -- how bright does a fragment need to be bef
 --quality =1 : 90 fps, 9% memctrler load, 99% shader load
 --quality =2 : 113 fps, 57% memctrler load, 99% shader load
 --quality =4 : 123 fps, 9% memctrler load, 99% shader load
-local blursize = 9
-local blurPasses = 5
+local blursize = 10
+local blurPasses = 4
 local quality = 1	-- higher than 1 introduces flicker when moving camera/units
 
 -- non-editables

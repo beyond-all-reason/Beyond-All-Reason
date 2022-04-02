@@ -1,28 +1,28 @@
 local shaderTemplate = {
 vertex = [[
 	//shader version is added via widget
-	
+
 	layout (location = 0) in vec3 pos;
 	layout (location = 1) in vec3 normal;
 	layout (location = 2) in vec3 T;
 	layout (location = 3) in vec3 B;
 	layout (location = 4) in vec4 uv;
 	layout (location = 5) in uint pieceIndex;
-	
+
 	layout (location = 6) in uvec4 instData;
 	// u32 matOffset
 	// u32 uniOffset
 	// u32 {teamIdx, drawFlag, unused, unused}
 	// u32 unused
-	
-	
+
+
 	layout(std140, binding = 0) readonly buffer MatrixBuffer {
 		mat4 mat[];
 	};
-	
+
 	struct SUniformsBuffer {
 		uint composite; //     u8 drawFlag; u8 unused1; u16 id;
-		
+
 		uint unused2;
 		uint unused3;
 		uint unused4;
@@ -31,14 +31,14 @@ vertex = [[
 		float health;
 		float unused5;
 		float unused6;
-		
-		vec4 speed;    
+
+		vec4 speed;
 		vec4[5] userDefined; //can't use float[20] because float in arrays occupies 4 * float space
 	};
 
 	layout(std140, binding=1) readonly buffer UniformsBuffer {
 		SUniformsBuffer uni[];
-	}; 
+	};
 
 	// Unit Uniforms:
 	#define UNITUNIFORMS uni[instData.y]
@@ -80,15 +80,15 @@ vertex = [[
 	#define NORM2SNORM(value) (value * 2.0 - 1.0)
 	#define SNORM2NORM(value) (value * 0.5 + 0.5)
 
-	
-	uniform int drawPass = 1; 
-	//BITS: 
-	//1: deferred/forward, 
+
+	uniform int drawPass = 1;
+	//BITS:
+	//1: deferred/forward,
 	//2: opaque/alpha
 	//3: reflection
 	//4: refraction
 	//5: shadows
-	
+
 	/***********************************************************************/
 	vec3 cameraPos	 = cameraViewInv[3].xyz;
 	vec3 cameraDir = -1.0 * vec3(cameraView[0].z,cameraView[1].z,cameraView[2].z);
@@ -97,8 +97,8 @@ vertex = [[
 	//[0]-healthMix, 0.0 for full health, ~0.8 for max damage
 	//[1]-healthMod, customparams.healthlookmod, 0.4 for scavengers
 	//[2]-vertDisplacement, for scavs, its min(10.0, 5.5 + (footprintx+footprintz) /12 )
-	//[3]-tracks speed = floor(4 * speed + 0.5) / 4 
-	uniform float baseVertexDisplacement = 0.0; // this is for the scavengers, 
+	//[3]-tracks speed = floor(4 * speed + 0.5) / 4
+	uniform float baseVertexDisplacement = 0.0; // this is for the scavengers,
 	const float vertexDisplacement = 6.0; // Strength of vertex displacement on health change
 	const float treadsvelocity = 0.5;
 #line 10200
@@ -109,11 +109,11 @@ vertex = [[
 	uniform vec4 clipPlane0 = vec4(0.0, 0.0, 0.0, 1.0); //upper construction clip plane
 	uniform vec4 clipPlane1 = vec4(0.0, 0.0, 0.0, 1.0); //lower construction clip plane
 	uniform vec4 clipPlane2 = vec4(0.0, 0.0, 0.0, 1.0); //water clip plane
-	
+
 
 	/***********************************************************************/
 	// Varyings
-	out Data { 
+	out Data {
 		// this amount of varyings is already more than we can handle safely
 		//vec4 modelVertexPos;
 		vec4 modelVertexPosOrig;
@@ -122,10 +122,10 @@ vertex = [[
 		vec3 worldTangent;
 		vec3 worldBitangent;
 		vec3 worldNormal;
-		
+
 		vec2 uvCoords;
 		flat vec4 teamCol;
-		
+
 		// main light vector(s)
 		vec3 worldCameraDir;
 
@@ -139,13 +139,13 @@ vertex = [[
 		flat float selfIllumMod;
 		flat float healthFraction;
 		flat int unitID;
-		
+
 	};
-	
+
 
 	/***********************************************************************/
 	// Misc functions
-	
+
 	float simFrame = (timeInfo.x + timeInfo.w);
 
 	float Perlin3D( vec3 P ) {
@@ -265,7 +265,7 @@ vertex = [[
 
 	/***********************************************************************/
 	// Vertex shader main()
-	
+
 	#define GetPieceMatrix(staticModel) (mat[instData.x + pieceIndex + uint(!staticModel)])
 #line 12000
 	void main(void)
@@ -273,26 +273,26 @@ vertex = [[
 		unitID = int(UNITID);
 		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
 		mat4 worldMatrix = mat[instData.x];
-	
+
 		mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
 		mat3 normalMatrix = mat3(worldPieceMatrix);
-		
-		
+
+
 		vec4 piecePos = vec4(pos, 1.0);
-		
+
 		uvCoords = uv.xy;
 		healthFraction = clamp(UNITUNIFORMS.health / UNITUNIFORMS.maxHealth, 0.0, 1.0);
-		
+
 		//modelVertexPos = piecePos;
 		modelVertexPosOrig = piecePos;
 		vec3 modelVertexNormal = normal;
 
 		%%VERTEX_PRE_TRANSFORM%%
-		
+
 		if (BITMASK_FIELD(bitOptions, OPTION_TREEWIND)) {
 			DoWindVertexMove(piecePos);
-		}	
-		
+		}
+
 		#ifdef ENABLE_OPTION_HEALTH_DISPLACE
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_DISPLACE)) {
 			if (healthFraction < 0.95 || baseVertexDisplacement > 0.01){
@@ -351,11 +351,11 @@ vertex = [[
 						uvCoords.y >= treadBoundaries.z, uvCoords.y <= treadBoundaries.w))) {
 					uvCoords.x += texOffset;
 				}
-				
+
 				const float texSpeed2 = 3.0;
 				const vec4 treadBoundaries2 = vec4(93.0, 349.0, atlasSize - 400.0, atlasSize - 316.0) / atlasSize;
 				texOffset = baseOffset * texSpeed2;
-				
+
 				if (all(bvec4(
 						uvCoords.x >= treadBoundaries2.x, uvCoords.x <= treadBoundaries2.y,
 						uvCoords.y >= treadBoundaries2.z, uvCoords.y <= treadBoundaries2.w))) {
@@ -413,9 +413,9 @@ vertex = [[
 				fogFactor = (fogParams.y - fogCoord) * fogParams.w; // gl_Fog.scale == 1.0 / (gl_Fog.end - gl_Fog.start)
 				fogFactor = clamp(fogFactor, 0.0, 1.0);
 			}
-			
+
 			// are we drawing reflection pass, if yes, use reflection camera!
-			if ((uint(drawPass) & 4u ) == 4u){ 
+			if ((uint(drawPass) & 4u ) == 4u){
 				gl_Position = reflectionViewProj * worldPos;
 				gl_ClipDistance[2] = dot(worldPos, clipPlane2);
 			}
@@ -533,15 +533,15 @@ fragment = [[
 		uniform sampler2D losMapTex;	//8
 	#endif
 
-	
+
 	/***********************************************************************/
 	// PBR uniforms
 	uniform sampler2D brdfLUT;			//9
 	uniform sampler2D envLUT;			//10
 
 
-	
-	
+
+
 	uniform float gamma = 1.0;
 
 
@@ -549,20 +549,20 @@ fragment = [[
 	//uniform float floatOptions[4];
 
 	uniform float baseVertexDisplacement = 0.0; // this is for the scavengers,
-	uniform int drawPass = 1; 
+	uniform int drawPass = 1;
 	/***********************************************************************/
 	// Options
 	uniform int bitOptions;
-	
+
 	uniform float hasAlphaShadows = 0.0;
 	//int bitOptions = 1 +  2 + 8 + 16 + 128 + 256;
-	
+
 	float simFrame = (timeInfo.x + timeInfo.w);
-	
+
 	float textureLODBias =  -0.5; //-0.5 * sin (simFrame * 0.1) - 0.5;
-	
+
 	//uniform float pbrParams[8];
-	
+
 	/*  Spring.GetConfigFloat("tonemapA", 4.75),
         Spring.GetConfigFloat("tonemapB", 0.75),
         Spring.GetConfigFloat("tonemapC", 3.5),
@@ -571,7 +571,7 @@ fragment = [[
         Spring.GetConfigFloat("envAmbient", 0.25),
         Spring.GetConfigFloat("unitSunMult", 1.0),
         Spring.GetConfigFloat("unitExposureMult", 1.0),*/
-	
+
 	float pbrParams[8] = float[8](4.75, 0.75, 3.5, 0.85, 1.0, 0.25, 1.0, 1.0 );
 	/***********************************************************************/
 	// Shadow mapping quality params
@@ -602,7 +602,7 @@ fragment = [[
 		vec3 worldTangent;
 		vec3 worldBitangent;
 		vec3 worldNormal;
-		
+
 		vec2 uvCoords;
 		flat vec4 teamCol;
 		// main light vector(s)
@@ -610,7 +610,7 @@ fragment = [[
 
 		// shadowPosition
 		vec4 shadowVertexPos;
-		
+
 
 		//vec3 debugvarying; // for passing through debug garbage
 		// auxilary varyings
@@ -620,8 +620,8 @@ fragment = [[
 		flat float healthFraction;
 		flat int unitID;
 	};
-	
-		
+
+
 
 	/***********************************************************************/
 	// Generic constants
@@ -726,12 +726,12 @@ fragment = [[
 			bias = clamp(bias, 0.0, 5.0 * cb);
 			shadowCoord.z -= bias;
 			shadow = texture( shadowTex, shadowCoord ).r;
-			
+
 			// a neat trick i just learned
 			//float dShadowX = dFdx(shadow);
 			//float dShadowY = dFdy(shadow);
-			//shadow = shadow + (abs(dShadowX) + abs(dShadowY))*0.5; 
-			
+			//shadow = shadow + (abs(dShadowX) + abs(dShadowY))*0.5;
+
 		}
 		return shadow;
 	}
@@ -973,7 +973,7 @@ fragment = [[
 
 	/***********************************************************************/
 	// Environment sampling functions
-	
+
 #line 21000
 
 	#ifndef ENV_SMPL_NUM
@@ -1186,7 +1186,7 @@ fragment = [[
 		#line 30540
 
 		vec2 myUV = uvCoords;
-		
+
 		mat3 worldTBN = mat3(worldTangent, worldBitangent, worldNormal);
 
 		// N - worldFragNormal
@@ -1199,7 +1199,7 @@ fragment = [[
 
 		float healthMix;
 		vec3 seedVec;
-		
+
 		#ifdef ENABLE_OPTION_HEALTH_TEXTURING
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
 			seedVec = modelVertexPosOrig.xyz * 0.6;
@@ -1214,7 +1214,7 @@ fragment = [[
 		vec3 wrecknormal;
 		if (BITMASK_FIELD(bitOptions, OPTION_NORMALMAPPING)) {
 			tbnNormal = NORM2SNORM(normalTexVal.xyz);
-	
+
 			#ifdef ENABLE_OPTION_HEALTH_TEXTURING
 				if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
 					if (healthMix > 0.05){
@@ -1235,11 +1235,11 @@ fragment = [[
 
 		vec4 texColor1 = texture(texture1, myUV, textureLODBias);
 		vec4 texColor2 = texture(texture2, myUV, textureLODBias);
-		
+
 		#ifdef ENABLE_OPTION_HEALTH_TEXTURING
 			#if (RENDERING_MODE == 0)
 			// disable this in deferred mode
-		
+
 				if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING)) {
 					if (healthMix > 0.05){
 						vec4 texColor1w = texture(texture1w, myUV);
@@ -1250,9 +1250,9 @@ fragment = [[
 						texColor2.z += 0.5 * healthMix; //additional roughness
 					}
 				}
-			
+
 			#endif
-		#endif 
+		#endif
 
 		#ifdef LUMAMULT
 		{
@@ -1263,7 +1263,7 @@ fragment = [[
 		#endif
 		vec4 teeeeemcolor = teamCol;
 		vec3 albedoColor = SRGBtoLINEAR(mix(texColor1.rgb, teeeeemcolor.rgb, texColor1.a));
-		
+
 		if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXCHICKS)) {
 			float texHeight = normalTexVal.a;
 			float healthyness = clamp(healthMix * 2.0 - 0.5, 0.0, 1.0); //healthyness of 0 is near dead, 1 is fully healthy
@@ -1276,7 +1276,7 @@ fragment = [[
 			}
 		}
 
-		
+
 		N = normalize(worldTBN * tbnNormal);
 
 		float emissiveness = texColor2.r;
@@ -1299,9 +1299,9 @@ fragment = [[
 		#else
 			float roughness = texColor2.b;
 		#endif
-		
+
 		if (BITMASK_FIELD(bitOptions, OPTION_PBROVERRIDE)){
-			emissiveness = 0.2;	
+			emissiveness = 0.2;
 			roughness = 0.8;
 			metalness = 0.1;
 		}
@@ -1344,20 +1344,20 @@ fragment = [[
 			float colorPerturbScale = mix(0.0, ROUGHNESS_PERTURB_COLOR, roughness);
 			albedoColor *= (1.0 + colorPerturbScale * rndValue); //try cheap way first (no RGB2YCBCR / YCBCR2RGB)
 		#endif
-		
+
 
 		/// shadows
 		float shadowMult;
 		float gShadow = 1.0; // shadow mapping
 		float nShadow = smoothstep(0.0, 0.35, NdotLu); //normal based shadowing, always on
-		
+
 		{
 			if (BITMASK_FIELD(bitOptions, OPTION_SHADOWMAPPING)) {
 				gShadow = GetShadowPCFRandom(NdotL);
 			}
 			shadowMult = mix(1.0, min(nShadow, gShadow), shadowDensity.y);
 		}
-		
+
         ///
         // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
         // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
@@ -1376,7 +1376,7 @@ fragment = [[
 
 		vec3 energyCompensation = clamp(1.0 + F0 * (1.0 / max(envBRDF.x, EPS) - 1.0), vec3(1.0), vec3(2.0));
 
-		
+
 		//// Direct (sun) PBR lighting
         vec3 dirContrib = vec3(0.0);
 		vec3 outSpecularColor = vec3(0.0);
@@ -1437,7 +1437,7 @@ fragment = [[
 
             ///
 			#if (USE_ENVIRONMENT_DIFFUSE == 1) || (USE_ENVIRONMENT_SPECULAR == 1)
-				
+
 				#if (RENDERING_MODE == 0)
 					//TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
 				#endif
@@ -1464,18 +1464,18 @@ fragment = [[
 			#else
 				iblDiffuse = sunAmbientModel.rgb;
             #endif
-			
+
 			//vec4 debugColor = vec4(albedoColor.rgb ,1.0);
             vec3 diffuse = iblDiffuse * albedoColor * aoTerm;
 
             // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
-			
+
 			#if (RENDERING_MODE == 0)
 				vec3 reflectionColor = SampleEnvironmentWithRoughness(Rv, roughness);
 			#else
 				vec3 reflectionColor = vec3(0.0);
 			#endif
-			
+
 			#if (USE_ENVIRONMENT_SPECULAR == 1)
 				reflectionColor = mix(reflectionColor, iblSpecular, roughness);
 			#endif
@@ -1495,7 +1495,7 @@ fragment = [[
 
             outColor = ambientContrib + dirContrib;
         }
-		
+
 		// final color
 		outColor += emissiveness * albedoColor;
 
@@ -1509,14 +1509,14 @@ fragment = [[
 			outSpecularColor.rgb *= losValue;
 			emissiveness *= losValue;
 		#endif
-		
+
 		vec4 debugColor = vec4(outColor.rgb ,1.0);
 		#ifdef EXPOSURE
 			outSpecularColor.rgb *= EXPOSURE;
 			outColor *= EXPOSURE;
 		#endif
-		
-		
+
+
 
 		outColor = TONEMAP(outColor);
 
@@ -1529,8 +1529,8 @@ fragment = [[
 			// AVOID THIS DISCARD LIKE THE PLAGUE, even DYNAMICALLY UNIFORM DISCARDS ARENT FREE!
 			}
 		#endif
-		
-		outColor.rgb *= 1.4; // this is to correct for lack of env mapping, the nastiest hack there has ever been...	
+
+		outColor.rgb *= 1.4; // this is to correct for lack of env mapping, the nastiest hack there has ever been...
 
 		#if (RENDERING_MODE == 0)
 			fragData[0] = vec4(outColor, texColor2.a);
@@ -1548,12 +1548,12 @@ fragment = [[
 
 			outSpecularColor = TONEMAP(outSpecularColor);
 
-			// Important note: even if you do not write any data in fragData, that will still write vec4(0.0) into that buffer. 
+			// Important note: even if you do not write any data in fragData, that will still write vec4(0.0) into that buffer.
 			fragData[GBUFFER_NORMTEX_IDX] = vec4(SNORM2NORM(N), alphaBin);
 			fragData[GBUFFER_DIFFTEX_IDX] = vec4(outColor, alphaBin);
-			
+
 			fragData[GBUFFER_SPECTEX_IDX] = vec4(outSpecularColor, alphaBin);
-			fragData[GBUFFER_EMITTEX_IDX] = vec4(vec3(albedoColor * emissiveness * 2.0)+outSpecularColor, alphaBin);
+			fragData[GBUFFER_EMITTEX_IDX] = vec4(vec3(albedoColor * emissiveness * 2.0), alphaBin);
 			fragData[GBUFFER_MISCTEX_IDX] = vec4(float(materialIndex) / 255.0, 0.0, 0.0, alphaBin);
 		#endif
 	}
@@ -1615,7 +1615,7 @@ local defaultMaterialTemplate = {
 		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
 		"#define USE_ENVIRONMENT_DIFFUSE 1",
 		"#define USE_ENVIRONMENT_SPECULAR 1",
-		
+
 		"#define TONEMAP(c) CustomTM(c)",
 	},
 	deferredDefinitions = {
@@ -1650,7 +1650,7 @@ local defaultMaterialTemplate = {
 		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
 		"#define USE_ENVIRONMENT_DIFFUSE 1",
 		"#define USE_ENVIRONMENT_SPECULAR 1",
-		
+
 		"#define TONEMAP(c) CustomTM(c)",
 		"#define REFLECT_DISCARD",
 	},
