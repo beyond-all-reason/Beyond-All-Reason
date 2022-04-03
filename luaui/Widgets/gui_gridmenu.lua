@@ -26,8 +26,7 @@ local configs = VFS.Include('luaui/configs/gridmenu_layouts.lua')
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local labGrids = configs.LabGrids
 local unitGrids = configs.UnitGrids
-local currentLayout = Spring.GetConfigString("KeyboardLayout") or 'qwerty'
-if currentLayout == "" then currentLayout = 'qwerty' end
+local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 local userLayout
 
 local BUILDCAT_ECONOMY = "Economy"
@@ -73,12 +72,6 @@ local Cfgs = {
 		BUILDCAT_UTILITY,
 		BUILDCAT_PRODUCTION
 	},
-	keySymChars = {
-		COMMA = ",",
-		SEMICOLON = ";",
-		QUOTE = "'",
-		PERIOD = ".",
-	},
 	categoryKeys = {},
 	vKeyLayout = {},
 	keyLayout = {}
@@ -103,7 +96,7 @@ local function genKeyLayout()
 			key = Cfgs.keyLayout[1][c]
 		end
 
-		Cfgs.categoryKeys[c] = string.gsub(Cfgs.keySymChars[string.upper(key)] or string.upper(key), "ANY%+", '')
+		Cfgs.categoryKeys[c] = string.gsub(key, "ANY%+", '')
 	end
 
 	if userLayout['next_page'] then
@@ -729,12 +722,9 @@ function widget:ViewResize()
 end
 
 function reloadBindings()
-	-- initialise keySymCharsReverse from keySymChars
-	local keySymCharsReverse = table.invert(Cfgs.keySymChars)
 	local actionHotkey
 
-	currentLayout = Spring.GetConfigString("KeyboardLayout") or 'qwerty'
-	if currentLayout == "" then currentLayout = 'qwerty' end
+	currentLayout = Spring.GetConfigString("KeyboardLayout", 'qwerty')
 
 	if not userLayout then
 		userLayout = { categories = {} }
@@ -746,7 +736,7 @@ function reloadBindings()
 
 				if key then
 					userLayout[r] = userLayout[r] or {}
-					userLayout[r][c] = keySymCharsReverse[string.upper(key)] or string.upper(key)
+					userLayout[r][c] = key
 				end
 			end
 		end
@@ -783,7 +773,7 @@ function reloadBindings()
 	for r=1,3 do
 		for c=1,4 do
 			local action = 'gridmenu_key ' .. r .. ' ' .. c
-			local key = Cfgs.keySymChars[string.upper(Cfgs.keyLayout[r][c])] or string.lower(Cfgs.keyLayout[r][c])
+			local key = Cfgs.keyLayout[r][c]
 
 			Spring.SendCommands('bind Any+' .. key .. ' ' .. action)
 		end
@@ -1278,14 +1268,14 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, disabled)
 		)
 
 	elseif cmd.hotkey and (selectedFactory or (selectedBuilder and currentBuildCategory)) then
-		local hotkeyText = string.upper(Cfgs.keySymChars[cmd.hotkey] or cmd.hotkey)
+		local hotkeyText = cmd.hotkey
 		local fontWidth = font2:GetTextWidth(hotkeyText) * priceFontSize
 		local fontWidthOffset = fontWidth * 1.35
 
 		-- If crazy char, put 50% to left
-		if Cfgs.keySymChars[cmd.hotkey] then
-			fontWidthOffset = 3 * fontWidthOffset / 2
-		end
+		-- if Cfgs.keySymChars[cmd.hotkey] then
+		-- 	fontWidthOffset = 3 * fontWidthOffset / 2
+		-- end
 
 		font2:Print("\255\215\255\215" .. hotkeyText, cellRects[cellRectID][3] - cellPadding - fontWidthOffset, cellRects[cellRectID][4] - cellPadding - priceFontSize, priceFontSize * 1.1, "o")
 	end
@@ -1807,7 +1797,7 @@ function widget:DrawScreen()
 								end
 
 								local catKey = Cfgs.keyLayout[1][index]
-								text = text .. "\n\255\240\240\240Hotkey: " .. textColor .. "[" .. (Cfgs.keySymChars[catKey] or catKey) .. "]"
+								text = text .. "\n\255\240\240\240Hotkey: " .. textColor .. "[" .. catKey .. "]"
 
 								WG['tooltip'].ShowTooltip('buildmenu', text)
 							end

@@ -11,20 +11,7 @@ function widget:GetInfo()
 end
 
 function widget:Initialize()
-    if WG.Reload_BAR_Hotkeys then
-        WG.swapYZbinds = true
-        WG.Reload_BAR_Hotkeys()
-    else
-        Spring.Echo("BAR Hotkeys widget not found, cannot swap YZ")
-        widgetHandler:RemoveWidget()
-    end
-end
-
-function widget:Shutdown()
-    WG.swapYZbinds = nil
-    if WG.Reload_BAR_Hotkeys then
-        WG.Reload_BAR_Hotkeys()
-    else
-        Spring.Echo("BAR Hotkeys widget not found, cannot swap YZ")
-    end
+	Spring.SetConfigString("KeyboardLayout", "qwertz")
+	if WG.reloadBindings then WG.reloadBindings() end
+	widgetHandler:RemoveWidget()
 end

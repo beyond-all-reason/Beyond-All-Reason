@@ -51,6 +51,9 @@ function widget:Initialize()
     if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
         maybeRemoveSelf()
     end
+
+	if WG.reloadBindings then WG.reloadBindings() end
+
 	if rebindKeys then
 		for _, keycombo in ipairs(GetActionHotKeys("attack")) do
 			hotKeys[keycombo] = true
@@ -63,6 +66,8 @@ function widget:Shutdown()
 	for keycombo in pairs(hotKeys) do
 		SendCommmands({"unbind " .. keycombo .. " settarget","bind " .. keycombo .. " attack"})
 	end
+
+	if WG.reloadBindings then WG.reloadBindings() end
 end
 
 function widget:DefaultCommand()
