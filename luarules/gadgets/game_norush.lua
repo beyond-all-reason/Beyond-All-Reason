@@ -115,7 +115,7 @@ function gadget:GameFrame(n)
                 end
             end
         end
-    elseif (n > noRushTime*30*60 and mapRestrictionsEnabled == true) or (noRushModeEnabled == false and mapRestrictionsEnabled == true) then
+    elseif (n >= noRushTime*30*60 and mapRestrictionsEnabled == true) or (noRushModeEnabled == false and mapRestrictionsEnabled == true) then
         if n%10 == 5 then
             local units = Spring.GetAllUnits()
             for u = 1,#units do
@@ -226,7 +226,7 @@ function gadget:GameFrame(n)
         end
 
         -- MapRestriction Box
-        if (n > noRushTime*30*60 and mapRestrictionsEnabled == true) or (noRushModeEnabled == false and mapRestrictionsEnabled == true) then
+        if (n >= noRushTime*30*60 and mapRestrictionsEnabled == true) or (noRushModeEnabled == false and mapRestrictionsEnabled == true) then
             if particleX > XMinMapBorder-256 and particleX < XMaxMapBorder+256 and particleZ > ZMinMapBorder-256 and particleZ < ZMaxMapBorder+256 then
                 canSpawnParticle = false
             end
@@ -276,7 +276,7 @@ function gadget:GameFrame(n)
         end
     end
     
-    if #startboxWallsList > 0 and n > noRushTime*30*60 then
+    if #startboxWallsList > 0 and n >= noRushTime*30*60 then
         -- if Spring.GetUnitIsDead(startboxWallsList[1]) == false then
         if Spring.ValidUnitID(startboxWallsList[1]) then
             Spring.DestroyUnit(startboxWallsList[1], true, false)
