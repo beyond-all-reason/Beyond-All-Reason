@@ -23,17 +23,17 @@ local engineBinds = {
 	{  "Alt+Shift+esc", "reloadforce" },
 	{      "Any+pause", "pause"       },
 
-	{ "c", "controlunit"      },
-	{ "Any+h", "sharedialog"  },
-	{ "Any+i", "gameinfo"     },
+	{     "c", "controlunit" },
+	{ "Any+h", "sharedialog" },
+	{ "Any+i", "gameinfo"    },
 
-	{ "Any+j",         "mouse2" },
-	{ "backspace", "mousestate" },
-	{ "Shift+backspace", "togglecammode" },
-	{  "Ctrl+backspace", "togglecammode" },
+	{           "Any+j", "mouse2"         },
+	{       "backspace", "mousestate"     },
+	{ "Shift+backspace", "togglecammode"  },
+	{  "Ctrl+backspace", "togglecammode"  },
 	{         "Any+tab", "toggleoverview" },
 
-	{               "Any+enter", "chat"           },
+	{  "Any+enter", "chat"           },
 	{ "Alt+ctrl+a", "chatswitchally" },
 	{ "Alt+ctrl+s", "chatswitchspec" },
 
@@ -71,26 +71,26 @@ local engineBinds = {
 	{ "Shift+,", "decguiopacity" },
 	{ "Shift+.", "incguiopacity" },
 
-	{      "1", "specteam 0"  },
-	{      "2", "specteam 1"  },
-	{      "3", "specteam 2"  },
-	{      "4", "specteam 3"  },
-	{      "5", "specteam 4"  },
-	{      "6", "specteam 5"  },
-	{      "7", "specteam 6"  },
-	{      "8", "specteam 7"  },
-	{      "9", "specteam 8"  },
-	{      "0", "specteam 9"  },
-	{ "Ctrl+1", "specteam 10" },
-	{ "Ctrl+2", "specteam 11" },
-	{ "Ctrl+3", "specteam 12" },
-	{ "Ctrl+4", "specteam 13" },
-	{ "Ctrl+5", "specteam 14" },
-	{ "Ctrl+6", "specteam 15" },
-	{ "Ctrl+7", "specteam 16" },
-	{ "Ctrl+8", "specteam 17" },
-	{ "Ctrl+9", "specteam 18" },
-	{ "Ctrl+0", "specteam 19" },
+	{      "1", "specteam", "0"  },
+	{      "2", "specteam", "1"  },
+	{      "3", "specteam", "2"  },
+	{      "4", "specteam", "3"  },
+	{      "5", "specteam", "4"  },
+	{      "6", "specteam", "5"  },
+	{      "7", "specteam", "6"  },
+	{      "8", "specteam", "7"  },
+	{      "9", "specteam", "8"  },
+	{      "0", "specteam", "9"  },
+	{ "Ctrl+1", "specteam", "10" },
+	{ "Ctrl+2", "specteam", "11" },
+	{ "Ctrl+3", "specteam", "12" },
+	{ "Ctrl+4", "specteam", "13" },
+	{ "Ctrl+5", "specteam", "14" },
+	{ "Ctrl+6", "specteam", "15" },
+	{ "Ctrl+7", "specteam", "16" },
+	{ "Ctrl+8", "specteam", "17" },
+	{ "Ctrl+9", "specteam", "18" },
+	{ "Ctrl+0", "specteam", "19" },
 
 	{ "Any+0", "group0" },
 	{ "Any+1", "group1" },
@@ -103,54 +103,54 @@ local engineBinds = {
 	{ "Any+8", "group8" },
 	{ "Any+9", "group9" },
 
-	{       "[", "buildfacing inc"  },
-	{ "Shift+[", "buildfacing inc"  },
-	{       "]", "buildfacing dec"  },
-	{ "Shift+]", "buildfacing dec"  },
-	{   "Any+z", "buildspacing inc" },
-	{   "Any+x", "buildspacing dec" },
+	{       "[", "buildfacing",  "inc" },
+	{ "Shift+[", "buildfacing",  "inc" },
+	{       "]", "buildfacing",  "dec" },
+	{ "Shift+]", "buildfacing",  "dec" },
+	{   "Any+z", "buildspacing", "inc" },
+	{   "Any+x", "buildspacing", "dec" },
 
-	{            "a", "attack"       },
-	{      "Shift+a", "attack"       },
-	{        "Alt+a", "areaattack"   },
-	{  "Alt+Shift+a", "areaattack"   },
-	{        "Alt+b", "debug"        },
-	{        "Alt+v", "debugcolvol"  },
-	{        "Alt+p", "debugpath"    },
-	{            "d", "manualfire"   },
-	{      "Shift+d", "manualfire"   },
-	{       "Ctrl+d", "selfd"        },
-	{ "Ctrl+Shift+d", "selfd queued" },
-	{            "e", "reclaim"      },
-	{      "Shift+e", "reclaim"      },
-	{            "f", "fight"        },
-	{      "Shift+f", "fight"        },
-	{        "Alt+f", "forcestart"   },
-	{            "g", "guard"        },
-	{      "Shift+g", "guard"        },
-	{            "k", "cloak"        },
-	{      "Shift+k", "cloak"        },
-	{            "l", "loadunits"    },
-	{      "Shift+l", "loadunits"    },
-	{            "m", "move"         },
-	{      "Shift+m", "move"         },
-	{        "Alt+o", "singlestep"   },
-	{            "p", "patrol"       },
-	{      "Shift+p", "patrol"       },
-	{            "q", "groupselect"  },
-	{            "q", "groupadd"     },
-	{       "Ctrl+q", "aiselect"     },
-	{      "Shift+q", "groupclear"   },
-	{            "r", "repair"       },
-	{      "Shift+r", "repair"       },
-	{            "s", "stop"         },
-	{      "Shift+s", "stop"         },
-	{            "u", "unloadunits"  },
-	{      "Shift+u", "unloadunits"  },
-	{            "w", "wait"         },
-	{      "Shift+w", "wait queued"  },
-	{            "x", "onoff"        },
-	{      "Shift+x", "onoff"        },
+	{            "a", "attack"          },
+	{      "Shift+a", "attack"          },
+	{        "Alt+a", "areaattack"      },
+	{  "Alt+Shift+a", "areaattack"      },
+	{        "Alt+b", "debug"           },
+	{        "Alt+v", "debugcolvol"     },
+	{        "Alt+p", "debugpath"       },
+	{            "d", "manualfire"      },
+	{      "Shift+d", "manualfire"      },
+	{       "Ctrl+d", "selfd"           },
+	{ "Ctrl+Shift+d", "selfd", "queued" },
+	{            "e", "reclaim"         },
+	{      "Shift+e", "reclaim"         },
+	{            "f", "fight"           },
+	{      "Shift+f", "fight"           },
+	{        "Alt+f", "forcestart"      },
+	{            "g", "guard"           },
+	{      "Shift+g", "guard"           },
+	{            "k", "cloak"           },
+	{      "Shift+k", "cloak"           },
+	{            "l", "loadunits"       },
+	{      "Shift+l", "loadunits"       },
+	{            "m", "move"            },
+	{      "Shift+m", "move"            },
+	{        "Alt+o", "singlestep"      },
+	{            "p", "patrol"          },
+	{      "Shift+p", "patrol"          },
+	{            "q", "groupselect"     },
+	{            "q", "groupadd"        },
+	{       "Ctrl+q", "aiselect"        },
+	{      "Shift+q", "groupclear"      },
+	{            "r", "repair"          },
+	{      "Shift+r", "repair"          },
+	{            "s", "stop"            },
+	{      "Shift+s", "stop"            },
+	{            "u", "unloadunits"     },
+	{      "Shift+u", "unloadunits"     },
+	{            "w", "wait"            },
+	{      "Shift+w", "wait", "queued"  },
+	{            "x", "onoff"           },
+	{      "Shift+x", "onoff"           },
 
 
 	{  "Ctrl+t", "trackmode" },
@@ -162,14 +162,14 @@ local engineBinds = {
 	{ "Ctrl+f4", "viewrot"  },
 	{ "Ctrl+f5", "viewfree" },
 
-	{ "Any+f1",  "ShowElevation"         },
-	{ "Any+f2",  "ShowPathTraversability"},
-	{ "Any+f3",  "LastMsgPos"            },
-	{ "Any+f4",  "ShowMetalMap"          },
-	{ "Any+f5",  "HideInterface"         },
-	{ "Any+f6",  "MuteSound"             },
-	{ "Any+f7",  "DynamicSky"            },
-	{ "Any+l",   "togglelos"             },
+	{ "Any+f1", "ShowElevation"          },
+	{ "Any+f2", "ShowPathTraversability" },
+	{ "Any+f3", "LastMsgPos"             },
+	{ "Any+f4", "ShowMetalMap"           },
+	{ "Any+f5", "HideInterface"          },
+	{ "Any+f6", "MuteSound"              },
+	{ "Any+f7", "DynamicSky"             },
+	{  "Any+l",  "togglelos"             },
 
 	{ "Ctrl+Shift+f8",  "savegame" },
 	{ "Ctrl+Shift+f10", "createvideo" },
@@ -194,32 +194,32 @@ local engineBinds = {
 	{    "Any+^",    "drawinmap"  },
 	{ "Up+Any+^",    "drawinmap"  },
 
-	{    "Any+up",       "moveforward"  },
-	{ "Up+Any+up",       "moveforward"  },
-	{    "Any+down",     "moveback"     },
-	{ "Up+Any+down",     "moveback"     },
-	{    "Any+right",    "moveright"    },
-	{ "Up+Any+right",    "moveright"    },
-	{    "Any+left",     "moveleft"     },
-	{ "Up+Any+left",     "moveleft"     },
-	{    "Any+pageup",   "moveup"       },
-	{ "Up+Any+pageup",   "moveup"       },
-	{    "Any+pagedown", "movedown"     },
-	{ "Up+Any+pagedown", "movedown"     },
+	{    "Any+up",       "moveforward" },
+	{ "Up+Any+up",       "moveforward" },
+	{    "Any+down",     "moveback"    },
+	{ "Up+Any+down",     "moveback"    },
+	{    "Any+right",    "moveright"   },
+	{ "Up+Any+right",    "moveright"   },
+	{    "Any+left",     "moveleft"    },
+	{ "Up+Any+left",     "moveleft"    },
+	{    "Any+pageup",   "moveup"      },
+	{ "Up+Any+pageup",   "moveup"      },
+	{    "Any+pagedown", "movedown"    },
+	{ "Up+Any+pagedown", "movedown"    },
 
-	{    "Any+ctrl",     "moveslow"     },
-	{ "Up+Any+ctrl",     "moveslow"     },
-	{    "Any+shift",    "movefast"     },
-	{ "Up+Any+shift",    "movefast"     },
+	{     "Any+ctrl", "moveslow" },
+	{  "Up+Any+ctrl", "moveslow" },
+	{    "Any+shift", "movefast" },
+	{ "Up+Any+shift", "movefast" },
 
-	{ "Ctrl+a",    "select AllMap++_ClearSelection_SelectAll+"                                         },
-	{ "Ctrl+b",    "select AllMap+_Builder_Idle+_ClearSelection_SelectOne+"                            },
-	{ "Ctrl+c",    "select AllMap+_ManualFireUnit+_ClearSelection_SelectOne+"                          },
-	{ "Ctrl+r",    "select AllMap+_Radar+_ClearSelection_SelectAll+"                                   },
-	{ "Ctrl+v",    "select AllMap+_Not_Builder_Not_Commander_InPrevSel_Not_InHotkeyGroup+_SelectAll+"  },
-	{ "Ctrl+w",    "select AllMap+_Not_Aircraft_Weapons+_ClearSelection_SelectAll+"                    },
-	{ "Ctrl+x",    "select AllMap+_InPrevSel_Not_InHotkeyGroup+_SelectAll+"                            },
-	{ "Ctrl+z",    "select AllMap+_InPrevSel+_ClearSelection_SelectAll+"                               }
+	{ "Ctrl+a", "select", "AllMap++_ClearSelection_SelectAll+"                                        },
+	{ "Ctrl+b", "select", "AllMap+_Builder_Idle+_ClearSelection_SelectOne+"                           },
+	{ "Ctrl+c", "select", "AllMap+_ManualFireUnit+_ClearSelection_SelectOne+"                         },
+	{ "Ctrl+r", "select", "AllMap+_Radar+_ClearSelection_SelectAll+"                                  },
+	{ "Ctrl+v", "select", "AllMap+_Not_Builder_Not_Commander_InPrevSel_Not_InHotkeyGroup+_SelectAll+" },
+	{ "Ctrl+w", "select", "AllMap+_Not_Aircraft_Weapons+_ClearSelection_SelectAll+"                   },
+	{ "Ctrl+x", "select", "AllMap+_InPrevSel_Not_InHotkeyGroup+_SelectAll+"                           },
+	{ "Ctrl+z", "select", "AllMap+_InPrevSel+_ClearSelection_SelectAll+"                              }
 }
 
 local function makeBindsTable(keyLayout)
@@ -228,19 +228,26 @@ local function makeBindsTable(keyLayout)
 	local C = keyLayout[1][3]
 	local V = keyLayout[1][4]
 	local B = keyLayout[1][5]
+	local M = keyLayout[1][7]
 	local A = keyLayout[2][1]
 	local S = keyLayout[2][2]
 	local D = keyLayout[2][3]
 	local F = keyLayout[2][4]
+	local G = keyLayout[2][5]
 	local H = keyLayout[2][6]
 	local J = keyLayout[2][7]
+	local K = keyLayout[2][8]
+	local L = keyLayout[2][9]
 	local Q = keyLayout[3][1]
 	local W = keyLayout[3][2]
 	local E = keyLayout[3][3]
 	local R = keyLayout[3][4]
+	local T = keyLayout[3][5]
 	local Y = keyLayout[3][6]
+	local U = keyLayout[3][7]
 	local I = keyLayout[3][8]
 	local O = keyLayout[3][9]
+	local P = keyLayout[3][10]
 
 	local _binds = {
 		{            "esc", "quitmessage"          },
@@ -299,15 +306,15 @@ local function makeBindsTable(keyLayout)
 		{ "Shift+,", "decguiopacity" },
 		{ "Shift+.", "incguiopacity" },
 
-		{      "1", "specteam 0"  },
-		{      "2", "specteam 1"  },
-		{      "3", "specteam 2"  },
-		{      "4", "specteam 3"  },
-		{      "5", "specteam 4"  },
-		{      "6", "specteam 5"  },
-		{      "7", "specteam 6"  },
-		{      "8", "specteam 7"  },
-		{      "9", "specteam 8"  },
+		{      "1", "specteam", "0"  },
+		{      "2", "specteam", "1"  },
+		{      "3", "specteam", "2"  },
+		{      "4", "specteam", "3"  },
+		{      "5", "specteam", "4"  },
+		{      "6", "specteam", "5"  },
+		{      "7", "specteam", "6"  },
+		{      "8", "specteam", "7"  },
+		{      "9", "specteam", "8"  },
 
 		{ "Any+0", "group0" },
 		{ "Any+1", "group1" },
@@ -320,68 +327,66 @@ local function makeBindsTable(keyLayout)
 		{ "Any+8", "group8" },
 		{ "Any+9", "group9" },
 
-		{             "[", "buildfacing inc"  },
-		{       "Shift+[", "buildfacing inc"  },
-		{             "]", "buildfacing dec"  },
-		{       "Shift+]", "buildfacing dec"  },
-		{       "Alt+"..Z, "buildspacing inc" },
-		{ "Shift+Alt+"..Z, "buildspacing inc" },
-		{       "Alt+"..X, "buildspacing dec" },
-		{ "Shift+Alt+"..X, "buildspacing dec" },
-		{             ",", "buildfacing inc"  }, --because some keyboards don't have [ and ] ke"..Y.."s
-		{             ".", "buildfacing dec"  },
-		{             "o", "buildfacing inc"  }, --apparently some keyboards don't have , and . either...
+		{             "[", "buildfacing" , "inc"  },
+		{       "Shift+[", "buildfacing" , "inc"  },
+		{             "]", "buildfacing" , "dec"  },
+		{       "Shift+]", "buildfacing" , "dec"  },
+		{             ".", "buildfacing" , "dec"  },
+		{             ",", "buildfacing" , "inc"  }, --because some keyboards don't have [ and ] ke"..Y.."s
+		{               O, "buildfacing" , "inc"  }, --apparently some keyboards don't have , and . either...
+		{       "Alt+"..Z, "buildspacing", "inc" },
+		{ "Shift+Alt+"..Z, "buildspacing", "inc" },
+		{       "Alt+"..X, "buildspacing", "dec" },
+		{ "Shift+Alt+"..X, "buildspacing", "dec" },
 
-		{                A, "attack"         },
-		{      "Shift+"..A, "attack"         },
-		{        "Alt+"..A, "areaattack"     },
-		{  "Alt+Shift+"..A, "areaattack"     },
-		{          "Alt+b", "debug"          },
-		{          "Alt+v", "debugcolvol"    },
-		{          "Alt+p", "debugpath"      },
-		{                D, "manualfire"     },
-		{      "Shift+"..D, "manualfire"     },
-		{       "Ctrl+"..D, "selfd"          },
-		{ "Ctrl+Shift+"..D, "selfd queued"   },
-		{                E, "reclaim"        },
-		{      "Shift+"..E, "reclaim"        },
-		{                F, "fight"          },
-		{      "Shift+"..F, "fight"          },
-		{        "Alt+"..F, "forcestart"     },
-		{              "g", "guard"          },
-		{        "Shift+g", "guard"          },
-		{              "j", "canceltarget"   },
-		{              "k", "cloak"          },
-		{        "Shift+k", "cloak"          },
-		{              "k", "wantcloak"      },
-		{          "any+k", "wantcloak"      },
-		{              "l", "loadunits"      },
-		{        "Shift+l", "loadunits"      },
-		{              "m", "move"           },
-		{        "Shift+m", "move"           },
-		{          "Alt+o", "singlestep"     },
-		{              "p", "patrol"         },
-		{        "Shift+p", "patrol"         },
-		{              "q", "groupselect"    },
-		{              "q", "groupadd"       },
-		{         "Ctrl+q", "aiselect"       },
-		{        "Shift+q", "groupclear"     },
-		{              "r", "repair"         },
-		{        "Shift+r", "repair"         },
-		{                S, "stop"           },
-		{      "Shift+"..S, "stop"           },
-		{       "Ctrl+"..S, "stopproduction" },
-		{              "u", "unloadunits"    },
-		{        "Shift+u", "unloadunits"    },
-		{                W, "wait"           },
-		{      "Shift+"..W, "wait queued"    },
-		{                X, "onoff"          },
-		{      "Shift+"..X, "onoff"          },
+		{                A, "attack"          },
+		{      "Shift+"..A, "attack"          },
+		{        "Alt+"..A, "areaattack"      },
+		{  "Alt+Shift+"..A, "areaattack"      },
+		{          "Alt+b", "debug"           },
+		{          "Alt+v", "debugcolvol"     },
+		{          "Alt+p", "debugpath"       },
+		{                D, "manualfire"      },
+		{      "Shift+"..D, "manualfire"      },
+		{       "Ctrl+"..D, "selfd"           },
+		{ "Ctrl+Shift+"..D, "selfd", "queued" },
+		{                E, "reclaim"         },
+		{      "Shift+"..E, "reclaim"         },
+		{                F, "fight"           },
+		{      "Shift+"..F, "fight"           },
+		{        "Alt+"..F, "forcestart"      },
+		{                G, "guard"           },
+		{      "Shift+"..G, "guard"           },
+		{                J, "canceltarget"    },
+		{                K, "cloak"           },
+		{      "Shift+"..K, "cloak"           },
+		{                K, "wantcloak"       },
+		{        "Any+"..K, "wantcloak"       },
+		{                L, "loadunits"       },
+		{      "Shift+"..L, "loadunits"       },
+		{                M, "move"            },
+		{      "Shift+"..M, "move"            },
+		{                P, "patrol"          },
+		{      "Shift+"..P, "patrol"          },
+		{                Q, "groupselect"     },
+		{                Q, "groupadd"        },
+		{      "Shift+"..Q, "groupclear"      },
+		{                R, "repair"          },
+		{      "Shift+"..R, "repair"          },
+		{                S, "stop"            },
+		{      "Shift+"..S, "stop"            },
+		{       "Ctrl+"..S, "stopproduction"  },
+		{                U, "unloadunits"     },
+		{      "Shift+"..U, "unloadunits"     },
+		{                W, "wait"            },
+		{      "Shift+"..W, "wait", "queued"  },
+		{                X, "onoff"           },
+		{      "Shift+"..X, "onoff"           },
 
-		{ "Any+l",   "togglelos"             },
+		{ "Any+"..L,   "togglelos"             },
 
-		{  "Ctrl+t", "trackmode" },
-		{   "Any+t", "track" },
+		{  "Ctrl+"..T, "trackmode" },
+		{   "Any+"..T, "track" },
 
 		{ "Ctrl+f1", "viewfps"  },
 		{ "Ctrl+f2", "viewta"   },
@@ -389,15 +394,16 @@ local function makeBindsTable(keyLayout)
 		{ "Ctrl+f4", "viewrot"  },
 		{ "Ctrl+f5", "viewfree" },
 
-		{ "Any+f1",  "ShowElevation"         },
-		{ "Any+f2",  "ShowPathTraversability"},
-		{ "Any+f3",  "LastMsgPos"            },
-		{ "Any+f4",  "ShowMetalMap"          },
-		{ "Any+f5",  "HideInterface"         },
-		{ "Any+f6",  "MuteSound"             },
-		{ "Any+f7",  "DynamicSky"            },
+		{ "Any+f1", "ShowElevation"          },
+		{ "Any+f2", "ShowPathTraversability" },
+		{ "Any+f3", "LastMsgPos"             },
+		{ "Any+f4", "ShowMetalMap"           },
+		{ "Any+f5", "HideInterface"          },
+		{ "Any+f6", "MuteSound"              },
+		{ "Any+f7", "DynamicSky"             },
+		{    "f11", "luaui selector"         },
 
-		{ "Ctrl+Shift+f8",  "savegame"  },
+		{ "Ctrl+Shift+f8", "savegame"  },
 		{       "Any+f12", "screenshot" },
 		{     "Alt+enter", "fullscreen" },
 
@@ -437,14 +443,14 @@ local function makeBindsTable(keyLayout)
 		{    "Any+shift",    "movefast"     },
 		{ "Up+Any+shift",    "movefast"     },
 
-		{ "Ctrl+"..A,    "select AllMap++_ClearSelection_SelectAll+"                                         },
-		{ "Ctrl+"..B,    "select AllMap+_Builder_Idle+_ClearSelection_SelectOne+"                            },
-		{ "Ctrl+"..C,    "select AllMap+_ManualFireUnit+_ClearSelection_SelectOne+"                          },
-		{ "Ctrl+"..R,    "select AllMap+_Radar+_ClearSelection_SelectAll+"                                   },
-		{ "Ctrl+"..V,    "select AllMap+_Not_Builder_Not_Commander_InPrevSel_Not_InHotkeyGroup+_SelectAll+"  },
-		{ "Ctrl+"..W,    "select AllMap+_Not_Aircraft_Weapons+_ClearSelection_SelectAll+"                    },
-		{ "Ctrl+"..X,    "select AllMap+_InPrevSel_Not_InHotkeyGroup+_SelectAll+"                            },
-		{ "Ctrl+"..Z,    "select AllMap+_InPrevSel+_ClearSelection_SelectAll+"                               },
+		{ "Ctrl+"..A,    "select", "AllMap++_ClearSelection_SelectAll+"                                         },
+		{ "Ctrl+"..B,    "select", "AllMap+_Builder_Idle+_ClearSelection_SelectOne+"                            },
+		{ "Ctrl+"..C,    "select", "AllMap+_ManualFireUnit+_ClearSelection_SelectOne+"                          },
+		{ "Ctrl+"..R,    "select", "AllMap+_Radar+_ClearSelection_SelectAll+"                                   },
+		{ "Ctrl+"..V,    "select", "AllMap+_Not_Builder_Not_Commander_InPrevSel_Not_InHotkeyGroup+_SelectAll+"  },
+		{ "Ctrl+"..W,    "select", "AllMap+_Not_Aircraft_Weapons+_ClearSelection_SelectAll+"                    },
+		{ "Ctrl+"..X,    "select", "AllMap+_InPrevSel_Not_InHotkeyGroup+_SelectAll+"                            },
+		{ "Ctrl+"..Z,    "select", "AllMap+_InPrevSel+_ClearSelection_SelectAll+"                               },
 
 		-- building hotkeys
 		{              Z, "buildunit_armmex"        },
@@ -595,7 +601,7 @@ local function makeBindsTable(keyLayout)
 	table.insert(_binds,  { "Ctrl+`", "remove_one_unit_from_group" })
 
 	for i = 0, 9 do
-		table.insert(_binds, { 'Alt+'..i , "add_to_autogroup "..i })
+		table.insert(_binds, { 'Alt+'..i , "add_to_autogroup", i })
 	end
 
 	return _binds
@@ -605,7 +611,11 @@ local function loadEngineBindings(prefix)
 	prefix = prefix or ''
 
 	for _, v in ipairs(engineBinds) do
-		Spring.SendCommands(prefix..'bind '..v[1]..' '..v[2])
+		local command = prefix..'bind '..v[1]..' '..v[2]
+		if prefix == '' and v[3] then
+			command = command..' '..v[3]
+		end
+		Spring.SendCommands(command)
 	end
 end
 
@@ -618,7 +628,11 @@ local function loadBindings(prefix)
 	end
 
 	for _, v in ipairs(makeBindsTable(keyLayout)) do
-		Spring.SendCommands(prefix..'bind '..v[1]..' '..v[2])
+		local command = prefix..'bind '..v[1]..' '..v[2]
+		if prefix == '' and v[3] then
+			command = command..' '..v[3]
+		end
+		Spring.SendCommands(command)
 	end
 end
 
