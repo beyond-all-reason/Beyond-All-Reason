@@ -97,7 +97,6 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Shutdown()
-	spSendCommands('unbindkeyset Any+;')
 	spSetLosViewColors(always, LOS, radar, jam, radar2)
 end
 
@@ -150,10 +149,6 @@ end
 function widget:Initialize()
 	widgetHandler:AddAction("losradar", toggleLOSRadars, nil, 'p')
 	widgetHandler:AddAction("loscolor", toggleLOSColors, nil, 'p')
-
-	spSendCommands('unbindkeyset Any+;')
-	spSendCommands('bind Any+; losradar')
-	spSendCommands('bind Any+0xf6 losradar') -- o-umlaut for German keyboards, located where the semicolon normally is
 
 	WG['los'] = {}
 	WG['los'].getColorize = function()

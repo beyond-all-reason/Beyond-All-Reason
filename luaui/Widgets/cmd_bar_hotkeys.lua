@@ -586,6 +586,10 @@ local function makeBindsTable(keyLayout)
 		{ "      =", "snd_volume_increase" },
 		{ "      -", "snd_volume_decrease" },
 		{ "numpad-", "snd_volume_decrease" },
+
+		-- los_colors
+		{    'Any+;', 'losradar' },
+		{ 'Any+0xf6', 'losradar' }, -- o-umlaut for German keyboards, located where the semicolon normally is
 	}
 
 	-- if WG['CameraFlip'] then
