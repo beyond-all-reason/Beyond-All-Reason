@@ -27,6 +27,7 @@ local function processUnitDef(unitDefName, unitDef)
 		FeatureDefs[fullName] = featureDef
 		featureDef.customparams = featureDef.customparams or {}
 		featureDef.customparams.fromunit = unitDefName
+		featureDef.customparams.category = featureDef.category
 	end
 
 	-- FeatureDead name changes
