@@ -75,6 +75,7 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
+				category = "corpses",
 				collisionvolumeoffsets = "0 0 0",
 				collisionvolumescales = "110 28 110",
 				collisionvolumetype = "CylY",
@@ -213,7 +214,6 @@ return {
 				noselfdamage = true,
 				range = 1250,
 				reloadtime = 0,
-				rgbcolor = "0.7 0.3 1",
 				rgbcolor = "0.7 0.3 0.4",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
