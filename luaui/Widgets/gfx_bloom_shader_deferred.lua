@@ -21,13 +21,10 @@ end
 
 local version = 1.1
 
--- config params
 local dbgDraw = 0               -- draw only the bloom-mask? [0 | 1]
-local globalBlursizeMult = 1
 
 local glowAmplifier = 0.85            -- intensity multiplier when filtering a glow source fragment [1, n]
 local blurAmplifier = 1        -- intensity multiplier when applying a blur pass [1, n] (should be set close to 1)
-local drawWorldAlpha = 0		-- darken world so bloom doesnt blown-white out the brightest areas too much
 local illumThreshold = 0            -- how bright does a fragment need to be before being considered a glow source? [0, 1]
 
 --quality =1 : 90 fps, 9% memctrler load, 99% shader load
@@ -210,7 +207,7 @@ local function MakeBloomShaders()
 		]],
 		uniformInt = {
 			texture0 = 0,
-			blursize = math.floor(presets[preset].blursize * globalBlursizeMult),
+			blursize = math.floor(presets[preset].blursize),
 		},
 	})
 
@@ -241,7 +238,7 @@ local function MakeBloomShaders()
 
 		uniformInt = {
 			texture0 = 0,
-			blursize = math.floor(presets[preset].blursize*globalBlursizeMult),
+			blursize = math.floor(presets[preset].blursize),
 		}
 	})
 
@@ -435,24 +432,7 @@ local function Bloom()
 	gl.DepthMask(true)
 end
 
-function widget:Update(dt)
-	if drawWorldAlpha <= 0 then return end
-	camX, camY, camZ = Spring.GetCameraPosition()
-	camDirX, camDirY, camDirZ = Spring.GetCameraDirection()
-end
-
 function widget:DrawWorld()
-	-- darken world so bloom doesnt blown-white out the brightest areas too much
-	if drawWorldAlpha > 0 then
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		gl.PushPopMatrix(function()
-			gl.Color(0, 0, 0, drawWorldAlpha * glowAmplifier)
-			gl.Translate(camX + (camDirX * 360), camY + (camDirY * 360), camZ + (camDirZ * 360))
-			gl.Billboard()
-			gl.Rect(-vsx, -vsy, vsx, vsy)
-		end)
-	end
-
 	Bloom()
 end
 

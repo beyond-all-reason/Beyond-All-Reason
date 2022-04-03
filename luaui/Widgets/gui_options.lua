@@ -4604,28 +4604,30 @@ function init()
 
 		if isPotatoGpu then
 			options[getOptionByID('msaa')].max = 2
-			local id = getOptionByID('ssao')
+			id = getOptionByID('ssao')
 			if id and GetWidgetToggleValue(options[id].widget) then
 				widgetHandler:DisableWidget(options[id].widget)
 			end
 			options[id] = nil
 			options[getOptionByID('ssao_strength')] = nil
+			options[getOptionByID('ssao_quality')] = nil
 
-			local id = getOptionByID('bloom')
+			id = getOptionByID('bloom')
 			if id and GetWidgetToggleValue(options[id].widget) then
 				widgetHandler:DisableWidget(options[id].widget)
 			end
 			options[id] = nil
 			options[getOptionByID('bloom_brightness')] = nil
+			options[getOptionByID('bloom_quality')] = nil
 
-			local id = getOptionByID('guishader')
+			id = getOptionByID('guishader')
 			if id and GetWidgetToggleValue(options[id].widget) then
 				widgetHandler:DisableWidget(options[id].widget)
 			end
 			options[id] = nil
 			options[getOptionByID('guishader')] = nil
 
-			local id = getOptionByID('dof')
+			id = getOptionByID('dof')
 			if id and GetWidgetToggleValue(options[id].widget) then
 				widgetHandler:DisableWidget(options[id].widget)
 			end
@@ -4633,7 +4635,7 @@ function init()
 			options[getOptionByID('dof_autofocus')] = nil
 			options[getOptionByID('dof_fstop')] = nil
 
-			local id = getOptionByID('clouds')
+			id = getOptionByID('clouds')
 			if id and GetWidgetToggleValue(options[id].widget) then
 				widgetHandler:DisableWidget(options[id].widget)
 			end

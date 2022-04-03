@@ -1218,7 +1218,7 @@ end
 function CreatePlayer(playerID)
     --generic player data
     local tname, _, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank = Spring_GetPlayerInfo(playerID, false)
-    local _, _, _, _, tside, tallyteam = Spring_GetTeamInfo(tteam, false)
+    local _, _, _, _, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(tteam, false)
     local tred, tgreen, tblue = Spring_GetTeamColor(tteam)
 
     --skill
@@ -1274,6 +1274,7 @@ function CreatePlayer(playerID)
         energyStorage = energyStorage,
         metal = metal,
         metalStorage = metalStorage,
+		incomeMultiplier = tincomeMultiplier,
     }
 end
 
@@ -1294,7 +1295,7 @@ end
 
 function CreatePlayerFromTeam(teamID)
     -- for when we don't have a human player occupying the slot, also when a player changes team (dies)
-    local _, _, isDead, isAI, tside, tallyteam = Spring_GetTeamInfo(teamID, false)
+    local _, _, isDead, isAI, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(teamID, false)
     local tred, tgreen, tblue = Spring_GetTeamColor(teamID)
     local tname, ttotake, tskill, tai
     local tdead = true
@@ -1357,6 +1358,7 @@ function CreatePlayerFromTeam(teamID)
         energyStorage = energyStorage,
         metal = metal,
         metalStorage = metalStorage,
+		incomeMultiplier = tincomeMultiplier,
     }
 end
 
@@ -2435,6 +2437,11 @@ function DrawName(name, team, posY, dark, playerID)
         font2:SetOutlineColor(0, 0, 0, 1)
         font2:Print( nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
     end
+
+	if player[playerID].incomeMultiplier > 1 then
+		font2:SetTextColor(0.5,1,0.5,1)
+		font2:Print('+'..math.floor((player[playerID].incomeMultiplier-1)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14), posY + 5.7 , 8, "o")
+	end
 	font2:End()
 
     if ignored then
