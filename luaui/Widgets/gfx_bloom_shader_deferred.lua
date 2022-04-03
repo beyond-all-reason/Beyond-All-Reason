@@ -33,9 +33,25 @@ local illumThreshold = 0            -- how bright does a fragment need to be bef
 --quality =1 : 90 fps, 9% memctrler load, 99% shader load
 --quality =2 : 113 fps, 57% memctrler load, 99% shader load
 --quality =4 : 123 fps, 9% memctrler load, 99% shader load
-local blursize = 10
-local blurPasses = 4
-local quality = 1	-- higher than 1 introduces flicker when moving camera/units
+
+local preset = 2
+local presets = {
+	{
+		quality = 3,
+		blurPasses = 2,
+		blursize = 8,
+	},
+	{
+		quality = 2,
+		blurPasses = 3,
+		blursize = 9,
+	},
+	{
+		quality = 1,
+		blurPasses = 4,
+		blursize = 10,
+	},
+}
 
 -- non-editables
 local vsx = 1                        -- current viewport width
@@ -100,8 +116,34 @@ local function RemoveMe(msg)
 end
 
 local function MakeBloomShaders()
+	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
 
-	if (glDeleteShader) then
+	vsx = math.max(4,viewSizeX); ivsx = 1.0 / vsx --we can do /n here!
+	vsy = math.max(4,viewSizeY); ivsy = 1.0 / vsy
+	local qvsx,qvsy = math.floor(vsx/presets[preset].quality), math.floor(vsy/presets[preset].quality)
+	glDeleteTexture(brightTexture1 or "")
+	glDeleteTexture(brightTexture2 or "")
+
+	brightTexture1 = glCreateTexture(math.max(1,qvsx), math.max(1,qvsy), {
+		fbo = true,
+		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
+	})
+	brightTexture2 = glCreateTexture(qvsx, qvsy, {
+		fbo = true,
+		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
+	})
+
+	if (brightTexture1 == nil or brightTexture2 == nil) then
+		if (brightTexture1 == nil ) then Spring.Echo('brightTexture1 == nil ') end
+		if (brightTexture2 == nil ) then Spring.Echo('brightTexture2 == nil ') end
+		RemoveMe("[BloomShader::ViewResize] removing widget, bad texture target")
+		return
+	end
+
+
+	if glDeleteShader then
 		if brightShader ~= nil then glDeleteShader(brightShader or 0) end
 		if blurShaderH71 ~= nil then glDeleteShader(blurShaderH71 or 0) end
 		if blurShaderV71 ~= nil then glDeleteShader(blurShaderV71 or 0) end
@@ -168,7 +210,7 @@ local function MakeBloomShaders()
 		]],
 		uniformInt = {
 			texture0 = 0,
-			blursize = math.floor(blursize * globalBlursizeMult),
+			blursize = math.floor(presets[preset].blursize * globalBlursizeMult),
 		},
 	})
 
@@ -199,7 +241,7 @@ local function MakeBloomShaders()
 
 		uniformInt = {
 			texture0 = 0,
-			blursize = math.floor(blursize*globalBlursizeMult),
+			blursize = math.floor(presets[preset].blursize*globalBlursizeMult),
 		}
 	})
 
@@ -282,35 +324,9 @@ local function MakeBloomShaders()
 
 end
 
-
 function widget:ViewResize(viewSizeX, viewSizeY)
-	vsx = math.max(4,viewSizeX); ivsx = 1.0 / vsx --we can do /n here!
-	vsy = math.max(4,viewSizeY); ivsy = 1.0 / vsy
-	local qvsx,qvsy = math.floor(vsx/quality), math.floor(vsy/quality)
-	glDeleteTexture(brightTexture1 or "")
-	glDeleteTexture(brightTexture2 or "")
-
-	brightTexture1 = glCreateTexture(math.max(1,qvsx), math.max(1,qvsy), {
-		fbo = true,
-		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-		wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
-	})
-	brightTexture2 = glCreateTexture(qvsx, qvsy, {
-		fbo = true,
-		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-		wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
-	})
-
-	if (brightTexture1 == nil or brightTexture2 == nil) then
-		if (brightTexture1 == nil ) then Spring.Echo('brightTexture1 == nil ') end
-		if (brightTexture2 == nil ) then Spring.Echo('brightTexture2 == nil ') end
-		RemoveMe("[BloomShader::ViewResize] removing widget, bad texture target")
-		return
-	end
-	MakeBloomShaders() --we are gonna reinit the the widget, in order to recompile the shaders with the static IVSX and IVSY values in the blur shaders
+	MakeBloomShaders()
 end
-
-
 
 function widget:Initialize()
 
@@ -336,8 +352,14 @@ function widget:Initialize()
 		glowAmplifier = value
 		MakeBloomShaders()
 	end
+	WG['bloomdeferred'].getPreset = function()
+		return preset
+	end
+	WG['bloomdeferred'].setPreset = function(value)
+		preset = value
+		MakeBloomShaders()
+	end
 
-	widget:ViewResize(widgetHandler:GetViewSizes())
 	MakeBloomShaders()
 end
 
@@ -376,7 +398,7 @@ local function Bloom()
 	glUseShader(0)
 
 	if not debugBrightShader then
-		for i = 1, blurPasses do
+		for i = 1, presets[preset].blurPasses do
 			glUseShader(blurShaderH71)
 				--glUniformInt(blurShaderH71Text0Loc, 0)
 				glUniform(blurShaderH71FragLoc, blurAmplifier)
@@ -439,6 +461,7 @@ function widget:GetConfigData()
 	return {
 		version = version,
 		glowAmplifier = glowAmplifier,
+		preset = preset,
 	}
 end
 
@@ -447,6 +470,12 @@ function widget:SetConfigData(data)
 		data.version = version
 		if data.glowAmplifier ~= nil then
 			glowAmplifier = data.glowAmplifier
+		end
+		if data.preset ~= nil then
+			preset = data.preset
+			if preset > 3 then
+				preset = 3
+			end
 		end
 	end
 end

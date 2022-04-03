@@ -1481,7 +1481,9 @@ function init()
 	presets = {
 		lowest = {
 			bloomdeferred = false,
+			bloomdeferred_quality = 1,
 			ssao = false,
+			ssao_quality = 1,
 			mapedgeextension = false,
 			lighteffects = false,
 			lighteffects_additionalflashes = false,
@@ -1496,7 +1498,9 @@ function init()
 		},
 		low = {
 			bloomdeferred = true,
+			bloomdeferred_quality = 1,
 			ssao = false,
+			ssao_quality = 1,
 			mapedgeextension = false,
 			lighteffects = true,
 			lighteffects_additionalflashes = false,
@@ -1511,7 +1515,9 @@ function init()
 		},
 		medium = {
 		 	bloomdeferred = true,
+			bloomdeferred_quality = 2,
 		 	ssao = true,
+			ssao_quality = 2,
 		 	mapedgeextension = true,
 		 	lighteffects = true,
 		 	lighteffects_additionalflashes = true,
@@ -1526,7 +1532,9 @@ function init()
 		},
 		high = {
 			bloomdeferred = true,
+			bloomdeferred_quality = 3,
 			ssao = true,
+			ssao_quality = 3,
 			mapedgeextension = true,
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
@@ -1541,7 +1549,9 @@ function init()
 		},
 		ultra = {
 			bloomdeferred = true,
+			bloomdeferred_quality = 3,
 			ssao = true,
+			ssao_quality = 3,
 			mapedgeextension = true,
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
@@ -1853,6 +1863,16 @@ function init()
 			  saveOptionValue('SSAO', 'ssao', 'setStrength', { 'strength' }, value)
 		  end,
 		},
+		{ id = "ssao_quality", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.ssao_quality, type = "select", options = { 'low', 'medium', 'high'}, value = (WG['ssao'] ~= nil and WG['ssao'].getPreset() or 2), description = texts.option.ssao_quality_descr,
+		  onload = function(i)
+			  if widgetHandler.configData["Bloom Shader Deferred"] ~= nil and widgetHandler.configData["SSAO"].preset ~= nil then
+				  options[getOptionByID('bloomdeferred_quality')].value = widgetHandler.configData["SSAO"].preset
+			  end
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('SSAO', 'ssao', 'setPreset', { 'preset' }, value)
+		  end,
+		},
 
 		{ id = "bloomdeferred", group = "gfx", category = types.basic, widget = "Bloom Shader Deferred", name = texts.option.bloomdeferred, type = "bool", value = GetWidgetToggleValue("Bloom Shader Deferred"), description = texts.option.bloomdeferred_descr },
 		{ id = "bloomdeferredbrightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.bloomdeferredbrightness, type = "slider", min = 0.4, max = 1.4, step = 0.05, value = 0.9, description = '',
@@ -1863,6 +1883,17 @@ function init()
 			  saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setBrightness', { 'glowAmplifier' }, value)
 		  end,
 		},
+		{ id = "bloomdeferred_quality", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.bloomdeferred_quality, type = "select", options = { 'low', 'medium', 'high'}, value = (WG['bloomdeferred'] ~= nil and WG['bloomdeferred'].getPreset() or 2), description = texts.option.bloomdeferred_quality_descr,
+		  onload = function(i)
+			  if widgetHandler.configData["Bloom Shader Deferred"] ~= nil and widgetHandler.configData["Bloom Shader Deferred"].preset ~= nil then
+				  options[getOptionByID('bloomdeferred_quality')].value = widgetHandler.configData["Bloom Shader Deferred"].preset
+			  end
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setPreset', { 'preset' }, value)
+		  end,
+		},
+
 
 		{ id = "lighteffects", group = "gfx", category = types.basic, name = texts.option.lighteffects, type = "bool", value = GetWidgetToggleValue("Light Effects"), description = texts.option.lighteffects_descr,
 		  onload = function(i)
