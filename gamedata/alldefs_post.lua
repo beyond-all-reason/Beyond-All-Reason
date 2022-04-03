@@ -379,19 +379,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	if uDef.builddistance then
-		local x = Spring.GetModOptions().experimentalbuildrange
-		uDef.builddistance = uDef.builddistance*x
-	end
-
-	if uDef.workertime then
-		local x = Spring.GetModOptions().experimentalbuildpower
-		uDef.workertime = uDef.workertime*x
-
-		-- increase terraformspeed to be able to restore ground faster
-		uDef.terraformspeed = uDef.workertime * 30
-	end
-
 	-- if Spring.GetModOptions().experimentalmassoverride then
 	-- 	-- mass override
 	-- 	Spring.Echo("-------------------------")
@@ -447,22 +434,6 @@ function UnitDef_Post(name, uDef)
 			Spring.Echo("[PUSH RESISTANCE REMOVER] Push Resistant Unit with no mass: "..name)
 			uDef.mass = 4999
 		end
-	end
-
-	-- vision range
-	if uDef.sightdistance then
-		local x = Spring.GetModOptions().experimentallosrange
-		uDef.sightdistance = uDef.sightdistance*x
-	end
-
-	if uDef.airsightdistance then
-		local x = Spring.GetModOptions().experimentallosrange
-		uDef.airsightdistance = uDef.airsightdistance*x
-	end
-
-	if uDef.radardistance then
-		local x = Spring.GetModOptions().experimentalradarrange
-		uDef.radardistance = uDef.radardistance*x
 	end
 
 	--[[
@@ -625,6 +596,116 @@ function UnitDef_Post(name, uDef)
     --	end
     --end
 
+	-- Multipliers Modoptions
+
+	-- Health
+	if uDef.maxdamage then
+		local x = Spring.GetModOptions().multiplier_maxdamage
+		if x ~= 1 then
+			if uDef.maxdamage*x > 15000000 then
+				uDef.maxdamage = 15000000
+			else
+				uDef.maxdamage = uDef.maxdamage*x
+			end
+			if uDef.autoheal then
+				uDef.autoheal = uDef.autoheal*x
+			end
+			if uDef.idleautoheal then
+				uDef.idleautoheal = uDef.idleautoheal*x
+			end
+		end
+	end
+
+	-- Max Speed
+	if uDef.maxvelocity then
+		local x = Spring.GetModOptions().multiplier_maxvelocity
+		if x ~= 1 then
+			uDef.maxvelocity = uDef.maxvelocity*x
+			if uDef.brakerate then
+				uDef.brakerate = uDef.brakerate*((x-1)/2 + 1)
+			end
+			if uDef.acceleration then
+				uDef.acceleration = uDef.acceleration*((x-1)/2 + 1)
+			end
+		end
+	end
+
+	-- Turn Speed
+	if uDef.turnrate then
+		local x = Spring.GetModOptions().multiplier_turnrate
+		if x ~= 1 then
+			uDef.turnrate = uDef.turnrate*x
+		end
+	end
+
+	-- Build Distance
+	if uDef.builddistance then
+		local x = Spring.GetModOptions().multiplier_builddistance
+		if x ~= 1 then
+			uDef.builddistance = uDef.builddistance*x
+		end
+	end
+
+	-- Buildpower
+	if uDef.workertime then
+		local x = Spring.GetModOptions().multiplier_buildpower
+		if x ~= 1 then
+			uDef.workertime = uDef.workertime*x
+		end
+		
+		-- increase terraformspeed to be able to restore ground faster
+		uDef.terraformspeed = uDef.workertime * 30
+	end
+
+	-- Unit Cost
+	if uDef.buildcostmetal then
+		local x = Spring.GetModOptions().multiplier_metalcost
+		if x ~= 1 then
+			uDef.buildcostmetal = uDef.buildcostmetal*x
+		end
+	end
+	if uDef.buildcostenergy then
+		local x = Spring.GetModOptions().multiplier_energycost
+		if x ~= 1 then
+			uDef.buildcostenergy = uDef.buildcostenergy*x
+		end
+	end
+	if uDef.buildtime then
+		local x = Spring.GetModOptions().multiplier_buildtimecost
+		if x ~= 1 then
+			uDef.buildtime = uDef.buildtime*x
+		end
+	end
+
+	-- Sensors range
+	if uDef.sightdistance then
+		local x = Spring.GetModOptions().multiplier_losrange
+		if x ~= 1 then
+			uDef.sightdistance = uDef.sightdistance*x
+		end
+	end
+
+	if uDef.airsightdistance then
+		local x = Spring.GetModOptions().multiplier_losrange
+		if x ~= 1 then
+			uDef.airsightdistance = uDef.airsightdistance*x	
+		end
+	end
+
+	if uDef.radardistance then
+		local x = Spring.GetModOptions().multiplier_radarrange
+		if x ~= 1 then
+			uDef.radardistance = uDef.radardistance*x
+		end
+	end
+
+	if uDef.sonardistance then
+		local x = Spring.GetModOptions().multiplier_radarrange
+		if x ~= 1 then
+			uDef.sonardistance = uDef.sonardistance*x
+		end
+	end
+
 	-- add model vertex displacement
 	local vertexDisplacement = 5.5 + ((uDef.footprintx + uDef.footprintz) / 12)
 	if vertexDisplacement > 10 then
@@ -775,6 +856,40 @@ function WeaponDef_Post(name, wDef)
 			--wDef.texture2 = ""		-- The end-of-beam texture for #LaserCannon, #BeamLaser
 			wDef.texture3 = "flare2"	-- Flare texture for #BeamLaser
 			wDef.texture4 = "flare2"	-- Flare texture for #BeamLaser with largeBeamLaser = true
+		end
+
+
+
+		-- Multipliers
+
+		-- Weapon Range 
+		if 2 + 2 == 4 then -- dumb way to keep the x local here
+			local x = Spring.GetModOptions().multiplier_weaponrange
+			if x ~= 1 then
+				if wDef.range then
+					wDef.range = wDef.range*x
+				end
+				if wDef.flighttime then
+					wDef.flighttime = wDef.flighttime*x
+				end
+				if wDef.mygravity and wDef.mygravity ~= 0 then
+					wDef.mygravity = wDef.mygravity*(1/x)
+				else
+					wDef.mygravity = (1/x)
+				end
+			end
+		end
+
+		-- Weapon Damage
+		if 2 + 2 == 4 then -- dumb way to keep the x local here
+			local x = Spring.GetModOptions().multiplier_weapondamage
+			if x ~= 1 then
+				if wDef.damage then
+					for damageClass, damageValue in pairs(wDef.damage) do
+						wDef.damage[damageClass] = wDef.damage[damageClass] * x
+					end
+				end
+			end
 		end
 
 		-- scavengers
