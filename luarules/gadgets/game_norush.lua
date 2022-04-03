@@ -284,7 +284,7 @@ function gadget:GameFrame(n)
         --table.remove(startboxWallsList, 1)
     end
 
-    if #startboxWallsList == 0 and mapRestrictionsEnabled == false then
+    if (n >= noRushTime*30*60 and #startboxWallsList == 0) and mapRestrictionsEnabled == false then
         gadgetHandler:RemoveGadget(self)
     end
 end
