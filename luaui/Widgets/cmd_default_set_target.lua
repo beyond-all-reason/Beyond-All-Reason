@@ -1,12 +1,12 @@
 function widget:GetInfo()
 	return {
-	name	= "Set target default",
-	desc	= "replaces default click from attack to set target",
-	author	= "BrainDamage",
-	date	= "-",
-	license	= "WTFPL",
-	layer	= -math.huge,
-	enabled	= false,
+		name	= "Set target default",
+		desc	= "replaces default click from attack to set target",
+		author	= "BrainDamage",
+		date	= "-",
+		license	= "WTFPL",
+		layer	= -math.huge,
+		enabled	= false,
 	}
 end
 
@@ -33,26 +33,25 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
-        widgetHandler:RemoveWidget()
-    end
+	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+		widgetHandler:RemoveWidget()
+		return true
+	end
 end
 
 function widget:GameStart()
-    gameStarted = true
-    maybeRemoveSelf()
+	gameStarted = true
+	maybeRemoveSelf()
 end
 
 function widget:PlayerChanged(playerID)
-    maybeRemoveSelf()
+	maybeRemoveSelf()
 end
 
 function widget:Initialize()
-    if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
-        maybeRemoveSelf()
-    end
-
-	if WG.reloadBindings then WG.reloadBindings() end
+	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+		if maybeRemoveSelf() then return end
+	end
 
 	if rebindKeys then
 		for _, keycombo in ipairs(GetActionHotKeys("attack")) do
@@ -66,8 +65,6 @@ function widget:Shutdown()
 	for keycombo in pairs(hotKeys) do
 		SendCommmands({"unbind " .. keycombo .. " settarget","bind " .. keycombo .. " attack"})
 	end
-
-	if WG.reloadBindings then WG.reloadBindings() end
 end
 
 function widget:DefaultCommand()

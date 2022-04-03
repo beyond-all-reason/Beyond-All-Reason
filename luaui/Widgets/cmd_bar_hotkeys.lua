@@ -595,10 +595,9 @@ local function makeBindsTable(keyLayout)
 	-- if WG['CameraFlip'] then
 	table.insert(_binds,  { "Ctrl+Shift+"..O, "cameraflip" })
 
-	if not WG['Set target default'] then
-		table.insert(_binds,  { "Alt+"..Y, "settarget"         })
-		table.insert(_binds,  {         Y, "settargetnoground" })
-	end
+	--if not WG['Set target default'] then
+	table.insert(_binds,  { "Alt+"..Y, "settarget"         })
+	table.insert(_binds,  {         Y, "settargetnoground" })
 
 	-- if WG['Auto Group'] then
 	table.insert(_binds,  { "Alt+`",  "remove_from_autogroup" })
