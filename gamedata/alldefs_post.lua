@@ -863,25 +863,31 @@ function WeaponDef_Post(name, wDef)
 		-- Multipliers
 
 		-- Weapon Range 
-		if 2 + 2 == 4 then -- dumb way to keep the x local here
+		if true then -- dumb way to keep the x local here
 			local x = Spring.GetModOptions().multiplier_weaponrange
 			if x ~= 1 then
 				if wDef.range then
 					wDef.range = wDef.range*x
 				end
 				if wDef.flighttime then
-					wDef.flighttime = wDef.flighttime*x
+					wDef.flighttime = wDef.flighttime*(x*1.5)
 				end
-				if wDef.mygravity and wDef.mygravity ~= 0 then
-					wDef.mygravity = wDef.mygravity*(1/x)
-				else
-					wDef.mygravity = (1/x)
+				-- if wDef.mygravity and wDef.mygravity ~= 0 then
+				-- 	wDef.mygravity = wDef.mygravity*(1/x)
+				-- else
+				-- 	wDef.mygravity = 0.12 -- this is some really weird number totally not related to numbers defined in map file
+				-- end
+				if wDef.weaponvelocity and wDef.weapontype == "Cannon" and wDef.gravityaffected == "true" then
+					wDef.weaponvelocity = wDef.weaponvelocity*x
+				end
+				if wDef.weapontype == "StarburstLauncher" and wDef.weapontimer then
+					wDef.weapontimer = wDef.weapontimer*x
 				end
 			end
 		end
 
 		-- Weapon Damage
-		if 2 + 2 == 4 then -- dumb way to keep the x local here
+		if true then -- dumb way to keep the x local here
 			local x = Spring.GetModOptions().multiplier_weapondamage
 			if x ~= 1 then
 				if wDef.damage then
