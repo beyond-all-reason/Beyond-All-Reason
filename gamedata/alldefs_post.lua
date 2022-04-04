@@ -461,7 +461,34 @@ function UnitDef_Post(name, uDef)
 	processWeapons(name, uDef)
 
 	-- make los height a bit more forgiving	(20 is the default)
-	uDef.losemitheight = (uDef.losemitheight and uDef.losemitheight or 20) + 20
+	--uDef.losemitheight = (uDef.losemitheight and uDef.losemitheight or 20) + 20
+	if true then
+		uDef.losemitheight = 0
+		uDef.radaremitheight = 0
+		if uDef.collisionvolumescales then
+			local x = uDef.collisionvolumescales
+			--Spring.Echo(x)
+			local xtab = {}
+			for i in string.gmatch(x, "%S+") do
+				xtab[#xtab+1] = i
+			end
+			--Spring.Echo("Result of volume scales: "..tonumber(xtab[2]))
+			uDef.losemitheight = uDef.losemitheight+tonumber(xtab[2])
+			uDef.radaremitheight = uDef.radaremitheight+tonumber(xtab[2])
+		end
+		if uDef.collisionvolumeoffsets then
+			local x = uDef.collisionvolumeoffsets
+			--Spring.Echo(x)
+			local xtab = {}
+			for i in string.gmatch(x, "%S+") do
+				xtab[#xtab+1] = i
+			end
+			--Spring.Echo("Result of volume offsets: "..tonumber(xtab[2]))
+			uDef.losemitheight = uDef.losemitheight+tonumber(xtab[2])
+			uDef.radaremitheight = uDef.radaremitheight+tonumber(xtab[2])
+		end
+		--Spring.Echo("Final Emit Height: ".. uDef.losemitheight)
+	end
 
 	if uDef.name and uDef.name ~= "Commander" then
 		if uDef.featuredefs and uDef.maxdamage then
