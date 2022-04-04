@@ -268,8 +268,8 @@ function widget:DrawScreen()
 		return
 	end
 	if WG.MexSnap and WG.MexSnap.curPosition then
-		coords[1] = WG.MexSnap.curPosition[1]
-		coords[3] = WG.MexSnap.curPosition[3]
+		coords[1] = WG.MexSnap.curPosition.x
+		coords[3] = WG.MexSnap.curPosition.z
 	end
 	IntegrateMetal(mexDefInfo, coords[1], coords[3], forceUpdate)
 	DrawTextWithBackground(Spring.I18N('ui.prospector.metalExtraction', { amount = strFormat("%.2f", extraction) }), mx, my, textSize, "do")
