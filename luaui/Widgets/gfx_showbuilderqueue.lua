@@ -106,9 +106,7 @@ end
 --	return (math.floor(value/precision)*precision)+(precision/2)
 --end
 
-
 local function checkBuilder(unitID)
-	clearbuilderCommands(unitID)
 	local queueDepth = spGetCommandQueue(unitID, 0)
 	if queueDepth and queueDepth > 0 then
 		local queue = spGetCommandQueue(unitID, math.min(queueDepth, maxQueueDepth))
@@ -134,7 +132,6 @@ local function checkBuilder(unitID)
 						if unitWaterline[unitDefID] then
 							groundheight = math.max (groundheight, -1 * unitWaterline[unitDefID])
 						end
-
 						addUnitShape(id, math.abs(cmd.id), floor(cmd.params[1]), groundheight, floor(cmd.params[3]), cmd.params[4] and (cmd.params[4] * math_halfpi) or 0, myCmd.teamid)
 					end
 					command[id][unitID] = true
@@ -148,7 +145,6 @@ local function checkBuilder(unitID)
 		end
 	end
 end
-
 
 function widget:Initialize()
 	if not WG.DrawUnitShapeGL4 then
@@ -195,6 +191,7 @@ end
 -- process newly given commands batched in Update() (because with huge build queue it eats memory and can crash lua)
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	if isBuilder[unitDefID] then
+		clearbuilderCommands(unitID)
 		newBuilderCmd[unitID] = os.clock() + 0.05
 	end
 end
