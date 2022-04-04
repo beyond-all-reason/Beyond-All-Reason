@@ -941,6 +941,14 @@ local function buildFacingHandler(_, _, args)
 	end
 end
 
+local function buildmenuPregameDeselectHandler()
+	if preGamestartPlayer and selBuildQueueDefID then
+		setPreGamestartDefID()
+
+		return true
+	end
+end
+
 function widget:Initialize()
 	if widgetHandler:IsWidgetKnown("Build menu") then
 		widgetHandler:DisableWidget("Build menu")
@@ -953,6 +961,7 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_key", gridmenuKeyHandler, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_category", gridmenuCategoryHandler, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_categories", gridmenuCategoriesHandler, nil, "p")
+	widgetHandler.actionHandler:AddAction(self, "buildmenu_pregame_deselect", buildmenuPregameDeselectHandler, nil, "p")
 
 	reloadBindings()
 
@@ -2233,15 +2242,6 @@ end
 function widget:KeyPress(key, mods, isRepeat)
 	if Spring.IsGUIHidden() then
 		return
-	end
-
-	if preGamestartPlayer and selBuildQueueDefID then
-		if key == KEYSYMS.ESCAPE then
-			-- ESC
-			setPreGamestartDefID()
-
-			return
-		end
 	end
 
 	if not (mods['ctrl'] or mods['alt'] or mods['meta']) then
