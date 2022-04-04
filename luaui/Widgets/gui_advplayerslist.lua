@@ -2438,7 +2438,7 @@ function DrawName(name, team, posY, dark, playerID)
         font2:Print( nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
     end
 
-	if player[playerID].incomeMultiplier > 1 then
+	if player[playerID] and player[playerID].incomeMultiplier and player[playerID].incomeMultiplier > 1 then
 		font2:SetTextColor(0.5,1,0.5,1)
 		font2:Print('+'..math.floor((player[playerID].incomeMultiplier-1)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14), posY + 5.7 , 8, "o")
 	end
