@@ -487,6 +487,10 @@ function UnitDef_Post(name, uDef)
 			uDef.losemitheight = uDef.losemitheight+tonumber(xtab[2])
 			uDef.radaremitheight = uDef.radaremitheight+tonumber(xtab[2])
 		end
+                if uDef.losemitheight < 40 then
+                        uDef.losemitheight = 40
+                        uDef.radaremitheight = 40
+                end
 		--Spring.Echo("Final Emit Height: ".. uDef.losemitheight)
 	end
 
