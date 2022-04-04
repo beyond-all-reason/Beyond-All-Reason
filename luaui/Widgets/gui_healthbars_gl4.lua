@@ -963,9 +963,9 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	end
 
 	if unitBars[unitID] == nil then
-		Spring.Echo("A unit has no bars yet", UnitDefs[unitDefID].name, Spring.GetUnitPosition(unitID))
-		Spring.Debug.TraceFullEcho()
 		if debugmode then
+			Spring.Echo("A unit has no bars yet", UnitDefs[unitDefID].name, Spring.GetUnitPosition(unitID))
+			Spring.Debug.TraceFullEcho()
 			Spring.SendCommands({"pause 1"})
 			Spring.Echo("No bars unit, last seen at", unitID)
 			Spring.MarkerAddPoint(Spring.GetUnitPosition(unitID) )
