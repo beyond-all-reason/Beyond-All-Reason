@@ -69,7 +69,7 @@ for key, value in pairs(modoptions) do
 end
 
 for key, value in pairs(modoptions) do
-	if value == modoptionsDefault[key].def then
+	if modoptionsDefault[key] and value == modoptionsDefault[key].def then
 		unchangedModoptions[key] = tostring(value)
 	else
 		changedModoptions[key] = tostring(value)
