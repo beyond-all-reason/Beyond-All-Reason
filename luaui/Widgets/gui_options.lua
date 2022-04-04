@@ -2331,8 +2331,9 @@ function init()
 			end,
 			onchange = function(_, value)
 				Spring.SetConfigString("KeyboardLayout", keyLayouts[value])
-				if WG['buildmenu'] and WG['buildmenu'].reloadBindings then
-					WG['buildmenu'].reloadBindings()
+
+				if WG.reloadBindings then
+					WG.reloadBindings()
 				end
 			end,
 		},
