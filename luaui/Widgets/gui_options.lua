@@ -1865,8 +1865,8 @@ function init()
 		},
 		{ id = "ssao_quality", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.ssao_quality, type = "select", options = { 'low', 'medium', 'high'}, value = (WG['ssao'] ~= nil and WG['ssao'].getPreset() or 2), description = texts.option.ssao_quality_descr,
 		  onload = function(i)
-			  if widgetHandler.configData["Bloom Shader Deferred"] ~= nil and widgetHandler.configData["SSAO"].preset ~= nil then
-				  options[getOptionByID('bloomdeferred_quality')].value = widgetHandler.configData["SSAO"].preset
+			  if widgetHandler.configData["SSAO"] ~= nil and widgetHandler.configData["SSAO"].preset ~= nil then
+				  options[getOptionByID('ssao_quality')].value = widgetHandler.configData["SSAO"].preset
 			  end
 		  end,
 		  onchange = function(i, value)
