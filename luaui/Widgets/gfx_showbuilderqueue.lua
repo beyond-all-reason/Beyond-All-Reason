@@ -38,6 +38,7 @@ local math_halfpi = math.pi / 2
 
 local sec = 0
 local lastUpdate = 0
+local reinit
 
 local unitshapes = {}
 local removedUnitshapes = {}
@@ -184,7 +185,10 @@ function widget:PlayerChanged(playerID)
 	spec, fullview,_ = Spring.GetSpectatingState()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	if playerID == myPlayerID and prevFullview ~= fullview then
-		widget:Initialize()
+		for _, unitID in pairs(builderCommands) do
+			clearbuilderCommands(unitID)
+		end
+		reinit = true
 	end
 end
 
@@ -198,7 +202,10 @@ end
 
 function widget:Update(dt)
 	sec = sec + dt
-	if sec > lastUpdate + 0.12 then
+	if reinit then
+		reinit = nil
+		widget:Initialize()
+	elseif sec > lastUpdate + 0.12 then
 		lastUpdate = sec
 
 		-- process newly given commands (not done in widget:UnitCommand() because with huge build queue it eats memory and can crash lua)
