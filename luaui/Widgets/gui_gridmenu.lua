@@ -96,7 +96,7 @@ local function genKeyLayout()
 			key = Cfgs.keyLayout[1][c]
 		end
 
-		Cfgs.categoryKeys[c] = string.gsub(key, "ANY%+", '')
+		Cfgs.categoryKeys[c] = string.gsub(string.gsub(string.upper(key), "ANY%+", ''), "SHIFT%+", '')
 	end
 
 	if userLayout['next_page'] then
