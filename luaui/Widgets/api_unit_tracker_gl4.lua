@@ -1,6 +1,6 @@
 function widget:GetInfo()
    return {
-      name      = "API Unit Tracker GL4",
+      name      = "API Unit Tracker DEVMODE GL4",
       desc      = "Manages alliedunitslist, visibleunitslist",
       author    = "Beherith",
       date      = "2022.02.18",
@@ -49,17 +49,15 @@ local visibleUnits = {} -- table of unitID : unitDefID
 local numVisibleUnits = 0
 
 local unitDefIgnore = {}
-local unitDefCanFly = {}
 
 local lastknownunitpos = {} -- table on unitID to {x,y,z}
+
+local gameFrame = Spring.GetGameFrame()
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams and unitDef.customParams.nohealthbars then 
 		unitDefIgnore[unitDefID] = true
 	end --ignore debug units
-	if unitDef.canFly then
-		unitDefCanFly[unitDefID] = true
-	end
 end
 
 --- GL4 STUFF ---
@@ -195,9 +193,8 @@ local function visibleUnitsAdd(unitID, unitDefID, unitTeam, silent)
 	numVisibleUnits = numVisibleUnits + 1 
 	if debugdrawvisible then 
 		unitTeam = unitTeam or spGetUnitTeam(unitID) or 0 
-		local gf = Spring.GetGameFrame()
 		instanceVBOCacheTable[5] = unitTeam
-		instanceVBOCacheTable[7] = gf
+		instanceVBOCacheTable[7] = gameFrame
 		
 		pushElementInstance(
 			unitTrackerVBO, -- push into this Instance VBO Table
@@ -248,26 +245,46 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
 local function isValidLivingSeenUnit(unitID, unitDefID, verbose)
+	--[[
+	-- This isnt helping
 	if type(myAllyTeamID) ~= "number" or (type(myAllyTeamID) == "number" and ((myAllyTeamID < 0 ) or (myAllyTeamID > 32))) then 
 		local localMyAllyTeamID = myAllyTeamID
 		Spring.Debug.TraceFullEcho(nil,nil,nil, "api_unit_tracker_gl4 error on myAllyTeamID")
 	end
-	if unitDefID == nil or 
-		spValidUnitID(unitID) ~= true or 
-		spGetUnitIsDead(unitID) == true or 
-		((not fullview) and (spGetUnitLosState(unitID, myAllyTeamID, true) % 2 == 0)) or -- outside of LOS
-		unitDefIgnore[unitDefID] then
-		if debuglevel >= (verbose or 0) then 
-			Spring.Debug.TraceEcho()
-			Spring.Echo("not isValidLivingSeenUnit", 
-			'unitDefID', unitDefID,
-			'ValidUnitID', spValidUnitID(unitID),
-			'GetUnitIsDead', spGetUnitIsDead(unitID),
-			'Ignore', unitDefIgnore[unitDefID],
-			'LOSstate', spGetUnitLosState(unitID, myAllyTeamID, true)
-			) 
-		end 
-		return false
+	]]--
+	
+	-- strange, ALL of these will be evaluated, which explains the crash, because according to the evaluation order, 
+	-- unitDef is not nil yet
+	-- unitID is valid
+	-- unit
+	-- SPECTATING SYNTHETIC in that replay from start and /skip 1 DOES THIS SHIT! 20220307_201548_DSDR 4_105.1.1-861-ge8bf8a9 BAR105.sdfz
+	-- Which is odd, because that commander belongs to petTurtle, who is on the other allyteam anyway, so this shouldnt really ever get called
+	-- now why that allyteamID is invalid, I dont really know yet, as the allyteamID == 1, which seems sane 
+	
+	if unitDefID == nil then return false end
+	if spValidUnitID(unitID) ~= true then return false end
+	if spGetUnitIsDead(unitID) == true then return false end
+	if unitDefIgnore[unitDefID] then return false end
+	if ((not fullview) and (spGetUnitLosState(unitID, myAllyTeamID, true) % 2 == 0)) then return false end
+	
+	if debuglevel >= (verbose or 0) then 
+		if unitDefID == nil or 
+			spValidUnitID(unitID) ~= true or 
+			spGetUnitIsDead(unitID) == true or 
+			((not fullview) and (spGetUnitLosState(unitID, myAllyTeamID, true) % 2 == 0)) or -- outside of LOS
+			unitDefIgnore[unitDefID] then
+			if debuglevel >= (verbose or 0) then 
+				Spring.Debug.TraceEcho()
+				Spring.Echo("not isValidLivingSeenUnit", 
+				'unitDefID', unitDefID,
+				'ValidUnitID', spValidUnitID(unitID),
+				'GetUnitIsDead', spGetUnitIsDead(unitID),
+				'Ignore', unitDefIgnore[unitDefID],
+				'LOSstate', spGetUnitLosState(unitID, myAllyTeamID, true)
+				) 
+			end 
+			return false
+		end
 	end
 	
 	return true
@@ -275,8 +292,42 @@ end
 
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, silent) -- this was visible at the time
+
+	--[[		
+	local currentspec, currentfullview = Spring.GetSpectatingState()
+	local currentAllyTeamID = Spring.GetMyAllyTeamID()
+	local currentTeamID = Spring.GetMyTeamID()
+	local currentPlayerID = Spring.GetMyPlayerID()
+	if true or debuglevel >= 2 then 
+		Spring.Echo("UnitCreated PlayerChanged", 
+					"spec", spec, "->",currentspec, 
+					" fullview:", fullview , "->", currentfullview,
+					" team:", myTeamID , "->", currentTeamID,
+					" allyteam:", myAllyTeamID , "->", currentAllyTeamID,
+					" player:", myPlayerID , "->", currentPlayerID
+					)
+	end
+
+	if gameFrame <= 1000 then 
+		Spring.Echo("UnitCreated Pre-gameFrame", unitID, unitDefID, unitTeam, builderID, reason, silent, gameFrame)
+		Spring.Echo(UnitDefs[unitDefID].name)
+		local px, py, pz = Spring.GetUnitPosition(unitID)
+		Spring.Echo('pos',px, py, pz)
+		Spring.Echo("Mystate", spec, fullview, myAllyTeamID, myTeamID, myPlayerID )
+	end
+	]]--
+	
+	if gameFrame <= 0 and not fullview then 
+		currentAllyTeamID = Spring.GetMyAllyTeamID()
+		if myAllyTeamID ~= currentAllyTeamID then 
+			widget:PlayerChanged()
+		end
+	end
+
 	if debuglevel >= 3 then Spring.Echo("UnitCreated", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, reason) end
-	unitDefID = unitDefID or spGetUnitDefID(unitID)
+	unitDefID = unitDefID or spGetUnitDefID(unitID)	
+	
+
 	if isValidLivingSeenUnit(unitID, unitDefID, 3) == false then return end
 	
 	-- alliedunits
@@ -357,8 +408,9 @@ function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 end
 
 function widget:GameFrame() 
+	--Spring.Echo("GameFrame", gameFrame, "->", Spring.GetGameFrame())
+	gameFrame = Spring.GetGameFrame()
 	if debuglevel >= 1 then -- here we will scan all units and ensure that they match what we expect
-		local gf = Spring.GetGameFrame()
 		if (debuglevel <= 2) and (math.random() > 0.05 ) then return end  -- lower frequency at smaller debug levels
 		local allunits = Spring.GetAllUnits()
 		local allunitsTable = {}
@@ -500,6 +552,12 @@ function widget:TextCommand(command)
 end
 
 function widget:PlayerChanged(playerID)
+	-- VERY IMPORTANT NOTE:
+	-- When starting up a game, and spectating a player (e.g. /spec 2), or clicking on them in playerTV,
+	-- My allyTeamID and myTeamID BOTH get RESET internally by the engine on game start!
+	-- and this does NOT result in a playerchanged callin
+	-- the fullview variable is not changed, however
+
 	local currentspec, currentfullview = Spring.GetSpectatingState()
 	local currentAllyTeamID = Spring.GetMyAllyTeamID()
 	local currentTeamID = Spring.GetMyTeamID()
@@ -537,9 +595,16 @@ function widget:PlayerChanged(playerID)
 	
 	if reinit then initializeAllUnits() end
 end
+--[[
+function widget:GameStart()
+	Spring.Echo("Start of game forced playerchange")
+	widget:PlayerChanged()
+end
+]]--
 
 
 function widget:Initialize()
+	gameFrame = Spring.GetGameFrame()
 	spec, fullview = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
