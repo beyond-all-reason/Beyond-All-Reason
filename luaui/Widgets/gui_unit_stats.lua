@@ -220,6 +220,8 @@ local spec = Spring.GetSpectatingState()
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 
+local showStats = false
+
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.iscommander then
@@ -302,6 +304,9 @@ function widget:Initialize()
 	WG['unitstats'].showUnit = function(unitID)
 		showUnitID = unitID
 	end
+
+	widgetHandler:AddAction("unit_stats", enableStats, nil, "p")
+	widgetHandler:AddAction("unit_stats", disableStats, nil, "r")
 end
 
 function widget:Shutdown()
@@ -371,7 +376,7 @@ local function drawStats(uDefID, uID)
 	local alt, ctrl, meta, shift = spGetModKeyState()
 	if WG['chat'] and WG['chat'].isInputActive then
 		if WG['chat'].isInputActive() then
-			meta = false
+			showStats = false
 		end
 	end
 
@@ -811,19 +816,25 @@ local function drawStats(uDefID, uID)
 	DrawTextBuffer()
 end
 
+function enableStats()
+	showStats = true
+end
+function disableStats()
+	showStats = false
+end
+
 function widget:DrawScreen()
 	if chobbyInterface then return end
 	if WG['topbar'] and WG['topbar'].showingQuit() then
 		return
 	end
 
-	local alt, ctrl, meta, shift = spGetModKeyState()
 	if WG['chat'] and WG['chat'].isInputActive then
 		if WG['chat'].isInputActive() then
-			meta = false
+			showStats = false
 		end
 	end
-	if (not meta and not showUnitID) or spIsUserWriting() then
+	if (not showStats and not showUnitID) or spIsUserWriting() then
 		RemoveGuishader()
 		return
 	end
@@ -858,7 +869,6 @@ function widget:DrawScreen()
 		RemoveGuishader()
 		return
 	end
-	local useExp = ctrl
 	local uDefID = (uID and spGetUnitDefID(uID)) or (useHoverID and WG['buildmenu'] and WG['buildmenu'].hoverID) or (UnitDefs[-activeID] and -activeID)
 
 	if not uDefID then
