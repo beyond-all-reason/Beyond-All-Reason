@@ -1532,7 +1532,7 @@ function drawGrid(activeArea)
 				local keyLayout = stickToBottom and Cfgs.vKeyLayout or Cfgs.keyLayout
 
 				uidcmds[uDefID].hotkey = string.gsub(string.upper(keyLayout[arow][coll]), "ANY%+", '')
-				hotkeyActions[tostring(arow) .. tostring(coll)] = -uDefID
+				hotkeyActions[tostring(krow) .. tostring(kcol)] = -uDefID
 
 				local udef = uidcmds[uDefID]
 
