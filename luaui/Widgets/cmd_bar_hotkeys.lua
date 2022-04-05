@@ -601,6 +601,9 @@ local function makeBindsTable(keyLayout)
 		-- los_colors
 		{    'Any+;', 'losradar' },
 		{ 'Any+0xf6', 'losradar' }, -- o-umlaut for German keyboards, located where the semicolon normally is
+
+		--unit_stats
+		{ "Any+space", 'unit_stats' },
 	}
 
 	-- if WG['CameraFlip'] then
@@ -666,7 +669,6 @@ end
 function widget:Initialize()
 	loadEngineBindings('un')
 	reloadBindings()
-
 	WG.reloadBindings = reloadBindings
 end
 
