@@ -777,30 +777,16 @@ local function drawChatInput()
 
 			-- button background
 			inputButtonRect = {activationArea[1]+elementPadding, activationArea[2]+chatlogHeightDiff-distance-inputHeight+elementPadding, textPosX-inputFontSize, activationArea[2]+chatlogHeightDiff-distance-elementPadding}
-			if inputButton and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
-				Spring.SetMouseCursor('cursornormal')
-				if isCmd then
-					r, g, b = 0, 0, 0
-				elseif inputMode == 'a:' then
-					r, g, b = 0, 0.3, 0
-				elseif inputMode == 's:' then
-					r, g, b = 0.3, 0.27, 0
-				else
-					r, g, b = 0.25, 0.25, 0.25
-				end
-				glColor(r, g, b, 0.35)
+			if isCmd then
+				r, g, b = 0, 0, 0
+			elseif inputMode == 'a:' then
+				r, g, b = 0, 0.1, 0
+			elseif inputMode == 's:' then
+				r, g, b = 0.1, 0.094, 0
 			else
-				if isCmd then
-					r, g, b = 0, 0, 0
-				elseif inputMode == 'a:' then
-					r, g, b = 0, 0.1, 0
-				elseif inputMode == 's:' then
-					r, g, b = 0.1, 0.094, 0
-				else
-					r, g, b = 0, 0, 0
-				end
-				glColor(r, g, b, 0.3)
+				r, g, b = 0, 0, 0
 			end
+			glColor(r, g, b, 0.3)
 			RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
 			glColor(1,1,1,0.033)
 			gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
@@ -974,6 +960,12 @@ function widget:DrawScreen()
 		if showTextInput and textInputDlist then
 			glCallList(textInputDlist)
 			drawChatInputCursor()
+			-- button hover
+			if inputButtonRect[1] and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
+				Spring.SetMouseCursor('cursornormal')
+				glColor(1,1,1,0.07)
+				RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
+			end
 		elseif WG['guishader'] then
 			WG['guishader'].RemoveRect('chatinput')
 			WG['guishader'].RemoveRect('chatinputautocomplete')
@@ -1330,6 +1322,7 @@ function widget:MousePress(x, y, button)
 		else
 			inputMode = 's:'
 		end
+		updateTextInputDlist = true
 		return true
 	end
 end
