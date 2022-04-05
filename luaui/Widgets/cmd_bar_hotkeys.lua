@@ -408,12 +408,6 @@ local function makeBindsTable(keyLayout)
 		{       "Any+f12", "screenshot" },
 		{     "Alt+enter", "fullscreen" },
 
-		{  "Any+`", "drawlabel" },
-		{ "Any+\\", "drawlabel" },
-		{  "Any+~", "drawlabel" },
-		{  "Any+§", "drawlabel" },
-		{  "Any+^", "drawlabel" },
-
 		{     "Any+`", "drawinmap"  },
 		{  "Up+Any+`", "drawinmap"  },
 		{    "Any+\\", "drawinmap"  },
@@ -425,6 +419,12 @@ local function makeBindsTable(keyLayout)
 		{     "Any+^", "drawinmap"  },
 		{  "Up+Any+^", "drawinmap"  },
 		{           Q, "drawinmap"  }, --some keyboards don't have ` or \
+
+		{  "Any+`", "drawlabel" },
+		{ "Any+\\", "drawlabel" },
+		{  "Any+~", "drawlabel" },
+		{  "Any+§", "drawlabel" },
+		{  "Any+^", "drawlabel" },
 
 		{    "Any+up",       "moveforward"  },
 		{ "Up+Any+up",       "moveforward"  },
