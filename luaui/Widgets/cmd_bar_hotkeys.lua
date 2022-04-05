@@ -327,13 +327,17 @@ local function makeBindsTable(keyLayout)
 		{ "Any+8", "group8" },
 		{ "Any+9", "group9" },
 
-		{             "[", "buildfacing" , "inc"  },
-		{       "Shift+[", "buildfacing" , "inc"  },
-		{             "]", "buildfacing" , "dec"  },
-		{       "Shift+]", "buildfacing" , "dec"  },
-		{             ".", "buildfacing" , "dec"  },
-		{             ",", "buildfacing" , "inc"  }, --because some keyboards don't have [ and ] ke"..Y.."s
-		{               O, "buildfacing" , "inc"  }, --apparently some keyboards don't have , and . either...
+		{             "[", "buildfacing" , "inc" },
+		{       "Shift+[", "buildfacing" , "inc" },
+		{             "]", "buildfacing" , "dec" },
+		{       "Shift+]", "buildfacing" , "dec" },
+		{             ".", "buildfacing" , "dec" },
+		{       "Shift+.", "buildfacing" , "dec" },
+		{             ",", "buildfacing" , "inc" }, --because some keyboards don't have [ and ] keys
+		{       "Shift+,", "buildfacing" , "inc" },
+		{               O, "buildfacing" , "inc" }, --apparently some keyboards don't have , and . either...
+		{     "Shift+"..O, "buildfacing" , "inc" },
+
 		{       "Alt+"..Z, "buildspacing", "inc" },
 		{ "Shift+Alt+"..Z, "buildspacing", "inc" },
 		{       "Alt+"..X, "buildspacing", "dec" },
