@@ -196,12 +196,6 @@ end
 local function postProcessAllUnitDefs()
 	for name, unitDef in pairs(UnitDefs) do
 		UnitDef_Post(name, unitDef)
-
-		-- if unitDef.weapondefs then
-		-- 	for weaponName, weaponDef in pairs(unitDef.weapondefs) do
-		-- 		WeaponDef_Post(weaponName, weaponDef)
-		-- 	end
-		-- end
 	end
 end
 

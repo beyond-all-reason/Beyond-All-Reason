@@ -25,7 +25,6 @@ local function ExtractWeaponDefs(unitDefName, unitDef)
 	for weaponDefName, weaponDef in pairs(unitWeaponDefs) do
 		local fullName = unitDefName .. '_' .. weaponDefName
 		WeaponDefs[fullName] = weaponDef
-		WeaponDef_Post(fullName, weaponDef)
 
 		if SaveDefsToCustomParams then
 			MarkDefOmittedInCustomParams("WeaponDefs", fullName, weaponDef)
@@ -65,7 +64,13 @@ end
 
 --------------------------------------------------------------------------------
 
--- handle standalone weapondefs
+-- extract weapondefs from the unitdefs
+local UnitDefs = DEFS.unitDefs
+for name, unitDef in pairs(UnitDefs) do
+	ExtractWeaponDefs(name, unitDef)
+end
+
+-- postprocess weapondefs
 for name, weaponDef in pairs(WeaponDefs) do
 	WeaponDef_Post(name, weaponDef)
 
@@ -74,11 +79,6 @@ for name, weaponDef in pairs(WeaponDefs) do
 	end
 end
 
--- extract weapondefs from the unitdefs
-local UnitDefs = DEFS.unitDefs
-for name, unitDef in pairs(UnitDefs) do
-	ExtractWeaponDefs(name, unitDef)
-end
 
 -- apply mod options that need _post
 ModOptions_Post(UnitDefs, WeaponDefs)
