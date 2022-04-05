@@ -1454,19 +1454,6 @@ local function setPreGamestartDefID(uDefID)
 	end
 end
 
-function widget:KeyPress(key, mods, isRepeat)
-	if Spring.IsGUIHidden() then
-		return
-	end
-
-	if preGamestartPlayer and selBuildQueueDefID then
-		if key == 27 then
-			-- ESC
-			setPreGamestartDefID()
-		end
-	end
-end
-
 function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
@@ -1665,8 +1652,17 @@ local function bindBuildUnits(widget)
 	end
 end
 
+local function buildmenuPregameDeselectHandler()
+	if preGamestartPlayer and selBuildQueueDefID then
+		setPreGamestartDefID()
+
+		return true
+	end
+end
+
 function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, 'p')
+	widgetHandler.actionHandler:AddAction(self, "buildmenu_pregame_deselect", buildmenuPregameDeselectHandler, nil, "p")
 
 	checkGeothermalFeatures()
 

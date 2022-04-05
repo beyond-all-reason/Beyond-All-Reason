@@ -250,14 +250,15 @@ local function makeBindsTable(keyLayout)
 	local P = keyLayout[3][10]
 
 	local _binds = {
-		{            "esc", "quitmessage"          },
-		{      "Shift+esc", "quitmenu"             },
-		{ "Ctrl+Shift+esc", "quitforce"            },
-		{  "Alt+Shift+esc", "reloadforce"          },
-		{     "Any+escape", "edit_escape"          },
-		{      "Any+pause", "pause"                },
-		{            "esc", "teamstatus_close"     },
-		{            "esc", "customgameinfo_close" },
+		{            "esc", "quitmessage"                },
+		{      "Shift+esc", "quitmenu"                   },
+		{ "Ctrl+Shift+esc", "quitforce"                  },
+		{  "Alt+Shift+esc", "reloadforce"                },
+		{     "Any+escape", "edit_escape"                },
+		{      "Any+pause", "pause"                      },
+		{            "esc", "teamstatus_close"           },
+		{            "esc", "customgameinfo_close"       },
+		{            "esc", "buildmenu_pregame_deselect" },
 
 		{         C, "controlunit"    },
 		{ "Any+"..H, "sharedialog"    },
