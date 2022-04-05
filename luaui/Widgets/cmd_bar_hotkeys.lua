@@ -613,6 +613,8 @@ local function makeBindsTable(keyLayout)
 	-- if WG['Auto Group'] then
 	table.insert(_binds,  { "Alt+`",  "remove_from_autogroup" })
 	table.insert(_binds,  { "Ctrl+`", "remove_one_unit_from_group" })
+	table.insert(_binds,  { "Alt+^",  "remove_from_autogroup" })        -- different keyboard layouts
+	table.insert(_binds,  { "Ctrl+^", "remove_one_unit_from_group" })
 
 	for i = 0, 9 do
 		table.insert(_binds, { 'Alt+'..i , "add_to_autogroup", i })
