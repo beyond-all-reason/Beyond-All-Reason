@@ -26,8 +26,7 @@ local configs = VFS.Include('luaui/configs/gridmenu_layouts.lua')
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local labGrids = configs.LabGrids
 local unitGrids = configs.UnitGrids
-local currentLayout = Spring.GetConfigString("KeyboardLayout") or 'qwerty'
-if currentLayout == "" then currentLayout = 'qwerty' end
+local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 local userLayout
 
 local BUILDCAT_ECONOMY = "Economy"
@@ -73,12 +72,6 @@ local Cfgs = {
 		BUILDCAT_UTILITY,
 		BUILDCAT_PRODUCTION
 	},
-	keySymChars = {
-		COMMA = ",",
-		SEMICOLON = ";",
-		QUOTE = "'",
-		PERIOD = ".",
-	},
 	categoryKeys = {},
 	vKeyLayout = {},
 	keyLayout = {}
@@ -103,7 +96,7 @@ local function genKeyLayout()
 			key = Cfgs.keyLayout[1][c]
 		end
 
-		Cfgs.categoryKeys[c] = string.gsub(Cfgs.keySymChars[string.upper(key)] or string.upper(key), "ANY%+", '')
+		Cfgs.categoryKeys[c] = string.gsub(string.gsub(string.upper(key), "ANY%+", ''), "SHIFT%+", '')
 	end
 
 	if userLayout['next_page'] then
@@ -243,9 +236,7 @@ local spGetActiveCommand = Spring.GetActiveCommand
 local spGetActiveCmdDescs = Spring.GetActiveCmdDescs
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetTeamStartPosition = Spring.GetTeamStartPosition
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
-local spGetGroundHeight = Spring.GetGroundHeight
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitHealth = Spring.GetUnitHealth
@@ -261,7 +252,6 @@ local math_min = math.min
 local math_isInRect = math.isInRect
 
 local glTexture = gl.Texture
-local glTexRect = gl.TexRect
 local glColor = gl.Color
 local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -269,7 +259,6 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_DST_ALPHA = GL.DST_ALPHA
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
-local glDepthTest = gl.DepthTest
 
 -- Get from FlowUI
 local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner
@@ -733,12 +722,9 @@ function widget:ViewResize()
 end
 
 function reloadBindings()
-	-- initialise keySymCharsReverse from keySymChars
-	local keySymCharsReverse = table.invert(Cfgs.keySymChars)
 	local actionHotkey
 
-	currentLayout = Spring.GetConfigString("KeyboardLayout") or 'qwerty'
-	if currentLayout == "" then currentLayout = 'qwerty' end
+	currentLayout = Spring.GetConfigString("KeyboardLayout", 'qwerty')
 
 	if not userLayout then
 		userLayout = { categories = {} }
@@ -750,7 +736,7 @@ function reloadBindings()
 
 				if key then
 					userLayout[r] = userLayout[r] or {}
-					userLayout[r][c] = keySymCharsReverse[string.upper(key)] or string.upper(key)
+					userLayout[r][c] = key
 				end
 			end
 		end
@@ -787,7 +773,7 @@ function reloadBindings()
 	for r=1,3 do
 		for c=1,4 do
 			local action = 'gridmenu_key ' .. r .. ' ' .. c
-			local key = Cfgs.keySymChars[string.upper(Cfgs.keyLayout[r][c])] or string.lower(Cfgs.keyLayout[r][c])
+			local key = Cfgs.keyLayout[r][c]
 
 			Spring.SendCommands('bind Any+' .. key .. ' ' .. action)
 		end
@@ -955,6 +941,14 @@ local function buildFacingHandler(_, _, args)
 	end
 end
 
+local function buildmenuPregameDeselectHandler()
+	if preGamestartPlayer and selBuildQueueDefID then
+		setPreGamestartDefID()
+
+		return true
+	end
+end
+
 function widget:Initialize()
 	if widgetHandler:IsWidgetKnown("Build menu") then
 		widgetHandler:DisableWidget("Build menu")
@@ -967,6 +961,7 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_key", gridmenuKeyHandler, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_category", gridmenuCategoryHandler, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_categories", gridmenuCategoriesHandler, nil, "p")
+	widgetHandler.actionHandler:AddAction(self, "buildmenu_pregame_deselect", buildmenuPregameDeselectHandler, nil, "p")
 
 	reloadBindings()
 
@@ -1095,7 +1090,7 @@ function widget:Update(dt)
 		end
 	end
 
-	if selectNextFrame then
+	if selectNextFrame and not preGamestartPlayer then
 		local cmdIndex = spGetCmdDescIndex(selectNextFrame)
 		if cmdIndex then
 			Spring.SetActiveCommand(cmdIndex, 1, true, false, Spring.GetModKeyState())
@@ -1282,14 +1277,14 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, disabled)
 		)
 
 	elseif cmd.hotkey and (selectedFactory or (selectedBuilder and currentBuildCategory)) then
-		local hotkeyText = string.upper(Cfgs.keySymChars[cmd.hotkey] or cmd.hotkey)
+		local hotkeyText = cmd.hotkey
 		local fontWidth = font2:GetTextWidth(hotkeyText) * priceFontSize
 		local fontWidthOffset = fontWidth * 1.35
 
 		-- If crazy char, put 50% to left
-		if Cfgs.keySymChars[cmd.hotkey] then
-			fontWidthOffset = 3 * fontWidthOffset / 2
-		end
+		-- if Cfgs.keySymChars[cmd.hotkey] then
+		-- 	fontWidthOffset = 3 * fontWidthOffset / 2
+		-- end
 
 		font2:Print("\255\215\255\215" .. hotkeyText, cellRects[cellRectID][3] - cellPadding - fontWidthOffset, cellRects[cellRectID][4] - cellPadding - priceFontSize, priceFontSize * 1.1, "o")
 	end
@@ -1537,7 +1532,7 @@ function drawGrid(activeArea)
 				local keyLayout = stickToBottom and Cfgs.vKeyLayout or Cfgs.keyLayout
 
 				uidcmds[uDefID].hotkey = string.gsub(string.upper(keyLayout[arow][coll]), "ANY%+", '')
-				hotkeyActions[tostring(arow) .. tostring(coll)] = -uDefID
+				hotkeyActions[tostring(krow) .. tostring(kcol)] = -uDefID
 
 				local udef = uidcmds[uDefID]
 
@@ -1811,7 +1806,7 @@ function widget:DrawScreen()
 								end
 
 								local catKey = Cfgs.keyLayout[1][index]
-								text = text .. "\n\255\240\240\240Hotkey: " .. textColor .. "[" .. (Cfgs.keySymChars[catKey] or catKey) .. "]"
+								text = text .. "\n\255\240\240\240Hotkey: " .. textColor .. "[" .. catKey .. "]"
 
 								WG['tooltip'].ShowTooltip('buildmenu', text)
 							end
@@ -2247,15 +2242,6 @@ end
 function widget:KeyPress(key, mods, isRepeat)
 	if Spring.IsGUIHidden() then
 		return
-	end
-
-	if preGamestartPlayer and selBuildQueueDefID then
-		if key == KEYSYMS.ESCAPE then
-			-- ESC
-			setPreGamestartDefID()
-
-			return
-		end
 	end
 
 	if not (mods['ctrl'] or mods['alt'] or mods['meta']) then

@@ -80,6 +80,9 @@ local consoleLineHeight = math.floor(usedConsoleFontSize*lineHeightMult)
 local consoleLineMaxWidth = 0
 local backgroundPadding = usedFontSize
 local gameOver = false
+local textInputDlist
+local updateTextInputDlist = true
+local textCursorRect
 
 local showTextInput = false
 local inputText = ''
@@ -724,57 +727,56 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+local function drawChatInputCursor()
+	if textCursorRect then
+		local a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.15
+		glColor(0.7,0.7,0.7,a)
+		gl.Rect(textCursorRect[1], textCursorRect[2], textCursorRect[3], textCursorRect[4])
+		glColor(1,1,1,1)
+	end
+end
+
 local function drawChatInput()
 	if showTextInput then
-		local x,y,_ = Spring.GetMouseState()
-		local chatlogHeightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
-		local inputFontSize = floor(usedFontSize * 1.04)
-		local inputHeight = floor(inputFontSize * 2.3)
-		local leftOffset = floor(lineHeight*0.7)
-		local distance =  (scrolling and inputHeight + elementMargin + elementMargin or elementMargin)
-		local isCmd = ssub(inputText, 1, 1) == '/'
-		local usedFont = isCmd and font3 or font
-		local modeText = Spring.I18N('ui.chat.everyone')
-		if inputMode == 'a:' then
-			modeText = Spring.I18N('ui.chat.allies')
-		elseif inputMode == 's:' then
-			modeText = Spring.I18N('ui.chat.spectators')
-		end
-		if isCmd then
-			modeText = Spring.I18N('ui.chat.cmd')
-		end
-		local modeTextPosX = floor(activationArea[1]+elementPadding+elementPadding+leftOffset)
-		local textPosX = floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
-		local textCursorWidth = 1 + math.floor(inputFontSize / 14)
-		if inputTextInsertActive then
-			textCursorWidth = math.floor(textCursorWidth * 5)
-		end
-		local textCursorPos = floor(usedFont:GetTextWidth(ssub(inputText, 1, inputTextPosition)) * inputFontSize)
-
-		-- background
-		local r,g,b,a
-		local inputAlpha = math.min(0.36, ui_opacity*0.66)
-		local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText..(autocompleteText and autocompleteText or '')) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/3)))
-		UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, nil,nil,nil,nil, nil,nil,nil,nil, inputAlpha)
-		if WG['guishader'] then
-			WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'chatinput')
-		end
-
-		-- button background
-		inputButtonRect = {activationArea[1]+elementPadding, activationArea[2]+chatlogHeightDiff-distance-inputHeight+elementPadding, textPosX-inputFontSize, activationArea[2]+chatlogHeightDiff-distance-elementPadding}
-		if inputButton and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
-			Spring.SetMouseCursor('cursornormal')
-			if isCmd then
-				r, g, b = 0, 0, 0
-			elseif inputMode == 'a:' then
-				r, g, b = 0, 0.3, 0
+		updateTextInputDlist = false
+		textInputDlist = glDeleteList(textInputDlist)
+		textInputDlist = glCreateList(function()
+			local x,y,_ = Spring.GetMouseState()
+			local chatlogHeightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
+			local inputFontSize = floor(usedFontSize * 1.04)
+			local inputHeight = floor(inputFontSize * 2.3)
+			local leftOffset = floor(lineHeight*0.7)
+			local distance =  (scrolling and inputHeight + elementMargin + elementMargin or elementMargin)
+			local isCmd = ssub(inputText, 1, 1) == '/'
+			local usedFont = isCmd and font3 or font
+			local modeText = Spring.I18N('ui.chat.everyone')
+			if inputMode == 'a:' then
+				modeText = Spring.I18N('ui.chat.allies')
 			elseif inputMode == 's:' then
-				r, g, b = 0.3, 0.27, 0
-			else
-				r, g, b = 0.25, 0.25, 0.25
+				modeText = Spring.I18N('ui.chat.spectators')
 			end
-			glColor(r, g, b, 0.35)
-		else
+			if isCmd then
+				modeText = Spring.I18N('ui.chat.cmd')
+			end
+			local modeTextPosX = floor(activationArea[1]+elementPadding+elementPadding+leftOffset)
+			local textPosX = floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
+			local textCursorWidth = 1 + math.floor(inputFontSize / 14)
+			if inputTextInsertActive then
+				textCursorWidth = math.floor(textCursorWidth * 5)
+			end
+			local textCursorPos = floor(usedFont:GetTextWidth(ssub(inputText, 1, inputTextPosition)) * inputFontSize)
+
+			-- background
+			local r,g,b,a
+			local inputAlpha = math.min(0.36, ui_opacity*0.66)
+			local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText..(autocompleteText and autocompleteText or '')) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/3)))
+			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, nil,nil,nil,nil, nil,nil,nil,nil, inputAlpha)
+			if WG['guishader'] then
+				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'chatinput')
+			end
+
+			-- button background
+			inputButtonRect = {activationArea[1]+elementPadding, activationArea[2]+chatlogHeightDiff-distance-inputHeight+elementPadding, textPosX-inputFontSize, activationArea[2]+chatlogHeightDiff-distance-elementPadding}
 			if isCmd then
 				r, g, b = 0, 0, 0
 			elseif inputMode == 'a:' then
@@ -785,121 +787,119 @@ local function drawChatInput()
 				r, g, b = 0, 0, 0
 			end
 			glColor(r, g, b, 0.3)
-		end
-		RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
-		glColor(1,1,1,0.033)
-		gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
+			RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
+			glColor(1,1,1,0.033)
+			gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
 
-		-- button text
-		usedFont:Begin()
-		if isCmd then
-			r, g, b = 0.65, 0.65, 0.65
-		elseif inputMode == 'a:' then
-			r, g, b = 0.55, 0.72, 0.55
-		elseif inputMode == 's:' then
-			r, g, b = 0.73, 0.73, 0.54
-		else
-			r, g, b = 0.7, 0.7, 0.7
-		end
-		usedFont:SetTextColor(r, g, b, 1)
-		usedFont:Print(modeText, modeTextPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
-
-		-- colon
-		if not isCmd then
-			if inputMode == 'a:' then
-				r, g, b = 0.53, 0.66, 0.53
+			-- button text
+			usedFont:Begin()
+			if isCmd then
+				r, g, b = 0.65, 0.65, 0.65
+			elseif inputMode == 'a:' then
+				r, g, b = 0.55, 0.72, 0.55
 			elseif inputMode == 's:' then
-				r, g, b = 0.66, 0.66, 0.5
+				r, g, b = 0.73, 0.73, 0.54
 			else
-				r, g, b = 0.55, 0.55, 0.55
+				r, g, b = 0.7, 0.7, 0.7
 			end
 			usedFont:SetTextColor(r, g, b, 1)
-			usedFont:Print(':', inputButtonRect[3]-0.5, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "co")
-		end
+			usedFont:Print(modeText, modeTextPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
 
-		-- text cursor
-		a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.15
-		glColor(0.7,0.7,0.7,a)
-		gl.Rect(textPosX + textCursorPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64))
-		glColor(1,1,1,1)
-
-		-- text message
-		if isCmd then
-			r, g, b = 0.85, 0.85, 0.85
-		elseif inputMode == 'a:' then
-			r, g, b = 0.2, 1, 0.2
-		elseif inputMode == 's:' then
-			r, g, b = 1, 1, 0.2
-		else
-			r, g, b = 0.95, 0.95, 0.95
-		end
-		usedFont:SetTextColor(r,g,b, 1)
-		usedFont:Print(inputText, textPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
-		if autocompleteText then
-			usedFont:SetTextColor(r,g,b, 0.35)
-			usedFont:Print(autocompleteText, textPosX + floor(usedFont:GetTextWidth(inputText) * inputFontSize), activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "")
-		end
-
-		-- autocomplete multi-suggestions
-		if autocompleteText and autocompleteWords[2] then
-			--local letters = ''
-			--local isCmd = ssub(inputText, 1, 1) == '/'
-			--local textWordCount = 0
-			--for word in (ssub(inputText, isCmd and 2 or 1)):gmatch("%S+") do
-			--	textWordCount = textWordCount + 1
-			--	letters = word
-			--end
-
-			local letters = ''
-			for word in (isCmd and ssub(inputText, 2) or inputText):gmatch("%S+") do
-				letters = word
+			-- colon
+			if not isCmd then
+				if inputMode == 'a:' then
+					r, g, b = 0.53, 0.66, 0.53
+				elseif inputMode == 's:' then
+					r, g, b = 0.66, 0.66, 0.5
+				else
+					r, g, b = 0.55, 0.55, 0.55
+				end
+				usedFont:SetTextColor(r, g, b, 1)
+				usedFont:Print(':', inputButtonRect[3]-0.5, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "co")
 			end
-			if ssub(inputText, #inputText) == ' ' then
-				letters = letters..' '
-			elseif prevAutocompleteLetters then
-				letters = prevAutocompleteLetters .. letters
+
+			-- text cursor
+			textCursorRect = { textPosX + textCursorPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64) }
+			--a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.15
+			--glColor(0.7,0.7,0.7,a)
+			--gl.Rect(textPosX + textCursorPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64))
+			--glColor(1,1,1,1)
+
+			-- text message
+			if isCmd then
+				r, g, b = 0.85, 0.85, 0.85
+			elseif inputMode == 'a:' then
+				r, g, b = 0.2, 1, 0.2
+			elseif inputMode == 's:' then
+				r, g, b = 1, 1, 0.2
+			else
+				r, g, b = 0.95, 0.95, 0.95
 			end
-			local letterCount = #letters
-			local scale = 0.8
-			local autocLineHeight = floor(inputFontSize * scale * 1.3)
-			local lettersWidth = floor(usedFont:GetTextWidth(letters) * inputFontSize * scale)
-			local xPos = floor(textPosX + textCursorPos - lettersWidth)
-			local yPos =  activationArea[2]+chatlogHeightDiff-distance-inputHeight
-			local height = (autocLineHeight * math.min(allowMultiAutocompleteMax, #autocompleteWords-1) + leftOffset) + (#autocompleteWords > allowMultiAutocompleteMax+1 and autocLineHeight or 0)
-			glColor(0,0,0,inputAlpha)
-			RectRound(xPos-leftOffset, yPos-height, x2-elementMargin, yPos, elementCorner*0.6, 0,0,1,1)
-			if WG['guishader'] then
-				WG['guishader'].InsertRect(xPos-leftOffset, yPos-height, x2-elementPadding, yPos, 'chatinputautocomplete')
+			usedFont:SetTextColor(r,g,b, 1)
+			usedFont:Print(inputText, textPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
+			if autocompleteText then
+				usedFont:SetTextColor(r,g,b, 0.35)
+				usedFont:Print(autocompleteText, textPosX + floor(usedFont:GetTextWidth(inputText) * inputFontSize), activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "")
 			end
-			local addHeight = floor((inputFontSize*scale) * 1.35) - autocLineHeight
-			for i, word in ipairs(autocompleteWords) do
-				if i > 1 then
-					addHeight = addHeight + autocLineHeight
-					usedFont:SetTextColor(r,g,b, 0.8)
-					usedFont:Print(letters, xPos, yPos-addHeight, inputFontSize*scale, "")
-					usedFont:SetTextColor(r,g,b, 0.35)
-					if i <= allowMultiAutocompleteMax+1 then
-						usedFont:Print(ssub(word, letterCount+1), xPos + lettersWidth, yPos-addHeight, inputFontSize*scale, "")
-					else
-						local text = ''
-						for i=1, #word do
-							text = text .. '.'
+
+			-- autocomplete multi-suggestions
+			if autocompleteText and autocompleteWords[2] then
+				--local letters = ''
+				--local isCmd = ssub(inputText, 1, 1) == '/'
+				--local textWordCount = 0
+				--for word in (ssub(inputText, isCmd and 2 or 1)):gmatch("%S+") do
+				--	textWordCount = textWordCount + 1
+				--	letters = word
+				--end
+
+				local letters = ''
+				for word in (isCmd and ssub(inputText, 2) or inputText):gmatch("%S+") do
+					letters = word
+				end
+				if ssub(inputText, #inputText) == ' ' then
+					letters = letters..' '
+				elseif prevAutocompleteLetters then
+					letters = prevAutocompleteLetters .. letters
+				end
+				local letterCount = #letters
+				local scale = 0.8
+				local autocLineHeight = floor(inputFontSize * scale * 1.3)
+				local lettersWidth = floor(usedFont:GetTextWidth(letters) * inputFontSize * scale)
+				local xPos = floor(textPosX + textCursorPos - lettersWidth)
+				local yPos =  activationArea[2]+chatlogHeightDiff-distance-inputHeight
+				local height = (autocLineHeight * math.min(allowMultiAutocompleteMax, #autocompleteWords-1) + leftOffset) + (#autocompleteWords > allowMultiAutocompleteMax+1 and autocLineHeight or 0)
+				glColor(0,0,0,inputAlpha)
+				RectRound(xPos-leftOffset, yPos-height, x2-elementMargin, yPos, elementCorner*0.6, 0,0,1,1)
+				if WG['guishader'] then
+					WG['guishader'].InsertRect(xPos-leftOffset, yPos-height, x2-elementPadding, yPos, 'chatinputautocomplete')
+				end
+				local addHeight = floor((inputFontSize*scale) * 1.35) - autocLineHeight
+				for i, word in ipairs(autocompleteWords) do
+					if i > 1 then
+						addHeight = addHeight + autocLineHeight
+						usedFont:SetTextColor(r,g,b, 0.8)
+						usedFont:Print(letters, xPos, yPos-addHeight, inputFontSize*scale, "")
+						usedFont:SetTextColor(r,g,b, 0.35)
+						if i <= allowMultiAutocompleteMax+1 then
+							usedFont:Print(ssub(word, letterCount+1), xPos + lettersWidth, yPos-addHeight, inputFontSize*scale, "")
+						else
+							local text = ''
+							for i=1, #word do
+								text = text .. '.'
+							end
+							usedFont:Print(text, xPos + lettersWidth, yPos-addHeight, inputFontSize*scale, "")
+							break
 						end
-						usedFont:Print(text, xPos + lettersWidth, yPos-addHeight, inputFontSize*scale, "")
-						break
 					end
 				end
+			else
+				if WG['guishader'] then
+					WG['guishader'].RemoveRect('chatinputautocomplete')
+				end
 			end
-		else
-			if WG['guishader'] then
-				WG['guishader'].RemoveRect('chatinputautocomplete')
-			end
-		end
 
-		usedFont:End()
-	elseif WG['guishader'] then
-		WG['guishader'].RemoveRect('chatinput')
-		WG['guishader'].RemoveRect('chatinputautocomplete')
+			usedFont:End()
+		end)
 	end
 end
 
@@ -952,7 +952,25 @@ function widget:DrawScreen()
 
 	-- draw chat input
 	if handleTextInput then
-		drawChatInput()
+
+		--updateTextInputDlist = true
+		if showTextInput and updateTextInputDlist then
+			drawChatInput()
+		end
+		if showTextInput and textInputDlist then
+			glCallList(textInputDlist)
+			drawChatInputCursor()
+			-- button hover
+			if inputButtonRect[1] and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
+				Spring.SetMouseCursor('cursornormal')
+				glColor(1,1,1,0.07)
+				RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
+			end
+		elseif WG['guishader'] then
+			WG['guishader'].RemoveRect('chatinput')
+			WG['guishader'].RemoveRect('chatinputautocomplete')
+			textInputDlist = glDeleteList(textInputDlist)
+		end
 	end
 
 	-- draw background
@@ -1153,6 +1171,7 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 		inputHistory[#inputHistory] = inputText
 		cursorBlinkTimer = 0
 		autocomplete(inputText)
+		updateTextInputDlist = true
 		return true
 	end
 end
@@ -1182,6 +1201,7 @@ function widget:KeyPress(key, mods, isRepeat)
 					end
 					cancelChatInput()
 				end
+				updateTextInputDlist = true
 				return true
 			end
 
@@ -1268,6 +1288,7 @@ function widget:KeyPress(key, mods, isRepeat)
 					-- regular chars/keys handled in widget:TextInput
 				end
 			end
+			updateTextInputDlist = true
 			return true
 		elseif key == 13 then -- RETURN	 (keypad enter = 271)
 			cancelChatInput()
@@ -1286,6 +1307,7 @@ function widget:KeyPress(key, mods, isRepeat)
 			end
 			-- again just to be safe, had report locking could still happen
 			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			updateTextInputDlist = true
 			return true
 		end
 	end
@@ -1300,6 +1322,7 @@ function widget:MousePress(x, y, button)
 		else
 			inputMode = 's:'
 		end
+		updateTextInputDlist = true
 		return true
 	end
 end
@@ -1706,7 +1729,8 @@ function widget:ViewResize()
 end
 
 function widget:Shutdown()
-	clearDisplayLists()
+	clearDisplayLists()	-- console/chat displaylists
+	glDeleteList(textInputDlist)
 	WG['chat'] = nil
 	Spring.SendCommands("console 1")
 	if WG['guishader'] then

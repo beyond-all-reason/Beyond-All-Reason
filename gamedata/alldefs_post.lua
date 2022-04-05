@@ -379,19 +379,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	if uDef.builddistance then
-		local x = Spring.GetModOptions().experimentalbuildrange
-		uDef.builddistance = uDef.builddistance*x
-	end
-
-	if uDef.workertime then
-		local x = Spring.GetModOptions().experimentalbuildpower
-		uDef.workertime = uDef.workertime*x
-
-		-- increase terraformspeed to be able to restore ground faster
-		uDef.terraformspeed = uDef.workertime * 30
-	end
-
 	-- if Spring.GetModOptions().experimentalmassoverride then
 	-- 	-- mass override
 	-- 	Spring.Echo("-------------------------")
@@ -449,22 +436,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- vision range
-	if uDef.sightdistance then
-		local x = Spring.GetModOptions().experimentallosrange
-		uDef.sightdistance = uDef.sightdistance*x
-	end
-
-	if uDef.airsightdistance then
-		local x = Spring.GetModOptions().experimentallosrange
-		uDef.airsightdistance = uDef.airsightdistance*x
-	end
-
-	if uDef.radardistance then
-		local x = Spring.GetModOptions().experimentalradarrange
-		uDef.radardistance = uDef.radardistance*x
-	end
-
 	--[[
 	if uDef.buildcostmetal and uDef.maxdamage then
 		uDef.mass = uDef.buildcostmetal
@@ -490,7 +461,38 @@ function UnitDef_Post(name, uDef)
 	processWeapons(name, uDef)
 
 	-- make los height a bit more forgiving	(20 is the default)
-	uDef.losemitheight = (uDef.losemitheight and uDef.losemitheight or 20) + 20
+	--uDef.losemitheight = (uDef.losemitheight and uDef.losemitheight or 20) + 20
+	if true then
+		uDef.losemitheight = 0
+		uDef.radaremitheight = 0
+		if uDef.collisionvolumescales then
+			local x = uDef.collisionvolumescales
+			--Spring.Echo(x)
+			local xtab = {}
+			for i in string.gmatch(x, "%S+") do
+				xtab[#xtab+1] = i
+			end
+			--Spring.Echo("Result of volume scales: "..tonumber(xtab[2]))
+			uDef.losemitheight = uDef.losemitheight+tonumber(xtab[2])
+			uDef.radaremitheight = uDef.radaremitheight+tonumber(xtab[2])
+		end
+		if uDef.collisionvolumeoffsets then
+			local x = uDef.collisionvolumeoffsets
+			--Spring.Echo(x)
+			local xtab = {}
+			for i in string.gmatch(x, "%S+") do
+				xtab[#xtab+1] = i
+			end
+			--Spring.Echo("Result of volume offsets: "..tonumber(xtab[2]))
+			uDef.losemitheight = uDef.losemitheight+tonumber(xtab[2])
+			uDef.radaremitheight = uDef.radaremitheight+tonumber(xtab[2])
+		end
+                if uDef.losemitheight < 40 then
+                        uDef.losemitheight = 40
+                        uDef.radaremitheight = 40
+                end
+		--Spring.Echo("Final Emit Height: ".. uDef.losemitheight)
+	end
 
 	if uDef.name and uDef.name ~= "Commander" then
 		if uDef.featuredefs and uDef.maxdamage then
@@ -624,6 +626,116 @@ function UnitDef_Post(name, uDef)
     --		uDef.maxvelocity = (uDef.maxvelocity + vehAdditionalVelocity) * vehVelocityMultiplier
     --	end
     --end
+
+	-- Multipliers Modoptions
+
+	-- Health
+	if uDef.maxdamage then
+		local x = Spring.GetModOptions().multiplier_maxdamage
+		if x ~= 1 then
+			if uDef.maxdamage*x > 15000000 then
+				uDef.maxdamage = 15000000
+			else
+				uDef.maxdamage = uDef.maxdamage*x
+			end
+			if uDef.autoheal then
+				uDef.autoheal = uDef.autoheal*x
+			end
+			if uDef.idleautoheal then
+				uDef.idleautoheal = uDef.idleautoheal*x
+			end
+		end
+	end
+
+	-- Max Speed
+	if uDef.maxvelocity then
+		local x = Spring.GetModOptions().multiplier_maxvelocity
+		if x ~= 1 then
+			uDef.maxvelocity = uDef.maxvelocity*x
+			if uDef.brakerate then
+				uDef.brakerate = uDef.brakerate*((x-1)/2 + 1)
+			end
+			if uDef.acceleration then
+				uDef.acceleration = uDef.acceleration*((x-1)/2 + 1)
+			end
+		end
+	end
+
+	-- Turn Speed
+	if uDef.turnrate then
+		local x = Spring.GetModOptions().multiplier_turnrate
+		if x ~= 1 then
+			uDef.turnrate = uDef.turnrate*x
+		end
+	end
+
+	-- Build Distance
+	if uDef.builddistance then
+		local x = Spring.GetModOptions().multiplier_builddistance
+		if x ~= 1 then
+			uDef.builddistance = uDef.builddistance*x
+		end
+	end
+
+	-- Buildpower
+	if uDef.workertime then
+		local x = Spring.GetModOptions().multiplier_buildpower
+		if x ~= 1 then
+			uDef.workertime = uDef.workertime*x
+		end
+		
+		-- increase terraformspeed to be able to restore ground faster
+		uDef.terraformspeed = uDef.workertime * 30
+	end
+
+	-- Unit Cost
+	if uDef.buildcostmetal then
+		local x = Spring.GetModOptions().multiplier_metalcost
+		if x ~= 1 then
+			uDef.buildcostmetal = uDef.buildcostmetal*x
+		end
+	end
+	if uDef.buildcostenergy then
+		local x = Spring.GetModOptions().multiplier_energycost
+		if x ~= 1 then
+			uDef.buildcostenergy = uDef.buildcostenergy*x
+		end
+	end
+	if uDef.buildtime then
+		local x = Spring.GetModOptions().multiplier_buildtimecost
+		if x ~= 1 then
+			uDef.buildtime = uDef.buildtime*x
+		end
+	end
+
+	-- Sensors range
+	if uDef.sightdistance then
+		local x = Spring.GetModOptions().multiplier_losrange
+		if x ~= 1 then
+			uDef.sightdistance = uDef.sightdistance*x
+		end
+	end
+
+	if uDef.airsightdistance then
+		local x = Spring.GetModOptions().multiplier_losrange
+		if x ~= 1 then
+			uDef.airsightdistance = uDef.airsightdistance*x	
+		end
+	end
+
+	if uDef.radardistance then
+		local x = Spring.GetModOptions().multiplier_radarrange
+		if x ~= 1 then
+			uDef.radardistance = uDef.radardistance*x
+		end
+	end
+
+	if uDef.sonardistance then
+		local x = Spring.GetModOptions().multiplier_radarrange
+		if x ~= 1 then
+			uDef.sonardistance = uDef.sonardistance*x
+		end
+	end
 
 	-- add model vertex displacement
 	local vertexDisplacement = 5.5 + ((uDef.footprintx + uDef.footprintz) / 12)
@@ -775,6 +887,46 @@ function WeaponDef_Post(name, wDef)
 			--wDef.texture2 = ""		-- The end-of-beam texture for #LaserCannon, #BeamLaser
 			wDef.texture3 = "flare2"	-- Flare texture for #BeamLaser
 			wDef.texture4 = "flare2"	-- Flare texture for #BeamLaser with largeBeamLaser = true
+		end
+
+
+
+		-- Multipliers
+
+		-- Weapon Range 
+		if true then -- dumb way to keep the x local here
+			local x = Spring.GetModOptions().multiplier_weaponrange
+			if x ~= 1 then
+				if wDef.range then
+					wDef.range = wDef.range*x
+				end
+				if wDef.flighttime then
+					wDef.flighttime = wDef.flighttime*(x*1.5)
+				end
+				-- if wDef.mygravity and wDef.mygravity ~= 0 then
+				-- 	wDef.mygravity = wDef.mygravity*(1/x)
+				-- else
+				-- 	wDef.mygravity = 0.12 -- this is some really weird number totally not related to numbers defined in map file
+				-- end
+				if wDef.weaponvelocity and wDef.weapontype == "Cannon" and wDef.gravityaffected == "true" then
+					wDef.weaponvelocity = wDef.weaponvelocity*x
+				end
+				if wDef.weapontype == "StarburstLauncher" and wDef.weapontimer then
+					wDef.weapontimer = wDef.weapontimer*x
+				end
+			end
+		end
+
+		-- Weapon Damage
+		if true then -- dumb way to keep the x local here
+			local x = Spring.GetModOptions().multiplier_weapondamage
+			if x ~= 1 then
+				if wDef.damage then
+					for damageClass, damageValue in pairs(wDef.damage) do
+						wDef.damage[damageClass] = wDef.damage[damageClass] * x
+					end
+				end
+			end
 		end
 
 		-- scavengers

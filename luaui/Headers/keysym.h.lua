@@ -50,7 +50,7 @@ KEYSYMS = {
   N_7 = 55,
   N_8 = 56,
   N_9 = 57,
-  
+
   COLON     = 58,
   SEMICOLON = 59,
   LESS      = 60,

@@ -1506,7 +1506,7 @@ function checkChanges()
 		local featureID = hoverData
 		local featureDefID = spGetFeatureDefID(featureID)
 		local featureDef = FeatureDefs[featureDefID]
-		local newTooltip = featureDef.translatedDescription
+		local newTooltip = featureDef.translatedDescription or ''
 
 		if featureDef.reclaimable then
 			local metal, _, energy, _ = Spring.GetFeatureResources(featureID)

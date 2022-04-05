@@ -12,7 +12,7 @@ end
 
 local defaultThreshold = 30
 local threshold = Spring.GetConfigInt("cusThreshold", defaultThreshold)
-local cusWanted = (Spring.GetConfigInt("cus", 1) == 1 or Spring.GetConfigInt("cus2", 1) == 1)
+local cusWanted = Spring.GetConfigInt("cus", 1) == 1
 local averageFps = math.min(120, threshold + 60)
 local disabledCus = false
 local chobbyInterface = false
@@ -32,7 +32,7 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > 0.28 then
 		local prevCusWanted = cusWanted
-		cusWanted = (Spring.GetConfigInt("cus", 1) == 1 or Spring.GetConfigInt("cus2", 1) == 1)
+		cusWanted = Spring.GetConfigInt("cus", 1)
 		if not prevCusWanted and cusWanted then
 			disabledCus = false
 			WG.disabledCus = disabledCus
@@ -50,9 +50,8 @@ function widget:GameFrame(gameFrame)
 					threshold = Spring.GetConfigInt("cusThreshold", defaultThreshold)
 					if not disabledCus then
 						if averageFps <= threshold then
-							if Spring.GetConfigInt("cus2", 1) then
-							Spring.SendCommands("luarules disablecus"..(Spring.GetConfigInt("cus2", 1) == 1 and 'gl4' or ''))
-							Spring.SendCommands("option cus"..(Spring.GetConfigInt("cus2", 1) == 1 and '2' or '').." 0.5")
+							Spring.SendCommands("luarules disablecus")
+							Spring.SendCommands("option cus 0.5")
 							disabledCus = true
 							WG.disabledCus = disabledCus
 							Spring.Echo(Spring.I18N('ui.disablingcus'))

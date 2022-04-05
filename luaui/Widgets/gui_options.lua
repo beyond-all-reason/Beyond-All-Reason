@@ -1481,7 +1481,9 @@ function init()
 	presets = {
 		lowest = {
 			bloomdeferred = false,
+			bloomdeferred_quality = 1,
 			ssao = false,
+			ssao_quality = 1,
 			mapedgeextension = false,
 			lighteffects = false,
 			lighteffects_additionalflashes = false,
@@ -1496,7 +1498,9 @@ function init()
 		},
 		low = {
 			bloomdeferred = true,
+			bloomdeferred_quality = 1,
 			ssao = false,
+			ssao_quality = 1,
 			mapedgeextension = false,
 			lighteffects = true,
 			lighteffects_additionalflashes = false,
@@ -1511,7 +1515,9 @@ function init()
 		},
 		medium = {
 		 	bloomdeferred = true,
+			bloomdeferred_quality = 2,
 		 	ssao = true,
+			ssao_quality = 2,
 		 	mapedgeextension = true,
 		 	lighteffects = true,
 		 	lighteffects_additionalflashes = true,
@@ -1526,7 +1532,9 @@ function init()
 		},
 		high = {
 			bloomdeferred = true,
+			bloomdeferred_quality = 3,
 			ssao = true,
+			ssao_quality = 3,
 			mapedgeextension = true,
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
@@ -1541,7 +1549,9 @@ function init()
 		},
 		ultra = {
 			bloomdeferred = true,
+			bloomdeferred_quality = 3,
 			ssao = true,
+			ssao_quality = 3,
 			mapedgeextension = true,
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
@@ -1783,7 +1793,7 @@ function init()
 		  end,
 		},
 
-		{ id = "cus2", group = "gfx", name = texts.option.cus2, category = types.dev, type = "bool", value = (Spring.GetConfigInt("cus2", 0) == 1), description = texts.option.cus_descr,
+		{ id = "cusgl4", group = "gfx", name = texts.option.cusgl4, category = types.dev, type = "bool", value = (Spring.GetConfigInt("cusgl4", 0) == 1), description = texts.option.cus_descr,
 		  onchange = function(i, value)
 			  if value == 0.5 then
 				  Spring.SendCommands("luarules disablecusgl4")
@@ -1793,7 +1803,7 @@ function init()
 				  elseif Spring.GetConfigInt("cus", 1) == 1 then
 					  Spring.SendCommands("luarules reloadcus")
 				  end
-				  Spring.SetConfigInt("cus2", (value and 1 or 0))
+				  Spring.SetConfigInt("cusgl4", (value and 1 or 0))
 				  Spring.SendCommands("luarules "..(value and 'reloadcus' or 'disablecus')..'gl4')
 			  end
 		  end,
@@ -1815,7 +1825,7 @@ function init()
 				  options[getOptionByID('shadowslider')].options[6] = 'insane'
 			  end
 			  local quality = {
-				  ['lowest'] = 2048, ['low'] = 3072, ['medium'] = 4096, ['high'] = 6144, ['ultra'] = 10240, ['insane'] = 16384
+				  ['lowest'] = 2048, ['low'] = 3584, ['medium'] = 6144, ['high'] = 8192, ['ultra'] = 10240, ['insane'] = 12288
 			  }
 			  if ShadowMapSize == 0 then
 				  --options[getOptionByID('shadowslider')].value = 1
@@ -1853,6 +1863,16 @@ function init()
 			  saveOptionValue('SSAO', 'ssao', 'setStrength', { 'strength' }, value)
 		  end,
 		},
+		{ id = "ssao_quality", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.ssao_quality, type = "select", options = { 'low', 'medium', 'high'}, value = (WG['ssao'] ~= nil and WG['ssao'].getPreset() or 2), description = texts.option.ssao_quality_descr,
+		  onload = function(i)
+			  if widgetHandler.configData["SSAO"] ~= nil and widgetHandler.configData["SSAO"].preset ~= nil then
+				  options[getOptionByID('ssao_quality')].value = widgetHandler.configData["SSAO"].preset
+			  end
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('SSAO', 'ssao', 'setPreset', { 'preset' }, value)
+		  end,
+		},
 
 		{ id = "bloomdeferred", group = "gfx", category = types.basic, widget = "Bloom Shader Deferred", name = texts.option.bloomdeferred, type = "bool", value = GetWidgetToggleValue("Bloom Shader Deferred"), description = texts.option.bloomdeferred_descr },
 		{ id = "bloomdeferredbrightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.bloomdeferredbrightness, type = "slider", min = 0.4, max = 1.4, step = 0.05, value = 0.9, description = '',
@@ -1863,6 +1883,17 @@ function init()
 			  saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setBrightness', { 'glowAmplifier' }, value)
 		  end,
 		},
+		{ id = "bloomdeferred_quality", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.bloomdeferred_quality, type = "select", options = { 'low', 'medium', 'high'}, value = (WG['bloomdeferred'] ~= nil and WG['bloomdeferred'].getPreset() or 2), description = texts.option.bloomdeferred_quality_descr,
+		  onload = function(i)
+			  if widgetHandler.configData["Bloom Shader Deferred"] ~= nil and widgetHandler.configData["Bloom Shader Deferred"].preset ~= nil then
+				  options[getOptionByID('bloomdeferred_quality')].value = widgetHandler.configData["Bloom Shader Deferred"].preset
+			  end
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setPreset', { 'preset' }, value)
+		  end,
+		},
+
 
 		{ id = "lighteffects", group = "gfx", category = types.basic, name = texts.option.lighteffects, type = "bool", value = GetWidgetToggleValue("Light Effects"), description = texts.option.lighteffects_descr,
 		  onload = function(i)
@@ -3348,7 +3379,7 @@ function init()
 
 		{ id = "autocloakpopups", group = "game", category = types.basic, widget = "Auto Cloak Popups", name = texts.option.autocloakpopups, type = "bool", value = GetWidgetToggleValue("Auto Cloak Popups"), description = texts.option.autocloakpopups_descr },
 
-		{ id = "unitreclaimer", group = "game", category = types.basic, widget = "Unit Reclaimer", name = texts.option.unitreclaimer, type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = texts.option.unitreclaimer_descr },
+		{ id = "unitreclaimer", group = "game", category = types.basic, widget = "Specific Unit Reclaimer", name = texts.option.unitreclaimer, type = "bool", value = GetWidgetToggleValue("Specific Unit Reclaimer"), description = texts.option.unitreclaimer_descr },
 
 		{ id = "autogroup_immediate", group = "game", category = types.basic, name = texts.option.autogroup_immediate, type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getImmediate ~= nil and WG['autogroup'].getImmediate()), description = texts.option.autogroup_immediate_descr,
 		  onload = function(i)
@@ -4573,28 +4604,30 @@ function init()
 
 		if isPotatoGpu then
 			options[getOptionByID('msaa')].max = 2
-			local id = getOptionByID('ssao')
+			id = getOptionByID('ssao')
 			if id and GetWidgetToggleValue(options[id].widget) then
 				widgetHandler:DisableWidget(options[id].widget)
 			end
 			options[id] = nil
 			options[getOptionByID('ssao_strength')] = nil
+			options[getOptionByID('ssao_quality')] = nil
 
-			local id = getOptionByID('bloom')
+			id = getOptionByID('bloom')
 			if id and GetWidgetToggleValue(options[id].widget) then
 				widgetHandler:DisableWidget(options[id].widget)
 			end
 			options[id] = nil
 			options[getOptionByID('bloom_brightness')] = nil
+			options[getOptionByID('bloom_quality')] = nil
 
-			local id = getOptionByID('guishader')
+			id = getOptionByID('guishader')
 			if id and GetWidgetToggleValue(options[id].widget) then
 				widgetHandler:DisableWidget(options[id].widget)
 			end
 			options[id] = nil
 			options[getOptionByID('guishader')] = nil
 
-			local id = getOptionByID('dof')
+			id = getOptionByID('dof')
 			if id and GetWidgetToggleValue(options[id].widget) then
 				widgetHandler:DisableWidget(options[id].widget)
 			end
@@ -4602,7 +4635,7 @@ function init()
 			options[getOptionByID('dof_autofocus')] = nil
 			options[getOptionByID('dof_fstop')] = nil
 
-			local id = getOptionByID('clouds')
+			id = getOptionByID('clouds')
 			if id and GetWidgetToggleValue(options[id].widget) then
 				widgetHandler:DisableWidget(options[id].widget)
 			end
@@ -4880,7 +4913,7 @@ function widget:Initialize()
 		end
 
 		-- enable CUS GL4
-		if tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
+		if tonumber(Spring.GetConfigInt("cusgl4", 0) or 0) == 1 then
 			Spring.SendCommands("luarules disablecus")
 			Spring.SendCommands("luarules reloadcusgl4")
 		end
