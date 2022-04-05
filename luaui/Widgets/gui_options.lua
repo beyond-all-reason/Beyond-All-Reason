@@ -1825,7 +1825,7 @@ function init()
 				  options[getOptionByID('shadowslider')].options[6] = 'insane'
 			  end
 			  local quality = {
-				  ['lowest'] = 2048, ['low'] = 3072, ['medium'] = 4096, ['high'] = 6144, ['ultra'] = 10240, ['insane'] = 16384
+				  ['lowest'] = 2048, ['low'] = 3.584, ['medium'] = 6144, ['high'] = 8192, ['ultra'] = 10240, ['insane'] = 12288
 			  }
 			  if ShadowMapSize == 0 then
 				  --options[getOptionByID('shadowslider')].value = 1
@@ -2331,9 +2331,8 @@ function init()
 			end,
 			onchange = function(_, value)
 				Spring.SetConfigString("KeyboardLayout", keyLayouts[value])
-
-				if WG.reloadBindings then
-					WG.reloadBindings()
+				if WG['buildmenu'] and WG['buildmenu'].reloadBindings then
+					WG['buildmenu'].reloadBindings()
 				end
 			end,
 		},
