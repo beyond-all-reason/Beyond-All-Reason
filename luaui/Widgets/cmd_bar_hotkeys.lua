@@ -177,11 +177,11 @@ local engineBinds = {
 	{ "Any+f12", "screenshot"     },
 	{ "Alt+enter", "fullscreen"  },
 
-	{ "Any+`",    "drawlabel" },
-	{ "Any+\\",  "drawlabel" },
-	{ "Any+~",    "drawlabel" },
-	{ "Any+§",    "drawlabel" },
-	{ "Any+^",    "drawlabel" },
+	{  "Any+`", "drawlabel" },
+	{ "Any+\\", "drawlabel" },
+	{  "Any+~", "drawlabel" },
+	{  "Any+§", "drawlabel" },
+	{  "Any+^", "drawlabel" },
 
 	{    "Any+`",    "drawinmap"  },
 	{ "Up+Any+`",    "drawinmap"  },
@@ -375,9 +375,9 @@ local function makeBindsTable(keyLayout)
 		{      "Shift+"..M, "move"            },
 		{                P, "patrol"          },
 		{      "Shift+"..P, "patrol"          },
-		{                Q, "groupselect"     },
-		{                Q, "groupadd"        },
-		{      "Shift+"..Q, "groupclear"      },
+		{        "Any+"..Q, "drawinmap"       }, --some keyboards don't have ` or \
+		{        "Any+"..Q, "drawlabel"       },
+		{        Q..','..Q, "drawlabel"       }, -- double hit Q for drawlabel
 		{                R, "repair"          },
 		{      "Shift+"..R, "repair"          },
 		{                S, "stop"            },
@@ -424,13 +424,17 @@ local function makeBindsTable(keyLayout)
 		{  "Up+Any+§", "drawinmap"  },
 		{     "Any+^", "drawinmap"  },
 		{  "Up+Any+^", "drawinmap"  },
-		{           Q, "drawinmap"  }, --some keyboards don't have ` or \
 
 		{  "Any+`", "drawlabel" },
+		{    "`,`", "drawlabel" },
 		{ "Any+\\", "drawlabel" },
+		{  "\\,\\", "drawlabel" },
 		{  "Any+~", "drawlabel" },
+		{    "~,~", "drawlabel" },
 		{  "Any+§", "drawlabel" },
+		{    "§,§", "drawlabel" },
 		{  "Any+^", "drawlabel" },
+		{    "^,^", "drawlabel" },
 
 		{    "Any+up",       "moveforward"  },
 		{ "Up+Any+up",       "moveforward"  },
