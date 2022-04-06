@@ -377,6 +377,7 @@ local function makeBindsTable(keyLayout)
 		{      "Shift+"..P, "patrol"          },
 		{        "Any+"..Q, "drawinmap"       }, --some keyboards don't have ` or \
 		{        "Any+"..Q, "drawlabel"       },
+		{        Q..','..Q, "drawlabel"       }, -- double hit Q for drawlabel
 		{                R, "repair"          },
 		{      "Shift+"..R, "repair"          },
 		{                S, "stop"            },
@@ -425,10 +426,15 @@ local function makeBindsTable(keyLayout)
 		{  "Up+Any+^", "drawinmap"  },
 
 		{  "Any+`", "drawlabel" },
+		{    "`,`", "drawlabel" },
 		{ "Any+\\", "drawlabel" },
+		{  "\\,\\", "drawlabel" },
 		{  "Any+~", "drawlabel" },
+		{    "~,~", "drawlabel" },
 		{  "Any+§", "drawlabel" },
+		{    "§,§", "drawlabel" },
 		{  "Any+^", "drawlabel" },
+		{    "^,^", "drawlabel" },
 
 		{    "Any+up",       "moveforward"  },
 		{ "Up+Any+up",       "moveforward"  },
