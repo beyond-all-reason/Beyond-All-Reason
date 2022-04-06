@@ -277,7 +277,7 @@ return {
               properties = {
             colormap           = [[0 0 0 0.01  0.24 0.18 0.14 0.22   0.17 0.13 0.11 0.08   0 0 0 0.01]],
             dir                = [[-0.06 r0.12, 1, -0.06 r0.12]],
-            gravity            = [[-0.008 r0.016, -0.03 r0.06, -0.008 r0.016]],
+            --gravity            = [[-0.008 r0.016, -0.03 r0.06, -0.008 r0.016]],
             frontoffset        = 0.9,
             fronttexture       = [[barmist]],
             length             = 90,
