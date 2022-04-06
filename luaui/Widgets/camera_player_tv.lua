@@ -473,28 +473,58 @@ function widget:GameFrame(n)
 	end
 end
 
+local function togglePlayerTV(state)
+	prevOrderID = nil
+	currentTrackedPlayer = nil
+	if (state~= nil and not state) or toggled or lockPlayerID then
+		toggled = false
+		toggled2 = false
+		if WG['advplayerlist_api'] then
+			WG['advplayerlist_api'].SetLockPlayerID()
+		end
+		lockPlayerID = nil
+		prevLockPlayerID = nil
+		createList()
+	elseif not rejoining then
+		toggled = true
+		toggled2 = true
+		switchPlayerCam()
+		createList()
+	end
+end
+
+local function togglePlayerView(state)
+	prevOrderID = nil
+	currentTrackedPlayer = nil
+	toggled2 = (state ~= nil and state or not toggled2)
+	if not toggled2 then
+		-- global viewpoint
+		if not fullview then
+			Spring.SendCommands("specfullview")
+		end
+		if Spring.GetMapDrawMode() == "los" then
+			Spring.SendCommands("togglelos")
+		end
+	else
+		-- player viewpoint
+		if fullview then
+			scheduledSpecFullView = 2 -- this is needed else the minimap/world doesnt update properly
+			Spring.SendCommands("specfullview")
+		end
+		if Spring.GetMapDrawMode() ~= "los" then
+			desiredLosmode = 'los'
+			desiredLosmodeChanged = os.clock()
+		end
+	end
+	createList()
+end
+
 function widget:MousePress(mx, my, mb)
 	if isSpec and (Spring.GetGameFrame() > 0 or lockPlayerID) then
 		-- player tv
 		if toggleButton ~= nil and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
 			if mb == 1 then
-				prevOrderID = nil
-				currentTrackedPlayer = nil
-				if toggled or lockPlayerID then
-					toggled = false
-					toggled2 = false
-					if WG['advplayerlist_api'] then
-						WG['advplayerlist_api'].SetLockPlayerID()
-					end
-					lockPlayerID = nil
-					prevLockPlayerID = nil
-					createList()
-				elseif not rejoining then
-					toggled = true
-					toggled2 = true
-					switchPlayerCam()
-					createList()
-				end
+				togglePlayerTV()
 			end
 			return true
 		end
@@ -502,30 +532,7 @@ function widget:MousePress(mx, my, mb)
 		if toggleButton2 ~= nil and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4]) then
 			isSpec, fullview = Spring.GetSpectatingState()
 			if mb == 1 then
-				prevOrderID = nil
-				currentTrackedPlayer = nil
-				toggled2 = not toggled2
-				if not toggled2 then
-					-- global viewpoint
-					if not fullview then
-						Spring.SendCommands("specfullview")
-					end
-					if Spring.GetMapDrawMode() == "los" then
-						Spring.SendCommands("togglelos")
-					end
-					createList()
-				else
-					-- player viewpoint
-					if fullview then
-						scheduledSpecFullView = 2 -- this is needed else the minimap/world doesnt update properly
-						Spring.SendCommands("specfullview")
-					end
-					if Spring.GetMapDrawMode() ~= "los" then
-						desiredLosmode = 'los'
-						desiredLosmodeChanged = os.clock()
-					end
-				end
-				createList()
+				togglePlayerView()
 			end
 			return true
 		end
@@ -644,6 +651,15 @@ function widget:DrawScreen()
 			gl.CallList(drawlistsPlayername[lockPlayerID])
 			gl.PopMatrix()
 		end
+	end
+end
+
+function widget:TextCommand(command)
+	if string.find(command, "playerview", nil, true) == 1  and string.len(command) == 10 then
+		togglePlayerView()
+	end
+	if string.find(command, "playertv", nil, true) == 1  and string.len(command) == 8 then
+		togglePlayerTV()
 	end
 end
 

@@ -352,6 +352,8 @@ local autocompleteCommands = {
 	'defrange enemy air',
 	'defrange enemy nuke',
 	'defrange enemy ground',
+	'playertv',
+	'playerview',
 }
 local autocompleteText
 local autocompletePlayernames = {}
