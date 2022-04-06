@@ -669,6 +669,7 @@ end
 function widget:Initialize()
 	loadEngineBindings('un')
 	reloadBindings()
+	
 	WG.reloadBindings = reloadBindings
 end
 

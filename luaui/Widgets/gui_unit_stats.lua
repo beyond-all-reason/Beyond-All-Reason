@@ -293,6 +293,14 @@ end
 -- Code
 ------------------------------------------------------------------------------------
 
+local function enableStats()
+	showStats = true
+end
+
+local function disableStats()
+	showStats = false
+end
+
 function widget:Initialize()
 	if WG['lang'] then
 		texts = WG['lang'].getText('unitstats')
@@ -814,13 +822,6 @@ local function drawStats(uDefID, uID)
 		end), 'unit_stats_data')
 	end
 	DrawTextBuffer()
-end
-
-function enableStats()
-	showStats = true
-end
-function disableStats()
-	showStats = false
 end
 
 function widget:DrawScreen()
