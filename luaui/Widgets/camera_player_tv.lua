@@ -10,6 +10,11 @@ function widget:GetInfo()
 	}
 end
 
+--[[ Commands
+	/playerview #playerID		(playerID is optional)
+	/playertv #playerID			(playerID is optional)
+]]--
+
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
@@ -655,11 +660,37 @@ function widget:DrawScreen()
 end
 
 function widget:TextCommand(command)
-	if string.find(command, "playerview", nil, true) == 1  and string.len(command) == 10 then
+	if string.sub(command, 1, 10) == 'playerview' then
+		local words = {}
+		for w in command:gmatch("%S+") do
+			words[#words+1] = w
+		end
+		if #words > 1 then
+			local playerID = tonumber(words[#words])
+			local teamID = select(4, Spring.GetPlayerInfo(playerID))
+			if teamID then
+				Spring.SendCommands("specteam " .. teamID)
+			end
+		end
 		togglePlayerView()
 	end
-	if string.find(command, "playertv", nil, true) == 1  and string.len(command) == 8 then
-		togglePlayerTV()
+	if string.sub(command, 1, 8) == 'playertv' then
+		local words = {}
+		for w in command:gmatch("%S+") do
+			words[#words+1] = w
+		end
+		if #words > 1 then
+			local playerID = tonumber(words[#words])
+			local teamID = select(4, Spring.GetPlayerInfo(playerID))
+			if teamID and WG['advplayerlist_api'] and WG['advplayerlist_api'].SetLockPlayerID then
+				Spring.SendCommands("specteam " .. teamID)
+				WG['advplayerlist_api'].SetLockPlayerID(playerID)
+			else
+				togglePlayerTV()
+			end
+		else
+			togglePlayerTV()
+		end
 	end
 end
 
