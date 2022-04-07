@@ -450,7 +450,7 @@ fragment = [[
 
 	#if (RENDERING_MODE == 2) //shadows pass. AMD requests that extensions are declared right on top of the shader
 		#if (SUPPORT_DEPTH_LAYOUT == 1)
-			#extension GL_ARB_conservative_depth : require
+			//#extension GL_ARB_conservative_depth : require // this is commented out because AMD wants me to add it at start of shader, hope this works...
 			//#extension GL_EXT_conservative_depth : require
 			// preserve early-z performance if possible
 			// for future reference: https://github.com/buildaworldnet/IrrlichtBAW/wiki/Early-Fragment-Tests,-Hi-Z,-Depth,-Stencil-and-other-benchmarks
@@ -1639,10 +1639,21 @@ local defaultMaterialTemplate = {
 
 		"#define TONEMAP(c) CustomTM(c)",
 	},
-	shadowDefinitions = {
+	shadowDefinitions = {		
 		"#define RENDERING_MODE 2",
 		"#define SUPPORT_DEPTH_LAYOUT ".. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
 		"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
+		[[	
+#if (RENDERING_MODE == 2) //shadows pass. AMD requests that extensions are declared right on top of the shader
+	#if (SUPPORT_DEPTH_LAYOUT == 1)
+		#extension GL_ARB_conservative_depth : require
+		//#extension GL_EXT_conservative_depth : require
+		// preserve early-z performance if possible
+		// for future reference: https://github.com/buildaworldnet/IrrlichtBAW/wiki/Early-Fragment-Tests,-Hi-Z,-Depth,-Stencil-and-other-benchmarks
+	#endif
+#endif
+]], 
+
 	},
 	reflectionDefinitions = {
 		"#define RENDERING_MODE 0",
