@@ -530,6 +530,9 @@ uniform sampler2D mask;
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
+
+uniform int reflectionPass = 0;
+
 #define DISTORTION 0.01
 in DataVS {
 	vec4 texCoords;
@@ -553,6 +556,9 @@ void main(void)
 		fragColor.rgba = clamp(fragColor, 0.0, 1.0);
 
 		fragColor.rgba *= jetcolor.a;
+		//fragColor.rgba = vec4(1.0);
+		if (reflectionPass > 0) fragColor.rgba *= 3.0;
+		
 }
 ]]
 
