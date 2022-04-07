@@ -1439,7 +1439,6 @@ fragment = [[
 
             ///
 			#if (USE_ENVIRONMENT_DIFFUSE == 1) || (USE_ENVIRONMENT_SPECULAR == 1)
-
 				#if (RENDERING_MODE == 0)
 					//TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
 				#endif
@@ -1591,7 +1590,7 @@ fragment = [[
 
 		losMapTex    = 8,
 		brdfLUT      = 9,
-		envLUT       = 10,
+		-- envLUT       = 10, -- uncomment this if we want environment mapping back USE_ENVIRONMENT_DIFFUSE || USE_ENVIRONMENT_SPECULAR
 	},
 	uniformFloat = {
 
