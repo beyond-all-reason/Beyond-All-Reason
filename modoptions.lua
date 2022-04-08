@@ -485,10 +485,10 @@ local options={
 		name="Burrow Placement",
 		desc="Control where burrows spawn",
 		type="list",
-		def="alwaysbox",
+		def="initialbox",
 		section="chicken_defense_options",
 		items={
-			{key="anywhere", name="Anywhere", desc="Burrows can spawn anywhere"},
+			--{key="anywhere", name="Anywhere", desc="Burrows can spawn anywhere"},
 			{key="avoid", name="Avoid Players", desc="Burrows do not spawn on player units"},
 			{key="initialbox", name="Initial Start Box", desc="First wave spawns in chicken start box, following burrows avoid players"},
 			{key="alwaysbox", name="Always Start Box", desc="Burrows always spawn in chicken start box"},

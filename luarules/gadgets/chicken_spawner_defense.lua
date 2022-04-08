@@ -392,6 +392,9 @@ if gadgetHandler:IsSyncedCode() then
 	-- Spawn Dynamics
 	--
 
+	local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
+	local RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax = Spring.GetAllyTeamStartBox(chickenAllyTeamID)
+
 	local function addChickenTarget(chickenID, targetID)
 		if not targetID or GetUnitTeam(targetID) == chickenTeamID or GetUnitTeam(chickenID) ~= chickenTeamID then
 			return
@@ -571,6 +574,7 @@ if gadgetHandler:IsSyncedCode() then
 		for i = 1, (number or 1) do
 			local x, z, y
 			local tries = 0
+			local canSpawnBurrow = false
 			repeat
 				if config.burrowSpawnType == "initialbox" then
 					x = mRandom(lsx1, lsx2)
@@ -592,38 +596,88 @@ if gadgetHandler:IsSyncedCode() then
 
 				y = GetGroundHeight(x, z)
 				tries = tries + 1
-				local blocking = TestBuildOrder(MEDIUM_UNIT, x, y, z, 1)
-				if blocking == 2 and (config.burrowSpawnType == "avoid" or config.burrowSpawnType == "initialbox_post") then
-					local proximity = GetUnitsInCylinder(x, z, config.minBaseDistance)
-					local vicinity = GetUnitsInCylinder(x, z, config.maxBaseDistance)
-					local humanUnitsInVicinity = false
-					local humanUnitsInProximity = false
-					for i = 1, #vicinity, 1 do
-						if GetUnitTeam(vicinity[i]) ~= chickenTeamID then
-							humanUnitsInVicinity = true
-							break
-						end
-					end
 
-					for i = 1, #proximity, 1 do
-						if GetUnitTeam(proximity[i]) ~= chickenTeamID then
-							humanUnitsInProximity = true
-							break
-						end
-					end
-
-					if humanUnitsInProximity or not humanUnitsInVicinity then
-						blocking = 1
+				canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, false)
+				
+				if canSpawnBurrow then
+					if tries < maxTries then
+						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, true, true)
+					elseif tries < maxTries * 2 then
+						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, true, false)
+					elseif tries < maxTries * 3 then
+						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, false, false)
+					elseif tries < maxTries * 4 then
+						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(x, y, z, config.minBaseDistance)
 					end
 				end
-			until (blocking == 2 or tries > maxTries * 2)
 
-			local unitID = CreateUnit(config.burrowName, x, y, z, "n", chickenTeamID)
-			if unitID then
-				burrows[unitID] = 0
-				SetUnitBlocking(unitID, false, false)
-				SetUnitExperience(unitID, mRandom() * expMod)
+				if canSpawnBurrow then
+					canSpawnBurrow = positionCheckLibrary.OccupancyCheck(x, y, z, config.minBaseDistance*0.25)
+				end
+
+				if canSpawnBurrow then
+					canSpawnBurrow = positionCheckLibrary.MapEdgeCheck(x, y, z, 256)
+				end
+
+			until (canSpawnBurrow == true or tries >= maxTries * 4)
+
+			if canSpawnBurrow then
+				local unitID = CreateUnit(config.burrowName, x, y, z, "n", chickenTeamID)
+				if unitID then
+					if math.random(0,2) == 1 then
+						minBurrows = minBurrows+1
+					end
+					burrows[unitID] = 0
+					SetUnitBlocking(unitID, false, false)
+					SetUnitExperience(unitID, mRandom() * expMod)
+				end
+			else
+				canSpawnBurrow = StartboxCheck(x, y, z, 64, chickenAllyTeamID, true)
+				if canSpawnBurrow then
+					canSpawnBurrow = positionCheckLibrary.OccupancyCheck(x, y, z, 128)
+				end
+				if canSpawnBurrow then
+					local unitID = CreateUnit(config.burrowName, x, y, z, "n", chickenTeamID)
+					if unitID then
+						if math.random(0,2) == 1 then
+							minBurrows = minBurrows+1
+						end
+						burrows[unitID] = 0
+						SetUnitBlocking(unitID, false, false)
+						SetUnitExperience(unitID, mRandom() * expMod)
+					end
+				else
+					minBurrows = minBurrows+1
+				end
 			end
+			-- 	local blocking = TestBuildOrder(MEDIUM_UNIT, x, y, z, 1)
+			-- 	if blocking == 2 and (config.burrowSpawnType == "avoid" or config.burrowSpawnType == "initialbox_post") then
+			-- 		local proximity = GetUnitsInCylinder(x, z, config.minBaseDistance)
+			-- 		local vicinity = GetUnitsInCylinder(x, z, config.maxBaseDistance)
+			-- 		local humanUnitsInVicinity = false
+			-- 		local humanUnitsInProximity = false
+			-- 		for i = 1, #vicinity, 1 do
+			-- 			if GetUnitTeam(vicinity[i]) ~= chickenTeamID then
+			-- 				humanUnitsInVicinity = true
+			-- 				break
+			-- 			end
+			-- 		end
+
+			-- 		for i = 1, #proximity, 1 do
+			-- 			if GetUnitTeam(proximity[i]) ~= chickenTeamID then
+			-- 				humanUnitsInProximity = true
+			-- 				break
+			-- 			end
+			-- 		end
+
+			-- 		if humanUnitsInProximity or not humanUnitsInVicinity then
+			-- 			blocking = 1
+			-- 		end
+			-- 	end
+			-- until (blocking == 2 or tries > maxTries * 2)
+			
+
+			
 		end
 
 	end
@@ -1243,11 +1297,9 @@ if gadgetHandler:IsSyncedCode() then
 	local attemptingToSpawnLightTurret = 0
 	local heavyTurret = "chickend2"
 	local lightTurret = "chickend1"
-	local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-	local RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax = Spring.GetAllyTeamStartBox(chickenAllyTeamID)
 
 	local function spawnStartBoxProtectionHeavy()
-		if math.random(0,1800) == 0 then
+		if math.random(0,config.burrowSpawnRate*90) == 0 then
 			local burrowCount = SetCount(burrows)
 			if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < burrowCount*2 or Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < 2 then
 				attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + 1
@@ -1346,7 +1398,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- end
 
 	local function spawnStartBoxProtectionLight()
-		if math.random(0,1800) == 0 then
+		if math.random(0,config.burrowSpawnRate*10) == 0 then
 			local burrowCount = SetCount(burrows)
 			if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < burrowCount*10 or Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < 10 then
 				attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 1
@@ -1380,6 +1432,7 @@ if gadgetHandler:IsSyncedCode() then
 				if canSpawnDefence then
 					local lightTurretUnitID = Spring.CreateUnit(lightTurret, spawnPosX, spawnPosY, spawnPosZ, spawnDirection, chickenTeamID)
 					if lightTurretUnitID then
+						Spring.GiveOrderToUnit(lightTurretUnitID, CMD.PATROL, {spawnPosX + math.random(-128,128), spawnPosY, spawnPosZ + math.random(-128,128)}, {"meta"})
 						attemptingToSpawnLightTurret = attemptingToSpawnLightTurret - 1
 						SetUnitExperience(lightTurretUnitID, mRandom() * expMod)
 					end
@@ -1516,7 +1569,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			if burrowCount < minBurrows or (burrowSpawnTime < t - timeOfLastSpawn and burrowCount < maxBurrows) then
 				if firstSpawn then
-					for i = 1, math.min(math.ceil((SetCount(humanTeams) * 1.5)) + gracePenalty, 40), 1 do
+					for i = 1,math.ceil(minBurrows*1.2) do
 						SpawnBurrow()
 					end
 					timeOfLastWave = (t - (config.chickenSpawnRate - 6))
