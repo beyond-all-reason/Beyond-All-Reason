@@ -509,6 +509,10 @@ void main()
 	jetcolor.rgb = color;
 	jetcolor.a = clamp((timeInfo.x + timeInfo.w - widthlengthtime.z)*0.053, 0.0, 1.0);
 	if ((uni[instData.y].composite & 0x00000001u) == 0u )  jetcolor = vec4(0.0); // disable if drawflag is set to 0
+	
+	if (reflectionPass > 0) {  // when reflecting, dont reflect underwater jets
+		if (worldPos.y < -5.0) jetcolor = vec4(0.0);
+	}
 	/*
 		// VISIBILITY CULLING
 		if (length(worldCamPos.xyz - worldPos.xyz) >  iconDistance) jetcolor.a = 0; // disable if unit is further than icondist
