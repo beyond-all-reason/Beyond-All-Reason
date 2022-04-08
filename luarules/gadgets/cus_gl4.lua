@@ -157,7 +157,11 @@ end
 	
 	-- TODO: we need to update things earlier, to get the shadow stuff in on time
 	
-	-- GetTextures :
+	-- TODO: GetTexturesKey is probably slow too!
+		
+	
+	
+	-- TODO: GetTextures :
 		-- should return array table instead of hash table
 			-- fill in unused stuff with 'false' for contiguous array table
 			-- index -1 
@@ -195,21 +199,7 @@ end
 -- bitShaderOptions are in 6: UNITUNIFORMS.userDefined[1].z
 -- treadOffset goes into   7: UNITUNIFORMS.userDefined[1].w
 
-local OPTION_SHADOWMAPPING    = 1
-local OPTION_NORMALMAPPING    = 2
-local OPTION_NORMALMAP_FLIP   = 4
-local OPTION_VERTEX_AO        = 8
-local OPTION_FLASHLIGHTS      = 16
-local OPTION_THREADS_ARM      = 32
-local OPTION_THREADS_CORE     = 64
-local OPTION_HEALTH_TEXTURING = 128
-local OPTION_HEALTH_DISPLACE  = 256
-local OPTION_HEALTH_TEXCHICKS = 512
-local OPTION_MODELSFOG        = 1024
-local OPTION_TREEWIND         = 2048
-local OPTION_PBROVERRIDE      = 4096
 
-local defaultBitShaderOptions = OPTION_SHADOWMAPPING + OPTION_NORMALMAPPING  + OPTION_MODELSFOG
 
 local objectDefToBitShaderOptions = {} -- This is a table containing positive UnitIDs, negative featureDefIDs to bitShaderOptions mapping
 
@@ -243,51 +233,71 @@ local function GetUniformBinID(objectDefID)
 	end
 end
 
-local uniformBins = {
-	armunit = {
-		bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
-		baseVertexDisplacement = 0.0,
-	},
-	corunit = {
-		bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
-		baseVertexDisplacement = 0.0,
-	},
-	armscavenger = {
-		bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
-		baseVertexDisplacement = 0.4,
-	},
-	corscavenger = {
-		bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
-		baseVertexDisplacement = 0.4,
-	},
-	chicken = {
-		bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS  + OPTION_HEALTH_DISPLACE + OPTION_HEALTH_TEXCHICKS + OPTION_TREEWIND,
-		baseVertexDisplacement = 0.0,
-	},
-	otherunit = {
-		bitOptions = defaultBitShaderOptions,
-		baseVertexDisplacement = 0.0,
-	},
-	feature = {
-		bitOptions = defaultBitShaderOptions + OPTION_PBROVERRIDE,
-		baseVertexDisplacement = 0.0,
-	},
-	treepbr = {
-		bitOptions = defaultBitShaderOptions + OPTION_TREEWIND + OPTION_PBROVERRIDE,
-		baseVertexDisplacement = 0.0,
-		hasAlphaShadows = 1.0,
-	},
-	tree = {
-		bitOptions = defaultBitShaderOptions + OPTION_TREEWIND + OPTION_PBROVERRIDE,
-		baseVertexDisplacement = 0.0,
-		hasAlphaShadows = 1.0,
-	},
-	wreck = {
-		bitOptions = defaultBitShaderOptions,
-		baseVertexDisplacement = 0.0,
-	},
-} -- maps uniformbins to a table of uniform names/values
 
+local uniformBins = {}
+
+do --save a ton of locals
+	local OPTION_SHADOWMAPPING    = 1
+	local OPTION_NORMALMAPPING    = 2
+	local OPTION_NORMALMAP_FLIP   = 4
+	local OPTION_VERTEX_AO        = 8
+	local OPTION_FLASHLIGHTS      = 16
+	local OPTION_THREADS_ARM      = 32
+	local OPTION_THREADS_CORE     = 64
+	local OPTION_HEALTH_TEXTURING = 128
+	local OPTION_HEALTH_DISPLACE  = 256
+	local OPTION_HEALTH_TEXCHICKS = 512
+	local OPTION_MODELSFOG        = 1024
+	local OPTION_TREEWIND         = 2048
+	local OPTION_PBROVERRIDE      = 4096
+
+	local defaultBitShaderOptions = OPTION_SHADOWMAPPING + OPTION_NORMALMAPPING  + OPTION_MODELSFOG
+
+	uniformBins = {
+		armunit = {
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+			baseVertexDisplacement = 0.0,
+		},
+		corunit = {
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+			baseVertexDisplacement = 0.0,
+		},
+		armscavenger = {
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+			baseVertexDisplacement = 0.4,
+		},
+		corscavenger = {
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
+			baseVertexDisplacement = 0.4,
+		},
+		chicken = {
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS  + OPTION_HEALTH_DISPLACE + OPTION_HEALTH_TEXCHICKS + OPTION_TREEWIND,
+			baseVertexDisplacement = 0.0,
+		},
+		otherunit = {
+			bitOptions = defaultBitShaderOptions,
+			baseVertexDisplacement = 0.0,
+		},
+		feature = {
+			bitOptions = defaultBitShaderOptions + OPTION_PBROVERRIDE,
+			baseVertexDisplacement = 0.0,
+		},
+		treepbr = {
+			bitOptions = defaultBitShaderOptions + OPTION_TREEWIND + OPTION_PBROVERRIDE,
+			baseVertexDisplacement = 0.0,
+			hasAlphaShadows = 1.0,
+		},
+		tree = {
+			bitOptions = defaultBitShaderOptions + OPTION_TREEWIND + OPTION_PBROVERRIDE,
+			baseVertexDisplacement = 0.0,
+			hasAlphaShadows = 1.0,
+		},
+		wreck = {
+			bitOptions = defaultBitShaderOptions,
+			baseVertexDisplacement = 0.0,
+		},
+	} -- maps uniformbins to a table of uniform names/values
+end
 
 local debugmode = false
 local FASTRELOADMODE = false -- enable this is so that /luarules reload returns with cusgl4 default ON
@@ -480,7 +490,7 @@ local MAX_TEX_ID = 131072 --should be enough
 -- @param textures a table of {bindposition:texture}
 -- @return a unique hash for binning
 local function GetTexturesKey(textures)
-	local cs = 0
+	local cs = 10000 -- to make the fast version not collide for now
 	--Spring.Debug.TraceFullEcho(nil,nil,15)	
 	for bindPosition, tex in pairs(textures) do
 		local texInfo = nil
@@ -711,7 +721,6 @@ local gettexturescalls = 0
 
 
 local objectDefIDtoTextureKeys = {}    -- table of  {unitDefID : TextureKey, -featureDefID : TextureKey }
---local featureDefIDtoTextureKeys = {} -- table of {featureDefID : TextureKey}
 
 local textureKeytoSet = {} -- table of {TextureKey : {textureTable}}
 
@@ -720,6 +729,30 @@ local unitDefShaderBin = {} -- A table of {"armpw".id:"unit", "armpw_scav".id:"s
 local wreckTextureNames = {} -- A table of regular texture names to wreck texture names {"Arm_color.dds": "Arm_color_wreck.dds"}
 local blankNormalMap = "unittextures/blank_normal.dds"
 
+local fastObjectDefIDtoTextureKey = {}
+local fastTextureKeyToSet = {}
+local fastTextureKeyCache = {} -- a table of concatenated texture names to increasing integers
+local numfastTextureKeyCache = 0
+
+local function GenFastTextureKey(objectDefID, objectDef, normaltexpath) -- return integer
+	if objectDef.model == nil or objectDef.model.textures == nil then 
+		return 0
+	end
+	
+	local tex1 = string.lower(objectDef.model.textures.tex1 or "") 
+	local tex2 = string.lower(objectDef.model.textures.tex2 or "") 
+	normaltexpath = string.lower(normaltexpath or "") 
+	local strkey = tex1 .. tex2 .. normaltexpath 
+	if fastTextureKeyCache[strkey] then  -- already exists
+		fastObjectDefIDtoTextureKey[objectDefID] = fastTextureKeyCache[strkey]
+	else
+		numfastTextureKeyCache = numfastTextureKeyCache + 1
+		fastTextureKeyCache[strkey] = numfastTextureKeyCache
+		fastObjectDefIDtoTextureKey[objectDefID] = numfastTextureKeyCache
+		--Spring.Echo("GenFastTextureKey", strkey, fastTextureKeyCache[strkey])
+	end
+	return fastTextureKeyCache[strkey]
+end
 
 local wreckAtlases = {
 	["arm"] = {
@@ -853,6 +886,13 @@ local function initBinsAndTextures()
 				textureKeytoSet[texKey] = textureTable
 			end 
 			objectDefIDtoTextureKeys[unitDefID] = texKey
+			
+			
+			local texKeyFast = GenFastTextureKey(unitDefID, unitDef, normalTex)
+			if textureKeytoSet[texKeyFast] == nil then
+				textureKeytoSet[texKeyFast] = textureTable
+			end
+			
 
 		end
 	end
@@ -891,6 +931,11 @@ local function initBinsAndTextures()
 				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
 			end
 			--Spring.Echo("Assigned normal map to", featureDef.name, normalTex)
+			
+			local texKeyFast = GenFastTextureKey(-1 * featureDefID, featureDef, normalTex)
+			if textureKeytoSet[texKeyFast] == nil then
+				textureKeytoSet[texKeyFast] = textureTable
+			end
 		end
 	end
 end
