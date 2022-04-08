@@ -734,7 +734,7 @@ local fastTextureKeyToSet = {}
 local fastTextureKeyCache = {} -- a table of concatenated texture names to increasing integers
 local numfastTextureKeyCache = 0
 
-local function GenFastTextureKey(objectDefID, objectDef, normaltexpath) -- return integer
+local function GenFastTextureKey(objectDefID, objectDef, normaltexpath, texturetable) -- return integer
 	if objectDef.model == nil or objectDef.model.textures == nil then 
 		return 0
 	end
@@ -742,7 +742,13 @@ local function GenFastTextureKey(objectDefID, objectDef, normaltexpath) -- retur
 	local tex1 = string.lower(objectDef.model.textures.tex1 or "") 
 	local tex2 = string.lower(objectDef.model.textures.tex2 or "") 
 	normaltexpath = string.lower(normaltexpath or "") 
-	local strkey = tex1 .. tex2 .. normaltexpath 
+	local strkey = tex1 .. tex2 .. normaltexpath
+	for i=3, 20 do 
+		if texturetable[i] then 
+			strkey = strkey .. texturetable[i]
+		end
+	end
+	
 	if fastTextureKeyCache[strkey] then  -- already exists
 		fastObjectDefIDtoTextureKey[objectDefID] = fastTextureKeyCache[strkey]
 	else
@@ -888,7 +894,7 @@ local function initBinsAndTextures()
 			objectDefIDtoTextureKeys[unitDefID] = texKey
 			
 			
-			local texKeyFast = GenFastTextureKey(unitDefID, unitDef, normalTex)
+			local texKeyFast = GenFastTextureKey(unitDefID, unitDef, normalTex, textureTable)
 			if textureKeytoSet[texKeyFast] == nil then
 				textureKeytoSet[texKeyFast] = textureTable
 			end
@@ -932,7 +938,7 @@ local function initBinsAndTextures()
 			end
 			--Spring.Echo("Assigned normal map to", featureDef.name, normalTex)
 			
-			local texKeyFast = GenFastTextureKey(-1 * featureDefID, featureDef, normalTex)
+			local texKeyFast = GenFastTextureKey(-1 * featureDefID, featureDef, normalTex, textureTable)
 			if textureKeytoSet[texKeyFast] == nil then
 				textureKeytoSet[texKeyFast] = textureTable
 			end
@@ -1660,11 +1666,11 @@ function gadget:DrawWorldPreUnit()
 		-- which isnt all that bad, but still far from optimal
 		-- it is, however, not that bad CPU wise, and it doesnt force GC load either
 		
-		local t0 = Spring.GetTimer()
 		local units, drawFlagsUnits = Spring.GetRenderUnits(overrideDrawFlag, true) 
 		local features, drawFlagsFeatures = Spring.GetRenderFeatures(overrideDrawFlag, true)
 		
 		local totalobjects = #units + #features
+		local t0 = Spring.GetTimer()
 		
 		ProcessUnits(units, drawFlagsUnits)
 		ProcessFeatures(features, drawFlagsFeatures)
