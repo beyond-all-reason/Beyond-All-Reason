@@ -1000,8 +1000,9 @@ local asssigncalls = 0
 local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures, texKey, uniformBinID)
 	asssigncalls = (asssigncalls + 1 ) % (2^20)
 	shader = shader or GetShaderName(flag, objectDefID)
-	textures = textures or GetTextures(flag, objectDefID, objectID)
-	texKey = texKey or GetTexturesKey(textures)
+	--textures = textures or GetTextures(flag, objectDefID, objectID)
+	--texKey = texKey or GetTexturesKey(textures)
+	texKey = texKey or fastObjectDefIDtoTextureKey[objectDefID]
 	uniformBinID = uniformBinID or GetUniformBinID(objectDefID)
 	--Spring.Echo("AsssignObjectToBin", objectID, objectDefID, flag, shader, textures, texKey, uniformBinID)
 	--	Spring.Debug.TraceFullEcho()	
@@ -1036,7 +1037,7 @@ local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures,
 		mybinVAO:AttachInstanceBuffer(mybinIBO)
 	
 		unitDrawBinsFlagShaderUniforms[texKey] = {
-			textures = textures, -- hashmap of textures for this unit
+			textures = textureKeytoSet[texKey], -- hashmap of textures for this unit
 			IBO = mybinIBO, -- my own IBO, for incrementing
 			VAO = mybinVAO, -- my own VBO, for incremental updating
 			objectsArray = {}, -- {index: objectID} 
@@ -1128,8 +1129,9 @@ end
 
 local function RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, uniformBinID)
 	shader = shader or GetShaderName(flag, objectDefID)
-	textures = textures or GetTextures(flag, objectDefID, objectID)
-	texKey = texKey or GetTexturesKey(textures)
+	--textures = textures or GetTextures(flag, objectDefID, objectID)
+	-- texKey = texKey or GetTexturesKey(textures)
+	texKey = texKey or fastObjectDefIDtoTextureKey[objectDefID]
 	if debugmode then Spring.Echo("RemoveObjectFromBin", objectID, objectDefID, texKey,shader,flag,objectIndex)  end
 
 	if unitDrawBins[flag][shader] then
@@ -1221,8 +1223,9 @@ local function UpdateObject(objectID, drawFlag)
 
 		if hasFlagOld ~= hasFlagNew and overrideDrawFlagsCombined[flag] then
 			local shader = GetShaderName(flag, objectDefID)
-			local textures = GetTextures(flag, objectDefID, objectID)
-			local texKey  = GetTexturesKey(textures)
+			--local textures = GetTextures(flag, objectDefID, objectID)
+			local textures = nil --GetTextures(flag, objectDefID, objectID)
+			local texKey  = fastObjectDefIDtoTextureKey[objectDefID]
 			local uniformBinID = GetUniformBinID(objectDefID)
 
 			if hasFlagOld then --had this flag, but no longer have
@@ -1259,8 +1262,9 @@ local function RemoveObject(objectID) -- we get pos/neg objectID here
 		if debugmode then Spring.Echo("RemoveObject Flags", objectID, flag, overrideDrawFlagsCombined[flag] ) end
 		if overrideDrawFlagsCombined[flag] then
 			local shader = GetShaderName(flag, objectDefID)
-			local textures = GetTextures(flag, objectDefID, objectID)
-			local texKey  = GetTexturesKey(textures)
+			--local textures = GetTextures(flag, objectDefID, objectID)
+			--local texKey  = GetTexturesKey(textures)
+			local texKey  = fastObjectDefIDtoTextureKey[objectDefID]
 			local uniformBinID = GetUniformBinID(objectDefID)
 			RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, uniformBinID)
 			if flag == 1 then
