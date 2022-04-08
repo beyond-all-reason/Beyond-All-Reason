@@ -11,6 +11,12 @@ function widget:GetInfo()
 	}
 end
 
+include("keysym.h.lua")
+
+SYMKEYS = table.invert(KEYSYMS)
+
+local comBuildOptions
+local boundUnits = {}
 local stickToBottom = false
 
 local alwaysShow = false
@@ -79,8 +85,6 @@ local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
-local teamList = Spring.GetTeamList()
-
 local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 
 local buildQueue = {}
@@ -106,6 +110,7 @@ local currentPage = 1
 local pages = 1
 local paginatorRects = {}
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
+local unitshapes = {}
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -202,6 +207,8 @@ local groups = {
 	antinuke = folder..'antinuke.png',
 }
 
+local disableWind = ((Game.windMin + Game.windMax) / 2) <= 5
+
 local unitEnergyCost = {}
 local unitMetalCost = {}
 local unitGroup = {}
@@ -216,6 +223,9 @@ local isGeothermalUnit = {}
 local unitMaxWeaponRange = {}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
+	unitIconType[unitDefID] = unitDef.iconType
+	unitEnergyCost[unitDefID] = unitDef.energyCost
+	unitMetalCost[unitDefID] = unitDef.metalCost
 	unitGroup[unitDefID] = unitDef.customParams.unitgroup
 
 	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'
@@ -224,18 +234,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			isWaterUnit[unitDefID] = true
 		end
 	end
-
-	if unitDef.needGeo then
-		isGeothermalUnit[unitDefID] = true
-	end
-
 	if unitDef.maxWeaponRange > 16 then
 		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
 	end
-
-	unitIconType[unitDefID] = unitDef.iconType
-	unitEnergyCost[unitDefID] = unitDef.energyCost
-	unitMetalCost[unitDefID] = unitDef.metalCost
 	if unitDef.maxThisUnit == 0 then --or unitDef.name == 'armllt' or unitDef.name == 'armmakr' then
 		unitRestricted[unitDefID] = true
 	end
@@ -245,9 +246,14 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then
 		isFactory[unitDefID] = true
 	end
-
 	if unitDef.extractsMetal > 0 then
 		isMex[unitDefID] = true
+	end
+	if unitDef.needGeo then
+		isGeothermalUnit[unitDefID] = true
+	end
+	if unitDef.windGenerator > 0 and disableWind then
+		unitDisabled[unitDefID] = true
 	end
 end
 
@@ -462,6 +468,11 @@ local function RefreshCommands()
 	end
 end
 
+local function clear()
+	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
+	dlistBuildmenuBg = gl.DeleteList(dlistBuildmenuBg)
+end
+
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
@@ -537,6 +548,7 @@ function widget:ViewResize()
 	doUpdate = true
 end
 
+-- Spring handles buildfacing already, this is for managing pregamestart
 function buildFacingHandler(_, _, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
 		return
@@ -544,18 +556,12 @@ function buildFacingHandler(_, _, args)
 
 	local facing = Spring.GetBuildFacing()
 	if args and args[1] == "inc" then
-		facing = facing + 1
-		if facing > 3 then
-			facing = 0
-		end
+		facing = (facing + 1) % 4
 		Spring.SetBuildFacing(facing)
 
 		return true
 	elseif args and args[1] == "dec" then
-		facing = facing - 1
-		if facing < 0 then
-			facing = 3
-		end
+		facing = (facing - 1) % 4
 		Spring.SetBuildFacing(facing)
 
 		return true
@@ -565,131 +571,6 @@ function buildFacingHandler(_, _, args)
 
 		return true
 	end
-end
-
-function widget:Initialize()
-	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "t")
-
-	checkGeothermalFeatures()
-
-	iconTypesMap = {}
-	if Script.LuaRules('GetIconTypes') then
-		iconTypesMap = Script.LuaRules.GetIconTypes()
-	end
-
-	-- Get our starting unit
-	if preGamestartPlayer then
-		SetBuildFacing()
-		if not startDefID or startDefID ~= spGetTeamRulesParam(myTeamID, 'startUnit') then
-			startDefID = spGetTeamRulesParam(myTeamID, 'startUnit')
-			doUpdate = true
-		end
-	end
-
-	widget:ViewResize()
-	widget:SelectionChanged(spGetSelectedUnits())
-
-	WG['buildmenu'] = {}
-	WG['buildmenu'].getGroups = function()
-		return groups, unitGroup
-	end
-	WG['buildmenu'].getOrder = function()
-		return unitOrder
-	end
-	WG['buildmenu'].getShowPrice = function()
-		return showPrice
-	end
-	WG['buildmenu'].setShowPrice = function(value)
-		showPrice = value
-		doUpdate = true
-	end
-	WG['buildmenu'].getAlwaysShow = function()
-		return alwaysShow
-	end
-	WG['buildmenu'].setAlwaysShow = function(value)
-		alwaysShow = value
-		doUpdate = true
-	end
-	WG['buildmenu'].getShowRadarIcon = function()
-		return showRadarIcon
-	end
-	WG['buildmenu'].setShowRadarIcon = function(value)
-		showRadarIcon = value
-		doUpdate = true
-	end
-	WG['buildmenu'].getShowGroupIcon = function()
-		return showGroupIcon
-	end
-	WG['buildmenu'].setShowGroupIcon = function(value)
-		showGroupIcon = value
-		doUpdate = true
-	end
-	WG['buildmenu'].getDynamicIconsize = function()
-		return dynamicIconsize
-	end
-	WG['buildmenu'].setDynamicIconsize = function(value)
-		dynamicIconsize = value
-		doUpdate = true
-	end
-	WG['buildmenu'].getMinColls = function()
-		return minColls
-	end
-	WG['buildmenu'].setMinColls = function(value)
-		minColls = value
-		doUpdate = true
-	end
-	WG['buildmenu'].getMaxColls = function()
-		return maxColls
-	end
-	WG['buildmenu'].setMaxColls = function(value)
-		maxColls = value
-		doUpdate = true
-	end
-	WG['buildmenu'].getDefaultColls = function()
-		return defaultColls
-	end
-
-	WG['buildmenu'].setDefaultColls = function(value)
-		defaultColls = value
-		doUpdate = true
-	end
-	WG['buildmenu'].getBottomPosition = function()
-		return stickToBottom
-	end
-	WG['buildmenu'].setBottomPosition = function(value)
-		stickToBottom = value
-		widget:Update(1000)
-		widget:ViewResize()
-		doUpdate = true
-	end
-	WG['buildmenu'].getSize = function()
-		return posY, posY2
-	end
-	WG['buildmenu'].getMaxPosY = function()
-		return maxPosY
-	end
-	WG['buildmenu'].setMaxPosY = function(value)
-		maxPosY = value
-		doUpdate = true
-	end
-end
-
-function clear()
-	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
-	dlistBuildmenuBg = gl.DeleteList(dlistBuildmenuBg)
-end
-
-function widget:Shutdown()
-	clear()
-	hoverDlist = gl.DeleteList(hoverDlist)
-	if WG['guishader'] and dlistGuishader then
-		WG['guishader'].DeleteDlist('buildmenu')
-		dlistGuishader = nil
-	end
-	if dlistCache then
-		dlistCache = gl.DeleteList(dlistCache)
-	end
-	WG['buildmenu'] = nil
 end
 
 -- update queue number
@@ -1022,6 +903,21 @@ local function GetBuildingDimensions(uDefID, facing)
 	end
 end
 
+local function removeUnitShape(id)
+	if unitshapes[id] then
+		WG.StopDrawUnitShapeGL4(unitshapes[id])
+		unitshapes[id] = nil
+	end
+end
+
+local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID)
+	if unitshapes[id] then
+		removeUnitShape(id)
+	end
+	unitshapes[id] = WG.DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, 1, teamID, nil, nil)
+	return unitshapes[id]
+end
+
 local function DrawBuilding(buildData, borderColor, buildingAlpha, drawRanges)
 	local bDefID, bx, by, bz, facing = buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]
 	local bw, bh = GetBuildingDimensions(bDefID, facing)
@@ -1035,7 +931,6 @@ local function DrawBuilding(buildData, borderColor, buildingAlpha, drawRanges)
 							 { v = { bx - bw, by, bz + bh } } })
 
 	if drawRanges then
-
 		if isMex[bDefID] then
 			gl.Color(1.0, 0.3, 0.3, 0.7)
 			gl.DrawGroundCircle(bx, by, bz, Game.extractorRadius, 50)
@@ -1048,39 +943,10 @@ local function DrawBuilding(buildData, borderColor, buildingAlpha, drawRanges)
 		end
 	end
 
-	gl.DepthTest(GL.LEQUAL)
-	gl.DepthMask(true)
-	gl.Color(1.0, 1.0, 1.0, buildingAlpha)
-
-	gl.PushMatrix()
-	gl.LoadIdentity()
-	gl.Translate(bx, by, bz)
-	gl.Rotate(90 * facing, 0, 1, 0)
-	gl.UnitShape(bDefID, Spring.GetMyTeamID(), false, false, true)
-	gl.PopMatrix()
-
-	gl.Lighting(false)
-	gl.DepthTest(false)
-	gl.DepthMask(false)
-end
-
-local function DrawUnitDef(uDefID, uTeam, ux, uy, uz, scale)
-	gl.Color(1, 1, 1, 1)
-	gl.DepthTest(GL.LEQUAL)
-	gl.DepthMask(true)
-	gl.Lighting(true)
-
-	gl.PushMatrix()
-	gl.Translate(ux, uy, uz)
-	if scale then
-		gl.Scale(scale, scale, scale)
+	if WG.StopDrawUnitShapeGL4 then
+		local id = buildData[1]..'_'..buildData[2]..'_'..buildData[3]..'_'..buildData[4]..'_'..buildData[5]
+		addUnitShape(id, buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]*(math.pi/2), myTeamID)
 	end
-	gl.UnitShape(uDefID, uTeam, false, true, true)
-	gl.PopMatrix()
-
-	gl.Lighting(false)
-	gl.DepthTest(false)
-	gl.DepthMask(false)
 end
 
 local function DoBuildingsClash(buildData1, buildData2)
@@ -1325,27 +1191,16 @@ function widget:DrawScreen()
 end
 
 function widget:DrawWorld()
-	if chobbyInterface then
-		return
-	end
+	if not WG.StopDrawUnitShapeGL4 then return end
 
-	-- draw pregamestart commander models on start positions
 	if Spring.GetGameFrame() == 0 then
-		glColor(1, 1, 1, 0.5)
-		glDepthTest(false)
-		for i = 1, #teamList do
-			local teamID = teamList[i]
-			local tsx, tsy, tsz = spGetTeamStartPosition(teamID)
-			if tsx and tsx > 0 then
-				local startUnitDefID = spGetTeamRulesParam(teamID, 'startUnit')
-				if startUnitDefID then
-					DrawUnitDef(startUnitDefID, teamID, tsx, spGetGroundHeight(tsx, tsz), tsz)
-				end
+
+		-- remove unit shape queue to re-add again later
+		if WG.StopDrawUnitShapeGL4 then
+			for id, _ in pairs(unitshapes) do
+				removeUnitShape(id)
 			end
 		end
-		glColor(1, 1, 1, 1)
-		glTexture(false)
-
 
 		-- draw pregame build queue
 		if preGamestartPlayer then
@@ -1382,9 +1237,6 @@ function widget:DrawWorld()
 				-- Correction for start positions in the air
 				sy = Spring.GetGroundHeight(sx, sz)
 
-				-- Draw the starting unit at start position
-				--DrawUnitDef(startDefID, myTeamID, sx, sy, sz)		--(disabled: faction change widget does this now)
-
 				-- Draw start units build radius
 				gl.Color(buildDistanceColor)
 				gl.DrawGroundCircle(sx, sy, sz, UnitDefs[startDefID].buildDistance, 40)
@@ -1407,6 +1259,7 @@ function widget:DrawWorld()
 				end
 			end
 
+			-- clean all previous frame buildings
 			-- Draw all the buildings
 			local queueLineVerts = startChosen and { { v = { sx, sy, sz } } } or {}
 			for b = 1, #buildQueue do
@@ -1439,6 +1292,12 @@ function widget:DrawWorld()
 			-- Reset gl
 			glColor(1, 1, 1, 1)
 			gl.LineWidth(1.0)
+		end
+	else
+		if WG.StopDrawUnitShapeGL4 then
+			for id, _ in pairs(unitshapes) do
+				removeUnitShape(id)
+			end
 		end
 	end
 end
@@ -1499,6 +1358,14 @@ local function GetUnitCanCompleteQueue(uID)
 	return true
 end
 
+local function unbindBuildUnits()
+	for _, buildOption in ipairs(boundUnits) do
+		widgetHandler.actionHandler:RemoveAction(self, "buildunit_" .. buildOption, 'p')
+	end
+
+	boundUnits = {}
+end
+
 function widget:GameFrame(n)
 
 	if checkGeothermalFeatures then
@@ -1506,6 +1373,9 @@ function widget:GameFrame(n)
 		checkGeothermalFeatures = nil
 	end
 
+	if preGamestartPlayer then
+		unbindBuildUnits()
+	end
 	-- handle the pregame build queue
 	preGamestartPlayer = false
 	if n <= 90 and #buildQueue > 0 then
@@ -1581,19 +1451,6 @@ local function setPreGamestartDefID(uDefID)
 		end
 	elseif Spring.GetMapDrawMode() == "metal" then
 		Spring.SendCommands("ShowStandard")
-	end
-end
-
-function widget:KeyPress(key, mods, isRepeat)
-	if Spring.IsGUIHidden() then
-		return
-	end
-
-	if preGamestartPlayer and selBuildQueueDefID then
-		if key == 27 then
-			-- ESC
-			setPreGamestartDefID()
-		end
 	end
 end
 
@@ -1707,8 +1564,233 @@ function widget:MousePress(x, y, button)
 	end
 end
 
+-- Used for hotkeys at pregamestart
+local function buildUnitHandler(_, _, _, data)
+	-- sanity check
+	if not preGamestartPlayer then return end
+	if unitDisabled[data.unitDefID] then return end
+
+	local comDef = UnitDefs[startDefID]
+
+	if not comBuildOptions[comDef.name][data.unitDefID] then return end
+
+	-- If no current active selection we can return early
+	if not selBuildQueueDefID then
+		setPreGamestartDefID(data.unitDefID)
+
+		return true
+	end
+
+	-- Find the buildcycle for current key and iterate on it
+	local pressedKeys = Spring.GetPressedKeys()
+	local pressedKey
+	for k, v in pairs(pressedKeys) do
+		local key = SYMKEYS[k]
+
+		if v and key and #key == 1 then
+			pressedKey = string.lower(key)
+			break
+		end
+	end
+
+	-- didnt find a suitable binding to cycle from
+	if not pressedKey then return end
+
+	local buildCycle = {}
+
+	for _, keybind in ipairs(Spring.GetKeyBindings(pressedKey)) do
+		if string.sub(keybind.command, 1, 10) == 'buildunit_' then
+			local uDefName = string.sub(keybind.command, 11)
+			local uDef = UnitDefNames[uDefName]
+			if comBuildOptions[comDef.name][uDef.id] and not unitDisabled[uDef.id] then
+				table.insert(buildCycle, uDef.id)
+			end
+		end
+	end
+
+	if #buildCycle == 0 then return end
+
+	local buildCycleIndex
+	for i, v in ipairs(buildCycle) do
+		if v == selBuildQueueDefID then
+			buildCycleIndex = i
+			break
+		end
+	end
+
+	if not buildCycleIndex then
+		setPreGamestartDefID(data.unitDefID)
+
+		return true
+	end
+
+	buildCycleIndex = buildCycleIndex + 1
+	if buildCycleIndex > #buildCycle then buildCycleIndex = 1 end
+
+	setPreGamestartDefID(buildCycle[buildCycleIndex])
+
+	return true
+end
+
+local function bindBuildUnits(widget)
+	if not preGamestartPlayer then return end
+
+	unbindBuildUnits()
+
+	comBuildOptions = { armcom = {}, corcom = {} }
+
+	for _, comDefName in ipairs({ "armcom", "corcom" }) do
+		for _, buildOption in ipairs(UnitDefNames[comDefName].buildOptions) do
+			if not unitDisabled[buildOption] then
+				local unitDefName = UnitDefs[buildOption].name
+
+				comBuildOptions[comDefName][buildOption] = true
+				table.insert(boundUnits, unitDefName)
+				widgetHandler.actionHandler:AddAction(widget, "buildunit_" .. unitDefName, buildUnitHandler, { unitDefID = buildOption }, 'p')
+			end
+		end
+	end
+end
+
+local function buildmenuPregameDeselectHandler()
+	if preGamestartPlayer and selBuildQueueDefID then
+		setPreGamestartDefID()
+
+		return true
+	end
+end
+
+function widget:Initialize()
+	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, 'p')
+	widgetHandler.actionHandler:AddAction(self, "buildmenu_pregame_deselect", buildmenuPregameDeselectHandler, nil, "p")
+
+	checkGeothermalFeatures()
+
+	iconTypesMap = {}
+	if Script.LuaRules('GetIconTypes') then
+		iconTypesMap = Script.LuaRules.GetIconTypes()
+	end
+
+	-- Get our starting unit
+	if preGamestartPlayer then
+		bindBuildUnits(self)
+		SetBuildFacing()
+		if not startDefID or startDefID ~= spGetTeamRulesParam(myTeamID, 'startUnit') then
+			startDefID = spGetTeamRulesParam(myTeamID, 'startUnit')
+			doUpdate = true
+		end
+	end
+
+	widget:ViewResize()
+	widget:SelectionChanged(spGetSelectedUnits())
+
+	WG['buildmenu'] = {}
+	WG['buildmenu'].getGroups = function()
+		return groups, unitGroup
+	end
+	WG['buildmenu'].getOrder = function()
+		return unitOrder
+	end
+	WG['buildmenu'].getShowPrice = function()
+		return showPrice
+	end
+	WG['buildmenu'].setShowPrice = function(value)
+		showPrice = value
+		doUpdate = true
+	end
+	WG['buildmenu'].getAlwaysShow = function()
+		return alwaysShow
+	end
+	WG['buildmenu'].setAlwaysShow = function(value)
+		alwaysShow = value
+		doUpdate = true
+	end
+	WG['buildmenu'].getShowRadarIcon = function()
+		return showRadarIcon
+	end
+	WG['buildmenu'].setShowRadarIcon = function(value)
+		showRadarIcon = value
+		doUpdate = true
+	end
+	WG['buildmenu'].getShowGroupIcon = function()
+		return showGroupIcon
+	end
+	WG['buildmenu'].setShowGroupIcon = function(value)
+		showGroupIcon = value
+		doUpdate = true
+	end
+	WG['buildmenu'].getDynamicIconsize = function()
+		return dynamicIconsize
+	end
+	WG['buildmenu'].setDynamicIconsize = function(value)
+		dynamicIconsize = value
+		doUpdate = true
+	end
+	WG['buildmenu'].getMinColls = function()
+		return minColls
+	end
+	WG['buildmenu'].setMinColls = function(value)
+		minColls = value
+		doUpdate = true
+	end
+	WG['buildmenu'].getMaxColls = function()
+		return maxColls
+	end
+	WG['buildmenu'].setMaxColls = function(value)
+		maxColls = value
+		doUpdate = true
+	end
+	WG['buildmenu'].getDefaultColls = function()
+		return defaultColls
+	end
+
+	WG['buildmenu'].setDefaultColls = function(value)
+		defaultColls = value
+		doUpdate = true
+	end
+	WG['buildmenu'].getBottomPosition = function()
+		return stickToBottom
+	end
+	WG['buildmenu'].setBottomPosition = function(value)
+		stickToBottom = value
+		widget:Update(1000)
+		widget:ViewResize()
+		doUpdate = true
+	end
+	WG['buildmenu'].getSize = function()
+		return posY, posY2
+	end
+	WG['buildmenu'].getMaxPosY = function()
+		return maxPosY
+	end
+	WG['buildmenu'].setMaxPosY = function(value)
+		maxPosY = value
+		doUpdate = true
+	end
+	WG['buildmenu'].reloadBindings = function()
+		bindBuildUnits(self)
+	end
+end
+
+function widget:Shutdown()
+	clear()
+	hoverDlist = gl.DeleteList(hoverDlist)
+	if WG['guishader'] and dlistGuishader then
+		WG['guishader'].DeleteDlist('buildmenu')
+		dlistGuishader = nil
+	end
+	if dlistCache then
+		dlistCache = gl.DeleteList(dlistCache)
+	end
+	WG['buildmenu'] = nil
+	if WG.StopDrawUnitShapeGL4 then
+		for id, _ in pairs(unitshapes) do
+			removeUnitShape(id)
+		end
+	end
+end
+
 function widget:GetConfigData()
-	--save config
 	return {
 		showPrice = showPrice,
 		showRadarIcon = showRadarIcon,
@@ -1726,7 +1808,6 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	--load config
 	if data.showPrice ~= nil then
 		showPrice = data.showPrice
 	end

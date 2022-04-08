@@ -20,7 +20,6 @@ local chickenTypes = {
 	n_chickenq     =  true,
 	h_chickenq     =  true,
 	vh_chickenq    =  true,
-	epic_chickenq  =  true,
 	chicken1       =  true,
 	chicken1b      =  true,
 	chicken1c      =  true,
@@ -133,19 +132,6 @@ local optionValues = {
 	  damageMod         = 0.66,
 	  queenName         = 'vh_chickenq',
   },
-
-  [difficulties.epic] = {
-	  chickenSpawnRate  = 120,
-	  burrowSpawnRate   = 30,
-	  queenSpawnMult    = 3,
-	  angerBonus        = 0.5,
-	  expStep           = 0.5,
-	  lobberEMPTime     = 10,
-	  chickensPerPlayer = 50,
-	  spawnChance       = 0.75,
-	  damageMod         = 1.0,
-	  queenName         = 'epic_chickenq',
-	},
 
 	[difficulties.survival] = {
 	  chickenSpawnRate    = 80,

@@ -12,6 +12,7 @@ static-var  gun_1, gun_2, restore_delay, oldheading;
 #define SIG_AIM				2
 #define SIG_AIM_2			4
 #define SIG_MOVE			8
+#define SIG_STEER			16
 
 
 #define BASEPIECE base
@@ -45,12 +46,12 @@ RockOnWaves()
 
 Steering(heading, steery, currentspeed)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	//signal SIG_MOVE;
+	//set-signal-mask SIG_MOVE;
 	while(1)
 	{
 		heading = get HEADING;
-		steery = (heading - oldheading)*3;
+		steery = (oldheading - heading)*2;
 		turn fin to y-axis steery speed <60>;
 		sleep 100;
 		oldheading = heading;

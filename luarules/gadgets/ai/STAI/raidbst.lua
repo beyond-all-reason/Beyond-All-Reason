@@ -12,10 +12,10 @@ function RaidBST:Init()
 	self.mtype = self.ai.armyhst.unitTable[self.name].mtype
 	local p = u:GetPosition()
 	local Cell0,p0,z0 = self.ai.targethst:GetCellHere(p)
-	if not p0 then
-		self.ai.targethst:GetOrCreateCellHere(p)
-		Cell0,p0,z0 = self.ai.targethst:GetCellHere(p)
-	end
+-- 	if not p0 then
+-- 		self.ai.targethst:GetOrCreateCellHere(p)
+-- 		Cell0,p0,z0 = self.ai.targethst:GetCellHere(p)
+-- 	end
 	--self.squadID = self.name .. p0.. ':'..z0
 	local net = self.ai.maphst:MobilityNetworkHere(self.mtype, p)
 	if not net then
@@ -48,7 +48,7 @@ function RaidBST:Priority()
 		self:EchoDebug('be a raider')
  		return 101
  	else
-		--self:EchoDebug('not a raider')
+		self:EchoDebug('not a raider')
  		return 0
  	end
 end
@@ -61,6 +61,7 @@ function RaidBST:Update()
 		local p = u:GetPosition()
 		local net = self.ai.maphst:MobilityNetworkHere(self.mtype, p)
 		if not net then
+			u:Move(self.ai.tool:RandomAway( p, 50))
 			self:EchoDebug('there is not a network for ', self.mtype, 'here', p.x,p.z)
 			return
 		end
@@ -69,8 +70,6 @@ function RaidBST:Update()
 		self.ai.raidhst.raiders[u:ID()] = {name = self.name,squadID =  self.squadID, mclass = self.ai.armyhst.unitTable[self.name].mclass,mtype = self.mtype}
 	end
 	self.unit:ElectBehaviour()
-
-
 end
 
 function RaidBST:Activate()

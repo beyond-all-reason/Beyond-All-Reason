@@ -801,6 +801,7 @@ local function UpdateRecentBroadcasters()
 end
 
 local function LockCamera(playerID)
+	mySpecStatus, fullView, _ = Spring.GetSpectatingState()
     if playerID and playerID ~= myPlayerID and playerID ~= lockPlayerID and Spring_GetPlayerInfo(playerID) then
         if lockcameraHideEnemies and not select(3, Spring_GetPlayerInfo(playerID)) then
             Spring.SendCommands("specteam " .. select(4, Spring_GetPlayerInfo(playerID)))
@@ -1177,7 +1178,7 @@ function GetSkill(playerID)
     local tsSigma = customtable.skilluncertainty
     local tskill = ""
     if tsMu then
-        tskill = tsMu and tonumber(tsMu:match("%d+%.?%d*")) or 0
+        tskill = tsMu and tonumber(tsMu:match("-?%d+%.?%d*")) or 0
         tskill = round(tskill, 0)
         if string.find(tsMu, ")", nil, true) then
             tskill = "\255" .. string.char(190) .. string.char(140) .. string.char(140) .. tskill -- ')' means inferred from lobby rank
@@ -1217,7 +1218,7 @@ end
 function CreatePlayer(playerID)
     --generic player data
     local tname, _, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank = Spring_GetPlayerInfo(playerID, false)
-    local _, _, _, _, tside, tallyteam = Spring_GetTeamInfo(tteam, false)
+    local _, _, _, _, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(tteam, false)
     local tred, tgreen, tblue = Spring_GetTeamColor(tteam)
 
     --skill
@@ -1273,6 +1274,7 @@ function CreatePlayer(playerID)
         energyStorage = energyStorage,
         metal = metal,
         metalStorage = metalStorage,
+		incomeMultiplier = tincomeMultiplier,
     }
 end
 
@@ -1293,7 +1295,7 @@ end
 
 function CreatePlayerFromTeam(teamID)
     -- for when we don't have a human player occupying the slot, also when a player changes team (dies)
-    local _, _, isDead, isAI, tside, tallyteam = Spring_GetTeamInfo(teamID, false)
+    local _, _, isDead, isAI, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(teamID, false)
     local tred, tgreen, tblue = Spring_GetTeamColor(teamID)
     local tname, ttotake, tskill, tai
     local tdead = true
@@ -1356,6 +1358,7 @@ function CreatePlayerFromTeam(teamID)
         energyStorage = energyStorage,
         metal = metal,
         metalStorage = metalStorage,
+		incomeMultiplier = tincomeMultiplier,
     }
 end
 
@@ -2434,12 +2437,17 @@ function DrawName(name, team, posY, dark, playerID)
         font2:SetOutlineColor(0, 0, 0, 1)
         font2:Print( nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
     end
+
+	if player[playerID] and player[playerID].incomeMultiplier and player[playerID].incomeMultiplier > 1 then
+		font2:SetTextColor(0.5,1,0.5,1)
+		font2:Print('+'..math.floor((player[playerID].incomeMultiplier-1)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14), posY + 5.7 , 8, "o")
+	end
 	font2:End()
 
     if ignored then
         local x = m_name.posX + widgetPosX + 2 + xPadding
         local y = posY + 7
-        local w = font:GetTextWidth(nameText) * 14 + 2
+        local w = font2:GetTextWidth(nameText) * 14 + 2
         local h = 2
         gl_Color(1, 1, 1, 0.9)
         gl_Texture(false)
@@ -2464,34 +2472,32 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
         textindent = 0
     end
 
+	font2:Begin()
     if playerSpecs[playerID] ~= nil then
-		font2:Begin()
+		local r,g,b = Spring_GetTeamColor(team)
         if dark then
-			font2:SetTextColor(Spring_GetTeamColor(team))
+			font2:SetTextColor(r, g, b, 1)
 			font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(0.75, 0.7 * widgetScale))
             font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
         else
-			local r,g,b = Spring_GetTeamColor(team)
             font2:SetTextColor(r, g, b, 0.78)
             font2:SetOutlineColor(0, 0, 0, 0.3)
             font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "n")
         end
-		font2:End()
     else
-        font2:Begin()
         font2:SetTextColor(0, 0, 0, 0.3)
         font2:SetOutlineColor(0, 0, 0, 0.3)
         font2:Print(name, m_name.posX + textindent + widgetPosX + 2.2, posY + 3.3, 10, "n")
         font2:Print(name, m_name.posX + textindent + widgetPosX + 3.8, posY + 3.3, 10, "n")
         font2:SetTextColor(1, 1, 1, alpha)
         font2:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + 4, 10, "n")
-        font2:End()
     end
+	font2:End()
 
     if ignored then
         local x = m_name.posX + textindent + widgetPosX + 2.2
         local y = posY + 6
-        local w = font:GetTextWidth(name) * 10 + 2
+        local w = font2:GetTextWidth(name) * 10 + 2
         local h = 2
         gl_Texture(false)
         gl_Color(1, 1, 1, 0.7)
@@ -2509,7 +2515,6 @@ function DrawID(playerID, posY, dark, dead)
     local fontSize = 11
     local deadspace = 0
     font:Begin()
-
 	if dead then
         font:SetTextColor(1, 1, 1, 0.4)
     else

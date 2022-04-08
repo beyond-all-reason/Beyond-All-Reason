@@ -83,7 +83,7 @@ function GetMexPositions(spot, uDefID, facing, testBuild)
 				gridSize do
 				local y = spGetGroundHeight(x, z)
 				if not (testBuild and spTestBuildOrder(uDefID, x, y, z, facing) == 0) then
-					positions[#positions + 1] = {x, y, z}
+					positions[#positions + 1] = {x=x, y=y, z=z}
 				end
 			end
 		end

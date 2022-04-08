@@ -110,10 +110,10 @@ void main()
 	vec3 vertexWorldPos = vec3(localpos_dir_angle.x,0,localpos_dir_angle.y);
 	mat3 roty;
 	if (localpos_dir_angle.z < 0 ){
-		roty = rotation3dY(timeInfo.x*0.005);
+		roty = rotation3dY((timeInfo.x + timeInfo.w)*0.005);
 	}else{
 		vertexWorldPos.x *= -1; // flip outer circle
-		roty = rotation3dY(-timeInfo.x*0.005);
+		roty = rotation3dY(-(timeInfo.x + timeInfo.w)*0.005);
 	}
 	vertexWorldPos = roty * vertexWorldPos;
 
@@ -124,9 +124,9 @@ void main()
 	gl_Position = cameraViewProj * vec4(vertexWorldPos,1.0);
 
 	if (visibility.x > 0.5 ){ // going into occupied, so fade out from visibility.y
-		circlealpha =  clamp(( timeInfo.x - visibility.y)/30, 0.0, 0.5);
+		circlealpha =  clamp(( (timeInfo.x + timeInfo.w) - visibility.y)/30, 0.0, 0.5);
 	}else{ // turned unoccipied, fading into visibility
-		circlealpha = clamp(0.5 - ( timeInfo.x - visibility.y)/30, 0.0, 0.5);
+		circlealpha = clamp(0.5 - ((timeInfo.x + timeInfo.w) - visibility.y)/30, 0.0, 0.5);
 	}
 	//circlealpha = visibility.x;
 }

@@ -44,11 +44,11 @@ local scoreModes = {
 local scoreMode = scoreModes[selectedScoreMode]
 local _,_,_,_,_,gaiaAllyTeamID = Spring.GetTeamInfo(Spring.GetGaiaTeamID())
 
-local pieces = math.floor(captureRadius / 12)
+local pieces = math.floor(captureRadius / 9)
 local OPTIONS = {
 	circlePieces = pieces,
-	circlePieceDetail = math.floor(pieces / 4),
-	circleSpaceUsage = 0.82,
+	circlePieceDetail = math.floor(pieces / 3),
+	circleSpaceUsage = 0.81,
 	circleInnerOffset = 0,
 	rotationSpeed = 0.3,
 }
@@ -431,6 +431,7 @@ function widget:GameFrame()
 end
 
 function widget:DrawWorldPreUnit()
+	if Spring.IsGUIHidden() then return end
 	PolygonOffset(-10000, -1)  -- draw on top of water/map - sideeffect: will shine through terrain/mountains
 	drawPoints(false)        -- Todo: use DrawWorldPreUnit make it so that it colorizes the map/ground
 	PolygonOffset(false)

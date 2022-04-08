@@ -33,7 +33,7 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		dirty 				= false,
 		numVertices 		= 0,
 		primitiveType 		= GL.TRIANGLES,
-		debugZombies 		= false,  -- this is new, and its for debugging non-existing stuff on unitdestroyed
+		debugZombies 		= true,  -- this is new, and its for debugging non-existing stuff on unitdestroyed
 	}
 
 	if unitIDattribID ~= nil then
@@ -164,8 +164,9 @@ function locateInvalidUnits(iT)
 		else
 			if Spring.ValidUnitID(unitID) then 
 				local px, py, pz = Spring.GetUnitPosition(unitID)
-				local fdefname = UnitDefs[Spring.GetUnitDefID(unitID)].name
-				iT.validinfo[unitID] = {px = px, py = py, pz = pz, unitdefname = fdefname}
+				local unitDefID = Spring.GetUnitDefID(unitID)
+				local unitdefname = (unitDefID and UnitDefs[unitDefID].name) or "unknown:nil"
+				iT.validinfo[unitID] = {px = px, py = py, pz = pz, unitdefname = unitdefname}
 			else
 				Spring.SendCommands({"pause 1"})
 				Spring.Echo(iT.myName, " INVALID unitID",unitID,"#elements", iT.usedElements, "last seen at tablepos:", i)
@@ -425,7 +426,8 @@ function popElementInstance(iT, instanceID, noUpload)
 							for zombie, gf in pairs(iT.zombies) do 
 								s = s .. " " .. tostring(zombie)
 								Spring.Echo("ZOMBIE AT", zombie, Spring.GetUnitPosition(zombie))
-								Spring.SendCommands({"pause 1"})
+								--Spring.SendCommands({"pause 1"})
+								Spring.Debug.TraceFullEcho()
 							end 
 							Spring.Echo(s)
 							iT.zombies = {}
@@ -454,16 +456,18 @@ function popElementInstance(iT, instanceID, noUpload)
 				end
 			else
 				if iT.debugZombies then 
-					Spring.Echo("Warning: Tried to pop back an invalid" .. ((iT.featureIDs and "featureID") or "unitID"), popunitID, "from", iT.myName, "while removing instance", instanceID, counttable(iT.instanceIDtoIndex), counttable(iT.indextoInstanceID), counttable(iT.indextoUnitID))
-					Spring.Debug.TraceFullEcho()
+					--Spring.Echo("Warning: Tried to pop back an invalid" .. ((iT.featureIDs and "featureID") or "unitID"), popunitID, "from", iT.myName, "while removing instance", instanceID, counttable(iT.instanceIDtoIndex), counttable(iT.indextoInstanceID), counttable(iT.indextoUnitID))
+					--Spring.Debug.TraceFullEcho()
 					local gf = Spring.GetGameFrame()
 					if iT.lastpopgameframe == nil or iT.lastpopgameframe ~= gf then -- New gameframe
 						iT.lastpopgameframe = gf
 						iT.zombies = {}
 						iT.numZombies = 0
 					end 
-					iT.zombies[popunitID] = gf
-					iT.numZombies = iT.numZombies + 1 
+					if iT.zombies[popunitID] == nil then 
+						iT.zombies[popunitID] = gf
+						iT.numZombies = iT.numZombies + 1 
+					end
 				end
 			end 
 		end

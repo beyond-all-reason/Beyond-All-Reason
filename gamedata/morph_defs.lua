@@ -1,19 +1,19 @@
 --[[   Morph Definition File
 
 Morph parameters description
-local morphDefs = {		--beginig of morphDefs
+local morphDefs = {		--beginning of morphDefs
 	unitname = {		--unit being morphed
 		into = 'newunitname',		--unit in that will morphing unit morph into
 		time = 12,			--time required to complete morph process (in seconds)
 		--require = 'requnitname',	--unit requnitname must be present in team for morphing to be enabled
-		metal = 10,			--required metal for morphing process     note: if you ommit M and/or E costs, morph costs the
+		metal = 10,			--required metal for morphing process     note: if you omit M and/or E costs, morph costs the
 		energy = 10,			--required energy for morphing process		difference in costs between unitname and newunitname
 		xp = 0.07,			--required experience for morphing process (will be deduced from unit xp after morph, default=0)
-		rank = 1,			--required unit rank for morphing to be enabled, if ommited, morph doesn't require rank
-		tech = 2,			--required tech level of a team for morphing to be enabled (1,2,3), if ommited, morph doesn't require tech
-		cmdname = 'Ascend',		--if ommited will default to "Upgrade"
-		texture = 'MyIcon.dds',		--if ommited will default to [newunitname] buildpic, textures should be in "LuaRules/Images/Morph"
-		text = 'Description',		--if ommited will default to "Upgrade into a [newunitname]", else it's "Description"
+		rank = 1,			--required unit rank for morphing to be enabled, if omitted, morph doesn't require rank
+		tech = 2,			--required tech level of a team for morphing to be enabled (1,2,3), if omitted, morph doesn't require tech
+		cmdname = 'Ascend',		--if omitted will default to "Upgrade"
+		texture = 'MyIcon.dds',		--if omitted will default to [newunitname] buildpic, textures should be in "LuaRules/Images/Morph"
+		text = 'Description',		--if omitted will default to "Upgrade into a [newunitname]", else it's "Description"
 						--you may use "$$unitname" and "$$into" in 'text', both will be replaced with human readable unit names 
 	},
 }				--end of morphDefs
@@ -72,10 +72,6 @@ local morphDefs = {
 	},
 
 
-
-
-
-
 	-- Scav copies (until i can do that automagically)
 	armmex_scav = {
 		{
@@ -123,12 +119,93 @@ local morphDefs = {
 		},
 	},
 
+	--Legion Commander
+	legcom = {
+		{
+			into = 'legcomdef',
+			time = 10,
+			cmdname = "Defense Commander",
+			metal = 0,
+			energy = 0,
+			text = "Defense Commander",
+		},
+		{
+			into = 'legcomoff',
+			time = 10,
+			cmdname = [[Offense Commander]],
+			metal = 0,
+			energy = 0,
+			text = [[Offense Commander]],
+		},
+		{
+			into = 'legcomecon',
+			time = 10,
+			cmdname = 'Economy Commander',
+			metal = 0,
+			energy = 0,
+			text = 'Economy Commander',
+		},
+	},
+	legcomdef = {
+		{
+			into = "legcomt2def",
+			time = 10,
+			cmdname = [[Defensive Support Commander]],
+			metal = 0,
+			energy = 0,
+			text = [[Defensive Support Commander]],
+		},
+		{
+			into = "legcomt2com",
+			time = 10,
+			cmdname = [[Combat Commander]],
+			metal = 0,
+			energy = 0,
+			text = [[Combat Commander]],
+		},
+	},
+	legcomoff = {
+		{
+			into = "legcomt2off",
+			time = 10,
+			cmdname = [[Tactical Offense Commander]],
+			metal = 0,
+			energy = 0,
+			text = [[Tactical Offense Commander]],
+		},
+		{
+			into = "legcomt2com",
+			time = 10,
+			cmdname = [[Combat Commander]],
+			metal = 0,
+			energy = 0,
+			text = [[Combat Commander]],
+		},
+	},
+	legcomecon = {
+		{
+			into = "legcomt2def",
+			time = 10,
+			cmdname = [[Defensive Support Commander]],
+			metal = 0,
+			energy = 0,
+			text = [[Defensive Support Commander]],
+		},
+		{
+			into = "legcomt2off",
+			time = 10,
+			cmdname = [[Tactical Offense Commander]],
+			metal = 0,
+			energy = 0,
+			text = [[Tactical Offense Commander]],
+		},
+	},
 }
 
 
 
 
--- --------------------- Evo stuff for refference --------------------------------------------
+-- --------------------- Evo stuff for reference --------------------------------------------
 
 
 -- local devolution = (-1 > 0)

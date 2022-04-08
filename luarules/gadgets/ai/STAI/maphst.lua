@@ -1119,7 +1119,7 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 				elseif self.ai.targethst:IsSafePosition(p, builder, 200) then
 					self:EchoDebug('7')
 					-- is it an enemy mex that's blocking a safe position (or an unknown radar blip)?
-					for i, enemySpot in pairs(self.ai.enemyMexSpots) do
+					for i, enemySpot in pairs(self.ai.targethst.enemyMexSpots) do
 						local epos = enemySpot.position
 						if p.x > epos.x - 100 and p.x < epos.x + 100 and p.z > epos.z - 100 and p.z < epos.z + 100 then
 							bestDistance = dist

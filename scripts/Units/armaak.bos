@@ -8,7 +8,7 @@ piece pelvis, rthigh, rleg, lthigh, lleg, torso, lfoot, rfoot, lturret, rturret,
 static-var bMoving, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5,
   Static_Var_6, Static_Var_7, animSpeed, maxSpeed, animFramesPerKeyframe;
 
-#define SIG_WALK 4
+#define SIG_WALK 1
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Documents\GitHub\support\Animation_sources\armaak_anim_walk.blend 
 	//set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:5
@@ -39,7 +39,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn pelvis to y-axis <-5.333333> speed <109.999997> / animSpeed; //delta=-3.67 
 			turn rfoot to x-axis <33.139146> speed <309.555255> / animSpeed; //delta=-10.32 
 			turn rleg to x-axis <6.793288> speed <495.675319> / animSpeed; //delta=16.52 
-			turn rleg to z-axis <-4.077463> speed <87.984345> / animSpeed; //delta=2.93 
+			turn rleg to z-axis <-4.077463> speed <87.984345> / animSpeed; //delta=2.93 =
 			turn rthigh to x-axis <-37.148511> speed <299.948919> / animSpeed; //delta=-10.00 
 			turn rturret to x-axis <-0.000000> speed <99.999999> / animSpeed; //delta=3.33 
 			turn torso to z-axis <-2.000000> speed <30.000006> / animSpeed; //delta=1.00 

@@ -14,13 +14,16 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local random			= math.random
-local GetUnitHealth 	= Spring.GetUnitHealth
-local SetUnitCOBValue 	= Spring.SetUnitCOBValue
-local SetUnitNoSelect	= Spring.SetUnitNoSelect
-local SetUnitNoMinimap	= Spring.SetUnitNoMinimap
+local random = math.random
+local GetUnitHealth = Spring.GetUnitHealth
+local SetUnitCOBValue = Spring.SetUnitCOBValue
+local SetUnitNoSelect = Spring.SetUnitNoSelect
+local SetUnitNoMinimap = Spring.SetUnitNoMinimap
 local SetUnitSensorRadius = Spring.SetUnitSensorRadius
 local SetUnitWeaponState = Spring.SetUnitWeaponState
+local SetUnitStealth = Spring.SetUnitStealth
+local SetUnitNeutral = Spring.SetUnitNeutral
+local SetUnitAlwaysVisible = Spring.SetUnitAlwaysVisible
 local DestroyUnit = Spring.DestroyUnit
 
 local COB_CRASHING = COB.CRASHING
@@ -84,7 +87,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			SetUnitCOBValue(unitID, COB_CRASHING, 1)
 			SetUnitNoSelect(unitID,true)
 			SetUnitNoMinimap(unitID,true)
-			Spring.SetUnitAlwaysVisible(unitID, true)
+			SetUnitStealth(unitID, true)
+			SetUnitAlwaysVisible(unitID, false)
+			SetUnitNeutral(unitID, true)
 			for weaponID, weapon in pairs(UnitDefs[unitDefID].weapons) do
 				SetUnitWeaponState(unitID, weaponID, "reloadTime", 9999)
 				SetUnitWeaponState(unitID, weaponID, "range", 0)

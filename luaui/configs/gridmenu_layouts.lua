@@ -512,8 +512,8 @@ local unitGrids = {
 	--T2 bot cons
 	armack = {
 		{
-			{ "armmoho", "armfus", "armafus", "armageo", },            -- moho, fusion, afus, T2 geo
-			{ "armmmkr", "armgmm", "armckfus", },                      -- T2 converter, safe geo, cloaked fusion
+			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
+			{ "armmmkr", "armageo", "armckfus", },                     -- T2 converter, T2 geo, cloaked fusion
 			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
@@ -535,13 +535,13 @@ local unitGrids = {
 
 	corack = {
 		{
-			{ "cormoho", "corfus", "corafus", "corageo", },     -- moho, fusion, afus, T2 geo
-			{ "cormmkr", "corbhmth", "cormexp", },              -- T2 converter, behemoth, armed moho
+			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
 			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", },            -- flak, long-range AA
+			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "corint", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
 		{
@@ -559,8 +559,8 @@ local unitGrids = {
 	--T2 vehicle cons
 	armacv = {
 		{
-			{ "armmoho", "armfus", "armafus", "armageo", },            -- moho, fusion, afus, T2 geo
-			{ "armmmkr", "armgmm", "armckfus", },                      -- T2 converter, safe geo, cloaked fusion
+			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
+			{ "armmmkr", "armageo", "armckfus", },                     -- T2 converter, T2 geo, cloaked fusion
 			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
@@ -582,13 +582,13 @@ local unitGrids = {
 
 	coracv = {
 		{
-			{ "cormoho", "corfus", "corafus", "corageo", },     -- moho, fusion, afus, T2 geo
-			{ "cormmkr", "corbhmth", "cormexp", },              -- T2 converter, behemoth, armed moho
+			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
 			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", },            -- flak, long-range AA
+			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "corint", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
 		{
@@ -606,8 +606,8 @@ local unitGrids = {
 	--T2 air cons
 	armaca = {
 		{
-			{ "armmoho", "armfus", "armafus", "armageo", },            -- moho, fusion, afus, T2 geo
-			{ "armmmkr", "armgmm", "armckfus", },                      -- T2 converter, safe geo, cloaked fusion
+			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
+			{ "armmmkr", "armageo", "armckfus", },                     -- T2 converter, T2 geo, cloaked fusion
 			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
@@ -629,13 +629,13 @@ local unitGrids = {
 
 	coraca = {
 		{
-			{ "cormoho", "corfus", "corafus", "corageo", },     -- moho, fusion, afus, T2 geo
-			{ "cormmkr", "corbhmth", "cormexp", },              -- T2 converter, behemoth, armed moho
+			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
 			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
 			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", },            -- flak, long-range AA
+			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
 			{ "corint", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
 		},
 		{

@@ -1,4 +1,3 @@
-
 function gadget:GetInfo()
 	return {
 		name = "Prevent Range Hax",
@@ -15,32 +14,24 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local GiveOrderToUnit = Spring.GiveOrderToUnit
-local GetGroundHeight = Spring.GetGroundHeight
-local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitHeight = Spring.GetUnitHeight
-
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetGroundHeight = Spring.GetGroundHeight
 local CMD_ATTACK = CMD.ATTACK
 local CMD_INSERT = CMD.INSERT
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if fromSynced then
 		return true
-	end
-	if cmdID == CMD_INSERT and CMD_ATTACK == cmdParams[2] and cmdParams[6] then
-		local y = GetGroundHeight(cmdParams[4], cmdParams[6]) --is automatically corrected for below/above waterline and water/nonwater weapons within engine
+	elseif cmdID == CMD_INSERT and CMD_ATTACK == cmdParams[2] and cmdParams[6] then
+		local y = spGetGroundHeight(cmdParams[4], cmdParams[6]) --is automatically corrected for below/above waterline and water/nonwater weapons within engine
 		if cmdParams[5] > y then
-			GiveOrderToUnit(unitID, CMD_INSERT, { cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4], y, cmdParams[6] }, cmdOptions.coded)
+			spGiveOrderToUnit(unitID, CMD_INSERT, { cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4], y, cmdParams[6] }, cmdOptions.coded)
 			return false
 		end
-	end
-	if cmdID == CMD_ATTACK and cmdParams[3] then
-		local y = GetGroundHeight(cmdParams[1], cmdParams[3])
+	elseif cmdID == CMD_ATTACK and cmdParams[3] then
+		local y = spGetGroundHeight(cmdParams[1], cmdParams[3])
 		if cmdParams[2] > y then
-			GiveOrderToUnit(unitID, CMD_ATTACK, { cmdParams[1], y, cmdParams[3] }, cmdOptions.coded)
+			spGiveOrderToUnit(unitID, CMD_ATTACK, { cmdParams[1], y, cmdParams[3] }, cmdOptions.coded)
 			return false
 		end
 	end

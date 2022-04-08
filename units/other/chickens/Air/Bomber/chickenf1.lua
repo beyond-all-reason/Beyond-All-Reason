@@ -18,6 +18,7 @@ return {
 		canpatrol = true,
 		canstop = "1",
 		cansubmerge = true,
+		capturable = false,
 		category = "ALL MOBILE WEAPON NOTLAND VTOL NOTSUB NOTSHIP NOTHOVER CHICKEN",
 		collide = false,
 		collisionvolumeoffsets = "0 8 -2",

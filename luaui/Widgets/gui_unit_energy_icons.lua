@@ -293,6 +293,7 @@ function widget:DrawWorld()
 	if energyIconVBO.usedElements > 0 then
 		local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		gl.DepthTest(true)
+		gl.DepthMask(false)
 		gl.Texture('LuaUI/Images/energy-red.png')
 		energyIconShader:Activate()
 		energyIconShader:SetUniform("iconDistance",disticon)
@@ -301,5 +302,6 @@ function widget:DrawWorld()
 		energyIconShader:Deactivate()
 		gl.Texture(false)
 		gl.DepthTest(false)
+		gl.DepthMask(true)
 	end
 end

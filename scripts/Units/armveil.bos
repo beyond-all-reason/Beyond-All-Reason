@@ -6,7 +6,7 @@
 piece  base, turret, dish;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
-
+static-var  Stunned;
 
 
 Go()
@@ -15,12 +15,20 @@ Go()
 	spin turret around y-axis speed <120.027473>;
 	return (0);
 }
-
 Stop()
 {
 	spin dish around y-axis speed <0.000000>;
 	spin turret around y-axis speed <0.000000>;
 	return (0);
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script Go();
+	}
 }
 
 InitState()

@@ -150,6 +150,15 @@ function map:MapDimensions() -- returns a Position holding the dimensions of the
 	}
 end
 
+function map:MapElmo() -- returns a Position holding the dimensions of the map
+	return {
+		x = Game.mapSizeX ,
+		z = Game.mapSizeZ ,
+		y = 0
+	}
+end
+
+
 function map:MapName() -- returns the name of this map
 	return Game.mapName
 end

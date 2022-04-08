@@ -54,7 +54,7 @@ return {
 				animating = 0,
 				animtrans = 0,
 				blocking = true,
-				category = "rocks NOTHOVER",
+				category = "heaps",
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				crushresistance = 0,

@@ -2,23 +2,13 @@ VFS.Include('init.lua')
 
 -- See: https://springrts.com/wiki/Modrules.lua
 local xpmultiplier = Spring.GetModOptions().experimentalxpgain
-local gadgetXPEnabled = Spring.GetModOptions().experimentalxpsystem
 
-if gadgetXPEnabled then
-	XPValues = {
-		experienceMult = 50,
-		powerScale = 0,
-		healthScale = 0,
-		reloadScale = 0,
-	}
-else
-	XPValues = {
-		experienceMult = 0.3,
-		powerScale = 0,
-		healthScale = 2.5,
-		reloadScale = 1.25,
-	}
-end
+XPValues = {
+	experienceMult = 0.3,
+	powerScale = 0,
+	healthScale = 2.5,
+	reloadScale = 1.25,
+}
 
 local modrules = {
 

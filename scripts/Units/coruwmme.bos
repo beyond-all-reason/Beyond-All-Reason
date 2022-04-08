@@ -7,6 +7,7 @@ piece  base, disc;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, statechg_DesiredState,
             statechg_StateChanging;
+static-var  Stunned;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -71,6 +72,16 @@ Create()
 		sleep 1000;
 	}
 	set ARMORED to 1;
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script fixGo();
+	}
 }
 
 Activate()

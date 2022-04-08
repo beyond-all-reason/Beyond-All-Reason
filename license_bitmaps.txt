@@ -1,13 +1,14 @@
 -- bitmaps/projectiletextures/
 
 blastwave.tga
+bubbletexture.tga
 decal_scar_50.tga
 decal_scar_glow.tga
 dirt.png
 dirtbar.png
-bubbletexture.tga
 explo.tga
 explofade.tga
+exploflare.tga
 explowater.tga
 flare2.tga
 flashside2.tga
@@ -32,7 +33,10 @@ smoketrailbar.tga
 smoketraildark.tga
 subwake.tga
 trail.tga
+trail2.tga
+trail3.tga
 wake.tga
+wakegrey.tga
 wave.tga
 waterrush.tga
 whitelightb.tga

@@ -57,6 +57,9 @@ local spGetTeamStartPosition = Spring.GetTeamStartPosition
 local spGetTeamUnits = Spring.GetTeamUnits
 local spGetAllUnits = Spring.GetAllUnits
 local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitNeutral = Spring.GetUnitNeutral
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetGaiaTeamID = Spring.GetGaiaTeamID()
 
 --SYNCED CODE
 if gadgetHandler:IsSyncedCode() then
@@ -131,6 +134,7 @@ if gadgetHandler:IsSyncedCode() then
 		thisAI.friendlyUnitIds = thisAI.friendlyUnitIds or {}
 		thisAI.alliedUnitIds = thisAI.alliedUnitIds or {}
 		thisAI.enemyUnitIds = thisAI.enemyUnitIds or {}
+		thisAI.neutralUnitIds = thisAI.neutralUnitIds or {}
 		return thisAI
 	end
 
@@ -168,14 +172,17 @@ if gadgetHandler:IsSyncedCode() then
 			elseif thisAI.alliedTeamIds[spGetUnitTeam(unitId)] or spGetUnitTeam(unitId) == thisAI.id then
 				thisAI.alliedUnitIds[unitId] = true
 				thisAI.friendlyUnitIds[unitId] = true
+			elseif spGetUnitAllyTeam(unitId) == spGetGaiaTeamID then
+				thisAI.neutralUnitIds[unitId] = true
 			else
 				thisAI.enemyUnitIds[unitId] = true
+
 			end
 
 			if Spring.GetUnitTeam(unitId) == thisAI.id then
 				--prepareTheAI(thisAI)
 				thisAI:Prepare()
-				thisAI.UnitCreated(thisAI, unit)
+				thisAI.UnitCreated(thisAI, unit,builderId)
 			end
 			-- thisAI:UnitCreated(unitId, unitDefId, teamId, builderId)
 		end
@@ -193,6 +200,7 @@ if gadgetHandler:IsSyncedCode() then
 				thisAI.friendlyUnitIds[unitId] = nil
 				thisAI.alliedUnitIds[unitId] = nil
 				thisAI.enemyUnitIds[unitId] = nil
+				thisAI.neutralUnitIds[unitId] = nil
 				-- thisAI:UnitDestroyed(unitId, unitDefId, teamId, attackerId, attackerDefId, attackerTeamId)
 			end
 			Shard:unshardify_unit(self.engineUnit)

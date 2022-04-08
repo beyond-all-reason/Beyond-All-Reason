@@ -123,7 +123,7 @@ void main()
   gl_Position = worldPosInCamSpace;
   
   //blendedcolor = vec4((gl_Position.rg/ gl_Position.w), 0.0, 1.0); //1.0 - (timeInfo.x - colorlife.w)/1000);
-  blendedcolor = vec4(colorlife.rgb, 1.0 - (timeInfo.x - colorlife.w) / LIFEFRAMES);
+  blendedcolor = vec4(colorlife.rgb, 1.0 - ((timeInfo.x + timeInfo.w) - colorlife.w) / LIFEFRAMES);
 }
 ]]
 

@@ -93,7 +93,7 @@ void main() {
 	vec4 modelPos = modelMatrix * localModelPos;
 
 	v_endcolor_alpha.rgba = endcolor_endgameframe.rgba;
-	v_endcolor_alpha.a = clamp( (v_endcolor_alpha.a - timeInfo.x + 100) * 0.01, 0.0, 1.0); // fade out for end time
+	v_endcolor_alpha.a = clamp( (v_endcolor_alpha.a - (timeInfo.x + timeInfo.w) + 100) * 0.01, 0.0, 1.0); // fade out for end time
 
 	float paralyzestrength = uni[instData.y].userDefined[1].x; // this (paralyzedamage/maxhealth), so >=1.0 is paralyzed
 	v_endcolor_alpha.a = clamp(pow(paralyzestrength, 2.0), 0.0, 1.1);
@@ -262,14 +262,14 @@ void main() {
 	// ------------------ CONFIG END --------------------
 	
 	
-	vec4 noiseposition = noisescale*vec4(v_modelPosOrig, (timeInfo.x + timeInfo.w)*lightning_speed);
+	vec4 noiseposition = noisescale * vec4(v_modelPosOrig, (timeInfo.x + timeInfo.w) * lightning_speed);
 	float noise4 = 0;
 	noise4 += pow(persistance, 1.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 1.0));
 	noise4 += pow(persistance, 2.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 2.0));
 	noise4 += pow(persistance, 3.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 3.0));
 	noise4 += pow(persistance, 4.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 4.0));
 	noise4 = (1.0 * noise4 + 0.5);
-	float electricity = clamp(1.0 - abs(noise4  - 0.5)*lighting_width, 0.0, 1.0);
+	float electricity = clamp(1.0 - abs(noise4 - 0.5) * lighting_width, 0.0, 1.0);
 	electricity = clamp(pow(electricity, lighting_sharpness), 0.0, 1.0);
 
 	vec3 lightningcolor;
@@ -421,6 +421,7 @@ function widget:UnitLeftLos(unitID)
 end
 
 function widget:UnitEnteredLos(unitID)
+	if fullview then return end
 	widget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 end
 
@@ -438,10 +439,11 @@ function widget:GameFrame(n)
 		if n % 3 == 0 then
 			for unitID, index in pairs(paralyzedDrawUnitVBOTable.instanceIDtoIndex) do
 				local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
-				uniformcache[1] = (paralyzeDamage or 0) / (maxHealth or 1) -- 1 to avoid div0
-				gl.SetUnitBufferUniforms(unitID, uniformcache, 4)
-				if paralyzeDamage == 0 then
+				if paralyzeDamage == 0 or paralyzeDamage == nil then
 					toremove[unitID] = true
+				else
+					uniformcache[1] = (paralyzeDamage or 0) / (maxHealth or 1) -- 1 to avoid div0
+					gl.SetUnitBufferUniforms(unitID, uniformcache, 4)
 				end
 			end
 		end
@@ -476,7 +478,7 @@ function widget:DrawWorld()
 	if paralyzedDrawUnitVBOTable.usedElements > 0 then
 		--if Spring.GetGameFrame() % 90 == 0 then Spring.Echo("Drawing paralyzed units #", paralyzedDrawUnitVBOTable.usedElements) end
 		gl.Culling(GL.BACK)
-		gl.DepthMask(true)
+		gl.DepthMask(false)
 		gl.DepthTest(true)
 		gl.PolygonOffset( -2 ,-2)
 		paralyzedUnitShader:Activate()
@@ -485,6 +487,7 @@ function widget:DrawWorld()
 		paralyzedUnitShader:Deactivate()
 		--gl.Texture(0, false)
 		gl.PolygonOffset( false )
+		gl.DepthMask(true)
 		gl.Culling(false)
 	end
 end

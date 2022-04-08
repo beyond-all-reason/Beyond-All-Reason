@@ -54,10 +54,16 @@ void main() {
   float rect_width_pixels  = time_duration_wasgf.y / viewGeometry.x - 1 / viewGeometry.x; 
   float rect_height_pixels = 8 * time_duration_wasgf.y / viewGeometry.y;
   float rect_bottom_right  = 1.0 -  (shaderparams.x * 1.0 - time_duration_wasgf.x  ) / viewGeometry.x;
+  
+  if (time_duration_wasgf.z > 0.5) {
+	//rect_width_pixels = rect_width_pixels + 1 / viewGeometry.x;
+	//rect_height_pixels = rect_height_pixels + 60 / viewGeometry.y;
+  }
+  
 
   gl_Position = vec4(
     rect_bottom_right - coords.x*rect_width_pixels,
-    -1.0 + coords.y * rect_height_pixels,
+    -1.0 + coords.y * (rect_height_pixels ) ,
     0.5 + 0.1*time_duration_wasgf.z + time_duration_wasgf.w * 0.1,
     1.0
   );
@@ -129,11 +135,20 @@ end
 
 local wasgameframe = 0
 local prevframems = 0
+local gameFrameHappened = false
+local drawspergameframe = 0
+
 function widget:GameFrame(n)
   wasgameframe =  wasgameframe + 1
+  gameFrameHappened = true
+  if drawspergameframe ~= 2 then
+	--Spring.Echo(drawspergameframe, "draws instead of 2", n)
+  end
+  drawspergameframe = 0
 end
 
 function widget:DrawScreen()
+	drawspergameframe = drawspergameframe + 1 
 	local drawpersimframe = math.floor(Spring.GetFPS()/30.0 +0.5 )
 	
 	local timernew = spGetTimer()
@@ -179,4 +194,5 @@ function widget:DrawScreen()
   rectShader:Deactivate()
   wasgameframe = 0
   prevframems = lastframeduration
+  gameFrameHappened = false
 end

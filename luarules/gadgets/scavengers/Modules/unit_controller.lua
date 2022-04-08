@@ -1,8 +1,6 @@
 Spring.Echo("[Scavengers] Unit Controller initialized")
 
-VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/staticunits.lua")
-
-function SelfDestructionControls(n, scav, scavDef, friendly)
+local function selfDestructionControls(n, scav, scavDef, friendly)
 	UnitRange = {}
 	Constructing = {}
 	--Constructing[scav] = false
@@ -40,7 +38,7 @@ function SelfDestructionControls(n, scav, scavDef, friendly)
 						local posz = math.random(selfdz[scav] - 400, selfdz[scav] + 400)
 						local telstartposy = Spring.GetGroundHeight(selfdx[scav], selfdz[scav])
 						local telendposy = Spring.GetGroundHeight(posx, posz)
-						local poscheck = posLosCheckOnlyLOS(posx, telendposy, posz, 100)
+						local poscheck = positionCheckLibrary.VisibilityCheckEnemy(posx, telendposy, posz, 100, ScavengerAllyTeamID, true, false, false)
 						if (-(UnitDefs[scavDef].minWaterDepth) > telendposy) and (-(UnitDefs[scavDef].maxWaterDepth) < telendposy) and scavparalyze == 0 and (poscheck == true or friendly == true) then
 							Spring.SpawnCEG("scav-spawnexplo",selfdx[scav],telstartposy,selfdz[scav],0,0,0)
 							Spring.SpawnCEG("scav-spawnexplo",posx,telendposy,posz,0,0,0)
@@ -58,7 +56,7 @@ function SelfDestructionControls(n, scav, scavDef, friendly)
 	Constructing[scav] = nil
 end
 
-function ArmyMoveOrdersInitialPhase(n, scav, scavDef)
+local function armyMoveOrdersInitialPhase(n, scav, scavDef)
 	UnitRange = {}
 	if UnitDefs[scavDef].maxWeaponRange and UnitDefs[scavDef].maxWeaponRange > 100 then
 		UnitRange[scav] = UnitDefs[scavDef].maxWeaponRange
@@ -72,13 +70,13 @@ function ArmyMoveOrdersInitialPhase(n, scav, scavDef)
 	local z = math.random(0, mapsizeZ)
 	local y = Spring.GetGroundHeight(x,z)
 	if (-(UnitDefs[scavDef].minWaterDepth) > y) and (-(UnitDefs[scavDef].maxWaterDepth) < y) or UnitDefs[scavDef].canFly then
-		if posLosCheck(x, y, z, range) then
+		if positionCheckLibrary.VisibilityCheckEnemy(x, y, z, range, ScavengerAllyTeamID, true, true, true) then
 			Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
 		end
 	end
 end
 
-function ArmyMoveOrders(n, scav, scavDef)
+local function armyMoveOrders(n, scav, scavDef)
 	UnitRange = {}
 	if UnitDefs[scavDef].maxWeaponRange and UnitDefs[scavDef].maxWeaponRange > 100 then
 		UnitRange[scav] = UnitDefs[scavDef].maxWeaponRange
@@ -90,7 +88,7 @@ function ArmyMoveOrders(n, scav, scavDef)
 	if not BossWaveStarted or BossWaveStarted == false then
 		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, true)
 	elseif FinalBossUnitID then
-		-- if scav == FinalBossUnitID then
+		if scav == FinalBossUnitID then
 			if AliveEnemyCommanders and AliveEnemyCommandersCount > 0 then
 				if AliveEnemyCommandersCount > 1 then
 					for i = 1,AliveEnemyCommandersCount do
@@ -110,9 +108,9 @@ function ArmyMoveOrders(n, scav, scavDef)
 					attackTarget = AliveEnemyCommanders[1]
 				end
 			end
-		-- else
-		-- 	attackTarget = FinalBossUnitID
-		-- end
+		else
+			attackTarget = FinalBossUnitID
+		end
 	else
 		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, true)
 	end
@@ -124,28 +122,48 @@ function ArmyMoveOrders(n, scav, scavDef)
 		local y = Spring.GetGroundHeight(x, z)
 		if (-(UnitDefs[scavDef].minWaterDepth) > y) and (-(UnitDefs[scavDef].maxWaterDepth) < y) or UnitDefs[scavDef].canFly then
 			local range = UnitRange[scav]
-			if range < 500 then 
-				range = 500 
+			if range < 100 then 
+				range = 100 
 			end
-			local x = x + math_random(-range*0.5,range*0.5)
-			local z = z + math_random(-range*0.5,range*0.5)
+			local x = x + math_random(-range*0.75,range*0.75)
+			local z = z + math_random(-range*0.75,range*0.75)
 			local transporting = Spring.GetUnitIsTransporting(scav)
 			if transporting and #transporting > 0 then
-				Spring.GiveOrderToUnit(scav, CMD.UNLOAD_UNIT,{x+math_random(-5000,5000),y,z+math_random(-5000,5000)}, {"shift", "alt", "ctrl"})
+				Spring.GiveOrderToUnit(scav, CMD.UNLOAD_UNIT,{x,y,z}, {"shift", "alt", "ctrl"})
 			elseif FinalBossUnitID and (scav ~= FinalBossUnitID) then
-				Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
-			elseif FinalBossUnitID and (scav == FinalBossUnitID) then
-				Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
-			elseif not FinalBossUnitID then
-				if UnitDefs[scavDef].canFly then
-					Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
-				elseif UnitRange[scav] > unitControllerModuleConfig.minimumrangeforfight then
+				if math.random(0,4) == 0 then
 					Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
 				else
 					Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
 				end
+			elseif FinalBossUnitID and (scav == FinalBossUnitID) then
+				if math.random(0,4) == 0 then
+					Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+				else
+					Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
+				end
+			elseif not FinalBossUnitID then
+				if UnitDefs[scavDef].canFly then
+					Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+				elseif UnitRange[scav] > scavconfig.unitControllerModuleConfig.minimumrangeforfight then
+					if math.random(0,4) == 0 then
+						Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
+					else
+						Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+					end
+				else
+					if math.random(0,4) == 0 then
+						Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+					else
+						Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
+					end
+				end
 			else
-				Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
+				if math.random(0,1) == 0 then
+					Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
+				else
+					Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+				end
 			end
 		else
 			local x = math.random(0, mapsizeX)
@@ -165,3 +183,9 @@ function ArmyMoveOrders(n, scav, scavDef)
 	end
 	attackTarget = nil
 end
+
+return {
+	SelfDestructionControls = selfDestructionControls,
+	ArmyMoveOrdersInitialPhase = armyMoveOrdersInitialPhase,
+	ArmyMoveOrders = armyMoveOrders,
+}

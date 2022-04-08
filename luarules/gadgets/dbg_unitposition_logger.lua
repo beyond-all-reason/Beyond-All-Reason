@@ -24,7 +24,7 @@ if not gadgetHandler:IsSyncedCode() then
 
 	if Spring.IsReplay() then return end
 
-	local debug = select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) == '[teh]Flow'
+	local DEBUG = select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) == '[teh]Flow'
 
 	local gameFramesPerSecond = 30	-- engine constant
 	local pingCutoff = 1500	-- players with higher ping wont participate in sending unit positions log
@@ -121,7 +121,7 @@ if not gadgetHandler:IsSyncedCode() then
 			end
 			if noParts then
 				log[frame] = nil
-				if debug and (attempts ~= '1' or part > tonumber(numParts)) then
+				if DEBUG and (attempts ~= '1' or part > tonumber(numParts)) then
 					Spring.Echo('UNITLOG: "all received": frame:'..frame..' part:'..part..' parts:'..numParts..' attempts:'..attempts)
 				end
 			end
@@ -162,7 +162,7 @@ if not gadgetHandler:IsSyncedCode() then
 			if log[frame] then
 				log[frame].attempts = log[frame].attempts + 1
 				if log[frame].attempts > #log[frame].participants then	-- this should not happen... if so, something went wrong because we tried resending by all other participants already
-					if debug then
+					if DEBUG then
 						local missingParts, missingUnits = 0, 0
 						for p, part in pairs(log[frame].parts) do
 							missingParts = missingParts + 1
@@ -203,7 +203,7 @@ if not gadgetHandler:IsSyncedCode() then
 			-- cleanup incomplete old frames in case this has happened for some reason
 			for frame, params in pairs(log) do
 				if frame < gf-maxLogMemoryDuration then
-					if debug then
+					if DEBUG then
 						local missingParts, missingUnits = 0, 0
 						for p, part in pairs(log[frame].parts) do
 							missingParts = missingParts + 1
@@ -262,22 +262,10 @@ else	-- SYNCED
 	local validation = randomString(2)
 	_G.validationLogger = validation
 
-	local function explode(div,str) -- credit: http://richard.warburton.it
-		if (div=='') then return false end
-		local pos,arr = 0,{}
-		-- for each divider found
-		for st,sp in function() return string.find(str,div,pos,true) end do
-			table.insert(arr,string.sub(str,pos,st-1)) -- Attach chars left of current divider
-			pos = sp + 1 -- Jump past current divider
-		end
-		table.insert(arr,string.sub(str,pos)) -- Attach chars right of last divider
-		return arr
-	end
-
 	-- Synced code here only listens to what has been received and thus logged in the demo, notifies unsynced so that can handle re-sending if necessary
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,3)=="log" and msg:sub(4,5)==validation then
-			local params = explode(';', msg:sub(6, 40))	-- 1=frame, 2=part, 3=numParts, 4=attempts, 5=gzipped-json
+			local params = string.split(msg:sub(6, 40), ';')	-- 1=frame, 2=part, 3=numParts, 4=attempts, 5=gzipped-json
 			SendToUnsynced("receivedPart", params[1], params[2], params[3], params[4])
 			return true
 		end

@@ -1,7 +1,7 @@
 
 --ScavSendMessage("addmessage Global score: "..globalScore)
 
-function pregameMessages(n)
+local function pregameMessages(n)
 	-- if n > scavconfig.gracePeriod+100 then
 	-- 	return
 	-- end
@@ -54,7 +54,7 @@ function pregameMessages(n)
 
 end
 
-function BossFightMessages(BossWaveTimeLeft)
+local function bossFightMessages(BossWaveTimeLeft)
 	if not BossWaveFirstMessage then
 		ScavSendNotification("scav_scavfinalattack")
 		BossWaveFirstMessage = true
@@ -142,3 +142,8 @@ function BossFightMessages(BossWaveTimeLeft)
 		ScavSendNotification("scav_scavfinalboss")
 	end
 end
+
+return {
+	pregameMessages = pregameMessages,
+	BossFightMessages = bossFightMessages,
+}

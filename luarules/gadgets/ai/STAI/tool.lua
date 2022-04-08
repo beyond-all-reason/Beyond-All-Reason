@@ -205,6 +205,17 @@ end
 return iter
 end
 
+function Tool:tableSorting(t)
+	local Tkey = {}
+	local Tvalue = {}
+	for key, value in self.ai.tool:pairsByKeys(t) do
+      self:EchoDebug(key, value)
+	  table.insert(Tkey,key)
+	  table.insert(Tvalue,value)
+    end
+	return Tkey, Tvalue
+end
+
 function Tool:listHasKey( value, list )
 	for k,v in pairs(list) do
 		if k == value then
@@ -296,7 +307,29 @@ function Tool:CustomCommand(unit, cmdID, cmdParams)
 	return unit:ExecuteCustomCommand(cmdID, floats)
 end
 
-
+function Tool:UnitNameSanity(unitOrName)--TODO move to tool
+	if not unitOrName then
+		self.game:Warn('nil unit or name')
+		return
+	end
+	if type(unitOrName) == 'string' then
+		if not self.ai.armyhst.unitTable[unitOrName] then
+			self.game:Warn('invalid string name',unitOrName)
+			return
+		else
+			return unitOrName
+		end
+	else
+		local uName = unitOrName:Name()
+		if uName ~= nil  and self.ai.armyhst.unitTable[uName]then
+			return uName
+		else
+			self.game:Warn('invalid object unit give invalid name',unitOrName)
+			return
+		end
+	end
+	self.game:Warn('unknow reason to exit from unit name sanity')
+end
 
 function Tool:WhatHurtsUnit(unitName, mtype, position)
 	local hurts = whatHurtsMtype[mtype] or whatHurtsUnit[unitName]

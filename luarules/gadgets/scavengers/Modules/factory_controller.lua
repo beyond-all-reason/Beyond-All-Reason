@@ -5,8 +5,6 @@ if not scavconfig.modules.factoryControllerModule then
 	}
 end
 
-local factoryUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/factories.lua")
-
 local function buildUnit(unitID, unitDefID)
 	if not scavFactory[unitID] or #Spring.GetFullBuildQueue(unitID, 0) > 0 then
 		return

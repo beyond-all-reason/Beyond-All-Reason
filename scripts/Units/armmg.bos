@@ -6,7 +6,7 @@
 piece  base, pole, flare, turret, sleeve, barrel;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5,
-            Static_Var_6, Static_Var_7, restore_delay, gun_1;
+            Static_Var_6, Static_Var_7, restore_delay;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -28,7 +28,6 @@ Create()
 {
 	hide flare;
 	hide flare;
-	gun_1 = 0;
 	restore_delay = 300;
 }
 
@@ -44,7 +43,8 @@ ExecuteRestoreAfterDelay()
 	sleep (restore_delay / 2);
 	spin barrel around z-axis speed <150.000000>;
 	sleep (restore_delay / 4);
-	turn barrel to z-axis <0> speed <75>;
+	stop-spin barrel around z-axis;
+	set-signal-mask 0;
 }
 
 SetStunned(State)
@@ -77,11 +77,6 @@ FirePrimary()
 {
 	emit-sfx 1024 + 0 from flare;
 	spin barrel around z-axis speed <900.000000>;
-	++gun_1;
-	if( gun_1 == 2 )
-	{
-		gun_1 = 0;
-	}
 }
 
 AimFromPrimary(piecenum)

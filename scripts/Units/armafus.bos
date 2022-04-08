@@ -6,6 +6,7 @@
 piece  base, collar1, collar2, emit;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
 
 InitState()
@@ -15,6 +16,25 @@ InitState()
 	return (0);
 }
 
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
+
+Go()
+{
+	spin collar1 around y-axis speed <30.000000>;
+	spin collar2 around y-axis speed <64.000000>;
+	set ARMORED to 1;
+	return (0);
+}
+
+Stop()
+{
+	spin collar1 around y-axis speed <0.000000>;
+	spin collar2 around y-axis speed <0.000000>;
+	set ARMORED to 0;
+	return (0);
+}
 Create()
 {
 	hide emit;
@@ -23,27 +43,19 @@ Create()
 	{
 		sleep 1000;
 	}
-	spin collar1 around y-axis speed <30.010989>;
-	spin collar2 around y-axis speed <64.010989>;
+	call-script Go();
 	return (0);
 }
 
-
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
-
-Go()
+SetStunned(State)
 {
-	set ARMORED to 1;
-	return (0);
+    Stunned = State;
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script Go();
+	}
 }
-
-Stop()
-{
-	set ARMORED to 0;
-	return (0);
-}
-
 
 
 RequestState(requestedstate, currentstate)

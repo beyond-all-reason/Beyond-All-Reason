@@ -42,7 +42,7 @@ if gadgetHandler:IsSyncedCode() then
 	local forwardedCaptureUnitIDs = {}
 	
 	local weapondefsreload = {}
-	local unitlastfired = {} -- maps unitID to the last frame it fired its long-reload weapon, cause lasers retrigger projetileCreated every frame
+	local unitreloadframe = {} -- maps unitID to next frame it can shoot its primary weapon, cause lasers retrigger projetileCreated every frame
 	
 	local minReloadTime = 5 -- in concerto with healthbars widget
 
@@ -76,7 +76,7 @@ if gadgetHandler:IsSyncedCode() then
 	
 	function gadget:UnitDestroyed(unitID)
 		forwardedCaptureUnitIDs[unitID] = nil
-		unitlastfired[unitID] = nil
+		unitreloadframe[unitID] = nil
 	end
 	
 	function gadget:Initialize()
@@ -84,17 +84,19 @@ if gadgetHandler:IsSyncedCode() then
 			local weapons = unitDef.weapons
 			local watchweaponID = nil
 			local longestreloadtime = -1
+			local longestreloadindex
 			for i = 1, #weapons do
 				local WeaponDefID = weapons[i].weaponDef
 				local WeaponDef = WeaponDefs[WeaponDefID]
 				if WeaponDef.reload and WeaponDef.reload >0 and WeaponDef.reload >= longestreloadtime then
 					longestreloadtime = WeaponDef.reload
 					watchweaponID = WeaponDefID
+					longestreloadindex = i
 				end
 			end
 			if watchweaponID and longestreloadtime > minReloadTime then 
 				--Spring.Echo("Unit with watched reload time:", unitDef.name, longestreloadtime, watchweaponID, udefID)
-				weapondefsreload[watchweaponID] = math.floor(longestreloadtime*30) -- in frames
+				weapondefsreload[watchweaponID] = longestreloadindex
 				Script.SetWatchProjectile(watchweaponID, true)
 			end
 		end
@@ -102,12 +104,16 @@ if gadgetHandler:IsSyncedCode() then
 	
 	function gadget:ProjectileCreated(projectileID, ownerID, weaponID)		-- needs: Script.SetWatchProjectile(weaponDefID, true)
 		--local unitDef = Spring.GetUnitDefID(ownerID)
-		--Spring.Echo("gadget:ProjectileCreated(",projectileID, ownerID, weaponID,weapondefsreload[weaponID],unitlastfired[ownerID], ")")
-		if weapondefsreload[weaponID] then  
-			local gf = Spring.GetGameFrame() 
-			if unitlastfired[ownerID] == nil or unitlastfired[ownerID] + weapondefsreload[weaponID] <= gf then 
+		--Spring.Echo("gadget:ProjectileCreated(",projectileID, ownerID, weaponID,weapondefsreload[weaponID],unitreloadframe[ownerID], ")")
+		local weaponIndex = weapondefsreload[weaponID]
+
+		if weaponIndex then
+			local gf = Spring.GetGameFrame()
+			local reloadFrame = Spring.GetUnitWeaponState(ownerID, weaponIndex, 'reloadFrame')
+
+			if unitreloadframe[ownerID] == nil or unitreloadframe[ownerID] <= gf then
 				SendToUnsynced("projetileCreatedReload", projectileID, ownerID, weaponID)
-				unitlastfired[ownerID] = gf
+				unitreloadframe[ownerID] = reloadFrame
 			end
 		end
 	end
@@ -120,15 +126,19 @@ else
 	local forwardedFeatureIDsResurrect = {} -- so we only forward the start event once
 	local forwardedFeatureIDsReclaim = {} -- so we only forward the start event once
 	local myTeamID = Spring.GetMyTeamID()
+	local myAllyTeamID = Spring.GetMyAllyTeamID()
 	local _, fullview = Spring.GetSpectatingState()
 	local IsUnitInView = Spring.IsUnitInView
+	local IsUnitInLos = Spring.IsUnitInLos
 	local GetFeatureHealth = Spring.GetFeatureHealth 
 	local CMD_CAPTURE = CMD.CAPTURE
 	local forwardedCaptureTargets = {} -- unitID: gameFrame
+	local headless = false
 	
 	function gadget:PlayerChanged(playerID)
-	myTeamID = Spring.GetMyTeamID()
-	_, fullview = Spring.GetSpectatingState()
+		myTeamID = Spring.GetMyTeamID()
+		myAllyTeamID = Spring.GetMyAllyTeamID()
+		_, fullview = Spring.GetSpectatingState()
 	end
 	
 	function featureReclaimFrame(cmd, featureID, step)
@@ -138,7 +148,7 @@ else
 		
 		--Spring.Echo('rezreclaim', rezreclaim[1], rezreclaim[2])
 		
-		glSetFeatureBufferUniforms(featureID, rezreclaim, 1) -- update GL, at offset of 1
+		if not headless then glSetFeatureBufferUniforms(featureID, rezreclaim, 1) end -- update GL, at offset of 1
 		
 		if step > 0 and forwardedFeatureIDsResurrect[featureID] == nil and Script.LuaUI("FeatureReclaimStartedHealthbars") then 
 				forwardedFeatureIDsResurrect[featureID] = true			
@@ -154,6 +164,7 @@ else
 	end
 	
 	function unitCaptureFrame(cmd, unitID, step)
+		if not fullview and not IsUnitInLos(unitID, myAllyTeamID) then return end
 		if Script.LuaUI("UnitCaptureStartedHealthbars") then
 			--Spring.Echo("UnitCaptureStartedHealthbars", unitID, step)
 			Script.LuaUI.UnitCaptureStartedHealthbars(unitID, step)
@@ -178,7 +189,7 @@ else
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 		--Spring.Echo("gadget:UnitDamaged",unitID, unitDefID, unitTeam, damage, paralyzer)
 		if paralyzer then
-			if not fullview and not CallAsTeam(myTeamID, IsUnitInView, unitID) then return end
+			if not fullview and not IsUnitInLos(unitID, myAllyTeamID)  then return end
 			
 			if damage > 0 then
 				if Script.LuaUI("UnitParalyzeDamageHealthbars") then 
@@ -194,6 +205,7 @@ else
 	end
 	
 	function gadget:Initialize()
+		headless = Spring.GetConfigInt("Headless", 0) > 0
 		gadgetHandler:AddSyncAction("featureReclaimFrame", featureReclaimFrame)
 		gadgetHandler:AddSyncAction("unitCaptureFrame", unitCaptureFrame)
 		gadgetHandler:AddSyncAction("projetileCreatedReload", projetileCreatedReload)

@@ -11,6 +11,7 @@ return {
 		builder = true,
 		buildpic = "chickens/roost.DDS",
 		buildtime = 10500,
+		capturable = false,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CHICKEN EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "56 200 56",

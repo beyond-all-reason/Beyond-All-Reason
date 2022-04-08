@@ -6,6 +6,7 @@
 piece  base, pad, nano3, nano4, nano2, nano1, dish, blinka, blinkb;
 
 static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -30,16 +31,13 @@ Standby()
 
 activatescr()
 {
-
 	sleep 26;
 }
 
 deactivatescr()
 {
-
 	sleep 26;
 }
-
 
 OpenYard()
 {
@@ -68,13 +66,28 @@ Go()
 	call-script OpenYard();
 	set INBUILDSTANCE to 1;
 }
-
 Stop()
 {
 	set INBUILDSTANCE to 0;
 	call-script CloseYard();
 	call-script deactivatescr();
-
+}
+DishSpin()
+{
+	spin dish around y-axis speed <60>;
+}
+DishStopSpin()
+{
+	spin dish around y-axis speed <0.000>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script DishStopSpin();
+	} else {
+	    call-script DishSpin();
+	}
 }
 
 InitState()

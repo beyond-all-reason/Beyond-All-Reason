@@ -6,6 +6,7 @@
 piece  base, dish;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
 
 Go()
@@ -14,11 +15,19 @@ Go()
 	return (0);
 	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
 }
-
 Stop()
 {
 	spin dish around y-axis speed <0.000000>;
 	return (0);
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script Go();
+	}
 }
 
 InitState()

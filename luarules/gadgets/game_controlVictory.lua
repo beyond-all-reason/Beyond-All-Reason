@@ -130,10 +130,9 @@ if gadgetHandler:IsSyncedCode() then
 		if team == gaia then
 			return
 		end
-		for _, u in ipairs(Spring.GetAllUnits()) do
-			if team == Spring.GetUnitAllyTeam(u) then
-				Spring.DestroyUnit(u)
-			end
+		local losingPlayers = Spring.GetTeamList(team)
+		for i = 1,#losingPlayers do
+			Spring.KillTeam(losingPlayers[i])
 		end
 	end
 

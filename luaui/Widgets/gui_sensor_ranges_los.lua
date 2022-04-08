@@ -19,6 +19,8 @@ local rangeLineWidth = 4.5 -- (note: will end up larger for larger vertical scre
 
 local circleSegments = 64
 local rangecorrectionelmos = 16 -- how much smaller they are drawn than truth due to LOS mipping
+
+local debugmode = false
 --------- End configurables ------
 
 local minSightDistance = 100
@@ -53,9 +55,9 @@ uniform float circleopacity;
 uniform sampler2D heightmapTex;
 
 out DataVS {
-	vec4 worldPos; // pos and radius
+	//vec4 worldPos; // pos and radius
 	vec4 blendedcolor;
-	float worldscale_circumference;
+	//float worldscale_circumference;
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -69,7 +71,7 @@ float heightAtWorldPos(vec2 w){
 
 void main() {
 	// blend start to end on mod gf%10
-	float timemix = clamp( mod(timeInfo.x,10)*(0.1), 0.0, 1.0);
+	float timemix = clamp((mod(timeInfo.x, 10) + timeInfo.w) * (0.1), 0.0, 1.0);
 	vec4 circleWorldPos = mix(startposrad, endposrad, timemix);
 	circleWorldPos.xz = circlepointposition.xy * circleWorldPos.w +  circleWorldPos.xz;
 
@@ -81,8 +83,8 @@ void main() {
 	float inboundsness = min(mymin.x, mymin.y);
 
 	// dump to FS
-	worldscale_circumference = startposrad.w * circlepointposition.z * 6.2831853;
-	worldPos = circleWorldPos;
+	//worldscale_circumference = startposrad.w * circlepointposition.z * 6.2831853;
+	//worldPos = circleWorldPos;
 	blendedcolor = color;
 	blendedcolor.a = 1.0;
 	blendedcolor.a *= 1.0 - clamp(inboundsness*(-0.02),0.0,1.0);
@@ -107,9 +109,9 @@ uniform sampler2D heightmapTex;
 //__DEFINES__
 
 in DataVS {
-	vec4 worldPos; // w = range
+	//vec4 worldPos; // w = range
 	vec4 blendedcolor;
-	float worldscale_circumference;
+	//float worldscale_circumference;
 };
 
 out vec4 fragColor;
@@ -118,7 +120,7 @@ void main() {
 	fragColor.rgba = blendedcolor.rgba;
 	fragColor.a *= circleopacity;
 	#if USE_STIPPLE > 0
-		fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.1) * circleopacity; // PERFECT STIPPLING!
+	//	fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.1) * circleopacity; // PERFECT STIPPLING!
 	#endif
 }
 ]]
@@ -203,6 +205,7 @@ local unitRange = {} -- table of unit types with their radar ranges
 local isBuilding = {} -- unitDefID keys
 local crashable = {}
 
+
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.losRadius and unitDef.losRadius > minSightDistance then
 		-- save perf by excluding low radar range units
@@ -255,12 +258,18 @@ end
 
 -- collect data about the unit and store it into unitList
 local unitIDtoaddreason = {}
-local function processUnit(unitID, unitDefID, caller)
-	if (not (spec and fullview)) and (not spIsUnitAllied(unitID)) then
+local function processUnit(unitID, unitDefID, caller, teamID)
+	if debugmode then 
+		Spring.Echo("processunit", unitID, unitDefID, caller, teamID)
+		Spring.Echo('allied:',spIsUnitAllied(unitID),'spec',spec,'fullview',fullview, 'getteam', Spring.GetUnitTeam(unitID)  )
+	end
+	-- units given to the enemy get called for some reason? 
+	teamID = teamID or Spring.GetUnitTeam(unitID)  
+	
+	if (not (spec and fullview)) and (not spIsUnitAllied(unitID)) then -- given units are still considered allies :/ 
 		return
 	end -- display mode for specs
 
-	local teamID = Spring.GetUnitTeam(unitID)
 	if teamID == gaiaTeamID then
 		return
 	end -- no gaia units
@@ -340,15 +349,21 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	processUnit(unitID, unitDefID, "UnitTaken")
+	widget:UnitDestroyed(unitID)
+	if (spec and fullview) or Spring.AreTeamsAllied(unitTeam, newTeam) == true then 
+		processUnit(unitID, unitDefID, "UnitTaken", newTeam)
+	end
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	processUnit(unitID, unitDefID, "UnitGiven")
+	widget:UnitDestroyed(unitID)
+	if (spec and fullview) or Spring.AreTeamsAllied(unitTeam, oldTeam) == true then 
+		processUnit(unitID, unitDefID, "UnitGiven", unitTeam)
+	end
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
-	processUnit(unitID, unitDefID, "UnitFinished")
+	processUnit(unitID, unitDefID, "UnitFinished", unitTeam)
 end
 
 function widget:GameFrame(n)
@@ -400,7 +415,6 @@ function widget:DrawWorld()
 		return
 	end
 
-
 	--if true then return end
 	glColorMask(false, false, false, false) -- disable color drawing
 	glStencilTest(true)
@@ -441,6 +455,7 @@ function widget:DrawWorld()
 	glColor(1.0, 1.0, 1.0, 1.0) --reset like a nice boi
 	glLineWidth(1.0)
 	gl.Clear(GL.STENCIL_BUFFER_BIT)
+	
 end
 
 function widget:GetConfigData(data)

@@ -6,12 +6,13 @@
 piece  base, spinner, fan;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3;
-
+static-var  Stunned;
 
 
 Create()
 {
-	spin spinner around y-axis speed <50> accelerate <0.5>;
+	spin spinner around y-axis speed <50.00000>;
+	spin fan around y-axis speed <200.00000>;
 	return (0);
 }
 
@@ -21,18 +22,26 @@ Create()
 
 Activate()
 {
-
-	spin spinner around y-axis speed <50> accelerate <0.5>;
-	spin fan around y-axis speed <200> accelerate <2.5>;
+	spin spinner around y-axis speed <50.00000>;
+	spin fan around y-axis speed <200.00000>;
 	return (0);
 }
 
 Deactivate()
 {
-	
-	stop-spin spinner around y-axis decelerate <0.5>;
-	stop-spin fan around y-axis decelerate <2.5>;
+	spin spinner around y-axis speed <0.000000>;
+	spin fan around y-axis speed <0.000000>;
 	return (0);
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Deactivate();
+	} else {
+	    call-script Activate();
+	}
 }
 
 

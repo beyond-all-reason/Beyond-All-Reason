@@ -189,7 +189,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddChatAction(takeCommand, takeTeam, "Take control of units and resouces from inactive players")
+		gadgetHandler:AddChatAction(takeCommand, takeTeam, "Take control of units and resources from inactive players")
 		updatePlayersInfo()
 	end
 

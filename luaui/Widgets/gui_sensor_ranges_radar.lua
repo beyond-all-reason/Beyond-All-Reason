@@ -68,7 +68,7 @@ float heightAtWorldPos(vec2 w){
 
 void main() {
 	// blend start to end on mod gf%15
-	float timemix = mod(timeInfo.x,15)*0.06666;
+	float timemix = (mod(timeInfo.x,15) + timeInfo.w) * 0.06666;
 	vec4 circleWorldPos = mix(startposrad, endposrad, timemix);
 	circleWorldPos.xz = circlepointposition.xy * circleWorldPos.w +  circleWorldPos.xz;
 

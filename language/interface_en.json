@@ -28,6 +28,9 @@
 				"catchingUp": "Catching up",
 				"catchingUpTooltip": "Displays the catch-up progress\nGame time: %{gameTime}",
 				"commanderCountTooltip": "%{titleColor}Commander Counter\nDisplays the number of ally\nand enemy commanders",
+				"tidal": {
+					"tooltip": "%{titleColor}Tidal Speed Display\nDisplays tidal speed on this map (always constant)."
+				},
 				"wind": {
 					"nowind1": "No",
 					"nowind2": "wind",
@@ -95,12 +98,19 @@
 				}
 			},
 			"playerTV": {
-				"playerTV": "Player TV",
-				"cancelCamera": "Turn off",
+				"playerTV": "TV",
+				"cancelPlayerTV": "Turn off TV",
+				"cancelCamera": "Turn off Player Cam",
+				"playerView": "Player Viewpoint",
+				"globalView": "Turn off Player View",
+				"playerViewTooltip": "Only view what the player can see",
 				"tooltip": "Auto camera-track the top ranked players\n(switches player every 40 seconds by default)"
 			},
 			"teamEconomy": {
 				"tooltip": "Team metal/energy income\n(Lighter portion is income from reclaiming)"
+			},
+			"mapinfo": {
+				"author": "Author"
 			},
 			"clearMapmarks": {
 				"tooltip": "Clear mapmarks/drawings",
@@ -210,11 +220,6 @@
 					"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon"
 				}
 			},
-			"moveGameWindow": {
-				"moveWindow": "%{textColor}Move window position with the %{emphasisColor}arrow keys%{textColor} or %{emphasisColor}drag%{textColor} using the mouse.",
-				"cancel": "%{emphasisColor}ESCAPE%{textColor} key will cancel changes",
-				"apply": "Apply"
-			},
 			"idleBuilders": {
 				"name": "Idle builders",
 				"idle": "%{textColor}Idle %{highlightColor}%{unit}",
@@ -249,8 +254,6 @@
 					"settings": "Settings",
 					"widgetsKey": "f11",
 					"widgets": "Widget list",
-					"widgetsTweakKey": "ctrl + f11",
-					"widgetsTweak": "Widget tweak mode",
 					"shareKey": "h",
 					"share": "Share units / resources"
 				},
@@ -423,7 +426,11 @@
 			"chat": {
 				"ignored": "ignored",
 				"scroll": "%{textColor}Press %{highlightColor}CTRL %{textColor}+ %{highlightColor}SHIFT %{textColor}to activate chatlog viewing/scrolling",
-				"shortcut": "CTRL + SHIFT"
+				"shortcut": "CTRL + SHIFT",
+				"everyone": "everyone",
+				"allies": "allies",
+				"spectators": "spectators",
+				"cmd": "COMMAND"
 			},
 			"teamStats": {
 				"player": "Player",
@@ -514,7 +521,7 @@
 				"wave": "Wave %{waveNumber}",
 				"waveCount": "%{count} Raptors!",
 				"chickenCount": "Raptors: %{count}",
-				"chickenKillCount": "Raptors Killed: %{count}",
+				"chickenKillCount": "Raptor Kills: %{count}",
 				"queenAnger": "Queen Anger: %{anger}%%",
 				"queenHealth": "Queen Health: %{health}%%",
 				"gracePeriod": "Grace Period: %{time}",
@@ -531,6 +538,19 @@
 					"epic": "Epic",
 					"survival": "Survival"
 				}
+			},
+			"scavengers": {
+				"techPercentage": "Boss Anger: %{count}%%",
+				"techPercentageEndless": "Tech Progress: %{count}%%",
+				"techLevel": "Scavengers Tier: %{count}",
+				"bossFightCountdown": "Boss Arrives in: %{count} Seconds",
+				"bossHealth": "Boss Health: %{count}%%",
+				"gracePeriod": "Grace Period: %{count} Seconds",
+				"killedScavengers": "Killed Scavengers: %{count}",
+				"aliveScavengers": "Scavengers: %{count}",
+				"aliveBeacons": "Beacons: %{count}",
+				"aliveCommanders": "Commanders: %{count}",
+				"difficultyLevel": "Difficulty: %{count}"
 			},
 			"loadScreen": {
 				"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.      Your experience might be sub optimal."

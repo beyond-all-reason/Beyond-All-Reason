@@ -10,14 +10,17 @@ function widget:GetInfo()
    }
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
--- preferred to keep these values the same as fancy unit selections widget
-local unitConf				= {}
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+local ignoreUnitDefs = {}
+local unitConf = {}
+for udid, unitDef in pairs(UnitDefs) do
+	local xsize, zsize = unitDef.xsize, unitDef.zsize
+	local scale = 6*( xsize^2 + zsize^2 )^0.5
+	unitConf[udid] = 7 +(scale/2.5)
+	if string.find(unitDef.name, 'droppod') then
+		ignoreUnitDefs[udid] = true
+	end
+end
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
@@ -42,22 +45,18 @@ local spGetCameraDirection		= Spring.GetCameraDirection
 
 local spec = Spring.GetSpectatingState()
 
-local chobbyInterface
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function widget:ViewResize(n_vsx,n_vsy)
 	vsx,vsy = Spring.GetViewGeometry()
 
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-	if (fontfileScale ~= newFontfileScale) then
+	if fontfileScale ~= newFontfileScale then
 		fontfileScale = newFontfileScale
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 	end
 end
 
-function DrawIcon(text)
+local function DrawIcon(text)
 	local iconSize = 0.9
 	gl.PushMatrix()
 	gl.Texture(':n:LuaUI/Images/skull.dds')
@@ -70,20 +69,7 @@ function DrawIcon(text)
 	gl.PopMatrix()
 end
 
-
-function SetUnitConf()
-	for udid, unitDef in pairs(UnitDefs) do
-		local xsize, zsize = unitDef.xsize, unitDef.zsize
-		local scale = 6*( xsize^2 + zsize^2 )^0.5
-		unitConf[udid] = 7 +(scale/2.5)
-	end
-end
-
---------------------------------------------------------------------------------
--- Engine Calls
---------------------------------------------------------------------------------
-
-function init()
+local function init()
 	spec = Spring.GetSpectatingState()
 	-- check all units for selfd cmd
 	selfdUnits = {}
@@ -112,7 +98,6 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	SetUnitConf()
 	init()
 end
 
@@ -142,15 +127,7 @@ function widget:Update(dt)
 	end
 end
 
--- draw icons
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawWorld()
-	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 
 	gl.DepthTest(true)
@@ -180,35 +157,37 @@ end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 
-	-- check for queued selfd (to check if queue gets cancelled)
-	if selfdUnits[unitID] then
-		local foundSelfdCmd = false
-		local unitQueue = spGetCommandQueue(unitID,20) or {}
-		if (#unitQueue > 0) then
-			for i=1,#unitQueue do
-				if unitQueue[i].id == CMD.SELFD then
-					foundSelfdCmd = true
-					break
+	if not ignoreUnitDefs[unitDefID] then
+
+		-- check for queued selfd (to check if queue gets cancelled)
+		if selfdUnits[unitID] then
+			local foundSelfdCmd = false
+			local unitQueue = spGetCommandQueue(unitID,20) or {}
+			if #unitQueue > 0 then
+				for i=1,#unitQueue do
+					if unitQueue[i].id == CMD.SELFD then
+						foundSelfdCmd = true
+						break
+					end
 				end
 			end
+			if foundSelfdCmd then
+				selfdUnits[unitID] = nil
+			end
 		end
-		if foundSelfdCmd then
-			selfdUnits[unitID] = nil
-		end
-	end
 
-	if cmdID == CMD.SELFD then
-		if spGetUnitSelfDTime(unitID) > 0 then  	-- since cmd hasnt been cancelled yet
-			selfdUnits[unitID] = nil
-		else
-			selfdUnits[unitID] = spGetUnitDefID(unitID)
+		if cmdID == CMD.SELFD then
+			if spGetUnitSelfDTime(unitID) > 0 then  	-- since cmd hasnt been cancelled yet
+				selfdUnits[unitID] = nil
+			else
+				selfdUnits[unitID] = spGetUnitDefID(unitID)
+			end
 		end
 	end
 end
 
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-
 	if selfdUnits[unitID] then
 		selfdUnits[unitID] = nil
 	end

@@ -18,6 +18,7 @@ local defaultCellZoom = 0 * zoomMult
 local rightclickCellZoom = 0.065 * zoomMult
 local clickCellZoom = 0.065 * zoomMult
 local hoverCellZoom = 0.03 * zoomMult
+local showBuilderBuildlist = true
 
 local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
 	selectedunits = 'Selected units',
@@ -446,6 +447,12 @@ function widget:Initialize()
 	widget:ViewResize()
 
 	WG['info'] = {}
+	WG['info'].getShowBuilderBuildlist = function()
+		return showBuilderBuildlist
+	end
+	WG['info'].setShowBuilderBuildlist = function(value)
+		showBuilderBuildlist = value
+	end
 	WG['info'].displayUnitID = function(unitID)
 		cfgDisplayUnitID = unitID
 	end
@@ -830,12 +837,12 @@ local function drawUnitInfo()
 	if displayUnitID then
 		exp = spGetUnitExperience(displayUnitID)
 		if exp and exp > 0.009 and WG['rankicons'] and rankTextures then
-			local rankIconSize = math_floor((height * vsy * 0.24) + 0.5)
-			local rankIconMarginX = math_floor((height * vsy * 0.015) + 0.5)
-			local rankIconMarginY = math_floor((height * vsy * 0.18) + 0.5)
 			if displayUnitID then
 				local rank = WG['rankicons'].getRank(displayUnitDefID, exp)
 				if rankTextures[rank] then
+					local rankIconSize = math_floor((height * vsy * 0.24) + 0.5)
+					local rankIconMarginX = math_floor((height * vsy * 0.015) + 0.5)
+					local rankIconMarginY = math_floor((height * vsy * 0.18) + 0.5)
 					glColor(1, 1, 1, 0.88)
 					glTexture(':lr' .. (rankIconSize * 2) .. ',' .. (rankIconSize * 2) .. ':' .. rankTextures[rank])
 					glTexRect(backgroundRect[3] - rankIconMarginX - rankIconSize, backgroundRect[4] - rankIconMarginY - rankIconSize, backgroundRect[3] - rankIconMarginX, backgroundRect[4] - rankIconMarginY)
@@ -843,6 +850,19 @@ local function drawUnitInfo()
 					glColor(1, 1, 1, 1)
 				end
 			end
+		end
+		local kills = Spring.GetUnitRulesParam(displayUnitID, "kills")
+		if kills then
+			local rankIconSize = math_floor((height * vsy * 0.16))
+			local rankIconMarginY = math_floor((height * vsy * 0.07) + 0.5)
+			local rankIconMarginX = math_floor((height * vsy * 0.053) + 0.5)
+			glColor(0.6,0.6,0.6,0.5)
+			glTexture(":l:LuaUI/Images/skull.dds")
+			glTexRect(backgroundRect[3] - rankIconMarginX - rankIconSize, backgroundRect[4] - rankIconMarginY - rankIconSize, backgroundRect[3] - rankIconMarginX, backgroundRect[4] - rankIconMarginY)
+			glTexture(false)
+			font2:Begin()
+			font2:Print('\255\205\205\205'..kills, backgroundRect[3] - rankIconMarginX - (rankIconSize * 0.5), backgroundRect[4] - (rankIconMarginY * 2.05) - (fontSize * 0.31), fontSize * 0.87, "c")
+			font2:End()
 		end
 	end
 
@@ -893,7 +913,7 @@ local function drawUnitInfo()
 	-- custom unit info area
 	customInfoArea = { math_floor(backgroundRect[3] - width - bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3] - bgpadding), math_floor(backgroundRect[2] + height) }
 
-	if not displayMode == 'unitdef' or not unitDefInfo[displayUnitDefID].buildOptions or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
+	if not displayMode == 'unitdef' or not showBuilderBuildlist or not unitDefInfo[displayUnitDefID].buildOptions or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
 		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], elementCorner*0.66, 1, 0, 0, 0, { 0.8, 0.8, 0.8, 0.08 }, { 0.8, 0.8, 0.8, 0.15 })
 	end
 
@@ -954,7 +974,7 @@ local function drawUnitInfo()
 	font2:End()
 
 	-- draw unit buildoption icons
-	if displayMode == 'unitdef' and unitDefInfo[displayUnitDefID].buildOptions then
+	if displayMode == 'unitdef' and showBuilderBuildlist and unitDefInfo[displayUnitDefID].buildOptions then
 		local gridHeight = math_ceil(height * 0.975)
 		local rows = 2
 		local colls = math_ceil(#unitDefInfo[displayUnitDefID].buildOptions / rows)
@@ -1486,7 +1506,7 @@ function checkChanges()
 		local featureID = hoverData
 		local featureDefID = spGetFeatureDefID(featureID)
 		local featureDef = FeatureDefs[featureDefID]
-		local newTooltip = featureDef.translatedDescription
+		local newTooltip = featureDef.translatedDescription or ''
 
 		if featureDef.reclaimable then
 			local metal, _, energy, _ = Spring.GetFeatureResources(featureID)
@@ -1548,4 +1568,17 @@ end
 function widget:LanguageChanged()
 	refreshUnitInfo()
 	widget:ViewResize()
+end
+
+
+function widget:GetConfigData(data)
+	return {
+		showBuilderBuildlist = showBuilderBuildlist,
+	}
+end
+
+function widget:SetConfigData(data)
+	if data.showBuilderBuildlist ~= nil then
+		showBuilderBuildlist = data.showBuilderBuildlist
+	end
 end

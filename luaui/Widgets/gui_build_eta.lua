@@ -202,9 +202,7 @@ function widget:DrawWorld()
 		return
 	end
 	if Spring.IsGUIHidden() == false then
-		glDepthTest(true)
-
-		glColor(1, 1, 1, 0.1)
+		local glStateReady = false
 		local cx, cy, cz = Spring.GetCameraPosition()
 		for unitID, bi in pairs(etaTable) do
 			local ux, uy, uz = spGetUnitViewPosition(unitID)
@@ -212,12 +210,18 @@ function widget:DrawWorld()
 				local dx, dy, dz = ux - cx, uy - cy, uz - cz
 				local dist = dx * dx + dy * dy + dz * dz
 				if dist < etaMaxDist then
+					if not glStateReady then 
+						glDepthTest(true)
+						glColor(1, 1, 1, 0.1)
+						glStateReady = true
+					end
 					glDrawFuncAtUnit(unitID, false, drawEtaText, bi.timeLeft, bi.yoffset)
 				end
 			end
 		end
-
-		glColor(1, 1, 1, 1)
-		glDepthTest(false)
+		if glStateReady then 
+			glColor(1, 1, 1, 1)
+			glDepthTest(false)
+		end
 	end
 end

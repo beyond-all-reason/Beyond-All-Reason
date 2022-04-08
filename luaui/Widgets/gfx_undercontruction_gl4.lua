@@ -11,8 +11,9 @@ function widget:GetInfo()
 end
 
 local highlightAlpha = 0.4
-local edgeExponent = 1.4
-local edgeAlpha = 0.5
+local edgeExponent = 1.45
+local edgeAlpha = 0.55
+local animAmount = 0.3
 
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
@@ -37,7 +38,7 @@ local function addUnitShape(unitID)
 	else
 		local teamID = spGetUnitTeam(unitID)
 		local r, g, b = teamColor[teamID][1], teamColor[teamID][2], teamColor[teamID][3]
-		unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r, g, b, highlightAlpha, edgeAlpha, edgeExponent)
+		unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r, g, b, highlightAlpha, edgeAlpha, edgeExponent, animAmount)
 		return unitshapes[unitID]
 	end
 end
@@ -108,6 +109,7 @@ end
 function widget:Update(dt)
 	if Spring.GetMyAllyTeamID() ~= prevMyAllyTeamID or select(2, Spring.GetSpectatingState()) ~= prevMyFullView then
 		prevMyAllyTeamID = Spring.GetMyAllyTeamID()
+		prevMyFullView = select(2, Spring.GetSpectatingState()) -- missed this one, forced a refresh every frame after going into spec
 		refresh()
 	end
 end

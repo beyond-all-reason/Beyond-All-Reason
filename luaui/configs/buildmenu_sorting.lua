@@ -5,9 +5,11 @@ local unitOrderTable = {
 	--CONSTRUCTORS
 	[UDN["armck"].id]          = 001100, --BOTS
 	[UDN["corck"].id]          = 001110,
+	[UDN["legck"].id]          = 001115,
 
 	[UDN["armcv"].id]          = 001120, --VEH
 	[UDN["corcv"].id]          = 001130,
+	[UDN["legcv"].id]          = 001130,
 	[UDN["armbeaver"].id]      = 001140,
 	[UDN["cormuskrat"].id]     = 001150,
 
@@ -127,18 +129,24 @@ local unitOrderTable = {
 	-- T1 LAND ATTACK
 	[UDN["armpw"].id]          = 005000, --FAST
 	[UDN["corak"].id]          = 005010,
+	[UDN["leggob"].id]		   = 005015,
 	[UDN["armflash"].id]       = 005020,
 	[UDN["corgator"].id]       = 005030,
-
+	[UDN["leghades"].id]	   = 005031,
+	[UDN["legcen"].id]		   = 005032,
+	
 	[UDN["armjanus"].id]       = 005200, --MAIN BATTLE
 	[UDN["corlevlr"].id]       = 005210,
 	[UDN["armstump"].id]       = 005220,
 	[UDN["corraid"].id]        = 005230,
 	[UDN["armanac"].id]        = 005240,
 	[UDN["corsnap"].id]        = 005250,
+	[UDN["leghelios"].id]	   = 005251,
+	[UDN["leggat"].id]		   = 005252,
 
 	[UDN["armrock"].id]        = 005300, --ROCKETS
 	[UDN["corstorm"].id]       = 005310,
+	[UDN["legbal"].id]		   = 005311,
 
 	[UDN["armham"].id]         = 005400, --ARTILLERY
 	[UDN["corthud"].id]        = 005410,
@@ -152,6 +160,7 @@ local unitOrderTable = {
 
 	[UDN["armsam"].id]         = 005800, --LAND + AA
 	[UDN["cormist"].id]        = 005810,
+	[UDN["legrail"].id]		   = 005811,
 
 	[UDN["armpincer"].id]      = 005900, --LAND + AMPHIBIOUS
 	[UDN["corgarp"].id]        = 005910,
@@ -343,11 +352,14 @@ local unitOrderTable = {
    --ECO METAL MEX
    [UDN["armmex"].id]         = 100000,
    [UDN["cormex"].id]         = 100050,
+   [UDN["legmex"].id]         = 100060,
    [UDN["armamex"].id]        = 100100,
    [UDN["corexp"].id]         = 100150,
+   [UDN["legmext15"].id]      = 100160,
 
    [UDN["armmoho"].id]        = 100200,
    [UDN["cormoho"].id]        = 100250,
+   [UDN["legmext2"].id]       = 100260,
    [UDN["cormexp"].id]        = 100300,
 
    --ECO ENERGY CONVERTERS
@@ -400,8 +412,10 @@ local unitOrderTable = {
    --FACTORIES
    [UDN["armlab"].id]         = 102100,
    [UDN["corlab"].id]         = 102125,
+   [UDN["leglab"].id]         = 102126,
    [UDN["armvp"].id]          = 102150,
    [UDN["corvp"].id]          = 102175,
+   [UDN["legvp"].id]          = 102176,
    [UDN["armap"].id]          = 102200,
    [UDN["corap"].id]          = 102225,
    [UDN["armhp"].id]          = 102250,

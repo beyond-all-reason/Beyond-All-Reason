@@ -72,8 +72,8 @@ function actionHandler:AddAction(widget, cmd, func, data, types)
   end
 
   -- default to text and keyPress  (not repeat or releases)
-  local text, keyPress, keyRepeat, keyRelease = ParseTypes(types, "tpRr")
-  
+  local text, keyPress, keyRepeat, keyRelease = ParseTypes(types, "tp")
+
   local tSuccess, pSuccess, RSuccess, rSuccess = false, false, false, false
 
   if (text)       then tSuccess = add(self.textActions)       end
@@ -232,9 +232,11 @@ function actionHandler:KeyAction(press, key, mods, isRepeat)
     else
       actionSet = self.keyReleaseActions
     end
-    for b,bAction in ipairs(defBinds) do
-      local bCmd, bOpts = next(bAction, nil)
-		  local words = MakeWords(bOpts)
+    for _, bAction in ipairs(defBinds) do
+      local bCmd = bAction["command"]
+      local bOpts = bAction["extra"]
+      local words = MakeWords(bOpts)
+
       if (TryAction(actionSet, bCmd, bOpts, words, isRepeat, not press)) then
         return true
       end

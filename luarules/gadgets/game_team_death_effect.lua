@@ -17,6 +17,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local wavePeriod = 550
+GG.wipeoutWithWreckage = false		-- FFA can enable this
 
 local unitDecoration = {}
 for udefID,def in ipairs(UnitDefs) do
@@ -96,12 +97,13 @@ GG.wipeoutAllyTeam = wipeoutAllyTeam
 
 function gadget:GameFrame(gf)
 	if next(destroyUnitQueue) then
+		local selfD = not GG.wipeoutWithWreckage
 		for unitID, defs in pairs(destroyUnitQueue) do
 			if gf > defs.frame then
                 if defs.attackerUnitID then
-					spDestroyUnit(unitID, true, nil, defs.attackerUnitID)
+					spDestroyUnit(unitID, selfD, nil, defs.attackerUnitID)
 				else
-					spDestroyUnit(unitID, true) -- if 4th arg is given, it cannot be nil (or engine complains)
+					spDestroyUnit(unitID, selfD) -- if 4th arg is given, it cannot be nil (or engine complains)
                 end
 				destroyUnitQueue[unitID] = nil
 			end

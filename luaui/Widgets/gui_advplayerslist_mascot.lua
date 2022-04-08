@@ -48,6 +48,18 @@ table.insert(OPTIONS, {
 	head_xOffset		= 0,
 	head_yOffset		= 0,
 })
+table.insert(OPTIONS, {
+	name				= "MrBeans",
+	body				= imageDirectory.."mrbeans_body.png",
+	head				= imageDirectory.."mrbeans_head.png",
+	headblink			= imageDirectory.."mrbeans_headblink.png",
+	santahat			= imageDirectory.."santahat.png",
+	imageSize			= 50,
+	xOffset				= -1.6,
+	yOffset				= -58/4,
+	head_xOffset		= -0.01,
+	head_yOffset		= 0.13,
+})
 local currentOption = 1
 
 local usedImgSize = OPTIONS[currentOption].imageSize
@@ -149,7 +161,7 @@ local function createList(size)
 		gl.Texture(OPTIONS[currentOption]['head'])
 		glTranslate(OPTIONS[currentOption]['head_xOffset']*size, OPTIONS[currentOption]['head_yOffset']*size, 0)
 		DrawRect(-(size/2), -(size/2)+(size/14), (size/2), (size/2)+(size/14))
-		if drawSantahat then
+		if drawSantahat and OPTIONS[currentOption]['santahat'] then
 			gl.Texture(OPTIONS[currentOption]['santahat'])
 			DrawRect(-(size/2), -(size/2)+(size/14), (size/2), (size/2)+(size/14))
 		end
@@ -163,7 +175,7 @@ local function createList(size)
 		gl.Texture(OPTIONS[currentOption]['headblink'])
 		glTranslate(OPTIONS[currentOption]['head_xOffset']*size, OPTIONS[currentOption]['head_yOffset']*size, 0)
 		DrawRect(-(size/2), -(size/2)+(size/14), (size/2), (size/2)+(size/14))
-		if drawSantahat then
+		if drawSantahat and OPTIONS[currentOption]['santahat'] then
 			gl.Texture(OPTIONS[currentOption]['santahat'])
 			DrawRect(-(size/2), -(size/2)+(size/14), (size/2), (size/2)+(size/14))
 		end

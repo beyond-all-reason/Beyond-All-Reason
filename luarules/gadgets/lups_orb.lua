@@ -154,23 +154,27 @@ UnitEffects = newEffects
 newEffects = nil
 
 local myTeamID = Spring.GetMyTeamID()
+local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local mySpec, fullview = Spring.GetSpectatingState()
 
-local abs = math.abs
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spGetUnitIsActive = Spring.GetUnitIsActive
-local IsUnitInLos = Spring.IsUnitInLos
 local IsPosInLos = Spring.IsPosInLos
 local GetUnitPosition = Spring.GetUnitPosition
 
 local particleIDs = {}
 local Lups, LupsAddFX
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+local spGetTeamColor = Spring.GetTeamColor
+local teamColorKeys = {}
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local r, g, b = spGetTeamColor(teams[i])
+	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+end
+local updateTimer = 0
+
 
 local function ClearFxs(unitID)
 	if particleIDs[unitID] then
@@ -189,7 +193,7 @@ local function AddFxs(unitID, fxID)
 end
 
 local function addUnit(unitID, unitDefID)
-	if not fullview and not CallAsTeam(myTeamID, IsPosInLos, GetUnitPosition(unitID)) then
+	if not fullview and select(6, Spring.GetTeamInfo(Spring.GetUnitTeam(unitID))) ~= myAllyTeamID and not CallAsTeam(myTeamID, IsPosInLos, GetUnitPosition(unitID)) then
 		return
 	end
 
@@ -228,19 +232,16 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	if UnitEffects[unitDefID] then
+	if UnitEffects[unitDefID] and (fullview or CallAsTeam(myTeamID, IsPosInLos, GetUnitPosition(unitID))) then
 		if not particleIDs[unitID] then
 			for _, fx in ipairs(UnitEffects[unitDefID]) do
 				if fx.options.onActive == true and spGetUnitIsActive(unitID) == nil then
 					break
-				else
-					local _, _, inBuild = Spring.GetUnitIsStunned(unitID)
-					if not inBuild then
-						fx.options.unit = unitID
-						fx.options.under_construction = spGetUnitRulesParam(unitID, "under_construction")
-						AddFxs(unitID, LupsAddFX(fx.class, fx.options))
-						fx.options.unit = nil
-					end
+				elseif not select(3, Spring.GetUnitIsStunned(unitID)) then -- not inbuild
+					fx.options.unit = unitID
+					fx.options.under_construction = spGetUnitRulesParam(unitID, "under_construction")
+					AddFxs(unitID, LupsAddFX(fx.class, fx.options))
+					fx.options.unit = nil
 				end
 			end
 		end
@@ -279,6 +280,7 @@ end
 function gadget:PlayerChanged(playerID)
 	if playerID == myPlayerID then
 		myTeamID = Spring.GetMyTeamID()
+		myAllyTeamID = Spring.GetMyAllyTeamID()
 		if fullview ~= select(2, Spring.GetSpectatingState()) then
 			mySpec, fullview = Spring.GetSpectatingState()
 			removeParticles()
@@ -298,4 +300,27 @@ end
 function gadget:Shutdown()
 	removeParticles()
 	Spring.SendLuaRulesMsg("lups shutdown", "allies")
+end
+
+local function CheckTeamColors()
+	local detectedChanges = false
+	for i = 1, #teams do
+		local r, g, b = spGetTeamColor(teams[i])
+		if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
+			teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+			detectedChanges = true
+		end
+	end
+	if detectedChanges then
+		gadget:Shutdown()
+		gadget:Initialize()
+	end
+end
+
+function gadget:Update()
+	updateTimer = updateTimer + Spring.GetLastUpdateSeconds()
+	if updateTimer > 1.5 then
+		updateTimer = 0
+		CheckTeamColors()
+	end
 end

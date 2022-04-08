@@ -20,7 +20,7 @@ function AttackerBST:Init()
 	self.level = ut.techLevel - 1
 	if self.level == 0 then self.level = 0.5 elseif self.level < 0 then self.level = 0.25 end
 	self.size = math.max(ut.xsize, ut.zsize) * 8
-	self.congSize = self.size * 0.67 -- how much self.ai.tool:distance between it and other attackers when congregating
+	self.congSize = self.size * 1.5 -- how much self.ai.tool:distance between it and other attackers when congregating
 	self.range = math.max(ut.groundRange, ut.airRange, ut.submergedRange)
 	self.weaponDistance = self.range * 0.9
 	self.sightDistance = ut.losRadius --* 0.9
@@ -127,7 +127,7 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 	if reverseAttackAngle then
 		self:EchoDebug('adv reverse')
 		local awayDistance = math.min(self.sightDistance, self.weaponDistance)
-		if not self.sturdy or self.ai.loshst:IsInLos(pos) then
+		if not self.sturdy or self.ai.loshst:posInLos(pos) then
 			awayDistance = self.weaponDistance
 		end
 		local myAngle = self.ai.tool:AngleAdd(reverseAttackAngle, self.formationAngle)
@@ -152,8 +152,8 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 		-- local framesToArrive = 30 * (self.ai.tool:Distance(self.unit:Internal():GetPosition(), self.target) / self.speed) * 2
 		-- game:SendToConsole("frames to arrive", framesToArrive)
 		-- self.timeout = self.game:Frame() + framesToArrive
-		--self.unit:Internal():AttackMove(self.target) --need to check this
-		self.unit:Internal():Move(self.target)
+		self.unit:Internal():AttackMove(self.target) --need to check this
+		--self.unit:Internal():Move(self.target)
 	end
 	return canMoveThere
 end

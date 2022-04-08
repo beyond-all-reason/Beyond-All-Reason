@@ -5,21 +5,22 @@ function widget:GetInfo()
 		author = "Floris (original: zwzsg, from trepan HighlightUnit)",
 		date = "Apr 24, 2009",
 		license = "GNU GPL, v2 or later",
-		layer = 1,
+		layer = 0,
 		enabled = true
 	}
 end
 
 local hideBelowGameframe = 100
 local useTeamcolor = true
-local highlightAlpha = 0.05
-local teamColorAlphaMult = 1.33
-local teamColorMinAlpha = 0.5
-local edgeExponent = 1.7
-local minEdgeAlpha = 0.25
+local highlightAlpha = 0.075
+local teamColorAlphaMult = 1.4
+local teamColorMinAlpha = 0.55
+local edgeExponent = 1.2
+local minEdgeAlpha = 0.38
 
 local unitshapes = {}
 
+local updateSelection = true
 local selectedUnits = Spring.GetSelectedUnits()
 local hidden = (Spring.GetGameFrame() <= hideBelowGameframe)
 
@@ -46,6 +47,12 @@ local function SetupCommandColors(state)
 end
 
 local function addUnitShape(unitID)
+	if Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then
+		--Spring.Echo("addUnitShape(unitID)", unitID," is already dead")
+		return nil
+	end
+	--Spring.Echo("addUnitShape",unitID)
+	--Spring.Debug.TraceFullEcho(nil,nil,nil,"addUnitShape", unitID)
 	if not WG.HighlightUnitGL4 then
 		widget:Shutdown()
 	else
@@ -64,6 +71,8 @@ local function addUnitShape(unitID)
 end
 
 local function removeUnitShape(unitID)
+
+	--Spring.Echo("removeUnitShape",unitID)
 	if not WG.StopHighlightUnitGL4 then
 		widget:Shutdown()
 	elseif unitID and unitshapes[unitID] then
@@ -96,8 +105,9 @@ local function refresh()
 end
 
 function widget:UnitDestroyed(unitID)	-- maybe not needed if widget:SelectionChanged(sel) is fast enough, but lets not risk it
+	--Spring.Echo("widget:UnitDestroyed",unitID)
 	if unitshapes[unitID] then
-		removeUnitShape(unitID)
+		--removeUnitShape(unitID)
 	end
 end
 
@@ -146,8 +156,15 @@ function widget:Shutdown()
 end
 
 function widget:SelectionChanged(sel)
-	selectedUnits = sel
-	processSelection()
+	updateSelection = true	-- delayed so smartselect can filter units first
+end
+
+function widget:Update(dt)
+	if updateSelection then
+		selectedUnits = Spring.GetSelectedUnits()
+		updateSelection = false
+		processSelection()
+	end
 end
 
 local version = 1

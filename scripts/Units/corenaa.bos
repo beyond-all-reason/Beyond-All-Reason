@@ -6,6 +6,7 @@
 piece  flare1, flare2, turret, guns, base;
 
 static-var  restore_delay, gun_1;
+static-var  Stunned;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -74,13 +75,16 @@ Create()
 	}
 	start-script RockOnWaves();
 }
+Stop()
+{
+    spin turret around y-axis speed <0.0>;
+}
 
 SetMaxReloadTime(Func_Var_1)
 {
 	restore_delay = Func_Var_1 * 2;
 }
 
-static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
@@ -92,7 +96,9 @@ ExecuteRestoreAfterDelay()
 SetStunned(State)
 {
     Stunned = State;
-	if (!Stunned) {
+	if (Stunned) {
+	    call-script Stop();
+	} else {
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }

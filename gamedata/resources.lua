@@ -51,11 +51,16 @@ local resources = {
 			muzzlefront       = 'default/muzzlefront.tga',
 			largebeam         = 'default/largelaserfalloff.tga',
 			gunshotxl         = 'default/gunshotxl.tga',
+			lightningarc	  = 'atmos/lightningarc.tga',
 
 			radarfx1          = 'ui/radarping1.png',
 			radarfx2          = 'ui/radarping2.png',
 			radarfx1old       = 'ui/radar1xx.tga',
 			radarfx2old       = 'ui/radar2.tga',
+
+			lavachunk		  = 'atmos/lavachunk.tga',
+			lavasplats		  = 'atmos/lavasplats.tga',
+			lavaplosion		  = 'atmos/lavaplosion.tga',
 
 			fogdirty          = 'atmos/fogdirty.tga',
 			rain              = 'atmos/rain.tga',
@@ -89,6 +94,7 @@ local resources = {
 			--Chicken Defense effects
 			uglynovaexplo           = 'CC/uglynovaexplo.tga',
 			sporetrail              = 'GPL/sporetrail.tga',
+			sporetrail_xl           = 'GPL/sporetrail_xl.tga',
 			blooddrop               = 'PD/blooddrop.tga',
 			blooddrop2              = 'chickens/blooddrop2.tga',
 			blooddrop2white         = 'chickens/blooddrop2_white.tga',
@@ -104,6 +110,7 @@ local resources = {
 			bloodcentersplatshwhite = 'chickens/blood_centersplatsh_white.tga',
 			blooddropwhite          = 'PD/blooddropwhite.tga',
 			bloodblastwhite         = 'PD/bloodblastwhite.tga',
+			lightningbeam			= 'PD/lightning.tga',
 		 },
 	  }
    }

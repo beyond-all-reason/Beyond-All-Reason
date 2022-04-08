@@ -1,4 +1,4 @@
-local versionNum = '4.000'
+local versionNum = '4.010'
 
 function widget:GetInfo()
 	return {
@@ -15,6 +15,7 @@ end
 include("keysym.h.lua")
 
 ---- CHANGELOG -----
+-- badosu born2crawl,		v4.01	(08oct2021)	: 	Use actions instead of hardcoded keybindings
 -- versus666,		v3.03	(17dec2011)	: 	Back to alt BACKQUOTE to remove selected units from group
 --											to please licho, changed help accordingly.
 -- versus666,		v3.02	(16dec2011)	: 	Fixed for 84, removed unused features, now alt backspace to remove
@@ -43,7 +44,7 @@ local verbose = true
 local cutoffDistance = 3500
 local falloffDistance = 2500
 
-local debug = false --of true generates debug messages
+local hideBelowGameframe = 100
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -63,11 +64,8 @@ local myTeam = Spring.GetMyTeamID()
 local createdFrame = {}
 local textSize = 13
 
-local font, dlists, gameStarted, chobbyInterface
+local font, dlists, gameStarted
 
--- gr = groupe selected/wanted
-
--- speedups
 local SetUnitGroup = Spring.SetUnitGroup
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitDefID = Spring.GetUnitDefID
@@ -87,6 +85,9 @@ local spGetCameraPosition = Spring.GetCameraPosition
 local Echo = Spring.Echo
 local diag = math.diag
 local min = math.min
+
+local existingGroups = GetGroupList()
+local existingGroupsFrame = 0
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
@@ -124,6 +125,10 @@ function widget:Initialize()
 	widget:ViewResize()
 	widget:PlayerChanged()
 
+	widgetHandler:AddAction("add_to_autogroup", ChangeUnitTypeAutogroupHandler, nil, "p") -- With a parameter, adds all units of this type to a specific autogroup
+	widgetHandler:AddAction("remove_from_autogroup", ChangeUnitTypeAutogroupHandler, { removeAll = true }, "p") -- Without a parameter, removes all units of this type from autogroups
+	widgetHandler:AddAction("remove_one_unit_from_group", RemoveOneUnitFromGroupHandler, nil, "p") -- Removes the closest of selected units from groups and selects only it
+
 	WG['autogroup'] = {}
 	WG['autogroup'].getImmediate = function()
 		return immediate
@@ -140,6 +145,95 @@ function widget:Initialize()
 	end
 end
 
+function ChangeUnitTypeAutogroupHandler(_, _, args, data)
+	local gr = args[1]
+	local removeAll = data and data['removeAll']
+
+	if not removeAll and not gr then return end -- noop if add to autogroup and no argument
+
+	if removeAll then
+		gr = nil
+	end
+
+	local selUnitDefIDs = {}
+	local unit2groupDeleted = {}
+	local exec = false --set to true when there is at least one unit to process
+	local units = GetSelectedUnits()
+	for i = 1, #units do
+		local unitID = units[i]
+		local udid = GetUnitDefID(unitID)
+		if not UDefTab[udid]["isFactory"] and (groupableBuildings[udid] or not UDefTab[udid]["isBuilding"]) then
+			selUnitDefIDs[udid] = true
+			unit2group[udid] = gr
+			exec = true
+			if gr == nil then
+				SetUnitGroup(unitID, -1)
+			else
+				SetUnitGroup(unitID, gr)
+			end
+		end
+	end
+	if exec == false then
+		return false --nothing to do
+	end
+	for udid, _ in pairs(selUnitDefIDs) do
+		if verbose then
+			if gr then
+				Echo( Spring.I18N('ui.autogroups.unitAdded', { unit = UnitDefs[udid].humanName, groupNumber = gr }) )
+			else
+				Echo( Spring.I18N('ui.autogroups.unitRemoved', { unit = UnitDefs[udid].humanName }) )
+			end
+		end
+	end
+	if addall then
+		local myUnits = Spring.GetTeamUnits(myTeam)
+		for i = 1, #myUnits do
+			local unitID = myUnits[i]
+			local curUnitDefID = GetUnitDefID(unitID)
+			if selUnitDefIDs[curUnitDefID] then
+				if gr then
+					local _, _, _, _, buildProgress = GetUnitHealth(unitID)
+					if buildProgress == 1 then
+						SetUnitGroup(unitID, gr)
+						SelectUnitArray({ unitID }, true)
+					end
+				else
+					SetUnitGroup(unitID, -1)
+				end
+			end
+		end
+	end
+
+	return true
+end
+
+function RemoveOneUnitFromGroupHandler(_, _, args)
+	local mx, my = GetMouseState()
+	local _, pos = TraceScreenRay(mx, my, true)
+	local mindist = math.huge
+	local muid = nil
+	if pos == nil then
+		return
+	end
+	local units = GetSelectedUnits()
+	local dist
+	for i = 1, #units do
+		local unitID = units[i]
+		local x, _, z = GetUnitPosition(unitID)
+		dist = (pos[1] - x) * (pos[1] - x) + (pos[3] - z) * (pos[3] - z)
+		if dist < mindist then
+			mindist = dist
+			muid = unitID
+		end
+	end
+	if muid ~= nil then
+		SetUnitGroup(muid, -1)
+		SelectUnitArray({ muid })
+	end
+
+	return true
+end
+
 function widget:Shutdown()
 	WG['autogroup'] = nil
 	if dlists then
@@ -150,44 +244,34 @@ function widget:Shutdown()
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
-local existingGroups = GetGroupList()
-local existingGroupsFrame = 0
-
 function widget:DrawWorld()
-	if chobbyInterface then
+	if IsGuiHidden() or GetGameFrame() < hideBelowGameframe then
 		return
 	end
-	if not IsGuiHidden() then
-    existingGroupsFrame = existingGroupsFrame + 1 
-    if existingGroupsFrame % 10 == 0 then 
-      existingGroups = GetGroupList()
-    end
-		local camX, camY, camZ = spGetCameraPosition()
-		local camDistance
-		for inGroup, _ in pairs(existingGroups) do
-			local units = GetGroupUnits(inGroup)
-			for i = 1, #units do
-				local unitID = units[i]
-				if spIsUnitInView(unitID) then
-					local ux, uy, uz = spGetUnitViewPosition(unitID)
-					local camDistance = diag(camX - ux, camY - uy, camZ - uz)
-					if camDistance < cutoffDistance then
-						local scale = min(1, 1 - (camDistance - falloffDistance) / cutoffDistance)
-						gl.PushMatrix()
-						gl.Translate(ux, uy, uz)
-						if scale <=1 then
-							gl.Scale(scale, scale, scale)
-						end
-						gl.Billboard()
-						gl.CallList(dlists[inGroup])
-						gl.PopMatrix()
+
+	existingGroupsFrame = existingGroupsFrame + 1
+	if existingGroupsFrame % 10 == 0 then
+		existingGroups = GetGroupList()
+	end
+	local camX, camY, camZ = spGetCameraPosition()
+	local camDistance
+	for inGroup, _ in pairs(existingGroups) do
+		local units = GetGroupUnits(inGroup)
+		for i = 1, #units do
+			local unitID = units[i]
+			if spIsUnitInView(unitID) then
+				local ux, uy, uz = spGetUnitViewPosition(unitID)
+				local camDistance = diag(camX - ux, camY - uy, camZ - uz)
+				if camDistance < cutoffDistance then
+					local scale = min(1, 1 - (camDistance - falloffDistance) / cutoffDistance)
+					gl.PushMatrix()
+					gl.Translate(ux, uy, uz)
+					if scale <=1 then
+						gl.Scale(scale, scale, scale)
 					end
+					gl.Billboard()
+					gl.CallList(dlists[inGroup])
+					gl.PopMatrix()
 				end
 			end
 		end
@@ -255,131 +339,11 @@ end
 function widget:UnitIdle(unitID, unitDefID, unitTeam)
 	if unitTeam == myTeam and finiGroup[unitID] ~= nil then
 		local gr = unit2group[unitDefID]
-		if gr ~= nil then
+		if immediate ~= true and gr ~= nil then
 			SetUnitGroup(unitID, gr)
 		end
 		finiGroup[unitID] = nil
 	end
-end
-
-function widget:KeyPress(key, modifier, isRepeat)
-	if modifier.alt and not modifier.meta then
-		local gr
-		if key == KEYSYMS.N_0 then
-			gr = 0
-		end
-		if key == KEYSYMS.N_1 then
-			gr = 1
-		end
-		if key == KEYSYMS.N_2 then
-			gr = 2
-		end
-		if key == KEYSYMS.N_3 then
-			gr = 3
-		end
-		if key == KEYSYMS.N_4 then
-			gr = 4
-		end
-		if key == KEYSYMS.N_5 then
-			gr = 5
-		end
-		if key == KEYSYMS.N_6 then
-			gr = 6
-		end
-		if key == KEYSYMS.N_7 then
-			gr = 7
-		end
-		if key == KEYSYMS.N_8 then
-			gr = 8
-		end
-		if key == KEYSYMS.N_9 then
-			gr = 9
-		end
-		if key == KEYSYMS.BACKQUOTE then
-			gr = -1
-		end
-		if gr ~= nil then
-			if gr == -1 then
-				gr = nil
-			end
-			local selUnitDefIDs = {}
-			local unit2groupDeleted = {}
-			local exec = false --set to true when there is at least one unit to process
-			local units = GetSelectedUnits()
-			for i = 1, #units do
-				local unitID = units[i]
-				local udid = GetUnitDefID(unitID)
-				if not UDefTab[udid]["isFactory"] and (groupableBuildings[udid] or not UDefTab[udid]["isBuilding"]) then
-					selUnitDefIDs[udid] = true
-					unit2group[udid] = gr
-					exec = true
-					if gr == nil then
-						SetUnitGroup(unitID, -1)
-					else
-						SetUnitGroup(unitID, gr)
-					end
-				end
-			end
-			if exec == false then
-				return false --nothing to do
-			end
-			for udid, _ in pairs(selUnitDefIDs) do
-				if verbose then
-					if gr then
-						Echo( Spring.I18N('ui.autogroups.unitAdded', { unit = UnitDefs[udid].translatedHumanName, groupNumber = gr }) )
-					else
-						Echo( Spring.I18N('ui.autogroups.unitRemoved', { unit = UnitDefs[udid].translatedHumanName }) )
-					end
-				end
-			end
-			if addall then
-				local myUnits = Spring.GetTeamUnits(myTeam)
-				for i = 1, #myUnits do
-					local unitID = myUnits[i]
-					local curUnitDefID = GetUnitDefID(unitID)
-					if selUnitDefIDs[curUnitDefID] then
-						if gr then
-							local _, _, _, _, buildProgress = GetUnitHealth(unitID)
-							if buildProgress == 1 then
-								SetUnitGroup(unitID, gr)
-								SelectUnitArray({ unitID }, true)
-							end
-						else
-							SetUnitGroup(unitID, -1)
-						end
-					end
-				end
-			end
-			return true    --key was processed by widget
-		end
-
-	elseif modifier.ctrl and not modifier.meta then
-		if key == KEYSYMS.BACKQUOTE then
-			local mx, my = GetMouseState()
-			local _, pos = TraceScreenRay(mx, my, true)
-			local mindist = math.huge
-			local muid = nil
-			if pos == nil then
-				return
-			end
-			local units = GetSelectedUnits()
-			local dist
-			for i = 1, #units do
-				local unitID = units[i]
-				local x, _, z = GetUnitPosition(unitID)
-				dist = (pos[1] - x) * (pos[1] - x) + (pos[3] - z) * (pos[3] - z)
-				if dist < mindist then
-					mindist = dist
-					muid = unitID
-				end
-			end
-			if muid ~= nil then
-				SetUnitGroup(muid, -1)
-				SelectUnitArray({ muid })
-			end
-		end
-	end
-	return false
 end
 
 function widget:GetConfigData()

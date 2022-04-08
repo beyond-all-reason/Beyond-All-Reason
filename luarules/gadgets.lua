@@ -398,9 +398,6 @@ function gadgetHandler:ValidateGadget(gadget)
 	if gadget.GetTooltip and not gadget.IsAbove then
 		return "Gadget has GetTooltip() but not IsAbove()"
 	end
-	if gadget.TweakGetTooltip and not gadget.TweakIsAbove then
-		return "Gadget has TweakGetTooltip() but not TweakIsAbove()"
-	end
 	return nil
 end
 

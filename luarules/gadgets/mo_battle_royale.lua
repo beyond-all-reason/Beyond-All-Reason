@@ -190,7 +190,7 @@ else
     wallcolor = mix(wallcolor, vec4(0.2, 0.6, 1.0, 1.0), hex.b);
     
     // pulsing effect for the alpha glow channel:
-    float timemod = 0.1 + 10 * max(0.0,(sin(0.1*(worldscale_circumference+ worldPos.y*0.1) + timeInfo.x*0.02)-0.9));
+    float timemod = 0.1 + 10 * max(0.0,(sin(0.1*(worldscale_circumference+ worldPos.y*0.1) + (timeInfo.x + timeInfo.w) *0.02)-0.9));
     wallcolor += mix(wallcolor, vec4(0.5, 1.0, 1.0, 1.0), (1.0 - hex.a) * timemod);
     fragColor.rgba = wallcolor;
     fragColor.a *= blendedcolor.a;

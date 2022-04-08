@@ -3,7 +3,10 @@
 
 namespace Builder {
 
-//AIFloat3 lastPos;
+CCircuitUnit@ energizer1 = null;
+CCircuitUnit@ energizer2 = null;
+
+// AIFloat3 lastPos;
 // int gPauseCnt = 0;
 
 IUnitTask@ AiMakeTask(CCircuitUnit@ unit)
@@ -45,10 +48,25 @@ void AiTaskCreated(IUnitTask@ task)
 // 			AiAddPoint(task.GetBuildPos(), name);
 // 		}
 // 	} break;
-// 	case 10:  // BuildType::MEX
-// 	case 5:  // BuildType::DEFENCE
 // 	case 0:  // BuildType::FACTORY
+// 	case 1:  // BuildType::NANO
+// 	case 2:  // BuildType::STORE
+// 	case 3:  // BuildType::PYLON
+// 	case 5:  // BuildType::GEO
+// 	case 6:  // BuildType::DEFENCE
+// 	case 7:  // BuildType::BUNKER
+// 	case 8:  // BuildType::BIG_GUN
+// 	case 9:  // BuildType::RADAR
+// 	case 10:  // BuildType::SONAR
+// 	case 11:  // BuildType::CONVERT
+// 	case 12:  // BuildType::MEX
+// 	case 13:  // BuildType::MEXUP
 // 		AiAddPoint(task.GetBuildPos(), task.GetBuildDef().GetName());
+// 		break;
+// 	case 14:  // BuildType::REPAIR
+// 	case 15:  // BuildType::RECLAIM
+// 	case 16:  // BuildType::RESURRECT
+// 		AiAddPoint(task.GetBuildPos(), "re");
 // 		break;
 // 	default:
 // 		break;
@@ -61,9 +79,23 @@ void AiTaskClosed(IUnitTask@ task, bool done)
 // 		return;
 // 	}
 // 	switch (task.GetBuildType()) {
-// 	case 10:  // BuildType::MEX
-// 	case 5:  // BuildType::DEFENCE
+// 	case 0:  // BuildType::FACTORY
+// 	case 1:  // BuildType::NANO
+// 	case 2:  // BuildType::STORE
+// 	case 3:  // BuildType::PYLON
 // 	case 4:  // BuildType::ENERGY
+// 	case 5:  // BuildType::GEO
+// 	case 6:  // BuildType::DEFENCE
+// 	case 7:  // BuildType::BUNKER
+// 	case 8:  // BuildType::BIG_GUN
+// 	case 9:  // BuildType::RADAR
+// 	case 10:  // BuildType::SONAR
+// 	case 11:  // BuildType::CONVERT
+// 	case 12:  // BuildType::MEX
+// 	case 13:  // BuildType::MEXUP
+// 	case 14:  // BuildType::REPAIR
+// 	case 15:  // BuildType::RECLAIM
+// 	case 16:  // BuildType::RESURRECT
 // 		AiDelPoint(task.GetBuildPos());
 // 		break;
 // 	default:
@@ -73,10 +105,33 @@ void AiTaskClosed(IUnitTask@ task, bool done)
 
 void AiWorkerCreated(CCircuitUnit@ unit)
 {
+	const CCircuitDef@ cdef = unit.circuitDef;
+	if (cdef.IsRoleAny(Unit::Role::COMM.mask))
+		return;
+
+	// constructor with BASE attribute is assigned to tasks near base
+	if (cdef.costM < 200.f) {
+		if (energizer1 is null
+			&& (uint(cdef.count) > aiMilitaryMgr.GetGuardTaskNum() || cdef.IsAbleToFly()))
+		{
+			@energizer1 = @unit;
+			unit.AddAttribute(Unit::Attr::BASE.type);
+		}
+	} else {
+		if (energizer2 is null) {
+			@energizer2 = @unit;
+			unit.AddAttribute(Unit::Attr::BASE.type);
+		}
+	}
 }
 
 void AiWorkerDestroyed(CCircuitUnit@ unit)
 {
+	if (energizer1 is unit) {
+		@energizer1 = null;
+	} else if (energizer2 is unit) {
+		@energizer2 = null;
+	}
 }
 
 }  // namespace Builder

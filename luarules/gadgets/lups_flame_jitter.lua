@@ -20,7 +20,7 @@ if gadgetHandler:IsSyncedCode() then
 	local thisGameFrame = 0
 	local lastLupsSpawn = {}
 
-	function FlameShot(unitID, unitDefID, _, weapon)
+	local function FlameShot(unitID, unitDefID, _, weapon)
 		lastLupsSpawn[unitID] = lastLupsSpawn[unitID] or {}
 		if ((lastLupsSpawn[unitID][weapon] or 0) - thisGameFrame) <= -MIN_EFFECT_INTERVAL then
 			lastLupsSpawn[unitID][weapon] = thisGameFrame
@@ -38,25 +38,23 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
 		gadgetHandler:RegisterGlobal("FlameShot", FlameShot)
-		--gadgetHandler:RegisterGlobal("FlameSetDir",FlameSetDir)
-		--gadgetHandler:RegisterGlobal("FlameSetFirePoint",FlameSetFirePoint)
 	end
 
 	function gadget:Shutdown()
 		gadgetHandler:DeregisterGlobal("FlameShot")
-		--gadgetHandler:DeregisterGlobal("FlameSetDir")
-		--gadgetHandler:DeregisterGlobal("FlameSetFirePoint")
 	end
 
-else
-	-------------------------------------------------------------------------------------
-	-- -> UNSYNCED
-	-------------------------------------------------------------------------------------
+
+else	-- UNSYNCED
+
 
 	local particleCnt = 1
 	local particleList = {}
-
-	local lastShoot = {}
+	local myTeamID = Spring.GetMyTeamID()
+	local myPlayerID = Spring.GetMyPlayerID()
+	local mySpec, fullview = Spring.GetSpectatingState()
+	local spGetUnitPosition = Spring.GetUnitPosition
+	local spIsPosInLos = Spring.IsPosInLos
 
 	local altflametex = {}
 	local flameWeaponParticleLife = {}
@@ -80,19 +78,20 @@ else
 		end
 	end
 
-	function FlameShot(_, unitID, unitDefID, weapon)
+	function gadget:PlayerChanged(playerID)
+		if playerID == myPlayerID then
+			myTeamID = Spring.GetMyTeamID()
+			mySpec, fullview = Spring.GetSpectatingState()
+		end
+	end
+
+	local function FlameShot(_, unitID, unitDefID, weapon)
 		if Spring.IsUnitIcon(unitID) then
 			return
 		end
-		-- why is this even needed? we limited frequency of fire FX back in synced
-		--[[
-		local n = Spring.GetGameFrame()
-		lastShoot[unitID] = lastShoot[unitID] or {}
-		if ((lastShoot[unitID][weapon] or 0) > (n-MIN_EFFECT_INTERVAL) ) then
-		  return
+		if not fullview and not CallAsTeam(myTeamID, spIsPosInLos, spGetUnitPosition(unitID)) then
+			return
 		end
-		lastShoot[unitID][weapon] = n
-		]]--
 
 		local posx, posy, posz, dirx, diry, dirz = Spring.GetUnitWeaponVectors(unitID, weapon)
 		local wd = unitWeapons[unitDefID][weapon]
@@ -123,11 +122,11 @@ else
 			speedSpread = 1.5,
 			speedExp = 1.5,
 
-			size = 28,
-			sizeGrowth = 4.7,
+			size = 35,
+			sizeGrowth = 5.5,
 
 			scale = 1.5,
-			strength = 1.0,
+			strength = 1.2,
 			heat = 6,
 		}
 		particleCnt = particleCnt + 1
@@ -206,7 +205,7 @@ else
 
 	end
 
-	function GameFrame()
+	local function GameFrame()
 		if particleCnt > 1 then
 			particleList.n = particleCnt
 			GG.Lups.AddParticlesArray(particleList)

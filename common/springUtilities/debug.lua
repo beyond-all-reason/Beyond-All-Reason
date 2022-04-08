@@ -66,6 +66,11 @@ local function traceFullEcho(maxdepth, maxwidth, maxtableelements, ...)
 	-- if any of the values of the locals are tables, then it will try to shallow print + count them up to maxtablelements numbers. 
 	-- It will also just print any args after the first 3. (the ... part)
 	-- It will also try to print the source file+line of each function
+	if (debug) then 
+	else
+		Spring.Echo("traceFullEcho needs debug to work, this seems to be missing or overwritten", debug)
+		return
+	end
 	local tracedebug = false -- to debug itself
 	local functionsource = true
 	maxdepth = maxdepth or 16

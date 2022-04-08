@@ -23,7 +23,7 @@ local function sendRandomNukeOrder(n, scav)
             local targetTeam = Spring.GetUnitTeam(targetID)
 			local targetNeutral = Spring.GetUnitNeutral(targetID)
 
-            if targetTeam ~= GaiaTeamID and targetNeutral == false then
+            if targetTeam ~= ScavengerTeamID and targetNeutral == false then
                 local targetDefID = Spring.GetUnitDefID(targetID)
                 local targetCanFly = UnitDefs[targetDefID].canFly
 

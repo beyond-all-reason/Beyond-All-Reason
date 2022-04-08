@@ -8,6 +8,14 @@ local function getUnitIDList(unitNameList)
 	return unitDefIDList
 end
 
+local scavSpawnEffectUnit = "scavengerdroppod_scav"
+local scavSpawnBeacon = "scavengerdroppodbeacon_scav"
+local friendlySpawnEffectUnit = "scavengerdroppodfriendly"
+
+local scavSpawnEffectUnitID = UnitDefNames[scavSpawnEffectUnit].id
+local scavSpawnBeaconID = UnitDefNames[scavSpawnBeacon].id
+local friendlySpawnEffectUnitID = UnitDefNames[friendlySpawnEffectUnit].id
+
 local noSelfDestruct = {
 	"cormaw_scav",
 	"armclaw_scav",
@@ -72,250 +80,271 @@ local beaconCaptureExclusions = {
 	"corfort",
 }
 
-local beaconDefences = {
+local beaconDefencesLand = {
 	T0 = {
-		"corllt_scav",
+		-- Nanos
+		"armnanotc_scav",
+		"cornanotc_scav",
+
+		-- T0
 		"armllt_scav",
-		"corllt_scav",
-		"armllt_scav",
-		"corllt_scav",
-		"armllt_scav",
-		"corrl_scav",
 		"armrl_scav",
+		"corllt_scav",
+		"corrl_scav",
 	},
 
 	T1 = {
-		"corllt_scav",
-		"armllt_scav",
-		"corllt_scav",
-		"armllt_scav",
-		"corllt_scav",
-		"armllt_scav",
-		"corrl_scav",
-		"armrl_scav",
-		"corhllt_scav",
-		"corhllt_scav",
-		"armbeamer_scav",
-	},
+		-- Nanos
+		"armnanotc_scav",
+		"cornanotc_scav",
 
-	T2 = {
-		"corhllt_scav",
-		"corhllt_scav",
-		"armbeamer_scav",
-		"cormaw_scav",
-		"armclaw_scav",
-		"armferret_scav",
+		-- T1
+		"armrad_scav",
+		"armjamt_scav",
 		"armbeamer_scav",
 		"armhlt_scav",
-		"armhlt_scav",
-		"corhlt_scav",
-		"corhlt_scav",
-		"armflak_scav",
-		"corflak_scav",
-	},
-
-	T3 = {
-		"armflak_scav",
-		"corflak_scav",
-		"corvipe_scav",
-		"corvipe_scav",
-		"corvipe_scav",
-		"corvipe_scav",
-		"armpb_scav",
-		"armpb_scav",
-		"armpb_scav",
-		"armpb_scav",
-		"armanni_scav",
-		"cordoom_scav",
-		"corminibuzz_scav",
-		"armminivulc_scav",
-	},
-}
-
-local startboxDefences = {
-	T0 = {
-		"corllt_scav",
-		"armllt_scav",
-		"corllt_scav",
-		"armllt_scav",
-		"corllt_scav",
-		"armllt_scav",
-		"corrl_scav",
+		"armguard_scav",
+		"armmg_scav",
 		"armrl_scav",
-	},
-
-	T1 = {
-		"cormaw_scav",
-		"corhllt_scav",
-		"armclaw_scav",
-		"armbeamer_scav",
 		"armferret_scav",
+		"armcir_scav",
+		"armdl_scav",
+		"corrad_scav",
+		"corjamt_scav",
+		"corhllt_scav",
+		"corhlt_scav",
+		"corpun_scav",
 		"cormadsam_scav",
 		"corerad_scav",
-		"corhllt_scav",
-		"corhlt_scav",
-		"armhlt_scav",
-		"armmine3_scav",
+		"cordl_scav",
+		"corscavdtl_scav",
+		"corscavdtf_scav",
+		"corscavdtm_scav",
 	},
 
 	T2 = {
+		-- Nanos
+		"armnanotc_scav",
+		"cornanotc_scav",
+
+		-- T1
+		"armrad_scav",
+		"armjamt_scav",
+		"armbeamer_scav",
+		"armhlt_scav",
+		"armguard_scav",
+		"armmg_scav",
+		"armrl_scav",
+		"armferret_scav",
+		"armcir_scav",
+		"armdl_scav",
+		"corrad_scav",
+		"corjamt_scav",
 		"corhllt_scav",
 		"corhlt_scav",
-		"armhlt_scav",
-		"corvipe_scav",
-		"armpb_scav",
-		"armflak_scav",
-		"corflak_scav",
-		"armguard_scav",
 		"corpun_scav",
-		"armamd_scav",
-		"corfmd_scav",
+		"cormadsam_scav",
+		"corerad_scav",
+		"cordl_scav",
+		"corscavdtl_scav",
+		"corscavdtf_scav",
+		"corscavdtm_scav",
+		
+		-- Nanos
+		"armnanotc_scav",
+		"cornanotc_scav",
+
+		-- T2
+		"armarad_scav",
+		"armveil_scav",
+		"armsd_scav",
+		"armtarg_scav",
+		"armgate_scav",
+		"armpb_scav",
+		"armamb_scav",
+		"armflak_scav",
+		"corarad_scav",
+		"corshroud_scav",
+		"corsd_scav",
+		"cortarg_scav",
+		"corgate_scav",
+		"corhllllt_scav",
 		"corvipe_scav",
-		"armpb_scav",
-		"armpb_scav",
-		"armflak_scav",
+		"cortoast_scav",
 		"corflak_scav",
-		"armamd_scav",
-		"corfmd_scav",
-		"armemp_scav",
-		"corflak_scav",
-		"armflak_scav",
-		"corflak_scav",
-		"armmine3_scav",
-		"armamd_scav",
-		"corfmd_scav",
-		"armemp_scav",
 	},
 
 	T3 = {
-		"corvipe_scav",
+		-- Nanos
+		"armnanotc_scav",
+		"cornanotc_scav",
+
+		-- T2
+		"armarad_scav",
+		"armveil_scav",
+		"armsd_scav",
+		"armtarg_scav",
+		"armgate_scav",
 		"armpb_scav",
-		"cortoast_scav",
 		"armamb_scav",
-		"armpb_scav",
 		"armflak_scav",
+		"corarad_scav",
+		"corshroud_scav",
+		"corsd_scav",
+		"cortarg_scav",
+		"corgate_scav",
+		"corhllllt_scav",
+		"corvipe_scav",
+		"cortoast_scav",
 		"corflak_scav",
+
+		-- Nanos
+		"armnanotc_scav",
+		"cornanotc_scav",
+
+		-- T3
 		"armanni_scav",
-		"cordoom_scav",
-		"armamd_scav",
-		"corfmd_scav",
-		"armemp_scav",
-		"cortron_scav",
-		"corflak_scav",
-		"armanni_scav",
-		"cordoom_scav",
-		"armanni_scav",
-		"cordoom_scav",
-		"armflak_scav",
-		"corflak_scav",
-		"armanni_scav",
-		"cordoom_scav",
-		"armmine3_scav",
-		"armamd_scav",
-		"corfmd_scav",
-		"armemp_scav",
-		"cortron_scav",
-		"corminibuzz_scav",
+		"armbrtha_scav",
 		"armminivulc_scav",
+		"armmercury_scav",
+		"armemp_scav",
+		"armamd_scav",
+		"cordoom_scav",
+		"corint_scav",
+		"corminibuzz_scav",
+		"corscreamer_scav",
+		"cortron_scav",
+		"corfmd_scav",
 	},
 
 	T4 = {
-		"corflak_scav",
-		"armanni_scav",
-		"cordoom_scav",
-		"armanni_scav",
-		"cordoom_scav",
+		-- Nanos
+		"armnanotc_scav",
+		"cornanotc_scav",
+
+		-- T2
+		"armarad_scav",
+		"armveil_scav",
+		"armsd_scav",
+		"armtarg_scav",
+		"armgate_scav",
+		"armpb_scav",
+		"armamb_scav",
 		"armflak_scav",
+		"corarad_scav",
+		"corshroud_scav",
+		"corsd_scav",
+		"cortarg_scav",
+		"corgate_scav",
+		"corhllllt_scav",
+		"corvipe_scav",
+		"cortoast_scav",
 		"corflak_scav",
+
+		-- Nanos
+		"armnanotc_scav",
+		"cornanotc_scav",
+
+		-- T3
 		"armanni_scav",
-		"cordoom_scav",
-		"armmine3_scav",
-		"armamd_scav",
-		"corfmd_scav",
-		"armemp_scav",
-		"cortron_scav",
-		"corminibuzz_scav",
+		"armbrtha_scav",
 		"armminivulc_scav",
+		"armmercury_scav",
+		"armemp_scav",
+		"armamd_scav",
+		"cordoom_scav",
+		"corint_scav",
+		"corminibuzz_scav",
+		"corscreamer_scav",
+		"cortron_scav",
+		"corfmd_scav",
+		
+		-- Nanos
+		"armnanotc_scav",
+		"cornanotc_scav",
+
+		-- T4
+		"armannit3_scav",
+		"armvulc_scav",
+		"armbotrail_scav",
+		"armsilo_scav",
+		"cordoomt3_scav",
+		"corbuzz_scav",
+		"corsilo_scav",
 	},
 }
 
-local startboxDefencesSea = {
+local beaconDefencesSea = {
 	T0 = {
-		"cortl_scav",
-		"armtl_scav",
-		"cortl_scav",
-		"armtl_scav",
-		"armfrt_scav",
-		"corfrt_scav",
-		"corfdrag_scav",
-		"cortl_scav",
+		-- Nanos
+		"armnanotcplat_scav",
+		"cornanotcplat_scav",
+		
+		-- T0
 		"armtl_scav",
 		"armfrt_scav",
-		"corfrt_scav",
 		"cortl_scav",
-		"armtl_scav",
-		"armfrt_scav",
 		"corfrt_scav",
-		"corfhlt_scav",
-		"armfhlt_scav",
-		"corfhlt_scav",
-		"armfhlt_scav",
 	},
 
 	T1 = {
-		"cortl_scav",
-		"armtl_scav",
-		"armfrt_scav",
-		"corfrt_scav",
-		"cortl_scav",
-		"armtl_scav",
-		"armfrt_scav",
-		"corfrt_scav",
-		"corfhlt_scav",
+		-- Nanos
+		"armnanotcplat_scav",
+		"cornanotcplat_scav",
+		
+		-- T1
+		"armfrad_scav",
 		"armfhlt_scav",
+		"corfrad_scav",
 		"corfhlt_scav",
-		"armfhlt_scav",
 	},
 
 	T2 = {
-		"cortl_scav",
-		"armtl_scav",
-		"armfrt_scav",
-		"corfrt_scav",
-		"coratl_scav",
-		"armatl_scav",
-		"corfhlt_scav",
-		"armfhlt_scav",
-		"coratl_scav",
-		"armatl_scav",
-		"corfhlt_scav",
-		"armfhlt_scav",
-		"coratl_scav",
-		"armatl_scav",
-		"corfdoom_scav",
+		-- Nanos
+		"armnanotcplat_scav",
+		"cornanotcplat_scav",
+		
+		-- T2
 		"armkraken_scav",
+		"armfflak_scav",
+		"armatl_scav",
+		"armfatf_scav",
+		"corfdoom_scav",
+		"corenaa_scav",
+		"coratl_scav",
+		"corfatf_scav",
 	},
   
 	T3 = {
-		"coratl_scav",
-		"armatl_scav",
-		"corfhlt_scav",
-		"armfhlt_scav",
-		"coratl_scav",
-		"armatl_scav",
-		"corfdoom_scav",
+		-- Nanos
+		"armnanotcplat_scav",
+		"cornanotcplat_scav",
+		
+		-- T2 -- There's nothing to put in T3 :(
 		"armkraken_scav",
-		--"corfflak_scav",
 		"armfflak_scav",
+		"armatl_scav",
+		"armfatf_scav",
+		"corfdoom_scav",
+		"corenaa_scav",
+		"coratl_scav",
+		"corfatf_scav",
 	},
 
 	T4 = {
-		"coratl_scav",
-		"armatl_scav",
-		"corfdoom_scav",
+		-- Nanos
+		"armnanotcplat_scav",
+		"cornanotcplat_scav",
+		
+		-- T2 -- There's nothing to put in T4 either :(
 		"armkraken_scav",
-		--"corfflak_scav",
 		"armfflak_scav",
+		"armatl_scav",
+		"armfatf_scav",
+		"corfdoom_scav",
+		"corenaa_scav",
+		"coratl_scav",
+		"corfatf_scav",
 	},
 }
 
@@ -326,6 +355,12 @@ local nukesID = getUnitIDList(nukes)
 local beaconCaptureExclusionsID = getUnitIDList(beaconCaptureExclusions)
 
 return {
+	scavSpawnEffectUnit = scavSpawnEffectUnit,
+	scavSpawnEffectUnitID = scavSpawnEffectUnitID,
+	friendlySpawnEffectUnit = friendlySpawnEffectUnit,
+	friendlySpawnEffectUnitID = friendlySpawnEffectUnitID,
+	scavSpawnBeacon = scavSpawnBeacon,
+	scavSpawnBeaconID = scavSpawnBeaconID,
 	NoSelfDestruct = noSelfDestruct,
 	NoSelfDestructID = noSelfDestructID,
 	Walls = walls,
@@ -336,7 +371,6 @@ return {
 	NukesID = nukesID,
 	BeaconCaptureExclusions = beaconCaptureExclusions,
 	BeaconCaptureExclusionsID = beaconCaptureExclusionsID,
-	BeaconDefences = beaconDefences,
-	StartboxDefences = startboxDefences,
-	StartboxDefencesSea = startboxDefencesSea,
+	BeaconDefencesLand = beaconDefencesLand,
+	BeaconDefencesSea = beaconDefencesSea,
 }

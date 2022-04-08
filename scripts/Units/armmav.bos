@@ -814,6 +814,7 @@ AimPrimary(heading, pitch)
 	start-script RequestState(0);
 	bAiming = TRUE;
 	turn aimy1 to y-axis heading speed <250.027473>;
+	turn aimx1 to x-axis -1*pitch speed <150>;
 	
 	while( !ReadyToAim )
 	{
@@ -823,6 +824,7 @@ AimPrimary(heading, pitch)
 	{
 		wpn1_lasthead = 1000000;
 		wait-for-turn aimy1 around y-axis;
+		wait-for-turn aimx1 around x-axis;
 	}
 	start-script RestoreAfterDelay();
 	wpn1_lasthead = heading;

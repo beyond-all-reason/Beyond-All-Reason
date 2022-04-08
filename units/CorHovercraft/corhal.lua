@@ -147,10 +147,10 @@ return {
 					light_mult = "0.75",
 				},
 				damage = {
-					bombers = 55,
+					bombers = 25,
 					default = 275,
-					fighters = 55,
-					vtol = 55,
+					fighters = 25,
+					vtol = 25,
 				},
 			},
 		},

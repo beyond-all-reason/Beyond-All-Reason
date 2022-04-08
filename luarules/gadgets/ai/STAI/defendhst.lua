@@ -1,7 +1,7 @@
 
-local techLevelPriority = 1
+local techLevelPriority = 2
 local commanderPriority = 2
-local threatenedPriority = 4
+local threatenedPriority = 2
 
 local canDefend = {
 	air = { air = 1, bot = 1, veh = 1, amp = 1, hov = 1, shp = 1, sub = 1 },
@@ -522,9 +522,6 @@ function DefendHST:FindFronts(troublingCells)
 				local nearestTurtleDist = 100000
 				local nearestTurtle
 				for wardIndex , ward in pairs(self.wards) do
-					-- 				for wi = #self.wards, 1, -1 do
-					-- 					local ward = self.wards[wi]
-
 					if ward.behaviour ~= nil then
 						local behaviour = ward.behaviour
 						if not ward.behaviour.unit or not ward.behaviour.unit:Internal() or not ward.behaviour.unit:Internal():IsAlive() then

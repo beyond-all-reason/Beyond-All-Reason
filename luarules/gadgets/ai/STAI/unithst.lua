@@ -245,8 +245,8 @@ end
 
 function UnitHST:UnitDamaged(engineUnit,engineAttacker,damage)
 	local u = self:AIRepresentation(engineUnit)
-	u:UnitDamaged(u,engineAttacker,damage)
 	if u == nil then return end
+	u:UnitDamaged(u,engineAttacker,damage)
 	-- local a = self:AIRepresentation(engineAttacker)
 -- 	for k,unit in pairs(self.myActiveUnits) do
 -- 		if unit:HasBehaviours() then
