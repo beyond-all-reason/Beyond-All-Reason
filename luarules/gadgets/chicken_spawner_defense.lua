@@ -634,6 +634,12 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				canSpawnBurrow = StartboxCheck(x, y, z, 64, chickenAllyTeamID, true)
 				if canSpawnBurrow then
+					canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, false)
+				end
+				if canSpawnBurrow then
+					canSpawnBurrow = positionCheckLibrary.MapEdgeCheck(x, y, z, 128)
+				end
+				if canSpawnBurrow then
 					canSpawnBurrow = positionCheckLibrary.OccupancyCheck(x, y, z, 128)
 				end
 				if canSpawnBurrow then
