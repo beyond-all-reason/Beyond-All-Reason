@@ -1568,7 +1568,7 @@ fragment = [[
 	void main(void)
 	{
 	#ifdef HASALPHASHADOWS
-		vec4 texColor2 = texture(texture1, uvCoords, 0); // note that we bind tex2 to pos0 here!
+		vec4 texColor2 = texture(texture2, uvCoords, 0); // note that we bind tex2 to pos0 here!
 		if (texColor2.a < 0.5 ) discard;
 	#endif
 	}
