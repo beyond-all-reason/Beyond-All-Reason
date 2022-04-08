@@ -887,6 +887,17 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	return false
 end
 
+function widget:CommandNotify(cmdID, _, cmdOpts)
+	if cmdID >= 0 then
+		return
+	end
+
+	if not cmdOpts.shift then
+		currentBuildCategory = nil
+		doUpdate = true
+	end
+end
+
 local function nextPageHandler()
 	if not (selectedBuilder or selectedFactory) then return end
 	if pages < 2 then return end
