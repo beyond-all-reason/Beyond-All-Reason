@@ -138,6 +138,7 @@ end
 	-- DONE: add a wreck texture to chickens! It uses lavadistortion texture, its fine
 	
 	-- TODO: separate out damaged units for better perf, damage shading is not free! (as damage is not dynamically uniform across all shader invocations)
+		-- very difficult, unsure if worth anything in the long run
 	
 	-- TODO: Also add alpha units to deferred pass somehow?
 	
@@ -146,23 +147,27 @@ end
 	-- TODO: reflection camera is also totally fucked up
 		-- It seems that aircraft get removed from reflection pass if water depth is < -70
 		-- hovers randomly do and dont get reflections based on water depth
+	-- TODO: increase bumpwaterreflectcubetex size
+	-- TODO: make lava disable drawing reflections!
+	-- TODO: shared bins for deferred and forward and maybe even reflection?
+		-- The sharing could be done on the uniformbin level, and this is quite elegant in general too, as tables are shared by reference....
+		-- DONE: shared deferred and forward via ultimate cleverness!	
 	
 	-- DONE: Specular highlights should also bloom, not just emissive! 
 	
-	-- TODO: Cleaner Shutdown and reloadcusgl4 and disablecusgl4
+	-- DONE: Cleaner Shutdown and reloadcusgl4 and disablecusgl4
 	
-	-- TODO: shared bins for deferred and forward and maybe even reflection?
-		-- The sharing could be done on the uniformbin level, and this is quite elegant in general too, as tables are shared by reference....
+
 	
 	-- TODO: WE ARE DRAWING ALL IN THE UNITS PASS INSTEAD OF BOTH FEATURE AND UNITS PASS! (can that bite us in the ass?)
 	
-	-- TODO: we need to update things earlier, to get the shadow stuff in on time
 	
 	-- TODO: Reimplement featureFade, as it can kill perf on heavily forested maps and potatos
 	
 	-- DONE: GetTexturesKey is probably slow too!
 	
 	-- TODO: Shadows are 1 drawframe late, maybe update lists in DrawGenesis instead of DrawWorldPreUnit
+	-- TODO: we need to update things earlier, to get the shadow stuff in on time
 	
 	-- Done: GetTextures :
 		-- should return array table instead of hash table
@@ -949,6 +954,15 @@ local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures,
 			objectsIndex = {}, -- {objectID : index} (this is needed for efficient removal of items, as RemoveFromSubmission takes an index as arg)
 			numobjects = 0,  -- a 'pointer to the end' 
 		}
+		
+		-- this uniform bin is totally new, so we are going to make the deferred version have a shared copy of this!
+		-- This means that deferred and forward will share their uniformbins
+		-- they could share up to the shader level, but I dont know why im not using that
+		if flag == 1 then 
+			deferredrawBin = unitDrawBins[0]
+			if deferredrawBin[shader] == nil then  deferredrawBin[shader] = {} end
+			if deferredrawBin[shader][uniformBinID] == nil then deferredrawBin[shader][uniformBinID] = unitDrawBinsFlagShader[uniformBinID] end 
+		end
 	end
 	
 	local unitDrawBinsFlagShaderUniformsTexKey = unitDrawBinsFlagShaderUniforms[texKey]
@@ -1011,10 +1025,10 @@ local function AddObject(objectID, drawFlag)
 		if HasAllBits(drawFlag, flag) then
 			if overrideDrawFlagsCombined[flag] then
 				AsssignObjectToBin(objectID, objectDefID, flag)
-				if flag == 1 then
-					AsssignObjectToBin(objectID, objectDefID, 0) --deferred hack - what the fuck is this, it probably runs every time the 'forward opaque' pass is added
-					
-				end
+				--if flag == 1 then
+				--	AsssignObjectToBin(objectID, objectDefID, 0) --deferred hack - what the fuck is this, it probably runs every time the 'forward opaque' pass is added
+				--	
+				--end
 			end
 		end
 	end
@@ -1131,15 +1145,15 @@ local function UpdateObject(objectID, drawFlag)
 
 			if hasFlagOld then --had this flag, but no longer have
 				RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, uniformBinID)
-				if flag == 1 then
-					RemoveObjectFromBin(objectID, objectDefID, texKey, nil, 0, uniformBinID)
-				end
+				--if flag == 1 then
+				--	RemoveObjectFromBin(objectID, objectDefID, texKey, nil, 0, uniformBinID)
+				--end
 			end
 			if hasFlagNew then -- didn't have this flag, but now has
 				AsssignObjectToBin(objectID, objectDefID, flag, shader, nil, texKey, uniformBinID)
-				if flag == 1 then
-					AsssignObjectToBin(objectID, objectDefID, 0, nil, nil, texKey, uniformBinID) --deferred
-				end
+				--if flag == 1 then
+				--	AsssignObjectToBin(objectID, objectDefID, 0, nil, nil, texKey, uniformBinID) --deferred
+				--end
 			end
 		end
 	end
@@ -1166,9 +1180,9 @@ local function RemoveObject(objectID) -- we get pos/neg objectID here
 			local texKey  = fastObjectDefIDtoTextureKey[objectDefID]
 			local uniformBinID = GetUniformBinID(objectDefID)
 			RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, uniformBinID)
-			if flag == 1 then
-				RemoveObjectFromBin(objectID, objectDefID, texKey, nil, 0, uniformBinID)
-			end
+			--if flag == 1 then
+			--	RemoveObjectFromBin(objectID, objectDefID, texKey, nil, 0, uniformBinID)
+			--end
 		end
 	end
 	objectIDtoDefID[objectID] = nil
@@ -1582,6 +1596,9 @@ function gadget:DrawWorldPreUnit()
 			-- After faster texture key lookups, this has dropped significantly:
 				-- Additions of units are about 7 uS
 				-- Removals of units is about 10 uS
+			-- Using shared deferred and forward bin perf is now even closer:
+				-- Addition 6 us
+				-- Removal 7 us 
 		end 
 		--Spring.Echo(countbintypes(drawFlagsUnits))
 		prevobjectcount = totalobjects
