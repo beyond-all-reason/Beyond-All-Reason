@@ -144,6 +144,8 @@ end
 	-- TODO: engine side: optimize shadow camera as it massively overdraws
 	
 	-- TODO: reflection camera is also totally fucked up
+		-- It seems that aircraft get removed from reflection pass if water depth is < -70
+		-- hovers randomly do and dont get reflections based on water depth
 	
 	-- DONE: Specular highlights should also bloom, not just emissive! 
 	
@@ -152,6 +154,8 @@ end
 	-- TODO: shared bins for deferred and forward and maybe even reflection?
 	
 	-- TODO: WE ARE DRAWING ALL IN THE FEATURES PASS INSTEAD OF UNITS PASS! (can that bite us in the ass?)
+	
+	-- TODO: we need to update things earlier, to get the shadow stuff in on time
 	
 	-- GetTextures :
 		-- should return array table instead of hash table
@@ -891,6 +895,7 @@ local function initBinsAndTextures()
 	end
 end
 
+local noshadowtable = {[0] = false}
 local function GetTextures(drawPass, objectDefID, objectID)
 	gettexturescalls = (gettexturescalls + 1 ) % (2^20)
 	if objectDefID == nil then 
@@ -919,6 +924,7 @@ local function GetTextures(drawPass, objectDefID, objectID)
 		return {
 			[0] = string.format("%%%s:%i", objectDefID, 1), --tex2 only
 		}
+		--return noshadowtable
 	else
 		--Spring.Echo("GetTextures",drawPass, objectDef,objectDefIDtoTextureKeys[objectDef], textureKeytoSet[objectDefIDtoTextureKeys[objectDef]])
 		if objectDefIDtoTextureKeys[objectDefID] then 
@@ -926,18 +932,16 @@ local function GetTextures(drawPass, objectDefID, objectID)
 				return textureKeytoSet[objectDefIDtoTextureKeys[objectDefID]]
 			end
 		end
+		Spring.Echo("Didnt find objectDefIDtoTextureKeys for ", drawPass, objectDefID, objectID)
 		return {
 			[0] = string.format("%%%s:%i", objectDefID, 0),
 			[1] = string.format("%%%s:%i", objectDefID, 1),
 			[2] = "$shadow",
 			[3] = "$reflection",
 		}
+		
 	end
 end
-
-
-local uniformCache = {0}
------------------
 
 local asssigncalls = 0
 --- Assigns a unit to a material bin
@@ -967,9 +971,7 @@ local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures,
 	end
 	
 	local unitDrawBinsFlagShaderUniforms = unitDrawBinsFlagShader[uniformBinID]
-	--uniformCache[1] = GetBitShaderOptions(objectDefID)
-	--gl.SetUnitBufferUniforms(objectID, uniformCache, 6)
-	--Spring.Echo("Setting UnitBufferUniforms", objectID, uniformCache[1])
+
 	if unitDrawBinsFlagShaderUniforms[texKey] == nil then
 		local mybinVAO = gl.GetVAO()
 		local mybinIBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
@@ -1446,15 +1448,59 @@ local function DebugCUSGL4(optName, unk1, unk2, playerID)
 	Spring.Echo("[CustomUnitShadersGL4] Debugmode set to", debugmode)
 end
 
-
-
-
+local function DumpCUSGL4(optName, unk1, unk2, playerID)
+	if (playerID ~= Spring.GetMyPlayerID()) then
+		return
+	end
+	Spring.Echo("[CustomUnitShadersGL4] Dumping unit bins:", debugmode)
+	if unitDrawBins == nil then return end
+	for drawflag, bin in pairs(unitDrawBins) do 
+		Spring.Echo(string.format("%i = { -- drawFlag",drawflag))
+		for shadername, uniformbin in pairs(bin) do 
+			Spring.Echo(string.format("  %s = { -- shadername",shadername))
+			for uniformbinid, texandobjset in pairs(uniformbin) do 
+				Spring.Echo(string.format("    %s = { -- uniformbin",uniformbinid))
+				for texturekey, minibin in pairs(texandobjset) do 
+				Spring.Echo(string.format("      %i = { -- textureset",texturekey))
+					for minibinattr, minibinvalue in pairs(minibin) do 
+						if type( minibinvalue ) == "table" then 
+							Spring.Echo(string.format("        %s = {",minibinattr))
+							if minibinattr == "objectsIndex" then 
+								for k,v in pairs(minibinvalue) do 
+									local objdefname = (k>=0 and Spring.GetUnitDefID(k) and UnitDefs[Spring.GetUnitDefID(k)].name) or (Spring.GetFeatureDefID(-1 * k)  and FeatureDefs[Spring.GetFeatureDefID(-1 * k) ].name) or "???" 
+									Spring.Echo(string.format("          %i = %i, --(%s)", k,v,objdefname))
+								end
+							elseif minibinattr == "objectsArray" then 
+								for k,v in pairs(minibinvalue) do 
+									local objdefname = (v>=0 and Spring.GetUnitDefID(v) and UnitDefs[Spring.GetUnitDefID(v)].name) or (Spring.GetFeatureDefID(-1 * v)  and FeatureDefs[Spring.GetFeatureDefID(-1 * v) ].name) or "???" 
+									Spring.Echo(string.format("          %i = %i, --(%s)", k,v,objdefname))
+								end
+							else 
+								for k,v in pairs(minibinvalue) do 
+									Spring.Echo(string.format("          %s = %s,", tostring(k),tostring(v)))
+								end
+							end
+							Spring.Echo("        },")
+						else 
+							Spring.Echo(string.format("        %s = %s,", tostring(minibinattr),tostring(minibinvalue)))
+						end
+					end
+					Spring.Echo("      },")
+				end
+				Spring.Echo("    },")
+			end
+			Spring.Echo("  },")
+		end
+		Spring.Echo("},")
+	end
+end
 function gadget:Initialize()
 	if FASTRELOADMODE then initGL4() end 
 	gadgetHandler:AddChatAction("reloadcusgl4", ReloadCUSGL4)
 	gadgetHandler:AddChatAction("disablecusgl4", DisableCUSGL4)
 	gadgetHandler:AddChatAction("cusgl4updaterate", CUSGL4updaterate)
 	gadgetHandler:AddChatAction("debugcusgl4", DebugCUSGL4)
+	gadgetHandler:AddChatAction("dumpcusgl4", DumpCUSGL4)
 end
 
 
@@ -1525,6 +1571,29 @@ local updateframe = 0
 local updatecount = 0
 local updatetimer = 31
 
+local prevobjectcount = 0
+local function countbintypes(flagarray)
+	local fwcnt = 0
+	local defcnt = 0
+	local reflcnt = 0
+	local shadcnt = 0
+
+	for i=1, #flagarray do
+		local flag = flagarray[i]
+		if HasBit(flag,1) then 
+			fwcnt = fwcnt + 1
+			defcnt = defcnt + 1 
+		end
+		if HasBit(flag, 4) then 
+			reflcnt = reflcnt + 1 
+		end
+		if HasBit(flag, 16) then 
+			shadcnt = shadcnt + 1
+		end 
+	end
+	return fwcnt, defcnt, reflcnt, shadcnt
+end
+
 function gadget:DrawWorldPreUnit()
 	updatecount = updatecount + 1 
 	if unitDrawBins == nil then return end
@@ -1541,14 +1610,34 @@ function gadget:DrawWorldPreUnit()
 		-- this call has a massive mem load, at 1k units at 225 fps, its 7mb/sec, e.g. for each unit each frame, its 32 bytes alloc/dealloc
 		-- which isnt all that bad, but still far from optimal
 		-- it is, however, not that bad CPU wise, and it doesnt force GC load either
-		local units, drawFlagsUnits = Spring.GetRenderUnits(overrideDrawFlag, true) 
-		--units, drawFlags = Spring.GetRenderUnits(overrideDrawFlag, true)
-		--Spring.Echo("#units", #units, overrideDrawFlag)
-		ProcessUnits(units, drawFlagsUnits)
 		
+		local t0 = Spring.GetTimer()
+		local units, drawFlagsUnits = Spring.GetRenderUnits(overrideDrawFlag, true) 
 		local features, drawFlagsFeatures = Spring.GetRenderFeatures(overrideDrawFlag, true)
+		
+		local totalobjects = #units + #features
+		
+		ProcessUnits(units, drawFlagsUnits)
 		ProcessFeatures(features, drawFlagsFeatures)
-		--Spring.Debug.TableEcho(unitDrawBins)
+		local deltat = Spring.DiffTimers(Spring.GetTimer(),t0,  true) -- in ms
+		
+		
+		
+		
+		if (deltat > 5) and FASTRELOADMODE then 
+			local usecperobjectchange = math.ceil((1000* deltat)  / (totalobjects - prevobjectcount))
+			Spring.Echo("[CUS GL4] ",totalobjects," Update time 50ms < ", deltat, "ms, per object change: ", usecperobjectchange, 'usec') 
+			
+			local fwc, defc, reflc, shadc = countbintypes(drawFlagsUnits)
+			Spring.Echo("fwc", fwc,  "defc", defc, "reflc", reflc, "shadc", shadc)
+			Spring.Echo(countbintypes(drawFlagsUnits))
+			-- PERF CONCULUSION:
+			-- Additions of units are about 30 uS
+			-- Removals of units is about 50 uS
+		end 
+		--Spring.Echo(countbintypes(drawFlagsUnits))
+		prevobjectcount = totalobjects
+		
 	end
 	
 end
