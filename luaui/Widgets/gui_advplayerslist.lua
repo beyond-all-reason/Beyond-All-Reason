@@ -98,9 +98,8 @@ local bgpadding = 3
 --------------------------------------------------------------------------------
 -- IMAGES
 --------------------------------------------------------------------------------
-
-local imageDirectory = ":lc:" .. LUAUI_DIRNAME .. "Images/advplayerslist/"
-local flagsDirectory = imageDirectory .. "flags/"
+local imgDir = LUAUI_DIRNAME .. "Images/advplayerslist/"
+local imageDirectory = ":lc:" .. imgDir
 local flagsExt = '.png'
 local flagHeight = 10
 
@@ -2320,8 +2319,8 @@ function DrawAlly(posY, team)
 end
 
 function DrawCountry(country, posY)
-    if country ~= nil and country ~= "??" then
-        gl_Texture(flagsDirectory .. string.upper(country) .. flagsExt)
+    if country ~= nil and country ~= "??" and VFS.FileExists(imgDir .. "flags/"  .. string.upper(country) .. flagsExt) then
+        gl_Texture(imgDir .. "flags/" .. string.upper(country) .. flagsExt)
         gl_Color(1, 1, 1, 1)
         DrawRect(m_country.posX + widgetPosX + 3, posY + 8 - (flagHeight/2), m_country.posX + widgetPosX + 17, posY + 8 + (flagHeight/2))
     end
