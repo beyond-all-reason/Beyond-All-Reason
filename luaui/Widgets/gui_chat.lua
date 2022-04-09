@@ -354,6 +354,7 @@ local autocompleteCommands = {
 	'defrange enemy ground',
 	'playertv',
 	'playerview',
+	'hidespecchat',
 }
 local autocompleteText
 local autocompletePlayernames = {}
@@ -745,7 +746,7 @@ local function drawChatInput()
 		textInputDlist = glCreateList(function()
 			local x,y,_ = Spring.GetMouseState()
 			local chatlogHeightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
-			local inputFontSize = floor(usedFontSize * 1.04)
+			local inputFontSize = floor(usedFontSize * 1.03)
 			local inputHeight = floor(inputFontSize * 2.3)
 			local leftOffset = floor(lineHeight*0.7)
 			local distance =  (scrolling and inputHeight + elementMargin + elementMargin or elementMargin)
@@ -1665,6 +1666,23 @@ function widget:TextCommand(command)
 	if string.find(command, "clearconsole", nil, true) == 1  and  string.len(command) == 12 then
 		orgLines = {}
 		processLines()
+	end
+	if string.sub(command, 1, 12) == 'hidespecchat' then
+		if string.sub(command, 14, 14) ~= '' then
+			if string.sub(command, 14, 14) == '0' then
+				hideSpecChat = false
+			elseif string.sub(command, 14, 14) == '1' then
+				hideSpecChat = true
+			end
+		else
+			hideSpecChat = not hideSpecChat
+		end
+		Spring.SetConfigInt('HideSpecChat', hideSpecChat and 1 or 0)
+		if hideSpecChat then
+			Spring.Echo("Hiding all spectator chat")
+		else
+			Spring.Echo("Showing all spectator chat again")
+		end
 	end
 end
 

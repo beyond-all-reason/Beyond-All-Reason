@@ -620,23 +620,25 @@ function widget:DrawScreen()
 	end
 	if displayPlayername then
 		if WG['advplayerlist_api'] then
-			if lockPlayerID == nil or lockPlayerID ~= WG['advplayerlist_api'].GetLockPlayerID() and nextTrackingPlayerChange-os.clock() < 0 then
+			if not lockPlayerID or lockPlayerID ~= WG['advplayerlist_api'].GetLockPlayerID() and nextTrackingPlayerChange-os.clock() < 0 then
 				nextTrackingPlayerChange = os.clock() - 2
 				lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
 				if not toggled and prevLockPlayerID ~= lockPlayerID then
 					createList()
 					prevLockPlayerID = lockPlayerID
 				end
-				if lockPlayerID and not drawlistsPlayername[lockPlayerID] then
+			end
+			if lockPlayerID then
+				-- create player name
+				prevLockPlayerID = lockPlayerID
+				lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
+				if not drawlistsPlayername[lockPlayerID] then
 					drawlistsPlayername[lockPlayerID] = gl.CreateList(function()
 						local name, _, spec, teamID, _, _, _, _, _ = Spring.GetPlayerInfo(lockPlayerID, false)
-						local fontSize = 26 * widgetScale
 						local nameColourR, nameColourG, nameColourB = 1, 1, 1
 						if not spec then
 							nameColourR, nameColourG, nameColourB, _ = spGetTeamColor(teamID)
 						end
-						local posX = vsx * 0.985
-						local posY = vsy * 0.0215
 						font2:Begin()
 						font2:SetTextColor(nameColourR, nameColourG, nameColourB, 1)
 						if (nameColourR + nameColourG * 1.2 + nameColourB * 0.4) < 0.65 then
@@ -644,17 +646,16 @@ function widget:DrawScreen()
 						else
 							font2:SetOutlineColor(0, 0, 0, 1)
 						end
-						font2:Print(name, posX, posY, fontSize, "ron")
+						font2:Print(name, vsx * 0.985, vsy * 0.0215, 26 * widgetScale, "ron")
 						font2:End()
 					end)
 				end
+				-- draw player name
+				gl.PushMatrix()
+				gl.Translate(0, top, 0)
+				gl.CallList(drawlistsPlayername[lockPlayerID])
+				gl.PopMatrix()
 			end
-		end
-		if lockPlayerID and drawlistsPlayername[lockPlayerID] then
-			gl.PushMatrix()
-			gl.Translate(0,top,0)
-			gl.CallList(drawlistsPlayername[lockPlayerID])
-			gl.PopMatrix()
 		end
 	end
 end
