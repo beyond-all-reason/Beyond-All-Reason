@@ -259,7 +259,7 @@ vertex = [[
 		mVP.xyz += cosVec.z * limit * clamp(abswind, 1.2, 1.7);
 
 		mVP.xz += diff + diff2 * wind;
-		mVP.y += float(UNITID/256);// + sin(simFrame *0.1)+15;
+		//mVP.y += float(UNITID/256);// + sin(simFrame *0.1)+15; // whoops this was meant as debug
 	}
 
 
