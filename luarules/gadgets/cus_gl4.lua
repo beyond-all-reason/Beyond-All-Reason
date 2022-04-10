@@ -900,7 +900,7 @@ local function initBinsAndTextures()
 	end
 end
 
-local GetObjectDefName(objectID)
+local function GetObjectDefName(objectID)
 	if objectID == nil then 
 		return "Failed to GetObjectDefName(objectID): " .. tostring(objectID)
 	elseif objectID >= 0 then 
