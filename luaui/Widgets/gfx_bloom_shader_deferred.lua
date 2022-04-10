@@ -46,7 +46,7 @@ local presets = {
 	{
 		quality = 1,
 		blurPasses = 4,
-		blursize = 9.5,
+		blursize = 9,
 	},
 }
 

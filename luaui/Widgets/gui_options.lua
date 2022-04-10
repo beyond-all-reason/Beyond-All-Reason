@@ -1495,6 +1495,7 @@ function init()
 			decals = false,
 			shadowslider = 1,
 			grass = false,
+			cusgl4 = false,
 		},
 		low = {
 			bloomdeferred = true,
@@ -1512,10 +1513,11 @@ function init()
 			decals = true,
 			shadowslider = 2,
 			grass = false,
+			cusgl4 = true,
 		},
 		medium = {
 		 	bloomdeferred = true,
-			bloomdeferred_quality = 2,
+			bloomdeferred_quality = 1,
 		 	ssao = true,
 			ssao_quality = 2,
 		 	mapedgeextension = true,
@@ -1529,12 +1531,13 @@ function init()
 		 	decals = true,
 			shadowslider = 3,
 		 	grass = true,
+			cusgl4 = true,
 		},
 		high = {
 			bloomdeferred = true,
-			bloomdeferred_quality = 3,
+			bloomdeferred_quality = 2,
 			ssao = true,
-			ssao_quality = 3,
+			ssao_quality = 2,
 			mapedgeextension = true,
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
@@ -1546,6 +1549,7 @@ function init()
 			decals = true,
 			shadowslider = 4,
 			grass = true,
+			cusgl4 = true,
 		},
 		ultra = {
 			bloomdeferred = true,
@@ -1563,6 +1567,7 @@ function init()
 			decals = true,
 			shadowslider = 5,
 			grass = true,
+			cusgl4 = true,
 		},
 		custom = {},
 	}
@@ -1782,7 +1787,24 @@ function init()
 		  end,
 		},
 
-		{ id = "cus", group = "gfx", name = texts.option.cus, category = types.basic, type = "bool", value = (Spring.GetConfigInt("cus", 1) == 1), description = texts.option.cus_descr,
+		{ id = "cusgl4", group = "gfx", name = texts.option.cus, category = types.advanced, type = "bool", value = (Spring.GetConfigInt("cus2", 1) == 1), description = texts.option.cus_descr,
+		  onchange = function(i, value)
+			  if value == 0.5 then
+				  Spring.SendCommands("luarules disablecusgl4")
+			  else
+				  if value then
+					  Spring.SendCommands("luarules disablecus")
+				  elseif Spring.GetConfigInt("cus", 1) == 1 then
+					  Spring.SendCommands("luarules reloadcus")
+				  end
+				  --Spring.SetConfigInt("cusgl4", (value and 1 or 0))
+				  Spring.SetConfigInt("cus2", (value and 1 or 0))
+				  Spring.SendCommands("luarules "..(value and 'reloadcus' or 'disablecus')..'gl4')
+			  end
+		  end,
+		},
+
+		{ id = "cus", group = "gfx", name = texts.option.cus.." (old)", category = types.dev, type = "bool", value = (Spring.GetConfigInt("cus", 1) == 1), description = texts.option.cus_descr,
 		  onchange = function(i, value)
 			  if value == 0.5 then
 				  Spring.SendCommands("luarules disablecus")
@@ -1793,23 +1815,7 @@ function init()
 		  end,
 		},
 
-		{ id = "cusgl4", group = "gfx", name = texts.option.cusgl4, category = types.dev, type = "bool", value = (Spring.GetConfigInt("cusgl4", 0) == 1), description = texts.option.cus_descr,
-		  onchange = function(i, value)
-			  if value == 0.5 then
-				  Spring.SendCommands("luarules disablecusgl4")
-			  else
-				  if value then
-					  Spring.SendCommands("luarules disablecus")
-				  elseif Spring.GetConfigInt("cus", 1) == 1 then
-					  Spring.SendCommands("luarules reloadcus")
-				  end
-				  Spring.SetConfigInt("cusgl4", (value and 1 or 0))
-				  Spring.SendCommands("luarules "..(value and 'reloadcus' or 'disablecus')..'gl4')
-			  end
-		  end,
-		},
-
-		{ id = "cus_threshold", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cus_threshold, min = 0, max = 90, step = 1, type = "slider", value = Spring.GetConfigInt("cusThreshold", 30), description = texts.option.cus_threshold_descr,
+		{ id = "cus_threshold", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.cus_threshold, min = 0, max = 90, step = 1, type = "slider", value = Spring.GetConfigInt("cusThreshold", 30), description = texts.option.cus_threshold_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("cusThreshold", value)
 			  if not GetWidgetToggleValue("Auto Disable CUS") then
@@ -2139,13 +2145,13 @@ function init()
 			  Spring.SetConfigInt("snd_volui", value)
 		  end,
 		},
-		-- { id = "sndvolunitreply", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolunitreply, type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volunitreply", 1) or 100),
-		--   onload = function(i)
-		--   end,
-		--   onchange = function(i, value)
-		-- 	  Spring.SetConfigInt("snd_volunitreply", value)
-		--   end,
-		-- },
+		{ id = "sndvolunitreply", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolunitreply, type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volunitreply", 1) or 100),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("snd_volunitreply", value)
+		  end,
+		},
 		{ id = "console_chatvolume", group = "sound", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.console_chatvolume, type = "slider", min = 0, max = 1, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getChatVolume() or 0), description = texts.option.console_chatvolume_descr,
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_chatvolume", { 'sndChatFileVolume' })
@@ -4913,7 +4919,7 @@ function widget:Initialize()
 		end
 
 		-- enable CUS GL4
-		if tonumber(Spring.GetConfigInt("cusgl4", 0) or 0) == 1 then
+		if tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
 			Spring.SendCommands("luarules disablecus")
 			Spring.SendCommands("luarules reloadcusgl4")
 		end
