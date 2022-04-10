@@ -1631,7 +1631,7 @@ function gadget:DrawWorldPreUnit()
 				-- Addition 6 us
 				-- Removal 7 us 
 		end 
-		if updatecount %100 == 0 then Spring.Echo(countbintypes(drawFlagsUnits)) end 
+		--if updatecount %100 == 0 then Spring.Echo(countbintypes(drawFlagsUnits)) end 
 		prevobjectcount = totalobjects
 		
 	end
