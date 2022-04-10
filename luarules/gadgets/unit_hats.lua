@@ -63,7 +63,7 @@ function gadget:GameFrame(gf)
 		for _, playerID in ipairs(Spring.GetPlayerList()) do
 			-- update player infos
 			local playerName, _, spec, teamID = Spring.GetPlayerInfo(playerID, false)
-			if not spec and playerName == "[teh]Flow" then
+			if not spec and playerName == "Raghna" then
 				local units = Spring.GetTeamUnits(teamID)
 				for k = 1, #units do
 					local unitID = units[k]
