@@ -130,6 +130,7 @@ local unitOrderTable = {
 	[UDN["armpw"].id]          = 005000, --FAST
 	[UDN["corak"].id]          = 005010,
 	[UDN["leggob"].id]		   = 005015,
+	[UDN["leglob"].id]         = 005016,
 	[UDN["armflash"].id]       = 005020,
 	[UDN["corgator"].id]       = 005030,
 	[UDN["leghades"].id]	   = 005031,
@@ -154,6 +155,7 @@ local unitOrderTable = {
 	[UDN["corwolv"].id]        = 005430,
 	[UDN["armmh"].id]          = 005420,
 	[UDN["cormh"].id]          = 005430,
+	[UDN["legbar"].id]         = 005440,
 
 	[UDN["armwar"].id]         = 005600, --STRONK
 	[UDN["corkark"].id]        = 005610,
