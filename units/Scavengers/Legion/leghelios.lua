@@ -20,7 +20,7 @@ return {
 		leavetracks = true,
 		maxdamage = 900,
 		maxslope = 10,
-		maxvelocity = 2.6,
+		maxvelocity = 2.3,
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
 		nochasecategory = "VTOL",
