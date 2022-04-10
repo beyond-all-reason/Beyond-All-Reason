@@ -355,6 +355,7 @@ local autocompleteCommands = {
 	'playertv',
 	'playerview',
 	'hidespecchat',
+	'speclist',
 }
 local autocompleteText
 local autocompletePlayernames = {}

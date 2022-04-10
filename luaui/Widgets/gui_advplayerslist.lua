@@ -3544,3 +3544,25 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz)
         end
     end
 end
+
+
+function widget:TextCommand(command)
+    if string.sub(command, 1, 8) == 'speclist' then
+        local words = {}
+        for w in command:gmatch("%S+") do
+            words[#words+1] = w
+        end
+        if string.sub(command, 10, 10) ~= '' then
+            if string.sub(command, 10, 10) == '0' then
+                specListShow = false
+            elseif string.sub(command, 10, 10) == '1' then
+                specListShow = true
+            end
+        else
+            specListShow = not specListShow
+        end
+        SetModulesPositionX() --why?
+        SortList()
+        CreateLists()
+    end
+end
