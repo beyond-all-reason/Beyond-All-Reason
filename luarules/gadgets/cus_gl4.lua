@@ -900,6 +900,28 @@ local function initBinsAndTextures()
 	end
 end
 
+local GetObjectDefName(objectID)
+	if objectID == nil then 
+		return "Failed to GetObjectDefName(objectID): " .. tostring(objectID)
+	elseif objectID >= 0 then 
+		if Spring.ValidUnitID(objectID) then 
+			local udid = Spring.GetUnitDefID(objectID)
+			return UnitDefs[udid].name
+		else
+			return "Invalid UnitID:"..tostring(objectID)
+		end
+	else 
+		if Spring.ValidFeatureID(-1 * objectID) then 
+			local fdid = Spring.GetFeatureDefID(-1 * objectID) 
+			return FeatureDefs[fdid].name
+		else
+			return 'Invalid featuredefid:' .. tostring(objectID)
+		end
+	end
+end
+
+local badassigns = {} -- a table of unitDefs so that we only warn once
+
 local asssigncalls = 0
 --- Assigns a unit to a material bin
 -- This function gets called from AddUnit every time a unit enters drawrange (or gets its flags changed)
@@ -916,6 +938,15 @@ local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures,
 	uniformBinID = uniformBinID or GetUniformBinID(objectDefID)
 	--Spring.Echo("AsssignObjectToBin", objectID, objectDefID, flag, shader, textures, texKey, uniformBinID)
 	--	Spring.Debug.TraceFullEcho()	
+	if (texKey == nil or uniformBinID == nil) then 
+		if badassigns[objectID] == nil then 
+			Spring.Echo("[CUS GL4]Failure to assign to ", objectID, objectDefID, flag, shader, textures, texKey, uniformBinID)
+			Spring.Echo("REPORT THIS TO BEHERITH: bad object:", GetObjectDefName(objectID))
+			badassigns[objectID] = true
+		end
+		return
+	end
+	
 	local unitDrawBinsFlag = unitDrawBins[flag]
 	if unitDrawBinsFlag[shader] == nil then
 		unitDrawBinsFlag[shader] = {}
@@ -946,7 +977,7 @@ local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures,
 		mybinVAO:AttachIndexBuffer(modelsIndexVBO)
 		mybinVAO:AttachInstanceBuffer(mybinIBO)
 	
-		unitDrawBinsFlagShaderUniforms[texKey] = {
+		unitDrawBinsFlagShaderUniforms[texKey] = { -- so texkey was somehow nil...
 			textures = textureKeytoSet[texKey], -- hashmap of textures for this unit
 			IBO = mybinIBO, -- my own IBO, for incrementing
 			VAO = mybinVAO, -- my own VBO, for incremental updating
@@ -1600,7 +1631,7 @@ function gadget:DrawWorldPreUnit()
 				-- Addition 6 us
 				-- Removal 7 us 
 		end 
-		--Spring.Echo(countbintypes(drawFlagsUnits))
+		if updatecount %100 == 0 then Spring.Echo(countbintypes(drawFlagsUnits)) end 
 		prevobjectcount = totalobjects
 		
 	end
