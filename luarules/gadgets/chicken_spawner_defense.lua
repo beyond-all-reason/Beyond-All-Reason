@@ -583,10 +583,10 @@ if gadgetHandler:IsSyncedCode() then
 					x = mRandom(lsx1, lsx2)
 					z = mRandom(lsz1, lsz2)
 				elseif config.burrowSpawnType == "initialbox_post" then
-					lsx1 = math.max(lsx1 * 0.975, config.spawnSquare)
-					lsz1 = math.max(lsz1 * 0.975, config.spawnSquare)
-					lsx2 = math.min(lsx2 * 1.025, MAPSIZEX - config.spawnSquare)
-					lsz2 = math.min(lsz2 * 1.025, MAPSIZEZ - config.spawnSquare)
+					lsx1 = math.max(lsx1 * 0.99, config.spawnSquare)
+					lsz1 = math.max(lsz1 * 0.99, config.spawnSquare)
+					lsx2 = math.min(lsx2 * 1.01, MAPSIZEX - config.spawnSquare)
+					lsz2 = math.min(lsz2 * 1.01, MAPSIZEZ - config.spawnSquare)
 					x = mRandom(lsx1, lsx2)
 					z = mRandom(lsz1, lsz2)
 				else
