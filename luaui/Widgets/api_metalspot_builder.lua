@@ -35,44 +35,70 @@ local taremove = table.remove
 local Game_extractorRadius = Game.extractorRadius
 
 local metalMap = false
-local mexBuilder = {}
-local mexBuilderDef = {}
-local mexBuilderT2 = {}
-local mexIds = {}
+local mexConstructors = {}
+local mexConstructorsDef = {}
+local mexConstructorsT2 = {}
+local mexBuildings = {}
+
+local geoConstructors = {}
+local geoConstructorsDef = {}
+local geoConstructorsT2 = {}
+local geoBuildings = {}
 
 local unitWaterDepth = {}
 local unitXsize = {}
 
-for udid, ud in pairs(UnitDefs) do
-	if ud.extractsMetal > 0 then
-		mexIds[udid] = ud.extractsMetal
+------------------------------------------------------------
+-- populate unit tables
+------------------------------------------------------------
+
+for uDefID, uDef in pairs(UnitDefs) do
+	if uDef.extractsMetal > 0 then
+		mexBuildings[uDefID] = uDef.extractsMetal
 	end
-	if ud.isBuilding then
-		unitWaterDepth[udid] = { ud.minWaterDepth, ud.maxWaterDepth }
-		unitXsize[udid] = ud.xsize
+	local customParams = uDef.customParams or {}
+	if customParams.geothermal then
+		geoBuildings[uDefID] = uDef.energyMake
+	end
+	if uDef.isBuilding then
+		unitWaterDepth[uDefID] = { uDef.minWaterDepth, uDef.maxWaterDepth }
+		unitXsize[uDefID] = uDef.xsize
 	end
 end
 
-
-for udid, ud in pairs(UnitDefs) do
-	if ud.buildOptions then
-		local maxExtractmetal = 0
-		for i, option in ipairs(ud.buildOptions) do
-			if mexIds[option] then
-				maxExtractmetal = math.max(maxExtractmetal, mexIds[option])
-				if mexBuilderDef[udid] then
-					mexBuilderDef[udid].buildings = mexBuilderDef[udid].buildings + 1
-					mexBuilderDef[udid].building[mexBuilderDef[udid].buildings] = option * -1
+for uDefID, uDef in pairs(UnitDefs) do
+	if uDef.buildOptions then
+		local maxExtractMetal = 0
+		local maxProduceEnergy = 0
+		for i, option in ipairs(uDef.buildOptions) do
+			if mexBuildings[option] then
+				maxExtractMetal = math.max(maxExtractMetal, mexBuildings[option])
+				if mexConstructorsDef[uDefID] then
+					mexConstructorsDef[uDefID].buildings = mexConstructorsDef[uDefID].buildings + 1
+					mexConstructorsDef[uDefID].building[mexConstructorsDef[uDefID].buildings] = option * -1
 				else
-					mexBuilderDef[udid] = { buildings = 1, building = { [1] = option * -1 } }
+					mexConstructorsDef[uDefID] = { buildings = 1, building = { [1] = option * -1 } }
+				end
+			end
+			if geoBuildings[option] then
+				maxProduceEnergy = math.max(maxProduceEnergy, geoBuildings[option])
+				if geoConstructorsDef[uDefID] then
+					geoConstructorsDef[uDefID].buildings = geoConstructorsDef[uDefID].buildings + 1
+					geoConstructorsDef[uDefID].building[geoConstructorsDef[uDefID].buildings] = option * -1
+				else
+					geoConstructorsDef[uDefID] = { buildings = 1, building = { [1] = option * -1 } }
 				end
 			end
 		end
-		if maxExtractmetal > 0.002 then
-			mexBuilderT2[udid] = true
+		if maxExtractMetal > 0.002 then
+			mexConstructorsT2[uDefID] = true
+		end
+		if maxProduceEnergy > 300 then --TODO: "magic" values 300 and 0.002 should be constants...
+			geoConstructorsT2[uDefID] = true
 		end
 	end
 end
+
 
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
@@ -80,22 +106,22 @@ function widget:SelectionChanged(sel)
 end
 
 function widget:UnitCreated(unitID, unitDefID)
-	if mexBuilderDef[unitDefID] then
-		mexBuilder[unitID] = mexBuilderDef[unitDefID]
-		return
-	elseif mexBuilderDef[unitDefID] then
-		mexBuilder[unitID] = mexBuilderDef[unitDefID]
+	if mexConstructorsDef[unitDefID] then
+		mexConstructors[unitID] = mexConstructorsDef[unitDefID]
+	end
+	if geoConstructorsDef[unitDefID] then
+		geoConstructors[unitID] = geoConstructorsDef[unitDefID]
 	end
 end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
-	if not mexBuilder[unitID] then
+	if not mexConstructors[unitID] or geoConstructors[unitID] then
 		widget:UnitCreated(unitID, unitDefID, newTeam)
 	end
 end
 
 function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	if not mexBuilder[unitID] then
+	if not mexConstructors[unitID] or geoConstructors[unitID] then
 		widget:UnitCreated(unitID, unitDefID, newTeam)
 	end
 end
@@ -122,7 +148,7 @@ end
 local function IsSpotOccupied(spot)
 	local units = Spring.GetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
 	for j=1, #units do
-		if mexIds[spGetUnitDefID(units[j])]  then
+		if mexBuildings[spGetUnitDefID(units[j])]  then
 			return units[j]
 		end
 	end
@@ -134,7 +160,7 @@ local function NoAlliedMex(x, z, batchextracts)
 	local mexesatspot = Spring.GetUnitsInCylinder(x, z, Game_extractorRadius)
 	for i = 1, #mexesatspot do
 		local uid = mexesatspot[i]
-		if mexIds[spGetUnitDefID(uid)] and Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(uid)) and mexIds[spGetUnitDefID(uid)] >= batchextracts then
+		if mexBuildings[spGetUnitDefID(uid)] and Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(uid)) and mexBuildings[spGetUnitDefID(uid)] >= batchextracts then
 			return false
 		end
 	end
@@ -142,36 +168,36 @@ local function NoAlliedMex(x, z, batchextracts)
 end
 
 
-local function BuildMetalExtractors(params, options, isGuard, justDraw)		-- when isGuard: needs to be a table of the unit pos: { x = ux, y = uy, z = uz }
+local function BuildResourceExtractors(params, options, isGuard, justDraw, constructorIds, buildingIds, spots)		-- when isGuard: needs to be a table of the unit pos: { x = ux, y = uy, z = uz }
 	local cx, cy, cz, cr = params[1], params[2], params[3], params[4]
 	if not cr or cr < Game_extractorRadius then cr = Game_extractorRadius end
 	local units = selectedUnits
 
-	-- Get highest producing mex builder
-	local maxbatchextracts = 0
-	local lastprocessedbestbuilder
+	-- Get highest producing building and constructor
+	local maxresourceextractor = 0
+	local lastprocessedbestconstructor
 	for i = 1, #units do
 		local id = units[i]
-		if mexBuilder[id] then
-			if mexIds[(mexBuilder[id].building[1]) * -1] > maxbatchextracts then
-				maxbatchextracts = mexIds[(mexBuilder[id].building[1]) * -1]
-				lastprocessedbestbuilder = id
+		if constructorIds[id] then
+			if buildingIds[(constructorIds[id].building[1]) * -1] > maxresourceextractor then
+				maxresourceextractor = buildingIds[(constructorIds[id].building[1]) * -1]
+				lastprocessedbestconstructor = id
 			end
 		end
 	end
 
-	-- Add highest producing mex builders to mainBuilders table + give guard orders to "inferior" builders
+	-- Add highest producing constructors to mainBuilders table + give guard orders to "inferior" constructors
 	local mainBuilders = {}
 	local mainBuildersCount = 0
 	local ux, uz, aveX, aveZ = 0, 0, 0, 0
 	for i = 1, #units do
 		local id = units[i]
-		if mexBuilder[id] then
-			if mexIds[(mexBuilder[id].building[1]) * -1] == maxbatchextracts then
+		if constructorIds[id] then
+			if buildingIds[(constructorIds[id].building[1]) * -1] == maxresourceextractor then
 				local x, _, z = spGetUnitPosition(id)
 				if z then
 					ux, uz = ux+x, uz+z
-					lastprocessedbestbuilder = id
+					lastprocessedbestconstructor = id
 					mainBuildersCount = mainBuildersCount + 1
 					mainBuilders[mainBuildersCount] = id
 				end
@@ -181,25 +207,26 @@ local function BuildMetalExtractors(params, options, isGuard, justDraw)		-- when
 					if not options.shift then
 						spGiveOrderToUnit(id, CMD_STOP, {}, CMD_OPT_RIGHT)
 					end
-					spGiveOrderToUnit(id, CMD_GUARD, { lastprocessedbestbuilder }, { "shift" })
+					spGiveOrderToUnit(id, CMD_GUARD, { lastprocessedbestconstructor }, { "shift" })
 				end
 			end
 		end
 	end
+
 	if mainBuildersCount == 0 then return end
 	aveX, aveZ = ux/mainBuildersCount, uz/mainBuildersCount
 
 	-- Get available mex spots within area
 	local commands = {}
 	local commandsCount = 0
-	local mexes = isGuard and { isGuard } or WG.metalSpots -- only need the mex/spot we guard if that is the case
+	local mexes = isGuard and { isGuard } or spots -- only need the mex/spot we guard if that is the case
 	for k = 1, #mexes do
 		local mex = mexes[k]
 		if not (mex.x % 16 == 8) then mexes[k].x = mexes[k].x + 8 - (mex.x % 16) end
 		if not (mex.z % 16 == 8) then mexes[k].z = mexes[k].z + 8 - (mex.z % 16) end
 		mex.x, mex.z = mexes[k].x, mexes[k].z
 		if Distance(cx, cz, mex.x, mex.z) < cr * cr then
-			if NoAlliedMex(mex.x, mex.z, maxbatchextracts) then
+			if NoAlliedMex(mex.x, mex.z, maxresourceextractor) then
 				commandsCount = commandsCount + 1
 				commands[commandsCount] = { x = mex.x, z = mex.z, d = Distance(aveX, aveZ, mex.x, mex.z) }
 			end
@@ -234,7 +261,7 @@ local function BuildMetalExtractors(params, options, isGuard, justDraw)		-- when
 		local id = mainBuilders[ct]
 		for i = 1, #orderedCommands do
 			local command = orderedCommands[i]
-			for j = 1, mexBuilder[id].buildings do
+			for j = 1, constructorIds[id].buildings do
 				local targetPos, targetOwner
 				local occupiedMex = IsSpotOccupied({x = command.x, z =command.z})
 				if occupiedMex then
@@ -243,16 +270,16 @@ local function BuildMetalExtractors(params, options, isGuard, justDraw)		-- when
 					targetOwner = Spring.GetUnitTeam(occupiedMex)	-- because gadget "Mex Upgrade Reclaimer" will share a t2 mex build upon ally t1 mex
 				else
 
-					local closestMetalSpot = GetClosestPosition(command.x, command.z, WG.metalSpots);
-					local mexPosition = WG.GetMexPositions(closestMetalSpot, -mexBuilder[id].building[j], "s", true)
-					targetPos = GetClosestPosition(command.x, command.z, mexPosition)
+					local closestResourceSpot = GetClosestPosition(command.x, command.z, spots);
+					local buildingPositions = WG.GetBuildingPositions(closestResourceSpot, -constructorIds[id].building[j], 0, true)
+					targetPos = GetClosestPosition(command.x, command.z, buildingPositions)
 					targetOwner = spGetMyTeamID()
 				end
 				if targetPos then
 					local newx, newz = targetPos.x, targetPos.z
-					queuedMexes[#queuedMexes+1] = { id, math.abs(mexBuilder[id].building[j]), newx, spGetGroundHeight(newx, newz), newz, targetOwner }
+					queuedMexes[#queuedMexes+1] = { id, math.abs(constructorIds[id].building[j]), newx, spGetGroundHeight(newx, newz), newz, targetOwner }
 					if not justDraw then
-						spGiveOrderToUnit(id, mexBuilder[id].building[j], { newx, spGetGroundHeight(newx, newz), newz }, { "shift" })
+						spGiveOrderToUnit(id, constructorIds[id].building[j], { newx, spGetGroundHeight(newx, newz), newz }, { "shift" })
 						lastInsertedOrder = { command.x, command.z}
 					end
 					break
@@ -288,8 +315,15 @@ function widget:Initialize()
 		return GetClosestPosition(x, z, positions)
 	end
 
+	----------------------------------------------
+	-- TODO: replace this with generalized version below | BuildMetalExtractors -> BuildResourceExtractors
+	----------------------------------------------
 	WG['metalspot_builder'].BuildMetalExtractors = function(params, options, isGuard, justDraw)
-		return BuildMetalExtractors (params, options, isGuard, justDraw)
+		return BuildResourceExtractors (params, options, isGuard, justDraw, mexConstructors, mexBuildings, WG.metalSpots)
+	end
+
+	WG['metalspot_builder'].BuildResourceExtractorsGeo = function(params, options, isGuard, justDraw)
+		return BuildResourceExtractors (params, options, isGuard, justDraw, geoConstructors, geoBuildings, WG.geoSpots)
 	end
 
 	WG['metalspot_builder'].GetSelectedUnits = function()
@@ -304,19 +338,44 @@ function widget:Initialize()
 		return metalMap
 	end
 
+
+	----------------------------------------------
+	-- TODO: rename
+	----------------------------------------------
+
 	WG['metalspot_builder'].GetMexBuilder = function()
-		return mexBuilder
+		return mexConstructors
 	end
 
 	WG['metalspot_builder'].GetMexBuilderDef = function()
-		return mexBuilderDef
+		return mexConstructorsDef
 	end
 
 	WG['metalspot_builder'].GetMexBuilderT2 = function()
-		return mexBuilderT2
+		return mexConstructorsT2
 	end
 
 	WG['metalspot_builder'].GetMexIds = function()
-		return mexIds
+		return mexBuildings
+	end
+
+
+
+
+
+	WG['metalspot_builder'].GetGeoBuilder = function()
+		return geoConstructors
+	end
+
+	WG['metalspot_builder'].GetGeoBuilderDef = function()
+		return geoConstructorsDef
+	end
+
+	WG['metalspot_builder'].GetGeoBuilderT2 = function()
+		return geoConstructorsT2
+	end
+
+	WG['metalspot_builder'].GetGeoBuildings = function()
+		return geoBuildings
 	end
 end

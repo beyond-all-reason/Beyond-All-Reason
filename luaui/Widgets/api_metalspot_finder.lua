@@ -43,20 +43,54 @@ local metalmapSizeZ = Game.mapSizeZ - 1.5 * gridSize
 local metalmapStartX = 1.5 * gridSize
 local metalmapStartZ = 1.5 * gridSize
 
+
 ------------------------------------------------------------
--- Callins
+-- Locate geo spots
 ------------------------------------------------------------
-function widget:Initialize()
-	WG.metalSpots = GetSpots()
-	WG.GetMexPositions = GetMexPositions
-	WG.IsMexPositionValid = IsMexPositionValid
-	widgetHandler:RemoveWidget()
+
+--local geoSpots = {}
+local showGeothermalUnits = false
+
+function GetSpotsGeo()
+	showGeothermalUnits = false
+	local geoFeatureDefs = {}
+	for defID, def in pairs(FeatureDefs) do
+		if def.geoThermal then
+			geoFeatureDefs[defID] = true
+		end
+	end
+	geoSpots = {}
+	local features = Spring.GetAllFeatures()
+	local spotCount = 0
+	for i = 1, #features do
+		if geoFeatureDefs[Spring.GetFeatureDefID(features[i])] then
+			showGeothermalUnits = true
+			local x, y, z = Spring.GetFeaturePosition(features[i])
+			spotCount = spotCount + 1
+			geoSpots[spotCount] = {
+				x=getFootprintPos(x),
+				y=y,
+				z=getFootprintPos(z),
+				minX=getFootprintPos(x),
+				maxX=getFootprintPos(x),
+				minZ=getFootprintPos(z),
+				maxZ=getFootprintPos(z)			}
+		end
+	end
+	return geoSpots
 end
+
+
+function getFootprintPos(value)	-- not entirely acurate, unsure why
+	local precision = 16		-- (footprint 1 = 16 map distance)
+	return (math.floor(value/precision)*precision)+(precision/2)
+end
+
 
 ------------------------------------------------------------
 -- Shared functions
 ------------------------------------------------------------
-function GetMexPositions(spot, uDefID, facing, testBuild)
+function GetBuildingPositions(spot, uDefID, facing, testBuild)
 
 	local positions = {}
 
@@ -78,7 +112,7 @@ function GetMexPositions(spot, uDefID, facing, testBuild)
 	local validRight = spot.validRight
 	for z, vLeft in pairs(validLeft) do
 		if z % 16 == zoff then
-			for x = gridSize *  ceil((vLeft         + xoff) / gridSize) - xoff,
+			for x = gridSize *  ceil((vLeft + xoff) / gridSize) - xoff,
 				gridSize * floor((validRight[z] + xoff) / gridSize) - xoff,
 				gridSize do
 				local y = spGetGroundHeight(x, z)
@@ -92,7 +126,7 @@ function GetMexPositions(spot, uDefID, facing, testBuild)
 	return positions
 end
 
-function IsMexPositionValid(spot, x, z)
+function IsBuildingPositionValid(spot, x, z)
 
 	if z <= spot.maxZ - extractorRadius or
 	   z >= spot.minZ + extractorRadius then -- Test for metal being included is dist < extractorRadius
@@ -115,7 +149,7 @@ end
 ------------------------------------------------------------
 -- Mex finding
 ------------------------------------------------------------
-function GetSpots()
+function GetSpotsMetal()
 
 	-- Main group collection
 	local uniqueGroups = {}
@@ -246,12 +280,15 @@ function GetValidStrips(spot)
 	local maxZOffset = buildGridSize * ceil(extractorRadius / buildGridSize - 1)
 	for mz = max(sMaxZ - maxZOffset, buildmapStartZ), min(sMinZ + maxZOffset, buildmapSizeZ), buildGridSize do
 		local vLeft, vRight = buildmapStartX, buildmapSizeX
-		for sz = sMinZ, sMaxZ, gridSize do
-			local dz = sz - mz
-			local maxXOffset = buildGridSize * ceil(sqrt(extractorRadiusSqr - dz * dz) / buildGridSize - 1) -- Test for metal being included is dist < extractorRadius
-			local left, right = sRight[sz] - maxXOffset, sLeft[sz] + maxXOffset
-			if left  > vLeft  then vLeft  = left  end
-			if right < vRight then vRight = right end
+		if (spot.left and spot.right) then
+			for sz = sMinZ, sMaxZ, gridSize do
+				local dz = sz - mz
+				local maxXOffset = buildGridSize * ceil(sqrt(extractorRadiusSqr - dz * dz) / buildGridSize - 1) -- Test for metal being included is dist < extractorRadius
+				local left, right = sRight[sz] - maxXOffset, sLeft[sz] + maxXOffset
+				if left  > vLeft  then vLeft  = left  end
+				if right < vRight then vRight = right end
+			end
+
 		end
 		validLeft[mz] = vLeft
 		validRight[mz] = vRight
@@ -259,4 +296,23 @@ function GetValidStrips(spot)
 
 	spot.validLeft = validLeft
 	spot.validRight = validRight
+end
+
+
+------------------------------------------------------------
+-- Callins
+------------------------------------------------------------
+function widget:Initialize()
+	--if GetGeoSpots then
+	--	GetGeoSpots()
+	--end
+
+	--TODO: rename to WG.Get[...] and also return cached results:
+
+	WG.geoSpots = GetSpotsGeo()
+	WG.metalSpots = GetSpotsMetal()
+
+	WG.GetBuildingPositions = GetBuildingPositions
+	WG.IsMexPositionValid = IsBuildingPositionValid
+	--widgetHandler:RemoveWidget()
 end

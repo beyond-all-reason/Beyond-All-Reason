@@ -118,7 +118,7 @@ function widget:DrawWorld()
 
 	-- Get the closet position that would give 100%
 	local bface = Spring.GetBuildFacing()
-	local mexPositions = WG.GetMexPositions(closestSpot, -cmdID, bface, true)
+	local mexPositions = WG.GetBuildingPositions(closestSpot, -cmdID, bface, true)
 	local bestPos = GetClosestPosition(bx, bz, mexPositions)
 	if not bestPos then
 		WG.MexSnap.curPosition = nil
@@ -151,7 +151,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		if closestSpot and not WG.IsMexPositionValid(closestSpot, bx, bz) then
 
 			local bface = cmdParams[4]
-			local mexPositions = WG.GetMexPositions(closestSpot, -cmdID, bface, true)
+			local mexPositions = WG.GetBuildingPositions(closestSpot, -cmdID, bface, true)
 			local bestPos = GetClosestPosition(bx, bz, mexPositions)
 			if bestPos then
 
