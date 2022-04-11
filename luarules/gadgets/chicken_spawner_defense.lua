@@ -579,7 +579,7 @@ if gadgetHandler:IsSyncedCode() then
 				if config.burrowSpawnType == "initialbox" then
 					x = mRandom(lsx1, lsx2)
 					z = mRandom(lsz1, lsz2)
-				elseif config.burrowSpawnType == "alwaysbox" and tries < maxTries then
+				elseif config.burrowSpawnType == "alwaysbox" then
 					x = mRandom(lsx1, lsx2)
 					z = mRandom(lsz1, lsz2)
 				elseif config.burrowSpawnType == "initialbox_post" then
@@ -632,7 +632,7 @@ if gadgetHandler:IsSyncedCode() then
 					SetUnitExperience(unitID, mRandom() * expMod)
 				end
 			else
-				canSpawnBurrow = StartboxCheck(x, y, z, 64, chickenAllyTeamID, true)
+				canSpawnBurrow = positionCheckLibrary.StartboxCheck(x, y, z, 64, chickenAllyTeamID, true)
 				if canSpawnBurrow then
 					canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, false)
 				end
