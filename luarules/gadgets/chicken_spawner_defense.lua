@@ -319,12 +319,12 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenw1c"].id] = { distance = 900, chance = 0.33 },
 		[UnitDefNames["chickenh5"].id] = { distance = 600, chance = 0.5 }
 	}
-	local EGG_DROPPER = {
-		[UnitDefNames["chicken1"].id] = "chicken_egg_s_pink",
-		[UnitDefNames["chicken1b"].id] = "chicken_egg_s_white",
-		[UnitDefNames["chicken1c"].id] = "chicken_egg_s_red",
-		[UnitDefNames["chicken1d"].id] = "chicken_egg_s_pink",
-	}
+	-- local EGG_DROPPER = {
+	-- 	[UnitDefNames["chicken1"].id] = "chicken_egg_s_pink",
+	-- 	[UnitDefNames["chicken1b"].id] = "chicken_egg_s_white",
+	-- 	[UnitDefNames["chicken1c"].id] = "chicken_egg_s_red",
+	-- 	[UnitDefNames["chicken1d"].id] = "chicken_egg_s_pink",
+	-- }
 	local OVERSEER_ID = UnitDefNames["chickenh5"].id
 	local SMALL_UNIT = UnitDefNames["chicken1"].id
 	local MEDIUM_UNIT = UnitDefNames["chicken1"].id
@@ -1585,19 +1585,37 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local chickenEggSizes = {"s", "m", "l"}
+	local chickenEggColors = {"pink","white","red"}
+
+	local function spawnRandomEgg(x,y,z,unitDefID,unitTeam)
+		local egg = Spring.CreateFeature("chicken_egg_"..chickenEggSizes[math.random(1,#chickenEggSizes)].."_"..chickenEggColors[math.random(1,#chickenEggColors)], x, y, z, math.random(-999999,999999), unitTeam)
+		if unitDefID then
+			Spring.SetFeatureResurrect(egg, unitDefID, math.random(0,3), 0)
+		end
+	end
+
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
-		if (eggChance > 0 and bonusEggs > 0) or (EGG_DROPPER[unitDefID] and mRandom() < eggChance) then
-			local x, y, z = GetUnitPosition(unitID)
-			if x then
-				local h = GetUnitHeading(unitID)
-				if h then
-					Spring.CreateFeature(EGG_DROPPER[unitDefID], x, y, z, h)
-					bonusEggs = bonusEggs - 1
+		if unitTeam == chickenTeamID then
+			local x,y,z = Spring.GetUnitPosition(unitID)
+			spawnRandomEgg(x,y,z,unitDefID,unitTeam)
+			if unitDefID == config.burrowDef or UnitDefs[unitDefID].name == "chickend2" then
+				for i = 1,20 do
+					local x = x + math.random(-64,64)
+					local z = z + math.random(-64,64)
+					local y = GetGroundHeight(x, z)
+					spawnRandomEgg(x,y,z,false,unitTeam)
+				end
+			elseif UnitDefs[unitDefID].name == "chickend1" then
+				for i = 1,5 do
+					local x = x + math.random(-32,32)
+					local z = z + math.random(-32,32)
+					local y = GetGroundHeight(x, z)
+					spawnRandomEgg(x,y,z,false,unitTeam)
 				end
 			end
 		end
-
 		if heroChicken[unitID] then
 			heroChicken[unitID] = nil
 		end
