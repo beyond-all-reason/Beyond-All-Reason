@@ -166,7 +166,6 @@ return {
 				},
 				damage = {
 					commanders = 2500,
-					scavboss = 2500,
 					default = 9500,
 				},
 			},
