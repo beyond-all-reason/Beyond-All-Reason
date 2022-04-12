@@ -104,7 +104,7 @@ end
 function gadget:Initialize()
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Mex Spot Finder Initialising")
 	Spring.SetGameRulesParam("base_extraction", 0.001)
-	local metalSpots, fromEngineMetalmap = GetSpotsMetal()
+	local metalSpots, fromEngineMetalmap = GetSpots()
 	local metalSpotsByPos = false
 
 	if fromEngineMetalmap and #metalSpots < 6 then

@@ -323,7 +323,7 @@ function widget:Initialize()
 	end
 
 	WG['metalspot_builder'].BuildResourceExtractorsGeo = function(params, options, isGuard, justDraw)
-		return BuildResourceExtractors (params, options, isGuard, justDraw, geoConstructors, geoBuildings, WG.geoSpots)
+		return BuildResourceExtractors (params, options, isGuard, justDraw, geoConstructors, geoBuildings, WG.GetGeoSpots())
 	end
 
 	WG['metalspot_builder'].GetSelectedUnits = function()

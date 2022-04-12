@@ -61,7 +61,7 @@ function widget:Update(dt)
 			if isT1Geo or type == 'ground' then
 				local proceed = false
 				if type == 'ground' then
-					closestGeo = WG['metalspot_builder'].GetClosestPosition(params[1], params[3], WG.geoSpots)
+					closestGeo = WG['metalspot_builder'].GetClosestPosition(params[1], params[3], WG.GetGeoSpots())
 					if closestGeo and Distance(params[1], params[3], closestGeo.x, closestGeo.z) < geoPlacementRadius then
 						proceed = true
 					end
@@ -141,7 +141,6 @@ function widget:CommandNotify(id, params, options)
 	local moveReturn = false
 	if WG['metalspot_builder'].GetGeoBuilder()[WG['metalspot_builder'].GetSelectedUnits()[1]] then
 		if isGuard then
-			Spring.Echo('klappt das bis hierher - test upgrade?')
 			local ux, uy, uz = spGetUnitPosition(params[1])
 			isGuard = { x = ux, y = uy, z = uz }
 			params[1], params[2], params[3] = ux, uy, uz
@@ -152,7 +151,7 @@ function widget:CommandNotify(id, params, options)
 			end
 			lastInsertedOrder = nil
 		elseif isMove and moveIsAreaGeo then
-			local closestGeo = WG['metalspot_builder'].GetClosestPosition(params[1], params[3], WG.geoSpots)
+			local closestGeo = WG['metalspot_builder'].GetClosestPosition(params[1], params[3], WG.GetGeoSpots())
 			local spotRadius = geoPlacementRadius
 			if #(WG['metalspot_builder'].GetSelectedUnits()) == 1 and #Spring.GetCommandQueue(WG['metalspot_builder'].GetSelectedUnits()[1], 8) > 1 then
 				if not lastInsertedOrder or (closestGeo.x ~= lastInsertedOrder[1] and closestGeo.z ~= lastInsertedOrder[2]) then

@@ -49,10 +49,10 @@ local metalmapStartZ = 1.5 * gridSize
 ------------------------------------------------------------
 
 --local geoSpots = {}
-local showGeothermalUnits = false
+--local showGeothermalUnits = false
 
 function GetSpotsGeo()
-	showGeothermalUnits = false
+	--showGeothermalUnits = false
 	local geoFeatureDefs = {}
 	for defID, def in pairs(FeatureDefs) do
 		if def.geoThermal then
@@ -64,24 +64,24 @@ function GetSpotsGeo()
 	local spotCount = 0
 	for i = 1, #features do
 		if geoFeatureDefs[Spring.GetFeatureDefID(features[i])] then
-			showGeothermalUnits = true
+			--showGeothermalUnits = true
 			local x, y, z = Spring.GetFeaturePosition(features[i])
 			spotCount = spotCount + 1
 			geoSpots[spotCount] = {
-				x=getFootprintPos(x),
+				x= GetFootprintPos(x),
 				y=y,
-				z=getFootprintPos(z),
-				minX=getFootprintPos(x),
-				maxX=getFootprintPos(x),
-				minZ=getFootprintPos(z),
-				maxZ=getFootprintPos(z)			}
+				z= GetFootprintPos(z),
+				minX= GetFootprintPos(x),
+				maxX= GetFootprintPos(x),
+				minZ= GetFootprintPos(z),
+				maxZ= GetFootprintPos(z)			}
 		end
 	end
 	return geoSpots
 end
 
 
-function getFootprintPos(value)	-- not entirely acurate, unsure why
+function GetFootprintPos(value)	-- not entirely acurate, unsure why
 	local precision = 16		-- (footprint 1 = 16 map distance)
 	return (math.floor(value/precision)*precision)+(precision/2)
 end
@@ -309,7 +309,7 @@ function widget:Initialize()
 
 	--TODO: rename to WG.Get[...] and also return cached results:
 
-	WG.geoSpots = GetSpotsGeo()
+	WG.GetGeoSpots = GetSpotsGeo
 	WG.metalSpots = GetSpotsMetal()
 
 	WG.GetBuildingPositions = GetBuildingPositions
