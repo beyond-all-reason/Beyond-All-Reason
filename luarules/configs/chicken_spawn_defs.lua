@@ -71,7 +71,7 @@ local chickenTypes = {
 local optionValues = {
 	[difficulties.veryeasy] = {
 	  chickenSpawnRate  = 100,
-	  burrowSpawnRate   = 120,
+	  burrowSpawnRate   = 90,
 	  queenSpawnMult    = 0,
 	  angerBonus        = 0.05,
 	  expStep           = 0,
@@ -79,11 +79,12 @@ local optionValues = {
 	  chickensPerPlayer = 7,
 	  spawnChance       = 0.25,
 	  damageMod         = 0.125,
+	  maxBurrows        = 5,
 	  queenName         = 've_chickenq',
   },
   [difficulties.easy] = {
 	  chickenSpawnRate  = 100,
-	  burrowSpawnRate   = 120,
+	  burrowSpawnRate   = 90,
 	  queenSpawnMult    = 0,
 	  angerBonus        = 0.075,
 	  expStep           = 0.09375,
@@ -91,12 +92,13 @@ local optionValues = {
 	  chickensPerPlayer = 7,
 	  spawnChance       = 0.33,
 	  damageMod         = 0.25,
+	  maxBurrows        = 10,
 	  queenName         = 'e_chickenq',
   },
 
   [difficulties.normal] = {
 	  chickenSpawnRate  = 80,
-	  burrowSpawnRate   = 105,
+	  burrowSpawnRate   = 60,
 	  queenSpawnMult    = 1,
 	  angerBonus        = 0.10,
 	  expStep           = 0.125,
@@ -104,6 +106,7 @@ local optionValues = {
 	  chickensPerPlayer = 9,
 	  spawnChance       = 0.4,
 	  damageMod         = 0.4,
+	  maxBurrows        = 50,
 	  queenName         = 'n_chickenq',
   },
 
@@ -117,6 +120,7 @@ local optionValues = {
 	  chickensPerPlayer = 14,
 	  spawnChance       = 0.5,
 	  damageMod         = 0.55,
+	  maxBurrows        = 100,
 	  queenName         = 'h_chickenq',
   },
 
@@ -130,6 +134,7 @@ local optionValues = {
 	  chickensPerPlayer = 18,
 	  spawnChance       = 0.6,
 	  damageMod         = 0.66,
+	  maxBurrows        = 1000,
 	  queenName         = 'vh_chickenq',
   },
 
@@ -145,6 +150,7 @@ local optionValues = {
 	  chickensPerPlayer   = 9,
 	  spawnChance         = 0.4,
 	  damageMod           = 0.5,
+	  maxBurrows          = 1000,
 	  queenName           = 'n_chickenq',
 	},
   }
@@ -326,7 +332,6 @@ local config = {
 	difficulties           = difficulties,
 	maxChicken             = Spring.GetModOptions().chicken_maxchicken,
 	chickenSpawnMultiplier = Spring.GetModOptions().chicken_spawncountmult,
-	maxBurrows             = 1000,
 	gracePeriod            = Spring.GetModOptions().chicken_graceperiod,  -- no chicken spawn in this period, seconds
 	queenTime              = Spring.GetModOptions().chicken_queentime * 60, -- time at which the queen appears, seconds
 	addQueenAnger          = Spring.GetModOptions().chicken_queenanger,
