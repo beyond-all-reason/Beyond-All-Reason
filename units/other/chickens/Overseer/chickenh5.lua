@@ -31,7 +31,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = 640,
 		mass = 3000,
-		maxdamage = 8000,
+		maxdamage = 30000,
 		maxslope = 18,
 		maxvelocity = 3.7,
 		maxwaterdepth = 0,
@@ -112,7 +112,7 @@ return {
 				weapontimer = 3,
 				weaponvelocity = 420,
 				damage = {
-					default = 225,
+					default = 2000,
 				},
 			},
 			weapon = {
@@ -141,7 +141,7 @@ return {
 				weaponvelocity = 500,
 				damage = {
 					chicken = 200,
-					default = 900,
+					default = 5000,
 				},
 			},
 		},
