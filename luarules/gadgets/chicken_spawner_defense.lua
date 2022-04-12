@@ -632,7 +632,7 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				for i = 1,100 do
 					local x = mRandom(RaptorStartboxXMin, RaptorStartboxXMax)
-					local z = mRandom(RaptorStartboxZMin, RaptorStartboxzMax)
+					local z = mRandom(RaptorStartboxZMin, RaptorStartboxZMax)
 					local y = GetGroundHeight(x, z)
 
 					canSpawnBurrow = positionCheckLibrary.StartboxCheck(x, y, z, 64, chickenAllyTeamID, true)
@@ -1588,31 +1588,31 @@ if gadgetHandler:IsSyncedCode() then
 	local chickenEggSizes = {"s", "m", "l"}
 	local chickenEggColors = {"pink","white","red"}
 
-	local function spawnRandomEgg(x,y,z,unitDefID,unitTeam)
-		local egg = Spring.CreateFeature("chicken_egg_"..chickenEggSizes[math.random(1,#chickenEggSizes)].."_"..chickenEggColors[math.random(1,#chickenEggColors)], x, y, z, math.random(-999999,999999), unitTeam)
-		if unitDefID then
-			Spring.SetFeatureResurrect(egg, unitDefID, math.random(0,3), 0)
-		end
+	local function spawnRandomEgg(x,y,z)
+		local egg = Spring.CreateFeature("chicken_egg_"..chickenEggSizes[math.random(1,#chickenEggSizes)].."_"..chickenEggColors[math.random(1,#chickenEggColors)], x, y, z, math.random(-999999,999999), chickenTeamID)
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
 		if unitTeam == chickenTeamID then
 			local x,y,z = Spring.GetUnitPosition(unitID)
-			spawnRandomEgg(x,y,z,unitDefID,unitTeam)
 			if unitDefID == config.burrowDef or UnitDefs[unitDefID].name == "chickend2" then
-				for i = 1,20 do
+				for i = 1,math.random(10,40) do
 					local x = x + math.random(-64,64)
 					local z = z + math.random(-64,64)
 					local y = GetGroundHeight(x, z)
-					spawnRandomEgg(x,y,z,false,unitTeam)
+					spawnRandomEgg(x,y,z)
 				end
 			elseif UnitDefs[unitDefID].name == "chickend1" then
-				for i = 1,5 do
+				for i = 1,math.random(3,10) do
 					local x = x + math.random(-32,32)
 					local z = z + math.random(-32,32)
 					local y = GetGroundHeight(x, z)
-					spawnRandomEgg(x,y,z,false,unitTeam)
+					spawnRandomEgg(x,y,z)
+				end
+			else
+				if math.random(1,5) == 1 then
+					spawnRandomEgg(x,y,z)
 				end
 			end
 		end
