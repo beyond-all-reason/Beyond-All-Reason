@@ -967,6 +967,7 @@ local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures,
 			Spring.Echo("Failed to allocate IBO or VAO for CUS GL4", mybinIBO, mybinVAO)
 			--Spring.Debug.TraceFullEcho()
 			gadgetHandler:RemoveGadget()
+			return
 		end
 		
 		mybinIBO:Define(MAX_DRAWN_UNITS, {
@@ -1386,6 +1387,7 @@ local function initGL4()
 	if ((modelsVertexVBO == nil) or (modelsIndexVBO == nil)) then
 		Spring.Echo("CUS GL4 failed to initialize VBO, exiting")
 		gadgetHandler:RemoveGadget()
+		return
 	end
 
 	modelsVertexVBO:ModelsVBO()
