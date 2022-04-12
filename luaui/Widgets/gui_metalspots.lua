@@ -277,7 +277,7 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
-	if not WG.metalSpots then
+	if not WG['resource_spot_finder'].GetSpotsMetal() then
 		Spring.Echo("<metalspots> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget()
 	end
@@ -305,7 +305,7 @@ function widget:Initialize()
 	end
 
 	local currentClock = os.clock()
-	local mSpots = WG.metalSpots
+	local mSpots = WG['resource_spot_finder'].GetSpotsMetal()
 	if mSpots then
 		local spotsCount = #spots
 		for i = 1, #mSpots do

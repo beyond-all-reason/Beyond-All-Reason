@@ -55,13 +55,13 @@ function widget:CommandNotify(id, params, options)
 	if isGuard then
 		local mx, my, mb = Spring.GetMouseState()
 		local type, unitID = Spring.TraceScreenRay(mx, my)
-		if not (type == 'unit' and WG['metalspot_builder'].GetMexIds()[spGetUnitDefID(unitID)] and WG['metalspot_builder'].GetMexIds()[spGetUnitDefID(unitID)] < 0.002) then
+		if not (type == 'unit' and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] < 0.002) then
 			return
 		end
 	end
 
 	if id == CMD_AREA_MEX then
-		local queuedMexes = WG['metalspot_builder'].BuildMetalExtractors(params, options, isGuard)
+		local queuedMexes = WG['resource_spot_builder'].BuildMex(params, options, isGuard)
 		if moveReturn and not queuedMexes[1] then	-- used when area_mex isnt queuing a mex, to let the move cmd still pass through
 			return false
 		end
@@ -70,13 +70,13 @@ function widget:CommandNotify(id, params, options)
 end
 
 function widget:CommandsChanged()
-	if not WG['metalspot_builder'].isMetalMap() then
-		local unitCount = #(WG['metalspot_builder'].GetSelectedUnits())
+	if not WG['resource_spot_builder'].isMetalMap() then
+		local unitCount = #(WG['resource_spot_builder'].GetSelectedUnits())
 		if unitCount > 0 then
-			local units = WG['metalspot_builder'].GetSelectedUnits()
+			local units = WG['resource_spot_builder'].GetSelectedUnits()
 			local customCommands = widgetHandler.customCommands
 			for i = 1, unitCount do
-				if WG['metalspot_builder'].GetMexBuilder()[units[i]] then
+				if WG['resource_spot_builder'].GetMexConstructors()[units[i]] then
 					customCommands[#customCommands + 1] = {
 						id = CMD_AREA_MEX,
 						type = CMDTYPE.ICON_AREA,

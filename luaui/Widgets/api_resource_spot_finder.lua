@@ -1,9 +1,9 @@
 
 function widget:GetInfo()
 	return {
-		name      = "Metalspot Finder",
-		desc      = "Finds metal spots for other widgets",
-		author    = "Niobium",
+		name      = "API Resource Spot Finder",
+		desc      = "Finds metal and geothermal spots for other widgets",
+		author    = "Niobium, Tarte (added geothermal)",
 		version   = "v1.1",
 		date      = "November 2010",
 		license   = "GNU GPL, v2 or later",
@@ -45,7 +45,7 @@ local metalmapStartZ = 1.5 * gridSize
 
 
 ------------------------------------------------------------
--- Locate geo spots
+-- Find geothermal spots
 ------------------------------------------------------------
 
 --local geoSpots = {}
@@ -147,7 +147,7 @@ function IsBuildingPositionValid(spot, x, z)
 end
 
 ------------------------------------------------------------
--- Mex finding
+-- Find metal spots
 ------------------------------------------------------------
 function GetSpotsMetal()
 
@@ -307,12 +307,13 @@ function widget:Initialize()
 	--	GetGeoSpots()
 	--end
 
-	--TODO: rename to WG.Get[...] and also return cached results:
+	--make interfaces available to other widgets:
+	WG['resource_spot_finder'] = { }
 
-	WG.GetGeoSpots = GetSpotsGeo
-	WG.metalSpots = GetSpotsMetal()
+	--TODO: return cached results:
+	WG['resource_spot_finder'].GetSpotsGeo = GetSpotsGeo
+	WG['resource_spot_finder'].GetSpotsMetal = GetSpotsMetal
 
-	WG.GetBuildingPositions = GetBuildingPositions
-	WG.IsMexPositionValid = IsBuildingPositionValid
-	--widgetHandler:RemoveWidget()
+	WG['resource_spot_finder'].GetBuildingPositions = GetBuildingPositions
+	WG['resource_spot_finder'].IsMexPositionValid = IsBuildingPositionValid
 end

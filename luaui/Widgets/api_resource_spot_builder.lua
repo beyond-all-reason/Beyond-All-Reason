@@ -1,9 +1,9 @@
 function widget:GetInfo()
 	return {
-		name = "Metalspot Builder",
-		desc = "Handles construction of metal extractors for other widgets",
-		author = "Google Frog, NTG (file handling), Chojin (metal map), Doo (multiple enhancements), Floris (mex placer/upgrader), Tarte (maintenance)",
-		date = "Oct 23, 2010 (last update: March 3, 2022)",
+		name = "API Resource Spot Builder",
+		desc = "Handles construction of metal extractors and geothermal power plants for other widgets",
+		author = "Google Frog, NTG (file handling), Chojin (metal map), Doo (multiple enhancements), Floris (mex placer/upgrader), Tarte (maintenance/geothermal)",
+		date = "Oct 23, 2010 (last update: April 12, 2022)",
 		license = "GNU GPL, v2 or later",
 		handler = true,
 		layer = 0,
@@ -11,6 +11,15 @@ function widget:GetInfo()
 	}
 end
 
+------------------------------------------------------------
+-- Config
+------------------------------------------------------------
+local t1geoThreshold = 300 --any building producing this much or less is considered tier 1
+local t1mexThreshold = 0.001 --any building producing this much or less is considered tier 1
+
+------------------------------------------------------------
+-- Speedups
+------------------------------------------------------------
 local CMD_STOP = CMD.STOP
 local CMD_GUARD = CMD.GUARD
 local CMD_OPT_RIGHT = CMD.OPT_RIGHT
@@ -27,14 +36,19 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local selectedUnits = spGetSelectedUnits()
 local selUnitsCount = spGetSelectedUnitsCounts()
 
-local lastInsertedOrder
-
+local Game_extractorRadius = Game.extractorRadius
 local tasort = table.sort
 local taremove = table.remove
 
-local Game_extractorRadius = Game.extractorRadius
-
+------------------------------------------------------------
+-- Other variables
+------------------------------------------------------------
+local lastInsertedOrder
 local metalMap = false
+
+------------------------------------------------------------
+-- unit tables
+------------------------------------------------------------
 local mexConstructors = {}
 local mexConstructorsDef = {}
 local mexConstructorsT2 = {}
@@ -90,41 +104,18 @@ for uDefID, uDef in pairs(UnitDefs) do
 				end
 			end
 		end
-		if maxExtractMetal > 0.002 then
+		if maxExtractMetal > t1mexThreshold then
 			mexConstructorsT2[uDefID] = true
 		end
-		if maxProduceEnergy > 300 then --TODO: "magic" values 300 and 0.002 should be constants...
+		if maxProduceEnergy > t1geoThreshold then
 			geoConstructorsT2[uDefID] = true
 		end
 	end
 end
 
-
-function widget:SelectionChanged(sel)
-	selectedUnits = sel
-	selUnitsCount = spGetSelectedUnitsCounts()
-end
-
-function widget:UnitCreated(unitID, unitDefID)
-	if mexConstructorsDef[unitDefID] then
-		mexConstructors[unitID] = mexConstructorsDef[unitDefID]
-	end
-	if geoConstructorsDef[unitDefID] then
-		geoConstructors[unitID] = geoConstructorsDef[unitDefID]
-	end
-end
-
-function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
-	if not mexConstructors[unitID] or geoConstructors[unitID] then
-		widget:UnitCreated(unitID, unitDefID, newTeam)
-	end
-end
-
-function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	if not mexConstructors[unitID] or geoConstructors[unitID] then
-		widget:UnitCreated(unitID, unitDefID, newTeam)
-	end
-end
+------------------------------------------------------------
+-- Helper functions (Math stuff)
+------------------------------------------------------------
 
 local function Distance(x1, z1, x2, z2)
 	return (x1 - x2) * (x1 - x2) + (z1 - z2) * (z1 - z2)
@@ -144,6 +135,10 @@ local function GetClosestPosition(x, z, positions)
 	end
 	return bestPos
 end
+
+------------------------------------------------------------
+-- Building logic
+------------------------------------------------------------
 
 local function IsSpotOccupied(spot)
 	local units = Spring.GetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
@@ -271,7 +266,7 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 				else
 
 					local closestResourceSpot = GetClosestPosition(command.x, command.z, spots);
-					local buildingPositions = WG.GetBuildingPositions(closestResourceSpot, -constructorIds[id].building[j], 0, true)
+					local buildingPositions = WG['resource_spot_finder'].GetBuildingPositions(closestResourceSpot, -constructorIds[id].building[j], 0, true)
 					targetPos = GetClosestPosition(command.x, command.z, buildingPositions)
 					targetOwner = spGetMyTeamID()
 				end
@@ -294,10 +289,39 @@ local function BuildResourceExtractors(params, options, isGuard, justDraw, const
 	return queuedMexes
 end
 
+------------------------------------------------------------
+-- Callins
+------------------------------------------------------------
+
+function widget:SelectionChanged(sel)
+	selectedUnits = sel
+	selUnitsCount = spGetSelectedUnitsCounts()
+end
+
+function widget:UnitCreated(unitID, unitDefID)
+	if mexConstructorsDef[unitDefID] then
+		mexConstructors[unitID] = mexConstructorsDef[unitDefID]
+	end
+	if geoConstructorsDef[unitDefID] then
+		geoConstructors[unitID] = geoConstructorsDef[unitDefID]
+	end
+end
+
+function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+	if not mexConstructors[unitID] or geoConstructors[unitID] then
+		widget:UnitCreated(unitID, unitDefID, newTeam)
+	end
+end
+
+function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	if not mexConstructors[unitID] or geoConstructors[unitID] then
+		widget:UnitCreated(unitID, unitDefID, newTeam)
+	end
+end
 
 
 function widget:Initialize()
-	if not WG.metalSpots or (#WG.metalSpots > 0 and #WG.metalSpots <= 2) then
+	if not WG['resource_spot_finder'].GetSpotsMetal() or (#WG['resource_spot_finder'].GetSpotsMetal() > 0 and #WG['resource_spot_finder'].GetSpotsMetal() <= 2) then
 		metalMap = true
 	end
 	local units = spGetTeamUnits(spGetMyTeamID())
@@ -308,74 +332,71 @@ function widget:Initialize()
 
 
 	--make interfaces available to other widgets:
-	WG['metalspot_builder'] = { }
+	WG['resource_spot_builder'] = { }
 
 
-	WG['metalspot_builder'].GetClosestPosition = function(x, z, positions)
+	WG['resource_spot_builder'].GetClosestPosition = function(x, z, positions)
 		return GetClosestPosition(x, z, positions)
 	end
 
-	----------------------------------------------
-	-- TODO: replace this with generalized version below | BuildMetalExtractors -> BuildResourceExtractors
-	----------------------------------------------
-	WG['metalspot_builder'].BuildMetalExtractors = function(params, options, isGuard, justDraw)
-		return BuildResourceExtractors (params, options, isGuard, justDraw, mexConstructors, mexBuildings, WG.metalSpots)
+	WG['resource_spot_builder'].BuildMex = function(params, options, isGuard, justDraw)
+		return BuildResourceExtractors (params, options, isGuard, justDraw, mexConstructors, mexBuildings, WG['resource_spot_finder'].GetSpotsMetal())
 	end
 
-	WG['metalspot_builder'].BuildResourceExtractorsGeo = function(params, options, isGuard, justDraw)
-		return BuildResourceExtractors (params, options, isGuard, justDraw, geoConstructors, geoBuildings, WG.GetGeoSpots())
+	WG['resource_spot_builder'].BuildGeothermal = function(params, options, isGuard, justDraw)
+		return BuildResourceExtractors (params, options, isGuard, justDraw, geoConstructors, geoBuildings, WG['resource_spot_finder'].GetSpotsGeo())
 	end
 
-	WG['metalspot_builder'].GetSelectedUnits = function()
+	WG['resource_spot_builder'].GetSelectedUnits = function()
 		return selectedUnits
 	end
 
-	WG['metalspot_builder'].GetSelectedUnitsCount = function()
+	WG['resource_spot_builder'].GetSelectedUnitsCount = function()
 		return selUnitsCount
 	end
 
-	WG['metalspot_builder'].isMetalMap = function()
+	WG['resource_spot_builder'].isMetalMap = function()
 		return metalMap
 	end
 
 
 	----------------------------------------------
-	-- TODO: rename
+	-- builders and buildings - MEX
 	----------------------------------------------
 
-	WG['metalspot_builder'].GetMexBuilder = function()
+	WG['resource_spot_builder'].GetMexConstructors = function()
 		return mexConstructors
 	end
 
-	WG['metalspot_builder'].GetMexBuilderDef = function()
+	WG['resource_spot_builder'].GetMexConstructorsDef = function()
 		return mexConstructorsDef
 	end
 
-	WG['metalspot_builder'].GetMexBuilderT2 = function()
+	WG['resource_spot_builder'].GetMexConstructorsT2 = function()
 		return mexConstructorsT2
 	end
 
-	WG['metalspot_builder'].GetMexIds = function()
+	WG['resource_spot_builder'].GetMexBuildings = function()
 		return mexBuildings
 	end
 
+	----------------------------------------------
+	-- builders and buildings - Geothermal
+	----------------------------------------------
 
-
-
-
-	WG['metalspot_builder'].GetGeoBuilder = function()
+	WG['resource_spot_builder'].GetGeoBuilder = function()
 		return geoConstructors
 	end
 
-	WG['metalspot_builder'].GetGeoBuilderDef = function()
+	WG['resource_spot_builder'].GetGeoBuilderDef = function()
 		return geoConstructorsDef
 	end
 
-	WG['metalspot_builder'].GetGeoBuilderT2 = function()
+	WG['resource_spot_builder'].GetGeoBuilderT2 = function()
 		return geoConstructorsT2
 	end
 
-	WG['metalspot_builder'].GetGeoBuildings = function()
+	WG['resource_spot_builder'].GetGeoBuildings = function()
 		return geoBuildings
 	end
 end
