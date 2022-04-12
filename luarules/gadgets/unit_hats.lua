@@ -61,7 +61,6 @@ local unitDefCanWearHats = {
 function gadget:GameFrame(gf)
 	if gf == 90 and UnitDefNames['hat_viking_teamcolored'] then
 		for _, playerID in ipairs(Spring.GetPlayerList()) do
-			-- update player infos
 			local playerName, _, spec, teamID = Spring.GetPlayerInfo(playerID, false)
 			if not spec and playerName == "Raghna" then
 				local units = Spring.GetTeamUnits(teamID)
