@@ -19,7 +19,7 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		hidedamage = true,
-    icontype = "blank",
+    	icontype = "blank",
 		idleautoheal = 100000, --so it doesnt die
 		mass = 0,
 		maxdamage = 5000000,

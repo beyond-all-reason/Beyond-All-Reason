@@ -106,6 +106,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		   boolean blockHeightChanges]]--
 		Spring.SetUnitNeutral(unitID, true)
 		Spring.SetUnitBlocking(unitID, false, false, false, false) -- non blocking while dying
+		Spring.SetUnitNoMinimap(unitID, true)
 	end
 end
 
