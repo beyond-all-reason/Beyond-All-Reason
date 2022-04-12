@@ -18,7 +18,7 @@ local t1geoThreshold = 300 --any building producing this much or less is conside
 
 local moveIsAreaGeo = true		-- auto make move cmd an area mex cmd
 local addShift = false	-- when single clicking a sequence, no longer needed to hold shift!
-local geoPlacementRadius = 1600	-- (not actual ingame distance)
+local geoPlacementRadius = 5000	-- (not actual ingame distance)
 local geoPlacementDragRadius = 20000	-- larger size so you can drag a move line over/near geo spots and it will auto queue geo there more easily
 
 ------------------------------------------------------------
@@ -143,9 +143,6 @@ function widget:CommandNotify(id, params, options)
 	if isGuard then
 		local mx, my, mb = Spring.GetMouseState()
 		local type, unitID = Spring.TraceScreenRay(mx, my)
-
-		Spring.Echo(type .. "|" .. tostring(WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(unitID)]))
-
 		if not (type == 'unit' and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(unitID)] <= t1geoThreshold) then
 			return
 		end
@@ -153,7 +150,7 @@ function widget:CommandNotify(id, params, options)
 
 	-- transform move into small area-geo command
 	local moveReturn = false
-	if WG['resource_spot_builder'].GetGeoBuilder()[WG['resource_spot_builder'].GetSelectedUnits()[1]] then
+	if WG['resource_spot_builder'].GetGeoConstructors()[WG['resource_spot_builder'].GetSelectedUnits()[1]] then
 		if isGuard then
 			local ux, uy, uz = spGetUnitPosition(params[1])
 			isGuard = { x = ux, y = uy, z = uz }

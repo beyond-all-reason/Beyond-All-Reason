@@ -3,6 +3,7 @@ function widget:GetInfo()
 		name = "API Resource Spot Builder",
 		desc = "Handles construction of metal extractors and geothermal power plants for other widgets",
 		author = "Google Frog, NTG (file handling), Chojin (metal map), Doo (multiple enhancements), Floris (mex placer/upgrader), Tarte (maintenance/geothermal)",
+		version = "2.0",
 		date = "Oct 23, 2010 (last update: April 12, 2022)",
 		license = "GNU GPL, v2 or later",
 		handler = true,
@@ -321,7 +322,7 @@ end
 
 
 function widget:Initialize()
-	if not WG['resource_spot_finder'].GetSpotsMetal() or (#WG['resource_spot_finder'].GetSpotsMetal() > 0 and #WG['resource_spot_finder'].GetSpotsMetal() <= 2) then
+	if not WG['resource_spot_finder'].metalSpotsList or (#WG['resource_spot_finder'].metalSpotsList > 0 and #WG['resource_spot_finder'].metalSpotsList <= 2) then
 		metalMap = true
 	end
 	local units = spGetTeamUnits(spGetMyTeamID())
@@ -340,7 +341,7 @@ function widget:Initialize()
 	end
 
 	WG['resource_spot_builder'].BuildMex = function(params, options, isGuard, justDraw)
-		return BuildResourceExtractors (params, options, isGuard, justDraw, mexConstructors, mexBuildings, WG['resource_spot_finder'].GetSpotsMetal())
+		return BuildResourceExtractors (params, options, isGuard, justDraw, mexConstructors, mexBuildings, WG['resource_spot_finder'].metalSpotsList)
 	end
 
 	WG['resource_spot_builder'].BuildGeothermal = function(params, options, isGuard, justDraw)
@@ -384,15 +385,15 @@ function widget:Initialize()
 	-- builders and buildings - Geothermal
 	----------------------------------------------
 
-	WG['resource_spot_builder'].GetGeoBuilder = function()
+	WG['resource_spot_builder'].GetGeoConstructors = function()
 		return geoConstructors
 	end
 
-	WG['resource_spot_builder'].GetGeoBuilderDef = function()
+	WG['resource_spot_builder'].GetGeoConstructorsDef = function()
 		return geoConstructorsDef
 	end
 
-	WG['resource_spot_builder'].GetGeoBuilderT2 = function()
+	WG['resource_spot_builder'].GetGeoConstructorsT2 = function()
 		return geoConstructorsT2
 	end
 

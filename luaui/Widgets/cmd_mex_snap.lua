@@ -68,7 +68,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 	end
 	WG.MexSnap = {}
-	if not WG['resource_spot_finder'].GetSpotsMetal() then
+	if not WG['resource_spot_finder'].metalSpotsList then
 		Spring.Echo("<Snap Mex> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget()
 	end
@@ -110,7 +110,7 @@ function widget:DrawWorld()
 
 	-- Find build position and check if it is valid (Would get 100% metal)
 	local bx, by, bz = Spring.Pos2BuildPos(-cmdID, pos[1], pos[2], pos[3])
-	local closestSpot = GetClosestPosition(bx, bz, WG['resource_spot_finder'].GetSpotsMetal())
+	local closestSpot = GetClosestPosition(bx, bz, WG['resource_spot_finder'].metalSpotsList)
 	if not closestSpot or WG['resource_spot_finder'].IsMexPositionValid(closestSpot, bx, bz) then
 		clearShape()
 		return
@@ -147,7 +147,7 @@ end
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if isMex[-cmdID] then
 		local bx, bz = cmdParams[1], cmdParams[3]
-		local closestSpot = GetClosestPosition(bx, bz, WG['resource_spot_finder'].GetSpotsMetal())
+		local closestSpot = GetClosestPosition(bx, bz, WG['resource_spot_finder'].metalSpotsList)
 		if closestSpot and not WG['resource_spot_finder'].IsMexPositionValid(closestSpot, bx, bz) then
 
 			local bface = cmdParams[4]

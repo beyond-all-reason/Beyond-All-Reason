@@ -2,8 +2,9 @@ function widget:GetInfo()
 	return {
 		name = "RClick Quick Build (metal)",
 		desc = "Adds ability to place/upgrade mex by right clicking.",
-		author = "Google Frog, NTG (file handling), Chojin (metal map), Doo (multiple enhancements), Floris (mex placer/upgrader), Tarte (maintenance)",
-		date = "Oct 23, 2010, (last update: March 3, 2022)",
+		author = "Google Frog, NTG (file handling), Chojin (metal map), Doo (multiple enhancements), Floris (mex placer/upgrader), Tarte (maintenance/geothermal)",
+		version = "2.0",
+		date = "Oct 23, 2010, (last update: April 13, 2022)",
 		license = "GNU GPL, v2 or later",
 		handler = true,
 		layer = 0,
@@ -14,10 +15,16 @@ end
 ------------------------------------------------------------
 -- Config
 ------------------------------------------------------------
+local t1geoThreshold = 300 --any building producing this much or less is considered tier 1
 local t1mexThreshold = 0.001 --any building producing this much or less is considered tier 1
 
-local moveIsAreaMex = true		-- auto make move cmd an area mex cmd
+local enableMoveIsQuickBuildGeo = true		-- auto make move cmd an area geo cmd
+local enableMoveIsQuickBuildMex = true		-- auto make move cmd an area mex cmd
+
 local addShift = false	-- when single clicking a sequence of mexes, no longer needed to hold shift!
+
+local geoPlacementRadius = 5000	-- (not actual ingame distance)
+local geoPlacementDragRadius = 20000	-- larger size so you can drag a move line over/near geo spots and it will auto queue geo there more easily
 local mexPlacementRadius = 1600	-- (not actual ingame distance)
 local mexPlacementDragRadius = 20000	-- larger size so you can drag a move line over/near mex spots and it will auto queue mex there more easily
 ------------------------------------------------------------
@@ -56,48 +63,78 @@ function widget:Update(dt)
 
 	local drawUnitShape = false
 
-
 	-- display mouse cursor/mex unitshape when hovering over a metalspot
 	if doUpdate then
 		if not WG.customformations_linelength or WG.customformations_linelength < 10 then	-- dragging multi-unit formation-move-line
 			local type, params = Spring.TraceScreenRay(mx, my)
 			local isT1Mex = (type == 'unit' and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(params)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(params)] <= t1mexThreshold)
-			local closestMex, unitID
+			local isT1Geo = (type == 'unit' and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(params)] and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(params)] <= t1geoThreshold)
+			local closestMex, closestGeo, unitID
 			if type == 'unit' then
 				unitID = params
 				params = { spGetUnitPosition(unitID)}
 			end
-			if isT1Mex or type == 'ground' then
-				local proceed = false
+
+			if isT1Mex or isT1Geo or type == 'ground' then
+				local groundHasEmptyMetal, groundHasEmptyGeo = false, false
 				if type == 'ground' then
-					closestMex = WG['resource_spot_builder'].GetClosestPosition(params[1], params[3], WG['resource_spot_finder'].GetSpotsMetal())
+					closestMex = WG['resource_spot_builder'].GetClosestPosition(params[1], params[3], WG['resource_spot_finder'].metalSpotsList)
 					if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
-						proceed = true
+						groundHasEmptyMetal = true
+					end
+					closestGeo = WG['resource_spot_builder'].GetClosestPosition(params[1], params[3], WG['resource_spot_finder'].GetSpotsGeo())
+					if closestGeo and Distance(params[1], params[3], closestGeo.x, closestGeo.z) < geoPlacementRadius then
+						groundHasEmptyGeo = true
 					end
 				end
-				if isT1Mex or proceed then
-					local hasT1builder, hasT2builder = false, false
-					-- search for builders
-					for k,v in pairs(WG['resource_spot_builder'].GetSelectedUnitsCount()) do
-						if k ~= 'n' then
-							if WG['resource_spot_builder'].GetMexConstructorsDef()[k] then
-								hasT1builder = true
-								break
+
+				--put into a local function to reduce code redundancy
+				local function TryConstructBuilding(upgradableT1, groundHasEmptySpot, constructorsT1, constructorsT2, BuildOrder)
+					if upgradableT1 or groundHasEmptySpot then
+						local hasT1constructor, hasT2constructor = false, false
+						-- search for constructors
+						for k,v in pairs(WG['resource_spot_builder'].GetSelectedUnitsCount()) do
+							if k ~= 'n' then
+								if constructorsT1[k] then
+									hasT1constructor = true
+									break
+								end
+								if constructorsT2[k] then
+									hasT2constructor = true
+									break
+								end
 							end
-							if WG['resource_spot_builder'].GetMexConstructorsT2()[k] then
-								hasT2builder = true
-								break
+						end
+						if hasT1constructor or hasT2constructor then
+							local queuedBuildings = BuildOrder({ params[1], params[2], params[3]}, {}, false, true)
+							if queuedBuildings and #queuedBuildings > 0 then
+								drawUnitShape = { queuedBuildings[1][2], queuedBuildings[1][3], queuedBuildings[1][4], queuedBuildings[1][5], queuedBuildings[1][6] }
+								Spring.SetMouseCursor('upgmex')
 							end
 						end
 					end
-					if hasT1builder or hasT2builder then
-						local queuedMexes = WG['resource_spot_builder'].BuildMex({ params[1], params[2], params[3]}, {}, false, true)
-						if queuedMexes and #queuedMexes > 0 then
-							drawUnitShape = { queuedMexes[1][2], queuedMexes[1][3], queuedMexes[1][4], queuedMexes[1][5], queuedMexes[1][6] }
-							Spring.SetMouseCursor('upgmex')
-						end
-					end
 				end
+
+				if isT1Mex or groundHasEmptyMetal then
+					TryConstructBuilding(
+						isT1Mex,
+						groundHasEmptyMetal,
+						WG['resource_spot_builder'].GetMexConstructorsDef(),
+						WG['resource_spot_builder'].GetMexConstructorsT2(),
+						WG['resource_spot_builder'].BuildMex
+					)
+				end
+
+				if isT1Geo or groundHasEmptyGeo then
+					TryConstructBuilding(
+						isT1Geo,
+						groundHasEmptyGeo,
+						WG['resource_spot_builder'].GetGeoConstructorsDef(),
+						WG['resource_spot_builder'].GetGeoConstructorsT2(),
+						WG['resource_spot_builder'].BuildGeothermal
+					)
+				end
+
 			end
 		end
 
@@ -135,57 +172,118 @@ function widget:CommandNotify(id, params, options)
 		return
 	end
 
+	local mx, my, mb = Spring.GetMouseState()
+
 	if isGuard then
-		local mx, my, mb = Spring.GetMouseState()
 		local type, unitID = Spring.TraceScreenRay(mx, my)
-		if not (type == 'unit' and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] <= t1mexThreshold) then
-			return
+		if type == 'unit' then
+			if not (WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] <= t1mexThreshold) then
+				return --no t1 buildings available for mex
+			end
+			if not (WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(unitID)] <= t1geoThreshold) then
+				return --no t1 buildings available for geothermal
+			end
 		end
 	end
 
-	-- transform move/guard into small area-mex command
-	local moveReturn = false
-	if WG['resource_spot_builder'].GetMexConstructors()[WG['resource_spot_builder'].GetSelectedUnits()[1]] then
-		if isGuard then
-			local ux, uy, uz = spGetUnitPosition(params[1])
-			isGuard = { x = ux, y = uy, z = uz }
-			params[1], params[2], params[3] = ux, uy, uz
-			id = CMD_CONSTRUCT_MEX
-			params[4] = 30 		-- increase this too if you want to increase mexPlacementRadius
-			if addShift then
-				options.shift = true	-- this allows for separate clicks (of mex spot queuing).
+
+	-- Decide if this is a mex or geo spot
+	-- TODO: Remove code redundancy between this and Update
+	local type, rayParams = Spring.TraceScreenRay(mx, my)
+	local isT1Mex = (type == 'unit' and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(rayParams)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(rayParams)] <= t1mexThreshold)
+	local isT1Geo = (type == 'unit' and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(rayParams)] and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(rayParams)] <= t1geoThreshold)
+	local closestMex, closestGeo, unitID
+	if type == 'unit' then
+		unitID = rayParams
+		rayParams = { spGetUnitPosition(unitID)}
+	end
+
+	local groundHasEmptyMetal, groundHasEmptyGeo = false, false
+
+	if isT1Mex or isT1Geo or type == 'ground' then
+		if type == 'ground' then
+			closestMex = WG['resource_spot_builder'].GetClosestPosition(rayParams[1], rayParams[3], WG['resource_spot_finder'].metalSpotsList)
+			if closestMex and Distance(rayParams[1], rayParams[3], closestMex.x, closestMex.z) < mexPlacementRadius then
+				groundHasEmptyMetal = true
 			end
-			lastInsertedOrder = nil
-		elseif isMove and moveIsAreaMex then
-			local closestMex = WG['resource_spot_builder'].GetClosestPosition(params[1], params[3], WG['resource_spot_finder'].GetSpotsMetal())
-			local spotRadius = mexPlacementRadius
-			if #(WG['resource_spot_builder'].GetSelectedUnits()) == 1 and #Spring.GetCommandQueue(WG['resource_spot_builder'].GetSelectedUnits()[1], 8) > 1 then
-				if not lastInsertedOrder or (closestMex.x ~= lastInsertedOrder[1] and closestMex.z ~= lastInsertedOrder[2]) then
-					spotRadius = mexPlacementDragRadius		-- make move drag near mex spots be less strict
-				elseif lastInsertedOrder then
-					spotRadius = 0
-				end
-			else
-				lastInsertedOrder = nil
+			closestGeo = WG['resource_spot_builder'].GetClosestPosition(rayParams[1], rayParams[3], WG['resource_spot_finder'].GetSpotsGeo())
+			if closestGeo and Distance(rayParams[1], rayParams[3], closestGeo.x, closestGeo.z) < geoPlacementRadius then
+				groundHasEmptyGeo = true
 			end
-			if spotRadius > 0 and closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < spotRadius then
-				id = CMD_CONSTRUCT_MEX
-				params[4] = 120		-- increase this too if you want to increase mexPlacementDragRadius
-				moveReturn = true
+		end
+	end
+
+	Spring.Echo("ground " .. tostring (isT1Mex) .. "|" .. tostring (groundHasEmptyMetal) .. "|" .. tostring (isT1Geo) .. "|" ..tostring(groundHasEmptyGeo))
+
+	-- Transform move/guard into a build order command
+	function TryConvertCmdToBuildOrder(cmd_id, enableQuickBuildOnMove, constructors, spots, BuildOrder, placementRadius, placementDragRadius)
+		local moveReturn = false
+		if constructors[WG['resource_spot_builder'].GetSelectedUnits()[1]] then
+			if isGuard then
+				local ux, uy, uz = spGetUnitPosition(params[1])
+				isGuard = { x = ux, y = uy, z = uz }
+				params[1], params[2], params[3] = ux, uy, uz
+				id = cmd_id
+				params[4] = 30 		-- increase this too if you want to increase mexPlacementRadius/geoPlacementRadius
 				if addShift then
-					options.shift = true	-- this allows for separate clicks (of mex spot queuing). When movedragging: this is also dont to fix doing area mex twice undoing a queued mex
+					options.shift = true	-- this allows for separate clicks (of mex/geo spot queuing).
 				end
-			else
+				lastInsertedOrder = nil
+			elseif isMove and enableQuickBuildOnMove then
+				local closestSpot = WG['resource_spot_builder'].GetClosestPosition(params[1], params[3], spots)
+				local spotRadius = placementRadius
+				if #(WG['resource_spot_builder'].GetSelectedUnits()) == 1 and #Spring.GetCommandQueue(WG['resource_spot_builder'].GetSelectedUnits()[1], 8) > 1 then
+					if not lastInsertedOrder or (closestSpot.x ~= lastInsertedOrder[1] and closestSpot.z ~= lastInsertedOrder[2]) then
+						spotRadius = placementDragRadius		-- make move drag near mex/geo spots be less strict
+					elseif lastInsertedOrder then
+						spotRadius = 0
+					end
+				else
+					lastInsertedOrder = nil
+				end
+				if spotRadius > 0 and closestSpot and Distance(params[1], params[3], closestSpot.x, closestSpot.z) < spotRadius then
+					id = cmd_id
+					params[4] = 120		-- increase this too if you want to increase mexPlacementDragRadius/geoPlacementDragRadius
+					moveReturn = true
+					if addShift then
+						options.shift = true	-- this allows for separate clicks (of mex/geo spot queuing). When movedragging: this is also to fix doing area mex twice undoing a queued mex
+					end
+				else
+					return false
+				end
+			end
+		end
+		if id == cmd_id then
+			local queuedBuildings = BuildOrder(params, options, isGuard, false)
+			if moveReturn and not queuedBuildings[1] then	-- used when area_mex isnt queuing a mex, to let the move cmd still pass through
 				return false
 			end
+			return true
 		end
 	end
 
-	if id == CMD_CONSTRUCT_MEX then
-		local queuedMexes = WG['resource_spot_builder'].BuildMex(params, options, isGuard)
-		if moveReturn and not queuedMexes[1] then	-- used when area_mex isnt queuing a mex, to let the move cmd still pass through
-			return false
-		end
-		return true
+
+	if isT1Mex or groundHasEmptyMetal then
+		return TryConvertCmdToBuildOrder(
+			CMD_CONSTRUCT_MEX,
+			enableMoveIsQuickBuildMex,
+			WG['resource_spot_builder'].GetMexConstructors(),
+			WG['resource_spot_finder'].metalSpotsList,
+			WG['resource_spot_builder'].BuildMex,
+			mexPlacementRadius,
+			mexPlacementDragRadius
+		)
+	end
+
+	if isT1Geo or groundHasEmptyGeo then
+		return TryConvertCmdToBuildOrder(
+			CMD_CONSTRUCT_GEO,
+			enableMoveIsQuickBuildGeo,
+			WG['resource_spot_builder'].GetGeoConstructors(),
+			WG['resource_spot_finder'].GetSpotsGeo(),
+			WG['resource_spot_builder'].BuildGeothermal,
+			geoPlacementRadius,
+			geoPlacementDragRadius
+		)
 	end
 end

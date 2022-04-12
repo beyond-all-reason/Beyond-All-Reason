@@ -4,8 +4,8 @@ function widget:GetInfo()
 		name      = "API Resource Spot Finder",
 		desc      = "Finds metal and geothermal spots for other widgets",
 		author    = "Niobium, Tarte (added geothermal)",
-		version   = "v1.1",
-		date      = "November 2010",
+		version   = "2.0",
+		date      = "November 2010 (last update: April 12, 2022)",
 		license   = "GNU GPL, v2 or later",
 		layer     = -99999999,
 		enabled   = true
@@ -49,10 +49,8 @@ local metalmapStartZ = 1.5 * gridSize
 ------------------------------------------------------------
 
 --local geoSpots = {}
---local showGeothermalUnits = false
 
 function GetSpotsGeo()
-	--showGeothermalUnits = false
 	local geoFeatureDefs = {}
 	for defID, def in pairs(FeatureDefs) do
 		if def.geoThermal then
@@ -64,7 +62,6 @@ function GetSpotsGeo()
 	local spotCount = 0
 	for i = 1, #features do
 		if geoFeatureDefs[Spring.GetFeatureDefID(features[i])] then
-			--showGeothermalUnits = true
 			local x, y, z = Spring.GetFeaturePosition(features[i])
 			spotCount = spotCount + 1
 			geoSpots[spotCount] = {
@@ -312,7 +309,7 @@ function widget:Initialize()
 
 	--TODO: return cached results:
 	WG['resource_spot_finder'].GetSpotsGeo = GetSpotsGeo
-	WG['resource_spot_finder'].GetSpotsMetal = GetSpotsMetal
+	WG['resource_spot_finder'].metalSpotsList = GetSpotsMetal()
 
 	WG['resource_spot_finder'].GetBuildingPositions = GetBuildingPositions
 	WG['resource_spot_finder'].IsMexPositionValid = IsBuildingPositionValid
