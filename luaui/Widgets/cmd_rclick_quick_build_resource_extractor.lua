@@ -1,10 +1,10 @@
 function widget:GetInfo()
 	return {
-		name = "RClick Quick Build (metal)",
-		desc = "Adds ability to place/upgrade mex by right clicking.",
+		name = "RClick Quick Build (mex/geo)",
+		desc = "Adds ability to quickly place or upgrade mex/geothermal by right clicking.",
 		author = "Google Frog, NTG (file handling), Chojin (metal map), Doo (multiple enhancements), Floris (mex placer/upgrader), Tarte (maintenance/geothermal)",
 		version = "2.0",
-		date = "Oct 23, 2010, (last update: April 13, 2022)",
+		date = "Oct 23, 2010; last update: April 13, 2022",
 		license = "GNU GPL, v2 or later",
 		handler = true,
 		layer = 0,
@@ -177,11 +177,9 @@ function widget:CommandNotify(id, params, options)
 	if isGuard then
 		local type, unitID = Spring.TraceScreenRay(mx, my)
 		if type == 'unit' then
-			if not (WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] <= t1mexThreshold) then
+			if not (WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] <= t1mexThreshold)
+			and not (WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(unitID)] <= t1geoThreshold) then
 				return --no t1 buildings available for mex
-			end
-			if not (WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(unitID)] <= t1geoThreshold) then
-				return --no t1 buildings available for geothermal
 			end
 		end
 	end
