@@ -31,7 +31,7 @@ return {
 		icontype = "corcommander",
 		idleautoheal = 5,
 		idletime = 1800,
-		mass = 4999,
+		mass = 4900,
 		maxdamage = 3000,
 		maxslope = 20,
 		maxvelocity = 1.25,
