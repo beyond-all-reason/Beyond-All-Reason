@@ -45,7 +45,6 @@ local taremove = table.remove
 -- Other variables
 ------------------------------------------------------------
 local lastInsertedOrder
-local metalMap = false
 
 ------------------------------------------------------------
 -- unit tables
@@ -322,9 +321,6 @@ end
 
 
 function widget:Initialize()
-	if not WG['resource_spot_finder'].metalSpotsList or (#WG['resource_spot_finder'].metalSpotsList > 0 and #WG['resource_spot_finder'].metalSpotsList <= 2) then
-		metalMap = true
-	end
 	local units = spGetTeamUnits(spGetMyTeamID())
 	for i = 1, #units do
 		local id = units[i]
@@ -335,10 +331,6 @@ function widget:Initialize()
 	--make interfaces available to other widgets:
 	WG['resource_spot_builder'] = { }
 
-
-	WG['resource_spot_builder'].GetClosestPosition = function(x, z, positions)
-		return GetClosestPosition(x, z, positions)
-	end
 
 	WG['resource_spot_builder'].BuildMex = function(params, options, isGuard, justDraw)
 		return BuildResourceExtractors (params, options, isGuard, justDraw, mexConstructors, mexBuildings, WG['resource_spot_finder'].metalSpotsList)
@@ -355,11 +347,6 @@ function widget:Initialize()
 	WG['resource_spot_builder'].GetSelectedUnitsCount = function()
 		return selUnitsCount
 	end
-
-	WG['resource_spot_builder'].isMetalMap = function()
-		return metalMap
-	end
-
 
 	----------------------------------------------
 	-- builders and buildings - MEX

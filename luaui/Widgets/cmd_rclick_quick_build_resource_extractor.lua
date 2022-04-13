@@ -48,6 +48,24 @@ local function Distance(x1, z1, x2, z2)
 	return (x1 - x2) * (x1 - x2) + (z1 - z2) * (z1 - z2)
 end
 
+local function GetClosestPosition(x, z, positions)
+	local bestPos
+	local bestDist = math.huge
+	for i = 1, #positions do
+		local pos = positions[i]
+		local dx, dz = x - pos.x, z - pos.z
+		local dist = dx * dx + dz * dz
+		if dist < bestDist then
+			bestPos = pos
+			bestDist = dist
+		end
+	end
+	return bestPos
+end
+
+------------------------------------------------------------
+-- display mouse cursor and unitshape when hovering over a resource spot
+------------------------------------------------------------
 local sec = 0
 function widget:Update(dt)
 	if chobbyInterface then return end
@@ -63,7 +81,6 @@ function widget:Update(dt)
 
 	local drawUnitShape = false
 
-	-- display mouse cursor/mex unitshape when hovering over a metalspot
 	if doUpdate then
 		if not WG.customformations_linelength or WG.customformations_linelength < 10 then	-- dragging multi-unit formation-move-line
 			local type, params = Spring.TraceScreenRay(mx, my)
@@ -78,11 +95,11 @@ function widget:Update(dt)
 			if isT1Mex or isT1Geo or type == 'ground' then
 				local groundHasEmptyMetal, groundHasEmptyGeo = false, false
 				if type == 'ground' then
-					closestMex = WG['resource_spot_builder'].GetClosestPosition(params[1], params[3], WG['resource_spot_finder'].metalSpotsList)
+					closestMex = GetClosestPosition(params[1], params[3], WG['resource_spot_finder'].metalSpotsList)
 					if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
 						groundHasEmptyMetal = true
 					end
-					closestGeo = WG['resource_spot_builder'].GetClosestPosition(params[1], params[3], WG['resource_spot_finder'].GetGeoSpotsList())
+					closestGeo = GetClosestPosition(params[1], params[3], WG['resource_spot_finder'].GetGeoSpotsList())
 					if closestGeo and Distance(params[1], params[3], closestGeo.x, closestGeo.z) < geoPlacementRadius then
 						groundHasEmptyGeo = true
 					end
@@ -165,6 +182,10 @@ function widget:Shutdown()
 	end
 end
 
+
+------------------------------------------------------------
+-- Transform move/guard into a build order command
+------------------------------------------------------------
 function widget:CommandNotify(id, params, options)
 	local isMove = (id == CMD_MOVE)
 	local isGuard = (id == CMD_GUARD)
@@ -184,36 +205,6 @@ function widget:CommandNotify(id, params, options)
 		end
 	end
 
-
-	-- Decide if this is a mex or geo spot
-	-- TODO: Remove code redundancy between this and Update
-	local type, rayParams = Spring.TraceScreenRay(mx, my)
-	local isT1Mex = (type == 'unit' and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(rayParams)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(rayParams)] <= t1mexThreshold)
-	local isT1Geo = (type == 'unit' and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(rayParams)] and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(rayParams)] <= t1geoThreshold)
-	local closestMex, closestGeo, unitID
-	if type == 'unit' then
-		unitID = rayParams
-		rayParams = { spGetUnitPosition(unitID)}
-	end
-
-	local groundHasEmptyMetal, groundHasEmptyGeo = false, false
-
-	if isT1Mex or isT1Geo or type == 'ground' then
-		if type == 'ground' then
-			closestMex = WG['resource_spot_builder'].GetClosestPosition(rayParams[1], rayParams[3], WG['resource_spot_finder'].metalSpotsList)
-			if closestMex and Distance(rayParams[1], rayParams[3], closestMex.x, closestMex.z) < mexPlacementRadius then
-				groundHasEmptyMetal = true
-			end
-			closestGeo = WG['resource_spot_builder'].GetClosestPosition(rayParams[1], rayParams[3], WG['resource_spot_finder'].GetGeoSpotsList())
-			if closestGeo and Distance(rayParams[1], rayParams[3], closestGeo.x, closestGeo.z) < geoPlacementRadius then
-				groundHasEmptyGeo = true
-			end
-		end
-	end
-
-	Spring.Echo("ground " .. tostring (isT1Mex) .. "|" .. tostring (groundHasEmptyMetal) .. "|" .. tostring (isT1Geo) .. "|" ..tostring(groundHasEmptyGeo))
-
-	-- Transform move/guard into a build order command
 	function TryConvertCmdToBuildOrder(cmd_id, enableQuickBuildOnMove, constructors, spots, BuildOrder, placementRadius, placementDragRadius)
 		local moveReturn = false
 		if constructors[WG['resource_spot_builder'].GetSelectedUnits()[1]] then
@@ -228,7 +219,7 @@ function widget:CommandNotify(id, params, options)
 				end
 				lastInsertedOrder = nil
 			elseif isMove and enableQuickBuildOnMove then
-				local closestSpot = WG['resource_spot_builder'].GetClosestPosition(params[1], params[3], spots)
+				local closestSpot = GetClosestPosition(params[1], params[3], spots)
 				local spotRadius = placementRadius
 				if #(WG['resource_spot_builder'].GetSelectedUnits()) == 1 and #Spring.GetCommandQueue(WG['resource_spot_builder'].GetSelectedUnits()[1], 8) > 1 then
 					if not lastInsertedOrder or (closestSpot.x ~= lastInsertedOrder[1] and closestSpot.z ~= lastInsertedOrder[2]) then
@@ -260,6 +251,31 @@ function widget:CommandNotify(id, params, options)
 		end
 	end
 
+	-- Decide if this is a mex or geo spot
+	-- TODO: Remove code redundancy between this and Update
+	local type, rayParams = Spring.TraceScreenRay(mx, my)
+	local isT1Mex = (type == 'unit' and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(rayParams)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(rayParams)] <= t1mexThreshold)
+	local isT1Geo = (type == 'unit' and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(rayParams)] and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(rayParams)] <= t1geoThreshold)
+	local closestMex, closestGeo, unitID
+	if type == 'unit' then
+		unitID = rayParams
+		rayParams = { spGetUnitPosition(unitID)}
+	end
+
+	local groundHasEmptyMetal, groundHasEmptyGeo = false, false
+
+	if isT1Mex or isT1Geo or type == 'ground' then
+		if type == 'ground' then
+			closestMex = GetClosestPosition(rayParams[1], rayParams[3], WG['resource_spot_finder'].metalSpotsList)
+			if closestMex and Distance(rayParams[1], rayParams[3], closestMex.x, closestMex.z) < mexPlacementRadius then
+				groundHasEmptyMetal = true
+			end
+			closestGeo = GetClosestPosition(rayParams[1], rayParams[3], WG['resource_spot_finder'].GetGeoSpotsList())
+			if closestGeo and Distance(rayParams[1], rayParams[3], closestGeo.x, closestGeo.z) < geoPlacementRadius then
+				groundHasEmptyGeo = true
+			end
+		end
+	end
 
 	if isT1Mex or groundHasEmptyMetal then
 		return TryConvertCmdToBuildOrder(

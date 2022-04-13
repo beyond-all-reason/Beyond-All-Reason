@@ -21,6 +21,7 @@ local spGetUnitDefID = Spring.GetUnitDefID
 
 local toggledMetal, retoggleLos, chobbyInterface
 
+local metalMap = false
 
 function widget:Update(dt)
 	if chobbyInterface then return end
@@ -70,7 +71,7 @@ function widget:CommandNotify(id, params, options)
 end
 
 function widget:CommandsChanged()
-	if not WG['resource_spot_builder'].isMetalMap() then
+	if not metalMap then
 		local unitCount = #(WG['resource_spot_builder'].GetSelectedUnits())
 		if unitCount > 0 then
 			local units = WG['resource_spot_builder'].GetSelectedUnits()
@@ -89,5 +90,12 @@ function widget:CommandsChanged()
 				end
 			end
 		end
+	end
+end
+
+
+function widget:Initialize()
+	if not WG['resource_spot_finder'].metalSpotsList or (#WG['resource_spot_finder'].metalSpotsList > 0 and #WG['resource_spot_finder'].metalSpotsList <= 2) then
+		metalMap = true
 	end
 end
