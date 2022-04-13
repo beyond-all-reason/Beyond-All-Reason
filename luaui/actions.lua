@@ -238,7 +238,7 @@ function actionHandler:KeyAction(press, key, mods, isRepeat)
       local bOpts = bAction["extra"]
       local words = self.MakeWords(bOpts)
 
-      if (TryAction(actionSet, bCmd, bOpts, words, isRepeat, not press)) then
+      if (self.TryAction(actionSet, bCmd, bOpts, words, isRepeat, not press)) then
         return true
       end
     end
@@ -259,7 +259,7 @@ function actionHandler:TextAction(line)
   if (line == nil) then
     line = ""  -- no args
   end
-  return TryAction(self.textActions, cmd, line, words, false, nil)
+  return self.TryAction(self.textActions, cmd, line, words, false, nil)
 end
 
 
