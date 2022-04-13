@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc = "Handles construction of metal extractors and geothermal power plants for other widgets",
 		author = "Google Frog, NTG (file handling), Chojin (metal map), Doo (multiple enhancements), Floris (mex placer/upgrader), Tarte (maintenance/geothermal)",
 		version = "2.0",
-		date = "Oct 23, 2010 (last update: April 12, 2022)",
+		date = "Oct 23, 2010; last update: April 12, 2022",
 		license = "GNU GPL, v2 or later",
 		handler = true,
 		layer = 0,

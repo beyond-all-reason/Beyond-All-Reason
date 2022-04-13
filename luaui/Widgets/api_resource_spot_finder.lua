@@ -5,7 +5,7 @@ function widget:GetInfo()
 		desc      = "Finds metal and geothermal spots for other widgets",
 		author    = "Niobium, Tarte (added geothermal)",
 		version   = "2.0",
-		date      = "November 2010 (last update: April 12, 2022)",
+		date      = "November 2010: last update: April 13, 2022",
 		license   = "GNU GPL, v2 or later",
 		layer     = -99999999,
 		enabled   = true
