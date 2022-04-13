@@ -306,13 +306,13 @@ function widget:Initialize()
 
 	WG['resource_spot_finder'].GetBuildingPositions = GetBuildingPositions
 	WG['resource_spot_finder'].IsMexPositionValid = IsBuildingPositionValid
+end
 
-	--Populate geoSpots lazily, because GetSpotsGeo() uses Spring.GetAllFeatures() which is empty at the time of widget:Initialize
-	local geoSpots = {}
-	WG['resource_spot_finder'].GetGeoSpotsList = function()
-		if #geoSpots == 0 then
-			geoSpots = GetSpotsGeo()
-		end
-		return geoSpots
+local firstUpdate = true;
+function widget:Update(dt)
+	if (firstUpdate) then
+		--GetSpotsGeo() uses Spring.GetAllFeatures() which is empty at the time of widget:Initialize
+		WG['resource_spot_finder'].geoSpotsList = GetSpotsGeo()
+		firstUpdate = false
 	end
 end

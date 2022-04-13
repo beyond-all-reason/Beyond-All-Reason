@@ -337,7 +337,7 @@ function widget:Initialize()
 	end
 
 	WG['resource_spot_builder'].BuildGeothermal = function(params, options, isGuard, justDraw)
-		return BuildResourceExtractors (params, options, isGuard, justDraw, geoConstructors, geoBuildings, WG['resource_spot_finder'].GetGeoSpotsList())
+		return BuildResourceExtractors (params, options, isGuard, justDraw, geoConstructors, geoBuildings, WG['resource_spot_finder'].geoSpotsList)
 	end
 
 	WG['resource_spot_builder'].GetSelectedUnits = function()

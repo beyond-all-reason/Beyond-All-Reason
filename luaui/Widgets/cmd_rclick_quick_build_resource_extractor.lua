@@ -82,7 +82,7 @@ function CheckForBuildingOpportunity(type, params)
 			if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
 				groundHasEmptyMetal = true
 			end
-			closestGeo = GetClosestPosition(params[1], params[3], WG['resource_spot_finder'].GetGeoSpotsList())
+			closestGeo = GetClosestPosition(params[1], params[3], WG['resource_spot_finder'].geoSpotsList)
 			if closestGeo and Distance(params[1], params[3], closestGeo.x, closestGeo.z) < geoPlacementRadius then
 				groundHasEmptyGeo = true
 			end
@@ -282,7 +282,7 @@ function widget:CommandNotify(id, params, options)
 			CMD_CONSTRUCT_GEO,
 			enableMoveIsQuickBuildGeo,
 			WG['resource_spot_builder'].GetGeoConstructors(),
-			WG['resource_spot_finder'].GetGeoSpotsList(),
+			WG['resource_spot_finder'].geoSpotsList,
 			WG['resource_spot_builder'].BuildGeothermal,
 			geoPlacementRadius,
 			geoPlacementDragRadius
