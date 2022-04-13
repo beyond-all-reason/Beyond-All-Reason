@@ -48,8 +48,6 @@ local metalmapStartZ = 1.5 * gridSize
 -- Find geothermal spots
 ------------------------------------------------------------
 
---local geoSpots = {}
-
 function GetSpotsGeo()
 	local geoFeatureDefs = {}
 	for defID, def in pairs(FeatureDefs) do
@@ -71,7 +69,8 @@ function GetSpotsGeo()
 				minX= GetFootprintPos(x),
 				maxX= GetFootprintPos(x),
 				minZ= GetFootprintPos(z),
-				maxZ= GetFootprintPos(z)			}
+				maxZ= GetFootprintPos(z)
+			}
 		end
 	end
 	return geoSpots
@@ -299,18 +298,21 @@ end
 ------------------------------------------------------------
 -- Callins
 ------------------------------------------------------------
-function widget:Initialize()
-	--if GetGeoSpots then
-	--	GetGeoSpots()
-	--end
 
+function widget:Initialize()
 	--make interfaces available to other widgets:
 	WG['resource_spot_finder'] = { }
-
-	--TODO: return cached results:
-	WG['resource_spot_finder'].GetSpotsGeo = GetSpotsGeo
 	WG['resource_spot_finder'].metalSpotsList = GetSpotsMetal()
 
 	WG['resource_spot_finder'].GetBuildingPositions = GetBuildingPositions
 	WG['resource_spot_finder'].IsMexPositionValid = IsBuildingPositionValid
+
+	--Populate geoSpots lazily, because GetSpotsGeo() uses Spring.GetAllFeatures() which is empty at the time of widget:Initialize
+	local geoSpots = {}
+	WG['resource_spot_finder'].GetGeoSpotsList = function()
+		if #geoSpots == 0 then
+			geoSpots = GetSpotsGeo()
+		end
+		return geoSpots
+	end
 end
