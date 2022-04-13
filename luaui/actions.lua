@@ -185,7 +185,7 @@ end
 --  Calls
 --
 
-local function MakeWords(line)
+function actionHandler:MakeWords(line)
   local words = {}
   for w in string.gmatch(line, "[^%s]+") do
     table.insert(words, w)
@@ -205,7 +205,8 @@ local function MakeKeySetString(key, mods)
 end
 
 
-local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release)
+--local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release)
+function actionHandler:TryAction(actionMap, cmd, optLine, optWords, isRepeat, release)
   local callInfoList = actionMap[cmd]
   if (callInfoList == nil) then
     return false
@@ -235,7 +236,7 @@ function actionHandler:KeyAction(press, key, mods, isRepeat)
     for _, bAction in ipairs(defBinds) do
       local bCmd = bAction["command"]
       local bOpts = bAction["extra"]
-      local words = MakeWords(bOpts)
+      local words = self.MakeWords(bOpts)
 
       if (TryAction(actionSet, bCmd, bOpts, words, isRepeat, not press)) then
         return true
@@ -247,7 +248,7 @@ end
 
 
 function actionHandler:TextAction(line)
-  local words = MakeWords(line)
+  local words = self.MakeWords(line)
   local cmd = words[1]
   if (cmd == nil) then
     return false
