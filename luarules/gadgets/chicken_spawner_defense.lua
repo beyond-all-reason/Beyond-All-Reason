@@ -1384,7 +1384,7 @@ if gadgetHandler:IsSyncedCode() then
 		if math.random(0,config.burrowSpawnRate*180) == 0 and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
 			local burrowCount = SetCount(burrows)
 			if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < burrowCount*10 or Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < 10 then
-				attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 20
+				attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 10
 			end
 		end
 
@@ -1747,17 +1747,17 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + 1
-			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 20
+			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 5
 
 			SetGameRulesParam("roostCount", SetCount(burrows))
 		end
 
 		if UnitDefs[unitDefID].name == "chickend1" then
-			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 2
+			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 1
 		end
 		if UnitDefs[unitDefID].name == "chickend2" then
-			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 10
-			attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + 2
+			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 5
+			attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + 1
 		end
 	end
 
