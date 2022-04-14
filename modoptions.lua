@@ -1318,6 +1318,42 @@ local options={
 		section = 'options_experimental',
 		def  = false,
 	},
+
+	{
+		key    = 'experimentalflankingbonusmode',
+		name   = 'Flanking Bonus Mode (between 0 and 3, read tooltip)',
+		desc   = "Additional damage applied to units when they're surrounded. 0 - No flanking bonus, 1 - Dynamic direction, world dimension, 2 - Dynamic direction, unit dimension, 3 - Static direction, front armor = best armor. If 3 is chosen, 2 is used for buildings.",
+		type   ="number",
+		section = 'options_experimental',
+		def    = 1,
+		min    = 0,
+		max    = 3,
+		step   = 1,
+	},
+
+	{
+		key    = 'experimentalflankingbonusmin',
+		name   = 'Flanking Bonus Minimum Damage Percentage (Default 90%)',
+		desc   = 'How much damage weapons deal at hardest point of flanking armor',
+		type   ="number",
+		section = 'options_experimental',
+		def    = 90,
+		min    = 1,
+		max    = 1000,
+		step   = 1,
+	},
+
+	{
+		key    = 'experimentalflankingbonusmax',
+		name   = 'Flanking Bonus Maximum Damage Percentage (Default 190%)',
+		desc   = 'How much damage weapons deal at hardest point of flanking armor',
+		type   ="number",
+		section = 'options_experimental',
+		def    = 190,
+		min    = 1,
+		max    = 1000,
+		step   = 1,
+	},
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Unused Options

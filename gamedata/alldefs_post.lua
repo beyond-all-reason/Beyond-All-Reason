@@ -84,6 +84,26 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
+	-- Flanking Bonus Override
+	if Spring.GetModOptions().experimentalflankingbonusmode == 0 then
+		uDef.flankingbonusmode = 0
+	end
+	if Spring.GetModOptions().experimentalflankingbonusmode == 1 then
+		uDef.flankingbonusmode = 1
+	end
+	if Spring.GetModOptions().experimentalflankingbonusmode == 2 then
+		uDef.flankingbonusmode = 2
+	end
+	if Spring.GetModOptions().experimentalflankingbonusmode == 3 then
+		if uDef.canmove == true then
+			uDef.flankingbonusmode = 3
+		else
+			uDef.flankingbonusmode = 2
+		end
+	end
+	uDef.flankingbonusmin = Spring.GetModOptions().experimentalflankingbonusmin*0.01
+	uDef.flankingbonusmax = Spring.GetModOptions().experimentalflankingbonusmax*0.01
+	
 	if Spring.GetModOptions().newdgun then
 		if name == 'armcom' or name == 'corcom' or name == 'armcomcon' or name == 'corcomcon' then
 			local dgun = uDef.weapondefs.disintegrator
