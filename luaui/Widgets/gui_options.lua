@@ -4644,7 +4644,7 @@ function init()
 		if isPotatoGpu then
 
 			Spring.SendCommands("luarules disablecus")
-			Spring.SendCommands("luarules reloadcusgl4")
+			Spring.SendCommands("luarules disablecusgl4")
 
 			options[getOptionByID('msaa')].max = 2
 			id = getOptionByID('ssao')
