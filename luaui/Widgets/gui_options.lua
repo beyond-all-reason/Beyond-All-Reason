@@ -1809,7 +1809,7 @@ function init()
 		  end,
 		},
 
-		{ id = "cus", group = "gfx", name = texts.option.cus.." (old)", category = types.dev, type = "bool", value = (Spring.GetConfigInt("cus", 1) == 1), description = texts.option.cus_descr,
+		{ id = "cus", group = "gfx", name = texts.option.cus.." (old)", category = types.dev, type = "bool", value = (Spring.GetConfigInt("cus", 0) == 1), description = texts.option.cus_descr,
 		  onchange = function(i, value)
 			  if value == 0.5 then
 				  Spring.SendCommands("luarules disablecus")
