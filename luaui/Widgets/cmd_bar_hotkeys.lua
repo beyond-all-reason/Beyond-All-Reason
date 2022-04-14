@@ -302,11 +302,6 @@ local function makeBindsTable(keyLayout)
 		{ "Alt+numpad+", "increasespeed" },
 		{ "Alt+numpad-", "decreasespeed" },
 
-		{       ",", "prevmenu" },
-		{       ".", "nextmenu" },
-		{ "Shift+,", "decguiopacity" },
-		{ "Shift+.", "incguiopacity" },
-
 		{      "1", "specteam", "0"  },
 		{      "2", "specteam", "1"  },
 		{      "3", "specteam", "2"  },
