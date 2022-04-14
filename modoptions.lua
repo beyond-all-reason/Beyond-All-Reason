@@ -1325,7 +1325,7 @@ local options={
 		desc   = "Additional damage applied to units when they're surrounded. 0 - No flanking bonus, 1 - Dynamic direction, world dimension, 2 - Dynamic direction, unit dimension, 3 - Static direction, front armor = best armor. If 3 is chosen, 2 is used for buildings.",
 		type   ="number",
 		section = 'options_experimental',
-		def    = 1,
+		def    = 0,
 		min    = 0,
 		max    = 3,
 		step   = 1,
