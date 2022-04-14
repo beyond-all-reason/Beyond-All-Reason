@@ -1,0 +1,15 @@
+{
+   "Mouse4": {
+       "": ["buildfacing", "inc"]
+   },
+   "Mouse5": {
+       "C+S+": ["buildfacing", "dec"]
+   },
+   "WheelU": {
+       "S+": ["increasespeed", ""]
+   },
+   "WheelD": {
+       "M+": ["decreasespeed", ""],
+       "C+": ["buildfacing", "inc"]
+   }
+}

@@ -99,12 +99,10 @@ function BuildModString()
    mod = ""
    
    local alt,ctrl,meta,shift = Spring.GetModKeyState()
-   if (alt) then mod = mod .. "+alt" end
-   if (ctrl) then mod = mod .. "+ctrl" end
-   if (meta) then mod = mod .. "+meta" end
-   if (shift) then mod = mod .. "+shift" end
-   
-   if (mod == "") then mod = "+any" end
+   if (alt) then mod = mod .. "A+" end
+   if (ctrl) then mod = mod .. "C+" end
+   if (meta) then mod = mod .. "M+" end
+   if (shift) then mod = mod .. "S+" end
 
    return mod
 end

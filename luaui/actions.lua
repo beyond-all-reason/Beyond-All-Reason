@@ -194,7 +194,7 @@ function actionHandler:MakeWords(line)
 end
 
 
-local function MakeKeySetString(key, mods)
+function actionHandler:MakeKeySetString(key, mods)
   local keyset = ""
   if (mods.alt)   then keyset = keyset .. "A+" end
   if (mods.ctrl)  then keyset = keyset .. "C+" end
@@ -204,8 +204,6 @@ local function MakeKeySetString(key, mods)
   return (keyset .. defSym)
 end
 
-
---local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release)
 function actionHandler:TryAction(actionMap, cmd, optLine, optWords, isRepeat, release)
   local callInfoList = actionMap[cmd]
   if (callInfoList == nil) then
@@ -224,7 +222,7 @@ end
 
 
 function actionHandler:KeyAction(press, key, mods, isRepeat)
-  local keyset = MakeKeySetString(key, mods)
+  local keyset = self:MakeKeySetString(key, mods)
   local defBinds = Spring.GetKeyBindings(keyset)
   if (defBinds) then
     local actionSet
@@ -236,9 +234,9 @@ function actionHandler:KeyAction(press, key, mods, isRepeat)
     for _, bAction in ipairs(defBinds) do
       local bCmd = bAction["command"]
       local bOpts = bAction["extra"]
-      local words = self.MakeWords(bOpts)
+      local words = self:MakeWords(bOpts)
 
-      if (self.TryAction(actionSet, bCmd, bOpts, words, isRepeat, not press)) then
+      if (self:TryAction(actionSet, bCmd, bOpts, words, isRepeat, not press)) then
         return true
       end
     end
@@ -248,7 +246,7 @@ end
 
 
 function actionHandler:TextAction(line)
-  local words = self.MakeWords(line)
+  local words = self:MakeWords(line)
   local cmd = words[1]
   if (cmd == nil) then
     return false
@@ -259,7 +257,7 @@ function actionHandler:TextAction(line)
   if (line == nil) then
     line = ""  -- no args
   end
-  return self.TryAction(self.textActions, cmd, line, words, false, nil)
+  return self:TryAction(self.textActions, cmd, line, words, false, nil)
 end
 
 
