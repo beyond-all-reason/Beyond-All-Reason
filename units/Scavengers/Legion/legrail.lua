@@ -162,7 +162,7 @@ return {
 				damage = {
 					bombers = 700,
 					commanders = 125,
-					default = 200,
+					default = 250,
 					fighters = 700,
 					vtol = 700,
 				},
@@ -172,8 +172,6 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR",
 				def = "RAILGUN",
-				maindir = "0 0 1",
-				maxangledif = 220,
 				onlytargetcategory = "NOTSUB",
 			},
 		},
