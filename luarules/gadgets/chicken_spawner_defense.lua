@@ -773,7 +773,7 @@ if gadgetHandler:IsSyncedCode() then
 					local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
 					for i, sString in pairs(squad) do
 						local nEnd, _ = string.find(sString, " ")
-						local unitNumber = string.sub(sString, 1, (nEnd - 1)) * config.chickenSpawnMultiplier
+						local unitNumber = string.sub(sString, 1, (nEnd - 1)) * config.chickenSpawnMultiplier * 1+currentWave-waveLevel
 						local chickenName = string.sub(sString, (nEnd + 1))
 						for i = 1, unitNumber, 1 do
 							table.insert(spawnQueue, { burrow = queenID, unitName = chickenName, team = chickenTeamID })
