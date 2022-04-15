@@ -790,10 +790,12 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			local waveLevel = mRandom(1, currentWave)
 			local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
+			local newWaveSquadSpawn = false
 			if lastWave ~= currentWave and config.newWaveSquad[currentWave] then
 				squad = config.newWaveSquad[currentWave]
 				lastWave = currentWave
 				waveLevel = currentWave
+				newWaveSquadSpawn = true
 			end
 			for i, sString in pairs(squad) do
 				local skipSpawn = false
@@ -802,6 +804,9 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				if skipSpawn and chickenDebtCount > 0 and mRandom() > config.spawnChance then
 					chickenDebtCount = (chickenDebtCount - 1)
+					skipSpawn = false
+				end
+				if newWaveSquadSpawn then
 					skipSpawn = false
 				end
 				if not skipSpawn then
