@@ -18,7 +18,7 @@ local isT1Mex = {}
 local isT2Mex = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.extractsMetal > 0 then
-		if unitDef.extractsMetal >= 0.0019 then
+		if unitDef.extractsMetal >= 0.0025 then
 			isT2Mex[unitDefID] = unitDef.metalCost
 		else
 			isT1Mex[unitDefID] = unitDef.metalCost
