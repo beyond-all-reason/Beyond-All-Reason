@@ -83,6 +83,7 @@ if gadgetHandler:IsSyncedCode() then
 	local damageMod = config.damageMod
 	local currentWave = 1
 	local lastWave = 1
+	local lastWaveUnitCount = 0
 	local targetCache = 1
 	local minBurrows = 1
 	local timeOfLastSpawn = 0
@@ -600,12 +601,10 @@ if gadgetHandler:IsSyncedCode() then
 				canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, false)
 				
 				if canSpawnBurrow then
-					if tries < maxTries then
+					if tries < maxTries*3 then
 						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, true, true)
-					elseif tries < maxTries * 2 then
+					else
 						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, true, false)
-					elseif tries < maxTries * 4 then
-						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, false, false)
 					end
 				end
 
@@ -770,7 +769,7 @@ if gadgetHandler:IsSyncedCode() then
 			-- spawn units from queen
 			if config.queenSpawnMult > 0 then
 				for i = 1, config.queenSpawnMult, 1 do
-					local squad = config.waves[9][mRandom(1, #config.waves[9])]
+					local squad = config.waves[mRandom(1, 11)][mRandom(1, #config.waves[mRandom(1, 11)])]
 					for i, sString in pairs(squad) do
 						local nEnd, _ = string.find(sString, " ")
 						local unitNumber = string.sub(sString, 1, (nEnd - 1)) * config.chickenSpawnMultiplier
@@ -789,10 +788,12 @@ if gadgetHandler:IsSyncedCode() then
 			if t > queenTime * 0.15 then
 				SpawnTurret(burrowID, config.bonusTurret)
 			end
-			local squad = config.waves[currentWave][mRandom(1, #config.waves[currentWave])]
+			local waveLevel = mRandom(1, currentWave)
+			local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
 			if lastWave ~= currentWave and config.newWaveSquad[currentWave] then
 				squad = config.newWaveSquad[currentWave]
 				lastWave = currentWave
+				waveLevel = currentWave
 			end
 			for i, sString in pairs(squad) do
 				local skipSpawn = false
@@ -805,7 +806,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				if not skipSpawn then
 					local nEnd, _ = string.find(sString, " ")
-					local unitNumber = string.sub(sString, 1, (nEnd - 1)) * config.chickenSpawnMultiplier
+					local unitNumber = string.sub(sString, 1, (nEnd - 1)) * config.chickenSpawnMultiplier * 1+currentWave-waveLevel
 					local chickenName = string.sub(sString, (nEnd + 1))
 					for i = 1, unitNumber, 1 do
 						table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID })
@@ -1233,7 +1234,7 @@ if gadgetHandler:IsSyncedCode() then
 			spawnQueue = {}
 			oldMaxChicken = maxChicken
 			oldDamageMod = damageMod
-			maxChicken = 75
+			maxChicken = maxChicken
 			chickenEvent("queen") -- notify unsynced about queen spawn
 			_, queenMaxHP = GetUnitHealth(queenID)
 			SetUnitExperience(queenID, expMod)
@@ -1456,7 +1457,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		if chickenCount < maxChicken then
+		local chickenTeamUnitCount = Spring.GetTeamUnitCount(chickenTeamID) or 0
+		if chickenTeamUnitCount < maxChicken then
 			SpawnChickens()
 		end
 
@@ -1570,16 +1572,17 @@ if gadgetHandler:IsSyncedCode() then
 				SetGameRulesParam("roostCount", SetCount(burrows))
 			end
 
-			if burrowCount > 0 and (config.chickenSpawnRate < (t - timeOfLastWave)) then
+			if burrowCount > 0 and ((config.chickenSpawnRate < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount*(math.random(0,50)*0.01) and (t - timeOfLastWave) > 2)) then
 				local cCount = Wave()
 				if cCount and cCount > 0 and (not queenID) then
 					chickenEvent("wave", cCount, currentWave)
 				end
+				lastWaveUnitCount = cCount
 				timeOfLastWave = t
 			end
 			chickenCount = UpdateUnitCount()
 		end
-		if n > 300 then
+		if n > 300 and chickenTeamUnitCount < maxChicken then
 			spawnStartBoxProtectionLight()
 			spawnStartBoxProtectionHeavy()
 		end
@@ -1746,8 +1749,10 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 
-			attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + 1
-			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 5
+			if math.random(1,4) == 1 then
+				attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + 1
+			end
+			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + math.random(1,5)
 
 			SetGameRulesParam("roostCount", SetCount(burrows))
 		end
