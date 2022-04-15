@@ -1354,6 +1354,43 @@ local options={
 		max    = 1000,
 		step   = 1,
 	},
+
+	{
+		key    = 'experimentalrebalancet2labs',
+		name   = 'Rebalance Candidate: Cheaper T2 Factories',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
+	{
+		key    = 'experimentalrebalancet2metalextractors',
+		name   = 'Rebalance Candidate: Cheaper T2 Metal Extractors (Metal Extraction x4 -> x2)',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
+	{
+		key    = 'experimentalrebalancet2energy',
+		name   = 'Rebalance Candidate: T2 Energy rebalance (Currently only adds T2 wind generator)',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
+	{
+		key    = 'experimentalrebalancehovercrafttech',
+		name   = 'Rebalance Candidate: Hovercraft rebalance - Cheaper lab with buildpower 200 -> 100, can Tech2 into Vehicles and Ships',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Unused Options
