@@ -769,7 +769,8 @@ if gadgetHandler:IsSyncedCode() then
 			-- spawn units from queen
 			if config.queenSpawnMult > 0 then
 				for i = 1, config.queenSpawnMult, 1 do
-					local squad = config.waves[mRandom(1, 11)][mRandom(1, #config.waves[mRandom(1, 11)])]
+					local waveLevel = mRandom(1, #config.waves)
+					local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
 					for i, sString in pairs(squad) do
 						local nEnd, _ = string.find(sString, " ")
 						local unitNumber = string.sub(sString, 1, (nEnd - 1)) * config.chickenSpawnMultiplier
