@@ -528,8 +528,7 @@ local units = {
 	epic_chickenq = { "chicken_queen.png", 4.19999981 },
 	freefusion = { "fusion.png", 1.46999991 },
 	h_chickenq = { "chicken_queen.png", 4.19999981 },
-	hat_viking_teamcolored = { "blank.png", 1.83749986 },
-	hat_viking_teamcolored = { "building.png", 1.04999995 },
+	cor_hat_viking = { "blank.png", 1.04999995 },
 	legbal = {"corstorm_1.png", 1.2},
 	legbar = { "corwolv_1.png", 1.3 },
 	legcen = {"bot_t2_raid.png", 1.05},
@@ -653,7 +652,7 @@ function gadget:GameFrame(n)
 	if reloadedsavegame == false and (n % 31) == 0 then  -- this might break on the second reload of a savegame
 		local finishedLoading,  loadedFromSave = Spring.GetGameState()
 		--Spring.Echo("reloadedsavegame?", finishedLoading,  loadedFromSave)
-		if loadedFromSave then 
+		if loadedFromSave then
 			reloadedsavegame = true
 			loadUnitIcons()
 		end

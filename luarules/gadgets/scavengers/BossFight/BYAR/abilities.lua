@@ -8,7 +8,7 @@ local function passiveAbilityController(currentFrame)
 	elseif CurrentlyUsedPassiveAbility == "selfrepair" then -- TODO: Add sound and visual effects here
 		local currentbosshealth = Spring.GetUnitHealth(FinalBossUnitID)
 		--local initialbosshealth = scavconfig.unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
-		local healing = initialbosshealth*0.0000250*BossFightCurrentPhase
+		local healing = initialbosshealth*0.0000125*BossFightCurrentPhase
 		if currentbosshealth < initialbosshealth then
 			Spring.SetUnitHealth(FinalBossUnitID, currentbosshealth+healing)
 			abilitySuccess = true

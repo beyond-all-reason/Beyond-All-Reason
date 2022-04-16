@@ -1,5 +1,5 @@
 return {
-	hat_viking_teamcolored = {
+	cor_hat_viking = {
 		acceleration = 0,
 		blocking = false,
 		brakerate = 0,
@@ -19,14 +19,14 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		hidedamage = true,
-    icontype = "blank",
+    	icontype = "blank",
 		idleautoheal = 100000, --so it doesnt die
 		mass = 0,
 		maxdamage = 5000000,
 		maxslope = 64,
 		maxwaterdepth = 1000,
 		movementclass = "NANO",
-		objectname = "hats/hat_viking_teamcolored.s3o",
+		objectname = "hats/cor_hat_viking.s3o",
 		reclaimable = false,
 		repairable = false,
 		script = "blank.cob", --"hats/hat.cob",

@@ -48,7 +48,7 @@ local commanderDeathQueue = {}
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
+	if (unitDef.customParams.iscommander) or (Spring.GetModOptions().deathmode == "builders" and (unitDef.buildOptions and #unitDef.buildOptions > 0)) then
 		isCommander[unitDefID] = true
 	end
 end
@@ -107,7 +107,7 @@ end
 
 function gadget:Initialize()
 	-- disable gadget when deathmode is "killall" or "none", or scoremode isnt regular
-	if Spring.GetModOptions().deathmode ~= 'com' then
+	if Spring.GetModOptions().deathmode ~= 'com' and Spring.GetModOptions().deathmode ~= 'builders' then
 		gadgetHandler:RemoveGadget(self)
 	end
 

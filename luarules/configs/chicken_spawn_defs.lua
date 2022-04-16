@@ -70,8 +70,8 @@ local chickenTypes = {
 
 local optionValues = {
 	[difficulties.veryeasy] = {
-	  chickenSpawnRate  = 100,
-	  burrowSpawnRate   = 120,
+	  chickenSpawnRate  = 400,
+	  burrowSpawnRate   = 360,
 	  queenSpawnMult    = 0,
 	  angerBonus        = 0.05,
 	  expStep           = 0,
@@ -79,11 +79,12 @@ local optionValues = {
 	  chickensPerPlayer = 7,
 	  spawnChance       = 0.25,
 	  damageMod         = 0.125,
+	  maxBurrows        = 2,
 	  queenName         = 've_chickenq',
   },
   [difficulties.easy] = {
-	  chickenSpawnRate  = 100,
-	  burrowSpawnRate   = 120,
+	  chickenSpawnRate  = 400,
+	  burrowSpawnRate   = 360,
 	  queenSpawnMult    = 0,
 	  angerBonus        = 0.075,
 	  expStep           = 0.09375,
@@ -91,12 +92,13 @@ local optionValues = {
 	  chickensPerPlayer = 7,
 	  spawnChance       = 0.33,
 	  damageMod         = 0.25,
+	  maxBurrows        = 3,
 	  queenName         = 'e_chickenq',
   },
 
   [difficulties.normal] = {
-	  chickenSpawnRate  = 80,
-	  burrowSpawnRate   = 105,
+	  chickenSpawnRate  = 360,
+	  burrowSpawnRate   = 240,
 	  queenSpawnMult    = 1,
 	  angerBonus        = 0.10,
 	  expStep           = 0.125,
@@ -104,12 +106,13 @@ local optionValues = {
 	  chickensPerPlayer = 9,
 	  spawnChance       = 0.4,
 	  damageMod         = 0.4,
+	  maxBurrows        = 10,
 	  queenName         = 'n_chickenq',
   },
 
   [difficulties.hard] = {
-	  chickenSpawnRate  = 70,
-	  burrowSpawnRate   = 60,
+	  chickenSpawnRate  = 280,
+	  burrowSpawnRate   = 160,
 	  queenSpawnMult    = 1,
 	  angerBonus        = 0.125,
 	  expStep           = 0.25,
@@ -117,12 +120,13 @@ local optionValues = {
 	  chickensPerPlayer = 14,
 	  spawnChance       = 0.5,
 	  damageMod         = 0.55,
+	  maxBurrows        = 20,
 	  queenName         = 'h_chickenq',
   },
 
   [difficulties.veryhard] = {
-	  chickenSpawnRate  = 45,
-	  burrowSpawnRate   = 40,
+	  chickenSpawnRate  = 180,
+	  burrowSpawnRate   = 80,
 	  queenSpawnMult    = 3,
 	  angerBonus        = 0.15,
 	  expStep           = 0.4,
@@ -130,12 +134,13 @@ local optionValues = {
 	  chickensPerPlayer = 18,
 	  spawnChance       = 0.6,
 	  damageMod         = 0.66,
+	  maxBurrows        = 50,
 	  queenName         = 'vh_chickenq',
   },
 
 	[difficulties.survival] = {
-	  chickenSpawnRate    = 80,
-	  burrowSpawnRate     = 105,
+	  chickenSpawnRate    = 360,
+	  burrowSpawnRate     = 240,
 	  queenSpawnMult      = 1,
 	  angerBonus          = 0.1,
 	  expStep             = 0.125,
@@ -145,6 +150,7 @@ local optionValues = {
 	  chickensPerPlayer   = 9,
 	  spawnChance         = 0.4,
 	  damageMod           = 0.5,
+	  maxBurrows          = 10,
 	  queenName           = 'n_chickenq',
 	},
   }
@@ -173,8 +179,8 @@ local function addWave(wave, unitList)
 	table.insert(waves[wave], unitList)
 end
 
-addWave(1, { "3 chicken1" })
-addWave(1, { "3 chicken1c" })
+addWave(1, { "3 chicken1", "1 chickenf2" })
+addWave(1, { "3 chicken1c", "1 chickenf2" })
 addWave(1, { "1 chicken1", "1 chicken1b", "1 chicken1c", "1 chickenh1" })
 addWave(1, { "1 chicken1", "1 chicken1b", "1 chicken1c", "1 chicken1d" })
 addWave(1, { "3 chicken1d", "1 chickenh1" })
@@ -182,13 +188,13 @@ addWave(1, { "1 chicken1", "1 chicken1b", "1 chicken1c", "1 chicken1d" })
 addWave(1, { "2 chicken1b", "1 chickenh1b" })
 addWave(1, { "2 chicken1c", "1 chickena1" })
 
-newWaveSquad[2] = {"7 chicken1", "6 chicken1b", "5 chicken1c", "4 chicken1d"}
+newWaveSquad[2] = {"1 chickenh5", "7 chicken1", "6 chicken1b", "5 chicken1c", "4 chicken1d"}
 addWave(2, { "5 chicken1", "4 chicken1b", "3 chicken1c", "2 chicken1d" })
 addWave(2, { "2 chicken1", "3 chicken1b", "4 chicken1c", "5 chicken1d" })
 addWave(2, { "3 chicken1", "3 chicken1b", "3 chicken1c", "3 chicken1d" })
 addWave(2, { "1 chicken1x", "1 chicken1y", "1 chicken1z" })
 addWave(2, { "5 chicken1b", "1 chickenf2" })
-addWave(2, { "6 chicken1c" })
+addWave(2, { "6 chicken1c", "1 chickenf2" })
 addWave(2, { "3 chicken1", "1 chickena1b", "1 chickenh1" })
 addWave(2, { "1 chickena1", "1 chickena1c", "1 chickenw1b" })
 addWave(2, { "1 chickena1b", "1 chickena1c", "1 chickenw1", "1 chickens1" })
@@ -196,7 +202,7 @@ addWave(2, { "4 chicken1d", "1 chickens1" })
 addWave(2, { "4 chicken1", "1 chickena1" })
 addWave(2, { "3 chicken1", "1 chickenh1", "1 chickenh1b" })
 
-newWaveSquad[3] = {"7 chicken1", "8 chicken1b", "9 chicken1c", "10 chicken1d"}
+newWaveSquad[3] = {"1 chickenh5", "7 chicken1", "8 chicken1b", "9 chicken1c", "10 chicken1d"}
 addWave(3, { "1 chickena1", "2 chickena1b", "1 chickena1c", "2 chickenh1" })
 addWave(3, { "1 chickena1", "1 chickena1b", "2 chickena1c" })
 addWave(3, { "1 chickena1", "1 chickena1b", "1 chickena1c", "1 chickenc3" })
@@ -218,7 +224,7 @@ addWave(4, { "3 chickenc3c", "1 chickens1" })
 addWave(4, { "3 chickenw1", "1 chicken_dodo1" })
 addWave(4, { "3 chickens1", "1 chickenf2" })
 
-newWaveSquad[5] = {"11 chickens1", "2 chickenw2"}
+newWaveSquad[5] = {"1 chickenh5", "11 chickens1", "2 chickenw2"}
 addWave(5, { "6 chicken1x", "2 chickens1", "1 chicken_dodo1" })
 addWave(5, { "6 chickens1", "1 chickenw1" })
 addWave(5, { "5 chickens1", "1 chickena1b" })
@@ -231,7 +237,7 @@ addWave(5, { "6 chicken1z", "1 chickenw1c", "1 chickenw1d" })
 addWave(5, { "3 chickens1", "1 chickenp1" })
 addWave(5, { "1 chickenp1", "1 chicken_dodo1", "3 chickenh1b" })
 addWave(5, { "1 chickenc3", "2 chickenc3b", "2 chickenc3b" })
-addWave(5, { "3 chickens3" })
+addWave(5, { "3 chickens3", "1 chickenf2" })
 
 newWaveSquad[6] = {"1 chickenh5", "1 chicken_dodo2", "7 chickenp1"}
 addWave(6, { "1 chicken_dodo1", "3 chickenp1", "1 chickenf2" })
@@ -248,7 +254,7 @@ addWave(6, { "2 chicken_dodo1", "1 chickenp1", "1 chickenc1", "1 chickens1", "1 
 addWave(6, { "3 chicken_dodo1", "5 chickenh1", "1 chickens3" })
 addWave(6, { "4 chicken_dodo1", "1 chickenf1", "1 chickenw2" })
 
-newWaveSquad[7] = {"1 chickenr1", "1 chickenh5", "12 chickenw2", "1 chickenf1", "1 chickenf1b"}
+newWaveSquad[7] = {"1 chickenh5", "1 chickenr1", "12 chickenw2", "1 chickenf1", "1 chickenf1b"}
 addWave(7, { "2 chickenw2", "1 chickenw1b", "1 chickenw1c", "1 chickens3" })
 addWave(7, { "1 chickenw1", "2 chickenw2", "1 chickenw1d", "1 chicken_dodo1" })
 addWave(7, { "1 chickenw1", "2 chickenw2", "1 chickenw1d", "1 chickens3" })
@@ -259,21 +265,21 @@ addWave(7, { "1 chickenf1b", "2 chickens3" })
 addWave(7, { "2 chickenf1", "1 chickens3", "1 chicken_dodo1" })
 addWave(7, { "2 chickenf1", "1 chicken_dodo1", "1 chickens3" })
 addWave(7, { "2 chickenf1", "1 chicken_dodo1", "1 chickenf1b" })
-addWave(7, { "5 chickens3" })
-addWave(7, { "5 chickenw2" })
+addWave(7, { "5 chickens3", "1 chickenf2" })
+addWave(7, { "5 chickenw2", "1 chickenf2" })
 
 newWaveSquad[8] = {"1 chickenh5", "6 chickenc1", "2 chickenh2"}
 addWave(8, { "2 chickenc1", "1 chickenw2", "1 chickenw1b", "1 chickenw1c", "1 chickenw1d" })
 addWave(8, { "2 chickenc1", "1 chickenr1", "3 chicken_dodo1" })
 addWave(8, { "2 chickenc1", "2 chickenf1", "1 chickenw2", "1 chickenw1d" })
 addWave(8, { "2 chickenc1", "1 chickenf1b", "2 chickenw2", "2 chickenw1b" })
-addWave(8, { "3 chickenc1", "4 chickenh1", "3 chickenf2" })
+addWave(8, { "3 chickenc1", "4 chickenh1", "1 chickenf2" })
 addWave(8, { "3 chickenc1", "1 chickena1", "2 chickena1b", "1 chickena1c", "1 chicken_dodo1" })
 addWave(8, { "3 chickenc1", "4 chicken_dodo1" })
 addWave(8, { "3 chickenc1", "1 chickens1", "1 chickens2","2 chickenp1", "2 chickenh1b" })
 addWave(8, { "4 chickenc1", "1 chickenf1b", "1 chicken_dodo1" })
 addWave(8, { "4 chickenc1", "3 chicken_dodo1", "1 chickenh2" })
-addWave(8, { "2 chickena1", "1 chickena1b", "1 chickena1c", "1 chickena2", "1 chickenr1", "3 chickenf2" })
+addWave(8, { "2 chickena1", "1 chickena1b", "1 chickena1c", "1 chickena2", "1 chickenr1", "1 chickenf2" })
 addWave(8, { "6 chickens1", "1 chickens2" })
 addWave(8, { "5 chickenp1", "2 chickenh1", "2 chickenh1b" })
 addWave(8, { "4 chickenc3", "4 chickenc3b", "4 chickenc3c" })
@@ -292,13 +298,13 @@ addWave(9, { "2 chickena1", "2 chickena1b", "2 chickena1c", "4 chickenh1", "1 ch
 addWave(9, { "1 chickenr1", "1 chickens2", "4 chickenh1b", "1 chicken2" })
 addWave(9, { "6 chicken2", "3 chickenh1", "1 chickenw2", "1 chickenf2" })
 
-newWaveSquad[10] = {"2 chickenh5", "13 chicken2b", "1 chickenh2", "1 chickena2", "1 chickena2b"}
+newWaveSquad[10] = {"1 chickenh5", "13 chicken2b", "1 chickenh2", "1 chickena2", "1 chickena2b"}
 addWave(10, { "7 chicken2b", "1 chickens2", "2 chickenh1" })
 addWave(10, { "5 chicken2b", "1 chickena2", "1 chickenh1" })
 addWave(10, { "4 chicken2", "1 chickens2", "2 chickenh1b" })
 addWave(10, { "3 chicken2", "1 chickena2b", "1 chickenh1b" })
 addWave(10, { "3 chicken2b", "1 chickenh2", "2 chickenh1" })
-addWave(10, { "4 chicken2b", "1 chickenh5", "1 chickenh1" })
+addWave(10, { "4 chicken2b", "1 chickenh1" })
 addWave(10, { "7 chicken2", "1 chickenh2", "2 chickenh1b" })
 addWave(10, { "6 chicken2", "1 chicken_dodo2", "1 chickenr1" })
 addWave(10, { "1 chickenc2", "4 chickenc1", "1 chickenf1" })
@@ -312,11 +318,11 @@ addWave(11, { "2 chickenh1","2 chickenh1b","1 chickenh2","2 chickenh3", "1 chick
 addWave(11, { "2 chickenh1","2 chickenh1b","1 chickenh2","2 chickenh3", "1 chickens2" })
 addWave(11, { "2 chickenh1","2 chickenh1b","1 chickenh2","2 chickenh3", "1 chickens2" })
 addWave(11, { "2 chickenh1","2 chickenh1b","1 chickenh2","2 chickenh3", "1 chickens2" })
-addWave(11, { "3 chickenc2" })
+addWave(11, { "3 chickenc2", "1 chickenf2" })
 addWave(11, { "3 chickenw1","3 chickenw1b", "3 chickenw1c", "3 chickenw1d" })
-addWave(11, { "3 chickens2" })
+addWave(11, { "3 chickens2", "1 chickenf2" })
 addWave(11, { "1 chickena2", "2 chickenw2" })
-addWave(11, { "7 chickenw2" })
+addWave(11, { "7 chickenw2", "1 chickenf2" })
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -326,7 +332,6 @@ local config = {
 	difficulties           = difficulties,
 	maxChicken             = Spring.GetModOptions().chicken_maxchicken,
 	chickenSpawnMultiplier = Spring.GetModOptions().chicken_spawncountmult,
-	maxBurrows             = 1000,
 	gracePeriod            = Spring.GetModOptions().chicken_graceperiod,  -- no chicken spawn in this period, seconds
 	queenTime              = Spring.GetModOptions().chicken_queentime * 60, -- time at which the queen appears, seconds
 	addQueenAnger          = Spring.GetModOptions().chicken_queenanger,

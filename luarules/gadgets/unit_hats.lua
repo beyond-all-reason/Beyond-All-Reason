@@ -59,9 +59,8 @@ local unitDefCanWearHats = {
 
 -- give tourney winner a hat
 function gadget:GameFrame(gf)
-	if gf == 90 and UnitDefNames['hat_viking_teamcolored'] then
+	if gf == 90 and UnitDefNames['cor_hat_viking'] then
 		for _, playerID in ipairs(Spring.GetPlayerList()) do
-			-- update player infos
 			local playerName, _, spec, teamID = Spring.GetPlayerInfo(playerID, false)
 			if not spec and playerName == "Raghna" then
 				local units = Spring.GetTeamUnits(teamID)
@@ -70,12 +69,21 @@ function gadget:GameFrame(gf)
 					local unitDefID = Spring.GetUnitDefID(unitID)
 					local unitPosX, unitPosY, unitPosZ = Spring.GetUnitPosition(unitID)
 					if unitDefCanWearHats[unitDefID] then
-						local hatDefID = UnitDefNames['hat_viking_teamcolored'].id
+						local hatDefID = UnitDefNames['cor_hat_viking'].id
 						local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
 						gadget:UnitGiven(unitID, hatDefID, teamID)
 					end
 				end
 			end
+		end
+	end
+
+	-- periodically update hat health	(damage gets applied instantly at gadget:UnitDamaged anyway)
+	if gf % 61 == 1 then
+		for unitID, hatUnitID in pairs(unitsWearingHats) do
+			local health, maxHealth = Spring.GetUnitHealth(unitID)
+			local hatHealth, hatMaxHealth = Spring.GetUnitHealth(hatUnitID)
+			Spring.SetUnitHealth(hatUnitID, (health / maxHealth) * hatMaxHealth)
 		end
 	end
 end
@@ -107,6 +115,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		   boolean blockHeightChanges]]--
 		Spring.SetUnitNeutral(unitID, true)
 		Spring.SetUnitBlocking(unitID, false, false, false, false) -- non blocking while dying
+		Spring.SetUnitNoMinimap(unitID, true)
 	end
 end
 
@@ -194,5 +203,16 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 			Spring.Echo("Hat was given, but found noone to put it onto, destroying", hatID)
 		end
 		Spring.DestroyUnit(hatID)
+	end
+end
+
+-- also damage the hat
+function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+	if unitsWearingHats[unitID] then
+		local health, maxHealth = Spring.GetUnitHealth(unitID)
+		local hatHealth, hatMaxHealth = Spring.GetUnitHealth(unitsWearingHats[unitID])
+		if hatHealth then
+			Spring.SetUnitHealth(unitsWearingHats[unitID], (health / maxHealth) * hatMaxHealth)
+		end
 	end
 end

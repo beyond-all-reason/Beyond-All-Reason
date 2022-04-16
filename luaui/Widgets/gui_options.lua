@@ -1800,17 +1800,27 @@ function init()
 				  --Spring.SetConfigInt("cusgl4", (value and 1 or 0))
 				  Spring.SetConfigInt("cus2", (value and 1 or 0))
 				  Spring.SendCommands("luarules "..(value and 'reloadcus' or 'disablecus')..'gl4')
+				  local id = getOptionByID('cus')
+				  if value and id then
+					  options[id].value = false
+					  options[id].onchange(id, options[id].value)
+				  end
 			  end
 		  end,
 		},
 
-		{ id = "cus", group = "gfx", name = texts.option.cus.." (old)", category = types.dev, type = "bool", value = (Spring.GetConfigInt("cus", 1) == 1), description = texts.option.cus_descr,
+		{ id = "cus", group = "gfx", name = texts.option.cus.." (old)", category = types.dev, type = "bool", value = (Spring.GetConfigInt("cus", 0) == 1), description = texts.option.cus_descr,
 		  onchange = function(i, value)
 			  if value == 0.5 then
 				  Spring.SendCommands("luarules disablecus")
 			  else
 				  Spring.SetConfigInt("cus", (value and 1 or 0))
 				  Spring.SendCommands("luarules "..(value and 'reloadcus' or 'disablecus'))
+				  local id = getOptionByID('cusgl4')
+				  if value and id then
+				  	options[id].value = false
+					options[id].onchange(id, options[id].value)
+				  end
 			  end
 		  end,
 		},
@@ -4599,6 +4609,29 @@ function init()
 		end
 	end
 
+	if Spring.GetGameFrame() == 0 then
+		detectWater()
+
+		-- set vsync
+		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", 0))
+
+		-- disable CUS
+		if not isPotatoGpu then	-- will disable later
+			if tonumber(Spring.GetConfigInt("cus", 1) or 1) == 0 then
+				Spring.SendCommands("luarules disablecus")
+			end
+
+			-- enable CUS GL4
+			if tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
+				Spring.SendCommands("luarules disablecus")
+				Spring.SendCommands("luarules reloadcusgl4")
+			end
+		end
+	end
+	if not waterDetected then
+		Spring.SendCommands("water 0")
+	end
+
 	-- reduce options for potatoes
 	if isPotatoGpu or isPotatoCpu then
 		local id = getOptionByID('shadowslider')
@@ -4609,6 +4642,10 @@ function init()
 		end
 
 		if isPotatoGpu then
+
+			Spring.SendCommands("luarules disablecus")
+			Spring.SendCommands("luarules disablecusgl4")
+
 			options[getOptionByID('msaa')].max = 2
 			id = getOptionByID('ssao')
 			if id and GetWidgetToggleValue(options[id].widget) then
@@ -4652,6 +4689,9 @@ function init()
 			if Platform ~= nil and Platform.gpuVendor == 'Intel' then
 				options[getOptionByID('shadowslider')] = nil
 				options[getOptionByID('shadows_opacity')] = nil
+
+				Spring.SendCommands("advmapshading 0")
+				Spring.SendCommands("Shadows 0 1024")
 			end
 		end
 	end
@@ -4745,6 +4785,11 @@ function init()
 
 	if WG['snow'] ~= nil and WG['snow'].getSnowMap ~= nil then
 		options[getOptionByID('snowmap')].value = WG['snow'].getSnowMap()
+	end
+
+	if isPotatoGpu then
+		options[getOptionByID('cus')] = nil
+		options[getOptionByID('cusgl4')] = nil
 	end
 
 	-- not sure if needed: remove vsync option when its done by monitor (freesync/gsync) -> config value is set as 'x'
@@ -4889,11 +4934,10 @@ function widget:Initialize()
 			Spring.SetConfigInt("AdvMapShading", 0)
 			Spring.SendCommands("advmapshading 0")
 			Spring.SendCommands("Shadows 0 1024")
-			Spring.SetConfigInt("Shadows", 0)
 			Spring.SetConfigInt("ShadowMapSize", 1024)
+			Spring.SetConfigInt("Shadows", 0)
 			Spring.SetConfigInt("MSAALevel", 0)
 			Spring.SetConfigFloat("ui_opacity", 0.66)    -- set to be more opaque cause guishader isnt availible
-
 		else
 			Spring.SendCommands("water 4")
 			Spring.SetConfigInt("Water", 4)
@@ -4905,27 +4949,6 @@ function widget:Initialize()
 			Spring.SetConfigInt("MaxParticles", minMaxparticles)
 			Spring.Echo('First time setup:  setting MaxParticles config value to ' .. minMaxparticles)
 		end
-	end
-
-	if Spring.GetGameFrame() == 0 then
-		detectWater()
-
-		-- set vsync
-		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", 0))
-
-		-- disable CUS
-		if tonumber(Spring.GetConfigInt("cus", 1) or 1) == 0 then
-			Spring.SendCommands("luarules disablecus")
-		end
-
-		-- enable CUS GL4
-		if tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
-			Spring.SendCommands("luarules disablecus")
-			Spring.SendCommands("luarules reloadcusgl4")
-		end
-	end
-	if not waterDetected then
-		Spring.SendCommands("water 0")
 	end
 
 	Spring.SetConfigFloat("CamTimeFactor", 1)
