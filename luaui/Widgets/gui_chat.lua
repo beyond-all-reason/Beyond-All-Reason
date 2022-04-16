@@ -1766,10 +1766,16 @@ function widget:GameOver()
 end
 
 function widget:GetConfigData(data)
+	local inputHistoryLimited = {}
+	for k,v in ipairs(inputHistory) do
+		if k >= (#inputHistory - 20) then
+			inputHistoryLimited[#inputHistoryLimited+1] = v
+		end
+	end
 	return {
 		gameFrame = Spring.GetGameFrame(),
 		orgLines = gameOver and nil or orgLines,
-		inputHistory = inputHistory,
+		inputHistory = inputHistoryLimited,
 		maxLines = maxLines,
 		maxConsoleLines = maxConsoleLines,
 		fontsizeMult = fontsizeMult,
@@ -1787,10 +1793,10 @@ function widget:SetConfigData(data)
 		if Spring.GetGameFrame() > 0 then
 			orgLines = data.orgLines
 		end
-		if data.inputHistory ~= nil then
-			inputHistory = data.inputHistory
-			inputHistoryCurrent = #inputHistory
-		end
+	end
+	if data.inputHistory ~= nil then
+		inputHistory = data.inputHistory
+		inputHistoryCurrent = #inputHistory
 	end
 	if data.sndChatFileVolume ~= nil then
 		sndChatFileVolume = data.sndChatFileVolume
