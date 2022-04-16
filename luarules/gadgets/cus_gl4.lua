@@ -287,7 +287,7 @@ do --save a ton of locals
 end
 
 local debugmode = false
-local FASTRELOADMODE = false -- enable this is so that /luarules reload returns with cusgl4 default ON
+local FASTRELOADMODE = true -- enable this is so that /luarules reload returns with cusgl4 default ON
 
 local alphaMult = 0.35
 local alphaThresholdOpaque = 0.5
@@ -935,7 +935,11 @@ local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures,
 	asssigncalls = (asssigncalls + 1 ) % (2^20)
 	shader = shader or GetShaderName(flag, objectDefID)
 	texKey = texKey or fastObjectDefIDtoTextureKey[objectDefID]
-	uniformBinID = uniformBinID or GetUniformBinID(objectDefID)
+	
+	if objectDefID == nil then 
+		Spring.Echo("AsssignObjectToBin",objectID, objectDefID, flag, shader, textures, texKey, uniformBinID)
+	end
+	uniformBinID = uniformBinID or GetUniformBinID(objectDefID, "AsssignObjectToBin")
 	--Spring.Echo("AsssignObjectToBin", objectID, objectDefID, flag, shader, textures, texKey, uniformBinID)
 	--	Spring.Debug.TraceFullEcho()	
 	if (texKey == nil or uniformBinID == nil) then 
@@ -1046,7 +1050,10 @@ local function AddObject(objectID, drawFlag)
 	else
 		objectDefID = -1 *  Spring.GetFeatureDefID(-1 * objectID)
 		objectIDtoDefID[objectID] = objectDefID
+		
 	end
+	
+	
 
 	--if debugmode then Spring.Debug.TraceEcho("AddObject",objectID, drawFlag) end
 	--Spring.Echo(unitID, UnitDefs[unitDefID].name)
@@ -1173,7 +1180,7 @@ local function UpdateObject(objectID, drawFlag)
 		if hasFlagOld ~= hasFlagNew and overrideDrawFlagsCombined[flag] then
 			local shader = GetShaderName(flag, objectDefID)
 			local texKey  = fastObjectDefIDtoTextureKey[objectDefID]
-			local uniformBinID = GetUniformBinID(objectDefID)
+			local uniformBinID = GetUniformBinID(objectDefID,'UpdateObject')
 
 			if hasFlagOld then --had this flag, but no longer have
 				RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, uniformBinID)
@@ -1210,7 +1217,7 @@ local function RemoveObject(objectID) -- we get pos/neg objectID here
 		if overrideDrawFlagsCombined[flag] then
 			local shader = GetShaderName(flag, objectDefID)
 			local texKey  = fastObjectDefIDtoTextureKey[objectDefID]
-			local uniformBinID = GetUniformBinID(objectDefID)
+			local uniformBinID = GetUniformBinID(objectDefID,'RemoveObject')
 			RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, uniformBinID)
 			--if flag == 1 then
 			--	RemoveObjectFromBin(objectID, objectDefID, texKey, nil, 0, uniformBinID)
