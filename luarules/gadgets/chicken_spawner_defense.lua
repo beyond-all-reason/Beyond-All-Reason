@@ -1768,11 +1768,11 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if UnitDefs[unitDefID].name == "chickend1" then
-			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 1
+			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + math.random(0,1)
 		end
 		if UnitDefs[unitDefID].name == "chickend2" then
-			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 5
-			attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + 1
+			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + math.random(0,5)
+			attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + math.random(0,1)
 		end
 	end
 
