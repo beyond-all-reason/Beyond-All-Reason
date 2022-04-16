@@ -188,7 +188,7 @@ addWave(1, { "1 chicken1", "1 chicken1b", "1 chicken1c", "1 chicken1d" })
 addWave(1, { "2 chicken1b", "1 chickenh1b" })
 addWave(1, { "2 chicken1c", "1 chickena1" })
 
-newWaveSquad[2] = {"1 chickenh5", "7 chicken1", "6 chicken1b", "5 chicken1c", "4 chicken1d"}
+newWaveSquad[2] = {"7 chicken1", "6 chicken1b", "5 chicken1c", "4 chicken1d"}
 addWave(2, { "5 chicken1", "4 chicken1b", "3 chicken1c", "2 chicken1d" })
 addWave(2, { "2 chicken1", "3 chicken1b", "4 chicken1c", "5 chicken1d" })
 addWave(2, { "3 chicken1", "3 chicken1b", "3 chicken1c", "3 chicken1d" })
@@ -202,7 +202,7 @@ addWave(2, { "4 chicken1d", "1 chickens1" })
 addWave(2, { "4 chicken1", "1 chickena1" })
 addWave(2, { "3 chicken1", "1 chickenh1", "1 chickenh1b" })
 
-newWaveSquad[3] = {"1 chickenh5", "7 chicken1", "8 chicken1b", "9 chicken1c", "10 chicken1d"}
+newWaveSquad[3] = {"7 chicken1", "8 chicken1b", "9 chicken1c", "10 chicken1d"}
 addWave(3, { "1 chickena1", "2 chickena1b", "1 chickena1c", "2 chickenh1" })
 addWave(3, { "1 chickena1", "1 chickena1b", "2 chickena1c" })
 addWave(3, { "1 chickena1", "1 chickena1b", "1 chickena1c", "1 chickenc3" })
