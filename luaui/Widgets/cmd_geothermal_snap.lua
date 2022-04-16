@@ -125,6 +125,10 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:DrawWorld()
+	if not WG.DrawUnitShapeGL4 then
+		widget:Shutdown()
+		return
+	end
 
 	-- command = geo?
 	local _, cmdID = spGetActiveCommand()
