@@ -1392,6 +1392,10 @@ local function initGL4()
 
 	modelsVertexVBO:ModelsVBO()
 	modelsIndexVBO:ModelsVBO()
+	
+	
+	
+	
 	Spring.Echo("[CUS GL4] Initializing bins")
 	
 	initBinsAndTextures()
@@ -1401,7 +1405,34 @@ local function initGL4()
 	Spring.Echo("[CUS GL4] Ready")
 end
 
-local function ReloadCUSGL4(optName, _, _, playerID)
+local function tableEcho(data, name, indent, tableChecked)
+	name = name or "TableEcho"
+	indent = indent or ""
+	if (not tableChecked) and type(data) ~= "table" then
+		Spring.Echo(indent .. name, data)
+		return
+	end
+	if type (name) == "table" then 
+		name = '<table>'
+	end
+	Spring.Echo(indent .. name .. " = {")
+	local newIndent = indent .. "    "
+	for name, v in pairs(data) do
+		local ty = type(v)
+		if ty == "table" then
+			tableEcho(v, name, newIndent, true)
+		elseif ty == "boolean" then
+			Spring.Echo(newIndent .. name .. " = " .. (v and "true" or "false"))
+		elseif ty == "string" or ty == "number" then
+			Spring.Echo(newIndent .. name .. " = " .. v)
+		else
+			Spring.Echo(newIndent .. name .. " = ", v)
+		end
+	end
+	Spring.Echo(indent .. "},")
+end
+
+local function ReloadCUSGL4(optName, line, words, playerID)
 	if (playerID ~= Spring.GetMyPlayerID()) then
 		return
 	end
@@ -1420,7 +1451,7 @@ local function DisableCUSGL4(optName, _, _, playerID)
 end
 
 local updaterate = 1
-local function CUSGL4updaterate(optName, unk1, unk2, playerID)
+local function CUSGL4updaterate(optName, line, words, playerID)
 	if (playerID ~= Spring.GetMyPlayerID()) then
 		return
 	end
@@ -1432,7 +1463,7 @@ local function CUSGL4updaterate(optName, unk1, unk2, playerID)
 	Spring.Echo("[CustomUnitShadersGL4] Updaterate set to", updaterate)
 end
 
-local function DebugCUSGL4(optName, unk1, unk2, playerID)
+local function DebugCUSGL4(optName, line, words, playerID)
 	if (playerID ~= Spring.GetMyPlayerID()) then
 		return
 	end
@@ -1440,11 +1471,12 @@ local function DebugCUSGL4(optName, unk1, unk2, playerID)
 	Spring.Echo("[CustomUnitShadersGL4] Debugmode set to", debugmode)
 end
 
-local function DumpCUSGL4(optName, unk1, unk2, playerID)
+local function DumpCUSGL4(optName, line, words, playerID)
 	if (playerID ~= Spring.GetMyPlayerID()) then
 		return
 	end
 	Spring.Echo("[CustomUnitShadersGL4] Dumping unit bins:", debugmode)
+
 	if unitDrawBins == nil then return end
 	for drawflag, bin in pairs(unitDrawBins) do 
 		Spring.Echo(string.format("%i = { -- drawFlag",drawflag))
@@ -1486,6 +1518,52 @@ local function DumpCUSGL4(optName, unk1, unk2, playerID)
 		Spring.Echo("},")
 	end
 end
+
+
+local function MarkBinCUSGL4(optName, line, words, playerID)
+	if (playerID ~= Spring.GetMyPlayerID()) then
+		return
+	end
+	Spring.Echo("[CustomUnitShadersGL4] Marking Bins", optName, line, words, playerID)
+	local passnum = tonumber(line)
+	if passnum == nil then return end 
+	
+	
+	local function markBin(drawPass)
+		local count = 0
+		
+		local bin = unitDrawBins[drawPass]
+		for shadername, uniformbin in pairs(bin) do 
+			for uniformbinid, texandobjset in pairs(uniformbin) do 
+				for texturekey, minibin in pairs(texandobjset) do 
+					for objectID, _ in pairs(minibin.objectsIndex) do
+						local px, py, pz 
+						if objectID > 0 then 
+							px, py, pz = Spring.GetUnitPosition(objectID)
+						else
+							px, py, pz = Spring.GetFeaturePosition(-1* objectID)
+						end
+						if px then 
+							Spring.MarkerAddPoint(px,py,pz, 
+								tostring(drawPass) .. "/" ..
+								tostring(shadername) .. "/" ..
+								tostring(uniformbinid) .. "/" ..
+								tostring(texturekey) .. "/" ..
+								tostring(objectID))
+							count = count + 1
+						end
+					end
+				end
+			end
+		end
+		Spring.Echo("Added markers for", count, "units in drawPass", drawPass)
+	end
+	
+	markBin(passnum)
+end
+
+
+
 function gadget:Initialize()
 	if FASTRELOADMODE then initGL4() end 
 	gadgetHandler:AddChatAction("reloadcusgl4", ReloadCUSGL4)
@@ -1493,35 +1571,11 @@ function gadget:Initialize()
 	gadgetHandler:AddChatAction("cusgl4updaterate", CUSGL4updaterate)
 	gadgetHandler:AddChatAction("debugcusgl4", DebugCUSGL4)
 	gadgetHandler:AddChatAction("dumpcusgl4", DumpCUSGL4)
+	gadgetHandler:AddChatAction("markbincusgl4", MarkBinCUSGL4)
 end
 
 
-local function tableEcho(data, name, indent, tableChecked)
-	name = name or "TableEcho"
-	indent = indent or ""
-	if (not tableChecked) and type(data) ~= "table" then
-		Spring.Echo(indent .. name, data)
-		return
-	end
-	if type (name) == "table" then 
-		name = '<table>'
-	end
-	Spring.Echo(indent .. name .. " = {")
-	local newIndent = indent .. "    "
-	for name, v in pairs(data) do
-		local ty = type(v)
-		if ty == "table" then
-			tableEcho(v, name, newIndent, true)
-		elseif ty == "boolean" then
-			Spring.Echo(newIndent .. name .. " = " .. (v and "true" or "false"))
-		elseif ty == "string" or ty == "number" then
-			Spring.Echo(newIndent .. name .. " = " .. v)
-		else
-			Spring.Echo(newIndent .. name .. " = ", v)
-		end
-	end
-	Spring.Echo(indent .. "},")
-end
+
 
 function gadget:Shutdown()
 	if debugmode then tableEcho(unitDrawBins, 'unitDrawBins') end
@@ -1650,36 +1704,7 @@ function gadget:GameFrame(n)
 	end
 end
 
-local function markBin(drawPass)
-	local count = 0
-	for shaderId, data in pairs(unitDrawBins[drawPass]) do
-		for _, uniformBin in pairs(data) do
-			for uniformBinID, uniformBin in pairs(data) do
-				for _, texAndObj in pairs(uniformBin) do
-					for unitID, _ in pairs(texAndObj.objectsIndex) do
-						local px, py, pz = Spring.GetUnitPosition(unitID)
-						if px then 
-							Spring.MarkerAddPoint(px,py,pz, tostring(drawPass) .. "/" .. tostring(unitID))
-							count = count + 1
-						end
-					end
-				end
-			end
-		end
-	end
-	Spring.Echo("Added markers for", count, "units in drawPass", drawPass)
-end
-	
 
-function gadget:TextCommand(command)
-	if string.find(command, "cusgl4markbin", nil, true) == 1 then
-		local startmatch, endmatch = string.find(command, "cusgl4markbin", nil, true)
-		local param = string.sub(command, endmatch + 2,nil)
-		if param and tonumber(param) then 
-			markBin(tonumber(param))
-		end
-	end
-end
 
 function gadget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 	if unitDrawBins == nil then return end
