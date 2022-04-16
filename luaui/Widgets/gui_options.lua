@@ -1447,10 +1447,8 @@ function applyOptionValue(i, skipRedrawWindow, force)
 	end
 end
 
-
 -- loads values via stored game config in luaui/configs
 function loadAllWidgetData()
-
 	for i, option in pairs(options) do
 		if option.onload then
 			option.onload(i)
@@ -1463,9 +1461,9 @@ local engine64 = true
 local isPotatoCpu = false
 local isPotatoGpu = false
 local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
-if Platform ~= nil and Platform.gpuVendor == 'Intel' then
-	isPotatoGpu = true
-end
+--if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+--	isPotatoGpu = true
+--end
 if gpuMem and gpuMem > 0 and gpuMem < 1800 then
 	isPotatoGpu = true
 end
@@ -4686,7 +4684,7 @@ function init()
 			options[getOptionByID('could_opacity')] = nil
 
 			-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
-			if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+			if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 1800 then
 				options[getOptionByID('shadowslider')] = nil
 				options[getOptionByID('shadows_opacity')] = nil
 
@@ -4923,7 +4921,7 @@ function widget:Initialize()
 		Spring.Echo('First time setup:  done')
 		Spring.SetConfigFloat("snd_airAbsorption", 0.35)
 
-		-- Set lower defaults for potato systems
+		-- Set lower defaults for lower end/potato systems
 		if gpuMem and gpuMem < 3300 then
 			Spring.SetConfigInt("MSAALevel", 2)
 		end

@@ -87,10 +87,10 @@ function widget:Shutdown()
 	end
 end
 
-
 function widget:DrawWorld()
 	if not WG.DrawUnitShapeGL4 then
 		widget:Shutdown()
+		return
 	end
 
 	-- Check command is to build a mex
@@ -154,7 +154,6 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			local mexPositions = WG['resource_spot_finder'].GetBuildingPositions(closestSpot, -cmdID, bface, true)
 			local bestPos = GetClosestPosition(bx, bz, mexPositions)
 			if bestPos then
-
 				GiveNotifyingOrder(cmdID, {bestPos.x, bestPos.y, bestPos.z, bface}, cmdOpts)
 				return true
 			end
