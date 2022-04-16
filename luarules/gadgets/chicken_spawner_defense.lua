@@ -769,7 +769,8 @@ if gadgetHandler:IsSyncedCode() then
 			-- spawn units from queen
 			if config.queenSpawnMult > 0 then
 				for i = 1, config.queenSpawnMult, 1 do
-					local waveLevel = mRandom(1, #config.waves)
+					local waveLevelPower = mRandom(1, currentWave*currentWave)
+					local waveLevel = math.ceil(math.sqrt(waveLevelPower))
 					local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
 					for i, sString in pairs(squad) do
 						local nEnd, _ = string.find(sString, " ")
@@ -786,10 +787,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		for burrowID in pairs(burrows) do
-			if t > queenTime * 0.15 then
-				SpawnTurret(burrowID, config.bonusTurret)
-			end
-			local waveLevel = mRandom(1, currentWave)
+			local waveLevelPower = mRandom(1, currentWave*currentWave)
+			local waveLevel = math.ceil(math.sqrt(waveLevelPower))
 			local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
 			local newWaveSquadSpawn = false
 			if lastWave ~= currentWave and config.newWaveSquad[currentWave] then

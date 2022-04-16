@@ -84,7 +84,7 @@ local optionValues = {
   },
   [difficulties.easy] = {
 	  chickenSpawnRate  = 400,
-	  burrowSpawnRate   = 360,
+	  burrowSpawnRate   = 320,
 	  queenSpawnMult    = 0,
 	  angerBonus        = 0.075,
 	  expStep           = 0.09375,
@@ -98,7 +98,7 @@ local optionValues = {
 
   [difficulties.normal] = {
 	  chickenSpawnRate  = 360,
-	  burrowSpawnRate   = 240,
+	  burrowSpawnRate   = 210,
 	  queenSpawnMult    = 1,
 	  angerBonus        = 0.10,
 	  expStep           = 0.125,
@@ -112,7 +112,7 @@ local optionValues = {
 
   [difficulties.hard] = {
 	  chickenSpawnRate  = 280,
-	  burrowSpawnRate   = 160,
+	  burrowSpawnRate   = 140,
 	  queenSpawnMult    = 1,
 	  angerBonus        = 0.125,
 	  expStep           = 0.25,
@@ -126,7 +126,7 @@ local optionValues = {
 
   [difficulties.veryhard] = {
 	  chickenSpawnRate  = 180,
-	  burrowSpawnRate   = 80,
+	  burrowSpawnRate   = 70,
 	  queenSpawnMult    = 3,
 	  angerBonus        = 0.15,
 	  expStep           = 0.4,
@@ -140,7 +140,7 @@ local optionValues = {
 
 	[difficulties.survival] = {
 	  chickenSpawnRate    = 360,
-	  burrowSpawnRate     = 240,
+	  burrowSpawnRate     = 210,
 	  queenSpawnMult      = 1,
 	  angerBonus          = 0.1,
 	  expStep             = 0.125,
