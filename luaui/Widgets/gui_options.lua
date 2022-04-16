@@ -4689,6 +4689,9 @@ function init()
 			if Platform ~= nil and Platform.gpuVendor == 'Intel' then
 				options[getOptionByID('shadowslider')] = nil
 				options[getOptionByID('shadows_opacity')] = nil
+
+				Spring.SendCommands("advmapshading 0")
+				Spring.SendCommands("Shadows 0 1024")
 			end
 		end
 	end
@@ -4931,11 +4934,10 @@ function widget:Initialize()
 			Spring.SetConfigInt("AdvMapShading", 0)
 			Spring.SendCommands("advmapshading 0")
 			Spring.SendCommands("Shadows 0 1024")
-			Spring.SetConfigInt("Shadows", 0)
 			Spring.SetConfigInt("ShadowMapSize", 1024)
+			Spring.SetConfigInt("Shadows", 0)
 			Spring.SetConfigInt("MSAALevel", 0)
 			Spring.SetConfigFloat("ui_opacity", 0.66)    -- set to be more opaque cause guishader isnt availible
-
 		else
 			Spring.SendCommands("water 4")
 			Spring.SetConfigInt("Water", 4)
