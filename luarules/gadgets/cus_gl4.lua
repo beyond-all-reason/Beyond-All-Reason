@@ -1269,12 +1269,18 @@ local function ProcessFeatures(features, drawFlags)
 	for i = 1, #features do
 		local featureID = features[i]
 		local drawFlag = drawFlags[i]
-
-		--Spring.Echo("ProcessFeature", featureID	, drawFlag)
-		if overriddenFeatures[featureID] == nil then --object was not seen
-			AddObject(-1 * featureID, drawFlag)
-		elseif overriddenFeatures[featureID] ~= drawFlag then --flags have changed
-			UpdateObject(-1 * featureID, drawFlag)
+		
+		-- TODO: this is the nastiest hack in the world, because zero is positive, and we can get features that have a featureID of 0. 
+		-- we will solve this by simply not CUS-ing a feature that has an ID of 0
+		-- I leave this wonderful bug to any future soul who has to maintain this
+		if featureID > 0 then 
+			--Spring.Echo("ProcessFeature", featureID	, drawFlag)
+			if overriddenFeatures[featureID] == nil then --object was not seen
+				AddObject(-1 * featureID, drawFlag)
+			elseif overriddenFeatures[featureID] ~= drawFlag then --flags have changed
+				UpdateObject(-1 * featureID, drawFlag)
+			end
+			processedFeatures[featureID] = processedCounter
 		end
 		processedFeatures[featureID] = processedCounter
 	end
