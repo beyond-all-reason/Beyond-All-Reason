@@ -553,7 +553,7 @@ if gadgetHandler:IsSyncedCode() then
 		until (not GetGroundBlocked(x, z) or tries > maxTries)
 
 		y = GetGroundHeight(x, z)
-		local unitID = CreateUnit(turret, x, y, z, "n", chickenTeamID)
+		local unitID = CreateUnit(turret, x, y, z, math.random(0,3), chickenTeamID)
 		if unitID then
 			idleOrderQueue[unitID] = { cmd = CMD.PATROL, params = { bx, by, bz }, opts = { "meta" } }
 			SetUnitBlocking(unitID, false, false)
@@ -706,7 +706,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if sx and sy and sz then
-			return CreateUnit(config.queenName, sx, sy, sz, "n", chickenTeamID)
+			return CreateUnit(config.queenName, sx, sy, sz, math.random(0,3), chickenTeamID)
 		end
 
 		local x, y, z
@@ -744,7 +744,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		until (blocking == 2 or tries > maxTries * 3)
 
-		return CreateUnit(config.queenName, x, y, z, "n", chickenTeamID)
+		return CreateUnit(config.queenName, x, y, z, math.random(0,3), chickenTeamID)
 
 	end
 
@@ -1065,7 +1065,7 @@ if gadgetHandler:IsSyncedCode() then
 				local bx, by, bz = GetUnitPosition(unitID)
 				local h = GetUnitHeading(unitID)
 				SetUnitBlocking(unitID, false, false)
-				local newUnitID = CreateUnit("chickenr2", bx, by, bz, "n", unitTeam)
+				local newUnitID = CreateUnit("chickenr2", bx, by, bz, math.random(0,3), unitTeam)
 				if newUnitID then
 					Spring.SetUnitNoDraw(newUnitID, true)
 					Spring.MoveCtrl.Enable(newUnitID)
@@ -1158,8 +1158,14 @@ if gadgetHandler:IsSyncedCode() then
 			spawnQueue[i] = nil
 			return
 		end
-		local unitID = CreateUnit(defs.unitName, x, y, z, "n", defs.team)
+		local unitID = CreateUnit(defs.unitName, x, y, z, math.random(0,3), defs.team)
+		
 		if unitID then
+			GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, { "shift" })
+			GiveOrderToUnit(unitID, CMD.MOVE, { x + math.random(-64, 64), y, z + math.random(-64, 64) }, { "shift" })
+			GiveOrderToUnit(unitID, CMD.MOVE, { x + math.random(-128, 128), y, z + math.random(-128, 128) }, { "shift" })
+			GiveOrderToUnit(unitID, CMD.MOVE, { x + math.random(-256, 256), y, z + math.random(-256, 256) }, { "shift" })
+			GiveOrderToUnit(unitID, CMD.MOVE, { x + math.random(-512, 512), y, z + math.random(-512, 512) }, { "shift" })
 			SetUnitExperience(unitID, mRandom() * expMod)
 			if mRandom() < 0.1 then
 				local mod = 0.75 - (mRandom() * 0.25)
@@ -1172,9 +1178,9 @@ if gadgetHandler:IsSyncedCode() then
 				heroChicken[unitID] = mod
 			end
 
-			if unitCanFly[GetUnitDefID(unitID)] then
-				GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, { "shift" })
-			end
+			--if unitCanFly[GetUnitDefID(unitID)] then
+				
+			--end
 
 			if queenID then
 				idleOrderQueue[unitID] = { cmd = CMD.FIGHT, params = getRandomMapPos(), opts = {} }
@@ -1183,7 +1189,7 @@ if gadgetHandler:IsSyncedCode() then
 				if targetCache and (unitID ~= queenID) and (mRandom(1, 15) == 5) then
 					idleOrderQueue[unitID] = { cmd = CMD.ATTACK, params = { targetCache }, opts = {} }
 				else
-					if mRandom(100) > 20 then
+					if mRandom(100) > 50 then
 						idleOrderQueue[unitID] = { cmd = CMD.FIGHT, params = chickenParams, opts = {} }
 					else
 						idleOrderQueue[unitID] = { cmd = CMD.MOVE, params = chickenParams, opts = {} }
