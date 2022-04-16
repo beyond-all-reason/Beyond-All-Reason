@@ -99,8 +99,10 @@ local function dbgt(t, name)
 	local count = 0
 	local res = ''
 	for k,v in pairs(t) do
-		res = res .. tostring(k) .. ':' .. tostring(v) ..','
-		count = count + 1
+		if type(k) == 'number' and type(v) == 'number' then 
+			res = res .. tostring(k) .. ':' .. tostring(v) ..','
+			count = count + 1
+		end
 	end
 	Spring.Echo(tostring(gf).. " " ..name .. ' #' .. tostring(count) .. ' {'..res .. '}')
 	return res
