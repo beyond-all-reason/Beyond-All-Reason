@@ -182,6 +182,9 @@ local function PS3()
 	DeadZone = 0.01
 end
 
+local function toggleRecording() end
+local function togglePlayback() end 
+
 ------------- BIND COMMANDS TO BUTTONS DEBOUNCED! -------------------------------
 local buttonCommands = { -- key is button number, value is command like you would type into console without the beginning /
 	[Abutton[2]] = function() Spring.SendCommands("pause") end,
@@ -191,8 +194,10 @@ local buttonCommands = { -- key is button number, value is command like you woul
 	[RShoulderbutton[2]] = function() Spring.SendCommands("speedup") end,
 	[RStickButton[2]] = function() Spring.SendCommands("MiniMap Maximize") end,
 	[LStickButton[2]] = function() Spring.SendCommands("luaui togglewidget Defense Range GL4") end,
-	[SelectButton[2]] = function() Spring.SendCommands("SpecFullView") end,
-	[StartButton[2]] = function() Spring.SendCommands("option dof") end,
+	--[SelectButton[2]] = function() Spring.SendCommands("SpecFullView") end,
+	--[StartButton[2]] = function() Spring.SendCommands("option dof") end,
+	[SelectButton[2]] = function() toggleRecording() end,
+	[StartButton[2]] = function() togglePlayback() end,
 }
 
 
@@ -216,6 +221,61 @@ local joystate = {}
 local smoothing = 0.9	--amount of smoothing
 local analogexponent = 1.8 -- amount of analog stick exponentiation
 local debugMode = false
+
+local isrecording = false
+local isplayingback = false
+local playbackpos = 1
+local storedCameraSequence = {}
+local joystickCamFile = "Joystick_Camera_Recordings.lua"
+
+local function strtable(t)
+	local res = '{'
+	for k,v in pairs(t) do
+		--if k == 'oldHeight' or k == 'name' or k == 'mode' then 
+			-- dont save these
+		--else
+			res = res .. tostring(k) .. '=' .. tostring(v) ..', '
+		--end
+	end
+	return res .. '}'
+end
+
+local function SaveRecording() 
+	local jcf = io.open(joystickCamFile,'a')
+	jcf:write(string.format("local recordingID_%s = {\n",tostring(os.date("%Y%m%d_%H%M%S"))))
+	for i=1, #storedCameraSequence do 
+		jcf:write(string.format("    [%d] = %s ,\n", i, strtable(storedCameraSequence[i])))
+	end
+	jcf:write(string.format("}\n"))
+	jcf:close()
+end 
+
+toggleRecording = function ()  
+	if isplayingback then 
+		Spring.Echo("Cant start playback while recording")
+		return 
+	end
+	isrecording = not isrecording
+	Spring.Echo("Camera joystick recording toggled to", isrecording)
+	if isrecording then 
+		storedCameraSequence = {}
+	else
+		SaveRecording()
+	end
+end 
+
+togglePlayback = function()
+	if isrecording then 
+		Spring.Echo("Cant start playback while recording")
+		return
+	end
+	isplayingback = not isplayingback
+	Spring.Echo("Camera joystick playback toggled to", isrecording)
+	
+	if isplayingback then 
+		playbackpos = 1
+	end
+end
 --------------------------------------------------------------------------------
 
 local function dumpConfig()
@@ -400,7 +460,17 @@ local function axesexponent(axin)
 end
 
 
-function widget:Update(dt) -- dt in seconds
+function widget:Update(dt) -- dt in seconds	
+	if isplayingback then 
+		playbackpos = playbackpos + 1 
+		if playbackpos <= #storedCameraSequence then 
+			spSetCameraState(storedCameraSequence[playbackpos]) 
+		else
+			playbackpos = 1
+			isplayingback = false 
+		end
+	end
+	
 	if set==nil or #set<=0 then
 		return
 	end
@@ -425,6 +495,7 @@ function widget:Update(dt) -- dt in seconds
 		end
 	end
 
+	if isplayingback then return end 
 
 	local cs = spGetCameraState()
 
@@ -519,6 +590,9 @@ function widget:Update(dt) -- dt in seconds
 		--if cs.py < gh + 32 then cs.py =gh + 32 end 
 		
 		spSetCameraState(cs)
+		if isrecording then
+			storedCameraSequence[#storedCameraSequence + 1] = cs
+		end
 	end
 
 end
