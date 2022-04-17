@@ -63,6 +63,12 @@ end
 local function refreshDefs()
 	refreshUnitDefs()
 	refreshFeatureDefs()
+
+	for name, featureDef in pairs(FeatureDefNames) do
+		if not featureDef.customParams.fromunit and featureDef.translatedDescription == 'features.names.' .. featureDef.name then
+			Spring.Log("LuaUI", LOG.ERROR, "Missing I18N for map feature: " .. name .. ", " .. featureDef.tooltip)
+		end
+	end
 end
 
 return {
