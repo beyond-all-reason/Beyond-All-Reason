@@ -25,6 +25,8 @@ local teamColorAlphaMult = 1.25
 local teamColorMinAlpha = 0.7
 local fadeTime = 0.085
 
+local vsx, vsy = Spring.GetViewGeometry()
+
 local hidden = (Spring.GetGameFrame() <= hideBelowGameframe)
 local selectedUnits = Spring.GetSelectedUnits()
 local unitIsSelected = false
@@ -147,27 +149,35 @@ function widget:SelectionChanged(sel)
 	processSelection()
 end
 
+function widget:ViewResize()
+	vsx, vsy = Spring.GetViewGeometry()
+end
+
 function widget:Update()
 	if hidden and Spring.GetGameFrame() > hideBelowGameframe then
 		hidden = false
 	end
 	if WG.StopHighlightUnitGL4 then
 		local mx, my = spGetMouseState()
-		local type, data = spTraceScreenRay(mx, my)
-		local unitID
-		local addedUnitID
-		if type == 'unit' and not Spring.IsGUIHidden() then
-			unitID = data
-			if not unitshapes[unitID] then
-				addUnitShape(unitID)
-				addedUnitID = unitID
+		if mx == vsx/2 and my+1 == vsy/2 then	-- dont highlight unit when cursor is in center and we're likely camera-panning (cause I dont know how to detect that)
+			clearUnitshapes(nil, true)
+		else
+			local type, data = spTraceScreenRay(mx, my)
+			local unitID
+			local addedUnitID
+			if type == 'unit' and not Spring.IsGUIHidden() then
+				unitID = data
+				if not unitshapes[unitID] then
+					addUnitShape(unitID)
+					addedUnitID = unitID
+				end
 			end
-		end
-		clearUnitshapes(unitID)
+			clearUnitshapes(unitID)
 
-		for unitID, v in pairs(fadeUnits) do
-			if unitID ~= addedUnitID then
-				addUnitShape(unitID)
+			for unitID, v in pairs(fadeUnits) do
+				if unitID ~= addedUnitID then
+					addUnitShape(unitID)
+				end
 			end
 		end
 	end

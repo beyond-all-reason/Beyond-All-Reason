@@ -355,13 +355,13 @@ end
 
 local function switchPlayerCam()
 	nextTrackingPlayerChange = os.clock() + playerChangeDelay
-	local scope = 1 + math.floor(1 + tsOrderedPlayerCount / 2)
+	local scope = 1 + math.floor(1 + tsOrderedPlayerCount / 1.7)
 	if tsOrderedPlayerCount <= 2 then
 		scope = 2
 	elseif tsOrderedPlayerCount <= 6 then
-		scope = 1 + math.floor(1 + tsOrderedPlayerCount / 1.5)
+		scope = 1 + math.floor(1 + tsOrderedPlayerCount / 1.3)
 	elseif tsOrderedPlayerCount <= 10 then
-		scope = 1 + math.floor(1 + tsOrderedPlayerCount / 1.75)
+		scope = 1 + math.floor(1 + tsOrderedPlayerCount / 1.5)
 	end
 	local orderID = math.random(1, scope)
 
@@ -371,7 +371,7 @@ local function switchPlayerCam()
 		-- prevent same player POV again
 		orderID = orderID - 1
 		if orderID < 1 then
-			orderID = 2
+			orderID = 3
 		end
 	end
 	prevOrderID = orderID
