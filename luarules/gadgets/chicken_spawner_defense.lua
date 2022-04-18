@@ -1180,7 +1180,7 @@ if gadgetHandler:IsSyncedCode() then
 				if targetCache and (unitID ~= queenID) and (mRandom(1, 15) == 5) then
 					idleOrderQueue[unitID] = { cmd = CMD.ATTACK, params = { targetCache }, opts = {} }
 				else
-					if mRandom(100) > 50 or UnitDefNames[defs.unitName].canFly then
+					if mRandom(100) > 50 or unitCanFly[GetUnitDefID(unitID)] then
 						idleOrderQueue[unitID] = { cmd = CMD.FIGHT, params = chickenParams, opts = {} }
 					else
 						idleOrderQueue[unitID] = { cmd = CMD.MOVE, params = chickenParams, opts = {} }
