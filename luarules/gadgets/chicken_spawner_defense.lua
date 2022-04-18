@@ -742,7 +742,11 @@ if gadgetHandler:IsSyncedCode() then
 				blocking = 1
 			end
 
-		until (blocking == 2 or tries > maxTries * 3)
+			if positionCheckLibrary.LavaCheck(x, y, z, 256) then
+				blocking = 1
+			end	
+
+		until (blocking == 2 or tries > maxTries * 100)
 
 		return CreateUnit(config.queenName, x, y, z, math.random(0,3), chickenTeamID)
 
