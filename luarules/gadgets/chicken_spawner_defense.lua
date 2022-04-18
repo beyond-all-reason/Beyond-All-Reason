@@ -760,7 +760,7 @@ if gadgetHandler:IsSyncedCode() then
 		local cCount = 0
 		local queenBurrowSpawnMultiplier = 1
 		if queenID then
-			queenBurrowSpawnMultiplier = 0.33
+			queenBurrowSpawnMultiplier = 0.20
 			-- spawn units from queen
 			if config.queenSpawnMult > 0 then
 				for i = 1, config.queenSpawnMult, 1 do
@@ -1096,12 +1096,10 @@ if gadgetHandler:IsSyncedCode() then
 								addChickenTarget(queenID, targetCache)
 							end
 							qDamage = 0 - mRandom(50000, 250000)
-							Wave()
 							qMove = true
 						else
 							idleOrderQueue[queenID] = { cmd = CMD.STOP, params = {}, opts = {} }
 							qDamage = 0
-							Wave()
 						end
 					else
 						idleOrderQueue[queenID] = { cmd = CMD.STOP, params = {}, opts = {} }
