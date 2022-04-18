@@ -521,54 +521,11 @@ if gadgetHandler:IsSyncedCode() then
 
 	end
 
-	local function SpawnTurret(burrowID, turret)
-
-		if mRandom() > config.defenderChance or not turret or burrows[burrowID] >= config.maxTurrets then
-			return
-		end
-
-		local x, y, z
-		local bx, by, bz = GetUnitPosition(burrowID)
-		if not bx then
-			return
-		end
-		local tries = 0
-		local s = config.spawnSquare
-
-		repeat
-			x = mRandom(bx - s, bx + s)
-			z = mRandom(bz - s, bz + s)
-			s = s + config.spawnSquareIncrement
-			tries = tries + 1
-			if (x >= MAPSIZEX) then
-				x = (MAPSIZEX - mRandom(1, 40))
-			elseif (x <= 0) then
-				x = mRandom(1, 40)
-			end
-			if (z >= MAPSIZEZ) then
-				z = (MAPSIZEZ - mRandom(1, 40))
-			elseif (z <= 0) then
-				z = mRandom(1, 40)
-			end
-		until (not GetGroundBlocked(x, z) or tries > maxTries)
-
-		y = GetGroundHeight(x, z)
-		local unitID = CreateUnit(turret, x, y, z, math.random(0,3), chickenTeamID)
-		if unitID then
-			idleOrderQueue[unitID] = { cmd = CMD.PATROL, params = { bx, by, bz }, opts = { "meta" } }
-			SetUnitBlocking(unitID, false, false)
-			SetUnitExperience(unitID, mRandom() * expMod)
-			turrets[unitID] = { burrowID, t }
-			burrows[burrowID] = burrows[burrowID] + 1
-		end
-
-	end
-
 	local function SpawnBurrow(number)
-		if queenID then
-			-- don't spawn new burrows when queen is there
-			return
-		end
+		-- if queenID then
+		-- 	-- don't spawn new burrows when queen is there
+		-- 	return
+		-- end
 
 		local unitDefID = UnitDefNames[config.burrowName].id
 
@@ -709,47 +666,80 @@ if gadgetHandler:IsSyncedCode() then
 			return CreateUnit(config.queenName, sx, sy, sz, math.random(0,3), chickenTeamID)
 		end
 
-		local x, y, z
+		local x, z, y
 		local tries = 0
-
+		local canSpawnQueen = false
 		repeat
-			x = mRandom(1, (MAPSIZEX - 1))
-			z = mRandom(1, (MAPSIZEZ - 1))
+			if config.burrowSpawnType == "initialbox" then
+				x = mRandom(lsx1, lsx2)
+				z = mRandom(lsz1, lsz2)
+			elseif config.burrowSpawnType == "alwaysbox" then
+				x = mRandom(lsx1, lsx2)
+				z = mRandom(lsz1, lsz2)
+			elseif config.burrowSpawnType == "initialbox_post" then
+				lsx1 = math.max(lsx1 * 0.99, config.spawnSquare)
+				lsz1 = math.max(lsz1 * 0.99, config.spawnSquare)
+				lsx2 = math.min(lsx2 * 1.01, MAPSIZEX - config.spawnSquare)
+				lsz2 = math.min(lsz2 * 1.01, MAPSIZEZ - config.spawnSquare)
+				x = mRandom(lsx1, lsx2)
+				z = mRandom(lsz1, lsz2)
+			else
+				x = mRandom(config.spawnSquare, MAPSIZEX - config.spawnSquare)
+				z = mRandom(config.spawnSquare, MAPSIZEZ - config.spawnSquare)
+			end
+
 			y = GetGroundHeight(x, z)
 			tries = tries + 1
-			local blocking = TestBuildOrder(LARGE_UNIT, x, y, z, 1)
 
-			local proximity = GetUnitsInCylinder(x, z, config.minBaseDistance)
-			local vicinity = GetUnitsInCylinder(x, z, config.maxBaseDistance)
-			local humanUnitsInVicinity = false
-			local humanUnitsInProximity = false
-
-			for i = 1, #vicinity, 1 do
-				if GetUnitTeam(vicinity[i]) ~= chickenTeamID then
-					humanUnitsInVicinity = true
-					break
+			canSpawnQueen = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, false)
+			
+			if canSpawnQueen then
+				if tries < maxTries*3 then
+					canSpawnQueen = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, true, true)
+				else
+					canSpawnQueen = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, true, false)
 				end
 			end
 
-			for i = 1, #proximity, 1 do
-				if GetUnitTeam(proximity[i]) ~= chickenTeamID then
-					humanUnitsInProximity = true
-					break
+			if canSpawnQueen then
+				canSpawnQueen = positionCheckLibrary.OccupancyCheck(x, y, z, config.minBaseDistance*0.25)
+			end
+
+			if canSpawnQueen then
+				canSpawnQueen = positionCheckLibrary.MapEdgeCheck(x, y, z, 256)
+			end
+
+		until (canSpawnQueen == true or tries >= maxTries * 6)
+
+		if canSpawnQueen then
+			return CreateUnit(config.queenName, x, y, z, math.random(0,3), chickenTeamID)
+		else
+			for i = 1,100 do
+				local x = mRandom(RaptorStartboxXMin, RaptorStartboxXMax)
+				local z = mRandom(RaptorStartboxZMin, RaptorStartboxZMax)
+				local y = GetGroundHeight(x, z)
+
+				canSpawnQueen = positionCheckLibrary.StartboxCheck(x, y, z, 64, chickenAllyTeamID, true)
+				if canSpawnQueen then
+					canSpawnQueen = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, false)
+				end
+				if canSpawnQueen then
+					canSpawnQueen = positionCheckLibrary.MapEdgeCheck(x, y, z, 128)
+				end
+				if canSpawnQueen then
+					canSpawnQueen = positionCheckLibrary.OccupancyCheck(x, y, z, 128)
+				end
+				if canSpawnQueen then
+					return CreateUnit(config.queenName, x, y, z, math.random(0,3), chickenTeamID)
 				end
 			end
+		end
 
-			if humanUnitsInProximity or not humanUnitsInVicinity then
-				blocking = 1
-			end
-
-			if positionCheckLibrary.LavaCheck(x, y, z, 256) then
-				blocking = 1
-			end	
-
-		until (blocking == 2 or tries > maxTries * 100)
-
+		-- Force Spawn if everything else failed
+		local x = mRandom(RaptorStartboxXMin, RaptorStartboxXMax)
+		local z = mRandom(RaptorStartboxZMin, RaptorStartboxZMax)
+		local y = GetGroundHeight(x, z)
 		return CreateUnit(config.queenName, x, y, z, math.random(0,3), chickenTeamID)
-
 	end
 
 	local function Wave()
@@ -1113,9 +1103,6 @@ if gadgetHandler:IsSyncedCode() then
 							qDamage = 0
 							Wave()
 						end
-						for i = 1, 5, 1 do
-							SpawnTurret(queenID, config.bonusTurret)
-						end
 					else
 						idleOrderQueue[queenID] = { cmd = CMD.STOP, params = {}, opts = {} }
 						qDamage = 0
@@ -1358,45 +1345,6 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-
-
-		-- if not noChickenStartbox then
-		-- 	canSpawnDefence = true
-		-- 	-- lsx1 - xmin, lsz1 - zmin, lsx2 - xmax, lsz2 - zmax
-		-- 	local r = math.random(0,3)
-		-- 	local spread = 80
-		-- 	local spawnPosX = math.random(RaptorStartboxXMin,RaptorStartboxXMax)
-		-- 	local spawnPosZ = math.random(RaptorStartboxZMin,RaptorStartboxZMax)
-
-		-- 	if spawnPosX > MAPSIZEX - spread + 1 or spawnPosX < spread + 1 or spawnPosZ > MAPSIZEZ - spread + 1 or spawnPosZ < spread + 1 then
-		-- 		canSpawnDefence = false
-		-- 	end
-
-		-- 	local spawnPosX = spawnPosX + math.random(-spread*2,spread*2)
-		-- 	local spawnPosZ = spawnPosZ + math.random(-spread*2,spread*2)
-
-		-- 	if spawnPosX > MAPSIZEX or spawnPosX < 0 or spawnPosZ > MAPSIZEZ or spawnPosZ < 0 then
-		-- 		canSpawnDefence = false
-		-- 	end
-
-		-- 	if canSpawnDefence then
-		-- 		local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-		-- 		local canSpawnDefence = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-		-- 		if canSpawnDefence then
-		-- 			canSpawnDefence = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-		-- 		end
-		-- 		if canSpawnDefence then
-		-- 			local pickedTurret = "chickend1"
-		-- 			local unitID = Spring.CreateUnit(pickedTurret, spawnPosX, spawnPosY, spawnPosZ, spawnDirection, chickenTeamID)
-		-- 			if unitID then
-		-- 				Spring.GiveOrderToUnit(unitID, CMD.PATROL, {spawnPosX + math.random(-128,128), spawnPosY, spawnPosZ + math.random(-128,128)}, {"meta"})
-		-- 				Spring.SetUnitHealth(unitID, 10)
-		-- 				SetUnitBlocking(unitID, false, false)
-		-- 				SetUnitExperience(unitID, mRandom() * expMod)
-		-- 			end
-		-- 		end
-		-- 	end
-		-- end
 
 	local function spawnStartBoxProtectionLight()
 		local burrowCount = SetCount(burrows)
@@ -1757,10 +1705,6 @@ if gadgetHandler:IsSyncedCode() then
 					idleOrderQueue[turretID] = { cmd = CMD.STOP, params = {}, opts = {} }
 					turrets[turretID] = nil
 				end
-			end
-
-			for burrowID in pairs(burrows) do
-				SpawnTurret(burrowID, config.bonusTurret)
 			end
 
 			for i, defs in pairs(spawnQueue) do
