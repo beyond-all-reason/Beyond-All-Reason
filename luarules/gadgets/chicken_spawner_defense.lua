@@ -764,8 +764,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local cCount = 0
-
+		local queenBurrowSpawnMultiplier = 1
 		if queenID then
+			queenBurrowSpawnMultiplier = 0.33
 			-- spawn units from queen
 			if config.queenSpawnMult > 0 then
 				for i = 1, config.queenSpawnMult, 1 do
@@ -783,7 +784,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
-			return cCount
+			--return cCount
 		end
 
 		for burrowID in pairs(burrows) do
@@ -799,13 +800,13 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			for i, sString in pairs(squad) do
 				local skipSpawn = false
-				if cCount > chickensPerPlayer and mRandom() > config.spawnChance then
+				if cCount > chickensPerPlayer and mRandom() > config.spawnChance*queenBurrowSpawnMultiplier then
 					skipSpawn = true
 				end
-				if skipSpawn and chickenDebtCount > 0 and mRandom() > config.spawnChance then
-					chickenDebtCount = (chickenDebtCount - 1)
-					skipSpawn = false
-				end
+				-- if skipSpawn and chickenDebtCount > 0 and mRandom() > config.spawnChance*queenBurrowSpawnMultiplier then
+				-- 	chickenDebtCount = (chickenDebtCount - 1)
+				-- 	skipSpawn = false
+				-- end
 				if newWaveSquadSpawn then
 					skipSpawn = false
 				end
@@ -1589,7 +1590,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			if burrowCount > 0 and ((config.chickenSpawnRate < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount*(math.random(0,50)*0.01) and (t - timeOfLastWave) > 2)) then
 				local cCount = Wave()
-				if cCount and cCount > 0 and (not queenID) then
+				if cCount and cCount > 0 then
 					chickenEvent("wave", cCount, currentWave)
 				end
 				lastWaveUnitCount = cCount
