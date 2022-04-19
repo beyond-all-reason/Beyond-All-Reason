@@ -18,7 +18,7 @@ local chicken_egg =  {
 
 local eggs = {}
 local sizes = {"s","m","l",}
-local colors = {"pink","white","red",}
+local colors = {"pink","white","red", "blue", "darkgreen", "darkred", "green", "yellow"}
 
 for _, size in pairs(sizes) do
     for _, color in pairs(colors) do

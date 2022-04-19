@@ -1555,7 +1555,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local chickenEggSizes = {"s", "m", "l"}
-	local chickenEggColors = {"pink","white","red"}
+	local chickenEggColors = {"pink","white","red", "blue", "darkgreen", "darkred", "green", "yellow"}
 
 	local function spawnRandomEgg(x,y,z)
 		local egg = Spring.CreateFeature("chicken_egg_"..chickenEggSizes[math.random(1,#chickenEggSizes)].."_"..chickenEggColors[math.random(1,#chickenEggColors)], x, y, z, math.random(-999999,999999), chickenTeamID)

@@ -33,7 +33,7 @@ return {
 		movementclass = "CHICKBIG",
 		noautofire = false,
 		nochasecategory = "VTOL",
-		objectname = "Chickens/chickena.s3o",
+		objectname = "Chickens/chickene2.s3o",
 		onlytargetcategory2 = "VTOL",
 		script = "Chickens/chickena1.cob",
 		seismicsignature = 0,
