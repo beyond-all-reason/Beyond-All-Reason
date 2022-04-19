@@ -318,9 +318,9 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 		  vertex = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
 		  fragment = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
 		  geometry = gsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
-		  uniformInt = {
+		  uniformInt = (shaderConfig.USETEXTURE== 1 and {
 				DrawPrimitiveAtUnitTexture = 0;
-			},
+			}) or {}, -- dont pass any texture units to this unless told to do so
 		uniformFloat = {
 			addRadius = 0.0,
 			iconDistance = 20000.0,
