@@ -42,6 +42,7 @@ return {
 			prioritytarget = "air",
 			removewait = true,
 			subfolder = "corbuildings/landdefenceoffence",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
