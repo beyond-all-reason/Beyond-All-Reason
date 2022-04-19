@@ -41,6 +41,7 @@ return {
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armgantry",
+			techlevel = 3,
 		},
 		featuredefs = {
 			dead = {
