@@ -313,8 +313,13 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickens3"].id] = { distance = 440, chance = 0.1 },
 		[UnitDefNames["chickenh5"].id] = { distance = 300, chance = 0.5 },
 		[UnitDefNames["chickene1"].id] = { distance = 300, chance = 1 },
-		[UnitDefNames["chickene2"].id] = { distance = 200, chance = 0.001 }
-		
+		[UnitDefNames["chickene2"].id] = { distance = 200, chance = 0.01 },
+		[UnitDefNames["ve_chickenq"].id] = { distance = 1000, chance = 0.1 },
+		[UnitDefNames["e_chickenq"].id] = { distance = 800, chance = 0.05 },
+		[UnitDefNames["n_chickenq"].id] = { distance = 600, chance = 0.04 },
+		[UnitDefNames["h_chickenq"].id] = { distance = 400, chance = 0.03 },
+		[UnitDefNames["vh_chickenq"].id] = { distance = 200, chance = 0.02 },
+		[UnitDefNames["epic_chickenq"].id] = { distance = 100, chance = 0.01 },
 	}
 	local COWARD = {
 		[UnitDefNames["chickenh1"].id] = { distance = 300, chance = 0.5 },
@@ -323,7 +328,13 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenw1c"].id] = { distance = 900, chance = 0.33 },
 		[UnitDefNames["chickenh5"].id] = { distance = 2000, chance = 0.5 },
 		[UnitDefNames["chickene1"].id] = { distance = 2000, chance = 1 },
-		[UnitDefNames["chickene2"].id] = { distance = 2000, chance = 1 }
+		[UnitDefNames["chickene2"].id] = { distance = 2000, chance = 1 },
+		[UnitDefNames["ve_chickenq"].id] = { distance = 1000, chance = 0.1 },
+		[UnitDefNames["e_chickenq"].id] = { distance = 800, chance = 0.05 },
+		[UnitDefNames["n_chickenq"].id] = { distance = 600, chance = 0.04 },
+		[UnitDefNames["h_chickenq"].id] = { distance = 400, chance = 0.03 },
+		[UnitDefNames["vh_chickenq"].id] = { distance = 200, chance = 0.02 },
+		[UnitDefNames["epic_chickenq"].id] = { distance = 100, chance = 0.01 },
 	}
 	-- local EGG_DROPPER = {
 	-- 	[UnitDefNames["chicken1"].id] = "chicken_egg_s_pink",
@@ -1041,7 +1052,8 @@ if gadgetHandler:IsSyncedCode() then
 			local x, y, z = GetUnitPosition(attackerID)
 			if x and ux then
 				local angle = math.atan2(ux - x, uz - z)
-				idleOrderQueue[attackerID] = { cmd = CMD.MOVE, params = { x - (math.sin(angle) * SKIRMISH[attackerDefID].distance), y, z - (math.cos(angle) * SKIRMISH[attackerDefID].distance) }, opts = {} }
+				local distance = mRandom(math.ceil(SKIRMISH[attackerDefID].distance*0.75), math.floor(SKIRMISH[attackerDefID].distance*1.25))
+				idleOrderQueue[attackerID] = { cmd = CMD.MOVE, params = { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, opts = {} }
 			end
 		elseif COWARD[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < COWARD[unitDefID].chance) then
 			local curH, maxH = GetUnitHealth(unitID)
@@ -1050,26 +1062,8 @@ if gadgetHandler:IsSyncedCode() then
 				local x, y, z = GetUnitPosition(unitID)
 				if x and ax then
 					local angle = math.atan2(ax - x, az - z)
-					idleOrderQueue[unitID] = { cmd = CMD.MOVE, params = { x - (math.sin(angle) * COWARD[unitDefID].distance), y, z - (math.cos(angle) * COWARD[unitDefID].distance) }, opts = {} }
-				end
-			end
-		elseif (not SKIRMISH[attackerDefID]) and (unitTeam ~= chickenTeamID) and attackerID and (attackerTeam == chickenTeamID) and (mRandom() < 0.05) then
-			local ux, _, uz = GetUnitPosition(unitID)
-			local x, y, z = GetUnitPosition(attackerID)
-			if x and ux then
-				local angle = math.atan2(ux - x, uz - z)
-				local distance = mRandom(50, 500)
-				idleOrderQueue[attackerID] = { cmd = CMD.MOVE, params = { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance) }, opts = {} }
-			end
-		elseif (not COWARD[unitDefID]) and (unitTeam == chickenTeamID) and attackerID and (mRandom() < 0.2) then
-			local curH, maxH = GetUnitHealth(unitID)
-			if curH and maxH and curH < (maxH * 0.8) then
-				local ax, _, az = GetUnitPosition(attackerID)
-				local x, y, z = GetUnitPosition(unitID)
-				if x and ax then
-					local angle = math.atan2(ax - x, az - z)
-					local distance = mRandom(500, 2000)
-					idleOrderQueue[unitID] = { cmd = CMD.MOVE, params = { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance) }, opts = {} }
+					local distance = mRandom(math.ceil(COWARD[unitDefID].distance*0.75), math.floor(COWARD[unitDefID].distance*1.25))
+					idleOrderQueue[unitID] = { cmd = CMD.MOVE, params = { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, opts = {} }
 				end
 			end
 		end
