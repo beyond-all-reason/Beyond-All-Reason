@@ -30,7 +30,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 3.5,
 		maxwaterdepth = 0,
-		movementclass = "CHICKSMALL",
+		movementclass = "CHICKSMALLHOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Chickens/chicken1d.s3o",
@@ -52,7 +52,7 @@ return {
 		turnrate = 1840,
 		unitname = "chicken1d",
 		upright = false,
-		waterline = 8,
+		waterline = 16,
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens",

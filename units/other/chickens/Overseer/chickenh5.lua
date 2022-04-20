@@ -35,7 +35,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 3.7,
 		maxwaterdepth = 0,
-		movementclass = "CHICKSMALL",
+		movementclass = "CHICKSMALLHOVER",
 		nanocolor = "0.7 0.15 0.15",
 		noautofire = false,
 		nochasecategory = "VTOL",
@@ -57,7 +57,7 @@ return {
 		turnrate = 1840,
 		unitname = "chickenh5",
 		upright = false,
-		waterline = 8,
+		waterline = 30,
 		workertime = 450,
 		customparams = {
 			maxrange = "200",

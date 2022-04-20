@@ -465,6 +465,19 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 
+	CHICKSMALLHOVER = {
+		badslope = 22,
+		badwaterslope = 255,
+		crushstrength = 25,
+		depthmod = 0,
+		footprintx = 3,
+		footprintz = 3,
+		maxslope = 22,
+		--slopeMod = 32,
+		maxwaterslope = 255,
+		speedmodclass = 2, -- hover
+	},
+
 	CHICKBIG = {
 		badslope = 22,
 		badwaterslope = 255,
