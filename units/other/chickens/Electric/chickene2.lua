@@ -94,6 +94,7 @@ return {
 				energypershot = 0,
 				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
 				firestarter = 50,
+				firesubmersed = true,
 				impactonly = 0,
 				impulseboost = 0,
 				impulsefactor = 0,
@@ -115,6 +116,7 @@ return {
 				turret = true,
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
+				waterweapon = true,
 				customparams = {
 					expl_light_color = "1 0.2 0.2",
 					expl_light_color = "1 0.2 0.2",
