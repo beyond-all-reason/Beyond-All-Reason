@@ -553,7 +553,7 @@
 				"difficultyLevel": "Difficulty: %{count}"
 			},
 			"loadScreen": {
-				"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.      Your experience might be sub optimal."
+				"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't work properly."
 			},
 			"initialSpawn": {
 				"ready": "Ready",
