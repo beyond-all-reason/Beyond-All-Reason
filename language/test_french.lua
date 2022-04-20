@@ -85,7 +85,7 @@ return {
 					quit = "Le Quit",
 					resign = "Le Resign",
 					reallyQuit = "Le Are you sure you want to quit?",
-					reallyQuitResign = "Le Are you sure you want to resign or quit to desktop?",
+					reallyQuitResign = "Le Are you sure you want to resign or return to game lobby?",
 					reallyResign = "Le Are you sure you want to resign?",
 					reallyResignSpectate = "Le Are you sure you want to resign and spectate?",
 				},
