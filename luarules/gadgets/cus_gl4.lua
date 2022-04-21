@@ -1368,6 +1368,11 @@ local function ExecuteDrawPass(drawPass)
 end
 
 local function initGL4()
+	if Platform.glHaveGL4 ~= true then 
+		Spring.Echo("[CUS GL4] No GL4 support for this gpu as indicated by Platform.glHaveGL4, disabling.")
+		return
+	end
+	
 	shaders[0 ] = {}
 	for k = 1, #drawBinKeys do
 		local flag = drawBinKeys[k]
