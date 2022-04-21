@@ -301,10 +301,6 @@ if gadgetHandler:IsSyncedCode() then
 		return total
 	end
 
-	local empGoo = {}
-	empGoo[WeaponDefNames['chickenr1_goolauncher'].id] = WeaponDefNames['chickenr1_goolauncher'].damages[1]
-	empGoo[WeaponDefNames['weaver_death'].id] = WeaponDefNames['weaver_death'].damages[1]
-	local LOBBER = UnitDefNames["chickenr1"].id
 	local SKIRMISH = {
 		[UnitDefNames["chickens1"].id] = { distance = 270, chance = 0.33 },
 		[UnitDefNames["chickens2"].id] = { distance = 620, chance = 0.5 },
@@ -772,10 +768,10 @@ if gadgetHandler:IsSyncedCode() then
 		local cCount = 0
 		local queenBurrowSpawnMultiplier = 1
 		if queenID then
-			queenBurrowSpawnMultiplier = 0.20
+			queenBurrowSpawnMultiplier = 0.2
 			-- spawn units from queen
 			if config.queenSpawnMult > 0 then
-				for i = 1, config.queenSpawnMult*5, 1 do
+				for i = 1, config.queenSpawnMult*SetCount(humanTeams), 1 do
 					local waveLevelPower = mRandom(1, currentWave*currentWave)
 					local waveLevel = math.ceil(math.sqrt(waveLevelPower))
 					local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
@@ -1029,10 +1025,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 
-		if empGoo[weaponID] and unitTeam ~= chickenTeamID and config.lobberEMPTime > 0 then
-			stunUnit(unitID, ((damage / empGoo[weaponID]) * config.lobberEMPTime))
-		end
-
 		if chickenBirths[attackerID] then
 			chickenBirths[attackerID].deathDate = (t + config.maxAge)
 		end
@@ -1066,65 +1058,6 @@ if gadgetHandler:IsSyncedCode() then
 			local ax, _, az = GetUnitPosition(attackerID)
 			if ax then
 				idleOrderQueue[unitID] = {cmd = CMD.MOVE, params = {ax, y, az}, opts = {} }
-			end
-		end
-
-		if unitDefID == LOBBER then
-			local nSpawn = false
-			if GetUnitHealth(unitID) < 2475 and damage < (2000 + mRandom(1, 500)) then
-				nSpawn = true
-			end
-			if nSpawn then
-				local bx, by, bz = GetUnitPosition(unitID)
-				local h = GetUnitHeading(unitID)
-				SetUnitBlocking(unitID, false, false)
-				local newUnitID = CreateUnit("chickenr2", bx, by, bz, math.random(0,3), unitTeam)
-				if newUnitID then
-					Spring.SetUnitNoDraw(newUnitID, true)
-					Spring.MoveCtrl.Enable(newUnitID)
-					Spring.MoveCtrl.SetHeading(newUnitID, h)
-					Spring.MoveCtrl.Disable(newUnitID)
-					SetUnitExperience(newUnitID, mRandom() * expMod)
-					Spring.SetUnitNoDraw(newUnitID, false)
-					deathQueue[unitID] = { selfd = false, reclaimed = true }
-					idleOrderQueue[newUnitID] = { cmd = CMD.STOP, params = {}, opts = {} }
-				end
-				return
-			end
-		elseif unitID == queenID then
-			if paralyzer then
-				SetUnitHealth(unitID, { paralyze = 0 })
-				return
-			end
-			qDamage = (qDamage + damage)
-			if qDamage > queenMaxHP / 10 then
-				if qMove then
-					idleOrderQueue[queenID] = { cmd = CMD.STOP, params = {}, opts = {} }
-					qMove = false
-					qDamage = 0 - mRandom(0, 100000)
-				else
-					local cC = ChooseTarget()
-					local xQ, _, zQ = GetUnitPosition(queenID)
-					if cC then
-						local angle = math.atan2((cC[1] - xQ), (cC[3] - zQ))
-						local dist = math.sqrt(((cC[1] - xQ) * (cC[1] - xQ)) + ((cC[3] - zQ) * (cC[3] - zQ))) * 0.75
-						if dist < 1700 then
-							GiveOrderToUnit(queenID, CMD.MOVE, { (xQ + (math.sin(angle) * dist)), cC[2], (zQ + (math.cos(angle) * dist)) }, 0)
-							GiveOrderToUnit(queenID, CMD.FIGHT, cC, { "shift" })
-							if targetCache then
-								addChickenTarget(queenID, targetCache)
-							end
-							qDamage = 0 - mRandom(50000, 250000)
-							qMove = true
-						else
-							idleOrderQueue[queenID] = { cmd = CMD.STOP, params = {}, opts = {} }
-							qDamage = 0
-						end
-					else
-						idleOrderQueue[queenID] = { cmd = CMD.STOP, params = {}, opts = {} }
-						qDamage = 0
-					end
-				end
 			end
 		end
 	end
