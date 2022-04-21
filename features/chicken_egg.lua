@@ -19,6 +19,8 @@ local chicken_egg =  {
 local eggs = {}
 local sizes = {"s","m","l",}
 local colors = {"pink","white","red", "blue", "darkgreen", "darkred", "green", "yellow"}
+local mvalues = {s = 20, m = 50, l = 100}
+local evalues = {s = 200, m = 500, l = 1000}
 
 for _, size in pairs(sizes) do
     for _, color in pairs(colors) do
@@ -34,6 +36,10 @@ for _, size in pairs(sizes) do
         }
         def.name = name
         def.object =  "Chickens/chickenegg_"..size.."_"..color .. ".s3o"
+        def.metal = mvalues[size]
+        def.energy = evalues[size]
+        def.reclaimtime = evalues[size]
+        def.damage = evalues[size]*5
         eggs[name] = def
     end
 end

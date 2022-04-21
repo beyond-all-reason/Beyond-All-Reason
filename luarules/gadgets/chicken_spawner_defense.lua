@@ -313,13 +313,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickens3"].id] = { distance = 440, chance = 0.1 },
 		[UnitDefNames["chickenh5"].id] = { distance = 300, chance = 0.5 },
 		[UnitDefNames["chickene1"].id] = { distance = 300, chance = 1 },
-		[UnitDefNames["chickene2"].id] = { distance = 200, chance = 0.01 },
-		[UnitDefNames["ve_chickenq"].id] = { distance = 1000, chance = 0.1 },
-		[UnitDefNames["e_chickenq"].id] = { distance = 800, chance = 0.05 },
-		[UnitDefNames["n_chickenq"].id] = { distance = 600, chance = 0.04 },
-		[UnitDefNames["h_chickenq"].id] = { distance = 400, chance = 0.03 },
-		[UnitDefNames["vh_chickenq"].id] = { distance = 200, chance = 0.02 },
-		[UnitDefNames["epic_chickenq"].id] = { distance = 100, chance = 0.01 },
+		[UnitDefNames["chickene2"].id] = { distance = 200, chance = 0.01 },	
 	}
 	local COWARD = {
 		[UnitDefNames["chickenh1"].id] = { distance = 300, chance = 0.5 },
@@ -329,12 +323,14 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenh5"].id] = { distance = 2000, chance = 0.5 },
 		[UnitDefNames["chickene1"].id] = { distance = 2000, chance = 1 },
 		[UnitDefNames["chickene2"].id] = { distance = 2000, chance = 1 },
-		[UnitDefNames["ve_chickenq"].id] = { distance = 1000, chance = 0.1 },
-		[UnitDefNames["e_chickenq"].id] = { distance = 800, chance = 0.05 },
-		[UnitDefNames["n_chickenq"].id] = { distance = 600, chance = 0.04 },
-		[UnitDefNames["h_chickenq"].id] = { distance = 400, chance = 0.03 },
-		[UnitDefNames["vh_chickenq"].id] = { distance = 200, chance = 0.02 },
-		[UnitDefNames["epic_chickenq"].id] = { distance = 100, chance = 0.01 },
+	}
+	local BERSERK = {
+		[UnitDefNames["ve_chickenq"].id] = { chance = 0.01 },
+		[UnitDefNames["e_chickenq"].id] = { chance = 0.05 },
+		[UnitDefNames["n_chickenq"].id] = { chance = 0.1 },
+		[UnitDefNames["h_chickenq"].id] = { chance = 0.2 },
+		[UnitDefNames["vh_chickenq"].id] = { chance = 0.3 },
+		[UnitDefNames["epic_chickenq"].id] = { chance = 0.5 },
 	}
 	-- local EGG_DROPPER = {
 	-- 	[UnitDefNames["chicken1"].id] = "chicken_egg_s_pink",
@@ -779,7 +775,7 @@ if gadgetHandler:IsSyncedCode() then
 			queenBurrowSpawnMultiplier = 0.20
 			-- spawn units from queen
 			if config.queenSpawnMult > 0 then
-				for i = 1, config.queenSpawnMult, 1 do
+				for i = 1, config.queenSpawnMult*5, 1 do
 					local waveLevelPower = mRandom(1, currentWave*currentWave)
 					local waveLevel = math.ceil(math.sqrt(waveLevelPower))
 					local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
@@ -1065,6 +1061,11 @@ if gadgetHandler:IsSyncedCode() then
 					local distance = mRandom(math.ceil(COWARD[unitDefID].distance*0.75), math.floor(COWARD[unitDefID].distance*1.25))
 					idleOrderQueue[unitID] = { cmd = CMD.MOVE, params = { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, opts = {} }
 				end
+			end
+		elseif BERSERK[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < BERSERK[unitDefID].chance) then
+			local ax, _, az = GetUnitPosition(attackerID)
+			if ax then
+				idleOrderQueue[unitID] = {cmd = CMD.MOVE, params = {ax, y, az}, opts = {} }
 			end
 		end
 
@@ -1572,11 +1573,19 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local chickenEggSizes = {"s", "m", "l"}
 	local chickenEggColors = {"pink","white","red", "blue", "darkgreen", "darkred", "green", "yellow"}
-
 	local function spawnRandomEgg(x,y,z)
-		local egg = Spring.CreateFeature("chicken_egg_"..chickenEggSizes[math.random(1,#chickenEggSizes)].."_"..chickenEggColors[math.random(1,#chickenEggColors)], x, y, z, math.random(-999999,999999), chickenTeamID)
+		local r = mRandom(1,100)
+		local size = "s"
+		if r <= 5 then
+			size = "l"
+		elseif r <= 20 then
+			size = "m"
+		end
+		local egg = Spring.CreateFeature("chicken_egg_"..size.."_"..chickenEggColors[math.random(1,#chickenEggColors)], x, y, z, math.random(-999999,999999), chickenTeamID)
+		if egg then
+			Spring.SetFeatureVelocity(egg, mRandom(-2000,2000)*0.01, mRandom(300,600)*0.01, mRandom(-2000,2000)*0.01)
+		end
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
@@ -1585,22 +1594,20 @@ if gadgetHandler:IsSyncedCode() then
 			local x,y,z = Spring.GetUnitPosition(unitID)
 			if unitDefID == config.burrowDef or UnitDefs[unitDefID].name == "chickend2" then
 				for i = 1,math.random(10,40) do
-					local x = x + math.random(-64,64)
-					local z = z + math.random(-64,64)
-					local y = GetGroundHeight(x, z)
-					spawnRandomEgg(x,y,z)
-				end
-			elseif UnitDefs[unitDefID].name == "chickend1" then
-				for i = 1,math.random(3,10) do
 					local x = x + math.random(-32,32)
 					local z = z + math.random(-32,32)
 					local y = GetGroundHeight(x, z)
 					spawnRandomEgg(x,y,z)
 				end
-			else
-				if math.random(1,5) == 1 then
+			elseif UnitDefs[unitDefID].name == "chickend1" then
+				for i = 1,math.random(3,10) do
+					local x = x + math.random(-16,16)
+					local z = z + math.random(-16,16)
+					local y = GetGroundHeight(x, z)
 					spawnRandomEgg(x,y,z)
 				end
+			else
+				spawnRandomEgg(x,y,z)
 			end
 		end
 		if heroChicken[unitID] then
