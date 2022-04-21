@@ -1731,7 +1731,7 @@ function init()
 		{ id = "msaa", group = "gfx", category = types.basic, name = texts.option.msaa, type = "select", options = { 'off', 'x2', 'x4', 'x8'}, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0), description = texts.option.msaa_descr,
 		  onload = function(i)
 			  local msaa = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0)
-			  if msaa == 0 then
+			  if msaa <= 0 then
 				  options[getOptionByID('msaa')].value = 1
 			  else
 				  for k,v in ipairs( options[getOptionByID('msaa')].options) do
@@ -1744,7 +1744,7 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  if value == 1 then
-				  Spring.SetConfigInt("MSAALevel", 0)
+				  Spring.SetConfigInt("MSAALevel", -1)	-- setting 0 will reset it to default x4 :(
 			  else
 				  Spring.SetConfigInt("MSAALevel", tonumber(string.sub(options[getOptionByID('msaa')].options[value], 2)))
 			  end
