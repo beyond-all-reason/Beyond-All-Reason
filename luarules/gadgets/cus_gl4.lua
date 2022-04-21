@@ -287,7 +287,7 @@ do --save a ton of locals
 end
 
 local debugmode = false
-local FASTRELOADMODE = true -- enable this is so that /luarules reload returns with cusgl4 default ON
+local FASTRELOADMODE = false -- enable this is so that /luarules reload returns with cusgl4 default ON
 
 local alphaMult = 0.35
 local alphaThresholdOpaque = 0.5
