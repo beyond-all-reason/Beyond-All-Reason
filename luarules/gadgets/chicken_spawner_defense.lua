@@ -639,16 +639,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function stunUnit(unitID, seconds)
-		local f = GetGameFrame()
-		seconds = f + (seconds * 30)
-		if stunList[unitID] then
-			seconds = math.max(stunList[unitID], seconds)
-		end
-		stunList[unitID] = seconds
-		SetUnitHealth(unitID, { paralyze = 99999999 })
-	end
-
 	local function SpawnQueen()
 		local bestScore = 0
 		local sx, sy, sz
