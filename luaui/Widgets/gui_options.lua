@@ -1457,7 +1457,6 @@ function loadAllWidgetData()
 end
 
 -- detect potatos
-local engine64 = true
 local isPotatoCpu = false
 local isPotatoGpu = false
 local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
@@ -1465,6 +1464,9 @@ local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 100
 --	isPotatoGpu = true
 --end
 if gpuMem and gpuMem > 0 and gpuMem < 1800 then
+	isPotatoGpu = true
+end
+if not Platform.glHaveGL4 then
 	isPotatoGpu = true
 end
 
@@ -1600,10 +1602,6 @@ function init()
 			-- scan for shader version error
 			if string.find(line, 'error: GLSL 1.50 is not supported') then
 				Spring.SetConfigInt("LuaShaders", 0)
-			end
-			-- scan for shader version error
-			if string.find(line, '_win32') or string.find(line, '_linux32') then
-				engine64 = false
 			end
 
 			-- look for system hardware
@@ -4529,11 +4527,6 @@ function init()
 		options[getOptionByID('xmas')] = nil
 	end
 
-	-- air absorption does nothing on 32 bit engine version
-	if not engine64 then
-		options[getOptionByID('sndairabsorption')] = nil
-	end
-
 	-- reset tonemap defaults (only once)
 	if not resettedTonemapDefault then
 		local optionID = getOptionByID('tonemapDefaults')
@@ -4643,8 +4636,18 @@ function init()
 
 			Spring.SendCommands("luarules disablecus")
 			Spring.SendCommands("luarules disablecusgl4")
+			options[getOptionByID('cus')] = nil
+			options[getOptionByID('cusgl4')] = nil
 
-			options[getOptionByID('msaa')].max = 2
+			-- limit available msaa levels to 'off' and 'x2'
+			if options[getOptionByID('msaa')] then
+				for k, v in pairs(options[getOptionByID('msaa')].options) do
+					if k >= 3 then
+						options[getOptionByID('msaa')].options[k] = nil
+					end
+				end
+			end
+
 			id = getOptionByID('ssao')
 			if id and GetWidgetToggleValue(options[id].widget) then
 				widgetHandler:DisableWidget(options[id].widget)
@@ -4783,11 +4786,6 @@ function init()
 
 	if WG['snow'] ~= nil and WG['snow'].getSnowMap ~= nil then
 		options[getOptionByID('snowmap')].value = WG['snow'].getSnowMap()
-	end
-
-	if isPotatoGpu then
-		options[getOptionByID('cus')] = nil
-		options[getOptionByID('cusgl4')] = nil
 	end
 
 	-- not sure if needed: remove vsync option when its done by monitor (freesync/gsync) -> config value is set as 'x'
