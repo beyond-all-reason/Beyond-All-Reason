@@ -1744,8 +1744,10 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  if value == 1 then
+				  Spring.SetConfigInt("MSAA", 0)
 				  Spring.SetConfigInt("MSAALevel", -1)	-- setting 0 will reset it to default x4 :(
 			  else
+				  Spring.SetConfigInt("MSAA", 1)
 				  Spring.SetConfigInt("MSAALevel", tonumber(string.sub(options[getOptionByID('msaa')].options[value], 2)))
 			  end
 		  end,
