@@ -44,6 +44,7 @@ return {
 			unitgroup = 'weapon',
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corgantry",
+			techlevel = 3,
 		},
 		featuredefs = {
 			dead = {

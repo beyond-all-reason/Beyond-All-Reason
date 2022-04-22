@@ -84,6 +84,95 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
+	-- Flanking Bonus Override
+	if Spring.GetModOptions().experimentalflankingbonusmode == 0 then
+		uDef.flankingbonusmode = 0
+	end
+	if Spring.GetModOptions().experimentalflankingbonusmode == 1 then
+		uDef.flankingbonusmode = 1
+	end
+	if Spring.GetModOptions().experimentalflankingbonusmode == 2 then
+		uDef.flankingbonusmode = 2
+	end
+	if Spring.GetModOptions().experimentalflankingbonusmode == 3 then
+		if uDef.canmove == true then
+			uDef.flankingbonusmode = 3
+		else
+			uDef.flankingbonusmode = 2
+		end
+	end
+	uDef.flankingbonusmin = Spring.GetModOptions().experimentalflankingbonusmin*0.01
+	uDef.flankingbonusmax = Spring.GetModOptions().experimentalflankingbonusmax*0.01
+
+	-- Rebalance Candidates
+	
+	if Spring.GetModOptions().experimentalrebalancet2labs == true then -- 
+		if name == "coralab" or name == "coravp" or name == "armalab" or name == "armavp" then
+			uDef.buildcostmetal = 1800 --2900
+		end
+		if name == "coraap" or name == "corasy" or name == "armaap" or name == "armasy" then
+			uDef.buildcostmetal = 2100 --3200 
+		end
+	end
+
+	if Spring.GetModOptions().experimentalrebalancet2metalextractors == true then
+		if name == "armmoho" or name == "armuwmme" then
+			uDef.extractsmetal = 0.002 --0.004
+			uDef.buildcostmetal = 240 --620
+			uDef.buildcostenergy = 3000 --7700
+			uDef.buildtime = 12000 --14938
+			uDef.maxdamage = 1000 --2500
+			uDef.energyuse = 10 --20
+		end
+		if name == "cormoho" or name == "coruwmme" then
+			uDef.extractsmetal = 0.002 --0.004
+			uDef.buildcostmetal = 250 --640
+			uDef.buildcostenergy = 3100 --8100
+			uDef.buildtime = 11000 --14125
+			uDef.maxdamage = 1400 --3500
+			uDef.energyuse = 10 --20
+		end
+		if name == "cormexp" then
+			uDef.extractsmetal = 0.002 --0.004
+			uDef.buildcostmetal = 2000 --2400
+			uDef.buildcostenergy = 8500 --12000
+			uDef.maxdamage = 2800 --3500
+			uDef.energyuse = 10 --20
+		end
+	end
+
+	if Spring.GetModOptions().experimentalrebalancet2energy == true then
+		if name == "armaca" or name == "armack" or name == "armacv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "armwint2"
+		end
+		if name == "coraca" or name == "corack" or name == "coracv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corwint2"
+		end
+	end 
+
+	if Spring.GetModOptions().experimentalrebalancehovercrafttech == true then
+		if name == "corhp" or name == "corfhp" or name == "armhp" or name == "armfhp" then
+			uDef.buildcostmetal = 730 --1100
+			uDef.buildcostenergy = 1800 --4200
+			uDef.buildtime = 7150 --11000
+			uDef.workertime = 100 --200
+		end
+		if name == "armch" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "armavp"
+			uDef.buildoptions[numBuildoptions+2] = "armasy"
+		end
+		if name == "corch" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "coravp"
+			uDef.buildoptions[numBuildoptions+2] = "corasy"
+		end
+	end
+
+	---------------------------------------------------------------------------------------------------
+	
 	if Spring.GetModOptions().newdgun then
 		if name == 'armcom' or name == 'corcom' or name == 'armcomcon' or name == 'corcomcon' then
 			local dgun = uDef.weapondefs.disintegrator
@@ -449,6 +538,10 @@ function UnitDef_Post(name, uDef)
 		uDef.buildcostmetal = chickHealth*0.5
 		uDef.buildcostenergy = chickHealth*5
 		uDef.buildtime = chickHealth*10
+		uDef.hidedamage = true
+		if (uDef.mass and uDef.mass < 500) or not uDef.mass then uDef.mass = 500 end
+		if uDef.customparams then uDef.customparams.paralyzemultiplier = 0 end
+		uDef.canhover = true
 	end
 
 	if (uDef.buildpic and uDef.buildpic == "") or not uDef.buildpic then

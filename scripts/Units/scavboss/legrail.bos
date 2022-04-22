@@ -31,8 +31,6 @@ RockUnit(anglex, anglez)
 #define UNITSIZE 4
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
 Create()
 {
 	hide flare;
@@ -87,6 +85,8 @@ AimPrimary(heading, pitch)
 		wait-for-turn sleeve around x-axis;
 		bAiming = 0;
 	}
+	wait-for-turn turret around y-axis;
+	wait-for-turn sleeve around x-axis;
 	wpnheading = heading;
 	start-script RestoreAfterDelay();
 	return (1);

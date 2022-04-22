@@ -132,7 +132,13 @@ local function RemoveScavUnit(unitID, unitDefID, unitTeam, unitName, attackerID,
 	if scavengerGamePhase == "initial" and (not scavConverted[unitID]) then
 		initialPhaseCountdown = initialPhaseCountdown + 1
 	end
-
+	if UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or (not scavNoSelfD[unitID]) then
+		for i = 1,#BaseCleanupQueue do
+			if unitID == BaseCleanupQueue[i] then
+				table.remove(BaseCleanupQueue, i)
+			end
+		end
+	end
 	if FinalBossUnitSpawned == true then
 		for i = 1,#bossUnitList.Bosses do
 			if unitName  == bossUnitList.Bosses[i] then

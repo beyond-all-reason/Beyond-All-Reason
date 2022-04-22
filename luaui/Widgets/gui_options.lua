@@ -1447,10 +1447,8 @@ function applyOptionValue(i, skipRedrawWindow, force)
 	end
 end
 
-
 -- loads values via stored game config in luaui/configs
 function loadAllWidgetData()
-
 	for i, option in pairs(options) do
 		if option.onload then
 			option.onload(i)
@@ -1459,14 +1457,16 @@ function loadAllWidgetData()
 end
 
 -- detect potatos
-local engine64 = true
 local isPotatoCpu = false
 local isPotatoGpu = false
 local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
-if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+--if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+--	isPotatoGpu = true
+--end
+if gpuMem and gpuMem > 0 and gpuMem < 1800 then
 	isPotatoGpu = true
 end
-if gpuMem and gpuMem > 0 and gpuMem < 1800 then
+if not Platform.glHaveGL4 then
 	isPotatoGpu = true
 end
 
@@ -1495,6 +1495,7 @@ function init()
 			decals = false,
 			shadowslider = 1,
 			grass = false,
+			cusgl4 = false,
 		},
 		low = {
 			bloomdeferred = true,
@@ -1512,10 +1513,11 @@ function init()
 			decals = true,
 			shadowslider = 2,
 			grass = false,
+			cusgl4 = true,
 		},
 		medium = {
 		 	bloomdeferred = true,
-			bloomdeferred_quality = 2,
+			bloomdeferred_quality = 1,
 		 	ssao = true,
 			ssao_quality = 2,
 		 	mapedgeextension = true,
@@ -1529,12 +1531,13 @@ function init()
 		 	decals = true,
 			shadowslider = 3,
 		 	grass = true,
+			cusgl4 = true,
 		},
 		high = {
 			bloomdeferred = true,
-			bloomdeferred_quality = 3,
+			bloomdeferred_quality = 2,
 			ssao = true,
-			ssao_quality = 3,
+			ssao_quality = 2,
 			mapedgeextension = true,
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
@@ -1546,6 +1549,7 @@ function init()
 			decals = true,
 			shadowslider = 4,
 			grass = true,
+			cusgl4 = true,
 		},
 		ultra = {
 			bloomdeferred = true,
@@ -1563,6 +1567,7 @@ function init()
 			decals = true,
 			shadowslider = 5,
 			grass = true,
+			cusgl4 = true,
 		},
 		custom = {},
 	}
@@ -1597,10 +1602,6 @@ function init()
 			-- scan for shader version error
 			if string.find(line, 'error: GLSL 1.50 is not supported') then
 				Spring.SetConfigInt("LuaShaders", 0)
-			end
-			-- scan for shader version error
-			if string.find(line, '_win32') or string.find(line, '_linux32') then
-				engine64 = false
 			end
 
 			-- look for system hardware
@@ -1730,7 +1731,7 @@ function init()
 		{ id = "msaa", group = "gfx", category = types.basic, name = texts.option.msaa, type = "select", options = { 'off', 'x2', 'x4', 'x8'}, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0), description = texts.option.msaa_descr,
 		  onload = function(i)
 			  local msaa = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0)
-			  if msaa == 0 then
+			  if msaa <= 0 then
 				  options[getOptionByID('msaa')].value = 1
 			  else
 				  for k,v in ipairs( options[getOptionByID('msaa')].options) do
@@ -1743,8 +1744,10 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  if value == 1 then
-				  Spring.SetConfigInt("MSAALevel", 0)
+				  Spring.SetConfigInt("MSAA", 0)
+				  Spring.SetConfigInt("MSAALevel", -1)	-- setting 0 will reset it to default x4 :(
 			  else
+				  Spring.SetConfigInt("MSAA", 1)
 				  Spring.SetConfigInt("MSAALevel", tonumber(string.sub(options[getOptionByID('msaa')].options[value], 2)))
 			  end
 		  end,
@@ -1782,18 +1785,7 @@ function init()
 		  end,
 		},
 
-		{ id = "cus", group = "gfx", name = texts.option.cus, category = types.basic, type = "bool", value = (Spring.GetConfigInt("cus", 1) == 1), description = texts.option.cus_descr,
-		  onchange = function(i, value)
-			  if value == 0.5 then
-				  Spring.SendCommands("luarules disablecus")
-			  else
-				  Spring.SetConfigInt("cus", (value and 1 or 0))
-				  Spring.SendCommands("luarules "..(value and 'reloadcus' or 'disablecus'))
-			  end
-		  end,
-		},
-
-		{ id = "cusgl4", group = "gfx", name = texts.option.cusgl4, category = types.dev, type = "bool", value = (Spring.GetConfigInt("cusgl4", 0) == 1), description = texts.option.cus_descr,
+		{ id = "cusgl4", group = "gfx", name = texts.option.cus, category = types.advanced, type = "bool", value = (Spring.GetConfigInt("cus2", 1) == 1), description = texts.option.cus_descr,
 		  onchange = function(i, value)
 			  if value == 0.5 then
 				  Spring.SendCommands("luarules disablecusgl4")
@@ -1803,13 +1795,35 @@ function init()
 				  elseif Spring.GetConfigInt("cus", 1) == 1 then
 					  Spring.SendCommands("luarules reloadcus")
 				  end
-				  Spring.SetConfigInt("cusgl4", (value and 1 or 0))
+				  --Spring.SetConfigInt("cusgl4", (value and 1 or 0))
+				  Spring.SetConfigInt("cus2", (value and 1 or 0))
 				  Spring.SendCommands("luarules "..(value and 'reloadcus' or 'disablecus')..'gl4')
+				  local id = getOptionByID('cus')
+				  if value and id then
+					  options[id].value = false
+					  options[id].onchange(id, options[id].value)
+				  end
 			  end
 		  end,
 		},
 
-		{ id = "cus_threshold", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cus_threshold, min = 0, max = 90, step = 1, type = "slider", value = Spring.GetConfigInt("cusThreshold", 30), description = texts.option.cus_threshold_descr,
+		{ id = "cus", group = "gfx", name = texts.option.cus.." (old)", category = types.dev, type = "bool", value = (Spring.GetConfigInt("cus", 0) == 1), description = texts.option.cus_descr,
+		  onchange = function(i, value)
+			  if value == 0.5 then
+				  Spring.SendCommands("luarules disablecus")
+			  else
+				  Spring.SetConfigInt("cus", (value and 1 or 0))
+				  Spring.SendCommands("luarules "..(value and 'reloadcus' or 'disablecus'))
+				  local id = getOptionByID('cusgl4')
+				  if value and id then
+				  	options[id].value = false
+					options[id].onchange(id, options[id].value)
+				  end
+			  end
+		  end,
+		},
+
+		{ id = "cus_threshold", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.cus_threshold, min = 0, max = 90, step = 1, type = "slider", value = Spring.GetConfigInt("cusThreshold", 30), description = texts.option.cus_threshold_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("cusThreshold", value)
 			  if not GetWidgetToggleValue("Auto Disable CUS") then
@@ -4515,11 +4529,6 @@ function init()
 		options[getOptionByID('xmas')] = nil
 	end
 
-	-- air absorption does nothing on 32 bit engine version
-	if not engine64 then
-		options[getOptionByID('sndairabsorption')] = nil
-	end
-
 	-- reset tonemap defaults (only once)
 	if not resettedTonemapDefault then
 		local optionID = getOptionByID('tonemapDefaults')
@@ -4593,6 +4602,29 @@ function init()
 		end
 	end
 
+	if Spring.GetGameFrame() == 0 then
+		detectWater()
+
+		-- set vsync
+		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", 0))
+
+		-- disable CUS
+		if not isPotatoGpu then	-- will disable later
+			if tonumber(Spring.GetConfigInt("cus", 1) or 1) == 0 then
+				Spring.SendCommands("luarules disablecus")
+			end
+
+			-- enable CUS GL4
+			if tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
+				Spring.SendCommands("luarules disablecus")
+				Spring.SendCommands("luarules reloadcusgl4")
+			end
+		end
+	end
+	if not waterDetected then
+		Spring.SendCommands("water 0")
+	end
+
 	-- reduce options for potatoes
 	if isPotatoGpu or isPotatoCpu then
 		local id = getOptionByID('shadowslider')
@@ -4603,7 +4635,21 @@ function init()
 		end
 
 		if isPotatoGpu then
-			options[getOptionByID('msaa')].max = 2
+
+			Spring.SendCommands("luarules disablecus")
+			Spring.SendCommands("luarules disablecusgl4")
+			options[getOptionByID('cus')] = nil
+			options[getOptionByID('cusgl4')] = nil
+
+			-- limit available msaa levels to 'off' and 'x2'
+			if options[getOptionByID('msaa')] then
+				for k, v in pairs(options[getOptionByID('msaa')].options) do
+					if k >= 3 then
+						options[getOptionByID('msaa')].options[k] = nil
+					end
+				end
+			end
+
 			id = getOptionByID('ssao')
 			if id and GetWidgetToggleValue(options[id].widget) then
 				widgetHandler:DisableWidget(options[id].widget)
@@ -4643,9 +4689,12 @@ function init()
 			options[getOptionByID('could_opacity')] = nil
 
 			-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
-			if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+			if Platform ~= nil and Platform.gpuVendor == 'Intel' and gpuMem < 1800 then
 				options[getOptionByID('shadowslider')] = nil
 				options[getOptionByID('shadows_opacity')] = nil
+
+				Spring.SendCommands("advmapshading 0")
+				Spring.SendCommands("Shadows 0 1024")
 			end
 		end
 	end
@@ -4872,7 +4921,7 @@ function widget:Initialize()
 		Spring.Echo('First time setup:  done')
 		Spring.SetConfigFloat("snd_airAbsorption", 0.35)
 
-		-- Set lower defaults for potato systems
+		-- Set lower defaults for lower end/potato systems
 		if gpuMem and gpuMem < 3300 then
 			Spring.SetConfigInt("MSAALevel", 2)
 		end
@@ -4883,11 +4932,10 @@ function widget:Initialize()
 			Spring.SetConfigInt("AdvMapShading", 0)
 			Spring.SendCommands("advmapshading 0")
 			Spring.SendCommands("Shadows 0 1024")
-			Spring.SetConfigInt("Shadows", 0)
 			Spring.SetConfigInt("ShadowMapSize", 1024)
+			Spring.SetConfigInt("Shadows", 0)
 			Spring.SetConfigInt("MSAALevel", 0)
 			Spring.SetConfigFloat("ui_opacity", 0.66)    -- set to be more opaque cause guishader isnt availible
-
 		else
 			Spring.SendCommands("water 4")
 			Spring.SetConfigInt("Water", 4)
@@ -4899,27 +4947,6 @@ function widget:Initialize()
 			Spring.SetConfigInt("MaxParticles", minMaxparticles)
 			Spring.Echo('First time setup:  setting MaxParticles config value to ' .. minMaxparticles)
 		end
-	end
-
-	if Spring.GetGameFrame() == 0 then
-		detectWater()
-
-		-- set vsync
-		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", 0))
-
-		-- disable CUS
-		if tonumber(Spring.GetConfigInt("cus", 1) or 1) == 0 then
-			Spring.SendCommands("luarules disablecus")
-		end
-
-		-- enable CUS GL4
-		if tonumber(Spring.GetConfigInt("cusgl4", 0) or 0) == 1 then
-			Spring.SendCommands("luarules disablecus")
-			Spring.SendCommands("luarules reloadcusgl4")
-		end
-	end
-	if not waterDetected then
-		Spring.SendCommands("water 0")
 	end
 
 	Spring.SetConfigFloat("CamTimeFactor", 1)

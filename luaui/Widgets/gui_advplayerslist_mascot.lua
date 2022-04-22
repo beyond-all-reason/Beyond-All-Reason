@@ -49,7 +49,7 @@ table.insert(OPTIONS, {
 	head_yOffset		= 0,
 })
 table.insert(OPTIONS, {
-	name				= "MrBeans",
+	name				= "Teifion's MrBeans",
 	body				= imageDirectory.."mrbeans_body.png",
 	head				= imageDirectory.."mrbeans_head.png",
 	headblink			= imageDirectory.."mrbeans_headblink.png",
@@ -76,10 +76,14 @@ end
 local OPTIONS_original = shallow_copy(OPTIONS)
 OPTIONS_original.defaults = nil
 
-local function toggleOptions()
-	currentOption = currentOption + 1
-	if not OPTIONS[currentOption] then
-		currentOption = 1
+local function toggleOptions(option)
+	if OPTIONS[option] then
+		currentOption = option
+	else
+		currentOption = currentOption + 1
+		if not OPTIONS[currentOption] then
+			currentOption = 1
+		end
 	end
 	loadOption()
 	updatePosition(true)
@@ -291,8 +295,8 @@ function widget:MousePress(mx, my, mb)
 end
 
 function widget:TextCommand(command)
-    if string.find(command, "mascot", nil, true) == 1  and  string.len(command) == 8 then
-		toggleOptions()
+	if string.sub(command, 1, 6) == 'mascot' then
+		toggleOptions(tonumber(string.sub(command, 8)))
 		Spring.Echo("Playerlist mascot: "..OPTIONS[currentOption].name)
 	end
 end

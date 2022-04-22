@@ -485,10 +485,10 @@ local options={
 		name="Burrow Placement",
 		desc="Control where burrows spawn",
 		type="list",
-		def="alwaysbox",
+		def="initialbox",
 		section="chicken_defense_options",
 		items={
-			{key="anywhere", name="Anywhere", desc="Burrows can spawn anywhere"},
+			--{key="anywhere", name="Anywhere", desc="Burrows can spawn anywhere"},
 			{key="avoid", name="Avoid Players", desc="Burrows do not spawn on player units"},
 			{key="initialbox", name="Initial Start Box", desc="First wave spawns in chicken start box, following burrows avoid players"},
 			{key="alwaysbox", name="Always Start Box", desc="Burrows always spawn in chicken start box"},
@@ -499,9 +499,9 @@ local options={
 		name   = "Max Queen Arrival (Minutes)",
 		desc   = "Queen will spawn after given time.",
 		type   = "number",
-		def    = 40,
+		def    = 60,
 		min    = 1,
-		max    = 90,
+		max    = 120,
 		step   = 1,
 		section= "chicken_defense_options",
 	},
@@ -620,6 +620,7 @@ local options={
 		items={
 			{key="neverend", name="None", desc="Teams are never eliminated"},
 			{key="com", name="Kill all enemy Commanders", desc="When a team has no Commanders left, it loses"},
+			{key="builders", name="Kill all Builders"},
 			{key="killall", name="Kill everything", desc="Every last unit must be eliminated, no exceptions!"},
 		}
 	},
@@ -1317,6 +1318,79 @@ local options={
 		section = 'options_experimental',
 		def  = false,
 	},
+
+	{
+		key    = 'experimentalflankingbonusmode',
+		name   = 'Flanking Bonus Mode (between 0 and 3, read tooltip)',
+		desc   = "Additional damage applied to units when they're surrounded. 0 - No flanking bonus, 1 - Dynamic direction, world dimension, 2 - Dynamic direction, unit dimension, 3 - Static direction, front armor = best armor. If 3 is chosen, 2 is used for buildings.",
+		type   ="number",
+		section = 'options_experimental',
+		def    = 1,
+		min    = 0,
+		max    = 3,
+		step   = 1,
+	},
+
+	{
+		key    = 'experimentalflankingbonusmin',
+		name   = 'Flanking Bonus Minimum Damage Percentage (Default 90%)',
+		desc   = 'How much damage weapons deal at hardest point of flanking armor',
+		type   ="number",
+		section = 'options_experimental',
+		def    = 90,
+		min    = 1,
+		max    = 1000,
+		step   = 1,
+	},
+
+	{
+		key    = 'experimentalflankingbonusmax',
+		name   = 'Flanking Bonus Maximum Damage Percentage (Default 190%)',
+		desc   = 'How much damage weapons deal at hardest point of flanking armor',
+		type   ="number",
+		section = 'options_experimental',
+		def    = 190,
+		min    = 1,
+		max    = 1000,
+		step   = 1,
+	},
+
+	{
+		key    = 'experimentalrebalancet2labs',
+		name   = 'Rebalance Candidate: Cheaper T2 Factories',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
+	{
+		key    = 'experimentalrebalancet2metalextractors',
+		name   = 'Rebalance Candidate: Cheaper T2 Metal Extractors (Metal Extraction x4 -> x2)',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
+	{
+		key    = 'experimentalrebalancet2energy',
+		name   = 'Rebalance Candidate: T2 Energy rebalance (Currently only adds T2 wind generator)',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
+	{
+		key    = 'experimentalrebalancehovercrafttech',
+		name   = 'Rebalance Candidate: Hovercraft rebalance - Cheaper lab with buildpower 200 -> 100, can Tech2 into Vehicles and Ships',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Unused Options

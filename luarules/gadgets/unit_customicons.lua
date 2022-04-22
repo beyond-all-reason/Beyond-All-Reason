@@ -291,10 +291,10 @@ local units = {
 	chickenh3 = { "chicken.png", 1.25999999 },
 	chickenh4 = { "chicken.png", 0.94499993 },
 	chickenh5 = { "chicken.png", 1.57499993 },
-	chickenp1 = { "chicken.png", 1.57499993 },
+	chickenp1 = { "chicken.png", 0.94499993 },
+	chickenp2 = { "chicken.png", 1.57499993 },
 	chickenr1 = { "chicken.png", 1.57499993 },
-	chickenr2 = { "chicken.png", 1.57499993 },
-	chickenr3 = { "chicken.png", 2.72999978 },
+	chickenr2 = { "chicken.png", 2.72999978 },
 	chickens1 = { "chicken.png", 1.25999999 },
 	chickens2 = { "chicken.png", 1.57499993 },
 	chickens3 = { "chicken_air.png", 1.36499989 },
@@ -303,6 +303,10 @@ local units = {
 	chickenw1c = { "chicken_air.png", 1.36499989 },
 	chickenw1d = { "chicken_air.png", 1.36499989 },
 	chickenw2 = { "chicken_air.png", 1.36499989 },
+	chickene1 = { "chicken.png", 0.94499993 },
+	chickene2 = { "chicken.png", 1.57499993 },
+	chickenearty1 = { "chicken.png", 1.57499993 },
+	chickenebomber1 = { "chicken_air.png", 1.78499997 },
 	chip = { "blank.png", 1.04999995 },
 	coraak = { "amphib_t2_aa.png", 1.67999995 },
 	coraap = { "factory_air_t2.png", 1.9425 },
@@ -528,15 +532,16 @@ local units = {
 	epic_chickenq = { "chicken_queen.png", 4.19999981 },
 	freefusion = { "fusion.png", 1.46999991 },
 	h_chickenq = { "chicken_queen.png", 4.19999981 },
-	hat_viking_teamcolored = { "blank.png", 1.83749986 },
-	hat_viking_teamcolored = { "building.png", 1.04999995 },
+	cor_hat_viking = { "blank.png", 1.04999995 },
 	legbal = {"corstorm_1.png", 1.2},
+	legbar = { "corwolv_1.png", 1.3 },
 	legcen = {"bot_t2_raid.png", 1.05},
 	leggat = {"vehicle_t1_tank.png", 1.3},
 	leggob = {"bot_t1_raid_0.7.png", 0.6},
 	leghades = {"vehicle_t1_raid.png", 0.75},
 	leghelios = {"vehicle_t1_tank.png", 0.95},
 	legrail = {"vehicle_t1_missile.png", 1.3},
+	leglob = { "corthud_1.05.png", 0.8 },
 	legcom = { "armcom.png", 1.5 },
 	legcomecon = { "legcom_econ.png", 1.83749986 },
 	legcomdef = { "legcom_def.png", 1.83749986 },
@@ -651,7 +656,7 @@ function gadget:GameFrame(n)
 	if reloadedsavegame == false and (n % 31) == 0 then  -- this might break on the second reload of a savegame
 		local finishedLoading,  loadedFromSave = Spring.GetGameState()
 		--Spring.Echo("reloadedsavegame?", finishedLoading,  loadedFromSave)
-		if loadedFromSave then 
+		if loadedFromSave then
 			reloadedsavegame = true
 			loadUnitIcons()
 		end

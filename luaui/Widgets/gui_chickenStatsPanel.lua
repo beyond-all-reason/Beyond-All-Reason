@@ -97,17 +97,17 @@ local rules = {
 }
 
 local waveColors = {}
-waveColors[1] = "\255\184\100\255"
-waveColors[2] = "\255\120\50\255"
-waveColors[3] = "\255\255\153\102"
-waveColors[4] = "\255\120\230\230"
-waveColors[5] = "\255\100\255\100"
-waveColors[6] = "\255\150\001\001"
-waveColors[7] = "\255\255\255\100"
-waveColors[8] = "\255\100\255\255"
-waveColors[9] = "\255\100\100\255"
-waveColors[10] = "\255\200\050\050"
-waveColors[11] = "\255\255\255\255"
+waveColors[1] = "\255\255\255\255"
+waveColors[2] = "\255\255\230\230"
+waveColors[3] = "\255\255\204\204"
+waveColors[4] = "\255\255\178\178"
+waveColors[5] = "\255\255\153\153"
+waveColors[6] = "\255\255\127\127"
+waveColors[7] = "\255\255\102\102"
+waveColors[8] = "\255\255\76\76"
+waveColors[9] = "\255\255\51\51"
+waveColors[10] = "\255\255\0\0"
+waveColors[11] = "\255\255\0\0"
 
 local chickenTypes = {
 	"chicken",

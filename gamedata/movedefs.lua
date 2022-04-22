@@ -445,7 +445,7 @@ local moveDatas = {
 	CHICKQUEEN = {
 		badslope = 22,
 		badwaterslope = 255,
-		crushstrength = 50,
+		crushstrength = 99999,
 		depthmod = 0,
 		footprintx = 4,
 		footprintz = 4,
@@ -465,24 +465,49 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 
-	-- CHICKBIG = {
-	-- 	badslope = 22,
-	-- 	badwaterslope = 255,
-	-- 	crushstrength = 25,
-	-- 	depthmod = 0, -- Unused
-	-- 	footprintx = 5,
-	-- 	footprintz = 5,
-	-- 	maxslope = 22,
-	-- 	--slopeMod = 32,
-	-- 	maxwaterslope = 255,
-	-- },
+	CHICKSMALLHOVER = {
+		badslope = 22,
+		badwaterslope = 255,
+		crushstrength = 25,
+		depthmod = 0,
+		footprintx = 3,
+		footprintz = 3,
+		maxslope = 22,
+		--slopeMod = 32,
+		maxwaterslope = 255,
+		speedmodclass = 2, -- hover
+	},
+
+	CHICKBIG = {
+		badslope = 22,
+		badwaterslope = 255,
+		crushstrength = 250,
+		depthmod = 0,
+		footprintx = 3,
+		footprintz = 3,
+		maxslope = 22,
+		--slopeMod = 32,
+		maxwaterslope = 255,
+	},
+
+	CHICKBIG2 = {
+		badslope = 22,
+		badwaterslope = 255,
+		crushstrength = 1500,
+		depthmod = 0,
+		footprintx = 3,
+		footprintz = 3,
+		maxslope = 22,
+		--slopeMod = 32,
+		maxwaterslope = 255,
+	},
 
 	CHICKALLTERRAIN = {
 		crushstrength = 50,
 		depthmod = 0,
 		footprintx = 4,
 		footprintz = 4,
-		maxslope = 36,
+		maxslope = 255,
 		maxwaterdepth = 5000,
 		maxwaterslope = 50,
 	},

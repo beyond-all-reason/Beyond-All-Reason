@@ -2,6 +2,8 @@
 	"en": {
 		"features": {
 			"names": {
+				"armstone": "Commander Tombstone",
+				"corstone": "Commander Tombstone",
 				"ancientRocks": "Ancient Rock Formation",
 				"bush": "Bush",
 				"bushSmall": "Small Bush",

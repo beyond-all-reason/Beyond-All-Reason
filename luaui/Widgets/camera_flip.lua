@@ -15,8 +15,10 @@ local function cameraFlipHandler()
 	--Spring.Echo(camState.mode)
 	if camState.mode ~= 1 and camState.mode ~= 5 then return end --do nothing unless overhead cam or smooth cam
 	--Spring.Echo(camState.flipped)
-	camState.flipped = camState.flipped * -1
-	Spring.SetCameraState(camState, 0)
+	if camState.flipped then
+		camState.flipped = camState.flipped * -1
+		Spring.SetCameraState(camState, 0)
+	end
 end
 
 function widget:Initialize()

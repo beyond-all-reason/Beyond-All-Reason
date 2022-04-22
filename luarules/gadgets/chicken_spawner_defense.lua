@@ -83,6 +83,7 @@ if gadgetHandler:IsSyncedCode() then
 	local damageMod = config.damageMod
 	local currentWave = 1
 	local lastWave = 1
+	local lastWaveUnitCount = 0
 	local targetCache = 1
 	local minBurrows = 1
 	local timeOfLastSpawn = 0
@@ -227,7 +228,7 @@ if gadgetHandler:IsSyncedCode() then
 	local nextWave = ((config.queenTime / 10) / 60)
 	local gracePenalty = math.max(math.floor(((config.gracePeriod - 270) / config.burrowSpawnRate) + 0.5), 0)
 	local chickensPerPlayer = (config.chickensPerPlayer * SetCount(humanTeams))
-	local maxBurrows = config.maxBurrows + math.floor(SetCount(humanTeams) * 1.334)
+	local maxBurrows = config.maxBurrows * SetCount(humanTeams)
 	local queenTime = (config.queenTime + config.gracePeriod)
 	chickenDebtCount = math.ceil((math.max((config.gracePeriod - 270), 0) / 3))
 	-- eggChance scales - 20% at 0-300 grace, 10% at 400 grace, 0% at 500+ grace
@@ -300,31 +301,45 @@ if gadgetHandler:IsSyncedCode() then
 		return total
 	end
 
-	local empGoo = {}
-	empGoo[WeaponDefNames['chickenr1_goolauncher'].id] = WeaponDefNames['chickenr1_goolauncher'].damages[1]
-	empGoo[WeaponDefNames['weaver_death'].id] = WeaponDefNames['weaver_death'].damages[1]
-	local LOBBER = UnitDefNames["chickenr1"].id
 	local SKIRMISH = {
 		[UnitDefNames["chickens1"].id] = { distance = 270, chance = 0.33 },
 		[UnitDefNames["chickens2"].id] = { distance = 620, chance = 0.5 },
 		[UnitDefNames["chickenf2"].id] = { distance = 2000, chance = 0.5 },
 		[UnitDefNames["chickenw1b"].id] = { distance = 900, chance = 0.33 },
 		[UnitDefNames["chickens3"].id] = { distance = 440, chance = 0.1 },
-		[UnitDefNames["chickenh5"].id] = { distance = 300, chance = 0.5 }
+		[UnitDefNames["chickenh5"].id] = { distance = 300, chance = 0.5 },
+		[UnitDefNames["chickenr1"].id] = { distance = 1000, chance = 1 },
+		[UnitDefNames["chickenr2"].id] = { distance = 1000, chance = 1 },
+		[UnitDefNames["chickene1"].id] = { distance = 300, chance = 1 },
+		[UnitDefNames["chickene2"].id] = { distance = 200, chance = 0.01 },	
+		[UnitDefNames["chickenearty1"].id] = { distance = 1000, chance = 1 },
 	}
 	local COWARD = {
 		[UnitDefNames["chickenh1"].id] = { distance = 300, chance = 0.5 },
 		[UnitDefNames["chickenh1b"].id] = { distance = 15, chance = 0.1 },
-		[UnitDefNames["chickenr1"].id] = { distance = 300, chance = 0.33 },
+		[UnitDefNames["chickenr1"].id] = { distance = 1000, chance = 1 },
+		[UnitDefNames["chickenr2"].id] = { distance = 1000, chance = 0.1 },
 		[UnitDefNames["chickenw1c"].id] = { distance = 900, chance = 0.33 },
-		[UnitDefNames["chickenh5"].id] = { distance = 600, chance = 0.5 }
+		[UnitDefNames["chickenh5"].id] = { distance = 2000, chance = 0.5 },
+		[UnitDefNames["chickene1"].id] = { distance = 2000, chance = 1 },
+		[UnitDefNames["chickene2"].id] = { distance = 2000, chance = 1 },
+		[UnitDefNames["chickenearty1"].id] = { distance = 2000, chance = 1 },
 	}
-	local EGG_DROPPER = {
-		[UnitDefNames["chicken1"].id] = "chicken_egg_s_pink",
-		[UnitDefNames["chicken1b"].id] = "chicken_egg_s_white",
-		[UnitDefNames["chicken1c"].id] = "chicken_egg_s_red",
-		[UnitDefNames["chicken1d"].id] = "chicken_egg_s_pink",
+	local BERSERK = {
+		[UnitDefNames["chickenr2"].id] = { chance = 0.1 },
+		[UnitDefNames["ve_chickenq"].id] = { chance = 0.01 },
+		[UnitDefNames["e_chickenq"].id] = { chance = 0.05 },
+		[UnitDefNames["n_chickenq"].id] = { chance = 0.1 },
+		[UnitDefNames["h_chickenq"].id] = { chance = 0.2 },
+		[UnitDefNames["vh_chickenq"].id] = { chance = 0.3 },
+		[UnitDefNames["epic_chickenq"].id] = { chance = 0.5 },
 	}
+	-- local EGG_DROPPER = {
+	-- 	[UnitDefNames["chicken1"].id] = "chicken_egg_s_pink",
+	-- 	[UnitDefNames["chicken1b"].id] = "chicken_egg_s_white",
+	-- 	[UnitDefNames["chicken1c"].id] = "chicken_egg_s_red",
+	-- 	[UnitDefNames["chicken1d"].id] = "chicken_egg_s_pink",
+	-- }
 	local OVERSEER_ID = UnitDefNames["chickenh5"].id
 	local SMALL_UNIT = UnitDefNames["chicken1"].id
 	local MEDIUM_UNIT = UnitDefNames["chicken1"].id
@@ -391,6 +406,9 @@ if gadgetHandler:IsSyncedCode() then
 	--
 	-- Spawn Dynamics
 	--
+
+	local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
+	local RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax = Spring.GetAllyTeamStartBox(chickenAllyTeamID)
 
 	local function addChickenTarget(chickenID, targetID)
 		if not targetID or GetUnitTeam(targetID) == chickenTeamID or GetUnitTeam(chickenID) ~= chickenTeamID then
@@ -517,72 +535,30 @@ if gadgetHandler:IsSyncedCode() then
 
 	end
 
-	local function SpawnTurret(burrowID, turret)
-
-		if mRandom() > config.defenderChance or not turret or burrows[burrowID] >= config.maxTurrets then
-			return
-		end
-
-		local x, y, z
-		local bx, by, bz = GetUnitPosition(burrowID)
-		if not bx then
-			return
-		end
-		local tries = 0
-		local s = config.spawnSquare
-
-		repeat
-			x = mRandom(bx - s, bx + s)
-			z = mRandom(bz - s, bz + s)
-			s = s + config.spawnSquareIncrement
-			tries = tries + 1
-			if (x >= MAPSIZEX) then
-				x = (MAPSIZEX - mRandom(1, 40))
-			elseif (x <= 0) then
-				x = mRandom(1, 40)
-			end
-			if (z >= MAPSIZEZ) then
-				z = (MAPSIZEZ - mRandom(1, 40))
-			elseif (z <= 0) then
-				z = mRandom(1, 40)
-			end
-		until (not GetGroundBlocked(x, z) or tries > maxTries)
-
-		y = GetGroundHeight(x, z)
-		local unitID = CreateUnit(turret, x, y, z, "n", chickenTeamID)
-		if unitID then
-			idleOrderQueue[unitID] = { cmd = CMD.PATROL, params = { bx, by, bz }, opts = { "meta" } }
-			SetUnitBlocking(unitID, false, false)
-			SetUnitExperience(unitID, mRandom() * expMod)
-			turrets[unitID] = { burrowID, t }
-			burrows[burrowID] = burrows[burrowID] + 1
-		end
-
-	end
-
 	local function SpawnBurrow(number)
-		if queenID then
-			-- don't spawn new burrows when queen is there
-			return
-		end
+		-- if queenID then
+		-- 	-- don't spawn new burrows when queen is there
+		-- 	return
+		-- end
 
 		local unitDefID = UnitDefNames[config.burrowName].id
 
 		for i = 1, (number or 1) do
 			local x, z, y
 			local tries = 0
+			local canSpawnBurrow = false
 			repeat
 				if config.burrowSpawnType == "initialbox" then
 					x = mRandom(lsx1, lsx2)
 					z = mRandom(lsz1, lsz2)
-				elseif config.burrowSpawnType == "alwaysbox" and tries < maxTries then
+				elseif config.burrowSpawnType == "alwaysbox" then
 					x = mRandom(lsx1, lsx2)
 					z = mRandom(lsz1, lsz2)
 				elseif config.burrowSpawnType == "initialbox_post" then
-					lsx1 = math.max(lsx1 * 0.975, config.spawnSquare)
-					lsz1 = math.max(lsz1 * 0.975, config.spawnSquare)
-					lsx2 = math.min(lsx2 * 1.025, MAPSIZEX - config.spawnSquare)
-					lsz2 = math.min(lsz2 * 1.025, MAPSIZEZ - config.spawnSquare)
+					lsx1 = math.max(lsx1 * 0.99, config.spawnSquare)
+					lsz1 = math.max(lsz1 * 0.99, config.spawnSquare)
+					lsx2 = math.min(lsx2 * 1.01, MAPSIZEX - config.spawnSquare)
+					lsz2 = math.min(lsz2 * 1.01, MAPSIZEZ - config.spawnSquare)
 					x = mRandom(lsx1, lsx2)
 					z = mRandom(lsz1, lsz2)
 				else
@@ -592,40 +568,68 @@ if gadgetHandler:IsSyncedCode() then
 
 				y = GetGroundHeight(x, z)
 				tries = tries + 1
-				local blocking = TestBuildOrder(MEDIUM_UNIT, x, y, z, 1)
-				if blocking == 2 and (config.burrowSpawnType == "avoid" or config.burrowSpawnType == "initialbox_post") then
-					local proximity = GetUnitsInCylinder(x, z, config.minBaseDistance)
-					local vicinity = GetUnitsInCylinder(x, z, config.maxBaseDistance)
-					local humanUnitsInVicinity = false
-					local humanUnitsInProximity = false
-					for i = 1, #vicinity, 1 do
-						if GetUnitTeam(vicinity[i]) ~= chickenTeamID then
-							humanUnitsInVicinity = true
-							break
-						end
-					end
 
-					for i = 1, #proximity, 1 do
-						if GetUnitTeam(proximity[i]) ~= chickenTeamID then
-							humanUnitsInProximity = true
-							break
-						end
-					end
-
-					if humanUnitsInProximity or not humanUnitsInVicinity then
-						blocking = 1
+				canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, false)
+				
+				if canSpawnBurrow then
+					if tries < maxTries*3 then
+						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, true, true)
+					else
+						canSpawnBurrow = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, true, false)
 					end
 				end
-			until (blocking == 2 or tries > maxTries * 2)
 
-			local unitID = CreateUnit(config.burrowName, x, y, z, "n", chickenTeamID)
-			if unitID then
-				burrows[unitID] = 0
-				SetUnitBlocking(unitID, false, false)
-				SetUnitExperience(unitID, mRandom() * expMod)
+				if canSpawnBurrow then
+					canSpawnBurrow = positionCheckLibrary.OccupancyCheck(x, y, z, config.minBaseDistance*0.25)
+				end
+
+				if canSpawnBurrow then
+					canSpawnBurrow = positionCheckLibrary.MapEdgeCheck(x, y, z, 256)
+				end
+
+			until (canSpawnBurrow == true or tries >= maxTries * 4)
+
+			if canSpawnBurrow then
+				local unitID = CreateUnit(config.burrowName, x, y, z, math.random(0,3), chickenTeamID)
+				if unitID then
+					if math.random(1,3) == 1 and minBurrows < maxBurrows and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
+						minBurrows = minBurrows + 1
+					end
+					burrows[unitID] = 0
+					SetUnitBlocking(unitID, false, false)
+					SetUnitExperience(unitID, mRandom() * expMod)
+				end
+			else
+				for i = 1,100 do
+					local x = mRandom(RaptorStartboxXMin, RaptorStartboxXMax)
+					local z = mRandom(RaptorStartboxZMin, RaptorStartboxZMax)
+					local y = GetGroundHeight(x, z)
+
+					canSpawnBurrow = positionCheckLibrary.StartboxCheck(x, y, z, 64, chickenAllyTeamID, true)
+					if canSpawnBurrow then
+						canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, false)
+					end
+					if canSpawnBurrow then
+						canSpawnBurrow = positionCheckLibrary.MapEdgeCheck(x, y, z, 128)
+					end
+					if canSpawnBurrow then
+						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(x, y, z, 128)
+					end
+					if canSpawnBurrow then
+						local unitID = CreateUnit(config.burrowName, x, y, z, math.random(0,3), chickenTeamID)
+						if unitID then
+							if math.random(1,3) == 1 and minBurrows < maxBurrows and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
+								minBurrows = minBurrows + 1
+							end
+							burrows[unitID] = 0
+							SetUnitBlocking(unitID, false, false)
+							SetUnitExperience(unitID, mRandom() * expMod)
+							break
+						end
+					end
+				end
 			end
 		end
-
 	end
 
 	local function updateQueenLife()
@@ -639,16 +643,6 @@ if gadgetHandler:IsSyncedCode() then
 			queenLifePercent = lifeCheck
 			SetGameRulesParam("queenLife", queenLifePercent)
 		end
-	end
-
-	local function stunUnit(unitID, seconds)
-		local f = GetGameFrame()
-		seconds = f + (seconds * 30)
-		if stunList[unitID] then
-			seconds = math.max(stunList[unitID], seconds)
-		end
-		stunList[unitID] = seconds
-		SetUnitHealth(unitID, { paralyze = 99999999 })
 	end
 
 	local function SpawnQueen()
@@ -673,46 +667,83 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if sx and sy and sz then
-			return CreateUnit(config.queenName, sx, sy, sz, "n", chickenTeamID)
+			return CreateUnit(config.queenName, sx, sy, sz, math.random(0,3), chickenTeamID)
 		end
 
-		local x, y, z
+		local x, z, y
 		local tries = 0
-
+		local canSpawnQueen = false
 		repeat
-			x = mRandom(1, (MAPSIZEX - 1))
-			z = mRandom(1, (MAPSIZEZ - 1))
+			if config.burrowSpawnType == "initialbox" then
+				x = mRandom(lsx1, lsx2)
+				z = mRandom(lsz1, lsz2)
+			elseif config.burrowSpawnType == "alwaysbox" then
+				x = mRandom(lsx1, lsx2)
+				z = mRandom(lsz1, lsz2)
+			elseif config.burrowSpawnType == "initialbox_post" then
+				lsx1 = math.max(lsx1 * 0.99, config.spawnSquare)
+				lsz1 = math.max(lsz1 * 0.99, config.spawnSquare)
+				lsx2 = math.min(lsx2 * 1.01, MAPSIZEX - config.spawnSquare)
+				lsz2 = math.min(lsz2 * 1.01, MAPSIZEZ - config.spawnSquare)
+				x = mRandom(lsx1, lsx2)
+				z = mRandom(lsz1, lsz2)
+			else
+				x = mRandom(config.spawnSquare, MAPSIZEX - config.spawnSquare)
+				z = mRandom(config.spawnSquare, MAPSIZEZ - config.spawnSquare)
+			end
+
 			y = GetGroundHeight(x, z)
 			tries = tries + 1
-			local blocking = TestBuildOrder(LARGE_UNIT, x, y, z, 1)
 
-			local proximity = GetUnitsInCylinder(x, z, config.minBaseDistance)
-			local vicinity = GetUnitsInCylinder(x, z, config.maxBaseDistance)
-			local humanUnitsInVicinity = false
-			local humanUnitsInProximity = false
-
-			for i = 1, #vicinity, 1 do
-				if GetUnitTeam(vicinity[i]) ~= chickenTeamID then
-					humanUnitsInVicinity = true
-					break
+			canSpawnQueen = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, false)
+			
+			if canSpawnQueen then
+				if tries < maxTries*3 then
+					canSpawnQueen = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, true, true)
+				else
+					canSpawnQueen = positionCheckLibrary.VisibilityCheckEnemy(x, y, z, config.minBaseDistance, chickenAllyTeamID, true, true, false)
 				end
 			end
 
-			for i = 1, #proximity, 1 do
-				if GetUnitTeam(proximity[i]) ~= chickenTeamID then
-					humanUnitsInProximity = true
-					break
+			if canSpawnQueen then
+				canSpawnQueen = positionCheckLibrary.OccupancyCheck(x, y, z, config.minBaseDistance*0.25)
+			end
+
+			if canSpawnQueen then
+				canSpawnQueen = positionCheckLibrary.MapEdgeCheck(x, y, z, 256)
+			end
+
+		until (canSpawnQueen == true or tries >= maxTries * 6)
+
+		if canSpawnQueen then
+			return CreateUnit(config.queenName, x, y, z, math.random(0,3), chickenTeamID)
+		else
+			for i = 1,100 do
+				local x = mRandom(RaptorStartboxXMin, RaptorStartboxXMax)
+				local z = mRandom(RaptorStartboxZMin, RaptorStartboxZMax)
+				local y = GetGroundHeight(x, z)
+
+				canSpawnQueen = positionCheckLibrary.StartboxCheck(x, y, z, 64, chickenAllyTeamID, true)
+				if canSpawnQueen then
+					canSpawnQueen = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, false)
+				end
+				if canSpawnQueen then
+					canSpawnQueen = positionCheckLibrary.MapEdgeCheck(x, y, z, 128)
+				end
+				if canSpawnQueen then
+					canSpawnQueen = positionCheckLibrary.OccupancyCheck(x, y, z, 128)
+				end
+				if canSpawnQueen then
+					return CreateUnit(config.queenName, x, y, z, math.random(0,3), chickenTeamID)
 				end
 			end
+		end
 
-			if humanUnitsInProximity or not humanUnitsInVicinity then
-				blocking = 1
-			end
-
-		until (blocking == 2 or tries > maxTries * 3)
-
-		return CreateUnit(config.queenName, x, y, z, "n", chickenTeamID)
-
+		-- Force Spawn if everything else failed
+		local x = mRandom(RaptorStartboxXMin, RaptorStartboxXMax)
+		local z = mRandom(RaptorStartboxZMin, RaptorStartboxZMax)
+		local y = GetGroundHeight(x, z)
+		return CreateUnit(config.queenName, x, y, z, math.random(0,3), chickenTeamID)
 	end
 
 	local function Wave()
@@ -731,15 +762,18 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local cCount = 0
-
+		local queenBurrowSpawnMultiplier = 1
 		if queenID then
+			queenBurrowSpawnMultiplier = 0.2
 			-- spawn units from queen
 			if config.queenSpawnMult > 0 then
-				for i = 1, config.queenSpawnMult, 1 do
-					local squad = config.waves[9][mRandom(1, #config.waves[9])]
+				for i = 1, config.queenSpawnMult*SetCount(humanTeams), 1 do
+					local waveLevelPower = mRandom(1, currentWave*currentWave)
+					local waveLevel = math.ceil(math.sqrt(waveLevelPower))
+					local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
 					for i, sString in pairs(squad) do
 						local nEnd, _ = string.find(sString, " ")
-						local unitNumber = string.sub(sString, 1, (nEnd - 1)) * config.chickenSpawnMultiplier
+						local unitNumber = string.sub(sString, 1, (nEnd - 1)) * config.chickenSpawnMultiplier * 1+currentWave-waveLevel
 						local chickenName = string.sub(sString, (nEnd + 1))
 						for i = 1, unitNumber, 1 do
 							table.insert(spawnQueue, { burrow = queenID, unitName = chickenName, team = chickenTeamID })
@@ -748,30 +782,35 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
-			return cCount
+			--return cCount
 		end
 
 		for burrowID in pairs(burrows) do
-			if t > queenTime * 0.15 then
-				SpawnTurret(burrowID, config.bonusTurret)
-			end
-			local squad = config.waves[currentWave][mRandom(1, #config.waves[currentWave])]
+			local waveLevelPower = mRandom(1, currentWave*currentWave)
+			local waveLevel = math.ceil(math.sqrt(waveLevelPower))
+			local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
+			local newWaveSquadSpawn = false
 			if lastWave ~= currentWave and config.newWaveSquad[currentWave] then
 				squad = config.newWaveSquad[currentWave]
 				lastWave = currentWave
+				waveLevel = currentWave
+				newWaveSquadSpawn = true
 			end
 			for i, sString in pairs(squad) do
 				local skipSpawn = false
-				if cCount > chickensPerPlayer and mRandom() > config.spawnChance then
+				if cCount > chickensPerPlayer and mRandom() > config.spawnChance*queenBurrowSpawnMultiplier then
 					skipSpawn = true
 				end
-				if skipSpawn and chickenDebtCount > 0 and mRandom() > config.spawnChance then
-					chickenDebtCount = (chickenDebtCount - 1)
+				-- if skipSpawn and chickenDebtCount > 0 and mRandom() > config.spawnChance*queenBurrowSpawnMultiplier then
+				-- 	chickenDebtCount = (chickenDebtCount - 1)
+				-- 	skipSpawn = false
+				-- end
+				if newWaveSquadSpawn then
 					skipSpawn = false
 				end
 				if not skipSpawn then
 					local nEnd, _ = string.find(sString, " ")
-					local unitNumber = string.sub(sString, 1, (nEnd - 1)) * config.chickenSpawnMultiplier
+					local unitNumber = string.sub(sString, 1, (nEnd - 1)) * config.chickenSpawnMultiplier * 1+currentWave-waveLevel
 					local chickenName = string.sub(sString, (nEnd + 1))
 					for i = 1, unitNumber, 1 do
 						table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID })
@@ -982,10 +1021,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 
-		if empGoo[weaponID] and unitTeam ~= chickenTeamID and config.lobberEMPTime > 0 then
-			stunUnit(unitID, ((damage / empGoo[weaponID]) * config.lobberEMPTime))
-		end
-
 		if chickenBirths[attackerID] then
 			chickenBirths[attackerID].deathDate = (t + config.maxAge)
 		end
@@ -997,85 +1032,28 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if SKIRMISH[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < SKIRMISH[attackerDefID].chance) then
-			local ux, _, uz = GetUnitPosition(unitID)
+			local ux, uy, uz = GetUnitPosition(unitID)
 			local x, y, z = GetUnitPosition(attackerID)
 			if x and ux then
 				local angle = math.atan2(ux - x, uz - z)
-				idleOrderQueue[attackerID] = { cmd = CMD.MOVE, params = { x - (math.sin(angle) * SKIRMISH[attackerDefID].distance), y, z - (math.cos(angle) * SKIRMISH[attackerDefID].distance) }, opts = {} }
+				local distance = mRandom(math.ceil(SKIRMISH[attackerDefID].distance*0.75), math.floor(SKIRMISH[attackerDefID].distance*1.25))
+				idleOrderQueue[attackerID] = { cmd = CMD.MOVE, params = { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, opts = {} }
 			end
-		elseif COWARD[unitDefID] and (not idleOrderQueue[unitID]) and (unitTeam == chickenTeamID) and attackerID and (mRandom() < COWARD[unitDefID].chance) then
+		elseif COWARD[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < COWARD[unitDefID].chance) then
 			local curH, maxH = GetUnitHealth(unitID)
 			if curH and maxH and curH < (maxH * 0.8) then
-				local ax, _, az = GetUnitPosition(attackerID)
+				local ax, ay, az = GetUnitPosition(attackerID)
 				local x, y, z = GetUnitPosition(unitID)
 				if x and ax then
 					local angle = math.atan2(ax - x, az - z)
-					idleOrderQueue[unitID] = { cmd = CMD.MOVE, params = { x - (math.sin(angle) * COWARD[unitDefID].distance), y, z - (math.cos(angle) * COWARD[unitDefID].distance) }, opts = {} }
+					local distance = mRandom(math.ceil(COWARD[unitDefID].distance*0.75), math.floor(COWARD[unitDefID].distance*1.25))
+					idleOrderQueue[unitID] = { cmd = CMD.MOVE, params = { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, opts = {} }
 				end
 			end
-		end
-
-		if unitDefID == LOBBER then
-			local nSpawn = false
-			if GetUnitHealth(unitID) < 2475 and damage < (2000 + mRandom(1, 500)) then
-				nSpawn = true
-			end
-			if nSpawn then
-				local bx, by, bz = GetUnitPosition(unitID)
-				local h = GetUnitHeading(unitID)
-				SetUnitBlocking(unitID, false, false)
-				local newUnitID = CreateUnit("chickenr2", bx, by, bz, "n", unitTeam)
-				if newUnitID then
-					Spring.SetUnitNoDraw(newUnitID, true)
-					Spring.MoveCtrl.Enable(newUnitID)
-					Spring.MoveCtrl.SetHeading(newUnitID, h)
-					Spring.MoveCtrl.Disable(newUnitID)
-					SetUnitExperience(newUnitID, mRandom() * expMod)
-					Spring.SetUnitNoDraw(newUnitID, false)
-					deathQueue[unitID] = { selfd = false, reclaimed = true }
-					idleOrderQueue[newUnitID] = { cmd = CMD.STOP, params = {}, opts = {} }
-				end
-				return
-			end
-		elseif unitID == queenID then
-			if paralyzer then
-				SetUnitHealth(unitID, { paralyze = 0 })
-				return
-			end
-			qDamage = (qDamage + damage)
-			if qDamage > queenMaxHP / 10 then
-				if qMove then
-					idleOrderQueue[queenID] = { cmd = CMD.STOP, params = {}, opts = {} }
-					qMove = false
-					qDamage = 0 - mRandom(0, 100000)
-				else
-					local cC = ChooseTarget()
-					local xQ, _, zQ = GetUnitPosition(queenID)
-					if cC then
-						local angle = math.atan2((cC[1] - xQ), (cC[3] - zQ))
-						local dist = math.sqrt(((cC[1] - xQ) * (cC[1] - xQ)) + ((cC[3] - zQ) * (cC[3] - zQ))) * 0.75
-						if dist < 1700 then
-							GiveOrderToUnit(queenID, CMD.MOVE, { (xQ + (math.sin(angle) * dist)), cC[2], (zQ + (math.cos(angle) * dist)) }, 0)
-							GiveOrderToUnit(queenID, CMD.FIGHT, cC, { "shift" })
-							if targetCache then
-								addChickenTarget(queenID, targetCache)
-							end
-							qDamage = 0 - mRandom(50000, 250000)
-							Wave()
-							qMove = true
-						else
-							idleOrderQueue[queenID] = { cmd = CMD.STOP, params = {}, opts = {} }
-							qDamage = 0
-							Wave()
-						end
-						for i = 1, 5, 1 do
-							SpawnTurret(queenID, config.bonusTurret)
-						end
-					else
-						idleOrderQueue[queenID] = { cmd = CMD.STOP, params = {}, opts = {} }
-						qDamage = 0
-					end
-				end
+		elseif BERSERK[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < BERSERK[unitDefID].chance) then
+			local ax, ay, az = GetUnitPosition(attackerID)
+			if ax then
+				idleOrderQueue[unitID] = {cmd = CMD.MOVE, params = {ax, ay, az}, opts = {} }
 			end
 		end
 	end
@@ -1117,8 +1095,14 @@ if gadgetHandler:IsSyncedCode() then
 			spawnQueue[i] = nil
 			return
 		end
-		local unitID = CreateUnit(defs.unitName, x, y, z, "n", defs.team)
+		local unitID = CreateUnit(defs.unitName, x, y, z, math.random(0,3), defs.team)
+		
 		if unitID then
+			GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, { "shift" })
+			GiveOrderToUnit(unitID, CMD.MOVE, { x + math.random(-64, 64), y, z + math.random(-64, 64) }, { "shift" })
+			GiveOrderToUnit(unitID, CMD.MOVE, { x + math.random(-128, 128), y, z + math.random(-128, 128) }, { "shift" })
+			GiveOrderToUnit(unitID, CMD.MOVE, { x + math.random(-256, 256), y, z + math.random(-256, 256) }, { "shift" })
+			GiveOrderToUnit(unitID, CMD.MOVE, { x + math.random(-512, 512), y, z + math.random(-512, 512) }, { "shift" })
 			SetUnitExperience(unitID, mRandom() * expMod)
 			if mRandom() < 0.1 then
 				local mod = 0.75 - (mRandom() * 0.25)
@@ -1131,9 +1115,9 @@ if gadgetHandler:IsSyncedCode() then
 				heroChicken[unitID] = mod
 			end
 
-			if unitCanFly[GetUnitDefID(unitID)] then
-				GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, { "shift" })
-			end
+			--if unitCanFly[GetUnitDefID(unitID)] then
+				
+			--end
 
 			if queenID then
 				idleOrderQueue[unitID] = { cmd = CMD.FIGHT, params = getRandomMapPos(), opts = {} }
@@ -1142,7 +1126,7 @@ if gadgetHandler:IsSyncedCode() then
 				if targetCache and (unitID ~= queenID) and (mRandom(1, 15) == 5) then
 					idleOrderQueue[unitID] = { cmd = CMD.ATTACK, params = { targetCache }, opts = {} }
 				else
-					if mRandom(100) > 20 then
+					if mRandom(100) > 50 or unitCanFly[GetUnitDefID(unitID)] then
 						idleOrderQueue[unitID] = { cmd = CMD.FIGHT, params = chickenParams, opts = {} }
 					else
 						idleOrderQueue[unitID] = { cmd = CMD.MOVE, params = chickenParams, opts = {} }
@@ -1199,7 +1183,7 @@ if gadgetHandler:IsSyncedCode() then
 			spawnQueue = {}
 			oldMaxChicken = maxChicken
 			oldDamageMod = damageMod
-			maxChicken = 75
+			maxChicken = maxChicken
 			chickenEvent("queen") -- notify unsynced about queen spawn
 			_, queenMaxHP = GetUnitHealth(queenID)
 			SetUnitExperience(queenID, expMod)
@@ -1243,60 +1227,62 @@ if gadgetHandler:IsSyncedCode() then
 	local attemptingToSpawnLightTurret = 0
 	local heavyTurret = "chickend2"
 	local lightTurret = "chickend1"
-	local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-	local RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax = Spring.GetAllyTeamStartBox(chickenAllyTeamID)
 
 	local function spawnStartBoxProtectionHeavy()
-		if math.random(0,1800) == 0 then
-			local burrowCount = SetCount(burrows)
+		local burrowCount = SetCount(burrows)
+		if math.random(0,config.burrowSpawnRate*6) == 0 and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
 			if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < burrowCount*2 or Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < 2 then
 				attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + 1
 			end
 		end
+		if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < burrowCount*2 then
+			if attemptingToSpawnHeavyTurret > 0 and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
+				canSpawnDefence = true
+				-- lsx1 - xmin, lsz1 - zmin, lsx2 - xmax, lsz2 - zmax
+				local spawnDirection = math.random(0,3)
+				local spread = 210
+				local spawnPosX = math.random(lsx1,lsx2)
+				local spawnPosZ = math.random(lsz1,lsz2)
 
-		if attemptingToSpawnHeavyTurret > 0 and Spring.GetGameFrame() > config.gracePeriod*30 then
-			canSpawnDefence = true
-			-- lsx1 - xmin, lsz1 - zmin, lsx2 - xmax, lsz2 - zmax
-			local spawnDirection = math.random(0,3)
-			local spread = 210
-			local spawnPosX = math.random(lsx1,lsx2)
-			local spawnPosZ = math.random(lsz1,lsz2)
-
-			if spawnPosX > MAPSIZEX - spread + 1 or spawnPosX < spread + 1 or spawnPosZ > MAPSIZEZ - spread + 1 or spawnPosZ < spread + 1 then
-				canSpawnDefence = false
-			end
-
-			if canSpawnDefence then
-				local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-				local canSpawnDefence = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-				if canSpawnDefence then
-					canSpawnDefence = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+				if spawnPosX > MAPSIZEX - spread + 1 or spawnPosX < spread + 1 or spawnPosZ > MAPSIZEZ - spread + 1 or spawnPosZ < spread + 1 then
+					canSpawnDefence = false
 				end
+
 				if canSpawnDefence then
-					local StartBoxCheck = positionCheckLibrary.StartboxCheck(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID)
-					if StartBoxCheck == false then
-						canSpawnDefence = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, false)
+					local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+					local canSpawnDefence = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+					if canSpawnDefence then
+						canSpawnDefence = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
 					end
-				end
-				if canSpawnDefence then
-					local heavyTurretUnitID = Spring.CreateUnit(heavyTurret, spawnPosX, spawnPosY, spawnPosZ, spawnDirection, chickenTeamID)
-					if heavyTurretUnitID then
-						attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret - 1
-						SetUnitExperience(heavyTurretUnitID, mRandom() * expMod)
-						for i = 1, math.random(1,8) do
-							local spawnPosX = spawnPosX + math.random(-spread, spread)
-							local spawnPosZ = spawnPosZ + math.random(-spread, spread)
-							local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-							canSpawnDefence = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread*0.2)
-							if canSpawnDefence then
-								canSpawnDefence = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY+50, spawnPosZ, spread*0.2)
-							end
-							if canSpawnDefence then
-								local lightTurretUnitID = Spring.CreateUnit(lightTurret, spawnPosX, spawnPosY, spawnPosZ, spawnDirection, chickenTeamID)
-								if lightTurretUnitID then
-									Spring.GiveOrderToUnit(lightTurretUnitID, CMD.PATROL, {spawnPosX + math.random(-128,128), spawnPosY, spawnPosZ + math.random(-128,128)}, {"meta"})
-									SetUnitBlocking(lightTurretUnitID, false, false)
-									SetUnitExperience(lightTurretUnitID, mRandom() * expMod)
+					if canSpawnDefence then
+						local StartBoxCheck = positionCheckLibrary.StartboxCheck(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID)
+						if StartBoxCheck == false then
+							canSpawnDefence = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, false)
+						end
+					end
+					if canSpawnDefence then
+						local heavyTurretUnitID = Spring.CreateUnit(heavyTurret, spawnPosX, spawnPosY, spawnPosZ, spawnDirection, chickenTeamID)
+						if heavyTurretUnitID then
+							attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret - 1
+							SetUnitExperience(heavyTurretUnitID, mRandom() * expMod)
+							for i = 1, math.random(1,attemptingToSpawnLightTurret+6) do
+								local spawnPosX = spawnPosX + math.random(-spread, spread)
+								local spawnPosZ = spawnPosZ + math.random(-spread, spread)
+								local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+								canSpawnDefence = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread*0.2)
+								if canSpawnDefence then
+									canSpawnDefence = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY+50, spawnPosZ, spread*0.2)
+								end
+								if canSpawnDefence then
+									local lightTurretUnitID = Spring.CreateUnit(lightTurret, spawnPosX, spawnPosY, spawnPosZ, spawnDirection, chickenTeamID)
+									if lightTurretUnitID then
+										Spring.GiveOrderToUnit(lightTurretUnitID, CMD.PATROL, {spawnPosX + math.random(-128,128), spawnPosY, spawnPosZ + math.random(-128,128)}, {"meta"})
+										SetUnitBlocking(lightTurretUnitID, false, false)
+										SetUnitExperience(lightTurretUnitID, mRandom() * expMod)
+										if attemptingToSpawnLightTurret > 0 then
+											attemptingToSpawnLightTurret = attemptingToSpawnLightTurret - 1
+										end
+									end
 								end
 							end
 						end
@@ -1306,82 +1292,45 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-
-		-- if not noChickenStartbox then
-		-- 	canSpawnDefence = true
-		-- 	-- lsx1 - xmin, lsz1 - zmin, lsx2 - xmax, lsz2 - zmax
-		-- 	local r = math.random(0,3)
-		-- 	local spread = 80
-		-- 	local spawnPosX = math.random(RaptorStartboxXMin,RaptorStartboxXMax)
-		-- 	local spawnPosZ = math.random(RaptorStartboxZMin,RaptorStartboxZMax)
-
-		-- 	if spawnPosX > MAPSIZEX - spread + 1 or spawnPosX < spread + 1 or spawnPosZ > MAPSIZEZ - spread + 1 or spawnPosZ < spread + 1 then
-		-- 		canSpawnDefence = false
-		-- 	end
-
-		-- 	local spawnPosX = spawnPosX + math.random(-spread*2,spread*2)
-		-- 	local spawnPosZ = spawnPosZ + math.random(-spread*2,spread*2)
-
-		-- 	if spawnPosX > MAPSIZEX or spawnPosX < 0 or spawnPosZ > MAPSIZEZ or spawnPosZ < 0 then
-		-- 		canSpawnDefence = false
-		-- 	end
-
-		-- 	if canSpawnDefence then
-		-- 		local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-		-- 		local canSpawnDefence = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-		-- 		if canSpawnDefence then
-		-- 			canSpawnDefence = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-		-- 		end
-		-- 		if canSpawnDefence then
-		-- 			local pickedTurret = "chickend1"
-		-- 			local unitID = Spring.CreateUnit(pickedTurret, spawnPosX, spawnPosY, spawnPosZ, spawnDirection, chickenTeamID)
-		-- 			if unitID then
-		-- 				Spring.GiveOrderToUnit(unitID, CMD.PATROL, {spawnPosX + math.random(-128,128), spawnPosY, spawnPosZ + math.random(-128,128)}, {"meta"})
-		-- 				Spring.SetUnitHealth(unitID, 10)
-		-- 				SetUnitBlocking(unitID, false, false)
-		-- 				SetUnitExperience(unitID, mRandom() * expMod)
-		-- 			end
-		-- 		end
-		-- 	end
-		-- end
-
 	local function spawnStartBoxProtectionLight()
-		if math.random(0,1800) == 0 then
-			local burrowCount = SetCount(burrows)
-			if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < burrowCount*10 or Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < 10 then
-				attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 1
+		local burrowCount = SetCount(burrows)
+		if math.random(0,config.burrowSpawnRate*6) == 0 and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
+			if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < burrowCount*5 or Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < 10 then
+				attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 10
 			end
 		end
+		if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < burrowCount*5 then
+			if attemptingToSpawnLightTurret > 0 and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
+				canSpawnDefence = true
+				-- lsx1 - xmin, lsz1 - zmin, lsx2 - xmax, lsz2 - zmax
+				local spawnDirection = math.random(0,3)
+				local spread = 80
+				local spawnPosX = math.random(lsx1,lsx2)
+				local spawnPosZ = math.random(lsz1,lsz2)
 
-		if attemptingToSpawnLightTurret > 0 and Spring.GetGameFrame() > config.gracePeriod*30 then
-			canSpawnDefence = true
-			-- lsx1 - xmin, lsz1 - zmin, lsx2 - xmax, lsz2 - zmax
-			local spawnDirection = math.random(0,3)
-			local spread = 80
-			local spawnPosX = math.random(lsx1,lsx2)
-			local spawnPosZ = math.random(lsz1,lsz2)
-
-			if spawnPosX > MAPSIZEX - spread + 1 or spawnPosX < spread + 1 or spawnPosZ > MAPSIZEZ - spread + 1 or spawnPosZ < spread + 1 then
-				canSpawnDefence = false
-			end
-
-			if canSpawnDefence then
-				local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-				local canSpawnDefence = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-				if canSpawnDefence then
-					canSpawnDefence = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+				if spawnPosX > MAPSIZEX - spread + 1 or spawnPosX < spread + 1 or spawnPosZ > MAPSIZEZ - spread + 1 or spawnPosZ < spread + 1 then
+					canSpawnDefence = false
 				end
+
 				if canSpawnDefence then
-					local StartBoxCheck = positionCheckLibrary.StartboxCheck(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID)
-					if StartBoxCheck == false then
-						canSpawnDefence = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, false)
+					local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+					local canSpawnDefence = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+					if canSpawnDefence then
+						canSpawnDefence = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
 					end
-				end
-				if canSpawnDefence then
-					local lightTurretUnitID = Spring.CreateUnit(lightTurret, spawnPosX, spawnPosY, spawnPosZ, spawnDirection, chickenTeamID)
-					if lightTurretUnitID then
-						attemptingToSpawnLightTurret = attemptingToSpawnLightTurret - 1
-						SetUnitExperience(lightTurretUnitID, mRandom() * expMod)
+					if canSpawnDefence then
+						local StartBoxCheck = positionCheckLibrary.StartboxCheck(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID)
+						if StartBoxCheck == false then
+							canSpawnDefence = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, false)
+						end
+					end
+					if canSpawnDefence then
+						local lightTurretUnitID = Spring.CreateUnit(lightTurret, spawnPosX, spawnPosY, spawnPosZ, spawnDirection, chickenTeamID)
+						if lightTurretUnitID then
+							Spring.GiveOrderToUnit(lightTurretUnitID, CMD.PATROL, {spawnPosX + math.random(-128,128), spawnPosY, spawnPosZ + math.random(-128,128)}, {"meta"})
+							attemptingToSpawnLightTurret = attemptingToSpawnLightTurret - 1
+							SetUnitExperience(lightTurretUnitID, mRandom() * expMod)
+						end
 					end
 				end
 			end
@@ -1409,6 +1358,8 @@ if gadgetHandler:IsSyncedCode() then
 
 		if n == 15 then
 			DisableComputerUnits()
+			config.burrowSpawnRate = config.burrowSpawnRate/SetCount(humanTeams)
+			config.chickenSpawnRate = config.chickenSpawnRate/SetCount(humanTeams)
 		end
 
 		if n % 90 == 0 then
@@ -1420,7 +1371,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		if chickenCount < maxChicken then
+		local chickenTeamUnitCount = Spring.GetTeamUnitCount(chickenTeamID) or 0
+		if chickenTeamUnitCount < maxChicken then
 			SpawnChickens()
 		end
 
@@ -1490,7 +1442,7 @@ if gadgetHandler:IsSyncedCode() then
 			if config.burrowSpawnRate < (t - timeOfLastFakeSpawn) and burrowTarget < maxBurrows then
 				-- This block is all about setting the correct burrow target
 				if firstSpawn then
-					minBurrows = SetCount(humanTeams)
+					minBurrows = math.ceil(SetCount(humanTeams)*0.5)
 					local hteamID = next(humanTeams)
 					local ranCount = GetTeamUnitCount(hteamID)
 					for i = 1, ranCount, 1 do
@@ -1503,22 +1455,22 @@ if gadgetHandler:IsSyncedCode() then
 				timeOfLastFakeSpawn = t
 			end
 
-			if burrowTarget > 0 and burrowTarget ~= burrowCount then
-				quicken = (config.burrowSpawnRate * (1 - (burrowCount / burrowTarget)))
-			end
+			-- if burrowTarget > 0 and burrowTarget ~= burrowCount then
+			-- 	quicken = (config.burrowSpawnRate * (1 - (burrowCount / burrowTarget)))
+			-- end
 
-			if burrowTarget > 0 and (burrowCount / burrowTarget) < 0.40 then
-				-- less than 40% of desired burrows, spawn one right away
-				quicken = config.burrowSpawnRate
-			end
+			-- if burrowTarget > 0 and (burrowCount / burrowTarget) < 0.40 then
+			-- 	-- less than 40% of desired burrows, spawn one right away
+			-- 	quicken = config.burrowSpawnRate
+			-- end
 
 			local burrowSpawnTime = (config.burrowSpawnRate - quicken)
 
 			if burrowCount < minBurrows or (burrowSpawnTime < t - timeOfLastSpawn and burrowCount < maxBurrows) then
 				if firstSpawn then
-					for i = 1, math.min(math.ceil((SetCount(humanTeams) * 1.5)) + gracePenalty, 40), 1 do
+					--for i = 1,math.ceil(minBurrows*1.2) do
 						SpawnBurrow()
-					end
+					--end
 					timeOfLastWave = (t - (config.chickenSpawnRate - 6))
 					firstSpawn = false
 					if (config.burrowSpawnType == "initialbox") then
@@ -1534,34 +1486,59 @@ if gadgetHandler:IsSyncedCode() then
 				SetGameRulesParam("roostCount", SetCount(burrows))
 			end
 
-			if burrowCount > 0 and (config.chickenSpawnRate < (t - timeOfLastWave)) then
+			if burrowCount > 0 and ((config.chickenSpawnRate < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount*(math.random(0,50)*0.01) and (t - timeOfLastWave) > 2)) then
 				local cCount = Wave()
-				if cCount and cCount > 0 and (not queenID) then
+				if cCount and cCount > 0 then
 					chickenEvent("wave", cCount, currentWave)
 				end
+				lastWaveUnitCount = cCount
 				timeOfLastWave = t
 			end
 			chickenCount = UpdateUnitCount()
 		end
-		if n > 300 then
+		if n%30 == 10 and n > 300 and chickenTeamUnitCount < maxChicken then
 			spawnStartBoxProtectionLight()
 			spawnStartBoxProtectionHeavy()
 		end
 	end
 
+	local chickenEggColors = {"pink","white","red", "blue", "darkgreen", "darkred", "green", "yellow"}
+	local function spawnRandomEgg(x,y,z)
+		local r = mRandom(1,100)
+		local size = "s"
+		if r <= 5 then
+			size = "l"
+		elseif r <= 20 then
+			size = "m"
+		end
+		local egg = Spring.CreateFeature("chicken_egg_"..size.."_"..chickenEggColors[math.random(1,#chickenEggColors)], x, y, z, math.random(-999999,999999), chickenTeamID)
+		if egg then
+			Spring.SetFeatureVelocity(egg, mRandom(-2000,2000)*0.01, mRandom(300,600)*0.01, mRandom(-2000,2000)*0.01)
+		end
+	end
+
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
-		if (eggChance > 0 and bonusEggs > 0) or (EGG_DROPPER[unitDefID] and mRandom() < eggChance) then
-			local x, y, z = GetUnitPosition(unitID)
-			if x then
-				local h = GetUnitHeading(unitID)
-				if h then
-					Spring.CreateFeature(EGG_DROPPER[unitDefID], x, y, z, h)
-					bonusEggs = bonusEggs - 1
+		if unitTeam == chickenTeamID then
+			local x,y,z = Spring.GetUnitPosition(unitID)
+			if unitDefID == config.burrowDef or UnitDefs[unitDefID].name == "chickend2" then
+				for i = 1,math.random(10,40) do
+					local x = x + math.random(-32,32)
+					local z = z + math.random(-32,32)
+					local y = GetGroundHeight(x, z)
+					spawnRandomEgg(x,y,z)
 				end
+			elseif UnitDefs[unitDefID].name == "chickend1" then
+				for i = 1,math.random(3,10) do
+					local x = x + math.random(-16,16)
+					local z = z + math.random(-16,16)
+					local y = GetGroundHeight(x, z)
+					spawnRandomEgg(x,y,z)
+				end
+			else
+				spawnRandomEgg(x,y,z)
 			end
 		end
-
 		if heroChicken[unitID] then
 			heroChicken[unitID] = nil
 		end
@@ -1682,20 +1659,26 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 
-			for burrowID in pairs(burrows) do
-				SpawnTurret(burrowID, config.bonusTurret)
-			end
-
 			for i, defs in pairs(spawnQueue) do
 				if defs.burrow == unitID then
 					spawnQueue[i] = nil
 				end
 			end
 
-			attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + 4
-			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 20
+			if math.random(1,4) == 1 then
+				attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + 1
+			end
+			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + math.random(1,5)
 
 			SetGameRulesParam("roostCount", SetCount(burrows))
+		end
+
+		if UnitDefs[unitDefID].name == "chickend1" then
+			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + math.random(0,1)
+		end
+		if UnitDefs[unitDefID].name == "chickend2" then
+			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + math.random(0,5)
+			attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + math.random(0,1)
 		end
 	end
 

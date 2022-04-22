@@ -674,7 +674,7 @@ local function getSelectionTotals(cells)
 			totalEnergyUse = totalEnergyUse + energyUse
 		end
 		-- health
-		local health, maxHealth, _, _, buildProgress = spGetUnitHealth(unitID)
+		local health, maxHealth = spGetUnitHealth(unitID)
 		if health and maxHealth then
 			totalMaxHealthValue = totalMaxHealthValue + maxHealth
 			totalHealth = totalHealth + health
