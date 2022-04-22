@@ -90,7 +90,7 @@ return {
 				collidefeature = 0,
 				avoidfeature = 0,
 				avoidfriendly = 0,
-				burst = 10,
+				burst = 6,
 				burstrate = 0.5,
 				craterboost = 0,
 				cratermult = 0,
@@ -107,7 +107,8 @@ return {
 				paralyzetime = 20,
 				range = 800,
 				reloadtime = 10,
-				soundhit = "lghthvy1",
+				soundhit = "junohit2edit",
+				soundstart = "alien_bombrel",
 				sprayangle = 400,
 				weapontype = "AircraftBomb",
 				damage = {

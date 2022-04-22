@@ -106,6 +106,7 @@ return {
 				range = 700,
 				reloadtime = 9,
 				soundhit = "bombsmed2",
+				soundstart = "alien_bombrel",
 				sprayangle = 2000,
 				weapontype = "AircraftBomb",
 				damage = {
