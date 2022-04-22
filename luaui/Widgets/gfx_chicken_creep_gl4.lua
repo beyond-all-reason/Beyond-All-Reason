@@ -283,7 +283,7 @@ local function initGL4(shaderConfig, DPATname)
 	if creepVBO == nil then goodbye("Failed to create creepVBO") end
 	
 	local planeVBO, numVertices = makePlaneVBO(1,1,resolution,resolution)
-	local planeIndexVBO, numIndices =  makePlaneIndexVBO(resolution,resolution)
+	local planeIndexVBO, numIndices =  makePlaneIndexVBO(resolution,resolution, true)
 	
 	creepVBO.vertexVBO = planeVBO
 	creepVBO.indexVBO = planeIndexVBO
