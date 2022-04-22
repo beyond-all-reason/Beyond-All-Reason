@@ -322,10 +322,10 @@ local overrideDrawFlagsCombined = {
 }
 
 local overriddenUnits = {} -- these remain positive, as they are traversed separately
-local processedUnits = {}
+-- local processedUnits = {}
 
 local overriddenFeatures = {} -- this remains positive
-local processedFeatures = {}
+-- local processedFeatures = {}
 
 -- This is the main table of all the unit drawbins:
 -- It is organized like so:
@@ -1227,11 +1227,11 @@ local function RemoveObject(objectID) -- we get pos/neg objectID here
 	objectIDtoDefID[objectID] = nil
 	if objectID >= 0 then
 		overriddenUnits[objectID] = nil
-		processedUnits[objectID] = nil
+		-- processedUnits[objectID] = nil
 		Spring.SetUnitEngineDrawMask(objectID, 255)
 	else
 		overriddenFeatures[-1 * objectID] = nil
-		processedFeatures[-1 * objectID] = nil
+		-- processedFeatures[-1 * objectID] = nil
 		Spring.SetFeatureEngineDrawMask(-1 * objectID, 255)
 	end
 
@@ -1242,13 +1242,16 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 
 local function ProcessUnits(units, drawFlags)
-	processedCounter = (processedCounter + 1) % (2 ^ 16)
+	--processedCounter = (processedCounter + 1) % (2 ^ 16)
 
 	for i = 1, #units do
 		local unitID = units[i]
 		local drawFlag = drawFlags[i]
 		local buildpercent = select(5, spGetUnitHealth(unitID))
-		if (buildpercent and buildpercent < 1) or spGetUnitIsCloaked(unitID) then
+
+		if (drawFlag == 0) then
+			RemoveObject(unitID)
+		elseif (buildpercent and buildpercent < 1) or spGetUnitIsCloaked(unitID) then
 			--under construction
 			--using processedUnits here actually good, as it will dynamically handle unitfinished and cloak on-off
 		else
@@ -1256,22 +1259,22 @@ local function ProcessUnits(units, drawFlags)
 			--Spring.Echo("ProcessUnit", unitID, drawFlag)
 			if overriddenUnits[unitID] == nil then --object was not seen
 				AddObject(unitID, drawFlag)
-			elseif overriddenUnits[unitID] ~= drawFlag then --flags have changed
+			else --if overriddenUnits[unitID] ~= drawFlag then --flags have changed
 				UpdateObject(unitID, drawFlag)
 			end
-			processedUnits[unitID] = processedCounter
+			-- processedUnits[unitID] = processedCounter
 		end
 	end
 
-	for unitID, _ in pairs(overriddenUnits) do
-		if processedUnits[unitID] ~= processedCounter then --object was not updated thus was removed
-			RemoveObject(unitID)
-		end
-	end
+	-- for unitID, _ in pairs(overriddenUnits) do
+	-- 	if processedUnits[unitID] ~= processedCounter then --object was not updated thus was removed
+	-- 		RemoveObject(unitID)
+	-- 	end
+	-- end
 end
 
 local function ProcessFeatures(features, drawFlags)
-	processedCounter = (processedCounter + 1) % (2 ^ 16)
+	-- processedCounter = (processedCounter + 1) % (2 ^ 16)
 
 	for i = 1, #features do
 		local featureID = features[i]
@@ -1282,21 +1285,23 @@ local function ProcessFeatures(features, drawFlags)
 		-- I leave this wonderful bug to any future soul who has to maintain this
 		if featureID > 0 then
 			--Spring.Echo("ProcessFeature", featureID	, drawFlag)
-			if overriddenFeatures[featureID] == nil then --object was not seen
+			if (drawFlag == 0) then
+				RemoveObject(-1 * featureID)
+			elseif overriddenFeatures[featureID] == nil then --object was not seen
 				AddObject(-1 * featureID, drawFlag)
-			elseif overriddenFeatures[featureID] ~= drawFlag then --flags have changed
+			else --if overriddenFeatures[featureID] ~= drawFlag then --flags have changed
 				UpdateObject(-1 * featureID, drawFlag)
 			end
-			processedFeatures[featureID] = processedCounter
+			-- processedFeatures[featureID] = processedCounter
 		end
-		processedFeatures[featureID] = processedCounter
+		-- processedFeatures[featureID] = processedCounter
 	end
 
-	for featureID, _ in pairs(overriddenFeatures) do
-		if processedFeatures[featureID] ~= processedCounter then --object was not updated thus was removed
-			RemoveObject(-1 * featureID)
-		end
-	end
+	-- for featureID, _ in pairs(overriddenFeatures) do
+	-- 	if processedFeatures[featureID] ~= processedCounter then --object was not updated thus was removed
+	-- 		RemoveObject(-1 * featureID)
+	-- 	end
+	-- end
 end
 
 local shaderactivations = 0
@@ -1419,6 +1424,8 @@ local function initGL4()
 	initBinsAndTextures()
 
 	Spring.Echo("[CUS GL4] Collecting units")
+	Spring.ClearUnitsPreviousDrawFlag()
+	Spring.ClearFeaturesPreviousDrawFlag()
 	gadget:DrawWorldPreUnit	()
 	Spring.Echo("[CUS GL4] Ready")
 end
@@ -1629,7 +1636,7 @@ end
 local totalbatches = 0
 local totalunits = 0
 
-local updateframe = 0
+-- local updateframe = 0
 
 local updatecount = 0
 local updatetimer = 31
@@ -1668,15 +1675,17 @@ function gadget:DrawWorldPreUnit()
 		totalunits = 0
 	end
 
-	updateframe = (updateframe + 1) % updaterate
+	-- updateframe = (updateframe + 1) % updaterate
 
-	if updateframe == 0 then
+	-- if updateframe == 0 then
 		-- this call has a massive mem load, at 1k units at 225 fps, its 7mb/sec, e.g. for each unit each frame, its 32 bytes alloc/dealloc
 		-- which isnt all that bad, but still far from optimal
 		-- it is, however, not that bad CPU wise, and it doesnt force GC load either
 
-		local units, drawFlagsUnits = Spring.GetRenderUnits(overrideDrawFlag, true)
-		local features, drawFlagsFeatures = Spring.GetRenderFeatures(overrideDrawFlag, true)
+		-- local units, drawFlagsUnits = Spring.GetRenderUnits(overrideDrawFlag, true)
+		-- local features, drawFlagsFeatures = Spring.GetRenderFeatures(overrideDrawFlag, true)
+		local units, drawFlagsUnits = Spring.GetRenderUnitsDrawFlagChanged(true) 
+		local features, drawFlagsFeatures = Spring.GetRenderFeaturesDrawFlagChanged(true)
 
 		local totalobjects = #units + #features
 		local t0 = Spring.GetTimer()
@@ -1684,9 +1693,6 @@ function gadget:DrawWorldPreUnit()
 		ProcessUnits(units, drawFlagsUnits)
 		ProcessFeatures(features, drawFlagsFeatures)
 		local deltat = Spring.DiffTimers(Spring.GetTimer(),t0,  true) -- in ms
-
-
-
 
 		if (deltat > 5) and FASTRELOADMODE then
 			local usecperobjectchange = math.ceil((1000* deltat)  / (totalobjects - prevobjectcount))
@@ -1708,7 +1714,7 @@ function gadget:DrawWorldPreUnit()
 		--if updatecount %100 == 0 then Spring.Echo(countbintypes(drawFlagsUnits)) end
 		prevobjectcount = totalobjects
 
-	end
+	-- end
 
 end
 
