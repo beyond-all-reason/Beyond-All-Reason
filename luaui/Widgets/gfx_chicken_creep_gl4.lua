@@ -55,7 +55,7 @@ local shaderConfig = {
 	LOSDARKNESS = 0.5, -- how much to darken the out-of-los areas of the lava plane
 	SHADOWSTRENGTH = 0.4, -- how much light a shadowed fragment can recieve
 	CREEPTEXREZ = 0.003,
-	JIGGLEAMPLITUDE = 0.1,
+	JIGGLEAMPLITUDE = 0.2,
 }
 
 ---- GL4 Backend Stuff----
