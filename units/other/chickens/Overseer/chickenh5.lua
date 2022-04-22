@@ -108,6 +108,7 @@ return {
 				sizeDecay = 0.08,
 				stages = 8,
 				soundhit = "bloodsplash2",
+				soundstart = "bugattack",
 				tolerance = 5000,
 				turret = true,
 				weapontype = "Cannon",
