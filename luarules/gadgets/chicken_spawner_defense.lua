@@ -308,19 +308,25 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenw1b"].id] = { distance = 900, chance = 0.33 },
 		[UnitDefNames["chickens3"].id] = { distance = 440, chance = 0.1 },
 		[UnitDefNames["chickenh5"].id] = { distance = 300, chance = 0.5 },
+		[UnitDefNames["chickenr1"].id] = { distance = 1000, chance = 1 },
+		[UnitDefNames["chickenr2"].id] = { distance = 1000, chance = 1 },
 		[UnitDefNames["chickene1"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["chickene2"].id] = { distance = 200, chance = 0.01 },	
+		[UnitDefNames["chickenearty1"].id] = { distance = 1000, chance = 1 },
 	}
 	local COWARD = {
 		[UnitDefNames["chickenh1"].id] = { distance = 300, chance = 0.5 },
 		[UnitDefNames["chickenh1b"].id] = { distance = 15, chance = 0.1 },
-		[UnitDefNames["chickenr1"].id] = { distance = 300, chance = 0.33 },
+		[UnitDefNames["chickenr1"].id] = { distance = 1000, chance = 1 },
+		[UnitDefNames["chickenr2"].id] = { distance = 1000, chance = 0.1 },
 		[UnitDefNames["chickenw1c"].id] = { distance = 900, chance = 0.33 },
 		[UnitDefNames["chickenh5"].id] = { distance = 2000, chance = 0.5 },
 		[UnitDefNames["chickene1"].id] = { distance = 2000, chance = 1 },
 		[UnitDefNames["chickene2"].id] = { distance = 2000, chance = 1 },
+		[UnitDefNames["chickenearty1"].id] = { distance = 2000, chance = 1 },
 	}
 	local BERSERK = {
+		[UnitDefNames["chickenr2"].id] = { chance = 0.1 },
 		[UnitDefNames["ve_chickenq"].id] = { chance = 0.01 },
 		[UnitDefNames["e_chickenq"].id] = { chance = 0.05 },
 		[UnitDefNames["n_chickenq"].id] = { chance = 0.1 },
@@ -1026,7 +1032,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if SKIRMISH[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < SKIRMISH[attackerDefID].chance) then
-			local ux, _, uz = GetUnitPosition(unitID)
+			local ux, uy, uz = GetUnitPosition(unitID)
 			local x, y, z = GetUnitPosition(attackerID)
 			if x and ux then
 				local angle = math.atan2(ux - x, uz - z)
@@ -1036,7 +1042,7 @@ if gadgetHandler:IsSyncedCode() then
 		elseif COWARD[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < COWARD[unitDefID].chance) then
 			local curH, maxH = GetUnitHealth(unitID)
 			if curH and maxH and curH < (maxH * 0.8) then
-				local ax, _, az = GetUnitPosition(attackerID)
+				local ax, ay, az = GetUnitPosition(attackerID)
 				local x, y, z = GetUnitPosition(unitID)
 				if x and ax then
 					local angle = math.atan2(ax - x, az - z)
@@ -1045,9 +1051,9 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		elseif BERSERK[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < BERSERK[unitDefID].chance) then
-			local ax, _, az = GetUnitPosition(attackerID)
+			local ax, ay, az = GetUnitPosition(attackerID)
 			if ax then
-				idleOrderQueue[unitID] = {cmd = CMD.MOVE, params = {ax, y, az}, opts = {} }
+				idleOrderQueue[unitID] = {cmd = CMD.MOVE, params = {ax, ay, az}, opts = {} }
 			end
 		end
 	end
