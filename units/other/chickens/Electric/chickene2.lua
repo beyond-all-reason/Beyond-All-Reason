@@ -80,7 +80,7 @@ return {
 		},
 		weapondefs = {
 			chickenparalyzerbig = {
-				areaofeffect = 200,
+				areaofeffect = 100,
 				collidefriendly = false,
 				avoidfeature = false,
 				beamttl = 1,
@@ -123,7 +123,7 @@ return {
 					light_color = "0.2 0.5 1",
 				},
 				damage = {
-					default = 2500,
+					default = 1250,
 				},
 			},
 		},

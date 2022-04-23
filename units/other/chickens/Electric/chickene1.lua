@@ -117,7 +117,7 @@ return {
 					light_color = "0.2 0.5 1",
 				},
 				damage = {
-					default = 750,
+					default = 375,
 				},
 			},
 		},
