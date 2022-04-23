@@ -618,10 +618,11 @@ local options={
 		def="com",
 		section="options",
 		items={
-			{key="neverend", name="None", desc="Teams are never eliminated"},
-			{key="com", name="Kill all enemy Commanders", desc="When a team has no Commanders left, it loses"},
-			{key="builders", name="Kill all Builders"},
-			{key="killall", name="Kill everything", desc="Every last unit must be eliminated, no exceptions!"},
+			{key="neverend", 	name="Never ending", desc="Teams are never eliminated"},
+			{key="com", 		name="Kill all enemy Commanders", desc="When a team has no Commanders left, it loses"},
+			{key="builders", 	name="Kill all Builders"},
+			{key="killall", 	name="Kill everything", desc="Every last unit must be eliminated, no exceptions!"},
+			{key="own_com", 	name="Player resign on Com death", desc="When player commander dies, you auto-resign."},
 		}
 	},
 	{
