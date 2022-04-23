@@ -47,7 +47,6 @@ local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamColor = Spring.GetTeamColor
 local spIsSphereInView = Spring.IsSphereInView
 local spGetCameraPosition = Spring.GetCameraPosition
-local spGetCameraDirection = Spring.GetCameraDirection
 local spIsGUIHidden = Spring.IsGUIHidden
 local spAreTeamsAllied = Spring.AreTeamsAllied
 
@@ -59,23 +58,21 @@ local abs = math.abs
 local floor = math.floor
 local min = math.min
 local diag = math.diag
-local GL_QUADS = GL.QUADS
 local clock = os.clock
 local alliedCursorsPos = {}
 local prevCursorPos = {}
 local alliedCursorsTime = {}        -- for API purpose
 local usedCursorSize = cursorSize
-local prevMouseX, prevMouseY = 0
 local allycursorDrawList = {}
 local myPlayerID = Spring.GetMyPlayerID()
 local mySpec, fullview = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
+local isReplay = Spring.IsReplay()
 
 local allyCursor = ":n:LuaUI/Images/allycursor.dds"
 local cursors = {}
 local teamColors = {}
 local specList = {}
-local time, wx, wz, lastUpdateDiff, scale, iscale, fscale, wy --keep memory always allocated for these since they are referenced so frequently
 local notIdle = {}
 local playerPos = {}
 
@@ -95,7 +92,7 @@ local font, chobbyInterface, functionID, wx_old, wz_old
 local function deleteDlists()
 	for playerID, dlists in pairs(allycursorDrawList) do
 		for _, dlist in pairs(dlists) do
-			gl.DeleteList(dlist)
+			glDeleteList(dlist)
 		end
 	end
 	allycursorDrawList = {}
@@ -142,7 +139,7 @@ local function CubicInterpolate2(x0, x1, mix)
 end
 
 local function MouseCursorEvent(playerID, x, z, click)	-- dont local it
-	if myPlayerID == playerID then
+	if not isReplay and myPlayerID == playerID then
 		return true
 	end
 	local playerPosList = playerPos[playerID] or {}
@@ -478,16 +475,10 @@ local function updateCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity, sl)
 end
 
 
-
 local sec = 0
 function widget:Update(dt)
-	if chobbyInterface then
-		return
-	end
-	if spIsGUIHidden() then
-		return
-	end
-	time = clock()
+	if chobbyInterface then return end
+	if spIsGUIHidden() then return end
 
 	sec = sec + dt
 	if sec > 1.5 then
@@ -507,12 +498,13 @@ function widget:Update(dt)
 		end
 	end
 
+	local now = clock()
 	local camX, camY, camZ = spGetCameraPosition()
-	--local camRotX, camRotY, camRotZ = spGetCameraDirection()		-- x is fucked when springstyle camera tries to stay/snap angularly
+	--local camRotX, camRotY, camRotZ = Spring.GetCameraDirection()		-- x is fucked when springstyle camera tries to stay/snap angularly
 	--Spring.Echo(camRotX.."   "..camRotY.."   "..camRotZ)
 	for playerID, data in pairs(alliedCursorsPos) do
 		local wx, wz = data[1], data[2]
-		local lastUpdatedDiff = time - data[#data - 2] + 0.025
+		local lastUpdatedDiff = now - data[#data - 2] + 0.025
 
 		if lastUpdatedDiff < packetInterval then
 			local scale = (1 - (lastUpdatedDiff / packetInterval)) * numMousePos
@@ -526,7 +518,7 @@ function widget:Update(dt)
 			-- and alliedCursorsTime[playerID] > (time-idleCursorTime)
 			local opacity = 1
 			if specList[playerID] then
-				opacity = 1 - ((time - alliedCursorsTime[playerID]) / idleCursorTime)
+				opacity = 1 - ((now - alliedCursorsTime[playerID]) / idleCursorTime)
 				if opacity > 1 then
 					opacity = 1
 				end
