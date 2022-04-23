@@ -103,7 +103,7 @@ return {
 				name = "Close-quarters g2g lightning rifle",
 				noselfdamage = true,
 				paralyzer = true,
-				paralyzetime = 20,
+				paralyzetime = 10,
 				range = 500,
 				reloadtime = 5,
 				rgbcolor = "0.5 0.5 1",
