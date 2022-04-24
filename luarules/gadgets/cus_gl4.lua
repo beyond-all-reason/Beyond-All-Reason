@@ -76,7 +76,8 @@ end
 
 	-- separate VAO and IBO for each 'bin' for less heavy updates
 	-- Do alpha units also get drawn into deferred pass? Seems like no, because only flag == 1 is draw into that
-	-- TODO: dynamically size IBOS instead of using the max of 8192!
+	-- DONE: dynamically size IBOS instead of using the max of 8192!
+		-- Starts from 32
 	-- TODO: new engine callins needed:
 		-- get the number of drawflaggable units (this is kind of gettable already from the API anyway)
 		-- get the number of changed drawFlags
@@ -89,6 +90,7 @@ end
 		-- also a problem is handling units that died, what 'drawflag' should they get?
 			-- probably 0
 	-- TODO: handle fast rebuilds of the IBO's when large-magnitude changes happen
+		-- this is made difficult by the negative featureID crap
 
 
 	-- TODO: faster bitops maybe?
@@ -127,6 +129,10 @@ end
 		-- 500 armcom fullview is 82 vs 108 fps with nodiscard!
 		-- Even if discard is in a never-called dynamically uniform!
 		-- only transparent features need discard
+		
+	-- TODO: 
+		-- only ever use discard in deferred pass, dont use it in forward refl or shadow though
+		-- DEFERRED FEATURE TREE DRAW IS WRONG
 
 	-- TODO: investigate why/how refraction pass doesnt ever seem to get called
 		-- kill the entire pass with fire (by ignoring its existence)
@@ -144,9 +150,12 @@ end
 
 	-- TODO: engine side: optimize shadow camera as it massively overdraws
 
-	-- TODO: reflection camera is also totally fucked up
+	-- Done: reflection camera is also totally fucked up
 		-- It seems that aircraft get removed from reflection pass if water depth is < -70
 		-- hovers randomly do and dont get reflections based on water depth
+		-- fixed in-engine, seems like a reasonably good fix too, though could be better
+			-- is checking 5 groundheights within drawradius better than some minor overdraw cause of not-too-high above water ground shit?
+		
 	-- TODO: increase bumpwaterreflectcubetex size
 	-- TODO: make lava disable drawing reflections!
 	-- TODO: shared bins for deferred and forward and maybe even reflection?
@@ -362,7 +371,8 @@ local shaders = {} -- double nested table of {drawflag : {"units":shaderID}}
 local modelsVertexVBO = nil
 local modelsIndexVBO = nil
 
-local MAX_DRAWN_UNITS = 8192 -- this is per bin, but its not that bad, since its truly only a and uint4 of 32 bytes per element, clocking in at 256KB/uniformbin, but, seeing as we can have a good 50-100 uniform bins, this is far from ideal
+local INITIAL_VAO_SIZE = 32
+
 local objectTypeAttribID = 6 -- this is the attribute index for instancedata in our VBO
 
 local function Bit(p)
@@ -974,7 +984,7 @@ local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures,
 			return
 		end
 
-		mybinIBO:Define(MAX_DRAWN_UNITS, {
+		mybinIBO:Define(INITIAL_VAO_SIZE, {
 			{id = 6, name = "instData", type = GL.UNSIGNED_INT, size = 4},
 		})
 
@@ -989,6 +999,7 @@ local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures,
 			objectsArray = {}, -- {index: objectID}
 			objectsIndex = {}, -- {objectID : index} (this is needed for efficient removal of items, as RemoveFromSubmission takes an index as arg)
 			numobjects = 0,  -- a 'pointer to the end'
+			maxElements = INITIAL_VAO_SIZE,
 		}
 
 		-- this uniform bin is totally new, so we are going to make the deferred version have a shared copy of this!
@@ -1006,10 +1017,58 @@ local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures,
 	if unitDrawBinsFlagShaderUniformsTexKey.objectsIndex[objectID] then
 		Spring.Echo("Trying to add a unit to a bin that is already in it!")
 	else
-		if debugmode then Spring.Echo("AsssignObjectToBin success:",objectID, objectDefID, flag, shader, textures, texKey, uniformBinID	) end
+		if debugmode then Spring.Echo("AsssignObjectToBin success:",objectID, objectDefID, flag, shader, texKey, uniformBinID	) end
 	end
 
 	local numobjects = unitDrawBinsFlagShaderUniformsTexKey.numobjects
+	
+	-- of our VAO is too small, we need to increase it's size
+	if numobjects + 1 >= unitDrawBinsFlagShaderUniformsTexKey.maxElements then 
+		-- we need to double our VAO size
+		--Spring.Echo("Upsizing VAO for bin", flag, shader, texKey, uniformBinID, numobjects)
+		
+		unitDrawBinsFlagShaderUniformsTexKey.maxElements = unitDrawBinsFlagShaderUniformsTexKey.maxElements * 2 
+		local mybinVAO = gl.GetVAO()
+		local mybinIBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
+
+		if (mybinIBO == nil) or (mybinVAO == nil) then
+			Spring.Echo("Failed to allocate IBO or VAO for CUS GL4", mybinIBO, mybinVAO)
+			--Spring.Debug.TraceFullEcho()
+			gadgetHandler:RemoveGadget()
+			return
+		end
+
+		mybinIBO:Define(unitDrawBinsFlagShaderUniformsTexKey.maxElements, {
+			{id = 6, name = "instData", type = GL.UNSIGNED_INT, size = 4},
+		})
+		
+		
+		mybinVAO:AttachVertexBuffer(modelsVertexVBO)
+		mybinVAO:AttachIndexBuffer(modelsIndexVBO)
+		mybinVAO:AttachInstanceBuffer(mybinIBO)
+		
+		-- delete the old one
+		unitDrawBinsFlagShaderUniformsTexKey.IBO = mybinIBO
+		
+		unitDrawBinsFlagShaderUniformsTexKey.VAO:Delete()
+		unitDrawBinsFlagShaderUniformsTexKey.VAO = mybinVAO
+		
+		local objectsArray = unitDrawBinsFlagShaderUniformsTexKey.objectsArray
+		if objectID >= 0 then -- this tells us if we are gonna be using features or units
+			mybinIBO:InstanceDataFromUnitIDs(objectsArray, objectTypeAttribID)
+			-- TODO: this bit could be way more efficient to be honest
+			for i, unitID in ipairs(objectsArray) do
+				mybinVAO:AddUnitsToSubmission (unitID)
+			end
+		else
+			for i, featureID in ipairs(objectsArray) do 
+				mybinIBO:InstanceDataFromFeatureIDs(-featureID, objectTypeAttribID, i - 1)
+				mybinVAO:AddFeaturesToSubmission  (-featureID)
+			end
+		end
+		
+	end
+	
 
 	if objectID >= 0 then
 		unitDrawBinsFlagShaderUniformsTexKey.IBO:InstanceDataFromUnitIDs(objectID, objectTypeAttribID, numobjects)
