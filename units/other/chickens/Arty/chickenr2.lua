@@ -84,7 +84,7 @@ return {
 				collidefriendly = 0,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.3,
+				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:newnuketac",
 				firestarter = 70,
 				hightrajectory = 1,
