@@ -106,7 +106,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
-function widget:Update(dt)
+function widget:PlayerChanged(playerID)
 	if Spring.GetMyAllyTeamID() ~= prevMyAllyTeamID or select(2, Spring.GetSpectatingState()) ~= prevMyFullView then
 		prevMyAllyTeamID = Spring.GetMyAllyTeamID()
 		prevMyFullView = select(2, Spring.GetSpectatingState()) -- missed this one, forced a refresh every frame after going into spec
