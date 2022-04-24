@@ -1240,7 +1240,7 @@ if gadgetHandler:IsSyncedCode() then
 				canSpawnDefence = true
 				-- lsx1 - xmin, lsz1 - zmin, lsx2 - xmax, lsz2 - zmax
 				local spawnDirection = math.random(0,3)
-				local spread = 210
+				local spread = 200
 				local spawnPosX = math.random(lsx1,lsx2)
 				local spawnPosZ = math.random(lsz1,lsz2)
 
@@ -1257,7 +1257,7 @@ if gadgetHandler:IsSyncedCode() then
 					if canSpawnDefence then
 						local StartBoxCheck = positionCheckLibrary.StartboxCheck(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID)
 						if StartBoxCheck == false then
-							canSpawnDefence = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, false)
+							canSpawnDefence = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, true)
 						end
 					end
 					if canSpawnDefence then
@@ -1304,7 +1304,7 @@ if gadgetHandler:IsSyncedCode() then
 				canSpawnDefence = true
 				-- lsx1 - xmin, lsz1 - zmin, lsx2 - xmax, lsz2 - zmax
 				local spawnDirection = math.random(0,3)
-				local spread = 80
+				local spread = 100
 				local spawnPosX = math.random(lsx1,lsx2)
 				local spawnPosZ = math.random(lsz1,lsz2)
 
@@ -1321,7 +1321,7 @@ if gadgetHandler:IsSyncedCode() then
 					if canSpawnDefence then
 						local StartBoxCheck = positionCheckLibrary.StartboxCheck(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID)
 						if StartBoxCheck == false then
-							canSpawnDefence = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, false)
+							canSpawnDefence = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, true)
 						end
 					end
 					if canSpawnDefence then
@@ -1675,10 +1675,18 @@ if gadgetHandler:IsSyncedCode() then
 
 		if UnitDefs[unitDefID].name == "chickend1" then
 			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + math.random(0,1)
+			if config.addQueenAnger then
+				burrowAnger = (burrowAnger + (config.angerBonus*0.25))
+				expMod = (expMod + config.angerBonus)
+			end
 		end
 		if UnitDefs[unitDefID].name == "chickend2" then
 			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + math.random(0,5)
 			attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + math.random(0,1)
+			if config.addQueenAnger then
+				burrowAnger = (burrowAnger + config.angerBonus)
+				expMod = (expMod + config.angerBonus)
+			end
 		end
 	end
 
