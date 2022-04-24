@@ -101,7 +101,7 @@ local optionValues = {
   },
 
   [difficulties.normal] = {
-	  chickenSpawnRate  = 360,
+	  chickenSpawnRate  = 400,
 	  burrowSpawnRate   = 210,
 	  queenSpawnMult    = 1,
 	  angerBonus        = 0.10,
@@ -115,7 +115,7 @@ local optionValues = {
   },
 
   [difficulties.hard] = {
-	  chickenSpawnRate  = 280,
+	  chickenSpawnRate  = 400,
 	  burrowSpawnRate   = 140,
 	  queenSpawnMult    = 1,
 	  angerBonus        = 0.125,
@@ -129,7 +129,7 @@ local optionValues = {
   },
 
   [difficulties.veryhard] = {
-	  chickenSpawnRate  = 180,
+	  chickenSpawnRate  = 400,
 	  burrowSpawnRate   = 70,
 	  queenSpawnMult    = 3,
 	  angerBonus        = 0.15,
@@ -141,6 +141,19 @@ local optionValues = {
 	  maxBurrows        = 50,
 	  queenName         = 'vh_chickenq',
   },
+  [difficulties.epic] = {
+	chickenSpawnRate  = 400,
+	burrowSpawnRate   = 40,
+	queenSpawnMult    = 3,
+	angerBonus        = 0.2,
+	expStep           = 0.5,
+	lobberEMPTime     = 7.5,
+	chickensPerPlayer = 20,
+	spawnChance       = 1,
+	damageMod         = 0.8,
+	maxBurrows        = 50,
+	queenName         = 'epic_chickenq',
+	},
 
 	[difficulties.survival] = {
 	  chickenSpawnRate    = 360,
