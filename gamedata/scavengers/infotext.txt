@@ -17,7 +17,7 @@ RANDOM EVENTS
 
 
 USEFUL TIPS
-1. Destroying the Scavenger Cloud Tower will anger and strenghten the Scavengers a lot. Each succesive destroyed Cloud Tower will increase both the size of the cloud and their strength increase. 
+1. Destroying the Scavenger Cloud will anger and strenghten the Scavengers a lot. Each succesive destroyed Cloud will increase both the size of the cloud and their strength increase. 
 2. It's wise to get as much RADAR COVERAGE as possible to prevent Beacons from dropping close to your base.
 3. Hunt down and DESTROY DROPPOD-BEACONS to reduce the amount of Scavengers that will drop!
 4. Try and Capture Scavenger RESOURCE GENERATORS and transport them back to the safety of your base. They generate a lot of resources.
