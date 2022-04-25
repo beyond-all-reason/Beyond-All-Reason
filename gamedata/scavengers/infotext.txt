@@ -24,16 +24,6 @@ USEFUL TIPS
 5. Scavenger STORAGE BUILDINGS can leave very rich metal deposits which can contain up to 10k metal. Reclaim them.
 6. Make sure you have strong Anti-Air and Anti-Nuke defenses.
 
-SPECIAL STATISTICS
-» 50% more agile in combat
-» 25% more jamming-range
-» Higher idle/auto heal
-» Faster reclaim and resurrect
-» 15% Faster build
-» 15% less cost in metal/nrg to produce
-» 15% less health
-» Around 25% of their armada is cloaked
-» All above stats can be 25% different each battle
  
 WHY DID THEY APPEAR?
 No one knows for sure where did they come from, what made them alive and hungry for destruction. It might have been some alien technology, a random short circuit of a processing unit or a deliberate action of mother nature to end the destructive war between Armada and Cortex. One thing is certain – some unknown event has influenced the AI algorithm and created these anomalies.
