@@ -1020,16 +1020,23 @@ local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures,
 		if debugmode then Spring.Echo("AsssignObjectToBin success:",objectID, objectDefID, flag, shader, texKey, uniformBinID	) end
 	end
 
+	local maxElements = unitDrawBinsFlagShaderUniformsTexKey.maxElements
 	local numobjects = unitDrawBinsFlagShaderUniformsTexKey.numobjects
 	
 	-- of our VAO is too small, we need to increase it's size
-	if numobjects + 1 >= unitDrawBinsFlagShaderUniformsTexKey.maxElements then 
+	-- We do this by doubling size, and then recreating the IBO and VAO from scratch and checking validity as we go along
+	if numobjects + 1 >= maxElements then 
 		-- we need to double our VAO size
 		--Spring.Echo("Upsizing VAO for bin", flag, shader, texKey, uniformBinID, numobjects)
-		
-		unitDrawBinsFlagShaderUniformsTexKey.maxElements = unitDrawBinsFlagShaderUniformsTexKey.maxElements * 2 
+		maxElements = maxElements * 2 
+		unitDrawBinsFlagShaderUniformsTexKey.maxElements = maxElements
 		local mybinVAO = gl.GetVAO()
 		local mybinIBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
+		
+		-- we have to rebuild the indices on a resize, because we are adding/removing objects in a random order 
+		-- per frame, and if we resize with objects that dont exist any more in the arrays, we will crash on AddUnitsToSubmission
+		local newObjectsArray = {}
+		local newObjectsIndex = {}
 
 		if (mybinIBO == nil) or (mybinVAO == nil) then
 			Spring.Echo("Failed to allocate IBO or VAO for CUS GL4", mybinIBO, mybinVAO)
@@ -1038,35 +1045,54 @@ local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures,
 			return
 		end
 
-		mybinIBO:Define(unitDrawBinsFlagShaderUniformsTexKey.maxElements, {
+		mybinIBO:Define(maxElements, {
 			{id = 6, name = "instData", type = GL.UNSIGNED_INT, size = 4},
 		})
-		
 		
 		mybinVAO:AttachVertexBuffer(modelsVertexVBO)
 		mybinVAO:AttachIndexBuffer(modelsIndexVBO)
 		mybinVAO:AttachInstanceBuffer(mybinIBO)
 		
-		-- delete the old one
+		-- delete the old IBO and VAO
+		unitDrawBinsFlagShaderUniformsTexKey.IBO = nil
 		unitDrawBinsFlagShaderUniformsTexKey.IBO = mybinIBO
-		
+		unitDrawBinsFlagShaderUniformsTexKey.VAO:ClearSubmission()
 		unitDrawBinsFlagShaderUniformsTexKey.VAO:Delete()
 		unitDrawBinsFlagShaderUniformsTexKey.VAO = mybinVAO
 		
+		local newObjectsCount = 0
 		local objectsArray = unitDrawBinsFlagShaderUniformsTexKey.objectsArray
 		if objectID >= 0 then -- this tells us if we are gonna be using features or units
-			mybinIBO:InstanceDataFromUnitIDs(objectsArray, objectTypeAttribID)
-			-- TODO: this bit could be way more efficient to be honest
 			for i, unitID in ipairs(objectsArray) do
-				mybinVAO:AddUnitsToSubmission (unitID)
+				if Spring.ValidUnitID(unitID) == true and Spring.GetUnitIsDead(unitID) ~= true then
+					newObjectsCount = newObjectsCount + 1
+					newObjectsArray[newObjectsCount] = unitID
+					newObjectsIndex[unitID] = newObjectsCount
+				end
 			end
+			
+			mybinIBO:InstanceDataFromUnitIDs(newObjectsArray, objectTypeAttribID)
+			mybinVAO:AddUnitsToSubmission(newObjectsArray)
+			
 		else
+			-- this additional table is needed to allow for one-time translation of negative objectID to featureID
+			local newFeaturesArray = {} 
 			for i, featureID in ipairs(objectsArray) do 
-				mybinIBO:InstanceDataFromFeatureIDs(-featureID, objectTypeAttribID, i - 1)
-				mybinVAO:AddFeaturesToSubmission  (-featureID)
+				if Spring.ValidFeatureID(-featureID) then 
+					newObjectsCount = newObjectsCount + 1
+					newObjectsArray[newObjectsCount] = featureID
+					newObjectsIndex[featureID] = newObjectsCount
+					newFeaturesArray[newObjectsCount] = -1 * featureID
+				end
 			end
+			
+			mybinIBO:InstanceDataFromFeatureIDs(newFeaturesArray, objectTypeAttribID)
+			mybinVAO:AddFeaturesToSubmission(newFeaturesArray)
 		end
 		
+		numobjects = newObjectsCount
+		unitDrawBinsFlagShaderUniformsTexKey.objectsArray = newObjectsArray
+		unitDrawBinsFlagShaderUniformsTexKey.objectsIndex = newObjectsIndex
 	end
 	
 
