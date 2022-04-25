@@ -1790,44 +1790,8 @@ function init()
 			  if value == 0.5 then
 				  Spring.SendCommands("luarules disablecusgl4")
 			  else
-				  if value then
-					  Spring.SendCommands("luarules disablecus")
-				  elseif Spring.GetConfigInt("cus", 1) == 1 then
-					  Spring.SendCommands("luarules reloadcus")
-				  end
-				  --Spring.SetConfigInt("cusgl4", (value and 1 or 0))
 				  Spring.SetConfigInt("cus2", (value and 1 or 0))
-				  Spring.SendCommands("luarules "..(value and 'reloadcus' or 'disablecus')..'gl4')
-				  local id = getOptionByID('cus')
-				  if value and id then
-					  options[id].value = false
-					  options[id].onchange(id, options[id].value)
-				  end
-			  end
-		  end,
-		},
-
-		{ id = "cus", group = "gfx", name = texts.option.cus.." (old)", category = types.dev, type = "bool", value = (Spring.GetConfigInt("cus", 0) == 1), description = texts.option.cus_descr,
-		  onchange = function(i, value)
-			  if value == 0.5 then
-				  Spring.SendCommands("luarules disablecus")
-			  else
-				  Spring.SetConfigInt("cus", (value and 1 or 0))
-				  Spring.SendCommands("luarules "..(value and 'reloadcus' or 'disablecus'))
-				  local id = getOptionByID('cusgl4')
-				  if value and id then
-				  	options[id].value = false
-					options[id].onchange(id, options[id].value)
-				  end
-			  end
-		  end,
-		},
-
-		{ id = "cus_threshold", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.cus_threshold, min = 0, max = 90, step = 1, type = "slider", value = Spring.GetConfigInt("cusThreshold", 30), description = texts.option.cus_threshold_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("cusThreshold", value)
-			  if not GetWidgetToggleValue("Auto Disable CUS") then
-				  widgetHandler:EnableWidget("Auto Disable CUS")
+				  Spring.SendCommands("luarules "..(value and 'reloadcusgl4' or 'disablecusgl4'))
 			  end
 		  end,
 		},
@@ -4610,9 +4574,6 @@ function init()
 
 		-- disable CUS
 		if not isPotatoGpu then	-- will disable later
-			if tonumber(Spring.GetConfigInt("cus", 1) or 1) == 0 then
-				Spring.SendCommands("luarules disablecus")
-			end
 
 			-- enable CUS GL4
 			if tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
@@ -4635,7 +4596,6 @@ function init()
 		end
 
 		if isPotatoGpu then
-
 			Spring.SendCommands("luarules disablecus")
 			Spring.SendCommands("luarules disablecusgl4")
 			options[getOptionByID('cus')] = nil
