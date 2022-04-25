@@ -86,7 +86,7 @@ return {
 				avoidfriendly = 0,
 				burst = 5,
 				burstrate = 0.5,
-				cegtag = "arty-heavy",
+				cegtag = "blob_trail_red",
 				collidefriendly = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -114,6 +114,14 @@ return {
 				weaponvelocity = 520,
 				damage = {
 					default = 2000,
+				},
+				customparams = {
+					expl_light_life_mult = 1.0,
+					expl_light_radius_mult = 1.0,
+					expl_light_mult = 1.05,
+					light_radius_mult = "0.95",
+					light_mult = 1.5,
+					light_color = "1 0.65 0.15",
 				},
 			},
 		},

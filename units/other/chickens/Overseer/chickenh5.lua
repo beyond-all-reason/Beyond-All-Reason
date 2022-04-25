@@ -107,7 +107,7 @@ return {
 				size = 16,
 				sizeDecay = 0.08,
 				stages = 8,
-				soundhit = "bloodsplash2",
+				soundhit = "bloodsplash3",
 				soundstart = "bugattack",
 				tolerance = 5000,
 				turret = true,
@@ -116,6 +116,15 @@ return {
 				weaponvelocity = 420,
 				damage = {
 					default = 2000,
+				},
+				customparams = {
+					expl_light_life_mult = 1.8,
+					expl_light_radius_mult = 1.4,
+					expl_light_mult = 1.2,
+					expl_light_color = "1 0.05 0.01",
+					light_radius_mult = "0.75",
+					light_mult = 1.6,
+					light_color = "1 0.05 0.01",
 				},
 			},
 			weapon = {
