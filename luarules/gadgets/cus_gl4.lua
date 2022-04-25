@@ -253,44 +253,54 @@ do --save a ton of locals
 		armunit = {
 			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
 			baseVertexDisplacement = 0.0,
+			brightnessFactor = 1.5,
 		},
 		corunit = {
 			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
 			baseVertexDisplacement = 0.0,
+			brightnessFactor = 1.5,
 		},
 		armscavenger = {
 			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_ARM + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
 			baseVertexDisplacement = 0.4,
+			brightnessFactor = 1.5,
 		},
 		corscavenger = {
 			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS + OPTION_THREADS_CORE + OPTION_HEALTH_TEXTURING + OPTION_HEALTH_DISPLACE,
 			baseVertexDisplacement = 0.4,
+			brightnessFactor = 1.5,
 		},
 		chicken = {
 			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS  + OPTION_HEALTH_DISPLACE + OPTION_HEALTH_TEXCHICKS + OPTION_TREEWIND,
 			baseVertexDisplacement = 0.0,
+			brightnessFactor = 1.5,
 		},
 		otherunit = {
 			bitOptions = defaultBitShaderOptions,
 			baseVertexDisplacement = 0.0,
+			brightnessFactor = 1.5,
 		},
 		feature = {
 			bitOptions = defaultBitShaderOptions + OPTION_PBROVERRIDE,
 			baseVertexDisplacement = 0.0,
+			brightnessFactor = 1.3,
 		},
 		treepbr = {
 			bitOptions = defaultBitShaderOptions + OPTION_TREEWIND + OPTION_PBROVERRIDE,
 			baseVertexDisplacement = 0.0,
 			hasAlphaShadows = 1.0,
+			brightnessFactor = 1.3,
 		},
 		tree = {
 			bitOptions = defaultBitShaderOptions + OPTION_TREEWIND + OPTION_PBROVERRIDE,
 			baseVertexDisplacement = 0.0,
 			hasAlphaShadows = 1.0,
+			brightnessFactor = 1.3,
 		},
 		wreck = {
 			bitOptions = defaultBitShaderOptions,
 			baseVertexDisplacement = 0.0,
+			brightnessFactor = 1.3,
 		},
 	} -- maps uniformbins to a table of uniform names/values
 end
@@ -892,8 +902,10 @@ local function initBinsAndTextures()
 
 			objectDefToUniformBin[-1 * featureDefID] = 'feature'
 
-
-			if (featureDef.customParams and featureDef.customParams.treeshader == 'yes')
+			if featureDef.name:find("chicken_egg", nil, true) then 
+				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
+				--featuresDefsWithAlpha[-1 * featureDefID] = "yes"
+			elseif (featureDef.customParams and featureDef.customParams.treeshader == 'yes')
 				or knowntrees[featureDef.name] then
 				objectDefToUniformBin[-1 * featureDefID] = 'tree'
 				featuresDefsWithAlpha[-1 * featureDefID] = "yes"
