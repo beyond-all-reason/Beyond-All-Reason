@@ -24,20 +24,6 @@ USEFUL TIPS
 5. Scavenger STORAGE BUILDINGS can leave very rich metal deposits which can contain up to 10k metal. Reclaim them.
 6. Make sure you have strong Anti-Air and Anti-Nuke defenses.
 
-SPECIAL STATISTICS
--50% metal cost
--50% HP
-+20% more speed
-+25% radar/los/jam range
-+ extra higher autoheal/idleautoheal (depending on HP)
-+ 250% faster turnrate
-+ 100% higher buildspeed/workertime on rez-bots
-+ mostly cloakable radar/jam/defenses
-+ cloaked con-units
-+ cloaked bomb-units (corsktl has stealth!)
-+ cloaked t1 AA
-+ cloaked ak/gator/termite/cormando/hrk/zeus
-+ core bladewing does dmg instead of paralyse 
  
 WHY DID THEY APPEAR?
 No one knows for sure where did they come from, what made them alive and hungry for destruction. It might have been some alien technology, a random short circuit of a processing unit or a deliberate action of mother nature to end the destructive war between Armada and Cortex. One thing is certain – some unknown event has influenced the AI algorithm and created these anomalies.
