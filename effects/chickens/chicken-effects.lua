@@ -848,7 +848,7 @@ return {
         drawOrder          = 2,
       },
     },
-    clouddust = {
+    hissingsmoke = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
       count              = 1,
@@ -861,9 +861,9 @@ return {
         emitrotspread      = 4,
         emitvector         = [[0.5, 1, 0.5]],
         gravity            = [[0, 0.055, 0]],
-        numparticles       = [[0.35 r1]],
+        numparticles       = [[0.3 r0.9]],
         particlelife       = 40,
-        particlelifespread = 80,
+        particlelifespread = 70,
         particlesize       = 2,
         particlesizespread = 4,
         particlespeed      = 3.3,
