@@ -25,10 +25,10 @@ end
 
 local TimedDamageWeapons = {
     [WeaponDefNames.chickenacidassault_acidspit.id] = {
-        ceg = "", 
-        damageCeg = "", 
+        ceg = "acid-area-256", 
+        damageCeg = "acid-damage-gen", 
         time = 10,
-        damage = 10,
+        damage = 5,
         range = 256,
     },
 }
@@ -36,9 +36,9 @@ local TimedDamageWeapons = {
 local TimedDamageDyingUnits = {
     [UnitDefNames.chickenacidassault.id] = {
         ceg = "", 
-        damageCeg = "", 
+        damageCeg = "acid-damage-gen", 
         time = 10,
-        damage = 10,
+        damage = 5,
         range = 256,
     },
 }
@@ -89,7 +89,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:GameFrame(frame)
-    if frame%30 == 10 then
+    if frame%22 == 10 then
         if #aliveExplosions > 0 then
             local safeForCleanup = true
             local currentTime = Spring.GetGameSeconds()
