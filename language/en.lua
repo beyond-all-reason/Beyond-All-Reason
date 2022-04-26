@@ -417,6 +417,8 @@ return {
 			console_maxconsolelines = 'max console lines',
 			console_capitalize = 'capitalize chat text',
 			console_fontsize = 'font size',
+			console_hide = 'hide chat and console',
+			console_hide_descr = 'Hides chat and console. (scrollable ui interface still available)',
 			console_hidespecchat = 'hide spectator chat',
 			console_hidespecchat_descr = 'Not showing any spectator chat',
 			console_showbackground = 'show background',

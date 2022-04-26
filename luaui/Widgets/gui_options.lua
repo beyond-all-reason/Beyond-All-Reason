@@ -2742,6 +2742,14 @@ function init()
 			  Spring.SetConfigInt("HideSpecChat", value and 1 or 0)
 		  end,
 		},
+		{ id = "console_hide", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. widgetOptionColor .. texts.option.console_hide, type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getHide() or false), description = texts.option.console_hide_descr,
+		  onload = function(i)
+			  loadWidgetData("Chat", "console_hide", { 'hide' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Chat', 'chat', 'setHide', { 'hide' }, value)
+		  end,
+		},
 		{ id = "console_maxlines", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.console_maxlines, type = "slider", min = 3, max = 7, step = 1, value = (WG['chat'] ~= nil and WG['chat'].getMaxLines() or 5), description = '',
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_maxlines", { 'maxLines' })
