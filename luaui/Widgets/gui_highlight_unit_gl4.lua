@@ -11,19 +11,21 @@ function widget:GetInfo()
 end
 
 local hideBelowGameframe = 100
-local highlightAlpha = 0.14
+local highlightAlpha = 0.1
 local selectedHighlightAlpha = 0.09
-local edgeAlpha = 1.1
-local selectedEdgeAlpha = 0.77
+local edgeAlpha = 1
+local selectedEdgeAlpha = 0.75
 local edgeExponent = 1.2
 local selectedEdgeExponent = 1.45
-local animationAlpha = 0.75
-local selectedAnimationAlpha = 0.55
+local animationAlpha = 0.7
+local selectedAnimationAlpha = 0.5
 
 local useTeamcolor = true
 local teamColorAlphaMult = 1.25
 local teamColorMinAlpha = 0.7
-local fadeTime = 0.08
+local fadeTime = 0.085
+
+local vsx, vsy = Spring.GetViewGeometry()
 
 local hidden = (Spring.GetGameFrame() <= hideBelowGameframe)
 local selectedUnits = Spring.GetSelectedUnits()
@@ -147,27 +149,35 @@ function widget:SelectionChanged(sel)
 	processSelection()
 end
 
+function widget:ViewResize()
+	vsx, vsy = Spring.GetViewGeometry()
+end
+
 function widget:Update()
 	if hidden and Spring.GetGameFrame() > hideBelowGameframe then
 		hidden = false
 	end
 	if WG.StopHighlightUnitGL4 then
 		local mx, my = spGetMouseState()
-		local type, data = spTraceScreenRay(mx, my)
-		local unitID
-		local addedUnitID
-		if type == 'unit' then
-			unitID = data
-			if not unitshapes[unitID] then
-				addUnitShape(unitID)
-				addedUnitID = unitID
+		if mx == vsx/2 and my+1 == vsy/2 then	-- dont highlight unit when cursor is in center and we're likely camera-panning (cause I dont know how to detect that)
+			clearUnitshapes(nil, true)
+		else
+			local type, data = spTraceScreenRay(mx, my)
+			local unitID
+			local addedUnitID
+			if type == 'unit' and not Spring.IsGUIHidden() then
+				unitID = data
+				if not unitshapes[unitID] then
+					addUnitShape(unitID)
+					addedUnitID = unitID
+				end
 			end
-		end
-		clearUnitshapes(unitID)
+			clearUnitshapes(unitID)
 
-		for unitID, v in pairs(fadeUnits) do
-			if unitID ~= addedUnitID then
-				addUnitShape(unitID)
+			for unitID, v in pairs(fadeUnits) do
+				if unitID ~= addedUnitID then
+					addUnitShape(unitID)
+				end
 			end
 		end
 	end

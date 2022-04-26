@@ -31,20 +31,24 @@ local function refreshUnitDefs()
 	end
 end
 
+local function setCorpseDescription(unitHumanName, featureDef)
+	if featureDef.customParams.category == 'corpses' then
+		featureDef.translatedDescription = Spring.I18N('units.dead', { name = unitHumanName })
+	elseif featureDef.customParams.category == 'heaps' then
+		featureDef.translatedDescription = Spring.I18N('units.heap', { name = unitHumanName })
+	end
+end
+
 local function refreshFeatureDefs()
 	local processedFeatureDefs = {}
 
 	for _, unitDef in pairs(UnitDefs) do
 		local corpseDef = FeatureDefNames[unitDef.wreckName]
-		if corpseDef then
-			corpseDef.translatedDescription = Spring.I18N('units.dead', { name = unitDef.translatedHumanName })
-			processedFeatureDefs[corpseDef.id] = true
 
-			local heapDef = FeatureDefs[corpseDef.deathFeatureID]
-			if heapDef then
-				heapDef.translatedDescription = Spring.I18N('units.heap', { name = unitDef.translatedHumanName })
-				processedFeatureDefs[heapDef.id] = true
-			end
+		while corpseDef ~= nil do
+			setCorpseDescription(unitDef.translatedHumanName, corpseDef)
+			processedFeatureDefs[corpseDef.id] = true
+			corpseDef = FeatureDefs[corpseDef.deathFeatureID]
 		end
 	end
 
@@ -59,6 +63,12 @@ end
 local function refreshDefs()
 	refreshUnitDefs()
 	refreshFeatureDefs()
+
+	for name, featureDef in pairs(FeatureDefNames) do
+		if not featureDef.customParams.fromunit and featureDef.translatedDescription == 'features.names.' .. featureDef.name then
+			Spring.Log("LuaUI", LOG.ERROR, "Missing I18N for map feature: " .. name .. ", " .. featureDef.tooltip)
+		end
+	end
 end
 
 return {

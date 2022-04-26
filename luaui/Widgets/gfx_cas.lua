@@ -184,7 +184,14 @@ function widget:Initialize()
 			screenCopyTex = 0,
 		},
 	}, ": Contrast Adaptive Sharpen")
-	casShader:Initialize()
+	
+	local shaderCompiled = casShader:Initialize()
+	if not shaderCompiled then 
+			Spring.Echo("Failed to compile Contrast Adaptive Sharpen shader, removing widget")
+			widgetHandler:RemoveWidget()
+			return
+	end
+	
 	UpdateShader()
 
 	fullTexQuad = gl.GetVAO()

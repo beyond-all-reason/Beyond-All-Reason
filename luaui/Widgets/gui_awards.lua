@@ -221,12 +221,9 @@ end
 
 local function ProcessAwards(awards)
 	if not awards then return end
-
 	WG.awards = awards
-
 	local traitorWinner = awards.traitor[1]
 	local cowAwardWinner = awards.goldenCow[1].teamID
-
 	local compoundAwards = {}
 	table.insert(compoundAwards, awards.eco[1])
 	table.insert(compoundAwards, awards.damageReceived[1])
@@ -318,23 +315,18 @@ function widget:DrawScreen()
 		glCallList(SecondAward)
 		glCallList(ThirdAward)
 	end
-
 	if CowAward then
 		glCallList(CowAward)
 	elseif OtherAwards then
 		glCallList(OtherAwards)
 	end
-
 	if FourthAward then
 		glCallList(FourthAward)
 	end
 
-	--draw buttons, wastefully, but it doesn't matter now game is over
 	local x, y = Spring.GetMouseState()
-
 	local quitColour
 	local graphColour
-
 	font2:Begin()
 
 	-- Leave button
@@ -369,9 +361,7 @@ function widget:DrawScreen()
 		graphColour = "\255" .. string.char(201) .. string.char(201) .. string.char(201)
 	end
 	font2:Print(graphColour .. 'X', widgetX + widgetWidthScaled - closeRightX, widgetY + widgetHeightScaled - math.floor((10 + 17)*widgetScale), 20*widgetScale, "o")
-
 	font2:End()
-
 	gl.PopMatrix()
 end
 

@@ -12,7 +12,6 @@ if addon.InGetInfo then
 end
 
 local loadscreens = VFS.DirList("bitmaps/loadpictures/")
-local screenNum = math.random(#loadscreens)
 local backgroundTexture = loadscreens[1+(math.floor((1000*os.clock())%#loadscreens))] -- hacky hotfix for http://springrts.com/mantis/view.php?id=4572
 if not VFS.FileExists(backgroundTexture) then	-- because encountering white loadscreens once in a while (this is not a real fix ofc)
 	backgroundTexture = loadscreens[1+(math.floor((1000*os.clock())%#loadscreens))] -- hacky hotfix for http://springrts.com/mantis/view.php?id=4572
@@ -158,13 +157,10 @@ local screencopy
 local blurtex
 local blurtex2
 local stenciltex
-local screenBlur = false
 local guishaderRects = {}
 local guishaderDlists = {}
-local oldvs = 0
 local vsx, vsy   = Spring.GetViewGeometry()
 local ivsx, ivsy = vsx, vsy
-local lastLoadMessage = ""
 
 local wsx, wsy, _, _ = Spring.GetWindowGeometry()
 local ssx, ssy, _, _ = Spring.GetScreenGeometry()
@@ -180,10 +176,6 @@ function lines(str)
 	end
 	helper((str:gsub("(.-)\r?\n", helper)))
 	return t
-end
-
-function addon.LoadProgress(message, replaceLastLine)
-	lastLoadMessage = message
 end
 
 local defaultFont = 'Poppins-Regular.otf'
@@ -210,10 +202,8 @@ local borderSize = math.max(1, math.floor(vsy * 0.0027))
 local fontSize = 40
 local fontScale = math.min(3, (0.5 + (vsx*vsy / 3500000)))
 local font = gl.LoadFont(fontfile, fontSize*fontScale, (fontSize/2)*fontScale, 1)
-local loadedFontSize =  fontSize*fontScale
 local font2Size = 46
 local font2 = gl.LoadFont(fontfile2, font2Size*fontScale, (font2Size/4)*fontScale, 1.3)
-local loadedFont2Size =  font2Size*fontScale
 
 function DrawStencilTexture()
     if next(guishaderRects) or next(guishaderDlists) then
@@ -248,9 +238,8 @@ function DrawStencilTexture()
     end)
 end
 
-function CreateShaders()
-
-    if (blurShader) then
+local function CreateShaders()
+    if blurShader then
         gl.DeleteShader(blurShader or 0)
     end
 
@@ -322,7 +311,7 @@ function CreateShaders()
     intensityLoc = gl.GetUniformLocation(blurShader, "intensity")
 end
 
-function gradientv(px,py,sx,sy, c1,c2)
+local function gradientv(px,py,sx,sy, c1,c2)
 	gl.Color(c1)
 	gl.Vertex(px, sy, 0)
 	gl.Vertex(sx, sy, 0)
@@ -331,7 +320,7 @@ function gradientv(px,py,sx,sy, c1,c2)
 	gl.Vertex(px, py, 0)
 end
 
-function gradienth(px,py,sx,sy, c1,c2)
+local function gradienth(px,py,sx,sy, c1,c2)
 	gl.Color(c1)
 	gl.Vertex(sx, sy, 0)
 	gl.Vertex(sx, py, 0)
@@ -340,7 +329,7 @@ function gradienth(px,py,sx,sy, c1,c2)
 	gl.Vertex(px, sy, 0)
 end
 
-function bartexture(px,py,sx,sy, texLength, texHeight)
+local function bartexture(px,py,sx,sy, texLength, texHeight)
 	local texHeight = texHeight or 1
 	local width = (sx-px) / texLength * 4
 	gl.TexCoord(width, texHeight)
@@ -355,15 +344,26 @@ end
 
 local lastLoadMessage = ""
 local lastProgress = {0, 0}
-
 local progressByLastLine = {
-	["Parsing Map Information"] = {0, 15},
+	["Loading Map"] = {0, 10},
+	["Parsing Map Information"] = {7, 15},
 	["Loading GameData Definitions"] = {10, 20},
-	["Creating Unit Textures"] = {15, 25},
-	["Loading Weapon Definitions"] = {20, 50},
-	["Loading LuaRules"] = {40, 80},
-	["Loading LuaUI"] = {70, 95},
-	["[LoadFinalize] finalizing PFS"] = {80, 95},
+	["Creating QuadField and CEGs"] = {13, 22},
+	["Creating Unit Textures"] = {16, 25},
+	["Creating Sky"] = {19, 35},
+	["Loading Weapon Definitions"] = {22, 40},
+	["Loading Unit Definitions"] = {25, 45},
+	["Loading Feature Definitions"] = {29, 45},
+	["Loading Models and Textures"] = {33, 50},
+	["Loading Map Tiles"] = {38, 55},
+	["Loading Square Textures"] = {43, 55},
+	["Creating Projectile Textures"] = {48, 60},
+	["Creating Water"] = {54, 65},
+	["PathCosts"] = {58, 65},
+	["Loading LuaRules"] = {65, 75},
+	["Loading LuaUI"] = {78, 85},
+	["Loading Skirmish AIs"] = {86, 95},
+	["[LoadFinalize] finalizing PFS"] = {90, 95},
 	["Finalizing"] = {100, 100}
 }
 for name,val in pairs(progressByLastLine) do
@@ -372,16 +372,19 @@ end
 
 function addon.LoadProgress(message, replaceLastLine)
 	lastLoadMessage = message
-	if message:find("Path") then -- pathing has no rigid messages so cant use the table
-		lastProgress = {0.8, 1.0}
+	if progressByLastLine[message] then
+		lastProgress = progressByLastLine[message] or lastProgress
+	else
+		for msg, v in pairs(progressByLastLine) do
+			if msg:find(message) then
+				lastProgress = progressByLastLine[msg] or lastProgress
+				break
+			end
+		end
 	end
-	lastProgress = progressByLastLine[message] or lastProgress
 end
 
 function addon.DrawLoadScreen()
-	-----------------------
-	-- draw background
-	-----------------------
 	local loadProgress = SG.GetLoadProgress()
 
 	if not aspectRatio then

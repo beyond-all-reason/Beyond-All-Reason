@@ -26,7 +26,7 @@ local teamCount = 0
 local teamList = Spring.GetTeamList()
 for i = 1, #teamList do
 	local luaAI = Spring.GetTeamLuaAI(teamList[i])
-	if luaAI and (luaAI:find("Chickens") or luaAI:find("Scavengers")) then
+	if (luaAI and (luaAI:find("Chickens") or luaAI:find("Scavengers"))) or Spring.GetModOptions().scoremode ~= "disabled" then
 		ignoredTeams[teamList[i]] = true
 
 		-- ignore all other teams in this allyteam as well
@@ -44,23 +44,32 @@ end
 teamList = nil
 
 local aliveComCount = {}
+local aliveTeamComCount = {}
 local commanderDeathQueue = {}
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
+	if (unitDef.customParams.iscommander) or (Spring.GetModOptions().deathmode == "builders" and (unitDef.buildOptions and #unitDef.buildOptions > 0)) then
 		isCommander[unitDefID] = true
 	end
 end
 
+
+
 local function commanderDeath(teamID, attackerUnitID, originX, originZ) -- optional: attackerUnitID, originX, originZ
 	local allyTeamID = select(6, Spring.GetTeamInfo(teamID, false))
 	aliveComCount[allyTeamID] = aliveComCount[allyTeamID] - 1
+	aliveTeamComCount[teamID] = aliveTeamComCount[teamID] - 1
 	if aliveComCount[allyTeamID] <= 0 then
 		for _, teamID in ipairs(Spring.GetTeamList(allyTeamID)) do
 			if not select(3, Spring.GetTeamInfo(teamID, false)) then
 				Spring.KillTeam(teamID)
 			end
+		end
+	end
+	if Spring.GetModOptions().deathmode == "own_com" then
+		if not select(3, Spring.GetTeamInfo(teamID, false)) then
+			Spring.KillTeam(teamID)
 		end
 	end
 end
@@ -79,6 +88,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if isCommander[unitDefID] and unitTeam ~= gaiaTeamID then
 		local allyTeam = GetUnitAllyTeam(unitID)
 		aliveComCount[allyTeam] = aliveComCount[allyTeam] + 1
+		aliveTeamComCount[unitTeam] = aliveTeamComCount[unitTeam] + 1
 	end
 end
 
@@ -86,6 +96,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 	if isCommander[unitDefID] and unitTeam ~= gaiaTeamID then
 		local allyTeam = GetUnitAllyTeam(unitID)
 		aliveComCount[allyTeam] = aliveComCount[allyTeam] + 1
+		aliveTeamComCount[unitTeam] = aliveTeamComCount[unitTeam] + 1
 	end
 end
 
@@ -104,12 +115,16 @@ function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 end
 
 function gadget:Initialize()
-	if Spring.GetModOptions().deathmode ~= 'com' then
-		gadgetHandler:RemoveGadget(self) -- in particular, this gadget is removed if deathmode is "killall" or "none"
+	-- disable gadget when deathmode is "killall" or "none", or scoremode isnt regular
+	if Spring.GetModOptions().deathmode ~= 'com' and Spring.GetModOptions().deathmode ~= 'own_com' and Spring.GetModOptions().deathmode ~= 'builders' then
+		gadgetHandler:RemoveGadget(self)
 	end
 
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 		aliveComCount[allyTeamID] = 0
+	end
+	for _,teamID in ipairs(Spring.GetTeamList()) do
+		aliveTeamComCount[teamID] = 0
 	end
 
 	-- in case a luarules reload happens

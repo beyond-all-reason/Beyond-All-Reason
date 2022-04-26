@@ -28,14 +28,14 @@ end
 if unitRspeedCount == 0 then
 	return
 end
+unitRspeedCount = nil
 
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local cmdCtrl = CMD.OPT_CTRL
 local reverseUnit = {}
 local refreshList = {}
 
-function gadget:UnitCreated(unitID)
-	local unitDefID = Spring.GetUnitDefID(unitID)
+function gadget:UnitCreated(unitID, unitDefID)
 	if unitRspeed[unitDefID] then
 		reverseUnit[unitID] = unitDefID
 		refreshList[unitID] = unitDefID
@@ -44,7 +44,7 @@ function gadget:UnitCreated(unitID)
 	end
 end
 
-function gadget:UnitDestroyed(unitID) -- Erase killed units from table
+function gadget:UnitDestroyed(unitID)
 	reverseUnit[unitID] = nil
 	refreshList[unitID] = nil
 end

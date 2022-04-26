@@ -42,7 +42,7 @@ return {
 		maxwaterdepth = 0,
 		metalstorage = 1000,
 		mobilestandorders = 1,
-		movementclass = "CHICKSMALL",
+		movementclass = "CHICKSMALLHOVER",
 		noautofire = 0,
 		objectname = "Chickens/chicken_droneb.s3o",
 		reclaimspeed = 400,

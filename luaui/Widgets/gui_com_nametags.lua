@@ -468,6 +468,8 @@ end
 
 function toggleNameScaling()
 	nameScaling = not nameScaling
+
+	return true
 end
 
 function widget:GetConfigData()
@@ -479,7 +481,7 @@ end
 
 function widget:SetConfigData(data)
 	--load config
-	widgetHandler:AddAction("comnamescale", toggleNameScaling)
+	widgetHandler:AddAction("comnamescale", toggleNameScaling, nil, 'p')
 	if data.nameScaling ~= nil then
 		nameScaling = data.nameScaling
 	end

@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "EnemySpotter", -- GL4
-		desc = "Draw geometric primitives at any unit",
+		desc = "Draws a team-colored glowring underneath every enemy unit",
 		author = "Beherith, Floris",
 		date = "December 2021",
 		license = "GNU GPL, v2 or later",
@@ -27,14 +27,8 @@ local glTexture             = gl.Texture
 local GL_POINTS				= GL.POINTS
 
 local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
-local spValidUnitID = Spring.ValidUnitID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 
-local unitTeam = {}
-local unitUnitDefID = {}
-
-local spec, fullview = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
@@ -67,25 +61,14 @@ for i = 1, #teams do
 end
 allyTeamLeader = nil
 
-local function AddPrimitiveAtUnit(unitID)
-
-	if not unitUnitDefID[unitID] then
-		unitUnitDefID[unitID] = Spring.GetUnitDefID(unitID)
-	end
-	local unitDefID = unitUnitDefID[unitID]
-	if unitDefID == nil then return end -- these cant be selected
-
+local function AddPrimitiveAtUnit(unitID, unitDefID, unitTeam, noUpload)
 	local radius = unitScale[unitDefID]
-
-	if not unitTeam[unitID] then
-		unitTeam[unitID] = Spring.GetUnitTeam(unitID)
-	end
 
 	pushElementInstance(
 		enemyspotterVBO, -- push into this Instance VBO Table
 		{
 			radius, radius, 0, 0,  -- lengthwidthcornerheight
-			teamLeader[unitTeam[unitID]], -- teamID
+			teamLeader[unitTeam], -- teamID
 			2, -- how many triangles should we make
 			0, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
 			0, 1, 0, 1, -- These are our default UV atlas tranformations
@@ -93,13 +76,9 @@ local function AddPrimitiveAtUnit(unitID)
 		},
 		unitID, -- this is the key inside the VBO TAble,
 		true, -- update existing element
-		nil, -- noupload, dont use unless you
+		noUpload, -- noupload, dont use unless you
 		unitID -- last one should be UNITID?
 	)
-end
-
-function widget:Update(dt)
-	spec, fullview = Spring.GetSpectatingState()
 end
 
 local drawFrame = 0
@@ -123,73 +102,38 @@ function widget:DrawWorldPreUnit()
 	end
 end
 
-local function RemovePrimitive(unitID)
+local function RemoveUnit(unitID)
 	if enemyspotterVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(enemyspotterVBO, unitID)
 	end
 end
 
-local function AddUnit(unitID, unitDefID, unitTeamID)
+local function AddUnit(unitID, unitDefID, unitTeamID, noUpload)
 	if (not skipOwnTeam or spGetUnitAllyTeam(unitID) ~= myAllyTeamID) and unitTeamID ~= gaiaTeamID and not unitDecoration[unitDefID] then
-		unitTeam[unitID] = unitTeamID
-		unitUnitDefID[unitID] = unitDefID
-		AddPrimitiveAtUnit(unitID)
+		AddPrimitiveAtUnit(unitID,unitDefID, unitTeamID, noUpload)
 	end
 end
 
-local function RemoveUnit(unitID, unitDefID)
-	if (not skipOwnTeam or spGetUnitAllyTeam(unitID) ~= myAllyTeamID) and not unitDecoration[unitDefID] then
-		RemovePrimitive(unitID)
-		unitTeam[unitID] = nil
-		unitUnitDefID[unitID] = nil
-	end
-end
-
-function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
-	if unitTeam[unitID] then
-		RemoveUnit(unitID, unitDefID, oldTeamID)
-		AddUnit(unitID, unitDefID, newTeamID)
-	end
-end
-
-function widget:UnitGiven(unitID, unitDefID, oldTeamID, newTeamID)
-	if unitTeam[unitID] then
-		RemoveUnit(unitID, unitDefID, oldTeamID)
-		AddUnit(unitID, unitDefID, newTeamID)
-	end
-end
-
-function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	if fullview then return end
-	if spValidUnitID(unitID) then
-		AddUnit(unitID, unitDefID or Spring.GetUnitDefID(unitID), unitTeam)
-	end
-end
-
-function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
-	if not fullview then
-		RemoveUnit(unitID, unitDefID or Spring.GetUnitDefID(unitID), unitTeam)
-	end
-end
-
-function widget:UnitCreated(unitID, unitDefID, unitTeam)
+function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	AddUnit(unitID, unitDefID, unitTeam)
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	RemoveUnit(unitID, unitDefID, unitTeam)
+function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
+	clearInstanceTable(enemyspotterVBO) -- clear all instances
+	for unitID, unitDefID in pairs(extVisibleUnits) do
+		AddUnit(unitID, unitDefID, Spring.GetUnitTeam(unitID), true) -- add them with noUpload = true
+	end
+	uploadAllElements(enemyspotterVBO) -- upload them all
 end
 
-function widget.RenderUnitDestroyed(unitID, unitDefID, unitTeam)
-	if unitID and unitDefID then  -- as somehow this unitID can be nil
-		RemoveUnit(unitID, unitDefID, unitTeam)
-	end
+function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
+	RemoveUnit(unitID)
 end
 
 -- wont be called for enemy units nor can it read spGetUnitMoveTypeData(unitID).aircraftState anyway
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if unitCanFly[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		RemoveUnit(unitID, unitDefID, unitTeam)
+		RemoveUnit(unitID)
 	end
 end
 
@@ -202,19 +146,17 @@ local function init()
 	shaderConfig.HEIGHTOFFSET = 3.99
 	enemyspotterVBO, enemyspotterShader = InitDrawPrimitiveAtUnit(shaderConfig, "enemyspotter")
 
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		AddUnit(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
+		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+	else
+		Spring.Echo("Enemy spotter needs unittrackerapi to work!")
 	end
 end
 
 function widget:PlayerChanged(playerID)
-	spec, fullview = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
-	if skipOwnTeam then
-		init()
-	end
 end
+
 
 function widget:Initialize()
 	init()

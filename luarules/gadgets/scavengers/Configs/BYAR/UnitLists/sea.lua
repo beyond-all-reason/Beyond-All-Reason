@@ -61,11 +61,10 @@ return {
 		"corhal_scav",
 
 		-- Constructors
-		"armbeaver_scav",
-		"armch_scav",
-		"armcs_scav",
-		"cormuskrat_scav",
-		"corcs_scav",
+		"armmls_scav",
+		"armacsub_scav",
+		"cormls_scav",
+		"coracsub_scav",
 
 		-- Air
 		"armlance_scav",

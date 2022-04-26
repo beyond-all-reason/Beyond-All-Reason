@@ -67,6 +67,7 @@ widgetHandler = {
 
 	globals = {}, -- global vars/funcs
 
+	textOwner = nil,
 	mouseOwner = nil,
 	ownedButton = 0,
 
@@ -137,6 +138,12 @@ local flexCallIns = {
 	'DrawScreenEffects',
 	'DrawScreenPost',
 	'DrawInMiniMap',
+	'DrawOpaqueUnitsLua',
+	'DrawOpaqueFeaturesLua',
+	'DrawAlphaUnitsLua',
+	'DrawAlphaFeaturesLua',
+	'DrawShadowUnitsLua',
+	'DrawShadowFeaturesLua',
 	'SunChanged',
 	'FeatureCreated',
 	'FeatureDestroyed',
@@ -172,6 +179,12 @@ local callInLists = {
 	'GameProgress',
 	'CommandsChanged',
 	'LanguageChanged',
+	'VisibleUnitAdded',
+	'VisibleUnitRemoved',
+	'VisibleUnitsChanged',
+	'AlliedUnitAdded',
+	'AlliedUnitRemoved',
+	'AlliedUnitsChanged'
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
@@ -541,6 +554,24 @@ function widgetHandler:NewWidget()
 			self.mouseOwner = nil
 		end
 	end
+	wh.OwnText = function(_)
+		if self.textOwner then
+			return false
+		end
+
+		self.textOwner = widget
+
+		return true
+	end
+	wh.DisownText = function(_)
+		if self.textOwner == widget then
+			self.textOwner = nil
+
+			return true
+		else
+			return false
+		end
+	end
 
 	wh.UpdateCallIn = function(_, name)
 		self:UpdateWidgetCallIn(name, widget)
@@ -738,6 +769,10 @@ end
 function widgetHandler:RemoveWidget(widget)
 	if widget == nil or widget.whInfo == nil then
 		return
+	end
+
+	if self.textOwner == widget then
+		self.textOwner = nil
 	end
 
 	local name = widget.whInfo.name
@@ -1215,6 +1250,48 @@ function widgetHandler:DrawWorldPreUnit()
 	return
 end
 
+function widgetHandler:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
+	for _, w in r_ipairs(self.DrawOpaqueUnitsLuaList) do
+		w:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
+	end
+	return
+end
+
+function widgetHandler:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefraction)
+	for _, w in r_ipairs(self.DrawOpaqueFeaturesLuaList) do
+		w:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefraction)
+	end
+	return
+end
+
+function widgetHandler:DrawAlphaUnitsLua(drawReflection, drawRefraction)
+	for _, w in r_ipairs(self.DrawAlphaUnitsLuaList) do
+		w:DrawAlphaUnitsLua(drawReflection, drawRefraction)
+	end
+	return
+end
+
+function widgetHandler:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
+	for _, w in r_ipairs(self.DrawAlphaFeaturesLuaList) do
+		w:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
+	end
+	return
+end
+
+function widgetHandler:DrawShadowUnitsLua()
+	for _, w in r_ipairs(self.DrawShadowUnitsLuaList) do
+		w:DrawShadowUnitsLua()
+	end
+	return
+end
+
+function widgetHandler:DrawShadowFeaturesLua()
+	for _, w in r_ipairs(self.DrawShadowFeaturesLuaList) do
+		w:DrawShadowFeaturesLua()
+	end
+	return
+end
+
 function widgetHandler:DrawWorldPreParticles()
 	for _, w in r_ipairs(self.DrawWorldPreParticlesList) do
 		w:DrawWorldPreParticles()
@@ -1292,6 +1369,16 @@ end
 --
 
 function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode)
+	local textOwner = self.textOwner
+
+	if textOwner then
+		if textOwner.KeyPress then
+			textOwner:KeyPress(key, mods, isRepeat, label, unicode)
+		end
+
+		return true
+	end
+
 	if self.actionHandler:KeyAction(true, key, mods, isRepeat) then
 		return true
 	end
@@ -1305,6 +1392,16 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode)
 end
 
 function widgetHandler:KeyRelease(key, mods, label, unicode)
+	local textOwner = self.textOwner
+
+	if textOwner then
+		if textOwner.KeyRelease then
+			textOwner:KeyRelease(key, mods, label, unicode)
+		end
+
+		return true
+	end
+
 	if self.actionHandler:KeyAction(false, key, mods, false) then
 		return true
 	end
@@ -1318,6 +1415,16 @@ function widgetHandler:KeyRelease(key, mods, label, unicode)
 end
 
 function widgetHandler:TextInput(utf8, ...)
+	local textOwner = self.textOwner
+
+	if textOwner then
+		if textOwner.TextInput then
+			textOwner:TextInput(utf8, ...)
+		end
+
+		return true
+	end
+
 	for _, w in r_ipairs(self.TextInputList) do
 		if w:TextInput(utf8, ...) then
 			return true
@@ -1866,6 +1973,43 @@ function widgetHandler:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, 
 	end
 	return
 end
+
+function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	for _, w in ipairs(self.VisibleUnitAddedList) do
+		w:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	end
+end
+
+function widgetHandler:VisibleUnitRemoved(unitID)
+	for _, w in ipairs(self.VisibleUnitRemovedList) do
+		w:VisibleUnitRemoved(unitID)
+	end
+end
+
+function widgetHandler:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
+	for _, w in ipairs(self.VisibleUnitsChangedList) do
+		w:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
+	end
+end
+
+function widgetHandler:AlliedUnitAdded(unitID, unitDefID, unitTeam)
+	for _, w in ipairs(self.AlliedUnitAddedList) do
+		w:AlliedUnitAdded(unitID, unitDefID, unitTeam)
+	end
+end
+
+function widgetHandler:AlliedUnitRemoved(unitID)
+	for _, w in ipairs(self.AlliedUnitRemovedList) do
+		w:AlliedUnitRemoved(unitID)
+	end
+end
+
+function widgetHandler:AlliedUnitsChanged(visibleUnits, numVisibleUnits)
+	for _, w in ipairs(self.AlliedUnitsChangedList) do
+		w:AlliedUnitsChanged(alliedUnits, numAlliedUnits)
+	end
+end
+
 
 --------------------------------------------------------------------------------
 --

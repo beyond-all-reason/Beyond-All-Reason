@@ -8,6 +8,14 @@ local function getUnitIDList(unitNameList)
 	return unitDefIDList
 end
 
+local scavSpawnEffectUnit = "scavengerdroppod_scav"
+local scavSpawnBeacon = "scavengerdroppodbeacon_scav"
+local friendlySpawnEffectUnit = "scavengerdroppodfriendly"
+
+local scavSpawnEffectUnitID = UnitDefNames[scavSpawnEffectUnit].id
+local scavSpawnBeaconID = UnitDefNames[scavSpawnBeacon].id
+local friendlySpawnEffectUnitID = UnitDefNames[friendlySpawnEffectUnit].id
+
 local noSelfDestruct = {
 	"cormaw_scav",
 	"armclaw_scav",
@@ -347,6 +355,12 @@ local nukesID = getUnitIDList(nukes)
 local beaconCaptureExclusionsID = getUnitIDList(beaconCaptureExclusions)
 
 return {
+	scavSpawnEffectUnit = scavSpawnEffectUnit,
+	scavSpawnEffectUnitID = scavSpawnEffectUnitID,
+	friendlySpawnEffectUnit = friendlySpawnEffectUnit,
+	friendlySpawnEffectUnitID = friendlySpawnEffectUnitID,
+	scavSpawnBeacon = scavSpawnBeacon,
+	scavSpawnBeaconID = scavSpawnBeaconID,
 	NoSelfDestruct = noSelfDestruct,
 	NoSelfDestructID = noSelfDestructID,
 	Walls = walls,

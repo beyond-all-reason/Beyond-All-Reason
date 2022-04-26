@@ -2,6 +2,8 @@
 	"en": {
 		"features": {
 			"names": {
+				"armstone": "Commander Tombstone",
+				"corstone": "Commander Tombstone",
 				"ancientRocks": "Ancient Rock Formation",
 				"bush": "Bush",
 				"bushSmall": "Small Bush",
@@ -12,6 +14,7 @@
 				"candycane": "Candy Cane",
 				"chicken_egg": "Egg",
 				"crystalSapphire": "Sapphire Crystal",
+				"crystals": "Crystal",
 				"energySpire": "Energy Spire",
 				"fern_big": "Big Fern",
 				"fern": "Fern",

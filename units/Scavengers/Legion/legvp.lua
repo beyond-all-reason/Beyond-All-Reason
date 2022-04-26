@@ -37,12 +37,12 @@ return {
 		yardmap = "ooooooo ooooooo ooooooo oocccoo oocccoo oocccoo oocccoo",
 		buildoptions = {
 			[1] = "corfav",
-			[2] = "corcv",
+			[2] = "legcv",
 			[3] = "leghades",
 			[4] = "leghelios",
-			[5] = "legrail",
-			[6] = "leggat",
-			[7] = "corwolv",
+			[5] = "leggat",
+			[6] = "legbar",
+			[7] = "legrail",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

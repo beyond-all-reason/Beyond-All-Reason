@@ -98,9 +98,8 @@ local bgpadding = 3
 --------------------------------------------------------------------------------
 -- IMAGES
 --------------------------------------------------------------------------------
-
-local imageDirectory = ":lc:" .. LUAUI_DIRNAME .. "Images/advplayerslist/"
-local flagsDirectory = imageDirectory .. "flags/"
+local imgDir = LUAUI_DIRNAME .. "Images/advplayerslist/"
+local imageDirectory = ":lc:" .. imgDir
 local flagsExt = '.png'
 local flagHeight = 10
 
@@ -801,6 +800,7 @@ local function UpdateRecentBroadcasters()
 end
 
 local function LockCamera(playerID)
+	mySpecStatus, fullView, _ = Spring.GetSpectatingState()
     if playerID and playerID ~= myPlayerID and playerID ~= lockPlayerID and Spring_GetPlayerInfo(playerID) then
         if lockcameraHideEnemies and not select(3, Spring_GetPlayerInfo(playerID)) then
             Spring.SendCommands("specteam " .. select(4, Spring_GetPlayerInfo(playerID)))
@@ -1217,7 +1217,7 @@ end
 function CreatePlayer(playerID)
     --generic player data
     local tname, _, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank = Spring_GetPlayerInfo(playerID, false)
-    local _, _, _, _, tside, tallyteam = Spring_GetTeamInfo(tteam, false)
+    local _, _, _, _, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(tteam, false)
     local tred, tgreen, tblue = Spring_GetTeamColor(tteam)
 
     --skill
@@ -1273,6 +1273,7 @@ function CreatePlayer(playerID)
         energyStorage = energyStorage,
         metal = metal,
         metalStorage = metalStorage,
+		incomeMultiplier = tincomeMultiplier,
     }
 end
 
@@ -1293,7 +1294,7 @@ end
 
 function CreatePlayerFromTeam(teamID)
     -- for when we don't have a human player occupying the slot, also when a player changes team (dies)
-    local _, _, isDead, isAI, tside, tallyteam = Spring_GetTeamInfo(teamID, false)
+    local _, _, isDead, isAI, tside, tallyteam, tincomeMultiplier = Spring_GetTeamInfo(teamID, false)
     local tred, tgreen, tblue = Spring_GetTeamColor(teamID)
     local tname, ttotake, tskill, tai
     local tdead = true
@@ -1356,6 +1357,7 @@ function CreatePlayerFromTeam(teamID)
         energyStorage = energyStorage,
         metal = metal,
         metalStorage = metalStorage,
+		incomeMultiplier = tincomeMultiplier,
     }
 end
 
@@ -2317,8 +2319,8 @@ function DrawAlly(posY, team)
 end
 
 function DrawCountry(country, posY)
-    if country ~= nil and country ~= "??" then
-        gl_Texture(flagsDirectory .. string.upper(country) .. flagsExt)
+    if country ~= nil and country ~= "??" and VFS.FileExists(imgDir .. "flags/"  .. string.upper(country) .. flagsExt) then
+        gl_Texture(imgDir .. "flags/" .. string.upper(country) .. flagsExt)
         gl_Color(1, 1, 1, 1)
         DrawRect(m_country.posX + widgetPosX + 3, posY + 8 - (flagHeight/2), m_country.posX + widgetPosX + 17, posY + 8 + (flagHeight/2))
     end
@@ -2434,6 +2436,11 @@ function DrawName(name, team, posY, dark, playerID)
         font2:SetOutlineColor(0, 0, 0, 1)
         font2:Print( nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
     end
+
+	if player[playerID] and player[playerID].incomeMultiplier and player[playerID].incomeMultiplier > 1 then
+		font2:SetTextColor(0.5,1,0.5,1)
+		font2:Print('+'..math.floor((player[playerID].incomeMultiplier-1)*100)..'%', m_name.posX + widgetPosX + 5 + xPadding + (font2:GetTextWidth(nameText)*14), posY + 5.7 , 8, "o")
+	end
 	font2:End()
 
     if ignored then
@@ -3535,5 +3542,27 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz)
             player[playerID].pointZ = pz
             player[playerID].pointTime = now + pointDuration
         end
+    end
+end
+
+
+function widget:TextCommand(command)
+    if string.sub(command, 1, 8) == 'speclist' then
+        local words = {}
+        for w in command:gmatch("%S+") do
+            words[#words+1] = w
+        end
+        if string.sub(command, 10, 10) ~= '' then
+            if string.sub(command, 10, 10) == '0' then
+                specListShow = false
+            elseif string.sub(command, 10, 10) == '1' then
+                specListShow = true
+            end
+        else
+            specListShow = not specListShow
+        end
+        SetModulesPositionX() --why?
+        SortList()
+        CreateLists()
     end
 end

@@ -11,6 +11,28 @@ end
 
 math.randomseed( os.clock() )
 
+-----------------------------------
+------CONFIG-----------------------
+-----------------------------------
+local minSilenceTime = 10
+local maxSilenceTime = 120
+local warLowLevel = 1000
+local warHighLevel = 20000
+
+local specMultiplier = #Spring.GetAllyTeamList() - 1
+
+local function applySpectatorThresholds()
+	warLowLevel = 1000*specMultiplier
+	warHighLevel = 20000*specMultiplier
+	appliedSpectatorThresholds = true
+	--Spring.Echo("[Music Player] Spectator mode enabled")
+end
+-----------------------------------
+-----------------------------------
+-----------------------------------
+
+
+
 local peaceTracks = {}
 local warhighTracks = {}
 local warlowTracks = {}
@@ -150,12 +172,7 @@ local faderMin = 45 -- range in dB for volume faders, from -faderMin to 0dB
 
 local playedTime, totalTime = Spring.GetSoundStreamTime()
 local appliedSilence = true
-local minSilenceTime = 10
-local maxSilenceTime = 120
 local silenceTimer = math.random(minSilenceTime,maxSilenceTime)
-
-local warLowLevel = 1000
-local warHighLevel = 20000
 
 local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 20)	-- user value, cause actual volume will change during fadein/outc
 local volume = Spring.GetConfigInt("snd_volmaster", 100)
@@ -711,6 +728,10 @@ function widget:GameFrame(n)
 		if deviceLostSafetyCheck >= 3 then
 			return
 		end
+
+		if not appliedSpectatorThresholds and Spring.GetSpectatingState() == true then
+			applySpectatorThresholds()
+		end
 		
 		local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01
 		if musicVolume > 0 then
@@ -735,11 +756,9 @@ function widget:GameFrame(n)
 				if not fadeOutCurrentTrack then
 					Spring.SetSoundStreamVolume(musicVolume)
 					if (currentTrackListString == "intro" and n > 30)
-						or ((currentTrackListString == "peace" and warMeter > warLowLevel * 2) and interruptionEnabled)
-						or (( (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.20 ) and interruptionEnabled)
-						or ((currentTrackListString == "warLow" and warMeter > warHighLevel * 2) and interruptionEnabled)
-						or ((currentTrackListString == "warHigh" and warMeter <= warHighLevel * 0.20) and interruptionEnabled) then
-
+						or ((currentTrackListString == "peace" and warMeter > warHighLevel * 0.8) and interruptionEnabled) -- Peace in battle times, let's play some WarLow music at 80% of WarHigh threshold
+						or ((currentTrackListString == "warLow" and warMeter > warHighLevel * 3) and interruptionEnabled) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at tripple of WarHigh threshold
+						or (( (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.2 ) and interruptionEnabled) then -- War music is playing, but it has been quite peaceful recently. Let's switch to peace music at 20% of WarLow threshold
 						fadeOutCurrentTrack = true
 					end
 				end

@@ -11,7 +11,6 @@ function widget:GetInfo()
 end
 
 -- Configurable Parts:
-local texture = "luaui/images/solid.png"
 local opacity = 0.25
 local skipOwnTeam = false
 
@@ -26,7 +25,6 @@ local glStencilOp           = gl.StencilOp
 local glStencilTest         = gl.StencilTest
 local glStencilMask         = gl.StencilMask
 local glDepthTest           = gl.DepthTest
-local glTexture             = gl.Texture
 local glClear               = gl.Clear
 local GL_ALWAYS             = GL.ALWAYS
 local GL_NOTEQUAL           = GL.NOTEQUAL
@@ -36,12 +34,8 @@ local GL_REPLACE            = GL.REPLACE
 local GL_POINTS				= GL.POINTS
 
 local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
-local spValidUnitID = Spring.ValidUnitID
+local spGetUnitTeam = Spring.GetUnitTeam
 
-local unitTeam = {}
-local unitUnitDefID = {}
-
-local spec, fullview = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
@@ -65,61 +59,47 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local function AddPrimitiveAtUnit(unitID)
-	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then return end
-	local gf = Spring.GetGameFrame()
+local function AddPrimitiveAtUnit(unitID, unitDefID, unitTeamID, noUpload)
+	if (not skipOwnTeam or unitTeamID ~= myTeamID) and unitTeamID ~= gaiaTeamID and not unitDecoration[unitDefID] then
+		local gf = Spring.GetGameFrame()
 
-	if not unitUnitDefID[unitID] then
-		unitUnitDefID[unitID] = Spring.GetUnitDefID(unitID)
+		local numVertices = 64 -- default to circle
+		local cornersize = 0
+
+		local radius = unitScale[unitDefID]
+
+		local additionalheight = 0
+		local width, length
+		if unitCanFly[unitDefID] then
+			numVertices = 3 -- triangles for planes
+			width = radius
+			length = radius
+		elseif unitBuilding[unitDefID] then
+			width = unitBuilding[unitDefID][1]
+			length = unitBuilding[unitDefID][2]
+			cornersize = (width + length) * 0.075
+			numVertices = 2
+		else
+			width = radius
+			length = radius
+		end
+
+		pushElementInstance(
+			teamplatterVBO, -- push into this Instance VBO Table
+			{
+				length, width, cornersize, additionalheight,  -- lengthwidthcornerheight
+				unitTeamID, -- teamID
+				numVertices, -- how many trianges should we make
+				gf, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
+				0, 1, 0, 1, -- These are our default UV atlas tranformations
+				0, 0, 0, 0 -- these are just padding zeros, that will get filled in
+			},
+			unitID, -- this is the key inside the VBO TAble,
+			true, -- update existing element
+			noUpload, -- noupload, dont use unless you
+			unitID -- last one should be UNITID?
+		)
 	end
-	local unitDefID = unitUnitDefID[unitID]
-	if unitDefID == nil then return end -- these cant be selected
-
-	local numVertices = 64 -- default to cornered rectangle
-	local cornersize = 0
-
-	local radius = unitScale[unitDefID]
-
-	if not unitTeam[unitID] then
-		unitTeam[unitID] = Spring.GetUnitTeam(unitID)
-	end
-
-	local additionalheight = 0
-	local width, length
-	if unitCanFly[unitDefID] then
-		numVertices = 3 -- triangles for planes
-		width = radius
-		length = radius
-	elseif unitBuilding[unitDefID] then
-		width = unitBuilding[unitDefID][1]
-		length = unitBuilding[unitDefID][2]
-		cornersize = (width + length) * 0.075
-		numVertices = 2
-	else
-		width = radius
-		length = radius
-	end
-	--Spring.Echo("AddPrimitiveAtUnit",unitID, unitTeam[unitID])
-	--Spring.Debug.TableEcho(unitTeam)
-	pushElementInstance(
-		teamplatterVBO, -- push into this Instance VBO Table
-		{
-			length, width, cornersize, additionalheight,  -- lengthwidthcornerheight
-			unitTeam[unitID], -- teamID
-			numVertices, -- how many trianges should we make
-			gf, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
-			0, 1, 0, 1, -- These are our default UV atlas tranformations
-			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
-		},
-		unitID, -- this is the key inside the VBO TAble,
-		true, -- update existing element
-		nil, -- noupload, dont use unless you
-		unitID -- last one should be UNITID?
-	)
-end
-
-function widget:Update(dt)
-	spec, fullview = Spring.GetSpectatingState()
 end
 
 local drawFrame = 0
@@ -129,7 +109,6 @@ function widget:DrawWorldPreUnit()
 	end
 	drawFrame = drawFrame + 1
 	if teamplatterVBO.usedElements > 0 then
-		glTexture(0, texture)
 		teamplatterShader:Activate()
 		teamplatterShader:SetUniform("iconDistance", 99999) -- pass
 		glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
@@ -157,80 +136,36 @@ function widget:DrawWorldPreUnit()
 		glDepthTest(true)
 
 		teamplatterShader:Deactivate()
-		glTexture(0, false)
 	end
 end
 
-local function RemovePrimitive(unitID)
+local function RemoveUnit(unitID)
 	if teamplatterVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(teamplatterVBO, unitID)
 	end
 end
 
-local function AddUnit(unitID, unitDefID, unitTeamID)
-	if (not skipOwnTeam or unitTeamID ~= myTeamID) and unitTeamID ~= gaiaTeamID and not unitDecoration[unitDefID] then
-		unitTeam[unitID] = unitTeamID
-		unitUnitDefID[unitID] = unitDefID
-		AddPrimitiveAtUnit(unitID)
+--- Look how easy api_unit_tracker is to use! 
+function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	AddPrimitiveAtUnit(unitID, unitDefID, unitTeam)
+end
+
+function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
+	clearInstanceTable(teamplatterVBO) -- clear all instances
+	for unitID, unitDefID in pairs(extVisibleUnits) do
+		AddPrimitiveAtUnit(unitID, unitDefID, spGetUnitTeam(unitID), true) -- add them with noUpload = true
 	end
+	uploadAllElements(teamplatterVBO) -- upload them all
 end
 
-local function RemoveUnit(unitID, unitDefID, unitTeamID)
-	if (not skipOwnTeam or unitTeamID ~= myTeamID) and unitTeamID ~= gaiaTeamID and not unitDecoration[unitDefID] then
-		RemovePrimitive(unitID)
-		unitTeam[unitID] = nil
-		unitUnitDefID[unitID] = nil
-	end
-end
-
-function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
-	--Spring.Echo("widget:UnitTaken",unitID, unitDefID, oldTeamID, newTeamID)
-	if unitTeam[unitID] then
-		RemoveUnit(unitID, unitDefID, oldTeamID)
-		AddUnit(unitID, unitDefID, newTeamID)
-	end
-end
-
-function widget:UnitGiven(unitID, unitDefID, newTeamID)
-	--Spring.Echo("widget:UnitGiven",unitID, unitDefID, newTeamID)
-	if unitTeam[unitID] then
-		RemoveUnit(unitID, unitDefID, unitTeam[unitID]) -- this removes the old one
-		AddUnit(unitID, unitDefID, newTeamID)
-	end
-end
-
-function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	--Spring.Echo("widget:UnitEnteredLos",unitID, unitTeam, allyTeam, unitDefID)
-	if fullview then return end
-	if spValidUnitID(unitID) then
-		unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
-		AddUnit(unitID, unitDefID, unitTeam)
-	end
-end
-
-function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
-	if not fullview then
-		unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
-		RemoveUnit(unitID, unitDefID, unitTeam)
-	end
-end
-
-function widget:UnitCreated(unitID, unitDefID, unitTeam)
-	AddUnit(unitID, unitDefID, unitTeam)
-end
-
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	RemoveUnit(unitID, unitDefID, unitTeam)
-end
-
-function widget.RenderUnitDestroyed(unitID, unitDefID, unitTeam)
-	RemoveUnit(unitID, unitDefID, unitTeam)
+function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
+	RemoveUnit(unitID)
 end
 
 -- wont be called for enemy units nor can it read spGetUnitMoveTypeData(unitID).aircraftState anyway
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if unitCanFly[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		RemoveUnit(unitID, unitDefID, unitTeam)
+		RemoveUnit(unitID)
 	end
 end
 
@@ -241,10 +176,11 @@ local function init()
 	shaderConfig.TRANSPARENCY = opacity
 	shaderConfig.ANIMATION = 0
 	shaderConfig.HEIGHTOFFSET = 3.99
+	shaderConfig.USETEXTURE = 0
 	teamplatterVBO, teamplatterShader = InitDrawPrimitiveAtUnit(shaderConfig, "teamPlatters")
-
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		AddUnit(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+	
+	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
+		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
 end
 

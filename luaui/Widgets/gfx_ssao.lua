@@ -68,8 +68,18 @@ local initialTonemapA = Spring.GetConfigFloat("tonemapA", 4.75)
 local initialTonemapD = Spring.GetConfigFloat("tonemapD", 0.85)
 local initialTonemapE = Spring.GetConfigFloat("tonemapE", 1.0)
 
-local preset = 1
+local preset = 2
 local presets = {
+	{
+		SSAO_KERNEL_SIZE = 32,
+		DOWNSAMPLE = 3,
+		BLUR_HALF_KERNEL_SIZE = 4,
+		BLUR_PASSES = 2,
+		BLUR_SIGMA = 4,
+		tonemapA = 0.45,
+		tonemapD = -0.25,
+		tonemapE = -0.03,
+	},
 	{
 		SSAO_KERNEL_SIZE = 32,
 		DOWNSAMPLE = 2,
@@ -646,10 +656,10 @@ function widget:SetConfigData(data)
 	if data.radius ~= nil then
 		SSAO_RADIUS = data.radius
 	end
-	--if data.preset ~= nil then
-	--	preset = data.preset
-	--	if preset > 1 then
-	--		preset = 2
-	--	end
-	--end
+	if data.preset ~= nil then
+		preset = data.preset
+		if preset > 3 then
+			preset = 3
+		end
+	end
 end

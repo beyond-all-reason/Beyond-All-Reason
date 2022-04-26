@@ -11,8 +11,283 @@ end
 function TasksHST:Init()
 	self.DebugEnabled = false
 	self.roles = {}
+	self.labs = {}
 	self:startRolesParams()
+	self:startLabsParams()
+end
 
+function TasksHST:startLabsParams()
+	local M = self.ai.Metal
+	local E = self.ai.Energy
+
+	self.labs.default = {
+			{category = 'techs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 3, mtype = 5, max = 10,},
+			wave = 1},
+
+
+			{category = 'scouts',
+			economy = function(soldier)
+				return (E.income < 100 )
+			end,
+			numeric = {min = 1,mtype = 10,max = 2},
+			wave = 2},
+
+
+			{category = 'raiders',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,max = 20},
+			wave = 10},
+
+
+			{category = 'techs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 3,mtype = nil,max = 10},
+			wave = 1},
+
+
+			{category = 'battles',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 3},
+            wave = 5},
+
+
+			{category = 'techs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 3,mtype = 6,max = 7},
+			wave = 1},
+
+
+			{category = 'artillerys',
+			economy = function(_,U)
+				local ut = self.ai.armyhst.unitTable[U]
+				return M.income > ut.techLevel * 400
+			end,
+			numeric = {min = 0,mtype = 10,max = 10},
+			wave = 3},
+
+
+			{category = 'techs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 3,mtype = nil,max = 10},
+			wave = 3},
+
+
+			{category = 'breaks',
+			economy = function()
+				return self.ai.Metal.full > 0.3 and self.ai.Energy.full > 0.3
+			end,
+			numeric = {min = 0,max = 15},
+			wave = 3},
+
+
+			{category = 'techs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 3,mtype = nil,max = 10},
+			wave = 1},
+
+
+			{category = 'rezs',
+			economy = function()
+				return true
+			end,-- rezzers
+			numeric = {min = 1,mtype = 8,max = 10},
+			wave = 2},
+
+
+
+			{category = 'engineers',
+			economy = function()
+				return true
+			end, --help builders and build thinghs
+			numeric = {min = 1,mtype = 8,max = 10},
+			wave = 1},
+
+			{category = 'antiairs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = 7,max = 8},
+			wave = 2},
+
+
+			{category = 'amptechs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = 7,max = 5},
+			wave = 1},
+			 --amphibious builders
+
+			{category = 'jammers',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = nil,max = 1},
+			wave = 1},
+
+
+			{category = 'radars',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = 2,max = nil},
+			wave = 1},
+
+
+			{category = 'airgun',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = 5,max = 10},
+			wave = 5},
+
+
+			{category = 'bomberairs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 10,mtype = 4,max = 20},
+			wave = 10},
+
+
+			{category = 'fighterairs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = 5,max = 10},
+            wave = 5},
+
+
+			{category = 'paralyzers',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = 10,max = 5},
+			wave = 3},
+			 --have paralyzer weapon
+
+
+			{category = 'wartechs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = nil,max = 1},
+            wave = 1},
+			 --decoy etc
+
+			{category = 'techs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 3,mtype = nil,max = 5},
+			wave = 3},
+
+
+			{category = 'subkillers',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = 7,max = 10},
+            wave = 3},
+			 -- submarine weaponed
+
+			{category = 'breaks',
+			economy = function()
+				return self.ai.Metal.full > 0.7 and self.ai.Energy.full > 0.7
+			end,
+			numeric = {max = 40},
+			wave = 10},
+
+
+			{category = 'amphibious',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 0,mtype = 7,max = 20},
+            wave = 5},
+			 -- weapon amphibious
+
+			{category = 'spiders',
+			economy = function()
+				return true
+			end,
+			numeric = {mtype = nil,max = 15},
+			wave = 10},
+			 -- all terrain spider
+
+
+--[[
+--
+			{category = 'transports',
+			economy = function()
+				return true
+			end,
+			1,
+			nil,
+			nil},
+
+--
+			{category = 'spys',
+			economy = function()
+				return true
+			end,
+			1,
+			nil,
+			1},
+			 -- spy bot
+--
+			{category = 'miners',
+			economy = function()
+				return true
+			end,
+			1,
+			nil,
+			nil},
+
+--
+			{category = 'antinukes',
+			economy = function()
+				return true
+			end,
+			1,
+			nil,
+			nil},
+
+--
+			{category = 'crawlings',
+			economy = function()
+				return true
+			end,
+			1,
+			nil,
+			1},
+
+--
+			{category = 'cloakables',
+			economy = function()
+				return true
+			end,
+			0,
+			0,
+			10},
+]]
+}
 end
 
 function TasksHST:startRolesParams()
@@ -129,11 +404,11 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_fus_' ,
 			economy = function()
-					return (E.full < 0.5 and E.income < E.usage ) or E.full < 0.25
+					return ( E.income < E.usage ) or E.full < 0.25
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'_nano_','factoryMobilities'}} ,
+			location = {categories = {'_nano_'}} ,
 			special = true } , --specialFilter
 
 		{ 	category = '_popup1_' ,
@@ -353,14 +628,14 @@ function TasksHST:startRolesParams()
 			location = true , --positional category to search near
 	        },
 
---[[		{ 	category = '_specialt_' ,
+		{ 	category = '_llt_' ,
 			economy = function()
-					return
+					return true
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
-			numeric = false , --numericalParameter
-			location = {} , --positional category to search near
-]]
+			numeric = 2 , --numericalParameter
+			location = {categories = {'factoryMobilities'},min = 100,neighbours = {'_llt_','_popup2_','_popup1_'}} ,
+			},
 
 		{ 	category = '_wind_' ,
 			economy = function()
@@ -393,17 +668,17 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_fus_' ,
 			economy = function()
-					return (E.full < 0.75 and E.income < E.usage * 1.25) or E.full < 0.3
+					return ( E.income < E.usage * 1.25) or E.full < 0.5
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
-			llocation = {categories = {'_nano_','factoryMobilities'}} ,
+			location = {categories = {'_nano_','factoryMobilities','selfCat'}} ,
 			special = true } , --specialFilter
 
 		{ 	category = '_nano_' ,
 			economy = function()
-					return (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100) or
-					(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 60 ))
+					return (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100) --or
+					--(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 60 ))
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -544,7 +819,7 @@ function TasksHST:startRolesParams()
 	self.roles.starter = {
 		{ 	category = '_mex_' ,
 			economy = function()
-					return M.income < 8 or self.ai.tool:countMyUnit({'_mex_'}) < 3
+					return self.ai.tool:countMyUnit({'factoryMobilities'}) == 0
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -552,45 +827,45 @@ function TasksHST:startRolesParams()
 	        },
 		{ 	category = '_wind_' ,
 			economy = function()
-					return  E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
+					return  true --E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {min = 50,himself = true} ,
+			location = {min = 50,categories = {'_nano_','factoryMobilities'},himself = true} ,
 	        special = true,
 	        },
 
 		{ 	category = '_tide_' ,
 			economy = function()
-					return  E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
+					return  true --E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {min = 50,himself = true} ,
+			location = {min = 50,categories = {'_nano_','factoryMobilities'},himself = true} ,
 	        special = true,
 	        },
 
 		{ 	category = '_solar_' ,
 			economy = function()
-					return  E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
+					return  true --E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location ={min = 50,himself = true} ,
+			location ={min = 50,categories = {'_nano_','factoryMobilities'},himself = true} ,
 			special = true } , --specialFilter
 
 		{ 	category = '_llt_' ,
 			economy = function()
-					return  E.income > 20 and M.income > 5 and self.ai.tool:countMyUnit({'_mex_'}) >= 3
+					return self.ai.tool:countMyUnit({'factoryMobilities'}) > 0
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'factoryMobilities','_mex_'},min = 100,neighbours = {'_llt_','_popup2_','_popup1_'}}
+			location = {categories = {'factoryMobilities'},min = 100,neighbours = {'_llt_','_popup2_','_popup1_'}}
 	        } ,
 
 		{ 	category = 'factoryMobilities' ,
 			economy = function()
-					return M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2 and (E.income > 40 or M.full > 0.9)
+					return M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2 and E.income > 40
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -624,220 +899,3 @@ end
 -- 	return wrapped
 -- end
 --
--- random = math.random
--- math.randomseed( os.time() + game:GetTeamID() )
--- random(); random(); random()
---
--- function TasksHST:MapHasWater()
--- 	return (self.ai.waterMap or self.ai.hasUWSpots) or false
--- end
---
--- -- this is initialized in maphst
--- function TasksHST:MapHasUnderwaterMetal()
--- 	return self.ai.hasUWSpots or false
--- end
---
--- function TasksHST:IsSiegeEquipmentNeeded()
--- 	return self.ai.overviewhst.needSiege
--- end
---
--- function TasksHST:IsAANeeded()
--- 	return self.ai.needAirDefense
--- end
---
--- function TasksHST:IsShieldNeeded()
--- 	return self.ai.needShields
--- end
---
--- function TasksHST:IsTorpedoNeeded()
--- 	return self.ai.needSubmergedDefense
--- end
---
--- function TasksHST:IsJammerNeeded()
--- 	return self.ai.needJammers
--- end
---
--- function TasksHST:IsAntinukeNeeded()
--- 	return self.ai.needAntinuke
--- end
---
--- function TasksHST:IsNukeNeeded()
--- 	local nuke = self.ai.needNukes and self.ai.canNuke
--- 	return nuke
--- end
---
--- function TasksHST:IsLandAttackNeeded()
--- 	return self.ai.areLandTargets or self.ai.needGroundDefense
--- end
---
--- function TasksHST:IsWaterAttackNeeded()
--- 	return self.ai.areWaterTargets or self.ai.needSubmergedDefense
--- end
-
-
---[[
-
-function TasksHST:BuildAAIfNeeded(unitName)
-	if self:IsAANeeded() then
-		if not self.ai.armyhst.unitTable[unitName].isBuilding then
-			return self:BuildWithLimitedNumber(unitName, self.ai.overviewhst.AAUnitPerTypeLimit)
-		else
-			return unitName
-		end
-	else
-		return self.ai.armyhst.DummyUnitName
-	end
-end
-
-function TasksHST:BuildTorpedoIfNeeded(unitName)
-	if self:IsTorpedoNeeded() then
-		return unitName
-	else
-		return self.ai.armyhst.DummyUnitName
-	end
-end
-
-function TasksHST:BuildSiegeIfNeeded(unitName)
-	if unitName == self.ai.armyhst.DummyUnitName then return self.ai.armyhst.DummyUnitName end
-	if self:IsSiegeEquipmentNeeded() then
-		if self.ai.tool:countMyUnit({'artillerys'}) < (self.ai.tool:countMyUnit({'battles'}) + self.ai.tool:countMyUnit({'breaks'})) * 0.35 then
-			return unitName
-		end
-	end
-	return self.ai.armyhst.DummyUnitName
-end
-
-function TasksHST:BuildBreakthroughIfNeeded(unitName)
-	if unitName == self.ai.armyhst.DummyUnitName or unitName == nil then return self.ai.armyhst.DummyUnitName end
-	if self:IsSiegeEquipmentNeeded() then return unitName end
-	local mtype = self.ai.armyhst.unitTable[unitName].mtype
-	if mtype == "air" then
-		local bomberCounter = self.ai.bomberhst:GetCounter()
-		if bomberCounter >= self.ai.armyhst.breakthroughBomberCounter and bomberCounter < self.ai.armyhst.maxBomberCounter then
-			return unitName
-		else
-			return self.ai.armyhst.DummyUnitName
-		end
-	else
-		if self.ai.tool:countMyUnit({'battles'}) <= self.ai.armyhst.minBattleCount then return self.ai.armyhst.DummyUnitName end
-		local attackCounter = self.ai.attackhst:GetCounter(mtype)
-		if attackCounter < self.ai.armyhst.maxAttackCounter then
-			return unitName
-		elseif attackCounter >= self.ai.armyhst.breakthroughAttackCounter then
-			return unitName
-		else
-			return self.ai.armyhst.DummyUnitName
-		end
-	end
-end
-
-function TasksHST:BuildRaiderIfNeeded(unitName)
-	self:EchoDebug("build raider if needed: " .. unitName)
-
-	if unitName == self.ai.armyhst.DummyUnitName or unitName == nil then return self.ai.armyhst.DummyUnitName end
-	self:EchoDebug(unitName,self.ai.armyhst.unitTable[unitName],self.ai.armyhst.unitTable[unitName].mtype)
-	local mtype = self.ai.armyhst.unitTable[unitName].mtype
-	if self.ai.factoriesAtLevel[3] ~= nil and self.ai.factoriesAtLevel[3] ~= {} then
-		-- if we have a level 2 factory, don't build raiders until we have some battle units
-		local attackCounter = self.ai.attackhst:GetCounter(mtype)
-		if self.ai.tool:countMyUnit({'battles'}) + self.ai.breakthroughCount < attackCounter / 2 then
-			return self.ai.armyhst.DummyUnitName
-		end
-	end
-	local counter = self.ai.raidhst:GetCounter(mtype)
-	if counter == self.ai.armyhst.minRaidCounter then return self.ai.armyhst.DummyUnitName end
-	if self.ai.raiderCount[mtype] == nil then
-		-- fine
-	elseif self.ai.raiderCount[mtype] >= counter then
-		unitName = self.ai.armyhst.DummyUnitName
-	end
-	return unitName
-end
-
-function TasksHST:BuildBattleIfNeeded(unitName)
-	if unitName == self.ai.armyhst.DummyUnitName or unitName == nil then return self.ai.armyhst.DummyUnitName end
-	local mtype = self.ai.armyhst.unitTable[unitName].mtype
-	local attackCounter = self.ai.attackhst:GetCounter(mtype)
-	self:EchoDebug(mtype .. " " .. attackCounter .. " " .. self.ai.armyhst.maxAttackCounter)
-	if attackCounter == self.ai.armyhst.maxAttackCounter and self.ai.tool:countMyUnit({'battles'}) > self.ai.armyhst.minBattleCount then return self.ai.armyhst.DummyUnitName end
-	if mtype == "veh" and  self.ai.side == self.ai.armyhst.CORESideName and (self.ai.factoriesAtLevel[1] == nil or self.ai.factoriesAtLevel[1] == {}) then
-		-- core only has a lvl1 vehicle raider, so this prevents getting stuck
-		return unitName
-	end
-	if self.ai.factoriesAtLevel[3] ~= nil and self.ai.factoriesAtLevel[3] ~= {} then
-		-- if we have a level 2 factory, don't wait to build raiders first
-		return unitName
-	end
-	local raidCounter = self.ai.raidhst:GetCounter(mtype)
-	self:EchoDebug(mtype .. " " .. raidCounter .. " " .. self.ai.armyhst.maxRaidCounter)
-	if raidCounter == self.ai.armyhst.minRaidCounter then return unitName end
-	self:EchoDebug(self.ai.raiderCount[mtype])
-	if self.ai.raiderCount[mtype] == nil then
-		return unitName
-	elseif self.ai.raiderCount[mtype] < raidCounter / 2 then
-		return self.ai.armyhst.DummyUnitName
-	else
-		return unitName
-	end
-end
-
--- function TasksHST:CountOwnUnits(tmpUnitName)
--- 	if tmpUnitName == self.ai.armyhst.DummyUnitName then return 0 end -- don't count no-units
--- 	if self.ai.nameCount[tmpUnitName] == nil then return 0 end
--- 	return self.ai.nameCount[tmpUnitName]
--- end
-
-function TasksHST:BuildWithLimitedNumber(tmpUnitName, minNumber)
-	if tmpUnitName == self.ai.armyhst.DummyUnitName then return self.ai.armyhst.DummyUnitName end
-	if minNumber == 0 then return self.ai.armyhst.DummyUnitName end
--- 	if self.ai.nameCount[tmpUnitName] == nil then
--- 		return tmpUnitName
--- 	else
--- 		if self.ai.nameCount[tmpUnitName] == 0 or self.ai.nameCount[tmpUnitName] < minNumber then
--- 			return tmpUnitName
--- 		else
--- 			return self.ai.armyhst.DummyUnitName
--- 		end
--- 	end
-	return self.ai.tool:countMyUnit({tmpUnitName})
-end
-
-function TasksHST:GroundDefenseIfNeeded(unitName)
-	if not self.ai.needGroundDefense then
-		return self.ai.armyhst.DummyUnitName
-	else
-		return unitName
-	end
-end
-
-function TasksHST:BuildBomberIfNeeded(unitName)
-	if not self:IsLandAttackNeeded() then return self.ai.armyhst.DummyUnitName end
-	if unitName == self.ai.armyhst.DummyUnitName or unitName == nil then return self.ai.armyhst.DummyUnitName end
-	if self.ai.bomberhst:GetCounter() == self.ai.armyhst.maxBomberCounter then
-		return self.ai.armyhst.DummyUnitName
-	else
-		return unitName
-	end
-end
-
-function TasksHST:BuildTorpedoBomberIfNeeded(unitName)
-	if not IsWaterAttackNeeded() then return self.ai.armyhst.DummyUnitName end
-	if unitName == self.ai.armyhst.DummyUnitName or unitName == nil then return self.ai.armyhst.DummyUnitName end
-	if self.ai.bomberhst:GetCounter() == self.ai.armyhst.maxBomberCounter then
-		return self.ai.armyhst.DummyUnitName
-	else
-		return unitName
-	end
-end
-
-
-function TasksHST:LandOrWater(tqb, landName, waterName)
-	local builder = tqb.unit:Internal()
-	local bpos = builder:GetPosition()
-	local waterNet = self.ai.maphst:MobilityNetworkSizeHere("shp", bpos)
-	if waterNet ~= nil then
-		return waterName
-	else
-		return landName
-	end
-end]]

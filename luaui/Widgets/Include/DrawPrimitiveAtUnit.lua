@@ -25,7 +25,8 @@ local shaderConfig = {
 	MAXVERTICES = 64, -- The max number of vertices we can emit, make sure this is consistent with what you are trying to draw (tris 3, quads 4, corneredrect 8, circle 64
 	USE_CIRCLES = 1, -- set to nil if you dont want circles
 	USE_CORNERRECT = 1, -- set to nil if you dont want cornerrect
-	USE_TRIANGLES = 1,
+	USE_TRIANGLES = 1, -- set to nil if you dont want to use tris
+	USE_QUADS = 1, -- set to nil if you dont want to use quads
 	FULL_ROTATION = 0, -- the primitive is fully rotated in the units plane
 	DISCARD = 0, -- Enable alpha threshold to discard fragments below 0.01
 }
@@ -78,8 +79,8 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 
 #line 10000
 
-uniform float addRadius;
-uniform float iconDistance;
+uniform float addRadius = 0.0;
+uniform float iconDistance = 20000.0;
 
 out DataVS {
 	uint v_numvertices;
@@ -152,8 +153,8 @@ layout(points) in;
 layout(triangle_strip, max_vertices = MAXVERTICES) out;
 #line 20000
 
-uniform float addRadius;
-uniform float iconDistance;
+uniform float addRadius = 0.0;
+uniform float iconDistance = 20000.0;
 
 in DataVS {
 	uint v_numvertices;
@@ -216,6 +217,7 @@ void main(){
 	float width = dataIn[0].v_lengthwidthcornerheight.y;
 	float cs = dataIn[0].v_lengthwidthcornerheight.z;
 	float height = dataIn[0].v_lengthwidthcornerheight.w;
+	
 	#ifdef USE_TRIANGLES
 		if (numVertices == uint(3)){ // triangle pointing "forward"
 			offsetVertex4(0.0, 0.0, length, 0.5, 1.0); // xyz uv
@@ -224,13 +226,17 @@ void main(){
 			EndPrimitive();
 		}
 	#endif
-	if (numVertices == uint(4)){ // A quad
-		offsetVertex4( width * 0.5, 0.0,  length * 0.5, 0.0, 1.0);
-		offsetVertex4( width * 0.5, 0.0, -length * 0.5, 0.0, 0.0);
-		offsetVertex4(-width * 0.5, 0.0,  length * 0.5, 1.0, 1.0);
-		offsetVertex4(-width * 0.5, 0.0, -length * 0.5, 1.0, 0.0);
-		EndPrimitive();
-	}
+	
+	#ifdef USE_QUADS
+		if (numVertices == uint(4)){ // A quad
+			offsetVertex4( width * 0.5, 0.0,  length * 0.5, 0.0, 1.0);
+			offsetVertex4( width * 0.5, 0.0, -length * 0.5, 0.0, 0.0);
+			offsetVertex4(-width * 0.5, 0.0,  length * 0.5, 1.0, 1.0);
+			offsetVertex4(-width * 0.5, 0.0, -length * 0.5, 1.0, 0.0);
+			EndPrimitive();
+		}
+	#endif
+	
 	#ifdef USE_CORNERRECT
 		if (numVertices == uint(2)){ // A quad with chopped off corners
 			float csuv = (cs / (length + width))*2.0;
@@ -245,6 +251,7 @@ void main(){
 			EndPrimitive();
 		}
 	#endif
+	
 	#ifdef USE_CIRCLES
 		if (numVertices > uint(5)) { //A circle with even subdivisions
 			numVertices = min(numVertices,62u); // to make sure that we dont emit more than 64 vertices
@@ -276,8 +283,8 @@ local fsSrc =
 //__DEFINES__
 
 #line 30000
-uniform float addRadius;
-uniform float iconDistance;
+uniform float addRadius = 0.0;
+uniform float iconDistance = 20000.0;
 in DataGS {
 	vec4 g_color;
 	vec4 g_uv;
@@ -301,11 +308,6 @@ void main(void)
 }
 ]]
 
-local function goodbye(reason)
-  Spring.Echo("DrawPrimitiveAtUnits GL4 widget exiting with reason: "..reason)
-  widgetHandler:RemoveWidget()
-end
-
 local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
@@ -316,18 +318,21 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 		  vertex = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
 		  fragment = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
 		  geometry = gsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
-		  uniformInt = {
-			DrawPrimitiveAtUnitTexture = 0;
-			},
+		  uniformInt = (shaderConfig.USETEXTURE== 1 and {
+				DrawPrimitiveAtUnitTexture = 0;
+			}) or {}, -- dont pass any texture units to this unless told to do so
 		uniformFloat = {
-			addRadius = 1,
-			iconDistance = 1,
+			addRadius = 0.0,
+			iconDistance = 20000.0,
 		  },
 		},
 		DPATname .. "Shader GL4"
 	  )
 	local shaderCompiled = DrawPrimitiveAtUnitShader:Initialize()
-	if not shaderCompiled then goodbye("Failed to compile ".. DPATname .." GL4 ") end
+	if not shaderCompiled then 
+		Spring.Echo("Failed to compile shader for ", DPATname)
+		return nil
+	end
 
 	DrawPrimitiveAtUnitVBO = makeInstanceVBOTable(
 		{
@@ -342,7 +347,10 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 		DPATname .. "VBO", -- name
 		5  -- unitIDattribID (instData)
 	)
-	if DrawPrimitiveAtUnitVBO == nil then goodbye("Failed to create DrawPrimitiveAtUnitVBO") end
+	if DrawPrimitiveAtUnitVBO == nil then 
+		Spring.Echo("Failed to create DrawPrimitiveAtUnitVBO for ", DPATname) 
+		return nil
+	end
 
 	local DrawPrimitiveAtUnitVAO = gl.GetVAO()
 	DrawPrimitiveAtUnitVAO:AttachVertexBuffer(DrawPrimitiveAtUnitVBO.instanceVBO)

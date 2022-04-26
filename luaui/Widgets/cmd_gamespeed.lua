@@ -62,17 +62,6 @@ local function decreaseSpeed()
 end
 
 function widget:Initialize()
-	widgetHandler:AddAction("increasespeed", increaseSpeed)
-	widgetHandler:AddAction("decreasespeed", decreaseSpeed)
-
-	Spring.SendCommands({ "unbindaction speedup" })
-	Spring.SendCommands({ "unbindaction slowdown" })
-
-	Spring.SendCommands({
-		"bind Alt++        increasespeed",
-		"bind Alt+=        increasespeed",
-		"bind Alt+-        decreasespeed",
-		"bind Alt+numpad+  increasespeed",
-		"bind Alt+numpad-  decreasespeed",
-	})
+	widgetHandler:AddAction("increasespeed", increaseSpeed, nil, 'pR')
+	widgetHandler:AddAction("decreasespeed", decreaseSpeed, nil, 'pR')
 end

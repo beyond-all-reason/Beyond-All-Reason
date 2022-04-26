@@ -5,21 +5,22 @@ function widget:GetInfo()
 		author = "Floris (original: zwzsg, from trepan HighlightUnit)",
 		date = "Apr 24, 2009",
 		license = "GNU GPL, v2 or later",
-		layer = 1,
+		layer = 0,
 		enabled = true
 	}
 end
 
 local hideBelowGameframe = 100
 local useTeamcolor = true
-local highlightAlpha = 0.08
+local highlightAlpha = 0.075
 local teamColorAlphaMult = 1.4
 local teamColorMinAlpha = 0.55
 local edgeExponent = 1.2
-local minEdgeAlpha = 0.4
+local minEdgeAlpha = 0.38
 
 local unitshapes = {}
 
+local updateSelection = true
 local selectedUnits = Spring.GetSelectedUnits()
 local hidden = (Spring.GetGameFrame() <= hideBelowGameframe)
 
@@ -155,8 +156,15 @@ function widget:Shutdown()
 end
 
 function widget:SelectionChanged(sel)
-	selectedUnits = sel
-	processSelection()
+	updateSelection = true	-- delayed so smartselect can filter units first
+end
+
+function widget:Update(dt)
+	if updateSelection then
+		selectedUnits = Spring.GetSelectedUnits()
+		updateSelection = false
+		processSelection()
+	end
 end
 
 local version = 1

@@ -19,6 +19,8 @@ function RaidHST:Init()
 
 end
 
+
+
 function RaidHST:Update()
 	local f = self.game:Frame()
 	if f % 97 ~=0 then return end
@@ -40,7 +42,7 @@ function RaidHST:Update()
 			if self:squadOnTarget(squad) then
 				self:doAttack(squad)
 				self:EchoDebug('squad on target')
-				self:targeting(squad)
+				self:targeting(squad,'nearest')
 			else
 				self:EchoDebug('next node')
 				self:goToNextNode(squad)
@@ -55,22 +57,6 @@ function RaidHST:Update()
 		end
 	end
 	self:EchoDebug('stop update')
-end
-
-function RaidHST:visualDBG(squad)
-	if not self.visualdbg then return end
-	self.map:EraseAll(6)
-	if squad.position then
-		self.map:DrawPoint(squad.position, squad.colour, squad.squadID, 6)
-	end
-	if squad.path then
-		for i , p in pairs(squad.path) do
-			self.map:DrawPoint(p, squad.colour, i, 6)
-		end
-	end
-	if squad.target then
-		self.map:DrawPoint(squad.target.pos, squad.colour, squad.squadID .. 'target', 6)
-	end
 end
 
 function RaidHST:running(squad)
@@ -119,12 +105,17 @@ function RaidHST:doSquads()
 	end
 end
 
-function RaidHST:targeting(squad)
+function RaidHST:targeting(squad,targetType)
 	if squad.target and squad.path then
 		self:EchoDebug('have already a target')
 		return
 	end
-	local target = self:getRaidCell2(squad)
+	local target = nil
+	if targetType == 'nearest' then
+		target = self:getRaidCell1(squad)
+	else
+		target = self.getRaidCell3(squad) or self:getRaidCell2(squad)
+	end
 	if not target then
 		self:EchoDebug('no target for ' ,squad.squadID)
 		return
@@ -143,6 +134,45 @@ function RaidHST:targeting(squad)
 	if squad.target and squad.path then return true end --tell me im ready to raids
 end
 
+function RaidHST:getRaidCell3(squad)
+	if not squad then return end
+	if not self.ai.targethst.distals then return end
+	local leader = self.game:GetUnitByID(squad.members[1])
+	local bestDist = math.huge
+	local bestTarget = nil
+	for i, cell in pairs(self.ai.targethst.distals) do
+		--local cell = self.ai.targethst.CELLS[G.x][G.z]
+		if self.ai.maphst:UnitCanGoHere(leader, cell.pos) then
+			local dist = self.ai.tool:Distance(cell.pos,squad.position) < bestDist
+			if dist < bestDist  then
+				bestTarget = cell
+				bestDist = dist
+			end
+		end
+	end
+	self:EchoDebug('best distals Target',bestTarget)
+	return bestTarget
+end
+
+function RaidHST:getRaidCell1(squad)
+	if not squad then return end
+	local leader = self.game:GetUnitByID(squad.members[1])
+	local bestDist = math.huge
+	local bestTarget = nil
+	for i, G in pairs(self.ai.targethst.ENEMYCELLS) do
+		local cell = self.ai.targethst.CELLS[G.x][G.z]
+		if self.ai.maphst:UnitCanGoHere(leader, cell.pos) then
+			local dist = self.ai.tool:Distance(cell.pos,squad.position) < bestDist
+			if dist < bestDist  then
+				bestTarget = cell
+				bestDist = dist
+			end
+		end
+	end
+	self:EchoDebug('bestTarget',bestTarget)
+	return bestTarget
+end
+
 function RaidHST:getRaidCell2(squad)
 	if not squad then return end
 	local leader = self.game:GetUnitByID(squad.members[1])
@@ -153,7 +183,7 @@ function RaidHST:getRaidCell2(squad)
 	local bestTarget = nil
 	for i, G in pairs(self.ai.targethst.ENEMYCELLS) do
 		local cell = self.ai.targethst.CELLS[G.x][G.z]
-		if cell.armed < raidPower then
+		if cell.armed < raidPower and cell.MOBILE <= 0 then
 			self:EchoDebug('power',cell.armed,G.x,G.z)
 			if self.ai.maphst:UnitCanGoHere(leader, cell.pos) then
 -- 				local Relativedistance = self.ai.tool:Distance(cell.pos,squad.position) / topDist
@@ -395,4 +425,20 @@ function RaidHST:GetPathValidFunc(unitName)
 	end
 	self.pathValidFuncs[unitName] = valid_node_func
 	return valid_node_func
+end
+
+function RaidHST:visualDBG(squad)
+	if not self.visualdbg then return end
+	self.map:EraseAll(6)
+	if squad.position then
+		self.map:DrawPoint(squad.position, squad.colour, squad.squadID, 6)
+	end
+	if squad.path then
+		for i , p in pairs(squad.path) do
+			self.map:DrawPoint(p, squad.colour, i, 6)
+		end
+	end
+	if squad.target then
+		self.map:DrawPoint(squad.target.pos, squad.colour, squad.squadID .. 'target', 6)
+	end
 end

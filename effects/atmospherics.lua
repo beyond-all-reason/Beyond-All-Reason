@@ -265,6 +265,33 @@ return {
     },
   },
 
+  ["mistycloudbrownmistxl"] = {
+    usedefaultexplosions = false,
+    cloud = {
+              air                = true,
+              class              = [[CBitmapMuzzleFlame]],
+              count              = 2,
+              ground             = true,
+              underwater         = false,
+              water              = false,
+              properties = {
+            colormap           = [[0 0 0 0.01  0.24 0.18 0.14 0.22   0.17 0.13 0.11 0.08   0 0 0 0.01]],
+            dir                = [[-0.06 r0.12, 1, -0.06 r0.12]],
+            --gravity            = [[-0.008 r0.016, -0.03 r0.06, -0.008 r0.016]],
+            frontoffset        = 0.9,
+            fronttexture       = [[barmist]],
+            length             = 90,
+            sidetexture        = [[none]],
+            size               = [[550 r290]],
+            sizegrowth         = [[0.3 r0.55]],
+            ttl                = 550,
+            pos                = [[-150 r300, -5 r35, -150 r300]],
+            rotParams          = [[-1.8 r3.6, -0.3 r0.6, -180 r360]],
+            drawOrder          = 1,
+      },
+    },
+  },
+
   ["thickcloud"] = {
     usedefaultexplosions = false,
     cloud = {
@@ -1326,6 +1353,35 @@ return {
       },
     },
   },
+    ["raindrop-acid-new"] = {
+    usedefaultexplosions = false,
+    raindrops = {
+      air                = true,
+      class              = [[CBitmapMuzzleFlame]],
+      count              = 1,
+      ground             = true,
+      underwater         = 1,
+      water              = true,
+      properties = {
+        colormap           = [[0 0 0 0   0.10 0.13 0.07 0.02   0.13 0.15 0.1 0.07   0 0 0 0.1]],
+        dir                = [[-0.1 r0.2, -0.8 r-0.20, -0.1 r0.2]],
+        --speed              = [[0, 1, 0]],
+        particleSpeed      = 80,
+        gravity            = [[0.0, 0.1, 0.0]],
+        frontoffset        = 0,
+        fronttexture       = [[none]],
+        length             = [[200 r120]],
+        sidetexture        = [[rain]],
+        size               = [[60 r100]],
+        sizegrowth         = -0.1,
+        ttl                = [[34 r90]],
+        rotParams          = [[-20 r40, -12 r24, -180 r360]],
+        pos                = [[-10 r20, 0 r50, -10 r20]],
+        speed              = [[0, 50, 0]],
+        drawOrder          = 1,
+      },
+    },
+  },
     ["raindrop-acid"] = {
     usedefaultexplosions = false,
     grounddust = {
@@ -1352,6 +1408,7 @@ return {
         particlespeed      = 11,
         particlespeedspread = 14,
         pos                = [[200 r900, 0 r500, 200 r900]],
+        --rotParams          = [[-2 r4, -1 r2, 89 r2]],
         sizegrowth         = 0.8,
         sizemod            = 1,
         texture            = [[rain]],

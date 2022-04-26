@@ -18,7 +18,7 @@ end
 local armBlueColor       = "#004DFF" -- Armada Blue
 local corRedColor        = "#FF1005" -- Cortex Red
 local scavPurpColor      = "#612461" -- Scav Purple
-local chickenOrangeColor = "#FFE178" -- Chicken Yellow
+local chickenOrangeColor = "#CC8914" -- Chicken Orange
 local gaiaGrayColor      = "#7F7F7F" -- Gaia Grey
 
 if gadgetHandler:IsSyncedCode() then

@@ -7,7 +7,7 @@ function widget:GetInfo()
 		date      = "Jan 11, 2009",
 		version   = 1.7,
 		license   = "GNU GPL, v2 or later",
-		layer     = -9999999999,
+		layer     = -9999999990,
 		enabled   = true,  --  loaded by default?
 	}
 end
@@ -220,6 +220,8 @@ local spec = Spring.GetSpectatingState()
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 
+local showStats = false
+
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.iscommander then
@@ -291,6 +293,14 @@ end
 -- Code
 ------------------------------------------------------------------------------------
 
+local function enableStats()
+	showStats = true
+end
+
+local function disableStats()
+	showStats = false
+end
+
 function widget:Initialize()
 	if WG['lang'] then
 		texts = WG['lang'].getText('unitstats')
@@ -302,6 +312,9 @@ function widget:Initialize()
 	WG['unitstats'].showUnit = function(unitID)
 		showUnitID = unitID
 	end
+
+	widgetHandler:AddAction("unit_stats", enableStats, nil, "p")
+	widgetHandler:AddAction("unit_stats", disableStats, nil, "r")
 end
 
 function widget:Shutdown()
@@ -365,9 +378,15 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+
 local function drawStats(uDefID, uID)
 	local mx, my = spGetMouseState()
 	local alt, ctrl, meta, shift = spGetModKeyState()
+	if WG['chat'] and WG['chat'].isInputActive then
+		if WG['chat'].isInputActive() then
+			showStats = false
+		end
+	end
 
 	local uDef = uDefs[uDefID]
 	local maxHP = uDef.health
@@ -811,8 +830,12 @@ function widget:DrawScreen()
 		return
 	end
 
-	local alt, ctrl, meta, shift = spGetModKeyState()
-	if (not meta and not showUnitID) or spIsUserWriting() then
+	if WG['chat'] and WG['chat'].isInputActive then
+		if WG['chat'].isInputActive() then
+			showStats = false
+		end
+	end
+	if (not showStats and not showUnitID) or spIsUserWriting() then
 		RemoveGuishader()
 		return
 	end
@@ -847,7 +870,6 @@ function widget:DrawScreen()
 		RemoveGuishader()
 		return
 	end
-	local useExp = ctrl
 	local uDefID = (uID and spGetUnitDefID(uID)) or (useHoverID and WG['buildmenu'] and WG['buildmenu'].hoverID) or (UnitDefs[-activeID] and -activeID)
 
 	if not uDefID then

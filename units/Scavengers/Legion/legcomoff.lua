@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 2700,
 		builddistance = 200,
 		builder = true,
-		buildpic = "LEGCOM.DDS",
+		buildpic = "LEGCOMOFF.DDS",
 		buildtime = 75000,
 		cancapture = true,
 		canmanualfire = true,
@@ -105,6 +105,7 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
+				category = "corpses",
 				collisionvolumeoffsets = "0 0 0",
 				collisionvolumescales = "47 10 47",
 				collisionvolumetype = "CylY",

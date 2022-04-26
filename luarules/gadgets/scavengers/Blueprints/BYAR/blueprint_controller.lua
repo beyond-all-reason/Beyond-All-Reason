@@ -1,4 +1,4 @@
-local blueprintConfig = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_tiers.lua')
+local blueprintConfig = VFS.Include('luarules/gadgets/scavengers/Blueprints/' .. Game.gameShortName .. '/blueprint_tiers.lua')
 local tiers = blueprintConfig.Tiers
 local types = blueprintConfig.BlueprintTypes
 
@@ -60,9 +60,9 @@ local ruinBlueprints = {
 
 
 local blueprintsConfig = {
-	[blueprintTypes.Constructor] = { table = constructorBlueprints, tiered = true,  directory = 'luarules/gadgets/scavengers/Blueprints/BYAR/Blueprints/', },
-	[blueprintTypes.Spawner] =     { table = spawnerBlueprints,     tiered = true,  directory = 'luarules/gadgets/scavengers/Blueprints/BYAR/Blueprints/', },
-	[blueprintTypes.Ruin] =        { table = ruinBlueprints,        tiered = false, directory = 'luarules/gadgets/scavengers/Ruins/BYAR/', }
+	[blueprintTypes.Constructor] = { table = constructorBlueprints, tiered = true,  directory = 'luarules/gadgets/scavengers/Blueprints/' .. Game.gameShortName .. '/Blueprints/', },
+	[blueprintTypes.Spawner] =     { table = spawnerBlueprints,     tiered = true,  directory = 'luarules/gadgets/scavengers/Blueprints/' .. Game.gameShortName .. '/Blueprints/', },
+	[blueprintTypes.Ruin] =        { table = ruinBlueprints,        tiered = false, directory = 'luarules/gadgets/scavengers/Ruins/' .. Game.gameShortName .. '/', }
 }
 
 local function insertDummyBlueprints(blueprintType)

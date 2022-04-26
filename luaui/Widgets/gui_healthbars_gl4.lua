@@ -320,6 +320,7 @@ local spec, fullview = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
+local GetUnitWeaponState = Spring.GetUnitWeaponState
 
 local spIsGUIHidden				= Spring.IsGUIHidden
 local chobbyInterface
@@ -330,6 +331,7 @@ local unitDefCanStockpile = {} -- 0/1?
 local unitDefReload = {} -- value is max reload time
 local unitDefHeights = {} -- maps unitDefs to height
 local unitDefHideDamage = {}
+local unitDefPrimaryWeapon = {} -- the index for reloadable weapon on unitdef weapons
 
 local unitBars = {} -- we need this additional table of {[unitID] = {barhealth, barrez, barreclaim}}
 local unitEmpWatch = {}
@@ -350,6 +352,10 @@ local minReloadTime = 4 -- weapons reloading slower than this willget bars
 local featureHealthVBO
 local featureResurrectVBO
 local featureReclaimVBO
+
+local barScale = 1 -- Option 'healthbarsscale'
+local variableBarSizes = true -- Option 'healthbarsvariable'
+
 --local resurrectableFeaturesFast = {} -- value is  this is for keeping an eye on resurrectable features, maybe store resurrect progress here?
 --local resurrectableFeaturesSlow = {} -- this is for keeping an eye on resurrectable features, maybe store resurrect progress here?
 --local reclaimableFeaturesSlow = {} -- for faster updates of features being reclaimed/rezzed
@@ -366,11 +372,11 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 -------------------- configurables -----------------------
 local additionalheightaboveunit = 24 --16?
-local featureHealthDistMult = 5 -- how many times closer features have to be for their bars to show
+local featureHealthDistMult = 7 -- how many times closer features have to be for their bars to show
 local featureReclaimDistMult = 2 -- how many times closer features have to be for their bars to show
 local featureResurrectDistMult = 1 -- how many times closer features have to be for their bars to show
 local glphydistmult = 3.5 -- how much closer than BARFADEEND the bar has to be to start drawing numbers/icons. Numbers closer to 1 will make the glyphs be drawn earlier, high numbers will only shows glyphs when zoomed in hard.
-local glyphdistmultfeatures = 1.5 -- how much closer than BARFADEEND the bar has to be to start drawing numbers/icons
+local glyphdistmultfeatures = 1.8 -- how much closer than BARFADEEND the bar has to be to start drawing numbers/icons
 
 
 local unitDefSizeMultipliers = {} -- table of unitdefID to a size mult (default 1.0) to override sizing of bars per unitdef
@@ -395,8 +401,8 @@ shaderConfig.PERCENT_VISIBILITY_MAX = 0.99
 shaderConfig.TIMER_VISIBILITY_MIN = 0.0
 shaderConfig.BARSTEP = 10 -- pixels to downshift per new bar
 shaderConfig.BOTTOMDARKENFACTOR = 0.5
-shaderConfig.BARFADESTART = 2000
-shaderConfig.BARFADEEND = 2500
+shaderConfig.BARFADESTART = 3200
+shaderConfig.BARFADEEND = 3800
 shaderConfig.ATLASSTEP = 0.0625
 shaderConfig.MINALPHA = 0.2
 if debugmode then
@@ -938,7 +944,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	if debugmode then Spring.Debug.TraceEcho(unitBars[unitID]) end
 	--Spring.Echo("Caller1:", tostring()".name), "caller2:", tostring(debug.getinfo(3).name))
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
-	gf = Spring.GetGameFrame()
+	local gf = Spring.GetGameFrame()
 	local bt = barTypeMap[barname]
 	--if cnt == 1 then bt = barTypeMap.building end
 	--if cnt == 2 then bt = barTypeMap.reload end
@@ -957,9 +963,9 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	end
 
 	if unitBars[unitID] == nil then
-		Spring.Echo("A unit has no bars yet", UnitDefs[unitDefID].name, Spring.GetUnitPosition(unitID))
-		Spring.Debug.TraceFullEcho()
 		if debugmode then
+			Spring.Echo("A unit has no bars yet", UnitDefs[unitDefID].name, Spring.GetUnitPosition(unitID))
+			Spring.Debug.TraceFullEcho()
 			Spring.SendCommands({"pause 1"})
 			Spring.Echo("No bars unit, last seen at", unitID)
 			Spring.MarkerAddPoint(Spring.GetUnitPosition(unitID) )
@@ -975,9 +981,10 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	unitBars[unitID] = unitBars[unitID] + 1
 	--end -- to keep these on top
 
+	local effectiveScale = ((variableBarSizes and unitDefSizeMultipliers[unitDefID]) or 1.0) * barScale
 
-	healthBarTableCache[1] = unitDefHeights[unitDefID] + additionalheightaboveunit  -- height
-	healthBarTableCache[2] = unitDefSizeMultipliers[unitDefID] or 1.0 -- sizemult
+	healthBarTableCache[1] = unitDefHeights[unitDefID] + additionalheightaboveunit * effectiveScale  -- height
+	healthBarTableCache[2] = effectiveScale
 	healthBarTableCache[3] = 0.0 -- unused
 	healthBarTableCache[4] = bt.uvoffset -- glyph uv offset
 
@@ -1008,7 +1015,43 @@ end
 
 local uniformcache = {0.0}
 
+local function updateReloadBar(unitID, unitDefID, reason)
+	if not unitDefPrimaryWeapon[unitDefID] then
+		return
+	end
+
+	local reloadFrame = GetUnitWeaponState(unitID, unitDefPrimaryWeapon[unitDefID], 'reloadFrame')
+	local reloadTime = GetUnitWeaponState(unitID, unitDefPrimaryWeapon[unitDefID], 'reloadTime')
+	local gf = Spring.GetGameFrame()
+
+	if (reloadFrame == nil or reloadFrame > gf) and unitReloadWatch[unitID] == nil then
+		addBarForUnit(unitID, unitDefID, "reload", reason)
+	end
+
+	if (reloadFrame and reloadTime) then
+		uniformcache[1] = reloadFrame - 30 * reloadTime
+		gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
+		uniformcache[1] = reloadFrame
+		gl.SetUnitBufferUniforms(unitID, uniformcache, 3)
+	end
+end
+
+local function removeBarFromUnit(unitID, barname, reason) -- this will bite me in the ass later, im sure, yes it did, we need to just update them :P
+	local instanceKey = unitID .. "_" .. barname
+	if healthBarVBO.instanceIDtoIndex[instanceKey] then
+		if debugmode then Spring.Debug.TraceEcho(reason) end
+		--if barname == 'emp_damage' or barname == 'paralyze' then
+			-- dont decrease counter for these
+		--else
+			unitBars[unitID] = unitBars[unitID] - 1
+		--end
+		popElementInstance(healthBarVBO, instanceKey)
+	end
+end
+
+
 local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason) -- TODO, actually, we need to check for all of these for stuff entering LOS
+
 	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then
 		if debugmode then Spring.Echo("Tried to add a bar to a dead or invalid unit", unitID, "at", Spring.GetUnitPosition(unitID), reason) end
 		return
@@ -1033,6 +1076,8 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 		addBarForUnit(unitID, unitDefID, "shield", reason)
 		unitShieldWatch[unitID] = -1.0
 	end
+
+	updateReloadBar(unitID, unitDefID, reason)
 
 	if health ~= nil then
 		if build < 1 then
@@ -1079,22 +1124,6 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 	end
 end
 
-local function updateBarIndex()
-end
-
-local function removeBarFromUnit(unitID, barname, reason) -- this will bite me in the ass later, im sure, yes it did, we need to just update them :P
-	local instanceKey = unitID .. "_" .. barname
-	if healthBarVBO.instanceIDtoIndex[instanceKey] then
-		if debugmode then Spring.Debug.TraceEcho(reason) end
-		--if barname == 'emp_damage' or barname == 'paralyze' then
-			-- dont decrease counter for these
-		--else
-			unitBars[unitID] = unitBars[unitID] - 1
-		--end
-		popElementInstance(healthBarVBO, instanceKey)
-	end
-end
-
 local function removeBarsFromUnit(unitID, reason)
 	for barname,v in pairs(barTypeMap) do
 		removeBarFromUnit(unitID, barname, reason)
@@ -1132,7 +1161,7 @@ local function addBarToFeature(featureID,  barname)
 	pushElementInstance(
 		targetVBO, -- push into this Instance VBO Table
 			{featureDefHeights[featureDefID] + additionalheightaboveunit,  -- height
-			1.0, -- size mult
+			1.0 * barScale, -- size mult
 			0, -- timer end
 			bt.uvoffset, -- unused float
 
@@ -1312,24 +1341,31 @@ local function UnitParalyzeDamageHealthbars(unitID, unitDefID, damage)
 	end
 end
 
---function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-local function ProjectileCreatedReloadHB(projectileID, ownerID, weaponID)
-	--Spring.Echo("W:ProjectileCreatedReloadHB(",projectileID, ownerID, weaponID)
-	local unitDefID = Spring.GetUnitDefID(ownerID)
-	if unitReloadWatch[ownerID] == nil then
-		addBarForUnit(ownerID, unitDefID, "reload", 'ProjectileCreatedReloadHB')
-	end
+local function ProjectileCreatedReloadHB(projectileID, unitID, weaponID, unitDefID)
+	local unitDefID = Spring.GetUnitDefID(unitID)
 
-	if unitDefReload[unitDefID] then
-		uniformcache[1] = Spring.GetGameFrame()
-		gl.SetUnitBufferUniforms(ownerID,uniformcache, 2)
-		uniformcache[1] = uniformcache[1] + 30 * unitDefReload[unitDefID]
-		gl.SetUnitBufferUniforms(ownerID,uniformcache, 3)
-	end
+	updateReloadBar(unitID, unitDefID, 'ProjectileCreatedReloadHB')
 end
 
-
 function widget:Initialize()
+	WG['healthbars'] = {}
+	WG['healthbars'].getScale = function()
+		return barScale
+	end
+	WG['healthbars'].setScale = function(value)
+		barScale = value
+		init()
+		initfeaturebars()
+	end
+	WG['healthbars'].getVariableSizes = function()
+		return variableBarSizes
+	end
+	WG['healthbars'].setVariableSizes = function(value)
+		variableBarSizes = value
+		init()
+		initfeaturebars()
+	end
+
 	initGL4()
 	-- Walk through unitdefs for the stuff we need:
 	for udefID, unitDef in pairs(UnitDefs) do
@@ -1344,21 +1380,23 @@ function widget:Initialize()
 		end
 
 		local weapons = unitDef.weapons
-		local myreloadTime = unitDef.reloadTime
+		local reloadTime = unitDef.reloadTime or 0
+		local primaryWeapon = 1
 		for i = 1, #weapons do
 			local WeaponDef = WeaponDefs[weapons[i].weaponDef]
-			if WeaponDef and WeaponDef.reload and unitDef.reloadTime and WeaponDef.reload > unitDef.reloadTime then
-				unitDef.reloadTime = WeaponDef.reload
-				unitDef.primaryWeapon = i
-				myreloadTime = unitDef.reloadTime
+			if WeaponDef and WeaponDef.reload and WeaponDef.reload > reloadTime then
+				reloadTime = WeaponDef.reload
+				primaryWeapon = i
 			end
 		end
 		unitDefHeights[udefID] = unitDef.height
-		if unitDef.reloadTime then unitDefReload[udefID] = unitDef.reloadTime end
+		unitDefSizeMultipliers[udefID] = math.min(1.45, math.max(0.85, (Spring.GetUnitDefDimensions(udefID).radius / 150) + math.min(0.6, unitDef.power / 4000))) + math.min(0.6, unitDef.health / 22000)
 		if unitDef.canStockpile then unitDefCanStockpile[udefID] = unitDef.canStockpile end
-		if myreloadTime and myreloadTime > minReloadTime then
-			--Spring.Echo("Unit with watched reload time:", unitDef.name, myreloadTime)
-			unitDefReload[udefID] = myreloadTime
+		if reloadTime and reloadTime > minReloadTime then
+			if debugmode then Spring.Echo("Unit with watched reload time:", unitDef.name, reloadTime, minReloadTime) end
+
+			unitDefReload[udefID] = reloadTime
+			unitDefPrimaryWeapon[udefID] = primaryWeapon
 		end
 		if unitDef.hideDamage == true then
 			unitDefHideDamage[udefID] = true
@@ -1483,7 +1521,7 @@ function widget:GameFrame(n)
 			if Spring.GetUnitIsStunned(unitID) then
 				local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
 				--uniformcache[1] = math.floor((paralyzeDamage - maxHealth)) / (maxHealth * empDecline))
-				if paralyzeDamage then 
+				if paralyzeDamage then
 					uniformcache[1] = paralyzeDamage / maxHealth
 					--Spring.Echo("Paralyze damage", paralyzeDamage, maxHealth)
 					gl.SetUnitBufferUniforms(unitID, uniformcache, 4)
@@ -1551,22 +1589,28 @@ function widget:GameFrame(n)
 			end
 		end
 	end
-
-	-- RELOADING:
-	-- shouldnt this be event driven?
-	-- BUILDING ETA
-
-	-- NOTHING TO DO FOR FEATURES! The gadget notifies us of everything we might need, YAY!
 end
-
-
 
 function widget:FeatureCreated(featureID)
 	local featureDefID = Spring.GetFeatureDefID(featureID)
-	if FeatureDefs[featureDefID].name ~= 'geovent' then
+
+	-- some map-supplied features dont have a model, in these cases modelpath == ""
+	if FeatureDefs[featureDefID].name ~= 'geovent' and FeatureDefs[featureDefID].modelpath ~= ''  then
 		--Spring.Echo(FeatureDefs[featureDefID].name)
 		featureBars[featureID] = 0
 		addBarToFeature(featureID, 'featurehealth')
+
+		_, _, rezProgress = Spring.GetFeatureHealth(featureID)
+
+		if rezProgress > 0 then
+			addBarToFeature(featureID, 'featureresurrect')
+		end
+
+		_, _, _, _, reclaimLeft = Spring.GetFeatureResources(featureID)
+
+		if reclaimLeft < 1.0 then
+			addBarToFeature(featureID, 'featurereclaim')
+		end
 	end
 end
 
@@ -1628,12 +1672,15 @@ function widget:TextCommand(command)
 end
 
 function widget:GetConfigData(data)
-	--return {onlyShowOwnTeam = onlyShowOwnTeam}
+	return {
+		barScale = barScale,
+		variableBarSizes = variableBarSizes
+	}
 end
 
 function widget:SetConfigData(data)
-	--if data.onlyShowOwnTeam ~= nil then
-	--	onlyShowOwnTeam = data.onlyShowOwnTeam
-	--end
+	barScale = data.barScale or barScale
+	if data.variableBarSizes ~= nil then
+		variableBarSizes = data.variableBarSizes
+	end
 end
-

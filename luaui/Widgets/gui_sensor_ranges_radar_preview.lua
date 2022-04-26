@@ -246,13 +246,13 @@ local function initgl4()
 	end
 
 	local smol, smolsize = makePlaneVBO(1, 1, smallradarrange / SHADERRESOLUTION)
-	local smoli, smolisize = makePlaneIndexVBO(smallradarrange / SHADERRESOLUTION)
+	local smoli, smolisize = makePlaneIndexVBO(smallradarrange / SHADERRESOLUTION, smallradarrange / SHADERRESOLUTION, true)
 	smallradVAO = gl.GetVAO()
 	smallradVAO:AttachVertexBuffer(smol)
 	smallradVAO:AttachIndexBuffer(smoli)
 
 	local larg, largsize = makePlaneVBO(1, 1, largeradarrange / SHADERRESOLUTION)
-	local largi, largisize = makePlaneIndexVBO(largeradarrange / SHADERRESOLUTION)
+	local largi, largisize = makePlaneIndexVBO(largeradarrange / SHADERRESOLUTION, largeradarrange / SHADERRESOLUTION, true)
 	largeradVAO = gl.GetVAO()
 	largeradVAO:AttachVertexBuffer(larg)
 	largeradVAO:AttachIndexBuffer(largi)

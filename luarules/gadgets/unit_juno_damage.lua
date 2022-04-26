@@ -59,12 +59,14 @@ if gadgetHandler:IsSyncedCode() then
 	
 	for udid, ud in pairs(UnitDefs) do
 		for id, v in pairs(tokillUnits) do
-			if string.find(ud.name, UnitDefs[id].name) then
+			if string.find("_scav", ud.name) and string.sub(UnitDefs[id].name, 1, -5) == ud.name then
+			--if string.find(ud.name, UnitDefs[id].name) then
 				tokillUnits[udid] = v
 			end
 		end
 		for id, v in pairs(todenyUnits) do
-			if string.find(ud.name, UnitDefs[id].name) then
+			if string.find("_scav", ud.name) and string.sub(UnitDefs[id].name, 1, -5) == ud.name then
+			--if string.find(ud.name, UnitDefs[id].name) then
 				todenyUnits[udid] = v
 			end
 		end

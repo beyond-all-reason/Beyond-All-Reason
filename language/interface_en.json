@@ -21,13 +21,16 @@
 					"quit": "Quit",
 					"resign": "Resign",
 					"reallyQuit": "Are you sure you want to quit?",
-					"reallyQuitResign": "Are you sure you want to resign or quit to desktop?",
+					"reallyQuitResign": "Are you sure you want to resign or return to game lobby?",
 					"reallyResign": "Are you sure you want to resign?",
 					"reallyResignSpectate": "Are you sure you want to resign and spectate?"
 				},
 				"catchingUp": "Catching up",
 				"catchingUpTooltip": "Displays the catch-up progress\nGame time: %{gameTime}",
 				"commanderCountTooltip": "%{titleColor}Commander Counter\nDisplays the number of ally\nand enemy commanders",
+				"tidal": {
+					"tooltip": "%{titleColor}Tidal Speed Display\nDisplays tidal speed on this map (always constant)."
+				},
 				"wind": {
 					"nowind1": "No",
 					"nowind2": "wind",
@@ -47,9 +50,9 @@
 					"wastingEnergy": "Wasting energy",
 					"shareMetalTooltip": "%{titleColor}Metal Share Slider\nShare excess metal above this point with your team",
 					"shareEnergyTooltip": "%{titleColor}Energy Share Slider\nShare excess energy above this point with your team",
-					"pullTooltip": "%{resource} spending (per second)",
+					"pullTooltip": "The current demand for %{resource} (per second) provided that there is sufficient supply and storage",
 					"incomeTooltip": "%{resource} income (per second)",
-					"expenseTooltip": "%{resource} potential spending  (per second)",
+					"expenseTooltip": "%{resource} spending  (per second)",
 					"storageTooltip": "%{resource} storage",
 					"conversionTooltip": "%{titleColor}Energy Conversion Slider\nExcess energy above this point\nwill power your Energy Converters"
 				}
@@ -95,12 +98,19 @@
 				}
 			},
 			"playerTV": {
-				"playerTV": "Player TV",
-				"cancelCamera": "Turn off",
+				"playerTV": "TV",
+				"cancelPlayerTV": "Turn off TV",
+				"cancelCamera": "Turn off Player Cam",
+				"playerView": "Player Viewpoint",
+				"globalView": "Turn off Player View",
+				"playerViewTooltip": "Only view what the player can see",
 				"tooltip": "Auto camera-track the top ranked players\n(switches player every 40 seconds by default)"
 			},
 			"teamEconomy": {
 				"tooltip": "Team metal/energy income\n(Lighter portion is income from reclaiming)"
+			},
+			"mapinfo": {
+				"author": "Author"
 			},
 			"clearMapmarks": {
 				"tooltip": "Clear mapmarks/drawings",
@@ -416,7 +426,11 @@
 			"chat": {
 				"ignored": "ignored",
 				"scroll": "%{textColor}Press %{highlightColor}CTRL %{textColor}+ %{highlightColor}SHIFT %{textColor}to activate chatlog viewing/scrolling",
-				"shortcut": "CTRL + SHIFT"
+				"shortcut": "CTRL + SHIFT",
+				"everyone": "everyone",
+				"allies": "allies",
+				"spectators": "spectators",
+				"cmd": "COMMAND"
 			},
 			"teamStats": {
 				"player": "Player",
@@ -539,7 +553,7 @@
 				"difficultyLevel": "Difficulty: %{count}"
 			},
 			"loadScreen": {
-				"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.      Your experience might be sub optimal."
+				"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't work properly."
 			},
 			"initialSpawn": {
 				"ready": "Ready",

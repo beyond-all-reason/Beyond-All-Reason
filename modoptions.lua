@@ -121,7 +121,7 @@ local options={
 			{key="none", name="Disallow All", desc="No enemy units can be napped"},
 		}
 	},
-	{		
+	{
 		key    		= "allowuserwidgets",
 		name   		= "Allow custom widgets",
 		desc   		= "Allow custom user widgets or disallow them",
@@ -227,6 +227,51 @@ local options={
 		type   		= "bool",
 		section		= 'restrictions',
 		def    		= false,
+	},
+
+	{
+		key    = 'map_restrictions_shrinknorth',
+		name   = 'Map Shrink Percentage North',
+		desc   = 'Set a percentage of map area to cut from playable area from the north',
+		type   = 'number',
+		def    = 0,
+		min    = 0,
+		max    = 100,
+		step   = 1,
+		section= "restrictions",
+	},
+	{
+		key    = 'map_restrictions_shrinksouth',
+		name   = 'Map Shrink Percentage South',
+		desc   = 'Set a percentage of map area to cut from playable area from the south',
+		type   = 'number',
+		def    = 0,
+		min    = 0,
+		max    = 100,
+		step   = 1,
+		section= "restrictions",
+	},
+	{
+		key    = 'map_restrictions_shrinkwest',
+		name   = 'Map Shrink Percentage West',
+		desc   = 'Set a percentage of map area to cut from playable area from the west',
+		type   = 'number',
+		def    = 0,
+		min    = 0,
+		max    = 100,
+		step   = 1,
+		section= "restrictions",
+	},
+	{
+		key    = 'map_restrictions_shrinkeast',
+		name   = 'Map Shrink Percentage East',
+		desc   = 'Set a percentage of map area to cut from playable area from the east',
+		type   = 'number',
+		def    = 0,
+		min    = 0,
+		max    = 100,
+		step   = 1,
+		section= "restrictions",
 	},
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -432,6 +477,7 @@ local options={
 			{key="normal", name="Medium", desc="Medium"},
 			{key="hard", name="Hard", desc="Hard"},
 			{key="veryhard", name="Very Hard", desc="Very Hard"},
+			{key="epic", name="Epic", desc="Epic"},
 			{key="survival", name="Survival", desc="Endless Mode"}
 		}
 	},
@@ -440,10 +486,10 @@ local options={
 		name="Burrow Placement",
 		desc="Control where burrows spawn",
 		type="list",
-		def="alwaysbox",
+		def="initialbox",
 		section="chicken_defense_options",
 		items={
-			{key="anywhere", name="Anywhere", desc="Burrows can spawn anywhere"},
+			--{key="anywhere", name="Anywhere", desc="Burrows can spawn anywhere"},
 			{key="avoid", name="Avoid Players", desc="Burrows do not spawn on player units"},
 			{key="initialbox", name="Initial Start Box", desc="First wave spawns in chicken start box, following burrows avoid players"},
 			{key="alwaysbox", name="Always Start Box", desc="Burrows always spawn in chicken start box"},
@@ -454,9 +500,9 @@ local options={
 		name   = "Max Queen Arrival (Minutes)",
 		desc   = "Queen will spawn after given time.",
 		type   = "number",
-		def    = 40,
+		def    = 60,
 		min    = 1,
-		max    = 90,
+		max    = 120,
 		step   = 1,
 		section= "chicken_defense_options",
 	},
@@ -502,13 +548,13 @@ local options={
 		def    = true,
 		section= "chicken_defense_options",
     },
-	
+
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- TeamColoring
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	
+
 	{
 		key		= "teamcoloring_options",
 		name	= "TeamColors",
@@ -539,20 +585,20 @@ local options={
 			{key="gaiagray", name="Gaia Gray", desc="description"},
 		}
 	},
-	
+
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Other Options
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	
+
 	{
 		key		= "options",
 		name	= "Other",
 		desc	= "Options",
 		type	= "section",
 	},
-	
+
 	{
 		key    = 'critters',
 		name   = 'Animal amount',
@@ -573,9 +619,11 @@ local options={
 		def="com",
 		section="options",
 		items={
-			{key="neverend", name="None", desc="Teams are never eliminated"},
-			{key="com", name="Kill all enemy Commanders", desc="When a team has no Commanders left, it loses"},
-			{key="killall", name="Kill everything", desc="Every last unit must be eliminated, no exceptions!"},
+			{key="neverend", 	name="Never ending", desc="Teams are never eliminated"},
+			{key="com", 		name="Kill all enemy Commanders", desc="When a team has no Commanders left, it loses"},
+			{key="builders", 	name="Kill all Builders"},
+			{key="killall", 	name="Kill everything", desc="Every last unit must be eliminated, no exceptions!"},
+			{key="own_com", 	name="Player resign on Com death", desc="When player commander dies, you auto-resign."},
 		}
 	},
 	{
@@ -598,7 +646,16 @@ local options={
 		def    = false,
 		section= "options",
 	},
-  
+	{
+		key    = "ffa_wreckage",
+		name   = "FFA Mode Wreckage",
+		desc   = "Killed players will blow up but leave wreckages",
+		hidden = true,
+		type   = "bool",
+		def    = false,
+		section= "options",
+	},
+
 	{
 		key    = 'coop',
 		name   = 'Cooperative mode',
@@ -607,7 +664,7 @@ local options={
 		def    = false,
 		section= 'options',
 	},
-	
+
 	{
 		key    = 'disablemapdamage',
 		name   = 'Undeformable map',
@@ -709,7 +766,7 @@ local options={
 		desc   = 'How many assist drones per commander should be spawned',
 		type   = 'number',
 		section= 'options',
-		def    = 8,
+		def    = 4,
 		min    = 1,
 		max    = 30,
 		step   = 1,
@@ -717,7 +774,7 @@ local options={
 
 	{
 		key="commanderbuildersenabled",
-		name="Commander Builders",
+		name="Base Construction Turret",
 		type="list",
 		def="scav_only",
 		section="options",
@@ -794,6 +851,7 @@ local options={
 		min    = 1,
 		max    = 10,
 		step   = 1,  -- quantization is aligned to the def value
+		hidden = true,
 		-- (step <= 0) means that there is no quantization
 	},
 	{
@@ -874,7 +932,7 @@ local options={
 		hidden = true,
 		type   = 'number',
 		section= 'controlvictoryoptions',
-		def    = 5,
+		def    = 100,
 		min    = 1,
 		max    = 100,
 		step   = 1,  -- quantization is aligned to the def value
@@ -976,10 +1034,167 @@ local options={
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	-- Experimental Options
+	-- Multiplier Options
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+	{
+		key		= "options_multipliers",
+		name	= "Multipliers",
+		desc	= "Multipliers options",
+		type	= "section",
+	},
+
+	{
+		key    = 'multiplier_maxdamage',
+		name   = 'Health Multiplier',
+		desc   = 'Health Multiplier',
+		type   ="number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_maxvelocity',
+		name   = 'Unit MaxSpeed Multiplier',
+		desc   = 'Unit MaxSpeed Multiplier',
+		type   ="number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_turnrate',
+		name   = 'Unit TurnSpeed Multiplier',
+		desc   = 'Unit TurnSpeed Multiplier',
+		type   ="number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_builddistance',
+		name   = 'Build Range Multiplier',
+		desc   = 'Build Range Multiplier',
+		type   ="number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_buildpower',
+		name   = 'Build Power Multiplier',
+		desc   = 'Build Power Multiplier',
+		type   ="number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_metalcost',
+		name   = 'Unit Cost Multiplier - Metal',
+		desc   = 'Unit Cost Multiplier - Metal',
+		type   ="number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_energycost',
+		name   = 'Unit Cost Multiplier - Energy',
+		desc   = 'Unit Cost Multiplier - Energy',
+		type   ="number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_buildtimecost',
+		name   = 'Unit Cost Multiplier - Time',
+		desc   = 'Unit Cost Multiplier - Time',
+		type   ="number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_losrange',
+		name   = 'Vision Range Multiplier',
+		desc   = 'Vision Range Multiplier',
+		type   ="number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_radarrange',
+		name   = 'Radar and Sonar Range Multiplier',
+		desc   = 'Radar and Sonar Range Multiplier',
+		type   ="number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_weaponrange',
+		name   = 'Weapon Range Multiplier',
+		desc   = 'Weapon Range Multiplier',
+		type   ="number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'multiplier_weapondamage',
+		name   = 'Weapon Damage Multiplier',
+		desc   = 'Weapon Damage Multiplier (Also affects unit death explosions)',
+		type   ="number",
+		section = 'options_multipliers',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Experimental Options
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	{
 		key		= "options_experimental",
 		name	= "Experimental",
@@ -1035,54 +1250,6 @@ local options={
 		def    = 1,
 		min    = 0.1,
 		max    = 10,
-		step   = 0.1,
-	},
-	{
-		key    = 'experimentalbuildrange',
-		name   = 'Build Range Multiplier',
-		desc   = 'Build Range Multiplier',
-		hidden = true,
-		type   ="number",
-		section = 'options_experimental',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'experimentalbuildpower',
-		name   = 'Build Power Multiplier',
-		desc   = 'Build Power Multiplier',
-		hidden = true,
-		type   ="number",
-		section = 'options_experimental',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
-	{
-		key    = 'experimentallosrange',
-		name   = 'Line of Sight Range Multiplier',
-		desc   = 'Line of Sight Range Multiplier',
-		type   ="number",
-		section = 'options_experimental',
-		def    = 1,
-		min    = 0.1,
-		max    = 5,
-		step   = 0.1,
-	},
-
-	{
-		key    = 'experimentalradarrange',
-		name   = 'Radar Range Multiplier',
-		desc   = 'Radar Range Multiplier',
-		type   ="number",
-		section = 'options_experimental',
-		def    = 1,
-		min    = 0.1,
-		max    = 5,
 		step   = 0.1,
 	},
 
@@ -1153,6 +1320,79 @@ local options={
 		section = 'options_experimental',
 		def  = false,
 	},
+
+	{
+		key    = 'experimentalflankingbonusmode',
+		name   = 'Flanking Bonus Mode (between 0 and 3, read tooltip)',
+		desc   = "Additional damage applied to units when they're surrounded. 0 - No flanking bonus, 1 - Dynamic direction, world dimension, 2 - Dynamic direction, unit dimension, 3 - Static direction, front armor = best armor. If 3 is chosen, 2 is used for buildings.",
+		type   ="number",
+		section = 'options_experimental',
+		def    = 1,
+		min    = 0,
+		max    = 3,
+		step   = 1,
+	},
+
+	{
+		key    = 'experimentalflankingbonusmin',
+		name   = 'Flanking Bonus Minimum Damage Percentage (Default 90%)',
+		desc   = 'How much damage weapons deal at hardest point of flanking armor',
+		type   ="number",
+		section = 'options_experimental',
+		def    = 90,
+		min    = 1,
+		max    = 1000,
+		step   = 1,
+	},
+
+	{
+		key    = 'experimentalflankingbonusmax',
+		name   = 'Flanking Bonus Maximum Damage Percentage (Default 190%)',
+		desc   = 'How much damage weapons deal at hardest point of flanking armor',
+		type   ="number",
+		section = 'options_experimental',
+		def    = 190,
+		min    = 1,
+		max    = 1000,
+		step   = 1,
+	},
+
+	{
+		key    = 'experimentalrebalancet2labs',
+		name   = 'Rebalance Candidate: Cheaper T2 Factories',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
+	{
+		key    = 'experimentalrebalancet2metalextractors',
+		name   = 'Rebalance Candidate: Cheaper T2 Metal Extractors (Metal Extraction x4 -> x2)',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
+	{
+		key    = 'experimentalrebalancet2energy',
+		name   = 'Rebalance Candidate: T2 Energy rebalance (Currently only adds T2 wind generator)',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
+	{
+		key    = 'experimentalrebalancehovercrafttech',
+		name   = 'Rebalance Candidate: Hovercraft rebalance - Cheaper lab with buildpower 200 -> 100, can Tech2 into Vehicles and Ships',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
+
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Unused Options

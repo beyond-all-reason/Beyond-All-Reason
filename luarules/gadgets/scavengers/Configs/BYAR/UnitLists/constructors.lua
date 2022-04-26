@@ -73,6 +73,8 @@ local assisters = {
 	"cornanotc_scav",
 	"armnanotcplat_scav",
 	"cornanotcplat_scav",
+	"armrespawn",
+	"correspawn",
 }
 
 local resurrectors = {

@@ -102,7 +102,7 @@ function LabBuildHST:PrePositionFilter()
 			self:EchoDebug(factoryName ..' already have ')
 			buildMe = false
 		end
- 		if mtype == 'air' and not isAdvanced and self.ai.tool:countMyUnit({'factoryMobilities'}) == 1 then
+ 		if buildMe and mtype == 'air' and not isAdvanced and self.ai.tool:countMyUnit({'factoryMobilities'}) == 1 then
  			self:EchoDebug(factoryName ..' dont build air before advanced ')
  			buildMe = false
  		end
@@ -113,19 +113,19 @@ function LabBuildHST:PrePositionFilter()
 -- 				buildMe = false
 -- 			end
 -- 		end
-		if self.ai.needAdvanced and not self.ai.haveAdvFactory and not isAdvanced then
+		if self.ai.overviewhst.needT2 and not self.ai.overviewhst.T2LAB and not isAdvanced then
 			self:EchoDebug(factoryName ..' not advanced when i need it')
 			buildMe = false
 		end
-		if buildMe and self.ai.needExperimental and not self.ai.haveExpFactory and not isExperimental then
+		if buildMe and self.ai.overviewhst.needT3 and not self.ai.overviewhst.T3LAB and not isExperimental then
 			self:EchoDebug(factoryName ..' not Experimental when i need it')
 			buildMe = false
 		end
-		if buildMe and not self.ai.needAdvanced and not self.ai.haveAdvFactory and isAdvanced then
+		if buildMe and not self.ai.overviewhst.needT2 and not self.ai.overviewhst.T2LAB and isAdvanced then
 			self:EchoDebug(factoryName .. ' Advanced when i dont need it')
 			buildMe = false
 		end
-		if buildMe and (not self.ai.needExperimental or self.ai.haveExpFactory) and self.ai.armyhst.expFactories[factoryName] then
+		if buildMe and (not self.ai.overviewhst.needT3 or self.ai.overviewhst.T3LAB) and self.ai.armyhst.expFactories[factoryName] then
 			self:EchoDebug(factoryName .. ' Experimental when i dont need it')
 			buildMe = false
 		end
@@ -133,11 +133,11 @@ function LabBuildHST:PrePositionFilter()
 			self:EchoDebug(factoryName .. ' dont build seaplane if i have normal planes')
 			buildMe = false
 		end
-		if not buildMe and mtype == 'air' and self.ai.haveAdvFactory and self.ai.factoryBuilded['air'][1] > 0 and self.ai.factoryBuilded['air'][1] < 3 and isAdvanced then
+		if not buildMe and mtype == 'air' and self.ai.overviewhst.T2LAB and self.ai.factoryBuilded['air'][1] > 0 and self.ai.factoryBuilded['air'][1] < 3 and isAdvanced then
 			self:EchoDebug(factoryName .. ' force build t2 air if you have t1 air and a t2 of another type')
 			buildMe = true
 		end
-		if buildMe and self.ai.factoriesAtLevel[1] and mtype == 'air' and isAdvanced and not self.ai.haveAdvFactory then
+		if buildMe and self.ai.factoriesAtLevel[1] and mtype == 'air' and isAdvanced and not self.ai.overviewhst.T2LAB then
 			for index, factory in pairs(self.ai.factoriesAtLevel[1]) do
 				if self.ai.armyhst.factoryMobilities[factory.unit:Internal():Name()][1] ~= 'air' then
 					self:EchoDebug(factoryName .. ' dont build t2 air if we have another t1 type and dont have adv')
@@ -166,12 +166,15 @@ function LabBuildHST:ConditionsToBuildFactories(builder)
 	local canDoFactory = false
 	for order = 1, #self.factories do
 		local factoryName = self.factories[order]
+		self.factoryCount = self.ai.tool:countMyUnit({'factoryMobilities'})
 		local uTn = self.ai.armyhst.unitTable[factoryName]
 		local factoryCountSq = self.ai.tool:countMyUnit({'factoryMobilities'}) * self.ai.tool:countMyUnit({'factoryMobilities'})
 		local sameFactoryCount = self.ai.tool:countFinished(factoryName)
 		local sameFactoryMetal = sameFactoryCount * 20
 		local sameFactoryEnergy = sameFactoryCount * 500
 		self:EchoDebug('labparams',factoryCountSq,sameFactoryCount,sameFactoryMetal,sameFactoryEnergy)
+		if self.ai.Energy.income > self.factoryCount * 800 then
+		--[[
 		if
 			(self.ai.Metal.income > (factoryCountSq * 10) + 3 + sameFactoryMetal
 				and self.ai.Energy.income > (factoryCountSq * 100) + 25 + sameFactoryEnergy
@@ -182,8 +185,7 @@ function LabBuildHST:ConditionsToBuildFactories(builder)
 			or  (uTn.metalCost * 1.2 < self.ai.Metal.reserves
 					and  uTn.energyCost  < self.ai.Energy.reserves
 					and self.ai.tool:countMyUnit({'isWeapon'}) >= 50
-					and self.ai.tool:countMyUnit({'factoryMobilities'}) >= 1)
-		)then
+					and self.ai.tool:countMyUnit({'factoryMobilities'}) >= 1))then]]
 			self:EchoDebug(factoryName .. ' conditions met')
 			local canBuild = builder:CanBuild(self.game:GetTypeByName(factoryName))
 			if canBuild then
@@ -238,7 +240,6 @@ function LabBuildHST:GetBuilderFactory(builder)
 end
 
 function LabBuildHST:FactoryPosition(factoryName,builder)
-	local utype = game:GetTypeByName(factoryName)
 	local utype = self.game:GetTypeByName(factoryName)
 	local site = self.ai.buildsitehst
 	local p
@@ -265,14 +266,7 @@ function LabBuildHST:PostPositionalFilter(factoryName,p)
 		return false
 	end
 	local mtype = self.ai.armyhst.factoryMobilities[factoryName][1]
-	-- below is commented out because sometimes you need a lower level factory to build things the higher level cannot, when the previous low level factory has been destroyed
-	-- if self.ai.armyhst.unitTable[factoryName].techLevel <= self.ai.factoryBuilded[mtype][network] then
-	-- 	self:EchoDebug('tech level ' .. self.ai.armyhst.unitTable[factoryName].techLevel .. ' of ' .. factoryName .. ' is too low for mobility network ' .. self.ai.factoryBuilded[mtype][network])
-	-- 	return false
-	-- end
-
-
-	if mtype ~= 'air' and self.ai.factoryBuilded['air'][1] < 1 and self.ai.haveAdvFactory then
+	if mtype ~= 'air' and self.ai.factoryBuilded['air'][1] < 1 and self.ai.overviewhst.T2LAB then
 		self:EchoDebug('dont build this if we dont have air')
 		return false
 	elseif mtype == 'bot' then

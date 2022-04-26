@@ -12,10 +12,7 @@ function widget:GetInfo()
 end
 
 local idleTime = 60
-local vsyncValueActive = Spring.GetConfigInt("VSync",1)
-if vsyncValueActive > 0 and WG['options'] and WG['options'].getOptionValue and WG['options'].getOptionValue('vsync_level') then
-	vsyncValueActive = WG['options'].getOptionValue('vsync_level')
-end
+local vsyncValueActive = Spring.GetConfigInt("VSyncGame", 0)
 local vsyncValueIdle = 4    -- sometimes vsync > 4 doesnt work at all
 
 
@@ -80,13 +77,7 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > 2 then
 		sec = 0
-		if WG['options'] and WG['options'].getOptionValue and WG['options'].getOptionValue('vsync_level') then
-			if WG['options'].getOptionValue('vsync') then
-				vsyncValueActive = WG['options'].getOptionValue('vsync_level')
-			else
-				vsyncValueActive = 0
-			end
-		end
+		vsyncValueActive = Spring.GetConfigInt("VSyncGame", 0)
 	end
 	-- detect change by user
 	local curVsync = Spring.GetConfigInt("VSync",1)

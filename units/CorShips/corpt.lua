@@ -187,7 +187,7 @@ return {
 				name = "Missiles",
 				noselfdamage = true,
 				range = 650,
-				reloadtime = 2.2,
+				reloadtime = 2.0,
 				smoketrail = true,
 				smokePeriod = 8,
 				smoketime = 15,

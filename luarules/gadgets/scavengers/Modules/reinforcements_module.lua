@@ -30,7 +30,7 @@ local function setBeaconsResourceProduction(n)
 			local unitID = units[i]
 			local unitDefID = Spring.GetUnitDefID(unitID)
 			local name = UnitDefs[unitDefID].name
-			if name ==	"scavengerdroppodbeacon_scav" then
+			if name ==	staticUnitList.scavSpawnBeacon then
 				-- Spring.AddUnitResource(unitID, "m", beaconmetalproduction)
 				-- Spring.AddUnitResource(unitID, "e", beaconenergyproduction)
 			end
@@ -82,7 +82,7 @@ local function spawnPlayerReinforcements(n)
 							local playerbeacon = playerunits[i]
 							local playerbeaconDef = Spring.GetUnitDefID(playerbeacon)
 							local UnitName = UnitDefs[playerbeaconDef].name
-							if UnitName == "scavengerdroppodbeacon_scav" then
+							if UnitName == staticUnitList.scavSpawnBeacon then
 								table.insert(PlayerSpawnBeacons,playerbeacon)
 							end
 						end
@@ -162,7 +162,7 @@ local function spawnPlayerReinforcements(n)
 								local posx = posx+(math_random(-posradius,posradius))
 								local posz = posz+(math_random(-posradius,posradius))
 								local newposy = Spring.GetGroundHeight(posx, posz)
-								Spring.CreateUnit("scavengerdroppodfriendly", posx, posy, posz, math_random(0,3), teamID)
+								Spring.CreateUnit(staticUnitList.friendlySpawnEffectUnit, posx, posy, posz, math_random(0,3), teamID)
 								local ReUnit = Spring.CreateUnit(groupunit, posx, posy, posz, math_random(0,3), teamID)
 								if ReUnit then
 									Spring.SetUnitNoSelect(ReUnit, true)

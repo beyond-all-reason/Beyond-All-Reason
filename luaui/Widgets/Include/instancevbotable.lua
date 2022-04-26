@@ -99,8 +99,10 @@ local function dbgt(t, name)
 	local count = 0
 	local res = ''
 	for k,v in pairs(t) do
-		res = res .. tostring(k) .. ':' .. tostring(v) ..','
-		count = count + 1
+		if type(k) == 'number' and type(v) == 'number' then 
+			res = res .. tostring(k) .. ':' .. tostring(v) ..','
+			count = count + 1
+		end
 	end
 	Spring.Echo(tostring(gf).. " " ..name .. ' #' .. tostring(count) .. ' {'..res .. '}')
 	return res
@@ -618,33 +620,48 @@ function makePlaneVBO(xsize, ysize, xresolution, yresolution) -- makes a plane f
 	return planeVBO, #VBOData/2
 end
 
-function makePlaneIndexVBO(xresolution, yresolution)
+function makePlaneIndexVBO(xresolution, yresolution, cutcircle)
 	xresolution = math.floor(xresolution)
 	if not yresolution then yresolution = xresolution end
 	local planeIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER,false)
 	if planeIndexVBO == nil then return nil end
-	local numindices = yresolution*xresolution*6
-	planeIndexVBO:Define(
-		numindices
-	)
+
+	local function xyinrad(lx, ly)
+		local px = (lx / xresolution) * 2 - 1
+		local py = (ly / yresolution) * 2 - 1
+		return (px*px + py*py) <= 1 
+	end
+	
 	local IndexVBOData = {}
 	local qindex = 0
 	local colsize = yresolution + 1
 	for x = 0, xresolution-1  do -- this is +1
 		for y = 0, yresolution-1 do
-			IndexVBOData[#IndexVBOData + 1] = qindex
-			IndexVBOData[#IndexVBOData + 1] = qindex +1
-			IndexVBOData[#IndexVBOData + 1] = qindex + colsize
-			IndexVBOData[#IndexVBOData + 1] = qindex +1
-			IndexVBOData[#IndexVBOData + 1] = qindex + colsize + 1
-			IndexVBOData[#IndexVBOData + 1] = qindex + colsize
+			--this is only 20% optimization
+			if cutcircle == nil or (xyinrad(x,y) or xyinrad(x + 1,y) or xyinrad(x,y + 1 )) then 
+				-- top left one
+				IndexVBOData[#IndexVBOData + 1] = qindex
+				IndexVBOData[#IndexVBOData + 1] = qindex +1
+				IndexVBOData[#IndexVBOData + 1] = qindex + colsize
+			end
+			
+			if cutcircle == nil or (xyinrad(x+1,y+1) or xyinrad(x + 1,y) or xyinrad(x,y + 1 )) then 
+				-- bottom right one?
+				IndexVBOData[#IndexVBOData + 1] = qindex +1
+				IndexVBOData[#IndexVBOData + 1] = qindex + colsize + 1
+				IndexVBOData[#IndexVBOData + 1] = qindex + colsize
+			end
 			qindex = qindex + 1
+			
 		end
 		qindex = qindex + 1
-	end	
+	end		
+	planeIndexVBO:Define(
+		#	IndexVBOData
+	)
 	planeIndexVBO:Upload(IndexVBOData)
 	--Spring.Echo("PlaneIndexVBO up:",#IndexVBOData, "Down", #planeIndexVBO:Download())
-	return planeIndexVBO,numindices
+	return planeIndexVBO, IndexVBOData
 end
 
 function makePointVBO(numPoints)
@@ -928,3 +945,113 @@ function makeBoxVBO(minX, minY, minZ, maxX, maxY, maxZ) -- make a box
 	return boxVBO, #VBOData/4
 end
 
+
+
+
+function makeSphereVBO(sectorCount, stackCount, radius) -- http://www.songho.ca/opengl/gl_sphere.html
+
+	local sphereVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
+	if sphereVBO == nil then return nil end
+	local vertVBOLayout = {
+		{id = 0, name = "position", size = 3},
+		{id = 1, name = "normals", size = 3},
+		{id = 2, name = "uvs", size = 2},
+	} 
+	
+	local VBOData = {}
+	radius = radius or 1
+	local x, y, z, xy; --  vertex position
+	local nx, ny, nz
+	local lengthInv = 1.0 / radius;    -- vertex normal
+	local s, t;                                     -- vertex texCoord
+
+	local sectorStep = 2 * math.pi / sectorCount;
+	local stackStep = math.pi / stackCount;
+	local sectorAngle, stackAngle;
+
+	for i = 0, stackCount do 
+
+		stackAngle = math.pi / 2 - i * stackStep;        -- starting from pi/2 to -pi/2
+		xy = radius * math.cos(stackAngle);             -- r * cos(u)
+		z = radius * math.sin(stackAngle);              -- r * sin(u)
+
+		-- add (sectorCount+1) vertices per stack
+		-- the first and last vertices have same position and normal, but different tex coords
+		for j = 0, sectorCount do -- for (int j = 0; j <= sectorCount; ++j)
+
+			sectorAngle = j * sectorStep;           -- starting from 0 to 2pi
+
+			-- vertex position (x, y, z)
+			x = xy * math.cos(sectorAngle);             -- r * cos(u) * cos(v)
+			y = xy * math.sin(sectorAngle);             -- r * cos(u) * sin(v)
+			VBOData[#VBOData + 1] = x;
+			VBOData[#VBOData + 1] = y;
+			VBOData[#VBOData + 1] = z;
+			--Spring.Echo(x,y,z)
+			-- normalized vertex normal (nx, ny, nz)
+			nx = x * lengthInv;
+			ny = y * lengthInv;
+			nz = z * lengthInv;
+
+			
+			VBOData[#VBOData + 1] = nx;
+			VBOData[#VBOData + 1] = ny;
+			VBOData[#VBOData + 1] = nz;
+
+			-- vertex tex coord (s, t) range between [0, 1]
+			s = j / sectorCount;
+			t = i / stackCount;
+			
+			VBOData[#VBOData + 1] = s;
+			VBOData[#VBOData + 1] = t;
+		end
+	end
+	sphereVBO:Define(#VBOData/8, vertVBOLayout)
+	sphereVBO:Upload(VBOData)
+	local numVerts = #VBOData/8
+	
+	local sphereIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER,false)
+	VBOData = {}
+	
+	-- generate CCW index list of sphere triangles
+	-- k1--k1+1
+	-- |  / |
+	-- | /  |
+	-- k2--k2+1
+	local k1, k2
+	for i = 0, stackCount-1 do -- for(int i = 0; i < stackCount; ++i)
+	
+		k1 = i * (sectorCount + 1)     -- beginning of current stack
+		k2 = k1 + sectorCount + 1      -- beginning of next stack
+
+		for j = 0, sectorCount-1   do --for(int j = 0; j < sectorCount; ++j, ++k1, ++k2)
+			--	Spring.Echo('indices', k1, k2)
+			-- 2 triangles per sector excluding first and last stacks
+			-- k1 => k2 => k1+1
+			if i ~= 0 then 
+			
+				VBOData[#VBOData + 1] = k1
+				VBOData[#VBOData + 1] = k2
+				VBOData[#VBOData + 1] = k1 + 1
+			end
+
+			-- k1+1 => k2 => k2+1
+			if i ~= (stackCount-1)	 then
+			
+				VBOData[#VBOData + 1] = k1 + 1
+				VBOData[#VBOData + 1] = k2
+				VBOData[#VBOData + 1] = k2 + 1
+
+			end
+			
+			k1 = k1 + 1
+			k2 = k2 + 1
+		end
+	end
+	
+	
+	sphereIndexVBO:Define(#VBOData)
+	sphereIndexVBO:Upload(VBOData)
+
+	return sphereVBO, numVerts, sphereIndexVBO, #VBOData
+end

@@ -58,9 +58,9 @@ else
 
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("systemBroadcast", handleSystemEvent)
-
+		local myvalidation = validation
 		if (Spring.GetConfigInt("SystemPrivacy",0) or 0) == 1 then
-			return
+			myvalidation = 'no'
 		end
 
 		local s_cpu, s_gpu, s_gpuVram, s_ram, s_os, s_resolution, s_displaymode, s_displays, s_config, s_configs_os, s_cpuCoresLogical, s_cpuCoresPhysical, ds, nl, configEnd
@@ -206,7 +206,7 @@ else
 
 		system = string.sub(system, 2)
 		if system ~= '' then
-			SendLuaRulesMsg("$y$"..validation..system)
+			SendLuaRulesMsg("$y$"..myvalidation..system)
 		end
 	end
 

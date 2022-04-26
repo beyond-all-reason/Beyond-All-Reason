@@ -262,7 +262,7 @@ else
 		end
 	end
 
-	local function substitutionOccurred(incoming, outgoing)
+	local function substitutionOccurred(_, incoming, outgoing)
 		if Script.LuaUI('GadgetMessageProxy') then
 			Spring.Echo( Script.LuaUI.GadgetMessageProxy('ui.substitutePlayers.substitutedPlayers', { incoming = incoming, outgoing = outgoing }) )
 		end

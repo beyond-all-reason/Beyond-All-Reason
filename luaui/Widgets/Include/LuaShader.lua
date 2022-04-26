@@ -105,16 +105,16 @@ layout(std140, binding = 1) uniform UniformParamsBuffer {
 	vec4 fogColor; //fog color
 	vec4 fogParams; //fog {start, end, 0.0, scale}
 
-	vec4 sunDir;
+	vec4 sunDir; // (sky != nullptr) ? sky->GetLight()->GetLightDir() : float4(/*map default*/ 0.0f, 0.447214f, 0.894427f, 1.0f);
 
 	vec4 sunAmbientModel;
 	vec4 sunAmbientMap;
 	vec4 sunDiffuseModel;
 	vec4 sunDiffuseMap;
-	vec4 sunSpecularModel;
-	vec4 sunSpecularMap;
+	vec4 sunSpecularModel; // float4{ sunLighting->modelSpecularColor.xyz, sunLighting->specularExponent };
+	vec4 sunSpecularMap; //  float4{ sunLighting->groundSpecularColor.xyz, sunLighting->specularExponent };
 
-	vec4 shadowDensity;
+	vec4 shadowDensity; //  float4{ sunLighting->groundShadowDensity, sunLighting->modelShadowDensity, 0.0, 0.0 };
 
 	vec4 windInfo; // windx, windy, windz, windStrength
 	vec2 mouseScreenPos; //x, y. Screen space.
@@ -179,6 +179,18 @@ mat4 translationMat(vec3 t) {
 
 mat4 mat4mix(mat4 a, mat4 b, float alpha) {
 	return (a * (1.0 - alpha) + b * alpha);
+}
+
+// Additional helper functions useful in Spring
+
+vec2 heighmapUVatWorldPos(vec2 worldpos){
+	const vec2 inverseMapSize = 1.0 / mapSize.xy;
+	// Some texel magic to make the heightmap tex perfectly align:
+	const vec2 heightmaptexel = vec2(8.0, 8.0);
+	worldpos +=  vec2(-8.0, -8.0) * (worldpos * inverseMapSize) + vec2(4.0, 4.0) ;
+	vec2 uvhm = clamp(worldpos, heightmaptexel, mapSize.xy - heightmaptexel);
+	uvhm = uvhm	* inverseMapSize;
+	return uvhm;
 }
 
     ]]

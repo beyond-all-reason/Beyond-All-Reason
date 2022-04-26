@@ -11,6 +11,12 @@ function widget:GetInfo()
 	}
 end
 
+include("keysym.h.lua")
+
+SYMKEYS = table.invert(KEYSYMS)
+
+local comBuildOptions
+local boundUnits = {}
 local stickToBottom = false
 
 local alwaysShow = false
@@ -201,6 +207,8 @@ local groups = {
 	antinuke = folder..'antinuke.png',
 }
 
+local disableWind = ((Game.windMin + Game.windMax) / 2) <= 5
+
 local unitEnergyCost = {}
 local unitMetalCost = {}
 local unitGroup = {}
@@ -215,6 +223,9 @@ local isGeothermalUnit = {}
 local unitMaxWeaponRange = {}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
+	unitIconType[unitDefID] = unitDef.iconType
+	unitEnergyCost[unitDefID] = unitDef.energyCost
+	unitMetalCost[unitDefID] = unitDef.metalCost
 	unitGroup[unitDefID] = unitDef.customParams.unitgroup
 
 	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'
@@ -223,18 +234,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			isWaterUnit[unitDefID] = true
 		end
 	end
-
-	if unitDef.needGeo then
-		isGeothermalUnit[unitDefID] = true
-	end
-
 	if unitDef.maxWeaponRange > 16 then
 		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
 	end
-
-	unitIconType[unitDefID] = unitDef.iconType
-	unitEnergyCost[unitDefID] = unitDef.energyCost
-	unitMetalCost[unitDefID] = unitDef.metalCost
 	if unitDef.maxThisUnit == 0 then --or unitDef.name == 'armllt' or unitDef.name == 'armmakr' then
 		unitRestricted[unitDefID] = true
 	end
@@ -244,9 +246,14 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then
 		isFactory[unitDefID] = true
 	end
-
 	if unitDef.extractsMetal > 0 then
 		isMex[unitDefID] = true
+	end
+	if unitDef.needGeo then
+		isGeothermalUnit[unitDefID] = true
+	end
+	if unitDef.windGenerator > 0 and disableWind then
+		unitDisabled[unitDefID] = true
 	end
 end
 
@@ -541,6 +548,7 @@ function widget:ViewResize()
 	doUpdate = true
 end
 
+-- Spring handles buildfacing already, this is for managing pregamestart
 function buildFacingHandler(_, _, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
 		return
@@ -1350,6 +1358,14 @@ local function GetUnitCanCompleteQueue(uID)
 	return true
 end
 
+local function unbindBuildUnits()
+	for _, buildOption in ipairs(boundUnits) do
+		widgetHandler.actionHandler:RemoveAction(self, "buildunit_" .. buildOption, 'p')
+	end
+
+	boundUnits = {}
+end
+
 function widget:GameFrame(n)
 
 	if checkGeothermalFeatures then
@@ -1357,6 +1373,9 @@ function widget:GameFrame(n)
 		checkGeothermalFeatures = nil
 	end
 
+	if preGamestartPlayer then
+		unbindBuildUnits()
+	end
 	-- handle the pregame build queue
 	preGamestartPlayer = false
 	if n <= 90 and #buildQueue > 0 then
@@ -1432,19 +1451,6 @@ local function setPreGamestartDefID(uDefID)
 		end
 	elseif Spring.GetMapDrawMode() == "metal" then
 		Spring.SendCommands("ShowStandard")
-	end
-end
-
-function widget:KeyPress(key, mods, isRepeat)
-	if Spring.IsGUIHidden() then
-		return
-	end
-
-	if preGamestartPlayer and selBuildQueueDefID then
-		if key == 27 then
-			-- ESC
-			setPreGamestartDefID()
-		end
 	end
 end
 
@@ -1558,8 +1564,105 @@ function widget:MousePress(x, y, button)
 	end
 end
 
+-- Used for hotkeys at pregamestart
+local function buildUnitHandler(_, _, _, data)
+	-- sanity check
+	if not preGamestartPlayer then return end
+	if unitDisabled[data.unitDefID] then return end
+
+	local comDef = UnitDefs[startDefID]
+
+	if not comBuildOptions[comDef.name][data.unitDefID] then return end
+
+	-- If no current active selection we can return early
+	if not selBuildQueueDefID then
+		setPreGamestartDefID(data.unitDefID)
+
+		return true
+	end
+
+	-- Find the buildcycle for current key and iterate on it
+	local pressedKeys = Spring.GetPressedKeys()
+	local pressedKey
+	for k, v in pairs(pressedKeys) do
+		local key = SYMKEYS[k]
+
+		if v and key and #key == 1 then
+			pressedKey = string.lower(key)
+			break
+		end
+	end
+
+	-- didnt find a suitable binding to cycle from
+	if not pressedKey then return end
+
+	local buildCycle = {}
+
+	for _, keybind in ipairs(Spring.GetKeyBindings(pressedKey)) do
+		if string.sub(keybind.command, 1, 10) == 'buildunit_' then
+			local uDefName = string.sub(keybind.command, 11)
+			local uDef = UnitDefNames[uDefName]
+			if comBuildOptions[comDef.name][uDef.id] and not unitDisabled[uDef.id] then
+				table.insert(buildCycle, uDef.id)
+			end
+		end
+	end
+
+	if #buildCycle == 0 then return end
+
+	local buildCycleIndex
+	for i, v in ipairs(buildCycle) do
+		if v == selBuildQueueDefID then
+			buildCycleIndex = i
+			break
+		end
+	end
+
+	if not buildCycleIndex then
+		setPreGamestartDefID(data.unitDefID)
+
+		return true
+	end
+
+	buildCycleIndex = buildCycleIndex + 1
+	if buildCycleIndex > #buildCycle then buildCycleIndex = 1 end
+
+	setPreGamestartDefID(buildCycle[buildCycleIndex])
+
+	return true
+end
+
+local function bindBuildUnits(widget)
+	if not preGamestartPlayer then return end
+
+	unbindBuildUnits()
+
+	comBuildOptions = { armcom = {}, corcom = {} }
+
+	for _, comDefName in ipairs({ "armcom", "corcom" }) do
+		for _, buildOption in ipairs(UnitDefNames[comDefName].buildOptions) do
+			if not unitDisabled[buildOption] then
+				local unitDefName = UnitDefs[buildOption].name
+
+				comBuildOptions[comDefName][buildOption] = true
+				table.insert(boundUnits, unitDefName)
+				widgetHandler.actionHandler:AddAction(widget, "buildunit_" .. unitDefName, buildUnitHandler, { unitDefID = buildOption }, 'p')
+			end
+		end
+	end
+end
+
+local function buildmenuPregameDeselectHandler()
+	if preGamestartPlayer and selBuildQueueDefID then
+		setPreGamestartDefID()
+
+		return true
+	end
+end
+
 function widget:Initialize()
-	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "t")
+	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, 'p')
+	widgetHandler.actionHandler:AddAction(self, "buildmenu_pregame_deselect", buildmenuPregameDeselectHandler, nil, "p")
 
 	checkGeothermalFeatures()
 
@@ -1570,6 +1673,7 @@ function widget:Initialize()
 
 	-- Get our starting unit
 	if preGamestartPlayer then
+		bindBuildUnits(self)
 		SetBuildFacing()
 		if not startDefID or startDefID ~= spGetTeamRulesParam(myTeamID, 'startUnit') then
 			startDefID = spGetTeamRulesParam(myTeamID, 'startUnit')
@@ -1662,6 +1766,9 @@ function widget:Initialize()
 	WG['buildmenu'].setMaxPosY = function(value)
 		maxPosY = value
 		doUpdate = true
+	end
+	WG['buildmenu'].reloadBindings = function()
+		bindBuildUnits(self)
 	end
 end
 

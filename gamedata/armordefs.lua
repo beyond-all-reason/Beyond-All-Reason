@@ -333,6 +333,7 @@ local armorDefs = {
 		"chickenf1",
 		"chickenf1b",
 		"chickenf2",
+		"chickenebomber1",
 		"armthund",
 		"corshad",
 		"armliche",

@@ -32,7 +32,15 @@ function EcoHST:Update()
 		self.ai[name].capacity = udata.capacity -- capacity is not something that fluctuates wildly
 	end
 	self.samples[#self.samples+1] = sample
-	if not self.hasData or #self.samples == framesPerAvg then self:Average() end
+	if not self.hasData or #self.samples == framesPerAvg then
+		self:Average()
+		self.ai.realMetal = self.ai.Metal.income / self.ai.Metal.usage
+		self.ai.realEnergy = self.ai.Energy.income / self.ai.Energy.usage
+		self.ai.scaledMetal = self.ai.Metal.reserves * self.ai.realMetal
+		self.ai.scaledEnergy = self.ai.Energy.reserves * self.ai.realEnergy
+		self.extraEnergy = self.ai.Energy.income - self.ai.Energy.usage
+		self.extraMetal = self.ai.Metal.income - self.ai.Metal.usage
+	end
 end
 
 function EcoHST:Average()

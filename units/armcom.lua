@@ -33,7 +33,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		losemitheight = 40,
-		mass = 4999,
+		mass = 4900,
 		maxdamage = 3000,
 		maxslope = 20,
 		maxvelocity = 1.25,
@@ -106,6 +106,7 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
+				category = "corpses",
 				collisionvolumeoffsets = "0 0 0",
 				collisionvolumescales = "47 10 47",
 				collisionvolumetype = "CylY",

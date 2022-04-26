@@ -34,8 +34,10 @@ function SpawnAssistDrones(unitID, unitDefID, unitTeam)
 		local posx = posx+math.random(-64*i,64*i)
 		local posz = posz+math.random(-64*i,64*i)
 		local droneID = Spring.CreateUnit(droneunit, posx, posy+10, posz, 0, unitTeam)
-		Spring.SpawnCEG("scav-spawnexplo", posx, posy+10, posz,0,0,0)
-        Spring.GiveOrderToUnit(droneID, CMD.GUARD, unitID, {})
+        if droneID then
+            Spring.SpawnCEG("scav-spawnexplo", posx, posy+10, posz,0,0,0)
+            Spring.GiveOrderToUnit(droneID, CMD.GUARD, unitID, {})
+        end
 	end
 end
 
