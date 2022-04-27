@@ -1,5 +1,5 @@
 local spawnpadSpawnEnabled = false
-local PvEEnabled = Spring.Utilities.Gametype.isPvE()
+local PvEEnabled = Spring.Utilities.Gametype.IsPvE()
 if Spring.GetModOptions().commanderbuildersenabled == "enabled" or (Spring.GetModOptions().commanderbuildersenabled == "pve_only" and PvEEnabled) then
 	spawnpadSpawnEnabled = true
 end

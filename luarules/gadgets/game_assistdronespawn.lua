@@ -1,5 +1,5 @@
 local droneSpawnEnabled = false
-local PvEEnabled = Spring.Utilities.Gametype.isPvE()
+local PvEEnabled = Spring.Utilities.Gametype.IsPvE()
 if Spring.GetModOptions().assistdronesenabled == "enabled" or (Spring.GetModOptions().assistdronesenabled == "pve_only" and PvEEnabled) then
 	droneSpawnEnabled = true
 end
