@@ -59,7 +59,7 @@ else
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("systemBroadcast", handleSystemEvent)
 		local myvalidation = validation
-		if (Spring.GetConfigInt("SystemPrivacy",0) or 0) == 1 then
+		if (Spring.GetConfigInt("SystemPrivacy",1) or 1) == 1 then
 			myvalidation = 'no'
 		end
 
