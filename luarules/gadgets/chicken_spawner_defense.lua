@@ -377,38 +377,6 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
 	--
-	-- Game End Stuff
-	--
-
-	local function KillAllChicken()
-		local chickenUnits = GetTeamUnits(chickenTeamID)
-		for i = 1, #chickenUnits do
-			local unitID = chickenUnits[i]
-			if disabledUnits[unitID] then
-				DestroyUnit(unitID, false, true)
-			else
-				DestroyUnit(unitID, true)
-			end
-		end
-	end
-
-	local function KillAllComputerUnits()
-		for teamID in pairs(computerTeams) do
-			local teamUnits = GetTeamUnits(teamID)
-			for i = 1, #teamUnits do
-				local unitID = teamUnits[i]
-				if disabledUnits[unitID] then
-					DestroyUnit(unitID, false, true)
-				else
-					DestroyUnit(unitID, true)
-				end
-			end
-		end
-	end
-
-	--------------------------------------------------------------------------------
-	--------------------------------------------------------------------------------
-	--
 	-- Spawn Dynamics
 	--
 
@@ -772,55 +740,54 @@ if gadgetHandler:IsSyncedCode() then
 			queenBurrowSpawnMultiplier = 0.2
 			-- spawn units from queen
 			if config.queenSpawnMult > 0 then
-				for i = 1, config.queenSpawnMult*SetCount(humanTeams), 1 do
-					local waveLevelPower = mRandom(1, currentWave*currentWave)
-					local waveLevel = math.ceil(math.sqrt(waveLevelPower))
-					local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
-					for i, sString in pairs(squad) do
-						local nEnd, _ = string.find(sString, " ")
-						local unitNumber = string.sub(sString, 1, (nEnd - 1)) * config.chickenSpawnMultiplier * 1+currentWave-waveLevel
-						local chickenName = string.sub(sString, (nEnd + 1))
-						for i = 1, unitNumber, 1 do
-							table.insert(spawnQueue, { burrow = queenID, unitName = chickenName, team = chickenTeamID })
+				for mult = 1,config.chickenSpawnMultiplier do
+					for i = 1, config.queenSpawnMult*SetCount(humanTeams), 1 do
+						local waveLevelPower = mRandom(1, currentWave*currentWave)
+						local waveLevel = math.ceil(math.sqrt(waveLevelPower))
+						local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
+						for i, sString in pairs(squad) do
+							local nEnd, _ = string.find(sString, " ")
+							local unitNumber = string.sub(sString, 1, (nEnd - 1)) * 1+currentWave-waveLevel
+							local chickenName = string.sub(sString, (nEnd + 1))
+							for i = 1, unitNumber, 1 do
+								table.insert(spawnQueue, { burrow = queenID, unitName = chickenName, team = chickenTeamID })
+							end
+							cCount = cCount + unitNumber
 						end
-						cCount = cCount + unitNumber
 					end
 				end
 			end
-			--return cCount
 		end
 
 		for burrowID in pairs(burrows) do
-			local waveLevelPower = mRandom(1, currentWave*currentWave)
-			local waveLevel = math.ceil(math.sqrt(waveLevelPower))
-			local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
-			local newWaveSquadSpawn = false
-			if lastWave ~= currentWave and config.newWaveSquad[currentWave] then
-				squad = config.newWaveSquad[currentWave]
-				lastWave = currentWave
-				waveLevel = currentWave
-				newWaveSquadSpawn = true
-			end
-			for i, sString in pairs(squad) do
-				local skipSpawn = false
-				if cCount > chickensPerPlayer and mRandom() > config.spawnChance*queenBurrowSpawnMultiplier then
-					skipSpawn = true
+			for mult = 1,config.chickenSpawnMultiplier do
+				local waveLevelPower = mRandom(1, currentWave*currentWave)
+				local waveLevel = math.ceil(math.sqrt(waveLevelPower))
+				local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
+				local newWaveSquadSpawn = false
+				if lastWave ~= currentWave and config.newWaveSquad[currentWave] then
+					squad = config.newWaveSquad[currentWave]
+					lastWave = currentWave
+					waveLevel = currentWave
+					newWaveSquadSpawn = true
 				end
-				-- if skipSpawn and chickenDebtCount > 0 and mRandom() > config.spawnChance*queenBurrowSpawnMultiplier then
-				-- 	chickenDebtCount = (chickenDebtCount - 1)
-				-- 	skipSpawn = false
-				-- end
-				if newWaveSquadSpawn then
-					skipSpawn = false
-				end
-				if not skipSpawn then
-					local nEnd, _ = string.find(sString, " ")
-					local unitNumber = string.sub(sString, 1, (nEnd - 1)) * config.chickenSpawnMultiplier * 1+currentWave-waveLevel
-					local chickenName = string.sub(sString, (nEnd + 1))
-					for i = 1, unitNumber, 1 do
-						table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID })
+				for i, sString in pairs(squad) do
+					local skipSpawn = false
+					if cCount > chickensPerPlayer and mRandom() > config.spawnChance*queenBurrowSpawnMultiplier then
+						skipSpawn = true
 					end
-					cCount = cCount + unitNumber
+					if newWaveSquadSpawn then
+						skipSpawn = false
+					end
+					if not skipSpawn then
+						local nEnd, _ = string.find(sString, " ")
+						local unitNumber = string.sub(sString, 1, (nEnd - 1)) * 1+currentWave-waveLevel
+						local chickenName = string.sub(sString, (nEnd + 1))
+						for i = 1, unitNumber, 1 do
+							table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID })
+						end
+						cCount = cCount + unitNumber
+					end
 				end
 			end
 		end
@@ -1467,15 +1434,6 @@ if gadgetHandler:IsSyncedCode() then
 				timeOfLastFakeSpawn = t
 			end
 
-			-- if burrowTarget > 0 and burrowTarget ~= burrowCount then
-			-- 	quicken = (config.burrowSpawnRate * (1 - (burrowCount / burrowTarget)))
-			-- end
-
-			-- if burrowTarget > 0 and (burrowCount / burrowTarget) < 0.40 then
-			-- 	-- less than 40% of desired burrows, spawn one right away
-			-- 	quicken = config.burrowSpawnRate
-			-- end
-
 			local burrowSpawnTime = (config.burrowSpawnRate - quicken)
 
 			if burrowCount < minBurrows or (burrowSpawnTime < t - timeOfLastSpawn and burrowCount < maxBurrows) then
@@ -1515,7 +1473,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local chickenEggColors = {"pink","white","red", "blue", "darkgreen", "purple", "green", "yellow", "darkred", "acidgreen"}
-	local function spawnRandomEgg(x,y,z)
+	local function spawnRandomEgg(x,y,z,name)
 		local r = mRandom(1,100)
 		local size = "s"
 		if r <= 5 then
@@ -1523,7 +1481,15 @@ if gadgetHandler:IsSyncedCode() then
 		elseif r <= 20 then
 			size = "m"
 		end
-		local egg = Spring.CreateFeature("chicken_egg_"..size.."_"..chickenEggColors[math.random(1,#chickenEggColors)], x, y, z, math.random(-999999,999999), chickenTeamID)
+		if config.chickenEggs[name] and config.chickenEggs[name] ~= "" then
+			color = config.chickenEggs[name]
+		else
+			color = chickenEggColors[math.random(1,#chickenEggColors)]
+		end
+		
+		
+		
+			local egg = Spring.CreateFeature("chicken_egg_"..size.."_"..color, x, y, z, math.random(-999999,999999), chickenTeamID)
 		if egg then
 			Spring.SetFeatureMoveCtrl(egg, false,1,1,1,1,1,1,1,1,1)
 			Spring.SetFeatureVelocity(egg, mRandom(-300,300)*0.01, mRandom(300,600)*0.01, mRandom(-300,300)*0.01)
@@ -1539,17 +1505,24 @@ if gadgetHandler:IsSyncedCode() then
 					local x = x + math.random(-32,32)
 					local z = z + math.random(-32,32)
 					local y = GetGroundHeight(x, z)
-					spawnRandomEgg(x,y,z)
+					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
 				end
 			elseif UnitDefs[unitDefID].name == "chickend1" then
 				for i = 1,math.random(3,10) do
 					local x = x + math.random(-16,16)
 					local z = z + math.random(-16,16)
 					local y = GetGroundHeight(x, z)
-					spawnRandomEgg(x,y,z)
+					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
+				end
+			elseif queenID and unitID == queenID then
+				for i = 1,200 do
+					local x = x + math.random(-32,32)
+					local z = z + math.random(-32,32)
+					local y = GetGroundHeight(x, z)
+					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
 				end
 			else
-				spawnRandomEgg(x,y,z)
+				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
 			end
 		end
 		if heroChicken[unitID] then
@@ -1632,7 +1605,6 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				gameOver = GetGameFrame() + 200
 				spawnQueue = {}
-				KillAllComputerUnits()
 
 				-- kill whole allyteam  (game_end gadget will destroy leftover units)
 				if not killedChickensAllyTeam then
@@ -1643,7 +1615,6 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 				end
-				--KillAllChicken()
 			end
 		end
 
