@@ -1061,6 +1061,11 @@ if gadgetHandler:IsSyncedCode() then
 				if ax then
 					idleOrderQueue[unitID] = {cmd = CMD.MOVE, params = {ax, ay, az}, opts = {} }
 				end
+			elseif BERSERK[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < BERSERK[attackerDefID].chance) then
+				local ax, ay, az = GetUnitPosition(unitID)
+				if ax then
+					idleOrderQueue[attackerID] = {cmd = CMD.MOVE, params = {ax, ay, az}, opts = {} }
+				end
 			end
 		end
 	end
