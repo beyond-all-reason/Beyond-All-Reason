@@ -66,6 +66,10 @@ local chickenTypes = {
 	chickene2	   =  true,
 	chickenearty1  =  true,
 	chickenebomber1 = true,
+	chickenacidswarmer = true,
+	chickenacidassault = true,
+	chickenacidarty = true,
+	chickenacidbomber = true,
   }
 
   local defenders = {
@@ -243,6 +247,8 @@ addWave(4, { "3 chickenw1", "1 chicken_dodo1" })
 addWave(4, { "3 chickens1", "1 chickenf2" })
 addWave(4, { "2 chickenp1", "3 chickene1" })
 addWave(4, { "5 chickene1" })
+addWave(4, { "2 chickenp1", "3 chickenacidswarmer" })
+addWave(4, { "5 chickenacidswarmer" })
 
 newWaveSquad[5] = {"1 chickenh5", "11 chickens1", "2 chickenw2", "1 chickene2"}
 addWave(5, { "6 chicken1x", "2 chickens1", "1 chicken_dodo1" })
@@ -260,6 +266,8 @@ addWave(5, { "1 chickenc3", "2 chickenc3b", "2 chickenc3b" })
 addWave(5, { "3 chickens3", "1 chickenf2" })
 addWave(5, { "3 chickene1", "1 chickene2"})
 addWave(5, { "5 chickene1", "1 chickene2"})
+addWave(5, { "3 chickenacidswarmer", "1 chickenacidassault"})
+addWave(5, { "5 chickenacidswarmer", "1 chickenacidassault"})
 
 newWaveSquad[6] = {"1 chickenh5", "1 chicken_dodo2", "7 chickenp1", "1 chickene2"}
 addWave(6, { "1 chicken_dodo1", "3 chickenp1", "1 chickenf2" })
@@ -310,8 +318,10 @@ addWave(8, { "4 chickenc3", "4 chickenc3b", "4 chickenc3c" })
 addWave(8, { "9 chicken2", "1 chicken_dodo2" })
 addWave(8, { "1 chickene2",  "5 chickenp2"  })
 addWave(8, { "1 chickene2", "1 chickenearty1", "2 chickenebomber1" })
+addWave(8, { "1 chickenacidassault",  "5 chickenp2"  })
+addWave(8, { "1 chickenacidassault", "1 chickenacidarty", "2 chickenacidbomber" })
 
-newWaveSquad[9] = {"1 chickenh5", "5 chickens2", "10 chicken2", "1 chickene2"}
+newWaveSquad[9] = {"1 chickenh5", "5 chickens2", "10 chicken2", "1 chickene2", "1 chickenr2"}
 addWave(9, { "3 chickenf1", "1 chicken_dodo1", "1 chickena2", "1 chickenh1", "1 chickenw1b", "1 chicken2" })
 addWave(9, { "2 chickenf1b", "2 chicken_dodo1", "1 chickenh1b", "1 chicken2", "1 chickenr1" })
 addWave(9, { "1 chickenf1", "1 chickenf1b", "3 chicken_dodo1", "1 chickena2b", "1 chickenh1", "1 chickenh2" })
@@ -324,8 +334,10 @@ addWave(9, { "2 chickena1", "2 chickena1b", "2 chickena1c", "4 chickenh1", "1 ch
 addWave(9, { "1 chickens2", "4 chickenh1b", "1 chicken2", "1 chickenr1" })
 addWave(9, { "6 chicken2", "3 chickenh1", "1 chickenw2", "1 chickenf2" })
 addWave(9, { "5 chickenp2", "1 chickenearty1", "2 chickenebomber1" })
+addWave(9, { "5 chickenp2", "1 chickenacidarty", "2 chickenacidbomber" })
+addWave(9, { "1 chickenr2", "3 chickenr1"})
 
-newWaveSquad[10] = {"1 chickenh5", "13 chicken2b", "1 chickenh2", "1 chickena2", "1 chickena2b", "1 chickene2"}
+newWaveSquad[10] = {"1 chickenh5", "13 chicken2b", "1 chickenh2", "1 chickena2", "1 chickena2b", "1 chickene2", "1 chickenr2"}
 addWave(10, { "7 chicken2b", "1 chickens2", "2 chickenh1" })
 addWave(10, { "5 chicken2b", "1 chickena2", "1 chickenh1" })
 addWave(10, { "4 chicken2", "1 chickens2", "2 chickenh1b" })
@@ -339,6 +351,8 @@ addWave(10, { "4 chickens3", "4 chickenw2", "1 chickenf1b" })
 addWave(10, { "6 chickenp1", "2 chickenh1b", "2 chickenh1" })
 addWave(10, { "5 chickenp2", "1 chickenearty1"})
 addWave(10, { "1 chickenr2", "2 chickenebomber1" })
+addWave(10, { "5 chickenp2", "1 chickenacidarty"})
+addWave(10, { "1 chickenr2", "2 chickenacidbomber" })
 
 newWaveSquad[11] = {"4 chickenh2", "4 chickenh1", "4 chickenh1b"}
 addWave(11, { "3 chickenh1","2 chickenh1b","1 chickenh2","2 chickenh3", "1 chickenc2", "1 chickenw2" })

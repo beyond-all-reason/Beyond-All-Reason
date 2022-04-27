@@ -542,6 +542,8 @@ function UnitDef_Post(name, uDef)
 		if (uDef.mass and uDef.mass < 500) or not uDef.mass then uDef.mass = 500 end
 		if uDef.customparams then uDef.customparams.paralyzemultiplier = 0 end
 		uDef.canhover = true
+		uDef.autoheal = math.ceil(math.sqrt(chickHealth * 0.1))
+		uDef.idleautoheal = math.ceil(math.sqrt(chickHealth * 0.1))
 	end
 
 	if (uDef.buildpic and uDef.buildpic == "") or not uDef.buildpic then

@@ -313,6 +313,9 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickene1"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["chickene2"].id] = { distance = 200, chance = 0.01 },	
 		[UnitDefNames["chickenearty1"].id] = { distance = 1000, chance = 1 },
+		[UnitDefNames["chickenacidswarmer"].id] = { distance = 300, chance = 1 },
+		[UnitDefNames["chickenacidassault"].id] = { distance = 200, chance = 0.01 },	
+		[UnitDefNames["chickenacidarty"].id] = { distance = 1000, chance = 1 },
 	}
 	local COWARD = {
 		[UnitDefNames["chickenh1"].id] = { distance = 300, chance = 0.5 },
@@ -324,9 +327,11 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickene1"].id] = { distance = 2000, chance = 1 },
 		[UnitDefNames["chickene2"].id] = { distance = 2000, chance = 1 },
 		[UnitDefNames["chickenearty1"].id] = { distance = 2000, chance = 1 },
+		[UnitDefNames["chickenacidswarmer"].id] = { distance = 2000, chance = 1 },
+		[UnitDefNames["chickenacidassault"].id] = { distance = 2000, chance = 1 },
+		[UnitDefNames["chickenacidarty"].id] = { distance = 2000, chance = 1 },
 	}
 	local BERSERK = {
-		[UnitDefNames["chickenr2"].id] = { chance = 0.1 },
 		[UnitDefNames["ve_chickenq"].id] = { chance = 0.01 },
 		[UnitDefNames["e_chickenq"].id] = { chance = 0.05 },
 		[UnitDefNames["n_chickenq"].id] = { chance = 0.1 },
@@ -1031,29 +1036,31 @@ if gadgetHandler:IsSyncedCode() then
 			failChickens[unitID] = nil
 		end
 
-		if SKIRMISH[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < SKIRMISH[attackerDefID].chance) then
-			local ux, uy, uz = GetUnitPosition(unitID)
-			local x, y, z = GetUnitPosition(attackerID)
-			if x and ux then
-				local angle = math.atan2(ux - x, uz - z)
-				local distance = mRandom(math.ceil(SKIRMISH[attackerDefID].distance*0.75), math.floor(SKIRMISH[attackerDefID].distance*1.25))
-				idleOrderQueue[attackerID] = { cmd = CMD.MOVE, params = { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, opts = {} }
-			end
-		elseif COWARD[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < COWARD[unitDefID].chance) then
-			local curH, maxH = GetUnitHealth(unitID)
-			if curH and maxH and curH < (maxH * 0.8) then
-				local ax, ay, az = GetUnitPosition(attackerID)
-				local x, y, z = GetUnitPosition(unitID)
-				if x and ax then
-					local angle = math.atan2(ax - x, az - z)
-					local distance = mRandom(math.ceil(COWARD[unitDefID].distance*0.75), math.floor(COWARD[unitDefID].distance*1.25))
-					idleOrderQueue[unitID] = { cmd = CMD.MOVE, params = { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, opts = {} }
+		if not chickenteamhasplayers then
+			if SKIRMISH[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < SKIRMISH[attackerDefID].chance) then
+				local ux, uy, uz = GetUnitPosition(unitID)
+				local x, y, z = GetUnitPosition(attackerID)
+				if x and ux then
+					local angle = math.atan2(ux - x, uz - z)
+					local distance = mRandom(math.ceil(SKIRMISH[attackerDefID].distance*0.75), math.floor(SKIRMISH[attackerDefID].distance*1.25))
+					idleOrderQueue[attackerID] = { cmd = CMD.MOVE, params = { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, opts = {} }
 				end
-			end
-		elseif BERSERK[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < BERSERK[unitDefID].chance) then
-			local ax, ay, az = GetUnitPosition(attackerID)
-			if ax then
-				idleOrderQueue[unitID] = {cmd = CMD.MOVE, params = {ax, ay, az}, opts = {} }
+			elseif COWARD[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < COWARD[unitDefID].chance) then
+				local curH, maxH = GetUnitHealth(unitID)
+				if curH and maxH and curH < (maxH * 0.8) then
+					local ax, ay, az = GetUnitPosition(attackerID)
+					local x, y, z = GetUnitPosition(unitID)
+					if x and ax then
+						local angle = math.atan2(ax - x, az - z)
+						local distance = mRandom(math.ceil(COWARD[unitDefID].distance*0.75), math.floor(COWARD[unitDefID].distance*1.25))
+						idleOrderQueue[unitID] = { cmd = CMD.MOVE, params = { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, opts = {} }
+					end
+				end
+			elseif BERSERK[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < BERSERK[unitDefID].chance) then
+				local ax, ay, az = GetUnitPosition(attackerID)
+				if ax then
+					idleOrderQueue[unitID] = {cmd = CMD.MOVE, params = {ax, ay, az}, opts = {} }
+				end
 			end
 		end
 	end
