@@ -6,6 +6,8 @@ local armorDefs = {
 		"corcom",
 		"cordecom",
 		"corcomcon",
+		"legcom",
+		"legcomdef",
 	},
 	scavboss = {
 		"armcomboss",

@@ -154,7 +154,7 @@ return {
 				badtargetcategory = "LIGHTAIRSCOUT UNDERWATER",
 				def = "PLASMA",
 				maindir = "0 0 1",
-				maxangledif = 270,
+				maxangledif = 290,
 				onlytargetcategory = "NOTSUB",
 			},
 		},
