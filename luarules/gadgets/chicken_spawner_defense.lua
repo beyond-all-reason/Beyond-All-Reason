@@ -1449,7 +1449,7 @@ if gadgetHandler:IsSyncedCode() then
 			if config.burrowSpawnRate < (t - timeOfLastFakeSpawn) and burrowTarget < maxBurrows then
 				-- This block is all about setting the correct burrow target
 				if firstSpawn then
-					minBurrows = math.ceil(SetCount(humanTeams)*0.5)
+					minBurrows = math.ceil(SetCount(humanTeams)*2)
 					local hteamID = next(humanTeams)
 					local ranCount = GetTeamUnitCount(hteamID)
 					for i = 1, ranCount, 1 do
