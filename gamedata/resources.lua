@@ -15,6 +15,7 @@ local resources = {
 			circlefx3        = 'default/circlefx3.png',
 			radarfx2ground   = 'ui/radarping2.png',
 			scar50glow		 = 'projectiletextures/decal_scar_50_glow.tga',
+			centersplatsh    = 'default/centersplatsh_white.tga',
 		 },
 		 projectiletextures = {
 			circularthingy    = 'default/circularthingy.tga',
