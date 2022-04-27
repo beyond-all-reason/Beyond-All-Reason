@@ -1514,7 +1514,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local chickenEggColors = {"pink","white","red", "blue", "darkgreen", "darkred", "green", "yellow"}
+	local chickenEggColors = {"pink","white","red", "blue", "darkgreen", "purple", "green", "yellow", "darkred", "acidgreen"}
 	local function spawnRandomEgg(x,y,z)
 		local r = mRandom(1,100)
 		local size = "s"

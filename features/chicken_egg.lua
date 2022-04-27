@@ -18,7 +18,7 @@ local chicken_egg =  {
 
 local eggs = {}
 local sizes = {"s","m","l",}
-local colors = {"pink","white","red", "blue", "darkgreen", "darkred", "green", "yellow"}
+local colors = {"pink","white","red", "blue", "darkgreen", "purple", "green", "yellow", "darkred", "acidgreen"}
 local mvalues = {s = 20, m = 50, l = 100}
 local evalues = {s = 200, m = 500, l = 1000}
 
