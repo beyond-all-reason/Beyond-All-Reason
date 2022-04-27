@@ -30,8 +30,15 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,3)=="$y$" and msg:sub(4,5)==validation then
-			SendToUnsynced("systemBroadcast",playerID,msg:sub(6))
-			return true
+			local playername, _, spec = Spring.GetPlayerInfo(playerID,false)
+			local authorized = false
+			if _G.permissions.sysinfo[playername] then
+				authorized = true
+			end
+			if authorized or msg:sub(6,6) == '1' then
+				SendToUnsynced("systemBroadcast",playerID,msg:sub(7))
+				return true
+			end
 		end
 	end
 
@@ -59,9 +66,6 @@ else
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("systemBroadcast", handleSystemEvent)
 		local myvalidation = validation
-		if (Spring.GetConfigInt("SystemPrivacy",1) or 1) == 1 then
-			myvalidation = 'no'
-		end
 
 		local s_cpu, s_gpu, s_gpuVram, s_ram, s_os, s_resolution, s_displaymode, s_displays, s_config, s_configs_os, s_cpuCoresLogical, s_cpuCoresPhysical, ds, nl, configEnd
 
@@ -206,7 +210,11 @@ else
 
 		system = string.sub(system, 2)
 		if system ~= '' then
-			SendLuaRulesMsg("$y$"..myvalidation..system)
+			local broadcast = '0'
+			if (Spring.GetConfigInt("SystemPrivacy",1) or 1) == 0 then
+				broadcast = '1'
+			end
+			SendLuaRulesMsg("$y$"..myvalidation..broadcast..system)
 		end
 	end
 

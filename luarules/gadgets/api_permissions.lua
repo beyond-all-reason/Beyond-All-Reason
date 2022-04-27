@@ -11,16 +11,10 @@ function gadget:GetInfo()
 	}
 end
 
--- (include all permissions used in codebase)
-local singleplayerPermissions = {
-	give = true,
-	undo = true,
-	cmd = true,
-	devhelpers = true,
-	waterlevel = true,
-	playerdata = false,
-}
+
 local powerusers = include("LuaRules/configs/powerusers.lua")
+local singleplayerPermissions = powerusers['   ']
+powerusers['   '] = nil
 
 local numPlayers = Spring.Utilities.GetPlayerCount()
 
