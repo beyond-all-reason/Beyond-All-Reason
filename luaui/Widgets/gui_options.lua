@@ -2732,6 +2732,13 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
 		  end,
 		},
+		{ id = "systemprivacy", restart = true, group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.systemprivacy, type = "bool", value = (Spring.GetConfigInt("SystemPrivacy", 1) == 1), description = texts.option.systemprivacy_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("SystemPrivacy", value and 1 or 0)
+		  end,
+		},
 		{ id = "unittotals", group = "ui", category = types.basic, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   " .. texts.option.unittotals, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = texts.option.unittotals_descr },
 		{ id = "mascot", group = "ui", category = types.advanced, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   " .. texts.option.mascot, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = texts.option.mascot_descr },
 
