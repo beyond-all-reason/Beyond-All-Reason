@@ -544,6 +544,7 @@ function UnitDef_Post(name, uDef)
 		uDef.canhover = true
 		uDef.autoheal = math.ceil(math.sqrt(chickHealth * 0.1))
 		uDef.idleautoheal = math.ceil(math.sqrt(chickHealth * 0.1))
+		uDef.customparams.areadamageresistance = "_CHICKENACID_"
 	end
 
 	if (uDef.buildpic and uDef.buildpic == "") or not uDef.buildpic then

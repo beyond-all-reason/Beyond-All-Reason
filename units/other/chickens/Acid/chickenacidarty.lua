@@ -113,7 +113,7 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 520,
 				damage = {
-					default = 300,
+					default = 1,
 				},
 				customparams = {
 					expl_light_life_mult = 1.0,

@@ -28,29 +28,33 @@ local TimedDamageWeapons = {
         ceg = "acid-area-150", 
         damageCeg = "acid-damage-gen", 
         time = 10,
-        damage = 100,
+        damage = 150,
         range = 150,
+        resistance = "_CHICKENACID_",
     },
     [WeaponDefNames.chickenacidarty_acidspit.id] = {
         ceg = "acid-area-192", 
         damageCeg = "acid-damage-gen", 
         time = 10,
-        damage = 100,
+        damage = 150,
         range = 192,
+        resistance = "_CHICKENACID_",
     },
     [WeaponDefNames.chickenacidbomber_acidbomb.id] = {
         ceg = "acid-area-75", 
         damageCeg = "acid-damage-gen", 
         time = 10,
-        damage = 100,
+        damage = 150,
         range = 75,
+        resistance = "_CHICKENACID_",
     },
     [WeaponDefNames.chickenacidswarmer_acidspit.id] = {
         ceg = "acid-area-75", 
         damageCeg = "acid-damage-gen", 
         time = 10,
-        damage = 33,
+        damage = 50,
         range = 75,
+        resistance = "_CHICKENACID_",
     },
 }
 
@@ -61,6 +65,7 @@ local TimedDamageDyingUnits = {
         time = 10,
         damage = 100,
         range = 150,
+        resistance = "_CHICKENACID_",
     },
     [UnitDefNames.chickenacidarty.id] = {
         ceg = "acid-area-150", 
@@ -68,6 +73,7 @@ local TimedDamageDyingUnits = {
         time = 10,
         damage = 100,
         range = 150,
+        resistance = "_CHICKENACID_",
     },
     [UnitDefNames.chickenacidswarmer.id] = {
         ceg = "acid-area-75", 
@@ -75,6 +81,7 @@ local TimedDamageDyingUnits = {
         time = 10,
         damage = 33,
         range = 75,
+        resistance = "_CHICKENACID_",
     },
 }
 
@@ -101,6 +108,7 @@ function gadget:Explosion(weaponDefID, px, py, pz, AttackerID, ProjectileID)
             ceg = TimedDamageWeapons[weaponDefID].ceg,
             cegSpawned = false,
             damageCeg = TimedDamageWeapons[weaponDefID].damageCeg,
+            resistance = TimedDamageWeapons[weaponDefID].resistance,
         }
     end
 end
@@ -119,6 +127,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
             ceg = TimedDamageDyingUnits[unitDefID].ceg,
             cegSpawned = false,
             damageCeg = TimedDamageDyingUnits[unitDefID].damageCeg,
+            resistance = TimedDamageDyingUnits[unitDefID].resistance,
         }
     end
 end
@@ -143,11 +152,13 @@ function gadget:GameFrame(frame)
                     
                     local damage = aliveExplosions[i].damage*0.733
                     local range = aliveExplosions[i].range
+                    local resistance = aliveExplosions[i].resistance
 
                     local unitsInRange = Spring.GetUnitsInSphere(x, y, z, range)
                     for j = 1,#unitsInRange do
                         local unitID = unitsInRange[j]
-                        if not UnitDefs[Spring.GetUnitDefID(unitID)].canFly then
+                        local unitDefID = Spring.GetUnitDefID(unitID)
+                        if (not UnitDefs[unitDefID].canFly) and (not (UnitDefs[unitDefID].customParams and UnitDefs[unitDefID].customParams.areadamageresistance and string.find(UnitDefs[unitDefID].customParams.areadamageresistance, resistance))) then
                             local health = Spring.GetUnitHealth(unitID)
                             if health > damage then
                                 Spring.SetUnitHealth(unitID, health - damage)

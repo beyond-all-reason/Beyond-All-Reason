@@ -111,7 +111,7 @@ return {
 				sprayangle = 400,
 				weapontype = "AircraftBomb",
 				damage = {
-					default = 300,
+					default = 1,
 				},
 				customparams = {
 					expl_light_life_mult = 1.0,

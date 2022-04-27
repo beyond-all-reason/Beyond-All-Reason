@@ -109,7 +109,7 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 520,
 				damage = {
-					default = 100, --damage done in unit_area_timed_damage.lua
+					default = 1, --damage done in unit_area_timed_damage.lua
 				},
 				customparams = {
 					expl_light_life_mult = 1.0,
