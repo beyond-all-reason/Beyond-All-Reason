@@ -1520,7 +1520,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local egg = Spring.CreateFeature("chicken_egg_"..size.."_"..chickenEggColors[math.random(1,#chickenEggColors)], x, y, z, math.random(-999999,999999), chickenTeamID)
 		if egg then
-			Spring.SetFeatureVelocity(egg, mRandom(-2000,2000)*0.01, mRandom(300,600)*0.01, mRandom(-2000,2000)*0.01)
+			Spring.SetFeatureMoveCtrl(egg, false,1,1,1,1,1,1,1,1,1)
+			Spring.SetFeatureVelocity(egg, mRandom(-300,300)*0.01, mRandom(300,600)*0.01, mRandom(-300,300)*0.01)
 		end
 	end
 
