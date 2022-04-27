@@ -4,7 +4,7 @@ return {
 		brakerate = 4.5,
 		buildcostenergy = 5000,
 		buildcostmetal = 500,
-		builddistance = 750,
+		builddistance = 1500,
 		builder = true,
 		buildpic = "ARMNANOTCPLAT.DDS",
 		buildtime = 5312,

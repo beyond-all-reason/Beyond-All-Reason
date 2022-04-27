@@ -1,6 +1,6 @@
 local spawnpadSpawnEnabled = false
-local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
-if Spring.GetModOptions().commanderbuildersenabled == "enabled" or (Spring.GetModOptions().commanderbuildersenabled == "scav_only" and scavengersAIEnabled) then
+local PvEEnabled = Spring.Utilities.Gametype.isPvE()
+if Spring.GetModOptions().commanderbuildersenabled == "enabled" or (Spring.GetModOptions().commanderbuildersenabled == "pve_only" and PvEEnabled) then
 	spawnpadSpawnEnabled = true
 end
 

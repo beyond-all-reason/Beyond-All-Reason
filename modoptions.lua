@@ -751,11 +751,11 @@ local options={
 		key="assistdronesenabled",
 		name="Assist Drones",
 		type="list",
-		def="scav_only",
+		def="pve_only",
 		section="options",
 		items={
 			{key="enabled", name="Enabled"},
-			{key="scav_only", name="Enabled for Scavengers only"},
+			{key="pve_only", name="Enabled for PvE only"},
 			{key="disabled", name="Disabled"},
 		}
 	},
@@ -776,11 +776,11 @@ local options={
 		key="commanderbuildersenabled",
 		name="Base Construction Turret",
 		type="list",
-		def="scav_only",
+		def="pve_only",
 		section="options",
 		items={
 			{key="enabled", name="Enabled"},
-			{key="scav_only", name="Enabled for Scavengers only"},
+			{key="pve_only", name="Enabled for PvE only"},
 			{key="disabled", name="Disabled"},
 		}
 	},
