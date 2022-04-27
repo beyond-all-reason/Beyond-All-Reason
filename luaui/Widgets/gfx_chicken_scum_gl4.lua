@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
-		name = "Chicken Creep GL4",
-		desc = "Draws creep with global overlap texturing",
+		name = "Chicken Scum GL4",
+		desc = "Draws scum with global overlap texturing",
 		author = "Beherith",
 		date = "2022.04.20",
 		license = "Lua code: GNU GPL, v2 or later, Shader GLSL code: (c) Beherith (mysterme@gmail.com)",
@@ -26,9 +26,10 @@ local texnormalspec =  "LuaUI/images/alien_guts_normalspec.dds"
 local texdistortion =  "LuaUI/images/lavadistortion.png"
 local resolution = 32
 
-local creepVBO = nil
-local creepShader = nil
+local scumVBO = nil
+local scumShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
+local debugmode = false
 
 local glTexture = gl.Texture
 local glCulling = gl.Culling
@@ -110,7 +111,7 @@ void main()
 	
 	// Sample the heightmap to get reasonable world depth
 	vec2 uvhm = heighmapUVatWorldPos(mapPos.xz);
-	mapPos.y = textureLod(heightmapTex, uvhm, 0.0).x + 2.0;
+	mapPos.y = textureLod(heightmapTex, uvhm, 0.0).x + 3.0;
 	
 	// sample the map normals and pass it on for later use:
 	v_mapnormals = textureLod(mapnormalsTex, uvhm, 0.0);
@@ -190,8 +191,8 @@ void main(void)
 	// discard outside of current radius
 	if (internalradius> radialgrowth) discard; // bail before any texture fetches
 	vec4 texdistort = texture(distortion, v_worldUV.xz * CREEPTEXREZ * 1.0);
-	float radialCreep = smoothstep(radialgrowth - 0.15, radialgrowth, internalradius + 0.1 * texdistort.x );
-	if (radialCreep > 0.7) discard;
+	float radialScum = smoothstep(radialgrowth - 0.15, radialgrowth, internalradius + 0.1 * texdistort.x );
+	if (radialScum > 0.7) discard;
 
 	vec4 texcolorheight= texture(colorheight, v_worldUV.xz * CREEPTEXREZ, -0.5);
 	vec4 texnormalspec = texture(normalspec, v_worldUV.xz* CREEPTEXREZ, - 0.5);
@@ -233,7 +234,7 @@ void main(void)
 	
 	// darken outside
 
-	fragColor.a = 1.0 - radialCreep*3;
+	fragColor.a = 1.0 - radialScum*3;
 	fragColor.rgb *= ((fragColor.a  -0.3)*2.0) ;
 	
 	
@@ -242,7 +243,7 @@ void main(void)
 ]]
 
 local function goodbye(reason)
-  Spring.Echo("Creep GL4 widget exiting with reason: "..reason)
+  Spring.Echo("Scum GL4 widget exiting with reason: "..reason)
   widgetHandler:RemoveWidget()
 end
 
@@ -250,7 +251,7 @@ local function initGL4(shaderConfig, DPATname)
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	creepShader =  LuaShader(
+	scumShader =  LuaShader(
 		{
 		  vertex = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
 		  fragment = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
@@ -269,10 +270,10 @@ local function initGL4(shaderConfig, DPATname)
 		},
 		DPATname .. "Shader"
 	  )
-	local shaderCompiled = creepShader:Initialize()
+	local shaderCompiled = scumShader:Initialize()
 	if not shaderCompiled then goodbye("Failed to compile ".. DPATname .." GL4 ") end
 
-	creepVBO = makeInstanceVBOTable(
+	scumVBO = makeInstanceVBOTable(
 		{
 			{id = 1, name = 'worldposradius', size = 4}, -- xpos, ypos, zpos, radius
 			{id = 2, name = 'lifeparams', size = 4}, -- lifestart, lifeend, growthrate, unused
@@ -280,26 +281,26 @@ local function initGL4(shaderConfig, DPATname)
 		64, -- maxelements
 		DPATname .. "VBO" -- name
 	)
-	if creepVBO == nil then goodbye("Failed to create creepVBO") end
+	if scumVBO == nil then goodbye("Failed to create scumVBO") end
 	
 	local planeVBO, numVertices = makePlaneVBO(1,1,resolution,resolution)
 	local planeIndexVBO, numIndices =  makePlaneIndexVBO(resolution,resolution, true)
 	
-	creepVBO.vertexVBO = planeVBO
-	creepVBO.indexVBO = planeIndexVBO
+	scumVBO.vertexVBO = planeVBO
+	scumVBO.indexVBO = planeIndexVBO
 	
-	creepVBO.VAO = makeVAOandAttach(
-		creepVBO.vertexVBO, 
-		creepVBO.instanceVBO, 
-		creepVBO.indexVBO)
+	scumVBO.VAO = makeVAOandAttach(
+		scumVBO.vertexVBO, 
+		scumVBO.instanceVBO, 
+		scumVBO.indexVBO)
 	
 end
 
-local creepIndex = 0
-local creepTimes = {} -- maps instanceID to expected fadeout timeInfo
-local creepRemoveQueue = {} -- maps gameframes to list of creeps that will be removed
-local creeps = {} -- table of {posx = 123, posz = 123, radius = 123, spawnframe = 0, growthrate = -1.0} -- in elmos per sec
-local creepBins = {} -- a table keyed with (posx / 1024) + 1024 + (posz/1024), values are tables of creepindexes that can overlap that bin
+local scumIndex = 0
+local scumRemoveQueue = {} -- maps gameframes to list of scums that will be removed
+local scums = {} -- table of {posx = 123, posz = 123, radius = 123, spawnframe = 0, growthrate = -1.0} -- in elmos per sec
+local numscums = 0
+local scumBins = {} -- a table keyed with (posx / 1024) + 1024 + (posz/1024), values are tables of scumindexes that can overlap that bin
 
 local sqrt = math.sqrt
 local floor = math.floor
@@ -309,7 +310,7 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spGetGameFrame = Spring.GetGameFrame
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
-local boundary = 32 -- how many elmos closer to the center of the creep than the actual edge of the creep the unit must be to be considered on the creep
+local boundary = 32 -- how many elmos closer to the center of the scum than the actual edge of the scum the unit must be to be considered on the scum
 
 local function GetMapSquareKey(posx, posz)
 	if posx < 0 or posz < 0 or posx > mapSizeX or posz > mapSizeZ then return nil end
@@ -318,110 +319,153 @@ end
 
 for x= 0, math.ceil(mapSizeX/1024) do 
 	for z = 0, math.ceil(mapSizeZ/1024) do 
-		creepBins[x*1024+z] = {}
+		scumBins[x*1024+z] = {}
 	end
 end
 
--- This checks wether the unit is under any creep 
--- 
-local function IsPosInCreep(unitx,unity, unitz)
-	-- out of bounds check, no creep outside of map bounds
+local function GetScumCurrentRadius(scum, gf)
+	gf = gf or Spring.GetGameFrame()
+	if scum.growthrate > 0 then 
+		return max(0, min(scum.radius, (gf - scum.spawnframe) * scum.growthrate))
+	else
+		return min(scum.radius, max(0,scum.radius - (gf - scum.spawnframe) *(-1.0 * scum.growthrate)) )
+	end
+end
+
+-- This checks wether the unit is under any scum 
+local function IsPosInScum(unitx,unity, unitz)
+	-- out of bounds check, no scum outside of map bounds
 	if unitx < 0 or unitz < 0 or unitx > mapSizeX or unitz > mapSizeZ then return nil end
-	-- underwater creep doesnt count for hovers, ships
-	if unity > -1 and spGroundHeight(unitx, unitz) < 0 then return nil end 
+	-- underwater scum doesnt count for hovers, ships
+	unity = unity or 1
+	if unity > -1 and spGetGroundHeight(unitx, unitz) < 0 then return nil end 
 	
 	-- Empty bins also return 
-	local creepBinID = GetMapSquareKey(unitx, unitz)
-	if creepBinID == nil or creepBins[creepBinID] == nil then return end 
+	local scumBinID = GetMapSquareKey(unitx, unitz)
+	if scumBinID == nil or scumBins[scumBinID] == nil then return nil end 
 	local gf = spGetGameFrame()
 	
-	for creepID, creep in pairs(creepBins[creepBinID]) do 
-		local dx = (unitx - creep.posx)
-		local dz = (unitz - creep.posz)
+	for scumID, scum in pairs(scumBins[scumBinID]) do 
+		local dx = (unitx - scum.posx)
+		local dz = (unitz - scum.posz)
 		local sqrdistance = (dx*dx + dz*dz)
-		local creepradius = creep.radius
-		if sqrdistance < (creepradius * creepradius) then 
-			local currentcreepradius 
-			local growthrate = creep.growthrate
-			if growthrate > 0 then 
-				currentcreepradius = min(creepradius,(creep.spawnframe-gf) * growthrate)
-			else
-				currentcreepradius = max(0,creepradius (creep.spawnframe-gf) * growthrate)
-			end
-			if currentcreepradius  - sqrt(sqrdistance) > boundary then 
-				return creepID
+		local scumradius = scum.radius
+		if sqrdistance < (scumradius * scumradius) then 
+			local currentscumradius = GetScumCurrentRadius(scum, gf)
+			--Spring.Echo("testing ScumID", scumID, sqrdistance, scumradius, currentscumradius)
+			if currentscumradius  - sqrt(sqrdistance) > boundary then 
+				return scumID
 			end
 		end
 	end
 	return nil
 end
 
-local function UpdateBins(creepID, removeCreep)
-	local creepTable = creeps[creepID]
-	local posx = creepTable.posx
-	local posz = creepTable.posz
-	local radius = creepTable.radius
+local function UpdateBins(scumID, removeScum)
+	local scumTable = scums[scumID]
+	if scumTable == nil then 
+		Spring.Echo("Tried to update a scumID",scumID,"that no longer exists because it probably shrank to death, remove = ", removeScum)
+		return nil 
+	end
 	
-	if removeCreep then 
-		creepTable = nil
-		creeps[creepID] = nil
+	local posx = scumTable.posx
+	local posz = scumTable.posz
+	local radius = scumTable.radius
+	
+	if removeScum then 
+		scumTable = nil
+		scums[scumID] = nil
 	end
 	
 	local binID = GetMapSquareKey(posx, posz)
-	if binID then creepBins[binID][creepID] = creepTable end
+	if binID then scumBins[binID][scumID] = scumTable end
 	binID = GetMapSquareKey(posx + radius, posz + radius)
-	if binID then creepBins[binID][creepID] = creepTable end
+	if binID then scumBins[binID][scumID] = scumTable end
 	binID = GetMapSquareKey(posx - radius, posz + radius)
-	if binID then creepBins[binID][creepID] = creepTable end
+	if binID then scumBins[binID][scumID] = scumTable end
 	binID = GetMapSquareKey(posx + radius, posz - radius)
-	if binID then creepBins[binID][creepID] = creepTable end
+	if binID then scumBins[binID][scumID] = scumTable end
 	binID = GetMapSquareKey(posx - radius, posz - radius)
-	if binID then creepBins[binID][creepID] = creepTable end
+	if binID then scumBins[binID][scumID] = scumTable end
 end
 
--- growthrate is in elmos per frame, negative for shrinking creeps
-local function AddCreep(posx, posy, posz, radius, growthrate, creepID)
-	-- if creepID is supplied, we are updateing an existing creep instance!
+-- growthrate is in elmos per frame, negative for shrinking scums
+local function AddOrUpdateScum(posx, posy, posz, radius, growthrate, scumID)
+	if debugmode then Spring.Echo("AddOrUpdateScum",posx, posy, posz, radius, growthrate, scumID) end
+	-- if scumID is supplied, we are updateing an existing scum instance!
 
 	local gf = Spring.GetGameFrame()
-	posy = posy or Spring.GetGroundHeight(posx, posz)
-	
-	-- thus we need to make a new creep, and register it in our creepBins
-	if creepID == nil or creepVBO.instanceIDtoIndex[creepID] == nil then 
-		creepIndex = creepIndex + 1
-		creepID = creepIndex
-		local newCreepTable = {posx = posx, posz = posz, radius = radius, spawnframe = gf, growthrate = growthrate, creepID = creepID}
-		creeps[creepID] = newCreepTable
-		UpdateBins(creepID)
-	end
-	--Spring.Echo(creepID, growthrate, radius, gf)
-	pushElementInstance(
-		creepVBO, -- push into this Instance VBO Table
-			{posx, posy, posz, radius ,  -- 
-			gf,  growthrate, 0, 0, -- alphastart_alphadecay_heatstart_heatdecay
-			},
-		creepID, -- this is the key inside the VBO Table, should be unique per unit
-		true, -- update existing element
-		false) -- noupload, dont use unless you know what you want to batch push/pop
-	
-	
-	if growthrate < 0 then 
-		local deathtime = gf - radius / growthrate
-		if creepRemoveQueue[deathtime] == nil then 
-			creepRemoveQueue[deathtime] = {creepID}
-		else
-			creepRemoveQueue[deathtime][#creepRemoveQueue[deathtime] + 1 ] = creepID
+	local deathtime
+	local scum
+	-- thus we need to make a new scum, and register it in our scumBins
+	if scumID == nil or scums[scumID] == nil then 
+		posy = posy or Spring.GetGroundHeight(posx, posz)
+		scumIndex = scumIndex + 1
+		scumID = scumIndex
+		scum = {posx = posx, posz = posz, radius = radius, spawnframe = gf, growthrate = growthrate, scumID = scumID}
+		scums[scumID] = scum
+		UpdateBins(scumID)
+		numscums = numscums + 1
+	else-- a scumID is supplied, meaning we just update an existing instance
+		scum = scums[scumID]
+		-- well then, seems we have to do this after all, when we update a scum, we need to check how long its been alive
+		-- this is the nastiest garbage ive ever done
+		local currentradius = GetScumCurrentRadius(scum, gf)
+		
+		-- always remove from removal queue on update
+		for _, removescums in pairs(scumRemoveQueue) do 
+			removescums[scumID] = nil
 		end
+		
+		if growthrate > 0 then 
+			scum.spawnframe = gf - ( currentradius/growthrate)
+			-- remove it from the death queue, no matter where it is, cause its 'growing'
+		else
+			scum.spawnframe = gf - ((scum.radius - currentradius)/ (-1 * growthrate) )
+			deathtime = math.floor( gf + (currentradius/(-1 * growthrate)))	
+		end
+		
+		scum.growthrate = growthrate
+		
+		if debugmode then Spring.Echo("Updated scum", scumID, "it was", currentradius,"/", scum.radius, "sized, growing at", growthrate) end
 	end
-	return creepID
+	--Spring.Echo(scumID, growthrate, radius, gf)
+	pushElementInstance(
+		scumVBO, -- push into this Instance VBO Table
+			{scum.posx, scum.posy, scum.posz, scum.radius ,  -- 
+			scum.spawnframe,  scum.growthrate, 0, 0, -- alphastart_alphadecay_heatstart_heatdecay
+			},
+		scumID, -- this is the key inside the VBO Table, should be unique per unit
+		true, -- update existing element
+		false) -- noupload, dont use unless you know what you are doing and want to batch push/pop
+		
+	if scum.growthrate < 0 then 
+		if debugmode then Spring.Echo("Removal of scum ID", scumID,"Scheduled for ",  deathtime - gf , "from now" ) end 
+		if scumRemoveQueue[deathtime] == nil then 
+			scumRemoveQueue[deathtime] = {}
+		end
+		scumRemoveQueue[deathtime][scumID] = true
+	end
+	
+	return scumID
 end
 
 local usestencil = false
 
 function widget:DrawWorldPreUnit()
-	if creepVBO.usedElements > 0 then
+	if debugmode then 
+		local mx, my, mb = Spring.GetMouseState()
+		local _, coords = Spring.TraceScreenRay(mx, my, true)
+		local posx  = Game.mapSizeX * math.random() * 1
+		local posz  = Game.mapSizeZ * math.random() * 1
+		local posy  = Spring.GetGroundHeight(posx, posz)
+		if coords and (IsPosInScum(coords[1], coords[2],coords[3])) then 
+			Spring.Echo("Inscum", numscums, IsPosInScum(coords[1], coords[2],coords[3])) 
+		end
+	end
+	if scumVBO.usedElements > 0 then
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
-		--Spring.Echo(creepVBO.usedElements)
+		--Spring.Echo(scumVBO.usedElements)
 		--glCulling(GL_BACK)
 		glCulling(false)
 		glDepthTest(GL_LEQUAL)
@@ -434,7 +478,7 @@ function widget:DrawWorldPreUnit()
 		glTexture(4, texcolorheight)
 		glTexture(5, texnormalspec)
 		glTexture(6, texdistortion)-- Texture file
-		creepShader:Activate()
+		scumShader:Activate()
 		
 		if usestencil then 
 			gl.StencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
@@ -446,9 +490,9 @@ function widget:DrawWorldPreUnit()
 			glStencilMask(1)
 		end
 		
-		--creepShader:SetUniform("fadeDistance",disticon * 1000)
-		creepVBO.VAO:DrawElements(GL.TRIANGLES,nil,0,creepVBO.usedElements, 0)
-		creepShader:Deactivate()
+		--scumShader:SetUniform("fadeDistance",disticon * 1000)
+		scumVBO.VAO:DrawElements(GL.TRIANGLES,nil,0,scumVBO.usedElements, 0)
+		scumShader:Deactivate()
 		if usestencil then 
 			glStencilMask(1)
 			glStencilFunc(GL_ALWAYS, 1, 1)
@@ -462,45 +506,68 @@ function widget:DrawWorldPreUnit()
 	end
 end
 
-local function RemoveCreep(instanceID)
-	if creeps[instanceID] then 
-		UpdateBins(instanceID, true)
+local function RemoveScum(instanceID)
+	if debugmode then Spring.Echo("Removing scum", instanceID) end
+	if scums[instanceID] then 
+		numscums = numscums - 1
 	end
-	if creepVBO.instanceIDtoIndex[instanceID] then
-		popElementInstance(creepVBO, instanceID)
+	UpdateBins(instanceID, true)
+	if scumVBO.instanceIDtoIndex[instanceID] then
+		popElementInstance(scumVBO, instanceID)
 	end
-	creepTimes[instanceID] = nil
+end
+
+local function AddRandomScum()
+	local posx  = Game.mapSizeX * math.random() * 0.8
+	local posz  = Game.mapSizeZ * math.random() * 0.8
+	local posy  = Spring.GetGroundHeight(posx, posz)
+	local radius = math.random() * 256 + 128
+	local lifetime = math.random() * 1025
+	local deathtime = lifetime * 2
+	local growthrate = math.random() * 0.5 -- in elmos per frame
+	AddOrUpdateScum(
+			posx,
+			posy,
+			posz,
+			radius,
+			growthrate
+			)
 end
 
 function widget:GameFrame(n)
-	if creepRemoveQueue[n] then 
-		for i=1, #creepRemoveQueue[n] do
-			RemoveCreep(creepRemoveQueue[n][i])
+	if scumRemoveQueue[n] then 
+		for scumID, _ in pairs(scumRemoveQueue[n]) do 
+			RemoveScum(scumID)
 		end
-		creepRemoveQueue[n] = nil
+		scumRemoveQueue[n] = nil
+	end
+	
+	if debugmode then 
+		-- randomly add a new scum instance
+		if n % 2 == 0 then 
+
+			if numscums < 300 then 
+				AddRandomScum()
+			else
+				for scumID, scumData in pairs(scums) do 
+					if math.random() < 1.0 / numscums then 
+						AddOrUpdateScum(nil,nil,nil,nil, math.random() * 1 -0.5, scumID)
+						break
+					end
+				end
+			end
+		end
 	end
 end
 
+
 function widget:Initialize()
 	--shaderConfig.MAXVERTICES = 4
-	initGL4(shaderConfig, "creep")
+	initGL4(shaderConfig, "scum")
 	math.randomseed(1)
 	if true then 
 		for i= 1, 100 do 
-			local posx  = Game.mapSizeX * math.random() * 1
-			local posz  = Game.mapSizeZ * math.random() * 1
-			local posy  = Spring.GetGroundHeight(posx, posz)
-			local radius = math.random() * 256
-			local lifetime = math.random() * 1025
-			local deathtime = lifetime * 2
-			local growthrate = math.random() * 3 -- in elmos per frame
-			AddCreep(
-					posx,
-					posy,
-					posz,
-					radius,
-					growthrate
-					)
+			--AddRandomScum()
 		end
 	end
 end
