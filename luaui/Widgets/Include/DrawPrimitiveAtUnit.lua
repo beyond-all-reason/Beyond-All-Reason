@@ -29,6 +29,7 @@ local shaderConfig = {
 	USE_QUADS = 1, -- set to nil if you dont want to use quads
 	FULL_ROTATION = 0, -- the primitive is fully rotated in the units plane
 	DISCARD = 0, -- Enable alpha threshold to discard fragments below 0.01
+	ROTATE_CIRCLES = 1, -- Set to 0 if you dont want circles to be rotated
 }
 
 ---- GL4 Backend Stuff----
@@ -205,7 +206,12 @@ void main(){
 		#if (FULL_ROTATION == 1)
 			rotY = dataIn[0].v_fullrotation; // Use the units true rotation
 		#else
-			rotY = rotation3dY(-1*dataIn[0].v_rotationY); // Create a rotation matrix around Y from the unit's rotation
+			#if (ROTATE_CIRCLES == 1)
+				rotY = rotation3dY(-1*dataIn[0].v_rotationY); // Create a rotation matrix around Y from the unit's rotation
+			#else
+				if (numVertices > uint(5)) rotY = mat3(1.0) ;
+				else rotY = rotation3dY(-1*dataIn[0].v_rotationY);
+			#endif
 		#endif
 	#endif
 
