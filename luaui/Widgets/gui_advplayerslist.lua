@@ -380,7 +380,7 @@ m_skill = {
     name = "skill",
     spec = true,
     play = true,
-    active = true,
+    active = false,
     width = 18,
     position = position,
     posX = 0,
@@ -3116,12 +3116,14 @@ function widget:GetConfigData(data)
             transitionTime = transitionTime,
             lockcameraHideEnemies = lockcameraHideEnemies,
             lockcameraLos = lockcameraLos,
+			hasresetskill = true,
         }
 
         return settings
     end
 end
 
+local dataversion = 1
 function widget:SetConfigData(data)
     -- load
     if data.widgetVersion ~= nil and widgetVersion == data.widgetVersion then
@@ -3234,6 +3236,11 @@ function widget:SetConfigData(data)
                 end
             end
         end
+
+		if not data.hasresetskill then
+			m_skill.active = false
+		end
+
         SetModulesPositionX()
 
         if data.lastSystemData ~= nil and data.gameFrame ~= nil and data.gameFrame <= Spring.GetGameFrame() and data.gameFrame > Spring.GetGameFrame() - 300 then
