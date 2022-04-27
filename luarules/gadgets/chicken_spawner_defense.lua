@@ -1514,13 +1514,6 @@ if gadgetHandler:IsSyncedCode() then
 					local y = GetGroundHeight(x, z)
 					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
 				end
-			elseif queenID and unitID == queenID then
-				for i = 1,200 do
-					local x = x + math.random(-32,32)
-					local z = z + math.random(-32,32)
-					local y = GetGroundHeight(x, z)
-					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
-				end
 			else
 				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
 			end
