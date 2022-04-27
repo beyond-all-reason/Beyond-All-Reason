@@ -10,6 +10,7 @@ local chicken_egg =  {
     height = 15,
     hitdensity = 999999,
     metal = 100,
+    mass = 100,
     reclaimable = 1,
     resurrectable = 0,
     world = "All Worlds",
