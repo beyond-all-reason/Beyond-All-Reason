@@ -32,11 +32,11 @@ local TimedDamageWeapons = {
         range = 150,
     },
     [WeaponDefNames.chickenacidarty_acidspit.id] = {
-        ceg = "acid-area-150", 
+        ceg = "acid-area-192", 
         damageCeg = "acid-damage-gen", 
         time = 10,
         damage = 100,
-        range = 150,
+        range = 192,
     },
     [WeaponDefNames.chickenacidbomber_acidbomb.id] = {
         ceg = "acid-area-75", 

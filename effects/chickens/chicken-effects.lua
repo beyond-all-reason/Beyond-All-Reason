@@ -1,6 +1,5 @@
--- Effects for Scavengers
-
-return {
+-- Effects for Raptors (before known as Chickens)
+local definitions = {
   ["blob_trail_blue"] = {
     usedefaultexplosions = false,
     
@@ -614,9 +613,9 @@ return {
         },
   },
 
-  ["acid-area-256"] = {
+  ["acid-area"] = {
     usedefaultexplosions = false,
-    acid_area = {
+    acid_groundsplat = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
@@ -624,39 +623,23 @@ return {
       underwater         = 1,
       water              = true,
       properties = {
-        colormap           = [[0.05 0.09 0.02 0.10   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12    0.22 0.34 0.055 0.10   0.22 0.34 0.055 0.10   0.18 0.32 0.045 0.10    0.15 0.18 0.04 0.10    0.10 0.16 0.03 0.10    0.10 0.16 0.03 0.10     0.10 0.16 0.03 0.10    0 0 0 0.01]],
+        colormap           = [[0.05 0.09 0.02 0.10   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12    0.22 0.34 0.055 0.10   0.22 0.34 0.055 0.10   0.18 0.32 0.045 0.10    0.15 0.18 0.04 0.10    0.10 0.16 0.03 0.10    0.10 0.16 0.03 0.10     0.10 0.16 0.03 0.10    0 0 0 0.01]],
         dir                = [[0, 1, 0]],
         frontoffset        = 0,
         fronttexture       = [[bloodcentersplatshwhite]],
         length             = 45,
         sidetexture        = [[none]],
-        size               = [[240 r48]],
-        sizegrowth         = 0.0,
+        size               = [[230 r60]],
+        sizegrowth         = 0.1,
         ttl                = 330,
-        pos                = [[0, 20, 0]],
+        pos                = [[0, 15, 0]],
         rotParams          = [[0 r0, 0, -180 r360]],
         alwaysvisible      = true,
       },
     },
-    groundflash_acid = {
-      class              = [[CSimpleGroundFlash]],
-      count              = 0,
-      air                = true,
-      ground             = true,
-      water              = false,
-      underwater         = false,
-      properties = {
-        rotParams          = [[0 r0, 0, -180 r360]],
-        colormap           = [[0.05 0.09 0.02 0.40   0.25 0.36 0.06 0.9   0.25 0.36 0.06 0.9    0.22 0.34 0.055 0.8   0.22 0.34 0.055 0.7   0.18 0.32 0.045 0.65    0.15 0.18 0.04 0.5    0.10 0.16 0.03 0.55    0.10 0.16 0.03 0.50     0.10 0.16 0.03 0.30    0 0 0 0.01]],
-        size               = 256,
-        sizegrowth         = 0,
-        ttl                = 330,
-        texture            = [[centersplatsh]],
-        --alwaysvisible      = true,
-      },
-    },
-    -- groundflash_acid2 = {
-    --   class              = [[CStandardGroundFlash]],
+    -- enable below when clamping to map + rotParams are ready for CSimpleGroundFlash
+    -- acid_groundsplat = {
+    --   class              = [[CSimpleGroundFlash]],
     --   count              = 1,
     --   air                = true,
     --   ground             = true,
@@ -664,16 +647,12 @@ return {
     --   underwater         = false,
     --   properties = {
     --     --rotParams          = [[0 r0, 0, -180 r360]],
-    --     --colormap           = [[0.05 0.09 0.02 0.40   0.25 0.36 0.06 0.9   0.25 0.36 0.06 0.9    0.22 0.34 0.055 0.8   0.22 0.34 0.055 0.7   0.18 0.32 0.045 0.65    0.15 0.18 0.04 0.5    0.10 0.16 0.03 0.55    0.10 0.16 0.03 0.50     0.10 0.16 0.03 0.30    0 0 0 0.01]],
-    --     color              = "0, 1, 0",
-    --     flashSize          = 256,
-    --     flashAlpha         = 1,
-    --     circleGrowth       = 0.5,
-    --     circleAlpha        = 1,
-    --     --sizegrowth         = 0,
+    --     colormap           = [[0.05 0.09 0.02 0.40   0.25 0.36 0.06 0.9   0.25 0.36 0.06 0.9    0.22 0.34 0.055 0.8   0.22 0.34 0.055 0.7   0.18 0.32 0.045 0.65    0.15 0.18 0.04 0.5    0.10 0.16 0.03 0.55    0.10 0.16 0.03 0.50     0.10 0.16 0.03 0.30    0 0 0 0.01]],
+    --     size               = 256,
+    --     sizegrowth         = 0,
     --     ttl                = 330,
-    --     --texture            = [[centersplatsh]],
-    --     --alwaysvisible      = true,
+    --     texture            = [[centersplatsh]],
+    --     alwaysvisible      = true,
     --   },
     -- },
     acidrandomsmoke = {
@@ -692,85 +671,125 @@ return {
         },
   },
 
-  ["acid-area-75"] = {
-    usedefaultexplosions = false,
-    acid_area = {
-      air                = true,
-      class              = [[CBitmapMuzzleFlame]],
-      count              = 1,
-      ground             = true,
-      underwater         = 1,
-      water              = true,
-      properties = {
-        colormap           = [[0.05 0.09 0.02 0.10   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12    0.22 0.34 0.055 0.10   0.22 0.34 0.055 0.10   0.18 0.32 0.045 0.10    0.15 0.18 0.04 0.10    0.10 0.16 0.03 0.10    0.10 0.16 0.03 0.10     0.10 0.16 0.03 0.10    0 0 0 0.01]],
-        dir                = [[0, 1, 0]],
-        frontoffset        = 0,
-        fronttexture       = [[bloodcentersplatshwhite]],
-        length             = 45,
-        sidetexture        = [[none]],
-        size               = [[75 r15]],
-        sizegrowth         = 0.0,
-        ttl                = 330,
-        pos                = [[0, 20, 0]],
-        rotParams          = [[0 r0, 0, -180 r360]],
-        alwaysvisible      = true,
-      },
-    },
-    acidrandomsmoke = {
-            air                = true,
-            class              = [[CExpGenSpawner]],
-            count              = 5,
-            ground             = true,
-            water              = true,
-            underwater         = true,
-            properties = {
-                delay              = [[0 r300]],
-                explosiongenerator = [[custom:acid-area-smoke]],
-                pos                = [[-38 r75, 0 r20, -37 r75]],
-                --alwaysvisible      = true,
-            },
-        },
-  },
+  -- ["acid-area-75"] = {
+  --   usedefaultexplosions = false,
+  --   acid_area = {
+  --     air                = true,
+  --     class              = [[CBitmapMuzzleFlame]],
+  --     count              = 1,
+  --     ground             = true,
+  --     underwater         = 1,
+  --     water              = true,
+  --     properties = {
+  --       colormap           = [[0.05 0.09 0.02 0.10   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12    0.22 0.34 0.055 0.12   0.22 0.34 0.055 0.12   0.18 0.32 0.045 0.11    0.18 0.32 0.045 0.11   0.15 0.18 0.04 0.11    0.15 0.18 0.04 0.10    0.12 0.18 0.04 0.10   0.12 0.18 0.04 0.10   0.10 0.16 0.03 0.10     0.10 0.16 0.03 0.10    0 0 0 0.01]],
+  --       dir                = [[0, 1, 0]],
+  --       frontoffset        = 0,
+  --       fronttexture       = [[bloodcentersplatshwhite]],
+  --       length             = 45,
+  --       sidetexture        = [[none]],
+  --       size               = [[75 r15]],
+  --       sizegrowth         = 0.11,
+  --       ttl                = 330,
+  --       pos                = [[0, 20, 0]],
+  --       rotParams          = [[0 r0, 0, -180 r360]],
+  --       alwaysvisible      = true,
+  --     },
+  --   },
+  --   acidrandomsmoke = {
+  --           air                = true,
+  --           class              = [[CExpGenSpawner]],
+  --           count              = 5,
+  --           ground             = true,
+  --           water              = true,
+  --           underwater         = true,
+  --           properties = {
+  --               delay              = [[0 r300]],
+  --               explosiongenerator = [[custom:acid-area-smoke]],
+  --               pos                = [[-38 r75, 0 r20, -37 r75]],
+  --               --alwaysvisible      = true,
+  --           },
+  --       },
+  -- },
 
-  ["acid-area-150"] = {
-    usedefaultexplosions = false,
-    acid_area = {
-      air                = true,
-      class              = [[CBitmapMuzzleFlame]],
-      count              = 1,
-      ground             = true,
-      underwater         = 1,
-      water              = true,
-      properties = {
-        colormap           = [[0.05 0.09 0.02 0.10   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12    0.22 0.34 0.055 0.10   0.22 0.34 0.055 0.10   0.18 0.32 0.045 0.10    0.15 0.18 0.04 0.10    0.10 0.16 0.03 0.10    0.10 0.16 0.03 0.10     0.10 0.16 0.03 0.10    0 0 0 0.01]],
-        dir                = [[0, 1, 0]],
-        frontoffset        = 0,
-        fronttexture       = [[bloodcentersplatshwhite]],
-        length             = 45,
-        sidetexture        = [[none]],
-        size               = [[145 r25]],
-        sizegrowth         = 0.0,
-        ttl                = 330,
-        pos                = [[0, 20, 0]],
-        rotParams          = [[0 r0, 0, -180 r360]],
-        alwaysvisible      = true,
-      },
-    },
-    acidrandomsmoke = {
-            air                = true,
-            class              = [[CExpGenSpawner]],
-            count              = 6,
-            ground             = true,
-            water              = true,
-            underwater         = true,
-            properties = {
-                delay              = [[0 r300]],
-                explosiongenerator = [[custom:acid-area-smoke]],
-                pos                = [[-75 r150, 0 r20, -75 r150]],
-                --alwaysvisible      = true,
-            },
-        },
-  },
+  -- ["acid-area-150"] = {
+  --   usedefaultexplosions = false,
+  --   acid_area = {
+  --     air                = true,
+  --     class              = [[CBitmapMuzzleFlame]],
+  --     count              = 1,
+  --     ground             = true,
+  --     underwater         = 1,
+  --     water              = true,
+  --     properties = {
+  --       colormap           = [[0.05 0.09 0.02 0.10   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12    0.22 0.34 0.055 0.10   0.22 0.34 0.055 0.10   0.18 0.32 0.045 0.10    0.15 0.18 0.04 0.10    0.10 0.16 0.03 0.10    0.10 0.16 0.03 0.10     0.10 0.16 0.03 0.10    0 0 0 0.01]],
+  --       dir                = [[0, 1, 0]],
+  --       frontoffset        = 0,
+  --       fronttexture       = [[bloodcentersplatshwhite]],
+  --       length             = 45,
+  --       sidetexture        = [[none]],
+  --       size               = [[145 r25]],
+  --       sizegrowth         = 0.0,
+  --       ttl                = 330,
+  --       pos                = [[0, 20, 0]],
+  --       rotParams          = [[0 r0, 0, -180 r360]],
+  --       alwaysvisible      = true,
+  --     },
+  --   },
+  --   acidrandomsmoke = {
+  --           air                = true,
+  --           class              = [[CExpGenSpawner]],
+  --           count              = 6,
+  --           ground             = true,
+  --           water              = true,
+  --           underwater         = true,
+  --           properties = {
+  --               delay              = [[0 r300]],
+  --               explosiongenerator = [[custom:acid-area-smoke]],
+  --               pos                = [[-75 r150, 0 r20, -75 r150]],
+  --               --alwaysvisible      = true,
+  --           },
+  --       },
+  -- },
+
+-- ["acid-area-192"] = {
+--     usedefaultexplosions = false,
+--     acid_area = {
+--       air                = true,
+--       class              = [[CBitmapMuzzleFlame]],
+--       count              = 1,
+--       ground             = true,
+--       underwater         = 1,
+--       water              = true,
+--       properties = {
+--         colormap           = [[0.05 0.09 0.02 0.10   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12    0.22 0.34 0.055 0.11   0.22 0.34 0.055 0.11   0.20 0.33 0.049 0.11   0.19 0.32 0.047 0.11    0.18 0.32 0.045 0.11   0.15 0.18 0.04 0.11    0.10 0.16 0.03 0.10    0 0 0 0.01]],
+--         dir                = [[0, 1, 0]],
+--         frontoffset        = 0,
+--         fronttexture       = [[bloodcentersplatshwhite]],
+--         length             = 45,
+--         sidetexture        = [[none]],
+--         size               = [[188 r35]],
+--         sizegrowth         = 0.0,
+--         ttl                = 330,
+--         pos                = [[0, 20, 0]],
+--         rotParams          = [[0 r0, 0, -180 r360]],
+--         alwaysvisible      = true,
+--       },
+--     },
+--     acidrandomsmoke = {
+--             air                = true,
+--             class              = [[CExpGenSpawner]],
+--             count              = 6,
+--             ground             = true,
+--             water              = true,
+--             underwater         = true,
+--             properties = {
+--                 delay              = [[0 r300]],
+--                 explosiongenerator = [[custom:acid-area-smoke]],
+--                 pos                = [[-96 r192, 0 r20, -96 r192]],
+--                 --alwaysvisible      = true,
+--             },
+--         },
+--   },
 
 ["acid-area-smoke"] = {
     usedefaultexplosions = false,
@@ -870,13 +889,13 @@ return {
         emitrotspread      = 45,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.14, 0]],
-        numparticles       = [[0.3 r1]],
-        particlelife       = 10,
-        particlelifespread = 20,
-        particlesize       = 3.2,
-        particlesizespread = 10,
-        particlespeed      = 2.4,
-        particlespeedspread = 7.5,
+        numparticles       = [[0.3 r0.9]],
+        particlelife       = 9,
+        particlelifespread = 18,
+        particlesize       = 3.0,
+        particlesizespread = 9.7,
+        particlespeed      = 2.3,
+        particlespeedspread = 7.3,
         rotParams          = [[-60 r120, -30 r60, 180]],
         pos                = [[0, 4, 0]],
         sizegrowth         = 0.32,
@@ -1770,5 +1789,21 @@ return {
       },
     },
   },
-
 }
+
+definitions['acid-area-192'] = table.copy(definitions['acid-area'])
+definitions['acid-area-192'].acid_groundsplat.properties.size = [[185 r50]]
+definitions['acid-area-192'].acidrandomsmoke.count = 7
+definitions['acid-area-192'].acidrandomsmoke.properties.pos = [[-96 r192, 0 r20, -96 r192]]
+
+definitions['acid-area-150'] = table.copy(definitions['acid-area'])
+definitions['acid-area-150'].acid_groundsplat.properties.size = [[145 r40]]
+definitions['acid-area-150'].acidrandomsmoke.count = 6
+definitions['acid-area-150'].acidrandomsmoke.properties.pos = [[-75 r150, 0 r20, -75 r150]]
+
+definitions['acid-area-75'] = table.copy(definitions['acid-area'])
+definitions['acid-area-75'].acid_groundsplat.properties.size = [[72 r32]]
+definitions['acid-area-75'].acidrandomsmoke.count = 3
+definitions['acid-area-75'].acidrandomsmoke.properties.pos = [[-37 r75, 0 r20, -38 r75]]
+
+return definitions
