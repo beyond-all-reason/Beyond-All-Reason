@@ -4,7 +4,7 @@ return {
 		craterboost = 0,
 		cratermult = 0,
 		edgeeffectiveness = 0.1,
-		explosiongenerator = "custom:chickenunitexplosion-large-red",
+		explosiongenerator = "custom:blood_explode_xl",
 		impulseboost = 0.5,
 		impulsefactor = 0.5,
 		interceptedbyshieldtype = 1,
