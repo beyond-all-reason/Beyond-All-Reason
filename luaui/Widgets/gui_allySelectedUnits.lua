@@ -17,12 +17,12 @@ local selectPlayerUnits = true	-- when lockcamera player
 local hideBelowGameframe = 100
 
 -- unit platter
+local lineSize = 1.45
+local lineOpacity = 0.33
 local enablePlatter = true
-local lineOpacity = 0.31
-local platterOpacity = 0.12
-local sizeAdd = -2	-- make it this much smaller than regular selection outline
+local platterOpacity = 0.11
 
-local useHexagons = true	-- use hexagons
+local useHexagons = true
 
 -- unit shape highlight
 local enableHighlight = false	-- using this leaves us with zombie units when switching fullview :(
@@ -76,6 +76,7 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local unitScale = {}
 local unitCanFly = {}
 local unitBuilding = {}
+local sizeAdd = -(lineSize*1.5)
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitScale[unitDefID] = (7.5 * ( unitDef.xsize^2 + unitDef.zsize^2 ) ^ 0.5) + 8
 	unitScale[unitDefID] = unitScale[unitDefID] + sizeAdd
@@ -353,7 +354,7 @@ local function init()
 	shaderConfig.BILLBOARD = 0
 	shaderConfig.TRANSPARENCY = platterOpacity
 	shaderConfig.INITIALSIZE = 0.75
-	shaderConfig.GROWTHRATE = 10
+	shaderConfig.GROWTHRATE = 8
 	shaderConfig.HEIGHTOFFSET = 3.9
 	shaderConfig.USETEXTURE = 0
 	shaderConfig.LINETRANSPARANCY = lineOpacity
@@ -440,7 +441,7 @@ function widget:DrawWorldPreUnit()
 			glStencilMask(0)
 			glDepthTest(true)
 
-			selectShader:SetUniform("addRadius", 1.35)
+			selectShader:SetUniform("addRadius", lineSize)
 			selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
 
 			glStencilMask(1)
