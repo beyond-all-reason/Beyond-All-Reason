@@ -131,85 +131,85 @@ local chickenTypes = {
 
 local optionValues = {
 	[difficulties.veryeasy] = {
-	  chickenSpawnRate  = 400,
-	  burrowSpawnRate   = 360,
-	  queenSpawnMult    = 0,
-	  angerBonus        = 0.05,
-	  expStep           = 0,
-	  lobberEMPTime     = 0,
-	  chickensPerPlayer = 7,
-	  spawnChance       = 0.25,
-	  damageMod         = 0.125,
-	  maxBurrows        = 2,
-	  queenName         = 've_chickenq',
-  },
-  [difficulties.easy] = {
-	  chickenSpawnRate  = 400,
-	  burrowSpawnRate   = 320,
-	  queenSpawnMult    = 0,
-	  angerBonus        = 0.075,
-	  expStep           = 0.09375,
-	  lobberEMPTime     = 2.5,
-	  chickensPerPlayer = 7,
-	  spawnChance       = 0.33,
-	  damageMod         = 0.25,
-	  maxBurrows        = 3,
-	  queenName         = 'e_chickenq',
-  },
+		chickenSpawnRate  = 400,
+		burrowSpawnRate   = 360,
+		queenSpawnMult    = 0,
+		angerBonus        = 0.15,
+		expStep           = 0,
+		lobberEMPTime     = 0,
+		chickensPerPlayer = 7,
+		spawnChance       = 0.25,
+		damageMod         = 0.125,
+		maxBurrows        = 2,
+		queenName         = 've_chickenq',
+	},
+	[difficulties.easy] = {
+		chickenSpawnRate  = 400,
+		burrowSpawnRate   = 320,
+		queenSpawnMult    = 0,
+		angerBonus        = 0.2,
+		expStep           = 0.09375,
+		lobberEMPTime     = 2.5,
+		chickensPerPlayer = 7,
+		spawnChance       = 0.33,
+		damageMod         = 0.25,
+		maxBurrows        = 3,
+		queenName         = 'e_chickenq',
+	},
 
-  [difficulties.normal] = {
-	  chickenSpawnRate  = 400,
-	  burrowSpawnRate   = 210,
-	  queenSpawnMult    = 1,
-	  angerBonus        = 0.10,
-	  expStep           = 0.125,
-	  lobberEMPTime     = 4,
-	  chickensPerPlayer = 9,
-	  spawnChance       = 0.4,
-	  damageMod         = 0.4,
-	  maxBurrows        = 10,
-	  queenName         = 'n_chickenq',
-  },
+	[difficulties.normal] = {
+		chickenSpawnRate  = 400,
+		burrowSpawnRate   = 210,
+		queenSpawnMult    = 1,
+		angerBonus        = 0.25,
+		expStep           = 0.125,
+		lobberEMPTime     = 4,
+		chickensPerPlayer = 9,
+		spawnChance       = 0.4,
+		damageMod         = 0.4,
+		maxBurrows        = 10,
+		queenName         = 'n_chickenq',
+	},
 
-  [difficulties.hard] = {
-	  chickenSpawnRate  = 400,
-	  burrowSpawnRate   = 140,
-	  queenSpawnMult    = 1,
-	  angerBonus        = 0.125,
-	  expStep           = 0.25,
-	  lobberEMPTime     = 5,
-	  chickensPerPlayer = 14,
-	  spawnChance       = 0.5,
-	  damageMod         = 0.55,
-	  maxBurrows        = 20,
-	  queenName         = 'h_chickenq',
-  },
+	[difficulties.hard] = {
+		chickenSpawnRate  = 400,
+		burrowSpawnRate   = 140,
+		queenSpawnMult    = 1,
+		angerBonus        = 0.3,
+		expStep           = 0.25,
+		lobberEMPTime     = 5,
+		chickensPerPlayer = 14,
+		spawnChance       = 0.5,
+		damageMod         = 0.55,
+		maxBurrows        = 20,
+		queenName         = 'h_chickenq',
+	},
 
-  [difficulties.veryhard] = {
-	  chickenSpawnRate  = 400,
-	  burrowSpawnRate   = 70,
-	  queenSpawnMult    = 3,
-	  angerBonus        = 0.15,
-	  expStep           = 0.4,
-	  lobberEMPTime     = 7.5,
-	  chickensPerPlayer = 18,
-	  spawnChance       = 0.6,
-	  damageMod         = 0.66,
-	  maxBurrows        = 50,
-	  queenName         = 'vh_chickenq',
-  },
-  [difficulties.epic] = {
-	chickenSpawnRate  = 400,
-	burrowSpawnRate   = 40,
-	queenSpawnMult    = 3,
-	angerBonus        = 0.2,
-	expStep           = 0.5,
-	lobberEMPTime     = 7.5,
-	chickensPerPlayer = 20,
-	spawnChance       = 1,
-	damageMod         = 0.8,
-	maxBurrows        = 50,
-	queenName         = 'epic_chickenq',
+	[difficulties.veryhard] = {
+		chickenSpawnRate  = 400,
+		burrowSpawnRate   = 70,
+		queenSpawnMult    = 3,
+		angerBonus        = 0.35,
+		expStep           = 0.4,
+		lobberEMPTime     = 7.5,
+		chickensPerPlayer = 18,
+		spawnChance       = 0.6,
+		damageMod         = 0.66,
+		maxBurrows        = 50,
+		queenName         = 'vh_chickenq',
+	},
+	[difficulties.epic] = {
+		chickenSpawnRate  = 400,
+		burrowSpawnRate   = 40,
+		queenSpawnMult    = 3,
+		angerBonus        = 0.5,
+		expStep           = 0.5,
+		lobberEMPTime     = 7.5,
+		chickensPerPlayer = 20,
+		spawnChance       = 1,
+		damageMod         = 0.8,
+		maxBurrows        = 50,
+		queenName         = 'epic_chickenq',
 	},
 
 	[difficulties.survival] = {
@@ -227,20 +227,8 @@ local optionValues = {
 	  maxBurrows          = 10,
 	  queenName           = 'n_chickenq',
 	},
-  }
-
-local maxAges = {
-	chicken1      = 240,
-	chicken1b     = 240,
-	chicken1c     = 240,
-	chicken_dodo1 = 120,
-	chicken_dodo2 = 120,
-	chickena2     = 500,
-	chickena2b    = 500,
-	chickenh4     = 120,
-	chickenh1     = 240,
-	chickenh1b    = 200,
 }
+
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -376,19 +364,19 @@ addWave(8, { "1 chickenacidassault", "1 chickenacidarty", "2 chickenacidbomber" 
 
 newWaveSquad[9] = {"1 chickenh5", "5 chickens2", "10 chicken2", "1 chickene2", "1 chickenr2"}
 addWave(9, { "3 chickenf1", "1 chicken_dodo1", "1 chickena2", "1 chickenh1", "1 chickenw1b", "1 chicken2" })
-addWave(9, { "2 chickenf1b", "2 chicken_dodo1", "1 chickenh1b", "1 chicken2", "1 chickenr1" })
+addWave(9, { "2 chickenf1b", "2 chicken_dodo1", "1 chickenh1b", "1 chicken2"})
 addWave(9, { "1 chickenf1", "1 chickenf1b", "3 chicken_dodo1", "1 chickena2b", "1 chickenh1", "1 chickenh2" })
 addWave(9, { "3 chickenc1", "1 chickenh1b", "1 chicken2", "1 chickenr1"})
 addWave(9, { "3 chickenc1", "1 chicken_dodo2", "1 chickens2", "1 chickenh1", "1 chickenw1d", "1 chicken2" })
-addWave(9, { "3 chickenc1", "1 chickenh1b", "1 chicken2", "1 chickenr1" })
+addWave(9, { "3 chickenc1", "1 chickenh1b", "1 chicken2"})
 addWave(9, { "1 chickenw1", "2 chickenw1b", "2 chickenw2", "1 chickenw1d", "2 chicken_dodo1", "1 chickens2", "1 chickenh1", "1 chicken2" })
 addWave(9, { "6 chickenp1", "4 chickenh1b", "1 chicken2", "1 chickenr1" })
 addWave(9, { "2 chickena1", "2 chickena1b", "2 chickena1c", "4 chickenh1", "1 chickenh1", "1 chickenw1", "1 chicken2" })
-addWave(9, { "1 chickens2", "4 chickenh1b", "1 chicken2", "1 chickenr1" })
+addWave(9, { "1 chickens2", "4 chickenh1b", "1 chicken2"})
 addWave(9, { "6 chicken2", "3 chickenh1", "1 chickenw2", "1 chickenf2" })
 addWave(9, { "5 chickenp2", "1 chickenearty1", "2 chickenebomber1" })
 addWave(9, { "5 chickenp2", "1 chickenacidarty", "2 chickenacidbomber" })
-addWave(9, { "1 chickenr2", "3 chickenr1"})
+addWave(9, { "1 chickenr2", "1 chickenr1"})
 
 newWaveSquad[10] = {"1 chickenh5", "13 chicken2b", "1 chickenh2", "1 chickena2", "1 chickena2b", "1 chickene2", "1 chickenr2"}
 addWave(10, { "7 chicken2b", "1 chickens2", "2 chickenh1" })
@@ -407,19 +395,6 @@ addWave(10, { "1 chickenr2", "2 chickenebomber1" })
 addWave(10, { "5 chickenp2", "1 chickenacidarty"})
 addWave(10, { "1 chickenr2", "2 chickenacidbomber" })
 
-newWaveSquad[11] = {"4 chickenh2", "4 chickenh1", "4 chickenh1b"}
-addWave(11, { "3 chickenh1","2 chickenh1b","1 chickenh2","2 chickenh3", "1 chickenc2", "1 chickenw2" })
-addWave(11, { "2 chickenh1","3 chickenh1b","1 chickenh2","2 chickenh3", "1 chickenc2", "1 chickenw2" })
-addWave(11, { "2 chickenh1","2 chickenh1b","1 chickenh2","2 chickenh3", "1 chickenc2", "1 chickenw2" })
-addWave(11, { "2 chickenh1","2 chickenh1b","1 chickenh2","2 chickenh3", "1 chickens2" })
-addWave(11, { "2 chickenh1","2 chickenh1b","1 chickenh2","2 chickenh3", "1 chickens2" })
-addWave(11, { "2 chickenh1","2 chickenh1b","1 chickenh2","2 chickenh3", "1 chickens2" })
-addWave(11, { "3 chickenc2", "1 chickenf2" })
-addWave(11, { "3 chickenw1","3 chickenw1b", "3 chickenw1c", "3 chickenw1d" })
-addWave(11, { "3 chickens2", "1 chickenf2" })
-addWave(11, { "1 chickena2", "2 chickenw2" })
-addWave(11, { "7 chickenw2", "1 chickenf2" })
-
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -436,13 +411,7 @@ local config = {
 	spawnSquareIncrement   = 2,         -- square size increase for each unit spawned
 	burrowName             = burrowName,   -- burrow unit name
 	burrowDef              = UnitDefNames[burrowName].id,
-	maxAge                 = 600,      -- default chicken die at this age, seconds
-	maxAges                = maxAges,
-	defenderChance         = 0.375,      -- probability of spawning a single turret
-	maxTurrets             = 3,   		 -- Max Turrets per burrow
 	minBaseDistance        = 500,
-	maxBaseDistance        = 5000,
-	bonusTurret            = "chickend1", -- Turret that gets spawned when a burrow dies
 	chickenTypes           = table.copy(chickenTypes),
 	chickenEggs			   = table.copy(chickenEggs),
 	defenders              = table.copy(defenders),

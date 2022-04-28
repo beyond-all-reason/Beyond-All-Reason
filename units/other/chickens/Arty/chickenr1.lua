@@ -84,7 +84,7 @@ return {
 				collidefeature = 0,
 				avoidfeature = 0,
 				avoidfriendly = 0,
-				burst = 5,
+				burst = 3,
 				burstrate = 0.5,
 				cegtag = "blob_trail_red",
 				collidefriendly = 0,

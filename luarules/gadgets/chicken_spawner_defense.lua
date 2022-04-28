@@ -112,16 +112,12 @@ if gadgetHandler:IsSyncedCode() then
 	local deathQueue = {}
 	local idleOrderQueue = {}
 	local queenResistance = {}
-	local stunList = {}
 	local queenID
 	local chickenTeamID, chickenAllyTeamID
 	local lsx1, lsz1, lsx2, lsz2
 	local turrets = {}
-	local chickenBirths = {}
-	local failChickens = {}
 	local chickenTargets = {}
 	local burrows = {}
-	local failBurrows = {}
 	local heroChicken = {}
 	local defenseMap = {}
 	local unitName = {}
@@ -327,9 +323,9 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickene1"].id] = { distance = 2000, chance = 1 },
 		[UnitDefNames["chickene2"].id] = { distance = 2000, chance = 1 },
 		[UnitDefNames["chickenearty1"].id] = { distance = 2000, chance = 1 },
-		[UnitDefNames["chickenacidswarmer"].id] = { distance = 2000, chance = 1 },
-		[UnitDefNames["chickenacidassault"].id] = { distance = 2000, chance = 1 },
-		[UnitDefNames["chickenacidarty"].id] = { distance = 2000, chance = 1 },
+		-- [UnitDefNames["chickenacidswarmer"].id] = { distance = 2000, chance = 1 },
+		-- [UnitDefNames["chickenacidassault"].id] = { distance = 2000, chance = 1 },
+		-- [UnitDefNames["chickenacidarty"].id] = { distance = 2000, chance = 1 },
 	}
 	local BERSERK = {
 		[UnitDefNames["ve_chickenq"].id] = { chance = 0.01 },
@@ -339,40 +335,10 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["vh_chickenq"].id] = { chance = 0.3 },
 		[UnitDefNames["epic_chickenq"].id] = { chance = 0.5 },
 	}
-	-- local EGG_DROPPER = {
-	-- 	[UnitDefNames["chicken1"].id] = "chicken_egg_s_pink",
-	-- 	[UnitDefNames["chicken1b"].id] = "chicken_egg_s_white",
-	-- 	[UnitDefNames["chicken1c"].id] = "chicken_egg_s_red",
-	-- 	[UnitDefNames["chicken1d"].id] = "chicken_egg_s_pink",
-	-- }
 	local OVERSEER_ID = UnitDefNames["chickenh5"].id
 	local SMALL_UNIT = UnitDefNames["chicken1"].id
 	local MEDIUM_UNIT = UnitDefNames["chicken1"].id
 	local LARGE_UNIT = UnitDefNames["chicken1"].id
-
-	--------------------------------------------------------------------------------
-	--------------------------------------------------------------------------------
-	--
-	-- Clean up
-	--
-
-	local function KillOldChicken()
-		for unitID, defs in pairs(chickenBirths) do
-			if (t > defs.deathDate) then
-				if (unitID ~= queenID) then
-					deathQueue[unitID] = { selfd = false, reclaimed = false }
-					chickenCount = chickenCount - 1
-					chickenDebtCount = chickenDebtCount + 1
-					local failCount = failBurrows[defs.burrowID]
-					if (failBurrows[defs.burrowID] == nil) then
-						failBurrows[defs.burrowID] = 5
-					else
-						failBurrows[defs.burrowID] = failCount + 5
-					end
-				end
-			end
-		end
-	end
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
@@ -509,10 +475,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function SpawnBurrow(number)
-		-- if queenID then
-		-- 	-- don't spawn new burrows when queen is there
-		-- 	return
-		-- end
 
 		local unitDefID = UnitDefNames[config.burrowName].id
 
@@ -627,9 +589,6 @@ if gadgetHandler:IsSyncedCode() then
 			if x and y and z then
 				local score = 0
 				score = score + (mRandom() * turretCount)
-				if failBurrows[burrowID] then
-					score = score - (failBurrows[burrowID] * 5)
-				end
 				if score > bestScore then
 					bestScore = score
 					sx = x
@@ -794,84 +753,6 @@ if gadgetHandler:IsSyncedCode() then
 		return cCount
 	end
 
-	local function removeFailChickens()
-		for unitID, failCount in pairs(failBurrows) do
-			if failCount > 30 then
-				deathQueue[unitID] = { selfd = false, reclaimed = false }
-				burrows[unitID] = nil
-				failBurrows[unitID] = nil
-				for i, defs in pairs(spawnQueue) do
-					if defs.burrow == unitID then
-						spawnQueue[i] = nil
-					end
-				end
-				SpawnBurrow()
-			end
-		end
-		for unitID, failCount in pairs(failChickens) do
-			local checkedForDT = false
-			if unitID ~= queenID or GetUnitTeam(unitID) ~= chickenTeamID then
-				if failCount > 5 then
-					local x, y, z = GetUnitPosition(unitID)
-					if x then
-						local yh = GetGroundHeight(x, z)
-						if y and yh and (y < (yh + 1)) then
-							deathQueue[unitID] = { selfd = false, reclaimed = true }
-							chickenCount = chickenCount - 1
-							chickenDebtCount = chickenDebtCount + 1
-							if chickenBirths[unitID] then
-								local burrowFailCount = failBurrows[chickenBirths[unitID].burrowID]
-								if (burrowFailCount == nil) then
-									failBurrows[chickenBirths[unitID].burrowID] = 1
-								else
-									failBurrows[chickenBirths[unitID].burrowID] = burrowFailCount + 1
-								end
-							end
-						end
-					end
-				elseif failCount > 2 then
-					local x, y, z = GetUnitPosition(unitID)
-					if x then
-						local attackingFeature = false
-						if not checkedForDT then
-							checkedForDT = true
-							local nearFeatures = Spring.GetFeaturesInSphere(x, y, z, 70)
-							for i, featureID in ipairs(nearFeatures) do
-								local featureDefID = Spring.GetFeatureDefID(featureID)
-								if featureDefID and FeatureDefs[featureDefID].metal > 0 and not FeatureDefs[featureDefID].autoReclaimable then
-									local fx, fy, fz = Spring.GetFeaturePosition(featureID)
-									idleOrderQueue[unitID] = { cmd = CMD.ATTACK, params = { fx, fy, fz }, opts = {} }
-									attackingFeature = true
-									break
-								end
-							end
-						end
-						if not attackingFeature then
-							local dx, _, dz = GetUnitDirection(unitID)
-							local angle = math.atan2(dx, dz)
-							Spring.SpawnCEG("blood_trail", x, y, z, 0, 0, 0)
-							if y < -15 then
-								deathQueue[unitID] = { selfd = false, reclaimed = false }
-								chickenCount = chickenCount - 1
-								chickenDebtCount = chickenDebtCount + 1
-								if chickenBirths[unitID] then
-									local burrowFailCount = failBurrows[chickenBirths[unitID].burrowID]
-									if burrowFailCount == nil then
-										failBurrows[chickenBirths[unitID].burrowID] = 3
-									else
-										failBurrows[chickenBirths[unitID].burrowID] = burrowFailCount + 3
-									end
-								end
-							end
-							Spring.AddUnitImpulse(unitID, math.sin(angle) * 2, 2.5, math.cos(angle) * 2, 100)
-						end
-					end
-				end
-			end
-			failChickens = {}
-		end
-	end
-
 	--------------------------------------------------------------------------------
 	-- Get rid of the AI
 	--------------------------------------------------------------------------------
@@ -910,14 +791,6 @@ if gadgetHandler:IsSyncedCode() then
 			-- filter out non chicken units
 			return
 		end
-		local failCount = failChickens[unitID]
-		if failCount == nil then
-			if unitID ~= queenID then
-				failChickens[unitID] = 1
-			end
-		else
-			failChickens[unitID] = failCount + 1
-		end
 
 		if AttackNearestEnemy(unitID, unitDefID, unitTeam) then
 			return
@@ -954,8 +827,6 @@ if gadgetHandler:IsSyncedCode() then
 
 		if heroChicken[unitID] then
 			damage = (damage * heroChicken[unitID])
-			local x, y, z = GetUnitPosition(unitID)
-			Spring.SpawnCEG("CHICKENHERO", x, y, z, 0, 0, 0)
 		end
 
 		if unitID == queenID then
@@ -969,15 +840,12 @@ if gadgetHandler:IsSyncedCode() then
 					queenResistance[weaponID].damage = damage
 					queenResistance[weaponID].notify = 0
 				end
-				local resistPercent = (math.min(queenResistance[weaponID].damage / queenMaxHP, 0.75) + 0.2)
+				local resistPercent = math.min(queenResistance[weaponID].damage / queenMaxHP*0.5, 0.99)
 				if resistPercent > 0.35 then
 					if queenResistance[weaponID].notify == 0 then
 						SendToUnsynced('QueenResistant', attackerDefID)
 						queenResistance[weaponID].notify = 1
-						for i = 1, 12, 1 do
-							table.insert(spawnQueue, { burrow = queenID, unitName = "chickenw2", team = chickenTeamID })
-						end
-						for i = 1, 4, 1 do
+						for i = 1, 10, 1 do
 							table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1", team = chickenTeamID })
 							table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1b", team = chickenTeamID })
 						end
@@ -992,16 +860,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
-
-		if chickenBirths[attackerID] then
-			chickenBirths[attackerID].deathDate = (t + config.maxAge)
-		end
-		if failChickens[attackerID] then
-			failChickens[attackerID] = nil
-		end
-		if failChickens[unitID] then
-			failChickens[unitID] = nil
-		end
 
 		if not chickenteamhasplayers then
 			if SKIRMISH[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < SKIRMISH[attackerDefID].chance) then
@@ -1117,7 +975,6 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					addChickenTarget(unitID, targetCache)
 				end
-				chickenBirths[unitID] = { deathDate = t + (config.maxAges[defs.unitName] or config.maxAge), burrowID = defs.burrow }
 				chickenCount = chickenCount + 1
 			end
 		end
@@ -1172,17 +1029,15 @@ if gadgetHandler:IsSyncedCode() then
 			SKIRMISH[UnitDefNames["chickenw1"].id] = { distance = 1800, chance = 0.5 }
 			COWARD[UnitDefNames["chicken_dodo1"].id] = { distance = 1100, chance = 0.33 }
 
-			local chickenUnits = GetTeamUnits(chickenTeamID)
-			for i = 1, #chickenUnits do
-				local unitID = chickenUnits[i]
-				if GetUnitDefID(unitID) == OVERSEER_ID then
-					deathQueue[unitID] = { selfd = false, reclaimed = false }
-				end
-			end
-
 			for i = 1, 150, 1 do
 				if mRandom() < config.spawnChance then
 					table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh4", team = chickenTeamID })
+				end
+				if mRandom() < config.spawnChance*0.25 then
+					table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh3", team = chickenTeamID })
+				end
+				if mRandom() < config.spawnChance*0.05 then
+					table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh2", team = chickenTeamID })
 				end
 			end
 
@@ -1194,7 +1049,13 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		else
 			if mRandom() < config.spawnChance / 7.5 then
-				for i = 1, mRandom(1, 3), 1 do
+				table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh2", team = chickenTeamID })
+				for i = 1, mRandom(1, 2), 1 do
+					table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh3", team = chickenTeamID })
+					table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1", team = chickenTeamID })
+					table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1b", team = chickenTeamID })
+				end
+				for i = 1, mRandom(1, 5), 1 do
 					table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh4", team = chickenTeamID })
 				end
 			end
@@ -1210,7 +1071,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function spawnStartBoxProtectionHeavy()
 		local burrowCount = SetCount(burrows)
 		if math.random(0,config.burrowSpawnRate*6) == 0 and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
-			if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < burrowCount*2 or Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < 2 then
+			if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < burrowCount or Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < 2 then
 				attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + 1
 			end
 		end
@@ -1278,7 +1139,7 @@ if gadgetHandler:IsSyncedCode() then
 				attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 10
 			end
 		end
-		if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < burrowCount*5 then
+		if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < burrowCount*10 then
 			if attemptingToSpawnLightTurret > 0 and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
 				canSpawnDefence = true
 				-- lsx1 - xmin, lsz1 - zmin, lsx2 - xmax, lsz2 - zmax
@@ -1329,9 +1190,6 @@ if gadgetHandler:IsSyncedCode() then
 
 		if gameOver then
 			chickenCount = UpdateUnitCount()
-			--if n > gameOver then
-			--	Spring.KillTeam(chickenTeamID)	-- already killed
-			--end
 			return
 		end
 
@@ -1342,9 +1200,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if n % 90 == 0 then
-			if not chickenteamhasplayers then
-				removeFailChickens()
-			end
 			if (queenAnger >= 100) then
 				damageMod = (damageMod + 0.005)
 			end
@@ -1353,13 +1208,6 @@ if gadgetHandler:IsSyncedCode() then
 		local chickenTeamUnitCount = Spring.GetTeamUnitCount(chickenTeamID) or 0
 		if chickenTeamUnitCount < maxChicken then
 			SpawnChickens()
-		end
-
-		for unitID in pairs(stunList) do
-			if n > stunList[unitID] then
-				SetUnitHealth(unitID, { paralyze = 0 })
-				stunList[unitID] = nil
-			end
 		end
 
 		for unitID, defs in pairs(deathQueue) do
@@ -1379,9 +1227,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				SetGameRulesParam("queenAnger", queenAnger)
 			end
-			-- if not chickenteamhasplayers then
-			-- 	KillOldChicken()
-			-- end
 
 			if t < config.gracePeriod then
 				-- do nothing in the grace period
@@ -1456,7 +1301,7 @@ if gadgetHandler:IsSyncedCode() then
 				SetGameRulesParam("roostCount", SetCount(burrows))
 			end
 
-			if burrowCount > 0 and ((config.chickenSpawnRate < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount*(math.random(0,50)*0.01) and (t - timeOfLastWave) > 2)) then
+			if burrowCount > 0 and ((config.chickenSpawnRate < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount*(math.random(0,50)*0.01) and (not spawnQueue[1]))) then
 				local cCount = Wave()
 				if cCount and cCount > 0 then
 					chickenEvent("wave", cCount, currentWave)
@@ -1522,24 +1367,11 @@ if gadgetHandler:IsSyncedCode() then
 		if heroChicken[unitID] then
 			heroChicken[unitID] = nil
 		end
-		if stunList[unitID] then
-			stunList[unitID] = nil
-		end
-		if chickenBirths[unitID] then
-			chickenBirths[unitID] = nil
-		end
 		if turrets[unitID] then
 			turrets[unitID] = nil
 		end
 		if idleOrderQueue[unitID] then
 			idleOrderQueue[unitID] = nil
-		end
-		if failChickens[unitID] then
-			failChickens[unitID] = nil
-		end
-		if failBurrows[unitID] then
-			failBurrows[unitID] = nil
-			return
 		end
 
 		if chickenTargets[unitID] then
