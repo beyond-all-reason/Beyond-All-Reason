@@ -211,7 +211,7 @@ else
 		system = string.sub(system, 2)
 		if system ~= '' then
 			local broadcast = '0'
-			if (Spring.GetConfigInt("SystemPrivacy",0) or 0) == 0 then
+			if (Spring.GetConfigInt("SystemPrivacy",1) or 1) == 0 then
 				broadcast = '1'
 			end
 			SendLuaRulesMsg("$y$"..myvalidation..broadcast..system)

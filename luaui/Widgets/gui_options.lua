@@ -2732,7 +2732,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
 		  end,
 		},
-		{ id = "systemprivacy", restart = true, group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.systemprivacy, type = "bool", value = (Spring.GetConfigInt("SystemPrivacy", 0) == 1), description = texts.option.systemprivacy_descr,
+		{ id = "systemprivacy", restart = true, group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.systemprivacy, type = "bool", value = (Spring.GetConfigInt("SystemPrivacy", 1) == 1), description = texts.option.systemprivacy_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
