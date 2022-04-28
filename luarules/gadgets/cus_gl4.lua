@@ -1733,7 +1733,7 @@ end
 local totalbatches = 0
 local totalunits = 0
 
--- local updateframe = 0
+local updateframe = 0
 
 local updatecount = 0
 local updatetimer = 31
@@ -1762,6 +1762,32 @@ local function countbintypes(flagarray)
 	return fwcnt, defcnt, reflcnt, shadcnt
 end
 
+local destroyedUnitIDs = {} -- maps unitID to drawflag
+local destroyedUnitDrawFlags = {}
+local numdestroyedUnits = 0
+
+local destroyedFeatureIDs = {}
+local destroyedFeatureDrawFlags = {}
+local numdestroyedFeatures = 0
+
+function gadget:UnitDestroyed(unitID)
+	local flag = 0 --Spring.GetUnitDrawFlag(unitID)
+	if flag ~= 0 then 
+		numdestroyedUnits = numdestroyedUnits + 1
+		destroyedUnitIDs[numdestroyedUnits] = unitID
+		destroyedUnitDrawFlags[numdestroyedUnits] = flag
+	end
+end
+
+function gadget:FeatureDestroyed(featureID)
+	local flag = 0 --Spring.GetFeatureDrawFlag(unitID) is already invalid here
+	if flag ~= 0 then 
+		numdestroyedFeatures = numdestroyedFeatures + 1
+		destroyedFeatureIDs[numdestroyedFeatures] = featureID
+		destroyedFeatureDrawFlags[numdestroyedFeatures] = flag
+	end
+end
+
 function gadget:DrawWorldPreUnit()
 	updatecount = updatecount + 1
 	if unitDrawBins == nil then return end
@@ -1772,9 +1798,9 @@ function gadget:DrawWorldPreUnit()
 		totalunits = 0
 	end
 
-	-- updateframe = (updateframe + 1) % updaterate
+	updateframe = (updateframe + 1) % updaterate
 
-	-- if updateframe == 0 then
+	if updateframe == 0 then
 		-- this call has a massive mem load, at 1k units at 225 fps, its 7mb/sec, e.g. for each unit each frame, its 32 bytes alloc/dealloc
 		-- which isnt all that bad, but still far from optimal
 		-- it is, however, not that bad CPU wise, and it doesnt force GC load either
@@ -1787,6 +1813,26 @@ function gadget:DrawWorldPreUnit()
 		local totalobjects = #units + #features
 		local t0 = Spring.GetTimer()
 
+		if numdestroyedUnits > 0 then 
+			ProcessUnits(destroyedUnitIDs, destroyedUnitDrawFlags)
+			for i=numdestroyedUnits,1,-1 do 
+				destroyedUnitIDs[i] = nil
+				destroyedUnitDrawFlags[i] = nil
+			end
+			numdestroyedUnits = 0
+		end		
+		
+		if numdestroyedFeatures > 0 then 
+			ProcessUnits(destroyedFeatureIDs, destroyedFeatureDrawFlags)
+			for i=numdestroyedFeatures,1,-1 do 
+				destroyedFeatureIDs[i] = nil
+				destroyedFeatureDrawFlags[i] = nil
+			end
+			numdestroyedFeatures = 0
+		end
+		
+
+		
 		ProcessUnits(units, drawFlagsUnits)
 		ProcessFeatures(features, drawFlagsFeatures)
 		local deltat = Spring.DiffTimers(Spring.GetTimer(),t0,  true) -- in ms
@@ -1811,7 +1857,7 @@ function gadget:DrawWorldPreUnit()
 		--if updatecount %100 == 0 then Spring.Echo(countbintypes(drawFlagsUnits)) end
 		prevobjectcount = totalobjects
 
-	-- end
+	end
 
 end
 
