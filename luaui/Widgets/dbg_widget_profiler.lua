@@ -41,8 +41,16 @@ end
 --------------------------------------------------------------------------------
 
 local callinStats = {}
-
+local highres
 local spGetTimer = Spring.GetTimer
+
+if Spring.GetTimerMicros and  Spring.GetConfigInt("UseHighResTimer", 0) == 1 then 
+	spGetTimer = Spring.GetTimerMicros
+	highres = true
+end
+
+Spring.Echo("Profiler using highres timers", highres, Spring.GetConfigInt("UseHighResTimer", 0))
+
 local spDiffTimers = Spring.DiffTimers
 local chobbyInterface, s
 
@@ -120,7 +128,7 @@ local function Hook(w, name)
 	local t
 
 	local helper_func = function(...)
-		local dt = spDiffTimers(spGetTimer(), t)
+		local dt = spDiffTimers(spGetTimer(), t, nil ,highres)
 		local _, _, new_s, _ = spGetLuaMemUsage()
 		local ds = new_s - s
 		c[1] = c[1] + dt
@@ -253,8 +261,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local tick = 0.2
-local averageTime = 2
+local tick = 0.1
+local averageTime = 0.5
 local timeLoadAverages = {}
 local spaceLoadAverages = {}
 local startTimer
@@ -262,7 +270,7 @@ local startTimer
 function widget:Update()
 	widgetHandler:RemoveWidgetCallIn("Update", self)
 	StartHook()
-	startTimer = Spring.GetTimer()
+	startTimer = spGetTimer()
 end
 
 function widget:Shutdown()
@@ -369,8 +377,8 @@ function DrawWidgetList(list, name, x, y, j, fontSize, lineSpace, maxLines, colW
 		local sLoad = v.sLoad
 		local tColour = v.timeColourString
 		local sColour = v.spaceColourString
-		gl.Text(tColour .. ('%.2f%%'):format(tLoad), x, y - lineSpace * j, fontSize, "no")
-		gl.Text(sColour .. ('%.0f'):format(sLoad) .. 'kB/s', x + dataColWidth, y - lineSpace * j, fontSize, "no")
+		gl.Text(tColour .. ('%.3f%%'):format(tLoad), x, y - lineSpace * j, fontSize, "no")
+		gl.Text(sColour .. ('%.1f'):format(sLoad) .. 'kB/s', x + dataColWidth, y - lineSpace * j, fontSize, "no")
 		gl.Text(wname, x + dataColWidth * 2, y - lineSpace * j, fontSize, "no")
 
 		j = j + 1
@@ -398,11 +406,11 @@ function widget:DrawScreen()
 		return --// nothing to do
 	end
 
-	deltaTime = Spring.DiffTimers(Spring.GetTimer(), startTimer)
+	deltaTime = Spring.DiffTimers(spGetTimer(), startTimer, nil, highres)
 
 	-- sort & count timing
 	if deltaTime >= tick then
-		startTimer = Spring.GetTimer()
+		startTimer = spGetTimer()
 		sortedList = {}
 
 		allOverTime = 0
