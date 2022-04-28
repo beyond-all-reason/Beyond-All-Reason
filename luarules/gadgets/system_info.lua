@@ -10,9 +10,6 @@ function gadget:GetInfo()
 	}
 end
 
---------------------------------------------------------------------------------
--- synced
---------------------------------------------------------------------------------
 if gadgetHandler:IsSyncedCode() then
 
 	local charset = {}  do -- [0-9a-zA-Z]
@@ -30,22 +27,12 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,3)=="$y$" and msg:sub(4,5)==validation then
-			local playername, _, spec = Spring.GetPlayerInfo(playerID,false)
-			local authorized = false
-			if _G.permissions.sysinfo[playername] then
-				authorized = true
-			end
-			if authorized or msg:sub(6,6) == '1' then
-				SendToUnsynced("systemBroadcast",playerID,msg:sub(7))
-				return true
-			end
+			SendToUnsynced("systemBroadcast",playerID,msg:sub(6,6),msg:sub(7))
+			return true
 		end
 	end
 
 else
-	--------------------------------------------------------------------------------
-	-- unsynced
-	--------------------------------------------------------------------------------
 
 	local chobbyLoaded = false
 	if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
@@ -222,10 +209,16 @@ else
 		gadgetHandler:RemoveSyncAction("systemBroadcast")
 	end
 
-	function handleSystemEvent(_,playerID,system)
-		if Script.LuaUI("SystemEvent") then
-			if systems[playerID] == nil and system ~= nil then systems[playerID] = system end
-			Script.LuaUI.SystemEvent(playerID,systems[playerID])
+	local myPlayerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)
+	local authorized = SYNCED.permissions.sysinfo[myPlayerName]
+	function handleSystemEvent(_,playerID,broadcast,system)
+		if broadcast == '1' or authorized then
+			if Script.LuaUI("SystemEvent") then
+				if systems[playerID] == nil and system ~= nil then
+					systems[playerID] = system
+				end
+				Script.LuaUI.SystemEvent(playerID,systems[playerID])
+			end
 		end
 	end
 
