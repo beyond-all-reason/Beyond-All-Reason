@@ -95,7 +95,7 @@ return {
 		},
 		customparams = {
 			unitgroup = 'builder',
-			area_mex_def = "cormex",
+			area_mex_def = "legmex",
 			iscommander = true,
 			--energyconv_capacity = 70,
 			--energyconv_efficiency = 1/70,
