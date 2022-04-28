@@ -314,7 +314,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickene2"].id] = { distance = 200, chance = 0.01 },	
 		[UnitDefNames["chickenearty1"].id] = { distance = 1000, chance = 1 },
 		[UnitDefNames["chickenacidswarmer"].id] = { distance = 300, chance = 1 },
-		[UnitDefNames["chickenacidassault"].id] = { distance = 200, chance = 0.01 },	
+		[UnitDefNames["chickenacidassault"].id] = { distance = 200, chance = 1 },	
 		[UnitDefNames["chickenacidarty"].id] = { distance = 1000, chance = 1 },
 	}
 	local COWARD = {
