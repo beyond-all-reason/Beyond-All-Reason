@@ -30,7 +30,7 @@ return {
 		objectname = "Chickens/chicken_hive.s3o",
 		radardistance = 900,
 		script = "Chickens/chicken_hive.cob",
-		seismicsignature = 4,
+		seismicsignature = 0,
 		selfdestructas = "ROOST_DEATH",
 		sightdistance = 450,
 		side = "THUNDERBIRDS",

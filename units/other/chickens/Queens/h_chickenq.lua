@@ -40,7 +40,7 @@ return {
 		objectname = "Chickens/h_chickenq.s3o",
 		pushresistant = true,
 		script = "Chickens/h_chickenq.cob",
-		seismicsignature = 4,
+		seismicsignature = 0,
 		selfdestructas = "crawl_blastsmlscavboss",
 		side = "THUNDERBIRDS",
 		sightdistance = 1250,

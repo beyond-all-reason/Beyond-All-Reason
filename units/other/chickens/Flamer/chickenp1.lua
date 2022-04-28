@@ -34,7 +34,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "Chickens/chickenp2.s3o",
 		script = "Chickens/chickenr2.cob",
-		seismicsignature = 4,
+		seismicsignature = 0,
 		selfdestructas = "flamebug_death",
 		side = "THUNDERBIRDS",
 		sightdistance = 200,

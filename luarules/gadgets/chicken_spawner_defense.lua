@@ -2,7 +2,7 @@ function gadget:GetInfo()
 	return {
 		name = "Chicken Defense Spawner",
 		desc = "Spawns burrows and chickens",
-		author = "TheFatController/quantum",
+		author = "TheFatController/quantum, Damgam",
 		date = "27 February, 2012",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
@@ -29,7 +29,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- Speed-ups
 	--
 
-	local GetUnitHeading = Spring.GetUnitHeading
+	--local GetUnitHeading = Spring.GetUnitHeading
 	local ValidUnitID = Spring.ValidUnitID
 	local GetUnitNeutral = Spring.GetUnitNeutral
 	local GetTeamList = Spring.GetTeamList
@@ -43,7 +43,7 @@ if gadgetHandler:IsSyncedCode() then
 	local GetGameSeconds = Spring.GetGameSeconds
 	local DestroyUnit = Spring.DestroyUnit
 	local GetTeamUnits = Spring.GetTeamUnits
-	local GetUnitsInCylinder = Spring.GetUnitsInCylinder
+	--local GetUnitsInCylinder = Spring.GetUnitsInCylinder
 	local GetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 	local GetUnitPosition = Spring.GetUnitPosition
 	local GiveOrderToUnit = Spring.GiveOrderToUnit
@@ -58,7 +58,7 @@ if gadgetHandler:IsSyncedCode() then
 	local GetUnitDefID = Spring.GetUnitDefID
 	local SetUnitHealth = Spring.SetUnitHealth
 	local GetUnitIsDead = Spring.GetUnitIsDead
-	local GetUnitDirection = Spring.GetUnitDirection
+	-- local GetUnitDirection = Spring.GetUnitDirection
 
 	local mRandom = math.random
 	local math = math
@@ -91,7 +91,6 @@ if gadgetHandler:IsSyncedCode() then
 	local timeOfLastWave = 0
 	local expMod = 0
 	local burrowTarget = 0
-	local qDamage = 0
 	local lastTeamID = 0
 	local targetCacheCount = 0
 	local nextSquadSize = 0
@@ -100,11 +99,9 @@ if gadgetHandler:IsSyncedCode() then
 	local timeCounter = 0
 	local queenAnger = 0
 	local queenMaxHP = 0
-	local chickenDebtCount = 0
 	local burrowAnger = 0
 	local firstSpawn = true
 	local gameOver = nil
-	local qMove = false
 	local computerTeams = {}
 	local humanTeams = {}
 	local disabledUnits = {}
@@ -115,7 +112,6 @@ if gadgetHandler:IsSyncedCode() then
 	local queenID
 	local chickenTeamID, chickenAllyTeamID
 	local lsx1, lsz1, lsx2, lsz2
-	local turrets = {}
 	local chickenTargets = {}
 	local burrows = {}
 	local heroChicken = {}
@@ -223,13 +219,8 @@ if gadgetHandler:IsSyncedCode() then
 	local expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
 	local nextWave = ((config.queenTime / 10) / 60)
 	local gracePenalty = math.max(math.floor(((config.gracePeriod - 270) / config.burrowSpawnRate) + 0.5), 0)
-	local chickensPerPlayer = (config.chickensPerPlayer * SetCount(humanTeams))
 	local maxBurrows = config.maxBurrows * SetCount(humanTeams)
 	local queenTime = (config.queenTime + config.gracePeriod)
-	chickenDebtCount = math.ceil((math.max((config.gracePeriod - 270), 0) / 3))
-	-- eggChance scales - 20% at 0-300 grace, 10% at 400 grace, 0% at 500+ grace
-	local eggChance = 0.20 * math.max(0, math.min(1, (500 - config.gracePeriod) / 200)) / config.chickenSpawnMultiplier
-	local bonusEggs = math.ceil(24 * math.max(0, math.min(1, (500 - config.gracePeriod) / 200))) / config.chickenSpawnMultiplier
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
@@ -732,7 +723,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				for i, sString in pairs(squad) do
 					local skipSpawn = false
-					if cCount > chickensPerPlayer and mRandom() > config.spawnChance*queenBurrowSpawnMultiplier then
+					if cCount > 1 and mRandom() > config.spawnChance*queenBurrowSpawnMultiplier then
 						skipSpawn = true
 					end
 					if newWaveSquadSpawn then
@@ -1301,7 +1292,7 @@ if gadgetHandler:IsSyncedCode() then
 				SetGameRulesParam("roostCount", SetCount(burrows))
 			end
 
-			if burrowCount > 0 and ((config.chickenSpawnRate < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount*(math.random(0,50)*0.01) and (not spawnQueue[1]))) then
+			if burrowCount > 0 and ((config.chickenSpawnRate < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount*(math.random(0,20)*0.01) and (not spawnQueue[1]))) then
 				local cCount = Wave()
 				if cCount and cCount > 0 then
 					chickenEvent("wave", cCount, currentWave)
@@ -1366,9 +1357,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if heroChicken[unitID] then
 			heroChicken[unitID] = nil
-		end
-		if turrets[unitID] then
-			turrets[unitID] = nil
 		end
 		if idleOrderQueue[unitID] then
 			idleOrderQueue[unitID] = nil
@@ -1452,21 +1440,6 @@ if gadgetHandler:IsSyncedCode() then
 			if config.addQueenAnger then
 				burrowAnger = (burrowAnger + config.angerBonus)
 				expMod = (expMod + config.angerBonus)
-			end
-
-			for turretID, v in pairs(turrets) do
-				if v[1] == unitID then
-					local x, y, z = GetUnitPosition(turretID)
-					if x and y and z then
-						Spring.SpawnCEG("blood_explode", x, y, z, 0, 0, 0)
-						local h = Spring.GetUnitHealth(turretID)
-						if h then
-							Spring.SetUnitHealth(turretID, h * 0.333)
-						end
-					end
-					idleOrderQueue[turretID] = { cmd = CMD.STOP, params = {}, opts = {} }
-					turrets[turretID] = nil
-				end
 			end
 
 			for i, defs in pairs(spawnQueue) do
