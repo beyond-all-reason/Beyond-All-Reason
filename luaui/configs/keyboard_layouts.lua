@@ -84,6 +84,7 @@ end
 
 keyLayouts['qwertz'] = copyKeyLayout('qwerty')
 keyLayouts['qwertz'][1][1] = 'Y'
+keyLayouts['qwertz'][3][6] = 'Z'
 
 keyLayouts['azerty'] = copyKeyLayout('qwerty')
 keyLayouts['azerty'][1][1] = 'W'
