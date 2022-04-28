@@ -1635,7 +1635,41 @@
 		"corcut": {
 			"role": ["raider", "air"],
 			"retreat": 0.8
+		},
+
+		// RAPTORS
+		"epic_chickenq": {
+			"role": ["super"],
+            "threat": {"air":0.0, "water":0.0, "surf": 0.1},
+			"retreat": 0.8
+		},
+        "vh_chickenq": {
+			"role": ["super"],
+            "threat": {"air":0.0, "water":0.0, "surf": 0.1},
+			"retreat": 0.8
+		},
+        "h_chickenq": {
+			"role": ["super"],
+            "threat": {"air":0.0, "water":0.0, "surf": 0.1},
+			"retreat": 0.8
+		},
+        "n_chickenq": {
+			"role": ["super"],
+            "threat": {"air":0.0, "water":0.0, "surf": 0.1},
+			"retreat": 0.8
+		},
+        "e_chickenq": {
+			"role": ["super"],
+            "threat": {"air":0.0, "water":0.0, "surf": 0.1},
+			"retreat": 0.8
+		},
+        "ve_chickenq": {
+			"role": ["super"],
+            "threat": {"air":0.0, "water":0.0, "surf": 0.1},
+			"retreat": 0.8
 		}
+
+		
 
 	}
 }

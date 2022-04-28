@@ -372,11 +372,11 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 -------------------- configurables -----------------------
 local additionalheightaboveunit = 24 --16?
-local featureHealthDistMult = 3.5 -- how many times closer features have to be for their bars to show
+local featureHealthDistMult = 7 -- how many times closer features have to be for their bars to show
 local featureReclaimDistMult = 2 -- how many times closer features have to be for their bars to show
 local featureResurrectDistMult = 1 -- how many times closer features have to be for their bars to show
 local glphydistmult = 3.5 -- how much closer than BARFADEEND the bar has to be to start drawing numbers/icons. Numbers closer to 1 will make the glyphs be drawn earlier, high numbers will only shows glyphs when zoomed in hard.
-local glyphdistmultfeatures = 1.5 -- how much closer than BARFADEEND the bar has to be to start drawing numbers/icons
+local glyphdistmultfeatures = 1.8 -- how much closer than BARFADEEND the bar has to be to start drawing numbers/icons
 
 
 local unitDefSizeMultipliers = {} -- table of unitdefID to a size mult (default 1.0) to override sizing of bars per unitdef

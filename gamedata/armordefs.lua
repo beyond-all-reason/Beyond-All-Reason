@@ -6,6 +6,8 @@ local armorDefs = {
 		"corcom",
 		"cordecom",
 		"corcomcon",
+		"legcom",
+		"legcomdef",
 	},
 	scavboss = {
 		"armcomboss",
@@ -334,6 +336,7 @@ local armorDefs = {
 		"chickenf1b",
 		"chickenf2",
 		"chickenebomber1",
+		"chickenacidbomber",
 		"armthund",
 		"corshad",
 		"armliche",

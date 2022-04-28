@@ -2,340 +2,338 @@ include("keysym.h.lua")
 
 function widget:GetInfo()
 	return {
-		name      = "Ally Selected Units",
+		name      = "Ally Selected Units", -- GL4
 		desc      = "Shows units selected by teammates",
-		author    = "very_bad_soldier",
-		date      = "August 1, 2008",
+		author    = "Beherith, Floris",
+		date      = "April 2022",
 		license   = "GNU GPL v2",
-		layer     = -10,
+		layer     = 0,
 		enabled   = true
 	}
 end
 
-local spGetSelectedUnits	= Spring.GetSelectedUnits
-local spGetUnitDefID        = Spring.GetUnitDefID
-local spGetUnitBasePosition = Spring.GetUnitBasePosition
-local spGetPlayerInfo       = Spring.GetPlayerInfo
-local spGetLocalTeamID		= Spring.GetLocalTeamID
-local spSelectUnitMap		= Spring.SelectUnitMap
-local spGetTeamColor 		= Spring.GetTeamColor
-local spIsSphereInView  	= Spring.IsSphereInView
-local spGetSpectatingState	= Spring.GetSpectatingState
-local spGetGameSeconds		= Spring.GetGameSeconds
-local spIsGUIHidden			= Spring.IsGUIHidden
-local glColor               = gl.Color
+local showAsSpectator = true
+local selectPlayerUnits = true	-- when lockcamera player
+local hideBelowGameframe = 100
+
+-- unit platter
+local lineSize = 1.45
+local lineOpacity = 0.33
+local enablePlatter = true
+local platterOpacity = 0.11
+
+local useHexagons = true
+
+-- unit shape highlight
+local enableHighlight = false	-- using this leaves us with zombie units when switching fullview :(
+local useTeamcolor = true
+local highlightAlpha = 0
+local teamColorAlphaMult = 1.4
+local teamColorMinAlpha = 0.85
+local edgeExponent = 1.85
+local minEdgeAlpha = 0.25
+
+----------------------------------------------------------------------------
+
+local selectionVBO = nil
+local selectShader = nil
+local luaShaderDir = "LuaUI/Widgets/Include/"
+
+local glStencilFunc         = gl.StencilFunc
+local glStencilOp           = gl.StencilOp
+local glStencilTest         = gl.StencilTest
+local glStencilMask         = gl.StencilMask
 local glDepthTest           = gl.DepthTest
-local glPopMatrix           = gl.PopMatrix
-local glPushMatrix          = gl.PushMatrix
-local glTranslate           = gl.Translate
-local glLineWidth 			= gl.LineWidth
-local glScale				= gl.Scale
-local glCallList   			= gl.CallList
-local glDrawListAtUnit      = gl.DrawListAtUnit
+local glClear               = gl.Clear
+local GL_ALWAYS             = GL.ALWAYS
+local GL_NOTEQUAL           = GL.NOTEQUAL
+local GL_KEEP               = 0x1E00 --GL.KEEP
+local GL_STENCIL_BUFFER_BIT = GL.STENCIL_BUFFER_BIT
+local GL_REPLACE            = GL.REPLACE
+local GL_POINTS				= GL.POINTS
 
-local spec = false
+local spGetUnitDefID        = Spring.GetUnitDefID
+local spGetPlayerInfo       = Spring.GetPlayerInfo
+local spGetSpectatingState	= Spring.GetSpectatingState
+local spIsGUIHidden			= Spring.IsGUIHidden
+
 local playerIsSpec = {}
+for i,playerID in pairs(Spring.GetPlayerList()) do
+	playerIsSpec[playerID] = select(3, spGetPlayerInfo(playerID, false))
+end
 
-local scaleMultiplier			= 1.05
-local maxAlpha					= 0.45
-local hotFadeTime				= 0.25
-local lockTeamUnits				= false -- disallow selection of units selected by teammates
-local showAlly					= true -- also show allies (besides coop)
-local useHotColor				= false -- use RED for all hot units, if false use playerColor starting with transparency
-local showAsSpectator			= true
-local circleDivsCoop			= 32  -- nice circle
-local circleDivsAlly			= 5  -- aka pentagon
-local selectPlayerUnits			= true
-
-local hotColor = {1.0, 0.0, 0.0, 1.0}
-
-local playerColorPool = {
-	{0.0, 1.0, 0.0},
-	{1.0, 1.0, 0.0},
-	{0.0, 0.0, 1.0},
-	{0.6, 0.0, 0.0}, -- reserve full-red for hot units
-	{0.0, 1.0, 1.0},
-	{1.0, 0.0, 1.0},
-	{1.0, 0.0, 0.0},
-	{1.0, 0.0, 0.0},
-}
-
-local nextPlayerPoolId = 1
+local spec, fullview = spGetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
+local myAllyTeam = Spring.GetMyAllyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
-local playerSelectedUnits = {}
-local hotUnits = {}
-local circleLinesCoop
-local circleLinesAlly
+local selectedUnits = {}
 local lockPlayerID
 
-local playerColors = {}
-
-local teamColorKeys = {}
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local r, g, b, a = spGetTeamColor(teams[i])
-	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
-end
-teams = nil
+local unitAllyteam = {}
+local unitshapes = {}
+local spGetUnitTeam = Spring.GetUnitTeam
 
 local unitScale = {}
 local unitCanFly = {}
 local unitBuilding = {}
+local sizeAdd = -(lineSize*1.5)
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitScale[unitDefID] = (7.5 * ( unitDef.xsize^2 + unitDef.zsize^2 ) ^ 0.5) + 8
+	unitScale[unitDefID] = unitScale[unitDefID] + sizeAdd
 	if unitDef.canFly then
 		unitCanFly[unitDefID] = true
 		unitScale[unitDefID] = unitScale[unitDefID] * 0.7
 	elseif unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
 		unitBuilding[unitDefID] = {
-			unitDef.xsize * 8.2 + 12,
-			unitDef.zsize * 8.2 + 12
+			(unitDef.xsize * 8.2 + 12) + sizeAdd,
+			(unitDef.zsize * 8.2 + 12) + sizeAdd
 		}
 	end
 end
 
-
-local unitConf = {}
-for udid, unitDef in pairs(UnitDefs) do
-	local scaleFactor = 2.6			-- preferred to keep this value the same as other widgets
-	local rectangleFactor = 3.25	-- preferred to keep this value the same as other widgets
-
-	local xsize, zsize = unitDef.xsize, unitDef.zsize
-	local scale = scaleFactor*( xsize^2 + zsize^2 )^0.5
-	local shape, xscale, zscale
-
-	if unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
-		shape = 'square'
-		xscale, zscale = rectangleFactor * xsize, rectangleFactor * zsize
-	elseif unitDef.isAirUnit then
-		shape = 'triangle'
-		xscale, zscale = scale*1.07, scale*1.07
-	elseif unitDef.modCategories.ship then
-		shape = 'circle'
-		xscale, zscale = scale*0.82, scale*0.82
-	else
-		shape = 'circle'
-		xscale, zscale = scale, scale
-	end
-
-	local radius = Spring.GetUnitDefDimensions(udid).radius
-	xscale = (xscale*0.7) + (radius/5)
-	zscale = (zscale*0.7) + (radius/5)
-
-	unitConf[udid] = {shape=shape, xscale=xscale, zscale=zscale}
+local teamColor = {}
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local r, g, b = Spring.GetTeamColor(teams[i])
+	local min = teamColorMinAlpha
+	teamColor[teams[i]] = { math.max(r, min), math.max(g, min), math.max(b, min) }
 end
+teams = nil
 
-local function getPlayerColour(playerID,teamID)
-	if playerSelectedUnits[playerID].coop and not spec then
-		if not playerColorPool[nextPlayerPoolId] then
-			playerColors[playerID] = playerColorPool[1]  --we have only 8 colors, take color 1 as default
-		else
-			playerColors[playerID] = playerColorPool[nextPlayerPoolId]
+local function addUnitShape(unitID)
+	if not Spring.ValidUnitID(unitID) or Spring.GetUnitIsDead(unitID) then
+		return nil
+	end
+	if WG.HighlightUnitGL4 then
+		local r,g,b
+		local a = highlightAlpha
+		if useTeamcolor then
+			local teamID = spGetUnitTeam(unitID)
+			if teamID then
+				r, g, b = teamColor[teamID][1], teamColor[teamID][2], teamColor[teamID][3]
+				a = a * teamColorAlphaMult
+			end
 		end
-		nextPlayerPoolId = nextPlayerPoolId + 1
-	else
-		playerColors[playerID] = {spGetTeamColor(teamID)}--he is only ally, use his color
+		unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r,g,b, a, minEdgeAlpha+(highlightAlpha*2), edgeExponent, 0)
+		return unitshapes[unitID]
 	end
 end
 
-local function newHotUnit(unitID, coop, playerID)
-	if not playerSelectedUnits[playerID].todraw then
-		return
+local function AddPrimitiveAtUnit(unitID)
+	local unitDefID = Spring.GetUnitDefID(unitID)
+	if unitDefID == nil then return end -- these cant be selected
+
+	local numVertices = useHexagons and 6 or 64
+	local cornersize = 0
+	local radius = unitScale[unitDefID]
+	local additionalheight = 0
+	local width, length
+	if unitCanFly[unitDefID] then
+		numVertices = 3 -- triangles for planes
+		width = radius
+		length = radius
+	elseif unitBuilding[unitDefID] then
+		width = unitBuilding[unitDefID][1]
+		length = unitBuilding[unitDefID][2]
+		cornersize = (width + length) * 0.075
+		numVertices = 2
+	else
+		width = radius
+		length = radius
 	end
-	local udef = spGetUnitDefID(unitID)
-	if udef ~= nil then
-		local realDefRadius = unitConf[udef].xscale*1.5
-		if realDefRadius ~= nil then
-			local defRadius = realDefRadius * scaleMultiplier
-			hotUnits[ unitID ] = {ts = os.clock(), coop = coop, defRadius = defRadius, playerID = playerID}
+
+	pushElementInstance(
+		selectionVBO, -- push into this Instance VBO Table
+		{
+			length, width, cornersize, additionalheight,  -- lengthwidthcornerheight
+			spGetUnitTeam(unitID), -- teamID
+			numVertices, -- how many trianges should we make
+			Spring.GetGameFrame(), 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
+			0, 1, 0, 1, -- These are our default UV atlas tranformations
+			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
+		},
+		unitID, -- this is the key inside the VBO TAble,
+		true, -- update existing element
+		nil, -- noupload, dont use unless you
+		unitID -- last one should be UNITID?
+	)
+end
+
+local function RemovePrimitive(unitID)
+	if selectionVBO.instanceIDtoIndex[unitID] then
+		popElementInstance(selectionVBO, unitID)
+	end
+end
+
+local function removeUnitShape(unitID)
+	if WG.StopHighlightUnitGL4 and unitID and unitshapes[unitID] then
+		WG.StopHighlightUnitGL4(unitshapes[unitID])
+		unitshapes[unitID] = nil
+	end
+end
+
+local function addUnit(unitID)
+	if selectedUnits[unitID] ~= nil and selectedUnits[unitID] == false and (fullview or myAllyTeam == unitAllyteam[unitID]) then
+		if not Spring.ValidUnitID(unitID) or Spring.GetUnitIsDead(unitID) then
+			return
 		end
+		if enablePlatter then
+			AddPrimitiveAtUnit(unitID)
+		end
+		if enableHighlight then
+			addUnitShape(unitID)
+		end
+		selectedUnits[unitID] = true
+	end
+end
+
+local function removeUnit(unitID)
+	if selectedUnits[unitID] ~= nil and selectedUnits[unitID] then
+		if enablePlatter then
+			RemovePrimitive(unitID)
+		end
+		if enableHighlight then
+			removeUnitShape(unitID)
+		end
+		selectedUnits[unitID] = false
 	end
 end
 
 local function selectPlayerSelectedUnits(playerID)
 	local units = {}
 	local count = 0
-	for pID, selUnits in pairs(playerSelectedUnits) do
-		if pID == playerID then
-			for unitId, _ in pairs(selUnits.units) do
-				count = count + 1
-				units[count] = unitId
-			end
+	local teamID = select(4, spGetPlayerInfo(playerID))
+	for unitID, drawn in pairs(selectedUnits) do
+		if spGetUnitTeam(unitID) == teamID then
+			count = count + 1
+			units[count] = unitID
 		end
 	end
 	Spring.SelectUnitArray(units)
 end
 
+-- called by gadget
 local function selectedUnitsClear(playerID)
-	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
-		if not playerSelectedUnits[playerID] then
-			widget:PlayerAdded(playerID)
-		end
-		--make all hot
-		for unitId, defRadius in pairs(playerSelectedUnits[playerID].units) do
-			newHotUnit(unitId, playerSelectedUnits[playerID].coop, playerID)
-		end
-		--clear all
-		playerSelectedUnits[playerID].units = {}
+	if not spec and playerID == myPlayerID then
+		return
 	end
-	if lockPlayerID ~= nil and playerID == lockPlayerID and selectPlayerUnits then
+	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
+		local teamID = select(4, spGetPlayerInfo(playerID))
+		for unitID, drawn in pairs(selectedUnits) do
+			if spGetUnitTeam(unitID) == teamID then
+				widget:UnitDestroyed(unitID)
+			end
+		end
+	end
+	if lockPlayerID and playerID == lockPlayerID and selectPlayerUnits then
 		selectPlayerSelectedUnits(lockPlayerID)
 	end
 end
 
+-- called by gadget
 local function selectedUnitsAdd(playerID,unitID)
+	if not spec and playerID == myPlayerID then
+		return
+	end
 	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
-		if not playerSelectedUnits[playerID] then
-			widget:PlayerAdded(playerID)
-		end
-		--add unit
-		local udefID = spGetUnitDefID(unitID)
-		if spGetUnitDefID(unitID) ~= nil then
-			local realDefRadius = unitConf[udefID].xscale*1.5
-			if realDefRadius then
-				playerSelectedUnits[playerID].units[unitID] = realDefRadius * scaleMultiplier
-				--un-hot it
-				hotUnits[unitID] = nil
-			end
+		if spGetUnitDefID(unitID) then
+			selectedUnits[unitID] = false
+			unitAllyteam[unitID] = select(6, Spring.GetTeamInfo(spGetUnitTeam(unitID), false))
+			addUnit(unitID)
 		end
 	end
-	if lockPlayerID ~= nil and playerID == lockPlayerID and selectPlayerUnits then
+	if lockPlayerID and playerID == lockPlayerID and selectPlayerUnits then
 		selectPlayerSelectedUnits(lockPlayerID)
 	end
 end
 
+-- called by gadget
 local function selectedUnitsRemove(playerID,unitID)
-	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
-		if not playerSelectedUnits[playerID] then
-			widget:PlayerAdded(playerID)
-		end
-		--remove unit
-		playerSelectedUnits[playerID].units[unitID] = nil
-		--make it hot
-		newHotUnit(unitID, playerSelectedUnits[playerID].coop, playerID)
+	if not spec and playerID == myPlayerID then
+		return
 	end
-	if lockPlayerID ~= nil and playerID == lockPlayerID and selectPlayerUnits then
+	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
+		widget:UnitDestroyed(unitID)
+	end
+	if lockPlayerID and playerID == lockPlayerID and selectPlayerUnits then
 		selectPlayerSelectedUnits(lockPlayerID)
 	end
-end
-
-local function array2Table(arr)
-	local tab = {}
-	for i,v in ipairs(arr) do
-		tab[v] = true
-	end
-	return tab
-end
-
-local function DoDrawPlayer(playerID,teamID)
-	if playerID == myPlayerID then
-		return false
-	end
-	if teamID ~= myTeamID and not showAlly then
-		return false
-	end
-	return true
-end
-
-local function deselectAllTeamSelected()
-	local selectedUnits = array2Table(spGetSelectedUnits())
-	for playerID, selUnits in pairs(playerSelectedUnits) do
-		for unitId, defRadius in pairs(selUnits.units) do
-			selectedUnits[unitId] = nil
-		end
-	end
-	spSelectUnitMap(selectedUnits)
-end
-
-local function setPlayerColours()
-	playerColors = {}
-	for _, playerID in pairs(Spring.GetPlayerList()) do
-		widget:PlayerAdded(playerID)
-	end
-end
-
-local function calcCircleLines(divs)
-	local circleOffset = 0
-	local lines = gl.CreateList(function()
-		gl.BeginEnd(GL.LINE_LOOP, function()
-			local radstep = (2.0 * math.pi) / divs
-			for i = 1, divs do
-				local a = (i * radstep)
-				gl.Vertex(math.sin(a), circleOffset, math.cos(a))
-			end
-		end)
-	end)
-
-	return lines
 end
 
 function widget:PlayerRemoved(playerID, reason)
-	for unitID, val in pairs( hotUnits ) do
-		if val.playerID == playerID then
-			hotUnits[unitID] = nil
+	local teamID = select(4, spGetPlayerInfo(playerID))
+	for unitID, drawn in pairs(selectedUnits) do
+		if spGetUnitTeam(unitID) == teamID then
+			widget:UnitDestroyed(unitID)
 		end
 	end
-	playerSelectedUnits[playerID].units = {}
 end
 
 function widget:PlayerAdded(playerID)
-	local playerTeam = select(4, spGetPlayerInfo(playerID, false))
-	if not playerSelectedUnits[playerID] then
-		playerSelectedUnits[playerID] = {
-			units = {},
-			coop = (playerTeam == myTeamID),
-			todraw = DoDrawPlayer(playerID),
-		}
-	end
 	playerIsSpec[playerID] = select(3, spGetPlayerInfo(playerID, false))
-	--grab color from color pool for new teammate
-	--no color yet
-	getPlayerColour(playerID,playerTeam)
 end
 
 function widget:PlayerChanged(playerID)
-	if not spec and spGetSpectatingState() then
-		spec = true
-		setPlayerColours()
-		if not showAsSpectator then
-			widgetHandler:RemoveWidget()
-			return
-		end
+	if not showAsSpectator and not spec and spGetSpectatingState() then
+		widgetHandler:RemoveWidget()
+		return
 	end
-	myTeamID = spGetLocalTeamID()
-	local playerTeam = select(4, spGetPlayerInfo(playerID, false))
-	local oldCoopStatus = playerSelectedUnits[playerID].coop
-	playerSelectedUnits[playerID].coop = (playerTeam == myTeamID)
-	playerSelectedUnits[playerID].todraw = DoDrawPlayer(playerID)
+	myTeamID = Spring.GetMyTeamID()
+	myAllyTeam = Spring.GetMyAllyTeamID()
+	myPlayerID = Spring.GetMyPlayerID()
 
-	--grab color from color pool for new teammate
-	if oldCoopStatus ~= playerSelectedUnits[playerID].coop then
-		getPlayerColour(playerID,playerTeam)
+	-- when changing fullview mode
+	local prevFullview = fullview
+	spec, fullview = spGetSpectatingState()
+	if prevFullview ~= fullview then
+		local myAllyID = Spring.GetMyAllyTeamID()
+		for unitID, drawn in pairs(selectedUnits) do
+			if fullview then
+				addUnit(unitID)
+			else
+				if unitAllyteam[unitID] ~= myAllyTeam then
+					removeUnit(unitID)
+				end
+			end
+		end
 	end
 
 	for i,playerID in pairs(Spring.GetPlayerList()) do
-		playerIsSpec[playerID] = select(3, spGetPlayerInfo(playerID, false))
-	end
-end
-
-function widget:CommandsChanged(id, params, options)
-	if lockTeamUnits then
-		deselectAllTeamSelected()
+		local spec = select(3, spGetPlayerInfo(playerID, false))
+		if spec and not playerIsSpec[playerID] then
+			selectedUnitsClear(playerID)
+		end
+		playerIsSpec[playerID] = spec
 	end
 end
 
 function widget:UnitDestroyed(unitID)
-	hotUnits[unitID] = nil
+	removeUnit(unitID)
+	selectedUnits[unitID] = nil
+	unitAllyteam[unitID] = nil
+end
 
-	for playerID, selUnits in pairs(playerSelectedUnits) do
-		selUnits.units[unitID] = nil
+function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	addUnit(unitID)
+end
+
+function widget:VisibleUnitRemoved(unitID)
+	removeUnit(unitID)
+end
+
+function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
+	clearInstanceTable(selectionVBO)
+	-- this wont work properly for unitshapes:
+	for unitID, drawn in pairs(selectedUnits) do
+		removeUnit(unitID)
+	end
+	for unitID, unitDefID in pairs(extVisibleUnits) do
+		addUnit(unitID)
 	end
 end
 
 local updateTime = 0
 local checkLockPlayerInterval = 1
-local sec = 0
 function widget:Update(dt)
 	if WG['advplayerlist_api'] ~= nil then
 		updateTime = updateTime + dt
@@ -347,46 +345,36 @@ function widget:Update(dt)
 			updateTime = 0
 		end
 	end
+end
 
-	sec = sec + dt
-	if sec > 1.5 then
-		sec = 0
-
-		-- check if team colors have changed
-		local teams = Spring.GetTeamList()
-		for i = 1, #teams do
-			local r, g, b, a = spGetTeamColor(teams[i])
-			if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
-				teamColorKeys[teams[i]] = r..'_'..g..'_'..b
-				local players = Spring.GetPlayerList(teams[i])
-				for _, playerID in ipairs(players) do
-					widget:PlayerChanged(playerID)
-				end
-			end
-		end
-	end
+local function init()
+	local DPatUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
+	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE!
+	shaderConfig.BILLBOARD = 0
+	shaderConfig.TRANSPARENCY = platterOpacity
+	shaderConfig.INITIALSIZE = 0.75
+	shaderConfig.GROWTHRATE = 8
+	shaderConfig.HEIGHTOFFSET = 3.9
+	shaderConfig.USETEXTURE = 0
+	shaderConfig.LINETRANSPARANCY = lineOpacity
+	shaderConfig.ROTATE_CIRCLES = 0
+	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(g_color.rgb, TRANSPARENCY + step( 0.01, addRadius) * LINETRANSPARANCY);"
+	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "allySelectedUnits")
 end
 
 function widget:Initialize()
-	circleLinesCoop = calcCircleLines(circleDivsCoop)
-	circleLinesAlly = calcCircleLines(circleDivsAlly)
-
-	setPlayerColours()
-
+	init()
+	for _, playerID in pairs(Spring.GetPlayerList()) do
+		widget:PlayerAdded(playerID)
+	end
 	widget:PlayerChanged(myPlayerID)
 
 	widgetHandler:RegisterGlobal('selectedUnitsRemove', selectedUnitsRemove)
 	widgetHandler:RegisterGlobal('selectedUnitsClear', selectedUnitsClear)
 	widgetHandler:RegisterGlobal('selectedUnitsAdd', selectedUnitsAdd)
-	spec = spGetSpectatingState()
 
 	WG['allyselectedunits'] = {}
-	WG['allyselectedunits'].getOpacity = function()
-		return maxAlpha
-	end
-	WG['allyselectedunits'].setOpacity = function(value)
-		maxAlpha = value
-	end
 	WG['allyselectedunits'].getSelectPlayerUnits = function()
 		return selectPlayerUnits
 	end
@@ -399,115 +387,81 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('selectedUnitsRemove')
 	widgetHandler:DeregisterGlobal('selectedUnitsClear')
 	widgetHandler:DeregisterGlobal('selectedUnitsAdd')
-	if circleLinesCoop ~= nil then
-		gl.DeleteList(circleLinesCoop)
-	end
-	if circleLinesAlly ~= nil then
-		gl.DeleteList(circleLinesAlly)
+	for unitID, drawn in pairs(selectedUnits) do
+		removeUnit(unitID)
 	end
 end
 
-local function DrawHotUnits()
-	glDepthTest(false)
-	glLineWidth( 2 )
+local drawFrame = 0
+local isGuiHidden = spIsGUIHidden()
+function widget:DrawWorldPreUnit()
+	if Spring.GetGameFrame() < hideBelowGameframe then return end
 
-	local toDelete = {}
-
-	for unitID, val in pairs( hotUnits ) do
-		if lockPlayerID == nil or val.playerID ~= lockPlayerID or (val.playerID == lockPlayerID and not selectPlayerUnits) then
-			local x, y, z = spGetUnitBasePosition(unitID)
-			local defRadius = val["defRadius"]
-			local inView = false
-			if z ~= nil then --checking z should be enough insteady of x,y,z
-				inView = spIsSphereInView(x, y, z, defRadius)
-			end
-			if inView then
-				local timeDiff = (os.clock() - val["ts"])
-
-				if timeDiff <= hotFadeTime then
-					if useHotColor then
-						hotColor[4] = 1.0 - (timeDiff / hotFadeTime)
-						glColor(hotColor)
-					else
-						local cl = playerColors[val["playerID"]]
-						cl[4] = maxAlpha - maxAlpha * (timeDiff / hotFadeTime)
-						glColor(cl)
+	if isGuiHidden ~= spIsGUIHidden() then
+		isGuiHidden = spIsGUIHidden()
+		if enableHighlight and WG.HighlightUnitGL4 then
+			if isGuiHidden then
+				for unitID, drawn in pairs(selectedUnits) do
+					if drawn then
+						removeUnit(unitID)
 					end
-				else
-					toDelete[unitID] = true
 				end
-
-				if toDelete[unitID] == nil then
-					local lines = circleLinesAlly
-					if val["coop"] == true and not spec then
-						lines = circleLinesCoop
-					end
-
-					glPushMatrix()
-					glTranslate(x,y,z)
-					glScale(defRadius, 1, defRadius)
-					glCallList(lines)
-					glPopMatrix()
-				end
-			end
-		end
-	end
-
-	for unitID, val in pairs(toDelete) do
-		hotUnits[unitID] = nil
-	end
-
-	glDepthTest(false)
-	glColor(1, 1, 1, 1)
-	glLineWidth(1)
-end
-
-local function DrawSelectedUnits()
-	glColor(0.0, 1.0, 0.0, 1.0)
-	glLineWidth(2)
-	gl.PointSize(1)
-	local now = spGetGameSeconds()
-	for playerID, selUnits in pairs(playerSelectedUnits) do
-		if lockPlayerID == nil or lockPlayerID ~= playerID or (lockPlayerID == playerID and not selectPlayerUnits) then
-			if selUnits.todraw and not playerIsSpec[playerID] then
-
-				glColor(playerColors[playerID][1],  playerColors[playerID][2],  playerColors[playerID][3], maxAlpha)
-				for unitID, defRadius in pairs(selUnits.units) do
-					local x, y, z = spGetUnitBasePosition(unitID)
-					if z and spIsSphereInView(x, y, z, defRadius) then
-						if selUnits.coop == true and not spec then
-							glDrawListAtUnit(unitID, circleLinesCoop, false, defRadius,defRadius,defRadius)
-						else
-							glDrawListAtUnit(unitID, circleLinesAlly, false, defRadius,defRadius,defRadius)
+			else
+				local myAllyID = Spring.GetMyAllyTeamID()
+				for unitID, drawn in pairs(selectedUnits) do
+					if not drawn then
+						local playerAllyID = select(6, Spring.GetTeamInfo(spGetUnitTeam(unitID), false))
+						if fullview or playerAllyID == myAllyID then
+							addUnit(unitID)
 						end
 					end
 				end
 			end
 		end
 	end
+	if isGuiHidden then return end
 
-	glColor(1, 1, 1, 1)
-	glLineWidth(1)
-end
+	if enablePlatter then
+		drawFrame = drawFrame + 1
+		if selectionVBO.usedElements > 0 then
+			selectShader:Activate()
+			selectShader:SetUniform("iconDistance", 99999) -- pass
+			glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
+			glDepthTest(true)
+			glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
+			glClear(GL_STENCIL_BUFFER_BIT ) -- set stencil buffer to 0
 
-function widget:DrawWorldPreUnit()
-	if spIsGUIHidden() then return end
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)      -- disable layer blending
-	DrawSelectedUnits()
-	DrawHotUnits()
+			glStencilFunc(GL_NOTEQUAL, 1, 1) -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
+			glStencilMask(1)
+
+			selectShader:SetUniform("addRadius", 0)
+			selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
+
+			glStencilFunc(GL_NOTEQUAL, 1, 1)
+			glStencilMask(0)
+			glDepthTest(true)
+
+			selectShader:SetUniform("addRadius", lineSize)
+			selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
+
+			glStencilMask(1)
+			glStencilFunc(GL_ALWAYS, 1, 1)
+			glDepthTest(true)
+
+			selectShader:Deactivate()
+		end
+	end
 end
 
 function widget:GetConfigData()
     return {
-		maxAlpha = maxAlpha,
         selectPlayerUnits = selectPlayerUnits,
-        version = 1.1
+        version = 2.0
     }
 end
 
 function widget:SetConfigData(data)
-    if data.version ~= nil and data.version == 1.1 then
-        maxAlpha = data.maxAlpha or maxAlpha
+    if data.version ~= nil and data.version == 2.0 then
 		if data.selectPlayerUnits ~= nil then
 			selectPlayerUnits = data.selectPlayerUnits
 		end

@@ -555,11 +555,14 @@ fragment = [[
 	uniform int bitOptions;
 
 	uniform float hasAlphaShadows = 0.0;
+	
+	uniform float brightnessFactor = 1.5;
 	//int bitOptions = 1 +  2 + 8 + 16 + 128 + 256;
 
 	float simFrame = (timeInfo.x + timeInfo.w);
 
 	float textureLODBias =  -0.5; //-0.5 * sin (simFrame * 0.1) - 0.5;
+	
 
 	//uniform float pbrParams[8];
 
@@ -1532,7 +1535,7 @@ fragment = [[
 			}
 		#endif
 
-		outColor.rgb *= 1.5; // this is to correct for lack of env mapping, the nastiest hack there has ever been...
+		outColor.rgb *= brightnessFactor; // this is to correct for lack of env mapping, the nastiest hack there has ever been...
 
 		#if (RENDERING_MODE == 0)
 			fragData[0] = vec4(outColor, texColor2.a);

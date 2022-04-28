@@ -11,7 +11,8 @@ function gadget:GetInfo()
 	}
 end
 
-local unitLimitPerFrame = 300 -- controls how many units will be send per frame
+local updateDelay = 0.5
+local unitLimitPerFrame = 400 -- controls how many units will be send per frame
 local fullSelectionUpdateInt = 0 -- refresh full selection info once in n seconds, 0 = disabled
 local minZlibSize = 130  --minimum size threshold of msg to use zlib (msg smaller than this will not be compressed before sending)
 
@@ -121,14 +122,14 @@ else
 			time = 0 --prevent floating point errors
 		end
 		time = time + deltaTime
+		timeSeconds = timeSeconds + deltaTime
 
-		if timeSeconds == floor(time) then
-			return --only run on whole seconds
+		if time < updateDelay then
+			return
 		end
+		time = 0
 
-		timeSeconds = floor(time)
-
-		if fullSelectionUpdateInt ~= 0 and timeSeconds%fullSelectionUpdateInt == 0 then
+		if fullSelectionUpdateInt ~= 0 and floor(timeSeconds)%fullSelectionUpdateInt == 0 then
 			--its time for a full update
 			sendUnitsMsg(PackU16(0xffff) .. PackU16(0xffff))
 			myLastSelectedUnits = {}

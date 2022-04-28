@@ -1,6 +1,6 @@
 local spawnpadSpawnEnabled = false
-local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
-if Spring.GetModOptions().commanderbuildersenabled == "enabled" or (Spring.GetModOptions().commanderbuildersenabled == "scav_only" and scavengersAIEnabled) then
+local PvEEnabled = Spring.Utilities.Gametype.IsPvE()
+if Spring.GetModOptions().commanderbuildersenabled == "enabled" or (Spring.GetModOptions().commanderbuildersenabled == "pve_only" and PvEEnabled) then
 	spawnpadSpawnEnabled = true
 end
 
@@ -24,6 +24,7 @@ end
 local spawnpads = {
     [UDN.armcom.id] = "armrespawn",
     [UDN.corcom.id] = "correspawn",
+	[UDN.legcomdef.id] = "correspawn",
 }
 
 function SpawnAssistDrones(unitID, unitDefID, unitTeam)

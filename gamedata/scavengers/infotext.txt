@@ -6,36 +6,24 @@ Try to survive and build up a super strong base and army to fight the Scavenger 
 QUICK GUIDE
 1. Scavengers usually remain ABSENT FOR APPROX. FIRST 5 MINUTES of a game.
 2. ORBITAL DROPS will spawn Scavenger BEACONS, mostly in 'dark areas' of the map.
-3. The Scavenger COMMANDERS build and repair ±5x faster then your usual Commander
-4. Scavenger REZ-BOTS will SCAVENGE THE BATTLEFIELD to resurrect wreckages.
-5. Their strength will dynamically grow (or shrink) depending on your actions and agression
-6. Keep growing your base, economy and army to reach 100%
+3. Scavenger REZ-BOTS will SCAVENGE THE BATTLEFIELD to resurrect wreckages.
+4. Their strength will dynamically grow (or shrink) depending on your actions and agression
+5. Keep growing your base, economy and army to reach 100%
 
 RANDOM EVENTS
 - "Extra strong units" appear once in a while
 - "Malfunctions" can stop all Scavengers for a periode between 20-40 seconds.
 - "Rebellion" of a small group of Scavengers joining the other team
-- "Invasion" of a large group of agressive Scavenger construction units all over the map
+
 
 USEFUL TIPS
-1. The Scavenger Acidic Tower generates an acidic and radioactive cloud and will damage all regular units quickly. Destroying the Scavenger Cloud Tower will anger and strenghten the Scavengers a lot. Each succesive destroyed Cloud Tower will increase both the size of the cloud and their strength increase. 
-2. It's wise to get as much RADAR COVERAGE as possible to prevent Beacons from dropping close to your base.
-3. Hunt down and DESTROY DROPPOD-BEACONS to reduce the amount of Scavengers that will drop!
-4. Try and Capture Scavenger RESOURCE GENERATORS and transport them back to the safety of your base. They generate a lot of resources.
-5. Try and Capture Scavenger BLUEPRINTERS. They offer you a small selection of Scavenger Units to build, including T4 super experimentals.
-6. Scavenger STORAGE BUILDINGS can leave very rich metal deposits which can contain up to 10k metal. Reclaim them.
-7. Make sure you have strong Anti-Air and Anti-Nuke defenses.
+1. It's wise to get as much RADAR COVERAGE as possible to prevent Beacons from dropping close to your base.
+2. Hunt down and DESTROY DROPPOD-BEACONS to reduce the amount of Scavengers that will drop!
+3. Try and Capture Scavenger RESOURCE GENERATORS and transport them back to the safety of your base. They generate a lot of resources.
+4. Try and Capture Scavenger BLUEPRINTERS. They offer you a small selection of Scavenger Units to build, including T4 super experimentals.
+5. Scavenger STORAGE BUILDINGS can leave very rich metal deposits which can contain up to 10k metal. Reclaim them.
+6. Make sure you have strong Anti-Air and Anti-Nuke defenses.
 
-SPECIAL STATISTICS
-» 50% more agile in combat
-» 25% more jamming-range
-» Higher idle/auto heal
-» Faster reclaim and resurrect
-» 15% Faster build
-» 15% less cost in metal/nrg to produce
-» 15% less health
-» Around 25% of their armada is cloaked
-» All above stats can be 25% different each battle
  
 WHY DID THEY APPEAR?
 No one knows for sure where did they come from, what made them alive and hungry for destruction. It might have been some alien technology, a random short circuit of a processing unit or a deliberate action of mother nature to end the destructive war between Armada and Cortex. One thing is certain – some unknown event has influenced the AI algorithm and created these anomalies.

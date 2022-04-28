@@ -1,6 +1,6 @@
 local droneSpawnEnabled = false
-local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
-if Spring.GetModOptions().assistdronesenabled == "enabled" or (Spring.GetModOptions().assistdronesenabled == "scav_only" and scavengersAIEnabled) then
+local PvEEnabled = Spring.Utilities.Gametype.IsPvE()
+if Spring.GetModOptions().assistdronesenabled == "enabled" or (Spring.GetModOptions().assistdronesenabled == "pve_only" and PvEEnabled) then
 	droneSpawnEnabled = true
 end
 local droneCount = Spring.GetModOptions().assistdronescount
@@ -25,6 +25,7 @@ end
 local drones = {
     [UDN.armcom.id] = "armassistdrone",
     [UDN.corcom.id] = "corassistdrone",
+	[UDN.legcomdef.id] = "corassistdrone",
 }
 
 function SpawnAssistDrones(unitID, unitDefID, unitTeam)

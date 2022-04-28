@@ -1790,44 +1790,8 @@ function init()
 			  if value == 0.5 then
 				  Spring.SendCommands("luarules disablecusgl4")
 			  else
-				  if value then
-					  Spring.SendCommands("luarules disablecus")
-				  elseif Spring.GetConfigInt("cus", 1) == 1 then
-					  Spring.SendCommands("luarules reloadcus")
-				  end
-				  --Spring.SetConfigInt("cusgl4", (value and 1 or 0))
 				  Spring.SetConfigInt("cus2", (value and 1 or 0))
-				  Spring.SendCommands("luarules "..(value and 'reloadcus' or 'disablecus')..'gl4')
-				  local id = getOptionByID('cus')
-				  if value and id then
-					  options[id].value = false
-					  options[id].onchange(id, options[id].value)
-				  end
-			  end
-		  end,
-		},
-
-		{ id = "cus", group = "gfx", name = texts.option.cus.." (old)", category = types.dev, type = "bool", value = (Spring.GetConfigInt("cus", 0) == 1), description = texts.option.cus_descr,
-		  onchange = function(i, value)
-			  if value == 0.5 then
-				  Spring.SendCommands("luarules disablecus")
-			  else
-				  Spring.SetConfigInt("cus", (value and 1 or 0))
-				  Spring.SendCommands("luarules "..(value and 'reloadcus' or 'disablecus'))
-				  local id = getOptionByID('cusgl4')
-				  if value and id then
-				  	options[id].value = false
-					options[id].onchange(id, options[id].value)
-				  end
-			  end
-		  end,
-		},
-
-		{ id = "cus_threshold", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.cus_threshold, min = 0, max = 90, step = 1, type = "slider", value = Spring.GetConfigInt("cusThreshold", 30), description = texts.option.cus_threshold_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("cusThreshold", value)
-			  if not GetWidgetToggleValue("Auto Disable CUS") then
-				  widgetHandler:EnableWidget("Auto Disable CUS")
+				  Spring.SendCommands("luarules "..(value and 'reloadcusgl4' or 'disablecusgl4'))
 			  end
 		  end,
 		},
@@ -2768,6 +2732,13 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
 		  end,
 		},
+		{ id = "systemprivacy", restart = true, group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.systemprivacy, type = "bool", value = (Spring.GetConfigInt("SystemPrivacy", 0) == 1), description = texts.option.systemprivacy_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("SystemPrivacy", value and 1 or 0)
+		  end,
+		},
 		{ id = "unittotals", group = "ui", category = types.basic, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   " .. texts.option.unittotals, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = texts.option.unittotals_descr },
 		{ id = "mascot", group = "ui", category = types.advanced, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   " .. texts.option.mascot, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = texts.option.mascot_descr },
 
@@ -2776,6 +2747,14 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("HideSpecChat", value and 1 or 0)
+		  end,
+		},
+		{ id = "console_hide", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. widgetOptionColor .. texts.option.console_hide, type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getHide() or false), description = texts.option.console_hide_descr,
+		  onload = function(i)
+			  loadWidgetData("Chat", "console_hide", { 'hide' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Chat', 'chat', 'setHide', { 'hide' }, value)
 		  end,
 		},
 		{ id = "console_maxlines", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.console_maxlines, type = "slider", min = 3, max = 7, step = 1, value = (WG['chat'] ~= nil and WG['chat'].getMaxLines() or 5), description = '',
@@ -4610,9 +4589,6 @@ function init()
 
 		-- disable CUS
 		if not isPotatoGpu then	-- will disable later
-			if tonumber(Spring.GetConfigInt("cus", 1) or 1) == 0 then
-				Spring.SendCommands("luarules disablecus")
-			end
 
 			-- enable CUS GL4
 			if tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
@@ -4635,7 +4611,6 @@ function init()
 		end
 
 		if isPotatoGpu then
-
 			Spring.SendCommands("luarules disablecus")
 			Spring.SendCommands("luarules disablecusgl4")
 			options[getOptionByID('cus')] = nil

@@ -477,6 +477,7 @@ local options={
 			{key="normal", name="Medium", desc="Medium"},
 			{key="hard", name="Hard", desc="Hard"},
 			{key="veryhard", name="Very Hard", desc="Very Hard"},
+			{key="epic", name="Epic", desc="Epic"},
 			{key="survival", name="Survival", desc="Endless Mode"}
 		}
 	},
@@ -618,10 +619,11 @@ local options={
 		def="com",
 		section="options",
 		items={
-			{key="neverend", name="None", desc="Teams are never eliminated"},
-			{key="com", name="Kill all enemy Commanders", desc="When a team has no Commanders left, it loses"},
-			{key="builders", name="Kill all Builders"},
-			{key="killall", name="Kill everything", desc="Every last unit must be eliminated, no exceptions!"},
+			{key="neverend", 	name="Never ending", desc="Teams are never eliminated"},
+			{key="com", 		name="Kill all enemy Commanders", desc="When a team has no Commanders left, it loses"},
+			{key="builders", 	name="Kill all Builders"},
+			{key="killall", 	name="Kill everything", desc="Every last unit must be eliminated, no exceptions!"},
+			{key="own_com", 	name="Player resign on Com death", desc="When player commander dies, you auto-resign."},
 		}
 	},
 	{
@@ -749,11 +751,11 @@ local options={
 		key="assistdronesenabled",
 		name="Assist Drones",
 		type="list",
-		def="scav_only",
+		def="pve_only",
 		section="options",
 		items={
 			{key="enabled", name="Enabled"},
-			{key="scav_only", name="Enabled for Scavengers only"},
+			{key="pve_only", name="Enabled for PvE only"},
 			{key="disabled", name="Disabled"},
 		}
 	},
@@ -774,11 +776,11 @@ local options={
 		key="commanderbuildersenabled",
 		name="Base Construction Turret",
 		type="list",
-		def="scav_only",
+		def="pve_only",
 		section="options",
 		items={
 			{key="enabled", name="Enabled"},
-			{key="scav_only", name="Enabled for Scavengers only"},
+			{key="pve_only", name="Enabled for PvE only"},
 			{key="disabled", name="Disabled"},
 		}
 	},

@@ -31,6 +31,7 @@ local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local widgetScale = (((vsx*0.3 + (vsy*2.33)) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 
+local hide = false
 local fontsizeMult = 1
 local usedFontSize = charSize*widgetScale*fontsizeMult
 local usedConsoleFontSize = charSize*widgetScale*fontsizeMult*consoleFontSizeMult
@@ -525,6 +526,12 @@ function widget:Initialize()
 	WG['chat'].getInputButton = function()
 		return inputButton
 	end
+	WG['chat'].setHide = function(value)
+		hide = value
+	end
+	WG['chat'].getHide = function()
+		return hide
+	end
 	WG['chat'].setInputButton = function(value)
 		inputButton = value
 	end
@@ -917,6 +924,34 @@ function widget:DrawScreen()
 	if hovering and WG['guishader'] then
 		WG['guishader'].RemoveRect('chat')
 	end
+
+	-- draw chat input
+	if handleTextInput then
+
+		--updateTextInputDlist = true
+		if showTextInput and updateTextInputDlist then
+			drawChatInput()
+		end
+		if showTextInput and textInputDlist then
+			glCallList(textInputDlist)
+			drawChatInputCursor()
+			-- button hover
+			if inputButtonRect[1] and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
+				Spring.SetMouseCursor('cursornormal')
+				glColor(1,1,1,0.07)
+				RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
+			end
+		elseif WG['guishader'] then
+			WG['guishader'].RemoveRect('chatinput')
+			WG['guishader'].RemoveRect('chatinputautocomplete')
+			textInputDlist = glDeleteList(textInputDlist)
+		end
+	end
+
+	if hide and not scrolling then
+		return
+	end
+
 	if math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4]) or  (scrolling and math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[2]))  then
 		hovering = true
 		if scrolling then
@@ -952,29 +987,6 @@ function widget:DrawScreen()
 		hovering = false
 		scrolling = false
 		currentChatLine = #chatLines
-	end
-
-	-- draw chat input
-	if handleTextInput then
-
-		--updateTextInputDlist = true
-		if showTextInput and updateTextInputDlist then
-			drawChatInput()
-		end
-		if showTextInput and textInputDlist then
-			glCallList(textInputDlist)
-			drawChatInputCursor()
-			-- button hover
-			if inputButtonRect[1] and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
-				Spring.SetMouseCursor('cursornormal')
-				glColor(1,1,1,0.07)
-				RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
-			end
-		elseif WG['guishader'] then
-			WG['guishader'].RemoveRect('chatinput')
-			WG['guishader'].RemoveRect('chatinputautocomplete')
-			textInputDlist = glDeleteList(textInputDlist)
-		end
 	end
 
 	-- draw background
@@ -1784,6 +1796,7 @@ function widget:GetConfigData(data)
 		shutdownTime = os.clock(),
 		handleTextInput = handleTextInput,
 		inputButton = inputButton,
+		hide = hide,
 		version = 1,
 	}
 end
@@ -1803,6 +1816,9 @@ function widget:SetConfigData(data)
 	end
 	if data.chatBackgroundOpacity ~= nil then
 		backgroundOpacity = data.chatBackgroundOpacity
+	end
+	if data.hide ~= nil then
+		hide = data.hide
 	end
 	if data.maxLines ~= nil then
 		maxLines = data.maxLines

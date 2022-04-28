@@ -620,33 +620,48 @@ function makePlaneVBO(xsize, ysize, xresolution, yresolution) -- makes a plane f
 	return planeVBO, #VBOData/2
 end
 
-function makePlaneIndexVBO(xresolution, yresolution)
+function makePlaneIndexVBO(xresolution, yresolution, cutcircle)
 	xresolution = math.floor(xresolution)
 	if not yresolution then yresolution = xresolution end
 	local planeIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER,false)
 	if planeIndexVBO == nil then return nil end
-	local numindices = yresolution*xresolution*6
-	planeIndexVBO:Define(
-		numindices
-	)
+
+	local function xyinrad(lx, ly)
+		local px = (lx / xresolution) * 2 - 1
+		local py = (ly / yresolution) * 2 - 1
+		return (px*px + py*py) <= 1 
+	end
+	
 	local IndexVBOData = {}
 	local qindex = 0
 	local colsize = yresolution + 1
 	for x = 0, xresolution-1  do -- this is +1
 		for y = 0, yresolution-1 do
-			IndexVBOData[#IndexVBOData + 1] = qindex
-			IndexVBOData[#IndexVBOData + 1] = qindex +1
-			IndexVBOData[#IndexVBOData + 1] = qindex + colsize
-			IndexVBOData[#IndexVBOData + 1] = qindex +1
-			IndexVBOData[#IndexVBOData + 1] = qindex + colsize + 1
-			IndexVBOData[#IndexVBOData + 1] = qindex + colsize
+			--this is only 20% optimization
+			if cutcircle == nil or (xyinrad(x,y) or xyinrad(x + 1,y) or xyinrad(x,y + 1 )) then 
+				-- top left one
+				IndexVBOData[#IndexVBOData + 1] = qindex
+				IndexVBOData[#IndexVBOData + 1] = qindex +1
+				IndexVBOData[#IndexVBOData + 1] = qindex + colsize
+			end
+			
+			if cutcircle == nil or (xyinrad(x+1,y+1) or xyinrad(x + 1,y) or xyinrad(x,y + 1 )) then 
+				-- bottom right one?
+				IndexVBOData[#IndexVBOData + 1] = qindex +1
+				IndexVBOData[#IndexVBOData + 1] = qindex + colsize + 1
+				IndexVBOData[#IndexVBOData + 1] = qindex + colsize
+			end
 			qindex = qindex + 1
+			
 		end
 		qindex = qindex + 1
-	end	
+	end		
+	planeIndexVBO:Define(
+		#	IndexVBOData
+	)
 	planeIndexVBO:Upload(IndexVBOData)
 	--Spring.Echo("PlaneIndexVBO up:",#IndexVBOData, "Down", #planeIndexVBO:Download())
-	return planeIndexVBO,numindices
+	return planeIndexVBO, IndexVBOData
 end
 
 function makePointVBO(numPoints)
