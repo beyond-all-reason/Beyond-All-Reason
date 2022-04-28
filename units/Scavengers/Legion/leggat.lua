@@ -1,7 +1,7 @@
 return {
 	leggat	= {
-		acceleration = 0.026,
-		brakerate = 0.05,
+		acceleration = 0.02,
+		brakerate = 0.04,
 		buildcostenergy = 2700,
 		buildcostmetal = 300,
 		buildpic = "LEGGAT.DDS",
@@ -21,7 +21,7 @@ return {
 		leavetracks = true,
 		maxdamage = 2200,
 		maxslope = 10,
-		maxvelocity = 1.7,
+		maxvelocity = 1.6,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
 		name = "Gattling",
