@@ -4581,18 +4581,23 @@ function init()
 		end
 	end
 
+
 	if Spring.GetGameFrame() == 0 then
 		detectWater()
 
 		-- set vsync
 		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", 0))
 
-		-- disable CUS
+		-- disable old cus
+		if Spring.GetConfigInt("cus", 0) == 1 then
+			Spring.SetConfigInt("cus", 0)
+		end
+		Spring.SendCommands("luarules disablecus")
+
 		if not isPotatoGpu then	-- will disable later
 
 			-- enable CUS GL4
 			if tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
-				Spring.SendCommands("luarules disablecus")
 				Spring.SendCommands("luarules reloadcusgl4")
 			end
 		end
