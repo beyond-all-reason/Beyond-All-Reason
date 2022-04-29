@@ -1187,7 +1187,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n == 15 then
 			DisableComputerUnits()
 			config.burrowSpawnRate = config.burrowSpawnRate/SetCount(humanTeams)
-			config.chickenSpawnRate = config.chickenSpawnRate/SetCount(humanTeams)
+			--config.chickenSpawnRate = config.chickenSpawnRate/SetCount(humanTeams)
 		end
 
 		if n % 90 == 0 then
