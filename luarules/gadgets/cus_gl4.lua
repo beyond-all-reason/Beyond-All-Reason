@@ -1344,8 +1344,8 @@ local function ProcessUnits(units, drawFlags)
 	for i = 1, #units do
 		local unitID = units[i]
 		local drawFlag = drawFlags[i]
-		local buildpercent = select(5, spGetUnitHealth(unitID))
-
+		local _,_,_,_,buildpercent = spGetUnitHealth(unitID)
+		
 		if (drawFlag == 0) then
 			RemoveObject(unitID)
 		elseif (buildpercent and buildpercent < 1) or spGetUnitIsCloaked(unitID) then
@@ -1405,10 +1405,22 @@ local shaderactivations = 0
 
 local shaderOrder = {'tree','feature','unit',} -- this forces ordering, no real reason to do so, just for testing
 
+local drawpassstats = {} -- a table of drawpass number and the actual number of units and batches performed by that pass
+for drawpass, _ in pairs(overrideDrawFlagsCombined) do drawpassstats[drawpass] = {shaders = 0, batches = 0, units = 0} end 
+
+local function printDrawPassStats() 
+	res = ""
+	for drawpass, stats in pairs(drawpassstats) do 
+		res = res .. string.format("Pass_%d: %d/%d/%d  ", drawpass, stats.shaders, stats.batches, stats.units)
+	end
+	return res
+end
+
 local function ExecuteDrawPass(drawPass)
 	--defersubmissionupdate = (defersubmissionupdate + 1) % 10;
 	local batches = 0
 	local units = 0
+	local shaderswaps = 0
 	gl.Culling(GL.BACK)
 	--for shaderName, data in pairs(unitDrawBins[drawPass]) do
 	for _, shaderName in ipairs(shaderOrder) do
@@ -1427,7 +1439,7 @@ local function ExecuteDrawPass(drawPass)
 
 			if unitscountforthisshader > 0 then
 				gl.UseShader(shaderTable.shaderObj)
-
+				shaderswaps = shaderswaps + 1
 				for uniformBinID, uniformBin in pairs(data) do
 
 					--Spring.Echo("Shadername", shaderId.shaderName,"uniformBinID", uniformBinID)
@@ -1466,7 +1478,11 @@ local function ExecuteDrawPass(drawPass)
 			end
 		end
 	end
-	return batches, units
+
+	drawpassstats[drawPass].batches = batches
+	drawpassstats[drawPass].units = units
+	drawpassstats[drawPass].shaders = shaderswaps
+	return batches, units, shaderswaps
 end
 
 local function initGL4()
@@ -1740,6 +1756,7 @@ local updatetimer = 31
 
 local prevobjectcount = 0
 
+
 local function countbintypes(flagarray)
 	local fwcnt = 0
 	local defcnt = 0
@@ -1770,23 +1787,38 @@ local destroyedFeatureIDs = {}
 local destroyedFeatureDrawFlags = {}
 local numdestroyedFeatures = 0
 
+local function UpdateUnit(unitID, flag) 
+	numdestroyedUnits = numdestroyedUnits + 1
+	destroyedUnitIDs[numdestroyedUnits] = unitID
+	destroyedUnitDrawFlags[numdestroyedUnits] = flag
+end
+
 function gadget:UnitDestroyed(unitID)
-	local flag = 0 --Spring.GetUnitDrawFlag(unitID)
-	if flag ~= 0 then 
-		numdestroyedUnits = numdestroyedUnits + 1
-		destroyedUnitIDs[numdestroyedUnits] = unitID
-		destroyedUnitDrawFlags[numdestroyedUnits] = flag
-	end
+	UpdateUnit(unitID, 0)
+end
+
+function gadget:UnitFinished(unitID)
+	UpdateUnit(unitID,Spring.GetUnitDrawFlag(unitID))
+end
+
+function gadget:UnitCloaked(unitID)
+	UpdateUnit(unitID,0)
+end
+
+function gadget:UnitDeCloaked(unitID)
+	UpdateUnit(unitID,Spring.GetUnitDrawFlag(unitID))
 end
 
 function gadget:FeatureDestroyed(featureID)
 	local flag = 0 --Spring.GetFeatureDrawFlag(unitID) is already invalid here
-	if flag ~= 0 then 
+	if flag == 0 then 
 		numdestroyedFeatures = numdestroyedFeatures + 1
 		destroyedFeatureIDs[numdestroyedFeatures] = featureID
 		destroyedFeatureDrawFlags[numdestroyedFeatures] = flag
 	end
 end
+
+
 
 function gadget:DrawWorldPreUnit()
 	updatecount = updatecount + 1
@@ -1809,7 +1841,10 @@ function gadget:DrawWorldPreUnit()
 		-- local features, drawFlagsFeatures = Spring.GetRenderFeatures(overrideDrawFlag, true)
 		local units, drawFlagsUnits = Spring.GetRenderUnitsDrawFlagChanged(true) 
 		local features, drawFlagsFeatures = Spring.GetRenderFeaturesDrawFlagChanged(true)
-
+		--if (Spring.GetGameFrame() % 31)  == 0 then 
+		--	Spring.Echo("Updatenums", #units, #features, # drawFlagsUnits, #drawFlagsFeatures, numdestroyedUnits, numdestroyedFeatures)
+		--	Spring.Echo(printDrawPassStats())
+		--end
 		local totalobjects = #units + #features
 		local t0 = Spring.GetTimer()
 
@@ -1823,7 +1858,7 @@ function gadget:DrawWorldPreUnit()
 		end		
 		
 		if numdestroyedFeatures > 0 then 
-			ProcessUnits(destroyedFeatureIDs, destroyedFeatureDrawFlags)
+			ProcessFeatures(destroyedFeatureIDs, destroyedFeatureDrawFlags)
 			for i=numdestroyedFeatures,1,-1 do 
 				destroyedFeatureIDs[i] = nil
 				destroyedFeatureDrawFlags[i] = nil
@@ -1831,7 +1866,6 @@ function gadget:DrawWorldPreUnit()
 			numdestroyedFeatures = 0
 		end
 		
-
 		
 		ProcessUnits(units, drawFlagsUnits)
 		ProcessFeatures(features, drawFlagsFeatures)
@@ -1958,7 +1992,7 @@ end
 
 function gadget:DrawShadowUnitsLua()
 	if unitDrawBins == nil then return end
-	ExecuteDrawPass(16)
+	local batches, units = ExecuteDrawPass(16)
 end
 
 
