@@ -1393,6 +1393,16 @@ local options={
 		def  = false,
 	},
 
+	{
+		key		= "unba",
+		name	= "UnbaCom - Totally Rebalanced Commanders (WIP)",
+		desc	= "Defines if commanders level up with xp and gain more power or not",
+		hidden = true,
+		type	= "bool",
+		def		= false,
+		section	= "options_experimental",
+	},
+
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Unused Options
@@ -1406,16 +1416,6 @@ local options={
 		desc	= "Game Modes",
 		hidden = true,
 		type	= "section",
-	},
-
-	{
-		key		= "unba",
-		name	= "Unbalanced Commanders",
-		desc	= "Defines if commanders level up with xp and gain more power or not",
-		hidden = true,
-		type	= "bool",
-		def		= false,
-		section	= "modes",
 	},
 
 

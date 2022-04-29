@@ -6,8 +6,8 @@ function UnbaCom_Post(name)
 	tablecom.power = CommanderPower
 	tablecom.weapondefs[lowername.."laser"].weapontype = "LaserCannon"
 	tablecom.weapons = {}
-	tablecom.script = lowername.."_lus.lua"
-	tablecom.objectname = "UNBA"..uppername..".3DO"
+	tablecom.script = "Units/unbacom/unba"..lowername.."_lus.lua"
+	tablecom.objectname = "Units/unbacom/UNBA"..uppername..".3DO"
 		--Weapon: Laser
 	tablecom.weapondefs[lowername.."laser2"] = table.copy(tablecom.weapondefs[lowername.."laser"])
 	tablecom.weapondefs[lowername.."laser"].weapontype = "BeamLaser"
