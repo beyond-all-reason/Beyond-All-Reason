@@ -222,7 +222,7 @@ if not startScript then
 end
 
 local function setEngineFont()
-	local relativesize = 0.75
+	local relativesize = 1.33
 	--"fonts/FreeSansBold.otf"
 	Spring.SetConfigInt("SmallFontSize", fontfileSize * fontfileScale * relativesize)
 	Spring.SetConfigInt("SmallFontOutlineWidth", fontfileOutlineSize * fontfileScale * relativesize * 0.85)
