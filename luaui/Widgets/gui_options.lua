@@ -3480,6 +3480,19 @@ function init()
 		  end,
 		},
 
+		{ id = "rclick_mex_com", group = "game", category = types.advanced, name = texts.option.rclick_mex_com, type = "bool", value = (WG['rclick_resource'] ~= nil and WG['rclick_resource'].getRclickCom ~= nil and WG['rclick_resource'].getRclickCom()), description = texts.option.rclick_mex_com_descr,
+			onload = function(i)
+				loadWidgetData("RClick Quick Build (mex/geo)", "rclick_mex_com", { 'rclickCom' })
+			end,
+			onchange = function(i, value)
+				if widgetHandler.configData["RClick Quick Build (mex/geo)"] == nil then
+					widgetHandler.configData["RClick Quick Build (mex/geo)"] = {}
+				end
+				widgetHandler.configData["RClick Quick Build (mex/geo)"].rclickCom = value
+				saveOptionValue('RClick Quick Build (mex/geo)', 'rclick_resource', 'setRclickCom', { 'rclickCom' }, value)
+			end,
+		},
+
 		-- ACCESSIBILITY
 
 		{ id = "label_teamcolors", group = "accessibility", name = texts.option.label_teamcolors, category = types.basic },

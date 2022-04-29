@@ -21,7 +21,10 @@ local t1mexThreshold = 0.001 --any building producing this much or less is consi
 local enableMoveIsQuickBuildGeo = true		-- auto make move cmd an area geo cmd
 local enableMoveIsQuickBuildMex = true		-- auto make move cmd an area mex cmd
 
+local isCommander = {} -- maps unitdefid when it has customParams.iscommander
+
 local addShift = false	-- when single clicking a sequence of mexes, no longer needed to hold shift!
+local rclickCom = true -- whether commander can right click to build resources
 
 local geoPlacementRadius = 5000	-- (not actual ingame distance)
 local geoPlacementDragRadius = 20000	-- larger size so you can drag a move line over/near geo spots and it will auto queue geo there more easily
@@ -40,6 +43,16 @@ local spGetUnitDefID = Spring.GetUnitDefID
 -- Other variables
 ------------------------------------------------------------
 local chobbyInterface, activeUnitShape, lastInsertedOrder
+
+------------------------------------------------------------
+-- Populate local maps
+------------------------------------------------------------
+
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.iscommander then
+		isCommander[unitDefID] = true
+	end
+end
 
 ------------------------------------------------------------
 -- Helper functions (Math stuff)
@@ -125,7 +138,7 @@ function widget:Update(dt)
 					local selUnitsCount = Spring.GetSelectedUnitsCounts()
 					for k,v in pairs(selUnitsCount) do
 						if k ~= 'n' then
-							if constructorsT1[k] then
+							if constructorsT1[k] and (not isCommander[k] or rclickCom) then
 								hasT1constructor = true
 								break
 							end
@@ -209,8 +222,10 @@ function widget:CommandNotify(id, params, options)
 	if isGuard then
 		local type, unitID = Spring.TraceScreenRay(mx, my)
 		if type == 'unit' then
-			if not (WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] <= t1mexThreshold)
-			and not (WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetGeoBuildings()[spGetUnitDefID(unitID)] <= t1geoThreshold) then
+			local unitDefID = spGetUnitDefID(unitID)
+
+			if not (WG['resource_spot_builder'].GetMexBuildings()[unitDefID] and WG['resource_spot_builder'].GetMexBuildings()[unitDefID] <= t1mexThreshold)
+			and not (WG['resource_spot_builder'].GetGeoBuildings()[unitDefID] and WG['resource_spot_builder'].GetGeoBuildings()[unitDefID] <= t1geoThreshold) then
 				return --no t1 buildings available
 			end
 		end
@@ -219,7 +234,9 @@ function widget:CommandNotify(id, params, options)
 	function TryConvertCmdToBuildOrder(cmd_id, enableQuickBuildOnMove, constructors, spots, BuildOrder, placementRadius, placementDragRadius)
 		local moveReturn = false
 		local selectedUnits = Spring.GetSelectedUnits()
-		if constructors[selectedUnits[1]] then
+		local unitDefID = spGetUnitDefID(selectedUnits[1])
+
+		if constructors[selectedUnits[1]] and (not isCommander[unitDefID] or rclickCom) then
 			if isGuard then
 				local ux, uy, uz = spGetUnitPosition(params[1])
 				isGuard = { x = ux, y = uy, z = uz }
@@ -289,5 +306,28 @@ function widget:CommandNotify(id, params, options)
 			geoPlacementRadius,
 			geoPlacementDragRadius
 		)
+	end
+end
+
+function widget:Initialize()
+	WG['rclick_resource'] = {}
+	WG['rclick_resource'].getRclickCom = function()
+		return rclickCom
+	end
+	WG['rclick_resource'].setRclickCom = function(value)
+		rclickCom = value
+	end
+end
+
+function widget:GetConfigData()
+	local ret = {
+		rclickCom = rclickCom,
+	}
+	return ret
+end
+
+function widget:SetConfigData(data)
+	if data and type(data) == 'table' then
+		rclickCom = data.rclickCom
 	end
 end
