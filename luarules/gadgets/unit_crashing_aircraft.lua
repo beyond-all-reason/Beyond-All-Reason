@@ -91,8 +91,13 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			SetUnitAlwaysVisible(unitID, false)
 			SetUnitNeutral(unitID, true)
 			for weaponID, weapon in pairs(UnitDefs[unitDefID].weapons) do
+				SetUnitWeaponState(unitID, weaponID, "reloadState", 0)
 				SetUnitWeaponState(unitID, weaponID, "reloadTime", 9999)
 				SetUnitWeaponState(unitID, weaponID, "range", 0)
+				SetUnitWeaponState(unitID, weaponID, "burst", 0)
+				SetUnitWeaponState(unitID, weaponID, "aimReady", 0)
+				SetUnitWeaponState(unitID, weaponID, "salvoLeft", 0)
+				SetUnitWeaponState(unitID, weaponID, "nextSalvo", 9999)
 			end
 			-- remove sensors
 			SetUnitSensorRadius(unitID, "los", 0)
