@@ -1241,6 +1241,14 @@ fragment = [[
 		vec4 texColor1 = texture(texture1, myUV, textureLODBias);
 		vec4 texColor2 = texture(texture2, myUV, textureLODBias);
 
+		#ifdef LUMA_VARIANCE
+			float funitID = float(unitID);
+			vec3 randluma = (funitID * vec3(0.01,0.013, 0.017) - 0.5);
+			float saturation =  clamp(dot(abs(texColor1.rgb - texColor1.gbr), vec3( 1.0)), 0.0, 1.0);
+			randluma = fract(randluma)*( saturation) + 1.0;
+			texColor1.rgb *= randluma;
+		#endif
+
 		#ifdef ENABLE_OPTION_HEALTH_TEXTURING
 			#if (RENDERING_MODE == 0)
 			// disable this in deferred mode

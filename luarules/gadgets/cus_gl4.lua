@@ -579,10 +579,12 @@ local function initMaterials()
 		shaderDefinitions = {
 			"#define USE_LOSMAP",
 			"#define HASALPHASHADOWS",
+			"#define LUMA_VARIANCE",
 		},
 		deferredDefinitions = {
 			"#define USE_LOSMAP",
 			"#define HASALPHASHADOWS",
+			"#define LUMA_VARIANCE",
 		},
 		shadowDefinitions = {
 			"#define HASALPHASHADOWS",
@@ -863,7 +865,7 @@ local function initBinsAndTextures()
 				elseif 	unitDef.name:sub(1,3) == 'cor' then
 					objectDefToUniformBin[unitDefID] = 'corscavenger'
 				end
-			elseif unitDef.name:find("chicken", nil, true) then
+			elseif unitDef.name:find("chicken", nil, true) or unitDef.name:find("roost", nil, true) then
 				textureTable[5] = wreckAtlases['chicken'][1]
 				objectDefToUniformBin[unitDefID] = 'chicken'
 				--Spring.Echo("Chickenwreck", textureTable[5])
@@ -1703,13 +1705,13 @@ end
 
 
 function gadget:Initialize()
-	if FASTRELOADMODE then initGL4() end
 	gadgetHandler:AddChatAction("reloadcusgl4", ReloadCUSGL4)
 	gadgetHandler:AddChatAction("disablecusgl4", DisableCUSGL4)
 	gadgetHandler:AddChatAction("cusgl4updaterate", CUSGL4updaterate)
 	gadgetHandler:AddChatAction("debugcusgl4", DebugCUSGL4)
 	gadgetHandler:AddChatAction("dumpcusgl4", DumpCUSGL4)
 	gadgetHandler:AddChatAction("markbincusgl4", MarkBinCUSGL4)
+	if FASTRELOADMODE then initGL4() end
 end
 
 
