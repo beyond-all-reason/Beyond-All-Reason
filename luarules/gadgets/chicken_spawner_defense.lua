@@ -556,6 +556,9 @@ if gadgetHandler:IsSyncedCode() then
 							SetUnitExperience(unitID, mRandom() * expMod)
 							break
 						end
+					elseif i == 100 then
+						burrowAnger = (burrowAnger + config.angerBonus)
+						expMod = (expMod + config.angerBonus)
 					end
 				end
 			end
