@@ -559,6 +559,7 @@ if gadgetHandler:IsSyncedCode() then
 					elseif i == 100 then
 						burrowAnger = (burrowAnger + config.angerBonus)
 						expMod = (expMod + config.angerBonus)
+						timeOfLastSpawn = 1
 					end
 				end
 			end
