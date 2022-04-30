@@ -557,6 +557,9 @@ local function initMaterials()
 		shadowDefinitions = {
 		},
 		reflectionDefinitions = {
+			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
+			"#define ENABLE_OPTION_THREADS 1",
+			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
 		},
 	})
 
@@ -572,6 +575,7 @@ local function initMaterials()
 			--"#define HASALPHASHADOWS",
 		},
 		reflectionDefinitions = {
+			"#define USE_LOSMAP",
 		},
 	})
 
@@ -579,17 +583,20 @@ local function initMaterials()
 		shaderDefinitions = {
 			"#define USE_LOSMAP",
 			"#define HASALPHASHADOWS",
-			"#define LUMA_VARIANCE",
+			"#define TREE_RANDOMIZATION",
 		},
 		deferredDefinitions = {
 			"#define USE_LOSMAP",
 			"#define HASALPHASHADOWS",
-			"#define LUMA_VARIANCE",
+			"#define TREE_RANDOMIZATION",
 		},
 		shadowDefinitions = {
 			"#define HASALPHASHADOWS",
+			"#define TREE_RANDOMIZATION",
 		},
 		reflectionDefinitions = {
+			"#define TREE_RANDOMIZATION",
+			"#define USE_LOSMAP",
 		},
 	})
 
