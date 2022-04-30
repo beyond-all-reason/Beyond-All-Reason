@@ -59,9 +59,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		scumSpawnerIDs[UnitDefNames['roost'].id] = {radius = 450, growthrate = 1}
-		scumSpawnerIDs[UnitDefNames['chickend2'].id] = {radius = 350, growthrate = 0.7}
-		scumSpawnerIDs[UnitDefNames['chickend1'].id] = {radius = 250, growthrate = 0.4}
+		scumSpawnerIDs[UnitDefNames['roost'].id] = {radius = 512, growthrate = 0.2}
+		scumSpawnerIDs[UnitDefNames['chickend2'].id] = {radius = 512, growthrate = 0.1}
+		scumSpawnerIDs[UnitDefNames['chickend1'].id] = {radius = 256, growthrate = 0.05}
 		
 		for x= 0, math.ceil(mapSizeX/1024) do 
 			for z = 0, math.ceil(mapSizeZ/1024) do 
@@ -99,6 +99,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		return nil
 	end
+
+	GG.IsPosInChickenScum = IsPosInScum --(x,y,z)
 	
 	
 	local function UpdateBins(scumID, removeScum)
@@ -186,7 +188,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitDestroyed(unitID, unitDefID)
 		if scumSpawnerIDs[unitDefID] and scums[unitID] then 
-			AddOrUpdateScum(nil,nil,nil,nil, -1 * math.abs(scums[unitID].growthrate), unitID)
+			AddOrUpdateScum(nil,nil,nil,nil, -4 * math.abs(scums[unitID].growthrate), unitID)
 			SendToUnsynced("ScumRemoved", unitID)
 		end
 	end
@@ -749,7 +751,7 @@ else
 	end
 	
 	local function HandleScumRemoved(cmd, scumID )
-		AddOrUpdateScum(nil,nil,nil,nil, -1 * math.abs( scums[scumID].growthrate), scumID)
+		AddOrUpdateScum(nil,nil,nil,nil, -4 * math.abs( scums[scumID].growthrate), scumID)
 	end
 
 	function gadget:Initialize()
