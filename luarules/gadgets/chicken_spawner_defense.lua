@@ -121,6 +121,11 @@ if gadgetHandler:IsSyncedCode() then
 	local unitSpeed = {}
 	local unitCanFly = {}
 
+	local attemptingToSpawnHeavyTurret = 0
+	local attemptingToSpawnLightTurret = 0
+	local heavyTurret = "chickend2"
+	local lightTurret = "chickend1"
+
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitName[unitDefID] = unitDef.name
 		unitShortName[unitDefID] = string.match(unitDef.name, "%D*")
@@ -569,6 +574,7 @@ if gadgetHandler:IsSyncedCode() then
 							burrows[unitID] = 0
 							SetUnitBlocking(unitID, false, false)
 							SetUnitExperience(unitID, mRandom() * expMod)
+							attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 1
 							break
 						end
 					elseif i == 100 then
@@ -1132,13 +1138,38 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local function spawnCreepStructure(unitDefName, spread)
+		local structureDefID = UnitDefNames[unitDefName].id
+		local canSpawnStructure = true
+		local spread = 128
+		local spawnPosX = math.random(lsx1,lsx2)
+		local spawnPosZ = math.random(lsz1,lsz2)
 
-	local attemptingToSpawnHeavyTurret = 0
-	local attemptingToSpawnLightTurret = 0
-	local heavyTurret = "chickend2"
-	local lightTurret = "chickend1"
+		if spawnPosX > MAPSIZEX - spread + 1 or spawnPosX < spread + 1 or spawnPosZ > MAPSIZEZ - spread + 1 or spawnPosZ < spread + 1 then
+			canSpawnStructure = false
+		end
 
-	local function spawnStartBoxProtectionHeavy()
+		if canSpawnStructure then
+			local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
+			local canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+			if canSpawnStructure then
+				canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+			end
+			if canSpawnStructure then
+				if GG.IsPosInChickenScum(spawnPosX, spawnPosY, spawnPosZ) then
+					canSpawnStructure = true
+				else
+					canSpawnStructure = false
+				end
+			end
+			if canSpawnStructure then
+				local structureUnitID = Spring.CreateUnit(structureDefID, spawnPosX, spawnPosY, spawnPosZ, math.random(0,3), chickenTeamID)
+				return structureUnitID, spawnPosX, spawnPosY, spawnPosZ
+			end
+		end
+	end
+
+	local function queueTurretSpawnIfNeeded()
 		local burrowCount = SetCount(burrows)
 		if math.random(0,config.burrowSpawnRate*6) == 0 and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
 			if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < burrowCount or Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < 2 then
@@ -1146,113 +1177,28 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < burrowCount*2 then
-			if attemptingToSpawnHeavyTurret > 0 and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
-				canSpawnDefence = true
-				-- lsx1 - xmin, lsz1 - zmin, lsx2 - xmax, lsz2 - zmax
-				local spawnDirection = math.random(0,3)
-				local spread = 128
-				local spawnPosX = math.random(lsx1,lsx2)
-				local spawnPosZ = math.random(lsz1,lsz2)
-
-				if spawnPosX > MAPSIZEX - spread + 1 or spawnPosX < spread + 1 or spawnPosZ > MAPSIZEZ - spread + 1 or spawnPosZ < spread + 1 then
-					canSpawnDefence = false
-				end
-
-				if canSpawnDefence then
-					local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-					local canSpawnDefence = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-					if canSpawnDefence then
-						canSpawnDefence = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-					end
-					if canSpawnDefence then
-						if GG.IsPosInChickenScum(spawnPosX, spawnPosY, spawnPosZ) then
-							canSpawnDefence = true
-						else
-							canSpawnDefence = false
-						end
-						-- local StartBoxCheck = positionCheckLibrary.StartboxCheck(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID)
-						-- if StartBoxCheck == false then
-						-- 	canSpawnDefence = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, true)
-						-- end
-					end
-					if canSpawnDefence then
-						local heavyTurretUnitID = Spring.CreateUnit(heavyTurret, spawnPosX, spawnPosY, spawnPosZ, spawnDirection, chickenTeamID)
-						if heavyTurretUnitID then
-							attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret - 1
-							SetUnitExperience(heavyTurretUnitID, mRandom() * expMod)
-							attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 5
-							-- for i = 1, math.random(1,attemptingToSpawnLightTurret+6) do
-							-- 	local spawnPosX = spawnPosX + math.random(-spread, spread)
-							-- 	local spawnPosZ = spawnPosZ + math.random(-spread, spread)
-							-- 	local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-							-- 	canSpawnDefence = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread*0.2)
-							-- 	if canSpawnDefence then
-							-- 		canSpawnDefence = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY+50, spawnPosZ, spread*0.2)
-							-- 	end
-							-- 	if canSpawnDefence then
-							-- 		local lightTurretUnitID = Spring.CreateUnit(lightTurret, spawnPosX, spawnPosY, spawnPosZ, spawnDirection, chickenTeamID)
-							-- 		if lightTurretUnitID then
-							-- 			Spring.GiveOrderToUnit(lightTurretUnitID, CMD.PATROL, {spawnPosX + math.random(-128,128), spawnPosY, spawnPosZ + math.random(-128,128)}, {"meta"})
-							-- 			SetUnitBlocking(lightTurretUnitID, false, false)
-							-- 			SetUnitExperience(lightTurretUnitID, mRandom() * expMod)
-							-- 			if attemptingToSpawnLightTurret > 0 then
-							-- 				attemptingToSpawnLightTurret = attemptingToSpawnLightTurret - 1
-							-- 			end
-							-- 		end
-							-- 	end
-							-- end
-						end
-					end
+			if attemptingToSpawnHeavyTurret > 0 then
+				local heavyTurretUnitID = spawnCreepStructure(heavyTurret, spread)
+				if heavyTurretUnitID then
+					attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret - 1
+					SetUnitExperience(heavyTurretUnitID, mRandom() * expMod)
+					attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 5
 				end
 			end
 		end
-	end
 
-	local function spawnStartBoxProtectionLight()
-		local burrowCount = SetCount(burrows)
 		if math.random(0,config.burrowSpawnRate*6) == 0 and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
 			if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < burrowCount*5 or Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < 10 then
 				attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 10
 			end
 		end
 		if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < burrowCount*10 then
-			if attemptingToSpawnLightTurret > 0 and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
-				canSpawnDefence = true
-				-- lsx1 - xmin, lsz1 - zmin, lsx2 - xmax, lsz2 - zmax
-				local spawnDirection = math.random(0,3)
-				local spread = 64
-				local spawnPosX = math.random(lsx1,lsx2)
-				local spawnPosZ = math.random(lsz1,lsz2)
-
-				if spawnPosX > MAPSIZEX - spread + 1 or spawnPosX < spread + 1 or spawnPosZ > MAPSIZEZ - spread + 1 or spawnPosZ < spread + 1 then
-					canSpawnDefence = false
-				end
-
-				if canSpawnDefence then
-					local spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-					local canSpawnDefence = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-					if canSpawnDefence then
-						canSpawnDefence = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
-					end
-					if canSpawnDefence then
-						if GG.IsPosInChickenScum(spawnPosX, spawnPosY, spawnPosZ) then
-							canSpawnDefence = true
-						else
-							canSpawnDefence = false
-						end
-						-- local StartBoxCheck = positionCheckLibrary.StartboxCheck(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID)
-						-- if StartBoxCheck == false then
-						-- 	canSpawnDefence = positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, true)
-						-- end
-					end
-					if canSpawnDefence then
-						local lightTurretUnitID = Spring.CreateUnit(lightTurret, spawnPosX, spawnPosY, spawnPosZ, spawnDirection, chickenTeamID)
-						if lightTurretUnitID then
-							Spring.GiveOrderToUnit(lightTurretUnitID, CMD.PATROL, {spawnPosX + math.random(-128,128), spawnPosY, spawnPosZ + math.random(-128,128)}, {"meta"})
-							attemptingToSpawnLightTurret = attemptingToSpawnLightTurret - 1
-							SetUnitExperience(lightTurretUnitID, mRandom() * expMod)
-						end
-					end
+			if attemptingToSpawnLightTurret > 0 then
+				local lightTurretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(lightTurret, spread)
+				if lightTurretUnitID then
+					attemptingToSpawnLightTurret = attemptingToSpawnLightTurret - 1
+					SetUnitExperience(lightTurretUnitID, mRandom() * expMod)
+					Spring.GiveOrderToUnit(lightTurretUnitID, CMD.PATROL, {spawnPosX + math.random(-128,128), spawnPosY, spawnPosZ + math.random(-128,128)}, {"meta"})
 				end
 			end
 		end
@@ -1393,8 +1339,7 @@ if gadgetHandler:IsSyncedCode() then
 			chickenCount = UpdateUnitCount()
 		end
 		if n%30 == 10 and n > 300 and chickenTeamUnitCount < maxChicken then
-			spawnStartBoxProtectionLight()
-			spawnStartBoxProtectionHeavy()
+			queueTurretSpawnIfNeeded()
 		end
 	end
 

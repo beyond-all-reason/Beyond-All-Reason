@@ -188,7 +188,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitDestroyed(unitID, unitDefID)
 		if scumSpawnerIDs[unitDefID] and scums[unitID] then 
-			AddOrUpdateScum(nil,nil,nil,nil, -4 * math.abs(scums[unitID].growthrate), unitID)
+			AddOrUpdateScum(nil,nil,nil,nil, -10 * math.abs(scums[unitID].growthrate), unitID)
 			SendToUnsynced("ScumRemoved", unitID)
 		end
 	end
@@ -535,7 +535,8 @@ else
 			local dx = (unitx - scum.posx)
 			local dz = (unitz - scum.posz)
 			local sqrdistance = (dx*dx + dz*dz)
-			local scumradius = scum.radius
+			local scumradius = scum.radius-64 -- edges are not fully covered, so they shouldn't count,
+			if scumradius < 1 then scumradius = 1 end
 			if sqrdistance < (scumradius * scumradius) then 
 				local currentscumradius = GetScumCurrentRadius(scum, gf)
 				--Spring.Echo("testing ScumID", scumID, sqrdistance, scumradius, currentscumradius)
@@ -751,7 +752,7 @@ else
 	end
 	
 	local function HandleScumRemoved(cmd, scumID )
-		AddOrUpdateScum(nil,nil,nil,nil, -4 * math.abs( scums[scumID].growthrate), scumID)
+		AddOrUpdateScum(nil,nil,nil,nil, -10 * math.abs( scums[scumID].growthrate), scumID)
 	end
 
 	function gadget:Initialize()
