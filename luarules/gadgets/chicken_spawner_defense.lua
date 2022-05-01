@@ -734,9 +734,9 @@ if gadgetHandler:IsSyncedCode() then
 							for i = 1, math.floor(1+((currentWave-waveLevel)*0.5)) do
 								if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id) < waveLevel*3 then
 									if math.random(0,1) == 0 then
-										table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID })
+										table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1", team = chickenTeamID })
 									else
-										table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID })
+										table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1b", team = chickenTeamID })
 									end
 									cCount = cCount + 1
 								end
@@ -986,12 +986,7 @@ if gadgetHandler:IsSyncedCode() then
 		if not i or not defs then
 			return
 		end
-		local x, y, z
-		if queenID then
-			x, y, z = getChickenSpawnLoc(defs.burrow, MEDIUM_UNIT)
-		else
-			x, y, z = getChickenSpawnLoc(defs.burrow, SMALL_UNIT)
-		end
+		local x, y, z = getChickenSpawnLoc(defs.burrow, SMALL_UNIT)
 		if not x or not y or not z then
 			spawnQueue[i] = nil
 			return
