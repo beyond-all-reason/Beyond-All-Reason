@@ -60,8 +60,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
 		scumSpawnerIDs[UnitDefNames['roost'].id] = {radius = 1024, growthrate = 0.1}
-		scumSpawnerIDs[UnitDefNames['chickend2'].id] = {radius = 1024, growthrate = 0.05}
-		scumSpawnerIDs[UnitDefNames['chickend1'].id] = {radius = 512, growthrate = 0.025}
+		scumSpawnerIDs[UnitDefNames['chickend2'].id] = {radius = 1024, growthrate = 0.1}
+		scumSpawnerIDs[UnitDefNames['chickend1'].id] = {radius = 1024, growthrate = 0.1}
 		
 		for x= 0, math.ceil(mapSizeX/1024) do 
 			for z = 0, math.ceil(mapSizeZ/1024) do 

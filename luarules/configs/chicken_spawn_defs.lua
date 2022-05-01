@@ -139,7 +139,7 @@ local optionValues = {
 		lobberEMPTime     = 0,
 		spawnChance       = 0.25,
 		damageMod         = 0.125,
-		maxBurrows        = 2,
+		maxBurrows        = 5,
 		queenName         = 've_chickenq',
 	},
 	[difficulties.easy] = {
@@ -151,7 +151,7 @@ local optionValues = {
 		lobberEMPTime     = 2.5,
 		spawnChance       = 0.33,
 		damageMod         = 0.25,
-		maxBurrows        = 3,
+		maxBurrows        = 10,
 		queenName         = 'e_chickenq',
 	},
 
@@ -164,7 +164,7 @@ local optionValues = {
 		lobberEMPTime     = 4,
 		spawnChance       = 0.4,
 		damageMod         = 0.4,
-		maxBurrows        = 10,
+		maxBurrows        = 20,
 		queenName         = 'n_chickenq',
 	},
 
@@ -177,7 +177,7 @@ local optionValues = {
 		lobberEMPTime     = 5,
 		spawnChance       = 0.5,
 		damageMod         = 0.55,
-		maxBurrows        = 20,
+		maxBurrows        = 30,
 		queenName         = 'h_chickenq',
 	},
 
@@ -190,7 +190,7 @@ local optionValues = {
 		lobberEMPTime     = 7.5,
 		spawnChance       = 0.6,
 		damageMod         = 0.66,
-		maxBurrows        = 50,
+		maxBurrows        = 40,
 		queenName         = 'vh_chickenq',
 	},
 	[difficulties.epic] = {
