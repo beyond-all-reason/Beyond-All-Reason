@@ -27,7 +27,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,3)=="$y$" and msg:sub(4,5)==validation then
-			SendToUnsynced("systemBroadcast",playerID,msg:sub(6,6),msg:sub(7))
+			SendToUnsynced("systemBroadcast",playerID,msg:sub(6))
 			return true
 		end
 	end
@@ -197,11 +197,7 @@ else
 
 		system = string.sub(system, 2)
 		if system ~= '' then
-			local broadcast = '0'
-			if (Spring.GetConfigInt("SystemPrivacy",1) or 1) == 0 then
-				broadcast = '1'
-			end
-			SendLuaRulesMsg("$y$"..myvalidation..broadcast..system)
+			SendLuaRulesMsg("$y$"..myvalidation..system)
 		end
 	end
 
@@ -211,8 +207,8 @@ else
 
 	local myPlayerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)
 	local authorized = SYNCED.permissions.sysinfo[myPlayerName]
-	function handleSystemEvent(_,playerID,broadcast,system)
-		if broadcast == '1' or authorized then
+	function handleSystemEvent(_,playerID,system)
+		if authorized then
 			if Script.LuaUI("SystemEvent") then
 				if systems[playerID] == nil and system ~= nil then
 					systems[playerID] = system
