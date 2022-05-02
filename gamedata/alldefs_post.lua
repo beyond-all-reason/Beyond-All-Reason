@@ -1039,7 +1039,7 @@ function WeaponDef_Post(name, wDef)
 	end
 	if Spring.GetModOptions().unba == true then
 		unbaUnits = VFS.Include("unbaconfigs/unbaunits_post.lua")
-		uDef = unbaUnits.unbaWeaponTweaks(name, wDef)
+		wDef = unbaUnits.unbaWeaponTweaks(name, wDef)
 	end
 end
 -- process effects
