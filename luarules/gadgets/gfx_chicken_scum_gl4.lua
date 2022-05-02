@@ -36,7 +36,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetGameFrame = Spring.GetGameFrame
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
-	local boundary = 32 -- how many elmos closer to the center of the scum than the actual edge of the scum the unit must be to be considered on the scum
+	local boundary = 128 -- how many elmos closer to the center of the scum than the actual edge of the scum the unit must be to be considered on the scum
 	
 	local function GetScumCurrentRadius(scum, gf)
 		gf = gf or spGetGameFrame()
@@ -535,7 +535,7 @@ else
 			local dx = (unitx - scum.posx)
 			local dz = (unitz - scum.posz)
 			local sqrdistance = (dx*dx + dz*dz)
-			local scumradius = scum.radius-64 -- edges are not fully covered, so they shouldn't count,
+			local scumradius = scum.radius -- edges are not fully covered, so they shouldn't count,
 			if scumradius < 1 then scumradius = 1 end
 			if sqrdistance < (scumradius * scumradius) then 
 				local currentscumradius = GetScumCurrentRadius(scum, gf)

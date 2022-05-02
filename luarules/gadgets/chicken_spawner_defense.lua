@@ -168,11 +168,11 @@ if gadgetHandler:IsSyncedCode() then
 			if allyTeamID == chickenAllyTeamID and (not spectator) then
 				Spring.AssignPlayerToTeam(player, chickenTeamID)
 				local units = Spring.GetTeamUnits(teamID)
+				chickenteamhasplayers = true
 				for u = 1,#units do
-					chickenteamhasplayers = true
 					Spring.DestroyUnit(units[u], false, true)
-					Spring.KillTeam(teamID)
 				end
+				Spring.KillTeam(teamID)
 			end
 		end
 
@@ -187,6 +187,11 @@ if gadgetHandler:IsSyncedCode() then
 					Spring.KillTeam(chickenAllies[i])
 				end
 			end
+		end
+
+		if chickenteamhasplayers then
+			config.gracePeriod = math.ceil(config.gracePeriod*0.25)
+			SetGameRulesParam("gracePeriod", config.gracePeriod)
 		end
 	end
 
@@ -218,13 +223,13 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	--
 	-- Difficulty
-	--
+    --
 
 	local expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
-	local nextWave = ((config.queenTime / 10) / 60)
-	local gracePenalty = math.max(math.floor(((config.gracePeriod - 270) / config.burrowSpawnRate) + 0.5), 0)
 	local maxBurrows = config.maxBurrows
 	local queenTime = (config.queenTime + config.gracePeriod)
+	local maxWaveSize = config.maxBurrows*SetCount(humanTeams)*config.chickenSpawnMultiplier
+	
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
@@ -541,7 +546,7 @@ if gadgetHandler:IsSyncedCode() then
 			if canSpawnBurrow then
 				local unitID = CreateUnit(config.burrowName, x, y, z, math.random(0,3), chickenTeamID)
 				if unitID then
-					if math.random(1,4) == 1 and minBurrows < maxBurrows and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
+					if math.random(1,4) == 1 and minBurrows < maxBurrows and Spring.GetGameFrame() > (config.gracePeriod*30)+150 then
 						minBurrows = minBurrows + 1
 					end
 					burrows[unitID] = 0
@@ -567,7 +572,7 @@ if gadgetHandler:IsSyncedCode() then
 					if canSpawnBurrow then
 						local unitID = CreateUnit(config.burrowName, x, y, z, math.random(0,3), chickenTeamID)
 						if unitID then
-							if math.random(1,4) == 1 and minBurrows < maxBurrows and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
+							if math.random(1,4) == 1 and minBurrows < maxBurrows and Spring.GetGameFrame() > (config.gracePeriod*30)+150 then
 								minBurrows = minBurrows + 1
 							end
 							burrows[unitID] = 0
@@ -748,44 +753,44 @@ if gadgetHandler:IsSyncedCode() then
 		local overseerSpawned = false
 		local cleanersSpawned = false
 		for burrowID in pairs(burrows) do
-			for mult = 1,config.chickenSpawnMultiplier do
-				local waveLevelPower = mRandom(1, currentWave^4)
-				local waveLevel = math.ceil(math.sqrt(math.sqrt(waveLevelPower)))
-				local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
-				local newWaveSquadSpawn = false
-				if lastWave ~= currentWave and config.newWaveSquad[currentWave] then
-					squad = config.newWaveSquad[currentWave]
-					lastWave = currentWave
-					waveLevel = currentWave
-					newWaveSquadSpawn = true
-				end
-
-				local skipSpawn = false
-				if cCount > 1 and mRandom() > config.spawnChance*queenBurrowSpawnMultiplier then
-					skipSpawn = true
-				end
-				if newWaveSquadSpawn then
-					skipSpawn = false
-				end
-				
-				if not skipSpawn then
-					for i, sString in pairs(squad) do
-						local nEnd, _ = string.find(sString, " ")
-						local unitNumber = string.sub(sString, 1, (nEnd - 1)) * math.floor(1+((currentWave-waveLevel)*0.25))
-						local chickenName = string.sub(sString, (nEnd + 1))
-
-						for i = 1, unitNumber, 1 do
-							table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID })
-						end
-						cCount = cCount + unitNumber
+			if cCount < maxWaveSize then
+				for mult = 1,config.chickenSpawnMultiplier do
+					local waveLevelPower = mRandom(1, currentWave^4)
+					local waveLevel = math.ceil(math.sqrt(math.sqrt(waveLevelPower)))
+					local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
+					local newWaveSquadSpawn = false
+					if lastWave ~= currentWave and config.newWaveSquad[currentWave] then
+						squad = config.newWaveSquad[currentWave]
+						lastWave = currentWave
+						waveLevel = currentWave
+						newWaveSquadSpawn = true
 					end
-				else
-					if cleanersSpawned == false then
-						local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
-						local targetCleaners = currentWave*3
-						local cleanerSpawnCount = targetCleaners - aliveCleaners
-						if cleanerSpawnCount > 0 and math.random(1,3) == 1 then
-							for i = 1,cleanerSpawnCount*2 do
+
+					local skipSpawn = false
+					if cCount > 1 and mRandom() > config.spawnChance*queenBurrowSpawnMultiplier then
+						skipSpawn = true
+					end
+					if newWaveSquadSpawn or cCount < maxWaveSize*0.5 then
+						skipSpawn = false
+					end
+					
+					if not skipSpawn then
+						for i, sString in pairs(squad) do
+							local nEnd, _ = string.find(sString, " ")
+							local unitNumber = string.sub(sString, 1, (nEnd - 1)) * math.floor(1+((currentWave-waveLevel)*0.25))
+							local chickenName = string.sub(sString, (nEnd + 1))
+
+							for i = 1, unitNumber, 1 do
+								table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID })
+							end
+							cCount = cCount + unitNumber
+						end
+					else
+						if cleanersSpawned == false then
+							local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
+							local targetCleaners = currentWave*SetCount(humanTeams)
+							local cleanerSpawnCount = targetCleaners - aliveCleaners
+							for i = 1,cleanerSpawnCount*0.25 do
 								if math.random(0,1) == 0 then
 									table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID })
 								else
@@ -794,9 +799,7 @@ if gadgetHandler:IsSyncedCode() then
 								cCount = cCount + 1
 							end
 							cleanersSpawned = true
-						end
-					elseif overseerSpawned == false and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh5"].id) < waveLevel then
-						if math.random(1,10) == 1 then
+						elseif overseerSpawned == false and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh5"].id) < waveLevel and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh5"].id) < SetCount(humanTeams) then
 							table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh5", team = chickenTeamID })
 							cCount = cCount + 1
 							overseerSpawned = true
@@ -1100,15 +1103,18 @@ if gadgetHandler:IsSyncedCode() then
 			SKIRMISH[UnitDefNames["chickenf1"].id] = { distance = 1200, chance = 0.25 }
 			SKIRMISH[UnitDefNames["chickenw1"].id] = { distance = 1800, chance = 0.5 }
 			COWARD[UnitDefNames["chicken_dodo1"].id] = { distance = 1100, chance = 0.33 }
+			BERSERK[UnitDefNames["chickenh4"].id] = { chance = 0.25 }
+			BERSERK[UnitDefNames["chickenh3"].id] = { chance = 0.25 }
+			BERSERK[UnitDefNames["chickenh2"].id] = { chance = 0.25 }
 
 			for i = 1, 150, 1 do
-				if mRandom() < config.spawnChance then
+				if mRandom() < config.spawnChance*0.5 then
 					table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh4", team = chickenTeamID })
 				end
-				if mRandom() < config.spawnChance*0.25 then
+				if mRandom() < config.spawnChance*0.125 then
 					table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh3", team = chickenTeamID })
 				end
-				if mRandom() < config.spawnChance*0.05 then
+				if mRandom() < config.spawnChance*0.025 then
 					table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh2", team = chickenTeamID })
 				end
 			end
@@ -1120,7 +1126,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		else
-			if mRandom() < config.spawnChance / 7.5 then
+			if mRandom() < config.spawnChance / 20 then
 				table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh2", team = chickenTeamID })
 				for i = 1, mRandom(1, 2), 1 do
 					table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh3", team = chickenTeamID })
@@ -1300,7 +1306,7 @@ if gadgetHandler:IsSyncedCode() then
 				if firstSpawn then
 					SpawnBurrow()
 					timeOfLastSpawn = t
-					timeOfLastWave = 0
+					timeOfLastWave = (config.gracePeriod + 10) - config.chickenSpawnRate
 					firstSpawn = false
 					if (config.burrowSpawnType == "initialbox") then
 						config.burrowSpawnType = "initialbox_post"
@@ -1321,7 +1327,7 @@ if gadgetHandler:IsSyncedCode() then
 				timeOfLastSpawn = t
 			end
 
-			if burrowCount > 0 and ((config.chickenSpawnRate < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount*math.random()) and (not spawnQueue[1])) then
+			if burrowCount > 0 and ((config.chickenSpawnRate < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount*math.random()) and (t - timeOfLastWave) > 10) then
 				local cCount = Wave()
 				if cCount and cCount > 0 then
 					chickenEvent("wave", cCount, currentWave)
@@ -1480,6 +1486,7 @@ if gadgetHandler:IsSyncedCode() then
 				attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + 1
 			end
 			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + math.random(1,5)
+			maxWaveSize = maxWaveSize+(SetCount(humanTeams) * config.chickenSpawnMultiplier )
 
 			SetGameRulesParam("roostCount", SetCount(burrows))
 		end

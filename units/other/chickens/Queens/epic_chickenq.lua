@@ -113,7 +113,7 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 900,
 				damage = {
-					default = 1300,
+					default = 450,
 				},
 			},
 			melee = {
@@ -143,7 +143,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 2500,
 				damage = {
-					default = 1400,
+					default = 450,
 				},
 			},
 			spores1 = {
@@ -189,7 +189,7 @@ return {
 				weaponvelocity = 4000,
 				wobble = 64000,
 				damage = {
-					default = 285,
+					default = 100,
 				},
 			},
 			spores2 = {
@@ -235,7 +235,7 @@ return {
 				weaponvelocity = 4000,
 				wobble = 64000,
 				damage = {
-					default = 700,
+					default = 250,
 				},
 			},
 			spores3 = {
@@ -281,7 +281,7 @@ return {
 				weaponvelocity = 4000,
 				wobble = 64000,
 				damage = {
-					default = 285,
+					default = 100,
 				},
 			},
 		},
