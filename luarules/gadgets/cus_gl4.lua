@@ -597,6 +597,7 @@ local function initMaterials()
 		reflectionDefinitions = {
 			"#define TREE_RANDOMIZATION",
 			"#define USE_LOSMAP",
+			"#define HASALPHASHADOWS",
 		},
 	})
 

@@ -1567,6 +1567,13 @@ fragment = [[
 			float alphaBin = (texColor2.a < 0.5) ? 0.0 : 1.0;
 
 			outSpecularColor = TONEMAP(outSpecularColor);
+			#ifdef HASALPHASHADOWS
+				if (texColor2.a < 0.5) {
+					discard;
+					return;
+				}
+			#endif
+				
 
 			// Important note: even if you do not write any data in fragData, that will still write vec4(0.0) into that buffer.
 			fragData[GBUFFER_NORMTEX_IDX] = vec4(SNORM2NORM(N), alphaBin);
