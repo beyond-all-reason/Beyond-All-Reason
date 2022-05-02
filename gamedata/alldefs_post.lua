@@ -833,6 +833,10 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	if Spring.GetModOptions().unba == true then
+		unbaUnits = VFS.Include("unbaconfigs/unbaunits_post.lua")
+		uDef = unbaUnits.unbaUnitTweaks(name, uDef)
+	end
 	-- add model vertex displacement
 	local vertexDisplacement = 5.5 + ((uDef.footprintx + uDef.footprintz) / 12)
 	if vertexDisplacement > 10 then
@@ -1032,6 +1036,10 @@ function WeaponDef_Post(name, wDef)
 		end
 
 		ProcessSoundDefaults(wDef)
+	end
+	if Spring.GetModOptions().unba == true then
+		unbaUnits = VFS.Include("unbaconfigs/unbaunits_post.lua")
+		uDef = unbaUnits.unbaWeaponTweaks(name, wDef)
 	end
 end
 -- process effects
