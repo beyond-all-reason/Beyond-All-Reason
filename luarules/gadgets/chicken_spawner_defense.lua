@@ -790,7 +790,7 @@ if gadgetHandler:IsSyncedCode() then
 							local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
 							local targetCleaners = currentWave*SetCount(humanTeams)
 							local cleanerSpawnCount = targetCleaners - aliveCleaners
-							for i = 1,cleanerSpawnCount*0.25 do
+							for i = 1,math.ceil(cleanerSpawnCount*0.25) do
 								if math.random(0,1) == 0 then
 									table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID })
 								else
