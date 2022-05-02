@@ -78,17 +78,18 @@ end
 	-- Do alpha units also get drawn into deferred pass? Seems like no, because only flag == 1 is draw into that
 	-- DONE: dynamically size IBOS instead of using the max of 8192!
 		-- Starts from 32
-	-- TODO: new engine callins needed:
+	-- DONE  new engine callins needed:
 		-- get the number of drawflaggable units (this is kind of gettable already from the API anyway)
 		-- get the number of changed drawFlags
 		-- if the number of changed drawflags > log(numdrawflags) then do a full rebuild instead of push-popping
 		-- e.g if there are 100 units of a bin in view, then a change of ~ 8 units will trigger a full rebuild?
 			-- cant know ahead of time how many per-bin changes this will trigger though
 
-	-- TODO: write an engine callin that, instead of the full list of unitdrawflags, only returns the list of units whos drawflags have changed!
+	-- DONE: write an engine callin that, instead of the full list of unitdrawflags, only returns the list of units whos drawflags have changed!
 		-- reset this 'hashmap' when reading it
 		-- also a problem is handling units that died, what 'drawflag' should they get?
 			-- probably 0
+			
 	-- TODO: handle fast rebuilds of the IBO's when large-magnitude changes happen
 		-- this is made difficult by the negative featureID crap
 
@@ -130,7 +131,7 @@ end
 		-- Even if discard is in a never-called dynamically uniform!
 		-- only transparent features need discard
 		
-	-- TODO: 
+	-- DONE: 
 		-- only ever use discard in deferred pass, dont use it in forward refl or shadow though
 		-- DEFERRED FEATURE TREE DRAW IS WRONG
 
@@ -142,6 +143,8 @@ end
 	-- TODO: check if LuaShader UniformLocations are cached
 
 	-- DONE: add a wreck texture to chickens! It uses lavadistortion texture, its fine
+	
+	-- TODO: Use a 3d texture lookup instead of perlin implementation for damage shading
 
 	-- TODO: separate out damaged units for better perf, damage shading is not free! (as damage is not dynamically uniform across all shader invocations)
 		-- very difficult, unsure if worth anything in the long run
@@ -156,8 +159,9 @@ end
 		-- fixed in-engine, seems like a reasonably good fix too, though could be better
 			-- is checking 5 groundheights within drawradius better than some minor overdraw cause of not-too-high above water ground shit?
 		
-	-- TODO: increase bumpwaterreflectcubetex size
+	-- DONE: increase bumpwaterreflectcubetex size
 	-- TODO: make lava disable drawing reflections!
+	
 	-- TODO: shared bins for deferred and forward and maybe even reflection?
 		-- The sharing could be done on the uniformbin level, and this is quite elegant in general too, as tables are shared by reference....
 		-- DONE: shared deferred and forward via ultimate cleverness!
@@ -166,7 +170,7 @@ end
 
 	-- DONE: Cleaner Shutdown and reloadcusgl4 and disablecusgl4
 
-
+	-- TODO: Get BRDFLUT from API_PBR_ENABLER (OR build your own float16 texture)
 
 	-- TODO: WE ARE DRAWING ALL IN THE UNITS PASS INSTEAD OF BOTH FEATURE AND UNITS PASS! (can that bite us in the ass?)
 
