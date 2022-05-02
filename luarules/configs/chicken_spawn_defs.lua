@@ -12,7 +12,6 @@ local difficulties = {
 local difficulty = difficulties[Spring.GetModOptions().chicken_difficulty]
 local burrowName = 'roost'
 local waves = {}
-local newWaveSquad = {}
 
 local chickenTypes = {
 	ve_chickenq    =  true,
@@ -226,170 +225,91 @@ local optionValues = {
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local function addWave(wave, unitList)
+local function addSquad(wave, unitList)
 	if not waves[wave] then
 		waves[wave] = {}
 	end
 
 	table.insert(waves[wave], unitList)
 end
-
-addWave(1, { "3 chicken1", "1 chickenf2" })
-addWave(1, { "3 chicken1c", "1 chickenf2" })
-addWave(1, { "1 chicken1", "1 chicken1b", "1 chicken1c"})
-addWave(1, { "1 chicken1", "1 chicken1b", "1 chicken1c", "1 chicken1d" })
-addWave(1, { "3 chicken1d"})
-addWave(1, { "1 chicken1", "1 chicken1b", "1 chicken1c", "1 chicken1d" })
-addWave(1, { "2 chicken1b" })
-addWave(1, { "2 chicken1c", "1 chickena1" })
-
-newWaveSquad[2] = {"7 chicken1", "6 chicken1b", "5 chicken1c", "4 chicken1d"}
-addWave(2, { "5 chicken1", "4 chicken1b", "3 chicken1c", "2 chicken1d" })
-addWave(2, { "2 chicken1", "3 chicken1b", "4 chicken1c", "5 chicken1d" })
-addWave(2, { "3 chicken1", "3 chicken1b", "3 chicken1c", "3 chicken1d" })
-addWave(2, { "1 chicken1x", "1 chicken1y", "1 chicken1z" })
-addWave(2, { "5 chicken1b", "1 chickenf2" })
-addWave(2, { "6 chicken1c", "1 chickenf2" })
-addWave(2, { "3 chicken1", "1 chickena1b"})
-addWave(2, { "1 chickena1", "1 chickena1c", "1 chickenw1b" })
-addWave(2, { "1 chickena1b", "1 chickena1c", "1 chickenw1", "1 chickens1" })
-addWave(2, { "4 chicken1d", "1 chickens1" })
-addWave(2, { "4 chicken1", "1 chickena1" })
-addWave(2, { "3 chicken1" })
-
-newWaveSquad[3] = {"7 chicken1", "8 chicken1b", "9 chicken1c", "10 chicken1d"}
-addWave(3, { "1 chickena1", "2 chickena1b", "1 chickena1c"})
-addWave(3, { "1 chickena1", "1 chickena1b", "2 chickena1c" })
-addWave(3, { "1 chickena1", "1 chickena1b", "1 chickena1c", "1 chickenc3" })
-addWave(3, { "1 chickenc3", "1 chickenc3b", "1 chickenc3c", "2 chicken1" })
-addWave(3, { "1 chickena1", "1 chickena1b", "1 chickens1", "1 chicken1x", "1 chicken1y", "1 chicken1z" })
-addWave(3, { "1 chickena1b", "1 chickena1c", "3 chicken1b" })
-addWave(3, { "1 chickena1", "1 chickena1b", "1 chickenf2", "3 chicken1c" })
-addWave(3, { "1 chickena1", "1 chickena1c", "1 chickens1", "3 chicken1d" })
-addWave(3, { "3 chicken1y", "2 chickena1", "1 chickenw1", "1 chickens1" })
-addWave(3, { "2 chickena1b", "1 chickenw1d", "1 chickens1" })
-addWave(3, { "2 chickenp1" })
-
-newWaveSquad[4] = {"1 chickene2", "10 chickenacidswarmer", "5 chickenp1"}
-addWave(4, { "1 chickena1", "1 chickena1b", "1 chickena1c" })
-addWave(4, { "4 chicken1x", "3 chicken1y", "2 chicken1z" })
-addWave(4, { "2 chicken1x", "3 chicken1y", "4 chicken1z" })
-addWave(4, { "3 chickenc3", "1 chickena1" })
-addWave(4, { "3 chickenc3b", "1 chickens3" })
-addWave(4, { "3 chickenc3c", "1 chickens1" })
-addWave(4, { "3 chickenw1", "1 chicken_dodo1" })
-addWave(4, { "3 chickens1", "1 chickenf2" })
-addWave(4, { "2 chickenp1", "3 chickene1" })
-addWave(4, { "5 chickene1" })
-addWave(4, { "2 chickenp1", "3 chickenacidswarmer" })
-addWave(4, { "5 chickenacidswarmer" })
-
-newWaveSquad[5] = {"11 chickens1", "2 chickenw2", "1 chickene2"}
-addWave(5, { "6 chicken1x", "2 chickens1", "1 chicken_dodo1" })
-addWave(5, { "6 chickens1", "1 chickenw1" })
-addWave(5, { "5 chickens1", "1 chickena1b" })
-addWave(5, { "4 chickens1", "1 chickena1", "1 chickenf2" })
-addWave(5, { "3 chickens1", "1 chickena1c", "2 chickenc3" })
-addWave(5, { "3 chickens1" })
-addWave(5, { "1 chickena1", "1 chickena1b", "1 chickena1c", "1 chickenw1b" })
-addWave(5, { "5 chicken1y", "1 chicken_dodo1" })
-addWave(5, { "6 chicken1z", "1 chickenw1c", "1 chickenw1d" })
-addWave(5, { "3 chickens1", "1 chickenp1" })
-addWave(5, { "1 chickenp1", "1 chicken_dodo1" })
-addWave(5, { "1 chickenc3", "2 chickenc3b", "2 chickenc3b" })
-addWave(5, { "3 chickens3", "1 chickenf2" })
-addWave(5, { "3 chickene1", "1 chickene2"})
-addWave(5, { "5 chickene1", "1 chickene2"})
-addWave(5, { "3 chickenacidswarmer", "1 chickenacidassault"})
-addWave(5, { "5 chickenacidswarmer", "1 chickenacidassault"})
-
-newWaveSquad[6] = {"1 chicken_dodo2", "7 chickenp1", "1 chickene2"}
-addWave(6, { "1 chicken_dodo1", "3 chickenp1", "1 chickenf2" })
-addWave(6, { "1 chicken_dodo1", "3 chickenc3", "3 chickenc3b", "3 chickenc3c" })
-addWave(6, { "1 chicken_dodo1", "4 chickenp1", "1 chickens3" })
-addWave(6, { "1 chicken_dodo1", "4 chickenp1" })
-addWave(6, { "1 chicken_dodo1", "2 chickenp1" })
-addWave(6, { "1 chicken_dodo1", "2 chickenp1", "1 chickenw1b", "1 chickenf2", "1 chickenw1" })
-addWave(6, { "2 chicken_dodo1", "1 chickenp1", "2 chickenc3c" })
-addWave(6, { "2 chicken_dodo1", "1 chickena1", "1 chickena1b", "3 chickena1c", "1 chickenw1b" })
-addWave(6, { "2 chicken_dodo1", "5 chickens1", "1 chickenw2", "1 chickens3" })
-addWave(6, { "2 chicken_dodo1", "3 chicken1x", "1 chickenf1", "3 chicken2" })
-addWave(6, { "2 chicken_dodo1", "1 chickenp1", "1 chickenc3c", "1 chickens1", "1 chickena1b"})
-addWave(6, { "3 chicken_dodo1", "1 chickens3" })
-addWave(6, { "4 chicken_dodo1", "1 chickenf1", "1 chickenw2" })
-
-newWaveSquad[7] = {"12 chickenw2", "1 chickenf1", "1 chickenf1b", "1 chickene2"}
-addWave(7, { "2 chickenw2", "1 chickenw1b", "1 chickenw1c", "1 chickens3" })
-addWave(7, { "1 chickenw1", "2 chickenw2", "1 chickenw1d", "1 chicken_dodo1" })
-addWave(7, { "1 chickenw1", "2 chickenw2", "1 chickenw1d", "1 chickens3" })
-addWave(7, { "1 chickenw1b", "1 chickenw1c", "2 chickenw2" })
-addWave(7, { "2 chickenw1", "3 chickenw1b", "1 chicken_dodo1" })
-addWave(7, { "2 chickenw1c", "2 chickenw1d" })
-addWave(7, { "1 chickenf1b", "2 chickens3" })
-addWave(7, { "2 chickenf1", "1 chickens3", "1 chicken_dodo1" })
-addWave(7, { "2 chickenf1", "1 chicken_dodo1", "1 chickens3" })
-addWave(7, { "2 chickenf1", "1 chicken_dodo1", "1 chickenf1b" })
-addWave(7, { "5 chickens3", "1 chickenf2" })
-addWave(7, { "5 chickenw2", "1 chickenf2" })
-addWave(7, { "5 chickenp2", "1 chickenr1" })
-addWave(7, { "1 chickenearty1", "2 chickenebomber1" })
-
-newWaveSquad[8] = {"6 chickenc3c", "2 chickenh2", "1 chickene2"}
-addWave(8, { "2 chickenc3c", "1 chickenw2", "1 chickenw1b", "1 chickenw1c", "1 chickenw1d" })
-addWave(8, { "2 chickenc3c", "3 chicken_dodo1", "1 chickenr1" })
-addWave(8, { "2 chickenc3c", "2 chickenf1", "1 chickenw2", "1 chickenw1d" })
-addWave(8, { "2 chickenc3c", "1 chickenf1b", "2 chickenw2", "2 chickenw1b" })
-addWave(8, { "3 chickenc3c", "1 chickenf2" })
-addWave(8, { "3 chickenc3c", "1 chickena1", "2 chickena1b", "1 chickena1c", "1 chicken_dodo1" })
-addWave(8, { "3 chickenc3c", "4 chicken_dodo1" })
-addWave(8, { "3 chickenc3c", "1 chickens1", "1 chickens2","2 chickenp1" })
-addWave(8, { "4 chickenc3c", "1 chickenf1b", "1 chicken_dodo1" })
-addWave(8, { "4 chickenc3c", "3 chicken_dodo1", "1 chickenh2" })
-addWave(8, { "2 chickena1", "1 chickena1b", "1 chickena1c", "1 chickena2", "1 chickenf2", "1 chickenr1"})
-addWave(8, { "6 chickens1", "1 chickens2" })
-addWave(8, { "5 chickenp1" })
-addWave(8, { "4 chickenc3", "4 chickenc3b", "4 chickenc3c" })
-addWave(8, { "9 chicken2", "1 chicken_dodo2" })
-addWave(8, { "1 chickene2",  "5 chickenp2"  })
-addWave(8, { "1 chickene2", "1 chickenearty1", "2 chickenebomber1" })
-addWave(8, { "1 chickenacidassault",  "5 chickenp2"  })
-addWave(8, { "1 chickenacidassault", "1 chickenacidarty", "2 chickenacidbomber" })
-
-newWaveSquad[9] = {"5 chickens2", "10 chicken2", "1 chickene2", "1 chickenr2"}
-addWave(9, { "3 chickenf1", "1 chicken_dodo1", "1 chickena2", "1 chickenw1b", "1 chicken2" })
-addWave(9, { "2 chickenf1b", "2 chicken_dodo1", "1 chicken2"})
-addWave(9, { "1 chickenf1", "1 chickenf1b", "3 chicken_dodo1", "1 chickena2b", "1 chickenh2" })
-addWave(9, { "3 chickenc3c", "1 chicken2", "1 chickenr1"})
-addWave(9, { "3 chickenc3c", "1 chicken_dodo2", "1 chickens2", "1 chickenw1d", "1 chicken2" })
-addWave(9, { "3 chickenc3c", "1 chicken2"})
-addWave(9, { "1 chickenw1", "2 chickenw1b", "2 chickenw2", "1 chickenw1d", "2 chicken_dodo1", "1 chickens2", "1 chicken2" })
-addWave(9, { "6 chickenp1", "1 chicken2", "1 chickenr1" })
-addWave(9, { "2 chickena1", "2 chickena1b", "2 chickena1c", "1 chickenw1", "1 chicken2" })
-addWave(9, { "1 chickens2", "1 chicken2"})
-addWave(9, { "6 chicken2", "1 chickenw2", "1 chickenf2" })
-addWave(9, { "5 chickenp2", "1 chickenearty1", "2 chickenebomber1" })
-addWave(9, { "5 chickenp2", "1 chickenacidarty", "2 chickenacidbomber" })
-addWave(9, { "1 chickenr2", "1 chickenr1"})
-
-newWaveSquad[10] = {"13 chicken2b", "1 chickenh2", "1 chickena2", "1 chickena2b", "1 chickene2", "1 chickenr2"}
-addWave(10, { "7 chicken2b", "1 chickens2"})
-addWave(10, { "5 chicken2b", "1 chickena2" })
-addWave(10, { "4 chicken2", "1 chickens2" })
-addWave(10, { "3 chicken2", "1 chickena2b"})
-addWave(10, { "3 chicken2b", "1 chickenh2" })
-addWave(10, { "4 chicken2b" })
-addWave(10, { "7 chicken2", "1 chickenh2" })
-addWave(10, { "6 chicken2", "1 chicken_dodo2", "1 chickenr1"})
-addWave(10, { "1 chickenc2", "4 chickenc3c", "1 chickenf1" })
-addWave(10, { "4 chickens3", "4 chickenw2", "1 chickenf1b" })
-addWave(10, { "6 chickenp1"})
-addWave(10, { "5 chickenp2", "1 chickenearty1"})
-addWave(10, { "1 chickenr2", "2 chickenebomber1" })
-addWave(10, { "5 chickenp2", "1 chickenacidarty"})
-addWave(10, { "1 chickenr2", "2 chickenacidbomber" })
-
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+-- Squads ------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+-- Tier1 - Basic swarmers with flying scout or assault 
+----------------------------------------------------------------------------------------------
+addSquad(1, { "2 chicken1", "2 chicken1b", "2 chicken1c", "2 chicken1d" 					})
+addSquad(1, { "4 chicken1", "4 chicken1b", "4 chicken1c", "4 chicken1d" 					})
+addSquad(1, { "6 chicken1", "6 chicken1b", "6 chicken1c", "6 chicken1d" 					})
+addSquad(1, { "1 chickena1", "1 chickena1b", "1 chickena1c" 								})
+addSquad(1, { "2 chickenf2" 																})
+----------------------------------------------------------------------------------------------
+-- Tier2 - We introduce 2nd, a bit stronger kind of Swarmer in bigger numbers 
+----------------------------------------------------------------------------------------------
+addSquad(2, { "2 chicken1x", "2 chicken1y", "2 chicken1z"  									})
+addSquad(2, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  									})
+addSquad(2, { "6 chicken1x", "6 chicken1y", "6 chicken1z"  									})
+addSquad(2, { "2 chickena1", "2 chickena1b", "2 chickena1c"									})
+addSquad(2, { "4 chickena1", "4 chickena1b", "4 chickena1c"									})
+----------------------------------------------------------------------------------------------
+-- Tier3 - Skirmishing Spikers and Airfighters joined the game, also more Brawlers
+----------------------------------------------------------------------------------------------
+addSquad(3, { "5 chickens1" 																})
+addSquad(3, { "3 chickenw1", "3 chickenw1b", "3 chickenw1c", "3 chickenw1d", "3 chickenw2" 	})
+----------------------------------------------------------------------------------------------
+-- Tier4 - Small paralyzers, acid spitters and pyros are joining the game
+----------------------------------------------------------------------------------------------
+addSquad(4, { "5 chickene1" 																})
+addSquad(4, { "5 chickenacidswarmer" 														})
+addSquad(4, { "5 chickenp1" 																})
+----------------------------------------------------------------------------------------------
+-- Tier5 - Gunships and Bombers are looking at you from above!
+----------------------------------------------------------------------------------------------
+addSquad(5, { "5 chickens3" 																})
+addSquad(5, { "5 chickenf1" 																})
+addSquad(5, { "5 chickenf1b" 																})
+addSquad(5, { "5 chickenebomber1" 															})
+addSquad(5, { "5 chickenacidbomber" 														})
+----------------------------------------------------------------------------------------------
+-- Tier6 - All Terrain. Better watch these hills!
+----------------------------------------------------------------------------------------------
+addSquad(6, { "7 chickenc3" 																})
+addSquad(6, { "5 chickenc3b" 																})
+addSquad(6, { "3 chickenc3c" 																})
+----------------------------------------------------------------------------------------------
+-- Tier7 - Artillery, big flamer, big paralyzer and big acid spitter want to know your location
+----------------------------------------------------------------------------------------------
+addSquad(7, { "3 chickenr1" 																})
+addSquad(7, { "3 chickenearty1" 															})
+addSquad(7, { "3 chickenacidarty" 															})
+addSquad(7, { "3 chickenp2" 																})
+addSquad(7, { "3 chickene2" 																})
+addSquad(7, { "3 chickenacidassault" 														})
+----------------------------------------------------------------------------------------------
+-- Tier8 - Kamikaze, lots of them! Also Apex Spiker.
+----------------------------------------------------------------------------------------------
+addSquad(8, { "5 chicken_dodo1" 															})
+addSquad(8, { "10 chicken_dodo1" 															})
+addSquad(8, { "15 chicken_dodo1" 															})
+addSquad(8, { "20 chicken_dodo1" 															})
+addSquad(8, { "5 chicken_dodo2" 															})
+addSquad(8, { "10 chicken_dodo2" 															})
+addSquad(8, { "5 chickens2" 																})
+----------------------------------------------------------------------------------------------
+-- Tier9 - Apex Swarmer, Apex Brawler, Apex Mortar - Prepare antinukes!
+----------------------------------------------------------------------------------------------
+addSquad(9, { "5 chicken2" 																	})
+addSquad(9, { "5 chicken2b" 																})
+addSquad(9, { "3 chickena2" 																})
+addSquad(9, { "3 chickena2b" 																})
+addSquad(9, { "1 chickenr2" 																})
+----------------------------------------------------------------------------------------------
+-- Tier10 - Brood Raptors - They don't die they multiply!
+----------------------------------------------------------------------------------------------
+addSquad(10, { "5 chickenh2" 																})
+addSquad(10, { "10 chickenh3" 																})
+addSquad(10, { "20 chickenh4" 																})
+----------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
 
 local config = {
 	difficulty             = difficulty,
@@ -409,7 +329,6 @@ local config = {
 	chickenEggs			   = table.copy(chickenEggs),
 	defenders              = table.copy(defenders),
 	waves                  = waves,
-	newWaveSquad           = newWaveSquad,
 }
 
 for key, value in pairs(optionValues[difficulty]) do
