@@ -767,13 +767,15 @@ if gadgetHandler:IsSyncedCode() then
 						
 						if not skipSpawn then
 							for i, sString in pairs(squad) do
-								local nEnd, _ = string.find(sString, " ")
-								local unitNumber = math.max(math.random(1, string.sub(sString, 1, (nEnd - 1)) * math.floor(1+(currentWave-waveLevel)) ) , 1)
-								local chickenName = string.sub(sString, (nEnd + 1))
-								for i = 1, unitNumber, 1 do
-									table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID })
+								if cCount < maxWaveSize then
+									local nEnd, _ = string.find(sString, " ")
+									local unitNumber = math.max(math.random(1, string.sub(sString, 1, (nEnd - 1)) * math.floor(1+(currentWave-waveLevel)) ) , 1)
+									local chickenName = string.sub(sString, (nEnd + 1))
+									for i = 1, unitNumber, 1 do
+										table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID })
+									end
+									cCount = cCount + unitNumber
 								end
-								cCount = cCount + unitNumber
 							end
 						end
 					end
