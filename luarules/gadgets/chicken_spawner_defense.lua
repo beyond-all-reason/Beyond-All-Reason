@@ -726,7 +726,7 @@ if gadgetHandler:IsSyncedCode() then
 						local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
 						for i, sString in pairs(squad) do
 							local nEnd, _ = string.find(sString, " ")
-							local unitNumber = math.max(math.random(1, string.sub(sString, 1, (nEnd - 1)) * math.floor(1+(currentWave-waveLevel)*0.25) ) , 1)
+							local unitNumber = math.random(1, string.sub(sString, 1, (nEnd - 1)))
 							local chickenName = string.sub(sString, (nEnd + 1))
 							for i = 1, unitNumber, 1 do
 								table.insert(spawnQueue, { burrow = queenID, unitName = chickenName, team = chickenTeamID })
@@ -766,7 +766,7 @@ if gadgetHandler:IsSyncedCode() then
 							for i, sString in pairs(squad) do
 								if cCount < maxWaveSize then
 									local nEnd, _ = string.find(sString, " ")
-									local unitNumber = math.max(math.random(1, string.sub(sString, 1, (nEnd - 1)) * math.floor(1+(currentWave-waveLevel)*0.25) ) , 1)
+									local unitNumber = math.random(1, string.sub(sString, 1, (nEnd - 1)))
 									local chickenName = string.sub(sString, (nEnd + 1))
 									for i = 1, unitNumber, 1 do
 										table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID })
@@ -801,7 +801,7 @@ if gadgetHandler:IsSyncedCode() then
 					overseerSpawned = true
 				end
 			end
-		until (cCount > maxWaveSize*0.25 or loopCounter >= currentWave)
+		until (cCount > maxWaveSize or loopCounter >= currentWave)
 		return cCount
 	end
 
