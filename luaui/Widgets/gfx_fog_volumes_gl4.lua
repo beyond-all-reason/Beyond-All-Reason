@@ -201,7 +201,7 @@ void main(void)
 	frequency = v_spawnframe_frequency_riserate_windstrength.y;
 	vec3 camPos = cameraViewInv[3].xyz ;
 	vec3 camDir = normalize(camPos-v_fragWorld);
-	float radiusmult = 0.98;
+	float radiusmult = 0.98; //0.98;
 	vec2 closeandfarsphere = raySphereIntersect(camPos, -1.0 * normalize(camDir), v_worldPosRad.xyz, radiusmult * v_worldPosRad.w);
 	
 	// sample the fucking world:
@@ -220,20 +220,38 @@ void main(void)
 	float distancetoeye = length(camPos - mapWorldPos.xyz);
 	closeandfarsphere.y = min(closeandfarsphere.y, distancetoeye);
 	
-	float distthroughsphere = clamp((closeandfarsphere.y - closeandfarsphere.x )/ (2*v_worldPosRad.w*radiusmult), 0.0, 1.0);
-	
-	float fogamout = pow(distthroughsphere ,2);
-	
-	//fogamout = smoothstep(0.0,1.0,fogamout) * 0.9 ;
-	
 	// some helper positions:
 	vec3 close_spherepoint = -1 * camDir * closeandfarsphere.x  + camPos;
 	vec3 far_spherepoint   = -1 * camDir * closeandfarsphere.y  + camPos;
 	
+	float distthroughsphere = clamp((closeandfarsphere.y - closeandfarsphere.x )/ (2*v_worldPosRad.w*radiusmult), 0.0, 1.0);
+		
+	float distancetosphere = length(camPos - v_worldPosRad.xyz);
+	if (distancetosphere < radiusmult * v_worldPosRad.w) { // then we WILL intersect, but where?
+		close_spherepoint = camPos;
+		far_spherepoint = -1 * camDir * max(closeandfarsphere.x, closeandfarsphere.y)  + camPos;
+		distthroughsphere = clamp(length(camPos - far_spherepoint) / (2*v_worldPosRad.w*radiusmult), 0.0, 1.0);
+		fragColor.rgba = vec4( vec3(distthroughsphere), 1.0);
+		//distthroughsphere *= 1.5;
+	}
+
+	fragColor.rgba = vec4( vec3(distthroughsphere), 1.0);
+	
+	//return;
+	//fragColor.rgba = vec4( fract(far_spherepoint * 0.01), 1.0);
+		
+	float fogamout = pow(distthroughsphere ,1);
+	
+	//fogamout = smoothstep(0.0,1.0,fogamout) * 0.9 ;
+	
+	
+	
+	
+	
 	//fragColor.rgba = vec4(vec3(fract(closeandfarsphere.x * 0.01)), fogamout);
 	fragColor.rgba = vec4(vec3(1.0), distthroughsphere);
 	
-	vec3 dbgdist = clamp(vec3( closeandfarsphere.x, closeandfarsphere.y, distancetoeye)*0.001, 0.0, 1.0);
+	//vec3 dbgdist = clamp(vec3( closeandfarsphere.x, closeandfarsphere.y, distancetoeye)*0.001, 0.0, 1.0);
 	
 
 	vec4 rm = raymarch(far_spherepoint, close_spherepoint, 128.0, v_worldPosRad);
@@ -246,10 +264,11 @@ void main(void)
 	//fragColor.rgb = vec3(shadowAtWorldPos(close_spherepoint.xyz));
 	
 	fragColor.rgba *= v_colordensity;
-	fragColor.a *= currfade;
 	
+	//if ((closeandfarsphere.x < 0.0) || (closeandfarsphere.y < 0.0)) fragColor.a = 0.0;
 	//fragColor.rgba = vec4( fract(far_spherepoint * 0.02), 1.0);
-	if ((closeandfarsphere.x < 0.0) || (closeandfarsphere.y < 0.0)) fragColor.a = 0.0;
+	//fragColor.a = 1.0;
+	
 }
 ]]
 
@@ -404,7 +423,10 @@ end
 local toTexture = true
 
 local function renderToTextureFunc() -- this draws the fogspheres onto the texture
+
+	glCulling(GL.FRONT)
 	fogSphereVBO.VAO:DrawElements(GL.TRIANGLES,nil,0, fogSphereVBO.usedElements,0)
+	glCulling(GL.BACK)
 end
 
 local function renderToTextureClear() -- this func is needed to clear the render target
@@ -422,7 +444,6 @@ function widget:DrawWorld()
 		end
 		--Spring.Echo(fogSphereVBO.usedElements)
 		--glCulling(GL_BACK)
-		glCulling(GL.BACK)
 		--glDepthTest(GL_LEQUAL)
 		--glDepthTest(false)
 		gl.DepthMask(false)
