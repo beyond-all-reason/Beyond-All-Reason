@@ -313,13 +313,13 @@ addSquad(10, { "40 chickenh4" 																})
 -- FillerLoop - Basic garbage to balance out special raptors
 ----------------------------------------------------------------------------------------------
 for i = 1,#waves do
-	if i >= 2 then -- Basic Swarmer
+	if i >= 2 and i <= 8 then -- Basic Swarmer
 		addSquad(i, { i.." chicken1", i.." chicken1b", i.." chicken1c" })
 		addSquad(i, { i.." chicken1b", i.." chicken1c", i.." chicken1d" })  
 		addSquad(i, { i.." chicken1c", i.." chicken1d", i.." chicken1" }) 
 		addSquad(i, { i.." chicken1d", i.." chicken1", i.." chicken1b" })
 	end
-	if i >= 3 then -- Better Swarmer and Brawler
+	if i >= 3 and i <= 8 then -- Better Swarmer and Brawler
 		addSquad(i, { i.." chicken1x", i.." chicken1y" })
 		addSquad(i, { i.." chicken1y", i.." chicken1z" })  
 		addSquad(i, { i.." chicken1z", i.." chicken1x" }) 
