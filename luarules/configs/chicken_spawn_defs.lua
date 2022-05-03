@@ -235,12 +235,11 @@ end
 ----------------------------------------------------------------------------------------------
 -- Squads ------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
--- Tier1 - Basic swarmers with flying scout or assault 
+-- Tier1 - Basic swarmers with flying scout
 ----------------------------------------------------------------------------------------------
 addSquad(1, { "2 chicken1", "2 chicken1b", "2 chicken1c", "2 chicken1d" 					})
 addSquad(1, { "4 chicken1", "4 chicken1b", "4 chicken1c", "4 chicken1d" 					})
 addSquad(1, { "6 chicken1", "6 chicken1b", "6 chicken1c", "6 chicken1d" 					})
-addSquad(1, { "1 chickena1", "1 chickena1b", "1 chickena1c" 								})
 addSquad(1, { "2 chickenf2" 																})
 ----------------------------------------------------------------------------------------------
 -- Tier2 - We introduce 2nd, a bit stronger kind of Swarmer in bigger numbers 
@@ -249,7 +248,7 @@ addSquad(2, { "2 chicken1x", "2 chicken1y", "2 chicken1z"  									})
 addSquad(2, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  									})
 addSquad(2, { "6 chicken1x", "6 chicken1y", "6 chicken1z"  									})
 addSquad(2, { "2 chickena1", "2 chickena1b", "2 chickena1c"									})
-addSquad(2, { "4 chickena1", "4 chickena1b", "4 chickena1c"									})
+addSquad(2, { "3 chickena1", "3 chickena1b", "3 chickena1c"									})
 ----------------------------------------------------------------------------------------------
 -- Tier3 - Skirmishing Spikers and Airfighters joined the game, also more Brawlers
 ----------------------------------------------------------------------------------------------
