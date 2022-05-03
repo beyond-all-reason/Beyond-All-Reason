@@ -73,8 +73,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
-
-	local survivalQueenMod = 0.8
 	local queenLifePercent = 100
 	local maxTries = 30
 	local oldMaxChicken = 0
@@ -1439,13 +1437,23 @@ if gadgetHandler:IsSyncedCode() then
 			queenResistance = {}
 
 			if config.difficulty == config.difficulties.survival then
-				queenTime = t + ((Spring.GetModOptions().chicken_queentime * 60) * survivalQueenMod)
-				survivalQueenMod = survivalQueenMod * 0.8
-				queenAnger = 0  -- reenable chicken spawning
+				queenTime = t + (Spring.GetModOptions().chicken_queentime * 60)
+				queenAnger = 50  -- reenable chicken spawning
 				burrowAnger = 0
 				SetGameRulesParam("queenAnger", queenAnger)
 				SpawnBurrow()
 				SpawnChickens() -- spawn new chickens (because queen could be the last one)
+				if config.queenName == "ve_chickenq" then
+					config.queenName = "e_chickenq"
+				elseif config.queenName == "e_chickenq" then
+					config.queenName = "n_chickenq"
+				elseif config.queenName == "n_chickenq" then
+					config.queenName = "h_chickenq"
+				elseif config.queenName == "h_chickenq" then
+					config.queenName = "vh_chickenq"
+				elseif config.queenName == "vh_chickenq" then
+					config.queenName = "epic_chickenq"
+				end
 			else
 				gameOver = GetGameFrame() + 200
 				spawnQueue = {}
