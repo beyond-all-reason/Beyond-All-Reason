@@ -1397,7 +1397,6 @@ local options={
 		key		= "unba",
 		name	= "UnbaCom - Totally Rebalanced Commanders (WIP)",
 		desc	= "Defines if commanders level up with xp and gain more power or not",
-		hidden = true,
 		type	= "bool",
 		def		= false,
 		section	= "options_experimental",

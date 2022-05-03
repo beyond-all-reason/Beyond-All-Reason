@@ -6,8 +6,8 @@ function UnbaCom_Post(name)
 	tablecom.power = CommanderPower
 	tablecom.weapondefs[lowername.."laser"].weapontype = "LaserCannon"
 	tablecom.weapons = {}
-	tablecom.script = "Units/unbacom/unba"..lowername.."_lus.lua"
-	tablecom.objectname = "Units/unbacom/UNBA"..uppername..".3DO"
+	tablecom.script = "scripts/Units/unbacom/unba"..lowername.."_lus.lua"
+	tablecom.objectname = "Units/"..uppername..".S3O"
 		--Weapon: Laser
 	tablecom.weapondefs[lowername.."laser2"] = table.copy(tablecom.weapondefs[lowername.."laser"])
 	tablecom.weapondefs[lowername.."laser"].weapontype = "BeamLaser"
@@ -93,15 +93,18 @@ function UnbaCom_Post(name)
 		tablecom.weapondefs["repulsor"..I] = table.copy(tablecom.weapondefs["repulsor"..H])
 		tablecom.weapondefs["repulsor"..I].shield.power = ShieldPower[i]
 	end
-	for i = 23,29 do
+--[[	for i = 23,29 do
 		tablecom.weapons[i] = {
 				def = "REPULSOR"..tostring(i-22),
 				}
 	end
-	tablecom.weapons[30] ={
-					def = "DISINTEGRATOR",
-					onlytargetcategory = "NOTSUB",
-				}
+	]]
+		for i = 23,30 do
+               tablecom.weapons[i] = {
+                    def = "DISINTEGRATOR",
+                    onlytargetcategory = "NOTSUB",
+                }
+		end
 	if name == "armcom" then
 		tablecom.buildoptions = ArmDefsBuildOptions
 	else
