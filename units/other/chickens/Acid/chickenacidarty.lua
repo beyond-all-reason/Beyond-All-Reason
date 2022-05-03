@@ -29,7 +29,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 4000,
-		maxdamage = 1500,
+		maxdamage = 50,
 		maxslope = 18,
 		maxvelocity = 1.4,
 		maxwaterdepth = 0,
@@ -78,7 +78,7 @@ return {
 		},
 		weapondefs = {
 			acidspit = {
-				accuracy = 4096,
+				accuracy = 1024,
 				areaofeffect = 150,
 				collidefriendly = 0,
 				collidefeature = 0,
@@ -101,7 +101,7 @@ return {
 				--paralyzetime = 20,
 				proximitypriority = -4,
 				range = 1500,
-				reloadtime = 0.5,
+				reloadtime = 2,
 				rgbcolor = "0.8 0.99 0.11",
 				size = 5.5,
 				sizedecay = 0.09,

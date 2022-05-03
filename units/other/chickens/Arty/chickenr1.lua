@@ -29,7 +29,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 4000,
-		maxdamage = 2500,
+		maxdamage = 50,
 		maxslope = 18,
 		maxvelocity = 1.4,
 		maxwaterdepth = 0,
@@ -78,7 +78,7 @@ return {
 		},
 		weapondefs = {
 			goolauncher = {
-				accuracy = 2048,
+				accuracy = 1024,
 				areaofeffect = 256,
 				collidefriendly = 0,
 				collidefeature = 0,
@@ -101,7 +101,7 @@ return {
 				noselfdamage = true,
 				proximitypriority = -4,
 				range = 1250,
-				reloadtime = 0.5,
+				reloadtime = 2,
 				rgbcolor = "1 0.5 0.1",
 				size = 5.5,
 				sizedecay = 0.09,
@@ -113,7 +113,7 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 520,
 				damage = {
-					default = 200,
+					default = 800,
 				},
 				customparams = {
 					expl_light_life_mult = 1.0,

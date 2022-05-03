@@ -257,8 +257,8 @@ addSquad(3, { "3 chickenw1", "3 chickenw1b", "3 chickenw1c", "3 chickenw1d", "3 
 ----------------------------------------------------------------------------------------------
 -- Tier4 - Small paralyzers, acid spitters and pyros are joining the game
 ----------------------------------------------------------------------------------------------
-addSquad(4, { "5 chickene1" 																})
-addSquad(4, { "5 chickenacidswarmer" 														})
+addSquad(4, { "3 chickene1" 																})
+addSquad(4, { "3 chickenacidswarmer" 														})
 addSquad(4, { "5 chickenp1" 																})
 ----------------------------------------------------------------------------------------------
 -- Tier5 - Gunships and Bombers are looking at you from above!
@@ -276,21 +276,21 @@ addSquad(6, { "3 chickenc3c" 																})
 ----------------------------------------------------------------------------------------------
 -- Tier7 - Artillery, big flamer, big paralyzer and big acid spitter want to know your location
 ----------------------------------------------------------------------------------------------
-addSquad(7, { "1 chickenr1" 																})
-addSquad(7, { "1 chickenearty1" 															})
-addSquad(7, { "1 chickenacidarty" 															})
-addSquad(7, { "3 chickenp2" 																})
-addSquad(7, { "3 chickene2" 																})
-addSquad(7, { "3 chickenacidassault" 														})
+addSquad(7, { "2 chickenr1" 																})
+addSquad(7, { "2 chickenearty1" 															})
+addSquad(7, { "2 chickenacidarty" 															})
+addSquad(7, { "5 chickenp2" 																})
+addSquad(7, { "2 chickene2" 																})
+addSquad(7, { "2 chickenacidassault" 														})
 ----------------------------------------------------------------------------------------------
 -- Tier8 - Kamikaze, lots of them! Also Apex Spiker.
 ----------------------------------------------------------------------------------------------
-addSquad(8, { "5 chicken_dodo1" 															})
 addSquad(8, { "10 chicken_dodo1" 															})
-addSquad(8, { "15 chicken_dodo1" 															})
 addSquad(8, { "20 chicken_dodo1" 															})
-addSquad(8, { "5 chicken_dodo2" 															})
-addSquad(8, { "10 chicken_dodo2" 															})
+addSquad(8, { "40 chicken_dodo1" 															})
+addSquad(8, { "80 chicken_dodo1" 															})
+addSquad(8, { "20 chicken_dodo2" 															})
+addSquad(8, { "40 chicken_dodo2" 															})
 addSquad(8, { "5 chickens2" 																})
 ----------------------------------------------------------------------------------------------
 -- Tier9 - Apex Swarmer, Apex Brawler, Apex Mortar - Prepare antinukes!
