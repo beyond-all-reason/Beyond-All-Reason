@@ -263,7 +263,6 @@ addSquad(4, { "5 chickenp1" 																})
 ----------------------------------------------------------------------------------------------
 -- Tier5 - Gunships and Bombers are looking at you from above!
 ----------------------------------------------------------------------------------------------
-addSquad(5, { "5 chickens3" 																})
 addSquad(5, { "5 chickenf1" 																})
 addSquad(5, { "5 chickenf1b" 																})
 addSquad(5, { "5 chickenebomber1" 															})
