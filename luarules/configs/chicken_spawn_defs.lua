@@ -306,26 +306,40 @@ addSquad(9, { "1 chickenr2" 																})
 ----------------------------------------------------------------------------------------------
 -- Tier10 - Brood Raptors - They don't die they multiply!
 ----------------------------------------------------------------------------------------------
-addSquad(10, { "5 chickenh2" 																})
-addSquad(10, { "10 chickenh3" 																})
-addSquad(10, { "20 chickenh4" 																})
+addSquad(10, { "10 chickenh2" 																})
+addSquad(10, { "20 chickenh3" 																})
+addSquad(10, { "40 chickenh4" 																})
 ----------------------------------------------------------------------------------------------
 -- FillerLoop - Basic garbage to balance out special raptors
 ----------------------------------------------------------------------------------------------
 for i = 1,#waves do
 	if i >= 2 then -- Basic Swarmer
-		addSquad(i, { 3*i.." chicken1"  })
-		addSquad(i, { 3*i.." chicken1b" })  
-		addSquad(i, { 3*i.." chicken1c" }) 
-		addSquad(i, { 3*i.." chicken1d" })
+		addSquad(i, { i.." chicken1", i.." chicken1b", i.." chicken1c" })
+		addSquad(i, { i.." chicken1b", i.." chicken1c", i.." chicken1d" })  
+		addSquad(i, { i.." chicken1c", i.." chicken1d", i.." chicken1" }) 
+		addSquad(i, { i.." chicken1d", i.." chicken1", i.." chicken1b" })
 	end
 	if i >= 3 then -- Better Swarmer and Brawler
-		addSquad(i, { 2*i.." chicken1x" })
-		addSquad(i, { 2*i.." chicken1y" })  
-		addSquad(i, { 2*i.." chicken1z" }) 
+		addSquad(i, { i.." chicken1x", i.." chicken1y" })
+		addSquad(i, { i.." chicken1y", i.." chicken1z" })  
+		addSquad(i, { i.." chicken1z", i.." chicken1x" }) 
 		addSquad(i, { i..  " chickena1" })
 		addSquad(i, { i..  " chickena1b"})
 		addSquad(i, { i..  " chickena1c"})
+	end
+	if i >= 7 then -- More AllTerrains over time
+		addSquad(i, { "15 chickenc3" })
+		addSquad(i, { "10 chickenc3b" })
+		addSquad(i, { "5 chickenc3c" })
+		addSquad(i, { "10 chickenc3", "5 chickenc3b" })
+		addSquad(i, { "5 chickenc3b", "3 chickenc3c" })
+		addSquad(i, { "10 chickenc3", "5 chickenc3b", "3 chickenc3c" })
+	end
+	if i >= 9 then -- Apex Swarmers and Apex Brawler to be used more frequently in late game
+		addSquad(i, { "5 chicken2" , "5 chicken2b" })
+		addSquad(i, { "5 chicken2b", "5 chicken2" })
+		addSquad(i, { "5 chickena2", "5 chickena2b"})
+		addSquad(i, { "5 chickena2b", "5 chickena2" })
 	end
 end
 ----------------------------------------------------------------------------------------------
