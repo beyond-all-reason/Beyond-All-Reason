@@ -11,7 +11,7 @@ function gadget:GetInfo()
 	}
 end
 
-local updateDelay = 0.5
+local updateDelay = 0.25
 local unitLimitPerFrame = 400 -- controls how many units will be send per frame
 local fullSelectionUpdateInt = 0 -- refresh full selection info once in n seconds, 0 = disabled
 local minZlibSize = 130  --minimum size threshold of msg to use zlib (msg smaller than this will not be compressed before sending)

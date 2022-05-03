@@ -611,7 +611,7 @@ local function RefreshCommands()
 		local cmdUnitdefs = {}
 
 		for index, cmd in pairs(activeCmdDescs) do
-			if type(cmd) == "table" then
+			if type(cmd) == "table" and not cmd.disabled then
 				if string_sub(cmd.action, 1, 10) == 'buildunit_' and (showWaterUnits or not isWaterUnit[cmd.id * -1]) then
 					cmdUnitdefs[cmd.id * -1] = index
 

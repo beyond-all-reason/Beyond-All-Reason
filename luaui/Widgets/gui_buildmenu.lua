@@ -444,7 +444,7 @@ local function RefreshCommands()
 			local cmdUnitdefs = {}
 			for index, cmd in pairs(activeCmdDescs) do
 				if type(cmd) == "table" then
-					if string_sub(cmd.action, 1, 10) == 'buildunit_' then
+					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
 						cmdUnitdefs[cmd.id * -1] = index
 					end
 				end
@@ -458,7 +458,7 @@ local function RefreshCommands()
 		else
 			for index, cmd in pairs(activeCmdDescs) do
 				if type(cmd) == "table" then
-					if string_sub(cmd.action, 1, 10) == 'buildunit_' then
+					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
 						cmdsCount = cmdsCount + 1
 						cmds[cmdsCount] = cmd
 					end
