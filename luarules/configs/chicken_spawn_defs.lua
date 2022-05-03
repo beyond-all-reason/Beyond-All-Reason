@@ -276,9 +276,9 @@ addSquad(6, { "3 chickenc3c" 																})
 ----------------------------------------------------------------------------------------------
 -- Tier7 - Artillery, big flamer, big paralyzer and big acid spitter want to know your location
 ----------------------------------------------------------------------------------------------
-addSquad(7, { "3 chickenr1" 																})
-addSquad(7, { "3 chickenearty1" 															})
-addSquad(7, { "3 chickenacidarty" 															})
+addSquad(7, { "1 chickenr1" 																})
+addSquad(7, { "1 chickenearty1" 															})
+addSquad(7, { "1 chickenacidarty" 															})
 addSquad(7, { "3 chickenp2" 																})
 addSquad(7, { "3 chickene2" 																})
 addSquad(7, { "3 chickenacidassault" 														})
