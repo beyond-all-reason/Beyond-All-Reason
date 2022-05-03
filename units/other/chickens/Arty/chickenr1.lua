@@ -78,13 +78,13 @@ return {
 		},
 		weapondefs = {
 			goolauncher = {
-				accuracy = 1024,
+				accuracy = 2048,
 				areaofeffect = 256,
 				collidefriendly = 0,
 				collidefeature = 0,
 				avoidfeature = 0,
 				avoidfriendly = 0,
-				burst = 3,
+				burst = 1,
 				burstrate = 0.5,
 				cegtag = "blob_trail_red",
 				collidefriendly = 0,
@@ -101,7 +101,7 @@ return {
 				noselfdamage = true,
 				proximitypriority = -4,
 				range = 1250,
-				reloadtime = 30,
+				reloadtime = 0.5,
 				rgbcolor = "1 0.5 0.1",
 				size = 5.5,
 				sizedecay = 0.09,
@@ -113,7 +113,7 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 520,
 				damage = {
-					default = 2000,
+					default = 200,
 				},
 				customparams = {
 					expl_light_life_mult = 1.0,
