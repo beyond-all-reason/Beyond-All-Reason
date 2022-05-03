@@ -228,7 +228,7 @@ if gadgetHandler:IsSyncedCode() then
 	local expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
 	local maxBurrows = config.maxBurrows
 	local queenTime = (config.queenTime + config.gracePeriod)
-	local maxWaveSize = config.maxBurrows*SetCount(humanTeams)*config.chickenSpawnMultiplier
+	local maxWaveSize = ((config.maxBurrows*0.5)+(config.maxBurrows*0.5)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 	
 
 	--------------------------------------------------------------------------------
