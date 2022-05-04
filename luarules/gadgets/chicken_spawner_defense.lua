@@ -111,6 +111,7 @@ if gadgetHandler:IsSyncedCode() then
 	local lsx1, lsz1, lsx2, lsz2
 	local chickenTargets = {}
 	local burrows = {}
+	local overseers = {}
 	local heroChicken = {}
 	local defenseMap = {}
 	local unitName = {}
@@ -785,6 +786,32 @@ if gadgetHandler:IsSyncedCode() then
 		local loopCounter = 0
 		repeat
 			loopCounter = loopCounter + 1
+			for overseerID in pairs(overseers) do
+				if cCount < maxWaveSize then
+					for mult = 1,config.chickenSpawnMultiplier do
+						local waveLevelPower = mRandom(1, currentWave^2)
+						local waveLevel = math.ceil(math.sqrt(waveLevelPower))
+						local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
+						local skipSpawn = false
+						if cCount > 1 and mRandom() > config.spawnChance*queenBurrowSpawnMultiplier then
+							skipSpawn = true
+						end
+						if not skipSpawn then
+							for i, sString in pairs(squad) do
+								if cCount < maxWaveSize then
+									local nEnd, _ = string.find(sString, " ")
+									local unitNumber = math.random(1, string.sub(sString, 1, (nEnd - 1)))
+									local chickenName = string.sub(sString, (nEnd + 1))
+									for i = 1, unitNumber, 1 do
+										table.insert(spawnQueue, { burrow = overseerID, unitName = chickenName, team = chickenTeamID })
+									end
+									cCount = cCount + unitNumber
+								end
+							end
+						end
+					end
+				end
+			end
 			for burrowID in pairs(burrows) do
 				if cCount < maxWaveSize then
 					for mult = 1,config.chickenSpawnMultiplier do
@@ -912,7 +939,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitTeam == chickenTeamID or chickenDefTypes[unitDefID] then
-			-- filter out chicken units
+			if unitDefID == OVERSEER_ID then
+				overseers[unitID] = true
+			end
 			return
 		end
 		if chickenTargets[unitID] then
@@ -1462,6 +1491,7 @@ if gadgetHandler:IsSyncedCode() then
 			targetCache = 1
 			targetCacheCount = math.huge
 		end
+		
 
 		if unitTeam == chickenTeamID and chickenDefTypes[unitDefID] then
 			local name = unitName[unitDefID]
@@ -1546,6 +1576,10 @@ if gadgetHandler:IsSyncedCode() then
 			if config.addQueenAnger then
 				burrowAnger = (burrowAnger + config.angerBonus)
 			end
+		end
+
+		if unitDefID == OVERSEER_ID then
+			overseers[unitID] = nil
 		end
 	end
 
