@@ -429,7 +429,7 @@ if gadgetHandler:IsSyncedCode() then
 				idleOrderQueue[unitID] = { cmd = CMD.FIGHT, params = { x+mRandom(-128,128), y, z+mRandom(-128,128) }, opts = {"shift"} }
 			else
 				local x, y, z = GetUnitPosition(targetID)
-				idleOrderQueue[unitID] = { cmd = CMD.FIGHT, params = { x, y, z }, opts = {} }
+				idleOrderQueue[unitID] = { cmd = CMD.FIGHT, params = { x+mRandom(-128,128), y, z+mRandom(-128,128) }, opts = {} }
 			end
 			addChickenTarget(unitID, targetID)
 			return true
@@ -900,7 +900,7 @@ if gadgetHandler:IsSyncedCode() then
 				idleOrderQueue[unitID] = { cmd = CMD.FIGHT, params = { x+mRandom(-128,128), y, z+mRandom(-128,128) }, opts = {"shift"} }
 			else
 				local x, y, z = GetUnitPosition(targetCache)
-				idleOrderQueue[unitID] = { cmd = CMD.FIGHT, params = { x, y, z }, opts = {} }
+				idleOrderQueue[unitID] = { cmd = CMD.FIGHT, params = { x+mRandom(-128,128), y, z+mRandom(-128,128) }, opts = {} }
 			end
 			addChickenTarget(unitID, targetCache)
 		end
@@ -1064,7 +1064,7 @@ if gadgetHandler:IsSyncedCode() then
 						idleOrderQueue[unitID] = { cmd = CMD.FIGHT, params = { x+mRandom(-128,128), y, z+mRandom(-128,128) }, opts = {"shift"} }
 					else
 						local x, y, z = GetUnitPosition(targetCache)
-						idleOrderQueue[unitID] = { cmd = CMD.FIGHT, params = { x, y, z }, opts = {} }
+						idleOrderQueue[unitID] = { cmd = CMD.FIGHT, params = { x+mRandom(-128,128), y, z+mRandom(-128,128) }, opts = {} }
 					end
 				else
 					if HEALER[GetUnitDefID(unitID)] and not chickenteamhasplayers then
@@ -1092,7 +1092,7 @@ if gadgetHandler:IsSyncedCode() then
 						idleOrderQueue[unitID] = { cmd = CMD.FIGHT, params = { x+mRandom(-128,128), y, z+mRandom(-128,128) }, opts = {"shift"} }
 					else
 						local x, y, z = GetUnitPosition(targetCache)
-						idleOrderQueue[unitID] = { cmd = CMD.FIGHT, params = { x, y, z }, opts = {} }
+						idleOrderQueue[unitID] = { cmd = CMD.FIGHT, params = { x+mRandom(-128,128), y, z+mRandom(-128,128) }, opts = {} }
 					end
 					addChickenTarget(unitID, targetCache)
 				end
