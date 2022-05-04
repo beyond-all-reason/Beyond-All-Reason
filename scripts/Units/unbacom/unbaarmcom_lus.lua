@@ -17,6 +17,7 @@ local CEGHeal = "heal"
 local CEGLevelUp = "commander-levelup"
 local ValidID = Spring.ValidUnitID
 
+
 function Emit(pieceName, effectName)
 local x,y,z,dx,dy,dz	= Spring.GetUnitPiecePosDir(unitID, pieceName)
 Spring.SpawnCEG(effectName, x,y,z, dx, dy, dz)
@@ -190,22 +191,36 @@ function HandleLevelUps()
 		local hp = Spring.GetUnitHealth(unitID)
 		if hp and hp > 1 and (Spring.GetUnitIsDead(unitID) == false) then
 			local fxp = Spring.GetUnitExperience(unitID)
-			local realxp = 50 * fxp	
-		if realxp > 30 and level == 10 then
+			local realxp = 100 * fxp
+		if realxp > 79 and level == 17 then
+			LevelUpStats(17)
+		elseif realxp > 72 and level == 16 then
+			LevelUpStats(16)
+		elseif realxp > 64 and level == 15 then
+			LevelUpStats(15)
+		elseif realxp > 56 and level == 14 then
+			LevelUpStats(14)
+		elseif realxp > 49 and level == 13 then
+			LevelUpStats(13)
+		elseif realxp > 42 and level == 12 then
+			LevelUpStats(12)
+		elseif realxp > 36 and level == 11 then
+			LevelUpStats(11)			
+		elseif realxp > 30 and level == 10 then
 			LevelUpStats(10)
-		elseif realxp > 23 and level == 9 then
+		elseif realxp > 25 and level == 9 then
 			LevelUpStats(9)
-		elseif realxp > 17 and level == 8 then
+		elseif realxp > 20 and level == 8 then
 			LevelUpStats(8)
-		elseif realxp > 13 and level == 7 then
+		elseif realxp > 16 and level == 7 then
 			LevelUpStats(7)
-		elseif realxp > 10 and level == 6 then
+		elseif realxp > 12 and level == 6 then
 			LevelUpStats(6)
-		elseif realxp > 7 and level == 5 then
+		elseif realxp > 9 and level == 5 then
 			LevelUpStats(5)
-		elseif realxp > 5 and level == 4 then
+		elseif realxp > 6 and level == 4 then
 			LevelUpStats(4)
-		elseif realxp > 3 and level == 3 then
+		elseif realxp > 4 and level == 3 then
 			LevelUpStats(3)
 		elseif realxp > 2 and level == 2 then
 			LevelUpStats(2)
@@ -229,22 +244,13 @@ function LevelUpStats(curLevel)
 if ValidID(unitID) then
 	level = curLevel + 1
 	Emit(pelvis, CEGLevelUp)
-	Spring.SetUnitMaxRange(unitID, Range[level])
+	Spring.SetUnitMaxRange(unitID, armRange[level])
 	Spring.SetUnitArmored(unitID, true, DamageMultiplierNoDgun[level])
---[[
-	for i = 23, 29 do
-		if i - 22 == level - 1 or (i == 29 and i - 22 <= level -1) then	
-			Spring.SetUnitShieldState(unitID, i, true)
-		else
-			Spring.SetUnitShieldState(unitID, i, false)
-		end
+	for i = 1,18 do
+		Spring.SetUnitWeaponState(unitID,i, "range", armRange[level])
 	end
-]]
-	for i = 1,11 do
-		Spring.SetUnitWeaponState(unitID,i, "range", Range[level])
-	end
-	for i = 12,22 do
-		Spring.SetUnitWeaponState(unitID,i, "range", Range2[level])
+	for i = 19,29 do
+		Spring.SetUnitWeaponState(unitID,i, "range", armRange2[level])
 	end
 	Spring.SetUnitWeaponState(unitID,30, "reloadTime", ReloadTime3[level])
 	Spring.SetUnitBuildSpeed(unitID, BuildSpeed[level], BuildSpeed[level], BuildSpeed[level]*0.7)
@@ -256,7 +262,7 @@ if ValidID(unitID) then
 	if curMoveCtrl then
 		Spring.MoveCtrl.Disable(unitID)
 	end
-	Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", MoveSpeed[level]*30)
+	Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", armMoveSpeed[level]*30)
 	if curMoveCtrl then
 		Spring.MoveCtrl.Enable(unitID)
 	end
@@ -269,7 +275,7 @@ if ValidID(unitID) then
 		if cmdarray.id < 0 then
 			if UnitDefs[-cmdarray.id] then
 				local cmdIndex = Spring.FindUnitCmdDesc(unitID, cmdarray.id)
-				 disable = (level < ArmBuildOptions[UnitDefs[-cmdarray.id].name]) or (level >= (ArmBuildOptionsStop[UnitDefs[-cmdarray.id].name] or 12))
+				 disable = (level < ArmBuildOptions[UnitDefs[-cmdarray.id].name]) or (level >= (ArmBuildOptionsStop[UnitDefs[-cmdarray.id].name] or 19))
 				cmdarray.disabled = disable
 				Spring.EditUnitCmdDesc(unitID, cmdIndex, cmdarray)
 			end
@@ -323,25 +329,18 @@ function script.StopMoving()
 end
 
 function script.AimFromWeapon(weapon)
-	if weapon <= 11 then
+	if weapon <= 18 then
 		return ruparm
-	elseif weapon >= 12 and weapon <= 22 then
+	elseif weapon >= 19 and weapon <= 29 then
 		return ruparm
-	elseif weapon >= 23 and weapon <= 30 then
+	elseif weapon == 30 then
 		return 0
 	end
 end
 
 function script.AimWeapon(weapon, heading, pitch)
 	local _,uwlaserheight = Spring.GetUnitPiecePosDir(unitID, torso)
-	if weapon >= 23 and weapon <= 29 then
-		if weapon - 22 == level then
-			return true
-		else
-			return false
-		end
-	end
-	if weapon <= 11 then
+	if weapon <= 18 then
 		if weapon == level then
 				if uwlaserheight <= 0 then
 					return false, "uwlaserheight <=0"
@@ -364,10 +363,10 @@ function script.AimWeapon(weapon, heading, pitch)
 				return true
 			end
 		else
-			return false, "weapon >=11"
+			return false, "weapon >18"
 		end
-	elseif weapon >= 12 and weapon <= 22 then
-		if weapon - 11 == level then
+	elseif weapon >= 19 and weapon <= 29 then
+		if weapon - 18 == level then
 			_,uwlaserheight = Spring.GetUnitPiecePosDir(unitID, torso)
 		if uwlaserheight > 0 then
 			return false, "uwlaserheight > 0"
@@ -390,9 +389,9 @@ function script.AimWeapon(weapon, heading, pitch)
 			return true
 		end
 		else
-			return false, "weapon > 22"
+			return false, "weapon > 29"
 		end
-	elseif weapon >= 23 and weapon <= 30 then
+	elseif weapon == 30 then
 		isAimingDgun = true
 		isAiming = true
 		leftArm = false
@@ -405,13 +404,13 @@ function script.AimWeapon(weapon, heading, pitch)
 end
 
 function script.FireWeapon(weapon)
-	if weapon <= 11 then
+	if weapon <= 18 then
 		Sleep(100)
 		return false
-	elseif weapon >= 12 and weapon <= 22 then
+	elseif weapon >= 19 and weapon <= 29 then
 		Sleep(100)
 		return false
-	elseif weapon >= 23 and weapon <= 30 then
+	elseif weapon == 30 then
 		isAimingDgun = false
 		turn(luparm, 1, 20)
 		turn(biggun, 1, -100)
@@ -424,11 +423,11 @@ function script.FireWeapon(weapon)
 end
 
 function script.QueryWeapon(weapon)
-	if weapon <= 11 then
+	if weapon <= 18 then
 		return laserflare
-	elseif weapon >= 12 and weapon <= 22 then
+	elseif weapon >= 19 and weapon <= 29 then
 		return laserflare
-	elseif weapon >= 23 and weapon <= 30 then
+	elseif weapon == 30 then
 		return lflare
 	end
 end
