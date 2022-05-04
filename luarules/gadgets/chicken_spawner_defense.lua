@@ -223,6 +223,9 @@ if gadgetHandler:IsSyncedCode() then
 	-- Difficulty
     --
 
+	if config.difficulty == config.difficulties.survival then
+		config.queenTime = config.queenTime*0.5
+	end
 	local expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
 	local maxBurrows = config.maxBurrows
 	local queenTime = (config.queenTime + config.gracePeriod)
@@ -1437,7 +1440,7 @@ if gadgetHandler:IsSyncedCode() then
 			queenResistance = {}
 
 			if config.difficulty == config.difficulties.survival then
-				queenTime = t + (Spring.GetModOptions().chicken_queentime * 60)
+				queenTime = t + (config.queenTime * 60)
 				queenAnger = 50  -- reenable chicken spawning
 				burrowAnger = 0
 				SetGameRulesParam("queenAnger", queenAnger)
