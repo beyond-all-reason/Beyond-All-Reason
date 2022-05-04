@@ -78,7 +78,10 @@ return {
 			chickenparalyzersmall = {
 				areaofeffect = 100,
 				collidefriendly = false,
-				avoidfeature = false,
+				collidefriendly = 0,
+				collidefeature = 0,
+				avoidfeature = 0,
+				avoidfriendly = 0,
 				beamttl = 1,
 				burst = 10,
 				burstrate = 0.03333,
