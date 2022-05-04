@@ -207,17 +207,15 @@ local optionValues = {
 
 	[difficulties.survival] = {
 		chickenMaxSpawnRate  = 300,
-		burrowSpawnRate   = 140,
-		queenSpawnMult    = 1,
-		angerBonus        = 0.3,
-		expStep           = 0.25,
-		lobberEMPTime     = 5,
-		spawnChance       = 0.5,
-		damageMod         = 0.55,
-		maxBurrows        = 30,
-	  	chickenTypes        = table.copy(chickenTypes),
-	  	defenders           = table.copy(defenders),
-	  	queenName           = 've_chickenq',
+		burrowSpawnRate   = 360,
+		queenSpawnMult    = 0,
+		angerBonus        = 0.15,
+		expStep           = 0,
+		lobberEMPTime     = 0,
+		spawnChance       = 0.25,
+		damageMod         = 0.125,
+		maxBurrows        = 5,
+		queenName         = 've_chickenq',
 	},
 }
 
@@ -364,6 +362,7 @@ local config = {
 	chickenEggs			   = table.copy(chickenEggs),
 	defenders              = table.copy(defenders),
 	waves                  = waves,
+	difficultyParameters   = optionValues,
 }
 
 for key, value in pairs(optionValues[difficulty]) do
