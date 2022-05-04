@@ -951,6 +951,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 
+		if unitTeam == chickenTeamID and attackerTeam == chickenTeamID then
+			return 0
+		end
+
 		if disabledUnits[unitID] then
 			return 0, 0
 		end

@@ -540,7 +540,6 @@ function UnitDef_Post(name, uDef)
 		uDef.buildtime = chickHealth*10
 		uDef.hidedamage = true
 		if (uDef.mass and uDef.mass < 500) or not uDef.mass then uDef.mass = 500 end
-		if uDef.customparams then uDef.customparams.paralyzemultiplier = 0 end
 		uDef.canhover = true
 		uDef.autoheal = math.ceil(math.sqrt(chickHealth * 0.1))
 		uDef.idleautoheal = math.ceil(math.sqrt(chickHealth * 0.1))
