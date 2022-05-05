@@ -57,6 +57,14 @@ local TimedDamageWeapons = {
         range = 75,
         resistance = "_CHICKENACID_",
     },
+    [WeaponDefNames.chickenacidallterrain_acidspit.id] = {
+        ceg = "acid-area-75", 
+        damageCeg = "acid-damage-gen", 
+        time = 10,
+        damage = 150,
+        range = 75,
+        resistance = "_CHICKENACID_",
+    },
 }
 
 local TimedDamageDyingUnits = {
@@ -77,6 +85,14 @@ local TimedDamageDyingUnits = {
         resistance = "_CHICKENACID_",
     },
     [UnitDefNames.chickenacidswarmer.id] = {
+        ceg = "acid-area-75", 
+        damageCeg = "acid-damage-gen", 
+        time = 10,
+        damage = 150,
+        range = 75,
+        resistance = "_CHICKENACID_",
+    },
+    [UnitDefNames.chickenacidallterrain.id] = {
         ceg = "acid-area-75", 
         damageCeg = "acid-damage-gen", 
         time = 10,

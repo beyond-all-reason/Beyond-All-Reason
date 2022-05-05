@@ -348,9 +348,11 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickene1"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["chickene2"].id] = { distance = 200, chance = 0.01 },	
 		[UnitDefNames["chickenearty1"].id] = { distance = 1000, chance = 1 },
+		[UnitDefNames["chickenelectricallterrain"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["chickenacidswarmer"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["chickenacidassault"].id] = { distance = 200, chance = 1 },	
 		[UnitDefNames["chickenacidarty"].id] = { distance = 1000, chance = 1 },
+		[UnitDefNames["chickenacidallterrain"].id] = { distance = 300, chance = 1 },
 	}
 	local COWARD = {
 		[UnitDefNames["chickenh1"].id] = { distance = 300, chance = 0.5 },
@@ -362,6 +364,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickene1"].id] = { distance = 2000, chance = 1 },
 		[UnitDefNames["chickene2"].id] = { distance = 2000, chance = 1 },
 		[UnitDefNames["chickenearty1"].id] = { distance = 2000, chance = 1 },
+		[UnitDefNames["chickenelectricallterrain"].id] = { distance = 2000, chance = 1 },
 		[UnitDefNames["chickenacidarty"].id] = { distance = 2000, chance = 1 },
 	}
 	local BERSERK = {
@@ -378,15 +381,18 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickena2b"].id] = { chance = 0.2 },
 		[UnitDefNames["chickene2"].id] = { chance = 0.05 },
 		[UnitDefNames["chickenacidassault"].id] = { chance = 0.05 },
-		[UnitDefNames["chickenacidswarmer"].id] = { chance = 0.2 },
+		[UnitDefNames["chickenacidswarmer"].id] = { chance = 0.01 },
+		[UnitDefNames["chickenacidallterrain"].id] = { chance = 0.01 },
 		[UnitDefNames["chickenp1"].id] = { chance = 0.2 },
 		[UnitDefNames["chickenp2"].id] = { chance = 0.2 },
+		[UnitDefNames["chickenpyroallterrain"].id] = { chance = 0.2 },
 	}
 	local HEALER = {
 		[UnitDefNames["chickenh1"].id] = true,
 		[UnitDefNames["chickenh1b"].id] = true,
 		[UnitDefNames["chickenh5"].id] = true,
 	}
+	
 	local OVERSEER_ID = UnitDefNames["chickenh5"].id
 	local SMALL_UNIT = UnitDefNames["chicken1"].id
 	local MEDIUM_UNIT = UnitDefNames["chicken1"].id
