@@ -28,7 +28,7 @@
 				"overflowingEnergy":"When you're overflowing energy... build Energy Converters to convert energy into metal.",
 				"queues": "Queue up multiple consecutive unit actions by holding SHIFT.",
 				"reclaimWrecks": "Think in advance about reclaiming metal from wrecks piling up at the front.",
-				"resurrectFight": "Use the Fight command (F) with your ressurection bots to make them reclaim and repair everything in the vicinity.\nOptionally turn on Repeat to let them do this forever.",
+				"resurrectFight": "Use the Fight command (F) with your resurrection bots to make them reclaim and repair everything in the vicinity.\nOptionally turn on Repeat to let them do this forever.",
 				"screenBombers":"When performing a bombing run fly your fighters first to eliminate the enemy's fighter-wall.\nUse the Fight or Patrol commands for more effective engagement.",
 				"selectCommander": "Press CTRL+C to quickly select and center the camera on your Commander.",
 				"selectSameType": "Select all units of the same type by pressing CTRL+Z.",
