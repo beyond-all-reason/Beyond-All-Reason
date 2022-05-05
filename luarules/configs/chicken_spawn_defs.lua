@@ -334,7 +334,7 @@ for i = 1,#waves do
 		addSquad(i, { i..  " chickena1" })
 		addSquad(i, { i..  " chickena1b"})
 		addSquad(i, { i..  " chickena1c"})
-		addSquad(i, { i*4.." chickens1" })
+		addSquad(i, { i*4 .." chickens1" })
 	end
 	if i >= 7 then -- More AllTerrains over time
 		addSquad(i, { "15 chickenc3" })
