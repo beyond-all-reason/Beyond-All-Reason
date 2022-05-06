@@ -16,7 +16,10 @@ local HealRefreshTime	= 15
 local CEGHeal = "heal"
 local CEGLevelUp = "commander-levelup"
 local ValidID = Spring.ValidUnitID
-
+local Rooted = true
+local RootStart = 0
+local RootTimeSeconds = 0
+local RootIncome = 0
 
 function Emit(pieceName, effectName)
 local x,y,z,dx,dy,dz	= Spring.GetUnitPiecePosDir(unitID, pieceName)
@@ -184,6 +187,7 @@ local leader = Spring.GetPlayerInfo(leader)
 			Spring.UnitScript.StartThread(HandleLevelUps)
 			Spring.UnitScript.StartThread(PassiveRepairs)
 			Spring.UnitScript.StartThread(StopWalking)
+			Spring.UnitScript.StartThread(Rooting(unitID))
 	end
 end
 
@@ -193,22 +197,36 @@ function HandleLevelUps()
 		local hp = Spring.GetUnitHealth(unitID)
 		if hp and hp > 1 and (Spring.GetUnitIsDead(unitID) == false) then
 			local fxp = Spring.GetUnitExperience(unitID)
-			local realxp = 50 * fxp	
-		if realxp > 30 and level == 10 then
+			local realxp = 100 * fxp
+		if realxp > 100 and level == 17 then
+			LevelUpStats(17)
+		elseif realxp > 84 and level == 16 then
+			LevelUpStats(16)
+		elseif realxp > 70 and level == 15 then
+			LevelUpStats(15)
+		elseif realxp > 68 and level == 14 then
+			LevelUpStats(14)
+		elseif realxp > 56 and level == 13 then
+			LevelUpStats(13)
+		elseif realxp > 46 and level == 12 then
+			LevelUpStats(12)
+		elseif realxp > 36 and level == 11 then
+			LevelUpStats(11)			
+		elseif realxp > 30 and level == 10 then
 			LevelUpStats(10)
-		elseif realxp > 23 and level == 9 then
+		elseif realxp > 25 and level == 9 then
 			LevelUpStats(9)
-		elseif realxp > 17 and level == 8 then
+		elseif realxp > 20 and level == 8 then
 			LevelUpStats(8)
-		elseif realxp > 13 and level == 7 then
+		elseif realxp > 16 and level == 7 then
 			LevelUpStats(7)
-		elseif realxp > 10 and level == 6 then
+		elseif realxp > 12 and level == 6 then
 			LevelUpStats(6)
-		elseif realxp > 7 and level == 5 then
+		elseif realxp > 9 and level == 5 then
 			LevelUpStats(5)
-		elseif realxp > 5 and level == 4 then
+		elseif realxp > 6 and level == 4 then
 			LevelUpStats(4)
-		elseif realxp > 3 and level == 3 then
+		elseif realxp > 4 and level == 3 then
 			LevelUpStats(3)
 		elseif realxp > 2 and level == 2 then
 			LevelUpStats(2)
@@ -232,22 +250,13 @@ function LevelUpStats(curLevel)
 if ValidID(unitID) then
 	level = curLevel + 1
 	Emit(pelvis, CEGLevelUp)
-	Spring.SetUnitMaxRange(unitID, Range[level])
+	Spring.SetUnitMaxRange(unitID, corRange[level])
 	Spring.SetUnitArmored(unitID, true, DamageMultiplierNoDgun[level])
---[[
-	for i = 23, 29 do
-		if i - 22 == level - 1 or (i == 29 and i - 22 <= level -1) then	
-			Spring.SetUnitShieldState(unitID, i, true)
-		else
-			Spring.SetUnitShieldState(unitID, i, false)
-		end
+	for i = 1,18 do
+		Spring.SetUnitWeaponState(unitID,i, "range", corRange[level])
 	end
-]]
-	for i = 1,11 do
-		Spring.SetUnitWeaponState(unitID,i, "range", Range[level])
-	end
-	for i = 12,22 do
-		Spring.SetUnitWeaponState(unitID,i, "range", Range2[level])
+	for i = 19,29 do
+		Spring.SetUnitWeaponState(unitID,i, "range", corRange2[level])
 	end
 	Spring.SetUnitWeaponState(unitID,30, "reloadTime", ReloadTime3[level])
 	Spring.SetUnitBuildSpeed(unitID, BuildSpeed[level], BuildSpeed[level], BuildSpeed[level]*0.7)
@@ -259,20 +268,20 @@ if ValidID(unitID) then
 	if curMoveCtrl then
 		Spring.MoveCtrl.Disable(unitID)
 	end
-	Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", MoveSpeed[level]*30)
+	Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", corMoveSpeed[level]*30)
 	if curMoveCtrl then
 		Spring.MoveCtrl.Enable(unitID)
 	end
 	curHP = Spring.GetUnitHealth(unitID)
 	Spring.SetUnitHealth(unitID, curHP + HealOnLevelUp[level])
-	Spring.SetUnitResourcing(unitID, "ume", EnergyMake[level])
+	Spring.SetUnitResourcing(unitID, "ume", EnergyMake[level] + RootIncome)
 	Spring.SetUnitResourcing(unitID, "umm", MetalMake[level])	
 	cmdArrays = Spring.GetUnitCmdDescs(unitID)
 	for ct, cmdarray in pairs(cmdArrays) do
 		if cmdarray.id < 0 then
 			if UnitDefs[-cmdarray.id] then
 				local cmdIndex = Spring.FindUnitCmdDesc(unitID, cmdarray.id)
-				 disable = (level < CorBuildOptions[UnitDefs[-cmdarray.id].name]) or (level >= (CorBuildOptionsStop[UnitDefs[-cmdarray.id].name] or 12))
+				 disable = (level < CorBuildOptions[UnitDefs[-cmdarray.id].name]) or (level >= (CorBuildOptionsStop[UnitDefs[-cmdarray.id].name] or 19))
 				cmdarray.disabled = disable
 				Spring.EditUnitCmdDesc(unitID, cmdIndex, cmdarray)
 			end
@@ -326,25 +335,18 @@ function script.StopMoving()
 end
 
 function script.AimFromWeapon(weapon)
-	if weapon <= 11 then
+	if weapon <= 18 then
 		return torso
-	elseif weapon >= 12 and weapon <= 22 then
+	elseif weapon >= 19 and weapon <= 29 then
 		return torso
-	elseif weapon >= 23 and weapon <= 30 then
+	elseif weapon == 30 then
 		return biggun
 	end
 end
 
 function script.AimWeapon(weapon, heading, pitch)
 	local _,uwlaserheight = Spring.GetUnitPiecePosDir(unitID, torso)
-	if weapon >= 23 and weapon <= 29 then
-		if weapon - 22 == level then
-			return true
-		else
-			return false
-		end
-	end
-	if weapon <= 11 then
+	if weapon <= 18 then
 		if weapon == level then
 				if uwlaserheight <= 0 then
 					return false, "uwlaserheight <=0"
@@ -368,8 +370,8 @@ function script.AimWeapon(weapon, heading, pitch)
 		else
 			return false, "weapon >=11"
 		end
-	elseif weapon >= 12 and weapon <= 22 then
-		if weapon - 11 == level then
+	elseif weapon >= 19 and weapon <= 29 then
+		if weapon - 18 == level then
 			_,uwlaserheight = Spring.GetUnitPiecePosDir(unitID, torso)
 		if uwlaserheight > 0 then
 			return false, "uwlaserheight > 0"
@@ -393,7 +395,7 @@ function script.AimWeapon(weapon, heading, pitch)
 		else
 			return false, "weapon > 22"
 		end
-	elseif weapon >= 23 and weapon <= 30 then
+	elseif weapon == 30 then
 		isAimingDgun = true
 		isAiming = true
 		leftArm = false
@@ -404,16 +406,14 @@ function script.AimWeapon(weapon, heading, pitch)
 	end
 end
 
-
-
 function script.FireWeapon(weapon)
-	if weapon <= 11 then
+	if weapon <= 18 then
 		Sleep(100)
 		return false
-	elseif weapon >= 12 and weapon <= 22 then
+	elseif weapon >= 19 and weapon <= 29 then
 		Sleep(100)
 		return false
-	elseif weapon >= 23 and weapon <= 30 then
+	elseif weapon == 30 then
 		isAimingDgun = false
 		bigfire()
 		return true
@@ -421,11 +421,11 @@ function script.FireWeapon(weapon)
 end
 
 function script.QueryWeapon(weapon)
-	if weapon <= 11 then
+	if weapon <= 18 then
 		return lfirept
-	elseif weapon >= 12 and weapon <= 22 then
+	elseif weapon >= 19 and weapon <= 29 then
 		return lfirept
-	elseif weapon >= 23 and weapon <= 30 then
+	elseif weapon == 30 then
 		return rbigflash
 	end
 end
@@ -857,6 +857,80 @@ function AmIBored()
 		return true
 	else
 		return false
+	end
+end
+
+function Rooting()
+	if ValidID(unitID) then
+		local XLocation, YLocation, ZLocation = Spring.GetUnitPosition(unitID)
+		Sleep (1000)
+		local NewXLocation, NewYLocation, _ = Spring.GetUnitPosition(unitID)
+		if XLocation == NewXLocation and YLocation == NewYLocation then
+			RootTimeSeconds = (Spring.GetGameFrame() - RootStart) / 30
+			Spring.Echo("RootTime:",RootTimeSeconds)
+			if RootTimeSeconds / 60 >= 60 then
+				RootIncome = 40000
+				Spring.SpawnCEG("levelup_fp5", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 50 then
+				RootIncome = 20000
+				Spring.SpawnCEG("levelup_fp4", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 40 then
+				RootIncome = 12000
+				Spring.SpawnCEG("levelup_fp4", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 30 then
+				RootIncome = 4000
+				Spring.SpawnCEG("levelup_fp4", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 25 then
+				RootIncome = 3200
+				Spring.SpawnCEG("levelup_fp3", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 20 then
+				RootIncome = 2400
+				Spring.SpawnCEG("levelup_fp3", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 15 then
+				RootIncome = 1600
+				Spring.SpawnCEG("levelup_fp3", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 12 then
+				RootIncome = 1200
+				Spring.SpawnCEG("levelup_fp2", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 10 then
+				RootIncome = 880
+				Spring.SpawnCEG("levelup_fp2", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 9 then
+				RootIncome = 800
+				Spring.SpawnCEG("levelup_fp2", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 8 then
+				RootIncome = 640
+				Spring.SpawnCEG("levelup_fp1", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 7 then
+				RootIncome = 560
+				Spring.SpawnCEG("levelup_fp1", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 6 then
+				RootIncome = 480
+				Spring.SpawnCEG("levelup_fp1", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 5 then
+				RootIncome = 400
+				Spring.SpawnCEG("levelup_ring_fp5", XLocation, YLocation, ZLocation)	
+			elseif RootTimeSeconds / 60 >= 4 then
+				RootIncome = 320
+				Spring.SpawnCEG("levelup_ring_fp4", XLocation, YLocation, ZLocation)	
+			elseif RootTimeSeconds / 60 >= 3 then
+				RootIncome = 240
+				Spring.SpawnCEG("levelup_ring_fp3", XLocation, YLocation, ZLocation)	
+			elseif RootTimeSeconds / 60 >= 2 then
+				RootIncome = 160
+				Spring.SpawnCEG("levelup_ring_fp2", XLocation, YLocation, ZLocation)	
+			elseif RootTimeSeconds / 60 >= 1 then
+				RootIncome = 80
+				Spring.SpawnCEG("levelup_ring_fp1", XLocation, YLocation, ZLocation)				
+			elseif RootTimeSeconds / 60 < 1 then
+				RootIncome = 0
+			end
+		else
+			RootStart = Spring.GetGameFrame()
+		end
+		Spring.Echo("RootIncome:",RootIncome)
+		Spring.SetUnitResourcing(unitID, "ume", EnergyMake[level] + RootIncome)
+		Spring.UnitScript.StartThread(Rooting(unitID))
 	end
 end
 
