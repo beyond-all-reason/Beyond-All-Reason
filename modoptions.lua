@@ -478,7 +478,7 @@ local options={
 			{key="hard", name="Hard", desc="Hard"},
 			{key="veryhard", name="Very Hard", desc="Very Hard"},
 			{key="epic", name="Epic", desc="Epic"},
-			{key="survival", name="Survival", desc="Endless Mode"}
+			{key="survival", name="Endless", desc="Endless Mode"}
 		}
 	},
 	{

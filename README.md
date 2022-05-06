@@ -4,9 +4,13 @@
 
 Open source RTS game built on top of the Spring RTS Engine
 
-## How To Play
+## Where to download
 
 https://www.beyondallreason.info/download
+
+## How to play
+
+https://www.beyondallreason.info/guides
 
 ## Development Quick Start
 
