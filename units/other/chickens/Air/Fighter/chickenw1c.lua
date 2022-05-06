@@ -116,7 +116,7 @@ return {
 				weapontimer = 1,
 				weaponvelocity = 1000,
 				damage = {
-					default = 190,
+					default = 400,
 				},
 			},
 		},
