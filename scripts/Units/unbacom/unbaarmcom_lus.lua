@@ -915,11 +915,10 @@ end
 function Rooting()
 	if ValidID(unitID) then
 		local XLocation, YLocation, ZLocation = Spring.GetUnitPosition(unitID)
-		Sleep (1000)
+		Sleep (2000)
 		local NewXLocation, NewYLocation, _ = Spring.GetUnitPosition(unitID)
 		if XLocation == NewXLocation and YLocation == NewYLocation then
 			RootTimeSeconds = (Spring.GetGameFrame() - RootStart) / 30
-			Spring.Echo("RootTimeArm:",RootTimeSeconds)
 			if RootTimeSeconds / 60 >= 60 then
 				RootIncome = 700
 				Spring.SpawnCEG("levelup_fp_arm5", XLocation, YLocation, ZLocation)
@@ -980,7 +979,6 @@ function Rooting()
 		else
 			RootStart = Spring.GetGameFrame()
 		end
-		Spring.Echo("RootIncomeArm:",RootIncome)
 		Spring.SetUnitResourcing(unitID, "umm", MetalMake[level] + RootIncome)
 		Spring.UnitScript.StartThread(Rooting(unitID))
 	end
