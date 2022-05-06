@@ -516,8 +516,9 @@ if gadgetHandler:IsSyncedCode() then
 		until pos or loops >= 10
 		
 		if not pos then
-			pos = {}
-			pos.x, pos.y, pos.z = getRandomMapPos()
+			-- pos = {}
+			-- pos.x, pos.y, pos.z = getRandomMapPos()
+			pos = getRandomMapPos()
 		end
 
 		squadsTable[squadID].target = pos
