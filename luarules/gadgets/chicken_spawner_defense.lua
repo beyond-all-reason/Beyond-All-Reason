@@ -451,9 +451,9 @@ if gadgetHandler:IsSyncedCode() then
 			squadsTable[i].squadLife = squadsTable[i].squadLife - 1
 			
 			if squadsTable[i].squadLife <= 0 then
-				if #squadsTable[i].squadUnits > 0 then
+				if SetCount(squadsTable[i].squadUnits) > 0 then
 					-- Spring.Echo("----------------------------------------------------------------------------------------------------------------------------")
-					for j = 1,#squadsTable[i].squadUnits do
+					for j = 1,SetCount(squadsTable[i].squadUnits) do
 						local unitID = squadsTable[i].squadUnits[j]
 						if unitID then
 							Spring.DestroyUnit(unitID, true, false)
@@ -469,8 +469,8 @@ if gadgetHandler:IsSyncedCode() then
 	local function squadCommanderGiveOrders(squadID, targetx, targety, targetz)
 		local units = squadsTable[squadID].squadUnits
 		local role = squadsTable[squadID].squadRole
-		if #units > 0 and squadsTable[squadID].target and squadsTable[squadID].target.x then
-			for i = 1,#units do
+		if SetCount(units) > 0 and squadsTable[squadID].target and squadsTable[squadID].target.x then
+			for i = 1,SetCount(units) do
 				local unitID = units[i]
 				if ValidUnitID(unitID) and not GetUnitIsDead(unitID) and not GetUnitNeutral(unitID) then
 					-- Spring.Echo("GiveOrderToUnit #" .. i)
@@ -516,6 +516,7 @@ if gadgetHandler:IsSyncedCode() then
 		until pos or loops >= 10
 		
 		if not pos then
+			pos = {}
 			pos.x, pos.y, pos.z = getRandomMapPos()
 		end
 
@@ -535,7 +536,7 @@ if gadgetHandler:IsSyncedCode() then
 			-- Spring.Echo("First squad, #".. squadID)
 		else
 			for i = 1,#squadsTable do
-				if #squadsTable[i].squadUnits == 0 then -- Yes, we found one empty squad to recycle
+				if SetCount(squadsTable[i].squadUnits) == 0 then -- Yes, we found one empty squad to recycle
 					squadID = i
 					-- Spring.Echo("Recycled squad, #".. squadID)
 					break
@@ -566,7 +567,7 @@ if gadgetHandler:IsSyncedCode() then
 			-- Spring.Echo("Created Raptor Squad, containing " .. #squadsTable[squadID].squadUnits .. " units!")
 			-- Spring.Echo("Role: " .. squadsTable[squadID].squadRole)
 			-- Spring.Echo("Lifetime: " .. squadsTable[squadID].squadLife)
-			for i = 1,#squadsTable[squadID].squadUnits do
+			for i = 1,SetCount(squadsTable[squadID].squadUnits) do
 				local unitID = squadsTable[squadID].squadUnits[i]
 				unitSquadTable[unitID] = squadID
 				-- Spring.Echo("#".. i ..", ID: ".. unitID .. ", Name:" .. UnitDefs[Spring.GetUnitDefID(unitID)].name)
@@ -1499,7 +1500,7 @@ if gadgetHandler:IsSyncedCode() then
 			idleOrderQueue[unitID] = nil
 		end
 		if unitSquadTable[unitID] then
-			for i = 1,#squadsTable[unitSquadTable[unitID]].squadUnits do
+			for i = 1,SetCount(squadsTable[unitSquadTable[unitID]].squadUnits) do
 				if squadsTable[unitSquadTable[unitID]].squadUnits[i] then
 					table.remove(squadsTable[unitSquadTable[unitID]].squadUnits, i)
 					break
@@ -1510,6 +1511,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		squadPotentialTarget[unitID] = nil
 		if unitTargetPool[unitID] then
+			refreshSquad(unitTargetPool[unitID])
 			unitTargetPool[unitID] = nil
 		end
 		
