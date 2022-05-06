@@ -106,10 +106,10 @@ ArmBuildOptions =
 }
 ArmBuildOptionsStop = 
 {
-			armmex= 13,
-			armdrag= 3,
-			armrl= 5,
-			armfrt= 5,
+			armmex = 13,
+			armdrag = 3,
+			armrl = 5,
+			armfrt = 5,
 }
 CorDefsBuildOptions = 
 {

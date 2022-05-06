@@ -32,13 +32,37 @@ function UnbaCom_Post(name)
 			tablecom.weapondefs[lowername.."laser"..I].areaofeffect = armAOE[i]
 			tablecom.weapondefs[lowername.."laser"..I].reloadtime = armReloadTime[i]
 			if i == 3 then
-				tablecom.weapondefs[lowername.."laser3"].rgbcolor = "0.75 0.25 0"
+				tablecom.weapondefs[lowername.."laser3"].rgbcolor = "0.7 0.3 0"				
+			elseif i == 4 then
+				tablecom.weapondefs[lowername.."laser4"].rgbcolor = "0.55 0.45 0"				
+			elseif i == 5 then
+				tablecom.weapondefs[lowername.."laser5"].rgbcolor = "0.4 0.6 0"				
 			elseif i == 6 then
-				tablecom.weapondefs[lowername.."laser6"].rgbcolor = "0.5 0.5 0"
+				tablecom.weapondefs[lowername.."laser6"].rgbcolor = "0.25 0.75 0"				
+			elseif i == 7 then
+				tablecom.weapondefs[lowername.."laser7"].rgbcolor = "0.1 0.9 0"				
 			elseif i == 8 then
-				tablecom.weapondefs[lowername.."laser8"].rgbcolor = "0.25 0.75 0"
+				tablecom.weapondefs[lowername.."laser8"].rgbcolor = "0 0.95 0.05"				
+			elseif i == 9 then
+				tablecom.weapondefs[lowername.."laser9"].rgbcolor = "0 0.8 0.2"				
 			elseif i == 10 then
-				tablecom.weapondefs[lowername.."laser10"].rgbcolor = "0 1 0"
+				tablecom.weapondefs[lowername.."laser10"].rgbcolor = "0 0.65 0.35"				
+			elseif i == 11 then
+				tablecom.weapondefs[lowername.."laser11"].rgbcolor = "0 0.5 0.5"				
+			elseif i == 12 then
+				tablecom.weapondefs[lowername.."laser12"].rgbcolor = "0 0.35 0.65"				
+			elseif i == 13 then
+				tablecom.weapondefs[lowername.."laser13"].rgbcolor = "0 0.2 0.8"				
+			elseif i == 14 then
+				tablecom.weapondefs[lowername.."laser14"].rgbcolor = "0 0.05 0.95"				
+			elseif i == 15 then
+				tablecom.weapondefs[lowername.."laser15"].rgbcolor = "0 0 1"				
+			elseif i == 16 then
+				tablecom.weapondefs[lowername.."laser16"].rgbcolor = "0.15 0 1"				
+			elseif i == 17 then
+				tablecom.weapondefs[lowername.."laser17"].rgbcolor = "0.3 0 1"				
+			elseif i == 18 then
+				tablecom.weapondefs[lowername.."laser18"].rgbcolor = "0.45 0 1"
 			end
 		end
 
@@ -71,15 +95,6 @@ function UnbaCom_Post(name)
 			tablecom.weapondefs[lowername.."sealaser"..I].range = armRange2[i]
 			tablecom.weapondefs[lowername.."sealaser"..I].areaofeffect = armAOE2[i]
 			tablecom.weapondefs[lowername.."sealaser"..I].reloadtime = armReloadTime2[i]
-			if i == 3 then
-				tablecom.weapondefs[lowername.."sealaser3"].rgbcolor = "0.75 0.25 0"
-			elseif i == 6 then
-				tablecom.weapondefs[lowername.."sealaser6"].rgbcolor = "0.5 0.5 0"
-			elseif i == 8 then
-				tablecom.weapondefs[lowername.."sealaser8"].rgbcolor = "0.25 0.75 0"
-			elseif i == 10 then
-				tablecom.weapondefs[lowername.."sealaser10"].rgbcolor = "0 1 0"
-			end
 		end
 	end
 
@@ -103,15 +118,38 @@ function UnbaCom_Post(name)
 			tablecom.weapondefs[lowername.."laser"..I].range = corRange[i]
 			tablecom.weapondefs[lowername.."laser"..I].areaofeffect = corAOE[i]
 			tablecom.weapondefs[lowername.."laser"..I].reloadtime = corReloadTime[i]
-			Spring.Echo("correloadtime:",corReloadTime[1])
 			if i == 3 then
-				tablecom.weapondefs[lowername.."laser3"].rgbcolor = "0.75 0.25 0"
+				tablecom.weapondefs[lowername.."laser3"].rgbcolor = "0.7 0.3 0"				
+			elseif i == 4 then
+				tablecom.weapondefs[lowername.."laser4"].rgbcolor = "0.55 0.45 0"				
+			elseif i == 5 then
+				tablecom.weapondefs[lowername.."laser5"].rgbcolor = "0.4 0.6 0"				
 			elseif i == 6 then
-				tablecom.weapondefs[lowername.."laser6"].rgbcolor = "0.5 0.5 0"
+				tablecom.weapondefs[lowername.."laser6"].rgbcolor = "0.25 0.75 0"				
+			elseif i == 7 then
+				tablecom.weapondefs[lowername.."laser7"].rgbcolor = "0.1 0.9 0"				
 			elseif i == 8 then
-				tablecom.weapondefs[lowername.."laser8"].rgbcolor = "0.25 0.75 0"
+				tablecom.weapondefs[lowername.."laser8"].rgbcolor = "0 0.95 0.05"				
+			elseif i == 9 then
+				tablecom.weapondefs[lowername.."laser9"].rgbcolor = "0 0.8 0.2"				
 			elseif i == 10 then
-				tablecom.weapondefs[lowername.."laser10"].rgbcolor = "0 1 0"
+				tablecom.weapondefs[lowername.."laser10"].rgbcolor = "0 0.65 0.35"				
+			elseif i == 11 then
+				tablecom.weapondefs[lowername.."laser11"].rgbcolor = "0 0.5 0.5"				
+			elseif i == 12 then
+				tablecom.weapondefs[lowername.."laser12"].rgbcolor = "0 0.35 0.65"				
+			elseif i == 13 then
+				tablecom.weapondefs[lowername.."laser13"].rgbcolor = "0 0.2 0.8"				
+			elseif i == 14 then
+				tablecom.weapondefs[lowername.."laser14"].rgbcolor = "0 0.05 0.95"				
+			elseif i == 15 then
+				tablecom.weapondefs[lowername.."laser15"].rgbcolor = "0 0 1"				
+			elseif i == 16 then
+				tablecom.weapondefs[lowername.."laser16"].rgbcolor = "0.15 0 1"				
+			elseif i == 17 then
+				tablecom.weapondefs[lowername.."laser17"].rgbcolor = "0.3 0 1"				
+			elseif i == 18 then
+				tablecom.weapondefs[lowername.."laser18"].rgbcolor = "0.45 0 1"
 			end
 		end
 
@@ -144,15 +182,6 @@ function UnbaCom_Post(name)
 			tablecom.weapondefs[lowername.."sealaser"..I].range = corRange2[i]
 			tablecom.weapondefs[lowername.."sealaser"..I].areaofeffect = corAOE2[i]
 			tablecom.weapondefs[lowername.."sealaser"..I].reloadtime = corReloadTime2[i]
-			if i == 3 then
-				tablecom.weapondefs[lowername.."sealaser3"].rgbcolor = "0.75 0.25 0"
-			elseif i == 6 then
-				tablecom.weapondefs[lowername.."sealaser6"].rgbcolor = "0.5 0.5 0"
-			elseif i == 8 then
-				tablecom.weapondefs[lowername.."sealaser8"].rgbcolor = "0.25 0.75 0"
-			elseif i == 10 then
-				tablecom.weapondefs[lowername.."sealaser10"].rgbcolor = "0 1 0"
-			end
 		end
 	end
 
@@ -203,4 +232,5 @@ function UnbaCom_Post(name)
 		tablecom.featuredefs["dead"..tostring(i)].resurrectable = 1
 	end
 	UnitDefs[name] = tablecom
+	
 end

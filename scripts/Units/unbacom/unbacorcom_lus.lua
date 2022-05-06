@@ -16,7 +16,10 @@ local HealRefreshTime	= 15
 local CEGHeal = "heal"
 local CEGLevelUp = "commander-levelup"
 local ValidID = Spring.ValidUnitID
-
+local Rooted = true
+local RootStart = 0
+local RootTimeSeconds = 0
+local RootIncome = 0
 
 function Emit(pieceName, effectName)
 local x,y,z,dx,dy,dz	= Spring.GetUnitPiecePosDir(unitID, pieceName)
@@ -184,6 +187,7 @@ local leader = Spring.GetPlayerInfo(leader)
 			Spring.UnitScript.StartThread(HandleLevelUps)
 			Spring.UnitScript.StartThread(PassiveRepairs)
 			Spring.UnitScript.StartThread(StopWalking)
+			Spring.UnitScript.StartThread(Rooting(unitID))
 	end
 end
 
@@ -194,17 +198,17 @@ function HandleLevelUps()
 		if hp and hp > 1 and (Spring.GetUnitIsDead(unitID) == false) then
 			local fxp = Spring.GetUnitExperience(unitID)
 			local realxp = 100 * fxp
-		if realxp > 79 and level == 17 then
+		if realxp > 100 and level == 17 then
 			LevelUpStats(17)
-		elseif realxp > 72 and level == 16 then
+		elseif realxp > 84 and level == 16 then
 			LevelUpStats(16)
-		elseif realxp > 64 and level == 15 then
+		elseif realxp > 70 and level == 15 then
 			LevelUpStats(15)
-		elseif realxp > 56 and level == 14 then
+		elseif realxp > 68 and level == 14 then
 			LevelUpStats(14)
-		elseif realxp > 49 and level == 13 then
+		elseif realxp > 56 and level == 13 then
 			LevelUpStats(13)
-		elseif realxp > 42 and level == 12 then
+		elseif realxp > 46 and level == 12 then
 			LevelUpStats(12)
 		elseif realxp > 36 and level == 11 then
 			LevelUpStats(11)			
@@ -270,7 +274,7 @@ if ValidID(unitID) then
 	end
 	curHP = Spring.GetUnitHealth(unitID)
 	Spring.SetUnitHealth(unitID, curHP + HealOnLevelUp[level])
-	Spring.SetUnitResourcing(unitID, "ume", EnergyMake[level])
+	Spring.SetUnitResourcing(unitID, "ume", EnergyMake[level] + RootIncome)
 	Spring.SetUnitResourcing(unitID, "umm", MetalMake[level])	
 	cmdArrays = Spring.GetUnitCmdDescs(unitID)
 	for ct, cmdarray in pairs(cmdArrays) do
@@ -401,8 +405,6 @@ function script.AimWeapon(weapon, heading, pitch)
 		return true
 	end
 end
-
-
 
 function script.FireWeapon(weapon)
 	if weapon <= 18 then
@@ -855,6 +857,80 @@ function AmIBored()
 		return true
 	else
 		return false
+	end
+end
+
+function Rooting()
+	if ValidID(unitID) then
+		local XLocation, YLocation, ZLocation = Spring.GetUnitPosition(unitID)
+		Sleep (1000)
+		local NewXLocation, NewYLocation, _ = Spring.GetUnitPosition(unitID)
+		if XLocation == NewXLocation and YLocation == NewYLocation then
+			RootTimeSeconds = (Spring.GetGameFrame() - RootStart) / 30
+			Spring.Echo("RootTime:",RootTimeSeconds)
+			if RootTimeSeconds / 60 >= 60 then
+				RootIncome = 40000
+				Spring.SpawnCEG("levelup_fp5", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 50 then
+				RootIncome = 20000
+				Spring.SpawnCEG("levelup_fp4", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 40 then
+				RootIncome = 12000
+				Spring.SpawnCEG("levelup_fp4", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 30 then
+				RootIncome = 4000
+				Spring.SpawnCEG("levelup_fp4", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 25 then
+				RootIncome = 3200
+				Spring.SpawnCEG("levelup_fp3", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 20 then
+				RootIncome = 2400
+				Spring.SpawnCEG("levelup_fp3", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 15 then
+				RootIncome = 1600
+				Spring.SpawnCEG("levelup_fp3", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 12 then
+				RootIncome = 1200
+				Spring.SpawnCEG("levelup_fp2", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 10 then
+				RootIncome = 880
+				Spring.SpawnCEG("levelup_fp2", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 9 then
+				RootIncome = 800
+				Spring.SpawnCEG("levelup_fp2", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 8 then
+				RootIncome = 640
+				Spring.SpawnCEG("levelup_fp1", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 7 then
+				RootIncome = 560
+				Spring.SpawnCEG("levelup_fp1", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 6 then
+				RootIncome = 480
+				Spring.SpawnCEG("levelup_fp1", XLocation, YLocation, ZLocation)
+			elseif RootTimeSeconds / 60 >= 5 then
+				RootIncome = 400
+				Spring.SpawnCEG("levelup_ring_fp5", XLocation, YLocation, ZLocation)	
+			elseif RootTimeSeconds / 60 >= 4 then
+				RootIncome = 320
+				Spring.SpawnCEG("levelup_ring_fp4", XLocation, YLocation, ZLocation)	
+			elseif RootTimeSeconds / 60 >= 3 then
+				RootIncome = 240
+				Spring.SpawnCEG("levelup_ring_fp3", XLocation, YLocation, ZLocation)	
+			elseif RootTimeSeconds / 60 >= 2 then
+				RootIncome = 160
+				Spring.SpawnCEG("levelup_ring_fp2", XLocation, YLocation, ZLocation)	
+			elseif RootTimeSeconds / 60 >= 1 then
+				RootIncome = 80
+				Spring.SpawnCEG("levelup_ring_fp1", XLocation, YLocation, ZLocation)				
+			elseif RootTimeSeconds / 60 < 1 then
+				RootIncome = 0
+			end
+		else
+			RootStart = Spring.GetGameFrame()
+		end
+		Spring.Echo("RootIncome:",RootIncome)
+		Spring.SetUnitResourcing(unitID, "ume", EnergyMake[level] + RootIncome)
+		Spring.UnitScript.StartThread(Rooting(unitID))
 	end
 end
 
