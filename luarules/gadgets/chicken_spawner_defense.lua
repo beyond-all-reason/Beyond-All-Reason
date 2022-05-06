@@ -485,48 +485,45 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function refreshSquad(squadID) -- Get new target for a squad
-		if SetCount(humanTeams) > 0 then -- Infinite loop fail safe? idk, i've fucked something up somewhere.
-			local role = squadsTable[squadID].squadRole
-			local targetCount = SetCount(squadPotentialTarget)
-			local pos = false
-			
-			for target in pairs(unitTargetPool) do
-				if unitTargetPool[target] == squadID then
-					local x,y,z = Spring.GetUnitPosition(target)
-					--Spring.MarkerErasePosition (x, y, z)
-					unitTargetPool[target] = nil
-					break
-				end
+		local role = squadsTable[squadID].squadRole
+		local targetCount = SetCount(squadPotentialTarget)
+		local pos = false
+		
+		for target in pairs(unitTargetPool) do
+			if unitTargetPool[target] == squadID then
+				local x,y,z = Spring.GetUnitPosition(target)
+				--Spring.MarkerErasePosition (x, y, z)
+				unitTargetPool[target] = nil
+				break
 			end
-
-			repeat
-				
-				local loops = 0
-				for target in pairs(squadPotentialTarget) do
-					if math.random(1,targetCount) == 1 then
-						if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
-							local x,y,z = Spring.GetUnitPosition(target)
-							if y >= 0 then
-								pos = {x = x, y = y, z = z}
-								unitTargetPool[target] = squadID
-							end
-							break
+		end
+		local loops = 0
+		repeat
+			loops = loops + 1
+			for target in pairs(squadPotentialTarget) do
+				if math.random(1,targetCount) == 1 then
+					if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+						local x,y,z = Spring.GetUnitPosition(target)
+						if y >= 0 then
+							pos = {x = x, y = y, z = z}
+							unitTargetPool[target] = squadID
 						end
+						break
 					end
 				end
-
-			until pos or loops >= 10
-			
-			if not pos then
-				pos.x, pos.y, pos.z = getRandomMapPos()
 			end
 
-			squadsTable[squadID].target = pos
-			
-			-- Spring.MarkerAddPoint (squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z, "Squad #" .. squadID .. " target")
-			local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
-			squadCommanderGiveOrders(squadID, targetx, targety, targetz)
+		until pos or loops >= 10
+		
+		if not pos then
+			pos.x, pos.y, pos.z = getRandomMapPos()
 		end
+
+		squadsTable[squadID].target = pos
+		
+		-- Spring.MarkerAddPoint (squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z, "Squad #" .. squadID .. " target")
+		local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
+		squadCommanderGiveOrders(squadID, targetx, targety, targetz)
 	end
 
 	local function createSquad(newSquad)
