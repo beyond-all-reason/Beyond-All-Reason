@@ -507,8 +507,8 @@ if gadgetHandler:IsSyncedCode() then
 						if y >= 0 then
 							pos = {x = x, y = y, z = z}
 							unitTargetPool[target] = squadID
+							break
 						end
-						break
 					end
 				end
 			end
