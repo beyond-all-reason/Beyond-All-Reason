@@ -253,7 +253,12 @@ end
 local function GetTeamColorCode(teamID)
 	if not teamID then return "\255\255\255\255" end
 
-	local R, G, B = spGetTeamColor(teamID)
+	local R = Spring.GetTeamRulesParam(teamID, "AutoTeamColorRed")/255
+	local G = Spring.GetTeamRulesParam(teamID, "AutoTeamColorGreen")/255
+	local B = Spring.GetTeamRulesParam(teamID, "AutoTeamColorBlue")/255
+	if not r then
+		R,G,B = Spring.GetTeamColor(teamID)
+	end
 	if not R then return "\255\255\255\255" end
 
 	R = floor(R * 255)

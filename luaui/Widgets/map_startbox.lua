@@ -60,8 +60,6 @@ local startTimer = Spring.GetTimer()
 
 local infotextList, chobbyInterface
 
-local GetTeamColor = Spring.GetTeamColor
-
 local glTranslate = gl.Translate
 local glCallList = gl.CallList
 
@@ -85,7 +83,12 @@ local coopStartPoints = {}	-- will contain data passed through by coop gadget
 local function assignTeamColors()
 	local teams = Spring.GetTeamList()
 	for _, teamID in pairs(teams) do
-		local r, g, b = GetTeamColor(teamID)
+		local r = Spring.GetTeamRulesParam(teamID, "AutoTeamColorRed")/255
+		local g = Spring.GetTeamRulesParam(teamID, "AutoTeamColorGreen")/255
+		local b = Spring.GetTeamRulesParam(teamID, "AutoTeamColorBlue")/255
+		if not r then
+			r,g,b = Spring.GetTeamColor(teamID)
+		end
 		teamColors[teamID] = r .. "_" .. g  .. "_" ..  b
 	end
 end
@@ -128,7 +131,12 @@ local function createCommanderNameList(x, y, name, teamID)
 	commanderNameList[teamID]['x'] = math.floor(x)
 	commanderNameList[teamID]['y'] = math.floor(y)
 	commanderNameList[teamID]['list'] = gl.CreateList(function()
-		local r, g, b = GetTeamColor(teamID)
+		local r = Spring.GetTeamRulesParam(teamID, "AutoTeamColorRed")/255
+		local g = Spring.GetTeamRulesParam(teamID, "AutoTeamColorGreen")/255
+		local b = Spring.GetTeamRulesParam(teamID, "AutoTeamColorBlue")/255
+		if not r then
+			r,g,b = Spring.GetTeamColor(teamID)
+		end
 		local outlineColor = { 0, 0, 0, 1 }
 		if (r + g * 1.2 + b * 0.4) < 0.65 then
 			outlineColor = { 1, 1, 1, 1 }
@@ -361,7 +369,12 @@ function widget:DrawWorld()
 				x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
 			end
 			if x ~= nil and x > 0 and z > 0 and y > -500 then
-				local r, g, b = GetTeamColor(teamID)
+				local r = Spring.GetTeamRulesParam(teamID, "AutoTeamColorRed")/255
+				local g = Spring.GetTeamRulesParam(teamID, "AutoTeamColorGreen")/255
+				local b = Spring.GetTeamRulesParam(teamID, "AutoTeamColorBlue")/255
+				if not r then
+					r,g,b = Spring.GetTeamColor(teamID)
+				end
 				local alpha = 0.5 + math.abs(((time * 3) % 1) - 0.5)
 				gl.PushMatrix()
 				gl.Translate(x, y, z)
@@ -457,7 +470,12 @@ function widget:DrawInMiniMap(sx, sz)
 				x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
 			end
 			if x ~= nil and x > 0 and z > 0 and y > -500 then
-				local r, g, b = GetTeamColor(teamID)
+				local r = Spring.GetTeamRulesParam(teamID, "AutoTeamColorRed")/255
+				local g = Spring.GetTeamRulesParam(teamID, "AutoTeamColorGreen")/255
+				local b = Spring.GetTeamRulesParam(teamID, "AutoTeamColorBlue")/255
+				if not r then
+					r,g,b = Spring.GetTeamColor(teamID)
+				end
 				local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
 				local i = 2 * math.abs(((time * 3) % 1) - 0.5)
 				gl.PointSize(11)

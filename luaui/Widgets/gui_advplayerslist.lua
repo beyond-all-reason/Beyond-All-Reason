@@ -2422,9 +2422,15 @@ function DrawName(name, team, posY, dark, playerID)
         DrawState(playerID, m_name.posX + widgetPosX, posY)
     end
 
+    local r = Spring.GetTeamRulesParam(team, "AutoTeamColorRed")/255
+    local g = Spring.GetTeamRulesParam(team, "AutoTeamColorGreen")/255
+    local b = Spring.GetTeamRulesParam(team, "AutoTeamColorBlue")/255
+    if not r then
+        r,g,b = Spring_GetTeamColor(team)
+    end
 	font2:Begin()
     if dark then
-		font2:SetTextColor(Spring_GetTeamColor(team))
+        font2:SetTextColor(r,g,b)
 		font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(0.8, 0.75 * widgetScale))
         font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "o")
     else
@@ -2432,7 +2438,7 @@ function DrawName(name, team, posY, dark, playerID)
         font2:SetOutlineColor(0, 0, 0, 0.4)
         font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + 3, 14, "n") -- draws name
         font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + 3, 14, "n") -- draws name
-        font2:SetTextColor(Spring_GetTeamColor(team))
+        font2:SetTextColor(r,g,b)
         font2:SetOutlineColor(0, 0, 0, 1)
         font2:Print( nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
     end
@@ -2473,7 +2479,12 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
 
 	font2:Begin()
     if playerSpecs[playerID] ~= nil then
-		local r,g,b = Spring_GetTeamColor(team)
+        local r = Spring.GetTeamRulesParam(team, "AutoTeamColorRed")/255
+        local g = Spring.GetTeamRulesParam(team, "AutoTeamColorGreen")/255
+        local b = Spring.GetTeamRulesParam(team, "AutoTeamColorBlue")/255
+        if not r then
+            r,g,b = Spring_GetTeamColor(team)
+        end
         if dark then
 			font2:SetTextColor(r, g, b, 1)
 			font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(0.75, 0.7 * widgetScale))

@@ -316,7 +316,12 @@ local function setTeamTable(teamID)
 		leaderName = "(Gaia)"
 	end
 
-	local tred, tgreen, tblue = GetTeamColor(teamID)
+	local tred = Spring.GetTeamRulesParam(teamID, "AutoTeamColorRed")/255
+	local tgreen = Spring.GetTeamRulesParam(teamID, "AutoTeamColorGreen")/255
+	local tblue = Spring.GetTeamRulesParam(teamID, "AutoTeamColorBlue")/255
+	if not tred then
+		tred,tgreen,tblue = GetTeamColor(teamID)
+	end
 	local luminance = (tred * 0.299) + (tgreen * 0.587) + (tblue * 0.114)
 	if luminance < 0.2 then
 		tred = tred + 0.25

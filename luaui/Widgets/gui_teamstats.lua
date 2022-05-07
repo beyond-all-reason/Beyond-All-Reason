@@ -357,7 +357,6 @@ function widget:GameFrame(n,forceupdate)
 						allyTotal[varName] = (allyTotal[varName] or 0 ) + value
 					end
 					history.time = nil
-					local teamColor = {GetTeamColor(teamID)}
 					local _,leader,isDead = GetTeamInfo(teamID,false)
 					local playerName,isActive = GetPlayerInfo(leader,false)
 					if Spring.GetGameRulesParam('ainame_'..teamID) then
@@ -394,6 +393,15 @@ function widget:GameFrame(n,forceupdate)
 
 					playerName = playerName or ''
 
+					local r = Spring.GetTeamRulesParam(teamID, "AutoTeamColorRed")/255
+					local g = Spring.GetTeamRulesParam(teamID, "AutoTeamColorGreen")/255
+					local b = Spring.GetTeamRulesParam(teamID, "AutoTeamColorBlue")/255
+					local teamColor
+					if not r then
+						teamColor = {GetTeamColor(teamID)}
+					else
+						teamColor = {r,g,b}
+					end
 					history.frame = colorToChar(teamColor) .. playerName..'    '
 
 					allyVec[teamInsertCount] = history
