@@ -471,6 +471,39 @@ if gadgetHandler:IsSyncedCode() then
 		local units = squadsTable[squadID].squadUnits
 		local role = squadsTable[squadID].squadRole
 		if SetCount(units) > 0 and squadsTable[squadID].target and squadsTable[squadID].target.x then
+			
+			if role ~= "aircraft" then -- Regroup check
+				local xmin = 999999
+				local xmax = 0
+				local zmin = 999999
+				local zmax = 0
+				local xsum = 0
+				local zsum = 0
+				local count = 0
+				for i, unitID in pairs(units) do
+					if ValidUnitID(unitID) and not GetUnitIsDead(unitID) and not GetUnitNeutral(unitID) then
+						local x,y,z = Spring.GetUnitPosition(unitID)
+						if x < xmin then xmin = x end
+						if z < zmin then zmin = z end
+						if x > xmax then xmax = x end
+						if z > zmax then zmax = z end
+						xsum = xsum + x
+						zsum = zsum + z
+						count = count + 1
+					end
+				end
+				-- Calculate average unit position
+				if count > 0 then
+					local xaverage = xsum/count
+					local zaverage = zsum/count
+					if xmin < xaverage-512 or xmax > xaverage+512 or zmin < zaverage-512 or zmax > zaverage+512 then
+						targetx = xaverage
+						targetz = zaverage
+						targety = Spring.GetGroundHeight(targetx, targetz)
+					end
+				end
+			end
+
 			for i, unitID in pairs(units) do
 				if ValidUnitID(unitID) and not GetUnitIsDead(unitID) and not GetUnitNeutral(unitID) then
 					-- Spring.Echo("GiveOrderToUnit #" .. i)
