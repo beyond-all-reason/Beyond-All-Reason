@@ -382,6 +382,7 @@ else	-- UNSYNCED
 
 
 	local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+	local saturation = math.max( 0.5, math.min(1, tonumber(Spring.GetConfigFloat("TeamColorSaturation", 1) or 1)))
 
 	local iconDevModeColors = {
 		armblue       = armBlueColor,
@@ -397,6 +398,9 @@ else	-- UNSYNCED
 	local teamList = Spring.GetTeamList()
 
 	local function updateTeamColors()
+		saturation = math.max( 0.5, math.min(1, tonumber(Spring.GetConfigFloat("TeamColorSaturation", 1) or 1)))
+		local addition = (1 - saturation) * 0.15
+
 		local myTeamID = Spring.GetMyTeamID()
 		local myAllyTeamID = Spring.GetMyAllyTeamID()
 		for i = 1, #teamList do
@@ -406,37 +410,41 @@ else	-- UNSYNCED
 			local b = Spring.GetTeamRulesParam(teamID, "AutoTeamColorBlue")/255
 
 			if iconDevModeColor then
-				Spring.SetTeamColor(teamID, hex2RGB(iconDevModeColor)[1]/255, hex2RGB(iconDevModeColor)[2]/255, hex2RGB(iconDevModeColor)[3]/255)
+				Spring.SetTeamColor(teamID, ((hex2RGB(iconDevModeColor)[1]*saturation)+addition)/255, ((hex2RGB(iconDevModeColor)[2]*saturation)+addition)/255, ((hex2RGB(iconDevModeColor)[3]*saturation)+addition)/255)
 			elseif Spring.GetConfigInt("SimpleTeamColors", 0) == 1 or (anonymousMode and not Spring.GetSpectatingState()) then
 				local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
 				if teamID == myTeamID then
 					Spring.SetTeamColor(teamID,
-						Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0)/255,
-						Spring.GetConfigInt("SimpleTeamColorsPlayerG", 77)/255,
-						Spring.GetConfigInt("SimpleTeamColorsPlayerB", 255)/255)
+						((Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0)*saturation)+addition)/255,
+						((Spring.GetConfigInt("SimpleTeamColorsPlayerG", 77)*saturation)+addition)/255,
+						((Spring.GetConfigInt("SimpleTeamColorsPlayerB", 255)*saturation)+addition)/255)
 				elseif allyTeamID == myAllyTeamID then
 					Spring.SetTeamColor(teamID,
-						Spring.GetConfigInt("SimpleTeamColorsAllyR", 0)/255,
-						Spring.GetConfigInt("SimpleTeamColorsAllyG", 255)/255,
-						Spring.GetConfigInt("SimpleTeamColorsAllyB", 0)/255)
+						((Spring.GetConfigInt("SimpleTeamColorsAllyR", 0)*saturation)+addition)/255,
+						((Spring.GetConfigInt("SimpleTeamColorsAllyG", 255)*saturation)+addition)/255,
+						((Spring.GetConfigInt("SimpleTeamColorsAllyB", 0)*saturation)+addition)/255)
 				elseif allyTeamID ~= myAllyTeamID and teamID ~= gaiaTeamID then
 					Spring.SetTeamColor(teamID,
-						Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255)/255,
-						Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16)/255,
-						Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)/255)
+						((Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255)*saturation)+addition)/255,
+						((Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16)*saturation)+addition)/255,
+						((Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)*saturation)+addition)/255)
 				else
-					Spring.SetTeamColor(teamID, hex2RGB(gaiaGrayColor)[1]/255, hex2RGB(gaiaGrayColor)[2]/255, hex2RGB(gaiaGrayColor)[3]/255)
+					Spring.SetTeamColor(teamID, ((hex2RGB(gaiaGrayColor)[1]*saturation)+addition)/255, ((hex2RGB(gaiaGrayColor)[2]*saturation)+addition)/255, ((hex2RGB(gaiaGrayColor)[3]*saturation)+addition)/255)
 				end
 			else
-				Spring.SetTeamColor(teamID, r, g, b)
+				Spring.SetTeamColor(teamID, (r*saturation)+addition, (g*saturation)+addition, (b*saturation)+addition)
 			end
 		end
 	end
 	updateTeamColors()
 
+	local updateTimer = 0
 	function gadget:Update()
-		if math.random(0,60) == 0 then
+		local dt = Spring.GetLastUpdateSeconds()
+		updateTimer = updateTimer + dt
+		if updateTimer > 1 then
 			updateTeamColors()
+			updateTimer = 0
 		elseif Spring.GetConfigInt("UpdateTeamColors", 0) == 1 then
 			updateTeamColors()
 			Spring.SetConfigInt("UpdateTeamColors", 0)

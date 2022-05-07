@@ -2852,7 +2852,6 @@ function init()
 		--   end,
 		-- },
 
-
 		{ id = "teamplatter", group = "ui", category = types.basic, widget = "TeamPlatter", name = texts.option.teamplatter, type = "bool", value = GetWidgetToggleValue("TeamPlatter"), description = texts.option.teamplatter_descr },
 		{ id = "teamplatter_opacity", category = types.advanced, group = "ui", name = widgetOptionColor .. "   " .. texts.option.teamplatter_opacity, min = 0.05, max = 0.4, step = 0.01, type = "slider", value = 0.25, description = texts.option.teamplatter_opacity_descr,
 		  onload = function(i)
@@ -3397,6 +3396,13 @@ function init()
 
 		{ id = "label_teamcolors", group = "accessibility", name = texts.option.label_teamcolors, category = types.basic },
 		{ id = "label_teamcolors_spacer", group = "accessibility", category = types.basic },
+
+		{ id = "teamcolorsaturation", group = "accessibility", category = types.basic, name = texts.option.teamcolorsaturation, type = "slider", min = 0.6, max = 1, step = 0.01, value = Spring.GetConfigFloat("TeamColorSaturation", 1), description = "",
+		  onchange = function(i, value)
+			  Spring.SetConfigFloat("TeamColorSaturation", value)
+			  Spring.SetConfigInt("UpdateTeamColors", 1)
+		  end,
+		},
 
 		{ id = "simpleteamcolors", group = "accessibility", category = types.basic, name = texts.option.playercolors, type = "bool", value = tonumber(Spring.GetConfigInt("SimpleTeamColors", 0) or 0) == 1, description = texts.option.simpleteamcolors_descr,
 		  onchange = function(i, value)
