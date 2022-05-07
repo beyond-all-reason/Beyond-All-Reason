@@ -29,7 +29,7 @@ return {
 		mass = 200000,
 		maxdamage = 44000,
 		maxslope = 18,
-		maxvelocity = 0.9,
+		maxvelocity = 1,
 		maxwaterdepth = 0,
 		movementclass = "CHICKBIG2",
 		noautofire = false,

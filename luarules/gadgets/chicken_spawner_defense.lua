@@ -478,6 +478,11 @@ if gadgetHandler:IsSyncedCode() then
 						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+math.random(-256, 256), targety, targetz+math.random(-256, 256)} , {})
 					elseif role == "raid" then
 						Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+math.random(-256, 256), targety, targetz+math.random(-256, 256)} , {})
+					elseif role == "aircraft" then
+						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+math.random(-256, 256), targety, targetz+math.random(-256, 256)} , {})
+						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
+						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
+						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
 					end
 				end
 			end
@@ -1162,8 +1167,8 @@ if gadgetHandler:IsSyncedCode() then
 				squadCreationQueue.life = 50
 			end
 			if UnitDefNames[defs.unitName].canFly then
-				squadCreationQueue.role = "assault"
-				squadCreationQueue.life = 30
+				squadCreationQueue.role = "aircraft"
+				squadCreationQueue.life = 10
 			end
 
 			GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, { "shift" })
