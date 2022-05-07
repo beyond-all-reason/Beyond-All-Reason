@@ -333,7 +333,6 @@ return {
 			font2_descr = 'Stylistic font mainly used for names/buttons/titles',
 			teamcolors = 'Player colors: auto generated ingame',
 			teamcolors_descr = 'Replaces lobby colors with a auto generated color palette based one\n\nNOTE: reloads all widgets because these need to update their colors',
-			teamcolorsaturation = 'Team color saturation',
 			sameteamcolors = 'team colorisation',
 			sameteamcolors_descr = 'Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors',
 			playercolors = 'Simple Team Colors',
