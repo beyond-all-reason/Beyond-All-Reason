@@ -244,7 +244,6 @@ end
 addSquad(1, { "1 chicken1", "1 chicken1b", "1 chicken1c", "1 chicken1d" 					})
 addSquad(1, { "2 chicken1", "2 chicken1b", "2 chicken1c", "2 chicken1d" 					})
 addSquad(1, { "3 chicken1", "3 chicken1b", "3 chicken1c", "3 chicken1d" 					})
-addSquad(1, { "2 chickenf2" 																})
 ----------------------------------------------------------------------------------------------
 -- Tier2 - We introduce 2nd, a bit stronger kind of Swarmer
 ----------------------------------------------------------------------------------------------
@@ -325,7 +324,6 @@ for i = 1,#waves do
 		addSquad(i, { i.." chicken1b", i.." chicken1c", i.." chicken1d" })  
 		addSquad(i, { i.." chicken1c", i.." chicken1d", i.." chicken1" }) 
 		addSquad(i, { i.." chicken1d", i.." chicken1", i.." chicken1b" })
-		addSquad(i, { i.." chickenf2" })
 	end
 	if i >= 3 and i <= 8 then -- Better Swarmer, Brawler and Spiker
 		addSquad(i, { i.." chicken1x", i.." chicken1y" })

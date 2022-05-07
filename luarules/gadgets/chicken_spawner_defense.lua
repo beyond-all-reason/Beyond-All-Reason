@@ -925,6 +925,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local overseerSpawned = false
 		local cleanersSpawned = false
+		local scoutSpawned = false
 		local loopCounter = 0
 		local squadCounter = 0
 		repeat
@@ -999,13 +1000,18 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 					cleanersSpawned = true
-				end
-				if overseerSpawned == false and math.random(1,SetCount(burrows)*2) == 1 then
+				elseif overseerSpawned == false and math.random(1,SetCount(burrows)*2) == 1 then
 					if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh5"].id) < currentWave-1 and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh5"].id) < SetCount(humanTeams) then
 						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh5", team = chickenTeamID, })
 						cCount = cCount + 1
 					end
 					overseerSpawned = true
+				elseif scoutSpawned == false and math.random(1,SetCount(burrows)*2) == 1 then
+					if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenf2"].id) < currentWave and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenf2"].id) < SetCount(humanTeams) then
+						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenf2", team = chickenTeamID, })
+						cCount = cCount + 1
+					end
+					scoutSpawned = true
 				end
 			end
 		until (cCount > maxWaveSize or loopCounter >= currentWave)
