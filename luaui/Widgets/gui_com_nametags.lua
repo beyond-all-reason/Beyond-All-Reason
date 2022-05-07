@@ -80,12 +80,7 @@ local comnameIconList = {}
 local teamColorKeys = {}
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
-	local r = Spring.GetTeamRulesParam(teams[i], "AutoTeamColorRed")/255
-	local g = Spring.GetTeamRulesParam(teams[i], "AutoTeamColorGreen")/255
-	local b = Spring.GetTeamRulesParam(teams[i], "AutoTeamColorBlue")/255
-	if not r then
-		r,g,b = GetTeamColor(teams[i])
-	end
+	local r, g, b = GetTeamColor(teams[i])
 	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
 end
 teams = nil
@@ -137,12 +132,7 @@ local function GetCommAttributes(unitID, unitDefID)
 		end
 	end
 
-	local r = Spring.GetTeamRulesParam(team, "AutoTeamColorRed")/255
-	local g = Spring.GetTeamRulesParam(team, "AutoTeamColorGreen")/255
-	local b = Spring.GetTeamRulesParam(team, "AutoTeamColorBlue")/255
-	if not r then
-		r,g,b = GetTeamColor(team)
-	end
+	local r, g, b, a = GetTeamColor(team)
 	local bgColor = { 0, 0, 0, 1 }
 	if (r + g * 1.2 + b * 0.4) < 0.65 then
 		bgColor = { 1, 1, 1, 1 }	-- try to keep these values the same as the playerlist
@@ -213,12 +203,7 @@ local function CheckTeamColors()
 	local detectedChanges = false
 	local teams = Spring.GetTeamList()
 	for i = 1, #teams do
-		local r = Spring.GetTeamRulesParam(teams[i], "AutoTeamColorRed")/255
-		local g = Spring.GetTeamRulesParam(teams[i], "AutoTeamColorGreen")/255
-		local b = Spring.GetTeamRulesParam(teams[i], "AutoTeamColorBlue")/255
-		if not r then
-			r,g,b = GetTeamColor(teams[i])
-		end
+		local r, g, b = GetTeamColor(teams[i])
 		if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
 			teamColorKeys[teams[i]] = r..'_'..g..'_'..b
 			detectedChanges = true

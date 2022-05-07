@@ -3397,7 +3397,7 @@ function init()
 		{ id = "label_teamcolors", group = "accessibility", name = texts.option.label_teamcolors, category = types.basic },
 		{ id = "label_teamcolors_spacer", group = "accessibility", category = types.basic },
 
-		{ id = "teamcolorsaturation", group = "accessibility", category = types.basic, name = texts.option.teamcolorsaturation, type = "slider", min = 0.7, max = 1, step = 0.01, value = Spring.GetConfigFloat("TeamColorSaturation", 1), description = "",
+		{ id = "teamcolorsaturation", group = "accessibility", category = types.basic, name = texts.option.teamcolorsaturation, type = "slider", min = 0.6, max = 1, step = 0.01, value = Spring.GetConfigFloat("TeamColorSaturation", 1), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("TeamColorSaturation", value)
 			  Spring.SetConfigInt("UpdateTeamColors", 1)

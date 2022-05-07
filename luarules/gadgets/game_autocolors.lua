@@ -382,7 +382,7 @@ else	-- UNSYNCED
 
 
 	local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-	local saturation = math.max( 0.7, math.min(1, tonumber(Spring.GetConfigFloat("TeamColorSaturation", 0.9) or 0.9)))
+	local saturation = math.max( 0.5, math.min(1, tonumber(Spring.GetConfigFloat("TeamColorSaturation", 1) or 1)))
 
 	local iconDevModeColors = {
 		armblue       = armBlueColor,
@@ -398,7 +398,7 @@ else	-- UNSYNCED
 	local teamList = Spring.GetTeamList()
 
 	local function updateTeamColors()
-		saturation = math.max( 0.7, math.min(1, tonumber(Spring.GetConfigFloat("TeamColorSaturation", 0.9) or 0.9)))
+		saturation = math.max( 0.5, math.min(1, tonumber(Spring.GetConfigFloat("TeamColorSaturation", 1) or 1)))
 		local addition = (1 - saturation) * 0.15
 
 		local myTeamID = Spring.GetMyTeamID()
