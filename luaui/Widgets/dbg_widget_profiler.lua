@@ -92,15 +92,27 @@ end
 
 -- make a table of the names of user widgets
 
-local function widgetprofileraction(_, _, args)
-	if args and args[1] then 
-		tick = tonumber(args[1]) or tick
+
+
+function widget:TextCommand(s)
+	local token = {}
+	local n = 0
+	--for w in string.gmatch(s, "%a+") do
+	for w in string.gmatch(s, "%S+") do
+		n = n + 1
+		token[n] = w
 	end
-	if args and args[2] then 
-		averageTime = tonumber(args[2]) or averageTime
+	if token[1] == "widgetprofilertickrate" then 
+		if token[2] then 
+			tick = tonumber(token[2]) or tick
+		end
+		if token[3] then 
+			averageTime = tonumber(token[3]) or averageTime
+		end
+		Spring.Echo("Setting widget profiler to tick=", tick, "averageTime=", averageTime)
 	end
-	Spring.Echo("Setting widget profiler to tick=", tick, "averageTime=", averageTime)
-end 
+	
+end
 
 
 local userWidgets = {}
@@ -108,8 +120,6 @@ function widget:Initialize()
 	for name, wData in pairs(widgetHandler.knownWidgets) do
 		userWidgets[name] = (not wData.fromZip)
 	end
-	widgetHandler:AddAction("widgetprofiler", widgetprofileraction, "Configure the tick rate of the widget profiler", 't')
-	
 end
 
 --------------------------------------------------------------------------------
@@ -179,6 +189,8 @@ local function StartHook()
 	Spring.Echo("start profiling")
 
 	local wh = widgetHandler
+	
+	--wh.actionHandler:AddAction("widgetprofiler", widgetprofileraction, "Configure the tick rate of the widget profiler", 't')
 
 	local CallInsList = {}
 	local CallInsListCount = 0
@@ -247,7 +259,7 @@ local function StopHook()
 	Spring.Echo("stop profiling")
 
 	local wh = widgetHandler
-
+	--widgetHandler.RemoveAction("widgetprofiler")
 	local CallInsList = {}
 	local CallInsListCount = 0
 	for name, e in pairs(wh) do
@@ -292,7 +304,7 @@ end
 
 function widget:Shutdown()
 	StopHook()
-	widgetHandler:RemoveAction("widgetprofiler")
+	
 end
 
 local lm, _, gm, _, um, _, sm, _ = spGetLuaMemUsage()
