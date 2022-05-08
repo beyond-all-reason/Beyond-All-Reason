@@ -1088,7 +1088,7 @@ if gadgetHandler:IsSyncedCode() then
 		if unitID == queenID then
 			-- special case queen
 			if weaponID == -1 and damage > 25000 then
-				return 25000
+				damage = 25000
 			end
 			if attackerDefID then
 				if not queenResistance[weaponID] then
@@ -1096,7 +1096,7 @@ if gadgetHandler:IsSyncedCode() then
 					queenResistance[weaponID].damage = damage
 					queenResistance[weaponID].notify = 0
 				end
-				local resistPercent = math.min(queenResistance[weaponID].damage / queenMaxHP, 0.99)
+				local resistPercent = math.min((queenResistance[weaponID].damage * config.chickenSpawnMultiplier) / queenMaxHP, 0.999)
 				if resistPercent > 0.35 then
 					if queenResistance[weaponID].notify == 0 then
 						SendToUnsynced('QueenResistant', attackerDefID)
@@ -1544,8 +1544,8 @@ if gadgetHandler:IsSyncedCode() then
 			if unitDefID ~= config.burrowDef then
 				name = string.sub(name, 1, -2)
 			end
-			local kills = GetGameRulesParam(name .. "Kills")
-			SetGameRulesParam(name .. "Kills", kills + 1)
+			local kills = GetGameRulesParam("chicken" .. "Kills")
+			SetGameRulesParam("chicken" .. "Kills", kills + 1)
 			chickenCount = chickenCount - 1
 			if attackerID then
 				local x, _, z = GetUnitPosition(attackerID)
