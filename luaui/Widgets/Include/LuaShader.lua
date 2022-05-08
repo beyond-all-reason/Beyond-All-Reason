@@ -229,20 +229,20 @@ end
 function LuaShader:CreateLineTable()
 	--[[
 	-- self.shaderParams == 
-	 ({[ vertex   = "glsl code" ,]
-   [ tcs      = "glsl code" ,]
-   [ tes      = "glsl code" ,]
-   [ geometry = "glsl code" ,]
-   [ fragment = "glsl code" ,]
-   [ uniform       = { uniformName = number value, ...} ,] (specify a Lua array as an argument to uniformName to initialize GLSL arrays)
-   [ uniformInt    = { uniformName = number value, ...} ,] (specify a Lua array as an argument to uniformName to initialize GLSL arrays)
-   [ uniformFloat  = { uniformName = number value, ...} ,] (specify a Lua array as an argument to uniformName to initialize GLSL arrays)
-   [ uniformMatrix = { uniformName = number value, ...} ,]
-   [ geoInputType = number inType,]
-   [ geoOutputType = number outType,]
-   [ geoOutputVerts = number maxVerts,]
-   [ definitions = "string of shader #defines", ]
- })
+			 ({[ vertex   = "glsl code" ,]
+		   [ tcs      = "glsl code" ,]
+		   [ tes      = "glsl code" ,]
+		   [ geometry = "glsl code" ,]
+		   [ fragment = "glsl code" ,]
+		   [ uniform       = { uniformName = number value, ...} ,] (specify a Lua array as an argument to uniformName to initialize GLSL arrays)
+		   [ uniformInt    = { uniformName = number value, ...} ,] (specify a Lua array as an argument to uniformName to initialize GLSL arrays)
+		   [ uniformFloat  = { uniformName = number value, ...} ,] (specify a Lua array as an argument to uniformName to initialize GLSL arrays)
+		   [ uniformMatrix = { uniformName = number value, ...} ,]
+		   [ geoInputType = number inType,]
+		   [ geoOutputType = number outType,]
+		   [ geoOutputVerts = number maxVerts,]
+		   [ definitions = "string of shader #defines", ]
+		 })
 	]]--
 	
 	local numtoline = {}
@@ -306,8 +306,6 @@ function LuaShader:OutputLogEntry(text, isError)
 	local message
 
 	local warnErr = (isError and "error") or "warning"
-
-
 
 	message = string.format("LuaShader: [%s] shader %s(s):\n%s", self.shaderName, warnErr, text)
 	Spring.Echo(message)
@@ -392,7 +390,7 @@ end
 -----------------========= End of Handle Ghetto Include<> ==========-----------------
 
 -----------------============ General LuaShader methods ============-----------------
-function LuaShader:Compile()
+function LuaShader:Compile(suppresswarnings)
 	if not gl.CreateShader then
 		self:ShowError("GLSL Shaders are not supported by hardware or drivers")
 		return false
@@ -418,7 +416,7 @@ function LuaShader:Compile()
 	if not shaderObj then
 		self:ShowError(shLog)
 		return false
-	elseif (shLog ~= "") then
+	elseif (shLog ~= "") and suppresswarnings ~= true then
 		self:ShowWarning(shLog)
 	end
 
