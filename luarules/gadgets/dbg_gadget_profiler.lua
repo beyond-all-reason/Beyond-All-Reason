@@ -395,9 +395,16 @@ else
 	local redStrengthSYNCED = {}
 
 	local luarulesMemory, _, globalMemory, _, unsyncedMemory, _, syncedMemory, _ = spGetLuaMemUsage()
-
+	
+	local exp = math.exp
+	
 	local function CalcLoad(old_load, new_load, t)
-		return old_load * math.exp(-tick / t) + new_load * (1 - math.exp(-tick / t))
+		if t and t > 0 then 
+			local exptick = exp(-tick / t)
+			return old_load * exptick + new_load * (1 - exptick)
+		else
+			return new_load
+		end
 	end
 
 	local totalLoads = {}
