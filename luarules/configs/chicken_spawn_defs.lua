@@ -244,6 +244,8 @@ end
 addSquad(1, { "1 chicken1", "1 chicken1b", "1 chicken1c", "1 chicken1d" 					})
 addSquad(1, { "2 chicken1", "2 chicken1b", "2 chicken1c", "2 chicken1d" 					})
 addSquad(1, { "3 chicken1", "3 chicken1b", "3 chicken1c", "3 chicken1d" 					})
+addSquad(1, { "4 chicken1", "4 chicken1b", "4 chicken1c", "4 chicken1d" 					})
+addSquad(1, { "5 chicken1", "5 chicken1b", "5 chicken1c", "5 chicken1d" 					})
 ----------------------------------------------------------------------------------------------
 -- Tier2 - We introduce 2nd, a bit stronger kind of Swarmer
 ----------------------------------------------------------------------------------------------
@@ -261,6 +263,7 @@ addSquad(3, { "12 chickens1" 																})
 ----------------------------------------------------------------------------------------------
 addSquad(4, { "10 chickene1" 																})
 addSquad(4, { "10 chickenacidswarmer" 														})
+addSquad(4, { "5 chickene1", "5 chickenacidswarmer" 										})
 addSquad(4, { "10 chickenp1" 																})
 ----------------------------------------------------------------------------------------------
 -- Tier5 - Fighters and Bombers are looking at you from above!
@@ -282,15 +285,16 @@ addSquad(6, { "10 chickenc3", "5 chickenc3b", "3 chickenc3c" 								})
 addSquad(6, { "10 chickenpyroallterrain" 													})
 addSquad(6, { "10 chickenelectricallterrain" 												})
 addSquad(6, { "10 chickenacidallterrain" 													})
+addSquad(6, { "5 chickenelectricallterrain", "5 chickenacidallterrain" 					})
 ----------------------------------------------------------------------------------------------
 -- Tier7 - Artillery, big flamer, big paralyzer and big acid spitter want to know your location
 ----------------------------------------------------------------------------------------------
-addSquad(7, { "2 chickenr1" 																})
-addSquad(7, { "2 chickenearty1" 															})
-addSquad(7, { "2 chickenacidarty" 															})
-addSquad(7, { "5 chickenp2" 																})
-addSquad(7, { "2 chickene2" 																})
-addSquad(7, { "2 chickenacidassault" 														})
+addSquad(7, { "3 chickenr1" 																})
+addSquad(7, { "3 chickenearty1" 															})
+addSquad(7, { "3 chickenacidarty" 															})
+addSquad(7, { "8 chickenp2" 																})
+addSquad(7, { "3 chickene2" 																})
+addSquad(7, { "3 chickenacidassault" 														})
 ----------------------------------------------------------------------------------------------
 -- Tier8 - Kamikaze, lots of them! Also Apex Spiker.
 ----------------------------------------------------------------------------------------------
@@ -301,6 +305,7 @@ addSquad(8, { "80 chicken_dodo1" 															})
 addSquad(8, { "20 chicken_dodo2" 															})
 addSquad(8, { "40 chicken_dodo2" 															})
 addSquad(8, { "10 chickens2" 																})
+addSquad(8, { "20 chickens2" 																})
 ----------------------------------------------------------------------------------------------
 -- Tier9 - Apex Swarmer, Apex Brawler, Apex Mortar - Prepare antinukes!
 ----------------------------------------------------------------------------------------------
@@ -308,7 +313,7 @@ addSquad(9, { "5 chicken2" 																	})
 addSquad(9, { "5 chicken2b" 																})
 addSquad(9, { "3 chickena2" 																})
 addSquad(9, { "3 chickena2b" 																})
-addSquad(9, { "1 chickenr2" 																})
+addSquad(9, { "2 chickenr2" 																})
 ----------------------------------------------------------------------------------------------
 -- Tier10 - Brood Raptors - They don't die they multiply!
 ----------------------------------------------------------------------------------------------
