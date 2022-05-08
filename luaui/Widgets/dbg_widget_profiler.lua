@@ -17,10 +17,15 @@ end
 
 local usePrefixedNames = true
 
+local tick = 0.1
+local averageTime = 0.5
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 local spGetLuaMemUsage = Spring.GetLuaMemUsage
+
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -86,11 +91,25 @@ end
 --------------------------------------------------------------------------------
 
 -- make a table of the names of user widgets
+
+local function widgetprofileraction(_, _, args)
+	if args and args[1] then 
+		tick = tonumber(args[1]) or tick
+	end
+	if args and args[2] then 
+		averageTime = tonumber(args[2]) or averageTime
+	end
+	Spring.Echo("Setting widget profiler to tick=", tick, "averageTime=", averageTime)
+end 
+
+
 local userWidgets = {}
 function widget:Initialize()
 	for name, wData in pairs(widgetHandler.knownWidgets) do
 		userWidgets[name] = (not wData.fromZip)
 	end
+	widgetHandler:AddAction("widgetprofiler", widgetprofileraction, "Configure the tick rate of the widget profiler", 't')
+	
 end
 
 --------------------------------------------------------------------------------
@@ -261,8 +280,6 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local tick = 0.1
-local averageTime = 0.5
 local timeLoadAverages = {}
 local spaceLoadAverages = {}
 local startTimer
@@ -275,6 +292,7 @@ end
 
 function widget:Shutdown()
 	StopHook()
+	widgetHandler:RemoveAction("widgetprofiler")
 end
 
 local lm, _, gm, _, um, _, sm, _ = spGetLuaMemUsage()
