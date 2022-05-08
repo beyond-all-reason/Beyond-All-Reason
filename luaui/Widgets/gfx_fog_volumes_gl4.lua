@@ -176,11 +176,15 @@ vec4 raymarch(vec3 startpoint, vec3 endpoint, float steps, vec4 sphereposrad){
 	// we need a better way to accumulate, kind of like how much light is let through
 	float currenttime = timeInfo.x+ timeInfo.w;
 	vec4 dithernoise = textureLod(dithernoise2d, startpoint.xz, 0.0);
+	vec3 noiseoffset;
+	noiseoffset.y = -1 * currenttime * v_spawnframe_frequency_riserate_windstrength.z; 
+	noiseoffset.xz = -0.0001 * currenttime * (windInfo.xz*windInfo.w) * v_spawnframe_frequency_riserate_windstrength.w;
+	
 	for (float f = dithernoise.x*interval*2; f < 1.0; f = f + interval){
 		vec3 currpos = mix(startpoint, endpoint, f);
 		vec3 noisepos = currpos;
-		//currpos.y -= (timeInfo.x+ timeInfo.w);
-		noisepos.y -= currenttime * v_spawnframe_frequency_riserate_windstrength.z;
+		//	noisepos.y -= currenttime * v_spawnframe_frequency_riserate_windstrength.z;
+		noisepos += noiseoffset;
 		//noisepos.xz -= currenttime * (windInfo.xz*windInfo.w) * v_spawnframe_frequency_riserate_windstrength.w; // windx, windy, windz, windStrength
 		
 		float justnoiseval = (textureLod(noise64cube, fract(noisepos * noisescale), 0.0).a * 2.0 - 1.0);
@@ -523,7 +527,7 @@ function widget:Initialize()
 	fogSphereVBO, fogSphereShader = initFogGL4(shaderConfig, "fogSpheres")
 	math.randomseed(1)
 	if true then 
-		for i= 1, 300 do 
+		for i= 1, 100 do 
 			AddRandomFogSphere()
 		end
 	end
