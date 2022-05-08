@@ -96,18 +96,8 @@ local rules = {
 	"roostKills",
 }
 
-local waveColors = {}
-waveColors[1] = "\255\255\255\255"
-waveColors[2] = "\255\255\230\230"
-waveColors[3] = "\255\255\204\204"
-waveColors[4] = "\255\255\178\178"
-waveColors[5] = "\255\255\153\153"
-waveColors[6] = "\255\255\127\127"
-waveColors[7] = "\255\255\102\102"
-waveColors[8] = "\255\255\76\76"
-waveColors[9] = "\255\255\51\51"
-waveColors[10] = "\255\255\0\0"
-waveColors[11] = "\255\255\0\0"
+local waveColor = "\255\255\0\0"
+
 
 local chickenTypes = {
 	"chicken",
@@ -203,7 +193,7 @@ local function getMarqueeMessage(chickenEventArgs)
 
 	if chickenEventArgs.type == "wave" then
 		messages[1] = Spring.I18N('ui.chickens.wave', { waveNumber = chickenEventArgs.waveCount })
-		messages[2] = waveColors[chickenEventArgs.tech] .. Spring.I18N('ui.chickens.waveCount', { count = chickenEventArgs.number })
+		messages[2] = waveColor .. Spring.I18N('ui.chickens.waveCount', { count = chickenEventArgs.number })
 	elseif chickenEventArgs.type == "queen" then
 		messages[1] = Spring.I18N('ui.chickens.queenIsAngry')
 	end

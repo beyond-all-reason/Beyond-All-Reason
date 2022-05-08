@@ -637,24 +637,42 @@ local definitions = {
         alwaysvisible      = true,
       },
     },
-    -- enable below when clamping to map + rotParams are ready for CSimpleGroundFlash
-    -- acid_groundsplat = {
-    --   class              = [[CSimpleGroundFlash]],
-    --   count              = 1,
-    --   air                = true,
-    --   ground             = true,
-    --   water              = false,
-    --   underwater         = false,
-    --   properties = {
-    --     --rotParams          = [[0 r0, 0, -180 r360]],
-    --     colormap           = [[0.05 0.09 0.02 0.40   0.25 0.36 0.06 0.9   0.25 0.36 0.06 0.9    0.22 0.34 0.055 0.8   0.22 0.34 0.055 0.7   0.18 0.32 0.045 0.65    0.15 0.18 0.04 0.5    0.10 0.16 0.03 0.55    0.10 0.16 0.03 0.50     0.10 0.16 0.03 0.30    0 0 0 0.01]],
-    --     size               = 256,
-    --     sizegrowth         = 0,
-    --     ttl                = 330,
-    --     texture            = [[centersplatsh]],
-    --     alwaysvisible      = true,
-    --   },
-    -- },
+    acidrandomsmoke = {
+            air                = true,
+            class              = [[CExpGenSpawner]],
+            count              = 9,
+            ground             = true,
+            water              = true,
+            underwater         = true,
+            properties = {
+                delay              = [[0 r300]],
+                explosiongenerator = [[custom:acid-area-smoke]],
+                pos                = [[-128 r256, 0 r20, -128 r256]],
+                --alwaysvisible      = true,
+            },
+        },
+  },
+
+    ["acid-area-rot"] = {
+    usedefaultexplosions = false,
+    -- testceg for rotParams for CSimpleGroundFlash
+    acid_groundsplat = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = true,
+      ground             = true,
+      water              = false,
+      underwater         = false,
+      properties = {
+        rotParams          = [[0 r0, 0, -180 r360]],
+        colormap           = [[0.05 0.09 0.02 0.40   0.25 0.36 0.06 0.9   0.25 0.36 0.06 0.9    0.22 0.34 0.055 0.8   0.22 0.34 0.055 0.7   0.18 0.32 0.045 0.65    0.15 0.18 0.04 0.5    0.10 0.16 0.03 0.55    0.10 0.16 0.03 0.50     0.10 0.16 0.03 0.30    0 0 0 0.01]],
+        size               = 256,
+        sizegrowth         = 0,
+        ttl                = 330,
+        texture            = [[centersplatsh]],
+        alwaysvisible      = true,
+      },
+    },
     acidrandomsmoke = {
             air                = true,
             class              = [[CExpGenSpawner]],
@@ -800,7 +818,7 @@ local definitions = {
       ground             = true,
       properties = {
         airdrag            = 0.92,
-        colormap           = [[0.05 0.05 0.05 0.03  0.35 0.35 0.35 0.2  0.34 0.34 0.34 0.13  0.30 0.30 0.30 0.08   0 0 0 0.01]],
+        colormap           = [[0.05 0.10 0.05 0.03  0.33 0.40 0.33 0.2  0.32 0.37 0.32 0.13  0.30 0.30 0.30 0.08   0 0 0 0.01]],
         directional        = false,
         emitrot            = 6,
         emitrotspread      = 4,

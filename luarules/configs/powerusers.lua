@@ -16,7 +16,7 @@ local moderator = {
 	waterlevel = false,
 	sysinfo = true,
 }
-local singleplayer = {
+local singleplayer = {		-- note: these permissions override others when singleplayer
 	give = true,
 	undo = true,
 	cmd = true,

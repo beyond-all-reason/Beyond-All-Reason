@@ -30,7 +30,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = 2000,
 		mass = 2000000,
-		maxdamage = 160000,
+		maxdamage = 80000,
 		maxslope = 40,
 		maxvelocity = 2.9,
 		maxwaterdepth = 0,
@@ -40,7 +40,7 @@ return {
 		objectname = "Chickens/ve_chickenq.s3o",
 		pushresistant = true,
 		script = "Chickens/ve_chickenq.cob",
-		seismicsignature = 4,
+		seismicsignature = 0,
 		selfdestructas = "crawl_blastsmlscavboss",
 		side = "THUNDERBIRDS",
 		sightdistance = 1250,
@@ -109,7 +109,7 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 400,
 				damage = {
-					default = 1200,
+					default = 400,
 				},
 			},
 			melee = {
@@ -138,7 +138,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 2500,
 				damage = {
-					default = 1500,
+					default = 500,
 				},
 			},
 			spores1 = {
@@ -184,7 +184,7 @@ return {
 				weaponvelocity = 1000,
 				wobble = 64000,
 				damage = {
-					default = 90,
+					default = 30,
 				},
 			},
 			spores2 = {
@@ -230,7 +230,7 @@ return {
 				weaponvelocity = 1000,
 				wobble = 64000,
 				damage = {
-					default = 90,
+					default = 30,
 				},
 			},
 			spores3 = {
@@ -276,7 +276,7 @@ return {
 				weaponvelocity = 1000,
 				wobble = 64000,
 				damage = {
-					default = 90,
+					default = 30,
 				},
 			},
 		},

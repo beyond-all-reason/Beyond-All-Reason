@@ -64,11 +64,12 @@ local function refreshDefs()
 	refreshUnitDefs()
 	refreshFeatureDefs()
 
-	for name, featureDef in pairs(FeatureDefNames) do
-		if not featureDef.customParams.fromunit and featureDef.translatedDescription == 'features.names.' .. featureDef.name then
-			Spring.Log("LuaUI", LOG.ERROR, "Missing I18N for map feature: " .. name .. ", " .. featureDef.tooltip .. ", Map: " .. Game.mapName)
-		end
-	end
+	-- Logging missing map feature I18N entries disabled for now, as it is capturing unofficial maps
+	-- for name, featureDef in pairs(FeatureDefNames) do
+	-- 	if not featureDef.customParams.fromunit and featureDef.translatedDescription == 'features.names.' .. featureDef.name then
+	-- 		Spring.Log("LuaUI", LOG.ERROR, "Missing I18N for map feature: " .. name .. ", " .. featureDef.tooltip .. ", Map: " .. Game.mapName)
+	-- 	end
+	-- end
 end
 
 return {

@@ -222,7 +222,7 @@ if not startScript then
 end
 
 local function setEngineFont()
-	local relativesize = 0.75
+	local relativesize = 1
 	--"fonts/FreeSansBold.otf"
 	Spring.SetConfigInt("SmallFontSize", fontfileSize * fontfileScale * relativesize)
 	Spring.SetConfigInt("SmallFontOutlineWidth", fontfileOutlineSize * fontfileScale * relativesize * 0.85)
@@ -2732,13 +2732,6 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
 		  end,
 		},
-		{ id = "systemprivacy", restart = true, group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.systemprivacy, type = "bool", value = (Spring.GetConfigInt("SystemPrivacy", 0) == 1), description = texts.option.systemprivacy_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("SystemPrivacy", value and 1 or 0)
-		  end,
-		},
 		{ id = "unittotals", group = "ui", category = types.basic, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   " .. texts.option.unittotals, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = texts.option.unittotals_descr },
 		{ id = "mascot", group = "ui", category = types.advanced, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   " .. texts.option.mascot, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = texts.option.mascot_descr },
 
@@ -4581,18 +4574,23 @@ function init()
 		end
 	end
 
+
 	if Spring.GetGameFrame() == 0 then
 		detectWater()
 
 		-- set vsync
 		Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", 0))
 
-		-- disable CUS
+		-- disable old cus
+		if Spring.GetConfigInt("cus", 0) == 1 then
+			Spring.SetConfigInt("cus", 0)
+		end
+		Spring.SendCommands("luarules disablecus")
+
 		if not isPotatoGpu then	-- will disable later
 
 			-- enable CUS GL4
 			if tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
-				Spring.SendCommands("luarules disablecus")
 				Spring.SendCommands("luarules reloadcusgl4")
 			end
 		end

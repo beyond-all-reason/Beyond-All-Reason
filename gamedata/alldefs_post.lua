@@ -540,7 +540,6 @@ function UnitDef_Post(name, uDef)
 		uDef.buildtime = chickHealth*10
 		uDef.hidedamage = true
 		if (uDef.mass and uDef.mass < 500) or not uDef.mass then uDef.mass = 500 end
-		if uDef.customparams then uDef.customparams.paralyzemultiplier = 0 end
 		uDef.canhover = true
 		uDef.autoheal = math.ceil(math.sqrt(chickHealth * 0.1))
 		uDef.idleautoheal = math.ceil(math.sqrt(chickHealth * 0.1))
@@ -833,6 +832,10 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	if Spring.GetModOptions().unba == true then
+		unbaUnits = VFS.Include("unbaconfigs/unbaunits_post.lua")
+		uDef = unbaUnits.unbaUnitTweaks(name, uDef)
+	end
 	-- add model vertex displacement
 	local vertexDisplacement = 5.5 + ((uDef.footprintx + uDef.footprintz) / 12)
 	if vertexDisplacement > 10 then
@@ -1032,6 +1035,10 @@ function WeaponDef_Post(name, wDef)
 		end
 
 		ProcessSoundDefaults(wDef)
+	end
+	if Spring.GetModOptions().unba == true then
+		unbaUnits = VFS.Include("unbaconfigs/unbaunits_post.lua")
+		wDef = unbaUnits.unbaWeaponTweaks(name, wDef)
 	end
 end
 -- process effects

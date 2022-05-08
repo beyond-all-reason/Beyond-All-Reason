@@ -1,7 +1,7 @@
 -- XP Effects
 
 return {
- ["levelup_fp1"] = {
+ ["levelup_fp_arm1"] = {
     levelup_rings = {
             air                = true,
             class              = [[CExpGenSpawner]],
@@ -11,7 +11,7 @@ return {
             underwater         = true,
             properties = {
                 delay              = [[0 i5]],
-                explosiongenerator = [[custom:levelup_ring_fp1]],
+                explosiongenerator = [[custom:levelup_ring_fp_arm1]],
                 pos                = [[0, 0 i8, 0]],
             },
         },
@@ -23,7 +23,7 @@ return {
       underwater         = 1,
       water              = true,
       properties = {
-        colormap           = [[0.88 0.65 0.10 0.20   0.85 0.85 0.24 0.14   0.78 0.50 0.15 0.08   0.58 0.30 0.08 0.06   0 0 0 0.01]],
+        colormap           = [[0.9 0.9 0.9 0.9   0.85 0.85 0.85 0.85   0.8 0.8 0.8 0.8   0.7 0.7 0.7 0.7   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
         --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0,
@@ -44,8 +44,8 @@ return {
       water              = false,
       underwater         = false,
       properties = {
-        colormap           = [[0.92 0.71 0.21 0.3   0 0 0 0.01]],
-        size               = 30,
+        colormap           = [[0.9 0.9 0.9 0.9   0 0 0 0.01]],
+        size               = 20,
         sizegrowth         = -1,
         ttl                = 18,
         texture            = [[circlefx2]],
@@ -59,8 +59,8 @@ return {
       water              = false,
       underwater         = false,
       properties = {
-        colormap           = [[0.96 0.76 0.13 0.2   0 0 0 0.01]],
-        size               = 60,
+        colormap           = [[0.9 0.9 0.9 0.9   0 0 0 0.01]],
+        size               = 40,
         sizegrowth         = -3.5,
         ttl                = 30,
         texture            = [[groundflash]],
@@ -74,8 +74,8 @@ return {
       water              = false,
       underwater         = false,
       properties = {
-        colormap           = [[0.99 0.95 0.66 0.77   0 0 0 0.01]],
-        size               = 55,
+        colormap           = [[0.9 0.9 0.9 0.9   0 0 0 0.01]],
+        size               = 30,
         sizegrowth         = -1,
         ttl                = 5,
         texture            = [[groundflash]],
@@ -90,7 +90,7 @@ return {
       underwater         = true,
       properties = {
         airdrag            = 0.91,
-        colormap           = [[0.96 0.76 0.13 0.017   0.92 0.71 0.21 0.011   0 0 0 0.1]],
+        colormap           = [[0.9 0.9 0.9 0.9   0.8 0.8 0.8 0.8   0 0 0 0.1]],
         directional        = true,
         emitrot            = 30,
         emitrotspread      = 50,
@@ -112,7 +112,7 @@ return {
     },
   },
 
- ["levelup_fp2"] = {
+ ["levelup_fp_arm2"] = {
     levelup_rings = {
             air                = true,
             class              = [[CExpGenSpawner]],
@@ -122,7 +122,7 @@ return {
             underwater         = true,
             properties = {
                 delay              = [[0 i4]],
-                explosiongenerator = [[custom:levelup_ring_fp2]],
+                explosiongenerator = [[custom:levelup_ring_fp_arm2]],
                 pos                = [[0, 0 i13, 0]],
             },
         },
@@ -134,7 +134,7 @@ return {
       underwater         = 1,
       water              = true,
       properties = {
-        colormap           = [[0.88 0.65 0.10 0.20   0.85 0.85 0.24 0.14   0.78 0.50 0.15 0.08   0.58 0.30 0.08 0.06   0 0 0 0.01]],
+        colormap           = [[0.9 0.9 0.9 0.9   0.85 0.85 0.85 0.85   0.8 0.8 0.8 0.8   0.7 0.7 0.7 0.7   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
         --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0,
@@ -155,8 +155,8 @@ return {
       water              = false,
       underwater         = false,
       properties = {
-        colormap           = [[0.92 0.71 0.21 0.3   0 0 0 0.01]],
-        size               = 48,
+        colormap           = [[0.9 0.9 0.9 0.9   0 0 0 0.01]],
+        size               = 30,
         sizegrowth         = -2,
         ttl                = 15,
         texture            = [[circlefx2]],
@@ -185,8 +185,8 @@ return {
       water              = false,
       underwater         = false,
       properties = {
-        colormap           = [[0.99 0.95 0.66 0.77   0 0 0 0.01]],
-        size               = 70,
+        colormap           = [[0.9 0.9 0.9 0.9   0 0 0 0.01]],
+        size               = 50,
         sizegrowth         = -1,
         ttl                = 5,
         texture            = [[groundflashwhite]],
@@ -201,7 +201,7 @@ return {
       underwater         = true,
       properties = {
         airdrag            = 0.91,
-        colormap           = [[0.96 0.76 0.13 0.017   0.92 0.71 0.21 0.011   0 0 0 0.1]],
+        colormap           = [[0.9 0.9 0.9 0.9   0.8 0.8 0.8 0.8   0 0 0 0.1]],
         directional        = true,
         emitrot            = 30,
         emitrotspread      = 50,
@@ -223,7 +223,7 @@ return {
     },
   },
 
-  ["levelup_fp3"] = {
+  ["levelup_fp_arm3"] = {
     levelup_rings = {
             air                = true,
             class              = [[CExpGenSpawner]],
@@ -233,7 +233,7 @@ return {
             underwater         = true,
             properties = {
                 delay              = [[0 i4]],
-                explosiongenerator = [[custom:levelup_ring_fp3]],
+                explosiongenerator = [[custom:levelup_ring_fp_arm3]],
                 pos                = [[0, 5 i13, 0]],
             },
         },
@@ -245,7 +245,7 @@ return {
       underwater         = 1,
       water              = true,
       properties = {
-        colormap           = [[0.88 0.65 0.10 0.20   0.85 0.85 0.24 0.14   0.78 0.50 0.15 0.08   0.58 0.30 0.08 0.06   0 0 0 0.01]],
+        colormap           = [[0.9 0.9 0.9 0.9   0.85 0.85 0.85 0.85   0.8 0.8 0.8 0.8   0.7 0.7 0.7 0.7   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
         --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0,
@@ -266,8 +266,8 @@ return {
       water              = false,
       underwater         = false,
       properties = {
-        colormap           = [[0.92 0.71 0.21 0.3   0 0 0 0.01]],
-        size               = 56,
+        colormap           = [[0.9 0.9 0.9 0.9   0 0 0 0.01]],
+        size               = 45,
         sizegrowth         = -2,
         ttl                = 18,
         texture            = [[circlefx2]],
@@ -296,8 +296,8 @@ return {
       water              = false,
       underwater         = false,
       properties = {
-        colormap           = [[0.99 0.95 0.66 0.77   0 0 0 0.01]],
-        size               = 70,
+        colormap           = [[0.9 0.9 0.9 0.9   0 0 0 0.01]],
+        size               = 60,
         sizegrowth         = -1,
         ttl                = 5,
         texture            = [[groundflashwhite]],
@@ -312,7 +312,7 @@ return {
       underwater         = true,
       properties = {
         airdrag            = 0.91,
-        colormap           = [[0.96 0.76 0.13 0.017   0.92 0.71 0.21 0.011   0 0 0 0.1]],
+        colormap           = [[0.9 0.9 0.9 0.9   0.8 0.8 0.8 0.8   0 0 0 0.1]],
         directional        = true,
         emitrot            = 30,
         emitrotspread      = 50,
@@ -334,7 +334,7 @@ return {
     },
   },
 
-  ["levelup_fp4"] = {
+  ["levelup_fp_arm4"] = {
     levelup_rings = {
             air                = true,
             class              = [[CExpGenSpawner]],
@@ -344,7 +344,7 @@ return {
             underwater         = true,
             properties = {
                 delay              = [[0 i4]],
-                explosiongenerator = [[custom:levelup_ring_fp4]],
+                explosiongenerator = [[custom:levelup_ring_fp_arm4]],
                 pos                = [[0, 16 i16, 0]],
             },
         },
@@ -356,7 +356,7 @@ return {
       underwater         = 1,
       water              = true,
       properties = {
-        colormap           = [[0.88 0.65 0.10 0.20   0.85 0.85 0.24 0.14   0.78 0.50 0.15 0.08   0.58 0.30 0.08 0.06   0 0 0 0.01]],
+        colormap           = [[0.9 0.9 0.9 0.9   0.85 0.85 0.85 0.85   0.8 0.8 0.8 0.8   0.7 0.7 0.7 0.7   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
         --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0,
@@ -377,8 +377,8 @@ return {
       water              = false,
       underwater         = false,
       properties = {
-        colormap           = [[0.92 0.71 0.21 0.3   0 0 0 0.01]],
-        size               = 72,
+        colormap           = [[0.9 0.9 0.9 0.9   0 0 0 0.01]],
+        size               = 60,
         sizegrowth         = -2,
         ttl                = 18,
         texture            = [[circlefx2]],
@@ -407,8 +407,8 @@ return {
       water              = false,
       underwater         = false,
       properties = {
-        colormap           = [[0.99 0.95 0.66 0.77   0 0 0 0.01]],
-        size               = 100,
+        colormap           = [[0.9 0.9 0.9 0.9   0 0 0 0.01]],
+        size               = 80,
         sizegrowth         = -1,
         ttl                = 5,
         texture            = [[groundflashwhite]],
@@ -423,7 +423,7 @@ return {
       underwater         = true,
       properties = {
         airdrag            = 0.91,
-        colormap           = [[0.96 0.76 0.13 0.017   0.92 0.71 0.21 0.011   0 0 0 0.1]],
+        colormap           = [[0.9 0.9 0.9 0.9   0.8 0.8 0.8 0.8   0 0 0 0.1]],
         directional        = true,
         emitrot            = 30,
         emitrotspread      = 50,
@@ -445,7 +445,7 @@ return {
     },
   },
 
-  ["levelup_fp5"] = {
+  ["levelup_fp_arm5"] = {
     levelup_rings = {
             air                = true,
             class              = [[CExpGenSpawner]],
@@ -455,7 +455,7 @@ return {
             underwater         = true,
             properties = {
                 delay              = [[0 i4]],
-                explosiongenerator = [[custom:levelup_ring_fp5]],
+                explosiongenerator = [[custom:levelup_ring_fp_arm5]],
                 pos                = [[0, 25 i25, 0]],
             },
         },
@@ -467,7 +467,7 @@ return {
       underwater         = 1,
       water              = true,
       properties = {
-        colormap           = [[0.88 0.65 0.10 0.20   0.85 0.85 0.24 0.14   0.78 0.50 0.15 0.08   0.58 0.30 0.08 0.06   0 0 0 0.01]],
+        colormap           = [[0.9 0.9 0.9 0.9   0.85 0.85 0.85 0.85   0.8 0.8 0.8 0.8   0.7 0.7 0.7 0.7   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
         --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0,
@@ -488,8 +488,8 @@ return {
       water              = false,
       underwater         = false,
       properties = {
-        colormap           = [[0.92 0.71 0.21 0.3   0 0 0 0.01]],
-        size               = 92,
+        colormap           = [[0.9 0.9 0.9 0.9   0 0 0 0.01]],
+        size               = 90,
         sizegrowth         = -2,
         ttl                = 18,
         texture            = [[circlefx2]],
@@ -536,8 +536,8 @@ return {
       water              = false,
       underwater         = false,
       properties = {
-        colormap           = [[0.99 0.95 0.66 0.77   0 0 0 0.01]],
-        size               = 140,
+        colormap           = [[0.9 0.9 0.9 0.9   0 0 0 0.01]],
+        size               = 120,
         sizegrowth         = -1,
         ttl                = 5,
         texture            = [[groundflashwhite]],
@@ -552,7 +552,7 @@ return {
       underwater         = true,
       properties = {
         airdrag            = 0.91,
-        colormap           = [[0.96 0.76 0.13 0.017   0.92 0.71 0.21 0.011   0 0 0 0.1]],
+        colormap           = [[0.9 0.9 0.9 0.9   0.8 0.8 0.8 0.8   0 0 0 0.1]],
         directional        = true,
         emitrot            = 30,
         emitrotspread      = 50,
@@ -574,7 +574,7 @@ return {
     },
   },
 
-  ["levelup_ring_fp1"] = {
+  ["levelup_ring_fp_arm1"] = {
     levelupring = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -583,7 +583,7 @@ return {
       underwater         = 1,
       water              = true,
       properties = {
-        colormap           = [[0.96 0.76 0.13 0.33   0.99 0.95 0.27 0.22   0.92 0.71 0.21 0.011   0 0 0 0.01]],
+        colormap           = [[0.9 0.9 0.9 0.9   0.85 0.85 0.85 0.85   0.8 0.8 0.8 0.8   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
         --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0,
@@ -599,7 +599,7 @@ return {
   },
 
 
-  ["levelup_ring_fp2"] = {
+  ["levelup_ring_fp_arm2"] = {
     levelupring = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -608,7 +608,7 @@ return {
       underwater         = 1,
       water              = true,
       properties = {
-        colormap           = [[0.96 0.76 0.13 0.33   0.99 0.95 0.27 0.22   0.92 0.71 0.21 0.011   0 0 0 0.01]],
+        colormap           = [[0.9 0.9 0.9 0.9   0.85 0.85 0.85 0.85   0.8 0.8 0.8 0.8   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
         --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0,
@@ -623,7 +623,7 @@ return {
     },
   },
 
-  ["levelup_ring_fp3"] = {
+  ["levelup_ring_fp_arm3"] = {
     levelupring = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -632,7 +632,7 @@ return {
       underwater         = 1,
       water              = true,
       properties = {
-        colormap           = [[0.96 0.76 0.13 0.33   0.99 0.95 0.27 0.22   0.92 0.71 0.21 0.011   0 0 0 0.01]],
+        colormap           = [[0.9 0.9 0.9 0.9   0.85 0.85 0.85 0.85   0.8 0.8 0.8 0.8   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
         --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0,
@@ -647,7 +647,7 @@ return {
     },
   },
 
-  ["levelup_ring_fp4"] = {
+  ["levelup_ring_fp_arm4"] = {
     levelupring = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -656,7 +656,7 @@ return {
       underwater         = 1,
       water              = true,
       properties = {
-        colormap           = [[0.96 0.76 0.13 0.33   0.99 0.95 0.27 0.22   0.92 0.71 0.21 0.011   0 0 0 0.01]],
+        colormap           = [[0.9 0.9 0.9 0.9   0.85 0.85 0.85 0.85   0.8 0.8 0.8 0.8   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
         --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0,
@@ -671,7 +671,7 @@ return {
     },
   },
 
-  ["levelup_ring_fp5"] = {
+  ["levelup_ring_fp_arm5"] = {
     levelupring = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -680,7 +680,7 @@ return {
       underwater         = 1,
       water              = true,
       properties = {
-        colormap           = [[0.96 0.76 0.13 0.33   0.99 0.95 0.27 0.22   0.92 0.71 0.21 0.011   0 0 0 0.01]],
+        colormap           = [[0.9 0.9 0.9 0.9   0.85 0.85 0.85 0.85   0.8 0.8 0.8 0.8   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
         --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0,

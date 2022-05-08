@@ -18,33 +18,34 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- ceg - ceg to spawn when explosion happens
--- ceg - ceg to spawn when damage is dealt
+-- damageCeg - ceg to spawn when damage is dealt
 -- time - how long the effect should stay
 -- damage - damage per second
 -- range - from center to edge, in elmos
+-- resistance - defines which units are resistant to this type of damage when it matches with 'areadamageresistance' customparameter in a unit.
 
 local TimedDamageWeapons = {
     [WeaponDefNames.chickenacidassault_acidspit.id] = {
         ceg = "acid-area-150", 
         damageCeg = "acid-damage-gen", 
         time = 10,
-        damage = 150,
+        damage = 300,
         range = 150,
         resistance = "_CHICKENACID_",
     },
     [WeaponDefNames.chickenacidarty_acidspit.id] = {
-        ceg = "acid-area-192", 
+        ceg = "acid-area-150", 
         damageCeg = "acid-damage-gen", 
         time = 10,
-        damage = 150,
-        range = 192,
+        damage = 120,
+        range = 150,
         resistance = "_CHICKENACID_",
     },
     [WeaponDefNames.chickenacidbomber_acidbomb.id] = {
         ceg = "acid-area-75", 
         damageCeg = "acid-damage-gen", 
         time = 10,
-        damage = 150,
+        damage = 300,
         range = 75,
         resistance = "_CHICKENACID_",
     },
@@ -52,7 +53,15 @@ local TimedDamageWeapons = {
         ceg = "acid-area-75", 
         damageCeg = "acid-damage-gen", 
         time = 10,
-        damage = 50,
+        damage = 150,
+        range = 75,
+        resistance = "_CHICKENACID_",
+    },
+    [WeaponDefNames.chickenacidallterrain_acidspit.id] = {
+        ceg = "acid-area-75", 
+        damageCeg = "acid-damage-gen", 
+        time = 10,
+        damage = 150,
         range = 75,
         resistance = "_CHICKENACID_",
     },
@@ -63,7 +72,7 @@ local TimedDamageDyingUnits = {
         ceg = "acid-area-150", 
         damageCeg = "acid-damage-gen", 
         time = 10,
-        damage = 100,
+        damage = 300,
         range = 150,
         resistance = "_CHICKENACID_",
     },
@@ -71,7 +80,7 @@ local TimedDamageDyingUnits = {
         ceg = "acid-area-150", 
         damageCeg = "acid-damage-gen", 
         time = 10,
-        damage = 100,
+        damage = 300,
         range = 150,
         resistance = "_CHICKENACID_",
     },
@@ -79,7 +88,15 @@ local TimedDamageDyingUnits = {
         ceg = "acid-area-75", 
         damageCeg = "acid-damage-gen", 
         time = 10,
-        damage = 33,
+        damage = 150,
+        range = 75,
+        resistance = "_CHICKENACID_",
+    },
+    [UnitDefNames.chickenacidallterrain.id] = {
+        ceg = "acid-area-75", 
+        damageCeg = "acid-damage-gen", 
+        time = 10,
+        damage = 150,
         range = 75,
         resistance = "_CHICKENACID_",
     },

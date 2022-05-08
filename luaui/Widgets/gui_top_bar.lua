@@ -1574,28 +1574,6 @@ function widget:DrawScreen()
 				end
 				glCallList(dlistWindText[currentWind])
 			end
-		else
-			if WG['tooltip'] ~= nil then
-				if now < 90 then
-					windTooltipSet = true
-					if (minWind + maxWind) / 2 < 5.5 then
-						WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth1'), windArea[1], windArea[2] - bgpadding)
-					elseif (minWind + maxWind) / 2 >= 5.5 and (minWind + maxWind) / 2 < 7 then
-						WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth2'), windArea[1], windArea[2] - bgpadding)
-					elseif (minWind + maxWind) / 2 >= 7 and (minWind + maxWind) / 2 < 8.5 then
-						WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth3'), windArea[1], windArea[2] - bgpadding)
-					elseif (minWind + maxWind) / 2 >= 8.5 and (minWind + maxWind) / 2 < 10 then
-						WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth4'), windArea[1], windArea[2] - bgpadding)
-					elseif (minWind + maxWind) / 2 >= 10 and (minWind + maxWind) / 2 < 15 then
-						WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth5'), windArea[1], windArea[2] - bgpadding)
-					elseif (minWind + maxWind) / 2 >= 15 then
-						WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth6'), windArea[1], windArea[2] - bgpadding)
-					end
-				elseif windTooltipSet then
-					windTooltipSet = nil
-					WG['tooltip'].RemoveTooltip('topbar_windinfo')	-- should happen automatically, but sometimes it remained so adding just in case
-				end
-			end
 		end
 	end
 
