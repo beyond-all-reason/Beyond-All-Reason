@@ -277,6 +277,9 @@ function LuaShader:CreateLineTable()
 end
 
 local function translateLines(alllines, errorcode) 
+	if string.len(errorcode) < 3 then 
+		return ("The shader compilation error code was very short. This likely means a Linker error, check the [in] [out] blocks linking VS/GS/FS shaders to each other to make sure the structs match")
+	end
 	local result = ""
 	for _,line in pairs(lines(errorcode)) do 
 		local pstart = line:find("(", nil, true)
