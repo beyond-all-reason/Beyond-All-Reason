@@ -285,10 +285,10 @@ vertex = [[
 
 		//modelVertexPos = piecePos;
 		
-		//#ifdef TREE_RANDOMIZATION 
+		#ifdef TREE_RANDOMIZATION 
 			float randomScale = fract(float(unitID)*0.01)*0.2 + 0.9;
 			piecePos.xyz *= randomScale;
-		//#endif
+		#endif
 		
 		modelVertexPosOrig = piecePos;
 		vec3 modelVertexNormal = normal;
