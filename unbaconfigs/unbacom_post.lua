@@ -141,6 +141,19 @@ function UnbaCom_Post(name)
 		tablecom.weapondefs["disintegrator"].customparams.expl_light_radius_mult = 0.9
 		tablecom.weapondefs["disintegrator"].customparams.expl_light_life_mult = 1.55
 		tablecom.weapondefs["disintegrator"].customparams.expl_light_heat_life_mult = "1.6"
+		tablecom.weapondefs["disintegrator"].avoidfeature = false
+		tablecom.weapondefs["disintegrator"].avoidfriendly = false
+		tablecom.weapondefs["disintegrator"].avoidground = false
+		tablecom.weapondefs["disintegrator"].bouncerebound = 0
+		tablecom.weapondefs["disintegrator"].commandfire = true
+		tablecom.weapondefs["disintegrator"].craterboost = 0
+		tablecom.weapondefs["disintegrator"].cratermult = 0
+		tablecom.weapondefs["disintegrator"].impulseboost = 0.001
+		tablecom.weapondefs["disintegrator"].impulsefactor = 0.001
+		tablecom.weapondefs["disintegrator"].soundtrigger = true
+		tablecom.weapondefs["disintegrator"].turret = true
+		tablecom.weapondefs["disintegrator"].waterweapon = true		
+
 
 --[[		
 		tablecom.weapondefs["disintegrator2"] = table.copy(tablecom.weapondefs["disintegrator"])
@@ -259,7 +272,8 @@ function UnbaCom_Post(name)
 		end
 	
 		tablecom.weapondefs["disintegrator"].reloadtime = 10
-		tablecom.weapondefs["disintegrator"].energypershot = 1200		
+		tablecom.weapondefs["disintegrator"].energypershot = 1200
+
 		
 	end
 

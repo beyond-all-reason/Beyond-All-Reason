@@ -40,13 +40,8 @@ ArmDefsBuildOptions =
 			"armfast",
 			"armspid",
 			"armsptk",
-			"armfark",
 			"armack",
-			"armjamt",
-			"armcv",
 			"armgremlin",
-			"armyork",
-			"armpeep",
 			"armdfly",
 			
 			
@@ -58,24 +53,24 @@ ArmBuildOptions =
 			armsolar = 1,
 			armwin = 1,			
 			armmex = 1,
-			armmoho = 13,			
+			armmoho = 8,			
 			armmakr = 1,
 			armuwmme = 1,
-			armmmkr = 17,
+			armmmkr = 12,
 			armtide = 1,		
 			armfmkr = 1,
-			armuwmme = 13,
+			armuwmme = 8,
 			---LAB---
 			armlab = 1,
 			armvp = 1,
-			armavp = 12,
+			armavp = 7,
 			armap = 1,
 			armhp = 1,
-			armalab = 12,
-			armaap = 12,
-			armshltx = 18,
+			armalab = 7,
+			armaap = 7,
+			armshltx = 13,
 			armsy = 1,
-			armasy = 12,
+			armasy = 7,
 			---STATICS---
 			armeyes = 1,			
 			armrad = 1,
@@ -89,27 +84,21 @@ ArmBuildOptions =
 			armtl = 1,
 			armfrt = 1,
 			armfrad = 1,
-			armgate = 14,
+			armgate = 9,
 			armjamt = 6,
 			---UNITS---
 			armrectr = 2,
-			armfast = 7,
-			armspid = 8,
-			armsptk = 8,
-			armfark = 9,
-			armack = 15,
-			armcv = 4,
-			armgremlin = 11,
-			armyork = 10,
-			armpeep = 5,
-			armdfly = 16
+			armfast = 4,
+			armspid = 5,
+			armsptk = 5,
+			armack = 10,
+			armgremlin = 6,
+			armdfly = 11
 }
 ArmBuildOptionsStop = 
 {
-			armmex = 13,
+			armmex = 8,
 			armdrag = 3,
-			armrl = 5,
-			armfrt = 5,
 }
 CorDefsBuildOptions = 
 {
@@ -145,7 +134,6 @@ CorDefsBuildOptions =
 			"cortl",
 			"corfrt",
 			"corfrad",
-			"cormine1",
 			"corbhmth",
 			---UNITS---
 			"corck",
@@ -153,12 +141,8 @@ CorDefsBuildOptions =
 			"corspy",
 			"corsktl",
 			"corcan",
-			"cormando",
-			"cordecom",
 			"corkarg",
-			"corfav",
 			"coracv",
-			"corvalk"
 }
 CorBuildOptions = 
 {
@@ -166,23 +150,23 @@ CorBuildOptions =
 			corsolar = 1,
 			corwin = 1,			
 			cormex = 1,
-			cormoho = 13,	
+			cormoho = 8,	
 			cormakr = 1,
-			cormmkr = 17,
+			cormmkr = 12,
 			cortide = 1,			
 			corfmkr = 1,
-			coruwmme = 13,		
+			coruwmme = 8,		
 			---LABS---
 			corlab = 1,
-			coralab = 12,
+			coralab = 7,
 			corvp = 1,
 			corap = 1,
-			coraap = 12,
-			coravp = 12,
+			coraap = 7,
+			coravp = 7,
 			corhp = 1,	
 			corsy = 1,
-			corasy = 12,
-			corgant = 18,
+			corasy = 7,
+			corgant = 13,
 			---STATICS---
 			coreyes = 1,			
 			corrad = 1,
@@ -194,24 +178,19 @@ CorBuildOptions =
 			cortl = 1,
 			corfrt = 1,
 			corfrad = 1,
-			cormine1 = 3,
-			corbhmth = 14,
+			corbhmth = 9,
 			---UNITS---
 			corck = 2,
-			corspec = 6,
-			corspy = 7,
-			corsktl = 8,
-			corcan = 9,
-			cormando = 10,
-			cordecom = 11,
-			corkarg = 16,
-			corfav = 4,
-			coracv = 15,
-			corvalk = 5
+			corspec = 3,
+			corspy = 4,
+			corsktl = 5,
+			corcan = 6,
+			corkarg = 11,
+			coracv = 10,
 }
 CorBuildOptionsStop = 
 {
-			cormex = 13,
+			cormex = 8,
 }
 --armlevel1buildoptions = {
 --			"armsolar",
