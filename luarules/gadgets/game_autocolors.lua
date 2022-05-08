@@ -62,7 +62,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- "#FFD70D", -- Yellow
 		"#FF00DB", -- Fuchsia
 		"#0CC4E8", -- Turquoise
-		"#FF6B00", -- Orange
+		--"#FF6B00", -- Orange
 		"#86FFD1", -- Light Turquoise Green
 		-- "#F6BB56", -- Light Brown
 		"#68B900", -- Dark Lime
@@ -72,7 +72,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- "#FFF2AE", -- Very Light Yellow
 		"#FFAAF3", -- Very Light Fuchsia
 		"#90E5F5", -- Light Turquoise
-		"#FF9055", -- Light Orange
+		--"#FF9055", -- Light Orange
 		"#00AA69", -- Dark Turquoise Green
 		"#9B6408", -- Dark Brown
 		-- "#C4FF79", -- Light Lime
