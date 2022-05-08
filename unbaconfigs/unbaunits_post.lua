@@ -3,7 +3,7 @@ local function unbaUnitTweaks(name, uDef)
     --     uDef.maxvelocity = uDef.maxvelocity*2
     -- end
 	if name == "armcom" or name == "corcom" then
-		uDef.maxdamage = 4500
+		uDef.maxdamage = 7500
 	end
 	--------------------------------------------
 	---					ARM					 ---

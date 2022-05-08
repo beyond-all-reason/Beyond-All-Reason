@@ -198,31 +198,31 @@ function HandleLevelUps()
 		if hp and hp > 1 and (Spring.GetUnitIsDead(unitID) == false) then
 			local fxp = Spring.GetUnitExperience(unitID)
 			local realxp = 100 * fxp
-		if realxp > 100 and level == 17 then
+		if realxp > 200 and level == 17 then
 			LevelUpStats(17)
-		elseif realxp > 84 and level == 16 then
+		elseif realxp > 170 and level == 16 then
 			LevelUpStats(16)
-		elseif realxp > 70 and level == 15 then
+		elseif realxp > 145 and level == 15 then
 			LevelUpStats(15)
-		elseif realxp > 68 and level == 14 then
+		elseif realxp > 120 and level == 14 then
 			LevelUpStats(14)
-		elseif realxp > 56 and level == 13 then
+		elseif realxp > 95 and level == 13 then
 			LevelUpStats(13)
-		elseif realxp > 46 and level == 12 then
+		elseif realxp > 70 and level == 12 then
 			LevelUpStats(12)
-		elseif realxp > 36 and level == 11 then
+		elseif realxp > 50 and level == 11 then
 			LevelUpStats(11)			
-		elseif realxp > 30 and level == 10 then
+		elseif realxp > 40 and level == 10 then
 			LevelUpStats(10)
-		elseif realxp > 25 and level == 9 then
+		elseif realxp > 30 and level == 9 then
 			LevelUpStats(9)
-		elseif realxp > 20 and level == 8 then
+		elseif realxp > 24 and level == 8 then
 			LevelUpStats(8)
-		elseif realxp > 16 and level == 7 then
+		elseif realxp > 18 and level == 7 then
 			LevelUpStats(7)
-		elseif realxp > 12 and level == 6 then
+		elseif realxp > 14 and level == 6 then
 			LevelUpStats(6)
-		elseif realxp > 9 and level == 5 then
+		elseif realxp > 10 and level == 5 then
 			LevelUpStats(5)
 		elseif realxp > 6 and level == 4 then
 			LevelUpStats(4)
@@ -865,7 +865,7 @@ function Rooting()
 		local XLocation, YLocation, ZLocation = Spring.GetUnitPosition(unitID)
 		Sleep (2000)
 		local NewXLocation, NewYLocation, _ = Spring.GetUnitPosition(unitID)
-		if XLocation == NewXLocation and YLocation == NewYLocation then
+		if math.abs(XLocation - NewXLocation) < 30  and math.abs(YLocation - NewYLocation) < 30 then
 			RootTimeSeconds = (Spring.GetGameFrame() - RootStart) / 30
 			if RootTimeSeconds / 60 >= 60 then
 				RootIncome = 40000
