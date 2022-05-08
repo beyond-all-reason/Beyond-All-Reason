@@ -1,6 +1,6 @@
 
 --Skeleton pieces
-local head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot ,lfoot, dish, barrel, aimy1, bigguncyl,hatpoint = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg" ,"rleg","rfoot" ,"lfoot", "dish", "barrel", "aimy1","bigguncyl","hatpoint")    
+local head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot ,lfoot, dish, barrel, aimy1, bigguncyl,hatpoint = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg" ,"rleg","rfoot" ,"lfoot", "dish", "barrel", "aimy1","bigguncyl","hatpoint")
 
 
 --Stats Table:
@@ -40,7 +40,7 @@ end
 local function turn(piece, axis, goal, speed)
 	if speed then
 		if axis == 3 then
-			Turn(piece, axis, -rad(goal), rad(speed))		
+			Turn(piece, axis, -rad(goal), rad(speed))
 		else
 			Turn(piece, axis, rad(goal), rad(speed))
 		end
@@ -71,7 +71,7 @@ x,y,z = Spring.GetUnitPosition(unitID)
 									if newhp2 > maxhp2*bprog then
 										newhp2 = maxhp2
 									end
-									Spring.SetUnitHealth(uid, newhp2)	
+									Spring.SetUnitHealth(uid, newhp2)
 									if Spring.GetGameFrame() %60 == 0 then
 									x2, y2, z2 = Spring.GetUnitPosition(uid)
 										if newhp2>oldhp2 then
@@ -277,7 +277,7 @@ if ValidID(unitID) then
 	curHP = Spring.GetUnitHealth(unitID)
 	Spring.SetUnitHealth(unitID, curHP + HealOnLevelUp[level])
 	Spring.SetUnitResourcing(unitID, "ume", EnergyMake[level])
-	Spring.SetUnitResourcing(unitID, "umm", MetalMake[level] + RootIncome)	
+	Spring.SetUnitResourcing(unitID, "umm", MetalMake[level] + RootIncome)
 	cmdArrays = Spring.GetUnitCmdDescs(unitID)
 	for ct, cmdarray in pairs(cmdArrays) do
 		if cmdarray.id < 0 then
@@ -329,7 +329,7 @@ function script.StartMoving()
 	bMoving = true
 	StartThread(walk)
 end
-	
+
 function script.StopMoving()
 	Signal(SIG_WALK)
 	bMoving = false
@@ -378,7 +378,7 @@ function script.AimWeapon(weapon, heading, pitch)
 			_,uwlaserheight = Spring.GetUnitPiecePosDir(unitID, torso)
 		if uwlaserheight > 0 then
 			return false, "uwlaserheight > 0"
-		end 
+		end
 		if isAimingDgun == true then
 			return false, "isAimingDgun == true"
 		else
@@ -584,7 +584,7 @@ function walk()
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:16
-				
+
 				if (leftArm) then turn(biggun, 1, -47.068049, 28.724907/animSpeed) end--delta=0.96
 				turn(head, 1, -0.505722, 15.861819/animSpeed) --delta=0.53
 				turn(head, 2, -6.127755, 45.958102/animSpeed) --delta=1.53
@@ -728,7 +728,7 @@ function walk()
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:36
-				
+
 				if (leftArm) then turn(biggun, 1, -56.389444, 34.090567/animSpeed) end--delta=1.14
 				turn(head, 1, 0.023005, 47.585536/animSpeed) --delta=-1.59
 				turn(head, 2, 7.659692, 45.958102/animSpeed) --delta=1.53
@@ -967,19 +967,19 @@ function Rooting()
 				Spring.SpawnCEG("levelup_fp_arm1", XLocation, YLocation, ZLocation)
 			elseif RootTimeSeconds / 60 >= 5 then
 				RootIncome = 5
-				Spring.SpawnCEG("levelup_ring_fp_arm5", XLocation, YLocation, ZLocation)	
+				Spring.SpawnCEG("levelup_ring_fp_arm5", XLocation, YLocation, ZLocation)
 			elseif RootTimeSeconds / 60 >= 4 then
 				RootIncome = 4
-				Spring.SpawnCEG("levelup_ring_fp_arm4", XLocation, YLocation, ZLocation)	
+				Spring.SpawnCEG("levelup_ring_fp_arm4", XLocation, YLocation, ZLocation)
 			elseif RootTimeSeconds / 60 >= 3 then
 				RootIncome = 3
-				Spring.SpawnCEG("levelup_ring_fp_arm3", XLocation, YLocation, ZLocation)	
+				Spring.SpawnCEG("levelup_ring_fp_arm3", XLocation, YLocation, ZLocation)
 			elseif RootTimeSeconds / 60 >= 2 then
 				RootIncome = 2
-				Spring.SpawnCEG("levelup_ring_fp_arm2", XLocation, YLocation, ZLocation)	
+				Spring.SpawnCEG("levelup_ring_fp_arm2", XLocation, YLocation, ZLocation)
 			elseif RootTimeSeconds / 60 >= 1 then
 				RootIncome = 1
-				Spring.SpawnCEG("levelup_ring_fp_arm1", XLocation, YLocation, ZLocation)				
+				Spring.SpawnCEG("levelup_ring_fp_arm1", XLocation, YLocation, ZLocation)
 			elseif RootTimeSeconds / 60 < 1 then
 				RootIncome = 0
 			end

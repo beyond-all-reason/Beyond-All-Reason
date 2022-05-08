@@ -28,7 +28,7 @@ return {
 		mass = 35,
 		maxdamage = 445,
 		maxslope = 18,
-		maxvelocity = 2.9,
+		maxvelocity = 3.5,
 		maxwaterdepth = 0,
 		movementclass = "CHICKSMALLHOVER",
 		noautofire = false,

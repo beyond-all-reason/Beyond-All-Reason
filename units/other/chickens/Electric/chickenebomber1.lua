@@ -37,7 +37,7 @@ return {
 		maxacc = 0.5325,
 		maxaileron = 0.01718,
 		maxbank = 0.8,
-		maxdamage = 1800,
+		maxdamage = 6000,
 		maxelevator = 0.01343,
 		maxpitch = 0.625,
 		maxrudder = 0.00893,
@@ -113,7 +113,7 @@ return {
 				sprayangle = 400,
 				weapontype = "AircraftBomb",
 				damage = {
-					default = 5000,
+					default = 10000,
 				},
 				customparams = {
 					expl_light_life_mult = 1.2,
