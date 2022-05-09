@@ -63,14 +63,14 @@ ArmBuildOptions =
 			---LAB---
 			armlab = 1,
 			armvp = 1,
-			armavp = 7,
+			armavp = 4,
 			armap = 1,
 			armhp = 1,
-			armalab = 7,
-			armaap = 7,
+			armalab = 4,
+			armaap = 4,
 			armshltx = 13,
 			armsy = 1,
-			armasy = 7,
+			armasy = 4,
 			---STATICS---
 			armeyes = 1,			
 			armrad = 1,
@@ -88,11 +88,11 @@ ArmBuildOptions =
 			armjamt = 6,
 			---UNITS---
 			armrectr = 2,
-			armfast = 4,
-			armspid = 5,
-			armsptk = 5,
+			armfast = 5,
+			armspid = 6,
+			armsptk = 6,
 			armack = 10,
-			armgremlin = 6,
+			armgremlin = 7,
 			armdfly = 11
 }
 ArmBuildOptionsStop = 
@@ -158,14 +158,14 @@ CorBuildOptions =
 			coruwmme = 8,		
 			---LABS---
 			corlab = 1,
-			coralab = 7,
+			coralab = 4,
 			corvp = 1,
 			corap = 1,
-			coraap = 7,
-			coravp = 7,
+			coraap = 4,
+			coravp = 4,
 			corhp = 1,	
 			corsy = 1,
-			corasy = 7,
+			corasy = 4,
 			corgant = 13,
 			---STATICS---
 			coreyes = 1,			
@@ -182,9 +182,9 @@ CorBuildOptions =
 			---UNITS---
 			corck = 2,
 			corspec = 3,
-			corspy = 4,
-			corsktl = 5,
-			corcan = 6,
+			corspy = 5,
+			corsktl = 6,
+			corcan = 7,
 			corkarg = 11,
 			coracv = 10,
 }
