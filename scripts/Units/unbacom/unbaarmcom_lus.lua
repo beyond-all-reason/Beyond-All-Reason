@@ -400,7 +400,6 @@ function script.AimWeapon(weapon, heading, pitch)
 			return false, "weapon > 29"
 		end
 	elseif weapon == 30 then
-		Spring.Echo("weapon 30:",weapon, level)
 		isAimingDgun = true
 		isAiming = true
 		leftArm = false
