@@ -500,6 +500,7 @@ if gadgetHandler:IsSyncedCode() then
 						targetx = xaverage
 						targetz = zaverage
 						targety = Spring.GetGroundHeight(targetx, targetz)
+						role = "raid"
 					end
 				end
 			end
@@ -985,29 +986,31 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 				end
-				if cleanersSpawned == false and math.random(1,SetCount(burrows)) == 1 then
-					local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
-					local targetCleaners = currentWave*SetCount(humanTeams)
-					local cleanerSpawnCount = targetCleaners - aliveCleaners
-					if cleanerSpawnCount > 0 then
-						for i = 1,math.ceil(cleanerSpawnCount) do
-							if math.random(0,1) == 0 then
-								table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = i })
-							else
-								table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = i })
+				if cleanersSpawned == false and mRandom() > config.spawnChance then
+					if queenAnger > 10 then
+						local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
+						local targetCleaners = currentWave*SetCount(humanTeams)
+						local cleanerSpawnCount = targetCleaners - aliveCleaners
+						if cleanerSpawnCount > 0 then
+							for i = 1,math.ceil(cleanerSpawnCount) do
+								if math.random(0,1) == 0 then
+									table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = i })
+								else
+									table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = i })
+								end
+								cCount = cCount + 1
 							end
-							cCount = cCount + 1
 						end
 					end
 					cleanersSpawned = true
-				elseif overseerSpawned == false and math.random(1,SetCount(burrows)*2) == 1 then
-					if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh5"].id) < currentWave-1 and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh5"].id) < SetCount(humanTeams) then
+				elseif overseerSpawned == false and mRandom() > config.spawnChance then
+					if queenAnger > 50 and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh5"].id) < SetCount(humanTeams) then
 						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh5", team = chickenTeamID, })
 						cCount = cCount + 1
 					end
 					overseerSpawned = true
-				elseif scoutSpawned == false and math.random(1,SetCount(burrows)*2) == 1 then
-					if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenf2"].id) < currentWave and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenf2"].id) < SetCount(humanTeams) then
+				elseif scoutSpawned == false and mRandom() > config.spawnChance then
+					if queenAnger > 40 and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenf2"].id) < SetCount(humanTeams) then
 						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenf2", team = chickenTeamID, })
 						cCount = cCount + 1
 					end
@@ -1090,6 +1093,7 @@ if gadgetHandler:IsSyncedCode() then
 			if weaponID == -1 and damage > 25000 then
 				damage = 25000
 			end
+			damage = damage/SetCount(humanTeams)*0.5
 			if attackerDefID then
 				if not queenResistance[weaponID] then
 					queenResistance[weaponID] = {}
@@ -1457,7 +1461,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local squadID = (n % #squadsTable)+1
 		if not chickenteamhasplayers then
-			if math.random(1,5) == 1 and squadID and squadsTable[squadID] and squadsTable[squadID].role ~= "aircraft" then
+			if squadID and squadsTable[squadID] and squadsTable[squadID].role ~= "aircraft" then
 				local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
 				if targetx then
 					squadCommanderGiveOrders(squadID, targetx, targety, targetz)
