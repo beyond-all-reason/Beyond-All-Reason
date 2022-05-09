@@ -118,6 +118,7 @@ if gadgetHandler:IsSyncedCode() then
 	local unitSquadTable = {}
 	local squadPotentialTarget = {}
 	local unitTargetPool = {}
+	local unitCowardCooldown = {}
 	local squadCreationQueue = {
 		units = {},
 		role = false,
@@ -508,15 +509,17 @@ if gadgetHandler:IsSyncedCode() then
 			for i, unitID in pairs(units) do
 				if ValidUnitID(unitID) and not GetUnitIsDead(unitID) and not GetUnitNeutral(unitID) then
 					-- Spring.Echo("GiveOrderToUnit #" .. i)
-					if role == "assault" or role == "healer" then
-						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+math.random(-128, 128), targety, targetz+math.random(-128, 128)} , {})
-					elseif role == "raid" then
-						Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+math.random(-128, 128), targety, targetz+math.random(-128, 128)} , {})
-					elseif role == "aircraft" then
-						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+math.random(-128, 128), targety, targetz+math.random(-128, 128)} , {})
-						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
-						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
-						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
+					if not unitCowardCooldown[unitID] then
+						if role == "assault" or role == "healer" or role == "artillery" then
+							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+math.random(-128, 128), targety, targetz+math.random(-128, 128)} , {})
+						elseif role == "raid" then
+							Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+math.random(-128, 128), targety, targetz+math.random(-128, 128)} , {})
+						elseif role == "aircraft" then
+							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+math.random(-128, 128), targety, targetz+math.random(-128, 128)} , {})
+							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
+							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
+							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
+						end
 					end
 				end
 			end
@@ -1130,6 +1133,7 @@ if gadgetHandler:IsSyncedCode() then
 					local angle = math.atan2(ux - x, uz - z)
 					local distance = mRandom(math.ceil(SKIRMISH[attackerDefID].distance*0.75), math.floor(SKIRMISH[attackerDefID].distance*1.25))
 					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
+					unitCowardCooldown[unitID] = true
 				end
 			elseif COWARD[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < COWARD[unitDefID].chance) then
 				local curH, maxH = GetUnitHealth(unitID)
@@ -1140,17 +1144,20 @@ if gadgetHandler:IsSyncedCode() then
 						local angle = math.atan2(ax - x, az - z)
 						local distance = mRandom(math.ceil(COWARD[unitDefID].distance*0.75), math.floor(COWARD[unitDefID].distance*1.25))
 						Spring.GiveOrderToUnit(unitID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
+						unitCowardCooldown[unitID] = true
 					end
 				end
 			elseif BERSERK[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < BERSERK[unitDefID].chance) then
 				local ax, ay, az = GetUnitPosition(attackerID)
 				if ax then
 					Spring.GiveOrderToUnit(unitID, CMD.MOVE, { ax+math.random(-64,64), ay, az+math.random(-64,64)}, {})
+					unitCowardCooldown[unitID] = true
 				end
 			elseif BERSERK[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < BERSERK[attackerDefID].chance) then
 				local ax, ay, az = GetUnitPosition(unitID)
 				if ax then
 					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { ax+math.random(-64,64), ay, az+math.random(-64,64)}, {})
+					unitCowardCooldown[unitID] = true
 				end
 			end
 		end
@@ -1210,7 +1217,7 @@ if gadgetHandler:IsSyncedCode() then
 				squadCreationQueue.life = 20
 			end
 			if ARTILLERY[UnitDefNames[defs.unitName].id] then
-				squadCreationQueue.role = "assault"
+				squadCreationQueue.role = "artillery"
 				squadCreationQueue.life = 50
 			end
 			if UnitDefNames[defs.unitName].canFly then
@@ -1465,7 +1472,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local squadID = (n % #squadsTable)+1
 		if not chickenteamhasplayers then
-			if squadID and squadsTable[squadID] and squadsTable[squadID].role ~= "aircraft" then
+			if squadID and squadsTable[squadID] and squadsTable[squadID].squadRole ~= "aircraft" and squadsTable[squadID].squadRole ~= "artillery" then
 				local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
 				if targetx then
 					squadCommanderGiveOrders(squadID, targetx, targety, targetz)
@@ -1478,6 +1485,9 @@ if gadgetHandler:IsSyncedCode() then
 			local chickens = Spring.GetTeamUnits(chickenTeamID)
 			for i = 1,#chickens do 
 				if Spring.GetCommandQueue(chickens[i], 0) <= 0 then
+					if unitCowardCooldown[chickens[i]] then
+						unitCowardCooldown[chickens[i]] = nil
+					end
 					local squadID = unitSquadTable[chickens[i]]
 					if squadID then
 						local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
