@@ -472,7 +472,7 @@ if gadgetHandler:IsSyncedCode() then
 		local role = squadsTable[squadID].squadRole
 		if SetCount(units) > 0 and squadsTable[squadID].target and squadsTable[squadID].target.x then
 			
-			if role ~= "aircraft" then -- Regroup check
+			if role ~= "aircraft" then
 				local xmin = 999999
 				local xmax = 0
 				local zmin = 999999
@@ -496,7 +496,7 @@ if gadgetHandler:IsSyncedCode() then
 				if count > 0 then
 					local xaverage = xsum/count
 					local zaverage = zsum/count
-					if xmin < xaverage-512 or xmax > xaverage+512 or zmin < zaverage-512 or zmax > zaverage+512 then
+					if xmin < xaverage-256 or xmax > xaverage+256 or zmin < zaverage-256 or zmax > zaverage+256 then
 						targetx = xaverage
 						targetz = zaverage
 						targety = Spring.GetGroundHeight(targetx, targetz)
@@ -508,11 +508,11 @@ if gadgetHandler:IsSyncedCode() then
 				if ValidUnitID(unitID) and not GetUnitIsDead(unitID) and not GetUnitNeutral(unitID) then
 					-- Spring.Echo("GiveOrderToUnit #" .. i)
 					if role == "assault" or role == "healer" then
-						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+math.random(-256, 256), targety, targetz+math.random(-256, 256)} , {})
+						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+math.random(-128, 128), targety, targetz+math.random(-128, 128)} , {})
 					elseif role == "raid" then
-						Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+math.random(-256, 256), targety, targetz+math.random(-256, 256)} , {})
+						Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+math.random(-128, 128), targety, targetz+math.random(-128, 128)} , {})
 					elseif role == "aircraft" then
-						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+math.random(-256, 256), targety, targetz+math.random(-256, 256)} , {})
+						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+math.random(-128, 128), targety, targetz+math.random(-128, 128)} , {})
 						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
 						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
 						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
@@ -1454,6 +1454,17 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if n%30 == 10 and n > 300 and chickenTeamUnitCount < maxChicken then
 			queueTurretSpawnIfNeeded()
+		end
+		local squadID = (n % #squadsTable)+1
+		if not chickenteamhasplayers then
+			if math.random(1,5) == 1 and squadID and squadsTable[squadID] and squadsTable[squadID].role ~= "aircraft" then
+				local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
+				if targetx then
+					squadCommanderGiveOrders(squadID, targetx, targety, targetz)
+				else
+					refreshSquad(squadID)
+				end
+			end
 		end
 		if n%300 == 100 and not chickenteamhasplayers then
 			local chickens = Spring.GetTeamUnits(chickenTeamID)
