@@ -448,6 +448,34 @@ local function addConsoleLine(gameFrame, lineType, text, isLive)
 	end
 end
 
+local function colourNames(teamID)
+	local nameColourR, nameColourG, nameColourB = Spring.GetTeamColor(teamID)
+	local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
+	local G255 = math.floor(nameColourG * 255)
+	local B255 = math.floor(nameColourB * 255)
+	if R255 % 10 == 0 then
+		R255 = R255 + 1
+	end
+	if G255 % 10 == 0 then
+		G255 = G255 + 1
+	end
+	if B255 % 10 == 0 then
+		B255 = B255 + 1
+	end
+	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255) --works thanks to zwzsg
+end
+
+local function teamcolorPlayername(playername)
+	local playersList = Spring.GetPlayerList()
+	for _, playerID in ipairs(playersList) do
+		local name,_,_,teamID = Spring.GetPlayerInfo(playerID, false)
+		if name == playername then
+			return colourNames(teamID)..playername
+		end
+	end
+	return playername
+end
+
 local function addChat(gameFrame, lineType, name, text, isLive)
 	if not text or text == '' then return end
 
@@ -461,15 +489,31 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 	local wordwrappedText = wordWrap(textLines, lineMaxWidth, usedFontSize)
 
 	local sendMetal, sendEnergy, sendUnits
+	local msgColor = '\255\190\190\190shared '
 	if lineType == 1 and sfind(text, 'I sent ', nil, true) then
 		if sfind(text, ' metal to ', nil, true) then
-			sendMetal = string.match(string.sub(text, string.find(text, 'I sent ')+7), '([0-9]*)')
+			sendMetal = tonumber(string.match(ssub(text, sfind(text, 'I sent ')+7), '([0-9]*)'))
+			local receiver = teamcolorPlayername(ssub(text, sfind(text, ' metal to ')+10))
+			--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendMetal..' metal to '..receiver
+			--msgColor = ssub(text, 1, sfind(text, 'I sent ')-1)
+			text = msgColor..sendMetal..' metal to '..receiver
+			lineType = 5
 		elseif sfind(text, ' energy to ', nil, true) then
-			sendEnergy = string.match(string.sub(text, string.find(text, 'I sent ')+7), '([0-9]*)')
+			sendEnergy = tonumber(string.match(ssub(text, sfind(text, 'I sent ')+7), '([0-9]*)'))
+			local receiver = teamcolorPlayername(ssub(text, sfind(text, ' energy to ')+11))	-- no dot stripping needed here
+			--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendEnergy..' energy to '..receiver
+			--msgColor = ssub(text, 1, sfind(text, 'I sent ')-1)
+			text = msgColor..sendEnergy..' energy to '..receiver
+			lineType = 5
 		end
 	elseif lineType == 1 and sfind(text, 'I gave ', nil, true) then
 		if sfind(text, ' units to ', nil, true) then
-			sendUnits = string.match(string.sub(text, string.find(text, 'I gave ')+7), '([0-9]*)')
+			sendUnits = tonumber(string.match(ssub(text, sfind(text, 'I gave ')+7), '([0-9]*)'))
+			local receiver = teamcolorPlayername(ssub(text, sfind(text, ' units to ')+10, slen(text)-1))	-- adding "slen(text)-1" to strip the dot.
+			--text = ssub(text, 1, sfind(text, 'I gave ')-1)..' shared: '..sendUnits..' units to '..receiver
+			--msgColor = ssub(text, 1, sfind(text, 'I gave ')-1)
+			text = msgColor..sendUnits..' '..(sendUnits == 1 and 'unit' or 'units')..' to '..receiver
+			lineType = 5
 		end
 	end
 
@@ -492,12 +536,15 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 		end
 		if sendMetal then
 			chatLines[chatLinesCount].sendMetal = sendMetal
+			chatLines[chatLinesCount].text = text
 		end
 		if sendEnergy then
 			chatLines[chatLinesCount].sendEnergy = sendEnergy
+			chatLines[chatLinesCount].text = text
 		end
 		if sendUnits then
 			chatLines[chatLinesCount].sendUnits = sendUnits
+			chatLines[chatLinesCount].text = text
 		end
 	end
 
@@ -734,24 +781,18 @@ local function processLine(i)
 				-- player name
 				font:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset, usedFontSize, "or")
 
-				-- mapmark point
-				if chatLines[i].lineType == 3 then
+				-- divider
+				if chatLines[i].lineType == 3 then -- mapmark point
 					font:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), 0, usedFontSize, "oc")
+				elseif chatLines[i].lineType == 5 then -- system message: sharing resources
+					--font:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), 0, usedFontSize, "oc")
 				else
 					font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")
 				end
 			end
-			if chatLines[i].sendMetal then
+			if chatLines[i].sendMetal or chatLines[i].sendEnergy or chatLines[i].sendUnits then
 				font3:Begin()
-				font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize*0.98, "o")
-				font3:End()
-			elseif chatLines[i].sendEnergy then
-				font3:Begin()
-				font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize*0.98, "o")
-				font3:End()
-			elseif chatLines[i].sendUnits then
-				font3:Begin()
-				font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize*0.98, "o")
+				font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset, usedFontSize*0.98, "o")
 				font3:End()
 			else
 				font:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
@@ -1108,7 +1149,7 @@ function widget:DrawScreen()
 								translatedY + (lineHeight*checkedLines) + lineHeight
 							}
 							if math_isInRect(x, y, lineArea[1], lineArea[2], lineArea[3], lineArea[4]) then
-								UiSelectHighlight(lineArea[1]-translatedX, lineArea[2]-translatedY-(lineHeight*checkedLines), lineArea[3]-translatedX, lineArea[4]-translatedY-(lineHeight*checkedLines), nil, (b and 0.33 or 0.25))
+								UiSelectHighlight(lineArea[1]-translatedX, lineArea[2]-translatedY-(lineHeight*checkedLines), lineArea[3]-translatedX, lineArea[4]-translatedY-(lineHeight*checkedLines), nil, (b and 0.33 or 0.23))
 								if b then
 									Spring.SetCameraTarget( chatLines[i].coords[1], chatLines[i].coords[2], chatLines[i].coords[3] )
 								end
