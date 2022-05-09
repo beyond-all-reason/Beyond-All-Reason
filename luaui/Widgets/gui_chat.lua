@@ -48,6 +48,7 @@ local scrollingPosY = 0.66
 local consolePosY = 0.9
 local displayedChatLines = 0
 local hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
+local lastMapmarkCoords
 
 local myName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 local isSpec = Spring.GetSpectatingState()
@@ -55,7 +56,7 @@ local isSpec = Spring.GetSpectatingState()
 local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 local font, font3, chobbyInterface, hovering
 
-local RectRound, UiElement, UiScroller, elementCorner, elementPadding, elementMargin
+local RectRound, UiElement, UiSelectHighlight, UiScroller, elementCorner, elementPadding, elementMargin
 
 local playSound = true
 local sndChatFile  = 'beep4'
@@ -697,7 +698,6 @@ local function processConsoleLine(i)
 	end
 end
 
-
 local function processLine(i)
 	if chatLines[i].lineDisplayList == nil then
 		glDeleteList(chatLines[i].lineDisplayList)
@@ -711,10 +711,13 @@ local function processLine(i)
 
 				-- mapmark point
 				if chatLines[i].lineType == 3 then
+					if lastMapmarkCoords then
+						chatLines[i].coords = lastMapmarkCoords
+						lastMapmarkCoords = nil
+					end
 					font:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), 0, usedFontSize, "oc")
 				else
 					font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")
-
 				end
 			end
 			font:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
@@ -1036,7 +1039,9 @@ function widget:DrawScreen()
 			displayedChatLines = 0
 		end
 		glPushMatrix()
-		glTranslate((vsx * posX) + backgroundPadding, vsy * (scrolling and scrollingPosY or posY) + backgroundPadding, 0)
+		local translatedX = (vsx * posX) + backgroundPadding
+		local translatedY = vsy * (scrolling and scrollingPosY or posY) + backgroundPadding
+		glTranslate(translatedX, translatedY, 0)
 		local i = scrolling == 'console' and currentConsoleLine or currentChatLine
 		local usedMaxLines = maxLines
 		if scrolling then
@@ -1059,12 +1064,24 @@ function widget:DrawScreen()
 						if chatLines[i].timeDisplayList then
 							glCallList(chatLines[i].timeDisplayList)
 						end
+						-- mapmark highlight
+						if chatLines[i].coords then
+							local lineArea = {
+								translatedX + width,
+								translatedY + (lineHeight*checkedLines),
+								floor(translatedX + width + (activationArea[3]-activationArea[1])-backgroundPadding-backgroundPadding-maxTimeWidth - (38 * widgetScale)),
+								translatedY + (lineHeight*checkedLines) + lineHeight
+							}
+							if math_isInRect(x, y, lineArea[1], lineArea[2], lineArea[3], lineArea[4]) then
+								UiSelectHighlight(lineArea[1]-translatedX, lineArea[2]-translatedY-(lineHeight*checkedLines), lineArea[3]-translatedX, lineArea[4]-translatedY-(lineHeight*checkedLines), nil, (b and 0.33 or 0.25))
+								if b then
+									Spring.SetCameraTarget( chatLines[i].coords[1], chatLines[i].coords[2], chatLines[i].coords[3] )
+								end
+							end
+						end
 					end
 					glTranslate(width, 0, 0)
 				end
-				--if scrolling == 'chat' and math_isInRect(x, y, activationArea[1]+backgroundPadding, activationArea[4], activationArea[3]-backgroundPadding, activationArea[4]+(lineHeight*(maxLinesScroll-displayedLines))) then
-				--	RectRound(0, 0, (activationArea[3]-activationArea[1])-backgroundPadding-backgroundPadding-maxTimeWidth, lineHeight, elementCorner*0.66, 0,0,0,0, {1,1,1,0.15}, {0.8,0.8,0.8,0.15})
-				--end
 				glCallList(scrolling == 'console' and consoleLines[i].lineDisplayList or chatLines[i].lineDisplayList)
 				if scrolling  then
 					glTranslate(-width, 0, 0)
@@ -1626,7 +1643,7 @@ function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
 	local time = clock()
 	local gameFrame = spGetGameFrame()
 	if cmdType == 'point' then
-
+		lastMapmarkCoords = {x,y,z}
 	elseif cmdType == 'line' then
 
 	elseif cmdType == 'erase' then
@@ -1705,6 +1722,7 @@ function widget:ViewResize()
 
 	UiElement = WG.FlowUI.Draw.Element
 	UiScroller = WG.FlowUI.Draw.Scroller
+	UiSelectHighlight = WG.FlowUI.Draw.SelectHighlight
 	elementCorner = WG.FlowUI.elementCorner
 	elementPadding = WG.FlowUI.elementPadding
 	elementMargin = WG.FlowUI.elementMargin
