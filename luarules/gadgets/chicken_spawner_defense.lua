@@ -574,6 +574,7 @@ if gadgetHandler:IsSyncedCode() then
 			-- Spring.Echo("First squad, #".. squadID)
 		else
 			for i = 1,#squadsTable do
+				-- Spring.Echo("Attempt to recycle squad #" .. i .. ". Containing " .. SetCount(squadsTable[i].squadUnits) .. " units.")
 				if SetCount(squadsTable[i].squadUnits) == 0 then -- Yes, we found one empty squad to recycle
 					squadID = i
 					-- Spring.Echo("Recycled squad, #".. squadID)
@@ -1184,6 +1185,9 @@ if gadgetHandler:IsSyncedCode() then
 				createSquad(squadCreationQueue)
 				squadCreationQueue.units = {}
 				manageAllSquads()
+				-- Spring.Echo("[RAPTOR] Number of active Squads: ".. #squadsTable)
+				-- Spring.Echo("[RAPTOR] Wave spawn complete.")
+				-- Spring.Echo(" ")
 			end
 			return
 		end
@@ -1543,7 +1547,11 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if unitSquadTable[unitID] then
-			squadsTable[unitSquadTable[unitID]].squadUnits[unitID] = nil
+			for index, id in pairs(squadsTable[unitSquadTable[unitID]].squadUnits) do
+				if id == unitID then
+					table.remove(squadsTable[unitSquadTable[unitID]].squadUnits, index)
+				end
+			end
 			unitSquadTable[unitID] = nil
 		end
 
