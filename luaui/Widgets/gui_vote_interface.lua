@@ -344,7 +344,7 @@ function widget:AddConsoleLine(lines, priority)
 						end
 					end
 					weAreVoteOwner = (ownerPlayername == myPlayerName)
-					Spring.Echo('--====--  vote owner:'..(ownerPlayername and ownerPlayername or '')..'   allied = '..(alliedWithVoteOwner and 'yes' or 'no'))
+					--Spring.Echo('--====--  vote owner:'..(ownerPlayername and ownerPlayername or '')..'   allied = '..(alliedWithVoteOwner and 'yes' or 'no'))
 
 					local title = string.sub(line, string.find(line, ' "') + 2, string.find(line, '" ', nil, true) - 1) .. '?'
 					title = title:sub(1, 1):upper() .. title:sub(2)
