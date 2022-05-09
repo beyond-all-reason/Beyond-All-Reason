@@ -777,22 +777,27 @@ local function processLine(i)
 		chatLines[i].lineDisplayList = glCreateList(function()
 			font:Begin()
 			if chatLines[i].gameFrame then
-
-				-- player name
-				font:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset, usedFontSize, "or")
-
-				-- divider
 				if chatLines[i].lineType == 3 then -- mapmark point
+					-- player name
+					font:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset, usedFontSize, "or")
+					-- divider
 					font:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), 0, usedFontSize, "oc")
 				elseif chatLines[i].lineType == 5 then -- system message: sharing resources
+					-- player name
+					font3:Begin()
+					font3:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset, usedFontSize*0.9, "or")
+					font3:End()
 					--font:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), 0, usedFontSize, "oc")
 				else
+					-- player name
+					font:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset, usedFontSize, "or")
+					-- divider
 					font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")
 				end
 			end
 			if chatLines[i].sendMetal or chatLines[i].sendEnergy or chatLines[i].sendUnits then
 				font3:Begin()
-				font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset, usedFontSize*0.98, "o")
+				font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset, usedFontSize*0.9, "o")
 				font3:End()
 			else
 				font:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
