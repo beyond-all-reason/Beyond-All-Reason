@@ -3064,6 +3064,9 @@ function init()
 		  end,
 		},
 
+
+		{ id = "flankingicons", group = "ui", category = types.advanced, widget = "Flanking Icons GL4", name = texts.option.flankingicons, type = "bool", value = GetWidgetToggleValue("Flanking Icons GL4"), description = texts.option.flankingicons_descr },
+
 		{ id = "displaydps", group = "ui", category = types.basic, name = texts.option.displaydps, type = "bool", value = tonumber(Spring.GetConfigInt("DisplayDPS", 0) or 0) == 1, description = texts.option.displaydps_descr,
 		  onload = function(i)
 		  end,

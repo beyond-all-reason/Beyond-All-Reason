@@ -510,6 +510,8 @@ return {
 			commandsfxopacity = 'opacity',
 			displaydps = 'Display DPS',
 			displaydps_descr = 'Display the \'Damage Per Second\' done where target are hit',
+			flankingicons = 'Flanking direction',
+			flankingicons_descr = 'Display the flanking icons to show direction of armor strong/weak point\nEncircle unit to achieve a larger damage bonus!',
 			givenunits = 'Given unit icons',
 			givenunits_descr = 'Tags given units with \'new\' icon',
 			radarrange = 'Radar range',
