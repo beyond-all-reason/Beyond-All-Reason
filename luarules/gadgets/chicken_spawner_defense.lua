@@ -598,6 +598,9 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				role = newSquad.role
 			end
+			if not newSquad.life then
+				newSquad.life = 5
+			end
 
 
 			squadsTable[squadID] = {
