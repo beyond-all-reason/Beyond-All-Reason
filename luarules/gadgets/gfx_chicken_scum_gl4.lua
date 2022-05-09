@@ -430,7 +430,7 @@ else
 
 	local function goodbye(reason)
 	  Spring.Echo("Scum GL4 gadget exiting with reason: "..reason)
-	  gadgetHandler:Removegadget()
+	  gadgetHandler:RemoveGadget()
 	end
 
 	local function initGL4(shaderConfig, DPATname)
@@ -457,7 +457,10 @@ else
 			DPATname .. "Shader"
 		  )
 		local shaderCompiled = scumShader:Initialize()
-		if not shaderCompiled then goodbye("Failed to compile ".. DPATname .." GL4 ") end
+		if not shaderCompiled then 
+			goodbye("Failed to compile ".. DPATname .." GL4 ") 
+			return
+		end
 
 		scumVBO = makeInstanceVBOTable(
 			{
@@ -467,7 +470,10 @@ else
 			64, -- maxelements
 			DPATname .. "VBO" -- name
 		)
-		if scumVBO == nil then goodbye("Failed to create scumVBO") end
+		if scumVBO == nil then 
+			goodbye("Failed to create scumVBO") 
+			return
+		end
 		
 		local planeVBO, numVertices = makePlaneVBO(1,1,resolution,resolution)
 		local planeIndexVBO, numIndices =  makePlaneIndexVBO(resolution,resolution, true)
