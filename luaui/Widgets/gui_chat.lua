@@ -460,6 +460,18 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 	-- word wrap text into lines
 	local wordwrappedText = wordWrap(textLines, lineMaxWidth, usedFontSize)
 
+	local sendMetal, sendEnergy, sendUnits
+	if lineType == 1 and sfind(text, 'I sent ', nil, true) then
+		if sfind(text, ' metal to ', nil, true) then
+			sendMetal = string.match(string.sub(text, string.find(text, 'I sent ')+7), '([0-9]*)')
+		elseif sfind(text, ' energy to ', nil, true) then
+			sendEnergy = string.match(string.sub(text, string.find(text, 'I sent ')+7), '([0-9]*)')
+		end
+	elseif lineType == 1 and sfind(text, 'I gave ', nil, true) then
+		if sfind(text, ' units to ', nil, true) then
+			sendUnits = string.match(string.sub(text, string.find(text, 'I gave ')+7), '([0-9]*)')
+		end
+	end
 
 	local chatLinesCount = #chatLines
 	local lineColor = #wordwrappedText > 1 and ssub(wordwrappedText[1], 1, 4) or ''
@@ -474,6 +486,19 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 			--lineDisplayList = glCreateList(function() end),
 			--timeDisplayList = glCreateList(function() end),
 		}
+		if lineType == 3 and lastMapmarkCoords then
+			chatLines[chatLinesCount].coords = lastMapmarkCoords
+			lastMapmarkCoords = nil
+		end
+		if sendMetal then
+			chatLines[chatLinesCount].sendMetal = sendMetal
+		end
+		if sendEnergy then
+			chatLines[chatLinesCount].sendEnergy = sendEnergy
+		end
+		if sendUnits then
+			chatLines[chatLinesCount].sendUnits = sendUnits
+		end
 	end
 
 	if scrolling ~= 'chat' then
@@ -711,16 +736,26 @@ local function processLine(i)
 
 				-- mapmark point
 				if chatLines[i].lineType == 3 then
-					if lastMapmarkCoords then
-						chatLines[i].coords = lastMapmarkCoords
-						lastMapmarkCoords = nil
-					end
 					font:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), 0, usedFontSize, "oc")
 				else
 					font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")
 				end
 			end
-			font:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
+			if chatLines[i].sendMetal then
+				font3:Begin()
+				font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize*0.98, "o")
+				font3:End()
+			elseif chatLines[i].sendEnergy then
+				font3:Begin()
+				font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize*0.98, "o")
+				font3:End()
+			elseif chatLines[i].sendUnits then
+				font3:Begin()
+				font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize*0.98, "o")
+				font3:End()
+			else
+				font:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
+			end
 			font:End()
 		end)
 
@@ -1412,7 +1447,7 @@ local function convertColor(r,g,b)
 	return schar(255, (r*255), (g*255), (b*255))
 end
 
-local function processConsoleLine(gameFrame, line, addOrgLine)
+local function processAddConsoleLine(gameFrame, line, addOrgLine)
 	local orgLine = line
 
 	local roster = spGetPlayerRoster()
@@ -1448,7 +1483,6 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 		else
 			c = colorOther
 		end
-
 
 		-- filter occasional starting space
 		if ssub(text,1,1) == ' ' then
@@ -1640,21 +1674,15 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 end
 
 function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
-	local time = clock()
-	local gameFrame = spGetGameFrame()
 	if cmdType == 'point' then
 		lastMapmarkCoords = {x,y,z}
-	elseif cmdType == 'line' then
-
-	elseif cmdType == 'erase' then
-
 	end
 end
 
 function widget:AddConsoleLine(lines, priority)
 	lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
 	for line in lines:gmatch("[^\n]+") do
-		processConsoleLine(spGetGameFrame(), line, true)
+		processAddConsoleLine(spGetGameFrame(), line, true)
 	end
 end
 
@@ -1687,7 +1715,7 @@ local function processLines()
 	chatLines = {}
 	consoleLines = {}
 	for _, params in ipairs(orgLines) do
-		processConsoleLine(params[1], params[2])
+		processAddConsoleLine(params[1], params[2])
 	end
 	currentChatLine = #chatLines
 end
