@@ -457,7 +457,7 @@ if gadgetHandler:IsSyncedCode() then
 					local destroyQueue = {}
 					for j, unitID in pairs(squadsTable[i].squadUnits) do
 						if unitID then
-							destroyQueue[j+1] = unitID
+							destroyQueue[#destroyQueue+1] = unitID
 							-- Spring.Echo("Killing old unit. ID: ".. unitID .. ", Name:" .. UnitDefs[Spring.GetUnitDefID(unitID)].name)
 						end
 					end
