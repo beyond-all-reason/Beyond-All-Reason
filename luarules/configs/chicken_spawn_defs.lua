@@ -304,8 +304,8 @@ addSquad(8, { "40 chicken_dodo1" 															})
 addSquad(8, { "80 chicken_dodo1" 															})
 addSquad(8, { "20 chicken_dodo2" 															})
 addSquad(8, { "40 chicken_dodo2" 															})
+addSquad(8, { "5 chickens2" 																})
 addSquad(8, { "10 chickens2" 																})
-addSquad(8, { "20 chickens2" 																})
 ----------------------------------------------------------------------------------------------
 -- Tier9 - Apex Swarmer, Apex Brawler, Apex Mortar - Prepare antinukes!
 ----------------------------------------------------------------------------------------------
