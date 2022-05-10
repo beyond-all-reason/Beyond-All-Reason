@@ -489,30 +489,42 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 	local wordwrappedText = wordWrap(textLines, lineMaxWidth, usedFontSize)
 
 	local sendMetal, sendEnergy, sendUnits
-	local msgColor = '\255\190\190\190shared '
+	local msgColor = '\255\185\185\185'
+	local msgHighlightColor = '\255\215\215\215'
+	-- metal/energy given
 	if lineType == 1 and sfind(text, 'I sent ', nil, true) then
 		if sfind(text, ' metal to ', nil, true) then
 			sendMetal = tonumber(string.match(ssub(text, sfind(text, 'I sent ')+7), '([0-9]*)'))
 			local receiver = teamcolorPlayername(ssub(text, sfind(text, ' metal to ')+10))
 			--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendMetal..' metal to '..receiver
 			--msgColor = ssub(text, 1, sfind(text, 'I sent ')-1)
-			text = msgColor..sendMetal..' metal to '..receiver
+			text = msgColor..'shared '..msgHighlightColor..sendMetal..msgColor..' metal to '..receiver
 			lineType = 5
 		elseif sfind(text, ' energy to ', nil, true) then
 			sendEnergy = tonumber(string.match(ssub(text, sfind(text, 'I sent ')+7), '([0-9]*)'))
 			local receiver = teamcolorPlayername(ssub(text, sfind(text, ' energy to ')+11))	-- no dot stripping needed here
 			--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendEnergy..' energy to '..receiver
 			--msgColor = ssub(text, 1, sfind(text, 'I sent ')-1)
-			text = msgColor..sendEnergy..' energy to '..receiver
+			text = msgColor..'shared '..msgHighlightColor..sendEnergy..msgColor..' energy to '..receiver
 			lineType = 5
 		end
+
+	-- units given
 	elseif lineType == 1 and sfind(text, 'I gave ', nil, true) then
 		if sfind(text, ' units to ', nil, true) then
 			sendUnits = tonumber(string.match(ssub(text, sfind(text, 'I gave ')+7), '([0-9]*)'))
 			local receiver = teamcolorPlayername(ssub(text, sfind(text, ' units to ')+10, slen(text)-1))	-- adding "slen(text)-1" to strip the dot.
 			--text = ssub(text, 1, sfind(text, 'I gave ')-1)..' shared: '..sendUnits..' units to '..receiver
 			--msgColor = ssub(text, 1, sfind(text, 'I gave ')-1)
-			text = msgColor..sendUnits..' '..(sendUnits == 1 and 'unit' or 'units')..' to '..receiver
+			text = msgColor..'shared '..msgHighlightColor..sendUnits..msgColor..' '..(sendUnits == 1 and 'unit' or 'units')..' to '..receiver
+			lineType = 5
+		end
+
+	-- player taken
+	elseif lineType == 1 and sfind(text, 'I took ', nil, true) then	--<StarDoM> Allies: I took  --- .
+		if sfind(text, 'I took ', nil, true) then
+			local receiver = teamcolorPlayername(ssub(text, sfind(text, 'I took ')+8, slen(text)-2))	-- adding "slen(text)-2" to strip the space+dot.
+			text = msgColor..'took '..receiver
 			lineType = 5
 		end
 	end
@@ -534,17 +546,20 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 			chatLines[chatLinesCount].coords = lastMapmarkCoords
 			lastMapmarkCoords = nil
 		end
+		if lineType == 5 then
+			chatLines[chatLinesCount].text = text
+		end
 		if sendMetal then
 			chatLines[chatLinesCount].sendMetal = sendMetal
-			chatLines[chatLinesCount].text = text
 		end
 		if sendEnergy then
 			chatLines[chatLinesCount].sendEnergy = sendEnergy
-			chatLines[chatLinesCount].text = text
 		end
 		if sendUnits then
 			chatLines[chatLinesCount].sendUnits = sendUnits
-			chatLines[chatLinesCount].text = text
+		end
+		if sendUnits then
+			chatLines[chatLinesCount].sendUnits = sendUnits
 		end
 	end
 
@@ -782,12 +797,11 @@ local function processLine(i)
 					font:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset, usedFontSize, "or")
 					-- divider
 					font:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), 0, usedFontSize, "oc")
-				elseif chatLines[i].lineType == 5 then -- system message: sharing resources
+				elseif chatLines[i].lineType == 5 then -- system message: sharing resources, taken player
 					-- player name
 					font3:Begin()
 					font3:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset, usedFontSize*0.9, "or")
 					font3:End()
-					--font:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), 0, usedFontSize, "oc")
 				else
 					-- player name
 					font:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset, usedFontSize, "or")
@@ -795,9 +809,9 @@ local function processLine(i)
 					font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")
 				end
 			end
-			if chatLines[i].sendMetal or chatLines[i].sendEnergy or chatLines[i].sendUnits then
+			if chatLines[i].lineType == 5 then -- system message: sharing resources, taken player
 				font3:Begin()
-				font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset, usedFontSize*0.9, "o")
+				font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset, usedFontSize*0.88, "o")
 				font3:End()
 			else
 				font:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
