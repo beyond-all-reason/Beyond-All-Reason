@@ -447,18 +447,22 @@ if gadgetHandler:IsSyncedCode() then
 		for i = 1,#squadsTable do
 			
 			squadsTable[i].squadLife = squadsTable[i].squadLife - 1
+			-- Spring.Echo("SquadLifeReport - SquadID: #".. i .. ", LifetimeRemaining: ".. squadsTable[i].squadLife)
 			
 			if squadsTable[i].squadLife <= 0 then
+				-- Spring.Echo("Life is 0, time to do some killing")
 				if SetCount(squadsTable[i].squadUnits) > 0 then
+					-- Spring.Echo("There are some units to kill, so let's kill them")
 					-- Spring.Echo("----------------------------------------------------------------------------------------------------------------------------")
 					local destroyQueue = {}
 					for j, unitID in pairs(squadsTable[i].squadUnits) do
 						if unitID then
-							destroyQueue[i+1] = unitID
+							destroyQueue[j+1] = unitID
 							-- Spring.Echo("Killing old unit. ID: ".. unitID .. ", Name:" .. UnitDefs[Spring.GetUnitDefID(unitID)].name)
 						end
 					end
 					for j = 1,#destroyQueue do
+						-- Spring.Echo("Destroying Unit. ID: ".. unitID .. ", Name:" .. UnitDefs[Spring.GetUnitDefID(unitID)].name)
 						Spring.DestroyUnit(destroyQueue[j], true, false)
 					end
 					destroyQueue = nil
@@ -1215,6 +1219,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			squadCreationQueue.units[#squadCreationQueue.units+1] = unitID
+			squadCreationQueue.life = 5
 			if HEALER[UnitDefNames[defs.unitName].id] then
 				squadCreationQueue.role = "healer"
 				squadCreationQueue.life = 20
