@@ -2818,17 +2818,8 @@ function init()
 			  Spring.SendCommands("iconfadestart " .. value)
 			  Spring.SetConfigInt("UnitIconFadeStart", value)
 			  -- update UnitIconFadeVanish too
-			  local k = getOptionByID('uniticon_fadeamount')
-			  options[k].onchange(k, options[k].value)
-		  end,
-		},
-		{ id = "uniticon_fadeamount", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.uniticonfadeamount, type = "slider", min = 0, max = 0.3, step = 0.01, value = tonumber(Spring.GetConfigFloat("UnitIconFadeAmount", 0.1) or 0.1), description = texts.option.uniticonfadeamount_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigFloat("UnitIconFadeAmount", value)
-			  local fadeStart = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 2700) or 1)
-			  local fadeVanish = math.floor(math.min(fadeStart, fadeStart*(1-value)))
-			  Spring.SendCommands("iconfadevanish " .. fadeVanish)
-			  Spring.SetConfigInt("UnitIconFadeVanish", fadeVanish)
+			  Spring.SendCommands("iconfadevanish " .. value)
+			  Spring.SetConfigInt("UnitIconFadeVanish", value)
 		  end,
 		},
 		{ id = "uniticon_hidewithui", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.uniticonhidewithui, type = "bool", value = (Spring.GetConfigInt("UnitIconsHideWithUI", 0) == 1), description = texts.option.uniticonhidewithui_descr,
