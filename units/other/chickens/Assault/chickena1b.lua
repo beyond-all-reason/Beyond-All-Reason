@@ -28,7 +28,7 @@ return {
 		mass = 100000,
 		maxdamage = 6000,
 		maxslope = 18,
-		maxvelocity = 1.1,
+		maxvelocity = 1.3,
 		maxwaterdepth = 0,
 		movementclass = "CHICKBIG",
 		noautofire = false,
@@ -140,7 +140,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 700,
 				damage = {
-					default = 110,
+					default = 225,
 				},
 			},
 		},

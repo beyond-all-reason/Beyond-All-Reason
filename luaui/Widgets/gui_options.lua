@@ -2117,13 +2117,13 @@ function init()
 			  Spring.SetConfigInt("snd_volui", value)
 		  end,
 		},
-		{ id = "sndvolunitreply", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolunitreply, type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volunitreply", 1) or 100),
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("snd_volunitreply", value)
-		  end,
-		},
+		--{ id = "sndvolunitreply", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolunitreply, type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volunitreply", 1) or 100),
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigInt("snd_volunitreply", value)
+		--  end,
+		--},
 		{ id = "console_chatvolume", group = "sound", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.console_chatvolume, type = "slider", min = 0, max = 1, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getChatVolume() or 0), description = texts.option.console_chatvolume_descr,
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_chatvolume", { 'sndChatFileVolume' })
@@ -2144,7 +2144,7 @@ function init()
 		  end,
 		},
 
-		{ id = "sndairabsorption", group = "sound", category = types.advanced, name = texts.option.sndairabsorption, type = "slider", min = 0.05, max = 0.4, step = 0.01, value = tonumber(Spring.GetConfigFloat("snd_airAbsorption", .35) or .35), description = texts.option.sndairabsorption_descr,
+		{ id = "sndairabsorption", group = "sound", category = types.advanced, name = texts.option.sndairabsorption, type = "slider", min = 0, max = 0.4, step = 0.01, value = tonumber(Spring.GetConfigFloat("snd_airAbsorption", .35) or .35), description = texts.option.sndairabsorption_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2818,17 +2818,8 @@ function init()
 			  Spring.SendCommands("iconfadestart " .. value)
 			  Spring.SetConfigInt("UnitIconFadeStart", value)
 			  -- update UnitIconFadeVanish too
-			  local k = getOptionByID('uniticon_fadeamount')
-			  options[k].onchange(k, options[k].value)
-		  end,
-		},
-		{ id = "uniticon_fadeamount", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.uniticonfadeamount, type = "slider", min = 0, max = 0.3, step = 0.01, value = tonumber(Spring.GetConfigFloat("UnitIconFadeAmount", 0.1) or 0.1), description = texts.option.uniticonfadeamount_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigFloat("UnitIconFadeAmount", value)
-			  local fadeStart = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 2700) or 1)
-			  local fadeVanish = math.floor(math.min(fadeStart, fadeStart*(1-value)))
-			  Spring.SendCommands("iconfadevanish " .. fadeVanish)
-			  Spring.SetConfigInt("UnitIconFadeVanish", fadeVanish)
+			  Spring.SendCommands("iconfadevanish " .. value)
+			  Spring.SetConfigInt("UnitIconFadeVanish", value)
 		  end,
 		},
 		{ id = "uniticon_hidewithui", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.uniticonhidewithui, type = "bool", value = (Spring.GetConfigInt("UnitIconsHideWithUI", 0) == 1), description = texts.option.uniticonhidewithui_descr,
@@ -3063,6 +3054,9 @@ function init()
 			  saveOptionValue('Commands FX', 'commandsfx', 'setFilterAI', { 'filterAIteams' }, value)
 		  end,
 		},
+
+
+		{ id = "flankingicons", group = "ui", category = types.advanced, widget = "Flanking Icons GL4", name = texts.option.flankingicons, type = "bool", value = GetWidgetToggleValue("Flanking Icons GL4"), description = texts.option.flankingicons_descr },
 
 		{ id = "displaydps", group = "ui", category = types.basic, name = texts.option.displaydps, type = "bool", value = tonumber(Spring.GetConfigInt("DisplayDPS", 0) or 0) == 1, description = texts.option.displaydps_descr,
 		  onload = function(i)

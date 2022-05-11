@@ -950,6 +950,28 @@ local definitions = {
     },
   },
 
+["heatcloud-rot"] = {
+    centerflare = {
+      air                = true,
+      class              = [[heatcloud]],
+      count              = 1,
+      ground             = true,
+      water              = true,
+      underwater         = true,
+      properties = {
+        heat               = 19,
+        heatfalloff        = 0.5,
+        maxheat            = 20,
+        pos                = [[r-2 r2, 5, r-2 r2]],
+        rotParams          = [[-50 r100, -5 r10, -90 r180]],
+        size               = [[4 r2]],
+        sizegrowth         = [[4 r2]],
+        speed              = [[0, 1, 0]],
+        texture            = [[bluenovaexplo]],
+        drawOrder          = 1,
+      },
+    },
+},
   ["genericshellexplosion-huge-lightning"] = {
     blueelectricityspikes = {
       air                = true,
@@ -993,10 +1015,10 @@ local definitions = {
         heatfalloff        = 1.1,
         maxheat            = 20,
         pos                = [[r-2 r2, 5, r-2 r2]],
-        rotParams          = [[-4 r8, -1 r2, -180 r360]],
+        rotParams          = [[-50 r100, -5 r10, -180 r360]],
         size               = 5,
         sizegrowth         = 16,
-        speed              = [[0, 1 0, 0]],
+        speed              = [[0, 1, 0]],
         texture            = [[bluenovaexplo]],
         drawOrder          = 1,
       },

@@ -37,8 +37,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armmoho_aoplane.dds",
-			buildinggrounddecalsizey = 7.55,
-			buildinggrounddecalsizex = 7.55,
+			buildinggrounddecalsizey = 7.4,
+			buildinggrounddecalsizex = 7.4,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'metal',
 			cvbuildable = true,

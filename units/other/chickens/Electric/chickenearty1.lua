@@ -62,6 +62,7 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
+			paralyzemultiplier = 0,
 			--treeshader = "no",
 		},
 		sfxtypes = {
@@ -78,7 +79,7 @@ return {
 		},
 		weapondefs = {
 			goolauncher = {
-				accuracy = 1024,
+				accuracy = 256,
 				areaofeffect = 200,
 				collidefriendly = 0,
 				collidefeature = 0,
@@ -103,7 +104,7 @@ return {
 				paralyzetime = 20,
 				proximitypriority = -4,
 				range = 1500,
-				reloadtime = 5,
+				reloadtime = 4,
 				rgbcolor = "0.2 0.5 0.9",
 				size = 5.5,
 				sizedecay = 0.09,

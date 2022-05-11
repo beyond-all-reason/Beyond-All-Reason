@@ -159,7 +159,7 @@ function widget:Update()
 	end
 	if WG.StopHighlightUnitGL4 then
 		local mx, my = spGetMouseState()
-		if mx == vsx/2 and my+1 == vsy/2 then	-- dont highlight unit when cursor is in center and we're likely camera-panning (cause I dont know how to detect that)
+		if mx == math.ceil(vsx/2) and my+1 == math.ceil(vsy/2) then	-- dont highlight unit when cursor is in center and we're likely camera-panning (cause I dont know how to detect that)
 			clearUnitshapes(nil, true)
 		else
 			local type, data = spTraceScreenRay(mx, my)

@@ -92,6 +92,9 @@ if not Spring.GetConfigFloat("UnitIconFadeAmount") then
 	Spring.SetConfigFloat("UnitIconFadeAmount", 0.1)
 end
 
+-- equalize
+Spring.SetConfigInt("UnitIconFadeVanish", Spring.GetConfigInt("UnitIconFadeStart", 3000))
+
 -- change some default value(s), upp the version and set what needs to be set
 local version = 2
 if Spring.GetConfigInt("version", 0) < version then
@@ -100,7 +103,7 @@ if Spring.GetConfigInt("version", 0) < version then
 	-- set icon settings
 	Spring.SetConfigInt("UnitIconsAsUI", 1)
 	Spring.SetConfigFloat("UnitIconScaleUI", 1.05)
-	Spring.SetConfigInt("UnitIconFadeVanish", 2700)
+	Spring.SetConfigInt("UnitIconFadeVanish", 3000)
 	Spring.SetConfigInt("UnitIconFadeStart", 3000)
 	Spring.SetConfigInt("UnitIconsHideWithUI", 1)
 end

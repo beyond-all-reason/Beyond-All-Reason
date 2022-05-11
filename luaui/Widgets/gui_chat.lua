@@ -48,6 +48,7 @@ local scrollingPosY = 0.66
 local consolePosY = 0.9
 local displayedChatLines = 0
 local hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
+local lastMapmarkCoords
 
 local myName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 local isSpec = Spring.GetSpectatingState()
@@ -55,7 +56,7 @@ local isSpec = Spring.GetSpectatingState()
 local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 local font, font3, chobbyInterface, hovering
 
-local RectRound, UiElement, UiScroller, elementCorner, elementPadding, elementMargin
+local RectRound, UiElement, UiSelectHighlight, UiScroller, elementCorner, elementPadding, elementMargin
 
 local playSound = true
 local sndChatFile  = 'beep4'
@@ -447,6 +448,34 @@ local function addConsoleLine(gameFrame, lineType, text, isLive)
 	end
 end
 
+local function colourNames(teamID)
+	local nameColourR, nameColourG, nameColourB = Spring.GetTeamColor(teamID)
+	local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
+	local G255 = math.floor(nameColourG * 255)
+	local B255 = math.floor(nameColourB * 255)
+	if R255 % 10 == 0 then
+		R255 = R255 + 1
+	end
+	if G255 % 10 == 0 then
+		G255 = G255 + 1
+	end
+	if B255 % 10 == 0 then
+		B255 = B255 + 1
+	end
+	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255) --works thanks to zwzsg
+end
+
+local function teamcolorPlayername(playername)
+	local playersList = Spring.GetPlayerList()
+	for _, playerID in ipairs(playersList) do
+		local name,_,_,teamID = Spring.GetPlayerInfo(playerID, false)
+		if name == playername then
+			return colourNames(teamID)..playername
+		end
+	end
+	return playername
+end
+
 local function addChat(gameFrame, lineType, name, text, isLive)
 	if not text or text == '' then return end
 
@@ -459,6 +488,46 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 	-- word wrap text into lines
 	local wordwrappedText = wordWrap(textLines, lineMaxWidth, usedFontSize)
 
+	local sendMetal, sendEnergy, sendUnits
+	local msgColor = '\255\185\185\185'
+	local msgHighlightColor = '\255\215\215\215'
+	-- metal/energy given
+	if lineType == 1 and sfind(text, 'I sent ', nil, true) then
+		if sfind(text, ' metal to ', nil, true) then
+			sendMetal = tonumber(string.match(ssub(text, sfind(text, 'I sent ')+7), '([0-9]*)'))
+			local receiver = teamcolorPlayername(ssub(text, sfind(text, ' metal to ')+10))
+			--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendMetal..' metal to '..receiver
+			--msgColor = ssub(text, 1, sfind(text, 'I sent ')-1)
+			text = msgColor..'shared '..msgHighlightColor..sendMetal..msgColor..' metal to '..receiver
+			lineType = 5
+		elseif sfind(text, ' energy to ', nil, true) then
+			sendEnergy = tonumber(string.match(ssub(text, sfind(text, 'I sent ')+7), '([0-9]*)'))
+			local receiver = teamcolorPlayername(ssub(text, sfind(text, ' energy to ')+11))	-- no dot stripping needed here
+			--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendEnergy..' energy to '..receiver
+			--msgColor = ssub(text, 1, sfind(text, 'I sent ')-1)
+			text = msgColor..'shared '..msgHighlightColor..sendEnergy..msgColor..' energy to '..receiver
+			lineType = 5
+		end
+
+	-- units given
+	elseif lineType == 1 and sfind(text, 'I gave ', nil, true) then
+		if sfind(text, ' units to ', nil, true) then
+			sendUnits = tonumber(string.match(ssub(text, sfind(text, 'I gave ')+7), '([0-9]*)'))
+			local receiver = teamcolorPlayername(ssub(text, sfind(text, ' units to ')+10, slen(text)-1))	-- adding "slen(text)-1" to strip the dot.
+			--text = ssub(text, 1, sfind(text, 'I gave ')-1)..' shared: '..sendUnits..' units to '..receiver
+			--msgColor = ssub(text, 1, sfind(text, 'I gave ')-1)
+			text = msgColor..'shared '..msgHighlightColor..sendUnits..msgColor..' '..(sendUnits == 1 and 'unit' or 'units')..' to '..receiver
+			lineType = 5
+		end
+
+	-- player taken
+	elseif lineType == 1 and sfind(text, 'I took ', nil, true) then	--<StarDoM> Allies: I took  --- .
+		if sfind(text, 'I took ', nil, true) then
+			local receiver = teamcolorPlayername(ssub(text, sfind(text, 'I took ')+8, slen(text)-2))	-- adding "slen(text)-2" to strip the space+dot.
+			text = msgColor..'took '..receiver
+			lineType = 5
+		end
+	end
 
 	local chatLinesCount = #chatLines
 	local lineColor = #wordwrappedText > 1 and ssub(wordwrappedText[1], 1, 4) or ''
@@ -473,6 +542,25 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 			--lineDisplayList = glCreateList(function() end),
 			--timeDisplayList = glCreateList(function() end),
 		}
+		if lineType == 3 and lastMapmarkCoords then
+			chatLines[chatLinesCount].coords = lastMapmarkCoords
+			lastMapmarkCoords = nil
+		end
+		if lineType == 5 then
+			chatLines[chatLinesCount].text = text
+		end
+		if sendMetal then
+			chatLines[chatLinesCount].sendMetal = sendMetal
+		end
+		if sendEnergy then
+			chatLines[chatLinesCount].sendEnergy = sendEnergy
+		end
+		if sendUnits then
+			chatLines[chatLinesCount].sendUnits = sendUnits
+		end
+		if sendUnits then
+			chatLines[chatLinesCount].sendUnits = sendUnits
+		end
 	end
 
 	if scrolling ~= 'chat' then
@@ -697,7 +785,6 @@ local function processConsoleLine(i)
 	end
 end
 
-
 local function processLine(i)
 	if chatLines[i].lineDisplayList == nil then
 		glDeleteList(chatLines[i].lineDisplayList)
@@ -705,19 +792,30 @@ local function processLine(i)
 		chatLines[i].lineDisplayList = glCreateList(function()
 			font:Begin()
 			if chatLines[i].gameFrame then
-
-				-- player name
-				font:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset, usedFontSize, "or")
-
-				-- mapmark point
-				if chatLines[i].lineType == 3 then
+				if chatLines[i].lineType == 3 then -- mapmark point
+					-- player name
+					font:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset, usedFontSize, "or")
+					-- divider
 					font:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), 0, usedFontSize, "oc")
+				elseif chatLines[i].lineType == 5 then -- system message: sharing resources, taken player
+					-- player name
+					font3:Begin()
+					font3:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset, usedFontSize*0.9, "or")
+					font3:End()
 				else
+					-- player name
+					font:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset, usedFontSize, "or")
+					-- divider
 					font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")
-
 				end
 			end
-			font:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
+			if chatLines[i].lineType == 5 then -- system message: sharing resources, taken player
+				font3:Begin()
+				font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset, usedFontSize*0.88, "o")
+				font3:End()
+			else
+				font:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
+			end
 			font:End()
 		end)
 
@@ -1036,7 +1134,9 @@ function widget:DrawScreen()
 			displayedChatLines = 0
 		end
 		glPushMatrix()
-		glTranslate((vsx * posX) + backgroundPadding, vsy * (scrolling and scrollingPosY or posY) + backgroundPadding, 0)
+		local translatedX = (vsx * posX) + backgroundPadding
+		local translatedY = vsy * (scrolling and scrollingPosY or posY) + backgroundPadding
+		glTranslate(translatedX, translatedY, 0)
 		local i = scrolling == 'console' and currentConsoleLine or currentChatLine
 		local usedMaxLines = maxLines
 		if scrolling then
@@ -1059,12 +1159,24 @@ function widget:DrawScreen()
 						if chatLines[i].timeDisplayList then
 							glCallList(chatLines[i].timeDisplayList)
 						end
+						-- mapmark highlight
+						if chatLines[i].coords then
+							local lineArea = {
+								translatedX + width,
+								translatedY + (lineHeight*checkedLines),
+								floor(translatedX + width + (activationArea[3]-activationArea[1])-backgroundPadding-backgroundPadding-maxTimeWidth - (38 * widgetScale)),
+								translatedY + (lineHeight*checkedLines) + lineHeight
+							}
+							if math_isInRect(x, y, lineArea[1], lineArea[2], lineArea[3], lineArea[4]) then
+								UiSelectHighlight(lineArea[1]-translatedX, lineArea[2]-translatedY-(lineHeight*checkedLines), lineArea[3]-translatedX, lineArea[4]-translatedY-(lineHeight*checkedLines), nil, (b and 0.33 or 0.23))
+								if b then
+									Spring.SetCameraTarget( chatLines[i].coords[1], chatLines[i].coords[2], chatLines[i].coords[3] )
+								end
+							end
+						end
 					end
 					glTranslate(width, 0, 0)
 				end
-				--if scrolling == 'chat' and math_isInRect(x, y, activationArea[1]+backgroundPadding, activationArea[4], activationArea[3]-backgroundPadding, activationArea[4]+(lineHeight*(maxLinesScroll-displayedLines))) then
-				--	RectRound(0, 0, (activationArea[3]-activationArea[1])-backgroundPadding-backgroundPadding-maxTimeWidth, lineHeight, elementCorner*0.66, 0,0,0,0, {1,1,1,0.15}, {0.8,0.8,0.8,0.15})
-				--end
 				glCallList(scrolling == 'console' and consoleLines[i].lineDisplayList or chatLines[i].lineDisplayList)
 				if scrolling  then
 					glTranslate(-width, 0, 0)
@@ -1395,7 +1507,7 @@ local function convertColor(r,g,b)
 	return schar(255, (r*255), (g*255), (b*255))
 end
 
-local function processConsoleLine(gameFrame, line, addOrgLine)
+local function processAddConsoleLine(gameFrame, line, addOrgLine)
 	local orgLine = line
 
 	local roster = spGetPlayerRoster()
@@ -1431,7 +1543,6 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 		else
 			c = colorOther
 		end
-
 
 		-- filter occasional starting space
 		if ssub(text,1,1) == ' ' then
@@ -1623,21 +1734,15 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 end
 
 function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
-	local time = clock()
-	local gameFrame = spGetGameFrame()
 	if cmdType == 'point' then
-
-	elseif cmdType == 'line' then
-
-	elseif cmdType == 'erase' then
-
+		lastMapmarkCoords = {x,y,z}
 	end
 end
 
 function widget:AddConsoleLine(lines, priority)
 	lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
 	for line in lines:gmatch("[^\n]+") do
-		processConsoleLine(spGetGameFrame(), line, true)
+		processAddConsoleLine(spGetGameFrame(), line, true)
 	end
 end
 
@@ -1670,7 +1775,7 @@ local function processLines()
 	chatLines = {}
 	consoleLines = {}
 	for _, params in ipairs(orgLines) do
-		processConsoleLine(params[1], params[2])
+		processAddConsoleLine(params[1], params[2])
 	end
 	currentChatLine = #chatLines
 end
@@ -1705,6 +1810,7 @@ function widget:ViewResize()
 
 	UiElement = WG.FlowUI.Draw.Element
 	UiScroller = WG.FlowUI.Draw.Scroller
+	UiSelectHighlight = WG.FlowUI.Draw.SelectHighlight
 	elementCorner = WG.FlowUI.elementCorner
 	elementPadding = WG.FlowUI.elementPadding
 	elementMargin = WG.FlowUI.elementMargin

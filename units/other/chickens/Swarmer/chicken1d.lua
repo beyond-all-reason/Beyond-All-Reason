@@ -102,7 +102,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 500,
 				damage = {
-					default = 54,
+					default = 120,
 				},
 			},
 		},

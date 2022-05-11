@@ -28,7 +28,7 @@ return {
 		mass = 40,
 		maxdamage = 425,
 		maxslope = 18,
-		maxvelocity = 3.3,
+		maxvelocity = 3.5,
 		maxwaterdepth = 0,
 		movementclass = "CHICKSMALLHOVER",
 		noautofire = false,
@@ -102,7 +102,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 500,
 				damage = {
-					default = 60,
+					default = 90,
 				},
 			},
 		},
