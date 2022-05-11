@@ -495,17 +495,17 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 	if lineType == 1 and sfind(text, 'I sent ', nil, true) then
 		if sfind(text, ' metal to ', nil, true) then
 			sendMetal = tonumber(string.match(ssub(text, sfind(text, 'I sent ')+7), '([0-9]*)'))
-			local receiver = teamcolorPlayername(ssub(text, sfind(text, ' metal to ')+10))
-			--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendMetal..' metal to '..receiver
+			local playername = teamcolorPlayername(ssub(text, sfind(text, ' metal to ')+10))
+			--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendMetal..' metal to '..playername
 			--msgColor = ssub(text, 1, sfind(text, 'I sent ')-1)
-			text = msgColor..'shared '..msgHighlightColor..sendMetal..msgColor..' metal to '..receiver
+			text = msgColor..'shared '..msgHighlightColor..sendMetal..msgColor..' metal to '..playername
 			lineType = 5
 		elseif sfind(text, ' energy to ', nil, true) then
 			sendEnergy = tonumber(string.match(ssub(text, sfind(text, 'I sent ')+7), '([0-9]*)'))
-			local receiver = teamcolorPlayername(ssub(text, sfind(text, ' energy to ')+11))	-- no dot stripping needed here
-			--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendEnergy..' energy to '..receiver
+			local playername = teamcolorPlayername(ssub(text, sfind(text, ' energy to ')+11))	-- no dot stripping needed here
+			--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendEnergy..' energy to '..playername
 			--msgColor = ssub(text, 1, sfind(text, 'I sent ')-1)
-			text = msgColor..'shared '..msgHighlightColor..sendEnergy..msgColor..' energy to '..receiver
+			text = msgColor..'shared '..msgHighlightColor..sendEnergy..msgColor..' energy to '..playername
 			lineType = 5
 		end
 
@@ -513,18 +513,27 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 	elseif lineType == 1 and sfind(text, 'I gave ', nil, true) then
 		if sfind(text, ' units to ', nil, true) then
 			sendUnits = tonumber(string.match(ssub(text, sfind(text, 'I gave ')+7), '([0-9]*)'))
-			local receiver = teamcolorPlayername(ssub(text, sfind(text, ' units to ')+10, slen(text)-1))	-- adding "slen(text)-1" to strip the dot.
-			--text = ssub(text, 1, sfind(text, 'I gave ')-1)..' shared: '..sendUnits..' units to '..receiver
+			local playername = teamcolorPlayername(ssub(text, sfind(text, ' units to ')+10, slen(text)-1))	-- adding "slen(text)-1" to strip the dot.
+			--text = ssub(text, 1, sfind(text, 'I gave ')-1)..' shared: '..sendUnits..' units to '..playername
 			--msgColor = ssub(text, 1, sfind(text, 'I gave ')-1)
-			text = msgColor..'shared '..msgHighlightColor..sendUnits..msgColor..' '..(sendUnits == 1 and 'unit' or 'units')..' to '..receiver
+			text = msgColor..'shared '..msgHighlightColor..sendUnits..msgColor..' '..(sendUnits == 1 and 'unit' or 'units')..' to '..playername
 			lineType = 5
 		end
 
 	-- player taken
 	elseif lineType == 1 and sfind(text, 'I took ', nil, true) then	--<StarDoM> Allies: I took  --- .
 		if sfind(text, 'I took ', nil, true) then
-			local receiver = teamcolorPlayername(ssub(text, sfind(text, 'I took ')+8, slen(text)-2))	-- adding "slen(text)-2" to strip the space+dot.
-			text = msgColor..'took '..receiver
+			local playernameStart = sfind(text, 'I took ')+7
+			local playername = ssub(text, playernameStart, slen(text)-1) -- strip dot.
+			local colonChar = sfind(playername, ':')
+			local addition = ''
+			if colonChar then
+				local leftover = playername
+				playername = ssub(playername, 1, colonChar-1)
+				addition = msgColor..ssub(leftover, colonChar)
+			end
+			playername = teamcolorPlayername(playername)
+			text = msgColor..'took '..playername..addition
 			lineType = 5
 		end
 	end
