@@ -877,6 +877,9 @@ end
 
 local function drawChatInput()
 	if showTextInput then
+		if topbarArea then
+			scrollingPosY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight*maxLinesScroll)) / vsy
+		end
 		updateTextInputDlist = false
 		textInputDlist = glDeleteList(textInputDlist)
 		textInputDlist = glCreateList(function()

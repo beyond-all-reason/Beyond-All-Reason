@@ -500,7 +500,10 @@
 				"no": "NO",
 				"yes": "YES",
 				"endVote": "End Vote",
-				"cancel": "ESC"
+				"cancel": "ESC",
+				"votecancelled": "Vote Cancelled",
+				"votepassed": "Vote Passed",
+				"votefailed": "Vote Failed"
 			},
 			"gameInfo": {
 				"title": "Game info",

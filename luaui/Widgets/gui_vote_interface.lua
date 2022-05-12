@@ -43,7 +43,6 @@ local eligiblePlayers = {}
 local votesRequired, votesEligible
 local votesCountYes = 0
 local votesCountNo = 0
-local votesCountB = 0
 local minimized = false
 
 local function isTeamPlayer(playerName)
@@ -68,7 +67,6 @@ local function CloseVote()
 		votesEligible = nil
 		votesCountYes = 0
 		votesCountNo = 0
-		votesCountB = 0
 		minimized = false
 		voteDlist = nil
 		voteName = nil
@@ -99,7 +97,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 		local width = math.floor((vsy / 6) * ui_scale) * 2	-- *2 so it ensures number can be divided cleanly by 2
 		local height = math.floor((vsy / 23) * ui_scale) * 2		-- *2 so it ensures number can be divided cleanly by 2
 
-		local progressbarHeight = math.ceil(height * 0.05)
+		local progressbarHeight = math.ceil(height * 0.055)
 
 		local fontSize = height / 5    -- title only
 		local minWidth = font:GetTextWidth('  ' .. voteName .. '  ') * fontSize
@@ -392,7 +390,6 @@ function widget:AddConsoleLine(lines, priority)
 						end
 					end
 					weAreVoteOwner = (ownerPlayername == myPlayerName)
-					--Spring.Echo('--====--  vote owner:'..(ownerPlayername and ownerPlayername or '')..'   allied = '..(alliedWithVoteOwner and 'yes' or 'no'))
 
 					local title = ssub(line, sfind(line, ' "') + 2, sfind(line, '" ', nil, true) - 1) .. '?'
 					title = title:sub(1, 1):upper() .. title:sub(2)
@@ -416,23 +413,27 @@ function widget:AddConsoleLine(lines, priority)
 						votesEligible = nil
 						votesCountYes = 0
 						votesCountNo = 0
-						votesCountB = 0
 						minimized = false
 						StartVote(title)
 					end
 
-				-- > [teh]cluster1[00] * Vote for command "stop" passed.
-				-- > [teh]cluster1[01] * Vote for command "forcestart" passed (delay expired, away vote mode activated for
-				elseif voteDlist and (sfind(slower(line), " passed", nil, true) or sfind(slower(line), " failed", nil, true) or sfind(slower(line), "vote cancelled", nil, true) or sfind(slower(line), ' cancelling "', nil, true)) then
-					if not voteEndTime then
+
+				elseif voteDlist and not voteEndTime then
+					-- > [teh]cluster1[00] * Vote for command "stop" passed.
+					-- > [teh]cluster1[01] * Vote for command "forcestart" passed (delay expired, away vote mode activated for ArkanisLupus,ROBOTRONIC,d
+					if sfind(line, "* Vote for command", nil, true) then
 						voteEndTime = os.clock() + voteEndDelay
-						if sfind(slower(line), " passed", nil, true) then
-							voteEndText = 'vote passed'
-						elseif sfind(slower(line), " failed", nil, true) then
-							voteEndText = 'vote failed'
-						elseif sfind(slower(line), " failed", nil, true) then
-							voteEndText = 'vote cancelled'
+						if sfind(line, " passed", nil, true) then
+							voteEndText = Spring.I18N('ui.voting.votepassed')
+						elseif sfind(line, " failed", nil, true) then
+							voteEndText = Spring.I18N('ui.voting.votefailed')
 						end
+						MinimizeVote()
+					end
+					-- > [teh]cluster1[01] * Game starting, cancelling "forceStart" vote
+					if sfind(line, "* Game starting, cancelling ", nil, true) then
+						voteEndTime = os.clock() + voteEndDelay
+						voteEndText = Spring.I18N('ui.voting.votecancelled')
 						MinimizeVote()
 					end
 				end
