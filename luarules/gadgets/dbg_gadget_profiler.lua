@@ -45,12 +45,7 @@ end
 local callinStats = {}
 local callinStatsSYNCED = {}
 
-local highres = false
-local tick = 0.2
-local averageTime = 2.0
-
 local spGetTimer = Spring.GetTimer
-
 local spDiffTimers = Spring.DiffTimers
 local spGetLuaMemUsage = Spring.GetLuaMemUsage or function() return 0, 0, 0, 0, 0, 0, 0, 0 end
 
@@ -117,21 +112,13 @@ if gadgetHandler:IsSyncedCode() then
 	end
 else
 	local t, s
-	
-	if Spring.GetTimerMicros and  Spring.GetConfigInt("UseHighResTimer", 0) == 1 then 
-		spGetTimer = Spring.GetTimerMicros
-		highres = true
-	end
-
-	Spring.Echo("Profiler using highres timers", highres, Spring.GetConfigInt("UseHighResTimer", 0))
-
 	hookPreRealFunction = function(gadgetName, callinName)
 		t = spGetTimer()
 		_, _, s, _ = spGetLuaMemUsage()
 	end
 
 	hookPostRealFunction = function(gadgetName, callinName)
-		local dt = spDiffTimers(spGetTimer(), t, nil, highres)
+		local dt = spDiffTimers(spGetTimer(), t)
 
 		local _, _, new_s, _ = spGetLuaMemUsage()
 		local ds = new_s - s
@@ -207,8 +194,7 @@ local function AddHook(gadget, callin)
 	gadget[callin] = Hook(gadget, callin)
 end
 
-local function StartHook(optName, line, words, playerID) -- this one is synced?
-
+local function StartHook()
 	if hookset then
 		if not running then
 			KillHook()
@@ -320,36 +306,14 @@ else
 		callinStats = callinStatsUnsynced
 	end
 
-	local function Start(optName, line, words, pID, _)
+	local function Start(_, _, _, pID, _)
 		if running then
 			Kill(nil, nil, nil, pID, nil)
 		elseif pID == Spring.GetMyPlayerID() then
 			running = true
-			
-			tick = (words and words[1] and tonumber(words[1])) or tick
-			averageTime = (words and words[2] and tonumber(words[2])) or averageTime
-			
-			if highres and true then -- this tests the timers for correctness
-				local starttime = Spring.GetTimer()
-				local starttimeus = Spring.GetTimerMicros()
-				local j = 0
-				for i = 1, 1000000 do 
-					j = j + 1 
-				end
-				
-				local endtime = Spring.GetTimer()
-				local endtimeus = Spring.GetTimerMicros()
-				
-				Spring.Echo("GetTimer secs", Spring.DiffTimers( endtime,starttime, nil))
-				Spring.Echo("GetTimer msecs", Spring.DiffTimers( endtime, starttime,true))
-				Spring.Echo("GetTimerMicros secs", Spring.DiffTimers( endtimeus,starttimeus, nil, true))
-				Spring.Echo("GetTimerMicros msecs", Spring.DiffTimers( endtimeus, starttimeus,true, true))
-			end
-			
-			
-			
+
 			StartHook() -- the unsynced one!
-			startTickTimer = spGetTimer()
+			startTickTimer = Spring.GetTimer()
 
 			SetDrawCallin(gadget.DrawScreen_)
 
@@ -385,7 +349,8 @@ else
 	-- Data
 	--------------------------------------------------------------------------------
 
-
+	local tick = 0.2
+	local averageTime = 2
 
 	local timeLoadAverages = {}
 	local spaceLoadAverages = {}
@@ -395,16 +360,9 @@ else
 	local redStrengthSYNCED = {}
 
 	local luarulesMemory, _, globalMemory, _, unsyncedMemory, _, syncedMemory, _ = spGetLuaMemUsage()
-	
-	local exp = math.exp
-	
+
 	local function CalcLoad(old_load, new_load, t)
-		if t and t > 0 then 
-			local exptick = exp(-tick / t)
-			return old_load * exptick + new_load * (1 - exptick)
-		else
-			return new_load
-		end
+		return old_load * math.exp(-tick / t) + new_load * (1 - math.exp(-tick / t))
 	end
 
 	local totalLoads = {}
@@ -630,11 +588,11 @@ else
 			local tColour = v.tColourString
 			local sColour = v.sColourString
 
-			Line(0, tColour, ('%.3f%%'):format(tLoad), ('%.02f'):format(sLoad) .. 'kB/s', gname, sColour)
+			Line(0, tColour, ('%.2f%%'):format(tLoad), ('%.0f'):format(sLoad) .. 'kB/s', gname, sColour)
 		end
 
 		Line(0, totals_colour,
-			('%.3f%%'):format(list.allOverTime),
+			('%.2f%%'):format(list.allOverTime),
 			('%.0f'):format(list.allOverSpace) .. 'kB/s',
 			"totals (" .. string.lower(name) .. ")"
 		)
@@ -654,9 +612,7 @@ else
 			return
 		end
 
-		local deltaTime = spDiffTimers(spGetTimer(), startTickTimer, nil, highres)
-		
-
+		local deltaTime = spDiffTimers(spGetTimer(), startTickTimer)
 		if deltaTime >= tick then
 			startTickTimer = spGetTimer()
 

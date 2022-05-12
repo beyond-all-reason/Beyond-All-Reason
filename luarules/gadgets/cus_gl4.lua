@@ -78,18 +78,17 @@ end
 	-- Do alpha units also get drawn into deferred pass? Seems like no, because only flag == 1 is draw into that
 	-- DONE: dynamically size IBOS instead of using the max of 8192!
 		-- Starts from 32
-	-- DONE  new engine callins needed:
+	-- TODO: new engine callins needed:
 		-- get the number of drawflaggable units (this is kind of gettable already from the API anyway)
 		-- get the number of changed drawFlags
 		-- if the number of changed drawflags > log(numdrawflags) then do a full rebuild instead of push-popping
 		-- e.g if there are 100 units of a bin in view, then a change of ~ 8 units will trigger a full rebuild?
 			-- cant know ahead of time how many per-bin changes this will trigger though
 
-	-- DONE: write an engine callin that, instead of the full list of unitdrawflags, only returns the list of units whos drawflags have changed!
+	-- TODO: write an engine callin that, instead of the full list of unitdrawflags, only returns the list of units whos drawflags have changed!
 		-- reset this 'hashmap' when reading it
 		-- also a problem is handling units that died, what 'drawflag' should they get?
 			-- probably 0
-			
 	-- TODO: handle fast rebuilds of the IBO's when large-magnitude changes happen
 		-- this is made difficult by the negative featureID crap
 
@@ -131,7 +130,7 @@ end
 		-- Even if discard is in a never-called dynamically uniform!
 		-- only transparent features need discard
 		
-	-- DONE: 
+	-- TODO: 
 		-- only ever use discard in deferred pass, dont use it in forward refl or shadow though
 		-- DEFERRED FEATURE TREE DRAW IS WRONG
 
@@ -143,8 +142,6 @@ end
 	-- TODO: check if LuaShader UniformLocations are cached
 
 	-- DONE: add a wreck texture to chickens! It uses lavadistortion texture, its fine
-	
-	-- TODO: Use a 3d texture lookup instead of perlin implementation for damage shading
 
 	-- TODO: separate out damaged units for better perf, damage shading is not free! (as damage is not dynamically uniform across all shader invocations)
 		-- very difficult, unsure if worth anything in the long run
@@ -159,9 +156,8 @@ end
 		-- fixed in-engine, seems like a reasonably good fix too, though could be better
 			-- is checking 5 groundheights within drawradius better than some minor overdraw cause of not-too-high above water ground shit?
 		
-	-- DONE: increase bumpwaterreflectcubetex size
+	-- TODO: increase bumpwaterreflectcubetex size
 	-- TODO: make lava disable drawing reflections!
-	
 	-- TODO: shared bins for deferred and forward and maybe even reflection?
 		-- The sharing could be done on the uniformbin level, and this is quite elegant in general too, as tables are shared by reference....
 		-- DONE: shared deferred and forward via ultimate cleverness!
@@ -170,7 +166,7 @@ end
 
 	-- DONE: Cleaner Shutdown and reloadcusgl4 and disablecusgl4
 
-	-- TODO: Get BRDFLUT from API_PBR_ENABLER (OR build your own float16 texture)
+
 
 	-- TODO: WE ARE DRAWING ALL IN THE UNITS PASS INSTEAD OF BOTH FEATURE AND UNITS PASS! (can that bite us in the ass?)
 
@@ -345,10 +341,10 @@ local overrideDrawFlagsCombined = {
 }
 
 local overriddenUnits = {} -- these remain positive, as they are traversed separately
--- local processedUnits = {}
+local processedUnits = {}
 
 local overriddenFeatures = {} -- this remains positive
--- local processedFeatures = {}
+local processedFeatures = {}
 
 -- This is the main table of all the unit drawbins:
 -- It is organized like so:
@@ -561,9 +557,6 @@ local function initMaterials()
 		shadowDefinitions = {
 		},
 		reflectionDefinitions = {
-			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
-			"#define ENABLE_OPTION_THREADS 1",
-			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
 		},
 	})
 
@@ -579,7 +572,6 @@ local function initMaterials()
 			--"#define HASALPHASHADOWS",
 		},
 		reflectionDefinitions = {
-			"#define USE_LOSMAP",
 		},
 	})
 
@@ -587,21 +579,15 @@ local function initMaterials()
 		shaderDefinitions = {
 			"#define USE_LOSMAP",
 			"#define HASALPHASHADOWS",
-			"#define TREE_RANDOMIZATION",
 		},
 		deferredDefinitions = {
 			"#define USE_LOSMAP",
 			"#define HASALPHASHADOWS",
-			"#define TREE_RANDOMIZATION",
 		},
 		shadowDefinitions = {
 			"#define HASALPHASHADOWS",
-			"#define TREE_RANDOMIZATION",
 		},
 		reflectionDefinitions = {
-			"#define TREE_RANDOMIZATION",
-			"#define USE_LOSMAP",
-			"#define HASALPHASHADOWS",
 		},
 	})
 
@@ -877,7 +863,7 @@ local function initBinsAndTextures()
 				elseif 	unitDef.name:sub(1,3) == 'cor' then
 					objectDefToUniformBin[unitDefID] = 'corscavenger'
 				end
-			elseif unitDef.name:find("chicken", nil, true) or unitDef.name:find("roost", nil, true) then
+			elseif unitDef.name:find("chicken", nil, true) then
 				textureTable[5] = wreckAtlases['chicken'][1]
 				objectDefToUniformBin[unitDefID] = 'chicken'
 				--Spring.Echo("Chickenwreck", textureTable[5])
@@ -1338,11 +1324,11 @@ local function RemoveObject(objectID) -- we get pos/neg objectID here
 	objectIDtoDefID[objectID] = nil
 	if objectID >= 0 then
 		overriddenUnits[objectID] = nil
-		-- processedUnits[objectID] = nil
+		processedUnits[objectID] = nil
 		Spring.SetUnitEngineDrawMask(objectID, 255)
 	else
 		overriddenFeatures[-1 * objectID] = nil
-		-- processedFeatures[-1 * objectID] = nil
+		processedFeatures[-1 * objectID] = nil
 		Spring.SetFeatureEngineDrawMask(-1 * objectID, 255)
 	end
 
@@ -1353,16 +1339,13 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 
 local function ProcessUnits(units, drawFlags)
-	--processedCounter = (processedCounter + 1) % (2 ^ 16)
+	processedCounter = (processedCounter + 1) % (2 ^ 16)
 
 	for i = 1, #units do
 		local unitID = units[i]
 		local drawFlag = drawFlags[i]
-		local _,_,_,_,buildpercent = spGetUnitHealth(unitID)
-		
-		if (drawFlag == 0) then
-			RemoveObject(unitID)
-		elseif (buildpercent and buildpercent < 1) or spGetUnitIsCloaked(unitID) then
+		local buildpercent = select(5, spGetUnitHealth(unitID))
+		if (buildpercent and buildpercent < 1) or spGetUnitIsCloaked(unitID) then
 			--under construction
 			--using processedUnits here actually good, as it will dynamically handle unitfinished and cloak on-off
 		else
@@ -1370,22 +1353,22 @@ local function ProcessUnits(units, drawFlags)
 			--Spring.Echo("ProcessUnit", unitID, drawFlag)
 			if overriddenUnits[unitID] == nil then --object was not seen
 				AddObject(unitID, drawFlag)
-			else --if overriddenUnits[unitID] ~= drawFlag then --flags have changed
+			elseif overriddenUnits[unitID] ~= drawFlag then --flags have changed
 				UpdateObject(unitID, drawFlag)
 			end
-			-- processedUnits[unitID] = processedCounter
+			processedUnits[unitID] = processedCounter
 		end
 	end
 
-	-- for unitID, _ in pairs(overriddenUnits) do
-	-- 	if processedUnits[unitID] ~= processedCounter then --object was not updated thus was removed
-	-- 		RemoveObject(unitID)
-	-- 	end
-	-- end
+	for unitID, _ in pairs(overriddenUnits) do
+		if processedUnits[unitID] ~= processedCounter then --object was not updated thus was removed
+			RemoveObject(unitID)
+		end
+	end
 end
 
 local function ProcessFeatures(features, drawFlags)
-	-- processedCounter = (processedCounter + 1) % (2 ^ 16)
+	processedCounter = (processedCounter + 1) % (2 ^ 16)
 
 	for i = 1, #features do
 		local featureID = features[i]
@@ -1396,45 +1379,31 @@ local function ProcessFeatures(features, drawFlags)
 		-- I leave this wonderful bug to any future soul who has to maintain this
 		if featureID > 0 then
 			--Spring.Echo("ProcessFeature", featureID	, drawFlag)
-			if (drawFlag == 0) then
-				RemoveObject(-1 * featureID)
-			elseif overriddenFeatures[featureID] == nil then --object was not seen
+			if overriddenFeatures[featureID] == nil then --object was not seen
 				AddObject(-1 * featureID, drawFlag)
-			else --if overriddenFeatures[featureID] ~= drawFlag then --flags have changed
+			elseif overriddenFeatures[featureID] ~= drawFlag then --flags have changed
 				UpdateObject(-1 * featureID, drawFlag)
 			end
-			-- processedFeatures[featureID] = processedCounter
+			processedFeatures[featureID] = processedCounter
 		end
-		-- processedFeatures[featureID] = processedCounter
+		processedFeatures[featureID] = processedCounter
 	end
 
-	-- for featureID, _ in pairs(overriddenFeatures) do
-	-- 	if processedFeatures[featureID] ~= processedCounter then --object was not updated thus was removed
-	-- 		RemoveObject(-1 * featureID)
-	-- 	end
-	-- end
+	for featureID, _ in pairs(overriddenFeatures) do
+		if processedFeatures[featureID] ~= processedCounter then --object was not updated thus was removed
+			RemoveObject(-1 * featureID)
+		end
+	end
 end
 
 local shaderactivations = 0
 
 local shaderOrder = {'tree','feature','unit',} -- this forces ordering, no real reason to do so, just for testing
 
-local drawpassstats = {} -- a table of drawpass number and the actual number of units and batches performed by that pass
-for drawpass, _ in pairs(overrideDrawFlagsCombined) do drawpassstats[drawpass] = {shaders = 0, batches = 0, units = 0} end 
-
-local function printDrawPassStats() 
-	res = ""
-	for drawpass, stats in pairs(drawpassstats) do 
-		res = res .. string.format("Pass_%d: %d/%d/%d  ", drawpass, stats.shaders, stats.batches, stats.units)
-	end
-	return res
-end
-
 local function ExecuteDrawPass(drawPass)
 	--defersubmissionupdate = (defersubmissionupdate + 1) % 10;
 	local batches = 0
 	local units = 0
-	local shaderswaps = 0
 	gl.Culling(GL.BACK)
 	--for shaderName, data in pairs(unitDrawBins[drawPass]) do
 	for _, shaderName in ipairs(shaderOrder) do
@@ -1453,7 +1422,7 @@ local function ExecuteDrawPass(drawPass)
 
 			if unitscountforthisshader > 0 then
 				gl.UseShader(shaderTable.shaderObj)
-				shaderswaps = shaderswaps + 1
+
 				for uniformBinID, uniformBin in pairs(data) do
 
 					--Spring.Echo("Shadername", shaderId.shaderName,"uniformBinID", uniformBinID)
@@ -1492,11 +1461,7 @@ local function ExecuteDrawPass(drawPass)
 			end
 		end
 	end
-
-	drawpassstats[drawPass].batches = batches
-	drawpassstats[drawPass].units = units
-	drawpassstats[drawPass].shaders = shaderswaps
-	return batches, units, shaderswaps
+	return batches, units
 end
 
 local function initGL4()
@@ -1551,8 +1516,6 @@ local function initGL4()
 	initBinsAndTextures()
 
 	Spring.Echo("[CUS GL4] Collecting units")
-	Spring.ClearUnitsPreviousDrawFlag()
-	Spring.ClearFeaturesPreviousDrawFlag()
 	gadget:DrawWorldPreUnit	()
 	Spring.Echo("[CUS GL4] Ready")
 end
@@ -1717,13 +1680,13 @@ end
 
 
 function gadget:Initialize()
+	if FASTRELOADMODE then initGL4() end
 	gadgetHandler:AddChatAction("reloadcusgl4", ReloadCUSGL4)
 	gadgetHandler:AddChatAction("disablecusgl4", DisableCUSGL4)
 	gadgetHandler:AddChatAction("cusgl4updaterate", CUSGL4updaterate)
 	gadgetHandler:AddChatAction("debugcusgl4", DebugCUSGL4)
 	gadgetHandler:AddChatAction("dumpcusgl4", DumpCUSGL4)
 	gadgetHandler:AddChatAction("markbincusgl4", MarkBinCUSGL4)
-	if FASTRELOADMODE then initGL4() end
 end
 
 
@@ -1770,7 +1733,6 @@ local updatetimer = 31
 
 local prevobjectcount = 0
 
-
 local function countbintypes(flagarray)
 	local fwcnt = 0
 	local defcnt = 0
@@ -1793,47 +1755,6 @@ local function countbintypes(flagarray)
 	return fwcnt, defcnt, reflcnt, shadcnt
 end
 
-local destroyedUnitIDs = {} -- maps unitID to drawflag
-local destroyedUnitDrawFlags = {}
-local numdestroyedUnits = 0
-
-local destroyedFeatureIDs = {}
-local destroyedFeatureDrawFlags = {}
-local numdestroyedFeatures = 0
-
-local function UpdateUnit(unitID, flag) 
-	numdestroyedUnits = numdestroyedUnits + 1
-	destroyedUnitIDs[numdestroyedUnits] = unitID
-	destroyedUnitDrawFlags[numdestroyedUnits] = flag
-end
-
-function gadget:UnitDestroyed(unitID)
-	UpdateUnit(unitID, 0)
-end
-
-function gadget:UnitFinished(unitID)
-	UpdateUnit(unitID,Spring.GetUnitDrawFlag(unitID))
-end
-
-function gadget:UnitCloaked(unitID)
-	UpdateUnit(unitID,0)
-end
-
-function gadget:UnitDeCloaked(unitID)
-	UpdateUnit(unitID,Spring.GetUnitDrawFlag(unitID))
-end
-
-function gadget:FeatureDestroyed(featureID)
-	local flag = 0 --Spring.GetFeatureDrawFlag(unitID) is already invalid here
-	if flag == 0 then 
-		numdestroyedFeatures = numdestroyedFeatures + 1
-		destroyedFeatureIDs[numdestroyedFeatures] = featureID
-		destroyedFeatureDrawFlags[numdestroyedFeatures] = flag
-	end
-end
-
-
-
 function gadget:DrawWorldPreUnit()
 	updatecount = updatecount + 1
 	if unitDrawBins == nil then return end
@@ -1851,39 +1772,18 @@ function gadget:DrawWorldPreUnit()
 		-- which isnt all that bad, but still far from optimal
 		-- it is, however, not that bad CPU wise, and it doesnt force GC load either
 
-		-- local units, drawFlagsUnits = Spring.GetRenderUnits(overrideDrawFlag, true)
-		-- local features, drawFlagsFeatures = Spring.GetRenderFeatures(overrideDrawFlag, true)
-		local units, drawFlagsUnits = Spring.GetRenderUnitsDrawFlagChanged(true) 
-		local features, drawFlagsFeatures = Spring.GetRenderFeaturesDrawFlagChanged(true)
-		--if (Spring.GetGameFrame() % 31)  == 0 then 
-		--	Spring.Echo("Updatenums", #units, #features, # drawFlagsUnits, #drawFlagsFeatures, numdestroyedUnits, numdestroyedFeatures)
-		--	Spring.Echo(printDrawPassStats())
-		--end
+		local units, drawFlagsUnits = Spring.GetRenderUnits(overrideDrawFlag, true)
+		local features, drawFlagsFeatures = Spring.GetRenderFeatures(overrideDrawFlag, true)
+
 		local totalobjects = #units + #features
 		local t0 = Spring.GetTimer()
 
-		if numdestroyedUnits > 0 then 
-			ProcessUnits(destroyedUnitIDs, destroyedUnitDrawFlags)
-			for i=numdestroyedUnits,1,-1 do 
-				destroyedUnitIDs[i] = nil
-				destroyedUnitDrawFlags[i] = nil
-			end
-			numdestroyedUnits = 0
-		end		
-		
-		if numdestroyedFeatures > 0 then 
-			ProcessFeatures(destroyedFeatureIDs, destroyedFeatureDrawFlags)
-			for i=numdestroyedFeatures,1,-1 do 
-				destroyedFeatureIDs[i] = nil
-				destroyedFeatureDrawFlags[i] = nil
-			end
-			numdestroyedFeatures = 0
-		end
-		
-		
 		ProcessUnits(units, drawFlagsUnits)
 		ProcessFeatures(features, drawFlagsFeatures)
 		local deltat = Spring.DiffTimers(Spring.GetTimer(),t0,  true) -- in ms
+
+
+
 
 		if (deltat > 5) and FASTRELOADMODE then
 			local usecperobjectchange = math.ceil((1000* deltat)  / (totalobjects - prevobjectcount))
@@ -2006,7 +1906,7 @@ end
 
 function gadget:DrawShadowUnitsLua()
 	if unitDrawBins == nil then return end
-	local batches, units = ExecuteDrawPass(16)
+	ExecuteDrawPass(16)
 end
 
 
