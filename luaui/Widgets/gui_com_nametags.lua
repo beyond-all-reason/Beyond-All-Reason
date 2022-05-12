@@ -153,34 +153,6 @@ local function RemoveLists()
 	comnameIconList = {}
 end
 
-local function colourNames(teamID)
-	local nameColourR, nameColourG, nameColourB = Spring.GetTeamColor(teamID)
-	local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
-	local G255 = math.floor(nameColourG * 255)
-	local B255 = math.floor(nameColourB * 255)
-	if R255 % 10 == 0 then
-		R255 = R255 + 1
-	end
-	if G255 % 10 == 0 then
-		G255 = G255 + 1
-	end
-	if B255 % 10 == 0 then
-		B255 = B255 + 1
-	end
-	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255) --works thanks to zwzsg
-end
-
-local function teamcolorPlayername(playername)
-	local playersList = Spring.GetPlayerList()
-	for _, playerID in ipairs(playersList) do
-		local name,_,_,teamID = Spring.GetPlayerInfo(playerID, false)
-		if name == playername then
-			return colourNames(teamID)..playername
-		end
-	end
-	return playername
-end
-
 local function createComnameList(attributes)
 	if comnameList[attributes[1]] ~= nil then
 		gl.DeleteList(comnameList[attributes[1]])
@@ -198,23 +170,22 @@ local function createComnameList(attributes)
 			if outlineColor[1] == 1 and fontShadow then
 				glTranslate(0, -(fontSize / 44), 0)
 				shadowFont:Begin()
-				shadowFont:SetOutlineColor({ 0, 0, 0, shadowOpacity })
 				shadowFont:SetTextColor({ 0, 0, 0, shadowOpacity })
+				shadowFont:SetOutlineColor({ 0, 0, 0, shadowOpacity })
 				shadowFont:Print(name, 0, 0, fontSize, "con")
 				shadowFont:End()
 				glTranslate(0, (fontSize / 44), 0)
 			end
-			font:Begin()
-			font:SetOutlineColor(outlineColor)
 			font:SetTextColor(outlineColor)
+			font:SetOutlineColor(outlineColor)
+
 			font:Print(name, -(fontSize / 38), -(fontSize / 33), fontSize, "con")
 			font:Print(name, (fontSize / 38), -(fontSize / 33), fontSize, "con")
-			font:End()
 		end
 		font:Begin()
-		font:SetOutlineColor(outlineColor)
 		font:SetTextColor(attributes[2])
-		font:Print(teamcolorPlayername(name), 0, 0, fontSize, "con")
+		font:SetOutlineColor(outlineColor)
+		font:Print(name, 0, 0, fontSize, "con")
 		font:End()
 	end)
 end
