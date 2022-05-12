@@ -13,6 +13,8 @@ end
 -- dont show vote buttons for specs when containing the following keywords (use lowercase)
 local globalVoteWords =  { 'forcestart', 'stop', 'joinas' }
 
+local voteEndDelay = 3.3
+
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.5 + (vsx * vsy / 5700000)) * 1.55
 
@@ -25,10 +27,15 @@ local myPlayerID = Spring.GetMyPlayerID()
 local myPlayerName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 
 local math_isInRect = math.isInRect
+local sfind = string.find
+local ssub = string.sub
+local slower = string.lower
 
 local RectRound, UiElement, UiButton, bgpadding, elementCorner, widgetSpaceMargin
 local voteDlist, chobbyInterface, font, font2, gameStarted, dlistGuishader
 local weAreVoteOwner, hovered, voteName, windowArea, closeButtonArea, yesButtonArea, noButtonArea
+local voteEndTime, voteEndText
+
 local uiOpacitySec = 0
 local eligibleToVote = false
 
@@ -52,7 +59,32 @@ local function isTeamPlayer(playerName)
 	return false
 end
 
+local function CloseVote()
+	voteEndTime = nil
+	voteEndText = nil
+	if voteDlist then
+		eligiblePlayers = {}
+		votesRequired = nil
+		votesEligible = nil
+		votesCountYes = 0
+		votesCountNo = 0
+		votesCountB = 0
+		minimized = false
+		voteDlist = nil
+		voteName = nil
+		weAreVoteOwner = nil
+		eligibleToVote = false
+		if WG['guishader'] then
+			WG['guishader'].DeleteDlist('voteinterface')
+		end
+		gl.DeleteList(voteDlist)
+	end
+end
+
 local function StartVote(name)	-- when called without params its just to refresh (when hovering over buttons)
+	if name then
+		CloseVote()
+	end
 	if voteDlist then
 		gl.DeleteList(voteDlist)
 	end
@@ -97,7 +129,9 @@ local function StartVote(name)	-- when called without params its just to refresh
 		yesButtonArea = { xpos - (width / 2) + buttonMargin, ypos - (height / 2) + buttonMargin + progressbarHeight, xpos - (buttonMargin / 2), ypos - (height / 2) + buttonHeight - buttonMargin + progressbarHeight }
 		noButtonArea = { xpos + (buttonMargin / 2), ypos - (height / 2) + buttonMargin + progressbarHeight, xpos + (width / 2) - buttonMargin, ypos - (height / 2) + buttonHeight - buttonMargin + progressbarHeight}
 
-		UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+		if not voteEndText then
+			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+		end
 
 		-- progress bar
 		if votesEligible then
@@ -159,7 +193,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 		font:Print("\255\190\190\190" .. voteName, windowArea[1] + ((windowArea[3] - windowArea[1]) / 2), windowArea[4] - bgpadding - bgpadding - bgpadding - fontSize, fontSize, "con")
 		font:End()
 
-		if eligibleToVote and not minimized  then
+		if eligibleToVote and not minimized and not voteEndText then
 
 			-- ESC
 			local color1, color2
@@ -211,6 +245,13 @@ local function StartVote(name)	-- when called without params its just to refresh
 			font2:End()
 		end
 
+		if voteEndText then
+			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+			font:Begin()
+			font:Print("\255\190\190\190" .. voteEndText, windowArea[1] + ((windowArea[3] - windowArea[1]) / 2), windowArea[2] + ((windowArea[4] - windowArea[2]) / 2)-(fontSize*0.3), fontSize*1.1, "con")
+			font:End()
+		end
+
 		gl.Color(1, 1, 1, 1)
 	end)
 
@@ -226,26 +267,6 @@ end
 local function MinimizeVote()
 	minimized = true
 	StartVote()
-end
-
-local function CloseVote()
-	if voteDlist then
-		eligiblePlayers = {}
-		votesRequired = nil
-		votesEligible = nil
-		votesCountYes = 0
-		votesCountNo = 0
-		votesCountB = 0
-		minimized = false
-		gl.DeleteList(voteDlist)
-		voteDlist = nil
-		voteName = nil
-		weAreVoteOwner = nil
-		eligibleToVote = false
-		if WG['guishader'] then
-			WG['guishader'].DeleteDlist('voteinterface')
-		end
-	end
 end
 
 function widget:ViewResize()
@@ -270,21 +291,40 @@ function widget:PlayerChanged(playerID)
 end
 
 local debug = false
-local sec = 0
+local debugSec = 0
+local debugStep = 0
 function widget:Update(dt)
-	-- Uncomment for testing
 	if debug then
-		sec = sec + dt
-		if sec > 1 and not voteDlist then
-			votesEligible = 8
-			votesRequired = 5
-			votesCountYes = 2
-			votesCountNo = 1
-			votesCountB = 0
-			minimized = false
-			eligibleToVote = true
-			StartVote('forcestart')
+		debugSec = debugSec + dt
+		if debugSec > 1 and debugStep < 1 then
+			debugStep = 1
+			widget:AddConsoleLine("> [teh]cluster1[00] * [teh]N0by called a vote for command \"stop\" [!vote y, !vote n, !vote b]", false)
+			widget:AddConsoleLine("> [teh]cluster1[00] * 8 users allowed to vote.", false)
 		end
+		if debugSec > 2 and debugStep < 2 then
+			debugStep = 2
+			widget:AddConsoleLine("> [teh]cluster1[00] * Vote in progress: \"stop\" [y:1/4, n:1/3] (43s remaining)", false)
+		end
+		if debugSec > 2.75 and debugStep < 3 then
+			debugStep = 3
+			widget:AddConsoleLine("> [teh]cluster1[00] * Vote in progress: \"stop\" [y:2/4, n:1/3] (42s remaining)", false)
+		end
+		if debugSec > 3.3 and debugStep < 4 then
+			debugStep = 4
+			widget:AddConsoleLine("> [teh]cluster1[00] * Vote in progress: \"stop\" [y:3/4, n:1/3] (41s remaining)", false)
+		end
+		if debugSec > 4.2 and debugStep < 5 then
+			debugStep = 5
+			widget:AddConsoleLine("> [teh]cluster1[00] * Vote in progress: \"stop\" [y:3/4, n:2/3] (41s remaining)", false)
+		end
+		if debugSec > 5.5 and debugStep < 6 then
+			debugStep = 6
+			widget:AddConsoleLine("> [teh]cluster1[00] * Vote for command \"stop\" passed.", false)
+		end
+	end
+
+	if voteEndTime and os.clock() > voteEndTime then
+		CloseVote()
 	end
 
 	uiOpacitySec = uiOpacitySec + dt
@@ -303,7 +343,7 @@ end
 
 function widget:Initialize()
 	widget:ViewResize()
-	if Spring.IsReplay() then
+	if not debug and Spring.IsReplay() then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -324,10 +364,11 @@ function widget:AddConsoleLine(lines, priority)
 		for line in lines:gmatch("[^\n]+") do
 
 			-- system message
-			if string.sub(line, 1, 1) == ">" and string.sub(line, 3, 3) ~= "<" then
+			if ssub(line, 1, 1) == ">" and ssub(line, 3, 3) ~= "<" then
 
 				-- vote called
-				if string.find(line, " called a vote ", nil, true) then
+				-- > [teh]cluster1[00] * [teh]N0by called a vote for command "stop" [!vote y, !vote n, !vote b]
+				if sfind(line, " called a vote ", nil, true) then
 
 					-- find who started the vote, and see if we're allied
 					local ownerPlayername = false
@@ -335,7 +376,7 @@ function widget:AddConsoleLine(lines, priority)
 					local players = Spring.GetPlayerList()
 					for _, playerID in ipairs(players) do
 						local playerName, _, spec, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
-						if string.find(line, string.gsub(playerName, "%p", "%%%1") .. " called a vote ", nil, true) then
+						if sfind(line, string.gsub(playerName, "%p", "%%%1") .. " called a vote ", nil, true) then
 							ownerPlayername = playerName
 							if allyTeamID == myAllyTeamID then
 								alliedWithVoteOwner = true
@@ -346,13 +387,13 @@ function widget:AddConsoleLine(lines, priority)
 					weAreVoteOwner = (ownerPlayername == myPlayerName)
 					--Spring.Echo('--====--  vote owner:'..(ownerPlayername and ownerPlayername or '')..'   allied = '..(alliedWithVoteOwner and 'yes' or 'no'))
 
-					local title = string.sub(line, string.find(line, ' "') + 2, string.find(line, '" ', nil, true) - 1) .. '?'
+					local title = ssub(line, sfind(line, ' "') + 2, sfind(line, '" ', nil, true) - 1) .. '?'
 					title = title:sub(1, 1):upper() .. title:sub(2)
 
 					eligibleToVote = alliedWithVoteOwner
 					if not eligibleToVote then
 						for _, keyword in pairs(globalVoteWords) do
-							if string.find(string.lower(title), keyword, nil, true) then
+							if sfind(slower(title), keyword, nil, true) then
 								eligibleToVote = true
 								break
 							end
@@ -362,7 +403,7 @@ function widget:AddConsoleLine(lines, priority)
 						eligibleToVote = false
 					end
 
-					if not string.find(line, '"resign ', nil, true) or isTeamPlayer(string.sub(line, string.find(line, '"resign ', nil, true) + 8, string.find(line, ' TEAM', nil, true) - 1)) then
+					if not sfind(line, '"resign ', nil, true) or isTeamPlayer(ssub(line, sfind(line, '"resign ', nil, true) + 8, sfind(line, ' TEAM', nil, true) - 1)) then
 						eligiblePlayers = {}
 						votesRequired = nil
 						votesEligible = nil
@@ -372,42 +413,57 @@ function widget:AddConsoleLine(lines, priority)
 						minimized = false
 						StartVote(title)
 					end
-				elseif voteDlist and (string.find(string.lower(line), " passed.", nil, true) or string.find(string.lower(line), " failed", nil, true) or string.find(string.lower(line), "vote cancelled", nil, true) or string.find(string.lower(line), ' cancelling "', nil, true)) then
-					CloseVote()
+
+				-- > [teh]cluster1[00] * Vote for command "stop" passed.
+				elseif voteDlist and (sfind(slower(line), " passed.", nil, true) or sfind(slower(line), " failed", nil, true) or sfind(slower(line), "vote cancelled", nil, true) or sfind(slower(line), ' cancelling "', nil, true)) then
+					if not voteEndTime then
+						voteEndTime = os.clock() + voteEndDelay
+						if sfind(slower(line), " passed.", nil, true) then
+							voteEndText = 'vote passed'
+						elseif sfind(slower(line), " failed", nil, true) then
+							voteEndText = 'vote failed'
+						elseif sfind(slower(line), " failed", nil, true) then
+							voteEndText = 'vote cancelled'
+						end
+						MinimizeVote()
+					end
 				end
 
-			else	-- non system message
+				-- > [teh]cluster1[00] * 10 users allowed to vote.
+				if voteDlist and sfind(slower(line), " users allowed to vote.", nil, true) then
+					local text = ssub(line, sfind(slower(line), "* ", nil, true)+2, sfind(slower(line), " users allowed to vote.", nil, true)-1)
+					if text then
+						votesEligible = tonumber(text)
+					end
+				end
 
-				-- command
-				if voteDlist and string.find(string.lower(line), " !", nil, true) then
+				-- > [teh]cluster1[00] * Vote in progress: "stop" [y:1/4, n:1/3] (43s remaining)
+				if voteDlist and sfind(slower(line), "vote in progress:", nil, true) then
+					local text = ssub(line, sfind(slower(line), "vote in progress:", nil, true)+18)
+					text = ssub(text, sfind(text, "[", nil, true)+1,  sfind(text, "]", nil, true)-1)
 
-					local playerName = string.sub(line,2,(string.find(line,"> ", nil, true) or 1)-1)
+					local str = ssub(text, sfind(text, "y:", nil, true)+2)
+					local yesVotes = ssub(str,  1, sfind(str, "/", nil, true)-1)
+					local yesVotesNeeded = ssub(str,  sfind(str, "/", nil, true)+1, sfind(str, ",", nil, true)-1)
 
-					--Spring.Echo('a vote by   '..playerName)
-					if eligiblePlayers[playerName] ~= nil then
-						local voted = false
-						if string.find(string.lower(line), " !vote y", nil, true) or string.find(string.lower(line), " !y", nil, true) then
-							eligiblePlayers[playerName] = 'y'
-							voted = true
-						elseif string.find(string.lower(line), " !vote n", nil, true) or string.find(string.lower(line), " !n", nil, true) then
-							eligiblePlayers[playerName] = 'n'
-							voted = true
-						elseif string.find(string.lower(line), " !vote b", nil, true) or string.find(string.lower(line), " !b", nil, true) then
-							eligiblePlayers[playerName] = 'b'
-							voted = true
-						end
-						if voted then
-							votesCountYes, votesCountNo, votesCountB = 0, 0, 0
-							for k,v in pairs(eligiblePlayers) do
-								if v == 'y' then
-									votesCountYes = votesCountYes + 1
-								elseif v == 'n' then
-									votesCountNo = votesCountNo + 1
-								else
-									votesCountB = votesCountB + 1
-								end
+					str = ssub(text, sfind(text, "n:", nil, true)+2)
+					local noVotes = ssub(str,  1, sfind(str, "/", nil, true)-1)
+					local noVotesNeeded = ssub(str,  sfind(str, "/", nil, true)+1)
+
+					if yesVotes and yesVotesNeeded and noVotes and noVotesNeeded then
+						yesVotesNeeded = tonumber(yesVotesNeeded)
+						noVotesNeeded = tonumber(noVotesNeeded)
+						votesCountYes = tonumber(yesVotes)
+						votesCountNo = tonumber(noVotes)
+						votesRequired = yesVotesNeeded
+						if not votesEligible then
+							if (yesVotesNeeded + noVotesNeeded) % 2 == 1 then
+								votesEligible = yesVotesNeeded + noVotesNeeded - 2
+							else
+								votesEligible = yesVotesNeeded + noVotesNeeded - 1
 							end
 						end
+						StartVote()
 					end
 				end
 			end
@@ -426,7 +482,7 @@ function widget:KeyPress(key)
 end
 
 function widget:MousePress(x, y, button)
-	if voteDlist and eligibleToVote and button == 1 then
+	if voteDlist and eligibleToVote and not voteEndText and button == 1 then
 		if math_isInRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
 			if not weAreVoteOwner and math_isInRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) then
 				Spring.SendCommands("say !vote y")
@@ -434,7 +490,7 @@ function widget:MousePress(x, y, button)
 			elseif math_isInRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) then
 				if weAreVoteOwner then
 					Spring.SendCommands("say !endvote")
-					CloseVote()
+					MinimizeVote()
 				else
 					Spring.SendCommands("say !vote n")
 					MinimizeVote()
