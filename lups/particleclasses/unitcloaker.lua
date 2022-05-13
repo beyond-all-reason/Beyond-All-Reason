@@ -71,7 +71,7 @@ function UnitCloaker:BeginDraw()
   --gl.Texture(1,'bitmaps/clouddetail.bmp')
   --gl.Texture(1,'bitmaps/GPL/Lups/perlin_noise.jpg')
   gl.Texture(2,'bitmaps/GPL/Lups/mynoise2.png')
-  gl.Texture(3,'$specular')
+  --gl.Texture(3,'$specular') -- disable spec while it is broken in engine 941 cause of the 3dtextures shenanigans
   gl.Texture(4,'$reflection')
 
   gl.MatrixMode(GL.PROJECTION)
@@ -205,12 +205,12 @@ function UnitCloaker.Initialize()
 
           vec3 reflectDir = reflect(viewdir, normalize(normal));
 
-          vec3 spec = textureCube(specularMap, reflectDir).rgb * 4.0 * extraColor.g;
+          //vec3 spec = textureCube(specularMap, reflectDir).rgb * 4.0 * extraColor.g; // disable spec while it is broken in engine 941 cause of the 3dtextures shenanigans
           vec3 refl = textureCube(reflectMap,  reflectDir).rgb;
-          refl  = mix(gl_SecondaryColor.rgb, refl, extraColor.g);
+          refl  = mix(gl_SecondaryColor.rgb, refl, extraColor.g); 
           refl += extraColor.r;
 
-          gl_FragColor.rgb = gl_FragColor.rgb * refl + spec;
+          gl_FragColor.rgb = gl_FragColor.rgb * refl;// + spec;
           gl_FragColor.a   = extraColor.a;
 
           if (life*1.4>noise.r) {

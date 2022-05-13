@@ -500,7 +500,10 @@
 				"no": "NO",
 				"yes": "YES",
 				"endVote": "End Vote",
-				"cancel": "ESC"
+				"cancel": "ESC",
+				"votecancelled": "Vote Cancelled",
+				"votepassed": "Vote Passed",
+				"votefailed": "Vote Failed"
 			},
 			"gameInfo": {
 				"title": "Game info",
@@ -543,7 +546,7 @@
 				"techPercentage": "Boss Anger: %{count}%%",
 				"techPercentageEndless": "Tech Progress: %{count}%%",
 				"techLevel": "Scavengers Tier: %{count}",
-				"bossFightCountdown": "Boss Arrives in: %{count} Seconds",
+				"bossFightCountdown": "Scavengers retreat in: %{count} Seconds",
 				"bossHealth": "Boss Health: %{count}%%",
 				"gracePeriod": "Grace Period: %{count} Seconds",
 				"killedScavengers": "Killed Scavengers: %{count}",

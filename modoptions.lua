@@ -352,6 +352,7 @@ local options={
 		--desc   = '',
 		type   = 'number',
 		section= 'options_scavengers',
+		hidden = true,
 		def    = 1,
 		min    = 0.01,
 		max    = 10,
