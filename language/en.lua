@@ -541,6 +541,8 @@ return {
 			defrange_enemyground_descr = 'Show Range For Enemy Ground',
 			defrange_enemynuke = 'Enemy Nuke',
 			defrange_enemynuke_descr = 'Show Range For Enemy Nuke',
+			antiranges = 'Anti-nuke ranges',
+			antiranges_descr = 'Displays the range of anti-nuke coverage',
 			allyselunits_select = 'select units',
 			allyselunits_select_descr = 'When viewing a players camera, this selects what the player has selected',
 			lockcamera_hideenemies = 'only show tracked player viewpoint',
