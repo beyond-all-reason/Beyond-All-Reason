@@ -452,17 +452,22 @@ function widget:AddConsoleLine(lines, priority)
 				-- > [teh]cluster2[00] * Vote in progress: "resign [teh]Teddy TEAM" [y:1/1(4), n:0/1(3), votes:1/3] (40s remaining)
 				if voteDlist and sfind(slower(line), "vote in progress:", nil, true) then
 					local text = ssub(line, sfind(slower(line), "vote in progress:", nil, true)+18)
-					text = ssub(text, sfind(text, "[", nil, true)+1,  sfind(text, "]", nil, true)-1)
-
+					text = ssub(text, sfind(text, "\" [", nil, true)+3)
+					text = ssub(text, 1,  sfind(text, "]", nil, true)-1)
+					-- yes votes
 					local str = ssub(text, sfind(text, "y:", nil, true)+2)
 					local yesVotes = ssub(str,  1, sfind(str, "/", nil, true)-1)
 					local yesVotesNeeded = ssub(str,  sfind(str, "/", nil, true)+1, sfind(str, ",", nil, true)-1)
 					if yesVotesNeeded and sfind(yesVotesNeeded, "(", nil, true) then
 						yesVotesNeeded = ssub(yesVotesNeeded, 1, sfind(yesVotesNeeded, "(", nil, true)-1)
 					end
+					-- no notes
 					str = ssub(text, sfind(text, "n:", nil, true)+2)
 					local noVotes = ssub(str,  1, sfind(str, "/", nil, true)-1)
 					local noVotesNeeded = ssub(str,  sfind(str, "/", nil, true)+1)
+					if sfind(str, ",", nil, true) then
+						noVotesNeeded = ssub(noVotesNeeded,  1, sfind(str, ",", nil, true)-1)
+					end
 					if noVotesNeeded and sfind(noVotesNeeded, "(", nil, true) then
 						noVotesNeeded = ssub(noVotesNeeded, 1, sfind(noVotesNeeded, "(", nil, true)-1)
 					end
