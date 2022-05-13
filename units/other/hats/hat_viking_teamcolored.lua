@@ -8,6 +8,7 @@ return {
 		buildpic = "ARMSTONE.DDS",
 		buildtime = 10000,
 		canattack = false,
+		cancloak = true,
 		canrepeat = false,
 		capturable = true,
 		cantbetransported = false,
