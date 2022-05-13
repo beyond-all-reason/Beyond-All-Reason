@@ -3,7 +3,7 @@ return {
 		features = {
 			names = {
 				candycane = "Le Candy Cane",
-				chicken_egg = "Le Egg",
+				chicken_egg = "Le œuf de poule",
 				xmascomwreck = "Le Xmas Commander Wreckage",
 				pthornclump = "Le A very dry and brittle plant",
 				rock = "Le Rock",

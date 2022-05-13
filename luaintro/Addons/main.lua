@@ -122,9 +122,8 @@ local tipKeys = {
 }
 
 local randomTip = ''
-if showTips then
-	local index = math.random(#tipKeys)
-	randomTip = Spring.I18N('tips.loadscreen.' .. tipKeys[index])
+if Spring.Utilities.Gametype.IsChickens() then
+	Spring.I18N(tips.loadScreen usePause)
 end
 
 -- for guishader
