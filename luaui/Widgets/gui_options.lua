@@ -2935,7 +2935,9 @@ function init()
 			  loadWidgetData("Metalspots", "metalspots_values", { 'showValues' })
 		  end,
 		  onchange = function(i, value)
-			  WG.metalspots.setShowValue(value)
+			  if WG.metalspots then
+			  	WG.metalspots.setShowValue(value)
+			  end
 			  saveOptionValue('Metalspots', 'metalspots', 'setShowValue', { 'showValue' }, options[getOptionByID('metalspots_values')].value)
 		  end,
 		},
