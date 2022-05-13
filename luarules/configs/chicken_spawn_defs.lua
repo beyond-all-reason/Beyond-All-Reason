@@ -136,7 +136,7 @@ local chickenTypes = {
 
 local optionValues = {
 	[difficulties.veryeasy] = {
-		chickenMaxSpawnRate  = 300,
+		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 360,
 		queenSpawnMult    = 0,
 		angerBonus        = 0.15,
@@ -148,7 +148,7 @@ local optionValues = {
 		queenName         = 've_chickenq',
 	},
 	[difficulties.easy] = {
-		chickenMaxSpawnRate  = 300,
+		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 320,
 		queenSpawnMult    = 0,
 		angerBonus        = 0.2,
@@ -161,7 +161,7 @@ local optionValues = {
 	},
 
 	[difficulties.normal] = {
-		chickenMaxSpawnRate  = 300,
+		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 210,
 		queenSpawnMult    = 1,
 		angerBonus        = 0.25,
@@ -174,7 +174,7 @@ local optionValues = {
 	},
 
 	[difficulties.hard] = {
-		chickenMaxSpawnRate  = 300,
+		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 140,
 		queenSpawnMult    = 1,
 		angerBonus        = 0.3,
@@ -187,7 +187,7 @@ local optionValues = {
 	},
 
 	[difficulties.veryhard] = {
-		chickenMaxSpawnRate  = 300,
+		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 70,
 		queenSpawnMult    = 3,
 		angerBonus        = 0.35,
@@ -199,7 +199,7 @@ local optionValues = {
 		queenName         = 'vh_chickenq',
 	},
 	[difficulties.epic] = {
-		chickenMaxSpawnRate  = 300,
+		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 40,
 		queenSpawnMult    = 3,
 		angerBonus        = 0.5,
@@ -212,7 +212,7 @@ local optionValues = {
 	},
 
 	[difficulties.survival] = {
-		chickenMaxSpawnRate  = 300,
+		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 360,
 		queenSpawnMult    = 0,
 		angerBonus        = 0.15,
