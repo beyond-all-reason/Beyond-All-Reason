@@ -30,7 +30,7 @@ end
 -- Options
 --------------------------------------------------------------------------------
 
-local opacityMultiplier			= 0.85
+local opacityMultiplier			= 0.75
 local multiStockpileColor		= {1,1,0}
 local filledStockpileColor		= {1,0.75,0}
 local unknownStockpileColor		= {1,0.54,1}
@@ -40,7 +40,7 @@ local empdStockpileColor		= {0.1,0,1}
 local empdStockpileColor2		= {0.7,0,1}
 local showLineGlow2				= false
 local fadeOnCloseup        		= true
-local fadeStartDistance			= 3300
+local fadeStartDistance			= 3500
 
 --------------------------------------------------------------------------------
 -- Speedups

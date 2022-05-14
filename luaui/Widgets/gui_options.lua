@@ -2935,7 +2935,9 @@ function init()
 			  loadWidgetData("Metalspots", "metalspots_values", { 'showValues' })
 		  end,
 		  onchange = function(i, value)
-			  WG.metalspots.setShowValue(value)
+			  if WG.metalspots then
+			  	WG.metalspots.setShowValue(value)
+			  end
 			  saveOptionValue('Metalspots', 'metalspots', 'setShowValue', { 'showValue' }, options[getOptionByID('metalspots_values')].value)
 		  end,
 		},
@@ -3211,6 +3213,7 @@ function init()
 		  end,
 		},
 
+		{ id = "antiranges", group = "ui", category = types.advanced, widget = "Anti Ranges", name = texts.option.antiranges, type = "bool", value = GetWidgetToggleValue("Anti Ranges"), description = texts.option.antiranges_descr },
 
 		-- GAME
 		{ id = "networksmoothing", restart = true, category = types.basic, group = "game", name = texts.option.networksmoothing, type = "bool", value = useNetworkSmoothing, description = texts.option.networksmoothing_descr,

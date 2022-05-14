@@ -1102,14 +1102,14 @@ if gadgetHandler:IsSyncedCode() then
 			if weaponID == -1 and damage > 25000 then
 				damage = 25000
 			end
-			damage = damage/SetCount(humanTeams)*0.5
+			damage = damage/(1+(SetCount(humanTeams)*0.2))
 			if attackerDefID then
 				if not queenResistance[weaponID] then
 					queenResistance[weaponID] = {}
 					queenResistance[weaponID].damage = damage
 					queenResistance[weaponID].notify = 0
 				end
-				local resistPercent = math.min((queenResistance[weaponID].damage * config.chickenSpawnMultiplier) / queenMaxHP, 0.999)
+				local resistPercent = math.min((queenResistance[weaponID].damage * 2 * config.chickenSpawnMultiplier) / queenMaxHP, 0.999)
 				if resistPercent > 0.35 then
 					if queenResistance[weaponID].notify == 0 then
 						SendToUnsynced('QueenResistant', attackerDefID)
@@ -1463,7 +1463,7 @@ if gadgetHandler:IsSyncedCode() then
 				timeOfLastSpawn = t
 			end
 
-			if burrowCount > 0 and ((config.chickenMaxSpawnRate < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount) and (t - timeOfLastWave) > config.chickenMaxSpawnRate*0.1) then
+			if burrowCount > 0 and ((config.chickenMaxSpawnRate < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount) and (t - timeOfLastWave) > config.chickenMaxSpawnRate*0.5) then
 				local cCount = Wave()
 				if cCount and cCount > 0 then
 					chickenEvent("wave", cCount, currentWave)

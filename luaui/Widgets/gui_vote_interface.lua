@@ -133,15 +133,15 @@ local function StartVote(name)	-- when called without params its just to refresh
 
 		-- progress bar
 		if votesEligible then
-			-- progress bar: required for
 			if votesRequired then
+				-- progress bar: required for
 				w = math.floor(((windowArea[3] - windowArea[1]) / votesEligible) * votesRequired)
-				color1 = { 0, 0.6, 0, 0.08 }
-				color2 = { 0, 1, 0, 0.08 }
+				color1 = { 0, 0.6, 0, 0.1 }
+				color2 = { 0, 1, 0, 0.1 }
 				RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[1] + bgpadding + w, windowArea[2] + bgpadding + progressbarHeight, elementCorner*0.6, 0, 0, 0, 1, color1, color2)
 				-- progress bar: required minority against
-				color1 = { 0.6, 0, 0, 0.08 }
-				color2 = { 1, 0, 0, 0.08 }
+				color1 = { 0.6, 0, 0, 0.1 }
+				color2 = { 1, 0, 0, 0.1 }
 				RectRound(windowArea[1] + bgpadding + w, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[2] + bgpadding + progressbarHeight, elementCorner*0.6, 0, 0, 1, 0, color1, color2)
 			end
 
@@ -176,9 +176,9 @@ local function StartVote(name)	-- when called without params its just to refresh
 
 			-- progress bar: highlight
 			color1 = { 1, 1, 1, 0 }
-			color2 = { 1, 1, 1, 0.08 }
+			color2 = { 1, 1, 1, 0.085 }
 			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding + (progressbarHeight/2), windowArea[3] - bgpadding, windowArea[2] + bgpadding + progressbarHeight, 0, 0, 0, 0, 0, color1, color2)
-			color1 = { 1, 1, 1, 0.02 }
+			color1 = { 1, 1, 1, 0.023 }
 			color2 = { 1, 1, 1, 0 }
 			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[2] + bgpadding + (progressbarHeight/2), 0, 0, 0, 0, 0, color1, color2)
 		end
@@ -306,7 +306,8 @@ function widget:Update(dt)
 		end
 		if debugSec > 2 and debugStep < 2 then
 			debugStep = 2
-			widget:AddConsoleLine("> [teh]cluster1[00] * Vote in progress: \"stop\" [y:1/4, n:1/3] (43s remaining)", false)
+			--widget:AddConsoleLine("> [teh]cluster1[00] * Vote in progress: \"stop\" [y:1/4, n:1/3] (43s remaining)", false)
+			widget:AddConsoleLine("> [teh]cluster2[00] * Vote in progress: \"resign [teh]Teddy TEAM\" [y:1/1(4), n:0/1(3), votes:1/3] (40s remaining)", false)
 		end
 		if debugSec > 2.75 and debugStep < 3 then
 			debugStep = 3
@@ -447,18 +448,29 @@ function widget:AddConsoleLine(lines, priority)
 				end
 
 				-- > [teh]cluster1[00] * Vote in progress: "stop" [y:1/4, n:1/3] (43s remaining)
+				-- > [teh]cluster2[00] * Vote in progress: "resign Raghna TEAM" [y:2/4(3), n:0/2(3)] (57s remaining)
+				-- > [teh]cluster2[00] * Vote in progress: "resign [teh]Teddy TEAM" [y:1/1(4), n:0/1(3), votes:1/3] (40s remaining)
 				if voteDlist and sfind(slower(line), "vote in progress:", nil, true) then
 					local text = ssub(line, sfind(slower(line), "vote in progress:", nil, true)+18)
-					text = ssub(text, sfind(text, "[", nil, true)+1,  sfind(text, "]", nil, true)-1)
-
+					text = ssub(text, sfind(text, "\" [", nil, true)+3)
+					text = ssub(text, 1,  sfind(text, "]", nil, true)-1)
+					-- yes votes
 					local str = ssub(text, sfind(text, "y:", nil, true)+2)
 					local yesVotes = ssub(str,  1, sfind(str, "/", nil, true)-1)
 					local yesVotesNeeded = ssub(str,  sfind(str, "/", nil, true)+1, sfind(str, ",", nil, true)-1)
-
+					if yesVotesNeeded and sfind(yesVotesNeeded, "(", nil, true) then
+						yesVotesNeeded = ssub(yesVotesNeeded, 1, sfind(yesVotesNeeded, "(", nil, true)-1)
+					end
+					-- no notes
 					str = ssub(text, sfind(text, "n:", nil, true)+2)
 					local noVotes = ssub(str,  1, sfind(str, "/", nil, true)-1)
 					local noVotesNeeded = ssub(str,  sfind(str, "/", nil, true)+1)
-
+					if sfind(str, ",", nil, true) then
+						noVotesNeeded = ssub(noVotesNeeded,  1, sfind(str, ",", nil, true)-1)
+					end
+					if noVotesNeeded and sfind(noVotesNeeded, "(", nil, true) then
+						noVotesNeeded = ssub(noVotesNeeded, 1, sfind(noVotesNeeded, "(", nil, true)-1)
+					end
 					if yesVotes and yesVotesNeeded and noVotes and noVotesNeeded then
 						yesVotesNeeded = tonumber(yesVotesNeeded)
 						noVotesNeeded = tonumber(noVotesNeeded)
