@@ -64,8 +64,16 @@ local spGetGaiaTeamID = Spring.GetGaiaTeamID()
 --SYNCED CODE
 if gadgetHandler:IsSyncedCode() then
 
+
 	function gadget:Initialize()
+
 		GG.AiHelpers.Start()
+	end
+else
+
+	-- UNSYNCED CODE
+	function gadget:Initialize()
+
 		local teamList = spGetTeamList()
 		spEcho("Looking for AIs")
 
@@ -90,6 +98,7 @@ if gadgetHandler:IsSyncedCode() then
 				self:UnitFinished(uId, Spring.GetUnitDefID(uId), Spring.GetUnitTeam(uId))
 			end
 		end
+
 	end
 
 	function gadget:SetupAI(id)
@@ -289,7 +298,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	--UNSYNCED CODE
-else
+--else
 	local function sdAddRectangle(_, x1, z1, x2, z2, r, g, b, a, label, filled, teamID, channel)
 		if (Script.LuaUI('ShardDrawAddRectangle')) then
 			Script.LuaUI.ShardDrawAddRectangle(x1, z1, x2, z2, { r, g, b, a }, label, filled, teamID, channel)
