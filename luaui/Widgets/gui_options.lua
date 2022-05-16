@@ -4960,6 +4960,8 @@ function widget:Initialize()
 		end
 	end
 
+	Spring.SendCommands("iconshidewithui " .. Spring.GetConfigInt("UnitIconsHideWithUI", 0))
+
 	-- make sure fog-start is smaller than fog-end in case maps have configured it this way
 	if gl.GetAtmosphere("fogEnd") <= gl.GetAtmosphere("fogStart") then
 		Spring.SetAtmosphere({ fogEnd = gl.GetAtmosphere("fogStart") + 0.01 })

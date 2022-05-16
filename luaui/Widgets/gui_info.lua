@@ -638,12 +638,12 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	end
 	if kills > 0 then
 		local size = math_floor((cellRect[cellID][3] - (cellRect[cellID][1] + (cellPadding*0.5)))*0.33)
-		glColor(0.85,0.85,0.85,0.6)
+		glColor(0.88,0.88,0.88,0.66)
 		glTexture(":l:LuaUI/Images/skull.dds")
 		glTexRect(cellRect[cellID][3] - size+(cellPadding*0.5), cellRect[cellID][4]-size-(cellPadding*0.5), cellRect[cellID][3]+(cellPadding*0.5), cellRect[cellID][4]-(cellPadding*0.5))
 		glTexture(false)
 		--font3:Begin()
-		font3:Print('\255\220\220\220'..kills, cellRect[cellID][3] - (size * 0.5)+(cellPadding*0.5), cellRect[cellID][4] -(cellPadding*0.5)- (size * 0.5) - (fontSize * 0.17), fontSize * 0.66, "oc")
+		font3:Print('\255\233\233\233'..kills, cellRect[cellID][3] - (size * 0.5)+(cellPadding*0.5), cellRect[cellID][4] -(cellPadding*0.5)- (size * 0.5) - (fontSize * 0.19), fontSize * 0.66, "oc")
 		--font3:End()
 	end
 end
@@ -876,12 +876,12 @@ local function drawUnitInfo()
 			local rankIconSize = math_floor((height * vsy * 0.16))
 			local rankIconMarginY = math_floor((height * vsy * 0.07) + 0.5)
 			local rankIconMarginX = math_floor((height * vsy * 0.053) + 0.5)
-			glColor(0.66,0.66,0.66,0.5)
+			glColor(0.7,0.7,0.7,0.55)
 			glTexture(":l:LuaUI/Images/skull.dds")
 			glTexRect(backgroundRect[3] - rankIconMarginX - rankIconSize, backgroundRect[4] - rankIconMarginY - rankIconSize, backgroundRect[3] - rankIconMarginX, backgroundRect[4] - rankIconMarginY)
 			glTexture(false)
 			font2:Begin()
-			font2:Print('\255\210\210\210'..kills, backgroundRect[3] - rankIconMarginX - (rankIconSize * 0.5), backgroundRect[4] - (rankIconMarginY * 2.05) - (fontSize * 0.31), fontSize * 0.87, "c")
+			font2:Print('\255\215\215\215'..kills, backgroundRect[3] - rankIconMarginX - (rankIconSize * 0.5), backgroundRect[4] - (rankIconMarginY * 2.05) - (fontSize * 0.31), fontSize * 0.87, "oc")
 			font2:End()
 		end
 	end
