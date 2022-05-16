@@ -1952,10 +1952,10 @@ function init()
 		  end,
 		},
 
-		{ id = "decals", group = "gfx", category = types.advanced, name = texts.option.decals, restart = true, type = "bool", value = tonumber(Spring.GetConfigInt("GroundDecals", 3) or 3) >= 1, description = texts.option.decals_descr,
+		{ id = "decals", group = "gfx", category = types.advanced, name = texts.option.decals, restart = true, type = "bool", value = tonumber(Spring.GetConfigInt("GroundDecals", 4) or 4) >= 1, description = texts.option.decals_descr,
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("GroundDecals", (value and 3 or 0))
-			  Spring.SendCommands("GroundDecals " .. (value and 3 or 0))
+			  Spring.SetConfigInt("GroundDecals", (value and 4 or 0))
+			  Spring.SendCommands("GroundDecals " .. (value and 4 or 0))
 			  Spring.SetConfigInt("GroundScarAlphaFade", 1)
 		  end,
 		},

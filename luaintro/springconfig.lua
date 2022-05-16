@@ -77,6 +77,11 @@ Spring.SetConfigInt("LoadingMT", 0)
 -- Chobby had this set to 100 before and it introduced latency of 4ms a sim-frame, having a 10%-15% penalty compared it the default
 Spring.SetConfigInt("LuaGarbageCollectionMemLoadMult", 2)
 
+-- we used 3 as default toggle, changing to 4
+if (Spring.GetConfigInt("GroundDecals", 4) or 3) <= 3 then
+	Spring.SetConfigInt("GroundDecals", 4)
+end
+
 -- ground mesh detail
 Spring.SetConfigInt("ROAM", 1)
 if tonumber(Spring.GetConfigInt("GroundDetail", 1) or 1) < 200 then
