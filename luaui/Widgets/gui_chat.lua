@@ -885,7 +885,7 @@ local function drawChatInput()
 		textInputDlist = glDeleteList(textInputDlist)
 		textInputDlist = glCreateList(function()
 			local x,y,_ = Spring.GetMouseState()
-			local chatlogHeightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
+			local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
 			local inputFontSize = floor(usedFontSize * 1.03)
 			local inputHeight = floor(inputFontSize * 2.3)
 			local leftOffset = floor(lineHeight*0.7)
@@ -1218,7 +1218,7 @@ function widget:DrawScreen()
 					end
 				end
 				glCallList(historyMode == 'console' and consoleLines[i].lineDisplayList or chatLines[i].lineDisplayList)
-				if historyMode  then
+				if historyMode then
 					glTranslate(-width, 0, 0)
 				end
 				if not historyMode then
