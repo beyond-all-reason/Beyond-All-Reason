@@ -1217,7 +1217,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			squadCreationQueue.units[#squadCreationQueue.units+1] = unitID
-			squadCreationQueue.life = 5
+			squadCreationQueue.life = 7
 			if HEALER[UnitDefNames[defs.unitName].id] then
 				squadCreationQueue.role = "healer"
 				squadCreationQueue.life = 20
