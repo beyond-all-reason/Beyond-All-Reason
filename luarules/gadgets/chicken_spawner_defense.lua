@@ -122,12 +122,12 @@ if gadgetHandler:IsSyncedCode() then
 	local squadCreationQueue = {
 		units = {},
 		role = false,
-		life = 5,
+		life = 7,
 	}
 	squadCreationQueueDefaults = {
 		units = {},
 		role = false,
-		life = 5,
+		life = 7,
 	}
 
 	local attemptingToSpawnHeavyTurret = 0
