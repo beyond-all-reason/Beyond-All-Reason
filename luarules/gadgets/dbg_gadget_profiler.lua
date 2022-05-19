@@ -420,8 +420,8 @@ else
 		return a.plainname < b.plainname
 	end
 
-	local minPerc = 0.005 -- above this value, we fade in how red we mark a widget (/gadget)
-	local maxPerc = 0.02 -- above this value, we mark a widget as red
+	local minPerc = 0.0005 -- above this value, we fade in how red we mark a widget (/gadget)
+	local maxPerc = 0.002 -- above this value, we mark a widget as red
 	local minSpace = 10 -- Kb
 	local maxSpace = 100
 

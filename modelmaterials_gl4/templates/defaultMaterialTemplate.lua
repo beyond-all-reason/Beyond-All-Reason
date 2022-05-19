@@ -149,6 +149,7 @@ vertex = [[
 	float simFrame = (timeInfo.x + timeInfo.w);
 
 	float Perlin3D( vec3 P ) {
+		//return 0.5;
 		//  https://github.com/BrianSharpe/Wombat/blob/master/Perlin3D.glsl
 
 		// establish our grid cell and unit position
@@ -544,7 +545,8 @@ fragment = [[
 	/***********************************************************************/
 	// PBR uniforms
 	uniform sampler2D brdfLUT;			//9
-	uniform sampler2D envLUT;			//10
+	uniform sampler3D noisetex3dcube;			//10
+	uniform sampler2D envLUT;			//11
 
 
 
@@ -753,6 +755,8 @@ fragment = [[
 	// Misc functions
 
 	float Perlin3D( vec3 P ) {
+		
+		return (textureLod(noisetex3dcube, fract(P*0.1), 0.0).a * 2.0 - 1.0);
 		//  https://github.com/BrianSharpe/Wombat/blob/master/Perlin3D.glsl
 
 		// establish our grid cell and unit position
@@ -1615,6 +1619,8 @@ fragment = [[
 
 		losMapTex    = 8,
 		brdfLUT      = 9,
+		noisetex3dcube = 10,
+		envLUT = 11,
 		-- envLUT       = 10, -- uncomment this if we want environment mapping back USE_ENVIRONMENT_DIFFUSE || USE_ENVIRONMENT_SPECULAR
 	},
 	uniformFloat = {
