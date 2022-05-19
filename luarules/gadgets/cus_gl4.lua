@@ -706,6 +706,7 @@ end
 local textureKeytoSet = {} -- table of {TextureKey : {textureTable}}
 
 local blankNormalMap = "unittextures/blank_normal.dds"
+local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
 
 local fastObjectDefIDtoTextureKey = {} -- table of  {unitDefID : TextureKey, -featureDefID : TextureKey }
 local fastTextureKeyCache = {} -- a table of concatenated texture names to increasing integers
@@ -830,6 +831,7 @@ local function initBinsAndTextures()
 				[7] = "$reflection",
 				[8] = "$info:los",
 				[9] = brdfLUT,
+				[10] = noisetex3dcube,
 				--[10] = envLUT,
 			}
 
@@ -885,6 +887,7 @@ local function initBinsAndTextures()
 				[7] = "$reflection",
 				[8] = "$info",
 				[9] = brdfLUT,
+				[10] = noisetex3dcube,
 				--[10] = envLUT,
 			}
 
