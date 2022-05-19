@@ -88,9 +88,24 @@ if tonumber(Spring.GetConfigInt("GroundDetail", 1) or 1) < 200 then
 	Spring.SetConfigInt("GroundDetail", 200)
 end
 
+-- This makes between-simframe interpolation smoother in mid-late game situations
+Spring.SetConfigInt("SmoothTimeOffset", 2) -- New in BAR engine
+
+-- This is needed for better profiling info, and (theoretically better frame timing). 
+-- Notably a decade ago windows had issues with this
+Spring.SetConfigInt("UseHighResTimer", 1)  -- Default off
+
+-- This changes the sleep time of the game server thread to make it wake up every 1.999 ms instead of the default 5.999 ms 
+-- This hopefully gets us less variance in issuing new sim frames
+Spring.SetConfigInt("ServerSleepTime", 1)
+
+-- The default of 256 is just too tiny, at this size the VS load outpaces FS load anyway, makes for actually pretty reflections with CUS GL4
+Spring.SetConfigInt("BumpWaterTexSizeReflection", 1024)
+
 Spring.SetConfigFloat("CrossAlpha", 0)	-- will be in effect next launch
 
 Spring.SetConfigInt("UnitLodDist", 999999)
+
 
 
 if not Spring.GetConfigFloat("UnitIconFadeAmount") then
