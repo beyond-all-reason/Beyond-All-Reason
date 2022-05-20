@@ -781,6 +781,9 @@ function UnitDef_Post(name, uDef)
 		
 		-- increase terraformspeed to be able to restore ground faster
 		uDef.terraformspeed = uDef.workertime * 30
+		if Spring.GetModOptions().map_waterlevel ~= 0 then
+			uDef.canrestore = false
+		end
 	end
 
 	-- Unit Cost
