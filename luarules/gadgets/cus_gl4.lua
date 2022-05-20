@@ -944,20 +944,20 @@ local asssigncalls = 0
 -- @param shader which shader should be assigned to it
 -- @param textures A table of {bindPosition:texturename} for this unit
 -- @param texKey A unique key hashed from the textures names, bindpositions
-local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures, texKey, uniformBinID)
+local function AsssignObjectToBin(objectID, objectDefID, flag, shader, textures, texKey, uniformBinID, calledfrom)
 	asssigncalls = (asssigncalls + 1 ) % (2^20)
 	shader = shader or GetShaderName(flag, objectDefID)
 	texKey = texKey or fastObjectDefIDtoTextureKey[objectDefID]
 
 	if objectDefID == nil then
-		Spring.Echo("AsssignObjectToBin",objectID, objectDefID, flag, shader, textures, texKey, uniformBinID)
+		Spring.Echo("AsssignObjectToBin",objectID, objectDefID, flag, shader, textures, texKey, uniformBinID, calledfrom)
 	end
 	uniformBinID = uniformBinID or GetUniformBinID(objectDefID, "AsssignObjectToBin")
 	--Spring.Echo("AsssignObjectToBin", objectID, objectDefID, flag, shader, textures, texKey, uniformBinID)
 	--	Spring.Debug.TraceFullEcho()
 	if (texKey == nil or uniformBinID == nil) then
 		if badassigns[objectID] == nil then
-			Spring.Echo("[CUS GL4]Failure to assign to ", objectID, objectDefID, flag, shader, textures, texKey, uniformBinID)
+			Spring.Echo("[CUS GL4]Failure to assign to ", objectID, objectDefID, flag, shader, textures, texKey, uniformBinID, calledfrom)
 			Spring.Echo("REPORT THIS TO BEHERITH: bad object:", GetObjectDefName(objectID))
 			badassigns[objectID] = true
 		end
@@ -1143,7 +1143,8 @@ local function AddObject(objectID, drawFlag)
 		local flag = drawBinKeys[k]
 		if HasAllBits(drawFlag, flag) then
 			if overrideDrawFlagsCombined[flag] then
-				AsssignObjectToBin(objectID, objectDefID, flag)
+								 --objectID, objectDefID, flag, shader, textures, texKey, uniformBinID, calledfrom
+				AsssignObjectToBin(objectID, objectDefID, flag, nil,	nil,	  nil,	  nil, 			"addobject") 
 			end
 		end
 	end
@@ -1263,7 +1264,7 @@ local function UpdateObject(objectID, drawFlag)
 				--end
 			end
 			if hasFlagNew then -- didn't have this flag, but now has
-				AsssignObjectToBin(objectID, objectDefID, flag, shader, nil, texKey, uniformBinID)
+				AsssignObjectToBin(objectID, objectDefID, flag, shader, nil, texKey, uniformBinID, "UpdateObject")
 				--if flag == 1 then
 				--	AsssignObjectToBin(objectID, objectDefID, 0, nil, nil, texKey, uniformBinID) --deferred
 				--end
