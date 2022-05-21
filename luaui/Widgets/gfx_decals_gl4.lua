@@ -478,9 +478,12 @@ function widget:GameFrame(n)
 end
 
 function widget:Initialize()
-	makeAtlas()
-	--shaderConfig.MAXVERTICES = 4
 	decalVBO, decalShader = InitDrawPrimitiveAtUnit(shaderConfig, "DecalsGL4")
+	if decalVBO == nil then 
+		widgetHandler:RemoveWidget()
+	end
+	makeAtlas()
+	
 	math.randomseed(1)
 	if true then 
 		for i= 1, 10000 do 
