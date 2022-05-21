@@ -36,6 +36,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetGameFrame = Spring.GetGameFrame
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
+	local initialized = false
 	local boundary = 128 -- how many elmos closer to the center of the scum than the actual edge of the scum the unit must be to be considered on the scum
 	
 	local function GetScumCurrentRadius(scum, gf)
@@ -59,17 +60,17 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		scumSpawnerIDs[UnitDefNames['roost'].id] = {radius = 1024, growthrate = 0.1}
-		scumSpawnerIDs[UnitDefNames['chickend2'].id] = {radius = 1024, growthrate = 0.1}
-		scumSpawnerIDs[UnitDefNames['chickend1'].id] = {radius = 1024, growthrate = 0.1}
+		scumSpawnerIDs[UnitDefNames['roost'].id] = {radius = 384, growthrate = 0.5}
+		scumSpawnerIDs[UnitDefNames['chickend2'].id] = {radius = 384, growthrate = 0.5}
+		scumSpawnerIDs[UnitDefNames['chickend1'].id] = {radius = 384, growthrate = 0.5}
 		
 		for x= 0, math.ceil(mapSizeX/1024) do 
 			for z = 0, math.ceil(mapSizeZ/1024) do 
 				scumBins[x*1024+z] = {}
 			end
 		end
-
 	end
+	
 
 		-- This checks wether the unit is under any scum 
 	local function IsPosInScum(unitx,unity, unitz)
@@ -194,6 +195,12 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	
 	function gadget:GameFrame(n)
+		if not initialized then 
+			for i, unitID in ipairs(Spring.GetAllUnits()) do 
+				gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+			end
+			initialized = true
+		end
 		if scumRemoveQueue[n] then 
 			for scumID, _ in pairs(scumRemoveQueue[n]) do 
 				if scums[scumID] then 

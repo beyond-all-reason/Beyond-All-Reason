@@ -10,7 +10,8 @@ function widget:GetInfo()
 	}
 end
 
-local scrollingWhenChatInput = true
+local showHistoryWhenChatInput = true
+local enableShortcutClick = true -- enable ctrl+click to goto mapmark coords... while not being in history mode
 local vsx, vsy = gl.GetViewSizes()
 local posY = 0.81
 local posX = 0.3
@@ -46,7 +47,7 @@ local activationArea = {0,0,0,0}
 local consoleActivationArea = {0,0,0,0}
 local currentChatLine = 0
 local currentConsoleLine = 0
-local scrolling = false
+local historyMode = false
 local scrollingPosY = 0.66
 local consolePosY = 0.9
 local displayedChatLines = 0
@@ -446,7 +447,7 @@ local function addConsoleLine(gameFrame, lineType, text, isLive)
 		}
 	end
 
-	if scrolling ~= 'console' then
+	if historyMode ~= 'console' then
 		currentConsoleLine = consoleLinesCount
 	end
 end
@@ -575,7 +576,7 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 		end
 	end
 
-	if scrolling ~= 'chat' then
+	if historyMode ~= 'chat' then
 		currentChatLine = #chatLines
 	end
 
@@ -587,8 +588,8 @@ end
 
 local function cancelChatInput()
 	showTextInput = false
-	if scrollingWhenChatInput then
-		scrolling = false
+	if showHistoryWhenChatInput then
+		historyMode = false
 		currentChatLine = #chatLines
 	end
 	inputText = ''
@@ -636,11 +637,11 @@ function widget:Initialize()
 	WG['chat'].getHide = function()
 		return hide
 	end
-	WG['chat'].setChatInputScrolling = function(value)
-		scrollingWhenChatInput = value
+	WG['chat'].setChatInputHistory = function(value)
+		showHistoryWhenChatInput = value
 	end
-	WG['chat'].getChatInputScrolling = function()
-		return scrollingWhenChatInput
+	WG['chat'].getChatInputHistory = function()
+		return showHistoryWhenChatInput
 	end
 	WG['chat'].setInputButton = function(value)
 		inputButton = value
@@ -753,25 +754,25 @@ function widget:Update(dt)
 		scrollingPosY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight*maxLinesScroll)) / vsy
 	end
 
-	local chatlogHeightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
+	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
 	if WG['topbar'] and WG['topbar'].showingQuit() then
-		scrolling = false
+		historyMode = false
 		currentChatLine = #chatLines
 	elseif math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if ctrl and shift then
 			if math_isInRect(x, y, consoleActivationArea[1], consoleActivationArea[2], consoleActivationArea[3], consoleActivationArea[4]) then
-				scrolling = 'console'
+				historyMode = 'console'
 			else
-				scrolling = 'chat'
+				historyMode = 'chat'
 			end
 			maxLinesScroll = maxLinesScrollFull
 		end
-	elseif scrolling and math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[2]) then
+	elseif historyMode and math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[2]) then
 		-- do nothing
 	else
-		if not scrollingWhenChatInput or not showTextInput then
-			scrolling = false
+		if not showHistoryWhenChatInput or not showTextInput then
+			historyMode = false
 			currentChatLine = #chatLines
 		end
 	end
@@ -884,11 +885,11 @@ local function drawChatInput()
 		textInputDlist = glDeleteList(textInputDlist)
 		textInputDlist = glCreateList(function()
 			local x,y,_ = Spring.GetMouseState()
-			local chatlogHeightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
+			local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
 			local inputFontSize = floor(usedFontSize * 1.03)
 			local inputHeight = floor(inputFontSize * 2.3)
 			local leftOffset = floor(lineHeight*0.7)
-			local distance =  (scrolling and inputHeight + elementMargin + elementMargin or elementMargin)
+			local distance =  (historyMode and inputHeight + elementMargin + elementMargin or elementMargin)
 			local isCmd = ssub(inputText, 1, 1) == '/'
 			local usedFont = isCmd and font3 or font
 			local modeText = Spring.I18N('ui.chat.everyone')
@@ -1050,8 +1051,9 @@ function widget:DrawScreen()
 	if chobbyInterface then return end
 	if not chatLines[1] and not consoleLines[1] then return end
 
+	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local x,y,b = Spring.GetMouseState()
-	local chatlogHeightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
+	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
 	if hovering and WG['guishader'] then
 		WG['guishader'].RemoveRect('chat')
 	end
@@ -1079,20 +1081,20 @@ function widget:DrawScreen()
 		end
 	end
 
-	if hide and not scrolling then
+	if hide and not historyMode then
 		return
 	end
 
-	if (scrollingWhenChatInput and showTextInput) or math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4]) or  (scrolling and math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[2]))  then
+	if (showHistoryWhenChatInput and showTextInput) or math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4]) or  (scrolling and math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[2]))  then
 		hovering = true
-		if scrolling then
+		if historyMode then
 			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4])
 			if WG['guishader'] then
 				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4], 'chat')
 			end
 
 			-- player name background
-			if scrolling == 'chat' then
+			if historyMode == 'chat' then
 				local gametimeEnd = floor(backgroundPadding+maxTimeWidth+(backgroundPadding*0.75))
 				local playernameEnd = gametimeEnd + maxPlayernameWidth + (lineSpaceWidth/1.8)
 				glColor(1,1,1,0.045)
@@ -1110,20 +1112,20 @@ function widget:DrawScreen()
 				floor(activationArea[2]+chatlogHeightDiff+scrollbarMargin),
 				floor(activationArea[3]-scrollbarMargin),
 				floor(activationArea[4]-scrollbarMargin),
-				scrolling == 'console' and #consoleLines*lineHeight or #chatLines*lineHeight,
-				scrolling == 'console' and (currentConsoleLine-maxLinesScroll)*lineHeight or (currentChatLine-maxLinesScroll)*lineHeight
+				historyMode == 'console' and #consoleLines*lineHeight or #chatLines*lineHeight,
+				historyMode == 'console' and (currentConsoleLine-maxLinesScroll)*lineHeight or (currentChatLine-maxLinesScroll)*lineHeight
 			)
 		end
 	else
-		if not scrollingWhenChatInput or not showTextInput then
+		if not showHistoryWhenChatInput or not showTextInput then
 			hovering = false
-			scrolling = false
+			historyMode = false
 			currentChatLine = #chatLines
 		end
 	end
 
 	-- draw background
-	if not scrolling and backgroundOpacity > 0 and displayedChatLines > 0 then
+	if not historyMode and backgroundOpacity > 0 and displayedChatLines > 0 then
 		glColor(1,1,1,0.1*backgroundOpacity)
 		local borderSize = 1
 		RectRound(activationArea[1]-borderSize, activationArea[2]-borderSize, activationArea[3]+borderSize, activationArea[2]+borderSize+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner*1.2)
@@ -1140,7 +1142,7 @@ function widget:DrawScreen()
 	end
 
 	-- draw console lines
-	if not scrolling and consoleLines[1] then
+	if not historyMode and consoleLines[1] then
 		glPushMatrix()
 		glTranslate((vsx * posX) + backgroundPadding, (consolePosY*vsy)+(usedConsoleFontSize*0.24), 0)
 		local checkedLines = 0
@@ -1163,35 +1165,36 @@ function widget:DrawScreen()
 	end
 
 	-- draw chat lines or chat/console ui panel
-	if scrolling or chatLines[currentChatLine] then
+	if historyMode or chatLines[currentChatLine] then
 		local checkedLines = 0
-		if not scrolling then
+		if not historyMode then
 			displayedChatLines = 0
 		end
 		glPushMatrix()
 		local translatedX = (vsx * posX) + backgroundPadding
-		local translatedY = vsy * (scrolling and scrollingPosY or posY) + backgroundPadding
+		local translatedY = vsy * (historyMode and scrollingPosY or posY) + backgroundPadding
 		glTranslate(translatedX, translatedY, 0)
-		local i = scrolling == 'console' and currentConsoleLine or currentChatLine
+		local i = historyMode == 'console' and currentConsoleLine or currentChatLine
 		local usedMaxLines = maxLines
-		if scrolling then
+		if historyMode then
 			usedMaxLines = maxLinesScroll
 		end
 		local width = floor(maxTimeWidth+(lineHeight*0.75))
+		local ctrlHover = enableShortcutClick and ctrl and math_isInRect(x, y, activationArea[1],activationArea[2]+chatlogHeightDiff,activationArea[3],activationArea[4])
 		while i > 0 do
-			if scrolling or clock() - chatLines[i].startTime < lineTTL then
-				if scrolling == 'console' then
+			if historyMode or clock() - chatLines[i].startTime < lineTTL or ctrlHover then
+				if historyMode == 'console' then
 					processConsoleLine(i)
 				else
 					processLine(i)
 				end
-				if scrolling then
-					if scrolling == 'console' then
+				if historyMode or ctrlHover then
+					if historyMode == 'console' then
 						if consoleLines[i].timeDisplayList then
 							glCallList(consoleLines[i].timeDisplayList)
 						end
 					else
-						if chatLines[i].timeDisplayList then
+						if historyMode and chatLines[i].timeDisplayList then
 							glCallList(chatLines[i].timeDisplayList)
 						end
 						-- mapmark highlight
@@ -1210,13 +1213,15 @@ function widget:DrawScreen()
 							end
 						end
 					end
-					glTranslate(width, 0, 0)
+					if historyMode then
+						glTranslate(width, 0, 0)
+					end
 				end
-				glCallList(scrolling == 'console' and consoleLines[i].lineDisplayList or chatLines[i].lineDisplayList)
-				if scrolling  then
+				glCallList(historyMode == 'console' and consoleLines[i].lineDisplayList or chatLines[i].lineDisplayList)
+				if historyMode then
 					glTranslate(-width, 0, 0)
 				end
-				if not scrolling then
+				if not historyMode then
 					displayedChatLines = displayedChatLines + 1
 				end
 			else
@@ -1231,10 +1236,10 @@ function widget:DrawScreen()
 		end
 		glPopMatrix()
 
-		-- show new chat when in scrolling mode
-		if scrolling and currentChatLine < #chatLines and clock() - chatLines[#chatLines].startTime < lineTTL then
+		-- show new chat when in historyMode mode
+		if historyMode and currentChatLine < #chatLines and clock() - chatLines[#chatLines].startTime < lineTTL then
 			glPushMatrix()
-			glTranslate(vsx * posX, vsy * ((scrolling and scrollingPosY or posY)-0.02)-backgroundPadding, 0)
+			glTranslate(vsx * posX, vsy * ((historyMode and scrollingPosY or posY)-0.02)-backgroundPadding, 0)
 			processLine(#chatLines)
 			glCallList(chatLines[#chatLines].lineDisplayList)
 			glPopMatrix()
@@ -1456,8 +1461,8 @@ function widget:KeyPress(key, mods, isRepeat)
 		elseif key == 13 then -- RETURN	 (keypad enter = 271)
 			cancelChatInput()
 			showTextInput = true
-			if scrollingWhenChatInput then
-				scrolling = 'chat'
+			if showHistoryWhenChatInput then
+				historyMode = 'chat'
 				maxLinesScroll = maxLinesScrollChatInput
 			end
 			widgetHandler:OwnText()
@@ -1495,10 +1500,10 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:MouseWheel(up, value)
-	if scrolling and not Spring.IsGUIHidden() then
+	if historyMode and not Spring.IsGUIHidden() then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if up then
-			if scrolling == 'console' then
+			if historyMode == 'console' then
 				currentConsoleLine = currentConsoleLine - (shift and maxLinesScroll or (ctrl and 3 or 1))
 				if currentConsoleLine < maxLinesScroll then
 					currentConsoleLine = maxLinesScroll
@@ -1516,7 +1521,7 @@ function widget:MouseWheel(up, value)
 				end
 			end
 		else
-			if scrolling == 'console' then
+			if historyMode == 'console' then
 				currentConsoleLine = currentConsoleLine + (shift and maxLinesScroll or (ctrl and 3 or 1))
 				if currentConsoleLine > #consoleLines then
 					currentConsoleLine = #consoleLines
@@ -1536,7 +1541,7 @@ end
 
 function widget:WorldTooltip(ttType,data1,data2,data3)
 	local x,y,_ = Spring.GetMouseState()
-	local chatlogHeightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
+	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
 	if #chatLines > 0 and math_isInRect(x, y, activationArea[1],activationArea[2]+chatlogHeightDiff,activationArea[3],activationArea[4]) then
 		return Spring.I18N('ui.chat.scroll', { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" })
 	end
@@ -1942,7 +1947,7 @@ function widget:GetConfigData(data)
 		handleTextInput = handleTextInput,
 		inputButton = inputButton,
 		hide = hide,
-		scrollingWhenChatInput = scrollingWhenChatInput,
+		showHistoryWhenChatInput = showHistoryWhenChatInput,
 		version = 1,
 	}
 end
@@ -1966,8 +1971,8 @@ function widget:SetConfigData(data)
 	if data.hide ~= nil then
 		hide = data.hide
 	end
-	if data.scrollingWhenChatInput ~= nil then
-		scrollingWhenChatInput = data.scrollingWhenChatInput
+	if data.showHistoryWhenChatInput ~= nil then
+		showHistoryWhenChatInput = data.showHistoryWhenChatInput
 	end
 	if data.maxLines ~= nil then
 		maxLines = data.maxLines

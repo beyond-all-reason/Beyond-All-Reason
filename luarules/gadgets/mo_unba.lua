@@ -16,14 +16,17 @@ function gadget:GetInfo()
 end
 
 
-if (gadgetHandler:IsSyncedCode()) then  --Sync?
-	
+if gadgetHandler:IsSyncedCode() then  --Sync?
+
 	VFS.Include("unbaconfigs/categories.lua")
 	VFS.Include("unbaconfigs/taxvalues.lua")
-	expvalues = {}
-	taxvalue = {}	
-	oldteams = {}
-	
+
+	local experiences = {}
+	local taxes = {}
+
+	local expvalues = {}
+	local taxvalue = {}
+	local oldteams = {}
 	for unitDefID, uDef in pairs(UnitDefs) do
 		categories[unitDefID] = categories[UnitDefs[unitDefID].name] or 'other'
 		categories[UnitDefs[unitDefID].name] = nil
@@ -31,24 +34,21 @@ if (gadgetHandler:IsSyncedCode()) then  --Sync?
 		taxvalues[unitDefID] = taxvalues[categories[unitDefID]] or 1.025
 		taxvalues[categories[unitDefID]] = nil
 	end
-	
-	experiences = {}
-	taxes = {}
 
 	local function AddExperienceValue(team, cat, value)
-		if not experiences[team] then 
-			experiences[team] = {} 
+		if not experiences[team] then
+			experiences[team] = {}
 		end
-		if not experiences[team][cat] then 
-			experiences[team][cat] = 0 
+		if not experiences[team][cat] then
+			experiences[team][cat] = 0
 		else
 			experiences[team][cat] = experiences[team][cat] + value
 		end
-		if experiences[team][cat] < 0 then 
+		if experiences[team][cat] < 0 then
 			experiences[team][cat] = 0
 		end
 	end
-	
+
 	local function SetUnitExp(unitID, team, cat)
 		if experiences[team] and experiences[team][cat] then
 			local ct = experiences[team][cat]
@@ -59,21 +59,21 @@ if (gadgetHandler:IsSyncedCode()) then  --Sync?
 			end
 		end
 	end
-			
+
 	local function AddTax(team, cat, value)
-		if not taxes[team] then 
-			taxes[team] = {} 
+		if not taxes[team] then
+			taxes[team] = {}
 		end
-		if not taxes[team][cat] then 
-			taxes[team][cat] = 1 
+		if not taxes[team][cat] then
+			taxes[team][cat] = 1
 		else
 			taxes[team][cat] = taxes[team][cat] * value
 		end
-		if taxes[team][cat] < 0 then 
+		if taxes[team][cat] < 0 then
 			taxes[team][cat] = 0
 		end
 	end
-	
+
 	local function SetUnitTax(unitID, team, cat)
 		if taxes[team] and taxes[team][cat] then
 			local ct = taxes[team][cat]
@@ -85,41 +85,42 @@ if (gadgetHandler:IsSyncedCode()) then  --Sync?
 	function gadget:UnitFinished(unitID,unitDefID,unitTeam)
 		local category = categories[unitDefID]
 		local expvalue = expvalues[unitDefID]
-			AddExperienceValue(unitTeam, category, expvalue)
-			SetUnitExp(unitID, unitTeam, category)
+		AddExperienceValue(unitTeam, category, expvalue)
+		SetUnitExp(unitID, unitTeam, category)
 	end
-	
+
 	function gadget:UnitCreated(unitID,unitDefID,unitTeam)
 		local category = categories[unitDefID]
 		local taxvalue = taxvalues[unitDefID]
-			AddTax(unitTeam, category, taxvalue)
-			SetUnitTax(unitID, unitTeam, category)
+		AddTax(unitTeam, category, taxvalue)
+		SetUnitTax(unitID, unitTeam, category)
 	end
-	
+
 	function gadget:UnitDestroyed(unitID,unitDefID,unitTeam)
 		local category = categories[unitDefID]
 		local taxvalue = taxvalues[unitDefID]
 		local invtaxvalue = 1/taxvalue
+		local team
 		if oldteams[unitID] then
 			team = oldteams[unitID]
 		else
 			team = unitTeam
 		end
-			AddTax(team, category, invtaxvalue)
-			oldteams[unitID] = nil
+		AddTax(team, category, invtaxvalue)
+		oldteams[unitID] = nil
 	end
-	
+
 	function gadget:UnitGiven(unitID,unitDefID,newTeam, oldTeam)
 		if Spring.AreTeamsAllied(newTeam, oldTeam) == true then
 			if not oldteams[unitID] then
 				oldteams[unitID] = oldTeam
 			else
 				oldteams[unitID] = oldteams[unitID]
-			end		
+			end
 		else
 			gadget:UnitDestroyed(unitID, unitDefID, oldTeam)
 			gadget:UnitCreated(unitID, unitDefID, newTeam)
 		end
 	end
-	
+
 end

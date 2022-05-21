@@ -217,6 +217,93 @@ LuaShader.GetAdvShadingActive = GetAdvShadingActive
 LuaShader.GetEngineUniformBufferDefs = GetEngineUniformBufferDefs
 LuaShader.CreateShaderDefinesString = CreateShaderDefinesString
 
+
+local function lines(str)
+	local t = {}
+	local function helper(line) table.insert(t, line) return "" end
+	helper((str:gsub("(.-)\r?\n", helper)))
+	return t
+end
+
+
+function LuaShader:CreateLineTable()
+	--[[
+	-- self.shaderParams == 
+			 ({[ vertex   = "glsl code" ,]
+		   [ tcs      = "glsl code" ,]
+		   [ tes      = "glsl code" ,]
+		   [ geometry = "glsl code" ,]
+		   [ fragment = "glsl code" ,]
+		   [ uniform       = { uniformName = number value, ...} ,] (specify a Lua array as an argument to uniformName to initialize GLSL arrays)
+		   [ uniformInt    = { uniformName = number value, ...} ,] (specify a Lua array as an argument to uniformName to initialize GLSL arrays)
+		   [ uniformFloat  = { uniformName = number value, ...} ,] (specify a Lua array as an argument to uniformName to initialize GLSL arrays)
+		   [ uniformMatrix = { uniformName = number value, ...} ,]
+		   [ geoInputType = number inType,]
+		   [ geoOutputType = number outType,]
+		   [ geoOutputVerts = number maxVerts,]
+		   [ definitions = "string of shader #defines", ]
+		 })
+	]]--
+	
+	local numtoline = {}
+	
+	--try to translate errors that look like this into lines: 
+	--	0(31048) : error C1031: swizzle mask element not present in operand "ra"
+	--	0(31048) : error C1031: swizzle mask element not present in operand "ra"
+	--for k, v in pairs(self) do
+	--	Spring.Echo(k)
+	--end
+	
+	for _, shadertype in pairs({'vertex', 'tcs', 'tes', 'geometry', 'fragment', 'compute'}) do 
+		if self.shaderParams[shadertype] ~= nil then 
+			local shaderLines = (self.shaderParams.definitions or "") .. self.shaderParams[shadertype]
+			local currentlinecount = 0
+			for i, line in ipairs(lines(shaderLines)) do
+				numtoline[currentlinecount] = string.format("%s:%i %s", shadertype, currentlinecount, line)
+				--Spring.Echo(currentlinecount, numtoline[currentlinecount] )
+				if line:find("#line ", nil, true) then 
+					local defline = tonumber(line:sub(7)) 
+					if defline then 
+						currentlinecount = defline
+					end
+				else
+				
+					currentlinecount = currentlinecount + 1
+				end
+			end
+		end
+	end
+	return numtoline
+end
+
+local function translateLines(alllines, errorcode) 
+	if string.len(errorcode) < 3 then 
+		return ("The shader compilation error code was very short. This likely means a Linker error, check the [in] [out] blocks linking VS/GS/FS shaders to each other to make sure the structs match")
+	end
+	local result = ""
+	for _,line in pairs(lines(errorcode)) do 
+		local pstart = line:find("(", nil, true)
+		local pend = line:find(")", nil, true)
+		local found = false
+		if pstart and pend then 
+			local lineno = line:sub(pstart +1,pend-1)
+			--Spring.Echo(lineno)
+			lineno = tonumber(lineno) 
+			--Spring.Echo(lineno, alllines[lineno])
+			if alllines[lineno] then 
+				result = result .. string.format("%s\n ^^ %s \n", alllines[lineno], line)
+				found = true
+			end
+		end
+		if found == false then 
+			result = result .. line ..'\n'
+		end
+	end
+	return result
+end
+
+
+
 -----------------============ Warnings & Error Gandling ============-----------------
 function LuaShader:OutputLogEntry(text, isError)
 	local message
@@ -225,6 +312,11 @@ function LuaShader:OutputLogEntry(text, isError)
 
 	message = string.format("LuaShader: [%s] shader %s(s):\n%s", self.shaderName, warnErr, text)
 	Spring.Echo(message)
+	
+	if isError then 
+		local linetable = self:CreateLineTable()
+		Spring.Echo(translateLines(linetable, text))
+	end
 
 
 	if self.logHash[message] == nil then
@@ -301,7 +393,7 @@ end
 -----------------========= End of Handle Ghetto Include<> ==========-----------------
 
 -----------------============ General LuaShader methods ============-----------------
-function LuaShader:Compile()
+function LuaShader:Compile(suppresswarnings)
 	if not gl.CreateShader then
 		self:ShowError("GLSL Shaders are not supported by hardware or drivers")
 		return false
@@ -327,7 +419,7 @@ function LuaShader:Compile()
 	if not shaderObj then
 		self:ShowError(shLog)
 		return false
-	elseif (shLog ~= "") then
+	elseif (shLog ~= "") and suppresswarnings ~= true then
 		self:ShowWarning(shLog)
 	end
 

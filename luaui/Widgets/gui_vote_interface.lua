@@ -431,8 +431,9 @@ function widget:AddConsoleLine(lines, priority)
 						end
 						MinimizeVote()
 					end
+					-- > [teh]cluster1[01] * Vote cancelled by stown13
 					-- > [teh]cluster1[01] * Game starting, cancelling "forceStart" vote
-					if sfind(line, "* Game starting, cancelling ", nil, true) then
+					if sfind(line, "* Vote cancelled", nil, true) or sfind(line, "* Game starting, cancelling ", nil, true) then
 						voteEndTime = os.clock() + voteEndDelay
 						voteEndText = Spring.I18N('ui.voting.votecancelled')
 						MinimizeVote()
