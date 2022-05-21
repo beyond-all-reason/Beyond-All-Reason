@@ -93,7 +93,7 @@ local engineBinds = {
 	{ "Ctrl+0", "specteam", "19" },
 
 {            "0", "group", "0"            },
-{       "Ctr0+0", "group", "set 0"        },
+{       "Ctrl0+0", "group", "set 0"        },
 {      "Shift+0", "group", "select_add 0" },
 { "Ctrl+Shift+0", "group", "add 0"        },
 {        "Alt+0", "group", "toggle 0"     },
