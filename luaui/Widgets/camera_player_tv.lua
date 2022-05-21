@@ -632,29 +632,31 @@ function widget:DrawScreen()
 				-- create player name
 				prevLockPlayerID = lockPlayerID
 				lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
-				if not drawlistsPlayername[lockPlayerID] then
-					drawlistsPlayername[lockPlayerID] = gl.CreateList(function()
-						local name, _, spec, teamID, _, _, _, _, _ = Spring.GetPlayerInfo(lockPlayerID, false)
-						local nameColourR, nameColourG, nameColourB = 1, 1, 1
-						if not spec then
-							nameColourR, nameColourG, nameColourB, _ = spGetTeamColor(teamID)
-						end
-						font2:Begin()
-						font2:SetTextColor(nameColourR, nameColourG, nameColourB, 1)
-						if (nameColourR + nameColourG * 1.2 + nameColourB * 0.4) < 0.65 then
-							font2:SetOutlineColor(1, 1, 1, 1)
-						else
-							font2:SetOutlineColor(0, 0, 0, 1)
-						end
-						font2:Print(name, vsx * 0.985, vsy * 0.0215, 26 * widgetScale, "ron")
-						font2:End()
-					end)
+				if lockPlayerID then 
+					if not drawlistsPlayername[lockPlayerID] then
+						drawlistsPlayername[lockPlayerID] = gl.CreateList(function()
+							local name, _, spec, teamID, _, _, _, _, _ = Spring.GetPlayerInfo(lockPlayerID, false)
+							local nameColourR, nameColourG, nameColourB = 1, 1, 1
+							if not spec then
+								nameColourR, nameColourG, nameColourB, _ = spGetTeamColor(teamID)
+							end
+							font2:Begin()
+							font2:SetTextColor(nameColourR, nameColourG, nameColourB, 1)
+							if (nameColourR + nameColourG * 1.2 + nameColourB * 0.4) < 0.65 then
+								font2:SetOutlineColor(1, 1, 1, 1)
+							else
+								font2:SetOutlineColor(0, 0, 0, 1)
+							end
+							font2:Print(name, vsx * 0.985, vsy * 0.0215, 26 * widgetScale, "ron")
+							font2:End()
+						end)
+					end
+					-- draw player name
+					gl.PushMatrix()
+					gl.Translate(0, top, 0)
+					gl.CallList(drawlistsPlayername[lockPlayerID])
+					gl.PopMatrix()
 				end
-				-- draw player name
-				gl.PushMatrix()
-				gl.Translate(0, top, 0)
-				gl.CallList(drawlistsPlayername[lockPlayerID])
-				gl.PopMatrix()
 			end
 		end
 	end
