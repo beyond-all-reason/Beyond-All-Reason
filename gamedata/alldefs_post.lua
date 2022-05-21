@@ -107,7 +107,7 @@ function UnitDef_Post(name, uDef)
 	-- Reverse Gear
 	if Spring.GetModOptions().experimentalreversegear == true then
 		if (not uDef.canfly) and uDef.maxvelocity then
-			uDef.maxreversevelocity = uDef.maxvelocity*0.8
+			uDef.maxreversevelocity = uDef.maxvelocity*0.65
 		end
 	end
 
@@ -552,7 +552,7 @@ function UnitDef_Post(name, uDef)
 		uDef.idleautoheal = math.ceil(math.sqrt(chickHealth * 0.1))
 		uDef.customparams.areadamageresistance = "_CHICKENACID_"
 		if (not uDef.canfly) and uDef.maxvelocity then
-			uDef.maxreversevelocity = uDef.maxvelocity*0.8
+			uDef.maxreversevelocity = uDef.maxvelocity*0.65
 		end
 	end
 
