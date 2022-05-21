@@ -11,7 +11,7 @@ function widget:GetInfo()
    }
 end
 
-local debuglevel = 1
+local debuglevel = 0
 -- debuglevel 0 is no debugging
 -- debuglevel 1 is show warnings for stuff periodicly and make self crash
 -- debuglevel 2 is verbose
