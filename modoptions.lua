@@ -1395,9 +1395,27 @@ local options={
 	},
 
 	{
+		key		= "experimentalreversegear",
+		name	= "Reverse gear - Allows units to move backwards over short distances",
+		desc	= "Allows units to move backwards over short distances",
+		type	= "bool",
+		def		= false,
+		section	= "options_experimental",
+	},
+
+	{
 		key		= "unba",
-		name	= "UnbaCom - Totally Rebalanced Commanders (WIP)",
-		desc	= "Defines if commanders level up with xp and gain more power or not",
+		name	= "UnbaCom - Reworked Commanders",
+		desc	= "Commander levels up with XP, gaining better weapons, more health and higher tech buildlist.",
+		type	= "bool",
+		def		= false,
+		section	= "options_experimental",
+	},
+
+	{
+		key		= "unbatech",
+		name	= "UnbaTech - Reworked Tech Progression (Requires UnbaCom)",
+		desc	= "Constructors cannot build Tech2 factories. In order to reach Tech2 you have to level up your commander.",
 		type	= "bool",
 		def		= false,
 		section	= "options_experimental",

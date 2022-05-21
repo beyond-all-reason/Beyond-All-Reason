@@ -30,7 +30,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 3.25,
 		maxwaterdepth = 15,
-		movementclass = "CHICKALLTERRAIN",
+		movementclass = "CHICKALLTERRAINHOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Chickens/chickenacidallterrain.s3o",
@@ -54,6 +54,7 @@ return {
 		unitname = "chickenc3",
 		upright = false,
 		workertime = 0,
+		waterline = 10,
 		customparams = {
 			subfolder = "other/chickens",
 			model_author = "KDR_11k, Beherith",
