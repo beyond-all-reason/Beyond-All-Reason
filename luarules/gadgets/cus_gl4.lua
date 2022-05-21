@@ -911,6 +911,27 @@ local function initBinsAndTextures()
 			end
 		end
 	end
+	
+end
+
+local preloadedTextures = false
+local function PreloadTextures() 
+	Spring.Echo("[CUS GL4] Cache Textures")
+	-- init the arm and core wrecks, and wreck normals
+	gl.Texture(0, "unittextures/Arm_wreck_color_normal.dds")
+	gl.Texture(0, "unittextures/Arm_wreck_color.dds")
+	gl.Texture(0, "unittextures/Arm_wreck_other.dds")
+	gl.Texture(0, "unittextures/Arm_normal.dds")
+	gl.Texture(0, "unittextures/Arm_color.dds")
+	gl.Texture(0, "unittextures/Arm_other.dds")
+	gl.Texture(0, "unittextures/cor_normal.dds")
+	gl.Texture(0, "unittextures/cor_other.dds")
+	gl.Texture(0, "unittextures/cor_color.dds")
+	gl.Texture(0, "unittextures/cor_other_wreck.dds")
+	gl.Texture(0, "unittextures/cor_color_wreck.dds")
+	gl.Texture(0, "unittextures/cor_color_wreck_normal.dds")
+	gl.Texture(0, false)
+	preloadedTextures = true
 end
 
 local function GetObjectDefName(objectID)
@@ -1901,6 +1922,7 @@ end
 
 function gadget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 	if unitDrawBins == nil then return end
+	if preloadedTextures == false then PreloadTextures() end 
 	local drawPass = drawPassBitsToNumber(true, deferredPass, drawReflection, drawRefraction)
 	local batches, units = ExecuteDrawPass(drawPass)
 end
