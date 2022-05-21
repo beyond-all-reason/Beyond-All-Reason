@@ -352,17 +352,6 @@ local function makeBindsTable(keyLayout)
 		{      "8", "specteam", "7"  },
 		{      "9", "specteam", "8"  },
 
-		{ "Any+0", "group0" },
-		{ "Any+1", "group1" },
-		{ "Any+2", "group2" },
-		{ "Any+3", "group3" },
-		{ "Any+4", "group4" },
-		{ "Any+5", "group5" },
-		{ "Any+6", "group6" },
-		{ "Any+7", "group7" },
-		{ "Any+8", "group8" },
-		{ "Any+9", "group9" },
-
 		{             "[", "buildfacing" , "inc" },
 		{       "Shift+[", "buildfacing" , "inc" },
 		{             "]", "buildfacing" , "dec" },
