@@ -361,10 +361,15 @@ local function init()
 	shaderConfig.ROTATE_CIRCLES = 0
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(g_color.rgb, TRANSPARENCY + step( 0.01, addRadius) * LINETRANSPARANCY);"
 	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "allySelectedUnits")
+	if selectionVBO == nil then 
+		widgetHandler:RemoveWidget()
+		return false
+	end
+	return true
 end
 
 function widget:Initialize()
-	init()
+	if not init() then return end
 	for _, playerID in pairs(Spring.GetPlayerList()) do
 		widget:PlayerAdded(playerID)
 	end

@@ -155,6 +155,10 @@ function widget:Initialize()
 	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE!
 	shaderConfig.BILLBOARD = 0
 	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "TESTDPAU")
+	if selectionVBO == nil then 
+		widgetHandler:RemoveWidget()
+		return
+	end
 	if true then -- FOR TESTING
 		local units = Spring.GetAllUnits()
 		for _, unitID in ipairs(units) do

@@ -48,6 +48,11 @@ local function initGL4()
 	shaderConfig.POST_SHADING = "fragColor.rgba = texcolor;"
 
 	resurrectionHalosVBO, resurrectionHalosShader = InitDrawPrimitiveAtUnit(shaderConfig, "ResurrectionHalos")
+	if resurrectionHalosVBO == nil then 
+		widgetHandler:RemoveWidget()
+		return false
+	end
+	return true
 end
 
 
@@ -114,7 +119,7 @@ function widget:DrawWorld()
 end
 
 function widget:Initialize()
-	initGL4()
+	if not initGL4() then return end
 
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		local visibleUnits =  WG['unittrackerapi'].visibleUnits

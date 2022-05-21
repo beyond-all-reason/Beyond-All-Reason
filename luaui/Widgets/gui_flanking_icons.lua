@@ -111,6 +111,10 @@ function widget:Initialize()
 	shaderConfig.MAX_VERTICES = 4
 	shaderConfig.USE_CORNERRECT = nil
 	flankingVBO, flankingShader = InitDrawPrimitiveAtUnit(shaderConfig, "FlankingIcons")
+	if flankingVBO == nil then 
+		widgetHandler:RemoveWidget()
+		return
+	end
 	
 	spec, fullview = Spring.GetSpectatingState()
 	init()

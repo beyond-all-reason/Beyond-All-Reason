@@ -203,8 +203,6 @@ local function RemovePrimitive(unitID,reason)
 end
 
 function initGL4()
-	makeAtlas()
-
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.BILLBOARD = 1
@@ -227,8 +225,16 @@ function initGL4()
 
 	if debugmode then shaderConfig.POST_SHADING = shaderConfig.POST_SHADING .. " fragColor.a += 0.25;" end
 	rankVBO, rankShader = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit(shaderConfig, "Rank Icons")
+	if rankVBO == nil then 
+		widgetHandler:RemoveWidget()
+		return false
+	end
+	
+	makeAtlas()
+	
 	if debugmode then rankVBO.debug = true end
 	--ProcessAllUnits()
+	return true
 end
 
 local function getRank(unitDefID, xp)
@@ -285,7 +291,7 @@ function widget:Initialize()
 		unitHeights[unitDefID] = ud.height + iconoffset
 	end
 
-	initGL4()
+	if not initGL4() then return end
 
 	local allUnits = GetAllUnits()
 	for i = 1, #allUnits do

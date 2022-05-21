@@ -549,6 +549,31 @@ function widget:TextCommand(command)
 			end
 		end
 	end
+	
+	if string.find(command, "execute", nil, true) == 1 then
+		local cmd = string.sub(command, string.find(command, "execute", nil, true) + 8, nil)
+		local success, functionize = pcall(loadstring( 'return function() return {' .. cmd .. '} end'))
+		if not success then 
+			Spring.Echo("Failed to parse command:",success, cmd)
+		else
+			local success, data = pcall(functionize)
+			if not success then 
+				Spring.Echo("Failed to execute command:", succes, cmd)
+			else
+				if type(data) == type({}) then 
+					if #data == 1 then 
+						Spring.Echo(data[1])
+					elseif #data == 0 then 
+						Spring.Echo("nil")
+					else
+						Spring.Debug.TableEcho(data)
+					end
+				else
+					Spring.Echo(data)
+				end
+			end
+		end
+	end
 end
 
 function widget:PlayerChanged(playerID)
