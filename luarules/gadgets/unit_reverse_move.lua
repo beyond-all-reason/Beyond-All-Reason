@@ -30,8 +30,7 @@ if unitRspeedCount == 0 then
 end
 unitRspeedCount = nil
 
-local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local cmdCtrl = CMD.OPT_CTRL
+local spGetCommandQueue = Spring.GetCommandQueue
 local reverseUnit = {}
 local refreshList = {}
 
@@ -76,8 +75,8 @@ end
 
 function gadget:GameFrame(f)
 	for unitID, unitDefID in pairs(refreshList) do
-		local cmdID, cmdOptions = spGetUnitCurrentCommand(unitID, 1)
-		if cmdID and (cmdOptions / cmdCtrl) % 2 == 1 then
+		local cmd = spGetCommandQueue(unitID, 1)
+		if cmd and cmd[1] and cmd[1]["options"] and cmd[1]["options"].ctrl then
 			Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", unitRspeed[unitDefID])
 			Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseSpeed", unitRspeed[unitDefID])
 		else
