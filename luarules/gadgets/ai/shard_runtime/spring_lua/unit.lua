@@ -249,11 +249,14 @@ function ShardUnit:Build(t, p, f, opts, timeout ) -- IUnitType*
 	if type(t) == "string" then
 		t = game:GetTypeByName(t)
 	end
-	opts = opts or {}
+	opts = opts or 0
 	f = f or 0
 	if not p then p = self:GetPosition() end
 	timeout = timeout or 2000
-	return Spring.GiveOrderToUnit( self.id, -t:ID(), { p.x, p.y, p.z, f}, opts, timeout )
+	local build = Spring.GiveOrderToUnit( self.id, -t:ID(), { p.x, p.y, p.z, f}, opts, timeout )
+	print (build,self.id,-t:ID(),p.x,p.z,f,opts,timeout)
+	return build
+	--return Spring.GiveOrderToUnit( self.id, -t:ID(), { p.x, p.y, p.z, f}, opts, timeout )
 end
 
 
@@ -466,13 +469,15 @@ end
 function ShardUnit:DrawHighlight( color, label, channel )
 	channel = channel or 1
 	color = color or {}
-	SendToUnsynced('ShardDrawAddUnit', self.id, color[1], color[2], color[3], color[4], label, ai.game:GetTeamID(), channel)
+	Script.LuaUI.ShardDrawAddUnit(self.id, { color[1], color[2], color[3], color[4] }, label, ai.game:GetTeamID(), channel)
+	--SendToUnsynced('ShardDrawAddUnit', self.id, color[1], color[2], color[3], color[4], label, ai.game:GetTeamID(), channel)
 end
 
 function ShardUnit:EraseHighlight( color, label, channel )
 	channel = channel or 1
 	color = color or {}
-	SendToUnsynced('ShardDrawEraseUnit', self.id, color[1], color[2], color[3], color[4], label, ai.game:GetTeamID(), channel)
+	Script.LuaUI.ShardDrawEraseUnit(self.id, { color[1], color[2], color[3], color[4] }, label, ai.game:GetTeamID(), channel)
+	--SendToUnsynced('ShardDrawEraseUnit', self.id, color[1], color[2], color[3], color[4], label, ai.game:GetTeamID(), channel)
 end
 
 --[[

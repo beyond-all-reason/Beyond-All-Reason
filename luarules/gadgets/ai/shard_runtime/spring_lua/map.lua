@@ -243,7 +243,8 @@ end
 
 function map:EraseAll(channel)
 	channel = channel or 1
-	SendToUnsynced('ShardDrawClearShapes', self.ai.game:GetTeamID(), channel)
+	Script.LuaUI.ShardDrawClearShapes(self.ai.game:GetTeamID(), channel)
+	--SendToUnsynced('ShardDrawClearShapes', self.ai.game:GetTeamID(), channel)
 end
 
 function map:DisplayDrawings(onOff)
