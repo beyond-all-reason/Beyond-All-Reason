@@ -312,7 +312,7 @@ local function makeBindsTable(keyLayout)
 		{      "8", "specteam", "7"  },
 		{      "9", "specteam", "8"  },
 
-		{            "0", "group", "0"            },
+{            "0", "group", "0"            },
 {       "Ctrl0+0", "group", "set 0"        },
 {      "Shift+0", "group", "select_add 0" },
 { "Ctrl+Shift+0", "group", "add 0"        },
