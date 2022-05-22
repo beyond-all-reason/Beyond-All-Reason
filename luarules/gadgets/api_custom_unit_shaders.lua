@@ -967,26 +967,29 @@ function gadget:Initialize()
 		treewind          = treewind,
 	}
 
-	for _, rendering in ipairs(allRendering) do
-		for matName, mat in pairs(rendering.materialDefs) do
+	if tonumber(Spring.GetConfigInt("cus", 0) or 0) == 1 then
+		for _, rendering in ipairs(allRendering) do
+			for matName, mat in pairs(rendering.materialDefs) do
 
-			if mat.GetAllOptions then
-				local allOptions = mat.GetAllOptions()
-				for opt, _ in pairs(allOptions) do
-					if not registeredOptions[opt] then
-						registeredOptions[opt] = true
-						gadgetHandler:AddChatAction(opt, _ProcessOptions)
+				if mat.GetAllOptions then
+					local allOptions = mat.GetAllOptions()
+					for opt, _ in pairs(allOptions) do
+						if not registeredOptions[opt] then
+							registeredOptions[opt] = true
+							gadgetHandler:AddChatAction(opt, _ProcessOptions)
+						end
 					end
-				end
 
-				for optName, optValue in pairs(commonOptions) do
-					_ProcessOptions(optName, nil, optValue, Spring.GetMyPlayerID())
+					for optName, optValue in pairs(commonOptions) do
+						_ProcessOptions(optName, nil, optValue, Spring.GetMyPlayerID())
+					end
 				end
 			end
 		end
+
+		BindMaterials()
 	end
 
-	BindMaterials()
 	gadgetHandler:AddChatAction("updatesun", UpdateSun)
 	gadgetHandler:AddChatAction("cusreload", ReloadCUS)
 	gadgetHandler:AddChatAction("reloadcus", ReloadCUS)
