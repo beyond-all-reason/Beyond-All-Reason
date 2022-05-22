@@ -23,7 +23,7 @@ function gadget:GetInfo()
         date      = 'Why is date even relevant',
         license   = 'GNU GPL, v2 or later',
         layer     = 0,
-        enabled   = true
+        enabled   = false
     }
 end
 

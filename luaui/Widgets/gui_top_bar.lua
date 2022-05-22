@@ -82,7 +82,7 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetTeamResources = Spring.GetTeamResources
+local spGetTeamResources = Spring.GetTeamResourcesSnapshot
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMouseState = Spring.GetMouseState
 local spGetWind = Spring.GetWind
