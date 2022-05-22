@@ -659,8 +659,16 @@ local function makeBindsTable(keyLayout)
 	table.insert(_binds,  { "Ctrl+^", "remove_one_unit_from_group" })
 
 	for i = 0, 9 do
-		table.insert(_binds, { 'Alt+'..i , "add_to_autogroup", i })
-	end
+        table.insert(_binds, { 'Alt+'..i , "add_to_autogroup", i })
+
+        table.insert(_binds, { i                , "group", i                })
+        table.insert(_binds, { 'Ctrl+'..i       , "group", "set "..i        })
+        table.insert(_binds, { 'Shift+'..i      , "group", "selectadd "..i })
+        table.insert(_binds, { 'Ctrl+Shift+'..i , "group", "add "..i        })
+        table.insert(_binds, { 'Alt+'..i        , "group", "selecttoggle "..i     })
+
+        end
+	
 
 	return _binds
 end
