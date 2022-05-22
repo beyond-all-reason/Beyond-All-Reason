@@ -61,6 +61,7 @@ local spGetUnitNeutral = Spring.GetUnitNeutral
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetGaiaTeamID = Spring.GetGaiaTeamID()
 
+
 --SYNCED CODE
 if gadgetHandler:IsSyncedCode() then
 
@@ -73,7 +74,23 @@ else
 
 	-- UNSYNCED CODE
 	function gadget:Initialize()
-
+		Spring.Echo("Shard AI unsync gadget init")
+		gadgetHandler:AddSyncAction("shard_debug_position", handleShardDebugPosEvent)
+		gadgetHandler:AddSyncAction('ShardDrawAddRectangle', sdAddRectangle)
+		gadgetHandler:AddSyncAction('ShardDrawEraseRectangle', sdEraseRectangle)
+		gadgetHandler:AddSyncAction('ShardDrawAddCircle', sdAddCircle)
+		gadgetHandler:AddSyncAction('ShardDrawEraseCircle', sdEraseCircle)
+		gadgetHandler:AddSyncAction('ShardDrawAddLine', sdAddLine)
+		gadgetHandler:AddSyncAction('ShardDrawEraseLine', sdEraseLine)
+		gadgetHandler:AddSyncAction('ShardDrawAddPoint', sdAddPoint)
+		gadgetHandler:AddSyncAction('ShardDrawErasePoint', sdErasePoint)
+		gadgetHandler:AddSyncAction('ShardDrawAddUnit', sdAddUnit)
+		gadgetHandler:AddSyncAction('ShardDrawEraseUnit', sdEraseUnit)
+		gadgetHandler:AddSyncAction('ShardDrawClearShapes', sdClearShapes)
+		gadgetHandler:AddSyncAction('ShardDrawDisplay', sdDisplay)
+		gadgetHandler:AddSyncAction('ShardStartTimer', sStartTimer)
+		gadgetHandler:AddSyncAction('ShardStopTimer', sStopTimer)
+		gadgetHandler:AddSyncAction('ShardSaveTable', sSaveTable)
 		local teamList = spGetTeamList()
 		spEcho("Looking for AIs")
 
@@ -389,7 +406,7 @@ else
 		end
 	end
 
-	function gadget:Initialize()
+--[[	function gadget:Initialize()
 		Spring.Echo("Shard AI unsync gadget init")
 		gadgetHandler:AddSyncAction("shard_debug_position", handleShardDebugPosEvent)
 		gadgetHandler:AddSyncAction('ShardDrawAddRectangle', sdAddRectangle)
@@ -408,7 +425,7 @@ else
 		gadgetHandler:AddSyncAction('ShardStopTimer', sStopTimer)
 		gadgetHandler:AddSyncAction('ShardSaveTable', sSaveTable)
 	end
-
+]]
 	function gadget:Shutdown()
 		Spring.Echo("Shard AI unsync gadget shutdown")
 		gadgetHandler:RemoveSyncAction("shard_debug_position")
