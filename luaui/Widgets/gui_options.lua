@@ -4581,15 +4581,7 @@ function init()
 		-- disable old cus
 		if Spring.GetConfigInt("cus", 0) == 1 then
 			Spring.SetConfigInt("cus", 0)
-		end
-		Spring.SendCommands("luarules disablecus")
-
-		if not isPotatoGpu then	-- will disable later
-
-			-- enable CUS GL4
-			if tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
-				Spring.SendCommands("luarules reloadcusgl4")
-			end
+			Spring.SendCommands("luarules disablecus")
 		end
 	end
 	if not waterDetected then
