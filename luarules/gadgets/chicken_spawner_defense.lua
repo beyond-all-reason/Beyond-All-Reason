@@ -451,7 +451,6 @@ if gadgetHandler:IsSyncedCode() then
 				if SetCount(squadsTable[i].squadUnits) > 0 then
 					if squadsTable[i].squadBurrow and (not queenID) then
 						Spring.DestroyUnit(squadsTable[i].squadBurrow, true, false)
-						SetGameRulesParam(config.burrowName .. "Kills", GetGameRulesParam(config.burrowName .. "Kills") - 1)
 					end
 					-- Spring.Echo("There are some units to kill, so let's kill them")
 					-- Spring.Echo("----------------------------------------------------------------------------------------------------------------------------")
@@ -1112,7 +1111,7 @@ if gadgetHandler:IsSyncedCode() then
 					local angle = math.atan2(ux - x, uz - z)
 					local distance = mRandom(math.ceil(SKIRMISH[attackerDefID].distance*0.75), math.floor(SKIRMISH[attackerDefID].distance*1.25))
 					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
-					unitCowardCooldown[unitID] = true
+					unitCowardCooldown[attackerID] = true
 				end
 			elseif COWARD[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < COWARD[unitDefID].chance) then
 				local curH, maxH = GetUnitHealth(unitID)
@@ -1136,7 +1135,7 @@ if gadgetHandler:IsSyncedCode() then
 				local ax, ay, az = GetUnitPosition(unitID)
 				if ax then
 					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { ax+math.random(-64,64), ay, az+math.random(-64,64)}, {})
-					unitCowardCooldown[unitID] = true
+					unitCowardCooldown[attackerID] = true
 				end
 			end
 		end
