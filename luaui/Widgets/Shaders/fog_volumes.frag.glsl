@@ -1,7 +1,8 @@
-
 #version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
+// This shader is (c) Beherith (mysterme@gmail.com)
+
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
 
@@ -23,6 +24,7 @@ uniform sampler2D infoTex;
 uniform sampler2DShadow shadowTex;
 uniform sampler3D noise64cube;
 uniform sampler2D dithernoise2d;
+uniform sampler3D worley3D;
 
 out vec4 fragColor;
 
@@ -55,6 +57,11 @@ float shadowAtWorldPos(vec3 worldPos){
 		return clamp(textureProj(shadowTex, shadowVertexPos), 0.0, 1.0);
 }
 
+float smin(float a, float b, float k) {
+	float h = clamp(0.5 + 0.5*(a-b)/k, 0.0, 1.0);
+	return mix(a, b, h) - k*h*(1.0-h);
+}
+
 vec4 raymarch(vec3 startpoint, vec3 endpoint, float steps, vec4 sphereposrad, vec2 screenuv, float noisethreshold){
 	float noisescale = 0.002 * v_spawnframe_frequency_riserate_windstrength.y;
 	float fulldist = length((startpoint - endpoint));
@@ -78,7 +85,7 @@ vec4 raymarch(vec3 startpoint, vec3 endpoint, float steps, vec4 sphereposrad, ve
 	float weightZ = 0.0;
 	float maxDensity = 0;
 	float maxZ = 0;
-	
+	float truesteps = 1.0;
 	for (float f = dithernoise.x*interval*0.0; f < 1.0; f = f + interval){
 		// Interpolate the position between start and end
 		vec3 currpos = mix(startpoint, endpoint, f);
@@ -86,35 +93,45 @@ vec4 raymarch(vec3 startpoint, vec3 endpoint, float steps, vec4 sphereposrad, ve
 		noisepos += noiseoffset;
 		
 		
-		float justnoiseval = (textureLod(noise64cube, fract(noisepos * noisescale), 0.0).r * 2.0 - 1.0);
-		//float justnoiseval = (texelFetch(noise64cube, int(fract(noisepos * noisescale))).r * 2.0 - 1.0);
-		float localdensity =  max(justnoiseval + noisethreshold + sin(currenttime *0.01) * 0.25, 0.0) * stepsize * interval;
+		//float justnoiseval = (textureLod(noise64cube, fract(noisepos * noisescale), 0.0).r * 2.0 - 1.0);
+		vec4 justnoiseval = (textureLod(worley3D, fract(noisepos * noisescale), 0.0) * 2.0 - 1.0);
+		//float justnoiseval = (texelFetch(worley3D, ivec3(fract(noisepos * noisescale)*127.0),0).r * 2.0 - 1.0); // fetch is hardly faster but has banding artifacts
+		justnoiseval.a = pow(justnoiseval.a, 0.5); //sharpen
+		float localdensity =  max(justnoiseval.a + noisethreshold + sin(currenttime *0.01) * 0.15, 0.0) * stepsize * interval;
+		
 		totaldensity += localdensity / interval;
 		fogaccum = fogaccum  * (1.0 -  clamp(localdensity  * 5, 0.0, 0.8));
 		meanZ += f * totaldensity;
 		weightZ += totaldensity;
 		
+		shadowamount += dot(clamp(justnoiseval.xyz, -1.0, 1.0), vec3(1,-1,-1));
+		
 		if (totaldensity> maxDensity){
 			maxZ = f;
 			maxDensity = totaldensity;
 		}
-
 		
-		shadowamount = shadowamount - 1.0* 4 * max(localdensity, 0.0);
-		#if HASSHADOWS == 1 
-			if (localdensity > 0) 
+		//shadowamount = shadowamount - 1.0* 4 * max(localdensity, 0.0);
+		#if USESHADOWS == 1 
+			if (localdensity > 0) {
+				
+				truesteps +=1.0;
 				shadowamount = shadowamount + shadowAtWorldPos(currpos); // yes this can help reduce overhead
+			}
 		#endif
 	}
 	
-	meanZ = meanZ/weightZ;
-
-	vec4 surfaceNoise = texture(noise64cube, fract((mix(startpoint, endpoint, (maxZ)) + noiseoffset*0.4) * noisescale * 20.0)) * 2.0 ;
-	
-	shadowamount = shadowamount / steps;
-	if (shadowamount < 0.01) shadowamount = 1.0; // DEBUG FOR NO SHADOWS
+	shadowamount = shadowamount / truesteps;
 	shadowamount = pow(shadowamount, 1.0);
-	return vec4(fogaccum, shadowamount, max(0.0,totaldensity *0.9+ maxDensity*surfaceNoise.a *0.1), meanZ);
+	//if (shadowamount < 0.01) shadowamount = 0.0; // DEBUG FOR NO SHADOWS
+	meanZ = meanZ/weightZ;
+	maxZ = smin(meanZ, maxZ, 4.0); // NIIIICE
+	
+	vec4 surfaceNoise = texture(worley3D, fract((mix(startpoint, endpoint, (maxZ)) + noiseoffset*0.2) * noisescale * 40.0)) * 2.0 - 1;
+	
+	surfaceNoise = max(surfaceNoise, 0);
+	
+	return vec4(fogaccum, shadowamount, max(0.0,totaldensity + maxDensity*surfaceNoise.a *0.05), meanZ);
 }
 
 
@@ -131,7 +148,7 @@ void main(void)
 	vec2 closeandfarsphere = raySphereIntersect(camPos, -1.0 * normalize(camDir), v_worldPosRad.xyz, internalradius);
 	
 	vec2 screenUV = gl_FragCoord.xy * RESOLUTION / viewGeometry.xy;
-	#if HASDEFERREDBUFFERS == 1
+	#if USEDEFERREDBUFFERS == 1
 		// Sample the depth buffers, and choose whichever is closer to the screen
 		float mapdepth = texture(mapDepths, screenUV).x;
 		float modeldepth = texture(modelDepths, screenUV).x;
@@ -170,7 +187,7 @@ void main(void)
 	//fragColor.rgba = vec4( fract(far_spherepoint * 0.01), 1.0); return;
 	
 	if (distthroughsphere<=0) discard;	
-	float fogamout = max(0.0,pow(distthroughsphere ,0.66));
+	float fogamout = max(0.0,pow(distthroughsphere ,3.5));
 	//fragColor.rgba = vec4(vec3(1.0), sqrt(distthroughsphere)); return;// if we only wanted a plain even fog then this would be it
 	
 
@@ -179,9 +196,9 @@ void main(void)
 	rm.r = clamp(rm.r, 0.0, 1.0);
 	fragColor.rgba = vec4(vec3(rm.g), (1.0 - rm.r) * fogamout);
 	fragColor.rgba = vec4(vec3(rm.g),1.0 -  exp(-rm.b * 0.05));
-	fragColor.rgba = vec4(vec3(1.0),1.0 -  exp(-rm.b * 0.05));
+	fragColor.rgba = vec4(vec3(rm.g),1.0 -  exp(-rm.b * 0.05 * fogamout));
 	
-	fragColor.a *= fogamout;
+	//fragColor.a *= fogamout;
 	// colorize the fog accordingly:
 	//fragColor.rgb *= v_colordensity.rgb;
 	

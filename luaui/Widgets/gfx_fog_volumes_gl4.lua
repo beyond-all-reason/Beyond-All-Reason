@@ -18,6 +18,10 @@ local luaShaderDir = "LuaUI/Widgets/Include/"
 local noisetex3d64 =  "LuaUI/images/noise3d64rgb.bmp"
 local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
 local dithernoise2d =  "LuaUI/images/rgbnoise.png"
+
+--local worley3d128 = "LuaUI/images/worley_rsum_bgaind_128_v1.dds"
+local worley3d128 = "LuaUI/images/worley_rgbnorm_01_asum_128_v1.dds"
+
 --local noisetex3dcube =  "LuaUI/images/lavadistortion.png"
 --local noisetex3d64 =  "LuaUI/images/grid3d64rgb.bmp"
 
@@ -112,6 +116,7 @@ local function compileFogVolumeShader()
 				shadowTex = 4,
 				noise64cube = 5,
 				dithernoise2d = 6,
+				worley3D = 7,
 				},
 			uniformFloat = {
 				fadeDistance = 300000,
@@ -188,7 +193,7 @@ local function initFogGL4(shaderConfig, DPATname)
 			uniform float gameframe;
 			void main(void) {
 				vec2 distUV = gl_TexCoord[0].st * 4 + vec2(0, - gameframe*4);
-				vec4 dist = (texture2D(distortion, distUV) * 2.0 - 1.0) * 0.00001;
+				vec4 dist = (texture2D(distortion, distUV) * 2.0 - 1.0) * 0.001;
 				gl_FragColor = texture2D(fogbase, gl_TexCoord[0].st + dist.xy);
 			}
 		]],
@@ -293,6 +298,7 @@ function widget:DrawWorld()
 		gl.Texture(4, "$shadow")
 		gl.Texture(5, noisetex3dcube)
 		gl.Texture(6, dithernoise2d)
+		gl.Texture(7, worley3d128)
 		
 		fogSphereShader:Activate()
 		if toTexture then 
@@ -309,6 +315,7 @@ function widget:DrawWorld()
 		glTexture(4, false)
 		glTexture(5, false)
 		glTexture(6, false)
+		glTexture(7, false)
 		--glCulling(false)
 		glDepthTest(false)
 		
@@ -365,6 +372,9 @@ function widget:GameFrame(n)
 end
 
 function widget:Initialize()
+
+	if Spring.HaveShadows() then shaderConfig.USESHADOWS = 1 end 
+	if Spring.HaveAdvShading() then shaderConfig.USEDEFERREDBUFFERS = 1 end
 	--shaderConfig.MAXVERTICES = 4
 	fogSphereVBO, fogSphereShader = initFogGL4(shaderConfig, "fogSpheres")
 	math.randomseed(1)
@@ -373,4 +383,6 @@ function widget:Initialize()
 			AddRandomFogSphere()
 		end
 	end
+	
+	Spring.Echo(Spring.HaveShadows(),"advshad",Spring.HaveAdvShading())
 end
