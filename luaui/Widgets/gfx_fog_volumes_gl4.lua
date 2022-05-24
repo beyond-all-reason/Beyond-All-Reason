@@ -58,8 +58,7 @@ local shaderConfig = {
 -- omg all possible object-object intersection tests: http://www.realtimerendering.com/intersections.html
 
 -- TODO: 
-	-- expose spawning funcs
-	-- handle being inside at most 1 sphere
+	-- Try to z-sort the stupid spheres!
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
@@ -374,7 +373,8 @@ end
 function widget:Initialize()
 
 	if Spring.HaveShadows() then shaderConfig.USESHADOWS = 1 end 
-	if Spring.HaveAdvShading() then shaderConfig.USEDEFERREDBUFFERS = 1 end
+	local advmap, advmodel = Spring.HaveAdvShading()
+	if advmap and advmodel then shaderConfig.USEDEFERREDBUFFERS = 1 end
 	--shaderConfig.MAXVERTICES = 4
 	fogSphereVBO, fogSphereShader = initFogGL4(shaderConfig, "fogSpheres")
 	math.randomseed(1)

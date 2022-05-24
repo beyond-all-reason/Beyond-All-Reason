@@ -123,6 +123,9 @@ vec4 raymarch(vec3 startpoint, vec3 endpoint, float steps, vec4 sphereposrad, ve
 	
 	shadowamount = shadowamount / truesteps;
 	shadowamount = pow(shadowamount, 1.0);
+	#if USESHADOWS == 0
+		shadowamount = 1.0;
+	#endif
 	//if (shadowamount < 0.01) shadowamount = 0.0; // DEBUG FOR NO SHADOWS
 	meanZ = meanZ/weightZ;
 	maxZ = smin(meanZ, maxZ, 4.0); // NIIIICE
