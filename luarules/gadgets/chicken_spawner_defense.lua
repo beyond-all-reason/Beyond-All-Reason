@@ -451,7 +451,6 @@ if gadgetHandler:IsSyncedCode() then
 				if SetCount(squadsTable[i].squadUnits) > 0 then
 					if squadsTable[i].squadBurrow and (not queenID) then
 						Spring.DestroyUnit(squadsTable[i].squadBurrow, true, false)
-						SetGameRulesParam(config.burrowName .. "Kills", GetGameRulesParam(config.burrowName .. "Kills") - 1)
 					end
 					-- Spring.Echo("There are some units to kill, so let's kill them")
 					-- Spring.Echo("----------------------------------------------------------------------------------------------------------------------------")
