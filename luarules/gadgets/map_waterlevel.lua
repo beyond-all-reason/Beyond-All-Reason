@@ -35,6 +35,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- Spring.SetMapRenderingParams({ voidWater = false})
     Spring.Echo("adjustWaterlevel: this might cause a lag spike.")
 		Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
+		Spring.AdjustOriginalHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 		Spring.AdjustSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 		adjustFeatureHeight()
 	end
