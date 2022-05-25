@@ -2,6 +2,8 @@
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
 // This shader is (c) Beherith (mysterme@gmail.com)
+// Notes:
+// texelFetch is hardly faster but has banding artifacts, do not use!
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
@@ -63,6 +65,7 @@ float smoothmin(float a, float b, float k) {
 	return mix(a, b, h) - k*h*(1.0-h);
 }
 
+#line 30200
 vec4 raymarch(vec3 startpoint, vec3 endpoint, float steps, vec4 sphereposrad, vec2 screenuv, float noisethreshold, inout vec4 dbgdata){
 	float noisescale = 0.002 * v_spawnframe_frequency_riserate_windstrength.y;
 	float fulldist = length((startpoint - endpoint));
@@ -128,12 +131,13 @@ vec4 raymarch(vec3 startpoint, vec3 endpoint, float steps, vec4 sphereposrad, ve
 	
 	#if 1//FORWARD RENDERING
 	
-	
-	
-	float alphasofar = 0.0;
-	vec3 colorsofar = vec3(1.0, 1.0, 1.0);
+	#line 30400
+	float visibility = 1.0; // how much of the nezt sample could be visible
+	float visibilityexp = 1.0;
+	float expdensitysum = 0.0;
+	vec4 colorsofar = vec4(1.0, 1.0, 1.0, 1.0);
 	float havepassedzero = 0;
-	for (float f = dithernoise.x*interval*0.0; f < 1.0; f = f + interval){
+	for (float f = dithernoise.x*interval*1.0; f < 1.0; f = f + interval){
 		// Interpolate the position between start and end
 		vec3 currpos = mix(startpoint, endpoint, f);
 		vec3 noisepos = currpos;// + noiseoffset;
@@ -141,44 +145,78 @@ vec4 raymarch(vec3 startpoint, vec3 endpoint, float steps, vec4 sphereposrad, ve
 		vec4 worleyNoiseValue = (textureLod(worley3D, fract(noisepos * noisescale), 0.0) * 2.0 - 1.0);
 		//vec4 worleyNoiseValue = (textureLod(worley3d3level, fract(noisepos * noisescale), 0.0) * 2.0 - 1.0);
 		//worleyNoiseValue.a = worleyNoiseValue.g;
-		// worleynormal points towards higher densities
-		vec3 worleyNormal = (worleyNoiseValue.xyz * vec3(-1,1,1));// * 0.5 + 0.5; // 1, ?, -1
+				//worleyNoiseValue.a = pow(worleyNoiseValue.a, 0.5); //sharpen noise levels for more defined clouds
+		float localdensity =  max(worleyNoiseValue.a + noisethreshold + sin(currenttime *0.01 + sphereposrad.w) * 0.25, 0.0) * stepsize ;
+		if (localdensity > 0){
+			float fractalnoisevalue = textureLod(noise64cube, fract(noisepos * noisescale * 4 - currenttime * 0.0005), 0.0).a * 2.0 - 1.0;
+			localdensity +=  max(fractalnoisevalue + noisethreshold + sin(currenttime *0.01 + sphereposrad.w) * 0.25, 0.0) * stepsize ;
+		}
+		//if (localdensity < 0) continue; // this sample will not contribute to anything, its fully transparent
 		
-		//worleyNormal = worleyNormal * 0.5 + 0.5;
+		// worleynormal points towards higher densities
+		vec3 worleyNormal = (worleyNoiseValue.yxz * vec3(-1,1,-1));// * 0.5 + 0.5; // fuck if I know why its swizzled so wierdly
+		
 		float worleyLength = length(worleyNormal);
 		worleyNormal = worleyNormal / worleyLength;
-		// texelFetch is hardly faster but has banding artifacts, do not use!
 		
-		//worleyNoiseValue.a = pow(worleyNoiseValue.a, 0.5); //sharpen noise levels for more defined clouds
-		float localdensity =  max(worleyNoiseValue.a + noisethreshold + sin(currenttime *0.01 + sphereposrad.w) * 0.25, 0.0) * stepsize * interval;
-		dbgdata.a = 0.0;
+
 		
-		if (worleyNoiseValue.a < 0.4) havepassedzero += 1.0;
-		if ((worleyNoiseValue.a > 0.4) && (havepassedzero > -0.5)) {
-			dbgdata.a = 1.0;
-			dbgdata.rgb = worleyNormal * 0.5 + 0.5;;
-			
-			float lightamount = clamp(dot(sunDir.xyz,  -worleyNormal), 0.0, 1.0);
-			dbgdata.rgb = vec3(lightamount);
-			//break;
-		}
-		
-		
-		totaldensity += localdensity / interval;
+		// Find the density peaks that we will smooth later additional noise
+		totaldensity += localdensity ; //TODO this is a huge problem going forward!
 		fogaccum = fogaccum  * (1.0 -  clamp(localdensity  * 5, 0.0, 0.8));
 		meanRayDepth += f * totaldensity;
 		weightZ += totaldensity;
-		
-		shadowamount += localdensity* 130 * (clamp(dot(sunDir.xyz,  -worleyNormal), -1.0, 0.0));
-		
 		if (totaldensity> maxDensity){
 			maxRayDepth = f;
 			maxDensity = totaldensity;
 		}
 		
-		alphasofar += localdensity;
-		if (alphasofar > 0.5) break;
+		// Find the distance of the sample to the edge to be able to get a nice ratio, where 1 is at edge, and -1 is at center
+		vec3 postocenter = sphereposrad.xyz - currpos.xyz;
+		float closetoedge = dot(postocenter, postocenter) / (sphereposrad.w * sphereposrad.w);
+		closetoedge = smoothstep(0.5, 1.0, closetoedge) * 2.0 - 1.0;
+		localdensity = max(0.0, localdensity * (1.0 - closetoedge));
+		// LIGHTING
+		float sunlightamount = clamp(dot(sunDir.xyz,  worleyNormal),closetoedge, 1.0);
+		shadowamount += localdensity * 130 * (clamp(sunlightamount, -1.0, 0.0));
+		// total alpha = 1.0 -  exp(-totaldensity * 0.05);
 		
+		float ambientlightamount = clamp(worleyNormal.y, closetoedge, 1.0) ; // yeah this is simple but should work
+		
+		float alphanow = clamp(localdensity *10 * interval, 0.0, 0.5);
+		
+		float newvisibility = visibility * (1.0 - alphanow);
+		float actualcontribution = visibility - newvisibility;
+		visibility = newvisibility;
+		
+		expdensitysum += alphanow;
+		float newvisexp = exp(-expdensitysum * 1);
+		actualcontribution = visibilityexp - newvisexp ;
+		visibilityexp = newvisexp;
+		
+		
+		colorsofar = mix(colorsofar, vec4((ambientlightamount* worleyLength + sunlightamount * worleyLength)*0.75 + 0.5), (actualcontribution));
+		
+		if (newvisexp<0.01) break;
+		// Light scattering from cloud edge
+		
+		// debugging volumes now correct
+		dbgdata.a = 0.0;
+		if (localdensity > 0 ) havepassedzero += 1.0;
+		if ((localdensity> 0.0) && (havepassedzero > -0.5)) {
+			dbgdata.a = 1.0;
+			dbgdata.rgb = worleyNormal * 0.5 + 0.5;;
+			
+			float lightamount = clamp(dot(sunDir.xyz,  -worleyNormal), 0.0, 1.0);
+			dbgdata.rgb = vec3(ambientlightamount* worleyLength + sunlightamount * worleyLength + 0.5);
+			//dbgdata.rgb = vec3(ambientlightamount* worleyLength  + 0.5);
+			//break;
+		}
+			dbgdata.rgb = vec3(worleyNormal.y);
+			dbgdata.rgb = vec3(colorsofar.rgb);
+			dbgdata.a = (1.0 - visibility);
+			dbgdata.a = (1.0 - visibilityexp);
+		// SHADOWING MASK
 		//shadowamount = shadowamount - 1.0* 4 * max(localdensity, 0.0);
 		#if USESHADOWS == 1 
 			if (localdensity > 0) {
@@ -189,24 +227,24 @@ vec4 raymarch(vec3 startpoint, vec3 endpoint, float steps, vec4 sphereposrad, ve
 	}
 	#endif
 	
-	
+	dbgdata.a = -1.0;
 	#if USESHADOWS == 0
-		shadowamount = 1.0;
+		//shadowamount = 1.0;
 	#else
 		shadowamount = shadowamount / truesteps;
 		shadowamount = pow(shadowamount, 1.0);
 	#endif
 	
-
 	meanRayDepth = smoothmin(meanRayDepth/weightZ, maxRayDepth, 4.0); // NIIIICE
-	
+	//dbgdata.rgba = vec4(vec3(fract(meanRayDepth)),1.0);
 	vec4 surfaceNoise = texture(worley3D, fract((mix(startpoint, endpoint, (meanRayDepth)) + noiseoffset*0.2) * noisescale * 40.0)) * 2.0 - 1;
 	
 	surfaceNoise = max(surfaceNoise, -10);
 	
 	float finaldensity = max(0.0,totaldensity + maxDensity*surfaceNoise.a *0.075);
 	
-	return vec4(fogaccum, shadowamount, finaldensity, meanRayDepth);
+	//return vec4(fogaccum, shadowamount, finaldensity, meanRayDepth);
+	return vec4(fogaccum, colorsofar.r +  maxDensity*surfaceNoise.a *0.000005, 1.0 -  visibility , meanRayDepth);
 }
 
 
@@ -277,7 +315,10 @@ void main(void)
 	fragColor.rgba = vec4(vec3(rm.g),1.0 -  exp(-rm.b * 0.15 * fogamout));
 	
 	
-	//fragColor = dbg;
+	fragColor.rgba = vec4(vec3(rm.g),rm.b);
+	
+	
+	if (dbg.a > -0.5) fragColor = dbg;
 	//fragColor.a *= fogamout;
 	// colorize the fog accordingly:
 	//fragColor.rgb *= v_colordensity.rgb;

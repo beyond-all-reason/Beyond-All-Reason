@@ -330,7 +330,7 @@ function widget:DrawWorld()
 			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 			combineShader:Activate()
 			combineShader:SetUniformFloat("gameframe", Spring.GetGameFrame()/1000)
-			combineShader:SetUniformFloat("distortionlevel", 0.001) -- 0.001
+			combineShader:SetUniformFloat("distortionlevel", 0.00001) -- 0.001
 			gl.Texture(0, fogTexture)
 			gl.Texture(1, distortiontex)
 			gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
