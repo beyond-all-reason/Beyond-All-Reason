@@ -248,26 +248,29 @@ addSquad(2, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  									})
 addSquad(2, { "1 chickena1", "1 chickena1b", "1 chickena1c"									})
 addSquad(2, { "2 chickena1", "2 chickena1b", "2 chickena1c"									})
 ----------------------------------------------------------------------------------------------
--- Tier3 - Skirmishing Spikers joined the game
+-- Tier3 - Skirmishing Spikers joined the game + paralyzers
 ----------------------------------------------------------------------------------------------
 addSquad(3, { "12 chickens1" 																})
+addSquad(3, { "8 chickene1" 																})
 ----------------------------------------------------------------------------------------------
--- Tier4 - Small paralyzers, acid spitters and pyros are joining the game
+-- Tier4 - Pyros are joining the game + Little Air
 ----------------------------------------------------------------------------------------------
-addSquad(4, { "10 chickene1" 																})
-addSquad(4, { "10 chickenacidswarmer" 														})
-addSquad(4, { "5 chickene1", "5 chickenacidswarmer" 										})
+--addSquad(4, { "10 chickene1" 																})
+--addSquad(4, { "10 chickenacidswarmer" 													})
+--addSquad(4, { "5 chickene1", "5 chickenacidswarmer" 										})
 addSquad(4, { "10 chickenp1" 																})
+addSquad(4, { "4 chickenp1" , "1 chickenp2"													})
+addSquad(4, { "2 chickenf2" 																})
 ----------------------------------------------------------------------------------------------
--- Tier5 - Fighters and Bombers are looking at you from above!
+-- Tier5 - Fighters and Bombers are looking at you from above! + Acid
 ----------------------------------------------------------------------------------------------
 addSquad(5, { "5 chickenw1", "5 chickenw1b", "5 chickenw1c", "5 chickenw1d", "5 chickenw2" 	})
 addSquad(5, { "5 chickenf1" 																})
 addSquad(5, { "5 chickenf1b" 																})
 addSquad(5, { "5 chickenebomber1" 															})
-addSquad(5, { "5 chickenacidbomber" 														})
+addSquad(5, { "10 chickenacidswarmer" 														})
 ----------------------------------------------------------------------------------------------
--- Tier6 - All Terrain. Better watch these hills!
+-- Tier6 - All Terrain. Better watch these hills! + Paralyzers/Acid combo
 ----------------------------------------------------------------------------------------------
 addSquad(6, { "15 chickenc3" 																})
 addSquad(6, { "10 chickenc3b" 																})
@@ -277,28 +280,36 @@ addSquad(6, { "5 chickenc3b", "3 chickenc3c" 												})
 addSquad(6, { "10 chickenc3", "5 chickenc3b", "3 chickenc3c" 								})
 addSquad(6, { "10 chickenpyroallterrain" 													})
 addSquad(6, { "10 chickenelectricallterrain" 												})
-addSquad(6, { "10 chickenacidallterrain" 													})
-addSquad(6, { "5 chickenelectricallterrain", "5 chickenacidallterrain" 					})
+--addSquad(6, { "10 chickenacidallterrain" 													})
+--addSquad(6, { "5 chickenelectricallterrain", "5 chickenacidallterrain" 					})
+addSquad(6, { "5 chickene1", "5 chickenacidswarmer" 										})
+addSquad(6, { "3 chickenr1" 																})
 ----------------------------------------------------------------------------------------------
 -- Tier7 - Artillery, big flamer, big paralyzer and big acid spitter want to know your location
 ----------------------------------------------------------------------------------------------
-addSquad(7, { "3 chickenr1" 																})
 addSquad(7, { "3 chickenearty1" 															})
-addSquad(7, { "3 chickenacidarty" 															})
+--addSquad(7, { "3 chickenacidarty" 														})
 addSquad(7, { "8 chickenp2" 																})
 addSquad(7, { "3 chickene2" 																})
-addSquad(7, { "3 chickenacidassault" 														})
+--addSquad(7, { "3 chickenacidassault" 														})
+--addSquad(7, { "5 chickenacidbomber" 														})
+--addSquad(7, { "10 chickenacidallterrain" 													})
+addSquad(7, { "5 chickenelectricallterrain", "5 chickenacidallterrain" 						})
 ----------------------------------------------------------------------------------------------
--- Tier8 - Kamikaze, lots of them! Also Apex Spiker.
+-- Tier8 - Kamikaze, lots of them! Also Apex Spiker. + Acid
 ----------------------------------------------------------------------------------------------
 addSquad(8, { "10 chicken_dodo1" 															})
-addSquad(8, { "20 chicken_dodo1" 															})
-addSquad(8, { "40 chicken_dodo1" 															})
-addSquad(8, { "80 chicken_dodo1" 															})
-addSquad(8, { "20 chicken_dodo2" 															})
-addSquad(8, { "40 chicken_dodo2" 															})
+addSquad(8, { "15 chicken_dodo1" 															})
+addSquad(8, { "30 chicken_dodo1" 															})
+addSquad(8, { "70 chicken_dodo1" 															})
+addSquad(8, { "15 chicken_dodo2" 															})
+addSquad(8, { "35 chicken_dodo2" 															})
 addSquad(8, { "5 chickens2" 																})
 addSquad(8, { "10 chickens2" 																})
+addSquad(8, { "10 chickenacidallterrain" 													})
+addSquad(8, { "4 chickenacidassault" 														})
+addSquad(8, { "5 chickenacidbomber" 														})
+addSquad(8, { "3 chickenacidarty" 															})
 ----------------------------------------------------------------------------------------------
 -- Tier9 - Apex Swarmer, Apex Brawler, Apex Mortar - Prepare antinukes!
 ----------------------------------------------------------------------------------------------

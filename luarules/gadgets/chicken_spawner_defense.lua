@@ -1446,7 +1446,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n%30 == 10 and n > 300 and chickenTeamUnitCount < maxChicken then
 			queueTurretSpawnIfNeeded()
 		end
-		local squadID = (n % #squadsTable)+1
+		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands
 		if not chickenteamhasplayers then
 			if squadID and squadsTable[squadID] and squadsTable[squadID].squadRole ~= "aircraft" and squadsTable[squadID].squadRole ~= "artillery" then
 				local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
