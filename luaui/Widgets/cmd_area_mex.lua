@@ -75,7 +75,7 @@ function widget:CommandsChanged()
 		local selectedUnits = Spring.GetSelectedUnits()
 		if #selectedUnits > 0 then
 			local customCommands = widgetHandler.customCommands
-			for i = 1, unitCount do
+			for i = 1, #selectedUnits do
 				if WG['resource_spot_builder'].GetMexConstructors()[selectedUnits[i]] then
 					customCommands[#customCommands + 1] = {
 						id = CMD_AREA_MEX,
