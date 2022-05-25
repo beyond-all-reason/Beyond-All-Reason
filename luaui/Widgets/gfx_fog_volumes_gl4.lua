@@ -19,8 +19,9 @@ local noisetex3d64 =  "LuaUI/images/noise3d64rgb.bmp"
 local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
 local dithernoise2d =  "LuaUI/images/rgbnoise.png"
 
---local worley3d128 = "LuaUI/images/worley_rsum_bgaind_128_v1.dds"
 local worley3d128 = "LuaUI/images/worley_rgbnorm_01_asum_128_v1.dds"
+--local worley3d128 = "LuaUI/images/worley_128_single_norm_v1.dds"
+local worley3d3level = "LuaUI/images/worley_rsum_bgaind_128_v1.dds"
 
 --local noisetex3dcube =  "LuaUI/images/lavadistortion.png"
 --local noisetex3d64 =  "LuaUI/images/grid3d64rgb.bmp"
@@ -116,6 +117,7 @@ local function compileFogVolumeShader()
 				noise64cube = 5,
 				dithernoise2d = 6,
 				worley3D = 7,
+				worley3d3level = 8,
 				},
 			uniformFloat = {
 				fadeDistance = 300000,
@@ -190,14 +192,15 @@ local function initFogGL4(shaderConfig, DPATname)
 			uniform sampler2D fogbase;
 			uniform sampler2D distortion;
 			uniform float gameframe;
+			uniform float distortionlevel;
 			void main(void) {
 				vec2 distUV = gl_TexCoord[0].st * 4 + vec2(0, - gameframe*4);
-				vec4 dist = (texture2D(distortion, distUV) * 2.0 - 1.0) * 0.001;
+				vec4 dist = (texture2D(distortion, distUV) * 2.0 - 1.0) * distortionlevel;
 				gl_FragColor = texture2D(fogbase, gl_TexCoord[0].st + dist.xy);
 			}
 		]],
 		uniformInt = { fogbase = 0, distortion = 1},
-		uniformFloat = { gameframe = 0,},
+		uniformFloat = { gameframe = 0, distortionlevel = 0},
 	})
 	
 	shaderCompiled = combineShader:Initialize()
@@ -298,6 +301,7 @@ function widget:DrawWorld()
 		gl.Texture(5, noisetex3dcube)
 		gl.Texture(6, dithernoise2d)
 		gl.Texture(7, worley3d128)
+		gl.Texture(8, worley3d3level)
 		
 		fogSphereShader:Activate()
 		if toTexture then 
@@ -315,6 +319,7 @@ function widget:DrawWorld()
 		glTexture(5, false)
 		glTexture(6, false)
 		glTexture(7, false)
+		glTexture(8, false)
 		--glCulling(false)
 		glDepthTest(false)
 		
@@ -325,6 +330,7 @@ function widget:DrawWorld()
 			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 			combineShader:Activate()
 			combineShader:SetUniformFloat("gameframe", Spring.GetGameFrame()/1000)
+			combineShader:SetUniformFloat("distortionlevel", 0.001) -- 0.001
 			gl.Texture(0, fogTexture)
 			gl.Texture(1, distortiontex)
 			gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)

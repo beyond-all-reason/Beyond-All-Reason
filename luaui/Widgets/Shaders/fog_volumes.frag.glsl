@@ -25,6 +25,7 @@ uniform sampler2DShadow shadowTex;
 uniform sampler3D noise64cube;
 uniform sampler2D dithernoise2d;
 uniform sampler3D worley3D;
+uniform sampler3D worley3d3level;
 
 out vec4 fragColor;
 
@@ -88,51 +89,58 @@ vec4 raymarch(vec3 startpoint, vec3 endpoint, float steps, vec4 sphereposrad, ve
 	float truesteps = 1.0;
 	
 	#if 0 // REGULAR
-	for (float f = dithernoise.x*interval*0.0; f < 1.0; f = f + interval){
-		// Interpolate the position between start and end
-		vec3 currpos = mix(startpoint, endpoint, f);
-		vec3 noisepos = currpos + noiseoffset;
-		noisepos += noiseoffset;
-		
-		//float worleyNoiseValue = (textureLod(noise64cube, fract(noisepos * noisescale), 0.0).r * 2.0 - 1.0);
-		vec4 worleyNoiseValue = (textureLod(worley3D, fract(noisepos * noisescale), 0.0) * 2.0 - 1.0);
-		// texelFetch is hardly faster but has banding artifacts, do not use!
-		
-		worleyNoiseValue.a = pow(worleyNoiseValue.a, 0.5); //sharpen
-		float localdensity =  max(worleyNoiseValue.a + noisethreshold + sin(currenttime *0.01) * 0.15, 0.0) * stepsize * interval;
-		
-		totaldensity += localdensity / interval;
-		fogaccum = fogaccum  * (1.0 -  clamp(localdensity  * 5, 0.0, 0.8));
-		meanRayDepth += f * totaldensity;
-		weightZ += totaldensity;
-		
-		shadowamount += dot(clamp(worleyNoiseValue.xyz, -1.0, 1.0), vec3(1,-1,-1));
-		
-		if (totaldensity> maxDensity){
-			maxRayDepth = f;
-			maxDensity = totaldensity;
-		}
-		
-		//shadowamount = shadowamount - 1.0* 4 * max(localdensity, 0.0);
-		#if USESHADOWS == 1 
-			if (localdensity > 0) {
-				truesteps += 1.0;
-				shadowamount = shadowamount + shadowAtWorldPos(currpos); // yes this can help reduce overhead
-			}
-		#endif
-	}
-	#else //FORWARD RENDERING
 	
+		
+		for (float f = dithernoise.x*interval*0.0; f < 1.0; f = f + interval){
+			// Interpolate the position between start and end
+			vec3 currpos = mix(startpoint, endpoint, f);
+			vec3 noisepos = currpos + noiseoffset;
+			noisepos += noiseoffset;
+			
+			//float worleyNoiseValue = (textureLod(noise64cube, fract(noisepos * noisescale), 0.0).r * 2.0 - 1.0);
+			vec4 worleyNoiseValue = (textureLod(worley3D, fract(noisepos * noisescale), 0.0) * 2.0 - 1.0);
+			// texelFetch is hardly faster but has banding artifacts, do not use!
+			
+			worleyNoiseValue.a = pow(worleyNoiseValue.a, 0.5); //sharpen
+			float localdensity =  max(worleyNoiseValue.a + noisethreshold + sin(currenttime *0.01) * 0.15, 0.0) * stepsize * interval;
+			
+			totaldensity += localdensity / interval;
+			fogaccum = fogaccum  * (1.0 -  clamp(localdensity  * 5, 0.0, 0.8));
+			meanRayDepth += f * totaldensity;
+			weightZ += totaldensity;
+			
+			shadowamount += dot(clamp(worleyNoiseValue.xyz, -1.0, 1.0), vec3(1,-1,-1));
+			
+			if (totaldensity> maxDensity){
+				maxRayDepth = f;
+				maxDensity = totaldensity;
+			}
+			
+			//shadowamount = shadowamount - 1.0* 4 * max(localdensity, 0.0);
+			#if USESHADOWS == 1 
+				if (localdensity > 0) {
+					truesteps += 1.0;
+					shadowamount = shadowamount + shadowAtWorldPos(currpos); // yes this can help reduce overhead
+				}
+			#endif
+		}
+	#endif 
+	
+	#if 1//FORWARD RENDERING
+	
+	
+	
+	float alphasofar = 0.0;
+	vec3 colorsofar = vec3(1.0, 1.0, 1.0);
 	float havepassedzero = 0;
 	for (float f = dithernoise.x*interval*0.0; f < 1.0; f = f + interval){
 		// Interpolate the position between start and end
 		vec3 currpos = mix(startpoint, endpoint, f);
-		vec3 noisepos = currpos + noiseoffset;
-		noisepos += noiseoffset;
-		
+		vec3 noisepos = currpos;// + noiseoffset;
 		//float worleyNoiseValue = (textureLod(noise64cube, fract(noisepos * noisescale), 0.0).r * 2.0 - 1.0);
 		vec4 worleyNoiseValue = (textureLod(worley3D, fract(noisepos * noisescale), 0.0) * 2.0 - 1.0);
-		
+		//vec4 worleyNoiseValue = (textureLod(worley3d3level, fract(noisepos * noisescale), 0.0) * 2.0 - 1.0);
+		//worleyNoiseValue.a = worleyNoiseValue.g;
 		// worleynormal points towards higher densities
 		vec3 worleyNormal = (worleyNoiseValue.xyz * vec3(-1,1,1));// * 0.5 + 0.5; // 1, ?, -1
 		
@@ -141,22 +149,18 @@ vec4 raymarch(vec3 startpoint, vec3 endpoint, float steps, vec4 sphereposrad, ve
 		worleyNormal = worleyNormal / worleyLength;
 		// texelFetch is hardly faster but has banding artifacts, do not use!
 		
-		worleyNoiseValue.a = pow(worleyNoiseValue.a, 0.5); //sharpen
-		float localdensity =  max(worleyNoiseValue.a + noisethreshold + sin(currenttime *0.01) * 0.15, 0.0) * stepsize * interval;
+		//worleyNoiseValue.a = pow(worleyNoiseValue.a, 0.5); //sharpen noise levels for more defined clouds
+		float localdensity =  max(worleyNoiseValue.a + noisethreshold + sin(currenttime *0.01 + sphereposrad.w) * 0.25, 0.0) * stepsize * interval;
 		dbgdata.a = 0.0;
-		if (worleyNoiseValue.a < 0.4) havepassedzero += 1.0;
 		
-		if ((worleyNoiseValue.a > 0.4) && (havepassedzero > 3.5)) {
+		if (worleyNoiseValue.a < 0.4) havepassedzero += 1.0;
+		if ((worleyNoiseValue.a > 0.4) && (havepassedzero > -0.5)) {
 			dbgdata.a = 1.0;
 			dbgdata.rgb = worleyNormal * 0.5 + 0.5;;
 			
-			float lightamount = clamp(dot(sunDir.xyz,   worleyNormal), 0.0, 1.0);
+			float lightamount = clamp(dot(sunDir.xyz,  -worleyNormal), 0.0, 1.0);
 			dbgdata.rgb = vec3(lightamount);
-			
-			
-			
-			break;
-			
+			//break;
 		}
 		
 		
@@ -165,12 +169,15 @@ vec4 raymarch(vec3 startpoint, vec3 endpoint, float steps, vec4 sphereposrad, ve
 		meanRayDepth += f * totaldensity;
 		weightZ += totaldensity;
 		
-		shadowamount += dot(clamp(worleyNoiseValue.xyz, -1.0, 1.0), vec3(1,-1,-1));
+		shadowamount += localdensity* 130 * (clamp(dot(sunDir.xyz,  -worleyNormal), -1.0, 0.0));
 		
 		if (totaldensity> maxDensity){
 			maxRayDepth = f;
 			maxDensity = totaldensity;
 		}
+		
+		alphasofar += localdensity;
+		if (alphasofar > 0.5) break;
 		
 		//shadowamount = shadowamount - 1.0* 4 * max(localdensity, 0.0);
 		#if USESHADOWS == 1 
@@ -195,9 +202,9 @@ vec4 raymarch(vec3 startpoint, vec3 endpoint, float steps, vec4 sphereposrad, ve
 	
 	vec4 surfaceNoise = texture(worley3D, fract((mix(startpoint, endpoint, (meanRayDepth)) + noiseoffset*0.2) * noisescale * 40.0)) * 2.0 - 1;
 	
-	surfaceNoise = max(surfaceNoise, 0);
+	surfaceNoise = max(surfaceNoise, -10);
 	
-	float finaldensity = max(0.0,totaldensity + maxDensity*surfaceNoise.a *0.05);
+	float finaldensity = max(0.0,totaldensity + maxDensity*surfaceNoise.a *0.075);
 	
 	return vec4(fogaccum, shadowamount, finaldensity, meanRayDepth);
 }
@@ -262,15 +269,15 @@ void main(void)
 	//fragColor.rgba = vec4(vec3(1.0), sqrt(distthroughsphere)); return;// if we only wanted a plain even fog then this would be it
 	vec4 dbg = vec4(0,0,0,1);
 
-	vec4 rm = raymarch(far_spherepoint, close_spherepoint, 128.0, v_worldPosRad, screenUV, -0.0,dbg);
+	vec4 rm = raymarch( close_spherepoint,far_spherepoint,128.0, v_worldPosRad, screenUV, -0.0,dbg);
 	fragColor.rgba = vec4(vec3(rm.rgb), 1.0);
 	rm.r = clamp(rm.r, 0.0, 1.0);
 	fragColor.rgba = vec4(vec3(rm.g), (1.0 - rm.r) * fogamout);
 	fragColor.rgba = vec4(vec3(rm.g),1.0 -  exp(-rm.b * 0.05));
-	fragColor.rgba = vec4(vec3(rm.g),1.0 -  exp(-rm.b * 0.05 * fogamout));
+	fragColor.rgba = vec4(vec3(rm.g),1.0 -  exp(-rm.b * 0.15 * fogamout));
 	
 	
-	fragColor = dbg;
+	//fragColor = dbg;
 	//fragColor.a *= fogamout;
 	// colorize the fog accordingly:
 	//fragColor.rgb *= v_colordensity.rgb;
