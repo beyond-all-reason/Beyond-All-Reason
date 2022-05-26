@@ -1827,6 +1827,22 @@ function gadget:UnitFinished(unitID)
 	UpdateUnit(unitID,Spring.GetUnitDrawFlag(unitID))
 end
 
+function gadget:UnitGiven(unitID)
+	local flag = Spring.GetUnitDrawFlag(unitID)
+	if flag > 0 and flag < 32 then 
+		UpdateUnit(unitID, 0)
+		UpdateUnit(unitID, Spring.GetUnitDrawFlag(unitID))
+	end
+end
+
+function gadget:UnitGiven(unitID)
+	local flag = Spring.GetUnitDrawFlag(unitID)
+	if flag > 0 and flag < 32 then 
+		UpdateUnit(unitID, 0)
+		UpdateUnit(unitID, Spring.GetUnitDrawFlag(unitID))
+	end
+end
+
 function gadget:UnitCloaked(unitID)
 	UpdateUnit(unitID,0)
 end
