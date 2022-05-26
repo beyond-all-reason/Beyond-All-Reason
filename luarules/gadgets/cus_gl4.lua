@@ -1816,7 +1816,7 @@ local function UpdateUnit(unitID, flag)
 end
 
 function gadget:UnitDestroyed(unitID)
-	UpdateUnit(unitID, 0)
+	--UpdateUnit(unitID, 0) -- having this here means that dying units lose CUS, RenderUnitDestroyed _should_ be fine
 end
 
 function gadget:RenderUnitDestroyed(unitID, unitDefID)
