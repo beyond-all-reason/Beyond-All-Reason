@@ -313,6 +313,14 @@ function widget:UnitDestroyed(unitID)
 	unitAllyteam[unitID] = nil
 end
 
+function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+	if unitID and newTeam == myTeamID then
+		removeUnit(unitID)
+		selectedUnits[unitID] = nil
+		unitAllyteam[unitID] = nil
+	end
+end
+
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	addUnit(unitID)
 end
