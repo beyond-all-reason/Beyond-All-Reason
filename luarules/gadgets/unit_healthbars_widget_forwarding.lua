@@ -79,6 +79,10 @@ if gadgetHandler:IsSyncedCode() then
 		unitreloadframe[unitID] = nil
 	end
 	
+	function gadget:UnitTaken(unitID)
+		forwardedCaptureUnitIDs[unitID] = nil
+	end
+	
 	function gadget:Initialize()
 		for udefID, unitDef in pairs(UnitDefs) do
 			local weapons = unitDef.weapons
