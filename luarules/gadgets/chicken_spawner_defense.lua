@@ -1082,7 +1082,7 @@ if gadgetHandler:IsSyncedCode() then
 					queenResistance[weaponID].damage = damage
 					queenResistance[weaponID].notify = 0
 				end
-				local resistPercent = math.min((queenResistance[weaponID].damage * 2 * config.chickenSpawnMultiplier) / queenMaxHP, 0.999)
+				local resistPercent = math.min((queenResistance[weaponID].damage * 2) / queenMaxHP, 0.999)
 				if resistPercent > 0.35 then
 					if queenResistance[weaponID].notify == 0 then
 						SendToUnsynced('QueenResistant', attackerDefID)
