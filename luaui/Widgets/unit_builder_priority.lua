@@ -37,9 +37,6 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetMyPlayerID = Spring.GetMyPlayerID
 local spGetPlayerInfo = Spring.GetPlayerInfo
 
-local armCommanderDefId = UnitDefNames["armcom"].id
-local corCommanderDefId = UnitDefNames["corcom"].id
-
 -- widget global settings and assigned defaults
 local lowpriorityLabs = true
 local lowpriorityNanos = true
@@ -52,13 +49,17 @@ local builderCons = {}
 -- local builderUnknown = {}  -- DEBUG
 
 local unitIsBuilder = {}
+local unitIsCommander = {}
 local unitIsNano = {}
 local unitIsLab = {}
 local unitIsCons = {}
 for udefID, def in ipairs(UnitDefs) do
 	if def.isBuilder then
 		unitIsBuilder[udefID] = def.id
-		if def.canMove and not def.isFactory then
+		if def.customParams.iscommander then
+			unitIsCommander[udefID] = true
+		end
+		if not def.canMove and not def.isFactory then
 			unitIsNano[udefID] = true
 		end
 		if def.isFactory then
@@ -90,7 +91,7 @@ local function classifyUnit(unitId, unitDefId)
 	-- spEcho("[passiveunits] Classifiying unit. ID: "..unitId.." Type: "..unitDef.name)  -- DEBUG
 	if not unitIsBuilder[unitDefId] then
 		-- spEcho("[passiveunits] Classified unit is not a builder. Skipping.")  -- DEBUG
-	elseif unitIsBuilder[unitDefId] == armCommanderDefId or unitIsBuilder[unitDefId] == corCommanderDefId then
+	elseif unitIsCommander[unitDefId] then
 		-- spEcho("[passiveunits] Classified unit is a commander. Skipping.")  -- DEBUG
 	elseif unitIsNano[unitDefId] then
 		-- spEcho("[passiveunits] Classified unit is a nano. ID: "..unitId.." Type: "..unitDef.name)  -- DEBUG
@@ -113,7 +114,7 @@ local function declassifyUnit(unitId, unitDefId)
 	-- spEcho("[passiveunits] Declassifying unit. ID: "..unitId.." Type: "..unitDef.name)  -- DEBUG
 	if not unitIsBuilder[unitDefId] then
 		-- spEcho("[passiveunits] Declassified unit is not a builder. Skipping.")  -- DEBUG
-	elseif unitIsBuilder[unitDefId] == armCommanderDefId or unitIsBuilder[unitDefId] == corCommanderDefId then
+	elseif unitIsCommander[unitDefId] then
 		-- spEcho("[passiveunits] Declassified unit is a commander. Skipping.")  -- DEBUG
 	elseif unitIsNano[unitDefId] then
 		-- spEcho("[passiveunits] Declassified unit is a nano. ID: "..unitId.." Type: "..unitDef.name)  -- DEBUG
