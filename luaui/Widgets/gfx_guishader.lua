@@ -18,6 +18,10 @@ end
 
 local defaultBlurIntensity = 0.0035
 
+-- Beherith's notes:
+-- pre-opt it is 140 vs 124 fps!
+-- just discard brings it to 127
+-- shaving some shader activations its now 130, eh
 
 --hardware capability
 local canRTT = (gl.RenderToTexture ~= nil)
@@ -51,6 +55,8 @@ local ivsx, ivsy = vsx, vsy
 local intensityMult = (vsx + vsy) / 1600
 
 function widget:ViewResize(viewSizeX, viewSizeY)
+	viewSizeX = viewSizeX 
+	viewSizeY = viewSizeY 
 	vsx, vsy = viewSizeX, viewSizeY
 	ivsx, ivsy = vsx, vsy
 
@@ -62,7 +68,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 		gl.DeleteTexture(screencopy)
 	end
 
-	screencopy = gl.CreateTexture(vsx, vsy, {
+	screencopy = gl.CreateTexture(vsx  , vsy, {
 		border = false,
 		min_filter = GL.NEAREST,
 		mag_filter = GL.NEAREST,
@@ -91,6 +97,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 local function DrawStencilTexture(world, fullscreen)
+	--Spring.Echo("DrawStencilTexture",world, fullscreen, Spring.GetDrawFrame(), updateStencilTexture)
 	local usedStencilTex = world and stenciltex or stenciltexScreen
 
 	if next(guishaderRects) or next(guishaderScreenRects) or next(guishaderDlists) then
@@ -212,7 +219,9 @@ function CreateShaders()
             if (stencil<0.01)
             {
                 gl_FragColor = texture2D(tex0, texCoord);
-                return;
+                discard;
+				return;
+				
             }
             gl_FragColor = vec4(0.0,0.0,0.0,1.0);
 
@@ -294,12 +303,12 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('GuishaderRemoveRect')
 end
 
-function widget:DrawScreenEffects()
+function widget:DrawScreenEffects() -- This blurs the world underneath UI elements
 	if Spring.IsGUIHidden() then
 		return
 	end
 
-	if not screenBlur and blurShader then
+	if not screenBlur and blurShader then -- so dis one
 		if not next(guishaderRects) and not next(guishaderDlists) then
 			return
 		end
@@ -313,66 +322,41 @@ function widget:DrawScreenEffects()
 			updateStencilTexture = false;
 		end
 
-		gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
+		gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy) -- copy screen to screencopy, and render screencopy into blurtex
 		gl.Texture(screencopy)
 		gl.RenderToTexture(blurtex, gl.TexRect, -1, 1, 1, -1)
 
-		gl.UseShader(blurShader)
-		gl.Uniform(intensityLoc, blurIntensity)
-
+		local currentBlurIntensity = blurIntensity
+		
 		gl.Texture(2, stenciltex)
-		gl.Texture(blurtex)
-		gl.RenderToTexture(blurtex2, gl.TexRect, -1, 1, 1, -1)
-		gl.Texture(blurtex2)
-		gl.RenderToTexture(blurtex, gl.TexRect, -1, 1, 1, -1)
+		gl.UseShader(blurShader) -- set up first blur pass
+		local passes = math.ceil(blurIntensity*intensityMult / 0.0022)
+		--Spring.Echo(Spring.GetDrawFrame(), passes,  blurIntensity, intensityMult)
+		for pass= 1, passes do 
+			gl.Uniform(intensityLoc, currentBlurIntensity)
+			
+			gl.Texture(blurtex)
+			gl.RenderToTexture(blurtex2, gl.TexRect, -1, 1, 1, -1)  -- render one blur pass into blurtex2 from blurtex
+			gl.Texture(blurtex2)
+			gl.RenderToTexture(blurtex, gl.TexRect, -1, 1, 1, -1) -- render another blur pass into blurtex from blurtex2
+			gl.Texture(2, false)
+			currentBlurIntensity = 0.5 * currentBlurIntensity
+		end
+		
 		gl.Texture(2, false)
-		gl.UseShader(0)
-
-		if blurIntensity*intensityMult >= 0.0022 then
-			gl.UseShader(blurShader)
-			gl.Uniform(intensityLoc, blurIntensity * 0.5)
-
-			gl.Texture(blurtex)
-			gl.RenderToTexture(blurtex2, gl.TexRect, -1, 1, 1, -1)
-			gl.Texture(blurtex2)
-			gl.RenderToTexture(blurtex, gl.TexRect, -1, 1, 1, -1)
-			gl.UseShader(0)
-		end
-
-		if blurIntensity*intensityMult >= 0.0044 then
-			gl.UseShader(blurShader)
-			gl.Uniform(intensityLoc, blurIntensity * 0.25)
-
-			gl.Texture(blurtex)
-			gl.RenderToTexture(blurtex2, gl.TexRect, -1, 1, 1, -1)
-			gl.Texture(blurtex2)
-			gl.RenderToTexture(blurtex, gl.TexRect, -1, 1, 1, -1)
-			gl.UseShader(0)
-		end
-
-		if blurIntensity*intensityMult >= 0.066 then
-			gl.UseShader(blurShader)
-			gl.Uniform(intensityLoc, blurIntensity * 0.25)
-
-			gl.Texture(blurtex)
-			gl.RenderToTexture(blurtex2, gl.TexRect, -1, 1, 1, -1)
-			gl.Texture(blurtex2)
-			gl.RenderToTexture(blurtex, gl.TexRect, -1, 1, 1, -1)
-			gl.UseShader(0)
-		end
-
-		gl.Texture(blurtex)
-		gl.TexRect(0, vsy, vsx, 0)
+		gl.UseShader(0) 
+		gl.Texture(blurtex) 
+		gl.TexRect(0, vsy, vsx, 0) -- draw the blurred version
 		gl.Texture(false)
 		gl.Blending(true)
 	end
 end
 
-local function DrawScreen()
+local function DrawScreen() -- This blurs the UI elements obscured by other UI elements (only unit stats so far!)
 	if Spring.IsGUIHidden() then
 		return
 	end
-
+	--if true then return false end
 	if (screenBlur or next(guishaderScreenRects) or next(guishaderScreenDlists)) and blurShader then
 		gl.Texture(false)
 		gl.Color(1, 1, 1, 1)
@@ -480,8 +464,13 @@ function widget:Initialize()
 
 	WG['guishader'] = {}
 	WG['guishader'].InsertDlist = function(dlist, name)
-		guishaderDlists[name] = dlist
-		updateStencilTexture = true
+		if guishaderDlists[name] ~= dlist then 
+			guishaderDlists[name] = dlist
+			updateStencilTexture = name
+			--Spring.Debug.TraceFullEcho(nil,nil,nil, "InsertDlist")
+			--Spring.Debug.TraceEcho("InsertDlist", dlist, name)
+		end
+		
 	end
 	WG['guishader'].RemoveDlist = function(name)
 		local found = false
@@ -489,7 +478,9 @@ function widget:Initialize()
 			found = true
 		end
 		guishaderDlists[name] = nil
-		updateStencilTexture = true
+		if found then 
+			updateStencilTexture = name
+		end
 		return found
 	end
 	WG['guishader'].DeleteDlist = function(name)
@@ -502,7 +493,7 @@ function widget:Initialize()
 	end
 	WG['guishader'].InsertRect = function(left, top, right, bottom, name)
 		guishaderRects[name] = { left, top, right, bottom }
-		updateStencilTexture = true
+		updateStencilTexture = name
 	end
 	WG['guishader'].RemoveRect = function(name)
 		local found = false
@@ -510,7 +501,9 @@ function widget:Initialize()
 			found = true
 		end
 		guishaderRects[name] = nil
-		updateStencilTexture = true
+		if found then 
+			updateStencilTexture = name
+		end
 		return found
 	end
 	WG['guishader'].InsertScreenDlist = function(dlist, name)
