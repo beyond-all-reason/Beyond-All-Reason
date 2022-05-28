@@ -2526,29 +2526,31 @@ function init()
 		  end,
 		},
 
-		{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishader, type = "slider", min = 0, max = 0.005, steps = {0, 0.001, 0.0015, 0.002, 0.0025, 0.003, 0.0035, 0.004}, value = guishaderIntensity, description = '',
-		  onload = function(i)
-			  loadWidgetData("GUI Shader", "guishader", { 'blurIntensity' })
-			  if type(options[getOptionByID('guishader')].value) ~= 'number' then
-				  options[getOptionByID('guishader')].value = 0
-			  end
-		  end,
-		  onchange = function(i, value)
-			  if type(value) == 'number' then
-				  guishaderIntensity = value
-				  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)
-			  end
-			  if value <= 0.000001 then
-				  if GetWidgetToggleValue('GUI Shader') then
-				 	 widgetHandler:DisableWidget('GUI Shader')
-				  end
-			  else
-				  if not GetWidgetToggleValue('GUI Shader') then
-				  	widgetHandler:EnableWidget('GUI Shader')
-				  end
-			  end
-		  end,
-		},
+		--{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishader, type = "slider", min = 0, max = 0.005, steps = {0, 1, 2, 3, 4, 5, 6}, value = guishaderIntensity, description = '',
+		--  onload = function(i)
+		--	  loadWidgetData("GUI Shader", "guishader", { 'blurIntensity' })
+		--	  if type(options[getOptionByID('guishader')].value) ~= 'number' then
+		--		  options[getOptionByID('guishader')].value = 0
+		--	  end
+		--  end,
+		--  onchange = function(i, value)
+		--	  if type(value) == 'number' then
+		--		  guishaderIntensity = value
+		--		  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)
+		--	  end
+		--	  if value <= 0.000001 then
+		--		  if GetWidgetToggleValue('GUI Shader') then
+		--			  widgetHandler:DisableWidget('GUI Shader')
+		--		  end
+		--	  else
+		--		  if not GetWidgetToggleValue('GUI Shader') then
+		--			  widgetHandler:EnableWidget('GUI Shader')
+		--		  end
+		--	  end
+		--  end,
+		--},
+		{ id = "guishader", group = "ui", category = types.basic, widget = "GUI Shader", name = widgetOptionColor .. "   " .. texts.option.guishader, type = "bool", value = GetWidgetToggleValue("GUI Shader") },
+
 
 		{ id = "minimap_maxheight", group = "ui", category = types.advanced, name = texts.option.minimap .. widgetOptionColor .. "  " .. texts.option.minimap_maxheight, type = "slider", min = 0.2, max = 0.4, step = 0.01, value = 0.35, description = texts.option.minimap_maxheight_descr,
 		  onload = function(i)
