@@ -45,7 +45,7 @@ else
 	local authorized = SYNCED.permissions.sysinfo[myPlayerName]
 
 	local function handleSystemEvent(_,playerID,system)
-		if authorized and playerID == myPlayerID then
+		if authorized then
 			if Script.LuaUI("SystemEvent") then
 				if systems[playerID] == nil and system ~= nil then
 					systems[playerID] = system

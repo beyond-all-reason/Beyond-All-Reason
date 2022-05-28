@@ -675,13 +675,13 @@ function widget:Update(dt)
 		end
 	end
 
-	if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
-		Spring.SetCameraState(nil, 1)
-	else
+	--if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
+	--	Spring.SetCameraState(nil, 1)
+	--else
 		if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() and WG['setcamera_bugfix'] == true then
 			Spring.SetCameraState(nil, cameraTransitionTime)
 		end
-	end
+	--end
 
 	-- check if there is water shown 	(we do this because basic water 0 saves perf when no water is rendered)
 	if not waterDetected then
@@ -2379,20 +2379,20 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "camerasmoothing", group = "control", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.camerasmoothing, type = "bool", value = (tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1), description = "",
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("CameraSmoothing", (value and 1 or 0))
-			  if value then
-				  Spring.SendCommands("set CamFrameTimeCorrection 1")
-				  Spring.SendCommands("set SmoothTimeOffset 2")
-				else
-				  Spring.SendCommands("set CamFrameTimeCorrection 0")
-				  Spring.SendCommands("set SmoothTimeOffset 0")
-			  end
-		  end,
-		},
+		--{ id = "camerasmoothing", group = "control", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.camerasmoothing, type = "bool", value = (tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1), description = "",
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigInt("CameraSmoothing", (value and 1 or 0))
+		--	  if value then
+		--		  Spring.SendCommands("set CamFrameTimeCorrection 1")
+		--		  Spring.SendCommands("set SmoothTimeOffset 2")
+		--		else
+		--		  Spring.SendCommands("set CamFrameTimeCorrection 0")
+		--		  Spring.SendCommands("set SmoothTimeOffset 0")
+		--	  end
+		--  end,
+		--},
 		{ id = "camerasmoothness", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.camerasmoothness, type = "slider", min = 0.04, max = 2, step = 0.01, value = cameraTransitionTime, description = texts.option.camerasmoothness_descr,
 		  onload = function(i)
 		  end,
@@ -4865,13 +4865,13 @@ function widget:Initialize()
 
 	prevShow = show
 
-	if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
-		Spring.SendCommands("set CamFrameTimeCorrection 1")
-		Spring.SendCommands("set SmoothTimeOffset 2")
-	else
-		Spring.SendCommands("set CamFrameTimeCorrection 0")
-		Spring.SendCommands("set SmoothTimeOffset 0")
-	end
+	--if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
+	--	Spring.SendCommands("set CamFrameTimeCorrection 1")
+	--	Spring.SendCommands("set SmoothTimeOffset 2")
+	--else
+	--	Spring.SendCommands("set CamFrameTimeCorrection 0")
+	--	Spring.SendCommands("set SmoothTimeOffset 0")
+	--end
 
 	-- make sure new icon system is used
 	if Spring.GetConfigInt("UnitIconsAsUI", 0) == 0 then
