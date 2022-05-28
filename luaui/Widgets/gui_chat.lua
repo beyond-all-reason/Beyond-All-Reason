@@ -1467,7 +1467,9 @@ function widget:KeyPress(key, mods, isRepeat)
 			end
 			widgetHandler:OwnText()
 			if not inputHistory[inputHistoryCurrent] or inputHistory[inputHistoryCurrent] ~= '' then
-				inputHistoryCurrent = inputHistoryCurrent + 1
+				if inputHistoryCurrent == 1 or inputHistory[inputHistoryCurrent] ~= inputHistory[inputHistoryCurrent-1] then
+					inputHistoryCurrent = inputHistoryCurrent + 1
+				end
 				inputHistory[inputHistoryCurrent] = ''
 			end
 			if ctrl then
