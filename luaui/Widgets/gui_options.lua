@@ -1817,7 +1817,7 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  local quality = {
-				  [1] = 2048, [2] = 3072, [3] = 4096, [4] = 6144, [5] = 10240, [6] = 16384
+				  [1] = 2048, [2] = 3584, [3] = 6144, [4] = 8192, [5] = 10240, [6] = 12288
 			  }
 			  value = quality[value]
 			  Spring.SendCommands("shadows 1 " .. value)
