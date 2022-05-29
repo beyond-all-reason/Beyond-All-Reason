@@ -94,7 +94,6 @@ local isMetalmap = false
 
 local widgetSpaceMargin, bgpadding, RectRound, TexturedRectRound, UiElement, UiButton, UiSliderKnob
 
-
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local spec = spGetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
@@ -103,7 +102,21 @@ local myPlayerID = Spring.GetMyPlayerID()
 local isReplay = Spring.IsReplay()
 comTexture = ':n:Icons/'..UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')].name..'.png'
 
-local numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
+local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
+local numTeamsInAllyTeam = #myAllyTeamList
+
+local supressOverflowNotifs = false
+for _, teamID in ipairs(myAllyTeamList) do
+	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
+		local luaAI = Spring.GetTeamLuaAI(teamID)
+		if luaAI and luaAI ~= "" then
+			if string.find(luaAI, 'Scavengers') or string.find(luaAI, 'Chickens') then
+				supressOverflowNotifs = true
+				break
+			end
+		end
+	end
+end
 
 local sformat = string.format
 
@@ -147,7 +160,7 @@ local gameFrame = Spring.GetGameFrame()
 
 local draggingShareIndicatorValue = {}
 
-local font, font2, bgpadding, chobbyInterface, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover
+local font, font2, chobbyInterface, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover
 local draggingConversionIndicatorValue, draggingShareIndicator, draggingConversionIndicator
 local conversionIndicatorArea, quitscreenArea, quitscreenQuitArea, quitscreenResignArea, hoveringTopbar, hideQuitWindow
 local dlistButtonsGuishader, dlistRejoinGuishader, dlistComsGuishader, dlistButtonsGuishader, dlistWindGuishader, dlistTidalGuishader, dlistQuit
@@ -771,7 +784,7 @@ local function updateResbarText(res)
 					local text = ''
 					if res == 'metal' then
 						text = (allyteamOverflowingMetal and '   ' .. Spring.I18N('ui.topbar.resources.wastingMetal') .. '   ' or '   ' .. Spring.I18N('ui.topbar.resources.overflowing') .. '   ')
-						if WG['notifications'] and not isMetalmap and (not WG.sharedMetalFrame or WG.sharedMetalFrame+60 < gameFrame) then
+						if not supressOverflowNotifs and  WG['notifications'] and not isMetalmap and (not WG.sharedMetalFrame or WG.sharedMetalFrame+60 < gameFrame) then
 							if allyteamOverflowingMetal then
 								if numTeamsInAllyTeam > 1 then
 									WG['notifications'].addEvent('WholeTeamWastingMetal')
@@ -784,7 +797,7 @@ local function updateResbarText(res)
 						end
 					else
 						text = (allyteamOverflowingEnergy and '   ' .. Spring.I18N('ui.topbar.resources.wastingEnergy') .. '   '  or '   ' .. Spring.I18N('ui.topbar.resources.overflowing') .. '   ')
-						if WG['notifications'] and (not WG.sharedEnergyFrame or WG.sharedEnergyFrame+60 < gameFrame) then
+						if not supressOverflowNotifs and WG['notifications'] and (not WG.sharedEnergyFrame or WG.sharedEnergyFrame+60 < gameFrame) then
 							if allyteamOverflowingEnergy then
 								if numTeamsInAllyTeam > 3 then
 									--WG['notifications'].addEvent('WholeTeamWastingEnergy')
@@ -1182,8 +1195,9 @@ function init()
 	updateResbarText('energy')
 end
 
-local function checkStatus()
+local function checkSelfStatus()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
 	myTeamID = Spring.GetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 	if myTeamID ~= gaiaTeamID and UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')] then
@@ -1196,7 +1210,6 @@ local function countComs(forceUpdate)
 	local prevAllyComs = allyComs
 	local prevEnemyComs = enemyComs
 	allyComs = 0
-	local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
 	for _, teamID in ipairs(myAllyTeamList) do
 		allyComs = allyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
 	end
@@ -1221,7 +1234,7 @@ end
 
 function widget:GameStart()
 	gameStarted = true
-	checkStatus()
+	checkSelfStatus()
 	if displayComCounter then
 		countComs(true)
 	end
@@ -1301,7 +1314,7 @@ function widget:Update(dt)
 	local prevMyTeamID = myTeamID
 	if spec and spGetMyTeamID() ~= prevMyTeamID then
 		-- check if the team that we are spectating changed
-		checkStatus()
+		checkSelfStatus()
 		init()
 	end
 
@@ -2079,7 +2092,7 @@ end
 function widget:PlayerChanged()
 	local prevSpec = spec
 	spec = spGetSpectatingState()
-	checkStatus()
+	checkSelfStatus()
 	numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
 	if displayComCounter then
 		countComs(true)
