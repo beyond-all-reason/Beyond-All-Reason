@@ -45,6 +45,8 @@ local cameraPanTransitionTime = 0.03
 
 local widgetOptionColor = '\255\160\160\160'
 local musicOptionColor = '\255\130\160\130'
+local devOptionColor = '\255\200\110\100'
+local devMainOptionColor = '\255\245\166\140'
 
 local firstlaunchsetupDone = false
 
@@ -4788,7 +4790,9 @@ function init()
 				option.value = option.max
 			end
 		end
-
+		if option.name and option.category == types.dev then
+			option.name = devMainOptionColor..string.gsub(option.name, widgetOptionColor, devOptionColor)
+		end
 		processedOptionsCount = processedOptionsCount + 1
 		processedOptions[processedOptionsCount] = option
 	end
