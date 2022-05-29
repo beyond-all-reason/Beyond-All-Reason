@@ -57,7 +57,9 @@ local function spawnChicken(number, ownerID, unitName, unitTeam)
 		local x, y, z = getChickenSpawnLoc(ownerID)
 		if x then
 			local newChicken = CreateUnit(unitName, x, y, z, "n", unitTeam)
-			GiveOrderToUnit(newChicken, CMD.STOP, {}, 0)
+			if newChicken then	-- checking to prevent this error: "bad argument #1 to 'GiveOrderToUnit' (number expected, got nil)"
+				GiveOrderToUnit(newChicken, CMD.STOP, {}, 0)
+			end
 		end
 	end
 end
