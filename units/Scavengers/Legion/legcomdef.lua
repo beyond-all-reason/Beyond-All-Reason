@@ -320,7 +320,7 @@ return {
 					commanders = 1,
 				},
 			},
-			disintegrator = {
+			empgrenade = {
 				areaofeffect = 200,
 				avoidfeature = false,
 				commandfire = true,
@@ -367,7 +367,7 @@ return {
 				onlytargetcategory = "NOTAIR"
 			},
 			[3] = {
-				def = "DISINTEGRATOR",
+				def = "EMPGRENADE",
 				onlytargetcategory = "NOTSUB",
 			},
 			[4] = {

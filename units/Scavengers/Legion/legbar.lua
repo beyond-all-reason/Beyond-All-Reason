@@ -148,7 +148,7 @@ return {
 				name = "HeavyCannon",
 				noselfdamage = true,
 				projectiles = 6,
-				range = 525,
+				range = 575,
 				reloadtime = 6,
 				rgbcolor = "1 0.25 0.1",
 				size = 2,
