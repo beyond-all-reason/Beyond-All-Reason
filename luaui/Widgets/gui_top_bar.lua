@@ -44,6 +44,7 @@ local bgtexSize
 
 local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
+local legcomDefID = UnitDefNames.legcomdef.id
 
 local playSounds = true
 local leftclick = 'LuaUI/Sounds/tock.wav'
@@ -1211,7 +1212,7 @@ local function countComs(forceUpdate)
 	local prevEnemyComs = enemyComs
 	allyComs = 0
 	for _, teamID in ipairs(myAllyTeamList) do
-		allyComs = allyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
+		allyComs = allyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID) + Spring.GetTeamUnitDefCount(teamID, legcomDefID)
 	end
 
 	local newEnemyComCount = Spring.GetTeamRulesParam(myTeamID, "enemyComCount")
