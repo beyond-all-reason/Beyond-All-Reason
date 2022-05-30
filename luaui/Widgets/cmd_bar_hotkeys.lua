@@ -91,7 +91,7 @@ local engineBinds = {
 	{ "Ctrl+8", "specteam", "17" },
 	{ "Ctrl+9", "specteam", "18" },
 	{ "Ctrl+0", "specteam", "19" },
-	
+
         { "Any+0", "group0" },
 		{ "Any+1", "group1" },
 		{ "Any+2", "group2" },
@@ -395,7 +395,7 @@ local function makeBindsTable(keyLayout)
 		{    "f11", "luaui selector"         },
 
 		{ "Ctrl+Shift+f8", "savegame"  },
-		{       "Any+f12", "screenshot" },
+		{       "Any+f12", "screenshot png" },
 		{     "Alt+enter", "fullscreen" },
 
 		{     "Any+`", "drawinmap"  },
@@ -617,7 +617,7 @@ local function makeBindsTable(keyLayout)
         table.insert(_binds, { 'Alt+'..i        , "group", "selecttoggle "..i     })
 
         end
-	
+
 
 	return _binds
 end
@@ -665,7 +665,7 @@ end
 function widget:Initialize()
 	loadEngineBindings('un')
 	reloadBindings()
-	
+
 	WG.reloadBindings = reloadBindings
 end
 
