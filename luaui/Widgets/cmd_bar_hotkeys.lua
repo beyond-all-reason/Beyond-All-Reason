@@ -614,7 +614,7 @@ local function makeBindsTable(keyLayout)
         table.insert(_binds, { 'Ctrl+'..i       , "group", "set "..i        })
         table.insert(_binds, { 'Shift+'..i      , "group", "selectadd "..i })
         table.insert(_binds, { 'Ctrl+Shift+'..i , "group", "add "..i        })
-        table.insert(_binds, { 'Alt+'..i        , "group", "selecttoggle "..i     })
+        table.insert(_binds, { 'Alt+Shift+'..i        , "group", "selecttoggle "..i     })
 
         end
 
