@@ -14,6 +14,7 @@ end
 local globalVoteWords =  { 'forcestart', 'stop', 'joinas' }
 
 local voteEndDelay = 4
+local voteTimeout = 75	-- fallback timeout in case vote is aborted undetected
 
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.5 + (vsx * vsy / 5700000)) * 1.55
@@ -44,6 +45,7 @@ local votesRequired, votesEligible
 local votesCountYes = 0
 local votesCountNo = 0
 local minimized = false
+local voteStartTime
 
 local function isTeamPlayer(playerName)
 	local players = Spring.GetPlayerList()
@@ -61,6 +63,7 @@ end
 local function CloseVote()
 	voteEndTime = nil
 	voteEndText = nil
+	voteStartTime = nil
 	if voteDlist then
 		eligiblePlayers = {}
 		votesRequired = nil
@@ -86,6 +89,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 	if voteDlist then
 		gl.DeleteList(voteDlist)
 	end
+	voteStartTime = os.clock()
 	voteDlist = gl.CreateList(function()
 		if name then
 			voteName = name
@@ -327,6 +331,13 @@ function widget:Update(dt)
 		end
 	end
 
+	if not voteEndTime and voteStartTime and (voteStartTime + voteTimeout > os.clock()) then
+		voteEndTime = os.clock() + (voteEndDelay*0.5)
+		voteEndText = "-----"
+		MinimizeVote()
+		--CloseVote()
+	end
+
 	if voteEndTime and os.clock() > voteEndTime then
 		CloseVote()
 	end
@@ -433,9 +444,16 @@ function widget:AddConsoleLine(lines, priority)
 					end
 					-- > [teh]cluster1[01] * Vote cancelled by stown13
 					-- > [teh]cluster1[01] * Game starting, cancelling "forceStart" vote
-					if sfind(line, "* Vote cancelled", nil, true) or sfind(line, "* Game starting, cancelling ", nil, true) then
+					-- > [teh]cluster2[00] * Cancelling "gKick Raiser" vote (command executed directly by Flaka)
+					if sfind(line, "* Vote cancelled", nil, true) or sfind(line, "* Game starting, cancelling ", nil, true) or sfind(line, " vote (command executed directly by ", nil, true) then
 						voteEndTime = os.clock() + voteEndDelay
 						voteEndText = Spring.I18N('ui.voting.votecancelled')
+						MinimizeVote()
+					end
+					-- > [teh]cluster2[00] * [Z]kynet, you cannot vote currently, there is no vote in progress.
+					if sfind(line, ", you cannot vote currently, there is no vote in progress.", nil, true) then
+						voteEndTime = os.clock() + (voteEndDelay*0.5)
+						voteEndText = "-----"
 						MinimizeVote()
 					end
 				end
