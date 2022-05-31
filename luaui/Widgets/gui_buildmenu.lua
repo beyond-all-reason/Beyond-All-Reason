@@ -581,7 +581,33 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 end
 
 local sec = 0
+local updateSelection = true
 function widget:Update(dt)
+	if updateSelection then
+		updateSelection = false
+		if SelectedUnitsCount ~= spGetSelectedUnitsCount() then
+			SelectedUnitsCount = spGetSelectedUnitsCount()
+		end
+		selectedBuilders = {}
+		selectedBuilderCount = 0
+		selectedFactories = {}
+		selectedFactoryCount = 0
+		if SelectedUnitsCount > 0 then
+			local sel = Spring.GetSelectedUnits()
+			for _, unitID in pairs(sel) do
+				if isFactory[spGetUnitDefID(unitID)] then
+					selectedFactories[unitID] = true
+					selectedFactoryCount = selectedFactoryCount + 1
+				end
+				if isBuilder[spGetUnitDefID(unitID)] then
+					selectedBuilders[unitID] = true
+					selectedBuilderCount = selectedBuilderCount + 1
+					doUpdate = true
+				end
+			end
+		end
+	end
+
 	sec = sec + dt
 	if sec > 0.33 then
 		sec = 0
@@ -1312,26 +1338,7 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdPara
 end
 
 function widget:SelectionChanged(sel)
-	if SelectedUnitsCount ~= spGetSelectedUnitsCount() then
-		SelectedUnitsCount = spGetSelectedUnitsCount()
-	end
-	selectedBuilders = {}
-	selectedBuilderCount = 0
-	selectedFactories = {}
-	selectedFactoryCount = 0
-	if SelectedUnitsCount > 0 then
-		for _, unitID in pairs(sel) do
-			if isFactory[spGetUnitDefID(unitID)] then
-				selectedFactories[unitID] = true
-				selectedFactoryCount = selectedFactoryCount + 1
-			end
-			if isBuilder[spGetUnitDefID(unitID)] then
-				selectedBuilders[unitID] = true
-				selectedBuilderCount = selectedBuilderCount + 1
-				doUpdate = true
-			end
-		end
-	end
+	updateSelection = true
 end
 
 local function GetUnitCanCompleteQueue(uID)

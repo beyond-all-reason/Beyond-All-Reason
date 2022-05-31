@@ -313,6 +313,18 @@ function widget:UnitDestroyed(unitID)
 	unitAllyteam[unitID] = nil
 end
 
+function widget:UnitGiven(unitID)
+	removeUnit(unitID)
+	selectedUnits[unitID] = nil
+	unitAllyteam[unitID] = nil	
+end
+
+function widget:UnitTaken(unitID)
+	removeUnit(unitID)
+	selectedUnits[unitID] = nil
+	unitAllyteam[unitID] = nil	
+end
+
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	addUnit(unitID)
 end

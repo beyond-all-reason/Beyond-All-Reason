@@ -113,17 +113,20 @@ local SortQueueToUnits
 local CalcDrawCoords
 local UiUnit, UiElement
 
-local udefTab = UnitDefs
 local spEcho = Spring.Echo
 local spGetModKeyState = Spring.GetModKeyState
 local lastGameSeconds = Spring.GetGameSeconds()
 
 local font, gameStarted, selUnits, chobbyInterface
 
+local udefTab = {}
 local isFactory = {}
+--local unitId = {}
 for udid, ud in pairs(UnitDefs) do
+	--unitId[udid] = ud.id
 	if ud.isFactory then
 		isFactory[udid] = true
+		udefTab[udid] = ud
 	end
 end
 
@@ -292,13 +295,13 @@ function getSingleFactory()
 		return nil, nil
 	end
 
-	local unitDef = udefTab[Spring.GetUnitDefID(selUnits[1])]
-
-	if unitDef.isFactory ~= true then
+	local unitDefID = Spring.GetUnitDefID(selUnits[1])
+	if not isFactory[unitDefID] then
 		return nil, nil
+	else
+		local unitDef = udefTab[unitDefID]
+		return selUnits[1], unitDef
 	end
-
-	return selUnits[1], unitDef
 end
 
 function saveQueue(unitId, unitDef, groupNo)

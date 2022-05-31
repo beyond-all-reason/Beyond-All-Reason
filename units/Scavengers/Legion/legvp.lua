@@ -4,7 +4,7 @@ return {
 		brakerate = 0,
 		buildangle = 2048,
 		buildcostenergy = 1800,
-		buildcostmetal = 720,
+		buildcostmetal = 670,
 		builder = true,
 		buildpic = "LEGVP.DDS",
 		buildtime = 7151,

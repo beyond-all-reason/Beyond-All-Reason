@@ -1057,7 +1057,50 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 end
 
 local sec = 0
+local updateSelection = true
 function widget:Update(dt)
+	if updateSelection then
+		updateSelection = false
+		SelectedUnitsCount = spGetSelectedUnitsCount()
+
+		selectedBuilder = nil
+		selectedFactory = nil
+		currentBuildCategory = nil
+		currentCategoryIndex = nil
+		selectedBuilders = {}
+		currentPage = 1
+
+		if SelectedUnitsCount > 0 then
+			local sel = Spring.GetSelectedUnits()
+			for _, unitID in pairs(sel) do
+				local unitDefID = spGetUnitDefID(unitID)
+
+				if isBuilder[unitDefID] then
+					doUpdate = true
+
+					selectedBuilders[unitID] = true
+					selectedBuilder = unitDefID
+				end
+
+				if isFactory[unitDefID] then
+					doUpdate = true
+
+					selectedFactory = unitDefID
+					selectedFactoryUID = unitID
+					selectedBuilder = nil
+
+					break
+				end
+			end
+
+			if selectedBuilder then
+				categories = Cfgs.buildCategories
+			else
+				categories = {}
+			end
+		end
+	end
+
 	sec = sec + dt
 	if sec > 0.33 then
 		sec = 0
@@ -2111,43 +2154,7 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdPara
 end
 
 function widget:SelectionChanged(sel)
-	SelectedUnitsCount = spGetSelectedUnitsCount()
-
-	selectedBuilder = nil
-	selectedFactory = nil
-	currentBuildCategory = nil
-	currentCategoryIndex = nil
-	selectedBuilders = {}
-	currentPage = 1
-
-	if SelectedUnitsCount > 0 then
-		for _, unitID in pairs(sel) do
-			local unitDefID = spGetUnitDefID(unitID)
-
-			if isBuilder[unitDefID] then
-				doUpdate = true
-
-				selectedBuilders[unitID] = true
-				selectedBuilder = unitDefID
-			end
-
-			if isFactory[unitDefID] then
-				doUpdate = true
-
-				selectedFactory = unitDefID
-				selectedFactoryUID = unitID
-				selectedBuilder = nil
-
-				break
-			end
-		end
-
-		if selectedBuilder then
-			categories = Cfgs.buildCategories
-		else
-			categories = {}
-		end
-	end
+	updateSelection = true
 end
 
 local function GetUnitCanCompleteQueue(uID)

@@ -50,7 +50,7 @@ modConfig["BYAR"]["unitList"] = {
 	armfrt = { weapons = { 2 } },  --floating rocket laucher
 	armfflak = { weapons = { 2 } },  --floating flak AA
 	armatl = { weapons = { 1 } },  --adv torpedo launcher
-	armkraken = { weapons = { 1 } }, 
+	armkraken = { weapons = { 1 } },
 
 	armamb = { weapons = { 1,1 } }, --ambusher
 	armpb = { weapons = { 1 } }, --pitbull
@@ -206,60 +206,37 @@ lineConfig["circleDivs"] = 80.0
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+---
 local GL_LINE_LOOP          = GL.LINE_LOOP
-local glTexEnv				= gl.TexEnv
 local glBeginEnd            = gl.BeginEnd
-local glBillboard           = gl.Billboard
 local glColor               = gl.Color
 local glDepthTest           = gl.DepthTest
-local glDrawGroundQuad      = gl.DrawGroundQuad
 local glLineWidth           = gl.LineWidth
-local glPopMatrix           = gl.PopMatrix
-local glPushMatrix          = gl.PushMatrix
-local glTexRect             = gl.TexRect
-local glText                = gl.Text
-local glTexture             = gl.Texture
 local glTranslate           = gl.Translate
 local glVertex              = gl.Vertex
-local glAlphaTest			= gl.AlphaTest
-local glBlending			= gl.Blending
-local glRect				= gl.Rect
 local glCallList		 	= gl.CallList
 local glCreateList			= gl.CreateList
 local glDeleteList			= gl.DeleteList
 
-local huge                  = math.huge
-local max					= math.max
-local min					= math.min
 local sqrt					= math.sqrt
 local abs					= math.abs
-local lower                 = string.lower
-local sub                   = string.sub
 local upper                 = string.upper
 local floor                 = math.floor
-local format                = string.format
 local PI                    = math.pi
 local cos                   = math.cos
 local sin                   = math.sin
 
 local spEcho                = Spring.Echo
 local spGetGameSeconds      = Spring.GetGameSeconds
-local spGetMouseState       = Spring.GetMouseState
 local spGetMyPlayerID       = Spring.GetMyPlayerID
 local spGetPlayerInfo       = Spring.GetPlayerInfo
 local spGetPositionLosState = Spring.GetPositionLosState
 local spGetUnitDefID        = Spring.GetUnitDefID
 local spGetUnitPosition     = Spring.GetUnitPosition
-local spTraceScreenRay      = Spring.TraceScreenRay
-local spGetCameraPosition   = Spring.GetCameraPosition
 local spGetGroundHeight 	= Spring.GetGroundHeight
 local spIsGUIHidden 		= Spring.IsGUIHidden
 local spGetLocalTeamID	 	= Spring.GetLocalTeamID
-local spGetActiveCommand 	= Spring.GetActiveCommand
-local spGetActiveCmdDesc 	= Spring.GetActiveCmdDesc
 local spIsSphereInView  	= Spring.IsSphereInView
-
-local udefTab				= UnitDefs
 
 local chobbyInterface
 

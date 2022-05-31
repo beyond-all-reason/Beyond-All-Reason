@@ -1816,7 +1816,7 @@ local function UpdateUnit(unitID, flag)
 end
 
 function gadget:UnitDestroyed(unitID)
-	UpdateUnit(unitID, 0)
+	--UpdateUnit(unitID, 0) -- having this here means that dying units lose CUS, RenderUnitDestroyed _should_ be fine
 end
 
 function gadget:RenderUnitDestroyed(unitID, unitDefID)
@@ -1825,6 +1825,22 @@ end
 
 function gadget:UnitFinished(unitID)
 	UpdateUnit(unitID,Spring.GetUnitDrawFlag(unitID))
+end
+
+function gadget:UnitGiven(unitID)
+	local flag = Spring.GetUnitDrawFlag(unitID)
+	if flag > 0 and flag < 32 then 
+		UpdateUnit(unitID, 0)
+		UpdateUnit(unitID, Spring.GetUnitDrawFlag(unitID))
+	end
+end
+
+function gadget:UnitGiven(unitID)
+	local flag = Spring.GetUnitDrawFlag(unitID)
+	if flag > 0 and flag < 32 then 
+		UpdateUnit(unitID, 0)
+		UpdateUnit(unitID, Spring.GetUnitDrawFlag(unitID))
+	end
 end
 
 function gadget:UnitCloaked(unitID)

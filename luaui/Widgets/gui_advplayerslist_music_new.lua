@@ -557,7 +557,7 @@ function widget:Update(dt)
 		if totalTime == 0 then
 			silenceTimer = 0
 			warMeter = 0
-			PlayNewTrack(paused)
+			PlayNewTrack(true)
 		end
 	end
 	if paused and (fadeOutFastCurrentTrack or fadeOutSlowCurrentTrack) then
@@ -568,7 +568,7 @@ function widget:Update(dt)
 		if fadelevel <= 0 then
 			silenceTimer = 0
 			fadeOutSlowCurrentTrack = false
-			PlayNewTrack(paused)
+			PlayNewTrack(true)
 		end
 	end
 	if paused and fadeInSlowCurrentTrack then
@@ -680,12 +680,14 @@ function PlayNewTrack(paused)
 	silenceTimer = 0
 	appliedSilence = false
 	warMeter = warMeter * 0.75
-	fadelevel = 0
+	
 	fadeOutFastCurrentTrack = false
 	fadeOutSlowCurrentTrack = false
-	if not paused and not gameOver then
+	if not gameOver then
+		fadelevel = 0
 		fadeInSlowCurrentTrack = true
 	else
+		fadelevel = 100
 		fadeInSlowCurrentTrack = false
 	end
 	currentTrack = nil

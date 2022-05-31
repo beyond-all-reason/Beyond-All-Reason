@@ -1082,7 +1082,7 @@ if gadgetHandler:IsSyncedCode() then
 					queenResistance[weaponID].damage = damage
 					queenResistance[weaponID].notify = 0
 				end
-				local resistPercent = math.min((queenResistance[weaponID].damage * 2 * config.chickenSpawnMultiplier) / queenMaxHP, 0.999)
+				local resistPercent = math.min((queenResistance[weaponID].damage * 2) / queenMaxHP, 0.9)
 				if resistPercent > 0.35 then
 					if queenResistance[weaponID].notify == 0 then
 						SendToUnsynced('QueenResistant', attackerDefID)
@@ -1446,7 +1446,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n%30 == 10 and n > 300 and chickenTeamUnitCount < maxChicken then
 			queueTurretSpawnIfNeeded()
 		end
-		local squadID = (n % #squadsTable)+1
+		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands
 		if not chickenteamhasplayers then
 			if squadID and squadsTable[squadID] and squadsTable[squadID].squadRole ~= "aircraft" and squadsTable[squadID].squadRole ~= "artillery" then
 				local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z

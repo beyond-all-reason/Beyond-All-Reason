@@ -20,17 +20,21 @@ local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitHealth = Spring.GetUnitHealth
 local prevMyAllyTeamID = Spring.GetMyAllyTeamID()
+local myPlayerID = Spring.GetMyPlayerID()
 local mySpec, prevMyFullView = Spring.GetSpectatingState()
 local unitshapes = {}
 
 local teamColor = {}
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local r, g, b = Spring.GetTeamColor(teams[i])
-	local min = 0.12
-	teamColor[teams[i]] = { math.max(r, min), math.max(g, min), math.max(b, min) }
+local function loadTeamColors()
+	local teams = Spring.GetTeamList()
+	for i = 1, #teams do
+		local r, g, b = Spring.GetTeamColor(teams[i])
+		local min = 0.12
+		teamColor[teams[i]] = { math.max(r, min), math.max(g, min), math.max(b, min) }
+	end
+	teams = nil
 end
-teams = nil
+loadTeamColors()
 
 local function addUnitShape(unitID)
 	if not WG.HighlightUnitGL4 then
@@ -110,6 +114,9 @@ function widget:PlayerChanged(playerID)
 	if Spring.GetMyAllyTeamID() ~= prevMyAllyTeamID or select(2, Spring.GetSpectatingState()) ~= prevMyFullView then
 		prevMyAllyTeamID = Spring.GetMyAllyTeamID()
 		prevMyFullView = select(2, Spring.GetSpectatingState()) -- missed this one, forced a refresh every frame after going into spec
+	end
+	if playerID == myPlayerID then
+		loadTeamColors()
 		refresh()
 	end
 end

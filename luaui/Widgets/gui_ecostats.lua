@@ -85,6 +85,7 @@ local singleTeams = (#Spring.GetTeamList() - 1 == #Spring.GetAllyTeamList() - 1)
 local enableStartposbuttons = not Spring.GetModOptions().ffa_mode	-- spots wont match when ffa
 local myFullview = select(2, Spring.GetSpectatingState())
 local myTeamID = Spring.GetMyTeamID()
+local myPlayerID = Spring.GetMyPlayerID()
 local gaiaID = Spring.GetGaiaTeamID()
 local gaiaAllyID = select(6, GetTeamInfo(gaiaID, false))
 
@@ -1108,7 +1109,6 @@ function widget:PlayerChanged(playerID)
 	if not myFullview then
 		return
 	end
-
 	lastPlayerChange = GetGameFrame()
 	if not (Spring.GetSpectatingState() or isReplay) then
 		inSpecMode = false
@@ -1116,6 +1116,9 @@ function widget:PlayerChanged(playerID)
 	else
 		inSpecMode = true
 		setReclaimerUnits()
+		Reinit()
+	end
+	if playerID == myPlayerID then
 		Reinit()
 	end
 end

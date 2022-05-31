@@ -36,7 +36,14 @@ local gameStarted, chobbyInterface, lastTimeUpdate
 
 -------------------------------------------------------------------------------
 
-local udefTab				= UnitDefs
+local isntFactory = {}
+local unitZsize = {}
+for udefID, def in ipairs(UnitDefs) do
+	if def.isFactory == false or #def.buildOptions == 0 then
+		isntFactory[udefID] = true
+	end
+	unitZsize[udefID] = def.zsize
+end
 
 local spGetActiveCommand 	= Spring.GetActiveCommand
 local spGetKeyState         = Spring.GetKeyState
@@ -213,7 +220,6 @@ function manipulateFacing()
 	if not cmd_id then return end
 
 	local unitDefID = -cmd_id
-	local udef = udefTab[unitDefID]
 
 	if lmb and rmb then
         if not inDrag then
@@ -280,10 +286,8 @@ function drawOrientation()
 
 	local unitDefID = -cmd_id
 
-	local udef = udefTab[unitDefID]
-
 	--check for an empty buildlist to avoid to draw for air repair pads
-	if drawForAll == false and (udef["isFactory"] == false or #udef["buildOptions"] == 0) then
+	if drawForAll == false and isntFactory[unitDefID] then
 		return
 	end
 
@@ -309,7 +313,7 @@ function drawOrientation()
 		glVertex( 24, 0, 0)
 	end
 
-	local transSpace = udef["zsize"] * 4   --should be ysize but its not there?!?
+	local transSpace = unitZsize[unitDefID] * 4   --should be ysize but its not there?!?
 
 	local transX, transZ
 	local facing = spGetBuildFacing()
