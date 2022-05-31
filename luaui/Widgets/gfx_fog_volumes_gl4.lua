@@ -71,8 +71,8 @@ local fogTexture
 local vsx, vsy
 local combineShader
 
-local vsSrc = VFS.LoadFile("LuaUI/Widgets/Shaders/fog_volumes.vert.glsl")
-local fsSrc = VFS.LoadFile("LuaUI/Widgets/Shaders/fog_volumes.frag.glsl")
+local vsSrcPath = "LuaUI/Widgets/Shaders/fog_volumes.vert.glsl"
+local fsSrcPath = "LuaUI/Widgets/Shaders/fog_volumes.frag.glsl"
 
 local function goodbye(reason)
   Spring.Echo("Fog Volumes GL4 widget exiting with reason: "..reason)
@@ -100,57 +100,86 @@ function widget:ViewResize()
 		})
 end
 
-local function compileFogVolumeShader()
-	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-		local lvsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-		local lfsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-		fogSphereShader =  LuaShader(
-			{
-			vertex = lvsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
-			fragment = lfsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
-			uniformInt = {
-				mapDepths = 0,
-				modelDepths = 1,
-				heightmapTex = 2,
-				infoTex = 3,
-				shadowTex = 4,
-				noise64cube = 5,
-				dithernoise2d = 6,
-				worley3D = 7,
-				worley3d3level = 8,
-				},
-			uniformFloat = {
-				fadeDistance = 300000,
-				},
-			},
-			"fogvolumesShader"
-		  )
-		  
-end
-
-local lastupdate = Spring.GetTimer()
-function widget:Update()
-	if Spring.DiffTimers(Spring.GetTimer(), lastupdate) > 0.25 then 
-		lastupdate = Spring.GetTimer()
-		-- load the vs and fs
-		local vsSrcNew = VFS.LoadFile("LuaUI/Widgets/Shaders/fog_volumes.vert.glsl")
-		local fsSrcNew = VFS.LoadFile("LuaUI/Widgets/Shaders/fog_volumes.frag.glsl")
-		if vsSrcNew == vsSrc and fsSrcNew == fsSrc then 
+-- checks if a shader code has changed on disk, if yes, then it tries to recompile, and on success, it will return the new shader object 
+local lastshaderupdate = nil
+local shaderSourceCache = {}
+local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, delaytime)
+	if lastshaderupdate == nil or 
+		Spring.DiffTimers(Spring.GetTimer(), lastshaderupdate) > (delaytime or 0.25) then 
+		lastshaderupdate = Spring.GetTimer()
+		local vsSrcNew = vssrcpath and VFS.LoadFile(vssrcpath)
+		local fsSrcNew = fssrcpath and VFS.LoadFile(fssrcpath)
+		local gsSrcNew = gssrcpath and VFS.LoadFile(gssrcpath)
+		if  vsSrcNew == shaderSourceCache.vsSrc and 
+			fsSrcNew == shaderSourceCache.fsSrc and 
+			gsSrcNew == shaderSourceCache.gsSrc then 
 			--Spring.Echo("No change in shaders")
+			return nil
 		else
-			Spring.Echo("Shaders changed, recompiling", Spring.GetGameFrame())
-			vsSrc = vsSrcNew
-			fsSrc = fsSrcNew
-			compileFogVolumeShader()
-			local shaderCompiled = fogSphereShader:Initialize()
+			local compilestarttime = Spring.GetTimer()
+			shaderSourceCache.vsSrc = vsSrcNew
+			shaderSourceCache.fsSrc = fsSrcNew
+			shaderSourceCache.gsSrc = gsSrcNew
+			
+			local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
+			if vsSrcNew then 
+				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				vsSrcNew = vsSrcNew:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig))
+			end
+			if fsSrcNew then 
+				fsSrcNew = fsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig))
+			end
+			if gsSrcNew then 
+				gsSrcNew = gsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				gsSrcNew = gsSrcNew:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig))
+			end
+			local reinitshader =  LuaShader(
+				{
+				vertex = vsSrcNew,
+				fragment = fsSrcNew,
+				geometry = gsSrcNew,
+				uniformInt = {
+					mapDepths = 0,
+					modelDepths = 1,
+					heightmapTex = 2,
+					infoTex = 3,
+					shadowTex = 4,
+					noise64cube = 5,
+					dithernoise2d = 6,
+					worley3D = 7,
+					worley3d3level = 8,
+					},
+				uniformFloat = {
+					fadeDistance = 300000,
+					},
+				},
+				shadername
+			)
+			local shaderCompiled = reinitshader:Initialize()
+			
+			
+			Spring.Echo(shadername, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", Spring.GetGameFrame())
+			if shaderCompiled then 
+				return reinitshader
+			else
+				return nil
+			end
 		end
 	end
+	return nil
+end
+
+function widget:Update()
+	fogSphereShader = checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Fog Volumes") or fogSphereShader
 end
 
 local function initFogGL4(shaderConfig, DPATname)
-	compileFogVolumeShader()
-	local shaderCompiled = fogSphereShader:Initialize()
-	if not shaderCompiled then goodbye("Failed to compile ".. DPATname .." GL4 ") end
+	widget:Update()
+	if not fogSphereShader then 
+		goodbye("Failed to compile ".. DPATname .." GL4 ") 
+		return
+	end
 
 	local sphereVBO, numVertices, sphereIndexVBO, numIndices = makeSphereVBO(shaderConfig.SPHERESEGMENTS, shaderConfig.SPHERESEGMENTS/2, 1)
 	--Spring.Echo(sphereVBO, numVertices, sphereIndexVBO, numIndices)
@@ -166,7 +195,10 @@ local function initFogGL4(shaderConfig, DPATname)
 		64, -- maxelements
 		DPATname .. "VBO" -- name
 	)
-	if DrawPrimitiveAtUnitVBO == nil then goodbye("Failed to create DrawPrimitiveAtUnitVBO") end
+	if DrawPrimitiveAtUnitVBO == nil then 
+		goodbye("Failed to create DrawPrimitiveAtUnitVBO") 
+		return
+	end
 	
 	DrawPrimitiveAtUnitVBO.vertexVBO = sphereVBO
 	DrawPrimitiveAtUnitVBO.indexVBO  = sphereIndexVBO
