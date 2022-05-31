@@ -331,7 +331,7 @@ function widget:Update(dt)
 		end
 	end
 
-	if not voteEndTime and voteStartTime and (voteStartTime + voteTimeout > os.clock()) then
+	if not voteEndTime and voteStartTime and (voteStartTime + voteTimeout < os.clock()) then
 		voteEndTime = os.clock() + (voteEndDelay*0.5)
 		voteEndText = "-----"
 		MinimizeVote()
