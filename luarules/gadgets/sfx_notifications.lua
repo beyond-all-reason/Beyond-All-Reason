@@ -1,5 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 function gadget:GetInfo()
     return {
         name      = "Notifications",
@@ -13,15 +11,15 @@ function gadget:GetInfo()
     }
 end
 
-function GetAllyTeamID(teamID)
+local function GetAllyTeamID(teamID)
 	return select(6,Spring.GetTeamInfo(teamID,false))
 end
 
-function GetPlayerTeamID(playerID)
+local function GetPlayerTeamID(playerID)
 	return select(5,Spring.GetPlayerInfo(playerID,false))
 end
 
-function AllPlayers()
+local function AllPlayers()
 	local players = Spring.GetPlayerList()
 	for ct, id in pairs(players) do
 		if select(3,Spring.GetPlayerInfo(id,false)) then players[ct] = nil end
@@ -29,7 +27,7 @@ function AllPlayers()
 	return players
 end
 
-function PlayersInAllyTeamID(allyTeamID)
+local function PlayersInAllyTeamID(allyTeamID)
 	local players = AllPlayers()
 	for ct, id in pairs(players) do
 		if select(5,Spring.GetPlayerInfo(id,false)) ~= allyTeamID then players[ct] = nil end
@@ -37,7 +35,7 @@ function PlayersInAllyTeamID(allyTeamID)
 	return players
 end
 
-function AllButAllyTeamID(allyTeamID)
+local function AllButAllyTeamID(allyTeamID)
 	local players = AllPlayers()
 	for ct, id in pairs(players) do
 		if select(5,Spring.GetPlayerInfo(id,false)) == allyTeamID then players[ct] = nil end
@@ -45,7 +43,7 @@ function AllButAllyTeamID(allyTeamID)
 	return players
 end
 
-function PlayersInTeamID(teamID)
+local function PlayersInTeamID(teamID)
 	local players = Spring.GetPlayerList(teamID)
 	return players
 end
@@ -57,8 +55,6 @@ if gadgetHandler:IsSyncedCode() then
 	local cornuke = WeaponDefNames["corsilo_crblmssl"].id
 	local scavArmNuke = WeaponDefNames["armsilo_scav_nuclear_missile"].id
 	local scavCorNuke = WeaponDefNames["corsilo_scav_crblmssl"].id
-	local idleBuilderNotificationDelay = 10
-	local idleBuilderAt = {}
 	local gamestarted = (Spring.GetGameFrame() > 0)
 	local gameover = false
 
@@ -118,50 +114,6 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-
--- Idle Builder send to all in team
-	--function gadget:UnitIdle(unitID)
-	--	local defs = UnitDefs[Spring.GetUnitDefID(unitID)]
-	--	if defs.isBuilder then
-	--		local event = "IdleBuilder"
-	--		local players = PlayersInTeamID(Spring.GetUnitTeam(unitID))
-	--		for ct, player in pairs (players) do
-	--		if tostring(player) then
-	--		SendToUnsynced("EventBroadcast", event, tostring(player))
-	--		end
-	--		end
-	--	end
-	--end
-
--- Unit Lost send to all in team
-	--function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	--	if not (UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom") then
-	--		if attackerID or attackerDefID or attackerTeam then
-	--			local event = "UnitLost"
-	--			local players =  PlayersInTeamID(Spring.GetUnitTeam(unitID))
-	--			for ct, player in pairs (players) do
-	--				if tostring(player) then
-	--				SendToUnsynced("EventBroadcast", event, tostring(player))
-	--				end
-	--			end
-	--		end
-	--	else
-	--		local event = "FriendlyCommanderDied"
-	--		local players =  PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
-	--		for ct, player in pairs (players) do
-	--			if tostring(player) then
-	--				SendToUnsynced("EventBroadcast", event, tostring(player))
-	--			end
-	--		end
-	--		local event = "EnemyCommanderDied"
-	--		local players =  AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
-	--		for ct, player in pairs (players) do
-	--			if tostring(player) then
-	--				SendToUnsynced("EventBroadcast", event, tostring(player))
-	--			end
-	--		end
-	--	end
-	--end
 
 -- Game paused send to all
 	function gadget:GamePaused()
@@ -270,46 +222,59 @@ else
 
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+		local unitInView = Spring.IsUnitInView(unitID)
 
-		if not Spring.IsUnitInView(unitID) then
+		-- if own and not killed by yourself
+		if not isSpec and not unitInView and unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam then
+			if isRadar[unitDefID] then
+				local event = isRadar[unitDefID] > 2800 and 'AdvRadarLost' or 'RadarLost'
+				BroadcastEvent("EventBroadcast", event, tostring(myPlayerID))
+				return
+			elseif isMex[unitDefID] then
+				--local event = isMex[unitDefID] > 0.002 and 'T2MexLost' or 'MexLost'
+				local event = 'MexLost'
+				BroadcastEvent("EventBroadcast", event, tostring(myPlayerID))
+				return
+			end
+		end
 
-			-- if own and not killed by yourself
-			if not isSpec and unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam then
-				if isRadar[unitDefID] then
-					local event = isRadar[unitDefID] > 2800 and 'AdvRadarLost' or 'RadarLost'
-					BroadcastEvent("EventBroadcast", event, tostring(myPlayerID))
-					return
-				elseif isMex[unitDefID] then
-					--local event = isMex[unitDefID] > 0.002 and 'T2MexLost' or 'MexLost'
-					local event = 'MexLost'
-					BroadcastEvent("EventBroadcast", event, tostring(myPlayerID))
-					return
+		if isCommander[unitDefID] then
+			local myComCount = 0
+			local allyComCount = 0
+			local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
+			for _, teamID in ipairs(myAllyTeamList) do
+				if unitTeam == teamID then
+					allyComCount = allyComCount - 1	-- current com death has not been subtracted from GetTeamUnitDefCount yet, so we do this manually
+				end
+				for unitDefID,_ in pairs(isCommander) do
+					local comCount = Spring.GetTeamUnitDefCount(teamID, unitDefID)
+					allyComCount = allyComCount + comCount
+					if teamID == myTeamID then
+						myComCount = myComCount + comCount
+					end
 				end
 			end
 
-			if not isCommander[unitDefID] then
-				--if attackerID or attackerDefID or attackerTeam then
-				--	local event = "UnitLost"
-				--	local players =  PlayersInTeamID(Spring.GetUnitTeam(unitID))
-				--	for ct, player in pairs (players) do
-				--		if tostring(player) then
-				--			BroadcastEvent("EventBroadcast", event, tostring(player))
-				--		end
-				--	end
-				--end
-			else
-				local event = "FriendlyCommanderDied"
-				local players =  PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
-				for ct, player in pairs (players) do
-					if tostring(player) then
-						BroadcastEvent("EventBroadcast", event, tostring(player))
+			local players =  PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
+			for ct, player in pairs (players) do
+				if tostring(player) then
+					if not unitInView then
+						BroadcastEvent("EventBroadcast", "FriendlyCommanderDied", tostring(player))
+					end
+					if allyComCount == 1 then
+						if myComCount == 1 then
+							BroadcastEvent("EventBroadcast", "YouHaveLastCommander", tostring(player))
+						else
+							BroadcastEvent("EventBroadcast", "TeamDownLastCommander", tostring(player))
+						end
 					end
 				end
-				local event = "EnemyCommanderDied"
+			end
+			if not unitInView then
 				local players =  AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 				for ct, player in pairs (players) do
 					if tostring(player) then
-						BroadcastEvent("EventBroadcast", event, tostring(player))
+						BroadcastEvent("EventBroadcast", "EnemyCommanderDied", tostring(player))
 					end
 				end
 			end
