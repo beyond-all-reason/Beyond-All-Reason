@@ -216,3 +216,16 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 		end
 	end
 end
+
+-- also cloak hat
+function gadget:UnitCloaked(unitID, unitDefID, unitTeam)
+	if unitsWearingHats[unitID] then
+		Spring.SetUnitCloak(unitsWearingHats[unitID], 1)
+	end
+end
+
+function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
+	if unitsWearingHats[unitID] then
+		Spring.SetUnitCloak(unitsWearingHats[unitID], 0)
+	end
+end

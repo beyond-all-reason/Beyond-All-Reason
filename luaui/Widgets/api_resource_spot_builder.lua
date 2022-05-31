@@ -26,7 +26,6 @@ local CMD_GUARD = CMD.GUARD
 local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
 local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetTeamUnits = Spring.GetTeamUnits
@@ -35,7 +34,6 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitDefID = Spring.GetUnitDefID
 
 local selectedUnits = spGetSelectedUnits()
-local selUnitsCount = spGetSelectedUnitsCounts()
 
 local Game_extractorRadius = Game.extractorRadius
 local tasort = table.sort
@@ -295,7 +293,6 @@ end
 
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
-	selUnitsCount = spGetSelectedUnitsCounts()
 end
 
 function widget:UnitCreated(unitID, unitDefID)
@@ -327,7 +324,6 @@ function widget:Initialize()
 		widget:UnitCreated(id, spGetUnitDefID(id))
 	end
 
-
 	--make interfaces available to other widgets:
 	WG['resource_spot_builder'] = { }
 
@@ -338,14 +334,6 @@ function widget:Initialize()
 
 	WG['resource_spot_builder'].BuildGeothermal = function(params, options, isGuard, justDraw)
 		return BuildResourceExtractors (params, options, isGuard, justDraw, geoConstructors, geoBuildings, WG['resource_spot_finder'].geoSpotsList)
-	end
-
-	WG['resource_spot_builder'].GetSelectedUnits = function()
-		return selectedUnits
-	end
-
-	WG['resource_spot_builder'].GetSelectedUnitsCount = function()
-		return selUnitsCount
 	end
 
 	----------------------------------------------

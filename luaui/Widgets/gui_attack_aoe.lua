@@ -327,8 +327,6 @@ local function GetRepUnitID(unitIDs)
 end
 
 local function UpdateSelection()
-	local sel = GetSelectedUnitsSorted()
-
 	local maxCost = 0
 	manualFireUnitDefID = nil
 	attackUnitDefID = nil
@@ -336,6 +334,7 @@ local function UpdateSelection()
 	manualFireUnitID = nil
 	hasSelection = false
 
+	local sel = GetSelectedUnitsSorted()
 	for unitDefID, unitIDs in pairs(sel) do
 		if manualWeaponInfo[unitDefID] then
 			manualFireUnitDefID = unitDefID

@@ -136,37 +136,34 @@ local chickenTypes = {
 
 local optionValues = {
 	[difficulties.veryeasy] = {
-		chickenMaxSpawnRate  = 300,
+		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 360,
 		queenSpawnMult    = 0,
-		angerBonus        = 0.15,
-		expStep           = 0,
-		lobberEMPTime     = 0,
+		angerBonus        = 0.5,
+		expStep           = 0.05,
 		spawnChance       = 0.25,
-		damageMod         = 0.125,
+		damageMod         = 0.1,
 		maxBurrows        = 5,
 		queenName         = 've_chickenq',
 	},
 	[difficulties.easy] = {
-		chickenMaxSpawnRate  = 300,
+		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 320,
 		queenSpawnMult    = 0,
-		angerBonus        = 0.2,
-		expStep           = 0.09375,
-		lobberEMPTime     = 2.5,
+		angerBonus        = 1,
+		expStep           = 0.2,
 		spawnChance       = 0.33,
-		damageMod         = 0.25,
+		damageMod         = 0.2,
 		maxBurrows        = 10,
 		queenName         = 'e_chickenq',
 	},
 
 	[difficulties.normal] = {
-		chickenMaxSpawnRate  = 300,
+		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 210,
 		queenSpawnMult    = 1,
-		angerBonus        = 0.25,
-		expStep           = 0.125,
-		lobberEMPTime     = 4,
+		angerBonus        = 2,
+		expStep           = 0.4,
 		spawnChance       = 0.4,
 		damageMod         = 0.4,
 		maxBurrows        = 20,
@@ -174,52 +171,48 @@ local optionValues = {
 	},
 
 	[difficulties.hard] = {
-		chickenMaxSpawnRate  = 300,
+		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 140,
 		queenSpawnMult    = 1,
-		angerBonus        = 0.3,
-		expStep           = 0.25,
-		lobberEMPTime     = 5,
+		angerBonus        = 3,
+		expStep           = 0.6,
 		spawnChance       = 0.5,
-		damageMod         = 0.55,
+		damageMod         = 0.6,
 		maxBurrows        = 30,
 		queenName         = 'h_chickenq',
 	},
 
 	[difficulties.veryhard] = {
-		chickenMaxSpawnRate  = 300,
+		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 70,
 		queenSpawnMult    = 3,
-		angerBonus        = 0.35,
-		expStep           = 0.4,
-		lobberEMPTime     = 7.5,
+		angerBonus        = 3,
+		expStep           = 0.8,
 		spawnChance       = 0.6,
-		damageMod         = 0.66,
+		damageMod         = 0.8,
 		maxBurrows        = 40,
 		queenName         = 'vh_chickenq',
 	},
 	[difficulties.epic] = {
-		chickenMaxSpawnRate  = 300,
+		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 40,
 		queenSpawnMult    = 3,
-		angerBonus        = 0.5,
-		expStep           = 0.5,
-		lobberEMPTime     = 7.5,
+		angerBonus        = 4,
+		expStep           = 1,
 		spawnChance       = 0.8,
-		damageMod         = 0.8,
+		damageMod         = 1,
 		maxBurrows        = 50,
 		queenName         = 'epic_chickenq',
 	},
 
 	[difficulties.survival] = {
-		chickenMaxSpawnRate  = 300,
+		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 360,
 		queenSpawnMult    = 0,
-		angerBonus        = 0.15,
-		expStep           = 0,
-		lobberEMPTime     = 0,
+		angerBonus        = 0.5,
+		expStep           = 0.05,
 		spawnChance       = 0.25,
-		damageMod         = 0.125,
+		damageMod         = 0.1,
 		maxBurrows        = 5,
 		queenName         = 've_chickenq',
 	},
@@ -244,6 +237,8 @@ end
 addSquad(1, { "1 chicken1", "1 chicken1b", "1 chicken1c", "1 chicken1d" 					})
 addSquad(1, { "2 chicken1", "2 chicken1b", "2 chicken1c", "2 chicken1d" 					})
 addSquad(1, { "3 chicken1", "3 chicken1b", "3 chicken1c", "3 chicken1d" 					})
+addSquad(1, { "4 chicken1", "4 chicken1b", "4 chicken1c", "4 chicken1d" 					})
+addSquad(1, { "5 chicken1", "5 chicken1b", "5 chicken1c", "5 chicken1d" 					})
 ----------------------------------------------------------------------------------------------
 -- Tier2 - We introduce 2nd, a bit stronger kind of Swarmer
 ----------------------------------------------------------------------------------------------
@@ -253,25 +248,29 @@ addSquad(2, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  									})
 addSquad(2, { "1 chickena1", "1 chickena1b", "1 chickena1c"									})
 addSquad(2, { "2 chickena1", "2 chickena1b", "2 chickena1c"									})
 ----------------------------------------------------------------------------------------------
--- Tier3 - Skirmishing Spikers joined the game
+-- Tier3 - Skirmishing Spikers joined the game + paralyzers
 ----------------------------------------------------------------------------------------------
 addSquad(3, { "12 chickens1" 																})
+addSquad(3, { "8 chickene1" 																})
 ----------------------------------------------------------------------------------------------
--- Tier4 - Small paralyzers, acid spitters and pyros are joining the game
+-- Tier4 - Pyros are joining the game + Little Air
 ----------------------------------------------------------------------------------------------
-addSquad(4, { "10 chickene1" 																})
-addSquad(4, { "10 chickenacidswarmer" 														})
+--addSquad(4, { "10 chickene1" 																})
+--addSquad(4, { "10 chickenacidswarmer" 													})
+--addSquad(4, { "5 chickene1", "5 chickenacidswarmer" 										})
 addSquad(4, { "10 chickenp1" 																})
+addSquad(4, { "4 chickenp1" , "1 chickenp2"													})
+addSquad(4, { "2 chickenf2" 																})
 ----------------------------------------------------------------------------------------------
--- Tier5 - Fighters and Bombers are looking at you from above!
+-- Tier5 - Fighters and Bombers are looking at you from above! + Acid
 ----------------------------------------------------------------------------------------------
 addSquad(5, { "5 chickenw1", "5 chickenw1b", "5 chickenw1c", "5 chickenw1d", "5 chickenw2" 	})
 addSquad(5, { "5 chickenf1" 																})
 addSquad(5, { "5 chickenf1b" 																})
 addSquad(5, { "5 chickenebomber1" 															})
-addSquad(5, { "5 chickenacidbomber" 														})
+addSquad(5, { "10 chickenacidswarmer" 														})
 ----------------------------------------------------------------------------------------------
--- Tier6 - All Terrain. Better watch these hills!
+-- Tier6 - All Terrain. Better watch these hills! + Paralyzers/Acid combo
 ----------------------------------------------------------------------------------------------
 addSquad(6, { "15 chickenc3" 																})
 addSquad(6, { "10 chickenc3b" 																})
@@ -281,26 +280,36 @@ addSquad(6, { "5 chickenc3b", "3 chickenc3c" 												})
 addSquad(6, { "10 chickenc3", "5 chickenc3b", "3 chickenc3c" 								})
 addSquad(6, { "10 chickenpyroallterrain" 													})
 addSquad(6, { "10 chickenelectricallterrain" 												})
-addSquad(6, { "10 chickenacidallterrain" 													})
+--addSquad(6, { "10 chickenacidallterrain" 													})
+--addSquad(6, { "5 chickenelectricallterrain", "5 chickenacidallterrain" 					})
+addSquad(6, { "5 chickene1", "5 chickenacidswarmer" 										})
+addSquad(6, { "3 chickenr1" 																})
 ----------------------------------------------------------------------------------------------
 -- Tier7 - Artillery, big flamer, big paralyzer and big acid spitter want to know your location
 ----------------------------------------------------------------------------------------------
-addSquad(7, { "2 chickenr1" 																})
-addSquad(7, { "2 chickenearty1" 															})
-addSquad(7, { "2 chickenacidarty" 															})
-addSquad(7, { "5 chickenp2" 																})
-addSquad(7, { "2 chickene2" 																})
-addSquad(7, { "2 chickenacidassault" 														})
+addSquad(7, { "3 chickenearty1" 															})
+--addSquad(7, { "3 chickenacidarty" 														})
+addSquad(7, { "8 chickenp2" 																})
+addSquad(7, { "3 chickene2" 																})
+--addSquad(7, { "3 chickenacidassault" 														})
+--addSquad(7, { "5 chickenacidbomber" 														})
+--addSquad(7, { "10 chickenacidallterrain" 													})
+addSquad(7, { "5 chickenelectricallterrain", "5 chickenacidallterrain" 						})
 ----------------------------------------------------------------------------------------------
--- Tier8 - Kamikaze, lots of them! Also Apex Spiker.
+-- Tier8 - Kamikaze, lots of them! Also Apex Spiker. + Acid
 ----------------------------------------------------------------------------------------------
 addSquad(8, { "10 chicken_dodo1" 															})
-addSquad(8, { "20 chicken_dodo1" 															})
-addSquad(8, { "40 chicken_dodo1" 															})
-addSquad(8, { "80 chicken_dodo1" 															})
-addSquad(8, { "20 chicken_dodo2" 															})
-addSquad(8, { "40 chicken_dodo2" 															})
+addSquad(8, { "15 chicken_dodo1" 															})
+addSquad(8, { "30 chicken_dodo1" 															})
+addSquad(8, { "70 chicken_dodo1" 															})
+addSquad(8, { "15 chicken_dodo2" 															})
+addSquad(8, { "35 chicken_dodo2" 															})
+addSquad(8, { "5 chickens2" 																})
 addSquad(8, { "10 chickens2" 																})
+addSquad(8, { "10 chickenacidallterrain" 													})
+addSquad(8, { "4 chickenacidassault" 														})
+addSquad(8, { "5 chickenacidbomber" 														})
+addSquad(8, { "3 chickenacidarty" 															})
 ----------------------------------------------------------------------------------------------
 -- Tier9 - Apex Swarmer, Apex Brawler, Apex Mortar - Prepare antinukes!
 ----------------------------------------------------------------------------------------------
@@ -308,7 +317,7 @@ addSquad(9, { "5 chicken2" 																	})
 addSquad(9, { "5 chicken2b" 																})
 addSquad(9, { "3 chickena2" 																})
 addSquad(9, { "3 chickena2b" 																})
-addSquad(9, { "1 chickenr2" 																})
+addSquad(9, { "2 chickenr2" 																})
 ----------------------------------------------------------------------------------------------
 -- Tier10 - Brood Raptors - They don't die they multiply!
 ----------------------------------------------------------------------------------------------

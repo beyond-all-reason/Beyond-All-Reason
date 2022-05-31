@@ -467,12 +467,6 @@ local armorDefs = {
 		"correcl",
 	},
 
-	tinychicken =
-	{
-		"chicken_dodo1",
-		"chickenh1",
-		"chickenh1b",
-	},
 	chicken =
 	{
 		"ve_chickenq",
@@ -490,6 +484,7 @@ local armorDefs = {
 		"chicken1z",
 		"chicken2",
 		"chicken2b",
+		"chicken_dodo1",
 		"chicken_dodo2",
 		"chickena1",
 		"chickena1b",
@@ -512,6 +507,18 @@ local armorDefs = {
 		"chickens1",
 		"chickens2",
 		"chickenp1",
+		"chickenp2",
+		"chickenpyroallterrain",
+		"chickenh1",
+		"chickenh1b",
+		"chickenacidallterrain",
+		"chickenacidarty",
+		"chickenacidassault",
+		"chickenacidswarmer",
+		"chickene1",
+		"chickene2",
+		"chickenearty1",
+		"chickenelectricallterrain",
 		"roost",
 	},
 }

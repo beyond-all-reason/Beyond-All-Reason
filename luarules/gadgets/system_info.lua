@@ -34,20 +34,36 @@ if gadgetHandler:IsSyncedCode() then
 
 else
 
-	local chobbyLoaded = false
-	if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
-		chobbyLoaded = true
-	end
+	local chobbyLoaded = (Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil)
 
-	local SendLuaRulesMsg				= Spring.SendLuaRulesMsg
-	local systems						= {}
+	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
+	local systems = {}
 	local validation = SYNCED.validationSys
 
-	function lines(str)
-	  local t = {}
-	  local function helper(line) table.insert(t, line) return "" end
-	  helper((str:gsub("(.-)\r?\n", helper)))
-	  return t
+	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID,false)
+	local authorized = SYNCED.permissions.sysinfo[myPlayerName]
+
+	local function handleSystemEvent(_,playerID,system)
+		if authorized then
+			if Script.LuaUI("SystemEvent") then
+				if systems[playerID] == nil and system ~= nil then
+					systems[playerID] = system
+				end
+				Script.LuaUI.SystemEvent(playerID,systems[playerID])
+			end
+		end
+	end
+
+	local function lines(str)
+		local t = {}
+		local function helper(line) table.insert(t, line) return "" end
+		helper((str:gsub("(.-)\r?\n", helper)))
+		return t
+	end
+
+	function gadget:Shutdown()
+		gadgetHandler:RemoveSyncAction("systemBroadcast")
 	end
 
 	function gadget:Initialize()
@@ -198,23 +214,6 @@ else
 		system = string.sub(system, 2)
 		if system ~= '' then
 			SendLuaRulesMsg("$y$"..myvalidation..system)
-		end
-	end
-
-	function gadget:Shutdown()
-		gadgetHandler:RemoveSyncAction("systemBroadcast")
-	end
-
-	local myPlayerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)
-	local authorized = SYNCED.permissions.sysinfo[myPlayerName]
-	function handleSystemEvent(_,playerID,system)
-		if authorized then
-			if Script.LuaUI("SystemEvent") then
-				if systems[playerID] == nil and system ~= nil then
-					systems[playerID] = system
-				end
-				Script.LuaUI.SystemEvent(playerID,systems[playerID])
-			end
 		end
 	end
 

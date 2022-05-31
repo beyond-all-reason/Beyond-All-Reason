@@ -6,7 +6,7 @@
 
 // One sixth of the full cycle duration, in millisecond
 // The larger this value the slower the walk animation
-//#define WALK_PERIOD 100
+//#define WALK_PERIOD 200
 
 
 piece	flare1, flare2, flare3 ,base, turret, leg1a, leg1b, leg1c, leg2a, leg2b, leg2c, leg3a, leg3b, leg3c, leg4a, leg4b, leg4c, leg5a, leg5b, leg5c, leg6a, leg6b, leg6c, aimy1;
@@ -334,7 +334,7 @@ StopWalking() {
 	turn leg6c to z-axis <0.000000> speed <471.767008>;
 	turn turret to x-axis <0.000000> speed <37.499996>;
 }
-// REMEMBER TO animspeed = 4 in Create() !!
+// REMEMBER TO animspeed = 8 in Create() !!
 UnitSpeed(){
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
 	animFramesPerKeyframe = 4; //we need to calc the frames per keyframe value, from the known animtime
@@ -342,10 +342,10 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 4) / animSpeed; 
+		animSpeed = (maxSpeed * 6) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
-		if (animSpeed<2) animSpeed=2;
-		if (animspeed>8) animSpeed = 8;
+		if (animSpeed<3) animSpeed=3;
+		if (animspeed>12) animSpeed = 12;
 		sleep 131;
 	}
 }
@@ -428,7 +428,7 @@ Create()
 	hide flare2;
 	hide flare3;
 	fire_count=4;
-	animspeed = 4;
+	animspeed = 6;
 	maxreloadtime=0;
 	open=FALSE;
 	firing=FALSE;

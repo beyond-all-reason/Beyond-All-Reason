@@ -1,4 +1,3 @@
-
 function widget:GetInfo()
 	return {
 		name      = "Build Split",
@@ -13,26 +12,27 @@ function widget:GetInfo()
 end
 
 local floor = math.floor
-
 local spGetSpecState = Spring.GetSpectatingState
-
 local spTestBuildOrder = Spring.TestBuildOrder
-
 local spGetSelUnitCount = Spring.GetSelectedUnitsCount
 local spGetSelUnitsSorted = Spring.GetSelectedUnitsSorted
-
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 
-local uDefs = UnitDefs
+local unitBuildOptions = {}
+for udefID, def in ipairs(UnitDefs) do
+	if #def.buildOptions > 0 then
+		unitBuildOptions[udefID] = def.buildOptions
+	end
+end
 
 local buildID = 0
 local buildLocs = {}
 local buildCount = 0
 
-local gameStarted, chobbyInterface
+local gameStarted
 
-function maybeRemoveSelf()
+local function maybeRemoveSelf()
     if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget()
     end
@@ -54,13 +54,10 @@ function widget:Initialize()
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts) -- 3 of 3 parameters
-
 	if not (cmdID < 0 and cmdOpts.shift and cmdOpts.meta) then return false end -- Note: All multibuilds require shift
-
 	if spGetSelUnitCount() < 2 then return false end
 
 	--if #cmdParams < 4 then return false end -- Probably not possible, commented for now
-
 	if spTestBuildOrder(-cmdID, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4]) == 0 then return false end
 
 	local areSpec = spGetSpecState()
@@ -77,8 +74,6 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts) -- 3 of 3 parameters
 end
 
 function widget:Update()
-	if chobbyInterface then return end -- 0 of 0 parameters
-
 	if buildCount == 0 then return end
 
 	local selUnits = spGetSelUnitsSorted()
@@ -86,59 +81,48 @@ function widget:Update()
 
 	local builders = {}
 	local builderCount = 0
-
 	for uDefID, uIDs in pairs(selUnits) do
-
-		local uBuilds = uDefs[uDefID].buildOptions
-
-		for bi=1, #uBuilds do
-
-			if uBuilds[bi] == buildID then
-
-				for ui=1, #uIDs do
-					builderCount = builderCount + 1
-					builders[builderCount] = uIDs[ui]
+		local uBuilds = unitBuildOptions[uDefID]
+		if uBuilds then
+			for bi=1, #uBuilds do
+				if uBuilds[bi] == buildID then
+					for ui=1, #uIDs do
+						builderCount = builderCount + 1
+						builders[builderCount] = uIDs[ui]
+					end
+					break
 				end
-				break
 			end
 		end
 	end
 
 	if buildCount > builderCount then
-
 		local ratio = floor(buildCount / builderCount)
 		local excess = buildCount - builderCount * ratio -- == buildCount % builderCount
 		local buildingInd = 0
-
 		for bi=1, builderCount do
-
 			for r=1, ratio do
 				buildingInd = buildingInd + 1
 				spGiveOrderToUnit(builders[bi], -buildID, buildLocs[buildingInd], {"shift"})
 			end
-
 			if bi <= excess then
 				buildingInd = buildingInd + 1
 				spGiveOrderToUnit(builders[bi], -buildID, buildLocs[buildingInd], {"shift"})
 			end
 		end
 	else
-
 		local ratio = floor(builderCount / buildCount)
 		local excess = builderCount - buildCount * ratio -- == builderCount % buildCount
 		local builderInd = 0
 
 		for bi=1, buildCount do
-
 			local setUnits = {}
 			local setCount = 0
-
 			for r=1, ratio do
 				builderInd = builderInd + 1
 				setCount = setCount + 1
 				setUnits[setCount] = builders[builderInd]
 			end
-
 			if bi <= excess then
 				builderInd = builderInd + 1
 				setCount = setCount + 1

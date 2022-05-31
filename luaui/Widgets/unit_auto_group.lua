@@ -41,17 +41,9 @@ local immediate = true
 local persist = true
 local verbose = true
 
-local cutoffDistance = 3500
-local falloffDistance = 2500
-
-local hideBelowGameframe = 100
-
-local vsx, vsy = Spring.GetViewGeometry()
-
 local unit2group = {} -- list of unit types to group
 
 local groupableBuildingTypes = { 'tacnuke', 'empmissile', 'napalmmissile', 'seismic' }
-
 local groupableBuildings = {}
 for _, v in ipairs(groupableBuildingTypes) do
 	if UnitDefNames[v] then
@@ -59,12 +51,18 @@ for _, v in ipairs(groupableBuildingTypes) do
 	end
 end
 
+local unitShowGroup = {}
+for udefID, def in ipairs(UnitDefs) do
+	if not def.isFactory and (groupableBuildings[udefID] or not def.isBuilding) then
+		unitShowGroup[udefID] = true
+	end
+end
+
 local finiGroup = {}
 local myTeam = Spring.GetMyTeamID()
 local createdFrame = {}
-local textSize = 13
 
-local font, dlists, gameStarted
+local gameStarted
 
 local SetUnitGroup = Spring.SetUnitGroup
 local GetSelectedUnits = Spring.GetSelectedUnits
@@ -74,39 +72,9 @@ local GetMouseState = Spring.GetMouseState
 local SelectUnitArray = Spring.SelectUnitArray
 local TraceScreenRay = Spring.TraceScreenRay
 local GetUnitPosition = Spring.GetUnitPosition
-local UDefTab = UnitDefs
-local GetGroupList = Spring.GetGroupList
-local GetGroupUnits = Spring.GetGroupUnits
 local GetGameFrame = Spring.GetGameFrame
-local IsGuiHidden = Spring.IsGUIHidden
-local spIsUnitInView = Spring.IsUnitInView
-local spGetUnitViewPosition = Spring.GetUnitViewPosition
-local spGetCameraPosition = Spring.GetCameraPosition
 local Echo = Spring.Echo
-local diag = math.diag
-local min = math.min
 
-local existingGroups = GetGroupList()
-local existingGroupsFrame = 0
-
-function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
-	font = WG['fonts'].getFont(nil, 1.4, 0.35, 1.4)
-
-	if dlists then
-		for i, _ in ipairs(dlists) do
-			gl.DeleteList(dlists[i])
-		end
-	end
-	dlists = {}
-	for i = 0, 9 do
-		dlists[i] = gl.CreateList(function()
-			font:Begin()
-			font:Print("\255\200\255\200" .. i, 20.0, -10.0, textSize, "cno")
-			font:End()
-		end)
-	end
-end
 
 function widget:GameStart()
 	gameStarted = true
@@ -121,31 +89,7 @@ function widget:PlayerChanged(playerID)
 	myTeam = Spring.GetMyTeamID()
 end
 
-function widget:Initialize()
-	widget:ViewResize()
-	widget:PlayerChanged()
-
-	widgetHandler:AddAction("add_to_autogroup", ChangeUnitTypeAutogroupHandler, nil, "p") -- With a parameter, adds all units of this type to a specific autogroup
-	widgetHandler:AddAction("remove_from_autogroup", ChangeUnitTypeAutogroupHandler, { removeAll = true }, "p") -- Without a parameter, removes all units of this type from autogroups
-	widgetHandler:AddAction("remove_one_unit_from_group", RemoveOneUnitFromGroupHandler, nil, "p") -- Removes the closest of selected units from groups and selects only it
-
-	WG['autogroup'] = {}
-	WG['autogroup'].getImmediate = function()
-		return immediate
-	end
-	WG['autogroup'].setImmediate = function(value)
-		immediate = value
-	end
-
-	WG['autogroup'].getPersist = function()
-		return persist
-	end
-	WG['autogroup'].setPersist = function(value)
-		persist = value
-	end
-end
-
-function ChangeUnitTypeAutogroupHandler(_, _, args, data)
+local function ChangeUnitTypeAutogroupHandler(_, _, args, data)
 	local gr = args[1]
 	local removeAll = data and data['removeAll']
 
@@ -156,13 +100,12 @@ function ChangeUnitTypeAutogroupHandler(_, _, args, data)
 	end
 
 	local selUnitDefIDs = {}
-	local unit2groupDeleted = {}
 	local exec = false --set to true when there is at least one unit to process
 	local units = GetSelectedUnits()
 	for i = 1, #units do
 		local unitID = units[i]
 		local udid = GetUnitDefID(unitID)
-		if not UDefTab[udid]["isFactory"] and (groupableBuildings[udid] or not UDefTab[udid]["isBuilding"]) then
+		if unitShowGroup[udid] then
 			selUnitDefIDs[udid] = true
 			unit2group[udid] = gr
 			exec = true
@@ -207,7 +150,7 @@ function ChangeUnitTypeAutogroupHandler(_, _, args, data)
 	return true
 end
 
-function RemoveOneUnitFromGroupHandler(_, _, args)
+local function RemoveOneUnitFromGroupHandler(_, _, args)
 	local mx, my = GetMouseState()
 	local _, pos = TraceScreenRay(mx, my, true)
 	local mindist = math.huge
@@ -234,48 +177,31 @@ function RemoveOneUnitFromGroupHandler(_, _, args)
 	return true
 end
 
-function widget:Shutdown()
-	WG['autogroup'] = nil
-	if dlists then
-		for i, _ in ipairs(dlists) do
-			gl.DeleteList(dlists[i])
-		end
-		dlists = {}
+function widget:Initialize()
+	widget:PlayerChanged()
+
+	widgetHandler:AddAction("add_to_autogroup", ChangeUnitTypeAutogroupHandler, nil, "p") -- With a parameter, adds all units of this type to a specific autogroup
+	widgetHandler:AddAction("remove_from_autogroup", ChangeUnitTypeAutogroupHandler, { removeAll = true }, "p") -- Without a parameter, removes all units of this type from autogroups
+	widgetHandler:AddAction("remove_one_unit_from_group", RemoveOneUnitFromGroupHandler, nil, "p") -- Removes the closest of selected units from groups and selects only it
+
+	WG['autogroup'] = {}
+	WG['autogroup'].getImmediate = function()
+		return immediate
+	end
+	WG['autogroup'].setImmediate = function(value)
+		immediate = value
+	end
+
+	WG['autogroup'].getPersist = function()
+		return persist
+	end
+	WG['autogroup'].setPersist = function(value)
+		persist = value
 	end
 end
 
-function widget:DrawWorld()
-	if IsGuiHidden() or GetGameFrame() < hideBelowGameframe then
-		return
-	end
-
-	existingGroupsFrame = existingGroupsFrame + 1
-	if existingGroupsFrame % 10 == 0 then
-		existingGroups = GetGroupList()
-	end
-	local camX, camY, camZ = spGetCameraPosition()
-	local camDistance
-	for inGroup, _ in pairs(existingGroups) do
-		local units = GetGroupUnits(inGroup)
-		for i = 1, #units do
-			local unitID = units[i]
-			if spIsUnitInView(unitID) then
-				local ux, uy, uz = spGetUnitViewPosition(unitID)
-				local camDistance = diag(camX - ux, camY - uy, camZ - uz)
-				if camDistance < cutoffDistance then
-					local scale = min(1, 1 - (camDistance - falloffDistance) / cutoffDistance)
-					gl.PushMatrix()
-					gl.Translate(ux, uy, uz)
-					if scale <=1 then
-						gl.Scale(scale, scale, scale)
-					end
-					gl.Billboard()
-					gl.CallList(dlists[inGroup])
-					gl.PopMatrix()
-				end
-			end
-		end
-	end
+function widget:Shutdown()
+	WG['autogroup'] = nil
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)

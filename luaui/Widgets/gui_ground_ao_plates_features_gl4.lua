@@ -180,7 +180,11 @@ function widget:Initialize()
 	shaderConfig.USE_CIRCLES = nil
 	shaderConfig.USE_CORNERRECT = nil
 	groundPlateVBO, groundPlateShader = InitDrawPrimitiveAtUnit(shaderConfig, "Ground AO Plates Features")
-  groundPlateVBO.featureIDs = true
+	if groundPlateVBO == nil then 
+		widgetHandler:RemoveWidget()
+		return
+	end
+	groundPlateVBO.featureIDs = true
 	ProcessAllFeatures() 
 end
 

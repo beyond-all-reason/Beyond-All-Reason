@@ -92,16 +92,16 @@ local engineBinds = {
 	{ "Ctrl+9", "specteam", "18" },
 	{ "Ctrl+0", "specteam", "19" },
 
-	{ "Any+0", "group0" },
-	{ "Any+1", "group1" },
-	{ "Any+2", "group2" },
-	{ "Any+3", "group3" },
-	{ "Any+4", "group4" },
-	{ "Any+5", "group5" },
-	{ "Any+6", "group6" },
-	{ "Any+7", "group7" },
-	{ "Any+8", "group8" },
-	{ "Any+9", "group9" },
+        { "Any+0", "group0" },
+		{ "Any+1", "group1" },
+		{ "Any+2", "group2" },
+		{ "Any+3", "group3" },
+		{ "Any+4", "group4" },
+		{ "Any+5", "group5" },
+		{ "Any+6", "group6" },
+		{ "Any+7", "group7" },
+		{ "Any+8", "group8" },
+		{ "Any+9", "group9" },
 
 	{       "[", "buildfacing",  "inc" },
 	{ "Shift+[", "buildfacing",  "inc" },
@@ -312,17 +312,6 @@ local function makeBindsTable(keyLayout)
 		{      "8", "specteam", "7"  },
 		{      "9", "specteam", "8"  },
 
-		{ "Any+0", "group0" },
-		{ "Any+1", "group1" },
-		{ "Any+2", "group2" },
-		{ "Any+3", "group3" },
-		{ "Any+4", "group4" },
-		{ "Any+5", "group5" },
-		{ "Any+6", "group6" },
-		{ "Any+7", "group7" },
-		{ "Any+8", "group8" },
-		{ "Any+9", "group9" },
-
 		{             "[", "buildfacing" , "inc" },
 		{       "Shift+[", "buildfacing" , "inc" },
 		{             "]", "buildfacing" , "dec" },
@@ -406,7 +395,7 @@ local function makeBindsTable(keyLayout)
 		{    "f11", "luaui selector"         },
 
 		{ "Ctrl+Shift+f8", "savegame"  },
-		{       "Any+f12", "screenshot" },
+		{       "Any+f12", "screenshot png" },
 		{     "Alt+enter", "fullscreen" },
 
 		{     "Any+`", "drawinmap"  },
@@ -619,8 +608,16 @@ local function makeBindsTable(keyLayout)
 	table.insert(_binds,  { "Ctrl+^", "remove_one_unit_from_group" })
 
 	for i = 0, 9 do
-		table.insert(_binds, { 'Alt+'..i , "add_to_autogroup", i })
-	end
+        table.insert(_binds, { 'Alt+'..i , "add_to_autogroup", i })
+
+        table.insert(_binds, { i                , "group", i                })
+        table.insert(_binds, { 'Ctrl+'..i       , "group", "set "..i        })
+        table.insert(_binds, { 'Shift+'..i      , "group", "selectadd "..i })
+        table.insert(_binds, { 'Ctrl+Shift+'..i , "group", "add "..i        })
+        table.insert(_binds, { 'Alt+'..i        , "group", "selecttoggle "..i     })
+
+        end
+
 
 	return _binds
 end
@@ -668,7 +665,7 @@ end
 function widget:Initialize()
 	loadEngineBindings('un')
 	reloadBindings()
-	
+
 	WG.reloadBindings = reloadBindings
 end
 

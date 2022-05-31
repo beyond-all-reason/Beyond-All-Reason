@@ -18,6 +18,7 @@ function UnbaCom_Post(name)
 			--Weapon: Laser
 		tablecom.weapondefs[lowername.."laser2"] = table.copy(tablecom.weapondefs[lowername.."laser"])
 		tablecom.weapondefs[lowername.."laser"].weapontype = "BeamLaser"
+		tablecom.weapondefs[lowername.."laser"].damage.default = armDamages[1]
 
 		tablecom.weapondefs[lowername.."laser2"].damage.default = armDamages[2]
 		tablecom.weapondefs[lowername.."laser2"].range = armRange[2]
@@ -96,6 +97,85 @@ function UnbaCom_Post(name)
 			tablecom.weapondefs[lowername.."sealaser"..I].areaofeffect = armAOE2[i]
 			tablecom.weapondefs[lowername.."sealaser"..I].reloadtime = armReloadTime2[i]
 		end
+		---Weapon: EMP
+		tablecom.weapons[30] = {
+                def = "DISINTEGRATOR",
+                onlytargetcategory = "NOTSUB",
+				}
+	--[[
+		tablecom.weapons[31] = {
+                def = "DISINTEGRATOR2",
+                onlytargetcategory = "NOTSUB",
+				}
+		tablecom.weapons[32] = {
+                def = "DISINTEGRATOR3",
+                onlytargetcategory = "NOTSUB",
+				}
+		]]
+		tablecom.weapondefs["disintegrator"].areaofeffect = 275
+		tablecom.weapondefs["disintegrator"].edgeeffectiveness = 0.25
+		tablecom.weapondefs["disintegrator"].explosiongenerator = "custom:genericshellexplosion-large-lightning"
+		tablecom.weapondefs["disintegrator"].model = "airbomb.s3o"
+		tablecom.weapondefs["disintegrator"].name = "EMP Grenade"
+		tablecom.weapondefs["disintegrator"].paralyzer = true
+		tablecom.weapondefs["disintegrator"].paralyzetime = 7
+		tablecom.weapondefs["disintegrator"].range = 450
+		tablecom.weapondefs["disintegrator"].reloadtime = 10
+		tablecom.weapondefs["disintegrator"].soundhit = "EMGPULS1"
+		tablecom.weapondefs["disintegrator"].soundhitwet = "splsslrg"
+		tablecom.weapondefs["disintegrator"].soundstart = "bombrel"
+		tablecom.weapondefs["disintegrator"].weapontype = "Cannon"
+		tablecom.weapondefs["disintegrator"].weaponvelocity = 200
+		tablecom.weapondefs["disintegrator"].energypershot = 1200
+		tablecom.weapondefs["disintegrator"].damage[1] = 10000
+		tablecom.weapondefs["disintegrator"].noexplode = false
+		tablecom.weapondefs["disintegrator"].groundbounce = false
+		tablecom.weapondefs["disintegrator"].groundrebound = 1
+		tablecom.weapondefs["disintegrator"].cratermult = 0
+		tablecom.weapondefs["disintegrator"].cegtag = nil		
+		tablecom.weapondefs["disintegrator"].customparams[1] = nil
+		tablecom.weapondefs["disintegrator"].customparams[2] = nil
+		tablecom.weapondefs["disintegrator"].customparams[3] = nil
+		tablecom.weapondefs["disintegrator"].customparams[4] = "0.5 0.5 1"
+		tablecom.weapondefs["disintegrator"].customparams.expl_light_mult = 1.2
+		tablecom.weapondefs["disintegrator"].customparams.expl_light_radius_mult = 0.9
+		tablecom.weapondefs["disintegrator"].customparams.expl_light_life_mult = 1.55
+		tablecom.weapondefs["disintegrator"].customparams.expl_light_heat_life_mult = "1.6"
+		tablecom.weapondefs["disintegrator"].avoidfeature = false
+		tablecom.weapondefs["disintegrator"].avoidfriendly = false
+		tablecom.weapondefs["disintegrator"].avoidground = false
+		tablecom.weapondefs["disintegrator"].bouncerebound = 0
+		tablecom.weapondefs["disintegrator"].commandfire = true
+		tablecom.weapondefs["disintegrator"].craterboost = 0
+		tablecom.weapondefs["disintegrator"].cratermult = 0
+		tablecom.weapondefs["disintegrator"].impulseboost = 0.001
+		tablecom.weapondefs["disintegrator"].impulsefactor = 0.001
+		tablecom.weapondefs["disintegrator"].soundtrigger = true
+		tablecom.weapondefs["disintegrator"].turret = true
+		tablecom.weapondefs["disintegrator"].waterweapon = true		
+
+
+--[[		
+		tablecom.weapondefs["disintegrator2"] = table.copy(tablecom.weapondefs["disintegrator"])
+		tablecom.weapondefs["disintegrator2"].paralyzetime = 8
+		tablecom.weapondefs["disintegrator2"].areaofeffect = 300
+		tablecom.weapondefs["disintegrator2"].energypershot = 2500
+		tablecom.weapondefs["disintegrator2"].weaponvelocity = 400
+		tablecom.weapondefs["disintegrator2"].range = 700
+		tablecom.weapondefs["disintegrator2"].customparams.expl_light_mult = 1.8
+		tablecom.weapondefs["disintegrator2"].customparams.expl_light_radius_mult = 1.3
+		tablecom.weapondefs["disintegrator2"].customparams.expl_light_life_mult = 2
+		
+		tablecom.weapondefs["disintegrator3"] = table.copy(tablecom.weapondefs["disintegrator2"])
+		tablecom.weapondefs["disintegrator3"].paralyzetime = 9
+		tablecom.weapondefs["disintegrator3"].areaofeffect = 400
+		tablecom.weapondefs["disintegrator3"].energypershot = 5000
+		tablecom.weapondefs["disintegrator3"].weaponvelocity = 600
+		tablecom.weapondefs["disintegrator3"].range = 1000
+		tablecom.weapondefs["disintegrator3"].customparams.expl_light_mult = 2.4
+		tablecom.weapondefs["disintegrator3"].customparams.expl_light_radius_mult = 1.7
+		tablecom.weapondefs["disintegrator3"].customparams.expl_light_life_mult = 2.45
+	]]	
 	end
 
 	--------------------------------------------
@@ -105,6 +185,7 @@ function UnbaCom_Post(name)
 			--Weapon: Laser
 		tablecom.weapondefs[lowername.."laser2"] = table.copy(tablecom.weapondefs[lowername.."laser"])
 		tablecom.weapondefs[lowername.."laser"].weapontype = "BeamLaser"
+		tablecom.weapondefs[lowername.."laser"].damage.default = corDamages[1]
 
 		tablecom.weapondefs[lowername.."laser2"].damage.default = corDamages[2]
 		tablecom.weapondefs[lowername.."laser2"].range = corRange[2]
@@ -183,6 +264,17 @@ function UnbaCom_Post(name)
 			tablecom.weapondefs[lowername.."sealaser"..I].areaofeffect = corAOE2[i]
 			tablecom.weapondefs[lowername.."sealaser"..I].reloadtime = corReloadTime2[i]
 		end
+		for i = 30,30 do
+            tablecom.weapons[i] = {
+            def = "DISINTEGRATOR",
+            onlytargetcategory = "NOTSUB",
+			}
+		end
+	
+		tablecom.weapondefs["disintegrator"].reloadtime = 10
+		tablecom.weapondefs["disintegrator"].energypershot = 1200
+
+		
 	end
 
 --------------------------------
@@ -201,23 +293,7 @@ function UnbaCom_Post(name)
 					}
 		end
 	end
---[[	for i = 2,7 do
-		I = tostring(i)
-		H = tostring(i-1)
-		tablecom.weapondefs["repulsor"..I] = table.copy(tablecom.weapondefs["repulsor"..H])
-		tablecom.weapondefs["repulsor"..I].shield.power = ShieldPower[i]
-	end
-	for i = 23,29 do
-		tablecom.weapons[i] = {
-				def = "REPULSOR"..tostring(i-22),
-				}
-	end]]
-	for i = 30,30 do
-            tablecom.weapons[i] = {
-                def = "DISINTEGRATOR",
-                onlytargetcategory = "NOTSUB",
-				}
-	end
+
 	if name == "armcom" then
 		tablecom.buildoptions = ArmDefsBuildOptions
 	else
@@ -229,8 +305,9 @@ function UnbaCom_Post(name)
 		tablecom.featuredefs["dead"..tostring(i)].metal = tablecom.featuredefs["dead"].metal * WreckMetal[i]
 		tablecom.featuredefs["heap"..tostring(i)].metal = tablecom.featuredefs["heap"].metal * WreckMetal[i]
 		tablecom.featuredefs["dead"..tostring(i)].featuredead = "heap"..tostring(i)
-		tablecom.featuredefs["dead"..tostring(i)].resurrectable = 1
+		tablecom.featuredefs["dead"..tostring(i)].resurrectable = 0
 	end
+	tablecom.featuredefs["dead"].resurrectable = 0
 	UnitDefs[name] = tablecom
 	
 end

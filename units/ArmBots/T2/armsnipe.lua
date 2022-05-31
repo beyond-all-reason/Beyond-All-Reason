@@ -21,7 +21,7 @@ return {
 		idletime = 1800,
 		maxdamage = 520,
 		maxslope = 14,
-		maxvelocity = 1,
+		maxvelocity = 1.1,
 		maxwaterdepth = 22,
 		mincloakdistance = 80,
 		movementclass = "BOT3",

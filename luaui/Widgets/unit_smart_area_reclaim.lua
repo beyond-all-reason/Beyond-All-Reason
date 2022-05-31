@@ -23,9 +23,6 @@ function widget:GetInfo()
 	}
 end
 
------------------------------------------------------------------
--- manually generated locals because I don't have trepan's script
------------------------------------------------------------------
 local maxUnits = Game.maxUnits
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitDefID = Spring.GetUnitDefID
@@ -52,11 +49,19 @@ local atan2 = math.atan2
 
 local gameStarted
 
------------------------------------------------------------------
--- end locals----------------------------------------------------
------------------------------------------------------------------
+local unitCanReclaim = {}
+local unitCanMove = {}
+local unitBuildDistance = {}
+for udefID, def in ipairs(UnitDefs) do
+	if def.canReclaim then
+		unitCanReclaim[udefID] = true
+		unitCanMove[udefID] = def.canMove
+		unitBuildDistance[udefID] = def.buildDistance
+	end
+end
 
-function maybeRemoveSelf()
+
+local function maybeRemoveSelf()
     if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget()
     end
@@ -82,7 +87,7 @@ local function tsp(rList, tList, dx, dz)
 	dz = dz or 0
 	tList = tList or {}
 
-	if (rList == nil) then return end
+	if rList == nil then return end
 
 	local closestDist
 	local closestItem
@@ -90,10 +95,10 @@ local function tsp(rList, tList, dx, dz)
 
 	for i=1, #rList do
 		local item = rList[i]
-		if (item ~= nil) and (item ~= 0) then
+		if item ~= nil and item ~= 0 then
 			local distx, distz, uid, fid = item[1]-dx, item[2]-dz, item[3], item[4]
 			local dist = abs(distx) + abs(distz)
-			if (closestDist == nil) or (dist < closestDist) then
+			if closestDist == nil or dist < closestDist then
 				closestDist = dist
 				closestItem = item
 				closestIndex = i
@@ -101,7 +106,7 @@ local function tsp(rList, tList, dx, dz)
 		end
 	end
 
-	if (closestItem == nil) then return tList end
+	if closestItem == nil then return tList end
 
 	tList[#tList+1] = closestItem
 	rList[closestIndex] = 0
@@ -146,7 +151,6 @@ local function stationary(rList)
 	return oList
 end
 
----
 
 local function issue(rList, shift)
 	local opts = {}
@@ -156,7 +160,7 @@ local function issue(rList, shift)
 		local uid, fid = item[3], item[4]
 
 		local opt = {}
-		if (opts[uid] ~= nil) or (shift) then
+		if opts[uid] ~= nil or shift then
 			opt = OPT_SHIFT
 		end
 
@@ -166,32 +170,31 @@ local function issue(rList, shift)
 end
 
 function widget:CommandNotify(id, params, options)
-	if (id == RECLAIM) then
+	if id == RECLAIM then
 		local mobiles, stationaries = {}, {}
 		local mobileb, stationaryb = false, false
 
 		local rUnits = {}
 		local rUnitsCount = 0
 		local sUnits = GetSelectedUnits()
-		for i=1,#sUnits do
+		for i=1, #sUnits do
 			local uid = sUnits[i]
 			local udid = GetUnitDefID(uid)
-			local unitDef = UnitDefs[udid]
-			if (unitDef.canReclaim == true) then
-				if (unitDef.canMove == false) then
-					stationaries[uid] = unitDef
+			if unitCanReclaim[udid] then
+				if not unitCanMove[udid] then
+					stationaries[uid] = unitBuildDistance[udid]
 					stationaryb = true
 				else
-					mobiles[uid] = unitDef
+					mobiles[uid] = unitBuildDistance[udid]
 					mobileb = true
 				end
 
 				local ux, uy, uz = GetUnitPosition(uid)
-				if (options.shift) then
+				if options.shift then
 					local cmds = GetCommandQueue(uid,100)
 					for ci=#cmds, 1, -1 do
 						local cmd = cmds[ci]
-						if (cmd.id == MOVE) then
+						if cmd.id == MOVE then
 							ux, uy, uz = cmd.params[1], cmd.params[2], cmd.params[3]
 							break
 						end
@@ -202,21 +205,15 @@ function widget:CommandNotify(id, params, options)
 			end
 		end
 
-		if (#rUnits > 0) then
+		if #rUnits > 0 then
 			local len = #params
-			local retw = {}
-			local retwCount = 0
-			local rmtw = {}
-			local rmtwCount = 0
-			local retg = {}
-			local retgCount = 0
-			local rmtg = {}
-			local rmtgCount = 0
+			local retw, rmtw, retg, rmtg = {}, {}, {}, {}
+			local retwCount, rmtwCount, retgCount, rmtgCount = 0, 0, 0, 0
 
-			if (len == 4) then
+			if len == 4 then
 				local x, y, z, r = params[1], params[2], params[3], params[4]
 				local xmin, xmax, zmin, zmax = (x-r), (x+r), (z-r), (z+r)
-				local rx, rz = (xmax - xmin), (zmax - zmin)
+				--local rx, rz = (xmax - xmin), (zmax - zmin)
 
 				local units = GetFeaturesInRectangle(xmin, zmin, xmax, zmax)
 
@@ -224,7 +221,7 @@ function widget:CommandNotify(id, params, options)
 				local wy = Spring.GetGroundHeight(x, z)
 				local ct, id = TraceScreenRay(mx, my)
 
-				if (ct == "feature") then
+				if ct == "feature" then
 					local cu = id
 
 					for i=1,#units,1 do
@@ -234,21 +231,21 @@ function widget:CommandNotify(id, params, options)
 						local urx, urz = abs(ux - x), abs(uz - z)
 						local ud = sqrt((urx * urx) + (urz * urz))-ur*.5
 
-						if (ud < r) then
+						if ud < r then
 						local mr, _, er, _, _ = GetFeatureResources(uid)
 							if uy < 0 then
-								if (mr > 0) then
+								if mr > 0 then
 									rmtwCount = rmtwCount + 1
 									rmtw[rmtwCount] = uid
-								elseif (er > 0) then
+								elseif er > 0 then
 									retwCount = retwCount + 1
 									retw[retwCount] = uid
 								end
 							elseif uy > 0 then
-								if (mr > 0) then
+								if mr > 0 then
 									rmtgCount = rmtgCount + 1
 									rmtg[rmtgCount] = uid
-								elseif (er > 0) then
+								elseif er > 0 then
 									retgCount = retgCount + 1
 									retg[retgCount] = uid
 								end
@@ -263,13 +260,13 @@ function widget:CommandNotify(id, params, options)
 					local mListCount, sListCount = 0, 0
 					local source = {}
 
-					if (rmtgCount > 0) and (mr > 0) and wy > 0 then
+					if rmtgCount > 0 and mr > 0 and wy > 0 then
 						source = rmtg
-					elseif (retgCount > 0) and (er > 0) and wy > 0 then
+					elseif retgCount > 0 and er > 0 and wy > 0 then
 						source = retg
-					elseif (rmtwCount > 0) and (mr > 0) and wy < 0 then
+					elseif rmtwCount > 0 and mr > 0 and wy < 0 then
 						source = rmtw
-					elseif (retwCount > 0) and (er > 0) and wy < 0 then
+					elseif retwCount > 0 and er > 0 and wy < 0 then
 						source = retw
 					end
 
@@ -281,13 +278,13 @@ function widget:CommandNotify(id, params, options)
 								local unit = rUnits[ui]
 								local uid, ux, uz = unit.uid, unit.ux, unit.uz
 								local dx, dz = ux-fx, uz-fz
-								local dist = dx + dz
+								--local dist = dx + dz
 								local item = {dx, dz, uid, fid}
 								if mobiles[uid] ~= nil then
 									mListCount = mListCount + 1
 									mList[mListCount] = item
 								elseif stationaries[uid] ~= nil then
-									if sqrt((dx*dx)+(dz*dz)) <= stationaries[uid].buildDistance then
+									if sqrt((dx*dx)+(dz*dz)) <= stationaries[uid] then
 										sListCount = sListCount + 1
 										sList[sListCount] = item
 									end

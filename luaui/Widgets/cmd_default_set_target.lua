@@ -14,15 +14,12 @@ local rebindKeys = false
 
 local CMD_UNIT_SET_TARGET = 34923
 
-local GetMouseState = Spring.GetMouseState
-local TraceScreenRay = Spring.TraceScreenRay
 local IsUnitAllied = Spring.IsUnitAllied
 local GetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
 local GetActionHotKeys = Spring.GetActionHotKeys
 local SendCommmands = Spring.SendCommands
 
 local hotKeys = {}
-
 local gameStarted
 
 local hasSetTarget = {}
@@ -32,7 +29,7 @@ for udid, ud in pairs(UnitDefs) do
 	end
 end
 
-function maybeRemoveSelf()
+local function maybeRemoveSelf()
 	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget()
 		return true
@@ -67,10 +64,8 @@ function widget:Shutdown()
 	end
 end
 
-function widget:DefaultCommand()
-	local mouseX, mouseY, onlyCoords, useMinimap, includeSky, ignoreWater = GetMouseState()
-	local targettype,data = TraceScreenRay(mouseX, mouseY, onlyCoords, useMinimap, includeSky, ignoreWater)
-	if targettype ~= "unit" or IsUnitAllied(data) then
+function widget:DefaultCommand(type, id, cmd)
+	if type ~= "unit" or IsUnitAllied(id) then
 		return
 	end
 	for unitDefID in pairs(GetSelectedUnitsCounts()) do

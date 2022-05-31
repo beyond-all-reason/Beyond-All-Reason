@@ -41,8 +41,13 @@ Spring.SendCommands({
 })
 
 local allowuserwidgets = Spring.GetModOptions().allowuserwidgets
+
 if Spring.GetModOptions().teamcolors_anonymous_mode then
 	allowuserwidgets = false
+
+	-- disabling individual Spring functions isnt really good enough
+	-- disabling user widget draw access would probably do the job but that wouldnt be easy to do
+	Spring.SetTeamColor = function() return true end
 end
 
 widgetHandler = {

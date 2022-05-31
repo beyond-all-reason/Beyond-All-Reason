@@ -104,6 +104,13 @@ function UnitDef_Post(name, uDef)
 	uDef.flankingbonusmin = Spring.GetModOptions().experimentalflankingbonusmin*0.01
 	uDef.flankingbonusmax = Spring.GetModOptions().experimentalflankingbonusmax*0.01
 
+	-- Reverse Gear
+	if Spring.GetModOptions().experimentalreversegear == true then
+		if (not uDef.canfly) and uDef.maxvelocity then
+			uDef.maxreversevelocity = uDef.maxvelocity*0.65
+		end
+	end
+
 	-- Rebalance Candidates
 	
 	if Spring.GetModOptions().experimentalrebalancet2labs == true then -- 
@@ -544,6 +551,9 @@ function UnitDef_Post(name, uDef)
 		uDef.autoheal = math.ceil(math.sqrt(chickHealth * 0.1))
 		uDef.idleautoheal = math.ceil(math.sqrt(chickHealth * 0.1))
 		uDef.customparams.areadamageresistance = "_CHICKENACID_"
+		if (not uDef.canfly) and uDef.maxvelocity then
+			uDef.maxreversevelocity = uDef.maxvelocity*0.65
+		end
 	end
 
 	if (uDef.buildpic and uDef.buildpic == "") or not uDef.buildpic then
@@ -722,6 +732,13 @@ function UnitDef_Post(name, uDef)
     --	end
     --end
 
+	-- Unbacom
+
+	if Spring.GetModOptions().unba == true then
+		unbaUnits = VFS.Include("unbaconfigs/unbaunits_post.lua")
+		uDef = unbaUnits.unbaUnitTweaks(name, uDef)
+	end
+
 	-- Multipliers Modoptions
 
 	-- Health
@@ -781,6 +798,9 @@ function UnitDef_Post(name, uDef)
 		
 		-- increase terraformspeed to be able to restore ground faster
 		uDef.terraformspeed = uDef.workertime * 30
+		if Spring.GetModOptions().map_waterlevel ~= 0 then
+			uDef.canrestore = false
+		end
 	end
 
 	-- Unit Cost
@@ -832,10 +852,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	if Spring.GetModOptions().unba == true then
-		unbaUnits = VFS.Include("unbaconfigs/unbaunits_post.lua")
-		uDef = unbaUnits.unbaUnitTweaks(name, uDef)
-	end
 	-- add model vertex displacement
 	local vertexDisplacement = 5.5 + ((uDef.footprintx + uDef.footprintz) / 12)
 	if vertexDisplacement > 10 then
@@ -988,46 +1004,6 @@ function WeaponDef_Post(name, wDef)
 			wDef.texture4 = "flare2"	-- Flare texture for #BeamLaser with largeBeamLaser = true
 		end
 
-
-
-		-- Multipliers
-
-		-- Weapon Range 
-		if true then -- dumb way to keep the x local here
-			local x = Spring.GetModOptions().multiplier_weaponrange
-			if x ~= 1 then
-				if wDef.range then
-					wDef.range = wDef.range*x
-				end
-				if wDef.flighttime then
-					wDef.flighttime = wDef.flighttime*(x*1.5)
-				end
-				-- if wDef.mygravity and wDef.mygravity ~= 0 then
-				-- 	wDef.mygravity = wDef.mygravity*(1/x)
-				-- else
-				-- 	wDef.mygravity = 0.12 -- this is some really weird number totally not related to numbers defined in map file
-				-- end
-				if wDef.weaponvelocity and wDef.weapontype == "Cannon" and wDef.gravityaffected == "true" then
-					wDef.weaponvelocity = wDef.weaponvelocity*x
-				end
-				if wDef.weapontype == "StarburstLauncher" and wDef.weapontimer then
-					wDef.weapontimer = wDef.weapontimer*x
-				end
-			end
-		end
-
-		-- Weapon Damage
-		if true then -- dumb way to keep the x local here
-			local x = Spring.GetModOptions().multiplier_weapondamage
-			if x ~= 1 then
-				if wDef.damage then
-					for damageClass, damageValue in pairs(wDef.damage) do
-						wDef.damage[damageClass] = wDef.damage[damageClass] * x
-					end
-				end
-			end
-		end
-
 		-- scavengers
 		if string.find(name, '_scav') then
 			VFS.Include("gamedata/scavengers/weapondef_post.lua")
@@ -1039,6 +1015,44 @@ function WeaponDef_Post(name, wDef)
 	if Spring.GetModOptions().unba == true then
 		unbaUnits = VFS.Include("unbaconfigs/unbaunits_post.lua")
 		wDef = unbaUnits.unbaWeaponTweaks(name, wDef)
+	end
+
+	-- Multipliers
+
+	-- Weapon Range 
+	if true then -- dumb way to keep the x local here
+		local x = Spring.GetModOptions().multiplier_weaponrange
+		if x ~= 1 then
+			if wDef.range then
+				wDef.range = wDef.range*x
+			end
+			if wDef.flighttime then
+				wDef.flighttime = wDef.flighttime*(x*1.5)
+			end
+			-- if wDef.mygravity and wDef.mygravity ~= 0 then
+			-- 	wDef.mygravity = wDef.mygravity*(1/x)
+			-- else
+			-- 	wDef.mygravity = 0.12 -- this is some really weird number totally not related to numbers defined in map file
+			-- end
+			if wDef.weaponvelocity and wDef.weapontype == "Cannon" and wDef.gravityaffected == "true" then
+				wDef.weaponvelocity = wDef.weaponvelocity*x
+			end
+			if wDef.weapontype == "StarburstLauncher" and wDef.weapontimer then
+				wDef.weapontimer = wDef.weapontimer*x
+			end
+		end
+	end
+
+	-- Weapon Damage
+	if true then -- dumb way to keep the x local here
+		local x = Spring.GetModOptions().multiplier_weapondamage
+		if x ~= 1 then
+			if wDef.damage then
+				for damageClass, damageValue in pairs(wDef.damage) do
+					wDef.damage[damageClass] = wDef.damage[damageClass] * x
+				end
+			end
+		end
 	end
 end
 -- process effects

@@ -178,14 +178,19 @@ local function init()
 	shaderConfig.HEIGHTOFFSET = 3.99
 	shaderConfig.USETEXTURE = 0
 	teamplatterVBO, teamplatterShader = InitDrawPrimitiveAtUnit(shaderConfig, "teamPlatters")
+	if teamplatterVBO == nil then 
+		widgetHandler:RemoveWidget()
+		return false
+	end
 	
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
+	return true
 end
 
 function widget:Initialize()
-	init()
+	if not init() then return end
 	WG['teamplatter'] = {}
 	WG['teamplatter'].getOpacity = function()
 		return opacity

@@ -45,6 +45,8 @@ local cameraPanTransitionTime = 0.03
 
 local widgetOptionColor = '\255\160\160\160'
 local musicOptionColor = '\255\130\160\130'
+local devOptionColor = '\255\200\110\100'
+local devMainOptionColor = '\255\245\166\140'
 
 local firstlaunchsetupDone = false
 
@@ -675,13 +677,13 @@ function widget:Update(dt)
 		end
 	end
 
-	if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
-		Spring.SetCameraState(nil, 1)
-	else
+	--if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
+	--	Spring.SetCameraState(nil, 1)
+	--else
 		if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() and WG['setcamera_bugfix'] == true then
 			Spring.SetCameraState(nil, cameraTransitionTime)
 		end
-	end
+	--end
 
 	-- check if there is water shown 	(we do this because basic water 0 saves perf when no water is rendered)
 	if not waterDetected then
@@ -1817,7 +1819,7 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  local quality = {
-				  [1] = 2048, [2] = 3072, [3] = 4096, [4] = 6144, [5] = 10240, [6] = 16384
+				  [1] = 2048, [2] = 3584, [3] = 6144, [4] = 8192, [5] = 10240, [6] = 12288
 			  }
 			  value = quality[value]
 			  Spring.SendCommands("shadows 1 " .. value)
@@ -2117,13 +2119,13 @@ function init()
 			  Spring.SetConfigInt("snd_volui", value)
 		  end,
 		},
-		{ id = "sndvolunitreply", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolunitreply, type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volunitreply", 1) or 100),
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("snd_volunitreply", value)
-		  end,
-		},
+		--{ id = "sndvolunitreply", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolunitreply, type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volunitreply", 1) or 100),
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigInt("snd_volunitreply", value)
+		--  end,
+		--},
 		{ id = "console_chatvolume", group = "sound", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.console_chatvolume, type = "slider", min = 0, max = 1, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getChatVolume() or 0), description = texts.option.console_chatvolume_descr,
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_chatvolume", { 'sndChatFileVolume' })
@@ -2144,7 +2146,7 @@ function init()
 		  end,
 		},
 
-		{ id = "sndairabsorption", group = "sound", category = types.advanced, name = texts.option.sndairabsorption, type = "slider", min = 0.05, max = 0.4, step = 0.01, value = tonumber(Spring.GetConfigFloat("snd_airAbsorption", .35) or .35), description = texts.option.sndairabsorption_descr,
+		{ id = "sndairabsorption", group = "sound", category = types.advanced, name = texts.option.sndairabsorption, type = "slider", min = 0, max = 0.4, step = 0.01, value = tonumber(Spring.GetConfigFloat("snd_airAbsorption", .35) or .35), description = texts.option.sndairabsorption_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2379,20 +2381,20 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "camerasmoothing", group = "control", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.camerasmoothing, type = "bool", value = (tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1), description = "",
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("CameraSmoothing", (value and 1 or 0))
-			  if value then
-				  Spring.SendCommands("set CamFrameTimeCorrection 1")
-				  Spring.SendCommands("set SmoothTimeOffset 2")
-				else
-				  Spring.SendCommands("set CamFrameTimeCorrection 0")
-				  Spring.SendCommands("set SmoothTimeOffset 0")
-			  end
-		  end,
-		},
+		--{ id = "camerasmoothing", group = "control", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.camerasmoothing, type = "bool", value = (tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1), description = "",
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigInt("CameraSmoothing", (value and 1 or 0))
+		--	  if value then
+		--		  Spring.SendCommands("set CamFrameTimeCorrection 1")
+		--		  Spring.SendCommands("set SmoothTimeOffset 2")
+		--		else
+		--		  Spring.SendCommands("set CamFrameTimeCorrection 0")
+		--		  Spring.SendCommands("set SmoothTimeOffset 0")
+		--	  end
+		--  end,
+		--},
 		{ id = "camerasmoothness", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.camerasmoothness, type = "slider", min = 0.04, max = 2, step = 0.01, value = cameraTransitionTime, description = texts.option.camerasmoothness_descr,
 		  onload = function(i)
 		  end,
@@ -2526,29 +2528,31 @@ function init()
 		  end,
 		},
 
-		{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishader, type = "slider", min = 0, max = 0.005, steps = {0, 0.001, 0.0015, 0.002, 0.0025, 0.003, 0.0035, 0.004}, value = guishaderIntensity, description = '',
-		  onload = function(i)
-			  loadWidgetData("GUI Shader", "guishader", { 'blurIntensity' })
-			  if type(options[getOptionByID('guishader')].value) ~= 'number' then
-				  options[getOptionByID('guishader')].value = 0
-			  end
-		  end,
-		  onchange = function(i, value)
-			  if type(value) == 'number' then
-				  guishaderIntensity = value
-				  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)
-			  end
-			  if value <= 0.000001 then
-				  if GetWidgetToggleValue('GUI Shader') then
-				 	 widgetHandler:DisableWidget('GUI Shader')
-				  end
-			  else
-				  if not GetWidgetToggleValue('GUI Shader') then
-				  	widgetHandler:EnableWidget('GUI Shader')
-				  end
-			  end
-		  end,
-		},
+		--{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishader, type = "slider", min = 0, max = 0.005, steps = {0, 1, 2, 3, 4, 5, 6}, value = guishaderIntensity, description = '',
+		--  onload = function(i)
+		--	  loadWidgetData("GUI Shader", "guishader", { 'blurIntensity' })
+		--	  if type(options[getOptionByID('guishader')].value) ~= 'number' then
+		--		  options[getOptionByID('guishader')].value = 0
+		--	  end
+		--  end,
+		--  onchange = function(i, value)
+		--	  if type(value) == 'number' then
+		--		  guishaderIntensity = value
+		--		  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)
+		--	  end
+		--	  if value <= 0.000001 then
+		--		  if GetWidgetToggleValue('GUI Shader') then
+		--			  widgetHandler:DisableWidget('GUI Shader')
+		--		  end
+		--	  else
+		--		  if not GetWidgetToggleValue('GUI Shader') then
+		--			  widgetHandler:EnableWidget('GUI Shader')
+		--		  end
+		--	  end
+		--  end,
+		--},
+		{ id = "guishader", group = "ui", category = types.basic, widget = "GUI Shader", name = widgetOptionColor .. "   " .. texts.option.guishader, type = "bool", value = GetWidgetToggleValue("GUI Shader") },
+
 
 		{ id = "minimap_maxheight", group = "ui", category = types.advanced, name = texts.option.minimap .. widgetOptionColor .. "  " .. texts.option.minimap_maxheight, type = "slider", min = 0.2, max = 0.4, step = 0.01, value = 0.35, description = texts.option.minimap_maxheight_descr,
 		  onload = function(i)
@@ -2818,17 +2822,8 @@ function init()
 			  Spring.SendCommands("iconfadestart " .. value)
 			  Spring.SetConfigInt("UnitIconFadeStart", value)
 			  -- update UnitIconFadeVanish too
-			  local k = getOptionByID('uniticon_fadeamount')
-			  options[k].onchange(k, options[k].value)
-		  end,
-		},
-		{ id = "uniticon_fadeamount", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.uniticonfadeamount, type = "slider", min = 0, max = 0.3, step = 0.01, value = tonumber(Spring.GetConfigFloat("UnitIconFadeAmount", 0.1) or 0.1), description = texts.option.uniticonfadeamount_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigFloat("UnitIconFadeAmount", value)
-			  local fadeStart = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 2700) or 1)
-			  local fadeVanish = math.floor(math.min(fadeStart, fadeStart*(1-value)))
-			  Spring.SendCommands("iconfadevanish " .. fadeVanish)
-			  Spring.SetConfigInt("UnitIconFadeVanish", fadeVanish)
+			  Spring.SendCommands("iconfadevanish " .. value)
+			  Spring.SetConfigInt("UnitIconFadeVanish", value)
 		  end,
 		},
 		{ id = "uniticon_hidewithui", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.uniticonhidewithui, type = "bool", value = (Spring.GetConfigInt("UnitIconsHideWithUI", 0) == 1), description = texts.option.uniticonhidewithui_descr,
@@ -2944,7 +2939,9 @@ function init()
 			  loadWidgetData("Metalspots", "metalspots_values", { 'showValues' })
 		  end,
 		  onchange = function(i, value)
-			  WG.metalspots.setShowValue(value)
+			  if WG.metalspots then
+			  	WG.metalspots.setShowValue(value)
+			  end
 			  saveOptionValue('Metalspots', 'metalspots', 'setShowValue', { 'showValue' }, options[getOptionByID('metalspots_values')].value)
 		  end,
 		},
@@ -3063,6 +3060,9 @@ function init()
 			  saveOptionValue('Commands FX', 'commandsfx', 'setFilterAI', { 'filterAIteams' }, value)
 		  end,
 		},
+
+
+		{ id = "flankingicons", group = "ui", category = types.advanced, widget = "Flanking Icons GL4", name = texts.option.flankingicons, type = "bool", value = GetWidgetToggleValue("Flanking Icons GL4"), description = texts.option.flankingicons_descr },
 
 		{ id = "displaydps", group = "ui", category = types.basic, name = texts.option.displaydps, type = "bool", value = tonumber(Spring.GetConfigInt("DisplayDPS", 0) or 0) == 1, description = texts.option.displaydps_descr,
 		  onload = function(i)
@@ -3217,6 +3217,7 @@ function init()
 		  end,
 		},
 
+		{ id = "antiranges", group = "ui", category = types.advanced, widget = "Anti Ranges", name = texts.option.antiranges, type = "bool", value = GetWidgetToggleValue("Anti Ranges"), description = texts.option.antiranges_descr },
 
 		-- GAME
 		{ id = "networksmoothing", restart = true, category = types.basic, group = "game", name = texts.option.networksmoothing, type = "bool", value = useNetworkSmoothing, description = texts.option.networksmoothing_descr,
@@ -4584,15 +4585,7 @@ function init()
 		-- disable old cus
 		if Spring.GetConfigInt("cus", 0) == 1 then
 			Spring.SetConfigInt("cus", 0)
-		end
-		Spring.SendCommands("luarules disablecus")
-
-		if not isPotatoGpu then	-- will disable later
-
-			-- enable CUS GL4
-			if tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
-				Spring.SendCommands("luarules reloadcusgl4")
-			end
+			Spring.SendCommands("luarules disablecus")
 		end
 	end
 	if not waterDetected then
@@ -4797,7 +4790,9 @@ function init()
 				option.value = option.max
 			end
 		end
-
+		if option.name and option.category == types.dev then
+			option.name = devMainOptionColor..string.gsub(option.name, widgetOptionColor, devOptionColor)
+		end
 		processedOptionsCount = processedOptionsCount + 1
 		processedOptions[processedOptionsCount] = option
 	end
@@ -4874,13 +4869,13 @@ function widget:Initialize()
 
 	prevShow = show
 
-	if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
-		Spring.SendCommands("set CamFrameTimeCorrection 1")
-		Spring.SendCommands("set SmoothTimeOffset 2")
-	else
-		Spring.SendCommands("set CamFrameTimeCorrection 0")
-		Spring.SendCommands("set SmoothTimeOffset 0")
-	end
+	--if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
+	--	Spring.SendCommands("set CamFrameTimeCorrection 1")
+	--	Spring.SendCommands("set SmoothTimeOffset 2")
+	--else
+	--	Spring.SendCommands("set CamFrameTimeCorrection 0")
+	--	Spring.SendCommands("set SmoothTimeOffset 0")
+	--end
 
 	-- make sure new icon system is used
 	if Spring.GetConfigInt("UnitIconsAsUI", 0) == 0 then
