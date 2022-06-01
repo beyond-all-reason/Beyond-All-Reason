@@ -11,28 +11,27 @@ function widget:GetInfo()
    }
 end
 
+-- So in total about 168/162 fps delta just going from 1 to 2 screencopies!
+
 -- 3 things want screencopies, at least:
--- LUPS distortionFBO
--- GUIshader
--- CAS
+-- GUIshader - Done -- dont care if its not sharpened, in fact!
+-- CAS - Done
+-- TODO: 
+	-- LUPS distortionFBO - hard because large areas might have a noticable lack of sharpening...
 
--- And since we dont care if distorted is not sharpened
--- or if guishader is not sharpened
--- or if any other order, we can thus use this!
-
+-- Code snippet to use if you want to request a copy:
+-- also note that the first copy will return nil, as its all black!
+-- so be prepared to nil check the return value of GetScreenCopy!
 --[[
 		if WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
 			screencopy = WG['screencopymanager'].GetScreenCopy()
 		else
-			gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy) -- copy screen to screencopy, and render screencopy into blurtex
+			-- gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy) -- copy screen to screencopy, and render screencopy into blurtex
 			Spring.Echo("no manager",  WG['screencopymanager'] )
+			return 
 		end
+		if screencopy == nil then return end
 ]]--
-
--- So in total about 168/162 fps delta going from 1 to 2 screencopies!
-
--- full stack cas+guishader best case 222 -> 202 fps
--- old goes from 230 - > 177 fps
 
 local ScreenCopy 
 local lastScreenCopyFrame
