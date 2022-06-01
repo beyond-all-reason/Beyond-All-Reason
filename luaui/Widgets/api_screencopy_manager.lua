@@ -37,6 +37,7 @@ end
 local ScreenCopy 
 local lastScreenCopyFrame
 local vsx, vsy = widgetHandler:GetViewSizes()
+local firstCopy = true
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx, vsy = viewSizeX, viewSizeY
@@ -57,6 +58,10 @@ local function GetScreenCopy()
 		gl.CopyToTexture(ScreenCopy, 0, 0, 0, 0, vsx, vsy) 
 		lastScreenCopyFrame = df
 	end	
+	if firstCopy then 
+		firstCopy = false
+		return nil
+	end
 	return ScreenCopy
 end
 
