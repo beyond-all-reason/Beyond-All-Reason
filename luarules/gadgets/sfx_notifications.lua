@@ -192,7 +192,6 @@ else
 		end
 	end
 
-
 	local isSpec = Spring.GetSpectatingState()
 	local myTeamID = Spring.GetMyTeamID()
 	local myPlayerID = Spring.GetMyPlayerID()
@@ -202,6 +201,21 @@ else
 		myTeamID = Spring.GetMyTeamID()
 		myPlayerID = Spring.GetMyPlayerID()
 		myAllyTeamID = Spring.GetMyAllyTeamID()
+	end
+
+	local numTeams = 0
+	local playingAsHorde = false
+	local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
+	for _, teamID in ipairs(myAllyTeamList) do
+		numTeams = numTeams + 1
+		if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
+			local luaAI = Spring.GetTeamLuaAI(teamID)
+			if luaAI and luaAI ~= "" then
+				if string.find(luaAI, 'Scavengers') or string.find(luaAI, 'Chickens') then
+					playingAsHorde = true
+				end
+			end
+		end
 	end
 
 	function gadget:Initialize()
@@ -219,7 +233,6 @@ else
 			BroadcastEvent("EventBroadcast", 'LrpcTargetUnits', tostring(myPlayerID))
 		end
 	end
-
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 		local unitInView = Spring.IsUnitInView(unitID)
@@ -254,18 +267,19 @@ else
 					end
 				end
 			end
-
-			local players =  PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
-			for ct, player in pairs (players) do
-				if tostring(player) then
-					if not unitInView then
-						BroadcastEvent("EventBroadcast", "FriendlyCommanderDied", tostring(player))
-					end
-					if allyComCount == 1 then
-						if myComCount == 1 then
-							BroadcastEvent("EventBroadcast", "YouHaveLastCommander", tostring(player))
-						else
-							BroadcastEvent("EventBroadcast", "TeamDownLastCommander", tostring(player))
+			if numTeams > 1 and not playingAsHorde then
+				local players =  PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
+				for ct, player in pairs (players) do
+					if tostring(player) then
+						if not unitInView then
+							BroadcastEvent("EventBroadcast", "FriendlyCommanderDied", tostring(player))
+						end
+						if allyComCount == 1 then
+							if myComCount == 1 then
+								BroadcastEvent("EventBroadcast", "YouHaveLastCommander", tostring(player))
+							else
+								BroadcastEvent("EventBroadcast", "TeamDownLastCommander", tostring(player))
+							end
 						end
 					end
 				end
