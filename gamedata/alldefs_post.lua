@@ -84,6 +84,8 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
+	uDef.airsightdistance = uDef.sightdistance
+
 	-- Flanking Bonus Override
 	if Spring.GetModOptions().experimentalflankingbonusmode == 0 then
 		uDef.flankingbonusmode = 0
