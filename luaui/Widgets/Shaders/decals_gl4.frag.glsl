@@ -75,45 +75,65 @@ vec3 ReOrientNormalUnpacked(vec3 basenormal, vec3 detailnormal){ // for unpacked
 	return normalize(r);
 }
 
+vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir, float height)
+{    
+    vec2 p = (viewDir.xz)* (height * 1);
+    return p;    
+} 
 
 #line 31000
 void main(void)
 {
 	
-	vec3 camtoworld = 
-	vec4 tex3color = texture(atlasHeights, g_uv.xy);
-	float height = 
+	vec3 campos = cameraViewInv[3].xyz;
+	vec3 camtoworld = normalize(g_position.xyz - campos);
 	
-	vec2 parallaxUV = g_uv.xy + 
+	vec3 tangentviewpos = (tbnmatrix * campos.xzy).xyz; // Y points to camera
+	vec3 tangentfragpos = (tbnmatrix * g_position.xzy).xyz; // Y points up
+	vec3 tangentviewdir =  normalize(tangentfragpos - tangentviewpos); // Y points up!
+	vec3 tspace = tangentfragpos - tangentviewpos;
+	
+	vec4 tex3color = texture(atlasHeights, g_uv.xy);
+	//float height = 
+	
+	vec2 parallaxUV = (tangentviewdir.xz) * (1.0 - tex3color.b )* 0.00002;
 	// do parallax here !
 	
-	vec4 tex1color = texture(atlasColorAlpha, g_uv.xy);
-	vec4 tex2color = texture(atlasNormals, g_uv.xy);
-	vec4 tex4color = texture(atlasORM, g_uv.xy);
+	vec4 tex1color = texture(atlasColorAlpha, g_uv.xy - parallaxUV.xy);
+	vec4 tex2color = texture(atlasNormals, g_uv.xy  - parallaxUV.xy);
+	vec4 tex4color = texture(atlasORM, g_uv.xy  - parallaxUV.xy);
 	vec3 fragNormal = tex2color.rgb * 2.0 - 1.0;
-	vec2 uvhm = heighmapUVatWorldPos(g_params.xz);
-	vec4 minimapcolor = textureLod(miniMapTex, uvhm, 0.0);
-	fragColor.rgba = vec4(g_color.rgb * tex1color.rgb, tex1color.a );
-	fragColor.rgba = vec4(minimapcolor.rgb* tex1color.r,  tex1color.g ) ; 
-	vec3 blendedcolor = tex1color.rgb * (minimapcolor.rgb * 2.0);
-
-	fragColor.a = tex1color.a * tex1color.a;
-	//return;
-	fragColor.rgb = g_mapnormal.rgb;// * 0.5 + 0.5;
+	fragNormal.xy = -  fragNormal.xy;
 	
+	vec2 uvhm = heighmapUVatWorldPos(g_position.xz);
+	vec4 minimapcolor = textureLod(miniMapTex, uvhm, 0.0);
+	
+	vec3 blendedcolor = tex1color.rgb * (minimapcolor.rgb * 2.0);
+	fragColor.rgb = blendedcolor;
+	fragColor.a = tex1color.a * tex1color.a * 0.9;
+
 	vec3 mapnormal = textureLod(mapNormalsTex, uvhm, 0.0).raa; // seems to be in the [-1, 1] range!, raaa is its true return
-	mapnormal.g = sqrt( 1.0 - dot( mapnormal.rb, mapnormal.rb));
-	fragColor.rgb = fract((g_mapnormal.rgb * 0.5 + 0.5));
-	fragColor.a = 1.0;
-	fragColor.rgb = g_bitangent.rgb;
-	//fragColor.rgba = vec4(g_uv.x, g_uv.y, 0.0, 0.6);
+	mapnormal.g = sqrt( 1.0 - dot( mapnormal.rb, mapnormal.rb)); // reconstruct Y from it
 	vec3 worldspacenormal = tbnmatrix * fragNormal.rgb;
 	
 	vec3 reorientedNormal = ReOrientNormalUnpacked(mapnormal.xzy, worldspacenormal.xzy).xzy;
-	 fragColor.rgb = mapnormal.rgb;
-	fragColor.rgb = worldspacenormal.rgb;
-	fragColor.rgb = reorientedNormal.rgb * 0.5 + 0.5;
-	//fragColor.rgb = fragNormal.rgb;
-	fragColor.a = tex1color.a ;
-	fragColor.rgb = blendedcolor;
+	
+	float diffuselight = clamp(dot(sunDir.xyz, reorientedNormal), 0.0, 1.0)*1.5;
+	fragColor.rgb *= diffuselight;
+	//fragColor.rgb = vec3(diffuselight);
+	
+	// Specular Color
+	vec3 reflvect = reflect(normalize(1.0 * sunDir.xyz), reorientedNormal);
+	float specular = clamp(pow(clamp(dot(normalize(camtoworld), normalize(reflvect)), 0.0, 1.0), 4.0), 0.0, 1.0) * 0.25;// * shadow;
+	//fragColor.rgb = vec3(specular);
+	fragColor.rgb += fragColor.rgb * specular;
+	
+	//fragColor.rgb = tbnmatrix[2] * 0.5 + 0.5;
+	//fragColor.rgb = tangentviewdir.yyy * 0.5 + 0.5;
+	//fragColor.rgb = tex1color.rgb;
+	//fragColor.rgb = tex3color.bbb;
+	//fragColor.rgb = abs((parallaxUV.xyx * 10) + 0.5);
+	//fragColor.rgb = fract(tspace.xyz* 0.01);
+	//fragColor.rgb = reorientedNormal.rgb * 0.5 + 0.5;
+	//fragColor.rgb = max(vec3(parallaxUV.x, - parallaxUV.x, 0.0) * 10, 0.0);
 }

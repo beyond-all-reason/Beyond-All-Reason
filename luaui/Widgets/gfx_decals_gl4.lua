@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "Beherith",
 		date = "2021.11.02",
 		license = "Lua code: GNU GPL, v2 or later, Shader GLSL code: (c) Beherith (mysterme@gmail.com)",
-		layer = -1,
+		layer = 999,
 		enabled = false,
 	}
 end
@@ -29,7 +29,10 @@ local atlasHeights = nil
 local atlasORM = nil 
 
 local atlasSize = 4096
-local atlasType = 0 -- 0 is legacy, 1 is quadtree type with no padding
+local atlasType = 1 -- 0 is legacy, 1 is quadtree type with no padding
+-- ATLASTYPE 0 HAS WIIIIIIERD MINIFICATION ARTIFACTS!
+-- atlastype 1 is da bomb
+-- atlastype 2 seems oddly slow?
 local atlassedImages = {}
 local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 4 , sizez = 4}
 -- remember, we can use xXyY = gl.GetAtlasTexture(atlasID, texture) to query the atlas
@@ -327,7 +330,7 @@ function widget:Initialize()
 	if true then 
 		for i= 1, 1000 do 
 			local w = math.random() * 256 + 16
-			local j = math.floor(math.random()*11 + 1)
+			local j = math.floor(math.random()*10 + 1)
 			local idx = string.format("luaui/images/decals_gl4/groundScars/t_groundcrack_%02d_a.png", j)
 			--Spring.Echo(idx)
 			AddDecal(idx, 
