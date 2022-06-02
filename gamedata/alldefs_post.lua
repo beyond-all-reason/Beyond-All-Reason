@@ -551,6 +551,8 @@ function UnitDef_Post(name, uDef)
 		uDef.autoheal = math.ceil(math.sqrt(chickHealth * 0.1))
 		uDef.idleautoheal = math.ceil(math.sqrt(chickHealth * 0.1))
 		uDef.customparams.areadamageresistance = "_CHICKENACID_"
+		uDef.upright = false
+		uDef.floater = true
 		if (not uDef.canfly) and uDef.maxvelocity then
 			uDef.maxreversevelocity = uDef.maxvelocity*0.65
 		end
