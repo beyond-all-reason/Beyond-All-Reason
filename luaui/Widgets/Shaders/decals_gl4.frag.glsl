@@ -96,24 +96,28 @@ void main(void)
 	vec4 tex3color = texture(atlasHeights, g_uv.xy);
 	//float height = 
 	
-	vec2 parallaxUV = (tangentviewdir.xz) * (1.0 - tex3color.b )* 0.00002;
 	// do parallax here !
+	vec2 parallaxUV = (tangentviewdir.xz) * (1.0 - tex3color.b )* 0.00002;
 	
-	vec4 tex1color = texture(atlasColorAlpha, g_uv.xy - parallaxUV.xy);
-	vec4 tex2color = texture(atlasNormals, g_uv.xy  - parallaxUV.xy);
+	vec2 uvhm = heighmapUVatWorldPos(g_position.xz);
+	vec4 minimapcolor = textureLod(miniMapTex, uvhm, 0.0);
+	vec3 mapnormal = textureLod(mapNormalsTex, uvhm, 0.0).raa; // seems to be in the [-1, 1] range!, raaa is its true return
+	mapnormal.g = sqrt( 1.0 - dot( mapnormal.rb, mapnormal.rb)); // reconstruct Y	from it
+	float offaxis = 1.0 - clamp(dot(mapnormal,-camtoworld), 0.0, 1.0);
+	float bias = (offaxis*offaxis)*-2.0;
+	vec4 tex1color = texture(atlasColorAlpha, g_uv.xy - parallaxUV.xy, bias);
+	vec4 tex2color = texture(atlasNormals, g_uv.xy  - parallaxUV.xy, bias);
 	vec4 tex4color = texture(atlasORM, g_uv.xy  - parallaxUV.xy);
 	vec3 fragNormal = tex2color.rgb * 2.0 - 1.0;
 	fragNormal.xy = -  fragNormal.xy;
 	
-	vec2 uvhm = heighmapUVatWorldPos(g_position.xz);
-	vec4 minimapcolor = textureLod(miniMapTex, uvhm, 0.0);
+
 	
 	vec3 blendedcolor = tex1color.rgb * (minimapcolor.rgb * 2.0);
 	fragColor.rgb = blendedcolor;
 	fragColor.a = tex1color.a * tex1color.a * 0.9;
 
-	vec3 mapnormal = textureLod(mapNormalsTex, uvhm, 0.0).raa; // seems to be in the [-1, 1] range!, raaa is its true return
-	mapnormal.g = sqrt( 1.0 - dot( mapnormal.rb, mapnormal.rb)); // reconstruct Y from it
+
 	vec3 worldspacenormal = tbnmatrix * fragNormal.rgb;
 	
 	vec3 reorientedNormal = ReOrientNormalUnpacked(mapnormal.xzy, worldspacenormal.xzy).xzy;
