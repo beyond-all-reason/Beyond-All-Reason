@@ -34,22 +34,22 @@ end
 
 local function makeAtlases()
 	local success
-	atlasColorAlpha = gl.CreateTextureAtlas(atlasSize,atlasSize,1)
+	atlasColorAlpha = gl.CreateTextureAtlas(atlasSize,atlasSize,0)
 	addDirToAtlas(atlasColorAlpha, "luaui/images/decals_gl4/groundScars", '_a.png')
 	success = gl.FinalizeTextureAtlas(atlasColorAlpha)
 	if success == false then return false end
 	
-	atlasNormals = gl.CreateTextureAtlas(atlasSize,atlasSize,1)
+	atlasNormals = gl.CreateTextureAtlas(atlasSize,atlasSize,0)
 	addDirToAtlas(atlasNormals, "luaui/images/decals_gl4/groundScars", '_n.png')
 	success = gl.FinalizeTextureAtlas(atlasNormals)
 	if success == false then return false end
 	
-	atlasHeights = gl.CreateTextureAtlas(atlasSize,atlasSize,1)
+	atlasHeights = gl.CreateTextureAtlas(atlasSize,atlasSize,0)
 	addDirToAtlas(atlasHeights, "luaui/images/decals_gl4/groundScars", '_h.png')
 	success = gl.FinalizeTextureAtlas(atlasHeights)
 	if success == false then return false end
 	
-	atlasORM = gl.CreateTextureAtlas(atlasSize,atlasSize,1)
+	atlasORM = gl.CreateTextureAtlas(atlasSize,atlasSize,0)
 	addDirToAtlas(atlasORM, "luaui/images/decals_gl4/groundScars", '_orm.png')
 	success = gl.FinalizeTextureAtlas(atlasORM)
 	if success == false then return false end
