@@ -19,11 +19,7 @@ end
 -- atlasNormals is normals + emission
 
 -- advanced geoshader tricount for quads
--- 2x2 - 4
--- 3x3 - 12
 -- 4x4 - 40
--- 5x5 - 65! == 1+3 vec4's per vertex
--- Configurable Parts:
 
 
 
@@ -32,7 +28,8 @@ local atlasNormals = nil
 local atlasHeights = nil
 local atlasORM = nil 
 
-local atlasSize = 2048
+local atlasSize = 4096
+local atlasType = 0 -- 0 is legacy, 1 is quadtree type with no padding
 local atlassedImages = {}
 local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 4 , sizez = 4}
 -- remember, we can use xXyY = gl.GetAtlasTexture(atlasID, texture) to query the atlas
@@ -40,10 +37,10 @@ local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 
 local function addDirToAtlas(atlas, path, key)
 	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
 	local files = VFS.DirList(path)
-	Spring.Echo("Adding",#files, "images to atlas from", path)
+	Spring.Echo("Adding",#files, "images to atlas from", path, key)
 	for i=1, #files do
 		if imgExts[string.sub(files[i],-3,-1)] and string.find(files[i], key, nil, true) then
-			--Spring.Echo(files[i])
+			Spring.Echo(files[i])
 			gl.AddAtlasTexture(atlas,files[i])
 			atlassedImages[files[i]] = atlas
 		end
@@ -52,22 +49,22 @@ end
 
 local function makeAtlases()
 	local success
-	atlasColorAlpha = gl.CreateTextureAtlas(atlasSize,atlasSize,1)
+	atlasColorAlpha = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
 	addDirToAtlas(atlasColorAlpha, "luaui/images/decals_gl4/groundScars", '_a.png')
 	success = gl.FinalizeTextureAtlas(atlasColorAlpha)
 	if success == false then return false end
 	
-	atlasNormals = gl.CreateTextureAtlas(atlasSize,atlasSize,1)
+	atlasNormals = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
 	addDirToAtlas(atlasNormals, "luaui/images/decals_gl4/groundScars", '_n.png')
 	success = gl.FinalizeTextureAtlas(atlasNormals)
 	if success == false then return false end
 	
-	atlasHeights = gl.CreateTextureAtlas(atlasSize,atlasSize,1)
+	atlasHeights = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
 	addDirToAtlas(atlasHeights, "luaui/images/decals_gl4/groundScars", '_h.png')
 	success = gl.FinalizeTextureAtlas(atlasHeights)
 	if success == false then return false end
 	
-	atlasORM = gl.CreateTextureAtlas(atlasSize,atlasSize,1)
+	atlasORM = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
 	addDirToAtlas(atlasORM, "luaui/images/decals_gl4/groundScars", '_orm.png')
 	success = gl.FinalizeTextureAtlas(atlasORM)
 	if success == false then return false end
@@ -181,7 +178,7 @@ local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, d
 			local shaderCompiled = reinitshader:Initialize()
 			
 			
-			Spring.Echo(shadername, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", Spring.GetGameFrame())
+			Spring.Echo(shadername, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", Spring.GetGameFrame(), "success", shaderCompiled or false)
 			if shaderCompiled then 
 				return reinitshader
 			else
@@ -242,6 +239,9 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 	local gf = Spring.GetGameFrame()
 	--Spring.Echo(decaltexturename, atlassedImages[decaltexturename], atlasColorAlpha)
 	local p,q,s,t = gl.GetAtlasTexture(atlasColorAlpha, decaltexturename)
+	--Spring.Echo(gl.GetAtlasTexture(atlasColorAlpha, decaltexturename))
+	--Spring.Echo(gl.GetAtlasTexture(atlasNormals, string.gsub(decaltexturename, "_a.png","_n.png")))
+	--	rotation = 0
 	local posy = Spring.GetGroundHeight(posx, posz)
 	--Spring.Echo (unitDefID,decalInfo.texfile, width, length, alpha)
 	local lifetime = alphastart/alphadecay
@@ -249,7 +249,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 	pushElementInstance(
 		decalVBO, -- push into this Instance VBO Table
 			{length, width, rotation, maxalpha ,  -- lengthwidthrotation maxalpha
-			q,p,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+			p,q,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
 			alphastart, alphadecay, heatstart, heatdecay, -- alphastart_alphadecay_heatstart_heatdecay
 			posx, posy, posz, 1.0 },
 		decalIndex, -- this is the key inside the VBO Table, should be unique per unit
@@ -327,9 +327,8 @@ function widget:Initialize()
 	if true then 
 		for i= 1, 1000 do 
 			local w = math.random() * 256 + 16
-			local idx = string.format(
-				"luaui/images/decals_gl4/groundScars/t_groundcrack_%02d_a.png", 
-				math.floor(math.random()*10 + 1))
+			local j = math.floor(math.random()*11 + 1)
+			local idx = string.format("luaui/images/decals_gl4/groundScars/t_groundcrack_%02d_a.png", j)
 			--Spring.Echo(idx)
 			AddDecal(idx, 
 					Game.mapSizeX * math.random() * 1.0, --posx
@@ -354,9 +353,6 @@ function widget:ShutDown()
 	end
 	if atlasHeights ~= nil then
 		gl.DeleteTextureAtlas(atlasHeights)
-	end
-	if atlasColor ~= nil then
-		gl.DeleteTextureAtlas(atlasColor)
 	end
 	if atlasNormals ~= nil then
 		gl.DeleteTextureAtlas(atlasNormals)
