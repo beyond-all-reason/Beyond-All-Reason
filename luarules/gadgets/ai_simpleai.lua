@@ -629,6 +629,8 @@ if gadgetHandler:IsSyncedCode() then
 		local unitName = UnitDefs[unitDefID].name
 		for i = 1, SimpleAITeamIDsCount do
 			if SimpleAITeamIDs[i] == unitTeam then
+				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},0)
+				Spring.GiveOrderToUnit(unitID,CMD.MOVE_STATE,{2},0)
 				for u = 1, #SimpleFactoriesDefs do
 					if unitDefID == SimpleFactoriesDefs[u] then
 						SimpleFactoriesCount[unitTeam] = SimpleFactoriesCount[unitTeam] + 1
@@ -667,5 +669,12 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-
+	function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+		for i = 1, SimpleAITeamIDsCount do
+			if SimpleAITeamIDs[i] == unitTeam then
+				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},0)
+				Spring.GiveOrderToUnit(unitID,CMD.MOVE_STATE,{2},0)
+			end
+		end
+	end
 end
