@@ -522,7 +522,7 @@ else
       }
     ]],
 			uniformInt = {
-				depthTex = 2,
+				--depthTex = 2,
 			},
 		})
 
