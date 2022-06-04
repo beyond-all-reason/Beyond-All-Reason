@@ -533,7 +533,7 @@ local options={
 	{
 		key    = "chicken_swarmmode",
 		name   = "Swarm Mode",
-		desc   = "Waves spawn 10 times faster but for every 3 minutes of waves you get 3 minutes of grace period",
+		desc   = "Waves spawn 10 times faster but for every 2 minutes of waves you get 4 minutes of grace period",
 		type   = "bool",
 		def    = false,
 		section= "chicken_defense_options",
