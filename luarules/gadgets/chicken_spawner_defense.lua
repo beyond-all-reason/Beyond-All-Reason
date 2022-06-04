@@ -128,6 +128,11 @@ if gadgetHandler:IsSyncedCode() then
 		role = false,
 		life = 7,
 	}
+	swarmSpawning = false
+	swarmDefaultPeaceTimer = 7200
+	swarmDefaultAttackTimer = 3600
+	swarmPeaceTimer = 7200
+	swarmAttackTimer = 3600
 
 	local attemptingToSpawnHeavyTurret = 0
 	local attemptingToSpawnLightTurret = 0
@@ -248,6 +253,12 @@ if gadgetHandler:IsSyncedCode() then
 	local maxBurrows = config.maxBurrows
 	local queenTime = (config.queenTime + config.gracePeriod)
 	local maxWaveSize = ((config.maxBurrows*0.5)+(config.maxBurrows*0.5)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+	if config.swarmMode then
+		swarmMultiplier = 10
+	else
+		swarmMultiplier = 1
+		swarmSpawning = true
+	end
 	
 	local function updateDifficultyForSurvival()
 		t = GetGameSeconds()
@@ -609,7 +620,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			squadsTable[squadID] = {
 				squadUnits = newSquad.units,
-				squadLife = newSquad.life,
+				squadLife = newSquad.life*swarmMultiplier,
 				squadRole = role,
 				squadBurrow = newSquad.burrow
 			}
@@ -1359,6 +1370,28 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+		if config.swarmMode then
+			if GetGameSeconds() > config.gracePeriod + 2 then
+				if swarmSpawning then
+					swarmPeaceTimer = swarmDefaultPeaceTimer
+					swarmAttackTimer = swarmAttackTimer - 1
+					if swarmAttackTimer <= 0 then
+						swarmSpawning = false
+					end
+				else
+					swarmAttackTimer = swarmDefaultAttackTimer
+					swarmPeaceTimer = swarmPeaceTimer - 1
+					if not resetSwarmWaveCounter then
+						resetSwarmWaveCounter = true
+					end
+					if swarmPeaceTimer <= 0 then
+						swarmSpawning = true
+					end
+				end
+			end
+		end
+
+
 		local chickenTeamUnitCount = Spring.GetTeamUnitCount(chickenTeamID) or 0
 		if chickenTeamUnitCount < maxChicken then
 			SpawnChickens()
@@ -1391,6 +1424,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			if queenAnger >= 100 then
 				-- check if the queen should be alive
+				swarmSpawning = true
 				updateSpawnQueen()
 				updateQueenLife()
 			end
@@ -1433,9 +1467,12 @@ if gadgetHandler:IsSyncedCode() then
 				timeOfLastSpawn = t
 			end
 
-			if burrowCount > 0 and ((config.chickenMaxSpawnRate < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount) and (t - timeOfLastWave) > config.chickenMaxSpawnRate*0.5) then
+			if swarmSpawning and burrowCount > 0 and (((config.chickenMaxSpawnRate/swarmMultiplier) < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount) and (t - timeOfLastWave) > (config.chickenMaxSpawnRate*0.5)/swarmMultiplier) then
 				local cCount = Wave()
-				if cCount and cCount > 0 then
+				if resetSwarmWaveCounter and config.swarmMode then
+					chickenEvent("wave", "Too Many", currentWave)
+					resetSwarmWaveCounter = false
+				elseif (not config.swarmMode) and cCount and cCount > 0 then
 					chickenEvent("wave", cCount, currentWave)
 				end
 				lastWaveUnitCount = cCount
