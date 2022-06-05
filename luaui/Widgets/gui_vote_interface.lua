@@ -27,6 +27,8 @@ local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold
 local myPlayerID = Spring.GetMyPlayerID()
 local myPlayerName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 
+local isreplay = Spring.IsReplay()
+
 local math_isInRect = math.isInRect
 local sfind = string.find
 local ssub = string.sub
@@ -358,9 +360,6 @@ end
 
 function widget:Initialize()
 	widget:ViewResize()
-	if not debug and Spring.IsReplay() then
-		widgetHandler:RemoveWidget()
-	end
 end
 
 function widget:GameFrame(n)
@@ -383,6 +382,7 @@ function widget:AddConsoleLine(lines, priority)
 
 				-- vote called
 				-- > [teh]cluster1[00] * [teh]N0by called a vote for command "stop" [!vote y, !vote n, !vote b]
+				-- > [teh]cluster2[06] * [ur]mum called a vote for command "stop please" [!vote y, !vote n, !vote b]
 				if sfind(line, " called a vote ", nil, true) then
 
 					voteOwnerPlayername = ssub(line, sfind(slower(line), "* ", nil, true)+2, sfind(slower(line), " called a vote ", nil, true)-1)
@@ -406,17 +406,19 @@ function widget:AddConsoleLine(lines, priority)
 					local title = ssub(line, sfind(line, ' "') + 2, sfind(line, '" ', nil, true) - 1) .. '?'
 					title = title:sub(1, 1):upper() .. title:sub(2)
 
-					eligibleToVote = alliedWithVoteOwner
-					if not eligibleToVote then
-						for _, keyword in pairs(globalVoteWords) do
-							if sfind(slower(title), keyword, nil, true) then
-								eligibleToVote = true
-								break
+					if not isreplay then
+						eligibleToVote = alliedWithVoteOwner
+						if not eligibleToVote then
+							for _, keyword in pairs(globalVoteWords) do
+								if sfind(slower(title), keyword, nil, true) then
+									eligibleToVote = true
+									break
+								end
 							end
 						end
-					end
-					if mySpec then
-						eligibleToVote = false
+						if mySpec then
+							eligibleToVote = false
+						end
 					end
 
 					if not sfind(line, '"resign ', nil, true) or isTeamPlayer(ssub(line, sfind(line, '"resign ', nil, true) + 8, sfind(line, ' TEAM', nil, true) - 1)) then
