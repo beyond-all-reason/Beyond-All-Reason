@@ -181,8 +181,7 @@ if gadgetHandler:IsSyncedCode() then
 			return true
 		end
 		if select(4, Spring.GetTeamInfo(teamID)) then  -- isAiTeam
-			startPointTable[teamID] = { x, z }
-			return true
+			return false
 		end
 
 		local _, _, _, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
