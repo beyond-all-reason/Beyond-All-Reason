@@ -185,6 +185,29 @@ local facingMap = {south=0, east=1, north=2, west=3}
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+local unbaStartBuildoptions = {}
+if Spring.GetModOptions().unba then
+	VFS.Include("unbaconfigs/buildoptions.lua")
+	for unitname,level in pairs(ArmBuildOptions) do
+		if level == 1 then
+			unbaStartBuildoptions[UnitDefNames[unitname].id] = unitname
+		end
+	end
+	ArmBuildOptions = nil
+	for unitname,level in pairs(CorBuildOptions) do
+		if level == 1 then
+			unbaStartBuildoptions[UnitDefNames[unitname].id] = unitname
+		end
+	end
+	CorBuildOptions = nil
+	ArmDefsBuildOptions = nil
+	CorDefsBuildOptions = nil
+	ArmBuildOptionsStop = nil
+	CorBuildOptionsStop = nil
+else
+	unbaStartBuildoptions = nil
+end
+
 local vsx, vsy = Spring.GetViewGeometry()
 
 local ordermenuLeft = vsx / 5
@@ -193,8 +216,6 @@ local advplayerlistLeft = vsx * 0.8
 local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
-
-local teamList = Spring.GetTeamList()
 
 local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 
@@ -575,25 +596,27 @@ local function RefreshCommands()
 			categories = Cfgs.buildCategories
 
 			for _, udefid in pairs(UnitDefs[startDefID].buildOptions) do
-				if showWaterUnits or not isWaterUnit[udefid] then
-					if gridPos and gridPos[udefid] then
-						uidcmdsCount = uidcmdsCount + 1
-						uidcmds[udefid] = {
-							id = udefid * -1,
-							name = UnitDefs[udefid].name,
-							params = {}
-						}
-					elseif currentBuildCategory == nil or (unitCategories[udefid] == currentBuildCategory and not (lHasUnitGrid and lHasUnitGrid[udefid])) then
-						local cmd = {
-							id = udefid * -1,
-							name = UnitDefs[udefid].name,
-							params = {}
-						}
+				if not unbaStartBuildoptions or unbaStartBuildoptions[udefid] then
+					if showWaterUnits or not isWaterUnit[udefid] then
+						if gridPos and gridPos[udefid] then
+							uidcmdsCount = uidcmdsCount + 1
+							uidcmds[udefid] = {
+								id = udefid * -1,
+								name = UnitDefs[udefid].name,
+								params = {}
+							}
+						elseif currentBuildCategory == nil or (unitCategories[udefid] == currentBuildCategory and not (lHasUnitGrid and lHasUnitGrid[udefid])) then
+							local cmd = {
+								id = udefid * -1,
+								name = UnitDefs[udefid].name,
+								params = {}
+							}
 
-						uidcmdsCount = uidcmdsCount + 1
-						uidcmds[udefid] = cmd
+							uidcmdsCount = uidcmdsCount + 1
+							uidcmds[udefid] = cmd
 
-						unorderedCmdDefs[udefid] = true
+							unorderedCmdDefs[udefid] = true
+						end
 					end
 				end
 			end
