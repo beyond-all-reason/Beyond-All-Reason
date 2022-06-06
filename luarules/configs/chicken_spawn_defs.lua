@@ -317,13 +317,14 @@ addSquad(9, { "5 chicken2" 																	})
 addSquad(9, { "5 chicken2b" 																})
 addSquad(9, { "3 chickena2" 																})
 addSquad(9, { "3 chickena2b" 																})
-addSquad(9, { "5 chickenr2", "10 chickenr1" 																})
+addSquad(9, { "5 chickenr2", "10 chickenr1" 												})
 ----------------------------------------------------------------------------------------------
 -- Tier10 - Brood Raptors - They don't die they multiply!
 ----------------------------------------------------------------------------------------------
 addSquad(10, { "10 chickenh2" 																})
 addSquad(10, { "20 chickenh3" 																})
 addSquad(10, { "40 chickenh4" 																})
+addSquad(10, { "5 chickenr2", "10 chickenr1" 												})
 ----------------------------------------------------------------------------------------------
 -- Squads that are added across multiple tiers, to reduce amount of junk above
 ----------------------------------------------------------------------------------------------

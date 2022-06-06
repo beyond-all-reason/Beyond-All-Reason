@@ -113,6 +113,9 @@ if gadgetHandler:IsSyncedCode() then
 	local unitShortName = {}
 	local unitSpeed = {}
 	local unitCanFly = {}
+	local COMMANDER_BLOB = WeaponDefNames['chickenh5_controlblob'].id
+	local overseerSoldiers = {}
+	local overseerCommanders = {}
 	local squadsTable = {}
 	local unitSquadTable = {}
 	local squadPotentialTarget = {}
@@ -955,23 +958,19 @@ if gadgetHandler:IsSyncedCode() then
 		repeat
 			loopCounter = loopCounter + 1
 			for overseerID in pairs(overseers) do
-				for mult = 1,config.chickenSpawnMultiplier do
-					squadCounter = 0
-					local waveLevelPower = mRandom(1, currentWave^2)
-					local waveLevel = math.ceil(math.sqrt(waveLevelPower))
-					local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
-					for i, sString in pairs(squad) do
-						if cCount < maxWaveSize then
-							local nEnd, _ = string.find(sString, " ")
-							local unitNumber = math.random(1, string.sub(sString, 1, (nEnd - 1)))
-							local chickenName = string.sub(sString, (nEnd + 1))
-							for j = 1, unitNumber, 1 do
-								squadCounter = squadCounter + 1
-								table.insert(spawnQueue, { burrow = overseerID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
-							end
-							cCount = cCount + unitNumber
-						end
+				squadCounter = 0
+				local waveLevelPower = mRandom(1, currentWave^2)
+				local waveLevel = math.ceil(math.sqrt(waveLevelPower))
+				local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
+				for i, sString in pairs(squad) do
+					local nEnd, _ = string.find(sString, " ")
+					local unitNumber = math.random(1, string.sub(sString, 1, (nEnd - 1)))
+					local chickenName = string.sub(sString, (nEnd + 1))
+					for j = 1, unitNumber, 1 do
+						squadCounter = squadCounter + 1
+						table.insert(spawnQueue, { burrow = overseerID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
 					end
+					cCount = cCount + unitNumber
 				end
 			end
 			for burrowID in pairs(burrows) do
@@ -1109,6 +1108,33 @@ if gadgetHandler:IsSyncedCode() then
 				return damage
 			end
 		end
+
+		if weaponID == COMMANDER_BLOB and attackerID and not overseerCommanders[attackerID] and attackerTeam and unitTeam and not Spring.AreTeamsAllied(attackerTeam, unitTeam) then
+			overseerCommanders[attackerID] = Spring.GetGameFrame() + 210
+			local ux, uy, uz = Spring.GetUnitPosition(unitID)
+			if ux and uy and uz then
+				local nearchicks = Spring.GetUnitsInCylinder(ux, uz, 500, attackerTeam)
+				for i = 1, #nearchicks, 1 do
+					if nearchicks[i] ~= attackerID and (not overseers[nearchicks[i]]) then
+						Spring.GiveOrderToUnit(nearchicks[i], CMD.FIGHT, { ux+math.random(-48,48),uy,uz+math.random(-48,48) }, 0)
+						overseerSoldiers[nearchicks[i]] = attackerID
+						unitCowardCooldown[nearchicks[i]] = true
+					end
+				end
+				local ax, ay, az = Spring.GetUnitPosition(attackerID)
+				if ax and az then
+					local nearchicks = Spring.GetUnitsInCylinder(ax, az, 1000, attackerTeam)
+					for i = 1, #nearchicks, 1 do
+						if nearchicks[i] ~= attackerID and (not overseers[nearchicks[i]]) then
+							Spring.GiveOrderToUnit(nearchicks[i], CMD.FIGHT, { ux+math.random(-48,48),uy,uz+math.random(-48,48) }, 0)
+							overseerSoldiers[nearchicks[i]] = attackerID
+							unitCowardCooldown[nearchicks[i]] = true
+						end
+					end
+				end
+			end
+		end
+
 		return damage, 1
 	end
 
@@ -1494,7 +1520,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		if n%300 == 100 and not chickenteamhasplayers then
+		if n%100 == 50 and not chickenteamhasplayers then
 			local chickens = Spring.GetTeamUnits(chickenTeamID)
 			for i = 1,#chickens do 
 				if Spring.GetCommandQueue(chickens[i], 0) <= 0 then
@@ -1513,6 +1539,13 @@ if gadgetHandler:IsSyncedCode() then
 						Spring.GiveOrderToUnit(chickens[i], CMD.FIGHT, getRandomMapPos(), {})
 					end
 				end
+			end
+		end
+
+		for id, t in pairs(overseerCommanders) do
+			if n > t then
+				overseerSoldiers[id] = nil
+				overseerCommanders[id] = nil
 			end
 		end
 	end
@@ -1678,6 +1711,16 @@ if gadgetHandler:IsSyncedCode() then
 		if unitDefID == OVERSEER_ID then
 			overseers[unitID] = nil
 		end
+
+		if overseerCommanders[unitID] then
+			for id, c in pairs(overseerSoldiers) do
+				if c == unitID and Spring.ValidUnitID(id) then
+					Spring.GiveOrderToUnit(id, CMD.STOP, {}, 0)
+				end
+			end
+			overseerCommanders[unitID] = nil
+		end
+		overseerSoldiers[unitID] = nil
 	end
 
 	function gadget:TeamDied(teamID)
