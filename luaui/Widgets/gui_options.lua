@@ -148,6 +148,11 @@ local defaultSunLighting = {
 	groundSpecularColor = { gl.GetSun("specular") },
 	unitSpecularColor = { gl.GetSun("specular", "unit") },
 }
+
+-- Correct some maps fog
+if Game.mapName == "Nine_Metal_Islands_V1" then
+	Spring.SetAtmosphere({ fogStart = 999990, fogEnd = 9999999 })
+end
 local defaultMapFog = {
 	fogStart = gl.GetAtmosphere("fogStart"),
 	fogEnd = gl.GetAtmosphere("fogEnd"),
