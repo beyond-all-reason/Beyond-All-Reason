@@ -317,7 +317,7 @@ addSquad(9, { "5 chicken2" 																	})
 addSquad(9, { "5 chicken2b" 																})
 addSquad(9, { "3 chickena2" 																})
 addSquad(9, { "3 chickena2b" 																})
-addSquad(9, { "2 chickenr2" 																})
+addSquad(9, { "5 chickenr2" 																})
 ----------------------------------------------------------------------------------------------
 -- Tier10 - Brood Raptors - They don't die they multiply!
 ----------------------------------------------------------------------------------------------
