@@ -1255,19 +1255,22 @@ if gadgetHandler:IsSyncedCode() then
 			if ARTILLERY[UnitDefNames[defs.unitName].id] then
 				squadCreationQueue.role = "artillery"
 				squadCreationQueue.regroup = false
-				if squadCreationQueue.life < 50 then
-					squadCreationQueue.life = 50
+				if squadCreationQueue.life < 100 then
+					squadCreationQueue.life = 100
 				end
 			end
 			if KAMIKAZE[UnitDefNames[defs.unitName].id] then
 				squadCreationQueue.role = "kamikaze"
 				squadCreationQueue.regroup = false
+				if squadCreationQueue.life < 100 then
+					squadCreationQueue.life = 100
+				end
 			end
 			if UnitDefNames[defs.unitName].canFly then
 				squadCreationQueue.role = "aircraft"
 				squadCreationQueue.regroup = false
-				if squadCreationQueue.life < 10 then
-					squadCreationQueue.life = 10
+				if squadCreationQueue.life < 100 then
+					squadCreationQueue.life = 100
 				end
 			end
 
