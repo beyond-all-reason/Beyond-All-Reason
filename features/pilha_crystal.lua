@@ -18,7 +18,7 @@ local Base	=	{
 	autoreclaimable		= true, 	
 	upright 			= false,
 	world				= "All Worlds",
-	customparams = { 
+	customparams = { -- this will be customParams (note capital P) ingame
 		author = "Beherith",
 		category = "crystals",
 		set = "Crystals",
@@ -34,7 +34,12 @@ for i = 1, 3 do  -- increase if you have more than 3!
 	local name = 'pilha_crystal' .. i
 	local def = {}
 	for k, v in pairs(Base) do
-		def[k] = v
+		if k == 'customparams' then 
+			def[k] = {}
+			for k2, v2 in pairs(v) do def[k][k2] = v2 end 
+		else
+			def[k] = v
+		end
 	end
 	def.name = name
 	def.object =  'pilha_crystal_' .. i .. ".s3o"
@@ -44,11 +49,19 @@ for i = 1, 3 do  -- increase if you have more than 3!
 		def.damage = 100
 		def.metal = 5
 		def.energy = 100
+		def.customparams.decalinfo_texfile = "pilha_crystal_1_3_3_aoplane.dds"
+		def.customparams.decalinfo_sizex = "3"
+		def.customparams.decalinfo_sizez = "3"
+		def.customparams.decalinfo_alpha = "1.0"
 	elseif i == 2 then
 		def.description = "Medium Crystal"
 		def.damage = 300
 		def.metal = 10
 		def.energy = 300
+		def.customparams.decalinfo_texfile = "pilha_crystal_2_5_5_aoplane.dds"
+		def.customparams.decalinfo_sizex = "5"
+		def.customparams.decalinfo_sizez = "5"
+		def.customparams.decalinfo_alpha = "1.0"
 	elseif i == 3 then
 		def.description = "Large Crystal" 
 		def.damage = 500
@@ -56,6 +69,10 @@ for i = 1, 3 do  -- increase if you have more than 3!
 		def.energy = 500
 		def.footprintX = 2
 		def.footprintZ = 2
+		def.customparams.decalinfo_texfile = "pilha_crystal_3_7_7_aoplane.dds"
+		def.customparams.decalinfo_sizex = "7"
+		def.customparams.decalinfo_sizez = "7"
+		def.customparams.decalinfo_alpha = "1.0"
 	end
 
 	crystals[name] = def
