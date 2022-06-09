@@ -1053,6 +1053,33 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		until (cCount > maxWaveSize or loopCounter >= currentWave)
+
+		local SpawnQueueUnitList = {}
+		local spawnQueueCount = #spawnQueue
+		for i = 1, spawnQueueCount do
+			local unitName = spawnQueue[i].unitName
+			SpawnQueueUnitList[unitName] = true
+		end
+		local ChickenMinTable = config.chickenMinTable
+		for i = 1,#ChickenMinTable do
+			if queenAnger > ChickenMinTable[i][1] then
+				local unitName = ChickenMinTable[i][2]
+				if (not SpawnQueueUnitList[unitName]) then
+					local currentUnitCount = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[unitName].id)
+					local minimumUnitCount = (ChickenMinTable[i][3]*((SetCount(humanTeams)*0.5)+0.5))*config.chickenSpawnMultiplier
+					local maximumUnitCount = (ChickenMinTable[i][4]*((SetCount(humanTeams)*0.5)+0.5))*config.chickenSpawnMultiplier
+					if currentUnitCount < minimumUnitCount then
+						local burrowID = spawnQueue[math.random(1,spawnQueueCount)].burrow
+						local spawnCount = math.random(1,(maximumUnitCount-currentUnitCount))
+						for j = 1,spawnCount do
+							table.insert(spawnQueue, { burrow = burrowID, unitName = unitName, team = chickenTeamID, squadID = j})
+							cCount = cCount+1
+						end
+					end
+				end
+			end
+		end
+
 		return cCount
 	end
 
