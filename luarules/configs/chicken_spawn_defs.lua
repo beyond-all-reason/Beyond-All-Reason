@@ -399,25 +399,25 @@ local ChickenMinTable = { -- {minimum queen anger, unitname, mincount, spawncoun
 	
 	-- Acid
 	{55, 	"chickenacidswarmer", 		1, 		3},
-	{75, 	"chickenacidbomber", 		1, 		2},
-	{75, 	"chickenacidassault", 		1, 		2},
+	{76, 	"chickenacidbomber", 		1, 		2},
+	{72, 	"chickenacidassault", 		1, 		2},
 	
 	-- Fighters
-	{42, 	"chickenw1", 				1, 		3},
-	{44, 	"chickenw1b", 				1, 		3},
-	{46, 	"chickenw1c", 				1, 		3},
-	{48, 	"chickenw1d", 				1, 		3},
-	{85, 	"chickenw2", 				1, 		3},
+	{42, 	"chickenw1", 				1, 		1},
+	{44, 	"chickenw1b", 				1, 		1},
+	{46, 	"chickenw1c", 				1, 		1},
+	{48, 	"chickenw1d", 				1, 		1},
+	{85, 	"chickenw2", 				1, 		2},
 
 	-- Bombers		
 	{44, 	"chickenf1", 				1, 		2},
 	{48, 	"chickenf1b", 				1, 		2},
 
 	-- Artillery
-	{55, 	"chickenr1", 				1, 		1},
-	{65, 	"chickenearty1", 			1, 		1},
-	{75, 	"chickenacidarty", 			1, 		1},
-	{85, 	"chickenr2", 				1, 		1},
+	{52, 	"chickenr1", 				1, 		1},
+	{62, 	"chickenearty1", 			1, 		1},
+	{72, 	"chickenacidarty", 			1, 		1},
+	{82, 	"chickenr2", 				1, 		1},
 }
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

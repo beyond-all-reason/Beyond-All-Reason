@@ -1066,9 +1066,9 @@ if gadgetHandler:IsSyncedCode() then
 				local unitName = ChickenMinTable[i][2]
 				if (not SpawnQueueUnitList[unitName]) then
 					local currentUnitCount = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[unitName].id)
-					local minimumUnitCount = (ChickenMinTable[i][3]*((SetCount(humanTeams)*0.5)+0.5))*config.chickenSpawnMultiplier
-					local maximumUnitCount = (ChickenMinTable[i][4]*((SetCount(humanTeams)*0.5)+0.5))*config.chickenSpawnMultiplier
-					if currentUnitCount < minimumUnitCount then
+					local minimumUnitCount = ChickenMinTable[i][3]
+					local maximumUnitCount = math.ceil((ChickenMinTable[i][4]*((SetCount(humanTeams)*0.5)+0.5))*config.chickenSpawnMultiplier)
+					if currentUnitCount < minimumUnitCount or (currentUnitCount < maximumUnitCount and math.random(0,3) == 0) then
 						local burrowID = spawnQueue[math.random(1,spawnQueueCount)].burrow
 						local spawnCount = math.random(1,(maximumUnitCount-currentUnitCount))
 						for j = 1,spawnCount do
