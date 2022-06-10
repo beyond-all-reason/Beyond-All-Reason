@@ -229,7 +229,7 @@ local function initGL4()
 				-- for beam this is center.xyz and radiusleft
 			{id = 4, name = 'worldposrad2', size = 4},
 				-- for spot, this is 0
-				-- for cone, this is direction.xyz and angle
+				-- for cone, this is direction.xyz and angle in radians
 				-- for beam this is end.xyz and radiusright
 			{id = 5, name = 'lightcolor', size = 4},
 				-- this is light color rgba for all
@@ -251,17 +251,15 @@ local function initGL4()
 	beamLightVBO.numVertices = numBeamVertices
 	beamLightVBO.VAO = makeVAOandAttach(beamLightVBO.vertexVBO, beamLightVBO.instanceVBO)
 	
-	local pointVBO, numPointVertices, sphereIndexVBO, numIndices = makeSphereVBO(8, 8, 1) 
+	local pointVBO, numPointVertices, pointIndexVBO, numIndices = makeSphereVBO(8, 8, 1) 
 	pointLightVBO = makeInstanceVBOTable(vboLayout, 64, "Beam Light VBO")
 	if pointVBO == nil or pointLightVBO == nil then goodbye("Failed to make VBO") end 
 	pointLightVBO.vertexVBO = pointVBO
-	pointLightVBO.indexVBO = indexVBO
+	pointLightVBO.indexVBO = pointIndexVBO
 	pointLightVBO.VAO = makeVAOandAttach(pointLightVBO.vertexVBO, pointLightVBO.instanceVBO, pointLightVBO.indexVBO)
 	
 	deferredLightShader =  checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4")
 	if not deferredLightShader then goodbye("Failed to compile Deferred Lights GL4 shader") end 
-	
-	)
 end
 
 
@@ -431,7 +429,7 @@ void main(void)
 ]]
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
+--[[
 local function DeferredLighting_RegisterFunction(func)
 	collectionFunctionCount = collectionFunctionCount + 1
 	collectionFunctions[collectionFunctionCount] = func
@@ -441,113 +439,82 @@ end
 local function DeferredLighting_UnRegisterFunction(functionID)
 	collectionFunctions[functionID] = nil
 end
+]]--
+local lightCacheTable = {}
+for i = 1, 20 do lightCacheTable[i] = 0 end 
+
+local function AddPointLight(px,py,pz,radius)
+	lightCacheTable[1] = px
+	lightCacheTable[2] = py
+	lightCacheTable[3] = pz
+	lightCacheTable[4] = radius
+	return pushElementInstance(pointLightVBO, lightCacheTable)
+end
+
+local function AddBeamLight(px,py,pz,radius, sx, sy, sz)
+	lightCacheTable[1] = px
+	lightCacheTable[2] = py
+	lightCacheTable[3] = pz
+	lightCacheTable[4] = radius
+	lightCacheTable[5] = sx
+	lightCacheTable[6] = sy
+	lightCacheTable[7] = sz
+	lightCacheTable[8] = radius
+	return pushElementInstance(beamLightVBO, lightCacheTable)
+end
+
+local function AddConeLight(px,py,pz,height, dx, dy, dz, angle)
+	lightCacheTable[1] = px
+	lightCacheTable[2] = py
+	lightCacheTable[3] = pz
+	lightCacheTable[4] = height
+	lightCacheTable[5] = dx
+	lightCacheTable[6] = dy
+	lightCacheTable[7] = dz
+	lightCacheTable[8] = angle
+	return pushElementInstance(beamLightVBO, lightCacheTable)
+end
+
+function AddRandomLight(which)
+	local gf = Spring.GetGameFrame()
+	local radius = math.random() * 300 + 100
+	local posx = Game.mapSizeX * math.random() * 1.0
+	local posz = Game.mapSizeZ * math.random() * 1.0
+	local posy = Spring.GetGroundHeight(posx, posz) + math.random() * 0.5 * radius
+	if which < 0.33 then -- point
+		AddPointLight(posx, posy, posz, radius)
+	elseif which < 0.66 then -- beam
+		local s =  (math.random() - 0.5) * 200
+		local t =  (math.random() - 0.5) * 200
+		local u =  (math.random() - 0.5) * 200
+		AddBeamLight(posx, posy, posz, radius, posx + s, posy + t, posz + u)
+	else -- cone
+		local s =  (math.random() - 0.5) * 2
+		local t =  (math.random() - 0.5) * 2
+		local u =  (math.random() - 0.5) * 2
+		local lenstu = 1.0 / math.sqrt(s*s + t*t + u*u)
+		local theta = math.random() * 1.8
+		AddConeLight(posx, posy, posz, radius, s * lenstu, t * lenstu, u * lenstu, theta)
+	end
+	
+end
+
 
 function widget:Initialize()
-	initGL4()
-	if true then return end
 	
-	
-	if glCreateShader == nil then
-		Spring.Echo('Deferred Rendering requires shader support!')
-		widgetHandler:RemoveWidget()
-		return
-	end
-
-	Spring.SetConfigInt("AllowDeferredMapRendering", 1)
-	Spring.SetConfigInt("AllowDeferredModelRendering", 1)
-
 	if Spring.GetConfigString("AllowDeferredMapRendering") == '0' or Spring.GetConfigString("AllowDeferredModelRendering") == '0' then
 		Spring.Echo('Deferred Rendering (gfx_deferred_rendering.lua) requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!')
 		widgetHandler:RemoveWidget()
 		return
 	end
-	if not forceNonGLSL and Spring.GetMiniMapDualScreen() ~= 'left' then
-		--FIXME dualscreen
-		if not glCreateShader then
-			spEcho("gfx_deferred_rendering.lua: Shaders not found, removing self.")
-			GLSLRenderer = false
-			widgetHandler:RemoveWidget()
-			return
-		else
-			depthPointShader = depthPointShader or glCreateShader({
-				defines = {
-					"#version 150 compatibility\n",
-					"#define BEAM_LIGHT 0\n",
-					"#define CLIP_CONTROL " .. (Platform ~= nil and Platform.glSupportClipSpaceControl and 1 or 0) .. "\n"
-				},
-				vertex = vertSrc,
-				fragment = fragSrc,
-				uniformInt = {
-					modelnormals = 0,
-					modeldepths = 1,
-					mapnormals = 2,
-					mapdepths = 3,
-					modelExtra = 4,
-				},
-			})
-
-			if not depthPointShader then
-				spEcho(glGetShaderLog())
-				spEcho("gfx_deferred_rendering.lua: Bad depth point shader, removing self.")
-				GLSLRenderer = false
-				widgetHandler:RemoveWidget()
-				return
-			else
-				lightposlocPoint = glGetUniformLocation(depthPointShader, "lightpos")
-				lightcolorlocPoint = glGetUniformLocation(depthPointShader, "lightcolor")
-				uniformEyePosPoint = glGetUniformLocation(depthPointShader, 'eyePos')
-				uniformViewPrjInvPoint = glGetUniformLocation(depthPointShader, 'viewProjectionInv')
-			end
-			--fragSrc = "#define BEAM_LIGHT \n" .. fragSrc
-			depthBeamShader = depthBeamShader or glCreateShader({
-				defines = {
-					"#version 150 compatibility\n",
-					"#define BEAM_LIGHT 1\n",
-					"#define CLIP_CONTROL " .. (Platform ~= nil and Platform.glSupportClipSpaceControl and 1 or 0) .. "\n"
-				},
-				vertex = vertSrc,
-				fragment = fragSrc,
-				uniformInt = {
-					modelnormals = 0,
-					modeldepths = 1,
-					mapnormals = 2,
-					mapdepths = 3,
-					modelExtra = 4,
-				},
-			})
-
-			if not depthBeamShader then
-				spEcho(glGetShaderLog())
-				spEcho("gfx_deferred_rendering.lua: Bad depth beam shader, removing self.")
-				GLSLRenderer = false
-				widgetHandler:RemoveWidget()
-				return
-			else
-				lightposlocBeam = glGetUniformLocation(depthBeamShader, 'lightpos')
-				lightpos2locBeam = glGetUniformLocation(depthBeamShader, 'lightpos2')
-				lightcolorlocBeam = glGetUniformLocation(depthBeamShader, 'lightcolor')
-				uniformEyePosBeam = glGetUniformLocation(depthBeamShader, 'eyePos')
-				uniformViewPrjInvBeam = glGetUniformLocation(depthBeamShader, 'viewProjectionInv')
-			end
-
-			WG.DeferredLighting_RegisterFunction = DeferredLighting_RegisterFunction
-			WG.DeferredLighting_UnRegisterFunction = DeferredLighting_UnRegisterFunction
-		end
-		screenratio = vsy / vsx --so we dont overdraw and only always draw a square
-	else
-		GLSLRenderer = false
-	end
-
-	widget:ViewResize()
+	
+	if initGL4() == false then return end
+	
+	math.randomseed(1)
+	for i=1, 100 do AddRandomLight(	math.random()) end 
 end
 
 function widget:Shutdown()
-	if GLSLRenderer then
-		if glDeleteShader then
-			glDeleteShader(depthPointShader)
-			glDeleteShader(depthBeamShader)
-		end
-	end
 end
 
 local function DrawLightType(lights, lightsCount, lighttype)
@@ -670,6 +637,7 @@ local beamLightCount = 0
 local pointLights = {}
 local pointLightCount = 0
 function widget:Update()
+	--[[
 	beamLights = {}
 	beamLightCount = 0
 	pointLights = {}
@@ -679,10 +647,12 @@ function widget:Update()
 			beamLights, beamLightCount, pointLights, pointLightCount = collectionFunctions[i](beamLights, beamLightCount, pointLights, pointLightCount)
 		end
 	end
+	]]--
 end
 
 -- adding a glow to Cannon projectiles
 function widget:DrawWorld()
+	--[[
 	local lights = pointLights
 	gl.DepthMask(false)
 	glBlending(GL.SRC_ALPHA, GL.ONE)
@@ -706,24 +676,46 @@ function widget:DrawWorld()
 	gl.Texture(false)
 	gl.DepthMask(true)
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	]]--
 end
 
-function widget:DrawScreenEffects()
-	if not (GLSLRenderer) then
-		Spring.Echo('Removing deferred rendering widget: failed to use GLSL shader')
-		widgetHandler:RemoveWidget()
-		return
-	end
-
+function widget:DrawWorld() -- We are drawing in world space, probably a bad idea but hey
 	--glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
-	glBlending(GL.SRC_ALPHA, GL.ONE)
-	if beamLightCount > 0 then
-		DrawLightType(beamLights, beamLightCount, 1)
+	if pointLightVBO.usedElements > 0 or beamLightVBO.usedElements > 0 or coneLightVBO.usedElements > 0 then 
+		
+		glBlending(GL.SRC_ALPHA, GL.ONE)
+		
+		gl.Culling(GL.BACK)
+		gl.DepthTest(false)
+		gl.DepthMask(false)
+		glTexture(0, "$map_gbuffer_zvaltex")
+		glTexture(1, "$model_gbuffer_zvaltex")
+		glTexture(2, "$map_gbuffer_normtex")
+		glTexture(3, "$model_gbuffer_normtex")
+		glTexture(4, "$map_gbuffer_spectex")
+		glTexture(5, "$model_gbuffer_spectex")
+		
+		deferredLightShader:Activate()
+		
+		if pointLightVBO.usedElements > 0 then
+			deferredLightShader:SetUniformInt("pointbeamcone", 0)
+			pointLightVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, pointLightVBO.usedElements, 0)
+		end
+		if beamLightVBO.usedElements > 0 then
+			deferredLightShader:SetUniformInt("pointbeamcone", 1)
+			beamLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, beamLightVBO.usedElements, 0)
+		end
+		if coneLightVBO.usedElements > 0 then
+			deferredLightShader:SetUniformInt("pointbeamcone", 2)
+			coneLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, coneLightVBO.usedElements, 0)
+		end
+		deferredLightShader:Deactivate()
+		
+		
+		for i = 0, 5 do glTexture(i, false) end 
+		gl.Culling(GL.BACK)
+		gl.DepthTest(true)
+		gl.DepthMask(true)
+		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
-	--glBlending(GL.ONE_MINUS_SRC_COLOR, GL.ONE)
-	if pointLightCount > 0 then
-		DrawLightType(pointLights, pointLightCount, 0)
-	end
-
-	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end

@@ -28,17 +28,17 @@ out DataVS {
 	vec4 v_lightcolor;
 	vec4 v_falloff_dense_scattering;
 	vec4 v_otherparams;
+	vec4 v_position;
 	vec4 v_debug;
 };
 
 void main()
 {
 	float time = timeInfo.x + timeInfo.w;
-	v_worldPosRad = worldPosRad ;//
 	
 	vec4 worldPos = vec4(1.0);
 	if (pointbeamcone == 0){
-		worldPos = v_worldPosRad.xyz + position.xyz * v_worldPosRad.w;
+		worldPos.xyz = v_worldPosRad.xyz + position.xyz * v_worldPosRad.w;
 	}
 	if (pointbeamcone == 1){
 		// we will tranform along this vector, where Y shall be the upvector
@@ -46,38 +46,33 @@ void main()
 		vec3 centertoend = v_worldPosRad.xyz - v_worldPosRad2.xyz;
 		float halfbeamlength = length(centertoend);
 		// Scale the box to correct size (along beam is X dir)
-		worldPos.xyz = position.xyz * vec3(halfbeamlength + worldposrad.w , worldposrad.w, worldposrad.w )
+		worldPos.xyz = position.xyz * vec3(halfbeamlength + worldposrad.w , worldposrad.w, worldposrad.w );
 		// TODO rotate this box
 		// Place the box in the world
 		worldPos.xyz += v_worldPosRad.xyz;
 	}
 	if (pointbeamcone == 2){ //cone that points up, (y = 1), with radius =1, bottom flat on Y=0 plane
+		// make it so that cone is at 0 and the opening points to y is up
+		worldPos.xyz = position.xyz;
+		worldPos.y = 1.0 - worldPos.y;
+		worldPos.z *= -1;
+		// now scale it
+		float conewidth = atan(worldposrad2.w);
+		worldPos.xyz *= vec3(1.0, conewidth, 1.0) * worldposrad.w;
 		
+		// ROTATE IT?
 		
-		
+		// move it to world:
+		worldPos.xyz += worldposrad.xyz;
 	}
+	v_position = worldPos;
 	gl_Position = cameraViewProj * worldPos;
 
-	#if MOTION == 1
-		v_worldPosRad += (time - spawnframe_frequency_riserate_windstrength.x) * velocity;
-	#endif
-	v_colordensity = colordensity;
-	v_spawnframe_frequency_riserate_windstrength = spawnframe_frequency_riserate_windstrength;
-	v_uvs = v_uvs;
-	vec3 worldPos = position.xyz * v_worldPosRad.w + v_worldPosRad.xyz ;
+	v_worldPosRad = worldposrad;
+	v_worldPosRad2 = worldposrad2;
+	v_lightcolor = lightcolor;
+	v_falloff_dense_scattering = falloff_dense_scattering;
+	v_otherparams = otherparams;
+	v_debug = vec4(0.0);
 	
-	gl_Position = cameraViewProj * vec4(worldPos, 1.0);
-	
-	vec3 camPos = cameraViewInv[3].xyz;
-	v_fragWorld = worldPos.xyz;
-	
-	float fadeinstart = fadeparameters.x;
-	float fadeinrate = fadeparameters.y;
-	float fadeoutstart = fadeparameters.z;
-	float fadeoutrate = fadeparameters.w;
-	#if MOTION == 1
-		currfade = clamp((time - fadeinstart) * fadeinrate, 0.0, 1.0) - clamp((time - fadeoutstart) * fadeoutrate, 0.0, 1.0);
-	#else
-		currfade = 1.0;
-	#endif
 }
