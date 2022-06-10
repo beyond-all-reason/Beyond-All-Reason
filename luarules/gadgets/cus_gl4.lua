@@ -834,7 +834,7 @@ local function initBinsAndTextures()
 				[6] = "$shadow",
 				[7] = "$reflection",
 				[8] = "$info:los",
-				[9] = brdfLUT,
+				[9] = GG.GetBrdfTexture(), --brdfLUT,
 				[10] = noisetex3dcube,
 				--[10] = envLUT,
 			}
