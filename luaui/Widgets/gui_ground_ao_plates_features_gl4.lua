@@ -16,7 +16,7 @@ local decalAlpha = 0.33
 --------------- Atlas textures ----------------
 
 local atlasID = nil
-local atlasSize = 2048
+local atlasSize = 4096
 local atlassedImages = {}
 local featureDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 4 , sizez = 4}
 -- remember, we can use xXyY = gl.GetAtlasTexture(atlasID, texture) to query the atlas
@@ -41,7 +41,7 @@ local function addDirToAtlas(atlas, path)
 				s3oname = string.sub(s3oname, 1,	string.find(s3oname, "_dead", 1 , true) + 4)
 				atlassedImages[s3oname] = files[i]
 			else
-				--Spring.Echo('Custom Feature AO plate:',s3oname)
+				Spring.Echo('Custom Feature AO plate:',s3oname, files[i])
 				atlassedImages[s3oname] = files[i]
 			end
 		end
@@ -51,7 +51,8 @@ end
 local function makeAtlas()
 	atlasID = gl.CreateTextureAtlas(atlasSize,atlasSize,0)
 	addDirToAtlas(atlasID, "unittextures/decals_features/")
-	gl.FinalizeTextureAtlas(atlasID)
+	local success = gl.FinalizeTextureAtlas(atlasID)
+	if not success then Spring.Echo("Failed to build atlas for Ground AO plates Features") end 
 end
 
 ---- GL4 Backend Stuff----
