@@ -37,21 +37,21 @@ void main()
 	float time = timeInfo.x + timeInfo.w;
 	
 	vec4 worldPos = vec4(1.0);
-	if (pointbeamcone == 0){
-		worldPos.xyz = v_worldPosRad.xyz + position.xyz * v_worldPosRad.w;
+	if (pointbeamcone == 0){ // point
+		worldPos.xyz = worldposrad.xyz + position.xyz * worldposrad.w;
 	}
-	if (pointbeamcone == 1){
+	else if (pointbeamcone == 1){ // beam
 		// we will tranform along this vector, where Y shall be the upvector
 		// our null vector is +X
-		vec3 centertoend = v_worldPosRad.xyz - v_worldPosRad2.xyz;
+		vec3 centertoend = worldposrad.xyz - worldposrad2.xyz;
 		float halfbeamlength = length(centertoend);
 		// Scale the box to correct size (along beam is X dir)
 		worldPos.xyz = position.xyz * vec3(halfbeamlength + worldposrad.w , worldposrad.w, worldposrad.w );
 		// TODO rotate this box
 		// Place the box in the world
-		worldPos.xyz += v_worldPosRad.xyz;
+		worldPos.xyz += worldposrad.xyz;
 	}
-	if (pointbeamcone == 2){ //cone that points up, (y = 1), with radius =1, bottom flat on Y=0 plane
+	else if (pointbeamcone == 2){ //cone that points up, (y = 1), with radius =1, bottom flat on Y=0 plane
 		// make it so that cone is at 0 and the opening points to y is up
 		worldPos.xyz = position.xyz;
 		worldPos.y = 1.0 - worldPos.y;

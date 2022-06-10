@@ -472,7 +472,7 @@ local function AddConeLight(px,py,pz,height, dx, dy, dz, angle)
 	lightCacheTable[6] = dy
 	lightCacheTable[7] = dz
 	lightCacheTable[8] = angle
-	return pushElementInstance(beamLightVBO, lightCacheTable)
+	return pushElementInstance(coneLightVBO, lightCacheTable)
 end
 
 function AddRandomLight(which)
@@ -651,7 +651,7 @@ function widget:Update()
 end
 
 -- adding a glow to Cannon projectiles
-function widget:DrawWorld()
+--function widget:DrawWorld()
 	--[[
 	local lights = pointLights
 	gl.DepthMask(false)
@@ -677,10 +677,11 @@ function widget:DrawWorld()
 	gl.DepthMask(true)
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	]]--
-end
+--end
 
 function widget:DrawWorld() -- We are drawing in world space, probably a bad idea but hey
 	--glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
+	deferredLightShader = checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4") or deferredLightShader
 	if pointLightVBO.usedElements > 0 or beamLightVBO.usedElements > 0 or coneLightVBO.usedElements > 0 then 
 		
 		glBlending(GL.SRC_ALPHA, GL.ONE)
