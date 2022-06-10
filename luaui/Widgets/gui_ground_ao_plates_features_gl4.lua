@@ -41,7 +41,7 @@ local function addDirToAtlas(atlas, path)
 				s3oname = string.sub(s3oname, 1,	string.find(s3oname, "_dead", 1 , true) + 4)
 				atlassedImages[s3oname] = files[i]
 			else
-				Spring.Echo('Custom Feature AO plate:',s3oname, files[i])
+				--Spring.Echo('Custom Feature AO plate:',s3oname, files[i])
 				atlassedImages[s3oname] = files[i]
 			end
 		end
