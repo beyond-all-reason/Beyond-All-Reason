@@ -192,7 +192,7 @@ vec2 heighmapUVatWorldPos(vec2 worldpos){
 	uvhm = uvhm	* inverseMapSize;
 	return uvhm;
 }
-
+/*
 vec3 hsv2rgb(vec3 c){
 	vec4 K=vec4(1.,2./3.,1./3.,3.);
 	return c.z*mix(K.xxx,saturate(abs(fract(c.x+K.xyz)*6.-K.w)-K.x),c.y);
@@ -206,6 +206,7 @@ vec3 rgb2hsv(vec3 c){
 	float e=1e-10;
 	return vec3(abs(q.z+(q.w-q.y)/(6.*d+e)),d/(q.x+e),q.x);
 }
+*/
 
 ]]
 
