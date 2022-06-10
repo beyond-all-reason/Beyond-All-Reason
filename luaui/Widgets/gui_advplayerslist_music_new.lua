@@ -43,7 +43,7 @@ local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter,
 local fadeOutFastCurrentTrack = false
 local fadeOutSlowCurrentTrack = false
 local fadeInSlowCurrentTrack = false
-
+local fadeOutSkipTrack = false
 local interruptionEnabled
 local silenceTimerEnabled
 local deviceLostSafetyCheck = 0
@@ -645,9 +645,15 @@ local function fadeOutFastTrack()
 	Spring.SetSoundStreamVolume(volumefadelevel)
 
 	if fadelevel <= 0 then
-		silenceTimer = 0
-		fadeOutFastCurrentTrack = false
-		PlayNewTrack()
+		if fadeOutSkipTrack then
+			fadeOutSkipTrack = false
+			fadeOutFastCurrentTrack = false
+			silenceTimer = 0
+			PlayNewTrack()
+		else
+			fadeOutFastCurrentTrack = false
+			Spring.StopSoundStream()
+		end
 	end
 end
 
@@ -657,9 +663,15 @@ local function fadeOutSlowTrack()
 	Spring.SetSoundStreamVolume(volumefadelevel)
 
 	if fadelevel <= 0 then
-		silenceTimer = 0
-		fadeOutSlowCurrentTrack = false
-		PlayNewTrack()
+		if fadeOutSkipTrack then
+			fadeOutSkipTrack = false
+			fadeOutSlowCurrentTrack = false
+			silenceTimer = 0
+			PlayNewTrack()
+		else
+			fadeOutSlowCurrentTrack = false
+			Spring.StopSoundStream()
+		end
 	end
 end
 
@@ -787,6 +799,7 @@ function widget:GameFrame(n)
 
 	if gameOver and not playedGameOverTrack then
 		fadeOutFastCurrentTrack = true
+		fadeOutSkipTrack = true
 	end
 
 	if n%30 == 15 then
@@ -827,6 +840,7 @@ function widget:GameFrame(n)
 					or (( (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.2 ) and interruptionEnabled) -- War music is playing, but it has been quite peaceful recently. Let's switch to peace music at 20% of WarLow threshold
 					or (totalTime < playedTime+11.1) then
 						fadeOutSlowCurrentTrack = true
+						fadeOutSkipTrack = true
 					end
 				end
 			elseif totalTime == 0 then -- there's no music
