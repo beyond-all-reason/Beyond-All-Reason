@@ -61,7 +61,7 @@ local vsSrc =  [[
 
 #line 5000
 
-layout (location = 0) in vec3 position; // l w rot and maxalpha
+layout (location = 0) in vec4 position; // l w rot and maxalpha
 layout (location = 1) in vec3 normals;
 layout (location = 2) in vec2 uvs;
 
@@ -99,7 +99,7 @@ void main()
 	v_uvs = v_uvs;
 	//v_worldPosRad.xzw = v_worldPosRad.xzw * sin(vec3(1.1, 1.2, 1.3) * timeInfo.x * 0.1);
 	
-	vec3 worldPos = position * v_worldPosRad.w + v_worldPosRad.xyz;
+	vec3 worldPos = position.xyz * v_worldPosRad.w + v_worldPosRad.xyz;
 	
 	gl_Position = cameraViewProj * vec4(worldPos, 1.0);
 	

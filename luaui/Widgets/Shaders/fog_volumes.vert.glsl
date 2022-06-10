@@ -6,7 +6,7 @@
 // This shader is (c) Beherith (mysterme@gmail.com)
 #line 5000
 
-layout (location = 0) in vec3 position; // l w rot and maxalpha
+layout (location = 0) in vec4 position; // l w rot and maxalpha
 layout (location = 1) in vec3 normals;
 layout (location = 2) in vec2 uvs;
 
@@ -40,7 +40,7 @@ void main()
 	v_colordensity = colordensity;
 	v_spawnframe_frequency_riserate_windstrength = spawnframe_frequency_riserate_windstrength;
 	v_uvs = v_uvs;
-	vec3 worldPos = position * v_worldPosRad.w + v_worldPosRad.xyz ;
+	vec3 worldPos = position.xyz * v_worldPosRad.w + v_worldPosRad.xyz ;
 	
 	gl_Position = cameraViewProj * vec4(worldPos, 1.0);
 	
