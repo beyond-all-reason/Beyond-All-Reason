@@ -90,7 +90,7 @@ if gadgetHandler:IsSyncedCode() then
 	local lastTeamID = 0
 	local nextSquadSize = 0
 	local chickenCount = 0
-	local t = 0 -- game time in seconds
+	local t = 0 -- game time in secondstarget
 	local timeCounter = 0
 	local queenAnger = 0
 	local queenMaxHP = 0
@@ -243,6 +243,33 @@ if gadgetHandler:IsSyncedCode() then
 		local y = GetGroundHeight(x, z)
 		return { x, y, z }
 	end
+
+	local function getRandomEnemyPos()
+		local loops = 0
+		local targetCount = SetCount(squadPotentialTarget)
+		repeat
+			loops = loops + 1
+			for target in pairs(squadPotentialTarget) do
+				if math.random(1,targetCount) == 1 then
+					if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+						local x,y,z = Spring.GetUnitPosition(target)
+						if y >= 0 then
+							pos = {x = x+math.random(-32,32), y = y, z = z+math.random(-32,32)}
+							break
+						end
+					end
+				end
+			end
+
+		until pos or loops >= 10
+		
+		if not pos then
+			pos = getRandomMapPos()
+		end
+
+		return {pos.x, pos.y, pos.z}
+	end
+
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
@@ -540,14 +567,14 @@ if gadgetHandler:IsSyncedCode() then
 						elseif role == "raid" then
 							Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+math.random(-128, 128), targety, targetz+math.random(-128, 128)} , {})
 						elseif role == "aircraft" or role == "kamikaze" then
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomMapPos() , {"shift"})
+							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {})
+							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
+							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
+							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
+							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
+							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
+							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
+							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
 						end
 					end
 				end
@@ -587,7 +614,7 @@ if gadgetHandler:IsSyncedCode() then
 		until pos or loops >= 10
 		
 		if not pos then
-			pos = getRandomMapPos()
+			pos = getRandomEnemyPos()
 		end
 
 		squadsTable[squadID].target = pos
@@ -1597,7 +1624,7 @@ if gadgetHandler:IsSyncedCode() then
 							refreshSquad(squadID)
 						end
 					else
-						Spring.GiveOrderToUnit(chickens[i], CMD.FIGHT, getRandomMapPos(), {})
+						Spring.GiveOrderToUnit(chickens[i], CMD.FIGHT, getRandomEnemyPos(), {})
 					end
 				end
 			end
