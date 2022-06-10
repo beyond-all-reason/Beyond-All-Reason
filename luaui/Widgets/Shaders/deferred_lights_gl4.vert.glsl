@@ -61,6 +61,26 @@ void main()
 		worldPos.xyz *= vec3(1.0, conewidth, 1.0) * worldposrad.w;
 		
 		// ROTATE IT?
+		// it is pointing up (0,1,0), should point to worldposrad2.xyz
+		vec3 rotv = cross(vec3(0, 1,0), worldposrad2.xyz);
+		mat3 rotmat = mat3(
+			vec3(0,1,0),
+			vec3(1,0,0),
+			vec3(0,0,1)
+		);
+		
+		
+		//https://stackoverflow.com/questions/13199126/find-opengl-rotation-matrix-for-a-plane-given-the-normal-vector-after-the-rotat
+		vec3 old = vec3(0,1,0);
+		vec3 newy = worldposrad2.xyz;
+		vec3 newz = cross(old, newy);
+		vec3 newx = cross(newy, newz);
+		
+		rotmat = mat3(
+			newy, newx,newz
+		);
+		
+		worldPos.xyz = rotmat * worldPos.xyz;
 		
 		// move it to world:
 		worldPos.xyz += worldposrad.xyz;

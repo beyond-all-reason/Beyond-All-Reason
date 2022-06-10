@@ -489,9 +489,9 @@ function AddRandomLight(which)
 		local u =  (math.random() - 0.5) * 200
 		AddBeamLight(posx, posy, posz, radius, posx + s, posy + t, posz + u)
 	else -- cone
-		local s =  (math.random() - 0.5) * 2
+		local s =  (math.random() - 0.5) * 0.02
 		local t =  (math.random() - 0.5) * 2
-		local u =  (math.random() - 0.5) * 2
+		local u =  (math.random() - 0.5) * 0.02
 		local lenstu = 1.0 / math.sqrt(s*s + t*t + u*u)
 		local theta = math.random() * 1.8
 		AddConeLight(posx, posy, posz, radius, s * lenstu, t * lenstu, u * lenstu, theta)
@@ -700,11 +700,11 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		
 		if pointLightVBO.usedElements > 0 then
 			deferredLightShader:SetUniformInt("pointbeamcone", 0)
-			pointLightVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, pointLightVBO.usedElements, 0)
+			--pointLightVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, pointLightVBO.usedElements, 0)
 		end
 		if beamLightVBO.usedElements > 0 then
 			deferredLightShader:SetUniformInt("pointbeamcone", 1)
-			beamLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, beamLightVBO.usedElements, 0)
+			--beamLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, beamLightVBO.usedElements, 0)
 		end
 		if coneLightVBO.usedElements > 0 then
 			deferredLightShader:SetUniformInt("pointbeamcone", 2)
