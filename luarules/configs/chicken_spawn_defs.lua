@@ -263,7 +263,7 @@ addSquad(4, { "4 chickenp1" , "1 chickenp2"													}) -- Small Pyros with m
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Tier5
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-addSquad(5, { "10 chickenw1", "10 chickenw1b", "10 chickenw1c", "10 chickenw1d" 			}) -- Fighter
+addSquad(5, { "5 chickenw1", "5 chickenw1b", "5 chickenw1c", "5 chickenw1d" 			}) -- Fighter
 
 addSquad(5, { "5 chickenf1",																}) -- Bomber
 addSquad(5, { "5 chickenf1b", 																}) -- Bomber
@@ -334,8 +334,7 @@ addSquad(9, { "5 chickena2b", "5 chickena2" 												}) -- Apex Brawler
 
 addSquad(9, { "1 chickenr2", "3 chickenr1" 													}) -- Meteor Artillery
 
-addSquad(9, { "20 chickenw2" 																}) -- Apex Fighter
-addSquad(9, { "30 chickenw2" 																}) -- Apex Fighter
+addSquad(9, { "10 chickenw2" 																}) -- Apex Fighter
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Tier10
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -351,8 +350,8 @@ addSquad(10, { "5 chickena2b", "5 chickena2" 												}) -- Apex Brawler
 
 addSquad(10, { "1 chickenr2", "3 chickenr1" 												}) -- Meteor Artillery
 
-addSquad(10, { "40 chickenw2" 																}) -- Apex Fighter
-addSquad(10, { "50 chickenw2" 																}) -- Apex Fighter
+addSquad(10, { "20 chickenw2" 																}) -- Apex Fighter
+
 
 addSquad(10, { "5 chickenh2" 																}) -- Apex Brood Mother
 addSquad(10, { "10 chickenh3" 																}) -- Brood Mother
