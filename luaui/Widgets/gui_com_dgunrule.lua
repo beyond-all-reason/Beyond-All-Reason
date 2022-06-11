@@ -12,7 +12,6 @@ end
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spIsUnitVisible = Spring.IsUnitVisible
 local spIsUnitIcon = Spring.IsUnitIcon
@@ -27,7 +26,6 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
-local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local nearbyEnemyComs = {}
 local prevNearbyEnemyComs = {}
@@ -163,6 +161,10 @@ local function countComs()
 end
 
 function widget:Initialize()
+	if Spring.GetModOptions().deathmode ~= "com" and Spring.GetModOptions().deathmode ~= "own_com" then
+		widgetHandler:RemoveWidget()
+		return
+	end
 	countComs()
 end
 
