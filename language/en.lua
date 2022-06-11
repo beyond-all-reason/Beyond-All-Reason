@@ -437,6 +437,8 @@ return {
 			idlebuilders_descr = 'Displays a row of idle builder units at the bottom of the screen',
 			buildbar = 'Factory dock',
 			buildbar_descr = 'Displays a column of factories at the right side of the screen\nhover and click units to quickly add to the factory queue',
+			dgunrulereminder = 'Dgun rule reminder',
+			dgunrulereminder_descr = 'Displays a tooltip at enemy commander to remind you not to dgun it\n...when last your commander is near it and dgun targeting is active',
 			teamplatter = 'Unit team platters',
 			teamplatter_descr = 'Shows a team color platter above all visible units',
 			teamplatter_opacity = 'opacity',

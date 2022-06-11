@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local maxOccurrenceCount = 6	-- removing widget when it has displayed the tooltip this many times
+
 local vsx, vsy = Spring.GetViewGeometry()
 
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -29,6 +31,9 @@ local myPlayerID = Spring.GetMyPlayerID()
 
 local nearbyEnemyComs = {}
 local prevNearbyEnemyComs = {}
+
+local occurrenceCount = 0
+local occurred = false
 
 local allyComs = 0
 local enemyComs = 0 -- if we are counting ourselves because we are a spec
@@ -79,29 +84,34 @@ function widget:Update(dt)
 				-- see if there are commanders near mouse cursor position
 				local mx, my = Spring.GetMouseState()
 				local mouseTargetType, mouseTarget = Spring.TraceScreenRay(mx, my)
-				local x,y,z
-				if mouseTargetType == 'unit' then
-					x,y,z = spGetUnitPosition(mouseTarget)
-				elseif mouseTargetType == 'feature' then
-					x,y,z = Spring.GetFeaturePosition(mouseTarget)
-				else
-					x,y,z = mouseTarget[1], mouseTarget[2], mouseTarget[3]
-				end
-				-- check for nearby enemy commanders
-				local units = spGetUnitsInSphere(x,y,z, 300)
-				local nearbySelectedCom = false
-				for i, unitID in pairs(units) do
-					if isCommander[spGetUnitDefID(unitID)] then
-						if spGetUnitAllyTeam(unitID) == myAllyTeamID then
-							nearbySelectedCom = true
-						else
-							nearbyEnemyComs[unitID] = true
+				if mouseTargetType then
+					local x,y,z
+					if mouseTargetType == 'unit' then
+						x,y,z = spGetUnitPosition(mouseTarget)
+					elseif mouseTargetType == 'feature' then
+						x,y,z = Spring.GetFeaturePosition(mouseTarget)
+					else
+						x,y,z = mouseTarget[1], mouseTarget[2], mouseTarget[3]
+					end
+					-- check for nearby enemy commanders
+					local units = spGetUnitsInSphere(x,y,z, 270)
+					local nearbySelectedCom = false
+					for i, unitID in pairs(units) do
+						if isCommander[spGetUnitDefID(unitID)] then
+							if spGetUnitAllyTeam(unitID) == myAllyTeamID then
+								nearbySelectedCom = true
+							else
+								nearbyEnemyComs[unitID] = true
+							end
 						end
 					end
-				end
 
-				if not nearbySelectedCom then
-					nearbyEnemyComs = {}
+					if not nearbySelectedCom then
+						nearbyEnemyComs = {}
+					elseif not occurred then
+						occurred = true
+						occurrenceCount = occurrenceCount + 1
+					end
 				end
 			end
 		end
@@ -129,7 +139,7 @@ function widget:DrawWorld()
 				local ux, uy, uz = spGetUnitPosition(unitID)
 				local camX, camY, camZ = Spring.GetCameraPosition()
 				local camDistance = math.diag(camX - ux, camY - uy, camZ - uz)
-				if camDistance < 3300 then
+				if camDistance < 3000 then
 					local x, y = Spring.WorldToScreenCoords(ux, uy+140, uz)
 					WG['tooltip'].ShowTooltip('dgunrule'..unitID, Spring.I18N('ui.dgunrule.enemycom'), x, y)
 				end
@@ -229,5 +239,28 @@ end
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	if isCommander[unitDefID] then
 		countComs()
+	end
+end
+
+function widget:GetConfigData()
+	return {
+		occurrenceCount = occurrenceCount,
+		occurred = occurred,
+	}
+end
+
+function widget:SetConfigData(data)
+	if data.occurrenceCount ~= nil then
+		occurrenceCount = data.occurrenceCount
+		if occurrenceCount > maxOccurrenceCount then
+			Spring.Echo("Dgun Rule Reminder: shutting down.... displayed tooltip enough ("..maxOccurrenceCount.." times)")
+			widgetHandler:RemoveWidget()
+			return
+		end
+	end
+	if Spring.GetGameFrame() > 0 then
+		if data.occurred ~= nil then
+			occurred = data.occurred
+		end
 	end
 end
