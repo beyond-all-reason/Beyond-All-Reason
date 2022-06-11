@@ -108,11 +108,12 @@ function widget:DrawScreen()
 	glTranslate((vsx * 0.5), (vsy * 0.19), 0) --has to be below where newbie info appears!
 	glScale(1.5, 1.5, 1)
 	font:Begin()
-	font:Print(msg, 0, 50 * widgetScale, 17.5 * widgetScale, "oc")
+	font:Print(msg, 0, 60 * widgetScale, 17.5 * widgetScale, "oc")
 	font:Print(msg2, 0, -35 * widgetScale, 13 * widgetScale, "oc")
-	font:Print(msg3, 0, 90 * widgetScale, 17.5 * widgetScale, "oc")
+	font:Print(msg3, 0, 100 * widgetScale, 17.5 * widgetScale, "oc")
 	if Spring.GetModOptions().deathmode == "com" or Spring.GetModOptions().deathmode == "own_com" then
-		font:Print("\255\255\150\150" ..Spring.I18N('ui.dgunrule.enemycom'), 0, 30 * widgetScale, 13 * widgetScale, "oc")
+		font:Print("\255\255\150\150" ..Spring.I18N('ui.gametypeInfo.dgunrule'), 0, 40 * widgetScale, 13 * widgetScale, "oc")
+		font:Print("\255\255\140\140" ..Spring.I18N('ui.gametypeInfo.dgunruleExplanation'), 0, 25 * widgetScale, 13 * widgetScale, "oc")
 	end
 	font:End()
 	glPopMatrix()

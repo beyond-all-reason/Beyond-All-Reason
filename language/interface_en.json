@@ -110,7 +110,7 @@
 				"tooltip": "Team metal/energy income\n(Lighter portion is income from reclaiming)"
 			},
 			"dgunrule": {
-				"enemycom": "D-Gun enemy commander with your teams last commander results in losing the game"
+				"enemycom": "Reminder: Dgun enemy = you lose\n(with you having last commander)"
 			},
 			"mapinfo": {
 				"author": "Author"
@@ -480,7 +480,9 @@
 				"killAllCommanders": "Kill all enemy Commanders",
 				"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
 				"unbalancedCommanders": "Unbalanced Commanders is enabled: Commander levels up and gains upgrades",
-				"victoryCondition": "Victory condition"
+				"victoryCondition": "Victory condition",
+				"dgunrule": "When you have only 1 commander left: D-Gunning an enemy commander results in you losing.",
+				"dgunruleExplanation": "(this rule was invented to prevent a cheap win/draw)"
 			},
 			"startSpot": {
 				"startbox": "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)",

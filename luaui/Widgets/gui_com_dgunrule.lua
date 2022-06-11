@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local maxOccurrenceCount = 6	-- removing widget when it has displayed the tooltip this many times
+local maxOccurrenceCount = 4	-- removing widget when it has displayed the tooltip this many times
 
 local vsx, vsy = Spring.GetViewGeometry()
 
