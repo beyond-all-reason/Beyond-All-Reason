@@ -269,7 +269,7 @@ addSquad(5, { "5 chickenf1",																}) -- Bomber
 addSquad(5, { "5 chickenf1b", 																}) -- Bomber
 addSquad(5, { "5 chickenf1", "5 chickenf1b" 												}) -- Bomber
 
-addSquad(5, { "10 chickenebomber1" 															}) -- EMP Bomber
+addSquad(5, { "5 chickenebomber1" 															}) -- EMP Bomber
 
 addSquad(5, { "10 chickenacidswarmer" 														}) -- Acid Swarmer
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
