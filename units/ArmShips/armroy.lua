@@ -150,7 +150,7 @@ return {
 				},
 			},
 			plasma = {
-				areaofeffect = 32,
+				areaofeffect = 48,
 				avoidfeature = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
