@@ -29,13 +29,9 @@ local widgetScale = 0.80 + (vsx * vsy / 6000000)
 
 local glPopMatrix = gl.PopMatrix
 local glPushMatrix = gl.PushMatrix
-local glRotate = gl.Rotate
 local glScale = gl.Scale
-local glText = gl.Text
 local glTranslate = gl.Translate
 local spGetGameSeconds = Spring.GetGameSeconds
-
-local floor = math.floor
 
 local message = ""
 local message2 = ""
@@ -112,9 +108,12 @@ function widget:DrawScreen()
 	glTranslate((vsx * 0.5), (vsy * 0.19), 0) --has to be below where newbie info appears!
 	glScale(1.5, 1.5, 1)
 	font:Begin()
-	font:Print(msg, 0, 15 * widgetScale, 17.5 * widgetScale, "oc")
-	font:Print(msg2, 0, -35 * widgetScale, 12.5 * widgetScale, "oc")
-	font:Print(msg3, 0, 60 * widgetScale, 17.5 * widgetScale, "oc")
+	font:Print(msg, 0, 50 * widgetScale, 17.5 * widgetScale, "oc")
+	font:Print(msg2, 0, -35 * widgetScale, 13 * widgetScale, "oc")
+	font:Print(msg3, 0, 90 * widgetScale, 17.5 * widgetScale, "oc")
+	if Spring.GetModOptions().deathmode == "com" or Spring.GetModOptions().deathmode == "own_com" then
+		font:Print("\255\255\150\150" ..Spring.I18N('ui.dgunrule.enemycom'), 0, 30 * widgetScale, 13 * widgetScale, "oc")
+	end
 	font:End()
 	glPopMatrix()
 end

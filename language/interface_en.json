@@ -110,7 +110,7 @@
 				"tooltip": "Team metal/energy income\n(Lighter portion is income from reclaiming)"
 			},
 			"dgunrule": {
-				"enemycom": "D-Gun enemy commander with your last commander results in losing the game"
+				"enemycom": "D-Gun enemy commander with your teams last commander results in losing the game"
 			},
 			"mapinfo": {
 				"author": "Author"
