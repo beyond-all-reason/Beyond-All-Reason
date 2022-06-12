@@ -696,6 +696,7 @@ function PlayNewTrack(paused)
 	
 	fadeOutFastCurrentTrack = false
 	fadeOutSlowCurrentTrack = false
+	fadeOutSkipTrack = false
 	if (not gameOver) and Spring.GetGameFrame() > 1 then
 		fadelevel = 0
 		fadeInSlowCurrentTrack = true
