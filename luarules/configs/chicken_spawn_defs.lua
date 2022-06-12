@@ -265,9 +265,11 @@ addSquad(4, { "4 chickenp1" , "1 chickenp2"													}) -- Small Pyros with m
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 addSquad(5, { "10 chickenw1", "10 chickenw1b", "10 chickenw1c", "10 chickenw1d" 			}) -- Fighter
 
-addSquad(5, { "10 chickenf1", "10 chickenf1b" 												}) -- Bomber
+addSquad(5, { "5 chickenf1",																}) -- Bomber
+addSquad(5, { "5 chickenf1b", 																}) -- Bomber
+addSquad(5, { "5 chickenf1", "5 chickenf1b" 												}) -- Bomber
 
-addSquad(5, { "20 chickenebomber1" 															}) -- EMP Bomber
+addSquad(5, { "10 chickenebomber1" 															}) -- EMP Bomber
 
 addSquad(5, { "10 chickenacidswarmer" 														}) -- Acid Swarmer
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -330,7 +332,7 @@ addSquad(9, { "3 chickena2b" 																}) -- Apex Brawler
 addSquad(9, { "5 chickena2", "5 chickena2b"													}) -- Apex Brawler
 addSquad(9, { "5 chickena2b", "5 chickena2" 												}) -- Apex Brawler
 
-addSquad(9, { "5 chickenr2", "10 chickenr1" 												}) -- Meteor Artillery
+addSquad(9, { "1 chickenr2", "3 chickenr1" 													}) -- Meteor Artillery
 
 addSquad(9, { "20 chickenw2" 																}) -- Apex Fighter
 addSquad(9, { "30 chickenw2" 																}) -- Apex Fighter
@@ -347,7 +349,7 @@ addSquad(10, { "3 chickena2b" 																}) -- Apex Brawler
 addSquad(10, { "5 chickena2", "5 chickena2b"												}) -- Apex Brawler
 addSquad(10, { "5 chickena2b", "5 chickena2" 												}) -- Apex Brawler
 
-addSquad(10, { "5 chickenr2", "10 chickenr1" 												}) -- Meteor Artillery
+addSquad(10, { "1 chickenr2", "3 chickenr1" 												}) -- Meteor Artillery
 
 addSquad(10, { "40 chickenw2" 																}) -- Apex Fighter
 addSquad(10, { "50 chickenw2" 																}) -- Apex Fighter
@@ -386,6 +388,40 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Additional system for keeping minimum number of specific raptors.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+local ChickenMinTable = { -- {minimum queen anger, unitname, mincount, spawncount} -- spawncount = x*((playercount*0.5)+0.5)
+	-- EMP
+	{25, 	"chickene1", 				1, 		3},
+	{45, 	"chickenebomber1", 			1, 		2},
+	{65, 	"chickene2", 				1, 		2},
+	
+	-- Acid
+	{55, 	"chickenacidswarmer", 		1, 		3},
+	{76, 	"chickenacidbomber", 		1, 		2},
+	{72, 	"chickenacidassault", 		1, 		2},
+	
+	-- Fighters
+	{42, 	"chickenw1", 				1, 		1},
+	{44, 	"chickenw1b", 				1, 		1},
+	{46, 	"chickenw1c", 				1, 		1},
+	{48, 	"chickenw1d", 				1, 		1},
+	{85, 	"chickenw2", 				1, 		2},
+
+	-- Bombers		
+	{44, 	"chickenf1", 				1, 		2},
+	{48, 	"chickenf1b", 				1, 		2},
+
+	-- Artillery
+	{52, 	"chickenr1", 				1, 		1},
+	{62, 	"chickenearty1", 			1, 		1},
+	{72, 	"chickenacidarty", 			1, 		1},
+	{82, 	"chickenr2", 				1, 		1},
+}
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 local config = {
 	difficulty             = difficulty,
@@ -407,6 +443,7 @@ local config = {
 	defenders              = table.copy(defenders),
 	waves                  = waves,
 	difficultyParameters   = optionValues,
+	chickenMinTable        = ChickenMinTable,
 }
 
 for key, value in pairs(optionValues[difficulty]) do

@@ -62,7 +62,8 @@ local function ReloadMusicPlaylists()
 	-- Old Soundtrack List
 	local musicDirOld 			= 'music/legacy'
 	local peaceTracksOld 			= VFS.DirList(musicDirOld..'/peace', '*.ogg')
-	local warTracksOld 				= VFS.DirList(musicDirOld..'/war', '*.ogg')
+	local warhighTracksOld 			= VFS.DirList(musicDirOld..'/warhigh', '*.ogg')
+	local warlowTracksOld 			= VFS.DirList(musicDirOld..'/warlow', '*.ogg')
 
 	-- Custom Soundtrack List
 	local musicDirCustom 		= 'music/custom'
@@ -97,8 +98,8 @@ local function ReloadMusicPlaylists()
 
 	if oldSoundtrackEnabled then
 		table.mergeInPlace(peaceTracks, peaceTracksOld)
-		table.mergeInPlace(warhighTracks, warTracksOld)
-		table.mergeInPlace(warlowTracks, warTracksOld)
+		table.mergeInPlace(warhighTracks, warhighTracksOld)
+		table.mergeInPlace(warlowTracks, warlowTracksOld)
 	end
 
 	if customSoundtrackEnabled then
