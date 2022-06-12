@@ -835,11 +835,12 @@ function widget:GameFrame(n)
 			if playedTime > 0 and totalTime > 0 then -- music is playing
 				if (not fadeOutFastCurrentTrack) and (not fadeInSlowCurrentTrack) and (not fadeOutSlowCurrentTrack) then
 					Spring.SetSoundStreamVolume(musicVolume)
-					if (currentTrackListString == "intro" and n > 30)
+					if (totalTime < playedTime+11.1) then
+						fadeOutSlowCurrentTrack = true
+					elseif (currentTrackListString == "intro" and n > 30)
 					or ((currentTrackListString == "peace" and warMeter > warHighLevel * 0.8) and interruptionEnabled) -- Peace in battle times, let's play some WarLow music at 80% of WarHigh threshold
 					or ((currentTrackListString == "warLow" and warMeter > warHighLevel * 3) and interruptionEnabled) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at tripple of WarHigh threshold
-					or (( (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.2 ) and interruptionEnabled) -- War music is playing, but it has been quite peaceful recently. Let's switch to peace music at 20% of WarLow threshold
-					or (totalTime < playedTime+11.1) then
+					or (( (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.2 ) and interruptionEnabled) then -- War music is playing, but it has been quite peaceful recently. Let's switch to peace music at 20% of WarLow threshold 
 						fadeOutSlowCurrentTrack = true
 						fadeOutSkipTrack = true
 					end
