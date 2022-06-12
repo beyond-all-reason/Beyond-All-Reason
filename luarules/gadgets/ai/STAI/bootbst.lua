@@ -116,9 +116,7 @@ end
 function BootBST:SetMoveState()
 	local thisUnit = self.unit
 	if thisUnit then
-		local floats = api.vectorFloat()
-		floats:push_back(MOVESTATE_HOLDPOS)
-		thisUnit:Internal():ExecuteCustomCommand(CMD_MOVE_STATE, floats)
+		thisUnit:Internal():HoldPosition()
 	end
 end
 

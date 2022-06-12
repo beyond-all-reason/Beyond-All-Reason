@@ -178,17 +178,13 @@ function AttackerBST:SetMoveState()
 	local thisUnit = self.unit
 	if thisUnit then
 		local unitName = self.name
-		--local floats = api.vectorFloat()
 		if self.ai.armyhst.battles[unitName] then
 			thisUnit:Internal():HoldPosition()
-			--floats:push_back(MOVESTATE_MANEUVER)
 		elseif self.ai.armyhst.breaks[unitName] then
 			thisUnit:Internal():HoldPosition()
-			--floats:push_back(MOVESTATE_MANEUVER)
 		else
 			thisUnit:Internal():HoldPosition()
-			--floats:push_back(MOVESTATE_HOLDPOS)
 		end
-		--thisUnit:Internal():ExecuteCustomCommand(CMD_MOVE_STATE, floats)
+
 	end
 end

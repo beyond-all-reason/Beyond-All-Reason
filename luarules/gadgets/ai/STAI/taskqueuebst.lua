@@ -28,7 +28,7 @@ local function MaxBuildDist(unitName, speed)
 end
 
 function TaskQueueBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.visualdbg = true
 	self.role = nil
 	self.active = false
@@ -429,6 +429,7 @@ function TaskQueueBST:GetQueue()
 end
 
 function TaskQueueBST:ProgressQueue()
+
 	self:EchoDebug(self.name," progress queue",self.role,self.idx,#self.queue)
 	self.lastWatchdogCheck = self.game:Frame()
 	self.constructing = false
@@ -503,9 +504,21 @@ function TaskQueueBST:ProgressQueue()
 					success = self.ai.tool:CustomCommand(self.unit:Internal(), CMD_RECLAIM, {jobName[2].unitID}) --TODO redo with shardify one
 					jobName = jobName[1]
 				else
+					self:EchoDebug("TRY TO BUILD", jobName, 'at',p.x,p.z)
 					self.ai.buildsitehst:NewPlan(jobName, p, self)
 					local facing = self.ai.buildsitehst:GetFacing(p)
-					success = self.unit:Internal():Build(utype, p, facing)
+					self:EchoDebug('facing',facing)
+					print( gadgetHandler:IsSyncedCode())
+					local command = self.unit:Internal():Build(jobName, p, facing)
+					success = true
+					--success = Spring.GetUnitCommands ( self.id, 0 ) > 0
+-- 					if Spring.GetUnitCommands ( self.id, 0 )  then
+-- 						print(Spring.GetUnitCommands ( self.id, 0 ))
+-- 					end
+-- 					if Spring.GetUnitCommands ( self.id, 0 ) > 0 then return end
+					--local topQueue = Spring.GetFactoryCommands(self.id,1)[1]
+
+					print('success' , success)
 				end
 			end
 			if success then
