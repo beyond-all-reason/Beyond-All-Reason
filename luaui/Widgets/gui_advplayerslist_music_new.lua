@@ -16,14 +16,14 @@ math.randomseed( os.clock() )
 -----------------------------------
 local minSilenceTime = 10
 local maxSilenceTime = 120
-local warLowLevel = 1000
-local warHighLevel = 20000
+local warLowLevel = 1500
+local warHighLevel = 30000
 
 local specMultiplier = #Spring.GetAllyTeamList() - 1
 
 local function applySpectatorThresholds()
-	warLowLevel = 1000*specMultiplier
-	warHighLevel = 20000*specMultiplier
+	warLowLevel = 1500*specMultiplier
+	warHighLevel = 30000*specMultiplier
 	appliedSpectatorThresholds = true
 	--Spring.Echo("[Music Player] Spectator mode enabled")
 end
