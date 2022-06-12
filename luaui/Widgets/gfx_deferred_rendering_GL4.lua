@@ -127,10 +127,46 @@ widget:ViewResize()
 -- A sphere light should be an icosahedrong
 -- A cone light should be a cone
 -- A beam light should be a cylinder
+-- all prims should be back-face only rendered!
 
 
 -- Separate VBO's for spheres, cones, beams
--- no geometry shader for now, its kinda pointless
+-- no geometry shader for now, its kinda pointless, might change my mind later
+
+-- Sources of light
+-- Projectiles
+	-- beamlasers
+		-- might get away with not updating their pos each frame?
+		-- probably not, due to continuous lasers like beamer turret
+	-- lightning
+		-- these move too?
+	-- plasma balls
+		-- these are actually easy to sim, but might not be worth it
+	-- missiles
+		-- unsimable, must be queried
+	-- rockets
+		-- hard to sim
+	-- gibs
+		-- hard to sim
+-- Explosions
+	-- actually spawn once, reasonably easy (separate vbotable for them?) 
+	-- always spherical, should be able to override a param with them
+	-- 
+-- mapdefined lights
+	-- animating them might be a challenge
+-- headlights
+	-- would rock, needs their own vbo for position maybe?
+	-- or just extend
+-- piecelights
+	-- for thrusters, would be truly epic!
+	-- fusion lights
+
+-- would be nice to have:
+	-- full map-level dense atmosphere
+	-- explosions should kick up dust
+	-- simulate wind and other movements
+	-- at a rez of 32 elmos, dsd would need:
+	-- 256*256*16 voxels (1 million?) yeesh
 
 local shaderConfig = {
 	TRANSPARENCY = 0.2, 
@@ -193,15 +229,15 @@ local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, d
 				fragment = fsSrcNew,
 				geometry = gsSrcNew,
 				uniformInt = {
-					mapdepths = 0,
-					modeldepths = 1,
-					mapnormals = 2,
-					mapnormals = 3,
-					modelextra = 4,
-					mapextra = 5, 
-					pointbeamcone = 100,
+					mapDepths = 0,
+					modelDepths = 1,
+					mapNormals = 2,
+					modelNormals = 3,
+					mapExtra = 4, 
+					modelExtra = 5,
 					},
 				uniformFloat = {
+					pointbeamcone = 0,
 					fadeDistance = 3000,
 				  },
 				},
@@ -477,24 +513,24 @@ end
 
 function AddRandomLight(which)
 	local gf = Spring.GetGameFrame()
-	local radius = math.random() * 300 + 100
+	local radius = math.random() * 100 + 50
 	local posx = Game.mapSizeX * math.random() * 1.0
 	local posz = Game.mapSizeZ * math.random() * 1.0
 	local posy = Spring.GetGroundHeight(posx, posz) + math.random() * 0.5 * radius
 	if which < 0.33 then -- point
 		AddPointLight(posx, posy, posz, radius)
 	elseif which < 0.66 then -- beam
-		local s =  (math.random() - 0.5) * 200
-		local t =  (math.random() - 0.5) * 200
-		local u =  (math.random() - 0.5) * 200
-		AddBeamLight(posx, posy, posz, radius, posx + s, posy + t, posz + u)
+		local s =  (math.random() - 0.5) * 500
+		local t =  (math.random() + 0.5) * 100
+		local u =  (math.random() - 0.5) * 500
+		AddBeamLight(posx, posy , posz, radius, posx + s, posy + t, posz + u)
 	else -- cone
-		local s =  (math.random() - 0.5) * 0.02
-		local t =  (math.random() - 0.5) * 2
-		local u =  (math.random() - 0.5) * 0.02
+		local s =  (math.random() - 0.5) * 2
+		local t =  (math.random() - 1.0) * -1
+		local u =  (math.random() - 0.5) * 2
 		local lenstu = 1.0 / math.sqrt(s*s + t*t + u*u)
-		local theta = math.random() * 1.8
-		AddConeLight(posx, posy, posz, radius, s * lenstu, t * lenstu, u * lenstu, theta)
+		local theta = math.random() * 0.9 
+		AddConeLight(posx, posy + radius, posz, 3* radius, s * lenstu, t * lenstu, u * lenstu, theta)
 	end
 	
 end
@@ -511,7 +547,7 @@ function widget:Initialize()
 	if initGL4() == false then return end
 	
 	math.randomseed(1)
-	for i=1, 100 do AddRandomLight(	math.random()) end 
+	for i=1, 200 do AddRandomLight(	math.random()) end 
 end
 
 function widget:Shutdown()
@@ -683,8 +719,15 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	--glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
 	deferredLightShader = checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4") or deferredLightShader
 	if pointLightVBO.usedElements > 0 or beamLightVBO.usedElements > 0 or coneLightVBO.usedElements > 0 then 
+	
+	
+		local alt, ctrl, meta, shft = Spring.GetModKeyState()
 		
-		glBlending(GL.SRC_ALPHA, GL.ONE)
+		if ctrl then
+			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		else
+			glBlending(GL.SRC_ALPHA, GL.ONE)
+		end
 		
 		gl.Culling(GL.BACK)
 		gl.DepthTest(false)
@@ -699,15 +742,15 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		deferredLightShader:Activate()
 		
 		if pointLightVBO.usedElements > 0 then
-			deferredLightShader:SetUniformInt("pointbeamcone", 0)
-			--pointLightVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, pointLightVBO.usedElements, 0)
+			deferredLightShader:SetUniformFloat("pointbeamcone", 0)
+			pointLightVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, pointLightVBO.usedElements, 0)
 		end
 		if beamLightVBO.usedElements > 0 then
-			deferredLightShader:SetUniformInt("pointbeamcone", 1)
-			--beamLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, beamLightVBO.usedElements, 0)
+			deferredLightShader:SetUniformFloat("pointbeamcone", 1)
+			beamLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, beamLightVBO.usedElements, 0)
 		end
 		if coneLightVBO.usedElements > 0 then
-			deferredLightShader:SetUniformInt("pointbeamcone", 2)
+			deferredLightShader:SetUniformFloat("pointbeamcone", 2)
 			coneLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, coneLightVBO.usedElements, 0)
 		end
 		deferredLightShader:Deactivate()

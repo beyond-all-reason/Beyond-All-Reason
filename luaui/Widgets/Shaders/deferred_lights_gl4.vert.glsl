@@ -7,8 +7,7 @@
 #line 5000
 
 layout (location = 0) in vec4 position; // xyz and etc garbage
-//layout (location = 1) in vec3 normals; // unused
-//layout (location = 2) in vec2 uvs;  // unused
+//layout locations 1 and 2 contain primitive specific garbage and should not be used
 
 layout (location = 3) in vec4 worldposrad; 
 layout (location = 4) in vec4 worldposrad2; 
@@ -20,7 +19,8 @@ layout (location = 7) in vec4 otherparams;
 //__DEFINES__
 
 #line 10000
-uniform int pointbeamcone = 0; // 0 = point, 1 = beam, 2 = cone
+
+uniform float pointbeamcone = 0;// = 0; // 0 = point, 1 = beam, 2 = cone
 
 out DataVS {
 	vec4 v_worldPosRad;
@@ -36,63 +36,80 @@ void main()
 {
 	float time = timeInfo.x + timeInfo.w;
 	
-	vec4 worldPos = vec4(1.0);
-	if (pointbeamcone == 0){ // point
-		worldPos.xyz = worldposrad.xyz + position.xyz * worldposrad.w;
-	}
-	else if (pointbeamcone == 1){ // beam
-		// we will tranform along this vector, where Y shall be the upvector
-		// our null vector is +X
-		vec3 centertoend = worldposrad.xyz - worldposrad2.xyz;
-		float halfbeamlength = length(centertoend);
-		// Scale the box to correct size (along beam is X dir)
-		worldPos.xyz = position.xyz * vec3(halfbeamlength + worldposrad.w , worldposrad.w, worldposrad.w );
-		// TODO rotate this box
-		// Place the box in the world
-		worldPos.xyz += worldposrad.xyz;
-	}
-	else if (pointbeamcone == 2){ //cone that points up, (y = 1), with radius =1, bottom flat on Y=0 plane
-		// make it so that cone is at 0 and the opening points to y is up
-		worldPos.xyz = position.xyz;
-		worldPos.y = 1.0 - worldPos.y;
-		worldPos.z *= -1;
-		// now scale it
-		float conewidth = atan(worldposrad2.w);
-		worldPos.xyz *= vec3(1.0, conewidth, 1.0) * worldposrad.w;
-		
-		// ROTATE IT?
-		// it is pointing up (0,1,0), should point to worldposrad2.xyz
-		vec3 rotv = cross(vec3(0, 1,0), worldposrad2.xyz);
-		mat3 rotmat = mat3(
-			vec3(0,1,0),
-			vec3(1,0,0),
-			vec3(0,0,1)
-		);
-		
-		
-		//https://stackoverflow.com/questions/13199126/find-opengl-rotation-matrix-for-a-plane-given-the-normal-vector-after-the-rotat
-		vec3 old = vec3(0,1,0);
-		vec3 newy = worldposrad2.xyz;
-		vec3 newz = cross(old, newy);
-		vec3 newx = cross(newy, newz);
-		
-		rotmat = mat3(
-			newy, newx,newz
-		);
-		
-		worldPos.xyz = rotmat * worldPos.xyz;
-		
-		// move it to world:
-		worldPos.xyz += worldposrad.xyz;
-	}
-	v_position = worldPos;
-	gl_Position = cameraViewProj * worldPos;
-
 	v_worldPosRad = worldposrad;
 	v_worldPosRad2 = worldposrad2;
 	v_lightcolor = lightcolor;
 	v_falloff_dense_scattering = falloff_dense_scattering;
 	v_otherparams = otherparams;
 	v_debug = vec4(0.0);
+	
+	vec4 worldPos = vec4(1.0);
+	if (pointbeamcone < 0.5){ // point
+	
+		//scale it and place it into the world
+		//Make it a tiny bit bigger cause the blocky sphere is smaller than the actual radius
+		
+		worldPos.xyz = worldposrad.xyz + position.xyz * worldposrad.w * 1.05;
+		
+		//
+	}
+	else if (pointbeamcone < 1.5){ // beam
+		// we will tranform along this vector, where Y shall be the upvector
+		// our null vector is +X
+		vec3 centertoend = worldposrad.xyz - worldposrad2.xyz;
+		float halfbeamlength = length(centertoend);
+		// Scale the box to correct size (along beam is X dir)
+		worldPos.xyz = position.xyz * vec3( worldposrad.w , halfbeamlength +worldposrad.w, worldposrad.w );
+		
+		// TODO rotate this box
+		vec3 oldfw = vec3(0,1,0); // The old forward direction is -y
+		vec3 newfw = normalize(centertoend); // the new forward direction shall be the normal that we want
+		vec3 newright = normalize(cross(newfw, oldfw)); // the new right direction shall be the vector perpendicular to old and new forward
+		vec3 newup = normalize(cross(newright, newfw)); // the new up direction shall be the vector perpendicular to new right and new forward
+		// TODO: handle the two edge cases where newfw == (oldfw or -1*oldfw)
+		mat3 rotmat = mat3( // assemble the rotation matrix
+				newup,
+				newfw, 
+				newright 
+			);
+		worldPos.xyz = rotmat * worldPos.xyz;
+		
+		
+		// Place the box in the world
+		worldPos.xyz += worldposrad.xyz;
+	}
+	else if (pointbeamcone > 1.5){ 
+		// input cone that points up, (y = 1), with radius =1, bottom flat on Y=0 plane
+		// make it so that cone tip is at 0 and the opening points to -y
+		worldPos.xyz = position.xyz;
+		worldPos.y = 1.0 - worldPos.y;
+		worldPos.y *= -1;
+	
+		worldPos.xz *= tan(worldposrad2.w); // Scale the flat of the cone by the half-angle of its opening
+		v_worldPosRad2.w = cos(worldposrad2.w); // pass through the cosine to avoid this calc later on
+		v_worldPosRad2.xyz = normalize(worldposrad2.xyz); // normalize this here for sanity
+		worldPos.xyz *= worldposrad.w * 1.05; // scale it all by the height of the cone, and a bit of extra 
+		
+		// Now our cone is opening forward towards  -y, but we want it to point into the worldposrad2.xyz
+		vec3 oldfw = vec3(0,1,0); // The old forward direction is -y
+		vec3 newfw = normalize(worldposrad2.xyz); // the new forward direction shall be the normal that we want
+		vec3 newright = normalize(cross(newfw, oldfw)); // the new right direction shall be the vector perpendicular to old and new forward
+		vec3 newup = normalize(cross(newright, newfw)); // the new up direction shall be the vector perpendicular to new right and new forward
+		// TODO: handle the two edge cases where newfw == (oldfw or -1*oldfw)
+		mat3 rotmat = mat3( // assemble the rotation matrix
+				newup,
+				newfw, 
+				newright 
+			);
+		worldPos.xyz = rotmat * worldPos.xyz;
+		
+		// move it to world:
+		worldPos.xyz += worldposrad.xyz;
+	}
+	gl_Position = cameraViewProj * worldPos;
+	
+	// pass everything on to fragment shader:
+	v_position = worldPos;
+
 	
 }
