@@ -116,6 +116,10 @@ local function StartVote(name)	-- when called without params its just to refresh
 		if not eligibleToVote or minimized then
 			height = height - buttonHeight
 		end
+		-- make sure height is dividable by 2
+		if height % 2 == 1 then
+			height = height + 1
+		end
 
 		local xpos = math.floor(width / 2)
 		local ypos = math.floor(vsy - (height / 2))
