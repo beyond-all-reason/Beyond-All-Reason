@@ -1,12 +1,12 @@
 function widget:GetInfo()
 	return {
-		name = "Dgun Rule Reminder",
+		name = "Dgun Rule Reminder2",	-- renamed with 2 so its now default disabled
 		desc = ".",
 		author = "Floris",
 		date = "June 2022",
 		license = "GNU GPL, v2 or later",
 		layer = -2,
-		enabled = true,
+		enabled = false,
 	}
 end
 
