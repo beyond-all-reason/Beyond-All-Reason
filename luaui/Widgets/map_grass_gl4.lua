@@ -196,8 +196,7 @@ local minHeight, maxHeight = Spring.GetGroundExtremes()
 local mousepos = {0,0,0}
 local cursorradius = 50
 local removeUnitGrass = true
-local removeGrassFrames = 1
-local removeGrassUnfinishedFrames = 60
+local removeGrassFrames = 30
 local placementMode = false -- this controls wether we are in 'game mode' or placement map dev mode
 include("keysym.h.lua") -- so we can do hacky keypress
 local grassInstanceData = {}
@@ -226,10 +225,10 @@ local oldGameSeconds = os.clock()
 local unitGrassRemovedHistory = {}
 local removeGrassQueue = {}
 
-local unitFootprint = {}
+local buildingRadius = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.isBuilding then
-		unitFootprint[unitDefID] = {unitDef.xsize, unitDef.zsize, unitDef.radius}
+	if unitDef.isBuilding and unitDef.radius > 19 then
+		buildingRadius[unitDefID] = unitDef.radius
 	end
 end
 
@@ -562,7 +561,7 @@ local function adjustUnitGrass(unitID, multiplier, restore)	-- restore not used 
 	local radius
 	if not unitGrassRemovedHistory[unitID] then
 		local unitDefID = spGetUnitDefID(unitID)
-		radius = (unitFootprint[unitDefID][3]*1.8) - 6	-- enlarge radius so it can gradually diminish in size more
+		radius = buildingRadius[unitDefID]*1.9	-- enlarge radius so it can gradually diminish in size more
 		local px,_,pz = Spring.GetUnitPosition(unitID)
 		unitGrassRemovedHistory[unitID] = {px, pz, unitDefID, radius, multiplier or 1, 0}
 	end
@@ -573,7 +572,7 @@ local function adjustUnitGrass(unitID, multiplier, restore)	-- restore not used 
 		for z = params[2] - radius, params[2] + radius, grassConfig.patchResolution do
 			if (x-params[1])*(x-params[1]) + (z-params[2])*(z-params[2]) < radius*radius then
 				local sizeMod = (math.abs(((x-params[1])/radius) - 0.5) + math.abs(((z-params[2])/radius) - 0.5)) / 2	-- sizemode in range 0...1
-				sizeMod = (1-(sizeMod*2-math.min(1.2, radius/40)))	-- adjust sizemod so inner grass is gone fully and not just the very center dot
+				sizeMod = (1-(sizeMod*2-math.min(1.15, radius/40)))	-- adjust sizemod so inner grass is gone fully and not just the very center dot
 				sizeMod = (params[5]*sizeMod)	-- apply multiplier to animate it over time
 				updateGrassInstanceVBO(x,z, 1, (restore and 1+sizeMod or 1-sizeMod))
 			end
@@ -586,32 +585,32 @@ local function clearAllUnitGrass()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		local unitDefID = spGetUnitDefID(unitID)
-		if unitFootprint[unitDefID] then
+		if buildingRadius[unitDefID] then
 			adjustUnitGrass(unitID)
 		end
 	end
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
-	if unitFootprint[unitDefID] and not unitGrassRemovedHistory[unitID] then
-		local frames = removeGrassUnfinishedFrames
+	if buildingRadius[unitDefID] and not unitGrassRemovedHistory[unitID] then
 		local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
 		if buildProgress and buildProgress >= 1 then
-			frames = removeGrassFrames
+			adjustUnitGrass(unitID)
+		else
+			removeGrassQueue[unitID] = removeGrassFrames
 		end
-		removeGrassQueue[unitID] = frames
 	end
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
-	if unitFootprint[unitDefID] and not unitGrassRemovedHistory[unitID] then
-		removeGrassQueue[unitID] = removeGrassUnfinishedFrames
+	if buildingRadius[unitDefID] and not unitGrassRemovedHistory[unitID] then
+		removeGrassQueue[unitID] = removeGrassFrames
 	end
 end
 
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	if unitFootprint[unitDefID] then
+	if buildingRadius[unitDefID] then
 		removeGrassQueue[unitID] = nil
 		unitGrassRemovedHistory[unitID] = nil
 	end
