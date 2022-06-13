@@ -513,7 +513,7 @@ end
 
 function AddRandomLight(which)
 	local gf = Spring.GetGameFrame()
-	local radius = math.random() * 100 + 50
+	local radius = math.random() * 400 + 50
 	local posx = Game.mapSizeX * math.random() * 1.0
 	local posz = Game.mapSizeZ * math.random() * 1.0
 	local posy = Spring.GetGroundHeight(posx, posz) + math.random() * 0.5 * radius
@@ -547,7 +547,7 @@ function widget:Initialize()
 	if initGL4() == false then return end
 	
 	math.randomseed(1)
-	for i=1, 200 do AddRandomLight(	math.random()) end 
+	for i=1, 500 do AddRandomLight(	math.random()) end 
 end
 
 function widget:Shutdown()

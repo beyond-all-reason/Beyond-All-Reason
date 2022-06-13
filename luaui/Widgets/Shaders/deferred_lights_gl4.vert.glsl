@@ -36,7 +36,8 @@ void main()
 {
 	float time = timeInfo.x + timeInfo.w;
 	
-	v_worldPosRad = worldposrad;
+	v_worldPosRad = worldposrad ;
+	v_worldPosRad.xyz += 32 * sin(time * vec3(0.01, 0.011, 0.012) + v_worldPosRad.xyz );
 	v_worldPosRad2 = worldposrad2;
 	v_lightcolor = lightcolor;
 	v_falloff_dense_scattering = falloff_dense_scattering;
@@ -48,8 +49,8 @@ void main()
 	
 		//scale it and place it into the world
 		//Make it a tiny bit bigger cause the blocky sphere is smaller than the actual radius
-		
-		worldPos.xyz = worldposrad.xyz + position.xyz * worldposrad.w * 1.05;
+		// the -1 is for inverting it so we always see the back faces (great for occlusion testing!)
+		worldPos.xyz = worldposrad.xyz + -1 * position.xyz * worldposrad.w * 1.05;
 		
 		//
 	}
