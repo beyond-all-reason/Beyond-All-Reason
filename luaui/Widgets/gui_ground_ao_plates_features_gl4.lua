@@ -49,7 +49,7 @@ local function addDirToAtlas(atlas, path)
 end
 
 local function makeAtlas()
-	atlasID = gl.CreateTextureAtlas(atlasSize,atlasSize,0)
+	atlasID = gl.CreateTextureAtlas(atlasSize,atlasSize,1)
 	addDirToAtlas(atlasID, "unittextures/decals_features/")
 	local success = gl.FinalizeTextureAtlas(atlasID)
 	if not success then Spring.Echo("Failed to build atlas for Ground AO plates Features") end 
