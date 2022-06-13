@@ -1,0 +1,340 @@
+
+unbindall          // clear the defaults
+unbind enter chat  // clear the defaults
+
+fakemeta  0x020
+
+bind              Any+5  group5
+bind      Alt+backspace  fullscreen
+bind                  R  repair
+bind              Alt+Z  buildspacing inc
+bind                  A  attack
+bind            Shift+S  stop
+bind              Any+T  track
+bind             Ctrl+`  remove_one_unit_from_group
+bind         Ctrl+right  edit_next_word
+bind              Alt+6  add_to_autogroup 6
+bind            Ctrl+f5  viewfree
+bind        Shift+enter  chatspec
+bind        Shift+enter  chatswitchspec
+bind                  M  move
+bind                \,\  drawlabel
+bind             Any+§  drawinmap
+bind             Any+§  drawlabel
+bind            Shift+]  buildfacing dec
+bind            numpad6  moveright
+bind              Any+^  drawinmap
+bind              Any+^  drawlabel
+bind              Alt+1  add_to_autogroup 1
+bind            Any+end  decreaseViewRadius
+bind            Any+end  edit_end
+bind                  .  nextmenu
+bind                  .  buildfacing dec
+bind             Any+f3  LastMsgPos
+bind          Any+shift  movefast
+bind             Any+up  edit_prev_line
+bind             Any+up  moveforward
+bind            Any+tab  toggleoverview
+bind            Any+tab  edit_complete
+bind              Any+0  group0
+bind                  Y  settargetnoground
+bind            Shift+Z  buildunit_armmex      //  - armmex
+bind            Shift+Z  buildunit_armamex     //  - armamex
+bind            Shift+Z  buildunit_cormex      //  - cormex
+bind            Shift+Z  buildunit_corexp      //  - corexp
+bind            Shift+Z  buildunit_armmoho     //  - armmoho
+bind            Shift+Z  buildunit_cormoho     //  - cormoho
+bind            Shift+Z  buildunit_cormexp     //  - cormexp
+bind            Shift+Z  buildunit_coruwmex    //  - coruwmex
+bind            Shift+Z  buildunit_armuwmex    //  - armuwmex
+bind            Shift+Z  buildunit_coruwmme    //  - coruwmme
+bind            Shift+Z  buildunit_armuwmme    //  - armuwmme
+bind            Shift+Z  areamex
+bind              Alt+p  debugpath
+bind            numpad+  snd_volume_increase
+bind             Ctrl+X  select AllMap+_InPrevSel_Not_InHotkeyGroup+_SelectAll+
+bind                  5  specteam 4
+bind              Alt+=  increasespeed
+bind            numpad1  movefast
+bind          Any+pause  pause
+bind              Any+7  group7
+bind              §,§  drawlabel
+bind    Shift+backspace  togglecammode
+bind                  C  controlunit
+bind                  C  buildunit_armllt      //  - armllt
+bind                  C  buildunit_armrad      //  - armrad
+bind                  C  buildunit_corllt      //  - corllt
+bind                  C  buildunit_corrad      //  - corrad
+bind                  C  buildunit_corrl       //  - corrl
+bind                  C  buildunit_armrl       //  - armrl
+bind                  C  buildunit_armpb       //  - armpb
+bind                  C  buildunit_armflak     //  - armflak
+bind                  C  buildunit_corvipe     //  - corvipe
+bind                  C  buildunit_corflak     //  - corflak
+bind                  C  buildunit_armgplat    //  - armgplat
+bind                  C  buildunit_corgplat    //  - corgplat
+bind                  C  buildunit_armtl       //  - armtl
+bind                  C  buildunit_cortl       //  - cortl
+bind                  C  buildunit_armsonar    //  - armsonar
+bind                  C  buildunit_corsonar    //  - corsonar
+bind                  C  buildunit_armfrad     //  - armfrad
+bind                  C  buildunit_corfrad     //  - corfrad
+bind                  C  buildunit_armfrt      //  - armfrt
+bind                  C  buildunit_corfrt      //  - corfrt
+bind            Shift+U  unloadunits
+bind            Shift+D  manualfire
+bind            Shift+D  manuallaunch
+bind             Ctrl+S  stopproduction
+bind         Alt+insert  increasespeed
+bind             Ctrl+B  select AllMap+_Builder_Idle+_ClearSelection_SelectOne+
+bind              Alt+8  add_to_autogroup 8
+bind              Any+J  mouse2
+bind              Any+2  group2
+bind         Ctrl+enter  chatall
+bind         Ctrl+enter  chatswitchall
+bind                  O  buildfacing inc
+bind                ^,^  drawlabel
+bind            Shift+P  patrol
+bind              Alt+F  forcestart
+bind        Shift+Alt+X  buildspacing dec
+bind              Any+Q  drawinmap
+bind              Any+Q  drawlabel
+bind                  +  snd_volume_increase
+bind            numpad8  moveforward
+bind              Any+`  drawinmap
+bind              Any+`  drawlabel
+bind       Ctrl+Shift+O  cameraflip
+bind              Alt+3  add_to_autogroup 3
+bind            Shift+,  decguiopacity
+bind            Shift+,  buildfacing inc
+bind            Ctrl+f2  viewta
+bind             Any+f5  HideInterface
+bind          Shift+esc  quitmenu
+bind     Ctrl+backspace  togglecammode
+bind      Ctrl+Shift+f8  savegame
+bind                  J  canceltarget
+bind            Shift+K  cloak
+bind             Ctrl+Z  select AllMap+_InPrevSel+_ClearSelection_SelectAll+
+bind           Alt+left  edit_home
+bind              Any+L  togglelos
+bind            numpad3  movedown
+bind           Any+home  increaseViewRadius
+bind           Any+home  edit_home
+bind          Any+right  edit_next_char
+bind          Any+right  moveright
+bind                  V  buildunit_armnanotc   //  - armnanotc
+bind                  V  buildunit_armnanotcplat  //  - armnanotcplat
+bind                  V  buildunit_cornanotcplat  //  - cornanotcplat
+bind                  V  buildunit_armlab      //  - armlab
+bind                  V  buildunit_armvp       //  - armvp
+bind                  V  buildunit_armap       //  - armap
+bind                  V  buildunit_cornanotc   //  - cornanotc
+bind                  V  buildunit_corlab      //  - corlab
+bind                  V  buildunit_corvp       //  - corvp
+bind                  V  buildunit_corap       //  - corap
+bind                  V  buildunit_armsy       //  - armsy
+bind                  V  buildunit_corsy       //  - corsy
+bind                  E  reclaim
+bind            Shift+W  wait queued
+bind            Shift+F  fight
+bind                f10  options
+bind                  2  specteam 1
+bind             Ctrl+D  selfd
+bind              Alt+A  areaattack
+bind                  7  specteam 6
+bind            Any+f12  screenshot
+bind              Any+4  group4
+bind              Any+9  group9
+bind                `,`  drawlabel
+bind              Alt+Y  settarget
+bind            Shift+R  repair
+bind        Shift+Alt+Z  buildspacing inc
+bind            Shift+A  attack
+bind                  -  snd_volume_decrease
+bind              Alt+5  add_to_autogroup 5
+bind           Any+down  edit_next_line
+bind           Any+down  moveback
+bind            Shift+.  incguiopacity
+bind            Shift+.  buildfacing dec
+bind            Ctrl+f4  viewrot
+bind             Any+f7  DynamicSky
+bind           Any+0xf6  losradar
+bind          Any+enter  chat
+bind          Any+enter  edit_return
+bind                  L  loadunits
+bind                  [  buildfacing inc
+bind            Shift+M  move
+bind                Q,Q  drawlabel
+bind         Any+delete  edit_delete
+bind                  9  specteam 8
+bind         Alt+ctrl+S  chatswitchspec
+bind        Alt+numpad+  increasespeed
+bind              Alt+0  add_to_autogroup 0
+bind             Any+f2  ShowPathTraversability
+bind              Any+;  losradar
+bind                  X  onoff
+bind                  X  buildunit_armsolar    //  - armsolar
+bind                  X  buildunit_armwin      //  - armwin
+bind                  X  buildunit_corsolar    //  - corsolar
+bind                  X  buildunit_corwin      //  - corwin
+bind                  X  buildunit_armadvsol   //  - armadvsol
+bind                  X  buildunit_coradvsol   //  - coradvsol
+bind                  X  buildunit_armfus      //  - armfus
+bind                  X  buildunit_armmmkr     //  - armmmkr
+bind                  X  buildunit_corfus      //  - corfus
+bind                  X  buildunit_cormmkr     //  - cormmkr
+bind                  X  buildunit_armtide     //  - armtide
+bind                  X  buildunit_cortide     //  - cortide
+bind                  X  buildunit_armuwfus    //  - armuwfus
+bind                  X  buildunit_coruwfus    //  - coruwfus
+bind                  X  buildunit_armuwmmm    //  - armuwmmm
+bind                  X  buildunit_coruwmmm    //  - coruwmmm
+bind      Any+backspace  edit_backspace
+bind                  G  guard
+bind             Ctrl+W  select AllMap+_Not_Aircraft_Weapons+_ClearSelection_SelectAll+
+bind              Alt++  increasespeed
+bind           Any+ctrl  moveslow
+bind                  S  stop
+bind            Shift+C  buildunit_armllt      //  - armllt
+bind            Shift+C  buildunit_armrad      //  - armrad
+bind            Shift+C  buildunit_corllt      //  - corllt
+bind            Shift+C  buildunit_corrad      //  - corrad
+bind            Shift+C  buildunit_corrl       //  - corrl
+bind            Shift+C  buildunit_armrl       //  - armrl
+bind            Shift+C  buildunit_armpb       //  - armpb
+bind            Shift+C  buildunit_armflak     //  - armflak
+bind            Shift+C  buildunit_corvipe     //  - corvipe
+bind            Shift+C  buildunit_corflak     //  - corflak
+bind            Shift+C  buildunit_armgplat    //  - armgplat
+bind            Shift+C  buildunit_corgplat    //  - corgplat
+bind            Shift+C  buildunit_armtl       //  - armtl
+bind            Shift+C  buildunit_cortl       //  - cortl
+bind            Shift+C  buildunit_armsonar    //  - armsonar
+bind            Shift+C  buildunit_corsonar    //  - corsonar
+bind            Shift+C  buildunit_armfrad     //  - armfrad
+bind            Shift+C  buildunit_corfrad     //  - corfrad
+bind            Shift+C  buildunit_armfrt      //  - armfrt
+bind            Shift+C  buildunit_corfrt      //  - corfrt
+bind             Ctrl+R  select AllMap+_Radar+_ClearSelection_SelectAll+
+bind             Ctrl+A  select AllMap++_ClearSelection_SelectAll+
+bind         Ctrl+Alt+Z  areamex
+bind            numpad-  snd_volume_decrease
+bind              Alt+^  remove_from_autogroup
+bind              Alt+7  add_to_autogroup 7
+bind                  4  specteam 3
+bind              Any+1  group1
+bind          Any+space  unit_stats
+bind              Any+6  group6
+bind      Alt+Shift+esc  reloadforce
+bind              Alt+v  debugcolvol
+bind                  ]  buildfacing dec
+bind            Shift+O  buildfacing inc
+bind              Alt+2  add_to_autogroup 2
+bind       Any+pagedown  movedown
+bind          backspace  mousestate
+bind            Ctrl+f1  viewfps
+bind             Any+f4  ShowMetalMap
+bind          Ctrl+left  edit_prev_word
+bind         Any+escape  edit_escape
+bind                  Z  buildunit_armmex      //  - armmex
+bind                  Z  buildunit_armamex     //  - armamex
+bind                  Z  buildunit_cormex      //  - cormex
+bind                  Z  buildunit_corexp      //  - corexp
+bind                  Z  buildunit_armmoho     //  - armmoho
+bind                  Z  buildunit_cormoho     //  - cormoho
+bind                  Z  buildunit_cormexp     //  - cormexp
+bind                  Z  buildunit_coruwmex    //  - coruwmex
+bind                  Z  buildunit_armuwmex    //  - armuwmex
+bind                  Z  buildunit_coruwmme    //  - coruwmme
+bind                  Z  buildunit_armuwmme    //  - armuwmme
+bind                  Z  areamex
+bind                  I  customgameinfo
+bind              Alt+`  remove_from_autogroup
+bind                  6  specteam 5
+bind              Any+K  wantcloak
+bind        Alt+Shift+A  areaattack
+bind          Alt+right  edit_end
+bind            numpad2  moveback
+bind              Alt+-  decreasespeed
+bind              Any+8  group8
+bind                  U  unloadunits
+bind                  D  manualfire
+bind                  D  manuallaunch
+bind            Shift+E  reclaim
+bind             Ctrl+T  trackmode
+bind             Ctrl+C  select AllMap+_ManualFireUnit_Not_IdMatches_cordecom_Not_IdMatches_armdecom_Not_IdMatches_armthor+_ClearSelection_SelectOne+
+bind              Alt+9  add_to_autogroup 9
+bind       Ctrl+Shift+D  selfd queued
+bind                  P  patrol
+bind                  =  snd_volume_increase
+bind        Alt+numpad-  decreasespeed
+bind            Shift+V  buildunit_armnanotc   //  - armnanotc
+bind            Shift+V  buildunit_armnanotcplat  //  - armnanotcplat
+bind            Shift+V  buildunit_cornanotcplat  //  - cornanotcplat
+bind            Shift+V  buildunit_armlab      //  - armlab
+bind            Shift+V  buildunit_armvp       //  - armvp
+bind            Shift+V  buildunit_armap       //  - armap
+bind            Shift+V  buildunit_cornanotc   //  - cornanotc
+bind            Shift+V  buildunit_corlab      //  - corlab
+bind            Shift+V  buildunit_corvp       //  - corvp
+bind            Shift+V  buildunit_corap       //  - corap
+bind            Shift+V  buildunit_armsy       //  - armsy
+bind            Shift+V  buildunit_corsy       //  - corsy
+bind                  ,  prevmenu
+bind                  ,  buildfacing inc
+bind            numpad9  moveup
+bind             Ctrl+^  remove_one_unit_from_group
+bind                esc  quitmessage
+bind                esc  teamstatus_close
+bind                esc  customgameinfo_close
+bind                esc  buildmenu_pregame_deselect
+bind           Any+left  edit_prev_char
+bind           Any+left  moveleft
+bind              Alt+4  add_to_autogroup 4
+bind            Ctrl+f3  viewspring
+bind             Any+f6  MuteSound
+bind                  1  specteam 0
+bind              Any+3  group3
+bind     Ctrl+Shift+esc  quitforce
+bind            Shift+L  loadunits
+bind              Alt+b  debug
+bind            Shift+[  buildfacing inc
+bind              Alt+X  buildspacing dec
+bind                  8  specteam 7
+bind              Any+\  drawinmap
+bind              Any+\  drawlabel
+bind            numpad4  moveleft
+bind         Alt+ctrl+A  chatswitchally
+bind         Any+pageup  moveup
+bind             Any+f1  ShowElevation
+bind          Alt+enter  chatally
+bind          Alt+enter  chatswitchally
+bind          Alt+enter  fullscreen
+bind                  W  wait
+bind         Alt+delete  decreasespeed
+bind                  F  fight
+bind            Shift+X  onoff
+bind            Shift+X  buildunit_armsolar    //  - armsolar
+bind            Shift+X  buildunit_armwin      //  - armwin
+bind            Shift+X  buildunit_corsolar    //  - corsolar
+bind            Shift+X  buildunit_corwin      //  - corwin
+bind            Shift+X  buildunit_armadvsol   //  - armadvsol
+bind            Shift+X  buildunit_coradvsol   //  - coradvsol
+bind            Shift+X  buildunit_armfus      //  - armfus
+bind            Shift+X  buildunit_armmmkr     //  - armmmkr
+bind            Shift+X  buildunit_corfus      //  - corfus
+bind            Shift+X  buildunit_cormmkr     //  - cormmkr
+bind            Shift+X  buildunit_armtide     //  - armtide
+bind            Shift+X  buildunit_cortide     //  - cortide
+bind            Shift+X  buildunit_armuwfus    //  - armuwfus
+bind            Shift+X  buildunit_coruwfus    //  - coruwfus
+bind            Shift+X  buildunit_armuwmmm    //  - armuwmmm
+bind            Shift+X  buildunit_coruwmmm    //  - coruwmmm
+bind            Shift+G  guard
+bind             Ctrl+v  pastetext
+bind             Ctrl+V  select AllMap+_Not_Builder_Not_Commander_InPrevSel_Not_InHotkeyGroup+_SelectAll+
+bind                  K  cloak
+bind                  K  wantcloak
+bind                f11  luaui selector
+bind                  3  specteam 2
+bind              Any+H  sharedialog
