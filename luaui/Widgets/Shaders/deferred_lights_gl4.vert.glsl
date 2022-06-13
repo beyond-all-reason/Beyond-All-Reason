@@ -12,8 +12,8 @@ layout (location = 0) in vec4 position; // xyz and etc garbage
 layout (location = 3) in vec4 worldposrad; 
 layout (location = 4) in vec4 worldposrad2; 
 layout (location = 5) in vec4 lightcolor; 
-layout (location = 6) in vec4 falloff_dense_scattering;
-layout (location = 7) in vec4 otherparams;
+layout (location = 6) in vec4 falloff_dense_scattering_sourceocclusion; // 
+layout (location = 7) in vec4 otherparams; // 
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
@@ -26,11 +26,27 @@ out DataVS {
 	vec4 v_worldPosRad;
 	vec4 v_worldPosRad2;
 	vec4 v_lightcolor;
-	vec4 v_falloff_dense_scattering;
-	vec4 v_otherparams;
+	vec4 v_falloff_dense_scattering_sourceocclusion;
+	vec4 v_otherparams; // this could be anything 
 	vec4 v_position;
 	vec4 v_debug;
 };
+
+uniform sampler2D mapDepths;
+uniform sampler2D modelDepths;
+
+float depthAtWorldPos(vec4 worldPosition){ // takes a point, transforms it to worldspace, and checks for occlusion
+	// returns the depth of the pos
+	vec4 screenPosition = cameraViewProj * worldPosition;
+	screenPosition.xyz = screenPosition.xyz / screenPosition.w;
+	vec2 screenUV = screenPosition.xy;// / viewGeometry.xy;
+	v_falloff_dense_scattering_sourceocclusion.xy = screenUV.xy;
+	v_falloff_dense_scattering_sourceocclusion.z = screenPosition.z ;
+	float mapdepth = texture(mapDepths, screenUV).x;
+	float modeldepth = texture(modelDepths, screenUV).x;
+	mapdepth = min(mapdepth, modeldepth);
+	return (mapdepth);
+}
 
 void main()
 {
@@ -40,7 +56,7 @@ void main()
 	v_worldPosRad.xyz += 32 * sin(time * vec3(0.01, 0.011, 0.012) + v_worldPosRad.xyz );
 	v_worldPosRad2 = worldposrad2;
 	v_lightcolor = lightcolor;
-	v_falloff_dense_scattering = falloff_dense_scattering;
+	v_falloff_dense_scattering_sourceocclusion = falloff_dense_scattering_sourceocclusion;
 	v_otherparams = otherparams;
 	v_debug = vec4(0.0);
 	
@@ -51,7 +67,7 @@ void main()
 		//Make it a tiny bit bigger cause the blocky sphere is smaller than the actual radius
 		// the -1 is for inverting it so we always see the back faces (great for occlusion testing!)
 		worldPos.xyz = worldposrad.xyz + -1 * position.xyz * worldposrad.w * 1.05;
-		
+		v_falloff_dense_scattering_sourceocclusion.w = depthAtWorldPos(vec4(v_worldPosRad.xyz,1.0));
 		//
 	}
 	else if (pointbeamcone < 1.5){ // beam
@@ -78,6 +94,8 @@ void main()
 		
 		// Place the box in the world
 		worldPos.xyz += worldposrad.xyz;
+		
+		v_falloff_dense_scattering_sourceocclusion.w = depthAtWorldPos(vec4(v_worldPosRad.xyz,1.0));
 	}
 	else if (pointbeamcone > 1.5){ 
 		// input cone that points up, (y = 1), with radius =1, bottom flat on Y=0 plane
@@ -106,6 +124,9 @@ void main()
 		
 		// move it to world:
 		worldPos.xyz += worldposrad.xyz;
+		
+		
+		v_falloff_dense_scattering_sourceocclusion.w = depthAtWorldPos(vec4(v_worldPosRad.xyz,1.0));
 	}
 	gl_Position = cameraViewProj * worldPos;
 	

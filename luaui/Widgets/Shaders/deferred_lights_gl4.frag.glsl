@@ -13,7 +13,7 @@ in DataVS {
 	vec4 v_worldPosRad;
 	vec4 v_worldPosRad2;
 	vec4 v_lightcolor;
-	vec4 v_falloff_dense_scattering;
+	vec4 v_falloff_dense_scattering_sourceocclusion;
 	vec4 v_otherparams;
 	vec4 v_position;
 	vec4 v_debug;
@@ -139,7 +139,7 @@ float ray_to_capsule_distance_squared(vec3 rayOrigin, vec3 rayDirection, vec3 ca
 	float angle2 = dot(cap2tocap1, interSectToC2);
 	
 	vec3 connectornormal = cross(rayDirection, cap2tocap1); // n is the normal of the line connecting them
-	float dd = dot(connectornormal, rayOrigin - cap1);
+	float dd = dot(connectornormal, rayOrigin - cap1); // this is the angle between the connector normal and 
 	float sqdistline = dd*dd / dot(connectornormal, connectornormal); // sqdistline; 
 
 	float closestcap =  min( dot(interSectToC2, interSectToC2), dot(interSectToC1, interSectToC1) );  //sqdistends
@@ -303,11 +303,16 @@ void main(void)
 	vec3 reflection = reflect(lightDirection, normals.xyz);
 	specular = dot(reflection, viewDirection);
 	specular = pow(max(0.0, specular), 32.0) * 0.5;
+	attenuation = attenuation * attenuation;
 	
 	fragColor.rgb = vec3(attenuation, diffuse, specular);
 	
 	fragColor.rgb = vec3(1.0) * attenuation * (diffuse + specular);
-	fragColor.rgb += vec3(pow(distancetolight,12) * falloff);
+	if (v_falloff_dense_scattering_sourceocclusion.z < worlddepth) {fragColor.rgb += vec3(pow(distancetolight,12) * falloff);
+	}
+	else{
+		//fragColor.rgb = vec3(0);
+	}
 	
 	//fragColor.rgb = vec3(distancetolight);
 	//fragColor.rgb = vec3(fract(lightPosition.xyz * 0.025));
@@ -322,5 +327,6 @@ void main(void)
 	
 	fragColor.rgb += clamp(0.25* vec3(pow(1.0-rcdsqr / (v_worldPosRad.w * v_worldPosRad.w),16)), 0.0, 1.0);
 	//fragColor.rgb = vec3(rcdsqr / (v_worldPosRad.w * v_worldPosRad.w));
-	
+	//fragColor.rgb = vec3(abs(fract(v_falloff_dense_scattering_sourceocclusion.w*10)));
+	//fragColor.rgb = v_falloff_dense_scattering_sourceocclusion.zzz;
 }
