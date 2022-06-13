@@ -239,6 +239,17 @@ elseif string.find(mapName, "speedmetal") then
         addTideRhym (1, 0.05, 5*6000)
     end
 
+
+elseif string.find(mapName, "crucible") then
+    lavaMap = true
+    lavaGrow = 0 
+    lavaSwirlFreq = 0.025
+    lavaSwirlAmp = 0.003
+    lavaTideamplitude = 0
+    if isLavaGadget and isLavaGadget == "synced" then
+        addTideRhym (1, 0.05, 5*6000)
+    end
+
 elseif string.find(mapName, "moonq") then
     lavaMap = false
 
