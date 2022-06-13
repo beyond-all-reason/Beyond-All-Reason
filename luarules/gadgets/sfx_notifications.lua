@@ -77,11 +77,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadgetHandler:PlayerAdded(playerID)
 		if gamestarted and not gameover then
-			local event = "PlayerAdded"
 			local players = AllPlayers()
 			for ct, player in pairs (players) do
 				if tostring(player) then
-					SendToUnsynced("EventBroadcast", event, tostring(player))
+					SendToUnsynced("EventBroadcast", "PlayerAdded", tostring(player))
 				end
 			end
 		end
@@ -93,11 +92,10 @@ if gadgetHandler:IsSyncedCode() then
 
 -- UNITS RECEIVED send to all in team
 	function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-		local event = "UnitsReceived"
 		local players = PlayersInTeamID(newTeam)
 		for ct, player in pairs (players) do
 			if tostring(player) then
-				SendToUnsynced("EventBroadcast", event, tostring(player))
+				SendToUnsynced("EventBroadcast", "UnitsReceived", tostring(player))
 			end
 		end
 	end
@@ -105,11 +103,10 @@ if gadgetHandler:IsSyncedCode() then
 -- NUKE LAUNCH send to all but ally team
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 		if Spring.GetProjectileDefID(proID) == armnuke or Spring.GetProjectileDefID(proID) == cornuke or Spring.GetProjectileDefID(proID) == scavArmNuke or Spring.GetProjectileDefID(proID) == scavCorNuke then
-			local event = "NukeLaunched"
 			local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(proOwnerID)))
 			for ct, player in pairs (players) do
 				if tostring(player) then
-					SendToUnsynced("EventBroadcast", event, tostring(player))
+					SendToUnsynced("EventBroadcast", "NukeLaunched", tostring(player))
 				end
 			end
 		end
@@ -117,11 +114,10 @@ if gadgetHandler:IsSyncedCode() then
 
 -- Game paused send to all
 	function gadget:GamePaused()
-		local event = "GamePause"
 		local players = AllPlayers()
 		for ct, player in pairs (players) do
 			if tostring(player) then
-				SendToUnsynced("EventBroadcast", event, tostring(player))
+				SendToUnsynced("EventBroadcast", "GamePause", tostring(player))
 			end
 		end
 	end
@@ -129,11 +125,10 @@ if gadgetHandler:IsSyncedCode() then
 --Game started send to all
 	function gadget:GameStart()
 		gamestarted = true
-		local event = "GameStarted"
 		local players = AllPlayers()
 		for ct, player in pairs (players) do
 			if tostring(player) then
-				SendToUnsynced("EventBroadcast", event, tostring(player))
+				SendToUnsynced("EventBroadcast", "GameStarted", tostring(player))
 			end
 		end
 	end
@@ -144,11 +139,10 @@ if gadgetHandler:IsSyncedCode() then
 
 --Player left send to all in allyteam
 	function gadget:PlayerRemoved(playerID, reason)
-		local event = "PlayerLeft"
 		local players = PlayersInAllyTeamID(GetPlayerTeamID(playerID))
 		for ct, player in pairs (players) do
 			if tostring(player) then
-				SendToUnsynced("EventBroadcast", event, tostring(player))
+				SendToUnsynced("EventBroadcast", "PlayerLeft", tostring(player))
 			end
 		end
 	end

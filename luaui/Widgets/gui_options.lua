@@ -2811,7 +2811,7 @@ function init()
 		{ id = "unitgroups", group = "ui", category = types.basic, widget = "Unit Groups", name = texts.option.unitgroups, type = "bool", value = GetWidgetToggleValue("Unit Groups"), description = texts.option.unitgroups_descr },
 		{ id = "idlebuilders", group = "ui", category = types.basic, widget = "Idle Builders", name = texts.option.idlebuilders, type = "bool", value = GetWidgetToggleValue("Idle Builders"), description = texts.option.idlebuilders_descr },
 		{ id = "buildbar", group = "ui", category = types.basic, widget = "BuildBar", name = texts.option.buildbar, type = "bool", value = GetWidgetToggleValue("BuildBar"), description = texts.option.buildbar_descr },
-		{ id = "dgunrulereminder", group = "ui", category = types.dev, widget = "Dgun Rule Reminder", name = texts.option.dgunrulereminder, type = "bool", value = GetWidgetToggleValue("Dgun Rule Reminder"), description = texts.option.dgunrulereminder_descr },
+		--{ id = "dgunrulereminder", group = "ui", category = types.dev, widget = "Dgun Rule Reminder", name = texts.option.dgunrulereminder, type = "bool", value = GetWidgetToggleValue("Dgun Rule Reminder"), description = texts.option.dgunrulereminder_descr },
 
 
 		{ id = "label_ui_visuals", group = "ui", name = texts.option.label_visuals, category = types.basic },
