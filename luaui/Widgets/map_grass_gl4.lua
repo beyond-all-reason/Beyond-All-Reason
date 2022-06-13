@@ -569,12 +569,16 @@ local function adjustUnitGrass(unitID, multiplier, restore)	-- restore not used 
 	radius = params[4]
 	unitGrassRemovedHistory[unitID][6] = params[6] + params[5]
 	for x = params[1] - params[4], params[1] + radius, grassConfig.patchResolution do
-		for z = params[2] - radius, params[2] + radius, grassConfig.patchResolution do
-			if (x-params[1])*(x-params[1]) + (z-params[2])*(z-params[2]) < radius*radius then
-				local sizeMod = (math.abs(((x-params[1])/radius) - 0.5) + math.abs(((z-params[2])/radius) - 0.5)) / 2	-- sizemode in range 0...1
-				sizeMod = (1-(sizeMod*2-math.min(1.15, radius/40)))	-- adjust sizemod so inner grass is gone fully and not just the very center dot
-				sizeMod = (params[5]*sizeMod)	-- apply multiplier to animate it over time
-				updateGrassInstanceVBO(x,z, 1, (restore and 1+sizeMod or 1-sizeMod))
+		if x > 0 and x < mapSizeX then
+			for z = params[2] - radius, params[2] + radius, grassConfig.patchResolution do
+				if z > 0 and z < mapSizeZ then
+					if (x-params[1])*(x-params[1]) + (z-params[2])*(z-params[2]) < radius*radius then
+						local sizeMod = (math.abs(((x-params[1])/radius) - 0.5) + math.abs(((z-params[2])/radius) - 0.5)) / 2	-- sizemode in range 0...1
+						sizeMod = (1-(sizeMod*2-math.min(1.15, radius/40)))	-- adjust sizemod so inner grass is gone fully and not just the very center dot
+						sizeMod = (params[5]*sizeMod)	-- apply multiplier to animate it over time
+						updateGrassInstanceVBO(x,z, 1, (restore and 1+sizeMod or 1-sizeMod))
+					end
+				end
 			end
 		end
 	end
@@ -642,16 +646,17 @@ function widget:Update()
 
 	if not offscreen then
 		if lp or rp then
-
-			--Spring.Echo(coords[1],coords[3], button)
 			for x = coords[1] - cursorradius, coords[1] + cursorradius, grassConfig.patchResolution do
-				for z = coords[3] - cursorradius, coords[3] + cursorradius, grassConfig.patchResolution do
-					if (x-coords[1])*(x-coords[1]) + (z-coords[3])*(z-coords[3]) < cursorradius*cursorradius then
-						updateGrassInstanceVBO(x,z, 1, (lp and 1.025) or (rp and 0.975))
+				if x > 0 and x < mapSizeX then
+					for z = coords[3] - cursorradius, coords[3] + cursorradius, grassConfig.patchResolution do
+						if z > 0 and z < mapSizeZ then
+							if (x-coords[1])*(x-coords[1]) + (z-coords[3])*(z-coords[3]) < cursorradius*cursorradius then
+								updateGrassInstanceVBO(x,z, 1, (lp and 1.025) or (rp and 0.975))
+							end
+						end
 					end
 				end
 			end
-
 		end
 	end
 end
