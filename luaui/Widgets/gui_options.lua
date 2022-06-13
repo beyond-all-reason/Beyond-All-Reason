@@ -1968,6 +1968,14 @@ function init()
 		},
 
 		{ id = "grass", group = "gfx", category = types.basic, widget = "Map Grass GL4", name = texts.option.grass, type = "bool", value = GetWidgetToggleValue("Map Grass GL4"), description = texts.option.grass_desc },
+		{ id = "grassdistance", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.grassdistance, type = "slider", min = 0.3, max = 1, step = 0.01, value = 1, description = texts.option.grassdistance_descr,
+		  onload = function(i)
+			  loadWidgetData("Map Grass GL4", "grassdistance", { 'distanceMult' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Map Grass GL4', 'grassgl4', 'setDistanceMult', { 'distanceMult' }, value)
+		  end,
+		},
 
 		{ id = "treewind", group = "gfx", category = types.dev, name = texts.option.treewind, type = "bool", value = tonumber(Spring.GetConfigInt("TreeWind", 1) or 1) == 1, description = texts.option.treewind_descr,
 		  onload = function(i)

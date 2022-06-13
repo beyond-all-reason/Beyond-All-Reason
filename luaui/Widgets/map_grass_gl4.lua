@@ -79,9 +79,9 @@ local grassConfig = {
     WINDSTRENGTH = 0.1,	  -- how much the wind will blow the grass
     WINDSCALE = 0.33, -- how fast the wind texture moves
     WINDSAMPLESCALE = 0.001, -- tiling resolution of the noise texture
-    FADESTART = 3000,-- distance at which grass starts to fade
-    FADEEND = 4000,--distance at which grass completely fades out
-    SHADOWFACTOR = 0.5, -- how much shadowed grass gets darkened, lower values mean more shadows
+    FADESTART = 5500,-- distance at which grass starts to fade
+    FADEEND = 7700,--distance at which grass completely fades out
+    SHADOWFACTOR = 0.25, -- how much shadowed grass gets darkened, lower values mean more shadows
     HASSHADOWS = 1, -- 0 for disable, no real difference in this (does not work yet)
   },
   grassBladeColorTex = "LuaUI/Images/luagrass/grass_field_medit_flowering.dds.cached.dds", -- rgb + alpha transp
@@ -92,6 +92,8 @@ local grassConfig = {
   -- The grassdisttex overrides the default map grass, if specified!
   grassDistTGA = "", -- MUST BE 8 bit uncompressed TGA, sized Game.mapSize* / patchResolution, where 0 is no grass, and 1<= controls grass size.
 }
+
+local distanceMult = 0.4
 
 --------------------------------------------------------------------------------
 -- map custom config
@@ -571,7 +573,7 @@ local function adjustUnitGrass(unitID, multiplier, restore)	-- restore not used 
 		for z = params[2] - radius, params[2] + radius, grassConfig.patchResolution do
 			if (x-params[1])*(x-params[1]) + (z-params[2])*(z-params[2]) < radius*radius then
 				local sizeMod = (math.abs(((x-params[1])/radius) - 0.5) + math.abs(((z-params[2])/radius) - 0.5)) / 2	-- sizemode in range 0...1
-				sizeMod = (1-(sizeMod*2-math.min(1, radius/40)))	-- adjust sizemod so inner grass is gone fully and not just the very center dot
+				sizeMod = (1-(sizeMod*2-math.min(1.2, radius/40)))	-- adjust sizemod so inner grass is gone fully and not just the very center dot
 				sizeMod = (params[5]*sizeMod)	-- apply multiplier to animate it over time
 				updateGrassInstanceVBO(x,z, 1, (restore and 1+sizeMod or 1-sizeMod))
 			end
@@ -1112,10 +1114,13 @@ local function makeShaderVAO()
 end
 
 function widget:Initialize()
-	--WG['grassgl4'] = {}
-	--WG['grassgl4'].getBrightness = function()
-	--	return brightness
-	--end
+	WG['grassgl4'] = {}
+	WG['grassgl4'].getDistanceMult = function()
+		return distanceMult
+	end
+	WG['grassgl4'].setDistanceMult = function(value)
+		distanceMult = value
+	end
 	makeGrassPatchVBO(grassConfig.patchSize)
 	makeGrassInstanceVBO()
 	makeShaderVAO()
@@ -1205,21 +1210,17 @@ function widget:TextCommand(command)
 		Spring.Echo(grassFragmentShaderDebug)
 		--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
 	end
-
 end
 
-
-
 function widget:SetConfigData(data)
-	if data.brightness ~= nil then
-
+	if data.distanceMult ~= nil then
+		distanceMult = data.distanceMult
 	end
 end
 
-
 function widget:GetConfigData(data)
 	return {
-
+		distanceMult = distanceMult,
 	}
 end
 
@@ -1286,8 +1287,8 @@ local function GetStartEndRows() -- returns start and end indices of the instanc
 
 	local cx, cy, cz = Spring.GetCameraPosition()
 
-	minZ = math.max(minZ, (distto2dsqr(cy,cz,maxHeight,0) - grassConfig.grassShaderParams.FADEEND)) -- additional stupidity
-	maxZ = math.min(maxZ, mapSizeZ - (distto2dsqr(cy,cz,maxHeight,mapSizeZ) - grassConfig.grassShaderParams.FADEEND))
+	minZ = math.max(minZ, (distto2dsqr(cy,cz,maxHeight,0) - (grassConfig.grassShaderParams.FADEEND*distanceMult))) -- additional stupidity
+	maxZ = math.min(maxZ, mapSizeZ - (distto2dsqr(cy,cz,maxHeight,mapSizeZ) - (grassConfig.grassShaderParams.FADEEND*distanceMult)))
 
 	local startInstanceIndex = mapcoordtorow(minZ,-4)
 	local endInstanceIndex =  mapcoordtorow(maxZ, 4)
@@ -1314,7 +1315,7 @@ function widget:DrawWorldPreUnit()
 
   local cx, cy, cz = Spring.GetCameraPosition()
   local gh = (Spring.GetGroundHeight(cx,cz) or 0)
-  if cy  < (grassConfig.grassShaderParams.FADEEND + gh) and grassVAO ~= nil and #grassInstanceData > 0 then
+  if cy  < ((grassConfig.grassShaderParams.FADEEND*distanceMult) + gh) and grassVAO ~= nil and #grassInstanceData > 0 then
 	local startInstanceIndex = 0
 	local instanceCount =  #grassInstanceData/4
     if not placementMode then
@@ -1328,7 +1329,7 @@ function widget:DrawWorldPreUnit()
     end
 
     local globalgrassfade = math.max(0.0,math.min(1.0,
-        (grassConfig.grassShaderParams.FADEEND - (cy-gh))/(grassConfig.grassShaderParams.FADEEND-grassConfig.grassShaderParams.FADESTART)))
+		((grassConfig.grassShaderParams.FADEEND*distanceMult) - (cy-gh))/((grassConfig.grassShaderParams.FADEEND*distanceMult)-(grassConfig.grassShaderParams.FADESTART*distanceMult))))
 
     gl.DepthTest(GL.LEQUAL)
     gl.DepthMask(true)

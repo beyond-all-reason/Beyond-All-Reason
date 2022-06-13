@@ -230,6 +230,8 @@ return {
 			dof_fstop_descr = 'Set amount of blur\n\nOnly works if autofocus is off',
 			grass = 'Grass',
 			grass_desc = 'Show patches of grass on certain maps',
+			grassdistance = 'fadeout distance',
+			grassdistance_desc = 'The distance that grass remains visible',
 			treewind = 'Tree Wind',
 			treewind_descr = 'Makes trees wave in the wind.\n\n(will not apply too every tree type)',
 			heatdistortion = 'Heat distortion fx',
