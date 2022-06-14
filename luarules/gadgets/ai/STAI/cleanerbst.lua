@@ -121,5 +121,4 @@ end
 function CleanerBST:Patroling() --TODO move nano patroling to another place (activate-deactivate behaviour)
 	local uPos = self.unit:Internal():GetPosition()
 	self.unit:Internal():Patrol({uPos.x,uPos.y,uPos.z,0})
-	print('uPosx',uPos.x)
 end

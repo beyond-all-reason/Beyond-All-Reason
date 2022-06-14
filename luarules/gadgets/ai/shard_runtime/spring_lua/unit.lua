@@ -15,7 +15,7 @@ local function SyncOrder(id,cmd,pos,opts,timeout)
 	msg = msg .. ':' .. pos .. ':'
 	msg = msg .. ';' .. opts .. ';'
 	msg = msg .. '#' .. timeout .. '#'
-	print(msg)
+	--print(msg)
 	Spring.SendLuaRulesMsg(msg)
 	return msg
 
@@ -219,7 +219,7 @@ function ShardUnit:Stop()
 end
 
 function ShardUnit:Stockpile()
-	local order = SyncOrder( self.id, CMD.STOCKPILE, {}, 0 )
+	local order = SyncOrder( self.id, CMD.STOCKPILE, 0, 0 )
 	--return Spring.GiveOrderToUnit( self.id, CMD.STOCKPILE, {}, 0 )
 end
 
@@ -438,6 +438,14 @@ end
 function ShardUnit:Roam()
 	local order = SyncOrder( self.id, CMD.MOVE_STATE, { 2 }, 0 )
 -- 	return Spring.GiveOrderToUnit( self.id, CMD.MOVE_STATE, { 2 }, 0 )
+end
+
+function ShardUnit:IdleModeFly()
+	local order = SyncOrder( self.id, CMD.IDLEMODE, { 0 }, 0 )
+end
+
+function ShardUnit:IdleModeLand()
+	local order = SyncOrder( self.id, CMD.IDLEMODE, { 1 }, 0 )
 end
 
 function ShardUnit:GetPosition()

@@ -4,8 +4,6 @@ function TaskQueueBST:Name()
 	return "TaskQueueBST"
 end
 
-local CMD_GUARD = 25
-
 local maxBuildDists = {}
 local maxBuildSpeedDists = {}
 
@@ -28,7 +26,7 @@ local function MaxBuildDist(unitName, speed)
 end
 
 function TaskQueueBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.visualdbg = true
 	self.role = nil
 	self.active = false
@@ -118,9 +116,7 @@ function TaskQueueBST:Activate()
 	if self.constructing then
 		self:EchoDebug(self.name .. " " .. self.id .. " resuming construction of " .. self.constructing.unitName .. " " .. self.constructing.unitID)
 		-- resume construction if we were interrupted
-		local floats = api.vectorFloat()
-		floats:push_back(self.constructing.unitID)
-		self.unit:Internal():ExecuteCustomCommand(CMD_GUARD, floats)
+		self.unit:Internal():Guard(self.constructing.unitID)
 		self.target = self.constructing.position
 		self.currentProject = self.constructing.unitName
 		self.progress = false
@@ -147,7 +143,7 @@ end
 
 function TaskQueueBST:Update()
 	local f = self.game:Frame()
-	if f % 69 ~= 0 then
+	if f % 39 ~= 0 then
 		return
 	end
 	self:VisualDBG()
@@ -440,10 +436,6 @@ function TaskQueueBST:ProgressQueue()
 	if self.idx > #self.queue then
 		self.idx = 1
 	end
-	--local self.idx, JOB = next(self.queue,self.idx or 1)
-
-
--- 	self.idx = idx
 	for index = self.idx, #self.queue + 1 do
 		if  not self.progress then
 			self.idx = index
@@ -499,27 +491,11 @@ function TaskQueueBST:ProgressQueue()
 				return
 			end
 			if utype ~= nil and p ~= nil then
-				if type(jobName) == "table" and jobName[1] == "ReclaimEnemyMex" then
-					self:EchoDebug("reclaiming enemy mex...")
-					success = self.ai.tool:CustomCommand(self.unit:Internal(), CMD_RECLAIM, {jobName[2].unitID}) --TODO redo with shardify one
-					jobName = jobName[1]
-				else
-					self:EchoDebug("TRY TO BUILD", jobName, 'at',p.x,p.z)
-					self.ai.buildsitehst:NewPlan(jobName, p, self)
-					local facing = self.ai.buildsitehst:GetFacing(p)
-					self:EchoDebug('facing',facing)
-					print( gadgetHandler:IsSyncedCode())
-					local command = self.unit:Internal():Build(jobName, p, facing)
-					success = true
-					--success = Spring.GetUnitCommands ( self.id, 0 ) > 0
--- 					if Spring.GetUnitCommands ( self.id, 0 )  then
--- 						print(Spring.GetUnitCommands ( self.id, 0 ))
--- 					end
--- 					if Spring.GetUnitCommands ( self.id, 0 ) > 0 then return end
-					--local topQueue = Spring.GetFactoryCommands(self.id,1)[1]
+				self.ai.buildsitehst:NewPlan(jobName, p, self)
+				local facing = self.ai.buildsitehst:GetFacing(p)
+				local command = self.unit:Internal():Build(jobName, p, facing)
 
-					print('success' , success)
-				end
+				success = true
 			end
 			if success then
 				self:EchoDebug(self.name , " successful build command for ", utype:Name())
@@ -530,9 +506,9 @@ function TaskQueueBST:ProgressQueue()
 				self.failOut = nil
 				self.progress = false
 				self.assistant = false
-				if jobName == "ReclaimEnemyMex" then
-					self.watchdogTimeout = self.watchdogTimeout + 450 -- give it 15 more seconds to reclaim it
-				end
+-- 				if jobName == "ReclaimEnemyMex" then
+-- 					self.watchdogTimeout = self.watchdogTimeout + 450 -- give it 15 more seconds to reclaim it
+-- 				end
 			else
 				self.progress = true
 				self.target = nil

@@ -170,6 +170,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 		--self:EchoDebug()
 	end
 	if army.antinukes[un] then
+		table.insert(b, AntinukeBST)
 		--self:EchoDebug()
 	end
 	if army.crawlings[un] then

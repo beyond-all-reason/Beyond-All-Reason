@@ -71,29 +71,29 @@ if gadgetHandler:IsSyncedCode() then
 		GG.AiHelpers.Start()
 	end
 	function gadget:RecvLuaMsg(msg, playerID)
-		print(msg,string.sub(msg,1,17))
+		--print(msg,string.sub(msg,1,17))
 		if string.sub(msg,1,17) == 'StGiveOrderToSync' then
 
 			local id = string.split(msg,"*")[2]
-			print(id)
+			--print(id)
 			local cmd = string.split(msg,'_')[2]
-			print(cmd)
+			--print(cmd)
 			local pos = string.split(msg,':')
-			print('pos',pos)
+			--print('pos',pos)
 			if string.split(pos[2],',') then
-				print('pos2',pos[2])
+				--print('pos2',pos[2])
 				pos = string.split(pos[2],',')
 			end
-			print('POS',pos)
+			--print('POS',pos)
 			local opts = string.split(msg,';')
-			print('opts',opts[2])
+			--print('opts',opts[2])
 			if string.split(opts[2],',') then
-				print('opts2',opts[2])
+				--print('opts2',opts[2])
 				opts = string.split(opts[2],',')
 			end
-			print('OPTS',opts)
+			--print('OPTS',opts)
 			local timeout = string.split(msg,'#')
-			print('timeout',timeout[2])
+			--print('timeout',timeout[2])
 			local order = Spring.GiveOrderToUnit(id,cmd,pos,opts,timeout)
 			print(order,'order')
 		end
