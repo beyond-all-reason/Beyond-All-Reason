@@ -952,7 +952,7 @@ function widget:DrawScreen()
 					for i, o in pairs(optionHover) do
 						if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' then
 							-- display console command at the bottom
-							if advSettings then
+							if advSettings or devMode then
 								font:Begin()
 								font:SetTextColor(0.5, 0.5, 0.5, 0.27)
 								font:Print('/option ' .. options[i].id, screenX + (8 * widgetScale), screenY - screenHeight + (11 * widgetScale), 14 * widgetScale, "n")

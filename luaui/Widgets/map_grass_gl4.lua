@@ -522,14 +522,16 @@ local function updateGrassInstanceVBO(wx, wz, size, sizemod)
 	--Spring.Echo(wx, wz, sizemod)
 	local vboOffset = world2grassmap(wx,wz) * grassInstanceVBOStep
 	if vboOffset==0 or  vboOffset >= #grassInstanceData then
-		Spring.Echo("vboOffset > #grassInstanceData",vboOffset,#grassInstanceData, " you probably need to /editgrass")
+		--Spring.Echo("vboOffset > #grassInstanceData",vboOffset,#grassInstanceData, " you probably need to /editgrass")
 		return
 	end
+
+	local oldsize = grassInstanceData[vboOffset + 4]
+	if oldsize <= 0 then return end
 
 	local oldpx = grassInstanceData[vboOffset + 1] -- We must read all instance params, because we need to write them all at once
 	local oldry = grassInstanceData[vboOffset + 2]
 	local oldpz = grassInstanceData[vboOffset + 3]
-	local oldsize = grassInstanceData[vboOffset + 4]
 
 	if sizemod then size = math.min(grassConfig.grassMaxSize, oldsize * sizemod) end
 	local alt, ctrl, meta, shft = Spring.GetModKeyState()
@@ -665,13 +667,9 @@ function widget:Update()
 	if not offscreen then
 		if lp or rp then
 			for x = coords[1] - cursorradius, coords[1] + cursorradius, grassConfig.patchResolution do
-				if x > 0 and x < mapSizeX then
-					for z = coords[3] - cursorradius, coords[3] + cursorradius, grassConfig.patchResolution do
-						if z > 0 and z < mapSizeZ then
-							if (x-coords[1])*(x-coords[1]) + (z-coords[3])*(z-coords[3]) < cursorradius*cursorradius then
-								updateGrassInstanceVBO(x,z, 1, (lp and 1.025) or (rp and 0.975))
-							end
-						end
+				for z = coords[3] - cursorradius, coords[3] + cursorradius, grassConfig.patchResolution do
+					if (x-coords[1])*(x-coords[1]) + (z-coords[3])*(z-coords[3]) < cursorradius*cursorradius then
+						updateGrassInstanceVBO(x,z, 1, (lp and 1.025) or (rp and 0.975))
 					end
 				end
 			end
