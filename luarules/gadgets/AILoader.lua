@@ -95,7 +95,7 @@ if gadgetHandler:IsSyncedCode() then
 			local timeout = string.split(msg,'#')
 			--print('timeout',timeout[2])
 			local order = Spring.GiveOrderToUnit(id,cmd,pos,opts,timeout)
-			print(order,'order')
+			--print(order,'order')
 		end
 	end
 else
