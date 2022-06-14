@@ -40,7 +40,7 @@ local advSettings = false
 local initialized = false
 local pauseGameWhenSingleplayer = true
 
-local cameraTransitionTime = 0.12
+local cameraTransitionTime = 0.18
 local cameraPanTransitionTime = 0.03
 
 local widgetOptionColor = '\255\160\160\160'
