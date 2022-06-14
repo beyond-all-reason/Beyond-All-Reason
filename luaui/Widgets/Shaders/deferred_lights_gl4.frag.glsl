@@ -10,7 +10,7 @@
 
 
 in DataVS {
-	vec4 v_worldPosRad;
+	flat vec4 v_worldPosRad;
 	vec4 v_worldPosRad2;
 	vec4 v_lightcolor;
 	vec4 v_falloff_dense_scattering_sourceocclusion;
@@ -120,8 +120,9 @@ float ray_to_capsule_distance_squared(vec3 rayOrigin, vec3 rayDirection, vec3 ca
 }
 #else
 // marginally faster, about the cost as a single octave of perlin
-float ray_to_capsule_distance_squared(vec3 rayOrigin, vec3 rayDirection, vec3 cap1, vec3 cap2){ // point1, dir1, beamstart, beamend
-	// returns the squared distance of the ray and the line segment
+vec4 ray_to_capsule_distance_squared(vec3 rayOrigin, vec3 rayDirection, vec3 cap1, vec3 cap2){ // point1, dir1, beamstart, beamend
+	// returns the squared distance of the ray and the line segment in w
+	// returns the closest point on beam in xyz
 	float rd_dot_rd_inv = 1.0 / dot(rayDirection, rayDirection);
 	
 	float t1 = dot(rayDirection, cap1 - rayOrigin) * rd_dot_rd_inv;
@@ -142,12 +143,20 @@ float ray_to_capsule_distance_squared(vec3 rayOrigin, vec3 rayDirection, vec3 ca
 	float dd = dot(connectornormal, rayOrigin - cap1); // this is the angle between the connector normal and 
 	float sqdistline = dd*dd / dot(connectornormal, connectornormal); // sqdistline; 
 
-	float closestcap =  min( dot(interSectToC2, interSectToC2), dot(interSectToC1, interSectToC1) );  //sqdistends
-
+	float distcap2 = dot(interSectToC2, interSectToC2) ;
+	float distcap1 = dot(interSectToC1, interSectToC1) ;  //sqdistends
+	
+	vec3 closestpointbeam = cap1 + cap2tocap1 * sqrt((distcap2 - sqdistline)/dot(cap2tocap1,cap2tocap1));
+	vec4 finalposanddist = mix(vec4(cap1, distcap1) ,
+		vec4(cap2, distcap2) ,
+		step(distcap2, distcap1));
+		
 	if (angle1 < 0 && angle2 > 0){ // this means that our ray is hitting between the caps
-		closestcap = sqdistline;
+		finalposanddist.w = sqdistline;
+		finalposanddist.xyz = closestpointbeam;
 	}
-	return closestcap;
+	finalposanddist.w = sqrt(finalposanddist.w);
+	return finalposanddist;
 }
 #endif
 //http://www.realtimerendering.com/intersections.html
@@ -229,19 +238,22 @@ void main(void)
 	
 	vec3 camPos = cameraViewInv[3].xyz;
 	
-	vec3 viewDirection = normalize(camPos - fragWorldPos.xyz);
-	vec3 lightDirection = vec3(1); // the normalized vector from the light source to the fragment
+	vec3 viewDirection = normalize(camPos - fragWorldPos.xyz); // vector pointing in the direction of the eye ray
+	vec3 lightDirection = vec3(0); // the normalized vector from the light source to the fragment
 	vec3 lightToWorld = vec3(0); // The vector pointing from light source to fragment world pos
-	vec3 lightPosition = vec3(0);
+	vec3 lightPosition = vec3(0); // This is the position of the light illuminating the fragment
+	vec3 lightEmitPosition = vec3(0); // == lightPosition, except for beams, where the lightEmitPosition for a ray is different than for a world fragment
 	
+	float raytolightdistance = 0;
 	vec4 closestpoint_dist = vec4(0); // the point that is closest to the light source (xyz) and the distance to it (w)
 	
 	// Lighting components we wish to collect along the way:
-	
-	float attenuation = 0; // Just the distance from the light source
+	float attenuation = 0; // Just the distance from the light source (multiplied with falloff for cones
 	float falloff = 1; // only cone light have this
+	float selfglow = v_falloff_dense_scattering_sourceocclusion.w; // How much the emission point glows here
+	float selfglowfalloff = 1; // only for cones
+	
 	float scattering = 0; // the integration of the light reflected into the eye from the eye ray through the volume
-	float distancetolight = 0;
 	float diffuse = 0; // The amount of diffuse reflection from the world-hitting fragment
 	float specular = 0; // The amount of specular reflection from the world-hitting fragment
 	float dtobeam = 0;
@@ -252,14 +264,32 @@ void main(void)
 	
 	fragColor.rgba = vec4(fract(fragWorldPos.xyz * 0.1),1.0);
 	
+	#line 32000
 	if (pointbeamcone < 0.5){ //point
 		lightPosition = v_worldPosRad.xyz;
+		lightEmitPosition = lightPosition;
 		
 		lightToWorld = fragWorldPos.xyz - lightPosition;
 		lightDirection = normalize(lightToWorld);
 		attenuation = clamp( 1.0 - length (lightToWorld) / v_worldPosRad.w, 0,1);
-	
-		//fragColor.rgb = vec3(attenuation);
+		closestpoint_dist = closestlightlp_distance(camPos, viewDirection, lightPosition);
+	#line 33000
+	}else if (pointbeamcone > 1.5){ // cone
+		lightPosition = v_worldPosRad.xyz;
+		
+		lightToWorld = fragWorldPos.xyz - lightPosition;
+		lightDirection = normalize(lightToWorld);
+		
+		float lightandworldangle = dot(lightDirection, v_worldPosRad2.xyz);
+		falloff = smoothstep(v_worldPosRad2.w, 1.0, lightandworldangle) ;
+
+		attenuation = clamp( 1.0 - length (lightToWorld) / v_worldPosRad.w, 0,1) * falloff;
+		lightEmitPosition = lightPosition;
+		closestpoint_dist = closestlightlp_distance(camPos, viewDirection, lightPosition);
+		
+		selfglowfalloff = dot(normalize(closestpoint_dist.xyz - lightPosition) , v_worldPosRad2.xyz) / v_worldPosRad2.w;
+		//attenuation = lightspotfalloff ;
+	#line 34000
 	}else if (pointbeamcone < 1.5){ // beam 
 		vec3 beamhalflength = v_worldPosRad2.xyz - v_worldPosRad.xyz; 
 		vec3 beamstart = v_worldPosRad.xyz - beamhalflength;
@@ -276,39 +306,27 @@ void main(void)
 		dtobeam = capIntersect( camPos, viewDirection, beamstart, beamend, v_worldPosRad.w);
 		
 		dtobeam = distancebetweenlines(beamstart, normalize(beamstart-beamend), camPos,viewDirection).x;
-		rcd = ray_to_capsule_distance(camPos, viewDirection, beamstart, beamend);
-		rcdsqr = ray_to_capsule_distance_squared(camPos, viewDirection, beamstart, beamend);
-		falloff = 0;
-	}else if (pointbeamcone > 1.5){ // cone
-		lightPosition = v_worldPosRad.xyz;
-		
-		lightToWorld = fragWorldPos.xyz - lightPosition;
-		lightDirection = normalize(lightToWorld);
-		
-		float lightandworldangle = dot(-lightDirection, v_worldPosRad2.xyz);
-		float lightspotfalloff = smoothstep(v_worldPosRad2.w, 1.0, lightandworldangle) ;
-		falloff = lightspotfalloff;
-		attenuation = clamp( 1.0 - length (lightToWorld) / v_worldPosRad.w, 0,1) * lightspotfalloff;
-		//attenuation = lightspotfalloff ;
+		//rcd = ray_to_capsule_distance(camPos, viewDirection, beamstart, beamend);
+		closestpoint_dist = ray_to_capsule_distance_squared(camPos, viewDirection, beamstart, beamend);
+		lightEmitPosition = closestpoint_dist.xyz;
+
 	}
-	
-	closestpoint_dist = closestlightlp_distance(camPos, viewDirection, lightPosition);
-	distancetolight = clamp(1.0 - closestpoint_dist.w/v_worldPosRad.w, 0.0, 1.0);
+	#line 35000
+	float relativedistancetolight = clamp(1.0 - 10* closestpoint_dist.w/v_worldPosRad.w, 0.0, 1.0);
 	
 	diffuse = clamp(dot(-lightDirection, normals.xyz), 0.0, 1.0);
-	diffuse = diffuse*diffuse;
 	
 	
 	
 	vec3 reflection = reflect(lightDirection, normals.xyz);
 	specular = dot(reflection, viewDirection);
-	specular = pow(max(0.0, specular), 32.0) * 0.5;
-	attenuation = attenuation * attenuation;
+	specular = pow(max(0.0, specular), 32.0) * 1.5;
+	attenuation = attenuation;// * attenuation;
 	
 	fragColor.rgb = vec3(attenuation, diffuse, specular);
 	
 	fragColor.rgb = vec3(1.0) * attenuation * (diffuse + specular);
-	if (v_falloff_dense_scattering_sourceocclusion.z < worlddepth) {fragColor.rgb += vec3(pow(distancetolight,12) * falloff);
+	if (v_falloff_dense_scattering_sourceocclusion.z < worlddepth) {fragColor.rgb += vec3(pow(relativedistancetolight,12) * falloff);
 	}
 	else{
 		//fragColor.rgb = vec3(0);
@@ -323,9 +341,13 @@ void main(void)
 	float beamlength = 2*length(v_worldPosRad2.xyz - v_worldPosRad.xyz);
 	
 	
-	
-	
-	fragColor.rgb += clamp(0.25* vec3(pow(1.0-rcdsqr / (v_worldPosRad.w * v_worldPosRad.w),16)), 0.0, 1.0);
+	fragColor.rgb = vec3(
+			(diffuse ) * attenuation,
+			relativedistancetolight * relativedistancetolight * selfglowfalloff,
+			(specular) * attenuation
+			);
+	//fragColor.rgb += 0.5;
+	//fragColor.rgb += clamp(0.25* vec3(pow(1.0-rcdsqr / (v_worldPosRad.w * v_worldPosRad.w),16)), 0.0, 1.0);
 	//fragColor.rgb = vec3(rcdsqr / (v_worldPosRad.w * v_worldPosRad.w));
 	//fragColor.rgb = vec3(abs(fract(v_falloff_dense_scattering_sourceocclusion.w*10)));
 	//fragColor.rgb = v_falloff_dense_scattering_sourceocclusion.zzz;

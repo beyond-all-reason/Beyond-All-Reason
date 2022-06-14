@@ -513,7 +513,7 @@ end
 
 function AddRandomLight(which)
 	local gf = Spring.GetGameFrame()
-	local radius = math.random() * 100 + 50
+	local radius = math.random() * 150 + 150
 	local posx = Game.mapSizeX * math.random() * 1.0
 	local posz = Game.mapSizeZ * math.random() * 1.0
 	local posy = Spring.GetGroundHeight(posx, posz) + math.random() * 0.5 * radius
@@ -526,7 +526,7 @@ function AddRandomLight(which)
 		AddBeamLight(posx, posy , posz, radius, posx + s, posy + t, posz + u)
 	else -- cone
 		local s =  (math.random() - 0.5) * 2
-		local t =  (math.random() - 1.0) * -1
+		local t =  (math.random() + 0.0) * -1
 		local u =  (math.random() - 0.5) * 2
 		local lenstu = 1.0 / math.sqrt(s*s + t*t + u*u)
 		local theta = math.random() * 0.9 
@@ -547,7 +547,7 @@ function widget:Initialize()
 	if initGL4() == false then return end
 	
 	math.randomseed(1)
-	for i=1, 500 do AddRandomLight(	math.random()) end 
+	for i=1, 100 do AddRandomLight(	math.random()) end 
 end
 
 function widget:Shutdown()

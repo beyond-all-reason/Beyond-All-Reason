@@ -23,7 +23,7 @@ layout (location = 7) in vec4 otherparams; //
 uniform float pointbeamcone = 0;// = 0; // 0 = point, 1 = beam, 2 = cone
 
 out DataVS {
-	vec4 v_worldPosRad;
+	flat vec4 v_worldPosRad;
 	vec4 v_worldPosRad2;
 	vec4 v_lightcolor;
 	vec4 v_falloff_dense_scattering_sourceocclusion;
@@ -53,7 +53,7 @@ void main()
 	float time = timeInfo.x + timeInfo.w;
 	
 	v_worldPosRad = worldposrad ;
-	v_worldPosRad.xyz += 32 * sin(time * vec3(0.01, 0.011, 0.012) + v_worldPosRad.xyz );
+	//v_worldPosRad.xyz += 32 * sin(time * vec3(0.01, 0.011, 0.012) + v_worldPosRad.xyz );
 	v_worldPosRad2 = worldposrad2;
 	v_lightcolor = lightcolor;
 	v_falloff_dense_scattering_sourceocclusion = falloff_dense_scattering_sourceocclusion;
@@ -97,12 +97,12 @@ void main()
 		
 		v_falloff_dense_scattering_sourceocclusion.w = depthAtWorldPos(vec4(v_worldPosRad.xyz,1.0));
 	}
-	else if (pointbeamcone > 1.5){ 
-		// input cone that points up, (y = 1), with radius =1, bottom flat on Y=0 plane
+	else if (pointbeamcone > 1.5){ // cone
+		// input cone that has pointy end up, (y = 1), with radius =1, flat on Y=0 plane
 		// make it so that cone tip is at 0 and the opening points to -y
 		worldPos.xyz = position.xyz;
-		worldPos.y = 1.0 - worldPos.y;
-		worldPos.y *= -1;
+		worldPos.y = (worldPos.y*1.1 - 1.) * -1;
+		//worldPos.y *= 1;
 	
 		worldPos.xz *= tan(worldposrad2.w); // Scale the flat of the cone by the half-angle of its opening
 		v_worldPosRad2.w = cos(worldposrad2.w); // pass through the cosine to avoid this calc later on
@@ -110,7 +110,7 @@ void main()
 		worldPos.xyz *= worldposrad.w * 1.05; // scale it all by the height of the cone, and a bit of extra 
 		
 		// Now our cone is opening forward towards  -y, but we want it to point into the worldposrad2.xyz
-		vec3 oldfw = vec3(0,1,0); // The old forward direction is -y
+		vec3 oldfw = vec3(0, -1,0); // The old forward direction is -y
 		vec3 newfw = normalize(worldposrad2.xyz); // the new forward direction shall be the normal that we want
 		vec3 newright = normalize(cross(newfw, oldfw)); // the new right direction shall be the vector perpendicular to old and new forward
 		vec3 newup = normalize(cross(newright, newfw)); // the new up direction shall be the vector perpendicular to new right and new forward
