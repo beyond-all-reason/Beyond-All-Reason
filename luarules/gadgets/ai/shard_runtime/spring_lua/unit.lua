@@ -284,14 +284,11 @@ function ShardUnit:MoveAndFire(p)
 end
 
 function ShardUnit:Patrol(p)
-	print('patrol','px',p[1],p[2],p[3],p[4])
 	--local order = SyncOrder(self.id, CMD.PATROL, p, 0)
  	return self:MoveAndPatrol(p)
 end
 
 function ShardUnit:MoveAndPatrol(p)
-	print('px',p.x)
-	print(CMD.PATROL)
 	local order = SyncOrder(self.id, CMD.PATROL, p, 0)
 	--return Spring.GiveOrderToUnit( self.id, CMD.PATROL, { p.x, p.y, p.z }, 0 )
 end
