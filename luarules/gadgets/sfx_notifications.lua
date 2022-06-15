@@ -252,11 +252,14 @@ else
 			for _, teamID in ipairs(myAllyTeamList) do
 				if unitTeam == teamID then
 					allyComCount = allyComCount - 1	-- current com death has not been subtracted from GetTeamUnitDefCount yet, so we do this manually
+					if unitTeam == myTeamID then
+						myComCount = myComCount - 1
+					end
 				end
 				for unitDefID,_ in pairs(isCommander) do
 					local comCount = Spring.GetTeamUnitDefCount(teamID, unitDefID)
 					allyComCount = allyComCount + comCount
-					if teamID == myTeamID then
+					if teamID == myTeamID and comCount > 0 then
 						myComCount = myComCount + comCount
 					end
 				end
