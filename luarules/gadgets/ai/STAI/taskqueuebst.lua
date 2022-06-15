@@ -491,9 +491,13 @@ function TaskQueueBST:ProgressQueue()
 				return
 			end
 			if utype ~= nil and p ~= nil then
-				self.ai.buildsitehst:NewPlan(jobName, p, self)
-				local facing = self.ai.buildsitehst:GetFacing(p)
-				local command = self.unit:Internal():Build(jobName, p, facing)
+				if type(jobName) == "table" and jobName[1] == "ReclaimEnemyMex" then
+					jobName = jobName[1]
+				else
+					self.ai.buildsitehst:NewPlan(jobName, p, self)
+					local facing = self.ai.buildsitehst:GetFacing(p)
+					local command = self.unit:Internal():Build(jobName, p, facing)
+				end
 
 				success = true
 			end
