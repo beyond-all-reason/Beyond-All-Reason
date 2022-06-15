@@ -1175,13 +1175,14 @@ function widget:Initialize()
 	WG['grassgl4'].setDistanceMult = function(value)
 		distanceMult = value
 	end
-	WG['grassgl4'].editGrass = function(wx,wz,radius,sizemod)
-		sizemod = sizemod or 0
+	WG['grassgl4'].removeGrass = function(wx,wz,radius)
 		radius = radius or grassConfig.patchResolution
 		for x = wx - radius, wx + radius, grassConfig.patchResolution do
 			for z = wz - radius, wz + radius, grassConfig.patchResolution do
 				if (x-wx)*(x-wx) + (z-wz)*(z-wz) < radius*radius then
-					updateGrassInstanceVBO(x,z, 1, sizemod)
+					local sizeMod = 1-(math.abs(((x-wx)/radius)) + math.abs(((z-wz)/radius))) / 2	-- sizemode in range 0...1
+					sizeMod = (sizeMod*2-math.min(0.66, radius/100))	-- adjust sizemod so inner grass is gone fully and not just the very center dot
+					updateGrassInstanceVBO(x,z, 1, 1-sizeMod)
 				end
 			end
 		end
