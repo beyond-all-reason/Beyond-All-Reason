@@ -393,24 +393,11 @@ end
 local ChickenMinTable = { -- {minimum queen anger, unitname, mincount, spawncount} -- spawncount = x*((playercount*0.5)+0.5)
 	-- EMP
 	{25, 	"chickene1", 				1, 		3},
-	{45, 	"chickenebomber1", 			1, 		2},
 	{65, 	"chickene2", 				1, 		2},
 	
 	-- Acid
 	{55, 	"chickenacidswarmer", 		1, 		3},
-	{76, 	"chickenacidbomber", 		1, 		2},
 	{72, 	"chickenacidassault", 		1, 		2},
-	
-	-- Fighters
-	{42, 	"chickenw1", 				1, 		1},
-	{44, 	"chickenw1b", 				1, 		1},
-	{46, 	"chickenw1c", 				1, 		1},
-	{48, 	"chickenw1d", 				1, 		1},
-	{85, 	"chickenw2", 				1, 		2},
-
-	-- Bombers		
-	{44, 	"chickenf1", 				1, 		2},
-	{48, 	"chickenf1b", 				1, 		2},
 
 	-- Artillery
 	{52, 	"chickenr1", 				1, 		1},
