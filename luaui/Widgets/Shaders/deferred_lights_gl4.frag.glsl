@@ -11,9 +11,9 @@
 
 in DataVS {
 	flat vec4 v_worldPosRad;
-	vec4 v_worldPosRad2;
-	vec4 v_lightcolor;
-	vec4 v_falloff_dense_scattering_sourceocclusion;
+	flat vec4 v_worldPosRad2;
+	flat vec4 v_lightcolor;
+	flat vec4 v_falloff_dense_scattering_sourceocclusion;
 	vec4 v_otherparams;
 	vec4 v_position;
 	vec4 v_debug;
@@ -239,6 +239,8 @@ void main(void)
 	vec3 camPos = cameraViewInv[3].xyz;
 	
 	vec3 viewDirection = normalize(camPos - fragWorldPos.xyz); // vector pointing in the direction of the eye ray
+	
+	float lightRadius = v_worldPosRad.w;
 	vec3 lightDirection = vec3(0); // the normalized vector from the light source to the fragment
 	vec3 lightToWorld = vec3(0); // The vector pointing from light source to fragment world pos
 	vec3 lightPosition = vec3(0); // This is the position of the light illuminating the fragment
@@ -252,6 +254,8 @@ void main(void)
 	float falloff = 1; // only cone light have this
 	float selfglow = v_falloff_dense_scattering_sourceocclusion.w; // How much the emission point glows here
 	float selfglowfalloff = 1; // only for cones
+	float sourceVisible = 1; // if the world-pos of the source of this fragments scattering light is visible
+		// Note that for cones and beams, this is calced in the vertex shader, for beams its done in the fragment shader
 	
 	float scattering = 0; // the integration of the light reflected into the eye from the eye ray through the volume
 	float diffuse = 0; // The amount of diffuse reflection from the world-hitting fragment
@@ -271,8 +275,12 @@ void main(void)
 		
 		lightToWorld = fragWorldPos.xyz - lightPosition;
 		lightDirection = normalize(lightToWorld);
-		attenuation = clamp( 1.0 - length (lightToWorld) / v_worldPosRad.w, 0,1);
+		attenuation = clamp( 1.0 - length (lightToWorld) / lightRadius, 0,1);
 		closestpoint_dist = closestlightlp_distance(camPos, viewDirection, lightPosition);
+		
+		if (v_falloff_dense_scattering_sourceocclusion.z > worlddepth) sourceVisible = 0;
+		// For scattering, take the 
+		scattering = pow(1.0 - closestpoint_dist.w / lightRadius, 2);
 	#line 33000
 	}else if (pointbeamcone > 1.5){ // cone
 		lightPosition = v_worldPosRad.xyz;
@@ -283,12 +291,16 @@ void main(void)
 		float lightandworldangle = dot(lightDirection, v_worldPosRad2.xyz);
 		falloff = smoothstep(v_worldPosRad2.w, 1.0, lightandworldangle) ;
 
-		attenuation = clamp( 1.0 - length (lightToWorld) / v_worldPosRad.w, 0,1) * falloff;
+		attenuation = clamp( 1.0 - length (lightToWorld) / lightRadius, 0,1) * falloff;
 		lightEmitPosition = lightPosition;
 		closestpoint_dist = closestlightlp_distance(camPos, viewDirection, lightPosition);
 		
 		selfglowfalloff = dot(normalize(closestpoint_dist.xyz - lightPosition) , v_worldPosRad2.xyz) / v_worldPosRad2.w;
-		//attenuation = lightspotfalloff ;
+		
+		float scatterangle = smoothstep(v_worldPosRad2.w, 1.0, - dot(normalize(lightPosition - closestpoint_dist.xyz),v_worldPosRad2.xyz)); 
+		scattering = pow(1.0 - closestpoint_dist.w / lightRadius, 2) *scatterangle;
+		if (v_falloff_dense_scattering_sourceocclusion.z > worlddepth) sourceVisible = 0;
+		
 	#line 34000
 	}else if (pointbeamcone < 1.5){ // beam 
 		vec3 beamhalflength = v_worldPosRad2.xyz - v_worldPosRad.xyz; 
@@ -301,18 +313,23 @@ void main(void)
 		//lightPosition = closestlightlp_distance(camPos, viewDirection, beamstart, beamend);
 		
 		lightDirection = normalize(lightToWorld);
-		attenuation = clamp( 1.0 - length (lightToWorld) / v_worldPosRad.w, 0,1);
+		attenuation = clamp( 1.0 - length (lightToWorld) / lightRadius, 0,1);
 		
-		dtobeam = capIntersect( camPos, viewDirection, beamstart, beamend, v_worldPosRad.w);
+		dtobeam = capIntersect( camPos, viewDirection, beamstart, beamend, lightRadius);
 		
 		dtobeam = distancebetweenlines(beamstart, normalize(beamstart-beamend), camPos,viewDirection).x;
 		//rcd = ray_to_capsule_distance(camPos, viewDirection, beamstart, beamend);
 		closestpoint_dist = ray_to_capsule_distance_squared(camPos, viewDirection, beamstart, beamend);
 		lightEmitPosition = closestpoint_dist.xyz;
+		
+		
+		//if (v_falloff_dense_scattering_sourceocclusion.z > worlddepth) sourceVisible = 0;
+		
+		scattering = pow(max(0,1.0 - closestpoint_dist.w / lightRadius), 2);
 
 	}
 	#line 35000
-	float relativedistancetolight = clamp(1.0 - 10* closestpoint_dist.w/v_worldPosRad.w, 0.0, 1.0);
+	float relativedistancetolight = clamp(1.0 - 10* closestpoint_dist.w/lightRadius, 0.0, 1.0);
 	
 	diffuse = clamp(dot(-lightDirection, normals.xyz), 0.0, 1.0);
 	
@@ -320,18 +337,19 @@ void main(void)
 	
 	vec3 reflection = reflect(lightDirection, normals.xyz);
 	specular = dot(reflection, viewDirection);
-	specular = pow(max(0.0, specular), 32.0) * 1.5;
+	specular = pow(max(0.0, specular), 16.0) * 1.5;
 	attenuation = attenuation;// * attenuation;
 	
 	fragColor.rgb = vec3(attenuation, diffuse, specular);
 	
 	fragColor.rgb = vec3(1.0) * attenuation * (diffuse + specular);
-	if (v_falloff_dense_scattering_sourceocclusion.z < worlddepth) {fragColor.rgb += vec3(pow(relativedistancetolight,12) * falloff);
-	}
-	else{
-		//fragColor.rgb = vec3(0);
-	}
 	
+
+	if (v_falloff_dense_scattering_sourceocclusion.z < worlddepth){
+		//sourceVisible = 0;
+		//{fragColor.rgb += vec3(pow(relativedistancetolight,12) * falloff);
+	}
+
 	//fragColor.rgb = vec3(distancetolight);
 	//fragColor.rgb = vec3(fract(lightPosition.xyz * 0.025));
 	//fragColor.rgb = vec3(fract(dtobeam * 0.001));
@@ -340,15 +358,17 @@ void main(void)
 	float fuck = 0;
 	float beamlength = 2*length(v_worldPosRad2.xyz - v_worldPosRad.xyz);
 	
-	
+
 	fragColor.rgb = vec3(
 			(diffuse ) * attenuation,
-			relativedistancetolight * relativedistancetolight * selfglowfalloff,
-			(specular) * attenuation
+			relativedistancetolight * relativedistancetolight * selfglowfalloff * sourceVisible + (specular) * attenuation,
+			 scattering
 			);
 	//fragColor.rgb += 0.5;
 	//fragColor.rgb += clamp(0.25* vec3(pow(1.0-rcdsqr / (v_worldPosRad.w * v_worldPosRad.w),16)), 0.0, 1.0);
 	//fragColor.rgb = vec3(rcdsqr / (v_worldPosRad.w * v_worldPosRad.w));
 	//fragColor.rgb = vec3(abs(fract(v_falloff_dense_scattering_sourceocclusion.w*10)));
-	//fragColor.rgb = v_falloff_dense_scattering_sourceocclusion.zzz;
+	//fragColor.rgb = vec3(pow(v_falloff_dense_scattering_sourceocclusion.z,8), pow(worlddepth, 8), 0);
+	//fragColor.rgb = vec3((worlddepth - v_falloff_dense_scattering_sourceocclusion.z)* 100 + 0.5);
+
 }

@@ -14,7 +14,10 @@ layout (location = 4) in vec4 worldposrad2;
 layout (location = 5) in vec4 lightcolor; 
 layout (location = 6) in vec4 falloff_dense_scattering_sourceocclusion; // 
 layout (location = 7) in vec4 otherparams; // 
+layout (location = 8) in uint pieceIndex; // for piece type lights
+layout (location = 9) in uvec4 instData; // matoffset, uniformoffset, teamIndex, drawFlags {id = 5, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 
+			
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
 
@@ -22,11 +25,19 @@ layout (location = 7) in vec4 otherparams; //
 
 uniform float pointbeamcone = 0;// = 0; // 0 = point, 1 = beam, 2 = cone
 
+
+// this uniform needs some extra. If it is 1, then the primitives should point in the -Z direction, and be moved and rotated with the unit itself
+// If the unit is not being drawn, it must be switched off
+// One should still be able to specify an offset for this. 
+// our overdraw additional offsets become a problem possibly for this 
+
+uniform float attachedtounitID = 0;
+
 out DataVS {
 	flat vec4 v_worldPosRad;
-	vec4 v_worldPosRad2;
-	vec4 v_lightcolor;
-	vec4 v_falloff_dense_scattering_sourceocclusion;
+	flat vec4 v_worldPosRad2;
+	flat vec4 v_lightcolor;
+	flat vec4 v_falloff_dense_scattering_sourceocclusion;
 	vec4 v_otherparams; // this could be anything 
 	vec4 v_position;
 	vec4 v_debug;
@@ -53,7 +64,9 @@ void main()
 	float time = timeInfo.x + timeInfo.w;
 	
 	v_worldPosRad = worldposrad ;
-	//v_worldPosRad.xyz += 32 * sin(time * vec3(0.01, 0.011, 0.012) + v_worldPosRad.xyz );
+	float lightRadius = worldposrad.w;
+	v_worldPosRad.xyz += 48 * sin(time * vec3(0.01, 0.011, 0.012) + v_worldPosRad.xyz );
+	vec3 lightCenterPosition = v_worldPosRad.xyz;
 	v_worldPosRad2 = worldposrad2;
 	v_lightcolor = lightcolor;
 	v_falloff_dense_scattering_sourceocclusion = falloff_dense_scattering_sourceocclusion;
@@ -66,17 +79,17 @@ void main()
 		//scale it and place it into the world
 		//Make it a tiny bit bigger cause the blocky sphere is smaller than the actual radius
 		// the -1 is for inverting it so we always see the back faces (great for occlusion testing!)
-		worldPos.xyz = worldposrad.xyz + -1 * position.xyz * worldposrad.w * 1.05;
-		v_falloff_dense_scattering_sourceocclusion.w = depthAtWorldPos(vec4(v_worldPosRad.xyz,1.0));
+		worldPos.xyz = lightCenterPosition + -1 * position.xyz * lightRadius * 1.05;
+		v_falloff_dense_scattering_sourceocclusion.w = depthAtWorldPos(vec4(lightCenterPosition,1.0));
 		//
 	}
 	else if (pointbeamcone < 1.5){ // beam
 		// we will tranform along this vector, where Y shall be the upvector
 		// our null vector is +X
-		vec3 centertoend = worldposrad.xyz - worldposrad2.xyz;
+		vec3 centertoend = lightCenterPosition - worldposrad2.xyz;
 		float halfbeamlength = length(centertoend);
 		// Scale the box to correct size (along beam is X dir)
-		worldPos.xyz = position.xyz * vec3( worldposrad.w , halfbeamlength +worldposrad.w, worldposrad.w );
+		worldPos.xyz = position.xyz * vec3( lightRadius , halfbeamlength + lightRadius, lightRadius );
 		
 		// TODO rotate this box
 		vec3 oldfw = vec3(0,1,0); // The old forward direction is -y
@@ -93,9 +106,9 @@ void main()
 		
 		
 		// Place the box in the world
-		worldPos.xyz += worldposrad.xyz;
+		worldPos.xyz += lightCenterPosition;
 		
-		v_falloff_dense_scattering_sourceocclusion.w = depthAtWorldPos(vec4(v_worldPosRad.xyz,1.0));
+		v_falloff_dense_scattering_sourceocclusion.w = depthAtWorldPos(vec4(lightCenterPosition,1.0));
 	}
 	else if (pointbeamcone > 1.5){ // cone
 		// input cone that has pointy end up, (y = 1), with radius =1, flat on Y=0 plane
@@ -107,7 +120,7 @@ void main()
 		worldPos.xz *= tan(worldposrad2.w); // Scale the flat of the cone by the half-angle of its opening
 		v_worldPosRad2.w = cos(worldposrad2.w); // pass through the cosine to avoid this calc later on
 		v_worldPosRad2.xyz = normalize(worldposrad2.xyz); // normalize this here for sanity
-		worldPos.xyz *= worldposrad.w * 1.05; // scale it all by the height of the cone, and a bit of extra 
+		worldPos.xyz *= lightRadius * 1.05; // scale it all by the height of the cone, and a bit of extra 
 		
 		// Now our cone is opening forward towards  -y, but we want it to point into the worldposrad2.xyz
 		vec3 oldfw = vec3(0, -1,0); // The old forward direction is -y
@@ -123,10 +136,10 @@ void main()
 		worldPos.xyz = rotmat * worldPos.xyz;
 		
 		// move it to world:
-		worldPos.xyz += worldposrad.xyz;
+		worldPos.xyz += lightCenterPosition;
 		
 		
-		v_falloff_dense_scattering_sourceocclusion.w = depthAtWorldPos(vec4(v_worldPosRad.xyz,1.0));
+		v_falloff_dense_scattering_sourceocclusion.w = depthAtWorldPos(vec4(lightCenterPosition,1.0));
 	}
 	gl_Position = cameraViewProj * worldPos;
 	

@@ -14,6 +14,7 @@ function widget:GetInfo()
 	}
 end
 
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -160,6 +161,9 @@ widget:ViewResize()
 -- piecelights
 	-- for thrusters, would be truly epic!
 	-- fusion lights
+	
+-- Notes on self-point lights:
+	-- these are probably best billboarded, then depth tested!
 
 -- would be nice to have:
 	-- full map-level dense atmosphere
@@ -175,6 +179,12 @@ local shaderConfig = {
 local coneLightVBO
 local beamLightVBO
 local pointLightVBO
+
+local unitConeLightVBO
+local unitPointLightVBO
+
+local featureConeLightVBO
+local featurePointLightVBO
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
@@ -239,6 +249,7 @@ local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, d
 				uniformFloat = {
 					pointbeamcone = 0,
 					fadeDistance = 3000,
+					attachedtounitID = 0,
 				  },
 				},
 				shadername
@@ -271,6 +282,8 @@ local function initGL4()
 				-- this is light color rgba for all
 			{id = 6, name = 'falloff_dense_scattering', size = 4},
 			{id = 7, name = 'otherparams', size = 4},
+			{id = 8, name = 'pieceIndex', size = 1, type = GL.UNSIGNED_INT},
+			{id = 9, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 	}
 	
 	local coneVBO, numConeVertices = makeConeVBO(16, 1, 1)
@@ -280,6 +293,19 @@ local function initGL4()
 	coneLightVBO.numVertices = numConeVertices
 	coneLightVBO.VAO = makeVAOandAttach(coneLightVBO.vertexVBO, coneLightVBO.instanceVBO)
 	
+	unitConeLightVBO = makeInstanceVBOTable(vboLayout, 64, "Unit Cone Light VBO", 9) -- 9 is the ID of the instData attribute here
+	if coneVBO == nil or unitConeLightVBO == nil then goodbye("Failed to make VBO") end 
+	unitConeLightVBO.vertexVBO = coneVBO
+	unitConeLightVBO.numVertices = numConeVertices
+	unitConeLightVBO.VAO = makeVAOandAttach(unitConeLightVBO.vertexVBO, unitConeLightVBO.instanceVBO)	
+	
+	featureConeLightVBO = makeInstanceVBOTable(vboLayout, 64, "Feature Cone Light VBO", 9) -- 9 is the ID of the instData attribute here
+	if coneVBO == nil or featureConeLightVBO == nil then goodbye("Failed to make VBO") end 
+	featureConeLightVBO.vertexVBO = coneVBO
+	featureConeLightVBO.numVertices = numConeVertices
+	featureConeLightVBO.VAO = makeVAOandAttach(featureConeLightVBO.vertexVBO, featureConeLightVBO.instanceVBO)
+	featureConeLightVBO.featureIDs = true
+	
 	local beamVBO, numBeamVertices = makeBoxVBO(-1, -1, -1, 1, 1, 1)
 	beamLightVBO = makeInstanceVBOTable(vboLayout, 64, "Beam Light VBO")
 	if beamVBO == nil or beamLightVBO == nil then goodbye("Failed to make VBO") end 
@@ -288,11 +314,24 @@ local function initGL4()
 	beamLightVBO.VAO = makeVAOandAttach(beamLightVBO.vertexVBO, beamLightVBO.instanceVBO)
 	
 	local pointVBO, numPointVertices, pointIndexVBO, numIndices = makeSphereVBO(8, 8, 1) 
-	pointLightVBO = makeInstanceVBOTable(vboLayout, 64, "Beam Light VBO")
+	pointLightVBO = makeInstanceVBOTable(vboLayout, 64, "Point Light VBO")
 	if pointVBO == nil or pointLightVBO == nil then goodbye("Failed to make VBO") end 
 	pointLightVBO.vertexVBO = pointVBO
 	pointLightVBO.indexVBO = pointIndexVBO
 	pointLightVBO.VAO = makeVAOandAttach(pointLightVBO.vertexVBO, pointLightVBO.instanceVBO, pointLightVBO.indexVBO)
+	
+
+	unitPointLightVBO = makeInstanceVBOTable(vboLayout, 64, "Unit Point Light VBO", 9 ) -- 9 is the ID of the instData attribute here
+	if pointVBO == nil or unitPointLightVBO == nil then goodbye("Failed to make VBO") end 
+	unitPointLightVBO.vertexVBO = pointVBO
+	unitPointLightVBO.indexVBO = pointIndexVBO
+	unitPointLightVBO.VAO = makeVAOandAttach(unitPointLightVBO.vertexVBO, unitPointLightVBO.instanceVBO, unitPointLightVBO.indexVBO)
+	
+	featurePointLightVBO = makeInstanceVBOTable(vboLayout, 64, "Feature Point Light VBO", 9 ) -- 9 is the ID of the instData attribute here
+	if pointVBO == nil or featurePointLightVBO == nil then goodbye("Failed to make VBO") end 
+	featurePointLightVBO.vertexVBO = pointVBO
+	featurePointLightVBO.indexVBO = pointIndexVBO
+	featurePointLightVBO.VAO = makeVAOandAttach(featurePointLightVBO.vertexVBO, featurePointLightVBO.instanceVBO, featurePointLightVBO.indexVBO)
 	
 	deferredLightShader =  checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4")
 	if not deferredLightShader then goodbye("Failed to compile Deferred Lights GL4 shader") end 
@@ -477,7 +516,7 @@ local function DeferredLighting_UnRegisterFunction(functionID)
 end
 ]]--
 local lightCacheTable = {}
-for i = 1, 20 do lightCacheTable[i] = 0 end 
+for i = 1, 25 do lightCacheTable[i] = 0 end 
 
 local function AddPointLight(px,py,pz,radius)
 	lightCacheTable[1] = px
@@ -485,6 +524,26 @@ local function AddPointLight(px,py,pz,radius)
 	lightCacheTable[3] = pz
 	lightCacheTable[4] = radius
 	return pushElementInstance(pointLightVBO, lightCacheTable)
+end
+
+local function AddUnitPointLight(unitID, pieceIndex, px,py,pz,radius)
+	lightCacheTable[1] = px
+	lightCacheTable[2] = py
+	lightCacheTable[3] = pz
+	lightCacheTable[4] = radius
+	lightCacheTable[21] = pieceIndex
+	local instanceID =  pushElementInstance(unitPointLightVBO, lightCacheTable, nil, true, nil, unitID)
+	lightCacheTable[21] = 0
+	return instanceID
+end
+
+local function AddFeaturePointLight(featureID, px,py,pz,radius)
+	lightCacheTable[1] = px
+	lightCacheTable[2] = py
+	lightCacheTable[3] = pz
+	lightCacheTable[4] = radius
+	local instanceID =  pushElementInstance(featurePointLightVBO, lightCacheTable, nil, true, nil, featureID)
+	return instanceID
 end
 
 local function AddBeamLight(px,py,pz,radius, sx, sy, sz)
@@ -511,9 +570,37 @@ local function AddConeLight(px,py,pz,height, dx, dy, dz, angle)
 	return pushElementInstance(coneLightVBO, lightCacheTable)
 end
 
+local function AddUnitConeLight(unitID, pieceIndex, px,py,pz,height, dx, dy, dz, angle)
+	lightCacheTable[1] = px
+	lightCacheTable[2] = py
+	lightCacheTable[3] = pz
+	lightCacheTable[4] = height
+	lightCacheTable[5] = dx
+	lightCacheTable[6] = dy
+	lightCacheTable[7] = dz
+	lightCacheTable[8] = angle
+	lightCacheTable[21] = pieceIndex
+	local instanceID =  pushElementInstance(unitConeLightVBO, lightCacheTable, nil, true, nil, unitID)
+	lightCacheTable[21] = 0
+end
+
+local function AddFeatureConeLight(featureID, px,py,pz,height, dx, dy, dz, angle)
+	lightCacheTable[1] = px
+	lightCacheTable[2] = py
+	lightCacheTable[3] = pz
+	lightCacheTable[4] = height
+	lightCacheTable[5] = dx
+	lightCacheTable[6] = dy
+	lightCacheTable[7] = dz
+	lightCacheTable[8] = angle
+	return pushElementInstance(unitConeLightVBO, lightCacheTable, nil, true, nil, featureID)
+end
+
+
+
 function AddRandomLight(which)
 	local gf = Spring.GetGameFrame()
-	local radius = math.random() * 150 + 150
+	local radius = math.random() * 150 + 50
 	local posx = Game.mapSizeX * math.random() * 1.0
 	local posz = Game.mapSizeZ * math.random() * 1.0
 	local posy = Spring.GetGroundHeight(posx, posz) + math.random() * 0.5 * radius
@@ -547,7 +634,7 @@ function widget:Initialize()
 	if initGL4() == false then return end
 	
 	math.randomseed(1)
-	for i=1, 100 do AddRandomLight(	math.random()) end 
+	for i=1, 500 do AddRandomLight(	math.random()) end 
 end
 
 function widget:Shutdown()
