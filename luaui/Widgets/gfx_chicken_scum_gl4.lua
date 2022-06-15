@@ -397,6 +397,7 @@ local function AddOrUpdateScum(posx, posy, posz, radius, growthrate, scumID)
 	local gf = Spring.GetGameFrame()
 	local deathtime
 	local scum
+	local currentradius
 	-- thus we need to make a new scum, and register it in our scumBins
 	if scumID == nil or scums[scumID] == nil then
 		posy = posy or Spring.GetGroundHeight(posx, posz)
@@ -410,7 +411,7 @@ local function AddOrUpdateScum(posx, posy, posz, radius, growthrate, scumID)
 		scum = scums[scumID]
 		-- well then, seems we have to do this after all, when we update a scum, we need to check how long its been alive
 		-- this is the nastiest garbage ive ever done
-		local currentradius = GetScumCurrentRadius(scum, gf)
+		 currentradius = GetScumCurrentRadius(scum, gf)
 
 		-- always remove from removal queue on update
 		for _, removescums in pairs(scumRemoveQueue) do
@@ -430,11 +431,8 @@ local function AddOrUpdateScum(posx, posy, posz, radius, growthrate, scumID)
 		if debugmode then Spring.Echo("Updated scum", scumID, "it was", currentradius,"/", scum.radius, "sized, growing at", growthrate) end
 	end
 
-	if scum.growthrate > 0 and WG['grassgl4'] then
-		local currentradius = GetScumCurrentRadius(scum, gf)
-		if currentradius < scum.radius then
-			WG['grassgl4'].removeGrass(scum.posx, scum.posz, currentradius)
-		end
+	if currentradius and scum.growthrate > 0 and currentradius < scum.radius and WG['grassgl4'] then
+		WG['grassgl4'].removeGrass(scum.posx, scum.posz, currentradius)
 	end
 
 	--Spring.Echo(scumID, growthrate, radius, gf)
