@@ -278,7 +278,8 @@ void main(void)
 		attenuation = clamp( 1.0 - length (lightToWorld) / lightRadius, 0,1);
 		closestpoint_dist = closestlightlp_distance(camPos, viewDirection, lightPosition);
 		
-		if (v_falloff_dense_scattering_sourceocclusion.z > worlddepth) sourceVisible = 0;
+		
+		sourceVisible = smoothstep(v_falloff_dense_scattering_sourceocclusion.z -0.001, v_falloff_dense_scattering_sourceocclusion.z ,worlddepth);
 		// For scattering, take the 
 		scattering = pow(1.0 - closestpoint_dist.w / lightRadius, 2);
 	#line 33000
@@ -299,7 +300,9 @@ void main(void)
 		
 		float scatterangle = smoothstep(v_worldPosRad2.w, 1.0, - dot(normalize(lightPosition - closestpoint_dist.xyz),v_worldPosRad2.xyz)); 
 		scattering = pow(1.0 - closestpoint_dist.w / lightRadius, 2) *scatterangle;
-		if (v_falloff_dense_scattering_sourceocclusion.z > worlddepth) sourceVisible = 0;
+
+		
+		sourceVisible = smoothstep(v_falloff_dense_scattering_sourceocclusion.z -0.001, v_falloff_dense_scattering_sourceocclusion.z ,worlddepth);
 		
 	#line 34000
 	}else if (pointbeamcone < 1.5){ // beam 
@@ -322,8 +325,13 @@ void main(void)
 		closestpoint_dist = ray_to_capsule_distance_squared(camPos, viewDirection, beamstart, beamend);
 		lightEmitPosition = closestpoint_dist.xyz;
 		
+		// how to tell, if lightEmitPosition is occluded?
+		vec4 lightEmitScreenPosition = cameraViewProj * vec4(lightEmitPosition, 1.0);
+		lightEmitScreenPosition.xyz /= lightEmitScreenPosition.w;
 		
-		//if (v_falloff_dense_scattering_sourceocclusion.z > worlddepth) sourceVisible = 0;
+		if (lightEmitScreenPosition.z > worlddepth) sourceVisible = 0;
+		
+		sourceVisible = smoothstep(lightEmitScreenPosition.z - 0.1/lightEmitScreenPosition.w, lightEmitScreenPosition.z ,worlddepth);
 		
 		scattering = pow(max(0,1.0 - closestpoint_dist.w / lightRadius), 2);
 
@@ -370,5 +378,5 @@ void main(void)
 	//fragColor.rgb = vec3(abs(fract(v_falloff_dense_scattering_sourceocclusion.w*10)));
 	//fragColor.rgb = vec3(pow(v_falloff_dense_scattering_sourceocclusion.z,8), pow(worlddepth, 8), 0);
 	//fragColor.rgb = vec3((worlddepth - v_falloff_dense_scattering_sourceocclusion.z)* 100 + 0.5);
-
+	//fragColor.rgb = (fract(lightEmitPosition*0.02));
 }
