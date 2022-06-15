@@ -379,6 +379,7 @@ function TargetHST:perifericalTarget()
 	if not self.enemyBasePosition then
 		return
 	end
+
 	local base = self.enemyBasePosition
 	local distX = 0
 	local distZ = 0
@@ -404,6 +405,7 @@ function TargetHST:perifericalTarget()
 			end
 		end
 	end
+	if not tgX or not tgZ then return end
 	tgX.distalX = true
 	tgZ.distalZ = true
 	tgXZ.distalXZ = true
