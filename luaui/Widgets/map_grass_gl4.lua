@@ -192,6 +192,7 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local vsx, vsy = gl.GetViewSizes()
 local minHeight, maxHeight = Spring.GetGroundExtremes()
+local removedBelowHeight
 
 local mousepos = {0,0,0}
 local cursorradius = 50
@@ -1187,10 +1188,36 @@ function widget:Initialize()
 			end
 		end
 	end
+	WG['grassgl4'].removeGrassBelowHeight = function(height)
+		if not removedBelowHeight or height > removedBelowHeight then
+			removedBelowHeight = height
+
+			local patchResolution = grassConfig.patchResolution
+			local offset = 0
+			for z = 1, math.floor(mapSizeZ/patchResolution )do
+				for x = 1, math.floor(mapSizeX/patchResolution)do
+					if spGetGroundHeight(x*patchResolution,z*patchResolution) <= height then
+						local lx = (x - 0.5) * patchResolution + (math.random() - 0.5) * patchResolution/1.5
+						local lz = (z - 0.5) * patchResolution + (math.random() - 0.5) * patchResolution/1.5
+						grassInstanceData[offset*4 + 1] = lx
+						grassInstanceData[offset*4 + 2] = math.random()*6.28
+						grassInstanceData[offset*4 + 3] = lz
+						grassInstanceData[offset*4 + 4] = 0
+					end
+					offset = offset + 1
+				end
+			end
+			defineUploadGrassInstanceVBOData()
+			MakeAndAttachToVAO()
+		end
+	end
 	makeGrassPatchVBO(grassConfig.patchSize)
 	makeGrassInstanceVBO()
 	makeShaderVAO()
 	clearAllUnitGrass()
+	if Game.waterDamage > 0 then
+		WG['grassgl4'].removeGrassBelowHeight(20)
+	end
 	widgetHandler:RegisterGlobal('GadgetWeaponExplosionGrass', GadgetWeaponExplosionGrass)
 end
 
