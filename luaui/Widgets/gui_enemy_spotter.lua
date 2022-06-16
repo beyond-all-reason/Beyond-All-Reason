@@ -154,14 +154,17 @@ local function init()
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	else
 		Spring.Echo("Enemy spotter needs unittrackerapi to work!")
+		widgetHandler:RemoveWidget()
+		return false
 	end
 	return true
 end
 
 function widget:PlayerChanged(playerID)
 	myAllyTeamID = Spring.GetMyAllyTeamID()
-end
 
+	widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+end
 
 function widget:Initialize()
 	if not init() then return end
