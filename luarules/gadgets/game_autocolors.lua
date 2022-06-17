@@ -17,76 +17,86 @@ end
 -- Special colors
 local armBlueColor       = "#004DFF" -- Armada Blue
 local corRedColor        = "#FF1005" -- Cortex Red
-local scavPurpColor      = "#612461" -- Scav Purple
+local scavPurpColor      = "#6809A1" -- Scav Purple
 local chickenOrangeColor = "#CC8914" -- Chicken Orange
 local gaiaGrayColor      = "#7F7F7F" -- Gaia Grey
 
 if gadgetHandler:IsSyncedCode() then
 	local ffaColors = {
-		"#004DFF", -- Armada Blue
-		"#FF1005", -- Cortex Red
-		"#0CE818", -- Green
-		"#FFD70D", -- Yellow
-		"#FF00DB", -- Fuchsia
-		"#0CC4E8", -- Turquoise
-		"#FF6B00", -- Orange
-		"#86FFD1", -- Light Turquoise Green
-		"#F6BB56", -- Light Brown
-		"#68B900", -- Dark Lime
-		"#6697FF", -- Very Light Blue
-		"#FF6058", -- Light Red
-		"#8DF492", -- Light Green
-		"#FFF2AE", -- Very Light Yellow
-		"#FFAAF3", -- Very Light Fuchsia
-		"#90E5F5", -- Light Turquoise
-		"#FF9055", -- Light Orange
-		"#00AA69", -- Dark Turquoise Green
-		"#9B6408", -- Dark Brown
-		"#C4FF79", -- Light Lime
-		"#3475FF", -- Light Blue
-		"#AD0800", -- Dark Red
-		"#089B10", -- Dark Green
-		"#FFE874", -- Light Yellow
-		"#FF68EA", -- Light Fuchsia
-		"#08839B", -- Dark Turquoise
-		"#FFC8AA", -- Very Light Orange
-		"#00FF9E", -- Turquoise Green
-		"#DB8E0E", -- Brown
-		"#9FFF25", -- Lime
+		"#004DFF", -- 1
+		"#FF1005", -- 2
+		"#0CE818", -- 3
+		"#FFD70D", -- 4
+		"#FF00DB", -- 5
+		"#0CC4E8", -- 6
+		"#FF6B00", -- 7
+		"#86FFD1", -- 8
+		"#F6BB56", -- 9
+		"#68B900", -- 10
+		"#6697FF", -- 11
+		"#FF6058", -- 12
+		"#8DF492", -- 13
+		"#FFF2AE", -- 14
+		"#FFAAF3", -- 15
+		"#90E5F5", -- 16
+		"#FF9055", -- 17
+		"#00AA69", -- 18
+		"#9B6408", -- 19
+		"#C4FF79", -- 20
 	}
 
 	local survivalColors = {
-		"#004DFF", -- Armada Blue
-		"#FF1005", -- Cortex Red
-		"#0CE818", -- Green
-		-- "#FFD70D", -- Yellow
-		"#FF00DB", -- Fuchsia
-		"#0CC4E8", -- Turquoise
-		--"#FF6B00", -- Orange
-		"#86FFD1", -- Light Turquoise Green
-		-- "#F6BB56", -- Light Brown
-		"#68B900", -- Dark Lime
-		"#6697FF", -- Very Light Blue
-		"#FF6058", -- Light Red
-		"#8DF492", -- Light Green
-		-- "#FFF2AE", -- Very Light Yellow
-		"#FFAAF3", -- Very Light Fuchsia
-		"#90E5F5", -- Light Turquoise
-		--"#FF9055", -- Light Orange
-		"#00AA69", -- Dark Turquoise Green
-		"#9B6408", -- Dark Brown
-		-- "#C4FF79", -- Light Lime
-		"#3475FF", -- Light Blue
-		"#AD0800", -- Dark Red
-		"#089B10", -- Dark Green
-		-- "#FFE874", -- Light Yellow
-		"#FF68EA", -- Light Fuchsia
-		"#08839B", -- Dark Turquoise
-		-- "#FFC8AA", -- Very Light Orange
-		"#00FF9E", -- Turquoise Green
-		"#DB8E0E", -- Brown
-		"#9FFF25", -- Lime
+		"#0B3EF3", -- 1
+		"#FF1005", -- 2
+		"#0CE908", -- 3
+		"#F80889", -- 4
+		"#09F5F5", -- 5
+		"#FCEEA4", -- 6
+		"#097E1C", -- 7
+		"#F190B3", -- 8
+		"#2C32AC", -- 9
+		"#3EFFA2", -- 10
+		"#9F0D05", -- 11
+		"#7CA1FF", -- 12
+		"#A35274", -- 13
+		"#B04523", -- 14
+		"#B4FF39", -- 15
+		"#773A01", -- 16
+		"#D8EEFF", -- 17
+		"#689E3D", -- 18
+		"#0B849B", -- 19
+		"#FFD200", -- 20
+		"#971C48", -- 21
+		"#4A4376", -- 22
+		"#764A4A", -- 23
+		"#4F2684", -- 24
 	}
+
+	-- OLD B2C Survival Colors
+	-- local survivalColors = {
+	-- 	"#004DFF", -- 1
+	-- 	"#FF1005", -- 2
+	-- 	"#0CE818", -- 3
+	-- 	"#FF00DB", -- 4
+	-- 	"#0CC4E8", -- 5
+	-- 	"#86FFD1", -- 6
+	-- 	"#68B900", -- 7
+	-- 	"#6697FF", -- 8
+	-- 	"#FF6058", -- 9
+	-- 	"#8DF492", -- 10
+	-- 	"#FFAAF3", -- 11
+	-- 	"#90E5F5", -- 12
+	-- 	"#00AA69", -- 13
+	-- 	"#9B6408", -- 14
+	-- 	"#3475FF", -- 15
+	-- 	"#AD0800", -- 16
+	-- 	"#089B10", -- 17
+	-- 	"#FF68EA", -- 18
+	-- 	"#08839B", -- 19
+	-- 	"#00FF9E", -- 20
+	-- 	"#DB8E0E", -- 21
+	-- 	"#9FFF25", -- 22
+	-- }
 
 	local teamColors = {
 		{ -- One Team (not possible)
@@ -97,40 +107,80 @@ if gadgetHandler:IsSyncedCode() then
 
 		{ -- Two Teams
 			{ -- First Team (Cool)
-				"#004DFF", -- Armada Blue
-				"#0CE818", -- Green
-				"#0CC4E8", -- Turquoise
-				"#86FFD1", -- Light Turquoise Green
-				"#68B900", -- Dark Lime
-				"#6697FF", -- Very Light Blue
-				"#8DF492", -- Light Green
-				"#90E5F5", -- Light Turquoise
-				"#00AA69", -- Dark Turquoise Green
-				"#C4FF79", -- Light Lime
-				"#3475FF", -- Light Blue
-				"#089B10", -- Dark Green
-				"#08839B", -- Dark Turquoise
-				"#00FF9E", -- Turquoise Green
-				"#9FFF25", -- Lime
+				"#0B3EF3", --1
+				"#0CE908", --2
+				"#872DFA", --3
+				"#09F5F5", --4
+				"#097E1C", --5
+				"#7CA1FF", --6
+				"#C4A9FF", --7
+				"#3EFFA2", --8
+				"#0B849B", --9
+				"#689E3D", --10
+				"#B4FF39", --11
+				"#2C32AC", --12
+				"#6968A0", --13
+				"#D8EEFF", --14
+				"#4A4376", --15
+				"#4F2684", --15
 			},
 			{ -- Second Team (Warm)
-				"#FF1005", -- Cortex Red
-				"#FFD70D", -- Yellow
-				"#FF00DB", -- Fuchsia
-				"#FF6B00", -- Orange
-				"#F6BB56", -- Light Brown
-				"#FF6058", -- Light Red
-				"#FFF2AE", -- Very Light Yellow
-				"#FFAAF3", -- Very Light Fuchsia
-				"#FF9055", -- Light Orange
-				"#9B6408", -- Dark Brown
-				"#AD0800", -- Dark Red
-				"#FFE874", -- Light Yellow
-				"#FF68EA", -- Light Fuchsia
-				"#FFC8AA", -- Very Light Orange
-				"#DB8E0E", -- Brown
+				"#FF1005", --1 
+				"#FFD200", --2
+				"#FF6107", --3
+				"#F80889", --4
+				"#FCEEA4", --5
+				"#9F0D05", --6
+				"#F190B3", --7
+				"#C88B2F", --8
+				"#B04523", --9
+				"#FFBB7C", --10
+				"#A35274", --11
+				"#773A01", --12
+				"#F5A200", --13
+				"#BBA28B", --14
+				"#971C48", --15
+				"#764A4A", --16
 			},
 		},
+
+		-- OLD B2C Two Team Colors
+		-- { -- Two Teams
+		-- 	{ -- First Team (Cool)
+		-- 		"#004DFF", -- Armada Blue
+		-- 		"#0CE818", -- Green
+		-- 		"#0CC4E8", -- Turquoise
+		-- 		"#86FFD1", -- Light Turquoise Green
+		-- 		"#68B900", -- Dark Lime
+		-- 		"#6697FF", -- Very Light Blue
+		-- 		"#8DF492", -- Light Green
+		-- 		"#90E5F5", -- Light Turquoise
+		-- 		"#00AA69", -- Dark Turquoise Green
+		-- 		"#C4FF79", -- Light Lime
+		-- 		"#3475FF", -- Light Blue
+		-- 		"#089B10", -- Dark Green
+		-- 		"#08839B", -- Dark Turquoise
+		-- 		"#00FF9E", -- Turquoise Green
+		-- 		"#9FFF25", -- Lime
+		-- 	},
+		-- 	{ -- Second Team (Warm)
+		-- 		"#FF1005", -- Cortex Red
+		-- 		"#FFD70D", -- Yellow
+		-- 		"#FF00DB", -- Fuchsia
+		-- 		"#FF6B00", -- Orange
+		-- 		"#F6BB56", -- Light Brown
+		-- 		"#FF6058", -- Light Red
+		-- 		"#FFF2AE", -- Very Light Yellow
+		-- 		"#FFAAF3", -- Very Light Fuchsia
+		-- 		"#FF9055", -- Light Orange
+		-- 		"#9B6408", -- Dark Brown
+		-- 		"#AD0800", -- Dark Red
+		-- 		"#FFE874", -- Light Yellow
+		-- 		"#FF68EA", -- Light Fuchsia
+		-- 		"#FFC8AA", -- Very Light Orange
+		-- 		"#DB8E0E", -- Brown
+		-- 	},
+		-- },
 
 		{ -- Three Teams
 			{ -- First Team (Blue)
