@@ -2909,22 +2909,22 @@ function init()
 		},
 
 		{ id = "highlightselunits", group = "ui", category = types.basic, widget = "Highlight Selected Units GL4", name = texts.option.highlightselunits, type = "bool", value = GetWidgetToggleValue("Highlight Selected Units GL4"), description = texts.option.highlightselunits_descr },
-		{ id = "highlightselunits_opacity", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_opacity, min = 0.02, max = 0.2, step = 0.01, type = "slider", value = 0.05, description = texts.option.highlightselunits_opacity_descr,
-		  onload = function(i)
-			  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_opacity", { 'highlightAlpha' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setOpacity', { 'highlightAlpha' }, value)
-		  end,
-		},
-		{ id = "highlightselunits_teamcolor", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_teamcolor, type = "bool", value = false, description = texts.option.highlightselunits_teamcolor_descr,
-		  onload = function(i)
-			  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_teamcolor", { 'useTeamcolor' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setTeamcolor', { 'useTeamcolor' }, value)
-		  end,
-		},
+		--{ id = "highlightselunits_opacity", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_opacity, min = 0.02, max = 0.12, step = 0.01, type = "slider", value = 0.05, description = texts.option.highlightselunits_opacity_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_opacity", { 'highlightAlpha' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setOpacity', { 'highlightAlpha' }, value)
+		--  end,
+		--},
+		--{ id = "highlightselunits_teamcolor", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_teamcolor, type = "bool", value = false, description = texts.option.highlightselunits_teamcolor_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_teamcolor", { 'useTeamcolor' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setTeamcolor', { 'useTeamcolor' }, value)
+		--  end,
+		--},
 
 		{ id = "cursorlight", group = "ui", category = types.advanced, widget = "Cursor Light", name = texts.option.cursorlight, type = "bool", value = GetWidgetToggleValue("Cursor Light"), description = texts.option.cursorlight_descr },
 		{ id = "cursorlight_lightradius", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightradius, type = "slider", min = 0.15, max = 1, step = 0.05, value = 1.5, description = '',
