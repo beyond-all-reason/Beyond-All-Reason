@@ -40,9 +40,6 @@ local gameoverTracks = {}
 
 local currentTrack
 local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, gameoverTracksPlayCounter
-local fadeOutFastCurrentTrack = false
-local fadeOutSlowCurrentTrack = false
-local fadeInSlowCurrentTrack = false
 local fadeOutSkipTrack = false
 local interruptionEnabled
 local silenceTimerEnabled
@@ -561,27 +558,58 @@ function widget:Update(dt)
 			PlayNewTrack(true)
 		end
 	end
-	if paused and (fadeOutFastCurrentTrack or fadeOutSlowCurrentTrack) then
-		fadelevel = fadelevel - (0.33/ math.max(Spring.GetGameSpeed(), 0.01))
-		local volumefadelevel = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)) * 0.01 * (fadelevel * 0.01)
-		Spring.SetSoundStreamVolume(volumefadelevel)
-
-		if fadelevel <= 0 then
-			silenceTimer = 0
-			fadeOutSlowCurrentTrack = false
-			PlayNewTrack(true)
-		end
+	if paused then
+		updateFade()
 	end
-	if paused and fadeInSlowCurrentTrack then
-		fadelevel = fadelevel + (0.33/ math.max(Spring.GetGameSpeed(), 0.01))
-		local volumefadelevel = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)) * 0.01 * (fadelevel * 0.01)
-		Spring.SetSoundStreamVolume(volumefadelevel)
+end
 
-		if fadelevel >= 100 then
-			fadeInSlowCurrentTrack = false
+-----------------
+-- Fade in/out --
+-----------------
+
+local fadeDirection
+
+local function getFastFadeSpeed()
+	return 1.5 * 0.33
+end
+local function getSlowFadeSpeed()
+	return math.max(Spring.GetGameSpeed(), 0.01)
+end
+local getFadeSpeed = getSlowFadeSpeed
+
+local function fadeChange()
+	return (0.33 / getFadeSpeed()) * fadeDirection
+end
+
+local function getMusicVolume()
+	return Spring.GetConfigInt("snd_volmusic", defaultMusicVolume) * 0.01
+end
+
+local function setVolume(fadeLevel)
+	Spring.SetSoundStreamVolume(getMusicVolume() * math.max(math.min(fadeLevel, 100), 0) * 0.01)
+end
+
+local function updateFade()
+	if fadeDirection then
+		fadelevel = fadelevel + fadeChange()
+		setVolume(fadelevel)
+
+		if fadeDirection < 0 and fadelevel <= 0 then
+			fadeDirection = nil
+			if fadeOutSkipTrack then
+				PlayNewTrack()
+			else
+				Spring.StopSoundStream()
+			end
+		elseif fadeDirection > 0 and fadelevel >= 100 then
+			fadeDirection = nil
 		end
 	end
 end
+
+-------------
+-- Callins --
+-------------
 
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
@@ -639,52 +667,6 @@ function widget:DrawScreen()
 	end
 end
 
-local function fadeOutFastTrack()
-	fadelevel = fadelevel - 1.5
-	local volumefadelevel = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)) * 0.01 * (fadelevel * 0.01)
-	Spring.SetSoundStreamVolume(volumefadelevel)
-
-	if fadelevel <= 0 then
-		if fadeOutSkipTrack then
-			fadeOutSkipTrack = false
-			fadeOutFastCurrentTrack = false
-			silenceTimer = 0
-			PlayNewTrack()
-		else
-			fadeOutFastCurrentTrack = false
-			Spring.StopSoundStream()
-		end
-	end
-end
-
-local function fadeOutSlowTrack()
-	fadelevel = fadelevel - (0.33/ math.max(Spring.GetGameSpeed(), 0.01))
-	local volumefadelevel = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)) * 0.01 * (fadelevel * 0.01)
-	Spring.SetSoundStreamVolume(volumefadelevel)
-
-	if fadelevel <= 0 then
-		if fadeOutSkipTrack then
-			fadeOutSkipTrack = false
-			fadeOutSlowCurrentTrack = false
-			silenceTimer = 0
-			PlayNewTrack()
-		else
-			fadeOutSlowCurrentTrack = false
-			Spring.StopSoundStream()
-		end
-	end
-end
-
-local function fadeInSlowTrack()
-	fadelevel = fadelevel + (0.33/ math.max(Spring.GetGameSpeed(), 0.01))
-	local volumefadelevel = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)) * 0.01 * (fadelevel * 0.01)
-	Spring.SetSoundStreamVolume(volumefadelevel)
-
-	if fadelevel >= 100 then
-		fadeInSlowCurrentTrack = false
-	end
-end
-
 function PlayNewTrack(paused)
 	if (not paused) and Spring.GetGameFrame() > 1 then
 		deviceLostSafetyCheck = deviceLostSafetyCheck + 1
@@ -694,15 +676,13 @@ function PlayNewTrack(paused)
 	appliedSilence = false
 	warMeter = warMeter * 0.75
 	
-	fadeOutFastCurrentTrack = false
-	fadeOutSlowCurrentTrack = false
-	fadeOutSkipTrack = false
 	if (not gameOver) and Spring.GetGameFrame() > 1 then
 		fadelevel = 0
-		fadeInSlowCurrentTrack = true
+		fadeDirection = 1
 	else
+		-- Fade in only when game is in progress
 		fadelevel = 100
-		fadeInSlowCurrentTrack = false
+		fadeDirection = nil
 	end
 	currentTrack = nil
 	currentTrackList = nil
@@ -760,10 +740,9 @@ function PlayNewTrack(paused)
 
 	if currentTrack then
 		Spring.PlaySoundStream(currentTrack, 1)
-		if not paused and not gameOver then
-			Spring.SetSoundStreamVolume(0)
+		if fadeDirection then
+			setVolume(fadelevel)
 		else
-			local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)) * 0.01
 			Spring.SetSoundStreamVolume(musicVolume)
 		end
 	end
@@ -786,21 +765,13 @@ function widget:GameFrame(n)
 	if n%1800 == 0 then
 		deviceLostSafetyCheck = 0
 	end
-	if fadeOutFastCurrentTrack then
-		fadeOutFastTrack()
-	end
 
-	if fadeOutSlowCurrentTrack and (not fadeOutFastCurrentTrack) then
-		fadeOutSlowTrack()
-	end
-
-	if fadeInSlowCurrentTrack and (not fadeOutFastCurrentTrack) and (not fadeOutSlowCurrentTrack)  then
-		fadeInSlowTrack()
-	end
+	updateFade()
 
 	if gameOver and not playedGameOverTrack then
-		fadeOutFastCurrentTrack = true
+		getFadeSpeed = getFastFadeSpeed
 		fadeOutSkipTrack = true
+		fadeDirection = -1
 	end
 
 	if n%30 == 15 then
@@ -812,15 +783,13 @@ function widget:GameFrame(n)
 			applySpectatorThresholds()
 		end
 		
-		local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01
+		local musicVolume = getMusicVolume()
 		if musicVolume > 0 then
 			playing = true
 		else
 			playing = false
 			appliedSilence = true
 			silenceTimer = 0
-			fadeOutFastCurrentTrack = false
-			fadeOutSlowCurrentTrack = false
 			Spring.StopSoundStream()
 			return
 		end
@@ -833,15 +802,15 @@ function widget:GameFrame(n)
 
 		if not gameOver then
 			if playedTime > 0 and totalTime > 0 then -- music is playing
-				if (not fadeOutFastCurrentTrack) and (not fadeInSlowCurrentTrack) and (not fadeOutSlowCurrentTrack) then
+				if not fadeDirection then
 					Spring.SetSoundStreamVolume(musicVolume)
 					if (totalTime < playedTime+11.1) then
-						fadeOutSlowCurrentTrack = true
+						fadeDirection = -1
 					elseif (currentTrackListString == "intro" and n > 30)
 					or ((currentTrackListString == "peace" and warMeter > warHighLevel * 0.8) and interruptionEnabled) -- Peace in battle times, let's play some WarLow music at 80% of WarHigh threshold
 					or ((currentTrackListString == "warLow" and warMeter > warHighLevel * 3) and interruptionEnabled) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at tripple of WarHigh threshold
 					or (( (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.2 ) and interruptionEnabled) then -- War music is playing, but it has been quite peaceful recently. Let's switch to peace music at 20% of WarLow threshold 
-						fadeOutSlowCurrentTrack = true
+						fadeDirection = -1
 						fadeOutSkipTrack = true
 					end
 				end
