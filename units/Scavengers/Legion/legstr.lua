@@ -2,10 +2,10 @@ return {
 	legstr = {
 		acceleration = 0.253,
 		brakerate = 0.8211,
-		buildcostenergy = 6000,
-		buildcostmetal = 400,
+		buildcostenergy = 5400,
+		buildcostmetal = 360,
 		buildpic = "LEGSTR.DDS",
-		buildtime = 8000,
+		buildtime = 7200,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -2 -1",

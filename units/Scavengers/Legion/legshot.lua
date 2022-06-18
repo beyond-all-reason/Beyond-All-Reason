@@ -2,10 +2,10 @@ return {
 	legshot = {
 		acceleration = 0.16,
 		brakerate = 0.8,
-		buildcostenergy = 7000,
-		buildcostmetal = 700,
+		buildcostenergy = 6000,
+		buildcostmetal = 600,
 		buildpic = "LEGSHOT.DDS",
-		buildtime = 13000,
+		buildtime = 11000,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -2",

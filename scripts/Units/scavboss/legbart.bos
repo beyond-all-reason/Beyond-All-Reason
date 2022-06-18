@@ -511,10 +511,10 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 4.8) / animSpeed; 
+		animSpeed = (maxSpeed * 4) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
-		if (animspeed>9) animSpeed = 9;
+		if (animspeed>7) animSpeed = 7;
 		sleep 131;
 	}
 }
@@ -575,7 +575,7 @@ Create()
 	bMoving = FALSE;
 	bAiming = FALSE;
 	isReady = 1;
-	animSpeed = 5;
+	animSpeed = 4;
 }
 
 SweetSpot(piecenum)
