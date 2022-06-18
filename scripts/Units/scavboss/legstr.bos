@@ -248,7 +248,7 @@ Create()
 	Static_Var_3 = 1;
 	miniguncount = 0;
 	restore_delay = 3000;
-	animspeed = 2;
+	animspeed = 2.5;
 	turn rsleeve to y-axis <5> now;
 	turn lsleeve to y-axis <-5> now;
 	start-script MotionControl();
