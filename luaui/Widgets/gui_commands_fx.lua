@@ -57,6 +57,7 @@ local GL_QUADS = GL.QUADS
 
 local GaiaTeamID = Spring.GetGaiaTeamID()
 local myTeamID = Spring.GetMyTeamID()
+local mySpec = Spring.GetSpectatingState()
 
 local chobbyInterface, hidden
 
@@ -449,7 +450,7 @@ local function addUnitCommand(unitID, unitDefID, cmdID)
 end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-	if enabledTeams[teamID] ~= nil and (not filterOwn or teamID ~= myTeamID) then
+	if enabledTeams[teamID] ~= nil and (not filterOwn or mySpec or teamID ~= myTeamID) then
 		if teamID ~= GaiaTeamID or not isCritter[unitDefID] then
 			if ignoreUnits[unitDefID] == nil then
 				if newUnitCommands[unitID] == nil then
@@ -717,7 +718,8 @@ end
 
 
 function widget:PlayerChanged()
-	myTeamID = Spring.GetMyTeamID()()
+	myTeamID = Spring.GetMyTeamID()
+	mySpec = Spring.GetSpectatingState()
 end
 
 
