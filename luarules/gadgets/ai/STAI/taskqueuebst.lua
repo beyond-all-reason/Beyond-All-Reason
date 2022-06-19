@@ -214,6 +214,13 @@ function TaskQueueBST:specialFilter(cat,param,name)
 			end
 		end
 		check =  true
+-- 	elseif cat == '_convs_' and self.ai.armyhst.unitTable[name].techLevel == 1 then
+--
+-- 		if self.ai.tool:countMyUnit( _fus_  ) < 2 then
+-- 			check= true
+-- 		end
+				--local factoryPos = factory.unit:Internal():GetPosition()
+				--local nanoNear = buildSiteHST:unitsNearCheck(factoryPos,400,level * 10,'_nano_')
 	elseif cat == '_wind_' then
 		check = map:AverageWind() > 7
 	elseif cat == '_tide_' then

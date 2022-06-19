@@ -71,7 +71,9 @@ if gadgetHandler:IsSyncedCode() then
 		GG.AiHelpers.Start()
 	end
 	function gadget:RecvLuaMsg(msg, playerID)
+
 		--print(msg,string.sub(msg,1,17))
+		spEcho('recvluamsg',msg)--f=0057489
 		if string.sub(msg,1,17) == 'StGiveOrderToSync' then
 
 			local id = string.split(msg,"*")[2]
@@ -79,13 +81,22 @@ if gadgetHandler:IsSyncedCode() then
 			local cmd = string.split(msg,'_')[2]
 			--print(cmd)
 			local pos = string.split(msg,':')
-			--print('pos',pos)
+			spEcho('pos',pos,'pos1',pos[2],type(pos[2]))
+			local opts = string.split(msg,';')
+
+
+
 			if string.split(pos[2],',') then
+
 				--print('pos2',pos[2])
 				pos = string.split(pos[2],',')
+				if not pos[1] or pos[1] == '' then
+					spEcho('warn! invalid pos argument in STAI luarules message')--f=0057489
+					return
+				end
 			end
 			--print('POS',pos)
-			local opts = string.split(msg,';')
+
 			--print('opts',opts[2])
 			if string.split(opts[2],',') then
 				--print('opts2',opts[2])
@@ -95,6 +106,11 @@ if gadgetHandler:IsSyncedCode() then
 			local timeout = string.split(msg,'#')
 			--print('timeout',timeout[2])
 			local order = Spring.GiveOrderToUnit(id,cmd,pos,opts,timeout)
+			print('order',order)
+			if order ~= true then
+				spEcho('syntax error in unsync to sync give order to unit',msg)
+				spEcho(id,cmd,pos,opts,timeout)
+			end
 			--print(order,'order')
 		end
 	end
@@ -102,6 +118,7 @@ else
 
 	-- UNSYNCED CODE
 	function gadget:Initialize()
+		--[[
 		Spring.Echo("Shard AI unsync gadget init")
 		gadgetHandler:AddSyncAction("BuildingCommand", stBuildingCommand)
 		gadgetHandler:AddSyncAction("shard_debug_position", handleShardDebugPosEvent)
@@ -119,7 +136,7 @@ else
 		gadgetHandler:AddSyncAction('ShardDrawDisplay', sdDisplay)
 		gadgetHandler:AddSyncAction('ShardStartTimer', sStartTimer)
 		gadgetHandler:AddSyncAction('ShardStopTimer', sStopTimer)
-		gadgetHandler:AddSyncAction('ShardSaveTable', sSaveTable)
+		gadgetHandler:AddSyncAction('ShardSaveTable', sSaveTable)]]
 		local teamList = spGetTeamList()
 		spEcho("Looking for AIs")
 
@@ -345,6 +362,7 @@ else
 
 	--UNSYNCED CODE
 --else
+	--[[
 	local function sdAddRectangle(_, x1, z1, x2, z2, r, g, b, a, label, filled, teamID, channel)
 		if (Script.LuaUI('ShardDrawAddRectangle')) then
 			Script.LuaUI.ShardDrawAddRectangle(x1, z1, x2, z2, { r, g, b, a }, label, filled, teamID, channel)
@@ -433,7 +451,7 @@ else
 		if (Script.LuaUI('ShardSaveTable')) then
 			Script.LuaUI.ShardSaveTable(tableinput, tablename, filename)
 		end
-	end
+	end]]
 
 -- 	function gadget:stBuildingCommand(order)
 -- 		print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')

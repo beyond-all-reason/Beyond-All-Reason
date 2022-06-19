@@ -121,11 +121,11 @@ function BomberBST:FollowPathToTarget(path, unit)
 				floats:push_back(cmdPos.y)
 				floats:push_back(cmdPos.z)
 				-- self.unit:Internal():ExecuteCustomCommand(CMD_INSERT, floats, optFloats)
-				self.unit:Internal():Move(floats)
+				self.unit:Internal():Move({cmdPos.x,cmdPos.y,cmdPos.z})
 				--self.unit:Internal():ExecuteCustomCommand(CMD_MOVE, floats, {"shift"})
 				secondMoved = true
 			else
-				self.unit:Internal():Move(cmdPos)
+				self.unit:Internal():Move({cmdPos.x,cmdPos.y,cmdPos.z})
 				firstMoved = true
 			end
 		end

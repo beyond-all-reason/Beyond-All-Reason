@@ -58,7 +58,7 @@ function TaskLabBST:Update()
 		if soldier then
 			for i=1,param.wave or 1 do
 				utype = self.game:GetTypeByName(soldier)
-				self.unit:Internal():Build(utype,nil,nil,{-1})
+				self.unit:Internal():Build(utype,self.unit:Internal():GetPosition(),0,{-1})
 			end
 		end
 	end

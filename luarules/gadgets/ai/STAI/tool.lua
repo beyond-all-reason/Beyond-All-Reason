@@ -24,22 +24,12 @@ abs = math.abs
 min = math.min
 max = math.max
 
--- CMD_ATTACK = 20
--- CMD_RECLAIM = 90
--- CMD_GUARD = 25
--- CMD_MOVE_STATE = 50
--- MOVESTATE_HOLDPOS = 0
--- MOVESTATE_MANEUVER = 1
--- MOVESTATE_ROAM = 2
-
 local mapBuffer = 32
 
 local layerNames = {"ground", "air", "submerged"}
 local unitThreatLayers = {}
 local whatHurtsUnit = {}
 local whatHurtsMtype = {}
--- local unitWeaponLayers = {}
--- local unitWeaponMtypes = {}
 
 local quadX = { -1, 1, -1, 1 }
 local quadZ = { -1, -1, 1, 1 }

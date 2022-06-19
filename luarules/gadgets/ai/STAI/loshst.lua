@@ -206,10 +206,12 @@ function LosHST:getCenter()
 		local ut = self.ai.armyhst.unitTable[u:Name()]
 		if not ut.isWeapon then
 			local upos = u:GetPosition()
-			self.CENTER.x = self.CENTER.x + upos.x
-			self.CENTER.y = self.CENTER.y + upos.y
-			self.CENTER.z = self.CENTER.z + upos.z
-			count = count+1
+			if upos then
+				self.CENTER.x = self.CENTER.x + upos.x
+				self.CENTER.y = self.CENTER.y + upos.y
+				self.CENTER.z = self.CENTER.z + upos.z
+				count = count+1
+			end
 		end
 	end
 	self.CENTER.x = self.CENTER.x / count
