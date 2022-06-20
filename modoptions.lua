@@ -794,6 +794,30 @@ local options={
 		}
 	},
 
+	{
+		key    = 'commanderbuildersrange',
+		name   = 'Base Construction Turret: Range',
+		type   = 'number',
+		section= 'options',
+		def    = 1500,
+		min    = 100,
+		max    = 5000,
+		step   = 1,
+	},
+
+	{
+		key    = 'commanderbuildersbuildpower',
+		name   = 'Base Construction Turret: Buildpower',
+		type   = 'number',
+		section= 'options',
+		def    = 500,
+		min    = 100,
+		max    = 5000,
+		step   = 1,
+	},
+
+
+
 
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

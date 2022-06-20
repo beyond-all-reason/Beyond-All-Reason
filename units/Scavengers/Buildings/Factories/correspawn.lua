@@ -1,10 +1,12 @@
+local range = Spring.GetModOptions().commanderbuildersrange
+
 return {
 	correspawn = {
 		acceleration = 0,
 		brakerate = 4.5,
 		buildcostenergy = 5000,
 		buildcostmetal = 500,
-		builddistance = 1500,
+		builddistance = range,
 		builder = true,
 		buildpic = "CORNANOTCPLAT.DDS",
 		buildtime = 5312,
@@ -38,11 +40,11 @@ return {
 		script = "Units/CORNANOT2.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderExplosion",
-		sightdistance = 1500,
+		sightdistance = range,
 		terraformspeed = 1000,
 		turnrate = 1,
 		upright = true,
-		workertime = 500,
+		workertime = Spring.GetModOptions().commanderbuildersbuildpower,
 		-- buildoptions = {
 		-- 	"corcom",
 		-- 	"corassistdrone",
