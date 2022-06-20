@@ -388,7 +388,7 @@ function widget:Initialize()
 		maxMusicVolume = value
 		Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume))
 		if fadeDirection then
-			setVolume(fadeLevel)
+			setMusicVolume(fadeLevel)
 		end
 		createList()
 	end
@@ -465,7 +465,7 @@ function widget:MouseMove(x, y)
 			maxMusicVolume = math.floor(getVolumeCoef(getSliderValue(draggingSlider, x)) * 100)
 			Spring.SetConfigInt("snd_volmusic", maxMusicVolume)
 			if fadeDirection then
-				setVolume(fadeLevel)
+				setMusicVolume(fadeLevel)
 			end
 			createList()
 		end
@@ -591,14 +591,14 @@ local function getMusicVolume()
 	return Spring.GetConfigInt("snd_volmusic", defaultMusicVolume) * 0.01
 end
 
-local function setVolume(fadeLevel)
+local function setMusicVolume(fadeLevel)
 	Spring.SetSoundStreamVolume(getMusicVolume() * math.max(math.min(fadeLevel, 100), 0) * 0.01)
 end
 
 local function updateFade()
 	if fadeDirection then
 		fadeLevel = fadeLevel + fadeChange()
-		setVolume(fadeLevel)
+		setMusicVolume(fadeLevel)
 
 		if fadeDirection < 0 and fadeLevel <= 0 then
 			fadeDirection = nil
@@ -746,9 +746,9 @@ function PlayNewTrack(paused)
 	if currentTrack then
 		Spring.PlaySoundStream(currentTrack, 1)
 		if fadeDirection then
-			setVolume(fadeLevel)
+			setMusicVolume(fadeLevel)
 		else
-			Spring.SetSoundStreamVolume(musicVolume)
+			Spring.SetSoundStreamVolume(maxMusicVolume)
 		end
 	end
 
