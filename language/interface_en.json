@@ -481,7 +481,8 @@
 				"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
 				"unbalancedCommanders": "Unbalanced Commanders is enabled: Commander levels up and gains upgrades",
 				"victoryCondition": "Victory condition",
-				"dgunrule": "When you have only 1 commander left: D-Gunning an enemy commander results in you losing.",
+				"owncomends": "Losing your commander = losing control of your units / resigning",
+				"dgunrule": "When you have only 1 commander left: D-Gunning an enemy commander results in you losing",
 				"dgunruleExplanation": "(this rule was invented to prevent a cheap win/draw)"
 			},
 			"startSpot": {

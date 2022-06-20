@@ -2791,7 +2791,7 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setFontsize', { 'fontsizeMult' }, value)
 		  end,
 		},
-		{ id = "console_backgroundopacity", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.console_backgroundopacity, type = "slider", min = 0, max = 0.35, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = texts.option.console_backgroundopacity_descr,
+		{ id = "console_backgroundopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.console_backgroundopacity, type = "slider", min = 0, max = 0.45, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = texts.option.console_backgroundopacity_descr,
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_backgroundopacity", { 'chatBackgroundOpacity' })
 		  end,
