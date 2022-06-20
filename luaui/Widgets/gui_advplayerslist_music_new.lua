@@ -167,7 +167,7 @@ local defaultMusicVolume = 50
 local warMeter = 0
 local gameOver = false
 local playedGameOverTrack = false
-local fadelevel = 100
+local fadeLevel = 100
 local faderMin = 45 -- range in dB for volume faders, from -faderMin to 0dB
 
 local playedTime, totalTime = Spring.GetSoundStreamTime()
@@ -387,6 +387,9 @@ function widget:Initialize()
 	WG['music'].SetMusicVolume = function(value)
 		maxMusicVolume = value
 		Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume))
+		if fadeDirection then
+			setVolume(fadeLevel)
+		end
 		createList()
 	end
 	WG['music'].getTracksConfig = function(value)
@@ -461,6 +464,9 @@ function widget:MouseMove(x, y)
 		if draggingSlider == 'musicvolume' then
 			maxMusicVolume = math.floor(getVolumeCoef(getSliderValue(draggingSlider, x)) * 100)
 			Spring.SetConfigInt("snd_volmusic", maxMusicVolume)
+			if fadeDirection then
+				setVolume(fadeLevel)
+			end
 			createList()
 		end
 		if draggingSlider == 'volume' then
@@ -591,17 +597,17 @@ end
 
 local function updateFade()
 	if fadeDirection then
-		fadelevel = fadelevel + fadeChange()
-		setVolume(fadelevel)
+		fadeLevel = fadeLevel + fadeChange()
+		setVolume(fadeLevel)
 
-		if fadeDirection < 0 and fadelevel <= 0 then
+		if fadeDirection < 0 and fadeLevel <= 0 then
 			fadeDirection = nil
 			if fadeOutSkipTrack then
 				PlayNewTrack()
 			else
 				Spring.StopSoundStream()
 			end
-		elseif fadeDirection > 0 and fadelevel >= 100 then
+		elseif fadeDirection > 0 and fadeLevel >= 100 then
 			fadeDirection = nil
 		end
 	end
@@ -677,11 +683,10 @@ function PlayNewTrack(paused)
 	warMeter = warMeter * 0.75
 	
 	if (not gameOver) and Spring.GetGameFrame() > 1 then
-		fadelevel = 0
+		fadeLevel = 0
 		fadeDirection = 1
 	else
 		-- Fade in only when game is in progress
-		fadelevel = 100
 		fadeDirection = nil
 	end
 	currentTrack = nil
@@ -741,7 +746,7 @@ function PlayNewTrack(paused)
 	if currentTrack then
 		Spring.PlaySoundStream(currentTrack, 1)
 		if fadeDirection then
-			setVolume(fadelevel)
+			setVolume(fadeLevel)
 		else
 			Spring.SetSoundStreamVolume(musicVolume)
 		end
