@@ -239,6 +239,50 @@ local function getVolumePos(coef)
 	return (db/faderMin) + 1
 end
 
+local fadeDirection
+
+local function getFastFadeSpeed()
+	return 1.5 * 0.33
+end
+local function getSlowFadeSpeed()
+	return math.max(Spring.GetGameSpeed(), 0.01)
+end
+local getFadeSpeed = getSlowFadeSpeed
+
+local function fadeChange()
+	return (0.33 / getFadeSpeed()) * fadeDirection
+end
+
+local function getMusicVolume()
+	return Spring.GetConfigInt("snd_volmusic", defaultMusicVolume) * 0.01
+end
+
+local function setMusicVolume(fadeLevel)
+	Spring.SetSoundStreamVolume(getMusicVolume() * math.max(math.min(fadeLevel, 100), 0) * 0.01)
+end
+
+local function updateFade()
+	if fadeDirection then
+		fadeLevel = fadeLevel + fadeChange()
+		setMusicVolume(fadeLevel)
+
+		if fadeDirection < 0 and fadeLevel <= 0 then
+			fadeDirection = nil
+			if fadeOutSkipTrack then
+				PlayNewTrack()
+			else
+				Spring.StopSoundStream()
+			end
+		elseif fadeDirection > 0 and fadeLevel >= 100 then
+			fadeDirection = nil
+		end
+	end
+end
+
+local function getSliderWidth()
+	return math.floor((4.5 * widgetScale)+0.5)
+end
+
 local function createList()
 	local trackname
 	local padding = math.floor(2.75 * widgetScale) -- button background margin
@@ -568,54 +612,6 @@ function widget:Update(dt)
 		updateFade()
 	end
 end
-
------------------
--- Fade in/out --
------------------
-
-local fadeDirection
-
-local function getFastFadeSpeed()
-	return 1.5 * 0.33
-end
-local function getSlowFadeSpeed()
-	return math.max(Spring.GetGameSpeed(), 0.01)
-end
-local getFadeSpeed = getSlowFadeSpeed
-
-local function fadeChange()
-	return (0.33 / getFadeSpeed()) * fadeDirection
-end
-
-local function getMusicVolume()
-	return Spring.GetConfigInt("snd_volmusic", defaultMusicVolume) * 0.01
-end
-
-local function setMusicVolume(fadeLevel)
-	Spring.SetSoundStreamVolume(getMusicVolume() * math.max(math.min(fadeLevel, 100), 0) * 0.01)
-end
-
-local function updateFade()
-	if fadeDirection then
-		fadeLevel = fadeLevel + fadeChange()
-		setMusicVolume(fadeLevel)
-
-		if fadeDirection < 0 and fadeLevel <= 0 then
-			fadeDirection = nil
-			if fadeOutSkipTrack then
-				PlayNewTrack()
-			else
-				Spring.StopSoundStream()
-			end
-		elseif fadeDirection > 0 and fadeLevel >= 100 then
-			fadeDirection = nil
-		end
-	end
-end
-
--------------
--- Callins --
--------------
 
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
