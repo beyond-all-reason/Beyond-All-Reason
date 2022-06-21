@@ -563,7 +563,7 @@ function widget:KeyPress(key, modifier, isRepeat)
 end
 
 local function adjustGrass(px, pz, radius, multiplier)
-	local params = {px,pz}
+	local params = {math.floor(px),math.floor(pz)}
 	for x = params[1] - radius, params[1] + radius, grassConfig.patchResolution do
 		if x >= 0 and x <= mapSizeX then
 			for z = params[2] - radius, params[2] + radius, grassConfig.patchResolution do
@@ -574,6 +574,7 @@ local function adjustGrass(px, pz, radius, multiplier)
 							local sizeMod = 1-(math.abs(((x-params[1])/radius)) + math.abs(((z-params[2])/radius))) / 2	-- sizemode in range 0...1
 							sizeMod = (sizeMod*2-math.min(0.66, radius/100))	-- adjust sizemod so inner grass is gone fully and not just the very center dot
 							sizeMod = sizeMod*multiplier	-- apply multiplier to animate it over time
+							Spring.Echo(x,z,1-sizeMod)
 							updateGrassInstanceVBO(x,z, 1, 1-sizeMod, vboOffset)
 						end
 					end
@@ -784,17 +785,17 @@ local function makeGrassInstanceVBO()
 			rowIndex = rowIndex + 1
 			for x = patchResolution / 2, mapSizeX, patchResolution do
 				local localgrass =  spGetGrass(x,z)
-
 				--if localgrass > 0 or placementMode then
 					local lx = x + (math.random() -0.5) * patchResolution/1.5
 					local lz = z + (math.random() -0.5) * patchResolution/1.5
-					local grasssize = 1.0
-					if maphasgrass == 1 then
-						grasssize = grassConfig.grassMinSize + math.random() * (grassConfig.grassMaxSize - grassConfig.grassMinSize )
-					else
-						grasssize = grassConfig.grassMinSize + (localgrass/254.0) * (grassConfig.grassMaxSize - grassConfig.grassMinSize )
+					local grasssize = localgrass
+					if grasssize > 0 then
+						if maphasgrass == 1 then
+							grasssize = grassConfig.grassMinSize + math.random() * (grassConfig.grassMaxSize - grassConfig.grassMinSize )
+						else
+							grasssize = grassConfig.grassMinSize + (localgrass/254.0) * (grassConfig.grassMaxSize - grassConfig.grassMinSize )
+						end
 					end
-
 					grassPatchCount = grassPatchCount + 1
 					grassInstanceData[#grassInstanceData+1] = lx
 					grassInstanceData[#grassInstanceData+1] = math.random()*6.28 -- rotation 2 pi
@@ -1151,8 +1152,8 @@ end
 
 local weaponConf = {}
 for i=1, #WeaponDefs do
-	local radius = WeaponDefs[i].damageAreaOfEffect * 1.15
-	local edgeEffectiveness = WeaponDefs[i].edgeEffectiveness * 1.7
+	local radius = WeaponDefs[i].damageAreaOfEffect * 1.2
+	local edgeEffectiveness = WeaponDefs[i].edgeEffectiveness * 1.75
 	if WeaponDefs[i].type == 'DGun' then
 		radius = radius * 2
 		edgeEffectiveness = 4
