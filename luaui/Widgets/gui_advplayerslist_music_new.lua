@@ -685,16 +685,6 @@ local function fadeInSlowTrack()
 	end
 end
 
-local function fadeInSlowTrack()
-	fadelevel = fadelevel + (0.33/ math.max(Spring.GetGameSpeed(), 0.01))
-	local volumefadelevel = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)) * 0.01 * (fadelevel * 0.01)
-	Spring.SetSoundStreamVolume(volumefadelevel)
-
-	if fadelevel >= 100 then
-		fadeInSlowCurrentTrack = false
-	end
-end
-
 function PlayNewTrack(paused)
 	if (not paused) and Spring.GetGameFrame() > 1 then
 		deviceLostSafetyCheck = deviceLostSafetyCheck + 1
