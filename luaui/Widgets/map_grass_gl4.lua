@@ -574,7 +574,6 @@ local function adjustGrass(px, pz, radius, multiplier)
 							local sizeMod = 1-(math.abs(((x-params[1])/radius)) + math.abs(((z-params[2])/radius))) / 2	-- sizemode in range 0...1
 							sizeMod = (sizeMod*2-math.min(0.66, radius/100))	-- adjust sizemod so inner grass is gone fully and not just the very center dot
 							sizeMod = sizeMod*multiplier	-- apply multiplier to animate it over time
-							Spring.Echo(x,z,1-sizeMod)
 							updateGrassInstanceVBO(x,z, 1, 1-sizeMod, vboOffset)
 						end
 					end
