@@ -223,6 +223,8 @@ float integratescatterocclusion(float depthratio){
 	return clamp((x*x)/ (2*x*x -2*x +1.0), 0.0, 1.0);
 }
 
+
+
 // https://gist.github.com/wwwtyro/beecc31d65d1004f5a9d
 vec2 raySphereIntersect(vec3 r0, vec3 rd, vec3 s0, float sr) {
     // - r0: ray origin
@@ -243,9 +245,13 @@ vec2 raySphereIntersect(vec3 r0, vec3 rd, vec3 s0, float sr) {
 		return vec2(-b - disc, -b + disc) / (2.0 * a);
 	}
 }
+// This is the fast approx scattering useing a mierayleighratio, where 1.0 = Rayleigh, ~0.1 = Mie
+float FastApproximateScattering(vec3 campos, vec3 viewdirection, vec3 lightposition, float lightradius, float fragmentdistance, float lightdistance, float mierayleighratio){
+	vec2 closeandfardistance = raySphereIntersect(campos, -viewdirection,  lightposition, lightradius * mierayleighratio);
+	float depthratio = clamp(0.5 * (fragmentdistance - closeandfardistance.x) / (lightradius * mierayleighratio), 0.0, 1.0);
+	return scatterfalloff(lightdistance, lightradius * mierayleighratio) * integratescatterocclusion(depthratio);
+}
 
-	
-//https://andrew-pham.blog/2019/10/03/volumetric-lighting/ ???
 
 // UNTESTED
 vec3 ScreenToWorld(vec2 screen_uv, float depth){ // returns world XYZ from screenUV and depth
@@ -260,20 +266,28 @@ vec3 WorldToScreen(vec3 worldCoords){ // returns screen UV and depth position
 	return screenPosition.xyz / screenPosition.w;
 }
 
+// Additional notes and reading:
+//https://andrew-pham.blog/2019/10/03/volumetric-lighting/ ???
+
 #line 31000
 void main(void)
 {
 	// corresponding screenspace pos:
 	vec2 screenUV = gl_FragCoord.xy / viewGeometry.xy;
 	
+	fragColor.rgba = vec4(fract(gl_FragCoord.zzz * 1.0),1.0);
+	//return;
 	
 	float mapdepth = texture(mapDepths, screenUV).x;
 	float modeldepth = texture(modelDepths, screenUV).x;
+	float worlddepth = min(mapdepth, modeldepth);
+	
 	vec4 normals = vec4(0, 1, 0, 0); // points up by default
 	vec4 extratex = vec4(0);
 	float ismodel = 0;
 	
-	if (modeldepth+mapdepth < 1.9999) { // this actually hit something, otherwise we hit nothing in both mapdepth and modeldepth
+	// Only query the textures if the backface of the volume is further than the world fragment
+	if (gl_FragCoord.z > worlddepth) {
 		if (modeldepth < mapdepth) { // We are processing a model fragment
 			ismodel = 1;
 			normals =  texture2D(modelNormals, screenUV) * 2.0 - 1.0;
@@ -285,19 +299,13 @@ void main(void)
 	}
 	
 	
-	float worlddepth = min(mapdepth, modeldepth);
-	
-	//if (gl_FragCoord.z > worlddepth) discard;
-	
 	vec4 fragWorldPos =  vec4( vec3(screenUV.xy * 2.0 - 1.0, worlddepth),  1.0);
 	fragWorldPos = cameraViewProjInv * fragWorldPos;
 	fragWorldPos.xyz = fragWorldPos.xyz / fragWorldPos.w; // YAAAY this works!
 	
-	//if fragWorldPos
-	
 	vec3 camPos = cameraViewInv[3].xyz;
-	
-	vec3 viewDirection = normalize(camPos - fragWorldPos.xyz); // vector pointing in the direction of the eye ray
+	float fragDistance = length(camPos - fragWorldPos.xyz);
+	vec3 viewDirection = (camPos - fragWorldPos.xyz) / fragDistance; // vector pointing in the direction of the eye ray
 	
 	float lightRadius = v_worldPosRad.w;
 	float lightRadiusInv = 1.0 / lightRadius;
@@ -341,35 +349,14 @@ void main(void)
 		attenuation = clamp( 1.0 - length (lightToWorld) * lightRadiusInv, 0,1);
 		closestpoint_dist = closestlightlp_distance(camPos, viewDirection, lightPosition);
 		
+		// Both scattering components
+		scatteringRayleigh = FastApproximateScattering(camPos, viewDirection, lightPosition, lightRadius, fragDistance, closestpoint_dist.w, 1.0 );
 		
-		sourceVisible = smoothstep(v_depths_center_map_model_min.w -0.01, v_depths_center_map_model_min.w ,worlddepth);
-		lensFlare = step(v_depths_center_map_model_min.x, v_depths_center_map_model_min.w);// 0 for light behind geometry, 1 for light in front
-		//selfbloom = step(v_depths_center_map_model_min.y, worlddepth);
-		//sourceVisible = v_depths_center_map_model_min.x;
-		// For scattering, take the 
-		//scattering = pow(1.0 - closestpoint_dist.w / lightRadius, 2);
+		scatteringMie = FastApproximateScattering(camPos, viewDirection, lightPosition, lightRadius, fragDistance, closestpoint_dist.w, MIERAYLEIGHRATIO);
 		
-		scatteringRayleigh = scatterfalloff(closestpoint_dist.w, lightRadius);
-		
-		vec2 closeandfardistance = raySphereIntersect(camPos, -viewDirection,  lightPosition, lightRadius);
-		float fragDistance = length(fragWorldPos.xyz - camPos);
-		float depthratio = clamp(0.5 * (fragDistance - closeandfardistance.x) * lightRadiusInv, 0.0, 1.0);
-		scatteringRayleigh = scatteringRayleigh * integratescatterocclusion(depthratio);
-		
-		scatteringMie = scatterfalloff( closestpoint_dist.w, lightRadius * MIERAYLEIGHRATIO);
-		closeandfardistance = raySphereIntersect(camPos, -viewDirection,  lightPosition, lightRadius  * MIERAYLEIGHRATIO);
-		fragDistance = length(fragWorldPos.xyz - camPos);
-		depthratio = clamp(0.5 * (fragDistance - closeandfardistance.x) * (lightRadiusInv * (1.0 /MIERAYLEIGHRATIO)) , 0.0, 1.0);
-		scatteringMie = scatteringMie * integratescatterocclusion(depthratio);
-		
-		
-		
+		lensFlare = step(v_depths_center_map_model_min.x, v_depths_center_map_model_min.w);
 		lensFlare = lensFlare * clamp( lensFlare * LensFlareDistanceSqrt(closestpoint_dist.xyz, lightPosition,lightRadius) *(-10) +1, 0, 1);
-		//if (fragDistance > closeandfardistance.y ) scattering = 1.0;
-		//else scattering = 0.0;
-		//scattering = smoothstep(closeandfardistance.x, closeandfardistance.y, -fragDistance*1);
-		//scattering = fract((closeandfardistance.y - fragDistance)/100);
-		//scattering = -closeandfardistance.y + closeandfardistance.x;
+
 	#line 33000
 	}else if (pointbeamcone > 1.5){ // cone
 		lightPosition = v_worldPosRad.xyz;
