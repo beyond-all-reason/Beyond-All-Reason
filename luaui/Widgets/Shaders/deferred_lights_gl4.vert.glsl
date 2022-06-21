@@ -38,6 +38,7 @@ out DataVS {
 	flat vec4 v_worldPosRad2;
 	flat vec4 v_lightcolor;
 	flat vec4 v_falloff_dense_scattering_sourceocclusion;
+	vec4 v_depths_center_map_model_min;
 	vec4 v_otherparams; // this could be anything 
 	vec4 v_position;
 	vec4 v_debug;
@@ -46,17 +47,22 @@ out DataVS {
 uniform sampler2D mapDepths;
 uniform sampler2D modelDepths;
 
-float depthAtWorldPos(vec4 worldPosition){ // takes a point, transforms it to worldspace, and checks for occlusion
-	// returns the depth of the pos
+vec4  depthAtWorldPos(vec4 worldPosition){ 
+	// takes a point, transforms it to worldspace, and checks for occlusion against map, model buffer, and returns all the depths
+	// x: light pos depth, y: map depth, z: model depth, w: min(map, model)
 	vec4 screenPosition = cameraViewProj * worldPosition;
 	screenPosition.xyz = screenPosition.xyz / screenPosition.w;
-	vec2 screenUV = screenPosition.xy;// / viewGeometry.xy;
-	v_falloff_dense_scattering_sourceocclusion.xy = screenUV.xy;
-	v_falloff_dense_scattering_sourceocclusion.z = screenPosition.z ;
+	// Transform from [-1,1] screen space into [0, 1] UV space
+	vec2 screenUV = clamp((screenPosition.xy * 0.5) +0.5, 0.001, 0.999);
+	vec4 depths;
+	
+	depths.x = screenPosition.z ;
 	float mapdepth = texture(mapDepths, screenUV).x;
 	float modeldepth = texture(modelDepths, screenUV).x;
-	mapdepth = min(mapdepth, modeldepth);
-	return (mapdepth);
+	depths.y = mapdepth;
+	depths.z = modeldepth;
+	depths.w = min(mapdepth, modeldepth);
+	return depths; 
 }
 
 void main()
@@ -70,6 +76,7 @@ void main()
 	v_worldPosRad2 = worldposrad2;
 	v_lightcolor = lightcolor;
 	v_falloff_dense_scattering_sourceocclusion = falloff_dense_scattering_sourceocclusion;
+	v_depths_center_map_model_min = vec4(1.0); // just a sanity init
 	v_otherparams = otherparams;
 	v_debug = vec4(0.0);
 	
@@ -80,7 +87,8 @@ void main()
 		//Make it a tiny bit bigger cause the blocky sphere is smaller than the actual radius
 		// the -1 is for inverting it so we always see the back faces (great for occlusion testing!)
 		worldPos.xyz = lightCenterPosition + -1 * position.xyz * lightRadius * 1.05;
-		v_falloff_dense_scattering_sourceocclusion.w = depthAtWorldPos(vec4(lightCenterPosition,1.0));
+		v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0));
+		//v_depths_center_map_model_min.w = depthAtWorldPos(vec4(worldPos.xyz,1.0)); // for per-pixel stuff
 		//
 	}
 	else if (pointbeamcone < 1.5){ // beam
@@ -108,7 +116,7 @@ void main()
 		// Place the box in the world
 		worldPos.xyz += lightCenterPosition;
 		
-		v_falloff_dense_scattering_sourceocclusion.w = depthAtWorldPos(vec4(lightCenterPosition,1.0));
+		v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0));
 	}
 	else if (pointbeamcone > 1.5){ // cone
 		// input cone that has pointy end up, (y = 1), with radius =1, flat on Y=0 plane
@@ -139,7 +147,7 @@ void main()
 		worldPos.xyz += lightCenterPosition;
 		
 		
-		v_falloff_dense_scattering_sourceocclusion.w = depthAtWorldPos(vec4(lightCenterPosition,1.0));
+		v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0));
 	}
 	gl_Position = cameraViewProj * worldPos;
 	

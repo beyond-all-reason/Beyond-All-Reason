@@ -10,7 +10,7 @@ function widget:GetInfo()
 		date = "2022.06.10",
 		license = "GPL V2",
 		layer = -99999990,
-		enabled = true
+		enabled = false
 	}
 end
 
@@ -174,6 +174,7 @@ widget:ViewResize()
 
 local shaderConfig = {
 	TRANSPARENCY = 0.2, 
+	MIERAYLEIGHRATIO = 0.1,
 }
 
 local coneLightVBO
@@ -622,6 +623,9 @@ function AddRandomLight(which)
 	
 end
 
+local mapinfo = nil
+local nightFactor = 0.33
+local adjustfornight = {'unitAmbientColor', 'unitDiffuseColor', 'unitSpecularColor','groundAmbientColor', 'groundDiffuseColor', 'groundSpecularColor' }
 
 function widget:Initialize()
 	
@@ -632,6 +636,21 @@ function widget:Initialize()
 	end
 	
 	if initGL4() == false then return end
+	
+	local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
+	
+	if nightFactor ~= 1 then 
+		Spring.Debug.TableEcho(mapinfo)
+		local nightLightingParams = {}
+		for _,v in ipairs(adjustfornight) do 
+			nightLightingParams[v] = mapinfo.lighting[string.lower(v)]
+			for k2, v2 in pairs(nightLightingParams[v]) do
+				Spring.Echo(v,k2,v2)
+				if tonumber(v2) then nightLightingParams[v][k2] = v2 * nightFactor end
+			end
+		end
+		Spring.SetSunLighting(nightLightingParams)
+	end 
 	
 	math.randomseed(1)
 	for i=1, 500 do AddRandomLight(	math.random()) end 
@@ -834,11 +853,13 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		end
 		if beamLightVBO.usedElements > 0 then
 			deferredLightShader:SetUniformFloat("pointbeamcone", 1)
-			beamLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, beamLightVBO.usedElements, 0)
+			--beamLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, beamLightVBO.usedElements, 0)
 		end
 		if coneLightVBO.usedElements > 0 then
 			deferredLightShader:SetUniformFloat("pointbeamcone", 2)
-			coneLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, coneLightVBO.usedElements, 0)
+			gl.Culling(GL.FRONT) -- cones are flipped?
+			--coneLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, coneLightVBO.usedElements, 0)
+			gl.Culling(GL.BACK)
 		end
 		deferredLightShader:Deactivate()
 		
