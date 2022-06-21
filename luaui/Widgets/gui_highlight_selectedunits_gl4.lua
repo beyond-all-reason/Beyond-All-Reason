@@ -12,11 +12,11 @@ end
 
 local hideBelowGameframe = 100
 local useTeamcolor = true
-local highlightAlpha = 0.075
-local teamColorAlphaMult = 1.4
+local highlightAlpha = 0.035
+local teamColorAlphaMult = 1.9
 local teamColorMinAlpha = 0.55
 local edgeExponent = 1.2
-local minEdgeAlpha = 0.38
+local minEdgeAlpha = 0.35
 
 local unitshapes = {}
 
@@ -168,21 +168,21 @@ function widget:Update(dt)
 end
 
 local version = 1
-function widget:GetConfigData()
-	return {
-		version = version,
-		highlightAlpha = highlightAlpha,
-		useTeamcolor = useTeamcolor,
-	}
-end
-
-function widget:SetConfigData(data)
-	if data.version and data.version >= version then
-		if data.highlightAlpha ~= nil then
-			highlightAlpha = data.highlightAlpha
-		end
-		if data.useTeamcolor ~= nil then
-			useTeamcolor = data.useTeamcolor
-		end
-	end
-end
+--function widget:GetConfigData()
+--	return {
+--		version = version,
+--		highlightAlpha = highlightAlpha,
+--		useTeamcolor = useTeamcolor,
+--	}
+--end
+--
+--function widget:SetConfigData(data)
+--	if data.version and data.version >= version then
+--		if data.highlightAlpha ~= nil then
+--			highlightAlpha = data.highlightAlpha
+--		end
+--		if data.useTeamcolor ~= nil then
+--			useTeamcolor = data.useTeamcolor
+--		end
+--	end
+--end

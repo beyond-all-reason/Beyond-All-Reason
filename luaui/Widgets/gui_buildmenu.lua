@@ -66,6 +66,29 @@ local facingMap = {south=0, east=1, north=2, west=3}
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+local unbaStartBuildoptions = {}
+if Spring.GetModOptions().unba then
+	VFS.Include("unbaconfigs/buildoptions.lua")
+	for unitname,level in pairs(ArmBuildOptions) do
+		if level == 1 then
+			unbaStartBuildoptions[UnitDefNames[unitname].id] = unitname
+		end
+	end
+	ArmBuildOptions = nil
+	for unitname,level in pairs(CorBuildOptions) do
+		if level == 1 then
+			unbaStartBuildoptions[UnitDefNames[unitname].id] = unitname
+		end
+	end
+	CorBuildOptions = nil
+	ArmDefsBuildOptions = nil
+	CorDefsBuildOptions = nil
+	ArmBuildOptionsStop = nil
+	CorBuildOptionsStop = nil
+else
+	unbaStartBuildoptions = nil
+end
+
 local playSounds = true
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
@@ -414,6 +437,7 @@ function widget:PlayerChanged(playerID)
 	myPlayerID = Spring.GetMyPlayerID()
 end
 
+
 local function RefreshCommands()
 	cmds = {}
 	cmdsCount = 0
@@ -423,7 +447,9 @@ local function RefreshCommands()
 
 			local cmdUnitdefs = {}
 			for i, udefid in pairs(UnitDefs[startDefID].buildOptions) do
-				cmdUnitdefs[udefid] = i
+				if not unbaStartBuildoptions or unbaStartBuildoptions[udefid] then
+					cmdUnitdefs[udefid] = i
+				end
 			end
 			for k, uDefID in pairs(unitOrder) do
 				if cmdUnitdefs[uDefID] then

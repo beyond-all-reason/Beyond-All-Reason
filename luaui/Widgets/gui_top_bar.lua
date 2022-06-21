@@ -42,10 +42,6 @@ local buttonBgtexSize
 local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
 local bgtexSize
 
-local armcomDefID = UnitDefNames.armcom.id
-local corcomDefID = UnitDefNames.corcom.id
-local legcomDefID = UnitDefNames.legcomdef.id
-
 local playSounds = true
 local leftclick = 'LuaUI/Sounds/tock.wav'
 local resourceclick = 'LuaUI/Sounds/buildbar_click.wav'
@@ -1212,7 +1208,9 @@ local function countComs(forceUpdate)
 	local prevEnemyComs = enemyComs
 	allyComs = 0
 	for _, teamID in ipairs(myAllyTeamList) do
-		allyComs = allyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID) + Spring.GetTeamUnitDefCount(teamID, legcomDefID)
+		for unitDefID,_ in pairs(isCommander) do
+			allyComs = allyComs + Spring.GetTeamUnitDefCount(teamID, unitDefID)
+		end
 	end
 
 	local newEnemyComCount = Spring.GetTeamRulesParam(myTeamID, "enemyComCount")

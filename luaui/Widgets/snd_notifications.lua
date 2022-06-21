@@ -49,10 +49,13 @@ local function addSound(name, file, minDelay, duration, messageKey, unlisted)
 	end
 end
 
+
 -- commanders
 addSound('EnemyCommanderDied', 'EnemyCommanderDied.wav', 1, 1.7, 'tips.notifications.enemyCommanderDied')
 addSound('FriendlyCommanderDied', 'FriendlyCommanderDied.wav', 1, 1.75, 'tips.notifications.friendlyCommanderDied')
 addSound('ComHeavyDamage', 'ComHeavyDamage.wav', 12, 2.25, 'tips.notifications.commanderDamage')
+addSound('TeamDownLastCommander', 'Teamdownlastcommander.wav', 30, 3, 'tips.notifications.teamdownlastcommander')
+addSound('YouHaveLastCommander', 'Youhavelastcommander.wav', 30, 3, 'tips.notifications.youhavelastcommander')
 
 -- game status
 addSound('ChooseStartLoc', 'ChooseStartLoc.wav', 90, 2.2, 'tips.notifications.startingLocation')
@@ -60,6 +63,7 @@ addSound('GameStarted', 'GameStarted.wav', 1, 2, 'tips.notifications.gameStarted
 addSound('GamePause', 'GamePause.wav', 5, 1, 'tips.notifications.gamePaused')
 addSound('PlayerLeft', 'PlayerDisconnected.wav', 1, 1.65, 'tips.notifications.playerLeft')
 addSound('PlayerAdded', 'PlayerAdded.wav', 1, 2.36, 'tips.notifications.playerAdded')
+
 
 -- awareness
 --addSound('IdleBuilder', 'IdleBuilder.wav', 30, 1.9, 'A builder has finished building')

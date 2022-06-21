@@ -40,7 +40,7 @@ local advSettings = false
 local initialized = false
 local pauseGameWhenSingleplayer = true
 
-local cameraTransitionTime = 0.12
+local cameraTransitionTime = 0.18
 local cameraPanTransitionTime = 0.03
 
 local widgetOptionColor = '\255\160\160\160'
@@ -148,6 +148,11 @@ local defaultSunLighting = {
 	groundSpecularColor = { gl.GetSun("specular") },
 	unitSpecularColor = { gl.GetSun("specular", "unit") },
 }
+
+-- Correct some maps fog
+if Game.mapName == "Nine_Metal_Islands_V1" then
+	Spring.SetAtmosphere({ fogStart = 999990, fogEnd = 9999999 })
+end
 local defaultMapFog = {
 	fogStart = gl.GetAtmosphere("fogStart"),
 	fogEnd = gl.GetAtmosphere("fogEnd"),
@@ -947,7 +952,7 @@ function widget:DrawScreen()
 					for i, o in pairs(optionHover) do
 						if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' then
 							-- display console command at the bottom
-							if advSettings then
+							if advSettings or devMode then
 								font:Begin()
 								font:SetTextColor(0.5, 0.5, 0.5, 0.27)
 								font:Print('/option ' .. options[i].id, screenX + (8 * widgetScale), screenY - screenHeight + (11 * widgetScale), 14 * widgetScale, "n")
@@ -1963,6 +1968,14 @@ function init()
 		},
 
 		{ id = "grass", group = "gfx", category = types.basic, widget = "Map Grass GL4", name = texts.option.grass, type = "bool", value = GetWidgetToggleValue("Map Grass GL4"), description = texts.option.grass_desc },
+		{ id = "grassdistance", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.grassdistance, type = "slider", min = 0.3, max = 1, step = 0.01, value = 1, description = texts.option.grassdistance_descr,
+		  onload = function(i)
+			  loadWidgetData("Map Grass GL4", "grassdistance", { 'distanceMult' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Map Grass GL4', 'grassgl4', 'setDistanceMult', { 'distanceMult' }, value)
+		  end,
+		},
 
 		{ id = "treewind", group = "gfx", category = types.dev, name = texts.option.treewind, type = "bool", value = tonumber(Spring.GetConfigInt("TreeWind", 1) or 1) == 1, description = texts.option.treewind_descr,
 		  onload = function(i)
@@ -2778,7 +2791,7 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setFontsize', { 'fontsizeMult' }, value)
 		  end,
 		},
-		{ id = "console_backgroundopacity", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.console_backgroundopacity, type = "slider", min = 0, max = 0.35, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = texts.option.console_backgroundopacity_descr,
+		{ id = "console_backgroundopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.console_backgroundopacity, type = "slider", min = 0, max = 0.45, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = texts.option.console_backgroundopacity_descr,
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_backgroundopacity", { 'chatBackgroundOpacity' })
 		  end,
@@ -2806,6 +2819,7 @@ function init()
 		{ id = "unitgroups", group = "ui", category = types.basic, widget = "Unit Groups", name = texts.option.unitgroups, type = "bool", value = GetWidgetToggleValue("Unit Groups"), description = texts.option.unitgroups_descr },
 		{ id = "idlebuilders", group = "ui", category = types.basic, widget = "Idle Builders", name = texts.option.idlebuilders, type = "bool", value = GetWidgetToggleValue("Idle Builders"), description = texts.option.idlebuilders_descr },
 		{ id = "buildbar", group = "ui", category = types.basic, widget = "BuildBar", name = texts.option.buildbar, type = "bool", value = GetWidgetToggleValue("BuildBar"), description = texts.option.buildbar_descr },
+		--{ id = "dgunrulereminder", group = "ui", category = types.dev, widget = "Dgun Rule Reminder", name = texts.option.dgunrulereminder, type = "bool", value = GetWidgetToggleValue("Dgun Rule Reminder"), description = texts.option.dgunrulereminder_descr },
 
 
 		{ id = "label_ui_visuals", group = "ui", name = texts.option.label_visuals, category = types.basic },
@@ -2895,22 +2909,22 @@ function init()
 		},
 
 		{ id = "highlightselunits", group = "ui", category = types.basic, widget = "Highlight Selected Units GL4", name = texts.option.highlightselunits, type = "bool", value = GetWidgetToggleValue("Highlight Selected Units GL4"), description = texts.option.highlightselunits_descr },
-		{ id = "highlightselunits_opacity", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_opacity, min = 0.02, max = 0.2, step = 0.01, type = "slider", value = 0.05, description = texts.option.highlightselunits_opacity_descr,
-		  onload = function(i)
-			  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_opacity", { 'highlightAlpha' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setOpacity', { 'highlightAlpha' }, value)
-		  end,
-		},
-		{ id = "highlightselunits_teamcolor", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_teamcolor, type = "bool", value = false, description = texts.option.highlightselunits_teamcolor_descr,
-		  onload = function(i)
-			  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_teamcolor", { 'useTeamcolor' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setTeamcolor', { 'useTeamcolor' }, value)
-		  end,
-		},
+		--{ id = "highlightselunits_opacity", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_opacity, min = 0.02, max = 0.12, step = 0.01, type = "slider", value = 0.05, description = texts.option.highlightselunits_opacity_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_opacity", { 'highlightAlpha' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setOpacity', { 'highlightAlpha' }, value)
+		--  end,
+		--},
+		--{ id = "highlightselunits_teamcolor", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_teamcolor, type = "bool", value = false, description = texts.option.highlightselunits_teamcolor_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_teamcolor", { 'useTeamcolor' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setTeamcolor', { 'useTeamcolor' }, value)
+		--  end,
+		--},
 
 		{ id = "cursorlight", group = "ui", category = types.advanced, widget = "Cursor Light", name = texts.option.cursorlight, type = "bool", value = GetWidgetToggleValue("Cursor Light"), description = texts.option.cursorlight_descr },
 		{ id = "cursorlight_lightradius", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightradius, type = "slider", min = 0.15, max = 1, step = 0.05, value = 1.5, description = '',

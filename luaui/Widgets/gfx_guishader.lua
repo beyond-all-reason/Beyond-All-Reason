@@ -253,6 +253,17 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 		if not next(guishaderRects) and not next(guishaderDlists) then
 			return
 		end
+		
+		if WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
+			screencopy = WG['screencopymanager'].GetScreenCopy()
+		else
+			Spring.Echo("Missing Screencopy Manager, exiting",  WG['screencopymanager'] )
+			widgetHandler:RemoveWidget()
+			return false
+		end
+		
+		if screencopy == nil then return end
+		
 		gl.Texture(false)
 		gl.Color(1, 1, 1, 1) --needed? nope
 		gl.Blending(true)
@@ -262,13 +273,6 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 			updateStencilTexture = false;
 		end
 
-		if WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
-			screencopy = WG['screencopymanager'].GetScreenCopy()
-		else
-			Spring.Echo("Missing Screencopy Manager, exiting",  WG['screencopymanager'] )
-			widgetHandler:RemoveWidget()
-			return false
-		end
 		
 		gl.Blending(true)
 		gl.Texture(screencopy)

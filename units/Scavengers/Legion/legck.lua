@@ -49,7 +49,7 @@ return {
 			[7] = "legmex",
 			[8] = "legmext15",
 			[9] = "cormakr",
-			[10] = "coralab",
+			[10] = "legalab",
 			[11] = "leglab",
 			[12] = "legvp",
 			[13] = "corap",

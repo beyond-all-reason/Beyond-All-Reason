@@ -109,7 +109,14 @@ end
 
 local function SelectTrackingPlayer(playerID)
 	local newTrackedPlayer
+	local active = false
+	local spec = false
+
 	if playerID then
+		_, active, spec = Spring.GetPlayerInfo(playerID, false)
+	end
+
+	if playerID and (not spec) and active then
 		newTrackedPlayer = playerID
 	else
 		local highestTs = 0
@@ -117,13 +124,14 @@ local function SelectTrackingPlayer(playerID)
 		for _, playerID in ipairs(playersList) do
 			local _, active, spec = Spring.GetPlayerInfo(playerID, false)
 			if not spec and active then
-				if playersTS[playerID] ~= nil and playersTS[playerID] > highestTs then
+				if playersTS[playerID] ~= nil and playersTS[playerID] > highestTs+math.random(-10,10) then
 					highestTs = playersTS[playerID]
 					newTrackedPlayer = playerID
 				end
 			end
 		end
 	end
+
 	if newTrackedPlayer ~= nil and newTrackedPlayer ~= currentTrackedPlayer then
 		currentTrackedPlayer = newTrackedPlayer
 
@@ -131,6 +139,7 @@ local function SelectTrackingPlayer(playerID)
 			WG['advplayerlist_api'].SetLockPlayerID(currentTrackedPlayer)
 		end
 	end
+
 end
 
 local function createCountdownLists()

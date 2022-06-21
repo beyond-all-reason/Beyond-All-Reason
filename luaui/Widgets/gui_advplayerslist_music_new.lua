@@ -16,14 +16,14 @@ math.randomseed( os.clock() )
 -----------------------------------
 local minSilenceTime = 10
 local maxSilenceTime = 120
-local warLowLevel = 1000
-local warHighLevel = 20000
+local warLowLevel = 1500
+local warHighLevel = 30000
 
 local specMultiplier = #Spring.GetAllyTeamList() - 1
 
 local function applySpectatorThresholds()
-	warLowLevel = 1000*specMultiplier
-	warHighLevel = 20000*specMultiplier
+	warLowLevel = 1500*specMultiplier
+	warHighLevel = 30000*specMultiplier
 	appliedSpectatorThresholds = true
 	--Spring.Echo("[Music Player] Spectator mode enabled")
 end
@@ -43,7 +43,7 @@ local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter,
 local fadeOutFastCurrentTrack = false
 local fadeOutSlowCurrentTrack = false
 local fadeInSlowCurrentTrack = false
-
+local fadeOutSkipTrack = false
 local interruptionEnabled
 local silenceTimerEnabled
 local deviceLostSafetyCheck = 0
@@ -62,7 +62,8 @@ local function ReloadMusicPlaylists()
 	-- Old Soundtrack List
 	local musicDirOld 			= 'music/legacy'
 	local peaceTracksOld 			= VFS.DirList(musicDirOld..'/peace', '*.ogg')
-	local warTracksOld 				= VFS.DirList(musicDirOld..'/war', '*.ogg')
+	local warhighTracksOld 			= VFS.DirList(musicDirOld..'/warhigh', '*.ogg')
+	local warlowTracksOld 			= VFS.DirList(musicDirOld..'/warlow', '*.ogg')
 
 	-- Custom Soundtrack List
 	local musicDirCustom 		= 'music/custom'
@@ -97,8 +98,8 @@ local function ReloadMusicPlaylists()
 
 	if oldSoundtrackEnabled then
 		table.mergeInPlace(peaceTracks, peaceTracksOld)
-		table.mergeInPlace(warhighTracks, warTracksOld)
-		table.mergeInPlace(warlowTracks, warTracksOld)
+		table.mergeInPlace(warhighTracks, warhighTracksOld)
+		table.mergeInPlace(warlowTracks, warlowTracksOld)
 	end
 
 	if customSoundtrackEnabled then
@@ -644,9 +645,15 @@ local function fadeOutFastTrack()
 	Spring.SetSoundStreamVolume(volumefadelevel)
 
 	if fadelevel <= 0 then
-		silenceTimer = 0
-		fadeOutFastCurrentTrack = false
-		PlayNewTrack()
+		if fadeOutSkipTrack then
+			fadeOutSkipTrack = false
+			fadeOutFastCurrentTrack = false
+			silenceTimer = 0
+			PlayNewTrack()
+		else
+			fadeOutFastCurrentTrack = false
+			Spring.StopSoundStream()
+		end
 	end
 end
 
@@ -656,9 +663,25 @@ local function fadeOutSlowTrack()
 	Spring.SetSoundStreamVolume(volumefadelevel)
 
 	if fadelevel <= 0 then
-		silenceTimer = 0
-		fadeOutSlowCurrentTrack = false
-		PlayNewTrack()
+		if fadeOutSkipTrack then
+			fadeOutSkipTrack = false
+			fadeOutSlowCurrentTrack = false
+			silenceTimer = 0
+			PlayNewTrack()
+		else
+			fadeOutSlowCurrentTrack = false
+			Spring.StopSoundStream()
+		end
+	end
+end
+
+local function fadeInSlowTrack()
+	fadelevel = fadelevel + (0.33/ math.max(Spring.GetGameSpeed(), 0.01))
+	local volumefadelevel = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)) * 0.01 * (fadelevel * 0.01)
+	Spring.SetSoundStreamVolume(volumefadelevel)
+
+	if fadelevel >= 100 then
+		fadeInSlowCurrentTrack = false
 	end
 end
 
@@ -683,7 +706,8 @@ function PlayNewTrack(paused)
 	
 	fadeOutFastCurrentTrack = false
 	fadeOutSlowCurrentTrack = false
-	if not gameOver then
+	fadeOutSkipTrack = false
+	if (not gameOver) and Spring.GetGameFrame() > 1 then
 		fadelevel = 0
 		fadeInSlowCurrentTrack = true
 	else
@@ -786,6 +810,7 @@ function widget:GameFrame(n)
 
 	if gameOver and not playedGameOverTrack then
 		fadeOutFastCurrentTrack = true
+		fadeOutSkipTrack = true
 	end
 
 	if n%30 == 15 then
@@ -820,12 +845,14 @@ function widget:GameFrame(n)
 			if playedTime > 0 and totalTime > 0 then -- music is playing
 				if (not fadeOutFastCurrentTrack) and (not fadeInSlowCurrentTrack) and (not fadeOutSlowCurrentTrack) then
 					Spring.SetSoundStreamVolume(musicVolume)
-					if (currentTrackListString == "intro" and n > 30)
+					if (totalTime < playedTime+11.1) then
+						fadeOutSlowCurrentTrack = true
+					elseif (currentTrackListString == "intro" and n > 30)
 					or ((currentTrackListString == "peace" and warMeter > warHighLevel * 0.8) and interruptionEnabled) -- Peace in battle times, let's play some WarLow music at 80% of WarHigh threshold
 					or ((currentTrackListString == "warLow" and warMeter > warHighLevel * 3) and interruptionEnabled) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at tripple of WarHigh threshold
-					or (( (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.2 ) and interruptionEnabled) -- War music is playing, but it has been quite peaceful recently. Let's switch to peace music at 20% of WarLow threshold
-					or (totalTime < playedTime+11.1) then
+					or (( (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.2 ) and interruptionEnabled) then -- War music is playing, but it has been quite peaceful recently. Let's switch to peace music at 20% of WarLow threshold 
 						fadeOutSlowCurrentTrack = true
+						fadeOutSkipTrack = true
 					end
 				end
 			elseif totalTime == 0 then -- there's no music
