@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "2022.04.16",
 		license = "Lua code: GNU GPL, v2 or later, Shader GLSL code: (c) Beherith (mysterme@gmail.com)",
 		layer = -1,
-		enabled = true,
+		enabled = false,
 	}
 end
 
