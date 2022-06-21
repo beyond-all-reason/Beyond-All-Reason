@@ -36,6 +36,7 @@ float smoothmin(float a, float b, float k) {
 	return mix(a, b, h) - k*h*(1.0-h);
 }
 
+// Given a beam between beamStart and beamEnd, returns the pos on the beam closest to desired Point
 vec3 closestbeam(vec3 point, vec3 beamStart, vec3 beamEnd){
 	vec3 beamvec = beamEnd -beamStart ;
 	vec3 pointbeam = point - beamStart;
@@ -47,18 +48,21 @@ vec3 closestbeam(vec3 point, vec3 beamStart, vec3 beamEnd){
 }
 //https://iquilezles.org/articles/distfunctions/
 
+// Given a ray origin and a direction, returns the closes point on the ray in xyz and the distance in w
 vec4 closestlightlp_distance (vec3 ro, vec3 rd, vec3 P){
 	float t0 = dot(rd, P - ro) / dot(rd, rd);
 	vec3 intersectPoint = ro + t0 * rd;
 	return vec4(intersectPoint, length(P - intersectPoint));
 }
 
+// Given a ray origin and a direction, returns the closes point on the ray in xyz and the squared distance in w
 vec4 raypoint_sqrdistance(vec3 ro, vec3 rd, vec3 P){
 	float t0 = dot(rd, P - ro) / dot(rd, rd);
 	vec3 intersectPoint = ro + t0 * rd;
 	return vec4(intersectPoint, dot(P - intersectPoint,P - intersectPoint));
 }
 
+// Given two rays, returns the minimum distance between them 
 //https://math.stackexchange.com/questions/2213165/find-shortest-distance-between-lines-in-3d
 vec4 distancebetweenlines(vec3 r1, vec3 e1, vec3 r2, vec3 e2){ // point1, dir1, point2, dir2
 	//todo handle the case where e1 == e2
@@ -66,7 +70,6 @@ vec4 distancebetweenlines(vec3 r1, vec3 e1, vec3 r2, vec3 e2){ // point1, dir1, 
 	float distance = dot ( n, r1-r2) / length(n);
 	return vec4(distance);
 }
-
 
 // Lens flare effect
 float LensFlareDistanceSqrt(vec3 pointpos, vec3 lightpos, float radius){
@@ -79,8 +82,7 @@ float LensFlareDistancePow(vec3 pointpos, vec3 lightpos, float radius, float pow
 	return pow(dot(pow(abs(pointpos - lightpos), vec3(power)), vec3(1.0)), 1.0 /power)/radius;
 }
 
-
-
+/// Given two rays, it returns the minimum squared distance between them
 float distancebetweenlinessquared(vec3 r1, vec3 e1, vec3 r2, vec3 e2){ // point1, dir1, point2, dir2
 	//todo handle the case where e1 == e2
 	vec3 n = cross(e1, e2); // n is the normal of the line connecting them
@@ -209,231 +211,13 @@ float capIntersect( in vec3 ro, in vec3 rd, in vec3 pa, in vec3 pb, in float ra 
     return -1.0;
 }
 
-
-// we need a ray-segment distance calculator!
-//https://www.codefull.net/2015/06/intersection-of-a-ray-and-a-line-segment-in-3d/
-
-
-//Integrate[Power[\(40)1.0 - Sqrt[Power[\(40)P_1+A_1*x\(41),2]+Power[\(40)P_2+A_2*x\(41),2]+Power[\(40)P_3+A_3*x\(41),2]]\(41),2],{x,0,1}]
-//https://www.wolframalpha.com/input?i2d=true&i=Integrate%5BPower%5B%5C%2840%291.0+-+Sqrt%5BPower%5B%5C%2840%29P_1%2BA_1*x%5C%2841%29%2C2%5D%2BPower%5B%5C%2840%29P_2%2BA_2*x%5C%2841%29%2C2%5D%2BPower%5B%5C%2840%29P_3%2BA_3*x%5C%2841%29%2C2%5D%5D%5C%2841%29%2C2%5D%2Cx%5D
-
-//Integrate[x,{x,0,1}]Integrate[Power[\(40)1.0 - Sqrt[Power[\(40)P_1+A_1*x\(41),2]+Power[\(40)P_2+A_2*x\(41),2]+Power[\(40)P_3+A_3*x\(41),2]]\(41),2],x]
-float integrateLight(vec3 A, vec3 P, float R, float x){ // inside unit-sphere space
-	float AdotP = dot(A,P);
-	float Psqr = dot(P,P);
-	float Asqr = dot(A,A);
-	vec3 AxA = A * A;
-	vec3 PxP = P * P;
-	float x2 = x*x;
-	/*
-	float result = x2*AdotP +
-			sqrt(2*AdotP + x2*Asqr + Psqr) * ( -1 * AdotP/Asqr - x) -
-			1.0 / pow(Asqr, 3.0/2.0) * 
-			(A.x*A.x *(P.y*P.y + P.z*P.z) - 2*A.z*A.x*P.x*P.z + A.z*A.z * (P.x*P.x + P.y*P.y) + A.y*P.y *(-2*A.x*P.x - 2*A.z*P.z) + A.y*A.y *(P.x*P.x + P.z*P.z)) *
-			log( sqrt(Asqr) * sqrt(2*AdotP*x + Asqr*x2 + Psqr) + AdotP + Asqr*x) +
-			0.333333 * Asqr * x*x*x + (Psqr + 1) * x;
-
-	float result2 = x2*AdotP +
-			sqrt(2*AdotP + x2*Asqr + Psqr) * ( -1 * AdotP/Asqr - x) -
-			1.0 / pow(Asqr, 3.0/2.0) * 
-				(A.x*A.x *(P.y*P.y + P.z*P.z) + 
-				 A.y*A.y *(P.x*P.x + P.z*P.z) + 
-				 A.z*A.z * (P.x*P.x + P.y*P.y) // The above three are AxA *(PxP.yzx + PxP*zxy)
-				 -2*A.z*A.x*P.x*P.z  + 
-				 -2*A.x*A.y*P.y*P.x 
-				 -2*A.y*A.z*P.z*P.y // The above three are -2 * (A.zxy * A.xyz * P.xyz * P.zxy)
-				 ) *
-			log( sqrt(Asqr) * sqrt(2*AdotP*x + Asqr*x2 + Psqr) + AdotP + Asqr*x) +
-			0.333333 * Asqr * x*x*x + (Psqr + 1) * x;
-
-	
-	// Sub the above simplifiactions:
-	float result2 = x2*AdotP +
-			sqrt(2*AdotP + x2*Asqr + Psqr) * ( -1 * AdotP/Asqr - x) -
-			1.0 / pow(Asqr, 3.0/2.0) * 
-				(AxA *(PxP.yzx + PxP*zxy) -2 * (A.zxy * A.xyz * P.xyz * P.zxy) ) *
-			log( sqrt(Asqr) * sqrt(2*AdotP*x + Asqr*x2 + Psqr) + AdotP + Asqr*x) +
-			0.333333 * Asqr * x*x*x + (Psqr + 1) * x;
-	
-	// where X is 0 
-	float result3_x0 = 
-			sqrt(2*AdotP + Psqr) * ( -1 * AdotP/Asqr) -
-			1.0 / pow(Asqr, 3.0/2.0) * 
-				(AxA *(PxP.yzx + PxP*zxy) -2 * (A.zxy * A.xyz * P.xyz * P.zxy) ) *
-			log( sqrt(Asqr) * sqrt(Psqr) + AdotP);
-			
-	// where X is 1 
-	float result3_x1 = AdotP +
-			sqrt(2*AdotP + Asqr + Psqr) * ( -1 * AdotP/Asqr - 1) -
-			1.0 / pow(Asqr, 3.0/2.0) * 
-				(AxA *(PxP.yzx + PxP*zxy) -2 * (A.zxy * A.xyz * P.xyz * P.zxy) ) *
-			log( sqrt(Asqr) * sqrt(2*AdotP + Asqr + Psqr) + AdotP + Asqr) +
-			0.333333 * Asqr + (Psqr + 1);
-			
-	// difference
-	float result3_x1_x0 = AdotP +
-			sqrt(2*AdotP + Asqr + Psqr) * ( -1 * AdotP/Asqr - 1) -
-			(1.0 / pow(Asqr, 3.0/2.0)) * 
-				(AxA *(PxP.yzx + PxP*zxy) -2 * (A.zxy * A.xyz * P.xyz * P.zxy) ) *
-			log( sqrt(Asqr) * sqrt(2*AdotP + Asqr + Psqr) + AdotP + Asqr) +
-			0.333333 * Asqr + (Psqr + 1)
-			-
-			(sqrt(2*AdotP + Psqr) * ( -1 * AdotP/Asqr) -
-			(1.0 / pow(Asqr, 3.0/2.0)) * 
-				(AxA *(PxP.yzx + PxP*zxy) -2 * (A.zxy * A.xyz * P.xyz * P.zxy) ) *
-			log( sqrt(Asqr) * sqrt(Psqr) + AdotP))
-			;
-	// LOL psqr ===1
-	float result4_x1_x0 = AdotP +
-			sqrt(2*AdotP + Asqr + 1) * ( -1 * AdotP/Asqr - 1) -
-			(1.0 / pow(Asqr, 3.0/2.0)) * 
-				(AxA *(PxP.yzx + PxP*zxy) -2 * (A.zxy * A.xyz * P.xyz * P.zxy) ) *
-			log( sqrt(Asqr) * sqrt(2*AdotP + Asqr + 1) + AdotP + Asqr) +
-			0.333333 * Asqr + (1 + 1)
-			-
-			(sqrt(2*AdotP + 1) * ( -1 * AdotP/Asqr) -
-			(1.0 / pow(Asqr, 3.0/2.0)) * 
-				(AxA *(PxP.yzx + PxP*zxy) -2 * (A.zxy * A.xyz * P.xyz * P.zxy) ) *
-			log( sqrt(Asqr) + AdotP))
-			;
-	
-	// reorder
-	float result5_x1_x0 = AdotP +
-			sqrt(2*AdotP + Asqr + 1) * ( -1 * AdotP/Asqr - 1) 
-			- sqrt(2*AdotP + 1) * ( -1 * AdotP/Asqr) 
-			
-			- (1.0 / pow(Asqr, 3.0/2.0)) * 
-				(AxA *(PxP.yzx + PxP*zxy) -2 * (A.zxy * A.xyz * P.xyz * P.zxy) ) *
-				log( sqrt(Asqr) * sqrt(2*AdotP + Asqr + 1) + AdotP + Asqr) 
-			+ (1.0 / pow(Asqr, 3.0/2.0)) * 
-				(AxA *(PxP.yzx + PxP*zxy) -2 * (A.zxy * A.xyz * P.xyz * P.zxy) ) *
-				log( sqrt(Asqr) + AdotP)
-			
-			+ 0.333333 * Asqr + (1 + 1)
-			;
-	
-	// try to extract parts
-	float result6_x1_x0 = AdotP +
-			- sqrt(2*AdotP + Asqr + 1) * (AdotP/Asqr + 1) 
-			+ sqrt(2*AdotP + 1) * (AdotP/Asqr) 
-			
-			-1 * (1.0 / pow(Asqr, 3.0/2.0)) * 
-				(AxA *(PxP.yzx + PxP*zxy) -2 * (A.zxy * A.xyz * P.xyz * P.zxy) ) *
-				log( sqrt(Asqr) * sqrt(2*AdotP + Asqr + 1) + AdotP + Asqr) 
-			+ (1.0 / pow(Asqr, 3.0/2.0)) * 
-				(AxA *(PxP.yzx + PxP*zxy) -2 * (A.zxy * A.xyz * P.xyz * P.zxy) ) *
-				log( sqrt(Asqr) + AdotP)
-			
-			+ 0.333333 * Asqr + 2
-			;
-		
-	// try to extract parts
-	float result7_x1_x0 = AdotP +
-			- sqrt(2*AdotP + Asqr + 1) * (AdotP/Asqr + 1) 
-			+ sqrt(2*AdotP + 1) * (AdotP/Asqr) 
-			
-			+ (1.0 / pow(Asqr, 3.0/2.0)) * (AxA *(PxP.yzx + PxP*zxy) -2 * (A.zxy * A.xyz * P.xyz * P.zxy) ) *
-				log( sqrt(Asqr) + AdotP)			
-			+ (1.0 / pow(Asqr, 3.0/2.0)) * (AxA *(PxP.yzx + PxP*zxy) -2 * (A.zxy * A.xyz * P.xyz * P.zxy) ) *
-				(-1 * log( sqrt(Asqr) * sqrt(2*AdotP + Asqr + 1) + AdotP + Asqr) )
-
-			+ 0.333333 * Asqr + 2
-			;		
-	// try to extract parts
-	float result8_x1_x0 = AdotP +
-			- sqrt(2*AdotP + Asqr + 1) * (AdotP/Asqr + 1) 
-			+ sqrt(2*AdotP + 1) * (AdotP/Asqr) 
-			
-			+ (1.0 / pow(Asqr, 3.0/2.0)) * 
-				(AxA *(PxP.yzx + PxP*zxy) - 2 * (A.zxy * A.xyz * P.xyz * P.zxy) ) *
-				(log(sqrt(Asqr) + AdotP) - log(sqrt(Asqr) * sqrt(2*AdotP + Asqr + 1) + AdotP + Asqr) ) 
-			+ 0.333333 * Asqr + 2
-			;	
-			
-	// merge log into division
-
-	float result9_x1_x0 = AdotP +
-			- sqrt(2*AdotP + Asqr + 1) * (AdotP/Asqr + 1) 
-			+ sqrt(2*AdotP + 1) * (AdotP/Asqr) 
-			
-			+ (1.0 / pow(Asqr, 3.0/2.0)) * 
-				(AxA *(PxP.yzx + PxP*zxy) - 2 * (A.zxy * A.xyz * P.xyz * P.zxy) ) *
-				(log((sqrt(Asqr) + AdotP) / sqrt(Asqr)* sqrt((2*AdotP + Asqr + 1)) + AdotP + Asqr) ) 
-			+ 0.333333 * Asqr + 2
-			;
-	*/
-	// futhrer group things
-	#line 30500
-	/*
-	float Alen = sqrt(Asqr);
-	float Asqrplus2AdotPplus1sqrt =  sqrt(2*AdotP + Asqr + 1);
-	float result10_x1_x0 = AdotP +
-			- Asqrplus2AdotPplus1sqrt * (AdotP/Asqr + 1) 
-			+ sqrt(2*AdotP + 1) * (AdotP/Asqr) 
-			
-			+ (1.0 / pow(Asqr, 3.0/2.0)) * 
-				(AxA *(PxP.yzx + PxP.zxy) - 2 * (A.zxy * A.xyz * P.xyz * P.zxy) ) *
-				(log((Alen + AdotP) / Alen* Asqrplus2AdotPplus1sqrt + AdotP + Asqr) ) + 
-			0.333333 * Asqr + 2			;
-	return result10_x1_x0;
-	*/
-	return 0;
-
-	
-	
-//https://www.integral-calculator.com/ 
-//(1.0 -sqrt((P1+A1*x)^2 +(P2+A2*x)^2+(P3+A3*x)^2))^2
-}
-
-float integrateLightUnitSphere(vec3 A, vec3 P, float R, float x){ // inside unit-sphere space
-	float AdotP = dot(A,P);
-	float Psqr = dot(P,P);
-	float Asqr = dot(A,A);
-	vec3 AxA = A * A;
-	vec3 PxP = P * P;
-	float x2 = x*x;
-	// Integrate[Power[\(40)1.0 - Sqrt[Power[\(40)P_1+A_1*x\(41),2]+Power[\(40)P_2\(41),2]+Power[\(40)P_3\(41),2]]\(41),2],x] 
-	
-	float Pyzsqr = dot(P.yz,P.yz);
-	float AxtimexplusPx = (A.x * x + P.x);
-	float disttocenter = sqrt(AxtimexplusPx * AxtimexplusPx + Pyzsqr);
-	float disttostart = sqrt(Psqr);
-	
-	float indefinite_x = 1/A.x * (
-		0.333333 * pow(A.x + P.x,3) 
-		+ (Pyzsqr + 1)* AxtimexplusPx
-		- disttocenter * AxtimexplusPx 
-		- Pyzsqr * log(disttocenter  +  AxtimexplusPx ));
-	
-	
-	float indefinite_x0 = 1/A.x * ( // for the x = case
-		0.333333 * pow(A.x + P.x,3) 
-		+ (Pyzsqr + 1)* P.x
-		- disttostart * P.x 
-		- Pyzsqr * log(disttostart +  P.x ));
-		
-	float xminusx0 = 1/A.x * (
-		0.333333 * pow(A.x + P.x,3) 
-		+ (Pyzsqr + 1)* AxtimexplusPx
-		- disttocenter * AxtimexplusPx 
-		- Pyzsqr * log(disttocenter  +  AxtimexplusPx ))
-		
-		- 1/A.x * ( // for the x = case
-		0.333333 * pow(A.x + P.x,3) 
-		+ (Pyzsqr + 1)* P.x
-		- disttostart * P.x 
-		- Pyzsqr * log(disttostart +  P.x ));
-		
-		
-	return 0;
-}
-
-
+// Defines the falloff function of scattered light one gets more distant from the light source
 float scatterfalloff(float disttolight, float radius){
 	float x = clamp(1.0 - disttolight/radius, 0.0, 1.0);
 	return (-0.5*x*x+x)/(0.5*x*x-x+1);
 }
 
+// Integratates the scattering from closes to eye pos to most distant pos
 float integratescatterocclusion(float depthratio){
 	float x = depthratio;
 	return clamp((x*x)/ (2*x*x -2*x +1.0), 0.0, 1.0);
@@ -460,18 +244,17 @@ vec2 raySphereIntersect(vec3 r0, vec3 rd, vec3 s0, float sr) {
 	}
 }
 
-//Integrate[Power[\(40)1.0 - Sqrt[Power[\(40)P_1+A_1*x\(41),2]+Power[\(40)P_2+A_2*x\(41),2]+Power[\(40)P_3+A_3*x\(41),2]]\(41),2],{x,0,1}]
-	
 	
 //https://andrew-pham.blog/2019/10/03/volumetric-lighting/ ???
 
-
+// UNTESTED
 vec3 ScreenToWorld(vec2 screen_uv, float depth){ // returns world XYZ from screenUV and depth
 	vec4 fragToScreen =  vec4( vec3(screen_uv * 2.0 - 1.0, depth),  1.0);
 	fragToScreen = cameraViewProjInv * fragToScreen;
 	return fragToScreen.xyz / fragToScreen.w;
 }
 
+// UNTESTED!
 vec3 WorldToScreen(vec3 worldCoords){ // returns screen UV and depth position
 	vec4 screenPosition = cameraViewProj * vec4(worldCoords,1.0);
 	return screenPosition.xyz / screenPosition.w;
