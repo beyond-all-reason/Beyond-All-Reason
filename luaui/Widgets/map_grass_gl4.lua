@@ -83,6 +83,7 @@ local grassConfig = {
     FADEEND = 4000,--distance at which grass completely fades out
     SHADOWFACTOR = 0.5, -- how much shadowed grass gets darkened, lower values mean more shadows
     HASSHADOWS = 1, -- 0 for disable, no real difference in this (does not work yet)
+	GRASSBRIGHTNESS = 1.0; -- this is for future dark mode
   },
   grassBladeColorTex = "LuaUI/Images/luagrass/grass_field_medit_flowering.dds.cached.dds", -- rgb + alpha transp
   mapGrassColorModTex = "$grass", -- by default this means that grass will be colorized with the minimap
@@ -971,7 +972,7 @@ void main() {
 	fragColor.rgb = fragColor.rgb * instanceParamsVS.y; // darken with shadows
 	fragColor.rgb = fragColor.rgb * instanceParamsVS.z; // darken out of los
 	fragColor.rgb = fragColor.rgb * instanceParamsVS.w; // darken with windnoise
-
+	fragColor.rgb *= GRASSBRIGHTNESS;
 
 	fragColor.a = clamp((fragColor.a-0.5) * 1.5 + 0.5, 0.0, 1.0);
 
