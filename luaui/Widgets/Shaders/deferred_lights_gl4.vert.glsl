@@ -122,6 +122,7 @@ void main()
 		// input cone that has pointy end up, (y = 1), with radius =1, flat on Y=0 plane
 		// make it so that cone tip is at 0 and the opening points to -y
 		worldPos.xyz = position.xyz;
+		worldPos.x *= -1.0; // flip the cone inside out
 		worldPos.y = (worldPos.y*1.1 - 1.) * -1;
 		//worldPos.y *= 1;
 	

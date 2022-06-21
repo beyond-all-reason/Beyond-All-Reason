@@ -246,6 +246,7 @@ local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, d
 					modelNormals = 3,
 					mapExtra = 4, 
 					modelExtra = 5,
+					screenCopy = 6,
 					},
 				uniformFloat = {
 					pointbeamcone = 0,
@@ -640,12 +641,12 @@ function widget:Initialize()
 	local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
 	
 	if nightFactor ~= 1 then 
-		Spring.Debug.TableEcho(mapinfo)
+		--Spring.Debug.TableEcho(mapinfo)
 		local nightLightingParams = {}
 		for _,v in ipairs(adjustfornight) do 
 			nightLightingParams[v] = mapinfo.lighting[string.lower(v)]
 			for k2, v2 in pairs(nightLightingParams[v]) do
-				Spring.Echo(v,k2,v2)
+				--Spring.Echo(v,k2,v2)
 				if tonumber(v2) then nightLightingParams[v][k2] = v2 * nightFactor end
 			end
 		end
@@ -828,7 +829,16 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	
 	
 		local alt, ctrl, meta, shft = Spring.GetModKeyState()
-		
+				
+		local screenCopyTex = nil
+		if WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
+			--screenCopyTex = WG['screencopymanager'].GetScreenCopy() -- TODO DOESNT WORK? CRASHES THE GL PIPE
+		end
+		if screenCopyTex == nil then
+			--glTexture(6, false)
+		else 
+			--glTexture(6, screenCopyTex)
+		end
 		if ctrl then
 			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		else
@@ -844,6 +854,8 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		glTexture(3, "$model_gbuffer_normtex")
 		glTexture(4, "$map_gbuffer_spectex")
 		glTexture(5, "$model_gbuffer_spectex")
+
+		--Spring.Echo(screenCopyTex)
 		
 		deferredLightShader:Activate()
 		
@@ -857,9 +869,9 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		end
 		if coneLightVBO.usedElements > 0 then
 			deferredLightShader:SetUniformFloat("pointbeamcone", 2)
-			gl.Culling(GL.FRONT) -- cones are flipped?
-			--coneLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, coneLightVBO.usedElements, 0)
-			gl.Culling(GL.BACK)
+			--gl.Culling(GL.FRONT) -- cones are flipped?
+			coneLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, coneLightVBO.usedElements, 0)
+			--gl.Culling(GL.BACK)
 		end
 		deferredLightShader:Deactivate()
 		

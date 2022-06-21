@@ -246,6 +246,7 @@ vec2 raySphereIntersect(vec3 r0, vec3 rd, vec3 s0, float sr) {
 	}
 }
 // This is the fast approx scattering useing a mierayleighratio, where 1.0 = Rayleigh, ~0.1 = Mie
+// TODO: handle the case where viewpos is inside the volume!
 float FastApproximateScattering(vec3 campos, vec3 viewdirection, vec3 lightposition, float lightradius, float fragmentdistance, float lightdistance, float mierayleighratio){
 	vec2 closeandfardistance = raySphereIntersect(campos, -viewdirection,  lightposition, lightradius * mierayleighratio);
 	float depthratio = clamp(0.5 * (fragmentdistance - closeandfardistance.x) / (lightradius * mierayleighratio), 0.0, 1.0);
@@ -304,6 +305,7 @@ void main(void)
 	fragWorldPos.xyz = fragWorldPos.xyz / fragWorldPos.w; // YAAAY this works!
 	
 	vec3 camPos = cameraViewInv[3].xyz;
+	vec3 camForward;
 	float fragDistance = length(camPos - fragWorldPos.xyz);
 	vec3 viewDirection = (camPos - fragWorldPos.xyz) / fragDistance; // vector pointing in the direction of the eye ray
 	
@@ -363,21 +365,38 @@ void main(void)
 		
 		lightToWorld = fragWorldPos.xyz - lightPosition;
 		lightDirection = normalize(lightToWorld);
+		vec3 coneDirection = v_worldPosRad2.xyz;
+		float lightCosTheta = v_worldPosRad2.w; // The cos of the half angle of the spot cone light
 		
-		float lightandworldangle = dot(lightDirection, v_worldPosRad2.xyz);
-		falloff = smoothstep(v_worldPosRad2.w, 1.0, lightandworldangle) ;
+		
+		
+		float lightandworldangle = dot(lightDirection, coneDirection);
+		falloff = smoothstep(lightCosTheta, 1.0, lightandworldangle) ;
 
 		attenuation = clamp( 1.0 - length (lightToWorld) / lightRadius, 0,1) * falloff;
 		lightEmitPosition = lightPosition;
 		closestpoint_dist = closestlightlp_distance(camPos, viewDirection, lightPosition);
 		
-		selfglowfalloff = dot(normalize(closestpoint_dist.xyz - lightPosition) , v_worldPosRad2.xyz) / v_worldPosRad2.w;
+		//selfglowfalloff = dot(normalize(closestpoint_dist.xyz - lightPosition) , v_worldPosRad2.xyz) / v_worldPosRad2.w;
+		//float scatterangle = smoothstep(lightCosTheta, 1.0, - dot(normalize(lightPosition - closestpoint_dist.xyz),coneDirection)); 
+		//scatteringRayleigh = pow(1.0 - closestpoint_dist.w / lightRadius, 2) *scatterangle;
 		
-		float scatterangle = smoothstep(v_worldPosRad2.w, 1.0, - dot(normalize(lightPosition - closestpoint_dist.xyz),v_worldPosRad2.xyz)); 
-		scatteringRayleigh = pow(1.0 - closestpoint_dist.w / lightRadius, 2) *scatterangle;
+		//vec4 ray_to_capsule_distance_squared(vec3 rayOrigin, vec3 rayDirection, vec3 cap1, vec3 cap2){ 
+		vec4 rayconehit = ray_to_capsule_distance_squared(camPos, viewDirection,lightPosition, lightPosition + coneDirection * lightRadius); // this now contains the point on ConeDirection 
+		
+		float localradius = lightCosTheta * length(rayconehit.xyz - closestpoint_dist.xyz);
+		
+		
+		scatteringRayleigh = FastApproximateScattering(camPos, viewDirection, rayconehit.xyz, lightRadius, fragDistance, rayconehit.w, 1.0 );
 
+		lensFlare = step(v_depths_center_map_model_min.x, v_depths_center_map_model_min.w);
+		lensFlare = lensFlare * clamp( lensFlare * LensFlareDistanceSqrt(closestpoint_dist.xyz, lightPosition,lightRadius) *(-15) +1, 0, 1);
 		
-		sourceVisible = smoothstep(v_depths_center_map_model_min.z -0.001, v_depths_center_map_model_min.z ,worlddepth);
+		float lightandcameraangle = dot(coneDirection, viewDirection);
+		//lensFlare *= smoothstep(lightCosTheta, 1.0, lightandcameraangle);
+		lensFlare *= lightandcameraangle;
+		//lensFlare = fract(localradius *0.02);
+		//sourceVisible = smoothstep(v_depths_center_map_model_min.z -0.001, v_depths_center_map_model_min.z ,worlddepth);
 		
 	#line 34000
 	}else if (pointbeamcone < 1.5){ // beam 
@@ -420,7 +439,7 @@ void main(void)
 	
 	vec3 reflection = reflect(lightDirection, normals.xyz);
 	specular = dot(reflection, viewDirection);
-	specular = pow(max(0.0, specular), 16.0) * 1.5;
+	specular = pow(max(0.0, specular), 8.0 * ( 1.0 + ismodel) ) * (1.0 + ismodel);
 	attenuation = attenuation;// * attenuation;
 	
 	fragColor.rgb = vec3(attenuation, diffuse, specular);
@@ -443,13 +462,15 @@ void main(void)
 	
 
 	fragColor.rgb = vec3(
-			(diffuse ) * attenuation + lensFlare,
+			(diffuse) * attenuation + lensFlare,
 			//relativedistancetolight * relativedistancetolight * selfglowfalloff * sourceVisible + 
 			scatteringMie + 
 			(specular) * attenuation,
 			 scatteringRayleigh
 			);
-	//fragColor.rgb = vec3(sourceVisible);
+			
+	
+	//fragColor.rgb = vec3(scatteringRayleigh);
 	//fragColor.rgb = vec3(dot(fragColor.rgb, vec3(1.0, 0.5, 0.5)));
 	//fragColor.rgb += 0.5;
 	//fragColor.rgb += clamp(0.25* vec3(pow(1.0-rcdsqr / (v_worldPosRad.w * v_worldPosRad.w),16)), 0.0, 1.0);
