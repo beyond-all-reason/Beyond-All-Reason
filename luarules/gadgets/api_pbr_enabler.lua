@@ -53,6 +53,7 @@ if (not gadgetHandler:IsSyncedCode()) then --unsynced gadget
 	end
 
 	local envLutDebug = false
+	
 	function gadget:DrawWorldPreUnit() --after IBL textures are rendered into, but before units are drawn
 		if envLut then
 			envLut:Execute(envLutDebug)
@@ -60,6 +61,7 @@ if (not gadgetHandler:IsSyncedCode()) then --unsynced gadget
 				envLutDebug = false
 			end
 		end
+		gadgetHandler:RemoveCallIn("DrawWorldPreUnit") -- NOTE, THIS IS REMOVED!!!!!
 	end
 
 	function gadget:Initialize()

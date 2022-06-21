@@ -18,8 +18,16 @@ local luaShaderDir = "LuaUI/Widgets/Include/"
 local noisetex3d64 =  "LuaUI/images/noise3d64rgb.bmp"
 local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
 local dithernoise2d =  "LuaUI/images/rgbnoise.png"
+
+local worley3d128 = "LuaUI/images/worley_rgbnorm_01_asum_128_v1.dds"
+--local worley3d128 = "LuaUI/images/worley_128_single_norm_v1.dds"
+local worley3d3level = "LuaUI/images/worley_rsum_bgaind_128_v1.dds"
+
 --local noisetex3dcube =  "LuaUI/images/lavadistortion.png"
 --local noisetex3d64 =  "LuaUI/images/grid3d64rgb.bmp"
+
+--local distortiontex = "LuaUI/images/lavadistortion.png"
+local distortiontex = "LuaUI/images/fractal_voronoi_tiled_1024_1.png"
 
 local glTexture = gl.Texture
 local glCulling = gl.Culling
@@ -27,19 +35,31 @@ local glDepthTest = gl.DepthTest
 local GL_BACK = GL.BACK
 local GL_LEQUAL = GL.LEQUAL
 
+local GL_RGBA16F_ARB = 0x881A
+local GL_RGBA32F_ARB = 0x8814
+
+local GL_FUNC_ADD = 0x8006
+local GL_FUNC_REVERSE_SUBTRACT = 0x800B
+local GL_GREATER = GL.GREATER
+local GL_ONE     = GL.ONE
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+
 local shaderConfig = {
 	TRANSPARENCY = 0.2, -- transparency of the stuff drawn
 	HEIGHTOFFSET = 1, -- Additional height added to everything
 	SPHERESEGMENTS = 16,
 	RESOLUTION = 2,
+	MOTION = 0,
+	USEDEFERREDBUFFERS = 0,
+	USESHADOWS = 0,
 }
 
 ---- GL4 Backend Stuff----
 -- omg all possible object-object intersection tests: http://www.realtimerendering.com/intersections.html
 
 -- TODO: 
-	-- expose spawning funcs
-	-- handle being inside at most 1 sphere
+	-- Try to z-sort the stupid spheres!
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
@@ -51,230 +71,8 @@ local fogTexture
 local vsx, vsy
 local combineShader
 
-local vsSrc =  [[
-#version 420
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shader_storage_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
-
-#line 5000
-
-layout (location = 0) in vec3 position; // l w rot and maxalpha
-layout (location = 1) in vec3 normals;
-layout (location = 2) in vec2 uvs;
-
-layout (location = 3) in vec4 worldPosRad; 
-layout (location = 4) in vec4 colordensity; 
-layout (location = 5) in vec4 velocity; 
-layout (location = 6) in vec4 fadeparameters; //fadeinstart, fadeinrate, fadeoutstart, fadeoutrate, 
-layout (location = 7) in vec4 spawnframe_frequency_riserate_windstrength;
-
-//__ENGINEUNIFORMBUFFERDEFS__
-//__DEFINES__
-
-#line 10000
-
-out DataVS {
-	vec4 v_worldPosRad;
-	vec4 v_colordensity;
-	vec4 v_spawnframe_frequency_riserate_windstrength;
-	vec2 v_uvs;
-	vec3 v_fragWorld;
-	float currfade;
-};
-
-void main()
-{
-	float time = timeInfo.x + timeInfo.w;
-	v_worldPosRad = worldPosRad + (time - spawnframe_frequency_riserate_windstrength.x) * velocity;
-	v_colordensity = colordensity;
-	v_spawnframe_frequency_riserate_windstrength = spawnframe_frequency_riserate_windstrength;
-	v_uvs = v_uvs;
-	vec3 worldPos = position * v_worldPosRad.w + v_worldPosRad.xyz ;
-	
-	gl_Position = cameraViewProj * vec4(worldPos, 1.0);
-	
-	vec3 camPos = cameraViewInv[3].xyz;
-	v_fragWorld = worldPos.xyz;
-	
-	float fadeinstart = fadeparameters.x;
-	float fadeinrate = fadeparameters.y;
-	float fadeoutstart = fadeparameters.z;
-	float fadeoutrate = fadeparameters.w;
-	currfade = clamp((time - fadeinstart) * fadeinrate, 0.0, 1.0) - clamp((time - fadeoutstart) * fadeoutrate, 0.0, 1.0);
-}
-]]
-
-
-local fsSrc =
-[[
-
-#version 420
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
-//__ENGINEUNIFORMBUFFERDEFS__
-//__DEFINES__
-
-#line 30000
-uniform float iconDistance;
-in DataVS {
-	vec4 v_worldPosRad;
-	vec4 v_colordensity;
-	vec4 v_spawnframe_frequency_riserate_windstrength;
-	vec2 v_uvs;
-	vec3 v_fragWorld;
-	float currfade;
-};
-
-uniform sampler2D mapDepths;
-uniform sampler2D modelDepths;
-uniform sampler2D heightmapTex;
-uniform sampler2D infoTex;
-uniform sampler2DShadow shadowTex;
-uniform sampler3D noise64cube;
-uniform sampler2D dithernoise2d;
-
-out vec4 fragColor;
-
-float frequency;
-
-// https://gist.github.com/wwwtyro/beecc31d65d1004f5a9d
-vec2 raySphereIntersect(vec3 r0, vec3 rd, vec3 s0, float sr) {
-    // - r0: ray origin
-    // - rd: normalized ray direction
-    // - s0: sphere center
-    // - sr: sphere radius
-    // - Returns distance from r0 to first intersection with sphere,
-    //   or -1.0 if no intersection.
-    float a = dot(rd, rd);
-    vec3 s0_r0 = r0 - s0;
-    float b = 2.0 * dot(rd, s0_r0);
-    float c = dot(s0_r0, s0_r0) - (sr * sr);
-	float disc = b * b - 4.0 * a* c;
-    if (disc < 0.0) {
-        return vec2(-1.0, -1.0);
-    }else{
-		disc = sqrt(disc);
-		return vec2(-b - disc, -b + disc) / (2.0 * a);
-	}
-}
-
-float shadowAtWorldPos(vec3 worldPos){
-		vec4 shadowVertexPos = shadowView * vec4(worldPos,1.0);
-		shadowVertexPos.xy += vec2(0.5);
-		return clamp(textureProj(shadowTex, shadowVertexPos), 0.0, 1.0);
-}
-
-vec4 raymarch(vec3 startpoint, vec3 endpoint, float steps, vec4 sphereposrad){
-	float noisescale = 0.002 * v_spawnframe_frequency_riserate_windstrength.y;
-	float fulldist = length((startpoint - endpoint));
-	float stepsize = fulldist / steps; // this is number of elmos per sample
-	float interval = 1.0/ steps; // step interval
-	
-	float fogaccum = 1.0; 
-	float shadowamount = 0.0;
-	// we need a better way to accumulate, kind of like how much light is let through
-	float currenttime = timeInfo.x+ timeInfo.w;
-	vec4 dithernoise = textureLod(dithernoise2d, startpoint.xz, 0.0);
-	vec3 noiseoffset;
-	noiseoffset.y = -1 * currenttime * v_spawnframe_frequency_riserate_windstrength.z; 
-	noiseoffset.xz = -0.0001 * currenttime * (windInfo.xz*windInfo.w) * v_spawnframe_frequency_riserate_windstrength.w;
-	
-	for (float f = dithernoise.x*interval*2; f < 1.0; f = f + interval){
-		vec3 currpos = mix(startpoint, endpoint, f);
-		vec3 noisepos = currpos;
-		//	noisepos.y -= currenttime * v_spawnframe_frequency_riserate_windstrength.z;
-		noisepos += noiseoffset;
-		//noisepos.xz -= currenttime * (windInfo.xz*windInfo.w) * v_spawnframe_frequency_riserate_windstrength.w; // windx, windy, windz, windStrength
-		
-		float justnoiseval = (textureLod(noise64cube, fract(noisepos * noisescale), 0.0).a * 2.0 - 1.0);
-		
-		fogaccum = fogaccum  * (1.0 -  clamp(justnoiseval * stepsize * interval * 5, 0.0, 0.8));
-		
-		shadowamount = shadowamount + shadowAtWorldPos(currpos);
-	}
-	shadowamount = shadowamount / steps;
-	shadowamount = pow(shadowamount, 2.0);
-	return vec4(fogaccum, shadowamount, 0.0, 0.0);
-}
-
-
-#line 31000
-void main(void)
-{
-	frequency = v_spawnframe_frequency_riserate_windstrength.y;
-	vec3 camPos = cameraViewInv[3].xyz ;
-	vec3 camDir = normalize(camPos-v_fragWorld);
-	float radiusmult = 0.98; //0.98;
-	vec2 closeandfarsphere = raySphereIntersect(camPos, -1.0 * normalize(camDir), v_worldPosRad.xyz, radiusmult * v_worldPosRad.w);
-	
-	// sample the fucking world:
-	
-	vec2 screenUV = gl_FragCoord.xy * RESOLUTION / viewGeometry.xy;
-
-	// Sample the depth buffers, and choose whichever is closer to the screen
-	float mapdepth = texture(mapDepths, screenUV).x;
-	float modeldepth = texture(modelDepths, screenUV).x;
-	mapdepth = min(mapdepth, modeldepth);
-	
-	vec4 mapWorldPos =  vec4( vec3(screenUV.xy * 2.0 - 1.0, mapdepth),  1.0);
-	mapWorldPos = cameraViewProjInv * mapWorldPos;
-	mapWorldPos.xyz = mapWorldPos.xyz / mapWorldPos.w; // YAAAY this works!
-	
-	float distancetoeye = length(camPos - mapWorldPos.xyz);
-	closeandfarsphere.y = min(closeandfarsphere.y, distancetoeye);
-	
-	// some helper positions:
-	vec3 close_spherepoint = -1 * camDir * closeandfarsphere.x  + camPos;
-	vec3 far_spherepoint   = -1 * camDir * closeandfarsphere.y  + camPos;
-	
-	float distthroughsphere = clamp((closeandfarsphere.y - closeandfarsphere.x )/ (2*v_worldPosRad.w*radiusmult), 0.0, 1.0);
-		
-	float distancetosphere = length(camPos - v_worldPosRad.xyz);
-	if (distancetosphere < radiusmult * v_worldPosRad.w) { // then we WILL intersect, but where?
-		close_spherepoint = camPos;
-		far_spherepoint = -1 * camDir * max(closeandfarsphere.x, closeandfarsphere.y)  + camPos;
-		distthroughsphere = clamp(length(camPos - far_spherepoint) / (2*v_worldPosRad.w*radiusmult), 0.0, 1.0);
-		fragColor.rgba = vec4( vec3(distthroughsphere), 1.0);
-		//distthroughsphere *= 1.5;
-	}
-
-	fragColor.rgba = vec4( vec3(distthroughsphere), 1.0);
-	
-	//return;
-	//fragColor.rgba = vec4( fract(far_spherepoint * 0.01), 1.0);
-		
-	float fogamout = pow(distthroughsphere ,1);
-	
-	//fogamout = smoothstep(0.0,1.0,fogamout) * 0.9 ;
-	
-	
-	
-	
-	
-	//fragColor.rgba = vec4(vec3(fract(closeandfarsphere.x * 0.01)), fogamout);
-	fragColor.rgba = vec4(vec3(1.0), distthroughsphere);
-	
-	//vec3 dbgdist = clamp(vec3( closeandfarsphere.x, closeandfarsphere.y, distancetoeye)*0.001, 0.0, 1.0);
-	
-
-	vec4 rm = raymarch(far_spherepoint, close_spherepoint, 128.0, v_worldPosRad);
-	fragColor.rgba = vec4(vec3(rm.rgb), 1.0);
-	rm.r = clamp(rm.r, 0.0, 1.0);
-	fragColor.rgba = vec4(vec3(rm.g), (1.0 - rm.r) * fogamout);
-	
-	//fragColor.rgba = vec4( dbgdist.bbb	, 1.0);
-
-	//fragColor.rgb = vec3(shadowAtWorldPos(close_spherepoint.xyz));
-	
-	fragColor.rgba *= v_colordensity;
-	
-	//if ((closeandfarsphere.x < 0.0) || (closeandfarsphere.y < 0.0)) fragColor.a = 0.0;
-	//fragColor.rgba = vec4( fract(far_spherepoint * 0.02), 1.0);
-	//fragColor.a = 1.0;
-	
-}
-]]
+local vsSrcPath = "LuaUI/Widgets/Shaders/fog_volumes.vert.glsl"
+local fsSrcPath = "LuaUI/Widgets/Shaders/fog_volumes.frag.glsl"
 
 local function goodbye(reason)
   Spring.Echo("Fog Volumes GL4 widget exiting with reason: "..reason)
@@ -298,37 +96,93 @@ function widget:ViewResize()
 		wrap_s = GL.CLAMP_TO_EDGE,
 		wrap_t = GL.CLAMP_TO_EDGE,
 		fbo = true,
+		format = GL_RGBA32F_ARB,
 		})
 end
 
+-- checks if a shader code has changed on disk, if yes, then it tries to recompile, and on success, it will return the new shader object 
+local lastshaderupdate = nil
+local shaderSourceCache = {}
+local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, delaytime)
+	if lastshaderupdate == nil or 
+		Spring.DiffTimers(Spring.GetTimer(), lastshaderupdate) > (delaytime or 0.25) then 
+		lastshaderupdate = Spring.GetTimer()
+		local vsSrcNew = vssrcpath and VFS.LoadFile(vssrcpath)
+		local fsSrcNew = fssrcpath and VFS.LoadFile(fssrcpath)
+		local gsSrcNew = gssrcpath and VFS.LoadFile(gssrcpath)
+		if  vsSrcNew == shaderSourceCache.vsSrc and 
+			fsSrcNew == shaderSourceCache.fsSrc and 
+			gsSrcNew == shaderSourceCache.gsSrc then 
+			--Spring.Echo("No change in shaders")
+			return nil
+		else
+			local compilestarttime = Spring.GetTimer()
+			shaderSourceCache.vsSrc = vsSrcNew
+			shaderSourceCache.fsSrc = fsSrcNew
+			shaderSourceCache.gsSrc = gsSrcNew
+			
+			local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
+			if vsSrcNew then 
+				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				vsSrcNew = vsSrcNew:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig))
+			end
+			if fsSrcNew then 
+				fsSrcNew = fsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig))
+			end
+			if gsSrcNew then 
+				gsSrcNew = gsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				gsSrcNew = gsSrcNew:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig))
+			end
+			local reinitshader =  LuaShader(
+				{
+				vertex = vsSrcNew,
+				fragment = fsSrcNew,
+				geometry = gsSrcNew,
+				uniformInt = {
+					mapDepths = 0,
+					modelDepths = 1,
+					heightmapTex = 2,
+					infoTex = 3,
+					shadowTex = 4,
+					noise64cube = 5,
+					dithernoise2d = 6,
+					worley3D = 7,
+					worley3d3level = 8,
+					},
+				uniformFloat = {
+					fadeDistance = 300000,
+					},
+				},
+				shadername
+			)
+			local shaderCompiled = reinitshader:Initialize()
+			
+			
+			Spring.Echo(shadername, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", Spring.GetGameFrame())
+			if shaderCompiled then 
+				return reinitshader
+			else
+				return nil
+			end
+		end
+	end
+	return nil
+end
+
+function widget:Update()
+	fogSphereShader = checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Fog Volumes") or fogSphereShader
+end
+
 local function initFogGL4(shaderConfig, DPATname)
-	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	fogSphereShader =  LuaShader(
-		{
-		vertex = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
-		fragment = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
-		uniformInt = {
-			mapDepths = 0,
-			modelDepths = 1,
-			heightmapTex = 2,
-			infoTex = 3,
-			shadowTex = 4,
-			noise64cube = 5,
-			dithernoise2d = 6,
-			},
-		uniformFloat = {
-			fadeDistance = 300000,
-			},
-		},
-		DPATname .. "Shader"
-	  )
-	local shaderCompiled = fogSphereShader:Initialize()
-	if not shaderCompiled then goodbye("Failed to compile ".. DPATname .." GL4 ") end
+	widget:Update()
+	if not fogSphereShader then 
+		goodbye("Failed to compile ".. DPATname .." GL4 ") 
+		return
+	end
 
 	local sphereVBO, numVertices, sphereIndexVBO, numIndices = makeSphereVBO(shaderConfig.SPHERESEGMENTS, shaderConfig.SPHERESEGMENTS/2, 1)
-	Spring.Echo(sphereVBO, numVertices, sphereIndexVBO, numIndices)
+	--Spring.Echo(sphereVBO, numVertices, sphereIndexVBO, numIndices)
 
 	DrawPrimitiveAtUnitVBO = makeInstanceVBOTable(
 		{
@@ -341,7 +195,10 @@ local function initFogGL4(shaderConfig, DPATname)
 		64, -- maxelements
 		DPATname .. "VBO" -- name
 	)
-	if DrawPrimitiveAtUnitVBO == nil then goodbye("Failed to create DrawPrimitiveAtUnitVBO") end
+	if DrawPrimitiveAtUnitVBO == nil then 
+		goodbye("Failed to create DrawPrimitiveAtUnitVBO") 
+		return
+	end
 	
 	DrawPrimitiveAtUnitVBO.vertexVBO = sphereVBO
 	DrawPrimitiveAtUnitVBO.indexVBO  = sphereIndexVBO
@@ -353,7 +210,7 @@ local function initFogGL4(shaderConfig, DPATname)
 
 	widget:ViewResize()
 	
-	combineShader = gl.CreateShader({
+	combineShader = LuaShader({
 		--while this vertex shader seems to do nothing, it actually does the very important world space to screen space mapping for gl.TexRect!
 		vertex = [[
 			#version 150 compatibility
@@ -364,13 +221,23 @@ local function initFogGL4(shaderConfig, DPATname)
 			} ]],
 		fragment = [[
 			#version 150 compatibility
-			uniform sampler2D texture0;
-			void main(void) {gl_FragColor = texture2D(texture0, gl_TexCoord[0].st); }
+			uniform sampler2D fogbase;
+			uniform sampler2D distortion;
+			uniform float gameframe;
+			uniform float distortionlevel;
+			void main(void) {
+				vec2 distUV = gl_TexCoord[0].st * 4 + vec2(0, - gameframe*4);
+				vec4 dist = (texture2D(distortion, distUV) * 2.0 - 1.0) * distortionlevel;
+				gl_FragColor = texture2D(fogbase, gl_TexCoord[0].st + dist.xy);
+			}
 		]],
-		uniformInt = { texture0 = 0, },
+		uniformInt = { fogbase = 0, distortion = 1},
+		uniformFloat = { gameframe = 0, distortionlevel = 0},
 	})
+	
+	shaderCompiled = combineShader:Initialize()
 
-	if (combineShader == nil) then
+	if (shaderCompiled == nil) then
 		goodbye("[Fog Volumes::combineShader] combineShader compilation failed")
 	end
 
@@ -428,6 +295,12 @@ local toTexture = true
 
 local function renderToTextureFunc() -- this draws the fogspheres onto the texture
 
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)	
+	
+	--gl.Blending(true);
+	--gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.DST_ALPHA, GL.SRC_ALPHA, GL.ONE);
+	--gl.BlendEquation(GL_FUNC_ADD);
+	
 	glCulling(GL.FRONT)
 	fogSphereVBO.VAO:DrawElements(GL.TRIANGLES,nil,0, fogSphereVBO.usedElements,0)
 	glCulling(GL.BACK)
@@ -442,6 +315,7 @@ end
 
 
 function widget:DrawWorld()
+	if fogSphereShader.shaderObj == nil then return end
 	if fogSphereVBO.usedElements > 0 then
 		if toTexture then 
 			gl.RenderToTexture(fogTexture, renderToTextureClear)
@@ -458,6 +332,8 @@ function widget:DrawWorld()
 		gl.Texture(4, "$shadow")
 		gl.Texture(5, noisetex3dcube)
 		gl.Texture(6, dithernoise2d)
+		gl.Texture(7, worley3d128)
+		gl.Texture(8, worley3d3level)
 		
 		fogSphereShader:Activate()
 		if toTexture then 
@@ -474,18 +350,26 @@ function widget:DrawWorld()
 		glTexture(4, false)
 		glTexture(5, false)
 		glTexture(6, false)
+		glTexture(7, false)
+		glTexture(8, false)
 		--glCulling(false)
 		glDepthTest(false)
 		
 		
 		
 		if toTexture then
-			gl.UseShader(combineShader)
+			
+			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			combineShader:Activate()
+			combineShader:SetUniformFloat("gameframe", Spring.GetGameFrame()/1000)
+			combineShader:SetUniformFloat("distortionlevel", 0.00001) -- 0.001
 			gl.Texture(0, fogTexture)
+			gl.Texture(1, distortiontex)
 			gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
-			gl.UseShader(0)
+			combineShader:Deactivate()
 			--gl.TexRect(0, 0, 10000, 10000, 0, 0, 1, 1) -- dis is for debuggin!
 			gl.Texture(0, false)
+			gl.Texture(1, false)
 		end
 	end
 end
@@ -505,30 +389,38 @@ local function AddRandomFogSphere()
 	local posy = Spring.GetGroundHeight(posx, posz) + math.random() * 0.5 * radius
 	AddFogSphere(
 			posx, posy, posz, radius,
-			math.random(), math.random(), math.random() , math.random()*0.1 + 0.9 ,
+			math.random()* 0.5 + 0.5, math.random() * 0.5 + 0.5, math.random()*0.5 + 0.5, math.random()*0.1 + 0.9 ,
 			math.random() - 0.5, math.random() - 0.5, math.random() - 0.5, math.random() -0.5,
 			gf, math.random() * 0.1, gf + math.random() * 1000, math.random() * 0.01,
-			gf, math.random() + 0.5, math.random()*2, math.random()*2
+			gf, math.random() + 0.5, math.random()*2, math.random()*0.02
 			)
 end
 
 function widget:GameFrame(n)
-	if fogSphereRemoveQueue[n] then 
-		for i=1, #fogSphereRemoveQueue[n] do
-			RemovefogSphere(fogSphereRemoveQueue[n][i])
-			AddRandomFogSphere()
+	if shaderConfig.MOTION == 1 then 
+		if fogSphereRemoveQueue[n] then 
+			for i=1, #fogSphereRemoveQueue[n] do
+				RemovefogSphere(fogSphereRemoveQueue[n][i])
+				AddRandomFogSphere()
+			end
+			fogSphereRemoveQueue[n] = nil
 		end
-		fogSphereRemoveQueue[n] = nil
 	end
 end
 
 function widget:Initialize()
+
+	if Spring.HaveShadows() then shaderConfig.USESHADOWS = 1 end 
+	local advmap, advmodel = Spring.HaveAdvShading()
+	if advmap and advmodel then shaderConfig.USEDEFERREDBUFFERS = 1 end
 	--shaderConfig.MAXVERTICES = 4
 	fogSphereVBO, fogSphereShader = initFogGL4(shaderConfig, "fogSpheres")
 	math.randomseed(1)
 	if true then 
-		for i= 1, 100 do 
+		for i= 1, 10 do 
 			AddRandomFogSphere()
 		end
 	end
+	
+	Spring.Echo(Spring.HaveShadows(),"advshad",Spring.HaveAdvShading())
 end

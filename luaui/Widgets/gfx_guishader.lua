@@ -273,7 +273,6 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 			updateStencilTexture = false;
 		end
 
-
 		
 		gl.Blending(true)
 		gl.Texture(screencopy)

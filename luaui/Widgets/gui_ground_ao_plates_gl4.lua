@@ -32,7 +32,7 @@ local function addDirToAtlas(atlas, path)
 end
 
 local function makeAtlas()
-	atlasID = gl.CreateTextureAtlas(atlasSize,atlasSize,0)
+	atlasID = gl.CreateTextureAtlas(atlasSize,atlasSize,1)
 	addDirToAtlas(atlasID, "unittextures/decals/")
 	gl.FinalizeTextureAtlas(atlasID)
 end

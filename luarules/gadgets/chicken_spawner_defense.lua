@@ -1300,6 +1300,7 @@ if gadgetHandler:IsSyncedCode() then
 				squadCreationQueue.burrow = defs.burrow
 			end
 			squadCreationQueue.units[#squadCreationQueue.units+1] = unitID
+			squadCreationQueue.life = 7
 			if HEALER[UnitDefNames[defs.unitName].id] then
 				squadCreationQueue.role = "healer"
 				if squadCreationQueue.life < 20 then
