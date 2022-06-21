@@ -1516,9 +1516,9 @@ local function ExecuteDrawPass(drawPass)
 		end
 	end
 
-	drawpassstats[drawPass].batches = batches
-	drawpassstats[drawPass].units = units
-	drawpassstats[drawPass].shaders = shaderswaps
+	--drawpassstats[drawPass].batches = batches
+	--drawpassstats[drawPass].units = units
+	--drawpassstats[drawPass].shaders = shaderswaps
 	return batches, units, shaderswaps
 end
 
