@@ -146,7 +146,7 @@ vec4 raymarch(vec3 startpoint, vec3 endpoint, float steps, vec4 sphereposrad, ve
 		//vec4 worleyNoiseValue = (textureLod(worley3d3level, fract(noisepos * noisescale), 0.0) * 2.0 - 1.0);
 		//worleyNoiseValue.a = worleyNoiseValue.g;
 				//worleyNoiseValue.a = pow(worleyNoiseValue.a, 0.5); //sharpen noise levels for more defined clouds
-		float localdensity =  max(worleyNoiseValue.a + noisethreshold + sin(currenttime *0.01 + sphereposrad.w) * 0.25, 0.0) * stepsize ;
+		float localdensity =  max(worleyNoiseValue.a + noisethreshold + sin(currenttime *0.01 + sphereposrad.w) * 0.15, 0.0) * stepsize ;
 		if (localdensity > 0){
 			float fractalnoisevalue = textureLod(noise64cube, fract(noisepos * noisescale * 4 - currenttime * 0.0005), 0.0).a * 2.0 - 1.0;
 			localdensity +=  max(fractalnoisevalue + noisethreshold + sin(currenttime *0.01 + sphereposrad.w) * 0.25, 0.0) * stepsize ;
@@ -174,16 +174,18 @@ vec4 raymarch(vec3 startpoint, vec3 endpoint, float steps, vec4 sphereposrad, ve
 		// Find the distance of the sample to the edge to be able to get a nice ratio, where 1 is at edge, and -1 is at center
 		vec3 postocenter = sphereposrad.xyz - currpos.xyz;
 		float closetoedge = dot(postocenter, postocenter) / (sphereposrad.w * sphereposrad.w);
-		closetoedge = smoothstep(0.5, 1.0, closetoedge) * 2.0 - 1.0;
+		//closetoedge *= closetoedge * closetoedge;
+		closetoedge = smoothstep(0.33, 1.0, closetoedge) * 2.0 - 1.0;
+		
 		localdensity = max(0.0, localdensity * (1.0 - closetoedge));
 		// LIGHTING
 		float sunlightamount = clamp(dot(sunDir.xyz,  worleyNormal),closetoedge, 1.0);
-		shadowamount += localdensity * 130 * (clamp(sunlightamount, -1.0, 0.0));
+		//shadowamount += localdensity * 130 * (clamp(sunlightamount, -1.0, 0.0));
 		// total alpha = 1.0 -  exp(-totaldensity * 0.05);
 		
 		float ambientlightamount = clamp(worleyNormal.y, closetoedge, 1.0) ; // yeah this is simple but should work
 		
-		float alphanow = clamp(localdensity *10 * interval, 0.0, 0.5);
+		float alphanow = clamp(localdensity *5 * interval, 0.0, 0.5);
 		
 		float newvisibility = visibility * (1.0 - alphanow);
 		float actualcontribution = visibility - newvisibility;
@@ -212,10 +214,11 @@ vec4 raymarch(vec3 startpoint, vec3 endpoint, float steps, vec4 sphereposrad, ve
 			//dbgdata.rgb = vec3(ambientlightamount* worleyLength  + 0.5);
 			//break;
 		}
-			dbgdata.rgb = vec3(worleyNormal.y);
-			dbgdata.rgb = vec3(colorsofar.rgb);
-			dbgdata.a = (1.0 - visibility);
-			dbgdata.a = (1.0 - visibilityexp);
+		dbgdata.rgb = vec3(worleyNormal.y);
+		dbgdata.rgb = vec3(colorsofar.rgb);
+		dbgdata.a = (1.0 - visibilityexp);
+			
+		
 		// SHADOWING MASK
 		//shadowamount = shadowamount - 1.0* 4 * max(localdensity, 0.0);
 		#if USESHADOWS == 1 
@@ -223,18 +226,24 @@ vec4 raymarch(vec3 startpoint, vec3 endpoint, float steps, vec4 sphereposrad, ve
 				truesteps += 1.0;
 				shadowamount = shadowamount + shadowAtWorldPos(currpos); // yes this can help reduce overhead
 			}
+			
 		#endif
 	}
 	#endif
 	
-	dbgdata.a = -1.0;
+	//dbgdata.a = -1.0;
 	#if USESHADOWS == 0
 		//shadowamount = 1.0;
 	#else
 		shadowamount = shadowamount / truesteps;
 		shadowamount = pow(shadowamount, 1.0);
+		dbgdata -= (1.0 - shadowamount )*0.5;
 	#endif
 	
+	//colormapping:
+	dbgdata.a = max(0,dbgdata.a);
+	
+	//dbgdata.rgb = mix(vec3(0,0,0), vec3(1,1,0), clamp(dbgdata.r*2-1.,0.0, 1.0));
 	meanRayDepth = smoothmin(meanRayDepth/weightZ, maxRayDepth, 4.0); // NIIIICE
 	//dbgdata.rgba = vec4(vec3(fract(meanRayDepth)),1.0);
 	vec4 surfaceNoise = texture(worley3D, fract((mix(startpoint, endpoint, (meanRayDepth)) + noiseoffset*0.2) * noisescale * 40.0)) * 2.0 - 1;
