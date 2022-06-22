@@ -70,48 +70,64 @@ if gadgetHandler:IsSyncedCode() then
 
 		GG.AiHelpers.Start()
 	end
-	function gadget:RecvLuaMsg(msg, playerID)
+function gadget:RecvLuaMsg(msg, playerID)
 
-		--print(msg,string.sub(msg,1,17))
-		spEcho('recvluamsg',msg)--f=0057489
 		if string.sub(msg,1,17) == 'StGiveOrderToSync' then
-
-			local id = string.split(msg,"*")[2]
-			--print(id)
-			local cmd = string.split(msg,'_')[2]
-			--print(cmd)
+			local id = string.split(msg,"*")
+			local cmd = string.split(msg,'_')
 			local pos = string.split(msg,':')
-			spEcho('pos',pos,'pos1',pos[2],type(pos[2]))
 			local opts = string.split(msg,';')
+			local timeout = string.split(msg,'#')
+			local unit = string.split(msg,'!')
 
+			if #id ~= 3 or #cmd ~= 3 or #pos ~= 3 or #opts ~= 3 or #timeout ~= 3 or #unit ~= 3 then
+				spEcho('format incomplete',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
+				return
+			end
 
+			id = id[2]
+			cmd = cmd[2]
+			pos = pos[2]
+			opts = opts[2]
+			timeout = timeout[2]
+			unit = unit[2]
 
-			if string.split(pos[2],',') then
-
-				--print('pos2',pos[2])
-				pos = string.split(pos[2],',')
+			if string.split(pos,',') then
+				pos = string.split(pos,',')
 				if not pos[1] or pos[1] == '' then
-					spEcho('warn! invalid pos argument in STAI luarules message')--f=0057489
+					Spring.Debug.TableEcho(pos)
+					spEcho('warn! invalid pos argument in STAI gotu luarules message')
 					return
 				end
 			end
-			--print('POS',pos)
-
-			--print('opts',opts[2])
-			if string.split(opts[2],',') then
-				--print('opts2',opts[2])
-				opts = string.split(opts[2],',')
+			if string.split(opts,',') then
+				opts = string.split(opts,',')
+				if not opts[1] or opts[1] == '' then
+					Spring.Debug.TableEcho(pos)
+					spEcho('warn! invalid opts argument in STAI gotu luarules message')
+					return
+				end
 			end
-			--print('OPTS',opts)
-			local timeout = string.split(msg,'#')
-			--print('timeout',timeout[2])
-			local order = Spring.GiveOrderToUnit(id,cmd,pos,opts,timeout)
-			print('order',order)
+			if type(timeout) ~= 'table' then--maybe this is not required
+				timeout = {timeout}
+			end
+			if dbg then
+				spEcho('recvluamsg',msg)
+				spEcho('splitting lenght',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
+				spEcho('GiveOrderToUnit : ')
+				spEcho('unit',unit,type(unit))
+				spEcho('id',id,type(id))
+				spEcho('cmd',cmd,type(cmd))
+				spEcho('pos',pos,type(pos))
+				spEcho('opts',opts,type(opts))
+				spEcho('timeout',timeout,type(timeout))
+				Spring.Debug.TableEcho(pos)
+			end
+			local order = Spring.GiveOrderToUnit(id,cmd,pos,{opts},timeout)
 			if order ~= true then
-				spEcho('syntax error in unsync to sync give order to unit',msg)
-				spEcho(id,cmd,pos,opts,timeout)
+				spEcho('order error in unsync to sync give order to unit',msg)
+				spEcho('order', order,id,cmd,pos,opts,timeout)
 			end
-			--print(order,'order')
 		end
 	end
 else

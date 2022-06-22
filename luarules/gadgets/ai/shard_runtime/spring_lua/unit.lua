@@ -21,33 +21,65 @@ function ShardUnit:Unit_to_id( unit )
 end
 
 function ShardUnit:SyncOrder(id,cmd,pos,opts,timeout)
-
-	if type(id) ~= 'number' or type( cmd) ~= 'number' or type(pos) ~='table' or not pos[1] or not opts then
-		Spring.Echo('name',self.type:Name(),'id',id,'cmd',cmd,'pos',pos,type(pos),'opts',opts,type(opts))
-		Spring.Echo('incomplete luarules message')
+	local uName = self.type:Name()
+	timeout = timeout or 2000
+	if type(id) ~= 'number' then
+		Spring.Echo('ST GOTS CMD TYPE','name',self.type:Name(),'id',id,'cmd',cmd)
 		return
-	else
-		Spring.Echo('name',self.type:Name(),'id',id,'cmd',cmd,'pos1',pos,pos[1],type(pos[1]),'opts',opts)
-		local name = self.type:Name()
-		if type(pos) == 'table'  then
-			pos = table.concat(pos,',')
-		end
-		if type(opts) == 'table' then
-			opts = table.concat(opts,',')
-		end
-		timeout = timeout or 2000
-		msg = 'StGiveOrderToSync'
-		msg = msg .. '*' .. id .. '*'
-		msg = msg .. '_' .. cmd .. '_'
-		msg = msg .. ':' .. pos .. ':'
-		msg = msg .. ';' .. opts .. ';'
-		msg = msg .. '#' .. timeout .. '#'
-		msg = msg .. '!' .. name .. '!'
-
-		--Spring.Echo('sendmsg',msg)
-		Spring.SendLuaRulesMsg(msg)
-		--return msg
 	end
+	if type(cmd) ~= 'number'then
+		Spring.Echo('ST GOTS CMD TYPE format','name',self.type:Name(),'id',id,'cmd',cmd)
+		return
+	end
+	if type(pos) ~='table' then
+		Spring.Echo('ST GOTS POS TYPE format','name',self.type:Name(),'id',id,'cmd',cmd,'pos',pos,type(pos))
+		return
+	end
+	if opts ~= 0 and type(opts) ~= 'table' then--because can be bitmasked with 0 for performance
+		Spring.Echo('ST GOTS OPTS TYPE format','name',self.type:Name(),'id',id,'cmd',cmd,'opts',opts,type(opts))
+		return
+	end
+	if type(timeout) ~= 'number' then
+		Spring.Echo('ST GOTS TIMEOUT TYPE format','name',self.type:Name(),'id',id,'cmd',cmd,'timeout',timeout)
+		return
+	end
+	if type(uName) ~= 'string' then
+		Spring.Echo('ST GOTS uName TYPE format','name',self.type:Name(),'id',id,'cmd',cmd,'uName',uName)
+		return
+	end
+	pos = table.concat(pos,',')
+	if opts ~= 0 then
+		opts = table.concat(opts,',') or opts
+	end
+
+-- 	if type(id) ~= 'number' or type( cmd) ~= 'number' or type(pos) ~='table' or not pos[1] or not opts then
+-- 		Spring.Echo('name',self.type:Name(),'id',id,'cmd',cmd,'pos',pos,type(pos),'opts',opts,type(opts))
+-- 		Spring.Echo('incomplete luarules message')
+-- 		return
+-- 	else
+-- 	Spring.Echo('name',self.type:Name(),'id',id,'cmd',cmd,'pos1',pos,pos[1],type(pos[1]),'opts',opts)
+--
+-- 	if type(pos) == 'table'  then
+--
+-- 	else
+-- 		Spring.Echo('incorrect ST GOTU POS format','name',self.type:Name(),'id',id,'cmd',cmd,'pos',pos)
+-- 	end
+-- 	if type(opts) == 'table' then
+--
+-- 	else
+-- 		Spring.Echo('incorrect ST GOTU OPTS format','name',self.type:Name(),'id',id,'cmd',cmd,'pos',pos)
+-- 	end
+
+
+	msg = 'StGiveOrderToSync'
+	msg = msg .. '*' .. id .. '*'
+	msg = msg .. '_' .. cmd .. '_'
+	msg = msg .. ':' .. pos .. ':'
+	msg = msg .. ';' .. opts .. ';'
+	msg = msg .. '#' .. timeout .. '#'
+	msg = msg .. '!' .. uName .. '!'  ..'StEndGOTS'
+	Spring.SendLuaRulesMsg(msg)
+-- 	end
 
 end
 
@@ -547,15 +579,15 @@ end
 --
 -- @return boolean was the command accepted
 --                 false if we can't issue a command to this unit
-function ShardUnit:ExecuteCustomCommand( cmdId, params_list, options, timeOut )
-	params_list = params_list or {}
-	options = options or {}
-	if params_list and params_list.push_back then
-		-- handle fake vectorFloat object
-		params_list = params_list.values
-	end
-	return Spring.GiveOrderToUnit(self.id, cmdId, params_list, options, timeOut )
-end
+-- function ShardUnit:ExecuteCustomCommand( cmdId, params_list, options, timeOut )
+-- 	params_list = params_list or {}
+-- 	options = options or {}
+-- 	if params_list and params_list.push_back then
+-- 		-- handle fake vectorFloat object
+-- 		params_list = params_list.values
+-- 	end
+-- 	return Spring.GiveOrderToUnit(self.id, cmdId, params_list, options, timeOut )
+-- end
 
 function ShardUnit:DrawHighlight( color, label, channel )
 	channel = channel or 1

@@ -13,7 +13,7 @@ local IDLEMODE_LAND = 1
 local IDLEMODE_FLY = 0]]
 
 function BomberBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 
 	self.lastOrderFrame = self.game:Frame()
 	self.name = self.unit:Internal():Name()
@@ -100,14 +100,17 @@ function BomberBST:BombPosition(position)
 	floats:push_back(position.x)
 	floats:push_back(position.y)
 	floats:push_back(position.z)
-	self.unit:Internal():AreaAttack(floats,20) -- TEST
+	self.unit:Internal():Attack(position,20) -- TEST
 end
 
-function BomberBST:FollowPathToTarget(path, unit)
+function BomberBST:FollowPathToTarget(path, targetUnit)
+	print(targetUnit)
+	Spring.Debug.TableEcho(targetUnit)
+	Spring.Debug.TableEcho(targetUnit:GetPosition())
 	self:EchoDebug("follow path to target")
 	-- self.unit:Internal():Move(path[2].position)
-	local optFloats = api.vectorFloat()
-	optFloats:push_back("alt")
+-- 	local optFloats = api.vectorFloat()
+-- 	optFloats:push_back("alt")
 	local firstMoved, secondMoved
 	local myPos = self.unit:Internal():GetPosition()
 	for i = 1, #path do
@@ -116,10 +119,10 @@ function BomberBST:FollowPathToTarget(path, unit)
 		local cmdPos = path[i].position
 		if secondMoved or self.ai.tool:DistanceSq(cmdPos, myPos) > 1210000 then
 			if firstMoved then
-				local floats = api.vectorFloat()
-				floats:push_back(cmdPos.x)
-				floats:push_back(cmdPos.y)
-				floats:push_back(cmdPos.z)
+-- 				local floats = api.vectorFloat()
+-- 				floats:push_back(cmdPos.x)
+-- 				floats:push_back(cmdPos.y)
+-- 				floats:push_back(cmdPos.z)
 				-- self.unit:Internal():ExecuteCustomCommand(CMD_INSERT, floats, optFloats)
 				self.unit:Internal():Move({cmdPos.x,cmdPos.y,cmdPos.z})
 				--self.unit:Internal():ExecuteCustomCommand(CMD_MOVE, floats, {"shift"})
@@ -130,13 +133,13 @@ function BomberBST:FollowPathToTarget(path, unit)
 			end
 		end
 	end
-	self.unit:Internal():AreaAttack(unit:GetPosition(),20)--TODO set this better
+	self.unit:Internal():Attack(targetUnit,20)--TODO set this better
 end
 
-function BomberBST:BombUnit(unit)
+function BomberBST:BombUnit(targetUnit)
 	self:EchoDebug("bomb unit")
-	local p = self.unit:Internal():GetPosition()
-	self.unit:Internal():AreaAttack(p,20)
+	local p = targetUnit:GetPosition()
+	self.unit:Internal():Attack(targetUnit,20)
 end
 
 function BomberBST:BombTarget(targetUnit, path)
@@ -167,5 +170,5 @@ function BomberBST:SetIdleMode()
 -- 	local floats = api.vectorFloat()
 -- 	floats:push_back(IDLEMODE_FLY)
 -- 	self.unit:Internal():ExecuteCustomCommand(CMD_IDLEMODE, floats)
-	self.unit:Internal():IdleModeFly()
+-- 	self.unit:Internal():IdleModeFly()
 end
