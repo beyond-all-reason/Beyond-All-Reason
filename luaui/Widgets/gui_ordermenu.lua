@@ -680,6 +680,9 @@ function widget:DrawScreen()
 
 	-- make all cmd's fit in the grid
 	local now = os_clock()
+	if clickedCellDesiredState and not doUpdateClock then
+		doUpdateClock = now + 0.1
+	end
 	if doUpdate or (doUpdateClock and now >= doUpdateClock) then
 		if doUpdateClock and now >= doUpdateClock then
 			doUpdateClock = nil
