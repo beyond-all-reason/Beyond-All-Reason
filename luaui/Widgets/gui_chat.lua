@@ -1745,7 +1745,17 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 			bypassThisMessage = true
 		end
 
-		line = convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..line
+		local color = ''
+		if sfind(line,'Error: ', nil, true) then
+			color = '\255\255\133\133'
+		elseif sfind(line,'Warning: ', nil, true) then
+			color = '\255\255\195\175'
+		elseif sfind(line,'Failed to load', nil, true) then
+			color = '\255\200\200\255'
+		elseif sfind(line,'Loaded ', nil, true) or sfind(line,'Loading ', nil, true) then
+			color = '\255\200\255\200'
+		end
+		line = convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..color..line
 	end
 
 	-- bot command

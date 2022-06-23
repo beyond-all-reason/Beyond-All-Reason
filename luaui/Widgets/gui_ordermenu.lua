@@ -80,7 +80,7 @@ local math_isInRect = math.isInRect
 
 local font, backgroundPadding, widgetSpaceMargin, chobbyInterface, displayListOrders, displayListGuiShader
 local clickedCell, clickedCellTime, clickedCellDesiredState, cellWidth, cellHeight
-local bpWidth, bpHeight, buildmenuBottomPosition
+local buildmenuBottomPosition
 local activeCommand, previousActiveCommand, doUpdate, doUpdateClock
 
 local hiddenCommands = {
@@ -680,7 +680,7 @@ function widget:DrawScreen()
 
 	-- make all cmd's fit in the grid
 	local now = os_clock()
-	if clickedCellDesiredState and not doUpdateClock then
+	if clickedCellDesiredState and not doUpdateClock then	-- make sure state changes get updated
 		doUpdateClock = now + 0.1
 	end
 	if doUpdate or (doUpdateClock and now >= doUpdateClock) then
