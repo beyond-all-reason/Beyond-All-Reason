@@ -268,6 +268,7 @@ local function refreshUnitInfo()
 		end
 		local totalDps = 0
 		local weapons = unitDef.weapons
+
 		for i = 1, #weapons do
 			if not unitDefInfo[unitDefID].weapons then
 				unitDefInfo[unitDefID].weapons = {}
@@ -277,6 +278,9 @@ local function refreshUnitInfo()
 			end
 			unitDefInfo[unitDefID].weapons[i] = weapons[i].weaponDef
 			local weaponDef = WeaponDefs[weapons[i].weaponDef]
+			if weaponDef.interceptor ~= 0 and weaponDef.coverageRange then
+				unitDefInfo[unitDefID].maxCoverage = math.max(unitDefInfo[unitDefID].maxCoverage or 1, weaponDef.coverageRange)
+			end
 			if weaponDef.damages then
 				-- get highest damage category
 				local maxDmg = 0
@@ -1089,22 +1093,6 @@ local function drawUnitInfo()
 		end
 
 		if unitDefInfo[displayUnitDefID].weapons then
-			useUnitDefRange = (maxRange == nil) -- Don't override the unit's range with the unitDef range
-			for weaponName, weaponID in pairs(unitDefInfo[displayUnitDefID].weapons) do
-
-				if WeaponDefs[weaponID].interceptor ~= 0 and WeaponDefs[weaponID].coverageRange then
-					-- This only works because currently all interceptor (anti-nuke systems) have only one weapon. Something more nuanced
-					-- than "UnitMaxRange" needs to be done above if handling multi-weapon interceptors is to work.
-					maxRange = WeaponDefs[weaponID].coverageRange
-					-- Break here to make it clear we only expect the coverage range
-					break
-				elseif useUnitDefRange and WeaponDefs[weaponID].range then
-					maxRange = math.max(maxRange or 0, WeaponDefs[weaponID].range or 0)
-				end
-			end
-		end
-
-		if unitDefInfo[displayUnitDefID].weapons then
 			local reloadTimeSpeedup = 1.0
 			local currentReloadTime = unitDefInfo[displayUnitDefID].reloadTime
 			if exp and exp > 0.009 then
@@ -1121,7 +1109,9 @@ local function drawUnitInfo()
 				dps = round(dps / reloadTimeSpeedup, 0)
 				addTextInfo(texts.dps, dps)
 
-				if maxRange then
+				if unitDefInfo[displayUnitDefID].maxCoverage then
+					addTextInfo(texts.coverrange, unitDefInfo[displayUnitDefID].maxCoverage)
+				elseif maxRange then
 					addTextInfo(texts.weaponrange, maxRange)
 				end
 
