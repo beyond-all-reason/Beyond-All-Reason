@@ -1086,7 +1086,22 @@ local function drawUnitInfo()
 		else
 			-- get unitdef specific data
 
+		end
 
+		if unitDefInfo[displayUnitDefID].weapons then
+			useUnitDefRange = (maxRange == nil) -- Don't override the unit's range with the unitDef range
+			for weaponName, weaponID in pairs(unitDefInfo[displayUnitDefID].weapons) do
+
+				if WeaponDefs[weaponID].interceptor ~= 0 and WeaponDefs[weaponID].coverageRange then
+					-- This only works because currently all interceptor (anti-nuke systems) have only one weapon. Something more nuanced
+					-- than "UnitMaxRange" needs to be done above if handling multi-weapon interceptors is to work.
+					maxRange = WeaponDefs[weaponID].coverageRange
+					-- Break here to make it clear we only expect the coverage range
+					break
+				elseif useUnitDefRange and WeaponDefs[weaponID].range then
+					maxRange = math.max(maxRange or 0, WeaponDefs[weaponID].range or 0)
+				end
+			end
 		end
 
 		if unitDefInfo[displayUnitDefID].weapons then
