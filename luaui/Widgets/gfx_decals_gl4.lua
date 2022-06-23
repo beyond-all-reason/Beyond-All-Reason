@@ -293,10 +293,11 @@ function widget:DrawWorldPreUnit()
 		decalShader:SetUniform("fadeDistance",disticon * 1000)
 		decalVBO.VAO:DrawArrays(GL.POINTS, decalVBO.usedElements)
 		decalShader:Deactivate()
-		for i = 0, 10 do glTexture(i, false) end
-		glCulling(false)
-		glDepthTest(false)
-		gl.DepthMask(true)
+		for i = 0, 8 do glTexture(i, false) end
+		glCulling(GL.BACK)
+		glDepthTest(GL_LEQUAL)
+		gl.DepthMask(false)
+		
 	end
 end
 
