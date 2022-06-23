@@ -27,14 +27,15 @@ if gadgetHandler:IsSyncedCode() then
 		local x, y, z
 		for i = 1, #featuretable do
 			x, y, z = Spring.GetFeaturePosition(featuretable[i])
-      Spring.SetFeaturePosition(featuretable[i], x,  y,  z ,true) -- snaptoground = true
+      		Spring.SetFeaturePosition(featuretable[i], x,  y,  z ,true) -- snaptoground = true
 		end
 	end
 
 	function adjustWaterlevel()
 		-- Spring.SetMapRenderingParams({ voidWater = false})
-    Spring.Echo("adjustWaterlevel: this might cause a lag spike.")
+    	Spring.Echo("adjustWaterlevel: this might cause a lag spike.")
 		Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
+		Spring.AdjustOriginalHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 		Spring.AdjustSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 		adjustFeatureHeight()
 	end

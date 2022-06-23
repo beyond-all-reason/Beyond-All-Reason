@@ -4832,6 +4832,9 @@ function widget:Initialize()
 	if widgetHandler:IsWidgetKnown("Ambient Player") then
 		widgetHandler:DisableWidget("Ambient Player")
 	end
+	if widgetHandler:IsWidgetKnown("Fog Volumes Old GL4") then
+		widgetHandler:DisableWidget("Fog Volumes Old GL4")
+	end
 
 	-- enable previous default disabled widgets to their new default state
 	if newerVersion then

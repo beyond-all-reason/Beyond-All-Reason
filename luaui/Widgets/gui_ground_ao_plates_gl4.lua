@@ -91,7 +91,9 @@ function widget:DrawWorldPreUnit()
 		groundPlateShader:Deactivate()
 		glTexture(0, false)
 		glCulling(false)
-		glDepthTest(false)
+		gl.DepthTest(GL.ALWAYS)
+		gl.DepthTest(false)
+		gl.DepthMask(false)
 	end
 end
 

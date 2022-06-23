@@ -16,6 +16,7 @@ return {
 		reload = 'reload',
 		dps = 'DPS',
 		weaponrange = 'weapon range',
+		coverrange = 'cover range',
 		reloadtime = 'reload time',
 		energyshot = 'energy/shot',
 		metalshot = 'metal/shot',

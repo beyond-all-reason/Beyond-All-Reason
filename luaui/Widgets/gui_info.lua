@@ -268,6 +268,7 @@ local function refreshUnitInfo()
 		end
 		local totalDps = 0
 		local weapons = unitDef.weapons
+
 		for i = 1, #weapons do
 			if not unitDefInfo[unitDefID].weapons then
 				unitDefInfo[unitDefID].weapons = {}
@@ -277,6 +278,9 @@ local function refreshUnitInfo()
 			end
 			unitDefInfo[unitDefID].weapons[i] = weapons[i].weaponDef
 			local weaponDef = WeaponDefs[weapons[i].weaponDef]
+			if weaponDef.interceptor ~= 0 and weaponDef.coverageRange then
+				unitDefInfo[unitDefID].maxCoverage = math.max(unitDefInfo[unitDefID].maxCoverage or 1, weaponDef.coverageRange)
+			end
 			if weaponDef.damages then
 				-- get highest damage category
 				local maxDmg = 0
@@ -1086,7 +1090,6 @@ local function drawUnitInfo()
 		else
 			-- get unitdef specific data
 
-
 		end
 
 		if unitDefInfo[displayUnitDefID].weapons then
@@ -1106,7 +1109,9 @@ local function drawUnitInfo()
 				dps = round(dps / reloadTimeSpeedup, 0)
 				addTextInfo(texts.dps, dps)
 
-				if maxRange then
+				if unitDefInfo[displayUnitDefID].maxCoverage then
+					addTextInfo(texts.coverrange, unitDefInfo[displayUnitDefID].maxCoverage)
+				elseif maxRange then
 					addTextInfo(texts.weaponrange, maxRange)
 				end
 
