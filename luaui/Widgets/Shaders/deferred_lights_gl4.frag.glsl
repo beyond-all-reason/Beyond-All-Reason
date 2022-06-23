@@ -334,20 +334,45 @@ vec4 halfconeIntersect( in vec3  rayOrigin, in vec3  rayDirection, in vec3 coneT
     float y = m1 + CloseDistToCone*m2;
     float y2 = m1 + FarDistToCone*m2;
 	
+	float attenuationEntry =  clamp(1.0 - y/ConeHeighSqr,0.0,1.0);
+	float attenuationExit =  clamp(1.0 - y2/ConeHeighSqr,0.0,1.0);
+	
+	
 	// if we are within the cone from the front
     if( y >=0.0 && y <= ConeHeighSqr ) coneflatdistances.x = CloseDistToCone;
-	else coneflatdistances.x = max(coneflatdistances.x,coneflatdistances.z);//no intersection, as we are below the bottom of the cone
+	else {
+		coneflatdistances.x = max(coneflatdistances.x,coneflatdistances.z);//no intersection, as we are below the bottom of the cone
+		attenuationEntry = 0;
+	}
 	// if we are within the cone from the back
     if( y2 >=0.0 && y2 <= ConeHeighSqr ) coneflatdistances.y = FarDistToCone; //no intersection, as we are below the bottom of the cone
-	else coneflatdistances.y = max(coneflatdistances.y,coneflatdistances.z);
-    //if( y<0.0 || y>ConeHeighSqr ) return vec4(-1.0); //no intersection, as we are below the bottom of the cone
-	 // vec3 normal =normalize(ConeHeighSqr*(ConeHeighSqr*(TipToEye+CloseDistToCone*rayDirection))-TipToEnd*CapeLengthSqr*y)
-	float attenuationEntry = clamp(y/ConeHeighSqr,0.0,1.0);
-	float attenuationExit = clamp(y2/ConeHeighSqr,0.0,1.0);
-	
+	else {
+		coneflatdistances.y = max(coneflatdistances.y,coneflatdistances.z);
+		attenuationExit = 0;
+	}
+     // vec3 normal =normalize(ConeHeighSqr*(ConeHeighSqr*(TipToEye+CloseDistToCone*rayDirection))-TipToEnd*CapeLengthSqr*y)
 
-	//return vec4(500 * (2.0- abs(attenuationEntry + attenuationExit) ));
-    return 2* vec4(max(0,coneflatdistances.y) - max(0,coneflatdistances.x));
+	// try to get some sort of falloff factor?
+	
+	// calc angle between entry and exit?
+	vec3 TipToEntry = (rayOrigin + rayDirection * coneflatdistances.x) - coneTip;
+	vec3 TipToExit  = (rayOrigin + rayDirection * coneflatdistances.y) - coneTip;
+	float angle = dot(normalize(TipToEntry), normalize(TipToExit));
+	angle = (1.0 - angle);
+	
+	return vec4(1000*angle);
+	
+	
+	
+	return vec4(coneflatdistances.x, coneflatdistances.y, attenuationEntry,attenuationExit);
+	
+	
+	
+	
+	return vec4(1000 * (attenuationEntry));
+	float incondistance = max(0,max(0,coneflatdistances.y) - max(0,coneflatdistances.x));
+	if (incondistance > 500) incondistance = 0;
+    return 2* vec4(incondistance);
 	
 }
 
