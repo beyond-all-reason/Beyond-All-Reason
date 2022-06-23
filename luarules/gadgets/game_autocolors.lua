@@ -25,25 +25,59 @@ if gadgetHandler:IsSyncedCode() then
 	local ffaColors = {
 		"#004DFF", -- 1
 		"#FF1005", -- 2
-		"#0CE818", -- 3
-		"#FFD70D", -- 4
-		"#FF00DB", -- 5
-		"#0CC4E8", -- 6
-		"#FF6B00", -- 7
-		"#86FFD1", -- 8
-		"#F6BB56", -- 9
-		"#68B900", -- 10
-		"#6697FF", -- 11
-		"#FF6058", -- 12
-		"#8DF492", -- 13
-		"#FFF2AE", -- 14
-		"#FFAAF3", -- 15
-		"#90E5F5", -- 16
-		"#FF9055", -- 17
-		"#00AA69", -- 18
-		"#9B6408", -- 19
-		"#C4FF79", -- 20
+		"#0CE908", -- 3
+		"#FFD200", -- 4
+		"#F80889", -- 5
+		"#09F5F5", -- 6
+		"#FF6107", -- 7
+		"#FCEEA4", -- 8
+		"#097E1C", -- 9
+		"#C88B2F", -- 10
+		"#7CA1FF", -- 11
+		"#9F0D05", -- 12
+		"#3EFFA2", -- 13
+		"#F5A200", -- 14
+		"#C4A9FF", -- 15
+		"#0B849B", -- 16
+		"#B4FF39", -- 17
+		"#FF68EA", -- 18
+		"#D8EEFF", -- 19
+		"#689E3D", -- 20
+		"#B04523", -- 21
+		"#FFBB7C", -- 22
+		"#3475FF", -- 23
+		"#DD783F", -- 24
+		"#FFAAF3", -- 25
+		"#4A4376", -- 26
+		"#773A01", -- 27
+		"#B7EA63", -- 28
+		"#FF6058", -- 29
+		"#7EB900", -- 30
 	}
+
+	-- OLD B2C FFAcolors
+	-- local ffaColors = {
+	-- 	"#004DFF", -- 1
+	-- 	"#FF1005", -- 2
+	-- 	"#0CE818", -- 3
+	-- 	"#FFD70D", -- 4
+	-- 	"#FF00DB", -- 5
+	-- 	"#0CC4E8", -- 6
+	-- 	"#FF6B00", -- 7
+	-- 	"#86FFD1", -- 8
+	-- 	"#F6BB56", -- 9
+	-- 	"#68B900", -- 10
+	-- 	"#6697FF", -- 11
+	-- 	"#FF6058", -- 12
+	-- 	"#8DF492", -- 13
+	-- 	"#FFF2AE", -- 14
+	-- 	"#FFAAF3", -- 15
+	-- 	"#90E5F5", -- 16
+	-- 	"#FF9055", -- 17
+	-- 	"#00AA69", -- 18
+	-- 	"#9B6408", -- 19
+	-- 	"#C4FF79", -- 20
+	-- }
 
 	local survivalColors = {
 		"#0B3EF3", -- 1
@@ -113,7 +147,7 @@ if gadgetHandler:IsSyncedCode() then
 				"#09F5F5", --4
 				"#097E1C", --5
 				"#7CA1FF", --6
-				"#C4A9FF", --7
+				"#4F2684", --7
 				"#3EFFA2", --8
 				"#0B849B", --9
 				"#689E3D", --10
@@ -121,8 +155,12 @@ if gadgetHandler:IsSyncedCode() then
 				"#2C32AC", --12
 				"#6968A0", --13
 				"#D8EEFF", --14
-				"#4A4376", --15
-				"#4F2684", --15
+				"#3475FF", --15
+				"#7EB900", --16
+				"#4A4376", --17
+				"#B7EA63", --18
+				"#C4A9FF", --19
+				"#37713A", --20
 			},
 			{ -- Second Team (Warm)
 				"#FF1005", --1 
@@ -140,12 +178,15 @@ if gadgetHandler:IsSyncedCode() then
 				"#F5A200", --13
 				"#BBA28B", --14
 				"#971C48", --15
-				"#764A4A", --16
+				"#FF68EA", --16
+				"#DD783F", --17
+				"#FFAAF3", --18
+				"#764A4A", --19
+				"#FF6058", --20
 			},
 		},
 
-		-- OLD B2C Two Team Colors
-		-- { -- Two Teams
+		-- { -- OLD B2C Two Teams
 		-- 	{ -- First Team (Cool)
 		-- 		"#004DFF", -- Armada Blue
 		-- 		"#0CE818", -- Green
@@ -182,144 +223,372 @@ if gadgetHandler:IsSyncedCode() then
 		-- 	},
 		-- },
 
+
 		{ -- Three Teams
 			{ -- First Team (Blue)
-				"#004DFF", -- Armada Blue
-				"#0CC4E8", -- Turquoise
-				"#6697FF", -- Very Light Blue
-				"#90E5F5", -- Light Turquoise
-				"#3475FF", -- Light Blue
-				"#08839B", -- Dark Turquoise
+				"#004DFF", -- 1
+				"#09F5F5", -- 2
+				"#7CA1FF", -- 3
+				"#2C32AC", -- 4
+				"#D8EEFF", -- 5
+				"#0B849B", -- 6
+				"#3C7AFF", -- 7
+				"#5F6492", -- 8
 			},
 			{ -- Second Team (Red)
-				"#FF1005", -- Cortex Red
-				"#FFD70D", -- Yellow
-				"#FF6B00", -- Orange
-				"#FF6058", -- Light Red
-				"#9B6408", -- Dark Brown
-				"#FFF2AE", -- Very Light Yellow
+				"#FF1005", -- 1
+				"#FF6107", -- 2
+				"#FFD200", -- 3
+				"#9F0D05", -- 4
+				"#FFBB7C", -- 5
+				"#C88B2F", -- 6
+				"#F5A200", -- 7
+				"#FF6058", -- 8
 			},
 			{ -- Third Team (Green)
-				"#0CE818", -- Green
-				"#86FFD1", -- Light Turquoise Green
-				"#68B900", -- Dark Lime
-				"#8DF492", -- Light Green
-				"#00AA69", -- Dark Turquoise Green
-				"#089B10", -- Dark Green
+				"#0CE818", -- 1
+				"#B4FF39", -- 2
+				"#097E1C", -- 3
+				"#3EFFA2", -- 4
+				"#689E3D", -- 5
+				"#7EB900", -- 6
+				"#B7EA63", -- 7
+				"#37713A", -- 8
 			},
 		},
+
+		-- { -- OLD B2C Three Teams
+		-- 	{ -- First Team (Blue)
+		-- 		"#004DFF", -- Armada Blue
+		-- 		"#0CC4E8", -- Turquoise
+		-- 		"#6697FF", -- Very Light Blue
+		-- 		"#90E5F5", -- Light Turquoise
+		-- 		"#3475FF", -- Light Blue
+		-- 		"#08839B", -- Dark Turquoise
+		-- 	},
+		-- 	{ -- Second Team (Red)
+		-- 		"#FF1005", -- Cortex Red
+		-- 		"#FFD70D", -- Yellow
+		-- 		"#FF6B00", -- Orange
+		-- 		"#FF6058", -- Light Red
+		-- 		"#9B6408", -- Dark Brown
+		-- 		"#FFF2AE", -- Very Light Yellow
+		-- 	},
+		-- 	{ -- Third Team (Green)
+		-- 		"#0CE818", -- Green
+		-- 		"#86FFD1", -- Light Turquoise Green
+		-- 		"#68B900", -- Dark Lime
+		-- 		"#8DF492", -- Light Green
+		-- 		"#00AA69", -- Dark Turquoise Green
+		-- 		"#089B10", -- Dark Green
+		-- 	},
+		-- },
 
 		{ -- Four Teams
 			{ -- First Team (Blue)
-				"#004DFF", -- Armada Blue
-				"#0CC4E8", -- Turquoise
-				"#6697FF", -- Very Light Blue
-				"#90E5F5", -- Light Turquoise
-				"#3475FF", -- Light Blue
-				"#08839B", -- Dark Turquoise
+				"#004DFF", -- 1
+				"#7CA1FF", -- 2
+				"#D8EEFF", -- 3
+				"#09F5F5", -- 4
+				"#3475FF", -- 5
+				"#0B849B", -- 6
 			},
 			{ -- Second Team (Red)
-				"#FF1005", -- Cortex Red
-				"#FF6B00", -- Orange
-				"#FF6058", -- Light Red
-				"#FF9055", -- Light Orange
-				"#AD0800", -- Dark Red
-				"#FFC8AA", -- Very Light Orange
+				"#FF1005", -- 1
+				"#FF6107", -- 2
+				"#9F0D05", -- 3
+				"#B04523", -- 4
+				"#F80889", -- 5
+				"#971C48", -- 6
 			},
 			{ -- Third Team (Green)
-				"#0CE818", -- Green
-				"#86FFD1", -- Light Turquoise Green
-				"#68B900", -- Dark Lime
-				"#8DF492", -- Light Green
-				"#00AA69", -- Dark Turquoise Green
-				"#089B10", -- Dark Green
+				"#0CE818", -- 1
+				"#B4FF39", -- 2
+				"#097E1C", -- 3
+				"#3EFFA2", -- 4
+				"#689E3D", -- 5
+				"#7EB900", -- 6
 			},
 			{ -- Fourth Team (Yellow)
-				"#FFD70D", -- Yellow
-				"#F6BB56", -- Light Brown
-				"#FFE874", -- Light Yellow
-				"#9B6408", -- Dark Brown
-				"#FFF2AE", -- Very Light Yellow
-				"#DB8E0E", -- Brown
+				"#FFD200", -- 1
+				"#F5A200", -- 2
+				"#FCEEA4", -- 3
+				"#FFBB7C", -- 4
+				"#BBA28B", -- 5
+				"#C88B2F", -- 6
 			},
 		},
+
+		-- { -- OLD B2C Four Teams
+		-- 	{ -- First Team (Blue)
+		-- 		"#004DFF", -- Armada Blue
+		-- 		"#0CC4E8", -- Turquoise
+		-- 		"#6697FF", -- Very Light Blue
+		-- 		"#90E5F5", -- Light Turquoise
+		-- 		"#3475FF", -- Light Blue
+		-- 		"#08839B", -- Dark Turquoise
+		-- 	},
+		-- 	{ -- Second Team (Red)
+		-- 		"#FF1005", -- Cortex Red
+		-- 		"#FF6B00", -- Orange
+		-- 		"#FF6058", -- Light Red
+		-- 		"#FF9055", -- Light Orange
+		-- 		"#AD0800", -- Dark Red
+		-- 		"#FFC8AA", -- Very Light Orange
+		-- 	},
+		-- 	{ -- Third Team (Green)
+		-- 		"#0CE818", -- Green
+		-- 		"#86FFD1", -- Light Turquoise Green
+		-- 		"#68B900", -- Dark Lime
+		-- 		"#8DF492", -- Light Green
+		-- 		"#00AA69", -- Dark Turquoise Green
+		-- 		"#089B10", -- Dark Green
+		-- 	},
+		-- 	{ -- Fourth Team (Yellow)
+		-- 		"#FFD70D", -- Yellow
+		-- 		"#F6BB56", -- Light Brown
+		-- 		"#FFE874", -- Light Yellow
+		-- 		"#9B6408", -- Dark Brown
+		-- 		"#FFF2AE", -- Very Light Yellow
+		-- 		"#DB8E0E", -- Brown
+		-- 	},
+		-- },
 
 		{ -- Five Teams
 			{ -- First Team (Blue)
-				"#004DFF", -- Armada Blue
-				"#0CC4E8", -- Turquoise
-				"#6697FF", -- Very Light Blue
-				"#90E5F5", -- Light Turquoise
-				"#3475FF", -- Light Blue
+				"#004DFF", -- 1
+				"#7CA1FF", -- 2
+				"#D8EEFF", -- 3
+				"#09F5F5", -- 4
+				"#3475FF", -- 5
 			},
 			{ -- Second Team (Red)
-				"#FF1005", -- Cortex Red
-				"#FF6B00", -- Orange
-				"#FF6058", -- Light Red
-				"#FF9055", -- Light Orange
-				"#AD0800", -- Dark Red
+				"#FF1005", -- 1
+				"#FF6107", -- 2
+				"#9F0D05", -- 3
+				"#B04523", -- 4
+				"#FF6058", -- 5
 			},
 			{ -- Third Team (Green)
-				"#0CE818", -- Green
-				"#86FFD1", -- Light Turquoise Green
-				"#68B900", -- Dark Lime
-				"#8DF492", -- Light Green
-				"#00AA69", -- Dark Turquoise Green
+				"#0CE818", -- 1
+				"#B4FF39", -- 2
+				"#097E1C", -- 3
+				"#3EFFA2", -- 4
+				"#689E3D", -- 5
 			},
 			{ -- Fourth Team (Yellow)
-				"#FFD70D", -- Yellow
-				"#F6BB56", -- Light Brown
-				"#FFE874", -- Light Yellow
-				"#9B6408", -- Dark Brown
-				"#FFF2AE", -- Very Light Yellow
+				"#FFD200", -- 1
+				"#F5A200", -- 2
+				"#FCEEA4", -- 3
+				"#FFBB7C", -- 4
+				"#C88B2F", -- 5
 			},
 			{ -- Fifth Team (Fuchsia)
-				"#FF00DB", -- Fuchsia
-				"#FF68EA", -- Light Fuchsia
-				"#FFAAF3", -- Very Light Fuchsia
-				"#AA0092", -- Dark Fuchsia
-				"#650057", -- Very Dark Fuchsia
+				"#F80889", -- 1
+				"#FF68EA", -- 2
+				"#FFAAF3", -- 3
+				"#AA0092", -- 4
+				"#701162", -- 5
 			},
 		},
 
+		-- { -- OLD B2C Five Teams
+		-- 	{ -- First Team (Blue)
+		-- 		"#004DFF", -- Armada Blue
+		-- 		"#0CC4E8", -- Turquoise
+		-- 		"#6697FF", -- Very Light Blue
+		-- 		"#90E5F5", -- Light Turquoise
+		-- 		"#3475FF", -- Light Blue
+		-- 	},
+		-- 	{ -- Second Team (Red)
+		-- 		"#FF1005", -- Cortex Red
+		-- 		"#FF6B00", -- Orange
+		-- 		"#FF6058", -- Light Red
+		-- 		"#FF9055", -- Light Orange
+		-- 		"#AD0800", -- Dark Red
+		-- 	},
+		-- 	{ -- Third Team (Green)
+		-- 		"#0CE818", -- Green
+		-- 		"#86FFD1", -- Light Turquoise Green
+		-- 		"#68B900", -- Dark Lime
+		-- 		"#8DF492", -- Light Green
+		-- 		"#00AA69", -- Dark Turquoise Green
+		-- 	},
+		-- 	{ -- Fourth Team (Yellow)
+		-- 		"#FFD70D", -- Yellow
+		-- 		"#F6BB56", -- Light Brown
+		-- 		"#FFE874", -- Light Yellow
+		-- 		"#9B6408", -- Dark Brown
+		-- 		"#FFF2AE", -- Very Light Yellow
+		-- 	},
+		-- 	{ -- Fifth Team (Fuchsia)
+		-- 		"#FF00DB", -- Fuchsia
+		-- 		"#FF68EA", -- Light Fuchsia
+		-- 		"#FFAAF3", -- Very Light Fuchsia
+		-- 		"#AA0092", -- Dark Fuchsia
+		-- 		"#650057", -- Very Dark Fuchsia
+		-- 	},
+		-- },
+
 		{ -- Six Teams
 			{ -- First Team (Blue)
-				"#004DFF", -- Armada Blue
-				"#0CC4E8", -- Turquoise
-				"#6697FF", -- Very Light Blue
-				"#90E5F5", -- Light Turquoise
+				"#004DFF", -- 1
+				"#7CA1FF", -- 2
+				"#D8EEFF", -- 3
+				"#2C32AC", -- 4
 			},
 			{ -- Second Team (Red)
-				"#FF1005", -- Cortex Red
-				"#FF6058", -- Light Red
-				"#FFAFAC", -- Very Light Red
-				"#AD0800", -- Dark Red
+				"#FF1005", -- 1
+				"#FF6058", -- 2
+				"#9F0D05", -- 3
+				"#B04523", -- 4
 			},
 			{ -- Third Team (Green)
-				"#0CE818", -- Green
-				"#86FFD1", -- Light Turquoise Green
-				"#68B900", -- Dark Lime
-				"#8DF492", -- Light Green
+				"#0CE818", -- 1
+				"#B4FF39", -- 2
+				"#097E1C", -- 3
+				"#3EFFA2", -- 4
 			},
 			{ -- Fourth Team (Yellow)
-				"#FFD70D", -- Yellow
-				"#F6BB56", -- Light Brown
-				"#FFE874", -- Light Yellow
-				"#9B6408", -- Dark Brown
+				"#FFD200", -- 1
+				"#F5A200", -- 2
+				"#FCEEA4", -- 3
+				"#9B6408", -- 4
 			},
 			{ -- Fifth Team (Fuchsia)
-				"#FF00DB", -- Fuchsia
-				"#FF68EA", -- Light Fuchsia
-				"#FFAAF3", -- Very Light Fuchsia
-				"#AA0092", -- Dark Fuchsia
+				"#F80889", -- 1
+				"#FF68EA", -- 2
+				"#FFAAF3", -- 3
+				"#971C48", -- 4
 			},
 			{ -- Sixth Team (Orange)
-				"#FF6B00", -- Orange
-				"#FF9055", -- Light Orange
-				"#FFC8AA", -- Very Light Orange
-				"#AA4B00", -- Dark Orange
+				"#FF6107", -- 1
+				"#FFBB7C", -- 2
+				"#DD783F", -- 3
+				"#773A01", -- 4
 			},
 		},
+
+		-- { -- OLD B2C Six Teams
+		-- 	{ -- First Team (Blue)
+		-- 		"#004DFF", -- Armada Blue
+		-- 		"#0CC4E8", -- Turquoise
+		-- 		"#6697FF", -- Very Light Blue
+		-- 		"#90E5F5", -- Light Turquoise
+		-- 	},
+		-- 	{ -- Second Team (Red)
+		-- 		"#FF1005", -- Cortex Red
+		-- 		"#FF6058", -- Light Red
+		-- 		"#FFAFAC", -- Very Light Red
+		-- 		"#AD0800", -- Dark Red
+		-- 	},
+		-- 	{ -- Third Team (Green)
+		-- 		"#0CE818", -- Green
+		-- 		"#86FFD1", -- Light Turquoise Green
+		-- 		"#68B900", -- Dark Lime
+		-- 		"#8DF492", -- Light Green
+		-- 	},
+		-- 	{ -- Fourth Team (Yellow)
+		-- 		"#FFD70D", -- Yellow
+		-- 		"#F6BB56", -- Light Brown
+		-- 		"#FFE874", -- Light Yellow
+		-- 		"#9B6408", -- Dark Brown
+		-- 	},
+		-- 	{ -- Fifth Team (Fuchsia)
+		-- 		"#FF00DB", -- Fuchsia
+		-- 		"#FF68EA", -- Light Fuchsia
+		-- 		"#FFAAF3", -- Very Light Fuchsia
+		-- 		"#AA0092", -- Dark Fuchsia
+		-- 	},
+		-- 	{ -- Sixth Team (Orange)
+		-- 		"#FF6B00", -- Orange
+		-- 		"#FF9055", -- Light Orange
+		-- 		"#FFC8AA", -- Very Light Orange
+		-- 		"#AA4B00", -- Dark Orange
+		-- 	},
+		-- },
+
+		{ -- Seven Teams
+			{ -- First Team (Blue)
+				"#004DFF", -- 1
+				"#7CA1FF", -- 2
+				"#2C32AC", -- 3
+			},
+			{ -- Second Team (Red)
+				"#FF1005", -- 1
+				"#FF6058", -- 2
+				"#9F0D05", -- 3
+			},
+			{ -- Third Team (Green)
+				"#0CE818", -- 1
+				"#B4FF39", -- 2
+				"#097E1C", -- 3
+			},
+			{ -- Fourth Team (Yellow)
+				"#FFD200", -- 1
+				"#F5A200", -- 2
+				"#FCEEA4", -- 3
+			},
+			{ -- Fifth Team (Fuchsia)
+				"#F80889", -- 1
+				"#FF68EA", -- 2
+				"#FFAAF3", -- 3
+			},
+			{ -- Sixth Team (Orange)
+				"#FF6107", -- 1
+				"#FFBB7C", -- 2
+				"#DD783F", -- 3
+			},
+			{ -- Seventh Team (Cyan)
+				"#09F5F5", -- 1
+				"#0B849B", -- 2
+				"#D8EEFF", -- 3
+			},
+		},
+
+		{ -- Eight Teams
+			{ -- First Team (Blue)
+				"#004DFF", -- 1
+				"#7CA1FF", -- 2
+				"#2C32AC", -- 3
+			},
+			{ -- Second Team (Red)
+				"#FF1005", -- 1
+				"#FF6058", -- 2
+				"#9F0D05", -- 3
+			},
+			{ -- Third Team (Green)
+				"#0CE818", -- 1
+				"#B4FF39", -- 2
+				"#097E1C", -- 3
+			},
+			{ -- Fourth Team (Yellow)
+				"#FFD200", -- 1
+				"#F5A200", -- 2
+				"#FCEEA4", -- 3
+			},
+			{ -- Fifth Team (Fuchsia)
+				"#F80889", -- 1
+				"#FF68EA", -- 2
+				"#971C48", -- 3
+			},
+			{ -- Sixth Team (Orange)
+				"#FF6107", -- 1
+				"#FFBB7C", -- 2
+				"#DD783F", -- 3
+			},
+			{ -- Seventh Team (Cyan)
+				"#09F5F5", -- 1
+				"#0B849B", -- 2
+				"#D8EEFF", -- 3
+			},
+			{ -- Eigth Team (Purple)
+				"#872DFA", -- 1
+				"#6809A1", -- 2
+				"#C4A9FF", -- 3
+			},
+		},
+
 	}
 
 	local gaiaTeamID = Spring.GetGaiaTeamID()
