@@ -13,7 +13,8 @@ in DataVS {
 	flat vec4 v_worldPosRad;
 	flat vec4 v_worldPosRad2;
 	flat vec4 v_lightcolor;
-	flat vec4 v_falloff_dense_scattering_sourceocclusion;
+	flat vec4 v_falloff_dense_scattering_sourceocclusion;	
+	flat mat3 v_conerotinv;
 	vec4 v_depths_center_map_model_min;
 	vec4 v_otherparams;
 	vec4 v_position;
@@ -26,8 +27,11 @@ uniform sampler2D mapNormals;
 uniform sampler2D modelNormals;
 uniform sampler2D mapExtra;
 uniform sampler2D modelExtra;
+uniform sampler2D mapDiffuse;
+uniform sampler2D modelDiffuse;
 
 uniform float pointbeamcone = 0;
+uniform float nightFactor = 1.0;
 // = 0; // 0 = point, 1 = beam, 2 = cone
 out vec4 fragColor;
 
@@ -163,7 +167,7 @@ vec4 ray_to_capsule_distance_squared(vec3 rayOrigin, vec3 rayDirection, vec3 cap
 	float distcap2 = dot(interSectToC2, interSectToC2) ;
 	float distcap1 = dot(interSectToC1, interSectToC1) ;  //sqdistends
 	
-	vec3 closestpointbeam = cap1 + cap2tocap1 * sqrt((distcap2 - sqdistline)/dot(cap2tocap1,cap2tocap1));
+	vec3 closestpointbeam = cap1 + cap2tocap1 * sqrt(abs(distcap1 - sqdistline)/dot(cap2tocap1,cap2tocap1));
 	vec4 finalposanddist = mix(vec4(cap1, distcap1) ,
 		vec4(cap2, distcap2) ,
 		step(distcap2, distcap1));
@@ -210,6 +214,145 @@ float capIntersect( in vec3 ro, in vec3 rd, in vec3 pa, in vec3 pb, in float ra 
     }
     return -1.0;
 }
+
+float dot2(vec3 a){ return dot(a,a);}
+// cone defined by extremes pa and pb, and radious ra and rb
+// Only one square root and one division is emplyed in the worst case. dot2(v) is dot(v,v)
+vec4 coneIntersect( in vec3  ro, in vec3  rd, in vec3  pa, in vec3  pb, in float ra, in float rb )
+{
+    vec3  ba = pb - pa;
+    vec3  oa = ro - pa;
+    vec3  ob = ro - pb;
+    float m0 = dot(ba,ba);
+    float m1 = dot(oa,ba);
+    float m2 = dot(rd,ba);
+    float m3 = dot(rd,oa);
+    float m5 = dot(oa,oa);
+    float m9 = dot(ob,ba); 
+    
+    // caps
+    if( m1<0.0 )
+    {
+        if( dot2(oa*m2-rd*m1)<(ra*ra*m2*m2) ) // delayed division
+            return vec4(-m1/m2,-ba*inversesqrt(m0));
+    }
+    else if( m9>0.0 )
+    {
+    	float t = -m9/m2;                     // NOT delayed division
+        if( dot2(ob+rd*t)<(rb*rb) )
+            return vec4(t,ba*inversesqrt(m0));
+    }
+    
+    // body
+    float rr = ra - rb;
+    float hy = m0 + rr*rr;
+    float k2 = m0*m0    - m2*m2*hy;
+    float k1 = m0*m0*m3 - m1*m2*hy + m0*ra*(rr*m2*1.0        );
+    float k0 = m0*m0*m5 - m1*m1*hy + m0*ra*(rr*m1*2.0 - m0*ra);
+    float h = k1*k1 - k2*k0;
+    if( h<0.0 ) return vec4(-1.0); //no intersection
+    float t = (-k1-sqrt(h))/k2;
+    float y = m1 + t*m2;
+    if( y<0.0 || y>m0 ) return vec4(-1.0); //no intersection
+    return vec4(t, normalize(m0*(m0*(oa+t*rd)+rr*ba*ra)-ba*hy*y));
+}
+
+// cone defined by extremes pa and pb, and radious ra and rb
+// Only one square root and one division is emplyed in the worst case. dot2(v) is dot(v,v)
+// ra === 0
+// returns the distance from the ray to the cone, and the normal vector of the cones surface at that point.
+vec4 halfconeIntersect_IQ( in vec3  ro, in vec3  rd, in vec3  pa, in vec3  pb, in float ra, in float rb )
+{
+    vec3  ba = pb - pa;
+    vec3  oa = ro - pa;
+    vec3  ob = ro - pb;
+    float m0 = dot(ba,ba);
+    float m1 = dot(oa,ba);
+    float m2 = dot(rd,ba);
+    float m3 = dot(rd,oa);
+    float m5 = dot(oa,oa);
+    float m9 = dot(ob,ba); 
+    
+    // caps
+    //if( m1<0.0 )
+    //{
+    //    if( dot2(oa*m2-rd*m1)< 0 ) // delayed division
+    //        return vec4(-m1/m2,-ba*inversesqrt(m0));
+    //}
+    //else 
+	if( m9>0.0 )
+    {
+    	float t = -m9/m2;                     // NOT delayed division
+        if( dot2(ob+rd*t)<(rb*rb) )
+            return vec4(t,ba*inversesqrt(m0));
+    }
+    
+    // body
+    float rr = - rb;
+    float hy = m0 + rr*rr;
+    float k2 = m0*m0    - m2*m2*hy;
+    float k1 = m0*m0*m3 - m1*m2*hy ;
+    float k0 = m0*m0*m5 - m1*m1*hy ;
+    float h = k1*k1 - k2*k0;
+    if( h<0.0 ) return vec4(-1.0); //no intersection
+    float t = (-k1-sqrt(h))/k2;
+    float y = m1 + t*m2;
+    if( y<0.0 || y>m0 ) return vec4(-1.0); //no intersection
+    return vec4(t, normalize(m0*(m0*(oa+t*rd))-ba*hy*y));
+}
+
+vec4 halfconeIntersect( in vec3  rayOrigin, in vec3  rayDirection, in vec3 coneTip, in vec3 coneFlatEnd, in float raiszero, in float bottomRadius )
+{
+    vec3  TipToEnd = coneFlatEnd - coneTip;
+    vec3  TipToEye = rayOrigin - coneTip;
+    vec3  EndToEye = rayOrigin - coneFlatEnd;
+    float ConeHeighSqr = dot(TipToEnd, TipToEnd); 
+    float m1 = dot(TipToEye, TipToEnd);
+    float m2 = dot(rayDirection, TipToEnd);
+    float m3 = dot(rayDirection, TipToEye);
+    float TipToEyeSqr = dot(TipToEye, TipToEye);
+    float m9 = dot(EndToEye, TipToEnd); 
+    vec4 coneflatdistances = vec4(-1.0);
+
+	// Bottom Cap collision, note that we still need to check this if we want the exit point too!
+	// a ray can only collide with the end once!
+    float distToFlat = -m9/m2;                     // NOT delayed division
+    if( dot2(EndToEye+rayDirection*distToFlat)<=(bottomRadius*bottomRadius) )
+		coneflatdistances.zw = vec2(distToFlat);
+            // vec3 normal = TipToEnd*inversesqrt(ConeHeighSqr)
+    
+    // body
+    float CapeLengthSqr = ConeHeighSqr + bottomRadius*bottomRadius;
+    float k2 = ConeHeighSqr*ConeHeighSqr    - m2*m2*CapeLengthSqr;
+    float k1 = ConeHeighSqr*ConeHeighSqr*m3 - m1*m2*CapeLengthSqr ;
+    float k0 = ConeHeighSqr*ConeHeighSqr*TipToEyeSqr - m1*m1*CapeLengthSqr ;
+    float h = k1*k1 - k2*k0;
+    if( h<0.0 ) return vec4(-1.0); //no intersection as we are _above_ the cone tip
+	float sqrth = sqrt(max(0,h));
+    float CloseDistToCone = (-k1-sqrth)/k2;
+    float FarDistToCone = (-k1+sqrth)/k2;
+    float y = m1 + CloseDistToCone*m2;
+    float y2 = m1 + FarDistToCone*m2;
+	
+	// if we are within the cone from the front
+    if( y >=0.0 && y <= ConeHeighSqr ) coneflatdistances.x = CloseDistToCone;
+	else coneflatdistances.x = max(coneflatdistances.x,coneflatdistances.z);//no intersection, as we are below the bottom of the cone
+	// if we are within the cone from the back
+    if( y2 >=0.0 && y2 <= ConeHeighSqr ) coneflatdistances.y = FarDistToCone; //no intersection, as we are below the bottom of the cone
+	else coneflatdistances.y = max(coneflatdistances.y,coneflatdistances.z);
+    //if( y<0.0 || y>ConeHeighSqr ) return vec4(-1.0); //no intersection, as we are below the bottom of the cone
+	 // vec3 normal =normalize(ConeHeighSqr*(ConeHeighSqr*(TipToEye+CloseDistToCone*rayDirection))-TipToEnd*CapeLengthSqr*y)
+	float attenuationEntry = clamp(y/ConeHeighSqr,0.0,1.0);
+	float attenuationExit = clamp(y2/ConeHeighSqr,0.0,1.0);
+	
+
+	//return vec4(500 * (2.0- abs(attenuationEntry + attenuationExit) ));
+    return 2* vec4(max(0,coneflatdistances.y) - max(0,coneflatdistances.x));
+	
+}
+
+
+//https://www.symbolab.com/solver/definite-integral-calculator/%5Cint_%7B0%7D%5E%7B1%7D%5Cleft(1-%5Cfrac%7B%5Cleft(A_%7B2%7D%2BB_%7B2%7D%5Ccdot%20x%5Cright)%7D%7Bh%5E%7B2%7D%7D%20%5Cright)%5E%7B%20%7D%5Ccdot%5Cleft(1-%5Cfrac%7B%5Csqrt%7B%5Cleft(A_%7B1%7D%2BB_%7B1%7D%5Ccdot%20x%5Cright)%5E%7B2%7D%7D%7D%7B%5Cfrac%7B%5Cleft(A_%7B2%7D%2BB_%7B2%7D%5Ccdot%20x%5Cright)%5Ccdot%20r%7D%7Bh%7D%7D%5Cright)%20dx?or=input
 
 // Defines the falloff function of scattered light one gets more distant from the light source
 float scatterfalloff(float disttolight, float radius){
@@ -282,9 +425,9 @@ void main(void)
 	float mapdepth = texture(mapDepths, screenUV).x;
 	float modeldepth = texture(modelDepths, screenUV).x;
 	float worlddepth = min(mapdepth, modeldepth);
-	
 	vec4 normals = vec4(0, 1, 0, 0); // points up by default
 	vec4 extratex = vec4(0);
+	vec4 targetcolor = vec4(0); // target color of the surface
 	float ismodel = 0;
 	
 	// Only query the textures if the backface of the volume is further than the world fragment
@@ -293,9 +436,12 @@ void main(void)
 			ismodel = 1;
 			normals =  texture2D(modelNormals, screenUV) * 2.0 - 1.0;
 			extratex = texture2D(modelExtra  , screenUV);
+			targetcolor = texture2D(modelDiffuse  , screenUV);
+			
 		}else{
 			normals =  texture2D(mapNormals  , screenUV) * 2.0 - 1.0;
 			extratex = texture2D(mapExtra    , screenUV);
+			targetcolor = texture2D(mapDiffuse    , screenUV) * nightFactor;
 		}
 	}
 	
@@ -335,6 +481,8 @@ void main(void)
 	float specular = 0; // The amount of specular reflection from the world-hitting fragment
 	float dtobeam = 0;
 	
+	float shadowedness = 0; // how much the light source is screen-space shadowed
+	
 	vec4 rcd = vec4 (0.0);
 	
 	float rcdsqr = 1000000.0;
@@ -350,6 +498,7 @@ void main(void)
 		lightDirection = normalize(lightToWorld);
 		attenuation = clamp( 1.0 - length (lightToWorld) * lightRadiusInv, 0,1);
 		closestpoint_dist = closestlightlp_distance(camPos, viewDirection, lightPosition);
+		
 		
 		// Both scattering components
 		scatteringRayleigh = FastApproximateScattering(camPos, viewDirection, lightPosition, lightRadius, fragDistance, closestpoint_dist.w, 1.0 );
@@ -367,6 +516,7 @@ void main(void)
 		lightDirection = normalize(lightToWorld);
 		vec3 coneDirection = v_worldPosRad2.xyz;
 		float lightCosTheta = v_worldPosRad2.w; // The cos of the half angle of the spot cone light
+		float lightSinTheta = sin(acos(v_worldPosRad2.w)); // The cos of the half angle of the spot cone light
 		
 		
 		
@@ -382,12 +532,29 @@ void main(void)
 		//scatteringRayleigh = pow(1.0 - closestpoint_dist.w / lightRadius, 2) *scatterangle;
 		
 		//vec4 ray_to_capsule_distance_squared(vec3 rayOrigin, vec3 rayDirection, vec3 cap1, vec3 cap2){ 
-		vec4 rayconehit = ray_to_capsule_distance_squared(camPos, viewDirection,lightPosition, lightPosition + coneDirection * lightRadius); // this now contains the point on ConeDirection 
+		vec4 rayconedist = ray_to_capsule_distance_squared(camPos, viewDirection, lightPosition + coneDirection * lightRadius,lightPosition); // this now contains the point on ConeDirection 
 		
-		float localradius = lightCosTheta * length(rayconehit.xyz - closestpoint_dist.xyz);
+		float localradius = max(0, lightSinTheta * length(rayconedist.xyz - lightPosition.xyz));
+		//coneIntersect( in vec3  ro, in vec3  rd, in vec3  pa, in vec3  pb, in float ra, in float rb )
+		vec4 iCone = halfconeIntersect(camPos , -viewDirection, lightPosition, lightEmitPosition + coneDirection * lightRadius, 1, lightRadius * lightSinTheta);
 		
 		
-		scatteringRayleigh = FastApproximateScattering(camPos, viewDirection, rayconehit.xyz, lightRadius, fragDistance, rayconehit.w, 1.0 );
+		scatteringRayleigh = FastApproximateScattering(camPos , viewDirection, rayconedist.xyz, localradius, fragDistance, rayconedist.w, 1.0 );
+		
+		float distanceratio = clamp(1.0 -  length(rayconedist.xyz - lightPosition)/v_worldPosRad.w, 0.0, 1.0);
+		
+		fragColor.rgb = vec3(scatteringRayleigh* distanceratio); // pretty gooood
+		
+		float distancetocone = abs(iCone.x * 0.001);
+		
+		fragColor.rgb = vec3(distancetocone * 0.002);
+		fragColor.rgb = vec3(distancetocone);
+		//fragColor.rgb = vec3(distanceratio,rayconedist.w * 0.02,localradius * 0.002);
+		//fragColor.rgb = vec3(length(rayconedist.xyz - lightPosition.xyz) * 0.01);
+		//fragColor.rgb = vec3(rayconedist.w * 0.02);
+		//fragColor.rgb = iCone.yyy * 0.5 + 0.5;
+		//fragColor.rgb = vec3(fract(length(rayconedist.xyz- closestpoint_dist.xyz) *0.1));
+		return;
 
 		lensFlare = step(v_depths_center_map_model_min.x, v_depths_center_map_model_min.w);
 		lensFlare = lensFlare * clamp( lensFlare * LensFlareDistanceSqrt(closestpoint_dist.xyz, lightPosition,lightRadius) *(-15) +1, 0, 1);
@@ -460,7 +627,7 @@ void main(void)
 	float fuck = 0;
 	float beamlength = 2*length(v_worldPosRad2.xyz - v_worldPosRad.xyz);
 	
-
+	
 	fragColor.rgb = vec3(
 			(diffuse) * attenuation + lensFlare,
 			//relativedistancetolight * relativedistancetolight * selfglowfalloff * sourceVisible + 
@@ -469,7 +636,24 @@ void main(void)
 			 scatteringRayleigh
 			);
 			
+	fragColor.rgb = targetcolor.rgb;
 	
+	// light mixdown:
+	
+	vec3 additivelights = (scatteringRayleigh + scatteringMie + lensFlare) * v_lightcolor.rgb * v_lightcolor.w * 0.4;
+	
+	// this is causing discontinuities: TODO
+	vec3 blendedlights = (v_lightcolor.rgb * v_lightcolor.w)*(targetcolor.rgb * 2.0) * (diffuse + specular) * attenuation * 2.0;
+	
+	vec3 outlight_unclamped = targetcolor.rgb + blendedlights + additivelights;
+	
+	float bleed = dot(max(vec3(0.0), outlight_unclamped - vec3(1.0)), vec3(1.0));
+	
+	
+	fragColor.rgb = (blendedlights*0.9  + additivelights*0.5) + vec3(bleed)*0.33;
+	//fragColor.rgb = vec3(bleed);
+	//fragColor.rgb = vec3(targetcolor.rgb + blendedlights + additivelights);
+	//fragColor.rgb = outlight_unclamped;
 	//fragColor.rgb = vec3(scatteringRayleigh);
 	//fragColor.rgb = vec3(dot(fragColor.rgb, vec3(1.0, 0.5, 0.5)));
 	//fragColor.rgb += 0.5;
@@ -479,4 +663,5 @@ void main(void)
 	//fragColor.rgb = vec3(pow(v_depths_center_map_model_min.z,8), pow(worlddepth, 8), 0);
 	//fragColor.rgb = vec3((worlddepth - v_depths_center_map_model_min.z)* 100 + 0.5);
 	//fragColor.rgb = (fract(lightEmitPosition*0.02));
+	fragColor.a = 1.0;
 }

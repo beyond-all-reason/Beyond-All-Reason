@@ -246,12 +246,15 @@ local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, d
 					modelNormals = 3,
 					mapExtra = 4, 
 					modelExtra = 5,
-					screenCopy = 6,
+					mapDiffuse = 6,
+					modelDiffuse = 7,
 					},
 				uniformFloat = {
 					pointbeamcone = 0,
 					fadeDistance = 3000,
 					attachedtounitID = 0,
+					nightFactor = 1.0,
+					
 				  },
 				},
 				shadername
@@ -606,6 +609,13 @@ function AddRandomLight(which)
 	local posx = Game.mapSizeX * math.random() * 1.0
 	local posz = Game.mapSizeZ * math.random() * 1.0
 	local posy = Spring.GetGroundHeight(posx, posz) + math.random() * 0.5 * radius
+	-- randomize color
+	lightCacheTable[9] = math.random() + 0.1
+	lightCacheTable[10] = math.random() + 0.1
+	lightCacheTable[11] = math.random() + 0.1
+	lightCacheTable[12] = math.random() + 0.5
+	
+	
 	if which < 0.33 then -- point
 		AddPointLight(posx, posy, posz, radius)
 	elseif which < 0.66 then -- beam
@@ -854,10 +864,13 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		glTexture(3, "$model_gbuffer_normtex")
 		glTexture(4, "$map_gbuffer_spectex")
 		glTexture(5, "$model_gbuffer_spectex")
+		glTexture(6, "$map_gbuffer_difftex")
+		glTexture(7, "$model_gbuffer_difftex")
 
 		--Spring.Echo(screenCopyTex)
 		
 		deferredLightShader:Activate()
+		deferredLightShader:SetUniformFloat("nightFactor", nightFactor)
 		
 		if pointLightVBO.usedElements > 0 then
 			deferredLightShader:SetUniformFloat("pointbeamcone", 0)
@@ -876,7 +889,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		deferredLightShader:Deactivate()
 		
 		
-		for i = 0, 5 do glTexture(i, false) end 
+		for i = 0, 7 do glTexture(i, false) end 
 		gl.Culling(GL.BACK)
 		gl.DepthTest(true)
 		gl.DepthMask(true)
