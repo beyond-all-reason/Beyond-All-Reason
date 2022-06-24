@@ -1,8 +1,3 @@
-local CMD_GUARD = 25
-local CMD_PATROL = 15
-local CMD_MOVE_STATE = 50
-local MOVESTATE_ROAM = 2
-
 DefendBST = class(Behaviour)
 
 function DefendBST:Name()
@@ -89,8 +84,7 @@ function DefendBST:Update()
 			if behaviour ~= nil then
 				if dist > 500 then
 					if self.guarding ~= behaviour.id then
-						-- move toward mobile wards that are far away with guard order
-						self.ai.tool:CustomCommand(self.unit:Internal(), CMD_GUARD, {behaviour.id})
+						self.unit:Internal():Guard(behaviour.id)
 						self.guarding = behaviour.id
 					end
 				elseif not safe then
@@ -187,8 +181,6 @@ end
 function DefendBST:SetMoveState()
 	local thisUnit = self.unit
 	if thisUnit then
-		local floats = api.vectorFloat()
-		floats:push_back(MOVESTATE_ROAM)
-		thisUnit:Internal():ExecuteCustomCommand(CMD_MOVE_STATE, floats)
+		thisUnit:Internal():Roam()
 	end
 end
