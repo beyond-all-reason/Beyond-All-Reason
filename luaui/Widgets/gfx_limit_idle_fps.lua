@@ -11,6 +11,7 @@ function widget:GetInfo()
 	}
 end
 
+local offscreenDelay = 3
 local idleTime = 60
 local vsyncValueActive = Spring.GetConfigInt("VSyncGame", 0)
 local vsyncValueIdle = Spring.GetConfigInt("IdleFpsDivider", 4)    -- sometimes vsync > 4 doesnt work at all
@@ -20,6 +21,7 @@ local isIdle = false
 local lastUserInputTime = os.clock()
 local lastMouseX, lastMouseY = Spring.GetMouseState()
 local prevCamX, prevCamY, prevCamZ = Spring.GetCameraPosition()
+local lastMouseOffScreen = false
 local chobbyInterface = false
 
 -- disabled code below because it did work on my separate 144hz monitor, not on my laptop 144hz monitor somehow (then 6 results in more fps than even 4)
@@ -87,7 +89,6 @@ function widget:Update(dt)
 
 	if not chobbyInterface then
 		local prevIsIdle = isIdle
-
 		local mouseX, mouseY, lmb, mmb, rmb, mouseOffScreen, cameraPanMode  = Spring.GetMouseState()
 		if mouseX ~= lastMouseX or mouseY ~= lastMouseY or lmb or mmb or rmb  then
 			lastMouseX, lastMouseY = mouseX, mouseY
@@ -102,9 +103,10 @@ function widget:Update(dt)
 		if cameraPanMode then	-- when camera panning
 			lastUserInputTime = os.clock()
 		end
-		if mouseOffScreen then
-			lastUserInputTime = os.clock() - idleTime-1
+		if lastMouseOffScreen ~= mouseOffScreen then
+			lastUserInputTime = os.clock() - idleTime-0.01+offscreenDelay
 		end
+		lastMouseOffScreen = mouseOffScreen
 		if lastUserInputTime < os.clock() - idleTime then
 			isIdle = true
 		else
