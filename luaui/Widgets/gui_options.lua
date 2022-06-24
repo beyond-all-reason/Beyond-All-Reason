@@ -655,8 +655,39 @@ end
 local sec = 0
 local lastUpdate = 0
 local ambientplayerCheck = false
-
+local muteFadeTime = 0.35
+local isOffscreen = false
+local isOffscreenTime
+local prevOffscreenVolume
 function widget:Update(dt)
+
+	if Spring.GetConfigInt("muteOffscreen", 0) == 1 then
+		local prevIsOffscreen = isOffscreen
+		isOffscreen = select(6, Spring.GetMouseState())
+		if isOffscreen ~= prevIsOffscreen then
+			isOffscreenTime = os.clock()
+			if isOffscreen then
+				prevOffscreenVolume = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40)
+			end
+		end
+		if isOffscreenTime then
+			if isOffscreenTime+muteFadeTime > os.clock() then
+				if isOffscreen then
+					Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume*(1-((os.clock()-isOffscreenTime)/muteFadeTime)))
+				else
+					Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume*((os.clock()-isOffscreenTime)/muteFadeTime))
+				end
+			else
+				isOffscreenTime = nil
+				if isOffscreen then
+					Spring.SetConfigInt("snd_volmaster", 0)
+				else
+					Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume)
+				end
+			end
+		end
+	end
+
 	if countDownOptionID and countDownOptionClock and countDownOptionClock < os_clock() then
 		applyOptionValue(countDownOptionID)
 		countDownOptionID = nil
@@ -2164,6 +2195,12 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("snd_airAbsorption", value)
+		  end,
+		},
+
+		{ id = "muteoffscreen", group = "sound", category = types.advanced, name = texts.option.muteoffscreen, type = "bool", value = (Spring.GetConfigInt("muteOffscreen", 0) == 1), description = texts.option.muteoffscreen_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("muteOffscreen", (value and 1 or 0))
 		  end,
 		},
 

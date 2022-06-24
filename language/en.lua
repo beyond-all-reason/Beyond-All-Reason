@@ -272,6 +272,8 @@ return {
 			sndvolunitreply = 'unit reply',
 			sndairabsorption = 'Air absorption',
 			sndairabsorption_descr = 'Air absorption is basically a low-pass filter relative to distance between\nsound source and listener, so when in your base or zoomed out, front battles\nwill be heard as only low frequencies',
+			muteoffscreen = 'Mute when offscreen',
+			muteoffscreen_descr = 'Game will mute itself when mouse is offscreen until you return',
 			sndvolmusic = 'music',
 			loadscreen_music = 'starts at loadscreen',
 			loadscreen_music_descr = 'Music when displaying the startup load screen',
