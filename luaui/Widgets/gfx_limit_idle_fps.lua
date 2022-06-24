@@ -13,7 +13,7 @@ end
 
 local idleTime = 60
 local vsyncValueActive = Spring.GetConfigInt("VSyncGame", 0)
-local vsyncValueIdle = 4    -- sometimes vsync > 4 doesnt work at all
+local vsyncValueIdle = Spring.GetConfigInt("IdleFpsDivider", 4)    -- sometimes vsync > 4 doesnt work at all
 
 
 local isIdle = false
