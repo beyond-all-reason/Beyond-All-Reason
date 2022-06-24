@@ -698,17 +698,13 @@ void main(void)
 		
 		lightToWorld = fragWorldPos.xyz - lightPosition;
 		
-		//lightPosition = closestlightlp_distance(camPos, viewDirection, beamstart, beamend);
-		
 		lightDirection = normalize(lightToWorld);
-		attenuation = clamp( 1.0 - length (lightToWorld) / lightRadius, 0,1);
+		attenuation = clamp( 1.0 - length (lightToWorld) *lightRadiusInv, 0,1);
 		
 		dtobeam = capIntersect( camPos, viewDirection, beamstart, beamend, lightRadius);
 		float dtobeam2 = capIntersect( camPos, -viewDirection, beamstart, beamend, lightRadius);
 		vec4 alldist = capIntersect2( camPos, viewDirection, beamstart, beamend, lightRadius);
 		
-		//dtobeam = distancebetweenlines(beamstart, normalize(beamstart-beamend), camPos,viewDirection).x;
-		//rcd = ray_to_capsule_distance(camPos, viewDirection, beamstart, beamend);
 		closestpoint_dist = ray_to_capsule_distance_squared(camPos, viewDirection, beamstart, beamend);
 		lightEmitPosition = closestpoint_dist.xyz;
 		
@@ -752,13 +748,8 @@ void main(void)
 				float noise = 1.0;
 			#endif
 			
-			// Calculate the distatten (which is squared)
-			//float distatten =  1.0 - sdCapsule(marchPos, beamstart, beamend, lightRadius) / lightRadius;
-			float relativeclosenesstobeam = clamp(distToCapsuleSqr(marchPos, beamstart, beamend, lightRadius) * lightRadiusInv * lightRadiusInv, 0.0, 1.0);
-			//float distatten = (1.0 - relativeclosenesstobeam);
+			float relativeclosenesstobeam = clamp(distToCapsuleSqr(marchPos, beamstart, beamend, lightRadius) * lightRadiusInv * lightRadiusInv, 0.0, 1.0) ;
 			
-			//distatten = distatten *(lightRadiusInv * lightRadiusInv);
-		
 			rayleighScatterSum +=  (1.0 - relativeclosenesstobeam) * noise;
 			
 			miescattersum += (max(0, 0.1 - relativeclosenesstobeam) * noise  * 10.0);
@@ -770,26 +761,11 @@ void main(void)
 		
 		float fromeye = integratescatterocclusion( ( -closedist ) / (fardist - closedist));
 		
-		
 		rayleighScatterSum = (tofrag - fromeye) * rayleighScatterSum / (RAYMARCHSTEPS - 1);
 		miescattersum = (tofrag - fromeye) * miescattersum / (RAYMARCHSTEPS - 1);
 
 		scatteringMie = (miescattersum *miescattersum);
-		
 		scatteringRayleigh = rayleighScatterSum;
-		//minmaxdist.x = min(minmaxdist.x, minmaxdist.z);
-		//minmaxdist.y = max(minmaxdist.y, minmaxdist.w);
-		//fragColor.rgb = vec3(fract(vec3(alldist.zww) * 0.01));
-		//fragColor.rgb = vec3(fract((minmaxdist.x) * 0.01));
-		//fragColor.rgb = vec3(fract((minmaxdist.y - minmaxdist.x) * 0.01));
-		//fragColor.rgb = vec3(fract(minmaxdist.y * 0.01), fract(minmaxdist.y * 0.01), (minmaxdist.y - minmaxdist.x) * 0.000003);
-		//fragColor.rgb = vec3(fract(minmaxdist.y * 0.01), fract(minmaxdist.y * 0.01), (minmaxdist.y - minmaxdist.x) * 0.000003);
-		//fragColor.rgb = vec3(fract(max(vec3(0),vec3(alldist.y - alldist.x)) * 0.01));
-		fragColor.rgb = vec3(scatteringMie*1.0);
-		//fragColor.rgb = vec3((fardist - closedist)* 0.003);
-		//fragColor.rgb = vec3(vec3(fardist-closedist)* 0.002);
-		//fragColor.rgb = fract(ExitPoint * 0.01);
-		//return;
 
 	}
 	#line 35000
@@ -803,18 +779,6 @@ void main(void)
 	specular = pow(max(0.0, specular), 8.0 * ( 1.0 + ismodel) ) * (1.0 + ismodel);
 	attenuation = attenuation;// * attenuation;
 	
-	fragColor.rgb = vec3(attenuation, diffuse, specular);
-	
-	fragColor.rgb = vec3(1.0) * attenuation * (diffuse + specular);
-	
-
-	//fragColor.rgb = vec3(distancetolight);
-	//fragColor.rgb = vec3(fract(lightPosition.xyz * 0.025));
-	//fragColor.rgb = vec3(fract(dtobeam * 0.001));
-	
-	//calc from rcd
-	float fuck = 0;
-	float beamlength = 2*length(v_worldPosRad2.xyz - v_worldPosRad.xyz);
 	
 	
 	fragColor.rgb = vec3(
@@ -832,7 +796,7 @@ void main(void)
 	vec3 additivelights = (scatteringRayleigh + scatteringMie + lensFlare) * v_lightcolor.rgb * v_lightcolor.w * 0.4;
 	
 	// this is causing discontinuities: TODO
-	vec3 blendedlights = (v_lightcolor.rgb * v_lightcolor.w)*(targetcolor.rgb * 2.0) * (diffuse + specular) * attenuation * 2.0;
+	vec3 blendedlights = (v_lightcolor.rgb * v_lightcolor.w)*(targetcolor.rgb * 2.0) * (diffuse + specular) * attenuation * 2.0 * (1.0 + 2.0 * ismodel);
 	
 	vec3 outlight_unclamped = targetcolor.rgb + blendedlights + additivelights;
 	
