@@ -104,9 +104,7 @@ function BomberBST:BombPosition(position)
 end
 
 function BomberBST:FollowPathToTarget(path, targetUnit)
-	print(targetUnit)
-	Spring.Debug.TableEcho(targetUnit)
-	Spring.Debug.TableEcho(targetUnit:GetPosition())
+
 	self:EchoDebug("follow path to target")
 	-- self.unit:Internal():Move(path[2].position)
 -- 	local optFloats = api.vectorFloat()

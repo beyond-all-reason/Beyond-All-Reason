@@ -214,9 +214,11 @@ function TaskQueueBST:specialFilter(cat,param,name)
 			end
 		end
 		check =  true
- 	elseif cat == '_convs_' and self.ai.armyhst.unitTable[name].techLevel == 1 then
- 		if self.ai.tool:countMyUnit( {'_fus_'}  ) < 2 then
+ 	elseif (cat == '_convs_' ) then
+ 		if self.ai.tool:countMyUnit( {'_fus_'}  ) < 2 and self.ai.armyhst.unitTable[name].techLevel == 1 then
  			check= true
+		elseif  self.ai.armyhst.unitTable[name].techLevel > 1 then
+			check= true
  		end
 				--local factoryPos = factory.unit:Internal():GetPosition()
 				--local nanoNear = buildSiteHST:unitsNearCheck(factoryPos,400,level * 10,'_nano_')
@@ -294,9 +296,11 @@ function TaskQueueBST:findPlace(utype, value,cat,loc)
 			for index, factory in pairs(factories) do
 				local factoryName = factory.unit:Internal():Name()
 				if mtype == self.ai.armyhst.factoryMobilities[factoryName][1] and level > currentLevel then
-					self:EchoDebug( self.name .. ' can push up self mtype ' .. factoryName)
-					currentLevel = level
-					target = factory
+					if not self.ai.buildsitehst:unitsNearCheck(factory.unit:Internal():GetPosition(),390,10+(5*level),{'_nano_'}) then
+						self:EchoDebug( self.name .. ' can push up self mtype ' .. factoryName)
+						currentLevel = level
+						target = factory
+					end
 				end
 			end
 		end

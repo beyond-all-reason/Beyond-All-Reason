@@ -19,7 +19,7 @@ end
 function BombardBST:Fire()
 	if self.target ~= nil then
 		self:EchoDebug("firing")
-		self.unit:Internal():MoveAndFire({self.target.x,self.target.y,self.target.z}) --TEST
+		self.unit:Internal():MoveAndFire(self.target) --TEST
 		self.lastFireFrame = self.game:Frame()
 	end
 end
@@ -82,15 +82,15 @@ function BombardBST:GetTarget(unit)
 	local bestCell = nil
 	local bestValue = 0
 	for index,G in pairs(self.ai.targethst.ENEMYCELLS) do
-		local cell = self.ai.targethst.CELLS[G.gx][G.Gx]
-		if self.ai.tool:Distance(self.position,sell.pos) < self.range then
+		local cell = self.ai.targethst.CELLS[G.x][G.z]
+		if self.ai.tool:Distance(self.position,cell.pos) < self.range then
 			if cell.ENEMY > bestValue then
 				bestCell = cell
 				bestValue = cell.ENEMY
 			end
 		end
 	end
-	return bestValue
+	return bestCell, bestValue
 end
 
 function BombardBST:IsBombardPosition(position, unitName) --example: there are more than bertha * 2 metal to bombard around?

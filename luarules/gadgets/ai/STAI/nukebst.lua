@@ -25,6 +25,7 @@ end
 function NukeBST:OwnerBuilt()
 	self.finished = true
 	self.unit:Internal():Stockpile()
+	self.unit:Internal():Stockpile()
 end
 
 function NukeBST:Update()

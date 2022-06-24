@@ -81,7 +81,18 @@ function gadget:RecvLuaMsg(msg, playerID)
 			local unit = string.split(msg,'!')
 
 			if #id ~= 3 or #cmd ~= 3 or #pos ~= 3 or #opts ~= 3 or #timeout ~= 3 or #unit ~= 3 then
+
 				spEcho('format incomplete',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
+				spEcho('recvluamsg',msg)
+				spEcho('splitting lenght',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
+				spEcho('GiveOrderToUnit : ')
+				spEcho('unit',unit,type(unit))
+				spEcho('id',id,type(id))
+				spEcho('cmd',cmd,type(cmd))
+				spEcho('pos',pos,type(pos))
+				spEcho('opts',opts,type(opts))
+				spEcho('timeout',timeout,type(timeout))
+				Spring.Debug.TableEcho(pos)
 				return
 			end
 

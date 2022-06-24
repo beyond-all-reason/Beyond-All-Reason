@@ -24,9 +24,14 @@ function ShardUnit:SyncOrder(id,cmd,pos,opts,timeout)
 	local uName = self.type:Name()
 	timeout = timeout or 2000
 	if type(id) ~= 'number' then
-		Spring.Echo('ST GOTS CMD TYPE','name',self.type:Name(),'id',id,'cmd',cmd)
+		Spring.Echo('ST GOTS ID TYPE','name',self.type:Name(),'id',id,'cmd',cmd)
 		return
 	end
+	if not Spring.ValidUnitID ( id )  then
+		Spring.Echo('ST GOTS ID INVALID','name',self.type:Name(),'id',id,'cmd',cmd)
+		return
+	end
+
 	if type(cmd) ~= 'number'then
 		Spring.Echo('ST GOTS CMD TYPE format','name',self.type:Name(),'id',id,'cmd',cmd)
 		return
@@ -261,7 +266,7 @@ function ShardUnit:Stop()
 end
 
 function ShardUnit:Stockpile()
-	local order = self:SyncOrder( self.id, CMD.STOCKPILE, 0, 0 )
+	local order = self:SyncOrder( self.id, CMD.STOCKPILE, {0}, 0 )
 	--return Spring.GiveOrderToUnit( self.id, CMD.STOCKPILE, {}, 0 )
 end
 

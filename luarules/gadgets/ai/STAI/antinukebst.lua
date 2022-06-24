@@ -13,6 +13,7 @@ end
 function AntinukeBST:OwnerBuilt()
 	self.finished = true
 	self.unit:Internal():Stockpile()
+	self.unit:Internal():Stockpile()
 end
 
 function AntinukeBST:Activate()
