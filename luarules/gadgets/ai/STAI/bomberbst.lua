@@ -13,7 +13,7 @@ local IDLEMODE_LAND = 1
 local IDLEMODE_FLY = 0]]
 
 function BomberBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 
 	self.lastOrderFrame = self.game:Frame()
 	self.name = self.unit:Internal():Name()

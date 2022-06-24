@@ -123,9 +123,9 @@ function gadget:RecvLuaMsg(msg, playerID)
 				spEcho('timeout',timeout,type(timeout))
 				Spring.Debug.TableEcho(pos)
 			end
-			local order = Spring.GiveOrderToUnit(id,cmd,pos,{opts},timeout)
+			local order = Spring.GiveOrderToUnit(id,cmd,pos,opts,timeout)
 			if order ~= true then
-				spEcho('order error in unsync to sync give order to unit',msg)
+				spEcho('order error in STAI unsync to sync give order to unit',msg)
 				spEcho('order', order,id,cmd,pos,opts,timeout)
 			end
 		end

@@ -184,7 +184,7 @@ function TaskQueueBST:CategoryEconFilter(cat,param,name)
 		self:EchoDebug('ecofilter stop',name,cat, param)
 		return
 	end
-	local ecoCheck = self.ai.taskshst.roles[self.role][self.idx]:economy()
+	local ecoCheck = self.ai.taskshst.roles[self.role][self.idx]:economy(param,name)
 	self:EchoDebug('eco filter',name,cat,ecoCheck)
 	if ecoCheck then
 		return name
@@ -214,11 +214,10 @@ function TaskQueueBST:specialFilter(cat,param,name)
 			end
 		end
 		check =  true
--- 	elseif cat == '_convs_' and self.ai.armyhst.unitTable[name].techLevel == 1 then
---
--- 		if self.ai.tool:countMyUnit( _fus_  ) < 2 then
--- 			check= true
--- 		end
+ 	elseif cat == '_convs_' and self.ai.armyhst.unitTable[name].techLevel == 1 then
+ 		if self.ai.tool:countMyUnit( {'_fus_'}  ) < 2 then
+ 			check= true
+ 		end
 				--local factoryPos = factory.unit:Internal():GetPosition()
 				--local nanoNear = buildSiteHST:unitsNearCheck(factoryPos,400,level * 10,'_nano_')
 	elseif cat == '_wind_' then
@@ -226,11 +225,11 @@ function TaskQueueBST:specialFilter(cat,param,name)
 	elseif cat == '_tide_' then
 		check = map:TidalStrength() >= 10
 	elseif cat == '_aa1_' then
-		check =  self.ai.needAirDefense
+		check =  self.ai.needAntiAir
 	elseif cat == '_flak_' then
-		check = self.ai.needAirDefense
+		check = self.ai.needAntiAir
 	elseif cat == '_aabomb_' then
-		check = self.ai.needAirDefense
+		check = self.ai.needAntiAir
 	end
 	if check then
 		self:EchoDebug('special filter pass',cat,name)
