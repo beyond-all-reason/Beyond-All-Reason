@@ -177,6 +177,8 @@ local shaderConfig = {
 	MIERAYLEIGHRATIO = 0.1,
 }
 
+local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
+
 local coneLightVBO
 local beamLightVBO
 local pointLightVBO
@@ -248,6 +250,7 @@ local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, d
 					modelExtra = 5,
 					mapDiffuse = 6,
 					modelDiffuse = 7,
+					noise3DCube = 8,
 					},
 				uniformFloat = {
 					pointbeamcone = 0,
@@ -866,6 +869,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		glTexture(5, "$model_gbuffer_spectex")
 		glTexture(6, "$map_gbuffer_difftex")
 		glTexture(7, "$model_gbuffer_difftex")
+		glTexture(8, noisetex3dcube)
 
 		--Spring.Echo(screenCopyTex)
 		
@@ -889,7 +893,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		deferredLightShader:Deactivate()
 		
 		
-		for i = 0, 7 do glTexture(i, false) end 
+		for i = 0, 8 do glTexture(i, false) end 
 		gl.Culling(GL.BACK)
 		gl.DepthTest(true)
 		gl.DepthMask(true)

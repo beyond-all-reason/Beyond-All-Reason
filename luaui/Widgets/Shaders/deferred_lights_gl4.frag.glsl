@@ -29,6 +29,7 @@ uniform sampler2D mapExtra;
 uniform sampler2D modelExtra;
 uniform sampler2D mapDiffuse;
 uniform sampler2D modelDiffuse;
+uniform sampler3D noise3DCube;
 
 uniform float pointbeamcone = 0;
 uniform float nightFactor = 1.0;
@@ -355,12 +356,44 @@ vec4 halfconeIntersect( in vec3  rayOrigin, in vec3  rayDirection, in vec3 coneT
 	// try to get some sort of falloff factor?
 	
 	// calc angle between entry and exit?
-	vec3 TipToEntry = (rayOrigin + rayDirection * coneflatdistances.x) - coneTip;
-	vec3 TipToExit  = (rayOrigin + rayDirection * coneflatdistances.y) - coneTip;
-	float angle = dot(normalize(TipToEntry), normalize(TipToExit));
-	angle = (1.0 - angle);
+	vec3 TipToEntry = normalize((rayOrigin + rayDirection * coneflatdistances.x) - coneTip);
+	vec3 TipToExit  = normalize((rayOrigin + rayDirection * coneflatdistances.y) - coneTip);
+	vec3 TipToEndN = normalize(TipToEnd);
+	float angleEntry = dot(normalize(TipToEntry), normalize(TipToEnd));
+	float angleExit  = dot(normalize(TipToEnd), normalize(TipToExit));
+	float angleEntryExit = 1.0 - dot (TipToEntry,TipToExit);
+	angleExit = (1.0 - angleExit);
 	
-	return vec4(1000*angle);
+	
+	vec3 EntryPoint = rayDirection * coneflatdistances.x + rayOrigin;
+	vec3 ExitPoint =  rayDirection * coneflatdistances.y + rayOrigin;
+	
+	int maxSteps = 6;
+	vec3 stepVec = rayDirection * ( coneflatdistances.y  - coneflatdistances.x) / maxSteps;
+	
+	float cosTheta = sqrt(ConeHeighSqr / CapeLengthSqr);
+	float oneminuscosThetainv = 1.0 / (1.0 - cosTheta);
+	float ConeHeighSqrInv = 1.0 / ConeHeighSqr;
+	float scatterSum = 0;
+	for (int i = 1; i < maxSteps; i++){
+		// step the ray forward 
+		vec3 marchPos = stepVec * i + EntryPoint;
+		
+		
+		float noise = textureLod(noise3DCube, fract(marchPos * 0.01), 0.0).r ;
+		// Calculate the distatten (which is squared)
+		float distatten = clamp((1.0 - dot(marchPos - coneTip, marchPos - coneTip) * ConeHeighSqrInv), 0.0, 1.0);
+		
+		float falloffatten = clamp(1.0 - (1.0-dot(TipToEndN, normalize(marchPos - coneTip)))* oneminuscosThetainv, 0.0,1.0);
+		scatterSum += distatten*falloffatten * noise ;
+	}
+	scatterSum = scatterSum / (maxSteps - 1 );
+
+	return vec4(1000* scatterSum);
+	
+	
+	
+	return vec4(1000*angleEntryExit);
 	
 	
 	
