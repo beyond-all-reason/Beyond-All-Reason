@@ -102,7 +102,10 @@ function gadget:RecvLuaMsg(msg, playerID)
 			opts = opts[2]
 			timeout = timeout[2]
 			unit = unit[2]
-
+			if not Spring.ValidUnitID ( id )  then
+				Spring.Echo('ST RECEIVEDGOTS ID INVALID','name',self.type:Name(),'id',id,'cmd',cmd)
+				return
+			end
 			if string.split(pos,',') then
 				pos = string.split(pos,',')
 				if not pos[1] or pos[1] == '' then
