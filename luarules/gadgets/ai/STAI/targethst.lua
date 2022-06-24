@@ -384,9 +384,9 @@ function TargetHST:perifericalTarget()
 	local distX = 0
 	local distZ = 0
 	local distXZ = 0
-	local tgX = 0
-	local tgZ = 0
-	local tgXZ = 0
+	local tgX = nil
+	local tgZ = nil
+	local tgXZ = nil
 	for i, G in pairs(self.ENEMYCELLS) do
 		local cell = self.CELLS[G.x][G.z]
 		if cell.IM < 0 then

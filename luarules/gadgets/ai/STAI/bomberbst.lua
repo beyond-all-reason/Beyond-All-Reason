@@ -95,16 +95,16 @@ end
 
 function BomberBST:BombPosition(position)
 	self:EchoDebug("bomb position")
-	local floats = api.vectorFloat()
-	-- populate with x, y, z of the position
-	floats:push_back(position.x)
-	floats:push_back(position.y)
-	floats:push_back(position.z)
+-- 	local floats = api.vectorFloat()
+-- 	-- populate with x, y, z of the position
+-- 	floats:push_back(position.x)
+-- 	floats:push_back(position.y)
+-- 	floats:push_back(position.z)
 	self.unit:Internal():Attack(position,20) -- TEST
 end
 
 function BomberBST:FollowPathToTarget(path, targetUnit)
-
+	--[[
 	self:EchoDebug("follow path to target")
 	-- self.unit:Internal():Move(path[2].position)
 -- 	local optFloats = api.vectorFloat()
@@ -122,16 +122,17 @@ function BomberBST:FollowPathToTarget(path, targetUnit)
 -- 				floats:push_back(cmdPos.y)
 -- 				floats:push_back(cmdPos.z)
 				-- self.unit:Internal():ExecuteCustomCommand(CMD_INSERT, floats, optFloats)
-				self.unit:Internal():Move({cmdPos.x,cmdPos.y,cmdPos.z})
+				self.unit:Internal():Move(cmdPos)
 				--self.unit:Internal():ExecuteCustomCommand(CMD_MOVE, floats, {"shift"})
 				secondMoved = true
 			else
-				self.unit:Internal():Move({cmdPos.x,cmdPos.y,cmdPos.z})
+				self.unit:Internal():Move(cmdPos)
 				firstMoved = true
 			end
 		end
 	end
 	self.unit:Internal():Attack(targetUnit,20)--TODO set this better
+	]]
 end
 
 function BomberBST:BombUnit(targetUnit)
