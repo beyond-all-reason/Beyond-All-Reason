@@ -175,6 +175,8 @@ widget:ViewResize()
 local shaderConfig = {
 	TRANSPARENCY = 0.2, 
 	MIERAYLEIGHRATIO = 0.1,
+	RAYMARCHSTEPS = 4, -- must be at least one
+	USE3DNOISE = 1,
 }
 
 local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
@@ -667,7 +669,7 @@ function widget:Initialize()
 	end 
 	
 	math.randomseed(1)
-	for i=1, 500 do AddRandomLight(	math.random()) end 
+	for i=1, 2000 do AddRandomLight(	math.random()) end 
 end
 
 function widget:Shutdown()
@@ -882,13 +884,11 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		end
 		if beamLightVBO.usedElements > 0 then
 			deferredLightShader:SetUniformFloat("pointbeamcone", 1)
-			--beamLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, beamLightVBO.usedElements, 0)
+			beamLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, beamLightVBO.usedElements, 0)
 		end
 		if coneLightVBO.usedElements > 0 then
 			deferredLightShader:SetUniformFloat("pointbeamcone", 2)
-			--gl.Culling(GL.FRONT) -- cones are flipped?
 			coneLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, coneLightVBO.usedElements, 0)
-			--gl.Culling(GL.BACK)
 		end
 		deferredLightShader:Deactivate()
 		
