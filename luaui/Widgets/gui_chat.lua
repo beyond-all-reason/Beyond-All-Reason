@@ -71,7 +71,7 @@ local colorAlly = {0,1,0}
 local colorSpec = {1,1,0}
 local colorOtherAlly = {1,0.7,0.45} -- enemy ally messages (seen only when spectating)
 local colorGame = {0.4,1,1} -- server (autohost) chat
-local colorConsole = {0.88,0.88,0.88}
+local colorConsole = {0.87,0.87,0.87}
 
 local chatSeparator = '\255\210\210\210:'
 local pointSeparator = '\255\255\255\255*'
@@ -1752,8 +1752,12 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 			color = '\255\255\195\175'
 		elseif sfind(line,'Failed to load', nil, true) then
 			color = '\255\200\200\255'
-		elseif sfind(line,'Loaded ', nil, true) or sfind(line,'Loading ', nil, true) then
+		elseif sfind(line,'Loaded ', nil, true) or sfind(line,'Loading ', nil, true) or sfind(line,'Loading: ', nil, true) then
 			color = '\255\200\255\200'
+		elseif sfind(line,'Removed: ', nil, true) then
+			color = '\255\255\210\200'
+		elseif sfind(line,'paused the game', nil, true) then
+			color = '\255\255\255\255'
 		end
 		line = convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..color..line
 	end
