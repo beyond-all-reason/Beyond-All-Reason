@@ -1084,8 +1084,10 @@ if gadgetHandler:IsSyncedCode() then
 		local SpawnQueueUnitList = {}
 		local spawnQueueCount = #spawnQueue
 		for i = 1, spawnQueueCount do
-			local unitName = spawnQueue[i].unitName
-			SpawnQueueUnitList[unitName] = true
+			if spawnQueue[i] and spawnQueue[i].unitName then
+				local unitName = spawnQueue[i].unitName
+				SpawnQueueUnitList[unitName] = true
+			end
 		end
 		local ChickenMinTable = config.chickenMinTable
 		for i = 1,#ChickenMinTable do
