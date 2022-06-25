@@ -991,7 +991,7 @@ local function drawUnitInfo()
 	-- health
 	font2:Print(valueY3, backgroundRect[1] + contentPaddingLeft, posY3 - (fontSize2 * 0.31), fontSize2, "o")
 	font2:End()
-	
+
 	cellRect = nil
 
 	-- draw unit buildoption icons
@@ -1435,6 +1435,13 @@ function widget:MouseRelease(x, y, button)
 							if cmdQueue[1] then
 								if cmdQueue[#cmdQueue] and cmdQueue[#cmdQueue].id == CMD.MOVE and cmdQueue[#cmdQueue].params[3] then
 									x, z = cmdQueue[#cmdQueue].params[1], cmdQueue[#cmdQueue].params[3]
+									-- remove the last move command (to replace it with the unload cmd after)
+									Spring.GiveOrderToUnit(displayUnitID, CMD.STOP, {}, 0)
+									for c = 1, #cmdQueue do
+										if c < #cmdQueue then
+											Spring.GiveOrderToUnit(displayUnitID, cmdQueue[c].id, cmdQueue[c].params, { "shift" })
+										end
+									end
 								end
 							end
 						end
