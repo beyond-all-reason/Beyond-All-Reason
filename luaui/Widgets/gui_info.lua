@@ -1044,8 +1044,56 @@ local function drawUnitInfo()
 		end
 		glTexture(false)
 		glColor(1, 1, 1, 1)
+		
 
+	-- draw transported unit list
+	elseif displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and #Spring.GetUnitIsTransporting(displayUnitID) > 0 then
+		local units = Spring.GetUnitIsTransporting(displayUnitID)
+		if #units > 0 then
+			gridHeight = math_ceil(height * 0.975)
+			local rows = 2
+			local colls = math_ceil(#units / rows)
+			cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
+			if cellsize < gridHeight / 3 then
+				rows = 3
+				colls = math_ceil(#units / rows)
+				cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
+			end
 
+			-- draw grid (bottom right to top left)
+			local cellID = #units
+			cellPadding = math_floor((cellsize * 0.022) + 0.5)
+			cornerSize = math_max(1, cellPadding * 0.9)
+			cellRect = {}
+			for row = 1, rows do
+				for coll = 1, colls do
+					if units[cellID] then
+						local uDefID = spGetUnitDefID(units[cellID])
+						cellRect[cellID] = { math_floor(customInfoArea[3] - cellPadding - (coll * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row - 1) * cellsize)), math_floor(customInfoArea[3] - cellPadding - ((coll - 1) * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row) * cellsize)) }
+						UiUnit(
+							cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4],
+							cellPadding * 1.3,
+							1, 1, 1, 1,
+							0.1,
+							nil, nil,
+							"#"..uDefID,
+							((unitDefInfo[uDefID].iconType and iconTypesMap[unitDefInfo[uDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[uDefID].iconType] or nil),
+							groups[unitGroup[uDefID]],
+							{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}
+						)
+					end
+					cellID = cellID - 1
+					if cellID <= 0 then
+						break
+					end
+				end
+				if cellID <= 0 then
+					break
+				end
+			end
+			glTexture(false)
+			glColor(1, 1, 1, 1)
+		end
 	else
 		-- unit/unitdef info (without buildoptions)
 
@@ -1232,56 +1280,6 @@ local function drawUnitInfo()
 		font:Print(text, customInfoArea[3] - width + (bgpadding*2.4), customInfoArea[4] - contentPadding - (infoFontsize * 0.55), infoFontsize, "o")
 		font:End()
 
-	end
-
-	-- draw transported unit list
-	if displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport then
-		local units = Spring.GetUnitIsTransporting (displayUnitID)
-		if #units > 0 then
-			gridHeight = math_ceil(height * 0.975)
-			local rows = 2
-			local colls = math_ceil(#units / rows)
-			cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
-			if cellsize < gridHeight / 3 then
-				rows = 3
-				colls = math_ceil(#units / rows)
-				cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
-			end
-
-			-- draw grid (bottom right to top left)
-			local cellID = #units
-			cellPadding = math_floor((cellsize * 0.022) + 0.5)
-			cornerSize = math_max(1, cellPadding * 0.9)
-			cellRect = {}
-			for row = 1, rows do
-				for coll = 1, colls do
-					if units[cellID] then
-						local uDefID = spGetUnitDefID(units[cellID])
-						cellRect[cellID] = { math_floor(customInfoArea[3] - cellPadding - (coll * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row - 1) * cellsize)), math_floor(customInfoArea[3] - cellPadding - ((coll - 1) * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row) * cellsize)) }
-						UiUnit(
-							cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4],
-							cellPadding * 1.3,
-							1, 1, 1, 1,
-							0.1,
-							nil, nil,
-							"#"..uDefID,
-							((unitDefInfo[uDefID].iconType and iconTypesMap[unitDefInfo[uDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[uDefID].iconType] or nil),
-							groups[unitGroup[uDefID]],
-							{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}
-						)
-					end
-					cellID = cellID - 1
-					if cellID <= 0 then
-						break
-					end
-				end
-				if cellID <= 0 then
-					break
-				end
-			end
-			glTexture(false)
-			glColor(1, 1, 1, 1)
-		end
 	end
 end
 
@@ -1566,14 +1564,14 @@ function widget:DrawScreen()
 						local color = { 1, 1, 1 }
 						if b then
 							cellZoom = clickCellZoom
-							color = { 0.8, 0.8, 0.3 }
+							color = { 1, 0.85, 0.1 }
 						end
 						cellZoom = cellZoom + math_min(0.33 * cellZoom * ((gridHeight / cellsize) - 2), 0.15) -- add extra zoom when small icons
 
 						-- highlight
 						glBlending(GL_SRC_ALPHA, GL_ONE)
-						if b or b2 or b3 then
-							RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding * 0.9, 1, 1, 1, 1, { color[1], color[2], color[3], (b or b2 or b3) and 0.4 or 0.2 }, { color[1], color[2], color[3], (b or b2 or b3) and 0.07 or 0.04 })
+						if b then
+							RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding * 0.9, 1, 1, 1, 1, { color[1], color[2], color[3], 0.3 }, { color[1], color[2], color[3], 0.3 })
 						else
 							RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding * 0.9, 1, 1, 1, 1, { 1,1,1, 0.08}, { 1,1,1, 0.08})
 						end
