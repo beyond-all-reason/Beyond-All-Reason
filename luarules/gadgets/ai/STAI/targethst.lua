@@ -8,8 +8,6 @@ function TargetHST:internalName()
 	return "targethst"
 end
 
-local DebugDrawEnabled = false
-
 local cellElmos = 256
 local cellElmosHalf = cellElmos / 2
 
