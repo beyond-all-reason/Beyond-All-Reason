@@ -890,11 +890,6 @@ local function drawUnitInfo()
 		end
 	end
 
-	--if displayUnitID and unitDefInfo[displayUnitDefID].transport then
-	--
-	--
-	--end
-
 	local unitNameColor = '\255\205\255\205'
 	if SelectedUnitsCount > 0 then
 		if not displayMode == 'unitdef' or (WG['buildmenu'] and (WG['buildmenu'].selectedID and (not WG['buildmenu'].hoverID or (WG['buildmenu'].selectedID == WG['buildmenu'].hoverID)))) then
@@ -999,10 +994,10 @@ local function drawUnitInfo()
 
 	-- draw unit buildoption icons
 	if displayMode == 'unitdef' and showBuilderBuildlist and unitDefInfo[displayUnitDefID].buildOptions then
-		local gridHeight = math_ceil(height * 0.975)
+		gridHeight = math_ceil(height * 0.975)
 		local rows = 2
 		local colls = math_ceil(#unitDefInfo[displayUnitDefID].buildOptions / rows)
-		local cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
+		cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
 		if cellsize < gridHeight / 3 then
 			rows = 3
 			colls = math_ceil(#unitDefInfo[displayUnitDefID].buildOptions / rows)
@@ -1237,14 +1232,14 @@ local function drawUnitInfo()
 
 	end
 
-	-- draw transported unitlist
+	-- draw transported unit list
 	if displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport then
 		local units = Spring.GetUnitIsTransporting (displayUnitID)
 		if #units > 0 then
-			local gridHeight = math_ceil(height * 0.975)
+			gridHeight = math_ceil(height * 0.975)
 			local rows = 2
 			local colls = math_ceil(#units / rows)
-			local cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
+			cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
 			if cellsize < gridHeight / 3 then
 				rows = 3
 				colls = math_ceil(#units / rows)
@@ -1254,24 +1249,19 @@ local function drawUnitInfo()
 			-- draw grid (bottom right to top left)
 			local cellID = #units
 			cellPadding = math_floor((cellsize * 0.022) + 0.5)
+			cornerSize = math_max(1, cellPadding * 0.9)
 			cellRect = {}
 			for row = 1, rows do
 				for coll = 1, colls do
 					if units[cellID] then
 						local uDefID = spGetUnitDefID(units[cellID])
 						cellRect[cellID] = { math_floor(customInfoArea[3] - cellPadding - (coll * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row - 1) * cellsize)), math_floor(customInfoArea[3] - cellPadding - ((coll - 1) * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row) * cellsize)) }
-						local disabled = (unitRestricted[uDefID] or unitDisabled[uDefID])
-						if disabled then
-							glColor(0.4, 0.4, 0.4, 1)
-						else
-							glColor(1,1,1,1)
-						end
 						UiUnit(
 							cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4],
 							cellPadding * 1.3,
 							1, 1, 1, 1,
 							0.1,
-							nil, disabled and 0 or nil,
+							nil, nil,
 							"#"..uDefID,
 							((unitDefInfo[uDefID].iconType and iconTypesMap[unitDefInfo[uDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[uDefID].iconType] or nil),
 							groups[unitGroup[uDefID]],
@@ -1397,8 +1387,11 @@ function widget:MouseRelease(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	if displayMode and displayMode == 'selection' and customInfoArea and math_isInRect(x, y, customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4]) then
-		if selectionCells and selectionCells[1] and cellRect then
+
+	if displayMode and customInfoArea and math_isInRect(x, y, customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4]) then
+
+		-- selection
+		if displayMode == 'selection' and selectionCells and selectionCells[1] and cellRect then
 			for cellID, unitDefID in pairs(selectionCells) do
 				if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
 					local unitTable = nil
@@ -1425,8 +1418,35 @@ function widget:MouseRelease(x, y, button)
 				end
 			end
 		end
-	end
 
+		-- transported unit list
+		if displayMode == 'unit' and button == 1 then
+			local units = Spring.GetUnitIsTransporting(displayUnitID)
+			if #units > 0 then
+				for cellID, unitID in pairs(units) do
+					local unitDefID = spGetUnitDefID(unitID)
+					if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
+						local x,y,z
+						local alt, ctrl, meta, shift = spGetModKeyState()
+						if shift then
+							local cmdQueue = Spring.GetCommandQueue(displayUnitID, 35) or {}
+							if cmdQueue[1] then
+								if cmdQueue[#cmdQueue] and cmdQueue[#cmdQueue].id == CMD.MOVE and cmdQueue[#cmdQueue].params[3] then
+									x, z = cmdQueue[#cmdQueue].params[1], cmdQueue[#cmdQueue].params[3]
+								end
+							end
+						else
+							x,y,z = Spring.GetUnitPosition(displayUnitID)
+						end
+						y = Spring.GetGroundHeight(x, z)
+						-- TODO: unload position can be blocked and then this cmd will fail
+						Spring.GiveOrderToUnit(displayUnitID, CMD.UNLOAD_UNIT, { x, y, z, unitID }, {shift and "shift"})
+						return -1
+					end
+				end
+			end
+		end
+	end
 	return -1
 end
 
@@ -1523,8 +1543,50 @@ function widget:DrawScreen()
 
 				WG['tooltip'].ShowTooltip('info', text)
 			end
+		end
 
+		-- transport load list
+		if b == 1 and displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and cellRect then
+			local units = Spring.GetUnitIsTransporting(displayUnitID)
+			if #units > 0 then
+				local cellHovered
+				for cellID, unitDefID in pairs(units) do
+					local unitID = unitDefID
+					unitDefID = spGetUnitDefID(unitID)
 
+					if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
+
+						local cellZoom = hoverCellZoom
+						local color = { 1, 1, 1 }
+						if b or b2 or b3 then
+							cellZoom = clickCellZoom
+							color = { 0.8, 0.8, 0.3 }
+						end
+						cellZoom = cellZoom + math_min(0.33 * cellZoom * ((gridHeight / cellsize) - 2), 0.15) -- add extra zoom when small icons
+
+						-- highlight
+						glBlending(GL_SRC_ALPHA, GL_ONE)
+						if b or b2 or b3 then
+							RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding * 0.9, 1, 1, 1, 1, { color[1], color[2], color[3], (b or b2 or b3) and 0.4 or 0.2 }, { color[1], color[2], color[3], (b or b2 or b3) and 0.07 or 0.04 })
+						else
+							RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding * 0.9, 1, 1, 1, 1, { 1,1,1, 0.08}, { 1,1,1, 0.08})
+						end
+						-- light border
+						local halfSize = (((cellRect[cellID][3] - cellPadding)) - (cellRect[cellID][1])) * 0.5
+						glBlending(GL_SRC_ALPHA, GL_ONE)
+						RectRoundCircle(
+							cellRect[cellID][1] + cellPadding + halfSize,
+							0,
+							cellRect[cellID][2] + cellPadding + halfSize,
+							halfSize, cornerSize, halfSize - math_max(1, cellPadding), { 1,1,1, 0.07}, { 1,1,1, 0.07}
+						)
+						glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+						cellHovered = cellID
+						break
+					end
+				end
+			end
 		elseif displayMode == 'unit' then
 
 			if WG['unitstats'] and WG['unitstats'].showUnit then

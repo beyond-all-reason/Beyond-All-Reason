@@ -1753,15 +1753,15 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 		end
 
 		local color = ''
-		if sfind(line,'Error: ', nil, true) then
+		if sfind(line,'Error', nil, true) then
 			color = '\255\255\133\133'
-		elseif sfind(line,'Warning: ', nil, true) then
+		elseif sfind(line,'Warning', nil, true) then
 			color = '\255\255\190\170'
 		elseif sfind(line,'Failed to load', nil, true) then
 			color = '\255\200\200\255'
 		elseif sfind(line,'Loaded ', nil, true) or sfind(ssub(line, 1, 25),'Loading ', nil, true) or sfind(ssub(line, 1, 25),'Loading: ', nil, true) then
 			color = '\255\200\255\200'
-		elseif sfind(line,'Removed: ', nil, true) then
+		elseif sfind(line,'Removed: ', nil, true) or  sfind(line,'Removed widget: ', nil, true) then
 			color = '\255\255\230\200'
 		elseif sfind(line,'paused the game', nil, true) then
 			color = '\255\255\255\255'
