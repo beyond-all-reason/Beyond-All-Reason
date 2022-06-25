@@ -230,6 +230,9 @@ function actionHandler:KeyAction(press, key, mods, isRepeat, scanCode)
 
   if scanCode then -- engine supports scancodes
     local scanset = MakeKeySetString(scanCode, mods, Spring.GetScanSymbol)
+    if string.sub(scanset, 1, 2) == '0x' then
+      scanset = '0x000' -- TODO: Remove this when/if https://github.com/beyond-all-reason/spring/issues/309 is fixed
+    end
     defBinds = Spring.GetKeyBindings(keyset, scanset)
   else
     defBinds = Spring.GetKeyBindings(keyset)
