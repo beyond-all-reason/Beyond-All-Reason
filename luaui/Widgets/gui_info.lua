@@ -1426,7 +1426,7 @@ function widget:MouseRelease(x, y, button)
 				for cellID, unitID in pairs(units) do
 					local unitDefID = spGetUnitDefID(unitID)
 					if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
-						local x,y,z
+						local x,y,z = Spring.GetUnitPosition(displayUnitID)
 						local alt, ctrl, meta, shift = spGetModKeyState()
 						if shift then
 							local cmdQueue = Spring.GetCommandQueue(displayUnitID, 35) or {}
@@ -1435,8 +1435,6 @@ function widget:MouseRelease(x, y, button)
 									x, z = cmdQueue[#cmdQueue].params[1], cmdQueue[#cmdQueue].params[3]
 								end
 							end
-						else
-							x,y,z = Spring.GetUnitPosition(displayUnitID)
 						end
 						y = Spring.GetGroundHeight(x, z)
 						-- TODO: unload position can be blocked and then this cmd will fail
