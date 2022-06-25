@@ -1236,6 +1236,61 @@ local function drawUnitInfo()
 		font:End()
 
 	end
+
+	-- draw transported unitlist
+	if displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport then
+		local units = Spring.GetUnitIsTransporting (displayUnitID)
+		if #units > 0 then
+			local gridHeight = math_ceil(height * 0.975)
+			local rows = 2
+			local colls = math_ceil(#units / rows)
+			local cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
+			if cellsize < gridHeight / 3 then
+				rows = 3
+				colls = math_ceil(#units / rows)
+				cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
+			end
+
+			-- draw grid (bottom right to top left)
+			local cellID = #units
+			cellPadding = math_floor((cellsize * 0.022) + 0.5)
+			cellRect = {}
+			for row = 1, rows do
+				for coll = 1, colls do
+					if units[cellID] then
+						local uDefID = spGetUnitDefID(units[cellID])
+						cellRect[cellID] = { math_floor(customInfoArea[3] - cellPadding - (coll * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row - 1) * cellsize)), math_floor(customInfoArea[3] - cellPadding - ((coll - 1) * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row) * cellsize)) }
+						local disabled = (unitRestricted[uDefID] or unitDisabled[uDefID])
+						if disabled then
+							glColor(0.4, 0.4, 0.4, 1)
+						else
+							glColor(1,1,1,1)
+						end
+						UiUnit(
+							cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4],
+							cellPadding * 1.3,
+							1, 1, 1, 1,
+							0.1,
+							nil, disabled and 0 or nil,
+							"#"..uDefID,
+							((unitDefInfo[uDefID].iconType and iconTypesMap[unitDefInfo[uDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[uDefID].iconType] or nil),
+							groups[unitGroup[uDefID]],
+							{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}
+						)
+					end
+					cellID = cellID - 1
+					if cellID <= 0 then
+						break
+					end
+				end
+				if cellID <= 0 then
+					break
+				end
+			end
+			glTexture(false)
+			glColor(1, 1, 1, 1)
+		end
+	end
 end
 
 local function drawEngineTooltip()
