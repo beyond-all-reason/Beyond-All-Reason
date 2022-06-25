@@ -433,7 +433,8 @@
 				"everyone": "everyone",
 				"allies": "allies",
 				"spectators": "spectators",
-				"cmd": "COMMAND"
+				"cmd": "COMMAND",
+				"nohistory": "No chat history"
 			},
 			"teamStats": {
 				"player": "Player",

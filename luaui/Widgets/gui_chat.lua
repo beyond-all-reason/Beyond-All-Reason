@@ -71,7 +71,7 @@ local colorAlly = {0,1,0}
 local colorSpec = {1,1,0}
 local colorOtherAlly = {1,0.7,0.45} -- enemy ally messages (seen only when spectating)
 local colorGame = {0.4,1,1} -- server (autohost) chat
-local colorConsole = {0.87,0.87,0.87}
+local colorConsole = {0.85,0.85,0.85}
 
 local chatSeparator = '\255\210\210\210:'
 local pointSeparator = '\255\255\255\255*'
@@ -1166,6 +1166,12 @@ function widget:DrawScreen()
 
 	-- draw chat lines or chat/console ui panel
 	if historyMode or chatLines[currentChatLine] then
+		if #chatLines == 0 and historyMode == 'chat' then
+			font:Begin()
+			font:SetTextColor(0.35,0.35,0.35,0.66)
+			font:Print(Spring.I18N('ui.chat.nohistory'), activationArea[1]+(activationArea[3]-activationArea[1])/2, activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize*1.1, "c")
+			font:End()
+		end
 		local checkedLines = 0
 		if not historyMode then
 			displayedChatLines = 0
@@ -1559,6 +1565,7 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 	local roster = spGetPlayerRoster()
 	local names = {}
 	for i=1, #roster do
+		-- [playername] = {allyTeamID, isSpec, teamID, playerID}
 		names[roster[i][1]] = {roster[i][4],roster[i][5],roster[i][3],roster[i][2]}
 	end
 
@@ -1749,15 +1756,28 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 		if sfind(line,'Error: ', nil, true) then
 			color = '\255\255\133\133'
 		elseif sfind(line,'Warning: ', nil, true) then
-			color = '\255\255\195\175'
+			color = '\255\255\190\170'
 		elseif sfind(line,'Failed to load', nil, true) then
 			color = '\255\200\200\255'
-		elseif sfind(line,'Loaded ', nil, true) or sfind(line,'Loading ', nil, true) or sfind(line,'Loading: ', nil, true) then
+		elseif sfind(line,'Loaded ', nil, true) or sfind(ssub(line, 1, 25),'Loading ', nil, true) or sfind(ssub(line, 1, 25),'Loading: ', nil, true) then
 			color = '\255\200\255\200'
 		elseif sfind(line,'Removed: ', nil, true) then
-			color = '\255\255\210\200'
+			color = '\255\255\230\200'
 		elseif sfind(line,'paused the game', nil, true) then
 			color = '\255\255\255\255'
+		elseif sfind(line,'Connection attempt from ', nil, true) then
+			color = '\255\255\255\255'
+			local playername = ssub(line, sfind(line, 'Connection attempt from ')+24)
+			line = 'Connection attempt from: '
+			if names[playername] then
+				if  not names[playername][2] then
+					line = line..convertColor(spGetTeamColor(names[playername][3]))..playername
+				else
+					line = line..'(spectator) '..convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..playername
+				end
+			else
+				line = line..playername
+			end
 		end
 		line = convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..color..line
 	end
@@ -1774,7 +1794,6 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 	-- ignore muted players
 	if ignoredPlayers[name] then
 		skipThisMessage = true
-		--bypassThisMessage = true
 	end
 
 	if not bypassThisMessage and line ~= '' then
@@ -1937,6 +1956,10 @@ function widget:Shutdown()
 		WG['guishader'].RemoveRect('chatinput')
 		WG['guishader'].RemoveRect('chatinputautocomplete')
 	end
+end
+
+function widget:GameStart()
+	widget:ViewResize()	-- refresh so playername have their associated colors applied in the history lines too
 end
 
 function widget:GameOver()
