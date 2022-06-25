@@ -1044,7 +1044,7 @@ local function drawUnitInfo()
 		end
 		glTexture(false)
 		glColor(1, 1, 1, 1)
-		
+
 
 	-- draw transported unit list
 	elseif displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and #Spring.GetUnitIsTransporting(displayUnitID) > 0 then

@@ -2078,12 +2078,6 @@ function init()
 		  end,
 		},
 
-		{ id = "unitRotation", group = "gfx", category = types.advanced, name = texts.option.unitrotation, min = 0, max = 10, step = 1, type = "slider", value = tonumber(Spring.GetConfigInt("unitRotation", 0)), description = texts.option.unitrotation_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("unitRotation", value)
-		  end
-		},
-
 		{ id = "unitScale", group = "gfx", category = types.dev, name = "Unit Scale", min = 0.85, max = 1, step = 0.01, type = "slider", value = tonumber(Spring.GetConfigFloat("unitScale", 1)),
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("unitScale", value)

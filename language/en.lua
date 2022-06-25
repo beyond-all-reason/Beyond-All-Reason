@@ -182,8 +182,6 @@ return {
 			ssao_strength = 'strength',
 			ssao_quality = 'quality',
 			ssao_quality_descr = 'Lower qualities have lower SSAO resolution which can result in SSAO flicker for moving units/camera',
-			unitrotation = 'Building rotation',
-			unitrotation_descr = 'Rotate all buildings randomly (in degrees) ',
 			bloomdeferred = 'Bloom',
 			bloomdeferred_descr = 'Unit highlights and lights will glow.',
 			bloomdeferredbrightness = 'brightness',
