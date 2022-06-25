@@ -991,6 +991,8 @@ local function drawUnitInfo()
 	-- health
 	font2:Print(valueY3, backgroundRect[1] + contentPaddingLeft, posY3 - (fontSize2 * 0.31), fontSize2, "o")
 	font2:End()
+	
+	cellRect = nil
 
 	-- draw unit buildoption icons
 	if displayMode == 'unitdef' and showBuilderBuildlist and unitDefInfo[displayUnitDefID].buildOptions then
@@ -1544,19 +1546,18 @@ function widget:DrawScreen()
 		end
 
 		-- transport load list
-		if b == 1 and displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and cellRect then
+		if displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and cellRect then
 			local units = Spring.GetUnitIsTransporting(displayUnitID)
 			if #units > 0 then
 				local cellHovered
-				for cellID, unitDefID in pairs(units) do
-					local unitID = unitDefID
-					unitDefID = spGetUnitDefID(unitID)
+				for cellID, unitID in pairs(units) do
+					local unitDefID = spGetUnitDefID(unitID)
 
 					if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
 
 						local cellZoom = hoverCellZoom
 						local color = { 1, 1, 1 }
-						if b or b2 or b3 then
+						if b then
 							cellZoom = clickCellZoom
 							color = { 0.8, 0.8, 0.3 }
 						end
