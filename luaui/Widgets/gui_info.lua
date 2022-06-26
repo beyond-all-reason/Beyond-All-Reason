@@ -1389,10 +1389,10 @@ local function unloadTransport(transportID, unitID, x, z, shift, depth)
 	if not depth then
 		depth = 1
 	end
-	local radius = 36 * depth
+	local radius = 20 * depth
 	local orgX, orgZ = x, z
 	local y = Spring.GetGroundHeight(x, z)
-	local unitSphereRadius = 25
+	local unitSphereRadius = 60	-- too low value will result in unload conflicts
 	local areaUnits = Spring.GetUnitsInSphere(x, y, z, unitSphereRadius)
 	if #areaUnits == 0 then	-- unblocked spot!
 		Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, { x, y, z, unitID }, {shift and "shift"})
@@ -1418,7 +1418,7 @@ local function unloadTransport(transportID, unitID, x, z, shift, depth)
 			end
 		end
 		-- try again with increased radius
-		if not foundUnloadSpot and depth < 7 then	-- limit depth for safety
+		if not foundUnloadSpot and depth < 15 then	-- limit depth for safety
 			unloadTransport(transportID, unitID, orgX, orgZ, shift, depth+1)
 		end
 	end
