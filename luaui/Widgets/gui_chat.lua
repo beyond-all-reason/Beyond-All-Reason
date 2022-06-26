@@ -1728,6 +1728,8 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 			bypassThisMessage = true
 		elseif sfind(line,"liblobby]", nil, true) then
 			bypassThisMessage = true
+		elseif sfind(line,"[LuaMenu", nil, true) then
+			bypassThisMessage = true
 		elseif sfind(line,"ClientMessage]", nil, true) then
 			bypassThisMessage = true
 		elseif sfind(line,"ServerMessage]", nil, true) then

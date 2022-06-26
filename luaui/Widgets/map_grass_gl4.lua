@@ -584,14 +584,12 @@ local function adjustGrass(px, pz, radius, multiplier)
 end
 
 local function adjustUnitGrass(unitID, multiplier)
-	if not buildingRadius[unitID] then
-		return
-	end
-	--local unitDefID = spGetUnitDefID(unitID)
-	--local facing = Spring.GetBuildFacing(unitID)
 	local radius
 	if not unitGrassRemovedHistory[unitID] then
 		local unitDefID = spGetUnitDefID(unitID)
+		if not buildingRadius[unitDefID] then
+			return
+		end
 		radius = buildingRadius[unitDefID]*1.7	-- enlarge radius so it can gradually diminish in size more
 		local px,_,pz = Spring.GetUnitPosition(unitID)
 		unitGrassRemovedHistory[unitID] = {px, pz, unitDefID, radius, multiplier or 1, 0}
