@@ -584,6 +584,9 @@ local function adjustGrass(px, pz, radius, multiplier)
 end
 
 local function adjustUnitGrass(unitID, multiplier)
+	if not buildingRadius[unitID] then
+		return
+	end
 	--local unitDefID = spGetUnitDefID(unitID)
 	--local facing = Spring.GetBuildFacing(unitID)
 	local radius
