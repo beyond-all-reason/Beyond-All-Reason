@@ -1383,6 +1383,47 @@ function widget:MousePress(x, y, button)
 	end
 end
 
+-- makes sure it gets unloaded at a free spot
+local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
+local function unloadTransport(transportID, unitID, x, z, shift, i)
+	if not i then
+		i = 1
+	end
+	local radius = 45 * i
+	local orgX, orgZ = x, z
+	local y = Spring.GetGroundHeight(x, z)
+	local areaUnits = Spring.GetUnitsInSphere(x, y, z, 36)
+	if #areaUnits == 0 then	-- unblocked spot!
+		Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, { x, y, z, unitID }, {shift and "shift"})
+	else
+		-- unload is blocked by unit at ground just lets find free alternative spot in a radius around it
+		local samples = 8
+		local sideAngle = (math.pi * 2) / samples
+		local foundUnloadSpot = false
+		for i = 1, samples + 1 do
+			x = x + (radius * math.cos(i * sideAngle))
+			z = z + (radius * math.sin(i * sideAngle))
+			if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ then
+				y = Spring.GetGroundHeight(x, z)
+				areaUnits = Spring.GetUnitsInSphere(x, y, z, 36)
+				if #areaUnits == 0 then	-- unblocked spot!
+					local areaFeatures = Spring.GetFeaturesInSphere(x, y, z, 36)
+					if #areaFeatures == 0 then
+						Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, { x, y, z, unitID }, {shift and "shift"})
+						foundUnloadSpot = true
+						break
+					end
+				end
+			end
+		end
+		-- try again with increased radius
+		if not foundUnloadSpot and i < 5 then	-- limit depth for safety
+			unloadTransport(transportID, unitID, orgX, orgZ, shift, i+1)
+		end
+	end
+end
+
+
 function widget:MouseRelease(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
@@ -1443,9 +1484,7 @@ function widget:MouseRelease(x, y, button)
 								end
 							end
 						end
-						y = Spring.GetGroundHeight(x, z)
-						-- TODO: unload position can be blocked and then this cmd will fail
-						Spring.GiveOrderToUnit(displayUnitID, CMD.UNLOAD_UNIT, { x, y, z, unitID }, {shift and "shift"})
+						unloadTransport(displayUnitID, unitID, math_floor(x), math_floor(z), shift)
 						return -1
 					end
 				end
