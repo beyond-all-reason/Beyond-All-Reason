@@ -108,6 +108,7 @@ local shaderConfig = {
 	USE_CIRCLES = 1, -- set to nil if you dont want circles
 	USE_CORNERRECT = 1, -- set to nil if you dont want cornerrect
 	FULL_ROTATION = 0, -- the primitive is fully rotated in the units plane
+	LOSDARKNESS = 0.7	,
 }
 
 ---- GL4 Backend Stuff----
@@ -294,7 +295,7 @@ function widget:DrawWorldPreUnit()
 		decalVBO.VAO:DrawArrays(GL.POINTS, decalVBO.usedElements)
 		decalShader:Deactivate()
 		for i = 0, 8 do glTexture(i, false) end
-		glCulling(GL.BACK)
+		glCulling(GL.BACK) -- This is the correct default mode! 
 		glDepthTest(GL_LEQUAL)
 		gl.DepthMask(false)
 		

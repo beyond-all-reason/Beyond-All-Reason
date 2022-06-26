@@ -21,7 +21,7 @@ in DataGS {
 	mat3 tbnmatrix; // this currently contains the Z-up world-rotated orthogonal coords of each vertex
 	mat3 tbninverse;
 };
-
+uniform sampler2D infoTex;
 uniform sampler2D miniMapTex;
 uniform sampler2D mapNormalsTex;
 uniform sampler2D atlasColorAlpha;
@@ -130,7 +130,13 @@ void main(void)
 	vec3 reflvect = reflect(normalize(1.0 * sunDir.xyz), reorientedNormal);
 	float specular = clamp(pow(clamp(dot(normalize(camtoworld), normalize(reflvect)), 0.0, 1.0), 4.0), 0.0, 1.0) * 0.25;// * shadow;
 	//fragColor.rgb = vec3(specular);
+	
+	vec2 losUV = clamp(g_position.xz, vec2(0.0), mapSize.xy ) / mapSize.zw;
+	float loslevel = dot(vec3(0.33), texture(infoTex, losUV).rgb) ; // lostex is PO2
+	loslevel = clamp(loslevel * 4.0 - 1.0, LOSDARKNESS, 1.0);
+	
 	fragColor.rgb += fragColor.rgb * specular;
+	fragColor.rgb *= loslevel;
 	
 	//fragColor.rgb = tbnmatrix[2] * 0.5 + 0.5;
 	//fragColor.rgb = tangentviewdir.yyy * 0.5 + 0.5;
