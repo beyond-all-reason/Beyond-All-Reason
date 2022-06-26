@@ -176,7 +176,6 @@ widget:ViewResize()
 	-- yeah raymarch is expensive!
 
 local shaderConfig = {
-	TRANSPARENCY = 0.2, 
 	MIERAYLEIGHRATIO = 0.1,
 	RAYMARCHSTEPS = 4, -- must be at least one
 	USE3DNOISE = 1,
@@ -184,15 +183,16 @@ local shaderConfig = {
 
 local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
 
-local coneLightVBO
-local beamLightVBO
-local pointLightVBO
+local coneLightVBO = {}
+local beamLightVBO = {}
+local pointLightVBO = {}
 
-local unitConeLightVBO
-local unitPointLightVBO
+local unitConeLightVBO = {}
+local unitPointLightVBO = {}
+local unitBeamLightVBO = {}
 
-local featureConeLightVBO
-local featurePointLightVBO
+local featureConeLightVBO = {}
+local featurePointLightVBO = {}
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
@@ -201,7 +201,7 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 local deferredLightShader = nil
 
 local function goodbye(reason) 
-	Spring.Echo(reason)
+	Spring.Echo('Exiting', reason)
 	widgetHandler:RemoveWidget()
 end
 
@@ -280,6 +280,16 @@ local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, d
 	return nil
 end
 
+local function createLightInstanceVBO(vboLayout, vertexVBO, numVertices, indexVBO, VBOname, unitIDattribID)
+	local targetLightVBO = makeInstanceVBOTable( vboLayout, 64, VBOname, unitIDattribID)
+	if vertexVBO == nil or targetLightVBO == nil then goodbye("Failed to make "..VBOname) end 
+	targetLightVBO.vertexVBO = vertexVBO
+	targetLightVBO.numVertices = numVertices
+	targetLightVBO.indexVBO = indexVBO
+	targetLightVBO.VAO = makeVAOandAttach(targetLightVBO.vertexVBO, targetLightVBO.instanceVBO, targetLightVBO.indexVBO)
+	return targetLightVBO
+end
+ 
 local function initGL4()
 	-- init the VBO
 	local vboLayout = {
@@ -298,58 +308,24 @@ local function initGL4()
 			{id = 8, name = 'pieceIndex', size = 1, type = GL.UNSIGNED_INT},
 			{id = 9, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 	}
+
+	local pointVBO, numPointVertices, pointIndexVBO, numIndices = makeSphereVBO(8, 8, 1) 
+	pointLightVBO 		= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Point Light VBO")
+	unitPointLightVBO 	= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Unit Point Light VBO", 9)
+	featurePointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Feature Point Light VBO", 9)
 	
 	local coneVBO, numConeVertices = makeConeVBO(16, 1, 1)
-	coneLightVBO = makeInstanceVBOTable( vboLayout, 64, "Cone Light VBO")
-	if coneVBO == nil or coneLightVBO == nil then goodbye("Failed to make VBO") end 
-	coneLightVBO.vertexVBO = coneVBO
-	coneLightVBO.numVertices = numConeVertices
-	coneLightVBO.VAO = makeVAOandAttach(coneLightVBO.vertexVBO, coneLightVBO.instanceVBO)
-	
-	unitConeLightVBO = makeInstanceVBOTable(vboLayout, 64, "Unit Cone Light VBO", 9) -- 9 is the ID of the instData attribute here
-	if coneVBO == nil or unitConeLightVBO == nil then goodbye("Failed to make VBO") end 
-	unitConeLightVBO.vertexVBO = coneVBO
-	unitConeLightVBO.numVertices = numConeVertices
-	unitConeLightVBO.VAO = makeVAOandAttach(unitConeLightVBO.vertexVBO, unitConeLightVBO.instanceVBO)	
-	
-	featureConeLightVBO = makeInstanceVBOTable(vboLayout, 64, "Feature Cone Light VBO", 9) -- 9 is the ID of the instData attribute here
-	if coneVBO == nil or featureConeLightVBO == nil then goodbye("Failed to make VBO") end 
-	featureConeLightVBO.vertexVBO = coneVBO
-	featureConeLightVBO.numVertices = numConeVertices
-	featureConeLightVBO.VAO = makeVAOandAttach(featureConeLightVBO.vertexVBO, featureConeLightVBO.instanceVBO)
-	featureConeLightVBO.featureIDs = true
+	coneLightVBO 		= createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Cone Light VBO")
+	unitConeLightVBO 	= createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Unit Cone Light VBO", 9)
+	featureConeLightVBO = createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Feature Cone Light VBO", 9)
 	
 	local beamVBO, numBeamVertices = makeBoxVBO(-1, -1, -1, 1, 1, 1)
-	beamLightVBO = makeInstanceVBOTable(vboLayout, 64, "Beam Light VBO")
-	if beamVBO == nil or beamLightVBO == nil then goodbye("Failed to make VBO") end 
-	beamLightVBO.vertexVBO = beamVBO
-	beamLightVBO.numVertices = numBeamVertices
-	beamLightVBO.VAO = makeVAOandAttach(beamLightVBO.vertexVBO, beamLightVBO.instanceVBO)
-	
-	local pointVBO, numPointVertices, pointIndexVBO, numIndices = makeSphereVBO(8, 8, 1) 
-	pointLightVBO = makeInstanceVBOTable(vboLayout, 64, "Point Light VBO")
-	if pointVBO == nil or pointLightVBO == nil then goodbye("Failed to make VBO") end 
-	pointLightVBO.vertexVBO = pointVBO
-	pointLightVBO.indexVBO = pointIndexVBO
-	pointLightVBO.VAO = makeVAOandAttach(pointLightVBO.vertexVBO, pointLightVBO.instanceVBO, pointLightVBO.indexVBO)
-	
-
-	unitPointLightVBO = makeInstanceVBOTable(vboLayout, 64, "Unit Point Light VBO", 9 ) -- 9 is the ID of the instData attribute here
-	if pointVBO == nil or unitPointLightVBO == nil then goodbye("Failed to make VBO") end 
-	unitPointLightVBO.vertexVBO = pointVBO
-	unitPointLightVBO.indexVBO = pointIndexVBO
-	unitPointLightVBO.VAO = makeVAOandAttach(unitPointLightVBO.vertexVBO, unitPointLightVBO.instanceVBO, unitPointLightVBO.indexVBO)
-	
-	featurePointLightVBO = makeInstanceVBOTable(vboLayout, 64, "Feature Point Light VBO", 9 ) -- 9 is the ID of the instData attribute here
-	if pointVBO == nil or featurePointLightVBO == nil then goodbye("Failed to make VBO") end 
-	featurePointLightVBO.vertexVBO = pointVBO
-	featurePointLightVBO.indexVBO = pointIndexVBO
-	featurePointLightVBO.VAO = makeVAOandAttach(featurePointLightVBO.vertexVBO, featurePointLightVBO.instanceVBO, featurePointLightVBO.indexVBO)
+	beamLightVBO 		= createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Beam Light VBO")
+	unitBeamLightVBO 	= createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Unit Beam Light VBO", 9)
 	
 	deferredLightShader =  checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4")
 	if not deferredLightShader then goodbye("Failed to compile Deferred Lights GL4 shader") end 
 end
-
 
 
 --------------------------------------------------------------------------------
@@ -571,6 +547,18 @@ local function AddBeamLight(px,py,pz,radius, sx, sy, sz)
 	return pushElementInstance(beamLightVBO, lightCacheTable)
 end
 
+local function AddUnitBeamLight(px,py,pz,radius, sx, sy, sz)
+	lightCacheTable[1] = px
+	lightCacheTable[2] = py
+	lightCacheTable[3] = pz
+	lightCacheTable[4] = radius
+	lightCacheTable[5] = sx
+	lightCacheTable[6] = sy
+	lightCacheTable[7] = sz
+	lightCacheTable[8] = radius
+	return pushElementInstance(beamLightVBO, lightCacheTable)
+end
+
 local function AddConeLight(px,py,pz,height, dx, dy, dz, angle)
 	lightCacheTable[1] = px
 	lightCacheTable[2] = py
@@ -618,10 +606,10 @@ function AddRandomLight(which)
 	local posz = Game.mapSizeZ * math.random() * 1.0
 	local posy = Spring.GetGroundHeight(posx, posz) + math.random() * 0.5 * radius
 	-- randomize color
-	lightCacheTable[9] = math.random() + 0.1
-	lightCacheTable[10] = math.random() + 0.1
-	lightCacheTable[11] = math.random() + 0.1
-	lightCacheTable[12] = math.random() + 0.5
+	lightCacheTable[9] = math.random() + 0.1 --r
+	lightCacheTable[10] = math.random() + 0.1 --g 
+	lightCacheTable[11] = math.random() + 0.1 --b
+	lightCacheTable[12] = math.random() * 1.0 + 0.5 -- intensity or alpha
 	
 	
 	if which < 0.33 then -- point
@@ -843,7 +831,11 @@ end
 function widget:DrawWorld() -- We are drawing in world space, probably a bad idea but hey
 	--glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
 	deferredLightShader = checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4") or deferredLightShader
-	if pointLightVBO.usedElements > 0 or beamLightVBO.usedElements > 0 or coneLightVBO.usedElements > 0 then 
+	if pointLightVBO.usedElements > 0 or 
+		unitpointLightVBO.usedElements > 0 or 
+		beamLightVBO.usedElements > 0 or 
+		unitConeLightVBO.usedElements > 0 or
+		coneLightVBO.usedElements > 0 then 
 	
 	
 		local alt, ctrl, meta, shft = Spring.GetModKeyState()
@@ -880,7 +872,9 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		
 		deferredLightShader:Activate()
 		deferredLightShader:SetUniformFloat("nightFactor", nightFactor)
+		deferredLightShader:SetUniformFloat("attachedtounitID", 0)
 		
+		-- Fixed worldpos lights
 		if pointLightVBO.usedElements > 0 then
 			deferredLightShader:SetUniformFloat("pointbeamcone", 0)
 			pointLightVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, pointLightVBO.usedElements, 0)
@@ -893,9 +887,19 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 			deferredLightShader:SetUniformFloat("pointbeamcone", 2)
 			coneLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, coneLightVBO.usedElements, 0)
 		end
+		
+		-- Unit Attached Lights
+		deferredLightShader:SetUniformFloat("attachedtounitID", 0)
+		if unitConeLightVBO.usedElements > 0 then
+			deferredLightShader:SetUniformFloat("pointbeamcone", 2)
+			coneLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, coneLightVBO.usedElements, 0)
+		end
+		
+		
+		
 		deferredLightShader:Deactivate()
 		
-		
+
 		for i = 0, 8 do glTexture(i, false) end 
 		gl.Culling(GL.BACK)
 		gl.DepthTest(true)

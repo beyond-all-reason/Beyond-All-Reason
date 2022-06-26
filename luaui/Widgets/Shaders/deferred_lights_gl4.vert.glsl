@@ -21,6 +21,30 @@ layout (location = 9) in uvec4 instData; // matoffset, uniformoffset, teamIndex,
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
 
+layout(std140, binding = 0) readonly buffer MatrixBuffer {
+	mat4 mat[];
+};
+
+struct SUniformsBuffer {
+	uint composite; //     u8 drawFlag; u8 unused1; u16 id;
+
+	uint unused2;
+	uint unused3;
+	uint unused4;
+
+	float maxHealth;
+	float health;
+	float unused5;
+	float unused6;
+
+	vec4 speed;
+	vec4[5] userDefined; //can't use float[20] because float in arrays occupies 4 * float space
+};
+
+layout(std140, binding=1) readonly buffer UniformsBuffer {
+	SUniformsBuffer uni[];
+};
+
 #line 10000
 
 uniform float pointbeamcone = 0;// = 0; // 0 = point, 1 = beam, 2 = cone
@@ -48,7 +72,7 @@ out DataVS {
 uniform sampler2D mapDepths;
 uniform sampler2D modelDepths;
 
-vec4  depthAtWorldPos(vec4 worldPosition){ 
+vec4 depthAtWorldPos(vec4 worldPosition){ 
 	// takes a point, transforms it to worldspace, and checks for occlusion against map, model buffer, and returns all the depths
 	// x: light pos depth, y: map depth, z: model depth, w: min(map, model)
 	vec4 screenPosition = cameraViewProj * worldPosition;
@@ -73,6 +97,17 @@ void main()
 	v_worldPosRad = worldposrad ;
 	float lightRadius = worldposrad.w;
 	v_worldPosRad.xyz += 48 * sin(time * vec3(0.01, 0.011, 0.012) + v_worldPosRad.xyz );
+	
+	// Ok so here comes the fun part, where we if we have a unitID then fun things happen
+	// We 
+	if (attachedtounitID > 0){
+		v_worldPosRad.xyz;
+		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
+		mat4 worldMatrix = mat[instData.x];
+		mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
+	}
+	
+	
 	vec3 lightCenterPosition = v_worldPosRad.xyz;
 	v_worldPosRad2 = worldposrad2;
 	v_lightcolor = lightcolor;
@@ -85,9 +120,9 @@ void main()
 	if (pointbeamcone < 0.5){ // point
 	
 		//scale it and place it into the world
-		//Make it a tiny bit bigger cause the blocky sphere is smaller than the actual radius
+		//Make it a tiny bit bigger *(1.1) cause the blocky sphere is smaller than the actual radius
 		// the -1 is for inverting it so we always see the back faces (great for occlusion testing!)
-		worldPos.xyz = lightCenterPosition + -1 * position.xyz * lightRadius * 1.05;
+		worldPos.xyz = lightCenterPosition + -1 * position.xyz * lightRadius * 1.1;
 		v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0));
 		//v_depths_center_map_model_min.w = depthAtWorldPos(vec4(worldPos.xyz,1.0)); // for per-pixel stuff
 		//
