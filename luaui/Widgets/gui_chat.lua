@@ -1779,7 +1779,11 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 				line = line..playername
 			end
 		end
-		line = convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..color..line
+		if color ~= '' then
+			line = color..line
+		else
+			line = convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..line
+		end
 	end
 
 	-- bot command
