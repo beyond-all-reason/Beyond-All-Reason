@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 5500,
 		buildcostmetal = 420,
 		buildpic = "armmg.DDS",
-		buildtime = 7000,
+		buildtime = 8400,
 		canrepeat = false,
 		cantbetransported = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

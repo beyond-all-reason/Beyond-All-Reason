@@ -396,7 +396,7 @@ Create()
 	bMoving = FALSE;
 	bAiming = FALSE;
 	ReadyToAim = 0;
-	restore_delay = 15000;
+	restore_delay = 10000;
 	gun_1 = rflare;
 	tdamage = 0;
 	shieldup = 1;
@@ -408,7 +408,7 @@ Create()
 
 SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = 15000;
+	restore_delay = 10000;
 }
 
 SweetSpot(piecenum)

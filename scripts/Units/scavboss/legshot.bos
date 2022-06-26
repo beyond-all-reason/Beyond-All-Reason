@@ -443,7 +443,7 @@ Create()
 	currentSpeed = 200;
 	moveSpeed = get MAX_SPEED;
 	animSpeed = 9;
-	restore_delay = 15000;
+	restore_delay = 10000;
 	tdamage = 0;
 	shieldup = 1;
 	set ARMORED to 1;
@@ -451,7 +451,7 @@ Create()
 
 SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = 15000;
+	restore_delay = 10000;
 }
 
 StartMoving()
