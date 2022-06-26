@@ -1947,6 +1947,25 @@ function init()
 
 		{ id = "heatdistortion", group = "gfx", category = types.dev, widget = "Lups", name = texts.option.heatdistortion, type = "bool", value = GetWidgetToggleValue("Lups"), description = texts.option.heatdistortion_descr },
 
+		{ id = "darkenmap", group = "gfx", category = types.advanced, name = texts.option.darkenmap, min = 0, max = 0.33, step = 0.01, type = "slider", value = 0, description = texts.option.darkenmap_descr,
+		  onload = function(i)
+			  local mapDarkening = widgetHandler.configData["Darken map"].maps[Game.mapName:lower()]
+			  if mapDarkening then
+			 	options[getOptionByID('darkenmap')].value = mapDarkening
+			  end
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Darken map', 'darkenmap', 'setMapDarkness', { 'maps', Game.mapName:lower() }, value)
+		  end,
+		},
+		{ id = "darkenmap_darkenfeatures", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   "..texts.option.darkenmap_darkenfeatures, type = "bool", value = false, description = texts.option.darkenmap_darkenfeatures_descr,
+		  onload = function(i)
+			  loadWidgetData("Darken map", "darkenmap_darkenfeatures", { 'darkenFeatures' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Darken map', 'darkenmap', 'setDarkenFeatures', { 'darkenFeatures' }, value)
+		  end,
+		},
 
 		{ id = "label_gfx_environment", group = "gfx", name = texts.option.label_environment, category = types.basic },
 		{ id = "label_gfx_environment_spacer", group = "gfx", category = types.basic },
