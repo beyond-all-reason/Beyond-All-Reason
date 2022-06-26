@@ -172,6 +172,9 @@ widget:ViewResize()
 	-- at a rez of 32 elmos, dsd would need:
 	-- 256*256*16 voxels (1 million?) yeesh
 
+-- preliminary perf:
+	-- yeah raymarch is expensive!
+
 local shaderConfig = {
 	TRANSPARENCY = 0.2, 
 	MIERAYLEIGHRATIO = 0.1,
@@ -669,7 +672,7 @@ function widget:Initialize()
 	end 
 	
 	math.randomseed(1)
-	for i=1, 2000 do AddRandomLight(	math.random()) end 
+	for i=1, 500 do AddRandomLight(	math.random()) end 
 end
 
 function widget:Shutdown()

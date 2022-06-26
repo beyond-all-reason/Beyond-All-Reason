@@ -475,8 +475,8 @@ vec4 halfconeIntersectScatter( in vec3  rayOrigin, in vec3 rayDirection, in vec3
 		vec3 marchPos = stepVec * i + EntryPoint;
 
 		// Sample 3D noise if needed (noise should be 0.5 centered)
-		#if (USE3DNOISE == 1)
-			float noise = textureLod(noise3DCube, fract(marchPos * 0.01), 0.0).r * 2.0 ;
+		#if (USE3DNOISE == 1 && RAYMARCHSTEPS >= 4)
+			float noise = textureLod(noise3DCube, fract(marchPos * 0.01 + 0 / RAYMARCHSTEPS), 0.0).r * 2.0 ;
 		#else
 			float noise = 1.0;
 		#endif
@@ -534,11 +534,35 @@ vec2 raySphereIntersect(vec3 r0, vec3 rd, vec3 s0, float sr) {
 }
 // This is the fast approx scattering useing a mierayleighratio, where 1.0 = Rayleigh, ~0.1 = Mie
 // TODO: handle the case where viewpos is inside the volume!
+float SlowSphereRayMarchedScattering(vec3 campos, vec3 viewdirection, vec3 lightposition, float lightradius, float fragmentdistance, float lightdistance, float mierayleighratio){
+	vec2 closeandfardistance = raySphereIntersect(campos, -viewdirection,  lightposition, lightradius * mierayleighratio);
+	
+	float noise = 1.0;
+	#if (USE3DNOISE == 1 && RAYMARCHSTEPS >= 4)
+		vec3 EntryPoint = (-viewdirection) * closeandfardistance.x + campos;
+		//vec3 ExitPoint =  (viewdirection) * closeandfardistance.y + campos;
+		vec3 stepVec =  (-viewdirection) * ( closeandfardistance.y  -  closeandfardistance.x) / RAYMARCHSTEPS;
+		for (int i = 1; i < RAYMARCHSTEPS; i++){
+			vec3 marchPos = stepVec * i + EntryPoint;
+			noise += textureLod(noise3DCube, fract(marchPos * 0.005 + i / RAYMARCHSTEPS), 0.0).r * 2.0 ;
+		}
+		noise = noise / (RAYMARCHSTEPS -1);
+	#endif
+	
+	float depthratio = clamp(0.5 * (fragmentdistance - closeandfardistance.x) / (lightradius * mierayleighratio), 0.0, 1.0);
+	float tofrag = integratescatterocclusion(depthratio);
+	float fromeye = integratescatterocclusion( ( -closeandfardistance.x ) / (closeandfardistance.y - closeandfardistance.x));
+	return scatterfalloff(lightdistance, lightradius * mierayleighratio) * (tofrag - fromeye) * noise;
+}
+
 float FastApproximateScattering(vec3 campos, vec3 viewdirection, vec3 lightposition, float lightradius, float fragmentdistance, float lightdistance, float mierayleighratio){
 	vec2 closeandfardistance = raySphereIntersect(campos, -viewdirection,  lightposition, lightradius * mierayleighratio);
 	float depthratio = clamp(0.5 * (fragmentdistance - closeandfardistance.x) / (lightradius * mierayleighratio), 0.0, 1.0);
-	return scatterfalloff(lightdistance, lightradius * mierayleighratio) * integratescatterocclusion(depthratio);
+	float tofrag = integratescatterocclusion(depthratio);
+	float fromeye = integratescatterocclusion( ( -closeandfardistance.x ) / (closeandfardistance.y - closeandfardistance.x));
+	return scatterfalloff(lightdistance, lightradius * mierayleighratio) * (tofrag - fromeye);
 }
+
 
 
 // UNTESTED
@@ -643,9 +667,8 @@ void main(void)
 		attenuation = clamp( 1.0 - length (lightToWorld) * lightRadiusInv, 0,1);
 		closestpoint_dist = closestlightlp_distance(camPos, viewDirection, lightPosition);
 		
-		
 		// Both scattering components
-		scatteringRayleigh = FastApproximateScattering(camPos, viewDirection, lightPosition, lightRadius, fragDistance, closestpoint_dist.w, 1.0 );
+		scatteringRayleigh = SlowSphereRayMarchedScattering(camPos, viewDirection, lightPosition, lightRadius, fragDistance, closestpoint_dist.w, 1.0 );
 		
 		scatteringMie = FastApproximateScattering(camPos, viewDirection, lightPosition, lightRadius, fragDistance, closestpoint_dist.w, MIERAYLEIGHRATIO);
 		
@@ -732,7 +755,6 @@ void main(void)
 		vec3 ExitPoint =  (-viewDirection) * fardist + camPos;
 		
 		vec3 stepVec = - viewDirection * ( fardist  -  closedist) / RAYMARCHSTEPS;
-		float stepVecSqr = dot(stepVec, stepVec);
 		
 		float rayleighScatterSum = 0;
 		float miescattersum = 0;
@@ -742,8 +764,8 @@ void main(void)
 			vec3 marchPos = stepVec * i + EntryPoint;
 
 			// Sample 3D noise if needed (noise should be 0.5 centered)
-			#if (USE3DNOISE == 1)
-				float noise = textureLod(noise3DCube, fract(marchPos * 0.005), 0.0).r * 2.0 ;
+			#if (USE3DNOISE == 1 && RAYMARCHSTEPS >= 4)
+				float noise = textureLod(noise3DCube, fract(marchPos * 0.005 + i / RAYMARCHSTEPS), 0.0).r * 2.0 ;
 			#else
 				float noise = 1.0;
 			#endif
