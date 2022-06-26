@@ -1385,14 +1385,15 @@ end
 
 -- makes sure it gets unloaded at a free spot
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
-local function unloadTransport(transportID, unitID, x, z, shift, i)
-	if not i then
-		i = 1
+local function unloadTransport(transportID, unitID, x, z, shift, depth)
+	if not depth then
+		depth = 1
 	end
-	local radius = 45 * i
+	local radius = 36 * depth
 	local orgX, orgZ = x, z
 	local y = Spring.GetGroundHeight(x, z)
-	local areaUnits = Spring.GetUnitsInSphere(x, y, z, 36)
+	local unitSphereRadius = 25
+	local areaUnits = Spring.GetUnitsInSphere(x, y, z, unitSphereRadius)
 	if #areaUnits == 0 then	-- unblocked spot!
 		Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, { x, y, z, unitID }, {shift and "shift"})
 	else
@@ -1405,9 +1406,9 @@ local function unloadTransport(transportID, unitID, x, z, shift, i)
 			z = z + (radius * math.sin(i * sideAngle))
 			if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ then
 				y = Spring.GetGroundHeight(x, z)
-				areaUnits = Spring.GetUnitsInSphere(x, y, z, 36)
+				areaUnits = Spring.GetUnitsInSphere(x, y, z, unitSphereRadius)
 				if #areaUnits == 0 then	-- unblocked spot!
-					local areaFeatures = Spring.GetFeaturesInSphere(x, y, z, 36)
+					local areaFeatures = Spring.GetFeaturesInSphere(x, y, z, unitSphereRadius)
 					if #areaFeatures == 0 then
 						Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, { x, y, z, unitID }, {shift and "shift"})
 						foundUnloadSpot = true
@@ -1417,8 +1418,8 @@ local function unloadTransport(transportID, unitID, x, z, shift, i)
 			end
 		end
 		-- try again with increased radius
-		if not foundUnloadSpot and i < 5 then	-- limit depth for safety
-			unloadTransport(transportID, unitID, orgX, orgZ, shift, i+1)
+		if not foundUnloadSpot and depth < 7 then	-- limit depth for safety
+			unloadTransport(transportID, unitID, orgX, orgZ, shift, depth+1)
 		end
 	end
 end
