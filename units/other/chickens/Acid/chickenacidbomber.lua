@@ -24,7 +24,7 @@ return {
 		collisionvolumeoffsets = "0 8 -2",
 		collisionvolumescales = "70 14 48",
 		collisionvolumetype = "box",
-		cruisealt = 325,
+		cruisealt = 120,
 		defaultmissiontype = "Standby",
 		explodeas = "TALON_DEATH",
 		footprintx = 3,
