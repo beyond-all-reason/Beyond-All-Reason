@@ -101,10 +101,11 @@ void main()
 	// Ok so here comes the fun part, where we if we have a unitID then fun things happen
 	// We 
 	if (attachedtounitID > 0){
-		v_worldPosRad.xyz;
 		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
 		mat4 worldMatrix = mat[instData.x];
 		mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
+		v_worldPosRad.xyz = (worldPieceMatrix * vec4(worldposrad.xyz, 1.0)).xyz;
+		v_worldPosRad.y += 1000;
 	}
 	
 	

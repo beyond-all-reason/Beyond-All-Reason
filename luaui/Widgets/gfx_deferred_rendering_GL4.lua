@@ -8,7 +8,7 @@ function widget:GetInfo()
 		desc = "Collects and renders cone, point and beam lights",
 		author = "Beherith",
 		date = "2022.06.10",
-		license = "GPL V2",
+		license = "Lua code is GPL V2, GLSL is (c) Beherith",
 		layer = -99999990,
 		enabled = false
 	}
@@ -125,9 +125,9 @@ end
 widget:ViewResize()
 
 -- GL4 notes:
--- A sphere light should be an icosahedrong
--- A cone light should be a cone
--- A beam light should be a cylinder
+-- A spot light is a sphere?
+-- A cone light is a cone
+-- A beam light is a box
 -- all prims should be back-face only rendered!
 
 
@@ -138,7 +138,7 @@ widget:ViewResize()
 -- Projectiles
 	-- beamlasers
 		-- might get away with not updating their pos each frame?
-		-- probably not, due to continuous lasers like beamer turret
+		-- probably not, due to continuous lasers like beamer turret (though that one may be spawned every frame...)
 	-- lightning
 		-- these move too?
 	-- plasma balls
@@ -515,15 +515,25 @@ local function AddPointLight(px,py,pz,radius)
 	return pushElementInstance(pointLightVBO, lightCacheTable)
 end
 
-local function AddUnitPointLight(unitID, pieceIndex, px,py,pz,radius)
+local function AddUnitPointLight(unitID, pieceIndex, instanceID, px,py,pz,radius, r,g,b,a)
 	lightCacheTable[1] = px
 	lightCacheTable[2] = py
 	lightCacheTable[3] = pz
 	lightCacheTable[4] = radius
+	lightCacheTable[9] = r
+	lightCacheTable[10] = g
+	lightCacheTable[11] = b
+	lightCacheTable[12] = a
+	
+	
 	lightCacheTable[21] = pieceIndex
-	local instanceID =  pushElementInstance(unitPointLightVBO, lightCacheTable, nil, true, nil, unitID)
+	instanceID =  pushElementInstance(unitPointLightVBO, lightCacheTable, instanceID, true, nil, unitID)
 	lightCacheTable[21] = 0
 	return instanceID
+end
+
+local function AddUnitPointLightTable(unitID, instanceID, lightParamTable)
+	return pushElementInstance(unitPointLightVBO, lightParamTable, instanceID, true, nil, unitID)
 end
 
 local function AddFeaturePointLight(featureID, px,py,pz,radius)
@@ -547,7 +557,7 @@ local function AddBeamLight(px,py,pz,radius, sx, sy, sz)
 	return pushElementInstance(beamLightVBO, lightCacheTable)
 end
 
-local function AddUnitBeamLight(px,py,pz,radius, sx, sy, sz)
+local function AddUnitBeamLight(unitID, pieceIndex, instanceID, px,py,pz,radius, sx, sy, sz, r,g,b,a)
 	lightCacheTable[1] = px
 	lightCacheTable[2] = py
 	lightCacheTable[3] = pz
@@ -556,7 +566,18 @@ local function AddUnitBeamLight(px,py,pz,radius, sx, sy, sz)
 	lightCacheTable[6] = sy
 	lightCacheTable[7] = sz
 	lightCacheTable[8] = radius
-	return pushElementInstance(beamLightVBO, lightCacheTable)
+	lightCacheTable[9] = r
+	lightCacheTable[10] = g
+	lightCacheTable[11] = b
+	lightCacheTable[12] = a
+	lightCacheTable[21] = pieceIndex
+	instanceID = pushElementInstance(unitBeamLightVBO, lightCacheTable, instanceID, true, nil, unitID)
+	lightCacheTable[21] = 0
+	return instanceID
+end
+
+local function AddUnitBeamLightTable(unitID, instanceID, lightParamTable)
+	return pushElementInstance(unitBeamLightVBO, lightParamTable, instanceID, true, nil, unitID)
 end
 
 local function AddConeLight(px,py,pz,height, dx, dy, dz, angle)
@@ -571,7 +592,7 @@ local function AddConeLight(px,py,pz,height, dx, dy, dz, angle)
 	return pushElementInstance(coneLightVBO, lightCacheTable)
 end
 
-local function AddUnitConeLight(unitID, pieceIndex, px,py,pz,height, dx, dy, dz, angle)
+local function AddUnitConeLight(unitID, pieceIndex, instanceID, px,py,pz,height, dx, dy, dz, angle, r,g,b,a)
 	lightCacheTable[1] = px
 	lightCacheTable[2] = py
 	lightCacheTable[3] = pz
@@ -580,9 +601,19 @@ local function AddUnitConeLight(unitID, pieceIndex, px,py,pz,height, dx, dy, dz,
 	lightCacheTable[6] = dy
 	lightCacheTable[7] = dz
 	lightCacheTable[8] = angle
+	lightCacheTable[9] = r
+	lightCacheTable[10] = g
+	lightCacheTable[11] = b
+	lightCacheTable[12] = a
 	lightCacheTable[21] = pieceIndex
-	local instanceID =  pushElementInstance(unitConeLightVBO, lightCacheTable, nil, true, nil, unitID)
+	instanceID =  pushElementInstance(unitConeLightVBO, lightCacheTable, instanceID, true, nil, unitID)
 	lightCacheTable[21] = 0
+	return instanceID
+end
+
+local function AddUnitConeLightTable(unitID, instanceID, lightParamTable)
+	Spring.Echo("AddUnitConeLightTable",unitID, instanceID, lightParamTable)
+	return pushElementInstance(unitConeLightVBO, lightParamTable, instanceID, true, nil, unitID)
 end
 
 local function AddFeatureConeLight(featureID, px,py,pz,height, dx, dy, dz, angle)
@@ -597,6 +628,125 @@ local function AddFeatureConeLight(featureID, px,py,pz,height, dx, dy, dz, angle
 	return pushElementInstance(unitConeLightVBO, lightCacheTable, nil, true, nil, featureID)
 end
 
+-- Hmm, how are we going to handle having multiple lights per unitDEF?
+-- TODO: only one 'type' of light can be specified for each unitDef
+-- This reeks of the same issues present in AirJets GL4
+local unitDefLights = {
+	[UnitDefNames['armpw'].id] = {
+		initComplete = false, -- this is needed maybe?
+		headlight = {
+			lighttype = 'cone',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 150,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			pieceName = 'head',
+			lightParamTable = {0,0,0,150, --pos + radius
+								0,0,-1, 1, -- dir + angle
+								1,1,1,1, -- RGBA
+								1,1,1,1, -- falloff
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		gunlight = {
+			lighttype = 'point',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 150,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			pieceName = 'rgun',
+			lightParamTable = {0,0,0,150, --pos + radius
+								0,0,0, 0, -- unused
+								1,1,1,1, -- RGBA
+								1,1,1,1, -- falloff
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		gunlight = {
+			lighttype = 'beam',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 150,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			pieceName = 'lthigh',
+			lightParamTable = {0,0,0,150, --pos + radius
+								150,150,150, 0, -- endpos
+								1,1,1,1, -- RGBA
+								1,1,1,1, -- falloff
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
+}
+
+local function AddStaticLightsForUnit(unitID, unitDefID, noupload)
+	if unitDefLights[unitDefID] then
+		local unitDefLight = unitDefLights[unitDefID]
+		if unitDefLight.initComplete == false then  -- late init
+			local pieceMap = Spring.GetUnitPieceMap(unitID)
+			for lightname, lightParams in pairs(unitDefLight) do
+				if lightname ~= 'initComplete' then
+					lightParams.pieceIndex = pieceMap[lightParams.pieceName]
+					lightParams.lightParamTable[21] = lightParams.pieceIndex
+				end
+			end
+		end
+		for lightname, lightParams in pairs(unitDefLight) do
+			if lightname ~= 'initComplete' then
+				if lightParams.lighttype == 'point' then
+					AddUnitPointLightTable(unitID, tostring(unitID) ..  lightParams.pieceName, lightParams.lightParamTable) 
+				end
+				if lightParams.lighttype == 'cone' then 
+					AddUnitConeLightTable(unitID, tostring(unitID) ..  lightParams.pieceName, lightParams.lightParamTable) 
+				
+				end
+				if lightParams.lighttype == 'beam' then 
+					AddUnitBeamLightTable(unitID, tostring(unitID) ..  lightParams.pieceName, lightParams.lightParamTable) 
+				end
+			end
+		end
+	end
+end
+
+local function RemoveStaticLightsFromUnit(unitID, unitDefID)
+	if unitDefLights[unitDefID] then 
+		local unitDefLight = unitDefLights[unitDefID]
+		for lightname, lightParams in pairs(unitDefLight) do
+			if lightname ~= 'initComplete' then
+				if lightParams.lighttype == 'point' then
+					popElementInstance(unitPointLightVBO, tostring(unitID) ..  lightParams.pieceName) 
+				end
+				if lightParams.lighttype == 'cone' then 
+					popElementInstance(unitConeLightVBO, tostring(unitID) ..  lightParams.pieceName)
+				end
+				if lightParams.lighttype == 'beam' then 
+					popElementInstance(unitBeamLightVBO, tostring(unitID) ..  lightParams.pieceName)
+				end
+			end
+		end
+	end
+end
 
 
 function AddRandomLight(which)
@@ -660,10 +810,41 @@ function widget:Initialize()
 	end 
 	
 	math.randomseed(1)
-	for i=1, 500 do AddRandomLight(	math.random()) end 
+	for i=1, 500 do AddRandomLight(	math.random()) end   
+	
+	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
+		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+	end
+	
 end
 
+function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	AddStaticLightsForUnit(unitID, unitDefID, false, "VisibleUnitAdded")
+end
+
+function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
+	
+	clearInstanceTable(unitPointLightVBO) -- clear all instances
+	clearInstanceTable(unitBeamLightVBO) -- clear all instances
+	clearInstanceTable(unitConeLightVBO) -- clear all instances
+	
+	for unitID, unitDefID in pairs(extVisibleUnits) do
+		AddStaticLightsForUnit(unitID, unitDefID, true, "VisibleUnitsChanged") -- add them with noUpload = true
+	end
+	uploadAllElements(unitPointLightVBO) -- upload them all
+	uploadAllElements(unitBeamLightVBO) -- upload them all
+	uploadAllElements(unitConeLightVBO) -- upload them all
+end
+
+function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
+	--if debugmode then Spring.Debug.TraceEcho("remove",unitID,reason) end
+	RemoveStaticLightsFromUnit(unitID, Spring.GetUnitDefID(unitID))
+
+end
+
+
 function widget:Shutdown()
+	-- TODO: delete the VBOs like a good boy
 end
 
 local function DrawLightType(lights, lightsCount, lighttype)
@@ -873,7 +1054,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		deferredLightShader:Activate()
 		deferredLightShader:SetUniformFloat("nightFactor", nightFactor)
 		deferredLightShader:SetUniformFloat("attachedtounitID", 0)
-		
+		--[[
 		-- Fixed worldpos lights
 		if pointLightVBO.usedElements > 0 then
 			deferredLightShader:SetUniformFloat("pointbeamcone", 0)
@@ -888,18 +1069,29 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 			coneLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, coneLightVBO.usedElements, 0)
 		end
 		
+		]]--
+		
 		-- Unit Attached Lights
-		deferredLightShader:SetUniformFloat("attachedtounitID", 0)
-		if unitConeLightVBO.usedElements > 0 then
-			deferredLightShader:SetUniformFloat("pointbeamcone", 2)
-			coneLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, coneLightVBO.usedElements, 0)
+		deferredLightShader:SetUniformFloat("attachedtounitID", 1)		
+		
+		if unitPointLightVBO.usedElements > 0 then
+			deferredLightShader:SetUniformFloat("pointbeamcone", 0)
+			unitPointLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, unitPointLightVBO.usedElements, 0)
 		end
 		
+		if unitBeamLightVBO.usedElements > 0 then
+			deferredLightShader:SetUniformFloat("pointbeamcone", 1)
+			unitBeamLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, unitBeamLightVBO.usedElements, 0)
+		end
+		
+		if unitConeLightVBO.usedElements > 0 then
+			deferredLightShader:SetUniformFloat("pointbeamcone", 2)
+			unitConeLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, unitConeLightVBO.usedElements, 0)
+		end
 		
 		
 		deferredLightShader:Deactivate()
 		
-
 		for i = 0, 8 do glTexture(i, false) end 
 		gl.Culling(GL.BACK)
 		gl.DepthTest(true)
