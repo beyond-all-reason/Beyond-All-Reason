@@ -25,8 +25,9 @@ function LosHST:Init()
 end
 
 function LosHST:Update()
-	local f = self.game:Frame()
-	if f % 13 == 0 then
+-- 	local f = self.game:Frame()
+-- 	if f % 13 + game:GetTeamID() == 0 then
+		if not self.ai.tool:ModuleScheduler(self:internalName()) then return end
 		self:getCenter()
         self.ai.friendlyTeamID = {}
         self.ai.friendlyTeamID[self.game:GetTeamID()] = true
@@ -55,7 +56,7 @@ function LosHST:Update()
 			end
 		end
 		self:Draw()
-	end
+-- 	end
 end
 
 function LosHST:UnitDead(unit)

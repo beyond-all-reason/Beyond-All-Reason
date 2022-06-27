@@ -11,19 +11,21 @@ end
 function GridHST:Init()
 	self.DebugEnabled = false
 	self.visualdbg = true
-	self.gridElmos = 256
-	self.gridElmosHalf = self.gridDimension / 2
+	self.Measure = 256
+	self.HalfMeasure = self.Measure / 2
 	self.GRID = {}
 	self.ENEMY = {}
+	self.OWN = {}
+	self.ALLY = {}
 	self:createGridCell()
 end
 
 function GridHST:createGridCell()
-	for x = 1, Game.mapSizeX / gridElmos do
+	for x = 1, Game.mapSizeX / self.Measure do
 		if not self.GRID[x] then
 			self.GRID[x] = {}
 		end
-		for z = 1, Game.mapSizeZ / gridElmos do
+		for z = 1, Game.mapSizeZ / self.Measure do
 			self.GRID[x][z] = {}
 			self:NewCell(x,z)
 		end
@@ -40,8 +42,8 @@ function GridHST:clearGrid(target)
 end
 
 function GridHST:PosToGrid(pos)
-	local gridX = math.ceil(pos.x / gridElmos)
-	local gridZ = math.ceil(pos.z / gridElmos)
+	local gridX = math.ceil(pos.x / self.Measure)
+	local gridZ = math.ceil(pos.z / self.Measure)
 	return gridX, gridZ
 end
 
@@ -51,7 +53,6 @@ function GridHST:areaCells(X,Z,R)
 	end
 	local AC = {}
 	R = R or 0
-	myself = myself or false
 	for x = X - R , X + R,1  do
 		for z = Z - R , Z + R,1 do
 			if self.GRID[x] and self.GRID[x][z] then
@@ -72,7 +73,7 @@ function GridHST:GetCellHere(pos)
 end
 
 function GridHST:getCellsFields(owner,position,fields,range)--maybe we can run just through ENEMYCELLS
-	if not owner not fields or not position or type(fields) ~= 'table' then
+	if not owner or not fields or not position or type(fields) ~= 'table' then
 		self:Warn('incomplete or incorrect params for get cells params',owner,fields,position, range)
 		return
 	end
@@ -107,9 +108,6 @@ function TargetHST:NewCell(px, pz)
 	cell.P = cellPos
 	cell.X = px
 	cell.Z = pz
-	cell.ENEMY = {}
-	cell.OWN = {}
-	cell.ALLY = {}
 	cell.enemyUnits = {}
 	cell.enemyBuildings = {}
 	cell.friendlyUnits = {}

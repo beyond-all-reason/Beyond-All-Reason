@@ -11,10 +11,14 @@ function ReclaimBST:Act()
 end
 
 function ReclaimBST:Update()
+	 self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
-	if f % 257 == 0 then
-		self:Act()
+	if f - self.uFrame < self.ai.behUp['reclaimbst']  then
+		return
 	end
+	self.uFrame = f
+	self:Act()
+
 end
 
 function ReclaimBST:Priority()

@@ -142,10 +142,14 @@ function TaskQueueBST:Priority()
 end
 
 function TaskQueueBST:Update()
+
+	 self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
-	if f % 39 ~= 0 then
+
+	if f - self.uFrame < self.ai.behUp['taskqueuebst'] then
 		return
 	end
+	self.uFrame = f
 	self:VisualDBG()
 	if not self:IsActive() then
 		return

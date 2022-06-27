@@ -84,13 +84,11 @@ function BomberBST:Deactivate()
 end
 
 function BomberBST:Update()
-	if not self.lastOrderFrame then
+	 self.uFrame = self.uFrame or 0
+	if f - self.uFrame < self.ai.behUp['bomberbst']then
 		return
 	end
-	if self.game:Frame() > self.lastOrderFrame + 1000 then
-		self.lastOrderFrame = nil
-		self:OwnerIdle()
-	end
+	self.uFrame = f
 end
 
 function BomberBST:BombPosition(position)

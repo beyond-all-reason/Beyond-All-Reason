@@ -74,10 +74,13 @@ function MexUpBST:OwnerIdle()
 end
 
 function MexUpBST:Update()
+	 self.uFrame = self.uFrame or 0
 	if not self.active then
-		if (self.lastFrame or 0) + 30 < self.game:Frame() then
-			self:StartUpgradeProcess()
+		local f = self.game:Frame()
+		if f - self.uFrame < self.ai.behUp['mexupbst'] then
+			return
 		end
+		self.uFrame = f
 	end
 end
 
