@@ -646,8 +646,8 @@ local unitDefLights = {
 			dz = -1, 
 			angle = 1,
 			pieceName = 'blarp',
-			lightParamTable = {0,0,4,150, --pos + radius
-								0,0,1, 0.4, -- dir + angle
+			lightParamTable = {0,11,5,150, --pos + radius
+								0,-0.07,1, 0.4, -- dir + angle
 								1,1,1,1, -- RGBA
 								1,1,1,1, -- falloff
 								0,0,0,0, -- otherparams
@@ -819,6 +819,51 @@ local unitDefLights = {
 			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
 		},
 	},
+	[UnitDefNames['armack'].id] = {
+		initComplete = false, -- this is needed maybe?
+		beacon1 = {
+			lighttype = 'cone',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 150,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			pieceName = 'beacon1',
+			lightParamTable = {0,0,0,30, --pos + radius
+								1,0,0, 0.99, -- dir + angle
+								1.3,1.0,0.1,2, -- RGBA
+								1,1,1,1, -- falloff
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		beacon2 = {
+			lighttype = 'cone',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 150,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			pieceName = 'beacon2',
+			lightParamTable = {0,0,0,30, --pos + radius
+								-1,0,0, 0.99, -- dir + angle
+								1.3,1.0,0.1,2, -- RGBA
+								1,1,1,1, -- falloff
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
 	[UnitDefNames['armstump'].id] = {
 		initComplete = false, -- this is needed maybe?
 		searchlight = {
@@ -831,10 +876,10 @@ local unitDefLights = {
 			dy = 0, 
 			dz = -1, 
 			angle = 1,
-			pieceName = 'turret',
-			lightParamTable = {0,0,4,120, --pos + radius
-								0,-0.12,1, 0.26, -- dir + angle
-								1,1,1,1.4, -- RGBA
+			pieceName = 'base',
+			lightParamTable = {0,0,10,100, --pos + radius
+								0,-0.08,1, 0.26, -- dir + angle
+								1,1,1,1.2, -- RGBA
 								1,1,1,1, -- falloff
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
