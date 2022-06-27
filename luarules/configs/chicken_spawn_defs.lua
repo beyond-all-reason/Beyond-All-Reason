@@ -37,8 +37,11 @@ local chickenTypes = {
 	chickens2      				=  true,
 	chicken_dodo1  				=  true,
 	chicken_dodo2  				=  true,
+	chicken_dodoair				=  true,
 	chickenf1      				=  true,
 	chickenf1b     				=  true,
+	chickenf1apex      			=  true,
+	chickenf1apexb     			=  true,
 	chickenf2      				=  true,
 	chickenc1      				=  true,
 	chickenc2      				=  true,
@@ -96,9 +99,12 @@ local chickenTypes = {
 	chickens1      				=   "green",
 	chickens2      				=   "yellow",
 	chicken_dodo1  				=   "red",
-	chicken_dodo2  				=   "darkred",
+	chicken_dodo2  				=   "red",
+	chicken_dodoair  			=   "red",
 	chickenf1      				=   "yellow",
 	chickenf1b     				=   "yellow",
+	chickenf1apex      			=   "yellow",
+	chickenf1apexb     			=   "yellow",
 	chickenf2      				=   "white",
 	chickenc1      				=   "white",
 	chickenc2      				=   "darkred",
@@ -308,6 +314,12 @@ addSquad(8, { "30 chicken_dodo1" 															}) -- Kamikaze
 addSquad(8, { "70 chicken_dodo1" 															}) -- Kamikaze
 addSquad(8, { "15 chicken_dodo2" 															}) -- Kamikaze
 addSquad(8, { "35 chicken_dodo2" 															}) -- Kamikaze
+addSquad(8, { "15 chicken_dodoair" 															}) -- Kamikaze
+addSquad(8, { "35 chicken_dodoair" 															}) -- Kamikaze
+
+addSquad(8, { "3 chickenf1apex",															}) -- Bomber
+addSquad(8, { "3 chickenf1apexb", 															}) -- Bomber
+addSquad(8, { "3 chickenf1apex", "3 chickenf1apexb" 										}) -- Bomber
 
 addSquad(8, { "5 chickens2" 																}) -- Apex Spiker
 addSquad(8, { "10 chickens2" 																}) -- Apex Spiker
