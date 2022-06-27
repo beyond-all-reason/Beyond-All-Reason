@@ -1776,7 +1776,11 @@ local function DoBuildingsClash(buildData1, buildData2)
 	math.abs(buildData1[4] - buildData2[4]) < h1 + h2
 end
 
+-- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
 local function cacheUnitIcons()
+	local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalscavuniqueunits)
+	local excludeChickens = not Spring.Utilities.Gametype.IsChickens()
+
 	local dlistCache = gl.CreateList(function()
 		gl.Color(1, 1, 1, 0.001)
 		for id, unit in pairs(UnitDefs) do
