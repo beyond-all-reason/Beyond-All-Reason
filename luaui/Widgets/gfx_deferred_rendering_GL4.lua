@@ -645,9 +645,9 @@ local unitDefLights = {
 			dy = 0, 
 			dz = -1, 
 			angle = 1,
-			pieceName = 'head',
-			lightParamTable = {0,0,4,400, --pos + radius
-								0,0,1, 0.5, -- dir + angle
+			pieceName = 'blarp',
+			lightParamTable = {0,0,4,150, --pos + radius
+								0,0,1, 0.4, -- dir + angle
 								1,1,1,1, -- RGBA
 								1,1,1,1, -- falloff
 								0,0,0,0, -- otherparams
@@ -656,49 +656,97 @@ local unitDefLights = {
 								},
 			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
 		},
-		dicklight = {
-			lighttype = 'point',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 150,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
-			pieceName = 'pelvis',
-			lightParamTable = {50,10,4,100, --pos + radius
-								0,0,0, 0, -- unused
-								1,1,1,0, -- RGBA
-								1,1,1,1, -- falloff
-								0,0,0,0, -- otherparams
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
-		},
-		gunlight = {
-			lighttype = 'beam',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 150,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
-			pieceName = 'lthigh',
-			lightParamTable = {0,0,0,150, --pos + radius
-								150,150,150, 0, -- endpos
-								1,1,1,1, -- RGBA
-								1,1,1,1, -- falloff
-								0,0,0,0, -- otherparams
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
-		},
+		-- dicklight = {
+		-- 	lighttype = 'point',
+		-- 	px = 0,
+		-- 	py = 0,
+		-- 	pz = 0,
+		-- 	height = 150,
+		-- 	dx = 0, 
+		-- 	dy = 0, 
+		-- 	dz = -1, 
+		-- 	angle = 1,
+		-- 	pieceName = 'pelvis',
+		-- 	lightParamTable = {50,10,4,100, --pos + radius
+		-- 						0,0,0, 0, -- unused
+		-- 						1,1,1,0, -- RGBA
+		-- 						1,1,1,1, -- falloff
+		-- 						0,0,0,0, -- otherparams
+		-- 						0, -- pieceIndex
+		-- 						0,0,0,0 -- instData always 0!
+		-- 						},
+		-- 	--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		-- },
+		-- gunlight = {
+		-- 	lighttype = 'beam',
+		-- 	px = 0,
+		-- 	py = 0,
+		-- 	pz = 0,
+		-- 	height = 150,
+		-- 	dx = 0, 
+		-- 	dy = 0, 
+		-- 	dz = -1, 
+		-- 	angle = 1,
+		-- 	pieceName = 'lthigh',
+		-- 	lightParamTable = {0,0,0,150, --pos + radius
+		-- 						150,150,150, 0, -- endpos
+		-- 						1,1,1,1, -- RGBA
+		-- 						1,1,1,1, -- falloff
+		-- 						0,0,0,0, -- otherparams
+		-- 						0, -- pieceIndex
+		-- 						0,0,0,0 -- instData always 0!
+		-- 						},
+		-- 	--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		-- },
 	},
+	[UnitDefNames['armrad'].id] = {
+		initComplete = false, -- this is needed maybe?
+		
+		blink = {
+			lighttype = 'cone',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 150,
+			dx = 0, 
+			dy = 0, 
+			dz = 1, 
+			angle = 1,
+			pieceName = 'dish',
+			lightParamTable = {0,0,0,200, --pos + radius
+								0,0,-1, 0.2, -- dir + angle
+								1,0.5,0.5,1, -- RGBA
+								2,2,2,2, -- falloff
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		searchlight = {
+			lighttype = 'cone',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 0,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			pieceName = 'dish',
+			lightParamTable = {0,0,0,100, --pos + radius
+								0,0,-1, 0.9, -- dir + angle
+								0.5,3,0.5,1, -- RGBA
+								2,2,2,2, -- falloff
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		
+	},
+
 	[UnitDefNames['armllt'].id] = {
 		initComplete = false, -- this is needed maybe?
 		searchlight = {
@@ -722,8 +770,11 @@ local unitDefLights = {
 								},
 			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
 		},
-		barrellight = {
-			lighttype = 'point',
+	},
+	[UnitDefNames['armrl'].id] = {
+		initComplete = false, -- this is needed maybe?
+		searchlight = {
+			lighttype = 'cone',
 			px = 0,
 			py = 0,
 			pz = 0,
@@ -732,9 +783,81 @@ local unitDefLights = {
 			dy = 0, 
 			dz = -1, 
 			angle = 1,
-			pieceName = 'barrel',
-			lightParamTable = {0,50,50,100, --pos + radius
-								0,0,0, 0, -- unused
+			pieceName = 'sleeve',
+			lightParamTable = {0,0,0,450, --pos + radius
+								0,0,1, 0.20, -- dir + angle
+								1,0.5,0.6,1, -- RGBA
+								1,1,1,1, -- falloff
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
+	[UnitDefNames['armjamt'].id] = {
+		initComplete = false, -- this is needed maybe?
+		searchlight = {
+			lighttype = 'cone',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 150,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			pieceName = 'spinner2',
+			lightParamTable = {0,0,7,75, --pos + radius
+								0,-0.3,1, 1, -- dir + angle
+								1.2,0.1,0.1,1.2, -- RGBA
+								1,1,1,1, -- falloff
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
+	[UnitDefNames['armstump'].id] = {
+		initComplete = false, -- this is needed maybe?
+		searchlight = {
+			lighttype = 'cone',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 250,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			pieceName = 'turret',
+			lightParamTable = {0,0,4,120, --pos + radius
+								0,-0.12,1, 0.26, -- dir + angle
+								1,1,1,1.4, -- RGBA
+								1,1,1,1, -- falloff
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
+	[UnitDefNames['armbanth'].id] = {
+		initComplete = false, -- this is needed maybe?
+		searchlight = {
+			lighttype = 'cone',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 250,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			pieceName = 'turret',
+			lightParamTable = {0,0,4,520, --pos + radius
+								0,-0.12,1, 0.26, -- dir + angle
 								1,1,1,1, -- RGBA
 								1,1,1,1, -- falloff
 								0,0,0,0, -- otherparams
@@ -864,7 +987,7 @@ function widget:Initialize()
 	end 
 	
 	math.randomseed(1)
-	for i=1, 100 do AddRandomLight(	math.random()) end   
+	for i=1, 1 do AddRandomLight(	math.random()) end   
 	
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
