@@ -145,9 +145,7 @@ local spGetActiveCommand = Spring.GetActiveCommand
 local spGetActiveCmdDescs = Spring.GetActiveCmdDescs
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetTeamStartPosition = Spring.GetTeamStartPosition
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
-local spGetGroundHeight = Spring.GetGroundHeight
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitHealth = Spring.GetUnitHealth
@@ -171,7 +169,6 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_DST_ALPHA = GL.DST_ALPHA
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
-local glDepthTest = gl.DepthTest
 
 local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner
 
@@ -360,30 +357,6 @@ end
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
 local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalscavuniqueunits)
 local excludeChickens = not Spring.Utilities.Gametype.IsChickens()
-
-local dlistCache
-local function cacheUnitIcons()
-	if dlistCache then
-		dlistCache = gl.DeleteList(dlistCache)
-	end
-	dlistCache = gl.CreateList(function()
-		gl.Color(1, 1, 1, 0.001)
-		for id, unit in pairs(UnitDefs) do
-			if not excludeScavs or not string.find(unit.name,'_scav') then
-				if not excludeChickens or not string.find(unit.name,'chicken') then
-					gl.Texture('#'..id)
-					gl.TexRect(-1, -1, 0, 0)
-					if unitIconType[id] and iconTypesMap[unitIconType[id]] then
-						gl.Texture(':l:' .. iconTypesMap[unitIconType[id]])
-						gl.TexRect(-1, -1, 0, 0)
-					end
-					gl.Texture(false)
-				end
-			end
-		end
-		gl.Color(1, 1, 1, 1)
-	end)
-end
 
 local showGeothermalUnits = false
 local function checkGeothermalFeatures()
@@ -1010,14 +983,40 @@ local function DoBuildingsClash(buildData1, buildData2)
 		math.abs(buildData1[4] - buildData2[4]) < h1 + h2
 end
 
-function widget:DrawScreen()
-	if chobbyInterface then
-		return
+local function cacheUnitIcons()
+	local dlistCache = gl.CreateList(function()
+		gl.Color(1, 1, 1, 0.001)
+		for id, unit in pairs(UnitDefs) do
+			if not excludeScavs or not string.find(unit.name,'_scav') then
+				if not excludeChickens or not string.find(unit.name,'chicken') then
+					gl.Texture('#'..id)
+					gl.TexRect(-1, -1, 0, 0)
+					if unitIconType[id] and iconTypesMap[unitIconType[id]] then
+						gl.Texture(':l:' .. iconTypesMap[unitIconType[id]])
+						gl.TexRect(-1, -1, 0, 0)
+					end
+					gl.Texture(false)
+				end
+			end
+		end
+		gl.Color(1, 1, 1, 1)
+	end)
+	if dlistCache then
+		gl.Translate(-vsx,0,0)
+		gl.CallList(dlistCache)
+		gl.Translate(vsx,0,0)
+		dlistCache = gl.DeleteList(dlistCache)
 	end
+end
 
+function widget:DrawScreen()
 	if Spring.GetGameFrame() == 0 and not cachedUnitIcons then
 		cachedUnitIcons = true
-		--cacheUnitIcons()
+		cacheUnitIcons()
+	end
+
+	if chobbyInterface then
+		return
 	end
 
 	-- refresh buildmenu if active cmd changed
@@ -1811,9 +1810,6 @@ function widget:Shutdown()
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('buildmenu')
 		dlistGuishader = nil
-	end
-	if dlistCache then
-		dlistCache = gl.DeleteList(dlistCache)
 	end
 	WG['buildmenu'] = nil
 	if WG.StopDrawUnitShapeGL4 then
