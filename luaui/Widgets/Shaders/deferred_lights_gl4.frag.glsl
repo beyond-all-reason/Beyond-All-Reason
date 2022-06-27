@@ -700,7 +700,7 @@ void main(void)
 		//coneIntersect( in vec3  ro, in vec3  rd, in vec3  pa, in vec3  pb, in float ra, in float rb )
 		vec4 iCone = halfconeIntersectScatter(camPos , -viewDirection, lightPosition, coneDirection , lightRadius,  lightRadius * lightSinTheta, fragDistance);
 		
-		scatteringRayleigh = iCone.z;
+		scatteringRayleigh = iCone.z * 0.33;
 		scatteringMie = iCone.w;
 
 		lensFlare = step(v_depths_center_map_model_min.x, v_depths_center_map_model_min.w);

@@ -96,20 +96,28 @@ void main()
 	
 	v_worldPosRad = worldposrad ;
 	float lightRadius = worldposrad.w;
-	v_worldPosRad.xyz += 48 * sin(time * vec3(0.01, 0.011, 0.012) + v_worldPosRad.xyz );
+	v_worldPosRad.xyz += 1 * sin(5*time * vec3(0.01, 0.011, 0.012) + v_worldPosRad.xyz );
+	
+	
+	mat4 placeInWorldMatrix = mat4(1.0); // this is unity for non-unitID tied stuff
 	
 	// Ok so here comes the fun part, where we if we have a unitID then fun things happen
-	// We 
+	// v_worldposrad contains the incoming piece-level offset
+	// v_worldPosRad should be after changing to unit-space
+	// we have to transform BOTH the center of the light to piece-space
+	// and the vertices of the light volume to piece-space
+	// we need to go from light-space to world-space
+	vec3 lightCenterPosition =  v_worldPosRad.xyz;
+	
 	if (attachedtounitID > 0){
-		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
+		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];//
 		mat4 worldMatrix = mat[instData.x];
 		mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
-		v_worldPosRad.xyz = (worldPieceMatrix * vec4(worldposrad.xyz, 1.0)).xyz;
-		v_worldPosRad.y += 1000;
+		// we have our matrices above, now we need to take the light's 
+		placeInWorldMatrix = worldPieceMatrix;
 	}
 	
-	
-	vec3 lightCenterPosition = v_worldPosRad.xyz;
+	 // this is already wrong!
 	v_worldPosRad2 = worldposrad2;
 	v_lightcolor = lightcolor;
 	v_falloff_dense_scattering_sourceocclusion = falloff_dense_scattering_sourceocclusion;
@@ -119,14 +127,22 @@ void main()
 	
 	vec4 worldPos = vec4(1.0);
 	if (pointbeamcone < 0.5){ // point
-	
 		//scale it and place it into the world
 		//Make it a tiny bit bigger *(1.1) cause the blocky sphere is smaller than the actual radius
-		// the -1 is for inverting it so we always see the back faces (great for occlusion testing!)
-		worldPos.xyz = lightCenterPosition + -1 * position.xyz * lightRadius * 1.1;
-		v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0));
-		//v_depths_center_map_model_min.w = depthAtWorldPos(vec4(worldPos.xyz,1.0)); // for per-pixel stuff
-		//
+		// the -1 is for inverting it so we always see the back faces (great for occlusion testing!) (this should be exploited later on!
+		
+		// this is centered around the target positional offset, and scaled locally
+		vec3 lightVolumePos = lightCenterPosition + -1 * position.xyz * lightRadius * 1.1; 
+		
+		// tranform the vertices to world-space
+		lightVolumePos = (placeInWorldMatrix * vec4(lightVolumePos, 1.0)).xyz; 
+		
+		// tranform the center to world-space
+		lightCenterPosition = (placeInWorldMatrix * vec4(lightCenterPosition, 1.0)).xyz; 
+		
+		v_worldPosRad.xyz = lightCenterPosition;
+		v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0)); // 
+		v_position = vec4( lightVolumePos, 1.0);
 	}
 	else if (pointbeamcone < 1.5){ // beam
 		// we will tranform along this vector, where Y shall be the upvector
@@ -155,6 +171,8 @@ void main()
 		worldPos.xyz += lightCenterPosition;
 		
 		v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0));
+		
+		v_position = placeInWorldMatrix * worldPos;
 	}
 	else if (pointbeamcone > 1.5){ // cone
 		// input cone that has pointy end up, (y = 1), with radius =1, flat on Y=0 plane
@@ -180,18 +198,26 @@ void main()
 				newfw, 
 				newright 
 			);
-		worldPos.xyz = rotmat * worldPos.xyz;
+		// rotate the cone, and place it into local space
+		worldPos.xyz = rotmat * worldPos.xyz + lightCenterPosition;
+
 		
-		// move it to world:
-		worldPos.xyz += lightCenterPosition;
+		// move the cone into piece or world space:
+		worldPos.xyz = (placeInWorldMatrix * vec4(worldPos.xyz, 1.0)).xyz;
 		
+		// set the center pos of the light:
+		v_worldPosRad.xyz = (placeInWorldMatrix * vec4(lightCenterPosition.xyz, 1.0)).xyz;;
+		v_depths_center_map_model_min = depthAtWorldPos(vec4(v_worldPosRad.xyz,1.0));
 		
-		v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0));
+		// Clear out the translation from the cone direction, and turn the cone according to the piece matrix
+		v_worldPosRad2.xyz = mat3(placeInWorldMatrix) * v_worldPosRad2.xyz;
+		
+		v_position =  worldPos;
 	}
-	gl_Position = cameraViewProj * worldPos;
+	
+	gl_Position = cameraViewProj * v_position;
 	
 	// pass everything on to fragment shader:
-	v_position = worldPos;
 
 	
 }

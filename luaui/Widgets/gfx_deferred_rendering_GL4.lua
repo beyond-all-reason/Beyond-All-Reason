@@ -533,6 +533,7 @@ local function AddUnitPointLight(unitID, pieceIndex, instanceID, px,py,pz,radius
 end
 
 local function AddUnitPointLightTable(unitID, instanceID, lightParamTable)
+	Spring.Echo("AddUnitPointLightTable",unitID, instanceID, lightParamTable)
 	return pushElementInstance(unitPointLightVBO, lightParamTable, instanceID, true, nil, unitID)
 end
 
@@ -645,8 +646,8 @@ local unitDefLights = {
 			dz = -1, 
 			angle = 1,
 			pieceName = 'head',
-			lightParamTable = {0,0,0,150, --pos + radius
-								0,0,-1, 1, -- dir + angle
+			lightParamTable = {0,0,4,400, --pos + radius
+								0,0,1, 0.5, -- dir + angle
 								1,1,1,1, -- RGBA
 								1,1,1,1, -- falloff
 								0,0,0,0, -- otherparams
@@ -655,7 +656,7 @@ local unitDefLights = {
 								},
 			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
 		},
-		gunlight = {
+		dicklight = {
 			lighttype = 'point',
 			px = 0,
 			py = 0,
@@ -665,10 +666,10 @@ local unitDefLights = {
 			dy = 0, 
 			dz = -1, 
 			angle = 1,
-			pieceName = 'rgun',
-			lightParamTable = {0,0,0,150, --pos + radius
+			pieceName = 'pelvis',
+			lightParamTable = {50,10,4,100, --pos + radius
 								0,0,0, 0, -- unused
-								1,1,1,1, -- RGBA
+								1,1,1,0, -- RGBA
 								1,1,1,1, -- falloff
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
@@ -698,6 +699,51 @@ local unitDefLights = {
 			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
 		},
 	},
+	[UnitDefNames['armllt'].id] = {
+		initComplete = false, -- this is needed maybe?
+		searchlight = {
+			lighttype = 'cone',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 150,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			pieceName = 'sleeve',
+			lightParamTable = {0,0,0,450, --pos + radius
+								0,0,1, 0.25, -- dir + angle
+								1,1,1,1, -- RGBA
+								1,1,1,1, -- falloff
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		barrellight = {
+			lighttype = 'point',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 150,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			pieceName = 'barrel',
+			lightParamTable = {0,50,50,100, --pos + radius
+								0,0,0, 0, -- unused
+								1,1,1,1, -- RGBA
+								1,1,1,1, -- falloff
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
 }
 
 local function AddStaticLightsForUnit(unitID, unitDefID, noupload)
@@ -707,8 +753,11 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noupload)
 			local pieceMap = Spring.GetUnitPieceMap(unitID)
 			for lightname, lightParams in pairs(unitDefLight) do
 				if lightname ~= 'initComplete' then
-					lightParams.pieceIndex = pieceMap[lightParams.pieceName]
-					lightParams.lightParamTable[21] = lightParams.pieceIndex
+					if pieceMap[lightParams.pieceName] then -- if its not a real piece, it will default to the model!
+						lightParams.pieceIndex = pieceMap[lightParams.pieceName] - 1
+						lightParams.lightParamTable[21] = lightParams.pieceIndex
+					end
+					Spring.Echo(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
 				end
 			end
 		end
@@ -761,6 +810,11 @@ function AddRandomLight(which)
 	lightCacheTable[11] = math.random() + 0.1 --b
 	lightCacheTable[12] = math.random() * 1.0 + 0.5 -- intensity or alpha
 	
+	lightCacheTable[13] = 1 -- diffuse
+	lightCacheTable[14] = 1 -- specular
+	lightCacheTable[15] = 1 --rayleigh-mie
+	lightCacheTable[16] = 1 -- pointsource
+	
 	
 	if which < 0.33 then -- point
 		AddPointLight(posx, posy, posz, radius)
@@ -810,7 +864,7 @@ function widget:Initialize()
 	end 
 	
 	math.randomseed(1)
-	for i=1, 500 do AddRandomLight(	math.random()) end   
+	for i=1, 100 do AddRandomLight(	math.random()) end   
 	
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
@@ -1054,7 +1108,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		deferredLightShader:Activate()
 		deferredLightShader:SetUniformFloat("nightFactor", nightFactor)
 		deferredLightShader:SetUniformFloat("attachedtounitID", 0)
-		--[[
+		
 		-- Fixed worldpos lights
 		if pointLightVBO.usedElements > 0 then
 			deferredLightShader:SetUniformFloat("pointbeamcone", 0)
@@ -1069,26 +1123,26 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 			coneLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, coneLightVBO.usedElements, 0)
 		end
 		
-		]]--
+		
 		
 		-- Unit Attached Lights
 		deferredLightShader:SetUniformFloat("attachedtounitID", 1)		
 		
 		if unitPointLightVBO.usedElements > 0 then
 			deferredLightShader:SetUniformFloat("pointbeamcone", 0)
-			unitPointLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, unitPointLightVBO.usedElements, 0)
+			unitPointLightVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, pointLightVBO.usedElements, 0)
 		end
-		
+		--[[
 		if unitBeamLightVBO.usedElements > 0 then
 			deferredLightShader:SetUniformFloat("pointbeamcone", 1)
 			unitBeamLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, unitBeamLightVBO.usedElements, 0)
 		end
-		
+		]]--
 		if unitConeLightVBO.usedElements > 0 then
 			deferredLightShader:SetUniformFloat("pointbeamcone", 2)
 			unitConeLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, unitConeLightVBO.usedElements, 0)
 		end
-		
+	
 		
 		deferredLightShader:Deactivate()
 		
