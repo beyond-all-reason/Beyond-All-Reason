@@ -181,7 +181,7 @@ abilities.tacticalNuke = function(currentFrame)
 				--Spring.Echo("[Scavengers] Boss Is TacNuking")
 				local bossx,bossy,bossz = Spring.GetUnitPosition(FinalBossUnitID)
 				local NearestUnits = Spring.GetUnitsInSphere(bossx, bossy, bossz, 500)
-				if #NearestUnits > 5 then
+				if #NearestUnits > 10 then
 					for i = 1,BossFightCurrentPhase do
 						for t = 1,10 do
 							local target = NearestUnits[math_random(1,#NearestUnits)]
@@ -211,7 +211,7 @@ abilities.EMP = function(currentFrame)
 				--Spring.Echo("[Scavengers] Boss Is TacNuking")
 				local bossx,bossy,bossz = Spring.GetUnitPosition(FinalBossUnitID)
 				local NearestUnits = Spring.GetUnitsInSphere(bossx, bossy, bossz, 500)
-				if #NearestUnits > 5 then
+				if #NearestUnits > 10 then
 					for i = 1,BossFightCurrentPhase do
 						for t = 1,10 do
 							local target = NearestUnits[math_random(1,#NearestUnits)]
@@ -241,17 +241,26 @@ local earlyAbilities = {
 	abilities.dGun,
 	abilities.dGun,
 	abilities.dGun,
-	abilities.dGun,
-	abilities.dGun,
-	abilities.superDGun,
+	abilities.dGunFrenzy,
+	abilities.dGunFrenzy,
+	--abilities.superDGun,
 	abilities.selfRepair,
-	abilities.airWave,
+	--abilities.airWave,
 }
 
 local midgameAbilities = {
 	abilities.dGun,
+	abilities.dGun,
+	abilities.dGun,
+	abilities.dGun,
+	abilities.dGun,
 	abilities.dGunFrenzy,
-	abilities.superDGun,
+	abilities.dGunFrenzy,
+	abilities.dGunFrenzy,
+	abilities.dGunFrenzy,
+	abilities.dGunFrenzy,
+	--abilities.superDGun,
+	abilities.selfRepair,
 	abilities.selfRepair,
 	abilities.airWave,
 	abilities.tacticalNuke,
@@ -260,8 +269,18 @@ local midgameAbilities = {
 
 local endGameAbilities = {
 	abilities.dGun,
+	abilities.dGun,
+	abilities.dGunFrenzy,
+	abilities.dGunFrenzy,
+	abilities.dGunFrenzy,
+	abilities.dGunFrenzy,
+	abilities.dGunFrenzy,
+	abilities.dGunFrenzy,
+	abilities.dGunFrenzy,
 	abilities.dGunFrenzy,
 	abilities.superDGun,
+	abilities.selfRepair,
+	abilities.selfRepair,
 	abilities.selfRepair,
 	abilities.airWave,
 	abilities.tacticalNuke,
