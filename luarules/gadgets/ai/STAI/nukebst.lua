@@ -6,12 +6,6 @@ end
 
 NukeBST.DebugEnabled = false
 
-
-
-
-local CMD_STOCKPILE = 100
-local CMD_ATTACK = 20
-
 function NukeBST:Init()
 	local uname = self.unit:Internal():Name()
 	if uname == "armemp" then
@@ -30,7 +24,8 @@ end
 
 function NukeBST:OwnerBuilt()
 	self.finished = true
-	self.unit:Internal():ExecuteCustomCommand(CMD_STOCKPILE, 5)
+	self.unit:Internal():Stockpile()
+	self.unit:Internal():Stockpile()
 end
 
 function NukeBST:Update()
@@ -58,7 +53,6 @@ function NukeBST:Update()
 					floats:push_back(position.y)
 					floats:push_back(position.z)
 					self.unit:Internal():AreaAttack(floats,0)
-					--self.unit:Internal():ExecuteCustomCommand(CMD_ATTACK, floats)
 					self.gotTarget = true
 					self:EchoDebug("got target")
 				end
@@ -67,9 +61,6 @@ function NukeBST:Update()
 		end
 		if self.gotTarget then
 			if self.lastStockpileFrame == 0 or f > self.lastStockpileFrame + self.stockpileTime then
-				local floats = api.vectorFloat()
-				floats:push_back(1)
-				self.unit:Internal():ExecuteCustomCommand(CMD_STOCKPILE, floats)
 				self.lastStockpileFrame = f
 			end
 		end

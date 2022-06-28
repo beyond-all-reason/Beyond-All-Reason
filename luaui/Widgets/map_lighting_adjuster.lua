@@ -102,6 +102,11 @@ local mapSunLighting = {
 		unitDiffuseColor = {1, 0.88, 0.8},
 		unitSpecularColor = {1, 0.88, 0.8},
 	},
+	['forge v1.2'] = {
+		unitAmbientColor = { 0.45, 0.45, 0.45 },
+		unitDiffuseColor = {0.4, 0.4, 0.4},
+		unitSpecularColor = {0.65, 0.5, 0.5},
+	},
 }
 
 local mapSun = {

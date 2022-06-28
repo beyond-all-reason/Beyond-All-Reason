@@ -89,6 +89,10 @@ return {
 		"coraak_scav",
 		"cortermite_scav",
 		"cormando_scav",
+		"legbart_scav",
+		"legshot_scav",
+		"legstr_scav",
+		"legsrail_scav",
 
 		-- Vehicles
 		"armgremlin_scav",

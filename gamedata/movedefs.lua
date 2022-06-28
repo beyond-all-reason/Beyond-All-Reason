@@ -442,7 +442,7 @@ local moveDatas = {
 	},
 
 	--Chicken Movedefs
-	CHICKQUEEN = {
+	CHICKQUEENHOVER = {
 		badslope = 22,
 		badwaterslope = 255,
 		crushstrength = 99999,
@@ -451,18 +451,7 @@ local moveDatas = {
 		footprintz = 4,
 		maxslope = 255,
 		maxwaterslope = 255,
-	},
-
-	CHICKSMALL = {
-		badslope = 22,
-		badwaterslope = 255,
-		crushstrength = 25,
-		depthmod = 0,
-		footprintx = 3,
-		footprintz = 3,
-		maxslope = 22,
-		--slopeMod = 32,
-		maxwaterslope = 255,
+		speedmodclass = 2, -- hover
 	},
 
 	CHICKSMALLHOVER = {
@@ -478,7 +467,7 @@ local moveDatas = {
 		speedmodclass = 2, -- hover
 	},
 
-	CHICKBIG = {
+	CHICKBIGHOVER = {
 		badslope = 22,
 		badwaterslope = 255,
 		crushstrength = 250,
@@ -488,9 +477,10 @@ local moveDatas = {
 		maxslope = 22,
 		--slopeMod = 32,
 		maxwaterslope = 255,
+		speedmodclass = 2, -- hover
 	},
 
-	CHICKBIG2 = {
+	CHICKBIG2HOVER = {
 		badslope = 22,
 		badwaterslope = 255,
 		crushstrength = 1500,
@@ -500,9 +490,10 @@ local moveDatas = {
 		maxslope = 22,
 		--slopeMod = 32,
 		maxwaterslope = 255,
+		speedmodclass = 2, -- hover
 	},
 
-	CHICKALLTERRAIN = {
+	CHICKALLTERRAINHOVER = {
 		crushstrength = 50,
 		depthmod = 0,
 		footprintx = 4,
@@ -510,6 +501,7 @@ local moveDatas = {
 		maxslope = 255,
 		maxwaterdepth = 5000,
 		maxwaterslope = 50,
+		speedmodclass = 2, -- hover
 	},
 
 	NANO = {
@@ -666,6 +658,7 @@ for moveName, moveData in pairs(moveDatas) do
 	moveData.heatmapping = true
 	moveData.name = moveName
 	moveData.allowRawMovement = true
+	moveData.allowTerrainCollisions = false
 	if moveName and string.find(moveName, "BOT") and moveData.maxslope then
 		moveData.slopemod = 4
 		--if moveData.IsAllTerrain then

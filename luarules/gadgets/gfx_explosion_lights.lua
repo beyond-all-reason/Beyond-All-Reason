@@ -84,12 +84,17 @@ else
     end
 
     local function SpawnExplosion(_,px,py,pz, weaponID, ownerID)
-        if Script.LuaUI("GadgetWeaponExplosion") then
+        if Script.LuaUI("GadgetWeaponExplosion") or Script.LuaUI("GadgetWeaponExplosionGrass") then
             if ownerID ~= nil then
                 if spGetUnitAllyTeam(ownerID) == myAllyID or spIsPosInLos(px, py, pz, myAllyID) then
-                    Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
+					if Script.LuaUI("GadgetWeaponExplosion") then
+						Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
+					end
+					if Script.LuaUI("GadgetWeaponExplosionGrass") then
+						Script.LuaUI.GadgetWeaponExplosionGrass(px, py, pz, weaponID, ownerID)
+					end
                 end
-            else
+            elseif Script.LuaUI("GadgetWeaponExplosion") then
                 -- dont know when this happens and if we should show the explosion...
                 Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID)
             end

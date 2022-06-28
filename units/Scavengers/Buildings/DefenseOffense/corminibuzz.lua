@@ -13,7 +13,7 @@ return {
 		collisionvolumescales = "32 64 32",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		explodeas = "advancedFusionExplosion",
+		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -25,7 +25,7 @@ return {
 		objectname = "Units/scavbuildings/CORMINIBUZZ.s3o",
 		script = "Units/scavbuildings/CORMINIBUZZ.lua",
 		seismicsignature = 0,
-		selfdestructas = "advancedFusionExplosionSelfd",
+		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 700,
 		yardmap = "ooo ooo ooo",
 		customparams = {

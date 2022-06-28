@@ -45,7 +45,7 @@ return {
 		moverate1 = "32",
 		noautofire = false,
 		nochasecategory = "VTOL",
-		objectname = "Chickens/chickenf1.s3o",
+		objectname = "Chickens/chickenf2.s3o",
 		radardistance = 3000,
 		script = "Chickens/chickenf2.cob",
 		seismicsignature = 0,

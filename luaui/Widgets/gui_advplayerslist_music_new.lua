@@ -16,14 +16,14 @@ math.randomseed( os.clock() )
 -----------------------------------
 local minSilenceTime = 10
 local maxSilenceTime = 120
-local warLowLevel = 1000
-local warHighLevel = 20000
+local warLowLevel = 1500
+local warHighLevel = 30000
 
 local specMultiplier = #Spring.GetAllyTeamList() - 1
 
 local function applySpectatorThresholds()
-	warLowLevel = 1000*specMultiplier
-	warHighLevel = 20000*specMultiplier
+	warLowLevel = 1500*specMultiplier
+	warHighLevel = 30000*specMultiplier
 	appliedSpectatorThresholds = true
 	--Spring.Echo("[Music Player] Spectator mode enabled")
 end
@@ -40,8 +40,10 @@ local gameoverTracks = {}
 
 local currentTrack
 local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, gameoverTracksPlayCounter
-local fadeOutCurrentTrack = false
-
+local fadeOutFastCurrentTrack = false
+local fadeOutSlowCurrentTrack = false
+local fadeInSlowCurrentTrack = false
+local fadeOutSkipTrack = false
 local interruptionEnabled
 local silenceTimerEnabled
 local deviceLostSafetyCheck = 0
@@ -60,7 +62,8 @@ local function ReloadMusicPlaylists()
 	-- Old Soundtrack List
 	local musicDirOld 			= 'music/legacy'
 	local peaceTracksOld 			= VFS.DirList(musicDirOld..'/peace', '*.ogg')
-	local warTracksOld 				= VFS.DirList(musicDirOld..'/war', '*.ogg')
+	local warhighTracksOld 			= VFS.DirList(musicDirOld..'/warhigh', '*.ogg')
+	local warlowTracksOld 			= VFS.DirList(musicDirOld..'/warlow', '*.ogg')
 
 	-- Custom Soundtrack List
 	local musicDirCustom 		= 'music/custom'
@@ -95,8 +98,8 @@ local function ReloadMusicPlaylists()
 
 	if oldSoundtrackEnabled then
 		table.mergeInPlace(peaceTracks, peaceTracksOld)
-		table.mergeInPlace(warhighTracks, warTracksOld)
-		table.mergeInPlace(warlowTracks, warTracksOld)
+		table.mergeInPlace(warhighTracks, warhighTracksOld)
+		table.mergeInPlace(warlowTracks, warlowTracksOld)
 	end
 
 	if customSoundtrackEnabled then
@@ -555,7 +558,27 @@ function widget:Update(dt)
 		if totalTime == 0 then
 			silenceTimer = 0
 			warMeter = 0
-			PlayNewTrack(paused)
+			PlayNewTrack(true)
+		end
+	end
+	if paused and (fadeOutFastCurrentTrack or fadeOutSlowCurrentTrack) then
+		fadelevel = fadelevel - (0.33/ math.max(Spring.GetGameSpeed(), 0.01))
+		local volumefadelevel = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)) * 0.01 * (fadelevel * 0.01)
+		Spring.SetSoundStreamVolume(volumefadelevel)
+
+		if fadelevel <= 0 then
+			silenceTimer = 0
+			fadeOutSlowCurrentTrack = false
+			PlayNewTrack(true)
+		end
+	end
+	if paused and fadeInSlowCurrentTrack then
+		fadelevel = fadelevel + (0.33/ math.max(Spring.GetGameSpeed(), 0.01))
+		local volumefadelevel = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)) * 0.01 * (fadelevel * 0.01)
+		Spring.SetSoundStreamVolume(volumefadelevel)
+
+		if fadelevel >= 100 then
+			fadeInSlowCurrentTrack = false
 		end
 	end
 end
@@ -616,14 +639,49 @@ function widget:DrawScreen()
 	end
 end
 
-local function fadeOutTrack()
+local function fadeOutFastTrack()
 	fadelevel = fadelevel - 1.5
 	local volumefadelevel = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)) * 0.01 * (fadelevel * 0.01)
 	Spring.SetSoundStreamVolume(volumefadelevel)
 
 	if fadelevel <= 0 then
-		silenceTimer = 0
-		PlayNewTrack()
+		if fadeOutSkipTrack then
+			fadeOutSkipTrack = false
+			fadeOutFastCurrentTrack = false
+			silenceTimer = 0
+			PlayNewTrack()
+		else
+			fadeOutFastCurrentTrack = false
+			Spring.StopSoundStream()
+		end
+	end
+end
+
+local function fadeOutSlowTrack()
+	fadelevel = fadelevel - (0.33/ math.max(Spring.GetGameSpeed(), 0.01))
+	local volumefadelevel = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)) * 0.01 * (fadelevel * 0.01)
+	Spring.SetSoundStreamVolume(volumefadelevel)
+
+	if fadelevel <= 0 then
+		if fadeOutSkipTrack then
+			fadeOutSkipTrack = false
+			fadeOutSlowCurrentTrack = false
+			silenceTimer = 0
+			PlayNewTrack()
+		else
+			fadeOutSlowCurrentTrack = false
+			Spring.StopSoundStream()
+		end
+	end
+end
+
+local function fadeInSlowTrack()
+	fadelevel = fadelevel + (0.33/ math.max(Spring.GetGameSpeed(), 0.01))
+	local volumefadelevel = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)) * 0.01 * (fadelevel * 0.01)
+	Spring.SetSoundStreamVolume(volumefadelevel)
+
+	if fadelevel >= 100 then
+		fadeInSlowCurrentTrack = false
 	end
 end
 
@@ -635,8 +693,17 @@ function PlayNewTrack(paused)
 	silenceTimer = 0
 	appliedSilence = false
 	warMeter = warMeter * 0.75
-	fadelevel = 100
-	fadeOutCurrentTrack = false
+	
+	fadeOutFastCurrentTrack = false
+	fadeOutSlowCurrentTrack = false
+	fadeOutSkipTrack = false
+	if (not gameOver) and Spring.GetGameFrame() > 1 then
+		fadelevel = 0
+		fadeInSlowCurrentTrack = true
+	else
+		fadelevel = 100
+		fadeInSlowCurrentTrack = false
+	end
 	currentTrack = nil
 	currentTrackList = nil
 
@@ -692,9 +759,13 @@ function PlayNewTrack(paused)
 	end
 
 	if currentTrack then
-		local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)) * 0.01
 		Spring.PlaySoundStream(currentTrack, 1)
-		Spring.SetSoundStreamVolume(musicVolume)
+		if not paused and not gameOver then
+			Spring.SetSoundStreamVolume(0)
+		else
+			local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)) * 0.01
+			Spring.SetSoundStreamVolume(musicVolume)
+		end
 	end
 
 	createList()
@@ -715,13 +786,21 @@ function widget:GameFrame(n)
 	if n%1800 == 0 then
 		deviceLostSafetyCheck = 0
 	end
+	if fadeOutFastCurrentTrack then
+		fadeOutFastTrack()
+	end
 
-	if fadeOutCurrentTrack then
-		fadeOutTrack()
+	if fadeOutSlowCurrentTrack and (not fadeOutFastCurrentTrack) then
+		fadeOutSlowTrack()
+	end
+
+	if fadeInSlowCurrentTrack and (not fadeOutFastCurrentTrack) and (not fadeOutSlowCurrentTrack)  then
+		fadeInSlowTrack()
 	end
 
 	if gameOver and not playedGameOverTrack then
-		fadeOutCurrentTrack = true
+		fadeOutFastCurrentTrack = true
+		fadeOutSkipTrack = true
 	end
 
 	if n%30 == 15 then
@@ -740,7 +819,8 @@ function widget:GameFrame(n)
 			playing = false
 			appliedSilence = true
 			silenceTimer = 0
-			fadeOutCurrentTrack = false
+			fadeOutFastCurrentTrack = false
+			fadeOutSlowCurrentTrack = false
 			Spring.StopSoundStream()
 			return
 		end
@@ -753,13 +833,16 @@ function widget:GameFrame(n)
 
 		if not gameOver then
 			if playedTime > 0 and totalTime > 0 then -- music is playing
-				if not fadeOutCurrentTrack then
+				if (not fadeOutFastCurrentTrack) and (not fadeInSlowCurrentTrack) and (not fadeOutSlowCurrentTrack) then
 					Spring.SetSoundStreamVolume(musicVolume)
-					if (currentTrackListString == "intro" and n > 30)
-						or ((currentTrackListString == "peace" and warMeter > warHighLevel * 0.8) and interruptionEnabled) -- Peace in battle times, let's play some WarLow music at 80% of WarHigh threshold
-						or ((currentTrackListString == "warLow" and warMeter > warHighLevel * 3) and interruptionEnabled) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at tripple of WarHigh threshold
-						or (( (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.2 ) and interruptionEnabled) then -- War music is playing, but it has been quite peaceful recently. Let's switch to peace music at 20% of WarLow threshold
-						fadeOutCurrentTrack = true
+					if (totalTime < playedTime+11.1) then
+						fadeOutSlowCurrentTrack = true
+					elseif (currentTrackListString == "intro" and n > 30)
+					or ((currentTrackListString == "peace" and warMeter > warHighLevel * 0.8) and interruptionEnabled) -- Peace in battle times, let's play some WarLow music at 80% of WarHigh threshold
+					or ((currentTrackListString == "warLow" and warMeter > warHighLevel * 3) and interruptionEnabled) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at tripple of WarHigh threshold
+					or (( (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.2 ) and interruptionEnabled) then -- War music is playing, but it has been quite peaceful recently. Let's switch to peace music at 20% of WarLow threshold 
+						fadeOutSlowCurrentTrack = true
+						fadeOutSkipTrack = true
 					end
 				end
 			elseif totalTime == 0 then -- there's no music
@@ -799,3 +882,5 @@ function widget:SetConfigData(data)
 		end
 	end
 end
+
+

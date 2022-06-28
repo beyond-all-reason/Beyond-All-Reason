@@ -40,11 +40,13 @@ local advSettings = false
 local initialized = false
 local pauseGameWhenSingleplayer = true
 
-local cameraTransitionTime = 0.12
+local cameraTransitionTime = 0.18
 local cameraPanTransitionTime = 0.03
 
 local widgetOptionColor = '\255\160\160\160'
 local musicOptionColor = '\255\130\160\130'
+local devOptionColor = '\255\200\110\100'
+local devMainOptionColor = '\255\245\166\140'
 
 local firstlaunchsetupDone = false
 
@@ -146,6 +148,11 @@ local defaultSunLighting = {
 	groundSpecularColor = { gl.GetSun("specular") },
 	unitSpecularColor = { gl.GetSun("specular", "unit") },
 }
+
+-- Correct some maps fog
+if Game.mapName == "Nine_Metal_Islands_V1" then
+	Spring.SetAtmosphere({ fogStart = 999990, fogEnd = 9999999 })
+end
 local defaultMapFog = {
 	fogStart = gl.GetAtmosphere("fogStart"),
 	fogEnd = gl.GetAtmosphere("fogEnd"),
@@ -648,8 +655,39 @@ end
 local sec = 0
 local lastUpdate = 0
 local ambientplayerCheck = false
-
+local muteFadeTime = 0.35
+local isOffscreen = false
+local isOffscreenTime
+local prevOffscreenVolume
 function widget:Update(dt)
+
+	if Spring.GetConfigInt("muteOffscreen", 0) == 1 then
+		local prevIsOffscreen = isOffscreen
+		isOffscreen = select(6, Spring.GetMouseState())
+		if isOffscreen ~= prevIsOffscreen then
+			isOffscreenTime = os.clock()
+			if isOffscreen then
+				prevOffscreenVolume = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40)
+			end
+		end
+		if isOffscreenTime then
+			if isOffscreenTime+muteFadeTime > os.clock() then
+				if isOffscreen then
+					Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume*(1-((os.clock()-isOffscreenTime)/muteFadeTime)))
+				else
+					Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume*((os.clock()-isOffscreenTime)/muteFadeTime))
+				end
+			else
+				isOffscreenTime = nil
+				if isOffscreen then
+					Spring.SetConfigInt("snd_volmaster", 0)
+				else
+					Spring.SetConfigInt("snd_volmaster", prevOffscreenVolume)
+				end
+			end
+		end
+	end
+
 	if countDownOptionID and countDownOptionClock and countDownOptionClock < os_clock() then
 		applyOptionValue(countDownOptionID)
 		countDownOptionID = nil
@@ -675,13 +713,13 @@ function widget:Update(dt)
 		end
 	end
 
-	if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
-		Spring.SetCameraState(nil, 1)
-	else
+	--if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
+	--	Spring.SetCameraState(nil, 1)
+	--else
 		if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() and WG['setcamera_bugfix'] == true then
 			Spring.SetCameraState(nil, cameraTransitionTime)
 		end
-	end
+	--end
 
 	-- check if there is water shown 	(we do this because basic water 0 saves perf when no water is rendered)
 	if not waterDetected then
@@ -945,7 +983,7 @@ function widget:DrawScreen()
 					for i, o in pairs(optionHover) do
 						if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' then
 							-- display console command at the bottom
-							if advSettings then
+							if advSettings or devMode then
 								font:Begin()
 								font:SetTextColor(0.5, 0.5, 0.5, 0.27)
 								font:Print('/option ' .. options[i].id, screenX + (8 * widgetScale), screenY - screenHeight + (11 * widgetScale), 14 * widgetScale, "n")
@@ -1817,7 +1855,7 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  local quality = {
-				  [1] = 2048, [2] = 3072, [3] = 4096, [4] = 6144, [5] = 10240, [6] = 16384
+				  [1] = 2048, [2] = 3584, [3] = 6144, [4] = 8192, [5] = 10240, [6] = 12288
 			  }
 			  value = quality[value]
 			  Spring.SendCommands("shadows 1 " .. value)
@@ -1909,6 +1947,25 @@ function init()
 
 		{ id = "heatdistortion", group = "gfx", category = types.dev, widget = "Lups", name = texts.option.heatdistortion, type = "bool", value = GetWidgetToggleValue("Lups"), description = texts.option.heatdistortion_descr },
 
+		{ id = "darkenmap", group = "gfx", category = types.advanced, name = texts.option.darkenmap, min = 0, max = 0.33, step = 0.01, type = "slider", value = 0, description = texts.option.darkenmap_descr,
+		  onload = function(i)
+			  local mapDarkening = widgetHandler.configData["Darken map"].maps[Game.mapName:lower()]
+			  if mapDarkening then
+			 	options[getOptionByID('darkenmap')].value = mapDarkening
+			  end
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Darken map', 'darkenmap', 'setMapDarkness', { 'maps', Game.mapName:lower() }, value)
+		  end,
+		},
+		{ id = "darkenmap_darkenfeatures", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   "..texts.option.darkenmap_darkenfeatures, type = "bool", value = false, description = texts.option.darkenmap_darkenfeatures_descr,
+		  onload = function(i)
+			  loadWidgetData("Darken map", "darkenmap_darkenfeatures", { 'darkenFeatures' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Darken map', 'darkenmap', 'setDarkenFeatures', { 'darkenFeatures' }, value)
+		  end,
+		},
 
 		{ id = "label_gfx_environment", group = "gfx", name = texts.option.label_environment, category = types.basic },
 		{ id = "label_gfx_environment_spacer", group = "gfx", category = types.basic },
@@ -1952,15 +2009,23 @@ function init()
 		  end,
 		},
 
-		{ id = "decals", group = "gfx", category = types.advanced, name = texts.option.decals, restart = true, type = "bool", value = tonumber(Spring.GetConfigInt("GroundDecals", 4) or 4) >= 1, description = texts.option.decals_descr,
+		{ id = "decals", group = "gfx", category = types.advanced, name = texts.option.decals, restart = true, type = "bool", value = tonumber(Spring.GetConfigInt("GroundDecals", 3) or 3) >= 1, description = texts.option.decals_descr,
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("GroundDecals", (value and 4 or 0))
-			  Spring.SendCommands("GroundDecals " .. (value and 4 or 0))
+			  Spring.SetConfigInt("GroundDecals", (value and 3 or 0))
+			  Spring.SendCommands("GroundDecals " .. (value and 3 or 0))
 			  Spring.SetConfigInt("GroundScarAlphaFade", 1)
 		  end,
 		},
 
 		{ id = "grass", group = "gfx", category = types.basic, widget = "Map Grass GL4", name = texts.option.grass, type = "bool", value = GetWidgetToggleValue("Map Grass GL4"), description = texts.option.grass_desc },
+		{ id = "grassdistance", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.grassdistance, type = "slider", min = 0.3, max = 1, step = 0.01, value = 1, description = texts.option.grassdistance_descr,
+		  onload = function(i)
+			  loadWidgetData("Map Grass GL4", "grassdistance", { 'distanceMult' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Map Grass GL4', 'grassgl4', 'setDistanceMult', { 'distanceMult' }, value)
+		  end,
+		},
 
 		{ id = "treewind", group = "gfx", category = types.dev, name = texts.option.treewind, type = "bool", value = tonumber(Spring.GetConfigInt("TreeWind", 1) or 1) == 1, description = texts.option.treewind_descr,
 		  onload = function(i)
@@ -2030,12 +2095,6 @@ function init()
 			  Spring.SetConfigInt("MaxParticles", value)
 			  Spring.SetConfigInt("MaxNanoParticles", math.floor(value*0.34))
 		  end,
-		},
-
-		{ id = "unitRotation", group = "gfx", category = types.advanced, name = texts.option.unitrotation, min = 0, max = 10, step = 1, type = "slider", value = tonumber(Spring.GetConfigInt("unitRotation", 0)), description = texts.option.unitrotation_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("unitRotation", value)
-		  end
 		},
 
 		{ id = "unitScale", group = "gfx", category = types.dev, name = "Unit Scale", min = 0.85, max = 1, step = 0.01, type = "slider", value = tonumber(Spring.GetConfigFloat("unitScale", 1)),
@@ -2149,6 +2208,12 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("snd_airAbsorption", value)
+		  end,
+		},
+
+		{ id = "muteoffscreen", group = "sound", category = types.advanced, name = texts.option.muteoffscreen, type = "bool", value = (Spring.GetConfigInt("muteOffscreen", 0) == 1), description = texts.option.muteoffscreen_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("muteOffscreen", (value and 1 or 0))
 		  end,
 		},
 
@@ -2379,20 +2444,20 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "camerasmoothing", group = "control", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.camerasmoothing, type = "bool", value = (tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1), description = "",
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("CameraSmoothing", (value and 1 or 0))
-			  if value then
-				  Spring.SendCommands("set CamFrameTimeCorrection 1")
-				  Spring.SendCommands("set SmoothTimeOffset 2")
-				else
-				  Spring.SendCommands("set CamFrameTimeCorrection 0")
-				  Spring.SendCommands("set SmoothTimeOffset 0")
-			  end
-		  end,
-		},
+		--{ id = "camerasmoothing", group = "control", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.camerasmoothing, type = "bool", value = (tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1), description = "",
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigInt("CameraSmoothing", (value and 1 or 0))
+		--	  if value then
+		--		  Spring.SendCommands("set CamFrameTimeCorrection 1")
+		--		  Spring.SendCommands("set SmoothTimeOffset 2")
+		--		else
+		--		  Spring.SendCommands("set CamFrameTimeCorrection 0")
+		--		  Spring.SendCommands("set SmoothTimeOffset 0")
+		--	  end
+		--  end,
+		--},
 		{ id = "camerasmoothness", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.camerasmoothness, type = "slider", min = 0.04, max = 2, step = 0.01, value = cameraTransitionTime, description = texts.option.camerasmoothness_descr,
 		  onload = function(i)
 		  end,
@@ -2526,29 +2591,31 @@ function init()
 		  end,
 		},
 
-		{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishader, type = "slider", min = 0, max = 0.005, steps = {0, 0.001, 0.0015, 0.002, 0.0025, 0.003, 0.0035, 0.004}, value = guishaderIntensity, description = '',
-		  onload = function(i)
-			  loadWidgetData("GUI Shader", "guishader", { 'blurIntensity' })
-			  if type(options[getOptionByID('guishader')].value) ~= 'number' then
-				  options[getOptionByID('guishader')].value = 0
-			  end
-		  end,
-		  onchange = function(i, value)
-			  if type(value) == 'number' then
-				  guishaderIntensity = value
-				  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)
-			  end
-			  if value <= 0.000001 then
-				  if GetWidgetToggleValue('GUI Shader') then
-				 	 widgetHandler:DisableWidget('GUI Shader')
-				  end
-			  else
-				  if not GetWidgetToggleValue('GUI Shader') then
-				  	widgetHandler:EnableWidget('GUI Shader')
-				  end
-			  end
-		  end,
-		},
+		--{ id = "guishader", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishader, type = "slider", min = 0, max = 0.005, steps = {0, 1, 2, 3, 4, 5, 6}, value = guishaderIntensity, description = '',
+		--  onload = function(i)
+		--	  loadWidgetData("GUI Shader", "guishader", { 'blurIntensity' })
+		--	  if type(options[getOptionByID('guishader')].value) ~= 'number' then
+		--		  options[getOptionByID('guishader')].value = 0
+		--	  end
+		--  end,
+		--  onchange = function(i, value)
+		--	  if type(value) == 'number' then
+		--		  guishaderIntensity = value
+		--		  saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', { 'blurIntensity' }, value)
+		--	  end
+		--	  if value <= 0.000001 then
+		--		  if GetWidgetToggleValue('GUI Shader') then
+		--			  widgetHandler:DisableWidget('GUI Shader')
+		--		  end
+		--	  else
+		--		  if not GetWidgetToggleValue('GUI Shader') then
+		--			  widgetHandler:EnableWidget('GUI Shader')
+		--		  end
+		--	  end
+		--  end,
+		--},
+		{ id = "guishader", group = "ui", category = types.basic, widget = "GUI Shader", name = widgetOptionColor .. "   " .. texts.option.guishader, type = "bool", value = GetWidgetToggleValue("GUI Shader") },
+
 
 		{ id = "minimap_maxheight", group = "ui", category = types.advanced, name = texts.option.minimap .. widgetOptionColor .. "  " .. texts.option.minimap_maxheight, type = "slider", min = 0.2, max = 0.4, step = 0.01, value = 0.35, description = texts.option.minimap_maxheight_descr,
 		  onload = function(i)
@@ -2774,7 +2841,7 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setFontsize', { 'fontsizeMult' }, value)
 		  end,
 		},
-		{ id = "console_backgroundopacity", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.console_backgroundopacity, type = "slider", min = 0, max = 0.35, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = texts.option.console_backgroundopacity_descr,
+		{ id = "console_backgroundopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.console_backgroundopacity, type = "slider", min = 0, max = 0.45, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = texts.option.console_backgroundopacity_descr,
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_backgroundopacity", { 'chatBackgroundOpacity' })
 		  end,
@@ -2802,6 +2869,7 @@ function init()
 		{ id = "unitgroups", group = "ui", category = types.basic, widget = "Unit Groups", name = texts.option.unitgroups, type = "bool", value = GetWidgetToggleValue("Unit Groups"), description = texts.option.unitgroups_descr },
 		{ id = "idlebuilders", group = "ui", category = types.basic, widget = "Idle Builders", name = texts.option.idlebuilders, type = "bool", value = GetWidgetToggleValue("Idle Builders"), description = texts.option.idlebuilders_descr },
 		{ id = "buildbar", group = "ui", category = types.basic, widget = "BuildBar", name = texts.option.buildbar, type = "bool", value = GetWidgetToggleValue("BuildBar"), description = texts.option.buildbar_descr },
+		--{ id = "dgunrulereminder", group = "ui", category = types.dev, widget = "Dgun Rule Reminder", name = texts.option.dgunrulereminder, type = "bool", value = GetWidgetToggleValue("Dgun Rule Reminder"), description = texts.option.dgunrulereminder_descr },
 
 
 		{ id = "label_ui_visuals", group = "ui", name = texts.option.label_visuals, category = types.basic },
@@ -2891,22 +2959,22 @@ function init()
 		},
 
 		{ id = "highlightselunits", group = "ui", category = types.basic, widget = "Highlight Selected Units GL4", name = texts.option.highlightselunits, type = "bool", value = GetWidgetToggleValue("Highlight Selected Units GL4"), description = texts.option.highlightselunits_descr },
-		{ id = "highlightselunits_opacity", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_opacity, min = 0.02, max = 0.2, step = 0.01, type = "slider", value = 0.05, description = texts.option.highlightselunits_opacity_descr,
-		  onload = function(i)
-			  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_opacity", { 'highlightAlpha' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setOpacity', { 'highlightAlpha' }, value)
-		  end,
-		},
-		{ id = "highlightselunits_teamcolor", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_teamcolor, type = "bool", value = false, description = texts.option.highlightselunits_teamcolor_descr,
-		  onload = function(i)
-			  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_teamcolor", { 'useTeamcolor' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setTeamcolor', { 'useTeamcolor' }, value)
-		  end,
-		},
+		--{ id = "highlightselunits_opacity", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_opacity, min = 0.02, max = 0.12, step = 0.01, type = "slider", value = 0.05, description = texts.option.highlightselunits_opacity_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_opacity", { 'highlightAlpha' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setOpacity', { 'highlightAlpha' }, value)
+		--  end,
+		--},
+		--{ id = "highlightselunits_teamcolor", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_teamcolor, type = "bool", value = false, description = texts.option.highlightselunits_teamcolor_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_teamcolor", { 'useTeamcolor' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Highlight Selected Units GL4', 'highlightselunits', 'setTeamcolor', { 'useTeamcolor' }, value)
+		--  end,
+		--},
 
 		{ id = "cursorlight", group = "ui", category = types.advanced, widget = "Cursor Light", name = texts.option.cursorlight, type = "bool", value = GetWidgetToggleValue("Cursor Light"), description = texts.option.cursorlight_descr },
 		{ id = "cursorlight_lightradius", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightradius, type = "slider", min = 0.15, max = 1, step = 0.05, value = 1.5, description = '',
@@ -4581,15 +4649,7 @@ function init()
 		-- disable old cus
 		if Spring.GetConfigInt("cus", 0) == 1 then
 			Spring.SetConfigInt("cus", 0)
-		end
-		Spring.SendCommands("luarules disablecus")
-
-		if not isPotatoGpu then	-- will disable later
-
-			-- enable CUS GL4
-			if tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
-				Spring.SendCommands("luarules reloadcusgl4")
-			end
+			Spring.SendCommands("luarules disablecus")
 		end
 	end
 	if not waterDetected then
@@ -4794,7 +4854,9 @@ function init()
 				option.value = option.max
 			end
 		end
-
+		if option.name and option.category == types.dev then
+			option.name = devMainOptionColor..string.gsub(option.name, widgetOptionColor, devOptionColor)
+		end
 		processedOptionsCount = processedOptionsCount + 1
 		processedOptions[processedOptionsCount] = option
 	end
@@ -4819,6 +4881,9 @@ function widget:Initialize()
 	-- disable ambient player widget
 	if widgetHandler:IsWidgetKnown("Ambient Player") then
 		widgetHandler:DisableWidget("Ambient Player")
+	end
+	if widgetHandler:IsWidgetKnown("Fog Volumes Old GL4") then
+		widgetHandler:DisableWidget("Fog Volumes Old GL4")
 	end
 
 	-- enable previous default disabled widgets to their new default state
@@ -4871,13 +4936,13 @@ function widget:Initialize()
 
 	prevShow = show
 
-	if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
-		Spring.SendCommands("set CamFrameTimeCorrection 1")
-		Spring.SendCommands("set SmoothTimeOffset 2")
-	else
-		Spring.SendCommands("set CamFrameTimeCorrection 0")
-		Spring.SendCommands("set SmoothTimeOffset 0")
-	end
+	--if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
+	--	Spring.SendCommands("set CamFrameTimeCorrection 1")
+	--	Spring.SendCommands("set SmoothTimeOffset 2")
+	--else
+	--	Spring.SendCommands("set CamFrameTimeCorrection 0")
+	--	Spring.SendCommands("set SmoothTimeOffset 0")
+	--end
 
 	-- make sure new icon system is used
 	if Spring.GetConfigInt("UnitIconsAsUI", 0) == 0 then

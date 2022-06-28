@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "Beherith",
 		date = "2021.11.02",
 		license = "Lua code: GNU GPL, v2 or later, Shader GLSL code: (c) Beherith (mysterme@gmail.com)",
-		layer = -1,
+		layer = 999,
 		enabled = false,
 	}
 end
@@ -19,42 +19,59 @@ end
 -- atlasNormals is normals + emission
 
 -- advanced geoshader tricount for quads
--- 2x2 - 4
--- 3x3 - 12
 -- 4x4 - 40
--- 5x5 - 65! == 1+3 vec4's per vertex
--- Configurable Parts:
 
 
 
+local atlasColorAlpha = nil
 local atlasNormals = nil
-local atlasColor = nil
-local atlasSize = 2048
+local atlasHeights = nil
+local atlasORM = nil 
+
+local atlasSize = 4096
+local atlasType = 1 -- 0 is legacy, 1 is quadtree type with no padding
+-- ATLASTYPE 0 HAS WIIIIIIERD MINIFICATION ARTIFACTS!
+-- atlastype 1 is da bomb
+-- atlastype 2 seems oddly slow?
 local atlassedImages = {}
 local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 4 , sizez = 4}
 -- remember, we can use xXyY = gl.GetAtlasTexture(atlasID, texture) to query the atlas
 
-local function addDirToAtlas(atlas, path)
+local function addDirToAtlas(atlas, path, key)
 	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
 	local files = VFS.DirList(path)
-	Spring.Echo("Adding",#files, "images to atlas from", path)
+	Spring.Echo("Adding",#files, "images to atlas from", path, key)
 	for i=1, #files do
-		if imgExts[string.sub(files[i],-3,-1)] then
+		if imgExts[string.sub(files[i],-3,-1)] and string.find(files[i], key, nil, true) then
+			Spring.Echo(files[i])
 			gl.AddAtlasTexture(atlas,files[i])
-			atlassedImages[files[i]] = true
+			atlassedImages[files[i]] = atlas
 		end
 	end
 end
 
-local function makeAtlas()
-	atlasColor = gl.CreateTextureAtlas(atlasSize,atlasSize,0)
-	addDirToAtlas(atlasColor, "bitmaps/scars")
-	gl.FinalizeTextureAtlas(atlasColor)
+local function makeAtlases()
+	local success
+	atlasColorAlpha = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
+	addDirToAtlas(atlasColorAlpha, "luaui/images/decals_gl4/groundScars", '_a.png')
+	success = gl.FinalizeTextureAtlas(atlasColorAlpha)
+	if success == false then return false end
 	
-	atlasNormals = gl.CreateTextureAtlas(atlasSize,atlasSize,0)
-	addDirToAtlas(atlasNormals, "bitmaps/scars")
-	gl.FinalizeTextureAtlas(atlasNormals)	
+	atlasNormals = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
+	addDirToAtlas(atlasNormals, "luaui/images/decals_gl4/groundScars", '_n.png')
+	success = gl.FinalizeTextureAtlas(atlasNormals)
+	if success == false then return false end
 	
+	atlasHeights = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
+	addDirToAtlas(atlasHeights, "luaui/images/decals_gl4/groundScars", '_h.png')
+	success = gl.FinalizeTextureAtlas(atlasHeights)
+	if success == false then return false end
+	
+	atlasORM = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
+	addDirToAtlas(atlasORM, "luaui/images/decals_gl4/groundScars", '_orm.png')
+	success = gl.FinalizeTextureAtlas(atlasORM)
+	if success == false then return false end
+	return true
 end
 
 local decalVBO = nil
@@ -99,255 +116,85 @@ local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
-local vsSrc =  [[
-#version 420
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shader_storage_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
+local vsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.vert.glsl"
+local fsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.frag.glsl"
+local gsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.geom.glsl"
 
-#line 5000
+local lastshaderupdate = nil
+local shaderSourceCache = {}
+local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, delaytime)
+	if lastshaderupdate == nil or 
+		Spring.DiffTimers(Spring.GetTimer(), lastshaderupdate) > (delaytime or 0.25) then 
+		lastshaderupdate = Spring.GetTimer()
+		local vsSrcNew = vssrcpath and VFS.LoadFile(vssrcpath)
+		local fsSrcNew = fssrcpath and VFS.LoadFile(fssrcpath)
+		local gsSrcNew = gssrcpath and VFS.LoadFile(gssrcpath)
+		if  vsSrcNew == shaderSourceCache.vsSrc and 
+			fsSrcNew == shaderSourceCache.fsSrc and 
+			gsSrcNew == shaderSourceCache.gsSrc then 
+			--Spring.Echo("No change in shaders")
+			return nil
+		else
+			local compilestarttime = Spring.GetTimer()
+			shaderSourceCache.vsSrc = vsSrcNew
+			shaderSourceCache.fsSrc = fsSrcNew
+			shaderSourceCache.gsSrc = gsSrcNew
+			
+			local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
+			if vsSrcNew then 
+				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				vsSrcNew = vsSrcNew:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig))
+			end
+			if fsSrcNew then 
+				fsSrcNew = fsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig))
+			end
+			if gsSrcNew then 
+				gsSrcNew = gsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				gsSrcNew = gsSrcNew:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig))
+			end
+			local reinitshader =  LuaShader(
+				{
+				vertex = vsSrcNew,
+				fragment = fsSrcNew,
+				geometry = gsSrcNew,
+				uniformInt = {
+					heightmapTex = 0,
+					miniMapTex = 1,
+					infoTex = 2,
+					shadowtex = 3,
+					mapNormalsTex = 4,
+					atlasColorAlpha = 5, 
+					atlasHeights = 6, 
+					atlasNormals = 7, 
+					atlasORM = 8, 
+					--mapDeferredDepths = 9,
+					--mapDeferredDiffuse = 10,
+					--mapDeferredNormal = 11,
+					},
+				uniformFloat = {
+					fadeDistance = 3000,
+				  },
+				},
+				shadername
+			)
+			local shaderCompiled = reinitshader:Initialize()
+			
+			
+			Spring.Echo(shadername, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", Spring.GetGameFrame(), "success", shaderCompiled or false)
+			if shaderCompiled then 
+				return reinitshader
+			else
+				return nil
+			end
+		end
+	end
+	return nil
+end
 
-layout (location = 0) in vec4 lengthwidthrotation; // l w rot and maxalpha
-layout (location = 1) in vec4 uvoffsets;
-layout (location = 2) in vec4 alphastart_alphadecay_heatstart_heatdecay;
-layout (location = 3) in vec4 worldPos; // also gameframe it was created on
-
-
-
-//__ENGINEUNIFORMBUFFERDEFS__
-//__DEFINES__
-
-#line 10000
-
-uniform float fadeDistance;
-uniform sampler2D heightmapTex;
-
-out DataVS {
-	uint v_skipdraw;
-	vec4 v_lengthwidthrotation;
-	vec4 v_centerpos;
-	vec4 v_uvoffsets;
-	vec4 v_parameters;
-};
-
-float heightAtWorldPos(vec2 w){
-	vec2 uvhm =   vec2(clamp(w.x,8.0,mapSize.x-8.0),clamp(w.y,8.0, mapSize.y-8.0))/ mapSize.xy; 
-	return textureLod(heightmapTex, uvhm, 0.0).x;
-}
-
-bool vertexClipped(vec4 clipspace, float tolerance) {
-  return any(lessThan(clipspace.xyz, -clipspace.www * tolerance)) ||
-         any(greaterThan(clipspace.xyz, clipspace.www * tolerance));
-}
-#line 11000
-void main()
-{
-	v_centerpos = worldPos;
-	v_centerpos.y = heightAtWorldPos(v_centerpos.xz);
-	v_centerpos.w = 1.0;
-	v_uvoffsets = uvoffsets;
-	
-	v_parameters = alphastart_alphadecay_heatstart_heatdecay;
-	
-	v_parameters.zw = alphastart_alphadecay_heatstart_heatdecay.xz - alphastart_alphadecay_heatstart_heatdecay.yw * timeInfo.x * 0.03333;
-	
-	v_parameters.x = 0.0;
-	
-	v_lengthwidthrotation = lengthwidthrotation;
-	bvec4 isClipped = bvec4(
-		vertexClipped(cameraViewProj * (v_centerpos + vec4( lengthwidthrotation.x, 0, lengthwidthrotation.y, 0)), 1.1),
-		vertexClipped(cameraViewProj * (v_centerpos - vec4( lengthwidthrotation.x, 0, lengthwidthrotation.y, 0)), 1.1),
-		vertexClipped(cameraViewProj * (v_centerpos - vec4(-lengthwidthrotation.x, 0, lengthwidthrotation.y, 0)), 1.1),
-		vertexClipped(cameraViewProj * (v_centerpos + vec4(-lengthwidthrotation.x, 0, lengthwidthrotation.y, 0)), 1.1)
-	);
-	v_skipdraw = 0u;
-	
-	if (all(isClipped.xyz)) { // this doesnt seem to work, clips close stuff...
-		//v_skipdraw = 1u;
-		//v_parameters.x = 1.0;
-	}
-
-	vec3 toCamera = cameraViewInv[3].xyz - v_centerpos.xyz;
-	if (dot(toCamera, toCamera) >  fadeDistance * fadeDistance) v_skipdraw = 1u;
-	gl_Position = cameraViewProj * v_centerpos;
-}
-]]
-
-local gsSrc = [[
-#version 330
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
-//__ENGINEUNIFORMBUFFERDEFS__
-//__DEFINES__
-
-layout(points) in;
-layout(triangle_strip, max_vertices = 40) out;
-#line 20000
-
-uniform float fadeDistance;
-uniform sampler2D heightmapTex;
-uniform sampler2D miniMapTex;
-
-in DataVS {
-	uint v_skipdraw;
-	vec4 v_lengthwidthrotation;
-	vec4 v_centerpos;
-	vec4 v_uvoffsets;
-	vec4 v_parameters;
-} dataIn[];
-
-out DataGS {
-	vec4 g_color;
-	vec4 g_uv;
-	vec4 g_params; // how to get tbnmatrix here?
-};
-
-mat3 rotY;
-vec4 centerpos;
-vec4 uvoffsets;
-
-float heightAtWorldPos(vec2 w){
-	vec2 uvhm =   vec2(clamp(w.x,8.0,mapSize.x-8.0),clamp(w.y,8.0, mapSize.y-8.0))/ mapSize.xy; 
-	return textureLod(heightmapTex, uvhm, 0.0).x;
-}
-
-// This function takes in a set of UV coordinates [0,1] and tranforms it to correspond to the correct UV slice of an atlassed texture
-vec2 transformUV(float u, float v){// this is needed for atlassing
-	//return vec2(uvoffsets.p * u + uvoffsets.q, uvoffsets.s * v + uvoffsets.t); old
-	float a = uvoffsets.t - uvoffsets.s;
-	float b = uvoffsets.q - uvoffsets.p;
-	return vec2(uvoffsets.s + a * u, uvoffsets.p + b * v);
-}
-
-void offsetVertex4( float x, float y, float z, float u, float v){
-	g_uv.xy = transformUV(u,v);
-	vec3 primitiveCoords = vec3(x,y,z);
-	//vec3 vecnorm = normalize(primitiveCoords);// AHA zero case!
-	vec4 worldPos = vec4(centerpos.xyz + rotY * ( primitiveCoords ), 1.0);
-	worldPos.y = heightAtWorldPos(worldPos.xz) + 1.0;
-	gl_Position = cameraViewProj * worldPos;
-	gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in Z
-	g_uv.zw = dataIn[0].v_parameters.zw;
-	g_params.z = dataIn[0].v_parameters.x;
-	g_color =  textureLod(heightmapTex, centerpos.xz*0.0001, 0.0);
-	g_params.xy = worldPos.xz;
-	EmitVertex();
-}
-#line 22000
-void main(){
-	if (dataIn[0].v_skipdraw > 0u) return; //bail
-
-	centerpos = dataIn[0].v_centerpos;
-	rotY = rotation3dY(dataIn[0].v_lengthwidthrotation.z); // Create a rotation matrix around Y from the unit's rotation
-
-
-	uvoffsets = dataIn[0].v_uvoffsets; // if an atlas is used, then use this, otherwise dont
-
-	float length = dataIn[0].v_lengthwidthrotation.x;
-	float width = dataIn[0].v_lengthwidthrotation.y;
-	vec4 heights;
-	//heights.x = 
-	// for a simple quad
-	/*
-		offsetVertex4( width * 0.5, 0.0,  length * 0.5, 0.0, 1.0); // bottom right
-		offsetVertex4( width * 0.5, 0.0, -length * 0.5, 0.0, 0.0); // top right
-		offsetVertex4(-width * 0.5, 0.0,  length * 0.5, 1.0, 1.0); // bottom left
-		offsetVertex4(-width * 0.5, 0.0, -length * 0.5, 1.0, 0.0); // top left
-		EndPrimitive();
-	*/
-	
-	// for a 4x4 quad
-	for (int i = 0; i<4; i++){ //draw from bottom (front) to back
-		float v = float(i)*0.25;
-		// draw 4 strips of 9 verts
-		//10 8 6 4 2
-		// 9 7 5 3 1
-		float striptop = (v - 0.25) * length;
-		float stripbot = (v - 0.5 ) * length;
-		offsetVertex4( width * 0.5, 0.0,  stripbot, 1.0 , v       ); // 1
-		offsetVertex4( width * 0.5, 0.0,  striptop, 1.0 , v + 0.25); // 2
-		offsetVertex4( width * 0.25, 0.0, stripbot, 0.75, v       ); // 3
-		offsetVertex4( width * 0.25, 0.0, striptop, 0.75, v + 0.25); // 4
-		offsetVertex4( width * 0.0 , 0.0, stripbot, 0.5, v ); // 5
-		offsetVertex4( width * 0.0 , 0.0, striptop, 0.5, v + 0.25); // 6
-		offsetVertex4( width * -0.25, 0.0, stripbot, 0.25, v ); // 7
-		offsetVertex4( width * -0.25, 0.0, striptop, 0.25, v + 0.25); // 8
-		offsetVertex4( width * -0.5, 0.0, stripbot, 0.0, v ); // 8
-		offsetVertex4( width * -0.5, 0.0, striptop, 0.0, v + 0.25); // 10
-		EndPrimitive();
-	}
-	
-}
-]]
-
-local fsSrc =
-[[
-
-#version 420
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
-//__ENGINEUNIFORMBUFFERDEFS__
-//__DEFINES__
-
-#line 30000
-uniform float iconDistance;
-in DataGS {
-	vec4 g_color;
-	vec4 g_uv;
-	vec4 g_params; // how to get tbnmatrix here?
-};
-
-uniform sampler2D atlasColor;
-uniform sampler2D atlasNormal;
-uniform sampler2D miniMapTex;
-out vec4 fragColor;
-
-vec4 minimapAtWorldPos(vec2 w){
-	vec2 uvhm =   vec2(clamp(w.x,8.0,mapSize.x-8.0),clamp(w.y,8.0, mapSize.y-8.0))/ mapSize.xy; 
-	return textureLod(miniMapTex, uvhm, 0.0);
-}
-
-vec3 Temperature(float temperatureInKelvins)
-{
-	vec3 retColor;
-	
-	temperatureInKelvins = clamp(temperatureInKelvins, 1000.0, 40000.0) / 100.0;
-	
-	if (temperatureInKelvins <= 66.0)
-	{
-		retColor.r = 1.0;
-		retColor.g = 0.39008157876901960784 * log(temperatureInKelvins) - 0.63184144378862745098;
-	}
-	else
-	{
-		float t = temperatureInKelvins - 60.0;
-		retColor.r = 1.29293618606274509804 * pow(t, -0.1332047592);
-		retColor.g = 1.12989086089529411765 * pow(t, -0.0755148492);
-	}
-	
-	if (temperatureInKelvins >= 66.0)
-		retColor.b = 1.0;
-	else if(temperatureInKelvins <= 19.0)
-		retColor.b = 0.0;
-	else
-		retColor.b = 0.54320678911019607843 * log(temperatureInKelvins - 10.0) - 1.19625408914;
-
-	retColor = clamp(retColor,0.0,1.0);
-	return retColor;
-}
-
-#line 31000
-void main(void)
-{
-	vec4 tex1color = texture(atlasColor, g_uv.xy);
-	vec4 tex2color = texture(atlasNormal, g_uv.xy);
-	vec4 minimapcolor = minimapAtWorldPos( g_params.xy );
-	fragColor.rgba = vec4(g_color.rgb * tex1color.rgb, tex1color.a );
-	fragColor.rgba = vec4(minimapcolor.rgb* tex1color.r,  tex1color.g + g_params.z);
-	//fragColor.rgba = minimapcolor;
-	//fragColor.rgba = vec4(g_uv.x, g_uv.y, 0.0, 0.6);
-}
-]]
+function widget:Update()
+	decalShader = checkShaderUpdates(vsSrcPath, fsSrcPath, gsSrcPath, "Decals GL4") or decalShader
+end
 
 local function goodbye(reason)
   Spring.Echo("DrawPrimitiveAtUnits GL4 widget exiting with reason: "..reason)
@@ -355,29 +202,8 @@ local function goodbye(reason)
 end
 
 local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
-	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	gsSrc = gsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	DrawPrimitiveAtUnitShader =  LuaShader(
-		{
-		  vertex = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
-		  fragment = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
-		  geometry = gsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
-		  uniformInt = {
-			atlasColor = 0,
-			atlasNormal = 1,
-			heightmapTex = 2,
-			miniMapTex = 3,
-			},
-		uniformFloat = {
-			fadeDistance = 3000,
-		  },
-		},
-		DPATname .. "Shader"
-	  )
-	local shaderCompiled = DrawPrimitiveAtUnitShader:Initialize()
-	if not shaderCompiled then goodbye("Failed to compile ".. DPATname .." GL4 ") end
+	decalShader = checkShaderUpdates(vsSrcPath, fsSrcPath, gsSrcPath, "Decals GL4")
+	if not decalShader then goodbye("Failed to compile ".. DPATname .." GL4 ") end
 
 	DrawPrimitiveAtUnitVBO = makeInstanceVBOTable(
 		{
@@ -414,7 +240,11 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 	-- maxalpha: The highest amount of transparency this decal can have
 	
 	local gf = Spring.GetGameFrame()
-	local p,q,s,t = gl.GetAtlasTexture(atlasColor, decaltexturename)
+	--Spring.Echo(decaltexturename, atlassedImages[decaltexturename], atlasColorAlpha)
+	local p,q,s,t = gl.GetAtlasTexture(atlasColorAlpha, decaltexturename)
+	--Spring.Echo(gl.GetAtlasTexture(atlasColorAlpha, decaltexturename))
+	--Spring.Echo(gl.GetAtlasTexture(atlasNormals, string.gsub(decaltexturename, "_a.png","_n.png")))
+	--	rotation = 0
 	local posy = Spring.GetGroundHeight(posx, posz)
 	--Spring.Echo (unitDefID,decalInfo.texfile, width, length, alpha)
 	local lifetime = alphastart/alphadecay
@@ -422,7 +252,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 	pushElementInstance(
 		decalVBO, -- push into this Instance VBO Table
 			{length, width, rotation, maxalpha ,  -- lengthwidthrotation maxalpha
-			q,p,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+			p,q,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
 			alphastart, alphadecay, heatstart, heatdecay, -- alphastart_alphadecay_heatstart_heatdecay
 			posx, posy, posz, 1.0 },
 		decalIndex, -- this is the key inside the VBO Table, should be unique per unit
@@ -441,23 +271,32 @@ end
 function widget:DrawWorldPreUnit()
 	if decalVBO.usedElements > 0 then
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
-		Spring.Echo(decalVBO.usedElements)
-		--glCulling(GL_BACK)
-		glCulling(false)
+		--Spring.Echo(decalVBO.usedElements)
+		glCulling(GL.FRONT)
+		--glCulling(false)
 		glDepthTest(GL_LEQUAL)
 		--glDepthTest(false)
 		gl.DepthMask(false)
-		glTexture(0, atlasColor)
-		glTexture(1, atlasNormals)
-		glTexture(2, '$heightmap')
-		glTexture(3, '$minimap')
+		glTexture(0, '$heightmap')
+		glTexture(1, '$minimap')
+		glTexture(2, '$info')
+		glTexture(3, '$shadow')
+		glTexture(4, '$normals')
+		glTexture(5, atlasColorAlpha)
+		glTexture(6, atlasHeights)
+		glTexture(7, atlasNormals)
+		glTexture(8, atlasORM)
+		--glTexture(9, '$map_gbuffer_zvaltex')
+		--glTexture(10, '$map_gbuffer_difftex')
+		--glTexture(11, '$map_gbuffer_normtex')
 		decalShader:Activate()
 		decalShader:SetUniform("fadeDistance",disticon * 1000)
-		decalVBO.VAO:DrawArrays(GL.POINTS,decalVBO.usedElements)
+		decalVBO.VAO:DrawArrays(GL.POINTS, decalVBO.usedElements)
 		decalShader:Deactivate()
-		glTexture(0, false)
+		for i = 0, 10 do glTexture(i, false) end
 		glCulling(false)
 		glDepthTest(false)
+		gl.DepthMask(true)
 	end
 end
 
@@ -478,14 +317,23 @@ function widget:GameFrame(n)
 end
 
 function widget:Initialize()
-	makeAtlas()
-	--shaderConfig.MAXVERTICES = 4
-	decalVBO, decalShader = InitDrawPrimitiveAtUnit(shaderConfig, "DecalsGL4")
+	if makeAtlases() == false then 
+		goodbye("Failed to init texture atlas for DecalsGL4")
+		return
+	end
+	decalVBO = InitDrawPrimitiveAtUnit(shaderConfig, "DecalsGL4")
+	if decalVBO == nil then 
+		widgetHandler:RemoveWidget()
+	end
+	
 	math.randomseed(1)
 	if true then 
-		for i= 1, 10000 do 
+		for i= 1, 1000 do 
 			local w = math.random() * 256 + 16
-			AddDecal("bitmaps/scars/scar1.bmp", 
+			local j = math.floor(math.random()*10 + 1)
+			local idx = string.format("luaui/images/decals_gl4/groundScars/t_groundcrack_%02d_a.png", j)
+			--Spring.Echo(idx)
+			AddDecal(idx, 
 					Game.mapSizeX * math.random() * 1.0, --posx
 					Game.mapSizeZ * math.random() * 1.0, --posz
 					math.random() * 6.28, -- rotation
@@ -503,10 +351,16 @@ end
 
 
 function widget:ShutDown()
+	if atlasColorAlpha ~= nil then
+		gl.DeleteTextureAtlas(atlasColorAlpha)
+	end
+	if atlasHeights ~= nil then
+		gl.DeleteTextureAtlas(atlasHeights)
+	end
 	if atlasNormals ~= nil then
 		gl.DeleteTextureAtlas(atlasNormals)
 	end
-	if atlasColor ~= nil then
-		gl.DeleteTextureAtlas(atlasColor)
+	if atlasORM ~= nil then
+		gl.DeleteTextureAtlas(atlasORM)
 	end
 end

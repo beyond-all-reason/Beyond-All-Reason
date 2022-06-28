@@ -917,34 +917,8 @@ end
 -----------------------------------------------------------------
 -----------------------------------------------------------------
 
-local function ReloadCUS(optName, _, _, playerID)
-	if (playerID ~= Spring.GetMyPlayerID()) then
-		return
-	end
-	Spring.Echo("[CustomUnitShaders] Reloading")
-	gadget:Shutdown()
-	gadget:Initialize()
-end
-
-local function DisableCUS(optName, _, _, playerID)
-	if (playerID ~= Spring.GetMyPlayerID()) then
-		return
-	end
-	Spring.Echo("[CustomUnitShaders] Disabling")
-	gadget:Shutdown()
-end
-
-local function UpdateSun(optName, _, _, playerID)
-	sunChanged = true
-end
-
------------------------------------------------------------------
------------------------------------------------------------------
-
-function gadget:Initialize()
-	--// GG assignment
-	GG.CUS = {}
-
+local initiated = false
+local function initCUS()
 	--// load the materials config files
 	local unitMaterialDefs, featureMaterialDefs = _LoadMaterialConfigFiles(MATERIALS_DIR)
 	--// process the materials (compile shaders, load textures, ...)
@@ -987,11 +961,45 @@ function gadget:Initialize()
 	end
 
 	BindMaterials()
+	initiated = true
+end
+
+local function ReloadCUS(optName, _, _, playerID)
+	if initiated then return end
+	if (playerID ~= Spring.GetMyPlayerID()) then
+		return
+	end
+	Spring.Echo("[CustomUnitShaders] Reloading")
+	gadget:Shutdown()
+	gadget:Initialize()
+	initCUS()
+end
+
+local function DisableCUS(optName, _, _, playerID)
+	if (playerID ~= Spring.GetMyPlayerID()) then
+		return
+	end
+	Spring.Echo("[CustomUnitShaders] Disabling")
+	gadget:Shutdown()
+end
+
+local function UpdateSun(optName, _, _, playerID)
+	sunChanged = true
+end
+
+-----------------------------------------------------------------
+-----------------------------------------------------------------
+
+function gadget:Initialize()
+	GG.CUS = {}
 	gadgetHandler:AddChatAction("updatesun", UpdateSun)
 	gadgetHandler:AddChatAction("cusreload", ReloadCUS)
 	gadgetHandler:AddChatAction("reloadcus", ReloadCUS)
 	gadgetHandler:AddChatAction("disablecus", DisableCUS)
 	gadgetHandler:AddChatAction("cusdisable", DisableCUS)
+	if tonumber(Spring.GetConfigInt("cus", 0) or 0) == 1 then
+		initCUS()
+	end
 end
 
 function gadget:Shutdown()

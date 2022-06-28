@@ -50,12 +50,10 @@ if gadgetHandler:IsSyncedCode() then
 		if authorized == nil then
 			Spring.SendMessageToPlayer(playerID, "You are not authorized to send commands for a player")
 			return
-		end
-		if not spec then
+		elseif not spec then
 			Spring.SendMessageToPlayer(playerID, "You arent allowed to send commands when playing")
 			return
-		end
-		if startPlayers[playername] ~= nil then
+		elseif startPlayers[playername] ~= nil then
 			Spring.SendMessageToPlayer(playerID, "You arent allowed to send commands when you have been a player")
 			return
 		end
@@ -66,7 +64,9 @@ if gadgetHandler:IsSyncedCode() then
 
 else	-- UNSYNCED
 
-	local authorizedPlayers = SYNCED.permissions.cmd
+	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID,false)
+	local authorized = SYNCED.permissions.cmd[myPlayerName]
 
 	local function execCmd(_, playername, cmd)
 		if playername == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) or playername == '*' then
@@ -74,23 +74,8 @@ else	-- UNSYNCED
 		end
 	end
 
-	function gadget:Initialize()
-		gadgetHandler:AddChatAction(cmdname, RequestCmd)
-		gadgetHandler:AddSyncAction("execCmd", execCmd)
-	end
-
-	function gadget:Shutdown()
-		gadgetHandler:RemoveChatAction(cmdname)
-		gadgetHandler:AddSyncAction("execCmd")
-	end
-
-	function RequestCmd(cmd, line, words, playerID)
-		local playername = Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)
-		local authorized = false
-		if authorizedPlayers[playername] then
-			authorized = true
-		end
-		if authorized then
+	local function RequestCmd(cmd, line, words, playerID)
+		if authorized and playerID == myPlayerID then
 			if words[1] ~= nil and words[2] ~= nil then
 				local command = words[2]
 				if #words > 2 then
@@ -105,6 +90,15 @@ else	-- UNSYNCED
 				Spring.SendMessageToPlayer(playerID, "failed to execute, check syntax")
 			end
 		end
+	end
+
+	function gadget:Initialize()
+		gadgetHandler:AddChatAction(cmdname, RequestCmd)
+		gadgetHandler:AddSyncAction("execCmd", execCmd)
+	end
+	function gadget:Shutdown()
+		gadgetHandler:RemoveChatAction(cmdname)
+		gadgetHandler:AddSyncAction("execCmd")
 	end
 end
 

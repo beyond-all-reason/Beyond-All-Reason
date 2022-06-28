@@ -599,7 +599,7 @@ if gadgetHandler:IsSyncedCode() then
 		for i = 1, #allUnits do
 			local unitID = allUnits[i]
 			local unitDefID = spGetUnitDefID(unitID)
-			local teamID = spGetUnitTeam(unitID)
+			--local teamID = spGetUnitTeam(unitID)
 			gadget:UnitCreated(unitID, unitDefID)
 
 			local transporterID = Spring.GetUnitTransporter(unitID)
@@ -623,14 +623,6 @@ else	-- Unsynced
 
 	local landAtAirBaseCmdColor = { 0.50, 1.00, 1.00, 0.8 } -- same colour as repair
 
-	function gadget:Initialize()
-		Spring.SetCustomCommandDrawData(CMD_LAND_AT_SPECIFIC_AIRBASE, "landatairbase", landAtAirBaseCmdColor, false)
-		Spring.SetCustomCommandDrawData(CMD_LAND_AT_AIRBASE, "landatspecificairbase", landAtAirBaseCmdColor, false)
-		Spring.AssignMouseCursor("landatspecificairbase", "cursorrepair", false, false)
-	end
-
-	local spGetMouseState = Spring.GetMouseState
-	local spTraceScreenRay = Spring.TraceScreenRay
 	local spAreTeamsAllied = Spring.AreTeamsAllied
 	local spGetUnitTeam = Spring.GetUnitTeam
 	local spGetUnitDefID = Spring.GetUnitDefID
@@ -639,34 +631,30 @@ else	-- Unsynced
 	local myTeamID = Spring.GetMyTeamID()
 	local myAllyTeamID = Spring.GetMyAllyTeamID()
 
-	local strUnit = "unit"
+	function gadget:Initialize()
+		Spring.SetCustomCommandDrawData(CMD_LAND_AT_SPECIFIC_AIRBASE, "landatairbase", landAtAirBaseCmdColor, false)
+		Spring.SetCustomCommandDrawData(CMD_LAND_AT_AIRBASE, "landatspecificairbase", landAtAirBaseCmdColor, false)
+		Spring.AssignMouseCursor("landatspecificairbase", "cursorrepair", false, false)
+	end
 
 	function gadget:PlayerChanged()
 		myTeamID = Spring.GetMyTeamID()
 		myAllyTeamID = Spring.GetMyAllyTeamID()
 	end
 
-	function gadget:DefaultCommand()
-		local mx, my = spGetMouseState()
-		local s, targetID = spTraceScreenRay(mx, my)
-		if s ~= strUnit then
-			return false
-		end
+	function gadget:DefaultCommand(type, id, cmd)
+		if type ~= "unit" then
 
-		if not spAreTeamsAllied(myTeamID, spGetUnitTeam(targetID)) then
-			return false
-		end
+		elseif not spAreTeamsAllied(myTeamID, spGetUnitTeam(id)) then
 
-		local targetDefID = spGetUnitDefID(targetID)
-		if not isAirbase[targetDefID] then
-			return false
-		end
+		elseif not isAirbase[spGetUnitDefID(id)] then
 
-		local sUnits = spGetSelectedUnits()
-		for i = 1, #sUnits do
-			local unitID = sUnits[i]
-			if isAirUnit[spGetUnitDefID(unitID)] then
-				return CMD_LAND_AT_SPECIFIC_AIRBASE
+		else
+			local sUnits = spGetSelectedUnits()
+			for i = 1, #sUnits do
+				if isAirUnit[spGetUnitDefID(sUnits[i])] then
+					return CMD_LAND_AT_SPECIFIC_AIRBASE
+				end
 			end
 		end
 		return false

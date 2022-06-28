@@ -3,7 +3,7 @@ return {
 		areaofeffect = 8,
 		craterboost = 0,
 		cratermult = 0,
-		explosiongenerator = "custom:ELECTRIC_EXPLOSION",
+		explosiongenerator = "custom:genericshellexplosion-large-lightning",
 		impulseboost = 0,
 		impulsefactor = 0,
 		name = "lobberMorph",

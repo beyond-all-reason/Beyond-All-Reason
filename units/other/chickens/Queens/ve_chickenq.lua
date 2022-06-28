@@ -34,7 +34,7 @@ return {
 		maxslope = 40,
 		maxvelocity = 2.9,
 		maxwaterdepth = 0,
-		movementclass = "CHICKQUEEN",
+		movementclass = "CHICKQUEENHOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Chickens/ve_chickenq.s3o",

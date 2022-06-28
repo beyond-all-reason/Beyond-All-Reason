@@ -65,6 +65,22 @@ local TimedDamageWeapons = {
         range = 75,
         resistance = "_CHICKENACID_",
     },
+	[WeaponDefNames.legbart_clusternapalm.id] = {
+        ceg = "fire-area-75", 
+        damageCeg = "burnflamexl", 
+        time = 10,
+        damage = 10,
+        range = 75,
+        resistance = "_CHICKENACID_",
+    },
+	[WeaponDefNames.legbar_clusternapalm.id] = {
+        ceg = "fire-area-75", 
+        damageCeg = "burnflamexl", 
+        time = 10,
+        damage = 10,
+        range = 75,
+        resistance = "_CHICKENACID_",
+    },
 }
 
 local TimedDamageDyingUnits = {

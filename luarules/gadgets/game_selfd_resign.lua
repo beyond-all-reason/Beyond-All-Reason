@@ -82,7 +82,7 @@ if gadgetHandler:IsSyncedCode() then
 							break
 						elseif selfdUnitCount >= triggerResignAmount then
 							local LuaAI = Spring.GetTeamLuaAI(teamID)
-							if not LuaAI or not ( string.find(LuaAI, "Scavengers") or string.find(LuaAI, "Raptors") ) then
+							if not LuaAI or not ( string.find(LuaAI, "ScavReduxAI") or string.find(LuaAI, "Scavengers") or string.find(LuaAI, "Raptors") ) then
 								forceResignTeam(teamID)
 							end
 							break

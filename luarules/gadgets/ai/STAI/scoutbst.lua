@@ -62,7 +62,7 @@ function ScoutBST:Update()
 				end
 			end
 			if attackTarget and not self.attacking then
-				self.ai.tool:CustomCommand(unit, CMD_ATTACK, {attackTarget.unitID})
+				unit:Attack( attackTarget.unitID )
 				self.target = nil
 				self.evading = false
 				self.attacking = true

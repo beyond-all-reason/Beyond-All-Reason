@@ -126,7 +126,7 @@ local function MakeBloomShaders()
 		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
 	})
-	brightTexture2 = glCreateTexture(qvsx, qvsy, {
+	brightTexture2 = glCreateTexture(math.max(1,qvsx), math.max(1,qvsy), {
 		fbo = true,
 		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,

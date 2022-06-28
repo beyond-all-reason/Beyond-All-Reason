@@ -11,7 +11,7 @@ function widget:GetInfo()
    }
 end
 
-local debuglevel = 1
+local debuglevel = 0
 -- debuglevel 0 is no debugging
 -- debuglevel 1 is show warnings for stuff periodicly and make self crash
 -- debuglevel 2 is verbose
@@ -546,6 +546,31 @@ function widget:TextCommand(command)
 			if newdebuglevel ~= debuglevel then 
 				Spring.Echo("Debug level for API Unit Tracker GL4 set to:", newdebuglevel)
 				debuglevel = newdebuglevel
+			end
+		end
+	end
+	
+	if string.find(command, "execute", nil, true) == 1 then
+		local cmd = string.sub(command, string.find(command, "execute", nil, true) + 8, nil)
+		local success, functionize = pcall(loadstring( 'return function() return {' .. cmd .. '} end'))
+		if not success then 
+			Spring.Echo("Failed to parse command:",success, cmd)
+		else
+			local success, data = pcall(functionize)
+			if not success then 
+				Spring.Echo("Failed to execute command:", succes, cmd)
+			else
+				if type(data) == type({}) then 
+					if #data == 1 then 
+						Spring.Echo(data[1])
+					elseif #data == 0 then 
+						Spring.Echo("nil")
+					else
+						Spring.Debug.TableEcho(data)
+					end
+				else
+					Spring.Echo(data)
+				end
 			end
 		end
 	end

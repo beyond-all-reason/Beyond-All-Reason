@@ -24,15 +24,6 @@ local platterOpacity = 0.11
 
 local useHexagons = true
 
--- unit shape highlight
-local enableHighlight = false	-- using this leaves us with zombie units when switching fullview :(
-local useTeamcolor = true
-local highlightAlpha = 0
-local teamColorAlphaMult = 1.4
-local teamColorMinAlpha = 0.85
-local edgeExponent = 1.85
-local minEdgeAlpha = 0.25
-
 ----------------------------------------------------------------------------
 
 local selectionVBO = nil
@@ -70,7 +61,6 @@ local selectedUnits = {}
 local lockPlayerID
 
 local unitAllyteam = {}
-local unitshapes = {}
 local spGetUnitTeam = Spring.GetUnitTeam
 
 local unitScale = {}
@@ -88,34 +78,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			(unitDef.xsize * 8.2 + 12) + sizeAdd,
 			(unitDef.zsize * 8.2 + 12) + sizeAdd
 		}
-	end
-end
-
-local teamColor = {}
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local r, g, b = Spring.GetTeamColor(teams[i])
-	local min = teamColorMinAlpha
-	teamColor[teams[i]] = { math.max(r, min), math.max(g, min), math.max(b, min) }
-end
-teams = nil
-
-local function addUnitShape(unitID)
-	if not Spring.ValidUnitID(unitID) or Spring.GetUnitIsDead(unitID) then
-		return nil
-	end
-	if WG.HighlightUnitGL4 then
-		local r,g,b
-		local a = highlightAlpha
-		if useTeamcolor then
-			local teamID = spGetUnitTeam(unitID)
-			if teamID then
-				r, g, b = teamColor[teamID][1], teamColor[teamID][2], teamColor[teamID][3]
-				a = a * teamColorAlphaMult
-			end
-		end
-		unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r,g,b, a, minEdgeAlpha+(highlightAlpha*2), edgeExponent, 0)
-		return unitshapes[unitID]
 	end
 end
 
@@ -165,13 +127,6 @@ local function RemovePrimitive(unitID)
 	end
 end
 
-local function removeUnitShape(unitID)
-	if WG.StopHighlightUnitGL4 and unitID and unitshapes[unitID] then
-		WG.StopHighlightUnitGL4(unitshapes[unitID])
-		unitshapes[unitID] = nil
-	end
-end
-
 local function addUnit(unitID)
 	if selectedUnits[unitID] ~= nil and selectedUnits[unitID] == false and (fullview or myAllyTeam == unitAllyteam[unitID]) then
 		if not Spring.ValidUnitID(unitID) or Spring.GetUnitIsDead(unitID) then
@@ -179,9 +134,6 @@ local function addUnit(unitID)
 		end
 		if enablePlatter then
 			AddPrimitiveAtUnit(unitID)
-		end
-		if enableHighlight then
-			addUnitShape(unitID)
 		end
 		selectedUnits[unitID] = true
 	end
@@ -191,9 +143,6 @@ local function removeUnit(unitID)
 	if selectedUnits[unitID] ~= nil and selectedUnits[unitID] then
 		if enablePlatter then
 			RemovePrimitive(unitID)
-		end
-		if enableHighlight then
-			removeUnitShape(unitID)
 		end
 		selectedUnits[unitID] = false
 	end
@@ -313,6 +262,18 @@ function widget:UnitDestroyed(unitID)
 	unitAllyteam[unitID] = nil
 end
 
+function widget:UnitGiven(unitID)
+	removeUnit(unitID)
+	selectedUnits[unitID] = nil
+	unitAllyteam[unitID] = nil
+end
+
+function widget:UnitTaken(unitID)
+	removeUnit(unitID)
+	selectedUnits[unitID] = nil
+	unitAllyteam[unitID] = nil
+end
+
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	addUnit(unitID)
 end
@@ -323,7 +284,6 @@ end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	clearInstanceTable(selectionVBO)
-	-- this wont work properly for unitshapes:
 	for unitID, drawn in pairs(selectedUnits) do
 		removeUnit(unitID)
 	end
@@ -361,10 +321,15 @@ local function init()
 	shaderConfig.ROTATE_CIRCLES = 0
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(g_color.rgb, TRANSPARENCY + step( 0.01, addRadius) * LINETRANSPARANCY);"
 	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "allySelectedUnits")
+	if selectionVBO == nil then
+		widgetHandler:RemoveWidget()
+		return false
+	end
+	return true
 end
 
 function widget:Initialize()
-	init()
+	if not init() then return end
 	for _, playerID in pairs(Spring.GetPlayerList()) do
 		widget:PlayerAdded(playerID)
 	end
@@ -399,25 +364,6 @@ function widget:DrawWorldPreUnit()
 
 	if isGuiHidden ~= spIsGUIHidden() then
 		isGuiHidden = spIsGUIHidden()
-		if enableHighlight and WG.HighlightUnitGL4 then
-			if isGuiHidden then
-				for unitID, drawn in pairs(selectedUnits) do
-					if drawn then
-						removeUnit(unitID)
-					end
-				end
-			else
-				local myAllyID = Spring.GetMyAllyTeamID()
-				for unitID, drawn in pairs(selectedUnits) do
-					if not drawn then
-						local playerAllyID = select(6, Spring.GetTeamInfo(spGetUnitTeam(unitID), false))
-						if fullview or playerAllyID == myAllyID then
-							addUnit(unitID)
-						end
-					end
-				end
-			end
-		end
 	end
 	if isGuiHidden then return end
 

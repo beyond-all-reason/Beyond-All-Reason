@@ -194,7 +194,7 @@ function BomberHST:GetBestBomberTarget(torpedo)
 				end
 			end
 		else
-			if cell.pos.y > 5 then
+			if cell.pos.y > -5 then
 				if cell.economy > bestValue then
 					bestValue = cell.economy
 					bestCell = cell

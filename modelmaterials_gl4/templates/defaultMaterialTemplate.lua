@@ -149,6 +149,7 @@ vertex = [[
 	float simFrame = (timeInfo.x + timeInfo.w);
 
 	float Perlin3D( vec3 P ) {
+		//return 0.5;
 		//  https://github.com/BrianSharpe/Wombat/blob/master/Perlin3D.glsl
 
 		// establish our grid cell and unit position
@@ -284,6 +285,12 @@ vertex = [[
 		healthFraction = clamp(UNITUNIFORMS.health / UNITUNIFORMS.maxHealth, 0.0, 1.0);
 
 		//modelVertexPos = piecePos;
+		
+		#ifdef TREE_RANDOMIZATION 
+			float randomScale = fract(float(unitID)*0.01)*0.2 + 0.9;
+			piecePos.xyz *= randomScale;
+		#endif
+		
 		modelVertexPosOrig = piecePos;
 		vec3 modelVertexNormal = normal;
 
@@ -303,6 +310,7 @@ vertex = [[
 					max(damageAmount , baseVertexDisplacement) *
 					vertexDisplacement *							//vertex displacement value
 					Perlin3D(seedVec) * normalize(piecePos.xyz);
+
 			}
 		}
 		#endif
@@ -537,7 +545,8 @@ fragment = [[
 	/***********************************************************************/
 	// PBR uniforms
 	uniform sampler2D brdfLUT;			//9
-	uniform sampler2D envLUT;			//10
+	uniform sampler3D noisetex3dcube;			//10
+	uniform sampler2D envLUT;			//11
 
 
 
@@ -746,6 +755,8 @@ fragment = [[
 	// Misc functions
 
 	float Perlin3D( vec3 P ) {
+		
+		return (textureLod(noisetex3dcube, fract(P*0.1), 0.0).a * 2.0 - 1.0);
 		//  https://github.com/BrianSharpe/Wombat/blob/master/Perlin3D.glsl
 
 		// establish our grid cell and unit position
@@ -1241,6 +1252,14 @@ fragment = [[
 		vec4 texColor1 = texture(texture1, myUV, textureLODBias);
 		vec4 texColor2 = texture(texture2, myUV, textureLODBias);
 
+		#ifdef TREE_RANDOMIZATION
+			float funitID = float(unitID);
+			vec3 randluma = (funitID * vec3(0.01,0.013, 0.017) - 0.5);
+			float saturation =  clamp(dot(abs(texColor1.rgb - texColor1.gbr), vec3( 1.0)), 0.0, 1.0);
+			randluma = fract(randluma)*( saturation) + 1.0;
+			texColor1.rgb *= randluma;
+		#endif
+
 		#ifdef ENABLE_OPTION_HEALTH_TEXTURING
 			#if (RENDERING_MODE == 0)
 			// disable this in deferred mode
@@ -1552,6 +1571,13 @@ fragment = [[
 			float alphaBin = (texColor2.a < 0.5) ? 0.0 : 1.0;
 
 			outSpecularColor = TONEMAP(outSpecularColor);
+			#ifdef HASALPHASHADOWS
+				if (texColor2.a < 0.5) {
+					discard;
+					return;
+				}
+			#endif
+				
 
 			// Important note: even if you do not write any data in fragData, that will still write vec4(0.0) into that buffer.
 			fragData[GBUFFER_NORMTEX_IDX] = vec4(SNORM2NORM(N), alphaBin);
@@ -1593,6 +1619,8 @@ fragment = [[
 
 		losMapTex    = 8,
 		brdfLUT      = 9,
+		noisetex3dcube = 10,
+		envLUT = 11,
 		-- envLUT       = 10, -- uncomment this if we want environment mapping back USE_ENVIRONMENT_DIFFUSE || USE_ENVIRONMENT_SPECULAR
 	},
 	uniformFloat = {

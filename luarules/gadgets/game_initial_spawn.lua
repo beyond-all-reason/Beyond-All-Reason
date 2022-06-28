@@ -180,6 +180,9 @@ if gadgetHandler:IsSyncedCode() then
 		if useFFAStartPoints then
 			return true
 		end
+		if select(4, Spring.GetTeamInfo(teamID)) then  -- isAiTeam
+			return false
+		end
 
 		local _, _, _, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
 		if not teamID or not allyTeamID then
@@ -282,11 +285,13 @@ if gadgetHandler:IsSyncedCode() then
 
 
 		if not scenarioSpawnsUnits then
-			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "ChickensAI"))  then
+			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "ChickensAI" or luaAI == "ScavReduxAI"))  then
 				local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
 				if unitID then
 					startUnitList[#startUnitList+1] = {unitID = unitID, teamID = teamID, x = x, y = y, z = z}
-					Spring.MoveCtrl.Enable(unitID)
+					if not isAI then
+						Spring.MoveCtrl.Enable(unitID)
+					end
 					Spring.SetUnitNoDraw(unitID, true)
 					local uhealth, umaxhealth, uparalyze = Spring.GetUnitHealth(unitID)
 					local paralyzemult = 3*0.025 -- 3 seconds of paralyze

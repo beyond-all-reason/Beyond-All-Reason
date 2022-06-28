@@ -177,40 +177,27 @@ local engineBinds = {
 	{ "Any+f12", "screenshot"     },
 	{ "Alt+enter", "fullscreen"  },
 
-	{  "Any+`", "drawlabel" },
+	{ "Any+`" , "drawlabel" },
 	{ "Any+\\", "drawlabel" },
-	{  "Any+~", "drawlabel" },
-	{  "Any+§", "drawlabel" },
-	{  "Any+^", "drawlabel" },
+	{ "Any+~" , "drawlabel" },
+	{ "Any+§" , "drawlabel" },
+	{ "Any+^" , "drawlabel" },
 
-	{    "Any+`",    "drawinmap"  },
-	{ "Up+Any+`",    "drawinmap"  },
-	{    "Any+\\",   "drawinmap"  },
-	{ "Up+Any+\\",   "drawinmap"  },
-	{    "Any+~",    "drawinmap"  },
-	{ "Up+Any+~",    "drawinmap"  },
-	{    "Any+§",    "drawinmap"  },
-	{ "Up+Any+§",    "drawinmap"  },
-	{    "Any+^",    "drawinmap"  },
-	{ "Up+Any+^",    "drawinmap"  },
+	{ "Any+`",    "drawinmap"  },
+	{ "Any+\\",   "drawinmap"  },
+	{ "Any+~",    "drawinmap"  },
+	{ "Any+§",    "drawinmap"  },
+	{ "Any+^",    "drawinmap"  },
 
-	{    "Any+up",       "moveforward" },
-	{ "Up+Any+up",       "moveforward" },
-	{    "Any+down",     "moveback"    },
-	{ "Up+Any+down",     "moveback"    },
-	{    "Any+right",    "moveright"   },
-	{ "Up+Any+right",    "moveright"   },
-	{    "Any+left",     "moveleft"    },
-	{ "Up+Any+left",     "moveleft"    },
-	{    "Any+pageup",   "moveup"      },
-	{ "Up+Any+pageup",   "moveup"      },
-	{    "Any+pagedown", "movedown"    },
-	{ "Up+Any+pagedown", "movedown"    },
+	{ "Any+up",       "moveforward" },
+	{ "Any+down",     "moveback"    },
+	{ "Any+right",    "moveright"   },
+	{ "Any+left",     "moveleft"    },
+	{ "Any+pageup",   "moveup"      },
+	{ "Any+pagedown", "movedown"    },
 
 	{     "Any+ctrl", "moveslow" },
-	{  "Up+Any+ctrl", "moveslow" },
 	{    "Any+shift", "movefast" },
-	{ "Up+Any+shift", "movefast" },
 
 	{ "Ctrl+a", "select", "AllMap++_ClearSelection_SelectAll+"                                        },
 	{ "Ctrl+b", "select", "AllMap+_Builder_Idle+_ClearSelection_SelectOne+"                           },
@@ -302,42 +289,15 @@ local function makeBindsTable(keyLayout)
 		{ "Alt+numpad+", "increasespeed" },
 		{ "Alt+numpad-", "decreasespeed" },
 
-		{      "1", "specteam", "0"  },
-		{      "2", "specteam", "1"  },
-		{      "3", "specteam", "2"  },
-		{      "4", "specteam", "3"  },
-		{      "5", "specteam", "4"  },
-		{      "6", "specteam", "5"  },
-		{      "7", "specteam", "6"  },
-		{      "8", "specteam", "7"  },
-		{      "9", "specteam", "8"  },
+		{       "sc_[", "buildfacing" , "inc" },
+		{ "Shift+sc_[", "buildfacing" , "inc" },
+		{       "sc_]", "buildfacing" , "dec" },
+		{ "Shift+sc_]", "buildfacing" , "dec" },
 
-		{ "Any+0", "group0" },
-		{ "Any+1", "group1" },
-		{ "Any+2", "group2" },
-		{ "Any+3", "group3" },
-		{ "Any+4", "group4" },
-		{ "Any+5", "group5" },
-		{ "Any+6", "group6" },
-		{ "Any+7", "group7" },
-		{ "Any+8", "group8" },
-		{ "Any+9", "group9" },
-
-		{             "[", "buildfacing" , "inc" },
-		{       "Shift+[", "buildfacing" , "inc" },
-		{             "]", "buildfacing" , "dec" },
-		{       "Shift+]", "buildfacing" , "dec" },
-		{             ".", "buildfacing" , "dec" },
-		{       "Shift+.", "buildfacing" , "dec" },
-		{             ",", "buildfacing" , "inc" }, --because some keyboards don't have [ and ] keys
-		{       "Shift+,", "buildfacing" , "inc" },
-		{               O, "buildfacing" , "inc" }, --apparently some keyboards don't have , and . either...
-		{     "Shift+"..O, "buildfacing" , "inc" },
-
-		{       "Alt+"..Z, "buildspacing", "inc" },
-		{ "Shift+Alt+"..Z, "buildspacing", "inc" },
-		{       "Alt+"..X, "buildspacing", "dec" },
-		{ "Shift+Alt+"..X, "buildspacing", "dec" },
+		{       "Alt+sc_z", "buildspacing", "inc" },
+		{ "Shift+Alt+sc_z", "buildspacing", "inc" },
+		{       "Alt+sc_x", "buildspacing", "dec" },
+		{ "Shift+Alt+sc_x", "buildspacing", "dec" },
 
 		{                A, "attack"          },
 		{      "Shift+"..A, "attack"          },
@@ -396,58 +356,32 @@ local function makeBindsTable(keyLayout)
 		{ "Ctrl+f4", "viewrot"  },
 		{ "Ctrl+f5", "viewfree" },
 
-		{ "Any+f1", "ShowElevation"          },
-		{ "Any+f2", "ShowPathTraversability" },
-		{ "Any+f3", "LastMsgPos"             },
-		{ "Any+f4", "ShowMetalMap"           },
-		{ "Any+f5", "HideInterface"          },
-		{ "Any+f6", "MuteSound"              },
-		{ "Any+f7", "DynamicSky"             },
-		{    "f11", "luaui selector"         },
+		{ "Any+f1" , "ShowElevation"          },
+		{ "Any+f2" , "ShowPathTraversability" },
+		{ "Any+f3" , "LastMsgPos"             },
+		{ "Any+f4" , "ShowMetalMap"           },
+		{ "Any+f5" , "HideInterface"          },
+		{ "Any+f6" , "MuteSound"              },
+		{ "Any+f7" , "DynamicSky"             },
+		{    "f11" , "luaui selector"         },
+		{ "Any+f12", "screenshot"     , "png" },
 
-		{ "Ctrl+Shift+f8", "savegame"  },
-		{       "Any+f12", "screenshot" },
-		{     "Alt+enter", "fullscreen" },
+		{ "Ctrl+Shift+f8", "savegame"       },
+		{ "Alt+enter",     "fullscreen"     },
 
-		{     "Any+`", "drawinmap"  },
-		{  "Up+Any+`", "drawinmap"  },
-		{    "Any+\\", "drawinmap"  },
-		{ "Up+Any+\\", "drawinmap"  },
-		{     "Any+~", "drawinmap"  },
-		{  "Up+Any+~", "drawinmap"  },
-		{     "Any+§", "drawinmap"  },
-		{  "Up+Any+§", "drawinmap"  },
-		{     "Any+^", "drawinmap"  },
-		{  "Up+Any+^", "drawinmap"  },
+		{ "Any+sc_`" , "drawinmap" },
+		{ "Any+sc_`" , "drawlabel" },
+		{ "sc_`,sc_`", "drawlabel" },
 
-		{  "Any+`", "drawlabel" },
-		{    "`,`", "drawlabel" },
-		{ "Any+\\", "drawlabel" },
-		{  "\\,\\", "drawlabel" },
-		{  "Any+~", "drawlabel" },
-		{    "~,~", "drawlabel" },
-		{  "Any+§", "drawlabel" },
-		{    "§,§", "drawlabel" },
-		{  "Any+^", "drawlabel" },
-		{    "^,^", "drawlabel" },
+		{ "Any+up",       "moveforward"  },
+		{ "Any+down",     "moveback"     },
+		{ "Any+right",    "moveright"    },
+		{ "Any+left",     "moveleft"     },
+		{ "Any+pageup",   "moveup"       },
+		{ "Any+pagedown", "movedown"     },
 
-		{    "Any+up",       "moveforward"  },
-		{ "Up+Any+up",       "moveforward"  },
-		{    "Any+down",     "moveback"     },
-		{ "Up+Any+down",     "moveback"     },
-		{    "Any+right",    "moveright"    },
-		{ "Up+Any+right",    "moveright"    },
-		{    "Any+left",     "moveleft"     },
-		{ "Up+Any+left",     "moveleft"     },
-		{    "Any+pageup",   "moveup"       },
-		{ "Up+Any+pageup",   "moveup"       },
-		{    "Any+pagedown", "movedown"     },
-		{ "Up+Any+pagedown", "movedown"     },
-
-		{    "Any+ctrl",     "moveslow"     },
-		{ "Up+Any+ctrl",     "moveslow"     },
-		{    "Any+shift",    "movefast"     },
-		{ "Up+Any+shift",    "movefast"     },
+		{ "Any+ctrl",     "moveslow"     },
+		{ "Any+shift",    "movefast"     },
 
 		{ "Ctrl+"..A,    "select", "AllMap++_ClearSelection_SelectAll+"                                                                                       },
 		{ "Ctrl+"..B,    "select", "AllMap+_Builder_Idle+_ClearSelection_SelectOne+"                                                                          },
@@ -598,8 +532,7 @@ local function makeBindsTable(keyLayout)
 		{ "numpad-", "snd_volume_decrease" },
 
 		-- los_colors
-		{    'Any+;', 'losradar' },
-		{ 'Any+0xf6', 'losradar' }, -- o-umlaut for German keyboards, located where the semicolon normally is
+		{ "Any+sc_;", "losradar" },
 
 		--unit_stats
 		{ "Any+space", 'unit_stats' },
@@ -613,14 +546,24 @@ local function makeBindsTable(keyLayout)
 	table.insert(_binds,  {         Y, "settargetnoground" })
 
 	-- if WG['Auto Group'] then
-	table.insert(_binds,  { "Alt+`",  "remove_from_autogroup" })
-	table.insert(_binds,  { "Ctrl+`", "remove_one_unit_from_group" })
-	table.insert(_binds,  { "Alt+^",  "remove_from_autogroup" })        -- different keyboard layouts
-	table.insert(_binds,  { "Ctrl+^", "remove_one_unit_from_group" })
+	table.insert(_binds,  { "Alt+sc_`",  "remove_from_autogroup" })
+	table.insert(_binds,  { "Ctrl+sc_`", "remove_one_unit_from_group" })
 
 	for i = 0, 9 do
+		if i ~= 0 then
+			table.insert(_binds, { i , "specteam", i-1 })
+		end
+
 		table.insert(_binds, { 'Alt+'..i , "add_to_autogroup", i })
+
+		table.insert(_binds, { i               , "group", i                  })
+		table.insert(_binds, { 'Ctrl+'..i      , "group", "set "..i          })
+		table.insert(_binds, { 'Shift+'..i     , "group", "selectadd "..i    })
+		table.insert(_binds, { 'Ctrl+Shift+'..i, "group", "add "..i          })
+		table.insert(_binds, { 'Ctrl+Alt+'..i  , "group", "selecttoggle "..i })
+
 	end
+
 
 	return _binds
 end
@@ -668,7 +611,7 @@ end
 function widget:Initialize()
 	loadEngineBindings('un')
 	reloadBindings()
-	
+
 	WG.reloadBindings = reloadBindings
 end
 

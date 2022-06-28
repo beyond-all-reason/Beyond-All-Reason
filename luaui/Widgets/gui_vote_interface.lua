@@ -14,6 +14,7 @@ end
 local globalVoteWords =  { 'forcestart', 'stop', 'joinas' }
 
 local voteEndDelay = 4
+local voteTimeout = 75	-- fallback timeout in case vote is aborted undetected
 
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.5 + (vsx * vsy / 5700000)) * 1.55
@@ -25,6 +26,8 @@ local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold
 
 local myPlayerID = Spring.GetMyPlayerID()
 local myPlayerName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myPlayerID, false)
+
+local isreplay = Spring.IsReplay()
 
 local math_isInRect = math.isInRect
 local sfind = string.find
@@ -44,6 +47,7 @@ local votesRequired, votesEligible
 local votesCountYes = 0
 local votesCountNo = 0
 local minimized = false
+local voteStartTime
 
 local function isTeamPlayer(playerName)
 	local players = Spring.GetPlayerList()
@@ -61,6 +65,7 @@ end
 local function CloseVote()
 	voteEndTime = nil
 	voteEndText = nil
+	voteStartTime = nil
 	if voteDlist then
 		eligiblePlayers = {}
 		votesRequired = nil
@@ -86,6 +91,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 	if voteDlist then
 		gl.DeleteList(voteDlist)
 	end
+	voteStartTime = os.clock()
 	voteDlist = gl.CreateList(function()
 		if name then
 			voteName = name
@@ -109,6 +115,10 @@ local function StartVote(name)	-- when called without params its just to refresh
 		local buttonHeight = math.floor(height * 0.55)
 		if not eligibleToVote or minimized then
 			height = height - buttonHeight
+		end
+		-- make sure height is dividable by 2
+		if height % 2 == 1 then
+			height = height + 1
 		end
 
 		local xpos = math.floor(width / 2)
@@ -327,6 +337,13 @@ function widget:Update(dt)
 		end
 	end
 
+	if not voteEndTime and voteStartTime and (voteStartTime + voteTimeout < os.clock()) then
+		voteEndTime = os.clock() + (voteEndDelay*0.5)
+		voteEndText = "-----"
+		MinimizeVote()
+		--CloseVote()
+	end
+
 	if voteEndTime and os.clock() > voteEndTime then
 		CloseVote()
 	end
@@ -347,9 +364,6 @@ end
 
 function widget:Initialize()
 	widget:ViewResize()
-	if not debug and Spring.IsReplay() then
-		widgetHandler:RemoveWidget()
-	end
 end
 
 function widget:GameFrame(n)
@@ -372,6 +386,7 @@ function widget:AddConsoleLine(lines, priority)
 
 				-- vote called
 				-- > [teh]cluster1[00] * [teh]N0by called a vote for command "stop" [!vote y, !vote n, !vote b]
+				-- > [teh]cluster2[06] * [ur]mum called a vote for command "stop please" [!vote y, !vote n, !vote b]
 				if sfind(line, " called a vote ", nil, true) then
 
 					voteOwnerPlayername = ssub(line, sfind(slower(line), "* ", nil, true)+2, sfind(slower(line), " called a vote ", nil, true)-1)
@@ -395,17 +410,19 @@ function widget:AddConsoleLine(lines, priority)
 					local title = ssub(line, sfind(line, ' "') + 2, sfind(line, '" ', nil, true) - 1) .. '?'
 					title = title:sub(1, 1):upper() .. title:sub(2)
 
-					eligibleToVote = alliedWithVoteOwner
-					if not eligibleToVote then
-						for _, keyword in pairs(globalVoteWords) do
-							if sfind(slower(title), keyword, nil, true) then
-								eligibleToVote = true
-								break
+					if not isreplay then
+						eligibleToVote = alliedWithVoteOwner
+						if not eligibleToVote then
+							for _, keyword in pairs(globalVoteWords) do
+								if sfind(slower(title), keyword, nil, true) then
+									eligibleToVote = true
+									break
+								end
 							end
 						end
-					end
-					if mySpec then
-						eligibleToVote = false
+						if mySpec then
+							eligibleToVote = false
+						end
 					end
 
 					if not sfind(line, '"resign ', nil, true) or isTeamPlayer(ssub(line, sfind(line, '"resign ', nil, true) + 8, sfind(line, ' TEAM', nil, true) - 1)) then
@@ -433,9 +450,16 @@ function widget:AddConsoleLine(lines, priority)
 					end
 					-- > [teh]cluster1[01] * Vote cancelled by stown13
 					-- > [teh]cluster1[01] * Game starting, cancelling "forceStart" vote
-					if sfind(line, "* Vote cancelled", nil, true) or sfind(line, "* Game starting, cancelling ", nil, true) then
+					-- > [teh]cluster2[00] * Cancelling "gKick Raiser" vote (command executed directly by Flaka)
+					if sfind(line, "* Vote cancelled", nil, true) or sfind(line, "* Game starting, cancelling ", nil, true) or sfind(line, " vote (command executed directly by ", nil, true) then
 						voteEndTime = os.clock() + voteEndDelay
 						voteEndText = Spring.I18N('ui.voting.votecancelled')
+						MinimizeVote()
+					end
+					-- > [teh]cluster2[00] * [Z]kynet, you cannot vote currently, there is no vote in progress.
+					if sfind(line, ", you cannot vote currently, there is no vote in progress.", nil, true) then
+						voteEndTime = os.clock() + (voteEndDelay*0.5)
+						voteEndText = "-----"
 						MinimizeVote()
 					end
 				end
