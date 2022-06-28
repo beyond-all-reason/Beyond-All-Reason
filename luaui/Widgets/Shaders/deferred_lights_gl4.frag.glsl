@@ -13,8 +13,7 @@ in DataVS {
 	flat vec4 v_worldPosRad;
 	flat vec4 v_worldPosRad2;
 	flat vec4 v_lightcolor;
-	flat vec4 v_falloff_dense_scattering_sourceocclusion;	
-	flat mat3 v_conerotinv;
+	flat vec4 v_falloff_dense_scattering_sourceocclusion;
 	vec4 v_depths_center_map_model_min;
 	vec4 v_otherparams;
 	vec4 v_position;

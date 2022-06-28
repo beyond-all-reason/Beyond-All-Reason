@@ -578,6 +578,7 @@ local function AddUnitBeamLight(unitID, pieceIndex, instanceID, px,py,pz,radius,
 end
 
 local function AddUnitBeamLightTable(unitID, instanceID, lightParamTable)
+	Spring.Echo("AddUnitBeamLightTable",unitID, instanceID, lightParamTable)
 	return pushElementInstance(unitBeamLightVBO, lightParamTable, instanceID, true, nil, unitID)
 end
 
@@ -760,7 +761,7 @@ local unitDefLights = {
 			dz = -1, 
 			angle = 1,
 			pieceName = 'sleeve',
-			lightParamTable = {0,0,0,450, --pos + radius
+			lightParamTable = {0,5,5.8,450, --pos + radius
 								0,0,1, 0.25, -- dir + angle
 								1,1,1,1, -- RGBA
 								1,1,1,1, -- falloff
@@ -911,6 +912,30 @@ local unitDefLights = {
 								},
 			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
 		},
+	},	
+	[UnitDefNames['armcom'].id] = {
+		initComplete = false, -- this is needed maybe?
+		lightsaber = {
+			lighttype = 'beam',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 250,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			pieceName = 'dish',
+			lightParamTable = {0,0,4,40, --pos + radius
+								0,0, 200 , 40, -- pos2
+								1,0,0,1, -- RGBA
+								1,1,1,1, -- falloff
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
 	},
 }
 
@@ -1032,7 +1057,7 @@ function widget:Initialize()
 	end 
 	
 	math.randomseed(1)
-	for i=1, 100 do AddRandomLight(	math.random()) end   
+	for i=1, 12 do AddRandomLight(	math.random()) end   
 	
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
@@ -1300,12 +1325,12 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 			deferredLightShader:SetUniformFloat("pointbeamcone", 0)
 			unitPointLightVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, pointLightVBO.usedElements, 0)
 		end
-		--[[
+		
 		if unitBeamLightVBO.usedElements > 0 then
 			deferredLightShader:SetUniformFloat("pointbeamcone", 1)
 			unitBeamLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, unitBeamLightVBO.usedElements, 0)
 		end
-		]]--
+		
 		if unitConeLightVBO.usedElements > 0 then
 			deferredLightShader:SetUniformFloat("pointbeamcone", 2)
 			unitConeLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, unitConeLightVBO.usedElements, 0)

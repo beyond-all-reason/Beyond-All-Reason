@@ -62,7 +62,6 @@ out DataVS {
 	flat vec4 v_worldPosRad2;
 	flat vec4 v_lightcolor;
 	flat vec4 v_falloff_dense_scattering_sourceocclusion;
-	flat mat3 v_conerotinv;
 	vec4 v_depths_center_map_model_min;
 	vec4 v_otherparams; // this could be anything 
 	vec4 v_position;
@@ -114,7 +113,7 @@ void main()
 		mat4 worldMatrix = mat[instData.x];
 		placeInWorldMatrix = worldMatrix;
 		if (pieceIndex > 0u) {
-			mat4 pieceMatrix = mat[instData.x + pieceIndex ];//
+			mat4 pieceMatrix = mat[instData.x + pieceIndex];
 			placeInWorldMatrix = placeInWorldMatrix * pieceMatrix;
 		}
 		//mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
@@ -154,8 +153,12 @@ void main()
 		// our null vector is +X
 		vec3 centertoend = lightCenterPosition - worldposrad2.xyz;
 		float halfbeamlength = length(centertoend);
-		// Scale the box to correct size (along beam is X dir)
-		worldPos.xyz = position.xyz * vec3( lightRadius , halfbeamlength + lightRadius, lightRadius );
+		// Scale the box to correct size (along beam is Y dir)
+		if (attachedtounitID > 0)
+			worldPos.xyz = position.xyz * vec3( lightRadius , step(position.y, 0) *halfbeamlength + lightRadius, lightRadius );
+		else
+			worldPos.xyz = position.xyz * vec3( lightRadius ,  halfbeamlength + lightRadius, lightRadius );
+			//worldPos.xyz = position.xyz * vec3( lightRadius , halfbeamlength + lightRadius, lightRadius );
 		
 		// TODO rotate this box
 		vec3 oldfw = vec3(0,1,0); // The old forward direction is -y
@@ -170,14 +173,19 @@ void main()
 			);
 		worldPos.xyz = rotmat * worldPos.xyz;
 		
-		v_conerotinv = transpose(rotmat);
+		// so we now have our rotated box, we need to place it not at the center, but where the piece matrix tells us to
+		// or where the lightcenterpos tells us to
 		
+
 		// Place the box in the world
 		worldPos.xyz += lightCenterPosition;
 		
 		v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0));
 		
-		v_position = placeInWorldMatrix * worldPos;
+		v_worldPosRad2.xyz = (placeInWorldMatrix * vec4(v_worldPosRad2.xyz, 1.0)).xyz;;
+		v_worldPosRad.xyz = (placeInWorldMatrix * vec4(lightCenterPosition.xyz, 1.0)).xyz;
+		v_worldPosRad.xyz += (v_worldPosRad2.xyz - v_worldPosRad.xyz) * 0.5;
+		v_position.xyz = (placeInWorldMatrix * vec4(worldPos.xyz, 1.0)).xyz;
 	}
 	else if (pointbeamcone > 1.5){ // cone
 		// input cone that has pointy end up, (y = 1), with radius =1, flat on Y=0 plane
