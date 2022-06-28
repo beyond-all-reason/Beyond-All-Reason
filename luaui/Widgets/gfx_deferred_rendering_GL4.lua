@@ -635,7 +635,7 @@ end
 local unitDefLights = {
 	[UnitDefNames['armpw'].id] = {
 		initComplete = false, -- this is needed maybe?
-		headlight = {
+		headlight = { -- this is the lightname
 			lighttype = 'cone',
 			px = 0,
 			py = 0,
@@ -645,8 +645,8 @@ local unitDefLights = {
 			dy = 0, 
 			dz = -1, 
 			angle = 1,
-			pieceName = 'blarp',
-			lightParamTable = {0,11,5,150, --pos + radius
+			pieceName = 'justattachtobase', -- invalid ones will attack to the worldpos of the unit
+			lightParamTable = {0,23,7,150, --pos + radius
 								0,-0.07,1, 0.4, -- dir + angle
 								1,1,1,1, -- RGBA
 								1,1,1,1, -- falloff
@@ -821,7 +821,7 @@ local unitDefLights = {
 	},
 	[UnitDefNames['armack'].id] = {
 		initComplete = false, -- this is needed maybe?
-		beacon1 = {
+		beacon1 = { -- this is the lightname
 			lighttype = 'cone',
 			px = 0,
 			py = 0,
@@ -922,7 +922,7 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noupload)
 			for lightname, lightParams in pairs(unitDefLight) do
 				if lightname ~= 'initComplete' then
 					if pieceMap[lightParams.pieceName] then -- if its not a real piece, it will default to the model!
-						lightParams.pieceIndex = pieceMap[lightParams.pieceName] - 1
+						lightParams.pieceIndex = pieceMap[lightParams.pieceName] 
 						lightParams.lightParamTable[21] = lightParams.pieceIndex
 					end
 					Spring.Echo(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
@@ -932,14 +932,14 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noupload)
 		for lightname, lightParams in pairs(unitDefLight) do
 			if lightname ~= 'initComplete' then
 				if lightParams.lighttype == 'point' then
-					AddUnitPointLightTable(unitID, tostring(unitID) ..  lightParams.pieceName, lightParams.lightParamTable) 
+					AddUnitPointLightTable(unitID, tostring(unitID) ..  lightname, lightParams.lightParamTable) 
 				end
 				if lightParams.lighttype == 'cone' then 
-					AddUnitConeLightTable(unitID, tostring(unitID) ..  lightParams.pieceName, lightParams.lightParamTable) 
+					AddUnitConeLightTable(unitID, tostring(unitID) ..  lightname, lightParams.lightParamTable) 
 				
 				end
 				if lightParams.lighttype == 'beam' then 
-					AddUnitBeamLightTable(unitID, tostring(unitID) ..  lightParams.pieceName, lightParams.lightParamTable) 
+					AddUnitBeamLightTable(unitID, tostring(unitID) ..  lightname, lightParams.lightParamTable) 
 				end
 			end
 		end
@@ -952,13 +952,13 @@ local function RemoveStaticLightsFromUnit(unitID, unitDefID)
 		for lightname, lightParams in pairs(unitDefLight) do
 			if lightname ~= 'initComplete' then
 				if lightParams.lighttype == 'point' then
-					popElementInstance(unitPointLightVBO, tostring(unitID) ..  lightParams.pieceName) 
+					popElementInstance(unitPointLightVBO, tostring(unitID) ..  lightname) 
 				end
 				if lightParams.lighttype == 'cone' then 
-					popElementInstance(unitConeLightVBO, tostring(unitID) ..  lightParams.pieceName)
+					popElementInstance(unitConeLightVBO, tostring(unitID) ..  lightname)
 				end
 				if lightParams.lighttype == 'beam' then 
-					popElementInstance(unitBeamLightVBO, tostring(unitID) ..  lightParams.pieceName)
+					popElementInstance(unitBeamLightVBO, tostring(unitID) ..  lightname)
 				end
 			end
 		end
@@ -1032,7 +1032,7 @@ function widget:Initialize()
 	end 
 	
 	math.randomseed(1)
-	for i=1, 1 do AddRandomLight(	math.random()) end   
+	for i=1, 100 do AddRandomLight(	math.random()) end   
 	
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
