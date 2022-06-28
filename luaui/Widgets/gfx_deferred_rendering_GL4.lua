@@ -1053,9 +1053,13 @@ function widget:Initialize()
 		local nightLightingParams = {}
 		for _,v in ipairs(adjustfornight) do 
 			nightLightingParams[v] = mapinfo.lighting[string.lower(v)]
-			for k2, v2 in pairs(nightLightingParams[v]) do
-				--Spring.Echo(v,k2,v2)
-				if tonumber(v2) then nightLightingParams[v][k2] = v2 * nightFactor end
+			if nightLightingParams[v] ~= nil then 
+				for k2, v2 in pairs(nightLightingParams[v]) do
+					--Spring.Echo(v,k2,v2)
+					if tonumber(v2) then nightLightingParams[v][k2] = v2 * nightFactor end
+				end
+			else
+				Spring.Echo("Deferred Lights GL4: Warning: This map does not specify ",v, "in mapinfo.lua!")
 			end
 		end
 		Spring.SetSunLighting(nightLightingParams)
