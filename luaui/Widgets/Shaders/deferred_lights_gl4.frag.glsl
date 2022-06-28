@@ -825,6 +825,7 @@ void main(void)
 	
 	
 	fragColor.rgb = (blendedlights*0.9  + additivelights*0.5) + vec3(bleed)*0.33;
+	//fragColor.rgb *= v_lightcolor.a;
 	//fragColor.rgb = vec3(bleed);
 	//fragColor.rgb = vec3(targetcolor.rgb + blendedlights + additivelights);
 	//fragColor.rgb = outlight_unclamped;

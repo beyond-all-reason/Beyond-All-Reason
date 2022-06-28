@@ -108,7 +108,7 @@ void main()
 	// and the vertices of the light volume to piece-space
 	// we need to go from light-space to world-space
 	vec3 lightCenterPosition =  v_worldPosRad.xyz;
-	
+	v_lightcolor = lightcolor;
 	if (attachedtounitID > 0){
 		mat4 worldMatrix = mat[instData.x];
 		placeInWorldMatrix = worldMatrix;
@@ -116,14 +116,15 @@ void main()
 			mat4 pieceMatrix = mat[instData.x + pieceIndex];
 			placeInWorldMatrix = placeInWorldMatrix * pieceMatrix;
 		}
-		//mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
-		// we have our matrices above, now we need to take the light's 
-		//placeInWorldMatrix = worldPieceMatrix;
+
+		uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
+		vec4 teamCol = teamColor[teamIndex];
+		if (any(lessThan(lightcolor.rgb, vec3(-0.01)))) v_lightcolor.rgb = teamCol.rgb;
 	}
 	
 	 // this is already wrong!
 	v_worldPosRad2 = worldposrad2;
-	v_lightcolor = lightcolor;
+
 	v_modelfactor_specular_scattering_lensflare = modelfactor_specular_scattering_lensflare;
 	v_depths_center_map_model_min = vec4(1.0); // just a sanity init
 	v_otherparams = otherparams;
