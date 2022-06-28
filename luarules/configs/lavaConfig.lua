@@ -166,14 +166,14 @@ elseif string.find(mapName, "hotstepper") then
     lavaLevel = 100 -- pre-game lava level
     lavaDamage = 150 -- damage per second
     if isLavaGadget and isLavaGadget == "synced" then
-        addTideRhym (99, 0.25, 5*60) -- needs to be -1 than pre-game lava level
-        addTideRhym (236, 0.10, 5)
+        addTideRhym (80, 0.25, 5*60) -- needs to be -1 than pre-game lava level
+        addTideRhym (180, 0.10, 5)
+        addTideRhym (90, 0.25, 5*60)
+        addTideRhym (220, 0.10, 5)
         addTideRhym (100, 0.25, 5*60)
-        addTideRhym (236, 0.10, 5)
-        addTideRhym (100, 0.25, 5*60)
-        addTideRhym (300, 0.20, 1)
-        addTideRhym (355, 0.10, 30)
-        addTideRhym (395, 0.07, 9)
+        addTideRhym (260, 0.20, 5)
+        addTideRhym (300, 0.10, 5*60)
+        addTideRhym (380, 0.01, 10)
     end
 
 elseif string.find(mapName, "zed remake") then
