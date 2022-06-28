@@ -13,7 +13,7 @@ in DataVS {
 	flat vec4 v_worldPosRad;
 	flat vec4 v_worldPosRad2;
 	flat vec4 v_lightcolor;
-	flat vec4 v_falloff_dense_scattering_sourceocclusion;
+	flat vec4 v_modelfactor_specular_scattering_lensflare;
 	vec4 v_depths_center_map_model_min;
 	vec4 v_otherparams;
 	vec4 v_position;
@@ -672,7 +672,7 @@ void main(void)
 		scatteringMie = FastApproximateScattering(camPos, viewDirection, lightPosition, lightRadius, fragDistance, closestpoint_dist.w, MIERAYLEIGHRATIO);
 		
 		lensFlare = step(v_depths_center_map_model_min.x, v_depths_center_map_model_min.w);
-		lensFlare = lensFlare * clamp( lensFlare * LensFlareDistanceSqrt(closestpoint_dist.xyz, lightPosition,lightRadius) *(-10) +1, 0, 1);
+		lensFlare = lensFlare * clamp( lensFlare * LensFlareDistanceSqrt(closestpoint_dist.xyz, lightPosition,lightRadius) *(-10/(0.01+v_modelfactor_specular_scattering_lensflare.w)) + 1.0, 0, 1);
 
 	#line 33000
 	}else if (pointbeamcone > 1.5){ // cone
@@ -703,7 +703,7 @@ void main(void)
 		scatteringMie = iCone.w;
 
 		lensFlare = step(v_depths_center_map_model_min.x, v_depths_center_map_model_min.w);
-		lensFlare = lensFlare * clamp( lensFlare * LensFlareDistanceSqrt(closestpoint_dist.xyz, lightPosition,lightRadius) *(-15) +1, 0, 1);
+		lensFlare = lensFlare * clamp( lensFlare * LensFlareDistanceSqrt(closestpoint_dist.xyz, lightPosition,lightRadius) *(-15 / (0.01 +v_modelfactor_specular_scattering_lensflare.w)) +1, 0, 1);
 		
 		float lightandcameraangle = dot(coneDirection, viewDirection) + 1.0;
 		//lensFlare *= smoothstep(lightCosTheta, 1.0, lightandcameraangle);
@@ -797,7 +797,7 @@ void main(void)
 	
 	vec3 reflection = reflect(lightDirection, normals.xyz);
 	specular = dot(reflection, viewDirection);
-	specular = pow(max(0.0, specular), 8.0 * ( 1.0 + ismodel) ) * (1.0 + ismodel);
+	specular = v_modelfactor_specular_scattering_lensflare.y * pow(max(0.0, specular), 8.0 * ( 1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x) ) * (1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x);
 	attenuation = attenuation;// * attenuation;
 	
 	
@@ -813,11 +813,11 @@ void main(void)
 	fragColor.rgb = targetcolor.rgb;
 	
 	// light mixdown:
+	targetcolor.rgb = max(vec3(0.2), targetcolor.rgb); // we shouldnt let the targetcolor be fully black, or else we will have a bad time blending onto it.
 	
-	vec3 additivelights = (scatteringRayleigh + scatteringMie + lensFlare) * v_lightcolor.rgb * v_lightcolor.w * 0.4;
+	vec3 additivelights = (scatteringRayleigh + scatteringMie + lensFlare) * v_lightcolor.rgb * v_lightcolor.w * 0.4 * v_modelfactor_specular_scattering_lensflare.z;
 	
-	// this is causing discontinuities: TODO
-	vec3 blendedlights = (v_lightcolor.rgb * v_lightcolor.w)*(targetcolor.rgb * 2.0) * (diffuse + specular) * attenuation * 2.0 * (1.0 + 2.0 * ismodel);
+	vec3 blendedlights = (v_lightcolor.rgb * v_lightcolor.w)*(targetcolor.rgb * 2.0) * (diffuse + specular) * attenuation * 2.0 * (1.0 + 2.0 * ismodel * v_modelfactor_specular_scattering_lensflare.x);
 	
 	vec3 outlight_unclamped = targetcolor.rgb + blendedlights + additivelights;
 	

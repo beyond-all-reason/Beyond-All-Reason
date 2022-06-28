@@ -12,7 +12,7 @@ layout (location = 0) in vec4 position; // xyz and etc garbage
 layout (location = 3) in vec4 worldposrad; 
 layout (location = 4) in vec4 worldposrad2; 
 layout (location = 5) in vec4 lightcolor; 
-layout (location = 6) in vec4 falloff_dense_scattering_sourceocclusion; // 
+layout (location = 6) in vec4 modelfactor_specular_scattering_lensflare; // 
 layout (location = 7) in vec4 otherparams; // 
 layout (location = 8) in uint pieceIndex; // for piece type lights
 layout (location = 9) in uvec4 instData; // matoffset, uniformoffset, teamIndex, drawFlags {id = 5, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
@@ -61,7 +61,7 @@ out DataVS {
 	flat vec4 v_worldPosRad;
 	flat vec4 v_worldPosRad2;
 	flat vec4 v_lightcolor;
-	flat vec4 v_falloff_dense_scattering_sourceocclusion;
+	flat vec4 v_modelfactor_specular_scattering_lensflare;
 	vec4 v_depths_center_map_model_min;
 	vec4 v_otherparams; // this could be anything 
 	vec4 v_position;
@@ -124,7 +124,7 @@ void main()
 	 // this is already wrong!
 	v_worldPosRad2 = worldposrad2;
 	v_lightcolor = lightcolor;
-	v_falloff_dense_scattering_sourceocclusion = falloff_dense_scattering_sourceocclusion;
+	v_modelfactor_specular_scattering_lensflare = modelfactor_specular_scattering_lensflare;
 	v_depths_center_map_model_min = vec4(1.0); // just a sanity init
 	v_otherparams = otherparams;
 	v_debug = vec4(0.0);

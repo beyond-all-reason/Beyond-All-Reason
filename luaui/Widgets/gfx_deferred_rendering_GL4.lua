@@ -303,7 +303,7 @@ local function initGL4()
 				-- for beam this is end.xyz and radiusright
 			{id = 5, name = 'lightcolor', size = 4},
 				-- this is light color rgba for all
-			{id = 6, name = 'falloff_dense_scattering', size = 4},
+			{id = 6, name = 'modelfactor_specular_scattering_lensflare', size = 4},
 			{id = 7, name = 'otherparams', size = 4},
 			{id = 8, name = 'pieceIndex', size = 1, type = GL.UNSIGNED_INT},
 			{id = 9, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
@@ -506,6 +506,11 @@ end
 ]]--
 local lightCacheTable = {}
 for i = 1, 25 do lightCacheTable[i] = 0 end 
+lightCacheTable[13] = 1 --modelfactor_specular_scattering_lensflare
+lightCacheTable[14] = 1
+lightCacheTable[15] = 1
+lightCacheTable[16] = 1
+
 
 local function AddPointLight(px,py,pz,radius)
 	lightCacheTable[1] = px
@@ -650,7 +655,7 @@ local unitDefLights = {
 			lightParamTable = {0,23,7,150, --pos + radius
 								0,-0.07,1, 0.4, -- dir + angle
 								1,1,1,1, -- RGBA
-								1,1,1,1, -- falloff
+								1,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -671,7 +676,7 @@ local unitDefLights = {
 		-- 	lightParamTable = {50,10,4,100, --pos + radius
 		-- 						0,0,0, 0, -- unused
 		-- 						1,1,1,0, -- RGBA
-		-- 						1,1,1,1, -- falloff
+		-- 						1,1,1,1, -- modelfactor_specular_scattering_lensflare
 		-- 						0,0,0,0, -- otherparams
 		-- 						0, -- pieceIndex
 		-- 						0,0,0,0 -- instData always 0!
@@ -692,7 +697,7 @@ local unitDefLights = {
 		-- 	lightParamTable = {0,0,0,150, --pos + radius
 		-- 						150,150,150, 0, -- endpos
 		-- 						1,1,1,1, -- RGBA
-		-- 						1,1,1,1, -- falloff
+		-- 						1,1,1,1, -- modelfactor_specular_scattering_lensflare
 		-- 						0,0,0,0, -- otherparams
 		-- 						0, -- pieceIndex
 		-- 						0,0,0,0 -- instData always 0!
@@ -717,7 +722,7 @@ local unitDefLights = {
 			lightParamTable = {0,0,0,200, --pos + radius
 								0,0,-1, 0.2, -- dir + angle
 								1,0.5,0.5,1, -- RGBA
-								2,2,2,2, -- falloff
+								1,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -738,7 +743,7 @@ local unitDefLights = {
 			lightParamTable = {0,0,0,100, --pos + radius
 								0,0,-1, 0.9, -- dir + angle
 								0.5,3,0.5,1, -- RGBA
-								2,2,2,2, -- falloff
+								1,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -764,7 +769,7 @@ local unitDefLights = {
 			lightParamTable = {0,5,5.8,450, --pos + radius
 								0,0,1, 0.25, -- dir + angle
 								1,1,1,1, -- RGBA
-								1,1,1,1, -- falloff
+								1,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -788,7 +793,7 @@ local unitDefLights = {
 			lightParamTable = {0,0,0,450, --pos + radius
 								0,0,1, 0.20, -- dir + angle
 								1,0.5,0.6,1, -- RGBA
-								1,1,1,1, -- falloff
+								1,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -812,7 +817,7 @@ local unitDefLights = {
 			lightParamTable = {0,0,7,75, --pos + radius
 								0,-0.3,1, 1, -- dir + angle
 								1.2,0.1,0.1,1.2, -- RGBA
-								1,1,1,1, -- falloff
+								1,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -836,7 +841,7 @@ local unitDefLights = {
 			lightParamTable = {0,0,0,30, --pos + radius
 								1,0,0, 0.99, -- dir + angle
 								1.3,1.0,0.1,2, -- RGBA
-								1,1,1,1, -- falloff
+								1,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -857,7 +862,7 @@ local unitDefLights = {
 			lightParamTable = {0,0,0,30, --pos + radius
 								-1,0,0, 0.99, -- dir + angle
 								1.3,1.0,0.1,2, -- RGBA
-								1,1,1,1, -- falloff
+								1,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -881,7 +886,7 @@ local unitDefLights = {
 			lightParamTable = {0,0,10,100, --pos + radius
 								0,-0.08,1, 0.26, -- dir + angle
 								1,1,1,1.2, -- RGBA
-								1,1,1,1, -- falloff
+								1,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -905,7 +910,7 @@ local unitDefLights = {
 			lightParamTable = {0,0,4,520, --pos + radius
 								0,-0.12,1, 0.26, -- dir + angle
 								1,1,1,1, -- RGBA
-								1,1,1,1, -- falloff
+								1,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -926,10 +931,10 @@ local unitDefLights = {
 			dz = -1, 
 			angle = 1,
 			pieceName = 'dish',
-			lightParamTable = {0,0,4,40, --pos + radius
-								0,0, 200 , 40, -- pos2
+			lightParamTable = {0,0,4,80, --pos + radius
+								0,0, 300 , 40, -- pos2
 								1,0,0,1, -- RGBA
-								1,1,1,1, -- falloff
+								1,1,0.3,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -1003,10 +1008,10 @@ function AddRandomLight(which)
 	lightCacheTable[11] = math.random() + 0.1 --b
 	lightCacheTable[12] = math.random() * 1.0 + 0.5 -- intensity or alpha
 	
-	lightCacheTable[13] = 1 -- diffuse
+	lightCacheTable[13] = 1 -- modelfactor
 	lightCacheTable[14] = 1 -- specular
-	lightCacheTable[15] = 1 --rayleigh-mie
-	lightCacheTable[16] = 1 -- pointsource
+	lightCacheTable[15] = 1 -- rayleigh-mie
+	lightCacheTable[16] = 1 -- lensflare
 	
 	
 	if which < 0.33 then -- point
