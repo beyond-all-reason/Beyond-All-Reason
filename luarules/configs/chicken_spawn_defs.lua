@@ -240,19 +240,12 @@ end
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Tier1
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-addSquad(1, { "1 chicken1", "1 chicken1b", "1 chicken1c", "1 chicken1d" 					}) -- Basic Raptor
-addSquad(1, { "2 chicken1", "2 chicken1b", "2 chicken1c", "2 chicken1d" 					}) -- Basic Raptor
-addSquad(1, { "3 chicken1", "3 chicken1b", "3 chicken1c", "3 chicken1d" 					}) -- Basic Raptor
-addSquad(1, { "4 chicken1", "4 chicken1b", "4 chicken1c", "4 chicken1d" 					}) -- Basic Raptor
 addSquad(1, { "5 chicken1", "5 chicken1b", "5 chicken1c", "5 chicken1d" 					}) -- Basic Raptor
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Tier2
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-addSquad(2, { "2 chicken1x", "2 chicken1y", "2 chicken1z"  									}) -- Better Basic Raptor
-addSquad(2, { "3 chicken1x", "3 chicken1y", "3 chicken1z"  									}) -- Better Basic Raptor
 addSquad(2, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  									}) -- Better Basic Raptor
 
-addSquad(2, { "1 chickena1", "1 chickena1b", "1 chickena1c"									}) -- Brawler
 addSquad(2, { "2 chickena1", "2 chickena1b", "2 chickena1c"									}) -- Brawler
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Tier3
@@ -271,8 +264,6 @@ addSquad(4, { "4 chickenp1" , "1 chickenp2"													}) -- Small Pyros with m
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 addSquad(5, { "5 chickenw1", "5 chickenw1b", "5 chickenw1c", "5 chickenw1d" 			}) -- Fighter
 
-addSquad(5, { "5 chickenf1",																}) -- Bomber
-addSquad(5, { "5 chickenf1b", 																}) -- Bomber
 addSquad(5, { "5 chickenf1", "5 chickenf1b" 												}) -- Bomber
 
 addSquad(5, { "5 chickenebomber1" 															}) -- EMP Bomber
@@ -308,20 +299,12 @@ addSquad(7, { "5 chickenelectricallterrain", "5 chickenacidallterrain" 						}) 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Tier8
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-addSquad(8, { "10 chicken_dodo1" 															}) -- Kamikaze
-addSquad(8, { "15 chicken_dodo1" 															}) -- Kamikaze
-addSquad(8, { "30 chicken_dodo1" 															}) -- Kamikaze
 addSquad(8, { "70 chicken_dodo1" 															}) -- Kamikaze
-addSquad(8, { "15 chicken_dodo2" 															}) -- Kamikaze
 addSquad(8, { "35 chicken_dodo2" 															}) -- Kamikaze
-addSquad(8, { "15 chicken_dodoair" 															}) -- Kamikaze
 addSquad(8, { "35 chicken_dodoair" 															}) -- Kamikaze
 
-addSquad(8, { "3 chickenf1apex",															}) -- Bomber
-addSquad(8, { "3 chickenf1apexb", 															}) -- Bomber
 addSquad(8, { "3 chickenf1apex", "3 chickenf1apexb" 										}) -- Bomber
 
-addSquad(8, { "5 chickens2" 																}) -- Apex Spiker
 addSquad(8, { "10 chickens2" 																}) -- Apex Spiker
 
 addSquad(8, { "10 chickenacidallterrain" 													}) -- Acid AllTerrain 
@@ -334,15 +317,9 @@ addSquad(8, { "3 chickenacidarty" 															}) -- Acid Artillery
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Tier9
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-addSquad(9, { "5 chicken2" 																	}) -- Apex Swarmer
-addSquad(9, { "5 chicken2b" 																}) -- Apex Swarmer
 addSquad(9, { "5 chicken2" , "5 chicken2b" 													}) -- Apex Swarmer
-addSquad(9, { "5 chicken2b", "5 chicken2" 													}) -- Apex Swarmer
 
-addSquad(9, { "3 chickena2" 																}) -- Apex Brawler
-addSquad(9, { "3 chickena2b" 																}) -- Apex Brawler
 addSquad(9, { "5 chickena2", "5 chickena2b"													}) -- Apex Brawler
-addSquad(9, { "5 chickena2b", "5 chickena2" 												}) -- Apex Brawler
 
 addSquad(9, { "1 chickenr2", "3 chickenr1" 													}) -- Meteor Artillery
 
@@ -350,20 +327,13 @@ addSquad(9, { "10 chickenw2" 																}) -- Apex Fighter
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Tier10
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-addSquad(10, { "5 chicken2" 																}) -- Apex Swarmer
-addSquad(10, { "5 chicken2b" 																}) -- Apex Swarmer
 addSquad(10, { "5 chicken2" , "5 chicken2b" 												}) -- Apex Swarmer
-addSquad(10, { "5 chicken2b", "5 chicken2" 													}) -- Apex Swarmer
 
-addSquad(10, { "3 chickena2" 																}) -- Apex Brawler
-addSquad(10, { "3 chickena2b" 																}) -- Apex Brawler
 addSquad(10, { "5 chickena2", "5 chickena2b"												}) -- Apex Brawler
-addSquad(10, { "5 chickena2b", "5 chickena2" 												}) -- Apex Brawler
 
 addSquad(10, { "1 chickenr2", "3 chickenr1" 												}) -- Meteor Artillery
 
 addSquad(10, { "20 chickenw2" 																}) -- Apex Fighter
-
 
 addSquad(10, { "5 chickenh2" 																}) -- Apex Brood Mother
 addSquad(10, { "10 chickenh3" 																}) -- Brood Mother
@@ -372,13 +342,13 @@ addSquad(10, { "20 chickenh4" 																}) -- Hatchling
 -- Filling junk
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 for i = 1,#waves do
-	if i >= 2 and i <= 8 then -- Basic Swarmer
+	if i >= 2 and i <= 4 then -- Basic Swarmer
 		addSquad(i, { i.." chicken1", i.." chicken1b", i.." chicken1c" })
 		addSquad(i, { i.." chicken1b", i.." chicken1c", i.." chicken1d" })  
 		addSquad(i, { i.." chicken1c", i.." chicken1d", i.." chicken1" }) 
 		addSquad(i, { i.." chicken1d", i.." chicken1", i.." chicken1b" })
 	end
-	if i >= 3 and i <= 8 then -- Better Swarmer, Brawler and Spiker
+	if i >= 3 and i <= 6 then -- Better Swarmer, Brawler and Spiker
 		addSquad(i, { i.." chicken1x", i.." chicken1y" })
 		addSquad(i, { i.." chicken1y", i.." chicken1z" })  
 		addSquad(i, { i.." chicken1z", i.." chicken1x" }) 
