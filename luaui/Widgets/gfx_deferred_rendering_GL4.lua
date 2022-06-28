@@ -641,7 +641,7 @@ end
 local unitDefLights = {
 	[UnitDefNames['armpw'].id] = {
 		initComplete = false, -- this is needed maybe?
-		headlight = { -- this is the lightname
+		headlightpw = { -- this is the lightname
 			lighttype = 'cone',
 			px = 0,
 			py = 0,
@@ -654,8 +654,8 @@ local unitDefLights = {
 			pieceName = 'justattachtobase', -- invalid ones will attack to the worldpos of the unit
 			lightParamTable = {0,23,7,150, --pos + radius
 								0,-0.07,1, 0.4, -- dir + angle
-								1,1,1,1, -- RGBA
-								1,1,1,1, -- modelfactor_specular_scattering_lensflare
+								1,1,0.9,0.7, -- RGBA
+								0.1,0.1,2,0.6, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -706,56 +706,75 @@ local unitDefLights = {
 		-- },
 	},
 	[UnitDefNames['armrad'].id] = {
-		initComplete = false, -- this is needed maybe?
-		
-		blink = {
-			lighttype = 'cone',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 150,
-			dx = 0, 
-			dy = 0, 
-			dz = 1, 
-			angle = 1,
-			pieceName = 'dish',
-			lightParamTable = {0,0,0,200, --pos + radius
-								0,0,-1, 0.2, -- dir + angle
-								1,0.5,0.5,1, -- RGBA
-								1,1,1,1, -- modelfactor_specular_scattering_lensflare
+		initComplete = false, -- this is needed maybe?	
+		-- upright = {
+		-- 	lighttype = 'cone',
+		-- 	px = 0,
+		-- 	py = 0,
+		-- 	pz = 0,
+		-- 	height = 150,
+		-- 	dx = 0, 
+		-- 	dy = 0, 
+		-- 	dz = -1, 
+		-- 	angle = 0,
+		-- 	pieceName = 'turret',
+		-- 	lightParamTable = {0,72,0,200, --pos + radius
+		-- 						0.001,1,0.001, 0.1, -- dir + angle
+		-- 						0.5,3,0.5,1, -- RGBA
+		-- 						1,1,1,1, -- modelfactor_specular_scattering_lensflare
+		-- 						0,0,0,0, -- otherparams
+		-- 						0, -- pieceIndex
+		-- 						0,0,0,0 -- instData always 0!
+		-- 						},
+		-- 	--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		-- },
+		-- searchlight = {
+		-- 	lighttype = 'cone',
+		-- 	px = 0,
+		-- 	py = 0,
+		-- 	pz = 0,
+		-- 	height = 0,
+		-- 	dx = 0, 
+		-- 	dy = 0, 
+		-- 	dz = -1, 
+		-- 	angle = 1,
+		-- 	pieceName = 'dish',
+		-- 	lightParamTable = {0,0,0,70, --pos + radius
+		-- 						0,0,-1, 0.2, -- dir + angle
+		-- 						0.5,3,0.5,1, -- RGBA
+		-- 						0.5,1,2,0, -- modelfactor_specular_scattering_lensflare
+		-- 						0,0,0,0, -- otherparams
+		-- 						0, -- pieceIndex
+		-- 						0,0,0,0 -- instData always 0!
+		-- 						},
+		-- 	--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		-- },
+		greenblob = {
+				lighttype = 'point',
+				px = 0,
+				py = 0,
+				pz = 0,
+				height = 150,
+				dx = 0, 
+				dy = 0, 
+				dz = -1, 
+				angle = 1,
+				pieceName = 'turret',
+				lightParamTable = {0,72,0,20, --pos + radius
+								0,0,0,0, -- unused
+								0,1,0,0.9, -- RGBA
+								0.8,0.9,1.5,10, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
 			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
 		},
-		searchlight = {
-			lighttype = 'cone',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 0,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
-			pieceName = 'dish',
-			lightParamTable = {0,0,0,100, --pos + radius
-								0,0,-1, 0.9, -- dir + angle
-								0.5,3,0.5,1, -- RGBA
-								1,1,1,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
-		},
-		
 	},
 
 	[UnitDefNames['armllt'].id] = {
 		initComplete = false, -- this is needed maybe?
-		searchlight = {
+		searchlightllt = {
 			lighttype = 'cone',
 			px = 0,
 			py = 0,
@@ -767,9 +786,9 @@ local unitDefLights = {
 			angle = 1,
 			pieceName = 'sleeve',
 			lightParamTable = {0,5,5.8,450, --pos + radius
-								0,0,1, 0.25, -- dir + angle
+								0,0,1,0.25, -- dir + angle
 								1,1,1,1, -- RGBA
-								1,1,1,1, -- modelfactor_specular_scattering_lensflare
+								0.5,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -779,7 +798,7 @@ local unitDefLights = {
 	},
 	[UnitDefNames['armrl'].id] = {
 		initComplete = false, -- this is needed maybe?
-		searchlight = {
+		searchlightrl = {
 			lighttype = 'cone',
 			px = 0,
 			py = 0,
@@ -790,9 +809,9 @@ local unitDefLights = {
 			dz = -1, 
 			angle = 1,
 			pieceName = 'sleeve',
-			lightParamTable = {0,0,0,450, --pos + radius
-								0,0,1, 0.20, -- dir + angle
-								1,0.5,0.6,1, -- RGBA
+			lightParamTable = {0,0,7,450, --pos + radius
+								0,0,1,0.20, -- dir + angle
+								1,1,1,1, -- RGBA
 								1,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
@@ -803,21 +822,42 @@ local unitDefLights = {
 	},
 	[UnitDefNames['armjamt'].id] = {
 		initComplete = false, -- this is needed maybe?
-		searchlight = {
-			lighttype = 'cone',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 150,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
-			pieceName = 'spinner2',
-			lightParamTable = {0,0,7,75, --pos + radius
-								0,-0.3,1, 1, -- dir + angle
-								1.2,0.1,0.1,1.2, -- RGBA
-								1,1,1,1, -- modelfactor_specular_scattering_lensflare
+		-- searchlight = {
+		-- 	lighttype = 'cone',
+		-- 	px = 0,
+		-- 	py = 0,
+		-- 	pz = 0,
+		-- 	height = 150,
+		-- 	dx = 0, 
+		-- 	dy = 0, 
+		-- 	dz = -1, 
+		-- 	angle = 1,
+		-- 	pieceName = 'turret',
+		-- 	lightParamTable = {0,0,3,65, --pos + radius
+		-- 						0,-0.4,1, 1, -- dir + angle
+		-- 						1.2,0.1,0.1,1.2, -- RGBA
+		-- 						1,1,1,1, -- modelfactor_specular_scattering_lensflare
+		-- 						0,0,0,0, -- otherparams
+		-- 						0, -- pieceIndex
+		-- 						0,0,0,0 -- instData always 0!
+		-- 						},
+		-- 	--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		-- },
+		cloaklightred = {
+				lighttype = 'point',
+				px = 0,
+				py = 0,
+				pz = 0,
+				height = 150,
+				dx = 0, 
+				dy = 0, 
+				dz = -1, 
+				angle = 1,
+				pieceName = 'turret',
+				lightParamTable = {0,30,0,35, --pos + radius
+								0,0,1,0, -- unused
+								1,0,0,0.5, -- RGBA
+								0.5,0.5,1.5,10, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -872,7 +912,7 @@ local unitDefLights = {
 	},
 	[UnitDefNames['armstump'].id] = {
 		initComplete = false, -- this is needed maybe?
-		searchlight = {
+		searchlightstump = {
 			lighttype = 'cone',
 			px = 0,
 			py = 0,
@@ -896,7 +936,7 @@ local unitDefLights = {
 	},
 	[UnitDefNames['armbanth'].id] = {
 		initComplete = false, -- this is needed maybe?
-		searchlight = {
+		searchlightbanth = {
 			lighttype = 'cone',
 			px = 0,
 			py = 0,
@@ -907,10 +947,10 @@ local unitDefLights = {
 			dz = -1, 
 			angle = 1,
 			pieceName = 'turret',
-			lightParamTable = {0,0,4,520, --pos + radius
+			lightParamTable = {0,2,18,520, --pos + radius
 								0,-0.12,1, 0.26, -- dir + angle
 								1,1,1,1, -- RGBA
-								1,1,1,1, -- modelfactor_specular_scattering_lensflare
+								0.1,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -920,8 +960,8 @@ local unitDefLights = {
 	},	
 	[UnitDefNames['armcom'].id] = {
 		initComplete = false, -- this is needed maybe?
-		lightsaber = {
-			lighttype = 'beam',
+		headlightarmcom = {
+			lighttype = 'cone',
 			px = 0,
 			py = 0,
 			pz = 0,
@@ -930,11 +970,48 @@ local unitDefLights = {
 			dy = 0, 
 			dz = -1, 
 			angle = 1,
-			pieceName = 'dish',
-			lightParamTable = {0,0,4,80, --pos + radius
-								0,0, 300 , 40, -- pos2
-								1,0,0,1, -- RGBA
-								1,1,0.3,1, -- modelfactor_specular_scattering_lensflare
+			pieceName = 'head',
+			lightParamTable = {0,0,10,420, --pos + radius
+								0,-0.25,1, 0.26, -- dir + angle
+								-1,1,1,1, -- RGBA
+								1,2,3,1, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		-- lightsaber = {
+		-- 	lighttype = 'beam',
+		-- 	px = 0,
+		-- 	py = 0,
+		-- 	pz = 0,
+		-- 	height = 250,
+		-- 	dx = 0, 
+		-- 	dy = 0, 
+		-- 	dz = -1, 
+		-- 	angle = 1,
+		-- 	pieceName = 'dish',
+		-- 	lightParamTable = {0,0,4,80, --pos + radius
+		-- 						0,0, 300 , 40, -- pos2
+		-- 						1,0,0,1, -- RGBA
+		-- 						1,1,0.3,1, -- modelfactor_specular_scattering_lensflare
+		-- 						0,0,0,0, -- otherparams
+		-- 						0, -- pieceIndex
+		-- 						0,0,0,0 -- instData always 0!
+		-- 						},
+		-- 	--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		-- },
+	},
+	[UnitDefNames['armcv'].id] = {
+		initComplete = false, -- this is needed maybe?
+		nanolightarmcv = {
+			lighttype = 'cone',
+			pieceName = 'nano1',
+			lightParamTable = {3,0,-4,120, --pos + radius
+								0,0,1, 0.3, -- pos2
+								-1,0,0,1, -- RGBA
+								0,1,3,0, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -942,15 +1019,84 @@ local unitDefLights = {
 			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
 		},
 	},
-	[UnitDefNames['armcv'].id] = {
+	[UnitDefNames['armca'].id] = {
 		initComplete = false, -- this is needed maybe?
-		nanolight = {
+		nanolightarmca = {
 			lighttype = 'cone',
-			pieceName = 'nano1',
-			lightParamTable = {3,0,-4,120, --pos + radius
-								0,0, 1 , 0.3, -- pos2
+			pieceName = 'nano',
+			lightParamTable = {0,0,0,120, --pos + radius
+								0,0,-1, 0.3, -- pos2
 								-1,0,0,1, -- RGBA
 								0,1,3,0, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
+	[UnitDefNames['armamd'].id] = {
+		initComplete = false, -- this is needed maybe?
+		-- readylight = {
+		-- 	lighttype = 'beam',
+		-- 	px = 0,
+		-- 	py = 0,
+		-- 	pz = 0,
+		-- 	height = 250,
+		-- 	dx = 0, 
+		-- 	dy = 0, 
+		-- 	dz = -1, 
+		-- 	angle = 1,
+		-- 	pieceName = 'antenna',
+		-- 	lightParamTable = {0,0,4,25, --pos + radius
+		-- 						0,0, -1, 0, -- pos2
+		-- 						0,1,0,4, -- RGBA
+		-- 						1,1,0.3,1, -- modelfactor_specular_scattering_lensflare
+		-- 						0,0,0,0, -- otherparams
+		-- 						0, -- pieceIndex
+		-- 						0,0,0,0 -- instData always 0!
+		-- 						},
+		-- 	--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		-- },
+		readylightamd = {
+				lighttype = 'point',
+				px = 0,
+				py = 0,
+				pz = 0,
+				height = 150,
+				dx = 0, 
+				dy = 0, 
+				dz = -1, 
+				angle = 1,
+				pieceName = 'antenna',
+				lightParamTable = {0,1,0,20, --pos + radius
+								0,0,0,0, -- unused
+								0,1,0,1, -- RGBA
+								1,1,1,10, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
+	[UnitDefNames['armaap'].id] = {
+		initComplete = false, -- this is needed maybe?
+		blinkaap = {
+				lighttype = 'point',
+				px = 0,
+				py = 0,
+				pz = 0,
+				height = 150,
+				dx = 0, 
+				dy = 0, 
+				dz = -1, 
+				angle = 1,
+				pieceName = 'base',
+				lightParamTable = {-86,91,3,35, --pos + radius
+								0,0,0,0, -- unused
+								1,1,1,0.75, -- RGBA
+								1,1,1,10, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!

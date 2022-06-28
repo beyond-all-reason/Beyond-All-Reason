@@ -125,8 +125,6 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	hide nano3;
-	hide blinkb;
-	hide blinka;
 	hide nano2;
 	hide pad;
 	hide nano4;
