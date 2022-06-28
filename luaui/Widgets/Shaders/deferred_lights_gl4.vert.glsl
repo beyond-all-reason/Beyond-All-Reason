@@ -96,7 +96,8 @@ void main()
 	
 	v_worldPosRad = worldposrad ;
 	float lightRadius = worldposrad.w;
-	v_worldPosRad.xyz += 1 * sin(5*time * vec3(0.01, 0.011, 0.012) + v_worldPosRad.xyz );
+	// TODO ANIMATE
+	//v_worldPosRad.xyz += 1 * sin(5*time * vec3(0.01, 0.011, 0.012) + v_worldPosRad.xyz ); 
 	
 	
 	mat4 placeInWorldMatrix = mat4(1.0); // this is unity for non-unitID tied stuff
@@ -110,11 +111,15 @@ void main()
 	vec3 lightCenterPosition =  v_worldPosRad.xyz;
 	
 	if (attachedtounitID > 0){
-		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];//
 		mat4 worldMatrix = mat[instData.x];
-		mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
+		placeInWorldMatrix = worldMatrix;
+		if (pieceIndex > 0u) {
+			mat4 pieceMatrix = mat[instData.x + pieceIndex ];//
+			placeInWorldMatrix = placeInWorldMatrix * pieceMatrix;
+		}
+		//mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
 		// we have our matrices above, now we need to take the light's 
-		placeInWorldMatrix = worldPieceMatrix;
+		//placeInWorldMatrix = worldPieceMatrix;
 	}
 	
 	 // this is already wrong!
