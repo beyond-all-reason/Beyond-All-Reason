@@ -942,6 +942,22 @@ local unitDefLights = {
 			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
 		},
 	},
+	[UnitDefNames['armcv'].id] = {
+		initComplete = false, -- this is needed maybe?
+		nanolight = {
+			lighttype = 'cone',
+			pieceName = 'nano1',
+			lightParamTable = {3,0,-4,120, --pos + radius
+								0,0, 1 , 0.3, -- pos2
+								-1,0,0,1, -- RGBA
+								0,1,3,0, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
 }
 
 local function AddStaticLightsForUnit(unitID, unitDefID, noupload)
