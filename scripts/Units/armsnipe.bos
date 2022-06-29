@@ -5,7 +5,7 @@
 
 piece  flare, torso, head, pelvis, rthigh, rleg, lleg, lthigh,
        ruparm, luparm, lloarm, lhand, rloarm, gun1, gun2,
-       barrel1, barrel2, rhand, rfoot, lfoot, aimy1;
+       barrel1, barrel2, laser, rhand, rfoot, lfoot, aimy1;
 
 static-var  Static_Var_1, bMoving, Static_Var_3, Static_Var_4, restore_delay, wpn1_lasthead, animSpeed, maxSpeed,
 			statechg_DesiredState, statechg_StateChanging, animFramesPerKeyframe,isAiming;
@@ -665,10 +665,12 @@ OpenGun()
 	sleep 78;
 	move barrel2 to y-axis [1.5] speed [4.000000];
 	sleep 18;
+	show laser;
 }
 
 FoldGun()
 {
+	hide laser;
 	move head to y-axis [0.000000] now;
 	//move leftshoulder to z-axis [1.850000] now;
 	//move leftshoulder to z-axis [1.050000] speed [3.000000];
@@ -784,8 +786,7 @@ RequestState(requestedstate, currentstate)
 	{
 		if( statechg_DesiredState )
 		{
-			call-script Stop();
-			
+			call-script Stop();			
 			currentstate = 1;
 		}
 		else
@@ -801,6 +802,7 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	hide flare;
+	hide laser;
 	hide aimy1;
 	isAiming = FALSE;
 	bMoving = FALSE;
@@ -846,7 +848,6 @@ RestoreAfterDelay()
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
-
 AimPrimary(heading, pitch)
 {
 	isAiming = TRUE;
@@ -854,6 +855,7 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	while( !Static_Var_1 )
 	{
+		show laser;
 		return(0);
 	}
 	turn aimy1 to y-axis heading speed <210.000000>;
@@ -875,7 +877,6 @@ FirePrimary()
 	turn rloarm to x-axis <-45.010989> speed <200.000000>;
 	sleep 50;
 	turn rloarm to x-axis <-23.005495> speed <50.000000>;
-
 }
 
 AimFromPrimary(piecenum)

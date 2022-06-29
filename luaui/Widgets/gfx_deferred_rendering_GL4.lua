@@ -492,9 +492,9 @@ local unitDefLights = {
 			angle = 1,
 			pieceName = 'justattachtobase', -- invalid ones will attack to the worldpos of the unit
 			lightParamTable = {0,23,7,150, --pos + radius
-								0,-0.07,1, 0.35, -- dir + angle
+								0,-0.07,1, 0.30, -- dir + angle
 								1,1,0.9,0.6, -- RGBA
-								0.1,0.5,1.5,0.6, -- modelfactor_specular_scattering_lensflare
+								0.1,1,1.5,0.6, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -1042,6 +1042,75 @@ local unitDefLights = {
 								0,0,0,0, -- unused
 								-1,1,1,0.9, -- RGBA
 								0.1,0.5,1,5, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
+	[UnitDefNames['armzeus'].id] = {
+		initComplete = false, -- this is needed maybe?
+		weaponglow = {
+			lighttype = 'point',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 0,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			pieceName = 'gunhand',
+			lightParamTable = {0,-9.5,8.5,15, --pos + radius
+							0,0,0,0, -- unused
+							0.2,0.5,1,0.8, -- RGBA
+							0.1,0.75,2,7, -- modelfactor_specular_scattering_lensflare
+							0,0,0,0, -- otherparams
+							0, -- pieceIndex
+							0,0,0,0 -- instData always 0!
+							},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		backpackglow = {
+			lighttype = 'point',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 0,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			pieceName = 'gunstatic',
+			lightParamTable = {0,8,0,11, --pos + radius
+							0,0,0,0, -- unused
+							0.2,0.5,1,0.8, -- RGBA
+							0.1,0.75,2,10, -- modelfactor_specular_scattering_lensflare
+							0,0,0,0, -- otherparams
+							0, -- pieceIndex
+							0,0,0,0 -- instData always 0!
+							},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
+	[UnitDefNames['armsnipe'].id] = {
+		initComplete = false, -- this is needed maybe?
+		sniperreddot = {
+			lighttype = 'cone',
+			pieceName = 'laser',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 0,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			lightParamTable = {0,0,0,700, --pos + radius
+								0,1,0.0001, 0.006, -- pos2
+								1,0,0,0.85, -- RGBA
+								0.1,4,2,4, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
