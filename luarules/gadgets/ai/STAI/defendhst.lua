@@ -114,7 +114,7 @@ end
 function DefendHST:Update()
  	local f = self.game:Frame()
 -- 	if f % 30 == 0 then
-		if not self.ai.tool:ModuleScheduler(self:internalName()) then return end
+		if Shard.moduleTeam ~= self.ai.id or Shard.moduleUpdate ~= self:Name() then return end
 		local scrambleCalls = 0
 		for i, ward in pairs(self.wards) do
 			if ward.behaviour ~= nil then

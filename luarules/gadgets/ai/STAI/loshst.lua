@@ -27,7 +27,7 @@ end
 function LosHST:Update()
 -- 	local f = self.game:Frame()
 -- 	if f % 13 + game:GetTeamID() == 0 then
-		if not self.ai.tool:ModuleScheduler(self:internalName()) then return end
+		if Shard.moduleTeam ~= self.ai.id or Shard.moduleUpdate ~= self:Name() then return end
 		self:getCenter()
         self.ai.friendlyTeamID = {}
         self.ai.friendlyTeamID[self.game:GetTeamID()] = true

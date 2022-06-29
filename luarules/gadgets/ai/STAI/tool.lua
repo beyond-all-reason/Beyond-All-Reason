@@ -37,14 +37,20 @@ local quadZ = { -1, -1, 1, 1 }
 local output = ''
 
 function Tool:ModuleScheduler(module)
+	STAI.fum = STAI.fum or 0
 	self.ai[module].uFrame = self.ai[module].uFrame or 0
 	local f = game:Frame()
 	if f - self.ai[module].uFrame <= self.ModuleScheda[self.ai[module]:Name()] - self.ai.index  then
 		return false
 	end
+
 	self.ai[module].uFrame = f
 	--self.DebugEnabled = true
-	self:EchoDebug('module',module,f)
+	if STAI.fum == f then
+		print('sameframecallmodule',module, self.ai.id,STAI.fum)
+	end
+	STAI.fum = f
+	--self:EchoDebug('module',module,f)
 	--self.DebugEnabled = false
 	return true
 

@@ -47,12 +47,13 @@ function TaskLabBST:preFilter()
 end
 
 function TaskLabBST:Update()
-	 self.uFrame = self.uFrame or 0
+-- 	 self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
-	if f - self.uFrame < self.ai.behUp['tasklabbst'] then
-		return
-	end
-	self.uFrame = f
+-- 	if f - self.uFrame < self.ai.behUp['tasklabbst'] then
+-- 		return
+-- 	end
+-- 	self.uFrame = f
+	if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'TaskLabBST' then return end
 	self:preFilter() -- work or no resource??
 	if Spring.GetFactoryCommands(self.id,0) > 1 then return end --factory alredy work
 	self:GetAmpOrGroundWeapon() -- need more amph to attack in this map?

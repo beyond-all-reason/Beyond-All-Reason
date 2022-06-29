@@ -40,13 +40,14 @@ function ScoutBST:Deactivate()
 end
 
 function ScoutBST:Update()
-	 self.uFrame = self.uFrame or 0
+-- 	 self.uFrame = self.uFrame or 0
 	if self.active then
 		local f = self.game:Frame()
-		if f - self.uFrame < self.ai.behUp['scoutbst'] then
-			return
-		end
-		self.uFrame = f
+-- 		if f - self.uFrame < self.ai.behUp['scoutbst'] then
+-- 			return
+-- 		end
+-- 		self.uFrame = f
+		if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'ScoutBST' then return end
 		--if f > self.lastUpdateFrame + 30 then
 			local unit = self.unit:Internal()
 			-- reset target if it's in sight

@@ -29,12 +29,14 @@ function NukeBST:OwnerBuilt()
 end
 
 function NukeBST:Update()
-	 self.uFrame = self.uFrame or 0
-
-	if f - self.uFrame < self.ai.behUp['nukebst']  then
-		return
-	end
-	self.uFrame = f
+-- 	 self.uFrame = self.uFrame or 0
+--
+-- 	if f - self.uFrame < self.ai.behUp['nukebst']  then
+-- 		return
+-- 	end
+-- 	self.uFrame = f
+	local f = game:Frame()
+	if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'NukeBST' then return end
 	if not self.active then return end
 
 	--local f = self.game:Frame()

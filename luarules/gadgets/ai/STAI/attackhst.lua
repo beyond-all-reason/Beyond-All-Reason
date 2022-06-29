@@ -32,7 +32,7 @@ function AttackHST:Update()
 -- 	if f % 17 ~= 0 then
 -- 		return
 -- 	end
-	if not self.ai.tool:ModuleScheduler(self:internalName()) then return end
+	if self.ai.schedulerhst.teamIndex ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	self:DraftSquads()
 	self:squadsIntegrityCheck()
 	self:squadsTargetCheck()

@@ -48,7 +48,7 @@ function WardBST:OwnerIdle()
 end
 
 function WardBST:Update()
-	 self.uFrame = self.uFrame or 0
+-- 	 self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
 
 	-- timeout on underFire condition
@@ -58,10 +58,11 @@ function WardBST:Update()
 		end
 	else
 		self.withinTurtle = false
-		if f - self.uFrame < self.ai.behUp['taskqueuebst']	 then
-			return
-		end
-		self.uFrame = f
+		if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'WardBST' then return end
+-- 		if f - self.uFrame < self.ai.behUp['wardbst']	 then
+-- 			return
+-- 		end
+-- 		self.uFrame = f
 		-- run away preemptively from positions within range of enemy weapons, and notify defenders that the unit is in danger
 		local unit = self.unit:Internal()
 		local position

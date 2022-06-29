@@ -43,7 +43,8 @@ function LabBuildHST:Update()
 -- 	if f % 401 ~= 0 then
 -- 		return
 -- 	end
-	if not self.ai.tool:ModuleScheduler(self:internalName()) then return end
+	if Shard.moduleTeam ~= self.ai.id or Shard.moduleUpdate ~= self:Name() then return end
+
 	self:UpdateFactories()
 end
 

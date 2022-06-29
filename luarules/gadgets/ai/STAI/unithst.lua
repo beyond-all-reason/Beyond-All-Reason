@@ -196,9 +196,9 @@ function UnitHST:Update()
 		end
 		if unit then
 			if unit:HasBehaviours() then
- 				--self.game:StartTimer(unit:Internal():Name() .. ' hst')
+ 				self.game:StartTimer(unit:Internal():Name() .. ' hst')
 				unit:Update()
- 				--self.game:StartTimer(unit:Internal():Name() .. ' hst')
+ 				self.game:StartTimer(unit:Internal():Name() .. ' hst')
 			end
 		end
 	end
