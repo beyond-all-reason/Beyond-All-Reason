@@ -3543,7 +3543,7 @@ function init()
 		},
 
 		-- DEV
-		{ id = "usePlayerUI", group = "dev", category = types.dev, name = "View UI as player", type = "bool", value = not Spring.Utilities.ShowDevUI(),
+		{ id = "devmode", group = "dev", category = types.dev, name = texts.option.devmode, type = "bool", value = not Spring.Utilities.ShowDevUI(),
 			onchange = function(i, value)
 				Spring.SetConfigInt("DevUI", value and 0 or 1)
 				Spring.SendCommands("luaui reload")
@@ -5108,7 +5108,7 @@ function widget:TextCommand(command)
 	end
 
 	if command == "devmode" then
-		Spring.SendCommands("option usePlayerUI")
+		Spring.SendCommands("option devmode")
 	end
 	if command == "profile" and widgetHandler:IsWidgetKnown("Widget Profiler") then
 		widgetHandler:ToggleWidget("Widget Profiler")
