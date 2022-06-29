@@ -10,6 +10,8 @@ end
 
 
 function ArmyHST:Init()
+
+
 	self.DebugEnabled = false
 	self.unitTable = {}
 	self.wrecks = {}

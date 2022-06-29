@@ -15,8 +15,9 @@ function OverviewHST:Init()
 end
 
 function OverviewHST:Update()
-	local f = self.game:Frame()
-	if f % 240 ~= 0 then return end
+-- 	local f = self.game:Frame()
+-- 	if f % 240 ~= 0 then return end
+	if Shard.moduleTeam ~= self.ai.id or Shard.moduleUpdate ~= self:Name() then return end
 	self:EvaluateSituation()
 end
 

@@ -40,9 +40,15 @@ function ScoutBST:Deactivate()
 end
 
 function ScoutBST:Update()
+-- 	 self.uFrame = self.uFrame or 0
 	if self.active then
 		local f = self.game:Frame()
-		if f > self.lastUpdateFrame + 30 then
+-- 		if f - self.uFrame < self.ai.behUp['scoutbst'] then
+-- 			return
+-- 		end
+-- 		self.uFrame = f
+		if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'ScoutBST' then return end
+		--if f > self.lastUpdateFrame + 30 then
 			local unit = self.unit:Internal()
 			-- reset target if it's in sight
 			if self.target ~= nil then
@@ -98,13 +104,13 @@ function ScoutBST:Update()
 				end
 			end
 			self.lastUpdateFrame = f
-		end
+		--end
 	end
 
 	-- keep air units circling
 	if self.mtype == "air" and self.active then
 		local f = self.game:Frame()
-		if f > self.lastCircleFrame + 60 then
+		--if f > self.lastCircleFrame + 60 then
 			local unit = self.unit:Internal()
 			local upos = unit:GetPosition()
 			if self.target then
@@ -116,7 +122,7 @@ function ScoutBST:Update()
 				unit:Move(self.ai.tool:RandomAway( upos, 500))
 			end
 			self.lastCircleFrame = f
-		end
+		--end
 	end
 end
 
