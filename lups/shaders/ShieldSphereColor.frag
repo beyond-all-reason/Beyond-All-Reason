@@ -159,7 +159,7 @@ float SimplexPerlin3D( vec3 P ) {
 }
 
 float StrangeSurface(vec3 snormPos, float mult, float time) {
-	const float MAX_ITER = 1.1;
+	const float MAX_ITER = 1.5;
 
 	vec2 p = snormPos.xz*(1.5 - abs(snormPos.y)) * mult;
 
@@ -184,7 +184,7 @@ float StrangeSurface(vec3 snormPos, float mult, float time) {
 	}
 
 	c /= MAX_ITER;
-	c = clamp(c, -1.0, 0.5);
+	c = clamp(c, -1.0, 1.0);
 	return c;
 }
 
