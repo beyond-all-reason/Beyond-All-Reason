@@ -629,13 +629,15 @@ end
 
 -- because not all maps have done this for us
 local function clearAllUnitGrass()
-	local maxValue = 15
 	local mSpots = WG['resource_spot_finder'].metalSpotsList
-	for i = 1, #mSpots do
-		local spot = mSpots[i]
-		local value = string.format("%0.1f",math.round(spot.worth/1000,1))
-		if tonumber(value) > 0.001 and tonumber(value) < maxValue then
-			adjustGrass(spot.x, spot.z, math.max((spot.maxZ-spot.minZ), (spot.maxX-spot.minX))*1.2, 1)
+	if mSpots then
+		local maxValue = 15
+		for i = 1, #mSpots do
+			local spot = mSpots[i]
+			local value = string.format("%0.1f",math.round(spot.worth/1000,1))
+			if tonumber(value) > 0.001 and tonumber(value) < maxValue then
+				adjustGrass(spot.x, spot.z, math.max((spot.maxZ-spot.minZ), (spot.maxX-spot.minX))*1.2, 1)
+			end
 		end
 	end
 end
