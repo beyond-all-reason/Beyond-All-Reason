@@ -22,9 +22,9 @@ local opacity = 1
 local always, LOS, radar, jam, radar2
 
 local losColorsWithRadarsGray = {
-	fog =    {0.20, 0.20, 0.20},
-	los =    {0.25, 0.25, 0.25},
-	radar =  {0.12, 0.12, 0.12},
+	fog =    {0.0, 0.0, 0.0},
+	los =    {0.30, 0.30, 0.30},
+	radar =  {0.08, 0.08, 0.08},
 	jam =    {0.10, 0.02, 0.02},
 	radar2 = {0.40, 0.40, 0.40},
 }
