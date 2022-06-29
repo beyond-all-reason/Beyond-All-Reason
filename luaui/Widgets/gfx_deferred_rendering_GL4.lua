@@ -492,9 +492,9 @@ local unitDefLights = {
 			angle = 1,
 			pieceName = 'justattachtobase', -- invalid ones will attack to the worldpos of the unit
 			lightParamTable = {0,23,7,150, --pos + radius
-								0,-0.07,1, 0.4, -- dir + angle
-								1,1,0.9,0.7, -- RGBA
-								0.1,0.1,2,0.6, -- modelfactor_specular_scattering_lensflare
+								0,-0.07,1, 0.35, -- dir + angle
+								1,1,0.9,0.6, -- RGBA
+								0.1,0.5,1.5,0.6, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -626,8 +626,8 @@ local unitDefLights = {
 			pieceName = 'sleeve',
 			lightParamTable = {0,5,5.8,450, --pos + radius
 								0,0,1,0.25, -- dir + angle
-								1,1,1,1, -- RGBA
-								0.5,1,1,1, -- modelfactor_specular_scattering_lensflare
+								1,1,1,0.5, -- RGBA
+								0.2,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -720,7 +720,7 @@ local unitDefLights = {
 			lightParamTable = {0,0,0,30, --pos + radius
 								1,0,0, 0.99, -- dir + angle
 								1.3,1.0,0.1,2, -- RGBA
-								1,1,1,1, -- modelfactor_specular_scattering_lensflare
+								0.1,0.2,1,2, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -741,7 +741,7 @@ local unitDefLights = {
 			lightParamTable = {0,0,0,30, --pos + radius
 								-1,0,0, 0.99, -- dir + angle
 								1.3,1.0,0.1,2, -- RGBA
-								1,1,1,1, -- modelfactor_specular_scattering_lensflare
+								0.1,0.2,1,2, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -932,10 +932,116 @@ local unitDefLights = {
 				dz = -1, 
 				angle = 1,
 				pieceName = 'base',
-				lightParamTable = {-86,91,3,35, --pos + radius
+				lightParamTable = {-86,91,3,75, --pos + radius
 								0,0,0,0, -- unused
-								1,1,1,0.75, -- RGBA
-								1,1,1,10, -- modelfactor_specular_scattering_lensflare
+								-1,1,1,0.5, -- RGBA
+								0.2,0.5,1,10, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
+	[UnitDefNames['armatlas'].id] = {
+		initComplete = false, -- this is needed maybe?
+		jetr = {
+			lighttype = 'cone',
+			pieceName = 'thrustr',
+			lightParamTable = {-2,0,-2,140, --pos + radius
+								0,0,-1, 0.8, -- pos2
+								1,0.98,0.85,0.4, -- RGBA
+								0,1,0.5,1, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		jetl = {
+				lighttype = 'cone',
+			pieceName = 'thrustl',
+			lightParamTable = {2,0,-2,140, --pos + radius
+								0,0,-1, 0.8, -- pos2
+								1,0.98,0.85,0.4, -- RGBA
+								0,1,0.5,1, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
+	[UnitDefNames['armeyes'].id] = {
+		initComplete = false, -- this is needed maybe?
+		eyeglow = {
+				lighttype = 'point',
+				px = 0,
+				py = 0,
+				pz = 0,
+				height = 150,
+				dx = 0, 
+				dy = 0, 
+				dz = -1, 
+				angle = 1,
+				pieceName = 'base',
+				lightParamTable = {0,10,0,300, --pos + radius
+								0,0,0,0, -- unused
+								1,1,1,0.3, -- RGBA
+								0.1,0.5,1,2, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
+	[UnitDefNames['armanni'].id] = {
+		initComplete = false, -- this is needed maybe?
+		annilight = {
+			lighttype = 'cone',
+			pieceName = 'light',
+			lightParamTable = {0,0,0,950, --pos + radius
+								0,0,1, 0.07, -- pos2
+								1,1,1,0.5, -- RGBA
+								0,1,2,0, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
+	[UnitDefNames['armafus'].id] = {
+		initComplete = false, -- this is needed maybe?
+		controllight = {
+			lighttype = 'cone',
+			pieceName = 'collar1',
+			lightParamTable = {-25,38,-25,100, --pos + radius
+								1,0,1, 0.5, -- pos2
+								-1,1,1,5, -- RGBA
+								0.1,1,2,2, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		fusionglow = {
+				lighttype = 'point',
+				px = 0,
+				py = 0,
+				pz = 0,
+				height = 150,
+				dx = 0, 
+				dy = 0, 
+				dz = -1, 
+				angle = 1,
+				pieceName = 'base',
+				lightParamTable = {0,45,0,90, --pos + radius
+								0,0,0,0, -- unused
+								-1,1,1,0.9, -- RGBA
+								0.1,0.5,1,5, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -1067,7 +1173,7 @@ function widget:Initialize()
 	end 
 	
 	math.randomseed(1)
-	for i=1, 12 do AddRandomLight(	math.random()) end   
+	for i=1, 1 do AddRandomLight(	math.random()) end   
 	
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
