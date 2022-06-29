@@ -87,13 +87,10 @@ function AttackerBST:Deactivate()
 end
 
 function AttackerBST:Update()
-	 --self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
-	if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'AttackerBST' then return end
-	--if f - self.uFrame < self.ai.behUp['attackerbst']  then
-	--	return
-	--end
-	--self.uFrame = f
+	if f % 19 ~= 0 then
+		return
+	end
 	if not self.active and self.squad and self.target then
 		self.unit:ElectBehaviour()
 	end

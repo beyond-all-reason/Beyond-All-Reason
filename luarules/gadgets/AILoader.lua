@@ -148,6 +148,25 @@ else
 
 	-- UNSYNCED CODE
 	function gadget:Initialize()
+		--[[
+		Spring.Echo("Shard AI unsync gadget init")
+		gadgetHandler:AddSyncAction("BuildingCommand", stBuildingCommand)
+		gadgetHandler:AddSyncAction("shard_debug_position", handleShardDebugPosEvent)
+		gadgetHandler:AddSyncAction('ShardDrawAddRectangle', sdAddRectangle)
+		gadgetHandler:AddSyncAction('ShardDrawEraseRectangle', sdEraseRectangle)
+		gadgetHandler:AddSyncAction('ShardDrawAddCircle', sdAddCircle)
+		gadgetHandler:AddSyncAction('ShardDrawEraseCircle', sdEraseCircle)
+		gadgetHandler:AddSyncAction('ShardDrawAddLine', sdAddLine)
+		gadgetHandler:AddSyncAction('ShardDrawEraseLine', sdEraseLine)
+		gadgetHandler:AddSyncAction('ShardDrawAddPoint', sdAddPoint)
+		gadgetHandler:AddSyncAction('ShardDrawErasePoint', sdErasePoint)
+		gadgetHandler:AddSyncAction('ShardDrawAddUnit', sdAddUnit)
+		gadgetHandler:AddSyncAction('ShardDrawEraseUnit', sdEraseUnit)
+		gadgetHandler:AddSyncAction('ShardDrawClearShapes', sdClearShapes)
+		gadgetHandler:AddSyncAction('ShardDrawDisplay', sdDisplay)
+		gadgetHandler:AddSyncAction('ShardStartTimer', sStartTimer)
+		gadgetHandler:AddSyncAction('ShardStopTimer', sStopTimer)
+		gadgetHandler:AddSyncAction('ShardSaveTable', sSaveTable)]]
 		local teamList = spGetTeamList()
 		spEcho("Looking for AIs")
 
@@ -159,7 +178,6 @@ else
 				if thisAI ~= nil then
 					Shard.AIsByTeamID[id] = thisAI
 					Shard.AIs[#Shard.AIs + 1] = thisAI
-					thisAI.index = #Shard.AIs
 				end
 			end
 		end
@@ -499,26 +517,6 @@ else
 		gadgetHandler:AddSyncAction('ShardSaveTable', sSaveTable)
 	end
 ]]
-
-		--[[
-		Spring.Echo("Shard AI unsync gadget init")
-		gadgetHandler:AddSyncAction("BuildingCommand", stBuildingCommand)
-		gadgetHandler:AddSyncAction("shard_debug_position", handleShardDebugPosEvent)
-		gadgetHandler:AddSyncAction('ShardDrawAddRectangle', sdAddRectangle)
-		gadgetHandler:AddSyncAction('ShardDrawEraseRectangle', sdEraseRectangle)
-		gadgetHandler:AddSyncAction('ShardDrawAddCircle', sdAddCircle)
-		gadgetHandler:AddSyncAction('ShardDrawEraseCircle', sdEraseCircle)
-		gadgetHandler:AddSyncAction('ShardDrawAddLine', sdAddLine)
-		gadgetHandler:AddSyncAction('ShardDrawEraseLine', sdEraseLine)
-		gadgetHandler:AddSyncAction('ShardDrawAddPoint', sdAddPoint)
-		gadgetHandler:AddSyncAction('ShardDrawErasePoint', sdErasePoint)
-		gadgetHandler:AddSyncAction('ShardDrawAddUnit', sdAddUnit)
-		gadgetHandler:AddSyncAction('ShardDrawEraseUnit', sdEraseUnit)
-		gadgetHandler:AddSyncAction('ShardDrawClearShapes', sdClearShapes)
-		gadgetHandler:AddSyncAction('ShardDrawDisplay', sdDisplay)
-		gadgetHandler:AddSyncAction('ShardStartTimer', sStartTimer)
-		gadgetHandler:AddSyncAction('ShardStopTimer', sStopTimer)
-		gadgetHandler:AddSyncAction('ShardSaveTable', sSaveTable)]]
 	function gadget:Shutdown()
 		Spring.Echo("Shard AI unsync gadget shutdown")
 		gadgetHandler:RemoveSyncAction("shard_debug_position")

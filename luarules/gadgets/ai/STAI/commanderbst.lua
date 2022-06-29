@@ -13,13 +13,7 @@ function CommanderBST:Init()
 end
 
 function CommanderBST:Update()
-	 --self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
-	--if f - self.uFrame < self.ai.behUp['commanderbst'] then
-	--	return
---	end
-	--self.uFrame = f
-	if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'CommanderBST' then return end
 	if self.lowHealth and f >= self.nextHealthCheck then
 		if self.unit:Internal():GetHealth() >= self.unit:Internal():GetMaxHealth() * 0.95 then
 			self.lowHealth = false
@@ -31,7 +25,7 @@ function CommanderBST:Update()
 
 		self:FindSafeHouse()
 	end
-	if not self.active and self.ai.overviewhst.paranoidCommander then
+	if f % 30 == 0 and not self.active and self.ai.overviewhst.paranoidCommander then
 		self:FindSafeHouse()
 		self.unit:ElectBehaviour()
 	end

@@ -11,15 +11,10 @@ function ReclaimBST:Act()
 end
 
 function ReclaimBST:Update()
--- 	 self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
--- 	if f - self.uFrame < self.ai.behUp['reclaimbst']  then
--- 		return
--- 	end
--- 	self.uFrame = f
-	if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'ReclaimBST' then return end
-	self:Act()
-
+	if f % 257 == 0 then
+		self:Act()
+	end
 end
 
 function ReclaimBST:Priority()

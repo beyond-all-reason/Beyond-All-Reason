@@ -36,51 +36,6 @@ local quadZ = { -1, -1, 1, 1 }
 
 local output = ''
 
-function Tool:ModuleScheduler(module)
-	STAI.fum = STAI.fum or 0
-	self.ai[module].uFrame = self.ai[module].uFrame or 0
-	local f = game:Frame()
-	if f - self.ai[module].uFrame <= self.ModuleScheda[self.ai[module]:Name()] - self.ai.index  then
-		return false
-	end
-
-	self.ai[module].uFrame = f
-	--self.DebugEnabled = true
-	if STAI.fum == f then
-		print('sameframecallmodule',module, self.ai.id,STAI.fum)
-	end
-	STAI.fum = f
-	--self:EchoDebug('module',module,f)
-	--self.DebugEnabled = false
-	return true
-
-end
-
-Tool.ModuleScheda = {
-	SleepST = 0,
-	ArmyHST = 999999,
-	MapHST = 999998,
-	EcoHST = 0,
-	AttackHST = 20,
-	BomberHST = 210,
-	RaidHST = 60,
-	BuildSiteHST = 999994,
-	LabBuildHST = 40,
-	TurtleHST = 999995,
-	LosHST = 50,
-	TargetHST = 70,
-	DamageHST = 90,
-	ScoutHST = 999991,
-	DefendHST = 30,
-	CleanHST = 999993,
-	NanoHST = 999992,
-	OverviewHST = 240,
-	UnitHST = 0,
-	TasksHST = 999997,
-	Tool = 999996,
-
-}
-
 function Tool:ConstrainToMap(x, z)
 	local mapSize = self.ai.map:MapDimensions()
 	local maxElmosX = mapSize.x * 8
