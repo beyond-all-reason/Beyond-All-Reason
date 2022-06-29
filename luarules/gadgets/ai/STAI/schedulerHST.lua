@@ -11,7 +11,6 @@ function SchedulerHST:internalName()
 end
 
 function SchedulerHST:Init()
-	print(self.ai.id)
 	if not Shard.schedulerAI then
 		Shard.schedulerAI = self.ai.id
 
