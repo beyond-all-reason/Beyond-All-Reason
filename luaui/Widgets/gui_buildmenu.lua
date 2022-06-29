@@ -982,30 +982,22 @@ end
 local function cacheUnitIcons()
 	local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalscavuniqueunits)
 	local excludeChickens = not Spring.Utilities.Gametype.IsChickens()
-
-	local dlistCache = gl.CreateList(function()
-		gl.Color(1, 1, 1, 0.001)
-		for id, unit in pairs(UnitDefs) do
-			if not excludeScavs or not string.find(unit.name,'_scav') then
-				if not excludeChickens or not string.find(unit.name,'chicken') then
-					gl.Texture('#'..id)
+	gl.Translate(-vsx,0,0)
+	gl.Color(1, 1, 1, 0.001)
+	for id, unit in pairs(UnitDefs) do
+		if not excludeScavs or not string.find(unit.name,'_scav') then
+			if not excludeChickens or not string.find(unit.name,'chicken') then
+				gl.Texture('#'..id)
+				gl.TexRect(-1, -1, 0, 0)
+				if unitIconType[id] and iconTypesMap[unitIconType[id]] then
+					gl.Texture(':l:' .. iconTypesMap[unitIconType[id]])
 					gl.TexRect(-1, -1, 0, 0)
-					if unitIconType[id] and iconTypesMap[unitIconType[id]] then
-						gl.Texture(':l:' .. iconTypesMap[unitIconType[id]])
-						gl.TexRect(-1, -1, 0, 0)
-					end
-					gl.Texture(false)
 				end
 			end
 		end
-		gl.Color(1, 1, 1, 1)
-	end)
-	if dlistCache then
-		gl.Translate(-vsx,0,0)
-		gl.CallList(dlistCache)
-		gl.Translate(vsx,0,0)
-		dlistCache = gl.DeleteList(dlistCache)
 	end
+	gl.Color(1, 1, 1, 1)
+	gl.Translate(vsx,0,0)
 end
 
 function widget:DrawScreen()
