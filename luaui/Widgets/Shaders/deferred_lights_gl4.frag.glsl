@@ -815,7 +815,7 @@ void main(void)
 	// light mixdown:
 	targetcolor.rgb = max(vec3(0.2), targetcolor.rgb); // we shouldnt let the targetcolor be fully black, or else we will have a bad time blending onto it.
 	
-	vec3 additivelights = (scatteringRayleigh + scatteringMie + lensFlare) * v_lightcolor.rgb * v_lightcolor.w * 0.4 * v_modelfactor_specular_scattering_lensflare.z;
+	vec3 additivelights = ((scatteringRayleigh + scatteringMie) * v_modelfactor_specular_scattering_lensflare.z + lensFlare) * v_lightcolor.rgb * v_lightcolor.w * 0.4  ;
 	
 	vec3 blendedlights = (v_lightcolor.rgb * v_lightcolor.w)*(targetcolor.rgb * 2.0) * (diffuse + specular) * attenuation * 2.0 * (1.0 + 2.0 * ismodel * v_modelfactor_specular_scattering_lensflare.x);
 	

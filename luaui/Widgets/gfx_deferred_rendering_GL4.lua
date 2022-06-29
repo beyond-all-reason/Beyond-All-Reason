@@ -601,8 +601,8 @@ local unitDefLights = {
 				pieceName = 'turret',
 				lightParamTable = {0,72,0,20, --pos + radius
 								0,0,0,0, -- unused
-								0,1,0,0.9, -- RGBA
-								0.8,0.9,1.5,10, -- modelfactor_specular_scattering_lensflare
+								0,1,0,0.6, -- RGBA
+								0.8,0.9,1.0,10, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
