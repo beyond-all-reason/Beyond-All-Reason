@@ -74,15 +74,10 @@ function MexUpBST:OwnerIdle()
 end
 
 function MexUpBST:Update()
-	--self.uFrame = self.uFrame or 0
 	if not self.active then
-		local f = self.game:Frame()
-		if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'MexUpBST' then return end
-		self:StartUpgradeProcess()
-		--if f - self.uFrame < self.ai.behUp['mexupbst'] then
-			--return
-		--end
-		--self.uFrame = f
+		if (self.lastFrame or 0) + 30 < self.game:Frame() then
+			self:StartUpgradeProcess()
+		end
 	end
 end
 

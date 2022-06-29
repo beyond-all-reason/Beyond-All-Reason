@@ -22,9 +22,8 @@ end
 
 
 function RaidHST:Update()
--- 	local f = self.game:Frame()
--- 	if f % 97 ~=0 then return end
-	if Shard.moduleTeam ~= self.ai.id or Shard.moduleUpdate ~= self:Name() then return end
+	local f = self.game:Frame()
+	if f % 97 ~=0 then return end
 	self.wave = 5 + math.min(math.ceil(self.ai.Energy.income/1000),20)
 	self:EchoDebug('start update')
 	self:doSquads()

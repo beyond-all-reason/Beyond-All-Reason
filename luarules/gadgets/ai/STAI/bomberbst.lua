@@ -84,12 +84,13 @@ function BomberBST:Deactivate()
 end
 
 function BomberBST:Update()
-	 --self.uFrame = self.uFrame or 0
-	--if f - self.uFrame < self.ai.behUp['bomberbst']then
-	--	return
-	--end
-	if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'BomberBST' then return end
-	self.uFrame = f
+	if not self.lastOrderFrame then
+		return
+	end
+	if self.game:Frame() > self.lastOrderFrame + 1000 then
+		self.lastOrderFrame = nil
+		self:OwnerIdle()
+	end
 end
 
 function BomberBST:BombPosition(position)

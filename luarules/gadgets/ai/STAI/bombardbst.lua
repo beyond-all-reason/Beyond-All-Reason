@@ -36,16 +36,13 @@ function BombardBST:OwnerIdle()
 end
 
 function BombardBST:Update()
-	 --self.uFrame = self.uFrame or 0
 	if not self.active then
 		return
 	end
 	local f = self.game:Frame()
-	if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'BombardBST' then return end
-	--if f - self.uFrame < self.ai.behUp['bombardbst']  then
-	--	return
-	--end
-	self.uFrame = f
+	if f % 307 ~= 0 then
+		return
+	end
 	self:EchoDebug("retargeting")
 	--local bestCell, valueThreat, buildingID = self.ai.targethst:GetBestBombardCell(self.position, self.range, valueThreatThreshold)
 	local bestCell, valueThreat, buildingID = self:GetTarget()

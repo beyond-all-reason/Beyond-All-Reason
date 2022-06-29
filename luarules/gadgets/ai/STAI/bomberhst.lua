@@ -23,10 +23,10 @@ function BomberHST:Init()
 end
 
 function BomberHST:Update()
--- 	local f = self.game:Frame()
---     self:EchoDebug(f, f % 30)
--- 	if f % 30 == 0 then self:DoTargetting() end
-	if Shard.moduleTeam ~= self.ai.id or Shard.moduleUpdate ~= self:Name() then return end
+	local f = self.game:Frame()
+    self:EchoDebug(f, f % 30)
+	if f % 30 == 0 then self:DoTargetting() end
+
 	for i = #self.plans, 1, -1 do
 		local plan = self.plans[i]
 		local pathfinder = plan.pathfinder
