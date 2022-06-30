@@ -25,21 +25,25 @@ function CleanerBST:Init()
 end
 
 function CleanerBST:Update()
+	 --self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
-	if f % 123 == 0 then
-		local cleanH =self.ai.cleanhst
-		if not cleanH.theCleaner[self.id]   then
-			self:EchoDebug(self.id,'do update')
-			self:Search()
-		else
-			self:EchoDebug('cleanthis', cleanH.theCleaner[self.id])
-			self:Clean(cleanH.theCleaner[self.id])
-			self.unit:ElectBehaviour()
+	--if f - self.uFrame < self.ai.behUp['cleanerbst'] then
+	--	return
+	--end
+	--self.uFrame = f
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'CleanerBST' then return end
+	local cleanH =self.ai.cleanhst
+	if not cleanH.theCleaner[self.id]   then
+		self:EchoDebug(self.id,'do update')
+		self:Search()
+	else
+		self:EchoDebug('cleanthis', cleanH.theCleaner[self.id])
+		self:Clean(cleanH.theCleaner[self.id])
+		self.unit:ElectBehaviour()
 
-		end
-
-		self.frameCounter = 0
 	end
+
+	self.frameCounter = 0
 end
 
 function CleanerBST:OwnerBuilt()

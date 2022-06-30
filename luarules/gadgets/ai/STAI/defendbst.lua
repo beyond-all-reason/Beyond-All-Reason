@@ -56,6 +56,13 @@ function DefendBST:OwnerIdle()
 end
 
 function DefendBST:Update()
+	 --self.uFrame = self.uFrame or 0
+	local f = self.game:Frame()
+	--if f - self.uFrame < self.ai.behUp['mexupbst'] then
+	--	return
+	--end
+	--self.uFrame = f
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'DefendBST' then return end
 	if self.unit == nil then return end
 	local unit = self.unit:Internal()
 	if not unit:GetPosition() then
@@ -64,8 +71,8 @@ function DefendBST:Update()
 	end
 	if unit == nil then return end
 	if self.active then
-		local f = self.game:Frame()
-		if f % 60 == 0 then
+
+-- 		if f % 60 == 0 then
 			if self.target == nil then return end
 			local targetPos = self.target.position or self.ai.tool:BehaviourPosition(self.target.behaviour)
 			if targetPos == nil then return end
@@ -114,7 +121,7 @@ function DefendBST:Update()
 			self.lastPos = api.Position()
 			self.lastPos.x, self.lastPos.z = unitPos.x+0, unitPos.z+0
 			self.unit:ElectBehaviour()
-		end
+
 	end
 end
 

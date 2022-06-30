@@ -29,12 +29,20 @@ function NukeBST:OwnerBuilt()
 end
 
 function NukeBST:Update()
+-- 	 self.uFrame = self.uFrame or 0
+--
+-- 	if f - self.uFrame < self.ai.behUp['nukebst']  then
+-- 		return
+-- 	end
+-- 	self.uFrame = f
+	local f = game:Frame()
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'NukeBST' then return end
 	if not self.active then return end
 
-	local f = self.game:Frame()
+	--local f = self.game:Frame()
 
 	if self.finished then
-		if f > self.lastLaunchFrame + 100 then
+		--if f > self.lastLaunchFrame + 100 then
 			self.gotTarget = false
 			if self.ai.needNukes and self.ai.canNuke then
 				local bestCell
@@ -58,7 +66,7 @@ function NukeBST:Update()
 				end
 			end
 			self.lastLaunchFrame = f
-		end
+		--end
 		if self.gotTarget then
 			if self.lastStockpileFrame == 0 or f > self.lastStockpileFrame + self.stockpileTime then
 				self.lastStockpileFrame = f

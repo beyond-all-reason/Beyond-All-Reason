@@ -142,10 +142,11 @@ function TaskQueueBST:Priority()
 end
 
 function TaskQueueBST:Update()
+
 	local f = self.game:Frame()
-	if f % 39 ~= 0 then
-		return
-	end
+
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'TaskQueueBST' then return end
+	--print('schedulertaskq',f,self.ai.id)
 	self:VisualDBG()
 	if not self:IsActive() then
 		return
