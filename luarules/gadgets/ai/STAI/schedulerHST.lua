@@ -11,24 +11,36 @@ function SchedulerHST:internalName()
 end
 
 function SchedulerHST:Init()
-	if not Shard.schedulerAI then
-		Shard.schedulerAI = self.ai.id
 
-		Shard.moduleTeam = nil
-		Shard.moduleUpdate = nil
+ 	self.AIs={}
+ 	local teams = Spring.GetTeamList()
+ 	for index,id in pairs(teams) do
+		local luaAI = Spring.GetTeamLuaAI(id)
+		--print(luaAI)
+		if luaAI == 'STAI' then
+			table.insert(self.AIs,id)
+		end
 
-		Shard.behaviourTeam = nil
-		Shard.behaviourUpdate = nil
+ 	end
+	--print(#self.AIs)
 
-	end
+	self.moduleTeamIndex = 1
+	self.moduleTeam = 0
+	self.moduleIndex = 1
+	self.moduleUpdate = nil
+
+
+	self.behaviourTeamIndex = 1
+	self.behaviourTeam = 0
+	self.behaviourIndex = 1
+	self.behaviourUpdate = nil
+
 end
 
 function SchedulerHST:Update()
-
-	if Shard.schedulerAI and self.ai.id ~= Shard.schedulerAI then return end
-	local moduleS, Mteam = self:ModuleScheduler()
-	local behaviourS, Bteam = self:BehaviourScheduler()
-	--print(game:Frame(),'moduleS, Mteam',Shard.moduleUpdate, Shard.moduleTeam,'behaviourS, Bteam',Shard.behaviourUpdate, Shard.behaviourTeam)
+	local moduleS, Mteam = self:ModulesScheduler()
+	local behaviourS, Bteam = self:BehavioursScheduler()
+	print(game:Frame(),'team',self.ai.id,'moduleS, Mteam',self.moduleUpdate, self.moduleTeam,'behaviourS, Bteam',self.behaviourUpdate, self.behaviourTeam)
 
 
 
@@ -36,94 +48,39 @@ function SchedulerHST:Update()
 
 end
 
-function SchedulerHST:ModuleScheduler()
-	self.moduleIndex = self.moduleIndex or 1
-	self.moduleTeam = self.moduleTeam or 0
-	self.moduleUpdate = nil
-	for idx,module in pairs(self.ModuleScheda2) do
-		if self.moduleIndex > #self.ModuleScheda2 then
+function SchedulerHST:ModulesScheduler()
+
+
+	if self.moduleTeamIndex > #self.AIs then
+		self.moduleTeamIndex = 1
+		self.moduleIndex = self.moduleIndex + 1
+		if self.moduleIndex > #self.MScheduler then
 			self.moduleIndex = 1
 		end
-		if self.moduleIndex == idx then
-			self.moduleUpdate = module
-			if self.moduleTeam >= #Shard.AIs then
-				self.moduleTeam = 0
-				self.moduleIndex = self.moduleIndex + 1
-			end
-			for n,t in pairs (Shard.AIs) do
-
-				--print('mt',n,t,t.id)
-				if t.id == self.moduleTeam then
-					Shard.moduleTeam = self.moduleTeam
-					Shard.moduleUpdate = self.moduleUpdate
-					self.moduleTeam = self.moduleTeam + 1
-					--self.moduleTeam = t.id + 1
-					--print(game:Frame(),'module',self.moduleIndex,self.moduleUpdate,'T',self.moduleTeam)
-					return self.moduleUpdate, self.moduleTeam
-				end
-			end
-		end
 	end
+	self.moduleUpdate = self.MScheduler[self.moduleIndex]
+	self.moduleTeam = self.AIs[self.moduleTeamIndex]
+	self.moduleTeamIndex = self.moduleTeamIndex + 1
 end
 
-function SchedulerHST:BehaviourScheduler()
-	self.behaviourIndex = self.behaviourIndex or 1
-	self.behaviourTeam = self.behaviourTeam or 0
-	self.behaviourUpdate = nil
-	for idx,behaviour in pairs(self.BScheduler) do
+
+function SchedulerHST:BehavioursScheduler()
+	if self.behaviourTeamIndex > #self.AIs then
+		self.behaviourTeamIndex = 1
+		self.behaviourIndex = self.behaviourIndex + 1
 		if self.behaviourIndex > #self.BScheduler then
 			self.behaviourIndex = 1
 		end
-		if self.behaviourIndex == idx then
-			self.behaviourUpdate = behaviour
-			if self.behaviourTeam >= #Shard.AIs then
-				self.behaviourTeam = 0
-				self.behaviourIndex = self.behaviourIndex + 1
-			end
-			for n,t in pairs (Shard.AIs) do
-				--print('bt',n,t,t.id,self.behaviourTeam,#Shard.AIs)
-				if t.id == self.behaviourTeam then
-					Shard.behaviourUpdate = self.behaviourUpdate
-					Shard.behaviourTeam = self.behaviourTeam
-					self.behaviourTeam = self.behaviourTeam + 1
-					--self.behaviourTeam = t.id + 1
-					--print(game:Frame(),'behaviour',self.behaviourIndex,self.behaviourUpdate,'T',self.behaviourTeam)
-					return self.behaviourUpdate,self.behaviourTeam
-				end
-			end
-		end
 	end
+	self.behaviourUpdate = self.BScheduler[self.behaviourIndex]
+	self.behaviourTeam = self.AIs[self.behaviourTeamIndex]
+	self.behaviourTeamIndex = self.behaviourTeamIndex + 1
 end
 
-function SchedulerHST:updater()
-	self.behaviourIndex = self.behaviourIndex or 1
-	self.behaviourTeam = self.behaviourTeam or 0
-	self.behaviourUpdate = nil
-	for idx,behaviour in pairs(self.BScheduler) do
-		if self.behaviourIndex > #self.BScheduler then
-			self.behaviourIndex = 1
-		end
-		if self.behaviourIndex == idx then
-			self.behaviourUpdate = behaviour
-			if self.behaviourTeam >= #Shard.AIs then
-				self.behaviourTeam = 0
-				self.behaviourIndex = self.behaviourIndex + 1
-			end
-			for n,t in pairs (Shard.AIs) do
-				--print('bt',n,t,t.id,self.behaviourTeam,#Shard.AIs)
-				if t.id == self.behaviourTeam then
-					Shard.behaviourUpdate = self.behaviourUpdate
-					Shard.behaviourTeam = self.behaviourTeam
-					self.behaviourTeam = self.behaviourTeam + 1
-					--print(game:Frame(),'behaviour',self.behaviourIndex,self.behaviourUpdate,'T',self.behaviourTeam)
-					return self.behaviourUpdate,self.behaviourTeam
-				end
-			end
-		end
-	end
-end
 
-SchedulerHST.ModuleScheda2 = {
+
+
+SchedulerHST.MScheduler = {
 	'AttackHST',
 	'BomberHST',
 	'RaidHST',

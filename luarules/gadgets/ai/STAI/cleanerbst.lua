@@ -31,7 +31,7 @@ function CleanerBST:Update()
 	--	return
 	--end
 	--self.uFrame = f
-	if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'CleanerBST' then return end
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'CleanerBST' then return end
 	local cleanH =self.ai.cleanhst
 	if not cleanH.theCleaner[self.id]   then
 		self:EchoDebug(self.id,'do update')

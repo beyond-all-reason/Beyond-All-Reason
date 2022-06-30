@@ -88,7 +88,7 @@ function BomberBST:Update()
 	--if f - self.uFrame < self.ai.behUp['bomberbst']then
 	--	return
 	--end
-	if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'BomberBST' then return end
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'BomberBST' then return end
 	self.uFrame = f
 end
 

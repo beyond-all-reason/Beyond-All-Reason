@@ -58,7 +58,7 @@ function WardBST:Update()
 		end
 	else
 		self.withinTurtle = false
-		if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'WardBST' then return end
+		if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'WardBST' then return end
 -- 		if f - self.uFrame < self.ai.behUp['wardbst']	 then
 -- 			return
 -- 		end

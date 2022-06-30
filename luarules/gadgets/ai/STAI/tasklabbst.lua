@@ -53,7 +53,7 @@ function TaskLabBST:Update()
 -- 		return
 -- 	end
 -- 	self.uFrame = f
-	if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'TaskLabBST' then return end
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'TaskLabBST' then return end
 	self:preFilter() -- work or no resource??
 	if Spring.GetFactoryCommands(self.id,0) > 1 then return end --factory alredy work
 	self:GetAmpOrGroundWeapon() -- need more amph to attack in this map?

@@ -62,7 +62,7 @@ function DefendBST:Update()
 	--	return
 	--end
 	--self.uFrame = f
-	if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'DefendBST' then return end
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'DefendBST' then return end
 	if self.unit == nil then return end
 	local unit = self.unit:Internal()
 	if not unit:GetPosition() then

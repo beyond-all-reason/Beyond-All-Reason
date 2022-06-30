@@ -17,7 +17,7 @@ function ReclaimBST:Update()
 -- 		return
 -- 	end
 -- 	self.uFrame = f
-	if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'ReclaimBST' then return end
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'ReclaimBST' then return end
 	self:Act()
 
 end

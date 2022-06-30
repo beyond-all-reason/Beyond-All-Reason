@@ -43,7 +43,7 @@ function BootBST:Update()
 	--	return
 	--end
 	--self.uFrame = f
-	if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'BootBST' then return end
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'BootBST' then return end
 	if not self.finished then return end
 	if self.ignoreFactories then return end
 
