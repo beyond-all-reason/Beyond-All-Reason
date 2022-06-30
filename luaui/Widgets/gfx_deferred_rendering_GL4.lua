@@ -546,27 +546,6 @@ local unitDefLights = {
 	},
 	[UnitDefNames['armrad'].id] = {
 		initComplete = false, -- this is needed maybe?	
-		-- upright = {
-		-- 	lighttype = 'cone',
-		-- 	px = 0,
-		-- 	py = 0,
-		-- 	pz = 0,
-		-- 	height = 150,
-		-- 	dx = 0, 
-		-- 	dy = 0, 
-		-- 	dz = -1, 
-		-- 	angle = 0,
-		-- 	pieceName = 'turret',
-		-- 	lightParamTable = {0,72,0,200, --pos + radius
-		-- 						0.001,1,0.001, 0.1, -- dir + angle
-		-- 						0.5,3,0.5,1, -- RGBA
-		-- 						1,1,1,1, -- modelfactor_specular_scattering_lensflare
-		-- 						0,0,0,0, -- otherparams
-		-- 						0, -- pieceIndex
-		-- 						0,0,0,0 -- instData always 0!
-		-- 						},
-		-- 	--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
-		-- },
 		-- searchlight = {
 		-- 	lighttype = 'cone',
 		-- 	px = 0,
@@ -610,6 +589,30 @@ local unitDefLights = {
 			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
 		},
 	},
+	[UnitDefNames['corrad'].id] = {
+		initComplete = false, -- this is needed maybe?	
+		greenblob = {
+				lighttype = 'point',
+				px = 0,
+				py = 0,
+				pz = 0,
+				height = 150,
+				dx = 0, 
+				dy = 0, 
+				dz = -1, 
+				angle = 1,
+				pieceName = 'turret',
+				lightParamTable = {0,82,0,20, --pos + radius
+								0,0,0,0, -- unused
+								0,1,0,0.6, -- RGBA
+								0.8,0.9,1.0,10, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
 
 	[UnitDefNames['armllt'].id] = {
 		initComplete = false, -- this is needed maybe?
@@ -624,6 +627,30 @@ local unitDefLights = {
 			dz = -1, 
 			angle = 1,
 			pieceName = 'sleeve',
+			lightParamTable = {0,5,5.8,450, --pos + radius
+								0,0,1,0.25, -- dir + angle
+								1,1,1,0.5, -- RGBA
+								0.2,1,1,1, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
+	[UnitDefNames['corllt'].id] = {
+		initComplete = false, -- this is needed maybe?
+		searchlightllt = {
+			lighttype = 'cone',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 150,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			pieceName = 'turret',
 			lightParamTable = {0,5,5.8,450, --pos + radius
 								0,0,1,0.25, -- dir + angle
 								1,1,1,0.5, -- RGBA
@@ -841,6 +868,30 @@ local unitDefLights = {
 		-- 						},
 		-- 	--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
 		-- },
+	},
+	[UnitDefNames['corcom'].id] = {
+		initComplete = false, -- this is needed maybe?
+		headlightarmcom = {
+			lighttype = 'cone',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 250,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			pieceName = 'head',
+			lightParamTable = {0,1,9,420, --pos + radius
+								0,-0.17,1, 0.26, -- dir + angle
+								-1,1,1,1, -- RGBA
+								1,2,3,1, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- otherparams
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
 	},
 	[UnitDefNames['armcv'].id] = {
 		initComplete = false, -- this is needed maybe?
@@ -1094,6 +1145,30 @@ local unitDefLights = {
 			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
 		},
 	},
+	[UnitDefNames['corpyro'].id] = {
+		initComplete = false, -- this is needed maybe?
+		flamelight = {
+			lighttype = 'point',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 0,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			pieceName = 'lloarm',
+			lightParamTable = {0,-1.4,15,24, --pos + radius
+							0,0,0,0, -- unused
+							0.95,0.66,0.07,0.56, -- RGBA
+							0.1,1.5,0.35,10, -- modelfactor_specular_scattering_lensflare
+							0,0,0,0, -- otherparams
+							0, -- pieceIndex
+							0,0,0,0 -- instData always 0!
+							},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
 	[UnitDefNames['armsnipe'].id] = {
 		initComplete = false, -- this is needed maybe?
 		sniperreddot = {
@@ -1109,7 +1184,7 @@ local unitDefLights = {
 			angle = 1,
 			lightParamTable = {0,0,0,700, --pos + radius
 								0,1,0.0001, 0.006, -- pos2
-								1,0,0,0.85, -- RGBA
+								2,0,0,0.85, -- RGBA
 								0.1,4,2,4, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
 								0, -- pieceIndex
@@ -1445,7 +1520,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	--glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
 	deferredLightShader = checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4") or deferredLightShader
 	if pointLightVBO.usedElements > 0 or 
-		unitpointLightVBO.usedElements > 0 or 
+		unitPointLightVBO.usedElements > 0 or 
 		beamLightVBO.usedElements > 0 or 
 		unitConeLightVBO.usedElements > 0 or
 		coneLightVBO.usedElements > 0 then 
