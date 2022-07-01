@@ -86,7 +86,9 @@ void main(){
 
 	uvoffsets = dataIn[0].v_uvoffsets; // if an atlas is used, then use this, otherwise dont
 	decalDimensions = vec3(dataIn[0].v_lengthwidthrotation.x * 0.5, 0.0, dataIn[0].v_lengthwidthrotation.y * 0.5);
-
+	g_parameters = dataIn[0].v_parameters;
+	g_color.a = dataIn[0].v_lengthwidthrotation.w;
+	
 	// for a simple quad
 	/*
 		float length = dataIn[0].v_lengthwidthrotation.x;
@@ -97,6 +99,7 @@ void main(){
 		offsetVertex4(-width * 0.5, 0.0, -length * 0.5, 1.0, 0.0); // top left
 		EndPrimitive();
 	*/
+	
 	
 	// for a 4x4 quad
 	for (int i = 0; i<4; i++){ //draw from bottom (front) to back
