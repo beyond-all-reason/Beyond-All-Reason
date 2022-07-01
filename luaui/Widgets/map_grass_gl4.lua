@@ -15,7 +15,7 @@ function widget:GetInfo()
     author    = "Beherith (mysterme@gmail.com)",
     date      = "2021.04.12",
     license   = "Lua code: GPL V2, Shader Code: CC-BY-NC-ND 4.0",
-    layer     = -1000000000000,
+    layer     = -9999999,
     enabled   = not isPotatoGpu,
   }
 end
@@ -629,14 +629,16 @@ end
 
 -- because not all maps have done this for us
 local function clearAllUnitGrass()
-	local mSpots = WG['resource_spot_finder'].metalSpotsList
-	if mSpots then
-		local maxValue = 15
-		for i = 1, #mSpots do
-			local spot = mSpots[i]
-			local value = string.format("%0.1f",math.round(spot.worth/1000,1))
-			if tonumber(value) > 0.001 and tonumber(value) < maxValue then
-				adjustGrass(spot.x, spot.z, math.max((spot.maxZ-spot.minZ), (spot.maxX-spot.minX))*1.2, 1)
+	if WG['resource_spot_finder'] then
+		local mSpots = WG['resource_spot_finder'].metalSpotsList
+		if mSpots then
+			local maxValue = 15
+			for i = 1, #mSpots do
+				local spot = mSpots[i]
+				local value = string.format("%0.1f",math.round(spot.worth/1000,1))
+				if tonumber(value) > 0.001 and tonumber(value) < maxValue then
+					adjustGrass(spot.x, spot.z, math.max((spot.maxZ-spot.minZ), (spot.maxX-spot.minX))*1.2, 1)
+				end
 			end
 		end
 	end
