@@ -76,6 +76,7 @@ end
 
 local decalVBO = nil
 local decalLargeVBO = nil
+local decalExtraLargeVBO = nil
 
 local decalShader = nil
 local decalLargeShader = nil
@@ -127,20 +128,30 @@ local gsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.geom.glsl"
 
 local vsSrcLargePath = "LuaUI/Widgets/Shaders/decals_large_gl4.vert.glsl"
 -- large decal resolution:
-local resolution = 32 -- 64 is 8k tris, a tad pricey...
+local resolution = 32 -- 32 is 2k tris, a tad pricey...
 local largesizethreshold  = 128 -- if min(width,height)> than this, then we use the large version!
+local extralargesizeThreshold = 768 -- if min(width,height)> than this, then we use the extra large version!
 
 local lastshaderupdate = nil
-local shaderSourceCache = {}
-local shaderLargeSourceCache = {}
+local shaderSourceCache = {
+	vssrcpath = vsSrcPath,
+	fssrcpath = fsSrcPath,
+	gssrcpath = gsSrcPath,
+	}
+	
+local shaderLargeSourceCache = {
+	vssrcpath = vsSrcLargePath,
+	fssrcpath = fsSrcPath,
+	}
 
-local function checkShaderUpdates(shadersourcecache, vssrcpath, fssrcpath, gssrcpath, shadername, delaytime)
+local function checkShaderUpdates(shadersourcecache, shadername, delaytime)
+	-- todo: extract shaderconfig
 	if shadersourcecache.lastshaderupdate == nil or 
 		Spring.DiffTimers(Spring.GetTimer(), shadersourcecache.lastshaderupdate) > (delaytime or 0.5) then 
 		shadersourcecache.lastshaderupdate = Spring.GetTimer()
-		local vsSrcNew = vssrcpath and VFS.LoadFile(vssrcpath)
-		local fsSrcNew = fssrcpath and VFS.LoadFile(fssrcpath)
-		local gsSrcNew = gssrcpath and VFS.LoadFile(gssrcpath)
+		local vsSrcNew = shadersourcecache.vssrcpath and VFS.LoadFile(shadersourcecache.vssrcpath)
+		local fsSrcNew = shadersourcecache.fssrcpath and VFS.LoadFile(shadersourcecache.fssrcpath)
+		local gsSrcNew = shadersourcecache.gssrcpath and VFS.LoadFile(shadersourcecache.gssrcpath)
 		if  vsSrcNew == shadersourcecache.vsSrc and 
 			fsSrcNew == shadersourcecache.fsSrc and 
 			gsSrcNew == shadersourcecache.gsSrc then 
@@ -204,9 +215,9 @@ local function checkShaderUpdates(shadersourcecache, vssrcpath, fssrcpath, gssrc
 end
 
 function widget:Update()
-	decalShader = checkShaderUpdates(shaderSourceCache, vsSrcPath, fsSrcPath, gsSrcPath, "Decals GL4", 0.5) or decalShader
+	decalShader = checkShaderUpdates(shaderSourceCache, "Decals GL4", 0.5) or decalShader
 	lastshaderupdate = nil
-	decalLargeShader = checkShaderUpdates(shaderLargeSourceCache, vsSrcLargePath, fsSrcPath, nil, "Large Decals GL4", 0.5) or decalLargeShader
+	decalLargeShader = checkShaderUpdates(shaderLargeSourceCache, "Large Decals GL4", 0.5) or decalLargeShader
 end
 
 local function goodbye(reason)
@@ -215,11 +226,10 @@ local function goodbye(reason)
 end
 
 local function initGL4( DPATname)
-	decalShader = checkShaderUpdates(shaderSourceCache, vsSrcPath, fsSrcPath, gsSrcPath, "Decals GL4")
-	lastshaderupdate = nil
-	decalLargeShader = checkShaderUpdates(shaderLargeSourceCache, vsSrcLargePath, fsSrcPath,nil,  "Large Decals GL4", 0.5)
+	decalShader = checkShaderUpdates(shaderSourceCache,  "Decals GL4")
+	decalLargeShader = checkShaderUpdates(shaderLargeSourceCache, "Large Decals GL4", 0.5)
 	
-	--if not decalShader or not decalLargeShader then goodbye("Failed to compile ".. DPATname .." GL4 ") end
+	if not decalShader or not decalLargeShader then goodbye("Failed to compile ".. DPATname .." GL4 ") end
 
 	decalVBO = makeInstanceVBOTable(
 		{
@@ -259,7 +269,30 @@ local function initGL4( DPATname)
 		decalLargeVBO.instanceVBO,
 		decalLargeVBO.indexVBO
 	)
-	return decalLargeVBO ~= nil and decalVBO ~= nil
+	
+	planeVBO, numVertices = makePlaneVBO(1,1,resolution*4,resolution*4)
+	planeIndexVBO, numIndices =  makePlaneIndexVBO(resolution*4,resolution*4, true)
+	
+	decalExtraLargeVBO = makeInstanceVBOTable(
+		{
+			{id = 1, name = 'lengthwidthrotation', size = 4},
+			{id = 2, name = 'uv_atlaspos', size = 4},
+			{id = 3, name = 'alphastart_alphadecay_heatstart_heatdecay', size = 4},
+			{id = 4, name = 'worldPos', size = 4},
+		},
+		64, -- maxelements
+		DPATname .. "Extra Large VBO" -- name
+	)
+	if decalExtraLargeVBO == nil then goodbye("Failed to create decalExtraLargeVBO") end
+
+	decalExtraLargeVBO.vertexVBO = planeVBO
+	decalExtraLargeVBO.indexVBO = planeIndexVBO
+	decalExtraLargeVBO.VAO = makeVAOandAttach(
+		decalExtraLargeVBO.vertexVBO,
+		decalExtraLargeVBO.instanceVBO,
+		decalExtraLargeVBO.indexVBO
+	)
+	return decalLargeVBO ~= nil and decalVBO ~= nil and decalExtraLargeVBO ~= nil 
 end
 
 local decalIndex = 0
@@ -289,7 +322,12 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 	local lifetime = alphastart/alphadecay
 	decalIndex = decalIndex + 1
 	local targetVBO = decalVBO
-	if math.min(width,length) > largesizethreshold then targetVBO = decalLargeVBO end 
+	
+	if math.min(width,length) > extralargesizeThreshold then 
+		targetVBO = decalExtraLargeVBO
+	elseif math.min(width,length) > largesizethreshold then 
+		targetVBO = decalLargeVBO
+	end
 	
 	pushElementInstance(
 		targetVBO, -- push into this Instance VBO Table
@@ -311,14 +349,11 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 end
 
 function widget:DrawWorldPreUnit()
-	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 then
+	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--Spring.Echo(decalVBO.usedElements,decalLargeVBO.usedElements)
-		--glCulling(GL.FRONT) -- man we gotta fix this ass backwards shit
-		glCulling(GL.BACK) -- man we gotta fix this ass backwards shit
-		--glCulling(false)
+		glCulling(GL.BACK) 
 		glDepthTest(GL_LEQUAL)
-		--glDepthTest(GL.ALWAYS)
 		gl.DepthMask(false)
 		glTexture(0, '$heightmap')
 		glTexture(1, '$minimap')
@@ -335,16 +370,21 @@ function widget:DrawWorldPreUnit()
 		
 		if decalVBO.usedElements > 0  then  
 			decalShader:Activate()
-			--decalShader:SetUniform("fadeDistance",disticon * 1000)
+			decalShader:SetUniform("fadeDistance",disticon * 1000)
 			decalVBO.VAO:DrawArrays(GL.POINTS, decalVBO.usedElements)
 			decalShader:Deactivate()
 		end
 		
-		if decalLargeVBO.usedElements > 0 then
+		if decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
 			--Spring.Echo("large elements:", decalLargeVBO.usedElements)
 			decalLargeShader:Activate()
-			--decalLargeShader:SetUniform("fadeDistance",disticon * 1000)
-			decalLargeVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, decalLargeVBO.usedElements, 0)
+			decalLargeShader:SetUniform("fadeDistance",disticon * 1000)
+			if decalLargeVBO.usedElements > 0 then 
+				decalLargeVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, decalLargeVBO.usedElements, 0)
+			end
+			if decalExtraLargeVBO.usedElements > 0 then 
+				decalExtraLargeVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, decalExtraLargeVBO.usedElements, 0)
+			end
 			decalLargeShader:Deactivate()
 		end 
 		
@@ -360,7 +400,9 @@ local function RemoveDecal(instanceID)
 	if decalVBO.instanceIDtoIndex[instanceID] then
 		popElementInstance(decalVBO, instanceID)
 	elseif decalLargeVBO.instanceIDtoIndex[instanceID] then
-		--popElementInstance(decalLargeVBO, instanceID)
+		popElementInstance(decalLargeVBO, instanceID)
+	elseif decalExtraLargeVBO.instanceIDtoIndex[instanceID] then
+		popElementInstance(decalExtraLargeVBO, instanceID)
 	end 
 	decalTimes[instanceID] = nil
 end
@@ -389,7 +431,7 @@ function widget:Initialize()
 	if true then 
 		for i= 1, 100 do 
 			local w = math.random() * 256 + 16
-			w = w * 2
+			w = w * 16
 			local j = math.floor(math.random()*10 + 1)
 			local idx = string.format("luaui/images/decals_gl4/groundScars/t_groundcrack_%02d_a.png", j)
 			--Spring.Echo(idx)
