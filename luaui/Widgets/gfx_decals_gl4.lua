@@ -40,10 +40,10 @@ local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 
 local function addDirToAtlas(atlas, path, key)
 	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
 	local files = VFS.DirList(path)
-	Spring.Echo("Adding",#files, "images to atlas from", path, key)
+	--Spring.Echo("Adding",#files, "images to atlas from", path, key)
 	for i=1, #files do
 		if imgExts[string.sub(files[i],-3,-1)] and string.find(files[i], key, nil, true) then
-			Spring.Echo(files[i])
+			--Spring.Echo(files[i])
 			gl.AddAtlasTexture(atlas,files[i])
 			atlassedImages[files[i]] = atlas
 		end
@@ -75,7 +75,11 @@ local function makeAtlases()
 end
 
 local decalVBO = nil
+local decalLargeVBO = nil
+
 local decalShader = nil
+local decalLargeShader = nil
+
 local luaShaderDir = "LuaUI/Widgets/Include/"
 
 local glTexture = gl.Texture
@@ -121,25 +125,32 @@ local vsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.vert.glsl"
 local fsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.frag.glsl"
 local gsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.geom.glsl"
 
+local vsSrcLargePath = "LuaUI/Widgets/Shaders/decals_large_gl4.vert.glsl"
+-- large decal resolution:
+local resolution = 32 -- 64 is 8k tris, a tad pricey...
+local largesizethreshold  = 128 -- if min(width,height)> than this, then we use the large version!
+
 local lastshaderupdate = nil
 local shaderSourceCache = {}
-local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, delaytime)
-	if lastshaderupdate == nil or 
-		Spring.DiffTimers(Spring.GetTimer(), lastshaderupdate) > (delaytime or 0.25) then 
-		lastshaderupdate = Spring.GetTimer()
+local shaderLargeSourceCache = {}
+
+local function checkShaderUpdates(shadersourcecache, vssrcpath, fssrcpath, gssrcpath, shadername, delaytime)
+	if shadersourcecache.lastshaderupdate == nil or 
+		Spring.DiffTimers(Spring.GetTimer(), shadersourcecache.lastshaderupdate) > (delaytime or 0.5) then 
+		shadersourcecache.lastshaderupdate = Spring.GetTimer()
 		local vsSrcNew = vssrcpath and VFS.LoadFile(vssrcpath)
 		local fsSrcNew = fssrcpath and VFS.LoadFile(fssrcpath)
 		local gsSrcNew = gssrcpath and VFS.LoadFile(gssrcpath)
-		if  vsSrcNew == shaderSourceCache.vsSrc and 
-			fsSrcNew == shaderSourceCache.fsSrc and 
-			gsSrcNew == shaderSourceCache.gsSrc then 
+		if  vsSrcNew == shadersourcecache.vsSrc and 
+			fsSrcNew == shadersourcecache.fsSrc and 
+			gsSrcNew == shadersourcecache.gsSrc then 
 			--Spring.Echo("No change in shaders")
 			return nil
 		else
 			local compilestarttime = Spring.GetTimer()
-			shaderSourceCache.vsSrc = vsSrcNew
-			shaderSourceCache.fsSrc = fsSrcNew
-			shaderSourceCache.gsSrc = gsSrcNew
+			shadersourcecache.vsSrc = vsSrcNew
+			shadersourcecache.fsSrc = fsSrcNew
+			shadersourcecache.gsSrc = gsSrcNew
 			
 			local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 			if vsSrcNew then 
@@ -181,7 +192,6 @@ local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, d
 			)
 			local shaderCompiled = reinitshader:Initialize()
 			
-			
 			Spring.Echo(shadername, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", Spring.GetGameFrame(), "success", shaderCompiled or false)
 			if shaderCompiled then 
 				return reinitshader
@@ -194,7 +204,9 @@ local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, d
 end
 
 function widget:Update()
-	decalShader = checkShaderUpdates(vsSrcPath, fsSrcPath, gsSrcPath, "Decals GL4") or decalShader
+	decalShader = checkShaderUpdates(shaderSourceCache, vsSrcPath, fsSrcPath, gsSrcPath, "Decals GL4", 0.5) or decalShader
+	lastshaderupdate = nil
+	decalLargeShader = checkShaderUpdates(shaderLargeSourceCache, vsSrcLargePath, fsSrcPath, nil, "Large Decals GL4", 0.5) or decalLargeShader
 end
 
 local function goodbye(reason)
@@ -202,11 +214,14 @@ local function goodbye(reason)
   widgetHandler:RemoveWidget()
 end
 
-local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
-	decalShader = checkShaderUpdates(vsSrcPath, fsSrcPath, gsSrcPath, "Decals GL4")
-	if not decalShader then goodbye("Failed to compile ".. DPATname .." GL4 ") end
+local function initGL4( DPATname)
+	decalShader = checkShaderUpdates(shaderSourceCache, vsSrcPath, fsSrcPath, gsSrcPath, "Decals GL4")
+	lastshaderupdate = nil
+	decalLargeShader = checkShaderUpdates(shaderLargeSourceCache, vsSrcLargePath, fsSrcPath,nil,  "Large Decals GL4", 0.5)
+	
+	--if not decalShader or not decalLargeShader then goodbye("Failed to compile ".. DPATname .." GL4 ") end
 
-	DrawPrimitiveAtUnitVBO = makeInstanceVBOTable(
+	decalVBO = makeInstanceVBOTable(
 		{
 			{id = 0, name = 'lengthwidthrotation', size = 4},
 			{id = 1, name = 'uv_atlaspos', size = 4},
@@ -216,12 +231,35 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 		64, -- maxelements
 		DPATname .. "VBO" -- name
 	)
-	if DrawPrimitiveAtUnitVBO == nil then goodbye("Failed to create DrawPrimitiveAtUnitVBO") end
+	if decalVBO == nil then goodbye("Failed to create decalVBO") end
 
-	local DrawPrimitiveAtUnitVAO = gl.GetVAO()
-	DrawPrimitiveAtUnitVAO:AttachVertexBuffer(DrawPrimitiveAtUnitVBO.instanceVBO)
-	DrawPrimitiveAtUnitVBO.VAO = DrawPrimitiveAtUnitVAO
-	return  DrawPrimitiveAtUnitVBO, DrawPrimitiveAtUnitShader
+	local smallDecalVAO = gl.GetVAO()
+	smallDecalVAO:AttachVertexBuffer(decalVBO.instanceVBO)
+	decalVBO.VAO = smallDecalVAO
+	
+	local planeVBO, numVertices = makePlaneVBO(1,1,resolution,resolution)
+	local planeIndexVBO, numIndices =  makePlaneIndexVBO(resolution,resolution, true)
+	
+	decalLargeVBO = makeInstanceVBOTable(
+		{
+			{id = 1, name = 'lengthwidthrotation', size = 4},
+			{id = 2, name = 'uv_atlaspos', size = 4},
+			{id = 3, name = 'alphastart_alphadecay_heatstart_heatdecay', size = 4},
+			{id = 4, name = 'worldPos', size = 4},
+		},
+		64, -- maxelements
+		DPATname .. "Large VBO" -- name
+	)
+	if decalLargeVBO == nil then goodbye("Failed to create decalLargeVBO") end
+
+	decalLargeVBO.vertexVBO = planeVBO
+	decalLargeVBO.indexVBO = planeIndexVBO
+	decalLargeVBO.VAO = makeVAOandAttach(
+		decalLargeVBO.vertexVBO,
+		decalLargeVBO.instanceVBO,
+		decalLargeVBO.indexVBO
+	)
+	return decalLargeVBO ~= nil and decalVBO ~= nil
 end
 
 local decalIndex = 0
@@ -250,8 +288,11 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 	--Spring.Echo (unitDefID,decalInfo.texfile, width, length, alpha)
 	local lifetime = alphastart/alphadecay
 	decalIndex = decalIndex + 1
+	local targetVBO = decalVBO
+	if math.min(width,length) > largesizethreshold then targetVBO = decalLargeVBO end 
+	
 	pushElementInstance(
-		decalVBO, -- push into this Instance VBO Table
+		targetVBO, -- push into this Instance VBO Table
 			{length, width, rotation, maxalpha ,  -- lengthwidthrotation maxalpha
 			p,q,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
 			alphastart, alphadecay, heatstart, heatdecay, -- alphastart_alphadecay_heatstart_heatdecay
@@ -270,13 +311,14 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 end
 
 function widget:DrawWorldPreUnit()
-	if decalVBO.usedElements > 0 then
+	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 then
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
-		--Spring.Echo(decalVBO.usedElements)
-		glCulling(GL.FRONT)
+		--Spring.Echo(decalVBO.usedElements,decalLargeVBO.usedElements)
+		--glCulling(GL.FRONT) -- man we gotta fix this ass backwards shit
+		glCulling(GL.BACK) -- man we gotta fix this ass backwards shit
 		--glCulling(false)
 		glDepthTest(GL_LEQUAL)
-		--glDepthTest(false)
+		--glDepthTest(GL.ALWAYS)
 		gl.DepthMask(false)
 		glTexture(0, '$heightmap')
 		glTexture(1, '$minimap')
@@ -290,10 +332,22 @@ function widget:DrawWorldPreUnit()
 		--glTexture(9, '$map_gbuffer_zvaltex')
 		--glTexture(10, '$map_gbuffer_difftex')
 		--glTexture(11, '$map_gbuffer_normtex')
-		decalShader:Activate()
-		decalShader:SetUniform("fadeDistance",disticon * 1000)
-		decalVBO.VAO:DrawArrays(GL.POINTS, decalVBO.usedElements)
-		decalShader:Deactivate()
+		
+		if decalVBO.usedElements > 0  then  
+			decalShader:Activate()
+			--decalShader:SetUniform("fadeDistance",disticon * 1000)
+			decalVBO.VAO:DrawArrays(GL.POINTS, decalVBO.usedElements)
+			decalShader:Deactivate()
+		end
+		
+		if decalLargeVBO.usedElements > 0 then
+			--Spring.Echo("large elements:", decalLargeVBO.usedElements)
+			decalLargeShader:Activate()
+			--decalLargeShader:SetUniform("fadeDistance",disticon * 1000)
+			decalLargeVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, decalLargeVBO.usedElements, 0)
+			decalLargeShader:Deactivate()
+		end 
+		
 		for i = 0, 8 do glTexture(i, false) end
 		glCulling(GL.BACK) -- This is the correct default mode! 
 		glDepthTest(GL_LEQUAL)
@@ -305,7 +359,9 @@ end
 local function RemoveDecal(instanceID)
 	if decalVBO.instanceIDtoIndex[instanceID] then
 		popElementInstance(decalVBO, instanceID)
-	end
+	elseif decalLargeVBO.instanceIDtoIndex[instanceID] then
+		--popElementInstance(decalLargeVBO, instanceID)
+	end 
 	decalTimes[instanceID] = nil
 end
 
@@ -323,15 +379,17 @@ function widget:Initialize()
 		goodbye("Failed to init texture atlas for DecalsGL4")
 		return
 	end
-	decalVBO = InitDrawPrimitiveAtUnit(shaderConfig, "DecalsGL4")
-	if decalVBO == nil then 
+	local initsuccess = initGL4( "DecalsGL4")
+	if initsuccess == nil then 
 		widgetHandler:RemoveWidget()
+		return
 	end
 	
 	math.randomseed(1)
 	if true then 
-		for i= 1, 1000 do 
+		for i= 1, 100 do 
 			local w = math.random() * 256 + 16
+			w = w * 2
 			local j = math.floor(math.random()*10 + 1)
 			local idx = string.format("luaui/images/decals_gl4/groundScars/t_groundcrack_%02d_a.png", j)
 			--Spring.Echo(idx)
@@ -349,6 +407,13 @@ function widget:Initialize()
 					)
 		end
 	end
+	
+	WG['decalsgl4'] = {}
+	WG['decalsgl4'].AddDecalGL4 = AddDecal
+	WG['decalsgl4'].RemoveDecalGL4 = RemoveDecal
+	widgetHandler:RegisterGlobal('AddDecalGL4', WG['decalsgl4'].AddDecalGL4)
+	widgetHandler:RegisterGlobal('RemoveDecalGL4', WG['decalsgl4'].RemoveDecalGL4)
+	
 end
 
 
@@ -365,4 +430,8 @@ function widget:ShutDown()
 	if atlasORM ~= nil then
 		gl.DeleteTextureAtlas(atlasORM)
 	end
+	
+	WG['decalsgl4'] = nil
+	widgetHandler:DeregisterGlobal('AddDecalGL4')
+	widgetHandler:DeregisterGlobal('RemoveDecalGL4')
 end

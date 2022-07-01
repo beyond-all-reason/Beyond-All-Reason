@@ -27,11 +27,8 @@ out DataGS {
 	vec4 g_color;
 	vec4 g_uv;
 	vec4 g_position; // how to get tbnmatrix here?
-	vec4 g_mapnormal;
-	vec4 g_tangent;
-	vec4 g_bitangent;
+	vec4 g_parameters;
 	mat3 tbnmatrix;
-	mat3 tbninverse;
 };
 
 mat3 rotY;
@@ -63,12 +60,11 @@ void offsetVertex4( float x, float y, float z, float u, float v){
 	gl_Position = cameraViewProj * worldPos;
 	gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in Z
 	g_uv.zw = dataIn[0].v_parameters.zw;
-	g_color =  textureLod(heightmapTex, centerpos.xz*0.0001, 0.0);
 	g_position.xyz = worldPos.xyz;
 	g_position.w = length(vec2(x,z));
-	g_mapnormal = textureLod(mapNormalsTex, uvhm, 0.0).raaa;
-	g_mapnormal.g = sqrt( 1.0 - dot( g_mapnormal.ra, g_mapnormal.ra));
-	g_mapnormal.xyz = g_mapnormal.rga;
+	//g_mapnormal = textureLod(mapNormalsTex, uvhm, 0.0).raaa;
+	//g_mapnormal.g = sqrt( 1.0 - dot( g_mapnormal.ra, g_mapnormal.ra));
+	//g_mapnormal.xyz = g_mapnormal.rga;
 	// the tangent of the UV goes in the +U direction
 	// we _kinda_ need to know the Y rot, and the normal dir for this
 	// assume that tangent points "right" (+U)
@@ -77,16 +73,7 @@ void offsetVertex4( float x, float y, float z, float u, float v){
 	vec3 Trot = rotY * vec3(1.0, 0.0, 0.0);
 	vec3 Brot = rotY * vec3(0.0, 0.0, 1.0);
 	tbnmatrix = mat3(Trot, Brot, Nup);
-	//tbninverse = transpose(g_mapnormal.xyx * tbnmatrix );
-	
-	g_tangent = vec4(vec3(rotY * vec3(1.0, 0.0, 0.0)), 1.0);
-	g_bitangent = vec4(rotY * vec3(0.0, 0.0, 1.0), 1.0);
-	
-	
-	
-	//mat3 tbnmatrix = mat3(g_tangent.xyz, g_bitangent.xyz, g_mapnormal.xyz);
-	//mat3 tbninverse = transpose(mat3(T, B, N));  
-	
+
 	EmitVertex();
 }
 #line 22000
@@ -119,16 +106,18 @@ void main(){
 		// 9 7 5 3 1
 		float striptop = (2.0*v - 0.5);
 		float stripbot = (2.0*v - 1.0);
-		offsetVertex4( 1.0, 0.0, stripbot, 1.0 , v       ); // 1
+		
 		offsetVertex4( 1.0, 0.0, striptop, 1.0 , v + 0.25); // 2
-		offsetVertex4( 0.5, 0.0, stripbot, 0.75, v       ); // 3
+		offsetVertex4( 1.0, 0.0, stripbot, 1.0 , v       ); // 1
 		offsetVertex4( 0.5, 0.0, striptop, 0.75, v + 0.25); // 4
-		offsetVertex4( 0.0, 0.0, stripbot, 0.5, v ); // 5
+		offsetVertex4( 0.5, 0.0, stripbot, 0.75, v       ); // 3
 		offsetVertex4( 0.0, 0.0, striptop, 0.5, v + 0.25); // 6
-		offsetVertex4(-0.5, 0.0, stripbot, 0.25, v ); // 7
+		offsetVertex4( 0.0, 0.0, stripbot, 0.5, v ); // 5
 		offsetVertex4(-0.5, 0.0, striptop, 0.25, v + 0.25); // 8
-		offsetVertex4(-1.0, 0.0, stripbot, 0.0, v ); // 8
+		offsetVertex4(-0.5, 0.0, stripbot, 0.25, v ); // 7
 		offsetVertex4(-1.0, 0.0, striptop, 0.0, v + 0.25); // 10
+		offsetVertex4(-1.0, 0.0, stripbot, 0.0, v ); // 8
+		
 		EndPrimitive();
 	}
 	

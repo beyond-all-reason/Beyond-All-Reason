@@ -83,8 +83,8 @@ vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir, float height)
 void main(void)
 {
 	
-	//fragColor.rgba = vec4(1.0);
-	//return;
+	fragColor.rgba = vec4(1.0);
+	return;
 	vec3 campos = cameraViewInv[3].xyz;
 	vec3 camtoworld = normalize(g_position.xyz - campos);
 	
@@ -143,10 +143,7 @@ void main(void)
 	//fragColor.rgb = tex1color.rgb;
 	//fragColor.rgb = tex3color.bbb;
 	//fragColor.rgb = abs((parallaxUV.xyx * 10) + 0.5);
-	//fragColor.rgb = fract(tspace.xyz* 0.01);
+	fragColor.rgb = fract(tspace.xyz* 0.01);
 	//fragColor.rgb = reorientedNormal.rgb * 0.5 + 0.5;
 	//fragColor.rgb = max(vec3(parallaxUV.x, - parallaxUV.x, 0.0) * 10, 0.0);
-	//fragColor.a = 1.0;
-	//fragColor.rgb = g_uv.zyy;
-	//fragColor.rgba = vec4(0.5);
 }
