@@ -153,9 +153,9 @@ function TargetHST:UpdateEnemies()
 	-- where is/are the party/parties tonight?
 	self.enemyMexSpots = {}
 	for unitID, e in pairs(self.ai.loshst.knownEnemies) do
-		local los = e.los
-		local ghost = e.ghost
-		local name = e.name
+-- 		local los = e.los
+-- 		local ghost = e.ghost
+-- 		local name = e.name
 		local ut = self.ai.armyhst.unitTable[name]
 		local px, pz = self:PosToGrid(e.position)
 		self:setCellEnemyValues(e,self.CELLS[px][pz])

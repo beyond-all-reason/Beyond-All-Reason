@@ -10,27 +10,6 @@ end
 
 MapHST.DebugEnabled = false
 MapHST.lastDataResetFrame = 0
-local DebugDrawEnabled = false
-
-local mapColors = {
-	veh = { 1, 0, 0 },
-	bot = { 0, 1, 0 },
-	hov = { 0, 0, 1 },
-	shp = { 1, 0, 0 },
-	amp = { 0, 1, 0 },
-	sub = { 0, 0, 1 },
-	start = { 1, 1, 1, 1 },
-}
-
-local mapChannels = {
-	veh = { 4 },
-	bot = { 4 },
-	hov = { 4 },
-	sub = { 5 },
-	amp = { 5 },
-	shp = { 5 },
-	start = { 4, 5 },
-}
 
 -- mobTypes = {}
 local mobUnitTypes = {}
@@ -65,7 +44,7 @@ function MapHST:basicMapInfo()
 	MapHST.mapSize = self.map:MapDimensions()
 	MapHST.elmoMapSizeX = MapHST.mapSize.x * 8
 	MapHST.elmoMapSizeZ = MapHST.mapSize.z * 8
-	MapHST.mobilityGridSize = math.max( math.floor(math.max(MapHST.mapSize.x * 8, MapHST.mapSize.z * 8) / 128),32)-- don't make grids smaller than 32
+	MapHST.mobilityGridSize = 256 --math.max( math.floor(math.max(MapHST.mapSize.x * 8, MapHST.mapSize.z * 8) / 128),32)-- don't make grids smaller than 32
 	MapHST.mobilityGridSizeHalf = MapHST.mobilityGridSize/ 2
 	MapHST.maxX = math.ceil((MapHST.mapSize.x * 8) / MapHST.mobilityGridSize)
 	MapHST.maxZ = math.ceil((MapHST.mapSize.z * 8) / MapHST.mobilityGridSize)
@@ -73,67 +52,33 @@ function MapHST:basicMapInfo()
 	--     self:EchoDebug("Map size in grids: x "..MapHST.maxX.." z "..MapHST.maxZ)
 end
 
-local function MapDataFilename()
-	local mapName = string.gsub(map:MapName(), "%W", "_")
-	return "cache/Shard-" .. self.game:GameName() .. "-" .. mapName .. ".lua"
-end
-
-local function EchoData(name, o)
-	savepositions = {}
-	mapdatafile:write(name)
-	mapdatafile:write(" = ")
-	self.ai.tool:serialize(o)
-	mapdatafile:write("\n\n")
-	if #savepositions > 0 then
-		for i, sp in pairs (savepositions) do
-			mapdatafile:write(name .. sp.keylist .. ".x = " .. sp.position.x .. "\n")
-			mapdatafile:write(name .. sp.keylist .. ".y = " .. sp.position.y .. "\n")
-			mapdatafile:write(name .. sp.keylist .. ".z = " .. sp.position.z .. "\n")
-		end
-		mapdatafile:write("\n\n")
-	end
-	self:EchoDebug("wrote " .. name)
-end
-
-local function AddColors(colorA, colorB)
-	local color = {}
-	for i = 1, 4 do
-		if colorA[i] or colorB[i] then
-			color[i] = (colorA[i] or 0) + (colorB[i] or 0)
-			color[i] = math.min(color[i], 1)
+function MapHST:SimplifyMetalSpots(metalSpots, number)
+	-- for maps that are all metal for example
+	-- pretend for the sake of calculations that there are only 100 metal spots
+-- 	local mapSize = self.map:MapDimensions()
+-- 	local maxX = mapSize.x * 8
+-- 	local maxZ = mapSize.z * 8
+	local divisor = math.ceil(math.sqrt(number))
+	local gridSize = self.mobilityGridSize --math.ceil( math.max(self.elmoMapSizeX, self.elmoMapSizeX) / divisor )
+	local halfGrid = self.mobilityGridSizeHalf --math.ceil( gridSize / 2 )
+	local spots = {}
+	local spotsCount = 0
+	for x = 0, self.elmoMapSizeX - gridSize, gridSize do
+		for z = 0, self.elmoMapSizeX - gridSize, gridSize do
+			for i = 1, #metalSpots do
+				local spot = metalSpots[i]
+				if spot.x > x and spot.x < x + gridSize and spot.z > z and spot.z < z + gridSize then
+					spotsCount = spotsCount + 1
+					spots[spotsCount] = spot
+					table.remove(metalSpots, i)
+					break
+				end
+			end
 		end
 	end
-	return color
+	return spots
 end
 
-local function GetColorFromLabel(label)
-	local color = mapColors[label] or { 1, 1, 1 }
-	color[4] = color[4] or 0.33
-	return color
-end
-
-local function GetChannelsFromLabel(label)
-	local channels = mapChannels[label] or {4}
-	return channels
-end
-
-function MapHST:PlotDebug(x, z, label, labelAdd)
-	if DebugDrawEnabled then
-		x = math.ceil(x)
-		z = math.ceil(z)
-		local pointString = x .. "  " .. z
-		if label == nil then label= "nil" end
-		local pos = api.Position()
-		pos.x, pos.z = x, z
-		local color = GetColorFromLabel(label)
-		local channels = GetChannelsFromLabel(label)
-		if labelAdd then label = label .. ' ' .. labelAdd end
-		for i = 1, #channels do
-			local channel = channels[i]
-			self.map:DrawPoint(pos, color, label, channel)
-		end
-	end
-end
 
 local function Check1Topology(x, z, mtype, network)
 	if mobMap[mtype][x] == nil then
@@ -894,86 +839,7 @@ function MapHST:factoriesRating()
 	return factoriesRanking, ranksByFactories
 end
 
-function MapHST:DebugDrawMobilities()
-	if not DebugDrawEnabled then
-		return
-	end
-	local size = mobilityGridSize
-	local halfSize = mobilityGridSize / 2
-	local squares = {}
-	for mtype, xx in pairs(topology) do
-		if mtype ~= 'air' then
-			for x, zz in pairs(xx) do
-				squares[x] = squares[x] or {}
-				for z, network in pairs(zz) do
-					squares[x][z] = squares[x][z] or {}
-					squares[x][z][#squares[x][z]+1] = {network=network, mtype=mtype}
-				end
-			end
-		end
-	end
-	for x, zz in pairs(squares) do
-		x = x * size
-		for z, square in pairs(zz) do
-			z = z * size
-			local colorA = {0, 0, 0}
-			local colorB = {0, 0, 0}
-			local channels = {}
-			for i = 1, #square do
-				local layer = square[i]
-				-- Spring.Echo(layer.mtype)
-				local channel = mapChannels[layer.mtype][1]
-				channels[channel] = true
-				if channel == 4 then
-					colorA = AddColors(colorA, mapColors[layer.mtype])
-				elseif channel == 5 then
-					colorB = AddColors(colorB, mapColors[layer.mtype])
-				end
-			end
-			local pos1 = api.Position()
-			local pos2 = api.Position()
-			pos1.x = x - size
-			pos1.z = z - size
-			pos2.x = x
-			pos2.z = z
-			-- Spring.Echo(x, z, colorA[1], colorA[2], colorA[3], colorA[4], channels[4])
-			colorA[4], colorB[4] = 0.33, 0.33
-			if channels[4] then
-				self.map:DrawRectangle(pos1, pos2, colorA, nil, true, 4)
-			end
-			if channels[5] then
-				self.map:DrawRectangle(pos1, pos2, colorB, nil, true, 5)
-			end
-		end
-	end
-end
 
-function MapHST:SimplifyMetalSpots(metalSpots, number)
-	-- for maps that are all metal for example
-	-- pretend for the sake of calculations that there are only 100 metal spots
-	local mapSize = self.map:MapDimensions()
-	local maxX = mapSize.x * 8
-	local maxZ = mapSize.z * 8
-	local divisor = math.ceil(math.sqrt(number))
-	local gridSize = math.ceil( math.max(maxX, maxZ) / divisor )
-	local halfGrid = math.ceil( gridSize / 2 )
-	local spots = {}
-	local spotsCount = 0
-	for x = 0, maxX-gridSize, gridSize do
-		for z = 0, maxZ-gridSize, gridSize do
-			for i = 1, #metalSpots do
-				local spot = metalSpots[i]
-				if spot.x > x and spot.x < x + gridSize and spot.z > z and spot.z < z + gridSize then
-					spotsCount = spotsCount + 1
-					spots[spotsCount] = spot
-					table.remove(metalSpots, i)
-					break
-				end
-			end
-		end
-	end
-	return spots
-end
 
 function MapHST:ClosestFreeSpot(unittype, builder, position)
 -- 	local kbytes, threshold = gcinfo()
@@ -1212,21 +1078,7 @@ function MapHST:UnitCanGetToUnit(unit1, unit2)
 	return self:UnitCanGoHere(unit1, position)
 end
 
--- function MapHST:UnitCanHurtVictim(unit, victim)
--- 	if unit:WeaponCount() == 0 then return false end
--- 	local vname = victim:Name()
--- 	local mtype = self.ai.armyhst.unitTable[vname].mtype
--- 	local name = unit:Name()
--- 	local canhurt = false
--- 	if self.ai.armyhst.unitTable[name].groundRange > 0 and mtype == "veh" or mtype == "bot" or mtype == "amp" or mtype == "hov" then
--- 		canhurt = "ground"
--- 	elseif self.ai.armyhst.unitTable[name].airRange > 0 and mtype == "air" then
--- 		canhurt = "air"
--- 	elseif self.ai.armyhst.unitTable[name].submergedRange > 0 and mtype == "shp" or mtype == "sub" or mtype == "amp" then
--- 		canhurt = "submerged"
--- 	end
--- 	return canhurt
--- end
+
 
 function MapHST:MobilityNetworkSizeHere(mtype, position)
 	if mtype == "air" then return mobilityGridArea end
@@ -1261,27 +1113,7 @@ function MapHST:IsUnderWater(position)
 	return Spring.GetGroundHeight(position.x, position.z) < 0
 end
 
-function MapHST:CheckDefenseLocalization(unitName, position)
-	local size = 0
-	if self.ai.armyhst.unitTable[unitName].groundRange > 0 then
-		local vehsize = self:MobilityNetworkSizeHere("veh", position)
-		local botsize = self:MobilityNetworkSizeHere("bot", position)
-		size = math.max(vehsize, botsize)
-	elseif self.ai.armyhst.unitTable[unitName].airRange > 0 then
-		return true
-	elseif  self.ai.armyhst.unitTable[unitName].submergedRange > 0 then
-		size = self:MobilityNetworkSizeHere("sub", position)
-	else
-		return true
-	end
-	local minimumSize = mobilityGridArea / 4
-	self:EchoDebug("network size here: " .. size .. ", minimum: " .. minimumSize)
-	if size < minimumSize then
-		return false
-	else
-		return true
-	end
-end
+
 
 function MapHST:GetPathGraph(mtype, targetNodeSize)
 	targetNodeSize = targetNodeSize or 256
@@ -1354,4 +1186,184 @@ function MapHST:GetPathGraph(mtype, targetNodeSize)
 	pathGraphs[mtype] = pathGraphs[mtype] or {}
 	pathGraphs[mtype][cellsPerNodeSide] = aGraph
 	return aGraph
+end
+
+--[[
+local DebugDrawEnabled = false
+
+local mapColors = {
+	veh = { 1, 0, 0 },
+	bot = { 0, 1, 0 },
+	hov = { 0, 0, 1 },
+	shp = { 1, 0, 0 },
+	amp = { 0, 1, 0 },
+	sub = { 0, 0, 1 },
+	start = { 1, 1, 1, 1 },
+}
+
+local mapChannels = {
+	veh = { 4 },
+	bot = { 4 },
+	hov = { 4 },
+	sub = { 5 },
+	amp = { 5 },
+	shp = { 5 },
+	start = { 4, 5 },
+}
+
+
+
+local function MapDataFilename()
+	local mapName = string.gsub(map:MapName(), "%W", "_")
+	return "cache/Shard-" .. self.game:GameName() .. "-" .. mapName .. ".lua"
+end
+
+local function EchoData(name, o)
+	savepositions = {}
+	mapdatafile:write(name)
+	mapdatafile:write(" = ")
+	self.ai.tool:serialize(o)
+	mapdatafile:write("\n\n")
+	if #savepositions > 0 then
+		for i, sp in pairs (savepositions) do
+			mapdatafile:write(name .. sp.keylist .. ".x = " .. sp.position.x .. "\n")
+			mapdatafile:write(name .. sp.keylist .. ".y = " .. sp.position.y .. "\n")
+			mapdatafile:write(name .. sp.keylist .. ".z = " .. sp.position.z .. "\n")
+		end
+		mapdatafile:write("\n\n")
+	end
+	self:EchoDebug("wrote " .. name)
+end
+
+local function AddColors(colorA, colorB)
+	local color = {}
+	for i = 1, 4 do
+		if colorA[i] or colorB[i] then
+			color[i] = (colorA[i] or 0) + (colorB[i] or 0)
+			color[i] = math.min(color[i], 1)
+		end
+	end
+	return color
+end
+
+local function GetColorFromLabel(label)
+	local color = mapColors[label] or { 1, 1, 1 }
+	color[4] = color[4] or 0.33
+	return color
+end
+
+local function GetChannelsFromLabel(label)
+	local channels = mapChannels[label] or {4}
+	return channels
+end
+
+function MapHST:PlotDebug(x, z, label, labelAdd)
+	if DebugDrawEnabled then
+		x = math.ceil(x)
+		z = math.ceil(z)
+		local pointString = x .. "  " .. z
+		if label == nil then label= "nil" end
+		local pos = api.Position()
+		pos.x, pos.z = x, z
+		local color = GetColorFromLabel(label)
+		local channels = GetChannelsFromLabel(label)
+		if labelAdd then label = label .. ' ' .. labelAdd end
+		for i = 1, #channels do
+			local channel = channels[i]
+			self.map:DrawPoint(pos, color, label, channel)
+		end
+	end
+end
+
+function MapHST:DebugDrawMobilities()
+	if not DebugDrawEnabled then
+		return
+	end
+	local size = mobilityGridSize
+	local halfSize = mobilityGridSize / 2
+	local squares = {}
+	for mtype, xx in pairs(topology) do
+		if mtype ~= 'air' then
+			for x, zz in pairs(xx) do
+				squares[x] = squares[x] or {}
+				for z, network in pairs(zz) do
+					squares[x][z] = squares[x][z] or {}
+					squares[x][z][#squares[x][z]+1] = {network=network, mtype=mtype}
+				end
+			end
+		end
+	end
+	for x, zz in pairs(squares) do
+		x = x * size
+		for z, square in pairs(zz) do
+			z = z * size
+			local colorA = {0, 0, 0}
+			local colorB = {0, 0, 0}
+			local channels = {}
+			for i = 1, #square do
+				local layer = square[i]
+				-- Spring.Echo(layer.mtype)
+				local channel = mapChannels[layer.mtype][1]
+				channels[channel] = true
+				if channel == 4 then
+					colorA = AddColors(colorA, mapColors[layer.mtype])
+				elseif channel == 5 then
+					colorB = AddColors(colorB, mapColors[layer.mtype])
+				end
+			end
+			local pos1 = api.Position()
+			local pos2 = api.Position()
+			pos1.x = x - size
+			pos1.z = z - size
+			pos2.x = x
+			pos2.z = z
+			-- Spring.Echo(x, z, colorA[1], colorA[2], colorA[3], colorA[4], channels[4])
+			colorA[4], colorB[4] = 0.33, 0.33
+			if channels[4] then
+				self.map:DrawRectangle(pos1, pos2, colorA, nil, true, 4)
+			end
+			if channels[5] then
+				self.map:DrawRectangle(pos1, pos2, colorB, nil, true, 5)
+			end
+		end
+	end
+end
+
+
+-- function MapHST:UnitCanHurtVictim(unit, victim)
+-- 	if unit:WeaponCount() == 0 then return false end
+-- 	local vname = victim:Name()
+-- 	local mtype = self.ai.armyhst.unitTable[vname].mtype
+-- 	local name = unit:Name()
+-- 	local canhurt = false
+-- 	if self.ai.armyhst.unitTable[name].groundRange > 0 and mtype == "veh" or mtype == "bot" or mtype == "amp" or mtype == "hov" then
+-- 		canhurt = "ground"
+-- 	elseif self.ai.armyhst.unitTable[name].airRange > 0 and mtype == "air" then
+-- 		canhurt = "air"
+-- 	elseif self.ai.armyhst.unitTable[name].submergedRange > 0 and mtype == "shp" or mtype == "sub" or mtype == "amp" then
+-- 		canhurt = "submerged"
+-- 	end
+-- 	return canhurt
+-- end
+
+function MapHST:CheckDefenseLocalization(unitName, position)
+	local size = 0
+	if self.ai.armyhst.unitTable[unitName].groundRange > 0 then
+		local vehsize = self:MobilityNetworkSizeHere("veh", position)
+		local botsize = self:MobilityNetworkSizeHere("bot", position)
+		size = math.max(vehsize, botsize)
+	elseif self.ai.armyhst.unitTable[unitName].airRange > 0 then
+		return true
+	elseif  self.ai.armyhst.unitTable[unitName].submergedRange > 0 then
+		size = self:MobilityNetworkSizeHere("sub", position)
+	else
+		return true
+	end
+	local minimumSize = mobilityGridArea / 4
+	self:EchoDebug("network size here: " .. size .. ", minimum: " .. minimumSize)
+	if size < minimumSize then
+		return false
+	else
+		return true
+	end
 end

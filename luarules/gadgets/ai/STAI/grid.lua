@@ -14,9 +14,7 @@ function GridHST:Init()
 	self.Measure = 256
 	self.HalfMeasure = self.Measure / 2
 	self.GRID = {}
-	self.ENEMY = {}
-	self.OWN = {}
-	self.ALLY = {}
+
 	self:createGridCell()
 end
 
