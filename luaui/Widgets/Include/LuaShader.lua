@@ -210,7 +210,39 @@ vec3 rgb2hsv(vec3 c){
 
 ]]
 
-    return eubs
+
+	local waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB = gl.GetWaterRendering("absorb")
+	local waterMinColorR, waterMinColorG, waterMinColorB = gl.GetWaterRendering("minColor")
+	local waterBaseColorR, waterBaseColorG, waterBaseColorB = gl.GetWaterRendering("baseColor")
+	
+	--Spring.Echo(waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB)
+	--Spring.Debug.TableEcho(waterAbsorbColor)
+	local waterUniforms = 
+[[ 
+#define WATERABSORBCOLOR vec3(%f,%f,%f)
+#define WATERMINCOLOR vec3(%f,%f,%f)
+#define WATERBASECOLOR vec3(%f,%f,%f)
+#define SMF_SHALLOW_WATER_DEPTH_INV 0.1
+
+// vertex below shallow water depth --> alpha=1
+// vertex above shallow water depth --> alpha=waterShadeAlpha
+vec4 waterBlend(float fragmentheight){
+	if (fragmentheight>=0) return vec4(0.0);
+	vec4 waterBlendResult = vec4(1.0, 1.0, 1.0, 0.0);
+	waterBlendResult.rgb = WATERBASECOLOR.rgb;
+	waterBlendResult.rgb -= WATERABSORBCOLOR * clamp( -fragmentheight, 0, 1023);
+	waterBlendResult.rgb = max(waterBlendResult.rgb, WATERMINCOLOR);
+	waterBlendResult.a = clamp(-fragmentheight * SMF_SHALLOW_WATER_DEPTH_INV, 0.0, 1.0);
+	return waterBlendResult;
+}
+]]
+	waterUniforms = string.format(waterUniforms, 
+		waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB,
+		waterMinColorR, waterMinColorG, waterMinColorB, 
+		waterBaseColorR, waterBaseColorG, waterBaseColorB
+	)
+
+    return eubs .. waterUniforms
 end
 
 local function CreateShaderDefinesString(args) -- Args is a table of stuff that are the shader parameters
