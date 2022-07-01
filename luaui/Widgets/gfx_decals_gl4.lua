@@ -299,7 +299,7 @@ local decalIndex = 0
 local decalTimes = {} -- maps instanceID to expected fadeout timeInfo
 local decalRemoveQueue = {} -- maps gameframes to list of decals that will be removed
 
-local function AddDecal(decaltexturename, posx, posz, rotation, width, length, heatstart, heatdecay, alphastart, alphadecay, maxalpha)
+local function AddDecal(decaltexturename, posx, posz, rotation, width, length, heatstart, heatdecay, alphastart, alphadecay, maxalpha, spawnframe)
 	-- Documentation
 	-- decaltexturename, full path to the decal texture name, it must have been added to the atlasses, e.g. 'bitmaps/scars/scar1.bmp'
 	-- posx, posz, world pos to place center of decal
@@ -311,7 +311,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 	-- alphadecay: How much alpha is reduced each frame, when alphastart/alphadecay goes below 0, the decal will get automatically removed.
 	-- maxalpha: The highest amount of transparency this decal can have
 	
-	local gf = Spring.GetGameFrame()
+	spawnframe = spawnframe or Spring.GetGameFrame()
 	--Spring.Echo(decaltexturename, atlassedImages[decaltexturename], atlasColorAlpha)
 	local p,q,s,t = gl.GetAtlasTexture(atlasColorAlpha, decaltexturename)
 	--Spring.Echo(gl.GetAtlasTexture(atlasColorAlpha, decaltexturename))
@@ -319,7 +319,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 	--	rotation = 0
 	local posy = Spring.GetGroundHeight(posx, posz)
 	--Spring.Echo (unitDefID,decalInfo.texfile, width, length, alpha)
-	local lifetime = alphastart/alphadecay
+	local lifetime = math.floor(alphastart/alphadecay)
 	decalIndex = decalIndex + 1
 	local targetVBO = decalVBO
 	
@@ -334,11 +334,11 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 			{length, width, rotation, maxalpha ,  -- lengthwidthrotation maxalpha
 			p,q,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
 			alphastart, alphadecay, heatstart, heatdecay, -- alphastart_alphadecay_heatstart_heatdecay
-			posx, posy, posz, 1.0 },
+			posx, posy, posz, spawnframe },
 		decalIndex, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		false) -- noupload, dont use unless you know what you want to batch push/pop
-	local deathtime = gf + lifetime
+	local deathtime = spawnframe + lifetime
 	decalTimes[decalIndex] = deathtime
 	if decalRemoveQueue[deathtime] == nil then 
 		decalRemoveQueue[deathtime] = {decalIndex}
@@ -430,8 +430,8 @@ function widget:Initialize()
 	math.randomseed(1)
 	if true then 
 		for i= 1, 100 do 
-			local w = math.random() * 256 + 16
-			w = w * 16
+			local w = math.random() * 32 + 2
+			w = w * w
 			local j = math.floor(math.random()*10 + 1)
 			local idx = string.format("luaui/images/decals_gl4/groundScars/t_groundcrack_%02d_a.png", j)
 			--Spring.Echo(idx)
@@ -443,9 +443,9 @@ function widget:Initialize()
 					w, --height 
 					math.random() * 10000, -- heatstart
 					math.random() * 100, -- heatdecay
-					math.random() * 1.0, -- alphastart
+					math.random() * 1.0 + 1.0, -- alphastart
 					math.random() * 0.01, -- alphadecay
-					math.random() * 1.0 -- maxalpha
+					math.random() * 0.3 + 0.7 -- maxalpha
 					)
 		end
 	end

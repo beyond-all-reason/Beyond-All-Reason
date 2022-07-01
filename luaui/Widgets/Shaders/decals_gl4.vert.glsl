@@ -58,6 +58,17 @@ void main()
 		//v_skipdraw = 1u;
 		//v_parameters.x = 1.0;
 	}
+	
+	float currentFrame = timeInfo.x + timeInfo.w;
+	float lifetonow = (timeInfo.x + timeInfo.w) - worldPos.w;
+	float alphastart = alphastart_alphadecay_heatstart_heatdecay.x;
+	float alphadecay = alphastart_alphadecay_heatstart_heatdecay.y;
+	// fade in the decal over 200 ms?
+	
+	float currentAlpha = min(1.0, lifetonow*0.05)  * alphastart - lifetonow* alphadecay;
+	currentAlpha = min(currentAlpha, lengthwidthrotation.w);
+	v_lengthwidthrotation.w = currentAlpha;
+
 
 	vec3 toCamera = cameraViewInv[3].xyz - v_centerpos.xyz;
 	if (dot(toCamera, toCamera) >  fadeDistance * fadeDistance) v_skipdraw = 1u;
