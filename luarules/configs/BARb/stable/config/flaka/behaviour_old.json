@@ -21,8 +21,7 @@
 			"all": 0.5,  // threat map 64-elmos slack multiplier for all units
 			"static": 1.0,  // additional 64-elmo-cells for static units
 			"speed": [0.75, 4.0]  // [<64elmo_cells_speed_mod>, <max_64elmo_cells>]
-		},
-		"num_batch": 4
+		}
 	},
 
     // If unit's health drops below specified percent it will retreat
@@ -73,7 +72,7 @@
 			"build_speed": 5.0,
 			"threat": {
            	 	"air": 0.3,  
-          	 	"surf": 1.0,  
+          	 	 "surf": 1.0,  
            	 	"water": 0.1,  
             	"default": 1.0,
             	"vs": {"artillery": 0.5, "assault": 0.8}
@@ -358,7 +357,7 @@
 		},
 		"armtl": {
 			"role": ["static"],
-			"threat": {"air":0.0, "surf":1.0, "water":1.0, "vs": {"comm": 10}}  //problem with surf units staying on surf here (as for all other torpedo launchers) cause they cant be hit by them  
+			"threat": {"air":0.0, "surf":1.0, "water":1.0}  //problem with surf units staying on surf here (as for all other torpedo launchers) cause they cant be hit by them  
 		},
 		"armatl": {
 			"role": ["static"],
@@ -462,7 +461,7 @@
 		},
 		"cortl": {
 			"role": ["static"],
-			"threat": {"air": 0.0, "water": 1.0,"surf": 2.0, "vs": {"comm": 10}}
+			"threat": {"air": 0.0, "water": 1.0,"surf": 2.0}
 		},
 		"coratl": {
 			"role": ["static"],
@@ -908,14 +907,12 @@
 			"role": ["super"],
 			"attribute": ["melee"],
 			"threat": {"air": 0.0, "water": 0.0, "surf":1.0},
-            "power": 1.5,
-            "retreat": 0.1
+            "power": 1.5
 		},
 		"armthor":{
 			"role":["super"],
 			"threat": {"air": 0.0, "water": 0.0, "surf":1.0},
-			"power": 0.1, //cause of its paralyzer weaponry
-            "retreat": 0.2
+			"power": 0.1 //cause of its paralyzer weaponry
 		},
 
 
@@ -1363,13 +1360,11 @@
 		"corkorg": {
 			"role": ["super"],
 			"attribute": ["melee"],
-            "power": 1.5,
-			"retreat": 0.00
+            "power": 1.5
 		},
 		"corjugg": {
 			"role": ["super"],
-            "power": 1.5,
-			"retreat": 0.00
+            "power": 1.5
 		},
 	
 		// vehicles - corvp
