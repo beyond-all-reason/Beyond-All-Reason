@@ -616,7 +616,7 @@ local function adjustUnitGrass(unitID, multiplier)
 	end
 end
 
-local function clearMetalspotGrass()
+local function clearAllUnitGrass()
 	local allUnits = Spring.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
@@ -627,14 +627,27 @@ local function clearMetalspotGrass()
 	end
 end
 
--- because not all maps have done this for us
-local function clearAllUnitGrass()
+local function clearGeothermalGrass()
 	if WG['resource_spot_finder'] then
-		local mSpots = WG['resource_spot_finder'].metalSpotsList
-		if mSpots then
+		local spots = WG['resource_spot_finder'].geoSpotsList
+		if spots then
 			local maxValue = 15
-			for i = 1, #mSpots do
-				local spot = mSpots[i]
+			for i = 1, #spots do
+				local spot = spots[i]
+				adjustGrass(spot.x, spot.z, math.max(96, math.max((spot.maxZ-spot.minZ), (spot.maxX-spot.minX))*1.2), 1)
+			end
+		end
+	end
+end
+
+-- because not all maps have done this for us
+local function clearMetalspotGrass()
+	if WG['resource_spot_finder'] then
+		local spots = WG['resource_spot_finder'].metalSpotsList
+		if spots then
+			local maxValue = 15
+			for i = 1, #spots do
+				local spot = spots[i]
 				local value = string.format("%0.1f",math.round(spot.worth/1000,1))
 				if tonumber(value) > 0.001 and tonumber(value) < maxValue then
 					adjustGrass(spot.x, spot.z, math.max((spot.maxZ-spot.minZ), (spot.maxX-spot.minX))*1.2, 1)
@@ -687,7 +700,13 @@ function widget:MousePress(x,y,button)
 	end
 end
 
-function widget:Update()
+local firstUpdate = true
+function widget:Update(dt)
+	if firstUpdate then
+		firstUpdate = false
+		clearGeothermalGrass()	-- uses Spring.GetAllFeatures() which is empty at the time of widget:Initialize
+	end
+
 	if not placementMode then return end
 	local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState ( )
 	local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState ( )
