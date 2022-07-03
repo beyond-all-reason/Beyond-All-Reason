@@ -57,6 +57,10 @@ uniform float pointbeamcone = 0;// = 0; // 0 = point, 1 = beam, 2 = cone
 
 uniform float attachedtounitID = 0;
 
+uniform float windX = 0;
+uniform float windZ = 0;
+
+
 out DataVS {
 	flat vec4 v_worldPosRad;
 	flat vec4 v_worldPosRad2;
@@ -64,12 +68,15 @@ out DataVS {
 	flat vec4 v_modelfactor_specular_scattering_lensflare;
 	vec4 v_depths_center_map_model_min;
 	vec4 v_otherparams; // this could be anything 
+	vec4 v_lightcenter_gradient_height;
 	vec4 v_position;
-	vec4 v_debug;
+	vec4 v_noiseoffset;
 };
 
 uniform sampler2D mapDepths;
 uniform sampler2D modelDepths;
+uniform sampler2D heightmapTex;
+uniform sampler2D mapnormalsTex;
 
 vec4 depthAtWorldPos(vec4 worldPosition){ 
 	// takes a point, transforms it to worldspace, and checks for occlusion against map, model buffer, and returns all the depths
@@ -116,6 +123,11 @@ void main()
 			mat4 pieceMatrix = mat[instData.x + pieceIndex];
 			placeInWorldMatrix = placeInWorldMatrix * pieceMatrix;
 		}
+		//uint drawFlags = (instData.z & 0x0000100u);// >> 8 ; // hopefully this works
+		//if (drawFlags == 0u)  placeInWorldMatrix = mat4(0.0); // disable if drawflag is set to 0
+		// disable if drawflag is set to 0, note that we are exploiting the fact that these should be drawn even if unit is transparent, or if unit only has its shadows drawn. 
+		// This is good because the tolerance for distant shadows is much greater
+		if ((uni[instData.y].composite & 0x00001fu) == 0u )  placeInWorldMatrix = mat4(0.0); 
 
 		uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
 		vec4 teamCol = teamColor[teamIndex];
@@ -128,7 +140,6 @@ void main()
 	v_modelfactor_specular_scattering_lensflare = modelfactor_specular_scattering_lensflare;
 	v_depths_center_map_model_min = vec4(1.0); // just a sanity init
 	v_otherparams = otherparams;
-	v_debug = vec4(0.0);
 	
 	vec4 worldPos = vec4(1.0);
 	if (pointbeamcone < 0.5){ // point
@@ -228,6 +239,20 @@ void main()
 		
 		v_position =  worldPos;
 	}
+	
+	// Get the heightmap and the normal map at the center position of the light in v_worldPosRad.xyz
+	
+	vec2 uvhm = heighmapUVatWorldPos(v_worldPosRad.xz);
+	v_lightcenter_gradient_height.w = textureLod(heightmapTex, uvhm, 0.0).x;
+	
+	vec4 mapnormals = textureLod(mapnormalsTex, uvhm, 0.0);
+	mapnormals.g = sqrt( 1.0 - mapnormals.r * mapnormals.r - mapnormals.a * mapnormals.a);
+	v_lightcenter_gradient_height.xyz = mapnormals.rga;
+	
+	//	vec4 windInfo; // windx, windy, windz, windStrength
+	v_noiseoffset = vec4(windX, 0, windZ,0) * (-0.02);
+	
+	//v_noiseoffset.y = windX + windZ;
 	
 	gl_Position = cameraViewProj * v_position;
 	

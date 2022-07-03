@@ -16,8 +16,9 @@ in DataVS {
 	flat vec4 v_modelfactor_specular_scattering_lensflare;
 	vec4 v_depths_center_map_model_min;
 	vec4 v_otherparams;
+	vec4 v_lightcenter_gradient_height;
 	vec4 v_position;
-	vec4 v_debug;
+	vec4 v_noiseoffset;
 };
 
 uniform sampler2D mapDepths;
@@ -475,7 +476,7 @@ vec4 halfconeIntersectScatter( in vec3  rayOrigin, in vec3 rayDirection, in vec3
 
 		// Sample 3D noise if needed (noise should be 0.5 centered)
 		#if (USE3DNOISE == 1 && RAYMARCHSTEPS >= 4)
-			float noise = textureLod(noise3DCube, fract(marchPos * 0.01 + 0 / RAYMARCHSTEPS), 0.0).r * 2.0 ;
+			float noise = textureLod(noise3DCube, fract(marchPos * 0.005 + 0 / RAYMARCHSTEPS + v_noiseoffset.xyz), 0.0	).r * 2.0 ;
 		#else
 			float noise = 1.0;
 		#endif
@@ -543,7 +544,7 @@ float SlowSphereRayMarchedScattering(vec3 campos, vec3 viewdirection, vec3 light
 		vec3 stepVec =  (-viewdirection) * ( closeandfardistance.y  -  closeandfardistance.x) / RAYMARCHSTEPS;
 		for (int i = 1; i < RAYMARCHSTEPS; i++){
 			vec3 marchPos = stepVec * i + EntryPoint;
-			noise += textureLod(noise3DCube, fract(marchPos * 0.005 + i / RAYMARCHSTEPS), 0.0).r * 2.0 ;
+			noise += textureLod(noise3DCube, fract(marchPos * 0.005 + i / RAYMARCHSTEPS + v_noiseoffset.xyz), 0.0).r * 2.0 ;
 		}
 		noise = noise / (RAYMARCHSTEPS -1);
 	#endif
@@ -764,7 +765,7 @@ void main(void)
 
 			// Sample 3D noise if needed (noise should be 0.5 centered)
 			#if (USE3DNOISE == 1 && RAYMARCHSTEPS >= 4)
-				float noise = textureLod(noise3DCube, fract(marchPos * 0.005 + i / RAYMARCHSTEPS), 0.0).r * 2.0 ;
+				float noise = textureLod(noise3DCube, fract(marchPos * 0.005 + i / RAYMARCHSTEPS + v_noiseoffset.xyz), 0.0).r * 2.0 ;
 			#else
 				float noise = 1.0;
 			#endif
@@ -839,4 +840,6 @@ void main(void)
 	//fragColor.rgb = vec3((worlddepth - v_depths_center_map_model_min.z)* 100 + 0.5);
 	//fragColor.rgb = (fract(lightEmitPosition*0.02));
 	fragColor.a = 1.0;
+	
+	//fragColor.rgb = fract(v_lightcenter_gradient_height.www*0.1);
 }

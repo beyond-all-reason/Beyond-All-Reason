@@ -256,13 +256,16 @@ local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, d
 					mapDiffuse = 6,
 					modelDiffuse = 7,
 					noise3DCube = 8,
+					heightmapTex = 9,
+					mapnormalsTex = 10,
 					},
 				uniformFloat = {
 					pointbeamcone = 0,
 					fadeDistance = 3000,
 					attachedtounitID = 0,
 					nightFactor = 1.0,
-					
+					windX = 0.0,
+					windZ = 0.0, 
 				  },
 				},
 				shadername
@@ -309,12 +312,12 @@ local function initGL4()
 			{id = 9, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 	}
 
-	local pointVBO, numPointVertices, pointIndexVBO, numIndices = makeSphereVBO(8, 8, 1) 
+	local pointVBO, numPointVertices, pointIndexVBO, numIndices = makeSphereVBO(8, 4, 1) 
 	pointLightVBO 		= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Point Light VBO")
 	unitPointLightVBO 	= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Unit Point Light VBO", 9)
 	featurePointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Feature Point Light VBO", 9)
 	
-	local coneVBO, numConeVertices = makeConeVBO(16, 1, 1)
+	local coneVBO, numConeVertices = makeConeVBO(12, 1, 1)
 	coneLightVBO 		= createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Cone Light VBO")
 	unitConeLightVBO 	= createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Unit Cone Light VBO", 9)
 	featureConeLightVBO = createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Feature Cone Light VBO", 9)
@@ -1317,7 +1320,7 @@ function widget:Initialize()
 	end 
 	
 	math.randomseed(1)
-	for i=1, 1 do AddRandomLight(	math.random()) end   
+	for i=1, 50 do AddRandomLight(	math.random()) end   
 	
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
@@ -1473,7 +1476,21 @@ local beamLights = {}
 local beamLightCount = 0
 local pointLights = {}
 local pointLightCount = 0
+
+
+local windX = 0
+local windZ = 0
+function widget:GameFrame()
+	local windDirX, _, windDirZ, windStrength = Spring.GetWind()
+	windStrength = math.min(20, math.max(3, windStrength))	
+	--Spring.Echo(windDirX,windDirZ,windStrength)
+	windX = windX + windDirX * windStrength * 0.001
+	windZ = windZ + windDirZ * windStrength * 0.001
+end
+
 function widget:Update()
+	
+
 	--[[
 	beamLights = {}
 	beamLightCount = 0
@@ -1516,9 +1533,12 @@ end
 	]]--
 --end
 
+
 function widget:DrawWorld() -- We are drawing in world space, probably a bad idea but hey
 	--glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
 	deferredLightShader = checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4") or deferredLightShader
+	
+	
 	if pointLightVBO.usedElements > 0 or 
 		unitPointLightVBO.usedElements > 0 or 
 		beamLightVBO.usedElements > 0 or 
@@ -1554,13 +1574,17 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		glTexture(5, "$model_gbuffer_spectex")
 		glTexture(6, "$map_gbuffer_difftex")
 		glTexture(7, "$model_gbuffer_difftex")
-		glTexture(8, noisetex3dcube)
+		glTexture(9, "$heightmap")
+		glTexture(10,"$normals")
 
 		--Spring.Echo(screenCopyTex)
 		
 		deferredLightShader:Activate()
 		deferredLightShader:SetUniformFloat("nightFactor", nightFactor)
 		deferredLightShader:SetUniformFloat("attachedtounitID", 0)
+		deferredLightShader:SetUniformFloat("windX", windX)
+		deferredLightShader:SetUniformFloat("windZ", windZ)
+		--Spring.Echo(windX, windZ)
 		
 		-- Fixed worldpos lights
 		if pointLightVBO.usedElements > 0 then
@@ -1599,7 +1623,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		
 		deferredLightShader:Deactivate()
 		
-		for i = 0, 8 do glTexture(i, false) end 
+		for i = 0, 10 do glTexture(i, false) end 
 		gl.Culling(GL.BACK)
 		gl.DepthTest(true)
 		gl.DepthMask(true)
