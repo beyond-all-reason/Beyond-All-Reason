@@ -14,8 +14,9 @@ layout (location = 4) in vec4 worldposrad2;
 layout (location = 5) in vec4 lightcolor; 
 layout (location = 6) in vec4 modelfactor_specular_scattering_lensflare; // 
 layout (location = 7) in vec4 otherparams; // 
-layout (location = 8) in uint pieceIndex; // for piece type lights
-layout (location = 9) in uvec4 instData; // matoffset, uniformoffset, teamIndex, drawFlags {id = 5, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
+layout (location = 8) in vec4 color2; // 
+layout (location = 9) in uint pieceIndex; // for piece type lights
+layout (location = 10) in uvec4 instData; // matoffset, uniformoffset, teamIndex, drawFlags {id = 5, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 
 			
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -251,7 +252,7 @@ void main()
 	
 	//	vec4 windInfo; // windx, windy, windz, windStrength
 	v_noiseoffset = vec4(windX, 0, windZ,0) * (-0.02);
-	
+	//v_noiseoffset = vec4(0.0);
 	//v_noiseoffset.y = windX + windZ;
 	
 	gl_Position = cameraViewProj * v_position;

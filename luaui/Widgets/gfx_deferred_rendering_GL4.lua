@@ -261,7 +261,7 @@ local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, d
 					},
 				uniformFloat = {
 					pointbeamcone = 0,
-					fadeDistance = 3000,
+					--fadeDistance = 3000,
 					attachedtounitID = 0,
 					nightFactor = 1.0,
 					windX = 0.0,
@@ -308,23 +308,25 @@ local function initGL4()
 				-- this is light color rgba for all
 			{id = 6, name = 'modelfactor_specular_scattering_lensflare', size = 4},
 			{id = 7, name = 'otherparams', size = 4},
-			{id = 8, name = 'pieceIndex', size = 1, type = GL.UNSIGNED_INT},
-			{id = 9, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
+				-- Otherparams must be spawnframe, dieframe
+			{id = 8, name = 'color2', size = 4},
+			{id = 9, name = 'pieceIndex', size = 1, type = GL.UNSIGNED_INT},
+			{id = 10, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 	}
 
 	local pointVBO, numPointVertices, pointIndexVBO, numIndices = makeSphereVBO(8, 4, 1) 
 	pointLightVBO 		= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Point Light VBO")
-	unitPointLightVBO 	= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Unit Point Light VBO", 9)
-	featurePointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Feature Point Light VBO", 9)
+	unitPointLightVBO 	= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Unit Point Light VBO", 10)
+	featurePointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Feature Point Light VBO", 10)
 	
 	local coneVBO, numConeVertices = makeConeVBO(12, 1, 1)
 	coneLightVBO 		= createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Cone Light VBO")
-	unitConeLightVBO 	= createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Unit Cone Light VBO", 9)
-	featureConeLightVBO = createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Feature Cone Light VBO", 9)
+	unitConeLightVBO 	= createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Unit Cone Light VBO", 10)
+	featureConeLightVBO = createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Feature Cone Light VBO", 10)
 	
 	local beamVBO, numBeamVertices = makeBoxVBO(-1, -1, -1, 1, 1, 1)
 	beamLightVBO 		= createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Beam Light VBO")
-	unitBeamLightVBO 	= createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Unit Beam Light VBO", 9)
+	unitBeamLightVBO 	= createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Unit Beam Light VBO", 10)
 	
 	deferredLightShader =  checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4")
 	if not deferredLightShader then goodbye("Failed to compile Deferred Lights GL4 shader") end 
@@ -347,7 +349,8 @@ local function DeferredLighting_UnRegisterFunction(functionID)
 end
 ]]--
 local lightCacheTable = {}
-for i = 1, 25 do lightCacheTable[i] = 0 end 
+for i = 1, 29 do lightCacheTable[i] = 0 end 
+local pieceIndexPos = 25
 lightCacheTable[13] = 1 --modelfactor_specular_scattering_lensflare
 lightCacheTable[14] = 1
 lightCacheTable[15] = 1
@@ -373,9 +376,9 @@ local function AddUnitPointLight(unitID, pieceIndex, instanceID, px,py,pz,radius
 	lightCacheTable[12] = a
 	
 	
-	lightCacheTable[21] = pieceIndex
+	lightCacheTable[pieceIndexPos] = pieceIndex
 	instanceID =  pushElementInstance(unitPointLightVBO, lightCacheTable, instanceID, true, nil, unitID)
-	lightCacheTable[21] = 0
+	lightCacheTable[pieceIndexPos] = 0
 	return instanceID
 end
 
@@ -418,9 +421,9 @@ local function AddUnitBeamLight(unitID, pieceIndex, instanceID, px,py,pz,radius,
 	lightCacheTable[10] = g
 	lightCacheTable[11] = b
 	lightCacheTable[12] = a
-	lightCacheTable[21] = pieceIndex
+	lightCacheTable[pieceIndexPos] = pieceIndex
 	instanceID = pushElementInstance(unitBeamLightVBO, lightCacheTable, instanceID, true, nil, unitID)
-	lightCacheTable[21] = 0
+	lightCacheTable[pieceIndexPos] = 0
 	return instanceID
 end
 
@@ -454,9 +457,9 @@ local function AddUnitConeLight(unitID, pieceIndex, instanceID, px,py,pz,height,
 	lightCacheTable[10] = g
 	lightCacheTable[11] = b
 	lightCacheTable[12] = a
-	lightCacheTable[21] = pieceIndex
+	lightCacheTable[pieceIndexPos] = pieceIndex
 	instanceID =  pushElementInstance(unitConeLightVBO, lightCacheTable, instanceID, true, nil, unitID)
-	lightCacheTable[21] = 0
+	lightCacheTable[pieceIndexPos] = 0
 	return instanceID
 end
 
@@ -499,6 +502,7 @@ local unitDefLights = {
 								1,1,0.9,0.6, -- RGBA
 								0.1,1,1.5,0.6, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -520,6 +524,7 @@ local unitDefLights = {
 		-- 						1,1,1,0, -- RGBA
 		-- 						1,1,1,1, -- modelfactor_specular_scattering_lensflare
 		-- 						0,0,0,0, -- otherparams
+		--						0,0,0,0, -- color2
 		-- 						0, -- pieceIndex
 		-- 						0,0,0,0 -- instData always 0!
 		-- 						},
@@ -541,6 +546,7 @@ local unitDefLights = {
 		-- 						1,1,1,1, -- RGBA
 		-- 						1,1,1,1, -- modelfactor_specular_scattering_lensflare
 		-- 						0,0,0,0, -- otherparams
+		--						0,0,0,0, -- color2
 		-- 						0, -- pieceIndex
 		-- 						0,0,0,0 -- instData always 0!
 		-- 						},
@@ -565,6 +571,7 @@ local unitDefLights = {
 		-- 						0.5,3,0.5,1, -- RGBA
 		-- 						0.5,1,2,0, -- modelfactor_specular_scattering_lensflare
 		-- 						0,0,0,0, -- otherparams
+		--						0,0,0,0, -- color2
 		-- 						0, -- pieceIndex
 		-- 						0,0,0,0 -- instData always 0!
 		-- 						},
@@ -586,6 +593,7 @@ local unitDefLights = {
 								0,1,0,0.6, -- RGBA
 								0.8,0.9,1.0,10, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -610,6 +618,7 @@ local unitDefLights = {
 								0,1,0,0.6, -- RGBA
 								0.8,0.9,1.0,10, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -635,6 +644,7 @@ local unitDefLights = {
 								1,1,1,0.5, -- RGBA
 								0.2,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -659,6 +669,7 @@ local unitDefLights = {
 								1,1,1,0.5, -- RGBA
 								0.2,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -683,6 +694,7 @@ local unitDefLights = {
 								1,1,1,1, -- RGBA
 								1,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -707,6 +719,7 @@ local unitDefLights = {
 		-- 						1.2,0.1,0.1,1.2, -- RGBA
 		-- 						1,1,1,1, -- modelfactor_specular_scattering_lensflare
 		-- 						0,0,0,0, -- otherparams
+		--						0,0,0,0, -- color2
 		-- 						0, -- pieceIndex
 		-- 						0,0,0,0 -- instData always 0!
 		-- 						},
@@ -728,6 +741,7 @@ local unitDefLights = {
 								1,0,0,0.5, -- RGBA
 								0.5,0.5,1.5,10, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -752,6 +766,7 @@ local unitDefLights = {
 								1.3,1.0,0.1,2, -- RGBA
 								0.1,0.2,1,2, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -773,6 +788,7 @@ local unitDefLights = {
 								1.3,1.0,0.1,2, -- RGBA
 								0.1,0.2,1,2, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -797,6 +813,7 @@ local unitDefLights = {
 								1,1,1,1.2, -- RGBA
 								1,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -821,6 +838,7 @@ local unitDefLights = {
 								1,1,1,1, -- RGBA
 								0.1,1,1,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -845,6 +863,7 @@ local unitDefLights = {
 								-1,1,1,1, -- RGBA
 								1,2,3,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -866,6 +885,7 @@ local unitDefLights = {
 		-- 						1,0,0,1, -- RGBA
 		-- 						1,1,0.3,1, -- modelfactor_specular_scattering_lensflare
 		-- 						0,0,0,0, -- otherparams
+		--						0,0,0,0, -- color2
 		-- 						0, -- pieceIndex
 		-- 						0,0,0,0 -- instData always 0!
 		-- 						},
@@ -890,6 +910,7 @@ local unitDefLights = {
 								-1,1,1,1, -- RGBA
 								1,2,3,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -906,6 +927,7 @@ local unitDefLights = {
 								-1,0,0,1, -- RGBA
 								0,1,3,0, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -922,6 +944,7 @@ local unitDefLights = {
 								-1,0,0,1, -- RGBA
 								0,1,3,0, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -946,6 +969,7 @@ local unitDefLights = {
 		-- 						0,1,0,4, -- RGBA
 		-- 						1,1,0.3,1, -- modelfactor_specular_scattering_lensflare
 		-- 						0,0,0,0, -- otherparams
+		--						0,0,0,0, -- color2
 		-- 						0, -- pieceIndex
 		-- 						0,0,0,0 -- instData always 0!
 		-- 						},
@@ -967,6 +991,7 @@ local unitDefLights = {
 								0,1,0,1, -- RGBA
 								1,1,1,10, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -991,6 +1016,7 @@ local unitDefLights = {
 								-1,1,1,0.5, -- RGBA
 								0.2,0.5,1,10, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -1007,6 +1033,7 @@ local unitDefLights = {
 								1,0.98,0.85,0.4, -- RGBA
 								0,1,0.5,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -1020,6 +1047,7 @@ local unitDefLights = {
 								1,0.98,0.85,0.4, -- RGBA
 								0,1,0.5,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -1044,6 +1072,7 @@ local unitDefLights = {
 								1,1,1,0.3, -- RGBA
 								0.1,0.5,1,2, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -1060,6 +1089,7 @@ local unitDefLights = {
 								1,1,1,0.5, -- RGBA
 								0,1,2,0, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -1076,6 +1106,7 @@ local unitDefLights = {
 								-1,1,1,5, -- RGBA
 								0.1,1,2,2, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -1097,6 +1128,7 @@ local unitDefLights = {
 								-1,1,1,0.9, -- RGBA
 								0.1,0.5,1,5, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -1121,6 +1153,7 @@ local unitDefLights = {
 							0.2,0.5,1,0.8, -- RGBA
 							0.1,0.75,2,7, -- modelfactor_specular_scattering_lensflare
 							0,0,0,0, -- otherparams
+							0,0,0,0, -- color2
 							0, -- pieceIndex
 							0,0,0,0 -- instData always 0!
 							},
@@ -1142,6 +1175,7 @@ local unitDefLights = {
 							0.2,0.5,1,0.8, -- RGBA
 							0.1,0.75,2,10, -- modelfactor_specular_scattering_lensflare
 							0,0,0,0, -- otherparams
+							0,0,0,0, -- color2
 							0, -- pieceIndex
 							0,0,0,0 -- instData always 0!
 							},
@@ -1166,6 +1200,7 @@ local unitDefLights = {
 							0.95,0.66,0.07,0.56, -- RGBA
 							0.1,1.5,0.35,10, -- modelfactor_specular_scattering_lensflare
 							0,0,0,0, -- otherparams
+							0,0,0,0, -- color2
 							0, -- pieceIndex
 							0,0,0,0 -- instData always 0!
 							},
@@ -1190,6 +1225,7 @@ local unitDefLights = {
 								2,0,0,0.85, -- RGBA
 								0.1,4,2,4, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- otherparams
+								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
@@ -1207,7 +1243,7 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noupload)
 				if lightname ~= 'initComplete' then
 					if pieceMap[lightParams.pieceName] then -- if its not a real piece, it will default to the model!
 						lightParams.pieceIndex = pieceMap[lightParams.pieceName] 
-						lightParams.lightParamTable[21] = lightParams.pieceIndex
+						lightParams.lightParamTable[pieceIndexPos] = lightParams.pieceIndex
 					end
 					Spring.Echo(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
 				end
@@ -1574,6 +1610,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		glTexture(5, "$model_gbuffer_spectex")
 		glTexture(6, "$map_gbuffer_difftex")
 		glTexture(7, "$model_gbuffer_difftex")
+		glTexture(8, noisetex3dcube)
 		glTexture(9, "$heightmap")
 		glTexture(10,"$normals")
 
