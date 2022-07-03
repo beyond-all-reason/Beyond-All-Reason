@@ -1211,7 +1211,7 @@ local unitDefLights = {
 			lightParamTable = {0,-1.4,15,24, --pos + radius
 							0,0,0,0, -- unused
 							0.95,0.66,0.07,0.56, -- RGBA
-							0.1,1.5,0.35,10, -- modelfactor_specular_scattering_lensflare
+							0.1,1.5,0.35,0, -- modelfactor_specular_scattering_lensflare
 							0,0,0,0, -- otherparams
 							0,0,0,0, -- color2
 							0, -- pieceIndex
@@ -1242,6 +1242,31 @@ local unitDefLights = {
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
+	[UnitDefNames['cormakr'].id] = {
+		initComplete = false, -- this is needed maybe?
+		flamelight = {
+			lighttype = 'point',
+			px = 0,
+			py = 0,
+			pz = 0,
+			height = 0,
+			dx = 0, 
+			dy = 0, 
+			dz = -1, 
+			angle = 1,
+			pieceName = 'light',
+			lightParamTable = {0,10,0,50, --pos + radius
+							0,0,0,0, -- unused
+							0.9,0.7,0.45,0.58, -- RGBA
+							0.1,1.5,0.35,0, -- modelfactor_specular_scattering_lensflare
+							0,0,0,0, -- otherparams
+							0,0,0,0, -- color2
+							0, -- pieceIndex
+							0,0,0,0 -- instData always 0!
+							},
 			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
 		},
 	},
