@@ -1,4 +1,8 @@
-﻿# March 2022
+﻿# May 2022
+
+ • [Sniper] speed: 30->33
+
+# March 2022
 
  • [Sabre] reloadtime 12% slower, range -11%
  • [Stiletto] slower turnrate, 15 -> 10 sec paralyze duration, lower flight altitude

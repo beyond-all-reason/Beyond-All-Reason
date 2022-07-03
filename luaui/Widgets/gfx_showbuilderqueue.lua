@@ -196,7 +196,7 @@ end
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	if isBuilder[unitDefID] then
 		clearbuilderCommands(unitID)
-		newBuilderCmd[unitID] = os.clock() + 0.05
+		newBuilderCmd[unitID] = os.clock() + 0.13
 	end
 end
 

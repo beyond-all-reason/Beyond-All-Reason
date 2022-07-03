@@ -30,7 +30,7 @@ function TasksHST:startLabsParams()
 
 
 			{category = 'scouts',
-			economy = function(soldier)
+			economy = function()
 				return (E.income < 100 )
 			end,
 			numeric = {min = 1,mtype = 10,max = 2},
@@ -39,7 +39,7 @@ function TasksHST:startLabsParams()
 
 			{category = 'raiders',
 			economy = function()
-				return true
+				return  (E.income < 400 )
 			end,
 			numeric = {min = 1,max = 20},
 			wave = 10},
@@ -295,7 +295,7 @@ function TasksHST:startRolesParams()
 	local E = self.ai.Energy
 	self.roles.default = {
 		{ 	category = 'factoryMobilities' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 						return M.income > 8 and E.income > 30
 					end,
 			duplicate = true , --duplicateFilter
@@ -303,7 +303,7 @@ function TasksHST:startRolesParams()
 			location = true ,},
 
 		{ 	category = '_wind_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return  ((E.full < 0.5 or E.income < E.usage  )  or E.income < 30) and self.ai.Energy.income < 3000
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -312,7 +312,7 @@ function TasksHST:startRolesParams()
 	        special = true},
 
 		{ 	category = '_tide_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return ((E.full < 0.5 or E.income < E.usage )  or E.income < 30) and self.ai.Energy.income < 3000
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -321,7 +321,7 @@ function TasksHST:startRolesParams()
 	        special = true},
 
 		{ 	category = '_solar_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return ((E.full < 0.5 or E.income < E.usage  )  or E.income < 40 ) and self.ai.Energy.income < 3000
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -330,7 +330,7 @@ function TasksHST:startRolesParams()
 			special = true } , --specialFilter
 
 		{ 	category = '_mstor_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.full > 0.3  and M.full > 0.75 and M.income > 20 and E.income > 200
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -339,7 +339,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_estor_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.full > 0.9 and E.income > 400  and M.full > 0.1
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -348,7 +348,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_convs_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.income > E.usage * 1.25 and E.full > 0.9 and  E.income > 600
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -357,7 +357,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_mex_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return (M.full < 0.5 or M.income < 6)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -366,7 +366,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_nano_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100) or
 					(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 60 ))
 				end,--economicParameters
@@ -376,7 +376,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_aa1_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return  E.full > 0.1 and E.full < 0.5
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -385,7 +385,7 @@ function TasksHST:startRolesParams()
 	        special = true ,},
 
 		{ 	category = '_flak_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.full > 0.1 and E.full < 0.5
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -394,7 +394,7 @@ function TasksHST:startRolesParams()
 			special = true } , --specialFilter
 
 		{ 	category = '_specialt_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.income > 40 and M.income > 4 and M.full > 0.1
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -403,7 +403,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_fus_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return ( E.income < E.usage ) or E.full < 0.25
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -412,7 +412,7 @@ function TasksHST:startRolesParams()
 			special = true } , --specialFilter
 
 		{ 	category = '_popup1_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return (E.income > 200 and M.income > 25  )
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -421,7 +421,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_popup2_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return  M.full > 0.2 and E.full > 0.2
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -430,7 +430,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_heavyt_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.income > 100 and M.income > 15 and M.full > 0.3
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -439,7 +439,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_jam_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return M.full > 0.5 and M.income > 50 and E.income > 1000
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -448,7 +448,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_radar_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return M.full > 0.1 and M.income > 9 and E.income > 50
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -457,7 +457,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_geo_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.income > 100 and M.income > 15 and E.full > 0.3 and M.full > 0.2
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -466,7 +466,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_silo_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.income > 8000 and M.income > 100 and E.full > 0.5 and M.full > 0.5
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -475,7 +475,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_antinuke_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.income > 4000 and M.income > 75 and E.full > 0.5 and M.full > 0.5
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -484,7 +484,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_sonar_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return M.full > 0.3 and M.income > 15 and E.income > 100
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -493,7 +493,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_shield_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.income > 8000 and M.income > 100 and E.full > 0.5 and M.full > 0.5
 				end,--economicParameters
 	        numeric = 3,--numericalParameter
@@ -504,7 +504,7 @@ function TasksHST:startRolesParams()
 
 -- 		{ 	category = '_juno_' ,			economy = true,true,1},
 		{ 	category = '_laser2_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.income > 2000 and M.income > 50 and E.full > 0.5 and M.full > 0.3
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -514,7 +514,7 @@ function TasksHST:startRolesParams()
 
 
 		{ 	category = '_lol_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.income > 15000 and M.income > 200 and E.full > 0.8 and M.full > 0.5
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -523,7 +523,7 @@ function TasksHST:startRolesParams()
 			},
 
 		{ 	category = '_plasma_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.income > 5000 and M.income > 100 and E.full > 0.5 and M.full > 0.5
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -532,7 +532,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_torpedo1_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return (E.income > 20 and M.income > 2 and M.full < 0.5)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -541,7 +541,7 @@ function TasksHST:startRolesParams()
 			},
 
 		{ 	category = '_torpedo2_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.income > 100 and M.income > 15 and M.full > 0.2
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -551,7 +551,7 @@ function TasksHST:startRolesParams()
 
 	--	{ 	category = '_torpedoground_' ,economy = true,false,false},
 		{ 	category = '_aabomb_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.full > 0.5 and M.full > 0.5
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -560,7 +560,7 @@ function TasksHST:startRolesParams()
 			special = true } , --specialFilter
 
 		{ 	category = '_aaheavy_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.income > 500 and M.income > 25 and E.full > 0.3 and M.full > 0.3
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -569,7 +569,7 @@ function TasksHST:startRolesParams()
 			special = true } , --specialFilter
 
 		{ 	category = '_aa2_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.income > 7000 and M.income > 100 and E.full > 0.3 and M.full > 0.3
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -581,7 +581,7 @@ function TasksHST:startRolesParams()
 ----------------------------------------------------------------------------------------------------------------------------------
 	self.roles.expand = {
 		{ 	category = '_mex_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return true
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -590,7 +590,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_llt_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return true
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -599,7 +599,7 @@ function TasksHST:startRolesParams()
 			},
 
 		{ 	category = '_popup2_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return true
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -608,7 +608,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_solar_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.full < 0.05
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -620,7 +620,7 @@ function TasksHST:startRolesParams()
 --------------------------------------------------------------------------------------------------------------------------------
 	self.roles.eco = {
 		{ 	category = 'factoryMobilities' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return M.income > 6 and E.income > 30
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -629,7 +629,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_llt_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return true
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -638,7 +638,7 @@ function TasksHST:startRolesParams()
 			},
 
 		{ 	category = '_wind_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 30) and self.ai.Energy.income < 3000
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -648,7 +648,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_tide_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 30) and self.ai.Energy.income < 3000
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -658,7 +658,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_solar_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc(_,param,name)
 					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 50) and self.ai.Energy.income < 3000
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -667,7 +667,7 @@ function TasksHST:startRolesParams()
 			special = true } , --specialFilter
 
 		{ 	category = '_fus_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return ( E.income < E.usage * 1.25) or E.full < 0.5
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -676,7 +676,7 @@ function TasksHST:startRolesParams()
 			special = true } , --specialFilter
 
 		{ 	category = '_nano_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100) --or
 					--(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 60 ))
 				end,--economicParameters
@@ -686,7 +686,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_estor_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.full > 0.75 and E.income > 400
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -695,7 +695,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_mstor_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return  M.full > 0.75 and M.income > 20 and E.income > 200
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -704,16 +704,17 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_convs_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.income > E.usage * 1.1 and E.full > 0.8 and  E.income > 500
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
 			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        special = true,
 	        },
 
 		{ 	category = '_jam_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return M.full > 0.5 and M.income > 50 and E.income > 1000
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -722,7 +723,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_antinuke_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.income > 4000 and M.income > 75 and E.full > 0.5 and M.full > 0.2
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -734,7 +735,7 @@ function TasksHST:startRolesParams()
 ------------------------------------------------------------------------------------------------------------------------------------
 	self.roles.support = {
 		{ 	category = '_radar_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return M.full > 0.1
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -743,7 +744,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_specialt_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.income > 40 and M.income > 4 and M.full > 0.1
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -752,7 +753,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_popup1_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return (E.income > 200 and M.income > 25  )
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -761,7 +762,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_popup2_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return  M.full > 0.2 and E.full > 0.2
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -770,7 +771,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_heavyt_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.income > 100 and M.income > 15 and M.full > 0.3
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -779,7 +780,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_laser2_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.income > 2000 and M.income > 50 and E.full > 0.5 and M.full > 0.3
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
@@ -788,7 +789,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_aa1_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return  E.full > 0.1 and E.full < 0.5
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -798,7 +799,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_aabomb_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.full > 0.5 and M.full > 0.5
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -807,7 +808,7 @@ function TasksHST:startRolesParams()
 			special = true } , --specialFilter
 
 		{ 	category = '_flak_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return E.full > 0.1 and E.full < 0.5
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -818,7 +819,7 @@ function TasksHST:startRolesParams()
 ---------------------------------------------------------------------------------------------------------------------
 	self.roles.starter = {
 		{ 	category = '_mex_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return self.ai.tool:countMyUnit({'factoryMobilities'}) == 0
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -826,7 +827,7 @@ function TasksHST:startRolesParams()
 			location = true ,
 	        },
 		{ 	category = '_wind_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return  true --E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -836,7 +837,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_tide_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return  true --E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -846,7 +847,7 @@ function TasksHST:startRolesParams()
 	        },
 
 		{ 	category = '_solar_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return  true --E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -855,7 +856,7 @@ function TasksHST:startRolesParams()
 			special = true } , --specialFilter
 
 		{ 	category = '_llt_' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return self.ai.tool:countMyUnit({'factoryMobilities'}) > 0
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
@@ -864,7 +865,7 @@ function TasksHST:startRolesParams()
 	        } ,
 
 		{ 	category = 'factoryMobilities' ,
-			economy = function()
+			economy = function(_,param,name)--ecofunc()
 					return M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2 and E.income > 40
 				end,--economicParameters
 			duplicate = true , --duplicateFilter

@@ -171,6 +171,7 @@ local unitOrderTable = {
 	[UDN["armgremlin"].id]     = 006005,
 
 	[UDN["armfast"].id]        = 006100, --FAST
+	[UDN["legstr"].id]         = 006105,
 	[UDN["corpyro"].id]        = 006110,
 	[UDN["armlatnk"].id]       = 006120,
 
@@ -189,15 +190,18 @@ local unitOrderTable = {
 
 	[UDN["armfido"].id]        = 006500, --ARTILLERY
 	[UDN["cormort"].id]        = 006510,
+	[UDN["legbart"].id]        = 006515,
 	[UDN["armmart"].id]        = 006520,
 	[UDN["cormart"].id]        = 006530,
 	[UDN["cortrem"].id]        = 006540,
 
 	[UDN["armsptk"].id]        = 006600, --ALL-TERRAIN
 	[UDN["cortermite"].id]     = 006610,
+	[UDN["legsrail"].id]       = 006615,
 
 	[UDN["armfboy"].id]        = 006700, --STRONK
 	[UDN["corcan"].id]         = 006710,
+	[UDN["legshot"].id]        = 006715,
 	[UDN["armsnipe"].id]       = 006720,
 	[UDN["corsumo"].id]        = 006730,
 	[UDN["corgol"].id]         = 006740,
@@ -425,6 +429,7 @@ local unitOrderTable = {
 
    [UDN["armalab"].id]        = 102400,
    [UDN["coralab"].id]        = 102425,
+   [UDN["legalab"].id]        = 102426,
    [UDN["armavp"].id]         = 102450,
    [UDN["coravp"].id]         = 102475,
    [UDN["armaap"].id]         = 102500,

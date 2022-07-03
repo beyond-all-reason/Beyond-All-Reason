@@ -14,8 +14,6 @@ end
 --                  handle set target
 --					quickfade on cmd cancel
 
-local hideBelowGameframe = 100    -- delay to give spawn fx some time
-
 local CMD_RAW_MOVE = 39812
 local CMD_ATTACK = CMD.ATTACK --icon unit or map
 local CMD_CAPTURE = CMD.CAPTURE --icon unit or area
@@ -58,6 +56,8 @@ local glUnit = gl.Unit
 local GL_QUADS = GL.QUADS
 
 local GaiaTeamID = Spring.GetGaiaTeamID()
+local myTeamID = Spring.GetMyTeamID()
+local mySpec = Spring.GetSpectatingState()
 
 local chobbyInterface, hidden
 
@@ -73,6 +73,9 @@ local newUnitCommands = {}
 -- Config
 --------------------------------------------------------------------------------
 
+local hideBelowGameframe = 100    -- delay to give spawn fx some time
+
+local filterOwn = false
 local filterAIteams = true
 
 local drawBuildQueue = true
@@ -90,18 +93,11 @@ local lineWidthEnd = 0.85        -- multiplier
 local lineTextureLength = 4
 local lineTextureSpeed = 2.4
 
-local groundGlow = false
-local glowRadius = 26
-local glowDuration = 0.5
-local glowOpacity = 0.11
-
 -- limit amount of effects to keep performance sane
 local maxCommandCount = 500        -- dont draw more commands than this amount, but keep processing them
 local maxTotalCommandCount = 850        -- dont add more commands above this amount
-local maxGroundGlowCount = 50
 local drawUnitHightlightMaxUnits = 70
 
-local glowImg = ":n:LuaUI/Images/commandsfx/glow.dds"
 local lineImg = ":n:LuaUI/Images/commandsfx/line.dds"
 
 local isCritter = {}
@@ -237,7 +233,6 @@ local spIsGUIHidden = Spring.IsGUIHidden
 local spIsUnitSelected = Spring.IsUnitSelected
 local spLoadCmdColorsConfig = Spring.LoadCmdColorsConfig
 local spGetFPS = Spring.GetFPS
-local spGetMyTeamID = Spring.GetMyTeamID
 local spGetGameFrame = Spring.GetGameFrame
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -268,7 +263,7 @@ local function setCmdLineColors(alpha)
 	spLoadCmdColorsConfig('deathWatch  0.5  0.5  0.5  ' .. alpha)
 end
 
-function resetEnabledTeams()
+local function resetEnabledTeams()
 	enabledTeams = {}
 	local t = Spring.GetTeamList()
 	for _, teamID in ipairs(t) do
@@ -455,7 +450,7 @@ local function addUnitCommand(unitID, unitDefID, cmdID)
 end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-	if enabledTeams[teamID] ~= nil then
+	if enabledTeams[teamID] ~= nil and (not filterOwn or mySpec or teamID ~= myTeamID) then
 		if teamID ~= GaiaTeamID or not isCritter[unitDefID] then
 			if ignoreUnits[unitDefID] == nil then
 				if newUnitCommands[unitID] == nil then
@@ -640,7 +635,6 @@ function widget:DrawWorldPreUnit()
 	gl.DepthTest(false)
 	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-	local groundGlowCount = 0
 	local commandCount = 0
 	for i, v in pairs(commands) do
 		local progress = (osClock - commands[i].time) / duration
@@ -687,7 +681,7 @@ function widget:DrawWorldPreUnit()
 								glPushMatrix()
 								glTranslate(X, Y + 1, Z)
 								glRotate(90 * commands[i].queue[j].params[4], 0, 1, 0)
-								glUnitShape(commands[i].queue[j].buildingID, spGetMyTeamID(), true, false, false)
+								glUnitShape(commands[i].queue[j].buildingID, myTeamID, true, false, false)
 								glRotate(-90 * commands[i].queue[j].params[4], 0, 1, 0)
 								glTranslate(-X, -Y - 1, -Z)
 								glPopMatrix()
@@ -712,20 +706,6 @@ function widget:DrawWorldPreUnit()
 									glBeginEnd(GL_QUADS, DrawLineEnd, prevX, prevY, prevZ, X, Y, Z, usedLineWidth)
 								end
 							end
-
-							-- ground glow
-							if groundGlow and groundGlowCount < maxGroundGlowCount then
-								groundGlowCount = groundGlowCount + 1
-								local size = (glowRadius * CONFIG[commands[i].queue[j].id].sizeMult) + ((glowRadius * CONFIG[commands[i].queue[j].id].endSize - glowRadius * CONFIG[commands[i].queue[j].id].sizeMult) * progress)
-								local glowAlpha = (1 - progress) * glowOpacity * opacity
-								if commands[i].selected then
-									glowAlpha = glowAlpha * 1.5
-								end
-								glColor(lineColour[1], lineColour[2], lineColour[3], glowAlpha)
-								glTexture(glowImg)
-								glBeginEnd(GL_QUADS, DrawGroundquad, X, Y + 3, Z, size)
-								glTexture(false)
-							end
 						end
 						prevX, prevY, prevZ = X, Y, Z
 					end
@@ -735,6 +715,13 @@ function widget:DrawWorldPreUnit()
 	end
 	glColor(1, 1, 1, 1)
 end
+
+
+function widget:PlayerChanged()
+	myTeamID = Spring.GetMyTeamID()
+	mySpec = Spring.GetSpectatingState()
+end
+
 
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
@@ -772,7 +759,7 @@ function widget:DrawWorld()
 end
 
 function widget:GetConfigData(data)
-	return { opacity = opacity, filterAIteams = filterAIteams }
+	return { opacity = opacity, filterAIteams = filterAIteams, filterOwn = filterOwn}
 end
 
 function widget:SetConfigData(data)
@@ -781,5 +768,8 @@ function widget:SetConfigData(data)
 	end
 	if data.filterAIteams ~= nil then
 		filterAIteams = data.filterAIteams
+	end
+	if data.filterOwn ~= nil then
+		filterOwn = data.filterOwn
 	end
 end

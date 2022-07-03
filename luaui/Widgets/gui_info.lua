@@ -268,6 +268,7 @@ local function refreshUnitInfo()
 		end
 		local totalDps = 0
 		local weapons = unitDef.weapons
+
 		for i = 1, #weapons do
 			if not unitDefInfo[unitDefID].weapons then
 				unitDefInfo[unitDefID].weapons = {}
@@ -277,6 +278,9 @@ local function refreshUnitInfo()
 			end
 			unitDefInfo[unitDefID].weapons[i] = weapons[i].weaponDef
 			local weaponDef = WeaponDefs[weapons[i].weaponDef]
+			if weaponDef.interceptor ~= 0 and weaponDef.coverageRange then
+				unitDefInfo[unitDefID].maxCoverage = math.max(unitDefInfo[unitDefID].maxCoverage or 1, weaponDef.coverageRange)
+			end
 			if weaponDef.damages then
 				-- get highest damage category
 				local maxDmg = 0
@@ -886,11 +890,6 @@ local function drawUnitInfo()
 		end
 	end
 
-	--if displayUnitID and unitDefInfo[displayUnitDefID].transport then
-	--
-	--
-	--end
-
 	local unitNameColor = '\255\205\255\205'
 	if SelectedUnitsCount > 0 then
 		if not displayMode == 'unitdef' or (WG['buildmenu'] and (WG['buildmenu'].selectedID and (not WG['buildmenu'].hoverID or (WG['buildmenu'].selectedID == WG['buildmenu'].hoverID)))) then
@@ -993,12 +992,14 @@ local function drawUnitInfo()
 	font2:Print(valueY3, backgroundRect[1] + contentPaddingLeft, posY3 - (fontSize2 * 0.31), fontSize2, "o")
 	font2:End()
 
+	cellRect = nil
+
 	-- draw unit buildoption icons
 	if displayMode == 'unitdef' and showBuilderBuildlist and unitDefInfo[displayUnitDefID].buildOptions then
-		local gridHeight = math_ceil(height * 0.975)
+		gridHeight = math_ceil(height * 0.975)
 		local rows = 2
 		local colls = math_ceil(#unitDefInfo[displayUnitDefID].buildOptions / rows)
-		local cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
+		cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
 		if cellsize < gridHeight / 3 then
 			rows = 3
 			colls = math_ceil(#unitDefInfo[displayUnitDefID].buildOptions / rows)
@@ -1045,6 +1046,54 @@ local function drawUnitInfo()
 		glColor(1, 1, 1, 1)
 
 
+	-- draw transported unit list
+	elseif displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and #Spring.GetUnitIsTransporting(displayUnitID) > 0 then
+		local units = Spring.GetUnitIsTransporting(displayUnitID)
+		if #units > 0 then
+			gridHeight = math_ceil(height * 0.975)
+			local rows = 2
+			local colls = math_ceil(#units / rows)
+			cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
+			if cellsize < gridHeight / 3 then
+				rows = 3
+				colls = math_ceil(#units / rows)
+				cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
+			end
+
+			-- draw grid (bottom right to top left)
+			local cellID = #units
+			cellPadding = math_floor((cellsize * 0.022) + 0.5)
+			cornerSize = math_max(1, cellPadding * 0.9)
+			cellRect = {}
+			for row = 1, rows do
+				for coll = 1, colls do
+					if units[cellID] then
+						local uDefID = spGetUnitDefID(units[cellID])
+						cellRect[cellID] = { math_floor(customInfoArea[3] - cellPadding - (coll * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row - 1) * cellsize)), math_floor(customInfoArea[3] - cellPadding - ((coll - 1) * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row) * cellsize)) }
+						UiUnit(
+							cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4],
+							cellPadding * 1.3,
+							1, 1, 1, 1,
+							0.1,
+							nil, nil,
+							"#"..uDefID,
+							((unitDefInfo[uDefID].iconType and iconTypesMap[unitDefInfo[uDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[uDefID].iconType] or nil),
+							groups[unitGroup[uDefID]],
+							{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}
+						)
+					end
+					cellID = cellID - 1
+					if cellID <= 0 then
+						break
+					end
+				end
+				if cellID <= 0 then
+					break
+				end
+			end
+			glTexture(false)
+			glColor(1, 1, 1, 1)
+		end
 	else
 		-- unit/unitdef info (without buildoptions)
 
@@ -1086,7 +1135,6 @@ local function drawUnitInfo()
 		else
 			-- get unitdef specific data
 
-
 		end
 
 		if unitDefInfo[displayUnitDefID].weapons then
@@ -1106,7 +1154,9 @@ local function drawUnitInfo()
 				dps = round(dps / reloadTimeSpeedup, 0)
 				addTextInfo(texts.dps, dps)
 
-				if maxRange then
+				if unitDefInfo[displayUnitDefID].maxCoverage then
+					addTextInfo(texts.coverrange, unitDefInfo[displayUnitDefID].maxCoverage)
+				elseif maxRange then
 					addTextInfo(texts.weaponrange, maxRange)
 				end
 
@@ -1333,12 +1383,57 @@ function widget:MousePress(x, y, button)
 	end
 end
 
+-- makes sure it gets unloaded at a free spot
+local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
+local function unloadTransport(transportID, unitID, x, z, shift, depth)
+	if not depth then
+		depth = 1
+	end
+	local radius = 20 * depth
+	local orgX, orgZ = x, z
+	local y = Spring.GetGroundHeight(x, z)
+	local unitSphereRadius = 60	-- too low value will result in unload conflicts
+	local areaUnits = Spring.GetUnitsInSphere(x, y, z, unitSphereRadius)
+	if #areaUnits == 0 then	-- unblocked spot!
+		Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, { x, y, z, unitID }, {shift and "shift"})
+	else
+		-- unload is blocked by unit at ground just lets find free alternative spot in a radius around it
+		local samples = 8
+		local sideAngle = (math.pi * 2) / samples
+		local foundUnloadSpot = false
+		for i = 1, samples + 1 do
+			x = x + (radius * math.cos(i * sideAngle))
+			z = z + (radius * math.sin(i * sideAngle))
+			if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ then
+				y = Spring.GetGroundHeight(x, z)
+				areaUnits = Spring.GetUnitsInSphere(x, y, z, unitSphereRadius)
+				if #areaUnits == 0 then	-- unblocked spot!
+					local areaFeatures = Spring.GetFeaturesInSphere(x, y, z, unitSphereRadius)
+					if #areaFeatures == 0 then
+						Spring.GiveOrderToUnit(transportID, CMD.UNLOAD_UNIT, { x, y, z, unitID }, {shift and "shift"})
+						foundUnloadSpot = true
+						break
+					end
+				end
+			end
+		end
+		-- try again with increased radius
+		if not foundUnloadSpot and depth < 15 then	-- limit depth for safety
+			unloadTransport(transportID, unitID, orgX, orgZ, shift, depth+1)
+		end
+	end
+end
+
+
 function widget:MouseRelease(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	if displayMode and displayMode == 'selection' and customInfoArea and math_isInRect(x, y, customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4]) then
-		if selectionCells and selectionCells[1] and cellRect then
+
+	if displayMode and customInfoArea and math_isInRect(x, y, customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4]) then
+
+		-- selection
+		if displayMode == 'selection' and selectionCells and selectionCells[1] and cellRect then
 			for cellID, unitDefID in pairs(selectionCells) do
 				if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
 					local unitTable = nil
@@ -1365,8 +1460,38 @@ function widget:MouseRelease(x, y, button)
 				end
 			end
 		end
-	end
 
+		-- transported unit list
+		if displayMode == 'unit' and button == 1 then
+			local units = Spring.GetUnitIsTransporting(displayUnitID)
+			if #units > 0 then
+				for cellID, unitID in pairs(units) do
+					local unitDefID = spGetUnitDefID(unitID)
+					if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
+						local x,y,z = Spring.GetUnitPosition(displayUnitID)
+						local alt, ctrl, meta, shift = spGetModKeyState()
+						if shift then
+							local cmdQueue = Spring.GetCommandQueue(displayUnitID, 35) or {}
+							if cmdQueue[1] then
+								if cmdQueue[#cmdQueue] and cmdQueue[#cmdQueue].id == CMD.MOVE and cmdQueue[#cmdQueue].params[3] then
+									x, z = cmdQueue[#cmdQueue].params[1], cmdQueue[#cmdQueue].params[3]
+									-- remove the last move command (to replace it with the unload cmd after)
+									Spring.GiveOrderToUnit(displayUnitID, CMD.STOP, {}, 0)
+									for c = 1, #cmdQueue do
+										if c < #cmdQueue then
+											Spring.GiveOrderToUnit(displayUnitID, cmdQueue[c].id, cmdQueue[c].params, { "shift" })
+										end
+									end
+								end
+							end
+						end
+						unloadTransport(displayUnitID, unitID, math_floor(x), math_floor(z), shift)
+						return -1
+					end
+				end
+			end
+		end
+	end
 	return -1
 end
 
@@ -1463,8 +1588,49 @@ function widget:DrawScreen()
 
 				WG['tooltip'].ShowTooltip('info', text)
 			end
+		end
 
+		-- transport load list
+		if displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and cellRect then
+			local units = Spring.GetUnitIsTransporting(displayUnitID)
+			if #units > 0 then
+				local cellHovered
+				for cellID, unitID in pairs(units) do
+					local unitDefID = spGetUnitDefID(unitID)
 
+					if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
+
+						local cellZoom = hoverCellZoom
+						local color = { 1, 1, 1 }
+						if b then
+							cellZoom = clickCellZoom
+							color = { 1, 0.85, 0.1 }
+						end
+						cellZoom = cellZoom + math_min(0.33 * cellZoom * ((gridHeight / cellsize) - 2), 0.15) -- add extra zoom when small icons
+
+						-- highlight
+						glBlending(GL_SRC_ALPHA, GL_ONE)
+						if b then
+							RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding * 0.9, 1, 1, 1, 1, { color[1], color[2], color[3], 0.3 }, { color[1], color[2], color[3], 0.3 })
+						else
+							RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding * 0.9, 1, 1, 1, 1, { 1,1,1, 0.08}, { 1,1,1, 0.08})
+						end
+						-- light border
+						local halfSize = (((cellRect[cellID][3] - cellPadding)) - (cellRect[cellID][1])) * 0.5
+						glBlending(GL_SRC_ALPHA, GL_ONE)
+						RectRoundCircle(
+							cellRect[cellID][1] + cellPadding + halfSize,
+							0,
+							cellRect[cellID][2] + cellPadding + halfSize,
+							halfSize, cornerSize, halfSize - math_max(1, cellPadding), { 1,1,1, 0.07}, { 1,1,1, 0.07}
+						)
+						glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+						cellHovered = cellID
+						break
+					end
+				end
+			end
 		elseif displayMode == 'unit' then
 
 			if WG['unitstats'] and WG['unitstats'].showUnit then

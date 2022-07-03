@@ -175,7 +175,7 @@ function widget:Initialize()
 	}
 
 	commonTexOpts.format = GL_RGBA8
-	screenCopyTex = gl.CreateTexture(vsx, vsy, commonTexOpts)
+	--screenCopyTex = gl.CreateTexture(vsx, vsy, commonTexOpts)
 
 	casShader = LuaShader({
 		vertex = vsCAS,
@@ -212,7 +212,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	gl.DeleteTexture(screenCopyTex)
+	--gl.DeleteTexture(screenCopyTex)
 	casShader:Finalize()
 	fullTexQuad:Delete()
 end
@@ -223,7 +223,16 @@ function widget:ViewResize()
 end
 
 function widget:DrawScreenEffects()
-	glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
+	--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
+	if WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
+		screenCopyTex = WG['screencopymanager'].GetScreenCopy()
+	else
+		--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy) 
+		Spring.Echo("Missing Screencopy Manager, exiting",  WG['screencopymanager'] )
+		widgetHandler:RemoveWidget()
+		return false
+	end
+	if screenCopyTex == nil then return end
 	glTexture(0, screenCopyTex)
 	glBlending(false)
 	casShader:Activate()

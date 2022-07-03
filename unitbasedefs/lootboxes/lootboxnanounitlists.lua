@@ -90,6 +90,10 @@ return {
 		"coraak",
 		"cortermite",
 		"cormando",
+		"legbart",
+		"legshot",
+		"legsrail",
+		"legstr",
 
 		-- Vehicles
 		"armgremlin",

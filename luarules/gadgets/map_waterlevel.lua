@@ -27,14 +27,15 @@ if gadgetHandler:IsSyncedCode() then
 		local x, y, z
 		for i = 1, #featuretable do
 			x, y, z = Spring.GetFeaturePosition(featuretable[i])
-      Spring.SetFeaturePosition(featuretable[i], x,  y,  z ,true) -- snaptoground = true
+      		Spring.SetFeaturePosition(featuretable[i], x,  y,  z ,true) -- snaptoground = true
 		end
 	end
 
 	function adjustWaterlevel()
 		-- Spring.SetMapRenderingParams({ voidWater = false})
-    Spring.Echo("adjustWaterlevel: this might cause a lag spike.")
+    	Spring.Echo("adjustWaterlevel: this might cause a lag spike.")
 		Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
+		Spring.AdjustOriginalHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 		Spring.AdjustSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 		adjustFeatureHeight()
 	end
@@ -82,30 +83,24 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.Echo('Changed waterlevel: ' .. waterlevel)
 	end
 
-else
-	-- UNSYNCED
+else  -- UNSYNCED
+
+	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID,false)
+	local authorized = SYNCED.permissions.waterlevel[myPlayerName]
+
+	local function waterlevel(cmd, line, words, playerID)
+		if words[1] then
+			if (authorized or Spring.IsCheatingEnabled()) and playerID == myPlayerID then
+				Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. words[1])
+			end
+		end
+	end
 
 	function gadget:Initialize()
 		gadgetHandler:AddChatAction('waterlevel', waterlevel)
 	end
-
 	function gadget:Shutdown()
 		gadgetHandler:RemoveChatAction('waterlevel')
-	end
-
-	function waterlevel(cmd, line, words, playerID)
-		if words[1] then
-			local playername = Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)
-			local authorized = false
-			for _,name in ipairs(SYNCED.permissions.waterlevel) do
-				if playername == name then
-					authorized = true
-					break
-				end
-			end
-			if authorized or Spring.IsCheatingEnabled() then
-				Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. words[1])
-			end
-		end
 	end
 end

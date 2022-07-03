@@ -5,6 +5,7 @@ return {
 		cratermult = 0,
 		edgeeffectiveness = 0.1,
 		explosiongenerator = "custom:blood_explode_xl",
+		explosionspeed = 999999,
 		impulseboost = 0.5,
 		impulsefactor = 0.5,
 		interceptedbyshieldtype = 1,
@@ -17,7 +18,7 @@ return {
 		weaponvelocity = 250,
 		damage = {
 			default = 4000,
-			chicken = 1,
+			chicken = 1000,
 		},
 	},
 }

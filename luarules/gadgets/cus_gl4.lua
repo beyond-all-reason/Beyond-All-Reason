@@ -299,6 +299,11 @@ do --save a ton of locals
 			baseVertexDisplacement = 0.0,
 			brightnessFactor = 1.3,
 		},
+		featurepbr = {
+			bitOptions = defaultBitShaderOptions,
+			baseVertexDisplacement = 0.0,
+			brightnessFactor = 1.3,
+		},
 		treepbr = {
 			bitOptions = defaultBitShaderOptions + OPTION_TREEWIND + OPTION_PBROVERRIDE,
 			baseVertexDisplacement = 0.0,
@@ -829,7 +834,7 @@ local function initBinsAndTextures()
 				[6] = "$shadow",
 				[7] = "$reflection",
 				[8] = "$info:los",
-				[9] = brdfLUT,
+				[9] = GG.GetBrdfTexture(), --brdfLUT,
 				[10] = noisetex3dcube,
 				--[10] = envLUT,
 			}
@@ -901,6 +906,8 @@ local function initBinsAndTextures()
 				featuresDefsWithAlpha[-1 * featureDefID] = "yes"
 			elseif featureDef.name:find("_dead", nil, true) or featureDef.name:find("_heap", nil, true) then
 				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
+			elseif featureDef.name:find("pilha_crystal", nil, true) then 
+				objectDefToUniformBin[-1 * featureDefID] = 'featurepbr'
 			end
 			--Spring.Echo("Assigned normal map to", featureDef.name, normalTex)
 
@@ -1509,9 +1516,9 @@ local function ExecuteDrawPass(drawPass)
 		end
 	end
 
-	drawpassstats[drawPass].batches = batches
-	drawpassstats[drawPass].units = units
-	drawpassstats[drawPass].shaders = shaderswaps
+	--drawpassstats[drawPass].batches = batches
+	--drawpassstats[drawPass].units = units
+	--drawpassstats[drawPass].shaders = shaderswaps
 	return batches, units, shaderswaps
 end
 

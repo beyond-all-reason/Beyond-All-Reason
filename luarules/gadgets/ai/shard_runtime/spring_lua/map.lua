@@ -196,62 +196,96 @@ end
 function map:DrawRectangle(pos1, pos2, color, label, filled, channel)
 	channel = channel or 1
 	color = color or {}
-	SendToUnsynced('ShardDrawAddRectangle', pos1.x, pos1.z, pos2.x, pos2.z, color[1], color[2], color[3], color[4], label, filled, self.ai.game:GetTeamID(), channel)
+	if (Script.LuaUI('ShardDrawAddRectangle')) then
+		Script.LuaUI.ShardDrawAddRectangle(pos1.x, pos1.z, pos2.x, pos2.z, {color[1], color[2], color[3], color[4]}, label, filled, self.ai.game:GetTeamID(), channel)
+	end
+	--SendToUnsynced('ShardDrawAddRectangle', pos1.x, pos1.z, pos2.x, pos2.z, color[1], color[2], color[3], color[4], label, filled, self.ai.game:GetTeamID(), channel)
 end
 
 function map:EraseRectangle(pos1, pos2, color, label, filled, channel)
 	channel = channel or 1
 	color = color or {}
-	return SendToUnsynced('ShardDrawEraseRectangle', pos1.x, pos1.z, pos2.x, pos2.z, color[1], color[2], color[3], color[4], label, filled, self.ai.game:GetTeamID(), channel)
+	if (Script.LuaUI('ShardDrawEraseRectangle')) then
+		Script.LuaUI.ShardDrawEraseRectangle(pos1.x, pos1.z, pos2.x, pos2.z, {color[1], color[2], color[3], color[4]}, label, filled, self.ai.game:GetTeamID(), channel)
+	end
+	--return SendToUnsynced('ShardDrawEraseRectangle', pos1.x, pos1.z, pos2.x, pos2.z, color[1], color[2], color[3], color[4], label, filled, self.ai.game:GetTeamID(), channel)
 end
 
 function map:DrawCircle(pos, radius, color, label, filled, channel)
 	channel = channel or 1
 	color = color or {}
-	SendToUnsynced('ShardDrawAddCircle', pos.x, pos.z, radius, color[1], color[2], color[3], color[4], label, filled, self.ai.game:GetTeamID(), channel)
+	if (Script.LuaUI('ShardDrawAddCircle')) then
+		Script.LuaUI.ShardDrawAddCircle(pos.x, pos.z, radius, {color[1], color[2], color[3], color[4]}, label, filled, self.ai.game:GetTeamID(), channel)
+	end
+	--SendToUnsynced('ShardDrawAddCircle', pos.x, pos.z, radius, color[1], color[2], color[3], color[4], label, filled, self.ai.game:GetTeamID(), channel)
 end
 
 function map:EraseCircle(pos, radius, color, label, filled, channel)
 	channel = channel or 1
 	color = color or {}
-	SendToUnsynced('ShardDrawEraseCircle', pos.x, pos.z, radius, color[1], color[2], color[3], color[4], label, filled, self.ai.game:GetTeamID(), channel)
+	if (Script.LuaUI('ShardDrawEraseCircle')) then
+		Script.LuaUI.ShardDrawEraseCircle(pos.x, pos.z, radius, {color[1], color[2], color[3], color[4]}, label, filled, self.ai.game:GetTeamID(), channel)
+	end
+	--SendToUnsynced('ShardDrawEraseCircle', pos.x, pos.z, radius, color[1], color[2], color[3], color[4], label, filled, self.ai.game:GetTeamID(), channel)
 end
 
 function map:DrawLine(pos1, pos2, color, label, arrow, channel)
 	channel = channel or 1
 	color = color or {}
-	SendToUnsynced('ShardDrawAddLine', pos1.x, pos1.z, pos2.x, pos2.z, color[1], color[2], color[3], color[4], label, arrow, self.ai.game:GetTeamID(), channel)
+	if (Script.LuaUI('ShardDrawAddLine')) then
+		Script.LuaUI.ShardDrawAddLine(pos1.x, pos1.z, pos2.x, pos2.z, {color[1], color[2], color[3], color[4]}, label, arrow, self.ai.game:GetTeamID(), channel)
+	end
+	--SendToUnsynced('ShardDrawAddLine', pos1.x, pos1.z, pos2.x, pos2.z, color[1], color[2], color[3], color[4], label, arrow, self.ai.game:GetTeamID(), channel)
 end
 
 function map:EraseLine(pos1, pos2, color, label, arrow, channel)
 	channel = channel or 1
 	color = color or {}
-	SendToUnsynced('ShardDrawEraseLine', pos1.x, pos1.z, pos2.x, pos2.z, color[1], color[2], color[3], color[4], label, arrow, self.ai.game:GetTeamID(), channel)
+	if (Script.LuaUI('ShardDrawEraseLine')) then
+		Script.LuaUI.ShardDrawEraseLine(pos1.x, pos1.z, pos2.x, pos2.z, {color[1], color[2], color[3], color[4]}, label, arrow, self.ai.game:GetTeamID(), channel)
+	end
+	--SendToUnsynced('ShardDrawEraseLine', pos1.x, pos1.z, pos2.x, pos2.z, color[1], color[2], color[3], color[4], label, arrow, self.ai.game:GetTeamID(), channel)
 end
 
 function map:DrawPoint(pos, color, label, channel)
 	channel = channel or 1
 	color = color or {}
-	SendToUnsynced('ShardDrawAddPoint', pos.x, pos.z, color[1], color[2], color[3], color[4], label, self.ai.game:GetTeamID(), channel)
+	if (Script.LuaUI('ShardDrawAddPoint')) then
+		Script.LuaUI.ShardDrawAddPoint(pos.x, pos.z, {color[1], color[2], color[3], color[4]}, label, self.ai.game:GetTeamID(), channel)
+	end
+	--SendToUnsynced('ShardDrawAddPoint', pos.x, pos.z, color[1], color[2], color[3], color[4], label, self.ai.game:GetTeamID(), channel)
 end
 
 function map:ErasePoint(pos, color, label, channel)
 	channel = channel or 1
 	color = color or {}
-	SendToUnsynced('ShardDrawErasePoint', pos.x, pos.z, color[1], color[2], color[3], color[4], label, self.ai.game:GetTeamID(), channel)
+	if (Script.LuaUI('ShardDrawErasePoint')) then
+		Script.LuaUI.ShardDrawErasePoint(pos.x, pos.z, {color[1], color[2], color[3], color[4]}, label, self.ai.game:GetTeamID(), channel)
+	end
+	--SendToUnsynced('ShardDrawErasePoint', pos.x, pos.z, color[1], color[2], color[3], color[4], label, self.ai.game:GetTeamID(), channel)
 end
 
 function map:EraseAll(channel)
 	channel = channel or 1
-	SendToUnsynced('ShardDrawClearShapes', self.ai.game:GetTeamID(), channel)
+	if (Script.LuaUI('ShardDrawClearShapes')) then
+		Script.LuaUI.ShardDrawClearShapes(self.ai.game:GetTeamID(), channel)
+	end
+	--Script.LuaUI.ShardDrawClearShapes(self.ai.game:GetTeamID(), channel)
+	--SendToUnsynced('ShardDrawClearShapes', self.ai.game:GetTeamID(), channel)
 end
 
 function map:DisplayDrawings(onOff)
-	SendToUnsynced('ShardDrawDisplay', onOff)
+	if (Script.LuaUI('ShardDrawDisplay')) then
+		Script.LuaUI.ShardDrawDisplay(onOff)
+	end
+	--SendToUnsynced('ShardDrawDisplay', onOff)
 end
 
 function map:SaveTable(tableinput, tablename, filename)
-	SendToUnsynced('ShardSaveTable',tableinput, tablename, filename)
+	if (Script.LuaUI('ShardSaveTable')) then
+		Script.LuaUI.ShardSaveTable(tableinput, tablename, filename)
+	end
+	--SendToUnsynced('ShardSaveTable',tableinput, tablename, filename)
 end
 
 -- END DRAWING FUNCTIONS

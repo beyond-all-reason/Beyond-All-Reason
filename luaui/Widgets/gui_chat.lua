@@ -24,7 +24,7 @@ local maxLinesScrollFull = 16
 local maxLinesScrollChatInput = 9
 local lineHeightMult = 1.36
 local lineTTL = 40
-local backgroundOpacity = 0.18
+local backgroundOpacity = 0.25
 local handleTextInput = true	-- handle chat text input instead of using spring's input method
 local inputButton = true
 local allowMultiAutocomplete = true
@@ -71,7 +71,7 @@ local colorAlly = {0,1,0}
 local colorSpec = {1,1,0}
 local colorOtherAlly = {1,0.7,0.45} -- enemy ally messages (seen only when spectating)
 local colorGame = {0.4,1,1} -- server (autohost) chat
-local colorConsole = {0.88,0.88,0.88}
+local colorConsole = {0.85,0.85,0.85}
 
 local chatSeparator = '\255\210\210\210:'
 local pointSeparator = '\255\255\255\255*'
@@ -1166,6 +1166,12 @@ function widget:DrawScreen()
 
 	-- draw chat lines or chat/console ui panel
 	if historyMode or chatLines[currentChatLine] then
+		if #chatLines == 0 and historyMode == 'chat' then
+			font:Begin()
+			font:SetTextColor(0.35,0.35,0.35,0.66)
+			font:Print(Spring.I18N('ui.chat.nohistory'), activationArea[1]+(activationArea[3]-activationArea[1])/2, activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize*1.1, "c")
+			font:End()
+		end
 		local checkedLines = 0
 		if not historyMode then
 			displayedChatLines = 0
@@ -1467,7 +1473,9 @@ function widget:KeyPress(key, mods, isRepeat)
 			end
 			widgetHandler:OwnText()
 			if not inputHistory[inputHistoryCurrent] or inputHistory[inputHistoryCurrent] ~= '' then
-				inputHistoryCurrent = inputHistoryCurrent + 1
+				if inputHistoryCurrent == 1 or inputHistory[inputHistoryCurrent] ~= inputHistory[inputHistoryCurrent-1] then
+					inputHistoryCurrent = inputHistoryCurrent + 1
+				end
 				inputHistory[inputHistoryCurrent] = ''
 			end
 			if ctrl then
@@ -1557,6 +1565,7 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 	local roster = spGetPlayerRoster()
 	local names = {}
 	for i=1, #roster do
+		-- [playername] = {allyTeamID, isSpec, teamID, playerID}
 		names[roster[i][1]] = {roster[i][4],roster[i][5],roster[i][3],roster[i][2]}
 	end
 
@@ -1719,6 +1728,8 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 			bypassThisMessage = true
 		elseif sfind(line,"liblobby]", nil, true) then
 			bypassThisMessage = true
+		elseif sfind(line,"[LuaMenu", nil, true) then
+			bypassThisMessage = true
 		elseif sfind(line,"ClientMessage]", nil, true) then
 			bypassThisMessage = true
 		elseif sfind(line,"ServerMessage]", nil, true) then
@@ -1743,7 +1754,38 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 			bypassThisMessage = true
 		end
 
-		line = convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..line
+		local color = ''
+		if sfind(line,'Error', nil, true) then
+			color = '\255\255\133\133'
+		elseif sfind(line,'Warning', nil, true) then
+			color = '\255\255\190\170'
+		elseif sfind(line,'Failed to load', nil, true) then
+			color = '\255\200\200\255'
+		elseif sfind(line,'Loaded ', nil, true) or sfind(ssub(line, 1, 25),'Loading ', nil, true) or sfind(ssub(line, 1, 25),'Loading: ', nil, true) then
+			color = '\255\200\255\200'
+		elseif sfind(line,'Removed: ', nil, true) or  sfind(line,'Removed widget: ', nil, true) then
+			color = '\255\255\230\200'
+		elseif sfind(line,'paused the game', nil, true) then
+			color = '\255\255\255\255'
+		elseif sfind(line,'Connection attempt from ', nil, true) then
+			color = '\255\255\255\255'
+			local playername = ssub(line, sfind(line, 'Connection attempt from ')+24)
+			line = 'Connection attempt from: '
+			if names[playername] then
+				if  not names[playername][2] then
+					line = line..convertColor(spGetTeamColor(names[playername][3]))..playername
+				else
+					line = line..'(spectator) '..convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..playername
+				end
+			else
+				line = line..playername
+			end
+		end
+		if color ~= '' then
+			line = color..line
+		else
+			line = convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..line
+		end
 	end
 
 	-- bot command
@@ -1758,7 +1800,6 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 	-- ignore muted players
 	if ignoredPlayers[name] then
 		skipThisMessage = true
-		--bypassThisMessage = true
 	end
 
 	if not bypassThisMessage and line ~= '' then
@@ -1921,6 +1962,10 @@ function widget:Shutdown()
 		WG['guishader'].RemoveRect('chatinput')
 		WG['guishader'].RemoveRect('chatinputautocomplete')
 	end
+end
+
+function widget:GameStart()
+	widget:ViewResize()	-- refresh so playername have their associated colors applied in the history lines too
 end
 
 function widget:GameOver()

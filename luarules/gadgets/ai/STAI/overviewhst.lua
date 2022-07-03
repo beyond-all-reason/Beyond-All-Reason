@@ -15,8 +15,9 @@ function OverviewHST:Init()
 end
 
 function OverviewHST:Update()
-	local f = self.game:Frame()
-	if f % 240 ~= 0 then return end
+-- 	local f = self.game:Frame()
+-- 	if f % 240 ~= 0 then return end
+	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	self:EvaluateSituation()
 end
 

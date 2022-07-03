@@ -185,6 +185,29 @@ local facingMap = {south=0, east=1, north=2, west=3}
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+local unbaStartBuildoptions = {}
+if Spring.GetModOptions().unba then
+	VFS.Include("unbaconfigs/buildoptions.lua")
+	for unitname,level in pairs(ArmBuildOptions) do
+		if level == 1 then
+			unbaStartBuildoptions[UnitDefNames[unitname].id] = unitname
+		end
+	end
+	ArmBuildOptions = nil
+	for unitname,level in pairs(CorBuildOptions) do
+		if level == 1 then
+			unbaStartBuildoptions[UnitDefNames[unitname].id] = unitname
+		end
+	end
+	CorBuildOptions = nil
+	ArmDefsBuildOptions = nil
+	CorDefsBuildOptions = nil
+	ArmBuildOptionsStop = nil
+	CorBuildOptionsStop = nil
+else
+	unbaStartBuildoptions = nil
+end
+
 local vsx, vsy = Spring.GetViewGeometry()
 
 local ordermenuLeft = vsx / 5
@@ -193,8 +216,6 @@ local advplayerlistLeft = vsx * 0.8
 local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
-
-local teamList = Spring.GetTeamList()
 
 local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 
@@ -575,25 +596,27 @@ local function RefreshCommands()
 			categories = Cfgs.buildCategories
 
 			for _, udefid in pairs(UnitDefs[startDefID].buildOptions) do
-				if showWaterUnits or not isWaterUnit[udefid] then
-					if gridPos and gridPos[udefid] then
-						uidcmdsCount = uidcmdsCount + 1
-						uidcmds[udefid] = {
-							id = udefid * -1,
-							name = UnitDefs[udefid].name,
-							params = {}
-						}
-					elseif currentBuildCategory == nil or (unitCategories[udefid] == currentBuildCategory and not (lHasUnitGrid and lHasUnitGrid[udefid])) then
-						local cmd = {
-							id = udefid * -1,
-							name = UnitDefs[udefid].name,
-							params = {}
-						}
+				if not unbaStartBuildoptions or unbaStartBuildoptions[udefid] then
+					if showWaterUnits or not isWaterUnit[udefid] then
+						if gridPos and gridPos[udefid] then
+							uidcmdsCount = uidcmdsCount + 1
+							uidcmds[udefid] = {
+								id = udefid * -1,
+								name = UnitDefs[udefid].name,
+								params = {}
+							}
+						elseif currentBuildCategory == nil or (unitCategories[udefid] == currentBuildCategory and not (lHasUnitGrid and lHasUnitGrid[udefid])) then
+							local cmd = {
+								id = udefid * -1,
+								name = UnitDefs[udefid].name,
+								params = {}
+							}
 
-						uidcmdsCount = uidcmdsCount + 1
-						uidcmds[udefid] = cmd
+							uidcmdsCount = uidcmdsCount + 1
+							uidcmds[udefid] = cmd
 
-						unorderedCmdDefs[udefid] = true
+							unorderedCmdDefs[udefid] = true
+						end
 					end
 				end
 			end
@@ -1057,7 +1080,50 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 end
 
 local sec = 0
+local updateSelection = true
 function widget:Update(dt)
+	if updateSelection then
+		updateSelection = false
+		SelectedUnitsCount = spGetSelectedUnitsCount()
+
+		selectedBuilder = nil
+		selectedFactory = nil
+		currentBuildCategory = nil
+		currentCategoryIndex = nil
+		selectedBuilders = {}
+		currentPage = 1
+
+		if SelectedUnitsCount > 0 then
+			local sel = Spring.GetSelectedUnits()
+			for _, unitID in pairs(sel) do
+				local unitDefID = spGetUnitDefID(unitID)
+
+				if isBuilder[unitDefID] then
+					doUpdate = true
+
+					selectedBuilders[unitID] = true
+					selectedBuilder = unitDefID
+				end
+
+				if isFactory[unitDefID] then
+					doUpdate = true
+
+					selectedFactory = unitDefID
+					selectedFactoryUID = unitID
+					selectedBuilder = nil
+
+					break
+				end
+			end
+
+			if selectedBuilder then
+				categories = Cfgs.buildCategories
+			else
+				categories = {}
+			end
+		end
+	end
+
 	sec = sec + dt
 	if sec > 0.33 then
 		sec = 0
@@ -1703,7 +1769,6 @@ local function DrawUnitDef(uDefID, uTeam, ux, uy, uz, scale)
 end
 
 local function DoBuildingsClash(buildData1, buildData2)
-
 	local w1, h1 = GetBuildingDimensions(buildData1[1], buildData1[5])
 	local w2, h2 = GetBuildingDimensions(buildData2[1], buildData2[5])
 
@@ -1711,7 +1776,34 @@ local function DoBuildingsClash(buildData1, buildData2)
 	math.abs(buildData1[4] - buildData2[4]) < h1 + h2
 end
 
+-- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
+local function cacheUnitIcons()
+	local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalscavuniqueunits)
+	local excludeChickens = not Spring.Utilities.Gametype.IsChickens()
+	gl.Translate(-vsx,0,0)
+	gl.Color(1, 1, 1, 0.001)
+	for id, unit in pairs(UnitDefs) do
+		if not excludeScavs or not string.find(unit.name,'_scav') then
+			if not excludeChickens or not string.find(unit.name,'chicken') then
+				gl.Texture('#'..id)
+				gl.TexRect(-1, -1, 0, 0)
+				if unitIconType[id] and iconTypesMap[unitIconType[id]] then
+					gl.Texture(':l:' .. iconTypesMap[unitIconType[id]])
+					gl.TexRect(-1, -1, 0, 0)
+				end
+			end
+		end
+	end
+	gl.Color(1, 1, 1, 1)
+	gl.Translate(vsx,0,0)
+end
+
 function widget:DrawScreen()
+	if Spring.GetGameFrame() == 0 and not cachedUnitIcons then
+		cachedUnitIcons = true
+		cacheUnitIcons()
+	end
+
 	if chobbyInterface then
 		return
 	end
@@ -2111,43 +2203,7 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdPara
 end
 
 function widget:SelectionChanged(sel)
-	SelectedUnitsCount = spGetSelectedUnitsCount()
-
-	selectedBuilder = nil
-	selectedFactory = nil
-	currentBuildCategory = nil
-	currentCategoryIndex = nil
-	selectedBuilders = {}
-	currentPage = 1
-
-	if SelectedUnitsCount > 0 then
-		for _, unitID in pairs(sel) do
-			local unitDefID = spGetUnitDefID(unitID)
-
-			if isBuilder[unitDefID] then
-				doUpdate = true
-
-				selectedBuilders[unitID] = true
-				selectedBuilder = unitDefID
-			end
-
-			if isFactory[unitDefID] then
-				doUpdate = true
-
-				selectedFactory = unitDefID
-				selectedFactoryUID = unitID
-				selectedBuilder = nil
-
-				break
-			end
-		end
-
-		if selectedBuilder then
-			categories = Cfgs.buildCategories
-		else
-			categories = {}
-		end
-	end
+	updateSelection = true
 end
 
 local function GetUnitCanCompleteQueue(uID)

@@ -27,16 +27,17 @@ function DamageHST:UnitDamaged(engineUnit, attacker, damage)
 end
 
 function DamageHST:Update()
-	local f = self.game:Frame()
-	if f > self.lastDamageCheckFrame + 90 then
+-- 	local f = self.game:Frame()
+-- 	if f > self.lastDamageCheckFrame + 90 then
+		if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 		for unitID, engineUnit in pairs(self.isDamaged) do
 			local health = engineUnit:GetHealth()
 			if not health or (health == engineUnit:GetMaxHealth()) then
 				self.isDamaged[unitID] = nil
 			end
 		end
-		self.lastDamageCheckFrame = f
-	end
+		--self.lastDamageCheckFrame = f
+	--end
 end
 
 function DamageHST:UnitDead(engineUnit)
