@@ -284,7 +284,7 @@ if difficulty >= 3 then
 	addSquad(8, { "10 chickens2" 																}) -- Apex Spiker
 	addSquad(8, { "10 chickenacidallterrain" 													}) -- Acid AllTerrain 
 	addSquad(8, { "4 chickenacidassault" 														}) -- Acid Brawler
-	addSquad(8, { "10 chickenacidbomber" 														}) -- Acid Bomber
+	addSquad(8, { "5 chickenacidbomber" 														}) -- Acid Bomber
 	addSquad(8, { "3 chickenacidarty" 															}) -- Acid Artillery
 end
 
