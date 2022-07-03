@@ -348,6 +348,19 @@ local function DeferredLighting_UnRegisterFunction(functionID)
 	collectionFunctions[functionID] = nil
 end
 ]]--
+local lightRemoveQueue = {}
+local function calcLightExpiry(lightParamsTable, targetVBO, instanceID)
+	if lightParamsTable[18] <= 0 then -- LifeTime less than 0 means never expires
+		return nil 
+	end
+	local deathtime = math.ceil(lightParamsTable[17] + lightParamsTable[18])
+	if lightRemoveQueue[deathtime] == nil then
+		lightRemoveQueue[deathtime] = {}
+	end
+	lightRemoveQueue[deathtime][instanceID] = targetVBO
+	return deathtime
+end
+
 local lightCacheTable = {}
 for i = 1, 29 do lightCacheTable[i] = 0 end 
 local pieceIndexPos = 25
@@ -1516,12 +1529,20 @@ local pointLightCount = 0
 
 local windX = 0
 local windZ = 0
-function widget:GameFrame()
+function widget:GameFrame(n)
 	local windDirX, _, windDirZ, windStrength = Spring.GetWind()
-	windStrength = math.min(20, math.max(3, windStrength))	
+	--windStrength = math.min(20, math.max(3, windStrength))	
 	--Spring.Echo(windDirX,windDirZ,windStrength)
-	windX = windX + windDirX * windStrength * 0.001
-	windZ = windZ + windDirZ * windStrength * 0.001
+	windX = windX + windDirX *  0.016
+	windZ = windZ + windDirZ * 0.016	
+	if lightRemoveQueue[n] then 
+		for instanceID, targetVBO in pairs(lightRemoveQueue[n]) do
+			if targetVBO.instanceIDtoIndex[instanceID] then 
+				popElementInstance(targetVBO, instanceID)
+			end
+		end
+		lightRemoveQueue[n] = nil
+	end
 end
 
 function widget:Update()

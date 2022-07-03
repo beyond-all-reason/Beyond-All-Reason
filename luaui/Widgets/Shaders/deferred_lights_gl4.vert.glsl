@@ -251,7 +251,7 @@ void main()
 	v_lightcenter_gradient_height.xyz = mapnormals.rga;
 	
 	//	vec4 windInfo; // windx, windy, windz, windStrength
-	v_noiseoffset = vec4(windX, 0, windZ,0) * (-0.02);
+	v_noiseoffset = vec4(windX, 0, windZ,0) * (-0.0156);
 	//v_noiseoffset = vec4(0.0);
 	//v_noiseoffset.y = windX + windZ;
 	
