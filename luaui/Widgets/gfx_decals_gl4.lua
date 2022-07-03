@@ -378,7 +378,7 @@ function widget:DrawWorldPreUnit()
 		if decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
 			--Spring.Echo("large elements:", decalLargeVBO.usedElements)
 			decalLargeShader:Activate()
-			decalLargeShader:SetUniform("fadeDistance",disticon * 1000)
+			--decalLargeShader:SetUniform("fadeDistance",disticon * 1000)
 			if decalLargeVBO.usedElements > 0 then 
 				decalLargeVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, decalLargeVBO.usedElements, 0)
 			end
