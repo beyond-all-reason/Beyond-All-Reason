@@ -334,6 +334,8 @@ local armorDefs = {
 	bombers = {
 		"chickenf1",
 		"chickenf1b",
+		"chickenf1apex",
+		"chickenf1apexb",
 		"chickenf2",
 		"chickenebomber1",
 		"chickenacidbomber",
