@@ -51,6 +51,7 @@ local spEcho = Spring.Echo
 local spGetCameraPosition = Spring.GetCameraPosition
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
 local spGetGroundHeight = Spring.GetGroundHeight
+local gameFrame = 0
 
 local math_sqrt = math.sqrt
 local math_min = math.min
@@ -172,6 +173,8 @@ widget:ViewResize()
 	-- at a rez of 32 elmos, dsd would need:
 	-- 256*256*16 voxels (1 million?) yeesh
 
+-- Features are not light-attachable at the moment, and shouldnt be, use global lights 
+
 -- preliminary perf:
 	-- yeah raymarch is expensive!
 
@@ -191,8 +194,8 @@ local unitConeLightVBO = {}
 local unitPointLightVBO = {}
 local unitBeamLightVBO = {}
 
-local featureConeLightVBO = {}
-local featurePointLightVBO = {}
+--local featureConeLightVBO = {}
+--local featurePointLightVBO = {}
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
@@ -272,7 +275,7 @@ local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, d
 			)
 			local shaderCompiled = reinitshader:Initialize()
 			
-			Spring.Echo(shadername, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", Spring.GetGameFrame(), "success", shaderCompiled or false)
+			Spring.Echo(shadername, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", gameFrame, "success", shaderCompiled or false)
 			if shaderCompiled then 
 				return reinitshader
 			else
@@ -317,12 +320,12 @@ local function initGL4()
 	local pointVBO, numPointVertices, pointIndexVBO, numIndices = makeSphereVBO(8, 4, 1) 
 	pointLightVBO 		= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Point Light VBO")
 	unitPointLightVBO 	= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Unit Point Light VBO", 10)
-	featurePointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Feature Point Light VBO", 10)
+	--featurePointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Feature Point Light VBO", 10)
 	
 	local coneVBO, numConeVertices = makeConeVBO(12, 1, 1)
 	coneLightVBO 		= createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Cone Light VBO")
 	unitConeLightVBO 	= createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Unit Cone Light VBO", 10)
-	featureConeLightVBO = createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Feature Cone Light VBO", 10)
+	--featureConeLightVBO = createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Feature Cone Light VBO", 10)
 	
 	local beamVBO, numBeamVertices = makeBoxVBO(-1, -1, -1, 1, 1, 1)
 	beamLightVBO 		= createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Beam Light VBO")
@@ -349,7 +352,7 @@ local function DeferredLighting_UnRegisterFunction(functionID)
 end
 ]]--
 local lightRemoveQueue = {}
-local function calcLightExpiry(lightParamsTable, targetVBO, instanceID)
+local function calcLightExpiry(targetVBO, lightParamsTable, instanceID)
 	if lightParamsTable[18] <= 0 then -- LifeTime less than 0 means never expires
 		return nil 
 	end
@@ -364,138 +367,242 @@ end
 local lightCacheTable = {}
 for i = 1, 29 do lightCacheTable[i] = 0 end 
 local pieceIndexPos = 25
+local spawnFramePos = 17
 lightCacheTable[13] = 1 --modelfactor_specular_scattering_lensflare
 lightCacheTable[14] = 1
 lightCacheTable[15] = 1
 lightCacheTable[16] = 1
 
-
-local function AddPointLight(px,py,pz,radius)
-	lightCacheTable[1] = px
-	lightCacheTable[2] = py
-	lightCacheTable[3] = pz
-	lightCacheTable[4] = radius
-	return pushElementInstance(pointLightVBO, lightCacheTable)
-end
-
-local function AddUnitPointLight(unitID, pieceIndex, instanceID, px,py,pz,radius, r,g,b,a)
-	lightCacheTable[1] = px
-	lightCacheTable[2] = py
-	lightCacheTable[3] = pz
-	lightCacheTable[4] = radius
-	lightCacheTable[9] = r
-	lightCacheTable[10] = g
-	lightCacheTable[11] = b
-	lightCacheTable[12] = a
+---AddPointLight
+---Note that instanceID can be nil if an auto-generated one is OK.
+---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
+---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
+---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light, 
+---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
+---@param pieceIndex nil if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
+---@param px_or_table float position X or a valid table of parameters
+---@param py float Y position of the light
+---@param pz float Z position of the light
+---@param radius float radius position of the light
+---@param r float red color of the light (0-1), but can go higher
+---@param g float green color of the light (0-1), but can go higher
+---@param b float blue color of the light (0-1), but can go higher
+---@param a float global brightness modifier of the light (0-1), but can go higher
+---@param r2 float red secondary color of the light (0-1), but can go higher
+---@param g2 float green secondary color of the light (0-1), but can go higher
+---@param b2 float blue secondary color of the light (0-1), but can go higher
+---@param colortime float time in seconds for the light to transition to secondary color. 
+---@param modelfactor float how much more light gets applied to models vs terrain (default 1)
+---@param specular float how strong specular highlights of this light are (default 1)
+---@param scattering float how strong the atmospheric scattering effect is (default 1)
+---@param lensflare float intensity of the lens flare effect( default 1)
+---@param spawnframe float the gameframe the light was spawned in (for anims, in frames, default current game frame)
+---@param lifetime float how many frames the light will live, with decreasing brightness
+---@param bias float how much sustain time the light will have at its original brightness (in game frames) 
+---@param animtype int what further type of animation will be used
+---@return instanceID for future reuse
+local function AddPointLight(instanceID, unitID, pieceIndex, px_or_table, py, pz, radius, r,g,b,a, r2,g2,b2, colortime,
+	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, animtype)
 	
+	local lightparams
+	if type(px_or_table) ~= "table" then 
+		lightparams = lightCacheTable
+		lightparams[1] = px_or_table or 0
+		lightparams[2] = py or 0 
+		lightparams[3] = pz or 0 
+		lightparams[4] = radius or 100
+		lightparams[5] = r2 or 0
+		lightparams[6] = g2 or 0
+		lightparams[7] = b2 or 0
+		lightparams[8] = colortime or 0
+		
+		lightparams[9] = r or 1
+		lightparams[10] = g or 1
+		lightparams[11] = b or 1
+		lightparams[12] = a or 1
+		
+		lightparams[13] = modelfactor or 1
+		lightparams[14] = specular or 1
+		lightparams[15] = scattering or 1
+		lightparams[16] = lensflare or 1
+		
+		lightparams[spawnFramePos] = spawnframe or gameFrame
+		lightparams[18] = lifetime or 0
+		lightparams[19] = bias or 1
+		lightparams[19] = animtype or 0
+		lightparams[20] = 0 --unused!
+		lightparams[21] = 0 -- unused
+		lightparams[22] = 0 --unused
+		lightparams[23] = 0 --unused
+		lightparams[24] = 0 --unused
+		lightparams[pieceIndexPos] = pieceIndex or 0
+	else
+		lightparams = px_or_table
+		lightparams[spawnFramePos] = gameFrame
+	end
+	if unitID then 
+		instanceID = pushElementInstance(unitPointLightVBO, lightparams, instanceID, true, nil, unitID)
+	else
+		instanceID = pushElementInstance(pointLightVBO, lightparams, instanceID, true)
+		calcLightExpiry(pointLightVBO, lightparams, instanceID)
+	end
+	return instanceID
+end
+
+---AddBeamLight
+---Note that instanceID can be nil if an auto-generated one is OK.
+---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
+---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
+---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light, 
+---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
+---@param pieceIndex nil if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
+---@param px_or_table float position X or a valid table of parameters
+---@param py float Y position of the light
+---@param pz float Z position of the light
+---@param radius float radius position of the light
+---@param r float red color of the light (0-1), but can go higher
+---@param g float green color of the light (0-1), but can go higher
+---@param b float blue color of the light (0-1), but can go higher
+---@param a float global brightness modifier of the light (0-1), but can go higher
+---@param sx float pos of the endpoint of the beam
+---@param sy float pos of the endpoint of the beam
+---@param sz float pos of the endpoint of the beam
+---@param r2 float radius2 is unused at the moment
+---@param modelfactor float how much more light gets applied to models vs terrain (default 1)
+---@param specular float how strong specular highlights of this light are (default 1)
+---@param scattering float how strong the atmospheric scattering effect is (default 1)
+---@param lensflare float intensity of the lens flare effect( default 1)
+---@param spawnframe float the gameframe the light was spawned in (for anims, in frames, default current game frame)
+---@param lifetime float how many frames the light will live, with decreasing brightness
+---@param bias float how much sustain time the light will have at its original brightness (in game frames) 
+---@param animtype int what further type of animation will be used
+---@return instanceID for future reuse
+local function AddBeamLight(instanceID, unitID, pieceIndex, px_or_table, py, pz, radius, r,g,b,a, sx, sy, sz, r2, colortime,
+	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, animtype)
 	
-	lightCacheTable[pieceIndexPos] = pieceIndex
-	instanceID =  pushElementInstance(unitPointLightVBO, lightCacheTable, instanceID, true, nil, unitID)
-	lightCacheTable[pieceIndexPos] = 0
+	local lightparams
+	if type(px_or_table) ~= "table" then 
+		lightparams = lightCacheTable
+		lightparams[1] = px_or_table or 0
+		lightparams[2] = py or 0 
+		lightparams[3] = pz or 0 
+		lightparams[4] = radius or 100
+		lightparams[5] = sx or 0
+		lightparams[6] = sy or 0
+		lightparams[7] = sz or 0
+		lightparams[8] = radius or 100
+		
+		lightparams[9] = r or 1
+		lightparams[10] = g or 1
+		lightparams[11] = b or 1
+		lightparams[12] = a or 1
+		
+		lightparams[13] = modelfactor or 1
+		lightparams[14] = specular or 1
+		lightparams[15] = scattering or 1
+		lightparams[16] = lensflare or 1
+		
+		lightparams[spawnFramePos] = spawnframe or gameFrame
+		lightparams[18] = lifetime or 0
+		lightparams[19] = bias or 1
+		lightparams[19] = animtype or 0
+		lightparams[20] = 0 --unused!
+		lightparams[21] = 0 -- unused
+		lightparams[22] = 0 --unused
+		lightparams[23] = 0 --unused
+		lightparams[24] = 0 --unused
+		lightparams[pieceIndexPos] = pieceIndex or 0
+	else
+		lightparams = px_or_table
+		lightparams[spawnFramePos] = gameFrame
+	end
+	if unitID then 
+		instanceID = pushElementInstance(unitBeamLightVBO, lightparams, instanceID, true, nil, unitID)
+	else
+		instanceID = pushElementInstance(beamLightVBO, lightparams, instanceID, true)
+		calcLightExpiry(beamLightVBO, lightparams, instanceID)
+	end
 	return instanceID
 end
 
-local function AddUnitPointLightTable(unitID, instanceID, lightParamTable)
-	Spring.Echo("AddUnitPointLightTable",unitID, instanceID, unitPointLightVBO.usedElements)
-	return pushElementInstance(unitPointLightVBO, lightParamTable, instanceID, true, nil, unitID)
-end
-
-local function AddFeaturePointLight(featureID, px,py,pz,radius)
-	lightCacheTable[1] = px
-	lightCacheTable[2] = py
-	lightCacheTable[3] = pz
-	lightCacheTable[4] = radius
-	local instanceID =  pushElementInstance(featurePointLightVBO, lightCacheTable, nil, true, nil, featureID)
+---AddConeLight
+---Note that instanceID can be nil if an auto-generated one is OK.
+---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
+---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
+---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light, 
+---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
+---@param pieceIndex nil if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
+---@param px_or_table float position X or a valid table of parameters
+---@param py float Y position of the light
+---@param pz float Z position of the light
+---@param radius float height of the cone
+---@param r float red color of the light (0-1), but can go higher
+---@param g float green color of the light (0-1), but can go higher
+---@param b float blue color of the light (0-1), but can go higher
+---@param a float global brightness modifier of the light (0-1), but can go higher
+---@param dx float dirx of the cone
+---@param dy float diry of the cone
+---@param dz float dirz of the cone
+---@param theta float half-angle of the cone in radians
+---@param modelfactor float how much more light gets applied to models vs terrain (default 1)
+---@param specular float how strong specular highlights of this light are (default 1)
+---@param scattering float how strong the atmospheric scattering effect is (default 1)
+---@param lensflare float intensity of the lens flare effect( default 1)
+---@param spawnframe float the gameframe the light was spawned in (for anims, in frames, default current game frame)
+---@param lifetime float how many frames the light will live, with decreasing brightness
+---@param bias float how much sustain time the light will have at its original brightness (in game frames) 
+---@param animtype int what further type of animation will be used
+---@return instanceID for future reuse
+local function AddConeLight(instanceID, unitID, pieceIndex, px_or_table, py, pz, radius, r,g,b,a, dx,dy,dz,theta, colortime,
+	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, animtype)
+	
+	local lightparams
+	if type(px_or_table) ~= "table" then 
+		lightparams = lightCacheTable
+		lightparams[1] = px_or_table or 0
+		lightparams[2] = py or 0 
+		lightparams[3] = pz or 0 
+		lightparams[4] = radius or 100
+		lightparams[5] = dx or 0
+		lightparams[6] = dy or 0
+		lightparams[7] = dz or 0
+		lightparams[8] = theta or 0.5
+		
+		lightparams[9] = r or 1
+		lightparams[10] = g or 1
+		lightparams[11] = b or 1
+		lightparams[12] = a or 1
+		
+		lightparams[13] = modelfactor or 1
+		lightparams[14] = specular or 1
+		lightparams[15] = scattering or 1
+		lightparams[16] = lensflare or 1
+		
+		lightparams[spawnFramePos] = spawnframe or gameFrame
+		lightparams[18] = lifetime or 0
+		lightparams[19] = bias or 1
+		lightparams[19] = animtype or 0
+		lightparams[20] = 0 --unused!
+		lightparams[21] = 0 -- unused
+		lightparams[22] = 0 --unused
+		lightparams[23] = 0 --unused
+		lightparams[24] = 0 --unused
+		lightparams[pieceIndexPos] = pieceIndex or 0
+	else
+		lightparams = px_or_table
+		lightparams[spawnFramePos] = gameFrame
+	end
+	if unitID then 
+		instanceID = pushElementInstance(unitConeLightVBO, lightparams, instanceID, true, nil, unitID)
+	else
+		instanceID = pushElementInstance(coneLightVBO, lightparams, instanceID, true)
+		calcLightExpiry(coneLightVBO, lightparams, instanceID)
+	end
 	return instanceID
 end
 
-local function AddBeamLight(px,py,pz,radius, sx, sy, sz)
-	lightCacheTable[1] = px
-	lightCacheTable[2] = py
-	lightCacheTable[3] = pz
-	lightCacheTable[4] = radius
-	lightCacheTable[5] = sx
-	lightCacheTable[6] = sy
-	lightCacheTable[7] = sz
-	lightCacheTable[8] = radius
-	return pushElementInstance(beamLightVBO, lightCacheTable)
-end
+-- multiple lights per unitdef/piece are possible, as the lights are keyed by lightname
 
-local function AddUnitBeamLight(unitID, pieceIndex, instanceID, px,py,pz,radius, sx, sy, sz, r,g,b,a)
-	lightCacheTable[1] = px
-	lightCacheTable[2] = py
-	lightCacheTable[3] = pz
-	lightCacheTable[4] = radius
-	lightCacheTable[5] = sx
-	lightCacheTable[6] = sy
-	lightCacheTable[7] = sz
-	lightCacheTable[8] = radius
-	lightCacheTable[9] = r
-	lightCacheTable[10] = g
-	lightCacheTable[11] = b
-	lightCacheTable[12] = a
-	lightCacheTable[pieceIndexPos] = pieceIndex
-	instanceID = pushElementInstance(unitBeamLightVBO, lightCacheTable, instanceID, true, nil, unitID)
-	lightCacheTable[pieceIndexPos] = 0
-	return instanceID
-end
-
-local function AddUnitBeamLightTable(unitID, instanceID, lightParamTable)
-	Spring.Echo("AddUnitBeamLightTable",unitID, instanceID, lightParamTable)
-	return pushElementInstance(unitBeamLightVBO, lightParamTable, instanceID, true, nil, unitID)
-end
-
-local function AddConeLight(px,py,pz,height, dx, dy, dz, angle)
-	lightCacheTable[1] = px
-	lightCacheTable[2] = py
-	lightCacheTable[3] = pz
-	lightCacheTable[4] = height
-	lightCacheTable[5] = dx
-	lightCacheTable[6] = dy
-	lightCacheTable[7] = dz
-	lightCacheTable[8] = angle
-	return pushElementInstance(coneLightVBO, lightCacheTable)
-end
-
-local function AddUnitConeLight(unitID, pieceIndex, instanceID, px,py,pz,height, dx, dy, dz, angle, r,g,b,a)
-	lightCacheTable[1] = px
-	lightCacheTable[2] = py
-	lightCacheTable[3] = pz
-	lightCacheTable[4] = height
-	lightCacheTable[5] = dx
-	lightCacheTable[6] = dy
-	lightCacheTable[7] = dz
-	lightCacheTable[8] = angle
-	lightCacheTable[9] = r
-	lightCacheTable[10] = g
-	lightCacheTable[11] = b
-	lightCacheTable[12] = a
-	lightCacheTable[pieceIndexPos] = pieceIndex
-	instanceID =  pushElementInstance(unitConeLightVBO, lightCacheTable, instanceID, true, nil, unitID)
-	lightCacheTable[pieceIndexPos] = 0
-	return instanceID
-end
-
-local function AddUnitConeLightTable(unitID, instanceID, lightParamTable)
-	Spring.Echo("AddUnitConeLightTable",unitID, instanceID, lightParamTable)
-	return pushElementInstance(unitConeLightVBO, lightParamTable, instanceID, true, nil, unitID)
-end
-
-local function AddFeatureConeLight(featureID, px,py,pz,height, dx, dy, dz, angle)
-	lightCacheTable[1] = px
-	lightCacheTable[2] = py
-	lightCacheTable[3] = pz
-	lightCacheTable[4] = height
-	lightCacheTable[5] = dx
-	lightCacheTable[6] = dy
-	lightCacheTable[7] = dz
-	lightCacheTable[8] = angle
-	return pushElementInstance(unitConeLightVBO, lightCacheTable, nil, true, nil, featureID)
-end
-
--- Hmm, how are we going to handle having multiple lights per unitDEF?
--- TODO: only one 'type' of light can be specified for each unitDef
--- This reeks of the same issues present in AirJets GL4
 local unitDefLights = {
 	[UnitDefNames['armpw'].id] = {
 		initComplete = false, -- this is needed maybe?
@@ -1283,21 +1390,20 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noupload)
 						lightParams.pieceIndex = pieceMap[lightParams.pieceName] 
 						lightParams.lightParamTable[pieceIndexPos] = lightParams.pieceIndex
 					end
-					Spring.Echo(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
+					--Spring.Echo(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
 				end
 			end
 		end
 		for lightname, lightParams in pairs(unitDefLight) do
 			if lightname ~= 'initComplete' then
 				if lightParams.lighttype == 'point' then
-					AddUnitPointLightTable(unitID, tostring(unitID) ..  lightname, lightParams.lightParamTable) 
+					AddPointLight( tostring(unitID) ..  lightname, unitID, nil, lightParams.lightParamTable)
 				end
 				if lightParams.lighttype == 'cone' then 
-					AddUnitConeLightTable(unitID, tostring(unitID) ..  lightname, lightParams.lightParamTable) 
-				
+					AddConeLight(tostring(unitID) ..  lightname, unitID, nil, lightParams.lightParamTable) 
 				end
 				if lightParams.lighttype == 'beam' then 
-					AddUnitBeamLightTable(unitID, tostring(unitID) ..  lightname, lightParams.lightParamTable) 
+					AddBeamLight(tostring(unitID) ..  lightname, unitID, nil, lightParams.lightParamTable) 
 				end
 			end
 		end
@@ -1325,16 +1431,16 @@ end
 
 
 function AddRandomLight(which)
-	local gf = Spring.GetGameFrame()
+	local gf = gameFrame
 	local radius = math.random() * 150 + 50
 	local posx = Game.mapSizeX * math.random() * 1.0
 	local posz = Game.mapSizeZ * math.random() * 1.0
 	local posy = Spring.GetGroundHeight(posx, posz) + math.random() * 0.5 * radius
 	-- randomize color
-	lightCacheTable[9] = math.random() + 0.1 --r
-	lightCacheTable[10] = math.random() + 0.1 --g 
-	lightCacheTable[11] = math.random() + 0.1 --b
-	lightCacheTable[12] = math.random() * 1.0 + 0.5 -- intensity or alpha
+	local r  = math.random() + 0.1 --r
+	local g = math.random() + 0.1 --g 
+	local b = math.random() + 0.1 --b
+	local a = math.random() * 1.0 + 0.5 -- intensity or alpha
 	
 	lightCacheTable[13] = 1 -- modelfactor
 	lightCacheTable[14] = 1 -- specular
@@ -1343,19 +1449,19 @@ function AddRandomLight(which)
 	
 	
 	if which < 0.33 then -- point
-		AddPointLight(posx, posy, posz, radius)
+		AddPointLight(nil, nil, nil, posx, posy, posz, radius, r,g,b,a)
 	elseif which < 0.66 then -- beam
 		local s =  (math.random() - 0.5) * 500
 		local t =  (math.random() + 0.5) * 100
 		local u =  (math.random() - 0.5) * 500
-		AddBeamLight(posx, posy , posz, radius, posx + s, posy + t, posz + u)
+		AddBeamLight(nil,nil,nil,posx, posy , posz, radius, r,g,b,a, posx + s, posy + t, posz + u)
 	else -- cone
 		local s =  (math.random() - 0.5) * 2
 		local t =  (math.random() + 0.0) * -1
 		local u =  (math.random() - 0.5) * 2
 		local lenstu = 1.0 / math.sqrt(s*s + t*t + u*u)
 		local theta = math.random() * 0.9 
-		AddConeLight(posx, posy + radius, posz, 3* radius, s * lenstu, t * lenstu, u * lenstu, theta)
+		AddConeLight(nil,nil,nil,posx, posy + radius, posz, 3* radius, r,g,b,a,s * lenstu, t * lenstu, u * lenstu, theta)
 	end
 	
 end
@@ -1555,6 +1661,7 @@ local pointLightCount = 0
 local windX = 0
 local windZ = 0
 function widget:GameFrame(n)
+	gameFrame = n
 	local windDirX, _, windDirZ, windStrength = Spring.GetWind()
 	--windStrength = math.min(20, math.max(3, windStrength))	
 	--Spring.Echo(windDirX,windDirZ,windStrength)
