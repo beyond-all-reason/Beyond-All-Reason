@@ -41,9 +41,9 @@ void main()
 	
 	v_parameters = alphastart_alphadecay_heatstart_heatdecay;
 	
-	v_parameters.zw = alphastart_alphadecay_heatstart_heatdecay.xz - alphastart_alphadecay_heatstart_heatdecay.yw * timeInfo.x * 0.03333;
+	//v_parameters.zw = alphastart_alphadecay_heatstart_heatdecay.xz - alphastart_alphadecay_heatstart_heatdecay.yw * timeInfo.x * 0.03333;
 	
-	v_parameters.x = 0.0;
+	//v_parameters.x = 0.0;
 	
 	v_lengthwidthrotation = lengthwidthrotation;
 	bvec4 isClipped = bvec4(
@@ -68,6 +68,8 @@ void main()
 	float currentAlpha = min(1.0, lifetonow*0.05)  * alphastart - lifetonow* alphadecay;
 	currentAlpha = min(currentAlpha, lengthwidthrotation.w);
 	v_lengthwidthrotation.w = currentAlpha;
+	// heatdecay is:
+	v_parameters.w = exp(- 0.033 * lifetonow * alphastart_alphadecay_heatstart_heatdecay.w);
 
 
 	vec3 toCamera = cameraViewInv[3].xyz - v_centerpos.xyz;

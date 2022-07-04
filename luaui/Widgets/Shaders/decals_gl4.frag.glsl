@@ -113,7 +113,11 @@ void main(void)
 	vec3 blendedcolor = tex1color.rgb * (minimapcolor.rgb * 2.0);
 	fragColor.rgb = blendedcolor;
 	fragColor.a = tex1color.a * tex1color.a * 0.9;
-
+	
+	//float lifeTime = (timeInfo.x + timeInfo.w) - 
+	float hotness = g_parameters.z * g_parameters.w;
+	//vec3 heatColor = Temperature(maxheat);
+	vec3 heatColor = vec3(hotness * 0.0001);
 
 	vec3 worldspacenormal = tbnmatrix * fragNormal.rgb;
 	
@@ -150,5 +154,6 @@ void main(void)
 	fragColor.rgb = mix(fragColor.rgb, fragColor.rgb * waterblendfactors.rgb, waterblendfactors.a);
 	
 	fragColor.a *= g_color.a;
-	
+	//fragColor.r += hotness;
+	//fragColor.rgb += heatColor;
 }

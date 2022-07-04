@@ -20,7 +20,8 @@ end
 
 -- advanced geoshader tricount for quads
 -- 4x4 - 40
-
+-- KNOWN BUG:
+	-- the pop-back can change the render order of decals to be a tad annoying.... maybe a better method of managing this is needed? 
 
 
 local atlasColorAlpha = nil
@@ -305,8 +306,8 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 	-- posx, posz, world pos to place center of decal
 	-- rotation: rotation around y in radians
 	-- width, length in elmos
-	-- heatstart: the initial temperature, in kelvins of the emissive parts (alpha channel of normal texture)
-	-- heatdecay: the exponential rate at which the hot parts are cooled down each frame
+	-- TODO: heatstart: the initial temperature, in kelvins of the emissive parts (alpha channel of normal texture)
+	-- TODO: heatdecay: the exponential rate at which the hot parts are cooled down each frame
 	-- alphastart: The initial transparency amount, can be > 1 too
 	-- alphadecay: How much alpha is reduced each frame, when alphastart/alphadecay goes below 0, the decal will get automatically removed.
 	-- maxalpha: The highest amount of transparency this decal can have
@@ -442,7 +443,7 @@ function widget:Initialize()
 					w, -- width
 					w, --height 
 					math.random() * 10000, -- heatstart
-					math.random() * 100, -- heatdecay
+					math.random() * 1, -- heatdecay
 					math.random() * 1.0 + 1.0, -- alphastart
 					math.random() * 0.01, -- alphadecay
 					math.random() * 0.3 + 0.7 -- maxalpha
