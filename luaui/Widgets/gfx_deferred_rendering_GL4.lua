@@ -398,7 +398,7 @@ lightCacheTable[16] = 1
 ---@param lensflare float intensity of the lens flare effect( default 1)
 ---@param spawnframe float the gameframe the light was spawned in (for anims, in frames, default current game frame)
 ---@param lifetime float how many frames the light will live, with decreasing brightness
----@param bias float how much sustain time the light will have at its original brightness (in game frames) 
+---@param sustain float how much sustain time the light will have at its original brightness (in game frames) 
 ---@param animtype int what further type of animation will be used
 ---@return instanceID for future reuse
 local function AddPointLight(instanceID, unitID, pieceIndex, px_or_table, py, pz, radius, r,g,b,a, r2,g2,b2, colortime,
@@ -428,7 +428,7 @@ local function AddPointLight(instanceID, unitID, pieceIndex, px_or_table, py, pz
 		
 		lightparams[spawnFramePos] = spawnframe or gameFrame
 		lightparams[18] = lifetime or 0
-		lightparams[19] = bias or 1
+		lightparams[19] = sustain or 1
 		lightparams[19] = animtype or 0
 		lightparams[20] = 0 --unused!
 		lightparams[21] = 0 -- unused
@@ -474,7 +474,7 @@ end
 ---@param lensflare float intensity of the lens flare effect( default 1)
 ---@param spawnframe float the gameframe the light was spawned in (for anims, in frames, default current game frame)
 ---@param lifetime float how many frames the light will live, with decreasing brightness
----@param bias float how much sustain time the light will have at its original brightness (in game frames) 
+---@param sustain float how much sustain time the light will have at its original brightness (in game frames) 
 ---@param animtype int what further type of animation will be used
 ---@return instanceID for future reuse
 local function AddBeamLight(instanceID, unitID, pieceIndex, px_or_table, py, pz, radius, r,g,b,a, sx, sy, sz, r2, colortime,
@@ -504,10 +504,10 @@ local function AddBeamLight(instanceID, unitID, pieceIndex, px_or_table, py, pz,
 		
 		lightparams[spawnFramePos] = spawnframe or gameFrame
 		lightparams[18] = lifetime or 0
-		lightparams[19] = bias or 1
+		lightparams[19] = sustain or 1
 		lightparams[19] = animtype or 0
 		lightparams[20] = 0 --unused!
-		lightparams[21] = 0 -- unused
+		lightparams[21] = 0 --unused
 		lightparams[22] = 0 --unused
 		lightparams[23] = 0 --unused
 		lightparams[24] = 0 --unused
@@ -550,7 +550,7 @@ end
 ---@param lensflare float intensity of the lens flare effect( default 1)
 ---@param spawnframe float the gameframe the light was spawned in (for anims, in frames, default current game frame)
 ---@param lifetime float how many frames the light will live, with decreasing brightness
----@param bias float how much sustain time the light will have at its original brightness (in game frames) 
+---@param sustain float how much sustain time the light will have at its original brightness (in game frames) 
 ---@param animtype int what further type of animation will be used
 ---@return instanceID for future reuse
 local function AddConeLight(instanceID, unitID, pieceIndex, px_or_table, py, pz, radius, r,g,b,a, dx,dy,dz,theta, colortime,
@@ -580,7 +580,7 @@ local function AddConeLight(instanceID, unitID, pieceIndex, px_or_table, py, pz,
 		
 		lightparams[spawnFramePos] = spawnframe or gameFrame
 		lightparams[18] = lifetime or 0
-		lightparams[19] = bias or 1
+		lightparams[19] = sustain or 1
 		lightparams[19] = animtype or 0
 		lightparams[20] = 0 --unused!
 		lightparams[21] = 0 -- unused
@@ -608,20 +608,12 @@ local unitDefLights = {
 		initComplete = false, -- this is needed maybe?
 		headlightpw = { -- this is the lightname
 			lighttype = 'cone',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 150,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
 			pieceName = 'justattachtobase', -- invalid ones will attack to the worldpos of the unit
-			lightParamTable = {0,23,7,150, --pos + radius
+			lightParamTable = {0,23,7,150, --pos + height
 								0,-0.07,1, 0.30, -- dir + angle
 								1,1,0.9,0.6, -- RGBA
 								0.1,1,1.5,0.6, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -630,20 +622,12 @@ local unitDefLights = {
 		},
 		-- dicklight = {
 		-- 	lighttype = 'point',
-		-- 	px = 0,
-		-- 	py = 0,
-		-- 	pz = 0,
-		-- 	height = 150,
-		-- 	dx = 0, 
-		-- 	dy = 0, 
-		-- 	dz = -1, 
-		-- 	angle = 1,
 		-- 	pieceName = 'pelvis',
 		-- 	lightParamTable = {50,10,4,100, --pos + radius
-		-- 						0,0,0, 0, -- unused
+		-- 						0,0,0, 0, -- color2
 		-- 						1,1,1,0, -- RGBA
 		-- 						1,1,1,1, -- modelfactor_specular_scattering_lensflare
-		-- 						0,0,0,0, -- otherparams
+		-- 						0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 		--						0,0,0,0, -- color2
 		-- 						0, -- pieceIndex
 		-- 						0,0,0,0 -- instData always 0!
@@ -652,20 +636,12 @@ local unitDefLights = {
 		-- },
 		-- gunlight = {
 		-- 	lighttype = 'beam',
-		-- 	px = 0,
-		-- 	py = 0,
-		-- 	pz = 0,
-		-- 	height = 150,
-		-- 	dx = 0, 
-		-- 	dy = 0, 
-		-- 	dz = -1, 
-		-- 	angle = 1,
 		-- 	pieceName = 'lthigh',
 		-- 	lightParamTable = {0,0,0,150, --pos + radius
 		-- 						150,150,150, 0, -- endpos
 		-- 						1,1,1,1, -- RGBA
 		-- 						1,1,1,1, -- modelfactor_specular_scattering_lensflare
-		-- 						0,0,0,0, -- otherparams
+		-- 						0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 		--						0,0,0,0, -- color2
 		-- 						0, -- pieceIndex
 		-- 						0,0,0,0 -- instData always 0!
@@ -677,20 +653,12 @@ local unitDefLights = {
 		initComplete = false, -- this is needed maybe?	
 		-- searchlight = {
 		-- 	lighttype = 'cone',
-		-- 	px = 0,
-		-- 	py = 0,
-		-- 	pz = 0,
-		-- 	height = 0,
-		-- 	dx = 0, 
-		-- 	dy = 0, 
-		-- 	dz = -1, 
-		-- 	angle = 1,
 		-- 	pieceName = 'dish',
 		-- 	lightParamTable = {0,0,0,70, --pos + radius
 		-- 						0,0,-1, 0.2, -- dir + angle
 		-- 						0.5,3,0.5,1, -- RGBA
 		-- 						0.5,1,2,0, -- modelfactor_specular_scattering_lensflare
-		-- 						0,0,0,0, -- otherparams
+		-- 						0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 		--						0,0,0,0, -- color2
 		-- 						0, -- pieceIndex
 		-- 						0,0,0,0 -- instData always 0!
@@ -699,20 +667,12 @@ local unitDefLights = {
 		-- },
 		greenblob = {
 				lighttype = 'point',
-				px = 0,
-				py = 0,
-				pz = 0,
-				height = 150,
-				dx = 0, 
-				dy = 0, 
-				dz = -1, 
-				angle = 1,
 				pieceName = 'turret',
 				lightParamTable = {0,72,0,20, --pos + radius
-								0,0,0,0, -- unused
+								0,0,0,0, -- color2
 								0,1,0,0.6, -- RGBA
 								0.8,0.9,1.0,10, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -724,20 +684,12 @@ local unitDefLights = {
 		initComplete = false, -- this is needed maybe?	
 		greenblob = {
 				lighttype = 'point',
-				px = 0,
-				py = 0,
-				pz = 0,
-				height = 150,
-				dx = 0, 
-				dy = 0, 
-				dz = -1, 
-				angle = 1,
 				pieceName = 'turret',
 				lightParamTable = {0,82,0,20, --pos + radius
-								0,0,0,0, -- unused
+								0,0,0,0, -- color2
 								0,1,0,0.6, -- RGBA
 								0.8,0.9,1.0,10, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -750,20 +702,12 @@ local unitDefLights = {
 		initComplete = false, -- this is needed maybe?
 		searchlightllt = {
 			lighttype = 'cone',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 150,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
 			pieceName = 'sleeve',
 			lightParamTable = {0,5,5.8,450, --pos + radius
 								0,0,1,0.25, -- dir + angle
 								1,1,1,0.5, -- RGBA
 								0.2,1,1,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -775,20 +719,12 @@ local unitDefLights = {
 		initComplete = false, -- this is needed maybe?
 		searchlightllt = {
 			lighttype = 'cone',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 150,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
 			pieceName = 'turret',
 			lightParamTable = {0,5,5.8,450, --pos + radius
 								0,0,1,0.25, -- dir + angle
 								1,1,1,0.5, -- RGBA
 								0.2,1,1,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -800,20 +736,12 @@ local unitDefLights = {
 		initComplete = false, -- this is needed maybe?
 		searchlightrl = {
 			lighttype = 'cone',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 150,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
 			pieceName = 'sleeve',
 			lightParamTable = {0,0,7,450, --pos + radius
 								0,0,1,0.20, -- dir + angle
 								1,1,1,1, -- RGBA
 								1,1,1,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -825,20 +753,12 @@ local unitDefLights = {
 		initComplete = false, -- this is needed maybe?
 		-- searchlight = {
 		-- 	lighttype = 'cone',
-		-- 	px = 0,
-		-- 	py = 0,
-		-- 	pz = 0,
-		-- 	height = 150,
-		-- 	dx = 0, 
-		-- 	dy = 0, 
-		-- 	dz = -1, 
-		-- 	angle = 1,
 		-- 	pieceName = 'turret',
 		-- 	lightParamTable = {0,0,3,65, --pos + radius
 		-- 						0,-0.4,1, 1, -- dir + angle
 		-- 						1.2,0.1,0.1,1.2, -- RGBA
 		-- 						1,1,1,1, -- modelfactor_specular_scattering_lensflare
-		-- 						0,0,0,0, -- otherparams
+		-- 						0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 		--						0,0,0,0, -- color2
 		-- 						0, -- pieceIndex
 		-- 						0,0,0,0 -- instData always 0!
@@ -847,20 +767,12 @@ local unitDefLights = {
 		-- },
 		cloaklightred = {
 				lighttype = 'point',
-				px = 0,
-				py = 0,
-				pz = 0,
-				height = 150,
-				dx = 0, 
-				dy = 0, 
-				dz = -1, 
-				angle = 1,
 				pieceName = 'turret',
 				lightParamTable = {0,30,0,35, --pos + radius
 								0,0,1,0, -- unused
 								1,0,0,0.5, -- RGBA
 								0.5,0.5,1.5,10, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -872,20 +784,12 @@ local unitDefLights = {
 		initComplete = false, -- this is needed maybe?
 		beacon1 = { -- this is the lightname
 			lighttype = 'cone',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 150,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
 			pieceName = 'beacon1',
 			lightParamTable = {0,0,0,30, --pos + radius
 								1,0,0, 0.99, -- dir + angle
 								1.3,1.0,0.1,2, -- RGBA
 								0.1,0.2,1,2, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -894,20 +798,12 @@ local unitDefLights = {
 		},
 		beacon2 = {
 			lighttype = 'cone',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 150,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
 			pieceName = 'beacon2',
 			lightParamTable = {0,0,0,30, --pos + radius
 								-1,0,0, 0.99, -- dir + angle
 								1.3,1.0,0.1,2, -- RGBA
 								0.1,0.2,1,2, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -919,20 +815,12 @@ local unitDefLights = {
 		initComplete = false, -- this is needed maybe?
 		searchlightstump = {
 			lighttype = 'cone',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 250,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
 			pieceName = 'base',
 			lightParamTable = {0,0,10,100, --pos + radius
 								0,-0.08,1, 0.26, -- dir + angle
 								1,1,1,1.2, -- RGBA
 								1,1,1,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -944,20 +832,12 @@ local unitDefLights = {
 		initComplete = false, -- this is needed maybe?
 		searchlightbanth = {
 			lighttype = 'cone',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 250,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
 			pieceName = 'turret',
 			lightParamTable = {0,2,18,520, --pos + radius
 								0,-0.12,1, 0.26, -- dir + angle
 								1,1,1,1, -- RGBA
 								0.1,1,1,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -969,20 +849,12 @@ local unitDefLights = {
 		initComplete = false, -- this is needed maybe?
 		headlightarmcom = {
 			lighttype = 'cone',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 250,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
 			pieceName = 'head',
 			lightParamTable = {0,0,10,420, --pos + radius
 								0,-0.25,1, 0.26, -- dir + angle
 								-1,1,1,1, -- RGBA
 								1,2,3,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -991,20 +863,12 @@ local unitDefLights = {
 		},
 		-- lightsaber = {
 		-- 	lighttype = 'beam',
-		-- 	px = 0,
-		-- 	py = 0,
-		-- 	pz = 0,
-		-- 	height = 250,
-		-- 	dx = 0, 
-		-- 	dy = 0, 
-		-- 	dz = -1, 
-		-- 	angle = 1,
 		-- 	pieceName = 'dish',
 		-- 	lightParamTable = {0,0,4,80, --pos + radius
 		-- 						0,0, 300 , 40, -- pos2
 		-- 						1,0,0,1, -- RGBA
 		-- 						1,1,0.3,1, -- modelfactor_specular_scattering_lensflare
-		-- 						0,0,0,0, -- otherparams
+		-- 						0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 		--						0,0,0,0, -- color2
 		-- 						0, -- pieceIndex
 		-- 						0,0,0,0 -- instData always 0!
@@ -1016,20 +880,12 @@ local unitDefLights = {
 		initComplete = false, -- this is needed maybe?
 		headlightarmcom = {
 			lighttype = 'cone',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 250,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
 			pieceName = 'head',
 			lightParamTable = {0,1,9,420, --pos + radius
 								0,-0.17,1, 0.26, -- dir + angle
 								-1,1,1,1, -- RGBA
 								1,2,3,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -1046,7 +902,7 @@ local unitDefLights = {
 								0,0,1, 0.3, -- pos2
 								-1,0,0,1, -- RGBA
 								0,1,3,0, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -1063,7 +919,7 @@ local unitDefLights = {
 								0,0,-1, 0.3, -- pos2
 								-1,0,0,1, -- RGBA
 								0,1,3,0, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -1075,20 +931,12 @@ local unitDefLights = {
 		initComplete = false, -- this is needed maybe?
 		-- readylight = {
 		-- 	lighttype = 'beam',
-		-- 	px = 0,
-		-- 	py = 0,
-		-- 	pz = 0,
-		-- 	height = 250,
-		-- 	dx = 0, 
-		-- 	dy = 0, 
-		-- 	dz = -1, 
-		-- 	angle = 1,
 		-- 	pieceName = 'antenna',
 		-- 	lightParamTable = {0,0,4,25, --pos + radius
 		-- 						0,0, -1, 0, -- pos2
 		-- 						0,1,0,4, -- RGBA
 		-- 						1,1,0.3,1, -- modelfactor_specular_scattering_lensflare
-		-- 						0,0,0,0, -- otherparams
+		-- 						0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 		--						0,0,0,0, -- color2
 		-- 						0, -- pieceIndex
 		-- 						0,0,0,0 -- instData always 0!
@@ -1097,20 +945,12 @@ local unitDefLights = {
 		-- },
 		readylightamd = {
 				lighttype = 'point',
-				px = 0,
-				py = 0,
-				pz = 0,
-				height = 150,
-				dx = 0, 
-				dy = 0, 
-				dz = -1, 
-				angle = 1,
 				pieceName = 'antenna',
 				lightParamTable = {0,1,0,20, --pos + radius
-								0,0,0,0, -- unused
+								0,0,0,0, -- color2
 								0,1,0,1, -- RGBA
 								1,1,1,10, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -1122,20 +962,12 @@ local unitDefLights = {
 		initComplete = false, -- this is needed maybe?
 		blinkaap = {
 				lighttype = 'point',
-				px = 0,
-				py = 0,
-				pz = 0,
-				height = 150,
-				dx = 0, 
-				dy = 0, 
-				dz = -1, 
-				angle = 1,
 				pieceName = 'base',
 				lightParamTable = {-86,91,3,75, --pos + radius
-								0,0,0,0, -- unused
+								0,0,0,0, -- color2
 								-1,1,1,0.5, -- RGBA
 								0.2,0.5,1,10, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -1152,7 +984,7 @@ local unitDefLights = {
 								0,0,-1, 0.8, -- pos2
 								1,0.98,0.85,0.4, -- RGBA
 								0,1,0.5,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -1166,7 +998,7 @@ local unitDefLights = {
 								0,0,-1, 0.8, -- pos2
 								1,0.98,0.85,0.4, -- RGBA
 								0,1,0.5,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -1178,20 +1010,12 @@ local unitDefLights = {
 		initComplete = false, -- this is needed maybe?
 		eyeglow = {
 				lighttype = 'point',
-				px = 0,
-				py = 0,
-				pz = 0,
-				height = 150,
-				dx = 0, 
-				dy = 0, 
-				dz = -1, 
-				angle = 1,
 				pieceName = 'base',
 				lightParamTable = {0,10,0,300, --pos + radius
 								0,0,0,0, -- unused
 								1,1,1,0.3, -- RGBA
 								0.1,0.5,1,2, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -1208,7 +1032,7 @@ local unitDefLights = {
 								0,0,1, 0.07, -- pos2
 								1,1,1,0.5, -- RGBA
 								0,1,2,0, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -1225,7 +1049,7 @@ local unitDefLights = {
 								1,0,1, 0.5, -- pos2
 								-1,1,1,5, -- RGBA
 								0.1,1,2,2, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -1247,7 +1071,7 @@ local unitDefLights = {
 								0,0,0,0, -- unused
 								-1,1,1,0.9, -- RGBA
 								0.1,0.5,1,5, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -1272,7 +1096,7 @@ local unitDefLights = {
 							0,0,0,0, -- unused
 							0.2,0.5,1,0.8, -- RGBA
 							0.1,0.75,2,7, -- modelfactor_specular_scattering_lensflare
-							0,0,0,0, -- otherparams
+							0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 							0,0,0,0, -- color2
 							0, -- pieceIndex
 							0,0,0,0 -- instData always 0!
@@ -1294,7 +1118,7 @@ local unitDefLights = {
 							0,0,0,0, -- unused
 							0.2,0.5,1,0.8, -- RGBA
 							0.1,0.75,2,10, -- modelfactor_specular_scattering_lensflare
-							0,0,0,0, -- otherparams
+							0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 							0,0,0,0, -- color2
 							0, -- pieceIndex
 							0,0,0,0 -- instData always 0!
@@ -1306,20 +1130,12 @@ local unitDefLights = {
 		initComplete = false, -- this is needed maybe?
 		flamelight = {
 			lighttype = 'point',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 0,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
 			pieceName = 'lloarm',
 			lightParamTable = {0,-1.4,15,24, --pos + radius
 							0,0,0,0, -- unused
 							0.95,0.66,0.07,0.56, -- RGBA
 							0.1,1.5,0.35,0, -- modelfactor_specular_scattering_lensflare
-							0,0,0,0, -- otherparams
+							0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 							0,0,0,0, -- color2
 							0, -- pieceIndex
 							0,0,0,0 -- instData always 0!
@@ -1332,19 +1148,11 @@ local unitDefLights = {
 		sniperreddot = {
 			lighttype = 'cone',
 			pieceName = 'laser',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 0,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
 			lightParamTable = {0,0,0,700, --pos + radius
 								0,1,0.0001, 0.006, -- pos2
 								2,0,0,0.85, -- RGBA
 								0.1,4,2,4, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- otherparams
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -1356,20 +1164,12 @@ local unitDefLights = {
 		initComplete = false, -- this is needed maybe?
 		flamelight = {
 			lighttype = 'point',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 0,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
 			pieceName = 'light',
 			lightParamTable = {0,10,0,50, --pos + radius
-							0,0,0,0, -- unused
+							0,0,0,0, -- color2 + colortime
 							0.9,0.7,0.45,0.58, -- RGBA
 							0.1,1.5,0.35,0, -- modelfactor_specular_scattering_lensflare
-							0,0,0,0, -- otherparams
+							0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 							0,0,0,0, -- color2
 							0, -- pieceIndex
 							0,0,0,0 -- instData always 0!
@@ -1434,6 +1234,7 @@ end
 ---@param lightshape string 'point'|'beam'|'cone'
 ---@param instanceID any the ID of the light to remove
 ---@param unitID number make this non-nil to remove it from a unit
+---@returns the same instanceID on success, nil if the light was not found
 local function RemoveLight(lightshape, instanceID, unitID)
 	if lightshape == 'point' then 
 		if unitID then return popElementInstance(unitPointLightVBO, instanceID) 
@@ -1533,7 +1334,6 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('AddBeamLight', WG['lightsgl4'].AddBeamLight)
 	widgetHandler:RegisterGlobal('AddConeLight', WG['lightsgl4'].AddConeLight)
 	widgetHandler:RegisterGlobal('RemoveLight', WG['lightsgl4'].RemoveLight)
-	
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
@@ -1541,7 +1341,6 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	
 	clearInstanceTable(unitPointLightVBO) -- clear all instances
 	clearInstanceTable(unitBeamLightVBO) -- clear all instances
 	clearInstanceTable(unitConeLightVBO) -- clear all instances
@@ -1557,7 +1356,6 @@ end
 function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
 	--if debugmode then Spring.Debug.TraceEcho("remove",unitID,reason) end
 	RemoveStaticLightsFromUnit(unitID, Spring.GetUnitDefID(unitID))
-
 end
 
 function widget:Shutdown()
