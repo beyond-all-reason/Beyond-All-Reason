@@ -349,6 +349,7 @@ local armorDefs = {
 		"corhurc",
 		"corsb",
 		"cortitan",
+		"chicken_dodoair",
 	},
 	fighters = {
 		"chickenw1",
