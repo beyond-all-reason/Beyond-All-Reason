@@ -1429,6 +1429,24 @@ local function RemoveStaticLightsFromUnit(unitID, unitDefID)
 	end
 end
 
+---RemoveLight(lightshape, instanceID, unitID)
+---Remove a light
+---@param lightshape string 'point'|'beam'|'cone'
+---@param instanceID any the ID of the light to remove
+---@param unitID number make this non-nil to remove it from a unit
+local function RemoveLight(lightshape, instanceID, unitID)
+	if lightshape == 'point' then 
+		if unitID then return popElementInstance(unitPointLightVBO, instanceID) 
+		else return popElementInstance(pointLightVBO, instanceID) end
+	elseif lightshape =='beam' then 
+		if unitID then return popElementInstance(unitBeamLightVBO, instanceID) 
+		else return popElementInstance(beamLightVBO, instanceID) end
+	elseif lightshape =='cone' then 
+		if unitID then return popElementInstance(unitConeLightVBO, instanceID) 
+		else return popElementInstance(coneLightVBO, instanceID) end
+	else return nil end
+end
+
 
 function AddRandomLight(which)
 	local gf = gameFrame
@@ -1506,6 +1524,16 @@ function widget:Initialize()
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
 	
+	WG['lightsgl4'] = {}
+	WG['lightsgl4'].AddPointLight = AddPointLight
+	WG['lightsgl4'].AddBeamLight  = AddBeamLight
+	WG['lightsgl4'].AddConeLight  = AddConeLight
+	WG['lightsgl4'].RemoveLight  = RemoveLight
+	widgetHandler:RegisterGlobal('AddPointLight', WG['lightsgl4'].AddPointLight)
+	widgetHandler:RegisterGlobal('AddBeamLight', WG['lightsgl4'].AddBeamLight)
+	widgetHandler:RegisterGlobal('AddConeLight', WG['lightsgl4'].AddConeLight)
+	widgetHandler:RegisterGlobal('RemoveLight', WG['lightsgl4'].RemoveLight)
+	
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
@@ -1532,9 +1560,13 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 
 end
 
-
 function widget:Shutdown()
-	-- TODO: delete the VBOs like a good boy
+	-- TODO: delete the VBOs and shaders like a good boy 
+	WG['lightsgl4'] = nil
+	widgetHandler:DeregisterGlobal('AddPointLight')
+	widgetHandler:DeregisterGlobal('AddBeamLight')
+	widgetHandler:DeregisterGlobal('AddConeLight')
+	widgetHandler:DeregisterGlobal('RemoveLight')
 end
 
 local function DrawLightType(lights, lightsCount, lighttype)
