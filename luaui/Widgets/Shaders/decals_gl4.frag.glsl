@@ -34,6 +34,7 @@ vec3 Temperature(float temperatureInKelvins)
 {
 	vec3 retColor;
 	
+	float coldness = clamp((temperatureInKelvins - 300)* 0.0005, 0.0, 1.0) ;
 	temperatureInKelvins = clamp(temperatureInKelvins, 1000.0, 40000.0) / 100.0;
 	
 	if (temperatureInKelvins <= 66.0)
@@ -56,6 +57,7 @@ vec3 Temperature(float temperatureInKelvins)
 		retColor.b = 0.54320678911019607843 * log(temperatureInKelvins - 10.0) - 1.19625408914;
 
 	retColor = clamp(retColor,0.0,1.0);
+	retColor = mix( vec3(0.0),retColor, coldness);
 	return retColor;
 }
 
@@ -115,9 +117,10 @@ void main(void)
 	fragColor.a = tex1color.a * tex1color.a * 0.9;
 	
 	//float lifeTime = (timeInfo.x + timeInfo.w) - 
-	float hotness = g_parameters.z * g_parameters.w;
-	//vec3 heatColor = Temperature(maxheat);
-	vec3 heatColor = vec3(hotness * 0.0001);
+	float hotness = max(0,g_uv.z)* 0.0001;
+	
+	vec3 heatColor = Temperature(max(0,g_uv.z));
+
 
 	vec3 worldspacenormal = tbnmatrix * fragNormal.rgb;
 	
@@ -153,7 +156,8 @@ void main(void)
 	vec4 waterblendfactors = waterBlend(g_position.y);
 	fragColor.rgb = mix(fragColor.rgb, fragColor.rgb * waterblendfactors.rgb, waterblendfactors.a);
 	
-	fragColor.a *= g_color.a;
+	fragColor.rgb += heatColor * pow(tex4color.r, 2) * hotness ;
+	//fragColor.a *= g_parameters.z ;
 	//fragColor.r += hotness;
 	//fragColor.rgb += heatColor;
 }

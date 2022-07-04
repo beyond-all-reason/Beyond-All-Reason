@@ -87,6 +87,7 @@ void main(){
 	uvoffsets = dataIn[0].v_uvoffsets; // if an atlas is used, then use this, otherwise dont
 	decalDimensions = vec3(dataIn[0].v_lengthwidthrotation.x * 0.5, 0.0, dataIn[0].v_lengthwidthrotation.y * 0.5);
 	g_parameters = dataIn[0].v_parameters;
+	g_uv.zw = dataIn[0].v_parameters.zw;
 	g_color.a = dataIn[0].v_lengthwidthrotation.w;
 	
 	// for a simple quad

@@ -111,6 +111,8 @@ void main()
 	float alphadecay = alphastart_alphadecay_heatstart_heatdecay.y;
 	// fade in the decal over 200 ms?
 	
+	g_uv.z = exp(- 0.033 * lifetonow * alphastart_alphadecay_heatstart_heatdecay.w) * alphastart_alphadecay_heatstart_heatdecay.z ;
+	
 	float currentAlpha = min(1.0, lifetonow*0.166)  * alphastart - lifetonow* alphadecay;
 	currentAlpha = min(currentAlpha, lengthwidthrotation.w);
 	g_color.a = currentAlpha;

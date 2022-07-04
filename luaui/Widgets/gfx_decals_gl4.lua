@@ -445,7 +445,7 @@ function widget:Initialize()
 					math.random() * 10000, -- heatstart
 					math.random() * 1, -- heatdecay
 					math.random() * 1.0 + 1.0, -- alphastart
-					math.random() * 0.01, -- alphadecay
+					math.random() * 0.001, -- alphadecay
 					math.random() * 0.3 + 0.7 -- maxalpha
 					)
 		end
