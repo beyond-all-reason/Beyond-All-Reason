@@ -131,6 +131,8 @@ widget:ViewResize()
 -- A beam light is a box
 -- all prims should be back-face only rendered!
 
+-- Full documentation:
+-- https://docs.google.com/document/d/16mvYJX8WJ8cNjGe_3zhrymTOzPoSkFprr78i_vpH7yA/edit#
 
 -- Separate VBO's for spheres, cones, beams
 -- no geometry shader for now, its kinda pointless, might change my mind later
@@ -189,6 +191,7 @@ local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
 local coneLightVBO = {}
 local beamLightVBO = {}
 local pointLightVBO = {}
+local autoLightInstanceID = 0
 
 local unitConeLightVBO = {}
 local unitPointLightVBO = {}
@@ -391,7 +394,7 @@ lightCacheTable[16] = 1
 ---@param r2 float red secondary color of the light (0-1), but can go higher
 ---@param g2 float green secondary color of the light (0-1), but can go higher
 ---@param b2 float blue secondary color of the light (0-1), but can go higher
----@param colortime float time in seconds for the light to transition to secondary color. 
+---@param colortime float time in seconds for the light to transition to secondary color. For unitlights, specify in frames the period you want
 ---@param modelfactor float how much more light gets applied to models vs terrain (default 1)
 ---@param specular float how strong specular highlights of this light are (default 1)
 ---@param scattering float how strong the atmospheric scattering effect is (default 1)
@@ -403,6 +406,11 @@ lightCacheTable[16] = 1
 ---@return instanceID for future reuse
 local function AddPointLight(instanceID, unitID, pieceIndex, px_or_table, py, pz, radius, r,g,b,a, r2,g2,b2, colortime,
 	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, animtype)
+	
+	if instanceID == nil then 
+		instanceID = autoLightInstanceID
+		autoLightInstanceID = autoLightInstanceID + 1 
+	end
 	
 	local lightparams
 	if type(px_or_table) ~= "table" then 
@@ -429,8 +437,7 @@ local function AddPointLight(instanceID, unitID, pieceIndex, px_or_table, py, pz
 		lightparams[spawnFramePos] = spawnframe or gameFrame
 		lightparams[18] = lifetime or 0
 		lightparams[19] = sustain or 1
-		lightparams[19] = animtype or 0
-		lightparams[20] = 0 --unused!
+		lightparams[20] = animtype or 0
 		lightparams[21] = 0 -- unused
 		lightparams[22] = 0 --unused
 		lightparams[23] = 0 --unused
@@ -447,6 +454,30 @@ local function AddPointLight(instanceID, unitID, pieceIndex, px_or_table, py, pz
 		calcLightExpiry(pointLightVBO, lightparams, instanceID)
 	end
 	return instanceID
+end
+
+local function AddRandomDecayingPointLight()
+	local instanceID = AddPointLight(nil,nil,nil, 
+		Game.mapSizeX * 0.5 + math.random()*500,
+		Spring.GetGroundHeight(Game.mapSizeX * 0.5,Game.mapSizeZ * 0.5) + 50,
+		Game.mapSizeZ * 0.5,
+		250,
+		1,0,0,1,
+		0,1,0,60,
+		1,1,1,1,
+		gameFrame, 100, 20, 1)
+	--Spring.Echo("AddRandomDecayingPointLight", instanceID)	
+	
+	instanceID = AddPointLight(nil,nil,nil, 
+		Game.mapSizeX * 0.5 + math.random()*500,
+		Spring.GetGroundHeight(Game.mapSizeX * 0.5,Game.mapSizeZ * 0.5) + 50,
+		Game.mapSizeZ * 0.5 + 400,
+		250,
+		1,1,1,1,
+		1,0.5,0.2,5,
+		1,1,1,1,
+		gameFrame, 300, 0.2, 1)
+	--Spring.Echo("AddRandomExplosionPointLight", instanceID)
 end
 
 ---AddBeamLight
@@ -480,6 +511,11 @@ end
 local function AddBeamLight(instanceID, unitID, pieceIndex, px_or_table, py, pz, radius, r,g,b,a, sx, sy, sz, r2, colortime,
 	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, animtype)
 	
+	if instanceID == nil then 
+		instanceID = autoLightInstanceID
+		autoLightInstanceID = autoLightInstanceID + 1 
+	end
+	
 	local lightparams
 	if type(px_or_table) ~= "table" then 
 		lightparams = lightCacheTable
@@ -505,8 +541,7 @@ local function AddBeamLight(instanceID, unitID, pieceIndex, px_or_table, py, pz,
 		lightparams[spawnFramePos] = spawnframe or gameFrame
 		lightparams[18] = lifetime or 0
 		lightparams[19] = sustain or 1
-		lightparams[19] = animtype or 0
-		lightparams[20] = 0 --unused!
+		lightparams[20] = animtype or 0
 		lightparams[21] = 0 --unused
 		lightparams[22] = 0 --unused
 		lightparams[23] = 0 --unused
@@ -556,6 +591,11 @@ end
 local function AddConeLight(instanceID, unitID, pieceIndex, px_or_table, py, pz, radius, r,g,b,a, dx,dy,dz,theta, colortime,
 	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, animtype)
 	
+	if instanceID == nil then 
+		instanceID = autoLightInstanceID
+		autoLightInstanceID = autoLightInstanceID + 1 
+	end
+	
 	local lightparams
 	if type(px_or_table) ~= "table" then 
 		lightparams = lightCacheTable
@@ -581,8 +621,7 @@ local function AddConeLight(instanceID, unitID, pieceIndex, px_or_table, py, pz,
 		lightparams[spawnFramePos] = spawnframe or gameFrame
 		lightparams[18] = lifetime or 0
 		lightparams[19] = sustain or 1
-		lightparams[19] = animtype or 0
-		lightparams[20] = 0 --unused!
+		lightparams[20] = animtype or 0
 		lightparams[21] = 0 -- unused
 		lightparams[22] = 0 --unused
 		lightparams[23] = 0 --unused
@@ -605,7 +644,6 @@ end
 
 local unitDefLights = {
 	[UnitDefNames['armpw'].id] = {
-		initComplete = false, -- this is needed maybe?
 		headlightpw = { -- this is the lightname
 			lighttype = 'cone',
 			pieceName = 'justattachtobase', -- invalid ones will attack to the worldpos of the unit
@@ -650,7 +688,6 @@ local unitDefLights = {
 		-- },
 	},
 	[UnitDefNames['armrad'].id] = {
-		initComplete = false, -- this is needed maybe?	
 		-- searchlight = {
 		-- 	lighttype = 'cone',
 		-- 	pieceName = 'dish',
@@ -681,7 +718,6 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['corrad'].id] = {
-		initComplete = false, -- this is needed maybe?	
 		greenblob = {
 				lighttype = 'point',
 				pieceName = 'turret',
@@ -699,7 +735,6 @@ local unitDefLights = {
 	},
 
 	[UnitDefNames['armllt'].id] = {
-		initComplete = false, -- this is needed maybe?
 		searchlightllt = {
 			lighttype = 'cone',
 			pieceName = 'sleeve',
@@ -716,7 +751,6 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['corllt'].id] = {
-		initComplete = false, -- this is needed maybe?
 		searchlightllt = {
 			lighttype = 'cone',
 			pieceName = 'turret',
@@ -733,7 +767,6 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armrl'].id] = {
-		initComplete = false, -- this is needed maybe?
 		searchlightrl = {
 			lighttype = 'cone',
 			pieceName = 'sleeve',
@@ -750,7 +783,6 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armjamt'].id] = {
-		initComplete = false, -- this is needed maybe?
 		-- searchlight = {
 		-- 	lighttype = 'cone',
 		-- 	pieceName = 'turret',
@@ -781,7 +813,6 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armack'].id] = {
-		initComplete = false, -- this is needed maybe?
 		beacon1 = { -- this is the lightname
 			lighttype = 'cone',
 			pieceName = 'beacon1',
@@ -812,7 +843,6 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armstump'].id] = {
-		initComplete = false, -- this is needed maybe?
 		searchlightstump = {
 			lighttype = 'cone',
 			pieceName = 'base',
@@ -829,7 +859,6 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armbanth'].id] = {
-		initComplete = false, -- this is needed maybe?
 		searchlightbanth = {
 			lighttype = 'cone',
 			pieceName = 'turret',
@@ -846,7 +875,6 @@ local unitDefLights = {
 		},
 	},	
 	[UnitDefNames['armcom'].id] = {
-		initComplete = false, -- this is needed maybe?
 		headlightarmcom = {
 			lighttype = 'cone',
 			pieceName = 'head',
@@ -877,7 +905,6 @@ local unitDefLights = {
 		-- },
 	},
 	[UnitDefNames['corcom'].id] = {
-		initComplete = false, -- this is needed maybe?
 		headlightarmcom = {
 			lighttype = 'cone',
 			pieceName = 'head',
@@ -894,7 +921,6 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armcv'].id] = {
-		initComplete = false, -- this is needed maybe?
 		nanolightarmcv = {
 			lighttype = 'cone',
 			pieceName = 'nano1',
@@ -911,7 +937,6 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armca'].id] = {
-		initComplete = false, -- this is needed maybe?
 		nanolightarmca = {
 			lighttype = 'cone',
 			pieceName = 'nano',
@@ -928,7 +953,6 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armamd'].id] = {
-		initComplete = false, -- this is needed maybe?
 		-- readylight = {
 		-- 	lighttype = 'beam',
 		-- 	pieceName = 'antenna',
@@ -959,7 +983,6 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armaap'].id] = {
-		initComplete = false, -- this is needed maybe?
 		blinkaap = {
 				lighttype = 'point',
 				pieceName = 'base',
@@ -976,7 +999,6 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armatlas'].id] = {
-		initComplete = false, -- this is needed maybe?
 		jetr = {
 			lighttype = 'cone',
 			pieceName = 'thrustr',
@@ -1007,7 +1029,6 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armeyes'].id] = {
-		initComplete = false, -- this is needed maybe?
 		eyeglow = {
 				lighttype = 'point',
 				pieceName = 'base',
@@ -1024,7 +1045,6 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armanni'].id] = {
-		initComplete = false, -- this is needed maybe?
 		annilight = {
 			lighttype = 'cone',
 			pieceName = 'light',
@@ -1041,7 +1061,6 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armafus'].id] = {
-		initComplete = false, -- this is needed maybe?
 		controllight = {
 			lighttype = 'cone',
 			pieceName = 'collar1',
@@ -1058,17 +1077,9 @@ local unitDefLights = {
 		},
 		fusionglow = {
 				lighttype = 'point',
-				px = 0,
-				py = 0,
-				pz = 0,
-				height = 150,
-				dx = 0, 
-				dy = 0, 
-				dz = -1, 
-				angle = 1,
 				pieceName = 'base',
 				lightParamTable = {0,45,0,90, --pos + radius
-								0,0,0,0, -- unused
+								0,0,0,0, -- color2 + colortime
 								-1,1,1,0.9, -- RGBA
 								0.1,0.5,1,5, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
@@ -1080,21 +1091,12 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armzeus'].id] = {
-		initComplete = false, -- this is needed maybe?
 		weaponglow = {
 			lighttype = 'point',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 0,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
 			pieceName = 'gunhand',
 			lightParamTable = {0,-9.5,8.5,15, --pos + radius
-							0,0,0,0, -- unused
-							0.2,0.5,1,0.8, -- RGBA
+							0.2,0.5,1.5,60, -- color2 + colortime
+							0.2,0.5,0.5,0.8, -- RGBA
 							0.1,0.75,2,7, -- modelfactor_specular_scattering_lensflare
 							0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 							0,0,0,0, -- color2
@@ -1105,18 +1107,10 @@ local unitDefLights = {
 		},
 		backpackglow = {
 			lighttype = 'point',
-			px = 0,
-			py = 0,
-			pz = 0,
-			height = 0,
-			dx = 0, 
-			dy = 0, 
-			dz = -1, 
-			angle = 1,
 			pieceName = 'gunstatic',
 			lightParamTable = {0,8,0,11, --pos + radius
-							0,0,0,0, -- unused
-							0.2,0.5,1,0.8, -- RGBA
+							1.2,0.5,2.0,30, -- color2 + colortime
+							0.2,0.5,0.5,0.8, -- RGBA
 							0.1,0.75,2,10, -- modelfactor_specular_scattering_lensflare
 							0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 							0,0,0,0, -- color2
@@ -1127,12 +1121,11 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['corpyro'].id] = {
-		initComplete = false, -- this is needed maybe?
 		flamelight = {
 			lighttype = 'point',
 			pieceName = 'lloarm',
 			lightParamTable = {0,-1.4,15,24, --pos + radius
-							0,0,0,0, -- unused
+							0.8,0.3,0.01,0.6678623, -- unused
 							0.95,0.66,0.07,0.56, -- RGBA
 							0.1,1.5,0.35,0, -- modelfactor_specular_scattering_lensflare
 							0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
@@ -1144,7 +1137,6 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armsnipe'].id] = {
-		initComplete = false, -- this is needed maybe?
 		sniperreddot = {
 			lighttype = 'cone',
 			pieceName = 'laser',
@@ -1161,7 +1153,6 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['cormakr'].id] = {
-		initComplete = false, -- this is needed maybe?
 		flamelight = {
 			lighttype = 'point',
 			pieceName = 'light',
@@ -1182,17 +1173,16 @@ local unitDefLights = {
 local function AddStaticLightsForUnit(unitID, unitDefID, noupload)
 	if unitDefLights[unitDefID] then
 		local unitDefLight = unitDefLights[unitDefID]
-		if unitDefLight.initComplete == false then  -- late init
+		if unitDefLight.initComplete ~= true then  -- late init
 			local pieceMap = Spring.GetUnitPieceMap(unitID)
 			for lightname, lightParams in pairs(unitDefLight) do
-				if lightname ~= 'initComplete' then
-					if pieceMap[lightParams.pieceName] then -- if its not a real piece, it will default to the model!
-						lightParams.pieceIndex = pieceMap[lightParams.pieceName] 
-						lightParams.lightParamTable[pieceIndexPos] = lightParams.pieceIndex
-					end
-					--Spring.Echo(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
+				if pieceMap[lightParams.pieceName] then -- if its not a real piece, it will default to the model!
+					lightParams.pieceIndex = pieceMap[lightParams.pieceName] 
+					lightParams.lightParamTable[pieceIndexPos] = lightParams.pieceIndex
 				end
+				--Spring.Echo(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
 			end
+			unitDefLight.initComplete = true
 		end
 		for lightname, lightParams in pairs(unitDefLight) do
 			if lightname ~= 'initComplete' then
@@ -1490,7 +1480,13 @@ local pointLightCount = 0
 
 local windX = 0
 local windZ = 0
+
+
+
 function widget:GameFrame(n)
+	if n % 100 == 0 then 
+		AddRandomDecayingPointLight()
+	end
 	gameFrame = n
 	local windDirX, _, windDirZ, windStrength = Spring.GetWind()
 	--windStrength = math.min(20, math.max(3, windStrength))	
@@ -1500,6 +1496,7 @@ function widget:GameFrame(n)
 	if lightRemoveQueue[n] then 
 		for instanceID, targetVBO in pairs(lightRemoveQueue[n]) do
 			if targetVBO.instanceIDtoIndex[instanceID] then 
+				--Spring.Echo("removing dead light", instanceID)
 				popElementInstance(targetVBO, instanceID)
 			end
 		end

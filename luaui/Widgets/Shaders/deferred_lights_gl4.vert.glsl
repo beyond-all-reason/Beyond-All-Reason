@@ -143,6 +143,7 @@ void main()
 	v_otherparams = otherparams;
 	
 	vec4 worldPos = vec4(1.0);
+	#line 11000
 	if (pointbeamcone < 0.5){ // point
 		//scale it and place it into the world
 		//Make it a tiny bit bigger *(1.1) cause the blocky sphere is smaller than the actual radius
@@ -157,10 +158,34 @@ void main()
 		// tranform the center to world-space
 		lightCenterPosition = (placeInWorldMatrix * vec4(lightCenterPosition, 1.0)).xyz; 
 		
+		
+		if  (attachedtounitID > 0) {
+			// for point lights, if the colortime is anything sane (>0), then modulate the light with it.
+			if (worldposrad2.a >0.5){
+				v_lightcolor.rgb = mix(lightcolor.rgb, worldposrad2.rgb,cos((time * 6.2831853) / worldposrad2.a ) * 0.5 + 0.5); }
+		}else{
+			if (worldposrad2.a >0.5){
+				float colortime = clamp((time - otherparams.x)/worldposrad2.a , 0.0, 1.0);
+				v_lightcolor.rgb = mix(lightcolor.rgb, worldposrad2.rgb,colortime); 
+				//v_lightcolor.rgb = mix(lightcolor.rgb, worldposrad2.rgb,0.0); 
+			}
+			if (otherparams.y > 0 ){ //lifetime
+				float elapsedframes = time - otherparams.x;
+				if (otherparams.z >1 ){ // sustain is positive, keep it up for sustain frames, then ramp it down
+					v_lightcolor.a = clamp( v_lightcolor.a * ( otherparams.y - elapsedframes)/(otherparams.y - otherparams.z ) , 0.0, v_lightcolor.a);
+					
+				}else{ // sustain is <1, use exp falloff
+					v_lightcolor.a = clamp( v_lightcolor.a * exp( -otherparams.z * (elapsedframes) ) , 0.0, v_lightcolor.a);
+					
+				}
+			}
+		}
+		
 		v_worldPosRad.xyz = lightCenterPosition;
 		v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0)); // 
 		v_position = vec4( lightVolumePos, 1.0);
 	}
+	#line 12000
 	else if (pointbeamcone < 1.5){ // beam
 		// we will tranform along this vector, where Y shall be the upvector
 		// our null vector is +X
@@ -200,6 +225,7 @@ void main()
 		v_worldPosRad.xyz += (v_worldPosRad2.xyz - v_worldPosRad.xyz) * 0.5;
 		v_position.xyz = (placeInWorldMatrix * vec4(worldPos.xyz, 1.0)).xyz;
 	}
+	#line 12000
 	else if (pointbeamcone > 1.5){ // cone
 		// input cone that has pointy end up, (y = 1), with radius =1, flat on Y=0 plane
 		// make it so that cone tip is at 0 and the opening points to -y
@@ -240,7 +266,7 @@ void main()
 		
 		v_position =  worldPos;
 	}
-	
+	#line 13000
 	// Get the heightmap and the normal map at the center position of the light in v_worldPosRad.xyz
 	
 	vec2 uvhm = heighmapUVatWorldPos(v_worldPosRad.xz);

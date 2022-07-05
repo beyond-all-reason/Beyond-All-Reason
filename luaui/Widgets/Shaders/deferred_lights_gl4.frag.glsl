@@ -823,9 +823,10 @@ void main(void)
 	vec3 outlight_unclamped = targetcolor.rgb + blendedlights + additivelights;
 	
 	float bleed = dot(max(vec3(0.0), outlight_unclamped - vec3(1.0)), vec3(1.0));
+	bleed = bleed * bleed;
 	
-	
-	fragColor.rgb = (blendedlights*0.9  + additivelights*0.5) + vec3(bleed)*0.33;
+	// TODO: BLEED NEEDS WORK
+	fragColor.rgb = (blendedlights*0.9  + additivelights*0.5) + vec3(bleed)*0.5; 
 	//fragColor.rgb *= v_lightcolor.a;
 	//fragColor.rgb = vec3(bleed);
 	//fragColor.rgb = vec3(targetcolor.rgb + blendedlights + additivelights);
