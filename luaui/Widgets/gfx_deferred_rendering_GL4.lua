@@ -1277,6 +1277,7 @@ end
 
 local mapinfo = nil
 local nightFactor = 0.33
+local unitNightFactor = 1.5 -- applied above nightFactor
 local adjustfornight = {'unitAmbientColor', 'unitDiffuseColor', 'unitSpecularColor','groundAmbientColor', 'groundDiffuseColor', 'groundSpecularColor' }
 
 function widget:Initialize()
@@ -1299,7 +1300,13 @@ function widget:Initialize()
 			if nightLightingParams[v] ~= nil then 
 				for k2, v2 in pairs(nightLightingParams[v]) do
 					--Spring.Echo(v,k2,v2)
-					if tonumber(v2) then nightLightingParams[v][k2] = v2 * nightFactor end
+					if tonumber(v2) then 
+						if string.find(v, 'unit', nil, true) then 
+							nightLightingParams[v][k2] = v2 * nightFactor * unitNightFactor
+						else
+							nightLightingParams[v][k2] = v2 * nightFactor 
+						end
+					end
 				end
 			else
 				Spring.Echo("Deferred Lights GL4: Warning: This map does not specify ",v, "in mapinfo.lua!")
