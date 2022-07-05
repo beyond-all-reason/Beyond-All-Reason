@@ -953,27 +953,13 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armamd'].id] = {
-		-- readylight = {
-		-- 	lighttype = 'beam',
-		-- 	pieceName = 'antenna',
-		-- 	lightParamTable = {0,0,4,25, --pos + radius
-		-- 						0,0, -1, 0, -- pos2
-		-- 						0,1,0,4, -- RGBA
-		-- 						1,1,0.3,1, -- modelfactor_specular_scattering_lensflare
-		-- 						0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-		--						0,0,0,0, -- color2
-		-- 						0, -- pieceIndex
-		-- 						0,0,0,0 -- instData always 0!
-		-- 						},
-		-- 	--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
-		-- },
 		readylightamd = {
 				lighttype = 'point',
 				pieceName = 'antenna',
-				lightParamTable = {0,1,0,20, --pos + radius
-								0,0,0,0, -- color2
-								0,1,0,1, -- RGBA
-								1,1,1,10, -- modelfactor_specular_scattering_lensflare
+				lightParamTable = {0,1,0,21, --pos + radius
+								0,0.5,0,15, -- color2
+								0,2,0,1, -- RGBA
+								1,1,1,6, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
@@ -1094,10 +1080,24 @@ local unitDefLights = {
 		weaponglow = {
 			lighttype = 'point',
 			pieceName = 'gunhand',
-			lightParamTable = {0,-9.5,8.5,15, --pos + radius
-							0.2,0.5,1.5,60, -- color2 + colortime
-							0.2,0.5,0.5,0.8, -- RGBA
+			lightParamTable = {0,-9.5,8.5,10, --pos + radius
+							0.4,0.7,1.2,30, -- color2 + colortime
+							0.2,0.5,1.0,0.8, -- RGBA
 							0.1,0.75,2,7, -- modelfactor_specular_scattering_lensflare
+							0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+							0,0,0,0, -- color2
+							0, -- pieceIndex
+							0,0,0,0 -- instData always 0!
+							},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		weaponspark = {
+			lighttype = 'point',
+			pieceName = 'emit_spark',
+			lightParamTable = {0,1,0,55, --pos + radius
+							0,0,0,2, -- color2
+							1,1,1,0.85, -- RGBA
+							0.1,0.75,0.2,7, -- modelfactor_specular_scattering_lensflare
 							0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 							0,0,0,0, -- color2
 							0, -- pieceIndex
@@ -1108,9 +1108,9 @@ local unitDefLights = {
 		backpackglow = {
 			lighttype = 'point',
 			pieceName = 'gunstatic',
-			lightParamTable = {0,8,0,11, --pos + radius
-							1.2,0.5,2.0,30, -- color2 + colortime
-							0.2,0.5,0.5,0.8, -- RGBA
+			lightParamTable = {0,8,0,10, --pos + radius
+							0.4,0.7,1.2,30, -- color2 + colortime
+							0.2,0.5,1.0,0.8, -- RGBA
 							0.1,0.75,2,10, -- modelfactor_specular_scattering_lensflare
 							0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 							0,0,0,0, -- color2
@@ -1125,7 +1125,7 @@ local unitDefLights = {
 			lighttype = 'point',
 			pieceName = 'lloarm',
 			lightParamTable = {0,-1.4,15,24, --pos + radius
-							0.8,0.3,0.01,0.6678623, -- unused
+							0.9,0.5,0.05,10, -- unused
 							0.95,0.66,0.07,0.56, -- RGBA
 							0.1,1.5,0.35,0, -- modelfactor_specular_scattering_lensflare
 							0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
@@ -1165,6 +1165,94 @@ local unitDefLights = {
 							0, -- pieceIndex
 							0,0,0,0 -- instData always 0!
 							},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
+	[UnitDefNames['lootboxbronze'].id] = {
+		blinka = {
+				lighttype = 'point',
+				pieceName = 'blinka',
+				lightParamTable = {0,1,0,25, --pos + radius
+								0,0,0,0, -- color2
+								-1,1,1,0.85, -- RGBA
+								1,1,1,10, -- modelfactor_specular_scattering_lensflare
+								1,120,0,1, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,0,0, -- color2
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		blinkb = {
+				lighttype = 'point',
+				pieceName = 'blinkb',
+				lightParamTable = {0,1,0,25, --pos + radius
+								0,0,0,0, -- color2
+								-1,1,1,0.85, -- RGBA
+								1,1,1,10, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,0,0, -- color2
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		blinkc = {
+				lighttype = 'point',
+				pieceName = 'blinkc',
+				lightParamTable = {0,1,0,25, --pos + radius
+								0,0,0,0, -- color2
+								-1,1,1,0.85, -- RGBA
+								1,1,1,10, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,0,0, -- color2
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		blinkd = {
+				lighttype = 'point',
+				pieceName = 'blinkd',
+				lightParamTable = {0,1,0,25, --pos + radius
+								0,0,0,0, -- color2
+								-1,1,1,0.85, -- RGBA
+								1,1,1,10, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,0,0, -- color2
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
+	[UnitDefNames['armaap'].id] = {
+		blinka = {
+				lighttype = 'point',
+				pieceName = 'blinka',
+				lightParamTable = {0,1,0,20, --pos + radius
+								0,0,0,0, -- color2
+								-1,1,1,1, -- RGBA
+								0.2,0.5,2,7, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,0,0, -- color2
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		blinkb = {
+				lighttype = 'point',
+				pieceName = 'blinkb',
+				lightParamTable = {0,1,0,20, --pos + radius
+								0,0,0,0, -- color2
+								-1,1,1,1, -- RGBA
+								0.2,0.5,2,7, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,0,0, -- color2
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
 			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
 		},
 	},
@@ -1277,7 +1365,7 @@ end
 
 local mapinfo = nil
 local nightFactor = 0.33
-local unitNightFactor = 1.5 -- applied above nightFactor
+local unitNightFactor = 1.2 -- applied above nightFactor
 local adjustfornight = {'unitAmbientColor', 'unitDiffuseColor', 'unitSpecularColor','groundAmbientColor', 'groundDiffuseColor', 'groundSpecularColor' }
 
 function widget:Initialize()

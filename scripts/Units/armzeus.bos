@@ -521,9 +521,17 @@ Sparks()
 		{
 			sleep 100;
 		}
-		emit-sfx 1025 + 0 from emit_spark;
+		emit-sfx 1025 + 0 from emit_spark;	
 		sleep 200;
 	}
+}
+
+FireSparks()
+{
+		show emit_spark;
+		sleep 150;
+		hide emit_spark;
+		return (1);
 }
 
 Create()
@@ -535,7 +543,6 @@ Create()
 	hide flare;
 	show gunstatic;
 	hide gunhand;
-	hide emit_spark;
 	isAiming = FALSE;
 	animspeed = 3;
 	wpnheading = 0;
@@ -610,7 +617,6 @@ AimPrimary(heading, pitch)
 	}
 	wpnheading = heading;
 	start-script RestoreAfterDelay();
-	
 	return (1);
 	
 }
@@ -628,6 +634,7 @@ QueryPrimary(piecenum)
 FirePrimary()
 {
 	emit-sfx 1024 + 0 from flare;
+	start-script FireSparks();
 }
 
 Killed(severity, corpsetype)

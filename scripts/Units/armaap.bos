@@ -20,9 +20,13 @@ Standby()
 	}
 	while( TRUE )
 	{
-		emit-sfx 1024 + 0 from blinka;
+		hide blinkb;
+		sleep 120;
+		show blinka;
 		sleep 1150;
-		emit-sfx 1024 + 0 from blinkb;
+		hide blinka;
+		sleep 120;
+		show blinkb;
 		sleep 1150;
 	}
 	sleep 50;
