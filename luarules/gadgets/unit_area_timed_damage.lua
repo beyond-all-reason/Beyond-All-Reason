@@ -81,6 +81,14 @@ local TimedDamageWeapons = {
         range = 75,
         resistance = "_CHICKENACID_",
     },
+	[WeaponDefNames.legnap_napalmbombs.id] = {
+        ceg = "fire-area-150", 
+        damageCeg = "burnflamexl", 
+        time = 15,
+        damage = 20,
+        range = 150,
+        resistance = "_CHICKENACID_",
+    },
 }
 
 local TimedDamageDyingUnits = {

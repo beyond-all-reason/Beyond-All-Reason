@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 1350,
 		buildcostmetal = 640,
 		builder = true,
-		buildpic = "CORAP.DDS",
+		buildpic = "LEGAP.DDS",
 		buildtime = 7180,
 		canmove = true,
 		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
