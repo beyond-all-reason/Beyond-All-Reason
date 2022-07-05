@@ -408,10 +408,10 @@ local function AddPointLight(instanceID, unitID, pieceIndex, px_or_table, py, pz
 	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, animtype)
 	
 	if instanceID == nil then 
-		instanceID = autoLightInstanceID
 		autoLightInstanceID = autoLightInstanceID + 1 
+		instanceID = autoLightInstanceID
 	end
-	
+	--Spring.Echo("AddPointLight",instanceID)
 	local lightparams
 	if type(px_or_table) ~= "table" then 
 		lightparams = lightCacheTable
@@ -458,7 +458,7 @@ end
 
 local function AddRandomDecayingPointLight()
 	local instanceID = AddPointLight(nil,nil,nil, 
-		Game.mapSizeX * 0.5 + math.random()*500,
+		Game.mapSizeX * 0.5 + math.random()*2000,
 		Spring.GetGroundHeight(Game.mapSizeX * 0.5,Game.mapSizeZ * 0.5) + 50,
 		Game.mapSizeZ * 0.5,
 		250,
@@ -469,15 +469,26 @@ local function AddRandomDecayingPointLight()
 	--Spring.Echo("AddRandomDecayingPointLight", instanceID)	
 	
 	instanceID = AddPointLight(nil,nil,nil, 
-		Game.mapSizeX * 0.5 + math.random()*500,
+		Game.mapSizeX * 0.5 + math.random()*2000,
 		Spring.GetGroundHeight(Game.mapSizeX * 0.5,Game.mapSizeZ * 0.5) + 50,
 		Game.mapSizeZ * 0.5 + 400,
 		250,
 		1,1,1,1,
 		1,0.5,0.2,5,
 		1,1,1,1,
-		gameFrame, 300, 0.2, 1)
+		gameFrame, 30, 0.2, 1)
 	--Spring.Echo("AddRandomExplosionPointLight", instanceID)
+	
+	instanceID = AddPointLight(nil,nil,nil, 
+		Game.mapSizeX * 0.5 + math.random()*2000,
+		Spring.GetGroundHeight(Game.mapSizeX * 0.5,Game.mapSizeZ * 0.5) + 50,
+		Game.mapSizeZ * 0.5 + 800,
+		250,
+		0,0,0,1,
+		1,0.5,0.25,3,
+		1,1,1,1,
+		gameFrame, 100, 20, 1)
+	--Spring.Echo("AddRandomDecayingPointLight", instanceID)
 end
 
 ---AddBeamLight
@@ -512,8 +523,8 @@ local function AddBeamLight(instanceID, unitID, pieceIndex, px_or_table, py, pz,
 	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, animtype)
 	
 	if instanceID == nil then 
-		instanceID = autoLightInstanceID
 		autoLightInstanceID = autoLightInstanceID + 1 
+		instanceID = autoLightInstanceID
 	end
 	
 	local lightparams
@@ -592,8 +603,8 @@ local function AddConeLight(instanceID, unitID, pieceIndex, px_or_table, py, pz,
 	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, animtype)
 	
 	if instanceID == nil then 
-		instanceID = autoLightInstanceID
 		autoLightInstanceID = autoLightInstanceID + 1 
+		instanceID = autoLightInstanceID
 	end
 	
 	local lightparams
@@ -650,7 +661,7 @@ local unitDefLights = {
 			lightParamTable = {0,23,7,150, --pos + height
 								0,-0.07,1, 0.30, -- dir + angle
 								1,1,0.9,0.6, -- RGBA
-								0.1,1,1.5,0.6, -- modelfactor_specular_scattering_lensflare
+								-0.33,1,1.5,0.6, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
@@ -881,7 +892,7 @@ local unitDefLights = {
 			lightParamTable = {0,0,10,420, --pos + radius
 								0,-0.25,1, 0.26, -- dir + angle
 								-1,1,1,1, -- RGBA
-								1,2,3,1, -- modelfactor_specular_scattering_lensflare
+								0.2,2,3,1, -- modelfactor_specular_scattering_lensflare
 								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
@@ -1241,6 +1252,20 @@ local unitDefLights = {
 								},
 			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
 		},
+		dishlight = {
+				lighttype = 'point',
+				pieceName = 'dish',
+				lightParamTable = {0,8,0,20, --pos + radius
+								-1,-1,-1,30, -- color2
+								-1,1,1,1, -- RGBA
+								0.2,0.5,2,7, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,0,0, -- color2
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
 		blinkb = {
 				lighttype = 'point',
 				pieceName = 'blinkb',
@@ -1591,7 +1616,7 @@ function widget:GameFrame(n)
 	if lightRemoveQueue[n] then 
 		for instanceID, targetVBO in pairs(lightRemoveQueue[n]) do
 			if targetVBO.instanceIDtoIndex[instanceID] then 
-				--Spring.Echo("removing dead light", instanceID)
+				--Spring.Echo("removing dead light", targetVBO.usedElements, 'id:', instanceID)
 				popElementInstance(targetVBO, instanceID)
 			end
 		end
