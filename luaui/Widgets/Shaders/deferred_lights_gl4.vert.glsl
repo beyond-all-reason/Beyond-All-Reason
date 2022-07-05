@@ -162,12 +162,11 @@ void main()
 		if  (attachedtounitID > 0) {
 			// for point lights, if the colortime is anything sane (>0), then modulate the light with it.
 			if (worldposrad2.a >0.5){
-				v_lightcolor.rgb = mix(lightcolor.rgb, worldposrad2.rgb,cos((time * 6.2831853) / worldposrad2.a ) * 0.5 + 0.5); }
+				v_lightcolor.rgb = mix(v_lightcolor.rgb, worldposrad2.rgb,cos((time * 6.2831853) / worldposrad2.a ) * 0.5 + 0.5); }
 		}else{
 			if (worldposrad2.a >0.5){
 				float colortime = clamp((time - otherparams.x)/worldposrad2.a , 0.0, 1.0);
-				v_lightcolor.rgb = mix(lightcolor.rgb, worldposrad2.rgb,colortime); 
-				//v_lightcolor.rgb = mix(lightcolor.rgb, worldposrad2.rgb,0.0); 
+				v_lightcolor.rgb = mix(v_lightcolor.rgb, worldposrad2.rgb,colortime); 
 			}
 			if (otherparams.y > 0 ){ //lifetime
 				float elapsedframes = time - otherparams.x;
