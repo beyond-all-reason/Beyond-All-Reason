@@ -18,15 +18,19 @@ Standby()
 	{
 		sleep 100;
 	}
+	
+	var howmuchtosleep;
+	howmuchtosleep = (get GAME_FRAME) ;
+	howmuchtosleep = howmuchtosleep - ((howmuchtosleep / 30 ) * 30);
+	sleep 33 * howmuchtosleep;
+	
 	while( TRUE )
 	{
 		emit-sfx 1024 + 0 from blinka;
-		sleep 1150;
+		sleep 1000;
 		emit-sfx 1024 + 0 from blinkb;
-		sleep 1150;
+		sleep 1000;
 	}
-	sleep 50;
-	start-script Standby();
 }
 
 activatescr()
@@ -130,7 +134,7 @@ Create()
 	hide nano2;
 	hide pad;
 	hide nano4;
-	hide nano1;
+	show nano1;
 	spin dish around y-axis speed <60>;
 	unitviewer = FALSE;
 	spray = nano1;
