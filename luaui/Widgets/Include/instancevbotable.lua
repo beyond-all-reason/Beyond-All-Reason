@@ -335,7 +335,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	end
 
 	if iT.debug then validateInstanceVBOTable(iT, 'push') end 
-	return thisInstanceIndex
+	return instanceID
 end
 
 function popElementInstance(iT, instanceID, noUpload) 

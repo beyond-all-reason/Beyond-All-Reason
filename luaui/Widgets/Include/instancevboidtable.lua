@@ -262,8 +262,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 		iT.dirty = true
 	end
 	
-	
-	return thisInstanceIndex
+	return instanceID
 end
 
 function popElementInstance(iT, instanceID, noUpload) 
