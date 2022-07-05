@@ -2807,7 +2807,7 @@ function widget:MousePress(x, y, button)
 
         -- enemies label onclick
         posY = widgetPosY + widgetHeight - enemyLabelOffset
-        if IsOnRect(x, y, widgetPosX + 2, posY + 2, widgetPosX + widgetWidth - 2, posY + 20) then
+        if numberOfEnemies > 0 and IsOnRect(x, y, widgetPosX + 2, posY + 2, widgetPosX + widgetWidth - 2, posY + 20) then
             enemyListShow = not enemyListShow
             SetModulesPositionX() --why?
             SortList()

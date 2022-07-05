@@ -322,9 +322,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Whirlwind",
 		"Wolverine"
 	}
-	local namelistChicken = {'Attila the Hen', 'Big Bird', 'Chicken Little', 'Cluck Norris', 'Chick Norris', 'Dixie Chick', 'Egghead',
-							 'Hen Solo', 'Donald Cluck'
-	}
+	local namelistChicken = {'Alien Raptors'}
 	local namelistScavengers = {'Scavengers'}
 
 	local takenNames = {}

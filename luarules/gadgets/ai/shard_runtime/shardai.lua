@@ -20,7 +20,7 @@ function ShardAI:Init()
 	self.game.ai = self
 	self.map.ai = self
 	self.data = {}
-	self.game:DrawDisplay(true)
+	self.game:DrawDisplay(false)
 	self:Info(
 		self.fullname .. " - playing: " .. self.game:GameName() .. " on: " .. self.map:MapName()
 	)
@@ -79,9 +79,9 @@ function ShardAI:Update()
 		if m == nil then
 			self:Warn("nil module!")
 		else
- 			--self.game:StartTimer(m:Name() .. ' ai')
+ 			self.game:StartTimer(m:Name() .. ' ai')
 			m:Update()
- 			--self.game:StopTimer(m:Name() .. ' ai')
+ 			self.game:StopTimer(m:Name() .. ' ai')
 		end
 	end
 end

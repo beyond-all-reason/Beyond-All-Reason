@@ -48,19 +48,22 @@ function MexUpBST:OwnerIdle()
 			-- check if the moho can be built there at all
 			local s = map:CanBuildHere(tmpType, self.mexPos)
 			if s then
-				s = builder:Build(mohoName, self.mexPos)
-			end
-			if s then
+				builder:Build(mohoName, self.mexPos)
 				self.active = true
 				self.mohoStarted = true
 				self.mexPos = nil
 				self:EchoDebug("MexUpBST: unit ".. self.name .." starts building a Moho")
+			end
+			--[[
+			if s then
+
 			else
 				self.mexPos = nil
 				self.mohoStarted = false
 				self.active = false
 				self:EchoDebug("MexUpBST: unit ".. self.name .." failed to start building a Moho")
 			end
+			]]
 		end
 
 		if not self.mohoStarted and (self.mexPos == nil) then
@@ -71,10 +74,15 @@ function MexUpBST:OwnerIdle()
 end
 
 function MexUpBST:Update()
+	--self.uFrame = self.uFrame or 0
 	if not self.active then
-		if (self.lastFrame or 0) + 30 < self.game:Frame() then
-			self:StartUpgradeProcess()
-		end
+		local f = self.game:Frame()
+		if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'MexUpBST' then return end
+		self:StartUpgradeProcess()
+		--if f - self.uFrame < self.ai.behUp['mexupbst'] then
+			--return
+		--end
+		--self.uFrame = f
 	end
 end
 
@@ -103,7 +111,7 @@ end
 
 function MexUpBST:StartUpgradeProcess()
 	-- try to find nearest mex
-	local ownUnits = self.game:GetFriendlies()
+	local ownUnits = self.game:GetUnits()
 	local selfUnit = self.unit:Internal()
 	local selfPos = selfUnit:GetPosition()
 	local mexUnit = nil
@@ -147,20 +155,20 @@ function MexUpBST:StartUpgradeProcess()
 	local s = false
 	if mexUnit ~= nil then
 		-- command the engineer to reclaim the mex
-		s = self.unit:Internal():Reclaim(mexUnit)
-		if s then
+		self.unit:Internal():Reclaim(mexUnit)
+		--if s then
 			-- we'll build the moho here
 			self.mexPos = mexUnit:GetPosition()
-		end
+		--end
 	end
 
-	if s then
+	--if s then
 		self.active = true
 		self:EchoDebug("MexUpBST: unit ".. self.name .." goes to reclaim a mex")
-	else
-		mexUnit = nil
-		self.active = false
-		self.lastFrame = self.game:Frame()
-		self:EchoDebug("MexUpBST: unit ".. self.name .." failed to start reclaiming")
-	end
+	--else
+	--	mexUnit = nil
+	--	self.active = false
+	--	self.lastFrame = self.game:Frame()
+	--	self:EchoDebug("MexUpBST: unit ".. self.name .." failed to start reclaiming")
+	--end
 end

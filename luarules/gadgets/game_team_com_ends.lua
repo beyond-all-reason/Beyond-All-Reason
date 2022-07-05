@@ -67,7 +67,8 @@ local function commanderDeath(teamID, attackerUnitID, originX, originZ) -- optio
 			end
 		end
 	end
-	if Spring.GetModOptions().deathmode == "own_com" then
+
+	if Spring.GetModOptions().deathmode == "own_com" and aliveTeamComCount[teamID] <= 0 then
 		if not select(3, Spring.GetTeamInfo(teamID, false)) then
 			Spring.KillTeam(teamID)
 		end

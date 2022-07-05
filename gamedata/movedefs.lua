@@ -658,6 +658,7 @@ for moveName, moveData in pairs(moveDatas) do
 	moveData.heatmapping = true
 	moveData.name = moveName
 	moveData.allowRawMovement = true
+	moveData.allowTerrainCollisions = false
 	if moveName and string.find(moveName, "BOT") and moveData.maxslope then
 		moveData.slopemod = 4
 		--if moveData.IsAllTerrain then

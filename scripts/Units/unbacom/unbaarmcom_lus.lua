@@ -213,7 +213,7 @@ function HandleLevelUps()
 		elseif realxp > 70 and level == 12 then
 			LevelUpStats(12)
 		elseif realxp > 50 and level == 11 then
-			LevelUpStats(11)			
+			LevelUpStats(11)
 		elseif realxp > 40 and level == 10 then
 			LevelUpStats(10)
 		elseif realxp > 30 and level == 9 then
@@ -400,7 +400,7 @@ function script.AimWeapon(weapon, heading, pitch)
 			return false, "weapon > 29"
 		end
 	elseif weapon == 30 then
-		Spring.Echo("weapon 30:",weapon, level)
+		--Spring.Echo("weapon 30:",weapon, level)
 		isAimingDgun = true
 		isAiming = true
 		leftArm = false

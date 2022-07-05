@@ -194,13 +194,14 @@ local function MakeWords(line)
 end
 
 
-local function MakeKeySetString(key, mods)
+local function MakeKeySetString(key, mods, getSymbol)
+  getSymbol = getSymbol or Spring.GetKeySymbol
   local keyset = ""
   if (mods.alt)   then keyset = keyset .. "A+" end
   if (mods.ctrl)  then keyset = keyset .. "C+" end
   if (mods.meta)  then keyset = keyset .. "M+" end
   if (mods.shift) then keyset = keyset .. "S+" end
-  local userSym, defSym = Spring.GetKeySymbol(key)
+  local _, defSym = getSymbol(key)
   return (keyset .. defSym)
 end
 
@@ -222,9 +223,21 @@ local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release)
 end
 
 
-function actionHandler:KeyAction(press, key, mods, isRepeat)
-  local keyset = MakeKeySetString(key, mods)
-  local defBinds = Spring.GetKeyBindings(keyset)
+function actionHandler:KeyAction(press, key, mods, isRepeat, scanCode)
+  local defBinds
+
+  local keyset = MakeKeySetString(key, mods, Spring.GetKeySymbol)
+
+  if scanCode then -- engine supports scancodes
+    local scanset = MakeKeySetString(scanCode, mods, Spring.GetScanSymbol)
+    if string.sub(scanset, 1, 2) == '0x' then
+      scanset = '0x000' -- TODO: Remove this when/if https://github.com/beyond-all-reason/spring/issues/309 is fixed
+    end
+    defBinds = Spring.GetKeyBindings(keyset, scanset)
+  else
+    defBinds = Spring.GetKeyBindings(keyset)
+  end
+
   if (defBinds) then
     local actionSet
     if (press) then

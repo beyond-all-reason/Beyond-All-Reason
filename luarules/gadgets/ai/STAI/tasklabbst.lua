@@ -47,19 +47,23 @@ function TaskLabBST:preFilter()
 end
 
 function TaskLabBST:Update()
+-- 	 self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
-	if f % 111 == 0 then
-		self:preFilter() -- work or no resource??
-		if Spring.GetFactoryCommands(self.id,0) > 1 then return end --factory alredy work
-		self:GetAmpOrGroundWeapon() -- need more amph to attack in this map?
+-- 	if f - self.uFrame < self.ai.behUp['tasklabbst'] then
+-- 		return
+-- 	end
+-- 	self.uFrame = f
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'TaskLabBST' then return end
+	self:preFilter() -- work or no resource??
+	if Spring.GetFactoryCommands(self.id,0) > 1 then return end --factory alredy work
+	self:GetAmpOrGroundWeapon() -- need more amph to attack in this map?
 
-		local soldier, param, utype = self:getSoldier()
-		self:EchoDebug('update',soldier)
-		if soldier then
-			for i=1,param.wave or 1 do
-				utype = self.game:GetTypeByName(soldier)
-				self.unit:Internal():Build(utype,nil,nil,{-1})
-			end
+	local soldier, param, utype = self:getSoldier()
+	self:EchoDebug('update',soldier)
+	if soldier then
+		for i=1,param.wave or 1 do
+			utype = self.game:GetTypeByName(soldier)
+			self.unit:Internal():Build(utype,self.unit:Internal():GetPosition(),0,{-1})
 		end
 	end
 end

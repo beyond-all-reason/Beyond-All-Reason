@@ -4,8 +4,6 @@ function TaskQueueBST:Name()
 	return "TaskQueueBST"
 end
 
-local CMD_GUARD = 25
-
 local maxBuildDists = {}
 local maxBuildSpeedDists = {}
 
@@ -118,9 +116,7 @@ function TaskQueueBST:Activate()
 	if self.constructing then
 		self:EchoDebug(self.name .. " " .. self.id .. " resuming construction of " .. self.constructing.unitName .. " " .. self.constructing.unitID)
 		-- resume construction if we were interrupted
-		local floats = api.vectorFloat()
-		floats:push_back(self.constructing.unitID)
-		self.unit:Internal():ExecuteCustomCommand(CMD_GUARD, floats)
+		self.unit:Internal():Guard(self.constructing.unitID)
 		self.target = self.constructing.position
 		self.currentProject = self.constructing.unitName
 		self.progress = false
@@ -146,10 +142,11 @@ function TaskQueueBST:Priority()
 end
 
 function TaskQueueBST:Update()
+
 	local f = self.game:Frame()
-	if f % 69 ~= 0 then
-		return
-	end
+
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'TaskQueueBST' then return end
+	--print('schedulertaskq',f,self.ai.id)
 	self:VisualDBG()
 	if not self:IsActive() then
 		return
@@ -188,7 +185,7 @@ function TaskQueueBST:CategoryEconFilter(cat,param,name)
 		self:EchoDebug('ecofilter stop',name,cat, param)
 		return
 	end
-	local ecoCheck = self.ai.taskshst.roles[self.role][self.idx]:economy()
+	local ecoCheck = self.ai.taskshst.roles[self.role][self.idx]:economy(param,name)
 	self:EchoDebug('eco filter',name,cat,ecoCheck)
 	if ecoCheck then
 		return name
@@ -218,16 +215,24 @@ function TaskQueueBST:specialFilter(cat,param,name)
 			end
 		end
 		check =  true
+ 	elseif (cat == '_convs_' ) then
+ 		if self.ai.tool:countMyUnit( {'_fus_'}  ) < 2 and self.ai.armyhst.unitTable[name].techLevel == 1 then
+ 			check= true
+		elseif  self.ai.armyhst.unitTable[name].techLevel > 1 then
+			check= true
+ 		end
+				--local factoryPos = factory.unit:Internal():GetPosition()
+				--local nanoNear = buildSiteHST:unitsNearCheck(factoryPos,400,level * 10,'_nano_')
 	elseif cat == '_wind_' then
 		check = map:AverageWind() > 7
 	elseif cat == '_tide_' then
 		check = map:TidalStrength() >= 10
 	elseif cat == '_aa1_' then
-		check =  self.ai.needAirDefense
+		check =  self.ai.needAntiAir
 	elseif cat == '_flak_' then
-		check = self.ai.needAirDefense
+		check = self.ai.needAntiAir
 	elseif cat == '_aabomb_' then
-		check = self.ai.needAirDefense
+		check = self.ai.needAntiAir
 	end
 	if check then
 		self:EchoDebug('special filter pass',cat,name)
@@ -292,9 +297,11 @@ function TaskQueueBST:findPlace(utype, value,cat,loc)
 			for index, factory in pairs(factories) do
 				local factoryName = factory.unit:Internal():Name()
 				if mtype == self.ai.armyhst.factoryMobilities[factoryName][1] and level > currentLevel then
-					self:EchoDebug( self.name .. ' can push up self mtype ' .. factoryName)
-					currentLevel = level
-					target = factory
+					if not self.ai.buildsitehst:unitsNearCheck(factory.unit:Internal():GetPosition(),390,10+(5*level),{'_nano_'}) then
+						self:EchoDebug( self.name .. ' can push up self mtype ' .. factoryName)
+						currentLevel = level
+						target = factory
+					end
 				end
 			end
 		end
@@ -429,6 +436,7 @@ function TaskQueueBST:GetQueue()
 end
 
 function TaskQueueBST:ProgressQueue()
+
 	self:EchoDebug(self.name," progress queue",self.role,self.idx,#self.queue)
 	self.lastWatchdogCheck = self.game:Frame()
 	self.constructing = false
@@ -439,10 +447,6 @@ function TaskQueueBST:ProgressQueue()
 	if self.idx > #self.queue then
 		self.idx = 1
 	end
-	--local self.idx, JOB = next(self.queue,self.idx or 1)
-
-
--- 	self.idx = idx
 	for index = self.idx, #self.queue + 1 do
 		if  not self.progress then
 			self.idx = index
@@ -499,14 +503,14 @@ function TaskQueueBST:ProgressQueue()
 			end
 			if utype ~= nil and p ~= nil then
 				if type(jobName) == "table" and jobName[1] == "ReclaimEnemyMex" then
-					self:EchoDebug("reclaiming enemy mex...")
-					success = self.ai.tool:CustomCommand(self.unit:Internal(), CMD_RECLAIM, {jobName[2].unitID}) --TODO redo with shardify one
 					jobName = jobName[1]
 				else
 					self.ai.buildsitehst:NewPlan(jobName, p, self)
 					local facing = self.ai.buildsitehst:GetFacing(p)
-					success = self.unit:Internal():Build(utype, p, facing)
+					local command = self.unit:Internal():Build(jobName, p, facing)
 				end
+
+				success = true
 			end
 			if success then
 				self:EchoDebug(self.name , " successful build command for ", utype:Name())
@@ -517,9 +521,9 @@ function TaskQueueBST:ProgressQueue()
 				self.failOut = nil
 				self.progress = false
 				self.assistant = false
-				if jobName == "ReclaimEnemyMex" then
-					self.watchdogTimeout = self.watchdogTimeout + 450 -- give it 15 more seconds to reclaim it
-				end
+-- 				if jobName == "ReclaimEnemyMex" then
+-- 					self.watchdogTimeout = self.watchdogTimeout + 450 -- give it 15 more seconds to reclaim it
+-- 				end
 			else
 				self.progress = true
 				self.target = nil

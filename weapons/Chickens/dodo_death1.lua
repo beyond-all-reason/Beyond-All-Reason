@@ -6,6 +6,7 @@ return {
 		cratermult = 0,
 		edgeeffectiveness = 0.075,
 		explosiongenerator = "custom:chickenunitexplosion-large-red",
+		explosionspeed = 999999,
 		impulseboost = 0.2,
 		impulsefactor = 0.2,
 		interceptedbyshieldtype = 1,
@@ -18,7 +19,7 @@ return {
 		weaponvelocity = 250,
 		damage = {
 			default = 650,
-			chicken = 1,
+			chicken = 150,
 		},
 	},
 }

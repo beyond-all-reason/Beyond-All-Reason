@@ -61,11 +61,93 @@ local spGetUnitNeutral = Spring.GetUnitNeutral
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetGaiaTeamID = Spring.GetGaiaTeamID()
 
+
 --SYNCED CODE
 if gadgetHandler:IsSyncedCode() then
 
+
 	function gadget:Initialize()
+
 		GG.AiHelpers.Start()
+	end
+function gadget:RecvLuaMsg(msg, playerID)
+
+		if string.sub(msg,1,17) == 'StGiveOrderToSync' then
+			local id = string.split(msg,"*")
+			local cmd = string.split(msg,'_')
+			local pos = string.split(msg,':')
+			local opts = string.split(msg,';')
+			local timeout = string.split(msg,'#')
+			local unit = string.split(msg,'!')
+
+			if #id ~= 3 or #cmd ~= 3 or #pos ~= 3 or #opts ~= 3 or #timeout ~= 3 or #unit ~= 3 then
+
+				spEcho('format incomplete',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
+				spEcho('recvluamsg',msg)
+				spEcho('splitting lenght',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
+				spEcho('GiveOrderToUnit : ')
+				spEcho('unit',unit,type(unit))
+				spEcho('id',id,type(id))
+				spEcho('cmd',cmd,type(cmd))
+				spEcho('pos',pos,type(pos))
+				spEcho('opts',opts,type(opts))
+				spEcho('timeout',timeout,type(timeout))
+				Spring.Debug.TableEcho(pos)
+				return
+			end
+
+			id = id[2]
+			cmd = cmd[2]
+			pos = pos[2]
+			opts = opts[2]
+			timeout = timeout[2]
+			unit = unit[2]
+			if not Spring.ValidUnitID ( id )  then
+				Spring.Echo('ST RECEIVEDGOTS ID INVALID','name',unit,'id',id,'cmd',cmd)
+				return
+			end
+			if string.split(pos,',') then
+				pos = string.split(pos,',')
+				if not pos[1] or pos[1] == '' then
+					Spring.Debug.TableEcho(pos)
+					spEcho('warn! invalid pos argument in STAI gotu luarules message')
+					return
+				end
+			end
+			if string.split(opts,',') then
+				opts = string.split(opts,',')
+				if not opts[1] or opts[1] == '' then
+					Spring.Debug.TableEcho(pos)
+					spEcho('warn! invalid opts argument in STAI gotu luarules message')
+					return
+				end
+			end
+			if type(timeout) ~= 'table' then--maybe this is not required
+				timeout = {timeout}
+			end
+			if dbg then
+				spEcho('recvluamsg',msg)
+				spEcho('splitting lenght',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
+				spEcho('GiveOrderToUnit : ')
+				spEcho('unit',unit,type(unit))
+				spEcho('id',id,type(id))
+				spEcho('cmd',cmd,type(cmd))
+				spEcho('pos',pos,type(pos))
+				spEcho('opts',opts,type(opts))
+				spEcho('timeout',timeout,type(timeout))
+				Spring.Debug.TableEcho(pos)
+			end
+			local order = Spring.GiveOrderToUnit(id,cmd,pos,opts,timeout)
+			if order ~= true then
+				spEcho('order error in STAI unsync to sync give order to unit',msg)
+				spEcho('order', order,id,cmd,pos,opts,timeout)
+			end
+		end
+	end
+else
+
+	-- UNSYNCED CODE
+	function gadget:Initialize()
 		local teamList = spGetTeamList()
 		spEcho("Looking for AIs")
 
@@ -77,6 +159,7 @@ if gadgetHandler:IsSyncedCode() then
 				if thisAI ~= nil then
 					Shard.AIsByTeamID[id] = thisAI
 					Shard.AIs[#Shard.AIs + 1] = thisAI
+					thisAI.index = #Shard.AIs
 				end
 			end
 		end
@@ -90,6 +173,7 @@ if gadgetHandler:IsSyncedCode() then
 				self:UnitFinished(uId, Spring.GetUnitDefID(uId), Spring.GetUnitTeam(uId))
 			end
 		end
+
 	end
 
 	function gadget:SetupAI(id)
@@ -289,7 +373,8 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	--UNSYNCED CODE
-else
+--else
+	--[[
 	local function sdAddRectangle(_, x1, z1, x2, z2, r, g, b, a, label, filled, teamID, channel)
 		if (Script.LuaUI('ShardDrawAddRectangle')) then
 			Script.LuaUI.ShardDrawAddRectangle(x1, z1, x2, z2, { r, g, b, a }, label, filled, teamID, channel)
@@ -378,9 +463,23 @@ else
 		if (Script.LuaUI('ShardSaveTable')) then
 			Script.LuaUI.ShardSaveTable(tableinput, tablename, filename)
 		end
-	end
+	end]]
 
-	function gadget:Initialize()
+-- 	function gadget:stBuildingCommand(order)
+-- 		print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+-- 		print(order)
+-- 		return order
+-- -- 		if (Script.LuaUI('BuildingCommand')) then
+-- -- 			Script.LuaUI.BuildingCommand(i,order)
+-- -- 			print('stBuildingCommand',i,order)
+-- -- 		end
+--
+--
+-- 	end
+
+
+
+--[[	function gadget:Initialize()
 		Spring.Echo("Shard AI unsync gadget init")
 		gadgetHandler:AddSyncAction("shard_debug_position", handleShardDebugPosEvent)
 		gadgetHandler:AddSyncAction('ShardDrawAddRectangle', sdAddRectangle)
@@ -399,7 +498,27 @@ else
 		gadgetHandler:AddSyncAction('ShardStopTimer', sStopTimer)
 		gadgetHandler:AddSyncAction('ShardSaveTable', sSaveTable)
 	end
+]]
 
+		--[[
+		Spring.Echo("Shard AI unsync gadget init")
+		gadgetHandler:AddSyncAction("BuildingCommand", stBuildingCommand)
+		gadgetHandler:AddSyncAction("shard_debug_position", handleShardDebugPosEvent)
+		gadgetHandler:AddSyncAction('ShardDrawAddRectangle', sdAddRectangle)
+		gadgetHandler:AddSyncAction('ShardDrawEraseRectangle', sdEraseRectangle)
+		gadgetHandler:AddSyncAction('ShardDrawAddCircle', sdAddCircle)
+		gadgetHandler:AddSyncAction('ShardDrawEraseCircle', sdEraseCircle)
+		gadgetHandler:AddSyncAction('ShardDrawAddLine', sdAddLine)
+		gadgetHandler:AddSyncAction('ShardDrawEraseLine', sdEraseLine)
+		gadgetHandler:AddSyncAction('ShardDrawAddPoint', sdAddPoint)
+		gadgetHandler:AddSyncAction('ShardDrawErasePoint', sdErasePoint)
+		gadgetHandler:AddSyncAction('ShardDrawAddUnit', sdAddUnit)
+		gadgetHandler:AddSyncAction('ShardDrawEraseUnit', sdEraseUnit)
+		gadgetHandler:AddSyncAction('ShardDrawClearShapes', sdClearShapes)
+		gadgetHandler:AddSyncAction('ShardDrawDisplay', sdDisplay)
+		gadgetHandler:AddSyncAction('ShardStartTimer', sStartTimer)
+		gadgetHandler:AddSyncAction('ShardStopTimer', sStopTimer)
+		gadgetHandler:AddSyncAction('ShardSaveTable', sSaveTable)]]
 	function gadget:Shutdown()
 		Spring.Echo("Shard AI unsync gadget shutdown")
 		gadgetHandler:RemoveSyncAction("shard_debug_position")

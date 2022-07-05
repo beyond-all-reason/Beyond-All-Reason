@@ -164,16 +164,18 @@ elseif string.find(mapName, "ghenna") then
 elseif string.find(mapName, "hotstepper") then
     lavaMap = true
     lavaLevel = 100 -- pre-game lava level
-    lavaDamage = 150 -- damage per second
+    lavaDamage = 130 -- damage per second
     if isLavaGadget and isLavaGadget == "synced" then
-        addTideRhym (99, 0.25, 5*60) -- needs to be -1 than pre-game lava level
-        addTideRhym (236, 0.10, 5)
-        addTideRhym (100, 0.25, 5*60)
-        addTideRhym (236, 0.10, 5)
-        addTideRhym (100, 0.25, 5*60)
-        addTideRhym (300, 0.20, 1)
-        addTideRhym (355, 0.10, 30)
-        addTideRhym (395, 0.07, 9)
+        addTideRhym (90, 0.25, 5*60) -- needs to be -1 than pre-game lava level
+        addTideRhym (215, 0.10, 5)
+        addTideRhym (90, 0.25, 5*60)
+        addTideRhym (290, 0.15, 5)
+        addTideRhym (90, 0.25, 4*60)
+        addTideRhym (355, 0.20, 5)
+        addTideRhym (90, 0.25, 4*60)
+        addTideRhym (390, 0.20, 5)
+        addTideRhym (90, 0.25, 2*60)
+        addTideRhym (440, 0.04, 2*60)
     end
 
 elseif string.find(mapName, "zed remake") then
@@ -241,6 +243,29 @@ elseif string.find(mapName, "speedmetal") then
 
 elseif string.find(mapName, "moonq") then
     lavaMap = false
+
+elseif string.find(mapName, "crucible") then
+    lavaMap = true
+    lavaGrow = 0 
+    lavaSwirlFreq = 0.025
+    lavaSwirlAmp = 0.003
+    lavaTideamplitude = 0
+    if isLavaGadget and isLavaGadget == "synced" then
+        addTideRhym (1, 0.05, 5*6000)
+    end
+
+elseif string.find(mapName, "moonq") then
+    lavaMap = false
+
+elseif string.find(mapName, "forge") then
+    lavaMap = true
+    lavaGrow = 0 
+    lavaSwirlFreq = 0.025
+    lavaSwirlAmp = 0.003
+    lavaTideamplitude = 0
+    if isLavaGadget and isLavaGadget == "synced" then
+        addTideRhym (1, 0.05, 5*6000)
+    end
 
 elseif Game.waterDamage > 0 then -- Waterdamagemaps - keep at the very bottom
     lavaMap = true

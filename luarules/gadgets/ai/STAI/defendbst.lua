@@ -1,8 +1,3 @@
-local CMD_GUARD = 25
-local CMD_PATROL = 15
-local CMD_MOVE_STATE = 50
-local MOVESTATE_ROAM = 2
-
 DefendBST = class(Behaviour)
 
 function DefendBST:Name()
@@ -61,6 +56,13 @@ function DefendBST:OwnerIdle()
 end
 
 function DefendBST:Update()
+	 --self.uFrame = self.uFrame or 0
+	local f = self.game:Frame()
+	--if f - self.uFrame < self.ai.behUp['mexupbst'] then
+	--	return
+	--end
+	--self.uFrame = f
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'DefendBST' then return end
 	if self.unit == nil then return end
 	local unit = self.unit:Internal()
 	if not unit:GetPosition() then
@@ -69,8 +71,8 @@ function DefendBST:Update()
 	end
 	if unit == nil then return end
 	if self.active then
-		local f = self.game:Frame()
-		if f % 60 == 0 then
+
+-- 		if f % 60 == 0 then
 			if self.target == nil then return end
 			local targetPos = self.target.position or self.ai.tool:BehaviourPosition(self.target.behaviour)
 			if targetPos == nil then return end
@@ -89,8 +91,7 @@ function DefendBST:Update()
 			if behaviour ~= nil then
 				if dist > 500 then
 					if self.guarding ~= behaviour.id then
-						-- move toward mobile wards that are far away with guard order
-						self.ai.tool:CustomCommand(self.unit:Internal(), CMD_GUARD, {behaviour.id})
+						self.unit:Internal():Guard(behaviour.id)
 						self.guarding = behaviour.id
 					end
 				elseif not safe then
@@ -120,7 +121,7 @@ function DefendBST:Update()
 			self.lastPos = api.Position()
 			self.lastPos.x, self.lastPos.z = unitPos.x+0, unitPos.z+0
 			self.unit:ElectBehaviour()
-		end
+
 	end
 end
 
@@ -187,8 +188,6 @@ end
 function DefendBST:SetMoveState()
 	local thisUnit = self.unit
 	if thisUnit then
-		local floats = api.vectorFloat()
-		floats:push_back(MOVESTATE_ROAM)
-		thisUnit:Internal():ExecuteCustomCommand(CMD_MOVE_STATE, floats)
+		thisUnit:Internal():Roam()
 	end
 end

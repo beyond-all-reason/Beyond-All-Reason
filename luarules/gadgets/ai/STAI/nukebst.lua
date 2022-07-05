@@ -6,12 +6,6 @@ end
 
 NukeBST.DebugEnabled = false
 
-
-
-
-local CMD_STOCKPILE = 100
-local CMD_ATTACK = 20
-
 function NukeBST:Init()
 	local uname = self.unit:Internal():Name()
 	if uname == "armemp" then
@@ -30,16 +24,25 @@ end
 
 function NukeBST:OwnerBuilt()
 	self.finished = true
-	self.unit:Internal():ExecuteCustomCommand(CMD_STOCKPILE, 5)
+	self.unit:Internal():Stockpile()
+	self.unit:Internal():Stockpile()
 end
 
 function NukeBST:Update()
+-- 	 self.uFrame = self.uFrame or 0
+--
+-- 	if f - self.uFrame < self.ai.behUp['nukebst']  then
+-- 		return
+-- 	end
+-- 	self.uFrame = f
+	local f = game:Frame()
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'NukeBST' then return end
 	if not self.active then return end
 
-	local f = self.game:Frame()
+	--local f = self.game:Frame()
 
 	if self.finished then
-		if f > self.lastLaunchFrame + 100 then
+		--if f > self.lastLaunchFrame + 100 then
 			self.gotTarget = false
 			if self.ai.needNukes and self.ai.canNuke then
 				local bestCell
@@ -58,18 +61,14 @@ function NukeBST:Update()
 					floats:push_back(position.y)
 					floats:push_back(position.z)
 					self.unit:Internal():AreaAttack(floats,0)
-					--self.unit:Internal():ExecuteCustomCommand(CMD_ATTACK, floats)
 					self.gotTarget = true
 					self:EchoDebug("got target")
 				end
 			end
 			self.lastLaunchFrame = f
-		end
+		--end
 		if self.gotTarget then
 			if self.lastStockpileFrame == 0 or f > self.lastStockpileFrame + self.stockpileTime then
-				local floats = api.vectorFloat()
-				floats:push_back(1)
-				self.unit:Internal():ExecuteCustomCommand(CMD_STOCKPILE, floats)
 				self.lastStockpileFrame = f
 			end
 		end
