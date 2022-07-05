@@ -349,6 +349,10 @@ local armorDefs = {
 		"corhurc",
 		"corsb",
 		"cortitan",
+		"legnap", 
+		"legkam",
+		"legcib",
+		"legmineb",
 		"chicken_dodoair",
 	},
 	fighters = {
@@ -363,6 +367,7 @@ local armorDefs = {
 		"armsfig",
 		"corsfig",
 		"corvamp",
+		"legfig",
 	},
 	mines = {
 		"armfmine3",
@@ -416,6 +421,8 @@ local armorDefs = {
 		"armthundt4",
 		"armassistdrone",
 		"corassistdrone",
+		"legmos",
+		"legfort",
 	},
 	shields = {
 		"armgate",
