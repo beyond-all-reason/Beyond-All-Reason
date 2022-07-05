@@ -23,10 +23,10 @@ function BomberHST:Init()
 end
 
 function BomberHST:Update()
-	local f = self.game:Frame()
-    self:EchoDebug(f, f % 30)
-	if f % 30 == 0 then self:DoTargetting() end
-
+-- 	local f = self.game:Frame()
+--     self:EchoDebug(f, f % 30)
+-- 	if f % 30 == 0 then self:DoTargetting() end
+	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	for i = #self.plans, 1, -1 do
 		local plan = self.plans[i]
 		local pathfinder = plan.pathfinder
@@ -194,7 +194,7 @@ function BomberHST:GetBestBomberTarget(torpedo)
 				end
 			end
 		else
-			if cell.pos.y > 5 then
+			if cell.pos.y > -5 then
 				if cell.economy > bestValue then
 					bestValue = cell.economy
 					bestCell = cell

@@ -1,32 +1,32 @@
-WATCH OUT: SCAVENGERS ARE ACTIVE IN THIS REGION
+WARNING: SCAVENGERS ARE ACTIVE IN THIS REGION
 
 YOUR GOAL:
-Try to survive and build up a super strong base and army to fight the Scavenger forces. You need to Reach 100% Scav Tech in order to start the final phase and massive assault. You will eventually need to destroy the local Scavenger Commander Boss to be victorious.
+Attempt to survive and build up a strong base and army to fight the Scavenger forces. You need to reach 100% BOSS ANGER in order to start the final phase and massive assault. You will eventually need to destroy the local Scavenger EPIC COMMANDER to be victorious.
 
 QUICK GUIDE
-1. Scavengers usually remain ABSENT FOR APPROX. FIRST 5 MINUTES of a game.
-2. ORBITAL DROPS will spawn Scavenger BEACONS, mostly in 'dark areas' of the map.
-3. Scavenger REZ-BOTS will SCAVENGE THE BATTLEFIELD to resurrect wreckages.
-4. Their strength will dynamically grow (or shrink) depending on your actions and agression
-5. Keep growing your base, economy and army to reach 100%
+1. Scavengers drop into their start zone and not attack until the end of the Grace Period (5 minutes by default).
+2. ORBITAL DROPS will spawn SCAVENGER BEACONS, both in the start box and areas with no radar coverage or line of sight.
+3. Scavenger REZ-BOTS will roam the battlefield and resurrect unit wreckage.
+4. Their strength will dynamically grow (or shrink) depending on your actions and aggression.
+5. Keep growing your base, economy and army to reach the end.
 
 RANDOM EVENTS
-- "Extra strong units" appear once in a while
-- "Malfunctions" can stop all Scavengers for a periode between 20-40 seconds.
-- "Rebellion" of a small group of Scavengers joining the other team
+- "Extra strong units" appear once in a while.
+- "Malfunctions" can stop all Scavengers for a period between 20-40 seconds.
+- "Rebellion" of a small group of Scavengers joining the other team.
 
 
 USEFUL TIPS
-1. It's wise to get as much RADAR COVERAGE as possible to prevent Beacons from dropping close to your base.
-2. Hunt down and DESTROY DROPPOD-BEACONS to reduce the amount of Scavengers that will drop!
-3. Try and Capture Scavenger RESOURCE GENERATORS and transport them back to the safety of your base. They generate a lot of resources.
-4. Try and Capture Scavenger BLUEPRINTERS. They offer you a small selection of Scavenger Units to build, including T4 super experimentals.
+1. It's wise to generate as much overlapping radar coverage as possible to prevent SPAWN BEACONS from dropping close to your base.
+2. Hunt down and destroy SPAWN BEACONS to reduce the number of Scavengers that will drop!
+3. Try and capture Scavenger RESOURCE GENERATORS and transport them back to the safety of your base. They generate a lot of resources.
+4. Try and capture Scavenger PRINTERS. They offer you a small selection of Scavenger Units to build, including T4 super experimental units.
 5. Scavenger STORAGE BUILDINGS can leave very rich metal deposits which can contain up to 10k metal. Reclaim them.
-6. Make sure you have strong Anti-Air and Anti-Nuke defenses.
+6. Make sure you have strong anti-air and anti-nuke defenses.
 
  
 WHY DID THEY APPEAR?
-No one knows for sure where did they come from, what made them alive and hungry for destruction. It might have been some alien technology, a random short circuit of a processing unit or a deliberate action of mother nature to end the destructive war between Armada and Cortex. One thing is certain – some unknown event has influenced the AI algorithm and created these anomalies.
+No one knows for sure where they came from or what made them alive and hungry for destruction. It might have been some alien technology, a random short circuit of a processing unit or a deliberate action of mother nature to end the destructive war between Armada and Cortex. One thing is certain – some unknown event has influenced the AI algorithm and created these anomalies.
 
 
 

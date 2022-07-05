@@ -13,15 +13,6 @@ static-var gun_1, last_fire, firstaim;
 
 //lua_TargetCheck() { return 0; }
 
-Create()
-{
-	hide flarer;
-	hide flarel;
-
-	gun_1 = 1;
-	firstaim = 1;
-}
-
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
@@ -49,6 +40,19 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
+Create()
+{
+	hide flarer;
+	hide flarel;
+
+	gun_1 = 1;
+	firstaim = 1;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	start-script ExecuteRestoreAfterDelay();
+}
 
 AimPrimary(heading, pitch)
 {

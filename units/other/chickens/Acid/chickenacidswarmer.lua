@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 53,
 		buildcostmetal = 25,
 		builder = false,
-		buildpic = "chickens/chicken1.DDS",
+		buildpic = "chickens/chickenacidswarmer.DDS",
 		buildtime = 900,
 		canattack = true,
 		canguard = true,

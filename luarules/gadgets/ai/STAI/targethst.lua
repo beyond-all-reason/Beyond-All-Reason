@@ -8,19 +8,17 @@ function TargetHST:internalName()
 	return "targethst"
 end
 
-local DebugDrawEnabled = false
-
 local cellElmos = 256
 local cellElmosHalf = cellElmos / 2
 
 function TargetHST:Init()
 	self.DebugEnabled = false
 	self.visualdbg = true
-	self.CELLS = {}
-	self.ENEMYCELLS = {}
-	self.BAD_CELLS = {}
-	self.SPOT_CELLS = {}
-	self:createGridCell()
+ 	self.CELLS = {}
+ 	self.ENEMYCELLS = {}
+ 	self.BAD_CELLS = {}
+ 	self.SPOT_CELLS = {}
+ 	self:createGridCell()
 
 	self.pathModParam = 0.33
 	self.pathModifierFuncs = {}
@@ -29,136 +27,7 @@ function TargetHST:Init()
 end
 
 
-function TargetHST:createGridCell()
-	for x = 1, Game.mapSizeX / cellElmos do
-		if not self.CELLS[x] then
-			self.CELLS[x] = {}
-		end
-		for z = 1, Game.mapSizeZ / cellElmos do
-			self.CELLS[x][z] = {}
-			self:NewCell(x,z)
-		end
-	end
-end
 
-function TargetHST:areaCells(X,Z,R)
-	if not X or not Z then
-		self:Warn('no grid XZ for areacells')
-	end
-	local AC = {}
-	R = R or 0
-	myself = myself or false
-	for x = X - R , X + R,1  do
-		for z = Z - R , Z + R,1 do
-			if self.CELLS[x] and self.CELLS[x][z] then
-				table.insert(AC, {gx = x, gz = z})
-			end
-		end
-	end
-	return AC
-end
-
-
-function TargetHST:clearEnemies()---wrong, clear the cells by parsing enemycells
-	for x,Ztable in pairs(self.CELLS) do
-		for z, cell in pairs(Ztable)do
-			self:NewCell(x,z)
-		end
-	end
-	self.ENEMYCELLS = {}
-end
-
-function TargetHST:PosToGrid(pos)
-	local gridX = math.ceil(pos.x / cellElmos)
-	local gridZ = math.ceil(pos.z / cellElmos)
-	return gridX, gridZ
-end
-
-function TargetHST:GetCellHere(pos)
-	local gridX,gridZ = self:PosToGrid(pos)
-	if self.CELLS[gridX] and self.CELLS[gridX][gridZ] then
-		return self.CELLS[gridX][gridZ] , gridX , gridZ
-	else
-		self:Warn('try to get non-existing cell ',gridX,gridZ,pos.x,pos.z)
-	end
-end
-
-function TargetHST:NewCell(px, pz)
-	local x = px * cellElmos - cellElmosHalf
-	local z = pz * cellElmos - cellElmosHalf
-	local cellPos = api.Position()
-	cellPos.x, cellPos.z = x, z
-	cellPos.y = Spring.GetGroundHeight(x, z)
-	self.ai.buildsitehst:isInMap(cellPos)
--- 	map:DrawCircle(cellPos, cellElmosHalf,{1,1,1,1} , 'G', true, 4)
-
-	local CELL = {}
-	CELL.pos = cellPos
-	CELL.gx = px
-	CELL.gz = pz
-	CELL.enemyUnits = {}
-	CELL.enemyBuildings = {}
-	CELL.friendlyUnits = {}
-	CELL.myUnits = {}
-	CELL.badPositions = 0
-	CELL.spots = 0
-	CELL.damagedUnits = {}
-	CELL.base = nil
-	--targets of this cell per layer is immobile unit NO weapon express in metal here is the layer that count
-	CELL.unarmGI = 0
-	CELL.unarmAI = 0
-	CELL.unarmSI = 0
-	CELL.unarmI = 0
-	--targets of this cell per layer is mobile unit NO weapon express in metal
-	CELL.unarmGM = 0
-	CELL.unarmAM = 0
-	CELL.unarmSM = 0
-	CELL.unarmM = 0
-	--the WEAPONED mobiles units express in metal amount
-	CELL.armedGM = 0
-	CELL.armedAM = 0
-	CELL.armedSM = 0
-	CELL.armedM = 0
-	--the WEAPONED immobiles units express in metal amount
-	CELL.armedGI = 0
-	CELL.armedAI = 0
-	CELL.armedSI = 0
-	CELL.armedI = 0
-
-	CELL.unarmG = 0
-	CELL.unarmA = 0
-	CELL.unarmS = 0
-	CELL.armedG = 0
-	CELL.armedA = 0
-	CELL.armedS = 0
-	CELL.G = 0
-	CELL.A = 0
-	CELL.S = 0
-	CELL.G_balance = 0
-	CELL.S_balance = 0
-	CELL.A_balance = 0
-
-	CELL.unarm = 0
-	CELL.armed = 0
-	CELL.ENEMY = 0
-	CELL.ENEMY_BALANCE = 0
-
-	CELL.offense = 0
-	CELL.defense = 0
-	CELL.economy = 0
-	CELL.intelligence = 0
-	CELL.base = nil
-	CELL.resurrectables = {}
-	CELL.reclamables = {}
-	CELL.repairable = {}
-
-	CELL.MOBILE = 0
-	CELL.IMMOBILE = 0
-	CELL.IM = 0
-
-	CELL.CONTROL = nil --can be false for enemy and nil for no units
-	self.CELLS[px][pz] = CELL
-end
 
 function TargetHST:setCellEnemyValues(enemy,CELL)
 	CELL.enemyUnits[enemy.id] = enemy.name
@@ -260,32 +129,11 @@ function TargetHST:setCellEnemyValues(enemy,CELL)
  	end
 end
 
-function TargetHST:getCellsFields(position,fields,range)--maybe we can run just through ENEMYCELLS
-	if not fields or not position or type(fields) ~= 'table' then
-		self:Warn('incomplete or incorrect params for get cells params',fields,position, range)
-		return
-	end
-	range = range or 0
-	local gridX, gridZ = self:PosToGrid(position)
-	local cells = self:areaCells(gridX,gridZ,range)
-	local VALUE = 0 --VALUE is a total count of all request fields
-	local subValues = {} --subValues is the sum of this fields of each asked cell
-	for i, f in pairs(fields) do
-		subValues[f] = 0
-	end
-	for index , grid in pairs(cells) do
-		local cell = self.CELLS[grid.gx][grid.gz]
-		for i, field in pairs(fields) do
-			VALUE = VALUE + cell[field]
-			subValues[field] = subValues[field] + cell[field]
-		end
-	end
-	return VALUE , subValues , cells
-end
-
 function TargetHST:Update()
-	local f = self.game:Frame()
-	if f == 0 or f % 71 == 0 then
+-- 	local f = self.game:Frame()
+	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
+	--if f == 0 or (f % 71 + game:GetTeamID() == 0) then
+	--if f == 0 or (f % 71) == 0 then
 -- 		self.cells = {}--TODO
 		self:clearEnemies()--delete just the enemy data inside cells, leave other living --TEST
 -- 		self.cellList = {}
@@ -297,7 +145,7 @@ function TargetHST:Update()
 		self:perifericalTarget()
 		self:enemyFront()
 		self:drawDBG()
-	end
+	--end
 end
 
 function TargetHST:UpdateEnemies()
@@ -379,13 +227,14 @@ function TargetHST:perifericalTarget()
 	if not self.enemyBasePosition then
 		return
 	end
+
 	local base = self.enemyBasePosition
 	local distX = 0
 	local distZ = 0
 	local distXZ = 0
-	local tgX = 0
-	local tgZ = 0
-	local tgXZ = 0
+	local tgX = nil
+	local tgZ = nil
+	local tgXZ = nil
 	for i, G in pairs(self.ENEMYCELLS) do
 		local cell = self.CELLS[G.x][G.z]
 		if cell.IM < 0 then
@@ -404,6 +253,7 @@ function TargetHST:perifericalTarget()
 			end
 		end
 	end
+	if not tgX or not tgZ then return end
 	tgX.distalX = true
 	tgZ.distalZ = true
 	tgXZ.distalXZ = true
@@ -597,4 +447,160 @@ function TargetHST:drawDBG()
 	for i,cell in pairs(self.enemyFrontList) do
 		map:DrawCircle(cell.pos, cellElmosHalf/2, colours.f, 'front', true, 4)
 	end
+end
+
+
+function TargetHST:createGridCell()
+	for x = 1, Game.mapSizeX / cellElmos do
+		if not self.CELLS[x] then
+			self.CELLS[x] = {}
+		end
+		for z = 1, Game.mapSizeZ / cellElmos do
+			self.CELLS[x][z] = {}
+			self:NewCell(x,z)
+		end
+	end
+end
+
+function TargetHST:areaCells(X,Z,R)
+	if not X or not Z then
+		self:Warn('no grid XZ for areacells')
+	end
+	local AC = {}
+	R = R or 0
+	myself = myself or false
+	for x = X - R , X + R,1  do
+		for z = Z - R , Z + R,1 do
+			if self.CELLS[x] and self.CELLS[x][z] then
+				table.insert(AC, {gx = x, gz = z})
+			end
+		end
+	end
+	return AC
+end
+
+
+function TargetHST:clearEnemies()---wrong, clear the cells by parsing enemycells
+	for x,Ztable in pairs(self.CELLS) do
+		for z, cell in pairs(Ztable)do
+			self:NewCell(x,z)
+		end
+	end
+	self.ENEMYCELLS = {}
+end
+
+function TargetHST:PosToGrid(pos)
+	local gridX = math.ceil(pos.x / cellElmos)
+	local gridZ = math.ceil(pos.z / cellElmos)
+	return gridX, gridZ
+end
+
+function TargetHST:GetCellHere(pos)
+	local gridX,gridZ = self:PosToGrid(pos)
+	if self.CELLS[gridX] and self.CELLS[gridX][gridZ] then
+		return self.CELLS[gridX][gridZ] , gridX , gridZ
+	else
+		self:Warn('try to get non-existing cell ',gridX,gridZ,pos.x,pos.z)
+	end
+end
+
+function TargetHST:NewCell(px, pz)
+	local x = px * cellElmos - cellElmosHalf
+	local z = pz * cellElmos - cellElmosHalf
+	local cellPos = api.Position()
+	cellPos.x, cellPos.z = x, z
+	cellPos.y = Spring.GetGroundHeight(x, z)
+	self.ai.buildsitehst:isInMap(cellPos)
+-- 	map:DrawCircle(cellPos, cellElmosHalf,{1,1,1,1} , 'G', true, 4)
+
+	local CELL = {}
+	CELL.pos = cellPos
+	CELL.gx = px
+	CELL.gz = pz
+	CELL.enemyUnits = {}
+	CELL.enemyBuildings = {}
+	CELL.friendlyUnits = {}
+	CELL.myUnits = {}
+	CELL.badPositions = 0
+	CELL.spots = 0
+	CELL.damagedUnits = {}
+	CELL.base = nil
+	--targets of this cell per layer is immobile unit NO weapon express in metal here is the layer that count
+	CELL.unarmGI = 0
+	CELL.unarmAI = 0
+	CELL.unarmSI = 0
+	CELL.unarmI = 0
+	--targets of this cell per layer is mobile unit NO weapon express in metal
+	CELL.unarmGM = 0
+	CELL.unarmAM = 0
+	CELL.unarmSM = 0
+	CELL.unarmM = 0
+	--the WEAPONED mobiles units express in metal amount
+	CELL.armedGM = 0
+	CELL.armedAM = 0
+	CELL.armedSM = 0
+	CELL.armedM = 0
+	--the WEAPONED immobiles units express in metal amount
+	CELL.armedGI = 0
+	CELL.armedAI = 0
+	CELL.armedSI = 0
+	CELL.armedI = 0
+
+	CELL.unarmG = 0
+	CELL.unarmA = 0
+	CELL.unarmS = 0
+	CELL.armedG = 0
+	CELL.armedA = 0
+	CELL.armedS = 0
+	CELL.G = 0
+	CELL.A = 0
+	CELL.S = 0
+	CELL.G_balance = 0
+	CELL.S_balance = 0
+	CELL.A_balance = 0
+
+	CELL.unarm = 0
+	CELL.armed = 0
+	CELL.ENEMY = 0
+	CELL.ENEMY_BALANCE = 0
+
+	CELL.offense = 0
+	CELL.defense = 0
+	CELL.economy = 0
+	CELL.intelligence = 0
+	CELL.base = nil
+	CELL.resurrectables = {}
+	CELL.reclamables = {}
+	CELL.repairable = {}
+
+	CELL.MOBILE = 0
+	CELL.IMMOBILE = 0
+	CELL.IM = 0
+
+	CELL.CONTROL = nil --can be false for enemy and nil for no units
+	self.CELLS[px][pz] = CELL
+end
+
+
+function TargetHST:getCellsFields(position,fields,range)--maybe we can run just through ENEMYCELLS
+	if not fields or not position or type(fields) ~= 'table' then
+		self:Warn('incomplete or incorrect params for get cells params',fields,position, range)
+		return
+	end
+	range = range or 0
+	local gridX, gridZ = self:PosToGrid(position)
+	local cells = self:areaCells(gridX,gridZ,range)
+	local VALUE = 0 --VALUE is a total count of all request fields
+	local subValues = {} --subValues is the sum of this fields of each asked cell
+	for i, f in pairs(fields) do
+		subValues[f] = 0
+	end
+	for index , grid in pairs(cells) do
+		local cell = self.CELLS[grid.gx][grid.gz]
+		for i, field in pairs(fields) do
+			VALUE = VALUE + cell[field]
+			subValues[field] = subValues[field] + cell[field]
+		end
+	end
+	return VALUE , subValues , cells
 end

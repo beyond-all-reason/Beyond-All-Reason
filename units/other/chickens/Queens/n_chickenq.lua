@@ -31,7 +31,7 @@ return {
 		mass = 2000000,
 		maxdamage = 112500,
 		maxslope = 40,
-		maxvelocity = 2.7,
+		maxvelocity = 3,
 		maxwaterdepth = 0,
 		movementclass = "CHICKQUEENHOVER",
 		noautofire = false,

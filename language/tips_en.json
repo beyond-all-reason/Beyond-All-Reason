@@ -62,6 +62,8 @@
 				"enemyCommanderDied": "An enemy commander has died",
 				"friendlyCommanderDied": "A friendly commander has died",
 				"commanderDamage": "Your commander is receiving heavy damage",
+				"teamdownlastcommander": "Warning: Your team is down to its last commander.",
+				"youhavelastcommander": "Warning: You have the last commander.",
 				"startingLocation": "Choose your starting location",
 				"gameStarted": "started",
 				"gamePaused": "paused",

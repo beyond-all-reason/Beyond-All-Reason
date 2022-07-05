@@ -48,6 +48,7 @@ function WardBST:OwnerIdle()
 end
 
 function WardBST:Update()
+-- 	 self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
 
 	-- timeout on underFire condition
@@ -57,29 +58,32 @@ function WardBST:Update()
 		end
 	else
 		self.withinTurtle = false
-		if f % 30 == 0 then
-			-- run away preemptively from positions within range of enemy weapons, and notify defenders that the unit is in danger
-			local unit = self.unit:Internal()
-			local position
-			if not self.mobile then
-				position = self.initialLocation
-			else
-				position = unit:GetPosition()
-			end
-			local safe, response = self.ai.targethst:IsSafePosition(position, unit, self.threshold)
-			if safe then
-				self.underFire = false
-				self.response = nil
-			else
-				self:EchoDebug(self.name .. " is not safe")
-				self.underFire = true
-				self.response = response
-				self.lastAttackedFrame = self.game:Frame()
-				if not self.mobile then self.ai.defendhst:Danger(self) end
-			end
-			if self.mobile then self.withinTurtle = self.ai.turtlehst:SafeWithinTurtle(position, self.name) end
-			self.unit:ElectBehaviour()
+		if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'WardBST' then return end
+-- 		if f - self.uFrame < self.ai.behUp['wardbst']	 then
+-- 			return
+-- 		end
+-- 		self.uFrame = f
+		-- run away preemptively from positions within range of enemy weapons, and notify defenders that the unit is in danger
+		local unit = self.unit:Internal()
+		local position
+		if not self.mobile then
+			position = self.initialLocation
+		else
+			position = unit:GetPosition()
 		end
+		local safe, response = self.ai.targethst:IsSafePosition(position, unit, self.threshold)
+		if safe then
+			self.underFire = false
+			self.response = nil
+		else
+			self:EchoDebug(self.name .. " is not safe")
+			self.underFire = true
+			self.response = response
+			self.lastAttackedFrame = self.game:Frame()
+			if not self.mobile then self.ai.defendhst:Danger(self) end
+		end
+		if self.mobile then self.withinTurtle = self.ai.turtlehst:SafeWithinTurtle(position, self.name) end
+		self.unit:ElectBehaviour()
 	end
 end
 

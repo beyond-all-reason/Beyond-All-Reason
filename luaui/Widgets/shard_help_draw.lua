@@ -457,13 +457,13 @@ local function DrawTimers()
 	end
 	if i == 0 then return end
 	local rows = i+0
-	local rowHeight = 12
+	local rowHeight = 14
 	local spacing = 5
 	local doubleSpacing = spacing * 2
 	if (rows + 1) * rowHeight > viewY - doubleSpacing then
 		rowHeight = mFloor((viewY - doubleSpacing) / (rows+1))
 	end
-	local barWidth = mCeil(rowHeight * longestHeadingWidth)
+	local barWidth = mCeil(rowHeight * longestHeadingWidth * 0.9)
 	local halfBarWidth = mCeil(barWidth / 2)
 	local colWidth = barWidth + spacing
 	local namesBySum = {}
@@ -507,7 +507,7 @@ local function DrawTimers()
 			if stats then
 				local num = stats[col.field]
 				local x = viewX - (colWidth - halfBarWidth) - (colWidth * (c - 1))
-				myFont:Print(num .. col.unit, x, y, rowHeight, "dco")
+				myFont:Print(num --[[.. col.unit]], x, y, rowHeight, "dco")
 			end
 		end
 		myFont:Print(name, nameX, y, rowHeight, "dro")

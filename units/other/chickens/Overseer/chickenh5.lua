@@ -115,7 +115,7 @@ return {
 				--weapontimer = 3,
 				weaponvelocity = 420,
 				damage = {
-					default = 500,
+					default = 1,
 				},
 				customparams = {
 					expl_light_life_mult = 1.8,
@@ -153,7 +153,7 @@ return {
 				weaponvelocity = 500,
 				damage = {
 					chicken = 1,
-					default = 2000,
+					default = 1,
 				},
 			},
 		},

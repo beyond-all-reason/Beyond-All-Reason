@@ -232,6 +232,7 @@ function widget:DrawScreenEffects()
 		widgetHandler:RemoveWidget()
 		return false
 	end
+	if screenCopyTex == nil then return end
 	glTexture(0, screenCopyTex)
 	glBlending(false)
 	casShader:Activate()

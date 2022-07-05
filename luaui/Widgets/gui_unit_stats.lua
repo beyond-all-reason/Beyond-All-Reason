@@ -315,6 +315,11 @@ function widget:Initialize()
 
 	widgetHandler:AddAction("unit_stats", enableStats, nil, "p")
 	widgetHandler:AddAction("unit_stats", disableStats, nil, "r")
+
+	if Spring.GetModOptions().unba then
+		VFS.Include("unbaconfigs/stats.lua")
+		unba = true
+	end
 end
 
 function widget:Shutdown()
@@ -400,6 +405,8 @@ local function drawStats(uDefID, uID)
 	local seismicRadius = uDef.seismicRadius
 	local armoredMultiple = uDef.armoredMultiple
 	local buildProg, uExp
+	local level = 1
+	local unbacom
 	if uID then
 		_, _, _, _, buildProg = spGetUnitHealth(uID)
 		maxHP = select(2,Spring.GetUnitHealth(uID))
@@ -413,6 +420,17 @@ local function drawStats(uDefID, uID)
 		seismicRadius = spGetUnitSensorRadius(uID, 'seismic') or 0
 		uExp = spGetUnitExperience(uID)
 		armoredMultiple = select(2,Spring.GetUnitArmored(uID))
+
+		unbacom = unba and (UnitDefs[Spring.GetUnitDefID(uID)].name == "armcom" or UnitDefs[Spring.GetUnitDefID(uID)].name == "corcom")
+		local _, xp = Spring.GetUnitExperience(uID)
+		if unbacom then
+			if xp then
+				level = math.floor(xp*10) + 1
+				if xp*10 >= 9.9 then level = 11 end
+			else
+				level = "unknown"
+			end
+		end
 	end
 
 	maxWidth = 0
@@ -477,6 +495,15 @@ local function drawStats(uDefID, uID)
 	end
 
 	if uDef.buildSpeed > 0 then
+	end
+
+	if unbacom then
+		local buildSpeed = BuildSpeed[level] or uDef.buildSpeed
+		DrawText(texts.build..':', yellow .. buildSpeed)
+		if uID then
+			DrawText('Level:', green .. level)
+		end
+	elseif uDef.buildSpeed > 0 then
 		DrawText(texts.build..':', yellow .. uDef.buildSpeed)
 	end
 
@@ -552,9 +579,18 @@ local function drawStats(uDefID, uID)
 	------------------------------------------------------------------------------------
 	-- Weapons
 	------------------------------------------------------------------------------------
+	local uWeps
+	if unbacom then
+		if uDef.weapons[level] and uDef.weapons[level + 11] and uDef.weapons[30] then
+			uWeps = {uDef.weapons[level], uDef.weapons[level + 11], uDef.weapons[30]}
+		else
+			uWeps = uDef.weapons
+		end
+	else
+		uWeps = uDef.weapons
+	end
 	local wepCounts = {} -- wepCounts[wepDefID] = #
 	local wepsCompact = {} -- uWepsCompact[1..n] = wepDefID
-	local uWeps = uDef.weapons
 	local weaponNums = {}
 	for i = 1, #uWeps do
 		local wDefID = uWeps[i].weaponDef
@@ -566,6 +602,10 @@ local function drawStats(uDefID, uID)
 			wepsCompact[#wepsCompact + 1] = wDefID
 			weaponNums[#wepsCompact] = i
 		end
+	end
+
+	if unbacom then
+		weaponNums = { level, level + 11, 30}
 	end
 
 	local selfDWeaponID = WeaponDefNames[uDef.selfDExplosion].id
@@ -622,6 +662,21 @@ local function drawStats(uDefID, uID)
 			local accuracy = uWep.accuracy
 			local moveError = uWep.targetMoveError
 			local range = uWep.range
+			if unbacom then
+				if i == 1 then
+					if UnitDefs[Spring.GetUnitDefID(uID)].name == "armcom" then
+						range = armRange[level]
+					else
+						range = corRange[level]
+					end
+				elseif i == 2 then
+					if UnitDefs[Spring.GetUnitDefID(uID)].name == "armcom" then
+						range = armRange2[level]
+					else
+						range = corRange2[level]
+					end
+				end
+			end
 			--local reload = spGetUnitWeaponState(uID,weaponNums[i] or -1,"reloadTimeXP") or spGetUnitWeaponState(uID,weaponNums[i] or -1,"reloadTime") or uWep.reload
 			--local accuracy = spGetUnitWeaponState(uID,weaponNums[i] or -1,"accuracy") or uWep.accuracy
 			--local moveError = spGetUnitWeaponState(uID,weaponNums[i] or -1,"targetMoveError") or uWep.targetMoveError

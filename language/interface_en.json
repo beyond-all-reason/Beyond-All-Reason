@@ -109,6 +109,9 @@
 			"teamEconomy": {
 				"tooltip": "Team metal/energy income\n(Lighter portion is income from reclaiming)"
 			},
+			"dgunrule": {
+				"enemycom": "Reminder: Dgun enemy = you lose\n(with you having last commander)"
+			},
 			"mapinfo": {
 				"author": "Author"
 			},
@@ -430,7 +433,8 @@
 				"everyone": "everyone",
 				"allies": "allies",
 				"spectators": "spectators",
-				"cmd": "COMMAND"
+				"cmd": "COMMAND",
+				"nohistory": "No chat history"
 			},
 			"teamStats": {
 				"player": "Player",
@@ -477,7 +481,10 @@
 				"killAllCommanders": "Kill all enemy Commanders",
 				"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
 				"unbalancedCommanders": "Unbalanced Commanders is enabled: Commander levels up and gains upgrades",
-				"victoryCondition": "Victory condition"
+				"victoryCondition": "Victory condition",
+				"owncomends": "Losing your commander = losing control of your units / resigning",
+				"dgunrule": "When you have only 1 commander left: D-Gunning an enemy commander results in you losing",
+				"dgunruleExplanation": "(this rule was invented to prevent a cheap win/draw)"
 			},
 			"startSpot": {
 				"startbox": "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)",
@@ -546,7 +553,7 @@
 				"techPercentage": "Boss Anger: %{count}%%",
 				"techPercentageEndless": "Tech Progress: %{count}%%",
 				"techLevel": "Scavengers Tier: %{count}",
-				"bossFightCountdown": "Scavengers retreat in: %{count} Seconds",
+				"bossFightCountdown": "Boss arrives in: %{count} Seconds",
 				"bossHealth": "Boss Health: %{count}%%",
 				"gracePeriod": "Grace Period: %{count} Seconds",
 				"killedScavengers": "Killed Scavengers: %{count}",

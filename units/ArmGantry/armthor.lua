@@ -171,7 +171,7 @@ return {
 			},
 
 			empmissile = {
-				areaofeffect = 256,
+				areaofeffect = 196,
 				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
@@ -193,7 +193,7 @@ return {
 				noselfdamage = true,
 				paralyzer = true,
 				paralyzetime = 12,
-				range = 1100,
+				range = 1050,
 				reloadtime = 3,
 				smoketrail = false,
 				soundhit = "emgpuls1",
@@ -221,7 +221,7 @@ return {
 					light_radius_mult = 0.8,
 				},
 				damage = {
-					default = 70000,
+					default = 80000,
 				},
 			},
 

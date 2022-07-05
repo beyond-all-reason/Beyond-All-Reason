@@ -24,27 +24,62 @@ abs = math.abs
 min = math.min
 max = math.max
 
-CMD_ATTACK = 20
-CMD_RECLAIM = 90
-CMD_GUARD = 25
-CMD_MOVE_STATE = 50
-MOVESTATE_HOLDPOS = 0
-MOVESTATE_MANEUVER = 1
-MOVESTATE_ROAM = 2
-
 local mapBuffer = 32
 
 local layerNames = {"ground", "air", "submerged"}
 local unitThreatLayers = {}
 local whatHurtsUnit = {}
 local whatHurtsMtype = {}
--- local unitWeaponLayers = {}
--- local unitWeaponMtypes = {}
 
 local quadX = { -1, 1, -1, 1 }
 local quadZ = { -1, -1, 1, 1 }
 
 local output = ''
+
+function Tool:ModuleScheduler(module)
+	STAI.fum = STAI.fum or 0
+	self.ai[module].uFrame = self.ai[module].uFrame or 0
+	local f = game:Frame()
+	if f - self.ai[module].uFrame <= self.ModuleScheda[self.ai[module]:Name()] - self.ai.index  then
+		return false
+	end
+
+	self.ai[module].uFrame = f
+	--self.DebugEnabled = true
+	if STAI.fum == f then
+		print('sameframecallmodule',module, self.ai.id,STAI.fum)
+	end
+	STAI.fum = f
+	--self:EchoDebug('module',module,f)
+	--self.DebugEnabled = false
+	return true
+
+end
+
+Tool.ModuleScheda = {
+	SleepST = 0,
+	ArmyHST = 999999,
+	MapHST = 999998,
+	EcoHST = 0,
+	AttackHST = 20,
+	BomberHST = 210,
+	RaidHST = 60,
+	BuildSiteHST = 999994,
+	LabBuildHST = 40,
+	TurtleHST = 999995,
+	LosHST = 50,
+	TargetHST = 70,
+	DamageHST = 90,
+	ScoutHST = 999991,
+	DefendHST = 30,
+	CleanHST = 999993,
+	NanoHST = 999992,
+	OverviewHST = 240,
+	UnitHST = 0,
+	TasksHST = 999997,
+	Tool = 999996,
+
+}
 
 function Tool:ConstrainToMap(x, z)
 	local mapSize = self.ai.map:MapDimensions()
@@ -299,13 +334,13 @@ function Tool:mtypedLvCount(tpLv)
 	return counter
 end
 
-function Tool:CustomCommand(unit, cmdID, cmdParams)
-	local floats = api.vectorFloat()
-	for i = 1, #cmdParams do
-		floats:push_back(cmdParams[i])
-	end
-	return unit:ExecuteCustomCommand(cmdID, floats)
-end
+-- function Tool:CustomCommand(unit, cmdID, cmdParams)
+-- 	local floats = api.vectorFloat()
+-- 	for i = 1, #cmdParams do
+-- 		floats:push_back(cmdParams[i])
+-- 	end
+-- 	return unit:ExecuteCustomCommand(cmdID, floats)
+-- end
 
 function Tool:UnitNameSanity(unitOrName)--TODO move to tool
 	if not unitOrName then
@@ -461,218 +496,3 @@ function Tool:SimplifyPath(path)
 	end
 	return path
 end
-
-
-
---[[
-
-function Tool:ThreatRange(unitName, groundAirSubmerged)
-	local threatLayers = unitThreatLayers[unitName]
-	if groundAirSubmerged ~= nil and threatLayers ~= nil then
-		local layer = threatLayers[groundAirSubmerged]
-		if layer ~= nil then
-			return layer.threat, layer.range
-		end
-	end
-	if self.ai.armyhst.antinukes[unitName] or self.ai.armyhst.nukeList[unitName] or self.ai.armyhst.bigPlasmaList[unitName] or self.ai.armyhst._shield_[unitName] then
-		return 0, 0
-	end
-	local utable = self.ai.armyhst.unitTable[unitName]
-	if groundAirSubmerged == nil then
-		if utable.groundRange > utable.airRange and utable.groundRange > utable.submergedRange then
-			groundAirSubmerged = "ground"
-		elseif utable.airRange > utable.groundRange and utable.airRange > utable.submergedRange then
-			groundAirSubmerged = "air"
-		elseif utable.submergedRange > utable.groundRange and utable.submergedRange > utable.airRange then
-			groundAirSubmerged = "submerged"
-		end
-		if groundAirSubmerged == nil then
-			return 0, 0
-		end
-	end
-	if threatLayers ~= nil then
-		local layer = threatLayers[groundAirSubmerged]
-		if layer ~= nil then
-			return layer.threat, layer.range
-		end
-	end
-	local threat = 0
-	local range = 0
-	if groundAirSubmerged == "ground" then
-		range = utable.groundRange
-	elseif groundAirSubmerged == "air" then
-		range = utable.airRange
-	elseif groundAirSubmerged == "submerged" then
-		range = utable.submergedRange
-	end
-	if range > 0 and threat == 0 then
-		threat = utable.metalCost
-	end
-	-- double the threat if it's a building (buildings are more bang for your buck)
-	if threat > 0 and utable.isBuilding then threat = threat + threat end
-	if unitThreatLayers[unitName] == nil then unitThreatLayers[unitName] = {} end
-	unitThreatLayers[unitName][groundAirSubmerged] = { threat = threat, range = range }
-	return threat, range
-end
-
-function Tool:UnitThreatRangeLayers(unitName)
-	local threatLayers = unitThreatLayers[unitName]
-	if threatLayers ~= nil then
-		if #threatLayers == 3 then return threatLayers end
-	end
-	threatLayers = {}
-	for i, layerName in pairs(layerNames) do
-		local threat, range = self:ThreatRange(unitName, layerName)
-		threatLayers[layerName] = { threat = threat, range = range }
-	end
-	unitThreatLayers[unitName] = threatLayers
-	return threatLayers
-end
-
-function Tool:serialize (o, keylist,reset)
-if reset then output = '' end
-if keylist == nil then keylist = "" end
-if type(o) == "number" then
-output = output .. tostring(o)
-	elseif type(o) == "boolean" then
-output = output ..  tostring(o)
-	elseif type(o) == "string" then
-output = output .. string.format("%q", o)
-	elseif type(o) == "userdata" then
--- assume it's a position
-output = output .. "api.Position()"
-table.insert(savepositions, {keylist = keylist, position = o})
---mapdatafile:write("{ x = " .. math.ceil(o.x) .. ", y = " .. math.ceil(o.y) .. ", z = " .. math.ceil(o.z) .. " }")
-	elseif type(o) == "table" then
-output = output .. ("{\n")
-for k,v in pairs(o) do
-output = output .. ("  [")
-self:serialize(k,keylist)
-output = output .. ("] = ")
-local newkeylist
-if type(v) == "table" or type(v) == "userdata" then
-if type(k) == "string" then
-newkeylist = keylist .. "[\""  .. k .. "\"]"
-				elseif type(k) == "number" then
-newkeylist = keylist .. "["  .. k .. "]"
-				end
-			end
-self:serialize(v, newkeylist)
-output = output .. (",\n")
-		end
-output = output .. ("}\n")
-	else
-error("cannot self:serialize a " .. type(o))
-	end
-return output
-end
-
-
-
-function Tool:ClosestBuildPos( utype,pos, searchRadius, minDistance, buildFacing, validFunction)
-self.DebugEnabled = true
-unitdefID = utype.id
--- 	if type(unitdefID) == 'table' then
--- 		for i,v in pairs (unitdefID) do
--- 			self:EchoDebug('i',i,'v',v)
--- 		end
--- 		unitdefID = unitdefID.id
--- 		self:EchoDebug(id , unitdefID)
---
--- 	end
---Spring.ClosestBuildPos(teamID, unitdefID, worldx,worldy,worldz, searchRadius, minDistance, buildFacing) -> buildx,buildy,buildz  to LuaSyncedRead
-if not unitdefID then
-self:EchoDebug('non-valid unit def ID')
-self.DebugEnabled = false
-return
-	end
-if not pos then
-self:EchoDebug('non-valid unit def ID')
-self.DebugEnabled = false
-return
-	end
-self.DebugEnabled = false
-buildFacing = buildFacing or 1
-teamID = self.ai.id
-searchRadius = searchRadius or 5000
-minDistance = minDistance or 0
-pos.y = pos.y or Spring.GetGroundHeight(pos.x,pos.z)
---self.game:StartTimer('toolpos')
-local position = Spring.ClosestBuildPos(teamID, unitdefID, pos.x,pos.y,pos.z, searchRadius, minDistance, buildFacing)
---self.game:StopTimer('toolpos')
-if not position then
-self:EchoDebug('no position')
-self.DebugEnabled = false
-return end
-
-local buildable, position = self.ai.map:CanBuildHere(utype, {x = pos.x, y = pos.y, z = pos.z})
-if not buildable then
-self:EchoDebug('not buildable')
-self.DebugEnabled = false
-return
-	end
-
--- 	local lastDitch, lastDitchPos = self:CanBuildHere(unitdefID, builderpos)
--- 	if not lastDitch then return end
-validFunction = validFunction or function (position) return position end
-position = validFunction(position)
-if not position then
-
-self:EchoDebug('position not valid')
-self.DebugEnabled = false
-return
-	end
-self.DebugEnabled = false
-return position
-end
-
--- function Tool:UnitWeaponMtypeList(unitName)
--- 	if unitName == nil then return {} end
--- 	if unitName == self.ai.armyhst.DummyUnitName then return {} end
--- 	local mtypes = unitWeaponMtypes[unitName]
--- 	if mtypes then
--- 		return mtypes
--- 	end
--- 	local utable = self.ai.armyhst.unitTable[unitName]
--- 	mtypes = {}
--- 	if utable.groundRange > 0 then
--- 		table.insert(mtypes, "veh")
--- 		table.insert(mtypes, "bot")
--- 		table.insert(mtypes, "amp")
--- 		table.insert(mtypes, "hov")
--- 		table.insert(mtypes, "shp")
--- 	end
--- 	if utable.airRange > 0 then
--- 		table.insert(mtypes, "air")
--- 	end
--- 	if utable.submergedRange > 0 then
--- 		table.insert(mtypes, "sub")
--- 		table.insert(mtypes, "shp")
--- 		table.insert(mtypes, "amp")
--- 	end
--- 	unitWeaponMtypes[unitName] = mtypes
--- 	return mtypes
--- end
-
-function Tool:UnitWeaponLayerList(unitName)
-local weaponLayers = unitWeaponLayers[unitName]
-if weaponLayers then return weaponLayers end
-weaponLayers = {}
-local ut = self.ai.armyhst.unitTable[unitName]
-if not ut then
-return weaponLayers
-	end
-if ut.groundRange > 0 then
-table.insert(weaponLayers, "ground")
-	end
-if ut.airRange > 0 then
-table.insert(weaponLayers, "air")
-	end
-if ut.submergedRange > 0 then
-table.insert(weaponLayers, "submerged")
-	end
-unitWeaponLayers[unitName] = weaponLayers
-return weaponLayers
-end
-
-]]

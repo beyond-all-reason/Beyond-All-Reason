@@ -154,6 +154,9 @@ function widget:DrawWorld()
 	gl.DepthTest(false)
 end
 
+function widget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	selfdUnits[unitID] = nil
+end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 

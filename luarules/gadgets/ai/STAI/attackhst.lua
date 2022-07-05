@@ -28,10 +28,11 @@ end
 
 
 function AttackHST:Update()
-	local f = self.game:Frame()
-	if f % 17 ~= 0 then
-		return
-	end
+ 	local f = self.game:Frame()
+-- 	if f % 17 ~= 0 then
+-- 		return
+-- 	end
+	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	self:DraftSquads()
 	self:squadsIntegrityCheck()
 	self:squadsTargetCheck()

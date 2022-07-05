@@ -522,7 +522,7 @@ else
       }
     ]],
 			uniformInt = {
-				depthTex = 2,
+				--depthTex = 2,
 			},
 		})
 
@@ -978,10 +978,14 @@ else
 
 	local function GetFaction(unitdef)
 		local name = unitdef.name
-		if string.find(name, 'arm') then
+		if string.find(name, "_scav") then
+			return 'scav'
+		elseif string.sub(name, 1, 3) == "arm" then
 			return 'arm'
-		elseif string.find(name, 'cor') then
+		elseif string.sub(name, 1, 3) == "cor" then
 			return 'cor'
+		elseif string.sub(name, 1, 3) == "leg" then
+			return 'legion'
 		elseif string.find(name, 'chicken') then
 			return 'chicken'
 		end
