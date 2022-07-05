@@ -25,7 +25,7 @@ end
 local drones = {
     [UDN.armcom.id] = "armassistdrone",
     [UDN.corcom.id] = "corassistdrone",
-	[UDN.legcomdef.id] = "corassistdrone",
+	[UDN.legcomdef.id] = "legassistdrone",
 }
 
 function SpawnAssistDrones(unitID, unitDefID, unitTeam)
