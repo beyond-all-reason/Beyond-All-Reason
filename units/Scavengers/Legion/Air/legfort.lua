@@ -153,7 +153,7 @@ return {
 				soundstart = "cannhvy2",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 349.5354,
+				weaponvelocity = 400,
 				damage = {
 					bombers = 30,
 					default = 300,
@@ -168,7 +168,7 @@ return {
 				badtargetcategory = "NOTLAND",
 				def = "COR_ARTILLERY",
 				maindir = "0 1 0",
-				maxangledif = 240,
+				maxangledif = 260,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

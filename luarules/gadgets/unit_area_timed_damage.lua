@@ -71,7 +71,7 @@ local TimedDamageWeapons = {
         time = 10,
         damage = 10,
         range = 75,
-        resistance = "_CHICKENACID_",
+        resistance = "test",
     },
 	[WeaponDefNames.legbar_clusternapalm.id] = {
         ceg = "fire-area-75", 
@@ -79,7 +79,7 @@ local TimedDamageWeapons = {
         time = 10,
         damage = 10,
         range = 75,
-        resistance = "_CHICKENACID_",
+        resistance = "test",
     },
 	[WeaponDefNames.legnap_napalmbombs.id] = {
         ceg = "fire-area-150", 
@@ -87,7 +87,7 @@ local TimedDamageWeapons = {
         time = 15,
         damage = 20,
         range = 150,
-        resistance = "_CHICKENACID_",
+        resistance = "test",
     },
 }
 
