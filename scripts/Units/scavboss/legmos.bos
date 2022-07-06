@@ -10,6 +10,35 @@ static-var gun_1, speedwings, bMoving;
 // Signal definitions
 #define SIG_MOVE			2
 
+IdleHover()
+{
+	while(TRUE){
+		while(bMoving == 1)
+		{
+			turn lwingd to z-axis <20.000000> speed <800>;
+			turn lwingu to z-axis <0.000000> speed <800>;
+			turn rwingd to z-axis <-20.000000> speed <800>;
+			turn rwingu to z-axis <0.000000> speed <800>;
+			sleep 25;
+			turn lwingd to z-axis <0.000000> speed <800>;
+			turn lwingu to z-axis <40.000000> speed <1600>;
+			turn rwingd to z-axis <0.000000> speed <800>;
+			turn rwingu to z-axis <-40.000000> speed <1600>;
+			sleep 25;
+			turn lwingd to z-axis <-25.000000> speed <1000>;
+			turn lwingu to z-axis <0.000000> speed <1600>;
+			turn rwingd to z-axis <25.000000> speed <1000>;
+			turn rwingu to z-axis <0.000000> speed <1600>;
+			sleep 25;
+			turn lwingd to z-axis <0.000000> speed <1000>;
+			turn lwingu to z-axis <-20.000000> speed <800>;
+			turn rwingd to z-axis <0.000000> speed <1000>;
+			turn rwingu to z-axis <20.000000> speed <800>;
+			sleep 25;
+		}
+		sleep 200;
+	}
+}
 
 Create()
 {
@@ -24,6 +53,7 @@ Create()
 	{
 		sleep 400;
 	}
+	start-script IdleHover();
 }
 
 static-var  Stunned;
@@ -79,6 +109,8 @@ QueryPrimary(piecenum)
 
 FirePrimary()
 {
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 	sleep 200;
 	
 	start-script RestoreAfterDelay();
@@ -88,6 +120,8 @@ StartMoving()
 {
 	bMoving = 1;
 	start-script RestoreAfterDelay();
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 }
 
 StopMoving()
@@ -98,6 +132,8 @@ StopMoving()
 	turn rwingd to z-axis <0.000000> speed <50.000000>;
 	turn rwingu to z-axis <0.000000> speed <50.000000>;
 	start-script RestoreAfterDelay();
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 }
 
 MoveRate0()
@@ -111,85 +147,25 @@ MoveRate0()
 
 MoveRate1()
 {
-	while(bMoving == 1)
-	{
-		turn lwingd to z-axis <20.000000> speed <800>;
-		turn lwingu to z-axis <0.000000> speed <800>;
-		turn rwingd to z-axis <-20.000000> speed <800>;
-		turn rwingu to z-axis <0.000000> speed <800>;
-		sleep 25;
-		turn lwingd to z-axis <0.000000> speed <800>;
-		turn lwingu to z-axis <40.000000> speed <1600>;
-		turn rwingd to z-axis <0.000000> speed <800>;
-		turn rwingu to z-axis <-40.000000> speed <1600>;
-		sleep 25;
-		turn lwingd to z-axis <-25.000000> speed <1000>;
-		turn lwingu to z-axis <0.000000> speed <1600>;
-		turn rwingd to z-axis <25.000000> speed <1000>;
-		turn rwingu to z-axis <0.000000> speed <1600>;
-		sleep 25;
-		turn lwingd to z-axis <0.000000> speed <1000>;
-		turn lwingu to z-axis <-20.000000> speed <800>;
-		turn rwingd to z-axis <0.000000> speed <1000>;
-		turn rwingu to z-axis <20.000000> speed <800>;
-		sleep 25;
-	}
+	start-script RestoreAfterDelay();
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 }
 
 MoveRate2()
 {
 	bMoving = 1;
-	while(bMoving == 1)
-	{
-		turn lwingd to z-axis <20.000000> speed <800>;
-		turn lwingu to z-axis <0.000000> speed <800>;
-		turn rwingd to z-axis <-20.000000> speed <800>;
-		turn rwingu to z-axis <0.000000> speed <800>;
-		sleep 25;
-		turn lwingd to z-axis <0.000000> speed <800>;
-		turn lwingu to z-axis <40.000000> speed <1600>;
-		turn rwingd to z-axis <0.000000> speed <800>;
-		turn rwingu to z-axis <-40.000000> speed <1600>;
-		sleep 25;
-		turn lwingd to z-axis <-25.000000> speed <1000>;
-		turn lwingu to z-axis <0.000000> speed <1600>;
-		turn rwingd to z-axis <25.000000> speed <1000>;
-		turn rwingu to z-axis <0.000000> speed <1600>;
-		sleep 25;
-		turn lwingd to z-axis <0.000000> speed <1000>;
-		turn lwingu to z-axis <-20.000000> speed <800>;
-		turn rwingd to z-axis <0.000000> speed <1000>;
-		turn rwingu to z-axis <20.000000> speed <800>;
-		sleep 25;
-	}
+	start-script RestoreAfterDelay();
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 }
 
 MoveRate3()
 {
 	bMoving = 1;
-	while(bMoving == 1)
-	{
-		turn lwingd to z-axis <20.000000> speed <800>;
-		turn lwingu to z-axis <0.000000> speed <800>;
-		turn rwingd to z-axis <-20.000000> speed <800>;
-		turn rwingu to z-axis <0.000000> speed <800>;
-		sleep 25;
-		turn lwingd to z-axis <0.000000> speed <800>;
-		turn lwingu to z-axis <40.000000> speed <1600>;
-		turn rwingd to z-axis <0.000000> speed <800>;
-		turn rwingu to z-axis <-40.000000> speed <1600>;
-		sleep 25;
-		turn lwingd to z-axis <-25.000000> speed <1000>;
-		turn lwingu to z-axis <0.000000> speed <1600>;
-		turn rwingd to z-axis <25.000000> speed <1000>;
-		turn rwingu to z-axis <0.000000> speed <1600>;
-		sleep 25;
-		turn lwingd to z-axis <0.000000> speed <1000>;
-		turn lwingu to z-axis <-20.000000> speed <800>;
-		turn rwingd to z-axis <0.000000> speed <1000>;
-		turn rwingu to z-axis <20.000000> speed <800>;
-		sleep 25;
-	}
+	start-script RestoreAfterDelay();
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 }
 
 SweetSpot(piecenum)
