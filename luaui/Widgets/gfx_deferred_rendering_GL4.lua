@@ -191,7 +191,7 @@ local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
 local coneLightVBO = {}
 local beamLightVBO = {}
 local pointLightVBO = {}
-local autoLightInstanceID = 0
+local autoLightInstanceID = 128000 -- as MAX_PROJECTILES = 128000, so they get unique ones
 
 local unitConeLightVBO = {}
 local unitPointLightVBO = {}
@@ -484,10 +484,10 @@ local function AddRandomDecayingPointLight()
 		Spring.GetGroundHeight(Game.mapSizeX * 0.5,Game.mapSizeZ * 0.5) + 50,
 		Game.mapSizeZ * 0.5 + 800,
 		250,
-		0,0,0,1,
-		1,0.5,0.25,3,
+		0,0,0,1, -- start from black
+		1,0.5,0.25,3, -- go to yellow in 3 frames
 		1,1,1,1,
-		gameFrame, 100, 20, 1)
+		gameFrame, 100, 20, 1) -- Sustain peak brightness for 20 frames, and go down to 0 brightness by 100 frames.
 	--Spring.Echo("AddRandomDecayingPointLight", instanceID)
 end
 
@@ -649,6 +649,22 @@ local function AddConeLight(instanceID, unitID, pieceIndex, px_or_table, py, pz,
 		calcLightExpiry(coneLightVBO, lightparams, instanceID)
 	end
 	return instanceID
+end
+
+local function updateLightPosition(lightVBO, instanceID, posx, posy, posz, p2x, p2y, p2z)
+	local instanceIndex = lightVBO.instanceIDtoIndex[instanceID]
+	if instanceIndex == nil then return nil end
+	instanceIndex = instanceIndex * iT.instanceStep
+	local instData = lightVBO.instanceData
+	instData[instanceIndex + 1] = posx
+	instData[instanceIndex + 2] = posy
+	instData[instanceIndex + 3] = posz
+	if p2x then
+		instData[instanceIndex + 5] = p2x
+		instData[instanceIndex + 6] = p2y
+		instData[instanceIndex + 7] = p2z
+	end
+	return instanceIndex
 end
 
 -- multiple lights per unitdef/piece are possible, as the lights are keyed by lightname
