@@ -32,6 +32,9 @@ local chickenTypes = {
 	chickena1      				=  true,
 	chickena1b     				=  true,
 	chickena1c     				=  true,
+	chickenallterraina1			=  true,
+	chickenallterraina1b		=  true,
+	chickenallterraina1c		=  true,
 	chickena2      				=  true,
 	chickena2b     				=  true,
 	chickens1      				=  true,
@@ -95,6 +98,9 @@ local chickenTypes = {
 	chickena1      				=   "red",
 	chickena1b     				=   "red",
 	chickena1c     				=   "red",
+	chickenallterraina1			=   "red",
+	chickenallterraina1b		=   "red",
+	chickenallterraina1c		=   "red",
 	chickena2      				=   "red",
 	chickena2b     				=   "red",
 	chickens1      				=   "green",
@@ -263,9 +269,7 @@ if difficulty >= 2 then
 	addSquad(6, { "15 chickenc3" 																}) -- Swarmer AllTerrain
 	addSquad(6, { "10 chickenc3b" 																}) -- Swarmer AllTerrain
 	addSquad(6, { "5 chickenc3c" 																}) -- Swarmer AllTerrain
-	addSquad(6, { "10 chickenc3", "5 chickenc3b"  												}) -- Swarmer AllTerrain
-	addSquad(6, { "5 chickenc3b", "3 chickenc3c" 												}) -- Swarmer AllTerrain
-	addSquad(6, { "10 chickenc3", "5 chickenc3b", "3 chickenc3c" 								}) -- Swarmer AllTerrain
+	addSquad(6, { "2 chickenallterraina1", "2 chickenallterraina1b", "2 chickenallterraina1c"	}) -- Brawler AllTerrain
 	addSquad(6, { "10 chickenpyroallterrain" 													}) -- Pyro AllTerrain
 	addSquad(6, { "10 chickenelectricallterrain" 												}) -- EMP AllTerrain
 	addSquad(6, { "5 chickene1", "5 chickenacidswarmer" 										}) -- EMP and Acid Swarmer Combo
@@ -354,11 +358,11 @@ for i = 1,#waves do
 	end
 	if i >= 7 and i <= 10 then -- More AllTerrains over time
 		addSquad(i, { i*3 .." chickenc3" })
-		addSquad(i, { i*3 .." chickenc3" })
-		addSquad(i, { i*2 .." chickenc3b" })
 		addSquad(i, { i*2 .." chickenc3b" })
 		addSquad(i, { i .." chickenc3c" })
-		addSquad(i, { i .." chickenc3c" })
+		addSquad(i, { i .." chickenallterraina1" })
+		addSquad(i, { i .." chickenallterraina1b" })
+		addSquad(i, { i .." chickenallterraina1c" })
 	end
 end
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

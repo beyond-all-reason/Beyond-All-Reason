@@ -504,6 +504,30 @@ local moveDatas = {
 		speedmodclass = 2, -- hover
 	},
 
+	CHICKALLTERRAINBIGHOVER = {
+		crushstrength = 250,
+		depthmod = 0,
+		footprintx = 4,
+		footprintz = 4,
+		maxslope = 255,
+		maxwaterdepth = 5000,
+		maxwaterslope = 50,
+		speedmodclass = 2, -- hover
+	},
+
+	CHICKALLTERRAINBIG2HOVER = {
+		crushstrength = 250,
+		depthmod = 0,
+		footprintx = 4,
+		footprintz = 4,
+		maxslope = 255,
+		maxwaterdepth = 5000,
+		maxwaterslope = 50,
+		speedmodclass = 2, -- hover
+	},
+
+	
+
 	NANO = {
 		crushstrength = 0,
 		footprintx = 3,
