@@ -23,7 +23,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames['legmineb'].id] = 1,
 	}
 
-	isStockpilingUnitScav = {}
+	local isStockpilingUnitScav = {}
 	for defID, maxCount in pairs(isStockpilingUnit) do
 		isStockpilingUnitScav[UnitDefNames[UnitDefs[defID].name .. "_scav"].id] = maxCount
 	end
