@@ -27,7 +27,7 @@ return {
 		maxrudder = 0.00522,
 		maxslope = 10,
 		maxvelocity = 7,
-		maxwaterdepth = 255,
+		maxwaterdepth = 0,
 		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/legmineb.s3o",

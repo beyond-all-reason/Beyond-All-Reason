@@ -15,7 +15,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local isStockpilingAA = {}
 	for udid, ud in pairs(UnitDefs) do
-		if string.find(ud.name, 'armmercury') or string.find(ud.name, 'corscreamer') then
+		if string.find(ud.name, 'armmercury') or string.find(ud.name, 'corscreamer') or string.find(ud.name, 'legmos') or string.find(ud.name, 'legmineb') then
 			isStockpilingAA[udid] = true
 		end
 	end
