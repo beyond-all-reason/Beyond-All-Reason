@@ -45,13 +45,6 @@ local interruptionEnabled
 local silenceTimerEnabled
 local deviceLostSafetyCheck = 0
 
-function playlistMerge(t1, t2)
-	for k,v in ipairs(t2) do
-	   table.insert(t1, v)
-	end 
-	return t1
-end
-
 local function ReloadMusicPlaylists()
 	deviceLostSafetyCheck = 0
 	---------------------------------COLLECT MUSIC------------------------------------
@@ -94,36 +87,36 @@ local function ReloadMusicPlaylists()
 	gameoverTracks = {}
 
 	if newSoundtrackEnabled then
-		playlistMerge(peaceTracks, peaceTracksNew)
-		playlistMerge(warhighTracks, warhighTracksNew)
-		playlistMerge(warlowTracks, warlowTracksNew)
-		playlistMerge(gameoverTracks, gameoverTracksNew)
+		table.append(peaceTracks, peaceTracksNew)
+		table.append(warhighTracks, warhighTracksNew)
+		table.append(warlowTracks, warlowTracksNew)
+		table.append(gameoverTracks, gameoverTracksNew)
 	end
 
 	if oldSoundtrackEnabled then
-		playlistMerge(peaceTracks, peaceTracksOld)
-		playlistMerge(warhighTracks, warhighTracksOld)
-		playlistMerge(warlowTracks, warlowTracksOld)
+		table.append(peaceTracks, peaceTracksOld)
+		table.append(warhighTracks, warhighTracksOld)
+		table.append(warlowTracks, warlowTracksOld)
 	end
 
 	if customSoundtrackEnabled then
-		playlistMerge(peaceTracks, baseTracksCustom)
-		playlistMerge(warhighTracks, baseTracksCustom)
-		playlistMerge(warlowTracks, baseTracksCustom)
+		table.append(peaceTracks, baseTracksCustom)
+		table.append(warhighTracks, baseTracksCustom)
+		table.append(warlowTracks, baseTracksCustom)
 
-		playlistMerge(peaceTracks, peaceTracksCustom)
-		playlistMerge(warhighTracks, warhighTracksCustom)
-		playlistMerge(warlowTracks, warlowTracksCustom)
-		playlistMerge(warhighTracks, warTracksCustom)
-		playlistMerge(warlowTracks, warTracksCustom)
-		playlistMerge(gameoverTracks, gameoverTracksCustom)
+		table.append(peaceTracks, peaceTracksCustom)
+		table.append(warhighTracks, warhighTracksCustom)
+		table.append(warlowTracks, warlowTracksCustom)
+		table.append(warhighTracks, warTracksCustom)
+		table.append(warlowTracks, warTracksCustom)
+		table.append(gameoverTracks, gameoverTracksCustom)
 	end
 
 	----------------------------------SHUFFLE--------------------------------------
 
 	local function shuffleMusic(playlist)
 		local originalPlaylist = {}
-		playlistMerge(originalPlaylist, playlist)
+		table.append(originalPlaylist, playlist)
 		local shuffledPlaylist = {}
 		if #originalPlaylist > 0 then
 			repeat
@@ -142,23 +135,23 @@ local function ReloadMusicPlaylists()
 	warlowTracks 	= shuffleMusic(warlowTracks)
 	gameoverTracks 	= shuffleMusic(gameoverTracks)
 
-	-- Spring.Echo("----- MUSIC PLAYER PLAYLIST -----")
-	-- Spring.Echo("----- peaceTracks -----")
-	-- for i = 1,#peaceTracks do
-	-- 	Spring.Echo(peaceTracks[i])
-	-- end
-	-- Spring.Echo("----- warlowTracks -----")
-	-- for i = 1,#warlowTracks do
-	-- 	Spring.Echo(warlowTracks[i])
-	-- end
-	-- Spring.Echo("----- warhighTracks -----")
-	-- for i = 1,#warhighTracks do
-	-- 	Spring.Echo(warhighTracks[i])
-	-- end
-	-- Spring.Echo("----- gameoverTracks -----")
-	-- for i = 1,#gameoverTracks do
-	-- 	Spring.Echo(gameoverTracks[i])
-	-- end
+	Spring.Echo("----- MUSIC PLAYER PLAYLIST -----")
+	Spring.Echo("----- peaceTracks -----")
+	for i = 1,#peaceTracks do
+		Spring.Echo(peaceTracks[i])
+	end
+	Spring.Echo("----- warlowTracks -----")
+	for i = 1,#warlowTracks do
+		Spring.Echo(warlowTracks[i])
+	end
+	Spring.Echo("----- warhighTracks -----")
+	for i = 1,#warhighTracks do
+		Spring.Echo(warhighTracks[i])
+	end
+	Spring.Echo("----- gameoverTracks -----")
+	for i = 1,#gameoverTracks do
+		Spring.Echo(gameoverTracks[i])
+	end
 
 	if #peaceTracks > 1 then
 		peaceTracksPlayCounter = math.random(#peaceTracks)
