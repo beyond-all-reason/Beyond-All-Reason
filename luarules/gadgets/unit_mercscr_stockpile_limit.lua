@@ -23,6 +23,13 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames['legmineb'].id] = 1,
 	}
 
+	isStockpilingUnitScav = {}
+	for defID, maxCount in pairs(isStockpilingUnit) do
+		isStockpilingUnitScav[UnitDefNames[UnitDefs[defID].name .. "_scav"].id] = maxCount
+	end
+
+	table.mergeInPlace(isStockpilingUnit, isStockpilingUnitScav)
+
 	local CMD_STOCKPILE = CMD.STOCKPILE
 	local CMD_INSERT = CMD.INSERT
 	local SpGiveOrderToUnit = Spring.GiveOrderToUnit
