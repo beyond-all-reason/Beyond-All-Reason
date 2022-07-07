@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, flare, turret, gun, barrel,bore,cylinder;
+piece  base, flare, turret, gun, barrel, bore, cylinder, light;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -11,6 +11,7 @@ piece  base, flare, turret, gun, barrel,bore,cylinder;
 Create()
 {
 	hide flare;
+	hide light;
 }
 
 #define SMOKEPIECE base
@@ -27,8 +28,17 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
+HotBarrel()
+{
+	show light;
+	sleep 7000;
+	hide light;
+	return (1);
+}
+
 FirePrimary()
 {
+	start-script HotBarrel();
 	move barrel to z-axis [-7.500000] speed [500.000000];
 	move gun to z-axis [-4.000000] speed [500.000000];
 	wait-for-move barrel along z-axis;

@@ -1297,6 +1297,94 @@ local unitDefLights = {
 			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
 		},
 	},
+	[UnitDefNames['corsilo'].id] = {
+		launchlight1 = { -- this is the lightname
+			lighttype = 'cone',
+			pieceName = 'cagelight_emit1',
+			lightParamTable = {0,0,0,30, --pos + radius
+								1,0,0, 0.99, -- dir + angle
+								1.3,0.1,0,2, -- RGBA
+								0.1,0.2,1,2, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,0,0, -- color2
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		launchlight2 = { -- this is the lightname
+			lighttype = 'cone',
+			pieceName = 'cagelight_emit2',
+			lightParamTable = {0,0,0,30, --pos + radius
+								1,0,0, 0.99, -- dir + angle
+								1.3,0.1,0,2, -- RGBA
+								0.1,0.2,1,2, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,0,0, -- color2
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		launchlight3 = { -- this is the lightname
+			lighttype = 'cone',
+			pieceName = 'cagelight_emit3',
+			lightParamTable = {0,0,0,30, --pos + radius
+								1,0,0, 0.99, -- dir + angle
+								1.3,0.1,0,2, -- RGBA
+								0.1,0.2,1,2, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,0,0, -- color2
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		launchlight4 = { -- this is the lightname
+			lighttype = 'cone',
+			pieceName = 'cagelight_emit4',
+			lightParamTable = {0,0,0,30, --pos + radius
+								1,0,0, 0.99, -- dir + angle
+								1.3,0.1,0,2, -- RGBA
+								0.1,0.2,1,2, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,0,0, -- color2
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
+	[UnitDefNames['corint'].id] = {
+		hotbarrel1 = {
+				lighttype = 'point',
+				pieceName = 'light',
+				lightParamTable = {-7,8,5,30, --pos + radius
+								0,0,1,0, -- unused
+								1,0.2,0,0.7, -- RGBA
+								2,1,0,0, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,0,0, -- color2
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+		hotbarrel2 = {
+				lighttype = 'point',
+				pieceName = 'light',
+				lightParamTable = {7,8,5,30, --pos + radius
+								0,0,1,0, -- unused
+								1,0.2,0,0.7, -- RGBA
+								2,1,0,0, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,0,0, -- color2
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
 }
 
 local function AddStaticLightsForUnit(unitID, unitDefID, noupload)
