@@ -21,13 +21,13 @@ Standby()
 	while( TRUE )
 	{
 		hide blinkb;
-		sleep 120;
+		//sleep 120;
 		show blinka;
-		sleep 1150;
+		sleep 1975;
 		hide blinka;
-		sleep 120;
+		//sleep 120;
 		show blinkb;
-		sleep 1150;
+		sleep 1975;
 	}
 	sleep 50;
 	start-script Standby();
