@@ -435,7 +435,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {list = self.ai.hotSpot, min = 50 , neighbours = {'_heavyt_','_laser2_'}} ,
+			location = {list = self.ai.maphst.hotSpots, min = 50 , neighbours = {'_heavyt_','_laser2_'}} ,
 	        },
 
 		{ 	category = '_jam_' ,
@@ -509,7 +509,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'_nano_'},min = 50,neighbours = {'_laser2_'},list = self.ai.hotSpot}
+			location = {categories = {'_nano_'},min = 50,neighbours = {'_laser2_'},list = self.ai.maphst.hotSpots}
 	        } ,
 
 
@@ -776,7 +776,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {list = self.ai.hotSpot, min = 50 , neighbours = {'_heavyt_','_laser2_'}} ,
+			location = {list = self.ai.maphst.hotSpots, min = 50 , neighbours = {'_heavyt_','_laser2_'}} ,
 	        },
 
 		{ 	category = '_laser2_' ,
@@ -785,7 +785,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {min = 50,neighbours = {'_laser2_'},list = self.ai.hotSpot} ,
+			location = {min = 50,neighbours = {'_laser2_'},list = self.ai.maphst.hotSpots} ,
 	        },
 
 		{ 	category = '_aa1_' ,

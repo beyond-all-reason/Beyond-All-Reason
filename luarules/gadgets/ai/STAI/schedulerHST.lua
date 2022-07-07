@@ -40,7 +40,7 @@ end
 function SchedulerHST:Update()
 	local moduleS, Mteam = self:ModulesScheduler()
 	local behaviourS, Bteam = self:BehavioursScheduler()
-	print(game:Frame(),'team',self.ai.id,'moduleS, Mteam',self.moduleUpdate, self.moduleTeam,'behaviourS, Bteam',self.behaviourUpdate, self.behaviourTeam)
+	--print(game:Frame(),'team',self.ai.id,'moduleS, Mteam',self.moduleUpdate, self.moduleTeam,'behaviourS, Bteam',self.behaviourUpdate, self.behaviourTeam)
 
 
 

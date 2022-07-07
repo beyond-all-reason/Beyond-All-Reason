@@ -274,7 +274,7 @@ function BuildSiteHST:DoBuildRectangleByUnitID(unitID)
 end
 
 function BuildSiteHST:DontBuildOnMetalOrGeoSpots()
-	local spots = self.ai.scoutSpots["air"][1]
+	local spots = self.ai.maphst.scoutSpots["air"][1]
 	for i, p in pairs(spots) do
 		self:DontBuildRectangle(p.x-40, p.z-40, p.x+40, p.z+40)
 	end

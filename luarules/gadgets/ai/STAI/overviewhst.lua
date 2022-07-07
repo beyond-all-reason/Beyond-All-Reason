@@ -30,7 +30,7 @@ function OverviewHST:EvaluateSituation()
 -- 	self.GEO1
 -- 	self.GEO2
  	self.POWERPLANT = self.ai.tool:countMyUnit({'_fus_'})
-	self.X100M = self.ai.tool:countMyUnit({'extractsMetal'}) / #self.ai.mobNetworkMetals["air"][1]
+	self.X100M = self.ai.tool:countMyUnit({'extractsMetal'}) / #self.ai.maphst.mobilityNetworkMetals["air"][1]
 	self.needT2 = ((M.income > 20 or self.X100M > 0.2) and E.income > 800 and self.T1LAB)
 	self.needT3 = ((M.income > 50 or self.X100M > 0.4) and E.income > 4000 and self.T2LAB)
 end

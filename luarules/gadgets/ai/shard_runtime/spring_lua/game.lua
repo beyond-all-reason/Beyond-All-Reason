@@ -135,6 +135,7 @@ local game = {}
 		end
  	end
  	function game:DrawDisplay(onOff)
+		self.ai.drawDebug = onOff
  		--return SendToUnsynced('ShardDrawDisplay',onOff)
 		if (Script.LuaUI('ShardDrawDisplay')) then
 			Script.LuaUI.ShardDrawDisplay(onOff)

@@ -66,7 +66,7 @@ function ScoutHST:ClosestSpot(scoutbst)
 		elseif self.usingStarts[mtype][network] then
 			-- then use metal and geo spots
 			self:EchoDebug(unit:Name() .. " got metals and geos")
-			for i, p in pairs(self.ai.scoutSpots[mtype][network]) do
+			for i, p in pairs(self.ai.maphst.scoutSpots[mtype][network]) do
 				table.insert(self.spotsToScout[mtype][network], p)
 			end
 			self.usingStarts[mtype][network] = false

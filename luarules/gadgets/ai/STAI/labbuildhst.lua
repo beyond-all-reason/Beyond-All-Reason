@@ -16,7 +16,150 @@ function LabBuildHST:Init()
 	self.finishedConIDs = {}
 	self.factories = {}
 	self.ai.factoriesAtLevel = {}
+	self:factoriesRating()
 	self:EchoDebug('Initialize')
+end
+
+function LabBuildHST:factoriesRating()
+	local mtypesMapRatings = {}
+	local factoryRating = {}
+	self.ai.factoryBuilded = {}
+	self.ai.factoryBuilded['air'] = {}
+	for mtype, networks in pairs(self.networkSize) do
+		self.ai.factoryBuilded[mtype] = {}
+		for network, size in pairs(networks) do
+			local spots = self.mobilityNetworkMetals[mtype][network] or {}
+			spots = #spots
+			if size > self.gridArea * 0.20 and spots > (#self.landMetalSpots + #self.UWMetalSpots) * 0.4 then
+				-- area large enough and enough metal spots
+				self.ai.factoryBuilded[mtype][network] = 0
+			end
+		end
+	end
+	self.ai.factoryBuilded['air'][1] = 0
+	for mtype, unames in pairs(self.ai.armyhst.mobUnitNames) do
+		local realMetals = 0
+		local realSize = 0
+		local realGeos = 0
+		local spots = 0
+		local geos= 0
+		local realRating = self.mobilityRating[mtype] / 100
+		if self.mobilityCount[mtype] ~= 0 then
+			realSize = self.mobilityCount[mtype] / self.gridArea --relative area occupable
+		end
+		if #self.landMetalSpots + #self.UWMetalSpots ~= 0 then
+			for network, index in pairs(self.mobilityNetworkMetals[mtype]) do
+				spots=spots + #index
+			end
+			realMetals = spots / (#self.landMetalSpots + #self.UWMetalSpots)--relative metals occupable
+		end
+		if #self.geoSpots > 0 and mtype ~= ('shp' or 'sub') then
+			realGeos = math.min(0.1 * #self.geoSpots,1) --if there are more then 10 geos is useless give it more weight on bestfactory type calculations
+		end
+		mtypesMapRatings[mtype] = (( realMetals + realSize + realGeos) / 3) * realRating
+		mtypesMapRatings[mtype] = (self.mobilityRating[mtype] / self.mobilityRating['air']) * self.ai.armyhst.mobilityEffeciencyMultiplier[mtype]
+		-- area is not as important as number of metal and geo
+		-- mtypesMapRatings[mtype] = (( realMetals + (realSize*0.5) + realGeos) / 2.5) * self.ai.armyhst.mobilityEffeciencyMultiplier[mtype]
+		self:EchoDebug('mtypes map rating ' ..mtype .. ' = ' .. mtypesMapRatings[mtype])
+	end
+	mtypesMapRatings['air'] = self.ai.armyhst.mobilityEffeciencyMultiplier['air']
+	local bestPath = 0
+	for factory,mtypes in pairs(self.ai.armyhst.factoryMobilities)do
+		local factoryPathRating = 0
+		local factoryMtypeRating = 0
+		if mtypes[1] ~='air' then
+			local factoryBuildsCons = false
+			for index, unit in pairs( self.ai.armyhst.unitTable[factory].unitsCanBuild) do
+				local mtype = self.ai.armyhst.unitTable[unit].mtype
+				if self.ai.armyhst.unitTable[unit].buildOptions then
+					if (self.hasUWSpots and mtype ~= 'veh') or (not self.hasUWSpots and mtype ~= 'amp') then
+					-- if self.ai.hasUWSpots or not (mtype == 'amp' and mtypes[1] == 'veh') then
+						factoryBuildsCons = true
+						break
+					end
+				end
+			end
+			self:EchoDebug(factory .. " builds cons: " .. tostring(factoryBuildsCons))
+			local count = 0
+			local maxPath = 0
+			local mediaPath = 0
+			for index, unit in pairs( self.ai.armyhst.unitTable[factory].unitsCanBuild) do
+				local mtype = self.ai.armyhst.unitTable[unit].mtype
+				local mclass = self.ai.armyhst.unitTable[unit].mclass
+				if self.ai.armyhst.unitTable[unit].buildOptions or not factoryBuildsCons then
+					local ok = true
+					-- if self.ai.hasUWSpots or not (mtype == 'amp' and mtypes[1] == 'veh') then
+					if (self.hasUWSpots and mtype ~= 'veh') or (not self.hasUWSpots and mtype ~= 'amp') then
+						count = count + 1
+						factoryMtypeRating = factoryMtypeRating + mtypesMapRatings[mtype]
+						self:EchoDebug(factory .. ' ' .. unit .. ' ' .. self.ai.armyhst.unitTable[unit].mtype .. ' ' .. mtypesMapRatings[self.ai.armyhst.unitTable[unit].mtype])
+							bestPath = math.max(bestPath,self.spotPathMobRank[mclass])
+							maxPath = math.max(maxPath,self.spotPathMobRank[mclass])
+							mediaPath = mediaPath + self.spotPathMobRank[mclass]
+							self:EchoDebug('bigdbg',factory .. ' ' .. unit .. ' ' .. self.ai.armyhst.unitTable[unit].mtype .. ' ' .. mtypesMapRatings[self.ai.armyhst.unitTable[unit].mtype],bestPath,maxPath,mediaPath,self.spotPathMobRank[mclass])
+					end
+				end
+			end
+			if count == 0 then
+				factoryMtypeRating = 0
+			else
+				factoryMtypeRating = factoryMtypeRating / count
+			end
+			if maxPath == 0 then
+				mediaPath = 0
+			else
+				mediaPath = (mediaPath / count)
+				factoryPathRating = (maxPath + mediaPath) / 2
+			end
+		else
+			self:EchoDebug('airfactory',factory)
+			factoryPathRating = 1
+			if #self.landMetalSpots + #self.UWMetalSpots == 0 then
+				factoryMtypeRating = mtypesMapRatings['air']
+			elseif self.ai.armyhst.unitTable[factory].needsWater then
+				factoryMtypeRating = mtypesMapRatings['air'] * (#self.UWMetalSpots / (#self.landMetalSpots + #self.UWMetalSpots))
+			else
+				factoryMtypeRating = mtypesMapRatings['air'] * (#self.landMetalSpots / (#self.landMetalSpots + #self.UWMetalSpots))
+			end
+		end
+		self:EchoDebug(factory .. ' mtype rating: ' .. factoryMtypeRating)
+		local Rating
+		self:EchoDebug(factory .. ' path rating: ' .. factoryPathRating)
+		Rating = factoryPathRating * factoryMtypeRating * self.ai.armyhst.unitTable[factory].techLevel
+		self:EchoDebug('Rating',factoryPathRating, factoryMtypeRating , self.ai.armyhst.unitTable[factory].techLevel)
+		if self.ai.armyhst.factoryMobilities[factory][1] == ('hov') then
+			Rating = Rating * (self.mobilityCount['shp'] /self.gridArea)
+		end
+		Rating = Rating * -1--reverse the value to get the right order
+		if Rating ~= 0 then --useless add factory totally out of mode
+			factoryRating[factory] = Rating
+			self:EchoDebug('factory rating ' .. factory ..' = ' .. factoryRating[factory])
+		end
+		end
+	local sorting = {}
+	local rank = {}
+	for name, rating in pairs(factoryRating) do
+        self:EchoDebug('name,rating,rank[rating]',name,rating,rank[rating])
+		if not rank[rating] then
+			rank[rating] = {}
+			table.insert(rank[rating],name)
+		else
+			table.insert(rank[rating],name)
+		end
+		table.insert(sorting, rating)
+	end
+	table.sort(sorting)
+	local factoriesRanking = {}
+	local ranksByFactories = {}
+	for i,v in pairs(sorting) do
+		for ii = #rank[v], 1, -1 do
+			local factoryName = table.remove(rank[v],ii)
+			table.insert(factoriesRanking, factoryName)
+			ranksByFactories[factoryName] = #factoriesRanking
+			self:EchoDebug('i-factoryname',(i .. ' ' .. factoryName))
+		end
+	end
+	self.ai.factoriesRanking, self.ai.ranksByFactories = factoriesRanking, ranksByFactories
 end
 
 function LabBuildHST:MyUnitBuilt(engineUnit)

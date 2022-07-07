@@ -264,7 +264,7 @@ function TargetHST:perifericalTarget()
 end
 
 function TargetHST:UpdateMetalGeoSpots()
-	local spots = self.ai.scoutSpots.air[1]
+	local spots = self.ai.maphst.scoutSpots.air[1]
 	for index,spot in pairs(spots) do
 		local underwater = self.ai.maphst:IsUnderWater(spot)
 		local inLos = self.ai.loshst:posInLos(spot)
