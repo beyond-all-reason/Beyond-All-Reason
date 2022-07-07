@@ -1385,6 +1385,22 @@ local unitDefLights = {
 			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
 		},
 	},
+	[UnitDefNames['corlab'].id] = {
+		buildlight = { -- this is the lightname
+			lighttype = 'cone',
+			pieceName = 'cagelight_emit',
+			lightParamTable = {0,0,0,10, --pos + radius
+								1,0,0, 0.99, -- dir + angle
+								1.3,0.9,0.1,2, -- RGBA
+								0.1,0.2,1.5,10, -- modelfactor_specular_scattering_lensflare
+								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,0,0, -- color2
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	},
 }
 
 local function AddStaticLightsForUnit(unitID, unitDefID, noupload)
