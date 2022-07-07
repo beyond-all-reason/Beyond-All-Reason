@@ -123,13 +123,13 @@ if gadgetHandler:IsSyncedCode() then
 	local squadCreationQueue = {
 		units = {},
 		role = false,
-		life = 7,
+		life = 10,
 		regroup = true,
 	}
 	squadCreationQueueDefaults = {
 		units = {},
 		role = false,
-		life = 7,
+		life = 10,
 		regroup = true,
 	}
 	swarmSpawning = false
@@ -398,10 +398,12 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenr2"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickene1"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["chickene2"].id] = { distance = 200, chance = 0.01 },	
+		[UnitDefNames["chickenelectricallterrainassault"].id] = { distance = 200, chance = 0.01 },	
 		[UnitDefNames["chickenearty1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenelectricallterrain"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["chickenacidswarmer"].id] = { distance = 300, chance = 1 },
-		[UnitDefNames["chickenacidassault"].id] = { distance = 200, chance = 1 },	
+		[UnitDefNames["chickenacidassault"].id] = { distance = 200, chance = 1 },
+		[UnitDefNames["chickenacidallterrainassault"].id] = { distance = 200, chance = 1 },		
 		[UnitDefNames["chickenacidarty"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenacidallterrain"].id] = { distance = 300, chance = 1 },
 	}
@@ -413,6 +415,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenh5"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickene1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickene2"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenelectricallterrainassault"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenearty1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenelectricallterrain"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenacidarty"].id] = { distance = 500, chance = 1 },
@@ -432,8 +435,12 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenallterraina1c"].id] = { chance = 0.2 },
 		[UnitDefNames["chickena2"].id] = { chance = 0.2 },
 		[UnitDefNames["chickena2b"].id] = { chance = 0.2 },
+		[UnitDefNames["chickenapexallterrainassault"].id] = { chance = 0.2 },
+		[UnitDefNames["chickenapexallterrainassaultb"].id] = { chance = 0.2 },
 		[UnitDefNames["chickene2"].id] = { chance = 0.05 },
+		[UnitDefNames["chickenelectricallterrainassault"].id] = { chance = 0.05 },
 		[UnitDefNames["chickenacidassault"].id] = { chance = 0.05 },
+		[UnitDefNames["chickenacidallterrainassault"].id] = { chance = 0.05 },
 		[UnitDefNames["chickenacidswarmer"].id] = { chance = 0.01 },
 		[UnitDefNames["chickenacidallterrain"].id] = { chance = 0.01 },
 		[UnitDefNames["chickenp1"].id] = { chance = 0.2 },
@@ -658,7 +665,7 @@ if gadgetHandler:IsSyncedCode() then
 				role = newSquad.role
 			end
 			if not newSquad.life then
-				newSquad.life = 7
+				newSquad.life = 10
 			end
 
 
