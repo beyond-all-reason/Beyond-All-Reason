@@ -140,8 +140,23 @@ if gadgetHandler:IsSyncedCode() then
 
 	local attemptingToSpawnHeavyTurret = 0
 	local attemptingToSpawnLightTurret = 0
+	local attemptingToSpawnSpecialHeavyTurret = 0
+	local attemptingToSpawnSpecialLightTurret = 0
+	
 	local heavyTurret = "chickend2"
 	local lightTurret = "chickend1"
+	local specialHeavyTurrets = {
+		"chicken1",
+		"chicken1b",
+		"chicken1c",
+		"chicken1d",
+	}
+	local specialLightTurrets = {
+		"chicken1",
+		"chicken1b",
+		"chicken1c",
+		"chicken1d",
+	}
 
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitName[unitDefID] = unitDef.name
@@ -1419,11 +1434,15 @@ if gadgetHandler:IsSyncedCode() then
 		if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < burrowCount*2 then
 			if attemptingToSpawnHeavyTurret > 0 then
 				for i = 1,attemptingToSpawnHeavyTurret do
-					local heavyTurretUnitID = spawnCreepStructure(heavyTurret, spread)
+					local heavyTurretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(heavyTurret, spread)
 					if heavyTurretUnitID then
 						attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret - 1
 						SetUnitExperience(heavyTurretUnitID, mRandom() * expMod)
+						Spring.GiveOrderToUnit(heavyTurretUnitID, CMD.PATROL, {spawnPosX + math.random(-128,128), spawnPosY, spawnPosZ + math.random(-128,128)}, {"meta"})
 						attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 5
+						if math.random(1,4) == 1 then
+							attemptingToSpawnSpecialHeavyTurret = attemptingToSpawnSpecialHeavyTurret + 1
+						end
 					end
 				end
 			end
@@ -1442,7 +1461,34 @@ if gadgetHandler:IsSyncedCode() then
 						attemptingToSpawnLightTurret = attemptingToSpawnLightTurret - 1
 						SetUnitExperience(lightTurretUnitID, mRandom() * expMod)
 						Spring.GiveOrderToUnit(lightTurretUnitID, CMD.PATROL, {spawnPosX + math.random(-128,128), spawnPosY, spawnPosZ + math.random(-128,128)}, {"meta"})
+						if math.random(1,4) == 1 then
+							attemptingToSpawnSpecialLightTurret = attemptingToSpawnSpecialLightTurret + 1
+						end
 					end
+				end
+			end
+		end
+
+		if attemptingToSpawnSpecialHeavyTurret > 0 then
+			for i = 1,attemptingToSpawnSpecialHeavyTurret do
+				local specialTurret = specialHeavyTurrets[math.random(1,#specialHeavyTurrets)]
+				local heavyTurretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(specialTurret, spread)
+				if heavyTurretUnitID then
+					attemptingToSpawnSpecialHeavyTurret = attemptingToSpawnSpecialHeavyTurret - 1
+					SetUnitExperience(heavyTurretUnitID, mRandom() * expMod)
+					Spring.GiveOrderToUnit(heavyTurretUnitID, CMD.PATROL, {spawnPosX + math.random(-128,128), spawnPosY, spawnPosZ + math.random(-128,128)}, {"meta"})
+				end
+			end
+		end
+
+		if attemptingToSpawnSpecialLightTurret > 0 then
+			for i = 1,attemptingToSpawnSpecialLightTurret do
+				local specialTurret = specialLightTurrets[math.random(1,#specialLightTurrets)]
+				local lightTurretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(specialTurret, spread)
+				if lightTurretUnitID then
+					attemptingToSpawnSpecialLightTurret = attemptingToSpawnSpecialLightTurret - 1
+					SetUnitExperience(lightTurretUnitID, mRandom() * expMod)
+					Spring.GiveOrderToUnit(lightTurretUnitID, CMD.PATROL, {spawnPosX + math.random(-128,128), spawnPosY, spawnPosZ + math.random(-128,128)}, {"meta"})
 				end
 			end
 		end
@@ -1756,11 +1802,18 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if UnitDefs[unitDefID].name == "chickend1" then
-			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + math.random(1,1)
+			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 1
+			if math.random(1,4) == 1 then
+				attemptingToSpawnSpecialLightTurret = attemptingToSpawnSpecialLightTurret + 1
+			end
 		end
 		if UnitDefs[unitDefID].name == "chickend2" then
 			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + math.random(2,5)
 			attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + math.random(1,2)
+			if math.random(1,4) == 1 then
+				attemptingToSpawnSpecialLightTurret = attemptingToSpawnSpecialLightTurret + math.random(2,5)
+				attemptingToSpawnSpecialHeavyTurret = attemptingToSpawnSpecialHeavyTurret + math.random(1,2)
+			end
 		end
 
 		if unitDefID == OVERSEER_ID then
