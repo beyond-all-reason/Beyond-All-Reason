@@ -319,8 +319,8 @@ RequestState(requestedstate, currentstate)
 			currentstate = 0;
 			show beacon1;
 			show beacon2;
-			spin beacon1 around y-axis speed <420>;
-			spin beacon2 around y-axis speed <-420>;
+			spin beacon1 around y-axis speed <450>;
+			spin beacon2 around y-axis speed <-450>;
 		}
 	}
 	statechg_StateChanging = FALSE;

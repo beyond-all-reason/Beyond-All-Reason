@@ -117,7 +117,7 @@ function script.StartBuilding(heading, pitch)
 	--Turn (cagelight, x_axis,45,1);
 	--WaitForTurn(cagelight, x_axis);
 	--Sleep(10)
-	Spin (cagelight_emit, y_axis,20);
+	Spin (cagelight_emit, y_axis,4);
 	--Spin (cagelight,x_axis,20);
 end
 
