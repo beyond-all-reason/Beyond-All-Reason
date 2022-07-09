@@ -65,6 +65,14 @@ local TimedDamageWeapons = {
         range = 75,
         resistance = "_CHICKENACID_",
     },
+    [WeaponDefNames.chickenacidallterrainassault_acidspit.id] = {
+        ceg = "acid-area-150", 
+        damageCeg = "acid-damage-gen", 
+        time = 10,
+        damage = 300,
+        range = 150,
+        resistance = "_CHICKENACID_",
+    },
 	[WeaponDefNames.legbart_clusternapalm.id] = {
         ceg = "fire-area-75", 
         damageCeg = "burnflamexl", 

@@ -15,70 +15,74 @@ local burrowName = 'roost'
 local waves = {}
 
 local chickenTypes = {
-	ve_chickenq    				=  true,
-	e_chickenq     				=  true,
-	n_chickenq     				=  true,
-	h_chickenq     				=  true,
-	vh_chickenq    				=  true,
-	chicken1       				=  true,
-	chicken1b      				=  true,
-	chicken1c      				=  true,
-	chicken1d      				=  true,
-	chicken1x      				=  true,
-	chicken1y      				=  true,
-	chicken1z      				=  true,
-	chicken2       				=  true,
-	chicken2b      				=  true,
-	chickena1      				=  true,
-	chickena1b     				=  true,
-	chickena1c     				=  true,
-	chickenallterraina1			=  true,
-	chickenallterraina1b		=  true,
-	chickenallterraina1c		=  true,
-	chickena2      				=  true,
-	chickena2b     				=  true,
-	chickens1      				=  true,
-	chickens2      				=  true,
-	chicken_dodo1  				=  true,
-	chicken_dodo2  				=  true,
-	chicken_dodoair				=  true,
-	chickenf1      				=  true,
-	chickenf1b     				=  true,
-	chickenf1apex      			=  true,
-	chickenf1apexb     			=  true,
-	chickenf2      				=  true,
-	chickenc1      				=  true,
-	chickenc2      				=  true,
-	chickenc3      				=  true,
-	chickenc3b     				=  true,
-	chickenc3c     				=  true,
-	chickenr1      				=  true,
-	chickenr2      				=  true,
-	chickenh1      				=  true,
-	chickenh1b     				=  true,
-	chickenh2      				=  true,
-	chickenh3      				=  true,
-	chickenh4      				=  true,
-	chickenh5      				=  true,
-	chickenw1      				=  true,
-	chickenw1b     				=  true,
-	chickenw1c     				=  true,
-	chickenw1d     				=  true,
-	chickenw2      				=  true,
-	chickens3      				=  true,
-	chickenp1      				=  true,
-	chickenp2      				=  true,
-	chickenpyroallterrain		=  true,
-	chickene1	   				=  true,
-	chickene2	   				=  true,
-	chickenearty1  				=  true,
-	chickenebomber1 			=  true,
-	chickenelectricallterrain 	=  true,
-	chickenacidswarmer 			=  true,
-	chickenacidassault 			=  true,
-	chickenacidarty 			=  true,
-	chickenacidbomber 			=  true,
-	chickenacidallterrain		=  true,
+	ve_chickenq    						=  true,
+	e_chickenq     						=  true,
+	n_chickenq     						=  true,
+	h_chickenq     						=  true,
+	vh_chickenq    						=  true,
+	chicken1       						=  true,
+	chicken1b      						=  true,
+	chicken1c      						=  true,
+	chicken1d      						=  true,
+	chicken1x      						=  true,
+	chicken1y      						=  true,
+	chicken1z      						=  true,
+	chicken2       						=  true,
+	chicken2b      						=  true,
+	chickena1      						=  true,
+	chickena1b     						=  true,
+	chickena1c     						=  true,
+	chickenallterraina1					=  true,
+	chickenallterraina1b				=  true,
+	chickenallterraina1c				=  true,
+	chickena2      						=  true,
+	chickena2b     						=  true,
+	chickenapexallterrainassault 		=  true,
+	chickenapexallterrainassaultb 		=  true,
+	chickens1      						=  true,
+	chickens2      						=  true,
+	chicken_dodo1  						=  true,
+	chicken_dodo2  						=  true,
+	chicken_dodoair						=  true,
+	chickenf1      						=  true,
+	chickenf1b     						=  true,
+	chickenf1apex      					=  true,
+	chickenf1apexb     					=  true,
+	chickenf2      						=  true,
+	chickenc1      						=  true,
+	chickenc2      						=  true,
+	chickenc3      						=  true,
+	chickenc3b     						=  true,
+	chickenc3c     						=  true,
+	chickenr1      						=  true,
+	chickenr2      						=  true,
+	chickenh1      						=  true,
+	chickenh1b     						=  true,
+	chickenh2      						=  true,
+	chickenh3      						=  true,
+	chickenh4      						=  true,
+	chickenh5      						=  true,
+	chickenw1      						=  true,
+	chickenw1b     						=  true,
+	chickenw1c     						=  true,
+	chickenw1d     						=  true,
+	chickenw2      						=  true,
+	chickens3      						=  true,
+	chickenp1      						=  true,
+	chickenp2      						=  true,
+	chickenpyroallterrain				=  true,
+	chickene1	   						=  true,
+	chickene2	   						=  true,
+	chickenearty1  						=  true,
+	chickenebomber1 					=  true,
+	chickenelectricallterrain 			=  true,
+	chickenelectricallterrainassault 	=  true,
+	chickenacidswarmer 					=  true,
+	chickenacidassault 					=  true,
+	chickenacidarty 					=  true,
+	chickenacidbomber 					=  true,
+	chickenacidallterrain				=  true,
+	chickenacidallterrainassault		=  true,
   }
 
   local defenders = {
@@ -86,65 +90,69 @@ local chickenTypes = {
   }
 
   local chickenEggs = {
-	chicken1       				=   "purple", 
-	chicken1b      				=   "pink",
-	chicken1c      				=   "purple",
-	chicken1d      				=   "purple",
-	chicken1x      				=   "pink",
-	chicken1y      				=   "pink",
-	chicken1z      				=   "pink",
-	chicken2       				=   "pink",
-	chicken2b      				=   "pink",
-	chickena1      				=   "red",
-	chickena1b     				=   "red",
-	chickena1c     				=   "red",
-	chickenallterraina1			=   "red",
-	chickenallterraina1b		=   "red",
-	chickenallterraina1c		=   "red",
-	chickena2      				=   "red",
-	chickena2b     				=   "red",
-	chickens1      				=   "green",
-	chickens2      				=   "yellow",
-	chicken_dodo1  				=   "red",
-	chicken_dodo2  				=   "red",
-	chicken_dodoair  			=   "red",
-	chickenf1      				=   "yellow",
-	chickenf1b     				=   "yellow",
-	chickenf1apex      			=   "yellow",
-	chickenf1apexb     			=   "yellow",
-	chickenf2      				=   "white",
-	chickenc1      				=   "white",
-	chickenc2      				=   "darkred",
-	chickenc3      				=   "white",
-	chickenc3b     				=   "white",
-	chickenc3c     				=   "white",
-	chickenr1      				=   "darkgreen",
-	chickenr2      				=   "darkgreen",
-	chickenh1      				=   "white",
-	chickenh1b     				=   "yellow",
-	chickenh2      				=   "purple",
-	chickenh3      				=   "red",
-	chickenh4      				=   "red",
-	chickenh5      				=   "red",
-	chickenw1      				=   "purple",
-	chickenw1b     				=   "purple",
-	chickenw1c     				=   "purple",
-	chickenw1d     				=   "purple",
-	chickenw2      				=   "darkred",
-	chickens3      				=   "green",
-	chickenp1      				=   "darkred",
-	chickenp2      				=   "darkred",
-	chickenpyroallterrain		=	"darkred",
-	chickene1	   				=   "blue",
-	chickene2	   				=   "blue",
-	chickenearty1  				=   "blue",
-	chickenebomber1 			=   "blue",
-	chickenelectricallterrain 	=   "blue",
-	chickenacidswarmer 			=   "acidgreen",
-	chickenacidassault 			=   "acidgreen",
-	chickenacidarty 			=   "acidgreen",
-	chickenacidbomber 			=   "acidgreen",
-	chickenacidallterrain		=	"acidgreen",
+	chicken1       						=   "purple", 
+	chicken1b      						=   "pink",
+	chicken1c      						=   "purple",
+	chicken1d      						=   "purple",
+	chicken1x      						=   "pink",
+	chicken1y      						=   "pink",
+	chicken1z      						=   "pink",
+	chicken2       						=   "pink",
+	chicken2b      						=   "pink",
+	chickena1      						=   "red",
+	chickena1b     						=   "red",
+	chickena1c     						=   "red",
+	chickenallterraina1					=   "red",
+	chickenallterraina1b				=   "red",
+	chickenallterraina1c				=   "red",
+	chickena2      						=   "red",
+	chickena2b     						=   "red",
+	chickenapexallterrainassault 		=   "red",
+	chickenapexallterrainassaultb 		=   "red",
+	chickens1      						=   "green",
+	chickens2      						=   "yellow",
+	chicken_dodo1  						=   "red",
+	chicken_dodo2  						=   "red",
+	chicken_dodoair  					=   "red",
+	chickenf1      						=   "yellow",
+	chickenf1b     						=   "yellow",
+	chickenf1apex      					=   "yellow",
+	chickenf1apexb     					=   "yellow",
+	chickenf2      						=   "white",
+	chickenc1      						=   "white",
+	chickenc2      						=   "darkred",
+	chickenc3      						=   "white",
+	chickenc3b     						=   "white",
+	chickenc3c     						=   "white",
+	chickenr1      						=   "darkgreen",
+	chickenr2      						=   "darkgreen",
+	chickenh1      						=   "white",
+	chickenh1b     						=   "yellow",
+	chickenh2      						=   "purple",
+	chickenh3      						=   "red",
+	chickenh4      						=   "red",
+	chickenh5      						=   "red",
+	chickenw1      						=   "purple",
+	chickenw1b     						=   "purple",
+	chickenw1c     						=   "purple",
+	chickenw1d     						=   "purple",
+	chickenw2      						=   "darkred",
+	chickens3      						=   "green",
+	chickenp1      						=   "darkred",
+	chickenp2      						=   "darkred",
+	chickenpyroallterrain				=	"darkred",
+	chickene1	   						=   "blue",
+	chickene2	   						=   "blue",
+	chickenearty1  						=   "blue",
+	chickenebomber1 					=   "blue",
+	chickenelectricallterrain 			=   "blue",
+	chickenelectricallterrainassault	=   "blue",
+	chickenacidswarmer 					=   "acidgreen",
+	chickenacidassault 					=   "acidgreen",
+	chickenacidarty 					=   "acidgreen",
+	chickenacidbomber 					=   "acidgreen",
+	chickenacidallterrain				=	"acidgreen",
+	chickenacidallterrainassault		=   "acidgreen",
   }
 
 local optionValues = {
@@ -280,6 +288,7 @@ if difficulty >= 3 then
 	addSquad(7, { "3 chickenearty1" 															}) -- EMP Artillery
 	addSquad(7, { "8 chickenp2" 																}) -- Apex Pyro
 	addSquad(7, { "3 chickene2" 																}) -- EMP Brawler
+	addSquad(7, { "3 chickenelectricallterrainassault" 											}) -- EMP AllTerrain Brawler
 	addSquad(7, { "5 chickenelectricallterrain", "5 chickenacidallterrain" 						}) -- EMP and Acid AllTerrain Combo
 
 	addSquad(8, { "70 chicken_dodo1" 															}) -- Kamikaze
@@ -288,6 +297,7 @@ if difficulty >= 3 then
 	addSquad(8, { "10 chickens2" 																}) -- Apex Spiker
 	addSquad(8, { "10 chickenacidallterrain" 													}) -- Acid AllTerrain 
 	addSquad(8, { "4 chickenacidassault" 														}) -- Acid Brawler
+	addSquad(8, { "4 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
 	addSquad(8, { "5 chickenacidbomber" 														}) -- Acid Bomber
 	addSquad(8, { "3 chickenacidarty" 															}) -- Acid Artillery
 end
@@ -297,12 +307,14 @@ if difficulty >= 4 then
 	addSquad(9, { "10 chickenw2" 																}) -- Apex Fighter
 	addSquad(9, { "5 chicken2" , "5 chicken2b" 													}) -- Apex Swarmer
 	addSquad(9, { "5 chickena2", "5 chickena2b"													}) -- Apex Brawler
+	addSquad(9, { "5 chickenapexallterrainassault", "5 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
 	addSquad(9, { "1 chickenr2", "3 chickenr1" 													}) -- Meteor Artillery
 
 	addSquad(10, { "3 chickenf1apex", "3 chickenf1apexb" 										}) -- Apex Bomber
 	addSquad(10, { "20 chickenw2" 																}) -- Apex Fighter
 	addSquad(10, { "5 chicken2" , "5 chicken2b" 												}) -- Apex Swarmer
 	addSquad(10, { "5 chickena2", "5 chickena2b"												}) -- Apex Brawler
+	addSquad(10, { "5 chickenapexallterrainassault", "5 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
 	addSquad(10, { "1 chickenr2", "3 chickenr1" 												}) -- Meteor Artillery
 	addSquad(10, { "5 chickenh2" 																}) -- Apex Brood Mother
 	addSquad(10, { "10 chickenh3" 																}) -- Brood Mother
@@ -310,31 +322,23 @@ if difficulty >= 4 then
 end
 
 if difficulty >= 5 then
-	addSquad(11, { "3 chickenf1apex", "3 chickenf1apexb" 										}) -- Apex Bomber
-	addSquad(11, { "10 chickenw2" 																}) -- Apex Fighter
-	addSquad(11, { "5 chicken2" , "5 chicken2b" 												}) -- Apex Swarmer
-	addSquad(11, { "5 chickena2", "5 chickena2b"												}) -- Apex Brawler
-	addSquad(11, { "1 chickenr2", "3 chickenr1", "3 chickenearty1", "3 chickenacidarty" 		}) -- Meteor Artillery
-	addSquad(11, { "5 chickenh2" 																}) -- Apex Brood Mother
-	addSquad(11, { "10 chickene2" 																}) -- EMP Brawler
-	addSquad(11, { "10 chickenacidassault" 														}) -- Acid Brawler
-	addSquad(11, { "100 chicken_dodo2" 															}) -- Kamikaze
-	addSquad(11, { "100 chicken_dodoair" 														}) -- Air Kamikaze
-	addSquad(11, { "20 chickenp2" 																}) -- Apex Pyro
-	addSquad(11, { "20 chickens2" 																}) -- Apex Spiker
-
-	addSquad(12, { "3 chickenf1apex", "3 chickenf1apexb" 										}) -- Apex Bomber
-	addSquad(12, { "10 chickenw2" 																}) -- Apex Fighter
-	addSquad(12, { "5 chicken2" , "5 chicken2b" 												}) -- Apex Swarmer
-	addSquad(12, { "5 chickena2", "5 chickena2b"												}) -- Apex Brawler
-	addSquad(12, { "1 chickenr2", "3 chickenr1", "3 chickenearty1", "3 chickenacidarty" 		}) -- Meteor Artillery
-	addSquad(12, { "5 chickenh2" 																}) -- Apex Brood Mother
-	addSquad(12, { "10 chickene2" 																}) -- EMP Brawler
-	addSquad(12, { "10 chickenacidassault" 														}) -- Acid Brawler
-	addSquad(12, { "100 chicken_dodo2" 															}) -- Kamikaze
-	addSquad(12, { "100 chicken_dodoair" 														}) -- Air Kamikaze
-	addSquad(12, { "20 chickenp2" 																}) -- Apex Pyro
-	addSquad(12, { "20 chickens2" 																}) -- Apex Spiker
+	for i = 11,12 do
+	addSquad(i, { "3 chickenf1apex", "3 chickenf1apexb" 										}) -- Apex Bomber
+	addSquad(i, { "10 chickenw2" 																}) -- Apex Fighter
+	addSquad(i, { "5 chicken2" , "5 chicken2b" 													}) -- Apex Swarmer
+	addSquad(i, { "5 chickena2", "5 chickena2b"													}) -- Apex Brawler
+	addSquad(i, { "5 chickenapexallterrainassault", "5 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
+	addSquad(i, { "1 chickenr2", "3 chickenr1", "3 chickenearty1", "3 chickenacidarty" 			}) -- Meteor Artillery
+	addSquad(i, { "5 chickenh2" 																}) -- Apex Brood Mother
+	addSquad(i, { "10 chickene2" 																}) -- EMP Brawler
+	addSquad(i, { "10 chickenelectricallterrainassault" 										}) -- EMP AllTerrain Brawler
+	addSquad(i, { "10 chickenacidassault" 														}) -- Acid Brawler
+	addSquad(i, { "10 chickenacidallterrainassault" 											}) -- Acid AllTerrain  Brawler
+	addSquad(i, { "100 chicken_dodo2" 															}) -- Kamikaze
+	addSquad(i, { "100 chicken_dodoair" 														}) -- Air Kamikaze
+	addSquad(i, { "20 chickenp2" 																}) -- Apex Pyro
+	addSquad(i, { "20 chickens2" 																}) -- Apex Spiker
+	end
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
