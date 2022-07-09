@@ -4,7 +4,7 @@ return {
 		airsightdistance = 800,
 		blocking = false,
 		brakerate = 0.045,
-		buildcostenergy = 1700,
+		buildcostenergy = 14000,
 		buildcostmetal = 280,
 		buildpic = "LEGNAP.DDS",
 		buildtime = 28000,
