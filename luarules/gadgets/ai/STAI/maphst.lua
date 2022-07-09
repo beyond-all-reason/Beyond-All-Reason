@@ -21,7 +21,6 @@ function MapHST:Init()
 	self.DebugEnabled = true
 	self.lastDataResetFrame = 0
 	self:basicMapInfo()
-	self.GRID = {}
 	self.activeMobTypes = {}
 	self.ai.factoryListMap = {}
 	self.lastDataResetFrame = self.game:Frame()
@@ -39,23 +38,29 @@ function MapHST:Init()
 
 	self.UWMetalSpots = {}
 	self.landMetalSpots = {}
+	self.networkArea = {}
 	self.metalSpots = map:GetMetalSpots()
 	self.geoSpots = map:GetGeoSpots()
 	if #self.metalSpots > 1024 then-- metal map is too complex, simplify it
 		self.metalSpots = self:SimplifyMetalSpots(self.metalSpots, self.gridSize * 2)-- is a random choice, can be 1 or 9999999999
 	end
-	self:SpotSimplyfier(self.metalSpots,self.geoSpots)
-	for mtype, unames in pairs(self.ai.armyhst.mobUnitNames) do
-		self.mobilityUnitTypes[mtype] = {}
-		for i, uname in pairs(unames) do
-			self.mobilityUnitTypes[mtype][i] = self.game:GetTypeByName(uname)
-			print(self.mobilityUnitTypes[mtype][i],self.ai.armyhst.defId)
-		end
-	end
+	self:hotSpotter(self.metalSpots,self.geoSpots)
+	self:createGrid()
+	self:gridAnalisy()
 
-	self:InitializeTopology()
-	self:MapMobility()
 	self:MapSpotMobility(self.metalSpots, self.geoSpots)
+
+-- 	for mtype, unames in pairs(self.ai.armyhst.mobUnitNames) do
+-- 		self.mobilityUnitTypes[mtype] = {}
+-- 		for i, uname in pairs(unames) do
+-- 			self.mobilityUnitTypes[mtype][i] = self.game:GetTypeByName(uname)
+-- 			print(mtype,uname)
+-- 		end
+-- 	end
+
+	--self:InitializeTopology()
+	--self:MapMobility()
+--[[
 
 	self:EchoDebug("total sectors "..self.gridArea)-- now let's see how much water we found
 	local wetness = self.mobilityCount["sub"] * 100 / self.gridArea
@@ -151,37 +156,11 @@ function MapHST:Init()
 	-- cleanup
 	self.mobilityMap = nil
 -- 	self.ai.factoriesRanking, self.ai.ranksByFactories = self:factoriesRating()
+	]]
 	self:DrawDebug()
     self:EchoDebug('MapHST STOP')
 end
 
-
-
-function MapHST:NewCell(px, pz)
-	local x = px * self.elmoMapSizeX - gridSizeHalf
-	local z = pz * self.elmoMapSizeZ - gridSizeHalf
-	local cellPos = {}
-	cellPos.x, cellPos.z = x, z
-	cellPos.y = Spring.GetGroundHeight(x, z)
-	self.ai.buildsitehst:isInMap(cellPos)--move here ,is in map!!
-
-	local cell = {}
-	cell.P = cellPos
-	cell.X = px
-	cell.Z = pz
-	self.GRID[X][Z] = cell
-end
-
-function MapHST:createGrid()
-	for x = 1, self.mapSize.x / self.gridSize do
-		if not self.GRID[x] then
-			self.GRID[x] = {}
-		end
-		for z = 1, self.mapSize.z / self.gridSize do
-			self:NewCell(x,z)
-		end
-	end
-end
 
 function MapHST:basicMapInfo()
 	self.mapSize = self.map:MapDimensions()
@@ -189,12 +168,148 @@ function MapHST:basicMapInfo()
 	self.elmoMapSizeZ = self.mapSize.z * 8
 	self.elmoArea = self.elmoMapSizeX * self.elmoMapSizeZ
 	self.gridSize = 256 --math.max( math.floor(math.max(MapHST.mapSize.x * 8, MapHST.mapSize.z * 8) / 128),32)-- don't make grids smaller than 32
-	self.gridSizeHalf = self.gridSize/ 2
-	self.gridArea = self.mapSize.x * self.mapSize.z
-	self:EchoDebug("grid size: " .. self.gridSize)
+	self.gridSizeHalf = self.gridSize / 2
+	self.gridSideX = self.elmoMapSizeX / self.gridSize
+	self.gridSideZ = self.elmoMapSizeZ / self.gridSize
+	self.gridArea = self.gridSideX * self.gridSideZ
+	self:EchoDebug("grid size: " .. self.gridSize ..'cell count', self.gridArea,self.gridSideX,self.gridSideZ)
 end
 
-function MapHST:SpotSimplyfier(metalSpots,geosSpots)
+function MapHST:createGrid()
+	self.GRID = {}
+
+	for X = 1, self.gridSideX do
+		if not self.GRID[X] then
+			self.GRID[X] = {}
+		end
+		for Z = 1, self.gridSideZ do
+			self.GRID[X][Z] = self:NewCell(X,Z)
+
+		end
+	end
+end
+
+function MapHST:NewCell(gx, gz)
+	local x = gx * self.gridSize - self.gridSizeHalf
+	local z = gz * self.gridSize - self.gridSizeHalf
+	local cellPos = {}
+	cellPos.x, cellPos.z = x, z
+	cellPos.y = Spring.GetGroundHeight(x, z)
+	self.ai.buildsitehst:isInMap(cellPos)--move here ,is in map!!
+
+	local cell = {}
+
+	cell.POS = cellPos
+	cell.X = gx
+	cell.Z = gz
+	cell.moveLayers = self:moveLayerTest(cellPos)
+	return cell
+
+end
+
+function MapHST:GetCell(X,Z)
+	if not self.GRID[X] then
+		return
+	end
+	if not self.GRID[X][Z] then
+		--dbgwarn
+		return
+	end
+	return self.GRID[X][Z]
+end
+
+
+
+
+function MapHST:moveLayerTest(pos)
+	local layers = {}
+	layers['air'] = 0
+	for layer,unitName in pairs(self.ai.armyhst.mobUnitExampleName) do
+		if Spring.TestMoveOrder(self.ai.armyhst.unitTable[unitName].defId, pos.x, pos.y, pos.z) then
+			layers[layer] = 0
+		else
+			layers[layer] = false
+		end
+
+	end
+	return layers
+end
+
+
+
+function MapHST:gridAnalisy()
+	self.netAnalisy = {}
+-- 	for layer,unitName in pairs(self.ai.armyhst.mobUnitExampleName) do
+-- 		for X,Zetas in pairs(self.GRID) do
+-- 			for Z, CELL in pairs(Zetas) do
+--
+-- 					if self.GRID[X][Z].moveLayers[layer] and self.GRID[Z][Z].moveLayers[layer] == 0 then
+-- 						self:Flood4Topology2(X,Z,layer)
+--
+-- 					end
+--
+-- 			end
+-- 		end
+--  	end
+  	for X,Zetas in pairs(self.GRID) do
+  		for Z, CELL in pairs(Zetas) do
+  			for layer,unitName in pairs(self.ai.armyhst.mobUnitExampleName) do
+ 				if self.GRID[X][Z].moveLayers[layer] and self.GRID[X][Z].moveLayers[layer] == 0  then
+					if not self.netAnalisy[layer] then
+						self.netAnalisy[layer] = 1
+					end
+ 					self:Flood4Topology2(X,Z,layer)
+					self.netAnalisy[layer] = self.netAnalisy[layer] + 1
+
+ 				end
+  			end
+  		end
+  	end
+
+
+end
+
+function MapHST:Check1Topology2(x, z,layer)
+	--print(x, z,layer,network)
+	local cell = self:GetCell(x,z)
+	if not cell or  not cell['moveLayers'][layer] then
+		return 1
+	end
+	return 0
+end
+
+function MapHST:Flood4Topology2(x, z, layer)
+	if x > self.gridSideX or x < 1 or z > self.gridSideZ or z < 1 then
+		return
+	end
+
+
+	--precheck throws out 1-wide bottlenecks
+ 	local blocked = 0
+ 	blocked = blocked + self:Check1Topology2(x+1, z, layer)
+ 	blocked = blocked + self:Check1Topology2(x-1, z, layer)
+ 	blocked = blocked + self:Check1Topology2(x, z+1, layer)
+ 	blocked = blocked + self:Check1Topology2(x, z-1, layer)
+	if blocked == 4 then
+		print('blocked',x,z)
+
+		print(self.netAnalisy[layer])
+
+
+	end
+	-- now actually flood fill
+	if self.GRID[x][z]['moveLayers'][layer] == 0   then
+		self.GRID[x][z].moveLayers[layer] = self.netAnalisy[layer]
+		self:Flood4Topology2(x+1,z,layer)
+		self:Flood4Topology2(x-1,z,layer)
+		self:Flood4Topology2(x,z+1,layer)
+		self:Flood4Topology2(x,z-1,layer)
+	end
+
+end
+
+
+function MapHST:hotSpotter(metalSpots,geosSpots)
 	local spots = {}
 	local mirrorspots = {}
 	local limit = (self.map:MapDimensions())
@@ -243,67 +358,6 @@ function MapHST:SpotSimplyfier(metalSpots,geosSpots)
 	end
 end
 
-function MapHST:DrawDebug()
-	local ch = 1
-	self.map:EraseAll(ch)
-	if not self.ai.drawDebug then
-		return
-	end
-	local colours={
-			red = {1,0,0,1},--'red'
-			green = {0,1,0,1},--'green'
-			blue = {0,0,1,1},--'blue'
-			yellow = {0,1,1,1},
-			pink = {1,1,0,1},
-			white = {1,1,1,1},
-			black = {0,0,0,1},
-
-			}
-	for i,p in pairs (self.hotSpots) do
-		map:DrawPoint(p, green, i,  ch)
-	end
-	for i,p in pairs (self.metalSpots) do
-		map:DrawPoint(p, white, i,  ch)
-	end
-	for i,p in pairs (self.geoSpots) do
-		map:DrawPoint(p, white, i,  ch)
-	end
-end
-
-function MapHST:MapMobility()
-	for mtype, utypes in pairs(self.mobilityUnitTypes) do
-		self.mobilityMap[mtype] = {}
-		self.mobilityCount[mtype] = 0
-	end
-	for x = 1, self.mapSize.x do
-		for mtype, utypes in pairs(self.mobilityUnitTypes) do
-			self.mobilityMap[mtype][x] = {}
-		end
-		for z = 1, self.mapSize.z do
-			-- all blocked unless unblocked below
-			for mtype, utypes in pairs(self.mobilityUnitTypes) do
-				self.mobilityMap[mtype][x][z] = 1
-			end
-			pos = {}
-			pos.x = (x * self.gridSize) - self.gridSizeHalf
-			pos.z = (z * self.gridSize) - self.gridSizeHalf
-			-- find out if each mobility type can exist there
-			for mtype, utypes in pairs(self.mobilityUnitTypes) do
-				local canMoveHere = false
-				local uname = self.ai.armyhst.mobUnitExampleName[mtype]
-				local uDef = UnitDefNames[uname]
-				canMoveHere = Spring.TestMoveOrder(uDef.id, pos.x, Spring.GetGroundHeight(pos.x,pos.z), pos.z)
-				if canMoveHere then
-					-- self:EchoDebug(mtype .. " at " .. x .. "," .. z .. " count " .. mobilityCount[mtype])
-					self.mobilityCount[mtype] = self.mobilityCount[mtype] + 1
-					self.mobilityMap[mtype][x][z] = 0
-				end
-			end
-			-- self:EchoDebug(x .. "," .. z .. " sub " .. subMap[x][z] .. " bot " .. botMap[x][z] .. " veh " .. vehMap[x][z])
-		end
-	end
-end
-
 function MapHST:SimplifyMetalSpots(metalSpots, number)
 	local divisor = math.ceil(math.sqrt(number))
 	local spots = {}
@@ -324,87 +378,7 @@ function MapHST:SimplifyMetalSpots(metalSpots, number)
 end
 
 
-local function Check1Topology(x, z, mtype, network,Map)
-	if Map[mtype][x] == nil then
-		return 1
-	elseif Map[mtype][x][z] == nil then
-		return 1
-	else
-		return Map[mtype][x][z]
-	end
-end
 
-function MapHST:Flood4Topology(x, z, mtype, network)
-	if x > self.mapSize.x or x < 1 or z > self.mapSize.z or z < 1 then
-		return
-	end
-	--precheck throws out 1-wide bottlenecks
-	local blocked = 0
-	blocked = blocked + Check1Topology(x+1, z, mtype, network,self.mobilityMap)
-	blocked = blocked + Check1Topology(x-1, z, mtype, network,self.mobilityMap)
-	if blocked == 2 then
-		return end
-	blocked = blocked + Check1Topology(x, z+1, mtype, network,self.mobilityMap)
-	if blocked == 2 then
-		return end
-	blocked = blocked + Check1Topology(x, z-1, mtype, network,self.mobilityMap)
-	if blocked == 2 then
-		return end
-	-- now actually flood fill
-	local actualValue = self.mobilityMap[mtype][x][z]
-	if actualValue and (actualValue == 0) and self.topology[mtype][x][z] == nil then
-		self.topology[mtype][x][z] = network
-		self.networkSize[mtype][network] = self.networkSize[mtype][network] + 1
-		self:Flood4Topology(x+1,z,mtype,network)
-		self:Flood4Topology(x-1,z,mtype,network)
-		self:Flood4Topology(x,z+1,mtype,network)
-		self:Flood4Topology(x,z-1,mtype,network)
-	end
-end
-
-function MapHST:Flood8Topology(x, z, mtype, network)
-	if x > self.mapSize.x or x < 1 or z > self.mapSize.z or z < 1 then return end
-	local actualValue = self.mobilityMap[mtype][x][z]
-	if actualValue and (actualValue == 0) and self.topology[mtype][x][z] == nil then
-		self.topology[mtype][x][z] = network
-		self.networkSize[mtype][network] = self.networkSize[mtype][network] + 1
-		self:Flood8Topology(x+1,z,mtype,network)
-		self:Flood8Topology(x-1,z,mtype,network)
-		self:Flood8Topology(x,z+1,mtype,network)
-		self:Flood8Topology(x,z-1,mtype,network)
-		self:Flood8Topology(x+1,z+1,mtype,network)
-		self:Flood8Topology(x-1,z+1,mtype,network)
-		self:Flood8Topology(x+1,z-1,mtype,network)
-		self:Flood8Topology(x-1,z-1,mtype,network)
-	end
-end
-
-
-function MapHST:InitializeTopology()
-	self.topology = {}
-	for mtype, utypes in pairs(self.mobilityUnitTypes) do
-		self.topology[mtype] = {}
-	end
-	self.topology["air"] = {}
-	for x = 1, self.mapSize.x do
-		for mtype, utypes in pairs(self.mobilityUnitTypes) do
-			self.topology[mtype][x] = {}
-		end
-		self.topology["air"][x] = {}
-		for z = 1, self.mapSize.z do
-			-- fill air self.topology with single network
-			self.topology["air"][x][z] = 1
-		end
-	end
-end
-
-
-function MapHST:InitializeTopology2()
-	for X,zetas in pairs(self.GRID) do
-		for Z, CELL in pairs(zetas) do
-			CELL.moveClassTypes = {}
-
-end
 function MapHST:MapSpotMobility(metals, geos)
 	self.networkSize = {}
 	self.mobNetworkGeos = {}
@@ -911,6 +885,54 @@ function MapHST:IsUnderWater(position)
 end
 
 
+function MapHST:DrawDebug()
+	local ch = 1
+	for i=0,9 do
+
+	self.map:EraseAll(i)
+	end
+	if not self.ai.drawDebug then
+		return
+	end
+	local colours={
+			{1,0,0,1},--'red'
+			{0,1,0,1},--'green'
+			{0,0,1,1},--'blue'
+			{0,1,1,1},
+			{1,1,0,1},
+			{1,1,1,1},
+			{0,0,0,1},
+
+			}
+	for i,p in pairs (self.hotSpots) do
+		map:DrawPoint(p, green, i,  ch)
+	end
+	for i,p in pairs (self.metalSpots) do
+		map:DrawPoint(p, white, i,  ch)
+	end
+	for i,p in pairs (self.geoSpots) do
+		map:DrawPoint(p, white, i,  ch)
+	end
+
+	for X,Zetas in pairs(self.GRID) do
+		for Z, CELL in pairs(Zetas) do
+			local pos1, pos2 = {},{}
+			pos1.x, pos1.z = CELL.POS.x - self.gridSizeHalf, CELL.POS.z - self.gridSizeHalf
+			pos2.x, pos2.z = CELL.POS.x + self.gridSizeHalf, CELL.POS.z + self.gridSizeHalf
+			pos1.y=0--Spring.GetGroundHeight(pos1.x,pos1.z)
+			pos2.y=0--Spring.GetGroundHeight(pos2.x,pos2.z)
+			map:DrawRectangle(pos1,pos2, white, nil, false, ch)
+			ch = 0
+ 			for layer,unitName in pairs(CELL.moveLayers) do
+				ch = ch+1
+				if CELL.moveLayers[layer] then
+					map:DrawCircle(CELL.POS, self.gridSizeHalf , colours[ch],CELL.moveLayers[layer], true, ch)
+				end
+ 			end
+		end
+	end
+
+end
 
 function MapHST:GetPathGraph(mtype, targetNodeSize)
 	targetNodeSize = targetNodeSize or 256
@@ -985,9 +1007,118 @@ function MapHST:GetPathGraph(mtype, targetNodeSize)
 	return aGraph
 end
 
+--[[
+local function Check1Topology(x, z, mtype, network,Map)
+	if Map[mtype][x] == nil then
+		return 1
+	elseif Map[mtype][x][z] == nil then
+		return 1
+	else
+		return Map[mtype][x][z]
+	end
+end
 
+function MapHST:Flood4Topology(x, z, mtype, network)
+	if x > self.gridSideX or x < 1 or z > self.gridSideZ or z < 1 then
+		return
+	end
+	--precheck throws out 1-wide bottlenecks
+	local blocked = 0
+	blocked = blocked + Check1Topology(x+1, z, mtype, network,self.mobilityMap)
+	blocked = blocked + Check1Topology(x-1, z, mtype, network,self.mobilityMap)
+	if blocked == 2 then
+		return end
+	blocked = blocked + Check1Topology(x, z+1, mtype, network,self.mobilityMap)
+	if blocked == 2 then
+		return end
+	blocked = blocked + Check1Topology(x, z-1, mtype, network,self.mobilityMap)
+	if blocked == 2 then
+		return end
+	-- now actually flood fill
+	local actualValue = self.mobilityMap[mtype][x][z]
+	if actualValue and (actualValue == 0) and self.topology[mtype][x][z] == nil then
+		self.topology[mtype][x][z] = network
+		self.networkSize[mtype][network] = self.networkSize[mtype][network] + 1
+		self:Flood4Topology(x+1,z,mtype,network)
+		self:Flood4Topology(x-1,z,mtype,network)
+		self:Flood4Topology(x,z+1,mtype,network)
+		self:Flood4Topology(x,z-1,mtype,network)
+	end
+end
+
+function MapHST:Flood8Topology(x, z, mtype, network)
+	if x > self.mapSize.x or x < 1 or z > self.mapSize.z or z < 1 then return end
+	local actualValue = self.mobilityMap[mtype][x][z]
+	if actualValue and (actualValue == 0) and self.topology[mtype][x][z] == nil then
+		self.topology[mtype][x][z] = network
+		self.networkSize[mtype][network] = self.networkSize[mtype][network] + 1
+		self:Flood8Topology(x+1,z,mtype,network)
+		self:Flood8Topology(x-1,z,mtype,network)
+		self:Flood8Topology(x,z+1,mtype,network)
+		self:Flood8Topology(x,z-1,mtype,network)
+		self:Flood8Topology(x+1,z+1,mtype,network)
+		self:Flood8Topology(x-1,z+1,mtype,network)
+		self:Flood8Topology(x+1,z-1,mtype,network)
+		self:Flood8Topology(x-1,z-1,mtype,network)
+	end
+end
+
+
+function MapHST:InitializeTopology()
+ 	self.topology = {}
+	for mtype, utypes in pairs(self.mobilityUnitTypes) do
+ 		self.topology[mtype] = {}
+ 	end
+ 	self.topology["air"] = {}
+ 	for x = 1, self.mapSize.x do
+ 		for mtype, utypes in pairs(self.mobilityUnitTypes) do
+ 			self.topology[mtype][x] = {}
+ 		end
+ 		self.topology["air"][x] = {}
+ 		for z = 1, self.mapSize.z do
+ 			-- fill air self.topology with single network
+ 			self.topology["air"][x][z] = 1
+ 		end
+ 	end
+end
+]]
 
 --[[
+
+function MapHST:MapMobility()
+	for mtype, utypes in pairs(self.mobilityUnitTypes) do
+		self.mobilityMap[mtype] = {}
+		self.mobilityCount[mtype] = 0
+	end
+	for x = 1, self.mapSize.x do
+		for mtype, utypes in pairs(self.mobilityUnitTypes) do
+			self.mobilityMap[mtype][x] = {}
+		end
+		for z = 1, self.mapSize.z do
+			-- all blocked unless unblocked below
+			for mtype, utypes in pairs(self.mobilityUnitTypes) do
+				self.mobilityMap[mtype][x][z] = 1
+			end
+			pos = {}
+			pos.x = (x * self.gridSize) - self.gridSizeHalf
+			pos.z = (z * self.gridSize) - self.gridSizeHalf
+			-- find out if each mobility type can exist there
+			for mtype, utypes in pairs(self.mobilityUnitTypes) do
+				local canMoveHere = false
+				local uname = self.ai.armyhst.mobUnitExampleName[mtype]
+				local uDef = UnitDefNames[uname]
+				canMoveHere = Spring.TestMoveOrder(uDef.id, pos.x, Spring.GetGroundHeight(pos.x,pos.z), pos.z)
+				if canMoveHere then
+					-- self:EchoDebug(mtype .. " at " .. x .. "," .. z .. " count " .. mobilityCount[mtype])
+					self.mobilityCount[mtype] = self.mobilityCount[mtype] + 1
+					self.mobilityMap[mtype][x][z] = 0
+				end
+			end
+			-- self:EchoDebug(x .. "," .. z .. " sub " .. subMap[x][z] .. " bot " .. botMap[x][z] .. " veh " .. vehMap[x][z])
+		end
+	end
+end
+
 function MapHST:factoriesRating()
 	local mtypesMapRatings = {}
 	local factoryRating = {}
