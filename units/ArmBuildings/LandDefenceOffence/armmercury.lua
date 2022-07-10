@@ -136,7 +136,7 @@ return {
 				reloadtime = 1.8,
 				smoketrail = true,
 				smokePeriod = 3,
-				smoketime = 30,
+				smoketime = 24,
 				smokesize = 11,
 				smokecolor = 0.9,
 				smokeTrailCastShadow = false,

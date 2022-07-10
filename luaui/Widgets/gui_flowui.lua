@@ -845,7 +845,7 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 		local boolGlow = radius * 1.75
 		gl.Blending(GL.SRC_ALPHA, GL.ONE)
 		gl.Color(color[1], color[2], color[3], 0.33 * glowMult)
-		gl.Texture(":l:LuaUI/Images/glow.dds")
+		gl.Texture("LuaUI/Images/glow.dds")
 		gl.TexRect(x-boolGlow, y-boolGlow, x+boolGlow, y+boolGlow)
 		boolGlow = boolGlow * 2.2
 		gl.Color(0.55, 1, 0.55, 0.1 * glowMult)
