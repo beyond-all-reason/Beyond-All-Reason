@@ -906,7 +906,7 @@ local function initBinsAndTextures()
 				featuresDefsWithAlpha[-1 * featureDefID] = "yes"
 			elseif featureDef.name:find("_dead", nil, true) or featureDef.name:find("_heap", nil, true) then
 				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
-			elseif featureDef.name:find("pilha_crystal", nil, true) then 
+			elseif featureDef.name:find("pilha_crystal", nil, true) then
 				objectDefToUniformBin[-1 * featureDefID] = 'featurepbr'
 			end
 			--Spring.Echo("Assigned normal map to", featureDef.name, normalTex)
@@ -1394,6 +1394,13 @@ local function ProcessUnits(units, drawFlags, reason)
 	-- end
 end
 
+
+----local isTombstone = {
+----	[FeatureDefNames.armstone.id] = 'armstone',
+----	[FeatureDefNames.corstone.id] = 'corstone',
+----}
+----local drawTombstones = Spring.GetConfigInt("tombstones", 1) == 1
+
 local function ProcessFeatures(features, drawFlags, reason)
 	-- processedCounter = (processedCounter + 1) % (2 ^ 16)
 
@@ -1423,6 +1430,8 @@ local function ProcessFeatures(features, drawFlags, reason)
 				RemoveObject(-1 * featureID, reason)
 			elseif overriddenFeatures[featureID] == nil then --object was not seen
 				AddObject(-1 * featureID, drawFlag, reason)
+			----elseif not drawTombstones and isTombstone[Spring.GetFeatureDefID(featureID)] then
+			----	RemoveObject(-1 * featureID, reason)
 			else --if overriddenFeatures[featureID] ~= drawFlag then --flags have changed
 				UpdateObject(-1 * featureID, drawFlag, reason)
 			end
@@ -1437,6 +1446,33 @@ local function ProcessFeatures(features, drawFlags, reason)
 	-- 	end
 	-- end
 end
+
+----local updateTimer = 0
+----function gadget:Update()
+----	updateTimer = updateTimer + Spring.GetLastUpdateSeconds()
+----	if updateTimer > 0.7 then
+----		updateTimer = 0
+----		local prevDrawTombstones = drawTombstones
+----		drawTombstones = Spring.GetConfigInt("tombstones", 1) == 1
+----		if drawTombstones ~= prevDrawTombstones then
+----			local tomstones = {}
+----			local drawFlags = {}
+----			local features = Spring.GetAllFeatures()
+----			for i, featureID in pairs(features) do
+----				if isTombstone[Spring.GetFeatureDefID(featureID)] then
+----					tomstones[#tomstones+1] = featureID
+----					drawFlags[#drawFlags+1] = drawTombstones and 1 or 0
+----					if drawTombstones then
+----						AddObject(-1 * featureID, 1)
+----					else
+----						RemoveObject(-1 * featureID)
+----					end
+----				end
+----			end
+----			--ProcessFeatures(tomstones, drawFlags, "tombstone")
+----		end
+----	end
+----end
 
 local shaderactivations = 0
 
@@ -1836,7 +1872,7 @@ end
 
 function gadget:UnitGiven(unitID)
 	local flag = Spring.GetUnitDrawFlag(unitID)
-	if flag > 0 and flag < 32 then 
+	if flag > 0 and flag < 32 then
 		UpdateUnit(unitID, 0)
 		UpdateUnit(unitID, Spring.GetUnitDrawFlag(unitID))
 	end
@@ -1844,7 +1880,7 @@ end
 
 function gadget:UnitGiven(unitID)
 	local flag = Spring.GetUnitDrawFlag(unitID)
-	if flag > 0 and flag < 32 then 
+	if flag > 0 and flag < 32 then
 		UpdateUnit(unitID, 0)
 		UpdateUnit(unitID, Spring.GetUnitDrawFlag(unitID))
 	end
