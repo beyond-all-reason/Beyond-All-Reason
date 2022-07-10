@@ -6,7 +6,7 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "february 2020",
 		license = "",
-		layer = 0,
+		layer = -99999999999,
 		enabled = true
 	}
 end
@@ -15,7 +15,6 @@ local offscreenDelay = 3
 local idleTime = 60
 local vsyncValueActive = Spring.GetConfigInt("VSyncGame", 0)
 local vsyncValueIdle = Spring.GetConfigInt("IdleFpsDivider", 4)    -- sometimes vsync > 4 doesnt work at all
-
 
 local isIdle = false
 local lastUserInputTime = os.clock()
@@ -72,6 +71,9 @@ function widget:Initialize()
 	WG['limitidlefps'].isIdle = function()
 		return isIdle
 	end
+	WG['limitidlefps'].update = function()
+		lastUserInputTime = os.clock()
+	end
 end
 
 local sec = 0
@@ -127,5 +129,9 @@ function widget:MouseWheel()
 end
 
 function widget:KeyPress()
+	lastUserInputTime = os.clock()
+end
+
+function widget:TextInput(char)	-- seems not being triggered when actual chat input so chat widget will do WG['limitidlefps'].update()
 	lastUserInputTime = os.clock()
 end
