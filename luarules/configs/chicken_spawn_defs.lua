@@ -160,10 +160,10 @@ local optionValues = {
 		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 360,
 		queenSpawnMult    = 0,
-		angerBonus        = 0.5,
+		angerBonus        = 0.25,
 		expStep           = 0.05,
 		spawnChance       = 0.25,
-		damageMod         = 0.5,
+		damageMod         = 0.1,
 		maxBurrows        = 5,
 		queenName         = 've_chickenq',
 	},
@@ -171,10 +171,10 @@ local optionValues = {
 		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 320,
 		queenSpawnMult    = 0,
-		angerBonus        = 1,
+		angerBonus        = 0.5,
 		expStep           = 0.2,
 		spawnChance       = 0.33,
-		damageMod         = 0.6,
+		damageMod         = 0.2,
 		maxBurrows        = 10,
 		queenName         = 'e_chickenq',
 	},
@@ -183,10 +183,10 @@ local optionValues = {
 		chickenMaxSpawnRate  = 60,
 		burrowSpawnRate   = 210,
 		queenSpawnMult    = 1,
-		angerBonus        = 1,
+		angerBonus        = 0.75,
 		expStep           = 0.4,
 		spawnChance       = 0.4,
-		damageMod         = 0.7,
+		damageMod         = 0.4,
 		maxBurrows        = 20,
 		queenName         = 'n_chickenq',
 	},
@@ -198,7 +198,7 @@ local optionValues = {
 		angerBonus        = 1,
 		expStep           = 0.6,
 		spawnChance       = 0.5,
-		damageMod         = 0.8,
+		damageMod         = 0.6,
 		maxBurrows        = 30,
 		queenName         = 'h_chickenq',
 	},
@@ -210,7 +210,7 @@ local optionValues = {
 		angerBonus        = 1,
 		expStep           = 0.8,
 		spawnChance       = 0.6,
-		damageMod         = 0.9,
+		damageMod         = 0.8,
 		maxBurrows        = 40,
 		queenName         = 'vh_chickenq',
 	},
@@ -260,15 +260,12 @@ end
 	addSquad(2, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  									}) -- Better Basic Raptor
 	addSquad(2, { "2 chickena1", "2 chickena1b", "2 chickena1c"									}) -- Brawler
 
-if difficulty >= 1 then
 	addSquad(3, { "12 chickens1" 																}) -- Spiker
 	addSquad(3, { "8 chickene1" 																}) -- EMP Swarmer
 
 	addSquad(4, { "10 chickenp1" 																}) -- Small Pyro
 	addSquad(4, { "4 chickenp1" , "1 chickenp2"													}) -- Small Pyros with mom
-end
 
-if difficulty >= 2 then
 	addSquad(5, { "5 chickenw1", "5 chickenw1b", "5 chickenw1c", "5 chickenw1d" 				}) -- Fighter
 	addSquad(5, { "5 chickenf1", "5 chickenf1b" 												}) -- Bomber
 	addSquad(5, { "5 chickenebomber1" 															}) -- EMP Bomber
@@ -282,9 +279,7 @@ if difficulty >= 2 then
 	addSquad(6, { "10 chickenelectricallterrain" 												}) -- EMP AllTerrain
 	addSquad(6, { "5 chickene1", "5 chickenacidswarmer" 										}) -- EMP and Acid Swarmer Combo
 	addSquad(6, { "3 chickenr1" 																}) -- Artillery
-end
 
-if difficulty >= 3 then
 	addSquad(7, { "3 chickenearty1" 															}) -- EMP Artillery
 	addSquad(7, { "8 chickenp2" 																}) -- Apex Pyro
 	addSquad(7, { "3 chickene2" 																}) -- EMP Brawler
@@ -300,9 +295,7 @@ if difficulty >= 3 then
 	addSquad(8, { "4 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
 	addSquad(8, { "5 chickenacidbomber" 														}) -- Acid Bomber
 	addSquad(8, { "3 chickenacidarty" 															}) -- Acid Artillery
-end
 
-if difficulty >= 4 then
 	addSquad(9, { "3 chickenf1apex", "3 chickenf1apexb" 										}) -- Apex Bomber
 	addSquad(9, { "10 chickenw2" 																}) -- Apex Fighter
 	addSquad(9, { "5 chicken2" , "5 chicken2b" 													}) -- Apex Swarmer
@@ -319,8 +312,8 @@ if difficulty >= 4 then
 	addSquad(10, { "5 chickenh2" 																}) -- Apex Brood Mother
 	addSquad(10, { "10 chickenh3" 																}) -- Brood Mother
 	addSquad(10, { "20 chickenh4" 																}) -- Hatchling
-end
 
+	
 if difficulty >= 5 then
 	for i = 11,12 do
 	addSquad(i, { "3 chickenf1apex", "3 chickenf1apexb" 										}) -- Apex Bomber
