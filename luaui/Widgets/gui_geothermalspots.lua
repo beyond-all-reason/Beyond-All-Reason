@@ -10,6 +10,11 @@ function widget:GetInfo()
 	}
 end
 
+
+if Spring.GetModOptions().scoremode_chess then
+	return
+end
+
 local showValue			= false
 local metalViewOnly		= false
 
