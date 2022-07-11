@@ -249,7 +249,7 @@ local uniformBins = {}
 do --save a ton of locals
 	local OPTION_SHADOWMAPPING    = 1
 	local OPTION_NORMALMAPPING    = 2
-	local OPTION_NORMALMAP_FLIP   = 4
+	local OPTION_SHIFT_RGBHSV     = 4 -- userDefined[2].rgb (gl.SetUnitBufferUniforms(unitID, {math.random(),math.random()-0.5,math.random()-0.5}, 8) -- shift Hue, saturation, valence )
 	local OPTION_VERTEX_AO        = 8
 	local OPTION_FLASHLIGHTS      = 16
 	local OPTION_THREADS_ARM      = 32
@@ -285,7 +285,7 @@ do --save a ton of locals
 			brightnessFactor = 1.5,
 		},
 		chicken = {
-			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS  + OPTION_HEALTH_DISPLACE + OPTION_HEALTH_TEXCHICKS + OPTION_TREEWIND,
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS  + OPTION_HEALTH_DISPLACE + OPTION_HEALTH_TEXCHICKS + OPTION_TREEWIND + OPTION_SHIFT_RGBHSV,
 			baseVertexDisplacement = 0.0,
 			brightnessFactor = 1.5,
 		},
