@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  torso, pelvis, flare, rthigh, lthigh, lleg, rleg, ruparm, luparm, lloarm, rloarm, gunstatic, gunhand, emit_spark, lfoot, rfoot, aimy1, aimx1;
+piece  torso, pelvis, flare, rthigh, lthigh, lleg, rleg, ruparm, luparm, lloarm, rloarm, gunstatic, gunhand, spark_emit, gun_emit, static_emit, lfoot, rfoot, aimy1, aimx1;
 static-var  bMoving, bAiming, restore_delay, statechg_DesiredState, statechg_StateChanging, moveSpeed, gunDrawn, currentSpeed, animspeed, wpnheading, isAiming; 
 
 // Signal definitions
@@ -416,7 +416,9 @@ drawgun()
 	wait-for-turn ruparm around x-axis;
 	
 	hide gunstatic;
+	hide static_emit;
 	show gunhand;
+	show gun_emit;
 	
 	turn ruparm to x-axis <0> speed <54>*drawspeed;
 	turn ruparm to z-axis <0> speed <10>*drawspeed;
@@ -471,7 +473,10 @@ holstgun()
 	wait-for-turn rloarm around z-axis;
 	
 	show gunstatic;
+	show static_emit;
 	hide gunhand;
+	hide gun_emit;
+	hide spark_emit;
 	
 	turn ruparm to x-axis <0> speed <54>*drawspeed;
 	turn ruparm to z-axis <0> speed <10>*drawspeed;
@@ -521,26 +526,27 @@ Sparks()
 		{
 			sleep 100;
 		}
-		emit-sfx 1025 + 0 from emit_spark;	
+		emit-sfx 1025 + 0 from spark_emit;	
 		sleep 200;
 	}
 }
 
 FireSparks()
 {
-		show emit_spark;
+		show spark_emit;
 		sleep 150;
-		hide emit_spark;
+		hide spark_emit;
 		return (1);
 }
 
 Create()
 {
 	hide flare;
-	hide emit_spark;
+	hide spark_emit;
+	hide gun_emit;
+	show static_emit;
 	hide aimx1;
 	hide aimy1;
-	hide flare;
 	show gunstatic;
 	hide gunhand;
 	isAiming = FALSE;
@@ -566,10 +572,13 @@ static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
+    	hide gun_emit;
+		hide static_emit;
         return (1);
     }
 	call-script RequestState(1);
-    
+	hide gun_emit;
+	show static_emit;
     turn aimy1 to y-axis <0.000000> speed <90>;
     turn aimx1 to x-axis <0.000000> speed <45>;
     turn torso to y-axis <0> speed <45>;    
@@ -586,6 +595,8 @@ ExecuteRestoreAfterDelay()
 SetStunned(State)
 {
     Stunned = State;
+    hide gun_emit;
+	hide static_emit;
 	if (!Stunned) {
 	    start-script ExecuteRestoreAfterDelay();
 	}
@@ -633,6 +644,8 @@ QueryPrimary(piecenum)
 
 FirePrimary()
 {
+	show gun_emit;
+	hide static_emit;
 	emit-sfx 1024 + 0 from flare;
 	start-script FireSparks();
 }

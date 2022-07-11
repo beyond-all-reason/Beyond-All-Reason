@@ -1106,8 +1106,8 @@ local unitDefLights = {
 	[UnitDefNames['armzeus'].id] = {
 		weaponglow = {
 			lighttype = 'point',
-			pieceName = 'gunhand',
-			lightParamTable = {0,-9.5,8.5,10, --pos + radius
+			pieceName = 'gun_emit',
+			lightParamTable = {0,0,0,10, --pos + radius
 							0.4,0.7,1.2,30, -- color2 + colortime
 							0.2,0.5,1.0,0.8, -- RGBA
 							0.1,0.75,2,7, -- modelfactor_specular_scattering_lensflare
@@ -1120,7 +1120,7 @@ local unitDefLights = {
 		},
 		weaponspark = {
 			lighttype = 'point',
-			pieceName = 'emit_spark',
+			pieceName = 'spark_emit',
 			lightParamTable = {0,1,0,55, --pos + radius
 							0,0,0,2, -- color2
 							1,1,1,0.85, -- RGBA
@@ -1134,8 +1134,8 @@ local unitDefLights = {
 		},
 		backpackglow = {
 			lighttype = 'point',
-			pieceName = 'gunstatic',
-			lightParamTable = {0,8,0,10, --pos + radius
+			pieceName = 'static_emit',
+			lightParamTable = {0,0,0,10, --pos + radius
 							0.4,0.7,1.2,30, -- color2 + colortime
 							0.2,0.5,1.0,0.8, -- RGBA
 							0.1,0.75,2,10, -- modelfactor_specular_scattering_lensflare
