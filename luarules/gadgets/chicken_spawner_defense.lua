@@ -1904,17 +1904,17 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction("HasChickenEvent")
 	end
 
-	local nocolorshift = {0,0,0}
-	local colorshiftcache = {0,0,0}
+	nocolorshift = {0,0,0}
+	colorshiftcache = {0,0,0}
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
         if string.find(UnitDefs[unitDefID].name, "chicken") then
             gl.SetUnitBufferUniforms(unitID, nocolorshift, 8)
             if (not string.find(UnitDefs[unitDefID].name, "chicken_hive")) and (not string.find(UnitDefs[unitDefID].name, "chickend")) then
-                 coloshiftcache[1] = math.random(-500,500)*0.0001 -- hue (hue hue)
-                 coloshiftcache[2] = math.random(-500,500)*0.0001 -- saturation         
-                 coloshiftcache[3] = math.random(-500,500)*0.0001 -- brightness
-                gl.SetUnitBufferUniforms(unitID, coloshiftcache, 8) -- shift Hue, saturation, valence
+				colorshiftcache[1] = math.random(-500,500)*0.0001 -- hue (hue hue)
+				colorshiftcache[2] = math.random(-1000,1000)*0.0001 -- saturation         
+				colorshiftcache[3] = math.random(-1000,1000)*0.0001 -- brightness
+                gl.SetUnitBufferUniforms(unitID, colorshiftcache, 8) -- shift Hue, saturation, valence
             end
         end
     end
