@@ -140,7 +140,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, fla
 	vbocachetable[1] = usedIconsize -- length
 	vbocachetable[2] = usedIconsize -- widgth
 	vbocachetable[3] = 0 -- cornersize
-	vbocachetable[4] = unitHeights[unitDefID] - 8 + ((debugmode and math.random()*16 ) or 0)-- height
+	vbocachetable[4] = (unitHeights[unitDefID] or iconoffset) - 8 + ((debugmode and math.random()*16 ) or 0)-- height
 
 	--vbocachetable[5] = 0 -- Spring.GetUnitTeam(unitID)
 	vbocachetable[6] = 4 -- numvertices

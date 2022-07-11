@@ -3031,14 +3031,14 @@ function init()
 		  end,
 		},
 		{ id = "rankicons", group = "ui", category = types.advanced, widget = "Rank Icons GL4", name = texts.option.rankicons, type = "bool", value = GetWidgetToggleValue("Rank Icons GL4"), description = texts.option.rankicons_descr },
-		{ id = "rankicons_distance", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.rankicons_distance, type = "slider", min = 0.4, max = 2, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getDrawDistance ~= nil and WG['rankicons'].getDrawDistance()), description = '',
+		{ id = "rankicons_distance", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.rankicons_distance, type = "slider", min = 0.1, max = 1.5, step = 0.05, value = (WG['rankicons'] ~= nil and WG['rankicons'].getDrawDistance ~= nil and WG['rankicons'].getDrawDistance()), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Rank Icons', 'rankicons', 'setDrawDistance', { 'distanceMult' }, value)
 		  end,
 		},
-		{ id = "rankicons_scale", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.rankicons_scale, type = "slider", min = 0.3, max = 3, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getScale ~= nil and WG['rankicons'].getScale()), description = '',
+		{ id = "rankicons_scale", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.rankicons_scale, type = "slider", min = 0.5, max = 2, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getScale ~= nil and WG['rankicons'].getScale()), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
