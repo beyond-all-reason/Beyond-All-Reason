@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 
-if Spring.GetModOptions().scoremode_chess then
+if Spring.GetModOptions().scoremode_chess and Spring.GetModOptions().scoremode ~= 'disabled' then
 	return
 end
 
