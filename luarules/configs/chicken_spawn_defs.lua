@@ -11,7 +11,7 @@ local difficulties = {
 
 local difficulty = difficulties[Spring.GetModOptions().chicken_difficulty]
 
-local burrowName = 'roost'
+local burrowName = 'chicken_hive'
 local waves = {}
 
 local chickenTypes = {

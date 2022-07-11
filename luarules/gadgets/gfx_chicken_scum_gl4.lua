@@ -60,7 +60,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		scumSpawnerIDs[UnitDefNames['roost'].id] = {radius = 384, growthrate = 0.5}
+		scumSpawnerIDs[UnitDefNames['chicken_hive'].id] = {radius = 384, growthrate = 0.5}
 		scumSpawnerIDs[UnitDefNames['chickend2'].id] = {radius = 384, growthrate = 0.5}
 		scumSpawnerIDs[UnitDefNames['chickend1'].id] = {radius = 384, growthrate = 0.5}
 		

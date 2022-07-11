@@ -1,5 +1,5 @@
 return {
-	roost = {
+	chicken_hive = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		autoheal = 1.8,

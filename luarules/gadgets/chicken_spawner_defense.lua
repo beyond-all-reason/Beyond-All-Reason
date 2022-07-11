@@ -1604,7 +1604,7 @@ if gadgetHandler:IsSyncedCode() then
 					timeOfLastSpawn = t
 				end
 				chickenEvent("burrowSpawn")
-				SetGameRulesParam("roostCount", SetCount(burrows))
+				SetGameRulesParam("chicken_hiveCount", SetCount(burrows))
 			elseif burrowSpawnTime < t - timeOfLastSpawn and burrowCount >= maxBurrows then
 				if math.random(0,3) == 1 then
 					attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + 1
@@ -1798,7 +1798,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + math.random(1,2)
 			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + math.random(2,5)
-			SetGameRulesParam("roostCount", SetCount(burrows))
+			SetGameRulesParam("chicken_hiveCount", SetCount(burrows))
 		end
 
 		if UnitDefs[unitDefID].name == "chickend1" then

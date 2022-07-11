@@ -81,7 +81,7 @@ local rules = {
 	"chickenhCount",
 	"chickendCount",
 	"chicken_dodoCount",
-	"roostCount",
+	"chicken_hiveCount",
 	"chickenKills",
 	"chickenaKills",
 	"chickensKills",
@@ -93,7 +93,7 @@ local rules = {
 	"chickenhKills",
 	"chickendKills",
 	"chicken_dodoKills",
-	"roostKills",
+	"chicken_hiveKills",
 }
 
 local waveColor = "\255\255\0\0"
@@ -173,8 +173,8 @@ local function CreatePanelDisplayList()
 	font:Print(techLevel, panelMarginX, PanelRow(1), panelFontSize, "")
 	font:Print(Spring.I18N('ui.chickens.chickenCount', { count = gameInfo.chickenCounts }), panelMarginX, PanelRow(2), panelFontSize, "")
 	font:Print(Spring.I18N('ui.chickens.chickenKillCount', { count = gameInfo.chickenKills }), panelMarginX, PanelRow(3), panelFontSize, "")
-	font:Print(Spring.I18N('ui.chickens.burrowCount', { count = gameInfo.roostCount }), panelMarginX, PanelRow(4), panelFontSize, "")
-	font:Print(Spring.I18N('ui.chickens.burrowKillCount', { count = gameInfo.roostKills }), panelMarginX, PanelRow(5), panelFontSize, "")
+	font:Print(Spring.I18N('ui.chickens.burrowCount', { count = gameInfo.chicken_hiveCount }), panelMarginX, PanelRow(4), panelFontSize, "")
+	font:Print(Spring.I18N('ui.chickens.burrowKillCount', { count = gameInfo.chicken_hiveKills }), panelMarginX, PanelRow(5), panelFontSize, "")
 
 	if gotScore then
 		font:Print(Spring.I18N('ui.chickens.score', { score = commaValue(scoreCount) }), 88, h - 170, panelFontSize "")
@@ -259,7 +259,7 @@ end
 
 function ChickenEvent(chickenEventArgs)
 	if chickenEventArgs.type == "wave" then
-		if gameInfo.roostCount < 1 then
+		if gameInfo.chicken_hiveCount < 1 then
 			return
 		end
 		waveCount = waveCount + 1
