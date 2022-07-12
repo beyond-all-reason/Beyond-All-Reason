@@ -122,7 +122,8 @@ function widget:Update(dt)
 				if upgradableT1 or groundHasEmptySpot then
 					local hasT1constructor, hasT2constructor = false, false
 					-- search for constructors
-					for k,v in pairs(WG['resource_spot_builder'].GetSelectedUnitsCount()) do
+					local selUnitsCount = Spring.GetSelectedUnitsCounts()
+					for k,v in pairs(selUnitsCount) do
 						if k ~= 'n' then
 							if constructorsT1[k] then
 								hasT1constructor = true
@@ -217,7 +218,8 @@ function widget:CommandNotify(id, params, options)
 
 	function TryConvertCmdToBuildOrder(cmd_id, enableQuickBuildOnMove, constructors, spots, BuildOrder, placementRadius, placementDragRadius)
 		local moveReturn = false
-		if constructors[WG['resource_spot_builder'].GetSelectedUnits()[1]] then
+		local selectedUnits = Spring.GetSelectedUnits()
+		if constructors[selectedUnits[1]] then
 			if isGuard then
 				local ux, uy, uz = spGetUnitPosition(params[1])
 				isGuard = { x = ux, y = uy, z = uz }
@@ -231,7 +233,7 @@ function widget:CommandNotify(id, params, options)
 			elseif isMove and enableQuickBuildOnMove then
 				local closestSpot = GetClosestPosition(params[1], params[3], spots)
 				local spotRadius = placementRadius
-				if #(WG['resource_spot_builder'].GetSelectedUnits()) == 1 and #Spring.GetCommandQueue(WG['resource_spot_builder'].GetSelectedUnits()[1], 8) > 1 then
+				if #selectedUnits == 1 and #Spring.GetCommandQueue(selectedUnits[1], 8) > 1 then
 					if not lastInsertedOrder or (closestSpot.x ~= lastInsertedOrder[1] and closestSpot.z ~= lastInsertedOrder[2]) then
 						spotRadius = placementDragRadius		-- make move drag near mex/geo spots be less strict
 					elseif lastInsertedOrder then

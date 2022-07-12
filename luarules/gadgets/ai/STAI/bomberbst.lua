@@ -3,14 +3,14 @@ BomberBST = class(Behaviour)
 function BomberBST:Name()
 	return "BomberBST"
 end
-
+--[[
 local CMD_MOVE = 10
 local CMD_OPT_SHIFT = 32
 local CMD_OPT_RIGHT = 16
 local CMD_INSERT = 1
 local CMD_IDLEMODE = 145
 local IDLEMODE_LAND = 1
-local IDLEMODE_FLY = 0
+local IDLEMODE_FLY = 0]]
 
 function BomberBST:Init()
 	self.DebugEnabled = false
@@ -84,31 +84,30 @@ function BomberBST:Deactivate()
 end
 
 function BomberBST:Update()
-	if not self.lastOrderFrame then
-		return
-	end
-	if self.game:Frame() > self.lastOrderFrame + 1000 then
-		self.lastOrderFrame = nil
-		self:OwnerIdle()
-	end
+	 --self.uFrame = self.uFrame or 0
+	--if f - self.uFrame < self.ai.behUp['bomberbst']then
+	--	return
+	--end
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'BomberBST' then return end
+	self.uFrame = f
 end
 
 function BomberBST:BombPosition(position)
 	self:EchoDebug("bomb position")
-	local floats = api.vectorFloat()
-	-- populate with x, y, z of the position
-	floats:push_back(position.x)
-	floats:push_back(position.y)
-	floats:push_back(position.z)
-	self.unit:Internal():AreaAttack(floats,20) -- TEST
-	--self.unit:Internal():ExecuteCustomCommand(CMD_ATTACK, floats)
+-- 	local floats = api.vectorFloat()
+-- 	-- populate with x, y, z of the position
+-- 	floats:push_back(position.x)
+-- 	floats:push_back(position.y)
+-- 	floats:push_back(position.z)
+	self.unit:Internal():Attack(position,20) -- TEST
 end
 
-function BomberBST:FollowPathToTarget(path, unit)
+function BomberBST:FollowPathToTarget(path, targetUnit)
+	--[[
 	self:EchoDebug("follow path to target")
 	-- self.unit:Internal():Move(path[2].position)
-	local optFloats = api.vectorFloat()
-	optFloats:push_back("alt")
+-- 	local optFloats = api.vectorFloat()
+-- 	optFloats:push_back("alt")
 	local firstMoved, secondMoved
 	local myPos = self.unit:Internal():GetPosition()
 	for i = 1, #path do
@@ -117,15 +116,13 @@ function BomberBST:FollowPathToTarget(path, unit)
 		local cmdPos = path[i].position
 		if secondMoved or self.ai.tool:DistanceSq(cmdPos, myPos) > 1210000 then
 			if firstMoved then
-				local floats = api.vectorFloat()
-				-- floats:push_back(-1)
-				-- floats:push_back(CMD_MOVE)
-				-- floats:push_back(CMD_OPT_SHIFT)
-				floats:push_back(cmdPos.x)
-				floats:push_back(cmdPos.y)
-				floats:push_back(cmdPos.z)
+-- 				local floats = api.vectorFloat()
+-- 				floats:push_back(cmdPos.x)
+-- 				floats:push_back(cmdPos.y)
+-- 				floats:push_back(cmdPos.z)
 				-- self.unit:Internal():ExecuteCustomCommand(CMD_INSERT, floats, optFloats)
-				self.unit:Internal():ExecuteCustomCommand(CMD_MOVE, floats, {"shift"})
+				self.unit:Internal():Move(cmdPos)
+				--self.unit:Internal():ExecuteCustomCommand(CMD_MOVE, floats, {"shift"})
 				secondMoved = true
 			else
 				self.unit:Internal():Move(cmdPos)
@@ -133,27 +130,14 @@ function BomberBST:FollowPathToTarget(path, unit)
 			end
 		end
 	end
-	local floats = api.vectorFloat()
-	-- floats:push_back(-1)
-	-- floats:push_back(CMD_ATTACK)
-	-- floats:push_back(CMD_OPT_SHIFT)
-	floats:push_back(unit:ID())
-	-- self.unit:Internal():ExecuteCustomCommand(CMD_INSERT, floats, optFloats)
-	--self.unit:Internal():ExecuteCustomCommand(CMD_ATTACK, floats, {"shift"})
-	self.unit:Internal():AreaAttack(unit:GetPosition(),20)--TODO set this better
+	self.unit:Internal():Attack(targetUnit,20)--TODO set this better
+	]]
 end
 
-   -- Spring.GiveOrderToUnit(unitID,
-   --   CMD.INSERT,
-   --   {-1,CMD.ATTACK,CMD.OPT_SHIFT,unitID2},
-   --   {"alt"}
-   -- );
-
-function BomberBST:BombUnit(unit)
+function BomberBST:BombUnit(targetUnit)
 	self:EchoDebug("bomb unit")
-	--self.unit:Internal():Attack(unit)
-	local p = self.unit:Internal():GetPosition()
-	self.unit:Internal():AreaAttack(p,20)
+	local p = targetUnit:GetPosition()
+	self.unit:Internal():Attack(targetUnit,20)
 end
 
 function BomberBST:BombTarget(targetUnit, path)
@@ -181,7 +165,8 @@ function BomberBST:BombTarget(targetUnit, path)
 end
 
 function BomberBST:SetIdleMode()
-	local floats = api.vectorFloat()
-	floats:push_back(IDLEMODE_FLY)
-	self.unit:Internal():ExecuteCustomCommand(CMD_IDLEMODE, floats)
+-- 	local floats = api.vectorFloat()
+-- 	floats:push_back(IDLEMODE_FLY)
+-- 	self.unit:Internal():ExecuteCustomCommand(CMD_IDLEMODE, floats)
+-- 	self.unit:Internal():IdleModeFly()
 end

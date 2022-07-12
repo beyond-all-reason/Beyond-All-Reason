@@ -23,7 +23,7 @@ return {
 		collisionvolumescales = "37 55 90",
 		collisionvolumetype = "box",
 		defaultmissiontype = "Standby",
-		explodeas = "BIGBUG_DEATH",
+		explodeas = "ROOST_DEATH",
 		floater = false,
 		footprintx = 3,
 		footprintz = 3,
@@ -41,7 +41,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "Chickens/brain_bug.s3o",
 		script = "Chickens/chickenh5.cob",
-		selfdestructas = "BUG_DEATH",
+		selfdestructas = "ROOST_DEATH",
 		side = "THUNDERBIRDS",
 		sightdistance = 760,
 		smoothanim = true,
@@ -115,7 +115,7 @@ return {
 				--weapontimer = 3,
 				weaponvelocity = 420,
 				damage = {
-					default = 500,
+					default = 1,
 				},
 				customparams = {
 					expl_light_life_mult = 1.8,
@@ -153,7 +153,7 @@ return {
 				weaponvelocity = 500,
 				damage = {
 					chicken = 1,
-					default = 2000,
+					default = 1,
 				},
 			},
 		},

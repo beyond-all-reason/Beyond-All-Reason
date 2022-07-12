@@ -19,8 +19,12 @@ end
 local wavePeriod = 550
 GG.wipeoutWithWreckage = false		-- FFA can enable this
 
+local isCommander = {}
 local unitDecoration = {}
 for udefID,def in ipairs(UnitDefs) do
+	if def.customParams.iscommander then
+		isCommander[udefID] = true
+	end
 	if def.customParams.decoration then
 		unitDecoration[udefID] = true
 	end
@@ -101,9 +105,13 @@ function gadget:GameFrame(gf)
 		for unitID, defs in pairs(destroyUnitQueue) do
 			if gf > defs.frame then
                 if defs.attackerUnitID then
-					spDestroyUnit(unitID, selfD, nil, defs.attackerUnitID)
+					spDestroyUnit(unitID, selfD, false, defs.attackerUnitID)
 				else
-					spDestroyUnit(unitID, selfD) -- if 4th arg is given, it cannot be nil (or engine complains)
+					if selfD and isCommander[spGetUnitDefID(unitID)] then
+						spDestroyUnit(unitID, false, true)	-- reclaim, dont want to leave FFA comwreck for idling starts
+					else
+						spDestroyUnit(unitID, selfD, false) -- if 4th arg is given, it cannot be nil (or engine complains)
+					end
                 end
 				destroyUnitQueue[unitID] = nil
 			end

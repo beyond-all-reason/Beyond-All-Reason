@@ -48,7 +48,7 @@ local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutline
 
 local sizeMultiplier = 1
 local maxAlpha = 0.65
-local maxShaderAlpha = 0.3
+local maxShaderAlpha = 0.25
 local maxNonShaderAlpha = 0.12            --background alpha when shaders arent availible
 local boxWidth = 200
 local boxHeight = 35
@@ -56,8 +56,6 @@ local slideTime = 0.12
 local fadeToTextAlpha = 0.33
 local fontSizeHeadline = 30
 local autoFadeTime = 1
-
-local blurScreen = false    -- makes use of guishader api widget
 
 local vsx, vsy
 local pauseTimestamp = -10 --start or end of pause
@@ -85,41 +83,40 @@ local noNewGameframes = false
 
 
 --intensity formula based on http://alienryderflex.com/hsp.html
-local fragmentShaderSource = {
-	washed = [[
-		uniform sampler2D screencopy;
-		uniform float alpha;
+local fragmentShaderSource = [[
+	#version 150 compatibility
+	uniform sampler2D screencopy;
+	uniform float alpha;
 
-		float getIntensity(vec4 color) {
-		  vec3 intensityVector = color.rgb * vec3(0.66,0.66,0.66);
-		  return length(intensityVector);
-		}
+	float getIntensity(vec4 color) {
+	  vec3 intensityVector = color.rgb * vec3(0.66,0.66,0.66);
+	  return length(intensityVector);
+	}
 
-		void main() {
-		  vec2 texCoord = vec2(gl_TextureMatrix[0] * gl_TexCoord[0]);
-		  vec4 origColor = texture2D(screencopy, texCoord);
-		  float intensity = getIntensity(origColor);
-		  intensity = intensity * 1.15;
-		  float multi = intensity * 0.9;
-		  if (intensity > 1) intensity = 1;
-		  if (intensity < 0.5) {
-				if (intensity < 0.2) {
-				  gl_FragColor = vec4(multi*0.22, multi*0.22, multi*0.22, alpha);
-				} else if (intensity < 0.35) {
-				  gl_FragColor = vec4(multi*0.32, multi*0.32, multi*0.32, alpha);
-				} else {
-				  gl_FragColor = vec4(multi*0.55, multi*0.55, multi*0.55, alpha);
-				}
-		  } else {
-				if (intensity < 0.75) {
-					gl_FragColor = vec4(multi*0.7, multi*0.7, multi*0.7, alpha);
-				} else {
-				  gl_FragColor = vec4(multi*0.82, multi*0.82, multi*0.82, alpha);
-				}
-		  }
-		}
-	]],
-}
+	void main() {
+	  vec2 texCoord = vec2(gl_TextureMatrix[0] * gl_TexCoord[0]);
+	  vec4 origColor = texture2D(screencopy, texCoord);
+	  float intensity = getIntensity(origColor);
+	  intensity = intensity * 1.15;
+	  float multi = intensity * 0.9;
+	  if (intensity > 1) intensity = 1;
+	  if (intensity < 0.5) {
+			if (intensity < 0.2) {
+			  gl_FragColor = vec4(multi*0.22, multi*0.22, multi*0.22, alpha);
+			} else if (intensity < 0.35) {
+			  gl_FragColor = vec4(multi*0.32, multi*0.32, multi*0.32, alpha);
+			} else {
+			  gl_FragColor = vec4(multi*0.55, multi*0.55, multi*0.55, alpha);
+			}
+	  } else {
+			if (intensity < 0.75) {
+				gl_FragColor = vec4(multi*0.7, multi*0.7, multi*0.7, alpha);
+			} else {
+			  gl_FragColor = vec4(multi*0.82, multi*0.82, multi*0.82, alpha);
+			}
+	  }
+	}
+]]
 
 function widget:GameOver()
 	gameover = true
@@ -128,6 +125,7 @@ end
 function widget:Update(dt)
 	local now = osClock()
 	local gameFrame = spGetGameFrame()
+	local _, gameSpeed, isPaused = spGetGameSpeed()
 	previousDrawScreenClock = now
 
 	local diffPauseTime = (now - pauseTimestamp)
@@ -150,8 +148,7 @@ function widget:Update(dt)
 
 	lastPause = paused
 
-	local _, gameSpeed, isPaused = spGetGameSpeed()
-	if not gameover and gameSpeed == 0 then
+	if (not gameover and gameSpeed == 0) or isPaused then
 		-- when host (admin) paused its just gamespeed 0
 		paused = true
 	else
@@ -183,75 +180,7 @@ function widget:Update(dt)
 	end
 end
 
-function widget:Initialize()
-	vsx, vsy = widgetHandler:GetViewSizes()
-	widget:ViewResize(vsx, vsy)
-
-	local _, gameSpeed, isPaused = spGetGameSpeed()
-	if gameSpeed == 0 then
-		-- when host admin paused its just gamespeed 0
-		paused = true
-	end
-
-	if gl.CreateShader then
-		shaderProgram = gl.CreateShader(
-			{
-				fragment = fragmentShaderSource.washed,
-				uniformInt = {
-					screencopy = 0,
-				},
-			}
-		)
-		if shaderProgram then
-			alphaLoc = glGetUniformLocation(shaderProgram, "alpha")
-		end
-	else
-		Spring.Echo("<Screen Shader>: GLSL not supported.")
-	end
-end
-
-function widget:Shutdown()
-	glDeleteFont(font)
-	if shaderProgram then
-		gl.DeleteShader(shaderProgram)
-	end
-end
-
-function widget:GamePaused(playerID, isGamePaused)
-	paused = isGamePaused
-end
-
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
-function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
-	if Spring.IsGUIHidden() then
-		return
-	end
-
-	local now = osClock()
-
-	if paused or (now - pauseTimestamp) <= slideTime then
-		showPauseScreen = true
-		drawPause()
-		if blurScreen and WG['guishader'] then
-			WG['guishader'].InsertRect(0, 0, vsx, vsy, 'pausescreen')
-		end
-	else
-		showPauseScreen = false
-		if blurScreen and WG['guishader'] then
-			WG['guishader'].RemoveRect('pausescreen')
-		end
-	end
-end
-
-function drawPause()
+local function drawPause()
 	local now = osClock()
 	local diffPauseTime = (now - pauseTimestamp)
 
@@ -306,6 +235,61 @@ function drawPause()
 	glPopMatrix()
 end
 
+function widget:Initialize()
+	vsx, vsy = widgetHandler:GetViewSizes()
+	widget:ViewResize(vsx, vsy)
+
+	local _, gameSpeed, isPaused = spGetGameSpeed()
+	if gameSpeed == 0 or isPaused then
+		-- when host admin paused its just gamespeed 0
+		paused = true
+	end
+
+	if gl.CreateShader then
+		shaderProgram = gl.CreateShader(
+			{
+				fragment = fragmentShaderSource,
+				uniformInt = {
+					screencopy = 0,
+				},
+			}
+		)
+		if shaderProgram then
+			alphaLoc = glGetUniformLocation(shaderProgram, "alpha")
+		end
+	else
+		Spring.Echo("<Screen Shader>: GLSL not supported.")
+	end
+end
+
+function widget:GamePaused(playerID, isGamePaused)
+	paused = isGamePaused
+end
+
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+	end
+end
+
+function widget:DrawScreen()
+	if chobbyInterface then
+		return
+	end
+	if Spring.IsGUIHidden() then
+		return
+	end
+
+	local now = osClock()
+
+	if paused or (now - pauseTimestamp) <= slideTime then
+		showPauseScreen = true
+		drawPause()
+	else
+		showPauseScreen = false
+	end
+end
+
 local function updateWindowCoords()
 	wndX1 = (vsx / 2) - boxWidth
 	wndY1 = (vsy / 2) + boxHeight
@@ -339,13 +323,22 @@ function widget:DrawScreenEffects()
 	if Spring.IsGUIHidden() then
 		return
 	end
-	if shaderProgram and showPauseScreen then
+	if shaderProgram and showPauseScreen and WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
 		glCopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
+		--screencopy = WG['screencopymanager'].GetScreenCopy()	-- cant get this method to work
 		glTexture(0, screencopy)
 		glUseShader(shaderProgram)
 		glUniform(alphaLoc, shaderAlpha)
 		glTexRect(0, vsy, vsx, 0)
 		glTexture(0, false)
 		glUseShader(0)
+	end
+end
+
+function widget:Shutdown()
+	gl.DeleteTexture(screencopy)
+	glDeleteFont(font)
+	if shaderProgram then
+		gl.DeleteShader(shaderProgram)
 	end
 end

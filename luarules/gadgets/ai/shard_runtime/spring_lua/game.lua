@@ -121,16 +121,25 @@ local game = {}
 -- 		gadgetHandler:AddSyncAction('ShardDrawDisplay', sdDisplay)
 -- 		gadgetHandler:AddSyncAction('ShardStartTimer', sStartTimer)
 -- 		gadgetHandler:AddSyncAction('ShardStopTimer', sStopTimer)
-	function game:StartTimer(name)
-		return SendToUnsynced('ShardStartTimer',name)
-	end
+ 	function game:StartTimer(name)
+ 		--return SendToUnsynced('ShardStartTimer',name)
+		if (Script.LuaUI('ShardStartTimer')) then
+			Script.LuaUI.ShardStartTimer(name)
+		end
+ 	end
 
-	function game:StopTimer(name)
-		return SendToUnsynced('ShardStopTimer',name)
-	end
-	function game:DrawDisplay(on)
-		return SendToUnsynced('ShardDrawDisplay',on)
-	end
+ 	function game:StopTimer(name)
+ 		--return SendToUnsynced('ShardStopTimer',name)
+		if (Script.LuaUI('ShardStopTimer')) then
+			Script.LuaUI.ShardStopTimer(name)
+		end
+ 	end
+ 	function game:DrawDisplay(onOff)
+ 		--return SendToUnsynced('ShardDrawDisplay',onOff)
+		if (Script.LuaUI('ShardDrawDisplay')) then
+			Script.LuaUI.ShardDrawDisplay(onOff)
+		end
+ 	end
 
 	function game:SendToContent(stringvar) -- returns a string passed from any lua gadgets
 		-- doesn't make a lot of sense if we're already in the lua environment, needs discussin

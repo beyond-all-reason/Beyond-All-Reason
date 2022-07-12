@@ -28,6 +28,10 @@ return {
     name = 'ScavengersAI',
     desc = 'Infinite Games'
   },
+  -- {
+  --   name = 'ScavReduxAI',
+  --   desc = 'Infinite Games'
+  -- },
   {
     name = 'STAI',
     desc = 'Medium  AI by @pandaro',

@@ -196,10 +196,12 @@ end
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	if isBuilder[unitDefID] then
 		clearbuilderCommands(unitID)
-		newBuilderCmd[unitID] = os.clock() + 0.05
+		newBuilderCmd[unitID] = os.clock() + 0.13
 	end
 end
 
+
+local prevGuiHidden = Spring.IsGUIHidden()
 function widget:Update(dt)
 	sec = sec + dt
 	if reinit then
@@ -217,6 +219,15 @@ function widget:Update(dt)
 			end
 		end
 		removedUnitshapes = {}	-- in extreme cases the delayed widget:UnitCommand processing is slower than the actual UnitCreated/Finished, this table is to make sure a unitshape isnt created after
+	end
+
+	if Spring.IsGUIHidden() ~= prevGuiHidden then
+		prevGuiHidden = Spring.IsGUIHidden()
+		if prevGuiHidden then
+			widget:Shutdown()
+		else
+			widget:Initialize()
+		end
 	end
 end
 

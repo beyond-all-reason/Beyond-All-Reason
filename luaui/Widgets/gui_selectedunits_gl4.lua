@@ -195,6 +195,8 @@ function widget:UnitDestroyed(unitID)
 end
 
 local function init()
+	updateSelection = true
+	selUnits = {}	
 	local DPatUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE!
@@ -206,12 +208,15 @@ local function init()
 	shaderConfig.HEIGHTOFFSET = 4
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
 	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnits")
-	updateSelection = true
-	selUnits = {}
+	if selectionVBO == nil then 
+		widgetHandler:RemoveWidget()
+		return false
+	end
+	return true
 end
 
 function widget:Initialize()
-	init()
+	if not init() then return end
 	WG.selectedunits = {}
 	WG.selectedunits.getOpacity = function()
 		return opacity

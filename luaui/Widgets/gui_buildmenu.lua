@@ -66,6 +66,29 @@ local facingMap = {south=0, east=1, north=2, west=3}
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+local unbaStartBuildoptions = {}
+if Spring.GetModOptions().unba then
+	VFS.Include("unbaconfigs/buildoptions.lua")
+	for unitname,level in pairs(ArmBuildOptions) do
+		if level == 1 then
+			unbaStartBuildoptions[UnitDefNames[unitname].id] = unitname
+		end
+	end
+	ArmBuildOptions = nil
+	for unitname,level in pairs(CorBuildOptions) do
+		if level == 1 then
+			unbaStartBuildoptions[UnitDefNames[unitname].id] = unitname
+		end
+	end
+	CorBuildOptions = nil
+	ArmDefsBuildOptions = nil
+	CorDefsBuildOptions = nil
+	ArmBuildOptionsStop = nil
+	CorBuildOptionsStop = nil
+else
+	unbaStartBuildoptions = nil
+end
+
 local playSounds = true
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
@@ -122,9 +145,7 @@ local spGetActiveCommand = Spring.GetActiveCommand
 local spGetActiveCmdDescs = Spring.GetActiveCmdDescs
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetTeamStartPosition = Spring.GetTeamStartPosition
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
-local spGetGroundHeight = Spring.GetGroundHeight
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitHealth = Spring.GetUnitHealth
@@ -148,7 +169,6 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_DST_ALPHA = GL.DST_ALPHA
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
-local glDepthTest = gl.DepthTest
 
 local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner
 
@@ -333,35 +353,6 @@ if not showWaterUnits then
 	end
 end
 
-
--- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
-local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalscavuniqueunits)
-local excludeChickens = not Spring.Utilities.Gametype.IsChickens()
-
-local dlistCache
-local function cacheUnitIcons()
-	if dlistCache then
-		dlistCache = gl.DeleteList(dlistCache)
-	end
-	dlistCache = gl.CreateList(function()
-		gl.Color(1, 1, 1, 0.001)
-		for id, unit in pairs(UnitDefs) do
-			if not excludeScavs or not string.find(unit.name,'_scav') then
-				if not excludeChickens or not string.find(unit.name,'chicken') then
-					gl.Texture('#'..id)
-					gl.TexRect(-1, -1, 0, 0)
-					if unitIconType[id] and iconTypesMap[unitIconType[id]] then
-						gl.Texture(':l:' .. iconTypesMap[unitIconType[id]])
-						gl.TexRect(-1, -1, 0, 0)
-					end
-					gl.Texture(false)
-				end
-			end
-		end
-		gl.Color(1, 1, 1, 1)
-	end)
-end
-
 local showGeothermalUnits = false
 local function checkGeothermalFeatures()
 	showGeothermalUnits = false
@@ -414,6 +405,7 @@ function widget:PlayerChanged(playerID)
 	myPlayerID = Spring.GetMyPlayerID()
 end
 
+
 local function RefreshCommands()
 	cmds = {}
 	cmdsCount = 0
@@ -423,7 +415,9 @@ local function RefreshCommands()
 
 			local cmdUnitdefs = {}
 			for i, udefid in pairs(UnitDefs[startDefID].buildOptions) do
-				cmdUnitdefs[udefid] = i
+				if not unbaStartBuildoptions or unbaStartBuildoptions[udefid] then
+					cmdUnitdefs[udefid] = i
+				end
 			end
 			for k, uDefID in pairs(unitOrder) do
 				if cmdUnitdefs[uDefID] then
@@ -581,7 +575,33 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 end
 
 local sec = 0
+local updateSelection = true
 function widget:Update(dt)
+	if updateSelection then
+		updateSelection = false
+		if SelectedUnitsCount ~= spGetSelectedUnitsCount() then
+			SelectedUnitsCount = spGetSelectedUnitsCount()
+		end
+		selectedBuilders = {}
+		selectedBuilderCount = 0
+		selectedFactories = {}
+		selectedFactoryCount = 0
+		if SelectedUnitsCount > 0 then
+			local sel = Spring.GetSelectedUnits()
+			for _, unitID in pairs(sel) do
+				if isFactory[spGetUnitDefID(unitID)] then
+					selectedFactories[unitID] = true
+					selectedFactoryCount = selectedFactoryCount + 1
+				end
+				if isBuilder[spGetUnitDefID(unitID)] then
+					selectedBuilders[unitID] = true
+					selectedBuilderCount = selectedBuilderCount + 1
+					doUpdate = true
+				end
+			end
+		end
+	end
+
 	sec = sec + dt
 	if sec > 0.33 then
 		sec = 0
@@ -958,14 +978,36 @@ local function DoBuildingsClash(buildData1, buildData2)
 		math.abs(buildData1[4] - buildData2[4]) < h1 + h2
 end
 
-function widget:DrawScreen()
-	if chobbyInterface then
-		return
+-- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
+local function cacheUnitIcons()
+	local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalscavuniqueunits)
+	local excludeChickens = not Spring.Utilities.Gametype.IsChickens()
+	gl.Translate(-vsx,0,0)
+	gl.Color(1, 1, 1, 0.001)
+	for id, unit in pairs(UnitDefs) do
+		if not excludeScavs or not string.find(unit.name,'_scav') then
+			if not excludeChickens or not string.find(unit.name,'chicken') then
+				gl.Texture('#'..id)
+				gl.TexRect(-1, -1, 0, 0)
+				if unitIconType[id] and iconTypesMap[unitIconType[id]] then
+					gl.Texture(':l:' .. iconTypesMap[unitIconType[id]])
+					gl.TexRect(-1, -1, 0, 0)
+				end
+			end
+		end
 	end
+	gl.Color(1, 1, 1, 1)
+	gl.Translate(vsx,0,0)
+end
 
+function widget:DrawScreen()
 	if Spring.GetGameFrame() == 0 and not cachedUnitIcons then
 		cachedUnitIcons = true
-		--cacheUnitIcons()
+		cacheUnitIcons()
+	end
+
+	if chobbyInterface then
+		return
 	end
 
 	-- refresh buildmenu if active cmd changed
@@ -1312,26 +1354,7 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdPara
 end
 
 function widget:SelectionChanged(sel)
-	if SelectedUnitsCount ~= spGetSelectedUnitsCount() then
-		SelectedUnitsCount = spGetSelectedUnitsCount()
-	end
-	selectedBuilders = {}
-	selectedBuilderCount = 0
-	selectedFactories = {}
-	selectedFactoryCount = 0
-	if SelectedUnitsCount > 0 then
-		for _, unitID in pairs(sel) do
-			if isFactory[spGetUnitDefID(unitID)] then
-				selectedFactories[unitID] = true
-				selectedFactoryCount = selectedFactoryCount + 1
-			end
-			if isBuilder[spGetUnitDefID(unitID)] then
-				selectedBuilders[unitID] = true
-				selectedBuilderCount = selectedBuilderCount + 1
-				doUpdate = true
-			end
-		end
-	end
+	updateSelection = true
 end
 
 local function GetUnitCanCompleteQueue(uID)
@@ -1778,9 +1801,6 @@ function widget:Shutdown()
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('buildmenu')
 		dlistGuishader = nil
-	end
-	if dlistCache then
-		dlistCache = gl.DeleteList(dlistCache)
 	end
 	WG['buildmenu'] = nil
 	if WG.StopDrawUnitShapeGL4 then

@@ -140,6 +140,8 @@ local function bossFightMessages(BossWaveTimeLeft)
 
 	if BossWaveTimeLeft == 0 then
 		ScavSendNotification("scav_scavfinalboss")
+		--ScavSendNotification("scav_scavfinalvictory")
+		FinalMessagePlayed = true
 	end
 end
 

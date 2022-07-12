@@ -72,12 +72,11 @@ end
 
 function widget:CommandsChanged()
 	if not metalMap then
-		local unitCount = #(WG['resource_spot_builder'].GetSelectedUnits())
-		if unitCount > 0 then
-			local units = WG['resource_spot_builder'].GetSelectedUnits()
+		local selectedUnits = Spring.GetSelectedUnits()
+		if #selectedUnits > 0 then
 			local customCommands = widgetHandler.customCommands
-			for i = 1, unitCount do
-				if WG['resource_spot_builder'].GetMexConstructors()[units[i]] then
+			for i = 1, #selectedUnits do
+				if WG['resource_spot_builder'].GetMexConstructors()[selectedUnits[i]] then
 					customCommands[#customCommands + 1] = {
 						id = CMD_AREA_MEX,
 						type = CMDTYPE.ICON_AREA,

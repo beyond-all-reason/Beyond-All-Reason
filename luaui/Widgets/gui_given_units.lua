@@ -178,11 +178,18 @@ function widget:DrawWorld()
 	gl.DepthMask(false)
 end
 
-
+local lastreceiveframe = 0
 -- add given units
 function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if (newTeam == myTeamID) then
 		AddGivenUnit(unitID)
+		if lastreceiveframe < Spring.GetGameFrame() then 
+			local x, y, z = Spring.GetUnitPosition(unitID)
+			if x and y and z then
+				Spring.SetLastMessagePosition(x, y, z)
+			end
+			lastreceiveframe = Spring.GetGameFrame() 
+		end
 	end
 end
 

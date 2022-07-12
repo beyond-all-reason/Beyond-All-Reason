@@ -7,11 +7,6 @@ piece  base, turret, barrel, flare;
 #define SIG_AIM 2 
 
 
-Create()
-{
-	hide flare;
-}
-
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
@@ -37,6 +32,15 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
+Create()
+{
+	hide flare;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	start-script ExecuteRestoreAfterDelay();
+}
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
 // MaxVelocity and acceleration are in degrees per frame (not second!)
 // Jerk is the minimum velocity of the turret

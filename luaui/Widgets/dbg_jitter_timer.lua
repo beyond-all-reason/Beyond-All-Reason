@@ -186,7 +186,7 @@ function widget:DrawScreen()
 	
 	--gl.Text(string.format("CamSpread = %.3f, CamMean = %.3f deltacam = %.3f jitter = %.3f",cammovespread, cammovemean, deltacam,camerarelativejitter), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-84, 16, "d")
 	gl.Text(string.format("CamJitter = %.3f",camerarelativejitter), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-84, 16, "d")
-
+	gl.Text(string.format("DrawFrame = %d",Spring.GetDrawFrame()), viewSizeX - timerwidth, viewSizeY - timerYoffset + timerheight-116, 32, "d")
 	gl.Color(1.0, 1.0, 1.0, 1.0)
 	
 	gl.PopMatrix()

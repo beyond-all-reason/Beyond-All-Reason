@@ -9,13 +9,15 @@ local unitOrderTable = {
 
 	[UDN["armcv"].id]          = 001120, --VEH
 	[UDN["corcv"].id]          = 001130,
-	[UDN["legcv"].id]          = 001130,
+	[UDN["legcv"].id]          = 001135,
 	[UDN["armbeaver"].id]      = 001140,
 	[UDN["cormuskrat"].id]     = 001150,
 
 	[UDN["armca"].id]          = 001160, --AIR
 	[UDN["corca"].id]          = 001165,
+	[UDN["legca"].id]          = 001166,
 
+	[UDN["legassistdrone"].id] = 001167,
 	[UDN["armassistdrone"].id] = 001168, --ASSISTDRONES
 	[UDN["corassistdrone"].id] = 001169,
 
@@ -91,10 +93,12 @@ local unitOrderTable = {
 	-- AIRCRAFT
 	[UDN["armfig"].id]         = 004300, --FIGHTERS
 	[UDN["corveng"].id]        = 004305,
+	[UDN["legfig"].id]         = 004306,
 	[UDN["armhawk"].id]        = 004310, --FIGHTERS T2
 	[UDN["corvamp"].id]        = 004315,
 
 	[UDN["armkam"].id]         = 004320, --GUNSHIPS
+	[UDN["legmos"].id]         = 004322,
 	[UDN["armsaber"].id]       = 004325,
 	[UDN["corcut"].id]         = 004330,
 
@@ -102,14 +106,19 @@ local unitOrderTable = {
 	[UDN["corape"].id]         = 004340,
 	[UDN["armblade"].id]       = 004345,
 	[UDN["corcrw"].id]         = 004348,
+	[UDN["legfort"].id]        = 004349,
 
 	[UDN["armthund"].id]       = 004350, --BOMBERS
 	[UDN["corshad"].id]        = 004355,
+	[UDN["legcib"].id]         = 004356,
+	[UDN["legkam"].id]         = 004357,
 	[UDN["armsb"].id]          = 004360,
 	[UDN["corsb"].id]          = 004365,
 
 	[UDN["armpnix"].id]        = 004370, --BOMBERS T2
 	[UDN["corhurc"].id]        = 004380,
+	[UDN["legnap"].id]         = 004381,
+	[UDN["legmineb"].id]       = 004382,
 	[UDN["armliche"].id]       = 004385,
 	[UDN["armstil"].id]        = 004390,
 
@@ -171,6 +180,7 @@ local unitOrderTable = {
 	[UDN["armgremlin"].id]     = 006005,
 
 	[UDN["armfast"].id]        = 006100, --FAST
+	[UDN["legstr"].id]         = 006105,
 	[UDN["corpyro"].id]        = 006110,
 	[UDN["armlatnk"].id]       = 006120,
 
@@ -189,15 +199,18 @@ local unitOrderTable = {
 
 	[UDN["armfido"].id]        = 006500, --ARTILLERY
 	[UDN["cormort"].id]        = 006510,
+	[UDN["legbart"].id]        = 006515,
 	[UDN["armmart"].id]        = 006520,
 	[UDN["cormart"].id]        = 006530,
 	[UDN["cortrem"].id]        = 006540,
 
 	[UDN["armsptk"].id]        = 006600, --ALL-TERRAIN
 	[UDN["cortermite"].id]     = 006610,
+	[UDN["legsrail"].id]       = 006615,
 
 	[UDN["armfboy"].id]        = 006700, --STRONK
 	[UDN["corcan"].id]         = 006710,
+	[UDN["legshot"].id]        = 006715,
 	[UDN["armsnipe"].id]       = 006720,
 	[UDN["corsumo"].id]        = 006730,
 	[UDN["corgol"].id]         = 006740,
@@ -420,15 +433,18 @@ local unitOrderTable = {
    [UDN["legvp"].id]          = 102176,
    [UDN["armap"].id]          = 102200,
    [UDN["corap"].id]          = 102225,
+   [UDN["legap"].id]          = 102230,
    [UDN["armhp"].id]          = 102250,
    [UDN["corhp"].id]          = 102275,
 
    [UDN["armalab"].id]        = 102400,
    [UDN["coralab"].id]        = 102425,
+   [UDN["legalab"].id]        = 102426,
    [UDN["armavp"].id]         = 102450,
    [UDN["coravp"].id]         = 102475,
    [UDN["armaap"].id]         = 102500,
    [UDN["coraap"].id]         = 102525,
+   [UDN["legaap"].id]         = 102530,
    [UDN["armshltx"].id]       = 102550,
    [UDN["corgant"].id]        = 102575,
    [UDN["armapt3"].id]        = 102700, --scavengers

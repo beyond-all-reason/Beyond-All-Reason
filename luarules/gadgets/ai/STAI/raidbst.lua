@@ -54,8 +54,13 @@ function RaidBST:Priority()
 end
 
 function RaidBST:Update()
+--	 self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
-	if f % 97 ~=0 then return end
+-- 	if f - self.uFrame < self.ai.behUp['raidbst'] then
+-- 		return
+-- 	end
+-- 	self.uFrame = f
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'RaidBST' then return end
 	local u = self.unit:Internal()
 	if not self.ai.raidhst.raiders[u:ID()] and self.unit:Internal():IsAlive() then
 		local p = u:GetPosition()

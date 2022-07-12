@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  lturret, lbarrelu, lbarreld, lflareu, lflared, rturret, rbarrelu, rbarreld, rflareu, rflared, torso, pelvis, lthigh, lleg, lfoot, rthigh, rleg, rfoot, luparm, lloarm, lhand, ruparm, rloarm, rhand,
+piece  lturret, lbarrel, lflare, rturret, rbarrel, rflare, uturret, ubarrel, uflare, torso, pelvis, lthigh, lleg, lfoot, rthigh, rleg, rfoot, luparm, lloarm, lhand, ruparm, rloarm, rhand,
        eyes, shoulder, ltooth, rtooth, aimx1;
 
 static-var  gun_1, gun_2, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
@@ -313,20 +313,17 @@ StopMoving(){
 #define UNITSIZE 4
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
-
 
 Create()
 {
 	hide aimx1;
-	hide lflareu;
-	hide lflared;
-	hide rflareu;
-	hide rflared;
+	hide lflare;
+	hide rflare;
+	hide uflare;
 	gun_1 = 0;
 	gun_2 = 0;
 	move pelvis to y-axis 4000 speed <500>; 
-	restore_delay = 30;
+	restore_delay = 100;
 	animspeed = 4;
 	moveSpeed = get MAX_SPEED;
 }
@@ -340,8 +337,14 @@ ExecuteRestoreAfterDelay()
 	set-signal-mask 0;
 	turn aimx1 to y-axis <0.000000> speed <90.000000>;
 	turn aimx1 to x-axis <0.000000> speed <50.000000>;
+	move lturret to z-axis [0.000000] speed [2.250000];
+	move rturret to z-axis [0.000000] speed [2.250000];
+	move uturret to z-axis [0.000000] speed [2.250000];
+	wait-for-move lturret along z-axis;
 	wait-for-turn aimx1 around x-axis;
 	wait-for-turn aimx1 around y-axis;
+	gun_1 = 0;
+	gun_2 = 0;
 	wpn1_lasthead = 1000000;
 }
 SetStunned(State)
@@ -366,7 +369,7 @@ SetMaxReloadTime(Func_Var_1)
 
 SweetSpot(piecenum)
 {
-	piecenum = lbarreld;
+	piecenum = aimx1;
 }
 
 AimPrimary(heading, pitch)
@@ -399,29 +402,27 @@ FirePrimary()
 {
 	if (gun_1 == 0)
 	{
-	emit-sfx 1024 + 0 from lflared;
-	move lturret to z-axis [-1.25] now;
-	move rturret to z-axis [-1.25] now;
+	emit-sfx 1024 + 0 from lflare;
+	move lturret to z-axis [-1.5] now;
+	move rturret to z-axis [-1.5] now;
+	move uturret to z-axis [-1.5] now;
 	}
 	else if (gun_1 == 1)
 	{
-	emit-sfx 1024 + 0 from rflared;
-	move lturret to z-axis [-2.5] now;
-	move rturret to z-axis [-2.5] now;
+	emit-sfx 1024 + 0 from rflare;
+	move lturret to z-axis [-3] now;
+	move rturret to z-axis [-3] now;
+	move uturret to z-axis [-3] now;
 	}
 	else if (gun_1 == 2)
 	{
-	emit-sfx 1024 + 0 from lflareu;
-	move lturret to z-axis [-3.75] now;
-	move rturret to z-axis [-3.75] now;
-	}
-	else if (gun_1 == 3)
-	{
-	emit-sfx 1024 + 0 from rflareu;
-	move lturret to z-axis [-5.0] now;
-	move rturret to z-axis [-5.0] now;
+	emit-sfx 1024 + 0 from uflare;
+	move lturret to z-axis [-4.5] now;
+	move rturret to z-axis [-4.5] now;
+	move uturret to z-axis [-4.5] now;
 	move lturret to z-axis [0.000000] speed [2.250000];
 	move rturret to z-axis [0.000000] speed [2.250000];
+	move uturret to z-axis [0.000000] speed [2.250000];
 	gun_2 = 1;
 	}
 	++gun_1;
@@ -431,19 +432,15 @@ QueryPrimary(piecenum)
 {
 	if (gun_1 == 0)
 	{
-	piecenum = lflared;
+	piecenum = lflare;
 	}
 	else if (gun_1 == 1)
 	{
-	piecenum = rflared;
+	piecenum = rflare;
 	}
 	else if (gun_1 == 2)
 	{
-	piecenum = lflareu;
-	}
-	else if (gun_1 == 3)
-	{
-	piecenum = rflareu;
+	piecenum = uflare;
 	}
 }
 

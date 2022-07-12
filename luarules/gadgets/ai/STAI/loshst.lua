@@ -25,8 +25,9 @@ function LosHST:Init()
 end
 
 function LosHST:Update()
-	local f = self.game:Frame()
-	if f % 13 == 0 then
+-- 	local f = self.game:Frame()
+-- 	if f % 13 + game:GetTeamID() == 0 then
+		if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 		self:getCenter()
         self.ai.friendlyTeamID = {}
         self.ai.friendlyTeamID[self.game:GetTeamID()] = true
@@ -55,7 +56,7 @@ function LosHST:Update()
 			end
 		end
 		self:Draw()
-	end
+-- 	end
 end
 
 function LosHST:UnitDead(unit)
@@ -206,10 +207,12 @@ function LosHST:getCenter()
 		local ut = self.ai.armyhst.unitTable[u:Name()]
 		if not ut.isWeapon then
 			local upos = u:GetPosition()
-			self.CENTER.x = self.CENTER.x + upos.x
-			self.CENTER.y = self.CENTER.y + upos.y
-			self.CENTER.z = self.CENTER.z + upos.z
-			count = count+1
+			if upos then
+				self.CENTER.x = self.CENTER.x + upos.x
+				self.CENTER.y = self.CENTER.y + upos.y
+				self.CENTER.z = self.CENTER.z + upos.z
+				count = count+1
+			end
 		end
 	end
 	self.CENTER.x = self.CENTER.x / count

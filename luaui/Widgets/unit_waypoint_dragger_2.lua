@@ -107,7 +107,7 @@ local function GetWayPointsNearCursor(wpTbl, mx, my)
 				if cmdColorsTbl[curCmd.id] then
 					local nxtCmd      = commands[cmdNum + 1]
 					local x, y, z, fr = GetCommandWorldPosition(curCmd)
-					if x then
+					if x and y and z then
 						local p, q  = spWorldToScreenCoords(x, y, z)
 						if GetSqDist2D(mx,my,p,q) < wayPtSelDistSqr then
 							-- save the tag of the next command

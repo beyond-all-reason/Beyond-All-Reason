@@ -36,6 +36,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetGameFrame = Spring.GetGameFrame
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
+	local initialized = false
 	local boundary = 128 -- how many elmos closer to the center of the scum than the actual edge of the scum the unit must be to be considered on the scum
 	
 	local function GetScumCurrentRadius(scum, gf)
@@ -59,17 +60,21 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		scumSpawnerIDs[UnitDefNames['roost'].id] = {radius = 1024, growthrate = 0.1}
-		scumSpawnerIDs[UnitDefNames['chickend2'].id] = {radius = 1024, growthrate = 0.1}
-		scumSpawnerIDs[UnitDefNames['chickend1'].id] = {radius = 1024, growthrate = 0.1}
+		scumSpawnerIDs[UnitDefNames['chicken_hive'].id] = {radius = 1024, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_turretl'].id] = {radius = 384, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_turrets'].id] = {radius = 256, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_turretl_acid'].id] = {radius = 768, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_turrets_acid'].id] = {radius = 512, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_turretl_electric'].id] = {radius = 768, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_turrets_electric'].id] = {radius = 512, growthrate = 1}
 		
 		for x= 0, math.ceil(mapSizeX/1024) do 
 			for z = 0, math.ceil(mapSizeZ/1024) do 
 				scumBins[x*1024+z] = {}
 			end
 		end
-
 	end
+	
 
 		-- This checks wether the unit is under any scum 
 	local function IsPosInScum(unitx,unity, unitz)
@@ -194,6 +199,12 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	
 	function gadget:GameFrame(n)
+		if not initialized then 
+			for i, unitID in ipairs(Spring.GetAllUnits()) do 
+				gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+			end
+			initialized = true
+		end
 		if scumRemoveQueue[n] then 
 			for scumID, _ in pairs(scumRemoveQueue[n]) do 
 				if scums[scumID] then 
@@ -430,7 +441,7 @@ else
 
 	local function goodbye(reason)
 	  Spring.Echo("Scum GL4 gadget exiting with reason: "..reason)
-	  gadgetHandler:Removegadget()
+	  gadgetHandler:RemoveGadget()
 	end
 
 	local function initGL4(shaderConfig, DPATname)
@@ -457,7 +468,10 @@ else
 			DPATname .. "Shader"
 		  )
 		local shaderCompiled = scumShader:Initialize()
-		if not shaderCompiled then goodbye("Failed to compile ".. DPATname .." GL4 ") end
+		if not shaderCompiled then 
+			goodbye("Failed to compile ".. DPATname .." GL4 ") 
+			return
+		end
 
 		scumVBO = makeInstanceVBOTable(
 			{
@@ -467,7 +481,10 @@ else
 			64, -- maxelements
 			DPATname .. "VBO" -- name
 		)
-		if scumVBO == nil then goodbye("Failed to create scumVBO") end
+		if scumVBO == nil then 
+			goodbye("Failed to create scumVBO") 
+			return
+		end
 		
 		local planeVBO, numVertices = makePlaneVBO(1,1,resolution,resolution)
 		local planeIndexVBO, numIndices =  makePlaneIndexVBO(resolution,resolution, true)

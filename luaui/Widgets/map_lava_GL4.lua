@@ -15,7 +15,7 @@ end
 	local lavaNormalHeight = texturesamplingmode .."LuaUI/images/lava2_normalheight.dds"
 	local lavaDistortion = texturesamplingmode .. "LuaUI/images/lavadistortion.png"
 
-	local lavaShader 
+	local lavaShader
 	local lavaPlaneVAO
 	local lavalevel = 0
 
@@ -33,7 +33,7 @@ end
 	local heatdistortx = 0
 	local heatdistortz = 0
 
-	local elmosPerSquare = 256 -- The resolution of the lava 
+	local elmosPerSquare = 256 -- The resolution of the lava
 
 	local luaShaderDir = "LuaUI/Widgets/Include/"
 	local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
@@ -57,7 +57,7 @@ end
 		PARALLAXOFFSET = 0.5, -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
 		GLOBALROTATEFREQUENCY = 0.0001, -- how fast the whole lava plane shifts around
 		GLOBALROTATEAMPLIDUE = 0.05, -- how big the radius of the circle we rotate around is
-		
+
 		-- for foglight:
 		FOGHEIGHTABOVELAVA = fogheightabovelava, -- how much higher above the lava the fog light plane is
 		FOGCOLOR = "vec3(0.5, 0.2, 0.0)", -- the color of the fog light
@@ -69,7 +69,7 @@ end
 	}
 
 
-	local lavaVSSrc = [[	
+	local lavaVSSrc = [[
 	#version 420
 	#extension GL_ARB_uniform_buffer_object : require
 	#extension GL_ARB_shader_storage_buffer_object : require
@@ -109,8 +109,8 @@ end
 		worldUV.y *= mapratio;
 
 		float gametime = (timeInfo.x + timeInfo.w) * SWIRLFREQUENCY;
-		
-		
+
+
 
 		randpervertex = vec4(rand(worldPos.xz), rand(worldPos.xz * vec2(17.876234, 9.283)), rand(worldPos.xz + gametime + 2.0), rand(worldPos.xz + gametime + 3.0));
 		worldUV.zw = sin(randpervertex.xy + gametime * (0.5 + randpervertex.xy));
@@ -119,7 +119,7 @@ end
 		// Spin the whole texture around slowly
 		float worldRotTime = (timeInfo.x + timeInfo.w) ;
 		worldUV.xy += vec2( sin(worldRotTime * GLOBALROTATEFREQUENCY), cos(worldRotTime * GLOBALROTATEFREQUENCY)) * GLOBALROTATEAMPLIDUE;
-		
+
 		// -- MAP OUT OF BOUNDS
 		vec2 mymin = min(worldPos.xz, mapSize.xy  - worldPos.xz) * inverseMapSize;
 		inboundsness = min(mymin.x, mymin.y);
@@ -426,8 +426,11 @@ end
 
 
 
-	function widget:GameFrame()
+	function widget:GameFrame(gf)
 		lavatidelevel = math.sin(Spring.GetGameFrame() / tideperiod) * tideamplitude + lavalevel
+		if gf % 7 == 1 and WG['grassgl4'] then
+			WG['grassgl4'].removeGrassBelowHeight(lavatidelevel+30)
+		end
 	end
 
 	function widget:Initialize()

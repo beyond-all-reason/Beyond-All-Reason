@@ -112,8 +112,9 @@ function DefendHST:RemoveWard(behaviour, turtle)
 end
 
 function DefendHST:Update()
-	local f = self.game:Frame()
-	if f % 30 == 0 then
+ 	local f = self.game:Frame()
+-- 	if f % 30 == 0 then
+		if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 		local scrambleCalls = 0
 		for i, ward in pairs(self.wards) do
 			if ward.behaviour ~= nil then
@@ -191,7 +192,7 @@ function DefendHST:Update()
 		if self.frontWardLand ~= self.lastFrontWardLand then self:AssignLoiterers(self.frontWardLand) end
 		self.lastFrontWardWater = self.frontWardWater
 		self.lastFrontWardLand = self.frontWardLand
-	end
+	--end
 	for GAS, mtypes in pairs(self.needAssignment) do
 		for mtype, needAssignment in pairs(mtypes) do
 			if needAssignment and f > self.lastAssignFrame[GAS][mtype] + 60 then
@@ -436,12 +437,6 @@ end
 function DefendHST:RemoveDefender(dfndbehaviour)
 	-- Spring.Echo(self.ai.id, "remove defender", dfndbehaviour.hits, dfndbehaviour.mtype, self.defenders[dfndbehaviour.hits])
 	if dfndbehaviour.tough or dfndbehaviour.hits == "air" then
--- 		print('defendersdebug',self.defenders)
--- 		print(#self.defenders)
--- 		print(self.defenders[dfndbehaviour.hits])
--- 		print(#self.defenders[dfndbehaviour.hits])
--- 		print(self.defenders[dfndbehaviour.hits][dfndbehaviour.mtype])
--- 		print(#self.defenders[dfndbehaviour.hits][dfndbehaviour.mtype])
 
 		self:EchoDebug(self.defenders,#self.defenders,#self.defenders[dfndbehaviour.hits],#self.defenders[dfndbehaviour.hits][dfndbehaviour.mtype])
 		for i = #self.defenders[dfndbehaviour.hits][dfndbehaviour.mtype], 1, -1 do

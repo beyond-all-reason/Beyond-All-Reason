@@ -395,7 +395,6 @@ function BuildSiteHST:searchPosNearCategories(utype,builder,minDist,maxDist,cate
 end
 
 function BuildSiteHST:searchPosInList(utype, builder,minDist,maxDist,list,neighbours,number)
-	--self.game:StartTimer('bst2')
 	local maxDist = maxDist or 390
 	local d = math.huge
 	local p
@@ -425,14 +424,12 @@ function BuildSiteHST:searchPosInList(utype, builder,minDist,maxDist,list,neighb
 			end
 		end
 	end
-	--self.game:StopTimer('bst2')
 	self:EchoDebug('posinlist',p)
 	return p
 end
 
 function BuildSiteHST:BuildNearNano(builder, utype)
 	self:EchoDebug("looking for spot near nano hotspots")
-	--self.game:StartTimer('bst3')
 	local nanoHots = self.ai.nanohst:GetHotSpots()
 	if nanoHots then
 		self:EchoDebug("got " .. #nanoHots .. " nano hotspots")
@@ -443,12 +440,10 @@ function BuildSiteHST:BuildNearNano(builder, utype)
 			local p = self:ClosestBuildSpot(builder, hotPos, utype, 10, nil, nil, hotRadius)
 			if p then
 				self:EchoDebug('found Position for near nano hotspot at: ' .. hotPos.x ..' ' ..hotPos.z)
-				--self.game:StopTimer('bst3')
 				return p
 			end
 		end
 	end
-	--self.game:StopTimer('bst3')
 	return self:BuildNearLastNano(builder, utype)
 
 end

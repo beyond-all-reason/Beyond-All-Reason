@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "Jul 11, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = 1,
-		enabled = true
+		enabled = false
 	}
 end
 
@@ -45,6 +45,7 @@ local bopt_inext = { 0, 0 }
 
 local myTeamID = 0
 
+local unitIcon = {}
 local unitBuildOptions = {}
 for udid, unitDef in pairs(UnitDefs) do
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then
@@ -66,7 +67,6 @@ local msz = Game.mapY * 512
 
 local groups, unitGroup = {}, {}	-- retrieves from buildmenu in initialize
 local unitOrder = {}	-- retrieves from buildmenu in initialize
-local iconTypesMap = {}
 
 local bgpadding, font, backgroundRect, backgroundOptionsRect, buildoptionsArea, dlistGuishader, dlistGuishader2, forceGuishader
 local chobbyInterface, factoriesArea, cornerSize, setInfoDisplayUnitID, factoriesAreaHovered
@@ -365,9 +365,13 @@ function widget:Initialize()
 		end
 	end
 
-	iconTypesMap = {}
 	if Script.LuaRules('GetIconTypes') then
-		iconTypesMap = Script.LuaRules.GetIconTypes()
+		local iconTypesMap = Script.LuaRules.GetIconTypes()
+		for udid, unitDef in pairs(UnitDefs) do
+			if unitDef.iconType and iconTypesMap[unitDef.iconType] then
+				unitIcon[udid] = ':l:'..iconTypesMap[unitDef.iconType]
+			end
+		end
 	end
 
 	widget:ViewResize()
@@ -464,15 +468,6 @@ local function drawTexRect(rect, texture, color)
 end
 
 local function drawIcon(udid, rect, tex, color, zoom, isfactory, amount)
-	local radarIconSize = math.floor((rect[3]-rect[1])*0.4)
-	local radarIcon
-	local unitIconType = UnitDefs[udid].iconType
-	if unitIconType and iconTypesMap[unitIconType] then
-		radarIcon = ':l:'..iconTypesMap[unitIconType]
-	end
-	if isfactory then
-		radarIcon = nil
-	end
 	glColor(1,1,1,1)
 	UiUnit(
 		rect[1], rect[2], rect[3], rect[4],
@@ -481,7 +476,7 @@ local function drawIcon(udid, rect, tex, color, zoom, isfactory, amount)
 		zoom,
 		nil, nil,
 		tex,
-		radarIcon,
+		(not isfactory and unitIcon[udid] or nil),
 		groups[unitGroup[udid]],
 		nil,
 		amount

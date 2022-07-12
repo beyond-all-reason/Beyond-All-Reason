@@ -26,7 +26,7 @@ local teamCount = 0
 local teamList = Spring.GetTeamList()
 for i = 1, #teamList do
 	local luaAI = Spring.GetTeamLuaAI(teamList[i])
-	if (luaAI and (luaAI:find("Chickens") or luaAI:find("Scavengers"))) or Spring.GetModOptions().scoremode ~= "disabled" then
+	if (luaAI and (luaAI:find("Chickens") or luaAI:find("Scavengers") or luaAI:find("ScavReduxAI"))) or Spring.GetModOptions().scoremode ~= "disabled" then
 		ignoredTeams[teamList[i]] = true
 
 		-- ignore all other teams in this allyteam as well
@@ -67,7 +67,8 @@ local function commanderDeath(teamID, attackerUnitID, originX, originZ) -- optio
 			end
 		end
 	end
-	if Spring.GetModOptions().deathmode == "own_com" then
+
+	if Spring.GetModOptions().deathmode == "own_com" and aliveTeamComCount[teamID] <= 0 then
 		if not select(3, Spring.GetTeamInfo(teamID, false)) then
 			Spring.KillTeam(teamID)
 		end

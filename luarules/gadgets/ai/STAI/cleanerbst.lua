@@ -25,21 +25,25 @@ function CleanerBST:Init()
 end
 
 function CleanerBST:Update()
+	 --self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
-	if f % 123 == 0 then
-		local cleanH =self.ai.cleanhst
-		if not cleanH.theCleaner[self.id]   then
-			self:EchoDebug(self.id,'do update')
-			self:Search()
-		else
-			self:EchoDebug('cleanthis', cleanH.theCleaner[self.id])
-			self:Clean(cleanH.theCleaner[self.id])
-			self.unit:ElectBehaviour()
+	--if f - self.uFrame < self.ai.behUp['cleanerbst'] then
+	--	return
+	--end
+	--self.uFrame = f
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'CleanerBST' then return end
+	local cleanH =self.ai.cleanhst
+	if not cleanH.theCleaner[self.id]   then
+		self:EchoDebug(self.id,'do update')
+		self:Search()
+	else
+		self:EchoDebug('cleanthis', cleanH.theCleaner[self.id])
+		self:Clean(cleanH.theCleaner[self.id])
+		self.unit:ElectBehaviour()
 
-		end
-
-		self.frameCounter = 0
 	end
+
+	self.frameCounter = 0
 end
 
 function CleanerBST:OwnerBuilt()
@@ -119,24 +123,6 @@ function CleanerBST:Search()
 end
 
 function CleanerBST:Patroling() --TODO move nano patroling to another place (activate-deactivate behaviour)
-	-- set nano turrets to patrol
- 	--local upos = self.ai.tool:RandomAway( self.unit:Internal():GetPosition(), 50)
 	local uPos = self.unit:Internal():GetPosition()
-	--local PatrolPos = upos
-	local floats = api.vectorFloat()
-	-- populate with x, y, z of the position
-	floats:push_back(uPos.x + math.random(25,50))
-	floats:push_back(uPos.y)
-	floats:push_back(uPos.z + math.random(25,50))
---   	self.unit:Internal():MoveAndPatrol({uPos.x-20 , uPos.y-20 , uPos.z-20 })
--- 	local function assistantOrders(n, unitID) --DAMAGAM one
--- 	local x,y,z = Spring.GetUnitPosition(unitID)
---   	Spring.GiveOrderToUnit(self.unit:Internal():ID(), CMD.PATROL,{uPos.x-20 , uPos.y-20 , uPos.z-20 },0)
- 	self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats, {"shift"})
--- 	Spring.GiveOrderToUnit(unitID, CMD.PATROL,{x + 100, y, z}, {"shift"})
--- 	Spring.GiveOrderToUnit(unitID, CMD.PATROL,{x, y, z - 100}, {"shift"})
--- 	Spring.GiveOrderToUnit(unitID, CMD.PATROL,{x, y, z + 100}, {"shift"})
--- end
-	--self.unit:Internal():Patrol({x = 0,y = 0,z = 0})
--- 	self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats)
+	self.unit:Internal():Patrol({uPos.x,uPos.y,uPos.z,0})
 end

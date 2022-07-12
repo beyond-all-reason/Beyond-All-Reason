@@ -25,6 +25,9 @@ local function initGL4()
 	shaderConfig.ANIMATION = 0
 	shaderConfig.HEIGHTOFFSET = 3.99
 	unitTrackerVBO, unitTrackerShader = InitDrawPrimitiveAtUnit(shaderConfig, "unitTrackerTester")
+	if unitTrackerVBO == nil then 
+		widgetHandler:RemoveWidget()
+	end
 end
 
 

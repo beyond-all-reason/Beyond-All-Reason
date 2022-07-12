@@ -334,6 +334,8 @@ local armorDefs = {
 	bombers = {
 		"chickenf1",
 		"chickenf1b",
+		"chickenf1apex",
+		"chickenf1apexb",
 		"chickenf2",
 		"chickenebomber1",
 		"chickenacidbomber",
@@ -347,6 +349,11 @@ local armorDefs = {
 		"corhurc",
 		"corsb",
 		"cortitan",
+		"legnap", 
+		"legkam",
+		"legcib",
+		"legmineb",
+		"chicken_dodoair",
 	},
 	fighters = {
 		"chickenw1",
@@ -360,6 +367,7 @@ local armorDefs = {
 		"armsfig",
 		"corsfig",
 		"corvamp",
+		"legfig",
 	},
 	mines = {
 		"armfmine3",
@@ -413,6 +421,8 @@ local armorDefs = {
 		"armthundt4",
 		"armassistdrone",
 		"corassistdrone",
+		"legmos",
+		"legfort",
 	},
 	shields = {
 		"armgate",
@@ -467,12 +477,6 @@ local armorDefs = {
 		"correcl",
 	},
 
-	tinychicken =
-	{
-		"chicken_dodo1",
-		"chickenh1",
-		"chickenh1b",
-	},
 	chicken =
 	{
 		"ve_chickenq",
@@ -490,18 +494,19 @@ local armorDefs = {
 		"chicken1z",
 		"chicken2",
 		"chicken2b",
+		"chicken_dodo1",
 		"chicken_dodo2",
 		"chickena1",
 		"chickena1b",
 		"chickena1c",
 		"chickena2",
 		"chickena2b",
-		"chickenc1",
 		"chickenc2",
 		"chickenc3",
 		"chickenc3b",
 		"chickenc3c",
-		"chickend1",
+		"chicken_turrets",
+		"chicken_turretl",
 		"chickenr1",
 		"chickenr2",
 		"chickenh2",
@@ -512,7 +517,19 @@ local armorDefs = {
 		"chickens1",
 		"chickens2",
 		"chickenp1",
-		"roost",
+		"chickenp2",
+		"chickenpyroallterrain",
+		"chickenh1",
+		"chickenh1b",
+		"chickenacidallterrain",
+		"chickenacidarty",
+		"chickenacidassault",
+		"chickenacidswarmer",
+		"chickene1",
+		"chickene2",
+		"chickenearty1",
+		"chickenelectricallterrain",
+		"chicken_hive",
 	},
 }
 
