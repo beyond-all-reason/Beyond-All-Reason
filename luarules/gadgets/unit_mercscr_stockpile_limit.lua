@@ -18,11 +18,10 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames['corscreamer'].id] = 5,
 
 		--[UnitDefNames['armthor'].id] = 10,
-
-		[UnitDefNames['legmos'].id] = 5,
+		[UnitDefNames['legmos'].id] = 4,
 		[UnitDefNames['legmineb'].id] = 1,
 	}
-
+  
 	local isStockpilingUnitScav = {}
 	for defID, maxCount in pairs(isStockpilingUnit) do
 		isStockpilingUnitScav[UnitDefNames[UnitDefs[defID].name .. "_scav"].id] = maxCount
@@ -95,5 +94,4 @@ else
 	end
 
 end
-
 
