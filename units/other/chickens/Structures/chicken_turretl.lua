@@ -1,5 +1,5 @@
 return {
-	chickend2 = {
+	chicken_turretl = {
 		acceleration = 0.0115,
 		activatewhenbuilt = true,
 		autoheal = 1,

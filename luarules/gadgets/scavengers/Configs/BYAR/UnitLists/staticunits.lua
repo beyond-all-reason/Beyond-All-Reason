@@ -25,7 +25,7 @@ local noSelfDestruct = {
 	"lootboxplatinum_scav",
 	"lootboxsilver_scav",
 	"lootboxbronze_scav",
-	"chickend1",
+	"chicken_turrets",
 	"chicken_hive",
 	"corscavdtl_scav",
 	"corscavdtf_scav",

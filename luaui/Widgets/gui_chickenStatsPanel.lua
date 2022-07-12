@@ -79,7 +79,7 @@ local rules = {
 	"chickencCount",
 	"chickenpCount",
 	"chickenhCount",
-	"chickendCount",
+	"chicken_turretCount",
 	"chicken_dodoCount",
 	"chicken_hiveCount",
 	"chickenKills",
@@ -91,7 +91,7 @@ local rules = {
 	"chickencKills",
 	"chickenpKills",
 	"chickenhKills",
-	"chickendKills",
+	"chicken_turretKills",
 	"chicken_dodoKills",
 	"chicken_hiveKills",
 }
@@ -110,7 +110,7 @@ local chickenTypes = {
 	"chickenf",
 	"chickenc",
 	"chickenr",
-	"chickend",
+	"chicken_turret",
 }
 
 local function commaValue(amount)
