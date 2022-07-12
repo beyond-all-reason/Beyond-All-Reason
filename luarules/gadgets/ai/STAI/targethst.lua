@@ -450,36 +450,6 @@ function TargetHST:drawDBG()
 end
 
 
-function TargetHST:createGridCell()
-	for x = 1, Game.mapSizeX / cellElmos do
-		if not self.CELLS[x] then
-			self.CELLS[x] = {}
-		end
-		for z = 1, Game.mapSizeZ / cellElmos do
-			self.CELLS[x][z] = {}
-			self:NewCell(x,z)
-		end
-	end
-end
-
-function TargetHST:areaCells(X,Z,R)
-	if not X or not Z then
-		self:Warn('no grid XZ for areacells')
-	end
-	local AC = {}
-	R = R or 0
-	myself = myself or false
-	for x = X - R , X + R,1  do
-		for z = Z - R , Z + R,1 do
-			if self.CELLS[x] and self.CELLS[x][z] then
-				table.insert(AC, {gx = x, gz = z})
-			end
-		end
-	end
-	return AC
-end
-
-
 function TargetHST:clearEnemies()---wrong, clear the cells by parsing enemycells
 	for x,Ztable in pairs(self.CELLS) do
 		for z, cell in pairs(Ztable)do
@@ -489,20 +459,7 @@ function TargetHST:clearEnemies()---wrong, clear the cells by parsing enemycells
 	self.ENEMYCELLS = {}
 end
 
-function TargetHST:PosToGrid(pos)
-	local gridX = math.ceil(pos.x / cellElmos)
-	local gridZ = math.ceil(pos.z / cellElmos)
-	return gridX, gridZ
-end
 
-function TargetHST:GetCellHere(pos)
-	local gridX,gridZ = self:PosToGrid(pos)
-	if self.CELLS[gridX] and self.CELLS[gridX][gridZ] then
-		return self.CELLS[gridX][gridZ] , gridX , gridZ
-	else
-		self:Warn('try to get non-existing cell ',gridX,gridZ,pos.x,pos.z)
-	end
-end
 
 function TargetHST:NewCell(px, pz)
 	local x = px * cellElmos - cellElmosHalf
@@ -581,6 +538,7 @@ function TargetHST:NewCell(px, pz)
 	self.CELLS[px][pz] = CELL
 end
 
+--[[
 
 function TargetHST:getCellsFields(position,fields,range)--maybe we can run just through ENEMYCELLS
 	if not fields or not position or type(fields) ~= 'table' then
@@ -604,3 +562,48 @@ function TargetHST:getCellsFields(position,fields,range)--maybe we can run just 
 	end
 	return VALUE , subValues , cells
 end
+
+
+function TargetHST:PosToGrid(pos)
+	local gridX = math.ceil(pos.x / cellElmos)
+	local gridZ = math.ceil(pos.z / cellElmos)
+	return gridX, gridZ
+end
+
+function TargetHST:GetCellHere(pos)
+	local gridX,gridZ = self:PosToGrid(pos)
+	if self.CELLS[gridX] and self.CELLS[gridX][gridZ] then
+		return self.CELLS[gridX][gridZ] , gridX , gridZ
+	else
+		self:Warn('try to get non-existing cell ',gridX,gridZ,pos.x,pos.z)
+	end
+end
+
+function TargetHST:createGridCell()
+	for x = 1, Game.mapSizeX / cellElmos do
+		if not self.CELLS[x] then
+			self.CELLS[x] = {}
+		end
+		for z = 1, Game.mapSizeZ / cellElmos do
+			self.CELLS[x][z] = {}
+			self:NewCell(x,z)
+		end
+	end
+end
+
+function TargetHST:areaCells(X,Z,R)
+	if not X or not Z then
+		self:Warn('no grid XZ for areacells')
+	end
+	local AC = {}
+	R = R or 0
+	myself = myself or false
+	for x = X - R , X + R,1  do
+		for z = Z - R , Z + R,1 do
+			if self.CELLS[x] and self.CELLS[x][z] then
+				table.insert(AC, {gx = x, gz = z})
+			end
+		end
+	end
+	return AC
+end]]
