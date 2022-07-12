@@ -41,12 +41,6 @@ local CHICKEN_RESISTS = {
 		[WeaponDefNames['cortermite_cor_termite_laser'].id] = 0.75,
 		[WeaponDefNames['corkorg_corkorg_laser'].id] = 0.75,
 	},
-	[UnitDefNames['chickenc1'].id] = {
-		[WeaponDefNames['armclaw_dclaw'].id] = 0.6,
-		[WeaponDefNames['armzeus_lightning'].id] = 0.6,
-		[WeaponDefNames['armlatnk_lightning'].id] = 0.6,
-		[WeaponDefNames['armbanth_armbantha_fire'].id] = 0.6,
-	},
 	[UnitDefNames['chickenc3'].id] = {
 		[WeaponDefNames['armclaw_dclaw'].id] = 0.5,
 		[WeaponDefNames['armzeus_lightning'].id] = 0.5,
