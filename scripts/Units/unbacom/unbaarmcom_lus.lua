@@ -63,7 +63,7 @@ x,y,z = Spring.GetUnitPosition(unitID)
 									local unit2DefID = Spring.GetUnitDefID(uid)
 									local unit1DefID = Spring.GetUnitDefID(unitID)
 									local buildTime2S = UnitDefs[unit2DefID].buildTime
-									local workerTime1S = BuildSpeed[level]
+									local workerTime1S = RepairSpeed[level]
 									local workerTime1F = workerTime1S / 30
 									local areaRepairTime1 = 0.1 * workerTime1F
 									local HPRepairPerFrame = (maxhp2 / buildTime2S) * areaRepairTime1
@@ -204,31 +204,31 @@ function HandleLevelUps()
 			LevelUpStats(17)
 		elseif realxp > 170 and level == 16 then
 			LevelUpStats(16)
-		elseif realxp > 145 and level == 15 then
+		elseif realxp > 140 and level == 15 then
 			LevelUpStats(15)
-		elseif realxp > 120 and level == 14 then
+		elseif realxp > 110 and level == 14 then
 			LevelUpStats(14)
-		elseif realxp > 95 and level == 13 then
+		elseif realxp > 80 and level == 13 then
 			LevelUpStats(13)
-		elseif realxp > 70 and level == 12 then
+		elseif realxp > 60 and level == 12 then
 			LevelUpStats(12)
-		elseif realxp > 50 and level == 11 then
-			LevelUpStats(11)
-		elseif realxp > 40 and level == 10 then
+		elseif realxp > 44 and level == 11 then
+			LevelUpStats(11)			
+		elseif realxp > 36 and level == 10 then
 			LevelUpStats(10)
-		elseif realxp > 30 and level == 9 then
+		elseif realxp > 28 and level == 9 then
 			LevelUpStats(9)
-		elseif realxp > 24 and level == 8 then
+		elseif realxp > 22 and level == 8 then
 			LevelUpStats(8)
-		elseif realxp > 18 and level == 7 then
+		elseif realxp > 16 and level == 7 then
 			LevelUpStats(7)
-		elseif realxp > 14 and level == 6 then
+		elseif realxp > 12 and level == 6 then
 			LevelUpStats(6)
-		elseif realxp > 10 and level == 5 then
+		elseif realxp > 8 and level == 5 then
 			LevelUpStats(5)
-		elseif realxp > 6 and level == 4 then
+		elseif realxp > 5 and level == 4 then
 			LevelUpStats(4)
-		elseif realxp > 4 and level == 3 then
+		elseif realxp > 3 and level == 3 then
 			LevelUpStats(3)
 		elseif realxp > 2 and level == 2 then
 			LevelUpStats(2)
@@ -400,7 +400,6 @@ function script.AimWeapon(weapon, heading, pitch)
 			return false, "weapon > 29"
 		end
 	elseif weapon == 30 then
-		--Spring.Echo("weapon 30:",weapon, level)
 		isAimingDgun = true
 		isAiming = true
 		leftArm = false
@@ -924,7 +923,7 @@ function Rooting()
 		local XLocation, YLocation, ZLocation = Spring.GetUnitPosition(unitID)
 		Sleep (2000)
 		local NewXLocation, NewYLocation, _ = Spring.GetUnitPosition(unitID)
-		if math.abs(XLocation - NewXLocation) < 30  and math.abs(YLocation - NewYLocation) < 30 then
+		if math.abs(XLocation - NewXLocation) < 15  and math.abs(YLocation - NewYLocation) < 15 then
 			RootTimeSeconds = (Spring.GetGameFrame() - RootStart) / 30
 			if RootTimeSeconds / 60 >= 60 then
 				RootIncome = 700
