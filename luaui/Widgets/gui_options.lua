@@ -2761,7 +2761,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'rank' }, value, { 'rank', value })
 		  end,
 		},
-		{ id = "advplayerlist_side", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_side, type = "bool", value = true, description = texts.option.advplayerlist_side_descr,
+		{ id = "advplayerlist_side", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_side, type = "bool", value = true, description = texts.option.advplayerlist_side_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_side", { 'm_active_Table', 'side' })
 		  end,
@@ -2777,7 +2777,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'skill' }, value, { 'skill', value })
 		  end,
 		},
-		{ id = "advplayerlist_cpuping", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_cpuping, type = "bool", value = true, description = texts.option.advplayerlist_cpuping_descr,
+		{ id = "advplayerlist_cpuping", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_cpuping, type = "bool", value = true, description = texts.option.advplayerlist_cpuping_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_cpuping", { 'm_active_Table', 'cpuping' })
 		  end,
