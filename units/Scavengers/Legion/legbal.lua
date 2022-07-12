@@ -128,7 +128,7 @@ return {
 				model = "cormissile3.s3o",
 				name = "Rockets",
 				noselfdamage = true,
-				range = 450,
+				range = 460,
 				reloadtime = 5,
 				smoketrail = true,
 				smokePeriod = 11,
