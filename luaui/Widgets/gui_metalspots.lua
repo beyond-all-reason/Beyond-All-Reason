@@ -14,6 +14,10 @@ if Spring.GetModOptions().unit_restrictions_noextractors then
 	return
 end
 
+if Spring.GetModOptions().scoremode_chess and Spring.GetModOptions().scoremode ~= 'disabled' then
+	return
+end
+
 local showValue			= false
 local metalViewOnly		= false
 

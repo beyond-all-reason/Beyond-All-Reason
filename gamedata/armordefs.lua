@@ -506,7 +506,8 @@ local armorDefs = {
 		"chickenc3",
 		"chickenc3b",
 		"chickenc3c",
-		"chickend1",
+		"chicken_turrets",
+		"chicken_turretl",
 		"chickenr1",
 		"chickenr2",
 		"chickenh2",
@@ -529,7 +530,7 @@ local armorDefs = {
 		"chickene2",
 		"chickenearty1",
 		"chickenelectricallterrain",
-		"roost",
+		"chicken_hive",
 	},
 }
 

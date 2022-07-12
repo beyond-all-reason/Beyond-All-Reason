@@ -60,9 +60,13 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		scumSpawnerIDs[UnitDefNames['roost'].id] = {radius = 384, growthrate = 0.5}
-		scumSpawnerIDs[UnitDefNames['chickend2'].id] = {radius = 384, growthrate = 0.5}
-		scumSpawnerIDs[UnitDefNames['chickend1'].id] = {radius = 384, growthrate = 0.5}
+		scumSpawnerIDs[UnitDefNames['chicken_hive'].id] = {radius = 1024, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_turretl'].id] = {radius = 384, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_turrets'].id] = {radius = 256, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_turretl_acid'].id] = {radius = 768, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_turrets_acid'].id] = {radius = 512, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_turretl_electric'].id] = {radius = 768, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_turrets_electric'].id] = {radius = 512, growthrate = 1}
 		
 		for x= 0, math.ceil(mapSizeX/1024) do 
 			for z = 0, math.ceil(mapSizeZ/1024) do 

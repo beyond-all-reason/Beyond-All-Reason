@@ -689,7 +689,7 @@ else	-- UNSYNCED
 		end
 		if string.find(line, "all") then
 			local Condition = function(ud)
-				local exlusions = { 'meteor', 'roost', 'nuketest', 'nuketestcor', 'nuketestcororg', 'nuketestorg', 'meteor_scav', 'roost_scav', 'nuketest_scav', 'nuketestcor_scav', 'nuketestcororg_scav', 'nuketestorg_scav' }
+				local exlusions = { 'meteor', 'chicken_hive', 'nuketest', 'nuketestcor', 'nuketestcororg', 'nuketestorg', 'meteor_scav', 'chicken_hive_scav', 'nuketest_scav', 'nuketestcor_scav', 'nuketestcororg_scav', 'nuketestorg_scav' }
 				for k, v in pairs(exlusions) do
 					if ud.name == v then
 						return
