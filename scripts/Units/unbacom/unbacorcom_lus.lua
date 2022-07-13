@@ -16,10 +16,10 @@ local HealRefreshTime	= 15
 local CEGHeal = "heal"
 local CEGLevelUp = "commander-levelup"
 local ValidID = Spring.ValidUnitID
-local Rooted = true
-local RootStart = 0
-local RootTimeSeconds = 0
-local RootIncome = 0
+--local Rooted = true
+--local RootStart = 0
+--local RootTimeSeconds = 0
+--local RootIncome = 0
 
 function Emit(pieceName, effectName)
 local x,y,z,dx,dy,dz	= Spring.GetUnitPiecePosDir(unitID, pieceName)
@@ -187,7 +187,6 @@ local leader = Spring.GetPlayerInfo(leader)
 			Spring.UnitScript.StartThread(HandleLevelUps)
 			Spring.UnitScript.StartThread(PassiveRepairs)
 			Spring.UnitScript.StartThread(StopWalking)
-			Spring.UnitScript.StartThread(Rooting(unitID))
 	end
 end
 
@@ -274,7 +273,7 @@ if ValidID(unitID) then
 	end
 	curHP = Spring.GetUnitHealth(unitID)
 	Spring.SetUnitHealth(unitID, curHP + HealOnLevelUp[level])
-	Spring.SetUnitResourcing(unitID, "ume", EnergyMake[level] + RootIncome)
+	Spring.SetUnitResourcing(unitID, "ume", EnergyMake[level])
 	Spring.SetUnitResourcing(unitID, "umm", MetalMake[level])
 	cmdArrays = Spring.GetUnitCmdDescs(unitID)
 	for ct, cmdarray in pairs(cmdArrays) do
@@ -458,11 +457,11 @@ end
 
 function Restore()
 	SetSignalMask(SIG_AIM)
+	isAiming = false
+	isAimingDgun = false
 	Sleep(3000)
 	turn(aimy1, 2, 0, 90)
 	turn(aimx1, 1, 0, 90)
-	isAiming = false
-	isAimingDgun = false
 	rightArm = true
 	leftArm = true
 end
@@ -862,7 +861,7 @@ function AmIBored()
 	end
 end
 
-function Rooting()
+--[[function Rooting()
 	if ValidID(unitID) then
 		local XLocation, YLocation, ZLocation = Spring.GetUnitPosition(unitID)
 		Sleep (2000)
@@ -932,7 +931,7 @@ function Rooting()
 		Spring.SetUnitResourcing(unitID, "ume", EnergyMake[level] + RootIncome)
 		Spring.UnitScript.StartThread(Rooting(unitID))
 	end
-end
+end]]
 
 function bigfire()
 	turn(ruparm, 1, 40)
