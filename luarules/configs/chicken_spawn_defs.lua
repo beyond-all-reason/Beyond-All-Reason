@@ -365,6 +365,10 @@ for i = 1,#waves do
 		addSquad(i, { i ..  " chickena1c"})
 		addSquad(i, { i*4 .." chickens1" })
 	end
+	if i >= 5 and i <= 8 then -- Aircrafts
+		addSquad(i, { i .. " chickenw1", i .. " chickenw1b", i .. " chickenw1c", i .. " chickenw1d"})
+		addSquad(i, { i .. " chickenf1", i .. " chickenf1b" }) 
+	end
 	if i >= 7 and i <= 10 then -- More AllTerrains over time
 		addSquad(i, { i*3 .." chickenc3" })
 		addSquad(i, { i*2 .." chickenc3b" })
