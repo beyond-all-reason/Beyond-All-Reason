@@ -16,10 +16,10 @@ local HealRefreshTime	= 15
 local CEGHeal = "heal"
 local CEGLevelUp = "commander-levelup"
 local ValidID = Spring.ValidUnitID
-local Rooted = true
-local RootStart = 0
-local RootTimeSeconds = 0
-local RootIncome = 0
+--local Rooted = true
+--local RootStart = 0
+--local RootTimeSeconds = 0
+--local RootIncome = 0
 
 
 
@@ -188,7 +188,6 @@ local leader = Spring.GetPlayerInfo(leader)
 		Spring.UnitScript.StartThread(HandleLevelUps)
 		Spring.UnitScript.StartThread(PassiveRepairs)
 		Spring.UnitScript.StartThread(StopWalking)
-		Spring.UnitScript.StartThread(Rooting(unitID))
 		Spring.SetUnitWeaponState(unitID,30, "range", 450)
 	end
 end
@@ -277,7 +276,7 @@ if ValidID(unitID) then
 	curHP = Spring.GetUnitHealth(unitID)
 	Spring.SetUnitHealth(unitID, curHP + HealOnLevelUp[level])
 	Spring.SetUnitResourcing(unitID, "ume", EnergyMake[level])
-	Spring.SetUnitResourcing(unitID, "umm", MetalMake[level] + RootIncome)
+	Spring.SetUnitResourcing(unitID, "umm", MetalMake[level])
 	cmdArrays = Spring.GetUnitCmdDescs(unitID)
 	for ct, cmdarray in pairs(cmdArrays) do
 		if cmdarray.id < 0 then
@@ -918,7 +917,7 @@ function AmIBored()
 	end
 end
 
-function Rooting()
+--[[function Rooting()
 	if ValidID(unitID) then
 		local XLocation, YLocation, ZLocation = Spring.GetUnitPosition(unitID)
 		Sleep (2000)
@@ -988,7 +987,7 @@ function Rooting()
 		Spring.SetUnitResourcing(unitID, "umm", MetalMake[level] + RootIncome)
 		Spring.UnitScript.StartThread(Rooting(unitID))
 	end
-end
+end]]
 
 function script.Killed()
 	return 1
