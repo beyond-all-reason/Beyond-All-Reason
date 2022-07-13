@@ -293,13 +293,12 @@ function gadget:Initialize()
 	if not Lups then
 		Lups = GG['Lups']
 		LupsAddFX = Lups.AddParticles
-		CheckForExistingUnits()
 	end
+	CheckForExistingUnits()
 end
 
 function gadget:Shutdown()
 	removeParticles()
-	Spring.SendLuaRulesMsg("lups shutdown", "allies")
 end
 
 local function CheckTeamColors()

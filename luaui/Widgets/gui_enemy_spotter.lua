@@ -145,21 +145,29 @@ local function init()
 	shaderConfig.ANIMATION = 0
 	shaderConfig.HEIGHTOFFSET = 3.99
 	enemyspotterVBO, enemyspotterShader = InitDrawPrimitiveAtUnit(shaderConfig, "enemyspotter")
+	if enemyspotterVBO == nil then 
+		widgetHandler:RemoveWidget()
+		return false
+	end
 
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	else
 		Spring.Echo("Enemy spotter needs unittrackerapi to work!")
+		widgetHandler:RemoveWidget()
+		return false
 	end
+	return true
 end
 
 function widget:PlayerChanged(playerID)
 	myAllyTeamID = Spring.GetMyAllyTeamID()
+
+	widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 end
 
-
 function widget:Initialize()
-	init()
+	if not init() then return end
 	WG['enemyspotter'] = {}
 	WG['enemyspotter'].getOpacity = function()
 		return opacity

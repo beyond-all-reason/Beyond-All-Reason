@@ -953,7 +953,7 @@ function makeSphereVBO(sectorCount, stackCount, radius) -- http://www.songho.ca/
 	local sphereVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	if sphereVBO == nil then return nil end
 	local vertVBOLayout = {
-		{id = 0, name = "position", size = 3},
+		{id = 0, name = "position", size = 4},
 		{id = 1, name = "normals", size = 3},
 		{id = 2, name = "uvs", size = 2},
 	} 
@@ -987,6 +987,7 @@ function makeSphereVBO(sectorCount, stackCount, radius) -- http://www.songho.ca/
 			VBOData[#VBOData + 1] = x;
 			VBOData[#VBOData + 1] = y;
 			VBOData[#VBOData + 1] = z;
+			VBOData[#VBOData + 1] = 0;
 			--Spring.Echo(x,y,z)
 			-- normalized vertex normal (nx, ny, nz)
 			nx = x * lengthInv;
@@ -1006,9 +1007,9 @@ function makeSphereVBO(sectorCount, stackCount, radius) -- http://www.songho.ca/
 			VBOData[#VBOData + 1] = t;
 		end
 	end
-	sphereVBO:Define(#VBOData/8, vertVBOLayout)
+	sphereVBO:Define(#VBOData/9, vertVBOLayout)
 	sphereVBO:Upload(VBOData)
-	local numVerts = #VBOData/8
+	local numVerts = #VBOData/9
 	
 	local sphereIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER,false)
 	VBOData = {}

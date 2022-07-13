@@ -11,15 +11,6 @@ static-var  gun_1;
 #define SIG_AIM				2
 
 
-Create()
-{
-	hide flare4;
-	hide flare3;
-	hide flare1;
-	hide flare2;
-	gun_1 = flare1;
-}
-
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
@@ -43,6 +34,20 @@ SetStunned(State)
 RestoreAfterDelay()
 {
 	sleep 5000;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+Create()
+{
+	hide flare4;
+	hide flare3;
+	hide flare1;
+	hide flare2;
+	gun_1 = flare1;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
 	start-script ExecuteRestoreAfterDelay();
 }
 

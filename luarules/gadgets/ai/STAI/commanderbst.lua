@@ -12,11 +12,14 @@ function CommanderBST:Init()
 	self:EchoDebug("init")
 end
 
-local CMD_GUARD = 25
-local CMD_PATROL = 15
-
 function CommanderBST:Update()
+	 --self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
+	--if f - self.uFrame < self.ai.behUp['commanderbst'] then
+	--	return
+--	end
+	--self.uFrame = f
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'CommanderBST' then return end
 	if self.lowHealth and f >= self.nextHealthCheck then
 		if self.unit:Internal():GetHealth() >= self.unit:Internal():GetMaxHealth() * 0.95 then
 			self.lowHealth = false
@@ -28,7 +31,7 @@ function CommanderBST:Update()
 
 		self:FindSafeHouse()
 	end
-	if f % 30 == 0 and not self.active and self.ai.overviewhst.paranoidCommander then
+	if not self.active and self.ai.overviewhst.paranoidCommander then
 		self:FindSafeHouse()
 		self.unit:ElectBehaviour()
 	end
@@ -93,13 +96,8 @@ function CommanderBST:HelpFactory()
 	for i = 1, 3 do
 		local a = self.ai.tool:AngleAdd(angle, halfPi*i)
 		local pos = self.ai.tool:RandomAway( factPos, 200, nil, a)
-		local floats = api.vectorFloat()
-		floats:push_back(pos.x)
-		floats:push_back(pos.y)
-		floats:push_back(pos.z)
 		if math.random() > 0.5 then --TODO workaround, wait to rework it better
-
-			self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats, {"shift"})
+			self.unit:Internal():Patrol({pos.x,pos.y,pos.z,0})
 		else
 
 			self.unit:Internal():Guard(self.factoryToHelp)

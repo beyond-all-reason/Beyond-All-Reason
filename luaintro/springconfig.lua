@@ -77,20 +77,43 @@ Spring.SetConfigInt("LoadingMT", 0)
 -- Chobby had this set to 100 before and it introduced latency of 4ms a sim-frame, having a 10%-15% penalty compared it the default
 Spring.SetConfigInt("LuaGarbageCollectionMemLoadMult", 2)
 
+-- we used 3 as default toggle, changing to 4
+if (Spring.GetConfigInt("GroundDecals", 3) or 3) >= 4 then
+	Spring.SetConfigInt("GroundDecals", 3)
+end
+
 -- ground mesh detail
 Spring.SetConfigInt("ROAM", 1)
 if tonumber(Spring.GetConfigInt("GroundDetail", 1) or 1) < 200 then
 	Spring.SetConfigInt("GroundDetail", 200)
 end
 
+-- This makes between-simframe interpolation smoother in mid-late game situations
+Spring.SetConfigInt("SmoothTimeOffset", 2) -- New in BAR engine
+
+-- This is needed for better profiling info, and (theoretically better frame timing).
+-- Notably a decade ago windows had issues with this
+Spring.SetConfigInt("UseHighResTimer", 1)  -- Default off
+
+-- This changes the sleep time of the game server thread to make it wake up every 1.999 ms instead of the default 5.999 ms
+-- This hopefully gets us less variance in issuing new sim frames
+Spring.SetConfigInt("ServerSleepTime", 1)
+
+-- The default of 256 is just too tiny, at this size the VS load outpaces FS load anyway, makes for actually pretty reflections with CUS GL4
+Spring.SetConfigInt("BumpWaterTexSizeReflection", 1024)
+
 Spring.SetConfigFloat("CrossAlpha", 0)	-- will be in effect next launch
 
 Spring.SetConfigInt("UnitLodDist", 999999)
 
 
+
 if not Spring.GetConfigFloat("UnitIconFadeAmount") then
 	Spring.SetConfigFloat("UnitIconFadeAmount", 0.1)
 end
+
+-- equalize
+Spring.SetConfigInt("UnitIconFadeVanish", Spring.GetConfigInt("UnitIconFadeStart", 3000))
 
 -- change some default value(s), upp the version and set what needs to be set
 local version = 2
@@ -100,7 +123,7 @@ if Spring.GetConfigInt("version", 0) < version then
 	-- set icon settings
 	Spring.SetConfigInt("UnitIconsAsUI", 1)
 	Spring.SetConfigFloat("UnitIconScaleUI", 1.05)
-	Spring.SetConfigInt("UnitIconFadeVanish", 2700)
+	Spring.SetConfigInt("UnitIconFadeVanish", 3000)
 	Spring.SetConfigInt("UnitIconFadeStart", 3000)
 	Spring.SetConfigInt("UnitIconsHideWithUI", 1)
 end

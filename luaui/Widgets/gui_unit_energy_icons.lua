@@ -115,6 +115,11 @@ local function initGL4()
 	shaderConfig.USE_CIRCLES = nil
 	shaderConfig.USE_CORNERRECT = nil
 	energyIconVBO, energyIconShader = InitDrawPrimitiveAtUnit(shaderConfig, "energy icons")
+	if energyIconVBO == nil then 
+		widgetHandler:RemoveWidget()
+		return false
+	end
+	return true
 end
 
 --------------------------------------------------------------------------------
@@ -158,7 +163,7 @@ local function doUpdate()
 end
 
 function widget:Initialize()
-	initGL4()
+	if not initGL4() then return end
 	init()
 	doUpdate()
 end

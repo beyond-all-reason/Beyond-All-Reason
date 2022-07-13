@@ -89,6 +89,9 @@ local effectDefs = {
 	["corvamp"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrusta", limit = true },
 	},
+	["legfig"] = {
+		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 25, piece = "thrust", limit = true },
+	},
 
 	-- radar
 	["armawac"] = {
@@ -163,6 +166,12 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 17, length = 44, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.4, 0.6 }, width = 17, length = 44, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.6 },
 	},
+	["legfort"] = {
+		{ color = { 0.1, 0.4, 0.6 }, width = 15, length = 50, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 15, length = 50, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 44, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 44, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.6 },
+	},
 	["corcut"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.7, length = 15, piece = "thrusta", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.7, length = 15, piece = "thrustb", light = 1 },
@@ -219,12 +228,27 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta1" },
 		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta2" },
 	},
+	["legnap"] = {
+		{ color = { 0.1, 0.4, 0.6 }, width = 8, length = 50, piece = "thrustb", light = 1 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta1" },
+		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrusta2" },
+	},
+	["legcib"] = {
+		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 25, piece = "thrust", light = 1.3 },
+	},
+	["legkam"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 2, length = 24, piece = "thrust", light = 1 },
+	},
 	["armsb"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 36, piece = "thrustc", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 2.2, length = 18, piece = "thrusta", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 2.2, length = 18, piece = "thrustb", light = 1 },
 	},
 	["corsb"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrusta", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrustb", light = 1 },
+	},
+	["legmineb"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrusta", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrustb", light = 1 },
 	},

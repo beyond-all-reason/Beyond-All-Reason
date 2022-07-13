@@ -12,9 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-------------------------------------------------------------
--- Config
-------------------------------------------------------------
 local gridSize = 16 -- Resolution of metal map
 local buildGridSize = 8 -- Resolution of build positions
 
@@ -43,12 +40,23 @@ local metalmapSizeZ = Game.mapSizeZ - 1.5 * gridSize
 local metalmapStartX = 1.5 * gridSize
 local metalmapStartZ = 1.5 * gridSize
 
+local unitXoff = {}
+local unitZoff = {}
+for udefID, def in ipairs(UnitDefs) do
+	unitXoff[udefID] = (4 * def.xsize) % 16
+	unitZoff[udefID] = (4 * def.zsize) % 16
+end
 
 ------------------------------------------------------------
 -- Find geothermal spots
 ------------------------------------------------------------
 
-function GetSpotsGeo()
+local function GetFootprintPos(value)	-- not entirely acurate, unsure why
+	local precision = 16		-- (footprint 1 = 16 map distance)
+	return (math.floor(value/precision)*precision)+(precision/2)
+end
+
+local function GetSpotsGeo()
 	local geoFeatureDefs = {}
 	for defID, def in pairs(FeatureDefs) do
 		if def.geoThermal then
@@ -76,34 +84,50 @@ function GetSpotsGeo()
 	return geoSpots
 end
 
-
-function GetFootprintPos(value)	-- not entirely acurate, unsure why
-	local precision = 16		-- (footprint 1 = 16 map distance)
-	return (math.floor(value/precision)*precision)+(precision/2)
-end
-
-
 ------------------------------------------------------------
 -- Shared functions
 ------------------------------------------------------------
-function GetBuildingPositions(spot, uDefID, facing, testBuild)
 
-	local positions = {}
+local function GetValidStrips(spot)
+	local sMinZ, sMaxZ = spot.minZ, spot.maxZ
+	local sLeft, sRight = spot.left, spot.right
+	local validLeft = {}
+	local validRight = {}
+	local maxZOffset = buildGridSize * ceil(extractorRadius / buildGridSize - 1)
+	for mz = max(sMaxZ - maxZOffset, buildmapStartZ), min(sMinZ + maxZOffset, buildmapSizeZ), buildGridSize do
+		local vLeft, vRight = buildmapStartX, buildmapSizeX
+		if spot.left and spot.right then
+			for sz = sMinZ, sMaxZ, gridSize do
+				local dz = sz - mz
+				local maxXOffset = buildGridSize * ceil(sqrt(extractorRadiusSqr - dz * dz) / buildGridSize - 1) -- Test for metal being included is dist < extractorRadius
+				local left, right = sRight[sz] - maxXOffset, sLeft[sz] + maxXOffset
+				if left  > vLeft  then vLeft  = left  end
+				if right < vRight then vRight = right end
+			end
 
+		end
+		validLeft[mz] = vLeft
+		validRight[mz] = vRight
+	end
+	spot.validLeft = validLeft
+	spot.validRight = validRight
+end
+
+local function GetBuildingPositions(spot, uDefID, facing, testBuild)
 	local xoff, zoff
-	local uDef = UnitDefs[uDefID]
 	if facing == 0 or facing == 2 then
-		xoff = (4 * uDef.xsize) % 16
-		zoff = (4 * uDef.zsize) % 16
+		xoff = unitXoff[uDefID]
+		zoff = unitZoff[uDefID]
 	else
-		xoff = (4 * uDef.zsize) % 16
-		zoff = (4 * uDef.xsize) % 16
+		xoff = unitZoff[uDefID]
+		zoff = unitXoff[uDefID]
 	end
 
 	if not spot.validLeft then
 		GetValidStrips(spot)
 	end
 
+	local positions = {}
 	local validLeft = spot.validLeft
 	local validRight = spot.validRight
 	for z, vLeft in pairs(validLeft) do
@@ -122,8 +146,7 @@ function GetBuildingPositions(spot, uDefID, facing, testBuild)
 	return positions
 end
 
-function IsBuildingPositionValid(spot, x, z)
-
+local function IsBuildingPositionValid(spot, x, z)
 	if z <= spot.maxZ - extractorRadius or
 	   z >= spot.minZ + extractorRadius then -- Test for metal being included is dist < extractorRadius
 		return false
@@ -145,7 +168,8 @@ end
 ------------------------------------------------------------
 -- Find metal spots
 ------------------------------------------------------------
-function GetSpotsMetal()
+
+local function GetSpotsMetal()
 
 	-- Main group collection
 	local uniqueGroups = {}
@@ -265,36 +289,6 @@ function GetSpotsMetal()
 	return spots
 end
 
-function GetValidStrips(spot)
-
-	local sMinZ, sMaxZ = spot.minZ, spot.maxZ
-	local sLeft, sRight = spot.left, spot.right
-
-	local validLeft = {}
-	local validRight = {}
-
-	local maxZOffset = buildGridSize * ceil(extractorRadius / buildGridSize - 1)
-	for mz = max(sMaxZ - maxZOffset, buildmapStartZ), min(sMinZ + maxZOffset, buildmapSizeZ), buildGridSize do
-		local vLeft, vRight = buildmapStartX, buildmapSizeX
-		if (spot.left and spot.right) then
-			for sz = sMinZ, sMaxZ, gridSize do
-				local dz = sz - mz
-				local maxXOffset = buildGridSize * ceil(sqrt(extractorRadiusSqr - dz * dz) / buildGridSize - 1) -- Test for metal being included is dist < extractorRadius
-				local left, right = sRight[sz] - maxXOffset, sLeft[sz] + maxXOffset
-				if left  > vLeft  then vLeft  = left  end
-				if right < vRight then vRight = right end
-			end
-
-		end
-		validLeft[mz] = vLeft
-		validRight[mz] = vRight
-	end
-
-	spot.validLeft = validLeft
-	spot.validRight = validRight
-end
-
-
 ------------------------------------------------------------
 -- Callins
 ------------------------------------------------------------
@@ -308,9 +302,9 @@ function widget:Initialize()
 	WG['resource_spot_finder'].IsMexPositionValid = IsBuildingPositionValid
 end
 
-local firstUpdate = true;
+local firstUpdate = true
 function widget:Update(dt)
-	if (firstUpdate) then
+	if firstUpdate then
 		--GetSpotsGeo() uses Spring.GetAllFeatures() which is empty at the time of widget:Initialize
 		WG['resource_spot_finder'].geoSpotsList = GetSpotsGeo()
 		firstUpdate = false

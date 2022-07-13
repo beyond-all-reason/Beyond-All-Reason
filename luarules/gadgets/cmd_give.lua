@@ -48,7 +48,7 @@ if gadgetHandler:IsSyncedCode() then
 		checkStartPlayers()
 	end
 
-	function giveunits(amount, unitName, teamID, x, z, playerID, xp)
+	local function giveunits(amount, unitName, teamID, x, z, playerID, xp)
 		local unitDefID
 		for udid, unitDef in pairs(UnitDefs) do
 			if unitDef.name == unitName then  unitDefID = udid break end
@@ -78,9 +78,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:RecvLuaMsg(msg, playerID)
 		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
 			return
-		end
-
-		if givenSomethingAtFrame == Spring.GetGameFrame() then
+		elseif givenSomethingAtFrame == Spring.GetGameFrame() then
 			return
 		end
 
@@ -93,12 +91,10 @@ if gadgetHandler:IsSyncedCode() then
 		if authorized == nil then
 			Spring.SendMessageToPlayer(playerID, "You are not authorized to give units")
 			return
-		end
-		if not spec then
+		elseif not spec then
 			Spring.SendMessageToPlayer(playerID, "You arent allowed to give units when playing")
 			return
-		end
-		if startPlayers[playername] ~= nil then
+		elseif startPlayers[playername] ~= nil then
 			Spring.SendMessageToPlayer(playerID, "You arent allowed to give units when you have been a player")
 			return
 		end
@@ -107,52 +103,14 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
-	local function setGaiaUnitSpecifics(unitID)
-		Spring.SetUnitNeutral(unitID, true)
-		Spring.SetUnitNoSelect(unitID, true)
-		Spring.SetUnitStealth(unitID, true)
-		Spring.SetUnitNoMinimap(unitID, true)
-		--Spring.SetUnitMaxHealth(unitID, 2)
-		Spring.SetUnitBlocking(unitID, false)
-		Spring.SetUnitSensorRadius(unitID, 'los', 0)
-		Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
-		Spring.SetUnitSensorRadius(unitID, 'radar', 0)
-		Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
-		for weaponID, _ in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
-			Spring.UnitWeaponHoldFire(unitID, weaponID)
-		end
-	end
-
-	local isObjectUnit = {}
-	if UnitDefNames['armstone'] ~= nil and UnitDefNames['corstone'] ~= nil then
-		isObjectUnit[UnitDefNames['armstone'].id] = true
-		isObjectUnit[UnitDefNames['corstone'].id] = true
-	end
-	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		if isObjectUnit[unitDefID] then
-			setGaiaUnitSpecifics(unitID)
-		end
-	end
-
 else	-- UNSYNCED
 
-	local authorizedPlayers = SYNCED.permissions.give
+	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID,false)
+	local authorized = SYNCED.permissions.give[myPlayerName]
 
-	function gadget:Initialize()
-		gadgetHandler:AddChatAction(cmdname, RequestGive)
-	end
-
-	function gadget:Shutdown()
-		gadgetHandler:RemoveChatAction(cmdname)
-	end
-
-	function RequestGive(cmd, line, words, playerID)
-		local playername = Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)
-		local authorized = false
-		if authorizedPlayers[playername] then
-			authorized = true
-		end
-		if authorized then
+	local function RequestGive(cmd, line, words, playerID)
+		if authorized and playerID == myPlayerID then
 			local mx,my = Spring.GetMouseState()
 			local targettype,pos = Spring.TraceScreenRay(mx,my)
 			if targettype == 'unit' then
@@ -166,6 +124,13 @@ else	-- UNSYNCED
 				Spring.SendMessageToPlayer(playerID, "failed to give, check syntax or cursor position")
 			end
 		end
+	end
+
+	function gadget:Initialize()
+		gadgetHandler:AddChatAction(cmdname, RequestGive)
+	end
+	function gadget:Shutdown()
+		gadgetHandler:RemoveChatAction(cmdname)
 	end
 end
 

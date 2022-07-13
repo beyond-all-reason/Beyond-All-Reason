@@ -39,10 +39,12 @@ function LabBuildHST:MyUnitBuilt(engineUnit)
 end
 
 function LabBuildHST:Update()
-	local f = self.game:Frame()
-	if f % 401 ~= 0 then
-		return
-	end
+-- 	local f = self.game:Frame()
+-- 	if f % 401 ~= 0 then
+-- 		return
+-- 	end
+	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
+
 	self:UpdateFactories()
 end
 
@@ -209,7 +211,6 @@ function LabBuildHST:ConditionsToBuildFactories(builder)
 end
 
 function LabBuildHST:GetBuilderFactory(builder)
-	--self.game:StartTimer('GetBuilderFactory'  .. '1')
 	local builderID = builder:ID()
 	local builderName = builder:Name()
 	local f = self.game:Frame()

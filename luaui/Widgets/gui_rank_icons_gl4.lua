@@ -10,9 +10,8 @@ function widget:GetInfo()
 	}
 end
 
-local iconsize = 40
+local iconsize = 1
 local iconoffset = 24
-local scaleIconAmount = 84
 
 local falloffDistance = 1300
 local cutoffDistance = 2300
@@ -35,8 +34,6 @@ end
 local xpPerLevel = maximumRankXP/(numRanks-1)
 
 local unitHeights = {}
-
-local unitUsedIconsize = usedIconsize
 
 -- GL4 stuff:
 local atlasID = nil
@@ -71,35 +68,19 @@ local function makeAtlas()
 	end
 end
 
--- speed-ups
-
 local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local GetUnitDefID = Spring.GetUnitDefID
 local GetUnitExperience = Spring.GetUnitExperience
 local GetAllUnits = Spring.GetAllUnits
 local IsUnitAllied = Spring.IsUnitAllied
-local IsUnitInView = Spring.IsUnitInView
-local IsUnitIcon = Spring.IsUnitIcon
 local GetSpectatingState = Spring.GetSpectatingState
-local GetCameraPosition = Spring.GetCameraPosition
-local GetUnitPosition = Spring.GetUnitPosition
 
 local glDepthTest = gl.DepthTest
 local glDepthMask = gl.DepthMask
 local glAlphaTest = gl.AlphaTest
 local glTexture = gl.Texture
-local glTexRect = gl.TexRect
-local glTranslate = gl.Translate
-local glBillboard = gl.Billboard
-local glColor = gl.Color
-local glDrawFuncAtUnit = gl.DrawFuncAtUnit
 
 local GL_GREATER = GL.GREATER
-
-local min = math.min
-local max = math.max
-local floor = math.floor
-local diag = math.diag
 
 local unitIconMult = {}
 local isAirUnit = {}
@@ -121,7 +102,6 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	--load config
 	if data.distanceMult ~= nil then
 		distanceMult = data.distanceMult
 		usedFalloffDistance = falloffDistance * distanceMult
@@ -157,15 +137,15 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, fla
 	--Spring.Echo (rank, rankTextures[rank], unitIconMult[unitDefID])
 	local p,q,s,t = gl.GetAtlasTexture(atlasID, rankTextures[rank])
 
-	vbocachetable[1] = unitUsedIconsize/40.0 -- length
-	vbocachetable[2] = unitUsedIconsize/40.0 -- widgth
+	vbocachetable[1] = usedIconsize -- length
+	vbocachetable[2] = usedIconsize -- widgth
 	vbocachetable[3] = 0 -- cornersize
-	vbocachetable[4] = unitHeights[unitDefID] - 8 + ((debugmode and math.random()*16 ) or 0)-- height
+	vbocachetable[4] = (unitHeights[unitDefID] or iconoffset) - 8 + ((debugmode and math.random()*16 ) or 0)-- height
 
 	--vbocachetable[5] = 0 -- Spring.GetUnitTeam(unitID)
 	vbocachetable[6] = 4 -- numvertices
 
-	vbocachetable[7] = gf -- gameframe for animations
+	vbocachetable[7] = gf-(doRefresh and 200 or 0) -- gameframe for animations
 	vbocachetable[8] = unitIconMult[unitDefID] -- size mult
 	vbocachetable[9] = 1.0 -- alpha
 	--vbocachetable[10] = 0 -- unused
@@ -203,8 +183,6 @@ local function RemovePrimitive(unitID,reason)
 end
 
 function initGL4()
-	makeAtlas()
-
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.BILLBOARD = 1
@@ -227,8 +205,16 @@ function initGL4()
 
 	if debugmode then shaderConfig.POST_SHADING = shaderConfig.POST_SHADING .. " fragColor.a += 0.25;" end
 	rankVBO, rankShader = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit(shaderConfig, "Rank Icons")
+	if rankVBO == nil then
+		widgetHandler:RemoveWidget()
+		return false
+	end
+
+	makeAtlas()
+
 	if debugmode then rankVBO.debug = true end
 	--ProcessAllUnits()
+	return true
 end
 
 local function getRank(unitDefID, xp)
@@ -273,6 +259,7 @@ function widget:Initialize()
 	WG['rankicons'].setScale = function(value)
 		iconsizeMult = value
 		usedIconsize = iconsize * iconsizeMult
+		doRefresh = true
 	end
 	WG['rankicons'].getRank = function(unitDefID, xp)
 		return getRank(unitDefID, xp)
@@ -285,7 +272,7 @@ function widget:Initialize()
 		unitHeights[unitDefID] = ud.height + iconoffset
 	end
 
-	initGL4()
+	if not initGL4() then return end
 
 	local allUnits = GetAllUnits()
 	for i = 1, #allUnits do

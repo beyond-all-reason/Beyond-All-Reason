@@ -296,8 +296,8 @@ HitByWeapon(anglex, anglez)
 	}
 	if( Static_Var_5 )
 	{
-		signal 4;
-		set-signal-mask 4;
+		signal SIG_ACTIVATE;
+		set-signal-mask SIG_ACTIVATE;
 		set ACTIVATION to 0;
 		sleep 8000;
 		Static_Var_5 = 0;

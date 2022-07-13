@@ -31,7 +31,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 1,
 		maxwaterdepth = 0,
-		movementclass = "CHICKBIG2",
+		movementclass = "CHICKBIG2HOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Chickens/chickena2.s3o",
@@ -54,6 +54,7 @@ return {
 		turnrate = 920,
 		unitname = "chickena2",
 		upright = false,
+		waterline = 30,
 		workertime = 0,
 		customparams = {
 			maxrange = "200",

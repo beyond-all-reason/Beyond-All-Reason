@@ -236,9 +236,11 @@ local numberOfEnemies = 0
 --To determine faction at start
 local sideOneDefID = UnitDefNames.armcom.id
 local sideTwoDefID = UnitDefNames.corcom.id
+local sideThreeDefID = UnitDefNames.legcomdef.id
 
 local teamSideOne = "armada"
 local teamSideTwo = "cortex"
+local teamSideThree = "legion"
 
 --Name for absent/resigned players
 local absentName = " --- "
@@ -1099,6 +1101,9 @@ function SetSidePics()
             end
             if startunit == sideTwoDefID then
                 teamSide = teamSideTwo
+            end
+            if startunit == sideThreeDefID then
+                teamSide = teamSideThree
             end
         else
             _, _, _, _, teamSide = Spring_GetTeamInfo(team, false)
@@ -2807,7 +2812,7 @@ function widget:MousePress(x, y, button)
 
         -- enemies label onclick
         posY = widgetPosY + widgetHeight - enemyLabelOffset
-        if IsOnRect(x, y, widgetPosX + 2, posY + 2, widgetPosX + widgetWidth - 2, posY + 20) then
+        if numberOfEnemies > 0 and IsOnRect(x, y, widgetPosX + 2, posY + 2, widgetPosX + widgetWidth - 2, posY + 20) then
             enemyListShow = not enemyListShow
             SetModulesPositionX() --why?
             SortList()

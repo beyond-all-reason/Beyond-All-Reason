@@ -221,27 +221,27 @@ void main() {
 	vec4 color;
 	color = mix(color1, color2, colormix);
 
-	const float valueNoiseMovePace = 0.25;
+	const float valueNoiseMovePace = 0.22;
 
 	vec3 valueNoiseVec = modelPos.xyz * translationScale.www;
 	valueNoiseVec.y += gameFrame * valueNoiseMovePace;
 	float valueNoise = Value3D(valueNoiseVec);
 
 	if (BITMASK_FIELD(effects, 6)) {
-		const float perlinNoiseMovePace = 0.003;
+		const float perlinNoiseMovePace = 0.0023;
 		float waveFront = mod(-gameFrame * 0.0020, 0.5);
 
 		vec3 perlinNoiseVec = modelPos.xyz;
 		//perlinNoiseVec.y += gameFrame * perlinNoiseMovePace;
 
 		//float perlin = 0.33 * abs(SimplexPerlin3D(perlinNoiseVec * 50.0)) + 0.5 * abs(SimplexPerlin3D(perlinNoiseVec * 0.5));
-		float perlin = 10 * abs(StrangeSurface(modelPos.xyz, 5.0, gameFrame * perlinNoiseMovePace));
+		float perlin = 10 * abs(StrangeSurface(modelPos.xyz, 4.0, gameFrame * perlinNoiseMovePace));
 
 		float band = SNORM2NORM(cos((modelPos.y - waveFront) * PI * 4.0));
 
-		float pb = pow( clamp(perlin * band, 0.0, 0.8), 0.25 );
+		float pb = pow( clamp(perlin * band, 0.0, 0.8), 0.6 );
 
-		color = pow(color, vec4(1.2 - pb));
+		color = pow(color, vec4(1.3 - pb));
 	}
 
 	if (BITMASK_FIELD(effects, 1) || BITMASK_FIELD(effects, 2)) {

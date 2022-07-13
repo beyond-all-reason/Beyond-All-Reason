@@ -11,6 +11,8 @@ function widget:GetInfo()
 	}
 end
 
+local displayFeatureCount = false
+
 local vsx, vsy = Spring.GetViewGeometry()
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
@@ -64,6 +66,11 @@ local function updateValues()
 		local valueColor = '\255\255\255\255'
 		local myTotalUnits = Spring.GetTeamUnitCount(Spring.GetMyTeamID())
 		local text = Spring.I18N('ui.unitTotals.totals', { titleColor = titleColor, textColor = valueColor, units = myTotalUnits, maxUnits = gameMaxUnits, totalUnits = totalUnits })
+
+		if displayFeatureCount then
+			local features = Spring.GetAllFeatures()
+			text = text..'    '..#features
+		end
 
 		font:Begin()
 		font:Print(text, left+textXPadding, bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')

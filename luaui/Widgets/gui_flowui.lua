@@ -697,7 +697,7 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 	if texture then
 		gl.Texture(texture)
 	end
-	gl.BeginEnd(GL.QUADS, DrawTexRectRound, px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom)
+	gl.BeginEnd(GL.QUADS, DrawTexRectRound, px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom+0.02)
 	if texture then
 		gl.Texture(false)
 	end
@@ -734,7 +734,8 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 		local iconSize = math.floor((sx - px) * 0.3)
 		gl.Color(1, 1, 1, 0.9)
 		gl.Texture(groupTexture)
-		gl.TexRect(px, sy - iconSize, px + iconSize, sy)
+		gl.BeginEnd(GL.QUADS, DrawTexRectRound, px, sy - iconSize, px + iconSize, sy,  0,  0,0,0,0,  0.05)	-- this method with a lil zoom prevents faint edges aroudn the image
+		--	gl.TexRect(px, sy - iconSize, px + iconSize, sy)
 		gl.Texture(false)
 	end
 	if radarTexture then
@@ -742,7 +743,8 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 		local iconPadding = math.floor((sx - px) * 0.03)
 		gl.Color(1, 1, 1, 0.9)
 		gl.Texture(radarTexture)
-		gl.TexRect(sx - iconPadding - iconSize, py + iconPadding, sx - iconPadding, py + iconPadding + iconSize)
+		gl.BeginEnd(GL.QUADS, DrawTexRectRound, sx - iconPadding - iconSize, py + iconPadding, sx - iconPadding, py + iconPadding + iconSize,  0,  0,0,0,0,  0.05)	-- this method with a lil zoom prevents faint edges aroudn the image
+		--gl.TexRect(sx - iconPadding - iconSize, py + iconPadding, sx - iconPadding, py + iconPadding + iconSize)
 		gl.Texture(false)
 	end
 	if price then
@@ -843,7 +845,7 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 		local boolGlow = radius * 1.75
 		gl.Blending(GL.SRC_ALPHA, GL.ONE)
 		gl.Color(color[1], color[2], color[3], 0.33 * glowMult)
-		gl.Texture(":l:LuaUI/Images/glow.dds")
+		gl.Texture("LuaUI/Images/glow.dds")
 		gl.TexRect(x-boolGlow, y-boolGlow, x+boolGlow, y+boolGlow)
 		boolGlow = boolGlow * 2.2
 		gl.Color(0.55, 1, 0.55, 0.1 * glowMult)

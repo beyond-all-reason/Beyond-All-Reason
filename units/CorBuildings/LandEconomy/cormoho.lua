@@ -37,8 +37,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/cormoho_aoplane.dds",
-			buildinggrounddecalsizey = 8,
-			buildinggrounddecalsizex = 8,
+			buildinggrounddecalsizey = 7.6,
+			buildinggrounddecalsizex = 7.6,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'metal',
 			cvbuildable = true,

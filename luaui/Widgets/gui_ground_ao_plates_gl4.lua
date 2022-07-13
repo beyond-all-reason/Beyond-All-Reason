@@ -32,7 +32,7 @@ local function addDirToAtlas(atlas, path)
 end
 
 local function makeAtlas()
-	atlasID = gl.CreateTextureAtlas(atlasSize,atlasSize,0)
+	atlasID = gl.CreateTextureAtlas(atlasSize,atlasSize,1)
 	addDirToAtlas(atlasID, "unittextures/decals/")
 	gl.FinalizeTextureAtlas(atlasID)
 end
@@ -91,7 +91,9 @@ function widget:DrawWorldPreUnit()
 		groundPlateShader:Deactivate()
 		glTexture(0, false)
 		glCulling(false)
-		glDepthTest(false)
+		gl.DepthTest(GL.ALWAYS)
+		gl.DepthTest(false)
+		gl.DepthMask(false)
 	end
 end
 

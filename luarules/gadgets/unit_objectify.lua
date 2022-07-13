@@ -50,21 +50,16 @@ else -- UNSYNCED
 
 
     local CMD_MOVE = CMD.MOVE
-    local spGetMouseState = Spring.GetMouseState
-    local spTraceScreenRay = Spring.TraceScreenRay
     local spGetUnitDefID = Spring.GetUnitDefID
 
-    function gadget:DefaultCommand()
-		local mx,my = spGetMouseState()
-		local s,uID = spTraceScreenRay(mx,my)
-        if s ~= "unit" then return end
-		-- make sure a command given on top of a objectified unit is a move command
-        if isObject[spGetUnitDefID(uID)] then
-            if select(4, Spring.GetUnitHealth(uID)) == 1 then
-                return CMD_MOVE
-            end
-        end
-        return
+    function gadget:DefaultCommand(type, id, cmd)
+		if type == "unit" and cmd ~= CMD_MOVE and isObject[spGetUnitDefID(id)] then
+			-- make sure a command given on top of a objectified unit is a move command
+			if select(4, Spring.GetUnitHealth(id)) == 1 then
+				return CMD_MOVE
+			end
+		end
+		return
     end
 
 end

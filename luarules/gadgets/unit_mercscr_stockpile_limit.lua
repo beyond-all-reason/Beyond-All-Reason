@@ -1,8 +1,8 @@
 function gadget:GetInfo()
     return {
-        name      = 'Merc/Scr stockpile control',
-        desc      = 'Limits Mercury/Screamer stockpile to 5 missiles at any time',
-        author    = 'Bluestone',
+        name      = 'Stockpile control',
+        desc      = 'Limits Stockpile to set amount',
+        author    = 'Bluestone, Damgam',
         version   = 'v1.0',
         date      = '23/04/2013',
         license   = 'WTFPL',
@@ -13,22 +13,31 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	local isStockpilingAA = {}
-	for udid, ud in pairs(UnitDefs) do
-		if string.find(ud.name, 'armmercury') or string.find(ud.name, 'corscreamer') then
-			isStockpilingAA[udid] = true
-		end
+	local isStockpilingUnit = { -- number represents maximum stockpile
+		[UnitDefNames['armmercury'].id] = 5,
+		[UnitDefNames['corscreamer'].id] = 5,
+
+		--[UnitDefNames['armthor'].id] = 10,
+		[UnitDefNames['legmos'].id] = 4,
+		[UnitDefNames['legmineb'].id] = 1,
+	}
+  
+	local isStockpilingUnitScav = {}
+	for defID, maxCount in pairs(isStockpilingUnit) do
+		isStockpilingUnitScav[UnitDefNames[UnitDefs[defID].name .. "_scav"].id] = maxCount
 	end
-	local pilelimit = 5
+
+	table.mergeInPlace(isStockpilingUnit, isStockpilingUnitScav)
 
 	local CMD_STOCKPILE = CMD.STOCKPILE
 	local CMD_INSERT = CMD.INSERT
 	local SpGiveOrderToUnit = Spring.GiveOrderToUnit
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) -- Can't use StockPileChanged because that doesn't get called when the stockpile queue changes
-		if unitID and isStockpilingAA[unitDefID] then
+		if unitID then
 			if cmdID == CMD_STOCKPILE or (cmdID == CMD_INSERT and cmdParams[2]==CMD_STOCKPILE) then
 				local pile,pileQ = Spring.GetUnitStockpile(unitID)
+				local pilelimit = isStockpilingUnit[unitDefID] or 99
 				local addQ = 1
 				if cmdOptions.shift then
 					if cmdOptions.ctrl then
@@ -85,5 +94,4 @@ else
 	end
 
 end
-
 

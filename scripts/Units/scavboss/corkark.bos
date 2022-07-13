@@ -9,7 +9,7 @@ piece  torso, rflare, lflare, pelvis,
 	   backpack, neck, head;
 
 static-var  bMoving, bAiming, ReadyToAim, restore_delay, gun_1, wpn1_lasthead, statechg_DesiredState,
-			statechg_StateChanging, WALK_PERIOD, moveSpeed;
+			statechg_StateChanging, WALK_PERIOD, moveSpeed, tdamage, shieldup;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -39,6 +39,22 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
+	tdamage = dmg + tdamage;
+	if ((tdamage > 30000) AND (shieldup == 1))
+	{
+		explode Shield type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
+		hide Shield;
+		explode Shldbot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
+		hide Shldbot;
+		explode Shldout type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
+		hide Shldout;
+		explode Shldin type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
+		hide Shldin;
+		explode Shldtop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;	
+		hide Shldtop;
+		set ARMORED to 0;
+		shieldup = 0;
+	}
 	return (100); //return damage percent
 }
 
@@ -283,6 +299,14 @@ holster()
 	move shldtop to x-axis [0] speed [3.3];
 	move shldtop to y-axis [0] speed [4.4];
 	move shldtop to z-axis [0] speed [1.1];
+	show Shield;
+	show Shldbot;
+	show Shldout;
+	show Shldin;
+	show Shldtop;
+	tdamage = 0;
+	set ARMORED to 1;
+	shieldup = 1;
 	sleep 100;
 	return (0);
 }
@@ -372,8 +396,11 @@ Create()
 	bMoving = FALSE;
 	bAiming = FALSE;
 	ReadyToAim = 0;
-	restore_delay = 1000;
+	restore_delay = 10000;
 	gun_1 = rflare;
+	tdamage = 0;
+	shieldup = 1;
+	set ARMORED to 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
@@ -381,7 +408,7 @@ Create()
 
 SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = Func_Var_1;
+	restore_delay = 10000;
 }
 
 SweetSpot(piecenum)
@@ -404,6 +431,7 @@ ExecuteRestoreAfterDelay()
 	wpn1_lasthead = 1000000;
 	bAiming = FALSE;
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -411,6 +439,7 @@ SetStunned(State)
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
+
 RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM;

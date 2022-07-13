@@ -1490,9 +1490,13 @@ function widget:GameFrame(n)
 			local shieldOn, shieldPower = Spring.GetUnitShieldState(unitID)
 			if shieldOn == false then shieldPower = 0.0 end
 			if oldshieldPower ~= shieldPower then
+				if shieldPower == nil then 
+					removeBarFromUnit(unitID, "shield", "unitShieldWatch")
+				else
+					uniformcache[1] = shieldPower / (unitDefhasShield[Spring.GetUnitDefID(unitID)])
+					gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
+				end
 				unitShieldWatch[unitID] = shieldPower
-				uniformcache[1] = shieldPower / (unitDefhasShield[Spring.GetUnitDefID(unitID)])
-				gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
 			end
 		end
 	end

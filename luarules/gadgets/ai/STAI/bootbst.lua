@@ -37,53 +37,57 @@ function BootBST:OwnerDead()
 end
 
 function BootBST:Update()
+	 --self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
-	if f % 41 == 0 then
-		if not self.finished then return end
-		if self.ignoreFactories then return end
+	--if f - self.uFrame < self.ai.behUp['bootbst']  then
+	--	return
+	--end
+	--self.uFrame = f
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'BootBST' then return end
+	if not self.finished then return end
+	if self.ignoreFactories then return end
 
 
 
-		if self.repairedBy then
-			--if f % 30 == 0 then
-				if self.unit:Internal():GetHealth() == self.unit:Internal():GetMaxHealth() then
-					self.repairedBy:ResurrectionComplete()
-					self.repairedBy = nil
-					self.unit:ElectBehaviour()
+	if self.repairedBy then
+		--if f % 30 == 0 then
+			if self.unit:Internal():GetHealth() == self.unit:Internal():GetMaxHealth() then
+				self.repairedBy:ResurrectionComplete()
+				self.repairedBy = nil
+				self.unit:ElectBehaviour()
+			end
+		--end
+		return
+	end
+
+
+
+	if self.factory then
+		--if f % 30 == 0 then
+			local u = self.unit:Internal()
+			local pos = u:GetPosition()
+			-- self:EchoDebug(pos.x .. " " .. pos.z .. " " .. self.factory.exitRect.x1 .. " " .. self.factory.exitRect.z1 .. " " .. self.factory.exitRect.x2 .. " " .. self.factory.exitRect.z2)
+			if not self.ai.tool:PositionWithinRect(pos, self.factory.exitRect) then
+				self.factory = nil
+				self.unit:ElectBehaviour()
+			elseif self.active and self.lastOrderFrame and self.lastExitSide then
+				-- twelve seconds after the first attempt, try a different side
+				-- if there's only one side, try it again
+				if f > self.lastOrderFrame + 360 then
+					local face, nsew =self.ai.buildsitehst:GetFacing(pos)
+					self:ExitFactory(face)
+
 				end
-			--end
-			return
-		end
-
-
-
-		if self.factory then
-			--if f % 30 == 0 then
-				local u = self.unit:Internal()
-				local pos = u:GetPosition()
-				-- self:EchoDebug(pos.x .. " " .. pos.z .. " " .. self.factory.exitRect.x1 .. " " .. self.factory.exitRect.z1 .. " " .. self.factory.exitRect.x2 .. " " .. self.factory.exitRect.z2)
-				if not self.ai.tool:PositionWithinRect(pos, self.factory.exitRect) then
-					self.factory = nil
-					self.unit:ElectBehaviour()
-				elseif self.active and self.lastOrderFrame and self.lastExitSide then
-					-- twelve seconds after the first attempt, try a different side
-					-- if there's only one side, try it again
-					if f > self.lastOrderFrame + 360 then
-						local face, nsew =self.ai.buildsitehst:GetFacing(pos)
-						self:ExitFactory(face)
-
-					end
-				end
-			--end
-		else
-			if f > self.lastInFactoryCheck + 300 then
-				-- units (especially construction units) can still get stuck in factories long after they're built
-				self.lastInFactoryCheck = f
-				self:FindMyFactory()
-				if self.factory then
-					self:EchoDebug(self.name .. " is in a factory")
-					self.unit:ElectBehaviour()
-				end
+			end
+		--end
+	else
+		if f > self.lastInFactoryCheck + 300 then
+			-- units (especially construction units) can still get stuck in factories long after they're built
+			self.lastInFactoryCheck = f
+			self:FindMyFactory()
+			if self.factory then
+				self:EchoDebug(self.name .. " is in a factory")
+				self.unit:ElectBehaviour()
 			end
 		end
 	end
@@ -116,9 +120,7 @@ end
 function BootBST:SetMoveState()
 	local thisUnit = self.unit
 	if thisUnit then
-		local floats = api.vectorFloat()
-		floats:push_back(MOVESTATE_HOLDPOS)
-		thisUnit:Internal():ExecuteCustomCommand(CMD_MOVE_STATE, floats)
+		thisUnit:Internal():HoldPosition()
 	end
 end
 

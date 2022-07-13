@@ -4,7 +4,6 @@ function BombardBST:Name()
 	return "BombardBST"
 end
 
-local CMD_ATTACK = 20
 local valueThreatThreshold = 1600 -- any cell above this level of value+threat will be shot at manually
 
 function BombardBST:Init()
@@ -20,13 +19,7 @@ end
 function BombardBST:Fire()
 	if self.target ~= nil then
 		self:EchoDebug("firing")
-		local floats = api.vectorFloat()
-		-- populate with x, y, z of the position
-		floats:push_back(self.target.x)
-		floats:push_back(self.target.y)
-		floats:push_back(self.target.z)
-		self.unit:Internal():MoveAndFire(floats) --TEST
-		--self.unit:Internal():ExecuteCustomCommand(CMD_ATTACK, floats)
+		self.unit:Internal():MoveAndFire(self.target) --TEST
 		self.lastFireFrame = self.game:Frame()
 	end
 end
@@ -43,13 +36,16 @@ function BombardBST:OwnerIdle()
 end
 
 function BombardBST:Update()
+	 --self.uFrame = self.uFrame or 0
 	if not self.active then
 		return
 	end
 	local f = self.game:Frame()
-	if f % 307 ~= 0 then
-		return
-	end
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'BombardBST' then return end
+	--if f - self.uFrame < self.ai.behUp['bombardbst']  then
+	--	return
+	--end
+	self.uFrame = f
 	self:EchoDebug("retargeting")
 	--local bestCell, valueThreat, buildingID = self.ai.targethst:GetBestBombardCell(self.position, self.range, valueThreatThreshold)
 	local bestCell, valueThreat, buildingID = self:GetTarget()
@@ -89,15 +85,15 @@ function BombardBST:GetTarget(unit)
 	local bestCell = nil
 	local bestValue = 0
 	for index,G in pairs(self.ai.targethst.ENEMYCELLS) do
-		local cell = self.ai.targethst.CELLS[G.gx][G.Gx]
-		if self.ai.tool:Distance(self.position,sell.pos) < self.range then
+		local cell = self.ai.targethst.CELLS[G.x][G.z]
+		if self.ai.tool:Distance(self.position,cell.pos) < self.range then
 			if cell.ENEMY > bestValue then
 				bestCell = cell
 				bestValue = cell.ENEMY
 			end
 		end
 	end
-	return bestValue
+	return bestCell, bestValue
 end
 
 function BombardBST:IsBombardPosition(position, unitName) --example: there are more than bertha * 2 metal to bombard around?
