@@ -1002,6 +1002,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
+		return squadCounter
 	end
 
 	local function Wave()
@@ -1058,7 +1059,6 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		local overseerSpawned = false
-		local cleanersSpawned = false
 		local scoutSpawned = false
 		local loopCounter = 0
 		local squadCounter = 0
@@ -1091,10 +1091,10 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 				end
-				if cleanersSpawned == false and mRandom() > config.spawnChance then
+				if mRandom() > config.spawnChance then
 					if currentWave >= 2 then
 						local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
-						local targetCleaners = currentWave*SetCount(humanTeams)
+						local targetCleaners = currentWave*SetCount(humanTeams)*config.chickenSpawnMultiplier
 						local cleanerSpawnCount = math.ceil((targetCleaners - aliveCleaners)*0.25)
 						if cleanerSpawnCount > 0 then
 							if math.random(0,1) == 0 then
@@ -1110,21 +1110,16 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 					end
-					cleanersSpawned = true
 				elseif overseerSpawned == false and mRandom() > config.spawnChance then
-					if currentWave >= 5 and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh5"].id) < SetCount(humanTeams) then
-						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh5", team = chickenTeamID, squadID = 1})
-						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = 2})
-						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = 3})
-						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = 4})
-						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = 5})
-						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = 6})
-						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = 7})
-						cCount = cCount + 7
+					if currentWave >= 5 and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh5"].id) < SetCount(humanTeams)*config.chickenSpawnMultiplier then
+						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh5", team = chickenTeamID, })
+						cCount = cCount + 1
+						cCount = cCount + SpawnRandomOffWaveSquad(burrowID, "chickenh1", 10)
+						cCount = cCount + SpawnRandomOffWaveSquad(burrowID, "chickenh1b", 10)
 					end
 					overseerSpawned = true
 				elseif scoutSpawned == false and mRandom() > config.spawnChance then
-					if currentWave >= 5 and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenf2"].id) < SetCount(humanTeams) then
+					if currentWave >= 5 and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenf2"].id) < SetCount(humanTeams)*config.chickenSpawnMultiplier then
 						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenf2", team = chickenTeamID, })
 						cCount = cCount + 1
 					end
