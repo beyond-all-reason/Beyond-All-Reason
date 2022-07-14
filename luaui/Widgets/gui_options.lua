@@ -4563,9 +4563,11 @@ function init()
 	-- reset tonemap defaults (only once)
 	if not resettedTonemapDefault then
 		local optionID = getOptionByID('tonemapDefaults')
-		options[optionID].value = true
-		applyOptionValue(optionID)
-		resettedTonemapDefault = true
+		if optionID then
+			options[optionID].value = true
+			applyOptionValue(optionID)
+			resettedTonemapDefault = true
+		end
 	end
 
 	if not devMode then
