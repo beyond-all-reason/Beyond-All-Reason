@@ -538,7 +538,7 @@
 				"legcomt2def": "Tactical Defense Commander",
 				"legcomt2off": "Tactical Offense Commander",
 				"legcomt2com": "Combat Commander",
-				"legfig": "Fighter Drone"
+				"legfig": "Fighter/Scout Drone"
 				"legfort": "Legion Flying Fortress",
 				"leggat": "Gatling",
 				"leggob": "Goblin",
@@ -1138,7 +1138,7 @@
 				"legcib": "Drops a Juno Bomb to Remove Mines, Scouts, Radars, and Jammers",
 				"legck": "Construction Bot",
 				"legcv": "Construction Vehicle",
-				"legfig": "Fighter Drone",
+				"legfig": "Fighter/Scout Drone",
 				"legfort": "Flying Fortress",
 				"leggat": "Medium Assault Tank",
 				"leggob": "Light Skirmish Bot",
