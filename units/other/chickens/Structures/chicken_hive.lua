@@ -1,5 +1,5 @@
 return {
-	roost = {
+	chicken_hive = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		autoheal = 1.8,
@@ -49,7 +49,7 @@ return {
 			subfolder = "other/chickens",
 			model_author = "LathanStanley, Beherith",
 			normalmaps = "yes",
-			normaltex = "unittextures/chicken_hive_normals.tga",
+			normaltex = "unittextures/chicken_l_normals.png",
 			--treeshader = "yes",
 		},
 		featuredefs = {},

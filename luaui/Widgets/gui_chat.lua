@@ -1346,6 +1346,9 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 		cursorBlinkTimer = 0
 		autocomplete(inputText)
 		updateTextInputDlist = true
+		if WG['limitidlefps'] and WG['limitidlefps'].update then
+			WG['limitidlefps'].update()
+		end
 		return true
 	end
 end
