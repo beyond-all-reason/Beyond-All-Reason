@@ -665,8 +665,9 @@ function widget:Update(dt)
 		local prevIsOffscreen = isOffscreen
 		isOffscreen = select(6, Spring.GetMouseState())
 		if isOffscreen ~= prevIsOffscreen then
+			local prevIsOffscreenTime = isOffscreenTime
 			isOffscreenTime = os.clock()
-			if isOffscreen then
+			if isOffscreen and not prevIsOffscreenTime then
 				prevOffscreenVolume = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40)
 			end
 		end
