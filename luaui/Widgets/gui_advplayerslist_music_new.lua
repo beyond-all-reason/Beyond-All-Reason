@@ -762,7 +762,7 @@ function PlayNewTrack(paused)
 		if fadeDirection then
 			setMusicVolume(fadeLevel)
 		else
-			Spring.SetSoundStreamVolume(maxMusicVolume)
+			setMusicVolume(100)
 		end
 	end
 
