@@ -217,11 +217,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-
-		if chickenteamhasplayers then
-			config.gracePeriod = math.ceil(config.gracePeriod*0.25)
-			SetGameRulesParam("gracePeriod", config.gracePeriod)
-		end
 	end
 
 	--------------------------------------------------------------------------------
