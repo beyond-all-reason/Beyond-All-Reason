@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 14000,
 		buildcostmetal = 280,
 		buildpic = "LEGNAP.DDS",
-		buildtime = 28000,
+		buildtime = 24000,
 		canfly = true,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON VTOL NOTSUB NOTSHIP NOTHOVER",
