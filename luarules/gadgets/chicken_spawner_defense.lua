@@ -298,6 +298,7 @@ if gadgetHandler:IsSyncedCode() then
 	local maxBurrows = config.maxBurrows
 	local queenTime = (config.queenTime + config.gracePeriod)
 	local maxWaveSize = ((config.maxChickens*0.5)+(config.maxChickens*0.5)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+	local currentMaxWaveSize = 1
 	if config.swarmMode then
 		swarmMultiplier = 10
 	else
@@ -337,6 +338,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
 		maxBurrows = config.maxBurrows
 		maxWaveSize = ((config.maxChickens*0.5)+(config.maxChickens*0.5)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+		currentMaxWaveSize = 1
 	end
 
 	--------------------------------------------------------------------------------
@@ -1012,6 +1014,7 @@ if gadgetHandler:IsSyncedCode() then
 		if gameOver then
 			return
 		end
+		currentMaxWaveSize = math.ceil((queenAnger*0.01)*maxWaveSize)
 		squadManagerKillerLoop()
 		
 		local queenAngerPerTier = 100/#config.waves
@@ -1068,7 +1071,7 @@ if gadgetHandler:IsSyncedCode() then
 		repeat
 			loopCounter = loopCounter + 1
 			for burrowID in pairs(burrows) do
-				if cCount < maxWaveSize then
+				if cCount < currentMaxWaveSize then
 					for mult = 1,config.chickenSpawnMultiplier do
 						squadCounter = 0
 						local waveLevelPower = mRandom(1, currentWave^2)
@@ -1080,7 +1083,7 @@ if gadgetHandler:IsSyncedCode() then
 						end
 						if not skipSpawn then
 							for i, sString in pairs(squad) do
-								if cCount < maxWaveSize then
+								if cCount < currentMaxWaveSize then
 									local nEnd, _ = string.find(sString, " ")
 									local unitNumber = math.random(1, string.sub(sString, 1, (nEnd - 1)))
 									local chickenName = string.sub(sString, (nEnd + 1))
@@ -1129,7 +1132,7 @@ if gadgetHandler:IsSyncedCode() then
 					scoutSpawned = true
 				end
 			end
-		until (cCount > maxWaveSize or loopCounter >= currentWave)
+		until (cCount > currentMaxWaveSize or loopCounter >= currentWave)
 
 		return cCount
 	end
