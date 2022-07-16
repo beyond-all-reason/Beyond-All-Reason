@@ -1134,7 +1134,7 @@ if gadgetHandler:IsSyncedCode() then
 					scoutSpawned = true
 				end
 			end
-		until (cCount > currentMaxWaveSize or loopCounter >= currentWave)
+		until (cCount > currentMaxWaveSize or loopCounter >= 100)
 
 		return cCount
 	end
