@@ -1015,7 +1015,8 @@ if gadgetHandler:IsSyncedCode() then
 		if gameOver then
 			return
 		end
-		currentMaxWaveSize = math.ceil((queenAnger*0.01)*maxWaveSize)
+
+		currentMaxWaveSize = config.minChickens + math.ceil((queenAnger*0.01)*(maxWaveSize - config.minChickens))
 		squadManagerKillerLoop()
 		
 		local queenAngerPerTier = 100/#config.waves
