@@ -165,7 +165,7 @@ local optionValues = {
 		damageMod         = 0.1,
 		maxBurrows        = 2,
 		minChickens		  = 5,
-		maxChickens		  = 7,
+		maxChickens		  = 30,
 		queenName         = 've_chickenq',
 	},
 	[difficulties.easy] = {
@@ -179,7 +179,7 @@ local optionValues = {
 		damageMod         = 0.2,
 		maxBurrows        = 3,
 		minChickens		  = 10,
-		maxChickens		  = 12,
+		maxChickens		  = 60,
 		queenName         = 'e_chickenq',
 	},
 
@@ -193,8 +193,8 @@ local optionValues = {
 		spawnChance       = 0.4,
 		damageMod         = 0.4,
 		maxBurrows        = 4,
-		minChickens		  = 20,
-		maxChickens		  = 22,
+		minChickens		  = 15,
+		maxChickens		  = 90,
 		queenName         = 'n_chickenq',
 	},
 
@@ -208,8 +208,8 @@ local optionValues = {
 		spawnChance       = 0.5,
 		damageMod         = 0.6,
 		maxBurrows        = 5,
-		minChickens		  = 30,
-		maxChickens		  = 32,
+		minChickens		  = 20,
+		maxChickens		  = 120,
 		queenName         = 'h_chickenq',
 	},
 
@@ -223,8 +223,8 @@ local optionValues = {
 		spawnChance       = 0.6,
 		damageMod         = 0.8,
 		maxBurrows        = 6,
-		minChickens		  = 40,
-		maxChickens		  = 42,
+		minChickens		  = 25,
+		maxChickens		  = 150,
 		queenName         = 'vh_chickenq',
 	},
 	[difficulties.epic] = {
@@ -237,8 +237,8 @@ local optionValues = {
 		spawnChance       = 0.8,
 		damageMod         = 1,
 		maxBurrows        = 10,
-		minChickens		  = 50,
-		maxChickens		  = 52,
+		minChickens		  = 30,
+		maxChickens		  = 180,
 		queenName         = 'epic_chickenq',
 	},
 
@@ -262,14 +262,15 @@ local optionValues = {
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local function addSquad(wave, unitList)
+local function addSquad(wave, unitList, weight)
 	if not waves[wave] then
 		waves[wave] = {}
 	end
-
+	if not weight then weight = 1 end
+    for i = 1, weight do 
 	table.insert(waves[wave], unitList)
+    end
 end
-
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Squads -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -277,14 +278,16 @@ end
 	addSquad(1, { "5 chicken1", "5 chicken1b", "5 chicken1c", "5 chicken1d" 					}) -- Basic Raptor
 
 	addSquad(2, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  									}) -- Better Basic Raptor
-	addSquad(2, { "2 chickena1", "2 chickena1b", "2 chickena1c"									}) -- Brawler
+	addSquad(2, { "10 chickens1" 																}) -- Spiker
 
-	addSquad(3, { "12 chickens1" 																}) -- Spiker
+	addSquad(3, { "2 chickena1", "2 chickena1b", "2 chickena1c"									}) -- Brawler
 	addSquad(3, { "8 chickene1" 																}) -- EMP Swarmer
 
 	addSquad(4, { "10 chickenp1" 																}) -- Small Pyro
 	addSquad(4, { "4 chickenp1" , "1 chickenp2"													}) -- Small Pyros with mom
 
+	addSquad(5, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  									}) -- Better Basic Raptor
+	addSquad(5, { "3 chickene2" 																}) -- EMP Brawler
 	addSquad(5, { "5 chickenw1", "5 chickenw1b", "5 chickenw1c", "5 chickenw1d" 				}) -- Fighter
 	addSquad(5, { "5 chickenf1", "5 chickenf1b" 												}) -- Bomber
 	addSquad(5, { "5 chickenebomber1" 															}) -- EMP Bomber
@@ -311,6 +314,7 @@ end
 	addSquad(8, { "10 chickens2" 																}) -- Apex Spiker
 	addSquad(8, { "10 chickenacidallterrain" 													}) -- Acid AllTerrain 
 	addSquad(8, { "4 chickenacidassault" 														}) -- Acid Brawler
+	addSquad(8, { "3 chickene2" 																}) -- EMP Brawler
 	addSquad(8, { "4 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
 	addSquad(8, { "5 chickenacidbomber" 														}) -- Acid Bomber
 	addSquad(8, { "3 chickenacidarty" 															}) -- Acid Artillery
@@ -372,11 +376,7 @@ for i = 1,#waves do
 		addSquad(i, { i ..  " chickena1c"})
 		addSquad(i, { i*4 .." chickens1" })
 	end
-	if i >= 5 and i <= 8 then -- Aircrafts
-		addSquad(i, { i .. " chickenw1", i .. " chickenw1b", i .. " chickenw1c", i .. " chickenw1d"})
-		addSquad(i, { i .. " chickenf1", i .. " chickenf1b" }) 
-	end
-	if i >= 7 and i <= 10 then -- More AllTerrains over time
+		if i >= 7 and i <= 10 then -- More AllTerrains over time
 		addSquad(i, { i*3 .." chickenc3" })
 		addSquad(i, { i*2 .." chickenc3b" })
 		addSquad(i, { i .." chickenc3c" })
