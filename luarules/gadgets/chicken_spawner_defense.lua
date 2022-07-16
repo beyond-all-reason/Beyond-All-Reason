@@ -298,7 +298,7 @@ if gadgetHandler:IsSyncedCode() then
 	local maxBurrows = config.maxBurrows
 	local queenTime = (config.queenTime + config.gracePeriod)
 	local maxWaveSize = ((config.maxChickens*0.5)+(config.maxChickens*0.5)*SetCount(humanTeams))*config.chickenSpawnMultiplier
-	local currentMaxWaveSize = 1
+	local currentMaxWaveSize = config.minChickens
 	if config.swarmMode then
 		swarmMultiplier = 10
 	else
@@ -334,11 +334,12 @@ if gadgetHandler:IsSyncedCode() then
 		config.queenSpawnMult = nextDifficulty.queenSpawnMult
 		config.spawnChance = nextDifficulty.spawnChance
 		config.maxChickens = nextDifficulty.maxChickens
+		config.minChickens = nextDifficulty.minChickens
 		config.maxBurrows = nextDifficulty.maxBurrows
 		-- expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
 		maxBurrows = config.maxBurrows
 		maxWaveSize = ((config.maxChickens*0.5)+(config.maxChickens*0.5)*SetCount(humanTeams))*config.chickenSpawnMultiplier
-		currentMaxWaveSize = 1
+		currentMaxWaveSize = config.minChickens
 	end
 
 	--------------------------------------------------------------------------------
@@ -1188,7 +1189,9 @@ if gadgetHandler:IsSyncedCode() then
 					if queenResistance[weaponID].notify == 0 then
 						SendToUnsynced('QueenResistant', attackerDefID)
 						queenResistance[weaponID].notify = 1
-						SpawnRandomOffWaveSquad(queenID)
+						if mRandom() > config.spawnChance then
+							SpawnRandomOffWaveSquad(queenID)
+						end
 						for i = 1, 10, 1 do
 							table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1", team = chickenTeamID, })
 							table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1b", team = chickenTeamID, })
@@ -1205,7 +1208,9 @@ if gadgetHandler:IsSyncedCode() then
 			overseerCommanders[attackerID] = Spring.GetGameFrame() + 210
 			local ux, uy, uz = Spring.GetUnitPosition(unitID)
 			if ux and uy and uz then
-				SpawnRandomOffWaveSquad(attackerID)
+				if mRandom() > config.spawnChance then
+					SpawnRandomOffWaveSquad(attackerID)
+				end
 				local nearchicks = Spring.GetUnitsInCylinder(ux, uz, 500, attackerTeam)
 				for i = 1, #nearchicks, 1 do
 					if nearchicks[i] ~= attackerID and (not overseers[nearchicks[i]]) then
