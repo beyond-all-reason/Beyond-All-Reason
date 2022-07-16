@@ -593,17 +593,10 @@ if gadgetHandler:IsSyncedCode() then
 					if not unitCowardCooldown[unitID] then
 						if role == "assault" or role == "healer" or role == "artillery" then
 							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+math.random(-128, 128), targety, targetz+math.random(-128, 128)} , {})
-						elseif role == "raid" then
+						elseif role == "raid" or role == "kamikaze" then
 							Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+math.random(-128, 128), targety, targetz+math.random(-128, 128)} , {})
-						elseif role == "aircraft" or role == "kamikaze" then
+						elseif role == "aircraft" then
 							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
 						end
 					end
 				end
