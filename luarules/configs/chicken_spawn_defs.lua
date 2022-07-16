@@ -165,7 +165,7 @@ local optionValues = {
 		damageMod         = 0.1,
 		maxBurrows        = 2,
 		minChickens		  = 5,
-		maxChickens		  = 7,
+		maxChickens		  = 30,
 		queenName         = 've_chickenq',
 	},
 	[difficulties.easy] = {
@@ -179,7 +179,7 @@ local optionValues = {
 		damageMod         = 0.2,
 		maxBurrows        = 3,
 		minChickens		  = 10,
-		maxChickens		  = 12,
+		maxChickens		  = 60,
 		queenName         = 'e_chickenq',
 	},
 
@@ -193,8 +193,8 @@ local optionValues = {
 		spawnChance       = 0.4,
 		damageMod         = 0.4,
 		maxBurrows        = 4,
-		minChickens		  = 20,
-		maxChickens		  = 100,
+		minChickens		  = 15,
+		maxChickens		  = 90,
 		queenName         = 'n_chickenq',
 	},
 
@@ -208,8 +208,8 @@ local optionValues = {
 		spawnChance       = 0.5,
 		damageMod         = 0.6,
 		maxBurrows        = 5,
-		minChickens		  = 30,
-		maxChickens		  = 32,
+		minChickens		  = 20,
+		maxChickens		  = 120,
 		queenName         = 'h_chickenq',
 	},
 
@@ -223,8 +223,8 @@ local optionValues = {
 		spawnChance       = 0.6,
 		damageMod         = 0.8,
 		maxBurrows        = 6,
-		minChickens		  = 40,
-		maxChickens		  = 42,
+		minChickens		  = 25,
+		maxChickens		  = 150,
 		queenName         = 'vh_chickenq',
 	},
 	[difficulties.epic] = {
@@ -237,8 +237,8 @@ local optionValues = {
 		spawnChance       = 0.8,
 		damageMod         = 1,
 		maxBurrows        = 10,
-		minChickens		  = 50,
-		maxChickens		  = 52,
+		minChickens		  = 30,
+		maxChickens		  = 180,
 		queenName         = 'epic_chickenq',
 	},
 
@@ -314,6 +314,7 @@ end
 	addSquad(8, { "10 chickens2" 																}) -- Apex Spiker
 	addSquad(8, { "10 chickenacidallterrain" 													}) -- Acid AllTerrain 
 	addSquad(8, { "4 chickenacidassault" 														}) -- Acid Brawler
+	addSquad(8, { "3 chickene2" 																}) -- EMP Brawler
 	addSquad(8, { "4 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
 	addSquad(8, { "5 chickenacidbomber" 														}) -- Acid Bomber
 	addSquad(8, { "3 chickenacidarty" 															}) -- Acid Artillery
