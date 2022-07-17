@@ -3533,9 +3533,9 @@ function init()
 		},
 
 		-- DEV
-		{ id = "devmode", group = "dev", category = types.dev, name = texts.option.devmode, type = "bool", value = not Spring.Utilities.ShowDevUI(),
+		{ id = "devmode", group = "dev", category = types.dev, name = texts.option.devmode, type = "bool", value = Spring.Utilities.ShowDevUI(), description = texts.option.devmode_descr,
 			onchange = function(i, value)
-				Spring.SetConfigInt("DevUI", value and 0 or 1)
+				Spring.SetConfigInt("DevUI", value and 1 or 0)
 				Spring.SendCommands("luaui reload")
 			end,
 		},
