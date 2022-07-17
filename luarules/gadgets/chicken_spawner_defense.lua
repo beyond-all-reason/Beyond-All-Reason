@@ -75,9 +75,7 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	local queenLifePercent = 100
 	local maxTries = 30
-	local oldMaxChicken = 0
-	local maxChicken = Game.maxUnits - 100
-	local oldDamageMod = 1
+	local chickenUnitCap = math.floor(Game.maxUnits*0.95)
 	local damageMod = config.damageMod
 	local currentWave = 1
 	local lastWave = 1
@@ -1024,41 +1022,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local cCount = 0
-		local queenBurrowSpawnMultiplier = 1
-		if queenID then
-			queenBurrowSpawnMultiplier = 0.2
-			-- spawn units from queen
-			if config.queenSpawnMult > 0 then
-				for mult = 1,config.chickenSpawnMultiplier do
-					for i = 1, config.queenSpawnMult*SetCount(humanTeams), 1 do
-						squadCounter = 0
-						local waveLevelPower = mRandom(1, currentWave*currentWave)
-						local waveLevel = math.ceil(math.sqrt(waveLevelPower))
-						local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
-						for i, sString in pairs(squad) do
-							local nEnd, _ = string.find(sString, " ")
-							local unitNumber = math.random(1, string.sub(sString, 1, (nEnd - 1)))
-							local chickenName = string.sub(sString, (nEnd + 1))
-							for i = 1, unitNumber, 1 do
-								squadCounter = squadCounter + 1
-								table.insert(spawnQueue, { burrow = queenID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
-							end
-							cCount = cCount + unitNumber
-							for j = 1, math.floor(1+((currentWave-waveLevel)*0.25)) do
-								if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id) < waveLevel*3 then
-									if math.random(0,1) == 0 then
-										table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1", team = chickenTeamID, squadID = j })
-									else
-										table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1b", team = chickenTeamID, squadID = j })
-									end
-									cCount = cCount + 1
-								end
-							end
-						end
-					end
-				end
-			end
-		end
 		local overseerSpawned = false
 		local scoutSpawned = false
 		local loopCounter = 0
@@ -1073,7 +1036,7 @@ if gadgetHandler:IsSyncedCode() then
 						local waveLevel = math.ceil(math.sqrt(waveLevelPower))
 						local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
 						local skipSpawn = false
-						if cCount > 1 and mRandom() > config.spawnChance*queenBurrowSpawnMultiplier then
+						if cCount > 1 and mRandom() > config.spawnChance then
 							skipSpawn = true
 						end
 						if not skipSpawn then
@@ -1275,6 +1238,17 @@ if gadgetHandler:IsSyncedCode() then
 					SpawnRandomOffWaveSquad(unitID)
 				end 
 			end
+			if queenID and unitID == queenID then
+				local curH, maxH = GetUnitHealth(unitID)
+				local spawnChance = math.ceil(curH/maxH*10000)
+				if math.random(0,spawnChance) == 1 then
+					for i = 1,SetCount(humanTeams) do
+						SpawnRandomOffWaveSquad(unitID, "chickenh1", 5)
+						SpawnRandomOffWaveSquad(unitID, "chickenh1b", 5)
+						SpawnRandomOffWaveSquad(unitID)
+					end
+				end
+			end
 		end
 	end
 
@@ -1397,11 +1371,7 @@ if gadgetHandler:IsSyncedCode() then
 				queenSquad.role = "raid"
 				queenSquad.units = {queenID}
 				createSquad(queenSquad)
-				burrows[queenID] = 0
 				spawnQueue = {}
-				oldMaxChicken = maxChicken
-				oldDamageMod = damageMod
-				maxChicken = maxChicken
 				chickenEvent("queen") -- notify unsynced about queen spawn
 				_, queenMaxHP = GetUnitHealth(queenID)
 				SetUnitExperience(queenID, config.maxXP)
@@ -1574,7 +1544,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 		local chickenTeamUnitCount = Spring.GetTeamUnitCount(chickenTeamID) or 0
-		if chickenTeamUnitCount < maxChicken then
+		if chickenTeamUnitCount < chickenUnitCap then
 			SpawnChickens()
 		end
 
@@ -1659,7 +1629,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			chickenCount = UpdateUnitCount()
 		end
-		if n%30 == 10 and n > 300 and chickenTeamUnitCount < maxChicken then
+		if n%30 == 10 and n > 300 and chickenTeamUnitCount < chickenUnitCap then
 			queueTurretSpawnIfNeeded()
 		end
 		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands
@@ -1799,8 +1769,6 @@ if gadgetHandler:IsSyncedCode() then
 		if unitID == queenID then
 			-- queen destroyed
 			queenID = nil
-			maxChicken = oldMaxChicken
-			damageMod = oldDamageMod
 			queenResistance = {}
 
 			if config.difficulty == config.difficulties.survival then

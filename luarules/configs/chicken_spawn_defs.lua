@@ -399,7 +399,6 @@ end
 local config = {
 	difficulty             = difficulty,
 	difficulties           = difficulties,
-	maxChicken             = Spring.GetModOptions().chicken_maxchicken,
 	chickenSpawnMultiplier = Spring.GetModOptions().chicken_spawncountmult,
 	gracePeriod            = Spring.GetModOptions().chicken_graceperiod * 60,  -- no chicken spawn in this period, seconds
 	queenTime              = Spring.GetModOptions().chicken_queentime * 60, -- time at which the queen appears, seconds
