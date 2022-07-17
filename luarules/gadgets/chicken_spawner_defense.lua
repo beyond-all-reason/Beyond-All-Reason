@@ -1162,7 +1162,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if weaponID == COMMANDER_BLOB and attackerID and not overseerCommanders[attackerID] and attackerTeam and unitTeam and not Spring.AreTeamsAllied(attackerTeam, unitTeam) then
-			overseerCommanders[attackerID] = Spring.GetGameFrame() + 210
+			overseerCommanders[attackerID] = Spring.GetGameFrame() + 100
 			local ux, uy, uz = Spring.GetUnitPosition(unitID)
 			if ux and uy and uz then
 				if mRandom() > config.spawnChance then
@@ -1173,7 +1173,7 @@ if gadgetHandler:IsSyncedCode() then
 					if nearchicks[i] ~= attackerID and (not overseers[nearchicks[i]]) then
 						Spring.GiveOrderToUnit(nearchicks[i], CMD.FIGHT, { ux+math.random(-48,48),uy,uz+math.random(-48,48) }, 0)
 						overseerSoldiers[nearchicks[i]] = attackerID
-						unitCowardCooldown[nearchicks[i]] = true
+						unitCowardCooldown[nearchicks[i]] = Spring.GetGameFrame() + 900
 					end
 				end
 				local ax, ay, az = Spring.GetUnitPosition(attackerID)
@@ -1183,7 +1183,7 @@ if gadgetHandler:IsSyncedCode() then
 						if nearchicks[i] ~= attackerID and (not overseers[nearchicks[i]]) then
 							Spring.GiveOrderToUnit(nearchicks[i], CMD.FIGHT, { ux+math.random(-48,48),uy,uz+math.random(-48,48) }, 0)
 							overseerSoldiers[nearchicks[i]] = attackerID
-							unitCowardCooldown[nearchicks[i]] = true
+							unitCowardCooldown[nearchicks[i]] = Spring.GetGameFrame() + 900
 						end
 					end
 				end
@@ -1203,7 +1203,7 @@ if gadgetHandler:IsSyncedCode() then
 					local angle = math.atan2(ux - x, uz - z)
 					local distance = mRandom(math.ceil(SKIRMISH[attackerDefID].distance*0.75), math.floor(SKIRMISH[attackerDefID].distance*1.25))
 					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
-					unitCowardCooldown[attackerID] = true
+					unitCowardCooldown[attackerID] = Spring.GetGameFrame() + 900
 				end
 			elseif COWARD[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < COWARD[unitDefID].chance) then
 				local curH, maxH = GetUnitHealth(unitID)
@@ -1214,23 +1214,24 @@ if gadgetHandler:IsSyncedCode() then
 						local angle = math.atan2(ax - x, az - z)
 						local distance = mRandom(math.ceil(COWARD[unitDefID].distance*0.75), math.floor(COWARD[unitDefID].distance*1.25))
 						Spring.GiveOrderToUnit(unitID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
-						unitCowardCooldown[unitID] = true
+						unitCowardCooldown[unitID] = Spring.GetGameFrame() + 900
 					end
 				end
 			elseif BERSERK[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < BERSERK[unitDefID].chance) then
 				local ax, ay, az = GetUnitPosition(attackerID)
 				if ax then
 					Spring.GiveOrderToUnit(unitID, CMD.MOVE, { ax+math.random(-64,64), ay, az+math.random(-64,64)}, {})
-					unitCowardCooldown[unitID] = true
+					unitCowardCooldown[unitID] = Spring.GetGameFrame() + 900
 				end
 			elseif BERSERK[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < BERSERK[attackerDefID].chance) then
 				local ax, ay, az = GetUnitPosition(unitID)
 				if ax then
 					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { ax+math.random(-64,64), ay, az+math.random(-64,64)}, {})
-					unitCowardCooldown[attackerID] = true
+					unitCowardCooldown[attackerID] = Spring.GetGameFrame() + 900
 				end
 			end
-			if math.random(1,10) == 1 and overseers[unitID] then
+			if mRandom() < config.spawnChance and overseers[unitID] and not overseerCommanders[unitID] then
+				overseerCommanders[unitID] = Spring.GetGameFrame() + 100
 				local curH, maxH = GetUnitHealth(unitID)
 				if curH and maxH and curH < (maxH * 0.5) then
 					SpawnRandomOffWaveSquad(unitID, "chickenh1", 5)
@@ -1646,6 +1647,10 @@ if gadgetHandler:IsSyncedCode() then
 		if n%100 == 50 and not chickenteamhasplayers then
 			local chickens = Spring.GetTeamUnits(chickenTeamID)
 			for i = 1,#chickens do 
+				if unitCowardCooldown[chickens[i]] and (Spring.GetGameFrame() > unitCowardCooldown[chickens[i]]) then
+					unitCowardCooldown[chickens[i]] = nil
+					Spring.GiveOrderToUnit(chickens[i], CMD.STOP, 0, 0)
+				end
 				if Spring.GetCommandQueue(chickens[i], 0) <= 0 then
 					if unitCowardCooldown[chickens[i]] then
 						unitCowardCooldown[chickens[i]] = nil
