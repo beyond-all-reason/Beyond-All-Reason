@@ -585,7 +585,7 @@ return {
 			autocloakpopups = 'Auto cloak popups',
 			autocloakpopups_descr = 'Auto cloaks Pit Bull and Ambusher',
 			unitreclaimer = 'Unit Reclaimer',
-			unitreclaimer_descr = 'Reclaim units withing an area.\nHover over a unit and hold CTRL and drag area-reclaim circle to reclaim all units within, use ALT for just the type you hover over.',
+			unitreclaimer_descr = 'Reclaim units within an area.\nHover over a unit and hold CTRL and drag area-reclaim circle to reclaim all units within, use ALT for just the type you hover over.',
 			autogroup_immediate = 'Autogroup immediate mode',
 			autogroup_immediate_descr = 'Units built/resurrected/received are added to autogroups immediately,\ninstead when they get to be idle.\n\n(add units to autogroup with ALT+number)',
 			autogroup_persist = 'Autogroup persist mode',
