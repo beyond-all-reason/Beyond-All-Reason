@@ -295,7 +295,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- local expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
 	local maxBurrows = config.maxBurrows
 	local queenTime = (config.queenTime + config.gracePeriod)
-	local maxWaveSize = ((config.maxChickens*0.5)+(config.maxChickens*0.5)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+	local maxWaveSize = ((config.maxChickens*0.75)+(config.maxChickens*0.25)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 	local currentMaxWaveSize = config.minChickens
 	if config.swarmMode then
 		swarmMultiplier = 10
