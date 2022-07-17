@@ -336,7 +336,7 @@ function TaskQueueBST:GetAmpOrGroundWeapon()
 	end
 	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]
 	local network = self.ai.maphst:MobilityNetworkHere(mtype, self.position)
-	if not network or not self.ai.factoryBuilded[mtype] or not self.ai.factoryBuilded[mtype][network] then
+	if not network or not self.ai.labbuildhst.factoryBuilded[mtype] or not self.ai.labbuildhst.factoryBuilded[mtype][network] then
 		self:EchoDebug('canbuild amphibious because ' .. mtype .. ' network here is too small or has not enough spots')
 		return true
 	end

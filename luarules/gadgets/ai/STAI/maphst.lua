@@ -17,114 +17,40 @@ function MapHST:Init()
 	self.DebugEnabled = true
 	self:basicMapInfo()
 	self:createGrid()
-	self.metalSpots = map:GetMetalSpots()
-	self.geoSpots = map:GetGeoSpots()
+	self.METALS = map:GetMetalSpots()
+	self.GEOS = map:GetGeoSpots()
+	self.METALS = self:SimplifyMetalSpots(self.gridSize * 2)-- is a random choice, can be 1 or 9999999999
+	self.allSpots = self.ai.tool:tableConcat({self.METALS,self.GEOS})
 	self.hotSpots = {}
-	self.UWMetalSpots = {}
-	self.landMetalSpots = {}
+	self:hotSpotter(self.METALS,self.GEOS)
+	self.waterMetals = {}
+	self.groundMetals = {}
 	self.networks = {}
-	self.layersRatio = {}
+	self.layers = {}
+	self.startLocations = {}
 	self.ai.armyhst.UWMetalSpotCheckUnitType = self.game:GetTypeByName(self.ai.armyhst.UWMetalSpotCheckUnit)
--- 	self.mobilityUnitTypes = {}
-	if #self.metalSpots > 1024 then-- metal map is too complex, simplify it
-		self.metalSpots = self:SimplifyMetalSpots(self.metalSpots, self.gridSize * 2)-- is a random choice, can be 1 or 9999999999
-	end
-	self.allSpots = table.concat(metalSpots,geoSpots)
-	self:hotSpotter(self.metalSpots,self.geoSpots)
+	self:gridAnalisy()
 	self:metalScan()
 	self:geoScan()
-	self:gridAnalisy()
+	self:LayerScan()
 	self:spotToCellMoveTest()
-
-
-	--[[
-
-	self:EchoDebug("total sectors "..self.gridArea)-- now let's see how much water we found
-	local wetness = self.mobilityCount["sub"] * 100 / self.gridArea
-	self:EchoDebug("map wetness is "..wetness)
-	self.waterMap = wetness >= 10
-	self:EchoDebug("there is water on the map")
-	for mtype, count in pairs(self.mobilityCount) do
-	local ness = count * 100 / self.gridArea
-	self:EchoDebug("map " .. mtype .. "-ness is " .. ness .. " and total grids: " .. count)
-end
-end
-	-- deciding what kind of map it is
-	local maxSpots = 0
-	local minNetworks = 5
-	local best = nil
-	local totalRating = 0
-	local numberOfRatings = 0
-	for mtype, spots in pairs(self.mobSpots) do
-	if #spots > maxSpots then
-	if self.mobilityNets[mtype] < minNetworks then
-	maxSpots = #spots
-	minNetworks = self.mobilityNets[mtype]
-	best = mtype
-end
-end
-	local mostGrids = 0
-	local mostSpots = 0
-	if self.networkSize[mtype] ~= nil then
-	for n, size in pairs(self.networkSize[mtype]) do
-	if size > mostGrids and #self.scoutSpots[mtype][n] > mostSpots then
-	mostGrids = size
-	mostSpots = #self.scoutSpots[mtype][n]
-end
-end
-end
-	if self.mobilityNets[mtype] == 0 then
-	self.mobilityRating[mtype] = 0
-else
-	self.mobilityRating[mtype] = ((mostSpots - self.mobilityNets[mtype]) + ((mostGrids / self.gridArea) * mostSpots * 0.25))
-end
-	totalRating = totalRating + self.mobilityRating[mtype]
-	numberOfRatings = numberOfRatings + 1
-	self:EchoDebug(mtype .. " rating: " .. self.mobilityRating[mtype])
-end
-	-- add in bechmark air rating
-	-- local airRating = (#self.scoutSpots["air"][1] + (#self.scoutSpots["air"][1] * 0.25)) * 0.5
-	local airRating = #self.scoutSpots["air"][1] + (#self.scoutSpots["air"][1] * 0.25)
-	self.mobilityRating['air'] = airRating
-	totalRating = totalRating + airRating
-	numberOfRatings = numberOfRatings + 1
-	self:EchoDebug('air rating: ' .. airRating)
-	local avgRating = totalRating / numberOfRatings
-	local ratingFloor = avgRating * 0.65
-	self:EchoDebug('average rating: ' .. avgRating)
-	self:EchoDebug('rating floor: ' .. ratingFloor)
-	self.mobilityRatingFloor = ratingFloor
-	self.hasUWSpots = #self.mobSpots["sub"] > 0
-	if self.hasUWSpots then
-	self:EchoDebug("MapHST: Submerged metal spots detected")
-end
-	-- find start locations (loading them into air's list for later localization)
-	self.ai.startLocations = {}
-	if self.ai.startLocations["air"] == nil then self.ai.startLocations["air"] = {} end
-	self.ai.startLocations["air"][1] = self:GuessStartLocations(self.metalSpots)
-	if self.ai.startLocations["air"][1] ~= nil then
-	-- localize start locations into mobility networks
-	for i, start in pairs(self.ai.startLocations["air"][1]) do
-	self:EchoDebug("start location guessed at: " .. start.x .. ", " .. start.z)
-	for mtype, networkList in pairs(self.scoutSpots) do
-	if mtype ~= "air" then -- air list is already filled
-	for n, spots in pairs(networkList) do
-	if self.ai.startLocations[mtype] == nil then self.ai.startLocations[mtype] = {} end
-	if self.ai.startLocations[mtype][n] == nil then self.ai.startLocations[mtype][n] = {} end
-	table.insert(self.ai.startLocations[mtype][n], start)
-end
-end
-end
-end
-end
-	-- cleanup
-	self.mobilityMap = nil
-	-- 	self.ai.factoriesRanking, self.ai.ranksByFactories = self:factoriesRating()
-	]]
 	self:DrawDebug()
 	self:EchoDebug('MapHST STOP')
 end
 
+function MapHST:basicMapInfo()--capture and set foundamental map info
+	self.mapSize = map:MapDimensions()
+	self.elmoMapSizeX = self.mapSize.x * 8
+	self.elmoMapSizeZ = self.mapSize.z * 8
+	print(self.ai.tool:gcd(self.elmoMapSizeX,self.elmoMapSizeZ))
+	self.elmoArea = self.elmoMapSizeX * self.elmoMapSizeZ
+	self.gridSize = 256 --math.max( math.floor(math.max(MapHST.mapSize.x * 8, MapHST.mapSize.z * 8) / 128),32)-- don't make grids smaller than 32
+	self.gridSizeHalf = self.gridSize / 2
+	self.gridSideX = self.elmoMapSizeX / self.gridSize
+	self.gridSideZ = self.elmoMapSizeZ / self.gridSize
+	self.gridArea = self.gridSideX * self.gridSideZ
+	self:EchoDebug("grid size: " .. self.gridSize ..'cell count', self.gridArea,self.gridSideX,self.gridSideZ)
+end
 
 
 function MapHST:createGrid()
@@ -148,7 +74,6 @@ function MapHST:isInMap(pos)
 	end
 end
 
-
 function MapHST:PosToGrid(pos)
 	local gridX = math.ceil(pos.x / self.gridSize)
 	local gridZ = math.ceil(pos.z / self.gridSize)
@@ -164,22 +89,25 @@ function MapHST:GridToPos(X,Z)
 end
 
 function MapHST:NewCell(gx, gz)
-	local x = gx * self.gridSize - self.gridSizeHalf
-	local z = gz * self.gridSize - self.gridSizeHalf
+	local x = (gx * self.gridSize) - self.gridSizeHalf
+	local z = (gz * self.gridSize) - self.gridSizeHalf
 	local cellPos = {}
 	cellPos.x, cellPos.z = x, z
 	cellPos.y = Spring.GetGroundHeight(x, z)
-	self.ai.buildsitehst:isInMap(cellPos)--move here ,is in map!!
+	self:isInMap(cellPos)--move here ,is in map!!
 	local cell = {}
-	cell.POS = cellPos
-	cell.X = gx
-	cell.Z = gz
-	cell.moveLayers = self:moveLayerTest(cellPos) --hold the network and layers in this cell
+	cell.POS = cellPos --the cell position
+	cell.X = gx --the cell coordinate X on the grid
+	cell.Z = gz --the cell coordinate Z on the grid
+	cell.moveLayers = self:moveLayerTest(cellPos) --hold the  layers and networks in this cell
+	cell.metalSpots = {} --hold the metalSpots of this cell
+	cell.geoSpots = {} --hold the geoSpots of this cell
+	cell.allSpots = {}
 	cell.trampled = 0 --how many times it is trampled by non-flying units
 	return cell
 end
 
-function MapHST:areaCells(X,Z,R)
+function MapHST:areaCells(X,Z,R) -- return alist of cells in range R from a cell
 	if not X or not Z then
 		self:Warn('no grid XZ for areacells')
 	end
@@ -196,7 +124,11 @@ function MapHST:areaCells(X,Z,R)
 	return AC
 end
 
-function MapHST:GetCell(X,Z)
+function MapHST:GetCell(X,Z) --accept 1one position({t.x,t.y,t.z}) OR 2two XZ grid coordinate; return a CEll if exist
+	if type(X) == 'table' and X.x and X.z then
+		X,Z = self:PosToGrid(X)
+	end
+
 	if not self.GRID[X] then
 		return
 	end
@@ -204,10 +136,11 @@ function MapHST:GetCell(X,Z)
 		--dbgwarn
 		return
 	end
+
 	return self.GRID[X][Z]
 end
 
-function MapHST:getCellsFields(position,fields,range)
+function MapHST:getCellsFields(position,fields,range) --return the required list of values of a cell/cells
 	if not fields or not position or type(fields) ~= 'table' then
 		self:Warn('incomplete or incorrect params for get cells params',fields,position, range)
 		return
@@ -215,7 +148,7 @@ function MapHST:getCellsFields(position,fields,range)
 	range = range or 0
 	local gridX, gridZ = self:PosToGrid(position)
 	local cells = self:areaCells(gridX,gridZ,range)
-	local VALUE = 0 --VALUE is a total count of all request fields
+	local value = 0 --VALUE is a total count of all request fields
 	local subValues = {} --subValues is the sum of this fields of each asked cell
 	for i, f in pairs(fields) do
 		subValues[f] = 0
@@ -223,29 +156,16 @@ function MapHST:getCellsFields(position,fields,range)
 	for index , grid in pairs(cells) do
 		local cell = self.CELLS[grid.gx][grid.gz]
 		for i, field in pairs(fields) do
-			VALUE = VALUE + cell[field]
+			value = value + cell[field]
 			subValues[field] = subValues[field] + cell[field]
 		end
 	end
-	return VALUE , subValues , cells
+	return value , subValues , cells
 end
 
-function MapHST:basicMapInfo()
-	self.mapSize = self.map:MapDimensions()
-	self.elmoMapSizeX = self.mapSize.x * 8
-	self.elmoMapSizeZ = self.mapSize.z * 8
-	self.elmoArea = self.elmoMapSizeX * self.elmoMapSizeZ
-	self.gridSize = 256 --math.max( math.floor(math.max(MapHST.mapSize.x * 8, MapHST.mapSize.z * 8) / 128),32)-- don't make grids smaller than 32
-	self.gridSizeHalf = self.gridSize / 2
-	self.gridSideX = self.elmoMapSizeX / self.gridSize
-	self.gridSideZ = self.elmoMapSizeZ / self.gridSize
-	self.gridArea = self.gridSideX * self.gridSideZ
-	self:EchoDebug("grid size: " .. self.gridSize ..'cell count', self.gridArea,self.gridSideX,self.gridSideZ)
-end
-
-function MapHST:moveLayerTest(pos)
+function MapHST:moveLayerTest(pos)--check where units can stay or not
 	local layers = {}
-	layers['air'] = 0
+	layers.air = 1
 	for layer,unitName in pairs(self.ai.armyhst.mobUnitExampleName) do
 		if Spring.TestMoveOrder(self.ai.armyhst.unitTable[unitName].defId, pos.x, pos.y, pos.z) then
 			layers[layer] = 0
@@ -256,60 +176,105 @@ function MapHST:moveLayerTest(pos)
 	return layers
 end
 
-function MapHST:gridAnalisy()
+function MapHST:gridAnalisy()--do the first analisy of the grid
 	local net = {}
 	for X,Zetas in pairs(self.GRID) do
 		for Z, CELL in pairs(Zetas) do
-			for layer,unitName in pairs(self.ai.armyhst.mobUnitExampleName) do
-				if CELL.moveLayers[layer] and CELL.moveLayers[layer] == 0  then
+			for layer,anteNetwork in pairs(CELL.moveLayers) do--(self.ai.armyhst.mobUnitExampleName) do
+				if anteNetwork == 0 then
+				--if CELL.moveLayers[layer] and CELL.moveLayers[layer] == 0  then
 					if not net[layer] then
 						net[layer] = 0
 						self.networks[layer] = {}
-						self.
 					end
 					net[layer] = net[layer] + 1
 					self.networks[layer][net[layer]] = {}
 					self.networks[layer][net[layer]].area = 0
 					self.networks[layer][net[layer]].metals = {}
 					self.networks[layer][net[layer]].geos = {}
+					self.networks[layer][net[layer]].allSpots = {}
 					self:TopologyFooded(X,Z,layer,net)
 				end
 			end
 		end
 	end
+	self.networks.air = {}
+	self.networks.air[1] = {
+		area = self.gridArea,
+		metals = {},
+		geos = {},
+		allSpots = {}
+		}
+
 end
 
-function MapHST:LayerScan()
-	for layer,t in pairs(self.networks) do
-		self.layerRatio.layer = {}
-		for netwok,spec in pairs(t) do
-			netwok.ratioArea = netwok.area * (1 / self.gridArea)
-			netwok.ratioMetal = netwok.Metals * (1 / #self.metalSpots)
-			netwok.ratioGeos = network.geos * (1 / #self.geoSpots)
-			print(layer,index,netwok.area)
+function MapHST:LayerScan() --a most approfondite analisy of the layers
+	for layer,net in pairs(self.networks) do
+		local main = {}
+		main[layer] = {}
+		main[layer].area = 0
+		main[layer].metals = 0
+		main[layer].geos = 0
+		main[layer].allSpots = 0
+		main[layer].ratioArea = 0
+		main[layer].ratioMetals = 0
+		main[layer].ratioGeos = 0
+		for index,network in pairs(net) do
+			network.ratioArea = network.area / self.gridArea
+			if #network.allSpots == 0 or #self.allSpots == 0 then
+				network.ratioSpots = 0
+			else
+				network.ratioSpots = #network.allSpots / #self.allSpots
+			end
+
+			if #network.metals == 0 or #self.METALS == 0 then
+				network.ratioMetals = 0
+			else
+				network.ratioMetals = #network.metals / #self.METALS
+			end
+
+			if #network.geos or #self.GEOS == 0 then
+				network.ratioGeos = 0
+			else
+				network.ratioGeos = #network.geos / #self.GEOS
+			end
+			self:EchoDebug('Layer :',layer,index,network.area,#network.metals,#network.geos,network.ratioArea,network.ratioMetals,network.ratioGeos)
+			main[layer].area 		= main[layer].area + network.area
+			main[layer].metals 		= main[layer].metals + #network.metals
+			main[layer].geos 		= main[layer].geos + #network.geos
 		end
-		self.layerRatio.layer.area = self.layerRatio.layer.area + netwok.area
-		self.layerRatio.layer.metals = self.layerRatio.layer.metals + netwok.metals
-		self.layerRatio.layer.geos = self.layerRatio.layer.geos + netwok.geos
-		self.layerRatio.layer.ratioArea = self.layerRatio.layer.Area (1 / self.gridArea)
-		self.layerRatio.layer.ratioMetals = self.layerRatio.layer.geos (1 / #self.metalSpots)
-		self.layerRatio.layer.ratioGeos = self.layerRatio.layer.geos (1 / #self.geoSpots)
-		print(self.layerRatio.layer.area,self.layerRatio.layer.metals,self.layerRatio.layer.geos)
-	end
+		main[layer].ratioArea 	= main[layer].area / self.gridArea
+		if main[layer].allSpots == 0 or #self.allSpots == 0 then
+			main[layer].allSpots 	=  0
+		else
+			main[layer].allSpots 	= main[layer].allSpots / #self.allSpots
+		end
+		if main[layer].metals == 0 or #self.METALS == 0 then
+			main[layer].ratioMetals = 0
+		else
+			main[layer].ratioMetals = main[layer].metals / #self.METALS
+		end
+		if main[layer].geos == 0 or #self.GEOS == 0 then
+			main[layer].ratioGeos 	=  0
+		else
+			main[layer].ratioGeos 	= main[layer].geos / #self.GEOS
+		end
+		self.layers[layer] = main[layer]
 
+	self:EchoDebug('layers',layer,main[layer].area,main[layer].metals,main[layer].geos,main[layer].ratioArea,main[layer].ratioMetals,main[layer].ratioGeos)
+	end
 end
 
-function MapHST:TopologyFooded(x, z, layer,net)
+function MapHST:TopologyFooded(x, z, layer,net)--rolling on the cell to extrapolate where unit can go
 	if x > self.gridSideX or x < 1 or z > self.gridSideZ or z < 1 then
 		return
 	end
-	if self.GRID[x][z]['moveLayers'][layer] == 0   then
+	if self.GRID[x][z].moveLayers[layer] == 0   then
 		self.GRID[x][z].moveLayers[layer] = net[layer]
 		self.networks[layer][net[layer]].area = self.networks[layer][net[layer]].area + 1
 		for X = -1, 1,1 do
 			for Z = -1,1,1 do
-				if x ~= x+X or x ~= z+Z then
-					--local C = self:GetCell(x+X,z+Z)
+				if x ~= x + X or x ~= z + Z then
 					self:TopologyFooded(x+X,z+Z,layer,net)
 				end
 			end
@@ -317,15 +282,15 @@ function MapHST:TopologyFooded(x, z, layer,net)
 	end
 end
 
-function MapHST:hotSpotter(metalSpots,geosSpots)
+function MapHST:hotSpotter()
 	local spots = {}
 	local mirrorspots = {}
 	local limit = (self.map:MapDimensions())
 	local limit = limit.x/2  + limit.z/2
-	for i,v in pairs(metalSpots) do
+	for i,v in pairs(self.METALS) do
 		table.insert(spots,v)
 	end
-	for i,v in pairs(geosSpots) do
+	for i,v in pairs(self.GEOS) do
 		table.insert(spots,v)
 	end
 	self:EchoDebug('limit',tostring(limit))
@@ -356,7 +321,6 @@ function MapHST:hotSpotter(metalSpots,geosSpots)
 			items = items+1
 			x = x + vv.x
 			z = z + vv.z
-
 		end
 		x = x / items
 		z = z / items
@@ -366,17 +330,19 @@ function MapHST:hotSpotter(metalSpots,geosSpots)
 	end
 end
 
-function MapHST:SimplifyMetalSpots(metalSpots, number)
-	local divisor = math.ceil(math.sqrt(number))
+function MapHST:SimplifyMetalSpots(number) --reduce the number of metal spots for speed metal maps
+	if #self.METALS <= 1024 then-- metal map is too complex, simplify it
+		return self.METALS
+	end
 	local spots = {}
 	local spotsCount = 0
 	for x = 0, self.elmoMapSizeX - number, number do
 		for z = 0, self.elmoMapSizeX - number, number do
-			for i,spot in pairs (self.metalSpots) do--i = 1, #metalSpots do
+			for i,spot in pairs (self.METALS) do
 				if spot.x > x and spot.x < x + number and spot.z > z and spot.z < z + number then
 					spotsCount = spotsCount + 1
 					spots[spotsCount] = spot
-					table.remove(self.metalSpots, i)
+					table.remove(self.METALS, i)
 					break
 				end
 			end
@@ -385,30 +351,30 @@ function MapHST:SimplifyMetalSpots(metalSpots, number)
 	return spots
 end
 
-function MapHST:metalScan()
-	for i, spot in pairs(self.metalSpots) do
+function MapHST:metalScan()--insert GEOS in to the correct CELL and layer's network
+	for i, spot in pairs(self.METALS) do
 		local CELL = self:GetCell(spot)
 		table.insert(CELL.metalSpots,spot)
-		for layer,network in pairs(CELL.moveLayers) do
-			if layer then
-				table.insert(self.networks[layer][network].metals,spot)
+		for layer,net in pairs(CELL.moveLayers) do
+			if net  then
+				table.insert(self.networks[layer][net].metals,spot)
 			end
 		end
 		if map:CanBuildHere(self.ai.armyhst.UWMetalSpotCheckUnitType, spot) then
 			table.insert(self.waterMetals, spot)
 		else
-			table.insert(self.landMetalSpots, spot)
+			table.insert(self.groundMetals, spot)
 		end
 	end
 end
 
-function MapHST:geoScan()
-	for i, spot in pairs(self.geoSpots) do
+function MapHST:geoScan()--insert GEOS in to the correct CELL and layer's network
+	for i, spot in pairs(self.GEOS) do
 		local CELL = self:GetCell(spot)
 		table.insert(CELL.geoSpots,spot)
-		for layer,network in pairs(CELL.moveLayers) do
-			if layer then
-				table.insert(self.networks[layer][network].geos,spot)
+		for layer,net in pairs(CELL.moveLayers) do
+			if net then
+				table.insert(self.networks[layer][net].geos,spot)
 			end
 		end
 	end
@@ -444,46 +410,34 @@ function MapHST:MergePositions(posTable, cutoff, includeNonMerged)
 	return merged
 end
 
---function MapHST:Update() no update needed
-	-- 	-- workaround for shifting metal spots: map data is reloaded every two minutess
---end
-
-
-function MapHST:spotToCellMoveTest(spots)
+function MapHST:spotToCellMoveTest()--check how many time a unit(i chose commander) walk on a CELL, the analisy is from cell to cell foreach cell, CAUTION is heavy computable
 	self:EchoDebug('self.spotPathMobRank START')
 	local counter = 0
-	local moveclass = {}
 	local utable = self.ai.armyhst.unitTable
-	local testclassname = UnitDefNames['corcom'].moveDef.name
-	local testclassid = UnitDefNames['armcom'].id
-	print(testclassname,testclassid)
-	local className = testclassname
+	local className = UnitDefNames['corcom'].moveDef.name
+	local classID = UnitDefNames['armcom'].id
 	local layer = 'amp'
-	local classID = testclassid
 	local doing = {}
 	self.ttt={trampled = 0}
-
 	--for index , spotPos in pairs(spot) do
 	for X1,Zetas1 in pairs(self.GRID) do
 		for Z1 in pairs(Zetas1) do
-			for X2,Zetas2 in pairs(self.GRID) do
+			self.GRID[X1][Z1].trampled = 1
+			--[[for X2,Zetas2 in pairs(self.GRID) do
 				for Z2 in pairs(Zetas2) do
 					local POS1 = self:GridToPos(X1,Z1)
 					local POS2 = self:GridToPos(X2,Z2)
 					if X1 ~= X2 or  Z1 ~= Z2 then
 						if self.GRID[X1][Z1].moveLayers[layer] == self.GRID[X2][Z2].moveLayers[layer] then
-							----
+-- 							self:EchoDebug('')
 						else
 							if Spring.TestMoveOrder(classID,POS1.x,POS1.y,POS1.z) and Spring.TestMoveOrder(classID,POS2.x,POS2.y,POS2.z)then
 								if doing[X1..';'..Z1] == X2..';'..Z2  or doing[X2..';'..Z2] == X1..';'..Z1 then
 									---
 								else
 									local dist  = self.ai.tool:distance(POS1,POS2)
-
 									local metapath = Spring.RequestPath(className, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z)
 									if metapath then
-
-
 										local waypoints, pathStartIdx = metapath:GetPathWayPoints()
 										if  waypoints and  #waypoints  > 1 then
 											local waypointsNumber = #waypoints
@@ -491,7 +445,6 @@ function MapHST:spotToCellMoveTest(spots)
 											doing[X2..';'..Z2] = X1..';'..Z1
 											doing[X1..';'..Z1] = X2..';'..Z2
 											local distance_to_goal = self.ai.tool:DistanceXZ(POS2.x, POS2.z, last[1], last[3])
-
 											if distance_to_goal > self.gridSizeHalf then
 												print('WARNING THIS PATH IS INCOMPLETE',POS1.x, POS1.z, last[1], last[3],className,POS2.x,POS2.z,distance_to_goal)
 											else
@@ -500,14 +453,10 @@ function MapHST:spotToCellMoveTest(spots)
 												local first = table.remove(waypoints)
 												first = {x = first[1],y = first[2],z = first[3]}
 												for i,v in pairs(waypoints) do
-
 													local wpos = table.remove(waypoints)
-
 													wpos = {x = wpos[1],y = wpos[2],z = wpos[3]}
 													local firstX,firstZ = self:PosToGrid(first)
-
 													local wposX,wposZ = self:PosToGrid(wpos)
-
 													if firstX ~= wposX or firstZ ~= wposZ then
 														self.GRID[firstX][firstZ].trampled = self.GRID[firstX][firstZ].trampled +1
 														if self.GRID[firstX][firstZ].trampled > self.ttt.trampled then
@@ -524,15 +473,33 @@ function MapHST:spotToCellMoveTest(spots)
 						end
 					end
 				end
+			end]]
+		end
+	end
+	self:EchoDebug(counter,'path evalutated:', 'most trampled',self.ttt.X,self.ttt.Z,self.ttt.trampled)
+end
+
+function MapHST:SetStartLocation()-- find start locations (loading them into air's list for later localization)
+	if self.startLocations["air"] == nil then
+		self.startLocations["air"] = {}
+	end
+	self.startLocations["air"][1] = self:GuessStartLocations(self.METALS)
+	if self.startLocations["air"][1] ~= nil then
+		-- localize start locations into mobility networks
+		for i, start in pairs(self.startLocations["air"][1]) do
+			self:EchoDebug("start location guessed at: " .. start.x .. ", " .. start.z)
+			for layer, net in pairs(self.networks) do
+				if layer ~= "air" then -- air list is already filled
+					for index, network in pairs(layer) do
+						if self.startLocations[layer] == nil then self.startLocations[layer] = {} end
+						if self.startLocations[layer][index] == nil then self.startLocations[layer][index] = {} end
+						table.insert(self.startLocations[layer][index], start)
+					end
+				end
 			end
 		end
 	end
-	print(counter)
-	print(self.ttt.X,self.ttt.Z,self.ttt.trampled)
 end
-
-
-
 
 function MapHST:GuessStartLocations(spots)
 	if spots == nil then return end
@@ -585,6 +552,285 @@ function MapHST:GuessStartLocations(spots)
 		return merged
 	end
 end
+
+function MapHST:ClosestFreeSpot(unittype, builder, position)--get the closest free metal spot for the request unittype
+	position = position or builder:GetPosition()
+	local layer, net = self:MobilityOfUnit(builder)
+	local builderName = builder:Name()
+	local builderPos = builder:GetPosition()
+	local uname = unittype:Name()
+	local spotPosition = nil
+	local spotDistance = math.huge
+	for index, spot in pairs(self.networks[layer][net].metals) do
+		if self:UnitCanGoHere(builder, spot) then
+			if not self.ai.buildsitehst:PlansOverlap(spot, uname) then
+				if self.ai.targethst:IsSafePosition(spot, builder) then
+					if map:CanBuildHere(unittype, p) then
+						local CELL = self:GetCell(pos)
+						if not CELL.enemy then
+							local dist = self.ai.tool:distance(position,builderPos)
+							if distance < 300 then
+								return spot
+							else
+								if distance < spotDistance then
+									spotPosition = spot
+									spotDistance = dist
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function MapHST:ClosestFreeGeo(unittype, builder, position)--get the closest free geo spot for the request unittype
+	self:EchoDebug("closestfreegeo for " .. unittype:Name() .. " by " .. builder:Name())
+	if not position then position = builder:GetPosition() end
+	local layer, net = self:MobilityOfUnit(builder)
+	local bname = builder:Name()
+	local uname = unittype:Name()
+	local bestDistance, bestPos
+	for i,p in pairs(self.networks[layer][net].geos) do----(self.GEOS) do
+		-- dont use this spot if we're already building there
+		if not self.ai.buildsitehst:PlansOverlap(p, uname) and self:UnitCanGoHere(builder, p) and self.map:CanBuildHere(unittype, p) and self.ai.targethst:IsSafePosition(p, builder) then
+			local dist = self.ai.tool:Distance(position, p)
+			if not bestDistance or dist < bestDistance then
+				bestDistance = dist
+				bestPos = p
+			end
+		end
+	end
+	return bestPos
+end
+
+	function MapHST:MobilityNetworkHere(mtype, position)
+		if not mtype or not position then return nil end
+		if mtype == "air" then return 1 end
+		return self:GetCell(position).moveLayers[mtype]
+	end
+
+function MapHST:MobilityOfUnit(unit)
+	local position = unit:GetPosition()
+	local name = unit:Name()
+	local mtype = self.ai.armyhst.unitTable[name].mtype
+	return mtype, self:MobilityNetworkHere(mtype, position)
+end
+
+function MapHST:UnitCanGoHere(unit, position)
+	if not unit  or not position then return false end
+	local mtype, unet = self:MobilityOfUnit(unit)
+	if mtype == 'air' then return true end
+	-- check if it's even a valid move order theorically already tested Spring.TestMoveOrder so do not need another
+	local pnet = self:MobilityNetworkHere(mtype, position)
+	if unet == pnet then
+		return true
+	end
+end
+
+function MapHST:UnitCanGetToUnit(unit1, unit2)
+	local position = unit2:GetPosition()
+	return self:UnitCanGoHere(unit1, position)
+end
+
+function MapHST:MobilitynetworkSizeHere(layer, position)
+	if layer == "air" then return self.gridArea end
+	local network = self:GetCell(position).moveLayers[layer]
+	if layer then
+		return self.networks[layer][network].size
+	end
+end
+
+function MapHST:AccessibleMetalSpotsHere(mtype, position)
+	if layer == "air" then return self.METALS end
+	local network = self:MobilityNetworkHere(mtype, position)
+	return self.networks[mtype][network].metals or {}
+end
+
+function MapHST:AccessibleGeoSpotsHere(mtype, position)
+	if layer == "air" then return self.GEOS end
+	local network = self:MobilityNetworkHere(mtype, position)
+	return self.networks[mtype][network].geos or {}
+end
+
+function MapHST:AccessibleSpotsHere(mtype, position) --!!!!!!!!! scoutSpots hold all the interesting spots, layer /network
+	if layer == "air" then return self.allSpots end
+	local network = self:MobilityNetworkHere(mtype, position)
+	return self.ai.tool:tableConcat({self.networks[mtype][network].metals, self.networks[mtype][network].geos})
+end
+
+function MapHST:IsUnderWater(position)
+	return position.y < 0
+-- 	return Spring.GetGroundHeight(position.x, position.z) < 0
+end
+
+function MapHST:DrawDebug()
+	local ch = 1
+	for i=0,9 do
+		self.map:EraseAll(i)
+	end
+	if not self.ai.drawDebug then
+		return
+	end
+	local colours={
+		{1,0,0,1},--'red'
+		{0,1,0,1},--'green'
+		{0,0,1,1},--'blue'
+		{0,1,1,1},
+		{1,1,0,1},
+		{1,1,1,1},
+		{0,0,0,1},
+		}
+	for i,p in pairs (self.hotSpots) do
+		map:DrawPoint(p, green, i,  ch)
+	end
+	for i,p in pairs (self.METALS) do
+		map:DrawPoint(p, white, i,  ch)
+	end
+	for i,p in pairs (self.GEOS) do
+		map:DrawPoint(p, white, i,  ch)
+	end
+	for X,Zetas in pairs(self.GRID) do
+		for Z, CELL in pairs(Zetas) do
+			if CELL.trampled > self.ttt.trampled / 2 then
+				map:DrawPoint(CELL.POS, {1,1,1,1}, CELL.trampled, 9)
+			end
+			local pos1, pos2 = {},{}
+			pos1.x, pos1.z = CELL.POS.x - self.gridSizeHalf, CELL.POS.z - self.gridSizeHalf
+			pos2.x, pos2.z = CELL.POS.x + self.gridSizeHalf, CELL.POS.z + self.gridSizeHalf
+			pos1.y=0
+			pos2.y=0
+			map:DrawRectangle(pos1,pos2, white, nil, false, ch)
+			ch = 0
+			for layer,unitName in pairs(CELL.moveLayers) do
+				ch = ch+1
+				if CELL.moveLayers[layer] then
+					map:DrawRectangle(pos1,pos2, colours[ch],CELL.moveLayers[layer], true, ch)
+				end
+			end
+		end
+	end
+
+end
+
+function MapHST:GetPathGraph(mtype, targetNodeSize)
+	targetNodeSize = targetNodeSize or 256
+	local cellsPerNodeSide = mCeil(targetNodeSize / self.gridSize)
+	if pathGraphs[mtype] then
+		if pathGraphs[mtype][cellsPerNodeSide] then
+			return pathGraphs[mtype][cellsPerNodeSide]
+		end
+	end
+	local nodeSize = cellsPerNodeSide * self.gridSize
+	local nodeSizeHalf = nodeSize / 2
+	local graph = {}
+	local id = 1
+	local myTopology = self.topology[mtype]
+	for cx = 1, self.mapSize.x, cellsPerNodeSide do
+		local x = ((cx * self.gridSize) - self.gridSizeHalf) + nodeSizeHalf
+		for cz = 1, self.mapSize.z, cellsPerNodeSide do
+			local cellsComplete = true
+			local goodCells = {}
+			local goodCellsCount = 0
+			for ccx = cx, cx+cellsPerNodeSide-1 do
+				for ccz = cz, cz+cellsPerNodeSide-1 do
+					if myTopology[ccx] and myTopology[ccx][ccz] then
+						goodCellsCount = goodCellsCount + 1
+						goodCells[goodCellsCount] = {ccx, ccz}
+					else
+						cellsComplete = false
+					end
+				end
+			end
+			if goodCellsCount > 0 then
+				local z = ((cz * self.gridSize) - self.gridSizeHalf) + nodeSizeHalf
+				local position = api.Position()
+				position.x = x
+				position.z = z
+				position.y = 0
+				if not cellsComplete then
+					local bestDist, bestX, bestZ
+					for i = 1, goodCellsCount do
+						local good = goodCells[i]
+						local gx = (good[1] * self.gridSize) - self.gridSizeHalf
+						local gz = (good[2] * self.gridSize) - self.gridSizeHalf
+						local dx = x - gx
+						local dz = z - gz
+						local dist = dx*dx + dz*dz
+						if not bestDist or dist < bestDist then
+							bestDist = dist
+							bestX = gx
+							bestZ = gz
+						end
+					end
+					position.x = bestX
+					position.z = bestZ
+				end
+				position.y = Spring.GetGroundHeight(x, z)
+				local nodeX = mCeil(cx / cellsPerNodeSide)
+				local nodeY = mCeil(cz / cellsPerNodeSide)
+				local node = { x = nodeX, y = nodeY, id = id, position = position }
+				-- self.map:DrawPoint(position, {1,1,1,1}, mtype .. " " .. nodeX .. ", " .. nodeY, 8)
+				graph[id] = node
+				id = id + 1
+			end
+		end
+	end
+	local aGraph = GraphAStar()
+	aGraph:Init(graph)
+	aGraph:SetOctoGridSize(1)
+	aGraph:SetPositionUnitsPerNodeUnits(nodeSize)
+	pathGraphs[mtype] = pathGraphs[mtype] or {}
+	pathGraphs[mtype][cellsPerNodeSide] = aGraph
+	return aGraph
+end
+
+
+
+
+
+
+
+
+
+
+
+		--[[
+
+
+
+
+
+function MapHST:FindStartLocation()
+	-- find start locations (loading them into air's list for later localization)
+	self.ai.startLocations = {}
+	if self.ai.startLocations["air"] == nil then
+		self.ai.startLocations["air"] = {}
+	end
+	self.ai.startLocations["air"][1] = self:GuessStartLocations(self.METALS)
+	if self.ai.startLocations["air"][1] ~= nil then
+		-- localize start locations into mobility networks
+		for i, start in pairs(self.ai.startLocations["air"][1]) do
+			self:EchoDebug("start location guessed at: " .. start.x .. ", " .. start.z)
+			for mtype, networkList in pairs(self.scoutSpots) do
+				if mtype ~= "air" then -- air list is already filled
+					for n, spots in pairs(networkList) do
+						if self.ai.startLocations[mtype] == nil then
+							self.ai.startLocations[mtype] = {}
+						end
+						if self.ai.startLocations[mtype][n] == nil then
+							self.ai.startLocations[mtype][n] = {}
+						end
+						table.insert(self.ai.startLocations[mtype][n], start)
+					end
+				end
+			end
+		end
+	end
+end
+
+
 
 function MapHST:ClosestFreeSpot(unittype, builder, position)
 	-- 	local kbytes, threshold = gcinfo()
@@ -729,210 +975,77 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 		return pos, uw, reclaimEnemyMex
 	end
 
-	function MapHST:ClosestFreeGeo(unittype, builder, position)
-		self:EchoDebug("closestfreegeo for " .. unittype:Name() .. " by " .. builder:Name())
-		if not position then position = builder:GetPosition() end
-		local bname = builder:Name()
-		local uname = unittype:Name()
-		local bestDistance, bestPos
-		for i,p in pairs(self.geoSpots) do
-			-- dont use this spot if we're already building there
-			if not self.ai.buildsitehst:PlansOverlap(p, uname) and self:UnitCanGoHere(builder, p) and self.map:CanBuildHere(unittype, p) and self.ai.targethst:IsSafePosition(p, builder) then
-				local dist = self.ai.tool:Distance(position, p)
-				if not bestDistance or dist < bestDistance then
-					bestDistance = dist
-					bestPos = p
-				end
-			end
-		end
-		return bestPos
-	end
-
-	function MapHST:MobilityNetworkHere(mtype, position)
-		if not mtype or not position then return nil end
-		if mtype == "air" then return 1 end
-		return self:GetCell(position).moveLayers[mtype]
-	end
-
-	function MapHST:MobilityOfUnit(unit)
-		local position = unit:GetPosition()
-		local name = unit:Name()
-		local mtype = self.ai.armyhst.unitTable[name].mtype
-		return mtype, self:MobilityNetworkHere(mtype, position)
-	end
-
-	function MapHST:UnitCanGoHere(unit, position)
-		if not unit  or not position then return false end
-		local mtype, unet = self:MobilityOfUnit(unit)
-		if mtype == 'air' then return true end
-		-- check if it's even a valid move order theorically already tested Spring.TestMoveOrder so do not need another
-		local pnet = self:MobilityNetworkHere(mtype, position)
-		if unet == pnet then
-			return true
-		end
-	end
-
-	function MapHST:UnitCanGetToUnit(unit1, unit2)
-		local position = unit2:GetPosition()
-		return self:UnitCanGoHere(unit1, position)
-	end
 
 
 
-	function MapHST:MobilitynetworkSizeHere(layer, position)
-		if layer == "air" then return self.gridArea end
-		local network = self:GetCell(position).moveLayers[layer]
-		if layer then
-			return self.netwoks[layer][network].size
-		end
-	end
-
-	function MapHST:AccessibleMetalSpotsHere(mtype, position)
-		local network = self:MobilityNetworkHere(mtype, position)
-		return self.networks[mtype][network].metals or {}
-	end
-
-	function MapHST:AccessibleGeoSpotsHere(mtype, position)
-		local network = self:MobilityNetworkHere(mtype, position)
-		return self.networks[mtype][network].geos or {}
-	end
-
-	function MapHST:AccessibleSpotsHere(mtype, position)
-		local network = self:MobilityNetworkHere(mtype, position)
-		return self.scoutSpots[mtype][network] or {}
-	end
-
-	function MapHST:IsUnderWater(position)
-		return Spring.GetGroundHeight(position.x, position.z) < 0
-	end
 
 
-	function MapHST:DrawDebug()
-		local ch = 1
-		for i=0,9 do
+	self:EchoDebug("total sectors "..self.gridArea)-- now let's see how much water we found
+	local wetness = self.mobilityCount["sub"] * 100 / self.gridArea
+	self:EchoDebug("map wetness is "..wetness)
+	self.waterMap = wetness >= 10
+	self:EchoDebug("there is water on the map")
+	for mtype, count in pairs(self.mobilityCount) do
+	local ness = count * 100 / self.gridArea
+	self:EchoDebug("map " .. mtype .. "-ness is " .. ness .. " and total grids: " .. count)
+end
+end
+	-- deciding what kind of map it is
+	local maxSpots = 0
+	local minNetworks = 5
+	local best = nil
+	local totalRating = 0
+	local numberOfRatings = 0
+	for mtype, spots in pairs(self.mobSpots) do
+	if #spots > maxSpots then
+	if self.mobilityNets[mtype] < minNetworks then
+	maxSpots = #spots
+	minNetworks = self.mobilityNets[mtype]
+	best = mtype
+end
+end
+	local mostGrids = 0
+	local mostSpots = 0
+	if self.networkSize[mtype] ~= nil then
+	for n, size in pairs(self.networkSize[mtype]) do
+	if size > mostGrids and #self.scoutSpots[mtype][n] > mostSpots then
+	mostGrids = size
+	mostSpots = #self.scoutSpots[mtype][n]
+end
+end
+end
+	if self.mobilityNets[mtype] == 0 then
+	self.mobilityRating[mtype] = 0
+else
+	self.mobilityRating[mtype] = ((mostSpots - self.mobilityNets[mtype]) + ((mostGrids / self.gridArea) * mostSpots * 0.25))
+end
+	totalRating = totalRating + self.mobilityRating[mtype]
+	numberOfRatings = numberOfRatings + 1
+	self:EchoDebug(mtype .. " rating: " .. self.mobilityRating[mtype])
+end
+	-- add in bechmark air rating
+	-- local airRating = (#self.scoutSpots["air"][1] + (#self.scoutSpots["air"][1] * 0.25)) * 0.5
+	local airRating = #self.scoutSpots["air"][1] + (#self.scoutSpots["air"][1] * 0.25)
+	self.mobilityRating['air'] = airRating
+	totalRating = totalRating + airRating
+	numberOfRatings = numberOfRatings + 1
+	self:EchoDebug('air rating: ' .. airRating)
+	local avgRating = totalRating / numberOfRatings
+	local ratingFloor = avgRating * 0.65
+	self:EchoDebug('average rating: ' .. avgRating)
+	self:EchoDebug('rating floor: ' .. ratingFloor)
+	self.mobilityRatingFloor = ratingFloor
+	self.hasUWSpots = #self.mobSpots["sub"] > 0
+	if self.hasUWSpots then
+	self:EchoDebug("MapHST: Submerged metal spots detected")
+end
 
-			self.map:EraseAll(i)
-		end
-		if not self.ai.drawDebug then
-			return
-		end
-		local colours={
-			{1,0,0,1},--'red'
-			{0,1,0,1},--'green'
-			{0,0,1,1},--'blue'
-			{0,1,1,1},
-			{1,1,0,1},
-			{1,1,1,1},
-			{0,0,0,1},
+	-- cleanup
+	self.mobilityMap = nil
+	-- 	self.ai.factoriesRanking, self.ai.ranksByFactories = self:factoriesRating()
+	]]
 
-			}
-		for i,p in pairs (self.hotSpots) do
-			map:DrawPoint(p, green, i,  ch)
-		end
-		for i,p in pairs (self.metalSpots) do
-			map:DrawPoint(p, white, i,  ch)
-		end
-		for i,p in pairs (self.geoSpots) do
-			map:DrawPoint(p, white, i,  ch)
-		end
 
-		for X,Zetas in pairs(self.GRID) do
-			for Z, CELL in pairs(Zetas) do
-				if CELL.trampled > self.ttt.trampled / 2 then
-					map:DrawPoint(CELL.POS, {1,1,1,1}, CELL.trampled, 9)
-				end
-
-				local pos1, pos2 = {},{}
-				pos1.x, pos1.z = CELL.POS.x - self.gridSizeHalf, CELL.POS.z - self.gridSizeHalf
-				pos2.x, pos2.z = CELL.POS.x + self.gridSizeHalf, CELL.POS.z + self.gridSizeHalf
-				pos1.y=0--Spring.GetGroundHeight(pos1.x,pos1.z)
-				pos2.y=0--Spring.GetGroundHeight(pos2.x,pos2.z)
-				map:DrawRectangle(pos1,pos2, white, nil, false, ch)
-				ch = 0
-				for layer,unitName in pairs(CELL.moveLayers) do
-					ch = ch+1
-					if CELL.moveLayers[layer] then
-						map:DrawRectangle(pos1,pos2, colours[ch],CELL.moveLayers[layer], true, ch)
-						--map:DrawCircle(CELL.POS, self.gridSizeHalf , colours[ch],CELL.moveLayers[layer], true, ch)
-					end
-				end
-			end
-		end
-
-	end
-
-	function MapHST:GetPathGraph(mtype, targetNodeSize)
-		targetNodeSize = targetNodeSize or 256
-		local cellsPerNodeSide = mCeil(targetNodeSize / self.gridSize)
-		if pathGraphs[mtype] then
-			if pathGraphs[mtype][cellsPerNodeSide] then
-				return pathGraphs[mtype][cellsPerNodeSide]
-			end
-		end
-		local nodeSize = cellsPerNodeSide * self.gridSize
-		local nodeSizeHalf = nodeSize / 2
-		local graph = {}
-		local id = 1
-		local myTopology = self.topology[mtype]
-		for cx = 1, self.mapSize.x, cellsPerNodeSide do
-			local x = ((cx * self.gridSize) - self.gridSizeHalf) + nodeSizeHalf
-			for cz = 1, self.mapSize.z, cellsPerNodeSide do
-				local cellsComplete = true
-				local goodCells = {}
-				local goodCellsCount = 0
-				for ccx = cx, cx+cellsPerNodeSide-1 do
-					for ccz = cz, cz+cellsPerNodeSide-1 do
-						if myTopology[ccx] and myTopology[ccx][ccz] then
-							goodCellsCount = goodCellsCount + 1
-							goodCells[goodCellsCount] = {ccx, ccz}
-						else
-							cellsComplete = false
-						end
-					end
-				end
-				if goodCellsCount > 0 then
-					local z = ((cz * self.gridSize) - self.gridSizeHalf) + nodeSizeHalf
-					local position = api.Position()
-					position.x = x
-					position.z = z
-					position.y = 0
-					if not cellsComplete then
-						local bestDist, bestX, bestZ
-						for i = 1, goodCellsCount do
-							local good = goodCells[i]
-							local gx = (good[1] * self.gridSize) - self.gridSizeHalf
-							local gz = (good[2] * self.gridSize) - self.gridSizeHalf
-							local dx = x - gx
-							local dz = z - gz
-							local dist = dx*dx + dz*dz
-							if not bestDist or dist < bestDist then
-								bestDist = dist
-								bestX = gx
-								bestZ = gz
-							end
-						end
-						position.x = bestX
-						position.z = bestZ
-					end
-
-					position.y = Spring.GetGroundHeight(x, z)
-					local nodeX = mCeil(cx / cellsPerNodeSide)
-					local nodeY = mCeil(cz / cellsPerNodeSide)
-					local node = { x = nodeX, y = nodeY, id = id, position = position }
-					-- self.map:DrawPoint(position, {1,1,1,1}, mtype .. " " .. nodeX .. ", " .. nodeY, 8)
-					graph[id] = node
-					id = id + 1
-				end
-			end
-		end
-		local aGraph = GraphAStar()
-		aGraph:Init(graph)
-		aGraph:SetOctoGridSize(1)
-		aGraph:SetPositionUnitsPerNodeUnits(nodeSize)
-		pathGraphs[mtype] = pathGraphs[mtype] or {}
-		pathGraphs[mtype][cellsPerNodeSide] = aGraph
-		return aGraph
-	end
 
 
 
@@ -1254,8 +1367,8 @@ end
 end
 	realMetals = spots / (#self.landMetalSpots + #self.UWMetalSpots)--relative metals occupable
 end
-	if #self.geoSpots > 0 and mtype ~= ('shp' or 'sub') then
-	realGeos = math.min(0.1 * #self.geoSpots,1) --if there are more then 10 geos is useless give it more weight on bestfactory type calculations
+	if #self.GEOS > 0 and mtype ~= ('shp' or 'sub') then
+	realGeos = math.min(0.1 * #self.GEOS,1) --if there are more then 10 geos is useless give it more weight on bestfactory type calculations
 end
 	mtypesMapRatings[mtype] = (( realMetals + realSize + realGeos) / 3) * realRating
 	mtypesMapRatings[mtype] = (self.mobilityRating[mtype] / self.mobilityRating['air']) * self.ai.armyhst.mobilityEffeciencyMultiplier[mtype]

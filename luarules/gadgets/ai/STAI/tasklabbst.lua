@@ -152,7 +152,7 @@ end
 function TaskLabBST:toAmphibious(soldier)
 	local army = self.ai.armyhst
 	local maphst = self.ai.maphst
-	local amphRank = (((maphst.mobilityCount['shp']) / maphst.gridArea ) +  ((#maphst.UWMetalSpots) /(#maphst.landMetalSpots + #maphst.UWMetalSpots)))/ 2
+-- 	local amphRank = (((maphst.mobilityCount['shp']) / maphst.gridArea ) +  ((#maphst.UWMetalSpots) /(#maphst.landMetalSpots + #maphst.UWMetalSpots)))/ 2
 	amphRank = self.amphRank or 0.5
 	self:EchoDebug('amphRank',amphRank)
 	if army.raiders[soldier] or army.battles[soldier] or army.breaks[soldier] or army.artillerys[soldier] then

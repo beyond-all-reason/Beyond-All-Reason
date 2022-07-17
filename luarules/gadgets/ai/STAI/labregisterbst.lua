@@ -48,7 +48,6 @@ function LabRegisterBST:OwnerDead()
 end
 
 function LabRegisterBST:Unregister()
-
 	local un = self.name
     local level = self.level
    	self:EchoDebug("factory " .. un .. " level " .. level .. " unregistering")
@@ -71,11 +70,11 @@ function LabRegisterBST:Unregister()
 	if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
 	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]
 	local network = self.ai.maphst:MobilityNetworkHere(mtype,self.position)
-	-- self:EchoDebug(mtype, network, self.ai.factoryBuilded[mtype], self.ai.factoryBuilded[mtype][network], self.name, self.ai.armyhst.unitTable[self.name], self.ai.armyhst.unitTable[self.name].techLevel)
-	if self.ai.factoryBuilded[mtype] and self.ai.factoryBuilded[mtype][network] then
-		self.ai.factoryBuilded[mtype][network] = self.ai.factoryBuilded[mtype][network] - self.level
+	-- self:EchoDebug(mtype, network, self.ai.labbuildhst.factoryBuilded[mtype], self.ai.labbuildhst.factoryBuilded[mtype][network], self.name, self.ai.armyhst.unitTable[self.name], self.ai.armyhst.unitTable[self.name].techLevel)
+	if self.ai.labbuildhst.factoryBuilded[mtype] and self.ai.labbuildhst.factoryBuilded[mtype][network] then
+		self.ai.labbuildhst.factoryBuilded[mtype][network] = self.ai.labbuildhst.factoryBuilded[mtype][network] - self.level
 	end
-	self:EchoDebug('factory '  ,self.name, ' network '  ,mtype , '-' , network , ' level ' ,self.ai.factoryBuilded[mtype][network] , ' subtract tech ', self.level)
+	self:EchoDebug('factory '  ,self.name, ' network '  ,mtype , '-' , network , ' level ' ,self.ai.labbuildhst.factoryBuilded[mtype][network] , ' subtract tech ', self.level)
 end
 
 function LabRegisterBST:Register()
@@ -97,6 +96,6 @@ function LabRegisterBST:Register()
 	if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
 	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]
 	local network = self.ai.maphst:MobilityNetworkHere(mtype,self.position) or 0
-	self.ai.factoryBuilded[mtype][network] = (self.ai.factoryBuilded[mtype][network] or 0) + self.level
-	self:EchoDebug('factory '  ..self.name.. ' network '  .. mtype .. '-' .. network .. ' level ' .. self.ai.factoryBuilded[mtype][network] .. ' adding tech '.. self.level)
+	self.ai.labbuildhst.factoryBuilded[mtype][network] = (self.ai.labbuildhst.factoryBuilded[mtype][network] or 0) + self.level
+	self:EchoDebug('factory '  ..self.name.. ' network '  .. mtype .. '-' .. network .. ' level ' .. self.ai.labbuildhst.factoryBuilded[mtype][network] .. ' adding tech '.. self.level)
 end

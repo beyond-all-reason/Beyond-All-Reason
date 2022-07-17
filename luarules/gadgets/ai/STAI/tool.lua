@@ -228,27 +228,61 @@ end
 
 function Tool:pairsByKeys(t, f)
 	local a = {}
-	for n in pairs(t) do table.insert(a, n) end
+	for n in pairs(t) do
+		table.insert(a, n)
+	end
 	table.sort(a, f)
 	local i = 0      -- iterator variable
 	local iter = function ()   -- iterator function
 		i = i + 1
-		if a[i] == nil then return nil
-	else return a[i], t[a[i]]
-end
-end
-return iter
+		if a[i] == nil then
+			return nil
+		else
+			return a[i], t[a[i]]
+		end
+	end
+	return iter
 end
 
 function Tool:tableSorting(t)
+	print(t)
 	local Tkey = {}
 	local Tvalue = {}
-	for key, value in self.ai.tool:pairsByKeys(t) do
+	for key, value in self:pairsByKeys(t) do
       self:EchoDebug(key, value)
+	  print(key,value)
 	  table.insert(Tkey,key)
 	  table.insert(Tvalue,value)
     end
 	return Tkey, Tvalue
+end
+
+function Tool:sortByValue(t)
+	local sorted = {}
+	for k, v in pairs(t) do
+		table.insert(sorted,{k,v})
+	end
+
+	table.sort(sorted, function(a,b) return a[2] < b[2] end)
+
+	--for _, v in ipairs(sorted) do
+	--	print(v[1],v[2])
+	--end
+	return sorted
+end
+
+function Tool:reverseSortByValue(t)
+	local sorted = {}
+	for k, v in pairs(t) do
+		table.insert(sorted,{k,v})
+	end
+
+	table.sort(sorted, function(a,b) return a[2] > b[2] end)
+
+	--for _, v in ipairs(sorted) do
+	--	print(v[1],v[2])
+	--end
+	return sorted
 end
 
 function Tool:listHasKey( value, list )
@@ -274,6 +308,24 @@ function Tool:dictHasKey( value, list )
 		return true
 	end
 	return false
+end
+
+function Tool:gcd(a, b)
+	return b==0 and a or self:gcd(b,a%b)
+end
+
+function Tool:tableConcat(tables)
+	if type(tables) ~= 'table' then
+		self:Warn('concatenation require a table of tables')
+		return
+	end
+	local T = {}
+	for index,t in pairs(tables) do
+		for k, value in pairs(t) do
+			table.insert(T,-1,value)
+		end
+	end
+	return T
 end
 
 function Tool:countFinished( nameORid )

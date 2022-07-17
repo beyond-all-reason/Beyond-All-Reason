@@ -8,17 +8,13 @@ function TargetHST:internalName()
 	return "targethst"
 end
 
-local cellElmos = 256
-local cellElmosHalf = cellElmos / 2
-
 function TargetHST:Init()
 	self.DebugEnabled = false
 	self.visualdbg = true
- 	self.CELLS = {}
  	self.ENEMYCELLS = {}
  	self.BAD_CELLS = {}
  	self.SPOT_CELLS = {}
- 	self:createGridCell()
+--  	self:createGridCell()
 
 	self.pathModParam = 0.33
 	self.pathModifierFuncs = {}
@@ -26,17 +22,12 @@ function TargetHST:Init()
 	self.enemyFrontList = {}
 end
 
-
-
-
 function TargetHST:setCellEnemyValues(enemy,CELL)
 	CELL.enemyUnits[enemy.id] = enemy.name
 	if not enemy.mobile then
 		CELL.enemyBuildings[enemy.id] = enemy.name
-
 	end
 	local ut = self.ai.armyhst.unitTable[enemy.name]
-
 	if enemy.view == 1 then
 		if ut.isFactory then
 			CELL.base = enemy.name
@@ -132,8 +123,6 @@ end
 function TargetHST:Update()
 -- 	local f = self.game:Frame()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
-	--if f == 0 or (f % 71 + game:GetTeamID() == 0) then
-	--if f == 0 or (f % 71) == 0 then
 -- 		self.cells = {}--TODO
 		self:clearEnemies()--delete just the enemy data inside cells, leave other living --TEST
 -- 		self.cellList = {}
@@ -191,7 +180,6 @@ function TargetHST:enemyFront()
 	if not self.enemyBasePosition then
 		return
 	end
-
 	local base = self.enemyBasePosition
 	local basecell,baseX,baseZ = self:GetCellHere(base)
 
@@ -264,8 +252,8 @@ function TargetHST:perifericalTarget()
 end
 
 function TargetHST:UpdateMetalGeoSpots()
-	local spots = self.ai.maphst.scoutSpots.air[1]
-	for index,spot in pairs(spots) do
+	--local spots = self.ai.maphst.scoutSpots.air[1]
+	for index,spot in pairs(self.ai.maphst.allSpots) do
 		local underwater = self.ai.maphst:IsUnderWater(spot)
 		local inLos = self.ai.loshst:posInLos(spot)
 		local gridX,gridZ = self:PosToGrid(spot)
@@ -461,25 +449,12 @@ end
 
 
 
-function TargetHST:NewCell(px, pz)
-	local x = px * cellElmos - cellElmosHalf
-	local z = pz * cellElmos - cellElmosHalf
-	local cellPos = api.Position()
-	cellPos.x, cellPos.z = x, z
-	cellPos.y = Spring.GetGroundHeight(x, z)
-	self.ai.buildsitehst:isInMap(cellPos)
--- 	map:DrawCircle(cellPos, cellElmosHalf,{1,1,1,1} , 'G', true, 4)
+function TargetHST:NewCell(px, pz)--GAS is acronim  of 3 layer: ground air submerged
 
 	local CELL = {}
-	CELL.pos = cellPos
-	CELL.gx = px
-	CELL.gz = pz
 	CELL.enemyUnits = {}
 	CELL.enemyBuildings = {}
-	CELL.friendlyUnits = {}
-	CELL.myUnits = {}
 	CELL.badPositions = 0
-	CELL.spots = 0
 	CELL.damagedUnits = {}
 	CELL.base = nil
 	--targets of this cell per layer is immobile unit NO weapon express in metal here is the layer that count
