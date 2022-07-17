@@ -1055,26 +1055,8 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 				end
-				if mRandom() > config.spawnChance then
-					if currentWave >= 2 then
-						local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
-						local targetCleaners = currentWave*SetCount(humanTeams)*config.chickenSpawnMultiplier
-						local cleanerSpawnCount = math.ceil((targetCleaners - aliveCleaners)*0.25)
-						if cleanerSpawnCount > 0 then
-							if math.random(0,1) == 0 then
-								for i = 1,math.ceil(cleanerSpawnCount) do
-									table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = i })
-									cCount = cCount + 1
-								end
-							else
-								for i = 1,math.ceil(cleanerSpawnCount) do
-									table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = i })
-									cCount = cCount + 1
-								end
-							end
-						end
-					end
-				elseif overseerSpawned == false and mRandom() > config.spawnChance then
+				
+				if overseerSpawned == false and mRandom() > config.spawnChance then
 					if currentWave >= 5 and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh5"].id) < SetCount(humanTeams)*config.chickenSpawnMultiplier then
 						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh5", team = chickenTeamID, })
 						cCount = cCount + 1
@@ -1088,6 +1070,23 @@ if gadgetHandler:IsSyncedCode() then
 						cCount = cCount + 1
 					end
 					scoutSpawned = true
+				elseif currentWave >= 2 and loopCounter == 1 then
+					local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
+					local targetCleaners = currentWave*SetCount(humanTeams)*config.chickenSpawnMultiplier
+					local cleanerSpawnCount = math.ceil((targetCleaners - aliveCleaners)*0.25)
+					if cleanerSpawnCount > 0 then
+						if math.random(0,1) == 0 then
+							for i = 1,math.ceil(cleanerSpawnCount) do
+								table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = i })
+								cCount = cCount + 1
+							end
+						else
+							for i = 1,math.ceil(cleanerSpawnCount) do
+								table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = i })
+								cCount = cCount + 1
+							end
+						end
+					end
 				end
 			end
 		until (cCount > currentMaxWaveSize or loopCounter >= 100)
