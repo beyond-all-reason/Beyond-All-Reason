@@ -403,8 +403,14 @@ local options={
 		section = 'options_scavengers',
 		def  = true,
 	},
-
-
+    {
+		key    = 'scavbosstoggle',
+		name   = 'Scavenger Boss',
+		desc   = "When enabled, final scavenger boss will spawn",
+		type   = 'bool',
+		section = 'options_scavengers',
+		def  = true,
+	},
 	-- Hidden
 	{
 		key    = 'scavunitcountmultiplier',

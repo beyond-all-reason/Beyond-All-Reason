@@ -502,7 +502,6 @@ local armorDefs = {
 		"chickena1c",
 		"chickena2",
 		"chickena2b",
-		"chickenc1",
 		"chickenc2",
 		"chickenc3",
 		"chickenc3b",

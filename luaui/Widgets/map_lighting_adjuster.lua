@@ -107,6 +107,10 @@ local mapSunLighting = {
 		unitDiffuseColor = {0.4, 0.4, 0.4},
 		unitSpecularColor = {0.65, 0.5, 0.5},
 	},
+	['bismuth valley v1.0'] = {
+		unitAmbientColor = { 0.45, 0.45, 0.45 },
+		unitDiffuseColor = {0.75, 0.75, 0.7},
+	},
 }
 
 local mapSun = {

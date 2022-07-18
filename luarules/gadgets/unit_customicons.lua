@@ -278,7 +278,6 @@ local units = {
 	chickena1c = { "chicken.png", 1.57499993 },
 	chickena2 = { "chicken.png", 1.57499993 },
 	chickena2b = { "chicken.png", 1.57499993 },
-	chickenc1 = { "chicken.png", 1.57499993 },
 	chickenc2 = { "chicken.png", 1.57499993 },
 	chickenc3 = { "chicken.png", 1.25999999 },
 	chickenc3b = { "chicken.png", 1.25999999 },

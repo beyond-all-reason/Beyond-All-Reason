@@ -49,7 +49,6 @@ local chickenTypes = {
 	chickenf1apex      					=  true,
 	chickenf1apexb     					=  true,
 	chickenf2      						=  true,
-	chickenc1      						=  true,
 	chickenc2      						=  true,
 	chickenc3      						=  true,
 	chickenc3b     						=  true,
@@ -119,7 +118,6 @@ local chickenTypes = {
 	chickenf1apex      					=   "yellow",
 	chickenf1apexb     					=   "yellow",
 	chickenf2      						=   "white",
-	chickenc1      						=   "white",
 	chickenc2      						=   "darkred",
 	chickenc3      						=   "white",
 	chickenc3b     						=   "white",
@@ -366,6 +364,10 @@ for i = 1,#waves do
 		addSquad(i, { i ..  " chickena1b"})
 		addSquad(i, { i ..  " chickena1c"})
 		addSquad(i, { i*4 .." chickens1" })
+	end
+	if i >= 5 and i <= 8 then -- Aircrafts
+		addSquad(i, { i .. " chickenw1", i .. " chickenw1b", i .. " chickenw1c", i .. " chickenw1d"})
+		addSquad(i, { i .. " chickenf1", i .. " chickenf1b" }) 
 	end
 	if i >= 7 and i <= 10 then -- More AllTerrains over time
 		addSquad(i, { i*3 .." chickenc3" })
