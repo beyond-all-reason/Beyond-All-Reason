@@ -78,6 +78,7 @@ return {
 				areaofeffect = 70,
 				avoidfeature = false,
 				cegtag = "missiletrailsmall-simple",
+				collideFriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
