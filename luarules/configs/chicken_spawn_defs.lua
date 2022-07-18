@@ -271,119 +271,128 @@ local function addSquad(wave, unitList, weight)
 	table.insert(waves[wave], unitList)
     end
 end
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
--- Squads -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-	addSquad(1, { "5 chicken1", "5 chicken1b", "5 chicken1c", "5 chicken1d" 					}) -- Basic Raptor
+local accumulativeSquads = true -- dev switch
 
-	addSquad(2, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  									}) -- Better Basic Raptor
-	addSquad(2, { "10 chickens1" 																}) -- Spiker
+if accumulativeSquads == true then
+	-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Squads -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-	addSquad(3, { "2 chickena1", "2 chickena1b", "2 chickena1c"									}) -- Brawler
-	addSquad(3, { "8 chickene1" 																}) -- EMP Swarmer
+		addSquad(1, { "5 chicken1", "5 chicken1b", "5 chicken1c", "5 chicken1d" 					}) -- Basic Raptor
 
-	addSquad(4, { "10 chickenp1" 																}) -- Small Pyro
-	addSquad(4, { "4 chickenp1" , "1 chickenp2"													}) -- Small Pyros with mom
+		addSquad(2, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  									}) -- Better Basic Raptor
+		addSquad(2, { "10 chickens1" 																}) -- Spiker
 
-	addSquad(5, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  									}) -- Better Basic Raptor
-	addSquad(5, { "3 chickene2" 																}) -- EMP Brawler
-	addSquad(5, { "5 chickenw1", "5 chickenw1b", "5 chickenw1c", "5 chickenw1d" 				}) -- Fighter
-	addSquad(5, { "5 chickenf1", "5 chickenf1b" 												}) -- Bomber
-	addSquad(5, { "5 chickenebomber1" 															}) -- EMP Bomber
-	addSquad(5, { "10 chickenacidswarmer" 														}) -- Acid Swarmer
+		addSquad(3, { "2 chickena1", "2 chickena1b", "2 chickena1c"									}) -- Brawler
+		addSquad(3, { "8 chickene1" 																}) -- EMP Swarmer
 
-	addSquad(6, { "15 chickenc3" 																}) -- Swarmer AllTerrain
-	addSquad(6, { "10 chickenc3b" 																}) -- Swarmer AllTerrain
-	addSquad(6, { "5 chickenc3c" 																}) -- Swarmer AllTerrain
-	addSquad(6, { "2 chickenallterraina1", "2 chickenallterraina1b", "2 chickenallterraina1c"	}) -- Brawler AllTerrain
-	addSquad(6, { "10 chickenpyroallterrain" 													}) -- Pyro AllTerrain
-	addSquad(6, { "10 chickenelectricallterrain" 												}) -- EMP AllTerrain
-	addSquad(6, { "5 chickene1", "5 chickenacidswarmer" 										}) -- EMP and Acid Swarmer Combo
-	addSquad(6, { "3 chickenr1" 																}) -- Artillery
+		addSquad(4, { "10 chickenp1" 																}) -- Small Pyro
+		addSquad(4, { "4 chickenp1" , "1 chickenp2"													}) -- Small Pyros with mom
 
-	addSquad(7, { "3 chickenearty1" 															}) -- EMP Artillery
-	addSquad(7, { "8 chickenp2" 																}) -- Apex Pyro
-	addSquad(7, { "3 chickene2" 																}) -- EMP Brawler
-	addSquad(7, { "3 chickenelectricallterrainassault" 											}) -- EMP AllTerrain Brawler
-	addSquad(7, { "5 chickenelectricallterrain", "5 chickenacidallterrain" 						}) -- EMP and Acid AllTerrain Combo
+		addSquad(5, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  									}) -- Better Basic Raptor
+		addSquad(5, { "3 chickene2" 																}) -- EMP Brawler
+		addSquad(5, { "5 chickenw1", "5 chickenw1b", "5 chickenw1c", "5 chickenw1d" 				}) -- Fighter
+		addSquad(5, { "5 chickenf1", "5 chickenf1b" 												}) -- Bomber
+		addSquad(5, { "5 chickenebomber1" 															}) -- EMP Bomber
+		addSquad(5, { "10 chickenacidswarmer" 														}) -- Acid Swarmer
 
-	addSquad(8, { "70 chicken_dodo1" 															}) -- Kamikaze
-	addSquad(8, { "35 chicken_dodo2" 															}) -- Kamikaze
-	addSquad(8, { "35 chicken_dodoair" 															}) -- Kamikaze
-	addSquad(8, { "10 chickens2" 																}) -- Apex Spiker
-	addSquad(8, { "10 chickenacidallterrain" 													}) -- Acid AllTerrain 
-	addSquad(8, { "4 chickenacidassault" 														}) -- Acid Brawler
-	addSquad(8, { "3 chickene2" 																}) -- EMP Brawler
-	addSquad(8, { "4 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
-	addSquad(8, { "5 chickenacidbomber" 														}) -- Acid Bomber
-	addSquad(8, { "3 chickenacidarty" 															}) -- Acid Artillery
+		addSquad(6, { "15 chickenc3" 																}) -- Swarmer AllTerrain
+		addSquad(6, { "10 chickenc3b" 																}) -- Swarmer AllTerrain
+		addSquad(6, { "5 chickenc3c" 																}) -- Swarmer AllTerrain
+		addSquad(6, { "2 chickenallterraina1", "2 chickenallterraina1b", "2 chickenallterraina1c"	}) -- Brawler AllTerrain
+		addSquad(6, { "10 chickenpyroallterrain" 													}) -- Pyro AllTerrain
+		addSquad(6, { "10 chickenelectricallterrain" 												}) -- EMP AllTerrain
+		addSquad(6, { "5 chickene1", "5 chickenacidswarmer" 										}) -- EMP and Acid Swarmer Combo
+		addSquad(6, { "3 chickenr1" 																}) -- Artillery
 
-	addSquad(9, { "3 chickenf1apex", "3 chickenf1apexb" 										}) -- Apex Bomber
-	addSquad(9, { "10 chickenw2" 																}) -- Apex Fighter
-	addSquad(9, { "5 chicken2" , "5 chicken2b" 													}) -- Apex Swarmer
-	addSquad(9, { "5 chickena2", "5 chickena2b"													}) -- Apex Brawler
-	addSquad(9, { "5 chickenapexallterrainassault", "5 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
-	addSquad(9, { "1 chickenr2", "3 chickenr1" 													}) -- Meteor Artillery
+		addSquad(7, { "3 chickenearty1" 															}) -- EMP Artillery
+		addSquad(7, { "8 chickenp2" 																}) -- Apex Pyro
+		addSquad(7, { "3 chickene2" 																}) -- EMP Brawler
+		addSquad(7, { "3 chickenelectricallterrainassault" 											}) -- EMP AllTerrain Brawler
+		addSquad(7, { "5 chickenelectricallterrain", "5 chickenacidallterrain" 						}) -- EMP and Acid AllTerrain Combo
 
-	addSquad(10, { "3 chickenf1apex", "3 chickenf1apexb" 										}) -- Apex Bomber
-	addSquad(10, { "20 chickenw2" 																}) -- Apex Fighter
-	addSquad(10, { "5 chicken2" , "5 chicken2b" 												}) -- Apex Swarmer
-	addSquad(10, { "5 chickena2", "5 chickena2b"												}) -- Apex Brawler
-	addSquad(10, { "5 chickenapexallterrainassault", "5 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
-	addSquad(10, { "1 chickenr2", "3 chickenr1" 												}) -- Meteor Artillery
-	addSquad(10, { "5 chickenh2" 																}) -- Apex Brood Mother
-	addSquad(10, { "10 chickenh3" 																}) -- Brood Mother
-	addSquad(10, { "20 chickenh4" 																}) -- Hatchling
+		addSquad(8, { "70 chicken_dodo1" 															}) -- Kamikaze
+		addSquad(8, { "35 chicken_dodo2" 															}) -- Kamikaze
+		addSquad(8, { "35 chicken_dodoair" 															}) -- Kamikaze
+		addSquad(8, { "10 chickens2" 																}) -- Apex Spiker
+		addSquad(8, { "10 chickenacidallterrain" 													}) -- Acid AllTerrain 
+		addSquad(8, { "4 chickenacidassault" 														}) -- Acid Brawler
+		addSquad(8, { "3 chickene2" 																}) -- EMP Brawler
+		addSquad(8, { "4 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
+		addSquad(8, { "5 chickenacidbomber" 														}) -- Acid Bomber
+		addSquad(8, { "3 chickenacidarty" 															}) -- Acid Artillery
 
-	
-if difficulty >= 5 then
-	for i = 11,12 do
-	addSquad(i, { "3 chickenf1apex", "3 chickenf1apexb" 										}) -- Apex Bomber
-	addSquad(i, { "10 chickenw2" 																}) -- Apex Fighter
-	addSquad(i, { "5 chicken2" , "5 chicken2b" 													}) -- Apex Swarmer
-	addSquad(i, { "5 chickena2", "5 chickena2b"													}) -- Apex Brawler
-	addSquad(i, { "5 chickenapexallterrainassault", "5 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
-	addSquad(i, { "1 chickenr2", "3 chickenr1", "3 chickenearty1", "3 chickenacidarty" 			}) -- Meteor Artillery
-	addSquad(i, { "5 chickenh2" 																}) -- Apex Brood Mother
-	addSquad(i, { "10 chickene2" 																}) -- EMP Brawler
-	addSquad(i, { "10 chickenelectricallterrainassault" 										}) -- EMP AllTerrain Brawler
-	addSquad(i, { "10 chickenacidassault" 														}) -- Acid Brawler
-	addSquad(i, { "10 chickenacidallterrainassault" 											}) -- Acid AllTerrain  Brawler
-	addSquad(i, { "100 chicken_dodo2" 															}) -- Kamikaze
-	addSquad(i, { "100 chicken_dodoair" 														}) -- Air Kamikaze
-	addSquad(i, { "20 chickenp2" 																}) -- Apex Pyro
-	addSquad(i, { "20 chickens2" 																}) -- Apex Spiker
+		addSquad(9, { "3 chickenf1apex", "3 chickenf1apexb" 										}) -- Apex Bomber
+		addSquad(9, { "10 chickenw2" 																}) -- Apex Fighter
+		addSquad(9, { "5 chicken2" , "5 chicken2b" 													}) -- Apex Swarmer
+		addSquad(9, { "5 chickena2", "5 chickena2b"													}) -- Apex Brawler
+		addSquad(9, { "5 chickenapexallterrainassault", "5 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
+		addSquad(9, { "1 chickenr2", "3 chickenr1" 													}) -- Meteor Artillery
+
+		addSquad(10, { "3 chickenf1apex", "3 chickenf1apexb" 										}) -- Apex Bomber
+		addSquad(10, { "20 chickenw2" 																}) -- Apex Fighter
+		addSquad(10, { "5 chicken2" , "5 chicken2b" 												}) -- Apex Swarmer
+		addSquad(10, { "5 chickena2", "5 chickena2b"												}) -- Apex Brawler
+		addSquad(10, { "5 chickenapexallterrainassault", "5 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
+		addSquad(10, { "1 chickenr2", "3 chickenr1" 												}) -- Meteor Artillery
+		addSquad(10, { "5 chickenh2" 																}) -- Apex Brood Mother
+		addSquad(10, { "10 chickenh3" 																}) -- Brood Mother
+		addSquad(10, { "20 chickenh4" 																}) -- Hatchling
+
+		
+	if difficulty >= 5 then
+		for i = 11,12 do
+		addSquad(i, { "3 chickenf1apex", "3 chickenf1apexb" 										}) -- Apex Bomber
+		addSquad(i, { "10 chickenw2" 																}) -- Apex Fighter
+		addSquad(i, { "5 chicken2" , "5 chicken2b" 													}) -- Apex Swarmer
+		addSquad(i, { "5 chickena2", "5 chickena2b"													}) -- Apex Brawler
+		addSquad(i, { "5 chickenapexallterrainassault", "5 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
+		addSquad(i, { "1 chickenr2", "3 chickenr1", "3 chickenearty1", "3 chickenacidarty" 			}) -- Meteor Artillery
+		addSquad(i, { "5 chickenh2" 																}) -- Apex Brood Mother
+		addSquad(i, { "10 chickene2" 																}) -- EMP Brawler
+		addSquad(i, { "10 chickenelectricallterrainassault" 										}) -- EMP AllTerrain Brawler
+		addSquad(i, { "10 chickenacidassault" 														}) -- Acid Brawler
+		addSquad(i, { "10 chickenacidallterrainassault" 											}) -- Acid AllTerrain  Brawler
+		addSquad(i, { "100 chicken_dodo2" 															}) -- Kamikaze
+		addSquad(i, { "100 chicken_dodoair" 														}) -- Air Kamikaze
+		addSquad(i, { "20 chickenp2" 																}) -- Apex Pyro
+		addSquad(i, { "20 chickens2" 																}) -- Apex Spiker
+		end
 	end
-end
 
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
--- Filling junk
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-for i = 1,#waves do
-	if i >= 2 and i <= 4 then -- Basic Swarmer
-		addSquad(i, { i*2 .." chicken1", i*2 .." chicken1b", i*2 .." chicken1c" })
-		addSquad(i, { i*2 .." chicken1b", i*2 .." chicken1c", i*2 .." chicken1d" })  
-		addSquad(i, { i*2 .." chicken1c", i*2 .." chicken1d", i*2 .." chicken1" }) 
-		addSquad(i, { i*2 .." chicken1d", i*2 .." chicken1", i*2 .." chicken1b" })
+	-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Filling junk
+	-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	for i = 1,#waves do
+		if i >= 2 and i <= 4 then -- Basic Swarmer
+			addSquad(i, { i*2 .." chicken1", i*2 .." chicken1b", i*2 .." chicken1c" })
+			addSquad(i, { i*2 .." chicken1b", i*2 .." chicken1c", i*2 .." chicken1d" })  
+			addSquad(i, { i*2 .." chicken1c", i*2 .." chicken1d", i*2 .." chicken1" }) 
+			addSquad(i, { i*2 .." chicken1d", i*2 .." chicken1", i*2 .." chicken1b" })
+		end
+		if i >= 3 and i <= 6 then -- Better Swarmer, Brawler and Spiker
+			addSquad(i, { i*2 .." chicken1x", i*2 .." chicken1y" })
+			addSquad(i, { i*2 .." chicken1y", i*2 .." chicken1z" })  
+			addSquad(i, { i*2 .." chicken1z", i*2 .." chicken1x" }) 
+			addSquad(i, { i ..  " chickena1" })
+			addSquad(i, { i ..  " chickena1b"})
+			addSquad(i, { i ..  " chickena1c"})
+			addSquad(i, { i*4 .." chickens1" })
+		end
+			if i >= 7 and i <= 10 then -- More AllTerrains over time
+			addSquad(i, { i*3 .." chickenc3" })
+			addSquad(i, { i*2 .." chickenc3b" })
+			addSquad(i, { i .." chickenc3c" })
+			addSquad(i, { i .." chickenallterraina1" })
+			addSquad(i, { i .." chickenallterraina1b" })
+			addSquad(i, { i .." chickenallterraina1c" })
+		end
 	end
-	if i >= 3 and i <= 6 then -- Better Swarmer, Brawler and Spiker
-		addSquad(i, { i*2 .." chicken1x", i*2 .." chicken1y" })
-		addSquad(i, { i*2 .." chicken1y", i*2 .." chicken1z" })  
-		addSquad(i, { i*2 .." chicken1z", i*2 .." chicken1x" }) 
-		addSquad(i, { i ..  " chickena1" })
-		addSquad(i, { i ..  " chickena1b"})
-		addSquad(i, { i ..  " chickena1c"})
-		addSquad(i, { i*4 .." chickens1" })
-	end
-		if i >= 7 and i <= 10 then -- More AllTerrains over time
-		addSquad(i, { i*3 .." chickenc3" })
-		addSquad(i, { i*2 .." chickenc3b" })
-		addSquad(i, { i .." chickenc3c" })
-		addSquad(i, { i .." chickenallterraina1" })
-		addSquad(i, { i .." chickenallterraina1b" })
-		addSquad(i, { i .." chickenallterraina1c" })
-	end
+else
+
+
+
 end
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -415,6 +424,7 @@ local config = {
 	defenders              = table.copy(defenders),
 	waves                  = waves,
 	difficultyParameters   = optionValues,
+	accumulativeSquads	   = accumulativeSquads,
 }
 
 for key, value in pairs(optionValues[difficulty]) do

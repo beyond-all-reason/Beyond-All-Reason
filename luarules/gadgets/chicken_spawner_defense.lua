@@ -986,8 +986,12 @@ if gadgetHandler:IsSyncedCode() then
 			if currentWave > #config.waves then
 				currentWave = #config.waves
 			end
-			local waveLevelPower = mRandom(1, currentWave^2)
-			local waveLevel = math.ceil(math.sqrt(waveLevelPower))
+
+			local waveLevel = currentWave
+			if config.accumulativeSquads == true then
+				local waveLevelPower = mRandom(1, currentWave^2)
+				waveLevel = math.ceil(math.sqrt(waveLevelPower))
+			end
 			local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
 			for i, sString in pairs(squad) do
 				local nEnd, _ = string.find(sString, " ")
@@ -1032,8 +1036,11 @@ if gadgetHandler:IsSyncedCode() then
 				if cCount < currentMaxWaveSize then
 					for mult = 1,config.chickenSpawnMultiplier do
 						squadCounter = 0
-						local waveLevelPower = mRandom(1, currentWave^2)
-						local waveLevel = math.ceil(math.sqrt(waveLevelPower))
+						local waveLevel = currentWave
+						if config.accumulativeSquads == true then
+							local waveLevelPower = mRandom(1, currentWave^2)
+							waveLevel = math.ceil(math.sqrt(waveLevelPower))
+						end
 						local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
 						local skipSpawn = false
 						if cCount > 1 and mRandom() > config.spawnChance then
