@@ -135,7 +135,17 @@ void main()
 		if (any(lessThan(lightcolor.rgb, vec3(-0.01)))) v_lightcolor.rgb = teamCol.rgb;
 	}
 	
-	 // this is already wrong!
+	if (otherparams.y > 0 ){ //lifetime alpha control
+		float elapsedframes = time - otherparams.x;
+		if (otherparams.z >1 ){ // sustain is positive, keep it up for sustain frames, then ramp it down
+			v_lightcolor.a = clamp( v_lightcolor.a * ( otherparams.y - elapsedframes)/(otherparams.y - otherparams.z ) , 0.0, v_lightcolor.a);
+			
+		}else{ // sustain is <1, use exp falloff
+			v_lightcolor.a = clamp( v_lightcolor.a * exp( -otherparams.z * (elapsedframes) ) , 0.0, v_lightcolor.a);
+			
+		}
+	}
+	
 	v_worldPosRad2 = worldposrad2;
 
 	v_modelfactor_specular_scattering_lensflare = modelfactor_specular_scattering_lensflare;
@@ -162,24 +172,16 @@ void main()
 		if  (attachedtounitID > 0) {
 			// for point lights, if the colortime is anything sane (>0), then modulate the light with it.
 			if (worldposrad2.a >0.5){
-				v_lightcolor.rgb = mix(v_lightcolor.rgb, worldposrad2.rgb,cos((time * 6.2831853) / worldposrad2.a ) * 0.5 + 0.5); }
+				v_lightcolor.rgb = mix(v_lightcolor.rgb, worldposrad2.rgb, cos((time * 6.2831853) / worldposrad2.a ) * 0.5 + 0.5); }
+				
 		}else{
 			if (worldposrad2.a >0.5){
 				float colortime = clamp((time - otherparams.x)/worldposrad2.a , 0.0, 1.0);
-				v_lightcolor.rgb = mix(v_lightcolor.rgb, worldposrad2.rgb,colortime); 
-			}
-			if (otherparams.y > 0 ){ //lifetime
-				float elapsedframes = time - otherparams.x;
-				if (otherparams.z >1 ){ // sustain is positive, keep it up for sustain frames, then ramp it down
-					v_lightcolor.a = clamp( v_lightcolor.a * ( otherparams.y - elapsedframes)/(otherparams.y - otherparams.z ) , 0.0, v_lightcolor.a);
-					
-				}else{ // sustain is <1, use exp falloff
-					v_lightcolor.a = clamp( v_lightcolor.a * exp( -otherparams.z * (elapsedframes) ) , 0.0, v_lightcolor.a);
-					
-				}
+				v_lightcolor.rgb = mix(v_lightcolor.rgb, worldposrad2.rgb, colortime); 
 			}
 		}
 		
+
 		v_worldPosRad.xyz = lightCenterPosition;
 		v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0)); // 
 		v_position = vec4( lightVolumePos, 1.0);

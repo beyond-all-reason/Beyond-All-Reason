@@ -1455,6 +1455,39 @@ local unitDefLights = {
 	},
 }
 
+local unitIdleLights = {
+	[UnitDefNames['armcom'].id] = {
+		idleBlink = {
+			lighttype = 'point',
+			pieceName = 'head',
+			lightParamTable = {0,16,0,420, --pos + radius
+								1,1,1, 15, -- color2
+								-1,1,1,1, -- RGBA
+								0.2,1,1,1, -- modelfactor_specular_scattering_lensflare
+								0,50,20,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,0,0, -- color2
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	}
+}
+
+local function InitializeLight(lightTable, unitID)
+	if lightTable.initComplete ~= true then  -- late init
+		local pieceMap = Spring.GetUnitPieceMap(unitID)
+		for lightname, lightParams in pairs(lightTable) do
+			if pieceMap[lightParams.pieceName] then -- if its not a real piece, it will default to the model!
+				lightParams.pieceIndex = pieceMap[lightParams.pieceName] 
+				lightParams.lightParamTable[pieceIndexPos] = lightParams.pieceIndex
+			end
+			--Spring.Echo(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
+		end
+		lightTable.initComplete = true
+	end
+end
+
 local function AddStaticLightsForUnit(unitID, unitDefID, noupload)
 	if unitDefLights[unitDefID] then
 		local unitDefLight = unitDefLights[unitDefID]
@@ -1793,6 +1826,26 @@ function widget:GameFrame(n)
 			end
 		end
 		lightRemoveQueue[n] = nil
+	end
+end
+
+function widget:UnitIdle(unitID, unitDefID, teamID)
+	if unitIdleLights[unitDefID] then 
+		local lightTable = unitIdleLights[unitDefID]
+		InitializeLight(lightTable, unitID)
+		for lightname, lightParams in pairs(lightTable) do
+			if lightname ~= 'initComplete' then
+				if lightParams.lighttype == 'point' then
+					AddPointLight( tostring(unitID) ..  lightname, unitID, nil, nil, lightParams.lightParamTable)
+				end
+				if lightParams.lighttype == 'cone' then 
+					AddConeLight(tostring(unitID) ..  lightname, unitID, nil, nil, lightParams.lightParamTable) 
+				end
+				if lightParams.lighttype == 'beam' then 
+					AddBeamLight(tostring(unitID) ..  lightname, unitID, nil, nil, lightParams.lightParamTable) 
+				end
+			end
+		end
 	end
 end
 
