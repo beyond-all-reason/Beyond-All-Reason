@@ -162,9 +162,9 @@ local scavconfig = {
 			FinalBossMinionsActive				= 10800, -- this/(teamcount*difficulty), how often does boss spawn minions when taking damage, frames.
 		BossWaveTimeLeft					= 300,
 		aircraftchance 						= 10, -- higher number = lower chance
-		globalscoreperoneunit 				= 1500/ScavUnitCountModoption,
-		spawnchance							= 360/ScavUnitSpawnFrequencyModoption,
-		beaconspawnchance					= 480,
+		globalscoreperoneunit 				= 1600/ScavUnitCountModoption,
+		spawnchance							= 240/ScavUnitSpawnFrequencyModoption,
+		beaconspawnchance					= 900,
 		beacondefences						= true,
 		minimumspawnbeacons					= math.ceil(teamcount*spawnmultiplier)*8,
 		landmultiplier 						= 0.75,

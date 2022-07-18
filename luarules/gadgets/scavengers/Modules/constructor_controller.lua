@@ -387,10 +387,10 @@ local function constructNewBlueprint(n, unitID)
 
 		local blueprintRadiusBuffer = 64
 		local blueprintRadius = blueprint.radius + blueprintRadiusBuffer
-		local canConstructHere = positionCheckLibrary.OccupancyCheck(posX, posY, posZ, blueprintRadius)
+		local canConstructHere = positionCheckLibrary.OccupancyCheck(posX, posY, posZ, blueprintRadius*2)
 							 and positionCheckLibrary.FlatAreaCheck(posX, posY, posZ, blueprintRadius)
 							 and positionCheckLibrary.MapEdgeCheck(posX, posY, posZ, blueprintRadius)
-							 --and (not positionCheckLibrary.StartboxCheck(posX, posY, posZ, blueprintRadius, ScavengerAllyTeamID) or (not scavconfig.modules.startBoxProtection))
+							 and (not positionCheckLibrary.StartboxCheck(posX, posY, posZ, blueprintRadius, ScavengerAllyTeamID) or (not scavconfig.modules.startBoxProtection))
 
 		if canConstructHere then
 			buffConstructorBuildSpeed(unitID)
