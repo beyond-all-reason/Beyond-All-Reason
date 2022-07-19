@@ -293,7 +293,7 @@ if gadgetHandler:IsSyncedCode() then
 		config.queenTime = config.queenTime*0.5
 	end
 	-- local expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
-	local maxBurrows = config.maxBurrows
+	local maxBurrows = ((config.maxBurrows*0.75)+(config.maxBurrows*0.25)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 	local queenTime = (config.queenTime + config.gracePeriod)
 	local maxWaveSize = ((config.maxChickens*0.75)+(config.maxChickens*0.25)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 	local currentMaxWaveSize = config.minChickens
@@ -334,8 +334,9 @@ if gadgetHandler:IsSyncedCode() then
 		config.maxChickens = nextDifficulty.maxChickens
 		config.minChickens = nextDifficulty.minChickens
 		config.maxBurrows = nextDifficulty.maxBurrows
+		config.maxXP = nextDifficulty.maxXP
 		-- expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
-		maxBurrows = config.maxBurrows
+		maxBurrows = ((config.maxBurrows*0.75)+(config.maxBurrows*0.25)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 		maxWaveSize = ((config.maxChickens*0.5)+(config.maxChickens*0.5)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 		currentMaxWaveSize = config.minChickens
 	end
