@@ -279,7 +279,11 @@ if accumulativeSquads == true then
 	-- Squads -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-		addSquad(1, { "5 chicken1", "5 chicken1b", "5 chicken1c", "5 chicken1d" 					}) -- Basic Raptor
+		addSquad(1, { "1 chicken1", "1 chicken1b", "1 chicken1c", "1 chicken1d" 					}) -- Basic Raptor
+		addSquad(1, { "2 chicken1"																	}) -- Basic Raptor
+		addSquad(1, { "2 chicken1b"																	}) -- Basic Raptor
+		addSquad(1, { "2 chicken1c"																	}) -- Basic Raptor
+		addSquad(1, { "2 chicken1d"																	}) -- Basic Raptor
 
 		addSquad(2, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  									}) -- Better Basic Raptor
 		addSquad(2, { "10 chickens1" 																}) -- Spiker
@@ -391,18 +395,52 @@ if accumulativeSquads == true then
 	end
 else
 
+	addSquad(1, { "1 chicken1", "1 chicken1b", "1 chicken1c", "1 chicken1d" }) -- Basic Raptor
+	addSquad(1, { "4 chicken1"												}) -- Basic Raptor
+	addSquad(1, { "4 chicken1b"												}) -- Basic Raptor
+	addSquad(1, { "4 chicken1c"												}) -- Basic Raptor
+	addSquad(1, { "4 chicken1d"												}) -- Basic Raptor
 
+	addSquad(1, { "1 chicken1x"												}) -- Better Basic Raptor
+	addSquad(1, { "1 chicken1y"												}) -- Better Basic Raptor
+	addSquad(1, { "1 chicken1z"												}) -- Better Basic Raptor
 
+	addSquad(1, { "1 chickens1" 											}) -- Spiker
+
+	--------------------------------------------------------------------------------------------------------------
+
+	addSquad(2, { "6 chicken1", "6 chicken1b", "6 chicken1c", "6 chicken1d" }) -- Basic Raptor
+
+	addSquad(2, { "3 chicken1x", "3 chicken1y", "3 chicken1z"  				}) -- Better Basic Raptor
+
+	addSquad(2, { "3 chickens1" 											}) -- Spiker
+
+	--------------------------------------------------------------------------------------------------------------
+
+	addSquad(3, { "6 chicken1", "6 chicken1b", "6 chicken1c", "6 chicken1d" }) -- Basic Raptor
+	addSquad(3, { "6 chicken1", "6 chicken1b", "6 chicken1c", "6 chicken1d" }) -- Basic Raptor
+
+	addSquad(3, { "3 chicken1x", "3 chicken1y", "3 chicken1z"  				}) -- Better Basic Raptor
+	addSquad(3, { "3 chicken1x", "3 chicken1y", "3 chicken1z"  				}) -- Better Basic Raptor
+	addSquad(3, { "3 chicken1x", "3 chicken1y", "3 chicken1z"  				}) -- Better Basic Raptor
+
+	addSquad(3, { "10 chickens1" 											}) -- Spiker
+	addSquad(3, { "5 chickens1" 											}) -- Spiker
+
+	addSquad(3, { "2 chickena1"												}) -- Brawler
+	addSquad(3, { "2 chickena1b"											}) -- Brawler
+	addSquad(3, { "2 chickena1c"											}) -- Brawler
+	
+	--------------------------------------------------------------------------------------------------------------
+	
+	
+	
+	------ placeholder
+	for i = 4,10 do
+		addSquad(i, { "20 chicken1"											}) -- Basic Raptor
+	end
 end
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
--- Additional system for keeping minimum number of specific raptors.
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 local config = {
