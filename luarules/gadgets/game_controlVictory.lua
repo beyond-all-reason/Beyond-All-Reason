@@ -17,7 +17,7 @@ end
 
 local selectedScoreMode = modOptions.scoremode
 local useMapConfig = modOptions.usemapconfig
-local useMexConfig = modOptions.usemexconfig
+local useMexConfig = false --modOptions.usemexconfig
 local numberOfControlPoints = modOptions.numberofcontrolpoints
 local captureRadius = modOptions.captureradius
 local decapSpeed = modOptions.decapspeed
@@ -221,7 +221,7 @@ if gadgetHandler:IsSyncedCode() then
 					}
 				end
 			elseif not mapConfigExists then
-				if numberOfControlPoints == 7 then
+				if numberOfControlPoints == "7" then
 					--Since no config file is found, we create 7 points spaced out in a circle on the map
 					local angle = math.random() * math.pi * 2
 					points = {}
@@ -241,7 +241,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 
-				if numberOfControlPoints == 13 then
+				if numberOfControlPoints == "13" then
 					local angle = math.random() * math.pi * 2
 					points = {}
 					for i = 2, 7 do
@@ -276,7 +276,7 @@ if gadgetHandler:IsSyncedCode() then
 
 				end
 
-				if numberOfControlPoints == 19 then
+				if numberOfControlPoints == "19" then
 					local angle = math.random() * math.pi * 2
 					points = {}
 					for i = 2, 7 do
@@ -325,7 +325,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 
-				if numberOfControlPoints == 25 then
+				if numberOfControlPoints == "25" then
 					local angle = math.random() * math.pi * 2
 					points = {}
 					for i = 2, 7 do
