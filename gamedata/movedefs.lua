@@ -49,7 +49,7 @@ local moveDatas = {
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = 36,
-		--slopeMod = 32,
+		slopeMod = 18,
 		maxwaterdepth = 5000,
 		maxwaterslope = 80,
 	},
@@ -60,7 +60,7 @@ local moveDatas = {
 		footprintx = 4,
 		footprintz = 4,
 		maxslope = 36,
-		--slopeMod = 32,
+		slopeMod = 18,
 		maxwaterdepth = 5000,
 		maxwaterslope = 80,
 	},
@@ -185,7 +185,7 @@ local moveDatas = {
 		footprintx = 4,
 		footprintz = 4,
 		maxslope = 22,
-		--slopeMod = 32,
+		slopeMod = 18,
 		maxwaterslope = 255,
 	},
 	-- transports
@@ -196,7 +196,7 @@ local moveDatas = {
 		footprintx = 4,
 		footprintz = 4, -- Currently Unused
 		maxslope = 22,
-		--slopeMod = 32,
+		slopeMod = 18,
 		maxwaterslope = 255,
 	},
 	-- armamph
@@ -207,7 +207,7 @@ local moveDatas = {
 		footprintx = 2,
 		footprintz = 2,
 		maxslope = 36,
-		--slopeMod = 32,
+		slopeMod = 18,
 		maxwaterslope = 255,
 	},
 	-- armfav/corfav
@@ -499,7 +499,7 @@ local moveDatas = {
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = 36,
-		--slopeMod = 32,
+		slopeMod = 18,
 		maxwaterslope = 255,
 		speedmodclass = 2, -- hover
 	},
@@ -512,7 +512,7 @@ local moveDatas = {
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = 36,
-		--slopeMod = 32,
+		slopeMod = 18,
 		maxwaterslope = 255,
 		speedmodclass = 2, -- hover
 	},
@@ -525,7 +525,7 @@ local moveDatas = {
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = 36,
-		--slopeMod = 32,
+		slopeMod = 18,
 		maxwaterslope = 255,
 		speedmodclass = 2, -- hover
 	},
@@ -655,6 +655,7 @@ local moveDatas = {
 		footprintx = 5,
 		footprintz = 5,
 		maxslope = 36,
+		slopeMod = 18,
 		maxwaterdepth = 9999,
 		maxwaterslope = 50,
 		speedModClass = 0,

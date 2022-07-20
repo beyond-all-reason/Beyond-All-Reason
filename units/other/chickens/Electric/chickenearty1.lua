@@ -105,7 +105,7 @@ return {
 				paralyzetime = 20,
 				proximitypriority = -4,
 				range = 1500,
-				reloadtime = 5,
+				reloadtime = 20,
 				rgbcolor = "0.2 0.5 0.9",
 				size = 5.5,
 				sizedecay = 0.09,
@@ -118,8 +118,8 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 520,
 				damage = {
-					default = 2250,
-					shields = 900,
+					default = 9000,
+					shields = 1000,
 				},
 				customparams = {
 					expl_light_life_mult = 1.45,

@@ -665,8 +665,9 @@ function widget:Update(dt)
 		local prevIsOffscreen = isOffscreen
 		isOffscreen = select(6, Spring.GetMouseState())
 		if isOffscreen ~= prevIsOffscreen then
+			local prevIsOffscreenTime = isOffscreenTime
 			isOffscreenTime = os.clock()
-			if isOffscreen then
+			if isOffscreen and not prevIsOffscreenTime then
 				prevOffscreenVolume = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40)
 			end
 		end
@@ -2118,11 +2119,6 @@ function init()
 		{ id = "label_gfx_game", group = "gfx", name = texts.option.label_game, category = types.advanced },
 		{ id = "label_gfx_game_spacer", group = "gfx", category = types.basic },
 		{ id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos GL4", name = texts.option.resurrectionhalos, type = "bool", value = GetWidgetToggleValue("Resurrection Halos GL4"), description = texts.option.resurrectionhalos_descr },
-		--{ id = "tombstones", group = "gfx", category = types.advanced, name = texts.option.tombstones, type = "bool", value = (Spring.GetConfigInt("tombstones", 1) == 1), description = texts.option.tombstones_descr,
-		--  onchange = function(i, value)
-		--	  Spring.SetConfigInt("tombstones", (value and 1 or 0))
-		--  end,
-		--},
 
 		{ id = "xmas", group = "gfx", name = texts.option.xmas, category = types.basic, type = "bool", value = (Spring.GetConfigFloat("decorationsize", 1) == 1), description = texts.option.xmas_descr,
 		  onchange = function(i, value)
@@ -3537,9 +3533,9 @@ function init()
 		},
 
 		-- DEV
-		{ id = "devmode", group = "dev", category = types.dev, name = texts.option.devmode, type = "bool", value = not Spring.Utilities.ShowDevUI(),
+		{ id = "devmode", group = "dev", category = types.dev, name = texts.option.devmode, type = "bool", value = Spring.Utilities.ShowDevUI(), description = texts.option.devmode_descr,
 			onchange = function(i, value)
-				Spring.SetConfigInt("DevUI", value and 0 or 1)
+				Spring.SetConfigInt("DevUI", value and 1 or 0)
 				Spring.SendCommands("luaui reload")
 			end,
 		},

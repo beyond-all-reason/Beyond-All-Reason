@@ -40,7 +40,7 @@
 		"escort": [3, 2, 540]  // [<builders_count>, <defenders_count>, <escort rule until this time>]  2,2,360
 	},
     // read of "escort":  [number of builders with defenders, number of defenders for each builder, timeframe were only escorted builders are able to expand (=build mex, porc)]
-    // base radius: ai checks if is withing base_rad. if there is enemy it checks if it is withing comm radius which is variable and depend on distance from base
+    // base radius: ai checks if is within base_rad. if there is enemy it checks if it is within comm radius which is variable and depend on distance from base
     // if there is, then ai checks speed, direction and threat on enemys position. if all conditions positive => com attacks
 
 	//------- THREAT MODIFIERS ---------

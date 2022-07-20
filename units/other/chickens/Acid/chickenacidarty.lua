@@ -78,7 +78,7 @@ return {
 		},
 		weapondefs = {
 			acidspit = {
-				accuracy = 1024,
+				accuracy = 256,
 				areaofeffect = 150,
 				collidefriendly = 0,
 				collidefeature = 0,
@@ -106,7 +106,7 @@ return {
 				--paralyzetime = 20,
 				proximitypriority = -4,
 				range = 1500,
-				reloadtime = 2,
+				reloadtime = 8,
 				rgbcolor = "0.8 0.99 0.11",
 				soundhit = "bloodsplash3",
 				soundstart = "alien_bombrel",
@@ -118,6 +118,7 @@ return {
 				weaponvelocity = 520,
 				damage = {
 					default = 1,
+					shields = 800,
 				},
 				customparams = {
 					expl_light_life_mult = 1.0,
