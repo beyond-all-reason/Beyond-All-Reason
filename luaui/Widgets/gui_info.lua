@@ -1512,6 +1512,12 @@ function widget:DrawScreen()
 		lastUpdateClock = os_clock()
 	end
 
+	if displayUnitID and not Spring.IsUnitValid(displayUnitID) then
+		displayMode = 'text'
+		displayUnitID = nil
+		displayUnitDefID = nil
+	end
+
 	if not dlistInfo then
 		dlistInfo = gl.CreateList(function()
 			drawInfo()
