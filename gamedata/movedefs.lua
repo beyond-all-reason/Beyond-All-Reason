@@ -142,7 +142,7 @@ local moveDatas = {
 		footprintx = 2,
 		footprintz = 2,
 		maxslope = 22,
-		--slopeMod = 32,
+		slopeMod = 25,
 		maxwaterslope = 255,
 	},
 	HOVER3 = {
@@ -152,7 +152,18 @@ local moveDatas = {
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = 22,
-		--slopeMod = 32,
+		slopeMod = 25,
+		maxwaterslope = 255,
+	},
+	--Halberd
+	HHOVER3 = {
+		badslope = 22,
+		badwaterslope = 255,
+		crushstrength = 25,
+		footprintx = 3,
+		footprintz = 3,
+		maxslope = 22,
+		slopeMod = 36,
 		maxwaterslope = 255,
 	},
 	-- lun/sokolov
@@ -205,7 +216,7 @@ local moveDatas = {
 		footprintx = 2,
 		footprintz = 2,
 		maxslope = 18,
-		--slopeMod = 32,
+		slopeMod = 18,
 		maxwaterdepth = 22,
 		depthModParams = {
 			minHeight = 4,
@@ -218,7 +229,7 @@ local moveDatas = {
 		footprintx = 2,
 		footprintz = 2,
 		maxslope = 18,
-		--slopeMod = 32,
+		slopeMod = 18,
 		maxwaterdepth = 22,
 		depthModParams = {
 			minHeight = 4,
@@ -231,7 +242,20 @@ local moveDatas = {
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = 18,
-		--slopeMod = 32,
+		slopeMod = 18,
+		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
+	},
+	MTANK2 = {
+		crushstrength = 18,
+		footprintx = 2,
+		footprintz = 2,
+		maxslope = 18,
+		slopeMod = 25,
 		maxwaterdepth = 22,
 		depthModParams = {
 			minHeight = 4,
@@ -240,12 +264,25 @@ local moveDatas = {
 		}
 	},
 	-- bulldog/reaper
+	MTANK3 = {
+		crushstrength = 250,
+		footprintx = 3,
+		footprintz = 3,
+		maxslope = 18,
+		slopeMod = 25,
+		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
+	},
 	HTANK3 = {
 		crushstrength = 250,
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = 18,
-		--slopeMod = 32,
+		slopeMod = 36,
 		maxwaterdepth = 22,
 		depthModParams = {
 			minHeight = 4,
@@ -259,7 +296,7 @@ local moveDatas = {
 		footprintx = 4,
 		footprintz = 4,
 		maxslope = 18,
-		--slopeMod = 32,
+		slopeMod = 36,
 		maxwaterdepth = 22,
 		depthModParams = {
 			minHeight = 4,
@@ -273,7 +310,7 @@ local moveDatas = {
 		footprintx = 5,
 		footprintz = 5,
 		maxslope = 22,
-		--slopeMod = 32,
+		slopeMod = 42,
 		maxwaterdepth = 24,
 		depthModParams = {
 			minHeight = 4,
