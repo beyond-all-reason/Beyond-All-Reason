@@ -156,15 +156,15 @@ local scavconfig = {
 	},
 	unitSpawnerModuleConfig = {
 		bossFightEnabled					= not endlessModeEnabled,
-		FinalBossUnit						= true,
+		FinalBossUnit						= Spring.GetModOptions().scavbosstoggle,
 			FinalBossHealth						= 1000000*ScavBossHealthModoption, -- this*teamcount*difficulty
 			FinalBossMinionsPassive				= 36000, -- this/(teamcount*difficulty), how often does boss spawn minions passively, frames.
 			FinalBossMinionsActive				= 10800, -- this/(teamcount*difficulty), how often does boss spawn minions when taking damage, frames.
 		BossWaveTimeLeft					= 300,
 		aircraftchance 						= 10, -- higher number = lower chance
-		globalscoreperoneunit 				= 1500/ScavUnitCountModoption,
-		spawnchance							= 360/ScavUnitSpawnFrequencyModoption,
-		beaconspawnchance					= 480,
+		globalscoreperoneunit 				= 1600/ScavUnitCountModoption,
+		spawnchance							= 120/ScavUnitSpawnFrequencyModoption,
+		beaconspawnchance					= 900,
 		beacondefences						= true,
 		minimumspawnbeacons					= math.ceil(teamcount*spawnmultiplier)*8,
 		landmultiplier 						= 0.75,

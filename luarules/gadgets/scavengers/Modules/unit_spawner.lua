@@ -413,12 +413,14 @@ local function unitGroupSpawn(n)
 					end
 					local rx = posx+math.random(-64,64)
 					local rz = posz+math.random(-64,64)
-					if Spring.GetGroundHeight(rx, rz) > -20 then
-						spawnQueueLibrary.AddToSpawnQueue(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], rx, posy, rz, math_random(0,3),ScavengerTeamID, n+150+(i*2), false)
-					else
-						spawnQueueLibrary.AddToSpawnQueue(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], rx, posy, rz, math_random(0,3),ScavengerTeamID, n+150+(i*2), false)
+					if math.random(0,3) == 0 then
+						if Spring.GetGroundHeight(rx, rz) > -20 then
+							spawnQueueLibrary.AddToSpawnQueue(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], rx, posy, rz, math_random(0,3),ScavengerTeamID, n+150+(i*2), false)
+						else
+							spawnQueueLibrary.AddToSpawnQueue(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], rx, posy, rz, math_random(0,3),ScavengerTeamID, n+150+(i*2), false)
+						end
+						spawnQueueLibrary.AddToSpawnQueue(staticUnitList.scavSpawnEffectUnit, rx, posy, rz, math_random(0,3),ScavengerTeamID, n+(i*2))
 					end
-					spawnQueueLibrary.AddToSpawnQueue(staticUnitList.scavSpawnEffectUnit, rx, posy, rz, math_random(0,3),ScavengerTeamID, n+(i*2))
 					--Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math_random(0,3),ScavengerTeamID)
 				end
 				posx = nil
