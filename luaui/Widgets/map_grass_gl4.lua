@@ -1274,10 +1274,12 @@ function widget:Initialize()
 	if Game.waterDamage > 0 then
 		WG['grassgl4'].removeGrassBelowHeight(20)
 	end
+	widgetHandler:RegisterGlobal('GadgetRemoveGrass', WG['grassgl4'].removeGrass)
 	widgetHandler:RegisterGlobal('GadgetWeaponExplosionGrass', GadgetWeaponExplosionGrass)
 end
 
 function widget:Shutdown()
+	widgetHandler:DeregisterGlobal('GadgetRemoveGrass')
 	widgetHandler:DeregisterGlobal('GadgetWeaponExplosionGrass')
 end
 

@@ -239,7 +239,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		removeUnitShape(id)
 	end
 	command[id] = nil
-	-- we need to store all newly created units cause unitcreated can be earlier than our delayed processing of widget:UnitCommand (when a newly queued cmd is first and withing builder range)
+	-- we need to store all newly created units cause unitcreated can be earlier than our delayed processing of widget:UnitCommand (when a newly queued cmd is first and within builder range)
 	createdUnit[id] = unitID
 	createdUnitID[unitID] = id
 end

@@ -32,7 +32,7 @@ return {
 		script = "Units/scavboss/LEGFIG.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericAir",
-		sightdistance = 210,
+		sightdistance = 700,
 		speedtofront = 0.06417,
 		turnradius = 48,
 		turnrate = 950,

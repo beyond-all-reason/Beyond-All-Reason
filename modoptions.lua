@@ -403,8 +403,14 @@ local options={
 		section = 'options_scavengers',
 		def  = true,
 	},
-
-
+    {
+		key    = 'scavbosstoggle',
+		name   = 'Scavenger Boss',
+		desc   = "When enabled, final scavenger boss will spawn",
+		type   = 'bool',
+		section = 'options_scavengers',
+		def  = true,
+	},
 	-- Hidden
 	{
 		key    = 'scavunitcountmultiplier',
@@ -937,7 +943,7 @@ local options={
 		desc   = 'Radius around a point in which to capture it.',
 		type   = 'number',
 		section= 'controlvictoryoptions',
-		def    = 100,
+		def    = 200,
 		min    = 100,
 		max    = 1000,
 		step   = 25,  -- quantization is aligned to the def value
