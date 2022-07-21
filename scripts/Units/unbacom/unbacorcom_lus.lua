@@ -197,33 +197,33 @@ function HandleLevelUps()
 		if hp and hp > 1 and (Spring.GetUnitIsDead(unitID) == false) then
 			local fxp = Spring.GetUnitExperience(unitID)
 			local realxp = 100 * fxp
-		if realxp > 200 and level == 17 then
+		if realxp > 40 and level == 17 then
 			LevelUpStats(17)
-		elseif realxp > 170 and level == 16 then
+		elseif realxp > 30 and level == 16 then
 			LevelUpStats(16)
-		elseif realxp > 140 and level == 15 then
+		elseif realxp > 24 and level == 15 then
 			LevelUpStats(15)
-		elseif realxp > 110 and level == 14 then
+		elseif realxp > 20 and level == 14 then
 			LevelUpStats(14)
-		elseif realxp > 80 and level == 13 then
+		elseif realxp > 18 and level == 13 then
 			LevelUpStats(13)
-		elseif realxp > 60 and level == 12 then
+		elseif realxp > 16 and level == 12 then
 			LevelUpStats(12)
-		elseif realxp > 44 and level == 11 then
+		elseif realxp > 14 and level == 11 then
 			LevelUpStats(11)			
-		elseif realxp > 36 and level == 10 then
+		elseif realxp > 12 and level == 10 then
 			LevelUpStats(10)
-		elseif realxp > 28 and level == 9 then
+		elseif realxp > 10 and level == 9 then
 			LevelUpStats(9)
-		elseif realxp > 22 and level == 8 then
+		elseif realxp > 8 and level == 8 then
 			LevelUpStats(8)
-		elseif realxp > 16 and level == 7 then
+		elseif realxp > 7 and level == 7 then
 			LevelUpStats(7)
-		elseif realxp > 12 and level == 6 then
+		elseif realxp > 6 and level == 6 then
 			LevelUpStats(6)
-		elseif realxp > 8 and level == 5 then
+		elseif realxp > 5 and level == 5 then
 			LevelUpStats(5)
-		elseif realxp > 5 and level == 4 then
+		elseif realxp > 4 and level == 4 then
 			LevelUpStats(4)
 		elseif realxp > 3 and level == 3 then
 			LevelUpStats(3)
