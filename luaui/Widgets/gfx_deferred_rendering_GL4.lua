@@ -1455,7 +1455,7 @@ local unitDefLights = {
 	},
 }
 
-local unitIdleLights = {
+local unitEventLights = {
 	[UnitDefNames['armcom'].id] = {
 		idleBlink = {
 			lighttype = 'point',
@@ -1593,13 +1593,23 @@ function AddRandomLight(which)
 	
 end
 
+local function LoadLightConfig()
+	local success, result =	VFS.Include('luaui/config/DeferredLightsGL4config.lua')
+	if success then
+		unitDefLights = result.unitDefLights
+		
+	end
+
+end
+
 local mapinfo = nil
 local nightFactor = 0.33
 local unitNightFactor = 1.2 -- applied above nightFactor
 local adjustfornight = {'unitAmbientColor', 'unitDiffuseColor', 'unitSpecularColor','groundAmbientColor', 'groundDiffuseColor', 'groundSpecularColor' }
 
 function widget:Initialize()
-	
+	LoadLightConfig()
+
 	if Spring.GetConfigString("AllowDeferredMapRendering") == '0' or Spring.GetConfigString("AllowDeferredModelRendering") == '0' then
 		Spring.Echo('Deferred Rendering (gfx_deferred_rendering.lua) requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!')
 		widgetHandler:RemoveWidget()
@@ -1830,8 +1840,8 @@ function widget:GameFrame(n)
 end
 
 function widget:UnitIdle(unitID, unitDefID, teamID)
-	if unitIdleLights[unitDefID] then 
-		local lightTable = unitIdleLights[unitDefID]
+	if unitEventLights[unitDefID] then 
+		local lightTable = unitEventLights[unitDefID]
 		InitializeLight(lightTable, unitID)
 		for lightname, lightParams in pairs(lightTable) do
 			if lightname ~= 'initComplete' then
@@ -1849,8 +1859,60 @@ function widget:UnitIdle(unitID, unitDefID, teamID)
 	end
 end
 
+
+local updateCount = 0
+local trackedprojectiles = {}
+local lastgf = -2
+local removalqueue = {}
+local testprojlighttable = {0,16,0,420, --pos + radius
+								1,1,1, 15, -- color2
+								-1,1,1,1, -- RGBA
+								0.2,1,1,1, -- modelfactor_specular_scattering_lensflare
+								0,1500,2000,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,0,0, -- color2
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								}
+
+
 function widget:Update()
-	
+	local nowprojectiles = Spring.GetVisibleProjectiles()
+	local newgameframe = lastgf == gameFrame
+	lastgf = gameFrame
+
+	-- turn off uploading vbo
+
+	for i= 1, #nowprojectiles do
+		local projid = nowprojectiles[i]
+		local px, py, pz = Spring.GetProjectilePosition(projid)
+		trackedprojectiles[projid] = gameFrame
+
+		if trackedprojectiles[projid] then 
+			if newgameframe then
+				--update proj pos
+				updateLightPosition(pointLightVBO, projid, px,py,pz)
+			end
+		else
+			-- add projectile
+			testprojlighttable[1] = px
+			testprojlighttable[2] = py
+			testprojlighttable[3] = pz
+			AddPointLight(projid, nil, nil, pointLightVBO, testprojlighttable)
+
+			--trackedprojectiles[]
+		end
+	end
+	-- remove theones that werent updated 
+	for projid, gf in pairs(trackedprojectiles) do
+		if gf < gameFrame then
+			--SO says we can modify or remove elements while iterating, we just cant add
+
+			trackedprojectiles[projid] = nil
+			RemoveLight('point', projid, nil)
+		end
+	end
+	-- upload all changed elements in one go
+	uploadAllElements(pointLightVBO)
 
 	--[[
 	beamLights = {}
@@ -1938,6 +2000,11 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		glTexture(8, noisetex3dcube)
 		glTexture(9, "$heightmap")
 		glTexture(10,"$normals")
+		' 'nilpP{''}
+		20ien
+		if ten 
+	end
+
 
 		--Spring.Echo(screenCopyTex)
 		
