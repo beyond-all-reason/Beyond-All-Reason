@@ -796,3 +796,24 @@ local unitEventLights = {
 		},
 	}
 }
+
+local projectileDefLights  = {
+	['default'] = {
+		idleBlink = {
+			lighttype = 'point',
+			lightParamTable = {0,16,0,420, --pos + radius
+								1,1,1, 15, -- color2
+								-1,1,1,1, -- RGBA
+								0.2,1,1,1, -- modelfactor_specular_scattering_lensflare
+								0,50,20,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,0,0, -- color2
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								},
+			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+		},
+	}
+}
+
+return {unitEventLights = unitEventLights,
+unitDefLights = unitDefLights, projectileDefLights = projectileDefLights }
