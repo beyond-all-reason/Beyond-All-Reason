@@ -186,7 +186,7 @@ function UnitDef_Post(name, uDef)
 
 			if uDef.weapondefs.disintegrator then
 				uDef.weapondefs.disintegrator = {
-					areaofeffect = 120,
+					areaofeffect = 160,
 					avoidfeature = false,
 					commandfire = true,
 					craterboost = 0,
@@ -200,9 +200,9 @@ function UnitDef_Post(name, uDef)
 					name = "EMP Grenade",
 					noselfdamage = true,
 					paralyzer = true,
-					paralyzetime = 4,
-					range = 300,
-					reloadtime = 6,
+					paralyzetime = 5.5,
+					range = 320,
+					reloadtime = 7,
 					soundhit = "EMGPULS1",
 					soundhitwet = "splslrg",
 					soundstart = "bombrel",
