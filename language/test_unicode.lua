@@ -1,5 +1,5 @@
 return {
-	zh = {
+	test_unicode = {
 		ui = {
 			disablingcus = "Disabling Advanced Model Shading (fps threshold reached)",
 			forceResignMessage = "You have been force-resigned: Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
