@@ -12,12 +12,14 @@ for _, file in ipairs(translationFiles) do
 end
 
 i18n.loadFile('language/test_french.lua')
+i18n.loadFile('language/test_chinese.lua')
 i18n.loadFile('language/test_unicode.lua')
 
 i18n.languages = {
 	en = "English",
 	fr = "Français",
 	zh = "中文",
+	test_unicode = "test_unicode"
 }
 
 function i18n.setLanguage(language)
