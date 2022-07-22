@@ -257,7 +257,7 @@ function gadget:Initialize()
 			teamMMList[tID][eSteps[j]] = {}
 		end
 		teamUsages[tID] = 0
-		spSetTeamRulesParam(tID, mmLevelParamName, 0.15)
+		spSetTeamRulesParam(tID, mmLevelParamName, 0.75)
 		spSetTeamRulesParam(tID, mmCapacityParamName, 0)
 		spSetTeamRulesParam(tID, mmUseParamName, 0)
 		spSetTeamRulesParam(tID, mmAvgEffiParamName, teamEfficiencies[tID]:avg())
