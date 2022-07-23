@@ -8,9 +8,8 @@ function ScoutHST:internalName()
 	return "scouthst"
 end
 
-ScoutHST.DebugEnabled = false
-
 function ScoutHST:Init()
+	self.DebugEnabled = false
 	self.spotsToScout = {}
 	self.lastCount = {}
 	self.sameCount = {}
@@ -37,9 +36,11 @@ function ScoutHST:ClosestSpot(scoutbst)
 	local unit = scoutbst.unit:Internal()
 	local position = unit:GetPosition()
 	local mtype = scoutbst.mtype
-	local network --TODO this maybe is to verify
-	if mtype == nil then mtype = "air" end
-	if network == nil then network = 1 end
+	local network = scoutbst.network
+
+-- 	local network --TODO this maybe is to verify
+-- 	if mtype == nil then mtype = "air" end
+-- 	if network == nil then network = 1 end
 	-- initializing the necessary tables if they're not yet
 	if self.spotsToScout[mtype] == nil then self.spotsToScout[mtype] = {} end
 	if self.spotsToScout[mtype][network] == nil then self.spotsToScout[mtype][network] = {} end
@@ -52,13 +53,11 @@ function ScoutHST:ClosestSpot(scoutbst)
 	-- filling table of spots to scout if empty
 	if #self.spotsToScout[mtype][network] == 0 then
 		if not self.usingStarts[mtype][network] then
-			if self.ai.startLocations[mtype] ~= nil then
-				if self.ai.startLocations[mtype][network] ~= nil then
-					-- scout all probable start locations first
-					self:EchoDebug(unit:Name() .. " got starts")
-					for i, p in pairs(self.ai.startLocations[mtype][network]) do
-						table.insert(self.spotsToScout[mtype][network], p)
-					end
+			if self.ai.maphst.startLocations[mtype] and self.ai.maphst.startLocations[mtype][network] then
+				-- scout all probable start locations first
+				self:EchoDebug(unit:Name() .. " got starts")
+				for i, p in pairs(self.ai.maphst.startLocations[mtype][network]) do
+					table.insert(self.spotsToScout[mtype][network], p)
 				end
 			end
 			-- true even if no start locations were in network, so that it moves onto using metals/geos next
@@ -66,7 +65,9 @@ function ScoutHST:ClosestSpot(scoutbst)
 		elseif self.usingStarts[mtype][network] then
 			-- then use metal and geo spots
 			self:EchoDebug(unit:Name() .. " got metals and geos")
+			print(#self.ai.maphst.networks[mtype][network].allSpots)
 			for i, p in pairs(self.ai.maphst.networks[mtype][network].allSpots) do--CAUTION
+
 				table.insert(self.spotsToScout[mtype][network], p)
 			end
 			self.usingStarts[mtype][network] = false

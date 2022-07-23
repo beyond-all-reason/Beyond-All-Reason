@@ -28,13 +28,14 @@ function TargetHST:Update()
 end
 
 function TargetHST:UpdateEnemies()
+
 	self.ENEMIES = {}
 	for unitID, e in pairs(self.ai.loshst.knownEnemies) do
-		local ut = self.ai.armyhst.unitTable[name]
-		local X, Z = self:PosToGrid(e.position)
-		self:ResetCell(self.ENEMIES[X][Z])
-		self:setCellEnemyValues(e,self.ENEMIES[X][Z])
-		if self.ai.armyhst.unitTable[name].extractsMetal ~= 0 then
+		local ut = self.ai.armyhst.unitTable[e.name]
+		local X, Z = self.ai.maphst:PosToGrid(e.position)
+		self:ResetCell(X,Z)
+		self:setCellEnemyValues(e,X,Z)
+		if ut.extractsMetal ~= 0 then
 			table.insert(self.enemyMexSpots, { position = e.position, unit = e })
 		end
 	end
@@ -135,11 +136,11 @@ function TargetHST:perifericalTarget()
 	return tgX,tgZ,tgXZ
 end
 
-function TargetHST:NearbyVulnerable(pos)
-	local danger,subValues, cells = self.ai.maphst.getCellsFields(position,{'armed','unarm'},1)
+function TargetHST:NearbyVulnerable(position)
+	local danger,subValues, cells = self.ai.maphst:getCellsFields(position,{'armed','unarm'},1,self.ENEMIES)
 	if subValues.armed < 0 and subValues.unarm > 0 then
-		for index , grid in pairs(cells) do
-			local cell = self.ai.maphst.GRID[grid.gx][grid.gz]
+		for index , cell in pairs(cells) do
+			--local cell = self.ENEMIES[grid.X][grid.Z]
 			for id,name in pairs (cell.enemyUnits ) do
 				return id
 			end
@@ -185,8 +186,9 @@ function TargetHST:GetPathModifierFunc(unitName, adjacent)
 	return modifier_node_func
 end
 
-function TargetHST:setCellEnemyValues(enemy,CELL)
-	CELL.enemyUnits[enemy.id] = enemy.name
+function TargetHST:setCellEnemyValues(enemy,X,Z)
+	local CELL = self.ENEMIES[X][Z]
+	CELL.units[enemy.id] = enemy.name
 	if not enemy.mobile then
 		CELL.enemyBuildings[enemy.id] = enemy.name
 	end
@@ -275,21 +277,27 @@ function TargetHST:setCellEnemyValues(enemy,CELL)
 	elseif enemy.view == -1 then--HIDDEN
 		--hidden superflous for now
 	end
-	if CELL.ENEMY > 0 then
-		if not self.ENEMIES[CELL.gx] then
-			self.ENEMIES[CELL.gx] = {}
-			if not self.ENEMIES[CELL.gx][CELL.gz] then
-				self.ENEMIES[CELL.gx][CELL.gz] = CELL---.
-				self.ai.maphst.GRID[CELL.gx][CELL.gz].FOES = CELL
-			end
-			---local grid = {x = CELL.gx, z = CELL.gz}
-			--self.ENEMIES[CELL.gx..':'..CELL.gz] = grid
-		end
- 	end
+	self.ENEMIES[X][Z] = CELL
+-- 	if CELL.ENEMY > 0 then
+-- 		if not self.ENEMIES[CELL.gx] then
+-- 			self.ENEMIES[CELL.gx] = {}
+-- 			if not self.ENEMIES[CELL.gx][CELL.gz] then
+-- 				self.ENEMIES[CELL.gx][CELL.gz] = CELL---.
+-- 				self.ai.maphst.GRID[CELL.gx][CELL.gz].FOES = CELL
+-- 			end
+-- 			---local grid = {x = CELL.gx, z = CELL.gz}
+-- 			--self.ENEMIES[CELL.gx..':'..CELL.gz] = grid
+-- 		end
+--  	end
 end
 
 
 function TargetHST:ResetCell(X,Z)--GAS are 3 layer. Unit of measure is usually metal cost!
+	if self.ENEMIES[X] and self.ENEMIES[X][Z] then return end
+	if not self.ENEMIES[X] then
+		self.ENEMIES[X] = {}
+	end
+
 	--I = immoble
 	-- M = mobile
 	--G = ground
@@ -297,7 +305,7 @@ function TargetHST:ResetCell(X,Z)--GAS are 3 layer. Unit of measure is usually m
 	--S = submerged
 
 
--- 	CELL.enemyUnits = {}
+--
 -- 	CELL.enemyBuildings = {}
 -- 	CELL.badPositions = 0
 -- 	CELL.damagedUnits = {}
@@ -311,44 +319,49 @@ function TargetHST:ResetCell(X,Z)--GAS are 3 layer. Unit of measure is usually m
 	CELL.X = X
 	CELL.Z = Z
 	CELL.POS = self.ai.maphst:GridToPos(X,Z)
-	--targets of this cell per layer is immobile unit NO weapon express in metal
+	CELL.units = {}--hold all the units
+	--unarm GAS immobiles
 	CELL.unarmGI = 0
 	CELL.unarmAI = 0
 	CELL.unarmSI = 0
 	CELL.unarmI = 0
-	--targets of this cell per layer is mobile unit NO weapon express in metal
+	--unarm GAS mobile
 	CELL.unarmGM = 0
 	CELL.unarmAM = 0
 	CELL.unarmSM = 0
 	CELL.unarmM = 0
-	--the WEAPONED mobiles units express in metal amount
+	--armed GAS mobile
 	CELL.armedGM = 0
 	CELL.armedAM = 0
 	CELL.armedSM = 0
 	CELL.armedM = 0
-	--the WEAPONED immobiles units express in metal amount
+	--armed GAS immobile
 	CELL.armedGI = 0
 	CELL.armedAI = 0
 	CELL.armedSI = 0
 	CELL.armedI = 0
-
+	--  unarm GAS sum
 	CELL.unarmG = 0
 	CELL.unarmA = 0
 	CELL.unarmS = 0
+	--armed GAS sum
 	CELL.armedG = 0
 	CELL.armedA = 0
 	CELL.armedS = 0
+	--GAS SUM
 	CELL.G = 0
 	CELL.A = 0
 	CELL.S = 0
+	-- GAS balanced unarm - armed
 	CELL.G_balance = 0
 	CELL.S_balance = 0
 	CELL.A_balance = 0
-
-	CELL.UNARM = 0
-	CELL.ARMED = 0
+	--totals unarmed armed
+	CELL.unarm = 0
+	CELL.armed = 0
+	--total metal amount of metal in cell
 	CELL.ENEMY = 0
-	CELL.ENEMY_BALANCE = 0
+	CELL.ENEMY_BALANCE = 0-- this is balanced
 
 	CELL.offense = 0
 	CELL.defense = 0
@@ -359,7 +372,6 @@ function TargetHST:ResetCell(X,Z)--GAS are 3 layer. Unit of measure is usually m
 	CELL.MOBILE = 0
 	CELL.IMMOBILE = 0
 	CELL.IM = 0
-
 	self.ENEMIES[X][Z] = CELL
 end
 
@@ -381,34 +393,37 @@ function TargetHST:drawDBG()
 	if self.enemyBasePosition then
 		map:DrawPoint(self.enemyBasePosition, {1,1,1,1}, 'BASE',  4)
 	end
-	for index,G in pairs (self.ENEMIES) do
-		local cell = self.ai.maphst.GRID[G.x][G.z]
-		local p = cell.pos
-		--map:DrawCircle(p,cellElmosHalf, colours.balance, cell.ENEMY,false,  4)
-		local pos1, pos2 = api.Position(), api.Position()--z,api.Position(),api.Position(),api.Position()
-		pos1.x, pos1.z = p.x - cellElmosHalf, p.z - cellElmosHalf
-		pos2.x, pos2.z = p.x + cellElmosHalf, p.z + cellElmosHalf
-		pos1.y=Spring.GetGroundHeight(pos1.x,pos1.z)
-		pos2.y=Spring.GetGroundHeight(pos2.x,pos2.z)
-		self:EchoDebug('drawing',pos1.x,pos1.z,pos2.x,pos2.z)
-		if cell.ENEMY_BALANCE > 0 then
-			map:DrawRectangle(pos1, pos2, colours.balance, cell.ENEMY_BALANCE, false, 4)
-		else
-			map:DrawRectangle(pos1, pos2, colours.unbalance, cell.ENEMY_BALANCE, false, 4)
-		end
-		posG = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
-		posS = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
-		posB = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
-		posA = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
+	for X,cells in pairs (self.ENEMIES) do
+		for Z,cell in pairs (cells) do
 
-		if cell.G > 0 then
-			map:DrawCircle(posG, cellElmosHalf/2,colours.g , cell.G, true, 4)
-		end
-		if cell.A > 0 then
-			map:DrawCircle(posA, cellElmosHalf/2,colours.a, cell.A, true, 4)
-		end
-		if cell.S > 0 then
-			map:DrawCircle(posS, cellElmosHalf/2, colours.s, cell.S, true, 4)
+			local p = cell.POS
+			local cellElmosHalf = self.ai.maphst.gridSizeHalf
+			--map:DrawCircle(p,cellElmosHalf, colours.balance, cell.ENEMY,false,  4)
+			local pos1, pos2 = api.Position(), api.Position()--z,api.Position(),api.Position(),api.Position()
+			pos1.x, pos1.z = p.x - cellElmosHalf, p.z - cellElmosHalf
+			pos2.x, pos2.z = p.x + cellElmosHalf, p.z + cellElmosHalf
+			pos1.y=Spring.GetGroundHeight(pos1.x,pos1.z)
+			pos2.y=Spring.GetGroundHeight(pos2.x,pos2.z)
+			self:EchoDebug('drawing',pos1.x,pos1.z,pos2.x,pos2.z)
+			if cell.ENEMY_BALANCE > 0 then
+				map:DrawRectangle(pos1, pos2, colours.balance, cell.ENEMY_BALANCE, false, 4)
+			else
+				map:DrawRectangle(pos1, pos2, colours.unbalance, cell.ENEMY_BALANCE, false, 4)
+			end
+			posG = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
+			posS = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
+			posB = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
+			posA = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
+
+			if cell.G > 0 then
+				map:DrawCircle(posG, cellElmosHalf/2,colours.g , cell.G, true, 4)
+			end
+			if cell.A > 0 then
+				map:DrawCircle(posA, cellElmosHalf/2,colours.a, cell.A, true, 4)
+			end
+			if cell.S > 0 then
+				map:DrawCircle(posS, cellElmosHalf/2, colours.s, cell.S, true, 4)
+			end
 		end
 
 	end

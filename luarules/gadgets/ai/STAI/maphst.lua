@@ -15,6 +15,10 @@ local mCeil = math.ceil
 function MapHST:Init()
 	self:EchoDebug('MapHST START')
 	self.DebugEnabled = true
+	if self.dothedo then
+		print('dsfvwefvertbsfdcaaxrgbfdscx')
+		return
+	end
 	self:basicMapInfo()
 	self:createGrid()
 	self.METALS = map:GetMetalSpots()
@@ -25,8 +29,8 @@ function MapHST:Init()
 	self:hotSpotter(self.METALS,self.GEOS)
 	self.waterMetals = {}
 	self.groundMetals = {}
-	self.networks = {}
-	self.layers = {}
+	self.networks = {} --hold data in a "specific network" area(about GAS (area,mex,geos,trampling)
+	self.layers = {} --hold the "global layer" data about a GAS (area,mex,geos,trampling)
 	self.startLocations = {}
 	self.ai.armyhst.UWMetalSpotCheckUnitType = self.game:GetTypeByName(self.ai.armyhst.UWMetalSpotCheckUnit)
 	self:gridAnalisy()
@@ -35,6 +39,7 @@ function MapHST:Init()
 	self:LayerScan()
 	self:spotToCellMoveTest()
 	self:DrawDebug()
+	self.dothedo = true
 	self:EchoDebug('MapHST STOP')
 end
 
@@ -172,7 +177,7 @@ function MapHST:moveLayerTest(pos)--check where units can stay or not
 	local layers = {}
 	layers.air = 1
 	for layer,unitName in pairs(self.ai.armyhst.mobUnitExampleName) do
-		if Spring.TestMoveOrder(self.ai.armyhst.unitTable[unitName].defId, pos.x, pos.y, pos.z) then
+		if Spring.TestMoveOrder(self.ai.armyhst.unitTable[unitName].defId, pos.x, pos.y, pos.z,nil,nil,nil,true,false,true) then
 			layers[layer] = 0
 		else
 			layers[layer] = false
@@ -210,6 +215,7 @@ function MapHST:gridAnalisy()--do the first analisy of the grid
 		geos = {},
 		allSpots = {}
 		}
+
 end
 
 function MapHST:LayerScan() --a most approfondite analisy of the layers
@@ -224,6 +230,8 @@ function MapHST:LayerScan() --a most approfondite analisy of the layers
 		main[layer].ratioMetals = 0
 		main[layer].ratioGeos = 0
 		for index,network in pairs(net) do
+			print('layerscan',layer,network)
+			network.allSpots = self.ai.tool:tableConcat({network.metals,network.geos})
 			network.ratioArea = network.area / self.gridArea
 			if #network.allSpots == 0 or #self.allSpots == 0 then
 				network.ratioSpots = 0
@@ -274,7 +282,7 @@ function MapHST:TopologyFooded(x, z, layer,net)--rolling on the cell to extrapol
 		self.networks[layer][net[layer]].area = self.networks[layer][net[layer]].area + 1
 		for X = -1, 1,1 do
 			for Z = -1,1,1 do
-				if x ~= x + X or x ~= z + Z then
+				if x ~= x + X or z ~= z + Z then
 					self:TopologyFooded(x+X,z+Z,layer,net)
 				end
 			end
@@ -353,9 +361,13 @@ function MapHST:metalScan()--insert GEOS in to the correct CELL and layer's netw
 	for i, spot in pairs(self.METALS) do
 		local CELL = self:GetCell(spot,self.GRID)
 		table.insert(CELL.metalSpots,spot)
-		for layer,net in pairs(CELL.moveLayers) do
-			if net  then
-				table.insert(self.networks[layer][net].metals,spot)
+		for layer,nets in pairs(self.networks) do
+			if nets then
+				for index,network in pairs(nets) do
+	-- 				if network  then
+						table.insert(network.metals,spot)
+	-- 				end
+				end
 			end
 		end
 		if map:CanBuildHere(self.ai.armyhst.UWMetalSpotCheckUnitType, spot) then
@@ -370,9 +382,13 @@ function MapHST:geoScan()--insert GEOS in to the correct CELL and layer's networ
 	for i, spot in pairs(self.GEOS) do
 		local CELL = self:GetCell(spot,self.GRID)
 		table.insert(CELL.geoSpots,spot)
-		for layer,net in pairs(CELL.moveLayers) do
-			if net then
-				table.insert(self.networks[layer][net].geos,spot)
+		for layer,nets in pairs(self.networks) do
+			if nets then
+				for index,network in pairs(nets) do
+
+						table.insert(network.geos,spot)
+
+				end
 			end
 		end
 	end
@@ -566,21 +582,22 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 					if map:CanBuildHere(unittype, spot) then
 						local CELL = self:GetCell(spot,self.ai.targethst.ENEMIES)
 						if not CELL or CELL.enemy == 0 then
-							local distance = self.ai.tool:distance(position,builderPos)
-							if distance < 300 then
-								return spot
-							else
-								if distance < spotDistance then
-									spotPosition = spot
-									spotDistance = dist
-								end
+							local distance = self.ai.tool:distance(position,spot)
+-- 							if distance < 300 then
+-- 								return spot
+-- 							else
+							if distance < spotDistance then
+								spotPosition = spot
+								spotDistance = distance
 							end
+-- 							end
 						end
 					end
 				end
 			end
 		end
 	end
+	return spotPosition
 end
 
 function MapHST:ClosestFreeGeo(unittype, builder, position)--get the closest free geo spot for the request unittype
@@ -642,13 +659,20 @@ end
 function MapHST:AccessibleMetalSpotsHere(mtype, position)
 -- 	if layer == "air" then return self.METALS end
 	local network = self:MobilityNetworkHere(mtype, position)
-	return self.networks[mtype][network].metals or {}
+	if network then
+		return self.networks[mtype][network].metals or {}
+	end
+	return {}
+
 end
 
 function MapHST:AccessibleGeoSpotsHere(mtype, position)
 -- 	if layer == "air" then return self.GEOS end
 	local network = self:MobilityNetworkHere(mtype, position)
-	return self.networks[mtype][network].geos or {}
+	if network then
+		return self.networks[mtype][network].geos or {}
+	end
+	return {}
 end
 
 function MapHST:AccessibleSpotsHere(mtype, position)
@@ -657,6 +681,7 @@ function MapHST:AccessibleSpotsHere(mtype, position)
 	if network then
 		return self.networks[mtype][network].allSpots or {}
 	end
+	return {}
 end
 
 function MapHST:IsUnderWater(position)
@@ -725,7 +750,7 @@ function MapHST:GetPathGraph(mtype, targetNodeSize)
 	local nodeSizeHalf = nodeSize / 2
 	local graph = {}
 	local id = 1
-	local myTopology = self.topology[mtype]
+	local myTopology = self.layers[mtype]
 	for cx = 1, self.mapSize.x, cellsPerNodeSide do
 		local x = ((cx * self.gridSize) - self.gridSizeHalf) + nodeSizeHalf
 		for cz = 1, self.mapSize.z, cellsPerNodeSide do

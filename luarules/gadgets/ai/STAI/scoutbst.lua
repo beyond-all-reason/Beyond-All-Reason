@@ -4,17 +4,15 @@ function ScoutBST:Name()
 	return "ScoutBST"
 end
 
-ScoutBST.DebugEnabled = false
-
 function ScoutBST:Init()
+	self.DebugEnabled = false
 	self.evading = false
 	self.active = false
-	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
-	self.mtype = mtype
+	self.mtype, self.network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.name = self.unit:Internal():Name()
 	self.armed = self.ai.armyhst.unitTable[self.name].isWeapon
 	self.keepYourDistance = self.ai.armyhst.unitTable[self.name].losRadius * 0.5
-	if mtype == "air" then
+	if self.mtype == "air" then
 		self.airDistance = self.ai.armyhst.unitTable[self.name].losRadius * 1.5
 		self.lastCircleFrame = self.game:Frame()
 	end
@@ -42,7 +40,7 @@ end
 function ScoutBST:Update()
 -- 	 self.uFrame = self.uFrame or 0
 	if self.active then
-		local f = self.game:Frame()
+-- 		local f = self.game:Frame()
 -- 		if f - self.uFrame < self.ai.behUp['scoutbst'] then
 -- 			return
 -- 		end
@@ -62,7 +60,6 @@ function ScoutBST:Update()
 			-- attack small targets along the way if the scout is armed
 			local attackTarget
 			if self.armed then
-				-- game:SendToConsole(unit:GetPosition(), unit)
 				if self.ai.targethst:IsSafeCell(unit:GetPosition(), unit, 1) then
 					attackTarget = self.ai.targethst:NearbyVulnerable(unit:GetPosition())
 				end
@@ -129,8 +126,8 @@ end
 
 function ScoutBST:bestAdjacentPos(unit,target)
 	local upos = unit:GetPosition()
-	local gx, gz = self.ai.maphst:PosToGrid(upos)
-	local areacells = self.ai.maphst:areaCells(gx,gz)
+	local X, Z = self.ai.maphst:PosToGrid(upos)
+	local areacells = self.ai.maphst:areaCells(X,Z,1,self.ai.targethst.ENEMIES)
 	local risky = {}
 	local greedy = {}
 	local neutral = {}

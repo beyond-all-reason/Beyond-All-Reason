@@ -44,21 +44,22 @@ end
 function DamageHST:AddBadPosition(position, mtype, threat, duration)
 	threat = threat or badCellThreat
 	duration = duration or 1800
-	local px, pz = self.ai.maphst:PosToGrid(position)
+	local X, Z = self.ai.maphst:PosToGrid(position)
 	local gas = self.ai.tool:WhatHurtsUnit(nil, mtype, position)
 	local f = self.game:Frame()
 	for groundAirSubmerged, yes in pairs(gas) do
 		if yes then
 			local newRecord =
 					{
-						gridX = px,
-						gridZ = pz,
+						X = X,
+						Z = Z,
 						groundAirSubmerged = groundAirSubmerged,
 						frame = f,
 						threat = threat,
 						duration = duration,
 						}
-			self.DAMAGED[px][pz] = newRecord
+			self.DAMAGED[X] = self.DAMAGED[X] or {}
+			self.DAMAGED[X][Z] = newRecord
 -- 			selfai.maphst.GRID[px][pz].damageCell = selfai.maphst.GRID[px][pz].damageCell + 1
 		end
 	end
@@ -67,7 +68,7 @@ end
 function DamageHST:UpdateBadPositions()
 	local f = self.game:Frame()
 	for X,cells in pairs(self.DAMAGED) do
-		for Z, cell in pairs(Zetas) do
+		for Z, cell in pairs(cells) do
 			if f - record.frame  > 300 then	--reset  bad position every 10 seconds
 				self.DAMAGED[X][Z] = nil
 			end

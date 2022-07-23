@@ -137,7 +137,6 @@ function RaidHST:getRaidCell3(squad)
 	local bestDist = math.huge
 	local bestTarget = nil
 	for i, cell in pairs(self.ai.targethst.distals) do
-		--local cell = self.ai.targethst.CELLS[G.x][G.z]
 		if self.ai.maphst:UnitCanGoHere(leader, cell.pos) then
 			local dist = self.ai.tool:Distance(cell.pos,squad.position) < bestDist
 			if dist < bestDist  then
@@ -155,13 +154,14 @@ function RaidHST:getRaidCell1(squad)
 	local leader = self.game:GetUnitByID(squad.members[1])
 	local bestDist = math.huge
 	local bestTarget = nil
-	for i, G in pairs(self.ai.targethst.ENEMIES) do
-		local cell = self.ai.targethst.CELLS[G.x][G.z]
-		if self.ai.maphst:UnitCanGoHere(leader, cell.pos) then
-			local dist = self.ai.tool:Distance(cell.pos,squad.position) < bestDist
-			if dist < bestDist  then
-				bestTarget = cell
-				bestDist = dist
+	for X, cells in pairs(self.ai.targethst.ENEMIES) do
+		for Z, cell in pairs(cells) do
+			if self.ai.maphst:UnitCanGoHere(leader, cell.POS) then
+				local dist = self.ai.tool:Distance(cell.POS,squad.position) < bestDist
+				if dist < bestDist  then
+					bestTarget = cell
+					bestDist = dist
+				end
 			end
 		end
 	end

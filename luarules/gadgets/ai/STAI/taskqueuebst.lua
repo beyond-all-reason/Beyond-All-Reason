@@ -26,7 +26,7 @@ local function MaxBuildDist(unitName, speed)
 end
 
 function TaskQueueBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.visualdbg = true
 	self.role = nil
 	self.active = false
