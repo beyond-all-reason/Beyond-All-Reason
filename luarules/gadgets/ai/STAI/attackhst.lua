@@ -244,7 +244,7 @@ function AttackHST:targetCell(representative, position, ourThreat,squad)
 	end
 
 
-	for i, G in pairs(self.ai.targethst.ENEMYCELLS) do
+	for i, G in pairs(self.ai.targethst.ENEMIES) do
 		local cell = self.ai.targethst.CELLS[G.x][G.z]
 		for squadIndex,squad in pairs(self.squads) do
 			if squad.targetCell == cell or not cell.pos then return end

@@ -175,7 +175,7 @@ function BomberHST:GetPathValidFunc(unitName)
 		return self.pathValidFuncs[unitName]
 	end
 	local valid_node_func = function ( node )
-		return self.ai.targethst:IsSafePosition(node.position, unitName, nil, 1)
+		return self.ai.targethst:IsSafeCell(node.position, unitName, nil, 1)
 	end
 	self.pathValidFuncs[unitName] = valid_node_func
 	return valid_node_func
@@ -184,7 +184,7 @@ end
 function BomberHST:GetBestBomberTarget(torpedo)
 	local bestCell = nil
 	local bestValue = 0
-	for index,G in pairs(self.ai.targethst.ENEMYCELLS) do
+	for index,G in pairs(self.ai.targethst.ENEMIES) do
 		local cell = self.ai.targethst.CELLS[G.x][G.z]
 		if torpedo then
 			if cell.pos.y < 5 then

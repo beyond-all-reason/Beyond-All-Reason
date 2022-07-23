@@ -16,14 +16,9 @@ function RaidHST:Init()
 	self.squads = {}
 	self.pathValidFuncs = {}
 	self.wave = 5
-
 end
 
-
-
 function RaidHST:Update()
--- 	local f = self.game:Frame()
--- 	if f % 97 ~=0 then return end
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	self.wave = 5 + math.min(math.ceil(self.ai.Energy.income/1000),20)
 	self:EchoDebug('start update')
@@ -160,7 +155,7 @@ function RaidHST:getRaidCell1(squad)
 	local leader = self.game:GetUnitByID(squad.members[1])
 	local bestDist = math.huge
 	local bestTarget = nil
-	for i, G in pairs(self.ai.targethst.ENEMYCELLS) do
+	for i, G in pairs(self.ai.targethst.ENEMIES) do
 		local cell = self.ai.targethst.CELLS[G.x][G.z]
 		if self.ai.maphst:UnitCanGoHere(leader, cell.pos) then
 			local dist = self.ai.tool:Distance(cell.pos,squad.position) < bestDist
@@ -182,7 +177,7 @@ function RaidHST:getRaidCell2(squad)
 	local topDist = self.ai.tool:DistanceXZ(0,0, Game.mapSizeX, Game.mapSizeZ)
 	local bestValue = math.huge
 	local bestTarget = nil
-	for i, G in pairs(self.ai.targethst.ENEMYCELLS) do
+	for i, G in pairs(self.ai.targethst.ENEMIES) do
 		local cell = self.ai.targethst.CELLS[G.x][G.z]
 		if cell.armed < raidPower and cell.MOBILE <= 0 then
 			self:EchoDebug('power',cell.armed,G.x,G.z)
@@ -250,7 +245,7 @@ function RaidHST:getSquadPosition(squad)
 	squadPos.z = squadPos.z / # members
 	squadPos.y = Spring.GetGroundHeight(squadPos.x,squadPos.z)
 	squad.position = {x = squadPos.x, y = squadPos.y, z = squadPos.z}
-	squad.Cell,squad.CellX,squad.CellZ = self.ai.targethst:GetCellHere(squad.position)
+	--squad.Cell,squad.CellX,squad.CellZ = self.ai.maphst:GetCell(squad.position)
 	self:EchoDebug('actual squad.position',squad.position.x,squad.position.z)
 end
 
@@ -365,7 +360,7 @@ end
 function RaidHST:nearbyVulnerable(members)
 	for index,id in pairs(members) do
 		local unit = self.game:GetUnitByID(id)
-		local vulnerable = self.ai.targethst:NearbyVulnerable(unit)
+		local vulnerable = self.ai.targethst:NearbyVulnerable(unit:GetPosition())
 		if vulnerable then
 			return vulnerable
 		end
@@ -422,7 +417,7 @@ function RaidHST:GetPathValidFunc(unitName)
 		return self.pathValidFuncs[unitName]
 	end
 	local valid_node_func = function ( node )
-		return self.ai.targethst:IsSafePosition(node.position, unitName, 1)
+		return self.ai.targethst:IsSafeCell(node.position, unitName, 1)
 	end
 	self.pathValidFuncs[unitName] = valid_node_func
 	return valid_node_func

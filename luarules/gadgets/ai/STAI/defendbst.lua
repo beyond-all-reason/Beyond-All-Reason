@@ -106,7 +106,7 @@ function DefendBST:Update()
 				self.moving = {}
 			else
 				self.guarding = nil
-				local boredNow = self.ai.targethst:IsSafePosition(unitPos, unit)
+				local boredNow = self.ai.targethst:IsSafeCell(unitPos, unit)
 				if self.moving.x ~= targetPos.x or self.moving.z ~= targetPos.z or (self.unmoved > 5 and boredNow) or (not self.tough and dist > self.target.guardDistance) then
 					unit:Move(guardPos)
 					self.moving.x = targetPos.x

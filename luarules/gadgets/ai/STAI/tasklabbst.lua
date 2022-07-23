@@ -178,8 +178,8 @@ end
 
 function TaskLabBST:ampRating()
 	-- precalculate amphibious rank
-	local ampSpots = self.ai.maphst:AccessibleMetalGeoSpotsHere('amp', self.unit:Internal():GetPosition())
-	local vehSpots = self.ai.maphst:AccessibleMetalGeoSpotsHere('veh', self.unit:Internal():GetPosition())
+	local ampSpots = self.ai.maphst:AccessibleSpotsHere('amp', self.unit:Internal():GetPosition())
+	local vehSpots = self.ai.maphst:AccessibleSpotsHere('veh', self.unit:Internal():GetPosition())
 	local amphRank = 0
 	if #ampSpots > 0 and #vehSpots > 0 then
 		amphRank = 1 - (#vehSpots / #ampSpots)

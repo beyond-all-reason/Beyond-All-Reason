@@ -273,7 +273,7 @@ function TaskQueueBST:findPlace(utype, value,cat,loc)
 	if cat == '_mex_' then
 		local uw
 		local reclaimEnemyMex
-		POS, uw, reclaimEnemyMex = self.ai.maphst:ClosestFreeSpot(utype, builder)
+		POS, uw, reclaimEnemyMex = self.ai.maphst:ClosestFreeMex(utype, builder)
 		self:EchoDebug(POS, uw, reclaimEnemyMex)
 		if POS  then
 			if reclaimEnemyMex then

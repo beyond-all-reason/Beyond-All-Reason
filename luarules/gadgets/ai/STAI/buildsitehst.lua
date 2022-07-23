@@ -293,7 +293,7 @@ end
 
 function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosition) --TODO clean this
 	if not pos then return end
-	if not self:isInMap(pos) then return end
+	if not self.ai.maphst:isInMap(pos) then return end
 	-- sanity check: is it REALLY possible to build here?
  	local range = self:GetBuildSpacing(unitTypeToBuild)
   	local neighbours = self.game:getUnitsInCylinder(pos, range) --security distance between buildings prevent units stuck --TODO refine and TEST

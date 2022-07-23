@@ -1,11 +1,4 @@
-
-local DebugDrawEnabled = false
-
-
-LosHST = class(Module)
-
-local losGridElmos = 256
-local losGridElmosHalf = losGridElmos / 2
+LosHST = class(Module) ---track every units: OWN ALLY ENEMY and insert in the right cell, then give to this cell a status 1 or  allynumber/teamnumber
 
 function LosHST:Name()
 	return "LosHST"
@@ -24,41 +17,36 @@ function LosHST:Init()
 end
 
 function LosHST:Update()
--- 	local f = self.game:Frame()
--- 	if f % 13 + game:GetTeamID() == 0 then
-		if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
-		self:getCenter()
-        self.ai.friendlyTeamID = {}
-        self.ai.friendlyTeamID[self.game:GetTeamID()] = true
-        for teamID, _ in pairs(self.ai.alliedTeamIds) do
-            self.ai.friendlyTeamID[teamID] = true
-        end
-		-- update enemy jamming and populate list of enemies
-		local enemies = self.game:GetEnemies()
-		self.knownEnemies = {}
-		if enemies ~= nil then
-			local enemyList = {}
-			for i, e in pairs(enemies) do
-
-
-				if not e:IsAlive() then
-					self:cleanEnemy(e:ID())
-				else
-					local upos = e:GetPosition()
-					if self.ai.buildsitehst:isInMap(upos) then
-						enemy = self:scanEnemy(e)
-						if enemy then
-							self.knownEnemies[e:ID()] = enemy
-						end
+	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
+	self:getCenter()---move ain a dedicated module
+	self.ai.friendlyTeamID = {}
+	self.ai.friendlyTeamID[self.game:GetTeamID()] = true
+	for teamID, _ in pairs(self.ai.alliedTeamIds) do
+		self.ai.friendlyTeamID[teamID] = true
+	end
+	-- update enemy jamming and populate list of enemies
+	local enemies = self.game:GetEnemies()
+	self.knownEnemies = {}
+	if enemies ~= nil then
+		local enemyList = {}
+		for i, e in pairs(enemies) do
+			if not e:IsAlive() then
+				self:cleanEnemy(e:ID())
+			else
+				local upos = e:GetPosition()
+				if self.ai.maphst:isInMap(upos) then
+					enemy = self:scanEnemy(e)
+					if enemy then
+						self.knownEnemies[e:ID()] = enemy
 					end
 				end
 			end
 		end
-		self:Draw()
--- 	end
+	end
+	self:Draw()
 end
 
-function LosHST:UnitDead(unit)
+function LosHST:UnitDead(unit)--this is a bit cheat, we always know if a unit died but is not computability to track allways all dead unit and try it everytime
 	if self.knownEnemies[unit:ID()] then
 		self:cleanEnemy(unit:ID())
 	end
@@ -72,12 +60,6 @@ end
 
 function LosHST:cleanEnemy(id)
 	self:EchoDebug('try to clean',id)
-	--if self.ai.IDsWeAreAttacking[id] then
-		--self.ai.attackhst:TargetDied(self.ai.IDsWeAreAttacking[id])
-	--end
-	--if self.ai.IDsWeAreRaiding[id] then
-		--self.ai.raidhst:TargetDied(self.ai.IDsWeAreRaiding[id])
-	--end
 	if self.knownEnemies[id] then
 		self:EchoDebug('clean',id,self.knownEnemies[id].name,self.knownEnemies[id].guls,self.knownEnemies[id].SPEED>0)
 		table.remove(self.knownEnemies,id)
@@ -117,11 +99,8 @@ function LosHST:scanEnemy(enemy,isShoting)
 		t = nil
 	else
 		self:EchoDebug('GULS',t.id,t.GULS)
-
 		if isShoting or t.GULS >=7 or (t.GULS == 4 and ut.speed == 0) or (t.GULS == 6 and ut.speed == 0) then
-			t.view = 1
-			--full view
-
+			t.view = 1 --LOS
 		elseif t.GULS == 2  or (t.GULS == 6) then -- blip RADAR check speed to hazard a mobile/immobile bet
 			t.view = 0 --RADAR
 
@@ -136,24 +115,15 @@ function LosHST:scanEnemy(enemy,isShoting)
 			t.layer = self:setPosLayer(t.name,t.position)
 			t.speedX,t.speedY,t.speedZ, t.SPEED = Spring.GetUnitVelocity ( t.id )
 			--self:EchoDebug(t.name,'X-Z SPEED',t.speedX,t.speedZ,t.SPEED)
-			t.target = {x = t.position.x+( t.speedX*30),y = t.position.y,z = t.position.z + (t.speedZ*30)}
+			t.target = {x = t.position.x+( t.speedX*100),y = t.position.y,z = t.position.z + (t.speedZ*100)}
 			t.dirX,t.dirY,t.dirZ = Spring.GetUnitDirection ( t.id )
 			--self:EchoDebug(t.name,'dir X-Z',t.dirX,t.dirZ)
-
 		else
 			self:cleanEnemy(enemy:ID())
 		end
  	end
-
-
 	return t
 end
-
--- function LosHST:IsKnownEnemy(unit)
--- 	local id = unit:ID()
--- 	return self.knownEnemies[id]
--- end
-
 
 function LosHST:viewPos(upos)
 	local LosOrRadar, inLos, inRadar, jammed = Spring.GetPositionLosState(upos.x, upos.y, upos.z, self.ai.allyId)
@@ -161,10 +131,7 @@ function LosHST:viewPos(upos)
 	if inLos and upos.y < 0 then return -1 end
 	if inLos then return 0 end
 	if inRadar then return true end
-	--if inRadar then return nil end
-
-	--if inRadar and upos.y < 0 and not jammed then return 'inSonar' -1 end
-	--if inRadar and upos.y >= 0 and not jammed then return 'inRadar' 0 end
+	---sonar????? is the same?
 	return nil
 end
 
@@ -174,8 +141,7 @@ end
 
 function LosHST:setPosLayer(unitName,Pos)
 	local ut = self.ai.armyhst.unitTable[unitName]
-	local float = false
-
+	local floating = false
 	if ut.mtype == 'air' then
 		self.ai.needAntiAir = true --TODO need to move from here
 		return 1
@@ -184,12 +150,10 @@ function LosHST:setPosLayer(unitName,Pos)
 		return -1
 	end
 	if Spring.GetGroundHeight(Pos.x,Pos.z) < 0 then --TEST  WARNING
-		float = true
+		floating = true
 	end
-
-	return 0 , float
+	return 0 , floating
 end
-
 
 function LosHST:getCenter()
 	self.CENTER = api.Position()
@@ -225,7 +189,6 @@ function LosHST:Draw()
 	if not self.ai.drawDebug then
 		return
 	end
-
 	for id,data in pairs(self.knownEnemies) do
 		local u = self.game:GetUnitByID(id)
 -- 		u:EraseHighlight(nil, nil, 5 )

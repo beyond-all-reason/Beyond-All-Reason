@@ -1,6 +1,4 @@
--- keeps track of hits to our units
-
-DamageHST = class(Module)
+DamageHST = class(Module)-- keeps track of hits to our units
 
 function DamageHST:Name()
 	return "DamageHST"
@@ -10,40 +8,88 @@ function DamageHST:internalName()
 	return "damagehst"
 end
 
-DamageHST.DebugEnabled = false
-
 function DamageHST:Init()
+	self.DebugEnabled = false
 	self.isDamaged = {}
-	self.lastDamageCheckFrame = 0
+	self.DAMAGED = {}
 end
 
 function DamageHST:UnitDamaged(engineUnit, attacker, damage)
 	local teamID = engineUnit:Team()
-	if teamID ~= self.game:GetTeamID() and not self.ai.friendlyTeamID[teamID] then
+	if teamID ~= game:GetTeamID() and not self.ai.friendlyTeamID[teamID] then
 		return
 	end
 	local unitID = engineUnit:ID()
 	self.isDamaged[unitID] = engineUnit
+	-- even if the attacker can't be seen, human players know what weapons look like
+	-- in non-lua shard, the attacker is nil if it's an enemy engineUnit, so this becomes useless
+	if attacker ~= nil and attacker:AllyTeam() ~= self.ai.allyId then --   we know what is it and self.ai.loshst:IsKnownEnemy(attacker) ~= 2 then
+		local mtype
+		local ut = self.ai.armyhst.unitTable[engineUnit:Name()]
+		if ut then
+			local threat = damage
+			local attackerut = self.ai.armyhst.unitTable[attacker:Name()]
+			if attackerut then
+				if attackerut.isBuilding then
+					self.ai.loshst:scanEnemy(attacker,isShoting)---isshoting maybe need to be true?
+					return
+				end
+				threat = attackerut.metalCost
+			end
+			self:AddBadPosition(engineUnit:GetPosition(), ut.mtype, threat, 900)
+		end
+	end
+end
+
+function DamageHST:AddBadPosition(position, mtype, threat, duration)
+	threat = threat or badCellThreat
+	duration = duration or 1800
+	local px, pz = self.ai.maphst:PosToGrid(position)
+	local gas = self.ai.tool:WhatHurtsUnit(nil, mtype, position)
+	local f = self.game:Frame()
+	for groundAirSubmerged, yes in pairs(gas) do
+		if yes then
+			local newRecord =
+					{
+						gridX = px,
+						gridZ = pz,
+						groundAirSubmerged = groundAirSubmerged,
+						frame = f,
+						threat = threat,
+						duration = duration,
+						}
+			self.DAMAGED[px][pz] = newRecord
+-- 			selfai.maphst.GRID[px][pz].damageCell = selfai.maphst.GRID[px][pz].damageCell + 1
+		end
+	end
+end
+
+function DamageHST:UpdateBadPositions()
+	local f = self.game:Frame()
+	for X,cells in pairs(self.DAMAGED) do
+		for Z, cell in pairs(Zetas) do
+			if f - record.frame  > 300 then	--reset  bad position every 10 seconds
+				self.DAMAGED[X][Z] = nil
+			end
+		end
+	end
+end
+
+function DamageHST:UpdateDamagedUnits()
+	for unitID, engineUnit in pairs(self.isDamaged) do
+		local health = engineUnit:GetHealth()
+		if not health or (health == engineUnit:GetMaxHealth()) then
+			self.isDamaged[unitID] = nil
+		end
+	end
 end
 
 function DamageHST:Update()
--- 	local f = self.game:Frame()
--- 	if f > self.lastDamageCheckFrame + 90 then
-		if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
-		for unitID, engineUnit in pairs(self.isDamaged) do
-			local health = engineUnit:GetHealth()
-			if not health or (health == engineUnit:GetMaxHealth()) then
-				self.isDamaged[unitID] = nil
-			end
-		end
-		--self.lastDamageCheckFrame = f
-	--end
+	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
+	self:UpdateBadPositions()
+	self:UpdateDamagedUnits()
 end
 
 function DamageHST:UnitDead(engineUnit)
 	self.isDamaged[engineUnit:ID()] = nil
-end
-
-function DamageHST:GetDamagedUnits()
-	return self.isDamaged
 end

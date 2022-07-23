@@ -100,8 +100,8 @@ function ScoutHST:ClosestSpot(scoutbst)
 			--los = self.ai.loshst:GroundLos(p)
 			posViewed = self.ai.loshst:viewPos(p)
 		end
-		--if los == 2 or los == 3 or not self.ai.targethst:IsSafePosition(p, unit, 1) then
-		if type (posViewed) == 'number'  or not self.ai.targethst:IsSafePosition(p, unit, 1) then
+		--if los == 2 or los == 3 or not self.ai.targethst:IsSafeCell(p, unit, 1) then
+		if type (posViewed) == 'number'  or not self.ai.targethst:IsSafeCell(p, unit, 1) then
 			table.remove(self.spotsToScout[mtype][network], i)
 		elseif not self.ai.maphst:UnitCanGoHere(unit, p) then
 			self:EchoDebug('unit cant go there',p.x,p.z)

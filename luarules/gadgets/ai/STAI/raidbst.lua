@@ -11,12 +11,7 @@ function RaidBST:Init()
 	self.name =u:Name()
 	self.mtype = self.ai.armyhst.unitTable[self.name].mtype
 	local p = u:GetPosition()
-	local Cell0,p0,z0 = self.ai.targethst:GetCellHere(p)
--- 	if not p0 then
--- 		self.ai.targethst:GetOrCreateCellHere(p)
--- 		Cell0,p0,z0 = self.ai.targethst:GetCellHere(p)
--- 	end
-	--self.squadID = self.name .. p0.. ':'..z0
+	--local Cell0 = self.ai.maphst:GetCell(p,)
 	local net = self.ai.maphst:MobilityNetworkHere(self.mtype, p)
 	if not net then
 		self:EchoDebug('there is not a network for ', self.mtype, 'here', p.x,p.z)

@@ -63,8 +63,8 @@ function ScoutBST:Update()
 			local attackTarget
 			if self.armed then
 				-- game:SendToConsole(unit:GetPosition(), unit)
-				if self.ai.targethst:IsSafePosition(unit:GetPosition(), unit, 1) then
-					attackTarget = self.ai.targethst:NearbyVulnerable(unit)
+				if self.ai.targethst:IsSafeCell(unit:GetPosition(), unit, 1) then
+					attackTarget = self.ai.targethst:NearbyVulnerable(unit:GetPosition())
 				end
 			end
 			if attackTarget and not self.attacking then
@@ -129,15 +129,14 @@ end
 
 function ScoutBST:bestAdjacentPos(unit,target)
 	local upos = unit:GetPosition()
-	local gx, gz = self.ai.targethst:PosToGrid(upos)
-	local areacells = self.ai.targethst:areaCells(gx,gz)
+	local gx, gz = self.ai.maphst:PosToGrid(upos)
+	local areacells = self.ai.maphst:areaCells(gx,gz)
 	local risky = {}
 	local greedy = {}
 	local neutral = {}
 	local gluttony = 0
 	local tg = nil
-	for index, G in pairs(areacells) do
-		local cell = self.ai.targethst.CELLS[G.gx][G.gz]
+	for index, cell in pairs(areacells) do
 		if cell.armed < 1 and cell.unarm > 0 then
 			table.insert(greedy,cell)
 		elseif cell.armed > 0 and cell.unarm > 0 then

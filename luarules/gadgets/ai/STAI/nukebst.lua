@@ -78,12 +78,13 @@ end
 function NukeBST:GetBestNukeCell()
 	local best
 	local bestValueThreat = 0
-	for i, G in pairs(self.ENEMYCELLS) do
-		local cell = self.ai.targethst.CELLS[G.x][G.z]
-		if cell.pos then
-			if CELL.ENEMY > bestValueThreat then
-				best = cell
-				bestValueThreat = valuethreat
+	for X, cells in pairs(self.ENEMIES) do
+		for Z, cell in pairs(cells) do
+			if cell.pos then
+				if cell.ENEMY > bestValueThreat then
+					best = cell
+					bestValueThreat = valuethreat
+				end
 			end
 		end
 	end

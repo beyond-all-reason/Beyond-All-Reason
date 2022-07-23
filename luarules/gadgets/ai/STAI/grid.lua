@@ -99,7 +99,7 @@ function TargetHST:NewCell(px, pz)
 	local cellPos = api.Position()
 	cellPos.x, cellPos.z = x, z
 	cellPos.y = Spring.GetGroundHeight(x, z)
-	self.ai.buildsitehst:isInMap(cellPos)
+	self.ai.maphst:isInMap(cellPos)
 -- 	map:DrawCircle(cellPos, gridElmosHalf,{1,1,1,1} , 'G', true, 4)
 
 	local cell = {}

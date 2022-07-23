@@ -135,7 +135,7 @@ function MexUpBST:StartUpgradeProcess()
 					end
 					local pos = unit:GetPosition()
 					-- if there are enemies nearby, don't go there as well
-					if self.ai.targethst:IsSafePosition(pos, selfUnit) then
+					if self.ai.targethst:IsSafeCell(pos, selfUnit) then
 						-- if mod number by itself is too high, don't compute the self.ai.tool:distance at all
 						if distMod < closestDistance then
 							local dist = self.ai.tool:Distance(pos, selfPos) + distMod

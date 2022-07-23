@@ -29,25 +29,22 @@ function LabBuildHST:factoriesRating()
 			self.factoryBuilded[layer][index] = 0
  		end
  	end
-	local counter = 0
 	local factoryRating = {}
 	local topRatingArea = 0
 	local topRatingSpots = 0
 	for factory,mtypes in pairs(self.ai.armyhst.factoryMobilities)do
 		factoryRating[factory] = {}
 		local unitCount = 0
-		if mtypes == 'air' then
-			factoryRating[factory].area = 0.1
-			factoryRating[factory].allSpots = 0.1
+		if mtypes[1] == 'air' then
+			factoryRating[factory].area = 1
+			factoryRating[factory].allSpots = 1
 			factoryRating[factory].rating = 0.55
 		else
 			factoryRating[factory].area = 0
 			factoryRating[factory].allSpots = 0
 			for index, unit in pairs( self.ai.armyhst.unitTable[factory].unitsCanBuild) do
 				unitCount = unitCount + 1
-				counter = counter + 1
 				local mtype = self.ai.armyhst.unitTable[unit].mtype
-				local mclass = self.ai.armyhst.unitTable[unit].mclass
 				if self.ai.maphst.layers[mtype] then
 					factoryRating[factory].area = factoryRating[factory].area + (self.ai.maphst.layers[mtype].area or 0)
 				end
@@ -57,6 +54,7 @@ function LabBuildHST:factoriesRating()
 			end
 			factoryRating[factory].area  =factoryRating[factory].area / unitCount
 			factoryRating[factory].allSpots = factoryRating[factory].allSpots / unitCount
+
 			topRatingArea = math.max(topRatingArea,factoryRating[factory].area)
 			topRatingSpots = math.max(topRatingSpots,factoryRating[factory].allSpots)
 		end
@@ -65,21 +63,22 @@ function LabBuildHST:factoriesRating()
 
 	local t= {}
 	for i,v in pairs(factoryRating) do
-		if v.area > 0 or v.allSpots > 0 and not v.rating then
+		if v.rating then
+			t[i] = v.rating
+
+		elseif (v.area > 0) then
 			v.area = v.area / topRatingArea
 			v.allSpots = v.allSpots / topRatingSpots
 			v.rating = (v.area+v.allSpots)/2
 
 			t[i] = v.rating
-
-			print(i,v.area,v.allSpots,v.rating)
 		end
 
 	end
 	self.factoryRating = self.ai.tool:reverseSortByValue(t)
-	for _,v in pairs(self.factoryRating) do
-		print(v[1],v[2])
-	end
+-- 	for _,v in pairs(self.factoryRating) do
+-- 		print(v[1],v[2])
+-- 	end
 end
 
 function LabBuildHST:MyUnitBuilt(engineUnit)
