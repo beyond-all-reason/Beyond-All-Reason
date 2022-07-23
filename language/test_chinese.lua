@@ -29,10 +29,13 @@ return {
 				catchingUp = "Catching up",
 				catchingUpTooltip = "Displays the catch-up progress\nGame time: %{gameTime}",
 				commanderCountTooltip = "%{titleColor}剩余指挥官\n显示盟友的数量\n和敌人的指挥官",
+				tidal = {
+					tooltip = "%{titleColor}浪涌速率显示\n显示在该地图上的浪涌速率(始终不变)"
+				},
 				wind = {
 					nowind1 = "无",
 					nowind2 = "风力",
-					tooltip = "%{titleColor}风力显示\n显示当前的风力强度(小数字为最小和最大)\n%{warnColor}一般来说，建造太阳能板更好\n%{warnColor}风力小于 5 (Armada) 或 6 (Cortex)",
+					tooltip = "%{titleColor}风力显示\n显示当前的风力强度(小数字为最小和最大)\n%{warnColor}当风力小于 5 (Armada) 或 6 (Cortex)时\n%{warnColor}一般来说，建造太阳能板更好",
 					worth1 = "风力过小",
 					worth2 = "风力可用",
 					worth3 = "风力可以",
@@ -97,11 +100,21 @@ return {
 			},
 			playerTV = {
 				playerTV = "玩家实况",
+				cancelPlayerTV = "关闭实况",
 				cancelCamera = "关闭跟踪玩家镜头",
+				playerView =  "玩家视角",
+				globalView =  "关闭玩家视角",
+				playerViewTooltip = "只查看玩家能看到的内容",
 				tooltip = "自动跟踪排名靠前的玩家\n(默认每40秒切换一次玩家)",
 			},
 			teamEconomy = {
 				tooltip = "团队金属/电力收入\n(较轻的部分是来自回收的收入)",
+			},
+			dgunrule = {
+				enemycom = "提醒你:用裂解炮杀敌=你输了\n(由你担任最后的指挥官)"
+			},
+			mapinfo = {
+				author = "作者"
 			},
 			clearMapmarks = {
 				tooltip = "清晰的地图标记/图画",
@@ -538,6 +551,7 @@ return {
 			},
 			initialSpawn = {
 				ready = "准备！",
+				unready = "未准备",
 				startCountdown = "游戏将在%{time}秒后开始...",
 				choosePoint = "请选择你的出生点!",
 				tooClose = "出生点离其他玩家太近",
