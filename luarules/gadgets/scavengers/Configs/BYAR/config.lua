@@ -163,10 +163,10 @@ local scavconfig = {
 		BossWaveTimeLeft					= 300,
 		aircraftchance 						= 10, -- higher number = lower chance
 		globalscoreperoneunit 				= 1600/ScavUnitCountModoption,
-		spawnchance							= 120/ScavUnitSpawnFrequencyModoption,
+		spawnchance							= 100/ScavUnitSpawnFrequencyModoption,
 		beaconspawnchance					= 900,
 		beacondefences						= true,
-		minimumspawnbeacons					= math.ceil(teamcount*spawnmultiplier)*8,
+		minimumspawnbeacons					= math.ceil(teamcount*spawnmultiplier)*3,
 		landmultiplier 						= 0.75,
 		airmultiplier 						= 1,
 		seamultiplier 						= 0.75,
