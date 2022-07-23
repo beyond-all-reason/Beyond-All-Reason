@@ -97,16 +97,16 @@ local scavconfig = {
 
 	scoreConfig = {
 		-- set to 0 to disable
-		scorePerMetal 					= 5, 	-- thisvalue*metalproduction
-		scorePerEnergy 					= 1,	-- thisvalue*energyproduction
-		scorePerSecond 					= 1,	-- thisvalue*secondspassed
+		scorePerMetal 					= 2.5, 	-- thisvalue*metalproduction
+		scorePerEnergy 					= 0.25,	-- thisvalue*energyproduction
+		scorePerSecond 					= 5.5,	-- thisvalue*secondspassed
 		scorePerOwnedUnit				= 1,	-- thisvalue*countofunits
 		-----------------------------------------
 		baseScorePerKill 				= 1, -- How much score EVERY KILL and CAPTURE adds
 			-- Additional score for specific unit types, use -baseScorePerKill(default 1) to make it have no effect on score, use values lower than baseScorePerKill to reduce score
-			scorePerKilledBuilding 			= 9,
-			scorePerKilledConstructor 		= 49,
-			scorePerKilledSpawner 			= 99,
+			scorePerKilledBuilding 			= 19,
+			scorePerKilledConstructor 		= 199,
+			scorePerKilledSpawner 			= 199,
 			scorePerCapturedSpawner 		= 50, -- this doesn't care about baseScorePerKill
 	},
 	gracePeriod = ScavGracePeriodModoption*30*60,
