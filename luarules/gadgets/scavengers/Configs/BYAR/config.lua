@@ -168,7 +168,7 @@ local scavconfig = {
 		beacondefences						= true,
 		minimumspawnbeacons					= math.ceil(teamcount*spawnmultiplier)*8,
 		landmultiplier 						= 0.75,
-		airmultiplier 						= 2,
+		airmultiplier 						= 1,
 		seamultiplier 						= 0.75,
 		chanceforaircraftonsea				= 4, -- higher number = lower chance
 	
