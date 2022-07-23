@@ -112,13 +112,13 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Rebalance Candidates
-	
-	if Spring.GetModOptions().experimentalrebalancet2labs == true then -- 
+
+	if Spring.GetModOptions().experimentalrebalancet2labs == true then --
 		if name == "coralab" or name == "coravp" or name == "armalab" or name == "armavp" then
 			uDef.buildcostmetal = 1800 --2900
 		end
 		if name == "coraap" or name == "corasy" or name == "armaap" or name == "armasy" then
-			uDef.buildcostmetal = 2100 --3200 
+			uDef.buildcostmetal = 2100 --3200
 		end
 	end
 
@@ -157,7 +157,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corwint2"
 		end
-	end 
+	end
 
 	if Spring.GetModOptions().experimentalrebalancehovercrafttech == true then
 		if name == "corhp" or name == "corfhp" or name == "armhp" or name == "armfhp" then
@@ -265,7 +265,7 @@ function UnitDef_Post(name, uDef)
 				armnanotcplat = true,
 				cornanotc = true,
 				cornanotcplat = true,
-				armbotrail = true, -- it spawns units so it will add dead launched peewees to respawn queue. 
+				armbotrail = true, -- it spawns units so it will add dead launched peewees to respawn queue.
 			}
 			if factories[name] then
 				uDef.unitrestricted = 0
@@ -352,7 +352,7 @@ function UnitDef_Post(name, uDef)
 				uDef.unitrestricted = 0
 			end
 		end
-		
+
 		if Spring.GetModOptions().unit_restrictions_noconverters then
 			if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
 				uDef.unitrestricted = 0
@@ -813,7 +813,7 @@ function UnitDef_Post(name, uDef)
 		if x ~= 1 then
 			uDef.workertime = uDef.workertime*x
 		end
-		
+
 		-- increase terraformspeed to be able to restore ground faster
 		uDef.terraformspeed = uDef.workertime * 30
 	end
@@ -849,7 +849,7 @@ function UnitDef_Post(name, uDef)
 	if uDef.airsightdistance then
 		local x = Spring.GetModOptions().multiplier_losrange
 		if x ~= 1 then
-			uDef.airsightdistance = uDef.airsightdistance*x	
+			uDef.airsightdistance = uDef.airsightdistance*x
 		end
 	end
 
@@ -1034,7 +1034,7 @@ function WeaponDef_Post(name, wDef)
 
 	-- Multipliers
 
-	-- Weapon Range 
+	-- Weapon Range
 	if true then -- dumb way to keep the x local here
 		local x = Spring.GetModOptions().multiplier_weaponrange
 		if x ~= 1 then
@@ -1053,7 +1053,7 @@ function WeaponDef_Post(name, wDef)
 				wDef.weaponvelocity = wDef.weaponvelocity*x
 			end
 			if wDef.weapontype == "StarburstLauncher" and wDef.weapontimer then
-				wDef.weapontimer = wDef.weapontimer*x
+				wDef.weapontimer = wDef.weapontimer+(wDef.weapontimer*((x-1)*0.4))
 			end
 		end
 	end
