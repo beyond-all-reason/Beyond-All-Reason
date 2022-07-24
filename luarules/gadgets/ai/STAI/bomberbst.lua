@@ -40,12 +40,12 @@ function BomberBST:OwnerDead()
 	self.ai.bomberhst:RemoveRecruit(self)
 	self.ai.bomberhst:NeedMore()
 	-- notify the command that area is too hot
-	if self.target then
-		local tpos = self.target:GetPosition()
-		if tpos and tpos.x then
-			self.ai.targethst:AddBadPosition(tpos, 'air')
-		end
-	end
+-- 	if self.target then
+-- 		local tpos = self.target:GetPosition()
+-- 		if tpos and tpos.x then
+-- 			self.ai.damagehst:AddBadPosition(tpos, 'air')
+-- 		end
+-- 	end
 end
 
 function BomberBST:OwnerIdle()

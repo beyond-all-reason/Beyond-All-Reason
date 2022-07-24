@@ -80,7 +80,7 @@ function NukeBST:GetBestNukeCell()
 	local bestValueThreat = 0
 	for X, cells in pairs(self.ENEMIES) do
 		for Z, cell in pairs(cells) do
-			if cell.pos then
+			if cell.POS then
 				if cell.ENEMY > bestValueThreat then
 					best = cell
 					bestValueThreat = valuethreat

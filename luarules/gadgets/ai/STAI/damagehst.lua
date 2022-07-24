@@ -93,4 +93,8 @@ end
 
 function DamageHST:UnitDead(engineUnit)
 	self.isDamaged[engineUnit:ID()] = nil
+	local pos = engineUnit:GetPosition()
+	local name = engineUnit:Name()
+	local mtype = self.ai.armyhst.unitTable[name].mtype
+	self:AddBadPosition(pos, mtype)
 end

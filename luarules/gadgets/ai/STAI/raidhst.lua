@@ -11,7 +11,7 @@ end
 local minRaidCount = 6
 function RaidHST:Init()
 	self.visualdbg = true
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.raiders = {}
 	self.squads = {}
 	self.pathValidFuncs = {}
@@ -126,6 +126,8 @@ function RaidHST:targeting(squad,targetType)
 			table.insert(squad.path,#squad.path+1,squad.target.pos)
 			self:EchoDebug('squad.target',squad.target.x,squad.target.z)
 		end
+	else
+		self:EchoDebug('no pathfinding!')
 	end
 	if squad.target and squad.path then return true end --tell me im ready to raids
 end
@@ -137,8 +139,8 @@ function RaidHST:getRaidCell3(squad)
 	local bestDist = math.huge
 	local bestTarget = nil
 	for i, cell in pairs(self.ai.targethst.distals) do
-		if self.ai.maphst:UnitCanGoHere(leader, cell.pos) then
-			local dist = self.ai.tool:Distance(cell.pos,squad.position) < bestDist
+		if self.ai.maphst:UnitCanGoHere(leader, cell.POS) then
+			local dist = self.ai.tool:Distance(cell.POS,squad.position) < bestDist
 			if dist < bestDist  then
 				bestTarget = cell
 				bestDist = dist
@@ -181,9 +183,9 @@ function RaidHST:getRaidCell2(squad)
 		for Z,cell in pairs (cells) do
 			if cell.armed < raidPower and cell.MOBILE <= 0 then
 				self:EchoDebug('power',cell.armed,cell.X,cell.Z)
-				if self.ai.maphst:UnitCanGoHere(leader, cell.pos) then
-	-- 				local Relativedistance = self.ai.tool:Distance(cell.pos,squad.position) / topDist
-					local Relativedistance = self.ai.tool:Distance(cell.pos, self.ai.targethst.enemyBasePositionor or squad.position) / topDist
+				if self.ai.maphst:UnitCanGoHere(leader, cell.POS) then
+	-- 				local Relativedistance = self.ai.tool:Distance(cell.POS,squad.position) / topDist
+					local Relativedistance = self.ai.tool:Distance(cell.POS, self.ai.targethst.enemyBasePositionor or squad.position) / topDist
 					local RelativeValue = Relativedistance * cell.IMMOBILE
 					if RelativeValue < bestValue  then
 						bestTarget = cell
@@ -208,7 +210,7 @@ function RaidHST:FindPath(squad)
 		local pt = {}
 		self:EchoDebug("got path of", #path, "nodes", maxInvalid, "maximum invalid neighbors!!!!!!!!!!!!!!!!!!")
  		for index,cell in pairs(path) do
-			table.insert(pt,cell.position)
+			table.insert(pt,cell.POSition)
  			self:EchoDebug('path','index',index,'pos',cell.x,cell.z)
  		end
 		squad.path = pt

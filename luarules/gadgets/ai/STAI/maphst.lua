@@ -748,10 +748,10 @@ function MapHST:GetPathGraph(mtype, targetNodeSize)
 	local nodeSizeHalf = nodeSize / 2
 	local graph = {}
 	local id = 1
-	local myTopology = self.layers[mtype]
-	for cx = 1, self.mapSize.x, cellsPerNodeSide do
+	local myTopology = self.networks[mtype][network]
+	for cx = 1, self.gridSideX, cellsPerNodeSide do
 		local x = ((cx * self.gridSize) - self.gridSizeHalf) + nodeSizeHalf
-		for cz = 1, self.mapSize.z, cellsPerNodeSide do
+		for cz = 1, self.gridSideZ, cellsPerNodeSide do
 			local cellsComplete = true
 			local goodCells = {}
 			local goodCellsCount = 0

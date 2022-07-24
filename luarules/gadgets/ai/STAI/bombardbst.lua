@@ -84,12 +84,13 @@ end
 function BombardBST:GetTarget(unit)
 	local bestCell = nil
 	local bestValue = 0
-	for index,G in pairs(self.ai.targethst.ENEMIES) do
-		local cell = self.ai.targethst.CELLS[G.x][G.z]
-		if self.ai.tool:Distance(self.position,cell.pos) < self.range then
-			if cell.ENEMY > bestValue then
-				bestCell = cell
-				bestValue = cell.ENEMY
+	for X,cells in pairs(self.ai.targethst.ENEMIES) do
+		for Z,cell in pairs(cells) do
+			if self.ai.tool:Distance(self.position,cell.POS) < self.range then
+				if cell.ENEMY > bestValue then
+					bestCell = cell
+					bestValue = cell.ENEMY
+				end
 			end
 		end
 	end

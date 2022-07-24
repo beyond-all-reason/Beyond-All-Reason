@@ -46,8 +46,8 @@ function AttackHST:Update()
 		if squad.arrived then
 			squad.arrived = nil
 			if squad.pathStep < #squad.path - 1 then
-				local gridX,gridZ = self.ai.targethst:PosToGrid(squad.targetPos)
-				local cell = self.ai.targethst.CELLS[gridX][gridZ]
+				local X,Z = self.ai.targethst:PosToGrid(squad.targetPos)
+				local cell = self.ai.targethst.ENEMIES[X][Z]
 				local value = cell.ENEMY
 				local threat = cell.armed
 				if (value == 0 and threat == 0) or threat > squad.totalThreat * self.fearFactor then
@@ -244,32 +244,33 @@ function AttackHST:targetCell(representative, position, ourThreat,squad)
 	end
 
 
-	for i, G in pairs(self.ai.targethst.ENEMIES) do
-		local cell = self.ai.targethst.CELLS[G.x][G.z]
-		for squadIndex,squad in pairs(self.squads) do
-			if squad.targetCell == cell or not cell.pos then return end
-		end
-		self:EchoDebug('cell.IMMOBILE',cell.IMMOBILE,'cell.offense',cell.offense) --squad.Role == 'defensive' and
- 		if cell.offense > 0 and cell.IMMOBILE < cell.offense / 10 then
- 			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
- 				self:EchoDebug('can go to cell')
- 				local Rdist = self.ai.tool:Distance(cell.pos,refpos)/topDist
- 				local Rvalue = Rdist * cell.offense
- 				if Rvalue > bestDefense and self.ai.tool:Distance(cell.pos,refpos) < topDist / 3 then
- 					bestDefense = Rvalue
- 					bestDefCell = cell
- 				end
- 			end
- 		end
-		if cell.IMMOBILE > 0   then--squad.Role ~= defensive and
-			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
-				self:EchoDebug('cangohere')
-				local Rdist = self.ai.tool:Distance(cell.pos,self.ai.targethst.enemyBasePosition or refpos)/topDist
-				local Rvalue = Rdist * cell.ENEMY
-				if Rvalue < bestValue then
-					self:EchoDebug('val')
-					bestTarget = cell
-					bestValue = Rvalue
+	for X, cells in pairs(self.ai.targethst.ENEMIES) do
+		for Z, cell in pairs(cells) do
+			for squadIndex,squad in pairs(self.squads) do
+				if squad.targetCell == cell or not cell.POS then return end
+			end
+			self:EchoDebug('cell.IMMOBILE',cell.IMMOBILE,'cell.offense',cell.offense) --squad.Role == 'defensive' and
+			if cell.offense > 0 and cell.IMMOBILE < cell.offense / 10 then
+				if self.ai.maphst:UnitCanGoHere(representative, cell.POS) then
+					self:EchoDebug('can go to cell')
+					local Rdist = self.ai.tool:Distance(cell.POS,refpos)/topDist
+					local Rvalue = Rdist * cell.offense
+					if Rvalue > bestDefense and self.ai.tool:Distance(cell.POS,refpos) < topDist / 3 then
+						bestDefense = Rvalue
+						bestDefCell = cell
+					end
+				end
+			end
+			if cell.IMMOBILE > 0   then--squad.Role ~= defensive and
+				if self.ai.maphst:UnitCanGoHere(representative, cell.POS) then
+					self:EchoDebug('cangohere')
+					local Rdist = self.ai.tool:Distance(cell.POS,self.ai.targethst.enemyBasePosition or refpos)/topDist
+					local Rvalue = Rdist * cell.ENEMY
+					if Rvalue < bestValue then
+						self:EchoDebug('val')
+						bestTarget = cell
+						bestValue = Rvalue
+					end
 				end
 			end
 		end
@@ -288,9 +289,8 @@ function AttackHST:getDistCell(squad,representative)
 	local bestDist = math.huge
 	local bestTarget = nil
 	for i, cell in pairs(self.ai.targethst.distals) do
-		--local cell = self.ai.targethst.CELLS[G.x][G.z]
-		if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
-			local dist = self.ai.tool:Distance(cell.pos,representative:GetPosition())
+		if self.ai.maphst:UnitCanGoHere(representative, cell.POS) then
+			local dist = self.ai.tool:Distance(cell.POS,representative:GetPosition())
 			if dist < bestDist  then
 				bestTarget = cell
 				bestDist = dist
@@ -307,9 +307,8 @@ function AttackHST:getFrontCell(squad,representative)
 	local bestDist = math.huge
 	local bestTarget = nil
 	for i, cell in pairs(self.ai.targethst.enemyFrontList) do
-		--local cell = self.ai.targethst.CELLS[G.x][G.z]
-		if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
-			local dist = self.ai.tool:Distance(cell.pos,representative:GetPosition())
+		if self.ai.maphst:UnitCanGoHere(representative, cell.POS) then
+			local dist = self.ai.tool:Distance(cell.POS,representative:GetPosition())
 			if dist < bestDist  then
 				bestTarget = cell
 				bestDist = dist

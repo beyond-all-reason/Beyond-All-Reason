@@ -26,7 +26,7 @@ local function MaxBuildDist(unitName, speed)
 end
 
 function TaskQueueBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.visualdbg = true
 	self.role = nil
 	self.active = false
@@ -64,9 +64,6 @@ function TaskQueueBST:OwnerDead()
 				table.remove(self.ai.armyhst.buildersRole[self.role][self.name],i)
 				self.role = nil
 			end
-		end
-		if self.target then
-			self.ai.targethst:AddBadPosition(self.target, self.mtype)
 		end
 		self.ai.buildsitehst:ClearMyPlans(self)
 		self.ai.buildsitehst:ClearMyConstruction(self)

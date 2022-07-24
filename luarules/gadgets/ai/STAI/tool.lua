@@ -245,12 +245,10 @@ function Tool:pairsByKeys(t, f)
 end
 
 function Tool:tableSorting(t)
-	print(t)
 	local Tkey = {}
 	local Tvalue = {}
 	for key, value in self:pairsByKeys(t) do
       self:EchoDebug(key, value)
-	  print(key,value)
 	  table.insert(Tkey,key)
 	  table.insert(Tvalue,value)
     end

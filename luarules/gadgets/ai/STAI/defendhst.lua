@@ -523,7 +523,7 @@ function DefendHST:FindFronts(troublingCells)
 							table.remove(self.wards, wardIndex)
 						else
 							if water == behaviour.water then
-								local dist = self.ai.tool:Distance(behaviour.unit:Internal():GetPosition(), cell.pos)
+								local dist = self.ai.tool:Distance(behaviour.unit:Internal():GetPosition(), cell.POS)
 								if dist < nearestMobileDist then
 									nearestMobileDist = dist
 									nearestMobile = ward
@@ -537,7 +537,7 @@ function DefendHST:FindFronts(troublingCells)
 						turtle.front = nil
 						if water == turtle.water then
 							if turtle.priority > 1 then
-								local dist = self.ai.tool:Distance(turtle.position, cell.pos)
+								local dist = self.ai.tool:Distance(turtle.position, cell.POS)
 								if dist < nearestTurtleDist then
 									nearestTurtleDist = dist
 									nearestTurtle = ward
@@ -549,7 +549,7 @@ function DefendHST:FindFronts(troublingCells)
 				if n == 1 then
 					if nearestTurtle ~= nil then
 						local turtle = nearestTurtle.turtle
-						turtle.threatForecastAngle = self.ai.tool:AngleAtoB(turtle.position.x, turtle.position.z, cell.pos.x, cell.pos.z)
+						turtle.threatForecastAngle = self.ai.tool:AngleAtoB(turtle.position.x, turtle.position.z, cell.POS.x, cell.POS.z)
 						turtle.front = true
 						self:Danger(nil, turtle, GAS)
 						self.ai.incomingThreat = cell.response[GAS]
