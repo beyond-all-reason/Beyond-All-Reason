@@ -69,7 +69,7 @@ function DamageHST:UpdateBadPositions()
 	local f = self.game:Frame()
 	for X,cells in pairs(self.DAMAGED) do
 		for Z, cell in pairs(cells) do
-			if f - record.frame  > 300 then	--reset  bad position every 10 seconds
+			if f - cell.frame  > 300 then	--reset  bad position every 10 seconds
 				self.DAMAGED[X][Z] = nil
 			end
 		end

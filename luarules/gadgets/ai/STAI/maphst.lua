@@ -15,8 +15,7 @@ local mCeil = math.ceil
 function MapHST:Init()
 	self:EchoDebug('MapHST START')
 	self.DebugEnabled = true
-	if self.dothedo then
-		print('dsfvwefvertbsfdcaaxrgbfdscx')
+	if self.map_loaded then
 		return
 	end
 	self:basicMapInfo()
@@ -39,7 +38,7 @@ function MapHST:Init()
 	self:LayerScan()
 	self:spotToCellMoveTest()
 	self:DrawDebug()
-	self.dothedo = true
+	self.map_loaded = true
 	self:EchoDebug('MapHST STOP')
 end
 
@@ -90,8 +89,8 @@ end
 
 function MapHST:GridToPos(X,Z)
 	local pos = {}
-	pos.x = X * self.gridSize
-	pos.z = Z * self.gridSize
+	pos.x = X * self.gridSize - self.gridSizeHalf
+	pos.z = Z * self.gridSize - self.gridSizeHalf
 	pos.y  = Spring.GetGroundHeight(pos.x,pos.z)
 	if not self:isInMap(pos) then
 		self:Warn(pos.x,pos.z,'is not in map')
@@ -230,7 +229,6 @@ function MapHST:LayerScan() --a most approfondite analisy of the layers
 		main[layer].ratioMetals = 0
 		main[layer].ratioGeos = 0
 		for index,network in pairs(net) do
-			print('layerscan',layer,network)
 			network.allSpots = self.ai.tool:tableConcat({network.metals,network.geos})
 			network.ratioArea = network.area / self.gridArea
 			if #network.allSpots == 0 or #self.allSpots == 0 then

@@ -47,12 +47,7 @@ function TaskLabBST:preFilter()
 end
 
 function TaskLabBST:Update()
--- 	 self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
--- 	if f - self.uFrame < self.ai.behUp['tasklabbst'] then
--- 		return
--- 	end
--- 	self.uFrame = f
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'TaskLabBST' then return end
 	self:preFilter() -- work or no resource??
 	if Spring.GetFactoryCommands(self.id,0) > 1 then return end --factory alredy work
@@ -123,7 +118,6 @@ function TaskLabBST:ecoCheck(category,param,name,test)
 		self:EchoDebug('ecofilter stop',name,cat, param)
 		return
 	end
-	--print('soldier22',name,test)
 	if self.queue[self.qIndex]:economy(name) then
 		return name
 	end
@@ -208,14 +202,12 @@ function TaskLabBST:GetAmpOrGroundWeapon()
 	end
 	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]
 	local network = self.ai.maphst:MobilityNetworkHere(mtype, self.position)
-	if not network or not self.ai.factoryBuilded[mtype] or not self.ai.factoryBuilded[mtype][network] then
+	if not network or not self.ai.labbuildhst.factoryBuilded[mtype] or not self.ai.labbuildhst.factoryBuilded[mtype][network] then
 		self:EchoDebug('canbuild amphibious because ' .. mtype .. ' network here is too small or has not enough spots')
 		return true
 	end
 	return false
 end
-
-
 
 function TaskLabBST:GetMtypedLvCount(unitName)
 	local counter = self.ai.tool:mtypedLvCount(self.ai.armyhst.unitTable[unitName].mtypedLv)

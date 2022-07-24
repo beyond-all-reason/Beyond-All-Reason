@@ -177,17 +177,18 @@ function RaidHST:getRaidCell2(squad)
 	local topDist = self.ai.tool:DistanceXZ(0,0, Game.mapSizeX, Game.mapSizeZ)
 	local bestValue = math.huge
 	local bestTarget = nil
-	for i, G in pairs(self.ai.targethst.ENEMIES) do
-		local cell = self.ai.targethst.CELLS[G.x][G.z]
-		if cell.armed < raidPower and cell.MOBILE <= 0 then
-			self:EchoDebug('power',cell.armed,G.x,G.z)
-			if self.ai.maphst:UnitCanGoHere(leader, cell.pos) then
--- 				local Relativedistance = self.ai.tool:Distance(cell.pos,squad.position) / topDist
-				local Relativedistance = self.ai.tool:Distance(cell.pos, self.ai.targethst.enemyBasePositionor or squad.position) / topDist
-				local RelativeValue = Relativedistance * cell.IMMOBILE
-				if RelativeValue < bestValue  then
-					bestTarget = cell
-					bestValue = RelativeValue
+	for X, cells in pairs(self.ai.targethst.ENEMIES) do
+		for Z,cell in pairs (cells) do
+			if cell.armed < raidPower and cell.MOBILE <= 0 then
+				self:EchoDebug('power',cell.armed,cell.X,cell.Z)
+				if self.ai.maphst:UnitCanGoHere(leader, cell.pos) then
+	-- 				local Relativedistance = self.ai.tool:Distance(cell.pos,squad.position) / topDist
+					local Relativedistance = self.ai.tool:Distance(cell.pos, self.ai.targethst.enemyBasePositionor or squad.position) / topDist
+					local RelativeValue = Relativedistance * cell.IMMOBILE
+					if RelativeValue < bestValue  then
+						bestTarget = cell
+						bestValue = RelativeValue
+					end
 				end
 			end
 		end

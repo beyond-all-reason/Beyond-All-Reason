@@ -106,6 +106,7 @@ function LosHST:scanEnemy(enemy,isShoting)
 
 		elseif t.GULS == 4 then --mobile HIDDEN i see you one time, you are somewhere!!
 			t.view = -1 --HIDDEN
+			t = nil
 
 		else
 			t = nil

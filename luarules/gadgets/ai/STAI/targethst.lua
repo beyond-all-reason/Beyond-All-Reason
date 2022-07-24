@@ -48,8 +48,8 @@ function TargetHST:EnemiesCellsAnalisy() --MOVE TO TACTICALHST!!!
 		for Z,cell in pairs(cells) do
 			if cell.base then
 				self.enemyBasePosition = self.enemyBasePosition or {x=0,z=0}
-				self.enemyBasePosition.x = self.enemyBasePosition.x + cell.pos.x
-				self.enemyBasePosition.z = self.enemyBasePosition.z + cell.pos.z
+				self.enemyBasePosition.x = self.enemyBasePosition.x + cell.POS.x
+				self.enemyBasePosition.z = self.enemyBasePosition.z + cell.POS.z
 				enemybasecount = enemybasecount + 1
 			end
 		end
@@ -78,10 +78,10 @@ function TargetHST:enemyFront()
 				if not self.enemyFrontCellsZ[Z] then
 					self.enemyFrontCellsZ[Z] = X
 				end
-				if math.abs(G.z,baseZ) > math.abs(self.enemyFrontCellsX[X],baseZ) then
+				if math.abs(cell.Z,baseZ) > math.abs(self.enemyFrontCellsX[X],baseZ) then
 					self.enemyFrontCellsX[X] = Z
 				end
-				if math.abs(G.x,baseX) > math.abs(self.enemyFrontCellsZ[Z],baseX) then
+				if math.abs(cell.X,baseX) > math.abs(self.enemyFrontCellsZ[Z],baseX) then
 					self.enemyFrontCellsZ[Z] = X
 				end
 			end
@@ -111,16 +111,16 @@ function TargetHST:perifericalTarget()
 	for X,zetas in pairs(self.ENEMIES) do
 		for Z, cell in pairs(zetas) do
 			if cell.IM < 0 then
-				if math.abs(cell.pos.x - base.x) > distX then
-					distX = math.abs(cell.pos.x - base.x)
+				if math.abs(cell.POS.x - base.x) > distX then
+					distX = math.abs(cell.POS.x - base.x)
 					tgX = cell
 				end
-				if math.abs(cell.pos.z - base.z) > distZ then
-					distZ = math.abs(cell.pos.z - base.z)
+				if math.abs(cell.POS.z - base.z) > distZ then
+					distZ = math.abs(cell.POS.z - base.z)
 					tgZ = cell
 				end
-				if self.ai.tool:Distance(base,cell.pos) > distXZ then
-					distXZ = self.ai.tool:Distance(base,cell.pos)
+				if self.ai.tool:Distance(base,cell.POS) > distXZ then
+					distXZ = self.ai.tool:Distance(base,cell.POS)
 					tgXZ = cell
 				end
 			end
@@ -190,7 +190,7 @@ function TargetHST:setCellEnemyValues(enemy,X,Z)
 	local CELL = self.ENEMIES[X][Z]
 	CELL.units[enemy.id] = enemy.name
 	if not enemy.mobile then
-		CELL.enemyBuildings[enemy.id] = enemy.name
+		CELL.buildings[enemy.id] = enemy.name
 	end
 	local ut = self.ai.armyhst.unitTable[enemy.name]
 	if enemy.view == 1 then
@@ -264,7 +264,6 @@ function TargetHST:setCellEnemyValues(enemy,X,Z)
 	elseif enemy.view == 0 then --RADAR--TODO this need to be refined
 		local f = self.game:Frame()
 		local radarValue = 20 + f / 300
-		--print('radarValue',radarValue)
 		CELL.ENEMY = CELL.ENEMY + radarValue --(adjust for time or other param during game)
 		CELL.ENEMY_BALANCE = CELL.ENEMY_BALANCE + radarValue
 		if enemy.SPEED > 0 then --TODO refine
@@ -278,17 +277,6 @@ function TargetHST:setCellEnemyValues(enemy,X,Z)
 		--hidden superflous for now
 	end
 	self.ENEMIES[X][Z] = CELL
--- 	if CELL.ENEMY > 0 then
--- 		if not self.ENEMIES[CELL.gx] then
--- 			self.ENEMIES[CELL.gx] = {}
--- 			if not self.ENEMIES[CELL.gx][CELL.gz] then
--- 				self.ENEMIES[CELL.gx][CELL.gz] = CELL---.
--- 				self.ai.maphst.GRID[CELL.gx][CELL.gz].FOES = CELL
--- 			end
--- 			---local grid = {x = CELL.gx, z = CELL.gz}
--- 			--self.ENEMIES[CELL.gx..':'..CELL.gz] = grid
--- 		end
---  	end
 end
 
 
@@ -306,10 +294,10 @@ function TargetHST:ResetCell(X,Z)--GAS are 3 layer. Unit of measure is usually m
 
 
 --
--- 	CELL.enemyBuildings = {}
+
 -- 	CELL.badPositions = 0
 -- 	CELL.damagedUnits = {}
--- 	CELL.base = nil
+
 --	CELL.CONTROL = nil --can be false for enemy and nil for no units
 --	CELL.resurrectables = {}
 --	CELL.reclamables = {}
@@ -320,6 +308,9 @@ function TargetHST:ResetCell(X,Z)--GAS are 3 layer. Unit of measure is usually m
 	CELL.Z = Z
 	CELL.POS = self.ai.maphst:GridToPos(X,Z)
 	CELL.units = {}--hold all the units
+	CELL.base = nil --hold the factotory
+	CELL.buildings = {} --hold the buildings
+
 	--unarm GAS immobiles
 	CELL.unarmGI = 0
 	CELL.unarmAI = 0
@@ -393,11 +384,10 @@ function TargetHST:drawDBG()
 	if self.enemyBasePosition then
 		map:DrawPoint(self.enemyBasePosition, {1,1,1,1}, 'BASE',  4)
 	end
+	local cellElmosHalf = self.ai.maphst.gridSizeHalf
 	for X,cells in pairs (self.ENEMIES) do
 		for Z,cell in pairs (cells) do
-
 			local p = cell.POS
-			local cellElmosHalf = self.ai.maphst.gridSizeHalf
 			--map:DrawCircle(p,cellElmosHalf, colours.balance, cell.ENEMY,false,  4)
 			local pos1, pos2 = api.Position(), api.Position()--z,api.Position(),api.Position(),api.Position()
 			pos1.x, pos1.z = p.x - cellElmosHalf, p.z - cellElmosHalf
@@ -429,6 +419,6 @@ function TargetHST:drawDBG()
 	end
 
 	for i,cell in pairs(self.enemyFrontList) do
-		map:DrawCircle(cell.pos, cellElmosHalf/2, colours.f, 'front', true, 4)
+		map:DrawCircle(cell.POS, cellElmosHalf/2, colours.f, 'front', true, 4)
 	end
 end

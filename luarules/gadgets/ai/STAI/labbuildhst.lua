@@ -76,9 +76,6 @@ function LabBuildHST:factoriesRating()
 
 	end
 	self.factoryRating = self.ai.tool:reverseSortByValue(t)
--- 	for _,v in pairs(self.factoryRating) do
--- 		print(v[1],v[2])
--- 	end
 end
 
 function LabBuildHST:MyUnitBuilt(engineUnit)
