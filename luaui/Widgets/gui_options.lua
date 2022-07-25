@@ -2193,6 +2193,12 @@ function init()
 		  end,
 		},
 
+		{ id = "sndunitsound", group = "sound", category = types.advanced, name = texts.option.sndunitsound, type = "bool", value = (Spring.GetConfigInt("snd_unitsound", 1) == 1), description = texts.option.sndunitsound_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("snd_unitsound", (value and 1 or 0))
+		  end,
+		},
+
 		{ id = "sndairabsorption", group = "sound", category = types.advanced, name = texts.option.sndairabsorption, type = "slider", min = 0, max = 0.4, step = 0.01, value = tonumber(Spring.GetConfigFloat("snd_airAbsorption", .35) or .35), description = texts.option.sndairabsorption_descr,
 		  onload = function(i)
 		  end,

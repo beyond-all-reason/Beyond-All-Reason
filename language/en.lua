@@ -272,6 +272,8 @@ return {
 			sndvolbattle = 'battle',
 			sndvolui = 'interface',
 			sndvolunitreply = 'unit reply',
+			sndunitsound = "Unit Response Sounds",
+			sndunitsound_desc = "Unit Response Sounds",
 			sndairabsorption = 'Air absorption',
 			sndairabsorption_descr = 'Air absorption is basically a low-pass filter relative to distance between\nsound source and listener, so when in your base or zoomed out, front battles\nwill be heard as only low frequencies',
 			muteoffscreen = 'Mute when offscreen',
