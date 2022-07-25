@@ -149,14 +149,19 @@ function gadget:Initialize()
 	end
 end
 
-function gadget:GameFrame(n)
-
-	if n%30 == 15 then
+local sec = 0
+function gadget:Update()
+	sec = sec + Spring.GetLastUpdateSeconds()
+	if sec > 0.5 then
+		sec = 0
 		myTeamID = Spring.GetMyTeamID()
 		myAllyTeamID = Spring.GetMyAllyTeamID()
 		spectator, fullview = Spring.GetSpectatingState()
 		enabled = ((Spring.GetConfigInt("snd_unitsound", 1) or 1) ~= 0 and (Spring.GetConfigInt("snd_volmaster", 1) or 100) > 0 and ((Spring.GetConfigInt("snd_volui", 1) or 100) > 0 or (Spring.GetConfigInt("snd_volbattle", 1) or 100) > 0))
 	end
+end
+
+function gadget:GameFrame(n)
 	if not enabled then return end
 
 	CurrentGameFrame = spGetGameFrame()
