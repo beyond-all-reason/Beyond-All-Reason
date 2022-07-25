@@ -72,7 +72,7 @@ function ScoutHST:ClosestSpot(scoutbst)
 			self.usingStarts[mtype][network] = false
 		end
 	end
-	self:EchoDebug(mtype .. " " .. network .. " has " .. #self.spotsToScout[mtype][network] .. " spots")
+	self:EchoDebug(mtype , network," has " ,#self.spotsToScout[mtype][network] ," spots")
 
 	-- find the closest spot
 	local pos = nil

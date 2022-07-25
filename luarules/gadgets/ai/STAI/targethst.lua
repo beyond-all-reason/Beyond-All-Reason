@@ -11,7 +11,7 @@ end
 function TargetHST:Init()
 	self.DebugEnabled = false
  	self.ENEMIES = {}
-	self.pathModParam = 0.33
+	self.pathModParam = 0.3
 	self.pathModifierFuncs = {}
 	self.enemyMexSpots = {}
 	self.enemyFrontList = {}
@@ -171,7 +171,7 @@ function TargetHST:GetPathModifierFunc(unitName, adjacent)
 	local divisor = self.ai.armyhst.unitTable[unitName].metalCost * self.pathModParam
 	local modifier_node_func = function ( node, distanceToGoal, distanceStartToGoal )
 		--local threatMod = self:ThreatHere(node.position, unitName, adjacent) / divisor--BE CAREFULL DANGER CHECK
-		local threatMod = self.ai.maphst:getCellsFields(node.position,{'armed'}) / divisor
+		local threatMod = self.ai.maphst:getCellsFields(node.position,{'armed'},1,self.ENEMIES) --/ divisor
 		if distanceToGoal then
 			if distanceToGoal <= 500 then
 				return 0
@@ -291,12 +291,6 @@ function TargetHST:ResetCell(X,Z)--GAS are 3 layer. Unit of measure is usually m
 	--G = ground
 	--A = air
 	--S = submerged
-
-
---
-
--- 	CELL.badPositions = 0
--- 	CELL.damagedUnits = {}
 
 --	CELL.CONTROL = nil --can be false for enemy and nil for no units
 --	CELL.resurrectables = {}

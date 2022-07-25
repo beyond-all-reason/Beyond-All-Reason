@@ -11,7 +11,7 @@ end
 local minRaidCount = 6
 function RaidHST:Init()
 	self.visualdbg = true
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.raiders = {}
 	self.squads = {}
 	self.pathValidFuncs = {}
@@ -106,6 +106,10 @@ function RaidHST:targeting(squad,targetType)
 		self:EchoDebug('have already a target')
 		return
 	end
+	if squad.target == true then
+		self:EchoDebug('we are in attack')
+		return
+	end
 	local target = nil
 	if targetType == 'nearest' then
 		target = self:getRaidCell1(squad)
@@ -116,14 +120,16 @@ function RaidHST:targeting(squad,targetType)
 		self:EchoDebug('no target for ' ,squad.squadID)
 		return
 	end
-	squad.pathfinder = squad.graph:PathfinderPosPos(squad.position, target.pos, nil, squad.validFunc, nil, squad.modifierFunc)
+	--squad.pathfinder = self.ai.maphst:getPath(squad.unitName,squad.position,target.POS,false)
+	squad.pathfinder = squad.graph:PathfinderPosPos(squad.position, target.POS, nil, squad.validFunc, nil, squad.modifierFunc)
 	if squad.pathfinder then
 		self:EchoDebug('pathfinder',type(squad.pathfinder))
-		self:FindPath(squad)
+ 		self:FindPath(squad)
+--		squad.path = self.ai.maphst:gridThePath(squad.pathfinder)
 		if squad.path  then
 			self:EchoDebug('path catch')
 			squad.target = target
-			table.insert(squad.path,#squad.path+1,squad.target.pos)
+			table.insert(squad.path,#squad.path+1,squad.target.POS)
 			self:EchoDebug('squad.target',squad.target.x,squad.target.z)
 		end
 	else
@@ -200,31 +206,33 @@ function RaidHST:getRaidCell2(squad)
 end
 
 function RaidHST:FindPath(squad)
-	if not squad.pathfinder then
-		self:EchoDebug('no pathfinder??')
-		return
-	end
-	local path, remaining, maxInvalid = squad.pathfinder:Find(10)
-	self:EchoDebug(tostring(remaining) .. " remaining to find path",path,maxInvalid)
-	if path then
-		local pt = {}
-		self:EchoDebug("got path of", #path, "nodes", maxInvalid, "maximum invalid neighbors!!!!!!!!!!!!!!!!!!")
- 		for index,cell in pairs(path) do
-			table.insert(pt,cell.POSition)
- 			self:EchoDebug('path','index',index,'pos',cell.x,cell.z)
- 		end
-		squad.path = pt
+ 	if not squad.pathfinder then
+ 		self:EchoDebug('no pathfinder??')
+ 		return
+ 	end
 
-		if maxInvalid == 0 then
-			self:EchoDebug("path is entirely clear of danger, not using")
-		end
-		squad.pathfinder = nil
-	elseif remaining == 0 then
-		self:EchoDebug("no path found")
-		squad.pathfinder = nil
-	else
-		self:EchoDebug('no path found in findPATH()')
-	end
+
+ 	local path, remaining, maxInvalid = squad.pathfinder:Find(10)
+ 	self:EchoDebug(tostring(remaining) .. " remaining to find path",path,maxInvalid)
+ 	if path then
+ 		local pt = {}
+ 		self:EchoDebug("got path of", #path, "nodes", maxInvalid, "maximum invalid neighbors!!!!!!!!!!!!!!!!!!")
+  		for index,cell in pairs(path) do
+ 			table.insert(pt,cell.position)
+  			self:EchoDebug('path','index',index,'pos',cell.x,cell.z)
+  		end
+ 		squad.path = pt
+
+ 		if maxInvalid == 0 then
+ 			self:EchoDebug("path is entirely clear of danger, not using")
+ 		end
+ 		squad.pathfinder = nil
+ 	elseif remaining == 0 then
+ 		self:EchoDebug("no path found")
+ 		squad.pathfinder = nil
+ 	else
+ 		self:EchoDebug('no path found in findPATH()')
+ 	end
 end
 
 function RaidHST:getSquadPosition(squad)
@@ -254,10 +262,10 @@ end
 
 function RaidHST:goToNextNode(squad)
 	if not squad.path or not squad.path[1]  then
-		self:EchoDebug('no next path')
+		self:EchoDebug('gotonextNode no next path')
 		self:resetSquad(squad)
 		return
-	end	self:EchoDebug('pos',squad.position.x,squad.position.z,'path1',squad.path[1].x,squad.path[1].z,'dist',self.ai.tool:Distance(squad.position,squad.path[1]))
+	end	self:EchoDebug('goToNextNode',squad.position.x,squad.position.z,'path1',squad.path[1].x,squad.path[1].z,'dist',self.ai.tool:Distance(squad.position,squad.path[1]))
 	local squadToPath1 = 0
 	local arrival = true
 	for index,mPos in pairs(squad.membersPos) do
@@ -326,7 +334,7 @@ function RaidHST:squadOnTarget(squad)
 		self:EchoDebug('no target on target')
 		return nil
 	end
-	if self.ai.tool:distance(squad.position,squad.target.pos) < 256 then
+	if self.ai.tool:distance(squad.position,squad.target.POS) < 256 then
 		self:EchoDebug('im on target')
 		squad.onTarget = true
 		self:Roam(squad)
@@ -352,7 +360,7 @@ function RaidHST:doAttack(squad)
 			unit:AttackMove({x=vpos.x+rx,y= Spring.GetGroundHeight(vpos.x+rx,vpos.z+rz),z=vpos.z+rz})
 		elseif squad.target then
 			self:EchoDebug('random attack')
-			unit:AttackMove({x=squad.target.pos.x+rx,y= Spring.GetGroundHeight(squad.target.pos.x+rx,squad.target.pos.z+rz),z=squad.target.pos.z+rz})
+			unit:AttackMove({x=squad.target.POS.x+rx,y= Spring.GetGroundHeight(squad.target.POS.x+rx,squad.target.POS.z+rz),z=squad.target.POS.z+rz})
 			squad.path = nil
 			squad.target = nil
 			self:resetSquad(squad)
@@ -438,6 +446,6 @@ function RaidHST:visualDBG(squad)
 		end
 	end
 	if squad.target then
-		self.map:DrawPoint(squad.target.pos, squad.colour, squad.squadID .. 'target', 6)
+		self.map:DrawPoint(squad.target.POS, squad.colour, squad.squadID .. 'target', 6)
 	end
 end

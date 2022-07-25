@@ -43,11 +43,11 @@ function BehaviourFactory:defaultBehaviours(unit)
 	if army.commanderList[un] then
 		table.insert(b, CommanderBST)
 		table.insert(b,TaskQueueBST)
-		table.insert(b, WardBST)
+		--table.insert(b, WardBST)
 	end
 	if army.techs[un] then
 		--self:EchoDebug()
-		table.insert(b, WardBST)
+		--table.insert(b, WardBST)
 		table.insert(b,TaskQueueBST)
 		if army.unitTable[un].techLevel >=4 then
 			table.insert(b, MexUpBST)
@@ -57,7 +57,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 		--self:EchoDebug()
 		if math.random() > 0.5 then
 			table.insert(b, ReclaimBST)
-			table.insert(b, WardBST)
+			--table.insert(b, WardBST)
 		else
 			table.insert(b, AttackerBST)
 		end
@@ -66,30 +66,30 @@ function BehaviourFactory:defaultBehaviours(unit)
 		--self:EchoDebug()
 		if math.random() > 0.5 then
 			table.insert(b, ReclaimBST)
-			table.insert(b, WardBST)
+			--table.insert(b, WardBST)
 		else
 			table.insert(b, AttackerBST)
 		end
 	end
 	if army.wartechs[un] then
 		--self:EchoDebug()
-		table.insert(b, WardBST)
+		--table.insert(b, WardBST)
 		table.insert(b,TaskQueueBST)
 	end
 	if army.amptechs[un] then
-		table.insert(b, WardBST)
+		--table.insert(b, WardBST)
 		table.insert(b,TaskQueueBST)
 		--self:EchoDebug()
 	end
 	if army.jammers[un] then
 		--self:EchoDebug()
 		table.insert(b, AttackerBST)
-		table.insert(b, WardBST)
+		--table.insert(b, WardBST)
 	end
 	if army.radars[un] then
 		--self:EchoDebug()
 		table.insert(b, AttackerBST)
-		table.insert(b, WardBST)
+		--table.insert(b, WardBST)
 	end
 	if army.scouts[un] then
 		--self:EchoDebug()
@@ -102,17 +102,17 @@ function BehaviourFactory:defaultBehaviours(unit)
 	end
 	if army.breaks[un] then
 		table.insert(b, AttackerBST)
-		table.insert(b, DefendBST)
+		--table.insert(b, DefendBST)
 		--self:EchoDebug()
 	end
 	if army.artillerys[un] then
 		table.insert(b, AttackerBST)
-		table.insert(b, DefendBST)
+		--table.insert(b, DefendBST)
 		--self:EchoDebug()
 	end
 	if army.battles[un] then
 		table.insert(b, AttackerBST)
-		table.insert(b, DefendBST)
+		--table.insert(b, DefendBST)
 		--self:EchoDebug()
 	end
 
@@ -122,33 +122,33 @@ function BehaviourFactory:defaultBehaviours(unit)
 	end
 	if army.airgun[un] then
 		table.insert(b, RaidBST)
-		table.insert(b, DefendBST)
+		--table.insert(b, DefendBST)
 		--table.insert(b, AttackerBST)
 		--self:EchoDebug()
 	end
 	if army.fighterairs[un] then
-		table.insert(b, DefendBST)
+		--table.insert(b, DefendBST)
 		--self:EchoDebug()
 	end
 	if army.paralyzers[un] then
 		--self:EchoDebug()
-		table.insert(b, DefendBST)
+		--table.insert(b, DefendBST)
 	end
 
 	if army.antiairs[un] then
 		--self:EchoDebug()
-		table.insert(b, DefendBST)
+		--table.insert(b, DefendBST)
 	end
 	if army.subkillers[un] then
 		table.insert(b, AttackerBST)
-		table.insert(b, DefendBST)
+		--table.insert(b, DefendBST)
 		--self:EchoDebug()
 	end
 	if army.amphibious[un] then
 		table.insert(b, ScoutBST)
 		table.insert(b, AttackerBST)
 		table.insert(b, RaidBST)
-		--table.insert(b, DefendBST)
+		----table.insert(b, DefendBST)
 		--self:EchoDebug()
 	end
 	if army.transports[un] then
@@ -176,14 +176,14 @@ function BehaviourFactory:defaultBehaviours(unit)
 		--self:EchoDebug()
 	end
 	if army._nano_[un] then
-		table.insert(b, WardBST)
+		--table.insert(b, WardBST)
 		table.insert(b, CleanerBST)
 	end
 
 
 
 	if self.ai.armyhst.unitTable[un].isBuilding then
-		table.insert(b, WardBST) --tells defending units to rush to threatened buildings
+		--table.insert(b, WardBST) --tells defending units to rush to threatened buildings
 		if self.ai.armyhst._silo_[un] then
 			table.insert(b, NukeBST)
 		elseif self.ai.armyhst._antinuke_[un] then

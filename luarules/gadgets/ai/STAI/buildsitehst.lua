@@ -502,7 +502,7 @@ function BuildSiteHST:UnitCreated(unit)
 			if self.ai.armyhst.unitTable[unitName].isBuilding or self.ai.armyhst._nano_[unitName] then
 				-- so that oversized factory lane rectangles will overlap with existing buildings
 				self:DontBuildRectangle(plan.x1, plan.z1, plan.x2, plan.z2, unitID)
-				self.ai.turtlehst:PlanCreated(plan, unitID)
+				--self.ai.turtlehst:PlanCreated(plan, unitID)
 			end
 			-- tell the builder behaviour that construction has begun
 			plan.behaviour:ConstructionBegun(unitID, plan.unitName, plan.position)
@@ -521,7 +521,7 @@ function BuildSiteHST:UnitCreated(unit)
 		local rect = { position = position, unitName = unitName }
 		self:CalculateRect(rect)
 		self:DontBuildRectangle(rect.x1, rect.z1, rect.x2, rect.z2, unitID)
-		self.ai.turtlehst:NewUnit(unitName, position, unitID)
+		--self.ai.turtlehst:NewUnit(unitName, position, unitID)--TEST
 	end
 	self:PlotAllDebug()
 	--self.game:StopTimer('unitCreatedt')
@@ -629,9 +629,9 @@ function BuildSiteHST:NewPlan(unitName, position, behaviour, resurrect)
 	end
 	local plan = {unitName = unitName, position = position, behaviour = behaviour, resurrect = resurrect}
 	self:CalculateRect(plan)
-	if self.ai.armyhst.unitTable[unitName].isBuilding or self.ai.armyhst._nano_[unitName] then
-		self.ai.turtlehst:NewUnit(unitName, position, plan)
-	end
+-- 	if self.ai.armyhst.unitTable[unitName].isBuilding or self.ai.armyhst._nano_[unitName] then
+-- 		self.ai.turtlehst:NewUnit(unitName, position, plan)--TEST
+-- 	end
 	table.insert(self.plans, plan)
 	self:PlotAllDebug()
 end
@@ -640,9 +640,9 @@ function BuildSiteHST:ClearMyPlans(behaviour)
 	for i = #self.plans, 1, -1 do
 		local plan = self.plans[i]
 		if plan.behaviour == behaviour then
-			if not plan.resurrect and (self.ai.armyhst.unitTable[plan.unitName].isBuilding or self.ai.armyhst._nano_[plan.unitName]) then
-				self.ai.turtlehst:PlanCancelled(plan)
-			end
+-- 			if not plan.resurrect and (self.ai.armyhst.unitTable[plan.unitName].isBuilding or self.ai.armyhst._nano_[plan.unitName]) then
+-- 				self.ai.turtlehst:PlanCancelled(plan)--TEST
+-- 			end
 			table.remove(self.plans, i)
 		end
 	end

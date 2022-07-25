@@ -13,12 +13,15 @@ local pathGraphs = {}
 local mCeil = math.ceil
 
 function MapHST:Init()
-	self:EchoDebug('MapHST START')
+
 	self.DebugEnabled = true
+	self:EchoDebug('MapHST START')
 	if self.map_loaded then
+		print('map already loaded')
 		return
 	end
 	self:basicMapInfo()
+	self.topology = {}
 	self:createGrid()
 	self.METALS = map:GetMetalSpots()
 	self.GEOS = map:GetGeoSpots()
@@ -30,6 +33,7 @@ function MapHST:Init()
 	self.groundMetals = {}
 	self.networks = {} --hold data in a "specific network" area(about GAS (area,mex,geos,trampling)
 	self.layers = {} --hold the "global layer" data about a GAS (area,mex,geos,trampling)
+
 	self.startLocations = {}
 	self.ai.armyhst.UWMetalSpotCheckUnitType = self.game:GetTypeByName(self.ai.armyhst.UWMetalSpotCheckUnit)
 	self:gridAnalisy()
@@ -176,8 +180,14 @@ function MapHST:moveLayerTest(pos)--check where units can stay or not
 	local layers = {}
 	layers.air = 1
 	for layer,unitName in pairs(self.ai.armyhst.mobUnitExampleName) do
+		if not self.topology[layer] then
+			self.topology[layer] = {}
+
+		end
 		if Spring.TestMoveOrder(self.ai.armyhst.unitTable[unitName].defId, pos.x, pos.y, pos.z,nil,nil,nil,true,false,true) then
 			layers[layer] = 0
+
+
 		else
 			layers[layer] = false
 		end
@@ -277,6 +287,8 @@ function MapHST:TopologyFooded(x, z, layer,net)--rolling on the cell to extrapol
 	end
 	if self.GRID[x][z].moveLayers[layer] == 0   then
 		self.GRID[x][z].moveLayers[layer] = net[layer]
+		self.topology[layer][x] =  self.topology[layer][x] or {}
+		self.topology[layer][x][z] = true
 		self.networks[layer][net[layer]].area = self.networks[layer][net[layer]].area + 1
 		for X = -1, 1,1 do
 			for Z = -1,1,1 do
@@ -420,6 +432,54 @@ function MapHST:MergePositions(posTable, cutoff, includeNonMerged)
 	end
 	self:EchoDebug('#merged',#merged)
 	return merged
+end
+
+function MapHST:getPath(unitName,POS1,POS2,toGrid)
+	local mclass = self.ai.armyhst.unitTable[unitName].mclass
+	local metapath = Spring.RequestPath(mclass, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z)
+
+	if metapath then
+		local waypoints, pathStartIdx = metapath:GetPathWayPoints()
+		if not waypoints or  #waypoints  <= 1  or self.ai.tool:DistanceXZ(POS1.x, POS1.z,POS2.x, POS2.z) < 256 then
+			self:Warn('path too short',POS1,POS2)
+			return
+
+		else
+			local last = waypoints[#waypoints]
+			local distance_to_goal = self.ai.tool:DistanceXZ(POS2.x, POS2.z, last[1], last[3])
+			if distance_to_goal > self.gridSize then
+				self:Warn('invalid path find',POS1,POS2)
+				return
+			end
+			if toGrid then
+				return self:gridThePath(waypoints)
+			else
+				return waypoints
+			end
+		end
+	end
+end
+
+function MapHST:gridThePath(wp)
+	--local first = table.remove(waypoints)
+	--first = {x = first[1],y = first[2],z = first[3]}
+	local gridPath = {}
+
+	gridPath[1] = gridPath[1] or {x = wp[1][1],y = wp[1][2],z = wp[1][3]}
+-- 	table.remove(wp)
+	for i,wpos in pairs(wp) do
+
+
+
+		wpos = {x = wpos[1],y = wpos[2],z = wpos[3]}
+		local lastX,lastZ = self.ai.maphst:PosToGrid(gridPath[#gridPath])
+		local wposX,wposZ = self.ai.maphst:PosToGrid(wpos)
+		if lastX ~= wposX or lastZ ~= wposZ then
+			gridPath[#gridPath + 1] = wpos
+		end
+
+	end
+	return gridPath
 end
 
 function MapHST:spotToCellMoveTest()--check how many time a unit(i chose commander) walk on a CELL, the analisy is from cell to cell foreach cell, CAUTION is heavy computable
@@ -675,7 +735,6 @@ end
 
 function MapHST:AccessibleSpotsHere(mtype, position)
 	local network = self:MobilityNetworkHere(mtype, position)
-	print (mtype,network)
 	if network then
 		return self.networks[mtype][network].allSpots or {}
 	end
@@ -744,13 +803,13 @@ function MapHST:GetPathGraph(mtype, targetNodeSize)
 			return pathGraphs[mtype][cellsPerNodeSide]
 		end
 	end
-	local nodeSize = cellsPerNodeSide * self.gridSize
-	local nodeSizeHalf = nodeSize / 2
+-- 	local self.gridSize = self.gridSize--cellsPerNodeSide * self.gridSize
+-- 	local self.gridSizeHalf = self.gridSize / 2
 	local graph = {}
 	local id = 1
-	local myTopology = self.networks[mtype][network]
+	local myTopology = self.topology[mtype]
 	for cx = 1, self.gridSideX, cellsPerNodeSide do
-		local x = ((cx * self.gridSize) - self.gridSizeHalf) + nodeSizeHalf
+		local x = ((cx * self.gridSize) - self.gridSizeHalf) + self.gridSizeHalf
 		for cz = 1, self.gridSideZ, cellsPerNodeSide do
 			local cellsComplete = true
 			local goodCells = {}
@@ -766,7 +825,7 @@ function MapHST:GetPathGraph(mtype, targetNodeSize)
 				end
 			end
 			if goodCellsCount > 0 then
-				local z = ((cz * self.gridSize) - self.gridSizeHalf) + nodeSizeHalf
+				local z = ((cz * self.gridSize) - self.gridSizeHalf) + self.gridSizeHalf
 				local position = api.Position()
 				position.x = x
 				position.z = z
@@ -802,7 +861,7 @@ function MapHST:GetPathGraph(mtype, targetNodeSize)
 	local aGraph = GraphAStar()
 	aGraph:Init(graph)
 	aGraph:SetOctoGridSize(1)
-	aGraph:SetPositionUnitsPerNodeUnits(nodeSize)
+	aGraph:SetPositionUnitsPerNodeUnits(self.gridSize)
 	pathGraphs[mtype] = pathGraphs[mtype] or {}
 	pathGraphs[mtype][cellsPerNodeSide] = aGraph
 	return aGraph

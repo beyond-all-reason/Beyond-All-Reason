@@ -192,18 +192,10 @@ function LosHST:Draw()
 	end
 	for id,data in pairs(self.knownEnemies) do
 		local u = self.game:GetUnitByID(id)
--- 		u:EraseHighlight(nil, nil, 5 )
--- 		self:Warn('unitidlosdraw',id,u:GetPosition())
--- 		print(u:GetPosition())
  		if not u:IsAlive() then
  			self:Warn('unit dead',id,u:Name())
 			u:DrawHighlight({1,1,1,1} , nil, 5 )
- 			--self:cleanEnemy(id)
-
--- 		self:Warn('losname',data.name)
-
 		else
-			--self:EchoDebug('draw',data.name,data.GULS,data.id)
 			if data.view ==1 then
 				if data.layer == 1 then --A
 					u:DrawHighlight({1,0,0,1} , nil, 5 )
@@ -221,7 +213,6 @@ function LosHST:Draw()
 			if data.view == -1 then -- H
 				u:DrawHighlight({1,1,0,1} , nil, 5 )
 			end
-			--self:EchoDebug('speeeed',data.SPEED,data.name)
 			if data.SPEED and data.SPEED > 0 then
 				map:DrawLine(data.position, {x=data.position.x+(data.speedX*30),y=data.position.y,z=data.position.z+(data.speedZ*30)}, {0,1,1,1}, nil, false, 5 )
 

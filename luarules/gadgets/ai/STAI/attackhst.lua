@@ -46,10 +46,16 @@ function AttackHST:Update()
 		if squad.arrived then
 			squad.arrived = nil
 			if squad.pathStep < #squad.path - 1 then
-				local X,Z = self.ai.targethst:PosToGrid(squad.targetPos)
+				local X,Z = self.ai.maphst:PosToGrid(squad.targetPos)
+
+				value = 0
+				threat = 0
 				local cell = self.ai.targethst.ENEMIES[X][Z]
-				local value = cell.ENEMY
-				local threat = cell.armed
+				if cell  then
+					local value = cell.ENEMY
+					local threat = cell.armed
+				end
+
 				if (value == 0 and threat == 0) or threat > squad.totalThreat * self.fearFactor then
 					self:SquadReTarget(squad,1) -- get a new target, this one isn't valuable
 				else
@@ -122,9 +128,10 @@ function AttackHST:DraftSquads()
 					if bestCell ~= nil then
 						self:EchoDebug(mtype, "has target, recruiting squad...")
 						squad.targetCell = bestCell
-						bestCell.buildingIDs = bestCell.enemyBuildings
-						squad.targetPos = bestCell.pos
-						self:IDsWeAreAttacking(bestCell.buildingIDs, squad.mtype)
+						--bestCell.buildingIDs = bestCell.buildings
+						squad.targetPos = bestCell.POS
+						--self:IDsWeAreAttacking(bestCell.buildingIDs, squad.mtype)
+						self:IDsWeAreAttacking(bestCell.buildings, squad.mtype)
 						squad.buildingIDs = bestCell.buildingIDs
 						self:SquadFormation(squad)
 						self:SquadNewPath(squad, representativeBehaviour)
@@ -157,7 +164,6 @@ end
 
 
 function AttackHST:squadsRoleCheck()
-	flag = false
 	self:EchoDebug('self.defensive',self.defensive)
 	if self.defensive and self.squads[self.defensive] and self.squads[self.defensive].Role == 'defensive' then
 		return self.defensive
@@ -203,13 +209,14 @@ function AttackHST:SquadReTarget(squad,TYPE)
 		end
 		local bestCell =  self:targetCell(representative,nil,nil,squad,TYPE)
 		if bestCell then
-			squad.targetPos = bestCell.pos
+			squad.targetPos = bestCell.POS
 			squad.targetCell = bestCell
-			if not bestCell.buildingIDs then
-				bestCell.buildingIDs = bestCell.enemyBuildings
-			end
-			self:IDsWeAreAttacking(bestCell.buildingIDs, squad.mtype)
-			squad.buildingIDs = bestCell.buildingIDs
+-- 			if not bestCell.buildingIDs then
+-- 				bestCell.buildingIDs = bestCell.buildings
+-- 			end
+-- 			self:IDsWeAreAttacking(bestCell.buildingIDs, squad.mtype)
+			self:IDsWeAreAttacking(bestCell.buildings, squad.mtype)
+			squad.buildingIDs = bestCell.buildings
 			squad.reachedTarget = nil
 			self:SquadFormation(squad)
 			self:SquadNewPath(squad, representativeBehaviour)
@@ -398,7 +405,8 @@ function AttackHST:SquadNewPath(squad, representativeBehaviour)
 		local step = math.min(squad.pathStep+1, #squad.path)
 		startPos = squad.path[step].position
 	elseif not squad.hasGottenPathOnce then
-		startPos = self.ai.frontPosition[representativeBehaviour.hits]
+		startPos = squad.position
+-- 		startPos = self.ai.frontPosition[representativeBehaviour.hits]
 		if startPos then
 			local angle = self.ai.tool:AnglePosPos(startPos, squad.targetPos)
 			startPos = self.ai.tool:RandomAway( startPos, 150, nil, angle)
@@ -605,7 +613,7 @@ function AttackHST:visualDBG(squad)
 	if not self.visualdbg  then
 		return
 	end
-	self.map:EraseAll(6)
+	self.map:EraseAll(6) --we reset in raidhst
 	for i,member in pairs(squad.members) do
 		member.unit:Internal():EraseHighlight(nil, nil, 6 )
 		member.unit:Internal():DrawHighlight(squad.colour ,nil , 6 )
