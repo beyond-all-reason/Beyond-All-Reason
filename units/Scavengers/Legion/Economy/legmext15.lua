@@ -34,7 +34,7 @@ return {
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		selfdestructcountdown = 1,
 		sightdistance = 273,
-    yardmap = "h ooyyyyoo oyyyyyyo yyyyyyyy yyyyyyyy yyyyyyyy yyyyyyyy oyyyyyyo ooyyyyoo",
+    yardmap = "h ooyyyyoo oyyyyyyo yyoyyoyy yyyyyyyy yyyyyyyy yyoyyoyy oyyyyyyo ooyyyyoo",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/cormex_aoplane.dds",
