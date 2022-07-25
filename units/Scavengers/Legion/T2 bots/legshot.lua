@@ -134,7 +134,7 @@ return {
 				soundhit = "xplomed2xs",
 				soundhitwet = "splsmed",
 				soundstart = "kroggie2xs",
-				soundstartvolume = 20,
+				soundstartvolume = 16,
 				sprayangle = 1500,
 				turret = true,
 				weapontimer = 1,

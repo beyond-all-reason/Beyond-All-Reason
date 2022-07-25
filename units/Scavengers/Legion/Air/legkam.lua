@@ -106,7 +106,7 @@ return {
 				weaponvelocity = 1000,
 				damage = {
 					bombers = 1000,
-					default = 10000,
+					default = 1,
 				},
 			},
 			crawl_dummy = {
