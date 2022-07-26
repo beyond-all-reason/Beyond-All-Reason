@@ -1116,7 +1116,7 @@ local function drawUnitInfo()
 			dps = unitDefInfo[displayUnitDefID].dps
 		end
 
-		-- get unit specifc data
+		-- get unit specific data
 		if displayMode == 'unit' then
 			-- get lots of unit info from functions: https://springrts.com/wiki/Lua_SyncedRead
 			metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
@@ -1134,7 +1134,9 @@ local function drawUnitInfo()
 
 		else
 			-- get unitdef specific data
-
+			if unitDefInfo[displayUnitDefID].maxWeaponRange then
+				maxRange = unitDefInfo[displayUnitDefID].maxWeaponRange
+			end
 		end
 
 		if unitDefInfo[displayUnitDefID].weapons then
