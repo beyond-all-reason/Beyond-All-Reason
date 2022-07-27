@@ -15,6 +15,7 @@ tideIndex = 1
 tideContinueFrame = 0
 lavaGrow = 0
 gameframe = 0
+voidWaterMap = gl.GetMapRendering("voidWater")
 --_G.Game.mapSizeX = Game.mapSizeX
 --_G.Game.mapSizeY = Game.mapSizeY
 
