@@ -485,6 +485,8 @@ return {
 			healthbarsdistance = 'draw distance',
 			healthbarsvariable = 'variable sizes',
 			healthbarsvariable_descr = 'Increases healthbar sizes for bigger units',
+			healthbarswhenguihidden = 'display when GUI hidden',
+			healthbarswhenguihidden_descr = 'even display bars when GUI is hidden (F5 mode)',
 			healthbarshide = 'show health only when selected',
 			healthbarshide_descr = 'Hide the healthbar and rely on damaged unit looks',
 			healthbarsmaxdistance = "Healthbars max distance",
