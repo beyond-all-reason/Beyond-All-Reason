@@ -29,10 +29,13 @@ return {
 				catchingUp = "Catching up",
 				catchingUpTooltip = "Displays the catch-up progress\nGame time: %{gameTime}",
 				commanderCountTooltip = "%{titleColor}剩余指挥官\n显示盟友的数量\n和敌人的指挥官",
+				tidal = {
+					tooltip = "%{titleColor}浪涌速率显示\n显示在该地图上的浪涌速率(始终不变)"
+				},
 				wind = {
 					nowind1 = "无",
 					nowind2 = "风力",
-					tooltip = "%{titleColor}风力显示\n显示当前的风力强度(小数字为最小和最大)\n%{warnColor}一般来说，建造太阳能板更好\n%{warnColor}风力小于 5 (Armada) 或 6 (Cortex)",
+					tooltip = "%{titleColor}风力显示\n显示当前的风力强度(小数字为最小和最大)\n%{warnColor}当风力小于 5 (Armada) 或 6 (Cortex)时\n%{warnColor}一般来说，建造太阳能板更好",
 					worth1 = "风力过小",
 					worth2 = "风力可用",
 					worth3 = "风力可以",
@@ -97,11 +100,21 @@ return {
 			},
 			playerTV = {
 				playerTV = "玩家实况",
+				cancelPlayerTV = "关闭实况",
 				cancelCamera = "关闭跟踪玩家镜头",
+				playerView =  "玩家视角",
+				globalView =  "关闭玩家视角",
+				playerViewTooltip = "只查看玩家能看到的内容",
 				tooltip = "自动跟踪排名靠前的玩家\n(默认每40秒切换一次玩家)",
 			},
 			teamEconomy = {
 				tooltip = "团队金属/电力收入\n(较轻的部分是来自回收的收入)",
+			},
+			dgunrule = {
+				enemycom = "提醒你:用裂解炮杀敌=你输了\n(由你担任最后的指挥官)"
+			},
+			mapinfo = {
+				author = "作者"
 			},
 			clearMapmarks = {
 				tooltip = "清晰的地图标记/图画",
@@ -538,6 +551,7 @@ return {
 			},
 			initialSpawn = {
 				ready = "准备！",
+				unready = "未准备",
 				startCountdown = "游戏将在%{time}秒后开始...",
 				choosePoint = "请选择你的出生点!",
 				tooClose = "出生点离其他玩家太近",
@@ -551,22 +565,22 @@ return {
 				substitutedPlayers  = "%{incoming} 被代替为 %{outgoing}",
 			},
 			awards = {
-				awards              = "奖励",
-				score               = "得分",
-				resourcesProduced   = "(无奖励)",
-				notAwarded          = "(未知)",
-				unknown             = "%{name} (盟友)",
-				coop                = "亚军:",
-				damageTaken         = "摧毁敌军的单位和防御工事",
-				sleptLongest        = "摧毁敌军的资源生产建筑",
-				runnersUp           = "资源利用率",
-				leave               = "%{playerColor}%{player}%{textColor} 生产最多资源 (%{score}).",
-				showGraphs          = "全能",
-				resourcesDestroyed  = "%{playerColor}%{player}%{textColor} 承受最多伤害 (%{score}).",
-				enemiesDestroyed    = "%{playerColor}%{player}%{textColor} 睡得最久, 约 %{score} 分钟.",
-				resourcesEfficiency = "叛徒-摧毁盟军单位",
-				didEverything       = "离开",
-				traitor             = "显示图表",
+				awards = "奖杯",
+				score = "分数",
+				resourcesProduced = "%{playerColor}%{player}%{textColor}生产了最多资源(%{score}).",
+				notAwarded = "(没奖杯)",
+				unknown = "(未知)",
+				coop = "%{name} (合作)",
+				damageTaken = "%{playerColor}%{player}%{textColor}造成了最多伤害(%{score}).",
+				sleptLongest = "%{playerColor}%{player}%{textColor}睡得最久,大概%{score}分钟.",
+				runnersUp = "亚军:",
+				leave = "离开",
+				showGraphs = "显示图表",
+				resourcesDestroyed = "摧毁了敌人的资源生产单位",
+				enemiesDestroyed = "摧毁了敌方单位和防御设施",
+				resourcesEfficiency = "有效利用资源",
+				didEverything = "啥都干了",
+				traitor = "叛徒 - 摧毁盟军单位",
 			},
 			autogroups = {
 				unitAdded   = "把 %{unit} 加入自动群组 #%{groupNumber}.",
@@ -707,6 +721,8 @@ return {
 				useMines = "地雷非常便宜并可快速生产, 记得布设在敌方视野以外。",
 				useJuno = "地雷，雷达和干扰器可以被 Juno 关闭。 Juno可以由双方1级工程单位建造",
 				autogroups = "使用ALT+(0-9)将选定的单位类型分配给自动编组。新建的相同类型的单位将被自动添加到其自动编组中。ALT+反引号(`)可以删除单位。",
+				reportUsers = "我们有管理员。如果有人违反了行为准则,你可以通过右键点击他们的名字并选择举报用户。",
+				ignoreUsers = "不想听某人说话?你可以在大厅里右击他们的名字来忽略他们,在战斗中你可以按CTRL+左击他们的名字来忽略他们。"
 			},
 			notifications = {
 				enemyCommanderDied = "一名敌方指挥官已被歼灭!",
