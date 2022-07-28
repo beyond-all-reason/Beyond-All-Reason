@@ -3,16 +3,14 @@ local GaiaTeamID = Spring.GetGaiaTeamID()
 local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
 
 local function NearbyCapture(unitID, difficulty, range)
-    local difficulty = difficulty
     if not difficulty then difficulty = 1 end
-    local range = range
     if not range then range = 256 end
-    
+
     local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
-    
+
     local x,y,z = Spring.GetUnitPosition(unitID)
     local nearbyUnits = Spring.GetUnitsInCylinder(x, z, range)
-    
+
     local captureDamage = 0
     for i = 1,#nearbyUnits do
         local attackerID = nearbyUnits[i]
@@ -35,7 +33,7 @@ local function NearbyCapture(unitID, difficulty, range)
         local captureProgress = select(4, Spring.GetUnitHealth(unitID))
         Spring.SetUnitHealth(unitID, {capture = captureProgress + captureDamage})
 
-        local captureProgress = select(4, Spring.GetUnitHealth(unitID))
+        captureProgress = select(4, Spring.GetUnitHealth(unitID))
         if captureProgress < 0 then
             Spring.SetUnitHealth(unitID, {capture = 0})
         elseif captureProgress >= 1 then
@@ -49,6 +47,6 @@ local function NearbyCapture(unitID, difficulty, range)
     end
 end
 
-return { 
+return {
     NearbyCapture = NearbyCapture,
 }

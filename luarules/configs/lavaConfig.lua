@@ -82,61 +82,11 @@ if string.find(mapName, "incandescence") then
 		addTideRhym (206, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
 	end
 
-	-- ALL LAVA-METAL-ASTEROID MAPS
-elseif string.find(mapName, "asteroid_mines") then
-	lavaMap = true
-	lavaDiffuseEmitTex = "LuaUI/images/lava7_diffuseemit.dds"
-	lavaNormalHeightTex = "LuaUI/images/lava7_normalheight.dds"
-	lavaColorCorrection = "vec3(1.1, 1.0, 0.9)"
-	lavaSwirlFreq = 0.01
-	lavaSwirlAmp = 0.005
-	lavaGrow = 0
-	lavaLevel = 6 -- pre-game lava level
-	lavaDamage = 150 -- damage per second
-	lavaUVscale = 1.5 -- How many times to tile the lava texture across the entire map
-	lavaTideamplitude = 3
-	lavaTideperiod = 250
-	lavaShadowStrength = 0.9 -- how much light a shadowed fragment can recieve
-	lavaCoastColor = "vec3(2.2, 0.4, 0.0)"
-	lavaCoastLightBoost = 0.7
-	lavaCoastWidth = 100.0 -- how wide the coast of the lava should be
-	lavaFogFactor = 0.09 -- how dense the fog is
-	lavaFogColor = "vec3(1.7, 0.36, 0.0)"
-	lavaFogHeight = 110
-	lavaFogAbove = 0.2
-	lavaFogDistortion = 4.0
-	--lavaShadowStrength = 0.4 -- how much light a shadowed fragment can recieve
-	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (5, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
-	end
-
-elseif string.find(mapName, "cloud9") or string.find(mapName, "oort_cloud") then
-	lavaMap = true
-	lavaGrow = 0
-	lavaLevel = 6 -- pre-game lava level
-	lavaDamage = 150 -- damage per second
-	lavaUVscale = 1.5 -- How many times to tile the lava texture across the entire map
-	lavaTideamplitude = 3
-	lavaTideperiod = 250
-	lavaShadowStrength = 0.9 -- how much light a shadowed fragment can recieve
-	lavaCoastLightBoost = 0.7
-	lavaCoastWidth = 100.0 -- how wide the coast of the lava should be
-	lavaFogFactor = 0.09 -- how dense the fog is
-	lavaFogColor = "vec3(1.5, 0.4, 0.0)"
-	lavaFogHeight = 110
-	lavaFogAbove = 0.2
-	lavaFogDistortion = 8.0
-	--lavaShadowStrength = 0.4 -- how much light a shadowed fragment can recieve
-	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (5, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
-	end
-
 elseif string.find(mapName, "seths ravine") then
 	lavaMap = false
 	if isLavaGadget and isLavaGadget == "synced" then
 		addTideRhym (208, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
 	end
-
 
 elseif string.find(mapName, "ghenna") then
 	lavaMap = true
@@ -159,7 +109,6 @@ elseif string.find(mapName, "ghenna") then
 		addTideRhym (415, 0.05, 3*30)
 		addTideRhym (250, 0.10, 10*60)
 	end
-
 
 elseif string.find(mapName, "hotstepper") then
 	lavaMap = true
@@ -241,9 +190,6 @@ elseif string.find(mapName, "speedmetal") then
 		addTideRhym (1, 0.05, 5*6000)
 	end
 
-elseif string.find(mapName, "moonq") then
-	lavaMap = false
-
 elseif string.find(mapName, "crucible") then
 	lavaMap = true
 	lavaGrow = 0
@@ -253,9 +199,6 @@ elseif string.find(mapName, "crucible") then
 	if isLavaGadget and isLavaGadget == "synced" then
 		addTideRhym (1, 0.05, 5*6000)
 	end
-
-elseif string.find(mapName, "moonq") then
-	lavaMap = false
 
 elseif string.find(mapName, "forge") then
 	lavaMap = true
@@ -267,7 +210,7 @@ elseif string.find(mapName, "forge") then
 		addTideRhym (1, 0.05, 5*6000)
 	end
 
-elseif Game.waterDamage > 0 then -- Waterdamagemaps - keep at the very bottom
+elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - keep at the very bottom
 	--lavaMap = true
 	--lavaGrow = 0
 	--lavaLevel = 1

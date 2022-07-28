@@ -171,6 +171,7 @@ end
 
 --/luarules fightertest corak armpw 100 10 2000
 
+local drawWhenGuiHidden = false
 
 local healthbartexture = "LuaUI/Images/healtbars_exo4.tga"
 
@@ -1365,6 +1366,13 @@ function widget:Initialize()
 		init()
 		initfeaturebars()
 	end
+	WG['healthbars'].getDrawWhenGuiHidden = function()
+		return drawWhenGuiHidden
+	end
+	WG['healthbars'].setDrawWhenGuiHidden = function(value)
+		drawWhenGuiHidden = value
+	end
+
 
 	initGL4()
 	-- Walk through unitdefs for the stuff we need:
@@ -1490,7 +1498,7 @@ function widget:GameFrame(n)
 			local shieldOn, shieldPower = Spring.GetUnitShieldState(unitID)
 			if shieldOn == false then shieldPower = 0.0 end
 			if oldshieldPower ~= shieldPower then
-				if shieldPower == nil then 
+				if shieldPower == nil then
 					removeBarFromUnit(unitID, "shield", "unitShieldWatch")
 				else
 					uniformcache[1] = shieldPower / (unitDefhasShield[Spring.GetUnitDefID(unitID)])
@@ -1627,7 +1635,7 @@ end
 function widget:DrawWorld()
 	--Spring.Echo(Engine.versionFull )
 	if chobbyInterface then return end
-	if spIsGUIHidden() then return end
+	if not drawWhenGuiHidden and spIsGUIHidden() then return end
 
     local now = os.clock()
 	if Spring.GetGameFrame() % 90 == 0 then
@@ -1678,7 +1686,8 @@ end
 function widget:GetConfigData(data)
 	return {
 		barScale = barScale,
-		variableBarSizes = variableBarSizes
+		variableBarSizes = variableBarSizes,
+		drawWhenGuiHidden = drawWhenGuiHidden
 	}
 end
 
@@ -1686,5 +1695,8 @@ function widget:SetConfigData(data)
 	barScale = data.barScale or barScale
 	if data.variableBarSizes ~= nil then
 		variableBarSizes = data.variableBarSizes
+	end
+	if data.drawWhenGuiHidden ~= nil then
+		drawWhenGuiHidden = data.drawWhenGuiHidden
 	end
 end

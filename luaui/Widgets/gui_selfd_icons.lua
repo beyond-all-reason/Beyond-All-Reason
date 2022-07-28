@@ -10,7 +10,7 @@ function widget:GetInfo()
    }
 end
 
-
+local unitCanFly = {}
 local ignoreUnitDefs = {}
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
@@ -19,6 +19,9 @@ for udid, unitDef in pairs(UnitDefs) do
 	unitConf[udid] = 7 +(scale/2.5)
 	if string.find(unitDef.name, 'droppod') then
 		ignoreUnitDefs[udid] = true
+	end
+	if unitDef.canFly then
+		unitCanFly[udid] = true
 	end
 end
 
@@ -42,6 +45,7 @@ local spGetAllUnits				= Spring.GetAllUnits
 local spGetCommandQueue			= Spring.GetCommandQueue
 local spIsUnitAllied			= Spring.IsUnitAllied
 local spGetCameraDirection		= Spring.GetCameraDirection
+local spGetUnitMoveTypeData		= Spring.GetUnitMoveTypeData
 
 local spec = Spring.GetSpectatingState()
 
@@ -192,6 +196,12 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	if selfdUnits[unitID] then
+		selfdUnits[unitID] = nil
+	end
+end
+
+function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+	if unitCanFly[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
 		selfdUnits[unitID] = nil
 	end
 end

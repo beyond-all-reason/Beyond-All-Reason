@@ -1495,6 +1495,8 @@ function widget:MouseRelease(x, y, button)
 	return -1
 end
 
+
+local doUpdateClock2 = os_clock() + 0.9
 function widget:DrawScreen()
 	if chobbyInterface then
 		return
@@ -1505,8 +1507,9 @@ function widget:DrawScreen()
 	end
 	local x, y, b, b2, b3 = spGetMouseState()
 
-	if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) then
+	if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) or (os_clock() >= doUpdateClock2) then
 		doUpdateClock = nil
+		doUpdateClock2 = os_clock() + 0.9
 		clear()
 		doUpdate = nil
 		lastUpdateClock = os_clock()
