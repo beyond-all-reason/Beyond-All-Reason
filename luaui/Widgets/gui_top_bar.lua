@@ -2032,20 +2032,20 @@ function widget:MousePress(x, y, button)
 			if math_isInRect(x, y, shareIndicatorArea['metal'][1], shareIndicatorArea['metal'][2], shareIndicatorArea['metal'][3], shareIndicatorArea['metal'][4]) then
 				draggingShareIndicator = 'metal'
 			end
-			if math_isInRect(x, y, resbarDrawinfo['metal'].barArea[1], shareIndicatorArea['metal'][2], resbarDrawinfo['metal'].barArea[3], shareIndicatorArea['metal'][4]) then
-				draggingShareIndicator = 'metal'
-				adjustSliders(x, y)
-			end
+			--if math_isInRect(x, y, resbarDrawinfo['metal'].barArea[1], shareIndicatorArea['metal'][2], resbarDrawinfo['metal'].barArea[3], shareIndicatorArea['metal'][4]) then
+			--	draggingShareIndicator = 'metal'
+			--	adjustSliders(x, y)
+			--end
 			if math_isInRect(x, y, shareIndicatorArea['energy'][1], shareIndicatorArea['energy'][2], shareIndicatorArea['energy'][3], shareIndicatorArea['energy'][4]) then
 				draggingShareIndicator = 'energy'
 			end
 			if draggingShareIndicator == nil and math_isInRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
 				draggingConversionIndicator = true
 			end
-			if draggingConversionIndicator == nil and math_isInRect(x, y, resbarDrawinfo['energy'].barArea[1], shareIndicatorArea['energy'][2], resbarDrawinfo['energy'].barArea[3], shareIndicatorArea['energy'][4]) then
-				draggingShareIndicator = 'energy'
-				adjustSliders(x, y)
-			end
+			--if draggingConversionIndicator == nil and math_isInRect(x, y, resbarDrawinfo['energy'].barArea[1], shareIndicatorArea['energy'][2], resbarDrawinfo['energy'].barArea[3], shareIndicatorArea['energy'][4]) then
+			--	draggingShareIndicator = 'energy'
+			--	adjustSliders(x, y)
+			--end
 			if draggingShareIndicator or draggingConversionIndicator then
 				if playSounds then
 					Spring.PlaySoundFile(resourceclick, 0.7, 'ui')

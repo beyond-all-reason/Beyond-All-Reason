@@ -48,10 +48,10 @@ local isCommander = {} -- all dgun type weapon wield units are considered comman
 
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander == true then
+	if unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
 	end
-
+end
 
 
 function gadget:Initialize()
@@ -122,5 +122,6 @@ function gadget:GameFrame(gf)
 		end
 	end
 end
+
 
 

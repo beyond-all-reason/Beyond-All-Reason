@@ -57,7 +57,7 @@ function widget:Initialize()
 	if WG['tooltip'] == nil then
 		WG['tooltip'] = {}
 		WG['tooltip'].AddTooltip = function(name, area, value, delay)
-			if (value ~= nil and area[1] ~= nil and area[2] ~= nil and area[3] ~= nil and area[4] ~= nil) or tooltips[name] ~= nil and tooltips[name].value ~= nil then
+			if (value ~= nil and area[1] ~= nil and area[2] ~= nil and area[3] ~= nil and area[4] ~= nil) or (tooltips[name] ~= nil and tooltips[name].value ~= nil) then
 				if delay == nil then
 					delay = defaultDelay
 				end
@@ -68,6 +68,9 @@ function widget:Initialize()
 				tooltips[name].delay = delay
 				if value ~= nil then
 					tooltips[name].value = tostring(value)
+					if tooltips[name].dlist then
+						tooltips[name].dlist = gl.DeleteList(tooltips[name].dlist)
+					end
 				end
 			end
 		end

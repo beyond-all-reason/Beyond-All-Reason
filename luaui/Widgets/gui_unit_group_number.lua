@@ -31,6 +31,16 @@ local existingGroupsFrame = 0
 local gameStarted = (Spring.GetGameFrame() > 0)
 local font, dlists
 
+local crashing = {}
+
+local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
+local unitCanFly = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.canFly then
+		unitCanFly[unitDefID] = true
+	end
+end
+
 function widget:GameStart()
 	gameStarted = true
 	widget:PlayerChanged()
@@ -75,6 +85,16 @@ function widget:Shutdown()
 	end
 end
 
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	crashing[unitID] = nil
+end
+
+function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+	if unitCanFly[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
+		crashing[unitID] = true
+	end
+end
+
 function widget:DrawWorld()
 	if IsGuiHidden() or GetGameFrame() < hideBelowGameframe then
 		return
@@ -89,7 +109,7 @@ function widget:DrawWorld()
 		local units = GetGroupUnits(inGroup)
 		for i = 1, #units do
 			local unitID = units[i]
-			if spIsUnitInView(unitID) then
+			if spIsUnitInView(unitID) and not crashing[unitID] then
 				local ux, uy, uz = spGetUnitViewPosition(unitID)
 				camDistance = diag(camX - ux, camY - uy, camZ - uz)
 				if camDistance < cutoffDistance then

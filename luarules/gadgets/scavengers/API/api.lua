@@ -76,6 +76,7 @@ bosshealthmultiplier = 5--teamcount*spawnmultiplier
 ActiveReinforcementUnits = {}
 scavteamhasplayers = false
 BaseCleanupQueue = {}
+endOfGracePeriodScore = 0
 
 --spawningStartFrame = (math.ceil( math.ceil(mapsizeX + mapsizeZ) / 750 ) + 30) * 5
 spawningStartFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 10
@@ -410,7 +411,7 @@ function teamsCheck()
 		scoreTeamCount = 2
 	end
 	local timeScore = Spring.GetGameSeconds()*scavconfig.scoreConfig.scorePerSecond
-	globalScore = math.ceil((nonFinalGlobalScore/scoreTeamCount) + killedscavengers + timeScore)
+	globalScore = math.max(math.ceil(((nonFinalGlobalScore/scoreTeamCount) + killedscavengers + timeScore) - endOfGracePeriodScore), 0)
 	nonFinalGlobalScore = nil
 	scoreTeamCount = nil
 end
