@@ -1414,9 +1414,7 @@ function SetOriginalColourNames()
     -- Saves the original team colours associated to team teamID
     for playerID, _ in pairs(player) do
         if player[playerID].name then
-            if player[playerID].spec then
-                originalColourNames[playerID] = "\255\255\255\255"
-            else
+            if not player[playerID].spec then
                 originalColourNames[playerID] = colourNames(player[playerID].team)
             end
         end
