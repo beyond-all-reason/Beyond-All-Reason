@@ -1513,7 +1513,6 @@ function widget:DrawScreen()
 		clear()
 		doUpdate = nil
 		lastUpdateClock = os_clock()
-		Spring.Echo(os.clock())
 	end
 
 	if displayUnitID and not Spring.ValidUnitID(displayUnitID) then
