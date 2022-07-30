@@ -2199,6 +2199,10 @@ function DrawChatButton(posY)
 end
 
 function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
+	-- limit to prevent going out of bounds when losing storage
+	energy = math.min(energy, energyStorage)
+	metal = math.min(metal, metalStorage)
+
     local paddingLeft = 2
     local paddingRight = 2
     local barWidth = m_resources.width - paddingLeft - paddingRight
