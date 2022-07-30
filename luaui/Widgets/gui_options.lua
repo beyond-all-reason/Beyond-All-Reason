@@ -40,7 +40,6 @@ local advSettings = false
 local initialized = false
 local pauseGameWhenSingleplayer = true
 
-local cameraTransitionTime = 0.18
 local cameraPanTransitionTime = 0.03
 
 local widgetOptionColor = '\255\160\160\160'
@@ -717,9 +716,9 @@ function widget:Update(dt)
 	--if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
 	--	Spring.SetCameraState(nil, 1)
 	--else
-		if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() and WG['setcamera_bugfix'] == true then
-			Spring.SetCameraState(nil, cameraTransitionTime)
-		end
+		-- if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() and WG['setcamera_bugfix'] == true then
+			-- Spring.SetCameraState(nil, cameraTransitionTime)
+		-- end
 	--end
 
 	-- check if there is water shown 	(we do this because basic water 0 saves perf when no water is rendered)
@@ -2454,11 +2453,12 @@ function init()
 		--	  end
 		--  end,
 		--},
-		{ id = "camerasmoothness", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.camerasmoothness, type = "slider", min = 0.04, max = 2, step = 0.01, value = cameraTransitionTime, description = texts.option.camerasmoothness_descr,
+		{ id = "camerasmoothness", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.camerasmoothness, type = "slider", min = 0.00, max = 2.0, step = 0.05, value = Spring.GetConfigFloat("CamTimeFactor", 0.25), description = texts.option.camerasmoothness_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  cameraTransitionTime = value
+			  Spring.SetConfigFloat("CamTimeFactor", value)
+			  Spring.SendCommands("camtimefactor " .. value) -- required because cam handler is not subscribing for this config change
 		  end,
 		},
 		{ id = "camerapanspeed", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.camerapanspeed, type = "slider", min = -0.01, max = -0.00195, step = 0.0001, value = Spring.GetConfigFloat("MiddleClickScrollSpeed", 0.0035), description = texts.option.camerapanspeed_descr,
@@ -4990,7 +4990,6 @@ function widget:Initialize()
 		end
 	end
 
-	Spring.SetConfigFloat("CamTimeFactor", 1)
 	Spring.SetConfigString("InputTextGeo", "0.35 0.72 0.03 0.04")    -- input chat position posX, posY, ?, ?
 
 	if Spring.GetGameFrame() == 0 then
@@ -5066,7 +5065,7 @@ function widget:Initialize()
 		end
 	end
 	WG['options'].getCameraSmoothness = function()
-		return cameraTransitionTime
+		return Spring.GetConfigFloat("CamTimeFactor", 0.25)
 	end
 	WG['options'].disallowEsc = function()
 		if showSelectOptions then
@@ -5178,7 +5177,6 @@ end
 function widget:GetConfigData()
 	return {
 		-- these could be re-implemented as custom springsetting configint/float
-		cameraTransitionTime = cameraTransitionTime,
 		cameraPanTransitionTime = cameraPanTransitionTime,
 		useNetworkSmoothing = useNetworkSmoothing,
 		desiredWaterValue = desiredWaterValue,			-- configint water cant be used since we will set water 0 when no water is present
@@ -5221,9 +5219,6 @@ function widget:SetConfigData(data)
 	end
 	if data.resettedTonemapDefault ~= nil then
 		resettedTonemapDefault = data.resettedTonemapDefault
-	end
-	if data.cameraTransitionTime ~= nil then
-		cameraTransitionTime = data.cameraTransitionTime
 	end
 	if data.cameraPanTransitionTime ~= nil then
 		cameraPanTransitionTime = data.cameraPanTransitionTime
