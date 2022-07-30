@@ -1195,7 +1195,7 @@ function GetSkill(playerID)
             end
 
             --show sigma
-            if tsSigma then
+            if tsSigma and type(tsSigma) == 'number' then
                 -- 0 is low sigma, 3 is high sigma
                 tsSigma = tonumber(tsSigma)
                 local tsRed, tsGreen, tsBlue
@@ -1208,7 +1208,7 @@ function GetSkill(playerID)
                 elseif tsSigma < 1 then
                     tsRed, tsGreen, tsBlue = 250, 250, 250
                 end
-                tskill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. tskill
+				tskill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. tskill
             else
                 tskill = priv .. "\255" .. string.char(195) .. string.char(195) .. string.char(195) .. tskill --should never happen
             end
