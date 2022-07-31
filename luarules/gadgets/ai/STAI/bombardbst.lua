@@ -99,7 +99,7 @@ end
 
 function BombardBST:IsBombardPosition(position, unitName) --example: there are more than bertha * 2 metal to bombard around?
 	local R = math.floor(self.ai.armyhst.unitTable[unitName].G_R / cellElmos)
-	local enemies = self:getCellsFields(position,{'ENEMY'},R,self.ai.targethst.ENEMIES)
+	local enemies = self.ai.maphst:getCellsFields(position,{'ENEMY'},R,self.ai.targethst.ENEMIES)
 	return self.ai.armyhst.unitTable[unitName].metalCost * 2 < enemies
 end
 

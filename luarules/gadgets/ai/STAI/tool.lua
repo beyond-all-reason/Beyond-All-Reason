@@ -109,6 +109,13 @@ function Tool:ManhattanDistance(pos1,pos2)
 	return dist
 end
 
+function Tool:sumPos(pos1, pos2)
+	pos1.x = pos1.x + pos2.x
+	pos1.y = pos1.y + pos2.y
+	pos1.z = pos1.z + pos2.z
+	return pos1
+end
+
 function Tool:MiddleOfTwo(pos1, pos2)
 	local middle = api.Position()
 	middle.x, middle.y, middle.z = (pos1.x+pos2.x)/2, (pos1.y+pos2.y)/2,(pos1.z+pos2.z)/2

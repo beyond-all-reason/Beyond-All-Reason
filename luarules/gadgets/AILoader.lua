@@ -351,6 +351,43 @@ else
 		end
 	end
 
+	function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+		local unit = Shard:shardify_unit(unitID)
+		if unit then
+			for _, thisAI in ipairs(Shard.AIs) do
+				thisAI:Prepare()
+				thisAI:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+			end
+		end
+	end
+	function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+		local unit = Shard:shardify_unit(unitID)
+		if unit then
+			for _, thisAI in ipairs(Shard.AIs) do
+				thisAI:Prepare()
+				thisAI:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+			end
+		end
+	end
+	function gadget:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+		local unit = Shard:shardify_unit(unitID)
+		if unit then
+			for _, thisAI in ipairs(Shard.AIs) do
+				thisAI:Prepare()
+				thisAI:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+			end
+		end
+	end
+	function gadget:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+		local unit = Shard:shardify_unit(unitID)
+		if unit then
+			for _, thisAI in ipairs(Shard.AIs) do
+				thisAI:Prepare()
+				thisAI:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+			end
+		end
+	end
+
 	function gadget:FeatureDestroyed(featureID)
 		Shard:unshardify_feature(featureID)
 	end

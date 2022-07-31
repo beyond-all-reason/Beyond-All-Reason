@@ -156,6 +156,11 @@ function ShardUnit:IsAlive()
 	end
 end
 
+function ShardUnit:GetLos(bitmask)
+	bitmask = bitmask or true
+	return Spring.GetUnitLosState(self.id ,self:GetUnitAllyTeam(),bitmask)
+end
+
 function ShardUnit:IsCloaked()
 	return self:Cloaked()
 end

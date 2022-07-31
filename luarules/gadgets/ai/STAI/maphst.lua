@@ -21,7 +21,7 @@ function MapHST:Init()
 		return
 	end
 	self:basicMapInfo()
-	self.topology = {}
+	self.topology = {air = {}}
 	self:createGrid()
 	self.METALS = map:GetMetalSpots()
 	self.GEOS = map:GetGeoSpots()
@@ -154,13 +154,13 @@ function MapHST:GetCell(X,Z,grid) --accept 1one position({t.x,t.y,t.z}) OR 2two 
 	return grid[X][Z]
 end
 
-function MapHST:getCellsFields(position,fields,range,grid) --return the required list of values of a cell/cells
-	if not fields or not position or type(fields) ~= 'table' then
-		self:Warn('incomplete or incorrect params for get cells params',fields,position, range)
+function MapHST:getCellsFields(p,fields,range,grid,caller) --return the required list of values of a cell/cells
+	if not fields or not p or type(fields) ~= 'table' then
+		self:Warn('incomplete or incorrect params for get cells params',p,fields,range,grid)
 		return
 	end
 	range = range or 0
-	local X, Z = self:PosToGrid(position)
+	local X, Z = self:PosToGrid(p)
 	local cells = self:areaCells(X,Z,range,grid)
 	local value = 0 --VALUE is a total count of all request fields
 	local subValues = {} --subValues is the sum of this fields of each asked cell
@@ -808,6 +808,9 @@ function MapHST:GetPathGraph(mtype, targetNodeSize)
 	local graph = {}
 	local id = 1
 	local myTopology = self.topology[mtype]
+	if mtype == 'air' then
+		myTopology = self.GRID --workaround to fix air
+	end
 	for cx = 1, self.gridSideX, cellsPerNodeSide do
 		local x = ((cx * self.gridSize) - self.gridSizeHalf) + self.gridSizeHalf
 		for cz = 1, self.gridSideZ, cellsPerNodeSide do

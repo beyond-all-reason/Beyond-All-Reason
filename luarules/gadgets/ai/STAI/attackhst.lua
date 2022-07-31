@@ -50,8 +50,8 @@ function AttackHST:Update()
 
 				value = 0
 				threat = 0
-				local cell = self.ai.targethst.ENEMIES[X][Z]
-				if cell  then
+				if self.ai.targethst.ENEMIES[X] and self.ai.targethst.ENEMIES[X][Z]  then
+					local cell = self.ai.targethst.ENEMIES[X][Z]
 					local value = cell.ENEMY
 					local threat = cell.armed
 				end
@@ -68,15 +68,6 @@ function AttackHST:Update()
 	for index, squad in pairs(self.squads) do
 		self:SquadPathfind(squad, index)
 	end
--- 	if not self.squads or #self.squads < 1 then--TEST how to a squad is deleted during update?
--- 		return
--- 	end
--- 	local index = (self.lastSquadPathfind or 0) + 1
--- 	if index > #self.squads then index = 1 end
--- 	local squad = self.squads[index]
--- 	self:EchoDebug(index,self.squads[index],#self.squads)
--- 	self:SquadPathfind(squad, index)
--- 	self.lastSquadPathfind = index
 end
 
 function AttackHST:DraftSquads()
@@ -610,10 +601,11 @@ function AttackHST:RemoveRecruit(attkbhvr)
 end
 
 function AttackHST:visualDBG(squad)
-	if not self.visualdbg  then
+	self.map:EraseAll(6)
+	if not self.ai.drawDebug then
 		return
 	end
-	self.map:EraseAll(6) --we reset in raidhst
+
 	for i,member in pairs(squad.members) do
 		member.unit:Internal():EraseHighlight(nil, nil, 6 )
 		member.unit:Internal():DrawHighlight(squad.colour ,nil , 6 )

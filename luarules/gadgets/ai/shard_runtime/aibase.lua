@@ -66,6 +66,18 @@ end
 function AIBase:UnitDamaged(engineunit,enginedamage)
 end
 
+function AIBase:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+end
+
+function AIBase:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+end
+
+function AIBase:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+end
+
+function AIBase:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+end
+
 function AIBase:UnitMoveFailed(engineunit)
 end
 

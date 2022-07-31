@@ -30,6 +30,11 @@ local game = {}
 		return Shard:shardify_unittype(def.id)
 	end
 
+	function game:GetUnitLos(id,bitmask)
+		bitmask = bitmask or true
+		return Spring.GetUnitLosState(id ,self.ai.allyId,bitmask)
+
+	end
 
 	function game:ConfigFolderPath() -- returns string with path to the folder
 		return "luarules/gadgets/ai/" .. self:GameName() .. "/"

@@ -38,7 +38,7 @@ function RaidHST:Update()
 			if self:squadOnTarget(squad) then
 				self:doAttack(squad)
 				self:EchoDebug('squad on target')
-				self:targeting(squad,'nearest')
+				--self:targeting(squad,'nearest')
 			else
 				self:EchoDebug('next node')
 				self:goToNextNode(squad)
@@ -56,7 +56,10 @@ function RaidHST:Update()
 end
 
 function RaidHST:running(squad)
-	if #squad.members > 0 and squad.path and squad.target then
+	if squad.target and squad.onTarget then
+		squad.lock = true
+		return true
+	elseif #squad.members > 0 and squad.path and squad.target then
 		squad.lock = true
 		return true
 	elseif #squad.members >= minRaidCount then
@@ -106,16 +109,16 @@ function RaidHST:targeting(squad,targetType)
 		self:EchoDebug('have already a target')
 		return
 	end
-	if squad.target == true then
+	if squad.onTarget == true then
 		self:EchoDebug('we are in attack')
 		return
 	end
 	local target = nil
-	if targetType == 'nearest' then
-		target = self:getRaidCell1(squad)
-	else
+-- 	if targetType == 'nearest' then
+-- 		target = self:getRaidCell1(squad)
+-- 	else
 		target = self.getRaidCell3(squad) or self:getRaidCell2(squad)
-	end
+-- 	end
 	if not target then
 		self:EchoDebug('no target for ' ,squad.squadID)
 		return
@@ -210,8 +213,6 @@ function RaidHST:FindPath(squad)
  		self:EchoDebug('no pathfinder??')
  		return
  	end
-
-
  	local path, remaining, maxInvalid = squad.pathfinder:Find(10)
  	self:EchoDebug(tostring(remaining) .. " remaining to find path",path,maxInvalid)
  	if path then
@@ -350,6 +351,18 @@ end
 function RaidHST:doAttack(squad)
 	self:EchoDebug('do attack')
 	local vulnerable =  self:nearestEnemy(squad) --self:nearbyVulnerable(squad.members) or
+	if vulnerable then
+		for index,id in pairs(squad.members) do
+			local unit = self.game:GetUnitByID(id)
+			local rx = math.random(-100,100)
+			local rz = math.random(-100,100)
+			vpos = squad.target.POS
+			unit:AttackMove({x=vpos.x+rx,y= Spring.GetGroundHeight(vpos.x+rx,vpos.z+rz),z=vpos.z+rz})
+		end
+	else
+		self:resetSquad(squad)
+	end
+	--[[
 	for index,id in pairs(squad.members) do
 		local unit = self.game:GetUnitByID(id)
 		local rx = math.random(-50,50)
@@ -358,6 +371,7 @@ function RaidHST:doAttack(squad)
 			self:EchoDebug('nearby vulnerable',vulnerable)
 			local vpos = vulnerable.position
 			unit:AttackMove({x=vpos.x+rx,y= Spring.GetGroundHeight(vpos.x+rx,vpos.z+rz),z=vpos.z+rz})
+
 		elseif squad.target then
 			self:EchoDebug('random attack')
 			unit:AttackMove({x=squad.target.POS.x+rx,y= Spring.GetGroundHeight(squad.target.POS.x+rx,squad.target.POS.z+rz),z=squad.target.POS.z+rz})
@@ -366,17 +380,18 @@ function RaidHST:doAttack(squad)
 			self:resetSquad(squad)
 		end
 	end
+	]]
 end
 
-function RaidHST:nearbyVulnerable(members)
-	for index,id in pairs(members) do
-		local unit = self.game:GetUnitByID(id)
-		local vulnerable = self.ai.targethst:NearbyVulnerable(unit:GetPosition())
-		if vulnerable then
-			return vulnerable
-		end
-	end
-end
+-- function RaidHST:nearbyVulnerable(members)
+-- 	for index,id in pairs(members) do
+-- 		local unit = self.game:GetUnitByID(id)
+-- 		local vulnerable = self.ai.targethst:NearbyVulnerable(unit:GetPosition())
+-- 		if vulnerable then
+-- 			return vulnerable
+-- 		end
+-- 	end
+-- end
 
 function RaidHST:Roam(squad)
 	for index,unitID in pairs(squad.members) do
@@ -409,18 +424,8 @@ end
 
 function RaidHST:nearestEnemy(squad) --TEST control this function can give false
 	local members = squad.members
-	for _,id in pairs(members) do
-
-		local enemy = Spring.GetUnitNearestEnemy(id,self.ai.armyhst.unitTable[squad.unitName].losRadius,true)
-		if enemy then
-			enemy = self.game:GetUnitByID(enemy)
-			if enemy:IsAlive() and Spring.GetGaiaTeamID() ~= enemy:isNeutral() then
-				self.map:DrawPoint(enemy:GetPosition(),{1,1,1,1},nil,6)
-				return enemy:GetPosition()
-
-			end
-		end
-	end
+	local ene =  self.ai.maphst:getCellsFields(squad.target.POS,{'ENEMY'},1,self.ai.targethst.ENEMIES) > 0
+	return ene
 end
 
 function RaidHST:GetPathValidFunc(unitName)
@@ -435,8 +440,9 @@ function RaidHST:GetPathValidFunc(unitName)
 end
 
 function RaidHST:visualDBG(squad)
-	if not self.visualdbg then return end
-	self.map:EraseAll(6)
+	if not self.ai.drawDebug then
+		return
+	end
 	if squad.position then
 		self.map:DrawPoint(squad.position, squad.colour, squad.squadID, 6)
 	end

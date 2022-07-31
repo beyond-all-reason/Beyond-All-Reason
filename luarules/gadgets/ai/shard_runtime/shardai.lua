@@ -181,6 +181,66 @@ function ShardAI:UnitDamaged(engineunit,engineattacker,enginedamage)
 	end
 end
 
+function ShardAI:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	if self.gameend == true then
+		return
+	end
+	if unitID == nil then
+		return
+	end
+	-- self.game:SendToConsole("UnitDamage for " .. enginedamage:Damage())
+	for i,m in ipairs(self.modules) do
+		--self.game:StartTimer(m:Name() .. ' G')
+		m:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+		--self.game:StopTimer(m:Name() .. ' G')
+	end
+end
+
+function ShardAI:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+	if self.gameend == true then
+		return
+	end
+	if unitID == nil then
+		return
+	end
+	-- self.game:SendToConsole("UnitDamage for " .. enginedamage:Damage())
+	for i,m in ipairs(self.modules) do
+		--self.game:StartTimer(m:Name() .. ' G')
+		m:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+		--self.game:StopTimer(m:Name() .. ' G')
+	end
+end
+
+function ShardAI:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+	if self.gameend == true then
+		return
+	end
+	if unitID == nil then
+		return
+	end
+	-- self.game:SendToConsole("UnitDamage for " .. enginedamage:Damage())
+	for i,m in ipairs(self.modules) do
+		--self.game:StartTimer(m:Name() .. ' G')
+		m:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+		--self.game:StopTimer(m:Name() .. ' G')
+	end
+end
+
+function ShardAI:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+	if self.gameend == true then
+		return
+	end
+	if unitID == nil then
+		return
+	end
+	-- self.game:SendToConsole("UnitDamage for " .. enginedamage:Damage())
+	for i,m in ipairs(self.modules) do
+		--self.game:StartTimer(m:Name() .. ' G')
+		m:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+		--self.game:StopTimer(m:Name() .. ' G')
+	end
+end
+
 function ShardAI:UnitMoveFailed(engineunit)
 	if self.gameend == true then
 		return

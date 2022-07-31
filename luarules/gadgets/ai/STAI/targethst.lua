@@ -300,7 +300,7 @@ function TargetHST:ResetCell(X,Z)--GAS are 3 layer. Unit of measure is usually m
 	local CELL = {}
 	CELL.X = X
 	CELL.Z = Z
-	CELL.POS = self.ai.maphst:GridToPos(X,Z)
+	CELL.POS = self.ai.maphst.GRID[X][Z].POS --self.ai.maphst:GridToPos(X,Z)
 	CELL.units = {}--hold all the units
 	CELL.base = nil --hold the factotory
 	CELL.buildings = {} --hold the buildings
