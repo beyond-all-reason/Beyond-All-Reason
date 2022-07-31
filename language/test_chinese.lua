@@ -1964,9 +1964,9 @@ return {
 				scavengerdroppodbeacon = "拾荒者的呼唤",
 				scavengerdroppodfriendly = "Spawning droppod for reinforments",
 				scavfort = "防御围墙",
-				scavmist = "Light Scavenger Mist",
-				scavmistxl = "Heavy Scavenger Mist",
-				scavmistxxl = "Super Heavy Scavenger Mist",
+				scavmist = "薄拾荒者雾",
+				scavmistxl = "厚拾荒者雾",
+				scavmistxxl = "超级厚拾荒者雾",
 				scavsafeareabeacon = "有毒云雾发生器",
 				scavtacnukespawner = "\0", --ASCII NULL character, empty string crashes i18n
 				ve_chickenq = "所有外星大虾的妈!",
