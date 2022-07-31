@@ -255,6 +255,7 @@ local metalPlayer    -- player to share metal with(nil when no metal sharing)
 local shareAmount = 0      -- amount of metal/energy to share/ask
 local maxShareAmount    -- max amount of metal/energy to share/ask
 local sliderPosition = 0      -- slider position in metal and energy sharing
+local shareSliderHeight = 80
 local sliderOrigin   -- position of the cursor before dragging the widget
 
 local firstclick = 0
@@ -1195,23 +1196,21 @@ function GetSkill(playerID)
             end
 
             --show sigma
+			local tsRed, tsGreen, tsBlue = 195, 195, 195
             if tsSigma and type(tsSigma) == 'number' then
                 -- 0 is low sigma, 3 is high sigma
                 tsSigma = tonumber(tsSigma)
-                local tsRed, tsGreen, tsBlue
-                if tsSigma > 2 then
-                    tsRed, tsGreen, tsBlue = 190, 130, 130
-                elseif tsSigma == 2 then
-                    tsRed, tsGreen, tsBlue = 140, 140, 140
-                elseif tsSigma == 1 then
-                    tsRed, tsGreen, tsBlue = 195, 195, 195
-                elseif tsSigma < 1 then
-                    tsRed, tsGreen, tsBlue = 250, 250, 250
-                end
-				tskill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. tskill
-            else
-                tskill = priv .. "\255" .. string.char(195) .. string.char(195) .. string.char(195) .. tskill --should never happen
+				if tsSigma > 2 then
+					tsRed, tsGreen, tsBlue = 190, 130, 130
+				elseif tsSigma == 2 then
+					tsRed, tsGreen, tsBlue = 140, 140, 140
+				elseif tsSigma == 1 then
+					tsRed, tsGreen, tsBlue = 195, 195, 195
+				elseif tsSigma < 1 then
+					tsRed, tsGreen, tsBlue = 250, 250, 250
+				end
             end
+			tskill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. tskill
         end
     else
         tskill = "\255" .. string.char(160) .. string.char(160) .. string.char(160) .. "?"
@@ -1818,18 +1817,18 @@ end
 ---------------------------------------------------------------------------------------------------
 --  Main (player) gllist
 ---------------------------------------------------------------------------------------------------
-
+---
 function UpdateResources()
 	if sliderPosition then
 		if energyPlayer ~= nil then
 			if energyPlayer.team == myTeamID then
 				local current, storage = Spring_GetTeamResources(myTeamID, "energy")
 				maxShareAmount = storage - current
-				shareAmount = maxShareAmount * sliderPosition / 39
+				shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
 				shareAmount = shareAmount - (shareAmount % 1)
 			else
 				maxShareAmount = Spring_GetTeamResources(myTeamID, "energy")
-				shareAmount = maxShareAmount * sliderPosition / 39
+				shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
 				shareAmount = shareAmount - (shareAmount % 1)
 			end
 		end
@@ -1838,11 +1837,11 @@ function UpdateResources()
 			if metalPlayer.team == myTeamID then
 				local current, storage = Spring_GetTeamResources(myTeamID, "metal")
 				maxShareAmount = storage - current
-				shareAmount = maxShareAmount * sliderPosition / 39
+				shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
 				shareAmount = shareAmount - (shareAmount % 1)
 			else
 				maxShareAmount = Spring_GetTeamResources(myTeamID, "metal")
-				shareAmount = maxShareAmount * sliderPosition / 39
+				shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
 				shareAmount = shareAmount - (shareAmount % 1)
 			end
 		end
@@ -2740,34 +2739,34 @@ function CreateShareSlider()
 			if energyPlayer ~= nil then
 				posY = widgetPosY + widgetHeight - energyPlayer.posY
 				gl_Texture(pics["barPic"])
-				DrawRect(m_share.posX + widgetPosX + 16, posY - 3, m_share.posX + widgetPosX + 34, posY + 58)
+				DrawRect(m_share.posX + widgetPosX + 16, posY - 3, m_share.posX + widgetPosX + 34, posY + shareSliderHeight + 18)
 				gl_Texture(pics["energyPic"])
 				DrawRect(m_share.posX + widgetPosX + 17, posY + sliderPosition, m_share.posX + widgetPosX + 33, posY + 16 + sliderPosition)
 				gl_Texture(pics["amountPic"])
 				if right then
 					DrawRect(m_share.posX + widgetPosX - 28, posY - 1 + sliderPosition, m_share.posX + widgetPosX + 19, posY + 17 + sliderPosition)
 					gl_Texture(false)
-					font:Print(shareAmount, m_share.posX + widgetPosX - 5, posY + 3 + sliderPosition, 14, "on")
+					font:Print(shareAmount, m_share.posX + widgetPosX - 5, posY + 3 + sliderPosition, 14, "ocn")
 				else
 					DrawRect(m_share.posX + widgetPosX + 76, posY - 1 + sliderPosition, m_share.posX + widgetPosX + 31, posY + 17 + sliderPosition)
 					gl_Texture(false)
-					font:Print(shareAmount, m_share.posX + widgetPosX + 55, posY + 3 + sliderPosition, 14, "on")
+					font:Print(shareAmount, m_share.posX + widgetPosX + 55, posY + 3 + sliderPosition, 14, "ocn")
 				end
 			elseif metalPlayer ~= nil then
 				posY = widgetPosY + widgetHeight - metalPlayer.posY
 				gl_Texture(pics["barPic"])
-				DrawRect(m_share.posX + widgetPosX + 32, posY - 3, m_share.posX + widgetPosX + 50, posY + 58)
+				DrawRect(m_share.posX + widgetPosX + 32, posY - 3, m_share.posX + widgetPosX + 50, posY + shareSliderHeight + 18)
 				gl_Texture(pics["metalPic"])
 				DrawRect(m_share.posX + widgetPosX + 33, posY + sliderPosition, m_share.posX + widgetPosX + 49, posY + 16 + sliderPosition)
 				gl_Texture(pics["amountPic"])
 				if right then
 					DrawRect(m_share.posX + widgetPosX - 12, posY - 1 + sliderPosition, m_share.posX + widgetPosX + 35, posY + 17 + sliderPosition)
 					gl_Texture(false)
-					font:Print(shareAmount, m_share.posX + widgetPosX + 11, posY + 3 + sliderPosition, 14, "on")
+					font:Print(shareAmount, m_share.posX + widgetPosX + 11, posY + 3 + sliderPosition, 14, "ocn")
 				else
 					DrawRect(m_share.posX + widgetPosX + 88, posY - 1 + sliderPosition, m_share.posX + widgetPosX + 47, posY + 17 + sliderPosition)
 					gl_Texture(false)
-					font:Print(shareAmount, m_share.posX + widgetPosX + 71, posY + 3 + sliderPosition, 14, "on")
+					font:Print(shareAmount, m_share.posX + widgetPosX + 71, posY + 3 + sliderPosition, 14, "ocn")
 				end
 			end
 			font:End()
@@ -3011,8 +3010,8 @@ function widget:MouseMove(x, y, dx, dy, button)
         if sliderPosition < 0 then
             sliderPosition = 0
         end
-        if sliderPosition > 39 then
-            sliderPosition = 39
+        if sliderPosition > shareSliderHeight then
+            sliderPosition = shareSliderHeight
         end
         local prevAmountEM = shareAmount
         UpdateResources()

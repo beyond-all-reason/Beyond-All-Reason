@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc	= "Plays music and offers volume controls",
 		author	= "Damgam",
 		date	= "2021",
-		layer	= -4,
+		layer	= -3,
 		enabled	= true
 	}
 end
@@ -72,7 +72,7 @@ local function ReloadMusicPlaylists()
 	local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', '*.ogg')
 
 	-----------------------------------SETTINGS---------------------------------------
-	
+
 	interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
 	silenceTimerEnabled 			= Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
 	local newSoundtrackEnabled 		= Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
@@ -158,19 +158,19 @@ local function ReloadMusicPlaylists()
 	else
 		peaceTracksPlayCounter = 1
 	end
-	
+
 	if #warhighTracks > 1 then
 		warhighTracksPlayCounter = math.random(#warhighTracks)
 	else
 		warhighTracksPlayCounter = 1
 	end
-	
+
 	if #warlowTracks > 1 then
 		warlowTracksPlayCounter = math.random(#warlowTracks)
 	else
 		warlowTracksPlayCounter = 1
 	end
-	
+
 	if #gameoverTracks > 1 then
 		gameoverTracksPlayCounter = math.random(#gameoverTracks)
 	else
@@ -695,7 +695,7 @@ function PlayNewTrack(paused)
 	silenceTimer = 0
 	appliedSilence = false
 	warMeter = warMeter * 0.75
-	
+
 	if (not gameOver) and Spring.GetGameFrame() > 1 then
 		fadeLevel = 0
 		fadeDirection = 1
@@ -801,7 +801,7 @@ function widget:GameFrame(n)
 		if not appliedSpectatorThresholds and Spring.GetSpectatingState() == true then
 			applySpectatorThresholds()
 		end
-		
+
 		local musicVolume = getMusicVolume()
 		if musicVolume > 0 then
 			playing = true
@@ -828,7 +828,7 @@ function widget:GameFrame(n)
 					elseif (currentTrackListString == "intro" and n > 30)
 					or ((currentTrackListString == "peace" and warMeter > warHighLevel * 0.8) and interruptionEnabled) -- Peace in battle times, let's play some WarLow music at 80% of WarHigh threshold
 					or ((currentTrackListString == "warLow" and warMeter > warHighLevel * 3) and interruptionEnabled) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at tripple of WarHigh threshold
-					or (( (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.2 ) and interruptionEnabled) then -- War music is playing, but it has been quite peaceful recently. Let's switch to peace music at 20% of WarLow threshold 
+					or (( (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.2 ) and interruptionEnabled) then -- War music is playing, but it has been quite peaceful recently. Let's switch to peace music at 20% of WarLow threshold
 						fadeDirection = -1
 						fadeOutSkipTrack = true
 					end
