@@ -854,7 +854,7 @@ return {
 				armap = "飞行器工厂",
 				armapt3 = "3级飞行器工厂",
 				armarad = "2级雷达",
-				armart = "Shellshocker",
+				armart = "寡妇制造者",
 				armaser = "走私者",
 				armason = "2级声纳",
 				armasp = "飞行器维修平台",
@@ -1943,7 +1943,7 @@ return {
 				lootboxplatinum = "铂金级资源生成器-捕获和运输",
 				lootboxsilver = "白银级资源生成器-捕获和运输",
 				lootdroppod_gold = "在你的战斗中掉落战利品",
-				lootdroppod_printer = "在你的战斗中掉落PRINTER",
+				lootdroppod_printer = "在你的战斗中掉落印刷器",
 				meteor = "从天而降砸死你",
 				mission_command_tower = "\0", -- ASCII NULL character, empty string crashes i18n
 				n_chickenq = "所有外星大虾的妈! ",
@@ -1962,7 +1962,7 @@ return {
 				scavempspawner = "生成一个新的核弹",
 				scavengerdroppod = "\0", --ASCII NULL character, empty string crashes i18n
 				scavengerdroppodbeacon = "拾荒者的呼唤",
-				scavengerdroppodfriendly = "Spawning droppod for reinforments",
+				scavengerdroppodfriendly = "生成增援空投",
 				scavfort = "防御围墙",
 				scavmist = "薄拾荒者雾",
 				scavmistxl = "厚拾荒者雾",
@@ -1977,7 +1977,7 @@ return {
 				corassistdrone = "便携式建造无人机",
 			},
 			longDescriptions = {
-				armart = "Shellshocker是一种自行火炮, 用于攻克T1防御设施, 特别是重型激光炮塔。它可以超越所有的T1防御塔, 除了沿海防御的等离子炮台。它的抛物线等离子炮弹在近距离战斗中显然效果不佳。 始终让它们受到 Stumpies/Flashes 的保护，或者你自己的防御设施。不要忘了让目标在你的雷达范围内或被侦察到。",
+				armart = "寡妇制造者是一种自行火炮, 用于攻克T1防御设施, 特别是重型激光炮塔。它可以超越所有的T1防御塔, 除了沿海防御的等离子炮台。它的抛物线等离子炮弹在近距离战斗中显然效果不佳。 始终让它们受到 Stumpies/Flashes 的保护，或者你自己的防御设施。不要忘了让目标在你的雷达范围内或被侦察到。",
 				armatlas = "阿特拉斯是一个空降运输单位。它可以接载所有的T1陆基单位和T2单位，但重型单位除外，如肥仔或歌利亚。用它来绕过敌人的防线进行意外的单位投放，但别忘了先侦察一下是否有防空单位。把你的指挥官扔到他们的基地里，让他们的所有结构都被炸毁，让你的对手感到羞辱。也可用于运输纳米塔，这使你能够将你的建设力量转移到你目前需要的地方。",
 				armbeaver = "Beaver is an amphibious construction vehicle, which can travel on land and underwater equally well allowing easy expansion between islands, under rivers and across seas. Its build menu includes some water based units like underwater metal extractors, 浪涌发电机s and most importantly the amphibious complex, a lab that includes T2 amphibious tanks and Bots. As all amphibious units it can easily cross stepper hills unlike regular vehicles. It can be destroyed by torpedoes so avoid submarines, launchers and destroyers. It is wise to use pairs of cons for expansion, so they can heal each other and build defensive structures faster. This makes them immune to light assault units like fleas/jeffys.",
 				armca = "A Construction Aircraft is able to build basic T1 structures like the ones made by the Commander. Moreover it can build some more advanced land and air defense towers, advanced solar generators and most importantly the T2 Aircraft Plant. Due to their speed, the highest amongst constructors, it may be used for quick expansions and reclaiming in areas far from your base. It can also access the whole map, as it doesn't care about any natural obstacles. It has a very low HP, so keep away from enemy's anti air units. Due to little build power you may want to use multiple air cons at once. Each Construction Aircraft increases the player's energy and metal storage capacity by 25.",
