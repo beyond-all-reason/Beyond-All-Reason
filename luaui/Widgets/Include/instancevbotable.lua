@@ -36,12 +36,51 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		debugZombies 		= true,  -- this is new, and its for debugging non-existing stuff on unitdestroyed
 	}
 
+
 	if unitIDattribID ~= nil then
 		instanceTable.indextoUnitID = {}
 		instanceTable.unitIDattribID = unitIDattribID
 		instanceTable.popUnitIDFailuresInGameFrame = {}
 	end
 	
+	function instanceTable:clearInstanceTable() 
+		-- this wont resize it, but quickly sets it to empty
+		self.usedElements = 0
+		self.instanceIDtoIndex = {}
+		self.indextoInstanceID = {}
+		if self.indextoUnitID then self.indextoUnitID = {} end
+	end
+
+	function instanceTable:makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a vertex buffer to an instance buffer, and optionally, an index buffer if one is supplied.
+		-- There is a special case for this, when we are using a vertexVBO as a quasi-instanceVBO, e.g. when we are using the geometry shader to draw a vertex as each instance. 
+		--iT.vertexVBO = vertexVBO
+		--iT.indexVBO = indexVBO
+		local newVAO = nil 
+		newVAO = gl.GetVAO()
+		if newVAO == nil then goodbye("Failed to create newVAO") end
+		self.VAO = newVAO
+		if vertexVBO == nil then -- the special case where are using 'vertices' as 'instances'
+			newVAO:AttachVertexBuffer(instanceVBO)
+		else
+			newVAO:AttachVertexBuffer(vertexVBO)
+			newVAO:AttachInstanceBuffer(instanceVBO)
+			self.vertexVBO = vertexVBO
+			self.instanceVBO = instanceVBO
+		end
+		if indexVBO then
+			newVAO:AttachIndexBuffer(indexVBO)     
+			self.indexVBO = indexVBO
+			function self:Draw()
+				self.VAO:DrawElements(GL.TRIANGLES, nil, 0, self.usedElements, 0)
+			end
+		else
+			function self:Draw()
+				self.VAO:DrawArrays(GL.TRIANGLES, nil, 0, self.usedElements, 0)
+			end
+		end
+		return newVAO
+	end
+
 	newInstanceVBO:Upload(instanceData)
 	return instanceTable
 end
@@ -70,6 +109,9 @@ function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a vertex b
 	if indexVBO then
 		newVAO:AttachIndexBuffer(indexVBO)     
 	end
+	-- this allows us to set up our sane 
+
+
 	return newVAO
 end
 
