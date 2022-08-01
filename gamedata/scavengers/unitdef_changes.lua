@@ -94,6 +94,9 @@ customDefs.corcom = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
+
+	objectname = "Units/CORCOM.s3o",
+	script = "Units/CORCOM.cob",
 	--workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',
@@ -141,6 +144,9 @@ customDefs.corcomcon = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
+
+	objectname = "Units/ARMCOM.s3o",
+	script = "Units/ARMCOM_lus.lua",
 	--workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',
