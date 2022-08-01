@@ -168,6 +168,8 @@ widget:ViewResize()
 	--noupload pass
 	--reload shaderconfig
 	--cursorlight
+	--light types should know their vbo?
+		-- this one is much harder than expected
 
 local shaderConfig = {
 	MIERAYLEIGHRATIO = 0.1,
@@ -608,7 +610,7 @@ local function AddConeLight(instanceID, unitID, pieceIndex, targetVBO, px_or_tab
 		autoLightInstanceID = autoLightInstanceID + 1 
 		instanceID = autoLightInstanceID
 	end
-	
+	local noUpload
 	local lightparams
 	if type(px_or_table) ~= "table" then 
 		lightparams = lightCacheTable
@@ -643,11 +645,12 @@ local function AddConeLight(instanceID, unitID, pieceIndex, targetVBO, px_or_tab
 	else
 		lightparams = px_or_table
 		lightparams[spawnFramePos] = gameFrame
+		noUpload = py
 	end
 	
 	if targetVBO == nil then targetVBO = coneLightVBO end 
 	if unitID then targetVBO = unitConeLightVBO end
-	instanceID = pushElementInstance(targetVBO, lightparams, instanceID, true, nil, unitID)
+	instanceID = pushElementInstance(targetVBO, lightparams, instanceID, true, noUpload, unitID)
 	calcLightExpiry(targetVBO, lightparams, instanceID) -- This will add lights that have >0 lifetime to the removal queue
 	return instanceID
 end
@@ -739,7 +742,20 @@ end
 ---@param instanceID any the ID of the light to remove
 ---@param unitID number make this non-nil to remove it from a unit
 ---@returns the same instanceID on success, nil if the light was not found
-local function RemoveLight(lightshape, instanceID, unitID)
+local function RemoveLight(lightshape, instanceID, unitID, noUplooad)
+	if lightshape == 'point' then 
+		if unitID then return popElementInstance(unitPointLightVBO, instanceID) 
+		else return popElementInstance(pointLightVBO, instanceID) end
+	elseif lightshape =='beam' then 
+		if unitID then return popElementInstance(unitBeamLightVBO, instanceID) 
+		else return popElementInstance(beamLightVBO, instanceID) end
+	elseif lightshape =='cone' then 
+		if unitID then return popElementInstance(unitConeLightVBO, instanceID) 
+		else return popElementInstance(coneLightVBO, instanceID) end
+	else return nil end
+end
+
+local function RemoveProjectileLight(lightshape, instanceID, unitID, noUplooad)
 	if lightshape == 'point' then 
 		if unitID then return popElementInstance(unitPointLightVBO, instanceID) 
 		else return popElementInstance(pointLightVBO, instanceID) end
@@ -1060,6 +1076,7 @@ local updateCount = 0
 local trackedprojectiles = {}
 local lastgf = -2
 local removalqueue = {}
+
 local testprojlighttable = {0,16,0,420, --pos + radius
 								1,1,1, 15, -- color2
 								-1,1,1,1, -- RGBA
@@ -1152,6 +1169,12 @@ end
 	]]--
 --end
 
+local chobbyInterface = false
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+	end
+end
 
 function widget:DrawWorld() -- We are drawing in world space, probably a bad idea but hey
 	--glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
@@ -1222,7 +1245,20 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 			coneLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, coneLightVBO.usedElements, 0)
 		end
 		
-		
+		-- Projectile lights
+		if projectilePointLightVBO.usedElements > 0 then
+			deferredLightShader:SetUniformFloat("pointbeamcone", 0)
+			projectilePointLightVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, projectilePointLightVBO.usedElements, 0)
+		end
+		if projectileBeamLightVBO.usedElements > 0 then
+			deferredLightShader:SetUniformFloat("pointbeamcone", 1)
+			projectileBeamLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, projectileBeamLightVBO.usedElements, 0)
+		end
+		if projectileConeLightVBO.usedElements > 0 then
+			deferredLightShader:SetUniformFloat("pointbeamcone", 2)
+			projectileConeLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, projectileConeLightVBO.usedElements, 0)
+		end
+
 		
 		-- Unit Attached Lights
 		deferredLightShader:SetUniformFloat("attachedtounitID", 1)		
@@ -1241,7 +1277,16 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 			deferredLightShader:SetUniformFloat("pointbeamcone", 2)
 			unitConeLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, unitConeLightVBO.usedElements, 0)
 		end
+
+		-- World space cursor lights 
+		deferredLightShader:SetUniformFloat("attachedtounitID", 0)		
 	
+		if not Spring.IsGUIHidden() and not chobbyInterface then
+			if cursorPointLightVBO.usedElements > 0 then
+				deferredLightShader:SetUniformFloat("pointbeamcone", 0)
+				cursorPointLightVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, cursorPointLightVBO.usedElements, 0)
+			end
+		end 
 		
 		deferredLightShader:Deactivate()
 		
