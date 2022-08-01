@@ -26,7 +26,7 @@ Create()
 	hide flare2;
 	hide flare3;
 	hide wake1;
-	gun_1 = flare1;
+	gun_1 = 1;
 	restore_delay = 3000;
 	return (0);
 }
@@ -98,7 +98,7 @@ FirePrimary()
 	++gun_1;
 	if( gun_1 == 4 )
 	{
-		gun_1 = flare1;
+		gun_1 = 1;
 	}
 	return (0);
 }
