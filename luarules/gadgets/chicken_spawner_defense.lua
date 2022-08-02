@@ -1109,6 +1109,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitTeam == chickenTeamID or chickenDefTypes[unitDefID] then
+			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{3},0)
 			if unitDefID == OVERSEER_ID then
 				overseers[unitID] = true
 			end
