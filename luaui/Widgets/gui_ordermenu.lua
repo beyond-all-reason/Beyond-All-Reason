@@ -90,7 +90,7 @@ local hiddenCommands = {
 	[CMD.SQUADWAIT] = true,
 	[CMD.DEATHWAIT] = true,
 	[CMD.TIMEWAIT] = true,
-	[39812] = true, --raw move
+	[39812] = true, -- raw move
 	[34922] = true, -- set unit target
 }
 
@@ -425,6 +425,7 @@ function DrawRect(px, py, sx, sy, zoom)
 	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
 end
 
+
 local function drawCell(cell, zoom)
 	if not zoom then
 		zoom = 1
@@ -513,8 +514,11 @@ local function drawCell(cell, zoom)
 			if isStateCommand[cmd.id] then
 				local currentStateIndex = cmd.params[1]
 				local commandState = cmd.params[currentStateIndex + stateOffset]
-
-				text = Spring.I18N('ui.orderMenu.' .. commandState)
+				if commandState then
+					text = Spring.I18N('ui.orderMenu.' .. commandState)
+				else
+					text = '?'
+				end
 			else
 				if cmd.action == 'stockpile' then
 					-- Stockpile command name gets mutated to reflect the current status, so can just pass it in
