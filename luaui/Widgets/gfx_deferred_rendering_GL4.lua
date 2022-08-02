@@ -170,6 +170,8 @@ widget:ViewResize()
 	--cursorlight
 	--light types should know their vbo?
 		-- this one is much harder than expected
+	-- initialize config dicts
+	-- unitdefidpiecemapcache
 
 local shaderConfig = {
 	MIERAYLEIGHRATIO = 0.1,
@@ -673,16 +675,45 @@ end
 
 -- multiple lights per unitdef/piece are possible, as the lights are keyed by lightname
 
+local unitDefPieceMapCache = {} -- maps unitDefID to piecemap
+
+local examplePointLight = {
+	lighttype = 'point', 
+	pieceName = nil,
+	posx = 0, posy = 0, posz = 0, radius = 0, 
+	r = 1, g = 1, b = 1, a = 1, 
+	color2r = 1, color2g = 1, color2b = 1, colortime = 15, -- point lights only, colortime specifies transition time in seconds for unit-attached lights, and transition period 
+	dirx = 0, diry = 0, dirz = 1, theta = 0.5,  -- cone lights only, specify direction and half-angle in radians
+	pos2x = 100, pos2y = 100, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
+	modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
+	lifetime = 0, 
+	sustain = 1, 
+	aninmtype = 0 -- unused
+}
+
 local function InitializeLight(lightTable, unitID)
 	if lightTable.initComplete ~= true then  -- late init
-		local pieceMap = Spring.GetUnitPieceMap(unitID)
-		for lightname, lightParams in pairs(lightTable) do
-			if pieceMap[lightParams.pieceName] then -- if its not a real piece, it will default to the model!
-				lightParams.pieceIndex = pieceMap[lightParams.pieceName] 
-				lightParams.lightParamTable[pieceIndexPos] = lightParams.pieceIndex
+		-- do the table to flattable conversion
+		lightParams.lightParamTable = 
+		
+		
+		if unitID then 
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			if unitDefID and not unitDefPieceMapCache[unitDefID] then 
+				unitDefPieceMapCache[unitDefID] = Spring.GetUnitPieceMap(unitID)
 			end
-			--Spring.Echo(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
+			local pieceMap = unitDefPieceMapCache[unitDefID]
+			for lightname, lightParams in pairs(lightTable) do
+				if pieceMap[lightParams.pieceName] then -- if its not a real piece, it will default to the model!
+					lightParams.pieceIndex = pieceMap[lightParams.pieceName] 
+					lightParams.lightParamTable[pieceIndexPos] = lightParams.pieceIndex
+				end
+				--Spring.Echo(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
+			end
 		end
+		
+		
+		
 		lightTable.initComplete = true
 	end
 end
@@ -1140,34 +1171,6 @@ function widget:Update()
 	]]--
 end
 
--- adding a glow to Cannon projectiles
---function widget:DrawWorld()
-	--[[
-	local lights = pointLights
-	gl.DepthMask(false)
-	glBlending(GL.SRC_ALPHA, GL.ONE)
-	gl.Texture(glowImg)
-	local size = 1
-	for i = 1, pointLightCount do
-		local light = lights[i]
-		local param = light.param
-		if param.gib == nil and param.type == "Cannon" then
-			size = param.glowradius * 0.44
-			gl.PushMatrix()
-			local colorMultiplier = 1 / math_max(param.r, param.g, param.b)
-			gl.Color(param.r * colorMultiplier, param.g * colorMultiplier, param.b * colorMultiplier, 0.015 + (size / 4000))
-			gl.Translate(light.px, light.py, light.pz)
-			gl.Billboard(true)
-			gl.TexRect(-(size / 2), -(size / 2), (size / 2), (size / 2))
-			gl.PopMatrix()
-		end
-	end
-	gl.Billboard(false)
-	gl.Texture(false)
-	gl.DepthMask(true)
-	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	]]--
---end
 
 local chobbyInterface = false
 function widget:RecvLuaMsg(msg, playerID)

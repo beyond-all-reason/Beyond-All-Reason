@@ -80,7 +80,25 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		end
 		return newVAO
 	end
+	
+	function instanceTable:clearInstanceTable() 
+		-- this wont resize it, but quickly sets it to empty
+		self.usedElements = 0
+		self.instanceIDtoIndex = {}
+		self.indextoInstanceID = {}
+		if self.indextoUnitID then self.indextoUnitID = {} end
+	end
 
+	function instanceTable:draw()
+		if self.usedElements > 0 then 
+			if self.indexVBO then 
+				self.VAO:DrawElements(self.primitiveType, self.numVertices, 0, self.usedElements,0)
+			else
+				self.VAO:DrawArrays  (self.primitiveType, self.numVertices, 0, self.usedElements,0)
+			end
+		end
+	end
+	
 	newInstanceVBO:Upload(instanceData)
 	return instanceTable
 end
@@ -575,7 +593,11 @@ end
 
 function drawInstanceVBO(iT)
 	if iT.usedElements > 0 then 
-		iT.VAO:DrawArrays(iT.primitiveType, iT.numVertices, 0, iT.usedElements,0)
+		if iT.indexVBO then 
+			iT.VAO:DrawElements(iT.primitiveType, iT.numVertices, 0, iT.usedElements,0)
+		else
+			iT.VAO:DrawArrays(iT.primitiveType, iT.numVertices, 0, iT.usedElements,0)
+		end
 	end
 end
 
