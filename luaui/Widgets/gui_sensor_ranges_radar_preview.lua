@@ -43,7 +43,7 @@ local radarTruthShader = nil
 
 local smallradVAO = nil
 local largeradVAO = nil
-local selectedRadarUnitID = falsec
+local selectedRadarUnitID = false
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.name == 'armarad' then
@@ -298,7 +298,13 @@ end
 function widget:DrawWorld()
 	local cmdID
 	if selectedRadarUnitID then
-		cmdID = -Spring.GetUnitDefID(selectedRadarUnitID)
+		cmdID = Spring.GetUnitDefID(selectedRadarUnitID)
+		if cmdID then
+			cmdID = -cmdID
+		else
+			selectedRadarUnitID = false
+			return
+		end
 	else
 		cmdID = select(2, spGetActiveCommand())
 		if cmdID == nil or cmdID >= 0 then
