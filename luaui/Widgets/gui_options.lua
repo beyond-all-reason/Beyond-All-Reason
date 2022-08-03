@@ -4387,14 +4387,15 @@ function init()
 			  Spring.SendCommands("water 4")
 		  end,
 		},
-		{ id = "water_windspeed", group = "dev", category = types.dev, name = widgetOptionColor .. "   windspeed", type = "slider", min = 0.0, max = 2.0, step = 0.01, value = gl.GetWaterRendering("windSpeed"), description = "The speed of bumpwater tiles moving",
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SetWaterParams({ windSpeed = value })
-			  Spring.SendCommands("water 4")
-		  end,
-		},
+		-- gl.GetWaterRendering("windSpeed") seems to not exist
+		--{ id = "water_windspeed", group = "dev", category = types.dev, name = widgetOptionColor .. "   windspeed", type = "slider", min = 0.0, max = 2.0, step = 0.01, value = gl.GetWaterRendering("windSpeed"), description = "The speed of bumpwater tiles moving",
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  Spring.SetWaterParams({ windSpeed = value })
+		--	  Spring.SendCommands("water 4")
+		--  end,
+		--},
 		{ id = "water_ambientfactor", group = "dev", category = types.dev, name = widgetOptionColor .. "   ambient factor", type = "slider", min = 0, max = 2, step = 0.001, value = gl.GetWaterRendering("ambientFactor"), description = "How much ambient lighting the water surface gets (ideally very little)",
 		  onload = function(i)
 		  end,
