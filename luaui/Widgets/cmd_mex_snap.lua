@@ -7,7 +7,7 @@ function widget:GetInfo()
 		version   = "v1.2",
 		date      = "November 2010",
 		license   = "GNU GPL, v2 or later",
-		layer     = 0,
+		layer     = 1,
 		enabled   = true,
 		handler   = true
 	}
@@ -68,7 +68,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 	end
 	WG.MexSnap = {}
-	if not WG['resource_spot_finder'].metalSpotsList then
+	if not WG['resource_spot_finder'] or not WG['resource_spot_finder'].metalSpotsList then
 		Spring.Echo("<Snap Mex> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget()
 	end
