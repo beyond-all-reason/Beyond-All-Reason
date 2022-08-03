@@ -712,7 +712,7 @@ local function InitializeLight(lightTable, unitID)
 			local lightparams = {}
 			for i = 1, lightParamTableSize do lightparams[i] = 0 end 
 			for paramname, tablepos in pairs(lightParamKeyOrder) do 
-				lightparams[tablepos] = lightTable.lightConfig[paramname] or 0
+				lightparams[tablepos] = lightTable.lightConfig[paramname] or lightparams[tablepos]
 			end
 			lightTable.lightParamTable = lightparams
 		end
@@ -738,7 +738,6 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noUpload)
 	if unitDefLights[unitDefID] then
 		local unitDefLight = unitDefLights[unitDefID]
 		if unitDefLight.initComplete ~= true then  -- late init
-
 			for lightname, lightParams in pairs(unitDefLight) do
 				InitializeLight(lightParams, unitID)
 			end
@@ -746,6 +745,8 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noUpload)
 		end
 		for lightname, lightParams in pairs(unitDefLight) do
 			if lightname ~= 'initComplete' then
+				--Spring.Debug.TraceFullEcho(nil,nil,nil,"AddStaticLightsForUnit")
+				--Spring.Debug.TableEcho(lightParams)
 				if lightParams.lightType == 'point' then
 					AddPointLight( tostring(unitID) ..  lightname, unitID, nil, nil, lightParams.lightParamTable)
 				elseif lightParams.lightType == 'cone' then 
