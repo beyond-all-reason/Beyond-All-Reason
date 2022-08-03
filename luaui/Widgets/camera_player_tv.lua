@@ -100,11 +100,7 @@ end
 local function GetSkill(playerID)
 	local customtable = select(11, Spring.GetPlayerInfo(playerID)) -- player custom table
 	local tsMu = customtable.skill
-	local tskill = ""
-	if tsMu then
-		tskill = tsMu and tonumber(tsMu:match("%d+%.?%d*")) or 0
-	end
-	return tskill
+	return tsMu and tonumber(tsMu:match("-?%d+%.?%d*")) or 0
 end
 
 local function SelectTrackingPlayer(playerID)
@@ -641,7 +637,7 @@ function widget:DrawScreen()
 				-- create player name
 				prevLockPlayerID = lockPlayerID
 				lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
-				if lockPlayerID then 
+				if lockPlayerID then
 					if not drawlistsPlayername[lockPlayerID] then
 						drawlistsPlayername[lockPlayerID] = gl.CreateList(function()
 							local name, _, spec, teamID, _, _, _, _, _ = Spring.GetPlayerInfo(lockPlayerID, false)
