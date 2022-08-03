@@ -1047,7 +1047,7 @@ local function drawUnitInfo()
 
 
 	-- draw transported unit list
-	elseif displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and #Spring.GetUnitIsTransporting(displayUnitID) > 0 then
+	elseif displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and (Spring.GetUnitIsTransporting(displayUnitID) and #Spring.GetUnitIsTransporting(displayUnitID) or 0) > 0 then
 		local units = Spring.GetUnitIsTransporting(displayUnitID)
 		if #units > 0 then
 			gridHeight = math_ceil(height * 0.975)
