@@ -1466,7 +1466,7 @@ function widget:MouseRelease(x, y, button)
 		-- transported unit list
 		if displayMode == 'unit' and button == 1 then
 			local units = Spring.GetUnitIsTransporting(displayUnitID)
-			if #units > 0 then
+			if units and #units > 0 then
 				for cellID, unitID in pairs(units) do
 					local unitDefID = spGetUnitDefID(unitID)
 					if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
