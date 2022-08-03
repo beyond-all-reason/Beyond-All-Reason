@@ -3,777 +3,475 @@
 local unitDefLights = {
 	[UnitDefNames['armpw'].id] = {
 		headlightpw = { -- this is the lightname
-			lighttype = 'cone',
-			pieceName = 'justattachtobase', -- invalid ones will attack to the worldpos of the unit
-			lightParamTable = {0,23,7,150, --pos + height
-								0,-0.07,1, 0.30, -- dir + angle
-								1,1,0.9,0.6, -- RGBA
-								-0.33,1,1.5,0.6, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightType = 'cone',
+			pieceName = 'justattachtobase', -- invalid ones will attach to the worldpos of the unit
+			lightConfig = { posx = 0, posy = 23, posz = 7, radius = 150,
+				dirx = 0, diry = -0.07, dirz = 1, theta = 0.30000001,
+				r = 1, g = 1, b = 0.89999998, a = 0.60000002,
+				modelfactor = -0.33, specular = 1, scattering = 1.5, lensflare = 0.60000002,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
-		-- dicklight = {
-		-- 	lighttype = 'point',
-		-- 	pieceName = 'pelvis',
-		-- 	lightParamTable = {50,10,4,100, --pos + radius
-		-- 						0,0,0, 0, -- color2
-		-- 						1,1,1,0, -- RGBA
-		-- 						1,1,1,1, -- modelfactor_specular_scattering_lensflare
-		-- 						0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-		--						0,0,0,0, -- color2
-		-- 						0, -- pieceIndex
-		-- 						0,0,0,0 -- instData always 0!
-		-- 						},
-		-- 	--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
-		-- },
-		-- gunlight = {
-		-- 	lighttype = 'beam',
-		-- 	pieceName = 'lthigh',
-		-- 	lightParamTable = {0,0,0,150, --pos + radius
-		-- 						150,150,150, 0, -- endpos
-		-- 						1,1,1,1, -- RGBA
-		-- 						1,1,1,1, -- modelfactor_specular_scattering_lensflare
-		-- 						0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-		--						0,0,0,0, -- color2
-		-- 						0, -- pieceIndex
-		-- 						0,0,0,0 -- instData always 0!
-		-- 						},
-		-- 	--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
-		-- },
 	},
 	[UnitDefNames['armrad'].id] = {
-		-- searchlight = {
-		-- 	lighttype = 'cone',
-		-- 	pieceName = 'dish',
-		-- 	lightParamTable = {0,0,0,70, --pos + radius
-		-- 						0,0,-1, 0.2, -- dir + angle
-		-- 						0.5,3,0.5,1, -- RGBA
-		-- 						0.5,1,2,0, -- modelfactor_specular_scattering_lensflare
-		-- 						0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-		--						0,0,0,0, -- color2
-		-- 						0, -- pieceIndex
-		-- 						0,0,0,0 -- instData always 0!
-		-- 						},
-		-- 	--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
-		-- },
+		searchlight = {
+			lightType = 'cone',
+			pieceName = 'dish',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 70,
+				dirx = 0, diry = 0, dirz = -1, theta = 0.2,
+				r = 0.5, g = 3, b = 0.5, a = 1,
+				modelfactor = 0.5, specular = 1, scattering = 2, lensflare = 0,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
 		greenblob = {
-				lighttype = 'point',
-				pieceName = 'turret',
-				lightParamTable = {0,72,0,20, --pos + radius
-								0,0,0,0, -- color2
-								0,1,0,0.6, -- RGBA
-								0.8,0.9,1.0,10, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightType = 'point',
+			pieceName = 'turret',
+			lightConfig = { posx = 0, posy = 72, posz = 0, radius = 20,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.60000002,
+				modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['corrad'].id] = {
 		greenblob = {
-				lighttype = 'point',
-				pieceName = 'turret',
-				lightParamTable = {0,82,0,20, --pos + radius
-								0,0,0,0, -- color2
-								0,1,0,0.6, -- RGBA
-								0.8,0.9,1.0,10, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightType = 'point',
+			pieceName = 'turret',
+			lightConfig = { posx = 0, posy = 82, posz = 0, radius = 20,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.60000002,
+				modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 
 	[UnitDefNames['armllt'].id] = {
 		searchlightllt = {
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'sleeve',
-			lightParamTable = {0,5,5.8,450, --pos + radius
-								0,0,1,0.25, -- dir + angle
-								1,1,1,0.5, -- RGBA
-								0.2,1,1,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 5, posz = 5.80000019, radius = 450,
+				dirx = 0, diry = 0, dirz = 1, theta = 0.25,
+				r = 1, g = 1, b = 1, a = 0.5,
+				modelfactor = 0.2, specular = 1, scattering = 1, lensflare = 1,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['corllt'].id] = {
 		searchlightllt = {
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'turret',
-			lightParamTable = {0,5,5.8,450, --pos + radius
-								0,0,1,0.25, -- dir + angle
-								1,1,1,0.5, -- RGBA
-								0.2,1,1,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 5, posz = 5.80000019, radius = 450,
+				dirx = 0, diry = 0, dirz = 1, theta = 0.25,
+				r = 1, g = 1, b = 1, a = 0.5,
+				modelfactor = 0.2, specular = 1, scattering = 1, lensflare = 1,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['armrl'].id] = {
 		searchlightrl = {
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'sleeve',
-			lightParamTable = {0,0,7,450, --pos + radius
-								0,0,1,0.20, -- dir + angle
-								1,1,1,1, -- RGBA
-								1,1,1,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 0, posz = 7, radius = 450,
+				dirx = 0, diry = 0, dirz = 1, theta = 0.2,
+				r = 1, g = 1, b = 1, a = 1,
+				modelfactor = 1, specular = 1, scattering = 1, lensflare = 1,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['armjamt'].id] = {
-		-- searchlight = {
-		-- 	lighttype = 'cone',
-		-- 	pieceName = 'turret',
-		-- 	lightParamTable = {0,0,3,65, --pos + radius
-		-- 						0,-0.4,1, 1, -- dir + angle
-		-- 						1.2,0.1,0.1,1.2, -- RGBA
-		-- 						1,1,1,1, -- modelfactor_specular_scattering_lensflare
-		-- 						0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-		--						0,0,0,0, -- color2
-		-- 						0, -- pieceIndex
-		-- 						0,0,0,0 -- instData always 0!
-		-- 						},
-		-- 	--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
-		-- },
 		cloaklightred = {
-				lighttype = 'point',
+				lightType = 'point',
 				pieceName = 'turret',
-				lightParamTable = {0,30,0,35, --pos + radius
-								0,0,1,0, -- unused
-								1,0,0,0.5, -- RGBA
-								0.5,0.5,1.5,10, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 30, posz = 0, radius = 35,
+				color2r = 0, color2g = 0, color2b = 1, colortime = 0,
+				r = 1, g = 0, b = 0, a = 0.5,
+				modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['armack'].id] = {
 		beacon1 = { -- this is the lightname
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'beacon1',
-			lightParamTable = {0,0,0,21, --pos + radius
-								1,0,0, 0.99, -- dir + angle
-								1.3,0.9,0.1,2, -- RGBA
-								0.1,0.2,1.5,10, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 21,
+				dirx = 1, diry = 0, dirz = 0, theta = 0.99000001,
+				r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+				modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		beacon2 = {
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'beacon2',
-			lightParamTable = {0,0,0,21, --pos + radius
-								-1,0,0, 0.99, -- dir + angle
-								1.3,0.9,0.1,2, -- RGBA
-								0.1,0.2,1.5,10, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 21,
+				dirx = -1, diry = 0, dirz = 0, theta = 0.99000001,
+				r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+				modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['armstump'].id] = {
 		searchlightstump = {
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'base',
-			lightParamTable = {0,0,10,100, --pos + radius
-								0,-0.08,1, 0.26, -- dir + angle
-								1,1,1,1.2, -- RGBA
-								1,1,1,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 0, posz = 10, radius = 100,
+				dirx = 0, diry = -0.08, dirz = 1, theta = 0.25999999,
+				r = 1, g = 1, b = 1, a = 1.20000005,
+				modelfactor = 1, specular = 1, scattering = 1, lensflare = 1,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['armbanth'].id] = {
 		searchlightbanth = {
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'turret',
-			lightParamTable = {0,2,18,520, --pos + radius
-								0,-0.12,1, 0.26, -- dir + angle
-								1,1,1,1, -- RGBA
-								0.1,1,1,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 2, posz = 18, radius = 520,
+				dirx = 0, diry = -0.12, dirz = 1, theta = 0.25999999,
+				r = 1, g = 1, b = 1, a = 1,
+				modelfactor = 0.1, specular = 1, scattering = 1, lensflare = 1,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},	
 	[UnitDefNames['armcom'].id] = {
 		headlightarmcom = {
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'head',
-			lightParamTable = {0,0,10,420, --pos + radius
-								0,-0.25,1, 0.26, -- dir + angle
-								-1,1,1,1, -- RGBA
-								0.2,2,3,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 0, posz = 10, radius = 420,
+				dirx = 0, diry = -0.25, dirz = 1, theta = 0.25999999,
+				r = -1, g = 1, b = 1, a = 1,
+				modelfactor = 0.2, specular = 2, scattering = 3, lensflare = 1,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
-		-- lightsaber = {
-		-- 	lighttype = 'beam',
-		-- 	pieceName = 'dish',
-		-- 	lightParamTable = {0,0,4,80, --pos + radius
-		-- 						0,0, 300 , 40, -- pos2
-		-- 						1,0,0,1, -- RGBA
-		-- 						1,1,0.3,1, -- modelfactor_specular_scattering_lensflare
-		-- 						0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-		--						0,0,0,0, -- color2
-		-- 						0, -- pieceIndex
-		-- 						0,0,0,0 -- instData always 0!
-		-- 						},
-		-- 	--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
-		-- },
 	},
 	[UnitDefNames['corcom'].id] = {
-		headlightarmcom = {
-			lighttype = 'cone',
+		headlightcorcom = {
+			lightType = 'cone',
 			pieceName = 'head',
-			lightParamTable = {0,1,9,420, --pos + radius
-								0,-0.17,1, 0.26, -- dir + angle
-								-1,1,1,1, -- RGBA
-								1,2,3,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 1, posz = 9, radius = 420,
+				dirx = 0, diry = -0.17, dirz = 1, theta = 0.25999999,
+				r = -1, g = 1, b = 1, a = 1,
+				modelfactor = 1, specular = 2, scattering = 3, lensflare = 1,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['armcv'].id] = {
 		nanolightarmcv = {
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'nano1',
-			lightParamTable = {3,0,-4,120, --pos + radius
-								0,0,1, 0.3, -- pos2
-								-1,0,0,1, -- RGBA
-								0,1,3,0, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 3, posy = 0, posz = -4, radius = 120,
+				dirx = 0, diry = 0, dirz = 1, theta = 0.30000001,
+				r = -1, g = 0, b = 0, a = 1,
+				modelfactor = 0, specular = 1, scattering = 3, lensflare = 0,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['armca'].id] = {
 		nanolightarmca = {
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'nano',
-			lightParamTable = {0,0,0,120, --pos + radius
-								0,0,-1, 0.3, -- pos2
-								-1,0,0,1, -- RGBA
-								0,1,3,0, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 120,
+				dirx = 0, diry = 0, dirz = -1, theta = 0.30000001,
+				r = -1, g = 0, b = 0, a = 1,
+				modelfactor = 0, specular = 1, scattering = 3, lensflare = 0,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['armamd'].id] = {
 		readylightamd = {
-				lighttype = 'point',
-				pieceName = 'antenna',
-				lightParamTable = {0,1,0,21, --pos + radius
-								0,0.5,0,15, -- color2
-								0,2,0,1, -- RGBA
-								1,1,1,6, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
-		},
-	},
-	[UnitDefNames['armaap'].id] = {
-		blinkaap = {
-				lighttype = 'point',
-				pieceName = 'base',
-				lightParamTable = {-86,91,3,75, --pos + radius
-								0,0,0,0, -- color2
-								-1,1,1,0.5, -- RGBA
-								0.2,0.5,1,10, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightType = 'point',
+			pieceName = 'antenna',
+			lightConfig = { posx = 0, posy = 1, posz = 0, radius = 21,
+				color2r = 0, color2g = 0.5, color2b = 0, colortime = 15,
+				r = 0, g = 2, b = 0, a = 1,
+				modelfactor = 1, specular = 1, scattering = 1, lensflare = 6,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['armatlas'].id] = {
 		jetr = {
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'thrustr',
-			lightParamTable = {-2,0,-2,140, --pos + radius
-								0,0,-1, 0.8, -- pos2
-								1,0.98,0.85,0.4, -- RGBA
-								0,1,0.5,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 140,
+				dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+				r = 1, g = 0.98, b = 0.85, a = 0.4,
+				modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		jetl = {
-				lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'thrustl',
-			lightParamTable = {2,0,-2,140, --pos + radius
-								0,0,-1, 0.8, -- pos2
-								1,0.98,0.85,0.4, -- RGBA
-								0,1,0.5,1, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 2, posy = 0, posz = -2, radius = 140,
+				dirx = 0, diry = 0, dirz = -1, theta = 0.80000001,
+				r = 1, g = 0.98000002, b = 0.85000002, a = 0.40000001,
+				modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['armeyes'].id] = {
 		eyeglow = {
-				lighttype = 'point',
-				pieceName = 'base',
-				lightParamTable = {0,10,0,300, --pos + radius
-								0,0,0,0, -- unused
-								1,1,1,0.3, -- RGBA
-								0.1,0.5,1,2, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = 10, posz = 0, radius = 300,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 1, g = 1, b = 1, a = 0.30000001,
+				modelfactor = 0.1, specular = 0.5, scattering = 1, lensflare = 2,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['armanni'].id] = {
 		annilight = {
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'light',
-			lightParamTable = {0,0,0,950, --pos + radius
-								0,0,1, 0.07, -- pos2
-								1,1,1,0.5, -- RGBA
-								0,1,2,0, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 950,
+				dirx = 0, diry = 0, dirz = 1, theta = 0.07,
+				r = 1, g = 1, b = 1, a = 0.5,
+				modelfactor = 0, specular = 1, scattering = 2, lensflare = 0,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['armafus'].id] = {
 		controllight = {
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'collar1',
-			lightParamTable = {-25,38,-25,100, --pos + radius
-								1,0,1, 0.5, -- pos2
-								-1,1,1,5, -- RGBA
-								0.1,1,2,2, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = -25, posy = 38, posz = -25, radius = 100,
+				dirx = 1, diry = 0, dirz = 1, theta = 0.5,
+				r = -1, g = 1, b = 1, a = 5,
+				modelfactor = 0.1, specular = 1, scattering = 2, lensflare = 2,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		fusionglow = {
-				lighttype = 'point',
-				pieceName = 'base',
-				lightParamTable = {0,45,0,90, --pos + radius
-								0,0,0,0, -- color2 + colortime
-								-1,1,1,0.9, -- RGBA
-								0.1,0.5,1,5, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = 45, posz = 0, radius = 90,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = -1, g = 1, b = 1, a = 0.89999998,
+				modelfactor = 0.1, specular = 0.5, scattering = 1, lensflare = 5,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['armzeus'].id] = {
 		weaponglow = {
-			lighttype = 'point',
+			lightType = 'point',
 			pieceName = 'gun_emit',
-			lightParamTable = {0,0,0,10, --pos + radius
-							0.4,0.7,1.2,30, -- color2 + colortime
-							0.2,0.5,1.0,0.8, -- RGBA
-							0.1,0.75,2,7, -- modelfactor_specular_scattering_lensflare
-							0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-							0,0,0,0, -- color2
-							0, -- pieceIndex
-							0,0,0,0 -- instData always 0!
-							},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 10,
+				color2r = 0.40000001, color2g = 0.69999999, color2b = 1.20000005, colortime = 30,
+				r = 0.2, g = 0.5, b = 1, a = 0.80000001,
+				modelfactor = 0.1, specular = 0.75, scattering = 2, lensflare = 7,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		weaponspark = {
-			lighttype = 'point',
+			lightType = 'point',
 			pieceName = 'spark_emit',
-			lightParamTable = {0,1,0,55, --pos + radius
-							0,0,0,2, -- color2
-							1,1,1,0.85, -- RGBA
-							0.1,0.75,0.2,7, -- modelfactor_specular_scattering_lensflare
-							0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-							0,0,0,0, -- color2
-							0, -- pieceIndex
-							0,0,0,0 -- instData always 0!
-							},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 1, posz = 0, radius = 55,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 2,
+				r = 1, g = 1, b = 1, a = 0.85000002,
+				modelfactor = 0.1, specular = 0.75, scattering = 0.2, lensflare = 7,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		backpackglow = {
-			lighttype = 'point',
+			lightType = 'point',
 			pieceName = 'static_emit',
-			lightParamTable = {0,0,0,10, --pos + radius
-							0.4,0.7,1.2,30, -- color2 + colortime
-							0.2,0.5,1.0,0.8, -- RGBA
-							0.1,0.75,2,10, -- modelfactor_specular_scattering_lensflare
-							0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-							0,0,0,0, -- color2
-							0, -- pieceIndex
-							0,0,0,0 -- instData always 0!
-							},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 10,
+				color2r = 0.40000001, color2g = 0.69999999, color2b = 1.20000005, colortime = 30,
+				r = 0.2, g = 0.5, b = 1, a = 0.80000001,
+				modelfactor = 0.1, specular = 0.75, scattering = 2, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['corpyro'].id] = {
 		flamelight = {
-			lighttype = 'point',
+			lightType = 'point',
 			pieceName = 'lloarm',
-			lightParamTable = {0,-1.4,15,24, --pos + radius
-							0.9,0.5,0.05,10, -- unused
-							0.95,0.66,0.07,0.56, -- RGBA
-							0.1,1.5,0.35,0, -- modelfactor_specular_scattering_lensflare
-							0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-							0,0,0,0, -- color2
-							0, -- pieceIndex
-							0,0,0,0 -- instData always 0!
-							},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = -1.4, posz = 15, radius = 24,
+				color2r = 0.89999998, color2g = 0.5, color2b = 0.05, colortime = 10,
+				r = 0.94999999, g = 0.66000003, b = 0.07, a = 0.56,
+				modelfactor = 0.1, specular = 1.5, scattering = 0.34999999, lensflare = 0,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['armsnipe'].id] = {
 		sniperreddot = {
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'laser',
-			lightParamTable = {0,0,0,700, --pos + radius
-								0,1,0.0001, 0.006, -- pos2
-								2,0,0,0.85, -- RGBA
-								0.1,4,2,4, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 700,
+				dirx = 0, diry = 1, dirz = 0.0001, theta = 0.006,
+				r = 2, g = 0, b = 0, a = 0.85000002,
+				modelfactor = 0.1, specular = 4, scattering = 2, lensflare = 4,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['cormakr'].id] = {
 		flamelight = {
-			lighttype = 'point',
+			lightType = 'point',
 			pieceName = 'light',
-			lightParamTable = {0,10,0,50, --pos + radius
-							0,0,0,0, -- color2 + colortime
-							0.9,0.7,0.45,0.58, -- RGBA
-							0.1,1.5,0.35,0, -- modelfactor_specular_scattering_lensflare
-							0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-							0,0,0,0, -- color2
-							0, -- pieceIndex
-							0,0,0,0 -- instData always 0!
-							},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 10, posz = 0, radius = 50,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0.89999998, g = 0.69999999, b = 0.44999999, a = 0.57999998,
+				modelfactor = 0.1, specular = 1.5, scattering = 0.34999999, lensflare = 0,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['lootboxbronze'].id] = {
 		blinka = {
-				lighttype = 'point',
-				pieceName = 'blinka',
-				lightParamTable = {0,1,0,25, --pos + radius
-								0,0,0,0, -- color2
-								-1,1,1,0.85, -- RGBA
-								1,1,1,10, -- modelfactor_specular_scattering_lensflare
-								1,120,0,1, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightType = 'point',
+			pieceName = 'blinka',
+			lightConfig = { posx = 0, posy = 1, posz = 0, radius = 25,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = -1, g = 1, b = 1, a = 0.85000002,
+				modelfactor = 1, specular = 1, scattering = 1, lensflare = 10,
+				lifetime = 120, sustain = 0, animtype = 1},
 		},
 		blinkb = {
-				lighttype = 'point',
-				pieceName = 'blinkb',
-				lightParamTable = {0,1,0,25, --pos + radius
-								0,0,0,0, -- color2
-								-1,1,1,0.85, -- RGBA
-								1,1,1,10, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightType = 'point',
+			pieceName = 'blinkb',
+			lightConfig = { posx = 0, posy = 1, posz = 0, radius = 25,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = -1, g = 1, b = 1, a = 0.85000002,
+				modelfactor = 1, specular = 1, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		blinkc = {
-				lighttype = 'point',
-				pieceName = 'blinkc',
-				lightParamTable = {0,1,0,25, --pos + radius
-								0,0,0,0, -- color2
-								-1,1,1,0.85, -- RGBA
-								1,1,1,10, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightType = 'point',
+			pieceName = 'blinkc',
+			lightConfig = { posx = 0, posy = 1, posz = 0, radius = 25,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = -1, g = 1, b = 1, a = 0.85000002,
+				modelfactor = 1, specular = 1, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		blinkd = {
-				lighttype = 'point',
-				pieceName = 'blinkd',
-				lightParamTable = {0,1,0,25, --pos + radius
-								0,0,0,0, -- color2
-								-1,1,1,0.85, -- RGBA
-								1,1,1,10, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightType = 'point',
+			pieceName = 'blinkd',
+			lightConfig = { posx = 0, posy = 1, posz = 0, radius = 25,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = -1, g = 1, b = 1, a = 0.85000002,
+				modelfactor = 1, specular = 1, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['armaap'].id] = {
 		blinka = {
-				lighttype = 'point',
-				pieceName = 'blinka',
-				lightParamTable = {0,1,0,20, --pos + radius
-								0,0,0,0, -- color2
-								-1,1,1,1, -- RGBA
-								0.2,0.5,2,7, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightType = 'point',
+			pieceName = 'blinka',
+			lightConfig = { posx = 0, posy = 1, posz = 0, radius = 20,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = -1, g = 1, b = 1, a = 1,
+				modelfactor = 0.2, specular = 0.5, scattering = 2, lensflare = 7,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		dishlight = {
-				lighttype = 'point',
-				pieceName = 'dish',
-				lightParamTable = {0,8,0,20, --pos + radius
-								-1,-1,-1,30, -- color2
-								-1,1,1,1, -- RGBA
-								0.2,0.5,2,7, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightType = 'point',
+			pieceName = 'dish',
+			lightConfig = { posx = 0, posy = 8, posz = 0, radius = 20,
+				color2r = -1, color2g = -1, color2b = -1, colortime = 30,
+				r = -1, g = 1, b = 1, a = 1,
+				modelfactor = 0.2, specular = 0.5, scattering = 2, lensflare = 7,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		blinkb = {
-				lighttype = 'point',
-				pieceName = 'blinkb',
-				lightParamTable = {0,1,0,20, --pos + radius
-								0,0,0,0, -- color2
-								-1,1,1,1, -- RGBA
-								0.2,0.5,2,7, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightType = 'point',
+			pieceName = 'blinkb',
+			lightConfig = { posx = 0, posy = 1, posz = 0, radius = 20,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = -1, g = 1, b = 1, a = 1,
+				modelfactor = 0.2, specular = 0.5, scattering = 2, lensflare = 7,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['corsilo'].id] = {
 		launchlight1 = { -- this is the lightname
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'cagelight_emit1',
-			lightParamTable = {0,0,0,30, --pos + radius
-								1,0,0, 0.99, -- dir + angle
-								1.3,0.1,0,2, -- RGBA
-								0.1,0.2,1,2, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
+				dirx = 1, diry = 0, dirz = 0, theta = 0.99000001,
+				r = 1.29999995, g = 0.1, b = 0, a = 2,
+				modelfactor = 0.1, specular = 0.2, scattering = 1, lensflare = 2,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		launchlight2 = { -- this is the lightname
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'cagelight_emit2',
-			lightParamTable = {0,0,0,30, --pos + radius
-								1,0,0, 0.99, -- dir + angle
-								1.3,0.1,0,2, -- RGBA
-								0.1,0.2,1,2, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
+				dirx = 1, diry = 0, dirz = 0, theta = 0.99000001,
+				r = 1.29999995, g = 0.1, b = 0, a = 2,
+				modelfactor = 0.1, specular = 0.2, scattering = 1, lensflare = 2,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		launchlight3 = { -- this is the lightname
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'cagelight_emit3',
-			lightParamTable = {0,0,0,30, --pos + radius
-								1,0,0, 0.99, -- dir + angle
-								1.3,0.1,0,2, -- RGBA
-								0.1,0.2,1,2, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
+				dirx = 1, diry = 0, dirz = 0, theta = 0.99000001,
+				r = 1.29999995, g = 0.1, b = 0, a = 2,
+				modelfactor = 0.1, specular = 0.2, scattering = 1, lensflare = 2,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		launchlight4 = { -- this is the lightname
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'cagelight_emit4',
-			lightParamTable = {0,0,0,30, --pos + radius
-								1,0,0, 0.99, -- dir + angle
-								1.3,0.1,0,2, -- RGBA
-								0.1,0.2,1,2, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
+				dirx = 1, diry = 0, dirz = 0, theta = 0.99000001,
+				r = 1.29999995, g = 0.1, b = 0, a = 2,
+				modelfactor = 0.1, specular = 0.2, scattering = 1, lensflare = 2,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['corint'].id] = {
 		hotbarrel1 = {
-				lighttype = 'point',
-				pieceName = 'light',
-				lightParamTable = {-7,8,5,30, --pos + radius
-								0,0,1,0, -- unused
-								1,0.2,0,0.7, -- RGBA
-								2,1,0,0, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightType = 'point',
+			pieceName = 'light',
+			lightConfig = { posx = -7, posy = 8, posz = 5, radius = 30,
+				color2r = 0, color2g = 0, color2b = 1, colortime = 0,
+				r = 1, g = 0.2, b = 0, a = 0.69999999,
+				modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		hotbarrel2 = {
-				lighttype = 'point',
-				pieceName = 'light',
-				lightParamTable = {7,8,5,30, --pos + radius
-								0,0,1,0, -- unused
-								1,0.2,0,0.7, -- RGBA
-								2,1,0,0, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightType = 'point',
+			pieceName = 'light',
+			lightConfig = { posx = 7, posy = 8, posz = 5, radius = 30,
+				color2r = 0, color2g = 0, color2b = 1, colortime = 0,
+				r = 1, g = 0.2, b = 0, a = 0.69999999,
+				modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['corlab'].id] = {
 		buildlight = { -- this is the lightname
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'cagelight_emit',
-			lightParamTable = {0,0,0,17, --pos + radius
-								1,0,0, 0.99, -- dir + angle
-								1.3,0.9,0.1,2, -- RGBA
-								0.1,0.2,1.5,10, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 17,
+				dirx = 1, diry = 0, dirz = 0, theta = 0.99000001,
+				r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+				modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		buildlight2 = { -- this is the lightname
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'cagelight_emit',
-			lightParamTable = {0,0,0,17, --pos + radius
-								-1,0,0, 0.99, -- dir + angle
-								1.3,0.9,0.1,2, -- RGBA
-								0.1,0.2,1.5,10, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 17,
+				dirx = -1, diry = 0, dirz = 0, theta = 0.99000001,
+				r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+				modelfactor = 0.1, specular = 0.2, scattering = 1.5, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['corck'].id] = {
 		buildlight = { -- this is the lightname
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'cagelight_emit',
-			lightParamTable = {0,0,0,17, --pos + radius
-								1,0,0, 0.99, -- dir + angle
-								1.3,0.9,0.1,2, -- RGBA
-								0.1,0.2,2,10, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 17,
+				dirx = 1, diry = 0, dirz = 0, theta = 0.99000001,
+				r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+				modelfactor = 0.1, specular = 0.2, scattering = 2, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		buildlight2 = { -- this is the lightname
-			lighttype = 'cone',
+			lightType = 'cone',
 			pieceName = 'cagelight_emit',
-			lightParamTable = {0,0,0,17, --pos + radius
-								-1,0,0, 0.99, -- dir + angle
-								1.3,0.9,0.1,2, -- RGBA
-								0.1,0.2,2,10, -- modelfactor_specular_scattering_lensflare
-								0,0,0,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 17,
+				dirx = -1, diry = 0, dirz = 0, theta = 0.99000001,
+				r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+				modelfactor = 0.1, specular = 0.2, scattering = 2, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 }
@@ -781,18 +479,13 @@ local unitDefLights = {
 local unitEventLights = {
 	[UnitDefNames['armcom'].id] = {
 		idleBlink = {
-			lighttype = 'point',
+			lightType = 'point',
 			pieceName = 'head',
-			lightParamTable = {0,16,0,420, --pos + radius
-								1,1,1, 15, -- color2
-								-1,1,1,1, -- RGBA
-								0.2,1,1,1, -- modelfactor_specular_scattering_lensflare
-								0,50,20,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightConfig = { posx = 0, posy = 16, posz = 0, radius = 420,
+				color2r = 1, color2g = 1, color2b = 1, colortime = 15,
+				r = -1, g = 1, b = 1, a = 1,
+				modelfactor = 0.2, specular = 1, scattering = 1, lensflare = 1,
+				lifetime = 50, sustain = 20, animtype = 0},
 		},
 	}
 }
@@ -800,20 +493,63 @@ local unitEventLights = {
 local projectileDefLights  = {
 	['default'] = {
 		idleBlink = {
-			lighttype = 'point',
-			lightParamTable = {0,16,0,420, --pos + radius
-								1,1,1, 15, -- color2
-								-1,1,1,1, -- RGBA
-								0.2,1,1,1, -- modelfactor_specular_scattering_lensflare
-								0,50,20,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								},
-			--pieceIndex will be nil, because this can only be determined once a unit of this type is spawned
+			lightType = 'point',
+ 			lightConfig = { posx = 0, posy = 16, posz = 0, radius = 420,
+ 				color2r = 1, color2g = 1, color2b = 1, colortime = 15,
+ 				r = -1, g = 1, b = 1, a = 1,
+ 				modelfactor = 0.2, specular = 1, scattering = 1, lensflare = 1,
+ 				lifetime = 50, sustain = 20, animtype = 0},
+
 		},
 	}
 }
 
-return {unitEventLights = unitEventLights,
+local allLights = {unitEventLights = unitEventLights,
 unitDefLights = unitDefLights, projectileDefLights = projectileDefLights }
+
+----------------- Debugging code to do the reverse dump ---------------
+--[[
+local lightParamKeyOrder = {
+	posx = 1, posy = 2, posz = 3, radius = 4, 
+	r = 9, g = 10, b = 11, a = 12, 
+	color2r = 5, color2g = 6, color2b = 7, colortime = 8, -- point lights only, colortime in seconds for unit-attached
+	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- cone lights only, specify direction and half-angle in radians
+	pos2x = 5, pos2y = 6, pos2z = 7, -- beam lights only, specifies the endpoint of the beam
+	modelfactor = 13, specular = 14, scattering = 15, lensflare = 16, 
+	lifetime = 18, sustain = 19, animtype = 20 -- unused
+}
+
+for typename, typetable in pairs(allLights) do 
+	Spring.Echo(typename)
+	for lightunitclass, classinfo in pairs(typetable) do
+		if type(lightunitclass) == type(1) then 
+			Spring.Echo(UnitDefs[lightunitclass].name)
+		else
+			Spring.Echo(lightunitclass)
+		end
+		for lightname, lightinfo in pairs(classinfo) do 
+			Spring.Echo(lightname)
+			local lightParamTable = lightinfo.lightParamTable
+			Spring.Echo(string.format("			lightConfig = { posx = %f, posy = %f, posz = %f, radius = %f,", lightinfo.lightParamTable[1], lightParamTable[2],lightParamTable[3],lightParamTable[4] ))
+			if lightinfo.lightType == 'point' then 
+				Spring.Echo(string.format("				color2r = %f, color2g = %f, color2b = %f, colortime = %f,", lightinfo.lightParamTable[5], lightParamTable[6],lightParamTable[7],lightParamTable[8] ))
+			
+			elseif lightinfo.lightType == 'beam' then 
+				Spring.Echo(string.format("				pos2x = %f, pos2y = %f, pos2z = %f,", lightinfo.lightParamTable[5], lightParamTable[6],lightParamTable[7]))
+			elseif lightinfo.lightType == 'cone' then 
+				Spring.Echo(string.format("				dirx = %f, diry = %f, dirz = %f, theta = %f,", lightinfo.lightParamTable[5], lightParamTable[6],lightParamTable[7],lightParamTable[8] ))
+			
+			end
+			Spring.Echo(string.format("				r = %f, g = %f, b = %f, a = %f,", lightinfo.lightParamTable[9], lightParamTable[10],lightParamTable[11],lightParamTable[12] ))
+			Spring.Echo(string.format("				modelfactor = %f, specular = %f, scattering = %f, lensflare = %f,", lightinfo.lightParamTable[13], lightParamTable[14],lightParamTable[15],lightParamTable[16] ))
+			Spring.Echo(string.format("				lifetime = %f, sustain = %f, animtype = %f},", lightinfo.lightParamTable[18], lightParamTable[19],lightParamTable[20]))
+			
+		end
+	end
+end
+]]--
+
+
+return allLights
+
+

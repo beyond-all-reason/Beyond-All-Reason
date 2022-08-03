@@ -8,13 +8,12 @@ function widget:GetInfo()
 		desc = "Collects and renders cone, point and beam lights",
 		author = "Beherith",
 		date = "2022.06.10",
-		license = "Lua code is GPL V2, GLSL is (c) Beherith",
+		license = "Lua code is GPL V2, GLSL is (c) Beherith (mysterme@gmail.com)",
 		layer = -99999990,
 		enabled = false
 	}
 end
-
-
+Spring.Echo("FUCKALL")
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -171,6 +170,7 @@ widget:ViewResize()
 	--light types should know their vbo?
 		-- this one is much harder than expected
 	-- initialize config dicts
+	-- rework dicts
 	-- unitdefidpiecemapcache
 
 local shaderConfig = {
@@ -369,8 +369,9 @@ local function calcLightExpiry(targetVBO, lightParamsTable, instanceID)
 	return deathtime
 end
 
+local lightParamTableSize = 29
 local lightCacheTable = {}
-for i = 1, 29 do lightCacheTable[i] = 0 end 
+for i = 1, lightParamTableSize do lightCacheTable[i] = 0 end 
 local pieceIndexPos = 25
 local spawnFramePos = 17
 lightCacheTable[13] = 1 --modelfactor_specular_scattering_lensflare
@@ -675,72 +676,81 @@ end
 
 -- multiple lights per unitdef/piece are possible, as the lights are keyed by lightname
 
-local unitDefPieceMapCache = {} -- maps unitDefID to piecemap
+local unitDefPeiceMapCache = {} -- maps unitDefID to piecemap
 
 local examplePointLight = {
-	lighttype = 'point', 
+	lightType = 'point', 
 	pieceName = nil,
 	posx = 0, posy = 0, posz = 0, radius = 0, 
 	r = 1, g = 1, b = 1, a = 1, 
-	color2r = 1, color2g = 1, color2b = 1, colortime = 15, -- point lights only, colortime specifies transition time in seconds for unit-attached lights, and transition period 
+	color2r = 1, color2g = 1, color2b = 1, colortime = 15, -- point lights only, colortime in seconds for unit-attached
 	dirx = 0, diry = 0, dirz = 1, theta = 0.5,  -- cone lights only, specify direction and half-angle in radians
 	pos2x = 100, pos2y = 100, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
 	modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
-	lifetime = 0, 
-	sustain = 1, 
-	aninmtype = 0 -- unused
+	lifetime = 0, sustain = 1, 	aninmtype = 0 -- unused
 }
 
+local lightParamKeyOrder = {
+	posx = 1, posy = 2, posz = 3, radius = 4, 
+	r = 9, g = 10, b = 11, a = 12, 
+	color2r = 5, color2g = 6, color2b = 7, colortime = 8, -- point lights only, colortime in seconds for unit-attached
+	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- cone lights only, specify direction and half-angle in radians
+	pos2x = 5, pos2y = 6, pos2z = 7, -- beam lights only, specifies the endpoint of the beam
+	modelfactor = 13, specular = 14, scattering = 15, lensflare = 16, 
+	lifetime = 18, sustain = 19, animtype = 20 -- unused
+}
+
+
+---InitializeLight
+---Takes a light definition table, and tries to check wether its already been initialized, if not, it inits it in-place
+---@param lightTable table
+---@param unitID number 
 local function InitializeLight(lightTable, unitID)
-	if lightTable.initComplete ~= true then  -- late init
-		-- do the table to flattable conversion
-		lightParams.lightParamTable = 
-		
-		
+	if not lightTable.initComplete then  -- late init
+		-- do the table to flattable conversion, if it doesnt exist yet
+		if not lightTable.lightParamTable then -- perform correct init
+			local lightparams = {}
+			for i = 1, lightParamTableSize do lightparams[i] = 0 end 
+			for paramname, tablepos in pairs(lightParamKeyOrder) do 
+				lightparams[tablepos] = lightTable.lightConfig[paramname] or 0
+			end
+			lightTable.lightParamTable = lightparams
+		end
+
 		if unitID then 
 			local unitDefID = Spring.GetUnitDefID(unitID)
-			if unitDefID and not unitDefPieceMapCache[unitDefID] then 
-				unitDefPieceMapCache[unitDefID] = Spring.GetUnitPieceMap(unitID)
+			if unitDefID and not unitDefPeiceMapCache[unitDefID] then 
+				unitDefPeiceMapCache[unitDefID] = Spring.GetUnitPieceMap(unitID)
 			end
-			local pieceMap = unitDefPieceMapCache[unitDefID]
-			for lightname, lightParams in pairs(lightTable) do
-				if pieceMap[lightParams.pieceName] then -- if its not a real piece, it will default to the model!
-					lightParams.pieceIndex = pieceMap[lightParams.pieceName] 
-					lightParams.lightParamTable[pieceIndexPos] = lightParams.pieceIndex
-				end
+			local pieceMap = unitDefPeiceMapCache[unitDefID]
+			if pieceMap[lightTable.pieceName] then -- if its not a real piece, it will default to the model worldpos!
+				lightTable.pieceIndex = pieceMap[lightTable.pieceName] 
+				lightTable.lightParamTable[pieceIndexPos] = lightTable.pieceIndex
+			end
 				--Spring.Echo(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
-			end
 		end
-		
-		
-		
+
 		lightTable.initComplete = true
 	end
 end
 
-local function AddStaticLightsForUnit(unitID, unitDefID, noupload)
+local function AddStaticLightsForUnit(unitID, unitDefID, noUpload)
 	if unitDefLights[unitDefID] then
 		local unitDefLight = unitDefLights[unitDefID]
 		if unitDefLight.initComplete ~= true then  -- late init
-			local pieceMap = Spring.GetUnitPieceMap(unitID)
+
 			for lightname, lightParams in pairs(unitDefLight) do
-				if pieceMap[lightParams.pieceName] then -- if its not a real piece, it will default to the model!
-					lightParams.pieceIndex = pieceMap[lightParams.pieceName] 
-					lightParams.lightParamTable[pieceIndexPos] = lightParams.pieceIndex
-				end
-				--Spring.Echo(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
+				InitializeLight(lightParams, unitID)
 			end
 			unitDefLight.initComplete = true
 		end
 		for lightname, lightParams in pairs(unitDefLight) do
 			if lightname ~= 'initComplete' then
-				if lightParams.lighttype == 'point' then
+				if lightParams.lightType == 'point' then
 					AddPointLight( tostring(unitID) ..  lightname, unitID, nil, nil, lightParams.lightParamTable)
-				end
-				if lightParams.lighttype == 'cone' then 
+				elseif lightParams.lightType == 'cone' then 
 					AddConeLight(tostring(unitID) ..  lightname, unitID, nil, nil, lightParams.lightParamTable) 
-				end
-				if lightParams.lighttype == 'beam' then 
+				elseif lightParams.lightType == 'beam' then 
 					AddBeamLight(tostring(unitID) ..  lightname, unitID, nil, nil, lightParams.lightParamTable) 
 				end
 			end
@@ -753,13 +763,11 @@ local function RemoveStaticLightsFromUnit(unitID, unitDefID)
 		local unitDefLight = unitDefLights[unitDefID]
 		for lightname, lightParams in pairs(unitDefLight) do
 			if lightname ~= 'initComplete' then
-				if lightParams.lighttype == 'point' then
+				if lightParams.lightType == 'point' then
 					popElementInstance(unitPointLightVBO, tostring(unitID) ..  lightname) 
-				end
-				if lightParams.lighttype == 'cone' then 
+				elseif lightParams.lightType == 'cone' then 
 					popElementInstance(unitConeLightVBO, tostring(unitID) ..  lightname)
-				end
-				if lightParams.lighttype == 'beam' then 
+				elseif lightParams.lightType == 'beam' then 
 					popElementInstance(unitBeamLightVBO, tostring(unitID) ..  lightname)
 				end
 			end
@@ -837,12 +845,20 @@ function AddRandomLight(which)
 end
 
 local function LoadLightConfig()
-	local success, result =	VFS.Include('luaui/config/DeferredLightsGL4config.lua')
+	local success, result =	pcall(VFS.Include, 'luaui/configs/DeferredLightsGL4config.lua')
+	Spring.Echo("Loading GL4 light config", success, result)
 	if success then
+		Spring.Echo("Loaded GL4 light config")
 		unitDefLights = result.unitDefLights
 		unitEventLights = result.unitEventLights
 		projectileDefLights = result.projectileDefLights
+	else
+		unitDefLights = result.unitDefLights
+		unitEventLights = result.unitEventLights
+		projectileDefLights = result.projectileDefLights
+		Spring.Echo("Failed to load GL4 light config", success, result)
 	end
+	return success
 end
 
 local mapinfo = nil
@@ -850,9 +866,14 @@ local nightFactor = 0.33
 local unitNightFactor = 1.2 -- applied above nightFactor
 local adjustfornight = {'unitAmbientColor', 'unitDiffuseColor', 'unitSpecularColor','groundAmbientColor', 'groundDiffuseColor', 'groundSpecularColor' }
 
+Spring.Echo("FUCKALL")
 function widget:Initialize()
-	LoadLightConfig()
+	Spring.Echo("FUCKALL")
+	if not LoadLightConfig() then
+		widgetHandler:RemoveWidget()
 
+		return 
+	end
 	if Spring.GetConfigString("AllowDeferredMapRendering") == '0' or Spring.GetConfigString("AllowDeferredModelRendering") == '0' then
 		Spring.Echo('Deferred Rendering (gfx_deferred_rendering.lua) requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!')
 		widgetHandler:RemoveWidget()
@@ -935,12 +956,12 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('RemoveLight')
 end
 
-local function DrawLightType(lights, lightsCount, lighttype)
+local function DrawLightType(lights, lightsCount, lightType)
 	-- point = 0 beam = 1
 	--Spring.Echo('Camera FOV = ', Spring.GetCameraFOV()) -- default TA cam fov = 45
 	--set uniforms:
 	local cpx, cpy, cpz = spGetCameraPosition()
-	if lighttype == 0 then
+	if lightType == 0 then
 		--point
 		glUseShader(depthPointShader)
 		glUniform(uniformEyePosPoint, cpx, cpy, cpz)
@@ -966,11 +987,11 @@ local function DrawLightType(lights, lightsCount, lighttype)
 			VerboseEcho('gfx_deferred_rendering.lua: Light being drawn:', i)
 			Spring.Debug.TableEcho(light)
 		end
-		if lighttype == 0 then
+		if lightType == 0 then
 			-- point
 			local lightradius = param.radius
 			local falloffsquared = param.falloffsquared or 1.0
-			--Spring.Echo("Drawlighttype position = ", light.px, light.py, light.pz)
+			--Spring.Echo("DrawlightType position = ", light.px, light.py, light.pz)
 			local groundheight = math_max(0, spGetGroundHeight(light.px, light.pz))
 			local sx, sy, sz = spWorldToScreenCoords(light.px, groundheight, light.pz) -- returns x, y, z, where x and y are screen pixels, and z is z buffer depth.
 			sx = sx / vsx
@@ -999,7 +1020,7 @@ local function DrawLightType(lights, lightsCount, lighttype)
 			) -- screen size goes from -1, -1 to 1, 1; uvs go from 0, 0 to 1, 1
 
 		end
-		if lighttype == 1 then
+		if lightType == 1 then
 			-- beam
 			local lightradius = 0
 
@@ -1008,7 +1029,7 @@ local function DrawLightType(lights, lightsCount, lighttype)
 			local py = light.py + light.dy * 0.5
 			local pz = light.pz + light.dz * 0.5
 			local lightradius = param.radius + math_sqrt(light.dx * light.dx + light.dy * light.dy + light.dz * light.dz) * 0.5
-			VerboseEcho("Drawlighttype position = ", light.px, light.py, light.pz)
+			VerboseEcho("DrawlightType position = ", light.px, light.py, light.pz)
 			local sx, sy, sz = spWorldToScreenCoords(px, py, pz) -- returns x, y, z, where x and y are screen pixels, and z is z buffer depth.
 			sx = sx / vsx
 			sy = sy / vsy --since FOV is static in the Y direction, the Y ratio is the correct one
@@ -1084,18 +1105,19 @@ end
 
 function widget:UnitIdle(unitID, unitDefID, teamID)
 	if unitEventLights[unitDefID] then 
-		local lightTable = unitEventLights[unitDefID]
-		InitializeLight(lightTable, unitID)
-		for lightname, lightParams in pairs(lightTable) do
+		local unitEventLight = unitEventLights[unitDefID]
+		--InitializeLight(lightTable, unitID)
+		for lightname, lightTable in pairs(unitEventLight) do
 			if lightname ~= 'initComplete' then
-				if lightParams.lighttype == 'point' then
-					AddPointLight( tostring(unitID) ..  lightname, unitID, nil, nil, lightParams.lightParamTable)
+				if not lightTable.initComplete then InitializeLight(lightTable, unitID) end
+				if lightTable.lightType == 'point' then
+					AddPointLight( tostring(unitID) ..  lightname, unitID, nil, nil, lightTable.lightParamTable)
 				end
-				if lightParams.lighttype == 'cone' then 
-					AddConeLight(tostring(unitID) ..  lightname, unitID, nil, nil, lightParams.lightParamTable) 
+				if lightTable.lightType == 'cone' then 
+					AddConeLight(tostring(unitID) ..  lightname, unitID, nil, nil, lightTable.lightParamTable) 
 				end
-				if lightParams.lighttype == 'beam' then 
-					AddBeamLight(tostring(unitID) ..  lightname, unitID, nil, nil, lightParams.lightParamTable) 
+				if lightTable.lightType == 'beam' then 
+					AddBeamLight(tostring(unitID) ..  lightname, unitID, nil, nil, lightTable.lightParamTable) 
 				end
 			end
 		end
@@ -1180,6 +1202,8 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:DrawWorld() -- We are drawing in world space, probably a bad idea but hey
+--function widget:DrawWorldPreParticles() -- We are drawing in world space, probably a bad idea but hey
+--function widget:DrawWorldRefraction() -- We are drawing in world space, probably a bad idea but hey
 	--glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
 	deferredLightShader = checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4") or deferredLightShader
 	
@@ -1222,7 +1246,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		glTexture(8, noisetex3dcube)
 		glTexture(9, "$heightmap")
 		glTexture(10,"$normals")
-	end
+
 
 
 		--Spring.Echo(screenCopyTex)
