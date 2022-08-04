@@ -364,9 +364,9 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 			endOffset = (thisInstanceIndex - 1) * iTStep
 		end
 	end
-
+	local instanceData = iT.instanceData
 	for i =1, iTStep  do -- copy data, but fast
-		iT.instanceData[endOffset + i] =  thisInstance[i]
+		instanceData[endOffset + i] =  thisInstance[i]
 	end
 
 	if unitID ~= nil then 
@@ -453,9 +453,10 @@ function popElementInstance(iT, instanceID, noUpload)
 		iT.indextoInstanceID[lastElementIndex] = nil --- somehow this got forgotten? TODO for VBOIDtable
 
 		local oldOffset = (oldElementIndex-1)*iTStep 
-		for i= 1, iTStep do 
-			local data =  iT.instanceData[endOffset + i]
-			iT.instanceData[oldOffset + i ] = data
+		local instanceData = iT.instanceData
+		for i = 1, iTStep do 
+			local data =  instanceData[endOffset + i]
+			instanceData[oldOffset + i ] = data
 		end
 		--size_t LuaVBOImpl::Upload(const sol::stack_table& luaTblData, const sol::optional<int> attribIdxOpt, const sol::optional<int> elemOffsetOpt, const sol::optional<int> luaStartIndexOpt, const sol::optional<int> luaFinishIndexOpt)
 		--Spring.Echo("Removing instanceID",instanceID,"from iT at position", oldElementIndex, "shuffling back at", iT.usedElements,"endoffset=",endOffset,'oldOffset=',oldOffset)
@@ -540,16 +541,17 @@ function popElementInstance(iT, instanceID, noUpload)
 	return oldElementIndex
 end
 
-function getElementInstanceData(iT, instanceID)
+function getElementInstanceData(iT, instanceID, cacheTable)
 	-- iT: instanceTable created with makeInstanceTable
 	-- instanceID: an optional key given to the item, so it can be easily removed by reference, defaults to the index of the instance in the buffer (1 based)
 	local instanceIndex = iT.instanceIDtoIndex[instanceID] 
 	if instanceIndex == nil then return nil end
-	local iData = {}
+	local iData = cacheTable or {}
 	local iTStep = iT.instanceStep
 	instanceIndex = (instanceIndex-1) * iTStep
+	local instanceData = iT.instanceData
 	for i = 1, iTStep do
-		iData[i] = iT.instanceData[instanceIndex + i]
+		iData[i] = instanceData[instanceIndex + i]
 	end
 	return iData
 end
@@ -580,8 +582,9 @@ function uploadElementRange(iT, startElementIndex, endElementIndex)
 	if iT.indextoUnitID then
 		--we need to reslice the table
 		local unitIDRange = {}
+		local indextoUnitID = iT.indextoUnitID
 		for i = startElementIndex, endElementIndex do
-			unitIDRange[#unitIDRange + 1] = iT.indextoUnitID[i]
+			unitIDRange[#unitIDRange + 1] = indextoUnitID[i]
 		end
 		if iT.featureIDs then
 			iT.instanceVBO:InstanceDataFromFeatureIDs(unitIDRange, iT.unitIDattribID, startElementIndex - 1)
