@@ -13,7 +13,6 @@ function widget:GetInfo()
 		enabled = false
 	}
 end
-Spring.Echo("FUCKALL")
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -867,18 +866,15 @@ local nightFactor = 0.33
 local unitNightFactor = 1.2 -- applied above nightFactor
 local adjustfornight = {'unitAmbientColor', 'unitDiffuseColor', 'unitSpecularColor','groundAmbientColor', 'groundDiffuseColor', 'groundSpecularColor' }
 
-Spring.Echo("FUCKALL")
 function widget:Initialize()
-	Spring.Echo("FUCKALL")
-	if not LoadLightConfig() then
-		widgetHandler:RemoveWidget()
-
-		return 
-	end
 	if Spring.GetConfigString("AllowDeferredMapRendering") == '0' or Spring.GetConfigString("AllowDeferredModelRendering") == '0' then
 		Spring.Echo('Deferred Rendering (gfx_deferred_rendering.lua) requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!')
 		widgetHandler:RemoveWidget()
 		return
+	end
+	if not LoadLightConfig() then
+		widgetHandler:RemoveWidget()
+		return 
 	end
 	
 	if initGL4() == false then return end
