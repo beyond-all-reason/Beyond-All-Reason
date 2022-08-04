@@ -2127,6 +2127,9 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
                     end
                     if m_income.active then
                         DrawIncome(ei, mi, posY, dead)
+                        if tipY then
+                            IncomeTip(mouseX, ei, mi)
+                        end
                     end
                 end
             end
@@ -2740,6 +2743,32 @@ function ResourcesTip(mouseX, energy, energyStorage, energyIncome, metal, metalS
             metalIncome = Spring.I18N('ui.playersList.thousands', { number = math.floor(metalIncome / 1000) })
         end
         tipText = "\255\255\255\000+" .. energyIncome .. "\n\255\255\255\000" .. energy .. "\n\255\255\255\255" .. metal .. "\n\255\255\255\255+" .. metalIncome
+    end
+end
+
+function IncomeTip(mouseX, energyIncome, metalIncome)
+    if mouseX >= widgetPosX + (m_income.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_income.posX + m_resources.width) * widgetScale then
+        if energyIncome == nil then
+            energyIncome = 0
+            metalIncome = 0
+        end
+        energyIncome = math.floor(energyIncome)
+        metalIncome = math.floor(metalIncome)
+        if energyIncome > 1000 then
+            energyIncome = math.floor(energyIncome / 100) * 100
+        elseif energyIncome > 100 then
+            energyIncome = math.floor(energyIncome / 10) * 10
+        end
+        if metalIncome > 200 then
+            metalIncome = math.floor(metalIncome / 10) * 10
+        end
+        if energyIncome >= 10000 then
+            energyIncome = Spring.I18N('ui.playersList.thousands', { number = math.floor(energyIncome / 1000) })
+        end
+        if metalIncome >= 10000 then
+            metalIncome = Spring.I18N('ui.playersList.thousands', { number = math.floor(metalIncome / 1000) })
+        end
+        tipText = Spring.I18N('ui.playersList.resincome') .. "\n\255\255\255\000+" .. energyIncome .. "\n\255\255\255\255+" .. metalIncome
     end
 end
 
