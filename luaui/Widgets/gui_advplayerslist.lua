@@ -49,6 +49,8 @@ local alwaysHideSpecs = false
 local lockcameraHideEnemies = true            -- specfullview
 local lockcameraLos = true                    -- togglelos
 
+local absoluteResbarValues = false
+
 local vsx, vsy = Spring.GetViewGeometry()
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -189,6 +191,7 @@ local lastBroadcasts = {}
 local recentBroadcasters = {}
 local newBroadcaster = false
 local aliveAllyTeams = {}
+local allyTeamMaxStorage = {}
 local screenshotVars = {} -- containing: finished, width, height, gameframe, data, dataLast, dlist, pixels, player, filename, saved, saveQueued, posX, posY
 
 local Background, ShareSlider, chobbyInterface, BackgroundGuishader, tipText, drawTipText, tipY, myLastCameraState
@@ -961,6 +964,12 @@ function widget:Initialize()
     WG['advplayerlist_api'].GetPosition = function()
         return apiAbsPosition
     end
+    WG['advplayerlist_api'].GetAbsoluteResbars = function()
+        return absoluteResbarValues
+    end
+    WG['advplayerlist_api'].SetAbsoluteResbars = function(value)
+        absoluteResbarValues = value
+    end
     WG['advplayerlist_api'].GetLockPlayerID = function()
         return lockPlayerID
     end
@@ -1366,6 +1375,7 @@ function CreatePlayerFromTeam(teamID)
 end
 
 function UpdatePlayerResources()
+    allyTeamMaxStorage = {}
     local energy, energyStorage, metal, metalStorage = 0, 1, 0, 1
     local energyIncome, metalIncome
     for playerID, _ in pairs(player) do
@@ -1392,6 +1402,15 @@ function UpdatePlayerResources()
                 player[playerID].metal = metal
                 player[playerID].metalIncome = metalIncome
                 player[playerID].metalStorage = metalStorage
+                if not allyTeamMaxStorage[player[playerID].allyteam] then
+                    allyTeamMaxStorage[player[playerID].allyteam] = {}
+                end
+                if not allyTeamMaxStorage[player[playerID].allyteam][1] or energyStorage > allyTeamMaxStorage[player[playerID].allyteam][1] then
+                    allyTeamMaxStorage[player[playerID].allyteam][1] = energyStorage
+                end
+                if not allyTeamMaxStorage[player[playerID].allyteam][2] or metalStorage > allyTeamMaxStorage[player[playerID].allyteam][2] then
+                    allyTeamMaxStorage[player[playerID].allyteam][2] = metalStorage
+                end
             end
         end
     end
@@ -2097,7 +2116,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
                 local ms = player[playerID].metalStorage
                 local mi = player[playerID].metalIncome
                 if es > 0 then
-                    DrawResources(e, es, m, ms, posY, dead)
+                    DrawResources(e, es, m, ms, posY, dead, (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][1])), (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][2])))
                     if tipY then
                         ResourcesTip(mouseX, e, es, ei, m, ms, mi)
                     end
@@ -2197,7 +2216,7 @@ function DrawChatButton(posY)
     DrawRect(m_chat.posX + widgetPosX + 1, posY, m_chat.posX + widgetPosX + 17, posY + 16)
 end
 
-function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
+function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead, maxAllyTeamEnergyStorage, maxAllyTeamMetalStorage)
 	-- limit to prevent going out of bounds when losing storage
 	energy = math.min(energy, energyStorage)
 	metal = math.min(metal, metalStorage)
@@ -2211,22 +2230,24 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
         y1Offset = 7.4
         y2Offset = 6
     end
-    gl_Color(1, 1, 1, 0.14)
+
+    local maxStorage = (maxAllyTeamMetalStorage and maxAllyTeamMetalStorage or metalStorage)
+    gl_Color(1, 1, 1, 0.18)
     gl_Texture(pics["resbarBgPic"])
-    DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + barWidth, posY + y2Offset)
+    DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (metalStorage/maxStorage)), posY + y2Offset)
     gl_Color(1, 1, 1, 1)
     gl_Texture(pics["resbarPic"])
-    DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / metalStorage) * metal), posY + y2Offset)
+    DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal), posY + y2Offset)
 
-    if (barWidth / metalStorage) * metal > 0.8 then
+    if (barWidth / maxStorage) * metal > 0.8 then
         local glowsize = 10
         gl_Color(1, 1, 1.2, 0.08)
         gl_Texture(pics["barGlowCenterPic"])
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / metalStorage) * metal), posY + y2Offset - glowsize)
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal), posY + y2Offset - glowsize)
 
         gl_Texture(pics["barGlowEdgePic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft - (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft, posY + y2Offset - glowsize)
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth / metalStorage) * metal) + (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / metalStorage) * metal), posY + y2Offset - glowsize)
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal) + (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * metal), posY + y2Offset - glowsize)
     end
 
     if not dead then
@@ -2236,23 +2257,23 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
         y1Offset = 10
         y2Offset = 8.6
     end
-
-    gl_Color(1, 1, 0, 0.14)
+    maxStorage = (maxAllyTeamEnergyStorage and maxAllyTeamEnergyStorage or energyStorage)
+    gl_Color(1, 1, 0, 0.18)
     gl_Texture(pics["resbarBgPic"])
-    DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + barWidth, posY + y2Offset)
+    DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (energyStorage/maxStorage)), posY + y2Offset)
     gl_Color(1, 1, 0, 1)
     gl_Texture(pics["resbarPic"])
-    DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / energyStorage) * energy), posY + y2Offset)
+    DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy), posY + y2Offset)
 
-    if (barWidth / energyStorage) * energy > 0.8 then
+    if (barWidth / maxStorage) * energy > 0.8 then
         local glowsize = 10
         gl_Color(1, 1, 0.2, 0.08)
         gl_Texture(pics["barGlowCenterPic"])
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / energyStorage) * energy), posY + y2Offset - glowsize)
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy), posY + y2Offset - glowsize)
 
         gl_Texture(pics["barGlowEdgePic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft - (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft, posY + y2Offset - glowsize)
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth / energyStorage) * energy) + (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / energyStorage) * energy), posY + y2Offset - glowsize)
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy) + (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy), posY + y2Offset - glowsize)
     end
 end
 
@@ -3127,6 +3148,7 @@ function widget:GetConfigData(data)
             lockcameraHideEnemies = lockcameraHideEnemies,
             lockcameraLos = lockcameraLos,
 			hasresetskill = true,
+            absoluteResbarValues = absoluteResbarValues,
         }
 
         return settings
@@ -3143,6 +3165,10 @@ function widget:SetConfigData(data)
 
         if data.specListShow ~= nil then
             specListShow = data.specListShow
+        end
+
+        if data.absoluteResbarValues ~= nil then
+            absoluteResbarValues = data.absoluteResbarValues
         end
 
         if data.enemyListShow ~= nil then

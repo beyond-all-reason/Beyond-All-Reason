@@ -2795,6 +2795,14 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
 		  end,
 		},
+		{ id = "advplayerlist_absresbars", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_absresbars, type = "bool", value = false, description = texts.option.advplayerlist_absresbars_descr,
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_absresbars", { 'absoluteResbarValues' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetAbsoluteResbars', { 'absoluteResbarValues' }, value)
+		  end,
+		},
 		{ id = "unittotals", group = "ui", category = types.basic, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   " .. texts.option.unittotals, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = texts.option.unittotals_descr },
 		{ id = "mascot", group = "ui", category = types.advanced, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   " .. texts.option.mascot, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = texts.option.mascot_descr },
 
