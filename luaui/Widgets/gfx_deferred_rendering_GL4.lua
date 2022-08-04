@@ -168,9 +168,10 @@ widget:ViewResize()
 	--cursorlight
 	--light types should know their vbo?
 		-- this one is much harder than expected
-	-- initialize config dicts
-	-- rework dicts
-	-- unitdefidpiecemapcache
+	-- initialize config dicts -- DONE
+	-- rework dicts -- DONE
+	-- unitdefidpiecemapcache -- DONE
+	-- Draw pre-water
 
 local shaderConfig = {
 	MIERAYLEIGHRATIO = 0.1,
@@ -217,7 +218,7 @@ local lastshaderupdate = nil
 local shaderSourceCache = {}
 local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, delaytime)
 	if lastshaderupdate == nil or 
-		Spring.DiffTimers(Spring.GetTimer(), lastshaderupdate) > (delaytime or 0.25) then 
+		Spring.DiffTimers(Spring.GetTimer(), lastshaderupdate) > (delaytime or 2.25) then 
 		lastshaderupdate = Spring.GetTimer()
 		local vsSrcNew = vssrcpath and VFS.LoadFile(vssrcpath)
 		local fsSrcNew = fssrcpath and VFS.LoadFile(fssrcpath)
@@ -660,17 +661,21 @@ end
 local function updateLightPosition(lightVBO, instanceID, posx, posy, posz, radius, p2x, p2y, p2z, theta)
 	local instanceIndex = lightVBO.instanceIDtoIndex[instanceID]
 	if instanceIndex == nil then return nil end
-	instanceIndex = instanceIndex * iT.instanceStep
+	instanceIndex = (instanceIndex - 1 ) * lightVBO.instanceStep
 	local instData = lightVBO.instanceData
 	if posx then instData[instanceIndex + 1] = posx end
 	if posy then instData[instanceIndex + 2] = posy end
 	if posz then instData[instanceIndex + 3] = posz end
+	-- only pos for now
+	--[[
+	
 	if radius then instData[instanceIndex + 4] = radius end
 	if p2x then instData[instanceIndex + 5] = p2x end
 	if p2y then instData[instanceIndex + 6] = p2y end
 	if p2z then instData[instanceIndex + 7] = p2z end
 	if theta then instData[instanceIndex + 8] = theta end
-	return instanceIndex
+	]]--
+	return instanceIndex 
 end
 
 -- multiple lights per unitdef/piece are possible, as the lights are keyed by lightname
@@ -781,7 +786,7 @@ end
 ---@param instanceID any the ID of the light to remove
 ---@param unitID number make this non-nil to remove it from a unit
 ---@returns the same instanceID on success, nil if the light was not found
-local function RemoveLight(lightshape, instanceID, unitID, noUplooad)
+local function RemoveLight(lightshape, instanceID, unitID, noUpload)
 	if lightshape == 'point' then 
 		if unitID then return popElementInstance(unitPointLightVBO, instanceID) 
 		else return popElementInstance(pointLightVBO, instanceID) end
@@ -794,7 +799,7 @@ local function RemoveLight(lightshape, instanceID, unitID, noUplooad)
 	else return nil end
 end
 
-local function RemoveProjectileLight(lightshape, instanceID, unitID, noUplooad)
+local function RemoveProjectileLight(lightshape, instanceID, unitID, noUpload)
 	if lightshape == 'point' then 
 		if unitID then return popElementInstance(unitPointLightVBO, instanceID) 
 		else return popElementInstance(pointLightVBO, instanceID) end
@@ -1127,56 +1132,87 @@ local trackedprojectiles = {}
 local lastgf = -2
 local removalqueue = {}
 
-local testprojlighttable = {0,16,0,420, --pos + radius
-								1,1,1, 15, -- color2
-								-1,1,1,1, -- RGBA
-								0.2,1,1,1, -- modelfactor_specular_scattering_lensflare
-								0,1500,2000,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+local testprojlighttable = {0,16,0,200, --pos + radius
+								0.25, 0.25,0.125, 5, -- color2, colortime
+								1.0,1.0,0.5,0.5, -- RGBA
+								0.1,1,0.25,1, -- modelfactor_specular_scattering_lensflare
+								0,0,200,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								}
 
+local spGetProjectilePosition = Spring.GetProjectilePosition
+
+-- Beam type projectiles are indeed an oddball, as they live for exactly 3 frames, no?
+
+
 
 function widget:Update()
+	local debugproj = false
 	local nowprojectiles = Spring.GetVisibleProjectiles()
-	local newgameframe = lastgf == gameFrame
+	gameFrame = Spring.GetGameFrame()
+	local newgameframe = true
+	if gameFrame == lastgf then newgameframe = false end 
+	--Spring.Echo(gameFrame, lastgf, newgameframe)
 	lastgf = gameFrame
-
 	-- turn off uploading vbo
-
+	-- BUG: having a lifetime associated with each projectile kind of bugs out updates
+	local numadded = 0
 	for i= 1, #nowprojectiles do
 		local projid = nowprojectiles[i]
-		local px, py, pz = Spring.GetProjectilePosition(projid)
-		trackedprojectiles[projid] = gameFrame
+		local px, py, pz = spGetProjectilePosition(projid)
+
 
 		if trackedprojectiles[projid] then 
 			if newgameframe then
 				--update proj pos
-				updateLightPosition(pointLightVBO, projid, px,py,pz)
+				local instanceIndex = updateLightPosition(projectilePointLightVBO, projid, px,py,pz)
+				if debugproj then Spring.Echo("Updated", instanceIndex, projid, px, py, pz) end
 			end
 		else
-			-- add projectile
+			-- add projectile		
 			testprojlighttable[1] = px
 			testprojlighttable[2] = py
 			testprojlighttable[3] = pz
-			AddPointLight(projid, nil, nil, pointLightVBO, testprojlighttable)
-
+			AddPointLight(projid, nil, nil, projectilePointLightVBO, testprojlighttable)
+			
+			numadded = numadded + 1
+			if debugproj then Spring.Echo("Adding projlight", projid, Spring.GetProjectileName(projid)) end
 			--trackedprojectiles[]
 		end
+		trackedprojectiles[projid] = gameFrame
 	end
 	-- remove theones that werent updated 
+	local numremoved = 0
 	for projid, gf in pairs(trackedprojectiles) do
 		if gf < gameFrame then
 			--SO says we can modify or remove elements while iterating, we just cant add
-
-			trackedprojectiles[projid] = nil
-			RemoveLight('point', projid, nil)
+			
+			
+			-- a possible hack to keep projectiles visible, is trying to keep getting their pos
+			local px, py, pz = spGetProjectilePosition(projid)
+			if px then
+				if newgameframe then 
+					updateLightPosition(projectilePointLightVBO, projid, px,py,pz)
+				end
+			else
+				numremoved = numremoved + 1 
+				trackedprojectiles[projid] = nil
+				--RemoveLight('point', projid, nil)
+				popElementInstance(projectilePointLightVBO, projid) 
+			end
 		end
 	end
 	-- upload all changed elements in one go
-	uploadAllElements(pointLightVBO)
-
+	
+	uploadAllElements(projectilePointLightVBO)
+	if debugproj then 
+		--Spring.Echo("#points", projectilePointLightVBO.usedElements, '#projs', #nowprojectiles ) 
+	end
+	local trackedprojcount = 0
+	for k,v in pairs(trackedprojectiles) do trackedprojcount = trackedprojcount + 1 end 
+		--Spring.Echo("#points", projectilePointLightVBO.usedElements, '#projs', #nowprojectiles, "#tracked", trackedprojcount, "#removed", numremoved , "#added", numadded ) 
 	--[[
 	beamLights = {}
 	beamLightCount = 0
@@ -1199,8 +1235,6 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:DrawWorld() -- We are drawing in world space, probably a bad idea but hey
---function widget:DrawWorldPreParticles() -- We are drawing in world space, probably a bad idea but hey
---function widget:DrawWorldRefraction() -- We are drawing in world space, probably a bad idea but hey
 	--glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
 	deferredLightShader = checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4") or deferredLightShader
 	
@@ -1213,7 +1247,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	
 	
 		local alt, ctrl, meta, shft = Spring.GetModKeyState()
-				
+		--[[		
 		local screenCopyTex = nil
 		if WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
 			--screenCopyTex = WG['screencopymanager'].GetScreenCopy() -- TODO DOESNT WORK? CRASHES THE GL PIPE
@@ -1223,6 +1257,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		else 
 			--glTexture(6, screenCopyTex)
 		end
+		]]--
 		if ctrl then
 			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		else
@@ -1254,7 +1289,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		deferredLightShader:SetUniformFloat("windX", windX)
 		deferredLightShader:SetUniformFloat("windZ", windZ)
 		--Spring.Echo(windX, windZ)
-		
+
 		-- Fixed worldpos lights
 		if pointLightVBO.usedElements > 0 then
 			deferredLightShader:SetUniformFloat("pointbeamcone", 0)
@@ -1283,7 +1318,6 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 			projectileConeLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, projectileConeLightVBO.usedElements, 0)
 		end
 
-		
 		-- Unit Attached Lights
 		deferredLightShader:SetUniformFloat("attachedtounitID", 1)		
 		
@@ -1311,6 +1345,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 				cursorPointLightVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, cursorPointLightVBO.usedElements, 0)
 			end
 		end 
+		
 		
 		deferredLightShader:Deactivate()
 		
