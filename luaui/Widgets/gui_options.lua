@@ -2787,12 +2787,12 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'cpuping' }, value, { 'cpuping', value })
 		  end,
 		},
-		{ id = "advplayerlist_share", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_share, type = "bool", value = true, description = texts.option.advplayerlist_share_descr,
+		{ id = "advplayerlist_income", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_income, type = "bool", value = true, description = texts.option.advplayerlist_income_descr,
 		  onload = function(i)
-			  loadWidgetData("AdvPlayersList", "advplayerlist_share", { 'm_active_Table', 'share' })
+			  loadWidgetData("AdvPlayersList", "advplayerlist_income", { 'm_active_Table', 'income' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'income' }, value, { 'income', value })
 		  end,
 		},
 		{ id = "advplayerlist_absresbars", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_absresbars, type = "bool", value = false, description = texts.option.advplayerlist_absresbars_descr,
@@ -2801,6 +2801,14 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetAbsoluteResbars', { 'absoluteResbarValues' }, value)
+		  end,
+		},
+		{ id = "advplayerlist_share", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_share, type = "bool", value = true, description = texts.option.advplayerlist_share_descr,
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_share", { 'm_active_Table', 'share' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
 		  end,
 		},
 		{ id = "unittotals", group = "ui", category = types.basic, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   " .. texts.option.unittotals, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = texts.option.unittotals_descr },

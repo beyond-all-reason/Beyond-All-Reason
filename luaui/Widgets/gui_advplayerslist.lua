@@ -128,6 +128,7 @@ local pics = {
     resourcesPic = imageDirectory .. "res.png",
     resbarPic = imageDirectory .. "resbar.png",
     resbarBgPic = imageDirectory .. "resbarBg.png",
+    incomePic = imageDirectory .. "res.png",
     barGlowCenterPic = imageDirectory .. "barglow-center.png",
     barGlowEdgePic = imageDirectory .. "barglow-edge.png",
 
@@ -299,23 +300,11 @@ local enemyListShow = true
 --------------------------------------------------
 
 local modules = {}
-local m_indent
-local m_rank
-local m_side
-local m_ID
-local m_name
-local m_share
-local m_chat
-local m_cpuping
-local m_country
-local m_alliance
-local m_skill
-local m_resources
+local m_indent, m_rank, m_side, m_ID, m_name, m_share, m_chat, m_cpuping, m_country, m_alliance, m_skill, m_resources, m_income
 
 -- these are not considered as normal module since they dont take any place and wont affect other's position
 -- (they have no module.width and are not part of modules)
-local m_point
-local m_take
+local m_point, m_take
 
 local position = 1
 m_indent = {
@@ -433,6 +422,19 @@ m_resources = {
 }
 position = position + 1
 
+m_income = {
+    name = "income",
+    spec = true,
+    play = true,
+    active = false,
+    width = 28,
+    position = position,
+    posX = 0,
+    pic = pics["incomePic"],
+    picGap = 7,
+}
+position = position + 1
+
 m_share = {
     name = "share",
     spec = false,
@@ -486,6 +488,7 @@ modules = {
     m_name,
     m_skill,
     m_resources,
+    m_income,
     m_cpuping,
     m_alliance,
     m_share,
@@ -1771,7 +1774,7 @@ function CreateLists()
     UpdateAlliances()
     GetAliveAllyTeams()
 
-    if m_resources.active then
+    if m_resources.active or m_income.active then
         UpdateResources()
     end
 
@@ -2107,7 +2110,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
             DrawAlly(posY, player[playerID].team)
         end
 
-        if m_resources.active and aliveAllyTeams[allyteam] ~= nil and player[playerID].energy ~= nil then
+        if (m_resources.active or m_income.active) and aliveAllyTeams[allyteam] ~= nil and player[playerID].energy ~= nil then
             if mySpecStatus or myAllyTeamID == allyteam then
                 local e = player[playerID].energy
                 local es = player[playerID].energyStorage
@@ -2116,9 +2119,14 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
                 local ms = player[playerID].metalStorage
                 local mi = player[playerID].metalIncome
                 if es > 0 then
-                    DrawResources(e, es, m, ms, posY, dead, (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][1])), (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][2])))
-                    if tipY then
-                        ResourcesTip(mouseX, e, es, ei, m, ms, mi)
+                    if m_resources.active then
+                        DrawResources(e, es, m, ms, posY, dead, (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][1])), (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][2])))
+                        if tipY then
+                            ResourcesTip(mouseX, e, es, ei, m, ms, mi)
+                        end
+                    end
+                    if m_income.active then
+                        DrawIncome(ei, mi, posY, dead)
                     end
                 end
             end
@@ -2275,6 +2283,32 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead, m
         DrawRect(m_resources.posX + widgetPosX + paddingLeft - (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft, posY + y2Offset - glowsize)
         DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy) + (glowsize * 1.8), posY + y1Offset + glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth / maxStorage) * energy), posY + y2Offset - glowsize)
     end
+end
+
+local function formatRes(number)
+    local label
+    if number > 10000 then
+        label = table.concat({ math.floor(math.round(number / 1000)), "k" })
+    elseif number > 1000 then
+        label = table.concat({ string.sub(math.round(number / 1000, 1), 1, 2 + (string.find(math.round(number / 1000, 1), ".", nil, true) or 0)), "k" })
+    elseif number > 10 then
+        label = string.sub(math.round(number, 0), 1, 3 + (string.find(math.round(number, 0), ".", nil, true) or 0))
+    else
+        label = string.sub(math.round(number, 1), 1, 2 + (string.find(math.round(number, 1), ".", nil, true) or 0))
+    end
+    return tostring(label)
+end
+
+function DrawIncome(energy, metal, posY, dead)
+    local fontsize = dead and 4.5 or 8.5
+    font:Begin()
+    if energy > 0 then
+        font:Print('\255\255\255\050'..formatRes(math.floor(energy)), m_income.posX + widgetPosX + m_income.width - 2, posY + (fontsize*1.15) + (dead and 1 or 0), fontsize, "or")
+    end
+    if metal > 0 then
+        font:Print('\255\235\235\235'..formatRes(math.floor(metal)), m_income.posX + widgetPosX + m_income.width - 2, posY + (fontsize*0.2) + (dead and 1 or 0), fontsize, "or")
+    end
+    font:End()
 end
 
 function DrawSidePic(team, playerID, posY, leader, dark, ai)

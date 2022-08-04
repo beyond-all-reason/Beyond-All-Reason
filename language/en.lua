@@ -411,6 +411,8 @@ return {
 			advplayerlist_side_descr = 'show side/faction icon',
 			advplayerlist_skill = 'trueSkill value',
 			advplayerlist_skill_descr = 'show the player trueskill number (used for balancing algorithm)',
+			advplayerlist_income = 'income values',
+			advplayerlist_income_descr = 'displays the energy/metal income values',
 			advplayerlist_cpuping = 'cpuping number',
 			advplayerlist_cpuping_descr = 'show cpu/ping usage/value',
 			advplayerlist_share = 'share buttons',
