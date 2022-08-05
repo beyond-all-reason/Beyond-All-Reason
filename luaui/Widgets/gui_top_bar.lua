@@ -1172,19 +1172,23 @@ function init()
 	end
 
 	-- rejoin
-	width = math_floor(totalWidth / 4) / 3.3
-	rejoinArea = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
-	filledWidth = filledWidth + width + widgetSpaceMargin
+	if showRejoinUI then
+		width = math_floor((totalWidth / 4) / 3.3)
+		rejoinArea = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
+		filledWidth = filledWidth + width + widgetSpaceMargin
+	end
 
 	-- buttons
 	width = math_floor(totalWidth / 4)
 	buttonsArea = { topbarArea[3] - width, topbarArea[2], topbarArea[3], topbarArea[4] }
-	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateButtons()
 
 	if WG['topbar'] then
 		WG['topbar'].GetPosition = function()
 			return { topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale}
+		end
+		WG['topbar'].GetFreeArea = function()
+			return { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[3] - width - widgetSpaceMargin, topbarArea[4], widgetScale}
 		end
 	end
 
@@ -2138,7 +2142,7 @@ function widget:GameProgress(n)
 end
 
 function widget:LanguageChanged()
-	updateButtons();
+	updateButtons()
 end
 
 function widget:Initialize()
