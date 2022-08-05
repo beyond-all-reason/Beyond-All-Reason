@@ -1,3 +1,31 @@
+
+local exampleLight = {
+	lightType = 'point', -- or cone or beam
+	pieceName = nil, -- optional
+	lightConfig = {
+		posx = 0, posy = 0, posz = 0, radius = 100, 
+		r = 1, g = 1, b = 1, a = 1, 
+		color2r = 1, color2g = 1, color2b = 1, colortime = 15, -- point lights only, colortime in seconds for unit-attached
+		dirx = 0, diry = 0, dirz = 1, theta = 0.5,  -- cone lights only, specify direction and half-angle in radians
+		pos2x = 100, pos2y = 100, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
+		modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
+		lifetime = 0, sustain = 1, 	aninmtype = 0 -- unused	
+	},
+}
+
+
+local gibLight = {
+	lightType = 'point', -- or cone or beam
+	pieceName = nil, -- optional
+	lightConfig = {
+		posx = 0, posy = 0, posz = 0, radius = 75, 
+		r = 1, g = 1, b = 0.5, a = 0.25, 
+		color2r = 0.8, color2g = 0.7, color2b = 0.3, colortime = 0.1, -- point lights only, colortime in seconds for unit-attache
+		modelfactor = 1, specular = 1, scattering = 0.3, lensflare = 1, 
+		lifetime = 0, sustain = 100, 	aninmtype = 0 -- unused
+	},
+}
+
 -- multiple lights per unitdef/piece are possible, as the lights are keyed by lightname
 
 local unitDefLights = {
@@ -492,20 +520,18 @@ local unitEventLights = {
 
 local projectileDefLights  = {
 	['default'] = {
-		idleBlink = {
-			lightType = 'point',
- 			lightConfig = { posx = 0, posy = 16, posz = 0, radius = 420,
- 				color2r = 1, color2g = 1, color2b = 1, colortime = 15,
- 				r = -1, g = 1, b = 1, a = 1,
- 				modelfactor = 0.2, specular = 1, scattering = 1, lensflare = 1,
- 				lifetime = 50, sustain = 20, animtype = 0},
+		lightType = 'point',
+		lightConfig = { posx = 0, posy = 16, posz = 0, radius = 420,
+			color2r = 1, color2g = 1, color2b = 1, colortime = 15,
+			r = -1, g = 1, b = 1, a = 1,
+			modelfactor = 0.2, specular = 1, scattering = 1, lensflare = 1,
+			lifetime = 50, sustain = 20, animtype = 0},
 
-		},
 	}
 }
 
 local allLights = {unitEventLights = unitEventLights,
-unitDefLights = unitDefLights, projectileDefLights = projectileDefLights }
+unitDefLights = unitDefLights, projectileDefLights = projectileDefLights, gibLight = gibLight}
 
 ----------------- Debugging code to do the reverse dump ---------------
 --[[

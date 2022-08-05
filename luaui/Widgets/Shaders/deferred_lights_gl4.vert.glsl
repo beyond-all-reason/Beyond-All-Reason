@@ -135,8 +135,8 @@ void main()
 		if (any(lessThan(lightcolor.rgb, vec3(-0.01)))) v_lightcolor.rgb = teamCol.rgb;
 	}
 	
+	float elapsedframes = time - otherparams.x;
 	if (otherparams.y > 0 ){ //lifetime alpha control
-		float elapsedframes = time - otherparams.x;
 		if (otherparams.z >1 ){ // sustain is positive, keep it up for sustain frames, then ramp it down
 			v_lightcolor.a = clamp( v_lightcolor.a * ( otherparams.y - elapsedframes)/(otherparams.y - otherparams.z ) , 0.0, v_lightcolor.a);
 			
@@ -169,14 +169,21 @@ void main()
 		lightCenterPosition = (placeInWorldMatrix * vec4(lightCenterPosition, 1.0)).xyz; 
 		
 		
-		if  (attachedtounitID > 0) {
+		if  (attachedtounitID > 0.5) {
 			// for point lights, if the colortime is anything sane (>0), then modulate the light with it.
 			if (worldposrad2.a >0.5){
 				v_lightcolor.rgb = mix(v_lightcolor.rgb, worldposrad2.rgb, cos((time * 6.2831853) / worldposrad2.a ) * 0.5 + 0.5); }
 				
 		}else{
-			if (worldposrad2.a >0.5){
-				float colortime = clamp((time - otherparams.x)/worldposrad2.a , 0.0, 1.0);
+			if (worldposrad2.a >0.0){
+				
+				float colortime = 0;
+				if (worldposrad2.a > 1.0) {
+					colortime = clamp(elapsedframes/worldposrad2.a , 0.0, 1.0);
+				}
+				else if (worldposrad2.a > 0.0) {
+					colortime =  cos(elapsedframes * 6.2831853 * worldposrad2.a ) * 0.5 + 0.5;
+				}
 				v_lightcolor.rgb = mix(v_lightcolor.rgb, worldposrad2.rgb, colortime); 
 			}
 		}
