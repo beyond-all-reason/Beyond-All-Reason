@@ -863,7 +863,17 @@ local function LoadLightConfig()
 		projectileDefLights = result.projectileDefLights
 		Spring.Echo("Failed to load GL4 light config", success, result)
 	end
-	return success
+	
+	local success2, result2 =	pcall(VFS.Include, 'luaui/configs/DeferredLightsGL4WeaponsConfig.lua')
+	Spring.Echo("Loading GL4 weapon light config", success2, result2)
+	if success2 then
+		Spring.Echo("Loaded GL4 weapon light config")
+		projectileDefLights = result2
+		Spring.Debug.TableEcho(result2)
+	else
+		Spring.Echo("Failed to load GL4 weapon light config", success2, result2)
+	end
+	return success and success2
 end
 
 local mapinfo = nil
