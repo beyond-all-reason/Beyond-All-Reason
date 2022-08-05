@@ -37,18 +37,15 @@ local preset = 2
 local presets = {
 	{
 		quality = 3,
-		blurPasses = 2,
-		blursize = 8,
+		blurPasses = 1,
 	},
 	{
 		quality = 2,
 		blurPasses = 1,
-		blursize = 9,
 	},
 	{
 		quality = 1,
-		blurPasses = 4,
-		blursize = 9,
+		blurPasses = 2,
 	},
 }
 
@@ -64,7 +61,6 @@ local debugBrightShader = false
 
 -- shader and texture handles
 local blurShader = nil
-local blurShaderV71 = nil
 
 local brightShader = nil
 local brightTexture1 = nil
@@ -91,7 +87,7 @@ local glGetUniformLocation = gl.GetUniformLocation
 local brightShaderIllumLoc, brightShaderFragLoc
 local brightShaderIvsxLoc, brightShaderIvsyLoc
 local brightShaderTimeLoc
-local blurShaderFragLoc, blurShaderHorizontalLoc, blurShaderV71FragLoc
+local blurShaderFragLoc, blurShaderHorizontalLoc
 local combineShaderDebgDrawLoc
 
 local camX, camY, camZ = Spring.GetCameraPosition()
@@ -151,7 +147,6 @@ local function MakeBloomShaders()
 	if glDeleteShader then
 		if brightShader ~= nil then glDeleteShader(brightShader or 0) end
 		if blurShader ~= nil then glDeleteShader(blurShader or 0) end
-		if blurShaderV71 ~= nil then glDeleteShader(blurShaderV71 or 0) end
 		if combineShader ~= nil then glDeleteShader(combineShader or 0) end
 	end
 
@@ -198,7 +193,6 @@ local function MakeBloomShaders()
 			"#define IQVSX " .. tostring(iqvsx) .. "\n" .. 
 			"#define IQVSY " .. tostring(iqvsy) .. "\n" .. [[
 			uniform sampler2D texture0;
-			uniform int blursize;
 			uniform float fragBlurAmplifier;
 			const float invKernelSum = 0.012; 
 			uniform float horizontal;
@@ -214,27 +208,27 @@ local function MakeBloomShaders()
 					}
 				vec3 newblur;
 				const float lod = 0.0;
-				newblur   = 6 * texture2D(texture0, texCoors + offset *  6.0 + subpixel, lod).rgb;
-				newblur   = 10 * texture2D(texture0, texCoors + offset *  4.0 + subpixel, lod).rgb;
+				newblur   = 6  * texture2D(texture0, texCoors + offset *  6.0 + subpixel, lod).rgb;
+				newblur  += 10 * texture2D(texture0, texCoors + offset *  4.0 + subpixel, lod).rgb;
 				newblur  += 13 * texture2D(texture0, texCoors + offset *  2.0 + subpixel, lod).rgb;
 				newblur  += 20 * texture2D(texture0, texCoors + offset *  0.0 + subpixel, lod).rgb;
 				newblur  += 13 * texture2D(texture0, texCoors + offset * -2.0 + subpixel, lod).rgb;
 				newblur  += 10 * texture2D(texture0, texCoors + offset * -4.0 + subpixel, lod).rgb;
-				newblur  += 6 * texture2D(texture0, texCoors + offset * -6.0 + subpixel, lod).rgb;
+				newblur  += 6  * texture2D(texture0, texCoors + offset * -6.0 + subpixel, lod).rgb;
 				
 				/*
-				newblur  = 10 * texture2D(texture0, texCoors + vec2()         ).rgb;
-				newblur += 37 * texture2D(texture0, texCoors + vec2(-(blursize/3.5) * inverseRX, 0)).rgb;
-				newblur += 25 * texture2D(texture0, texCoors + vec2(0               , 0)).rgb;
-				newblur += 37 * texture2D(texture0, texCoors + vec2( (blursize/3.5) * inverseRX, 0)).rgb;
-				newblur += 10 * texture2D(texture0, texCoors + vec2( blursize * inverseRX, 0)).rgb;
+				// OLD CRAPPY METHOD:
+					newblur  = 10 * texture2D(texture0, texCoors + vec2()         ).rgb;
+					newblur += 37 * texture2D(texture0, texCoors + vec2(-(blursize/3.5) * inverseRX, 0)).rgb;
+					newblur += 25 * texture2D(texture0, texCoors + vec2(0               , 0)).rgb;
+					newblur += 37 * texture2D(texture0, texCoors + vec2( (blursize/3.5) * inverseRX, 0)).rgb;
+					newblur += 10 * texture2D(texture0, texCoors + vec2( blursize * inverseRX, 0)).rgb;
 				*/
 				gl_FragColor = vec4(newblur * invKernelSum * fragBlurAmplifier, 1.0);
 			}
 		]],
 		uniformInt = {
 			texture0 = 0,
-			blursize = math.floor(presets[preset].blursize),
 		},
 		uniformFloat = {
 			horizontal = 0,
@@ -245,36 +239,6 @@ local function MakeBloomShaders()
 		RemoveMe("[BloomShader::Initialize] blurShader compilation failed"); Spring.Echo(glGetShaderLog()); return
 	end
 
-	blurShaderV71 = glCreateShader({
-		fragment = "#version 150 compatibility\n"..
-		"#define inverseRY " .. tostring(ivsy) .. "\n" .. [[
-			uniform sampler2D texture0;
-			uniform int blursize;
-			uniform float fragBlurAmplifier;
-			const float invKernelSum = 0.0084; // (1/119)
-
-			void main(void) {
-				vec2 texCoors = vec2(gl_TexCoord[0]);
-				vec3 newblur;
-
-				newblur  = 10 * texture2D(texture0, texCoors + vec2(0, -blursize * inverseRY)).rgb;
-				newblur += 37 * texture2D(texture0, texCoors + vec2(0, -(blursize/3.5) * inverseRY)).rgb;
-				newblur += 25 * texture2D(texture0, texCoors + vec2(0,                         0)).rgb;
-				newblur += 37 * texture2D(texture0, texCoors + vec2(0,  (blursize/3.5) * inverseRY)).rgb;
-				newblur += 10 * texture2D(texture0, texCoors + vec2(0,  blursize * inverseRY)).rgb;
-				gl_FragColor = vec4(newblur * invKernelSum * fragBlurAmplifier, 1.0);
-			}
-		]],
-
-		uniformInt = {
-			texture0 = 0,
-			blursize = math.floor(presets[preset].blursize),
-		}
-	})
-
-	if (blurShaderV71 == nil) then
-		RemoveMe("[BloomShader::Initialize] blurShaderV71 compilation failed"); Spring.Echo(glGetShaderLog()); return
-	end
 
 	brightShader = glCreateShader({
 		fragment =   
@@ -348,25 +312,16 @@ local function MakeBloomShaders()
 		RemoveMe("[BloomShader::Initialize] brightShader compilation failed"); print(glGetShaderLog()); return
 	end
 
-
-
-	--brightShaderText0Loc = glGetUniformLocation(brightShader, "modelDiffuseTex")
-	--brightShaderText1Loc = glGetUniformLocation(brightShader, "modelEmitTex")
 	brightShaderIvsxLoc = glGetUniformLocation(brightShader, "ivsx")
 	brightShaderIvsyLoc = glGetUniformLocation(brightShader, "ivsy")
-	brightShaderTimeLoc = glGetUniformLocation(brightShader, "time")
+	--brightShaderTimeLoc = glGetUniformLocation(brightShader, "time")
 	brightShaderIllumLoc = glGetUniformLocation(brightShader, "illuminationThreshold")
 	brightShaderFragLoc = glGetUniformLocation(brightShader, "fragGlowAmplifier")
 
-	--blurShaderText0Loc = glGetUniformLocation(blurShader, "texture0")
 	blurShaderFragLoc = glGetUniformLocation(blurShader, "fragBlurAmplifier")
 	blurShaderHorizontalLoc = glGetUniformLocation(blurShader, "horizontal")
-	--blurShaderV71Text0Loc = glGetUniformLocation(blurShaderV71, "texture0")
-	blurShaderV71FragLoc = glGetUniformLocation(blurShaderV71, "fragBlurAmplifier")
 
 	combineShaderDebgDrawLoc = glGetUniformLocation(combineShader, "debugDraw")
-	--combineShaderTexture0Loc = glGetUniformLocation(combineShader, "texture0")
-	--combineShaderTexture1Loc = glGetUniformLocation(combineShader, "texture1")
 
 end
 
@@ -414,7 +369,6 @@ function widget:Shutdown()
 	if glDeleteShader then
 		if brightShader ~= nil then glDeleteShader(brightShader or 0) end
 		if blurShader ~= nil then glDeleteShader(blurShader or 0) end
-		if blurShaderV71 ~= nil then glDeleteShader(blurShaderV71 or 0) end
 		if combineShader ~= nil then glDeleteShader(combineShader or 0) end
 	end
 	WG['bloomdeferred'] = nil
@@ -427,14 +381,12 @@ local function Bloom()
 	gl.Color(1, 1, 1, 1)
 
 	glUseShader(brightShader)
-		--glUniformInt(brightShaderText0Loc, 0)
-		--glUniformInt(brightShaderText1Loc, 1)
 		glUniform(   brightShaderIllumLoc, illumThreshold)
 		glUniform(   brightShaderFragLoc, glowAmplifier)
 		glUniform(   brightShaderIvsxLoc, 0.5/qvsx)
 		glUniform(   brightShaderIvsyLoc, 0.5/qvsy)
 		local gf = Spring.GetGameFrame()
-		glUniform(   brightShaderTimeLoc, df)
+		--glUniform(   brightShaderTimeLoc, df)
 		glTexture(0, "$model_gbuffer_difftex")
 		glTexture(1, "$model_gbuffer_emittex")
 		glTexture(2, "$model_gbuffer_zvaltex")
@@ -453,16 +405,12 @@ local function Bloom()
 			glUseShader(blurShader)
 			for i = 1, presets[preset].blurPasses do
 
-					--glUniformInt(blurShaderText0Loc, 0)
 					glUniform(blurShaderFragLoc, blurAmplifier)
 					glUniform(blurShaderHorizontalLoc, 0)
 					glTexture(brightTexture1)
 					glRenderToTexture(brightTexture2, gl.TexRect, -1, 1, 1, -1)
 					glTexture(false)
-				--glUseShader(0)
-
-				--glUseShader(blurShaderV71)
-					--glUniformInt(blurShaderV71Text0Loc, 0)
+					
 					glUniform(blurShaderFragLoc, blurAmplifier)
 					glUniform(blurShaderHorizontalLoc, 1)
 					glTexture(brightTexture2)
@@ -481,7 +429,6 @@ local function Bloom()
 
 	glUseShader(combineShader)
 		glUniformInt(combineShaderDebgDrawLoc, dbgDraw)
-		--glUniformInt(combineShaderTexture0Loc, 0)
 		glTexture(0, brightTexture1)
 		gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
 		glTexture(0, false)
