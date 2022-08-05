@@ -1,0 +1,9 @@
+move cor_color.dds cor_color_old.dds
+move cor_color_new.dds cor_color.dds
+move cor_color_old.dds cor_color_new.dds
+move cor_other.dds cor_other_old.dds
+move cor_other_new.dds cor_other.dds
+move cor_other_old.dds cor_other_new.dds
+move cor_normal.dds cor_normal_old.dds
+move cor_normal_new.dds cor_normal.dds
+move cor_normal_old.dds cor_normal_new.dds
