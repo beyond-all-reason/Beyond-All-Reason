@@ -1429,7 +1429,7 @@ local options={
 		desc   = '',
 		type   = 'bool',
 		section = 'options_experimental',
-		def  = false,
+		def  = true,
 	},
 
 	{
