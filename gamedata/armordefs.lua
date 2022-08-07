@@ -349,6 +349,7 @@ local armorDefs = {
 		"corhurc",
 		"corsb",
 		"cortitan",
+		"cords",
 		"legnap", 
 		"legkam",
 		"legcib",
