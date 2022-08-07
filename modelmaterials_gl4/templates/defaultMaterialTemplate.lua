@@ -1591,6 +1591,9 @@ fragment = [[
 
 		#if (RENDERING_MODE == 0)
 			fragData[0] = vec4(outColor, texColor2.a);
+			//fragData[0] = vec4(worldNormal.rgb * 0.5 + 0.5, texColor2.a); // debug normals
+			//fragData[0] = vec4(worldTangent.rgb * 0.5 + 0.5, texColor2.a); // debug tangents
+			//fragData[0] = vec4(worldBitangent.rgb * 0.5 + 0.5, texColor2.a); // debug bitangents
 			//fragData[0] = vec4(vec3(fract((shadowVertexPos.xyz )  ))	, 1.0); //debug
 			//fragData[0] = vec4(vec3(fract(healthMix	))	, 1.0); //debug
 			//fragData[0] = vec4(debugloscolor	, 1.0); //debug
