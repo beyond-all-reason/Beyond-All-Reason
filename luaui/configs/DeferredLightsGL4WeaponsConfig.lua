@@ -1,3 +1,42 @@
+-- This configures all the lights weapon effects, including:
+	-- Projectile attached lights
+	-- Muzzle flashes 
+	-- Explosion lights
+	-- Pieceprojectiles (gibs on death) lights
+-- note that weapondef customparams need to be moved out of unitdefs, for ease of configability. 
+-- customparams= {
+	-- expl_light_skip = bool , -- no explosion on projectile death
+	-- expl_light_color = {rgba} , -- color of the explosion light at peak?
+	-- expl_light_opacity = a, -- alpha or power of the light
+	-- expl_light_mult = ,-- fuck if i know?
+	-- expl_light_radius = , -- radius
+	-- expl_light_radius_mult = , -- why?
+	-- expl_light_life = , life of the expl light?
+-- concept is:
+	-- Make a few base classes of lights
+	-- auto-assign the majority
+	-- offer overrideability 
+	
+-- (c) Beherith (mysterme@gmail.com)
+
+Spring.Echo("DEFFEEEEERED FUCKERY")
+Spring.Debug.TraceFullEcho(nil,nil,nil, "initweaponsconf")
+Spring.Debug.TableEcho(_G.deferredLightGL4Config)
+local exampleLight = {
+	lightType = 'point', -- or cone or beam
+	pieceName = nil, -- optional
+	lightConfig = {
+		posx = 0, posy = 0, posz = 0, radius = 0, 
+		r = 1, g = 1, b = 1, a = 1, 
+		color2r = 1, color2g = 1, color2b = 1, colortime = 15, -- point lights only, colortime in seconds for unit-attached
+		dirx = 0, diry = 0, dirz = 1, theta = 0.5,  -- cone lights only, specify direction and half-angle in radians
+		pos2x = 100, pos2y = 100, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
+		modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
+		lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
+	},
+}
+
+
 
 local math_random = math.random
 local math_diag = math.diag
@@ -6,23 +45,14 @@ local math_max = math.max
 local math_floor = math.floor
 
 -- Local Variables
-local previousProjectileDrawParams
-local fadeProjectiles, fadeProjectileTimes = {}, {}
 
 --------------------------------------------------------------------------------
 -- Config
+
+-- local 
+
+
 --------------------------------------------------------------------------------
-
-local useLOD = false		-- Reduces the number of lights drawn based on camera distance and current fps.
-local projectileFade = true
-local FADE_TIME = 5
-
-local overrideParam = {r = 1, g = 1, b = 1, radius = 200}
-local doOverride = false
-
-local additionalLightingFlashes = true
-local additionalLightingFlashesMult = 0.6
-local additionalNukeLightingFlashes = true
 
 local globalLightMult = 1.4
 local globalRadiusMult = 1.4
@@ -30,35 +60,52 @@ local globalLightMultLaser = 1.35	-- gets applied on top op globalRadiusMult
 local globalRadiusMultLaser = 0.9	-- gets applied on top op globalRadiusMult
 local globalLifeMult = 0.58
 
-local enableHeatDistortion = true
-local enableNanolaser = true
-local enableThrusters = true
-local nanolaserLights = {}
-local thrusterLights = {}
-
 local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*globalLightMult, radius = 75*globalRadiusMult, gib = true}
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+-----------------------------Explosion Lights-----------------------------------
 
-local projectileLightTypes = {}
---[1] red
---[2] green
---[3] blue
---[4] radius
---[5] BEAMTYPE, true if BEAM
-
-local explosionLightsCount = 0
 local explosionLights = {}
 
-local customBeamLightsCount = 0
-local customBeamLights = {}
+local baseExplosionLight = {
+	explLightSmall = {},
 
-local deferredFunctionID
+}
+--------------------------------------------------------------------------------
 
-local weaponConf = {}
+
+local gibLight = {
+	lightType = 'point', -- or cone or beam
+	pieceName = nil, -- optional
+	lightConfig = {
+		posx = 0, posy = 0, posz = 0, radius = 75, 
+		r = 1, g = 1, b = 0.5, a = 0.25, 
+		color2r = 0.8, color2g = 0.7, color2b = 0.3, colortime = 0.1, -- point lights only, colortime in seconds for unit-attache
+		modelfactor = 1, specular = 1, scattering = 0.3, lensflare = 1, 
+		lifetime = 0, sustain = 100, 	aninmtype = 0 -- unused
+	},
+}
+
+--------------------------------------------------------------------------------
+
+local projectileDefLights  = {
+	['default'] = {
+		lightType = 'point',
+		lightConfig = { posx = 0, posy = 16, posz = 0, radius = 420,
+			color2r = 1, color2g = 1, color2b = 1, colortime = 15,
+			r = -1, g = 1, b = 1, a = 1,
+			modelfactor = 0.2, specular = 1, scattering = 1, lensflare = 1,
+			lifetime = 50, sustain = 20, animtype = 0},
+
+	}
+}
+
+-----------------------------------
+
+
+
+local weaponLights = {}
 local function loadWeaponDefs()
-	weaponConf = {}
+	weaponLights = {}
 	for i=1, #WeaponDefs do
 		local customParams = WeaponDefs[i].customParams or {}
 		if customParams.expl_light_skip == nil then
@@ -251,7 +298,7 @@ local function loadWeaponDefs()
 				}
 			end
 
-			weaponConf[i] = params
+			weaponLights[i] = params
 		end
 	end
 end
@@ -263,7 +310,7 @@ loadWeaponDefs()
 
 local function GetLightsFromUnitDefs()
 	--Spring.Echo('GetLightsFromUnitDefs init')
-	local plighttable = {}
+	local projectileLights = {}
 	for weaponDefID = 1, #WeaponDefs do
 		--These projectiles should have lights:
 		--Cannon (projectile size: tempsize = 2.0f + std::min(wd.customParams.shield_damage * 0.0025f, wd.damageAreaOfEffect * 0.1f);)
@@ -421,15 +468,15 @@ local function GetLightsFromUnitDefs()
 
 		if not skip and weaponData ~= nil and weaponData.radius > 0 and customParams.fake_weapon == nil then
 
-			plighttable[weaponDefID] = weaponData
+			projectileLights[weaponDefID] = weaponData
 		end
 	end
 
-	return plighttable
+	return projectileLights
 end
 
 
-local plighttable = GetLightsFromUnitDefs()
+local projectileLights = GetLightsFromUnitDefs()
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -451,4 +498,4 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Projectile Collection
-return {weaponConf, plighttable}
+return {weaponLights = weaponLights, projectileDefLights = projectileDefLights, explosionLights = explosionLights, gibLight = gibLight}

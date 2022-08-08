@@ -78,9 +78,10 @@ local collectionFunctionCount = 0
 local unitDefLight
 local unitEventLights
 local projectileDefLights 
+local weaponDefLights 
+local gibLight 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
 
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
@@ -710,6 +711,7 @@ local lightParamKeyOrder = {
 ---@param lightTable table
 ---@param unitID number 
 local function InitializeLight(lightTable, unitID)
+	Spring.Debug.TraceFullEcho()
 	if not lightTable.initComplete then  -- late init
 		-- do the table to flattable conversion, if it doesnt exist yet
 		if not lightTable.lightParamTable then -- perform correct init
@@ -849,30 +851,39 @@ function AddRandomLight(which)
 	
 end
 
+
+deferredLightGL4Config = {globalLightMult = 1, globalRadiusMult = 1} -- NOTE THAT THIS IS INTENTIONALLY GLOBAL, to be able to pass it to vfs.include!
+
 local function LoadLightConfig()
 	local success, result =	pcall(VFS.Include, 'luaui/configs/DeferredLightsGL4config.lua')
-	Spring.Echo("Loading GL4 light config", success, result)
+	--Spring.Echo("Loading GL4 light config", success, result)
 	if success then
-		Spring.Echo("Loaded GL4 light config")
+		--Spring.Echo("Loaded GL4 light config")
 		unitDefLights = result.unitDefLights
 		unitEventLights = result.unitEventLights
-		projectileDefLights = result.projectileDefLights
+		--projectileDefLights = result.projectileDefLights
+
 	else
-		unitDefLights = result.unitDefLights
-		unitEventLights = result.unitEventLights
-		projectileDefLights = result.projectileDefLights
-		Spring.Echo("Failed to load GL4 light config", success, result)
+		Spring.Echo("Failed to load GL4 Unit light config", success, result)
 	end
 	
 	local success2, result2 =	pcall(VFS.Include, 'luaui/configs/DeferredLightsGL4WeaponsConfig.lua')
-	Spring.Echo("Loading GL4 weapon light config", success2, result2)
+	--Spring.Echo("Loading GL4 weapon light config", success2, result2)
 	if success2 then
-		Spring.Echo("Loaded GL4 weapon light config")
-		projectileDefLights = result2
-		Spring.Debug.TableEcho(result2)
+		--Spring.Echo("Loaded GL4 weapon light config")
+		weaponDefLights = result2.weaponDefLights
+		gibLight = result2.gibLight
+		InitializeLight(gibLight)		
+		
+		projectileDefLights = result2.projectileDefLights
+		for weaponID, lightTable in pairs(projectileDefLights) do 
+			InitializeLight(lightTable)
+		end
+		--Spring.Debug.TableEcho(result2)
 	else
 		Spring.Echo("Failed to load GL4 weapon light config", success2, result2)
 	end
+	--deferredLightGL4Config = nil -- clean up our global after load is done
 	return success and success2
 end
 
@@ -882,6 +893,8 @@ local unitNightFactor = 1.2 -- applied above nightFactor
 local adjustfornight = {'unitAmbientColor', 'unitDiffuseColor', 'unitSpecularColor','groundAmbientColor', 'groundDiffuseColor', 'groundSpecularColor' }
 
 function widget:Initialize()
+
+	Spring.Debug.TraceEcho("Initialize DLGL4")
 	if Spring.GetConfigString("AllowDeferredMapRendering") == '0' or Spring.GetConfigString("AllowDeferredModelRendering") == '0' then
 		Spring.Echo('Deferred Rendering (gfx_deferred_rendering.lua) requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!')
 		widgetHandler:RemoveWidget()
@@ -1177,16 +1190,31 @@ function widget:Update()
 		if trackedprojectiles[projid] then 
 			if newgameframe then
 				--update proj pos
+		
 				local instanceIndex = updateLightPosition(projectilePointLightVBO, projid, px,py,pz)
 				if debugproj then Spring.Echo("Updated", instanceIndex, projid, px, py, pz) end
 			end
 		else
 			-- add projectile		
-			testprojlighttable[1] = px
-			testprojlighttable[2] = py
-			testprojlighttable[3] = pz
-			AddPointLight(projid, nil, nil, projectilePointLightVBO, testprojlighttable)
 			
+			local weapon, piece = Spring.GetProjectileType(projid)
+			if piece then 
+				local explosionflags = Spring.GetPieceProjectileParams(projid)
+				if explosionflags and explosionflags%32 > 15 then 
+					local gib = gibLight.lightParamTable
+					gib[1] = px
+					gib[2] = py
+					gib[3] = pz
+					AddPointLight(projid, nil, nil, projectilePointLightVBO, gib)
+					--Spring.Echo("added gib")
+					--Spring.Debug.TableEcho(gib)
+				end
+			else
+				testprojlighttable[1] = px
+				testprojlighttable[2] = py
+				testprojlighttable[3] = pz
+				AddPointLight(projid, nil, nil, projectilePointLightVBO, testprojlighttable)
+			end
 			numadded = numadded + 1
 			if debugproj then Spring.Echo("Adding projlight", projid, Spring.GetProjectileName(projid)) end
 			--trackedprojectiles[]
@@ -1365,4 +1393,31 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		gl.DepthMask(true)
 		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
+end
+
+
+function widget:GetConfigData(data) -- Called by RemoveWidget
+	Spring.Debug.TraceEcho("GetConfigData DLGL4")
+	local savedTable = {
+		globalLightMult = globalLightMult,
+		globalRadiusMult = globalRadiusMult,
+		resetted = 1.65,
+	}
+	return savedTable
+end
+
+function widget:SetConfigData(data) -- Called on load (and config change), just before Initialize!
+	Spring.Debug.TraceEcho("SetConfigData DLGL4")
+	if data.globalLifeMult ~= nil and data.resetted ~= nil and data.resetted == 1.65 then
+		if data.globalLightMult ~= nil then
+			globalLightMult = data.globalLightMult
+			deferredLightGL4Config.globalLightMult =  data.globalLightMult
+		end
+		if data.globalRadiusMult ~= nil then
+			globalRadiusMult = data.globalRadiusMult
+			deferredLightGL4Config.globalRadiusMult =  data.globalRadiusMult
+		end
+	end
+	Spring.Debug.TableEcho(deferredLightGL4Config)
+	--deferredLightGL4Config = data
 end
