@@ -194,7 +194,7 @@ local function createScavengerUnitDefs()
 	end
 end
 
-local function postProcessTweakOptions()
+local function preProcessTweakOptions()
 	local modOptions = {}
 	if (Spring.GetModOptions) then
 		modOptions = Spring.GetModOptions()
@@ -278,9 +278,9 @@ if SaveDefsToCustomParams then
 	bakeUnitDefs()
 end
 
+preProcessTweakOptions()
 preProcessUnitDefs()
 createScavengerUnitDefs()
-postProcessTweakOptions()
 postProcessAllUnitDefs()
 postProcessRegularUnitDefs()
 postProcessScavengerUnitDefs()
