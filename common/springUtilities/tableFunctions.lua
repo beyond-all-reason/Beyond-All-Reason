@@ -1,4 +1,4 @@
-function CustomKeyToUsefulTable(dataRaw)
+local function customKeyToUsefulTable(dataRaw)
 	if not dataRaw then
 		return
 	end
@@ -27,5 +27,5 @@ function CustomKeyToUsefulTable(dataRaw)
 end
 
 return {
-	CustomKeyToUsefulTable = CustomKeyToUsefulTable,
+	CustomKeyToUsefulTable = customKeyToUsefulTable,
 }
