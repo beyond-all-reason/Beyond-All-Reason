@@ -22,7 +22,7 @@ return {
 		maxslope = 14,
 		maxvelocity = 3.1,
 		maxwaterdepth = 12,
-		movementclass = "BOT4",
+		movementclass = "BOT3",
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/LEGCEN.s3o",
 		script = "Units/scavboss/LEGCEN.cob",
