@@ -3,9 +3,10 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  bombbay, base, thrusta1, thrusta2, thrustb;
+piece  base, thrustfl, thrustfr, thrustbl, thrustbr,  flarefl, flarefr, flarebl, flarebr, 
+	bomb3l, bomb3r, bomb2l, bomb2r, bomb1l, bomb1r, bay3l, bay3r, bay2l, bay2r, bay1l, bay1r;
 
-static-var  statechg_DesiredState, statechg_StateChanging;
+static-var  statechg_DesiredState, statechg_StateChanging, currbomb;
 
 Go()
 {
@@ -55,34 +56,94 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = FALSE;
 }
 
-Create()
-{
-	hide bombbay;
-	hide thrustb;
-	hide thrusta2;
-	hide thrusta1;
-	call-script InitState();
+Create(){
+
+	turn flarefl to x-axis <-90> now; 
+	turn flarefr to x-axis <-90> now; 
+	turn flarebl to x-axis <-90> now; 
+	turn flarebr to x-axis <-90> now; 
+
+	hide flarefl;
+	hide flarefr;
+	hide flarebl;
+	hide flarebr;
+	
+	currbomb = 0;
+	//call-script InitState();
 }
 
 Activate()
 {
-	show thrustb;
-	show thrusta2;
-	show thrusta1;
-	start-script RequestState(0);
+
+	show flarefl;
+	show flarefr;
+	show flarebl;
+	show flarebr;
+	//start-script RequestState(0);
 }
 
 Deactivate()
 {
-	hide thrustb;
-	hide thrusta2;
-	hide thrusta1;
-	start-script RequestState(1);
+	
+	hide flarefl;
+	hide flarefr;
+	hide flarebl;
+	hide flarebr;
+	//start-script RequestState(1);
 }
 
-QueryPrimary(piecenum)
+Reload(){
+	set-signal-mask 32;
+	sleep 3000;
+	while (currbomb > 0) {
+		currbomb = currbomb -1; 
+			if (currbomb == 0) show bomb3l;
+			if (currbomb == 1) show bomb3r;
+			if (currbomb == 2) show bomb2l;
+			if (currbomb == 3) show bomb2r;
+			if (currbomb == 4) show bomb1l;
+			if (currbomb == 5) show bomb1r;
+		sleep 1000;
+	}
+}
+
+QueryPrimary(piecenum) // called third, and all the fucking time
 {
-	piecenum = bombbay;
+	//get PRINT(3, currbomb);
+	piecenum = bay3l + currbomb - 1;
+	//piecenum = bomb3l;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = base;
+}
+
+
+AimPrimary(heading,pitch){
+	//turn bay3l to y-axis <90> now;
+	//turn bomb3l to y-axis <90> now;
+	return 1;
+}
+
+Shot1(){ // called second, and after each bomb
+	//get PRINT(2, currbomb);
+	
+	if (currbomb == 0) hide bomb3l;
+	if (currbomb == 1) hide bomb3r;
+	if (currbomb == 2) hide bomb2l;
+	if (currbomb == 3) hide bomb2r;
+	if (currbomb == 4) hide bomb1l;
+	if (currbomb == 5) hide bomb1r;
+	
+	currbomb = currbomb + 1;
+}
+
+FirePrimary(){ //called first and once only
+	//get PRINT(1, currbomb);
+	currbomb = 0;
+	signal 32;
+	start-script Reload();
 }
 
 SweetSpot(piecenum)
@@ -92,41 +153,33 @@ SweetSpot(piecenum)
 
 Killed(severity, corpsetype)
 {
+	// drop all undropped ones
+	if (currbomb <=0) explode bomb3l type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	//if (currbomb <=1) explode bomb3r type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	//if (currbomb <=2) explode bomb2l type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	if (currbomb <=3) explode bomb2r type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	//if (currbomb <=4) explode bomb1l type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	if (currbomb <=5) explode bomb1r type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode thrusta1 type BITMAPONLY | NOHEATCLOUD;
-		explode thrusta2 type BITMAPONLY | NOHEATCLOUD;
-		explode thrustb type BITMAPONLY | NOHEATCLOUD;
-		explode bombbay type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode thrusta1 type BITMAPONLY | NOHEATCLOUD;
-		explode thrusta2 type BITMAPONLY | NOHEATCLOUD;
-		explode thrustb type BITMAPONLY | NOHEATCLOUD;
-		explode bombbay type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode thrusta1 type BITMAPONLY | NOHEATCLOUD;
-		explode thrusta2 type BITMAPONLY | NOHEATCLOUD;
-		explode thrustb type BITMAPONLY | NOHEATCLOUD;
-		explode bombbay type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
     explode base type BITMAPONLY | NOHEATCLOUD;
-    explode thrusta1 type BITMAPONLY | NOHEATCLOUD;
-    explode thrusta2 type BITMAPONLY | NOHEATCLOUD;
-    explode thrustb type BITMAPONLY | NOHEATCLOUD;
-    explode bombbay type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -692,6 +692,23 @@ function widget:GameFrame(gf)
 			end
 		end
 	end
+
+	-- fake the commander spawn explosion
+	if gf == 85 then
+		local isCommander = {}
+		for unitDefID, unitDef in pairs(UnitDefs) do
+			if unitDef.customParams.iscommander then
+				isCommander[unitDefID] = true
+			end
+		end
+		local allUnits = Spring.GetAllUnits()
+		for _, unitID in pairs(allUnits) do
+			if isCommander[Spring.GetUnitDefID(unitID)] then
+				local x,_,z = Spring.GetUnitPosition(unitID)
+				adjustGrass(x, z, 90, 1)
+			end
+		end
+	end
 end
 
 function widget:MousePress(x,y,button)
@@ -1257,10 +1274,12 @@ function widget:Initialize()
 	if Game.waterDamage > 0 then
 		WG['grassgl4'].removeGrassBelowHeight(20)
 	end
+	widgetHandler:RegisterGlobal('GadgetRemoveGrass', WG['grassgl4'].removeGrass)
 	widgetHandler:RegisterGlobal('GadgetWeaponExplosionGrass', GadgetWeaponExplosionGrass)
 end
 
 function widget:Shutdown()
+	widgetHandler:DeregisterGlobal('GadgetRemoveGrass')
 	widgetHandler:DeregisterGlobal('GadgetWeaponExplosionGrass')
 end
 

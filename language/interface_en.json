@@ -78,6 +78,7 @@
 				"thousands": "%{number}k",
 				"milliseconds": "%{number} ms",
 				"seconds": "%{number} sec",
+				"resincome": "Resource income",
 				"commandDelay": "%{labelColor}Total command delay: %{delayColor}%{delay}",
 				"cpu": "CPU: %{cpuUsage}%%",
 				"framerate": "FPS: %{fps}",

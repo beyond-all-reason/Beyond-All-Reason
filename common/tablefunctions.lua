@@ -87,3 +87,12 @@ if not table.invert then
 		return inverted
 	end
 end
+
+
+if not table.append then
+	function table.append(appendTarget, appendData)
+		for _, value in pairs(appendData) do
+			table.insert(appendTarget, value)
+		end
+	end
+end

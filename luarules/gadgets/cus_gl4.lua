@@ -249,7 +249,7 @@ local uniformBins = {}
 do --save a ton of locals
 	local OPTION_SHADOWMAPPING    = 1
 	local OPTION_NORMALMAPPING    = 2
-	local OPTION_NORMALMAP_FLIP   = 4
+	local OPTION_SHIFT_RGBHSV     = 4 -- userDefined[2].rgb (gl.SetUnitBufferUniforms(unitID, {math.random(),math.random()-0.5,math.random()-0.5}, 8) -- shift Hue, saturation, valence )
 	local OPTION_VERTEX_AO        = 8
 	local OPTION_FLASHLIGHTS      = 16
 	local OPTION_THREADS_ARM      = 32
@@ -285,7 +285,7 @@ do --save a ton of locals
 			brightnessFactor = 1.5,
 		},
 		chicken = {
-			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS  + OPTION_HEALTH_DISPLACE + OPTION_HEALTH_TEXCHICKS + OPTION_TREEWIND,
+			bitOptions = defaultBitShaderOptions + OPTION_VERTEX_AO + OPTION_FLASHLIGHTS  + OPTION_HEALTH_DISPLACE + OPTION_HEALTH_TEXCHICKS + OPTION_TREEWIND + OPTION_SHIFT_RGBHSV,
 			baseVertexDisplacement = 0.0,
 			brightnessFactor = 1.5,
 		},
@@ -859,7 +859,7 @@ local function initBinsAndTextures()
 				elseif 	unitDef.name:sub(1,3) == 'cor' then
 					objectDefToUniformBin[unitDefID] = 'corscavenger'
 				end
-			elseif unitDef.name:find("chicken", nil, true) or unitDef.name:find("roost", nil, true) then
+			elseif unitDef.name:find("chicken", nil, true) or unitDef.name:find("chicken_hive", nil, true) then
 				textureTable[5] = wreckAtlases['chicken'][1]
 				objectDefToUniformBin[unitDefID] = 'chicken'
 				--Spring.Echo("Chickenwreck", textureTable[5])
@@ -906,7 +906,7 @@ local function initBinsAndTextures()
 				featuresDefsWithAlpha[-1 * featureDefID] = "yes"
 			elseif featureDef.name:find("_dead", nil, true) or featureDef.name:find("_heap", nil, true) then
 				objectDefToUniformBin[-1 * featureDefID] = 'wreck'
-			elseif featureDef.name:find("pilha_crystal", nil, true) then 
+			elseif featureDef.name:find("pilha_crystal", nil, true) then
 				objectDefToUniformBin[-1 * featureDefID] = 'featurepbr'
 			end
 			--Spring.Echo("Assigned normal map to", featureDef.name, normalTex)
@@ -1394,6 +1394,7 @@ local function ProcessUnits(units, drawFlags, reason)
 	-- end
 end
 
+
 local function ProcessFeatures(features, drawFlags, reason)
 	-- processedCounter = (processedCounter + 1) % (2 ^ 16)
 
@@ -1836,7 +1837,7 @@ end
 
 function gadget:UnitGiven(unitID)
 	local flag = Spring.GetUnitDrawFlag(unitID)
-	if flag > 0 and flag < 32 then 
+	if flag > 0 and flag < 32 then
 		UpdateUnit(unitID, 0)
 		UpdateUnit(unitID, Spring.GetUnitDrawFlag(unitID))
 	end
@@ -1844,7 +1845,7 @@ end
 
 function gadget:UnitGiven(unitID)
 	local flag = Spring.GetUnitDrawFlag(unitID)
-	if flag > 0 and flag < 32 then 
+	if flag > 0 and flag < 32 then
 		UpdateUnit(unitID, 0)
 		UpdateUnit(unitID, Spring.GetUnitDrawFlag(unitID))
 	end

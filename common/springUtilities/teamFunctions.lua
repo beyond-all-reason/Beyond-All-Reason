@@ -27,7 +27,10 @@ local function getSettings()
 				if select (4, Spring.GetTeamInfo(team, false)) then
 					allyteamEntirelyHuman = false
 				else
-					playerCount = playerCount + 1
+					local teamPlayers = Spring.GetPlayerList(team)
+					for _, playerID in ipairs(teamPlayers) do
+						playerCount = playerCount + 1
+					end
 				end
 
 				local luaAI = Spring.GetTeamLuaAI(team)

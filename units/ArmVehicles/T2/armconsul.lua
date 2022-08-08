@@ -27,7 +27,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 2.6,
 		maxwaterdepth = 18,
-		movementclass = "TANK2",
+		movementclass = "MTANK2",
 		objectname = "Units/ARMCONSUL.s3o",
 		script = "Units/ARMCONSUL.cob",
 		seismicsignature = 0,

@@ -37,7 +37,7 @@ local TimedDamageWeapons = {
         ceg = "acid-area-150", 
         damageCeg = "acid-damage-gen", 
         time = 10,
-        damage = 120,
+        damage = 480,
         range = 150,
         resistance = "_CHICKENACID_",
     },
@@ -65,13 +65,39 @@ local TimedDamageWeapons = {
         range = 75,
         resistance = "_CHICKENACID_",
     },
+    [WeaponDefNames.chickenacidallterrainassault_acidspit.id] = {
+        ceg = "acid-area-150", 
+        damageCeg = "acid-damage-gen", 
+        time = 10,
+        damage = 300,
+        range = 150,
+        resistance = "_CHICKENACID_",
+    },
+    [WeaponDefNames.chicken_turrets_acid_acidspit.id] = {
+        ceg = "acid-area-75", 
+        damageCeg = "acid-damage-gen", 
+        time = 10,
+        damage = 150,
+        range = 75,
+        resistance = "_CHICKENACID_",
+    },
+    [WeaponDefNames.chicken_turretl_acid_acidspit.id] = {
+        ceg = "acid-area-150", 
+        damageCeg = "acid-damage-gen", 
+        time = 10,
+        damage = 300,
+        range = 150,
+        resistance = "_CHICKENACID_",
+    },
+
+
 	[WeaponDefNames.legbart_clusternapalm.id] = {
         ceg = "fire-area-75", 
         damageCeg = "burnflamexl", 
         time = 10,
         damage = 10,
         range = 75,
-        resistance = "_CHICKENACID_",
+        resistance = "test",
     },
 	[WeaponDefNames.legbar_clusternapalm.id] = {
         ceg = "fire-area-75", 
@@ -79,7 +105,15 @@ local TimedDamageWeapons = {
         time = 10,
         damage = 10,
         range = 75,
-        resistance = "_CHICKENACID_",
+        resistance = "test",
+    },
+	[WeaponDefNames.legnap_napalmbombs.id] = {
+        ceg = "fire-area-150", 
+        damageCeg = "burnflamexl", 
+        time = 15,
+        damage = 20,
+        range = 150,
+        resistance = "test",
     },
 }
 

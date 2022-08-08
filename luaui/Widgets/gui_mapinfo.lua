@@ -1,9 +1,7 @@
-local versionNumber = "0.6"
-
 function widget:GetInfo()
   return {
     name      = "Map Info",
-    desc      = versionNumber .." Draws map info on the bottom left of the map.  Toggle vertical position with /mapinfo_floor",
+    desc      = "Draws map info on the bottom left of the map.  Toggle vertical position with /mapinfo_floor",
     author    = "Floris",
     date      = "20 May 2015",
     license   = "GNU GPL, v2 or later",
@@ -12,64 +10,42 @@ function widget:GetInfo()
   }
 end
 
---------------------------------------------------------------------------------
--- Console commands
---------------------------------------------------------------------------------
-
---/mapinfo_floor		-- toggles placement at ground-height, or map floor
-
---------------------------------------------------------------------------------
--- config
---------------------------------------------------------------------------------
-
 local scale					= 1
 local offset				= 5
-local stickToFloor			= false
 local thickness				= 6
 local fadeStartHeight		= 800
 local fadeEndHeight			= 4800
 local dlistAmount			= 20		-- amount of dlists created, one for each opacity value
 
-local vsx,vsy = Spring.GetViewGeometry()
-
 --------------------------------------------------------------------------------
--- speed-ups
 --------------------------------------------------------------------------------
 
 local spGetCameraPosition	= Spring.GetCameraPosition
 local spGetGroundHeight		= Spring.GetGroundHeight
 local spIsAABBInView		= Spring.IsAABBInView
---local spGetCameraState		= Spring.GetCameraState
 
 local glColor           = gl.Color
 local glScale           = gl.Scale
-local glText            = gl.Text
 local glPushMatrix      = gl.PushMatrix
 local glPopMatrix       = gl.PopMatrix
 local glTranslate       = gl.Translate
 local glBeginEnd        = gl.BeginEnd
 local glVertex          = gl.Vertex
-local glGetTextWidth	= gl.GetTextWidth
 local glBlending		= gl.Blending
 local glCallList		= gl.CallList
 local glDeleteList		= gl.DeleteList
 
 local glDepthTest       = gl.DepthTest
-local glAlphaTest       = gl.AlphaTest
-local glTexture         = gl.Texture
 local glRotate          = gl.Rotate
 
-local mapInfo = {}
+local vsx,vsy = Spring.GetViewGeometry()
+
 local mapInfoWidth = 400	-- minimum width
 local mapinfoList = {}
 
 local font, mapInfoBoxHeight, chobbyInterface
 
 local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
-
---------------------------------------------------------------------------------
--- Functions
---------------------------------------------------------------------------------
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
@@ -93,20 +69,12 @@ local function createMapinfoList(opacityMultiplier)
 
 		glDepthTest(true)
 		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-
-		if stickToFloor then
-			glTranslate(offset, offset, Game.mapSizeZ+0.01)
-		else
-			glTranslate(offset, mapInfoBoxHeight-offset, Game.mapSizeZ+0.01)
-		end
-
+		glTranslate(offset, mapInfoBoxHeight-offset, Game.mapSizeZ+0.01)
 		glPushMatrix()
 
 		glScale(scale,scale,scale)
 		glRotate(90,0,-1,0)
 		glRotate(180,1,0,0)
-
-		--Spring.Echo(font:GetTextWidth(Game.mapDescription))
 
 		local height = 90
 		local thickness = -(thickness*scale)
@@ -182,76 +150,41 @@ local function createMapinfoList(opacityMultiplier)
 		font:Print(Game.mapX.. " x "..Game.mapY, textOffsetX,-usedTextOffsetY+0.8,textSize,"n")
 		font:End()
 
-		--[[
-			usedTextOffsetY = usedTextOffsetY+textOffsetY
-			text = "Waterdamage: "..math.floor(Game.waterDamage)
-			glColor(1,1,1,textOpacity*0.6*opacityMultiplier)
-			glText(text, textOffsetX,-usedTextOffsetY,textSize,"n")
-			glColor(0,0,0,textOpacity*0.6*0.17*opacityMultiplier)
-			glText(text, textOffsetX,-usedTextOffsetY-1,textSize,"n")
-
-			textOffsetX = textOffsetX + 120
-			text = "Gravity: "..math.floor(Game.gravity)
-			glColor(1,1,1,textOpacity*0.6*opacityMultiplier)
-			glText(text, textOffsetX,-usedTextOffsetY,textSize,"n")
-			glColor(0,0,0,textOpacity*0.6*0.17*opacityMultiplier)
-			glText(text, textOffsetX,-usedTextOffsetY-1,textSize,"n")
-			textOffsetX = textOffsetX - 120
-
-			textOffsetX = textOffsetX + 210
-			text = "Tidal: "..math.floor(Game.tidal)
-			glColor(1,1,1,textOpacity*0.6*opacityMultiplier)
-			glText(text, textOffsetX,-usedTextOffsetY,textSize,"n")
-			glColor(0,0,0,textOpacity*0.6*0.17*opacityMultiplier)
-			glText(text, textOffsetX,-usedTextOffsetY-1,textSize,"n")
-			textOffsetX = textOffsetX - 210
-
-			-- game name
-			usedTextOffsetY = usedTextOffsetY+textOffsetY+textOffsetY+textOffsetY
-			text = Game.gameName.."   "..Game.gameVersion
-			glColor(1,1,1,textOpacity*opacityMultiplier)
-			glText(text, textOffsetX,-usedTextOffsetY,textSize,"n")
-			glColor(0,0,0,textOpacity*0.17*opacityMultiplier)
-			glText(text, textOffsetX,-usedTextOffsetY-1,textSize,"n")
-		]]--
-
 		glPopMatrix()
-
-		if stickToFloor then
-			glTranslate(-offset, -offset, -Game.mapSizeZ)
-		else
-			glTranslate(-offset, -mapInfoBoxHeight-offset, -Game.mapSizeZ)
-		end
+		glTranslate(-offset, -mapInfoBoxHeight-offset, -Game.mapSizeZ)
 		glColor(1,1,1,1)
 		glScale(1,1,1)
 		glDepthTest(false)
 	end)
 end
 
-
-function Init()
+local function Init()
 
 	if (font:GetTextWidth(Game.mapDescription) * 12) > mapInfoWidth then
 		--mapInfoWidth = (font:GetTextWidth(Game.mapDescription) * 12) + 33
 	end
-	if stickToFloor then
-		mapInfoBoxHeight = 0
-	else
-		mapInfoBoxHeight = spGetGroundHeight(0,Game.mapSizeZ)
-	end
+	mapInfoBoxHeight = spGetGroundHeight(0, Game.mapSizeZ)
 
 	-- find the lowest map height
-	if not stickToFloor then
-		for i=math.floor(offset*scale), math.floor((mapInfoWidth+offset)*scale) do
-			if spGetGroundHeight(i,Game.mapSizeZ) < mapInfoBoxHeight then
-				mapInfoBoxHeight = spGetGroundHeight(i,Game.mapSizeZ)
+	for i=math.floor(offset*scale), math.floor((mapInfoWidth+offset)*scale) do
+		if spGetGroundHeight(i, Game.mapSizeZ) < mapInfoBoxHeight then
+			mapInfoBoxHeight = spGetGroundHeight(i, Game.mapSizeZ)
+		end
+	end
+end
+
+function widget:GameFrame(gf)
+	if gf == 1 then
+		local prevMapInfoBoxHeight = mapInfoBoxHeight
+		mapInfoBoxHeight = spGetGroundHeight(0, Game.mapSizeZ)
+		if mapInfoBoxHeight ~= prevMapInfoBoxHeight then
+			for opacity, list in pairs(mapinfoList) do
+				glDeleteList(mapinfoList[opacity])
+				mapinfoList[opacity] = nil
 			end
 		end
 	end
 end
---------------------------------------------------------------------------------
--- callins
---------------------------------------------------------------------------------
 
 function widget:Initialize()
 	widget:ViewResize()
@@ -273,7 +206,7 @@ end
 
 function widget:DrawWorld()
 	if chobbyInterface then return end
-  if Spring.IsGUIHidden() then return end
+	if Spring.IsGUIHidden() then return end
 
 	if spIsAABBInView(offset, mapInfoBoxHeight, Game.mapSizeZ,   mapInfoWidth*scale, mapInfoBoxHeight+(thickness*scale), Game.mapSizeZ) then
 		local camX, camY, camZ = spGetCameraPosition()
@@ -290,21 +223,5 @@ function widget:DrawWorld()
 			end
 			glCallList(mapinfoList[opacityMultiplier])
 		end
-	end
-end
-
-
-function widget:GetConfigData(data)
-    return {stickToFloor = stickToFloor}
-end
-
-function widget:SetConfigData(data)
-    if data.stickToFloor ~= nil 	then  stickToFloor	= data.stickToFloor end
-end
-
-function widget:TextCommand(command)
-    if string.find(command, "mapinfo_floor", nil, true) == 1  and  string.len(command) == 13 then
-		stickToFloor = not stickToFloor
-		Init()
 	end
 end

@@ -48,7 +48,6 @@ local function PlayersInTeamID(teamID)
 	return players
 end
 
-
 if gadgetHandler:IsSyncedCode() then
 
 	local armnuke = WeaponDefNames["armsilo_nuclear_missile"].id
@@ -164,6 +163,8 @@ if gadgetHandler:IsSyncedCode() then
 
 else
 
+	local enableLastcomNotif = (Spring.GetModOptions().deathmode == 'com' and Spring.GetModOptions().scoremode == 'disabled')
+
 	local isCommander = {}
 	local isRadar = {}
 	local isMex = {}
@@ -271,7 +272,7 @@ else
 						if not unitInView then
 							BroadcastEvent("EventBroadcast", "FriendlyCommanderDied", tostring(player))
 						end
-						if allyComCount == 1 then
+						if enableLastcomNotif and allyComCount == 1 then
 							if myComCount == 1 then
 								BroadcastEvent("EventBroadcast", "YouHaveLastCommander", tostring(player))
 							else

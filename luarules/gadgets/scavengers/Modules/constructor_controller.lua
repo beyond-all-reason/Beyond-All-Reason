@@ -135,7 +135,7 @@ local function reclaimerOrders(n, unitID)
 end
 
 local function spawnConstructor(n)
-	local spawnOverdue = constructorTimer > scavconfig.constructorControllerModuleConfig.constructortimer or (countScavCommanders() < scavconfig.constructorControllerModuleConfig.minimumconstructors and constructorTimer > 0) 
+	local spawnOverdue = constructorTimer > scavconfig.constructorControllerModuleConfig.constructortimer or (countScavCommanders() < scavconfig.constructorControllerModuleConfig.minimumconstructors and constructorTimer > 5) 
 	local exclusionPeriodExpired = constructorTimer > 0
 
 	if spawnOverdue and numOfSpawnBeacons > 0 and exclusionPeriodExpired then
@@ -387,7 +387,7 @@ local function constructNewBlueprint(n, unitID)
 
 		local blueprintRadiusBuffer = 64
 		local blueprintRadius = blueprint.radius + blueprintRadiusBuffer
-		local canConstructHere = positionCheckLibrary.OccupancyCheck(posX, posY, posZ, blueprintRadius)
+		local canConstructHere = positionCheckLibrary.OccupancyCheck(posX, posY, posZ, blueprintRadius+192)
 							 and positionCheckLibrary.FlatAreaCheck(posX, posY, posZ, blueprintRadius)
 							 and positionCheckLibrary.MapEdgeCheck(posX, posY, posZ, blueprintRadius)
 							 --and (not positionCheckLibrary.StartboxCheck(posX, posY, posZ, blueprintRadius, ScavengerAllyTeamID) or (not scavconfig.modules.startBoxProtection))

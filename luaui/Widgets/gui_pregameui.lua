@@ -205,7 +205,7 @@ end
 local function checkStartPointChosen()
 	if not mySpec then
 		local x, y, z = Spring.GetTeamStartPosition(myTeamID)
-		if x ~= nil and x > 0 and z > 0 then
+		if x ~= nil and x > 0 and z ~= nil and z > 0 then
 			startPointChosen = true
 		end
 	end

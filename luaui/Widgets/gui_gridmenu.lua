@@ -1808,7 +1808,9 @@ function widget:DrawScreen()
 		return
 	end
 
-	WG['buildmenu'].hoverID = nil
+	if WG['buildmenu'] then
+		WG['buildmenu'].hoverID = nil
+	end
 	if not (preGamestartPlayer or selectedBuilder or selectedFactory or alwaysShow) then
 		if WG['guishader'] and dlistGuishader then
 			WG['guishader'].RemoveDlist('buildmenu')

@@ -665,8 +665,9 @@ function widget:Update(dt)
 		local prevIsOffscreen = isOffscreen
 		isOffscreen = select(6, Spring.GetMouseState())
 		if isOffscreen ~= prevIsOffscreen then
+			local prevIsOffscreenTime = isOffscreenTime
 			isOffscreenTime = os.clock()
-			if isOffscreen then
+			if isOffscreen and not prevIsOffscreenTime then
 				prevOffscreenVolume = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40)
 			end
 		end
@@ -2097,12 +2098,6 @@ function init()
 		  end,
 		},
 
-		{ id = "unitScale", group = "gfx", category = types.dev, name = "Unit Scale", min = 0.85, max = 1, step = 0.01, type = "slider", value = tonumber(Spring.GetConfigFloat("unitScale", 1)),
-		  onchange = function(i, value)
-			  Spring.SetConfigFloat("unitScale", value)
-		  end
-		},
-
 		{ id = "dof", group = "gfx", category = types.advanced, widget = "Depth of Field", name = texts.option.dof, type = "bool", value = GetWidgetToggleValue("Depth of Field"), description = texts.option.dof_descr },
 		{ id = "dof_autofocus", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.dof_autofocus, type = "bool", value = true, description = texts.option.dof_autofocus_descr,
 		  onload = function(i)
@@ -2124,11 +2119,6 @@ function init()
 		{ id = "label_gfx_game", group = "gfx", name = texts.option.label_game, category = types.advanced },
 		{ id = "label_gfx_game_spacer", group = "gfx", category = types.basic },
 		{ id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos GL4", name = texts.option.resurrectionhalos, type = "bool", value = GetWidgetToggleValue("Resurrection Halos GL4"), description = texts.option.resurrectionhalos_descr },
-		{ id = "tombstones", group = "gfx", category = types.advanced, name = texts.option.tombstones, type = "bool", value = (Spring.GetConfigInt("tombstones", 1) == 1), description = texts.option.tombstones_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("tombstones", (value and 1 or 0))
-		  end,
-		},
 
 		{ id = "xmas", group = "gfx", name = texts.option.xmas, category = types.basic, type = "bool", value = (Spring.GetConfigFloat("decorationsize", 1) == 1), description = texts.option.xmas_descr,
 		  onchange = function(i, value)
@@ -2200,6 +2190,12 @@ function init()
 			  else
 				  Spring.SetConfigInt("snd_volmusic", value)
 			  end
+		  end,
+		},
+
+		{ id = "sndunitsound", group = "sound", category = types.advanced, name = texts.option.sndunitsound, type = "bool", value = (Spring.GetConfigInt("snd_unitsound", 1) == 1), description = texts.option.sndunitsound_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("snd_unitsound", (value and 1 or 0))
 		  end,
 		},
 
@@ -2767,7 +2763,7 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'rank' }, value, { 'rank', value })
 		  end,
 		},
-		{ id = "advplayerlist_side", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_side, type = "bool", value = true, description = texts.option.advplayerlist_side_descr,
+		{ id = "advplayerlist_side", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_side, type = "bool", value = true, description = texts.option.advplayerlist_side_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_side", { 'm_active_Table', 'side' })
 		  end,
@@ -2783,12 +2779,28 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'skill' }, value, { 'skill', value })
 		  end,
 		},
-		{ id = "advplayerlist_cpuping", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_cpuping, type = "bool", value = true, description = texts.option.advplayerlist_cpuping_descr,
+		{ id = "advplayerlist_cpuping", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_cpuping, type = "bool", value = true, description = texts.option.advplayerlist_cpuping_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_cpuping", { 'm_active_Table', 'cpuping' })
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'cpuping' }, value, { 'cpuping', value })
+		  end,
+		},
+		{ id = "advplayerlist_income", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_income, type = "bool", value = true, description = texts.option.advplayerlist_income_descr,
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_income", { 'm_active_Table', 'income' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'income' }, value, { 'income', value })
+		  end,
+		},
+		{ id = "advplayerlist_absresbars", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_absresbars, type = "bool", value = false, description = texts.option.advplayerlist_absresbars_descr,
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_absresbars", { 'absoluteResbarValues' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetAbsoluteResbars', { 'absoluteResbarValues' }, value)
 		  end,
 		},
 		{ id = "advplayerlist_share", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_share, type = "bool", value = true, description = texts.option.advplayerlist_share_descr,
@@ -3036,15 +3048,23 @@ function init()
 			  saveOptionValue("Health Bars GL4", "healthbars", "setVariableSizes", { "variableBarSizes" }, value)
 		  end,
 		},
+		{ id = "healthbarswhenguihidden", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.healthbarswhenguihidden, type = "bool", value = (WG['healthbar'] ~= nil and WG['healthbar'].getDrawWhenGuiHidden()), description = texts.option.healthbarswhenguihidden_descr,
+		  onload = function(i)
+			  loadWidgetData("Health Bars GL4", "healthbarswhenguihidden", { "drawWhenGuiHidden" })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue("Health Bars GL4", "healthbars", "setDrawWhenGuiHidden", { "drawWhenGuiHidden" }, value)
+		  end,
+		},
 		{ id = "rankicons", group = "ui", category = types.advanced, widget = "Rank Icons GL4", name = texts.option.rankicons, type = "bool", value = GetWidgetToggleValue("Rank Icons GL4"), description = texts.option.rankicons_descr },
-		{ id = "rankicons_distance", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.rankicons_distance, type = "slider", min = 0.4, max = 2, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getDrawDistance ~= nil and WG['rankicons'].getDrawDistance()), description = '',
+		{ id = "rankicons_distance", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.rankicons_distance, type = "slider", min = 0.1, max = 1.5, step = 0.05, value = (WG['rankicons'] ~= nil and WG['rankicons'].getDrawDistance ~= nil and WG['rankicons'].getDrawDistance()), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Rank Icons', 'rankicons', 'setDrawDistance', { 'distanceMult' }, value)
 		  end,
 		},
-		{ id = "rankicons_scale", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.rankicons_scale, type = "slider", min = 0.3, max = 3, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getScale ~= nil and WG['rankicons'].getScale()), description = '',
+		{ id = "rankicons_scale", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.rankicons_scale, type = "slider", min = 0.5, max = 2, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getScale ~= nil and WG['rankicons'].getScale()), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3543,9 +3563,9 @@ function init()
 		},
 
 		-- DEV
-		{ id = "devmode", group = "dev", category = types.dev, name = texts.option.devmode, type = "bool", value = not Spring.Utilities.ShowDevUI(),
+		{ id = "devmode", group = "dev", category = types.dev, name = texts.option.devmode, type = "bool", value = Spring.Utilities.ShowDevUI(), description = texts.option.devmode_descr,
 			onchange = function(i, value)
-				Spring.SetConfigInt("DevUI", value and 0 or 1)
+				Spring.SetConfigInt("DevUI", value and 1 or 0)
 				Spring.SendCommands("luaui reload")
 			end,
 		},
@@ -3616,97 +3636,97 @@ function init()
 		  end,
 		},
 
-		{ id = "label_dev_unit", group = "dev", name = texts.option.label_unit, category = types.dev },
-		{ id = "label_dev_unit_spacer", group = "dev", category = types.dev },
-
-		{ id = "tonemapA", group = "dev", category = types.dev, name = texts.option.tonemap .. widgetOptionColor .. "  1", type = "slider", min = 0, max = 7, step = 0.01, value = Spring.GetConfigFloat("tonemapA", 4.8), description = "",
-		  onchange = function(i, value)
-			  Spring.SetConfigFloat("tonemapA", value)
-			  Spring.SendCommands("luarules updatesun")
-			  Spring.SendCommands("luarules GlassUpdateSun")
-		  end,
-		},
-		{ id = "tonemapB", group = "dev", category = types.dev, name = widgetOptionColor .. "   2", type = "slider", min = 0, max = 2, step = 0.01, value = Spring.GetConfigFloat("tonemapB", 0.75), description = "",
-		  onchange = function(i, value)
-			  Spring.SetConfigFloat("tonemapB", value)
-			  Spring.SendCommands("luarules updatesun")
-			  Spring.SendCommands("luarules GlassUpdateSun")
-		  end,
-		},
-		{ id = "tonemapC", group = "dev", category = types.dev, name = widgetOptionColor .. "   3", type = "slider", min = 0, max = 5, step = 0.01, value = Spring.GetConfigFloat("tonemapC", 3.5), description = "",
-		  onchange = function(i, value)
-			  Spring.SetConfigFloat("tonemapC", value)
-			  Spring.SendCommands("luarules updatesun")
-			  Spring.SendCommands("luarules GlassUpdateSun")
-		  end,
-		},
-		{ id = "tonemapD", group = "dev", category = types.dev, name = widgetOptionColor .. "   4", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapD", 0.85), description = "",
-		  onchange = function(i, value)
-			  Spring.SetConfigFloat("tonemapD", value)
-			  Spring.SendCommands("luarules updatesun")
-			  Spring.SendCommands("luarules GlassUpdateSun")
-		  end,
-		},
-		{ id = "tonemapE", group = "dev", category = types.dev, name = widgetOptionColor .. "   5", type = "slider", min = 0.75, max = 1.5, step = 0.01, value = Spring.GetConfigFloat("tonemapE", 1.0), description = "",
-		  onchange = function(i, value)
-			  Spring.SetConfigFloat("tonemapE", value)
-			  Spring.SendCommands("luarules updatesun")
-			  Spring.SendCommands("luarules GlassUpdateSun")
-		  end,
-		},
-		{ id = "envAmbient", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.envAmbient, type = "slider", min = 0, max = 1, step = 0.01, value = Spring.GetConfigFloat("envAmbient", 0.25), description = "",
-		  onchange = function(i, value)
-			  Spring.SetConfigFloat("envAmbient", value)
-			  Spring.SendCommands("luarules updatesun")
-			  Spring.SendCommands("luarules GlassUpdateSun")
-		  end,
-		},
-		{ id = "unitSunMult", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.unitSunMult, type = "slider", min = 0.7, max = 1.6, step = 0.01, value = Spring.GetConfigFloat("unitSunMult", 1.0), description = "",
-		  onchange = function(i, value)
-			  Spring.SetConfigFloat("unitSunMult", value)
-			  Spring.SendCommands("luarules updatesun")
-			  Spring.SendCommands("luarules GlassUpdateSun")
-		  end,
-		},
-		{ id = "unitExposureMult", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.unitExposureMult, type = "slider", min = 0.6, max = 1.25, step = 0.01, value = Spring.GetConfigFloat("unitExposureMult", 1.0), description = "",
-		  onchange = function(i, value)
-			  Spring.SetConfigFloat("unitExposureMult", value)
-			  Spring.SendCommands("luarules updatesun")
-			  Spring.SendCommands("luarules GlassUpdateSun")
-		  end,
-		},
-		{ id = "modelGamma", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.modelGamma, type = "slider", min = 0.7, max = 1.7, step = 0.01, value = Spring.GetConfigFloat("modelGamma", 1.0), description = "",
-		  onchange = function(i, value)
-			  Spring.SetConfigFloat("modelGamma", value)
-			  Spring.SendCommands("luarules updatesun")
-			  Spring.SendCommands("luarules GlassUpdateSun")
-		  end,
-		},
-		{ id = "tonemapDefaults", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.tonemapDefaults, type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = "",
-		  onchange = function(i, value)
-			  Spring.SetConfigFloat("tonemapA", 4.75)
-			  Spring.SetConfigFloat("tonemapB", 0.75)
-			  Spring.SetConfigFloat("tonemapC", 3.5)
-			  Spring.SetConfigFloat("tonemapD", 0.85)
-			  Spring.SetConfigFloat("tonemapE", 1.0)
-			  Spring.SetConfigFloat("envAmbient", 0.25)
-			  Spring.SetConfigFloat("unitSunMult", 1.0)
-			  Spring.SetConfigFloat("unitExposureMult", 1.0)
-			  Spring.SetConfigFloat("modelGamma", 1.0)
-			  options[getOptionByID('tonemapA')].value = Spring.GetConfigFloat("tonemapA")
-			  options[getOptionByID('tonemapB')].value = Spring.GetConfigFloat("tonemapB")
-			  options[getOptionByID('tonemapC')].value = Spring.GetConfigFloat("tonemapC")
-			  options[getOptionByID('tonemapD')].value = Spring.GetConfigFloat("tonemapD")
-			  options[getOptionByID('tonemapE')].value = Spring.GetConfigFloat("tonemapE")
-			  options[getOptionByID('envAmbient')].value = Spring.GetConfigFloat("envAmbient")
-			  options[getOptionByID('unitSunMult')].value = Spring.GetConfigFloat("unitSunMult")
-			  options[getOptionByID('unitExposureMult')].value = Spring.GetConfigFloat("unitExposureMult")
-			  options[getOptionByID('modelGamma')].value = Spring.GetConfigFloat("modelGamma")
-			  Spring.SendCommands("luarules updatesun")
-			  Spring.SendCommands("luarules GlassUpdateSun")
-			  options[getOptionByID('tonemapDefaults')].value = false
-		  end,
-		},
+		--{ id = "label_dev_unit", group = "dev", name = texts.option.label_unit, category = types.dev },
+		--{ id = "label_dev_unit_spacer", group = "dev", category = types.dev },
+		--
+		--{ id = "tonemapA", group = "dev", category = types.dev, name = texts.option.tonemap .. widgetOptionColor .. "  1", type = "slider", min = 0, max = 7, step = 0.01, value = Spring.GetConfigFloat("tonemapA", 4.8), description = "",
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigFloat("tonemapA", value)
+		--	  Spring.SendCommands("luarules updatesun")
+		--	  Spring.SendCommands("luarules GlassUpdateSun")
+		--  end,
+		--},
+		--{ id = "tonemapB", group = "dev", category = types.dev, name = widgetOptionColor .. "   2", type = "slider", min = 0, max = 2, step = 0.01, value = Spring.GetConfigFloat("tonemapB", 0.75), description = "",
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigFloat("tonemapB", value)
+		--	  Spring.SendCommands("luarules updatesun")
+		--	  Spring.SendCommands("luarules GlassUpdateSun")
+		--  end,
+		--},
+		--{ id = "tonemapC", group = "dev", category = types.dev, name = widgetOptionColor .. "   3", type = "slider", min = 0, max = 5, step = 0.01, value = Spring.GetConfigFloat("tonemapC", 3.5), description = "",
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigFloat("tonemapC", value)
+		--	  Spring.SendCommands("luarules updatesun")
+		--	  Spring.SendCommands("luarules GlassUpdateSun")
+		--  end,
+		--},
+		--{ id = "tonemapD", group = "dev", category = types.dev, name = widgetOptionColor .. "   4", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapD", 0.85), description = "",
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigFloat("tonemapD", value)
+		--	  Spring.SendCommands("luarules updatesun")
+		--	  Spring.SendCommands("luarules GlassUpdateSun")
+		--  end,
+		--},
+		--{ id = "tonemapE", group = "dev", category = types.dev, name = widgetOptionColor .. "   5", type = "slider", min = 0.75, max = 1.5, step = 0.01, value = Spring.GetConfigFloat("tonemapE", 1.0), description = "",
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigFloat("tonemapE", value)
+		--	  Spring.SendCommands("luarules updatesun")
+		--	  Spring.SendCommands("luarules GlassUpdateSun")
+		--  end,
+		--},
+		--{ id = "envAmbient", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.envAmbient, type = "slider", min = 0, max = 1, step = 0.01, value = Spring.GetConfigFloat("envAmbient", 0.25), description = "",
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigFloat("envAmbient", value)
+		--	  Spring.SendCommands("luarules updatesun")
+		--	  Spring.SendCommands("luarules GlassUpdateSun")
+		--  end,
+		--},
+		--{ id = "unitSunMult", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.unitSunMult, type = "slider", min = 0.7, max = 1.6, step = 0.01, value = Spring.GetConfigFloat("unitSunMult", 1.0), description = "",
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigFloat("unitSunMult", value)
+		--	  Spring.SendCommands("luarules updatesun")
+		--	  Spring.SendCommands("luarules GlassUpdateSun")
+		--  end,
+		--},
+		--{ id = "unitExposureMult", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.unitExposureMult, type = "slider", min = 0.6, max = 1.25, step = 0.01, value = Spring.GetConfigFloat("unitExposureMult", 1.0), description = "",
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigFloat("unitExposureMult", value)
+		--	  Spring.SendCommands("luarules updatesun")
+		--	  Spring.SendCommands("luarules GlassUpdateSun")
+		--  end,
+		--},
+		--{ id = "modelGamma", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.modelGamma, type = "slider", min = 0.7, max = 1.7, step = 0.01, value = Spring.GetConfigFloat("modelGamma", 1.0), description = "",
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigFloat("modelGamma", value)
+		--	  Spring.SendCommands("luarules updatesun")
+		--	  Spring.SendCommands("luarules GlassUpdateSun")
+		--  end,
+		--},
+		--{ id = "tonemapDefaults", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.tonemapDefaults, type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = "",
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigFloat("tonemapA", 4.75)
+		--	  Spring.SetConfigFloat("tonemapB", 0.75)
+		--	  Spring.SetConfigFloat("tonemapC", 3.5)
+		--	  Spring.SetConfigFloat("tonemapD", 0.85)
+		--	  Spring.SetConfigFloat("tonemapE", 1.0)
+		--	  Spring.SetConfigFloat("envAmbient", 0.25)
+		--	  Spring.SetConfigFloat("unitSunMult", 1.0)
+		--	  Spring.SetConfigFloat("unitExposureMult", 1.0)
+		--	  Spring.SetConfigFloat("modelGamma", 1.0)
+		--	  options[getOptionByID('tonemapA')].value = Spring.GetConfigFloat("tonemapA")
+		--	  options[getOptionByID('tonemapB')].value = Spring.GetConfigFloat("tonemapB")
+		--	  options[getOptionByID('tonemapC')].value = Spring.GetConfigFloat("tonemapC")
+		--	  options[getOptionByID('tonemapD')].value = Spring.GetConfigFloat("tonemapD")
+		--	  options[getOptionByID('tonemapE')].value = Spring.GetConfigFloat("tonemapE")
+		--	  options[getOptionByID('envAmbient')].value = Spring.GetConfigFloat("envAmbient")
+		--	  options[getOptionByID('unitSunMult')].value = Spring.GetConfigFloat("unitSunMult")
+		--	  options[getOptionByID('unitExposureMult')].value = Spring.GetConfigFloat("unitExposureMult")
+		--	  options[getOptionByID('modelGamma')].value = Spring.GetConfigFloat("modelGamma")
+		--	  Spring.SendCommands("luarules updatesun")
+		--	  Spring.SendCommands("luarules GlassUpdateSun")
+		--	  options[getOptionByID('tonemapDefaults')].value = false
+		--  end,
+		--},
 
 		{ id = "label_dev_map", group = "dev", name = texts.option.label_map, category = types.dev },
 		{ id = "label_dev_map_spacer", group = "dev", category = types.dev },
@@ -4383,14 +4403,15 @@ function init()
 			  Spring.SendCommands("water 4")
 		  end,
 		},
-		{ id = "water_windspeed", group = "dev", category = types.dev, name = widgetOptionColor .. "   windspeed", type = "slider", min = 0.0, max = 2.0, step = 0.01, value = gl.GetWaterRendering("windSpeed"), description = "The speed of bumpwater tiles moving",
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SetWaterParams({ windSpeed = value })
-			  Spring.SendCommands("water 4")
-		  end,
-		},
+		-- gl.GetWaterRendering("windSpeed") seems to not exist
+		--{ id = "water_windspeed", group = "dev", category = types.dev, name = widgetOptionColor .. "   windspeed", type = "slider", min = 0.0, max = 2.0, step = 0.01, value = gl.GetWaterRendering("windSpeed"), description = "The speed of bumpwater tiles moving",
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  Spring.SetWaterParams({ windSpeed = value })
+		--	  Spring.SendCommands("water 4")
+		--  end,
+		--},
 		{ id = "water_ambientfactor", group = "dev", category = types.dev, name = widgetOptionColor .. "   ambient factor", type = "slider", min = 0, max = 2, step = 0.001, value = gl.GetWaterRendering("ambientFactor"), description = "How much ambient lighting the water surface gets (ideally very little)",
 		  onload = function(i)
 		  end,
@@ -4569,9 +4590,11 @@ function init()
 	-- reset tonemap defaults (only once)
 	if not resettedTonemapDefault then
 		local optionID = getOptionByID('tonemapDefaults')
-		options[optionID].value = true
-		applyOptionValue(optionID)
-		resettedTonemapDefault = true
+		if optionID then
+			options[optionID].value = true
+			applyOptionValue(optionID)
+			resettedTonemapDefault = true
+		end
 	end
 
 	if not devMode then

@@ -245,6 +245,8 @@ function gadget:GameFrame(n)
 
 	if n%30 == 0 then
 		if n > scavconfig.gracePeriod and scavengerGamePhase == "initial" then
+			local scoreNow = globalScore
+			endOfGracePeriodScore = scoreNow
 			scavengerGamePhase = "action"
 		end
 		if globalScore then

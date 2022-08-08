@@ -1172,19 +1172,23 @@ function init()
 	end
 
 	-- rejoin
-	width = math_floor(totalWidth / 4) / 3.3
-	rejoinArea = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
-	filledWidth = filledWidth + width + widgetSpaceMargin
+	if showRejoinUI then
+		width = math_floor((totalWidth / 4) / 3.3)
+		rejoinArea = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
+		filledWidth = filledWidth + width + widgetSpaceMargin
+	end
 
 	-- buttons
 	width = math_floor(totalWidth / 4)
 	buttonsArea = { topbarArea[3] - width, topbarArea[2], topbarArea[3], topbarArea[4] }
-	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateButtons()
 
 	if WG['topbar'] then
 		WG['topbar'].GetPosition = function()
 			return { topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale}
+		end
+		WG['topbar'].GetFreeArea = function()
+			return { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[3] - width - widgetSpaceMargin, topbarArea[4], widgetScale}
 		end
 	end
 
@@ -2032,20 +2036,20 @@ function widget:MousePress(x, y, button)
 			if math_isInRect(x, y, shareIndicatorArea['metal'][1], shareIndicatorArea['metal'][2], shareIndicatorArea['metal'][3], shareIndicatorArea['metal'][4]) then
 				draggingShareIndicator = 'metal'
 			end
-			if math_isInRect(x, y, resbarDrawinfo['metal'].barArea[1], shareIndicatorArea['metal'][2], resbarDrawinfo['metal'].barArea[3], shareIndicatorArea['metal'][4]) then
-				draggingShareIndicator = 'metal'
-				adjustSliders(x, y)
-			end
+			--if math_isInRect(x, y, resbarDrawinfo['metal'].barArea[1], shareIndicatorArea['metal'][2], resbarDrawinfo['metal'].barArea[3], shareIndicatorArea['metal'][4]) then
+			--	draggingShareIndicator = 'metal'
+			--	adjustSliders(x, y)
+			--end
 			if math_isInRect(x, y, shareIndicatorArea['energy'][1], shareIndicatorArea['energy'][2], shareIndicatorArea['energy'][3], shareIndicatorArea['energy'][4]) then
 				draggingShareIndicator = 'energy'
 			end
 			if draggingShareIndicator == nil and math_isInRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
 				draggingConversionIndicator = true
 			end
-			if draggingConversionIndicator == nil and math_isInRect(x, y, resbarDrawinfo['energy'].barArea[1], shareIndicatorArea['energy'][2], resbarDrawinfo['energy'].barArea[3], shareIndicatorArea['energy'][4]) then
-				draggingShareIndicator = 'energy'
-				adjustSliders(x, y)
-			end
+			--if draggingConversionIndicator == nil and math_isInRect(x, y, resbarDrawinfo['energy'].barArea[1], shareIndicatorArea['energy'][2], resbarDrawinfo['energy'].barArea[3], shareIndicatorArea['energy'][4]) then
+			--	draggingShareIndicator = 'energy'
+			--	adjustSliders(x, y)
+			--end
 			if draggingShareIndicator or draggingConversionIndicator then
 				if playSounds then
 					Spring.PlaySoundFile(resourceclick, 0.7, 'ui')
@@ -2138,7 +2142,7 @@ function widget:GameProgress(n)
 end
 
 function widget:LanguageChanged()
-	updateButtons();
+	updateButtons()
 end
 
 function widget:Initialize()

@@ -200,6 +200,8 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 	end
 end
 
+
+local prevGuiHidden = Spring.IsGUIHidden()
 function widget:Update(dt)
 	sec = sec + dt
 	if reinit then
@@ -218,6 +220,15 @@ function widget:Update(dt)
 		end
 		removedUnitshapes = {}	-- in extreme cases the delayed widget:UnitCommand processing is slower than the actual UnitCreated/Finished, this table is to make sure a unitshape isnt created after
 	end
+
+	if Spring.IsGUIHidden() ~= prevGuiHidden then
+		prevGuiHidden = Spring.IsGUIHidden()
+		if prevGuiHidden then
+			widget:Shutdown()
+		else
+			widget:Initialize()
+		end
+	end
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
@@ -228,7 +239,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		removeUnitShape(id)
 	end
 	command[id] = nil
-	-- we need to store all newly created units cause unitcreated can be earlier than our delayed processing of widget:UnitCommand (when a newly queued cmd is first and withing builder range)
+	-- we need to store all newly created units cause unitcreated can be earlier than our delayed processing of widget:UnitCommand (when a newly queued cmd is first and within builder range)
 	createdUnit[id] = unitID
 	createdUnitID[unitID] = id
 end

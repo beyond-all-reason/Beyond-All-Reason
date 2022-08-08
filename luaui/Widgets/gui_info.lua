@@ -1047,7 +1047,7 @@ local function drawUnitInfo()
 
 
 	-- draw transported unit list
-	elseif displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and #Spring.GetUnitIsTransporting(displayUnitID) > 0 then
+	elseif displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and (Spring.GetUnitIsTransporting(displayUnitID) and #Spring.GetUnitIsTransporting(displayUnitID) or 0) > 0 then
 		local units = Spring.GetUnitIsTransporting(displayUnitID)
 		if #units > 0 then
 			gridHeight = math_ceil(height * 0.975)
@@ -1116,7 +1116,7 @@ local function drawUnitInfo()
 			dps = unitDefInfo[displayUnitDefID].dps
 		end
 
-		-- get unit specifc data
+		-- get unit specific data
 		if displayMode == 'unit' then
 			-- get lots of unit info from functions: https://springrts.com/wiki/Lua_SyncedRead
 			metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
@@ -1134,7 +1134,9 @@ local function drawUnitInfo()
 
 		else
 			-- get unitdef specific data
-
+			if unitDefInfo[displayUnitDefID].maxWeaponRange then
+				maxRange = unitDefInfo[displayUnitDefID].maxWeaponRange
+			end
 		end
 
 		if unitDefInfo[displayUnitDefID].weapons then
@@ -1464,7 +1466,7 @@ function widget:MouseRelease(x, y, button)
 		-- transported unit list
 		if displayMode == 'unit' and button == 1 then
 			local units = Spring.GetUnitIsTransporting(displayUnitID)
-			if #units > 0 then
+			if units and #units > 0 then
 				for cellID, unitID in pairs(units) do
 					local unitDefID = spGetUnitDefID(unitID)
 					if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
@@ -1495,6 +1497,8 @@ function widget:MouseRelease(x, y, button)
 	return -1
 end
 
+
+local doUpdateClock2 = os_clock() + 0.9
 function widget:DrawScreen()
 	if chobbyInterface then
 		return
@@ -1505,11 +1509,18 @@ function widget:DrawScreen()
 	end
 	local x, y, b, b2, b3 = spGetMouseState()
 
-	if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) then
+	if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) or (os_clock() >= doUpdateClock2) then
 		doUpdateClock = nil
+		doUpdateClock2 = os_clock() + 0.9
 		clear()
 		doUpdate = nil
 		lastUpdateClock = os_clock()
+	end
+
+	if displayUnitID and not Spring.ValidUnitID(displayUnitID) then
+		displayMode = 'text'
+		displayUnitID = nil
+		displayUnitDefID = nil
 	end
 
 	if not dlistInfo then

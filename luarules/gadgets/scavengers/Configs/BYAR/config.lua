@@ -97,16 +97,16 @@ local scavconfig = {
 
 	scoreConfig = {
 		-- set to 0 to disable
-		scorePerMetal 					= 5, 	-- thisvalue*metalproduction
-		scorePerEnergy 					= 1,	-- thisvalue*energyproduction
-		scorePerSecond 					= 1,	-- thisvalue*secondspassed
+		scorePerMetal 					= 2.5, 	-- thisvalue*metalproduction
+		scorePerEnergy 					= 0.25,	-- thisvalue*energyproduction
+		scorePerSecond 					= 5.5,	-- thisvalue*secondspassed
 		scorePerOwnedUnit				= 1,	-- thisvalue*countofunits
 		-----------------------------------------
 		baseScorePerKill 				= 1, -- How much score EVERY KILL and CAPTURE adds
 			-- Additional score for specific unit types, use -baseScorePerKill(default 1) to make it have no effect on score, use values lower than baseScorePerKill to reduce score
-			scorePerKilledBuilding 			= 9,
-			scorePerKilledConstructor 		= 49,
-			scorePerKilledSpawner 			= 99,
+			scorePerKilledBuilding 			= 19,
+			scorePerKilledConstructor 		= 199,
+			scorePerKilledSpawner 			= 199,
 			scorePerCapturedSpawner 		= 50, -- this doesn't care about baseScorePerKill
 	},
 	gracePeriod = ScavGracePeriodModoption*30*60,
@@ -156,19 +156,19 @@ local scavconfig = {
 	},
 	unitSpawnerModuleConfig = {
 		bossFightEnabled					= not endlessModeEnabled,
-		FinalBossUnit						= true,
+		FinalBossUnit						= Spring.GetModOptions().scavbosstoggle,
 			FinalBossHealth						= 1000000*ScavBossHealthModoption, -- this*teamcount*difficulty
 			FinalBossMinionsPassive				= 36000, -- this/(teamcount*difficulty), how often does boss spawn minions passively, frames.
 			FinalBossMinionsActive				= 10800, -- this/(teamcount*difficulty), how often does boss spawn minions when taking damage, frames.
 		BossWaveTimeLeft					= 300,
 		aircraftchance 						= 10, -- higher number = lower chance
-		globalscoreperoneunit 				= 1500/ScavUnitCountModoption,
-		spawnchance							= 360/ScavUnitSpawnFrequencyModoption,
-		beaconspawnchance					= 480,
+		globalscoreperoneunit 				= 1600/ScavUnitCountModoption,
+		spawnchance							= 100/ScavUnitSpawnFrequencyModoption,
+		beaconspawnchance					= 900,
 		beacondefences						= true,
-		minimumspawnbeacons					= math.ceil(teamcount*spawnmultiplier)*8,
+		minimumspawnbeacons					= math.ceil(teamcount*spawnmultiplier)*3,
 		landmultiplier 						= 0.75,
-		airmultiplier 						= 2,
+		airmultiplier 						= 1,
 		seamultiplier 						= 0.75,
 		chanceforaircraftonsea				= 4, -- higher number = lower chance
 	

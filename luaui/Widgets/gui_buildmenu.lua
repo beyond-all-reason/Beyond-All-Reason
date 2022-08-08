@@ -1017,7 +1017,9 @@ function widget:DrawScreen()
 		doUpdate = true
 	end
 
-	WG['buildmenu'].hoverID = nil
+	if WG['buildmenu'] then
+		WG['buildmenu'].hoverID = nil
+	end
 	if not preGamestartPlayer and selectedBuilderCount == 0 and not alwaysShow then
 		if WG['guishader'] and dlistGuishader then
 			WG['guishader'].RemoveDlist('buildmenu')
@@ -1595,12 +1597,11 @@ local function buildUnitHandler(_, _, _, data)
 
 	local comDef = UnitDefs[startDefID]
 
-	if not comBuildOptions[comDef.name][data.unitDefID] then return end
+	if not comDef or not comBuildOptions[comDef.name] or not comBuildOptions[comDef.name][data.unitDefID] then return end
 
 	-- If no current active selection we can return early
 	if not selBuildQueueDefID then
 		setPreGamestartDefID(data.unitDefID)
-
 		return true
 	end
 
@@ -1609,7 +1610,6 @@ local function buildUnitHandler(_, _, _, data)
 	local pressedKey
 	for k, v in pairs(pressedKeys) do
 		local key = SYMKEYS[k]
-
 		if v and key and #key == 1 then
 			pressedKey = string.lower(key)
 			break
@@ -1620,7 +1620,6 @@ local function buildUnitHandler(_, _, _, data)
 	if not pressedKey then return end
 
 	local buildCycle = {}
-
 	for _, keybind in ipairs(Spring.GetKeyBindings(pressedKey)) do
 		if string.sub(keybind.command, 1, 10) == 'buildunit_' then
 			local uDefName = string.sub(keybind.command, 11)
@@ -1643,7 +1642,6 @@ local function buildUnitHandler(_, _, _, data)
 
 	if not buildCycleIndex then
 		setPreGamestartDefID(data.unitDefID)
-
 		return true
 	end
 

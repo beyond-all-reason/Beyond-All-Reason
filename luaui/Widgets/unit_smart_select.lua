@@ -37,6 +37,7 @@ local spIsAboveMiniMap = Spring.IsAboveMiniMap
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitNoSelect = Spring.GetUnitNoSelect
 
 local GaiaTeamID = Spring.GetGaiaTeamID()
 local selectedUnits = Spring.GetSelectedUnits()
@@ -196,6 +197,16 @@ function widget:Update()
 
 			local newSelection = {}
 			local uid, udid, tmp
+
+			-- filter unselectable units
+			tmp = {}
+			for i = 1, #mouseSelection do
+				uid = mouseSelection[i]
+				if not spGetUnitNoSelect(uid) then
+					tmp[#tmp + 1] = uid
+				end
+			end
+			mouseSelection = tmp
 
 			-- filter gaia units + ignored units (objects) + only own units when not spectating
 			if not Spring.IsGodModeEnabled() then

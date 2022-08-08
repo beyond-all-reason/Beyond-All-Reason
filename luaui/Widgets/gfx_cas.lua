@@ -184,14 +184,14 @@ function widget:Initialize()
 			screenCopyTex = 0,
 		},
 	}, ": Contrast Adaptive Sharpen")
-	
+
 	local shaderCompiled = casShader:Initialize()
-	if not shaderCompiled then 
+	if not shaderCompiled then
 			Spring.Echo("Failed to compile Contrast Adaptive Sharpen shader, removing widget")
 			widgetHandler:RemoveWidget()
 			return
 	end
-	
+
 	UpdateShader()
 
 	fullTexQuad = gl.GetVAO()
@@ -213,8 +213,12 @@ end
 
 function widget:Shutdown()
 	--gl.DeleteTexture(screenCopyTex)
-	casShader:Finalize()
-	fullTexQuad:Delete()
+	if casShader then
+		casShader:Finalize()
+	end
+	if fullTexQuad then
+		fullTexQuad:Delete()
+	end
 end
 
 function widget:ViewResize()
@@ -227,7 +231,7 @@ function widget:DrawScreenEffects()
 	if WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
 		screenCopyTex = WG['screencopymanager'].GetScreenCopy()
 	else
-		--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy) 
+		--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
 		Spring.Echo("Missing Screencopy Manager, exiting",  WG['screencopymanager'] )
 		widgetHandler:RemoveWidget()
 		return false

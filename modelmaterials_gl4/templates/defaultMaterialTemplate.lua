@@ -56,7 +56,7 @@ vertex = [[
 	// Options in use
 	#define OPTION_SHADOWMAPPING 0
 	#define OPTION_NORMALMAPPING 1
-	#define OPTION_NORMALMAP_FLIP 2
+	#define OPTION_SHIFT_RGBHSV 2
 	#define OPTION_VERTEX_AO 3
 	#define OPTION_FLASHLIGHTS 4
 
@@ -139,6 +139,7 @@ vertex = [[
 		flat float selfIllumMod;
 		flat float healthFraction;
 		flat int unitID;
+		flat vec4 userDefined2;
 
 	};
 
@@ -272,12 +273,13 @@ vertex = [[
 	void main(void)
 	{
 		unitID = int(UNITID);
+		userDefined2 = UNITUNIFORMS.userDefined[2];
 		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
 		mat4 worldMatrix = mat[instData.x];
 
 		mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
 		mat3 normalMatrix = mat3(worldPieceMatrix);
-
+	
 
 		vec4 piecePos = vec4(pos, 1.0);
 
@@ -458,11 +460,13 @@ fragment = [[
 
 	#if (RENDERING_MODE == 2) //shadows pass. AMD requests that extensions are declared right on top of the shader
 		#if (SUPPORT_DEPTH_LAYOUT == 1)
-			//#extension GL_ARB_conservative_depth : require // this is commented out because AMD wants me to add it at start of shader, hope this works...
+			//#extension GL_ARB_conservative_depth : enable // this is commented out because AMD wants me to add it at start of shader, hope this works...
 			//#extension GL_EXT_conservative_depth : require
 			// preserve early-z performance if possible
 			// for future reference: https://github.com/buildaworldnet/IrrlichtBAW/wiki/Early-Fragment-Tests,-Hi-Z,-Depth,-Stencil-and-other-benchmarks
-			layout(depth_unchanged) out float gl_FragDepth;
+			#if (GL_ARB_conservative_depth == 1)					  
+				layout(depth_unchanged) out float gl_FragDepth;
+			#endif
 		#endif
 	#endif
 
@@ -470,7 +474,7 @@ fragment = [[
 	// Options in use
 	#define OPTION_SHADOWMAPPING 0
 	#define OPTION_NORMALMAPPING 1
-	#define OPTION_NORMALMAP_FLIP 2
+	#define OPTION_SHIFT_RGBHSV 2
 	#define OPTION_VERTEX_AO 3
 	#define OPTION_FLASHLIGHTS 4
 
@@ -633,8 +637,8 @@ fragment = [[
 		flat float selfIllumMod;
 		flat float healthFraction;
 		flat int unitID;
+		flat vec4 userDefined2;
 	};
-
 
 
 	/***********************************************************************/
@@ -986,6 +990,26 @@ fragment = [[
 	#ifndef TONEMAP
 		#define TONEMAP(c) LINEARtoSRGB(c)
 	#endif
+	
+	#ifdef SHIFT_RGBHSV
+		vec3 rgb2hsv(vec3 c)
+		{
+			vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+			vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+			vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+			float d = q.x - min(q.w, q.y);
+			float e = 1.0e-10;
+			return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+		}
+
+		vec3 hsv2rgb(vec3 c)
+		{
+			vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+			vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+			return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+		}
+	#endif
 
 	/***********************************************************************/
 	// Environment sampling functions
@@ -1251,6 +1275,15 @@ fragment = [[
 
 		vec4 texColor1 = texture(texture1, myUV, textureLODBias);
 		vec4 texColor2 = texture(texture2, myUV, textureLODBias);
+		
+		#ifdef SHIFT_RGBHSV
+			if (BITMASK_FIELD(bitOptions, OPTION_SHIFT_RGBHSV)){
+				vec3 hsvColor1 = rgb2hsv(texColor1.rgb) + userDefined2.rgb;
+				hsvColor1.r = fract(hsvColor1.r);
+				//hsvColor1.gb = clamp(hsvColor1.gb, 0.0, 1.0);
+				texColor1.rgb = hsv2rgb(hsvColor1);
+			}
+		#endif
 
 		#ifdef TREE_RANDOMIZATION
 			float funitID = float(unitID);
@@ -1653,6 +1686,7 @@ local defaultMaterialTemplate = {
 		"#define USE_ENVIRONMENT_SPECULAR 1",
 
 		"#define TONEMAP(c) CustomTM(c)",
+		"#define SHIFT_RGBHSV",
 	},
 	deferredDefinitions = {
 		"#define RENDERING_MODE 1",
@@ -1668,6 +1702,7 @@ local defaultMaterialTemplate = {
 		"#define USE_ENVIRONMENT_SPECULAR 1",
 
 		"#define TONEMAP(c) CustomTM(c)",
+		"#define SHIFT_RGBHSV",
 	},
 	shadowDefinitions = {		
 		"#define RENDERING_MODE 2",
@@ -1676,7 +1711,7 @@ local defaultMaterialTemplate = {
 		[[	
 #if (RENDERING_MODE == 2) //shadows pass. AMD requests that extensions are declared right on top of the shader
 	#if (SUPPORT_DEPTH_LAYOUT == 1)
-		#extension GL_ARB_conservative_depth : require
+		#extension GL_ARB_conservative_depth : enable
 		//#extension GL_EXT_conservative_depth : require
 		// preserve early-z performance if possible
 		// for future reference: https://github.com/buildaworldnet/IrrlichtBAW/wiki/Early-Fragment-Tests,-Hi-Z,-Depth,-Stencil-and-other-benchmarks
@@ -1708,7 +1743,7 @@ local defaultMaterialTemplate = {
 
 		vertex_ao         = false,
 		flashlights       = false,
-		normalmap_flip    = false,
+		shift_rgbhsv    = false,
 
 		threads_arm       = false,
 		threads_core      = false,
@@ -1731,7 +1766,7 @@ local defaultMaterialTemplate = {
 
 		vertex_ao        = false,
 		flashlights      = false,
-		normalmap_flip   = false,
+		shift_rgbhsv   = false,
 
 		threads_arm      = false,
 		threads_core     = false,
@@ -1782,7 +1817,7 @@ local shaderPlugins = {
 --[[
 	#define OPTION_SHADOWMAPPING 0
 	#define OPTION_NORMALMAPPING 1
-	#define OPTION_NORMALMAP_FLIP 2
+	#define OPTION_SHIFT_RGBHSV 2
 	#define OPTION_VERTEX_AO 3
 	#define OPTION_FLASHLIGHTS 4
 
@@ -1804,7 +1839,7 @@ local shaderPlugins = {
 local knownBitOptions = {
 	["shadowmapping"] = 0,
 	["normalmapping"] = 1,
-	["normalmap_flip"] = 2,
+	["shift_rgbhsv"] = 2,
 	["vertex_ao"] = 3,
 	["flashlights"] = 4,
 

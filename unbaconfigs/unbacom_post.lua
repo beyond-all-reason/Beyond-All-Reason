@@ -273,6 +273,11 @@ function UnbaCom_Post(name)
 	
 		tablecom.weapondefs["disintegrator"].reloadtime = 10
 		tablecom.weapondefs["disintegrator"].energypershot = 1200
+		tablecom.weapondefs["disintegrator"].damage = {
+												default = 99999,
+												scavboss = 1000,
+												commanders = 500,
+											}
 
 		
 	end

@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		desc = "D-Gun projectiles hug ground, deterministic damage against Commanders",
 		author = "Anarchid, Sprung",
 		layer = 0,
-		enabled = enabled
+		enabled = false -- Disabled for now because d-gun has been replaced with EMP weapon
 	}
 end
 

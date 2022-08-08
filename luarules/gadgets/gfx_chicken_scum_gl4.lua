@@ -20,80 +20,84 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 	local scumSpawnerIDs = {}
-	
-	
+
+
 	local scums = {} -- {posx = 123, posz = 123, radius = 123, spawnframe = 0, growthrate = 1.0} -- in elmos per sec
 	local scumIndex = 0
 	local numscums = 0
 	local scumBins = {} -- a table keyed with (posx / 1024) + 1024 + (posz/1024), values are tables of scumindexes that can overlap that bin
 	local scumRemoveQueue = {} -- maps gameframes to list of scums that will be removed
-	
+
 	local sqrt = math.sqrt
 	local floor = math.floor
 	local max = math.max
 	local min = math.min
-	local spGetGroundHeight = Spring.GetGroundHeight 
+	local spGetGroundHeight = Spring.GetGroundHeight
 	local spGetGameFrame = Spring.GetGameFrame
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
 	local initialized = false
 	local boundary = 128 -- how many elmos closer to the center of the scum than the actual edge of the scum the unit must be to be considered on the scum
-	
+
 	local function GetScumCurrentRadius(scum, gf)
 		gf = gf or spGetGameFrame()
-		if scum.growthrate > 0 then 
+		if scum.growthrate > 0 then
 			return max(0, min(scum.radius, (gf - scum.spawnframe) * scum.growthrate))
 		else
 			return min(scum.radius, max(0,scum.radius - (gf - scum.spawnframe) *(-1.0 * scum.growthrate)) )
 		end
 	end
-	
+
 	local function GetMapSquareKey(posx, posz)
 		if posx < 0 or posz < 0 or posx > mapSizeX or posz > mapSizeZ then return nil end
 		return (floor(posx*0.0009765625) * 1024 + floor(posz* 0.0009765625))
 	end
 
-	for x= 0, math.ceil(mapSizeX/1024) do 
-		for z = 0, math.ceil(mapSizeZ/1024) do 
+	for x= 0, math.ceil(mapSizeX/1024) do
+		for z = 0, math.ceil(mapSizeZ/1024) do
 			scumBins[x*1024+z] = {}
 		end
 	end
 
 	function gadget:Initialize()
-		scumSpawnerIDs[UnitDefNames['roost'].id] = {radius = 384, growthrate = 0.5}
-		scumSpawnerIDs[UnitDefNames['chickend2'].id] = {radius = 384, growthrate = 0.5}
-		scumSpawnerIDs[UnitDefNames['chickend1'].id] = {radius = 384, growthrate = 0.5}
-		
-		for x= 0, math.ceil(mapSizeX/1024) do 
-			for z = 0, math.ceil(mapSizeZ/1024) do 
+		scumSpawnerIDs[UnitDefNames['chicken_hive'].id] = {radius = 1024, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_turretl'].id] = {radius = 384, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_turrets'].id] = {radius = 256, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_turretl_acid'].id] = {radius = 768, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_turrets_acid'].id] = {radius = 512, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_turretl_electric'].id] = {radius = 768, growthrate = 1}
+		scumSpawnerIDs[UnitDefNames['chicken_turrets_electric'].id] = {radius = 512, growthrate = 1}
+
+		for x= 0, math.ceil(mapSizeX/1024) do
+			for z = 0, math.ceil(mapSizeZ/1024) do
 				scumBins[x*1024+z] = {}
 			end
 		end
 	end
-	
 
-		-- This checks wether the unit is under any scum 
+
+		-- This checks wether the unit is under any scum
 	local function IsPosInScum(unitx,unity, unitz)
 		-- out of bounds check, no scum outside of map bounds
 		if unitx < 0 or unitz < 0 or unitx > mapSizeX or unitz > mapSizeZ then return nil end
 		-- underwater scum doesnt count for hovers, ships
 		unity = unity or 1
-		if unity > -1 and spGetGroundHeight(unitx, unitz) < 0 then return nil end 
-		
-		-- Empty bins also return 
+		if unity > -1 and spGetGroundHeight(unitx, unitz) < 0 then return nil end
+
+		-- Empty bins also return
 		local scumBinID = GetMapSquareKey(unitx, unitz)
-		if scumBinID == nil or scumBins[scumBinID] == nil then return nil end 
+		if scumBinID == nil or scumBins[scumBinID] == nil then return nil end
 		local gf = spGetGameFrame()
-		
-		for scumID, scum in pairs(scumBins[scumBinID]) do 
+
+		for scumID, scum in pairs(scumBins[scumBinID]) do
 			local dx = (unitx - scum.posx)
 			local dz = (unitz - scum.posz)
 			local sqrdistance = (dx*dx + dz*dz)
 			local scumradius = scum.radius
-			if sqrdistance < (scumradius * scumradius) then 
+			if sqrdistance < (scumradius * scumradius) then
 				local currentscumradius = GetScumCurrentRadius(scum, gf)
 				--Spring.Echo("testing ScumID", scumID, sqrdistance, scumradius, currentscumradius)
-				if currentscumradius  - sqrt(sqrdistance) > boundary then 
+				if currentscumradius  - sqrt(sqrdistance) > boundary then
 					return scumID
 				end
 			end
@@ -102,24 +106,24 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	GG.IsPosInChickenScum = IsPosInScum --(x,y,z)
-	
-	
+
+
 	local function UpdateBins(scumID, removeScum)
 		local scumTable = scums[scumID]
-		if scumTable == nil then 
+		if scumTable == nil then
 			Spring.Echo("Tried to update a scumID",scumID,"that no longer exists because it probably shrank to death, remove = ", removeScum)
-			return nil 
+			return nil
 		end
-		
+
 		local posx = scumTable.posx
 		local posz = scumTable.posz
 		local radius = scumTable.radius
-		
-		if removeScum then 
+
+		if removeScum then
 			scumTable = nil
 			scums[scumID] = nil
 		end
-		
+
 		local binID = GetMapSquareKey(posx, posz)
 		if binID then scumBins[binID][scumID] = scumTable end
 		binID = GetMapSquareKey(posx + radius, posz + radius)
@@ -140,7 +144,7 @@ if gadgetHandler:IsSyncedCode() then
 		local deathtime
 		local scum
 		-- thus we need to make a new scum, and register it in our scumBins
-		if scums[scumID] == nil then 
+		if scums[scumID] == nil then
 			posy = posy or Spring.GetGroundHeight(posx, posz)
 			scum = {posx = posx, posz = posz, radius = radius, spawnframe = gf, growthrate = growthrate, scumID = scumID}
 			scums[scumID] = scum
@@ -151,59 +155,59 @@ if gadgetHandler:IsSyncedCode() then
 			-- well then, seems we have to do this after all, when we update a scum, we need to check how long its been alive
 			-- this is the nastiest garbage ive ever done
 			local currentradius = GetScumCurrentRadius(scum, gf)
-			
+
 			-- always remove from removal queue on update
-			for _, removescums in pairs(scumRemoveQueue) do 
+			for _, removescums in pairs(scumRemoveQueue) do
 				removescums[scumID] = nil
 			end
-			
-			if growthrate > 0 then 
+
+			if growthrate > 0 then
 				scum.spawnframe = gf - ( currentradius/growthrate)
 				-- remove it from the death queue, no matter where it is, cause its 'growing'
 			else
 				scum.spawnframe = gf - ((scum.radius - currentradius)/ (-1 * growthrate) )
-				deathtime = math.floor( gf + (currentradius/(-1 * growthrate)))	
+				deathtime = math.floor( gf + (currentradius/(-1 * growthrate)))
 			end
-			
+
 			scum.growthrate = growthrate
-			
+
 			if debugmode then Spring.Echo("Updated scum", scumID, "it was", currentradius,"/", scum.radius, "sized, growing at", growthrate) end
 		end
 		--Spring.Echo(scumID, growthrate, radius, gf)
-		
+
 		return scumID
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID)
-		if scumSpawnerIDs[unitDefID] then 
+		if scumSpawnerIDs[unitDefID] then
 			local px, py, pz = Spring.GetUnitPosition(unitID)
 			local gf = Spring.GetGameFrame()
-			
+
 			local scumID = AddOrUpdateScum(px, py, pz, scumSpawnerIDs[unitDefID].radius, scumSpawnerIDs[unitDefID].growthrate, unitID)
 			local scum = scums[scumID]
 			SendToUnsynced("ScumCreated",scum.posx, scum.posz, scum.radius, scum.growthrate, gf, scumID)
 			--Spring.Echo("Scum Created Synced")
 		end
 	end
-	
+
 
 	function gadget:UnitDestroyed(unitID, unitDefID)
-		if scumSpawnerIDs[unitDefID] and scums[unitID] then 
+		if scumSpawnerIDs[unitDefID] and scums[unitID] then
 			AddOrUpdateScum(nil,nil,nil,nil, -10 * math.abs(scums[unitID].growthrate), unitID)
 			SendToUnsynced("ScumRemoved", unitID)
 		end
 	end
-	
+
 	function gadget:GameFrame(n)
-		if not initialized then 
-			for i, unitID in ipairs(Spring.GetAllUnits()) do 
+		if not initialized then
+			for i, unitID in ipairs(Spring.GetAllUnits()) do
 				gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 			end
 			initialized = true
 		end
-		if scumRemoveQueue[n] then 
-			for scumID, _ in pairs(scumRemoveQueue[n]) do 
-				if scums[scumID] then 
+		if scumRemoveQueue[n] then
+			for scumID, _ in pairs(scumRemoveQueue[n]) do
+				if scums[scumID] then
 					numscums = numscums - 1
 				end
 				UpdateBins(instanceID, true)
@@ -211,7 +215,7 @@ if gadgetHandler:IsSyncedCode() then
 			scumRemoveQueue[n] = nil
 		end
 	end
-else 
+else
 
 
 	local texcolorheight = "LuaUI/images/alien_guts_colorheight.dds"
@@ -245,7 +249,7 @@ else
 	local shaderConfig = {
 		SPECULAREXPONENT = 64.0,  -- the specular exponent of the lava plane
 		SPECULARSTRENGTH = 1.0, -- The peak brightness of specular highlights
-		
+
 		LOSDARKNESS = 0.5, -- how much to darken the out-of-los areas of the lava plane
 		SHADOWSTRENGTH = 0.4, -- how much light a shadowed fragment can recieve
 		CREEPTEXREZ = 0.003,
@@ -282,7 +286,7 @@ else
 	out DataVS {
 		vec4 v_worldPosRad;
 		vec4 v_localxz;
-		vec4 v_worldUV; 
+		vec4 v_worldUV;
 		vec4 v_lifeparams;
 		vec4 v_mapnormals;
 		float v_trueradius;
@@ -299,23 +303,23 @@ else
 		v_lifeparams = lifeparams;
 		v_localxz = xyworld_xyfract;
 		// Transform the [-1, 1] rect into world space
-		vec4 mapPos = vec4(worldposradius.xyz, 1.0); 
+		vec4 mapPos = vec4(worldposradius.xyz, 1.0);
 		mapPos.xz += xyworld_xyfract.xy *  worldposradius.w;
-		
+
 		// Sample the heightmap to get reasonable world depth
 		vec2 uvhm = heighmapUVatWorldPos(mapPos.xz);
 		mapPos.y = textureLod(heightmapTex, uvhm, 0.0).x + 3.0;
-		
+
 		// sample the map normals and pass it on for later use:
 		v_mapnormals = textureLod(mapnormalsTex, uvhm, 0.0);
-		
+
 		v_worldUV =  mapPos.xyzw;
-		
+
 		float time = timeInfo.x + timeInfo.w;
-		
+
 		v_worldUV.x += JIGGLEAMPLITUDE * sin(time * 0.1 + 100*rand(v_worldUV.xy));
 		v_worldUV.z += JIGGLEAMPLITUDE * sin(time * 0.1 + 100*rand(v_worldUV.zy));
-		
+
 		if (lifeparams.y > 0.0) {
 			v_trueradius = clamp (lifeparams.y * (time - lifeparams.x), 0.0,  v_worldPosRad.w);
 		}
@@ -341,7 +345,7 @@ else
 	in DataVS {
 		vec4 v_worldPosRad;
 		vec4 v_localxz;
-		vec4 v_worldUV; 
+		vec4 v_worldUV;
 		vec4 v_lifeparams;
 		vec4 v_mapnormals;
 		float v_trueradius;
@@ -390,47 +394,47 @@ else
 		vec4 texcolorheight= texture(colorheight, v_worldUV.xz * CREEPTEXREZ, -0.5);
 		vec4 texnormalspec = texture(normalspec, v_worldUV.xz* CREEPTEXREZ, - 0.5);
 		vec4 texdistort2 = texture(distortion, v_worldUV.xz * CREEPTEXREZ * 2.0 + vec2(sin(time * 0.0002))) * 0.5 + 0.5;
-		
+
 		vec3 fragNormal = (texnormalspec.xzy * 2.0 -1.0);
-		
+
 		vec4 camPos = cameraViewInv[3];
 		vec3 worldtocam = camPos.xyz - v_worldUV.xyz;
-		
+
 		float shadow = clamp(textureProj(shadowTex, shadowMapUVAtWorldPos(v_worldUV.xyz)), SHADOWSTRENGTH, 1.0);
-		
+
 		vec2 losUV = clamp(v_worldUV.xz, vec2(0.0), mapSize.xy ) / mapSize.zw;
 		float loslevel = dot(vec3(0.33), texture(infoTex, losUV).rgb) ; // lostex is PO2
 		loslevel = clamp(loslevel * 4.0 - 1.0, LOSDARKNESS, 1.0);
-		
-		// this is the actually correct way of blending according to 
+
+		// this is the actually correct way of blending according to
 		// Whiteout blending https://blog.selfshadow.com/publications/blending-in-detail/
 		fragNormal.xz += v_mapnormals.ra;
 		vec3 normal = normalize(fragNormal.xyz);//  + texdistort2.xzy);
 		//normal = vec3(0.0, 1.0, 0.0);
-		
+
 		// calculate direct lighting
 		float lightamount = clamp(dot(sunDir.xyz, normal), 0.3, 1.0) * max(SHADOWSTRENGTH, shadow);
-		
+
 		// Specular Color
 		vec3 reflvect = reflect(normalize(-1.0 * sunDir.xyz), normal);
 		float specular = clamp(pow(clamp(dot(normalize(worldtocam), normalize(reflvect)), 0.0, 1.0), SPECULAREXPONENT), 0.0, SPECULARSTRENGTH);// * shadow;
 		//float specular = clamp(dot(normalize(worldtocam), normalize(reflvect)), 0.0, 1.0);// * shadow;
 		fragColor.rgb += fragColor.rgb * specular;
-		
+
 		vec3 outcolor = texcolorheight.rgb;
-		
+
 		outcolor = outcolor * (  loslevel * (lightamount ) * 0.5) + outcolor * specular * shadow;
 		fragColor.rgba = vec4(outcolor, 1.0 );
-		
+
 		// do hermitian interpolation on 0.1 of this shit
-		
-		
+
+
 		// darken outside
 
 		fragColor.a = 1.0 - radialScum*3;
 		fragColor.rgb *= ((fragColor.a  -0.3)*2.0) ;
-		
-		
+
+
 
 	}
 	]]
@@ -450,12 +454,12 @@ else
 			  fragment = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
 			  uniformInt = {
 				heightmapTex = 0,
-				mapnormalsTex = 1, 
-				infoTex = 2, 
-				shadowTex = 3, 
+				mapnormalsTex = 1,
+				infoTex = 2,
+				shadowTex = 3,
 				colorheight = 4,
 				normalspec = 5,
-				distortion = 6, 
+				distortion = 6,
 				},
 			uniformFloat = {
 				--fadeDistance = 3000,
@@ -464,8 +468,8 @@ else
 			DPATname .. "Shader"
 		  )
 		local shaderCompiled = scumShader:Initialize()
-		if not shaderCompiled then 
-			goodbye("Failed to compile ".. DPATname .." GL4 ") 
+		if not shaderCompiled then
+			goodbye("Failed to compile ".. DPATname .." GL4 ")
 			return
 		end
 
@@ -477,22 +481,22 @@ else
 			64, -- maxelements
 			DPATname .. "VBO" -- name
 		)
-		if scumVBO == nil then 
-			goodbye("Failed to create scumVBO") 
+		if scumVBO == nil then
+			goodbye("Failed to create scumVBO")
 			return
 		end
-		
+
 		local planeVBO, numVertices = makePlaneVBO(1,1,resolution,resolution)
 		local planeIndexVBO, numIndices =  makePlaneIndexVBO(resolution,resolution, true)
-		
+
 		scumVBO.vertexVBO = planeVBO
 		scumVBO.indexVBO = planeIndexVBO
-		
+
 		scumVBO.VAO = makeVAOandAttach(
-			scumVBO.vertexVBO, 
-			scumVBO.instanceVBO, 
+			scumVBO.vertexVBO,
+			scumVBO.instanceVBO,
 			scumVBO.indexVBO)
-		
+
 	end
 
 	local scumIndex = 0
@@ -505,7 +509,7 @@ else
 	local floor = math.floor
 	local max = math.max
 	local min = math.min
-	local spGetGroundHeight = Spring.GetGroundHeight 
+	local spGetGroundHeight = Spring.GetGroundHeight
 	local spGetGameFrame = Spring.GetGameFrame
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
@@ -516,44 +520,44 @@ else
 		return (floor(posx*0.0009765625) * 1024 + floor(posz* 0.0009765625))
 	end
 
-	for x= 0, math.ceil(mapSizeX/1024) do 
-		for z = 0, math.ceil(mapSizeZ/1024) do 
+	for x= 0, math.ceil(mapSizeX/1024) do
+		for z = 0, math.ceil(mapSizeZ/1024) do
 			scumBins[x*1024+z] = {}
 		end
 	end
 
 	local function GetScumCurrentRadius(scum, gf)
 		gf = gf or Spring.GetGameFrame()
-		if scum.growthrate > 0 then 
+		if scum.growthrate > 0 then
 			return max(0, min(scum.radius, (gf - scum.spawnframe) * scum.growthrate))
 		else
 			return min(scum.radius, max(0,scum.radius - (gf - scum.spawnframe) *(-1.0 * scum.growthrate)) )
 		end
 	end
 
-	-- This checks wether the unit is under any scum 
+	-- This checks wether the unit is under any scum
 	local function IsPosInScum(unitx,unity, unitz)
 		-- out of bounds check, no scum outside of map bounds
 		if unitx < 0 or unitz < 0 or unitx > mapSizeX or unitz > mapSizeZ then return nil end
 		-- underwater scum doesnt count for hovers, ships
 		unity = unity or 1
-		if unity > -1 and spGetGroundHeight(unitx, unitz) < 0 then return nil end 
-		
-		-- Empty bins also return 
+		if unity > -1 and spGetGroundHeight(unitx, unitz) < 0 then return nil end
+
+		-- Empty bins also return
 		local scumBinID = GetMapSquareKey(unitx, unitz)
-		if scumBinID == nil or scumBins[scumBinID] == nil then return nil end 
+		if scumBinID == nil or scumBins[scumBinID] == nil then return nil end
 		local gf = spGetGameFrame()
-		
-		for scumID, scum in pairs(scumBins[scumBinID]) do 
+
+		for scumID, scum in pairs(scumBins[scumBinID]) do
 			local dx = (unitx - scum.posx)
 			local dz = (unitz - scum.posz)
 			local sqrdistance = (dx*dx + dz*dz)
 			local scumradius = scum.radius -- edges are not fully covered, so they shouldn't count,
 			if scumradius < 1 then scumradius = 1 end
-			if sqrdistance < (scumradius * scumradius) then 
+			if sqrdistance < (scumradius * scumradius) then
 				local currentscumradius = GetScumCurrentRadius(scum, gf)
 				--Spring.Echo("testing ScumID", scumID, sqrdistance, scumradius, currentscumradius)
-				if currentscumradius  - sqrt(sqrdistance) > boundary then 
+				if currentscumradius  - sqrt(sqrdistance) > boundary then
 					return scumID
 				end
 			end
@@ -563,20 +567,20 @@ else
 
 	local function UpdateBins(scumID, removeScum)
 		local scumTable = scums[scumID]
-		if scumTable == nil then 
+		if scumTable == nil then
 			Spring.Echo("Tried to update a scumID",scumID,"that no longer exists because it probably shrank to death, remove = ", removeScum)
-			return nil 
+			return nil
 		end
-		
+
 		local posx = scumTable.posx
 		local posz = scumTable.posz
 		local radius = scumTable.radius
-		
-		if removeScum then 
+
+		if removeScum then
 			scumTable = nil
 			scums[scumID] = nil
 		end
-		
+
 		local binID = GetMapSquareKey(posx, posz)
 		if binID then scumBins[binID][scumID] = scumTable end
 		binID = GetMapSquareKey(posx + radius, posz + radius)
@@ -598,7 +602,7 @@ else
 		local deathtime
 		local scum
 		-- thus we need to make a new scum, and register it in our scumBins
-		if scumID == nil or scums[scumID] == nil then 
+		if scumID == nil or scums[scumID] == nil then
 			posy = posy or Spring.GetGroundHeight(posx, posz)
 			scum = {posx = posx, posz = posz, radius = radius, spawnframe = gf, growthrate = growthrate, scumID = scumID}
 			scums[scumID] = scum
@@ -609,56 +613,57 @@ else
 			-- well then, seems we have to do this after all, when we update a scum, we need to check how long its been alive
 			-- this is the nastiest garbage ive ever done
 			local currentradius = GetScumCurrentRadius(scum, gf)
-			
+
 			-- always remove from removal queue on update
-			for _, removescums in pairs(scumRemoveQueue) do 
+			for _, removescums in pairs(scumRemoveQueue) do
 				removescums[scumID] = nil
 			end
-			
-			if growthrate > 0 then 
+
+			if growthrate > 0 then
 				scum.spawnframe = gf - ( currentradius/growthrate)
 				-- remove it from the death queue, no matter where it is, cause its 'growing'
 			else
 				scum.spawnframe = gf - ((scum.radius - currentradius)/ (-1 * growthrate) )
-				deathtime = math.floor( gf + (currentradius/(-1 * growthrate)))	
+				deathtime = math.floor( gf + (currentradius/(-1 * growthrate)))
 			end
-			
+
 			scum.growthrate = growthrate
-			
+
 			if debugmode then Spring.Echo("Updated scum", scumID, "it was", currentradius,"/", scum.radius, "sized, growing at", growthrate) end
 		end
+
 		--Spring.Echo(scumID, growthrate, radius, gf)
 		pushElementInstance(
 			scumVBO, -- push into this Instance VBO Table
-				{scum.posx, scum.posy, scum.posz, scum.radius ,  -- 
+				{scum.posx, scum.posy, scum.posz, scum.radius ,  --
 				scum.spawnframe,  scum.growthrate, 0, 0, -- alphastart_alphadecay_heatstart_heatdecay
 				},
 			scumID, -- this is the key inside the VBO Table, should be unique per unit
 			true, -- update existing element
 			false) -- noupload, dont use unless you know what you are doing and want to batch push/pop
-			
-		if scum.growthrate < 0 then 
-			if debugmode then Spring.Echo("Removal of scum ID", scumID,"Scheduled for ",  deathtime - gf , "from now" ) end 
-			if scumRemoveQueue[deathtime] == nil then 
+
+		if scum.growthrate < 0 then
+			if debugmode then Spring.Echo("Removal of scum ID", scumID,"Scheduled for ",  deathtime - gf , "from now" ) end
+			if scumRemoveQueue[deathtime] == nil then
 				scumRemoveQueue[deathtime] = {}
 			end
 			scumRemoveQueue[deathtime][scumID] = true
 		end
-		
+
 		return scumID
 	end
 
 	local usestencil = false
 
 	function gadget:DrawWorldPreUnit()
-		if debugmode then 
+		if debugmode then
 			local mx, my, mb = Spring.GetMouseState()
 			local _, coords = Spring.TraceScreenRay(mx, my, true)
 			local posx  = Game.mapSizeX * math.random() * 1
 			local posz  = Game.mapSizeZ * math.random() * 1
 			local posy  = Spring.GetGroundHeight(posx, posz)
-			if coords and (IsPosInScum(coords[1], coords[2],coords[3])) then 
-				Spring.Echo("Inscum", numscums, IsPosInScum(coords[1], coords[2],coords[3])) 
+			if coords and (IsPosInScum(coords[1], coords[2],coords[3])) then
+				Spring.Echo("Inscum", numscums, IsPosInScum(coords[1], coords[2],coords[3]))
 			end
 		end
 		if scumVBO.usedElements > 0 then
@@ -677,8 +682,8 @@ else
 			glTexture(5, texnormalspec)
 			glTexture(6, texdistortion)-- Texture file
 			scumShader:Activate()
-			
-			if usestencil then 
+
+			if usestencil then
 				gl.StencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 				gl.DepthTest(true)
 				glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
@@ -687,18 +692,18 @@ else
 				glStencilFunc(GL_NOTEQUAL, 1, 1) -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
 				glStencilMask(1)
 			end
-			
+
 			--scumShader:SetUniform("fadeDistance",disticon * 1000)
 			scumVBO.VAO:DrawElements(GL.TRIANGLES,nil,0,scumVBO.usedElements, 0)
 			scumShader:Deactivate()
-			if usestencil then 
+			if usestencil then
 				glStencilMask(1)
 				glStencilFunc(GL_ALWAYS, 1, 1)
-				gl.StencilTest(false) 
+				gl.StencilTest(false)
 				glClear(GL_STENCIL_BUFFER_BIT) -- set stencil buffer to 0
 				glStencilMask(0)
 			end
-			for i = 0, 6 do glTexture(i, false) end 
+			for i = 0, 6 do glTexture(i, false) end
 			glCulling(false)
 			--glDepthTest(false)
 		end
@@ -706,7 +711,7 @@ else
 
 	local function RemoveScum(instanceID)
 		if debugmode then Spring.Echo("Removing scum", instanceID) end
-		if scums[instanceID] then 
+		if scums[instanceID] then
 			numscums = numscums - 1
 		end
 		UpdateBins(instanceID, true)
@@ -733,22 +738,33 @@ else
 	end
 
 	function gadget:GameFrame(n)
-		if scumRemoveQueue[n] then 
-			for scumID, _ in pairs(scumRemoveQueue[n]) do 
+		if scumRemoveQueue[n] then
+			for scumID, _ in pairs(scumRemoveQueue[n]) do
 				RemoveScum(scumID)
 			end
 			scumRemoveQueue[n] = nil
 		end
-		
-		if debugmode then 
-			-- randomly add a new scum instance
-			if n % 2 == 0 then 
 
-				if numscums < 300 then 
+		if n % 2 == 1 and Script.LuaUI("GadgetRemoveGrass") then
+			for scumID, scum in pairs(scums) do
+				if scum.growthrate > 0 then
+					local currentRadius = GetScumCurrentRadius(scum, n)
+					if currentRadius < scum.radius then
+						Script.LuaUI.GadgetRemoveGrass(scum.posx, scum.posz, currentRadius * 0.87)
+					end
+				end
+			end
+		end
+
+		if debugmode then
+			-- randomly add a new scum instance
+			if n % 2 == 0 then
+
+				if numscums < 300 then
 					AddRandomScum()
 				else
-					for scumID, scumData in pairs(scums) do 
-						if math.random() < 1.0 / numscums then 
+					for scumID, scumData in pairs(scums) do
+						if math.random() < 1.0 / numscums then
 							AddOrUpdateScum(nil,nil,nil,nil, math.random() * 1 -0.5, scumID)
 							break
 						end
@@ -757,13 +773,13 @@ else
 			end
 		end
 	end
-	
+
 	local function HandleScumCreated(cmd, posx, posz, radius, growthrate, gf, scumID)
-		
+
 		--Spring.Echo("Scum Created Unsynced", cmd, posx, posz, radius, growthrate, gf, scumID)
 		AddOrUpdateScum(posx, nil, posz, radius, growthrate, scumID)
 	end
-	
+
 	local function HandleScumRemoved(cmd, scumID )
 		AddOrUpdateScum(nil,nil,nil,nil, -10 * math.abs( scums[scumID].growthrate), scumID)
 	end
@@ -771,10 +787,10 @@ else
 	function gadget:Initialize()
 		--shaderConfig.MAXVERTICES = 4
 		initGL4(shaderConfig, "scum")
-		
+
 		gadgetHandler:AddSyncAction("ScumCreated", HandleScumCreated)
 		gadgetHandler:AddSyncAction("ScumRemoved", HandleScumRemoved)
-		
+
 	end
 
 	function gadget:ShutDown()

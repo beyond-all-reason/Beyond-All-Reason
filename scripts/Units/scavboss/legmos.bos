@@ -5,10 +5,40 @@
 
 piece  base, lflare, rflare, lwingd, lwingu, rwingd, rwingu, thrusta, thrustb, rlauncher, llauncher;
 
-static-var gun_1, speedwings;
+static-var gun_1, speedwings, bMoving;
 
 // Signal definitions
 #define SIG_MOVE			2
+
+IdleHover()
+{
+	while(TRUE){
+		while(bMoving == 1)
+		{
+			turn lwingd to z-axis <20.000000> speed <800>;
+			turn lwingu to z-axis <0.000000> speed <800>;
+			turn rwingd to z-axis <-20.000000> speed <800>;
+			turn rwingu to z-axis <0.000000> speed <800>;
+			sleep 25;
+			turn lwingd to z-axis <0.000000> speed <800>;
+			turn lwingu to z-axis <40.000000> speed <1600>;
+			turn rwingd to z-axis <0.000000> speed <800>;
+			turn rwingu to z-axis <-40.000000> speed <1600>;
+			sleep 25;
+			turn lwingd to z-axis <-25.000000> speed <1000>;
+			turn lwingu to z-axis <0.000000> speed <1600>;
+			turn rwingd to z-axis <25.000000> speed <1000>;
+			turn rwingu to z-axis <0.000000> speed <1600>;
+			sleep 25;
+			turn lwingd to z-axis <0.000000> speed <1000>;
+			turn lwingu to z-axis <-20.000000> speed <800>;
+			turn rwingd to z-axis <0.000000> speed <1000>;
+			turn rwingu to z-axis <20.000000> speed <800>;
+			sleep 25;
+		}
+		sleep 200;
+	}
+}
 
 Create()
 {
@@ -18,35 +48,20 @@ Create()
 	hide thrustb;
 	gun_1=0;
 	speedwings=200;
+	bMoving = 0;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
 	}
-}
-
-Activate()
-{
-	show thrusta;
-	show thrustb;
-}
-
-Deactivate()
-{
-
-	hide thrusta;
-	hide thrustb;
+	start-script IdleHover();
 }
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
+	if (Stunned) {
         return (1);
     }
-	turn lwingd to z-axis <0.000000> speed <50.000000>;
-	turn lwingu to z-axis <0.000000> speed <50.000000>;
-	turn rwingd to z-axis <0.000000> speed <50.000000>;
-	turn rwingu to z-axis <0.000000> speed <50.000000>;
 }
 SetStunned(State)
 {
@@ -57,7 +72,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	sleep 500;
+	sleep 5000;
 	start-script ExecuteRestoreAfterDelay();
 }
 
@@ -94,6 +109,8 @@ QueryPrimary(piecenum)
 
 FirePrimary()
 {
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 	sleep 200;
 	
 	start-script RestoreAfterDelay();
@@ -101,39 +118,54 @@ FirePrimary()
 
 StartMoving()
 {
+	bMoving = 1;
 	start-script RestoreAfterDelay();
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
-	while(TRUE)
-	{
-		turn lwingd to z-axis <20.000000> speed <800>;
-		turn lwingu to z-axis <0.000000> speed <800>;
-		turn rwingd to z-axis <-20.000000> speed <800>;
-		turn rwingu to z-axis <0.000000> speed <800>;
-		sleep 25;
-		turn lwingd to z-axis <0.000000> speed <800>;
-		turn lwingu to z-axis <40.000000> speed <1600>;
-		turn rwingd to z-axis <0.000000> speed <800>;
-		turn rwingu to z-axis <-40.000000> speed <1600>;
-		sleep 25;
-		turn lwingd to z-axis <-25.000000> speed <1000>;
-		turn lwingu to z-axis <0.000000> speed <1600>;
-		turn rwingd to z-axis <25.000000> speed <1000>;
-		turn rwingu to z-axis <0.000000> speed <1600>;
-		sleep 25;
-		turn lwingd to z-axis <0.000000> speed <1000>;
-		turn lwingu to z-axis <-20.000000> speed <800>;
-		turn rwingd to z-axis <0.000000> speed <1000>;
-		turn rwingu to z-axis <20.000000> speed <800>;
-		sleep 25;
-	}
 }
 
 StopMoving()
 {
+	bMoving = 0;
+	turn lwingd to z-axis <0.000000> speed <50.000000>;
+	turn lwingu to z-axis <0.000000> speed <50.000000>;
+	turn rwingd to z-axis <0.000000> speed <50.000000>;
+	turn rwingu to z-axis <0.000000> speed <50.000000>;
+	start-script RestoreAfterDelay();
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
+}
+
+MoveRate0()
+{
+	bMoving = 0;
+	turn lwingd to z-axis <0.000000> speed <50.000000>;
+	turn lwingu to z-axis <0.000000> speed <50.000000>;
+	turn rwingd to z-axis <0.000000> speed <50.000000>;
+	turn rwingu to z-axis <0.000000> speed <50.000000>;
+}
+
+MoveRate1()
+{
 	start-script RestoreAfterDelay();
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+}
+
+MoveRate2()
+{
+	bMoving = 1;
+	start-script RestoreAfterDelay();
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+}
+
+MoveRate3()
+{
+	bMoving = 1;
+	start-script RestoreAfterDelay();
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 }
 
 SweetSpot(piecenum)

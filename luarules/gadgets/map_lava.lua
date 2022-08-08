@@ -15,6 +15,13 @@ tideIndex = 1
 tideContinueFrame = 0
 lavaGrow = 0
 gameframe = 0
+
+voidWaterMap = false
+local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
+if success or mapinfo ~= nil then
+	voidWaterMap = mapinfo.voidwater
+end
+
 --_G.Game.mapSizeX = Game.mapSizeX
 --_G.Game.mapSizeY = Game.mapSizeY
 

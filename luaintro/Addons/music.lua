@@ -35,41 +35,41 @@ function addon.Initialize()
 		local musicPlaylist = {}
 		if originalSoundtrackEnabled == 1 then
 			local musicDirOriginal 		= 'music/original'
-			table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirOriginal..'/loading', '*.ogg'))
+			table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/loading', '*.ogg'))
 		end
 
 		-- Legacy Soundtrack List
 		if legacySoundtrackEnabled == 1 then
 			local musicDirLegacy 		= 'music/legacy'
-			table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirLegacy..'/loading', '*.ogg'))
+			table.append(musicPlaylist, VFS.DirList(musicDirLegacy..'/loading', '*.ogg'))
 		end
 
 		-- Custom Soundtrack List
 		if customSoundtrackEnabled == 1 then
 			local musicDirCustom 		= 'music/custom'
-			table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirCustom..'/loading', '*.ogg'))
+			table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/loading', '*.ogg'))
 		end
 
-		if #musicPlaylist == 0 then
+		if #musicPlaylist == 0 or math.random(0,3) == 0 then
 			if originalSoundtrackEnabled == 1 then
 				local musicDirOriginal 		= 'music/original'
-				table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirOriginal..'/warhigh', '*.ogg'))
-				table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirOriginal..'/warlow', '*.ogg'))
+				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/warhigh', '*.ogg'))
+				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/warlow', '*.ogg'))
 			end
 
 			-- Legacy Soundtrack List
 			if legacySoundtrackEnabled == 1 then
 				local musicDirLegacy 		= 'music/legacy'
-				table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirLegacy..'/war', '*.ogg'))
+				table.append(musicPlaylist, VFS.DirList(musicDirLegacy..'/war', '*.ogg'))
 			end
 
 			-- Custom Soundtrack List
 			if customSoundtrackEnabled == 1 then
 				local musicDirCustom 		= 'music/custom'
-				table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirCustom, '*.ogg'))
-				table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirCustom..'/warhigh', '*.ogg'))
-				table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirCustom..'/warlow', '*.ogg'))
-				table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirCustom..'/war', '*.ogg'))
+				table.append(musicPlaylist, VFS.DirList(musicDirCustom, '*.ogg'))
+				table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/warhigh', '*.ogg'))
+				table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/warlow', '*.ogg'))
+				table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/war', '*.ogg'))
 			end
 		end
 

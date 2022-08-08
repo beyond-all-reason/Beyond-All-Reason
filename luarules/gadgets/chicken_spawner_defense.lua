@@ -75,9 +75,7 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	local queenLifePercent = 100
 	local maxTries = 30
-	local oldMaxChicken = 0
-	local maxChicken = Game.maxUnits - 100
-	local oldDamageMod = 1
+	local chickenUnitCap = math.floor(Game.maxUnits*0.95)
 	local damageMod = config.damageMod
 	local currentWave = 1
 	local lastWave = 1
@@ -86,7 +84,7 @@ if gadgetHandler:IsSyncedCode() then
 	local timeOfLastSpawn = 0
 	local timeOfLastFakeSpawn = 0
 	local timeOfLastWave = 0
-	local expMod = 0
+	-- local expMod = 0
 	local lastTeamID = 0
 	local nextSquadSize = 0
 	local chickenCount = 0
@@ -123,13 +121,13 @@ if gadgetHandler:IsSyncedCode() then
 	local squadCreationQueue = {
 		units = {},
 		role = false,
-		life = 7,
+		life = 10,
 		regroup = true,
 	}
 	squadCreationQueueDefaults = {
 		units = {},
 		role = false,
-		life = 7,
+		life = 10,
 		regroup = true,
 	}
 	swarmSpawning = false
@@ -140,8 +138,19 @@ if gadgetHandler:IsSyncedCode() then
 
 	local attemptingToSpawnHeavyTurret = 0
 	local attemptingToSpawnLightTurret = 0
-	local heavyTurret = "chickend2"
-	local lightTurret = "chickend1"
+	local attemptingToSpawnSpecialHeavyTurret = 0
+	local attemptingToSpawnSpecialLightTurret = 0
+	
+	local heavyTurret = "chicken_turretl"
+	local lightTurret = "chicken_turrets"
+	local specialHeavyTurrets = {
+		"chicken_turretl_acid",
+		"chicken_turretl_electric",
+	}
+	local specialLightTurrets = {
+		"chicken_turrets_acid",
+		"chicken_turrets_electric",
+	}
 
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitName[unitDefID] = unitDef.name
@@ -206,11 +215,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-
-		if chickenteamhasplayers then
-			config.gracePeriod = math.ceil(config.gracePeriod*0.25)
-			SetGameRulesParam("gracePeriod", config.gracePeriod)
-		end
 	end
 
 	--------------------------------------------------------------------------------
@@ -270,6 +274,14 @@ if gadgetHandler:IsSyncedCode() then
 		return {pos.x, pos.y, pos.z}
 	end
 
+	local function setChickenXP(unitID)
+		local maxXP = config.maxXP
+		local queenAnger = queenAnger or 0
+		local xp = math.random(0, math.ceil((queenAnger*0.01) * maxXP * 1000))*0.001
+		SetUnitExperience(unitID, xp)
+		return xp
+	end
+
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
@@ -280,10 +292,11 @@ if gadgetHandler:IsSyncedCode() then
 	if config.difficulty == config.difficulties.survival then
 		config.queenTime = config.queenTime*0.5
 	end
-	local expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
-	local maxBurrows = config.maxBurrows
+	-- local expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
+	local maxBurrows = ((config.maxBurrows*0.75)+(config.maxBurrows*0.25)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 	local queenTime = (config.queenTime + config.gracePeriod)
-	local maxWaveSize = ((config.maxBurrows*0.5)+(config.maxBurrows*0.5)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+	local maxWaveSize = ((config.maxChickens*0.7)+(config.maxChickens*0.3)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+	local currentMaxWaveSize = config.minChickens
 	if config.swarmMode then
 		swarmMultiplier = 10
 	else
@@ -314,13 +327,18 @@ if gadgetHandler:IsSyncedCode() then
 			config.chickenSpawnMultiplier = config.chickenSpawnMultiplier*2
 		end
 		config.queenName = nextDifficulty.queenName
+		config.turretSpawnRate = nextDifficulty.turretSpawnRate
 		config.burrowSpawnRate = nextDifficulty.burrowSpawnRate
 		config.queenSpawnMult = nextDifficulty.queenSpawnMult
 		config.spawnChance = nextDifficulty.spawnChance
+		config.maxChickens = nextDifficulty.maxChickens
+		config.minChickens = nextDifficulty.minChickens
 		config.maxBurrows = nextDifficulty.maxBurrows
-		expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
-		maxBurrows = config.maxBurrows
-		maxWaveSize = ((config.maxBurrows*0.5)+(config.maxBurrows*0.5)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+		config.maxXP = nextDifficulty.maxXP
+		-- expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
+		maxBurrows = ((config.maxBurrows*0.75)+(config.maxBurrows*0.25)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+		maxWaveSize = ((config.maxChickens*0.5)+(config.maxChickens*0.5)*SetCount(humanTeams))*config.chickenSpawnMultiplier
+		currentMaxWaveSize = config.minChickens
 	end
 
 	--------------------------------------------------------------------------------
@@ -398,10 +416,12 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenr2"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickene1"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["chickene2"].id] = { distance = 200, chance = 0.01 },	
+		[UnitDefNames["chickenelectricallterrainassault"].id] = { distance = 200, chance = 0.01 },	
 		[UnitDefNames["chickenearty1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenelectricallterrain"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["chickenacidswarmer"].id] = { distance = 300, chance = 1 },
-		[UnitDefNames["chickenacidassault"].id] = { distance = 200, chance = 1 },	
+		[UnitDefNames["chickenacidassault"].id] = { distance = 200, chance = 1 },
+		[UnitDefNames["chickenacidallterrainassault"].id] = { distance = 200, chance = 1 },		
 		[UnitDefNames["chickenacidarty"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenacidallterrain"].id] = { distance = 300, chance = 1 },
 	}
@@ -413,6 +433,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenh5"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickene1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickene2"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenelectricallterrainassault"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenearty1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenelectricallterrain"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenacidarty"].id] = { distance = 500, chance = 1 },
@@ -427,10 +448,17 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickena1"].id] = { chance = 0.2 },
 		[UnitDefNames["chickena1b"].id] = { chance = 0.2 },
 		[UnitDefNames["chickena1c"].id] = { chance = 0.2 },
+		[UnitDefNames["chickenallterraina1"].id] = { chance = 0.2 },
+		[UnitDefNames["chickenallterraina1b"].id] = { chance = 0.2 },
+		[UnitDefNames["chickenallterraina1c"].id] = { chance = 0.2 },
 		[UnitDefNames["chickena2"].id] = { chance = 0.2 },
 		[UnitDefNames["chickena2b"].id] = { chance = 0.2 },
+		[UnitDefNames["chickenapexallterrainassault"].id] = { chance = 0.2 },
+		[UnitDefNames["chickenapexallterrainassaultb"].id] = { chance = 0.2 },
 		[UnitDefNames["chickene2"].id] = { chance = 0.05 },
+		[UnitDefNames["chickenelectricallterrainassault"].id] = { chance = 0.05 },
 		[UnitDefNames["chickenacidassault"].id] = { chance = 0.05 },
+		[UnitDefNames["chickenacidallterrainassault"].id] = { chance = 0.05 },
 		[UnitDefNames["chickenacidswarmer"].id] = { chance = 0.01 },
 		[UnitDefNames["chickenacidallterrain"].id] = { chance = 0.01 },
 		[UnitDefNames["chickenp1"].id] = { chance = 0.2 },
@@ -564,17 +592,10 @@ if gadgetHandler:IsSyncedCode() then
 					if not unitCowardCooldown[unitID] then
 						if role == "assault" or role == "healer" or role == "artillery" then
 							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+math.random(-128, 128), targety, targetz+math.random(-128, 128)} , {})
-						elseif role == "raid" then
+						elseif role == "raid" or role == "kamikaze" then
 							Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+math.random(-128, 128), targety, targetz+math.random(-128, 128)} , {})
-						elseif role == "aircraft" or role == "kamikaze" then
+						elseif role == "aircraft" then
 							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {"shift"})
 						end
 					end
 				end
@@ -655,7 +676,7 @@ if gadgetHandler:IsSyncedCode() then
 				role = newSquad.role
 			end
 			if not newSquad.life then
-				newSquad.life = 7
+				newSquad.life = 10
 			end
 
 
@@ -793,7 +814,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					burrows[unitID] = 0
 					SetUnitBlocking(unitID, false, false)
-					SetUnitExperience(unitID, mRandom() * expMod)
+					setChickenXP(unitID)
 				end
 			else
 				for i = 1,100 do
@@ -819,7 +840,7 @@ if gadgetHandler:IsSyncedCode() then
 							end
 							burrows[unitID] = 0
 							SetUnitBlocking(unitID, false, false)
-							SetUnitExperience(unitID, mRandom() * expMod)
+							setChickenXP(unitID)
 							attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 1
 							break
 						end
@@ -938,10 +959,60 @@ if gadgetHandler:IsSyncedCode() then
 		return nil
 	end
 
+	local function SpawnRandomOffWaveSquad(burrowID, chickenType, count)
+		if gameOver then
+			return
+		end
+		local squadCounter = 0
+		if chickenType then
+			if not count then count = 1 end
+			squad = { count .. " " .. chickenType }
+			for i, sString in pairs(squad) do
+				local nEnd, _ = string.find(sString, " ")
+				local unitNumber = math.random(1, string.sub(sString, 1, (nEnd - 1)))
+				local chickenName = string.sub(sString, (nEnd + 1))
+				for j = 1, unitNumber, 1 do
+					squadCounter = squadCounter + 1
+					table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
+				end
+			end
+		else
+			local queenAngerPerTier = 100/#config.waves
+			if queenAnger >= 100 then
+				currentWave = #config.waves
+			else
+				currentWave = math.ceil(queenAnger/queenAngerPerTier)
+			end
+
+			if currentWave > #config.waves then
+				currentWave = #config.waves
+			end
+
+			local waveLevel = currentWave
+			if config.accumulativeSquads == true then
+				local waveLevelPower = mRandom(1, currentWave^2)
+				waveLevel = math.ceil(math.sqrt(waveLevelPower))
+			end
+			local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
+			for i, sString in pairs(squad) do
+				local nEnd, _ = string.find(sString, " ")
+				local unitNumber = math.random(1, string.sub(sString, 1, (nEnd - 1)))
+				local chickenName = string.sub(sString, (nEnd + 1))
+				for j = 1, unitNumber, 1 do
+					squadCounter = squadCounter + 1
+					table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
+				end
+			end
+		end
+		return squadCounter
+	end
+
 	local function Wave()
 		if gameOver then
 			return
 		end
+
+		currentMaxWaveSize = config.minChickens + math.ceil((queenAnger*0.01)*(maxWaveSize - config.minChickens))
 		squadManagerKillerLoop()
 		
 		local queenAngerPerTier = 100/#config.waves
@@ -956,78 +1027,29 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local cCount = 0
-		local queenBurrowSpawnMultiplier = 1
-		if queenID then
-			queenBurrowSpawnMultiplier = 0.2
-			-- spawn units from queen
-			if config.queenSpawnMult > 0 then
-				for mult = 1,config.chickenSpawnMultiplier do
-					for i = 1, config.queenSpawnMult*SetCount(humanTeams), 1 do
-						squadCounter = 0
-						local waveLevelPower = mRandom(1, currentWave*currentWave)
-						local waveLevel = math.ceil(math.sqrt(waveLevelPower))
-						local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
-						for i, sString in pairs(squad) do
-							local nEnd, _ = string.find(sString, " ")
-							local unitNumber = math.random(1, string.sub(sString, 1, (nEnd - 1)))
-							local chickenName = string.sub(sString, (nEnd + 1))
-							for i = 1, unitNumber, 1 do
-								squadCounter = squadCounter + 1
-								table.insert(spawnQueue, { burrow = queenID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
-							end
-							cCount = cCount + unitNumber
-							for j = 1, math.floor(1+((currentWave-waveLevel)*0.25)) do
-								if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id) < waveLevel*3 then
-									if math.random(0,1) == 0 then
-										table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1", team = chickenTeamID, squadID = j })
-									else
-										table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1b", team = chickenTeamID, squadID = j })
-									end
-									cCount = cCount + 1
-								end
-							end
-						end
-					end
-				end
-			end
-		end
 		local overseerSpawned = false
-		local cleanersSpawned = false
 		local scoutSpawned = false
 		local loopCounter = 0
 		local squadCounter = 0
 		repeat
 			loopCounter = loopCounter + 1
-			for overseerID in pairs(overseers) do
-				squadCounter = 0
-				local waveLevelPower = mRandom(1, currentWave^2)
-				local waveLevel = math.ceil(math.sqrt(waveLevelPower))
-				local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
-				for i, sString in pairs(squad) do
-					local nEnd, _ = string.find(sString, " ")
-					local unitNumber = math.random(1, string.sub(sString, 1, (nEnd - 1)))
-					local chickenName = string.sub(sString, (nEnd + 1))
-					for j = 1, unitNumber, 1 do
-						squadCounter = squadCounter + 1
-						table.insert(spawnQueue, { burrow = overseerID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
-					end
-					cCount = cCount + unitNumber
-				end
-			end
 			for burrowID in pairs(burrows) do
-				if cCount < maxWaveSize then
+				if cCount < currentMaxWaveSize then
 					for mult = 1,config.chickenSpawnMultiplier do
 						squadCounter = 0
-						local waveLevelPower = mRandom(1, currentWave^2)
-						local waveLevel = math.ceil(math.sqrt(waveLevelPower))
+						local waveLevel = currentWave
+						if config.accumulativeSquads == true then
+							local waveLevelPower = mRandom(1, currentWave^2)
+							waveLevel = math.ceil(math.sqrt(waveLevelPower))
+						end
 						local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
 						local skipSpawn = false
-						if cCount > 1 and mRandom() > config.spawnChance*queenBurrowSpawnMultiplier then
+						if cCount > 1 and mRandom() > config.spawnChance then
 							skipSpawn = true
 						end
 						if not skipSpawn then
 							for i, sString in pairs(squad) do
-								if cCount < maxWaveSize then
+								if cCount < currentMaxWaveSize then
 									local nEnd, _ = string.find(sString, " ")
 									local unitNumber = math.random(1, string.sub(sString, 1, (nEnd - 1)))
 									local chickenName = string.sub(sString, (nEnd + 1))
@@ -1041,47 +1063,41 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 				end
-				if cleanersSpawned == false and mRandom() > config.spawnChance then
-					if currentWave >= 2 then
-						local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
-						local targetCleaners = currentWave*SetCount(humanTeams)
-						local cleanerSpawnCount = math.ceil((targetCleaners - aliveCleaners)*0.25)
-						if cleanerSpawnCount > 0 then
-							if math.random(0,1) == 0 then
-								for i = 1,math.ceil(cleanerSpawnCount) do
-									table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = i })
-									cCount = cCount + 1
-								end
-							else
-								for i = 1,math.ceil(cleanerSpawnCount) do
-									table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = i })
-									cCount = cCount + 1
-								end
-							end
-						end
-					end
-					cleanersSpawned = true
-				elseif overseerSpawned == false and mRandom() > config.spawnChance then
-					if currentWave >= 5 and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh5"].id) < SetCount(humanTeams) then
-						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh5", team = chickenTeamID, squadID = 1})
-						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = 2})
-						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = 3})
-						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = 4})
-						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = 5})
-						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = 6})
-						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = 7})
-						cCount = cCount + 7
+				
+				if overseerSpawned == false and mRandom() > config.spawnChance then
+					if currentWave >= 5 and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh5"].id) < SetCount(humanTeams)*config.chickenSpawnMultiplier then
+						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh5", team = chickenTeamID, })
+						cCount = cCount + 1
+						cCount = cCount + SpawnRandomOffWaveSquad(burrowID, "chickenh1", 10)
+						cCount = cCount + SpawnRandomOffWaveSquad(burrowID, "chickenh1b", 10)
 					end
 					overseerSpawned = true
 				elseif scoutSpawned == false and mRandom() > config.spawnChance then
-					if currentWave >= 5 and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenf2"].id) < SetCount(humanTeams) then
+					if currentWave >= 5 and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenf2"].id) < SetCount(humanTeams)*config.chickenSpawnMultiplier then
 						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenf2", team = chickenTeamID, })
 						cCount = cCount + 1
 					end
 					scoutSpawned = true
+				elseif currentWave >= 2 and loopCounter == 1 then
+					local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
+					local targetCleaners = currentWave*SetCount(humanTeams)*config.chickenSpawnMultiplier
+					local cleanerSpawnCount = math.ceil((targetCleaners - aliveCleaners)*0.25)
+					if cleanerSpawnCount > 0 then
+						if math.random(0,1) == 0 then
+							for i = 1,math.ceil(cleanerSpawnCount) do
+								table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = i })
+								cCount = cCount + 1
+							end
+						else
+							for i = 1,math.ceil(cleanerSpawnCount) do
+								table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = i })
+								cCount = cCount + 1
+							end
+						end
+					end
 				end
 			end
-		until (cCount > maxWaveSize or loopCounter >= currentWave)
+		until (cCount > currentMaxWaveSize or loopCounter >= 100)
 
 		return cCount
 	end
@@ -1093,6 +1109,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitTeam == chickenTeamID or chickenDefTypes[unitDefID] then
+			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{3},0)
 			if unitDefID == OVERSEER_ID then
 				overseers[unitID] = true
 			end
@@ -1137,6 +1154,9 @@ if gadgetHandler:IsSyncedCode() then
 					if queenResistance[weaponID].notify == 0 then
 						SendToUnsynced('QueenResistant', attackerDefID)
 						queenResistance[weaponID].notify = 1
+						if mRandom() > config.spawnChance then
+							SpawnRandomOffWaveSquad(queenID)
+						end
 						for i = 1, 10, 1 do
 							table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1", team = chickenTeamID, })
 							table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1b", team = chickenTeamID, })
@@ -1150,15 +1170,18 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if weaponID == COMMANDER_BLOB and attackerID and not overseerCommanders[attackerID] and attackerTeam and unitTeam and not Spring.AreTeamsAllied(attackerTeam, unitTeam) then
-			overseerCommanders[attackerID] = Spring.GetGameFrame() + 210
+			overseerCommanders[attackerID] = Spring.GetGameFrame() + 100
 			local ux, uy, uz = Spring.GetUnitPosition(unitID)
 			if ux and uy and uz then
+				if mRandom() > config.spawnChance then
+					SpawnRandomOffWaveSquad(attackerID)
+				end
 				local nearchicks = Spring.GetUnitsInCylinder(ux, uz, 500, attackerTeam)
 				for i = 1, #nearchicks, 1 do
 					if nearchicks[i] ~= attackerID and (not overseers[nearchicks[i]]) then
 						Spring.GiveOrderToUnit(nearchicks[i], CMD.FIGHT, { ux+math.random(-48,48),uy,uz+math.random(-48,48) }, 0)
 						overseerSoldiers[nearchicks[i]] = attackerID
-						unitCowardCooldown[nearchicks[i]] = true
+						unitCowardCooldown[nearchicks[i]] = Spring.GetGameFrame() + 900
 					end
 				end
 				local ax, ay, az = Spring.GetUnitPosition(attackerID)
@@ -1168,7 +1191,7 @@ if gadgetHandler:IsSyncedCode() then
 						if nearchicks[i] ~= attackerID and (not overseers[nearchicks[i]]) then
 							Spring.GiveOrderToUnit(nearchicks[i], CMD.FIGHT, { ux+math.random(-48,48),uy,uz+math.random(-48,48) }, 0)
 							overseerSoldiers[nearchicks[i]] = attackerID
-							unitCowardCooldown[nearchicks[i]] = true
+							unitCowardCooldown[nearchicks[i]] = Spring.GetGameFrame() + 900
 						end
 					end
 				end
@@ -1188,7 +1211,7 @@ if gadgetHandler:IsSyncedCode() then
 					local angle = math.atan2(ux - x, uz - z)
 					local distance = mRandom(math.ceil(SKIRMISH[attackerDefID].distance*0.75), math.floor(SKIRMISH[attackerDefID].distance*1.25))
 					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
-					unitCowardCooldown[attackerID] = true
+					unitCowardCooldown[attackerID] = Spring.GetGameFrame() + 900
 				end
 			elseif COWARD[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < COWARD[unitDefID].chance) then
 				local curH, maxH = GetUnitHealth(unitID)
@@ -1199,20 +1222,40 @@ if gadgetHandler:IsSyncedCode() then
 						local angle = math.atan2(ax - x, az - z)
 						local distance = mRandom(math.ceil(COWARD[unitDefID].distance*0.75), math.floor(COWARD[unitDefID].distance*1.25))
 						Spring.GiveOrderToUnit(unitID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
-						unitCowardCooldown[unitID] = true
+						unitCowardCooldown[unitID] = Spring.GetGameFrame() + 900
 					end
 				end
 			elseif BERSERK[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < BERSERK[unitDefID].chance) then
 				local ax, ay, az = GetUnitPosition(attackerID)
 				if ax then
 					Spring.GiveOrderToUnit(unitID, CMD.MOVE, { ax+math.random(-64,64), ay, az+math.random(-64,64)}, {})
-					unitCowardCooldown[unitID] = true
+					unitCowardCooldown[unitID] = Spring.GetGameFrame() + 900
 				end
 			elseif BERSERK[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < BERSERK[attackerDefID].chance) then
 				local ax, ay, az = GetUnitPosition(unitID)
 				if ax then
 					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { ax+math.random(-64,64), ay, az+math.random(-64,64)}, {})
-					unitCowardCooldown[attackerID] = true
+					unitCowardCooldown[attackerID] = Spring.GetGameFrame() + 900
+				end
+			end
+			if mRandom() < config.spawnChance and overseers[unitID] and not overseerCommanders[unitID] then
+				overseerCommanders[unitID] = Spring.GetGameFrame() + 100
+				local curH, maxH = GetUnitHealth(unitID)
+				if curH and maxH and curH < (maxH * 0.5) then
+					SpawnRandomOffWaveSquad(unitID, "chickenh1", 5)
+					SpawnRandomOffWaveSquad(unitID, "chickenh1b", 5)
+					SpawnRandomOffWaveSquad(unitID)
+				end 
+			end
+			if queenID and unitID == queenID then
+				local curH, maxH = GetUnitHealth(unitID)
+				local spawnChance = math.ceil(curH/maxH*10000)
+				if math.random(0,spawnChance) == 1 then
+					for i = 1,SetCount(humanTeams) do
+						SpawnRandomOffWaveSquad(unitID, "chickenh1", 5)
+						SpawnRandomOffWaveSquad(unitID, "chickenh1b", 5)
+						SpawnRandomOffWaveSquad(unitID)
+					end
 				end
 			end
 		end
@@ -1308,7 +1351,7 @@ if gadgetHandler:IsSyncedCode() then
 			GiveOrderToUnit(unitID, CMD.MOVE, { x + math.random(-128, 128), y, z + math.random(-128, 128) }, { "shift" })
 			GiveOrderToUnit(unitID, CMD.MOVE, { x + math.random(-128, 128), y, z + math.random(-128, 128) }, { "shift" })
 			
-			SetUnitExperience(unitID, mRandom() * expMod)
+			setChickenXP(unitID)
 			if mRandom() < 0.1 then
 				local mod = 0.75 - (mRandom() * 0.25)
 				if mRandom() < 0.1 then
@@ -1337,14 +1380,10 @@ if gadgetHandler:IsSyncedCode() then
 				queenSquad.role = "raid"
 				queenSquad.units = {queenID}
 				createSquad(queenSquad)
-				burrows[queenID] = 0
 				spawnQueue = {}
-				oldMaxChicken = maxChicken
-				oldDamageMod = damageMod
-				maxChicken = maxChicken
 				chickenEvent("queen") -- notify unsynced about queen spawn
 				_, queenMaxHP = GetUnitHealth(queenID)
-				SetUnitExperience(queenID, expMod)
+				SetUnitExperience(queenID, config.maxXP)
 				timeOfLastWave = t
 				for i = 1, 10, 1 do
 					if mRandom() < config.spawnChance then
@@ -1401,7 +1440,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function queueTurretSpawnIfNeeded()
 		local burrowCount = SetCount(burrows)
-		if math.random(0,config.burrowSpawnRate*6) == 0 and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
+		if math.random(0,config.turretSpawnRate*6) == 0 and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
 			if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < burrowCount or Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < 2 then
 				attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + 1
 			end
@@ -1409,17 +1448,21 @@ if gadgetHandler:IsSyncedCode() then
 		if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < burrowCount*2 then
 			if attemptingToSpawnHeavyTurret > 0 then
 				for i = 1,attemptingToSpawnHeavyTurret do
-					local heavyTurretUnitID = spawnCreepStructure(heavyTurret, spread)
+					local heavyTurretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(heavyTurret, spread)
 					if heavyTurretUnitID then
 						attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret - 1
-						SetUnitExperience(heavyTurretUnitID, mRandom() * expMod)
+						setChickenXP(heavyTurretUnitID)
+						Spring.GiveOrderToUnit(heavyTurretUnitID, CMD.PATROL, {spawnPosX + math.random(-128,128), spawnPosY, spawnPosZ + math.random(-128,128)}, {"meta"})
 						attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 5
+						if math.random(1,4) == 1 then
+							attemptingToSpawnSpecialHeavyTurret = attemptingToSpawnSpecialHeavyTurret + 1
+						end
 					end
 				end
 			end
 		end
 
-		if math.random(0,config.burrowSpawnRate*6) == 0 and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
+		if math.random(0,config.turretSpawnRate*6) == 0 and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
 			if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < burrowCount*5 or Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < 10 then
 				attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 10
 			end
@@ -1430,9 +1473,36 @@ if gadgetHandler:IsSyncedCode() then
 					local lightTurretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(lightTurret, spread)
 					if lightTurretUnitID then
 						attemptingToSpawnLightTurret = attemptingToSpawnLightTurret - 1
-						SetUnitExperience(lightTurretUnitID, mRandom() * expMod)
+						setChickenXP(lightTurretUnitID)
 						Spring.GiveOrderToUnit(lightTurretUnitID, CMD.PATROL, {spawnPosX + math.random(-128,128), spawnPosY, spawnPosZ + math.random(-128,128)}, {"meta"})
+						if math.random(1,4) == 1 then
+							attemptingToSpawnSpecialLightTurret = attemptingToSpawnSpecialLightTurret + 1
+						end
 					end
+				end
+			end
+		end
+
+		if attemptingToSpawnSpecialHeavyTurret > 0 then
+			for i = 1,attemptingToSpawnSpecialHeavyTurret do
+				local specialTurret = specialHeavyTurrets[math.random(1,#specialHeavyTurrets)]
+				local heavyTurretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(specialTurret, spread)
+				if heavyTurretUnitID then
+					attemptingToSpawnSpecialHeavyTurret = attemptingToSpawnSpecialHeavyTurret - 1
+					setChickenXP(heavyTurretUnitID)
+					Spring.GiveOrderToUnit(heavyTurretUnitID, CMD.PATROL, {spawnPosX + math.random(-128,128), spawnPosY, spawnPosZ + math.random(-128,128)}, {"meta"})
+				end
+			end
+		end
+
+		if attemptingToSpawnSpecialLightTurret > 0 then
+			for i = 1,attemptingToSpawnSpecialLightTurret do
+				local specialTurret = specialLightTurrets[math.random(1,#specialLightTurrets)]
+				local lightTurretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(specialTurret, spread)
+				if lightTurretUnitID then
+					attemptingToSpawnSpecialLightTurret = attemptingToSpawnSpecialLightTurret - 1
+					setChickenXP(lightTurretUnitID)
+					Spring.GiveOrderToUnit(lightTurretUnitID, CMD.PATROL, {spawnPosX + math.random(-128,128), spawnPosY, spawnPosZ + math.random(-128,128)}, {"meta"})
 				end
 			end
 		end
@@ -1483,7 +1553,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 		local chickenTeamUnitCount = Spring.GetTeamUnitCount(chickenTeamID) or 0
-		if chickenTeamUnitCount < maxChicken then
+		if chickenTeamUnitCount < chickenUnitCap then
 			SpawnChickens()
 		end
 
@@ -1509,8 +1579,6 @@ if gadgetHandler:IsSyncedCode() then
 				-- do nothing in the grace period
 				return
 			end
-
-			expMod = (expMod + expIncrement) -- increment experience
 
 			if queenAnger >= 100 then
 				-- check if the queen should be alive
@@ -1548,7 +1616,7 @@ if gadgetHandler:IsSyncedCode() then
 					timeOfLastSpawn = t
 				end
 				chickenEvent("burrowSpawn")
-				SetGameRulesParam("roostCount", SetCount(burrows))
+				SetGameRulesParam("chicken_hiveCount", SetCount(burrows))
 			elseif burrowSpawnTime < t - timeOfLastSpawn and burrowCount >= maxBurrows then
 				if math.random(0,3) == 1 then
 					attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + 1
@@ -1570,7 +1638,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			chickenCount = UpdateUnitCount()
 		end
-		if n%30 == 10 and n > 300 and chickenTeamUnitCount < maxChicken then
+		if n%30 == 10 and n > 300 and chickenTeamUnitCount < chickenUnitCap then
 			queueTurretSpawnIfNeeded()
 		end
 		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands
@@ -1587,6 +1655,10 @@ if gadgetHandler:IsSyncedCode() then
 		if n%100 == 50 and not chickenteamhasplayers then
 			local chickens = Spring.GetTeamUnits(chickenTeamID)
 			for i = 1,#chickens do 
+				if unitCowardCooldown[chickens[i]] and (Spring.GetGameFrame() > unitCowardCooldown[chickens[i]]) then
+					unitCowardCooldown[chickens[i]] = nil
+					Spring.GiveOrderToUnit(chickens[i], CMD.STOP, 0, 0)
+				end
 				if Spring.GetCommandQueue(chickens[i], 0) <= 0 then
 					if unitCowardCooldown[chickens[i]] then
 						unitCowardCooldown[chickens[i]] = nil
@@ -1610,6 +1682,21 @@ if gadgetHandler:IsSyncedCode() then
 			if n > t then
 				overseerSoldiers[id] = nil
 				overseerCommanders[id] = nil
+			end
+		end
+
+		if n%30 == 0 then
+			for overseerID in pairs(overseers) do
+				if math.random(1,config.chickenMaxSpawnRate) == 1 then
+					SpawnRandomOffWaveSquad(overseerID)
+				end
+				if math.random(1,config.chickenMaxSpawnRate*0.1) == 1 then
+					local curH, maxH = GetUnitHealth(overseerID)
+					if curH and maxH and curH < (maxH * 0.5) then
+						SpawnRandomOffWaveSquad(overseerID, "chickenh1", 1)
+						SpawnRandomOffWaveSquad(overseerID, "chickenh1b", 1)
+					end
+				end
 			end
 		end
 	end
@@ -1643,14 +1730,14 @@ if gadgetHandler:IsSyncedCode() then
 
 		if unitTeam == chickenTeamID then
 			local x,y,z = Spring.GetUnitPosition(unitID)
-			if unitDefID == config.burrowDef or UnitDefs[unitDefID].name == "chickend2" then
+			if unitDefID == config.burrowDef or UnitDefs[unitDefID].name == "chicken_turretl" then
 				for i = 1,math.random(10,40) do
 					local x = x + math.random(-32,32)
 					local z = z + math.random(-32,32)
 					local y = GetGroundHeight(x, z)
 					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
 				end
-			elseif UnitDefs[unitDefID].name == "chickend1" then
+			elseif UnitDefs[unitDefID].name == "chicken_turrets" then
 				for i = 1,math.random(3,10) do
 					local x = x + math.random(-16,16)
 					local z = z + math.random(-16,16)
@@ -1695,8 +1782,6 @@ if gadgetHandler:IsSyncedCode() then
 		if unitID == queenID then
 			-- queen destroyed
 			queenID = nil
-			maxChicken = oldMaxChicken
-			damageMod = oldDamageMod
 			queenResistance = {}
 
 			if config.difficulty == config.difficulties.survival then
@@ -1724,7 +1809,7 @@ if gadgetHandler:IsSyncedCode() then
 			burrows[unitID] = nil
 			if config.addQueenAnger then
 				burrowAnger = (burrowAnger + config.angerBonus)
-				expMod = (expMod + config.angerBonus)
+				config.maxXP = config.maxXP*1.05
 			end
 
 			for i, defs in pairs(spawnQueue) do
@@ -1742,15 +1827,22 @@ if gadgetHandler:IsSyncedCode() then
 
 			attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + math.random(1,2)
 			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + math.random(2,5)
-			SetGameRulesParam("roostCount", SetCount(burrows))
+			SetGameRulesParam("chicken_hiveCount", SetCount(burrows))
 		end
 
-		if UnitDefs[unitDefID].name == "chickend1" then
-			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + math.random(1,1)
+		if UnitDefs[unitDefID].name == "chicken_turrets" then
+			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 1
+			if math.random(1,4) == 1 then
+				attemptingToSpawnSpecialLightTurret = attemptingToSpawnSpecialLightTurret + 1
+			end
 		end
-		if UnitDefs[unitDefID].name == "chickend2" then
+		if UnitDefs[unitDefID].name == "chicken_turretl" then
 			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + math.random(2,5)
 			attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + math.random(1,2)
+			if math.random(1,4) == 1 then
+				attemptingToSpawnSpecialLightTurret = attemptingToSpawnSpecialLightTurret + math.random(2,5)
+				attemptingToSpawnSpecialHeavyTurret = attemptingToSpawnSpecialHeavyTurret + math.random(1,2)
+			end
 		end
 
 		if unitDefID == OVERSEER_ID then
@@ -1840,5 +1932,20 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveSyncAction('QueenResistant')
 		gadgetHandler:RemoveChatAction("HasChickenEvent")
 	end
+
+	nocolorshift = {0,0,0}
+	colorshiftcache = {0,0,0}
+
+	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+        if string.find(UnitDefs[unitDefID].name, "chicken") then
+            gl.SetUnitBufferUniforms(unitID, nocolorshift, 8)
+            if (not string.find(UnitDefs[unitDefID].name, "chicken_hive")) and (not string.find(UnitDefs[unitDefID].name, "chicken_turret")) then
+				colorshiftcache[1] = math.random(-500,500)*0.0001 -- hue (hue hue)
+				colorshiftcache[2] = math.random(-1000,1000)*0.0001 -- saturation         
+				colorshiftcache[3] = math.random(-1000,1000)*0.0001 -- brightness
+                gl.SetUnitBufferUniforms(unitID, colorshiftcache, 8)
+            end
+        end
+    end
 
 end
