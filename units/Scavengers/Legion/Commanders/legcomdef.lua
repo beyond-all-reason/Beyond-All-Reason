@@ -65,7 +65,7 @@ return {
 			[3] = "cormstor",
 			[4] = "corestor",
 			[5] = "legmex",
-			[6] = "cormakr",
+			--[6] = "cormakr",
 			[7] = "leglab",
 			[8] = "legvp",
 			[9] = "legap",
