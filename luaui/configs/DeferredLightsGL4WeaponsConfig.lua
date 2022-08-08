@@ -16,7 +16,7 @@
 	-- Make a few base classes of lights
 	-- auto-assign the majority
 	-- offer overrideability 
-	
+-- note that Y offset will be very different for points and for beams!
 -- (c) Beherith (mysterme@gmail.com)
 
 Spring.Echo("DEFFEEEEERED FUCKERY")
@@ -37,7 +37,6 @@ local exampleLight = {
 }
 
 
-
 local math_random = math.random
 local math_diag = math.diag
 local math_min = math.min
@@ -49,29 +48,113 @@ local math_floor = math.floor
 --------------------------------------------------------------------------------
 -- Config
 
--- local 
+-- Config order is:
+-- Auto-assign a lightclass to each weaponDefID
+-- Override on a per-weaponDefID basis, and copy table before overriding
 
+--------------------------------General Base Light Classes for further useage --------
+local BaseClasses = {
+	LaserProjectile = {
+		lightType = 'beam', -- or cone or beam
+		lightConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 200, 
+			r = 1, g = 1, b = 1, a = 1, 
+			pos2x = 100, pos2y = 100, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
+			modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
+			lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
+		},
+	},
 
---------------------------------------------------------------------------------
+	CannonProjectile = {
+		lightType = 'point', -- or cone or beam
+		lightConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 200, 
+			r = 1, g = 1, b = 1, a = 1, 
+			color2r = 0.75, color2g = 0.75, color2b = 0.75, colortime = 0.6, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
+			lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
+		},
+	},
 
-local globalLightMult = 1.4
-local globalRadiusMult = 1.4
-local globalLightMultLaser = 1.35	-- gets applied on top op globalRadiusMult
-local globalRadiusMultLaser = 0.9	-- gets applied on top op globalRadiusMult
-local globalLifeMult = 0.58
-
-local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*globalLightMult, radius = 75*globalRadiusMult, gib = true}
-
------------------------------Explosion Lights-----------------------------------
-
-local explosionLights = {}
-
-local baseExplosionLight = {
-	explLightSmall = {},
-
+	MissileProjectile = {
+		lightType = 'point', -- or cone or beam
+		lightConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 200, 
+			r = 1, g = 1, b = 1, a = 1, 
+			color2r = 0.75, color2g = 0.75, color2b = 0.75, colortime = 0.6, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
+			lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
+		},
+	}
+	
+	Explosion = { -- spawned on explosions
+		lightType = 'point', -- or cone or beam
+		yOffset = 0, -- Y offsets are only ever used for explosions!
+		lightConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 200, 
+			r = 1, g = 1, b = 1, a = 1, 
+			color2r = 0.75, color2g = 0.75, color2b = 0.75, colortime = 0.6, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
+			lifetime = 30, sustain = 10, 	aninmtype = 0, -- unused
+		},
+	}
+	
+	MuzzleFlash = { -- spawned on projectilecreated
+		lightType = 'point', -- or cone or beam
+		lightConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 200, 
+			r = 1, g = 1, b = 1, a = 1, 
+			color2r = 0.75, color2g = 0.75, color2b = 0.75, colortime = 0.6, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
+			lifetime = 30, sustain = 10, 	aninmtype = 0, -- unused
+		},
+	}
 }
---------------------------------------------------------------------------------
 
+
+local SizeRadius = {Tiny = 50, Small = 100, Medium = 200, Large = 400, Mega = 800, Giga = 1600, Tera = 3600}
+local ColorSets = { -- TODO add advanced dual-color sets!
+	Red = 		{r = 1, g = 0, b = 0},
+	Green = 	{r = 0, g = 1, b = 0},
+	Blue = 		{r = 0, g = 0, b = 1},
+	Yellow = 	{r = 1, g = 1, b = 0},
+	White = 	{r = 1, g = 1, b = 1},
+	Warm  = 	{r = 1, g = 0.75, b = 0.5},
+	Cold  = 	{r = 0.5, g = 0.75, b = 1.0},
+}
+
+local Lifetimes = (Fast = 5, Quick = 10, Moderate = 30, Long = 90, Glacial = 270)
+
+local lightClasses = {}
+
+local function GetLightClass(baseClassname, colorkey, sizekey, lifetimekey)
+	local lightClassKey = baseClassname .. (colorkey or "") .. (sizekey or "") .. (lifetimekey or "")
+	if lightClasses[lightClassKey] then return lightClasses[lightClassKey] end 
+	else
+		lightClasses[lightClassKey] = table.copy(BaseClasses[baseClassname])
+		local lightConfig = lightClasses[lightClassKey].lightConfig
+		if sizekey then 
+			lightConfig.radius = SizeRadius[sizekey]
+		end
+		if colorkey then 
+			lightConfig.r = ColorSets[colorkey].r
+			lightConfig.g = ColorSets[colorkey].g
+			lightConfig.b = ColorSets[colorkey].b
+			if lightConfig.color2r then lightConfig.color2r = ColorSets[colorkey].color2r or lightConfig.color2r end
+			if lightConfig.color2g then lightConfig.color2g = ColorSets[colorkey].color2g or lightConfig.color2g end
+			if lightConfig.color2b then lightConfig.color2b = ColorSets[colorkey].color2b or lightConfig.color2b end
+			if lightConfig.colortime then lightConfig.colortime = ColorSets[colorkey].colortime or lightConfig.colortime end
+		end
+		if lifetimekey then 
+			lightClasses[lightClassKey].lightConfig.lifetime = Lifetimes[lifetimekey]
+			lightClasses[lightClassKey].lightConfig.sustain = Lifetimes[lifetimekey] / 4
+			lightClasses[lightClassKey].lightConfig.colortime = Lifetimes[lifetimekey] / 5
+		end		
+	end
+	return lightClasses[lightClassKey]
+end
+
+--------------------------------------------------------------------------------
 
 local gibLight = {
 	lightType = 'point', -- or cone or beam
@@ -101,6 +184,56 @@ local projectileDefLights  = {
 
 -----------------------------------
 
+local function FrankenWeenie()
+	for weaponID=1, #WeaponDefs do
+		local weaponDef = WeaponDefs[i] 
+		local customParams = weaponDef.customParams or {}
+		local damage = 100
+		for cat=0, #weaponDef.damages do
+			if Game.armorTypes[cat] and Game.armorTypes[cat] == 'default' then
+				damage = weaponDef.damages[cat]
+				break
+			end
+		end
+		local radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.25)) 
+		local orgMult = (math.max(0.25, math.min(damage/1600, 0.6)) + (radius/2800)) 
+		local life = (9.5*(1.0+.radius/2500)+(params.orgMult * 5)) 
+		radius = (orgMult * 75) + (radius * 2.4)
+		local r, g, b = 1, 0.8, 0.45
+		if weaponDef.visuals ~= nil and weaponDef.visuals.colorR ~= nil then
+			r = weaponDef.visuals.colorR
+			g = weaponDef.visuals.colorG
+			b = weaponDef.visuals.colorB
+		end
+		local muzzleFlash = true
+		local explosionLight = true
+		
+		if weaponDef.type == 'LaserCannon' then 
+			muzzleFlash = false
+			explosionLight = false
+			local beamcolor = 'White'
+			if r > g + b then beamcolor = 'Red'
+			elseif g > r + b then beamcolor = 'Green'
+			elseif b > r + g then beamcolor = 'Blue'
+			elseif b < (r + g)/2 then beamcolor = 'Yellow'
+			end
+ 
+			local size = 'Tiny'
+			for newsize, sizerad in pairs(SizeRadius) do 
+				if damage > sizerad and SizeRadius[size] > sizerad then size = newsize end
+			end
+			projectileDefLights[weaponID] = GetLightClass("LaserProjectile", beamcolor, size)
+		elseif weaponDef.type = 'LightningCannon' then 
+			local size = 'Small'
+			if damage > 500 then size = 'Medium' end 
+			projectileDefLights[weaponID] = GetLightClass
+		end
+		if muzzleFlash then 
+		end
+		if explosionLight then 
+		end
+	end
+end
 
 
 local weaponLights = {}
@@ -123,8 +256,8 @@ local function loadWeaponDefs()
 				end
 			end
 			params.radius = ((WeaponDefs[i].damageAreaOfEffect*2) + (WeaponDefs[i].damageAreaOfEffect * WeaponDefs[i].edgeEffectiveness * 1.25)) * globalRadiusMult
-			params.orgMult = (math.max(0.25, math.min(damage/1600, 0.6)) + (params.radius/2800)) * globalLightMult
-			params.life = (9.5*(1.0+params.radius/2500)+(params.orgMult * 5)) * globalLifeMult
+			params.orgMult = (math.max(0.25, math.min(damage/1600, 0.6)) + (params.radius/2800)) 
+			params.life = (9.5*(1.0+params.radius/2500)+(params.orgMult * 5)) 
 			params.radius = (params.orgMult * 75) + (params.radius * 2.4)
 			params.r, params.g, params.b = 1, 0.8, 0.45
 
@@ -307,10 +440,9 @@ loadWeaponDefs()
 --------------------------------------------------------------------------------
 -- Light Defs
 --------------------------------------------------------------------------------
-
-local function GetLightsFromUnitDefs()
-	--Spring.Echo('GetLightsFromUnitDefs init')
-	local projectileLights = {}
+local projectileDefLights = {}
+local function GetProjectileLightsFromWeaponDefs()
+	--Spring.Echo('GetProjectileLightsFromWeaponDefs init')
 	for weaponDefID = 1, #WeaponDefs do
 		--These projectiles should have lights:
 		--Cannon (projectile size: tempsize = 2.0f + std::min(wd.customParams.shield_damage * 0.0025f, wd.damageAreaOfEffect * 0.1f);)
@@ -339,6 +471,14 @@ local function GetLightsFromUnitDefs()
 
 		local weaponData = {type=weaponDef.type, r = (r + 0.1) * lightMultiplier, g = (g + 0.1) * lightMultiplier, b = (b + 0.1) * lightMultiplier, radius = 100}
 		local recalcRGB = false
+		
+		local damage = 100
+		for cat=0, #WeaponDefs[weaponDefID].damages do
+			if Game.armorTypes[cat] and Game.armorTypes[cat] == 'default' then
+				damage = WeaponDefs[weaponDefID].damages[cat]
+				break
+			end
+		end
 
 		if weaponDef.type == 'Cannon' then
 			if customParams.single_hit then
@@ -356,7 +496,19 @@ local function GetLightsFromUnitDefs()
 				recalcRGB = true
 			end
 		elseif weaponDef.type == 'LaserCannon' then
-			weaponData.radius = 70 * weaponDef.size
+			if r > g + b then -- RED
+				if damage < 100 then 
+					projectileDefLights[weaponDefID] = lightClasses.LaserProjectileRedSmall
+				else
+					projectileDefLights[weaponDefID] = lightClasses.LaserProjectileRedMedium
+				end
+			elseif g > r + b then -- GREEN
+				if damage 
+			elseif b > r + g then -- BLUE
+			
+			else -- WHITE
+			
+			end			
 		elseif weaponDef.type == 'DGun' then
 			weaponData.radius = 365
 			lightMultiplier = 0.7
@@ -475,8 +627,7 @@ local function GetLightsFromUnitDefs()
 	return projectileLights
 end
 
-
-local projectileLights = GetLightsFromUnitDefs()
+GetProjectileLightsFromWeaponDefs()
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

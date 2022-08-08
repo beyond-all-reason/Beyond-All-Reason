@@ -75,34 +75,15 @@ local collectionFunctions = {}
 local collectionFunctionCount = 0
 
 
-local unitDefLight
-local unitEventLights
-local projectileDefLights 
-local weaponDefLights 
-local gibLight 
+local unitDefLight  -- Table of lights per unitDefID
+local unitEventLights -- Table of lights per unitDefID
+local weaponDefLights  -- one light per weaponDefID
+local projectileDefLights  -- one light per weaponDefID
+local explosionLights  -- one light per weaponDefID
+local gibLight  -- one light for all pieceprojectiles
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
-function widget:ViewResize()
-	vsx, vsy = gl.GetViewSizes()
-	ivsx = 1.0 / vsx --we can do /n here!
-	ivsy = 1.0 / vsy
-	if Spring.GetMiniMapDualScreen() == 'left' then
-		vsx = vsx / 2
-	end
-	if Spring.GetMiniMapDualScreen() == 'right' then
-		vsx = vsx / 2
-	end
-	screenratio = vsy / vsx --so we dont overdraw and only always draw a square
-end
-
-widget:ViewResize()
 
 -- GL4 notes:
 -- A spot light is a sphere?
@@ -154,7 +135,7 @@ widget:ViewResize()
 	-- at a rez of 32 elmos, dsd would need:
 	-- 256*256*16 voxels (1 million?) yeesh
 
--- Features are not light-attachable at the moment, and shouldnt be, use global lights 
+-- Features are not light-attachable at the moment, and shouldnt be as they are immobile, use global lights 
 
 -- preliminary perf:
 	-- yeah raymarch is expensive!
@@ -173,6 +154,8 @@ widget:ViewResize()
 	-- rework dicts -- DONE
 	-- unitdefidpiecemapcache -- DONE
 	-- Draw pre-water
+	
+local deferredLightGL4Config = {globalLightMult = 1, globalRadiusMult = 1} 
 
 local shaderConfig = {
 	MIERAYLEIGHRATIO = 0.1,
@@ -289,6 +272,28 @@ local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, d
 	end
 	return nils
 end
+
+
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+	end
+end
+
+function widget:ViewResize()
+	vsx, vsy = gl.GetViewSizes()
+	ivsx = 1.0 / vsx --we can do /n here!
+	ivsy = 1.0 / vsy
+	if Spring.GetMiniMapDualScreen() == 'left' then
+		vsx = vsx / 2
+	end
+	if Spring.GetMiniMapDualScreen() == 'right' then
+		vsx = vsx / 2
+	end
+	screenratio = vsy / vsx --so we dont overdraw and only always draw a square
+end
+
+widget:ViewResize()
 
 local function createLightInstanceVBO(vboLayout, vertexVBO, numVertices, indexVBO, VBOname, unitIDattribID)
 	local targetLightVBO = makeInstanceVBOTable( vboLayout, 64, VBOname, unitIDattribID)
@@ -720,6 +725,9 @@ local function InitializeLight(lightTable, unitID)
 			for paramname, tablepos in pairs(lightParamKeyOrder) do 
 				lightparams[tablepos] = lightTable.lightConfig[paramname] or lightparams[tablepos]
 			end
+			lightparams[lightParamKeyOrder.radius] = deferredLightGL4Config.globalRadiusMult * lightparams[lightParamKeyOrder.radius]
+			lightparams[lightParamKeyOrder.a] = deferredLightGL4Config.globalLightMult * lightparams[lightParamKeyOrder.a]
+			lightparams[lightParamKeyOrder.lifetime] = math.floor(deferredLightGL4Config.globalLifeMult * lightparams[lightParamKeyOrder.lifetime]
 			lightTable.lightParamTable = lightparams
 		end
 
@@ -852,7 +860,6 @@ function AddRandomLight(which)
 end
 
 
-deferredLightGL4Config = {globalLightMult = 1, globalRadiusMult = 1} -- NOTE THAT THIS IS INTENTIONALLY GLOBAL, to be able to pass it to vfs.include!
 
 local function LoadLightConfig()
 	local success, result =	pcall(VFS.Include, 'luaui/configs/DeferredLightsGL4config.lua')
@@ -870,16 +877,23 @@ local function LoadLightConfig()
 	local success2, result2 =	pcall(VFS.Include, 'luaui/configs/DeferredLightsGL4WeaponsConfig.lua')
 	--Spring.Echo("Loading GL4 weapon light config", success2, result2)
 	if success2 then
-		--Spring.Echo("Loaded GL4 weapon light config")
-		weaponDefLights = result2.weaponDefLights
 		gibLight = result2.gibLight
 		InitializeLight(gibLight)		
+		
+		weaponDefLights = result2.weaponDefLights
+		for weaponID, lightTable in pairs(weaponDefLights) do 
+			InitializeLight(lightTable)
+		end
+		
+		explosionLights = result2.explosionLights
+		for weaponID, lightTable in pairs(explosionLights) do 
+			InitializeLight(lightTable)
+		end
 		
 		projectileDefLights = result2.projectileDefLights
 		for weaponID, lightTable in pairs(projectileDefLights) do 
 			InitializeLight(lightTable)
 		end
-		--Spring.Debug.TableEcho(result2)
 	else
 		Spring.Echo("Failed to load GL4 weapon light config", success2, result2)
 	end
@@ -1397,10 +1411,11 @@ end
 
 
 function widget:GetConfigData(data) -- Called by RemoveWidget
-	Spring.Debug.TraceEcho("GetConfigData DLGL4")
+	--Spring.Debug.TraceEcho("GetConfigData DLGL4")
 	local savedTable = {
-		globalLightMult = globalLightMult,
-		globalRadiusMult = globalRadiusMult,
+		globalLightMult = deferredLightGL4Config.globalLightMult,
+		globalRadiusMult = deferredLightGL4Config.globalRadiusMult,
+		globalLifeMult = deferredLightGL4Config.globalLifeMult,
 		resetted = 1.65,
 	}
 	return savedTable
@@ -1410,14 +1425,15 @@ function widget:SetConfigData(data) -- Called on load (and config change), just 
 	Spring.Debug.TraceEcho("SetConfigData DLGL4")
 	if data.globalLifeMult ~= nil and data.resetted ~= nil and data.resetted == 1.65 then
 		if data.globalLightMult ~= nil then
-			globalLightMult = data.globalLightMult
 			deferredLightGL4Config.globalLightMult =  data.globalLightMult
 		end
 		if data.globalRadiusMult ~= nil then
-			globalRadiusMult = data.globalRadiusMult
 			deferredLightGL4Config.globalRadiusMult =  data.globalRadiusMult
 		end
+		if data.globalLifeMult ~= nil then
+			deferredLightGL4Config.globalLifeMult =  data.globalLifeMult
+		end
 	end
-	Spring.Debug.TableEcho(deferredLightGL4Config)
+	--Spring.Debug.TableEcho(deferredLightGL4Config)
 	--deferredLightGL4Config = data
 end
