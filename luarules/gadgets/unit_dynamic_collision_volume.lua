@@ -220,7 +220,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- Check if a unit is pop-up type (the list must be entered manually)
 	-- If a building was constructed add it to the list for later radius and height scaling
-	function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	-- Changed from UnitFinished to UnitCreated 
+	-- Some building's scripting change their collision while still under construction
+	-- These buildings should be added to the list of popupUnits to update when they are created, not when finished
+	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		local un = unitName[unitDefID]
 		if unitCollisionVolume[un] then
 			popupUnits[unitID]={name=un, state=-1, perPiece=false}
