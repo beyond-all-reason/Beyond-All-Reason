@@ -48,10 +48,10 @@ local BaseClasses = {
 	LaserProjectile = {
 		lightType = 'beam', -- or cone or beam
 		lightConfig = {
-			posx = 0, posy = 0, posz = 0, radius = 100, 
-			r = 1, g = 1, b = 1, a = 0.25, 
+			posx = 0, posy = 10, posz = 0, radius = 100, 
+			r = 1, g = 1, b = 1, a = 0.075, 
 			pos2x = 100, pos2y = 1000, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
-			modelfactor = 1, specular = 1, scattering = 0.5, lensflare = 1, 
+			modelfactor = 1, specular = 0.5, scattering = 0.1, lensflare = 1, 
 			lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
 		},
 	},
@@ -92,11 +92,11 @@ local BaseClasses = {
 	FlameProjectile = {
 		lightType = 'point', -- or cone or beam
 		lightConfig = {
-			posx = 0, posy = 0, posz = 0, radius = 30, 
-			r = 1, g = 1, b = 1, a = 0.15, 
+			posx = 0, posy = 15, posz = 0, radius = 30, 
+			r = 1, g = 1, b = 1, a = 0.075, 
 			color2r = 0.75, color2g = 0.6, color2b = 0.5, colortime = 0.6, -- point lights only, colortime in seconds for unit-attached
-			modelfactor = 0.2, specular = 0.2, scattering = 0.5, lensflare = 0, 
-			lifetime = 50, sustain = 25, 	aninmtype = 0, -- unused
+			modelfactor = 0.2, specular = 0.5, scattering = 0.5, lensflare = 0, 
+			lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
 		},
 	},
 	
