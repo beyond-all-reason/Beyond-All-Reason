@@ -946,8 +946,8 @@ local function LoadLightConfig()
 end
 
 local mapinfo = nil
-local nightFactor = 0.33
-local unitNightFactor = 1.2 -- applied above nightFactor
+local nightFactor = 1 --0.33
+local unitNightFactor = 1 -- applied above nightFactor default 1.2
 local adjustfornight = {'unitAmbientColor', 'unitDiffuseColor', 'unitSpecularColor','groundAmbientColor', 'groundDiffuseColor', 'groundSpecularColor' }
 
 function widget:Initialize()
@@ -991,7 +991,7 @@ function widget:Initialize()
 	end 
 	
 	math.randomseed(1)
-	for i=1, 50 do AddRandomLight(	math.random()) end   
+	for i=1, 1 do AddRandomLight(	math.random()) end   
 	
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
