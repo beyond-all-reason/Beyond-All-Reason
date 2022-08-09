@@ -338,6 +338,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	-- returns: the index of the instanceID in the table on success, else nil
 	if #thisInstance ~= iT.instanceStep then
 		Spring.Echo("Trying to upload an oddly sized instance into",iT.myName, #thisInstance, "instead of ",iT.instanceStep)
+		Spring.Debug.TraceFullEcho(20,20,20, "pushElementInstance Failure")
 	end
 	local iTusedElements = iT.usedElements
 	local iTStep    = iT.instanceStep 

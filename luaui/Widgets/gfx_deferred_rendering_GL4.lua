@@ -77,7 +77,7 @@ local collectionFunctionCount = 0
 
 local unitDefLight  -- Table of lights per unitDefID
 local unitEventLights -- Table of lights per unitDefID
-local weaponDefLights  -- one light per weaponDefID
+local muzzleFlashLights  -- one light per weaponDefID
 local projectileDefLights  -- one light per weaponDefID
 local explosionLights  -- one light per weaponDefID
 local gibLight  -- one light for all pieceprojectiles
@@ -154,8 +154,11 @@ local gibLight  -- one light for all pieceprojectiles
 	-- rework dicts -- DONE
 	-- unitdefidpiecemapcache -- DONE
 	-- Draw pre-water
+	-- optimizations:
+		-- only upload dirty VBOs
+
 	
-local deferredLightGL4Config = {globalLightMult = 1, globalRadiusMult = 1} 
+local deferredLightGL4Config = {globalLightMult = 1, globalRadiusMult = 1, globalLifeMult = 1} 
 
 local shaderConfig = {
 	MIERAYLEIGHRATIO = 0.1,
@@ -182,7 +185,7 @@ local cursorPointLightVBO = {} -- this will contain ally and player cursor light
 local projectilePointLightVBO = {}  -- for plasma balls
 local projectileBeamLightVBO = {}  -- for lasers
 local projectileConeLightVBO = {} -- for rockets
-
+local projectileLightVBOMap
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
@@ -342,6 +345,8 @@ local function initGL4()
 	unitBeamLightVBO 		= createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Unit Beam Light VBO", 10)
 	projectileBeamLightVBO 	= createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Projectile Beam Light VBO")
 	
+	projectileLightVBOMap = { point = projectilePointLightVBO,  beam = projectileBeamLightVBO,  cone = projectileConeLightVBO, }
+	
 	deferredLightShader =  checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4")
 	if not deferredLightShader then goodbye("Failed to compile Deferred Lights GL4 shader") end 
 end
@@ -384,6 +389,31 @@ lightCacheTable[13] = 1 --modelfactor_specular_scattering_lensflare
 lightCacheTable[14] = 1
 lightCacheTable[15] = 1
 lightCacheTable[16] = 1
+
+---AddLight
+---Note that instanceID can be nil if an auto-generated one is OK.
+---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
+---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
+---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light, 
+---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
+---@param pieceIndex number if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
+---@param targetVBO table specify which one you want it to
+---@param lightparams table a valid table of light parameters
+---@param noUpload bool true if it shouldnt be uploaded to gpu yet
+---@return instanceID for future reuse
+local function AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
+	if instanceID == nil then 
+		autoLightInstanceID = autoLightInstanceID + 1 
+		instanceID = autoLightInstanceID
+	end
+	lightparams[spawnFramePos] = gameFrame -- this might be problematic, as we will be modifying a table 
+	lightparams[pieceIndexPos] = pieceIndex or 0
+	instanceID = pushElementInstance(targetVBO, lightparams, instanceID, true, noUpload, unitID)
+	if lightparams[18] > 0 then 
+		calcLightExpiry(targetVBO, lightparams, instanceID) -- This will add lights that have >0 lifetime to the removal queue
+	end
+	return instanceID
+end
 
 ---AddPointLight
 ---Note that instanceID can be nil if an auto-generated one is OK.
@@ -673,14 +703,14 @@ local function updateLightPosition(lightVBO, instanceID, posx, posy, posz, radiu
 	if posy then instData[instanceIndex + 2] = posy end
 	if posz then instData[instanceIndex + 3] = posz end
 	-- only pos for now
-	--[[
+
 	
 	if radius then instData[instanceIndex + 4] = radius end
 	if p2x then instData[instanceIndex + 5] = p2x end
 	if p2y then instData[instanceIndex + 6] = p2y end
 	if p2z then instData[instanceIndex + 7] = p2z end
 	if theta then instData[instanceIndex + 8] = theta end
-	]]--
+	lightVBO.dirty = true -- YEEEEES
 	return instanceIndex 
 end
 
@@ -688,6 +718,7 @@ end
 
 local unitDefPeiceMapCache = {} -- maps unitDefID to piecemap
 
+--[[
 local examplePointLight = {
 	lightType = 'point', 
 	pieceName = nil,
@@ -699,7 +730,7 @@ local examplePointLight = {
 	modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
 	lifetime = 0, sustain = 1, 	aninmtype = 0 -- unused
 }
-
+]]--
 local lightParamKeyOrder = {
 	posx = 1, posy = 2, posz = 3, radius = 4, 
 	r = 9, g = 10, b = 11, a = 12, 
@@ -710,13 +741,12 @@ local lightParamKeyOrder = {
 	lifetime = 18, sustain = 19, animtype = 20 -- unused
 }
 
-
 ---InitializeLight
 ---Takes a light definition table, and tries to check wether its already been initialized, if not, it inits it in-place
 ---@param lightTable table
 ---@param unitID number 
 local function InitializeLight(lightTable, unitID)
-	Spring.Debug.TraceFullEcho()
+
 	if not lightTable.initComplete then  -- late init
 		-- do the table to flattable conversion, if it doesnt exist yet
 		if not lightTable.lightParamTable then -- perform correct init
@@ -727,7 +757,8 @@ local function InitializeLight(lightTable, unitID)
 			end
 			lightparams[lightParamKeyOrder.radius] = deferredLightGL4Config.globalRadiusMult * lightparams[lightParamKeyOrder.radius]
 			lightparams[lightParamKeyOrder.a] = deferredLightGL4Config.globalLightMult * lightparams[lightParamKeyOrder.a]
-			lightparams[lightParamKeyOrder.lifetime] = math.floor(deferredLightGL4Config.globalLifeMult * lightparams[lightParamKeyOrder.lifetime]
+			lightparams[lightParamKeyOrder.lifetime] = math.floor(deferredLightGL4Config.globalLifeMult * lightparams[lightParamKeyOrder.lifetime] )
+			--lightparams[lightParamKeyOrder.sustain] = math.floor(deferredLightGL4Config.globalLifeMult * lightparams[lightParamKeyOrder.sustain] ) -- not needed yet
 			lightTable.lightParamTable = lightparams
 		end
 
@@ -822,6 +853,19 @@ local function RemoveProjectileLight(lightshape, instanceID, unitID, noUpload)
 	else return nil end
 end
 
+local function InterpolateBeam(x, y, z, dx, dy, dz)
+	local finalDx, finalDy, finalDz = 0, 0, 0
+	for i = 1, 10 do
+		local h = spGetGroundHeight(x + dx + finalDx, z + dz + finalDz)
+		local mult
+		dx, dy, dz = dx*0.5, dy*0.5, dz*0.5
+		if h < y + dy + finalDy then
+			finalDx, finalDy, finalDz = finalDx + dx, finalDy + dy, finalDz + dz
+		end
+	end
+	return finalDx, finalDy, finalDz
+end
+
 
 function AddRandomLight(which)
 	local gf = gameFrame
@@ -880,8 +924,8 @@ local function LoadLightConfig()
 		gibLight = result2.gibLight
 		InitializeLight(gibLight)		
 		
-		weaponDefLights = result2.weaponDefLights
-		for weaponID, lightTable in pairs(weaponDefLights) do 
+		muzzleFlashLights = result2.muzzleFlashLights
+		for weaponID, lightTable in pairs(muzzleFlashLights) do 
 			InitializeLight(lightTable)
 		end
 		
@@ -1165,7 +1209,8 @@ end
 
 
 local updateCount = 0
-local trackedprojectiles = {}
+local trackedProjectiles = {}
+local trackedProjectileTypes = {}
 local lastgf = -2
 local removalqueue = {}
 
@@ -1183,9 +1228,7 @@ local spGetProjectilePosition = Spring.GetProjectilePosition
 
 -- Beam type projectiles are indeed an oddball, as they live for exactly 3 frames, no?
 
-
-
-function widget:Update()
+local function updateProjectileLights(newgameframe)
 	local debugproj = false
 	local nowprojectiles = Spring.GetVisibleProjectiles()
 	gameFrame = Spring.GetGameFrame()
@@ -1197,73 +1240,114 @@ function widget:Update()
 	-- BUG: having a lifetime associated with each projectile kind of bugs out updates
 	local numadded = 0
 	for i= 1, #nowprojectiles do
-		local projid = nowprojectiles[i]
-		local px, py, pz = spGetProjectilePosition(projid)
+		local projectileID = nowprojectiles[i]
+		local px, py, pz = spGetProjectilePosition(projectileID)
 
-
-		if trackedprojectiles[projid] then 
+		local lightType = 'point' -- default
+		if trackedProjectiles[projectileID] then 
 			if newgameframe then
 				--update proj pos
-		
-				local instanceIndex = updateLightPosition(projectilePointLightVBO, projid, px,py,pz)
-				if debugproj then Spring.Echo("Updated", instanceIndex, projid, px, py, pz) end
+				lightType = trackedProjectileTypes[projectileID] 
+				if lightType == 'point' then 
+					local instanceIndex = updateLightPosition(projectilePointLightVBO, projectileID, px,py,pz)
+				elseif lightType == 'cone' then 
+					local dx,dy,dz = Spring.GetProjectileVelocity(projectileID)
+					updateLightPosition(projectileConeLightVBO, projectileID, px,py,pz, nil, dx,dy,dz)
+				end -- NOTE: WE DONT UPDATE BEAM POS!
+				if debugproj then Spring.Echo("Updated", instanceIndex, projectileID, px, py, pz) end
 			end
 		else
 			-- add projectile		
 			
-			local weapon, piece = Spring.GetProjectileType(projid)
+			local weapon, piece = Spring.GetProjectileType(projectileID)
 			if piece then 
-				local explosionflags = Spring.GetPieceProjectileParams(projid)
+				local explosionflags = Spring.GetPieceProjectileParams(projectileID)
 				if explosionflags and explosionflags%32 > 15 then 
 					local gib = gibLight.lightParamTable
 					gib[1] = px
 					gib[2] = py
 					gib[3] = pz
-					AddPointLight(projid, nil, nil, projectilePointLightVBO, gib)
+					AddPointLight(projectileID, nil, nil, projectilePointLightVBO, gib)
 					--Spring.Echo("added gib")
 					--Spring.Debug.TableEcho(gib)
 				end
 			else
-				testprojlighttable[1] = px
-				testprojlighttable[2] = py
-				testprojlighttable[3] = pz
-				AddPointLight(projid, nil, nil, projectilePointLightVBO, testprojlighttable)
+				local weaponDefID = Spring.GetProjectileDefID ( projectileID ) 
+				if projectileDefLights[weaponDefID] then 
+					local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
+					lightType = projectileDefLights[weaponDefID].lightType
+					lightParamTable[1] = px
+					lightParamTable[2] = py
+					lightParamTable[3] = pz
+					if debugproj then Spring.Echo(lightType, projectileDefLights[weaponDefID].lightClassName) end
+					
+					if lightType == 'beam' then 
+						local dx,dy,dz = Spring.GetProjectileVelocity(projectileID)
+						--dx, dy, dz = InterpolateBeam(px,py,pz, dx, dy,dz)
+						lightParamTable[5] = px + dx
+						lightParamTable[6] = py + dy
+						lightParamTable[7] = pz + dz
+					elseif lightType == 'cone' then 
+					
+						local dx,dy,dz = Spring.GetProjectileVelocity(projectileID)						lightParamTable[5] = dx
+						lightParamTable[6] = dy
+						lightParamTable[7] = dz
+					end 
+					if debugproj then Spring.Echo(lightType, px,py,pz, dx, dy,dz) end
+					
+					AddLight(projectileID, nil, nil, projectileLightVBOMap[lightType], lightParamTable)
+					--AddLight(projectileID, nil, nil, projectilePointLightVBO, lightParamTable)
+				else 
+					Spring.Echo("No projectile light defined for", projectileID, weaponDefID)
+					testprojlighttable[1] = px
+					testprojlighttable[2] = py
+					testprojlighttable[3] = pz
+					AddPointLight(projectileID, nil, nil, projectilePointLightVBO, testprojlighttable)
+				end
 			end
 			numadded = numadded + 1
-			if debugproj then Spring.Echo("Adding projlight", projid, Spring.GetProjectileName(projid)) end
-			--trackedprojectiles[]
+			if debugproj then Spring.Echo("Adding projlight", projectileID, Spring.GetProjectileName(projectileID)) end
+			--trackedProjectiles[]
+			trackedProjectileTypes[projectileID] = lightType
 		end
-		trackedprojectiles[projid] = gameFrame
+		trackedProjectiles[projectileID] = gameFrame
 	end
 	-- remove theones that werent updated 
 	local numremoved = 0
-	for projid, gf in pairs(trackedprojectiles) do
+	for projectileID, gf in pairs(trackedProjectiles) do
 		if gf < gameFrame then
 			--SO says we can modify or remove elements while iterating, we just cant add
 			
 			
 			-- a possible hack to keep projectiles visible, is trying to keep getting their pos
-			local px, py, pz = spGetProjectilePosition(projid)
+			local px, py, pz = spGetProjectilePosition(projectileID)
 			if px then
 				if newgameframe then 
-					updateLightPosition(projectilePointLightVBO, projid, px,py,pz)
+					updateLightPosition(projectilePointLightVBO, projectileID, px,py,pz)
 				end
 			else
 				numremoved = numremoved + 1 
-				trackedprojectiles[projid] = nil
-				--RemoveLight('point', projid, nil)
-				popElementInstance(projectilePointLightVBO, projid) 
+				trackedProjectiles[projectileID] = nil
+				local lightType = trackedProjectileTypes[projectileID] 
+				--RemoveLight('point', projectileID, nil)
+				popElementInstance(projectileLightVBOMap[lightType], projectileID) 
+				trackedProjectileTypes[projectileID] = nil
 			end
 		end
 	end
 	-- upload all changed elements in one go
 	
 	uploadAllElements(projectilePointLightVBO)
+	uploadAllElements(projectileConeLightVBO)
 	if debugproj then 
 		--Spring.Echo("#points", projectilePointLightVBO.usedElements, '#projs', #nowprojectiles ) 
 	end
 	local trackedprojcount = 0
-	for k,v in pairs(trackedprojectiles) do trackedprojcount = trackedprojcount + 1 end 
+	for k,v in pairs(trackedProjectiles) do trackedprojcount = trackedprojcount + 1 end 
+end
+
+function widget:Update()
+	updateProjectileLights()
 		--Spring.Echo("#points", projectilePointLightVBO.usedElements, '#projs', #nowprojectiles, "#tracked", trackedprojcount, "#removed", numremoved , "#added", numadded ) 
 	--[[
 	beamLights = {}
