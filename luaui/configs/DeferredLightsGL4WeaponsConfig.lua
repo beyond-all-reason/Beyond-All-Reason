@@ -4,14 +4,14 @@
 	-- Explosion lights
 	-- Pieceprojectiles (gibs on death) lights
 -- note that weapondef customparams need to be moved out of unitdefs, for ease of configability. 
--- customparams= {
-	-- expl_light_skip = bool , -- no explosion on projectile death
-	-- expl_light_color = {rgba} , -- color of the explosion light at peak?
-	-- expl_light_opacity = a, -- alpha or power of the light
-	-- expl_light_mult = ,-- fuck if i know?
-	-- expl_light_radius = , -- radius
-	-- expl_light_radius_mult = , -- why?
-	-- expl_light_life = , life of the expl light?
+	-- customparams= {
+		-- expl_light_skip = bool , -- no explosion on projectile death
+		-- expl_light_color = {rgba} , -- color of the explosion light at peak?
+		-- expl_light_opacity = a, -- alpha or power of the light
+		-- expl_light_mult = ,-- fuck if i know?
+		-- expl_light_radius = , -- radius
+		-- expl_light_radius_mult = , -- why?
+		-- expl_light_life = , life of the expl light?
 -- concept is:
 	-- Make a few base classes of lights
 	-- auto-assign the majority
@@ -19,9 +19,6 @@
 -- note that Y offset will be very different for points and for beams!
 -- (c) Beherith (mysterme@gmail.com)
 
-Spring.Echo("DEFFEEEEERED FUCKERY")
-Spring.Debug.TraceFullEcho(nil,nil,nil, "initweaponsconf")
-Spring.Debug.TableEcho(_G.deferredLightGL4Config)
 local exampleLight = {
 	lightType = 'point', -- or cone or beam
 	pieceName = nil, -- optional
@@ -36,12 +33,6 @@ local exampleLight = {
 	},
 }
 
-
-local math_random = math.random
-local math_diag = math.diag
-local math_min = math.min
-local math_max = math.max
-local math_floor = math.floor
 
 -- Local Variables
 
@@ -265,7 +256,7 @@ local function AssignLightsToAllWeapons()
  
 
 			for newsize, sizerad in pairs(SizeRadius) do 
-				Spring.Echo(weaponID, damage, sizeclass, sizerad, newsize)
+				--Spring.Echo(weaponID, damage, sizeclass, sizerad, newsize)
 				if damage > sizerad and SizeRadius[sizeclass] < sizerad then sizeclass = newsize end
 			end
 			projectileDefLights[weaponID] = GetLightClass("LaserProjectile", beamcolor, sizeclass)
