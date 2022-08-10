@@ -407,7 +407,7 @@ vertex = [[
 
 			if (BITMASK_FIELD(bitOptions, OPTION_FLASHLIGHTS)) {
 				// modelMatrix[3][0] + modelMatrix[3][2] are Tx, Tz elements of translation of matrix
-				selfIllumMod = max(-0.2, sin(simFrame * 2.0/30.0 + (worldMatrix[3][0] + worldMatrix[3][2]) * 0.1)) + 0.2;
+				selfIllumMod = max(-0.2, sin(simFrame * 2.0/30.0 + float(UNITID) * 0.1)) + 0.2;
 			} else {
 				selfIllumMod = 1.0;
 			}
