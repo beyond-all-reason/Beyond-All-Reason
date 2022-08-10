@@ -60,10 +60,10 @@ local BaseClasses = {
 		lightType = 'point', -- or cone or beam
 		lightConfig = {
 			posx = 0, posy = 10, posz = 0, radius = 125, 
-			r = 1, g = 1, b = 1, a = 0.25, 
-			color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 0.8, -- point lights only, colortime in seconds for unit-attached
-			modelfactor = 0.5, specular = 0.2, scattering = 0.5, lensflare = 0, 
-			lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
+			r = 1, g = 1, b = 1, a = 0.17, 
+			color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 2, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = 0.5, specular = 1.2, scattering = 0.5, lensflare = 0, 
+			lifetime = 0, sustain = 0, 	aninmtype = 0, -- unused
 		},
 	},
 
@@ -108,7 +108,7 @@ local BaseClasses = {
 			r = 2, g = 2, b = 2, a = 0.3, 
 			color2r = 0.8, color2g = 0.55, color2b = 0.28, colortime = 1.6, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.5, specular = 0.5, scattering = 0.5, lensflare = 1, 
-			lifetime = 16, sustain = 6, 	aninmtype = 0, -- unused
+			lifetime = 12, sustain = 4, 	aninmtype = 0, -- unused
 		},
 	},
 	
@@ -132,6 +132,7 @@ local ColorSets = { -- TODO add advanced dual-color sets!
 	Blue = 		{r = 0, g = 0, b = 1},
 	Yellow = 	{r = 1, g = 1, b = 0},
 	White = 	{r = 1, g = 1, b = 1},
+	Plasma  = 	{r = 0.84, g = 0.75, b = 0.15},
 	Fire  = 	{r = 0.8, g = 0.3, b = 0.05},
 	Warm  = 	{r = 0.7, g = 0.7, b = 0.1},
 	Cold  = 	{r = 0.5, g = 0.75, b = 1.0},
@@ -282,7 +283,7 @@ local function AssignLightsToAllWeapons()
 			for newsize, sizerad in pairs(SizeRadius) do 
 				if damage > sizerad and SizeRadius[sizeclass] > sizerad then sizeclass = newsize end
 			end
-			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass)
+			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Plasma", sizeclass)
 		elseif weaponDef.type == 'DGun' then 
 			sizeclass = "Medium"
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass)
@@ -293,7 +294,7 @@ local function AssignLightsToAllWeapons()
 			sizeclass = "Small"
 			projectileDefLights[weaponID] = GetLightClass("TorpedoProjectile", "Cold", sizeclass)
 		elseif weaponDef.type == 'Shield' then 
-			sizeclass = "Medium"
+			sizeclass = "Large"
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Cold", sizeclass)
 		elseif weaponDef.type == 'Flame' then 
 			sizeclass = "Small"
