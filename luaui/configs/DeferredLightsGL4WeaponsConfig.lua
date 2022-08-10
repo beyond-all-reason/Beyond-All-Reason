@@ -257,7 +257,7 @@ local function AssignLightsToAllWeapons()
  
 
 			for newsize, sizerad in pairs(SizeRadius) do 
-				Spring.Echo(weaponID, damage, sizeclass, sizerad, newsize)
+				--Spring.Echo(weaponID, damage, sizeclass, sizerad, newsize)
 				if damage > sizerad and SizeRadius[sizeclass] < sizerad then sizeclass = newsize end
 			end
 			projectileDefLights[weaponID] = GetLightClass("LaserProjectile", beamcolor, sizeclass)
@@ -294,16 +294,24 @@ local function AssignLightsToAllWeapons()
 		
 		
 		if muzzleFlash then 
-			muzzleFlashLights[weaponID] = GetLightClass("MuzzleFlash", "White", sizeclass, "Moderate")
+			muzzleFlashLights[weaponID] = GetLightClass("MuzzleFlash", "White", sizeclass, nil)
 		end
 		if explosionLight then 
-			explosionLights[weaponID] = GetLightClass("Explosion", nil, sizeclass, "Moderate")
+			explosionLights[weaponID] = GetLightClass("Explosion", nil, sizeclass, nil)
 			explosionLights[weaponID].yOffset = explosionLights[weaponID].lightConfig.radius / 5
 		end
 	end
-	Spring.Echo("DLGL4 weapons conf using",usedclasses,"light types")
+	Spring.Echo(Spring.GetGameFrame(),"DLGL4 weapons conf using",usedclasses,"light types")
 end
 AssignLightsToAllWeapons()
+
+-----------------Manual Overrides--------------------
+
+
+muzzleFlashLights[WeaponDefNames["armbull_arm_bull"].id] = GetLightClass("MuzzleFlash", nil, "Tiny")
+
+
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

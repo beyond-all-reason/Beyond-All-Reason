@@ -958,7 +958,7 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		lightParamTable[1] = px
 		lightParamTable[2] = py
 		lightParamTable[3] = pz
-		Spring.Echo("GadgetWeaponExplosion added:",  explosionLights[weaponID].lightClassName, px, py, pz)
+		--Spring.Echo("GadgetWeaponExplosion added:",  explosionLights[weaponID].lightClassName, px, py, pz)
 		AddLight(nil, nil, nil, pointLightVBO, lightParamTable) --(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
 	end
 end
@@ -970,7 +970,7 @@ local function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
 		lightParamTable[1] = px
 		lightParamTable[2] = py
 		lightParamTable[3] = pz
-		Spring.Echo("GadgetWeaponBarrelfire added:",  muzzleFlashLights[weaponID].lightClassName, px, py, pz)
+		--Spring.Echo("GadgetWeaponBarrelfire added:",  muzzleFlashLights[weaponID].lightClassName, px, py, pz)
 		AddLight(nil, nil, nil, pointLightVBO, lightParamTable) --(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
 	end
 end
@@ -1382,7 +1382,22 @@ local function updateProjectileLights(newgameframe)
 	for k,v in pairs(trackedProjectiles) do trackedprojcount = trackedprojcount + 1 end 
 end
 
+local configCache = {lastUpdate = Spring.GetTimer()}
+local function checkConfigUpdates()
+	if Spring.DiffTimers(Spring.GetTimer(), configCache.lastUpdate) > 0.5 then 
+		local newconfa = VFS.LoadFile('luaui/configs/DeferredLightsGL4config.lua')
+		local newconfb = VFS.LoadFile('luaui/configs/DeferredLightsGL4WeaponsConfig.lua')
+		if newconfa ~= configCache.confa or newconfb ~= configCache.confb then 
+			LoadLightConfig()
+			configCache.confa = newconfa
+			configCache.confb = newconfb
+		end
+		configCache.lastUpdate = Spring.GetTimer()
+	end
+end
+
 function widget:Update()
+	checkConfigUpdates()
 	updateProjectileLights()
 		--Spring.Echo("#points", projectilePointLightVBO.usedElements, '#projs', #nowprojectiles, "#tracked", trackedprojcount, "#removed", numremoved , "#added", numadded ) 
 	--[[
