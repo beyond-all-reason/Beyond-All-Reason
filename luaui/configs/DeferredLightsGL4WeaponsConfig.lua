@@ -319,7 +319,7 @@ muzzleFlashLights[WeaponDefNames["armbull_arm_bull"].id] = GetLightClass("Muzzle
 
 explosionLights[WeaponDefNames["armbull_arm_bull"].id] = GetLightClass("Explosion", nil, "Medium", {b = 3, r = 3, g = 3, scattering = 0.2})
 explosionLights[WeaponDefNames["armbull_arm_bull"].id].yOffset = 16
-/gi
+
 
 
 
