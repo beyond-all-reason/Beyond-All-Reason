@@ -117,7 +117,7 @@ local BaseClasses = {
 		lightConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 200, 
 			r = 2, g = 2, b = 2, a = 1, 
-			color2r = 0.75, color2g = 0.6, color2b = 0.3, colortime = 30.709870, -- point lights only, colortime in seconds for unit-attached
+			color2r = 0.75, color2g = 0.6, color2b = 0.3, colortime = 20, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
 			lifetime = 3, sustain = 0.005, 	aninmtype = 0, -- unused
 		},
@@ -288,7 +288,8 @@ local function AssignLightsToAllWeapons()
 			sizeclass = "Medium"
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass)
 		elseif weaponDef.type == 'LaserCannon' then 
-			sizeclass = "Medium"
+			if damage < 25 then sizeclass = 'Small' end
+			if damage > 25 then sizeclass = 'Medium' end 
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass)
 		elseif weaponDef.type == 'TorpedoLauncher' then 
 			sizeclass = "Small"
@@ -318,14 +319,18 @@ AssignLightsToAllWeapons()
 
 muzzleFlashLights[WeaponDefNames["armbull_arm_bull"].id] = 
 GetLightClass("MuzzleFlash", nil, "Small", {r = 3, g = 2, b = 2, scattering = 0.2})
-
 explosionLights[WeaponDefNames["armbull_arm_bull"].id] =
 GetLightClass("Explosion", nil, "Medium", {r = 3.8, g = 3.2, b = 2.2, colortime = 2.8, sustain = 14, lifetime = 22, scattering = 0.7})
-
 explosionLights[WeaponDefNames["armbull_arm_bull"].id].yOffset = 4
 
 explosionLights[WeaponDefNames["corgol_cor_gol"].id] =
 GetLightClass("Explosion", nil, "Medium", {r = 4, g = 3.5, b = 2.5, colortime = 3.8, sustain = 14, lifetime = 26, scattering = 0.7,})
+
+muzzleFlashLights[WeaponDefNames["armmg_armmg_weapon"].id] = 
+GetLightClass("MuzzleFlash", nil, "Medium", {r = 0.4, g = 0.4, b = 0.4, scattering = 0.1, specular = 0.4,})
+explosionLights[WeaponDefNames["armmg_armmg_weapon"].id] =
+GetLightClass("Explosion", nil, "Small", {r = 3.8, g = 3.2, b = 2.2, colortime = 2.8, sustain = 14, lifetime = 22, scattering = 0.7})
+
 
 -- verification questions:
 -- colortime determines how slow the initial rgb color(1) fades to color2 ?
