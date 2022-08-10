@@ -186,6 +186,9 @@ function map:MinimumHeight() -- returns minimum map height
 	return minHeight
 end
 
+function map:GetGroundHeight(x,z)
+	return Spring.GetGroundHeight(x,z)
+end
 
 function map:TidalStrength() -- returns tidal strength
 	return Game.tidal

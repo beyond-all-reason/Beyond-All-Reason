@@ -31,6 +31,9 @@ local defidpersizetype =  {} --defidpersizetype or {}
 local cells = {} --cells or {}
 local math_sqrt = math.sqrt
 
+
+
+
 GG.AiHelpers.NewPlacementHandler.GetPosFromID = function(id)
 	local z = id%mapwidth
 	local x = (id - z)/mapwidth
@@ -302,6 +305,8 @@ GG.AiHelpers.TargetsOfInterest.GetTarget = function(teamID)
 	return targetpos
 end
 
+
+
 -------------------------
 --Gadget Core Functions--
 -------------------------
@@ -354,6 +359,7 @@ end
 			info[teamID][unitDefID].avgkilled_cost = info[teamID][unitDefID].killed_cost / info[teamID][unitDefID].n
 		end
 	end
+
 
 	function gadget:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
 		if enabled ~= true then return end

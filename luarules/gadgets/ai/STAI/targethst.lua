@@ -10,41 +10,29 @@ end
 
 function TargetHST:Init()
 	self.DebugEnabled = false
- 	self.ENEMIES = {}
+ 	self.BLOBS = {}
+
 	self.pathModParam = 0.3
 	self.pathModifierFuncs = {}
-	self.enemyMexSpots = {}
+	--self.enemyMexSpots = {}
 	self.enemyFrontList = {}
 end
 
 function TargetHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
-	self.enemyMexSpots = {}
-	self:UpdateEnemies()
+	--self.enemyMexSpots = {}
+	--self:UpdateEnemies()
 	self:EnemiesCellsAnalisy()
 	self:perifericalTarget()
 	self:enemyFront()
+	self:GetBlobs()
 	self:drawDBG()
-end
-
-function TargetHST:UpdateEnemies()
-
-	self.ENEMIES = {}
-	for unitID, e in pairs(self.ai.loshst.knownEnemies) do
-		local ut = self.ai.armyhst.unitTable[e.name]
-		local X, Z = self.ai.maphst:PosToGrid(e.position)
-		self:ResetCell(X,Z)
-		self:setCellEnemyValues(e,X,Z)
-		if ut.extractsMetal ~= 0 then
-			table.insert(self.enemyMexSpots, { position = e.position, unit = e })
-		end
-	end
 end
 
 function TargetHST:EnemiesCellsAnalisy() --MOVE TO TACTICALHST!!!
 	local enemybasecount = 0
 	self.enemyBasePosition = nil
-	for X, cells in pairs(self.ENEMIES) do
+	for X, cells in pairs(self.ai.loshst.ENEMY) do
 		for Z,cell in pairs(cells) do
 			if cell.base then
 				self.enemyBasePosition = self.enemyBasePosition or {x=0,z=0}
@@ -61,6 +49,65 @@ function TargetHST:EnemiesCellsAnalisy() --MOVE TO TACTICALHST!!!
 	end
 end
 
+function TargetHST:GetBlobs()
+	self.blobchecked = {}
+	self.BLOBS = {}
+	for X, cells in pairs(self.ai.loshst.ENEMY) do
+		for Z,cell in pairs( cells) do
+			local blob
+			local blobref = X..':'..Z
+			if not self.blobchecked[X .. ':' ..Z] then
+				blob = self:blobCell(self.ai.loshst.ENEMY,'SPEED',X,Z,blobref)
+			end
+			if blob then
+				self.BLOBS[blobref] = blob
+				--print('blob',blob.metal,blob.position.x,blob.position.z)
+			end
+		end
+	end
+	self.blobchecked = nil
+end
+
+function TargetHST:blobCell(grid,param,x,z,blobref)--rolling on the cell to extrapolate blob of param
+	self.blobchecked[blobref] = true
+	if x > self.ai.maphst.gridSideX or x < 1 or z > self.ai.maphst.gridSideZ or z < 1 then
+		return
+	end
+	--print('blob param',param,grid[x][z][param])
+
+
+	if grid[x][z][param] and grid[x][z][param] > 0 then
+		if not self.BLOBS[blobref] then
+			self.BLOBS[blobref] = {metal = 0,position = {x=0,y=0,z=0},cells = {}}
+		end
+		table.insert(self.BLOBS[blobref].cells,grid[x][z])
+		for X = -1, 1,1 do
+			for Z = -1,1,1 do
+				if x ~= x + X or z ~= z + Z then
+					--self.ai.targethst.blobchecked[grid[x+X][z+Z]] = true
+					if not self.blobchecked[blobref] then
+						self:blobCell(grid,param,x+X,z+Z,blobref)
+					end
+				end
+			end
+		end
+
+	end
+	local blob = self.BLOBS[blobref]
+	if not blob then return end
+	for i,v in pairs(blob.cells) do
+		blob.position.x = blob.position.x + v.POS.x
+		blob.position.z = blob.position.z + v.POS.z
+		blob.metal = blob.metal + v.metal
+	end
+	blob.position.x = blob.position.x / #blob.cells
+	blob.position.z = blob.position.z / #blob.cells
+	blob.position.y = map:GetGroundHeight(x,z)
+	if blob.metal > 0 then return blob end
+
+
+end
+
 function TargetHST:enemyFront()
 	self.enemyFrontCellsX = {}
 	self.enemyFrontCellsZ = {}
@@ -68,8 +115,8 @@ function TargetHST:enemyFront()
 		return
 	end
 	local base = self.enemyBasePosition
-	local basecell,baseX,baseZ = self.ai.maphst:GetCell(base,self.ENEMIES)
-	for X, zetas in pairs(self.ENEMIES) do
+	local basecell,baseX,baseZ = self.ai.maphst:GetCell(base,self.ai.loshst.ENEMY)
+	for X, zetas in pairs(self.ai.loshst.ENEMY) do
 		for Z,cell in pairs( zetas) do
 			if cell.IMMOBILE > 0 then
 				if not self.enemyFrontCellsX[X] then
@@ -85,16 +132,22 @@ function TargetHST:enemyFront()
 					self.enemyFrontCellsZ[Z] = X
 				end
 			end
+
+
+
 		end
 	end
 	self.enemyFrontList = {}
+
 	for X,Z in pairs(self.enemyFrontCellsX) do
-		table.insert(self.enemyFrontList,self.ENEMIES[X][Z])
+		table.insert(self.enemyFrontList,self.ai.loshst.ENEMY[X][Z])
 	end
 	for Z,X in pairs(self.enemyFrontCellsZ) do
-		table.insert(self.enemyFrontList,self.ENEMIES[X][Z])
+		table.insert(self.enemyFrontList,self.ai.loshst.ENEMY[X][Z])
 	end
 end
+
+
 
 function TargetHST:perifericalTarget()
 	self.distals = {}
@@ -108,7 +161,7 @@ function TargetHST:perifericalTarget()
 	local tgX = nil
 	local tgZ = nil
 	local tgXZ = nil
-	for X,zetas in pairs(self.ENEMIES) do
+	for X,zetas in pairs(self.ai.loshst.ENEMY) do
 		for Z, cell in pairs(zetas) do
 			if cell.IM < 0 then
 				if math.abs(cell.POS.x - base.x) > distX then
@@ -137,16 +190,18 @@ function TargetHST:perifericalTarget()
 end
 
 function TargetHST:NearbyVulnerable(position)
-	local danger,subValues, cells = self.ai.maphst:getCellsFields(position,{'armed','unarm'},1,self.ENEMIES)
-	if subValues.armed < 0 and subValues.unarm > 0 then
+	local danger,subValues, cells = self.ai.maphst:getCellsFields(position,{'ARMED','UNARM'},1,self.ai.loshst.ENEMY)
+	if subValues.armed == 0 and subValues.unarm > 0 then
 		for index , cell in pairs(cells) do
 			--local cell = self.ENEMIES[grid.X][grid.Z]
-			for id,name in pairs (cell.enemyUnits ) do
+			for id,name in pairs (cell.units ) do
 				return id
 			end
 		end
 	end
 end
+
+
 
 function TargetHST:IsSafeCell(position, unitName, threshold, adjacent)
 	if not position then
@@ -160,7 +215,7 @@ function TargetHST:IsSafeCell(position, unitName, threshold, adjacent)
 -- 		layer = self.ai.armyhst.unitTable[unitName].LAYER
 -- 	end
 	--WARNING here implement a count of danger per layer, but now we count all danger layer as dangerous
-	local danger = self.ai.maphst:getCellsFields(position,{'armed'},adjacent,self.ENEMIES)
+	local danger = self.ai.maphst:getCellsFields(position,{'ARMED'},adjacent,self.ai.loshst.ENEMY)
 	return danger <= threshold
 end
 
@@ -171,7 +226,7 @@ function TargetHST:GetPathModifierFunc(unitName, adjacent)
 	local divisor = self.ai.armyhst.unitTable[unitName].metalCost * self.pathModParam
 	local modifier_node_func = function ( node, distanceToGoal, distanceStartToGoal )
 		--local threatMod = self:ThreatHere(node.position, unitName, adjacent) / divisor--BE CAREFULL DANGER CHECK
-		local threatMod = self.ai.maphst:getCellsFields(node.position,{'armed'},1,self.ENEMIES) --/ divisor
+		local threatMod = self.ai.maphst:getCellsFields(node.position,{'ARMED'},1,self.ai.loshst.ENEMY) --/ divisor
 		if distanceToGoal then
 			if distanceToGoal <= 500 then
 				return 0
@@ -186,6 +241,62 @@ function TargetHST:GetPathModifierFunc(unitName, adjacent)
 	return modifier_node_func
 end
 
+function TargetHST:drawDBG()
+	local ch = 4
+	self.map:EraseAll(ch)
+	if not self.ai.drawDebug then
+		return
+	end
+	local colours={
+			g = {1,0,0,1},--'red'
+			a = {0,1,0,1},--'green'
+			s = {0,0,1,1},--'blue'
+			p = {0,1,1,1},
+			f = {1,1,0,1},
+			unbalance = {1,1,1,1},
+			balance = {0,0,0,1},
+
+			}
+	if self.enemyBasePosition then
+		map:DrawPoint(self.enemyBasePosition, {1,1,1,1}, 'BASE',  ch)
+	end
+
+	for i,cell in pairs(self.enemyFrontList) do
+		map:DrawCircle(cell.POS, cellElmosHalf/2, colours.f, 'front', true, ch)
+	end
+	for i,blob in pairs(self.BLOBS) do
+		map:DrawCircle(blob.position, math.max(blob.metal/5,500), {0,1,math.random(),1}, blob.metal, true, ch)
+	end
+end
+
+
+
+
+
+
+
+
+--[[
+function TargetHST:UpdateEnemies()
+
+	self.ENEMIES = {}
+	for unitID, e in pairs(self.ai.loshst.knownEnemies) do
+		local ut = self.ai.armyhst.unitTable[e.name]
+		local X, Z = self.ai.maphst:PosToGrid(e.position)
+		self:ResetCell(X,Z)
+		self:setCellEnemyValues(e,X,Z)
+		if ut.extractsMetal ~= 0 then
+			table.insert(self.enemyMexSpots, { position = e.position, unit = e })
+		end
+	end
+end
+]]
+
+
+
+
+
+--[[
 function TargetHST:setCellEnemyValues(enemy,X,Z)
 	local CELL = self.ENEMIES[X][Z]
 	CELL.units[enemy.id] = enemy.name
@@ -359,60 +470,4 @@ function TargetHST:ResetCell(X,Z)--GAS are 3 layer. Unit of measure is usually m
 	CELL.IM = 0
 	self.ENEMIES[X][Z] = CELL
 end
-
-function TargetHST:drawDBG()
-	self.map:EraseAll(4)
-	if not self.ai.drawDebug then
-		return
-	end
-	local colours={
-			g = {1,0,0,1},--'red'
-			a = {0,1,0,1},--'green'
-			s = {0,0,1,1},--'blue'
-			p = {0,1,1,1},
-			f = {1,1,0,1},
-			unbalance = {1,1,1,1},
-			balance = {0,0,0,1},
-
-			}
-	if self.enemyBasePosition then
-		map:DrawPoint(self.enemyBasePosition, {1,1,1,1}, 'BASE',  4)
-	end
-	local cellElmosHalf = self.ai.maphst.gridSizeHalf
-	for X,cells in pairs (self.ENEMIES) do
-		for Z,cell in pairs (cells) do
-			local p = cell.POS
-			--map:DrawCircle(p,cellElmosHalf, colours.balance, cell.ENEMY,false,  4)
-			local pos1, pos2 = api.Position(), api.Position()--z,api.Position(),api.Position(),api.Position()
-			pos1.x, pos1.z = p.x - cellElmosHalf, p.z - cellElmosHalf
-			pos2.x, pos2.z = p.x + cellElmosHalf, p.z + cellElmosHalf
-			pos1.y=Spring.GetGroundHeight(pos1.x,pos1.z)
-			pos2.y=Spring.GetGroundHeight(pos2.x,pos2.z)
-			self:EchoDebug('drawing',pos1.x,pos1.z,pos2.x,pos2.z)
-			if cell.ENEMY_BALANCE > 0 then
-				map:DrawRectangle(pos1, pos2, colours.balance, cell.ENEMY_BALANCE, false, 4)
-			else
-				map:DrawRectangle(pos1, pos2, colours.unbalance, cell.ENEMY_BALANCE, false, 4)
-			end
-			posG = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
-			posS = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
-			posB = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
-			posA = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
-
-			if cell.G > 0 then
-				map:DrawCircle(posG, cellElmosHalf/2,colours.g , cell.G, true, 4)
-			end
-			if cell.A > 0 then
-				map:DrawCircle(posA, cellElmosHalf/2,colours.a, cell.A, true, 4)
-			end
-			if cell.S > 0 then
-				map:DrawCircle(posS, cellElmosHalf/2, colours.s, cell.S, true, 4)
-			end
-		end
-
-	end
-
-	for i,cell in pairs(self.enemyFrontList) do
-		map:DrawCircle(cell.POS, cellElmosHalf/2, colours.f, 'front', true, 4)
-	end
-end
+]]

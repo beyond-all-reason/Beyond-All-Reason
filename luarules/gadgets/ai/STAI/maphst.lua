@@ -300,6 +300,8 @@ function MapHST:TopologyFooded(x, z, layer,net)--rolling on the cell to extrapol
 	end
 end
 
+
+
 function MapHST:hotSpotter()
 	local spots = {}
 	local mirrorspots = {}
@@ -638,7 +640,7 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 			if not self.ai.buildsitehst:PlansOverlap(spot, uname) then
 				if self.ai.targethst:IsSafeCell(spot, builder) then
 					if map:CanBuildHere(unittype, spot) then
-						local CELL = self:GetCell(spot,self.ai.targethst.ENEMIES)
+						local CELL = self:GetCell(spot,self.ai.loshst.ENEMY)
 						if not CELL or CELL.enemy == 0 then
 							local distance = self.ai.tool:distance(position,spot)
 -- 							if distance < 300 then

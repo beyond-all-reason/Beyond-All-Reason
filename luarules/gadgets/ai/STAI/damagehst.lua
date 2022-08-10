@@ -27,15 +27,16 @@ function DamageHST:UnitDamaged(engineUnit, attacker, damage)
 		local mtype
 		local ut = self.ai.armyhst.unitTable[engineUnit:Name()]
 		if ut then
-			local threat = damage
 			local attackerut = self.ai.armyhst.unitTable[attacker:Name()]
-			if attackerut then
-				if attackerut.isBuilding then
-					self.ai.loshst:scanEnemy(attacker,isShoting)---isshoting maybe need to be true?
-					return
-				end
-				threat = attackerut.metalCost
-			end
+			local threat = attackerut.metalCost or damage
+
+-- 			if attackerut then
+-- 				if attackerut.isBuilding then
+-- 					self.ai.loshst:scanEnemy(attacker,isShoting)---isshoting maybe need to be true?
+-- 					return
+-- 				end
+-- 				threat = attackerut.metalCost
+-- 			end
 			self:AddBadPosition(engineUnit:GetPosition(), ut.mtype, threat, 900)
 		end
 	end

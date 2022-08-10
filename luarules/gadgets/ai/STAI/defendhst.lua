@@ -41,10 +41,10 @@ function DefendHST:checkEnemies()
 		layers = {},
 		cells = {}
 		}
-	for X,cells in pairs(self.ai.targethst.ENEMIES) do
+	for X,cells in pairs(self.ai.loshst.ENEMY) do
 		for Z,cell in pairs(cells) do
 			if not checked [cell] then
-				local armedM = self.ai.maphst:getCellsFields(cell.POS,{'armedM'},self.ai.targethst.ENEMIES)
+				local armedM = self.ai.maphst:getCellsFields(cell.POS,{'armedM'},self.ai.loshst.ENEMY)
 				if armedM > 0 then
 					dangers[X] = dangers[X] or {}
 					dangers[X][Z] = dangers[X][Z] or  defaultDanger

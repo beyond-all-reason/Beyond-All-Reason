@@ -10,7 +10,7 @@ function ScoutBST:Init()
 	self.active = false
 	self.mtype, self.network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.name = self.unit:Internal():Name()
-	self.armed = self.ai.armyhst.unitTable[self.name].isWeapon
+	self.isWeapon = self.ai.armyhst.unitTable[self.name].isWeapon
 	self.keepYourDistance = self.ai.armyhst.unitTable[self.name].losRadius * 0.5
 	if self.mtype == "air" then
 		self.airDistance = self.ai.armyhst.unitTable[self.name].losRadius * 1.5
@@ -57,9 +57,9 @@ function ScoutBST:Update()
 					self.target = nil
 				end
 			end
-			-- attack small targets along the way if the scout is armed
+			-- attack small targets along the way if the scout is weapon
 			local attackTarget
-			if self.armed then
+			if self.isWeapon then
 				if self.ai.targethst:IsSafeCell(unit:GetPosition(), unit, 1) then
 					attackTarget = self.ai.targethst:NearbyVulnerable(unit:GetPosition())
 				end
@@ -127,38 +127,38 @@ end
 function ScoutBST:bestAdjacentPos(unit,target)
 	local upos = unit:GetPosition()
 	local X, Z = self.ai.maphst:PosToGrid(upos)
-	local areacells = self.ai.maphst:areaCells(X,Z,1,self.ai.targethst.ENEMIES)
+	local areacells = self.ai.maphst:areaCells(X,Z,1,self.ai.loshst.ENEMY)
 	local risky = {}
 	local greedy = {}
 	local neutral = {}
 	local gluttony = 0
 	local tg = nil
 	for index, cell in pairs(areacells) do
-		if cell.armed < 1 and cell.unarm > 0 then
+		if cell.ARMED < 1 and cell.UNARM > 0 then
 			table.insert(greedy,cell)
-		elseif cell.armed > 0 and cell.unarm > 0 then
+		elseif cell.ARMED > 0 and cell.UNARM > 0 then
 			table.insert(risky,cell)
 		else
 			table.insert(neutral,cell)
 		end
 	end
 	for index,cell in pairs(greedy)do
-		if cell.unarm > gluttony then
-			gluttony = cell.unarm
+		if cell.UNARM > gluttony then
+			gluttony = cell.UNARM
 			tg = cell
 		end
 	end
 	if tg then return tg.pos end
 	for index,cell in pairs(neutral)do
-		if cell.unarm > gluttony then
-			gluttony = cell.unarm
+		if cell.UNARM > gluttony then
+			gluttony = cell.UNARM
 			tg = cell
 		end
 	end
 	if tg then return tg.pos end
 	for index,cell in pairs(risky)do
-		if cell.unarm > gluttony then
-			gluttony = cell.unarm
+		if cell.UNARM > gluttony then
+			gluttony = cell.UNARM
 			tg = cell
 		end
 	end

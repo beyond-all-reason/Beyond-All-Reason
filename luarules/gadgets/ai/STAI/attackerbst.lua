@@ -34,6 +34,7 @@ function AttackerBST:Init()
 	end
 	self.speed = ut.speed
 	self.threat = ut.metalCost
+	self.mass = ut.metalCost
 end
 
 function AttackerBST:OwnerBuilt()

@@ -121,7 +121,7 @@ function ShardAI:UnitCreated(engineunit)
 	end
 end
 
-function ShardAI:UnitBuilt(engineunit)
+function ShardAI:UnitBuilt(engineunit, unitDefId, teamId)
 	if self.gameend == true then
 		return
 	end
@@ -131,7 +131,7 @@ function ShardAI:UnitBuilt(engineunit)
 	end
 	for i,m in ipairs(self.modules) do
 		--self.game:StartTimer(m:Name() .. ' B')
-		m:UnitBuilt(engineunit)
+		m:UnitBuilt(engineunit, unitDefId, teamId)
 		--self.game:StopTimer(m:Name() .. ' B')
 	end
 end

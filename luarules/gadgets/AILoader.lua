@@ -324,7 +324,7 @@ else
 			for _, thisAI in ipairs(Shard.AIs) do
 				-- thisAI:UnitFinished(unitId, unitDefId, teamId)
 				thisAI:Prepare()
-				thisAI:UnitBuilt(unit)
+				thisAI:UnitBuilt(unit,unitDefId,teamId)
 			end
 		end
 	end

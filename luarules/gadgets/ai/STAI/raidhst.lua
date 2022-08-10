@@ -165,7 +165,7 @@ function RaidHST:getRaidCell1(squad)
 	local leader = self.game:GetUnitByID(squad.members[1])
 	local bestDist = math.huge
 	local bestTarget = nil
-	for X, cells in pairs(self.ai.targethst.ENEMIES) do
+	for X, cells in pairs(self.ai.loshst.ENEMY) do
 		for Z, cell in pairs(cells) do
 			if self.ai.maphst:UnitCanGoHere(leader, cell.POS) then
 				local dist = self.ai.tool:Distance(cell.POS,squad.position) < bestDist
@@ -188,10 +188,10 @@ function RaidHST:getRaidCell2(squad)
 	local topDist = self.ai.tool:DistanceXZ(0,0, Game.mapSizeX, Game.mapSizeZ)
 	local bestValue = math.huge
 	local bestTarget = nil
-	for X, cells in pairs(self.ai.targethst.ENEMIES) do
+	for X, cells in pairs(self.ai.loshst.ENEMY) do
 		for Z,cell in pairs (cells) do
-			if cell.armed < raidPower and cell.MOBILE <= 0 then
-				self:EchoDebug('power',cell.armed,cell.X,cell.Z)
+			if cell.ARMED < raidPower and cell.MOBILE <= 0 then
+				self:EchoDebug('power',cell.ARMED,cell.X,cell.Z)
 				if self.ai.maphst:UnitCanGoHere(leader, cell.POS) then
 	-- 				local Relativedistance = self.ai.tool:Distance(cell.POS,squad.position) / topDist
 					local Relativedistance = self.ai.tool:Distance(cell.POS, self.ai.targethst.enemyBasePositionor or squad.position) / topDist
@@ -424,7 +424,7 @@ end
 
 function RaidHST:nearestEnemy(squad) --TEST control this function can give false
 	local members = squad.members
-	local ene =  self.ai.maphst:getCellsFields(squad.target.POS,{'ENEMY'},1,self.ai.targethst.ENEMIES) > 0
+	local ene =  self.ai.maphst:getCellsFields(squad.target.POS,{'ENEMY'},1,self.ai.loshst.ENEMY) > 0
 	return ene
 end
 

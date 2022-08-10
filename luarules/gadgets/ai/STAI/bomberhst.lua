@@ -184,19 +184,19 @@ end
 function BomberHST:GetBestBomberTarget(torpedo)
 	local bestCell = nil
 	local bestValue = 0
-	for X,cells in pairs(self.ai.targethst.ENEMIES) do
+	for X,cells in pairs(self.ai.loshst.ENEMY) do
 		for Z,cell in pairs(cells) do
 			if torpedo then
 				if cell.POS.y < 5 then
-					if cell.economy > bestValue then
-						bestValue = cell.economy
+					if cell.BUILDINGS > bestValue then
+						bestValue = cell.BUILDINGS
 						bestCell = cell
 					end
 				end
 			else
 				if cell.POS.y > -5 then
-					if cell.economy > bestValue then
-						bestValue = cell.economy
+					if cell.BUILDINGS > bestValue then
+						bestValue = cell.BUILDINGS
 						bestCell = cell
 					end
 				end
