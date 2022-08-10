@@ -13,7 +13,7 @@ layout (location = 3) in vec4 worldposrad;
 layout (location = 4) in vec4 worldposrad2; 
 layout (location = 5) in vec4 lightcolor; 
 layout (location = 6) in vec4 modelfactor_specular_scattering_lensflare; // 
-layout (location = 7) in vec4 otherparams; // 
+layout (location = 7) in vec4 otherparams; // spawnframe, lifetime, sustain, animtype
 layout (location = 8) in vec4 color2; // 
 layout (location = 9) in uint pieceIndex; // for piece type lights
 layout (location = 10) in uvec4 instData; // matoffset, uniformoffset, teamIndex, drawFlags {id = 5, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
@@ -68,7 +68,7 @@ out DataVS {
 	flat vec4 v_lightcolor;
 	flat vec4 v_modelfactor_specular_scattering_lensflare;
 	vec4 v_depths_center_map_model_min;
-	vec4 v_otherparams; // this could be anything 
+	vec4 v_otherparams; 
 	vec4 v_lightcenter_gradient_height;
 	vec4 v_position;
 	vec4 v_noiseoffset;
@@ -134,14 +134,15 @@ void main()
 		vec4 teamCol = teamColor[teamIndex];
 		if (any(lessThan(lightcolor.rgb, vec3(-0.01)))) v_lightcolor.rgb = teamCol.rgb;
 	}
-	
 	float elapsedframes = time - otherparams.x;
-	if (otherparams.y > 0 ){ //lifetime alpha control
-		if (otherparams.z >1 ){ // sustain is positive, keep it up for sustain frames, then ramp it down
-			v_lightcolor.a = clamp( v_lightcolor.a * ( otherparams.y - elapsedframes)/(otherparams.y - otherparams.z ) , 0.0, v_lightcolor.a);
+	float lifetime = otherparams.y;
+	float sustain = otherparams.z;
+	if (lifetime > 0 ){ //lifetime alpha control
+		if (sustain >1 ){ // sustain is positive, keep it up for sustain frames, then ramp it down
+			v_lightcolor.a = clamp( v_lightcolor.a * ( lifetime - elapsedframes)/(lifetime - sustain ) , 0.0, v_lightcolor.a);
 			
 		}else{ // sustain is <1, use exp falloff
-			v_lightcolor.a = clamp( v_lightcolor.a * exp( -otherparams.z * (elapsedframes) * 100 ) , 0.0, v_lightcolor.a);
+			v_lightcolor.a = clamp( v_lightcolor.a * exp( -sustain * (elapsedframes) * 100 ) , 0.0, v_lightcolor.a);
 			
 		}
 	}
@@ -169,22 +170,23 @@ void main()
 		lightCenterPosition = (placeInWorldMatrix * vec4(lightCenterPosition, 1.0)).xyz; 
 		
 		
+		float colortime = worldposrad2.a; // Matches colortime in lightConf for point lights
 		if  (attachedtounitID > 0.5) {
 			// for point lights, if the colortime is anything sane (>0), then modulate the light with it.
-			if (worldposrad2.a >0.5){
-				v_lightcolor.rgb = mix(v_lightcolor.rgb, worldposrad2.rgb, cos((elapsedframes * 6.2831853) / worldposrad2.a ) * 0.5 + 0.5); }
+			if (colortime >0.5){
+				v_lightcolor.rgb = mix(v_lightcolor.rgb, worldposrad2.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5); }
 				
 		}else{
-			if (worldposrad2.a >0.0){
+			if (colortime >0.0){
 				
-				float colortime = 0;
-				if (worldposrad2.a > 1.0) {
-					colortime = clamp(elapsedframes/worldposrad2.a , 0.0, 1.0);
+				float colormod = 0;
+				if (colortime > 1.0) {
+					colormod = clamp(elapsedframes/colortime , 0.0, 1.0);
 				}
-				else if (worldposrad2.a > 0.0) {
-					colortime =  cos(elapsedframes * 6.2831853 * worldposrad2.a ) * 0.5 + 0.5;
+				else {
+					colormod =  cos(elapsedframes * 6.2831853 * colortime ) * 0.5 + 0.5;
 				}
-				v_lightcolor.rgb = mix(v_lightcolor.rgb, worldposrad2.rgb, colortime); 
+				v_lightcolor.rgb = mix(v_lightcolor.rgb, worldposrad2.rgb, colormod); 
 			}
 		}
 		
