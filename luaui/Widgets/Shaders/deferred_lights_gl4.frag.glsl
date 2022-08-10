@@ -816,17 +816,29 @@ void main(void)
 	// light mixdown:
 	targetcolor.rgb = max(vec3(0.2), targetcolor.rgb); // we shouldnt let the targetcolor be fully black, or else we will have a bad time blending onto it.
 	
+	// Sum up the additives of Rayleigh, Mie and LensFlare, colorize and alpha control them
 	vec3 additivelights = ((scatteringRayleigh + scatteringMie) * v_modelfactor_specular_scattering_lensflare.z + lensFlare) * v_lightcolor.rgb * v_lightcolor.w * 0.4  ;
+
+	// Sum up diffuse+specular and colorize the light
+	vec3 blendedlights = (v_lightcolor.rgb * v_lightcolor.w) * (diffuse + specular);
+
+	// Modulate color with target color of the surface. 
+	vec3 blendedlights = mix(blendedlights, blendedlights * targetcolor.rgb * 2.0, SURFACECOLORMODULATION);
 	
-	vec3 blendedlights = (v_lightcolor.rgb * v_lightcolor.w)*(targetcolor.rgb * 2.0) * (diffuse + specular) * attenuation * 2.0 * (1.0 + 2.0 * ismodel * v_modelfactor_specular_scattering_lensflare.x);
+	// Calculate attenuation and blend more lights onto models
+	blendedlights *= attenuation * 2.0 * (1.0 + 2.0 * ismodel * v_modelfactor_specular_scattering_lensflare.x);
 	
+	// Estimate how 'lit' our target fragment is going to be, once we additively blend all light factors and the target surface color
 	vec3 outlight_unclamped = targetcolor.rgb + blendedlights + additivelights;
 	
+	// The amount of light that will 'bleed', or overflow from that pixel is the sum of each channel that is over 1.0 according to our estimate
 	float bleed = dot(max(vec3(0.0), outlight_unclamped - vec3(1.0)), vec3(1.0));
+	
+	// Square the bleed because why not
 	bleed = bleed * bleed;
 	
-	// TODO: BLEED NEEDS WORK
-	fragColor.rgb = (blendedlights*0.9  + additivelights*0.5) + vec3(bleed)*0.5; 
+	// bleeding makes the other channels brighter when we 'overflow' with lighting
+	fragColor.rgb = (blendedlights*0.9  + additivelights*0.5) + vec3(bleed)* BLEEDFACTOR; 
 	//fragColor.rgb *= v_lightcolor.a;
 	//fragColor.rgb = vec3(bleed);
 	//fragColor.rgb = vec3(targetcolor.rgb + blendedlights + additivelights);

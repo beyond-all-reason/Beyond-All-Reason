@@ -151,9 +151,11 @@ local gibLight  -- one light for all pieceprojectiles
 local deferredLightGL4Config = {globalLightMult = 1, globalRadiusMult = 1, globalLifeMult = 1} 
 
 local shaderConfig = {
-	MIERAYLEIGHRATIO = 0.1,
+	MIERAYLEIGHRATIO = 0.1, -- The ratio of Rayleigh scattering to Mie scattering
 	RAYMARCHSTEPS = 4, -- must be at least one
-	USE3DNOISE = 1,
+	USE3DNOISE = 1, -- dont touch this
+	SURFACECOLORMODULATION = 0.5, -- This specifies how much the lit surfaces color affects direct light blending, 0 is does not effect it, 1.0 is full effect
+	BLEEDFACTOR = 0.5, -- How much oversaturated color channels will bleed into other color channels. 
 }
 
 local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
