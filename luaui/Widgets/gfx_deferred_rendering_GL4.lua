@@ -63,17 +63,7 @@ local uniformViewPrjInvBeam
 --------------------------------------------------------------------------------
 --Light falloff functions: http://gamedev.stackexchange.com/questions/56897/glsl-light-attenuation-color-and-intensity-formula
 --------------------------------------------------------------------------------
-
-local verbose = false
-local function VerboseEcho(...)
-	if verbose then
-		Spring.Echo(...)
-	end
-end
-
-local collectionFunctions = {}
-local collectionFunctionCount = 0
-
+local autoupdate = true
 
 local unitDefLight  -- Table of lights per unitDefID
 local unitEventLights -- Table of lights per unitDefID
@@ -244,13 +234,13 @@ local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, d
 					modelDepths = 1,
 					mapNormals = 2,
 					modelNormals = 3,
-					mapExtra = 4, 
-					modelExtra = 5,
+					--mapExtra = 4, 
+					--modelExtra = 5,
 					mapDiffuse = 6,
 					modelDiffuse = 7,
 					noise3DCube = 8,
-					heightmapTex = 9,
-					mapnormalsTex = 10,
+					--heightmapTex = 9,
+					--mapnormalsTex = 10,
 					},
 				uniformFloat = {
 					pointbeamcone = 0,
@@ -356,17 +346,7 @@ end
 ------
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
---[[
-local function DeferredLighting_RegisterFunction(func)
-	collectionFunctionCount = collectionFunctionCount + 1
-	collectionFunctions[collectionFunctionCount] = func
-	return collectionFunctionCount
-end
 
-local function DeferredLighting_UnRegisterFunction(functionID)
-	collectionFunctions[functionID] = nil
-end
-]]--
 local lightRemoveQueue = {}
 local function calcLightExpiry(targetVBO, lightParamTable, instanceID)
 	if lightParamTable[18] <= 0 then -- LifeTime less than 0 means never expires
@@ -1017,7 +997,7 @@ function widget:Initialize()
 	end 
 	
 	math.randomseed(1)
-	for i=1, 1 do AddRandomLight(	math.random()) end   
+	--for i=1, 1 do AddRandomLight(	math.random()) end   
 	
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
@@ -1075,127 +1055,6 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('GadgetWeaponBarrelfire')
 end
 
-local function DrawLightType(lights, lightsCount, lightType)
-	-- point = 0 beam = 1
-	--Spring.Echo('Camera FOV = ', Spring.GetCameraFOV()) -- default TA cam fov = 45
-	--set uniforms:
-	local cpx, cpy, cpz = spGetCameraPosition()
-	if lightType == 0 then
-		--point
-		glUseShader(depthPointShader)
-		glUniform(uniformEyePosPoint, cpx, cpy, cpz)
-		glUniformMatrix(uniformViewPrjInvPoint, "viewprojectioninverse")
-	else
-		--beam
-		glUseShader(depthBeamShader)
-		glUniform(uniformEyePosBeam, cpx, cpy, cpz)
-		glUniformMatrix(uniformViewPrjInvBeam, "viewprojectioninverse")
-	end
-
-	glTexture(0, "$model_gbuffer_normtex")
-	glTexture(1, "$model_gbuffer_zvaltex")
-	glTexture(2, "$map_gbuffer_normtex")
-	glTexture(3, "$map_gbuffer_zvaltex")
-	glTexture(4, "$model_gbuffer_spectex")
-
-	local cx, cy, cz = spGetCameraPosition()
-	for i = 1, lightsCount do
-		local light = lights[i]
-		local param = light.param
-		if verbose then
-			VerboseEcho('gfx_deferred_rendering.lua: Light being drawn:', i)
-			Spring.Debug.TableEcho(light)
-		end
-		if lightType == 0 then
-			-- point
-			local lightradius = param.radius
-			local falloffsquared = param.falloffsquared or 1.0
-			--Spring.Echo("DrawlightType position = ", light.px, light.py, light.pz)
-			local groundheight = math_max(0, spGetGroundHeight(light.px, light.pz))
-			local sx, sy, sz = spWorldToScreenCoords(light.px, groundheight, light.pz) -- returns x, y, z, where x and y are screen pixels, and z is z buffer depth.
-			sx = sx / vsx
-			sy = sy / vsy --since FOV is static in the Y direction, the Y ratio is the correct one
-			--local dist_sq = (light.px-cx)^2 + (groundheight-cy)^2 + (light.pz-cz)^2
-			local dist_sq = (light.px - cx) ^ 2 + (groundheight - cy) ^ 2 + (light.pz - cz) ^ 2
-			local ratio = lightradius / math_sqrt(dist_sq) * 1.5
-			glUniform(lightposlocPoint, light.px, light.py, light.pz, param.radius) --in world space
-			glUniform(lightcolorlocPoint, param.r * light.colMult, param.g * light.colMult, param.b * light.colMult, falloffsquared)
-			local tx1 = (sx - 0.5) * 2 - ratio * screenratio
-			local ty1 = (sy - 0.5) * 2 - ratio
-			local tx2 = (sx - 0.5) * 2 + ratio * screenratio
-			local ty2 = (sy - 0.5) * 2 + ratio
-			--PtaQ uncomment this if you want to debug:
-			--Spring.Echo(string.format("sx=%.4f sy = %.4f dist_sq=%.1f ratio = %.4f, {%.4f : %.4f}-{%.4f :  %.4f}",sx,sy,dist_sq,ratio,tx1,ty1,tx2,ty2))
-
-			glTexRect(
-				math_max(-1, tx1),
-				math_max(-1, ty1),
-				math_min(1, tx2),
-				math_min(1, ty2),
-				math_max(0, sx - 0.5 * ratio * screenratio),
-				math_max(0, sy - 0.5 * ratio),
-				math_min(1, sx + 0.5 * ratio * screenratio),
-				math_min(1, sy + 0.5 * ratio)
-			) -- screen size goes from -1, -1 to 1, 1; uvs go from 0, 0 to 1, 1
-
-		end
-		if lightType == 1 then
-			-- beam
-			local lightradius = 0
-
-			local falloffsquared = param.falloffsquared or 1.0
-			local px = light.px + light.dx * 0.5
-			local py = light.py + light.dy * 0.5
-			local pz = light.pz + light.dz * 0.5
-			local lightradius = param.radius + math_sqrt(light.dx * light.dx + light.dy * light.dy + light.dz * light.dz) * 0.5
-			VerboseEcho("DrawlightType position = ", light.px, light.py, light.pz)
-			local sx, sy, sz = spWorldToScreenCoords(px, py, pz) -- returns x, y, z, where x and y are screen pixels, and z is z buffer depth.
-			sx = sx / vsx
-			sy = sy / vsy --since FOV is static in the Y direction, the Y ratio is the correct one
-			local dist_sq = (px - cx) ^ 2 + (py - cy) ^ 2 + (pz - cz) ^ 2
-			local ratio = lightradius / math_sqrt(dist_sq)
-			ratio = ratio * 2
-
-			glUniform(lightposlocBeam, light.px, light.py, light.pz, param.radius) --in world space
-			glUniform(lightpos2locBeam, light.px + light.dx, light.py + light.dy + 24, light.pz + light.dz, param.radius) --in world space, the magic constant of +24 in the Y pos is needed because of our beam distance calculator function in GLSL
-			glUniform(lightcolorlocBeam, param.r * light.colMult, param.g * light.colMult, param.b * light.colMult, falloffsquared)
-			--TODO: use gl.Shape instead, to avoid overdraw
-			glTexRect(
-				math_max(-1, (sx - 0.5) * 2 - ratio * screenratio),
-				math_max(-1, (sy - 0.5) * 2 - ratio),
-				math_min(1, (sx - 0.5) * 2 + ratio * screenratio),
-				math_min(1, (sy - 0.5) * 2 + ratio),
-				math_max(0, sx - 0.5 * ratio * screenratio),
-				math_max(0, sy - 0.5 * ratio),
-				math_min(1, sx + 0.5 * ratio * screenratio),
-				math_min(1, sy + 0.5 * ratio)
-			) -- screen size goes from -1, -1 to 1, 1; uvs go from 0, 0 to 1, 1
-		end
-	end
-	glUseShader(0)
-	glTexture(0, false)
-	glTexture(1, false)
-	glTexture(2, false)
-	glTexture(3, false)
-	glTexture(4, false)
-end
-
-local function renderToTextureFunc(tex, s, t)
-	glTexture(tex)
-	glTexRect(-1 * s, -1 * t, 1 * s, 1 * t)
-	glTexture(false)
-end
-
-local function mglRenderToTexture(FBOTex, tex, s, t)
-	glRenderToTexture(FBOTex, renderToTextureFunc, tex, s, t)
-end
-
-local beamLights = {}
-local beamLightCount = 0
-local pointLights = {}
-local pointLightCount = 0
-
-
 local windX = 0
 local windZ = 0
 
@@ -1203,7 +1062,7 @@ local windZ = 0
 
 function widget:GameFrame(n)
 	if n % 100 == 0 then 
-		AddRandomDecayingPointLight()
+		--AddRandomDecayingPointLight()
 	end
 	gameFrame = n
 	local windDirX, _, windDirZ, windStrength = Spring.GetWind()
@@ -1275,6 +1134,7 @@ local function updateProjectileLights(newgameframe)
 	-- turn off uploading vbo
 	-- BUG: having a lifetime associated with each projectile kind of bugs out updates
 	local numadded = 0
+	local noUpload = true
 	for i= 1, #nowprojectiles do
 		local projectileID = nowprojectiles[i]
 		local px, py, pz = spGetProjectilePosition(projectileID)
@@ -1303,7 +1163,7 @@ local function updateProjectileLights(newgameframe)
 					gib[1] = px
 					gib[2] = py
 					gib[3] = pz
-					AddPointLight(projectileID, nil, nil, projectilePointLightVBO, gib)
+					AddLight(projectileID, nil, nil, projectilePointLightVBO, gib, noUpload)
 					--Spring.Echo("added gib")
 					--Spring.Debug.TableEcho(gib)
 				end
@@ -1331,7 +1191,7 @@ local function updateProjectileLights(newgameframe)
 					end 
 					if debugproj then Spring.Echo(lightType, px,py,pz, dx, dy,dz) end
 					
-					AddLight(projectileID, nil, nil, projectileLightVBOMap[lightType], lightParamTable)
+					AddLight(projectileID, nil, nil, projectileLightVBOMap[lightType], lightParamTable,noUpload)
 					--AddLight(projectileID, nil, nil, projectilePointLightVBO, lightParamTable)
 				else 
 					Spring.Echo("No projectile light defined for", projectileID, weaponDefID)
@@ -1366,15 +1226,17 @@ local function updateProjectileLights(newgameframe)
 				trackedProjectiles[projectileID] = nil
 				local lightType = trackedProjectileTypes[projectileID] 
 				--RemoveLight('point', projectileID, nil)
-				popElementInstance(projectileLightVBOMap[lightType], projectileID) 
+				popElementInstance(projectileLightVBOMap[lightType], projectileID, noUpload) 
 				trackedProjectileTypes[projectileID] = nil
 			end
 		end
 	end
 	-- upload all changed elements in one go
-	
-	uploadAllElements(projectilePointLightVBO)
-	uploadAllElements(projectileConeLightVBO)
+	for vboname, targetVBO in pairs(projectileLightVBOMap) do 
+		if targetVBO.dirty then 
+			uploadAllElements(targetVBO)
+		end
+	end
 	if debugproj then 
 		--Spring.Echo("#points", projectilePointLightVBO.usedElements, '#projs', #nowprojectiles ) 
 	end
@@ -1397,20 +1259,8 @@ local function checkConfigUpdates()
 end
 
 function widget:Update()
-	checkConfigUpdates()
+	if autoupdate then checkConfigUpdates() end
 	updateProjectileLights()
-		--Spring.Echo("#points", projectilePointLightVBO.usedElements, '#projs', #nowprojectiles, "#tracked", trackedprojcount, "#removed", numremoved , "#added", numadded ) 
-	--[[
-	beamLights = {}
-	beamLightCount = 0
-	pointLights = {}
-	pointLightCount = 0
-	for i = 1, collectionFunctionCount do
-		if collectionFunctions[i] then
-			beamLights, beamLightCount, pointLights, pointLightCount = collectionFunctions[i](beamLights, beamLightCount, pointLights, pointLightCount)
-		end
-	end
-	]]--
 end
 
 
@@ -1423,7 +1273,7 @@ end
 
 function widget:DrawWorld() -- We are drawing in world space, probably a bad idea but hey
 	--glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
-	deferredLightShader = checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4") or deferredLightShader
+	if autoupdate then deferredLightShader = checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4") or deferredLightShader end
 	
 	
 	if pointLightVBO.usedElements > 0 or 
@@ -1458,13 +1308,13 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		glTexture(1, "$model_gbuffer_zvaltex")
 		glTexture(2, "$map_gbuffer_normtex")
 		glTexture(3, "$model_gbuffer_normtex")
-		glTexture(4, "$map_gbuffer_spectex")
-		glTexture(5, "$model_gbuffer_spectex")
+		--glTexture(4, "$map_gbuffer_spectex")
+		--glTexture(5, "$model_gbuffer_spectex")
 		glTexture(6, "$map_gbuffer_difftex")
 		glTexture(7, "$model_gbuffer_difftex")
 		glTexture(8, noisetex3dcube)
-		glTexture(9, "$heightmap")
-		glTexture(10,"$normals")
+		--glTexture(9, "$heightmap")
+		--glTexture(10,"$normals")
 
 
 
@@ -1492,47 +1342,34 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		end
 		
 		-- Projectile lights
-		if projectilePointLightVBO.usedElements > 0 then
-			deferredLightShader:SetUniformFloat("pointbeamcone", 0)
-			projectilePointLightVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, projectilePointLightVBO.usedElements, 0)
-		end
-		if projectileBeamLightVBO.usedElements > 0 then
-			deferredLightShader:SetUniformFloat("pointbeamcone", 1)
-			projectileBeamLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, projectileBeamLightVBO.usedElements, 0)
-		end
-		if projectileConeLightVBO.usedElements > 0 then
-			deferredLightShader:SetUniformFloat("pointbeamcone", 2)
-			projectileConeLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, projectileConeLightVBO.usedElements, 0)
-		end
-
+		deferredLightShader:SetUniformFloat("pointbeamcone", 0)
+		projectilePointLightVBO:draw()
+		
+		deferredLightShader:SetUniformFloat("pointbeamcone", 1)
+		projectileBeamLightVBO:draw()
+		
+		deferredLightShader:SetUniformFloat("pointbeamcone", 2)
+		projectileConeLightVBO:draw()
+		
 		-- Unit Attached Lights
 		deferredLightShader:SetUniformFloat("attachedtounitID", 1)		
 		
-		if unitPointLightVBO.usedElements > 0 then
-			deferredLightShader:SetUniformFloat("pointbeamcone", 0)
-			unitPointLightVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, unitPointLightVBO.usedElements, 0)
-		end
+		deferredLightShader:SetUniformFloat("pointbeamcone", 0)
+		unitPointLightVBO:draw()
 		
-		if unitBeamLightVBO.usedElements > 0 then
-			deferredLightShader:SetUniformFloat("pointbeamcone", 1)
-			unitBeamLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, unitBeamLightVBO.usedElements, 0)
-		end
-		
-		if unitConeLightVBO.usedElements > 0 then
-			deferredLightShader:SetUniformFloat("pointbeamcone", 2)
-			unitConeLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, unitConeLightVBO.usedElements, 0)
-		end
+		deferredLightShader:SetUniformFloat("pointbeamcone", 1)
+		unitBeamLightVBO:draw()
 
+		deferredLightShader:SetUniformFloat("pointbeamcone", 2)
+		unitConeLightVBO:draw()
+			
 		-- World space cursor lights 
 		deferredLightShader:SetUniformFloat("attachedtounitID", 0)		
 	
 		if not Spring.IsGUIHidden() and not chobbyInterface then
-			if cursorPointLightVBO.usedElements > 0 then
-				deferredLightShader:SetUniformFloat("pointbeamcone", 0)
-				cursorPointLightVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, cursorPointLightVBO.usedElements, 0)
-			end
+			deferredLightShader:SetUniformFloat("pointbeamcone", 0)
+			cursorPointLightVBO:draw()
 		end 
-		
 		
 		deferredLightShader:Deactivate()
 		
@@ -1557,7 +1394,7 @@ function widget:GetConfigData(data) -- Called by RemoveWidget
 end
 
 function widget:SetConfigData(data) -- Called on load (and config change), just before Initialize!
-	Spring.Debug.TraceEcho("SetConfigData DLGL4")
+	--Spring.Debug.TraceEcho("SetConfigData DLGL4")
 	if data.globalLifeMult ~= nil and data.resetted ~= nil and data.resetted == 1.65 then
 		if data.globalLightMult ~= nil then
 			deferredLightGL4Config.globalLightMult =  data.globalLightMult
