@@ -823,7 +823,7 @@ void main(void)
 	vec3 blendedlights = (v_lightcolor.rgb * v_lightcolor.w) * (diffuse + specular);
 
 	// Modulate color with target color of the surface. 
-	vec3 blendedlights = mix(blendedlights, blendedlights * targetcolor.rgb * 2.0, SURFACECOLORMODULATION);
+	blendedlights = mix(blendedlights, blendedlights * targetcolor.rgb * 2.0, SURFACECOLORMODULATION);
 	
 	// Calculate attenuation and blend more lights onto models
 	blendedlights *= attenuation * 2.0 * (1.0 + 2.0 * ismodel * v_modelfactor_specular_scattering_lensflare.x);
