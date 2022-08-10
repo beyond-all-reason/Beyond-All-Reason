@@ -239,7 +239,7 @@ local function AssignLightsToAllWeapons()
 				break
 			end
 		end
-		local radius = ((weaponDef.damageAreaOfEffect*4) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.25)) 
+		local radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.25)) 
 		local orgMult = (math.max(0.25, math.min(damage/1600, 0.6)) + (radius/2800)) 
 		local life = (9.5*(1.0+radius/2500)+(orgMult * 5)) 
 		radius = (orgMult * 75) + (radius * 2.4)
@@ -331,7 +331,7 @@ GetLightClass("Explosion", nil, "Medium", {r = 4, g = 3.5, b = 2.5, colortime = 
 -- too low colortime can induce flicker, why?
 
 -- sustain determines how long color1 + color2 remain fully visible (before going into fade-out)
--- lifetime determines total life length ?
+-- lifetime determines total life length and gets removed after this
 
 
 --------------------------------------------------------------------------------
