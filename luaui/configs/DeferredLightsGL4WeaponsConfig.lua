@@ -105,10 +105,10 @@ local BaseClasses = {
 		yOffset = 0, -- Y offsets are only ever used for explosions!
 		lightConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 200, 
-			r = 1, g = 1, b = 1, a = 1, 
+			r = 1, g = 1, b = 1.5, a = 1, 
 			color2r = 0.75, color2g = 0.5, color2b = 0.1, colortime = 0.6, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
-			lifetime = 50, sustain = 10, 	aninmtype = 0, -- unused
+			lifetime = 30, sustain = 50, 	aninmtype = 0, -- unused
 		},
 	},
 	
@@ -117,9 +117,9 @@ local BaseClasses = {
 		lightConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 200, 
 			r = 1, g = 1, b = 1, a = 1, 
-			color2r = 0.75, color2g = 0.75, color2b = 0.75, colortime = 0.6, -- point lights only, colortime in seconds for unit-attached
+			color2r = 0.75, color2g = 0.6, color2b = 0.3, colortime = 0.6, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
-			lifetime = 30, sustain = 10, 	aninmtype = 0, -- unused
+			lifetime = 30, sustain = 0.99, 	aninmtype = 0, -- unused
 		},
 	},
 }
@@ -297,8 +297,8 @@ local function AssignLightsToAllWeapons()
 			muzzleFlashLights[weaponID] = GetLightClass("MuzzleFlash", "White", sizeclass, "Moderate")
 		end
 		if explosionLight then 
-			muzzleFlashLights[weaponID] = GetLightClass("MuzzleFlash", "White", sizeclass, "Moderate")
-			muzzleFlashLights[weaponID].yOffset = muzzleFlashLights[weaponID].lightConfig.radius / 10
+			explosionLights[weaponID] = GetLightClass("Explosion", nil, sizeclass, "Moderate")
+			explosionLights[weaponID].yOffset = explosionLights[weaponID].lightConfig.radius / 5
 		end
 	end
 	Spring.Echo("DLGL4 weapons conf using",usedclasses,"light types")

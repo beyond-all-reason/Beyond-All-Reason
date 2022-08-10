@@ -368,11 +368,11 @@ local function DeferredLighting_UnRegisterFunction(functionID)
 end
 ]]--
 local lightRemoveQueue = {}
-local function calcLightExpiry(targetVBO, lightParamsTable, instanceID)
-	if lightParamsTable[18] <= 0 then -- LifeTime less than 0 means never expires
+local function calcLightExpiry(targetVBO, lightParamTable, instanceID)
+	if lightParamTable[18] <= 0 then -- LifeTime less than 0 means never expires
 		return nil 
 	end
-	local deathtime = math.ceil(lightParamsTable[17] + lightParamsTable[18])
+	local deathtime = math.ceil(lightParamTable[17] + lightParamTable[18])
 	if lightRemoveQueue[deathtime] == nil then
 		lightRemoveQueue[deathtime] = {}
 	end
@@ -949,7 +949,33 @@ local mapinfo = nil
 local nightFactor = 1 --0.33
 local unitNightFactor = 1 -- applied above nightFactor default 1.2
 local adjustfornight = {'unitAmbientColor', 'unitDiffuseColor', 'unitSpecularColor','groundAmbientColor', 'groundDiffuseColor', 'groundSpecularColor' }
+ 
+local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
+	if explosionLights[weaponID] then
+		local lightParamTable = explosionLights[weaponID].lightParamTable
+		local groundHeight = Spring.GetGroundHeight(px,pz) or 1
+		py = math.max(groundHeight + explosionLights[weaponID].yOffset, py)
+		lightParamTable[1] = px
+		lightParamTable[2] = py
+		lightParamTable[3] = pz
+		Spring.Echo("GadgetWeaponExplosion added:",  explosionLights[weaponID].lightClassName, px, py, pz)
+		AddLight(nil, nil, nil, pointLightVBO, lightParamTable) --(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
+	end
+end
 
+local function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
+	if muzzleFlashLights[weaponID] then 
+		local lightParamTable = muzzleFlashLights[weaponID].lightParamTable
+		local groundHeight = Spring.GetGroundHeight(px,pz) or 1
+		lightParamTable[1] = px
+		lightParamTable[2] = py
+		lightParamTable[3] = pz
+		Spring.Echo("GadgetWeaponBarrelfire added:",  muzzleFlashLights[weaponID].lightClassName, px, py, pz)
+		AddLight(nil, nil, nil, pointLightVBO, lightParamTable) --(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
+	end
+end
+
+ 
 function widget:Initialize()
 
 	Spring.Debug.TraceEcho("Initialize DLGL4")
@@ -1001,11 +1027,17 @@ function widget:Initialize()
 	WG['lightsgl4'].AddPointLight = AddPointLight
 	WG['lightsgl4'].AddBeamLight  = AddBeamLight
 	WG['lightsgl4'].AddConeLight  = AddConeLight
+	WG['lightsgl4'].AddLight  = AddLight
 	WG['lightsgl4'].RemoveLight  = RemoveLight
 	widgetHandler:RegisterGlobal('AddPointLight', WG['lightsgl4'].AddPointLight)
 	widgetHandler:RegisterGlobal('AddBeamLight', WG['lightsgl4'].AddBeamLight)
 	widgetHandler:RegisterGlobal('AddConeLight', WG['lightsgl4'].AddConeLight)
+	widgetHandler:RegisterGlobal('AddLight', WG['lightsgl4'].AddLight)
 	widgetHandler:RegisterGlobal('RemoveLight', WG['lightsgl4'].RemoveLight)
+	
+	
+	widgetHandler:RegisterGlobal('GadgetWeaponExplosion', GadgetWeaponExplosion)
+	widgetHandler:RegisterGlobal('GadgetWeaponBarrelfire', GadgetWeaponBarrelfire)
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
@@ -1037,6 +1069,10 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('AddBeamLight')
 	widgetHandler:DeregisterGlobal('AddConeLight')
 	widgetHandler:DeregisterGlobal('RemoveLight')
+	widgetHandler:DeregisterGlobal('AddLight')
+	
+	widgetHandler:DeregisterGlobal('GadgetWeaponExplosion')
+	widgetHandler:DeregisterGlobal('GadgetWeaponBarrelfire')
 end
 
 local function DrawLightType(lights, lightsCount, lightType)
