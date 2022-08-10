@@ -1433,6 +1433,15 @@ local options={
 	},
 
 	{
+		key    = 'experimentalrebalancewreckstandarization',
+		name   = 'Rebalance Candidate: Standarized wreck metal values. *0.6 of metal cost for wreck, *0.25 for heap.',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = true,
+	},
+
+	{
 		key		= "experimentalreversegear",
 		name	= "Reverse gear - Allows units to move backwards over short distances",
 		desc	= "Allows units to move backwards over short distances",

@@ -11,7 +11,7 @@ return {
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "25 31 25",
 		collisionvolumetype = "CylY",
-		corpse = "HEAP",
+		corpse = "DEAD",
 		explodeas = "pyro",
 		footprintx = 2,
 		footprintz = 2,
@@ -43,7 +43,7 @@ return {
 			techlevel = 2,
 		},
 		featuredefs = {
-			heap = {
+			dead = {
 				blocking = false,
 				category = "heaps",
 				collisionvolumescales = "35.0 4.0 6.0",
