@@ -106,9 +106,9 @@ local BaseClasses = {
 		lightConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 200, 
 			r = 1, g = 1, b = 1.5, a = 1, 
-			color2r = 0.75, color2g = 0.5, color2b = 0.1, colortime = 0.6, -- point lights only, colortime in seconds for unit-attached
+			color2r = 0.75, color2g = 0.5, color2b = 0.1, colortime = 10, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
-			lifetime = 30, sustain = 50, 	aninmtype = 0, -- unused
+			lifetime = 30, sustain = 0.001, 	aninmtype = 0, -- unused
 		},
 	},
 	
@@ -117,9 +117,9 @@ local BaseClasses = {
 		lightConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 200, 
 			r = 1, g = 1, b = 1, a = 1, 
-			color2r = 0.75, color2g = 0.6, color2b = 0.3, colortime = 0.6, -- point lights only, colortime in seconds for unit-attached
+			color2r = 0.75, color2g = 0.6, color2b = 0.3, colortime = 30.709870, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
-			lifetime = 30, sustain = 0.99, 	aninmtype = 0, -- unused
+			lifetime = 20, sustain = 0.005, 	aninmtype = 0, -- unused
 		},
 	},
 }
@@ -157,8 +157,16 @@ local function deepcopy(orig)
 	return copy
 end
 local usedclasses = 0
-local function GetLightClass(baseClassname, colorkey, sizekey, lifetimekey)
-	local lightClassKey = baseClassname .. (colorkey or "") .. (sizekey or "") .. (lifetimekey or "")
+local function GetLightClass(baseClassname, colorkey, sizekey, additionaloverrides)
+	local lightClassKey = baseClassname .. (colorkey or "") .. (sizekey or "") 
+	if additionaloverrides and type(additionaloverrides) == 'table' then 
+		for k,v in pairs(additionaloverrides) do
+			lightClassKey = lightClassKey .. "_" .. tostring(k) .. "=" .. tostring(v)
+		end
+	end
+	
+	
+	
 	if lightClasses[lightClassKey] then 
 		return lightClasses[lightClassKey] 
 	else
@@ -180,10 +188,10 @@ local function GetLightClass(baseClassname, colorkey, sizekey, lifetimekey)
 				lightConfig.colortime = ColorSets[colorkey].colortime or lightConfig.colortime
 			end
 		end
-		if lifetimekey then 
-			lightClasses[lightClassKey].lightConfig.lifetime = Lifetimes[lifetimekey]
-			lightClasses[lightClassKey].lightConfig.sustain = Lifetimes[lifetimekey] / 4
-			lightClasses[lightClassKey].lightConfig.colortime = Lifetimes[lifetimekey] / 5
+		if additionaloverrides then 
+			for k,v in pairs(additionaloverrides) do
+				lightConfig[k] = v
+			end
 		end		
 	end
 	return lightClasses[lightClassKey]
@@ -307,9 +315,11 @@ AssignLightsToAllWeapons()
 
 -----------------Manual Overrides--------------------
 
+muzzleFlashLights[WeaponDefNames["armbull_arm_bull"].id] = GetLightClass("MuzzleFlash", nil, "Medium", {b = 3, r = 3, g = 3, scattering = 0.2})
 
-muzzleFlashLights[WeaponDefNames["armbull_arm_bull"].id] = GetLightClass("MuzzleFlash", nil, "Tiny")
-
+explosionLights[WeaponDefNames["armbull_arm_bull"].id] = GetLightClass("Explosion", nil, "Medium", {b = 3, r = 3, g = 3, scattering = 0.2})
+explosionLights[WeaponDefNames["armbull_arm_bull"].id].yOffset = 16
+/gi
 
 
 

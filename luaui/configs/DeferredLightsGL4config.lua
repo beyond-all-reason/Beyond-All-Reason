@@ -509,6 +509,17 @@ local unitEventLights = {
 				modelfactor = 0.2, specular = 1, scattering = 1, lensflare = 1,
 				lifetime = 50, sustain = 20, animtype = 0},
 		},
+	},
+	[UnitDefNames['armstump'].id] = { -- BLINK BLINK
+		idleBlink = {
+			lightType = 'point',
+			pieceName = 'justatthebase',
+			lightConfig = { posx = 0, posy = 32, posz = 0, radius = 420,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 10,
+				r = -1, g = 1, b = 1, a = 1,
+				modelfactor = 0.2, specular = 1, scattering = 1, lensflare = 1,
+				lifetime = 20, sustain = 0, animtype = 0},
+		},
 	}
 }
 

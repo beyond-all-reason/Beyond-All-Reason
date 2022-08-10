@@ -954,7 +954,7 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	if explosionLights[weaponID] then
 		local lightParamTable = explosionLights[weaponID].lightParamTable
 		local groundHeight = Spring.GetGroundHeight(px,pz) or 1
-		py = math.max(groundHeight + explosionLights[weaponID].yOffset, py)
+		py = math.max(groundHeight + (explosionLights[weaponID].yOffset or 0), py)
 		lightParamTable[1] = px
 		lightParamTable[2] = py
 		lightParamTable[3] = pz
