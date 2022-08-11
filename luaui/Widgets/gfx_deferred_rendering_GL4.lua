@@ -164,12 +164,14 @@ local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
 local coneLightVBO = {}
 local beamLightVBO = {}
 local pointLightVBO = {}
+local lightVBOMap 
 local autoLightInstanceID = 128000 -- as MAX_PROJECTILES = 128000, so they get unique ones
 
 -- These contain cob-controlled lights
 local unitConeLightVBO = {}
 local unitPointLightVBO = {}
 local unitBeamLightVBO = {}
+local unitLightVBOMap 
 
 local cursorPointLightVBO = {} -- this will contain ally and player cursor lights
 
@@ -338,6 +340,8 @@ local function initGL4()
 	projectileBeamLightVBO 	= createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Projectile Beam Light VBO")
 	
 	projectileLightVBOMap = { point = projectilePointLightVBO,  beam = projectileBeamLightVBO,  cone = projectileConeLightVBO, }
+	unitLightVBOMap = { point = unitPointLightVBO,  beam = unitBeamLightVBO,  cone = unitConeLightVBO, }
+	lightVBOMap = { point = pointLightVBO,  beam = beamLightVBO,  cone = coneLightVBO, }
 	
 	deferredLightShader =  checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4")
 	if not deferredLightShader then goodbye("Failed to compile Deferred Lights GL4 shader") end 
@@ -1084,23 +1088,54 @@ function widget:GameFrame(n)
 end
 
 function widget:UnitIdle(unitID, unitDefID, teamID)
-	if unitEventLights[unitDefID] then 
-		local unitEventLight = unitEventLights[unitDefID]
-		--InitializeLight(lightTable, unitID)
-		for lightname, lightTable in pairs(unitEventLight) do
-			if lightname ~= 'initComplete' then
-				if not lightTable.initComplete then InitializeLight(lightTable, unitID) end
-				if lightTable.lightType == 'point' then
-					AddPointLight( tostring(unitID) ..  lightname, unitID, nil, nil, lightTable.lightParamTable)
-				end
-				if lightTable.lightType == 'cone' then 
-					AddConeLight(tostring(unitID) ..  lightname, unitID, nil, nil, lightTable.lightParamTable) 
-				end
-				if lightTable.lightType == 'beam' then 
-					AddBeamLight(tostring(unitID) ..  lightname, unitID, nil, nil, lightTable.lightParamTable) 
+	if unitEventLights['UnitIdle'] then 
+		if unitEventLights['UnitIdle'][unitDefID] then 
+			local unitEventLight = unitEventLights['UnitIdle'][unitDefID]
+			--InitializeLight(lightTable, unitID)
+			for lightname, lightTable in pairs(unitEventLight) do
+				if lightname ~= 'initComplete' then
+					if not lightTable.initComplete then InitializeLight(lightTable, unitID) end
+					AddLight(tostring(unitID) ..  lightname, unitID, nil, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
+					--[[
+					if lightTable.lightType == 'point' then
+						AddPointLight( tostring(unitID) ..  lightname, unitID, nil, nil, lightTable.lightParamTable)
+					end
+					if lightTable.lightType == 'cone' then 
+						AddConeLight(tostring(unitID) ..  lightname, unitID, nil, nil, lightTable.lightParamTable) 
+					end
+					if lightTable.lightType == 'beam' then 
+						AddBeamLight(tostring(unitID) ..  lightname, unitID, nil, nil, lightTable.lightParamTable) 
+					end
+					]]--
 				end
 			end
 		end
+	end
+end
+
+function widget:UnitFinished(unitID, unitDefID, teamID)
+	if unitEventLights['UnitFinished'] then 
+		local lightTable = unitEventLights['UnitFinished']['default']
+		if unitEventLights['UnitFinished'][unitDefID] then 
+			lightTable = unitEventLights['UnitFinished'][unitDefID]
+		end
+		if not lightTable.initComplete then InitializeLight(lightTable, unitID) end
+		--Spring.Echo("Unitfinished",  unitEventLights['UnitFinished'], lightTable.lightType )
+		lightTable.lightParamTable[2] = Spring.GetUnitHeight(unitID) + 64
+		AddLight(tostring(unitID) ..  "UnitFinished", unitID, nil, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
+	end
+end
+
+function widget:UnitCreated(unitID, unitDefID, teamID)
+	if unitEventLights['UnitCreated'] then 
+		local lightTable = unitEventLights['UnitCreated']['default']
+		if unitEventLights['UnitCreated'][unitDefID] then 
+			lightTable = unitEventLights['UnitCreated'][unitDefID]
+		end
+		if not lightTable.initComplete then InitializeLight(lightTable, unitID) end
+		--Spring.Echo("Unitfinished",  unitEventLights['UnitFinished'], lightTable.lightType )
+		lightTable.lightParamTable[2] = Spring.GetUnitHeight(unitID) + 64
+		AddLight(tostring(unitID) ..  "UnitCreated", unitID, nil, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
 	end
 end
 

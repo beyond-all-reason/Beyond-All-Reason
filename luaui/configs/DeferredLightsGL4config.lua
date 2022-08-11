@@ -499,28 +499,57 @@ local unitDefLights = {
 }
 
 local unitEventLights = {
-	[UnitDefNames['armcom'].id] = {
-		idleBlink = {
-			lightType = 'point',
-			pieceName = 'head',
-			lightConfig = { posx = 0, posy = 16, posz = 0, radius = 420,
-				color2r = 1, color2g = 1, color2b = 1, colortime = 15,
-				r = -1, g = 1, b = 1, a = 1,
-				modelfactor = 0.2, specular = 1, scattering = 1, lensflare = 1,
-				lifetime = 50, sustain = 20, animtype = 0},
+	UnitIdle =  {
+		[UnitDefNames['armcom'].id] = {
+			idleBlink = {
+				lightType = 'point',
+				pieceName = 'head',
+				lightConfig = { posx = 0, posy = 16, posz = 0, radius = 420,
+					color2r = 1, color2g = 1, color2b = 1, colortime = 15,
+					r = -1, g = 1, b = 1, a = 1,
+					modelfactor = 0.2, specular = 1, scattering = 1, lensflare = 1,
+					lifetime = 50, sustain = 20, animtype = 0},
+			},
+		},
+		[UnitDefNames['armstump'].id] = { -- BLINK BLINK
+			idleBlink = {
+				lightType = 'point',
+				pieceName = 'justatthebase',
+				lightConfig = { posx = 0, posy = 32, posz = 0, radius = 420,
+					color2r = 0, color2g = 0, color2b = 0, colortime = 10,
+					r = -1, g = 1, b = 1, a = 1,
+					modelfactor = 0.2, specular = 1, scattering = 1, lensflare = 1,
+					lifetime = 20, sustain = 0, animtype = 0},
+			},
 		},
 	},
-	[UnitDefNames['armstump'].id] = { -- BLINK BLINK
-		idleBlink = {
-			lightType = 'point',
-			pieceName = 'justatthebase',
-			lightConfig = { posx = 0, posy = 32, posz = 0, radius = 420,
-				color2r = 0, color2g = 0, color2b = 0, colortime = 10,
+		
+	UnitFinished = {
+	
+		default = {
+			lightType = 'cone',
+			--pieceName = 'justatthebase',
+			lightConfig = { posx = 0, posy = 32, posz = 0, radius = 200,
+				dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
 				r = -1, g = 1, b = 1, a = 1,
 				modelfactor = 0.2, specular = 1, scattering = 1, lensflare = 1,
-				lifetime = 20, sustain = 0, animtype = 0},
-		},
-	}
+				lifetime = 15, sustain = 2, animtype = 0},
+		},	
+	},	
+	
+	UnitCreated = {
+	
+		default = {
+			lightType = 'cone',
+			--pieceName = 'justatthebase',
+			lightConfig = { posx = 0, posy = 32, posz = 0, radius = 200,
+				dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
+				r = -1, g = 1, b = 1, a = 1,
+				modelfactor = 0.2, specular = 1, scattering = 1, lensflare = 1,
+				lifetime = 15, sustain = 2, animtype = 0},
+		},	
+	},
+	
 }
 
 
