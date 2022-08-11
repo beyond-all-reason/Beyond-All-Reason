@@ -60,10 +60,10 @@ local BaseClasses = {
 		lightType = 'point', -- or cone or beam
 		lightConfig = {
 			posx = 0, posy = 10, posz = 0, radius = 125, 
-			r = 1, g = 1, b = 1, a = 0.25, 
-			color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 0.8, -- point lights only, colortime in seconds for unit-attached
-			modelfactor = 0.5, specular = 0.2, scattering = 0.5, lensflare = 0, 
-			lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
+			r = 1, g = 1, b = 1, a = 0.17, 
+			color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 2, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = 0.5, specular = 1.2, scattering = 0.5, lensflare = 0, 
+			lifetime = 0, sustain = 0, 	aninmtype = 0, -- unused
 		},
 	},
 
@@ -108,7 +108,7 @@ local BaseClasses = {
 			r = 2, g = 2, b = 2, a = 0.3, 
 			color2r = 0.8, color2g = 0.55, color2b = 0.28, colortime = 1.6, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.5, specular = 0.5, scattering = 0.5, lensflare = 1, 
-			lifetime = 16, sustain = 6, 	aninmtype = 0, -- unused
+			lifetime = 12, sustain = 4, 	aninmtype = 0, -- unused
 		},
 	},
 	
@@ -117,7 +117,7 @@ local BaseClasses = {
 		lightConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 200, 
 			r = 2, g = 2, b = 2, a = 1, 
-			color2r = 0.75, color2g = 0.6, color2b = 0.3, colortime = 30.709870, -- point lights only, colortime in seconds for unit-attached
+			color2r = 0.75, color2g = 0.6, color2b = 0.3, colortime = 20, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
 			lifetime = 3, sustain = 0.005, 	aninmtype = 0, -- unused
 		},
@@ -132,6 +132,7 @@ local ColorSets = { -- TODO add advanced dual-color sets!
 	Blue = 		{r = 0, g = 0, b = 1},
 	Yellow = 	{r = 1, g = 1, b = 0},
 	White = 	{r = 1, g = 1, b = 1},
+	Plasma  = 	{r = 0.84, g = 0.75, b = 0.15},
 	Fire  = 	{r = 0.8, g = 0.3, b = 0.05},
 	Warm  = 	{r = 0.7, g = 0.7, b = 0.1},
 	Cold  = 	{r = 0.5, g = 0.75, b = 1.0},
@@ -282,18 +283,19 @@ local function AssignLightsToAllWeapons()
 			for newsize, sizerad in pairs(SizeRadius) do 
 				if damage > sizerad and SizeRadius[sizeclass] > sizerad then sizeclass = newsize end
 			end
-			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass)
+			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Plasma", sizeclass)
 		elseif weaponDef.type == 'DGun' then 
 			sizeclass = "Medium"
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass)
 		elseif weaponDef.type == 'LaserCannon' then 
-			sizeclass = "Medium"
+			if damage < 25 then sizeclass = 'Small' end
+			if damage > 25 then sizeclass = 'Medium' end 
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass)
 		elseif weaponDef.type == 'TorpedoLauncher' then 
 			sizeclass = "Small"
 			projectileDefLights[weaponID] = GetLightClass("TorpedoProjectile", "Cold", sizeclass)
 		elseif weaponDef.type == 'Shield' then 
-			sizeclass = "Medium"
+			sizeclass = "Large"
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Cold", sizeclass)
 		elseif weaponDef.type == 'Flame' then 
 			sizeclass = "Small"
@@ -317,14 +319,18 @@ AssignLightsToAllWeapons()
 
 muzzleFlashLights[WeaponDefNames["armbull_arm_bull"].id] = 
 GetLightClass("MuzzleFlash", nil, "Small", {r = 3, g = 2, b = 2, scattering = 0.2})
-
 explosionLights[WeaponDefNames["armbull_arm_bull"].id] =
 GetLightClass("Explosion", nil, "Medium", {r = 3.8, g = 3.2, b = 2.2, colortime = 2.8, sustain = 14, lifetime = 22, scattering = 0.7})
-
 explosionLights[WeaponDefNames["armbull_arm_bull"].id].yOffset = 4
 
 explosionLights[WeaponDefNames["corgol_cor_gol"].id] =
 GetLightClass("Explosion", nil, "Medium", {r = 4, g = 3.5, b = 2.5, colortime = 3.8, sustain = 14, lifetime = 26, scattering = 0.7,})
+
+muzzleFlashLights[WeaponDefNames["armmg_armmg_weapon"].id] = 
+GetLightClass("MuzzleFlash", nil, "Medium", {r = 0.4, g = 0.4, b = 0.4, scattering = 0.1, specular = 0.4,})
+explosionLights[WeaponDefNames["armmg_armmg_weapon"].id] =
+GetLightClass("Explosion", nil, "Small", {r = 3.8, g = 3.2, b = 2.2, colortime = 2.8, sustain = 14, lifetime = 22, scattering = 0.7})
+
 
 -- verification questions:
 -- colortime determines how slow the initial rgb color(1) fades to color2 ?
