@@ -135,9 +135,9 @@ WG.FlowUI.Draw.RectRound = function(px, py, sx, sy,  cs,   tl, tr, br, bl,   c1,
 	--  optional: tl,tr,br,bl  0 = no corner (1 = always)
 	--  optional: c1,c2 for top-down color gradients
 	local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-		if sy == nil then
-			Spring.Debug.TraceFullEcho(nil,nil,nil, "sy is nil in DrawRectRound")
-		end
+		--if sy == nil then
+		--	Spring.Debug.TraceFullEcho(nil,nil,nil, "sy is nil in DrawRectRound")
+		--end
 		local csyMult = 1 / ((sy - py) / cs)
 
 		if c1 then
