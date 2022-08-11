@@ -110,13 +110,12 @@ if gadgetHandler:IsSyncedCode() then
 		for i=1,#allUnits do
 			local unitID = allUnits[i]
 			gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
-			gadget:UnitFinished(unitID, spGetUnitDefID(unitID))
+			--gadget:UnitFinished(unitID, spGetUnitDefID(unitID))
 		end
 		for i=1,#allFeatures do
 			gadget:FeatureCreated(allFeatures[i])
 		end
 	end
-
 
 	--Reduces the diameter of default (unspecified) collision volume for 3DO models,
 	--for S3O models it's not needed and will in fact result in wrong collision volume
