@@ -569,6 +569,7 @@ function UnitDef_Post(name, uDef)
 		uDef.customparams.areadamageresistance = "_CHICKENACID_"
 		uDef.upright = false
 		uDef.floater = true
+		uDef.collide = true
 		if (not uDef.canfly) and uDef.maxvelocity then
 			uDef.maxreversevelocity = uDef.maxvelocity*0.65
 		end
@@ -617,16 +618,48 @@ function UnitDef_Post(name, uDef)
 		--Spring.Echo("Final Emit Height: ".. uDef.losemitheight)
 	end
 
-	if uDef.name and uDef.name ~= "Commander" then
+	if not uDef.customparams.iscommander then
 		if uDef.featuredefs and uDef.maxdamage then
 			if uDef.featuredefs.dead then
 				uDef.featuredefs.dead.damage = uDef.maxdamage
+				if Spring.GetModOptions().experimentalrebalancewreckstandarization then
+					if uDef.buildcostmetal and uDef.buildcostenergy then
+						if name and not string.find(name, "_scav") then
+							if name and uDef.featuredefs.dead.metal then
+								Spring.Echo(name .. " Wreck Before: " .. uDef.featuredefs.dead.metal)
+							elseif uDef.name then
+								Spring.Echo(name .. " Wreck Before: " .. uDef.featuredefs.dead.metal)
+							end
+							--uDef.featuredefs.dead.metal = (uDef.buildcostmetal + (uDef.buildcostenergy/100))*0.5
+							uDef.featuredefs.dead.metal = uDef.buildcostmetal*0.6
+							if name and not string.find(name, "_scav") then
+								Spring.Echo(name .. " Wreck After: " .. uDef.featuredefs.dead.metal)
+							end
+						end
+					end
+				end
 			end
 		end
 
 		if uDef.featuredefs and uDef.maxdamage then
 			if uDef.featuredefs.heap then
 				uDef.featuredefs.heap.damage = uDef.maxdamage
+				if Spring.GetModOptions().experimentalrebalancewreckstandarization then
+					if uDef.buildcostmetal and uDef.buildcostenergy then
+						if name and not string.find(name, "_scav") then
+							if name and uDef.featuredefs.heap.metal then
+								Spring.Echo(name .. " Heap Before: " .. uDef.featuredefs.heap.metal)
+							elseif uDef.name then
+								Spring.Echo(name .. " Heap Before: " .. uDef.featuredefs.heap.metal)
+							end
+							--uDef.featuredefs.heap.metal = (uDef.buildcostmetal + (uDef.buildcostenergy/100))*0.2
+							uDef.featuredefs.heap.metal = uDef.buildcostmetal*0.25
+							if name and not string.find(name, "_scav") then
+								Spring.Echo(name .. " Heap After: " .. uDef.featuredefs.heap.metal)
+							end
+						end
+					end
+				end
 			end
 		end
     end
@@ -655,7 +688,7 @@ function UnitDef_Post(name, uDef)
 
 			uDef.crashdrag = 0.01	-- default 0.005
 
-			if not (string.find(name, "fepoch") or string.find(name, "fblackhy")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
+			if not (string.find(name, "fepoch") or string.find(name, "fblackhy") or string.find(name, "chicken")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
 				if not Spring.GetModOptions().experimentalnoaircollisions then
 					uDef.collide = false
 				else
