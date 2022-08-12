@@ -569,7 +569,6 @@ function UnitDef_Post(name, uDef)
 		uDef.customparams.areadamageresistance = "_CHICKENACID_"
 		uDef.upright = false
 		uDef.floater = true
-		uDef.collide = true
 		if (not uDef.canfly) and uDef.maxvelocity then
 			uDef.maxreversevelocity = uDef.maxvelocity*0.65
 		end
@@ -688,7 +687,7 @@ function UnitDef_Post(name, uDef)
 
 			uDef.crashdrag = 0.01	-- default 0.005
 
-			if not (string.find(name, "fepoch") or string.find(name, "fblackhy") or string.find(name, "chicken")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
+			if not (string.find(name, "fepoch") or string.find(name, "fblackhy")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
 				if not Spring.GetModOptions().experimentalnoaircollisions then
 					uDef.collide = false
 				else

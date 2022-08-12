@@ -15,6 +15,7 @@ return {
 		canfly = true,
 		canguard = true,
 		canland = true,
+		canloopbackattack = true,
 		canmove = true,
 		canpatrol = true,
 		canstop = true,

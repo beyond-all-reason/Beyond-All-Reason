@@ -2944,8 +2944,10 @@ function widget:MousePress(x, y, button)
                 if i > -1 and i < 64 then
                     if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + 16) then
                         if ctrl then
-                            Spring_SendCommands { "toggleignore " .. clickedPlayer.name }
+                            Spring_SendCommands("toggleignore " .. clickedPlayer.name)
                             return true
+                        elseif not player[i].spec then
+                            Spring_SendCommands("specteam " .. player[i].team)
                         end
 
                         if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
@@ -3059,7 +3061,7 @@ function widget:MousePress(x, y, button)
                         --name
                         if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + 12) then
                             if ctrl then
-                                Spring_SendCommands { "toggleignore " .. clickedPlayer.name }
+                                Spring_SendCommands("toggleignore " .. clickedPlayer.name)
                                 SortList()
                                 CreateLists()
                                 return true
@@ -3157,7 +3159,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function Spec(teamID)
-    Spring_SendCommands { "specteam " .. teamID }
+    Spring_SendCommands("specteam " .. teamID)
     SortList()
 end
 
