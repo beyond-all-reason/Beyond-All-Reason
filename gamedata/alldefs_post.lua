@@ -569,6 +569,9 @@ function UnitDef_Post(name, uDef)
 		uDef.customparams.areadamageresistance = "_CHICKENACID_"
 		uDef.upright = false
 		uDef.floater = true
+		if uDef.sightdistance then 
+			uDef.sonardistance = uDef.sightdistance 
+		end
 		if (not uDef.canfly) and uDef.maxvelocity then
 			uDef.maxreversevelocity = uDef.maxvelocity*0.65
 		end
