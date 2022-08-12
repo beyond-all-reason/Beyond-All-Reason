@@ -529,13 +529,13 @@ local unitEventLights = {
 		default = {
 			lightType = 'cone',
 			--pieceName = 'justatthebase',
-			lightConfig = { posx = 0, posy = 32, posz = 0, radius = 200,
+			lightConfig = { posx = 0, posy = 32, posz = 0, radius = 160,
 				dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
-				r = -1, g = 1, b = 1, a = 1,
-				modelfactor = 0.2, specular = 1, scattering = 1, lensflare = 1,
-				lifetime = 15, sustain = 2, animtype = 0},
-		},	
-	},	
+				r = -1, g = 1, b = 1, a = 0.8,
+				modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
+				lifetime = 20, sustain = 2, animtype = 0},
+		},
+	},
 	
 	UnitCreated = {
 	
@@ -544,8 +544,8 @@ local unitEventLights = {
 			--pieceName = 'justatthebase',
 			lightConfig = { posx = 0, posy = 32, posz = 0, radius = 200,
 				dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
-				r = -1, g = 1, b = 1, a = 1,
-				modelfactor = 0.2, specular = 1, scattering = 1, lensflare = 1,
+				r = -1, g = 1, b = 1, a = 0.6,
+				modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
 				lifetime = 15, sustain = 2, animtype = 0},
 		},	
 	},

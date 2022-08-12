@@ -106,8 +106,8 @@ local BaseClasses = {
 		lightConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 250, 
 			r = 2, g = 2, b = 2, a = 0.3, 
-			color2r = 0.8, color2g = 0.55, color2b = 0.28, colortime = 1.6, -- point lights only, colortime in seconds for unit-attached
-			modelfactor = 0.5, specular = 0.5, scattering = 0.5, lensflare = 1, 
+			color2r = 0.8, color2g = 0.55, color2b = 0.28, colortime = 1.2, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = 0.15, specular = 0.15, scattering = 0.4, lensflare = 1, 
 			lifetime = 12, sustain = 4, 	aninmtype = 0, -- unused
 		},
 	},
@@ -115,11 +115,11 @@ local BaseClasses = {
 	MuzzleFlash = { -- spawned on projectilecreated
 		lightType = 'point', -- or cone or beam
 		lightConfig = {
-			posx = 0, posy = 0, posz = 0, radius = 200, 
-			r = 2, g = 2, b = 2, a = 1, 
+			posx = 0, posy = 0, posz = 0, radius = 150, 
+			r = 2, g = 2, b = 2, a = 0.7, 
 			color2r = 0.75, color2g = 0.6, color2b = 0.3, colortime = 20, -- point lights only, colortime in seconds for unit-attached
-			modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
-			lifetime = 3, sustain = 0.005, 	aninmtype = 0, -- unused
+			modelfactor = 0.8, specular = 0.5, scattering = 0.6, lensflare = 1, 
+			lifetime = 4, sustain = 0.005, 	aninmtype = 0, -- unused
 		},
 	},
 }
@@ -318,9 +318,9 @@ AssignLightsToAllWeapons()
 -----------------Manual Overrides--------------------
 
 muzzleFlashLights[WeaponDefNames["armbull_arm_bull"].id] = 
-GetLightClass("MuzzleFlash", nil, "Small", {r = 3, g = 2, b = 2, scattering = 0.2})
+GetLightClass("MuzzleFlash", nil, "Small", {r = 2, g = 1, b = 1, scattering = 0.2})
 explosionLights[WeaponDefNames["armbull_arm_bull"].id] =
-GetLightClass("Explosion", nil, "Medium", {r = 3.8, g = 3.2, b = 2.2, colortime = 2.8, sustain = 14, lifetime = 22, scattering = 0.7})
+GetLightClass("Explosion", nil, "Small", {r = 3.8, g = 3.2, b = 2.2, colortime = 2.8, sustain = 14, lifetime = 22, scattering = 0.7})
 explosionLights[WeaponDefNames["armbull_arm_bull"].id].yOffset = 4
 
 explosionLights[WeaponDefNames["corgol_cor_gol"].id] =
