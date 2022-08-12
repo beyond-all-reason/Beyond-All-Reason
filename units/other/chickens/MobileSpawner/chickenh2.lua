@@ -52,7 +52,7 @@ return {
 		turnrate = 920,
 		unitname = "chickenh2",
 		upright = false,
-		waterline = 36,
+		waterline = 42,
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens",

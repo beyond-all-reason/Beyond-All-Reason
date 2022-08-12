@@ -53,7 +53,7 @@ return {
 		turnrate = 920,
 		unitname = "chickena1",
 		upright = false,
-		waterline = 20,
+		waterline = 24,
 		workertime = 0,
 		customparams = {
 			maxrange = "200",

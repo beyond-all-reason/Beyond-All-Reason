@@ -1,0 +1,2503 @@
+#define TA			
+
+
+
+
+#ifndef CONSTANTS_H_
+#define CONSTANTS_H_
+
+
+#ifndef __SFXTYPE_H_
+#define SFXTYPE_VTOL		0
+
+#define	SFXTYPE_WAKE1		2
+#define	SFXTYPE_WAKE2		3  
+#define	SFXTYPE_REVERSEWAKE1	4
+#define	SFXTYPE_REVERSEWAKE2	5  
+
+#define SFXTYPE_WHITESMOKE		257
+#define SFXTYPE_BLACKSMOKE		258
+#define SFXTYPE_SUBBUBBLES		259
+#endif
+
+#define SHATTER			1		
+#define EXPLODE_ON_HIT		2		
+#define FALL			4		
+#define SMOKE			8		
+#define FIRE			16		
+#define BITMAPONLY		32		
+#define NOCEGTRAIL		64		
+#define NOHEATCLOUD		128		
+#define RECURSIVE		16384	
+#define BITMAP			10000001
+
+
+#define BITMAP1			256
+#define BITMAP2			512
+#define BITMAP3			1024
+#define BITMAP4			2048
+#define BITMAP5			4096
+#define BITMAPNUKE		8192
+#define BITMAPMASK		16128	
+
+#define EXPTYPE_SMALLEXPLOSION	256
+#define EXPTYPE_MEDIUMEXPLOSION	512
+#define EXPTYPE_LARGEEXPLOSION	1024
+#define EXPTYPE_XLARGEEXPLOSION	2048
+#define EXPTYPE_BLOODEXPLOSION	4096
+
+
+
+#define UNIT_SFX0		1024
+#define UNIT_SFX1		1025
+#define UNIT_SFX2		1026
+#define UNIT_SFX3		1027
+#define UNIT_SFX4		1028
+#define UNIT_SFX5		1029
+#define UNIT_SFX6		1030
+#define UNIT_SFX7		1031
+#define UNIT_SFX8		1032
+#define UNIT_SFX9		1033
+
+
+#define FIRE_W1			2048
+#define FIRE_W2			2049
+#define FIRE_W3			2050
+#define FIRE_W4			2051
+#define FIRE_W5			2052
+#define FIRE_W6			2053
+#define FIRE_W7			2054
+#define FIRE_W8			2055
+#define FIRE_W9			2056
+
+#define DETO_W1			4096
+#define DETO_W2			4097
+#define DETO_W3			4098
+#define DETO_W4			4099
+#define DETO_W5			4100
+#define DETO_W6			4101
+#define DETO_W7			4102
+#define DETO_W8			4103
+#define DETO_W9			4104
+
+
+
+#define ACTIVATION           1  
+#define STANDINGMOVEORDERS   2  
+#define STANDINGFIREORDERS   3  
+#define HEALTH               4  
+#define INBUILDSTANCE        5  
+#define BUSY                 6  
+#define PIECE_XZ             7  
+#define PIECE_Y              8  
+#define UNIT_XZ              9  
+#define UNIT_Y              10  
+#define UNIT_HEIGHT         11  
+#define XZ_ATAN             12  
+#define XZ_HYPOT            13  
+#define ATAN                14  
+#define HYPOT               15  
+#define GROUND_HEIGHT       16  
+#define BUILD_PERCENT_LEFT  17  
+#define YARD_OPEN           18  
+#define BUGGER_OFF          19  
+#define ARMORED             20  
+
+#define IN_WATER            28
+#define CURRENT_SPEED       29
+#define VETERAN_LEVEL       32
+#define ON_ROAD             34
+
+#define MAX_ID                    70
+#define MY_ID                     71
+#define UNIT_TEAM                 72
+#define UNIT_BUILD_PERCENT_LEFT   73
+#define UNIT_ALLIED               74
+#define MAX_SPEED                 75
+#define CLOAKED                   76
+#define WANT_CLOAK                77
+#define GROUND_WATER_HEIGHT       78 
+#define UPRIGHT                   79 
+#define	POW                       80 
+#define PRINT                     81 
+#define HEADING                   82 
+#define TARGET_ID                 83 
+#define LAST_ATTACKER_ID          84 
+#define LOS_RADIUS                85 
+#define AIR_LOS_RADIUS            86 
+#define RADAR_RADIUS              87 
+#define JAMMER_RADIUS             88 
+#define SONAR_RADIUS              89 
+#define SONAR_JAM_RADIUS          90 
+#define SEISMIC_RADIUS            91 
+#define DO_SEISMIC_PING           92 
+#define CURRENT_FUEL              93 
+#define TRANSPORT_ID              94 
+#define SHIELD_POWER              95 
+#define STEALTH                   96 
+#define CRASHING                  97 
+#define CHANGE_TARGET             98 
+#define CEG_DAMAGE                99 
+#define COB_ID                   100 
+#define PLAY_SOUND               101 
+#define KILL_UNIT                102 
+#define ALPHA_THRESHOLD          103 
+#define SET_WEAPON_UNIT_TARGET   106 
+#define SET_WEAPON_GROUND_TARGET 107 
+#define SONAR_STEALTH            108 
+#define REVERSING	         109 
+
+
+#define LUA0			110	
+#define LUA1			111
+#define LUA2			112
+#define LUA3			113
+#define LUA4			114
+#define LUA5			115
+#define LUA6			116
+#define LUA7			117
+#define LUA8			118
+#define LUA9			119
+
+#define FLANK_B_MODE		120 
+#define FLANK_B_DIR		121 
+#define FLANK_B_MOBILITY_ADD	122 
+#define FLANK_B_MAX_DAMAGE	123 
+#define FLANK_B_MIN_DAMAGE	124 
+#define WEAPON_RELOADSTATE	125 
+#define WEAPON_RELOADTIME	126 
+#define WEAPON_ACCURACY		127 
+#define WEAPON_SPRAY		128 
+#define WEAPON_RANGE		129 
+#define WEAPON_PROJECTILE_SPEED	130 
+#define WEAPON_STOCKPILE_COUNT  139 
+
+
+#define MIN			131 
+#define MAX			132 
+#define ABS			133 
+#define GAME_FRAME		134 
+#define KSIN			135 
+#define KCOS			136 
+
+#define KTAN			137 
+#define SQRT			138 
+
+#define ENERGY_MAKE             140 
+
+#define METAL_MAKE              141 
+
+
+
+#endif
+
+piece  base, body, head, tail, lthigh, lknee, lshin, lfoot, rthigh,
+       rknee, rshin, rfoot, lforearm, lupperarm, lblade, rforearm, rupperarm,
+       rblade, aimy1;
+
+static-var   Static_Var_2, Static_Var_3;
+
+
+#define SIG_AIM				2
+
+
+static-var maxSpeed, animFramesPerKeyframe, bMoving, animSpeed, isDying, gun_1;
+
+
+#define MOVESCALE 100 
+#define MOVESPEED 6
+#define animAmplitude 66
+#define LUHAND lupperarm  
+#define RUHAND rupperarm
+#define LLHAND lupperarm  
+#define RLHAND rupperarm
+#define SIG_WALK 64 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Walk() {
+	set-signal-mask SIG_WALK;
+	if (bMoving) { 
+			move body to x-axis -88910  speed 2667315 / animSpeed; 
+			move body to y-axis 150033  speed 4501001 / animSpeed; 
+			turn body to x-axis 54  speed 1634 / animSpeed; 
+			turn body to z-axis 586  speed 17580 / animSpeed; 
+			turn head to y-axis -703  speed 21116 / animSpeed; 
+			turn lfoot to x-axis -3752  speed 112579 / animSpeed; 
+			turn lfoot to z-axis -733  speed 21992 / animSpeed; 
+			turn lfoot to y-axis -46  speed 1386 / animSpeed; 
+			turn lknee to x-axis -4294  speed 128830 / animSpeed; 
+			turn lshin to x-axis 2412  speed 72376 / animSpeed; 
+			turn lthigh to x-axis 5688  speed 170662 / animSpeed; 
+			turn lthigh to z-axis 182  speed 5460 / animSpeed; 
+			turn lthigh to y-axis -88  speed 2664 / animSpeed; 
+			turn LUHAND to z-axis -393  speed 11809 / animSpeed; 
+			turn LLHAND to z-axis -393  speed 11809 / animSpeed; 
+			turn rfoot to x-axis 3961  speed 116856 / animSpeed; 
+			turn rfoot to z-axis -216  speed 6494 / animSpeed; 
+			turn rfoot to y-axis -142  speed 4275 / animSpeed; 
+			turn rknee to x-axis -2199  speed 67013 / animSpeed; 
+			turn rshin to x-axis 155  speed 4379 / animSpeed; 
+			turn rthigh to x-axis -3910  speed 116441 / animSpeed; 
+			turn rthigh to z-axis -319  speed 9594 / animSpeed; 
+			turn rthigh to y-axis -141  speed 4259 / animSpeed; 
+			turn RUHAND to z-axis 492  speed 14784 / animSpeed; 
+			turn RLHAND to z-axis 492  speed 14784 / animSpeed; 
+			turn tail to x-axis -240  speed 7207 / animSpeed; 
+			turn tail to y-axis 1356  speed 40692 / animSpeed; 
+		sleep ((33*animSpeed) -1);
+	}
+	while(bMoving) {
+		if (bMoving) { 
+			move body to x-axis -177821  speed 2667315 / animSpeed; 
+			move body to z-axis 43253  speed 1297612 / animSpeed; 
+			move body to y-axis 90748  speed 1778559 / animSpeed; 
+			turn body to x-axis 175  speed 3636 / animSpeed; 
+			turn body to z-axis 0  speed 17580 / animSpeed; 
+			turn head to y-axis -1031  speed 9821 / animSpeed; 
+			turn lfoot to x-axis -2626  speed 33799 / animSpeed; 
+			turn lfoot to z-axis -935  speed 6086 / animSpeed; 
+			turn lfoot to y-axis -891  speed 25361 / animSpeed; 
+			turn lknee to x-axis -9221  speed 147813 / animSpeed; 
+			turn lknee to z-axis 275  speed 8266 / animSpeed; 
+			turn lknee to y-axis 298  speed 8952 / animSpeed; 
+			turn lshin to x-axis 5593  speed 95416 / animSpeed; 
+			turn lshin to z-axis 69  speed 2104 / animSpeed; 
+			turn lshin to y-axis -48  speed 1468 / animSpeed; 
+			turn lthigh to x-axis -118  speed 3567 / animSpeed; 
+			turn lthigh to x-axis -48  speed 1454 / animSpeed; 
+			turn lthigh to x-axis 10189  speed 135019 / animSpeed; 
+			turn lthigh to z-axis 466  speed 8532 / animSpeed; 
+			turn lthigh to y-axis 481  speed 17115 / animSpeed; 
+			turn LLHAND to z-axis 47  speed 13238 / animSpeed; 
+			turn LUHAND to z-axis 47  speed 13238 / animSpeed; 
+			turn rfoot to x-axis 1622  speed 70172 / animSpeed; 
+			turn rfoot to z-axis -197  speed 565 / animSpeed; 
+			turn rfoot to y-axis -12  speed 3896 / animSpeed; 
+			turn rknee to x-axis -10960  speed 262822 / animSpeed; 
+			turn rshin to x-axis 6510  speed 190667 / animSpeed; 
+			turn rthigh to x-axis -1314  speed 77883 / animSpeed; 
+			turn rthigh to z-axis 175  speed 14857 / animSpeed; 
+			turn rthigh to y-axis -70  speed 2154 / animSpeed; 
+			turn RLHAND to z-axis 47  speed 13355 / animSpeed; 
+			turn RUHAND to z-axis 47  speed 13355 / animSpeed; 
+			turn tail to x-axis 600  speed 25225 / animSpeed; 
+			turn tail to y-axis 1987  speed 18926 / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { 
+			move body to x-axis -148504  speed 879493 / animSpeed; 
+			move body to z-axis 0  speed 1297612 / animSpeed; 
+			move body to y-axis -150033  speed 7223444 / animSpeed; 
+			turn body to x-axis 338  speed 4875 / animSpeed; 
+			turn body to z-axis -586  speed 17580 / animSpeed; 
+			turn head to x-axis 374  speed 11234 / animSpeed; 
+			turn head to y-axis -703  speed 9821 / animSpeed; 
+			turn lfoot to x-axis -4347  speed 51655 / animSpeed; 
+			turn lfoot to y-axis -233  speed 19738 / animSpeed; 
+			turn lknee to x-axis 1770  speed 329766 / animSpeed; 
+			turn lknee to z-axis 0  speed 8243 / animSpeed; 
+			turn lknee to y-axis 0  speed 8931 / animSpeed; 
+			turn lshin to x-axis 562  speed 150927 / animSpeed; 
+			turn lshin to z-axis 0  speed 2079 / animSpeed; 
+			turn lshin to y-axis 0  speed 1462 / animSpeed; 
+			turn lthigh to x-axis 0  speed 3567 / animSpeed; 
+			turn lthigh to x-axis 0  speed 1454 / animSpeed; 
+			turn lthigh to x-axis 4070  speed 183579 / animSpeed; 
+			turn lthigh to z-axis 1561  speed 32840 / animSpeed; 
+			turn lthigh to y-axis -458  speed 28200 / animSpeed; 
+			turn LLHAND to z-axis 930  speed 26476 / animSpeed; 
+			turn LUHAND to z-axis 930  speed 26476 / animSpeed; 
+			turn rfoot to x-axis 4563  speed 88218 / animSpeed; 
+			turn rfoot to z-axis -121  speed 2272 / animSpeed; 
+			turn rfoot to y-axis 217  speed 6912 / animSpeed; 
+			turn rknee to x-axis -2259  speed 261025 / animSpeed; 
+			turn rshin to x-axis 686  speed 174728 / animSpeed; 
+			turn rthigh to x-axis -3332  speed 60542 / animSpeed; 
+			turn rthigh to z-axis 638  speed 13877 / animSpeed; 
+			turn rthigh to y-axis 126  speed 5900 / animSpeed; 
+			turn RLHAND to z-axis -842  speed 26711 / animSpeed; 
+			turn RUHAND to z-axis -842  speed 26711 / animSpeed; 
+			turn tail to x-axis -960  speed 46846 / animSpeed; 
+			turn tail to y-axis 1356  speed 18926 / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { 
+			move body to x-axis 4445  speed 4588503 / animSpeed; 
+			move body to z-axis -43253  speed 1297612 / animSpeed; 
+			move body to y-axis -76786  speed 2197396 / animSpeed; 
+			turn body to x-axis 173  speed 4942 / animSpeed; 
+			turn body to z-axis -879  speed 8790 / animSpeed; 
+			turn head to x-axis 157  speed 6503 / animSpeed; 
+			turn head to y-axis 0  speed 21116 / animSpeed; 
+			turn lfoot to x-axis -101  speed 127397 / animSpeed; 
+			turn lfoot to z-axis 82  speed 30636 / animSpeed; 
+			turn lfoot to y-axis 44  speed 8340 / animSpeed; 
+			turn lknee to x-axis 3110  speed 40184 / animSpeed; 
+			turn lshin to x-axis -1581  speed 64319 / animSpeed; 
+			turn lthigh to x-axis -1653  speed 171697 / animSpeed; 
+			turn lthigh to z-axis 817  speed 22297 / animSpeed; 
+			turn lthigh to y-axis 153  speed 18351 / animSpeed; 
+			turn LLHAND to z-axis 47  speed 26476 / animSpeed; 
+			turn LUHAND to z-axis 47  speed 26476 / animSpeed; 
+			turn rfoot to x-axis 21  speed 136258 / animSpeed; 
+			turn rfoot to z-axis 551  speed 20199 / animSpeed; 
+			turn rfoot to y-axis 11  speed 6181 / animSpeed; 
+			turn rknee to x-axis 1684  speed 118327 / animSpeed; 
+			turn rshin to x-axis -924  speed 48328 / animSpeed; 
+			turn rthigh to x-axis -1040  speed 68772 / animSpeed; 
+			turn rthigh to z-axis 330  speed 9227 / animSpeed; 
+			turn rthigh to y-axis 58  speed 2027 / animSpeed; 
+			turn RLHAND to z-axis 47  speed 26711 / animSpeed; 
+			turn RUHAND to z-axis 47  speed 26711 / animSpeed; 
+			turn tail to x-axis -240  speed 21621 / animSpeed; 
+			turn tail to y-axis 0  speed 40692 / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { 
+			move body to x-axis 120029  speed 3467509 / animSpeed; 
+			move body to z-axis 0  speed 1297612 / animSpeed; 
+			move body to y-axis 150033  speed 6804607 / animSpeed; 
+			turn body to x-axis 53  speed 3603 / animSpeed; 
+			turn body to z-axis -586  speed 8790 / animSpeed; 
+			turn head to x-axis 0  speed 4730 / animSpeed; 
+			turn head to y-axis 662  speed 19885 / animSpeed; 
+			turn lfoot to x-axis 3735  speed 115118 / animSpeed; 
+			turn lfoot to z-axis 297  speed 6426 / animSpeed; 
+			turn lfoot to y-axis 133  speed 2667 / animSpeed; 
+			turn lknee to x-axis -3319  speed 192884 / animSpeed; 
+			turn lshin to x-axis 832  speed 72440 / animSpeed; 
+			turn lthigh to x-axis -3528  speed 56270 / animSpeed; 
+			turn lthigh to z-axis 232  speed 17564 / animSpeed; 
+			turn lthigh to y-axis 125  speed 835 / animSpeed; 
+			turn LLHAND to z-axis -393  speed 13238 / animSpeed; 
+			turn LUHAND to z-axis -393  speed 13238 / animSpeed; 
+			turn rfoot to x-axis -3738  speed 112788 / animSpeed; 
+			turn rfoot to z-axis 855  speed 9111 / animSpeed; 
+			turn rfoot to y-axis 70  speed 1767 / animSpeed; 
+			turn rknee to x-axis -4347  speed 180964 / animSpeed; 
+			turn rshin to x-axis 2428  speed 100571 / animSpeed; 
+			turn rthigh to x-axis 5711  speed 202536 / animSpeed; 
+			turn rthigh to z-axis -344  speed 20254 / animSpeed; 
+			turn rthigh to y-axis 187  speed 3853 / animSpeed; 
+			turn RLHAND to z-axis 492  speed 13355 / animSpeed; 
+			turn RUHAND to z-axis 492  speed 13355 / animSpeed; 
+			turn tail to x-axis 0  speed 7207 / animSpeed; 
+			turn tail to y-axis -1277  speed 38320 / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { 
+			move body to x-axis 177821  speed 1733754 / animSpeed; 
+			move body to z-axis 43253  speed 1297612 / animSpeed; 
+			move body to y-axis 83767  speed 1987978 / animSpeed; 
+			turn body to x-axis 266  speed 6406 / animSpeed; 
+			turn body to z-axis 0  speed 17580 / animSpeed; 
+			turn head to y-axis 1031  speed 11052 / animSpeed; 
+			turn lfoot to x-axis 1678  speed 61710 / animSpeed; 
+			turn lfoot to z-axis 198  speed 2962 / animSpeed; 
+			turn lfoot to y-axis 13  speed 3583 / animSpeed; 
+			turn lknee to x-axis -10736  speed 222515 / animSpeed; 
+			turn lshin to x-axis 6324  speed 164762 / animSpeed; 
+			turn lthigh to x-axis -1499  speed 60879 / animSpeed; 
+			turn lthigh to z-axis -176  speed 12267 / animSpeed; 
+			turn lthigh to y-axis 67  speed 1750 / animSpeed; 
+			turn LLHAND to z-axis -834  speed 13238 / animSpeed; 
+			turn LUHAND to z-axis -834  speed 13238 / animSpeed; 
+			turn rfoot to x-axis -2621  speed 33493 / animSpeed; 
+			turn rfoot to z-axis 935  speed 2416 / animSpeed; 
+			turn rfoot to y-axis 905  speed 25050 / animSpeed; 
+			turn rknee to x-axis -9099  speed 142575 / animSpeed; 
+			turn rknee to z-axis -248  speed 7467 / animSpeed; 
+			turn rknee to y-axis -270  speed 8106 / animSpeed; 
+			turn rshin to x-axis 5484  speed 91690 / animSpeed; 
+			turn rshin to z-axis -66  speed 2015 / animSpeed; 
+			turn rshin to y-axis 46  speed 1387 / animSpeed; 
+			turn rthigh to x-axis -118  speed 3567 / animSpeed; 
+			turn rthigh to x-axis -42  speed 1283 / animSpeed; 
+			turn rthigh to x-axis 10081  speed 131126 / animSpeed; 
+			turn rthigh to z-axis -411  speed 2014 / animSpeed; 
+			turn rthigh to y-axis -546  speed 22008 / animSpeed; 
+			turn RLHAND to z-axis 938  speed 13355 / animSpeed; 
+			turn RUHAND to z-axis 938  speed 13355 / animSpeed; 
+			turn tail to x-axis 600  speed 18017 / animSpeed; 
+			turn tail to y-axis -1987  speed 21298 / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { 
+			move body to x-axis 124474  speed 1600389 / animSpeed; 
+			move body to z-axis 0  speed 1297612 / animSpeed; 
+			move body to y-axis -150033  speed 7014025 / animSpeed; 
+			turn body to x-axis 360  speed 2802 / animSpeed; 
+			turn body to z-axis 586  speed 17580 / animSpeed; 
+			turn head to x-axis 354  speed 10642 / animSpeed; 
+			turn head to y-axis 662  speed 11052 / animSpeed; 
+			turn lfoot to x-axis 4567  speed 86661 / animSpeed; 
+			turn lfoot to z-axis 7  speed 5710 / animSpeed; 
+			turn lfoot to y-axis -177  speed 5736 / animSpeed; 
+			turn lknee to x-axis -2256  speed 254405 / animSpeed; 
+			turn lshin to x-axis 678  speed 169386 / animSpeed; 
+			turn lthigh to x-axis -3352  speed 55577 / animSpeed; 
+			turn lthigh to z-axis -539  speed 10891 / animSpeed; 
+			turn lthigh to y-axis -118  speed 5576 / animSpeed; 
+			turn LLHAND to z-axis 930  speed 52953 / animSpeed; 
+			turn LUHAND to z-axis 930  speed 52953 / animSpeed; 
+			turn rfoot to x-axis -4354  speed 52000 / animSpeed; 
+			turn rfoot to z-axis 817  speed 3538 / animSpeed; 
+			turn rfoot to y-axis 225  speed 20401 / animSpeed; 
+			turn rknee to x-axis 1798  speed 326964 / animSpeed; 
+			turn rknee to z-axis 0  speed 7447 / animSpeed; 
+			turn rknee to y-axis 0  speed 8091 / animSpeed; 
+			turn rshin to x-axis 542  speed 148258 / animSpeed; 
+			turn rshin to z-axis 0  speed 1991 / animSpeed; 
+			turn rshin to y-axis 0  speed 1381 / animSpeed; 
+			turn rthigh to x-axis 0  speed 3567 / animSpeed; 
+			turn rthigh to x-axis 0  speed 1283 / animSpeed; 
+			turn rthigh to x-axis 4049  speed 180975 / animSpeed; 
+			turn rthigh to z-axis -1427  speed 30484 / animSpeed; 
+			turn rthigh to y-axis 422  speed 29052 / animSpeed; 
+			turn RLHAND to z-axis -842  speed 53423 / animSpeed; 
+			turn RUHAND to z-axis -842  speed 53423 / animSpeed; 
+			turn tail to x-axis -960  speed 46846 / animSpeed; 
+			turn tail to y-axis -1277  speed 21298 / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { 
+			move body to x-axis -8891  speed 4000972 / animSpeed; 
+			move body to z-axis -43253  speed 1297612 / animSpeed; 
+			move body to y-axis -97728  speed 1569140 / animSpeed; 
+			turn body to x-axis 200  speed 4804 / animSpeed; 
+			turn body to z-axis 879  speed 8790 / animSpeed; 
+			turn head to x-axis 137  speed 6503 / animSpeed; 
+			turn head to y-axis 0  speed 19885 / animSpeed; 
+			turn lfoot to x-axis 6  speed 136820 / animSpeed; 
+			turn lfoot to z-axis -579  speed 17620 / animSpeed; 
+			turn lfoot to y-axis -11  speed 4983 / animSpeed; 
+			turn lknee to x-axis 1917  speed 125198 / animSpeed; 
+			turn lshin to x-axis -1044  speed 51704 / animSpeed; 
+			turn lthigh to x-axis -1163  speed 65650 / animSpeed; 
+			turn lthigh to z-axis -303  speed 7094 / animSpeed; 
+			turn lthigh to y-axis -63  speed 1639 / animSpeed; 
+			turn LLHAND to z-axis 47  speed 26476 / animSpeed; 
+			turn LUHAND to z-axis 47  speed 26476 / animSpeed; 
+			turn rfoot to x-axis -117  speed 127116 / animSpeed; 
+			turn rfoot to z-axis -106  speed 27724 / animSpeed; 
+			turn rfoot to y-axis -43  speed 8086 / animSpeed; 
+			turn rknee to x-axis 3338  speed 46173 / animSpeed; 
+			turn rshin to x-axis -1712  speed 67637 / animSpeed; 
+			turn rthigh to x-axis -1760  speed 174299 / animSpeed; 
+			turn rthigh to z-axis -796  speed 18938 / animSpeed; 
+			turn rthigh to y-axis -162  speed 17530 / animSpeed; 
+			turn RLHAND to z-axis 47  speed 26711 / animSpeed; 
+			turn RUHAND to z-axis 47  speed 26711 / animSpeed; 
+			turn tail to x-axis -720  speed 7207 / animSpeed; 
+			turn tail to y-axis 0  speed 38320 / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { 
+			move body to x-axis -106692  speed 2934046 / animSpeed; 
+			move body to z-axis 0  speed 1297612 / animSpeed; 
+			move body to y-axis 150033  speed 7432863 / animSpeed; 
+			turn body to x-axis 66  speed 4003 / animSpeed; 
+			turn body to z-axis 586  speed 8790 / animSpeed; 
+			turn head to x-axis 0  speed 4138 / animSpeed; 
+			turn head to y-axis -825  speed 24750 / animSpeed; 
+			turn lfoot to x-axis -3747  speed 112621 / animSpeed; 
+			turn lfoot to z-axis -803  speed 6709 / animSpeed; 
+			turn lfoot to y-axis -61  speed 1513 / animSpeed; 
+			turn lknee to x-axis -4320  speed 187123 / animSpeed; 
+			turn lshin to x-axis 2423  speed 104045 / animSpeed; 
+			turn lthigh to x-axis 5685  speed 205476 / animSpeed; 
+			turn lthigh to z-axis 273  speed 17295 / animSpeed; 
+			turn lthigh to y-axis -143  speed 2388 / animSpeed; 
+			turn LLHAND to z-axis -393  speed 13238 / animSpeed; 
+			turn LUHAND to z-axis -393  speed 13238 / animSpeed; 
+			turn rfoot to x-axis 3741  speed 115761 / animSpeed; 
+			turn rfoot to z-axis -241  speed 4056 / animSpeed; 
+			turn rfoot to y-axis -143  speed 2973 / animSpeed; 
+			turn rknee to x-axis -3312  speed 199505 / animSpeed; 
+			turn rshin to x-axis 820  speed 75973 / animSpeed; 
+			turn rthigh to x-axis -3542  speed 53463 / animSpeed; 
+			turn rthigh to z-axis -284  speed 15379 / animSpeed; 
+			turn rthigh to y-axis -127  speed 1026 / animSpeed; 
+			turn RLHAND to z-axis 492  speed 13355 / animSpeed; 
+			turn RUHAND to z-axis 492  speed 13355 / animSpeed; 
+			turn tail to x-axis -240  speed 14414 / animSpeed; 
+			turn tail to y-axis 1589  speed 47695 / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+	}
+}
+
+StopWalking() {
+	animSpeed = 2*MOVESPEED; 
+	move body to x-axis 0  speed 11587128 / animSpeed;
+	move body to y-axis 0  speed 18769856 / animSpeed;
+	move body to z-axis 0  speed 3276800 / animSpeed;
+	turn body to x-axis 0.000000 speed 16177.782894 / animSpeed;
+	turn body to y-axis 0.000000 speed 16177.782894 / animSpeed;
+	turn body to z-axis 0.000000 speed 44394.048608 / animSpeed;
+	turn head to x-axis 0.000000 speed 28368.986282 / animSpeed;
+	turn head to y-axis 0.000000 speed 62501.237890 / animSpeed;
+	turn lfoot to x-axis 0.000000 speed 345505.476316 / animSpeed;
+	turn lfoot to y-axis 0.000000 speed 64044.750588 / animSpeed;
+	turn lfoot to z-axis 0.000000 speed 77364.332864 / animSpeed;
+	turn lknee to x-axis 0.000000 speed 832744.296384 / animSpeed;
+	turn lknee to y-axis 0.000000 speed 22606.298260 / animSpeed;
+	turn lknee to z-axis 0.000000 speed 20875.600382 / animSpeed;
+	turn lshin to x-axis 0.000000 speed 427744.943262 / animSpeed;
+	turn lshin to y-axis 0.000000 speed 3708.766334 / animSpeed;
+	turn lshin to z-axis 0.000000 speed 5314.285522 / animSpeed;
+	turn lthigh to x-axis 0.000000 speed 518881.265448 / animSpeed;
+	turn lthigh to y-axis 0.000000 speed 71212.785462 / animSpeed;
+	turn lthigh to z-axis 0.000000 speed 82930.651804 / animSpeed;
+	turn LLHAND to z-axis 0.000000 speed 133720.320370 / animSpeed;
+	turn LUHAND to z-axis 0.000000 speed 133720.320370 / animSpeed;
+	turn rfoot to x-axis 101.202920 speed 344086.241408 / animSpeed;
+	turn rfoot to y-axis 0.000000 speed 63259.630434 / animSpeed;
+	turn rfoot to z-axis 0.000000 speed 70010.162950 / animSpeed;
+	turn rknee to x-axis 51.893478 speed 825668.494014 / animSpeed;
+	turn rknee to y-axis 0.000000 speed 20470.563932 / animSpeed;
+	turn rknee to z-axis 0.000000 speed 18856.845826 / animSpeed;
+	turn rshin to x-axis 0.000000 speed 481483.831920 / animSpeed;
+	turn rshin to y-axis 0.000000 speed 3504.649148 / animSpeed;
+	turn rshin to z-axis 0.000000 speed 5089.199570 / animSpeed;
+	turn rthigh to x-axis -44.367232 speed 511455.842716 / animSpeed;
+	turn rthigh to y-axis 0.000000 speed 73365.591936 / animSpeed;
+	turn rthigh to z-axis 0.000000 speed 76980.378384 / animSpeed;
+	turn RUHAND to z-axis 0.000000 speed 134907.005506 / animSpeed;
+	turn RLHAND to z-axis 0.000000 speed 134907.005506 / animSpeed;
+	turn tail to x-axis 0.000000 speed 118299.998180 / animSpeed;
+	turn tail to y-axis 0.000000 speed 120442.090678 / animSpeed;
+}
+
+
+#define IDLEMOVESCALE 100
+#define IDLEAMPLITUDE 100
+#define IDLESPEED 15
+
+
+
+
+
+Idle() {
+	sleep 300;
+	set-signal-mask SIG_WALK;
+	if (!bMoving) { 
+			move body to z-axis -23269  speed 46539 ;  
+			move body to y-axis 96427  speed 192854 ;  
+			turn body to x-axis 457  speed 915 ;  
+			turn body to z-axis -252  speed 504 ;  
+			turn body to y-axis -258  speed 516 ;  
+			turn head to x-axis -130  speed 938 ;  
+			turn head to z-axis 715  speed 459 ;  
+			turn head to y-axis -258  speed 516 ;  
+			turn lfoot to x-axis 173  speed 347 ;  
+			turn lfoot to z-axis 42  speed 85 ;  
+			turn lfoot to y-axis 135  speed 271 ;  
+			turn lknee to x-axis -1432  speed 2864 ;  
+			turn lshin to x-axis 511  speed 1022 ;  
+			turn lthigh to x-axis 293  speed 586 ;  
+			turn lthigh to z-axis 212  speed 425 ;  
+			turn lthigh to y-axis 118  speed 236 ;  
+			turn rfoot to x-axis 440  speed 677 ;  
+			turn rfoot to z-axis 39  speed 79 ;  
+			turn rfoot to y-axis 137  speed 274 ;  
+			turn rknee to x-axis -861  speed 1826 ;  
+			turn rshin to x-axis 253  speed 478 ;  
+			turn rthigh to x-axis -163  speed 238 ;  
+			turn rthigh to z-axis 213  speed 427 ;  
+			turn rthigh to y-axis 125  speed 250 ;  
+			turn tail to x-axis 457  speed 915 ;  
+			turn tail to z-axis -252  speed 504 ;  
+			turn tail to y-axis 1331  speed 1544 ;  
+		sleep ((33*IDLESPEED) -1);
+	}
+	while(!bMoving) {
+		if (!bMoving) { 
+			move body to x-axis -79581  speed 166794 ;  
+			move body to z-axis -14324  speed 17890 ;  
+			move body to y-axis -33781  speed 260417 ;  
+			turn body to x-axis 0  speed 915 ;  
+			turn body to z-axis 0  speed 504 ;  
+			turn body to y-axis 0  speed 516 ;  
+			turn head to x-axis 338  speed 938 ;  
+			turn head to z-axis 485  speed 459 ;  
+			turn head to y-axis 0  speed 516 ;  
+			turn lfoot to x-axis 33  speed 280 ;  
+			turn lfoot to z-axis -329  speed 744 ;  
+			turn lfoot to y-axis 25  speed 220 ;  
+			turn lknee to x-axis 375  speed 3615 ;  
+			turn lshin to x-axis -185  speed 1392 ;  
+			turn lthigh to x-axis -223  speed 1034 ;  
+			turn lthigh to z-axis 329  speed 232 ;  
+			turn lthigh to y-axis -19  speed 274 ;  
+			turn rfoot to x-axis 134  speed 610 ;  
+			turn rfoot to z-axis -329  speed 738 ;  
+			turn rfoot to y-axis 29  speed 216 ;  
+			turn rknee to x-axis 426  speed 2575 ;  
+			turn rshin to x-axis -170  speed 848 ;  
+			turn rthigh to x-axis -268  speed 209 ;  
+			turn rthigh to z-axis 329  speed 232 ;  
+			turn rthigh to y-axis -16  speed 284 ;  
+			turn tail to x-axis 0  speed 915 ;  
+			turn tail to z-axis 0  speed 504 ;  
+			turn tail to y-axis 559  speed 1544 ;  
+		sleep ((33*IDLESPEED) -1);
+		}
+		if (!bMoving) { 
+			move body to x-axis 125494  speed 410151 ;  
+			move body to z-axis -103571  speed 178495 ;  
+			move body to y-axis -23523  speed 20517 ;  
+			turn body to y-axis 502  speed 1004 ;  
+			turn head to y-axis 502  speed 1004 ;  
+			turn lfoot to x-axis 639  speed 1212 ;  
+			turn lfoot to z-axis 480  speed 1619 ;  
+			turn lfoot to y-axis -299  speed 651 ;  
+			turn lknee to x-axis 49  speed 650 ;  
+			turn lshin to x-axis -86  speed 197 ;  
+			turn lthigh to x-axis -616  speed 785 ;  
+			turn lthigh to z-axis -458  speed 1576 ;  
+			turn lthigh to y-axis -229  speed 420 ;  
+			turn rfoot to x-axis 342  speed 416 ;  
+			turn rfoot to z-axis 471  speed 1602 ;  
+			turn rfoot to y-axis -295  speed 649 ;  
+			turn rknee to x-axis 239  speed 373 ;  
+			turn rshin to x-axis -104  speed 133 ;  
+			turn rthigh to x-axis -369  speed 201 ;  
+			turn rthigh to z-axis -461  speed 1583 ;  
+			turn rthigh to y-axis -227  speed 421 ;  
+			turn tail to y-axis -942  speed 3002 ;  
+		sleep ((33*IDLESPEED) -1);
+		}
+		if (!bMoving) { 
+			move body to y-axis -102573  speed 158100 ;  
+			turn body to x-axis 150  speed 298 ;  
+			turn body to z-axis 51  speed 108 ;  
+			turn body to y-axis -196  speed 1397 ;  
+			turn head to x-axis 184  speed 306 ;  
+			turn head to z-axis 439  speed 99 ;  
+			turn head to y-axis -196  speed 1397 ;  
+			turn lfoot to x-axis 316  speed 646 ;  
+			turn lfoot to z-axis 545  speed 130 ;  
+			turn lfoot to y-axis 43  speed 687 ;  
+			turn lknee to x-axis 1142  speed 2184 ;  
+			turn lshin to x-axis -641  speed 1109 ;  
+			turn lthigh to x-axis -964  speed 695 ;  
+			turn lthigh to z-axis -598  speed 278 ;  
+			turn lthigh to y-axis 105  speed 668 ;  
+			turn rfoot to x-axis 586  speed 487 ;  
+			turn rfoot to z-axis 543  speed 142 ;  
+			turn rfoot to y-axis 35  speed 661 ;  
+			turn rknee to x-axis 1034  speed 1590 ;  
+			turn rshin to x-axis -566  speed 924 ;  
+			turn rthigh to x-axis -1079  speed 1421 ;  
+			turn rthigh to z-axis -596  speed 268 ;  
+			turn rthigh to y-axis 101  speed 657 ;  
+			turn tail to x-axis 150  speed 298 ;  
+			turn tail to z-axis 51  speed 108 ;  
+			turn tail to y-axis 1145  speed 4175 ;  
+		sleep ((33*IDLESPEED) -1);
+		}
+		if (!bMoving) { 
+			move body to x-axis 0  speed 248879 ;  
+			move body to z-axis 0  speed 207796 ;  
+			move body to y-axis 0  speed 205146 ;  
+			turn body to x-axis 0  speed 300 ;  
+			turn body to z-axis 0  speed 102 ;  
+			turn body to y-axis 0  speed 392 ;  
+			turn head to x-axis 338  speed 308 ;  
+			turn head to z-axis 485  speed 93 ;  
+			turn head to y-axis 0  speed 392 ;  
+			turn lfoot to x-axis 0  speed 632 ;  
+			turn lfoot to z-axis 0  speed 1091 ;  
+			turn lfoot to y-axis 0  speed 87 ;  
+			turn lknee to x-axis 0  speed 2284 ;  
+			turn lshin to x-axis 0  speed 1282 ;  
+			turn lthigh to x-axis 0  speed 1929 ;  
+			turn lthigh to z-axis 0  speed 1196 ;  
+			turn lthigh to y-axis 0  speed 210 ;  
+			turn rfoot to x-axis 101  speed 970 ;  
+			turn rfoot to z-axis 0  speed 1086 ;  
+			turn rfoot to y-axis 0  speed 70 ;  
+			turn rknee to x-axis 51  speed 1965 ;  
+			turn rshin to x-axis 14  speed 1160 ;  
+			turn rthigh to x-axis -44  speed 2070 ;  
+			turn rthigh to z-axis 0  speed 1192 ;  
+			turn rthigh to y-axis 0  speed 202 ;  
+			turn tail to x-axis 0  speed 300 ;  
+			turn tail to z-axis 0  speed 102 ;  
+			turn tail to y-axis 559  speed 1173 ;  
+		sleep ((33*IDLESPEED) -1);
+		}
+		if (!bMoving) { 
+			move body to x-axis -22475  speed 44951 ;  
+			move body to z-axis 107731  speed 215462 ;  
+			move body to y-axis -7407  speed 14815 ;  
+			turn body to x-axis 637  speed 1274 ;  
+			turn body to z-axis 760  speed 1521 ;  
+			turn body to y-axis 538  speed 1077 ;  
+			turn head to x-axis -315  speed 1307 ;  
+			turn head to z-axis -206  speed 1385 ;  
+			turn head to y-axis 538  speed 1077 ;  
+			turn lfoot to x-axis -226  speed 453 ;  
+			turn lfoot to z-axis -149  speed 299 ;  
+			turn lfoot to y-axis -300  speed 601 ;  
+			turn lknee to x-axis 995  speed 1990 ;  
+			turn lshin to x-axis -709  speed 1418 ;  
+			turn lthigh to x-axis -672  speed 1345 ;  
+			turn lthigh to z-axis -633  speed 1266 ;  
+			turn lthigh to y-axis -286  speed 573 ;  
+			turn rfoot to x-axis -425  speed 1053 ;  
+			turn rfoot to z-axis -170  speed 340 ;  
+			turn rfoot to y-axis -288  speed 576 ;  
+			turn rknee to x-axis -549  speed 1203 ;  
+			turn rshin to x-axis 109  speed 191 ;  
+			turn rthigh to x-axis 373  speed 836 ;  
+			turn rthigh to z-axis -620  speed 1241 ;  
+			turn rthigh to y-axis -235  speed 471 ;  
+			turn tail to x-axis 637  speed 1274 ;  
+			turn tail to z-axis 760  speed 1521 ;  
+			turn tail to y-axis -1051  speed 3220 ;  
+		sleep ((33*IDLESPEED) -1);
+		}
+		if (!bMoving) { 
+			turn body to x-axis -297  speed 1869 ;  
+			turn body to z-axis 614  speed 293 ;  
+			turn body to y-axis 188  speed 701 ;  
+			turn head to x-axis 643  speed 1917 ;  
+			turn head to z-axis -73  speed 266 ;  
+			turn head to y-axis 188  speed 701 ;  
+			turn lfoot to x-axis -511  speed 570 ;  
+			turn lfoot to z-axis -123  speed 53 ;  
+			turn lfoot to y-axis -103  speed 395 ;  
+			turn lknee to x-axis 787  speed 414 ;  
+			turn lshin to x-axis -216  speed 985 ;  
+			turn lthigh to x-axis 243  speed 1833 ;  
+			turn lthigh to z-axis -493  speed 279 ;  
+			turn lthigh to y-axis -69  speed 433 ;  
+			turn rfoot to z-axis -130  speed 78 ;  
+			turn rfoot to y-axis -96  speed 383 ;  
+			turn rknee to x-axis -470  speed 159 ;  
+			turn rshin to x-axis 431  speed 642 ;  
+			turn rthigh to x-axis 889  speed 1032 ;  
+			turn rthigh to z-axis -487  speed 266 ;  
+			turn rthigh to y-axis -44  speed 381 ;  
+			turn tail to x-axis -297  speed 1869 ;  
+			turn tail to z-axis 614  speed 293 ;  
+			turn tail to y-axis -3  speed 2095 ;  
+		sleep ((33*IDLESPEED) -1);
+		}
+		if (!bMoving) { 
+			move body to x-axis 51478  speed 147907 ;  
+			move body to z-axis -160225  speed 535912 ;  
+			move body to y-axis -27688  speed 40561 ;  
+			turn body to y-axis -95  speed 566 ;  
+			turn head to y-axis -95  speed 566 ;  
+			turn lfoot to x-axis 556  speed 2137 ;  
+			turn lfoot to z-axis 210  speed 667 ;  
+			turn lfoot to y-axis -9  speed 188 ;  
+			turn lknee to x-axis 755  speed 64 ;  
+			turn lshin to x-axis -299  speed 166 ;  
+			turn lthigh to x-axis -713  speed 1914 ;  
+			turn lthigh to z-axis -826  speed 666 ;  
+			turn lthigh to y-axis 41  speed 223 ;  
+			turn rfoot to x-axis 815  speed 2481 ;  
+			turn rfoot to z-axis 189  speed 640 ;  
+			turn rfoot to y-axis -1  speed 189 ;  
+			turn rknee to x-axis -535  speed 131 ;  
+			turn rshin to x-axis 355  speed 150 ;  
+			turn rthigh to x-axis -214  speed 2208 ;  
+			turn rthigh to z-axis -803  speed 633 ;  
+			turn rthigh to y-axis 73  speed 236 ;  
+			turn tail to y-axis 843  speed 1694 ;  
+		sleep ((33*IDLESPEED) -1);
+		}
+		if (!bMoving) { 
+			move body to x-axis 59624  speed 16293 ;  
+			move body to y-axis -125030  speed 194684 ;  
+			turn body to y-axis 71  speed 333 ;  
+			turn head to y-axis 71  speed 333 ;  
+			turn lfoot to z-axis 238  speed 55 ;  
+			turn lfoot to y-axis -99  speed 181 ;  
+			turn lknee to x-axis 1848  speed 2185 ;  
+			turn lshin to x-axis -823  speed 1047 ;  
+			turn lthigh to x-axis -1291  speed 1156 ;  
+			turn lthigh to z-axis -853  speed 52 ;  
+			turn lthigh to y-axis -83  speed 251 ;  
+			turn rfoot to x-axis 698  speed 233 ;  
+			turn rfoot to z-axis 215  speed 53 ;  
+			turn rfoot to y-axis -94  speed 185 ;  
+			turn rknee to x-axis 644  speed 2360 ;  
+			turn rshin to x-axis -211  speed 1134 ;  
+			turn rthigh to x-axis -710  speed 991 ;  
+			turn rthigh to z-axis -825  speed 44 ;  
+			turn rthigh to y-axis -41  speed 229 ;  
+			turn tail to y-axis 345  speed 997 ;  
+		sleep ((33*IDLESPEED) -1);
+		}
+		if (!bMoving) { 
+			move body to x-axis 3816  speed 111617 ;  
+			move body to z-axis -23269  speed 276725 ;  
+			move body to y-axis 96427  speed 442914 ;  
+			turn body to x-axis 457  speed 1514 ;  
+			turn body to z-axis -252  speed 1732 ;  
+			turn body to y-axis -258  speed 660 ;  
+			turn head to x-axis -130  speed 1553 ;  
+			turn head to z-axis 715  speed 1576 ;  
+			turn head to y-axis -258  speed 660 ;  
+			turn lfoot to x-axis 173  speed 787 ;  
+			turn lfoot to z-axis 42  speed 391 ;  
+			turn lfoot to y-axis 135  speed 471 ;  
+			turn lknee to x-axis -1432  speed 6561 ;  
+			turn lshin to x-axis 511  speed 2669 ;  
+			turn lthigh to x-axis 293  speed 3170 ;  
+			turn lthigh to z-axis 212  speed 2131 ;  
+			turn lthigh to y-axis 118  speed 403 ;  
+			turn rfoot to x-axis 440  speed 517 ;  
+			turn rfoot to z-axis 39  speed 352 ;  
+			turn rfoot to y-axis 137  speed 464 ;  
+			turn rknee to x-axis -861  speed 3011 ;  
+			turn rshin to x-axis 253  speed 929 ;  
+			turn rthigh to x-axis -163  speed 1093 ;  
+			turn rthigh to z-axis 213  speed 2078 ;  
+			turn rthigh to y-axis 125  speed 333 ;  
+			turn tail to x-axis 457  speed 1514 ;  
+			turn tail to z-axis -252  speed 1732 ;  
+			turn tail to y-axis 1331  speed 1972 ;  
+		sleep ((33*IDLESPEED) -1);
+		}
+	}
+}
+
+StopIdle() {
+	
+	move body to x-axis 0  speed 410151 ; 
+	move body to y-axis 0  speed 442914 ; 
+	move body to z-axis 0  speed 535912 ; 
+	turn body to x-axis 0.000000 speed 1869 ; 
+	turn body to y-axis 0.000000 speed 1397 ; 
+	turn body to z-axis 0.000000 speed 1732 ; 
+	turn head to x-axis 338.475410 speed 1917 ; 
+	turn head to y-axis 0.000000 speed 1397 ; 
+	turn head to z-axis 485.625322 speed 1576 ; 
+	turn lfoot to x-axis 0.000000 speed 2137 ; 
+	turn lfoot to y-axis 0.000000 speed 687 ; 
+	turn lfoot to z-axis 0.000000 speed 1619 ; 
+	turn lknee to x-axis 0.000000 speed 6561 ; 
+	turn lshin to x-axis 0.000000 speed 2669 ; 
+	turn lthigh to x-axis 0.000000 speed 3170 ; 
+	turn lthigh to y-axis 0.000000 speed 668 ; 
+	turn lthigh to z-axis 0.000000 speed 2131 ; 
+	turn rfoot to x-axis 101.202920 speed 2481 ; 
+	turn rfoot to y-axis 0.000000 speed 661 ; 
+	turn rfoot to z-axis 0.000000 speed 1602 ; 
+	turn rknee to x-axis 51.893478 speed 3011 ; 
+	turn rshin to x-axis 0.000000 speed 1160 ; 
+	turn rthigh to x-axis -44.367232 speed 2208 ; 
+	turn rthigh to y-axis 0.000000 speed 657 ; 
+	turn rthigh to z-axis 0.000000 speed 2078 ; 
+	turn tail to x-axis 0.000000 speed 1869 ; 
+	turn tail to y-axis 559.169702 speed 4175 ; 
+	turn tail to z-axis 0.000000 speed 1732 ; 
+}
+
+
+
+#define DEATHSCALE 100 
+#define DEATHAMPLIDUTE 100 
+#define DEATHSPEED 10
+
+
+
+
+
+
+DeathAnim() {
+	signal SIG_WALK;
+	call-script StopWalking();
+		if (TRUE) { 
+			move body to z-axis -386411  speed 1159233 ;  
+			move body to y-axis -94456  speed 283368 ;  
+			turn body to x-axis -1693  speed 5080 ;  
+			turn head to x-axis -3477  speed 11446 ;  
+			turn head to y-axis 834  speed 2504 ;  
+			turn lfoot to x-axis 1407  speed 4222 ;  
+			turn lknee to x-axis 244  speed 733 ;  
+			turn lshin to x-axis 421  speed 1264 ;  
+			turn lthigh to x-axis -379  speed 1139 ;  
+			turn rfoot to x-axis 1512  speed 4233 ;  
+			turn rknee to x-axis 292  speed 722 ;  
+			turn rshin to x-axis 436  speed 1268 ;  
+			turn rthigh to x-axis -425  speed 1144 ;  
+		sleep ((33*DEATHSPEED) -1);
+		}
+		if (TRUE) { 
+			move body to x-axis 74155  speed 222465 ;  
+			move body to z-axis -965414  speed 1737009 ;  
+			move body to y-axis -495063  speed 1201822 ;  
+			turn head to x-axis -1787  speed 5069 ;  
+			turn head to z-axis 668  speed 582 ;  
+			turn head to y-axis 748  speed 257 ;  
+			turn lfoot to x-axis 4251  speed 8531 ;  
+			turn lfoot to z-axis 360  speed 1082 ;  
+			turn lfoot to y-axis -116  speed 349 ;  
+			turn lknee to x-axis 2095  speed 5551 ;  
+			turn lshin to x-axis -707  speed 3386 ;  
+			turn lthigh to x-axis -3946  speed 10698 ;  
+			turn lthigh to z-axis -352  speed 1057 ;  
+			turn lthigh to y-axis -75  speed 226 ;  
+			turn rfoot to x-axis 2365  speed 2558 ;  
+			turn rfoot to z-axis -4372  speed 13116 ;  
+			turn rfoot to y-axis 1122  speed 3368 ;  
+			turn rknee to x-axis 3050  speed 8273 ;  
+			turn rshin to x-axis -983  speed 4262 ;  
+			turn rthigh to x-axis -2691  speed 6796 ;  
+			turn rthigh to z-axis 4385  speed 13157 ;  
+			turn rthigh to y-axis 764  speed 2293 ;  
+		sleep ((33*DEATHSPEED) -1);
+		}
+		if (TRUE) { 
+			move body to x-axis 110277  speed 108365 ;  
+			move body to z-axis -1414516  speed 1347307 ;  
+			move body to y-axis -2373969  speed 5636718 ;  
+			turn body to x-axis -1906  speed 638 ;  
+			turn body to z-axis -839  speed 2519 ;  
+			turn body to y-axis -2707  speed 8122 ;  
+			turn head to x-axis 3040  speed 14482 ;  
+			turn head to z-axis 1223  speed 1665 ;  
+			turn head to y-axis 503  speed 736 ;  
+			turn lfoot to x-axis 13745  speed 28482 ;  
+			turn lfoot to z-axis 11547  speed 33559 ;  
+			turn lfoot to y-axis -8330  speed 24641 ;  
+
+			turn lknee to x-axis -3895  speed 17970 ;  
+			turn lshin to x-axis 1507  speed 6645 ;  
+			turn lthigh to x-axis -9774  speed 17484 ;  
+			turn lthigh to z-axis -5819  speed 16399 ;  
+			turn lthigh to y-axis -942  speed 2599 ;  
+			turn rfoot to x-axis 9776  speed 22234 ;  
+			turn rfoot to z-axis -13477  speed 27317 ;  
+			turn rfoot to y-axis 9686  speed 25690 ;  
+
+			turn rknee to x-axis 9508  speed 19373 ;  
+			turn rshin to x-axis -5862  speed 14636 ;  
+			turn rthigh to x-axis -10776  speed 24256 ;  
+			turn rthigh to z-axis 16068  speed 35048 ;  
+			turn rthigh to y-axis 13891  speed 39381 ;  
+
+		sleep ((33*DEATHSPEED) -1);
+		sleep ((33*DEATHSPEED) -1);
+		}
+}
+
+
+
+
+#define BASEPIECE body 
+#define HITSPEED 4550.000000
+
+#define UNITSIZE 10
+#define MAXTILT 100
+
+
+
+
+
+
+
+
+
+
+
+
+HitByWeapon(anglex, anglez, damage)	
+{
+	var amount;
+	amount = damage / (100 * UNITSIZE);
+	var randpiece;
+	randpiece = 0;
+	if (amount < 3  ) return (0);
+	
+	if (1){
+		randpiece = RAND(1, 3);
+		if (randpiece == 1) emit-sfx 1024 from body;
+		if (randpiece == 2) emit-sfx 1024 from head;
+		if (randpiece == 3) emit-sfx 1024 from tail;
+	}
+	if (amount > MAXTILT){
+		amount = MAXTILT;
+	}
+	if (anglex ==0 ) { 
+		if (anglez == 0){
+			amount = amount / 2;
+			anglex = RAND(1,500);
+			anglez = RAND(1,500);
+		}
+	}
+	
+	
+	turn BASEPIECE to z-axis (anglez * amount) / 100  speed 4550.000000;
+	turn BASEPIECE to x-axis 0.000000 - (anglex * amount) /100 speed 4550.000000;
+	wait-for-turn BASEPIECE around z-axis;
+	wait-for-turn BASEPIECE around x-axis;
+	turn BASEPIECE to z-axis 0.000000 speed 758 ; 
+	turn BASEPIECE to x-axis 0.000000 speed 758 ; 
+}
+
+static-var isSmoking;
+SmokeUnit(healthpercent, randpiece) 
+{
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+
+		if( healthpercent < 66 )
+		{
+			randpiece = RAND(1, 3);
+			if (randpiece == 1) emit-sfx 1024 from body;
+			if (randpiece == 2) emit-sfx 1024 from head;
+			if (randpiece == 3) emit-sfx 1024 from tail;
+		}
+		else {
+			isSmoking = 0;
+			return;
+			
+		}
+		if (healthpercent < 4) healthpercent = 4;
+		sleep healthpercent * 50;
+	}
+	sleep 97;
+	isSmoking = 0;
+}
+
+HitByWeaponId(anglex, anglez, weaponid, dmg) 
+{
+	if( get BUILD_PERCENT_LEFT) return (100);
+	if (isSmoking == 0)	{
+		isSmoking = 1;
+		start-script SmokeUnit();
+	}
+	
+	start-script HitByWeapon(dmg, anglez,anglex); 
+	return (100); 
+}
+
+
+
+
+
+static-var DEATHSPEEDPTAQ;
+
+DeathAnimPtaq() {
+	signal SIG_WALK;
+	call-script StopWalking();
+	turn aimy1 to y-axis 0.000000 speed 21840.000000;
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 3;
+			move head to x-axis 14123  speed 423705 / DEATHSPEEDPTAQ; 
+			move head to z-axis -645721  speed 19371645 / DEATHSPEEDPTAQ; 
+			move head to y-axis 53888  speed 1616657 / DEATHSPEEDPTAQ; 
+			turn head to x-axis 3173  speed 85051 / DEATHSPEEDPTAQ; 
+			turn head to z-axis 433  speed 1568 / DEATHSPEEDPTAQ; 
+			turn head to y-axis 601  speed 18034 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis 1892  speed 56775 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis 1368  speed 41049 / DEATHSPEEDPTAQ; 
+			turn lfoot to y-axis 280  speed 8422 / DEATHSPEEDPTAQ; 
+			turn lknee to x-axis 2148  speed 64455 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis 43  speed 1295 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis -978  speed 29347 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -1437  speed 43118 / DEATHSPEEDPTAQ; 
+			turn lthigh to y-axis 490  speed 14700 / DEATHSPEEDPTAQ; 
+			turn rfoot to x-axis 2633  speed 75973 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis -704  speed 21137 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis 124  speed 3723 / DEATHSPEEDPTAQ; 
+			turn rknee to x-axis -5436  speed 164656 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis 2646  speed 78963 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis 271  speed 9471 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis 674  speed 20243 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -130  speed 3909 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis -1129  speed 33877 / DEATHSPEEDPTAQ; 
+			turn tail to z-axis -22  speed 660 / DEATHSPEEDPTAQ; 
+			turn tail to y-axis 126  speed 12983 / DEATHSPEEDPTAQ; 
+		
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		signal SIG_WALK;
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 1;
+			move head to y-axis -18037  speed 2157788 / DEATHSPEEDPTAQ; 
+			turn head to x-axis 3369  speed 5869 / DEATHSPEEDPTAQ; 
+			turn head to z-axis 457  speed 729 / DEATHSPEEDPTAQ; 
+			turn head to y-axis 684  speed 2493 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis 2618  speed 21787 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis 1944  speed 17300 / DEATHSPEEDPTAQ; 
+			turn lfoot to y-axis 226  speed 1612 / DEATHSPEEDPTAQ; 
+			turn lknee to x-axis 2650  speed 15048 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis 182  speed 4173 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis -1269  speed 8746 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -1983  speed 16396 / DEATHSPEEDPTAQ; 
+			turn lthigh to y-axis 518  speed 867 / DEATHSPEEDPTAQ; 
+			turn rfoot to x-axis 3241  speed 18249 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis -906  speed 6062 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis 189  speed 1967 / DEATHSPEEDPTAQ; 
+			turn rknee to x-axis -7978  speed 76241 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis 4083  speed 43108 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis 758  speed 14609 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis 852  speed 5331 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -233  speed 3097 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis -1505  speed 11292 / DEATHSPEEDPTAQ; 
+			turn tail to y-axis -17  speed 4327 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 1;
+			move body to x-axis -14458  speed 433745 / DEATHSPEEDPTAQ; 
+			move body to z-axis -586801  speed 17604037 / DEATHSPEEDPTAQ; 
+			move body to y-axis 431816  speed 12954506 / DEATHSPEEDPTAQ; 
+			turn head to x-axis 3106  speed 7882 / DEATHSPEEDPTAQ; 
+			turn head to y-axis 575  speed 3272 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis 3382  speed 22913 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis 2593  speed 19449 / DEATHSPEEDPTAQ; 
+			turn lfoot to y-axis 51  speed 5259 / DEATHSPEEDPTAQ; 
+			turn lknee to x-axis 3041  speed 11756 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis 381  speed 5962 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis -1535  speed 7956 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -2561  speed 17326 / DEATHSPEEDPTAQ; 
+			turn rfoot to x-axis 3658  speed 12504 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis -1091  speed 5551 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis 260  speed 2130 / DEATHSPEEDPTAQ; 
+			turn rknee to x-axis -11166  speed 95656 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis 6073  speed 59694 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis 1526  speed 23044 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis 1015  speed 4882 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -383  speed 4485 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis -1905  speed 11992 / DEATHSPEEDPTAQ; 
+			turn tail to z-axis -135  speed 3174 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 2;
+			move body to x-axis -63590  speed 1473961 / DEATHSPEEDPTAQ; 
+			move body to z-axis -837594  speed 7523797 / DEATHSPEEDPTAQ; 
+			move body to y-axis 243241  speed 5657263 / DEATHSPEEDPTAQ; 
+			move head to z-axis -298086  speed 10429036 / DEATHSPEEDPTAQ; 
+			turn head to x-axis 2580  speed 15764 / DEATHSPEEDPTAQ; 
+			turn head to z-axis 403  speed 1080 / DEATHSPEEDPTAQ; 
+			turn head to y-axis 357  speed 6545 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis 3094  speed 8645 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis 2766  speed 5207 / DEATHSPEEDPTAQ; 
+			turn lfoot to y-axis 661  speed 18298 / DEATHSPEEDPTAQ; 
+			turn lknee to x-axis 2892  speed 4473 / DEATHSPEEDPTAQ; 
+			turn lknee to z-axis 989  speed 29713 / DEATHSPEEDPTAQ; 
+			turn lknee to y-axis -988  speed 29637 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis 42  speed 10163 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis -1894  speed 10793 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -3331  speed 23092 / DEATHSPEEDPTAQ; 
+			turn lthigh to y-axis 943  speed 13274 / DEATHSPEEDPTAQ; 
+			turn rfoot to x-axis 4636  speed 29339 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis -143  speed 28459 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis -981  speed 37259 / DEATHSPEEDPTAQ; 
+			turn rknee to x-axis -9697  speed 44069 / DEATHSPEEDPTAQ; 
+			turn rknee to z-axis 1039  speed 31170 / DEATHSPEEDPTAQ; 
+			turn rknee to y-axis 1517  speed 45482 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis 5209  speed 25918 / DEATHSPEEDPTAQ; 
+			turn rshin to z-axis -208  speed 6241 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -20  speed 623 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis -109  speed 49085 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis 469  speed 16368 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -1070  speed 20621 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis -2704  speed 23984 / DEATHSPEEDPTAQ; 
+			turn tail to z-axis -346  speed 6348 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 1;
+			turn head to x-axis 2164  speed 12479 / DEATHSPEEDPTAQ; 
+			turn head to y-axis 247  speed 3272 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis 2891  speed 6090 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis 2896  speed 3892 / DEATHSPEEDPTAQ; 
+			turn lfoot to y-axis 965  speed 9126 / DEATHSPEEDPTAQ; 
+			turn lknee to x-axis 3018  speed 3761 / DEATHSPEEDPTAQ; 
+			turn lknee to z-axis 1488  speed 14968 / DEATHSPEEDPTAQ; 
+			turn lknee to y-axis -1471  speed 14474 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis -231  speed 8210 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis -2146  speed 7542 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -3767  speed 13098 / DEATHSPEEDPTAQ; 
+			turn lthigh to y-axis 1100  speed 4702 / DEATHSPEEDPTAQ; 
+			turn rfoot to x-axis 5107  speed 14135 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis 416  speed 16796 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis -1593  speed 18376 / DEATHSPEEDPTAQ; 
+			turn rknee to x-axis -8651  speed 31375 / DEATHSPEEDPTAQ; 
+			turn rknee to z-axis 1352  speed 9385 / DEATHSPEEDPTAQ; 
+			turn rknee to y-axis 1941  speed 12723 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis 4622  speed 17612 / DEATHSPEEDPTAQ; 
+			turn rshin to z-axis -303  speed 2876 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -51  speed 905 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis -1065  speed 28670 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis 139  speed 9910 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -1349  speed 8360 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis -3104  speed 11992 / DEATHSPEEDPTAQ; 
+			turn tail to z-axis -452  speed 3174 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 3;
+			move body to x-axis -155535  speed 2758367 / DEATHSPEEDPTAQ; 
+			move body to z-axis -1286402  speed 13464232 / DEATHSPEEDPTAQ; 
+			move body to y-axis -248042  speed 14738527 / DEATHSPEEDPTAQ; 
+			move head to z-axis -196117  speed 3059076 / DEATHSPEEDPTAQ; 
+			turn head to x-axis 917  speed 37439 / DEATHSPEEDPTAQ; 
+			turn head to z-axis 331  speed 1620 / DEATHSPEEDPTAQ; 
+			turn head to y-axis -79  speed 9817 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis -204  speed 92866 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis 4271  speed 41243 / DEATHSPEEDPTAQ; 
+			turn lfoot to y-axis 2606  speed 49234 / DEATHSPEEDPTAQ; 
+			turn lknee to x-axis -1547  speed 136961 / DEATHSPEEDPTAQ; 
+			turn lknee to z-axis 2863  speed 41245 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis 462  speed 20829 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis -257  speed 56647 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -6200  speed 72992 / DEATHSPEEDPTAQ; 
+			turn lthigh to y-axis 2425  speed 39743 / DEATHSPEEDPTAQ; 
+			turn rfoot to x-axis 6638  speed 45910 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis 2646  speed 66884 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis -3503  speed 57280 / DEATHSPEEDPTAQ; 
+			turn rknee to x-axis -6855  speed 53890 / DEATHSPEEDPTAQ; 
+			turn rknee to z-axis 2052  speed 20976 / DEATHSPEEDPTAQ; 
+			turn rknee to y-axis 2672  speed 21923 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis 3227  speed 41849 / DEATHSPEEDPTAQ; 
+			turn rshin to z-axis -577  speed 8203 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -190  speed 4175 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis -3237  speed 65159 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis -883  speed 30679 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -2171  speed 24683 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis 1009  speed 123438 / DEATHSPEEDPTAQ; 
+			turn tail to z-axis -86  speed 10984 / DEATHSPEEDPTAQ; 
+			turn tail to y-axis 864  speed 26178 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 2;
+			move body to x-axis -129150  speed 791551 / DEATHSPEEDPTAQ; 
+			move body to z-axis -1329583  speed 1295445 / DEATHSPEEDPTAQ; 
+			move body to y-axis -581348  speed 9999179 / DEATHSPEEDPTAQ; 
+			turn body to x-axis 25  speed 776 / DEATHSPEEDPTAQ; 
+			turn body to z-axis 106  speed 3201 / DEATHSPEEDPTAQ; 
+			turn body to y-axis 234  speed 7041 / DEATHSPEEDPTAQ; 
+			move head to x-axis -4352  speed 492926 / DEATHSPEEDPTAQ; 
+			move head to z-axis -118531  speed 2327592 / DEATHSPEEDPTAQ; 
+			move head to y-axis 3340  speed 641356 / DEATHSPEEDPTAQ; 
+			turn head to x-axis 393  speed 15704 / DEATHSPEEDPTAQ; 
+			turn head to z-axis 572  speed 7240 / DEATHSPEEDPTAQ; 
+			turn head to y-axis 505  speed 17553 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis 299  speed 15104 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis 4421  speed 4495 / DEATHSPEEDPTAQ; 
+			turn lfoot to y-axis 3342  speed 22078 / DEATHSPEEDPTAQ; 
+			turn lknee to x-axis 1574  speed 93639 / DEATHSPEEDPTAQ; 
+			turn lknee to z-axis 3795  speed 27967 / DEATHSPEEDPTAQ; 
+			turn lknee to y-axis -2944  speed 44468 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis -1158  speed 48656 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis -1848  speed 47724 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -7139  speed 28166 / DEATHSPEEDPTAQ; 
+			turn lthigh to y-axis 2177  speed 7418 / DEATHSPEEDPTAQ; 
+			turn rfoot to x-axis 7963  speed 39759 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis 3200  speed 16635 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis -4278  speed 23265 / DEATHSPEEDPTAQ; 
+			turn rknee to x-axis -4012  speed 85278 / DEATHSPEEDPTAQ; 
+			turn rknee to y-axis 2279  speed 11794 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis 274  speed 88590 / DEATHSPEEDPTAQ; 
+			turn rshin to z-axis -735  speed 4744 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -471  speed 8435 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis -4614  speed 41302 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis -1273  speed 11689 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -2279  speed 3217 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis 3528  speed 75541 / DEATHSPEEDPTAQ; 
+			turn tail to z-axis -567  speed 14444 / DEATHSPEEDPTAQ; 
+			turn tail to y-axis 457  speed 12205 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 2;
+			turn body to x-axis 90  speed 1940 / DEATHSPEEDPTAQ; 
+			turn body to z-axis 373  speed 8004 / DEATHSPEEDPTAQ; 
+			turn body to y-axis 821  speed 17604 / DEATHSPEEDPTAQ; 
+			move head to x-axis 20686  speed 751170 / DEATHSPEEDPTAQ; 
+			move head to z-axis -37563  speed 2429029 / DEATHSPEEDPTAQ; 
+			move head to y-axis -16301  speed 589270 / DEATHSPEEDPTAQ; 
+			turn head to x-axis -120  speed 15431 / DEATHSPEEDPTAQ; 
+			turn head to z-axis 828  speed 7655 / DEATHSPEEDPTAQ; 
+			turn head to y-axis 1242  speed 22097 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis 862  speed 16886 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis 4996  speed 17243 / DEATHSPEEDPTAQ; 
+			turn lfoot to y-axis 3938  speed 17856 / DEATHSPEEDPTAQ; 
+			turn lknee to x-axis 2585  speed 30334 / DEATHSPEEDPTAQ; 
+			turn lknee to z-axis 4802  speed 30193 / DEATHSPEEDPTAQ; 
+			turn lknee to y-axis -3960  speed 30467 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis -1735  speed 17297 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis -2453  speed 18130 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -8750  speed 48320 / DEATHSPEEDPTAQ; 
+			turn lthigh to y-axis 1713  speed 13920 / DEATHSPEEDPTAQ; 
+			turn rfoot to x-axis 8776  speed 24399 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis 4250  speed 31498 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis -5341  speed 31879 / DEATHSPEEDPTAQ; 
+			turn rknee to x-axis -2246  speed 52982 / DEATHSPEEDPTAQ; 
+			turn rknee to z-axis 1987  speed 1557 / DEATHSPEEDPTAQ; 
+			turn rknee to y-axis 1917  speed 10840 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis -2764  speed 91155 / DEATHSPEEDPTAQ; 
+			turn rshin to z-axis -957  speed 6661 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -867  speed 11893 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis -4508  speed 3178 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis -1730  speed 13719 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -2645  speed 10988 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis 4085  speed 16732 / DEATHSPEEDPTAQ; 
+			turn tail to z-axis -507  speed 1825 / DEATHSPEEDPTAQ; 
+			turn tail to y-axis 622  speed 4963 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 2;
+			move body to x-axis 95569  speed 6741595 / DEATHSPEEDPTAQ; 
+			move body to z-axis -1234756  speed 2844817 / DEATHSPEEDPTAQ; 
+			move body to y-axis -988938  speed 12227683 / DEATHSPEEDPTAQ; 
+			turn body to x-axis 155  speed 1940 / DEATHSPEEDPTAQ; 
+			turn body to z-axis 640  speed 8004 / DEATHSPEEDPTAQ; 
+			turn body to y-axis 1408  speed 17604 / DEATHSPEEDPTAQ; 
+			turn head to x-axis -811  speed 20721 / DEATHSPEEDPTAQ; 
+			turn head to z-axis 955  speed 3818 / DEATHSPEEDPTAQ; 
+			turn head to y-axis 987  speed 7653 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis 1588  speed 21778 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis 5821  speed 24775 / DEATHSPEEDPTAQ; 
+			turn lfoot to y-axis 4485  speed 16425 / DEATHSPEEDPTAQ; 
+			turn lknee to x-axis 3116  speed 15939 / DEATHSPEEDPTAQ; 
+			turn lknee to z-axis 5788  speed 29592 / DEATHSPEEDPTAQ; 
+			turn lknee to y-axis -4816  speed 25681 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis -2131  speed 11879 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis -2700  speed 7419 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -10619  speed 56075 / DEATHSPEEDPTAQ; 
+			turn lthigh to y-axis 1001  speed 21362 / DEATHSPEEDPTAQ; 
+			turn rfoot to x-axis 10165  speed 41647 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis 6813  speed 76872 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis -7464  speed 63695 / DEATHSPEEDPTAQ; 
+			turn rknee to x-axis -2227  speed 583 / DEATHSPEEDPTAQ; 
+			turn rknee to z-axis 1791  speed 5882 / DEATHSPEEDPTAQ; 
+			turn rknee to y-axis 1803  speed 3441 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis -6515  speed 112530 / DEATHSPEEDPTAQ; 
+			turn rshin to z-axis -1378  speed 12640 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -1552  speed 20528 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis -2940  speed 47014 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis -1961  speed 6929 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -2910  speed 7954 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis 4643  speed 16732 / DEATHSPEEDPTAQ; 
+			turn tail to z-axis -446  speed 1825 / DEATHSPEEDPTAQ; 
+			turn tail to y-axis 788  speed 4963 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 1;
+			turn body to x-axis 241  speed 2576 / DEATHSPEEDPTAQ; 
+			turn body to z-axis 612  speed 838 / DEATHSPEEDPTAQ; 
+			turn body to y-axis 1659  speed 7546 / DEATHSPEEDPTAQ; 
+			move head to x-axis 12078  speed 258244 / DEATHSPEEDPTAQ; 
+			move head to z-axis -226441  speed 5666326 / DEATHSPEEDPTAQ; 
+			turn head to x-axis -1156  speed 10360 / DEATHSPEEDPTAQ; 
+			turn head to z-axis 1019  speed 1909 / DEATHSPEEDPTAQ; 
+			turn head to y-axis 859  speed 3826 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis -79  speed 50016 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis 7056  speed 37049 / DEATHSPEEDPTAQ; 
+			turn lfoot to y-axis 4437  speed 1440 / DEATHSPEEDPTAQ; 
+			turn lknee to x-axis 3624  speed 15234 / DEATHSPEEDPTAQ; 
+			turn lknee to z-axis 6346  speed 16733 / DEATHSPEEDPTAQ; 
+			turn lknee to y-axis -5437  speed 18645 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis -1888  speed 7290 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis -1968  speed 21962 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -11759  speed 34191 / DEATHSPEEDPTAQ; 
+			turn lthigh to y-axis -31  speed 30990 / DEATHSPEEDPTAQ; 
+			turn rfoot to x-axis 11480  speed 39460 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis 7702  speed 26675 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis -8633  speed 35058 / DEATHSPEEDPTAQ; 
+			turn rknee to x-axis -1885  speed 10252 / DEATHSPEEDPTAQ; 
+			turn rknee to y-axis 1745  speed 1729 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis -7846  speed 39944 / DEATHSPEEDPTAQ; 
+			turn rshin to z-axis -1666  speed 8616 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -1949  speed 11921 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis -3471  speed 15902 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis -1590  speed 11118 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -2771  speed 4184 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis 5284  speed 19226 / DEATHSPEEDPTAQ; 
+			turn tail to z-axis -388  speed 1724 / DEATHSPEEDPTAQ; 
+			turn tail to y-axis 830  speed 1257 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 2;
+			move body to x-axis 154315  speed 1762391 / DEATHSPEEDPTAQ; 
+			move body to z-axis -1500987  speed 7986918 / DEATHSPEEDPTAQ; 
+			move body to y-axis -1648021  speed 19772508 / DEATHSPEEDPTAQ; 
+			turn body to x-axis 412  speed 5152 / DEATHSPEEDPTAQ; 
+			turn body to z-axis 556  speed 1676 / DEATHSPEEDPTAQ; 
+			turn body to y-axis 2162  speed 15092 / DEATHSPEEDPTAQ; 
+			move head to x-axis 25824  speed 412378 / DEATHSPEEDPTAQ; 
+			move head to z-axis -65604  speed 4825106 / DEATHSPEEDPTAQ; 
+			move head to y-axis 106509  speed 3736408 / DEATHSPEEDPTAQ; 
+			turn head to x-axis -2963  speed 54195 / DEATHSPEEDPTAQ; 
+			turn head to z-axis 3042  speed 60715 / DEATHSPEEDPTAQ; 
+			turn head to y-axis 742  speed 3529 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis -4069  speed 119713 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis 9480  speed 72700 / DEATHSPEEDPTAQ; 
+			turn lfoot to y-axis 5082  speed 19351 / DEATHSPEEDPTAQ; 
+			turn lknee to x-axis 3447  speed 5305 / DEATHSPEEDPTAQ; 
+			turn lknee to z-axis 7156  speed 24303 / DEATHSPEEDPTAQ; 
+			turn lknee to y-axis -5787  speed 10493 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis -3  speed 56537 / DEATHSPEEDPTAQ; 
+			turn lshin to z-axis -27  speed 617 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis 41  speed 60305 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -13657  speed 56940 / DEATHSPEEDPTAQ; 
+			turn lthigh to y-axis -1542  speed 45349 / DEATHSPEEDPTAQ; 
+			turn rfoot to x-axis 13735  speed 67656 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis 12834  speed 153967 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis -14572  speed 178191 / DEATHSPEEDPTAQ; 
+			turn rknee to x-axis -1941  speed 1690 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis -9585  speed 52151 / DEATHSPEEDPTAQ; 
+			turn rshin to z-axis -2326  speed 19814 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -2794  speed 25358 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis -4748  speed 38323 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis -760  speed 24901 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -2666  speed 3141 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis 6566  speed 38452 / DEATHSPEEDPTAQ; 
+			turn tail to z-axis -273  speed 3449 / DEATHSPEEDPTAQ; 
+			turn tail to y-axis 914  speed 2515 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 3;
+			move body to x-axis 212381  speed 1741995 / DEATHSPEEDPTAQ; 
+			move body to z-axis -1541595  speed 1218239 / DEATHSPEEDPTAQ; 
+			move body to y-axis -2031287  speed 11497976 / DEATHSPEEDPTAQ; 
+			turn body to x-axis 924  speed 15348 / DEATHSPEEDPTAQ; 
+			turn body to z-axis 4590  speed 121013 / DEATHSPEEDPTAQ; 
+			turn body to y-axis 2392  speed 6896 / DEATHSPEEDPTAQ; 
+			move head to x-axis 12078  speed 412377 / DEATHSPEEDPTAQ; 
+			move head to z-axis -226441  speed 4825106 / DEATHSPEEDPTAQ; 
+			move head to y-axis -18037  speed 3736408 / DEATHSPEEDPTAQ; 
+			turn head to x-axis -4462  speed 44975 / DEATHSPEEDPTAQ; 
+			turn head to z-axis 2899  speed 4295 / DEATHSPEEDPTAQ; 
+			turn head to y-axis -118  speed 25828 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis -6665  speed 77894 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis 19678  speed 305941 / DEATHSPEEDPTAQ; 
+			turn lfoot to y-axis 13558  speed 254285 / DEATHSPEEDPTAQ; 
+			turn lknee to x-axis 1355  speed 62776 / DEATHSPEEDPTAQ; 
+			turn lknee to z-axis 6814  speed 10254 / DEATHSPEEDPTAQ; 
+			turn lknee to y-axis -4501  speed 38585 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis 5906  speed 177306 / DEATHSPEEDPTAQ; 
+			turn lshin to z-axis -269  speed 7242 / DEATHSPEEDPTAQ; 
+			turn lshin to y-axis 131  speed 3688 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis 5508  speed 163990 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -18446  speed 143673 / DEATHSPEEDPTAQ; 
+			turn lthigh to y-axis 204  speed 52417 / DEATHSPEEDPTAQ; 
+			turn rfoot to x-axis 13894  speed 4771 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis 4763  speed 242131 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis -11008  speed 106923 / DEATHSPEEDPTAQ; 
+			turn rknee to x-axis -3908  speed 58987 / DEATHSPEEDPTAQ; 
+			turn rknee to z-axis 1879  speed 3004 / DEATHSPEEDPTAQ; 
+			turn rknee to y-axis 2122  speed 10911 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis -7907  speed 50345 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -2745  speed 1471 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis -3992  speed 22669 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis -181  speed 17378 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -2048  speed 18536 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis 6177  speed 11658 / DEATHSPEEDPTAQ; 
+			turn tail to z-axis -234  speed 1183 / DEATHSPEEDPTAQ; 
+			turn tail to y-axis 692  speed 6641 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 1;
+			turn head to x-axis -4589  speed 3812 / DEATHSPEEDPTAQ; 
+			turn head to z-axis 2873  speed 797 / DEATHSPEEDPTAQ; 
+			turn head to y-axis -220  speed 3036 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis 22032  speed 70612 / DEATHSPEEDPTAQ; 
+			turn lfoot to y-axis 15811  speed 67567 / DEATHSPEEDPTAQ; 
+			turn lknee to x-axis 1824  speed 14070 / DEATHSPEEDPTAQ; 
+			turn lknee to z-axis 6950  speed 4065 / DEATHSPEEDPTAQ; 
+			turn lknee to y-axis -5131  speed 18913 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis 7272  speed 40988 / DEATHSPEEDPTAQ; 
+			turn lshin to z-axis -443  speed 5236 / DEATHSPEEDPTAQ; 
+			turn lshin to y-axis 228  speed 2884 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis 5813  speed 9157 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -17612  speed 25015 / DEATHSPEEDPTAQ; 
+			turn lthigh to y-axis -46  speed 7533 / DEATHSPEEDPTAQ; 
+			turn rfoot to x-axis 14868  speed 29209 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis 6940  speed 65315 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis -13687  speed 80360 / DEATHSPEEDPTAQ; 
+			turn rknee to x-axis -3631  speed 8305 / DEATHSPEEDPTAQ; 
+			turn rknee to z-axis 1860  speed 577 / DEATHSPEEDPTAQ; 
+			turn rknee to y-axis 2070  speed 1563 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis -8557  speed 19521 / DEATHSPEEDPTAQ; 
+			turn rshin to z-axis -2451  speed 3802 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -3178  speed 12976 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis -4432  speed 13184 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis 541  speed 21675 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -2194  speed 4388 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis 6048  speed 3886 / DEATHSPEEDPTAQ; 
+			turn tail to y-axis 618  speed 2213 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 1;
+			move body to x-axis 31664  speed 5421527 / DEATHSPEEDPTAQ; 
+			move body to z-axis -1561272  speed 590313 / DEATHSPEEDPTAQ; 
+			move body to y-axis -2475293  speed 13320180 / DEATHSPEEDPTAQ; 
+			turn head to x-axis -3229  speed 40809 / DEATHSPEEDPTAQ; 
+			turn head to z-axis 3068  speed 5848 / DEATHSPEEDPTAQ; 
+			turn head to y-axis 473  speed 20800 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis -26403  speed 592294 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis -8212  speed 907337 / DEATHSPEEDPTAQ; 
+
+			turn lfoot to y-axis -14190  speed 900041 / DEATHSPEEDPTAQ; 
+
+			move lknee to x-axis 18857  speed 565733 / DEATHSPEEDPTAQ; 
+			move lknee to z-axis 20183  speed 605519 / DEATHSPEEDPTAQ; 
+			move lknee to y-axis -134269  speed 4028071 / DEATHSPEEDPTAQ; 
+			turn lknee to x-axis 1905  speed 2452 / DEATHSPEEDPTAQ; 
+			turn lknee to z-axis 7323  speed 11192 / DEATHSPEEDPTAQ; 
+			turn lknee to y-axis -6347  speed 36482 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis 9600  speed 69840 / DEATHSPEEDPTAQ; 
+			turn lshin to z-axis -1226  speed 23473 / DEATHSPEEDPTAQ; 
+			turn lshin to y-axis 620  speed 11774 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis 4824  speed 29680 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -16285  speed 39824 / DEATHSPEEDPTAQ; 
+			turn lthigh to y-axis -152  speed 3163 / DEATHSPEEDPTAQ; 
+			turn rfoot to x-axis 17146  speed 68351 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis -19189  speed 783910 / DEATHSPEEDPTAQ; 
+
+			turn rfoot to y-axis 11883  speed 767138 / DEATHSPEEDPTAQ; 
+
+			turn rknee to x-axis -3462  speed 5050 / DEATHSPEEDPTAQ; 
+			turn rknee to y-axis 2039  speed 928 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis -8911  speed 10603 / DEATHSPEEDPTAQ; 
+			turn rshin to z-axis -2517  speed 1977 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -3520  speed 10248 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis -4963  speed 15945 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis 1286  speed 22357 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -2365  speed 5124 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis 4822  speed 36757 / DEATHSPEEDPTAQ; 
+			turn tail to z-axis -326  speed 3146 / DEATHSPEEDPTAQ; 
+			turn tail to y-axis 87  speed 15954 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 2;
+			move body to x-axis 42695  speed 330948 / DEATHSPEEDPTAQ; 
+			move body to y-axis -2330989  speed 4329120 / DEATHSPEEDPTAQ; 
+			turn head to x-axis -1932  speed 38906 / DEATHSPEEDPTAQ; 
+			turn head to z-axis 3418  speed 10498 / DEATHSPEEDPTAQ; 
+			turn head to y-axis 1091  speed 18560 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis -6412  speed 599729 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis 22489  speed 921049 / DEATHSPEEDPTAQ; 
+
+			turn lfoot to y-axis 15950  speed 904226 / DEATHSPEEDPTAQ; 
+
+			turn lknee to x-axis 1880  speed 765 / DEATHSPEEDPTAQ; 
+			turn lknee to z-axis 6970  speed 10564 / DEATHSPEEDPTAQ; 
+			turn lknee to y-axis -5195  speed 34560 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis 7145  speed 73642 / DEATHSPEEDPTAQ; 
+			turn lshin to z-axis -450  speed 23253 / DEATHSPEEDPTAQ; 
+			turn lshin to y-axis 227  speed 11799 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis 6050  speed 36783 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -17797  speed 45358 / DEATHSPEEDPTAQ; 
+			turn lthigh to y-axis 399  speed 16539 / DEATHSPEEDPTAQ; 
+			turn rfoot to x-axis 15415  speed 51951 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis 2204  speed 641835 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis -9178  speed 631858 / DEATHSPEEDPTAQ; 
+
+			turn rknee to x-axis -3246  speed 6500 / DEATHSPEEDPTAQ; 
+			turn rknee to y-axis 2000  speed 1174 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis -8512  speed 11954 / DEATHSPEEDPTAQ; 
+			turn rshin to z-axis -2351  speed 4984 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -3802  speed 8463 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis -4673  speed 8718 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis 1235  speed 1519 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -1784  speed 17442 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis 1029  speed 113807 / DEATHSPEEDPTAQ; 
+			turn tail to z-axis -987  speed 19851 / DEATHSPEEDPTAQ; 
+			turn tail to y-axis -2215  speed 69079 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 2;
+			move body to x-axis 29862  speed 385020 / DEATHSPEEDPTAQ; 
+			move body to z-axis -1567801  speed 321558 / DEATHSPEEDPTAQ; 
+			move body to y-axis -2547422  speed 6492967 / DEATHSPEEDPTAQ; 
+			turn head to x-axis 556  speed 74681 / DEATHSPEEDPTAQ; 
+			turn head to z-axis 3853  speed 13051 / DEATHSPEEDPTAQ; 
+			turn head to y-axis 2365  speed 38207 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis -5807  speed 18137 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis 24432  speed 58309 / DEATHSPEEDPTAQ; 
+			turn lfoot to y-axis 17525  speed 47253 / DEATHSPEEDPTAQ; 
+			turn lknee to x-axis 961  speed 27573 / DEATHSPEEDPTAQ; 
+			turn lknee to z-axis 7177  speed 6200 / DEATHSPEEDPTAQ; 
+			turn lknee to y-axis -5578  speed 11471 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis 9256  speed 63311 / DEATHSPEEDPTAQ; 
+			turn lshin to z-axis -1194  speed 22291 / DEATHSPEEDPTAQ; 
+			turn lshin to y-axis 570  speed 10288 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis 5637  speed 12368 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -17762  speed 1027 / DEATHSPEEDPTAQ; 
+			turn lthigh to y-axis 879  speed 14408 / DEATHSPEEDPTAQ; 
+			turn rfoot to x-axis 16466  speed 31534 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis -12247  speed 433572 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis 5008  speed 425593 / DEATHSPEEDPTAQ; 
+
+			turn rknee to x-axis -2826  speed 12585 / DEATHSPEEDPTAQ; 
+			turn rknee to z-axis 1811  speed 713 / DEATHSPEEDPTAQ; 
+			turn rknee to y-axis 1925  speed 2234 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis -8914  speed 12061 / DEATHSPEEDPTAQ; 
+			turn rshin to z-axis -2395  speed 1319 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -4361  speed 16792 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis -5372  speed 20976 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis 1862  speed 18788 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -1568  speed 6461 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis -2593  speed 108679 / DEATHSPEEDPTAQ; 
+			turn tail to z-axis -3113  speed 63773 / DEATHSPEEDPTAQ; 
+			turn tail to y-axis -4614  speed 71984 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 2;
+			turn head to x-axis -168  speed 21776 / DEATHSPEEDPTAQ; 
+			turn head to z-axis 3712  speed 4225 / DEATHSPEEDPTAQ; 
+			turn head to y-axis 1998  speed 11006 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis -5526  speed 8451 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis 24513  speed 2415 / DEATHSPEEDPTAQ; 
+			turn lfoot to y-axis 17228  speed 8903 / DEATHSPEEDPTAQ; 
+			turn lknee to x-axis 461  speed 14997 / DEATHSPEEDPTAQ; 
+			turn lknee to y-axis -5377  speed 6014 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis 9314  speed 1759 / DEATHSPEEDPTAQ; 
+			turn lshin to z-axis -1308  speed 3447 / DEATHSPEEDPTAQ; 
+			turn lshin to y-axis 599  speed 891 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis 5739  speed 3039 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -18370  speed 18223 / DEATHSPEEDPTAQ; 
+			turn lthigh to y-axis 1390  speed 15334 / DEATHSPEEDPTAQ; 
+			turn rfoot to x-axis 16755  speed 8691 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis 11617  speed 715934 / DEATHSPEEDPTAQ; 
+
+			turn rfoot to y-axis -18867  speed 716265 / DEATHSPEEDPTAQ; 
+
+			turn rknee to x-axis -2366  speed 13808 / DEATHSPEEDPTAQ; 
+			turn rknee to z-axis 1788  speed 678 / DEATHSPEEDPTAQ; 
+			turn rknee to y-axis 1846  speed 2396 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis -8871  speed 1305 / DEATHSPEEDPTAQ; 
+			turn rshin to z-axis -2323  speed 2179 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -4762  speed 12016 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis -5693  speed 9642 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis 2202  speed 10198 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -1154  speed 12426 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis -1337  speed 37666 / DEATHSPEEDPTAQ; 
+			turn tail to z-axis -2497  speed 18493 / DEATHSPEEDPTAQ; 
+			turn tail to y-axis -3673  speed 28253 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 4;
+			move body to x-axis 13678  speed 485494 / DEATHSPEEDPTAQ; 
+			move body to z-axis -1575511  speed 231277 / DEATHSPEEDPTAQ; 
+			move body to y-axis -2697241  speed 4494592 / DEATHSPEEDPTAQ; 
+			turn head to x-axis 497  speed 19997 / DEATHSPEEDPTAQ; 
+			turn head to z-axis 3890  speed 5341 / DEATHSPEEDPTAQ; 
+			turn head to y-axis 2326  speed 9839 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis -4975  speed 16519 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis 24641  speed 3859 / DEATHSPEEDPTAQ; 
+			turn lfoot to y-axis 16657  speed 17134 / DEATHSPEEDPTAQ; 
+			turn lknee to x-axis -572  speed 31019 / DEATHSPEEDPTAQ; 
+			turn lknee to z-axis 7297  speed 3220 / DEATHSPEEDPTAQ; 
+			turn lknee to y-axis -5048  speed 9872 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis 9455  speed 4224 / DEATHSPEEDPTAQ; 
+			turn lshin to z-axis -1592  speed 8512 / DEATHSPEEDPTAQ; 
+			turn lshin to y-axis 665  speed 1954 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -19546  speed 35288 / DEATHSPEEDPTAQ; 
+			turn lthigh to y-axis 2375  speed 29547 / DEATHSPEEDPTAQ; 
+			turn rfoot to x-axis 14906  speed 55499 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis -18285  speed 897089 / DEATHSPEEDPTAQ; 
+
+			turn rfoot to y-axis 11015  speed 896465 / DEATHSPEEDPTAQ; 
+
+			turn rknee to x-axis -1059  speed 39217 / DEATHSPEEDPTAQ; 
+			turn rknee to z-axis 1744  speed 1310 / DEATHSPEEDPTAQ; 
+			turn rknee to y-axis 1627  speed 6566 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis -8471  speed 11996 / DEATHSPEEDPTAQ; 
+			turn rshin to z-axis -2112  speed 6306 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -5464  speed 21054 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis -6647  speed 28619 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis 2988  speed 23584 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -155  speed 29964 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis -3806  speed 74057 / DEATHSPEEDPTAQ; 
+			turn tail to z-axis -4009  speed 45379 / DEATHSPEEDPTAQ; 
+			turn tail to y-axis -5830  speed 64723 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 28;
+			move body to x-axis -80346  speed 2820770 / DEATHSPEEDPTAQ; 
+			move body to z-axis -1438426  speed 4112527 / DEATHSPEEDPTAQ; 
+			move body to y-axis -4133878  speed 43099109 / DEATHSPEEDPTAQ; 
+			turn head to x-axis -2797  speed 98846 / DEATHSPEEDPTAQ; 
+			turn head to z-axis 4402  speed 15363 / DEATHSPEEDPTAQ; 
+			turn head to y-axis 1191  speed 34057 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis -28539  speed 706908 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis -9145  speed 1013629 / DEATHSPEEDPTAQ; 
+
+			turn lfoot to y-axis -6959  speed 708513 / DEATHSPEEDPTAQ; 
+
+			turn lknee to x-axis 26968  speed 826229 / DEATHSPEEDPTAQ; 
+
+			turn lknee to z-axis -9110  speed 492255 / DEATHSPEEDPTAQ; 
+
+			turn lknee to y-axis 1940  speed 209662 / DEATHSPEEDPTAQ; 
+
+			turn lshin to x-axis 15091  speed 169078 / DEATHSPEEDPTAQ; 
+			turn lshin to z-axis -4769  speed 95294 / DEATHSPEEDPTAQ; 
+			turn lshin to y-axis 4547  speed 116478 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis -9688  speed 462439 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis 12667  speed 966427 / DEATHSPEEDPTAQ; 
+
+			turn lthigh to y-axis 16572  speed 425921 / DEATHSPEEDPTAQ; 
+
+			turn rfoot to x-axis 17893  speed 89622 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis -13991  speed 128842 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis 4268  speed 202384 / DEATHSPEEDPTAQ; 
+			turn rknee to x-axis -9700  speed 259244 / DEATHSPEEDPTAQ; 
+			turn rknee to z-axis 2956  speed 36356 / DEATHSPEEDPTAQ; 
+			turn rknee to y-axis 3818  speed 65754 / DEATHSPEEDPTAQ; 
+			turn rshin to x-axis -4665  speed 114178 / DEATHSPEEDPTAQ; 
+			turn rshin to z-axis -1541  speed 17133 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -4595  speed 26073 / DEATHSPEEDPTAQ; 
+			move rthigh to x-axis -208386  speed 6251603 / DEATHSPEEDPTAQ; 
+			move rthigh to z-axis 53568  speed 1607045 / DEATHSPEEDPTAQ; 
+			move rthigh to y-axis -223995  speed 6719869 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis -10205  speed 106716 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis 4080  speed 32780 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis -4941  speed 143583 / DEATHSPEEDPTAQ; 
+			turn tail to x-axis 6271  speed 302332 / DEATHSPEEDPTAQ; 
+			turn tail to z-axis 594  speed 138140 / DEATHSPEEDPTAQ; 
+			turn tail to y-axis -2251  speed 107380 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 28;
+			move body to x-axis -133788  speed 1603249 / DEATHSPEEDPTAQ; 
+			move body to z-axis -1130319  speed 9243228 / DEATHSPEEDPTAQ; 
+			move body to y-axis -6194513  speed 61819042 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis -5965  speed 677196 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis 17819  speed 808943 / DEATHSPEEDPTAQ; 
+
+			turn lfoot to y-axis 11662  speed 558664 / DEATHSPEEDPTAQ; 
+
+			turn lknee to x-axis 3125  speed 715279 / DEATHSPEEDPTAQ; 
+
+			turn lknee to z-axis 7097  speed 486236 / DEATHSPEEDPTAQ; 
+
+			turn lknee to y-axis -5715  speed 229652 / DEATHSPEEDPTAQ; 
+
+			turn lshin to x-axis 3190  speed 357026 / DEATHSPEEDPTAQ; 
+			turn lshin to z-axis -135  speed 139023 / DEATHSPEEDPTAQ; 
+			turn lshin to y-axis 55  speed 134769 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis 4382  speed 422130 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -17319  speed 899612 / DEATHSPEEDPTAQ; 
+
+			turn lthigh to y-axis 98  speed 494237 / DEATHSPEEDPTAQ; 
+
+			turn rfoot to x-axis 5921  speed 359165 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis -5386  speed 258140 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis -7256  speed 345757 / DEATHSPEEDPTAQ; 
+
+			turn rknee to x-axis -21015  speed 339450 / DEATHSPEEDPTAQ; 
+			turn rknee to z-axis -3981  speed 208141 / DEATHSPEEDPTAQ; 
+			turn rknee to y-axis -2304  speed 183701 / DEATHSPEEDPTAQ; 
+
+			turn rshin to x-axis 13451  speed 543526 / DEATHSPEEDPTAQ; 
+			turn rshin to z-axis 3031  speed 137190 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -3415  speed 35376 / DEATHSPEEDPTAQ; 
+
+			turn rthigh to x-axis -19726  speed 285642 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis 15636  speed 346655 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis 7175  speed 363517 / DEATHSPEEDPTAQ; 
+
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 7;
+			move body to x-axis -248520  speed 3441950 / DEATHSPEEDPTAQ; 
+			move body to z-axis -1247416  speed 3512917 / DEATHSPEEDPTAQ; 
+			move body to y-axis -6821660  speed 18814424 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis -26663  speed 620922 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis -9618  speed 823115 / DEATHSPEEDPTAQ; 
+
+			turn lfoot to y-axis -10299  speed 658868 / DEATHSPEEDPTAQ; 
+
+			turn lknee to x-axis 8134  speed 150255 / DEATHSPEEDPTAQ; 
+			turn lknee to z-axis 13132  speed 181068 / DEATHSPEEDPTAQ; 
+			turn lknee to y-axis -17386  speed 350139 / DEATHSPEEDPTAQ; 
+			turn lshin to x-axis 13838  speed 319420 / DEATHSPEEDPTAQ; 
+			turn lshin to z-axis -3941  speed 114203 / DEATHSPEEDPTAQ; 
+			turn lshin to y-axis 3137  speed 92468 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis -8429  speed 384356 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis -3963  speed 400682 / DEATHSPEEDPTAQ; 
+
+			turn lthigh to y-axis 1745  speed 49404 / DEATHSPEEDPTAQ; 
+
+			turn rfoot to x-axis 3716  speed 66138 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis -5023  speed 10896 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis -7707  speed 13523 / DEATHSPEEDPTAQ; 
+			turn rshin to z-axis 2959  speed 2155 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -3331  speed 2526 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis -20132  speed 12171 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis 14821  speed 24422 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis 6681  speed 14808 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+		if (TRUE) { 
+		DEATHSPEEDPTAQ = 17;
+			move body to x-axis -304314  speed 1673814 / DEATHSPEEDPTAQ; 
+			move body to z-axis -1052220  speed 5855895 / DEATHSPEEDPTAQ; 
+			move body to y-axis -8682283  speed 55818660 / DEATHSPEEDPTAQ; 
+			turn lfoot to x-axis -30155  speed 104759 / DEATHSPEEDPTAQ; 
+			turn lfoot to z-axis -1915  speed 231064 / DEATHSPEEDPTAQ; 
+			turn lfoot to y-axis 4688  speed 449629 / DEATHSPEEDPTAQ; 
+
+			turn lknee to x-axis 29534  speed 641998 / DEATHSPEEDPTAQ; 
+			turn lknee to z-axis -7366  speed 614974 / DEATHSPEEDPTAQ; 
+
+			turn lknee to y-axis -508  speed 506322 / DEATHSPEEDPTAQ; 
+
+			turn lshin to x-axis 14846  speed 30259 / DEATHSPEEDPTAQ; 
+			turn lshin to z-axis -993  speed 88451 / DEATHSPEEDPTAQ; 
+			turn lshin to y-axis 919  speed 66538 / DEATHSPEEDPTAQ; 
+			turn lthigh to x-axis -11588  speed 94755 / DEATHSPEEDPTAQ; 
+			turn lthigh to z-axis 8399  speed 370877 / DEATHSPEEDPTAQ; 
+			turn lthigh to y-axis 22852  speed 633239 / DEATHSPEEDPTAQ; 
+
+			turn rfoot to x-axis 4856  speed 34199 / DEATHSPEEDPTAQ; 
+			turn rfoot to z-axis -4393  speed 18898 / DEATHSPEEDPTAQ; 
+			turn rfoot to y-axis -7733  speed 802 / DEATHSPEEDPTAQ; 
+			turn rknee to x-axis -21050  speed 1080 / DEATHSPEEDPTAQ; 
+			turn rknee to z-axis -4142  speed 4937 / DEATHSPEEDPTAQ; 
+			turn rknee to y-axis -2531  speed 7074 / DEATHSPEEDPTAQ; 
+			turn rshin to z-axis 2771  speed 5623 / DEATHSPEEDPTAQ; 
+			turn rshin to y-axis -3246  speed 2542 / DEATHSPEEDPTAQ; 
+			turn rthigh to x-axis -20763  speed 18939 / DEATHSPEEDPTAQ; 
+			turn rthigh to z-axis 11903  speed 87556 / DEATHSPEEDPTAQ; 
+			turn rthigh to y-axis 3436  speed 97346 / DEATHSPEEDPTAQ; 
+		sleep ((33*DEATHSPEEDPTAQ) -1);
+		}
+}
+
+
+
+
+
+Killed( severity, corpsetype )
+{
+	isDying = TRUE;
+	corpsetype = 1;
+	signal SIG_WALK;
+	emit-sfx 1025 from body;
+	if (RAND(0,100) < 33){
+		if (RAND(0,100)<severity) explode body type FALL | NOHEATCLOUD;
+		if (RAND(0,100)<severity) explode head type FALL | NOHEATCLOUD;
+		if (RAND(0,100)<severity) explode tail type FALL | NOHEATCLOUD;
+		if (RAND(0,100)<severity) explode lthigh type FALL | NOHEATCLOUD;
+		if (RAND(0,100)<severity) explode lknee type FALL | NOHEATCLOUD;
+		if (RAND(0,100)<severity) explode lshin type FALL | NOHEATCLOUD;
+		if (RAND(0,100)<severity) explode lfoot type FALL | NOHEATCLOUD;
+		if (RAND(0,100)<severity) explode rthigh type FALL | NOHEATCLOUD;
+		if (RAND(0,100)<severity) explode rknee type FALL | NOHEATCLOUD;
+		if (RAND(0,100)<severity) explode rshin type FALL | NOHEATCLOUD;
+		if (RAND(0,100)<severity) explode rfoot type FALL | NOHEATCLOUD;
+	}
+	else
+	{
+		if (RAND(0,100) < 50) {
+			call-script DeathAnim();
+			if (RAND(0,200)<severity) explode body type FALL | NOHEATCLOUD;
+			if (RAND(0,200)<severity) explode head type FALL | NOHEATCLOUD;
+			if (RAND(0,200)<severity) explode tail type FALL | NOHEATCLOUD;
+			if (RAND(0,200)<severity) explode lthigh type FALL | NOHEATCLOUD;
+			if (RAND(0,200)<severity) explode lknee type FALL | NOHEATCLOUD;
+			if (RAND(0,200)<severity) explode lshin type FALL | NOHEATCLOUD;
+			if (RAND(0,200)<severity) explode lfoot type FALL | NOHEATCLOUD;
+			if (RAND(0,200)<severity) explode rthigh type FALL | NOHEATCLOUD;
+			if (RAND(0,200)<severity) explode rknee type FALL | NOHEATCLOUD;
+			if (RAND(0,200)<severity) explode rshin type FALL | NOHEATCLOUD;
+			if (RAND(0,200)<severity) explode rfoot type FALL | NOHEATCLOUD;
+		}
+		else
+		{
+			call-script DeathAnimPtaq();
+		}
+	}
+	return( 0 );
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+HitByWeapon(anglex, anglez, damage)	
+{
+	var amount;
+	amount = damage / (100 * UNITSIZE);
+	var randpiece;
+	randpiece = 0;
+	if (amount < 3  ) return (0);
+	
+	if (1){
+		randpiece = RAND(1, 3);
+		if (randpiece == 1) emit-sfx 1024 from body;
+		if (randpiece == 2) emit-sfx 1024 from head;
+		if (randpiece == 3) emit-sfx 1024 from tail;
+	}
+	if (amount > MAXTILT){
+		amount = MAXTILT;
+	}
+	if (anglex ==0 ) { 
+		if (anglez == 0){
+			amount = amount / 2;
+			anglex = RAND(1,500);
+			anglez = RAND(1,500);
+		}
+	}
+	
+	
+	turn BASEPIECE to z-axis (anglez * amount) / 100  speed 4550.000000;
+	turn BASEPIECE to x-axis 0.000000 - (anglex * amount) /100 speed 4550.000000;
+	wait-for-turn BASEPIECE around z-axis;
+	wait-for-turn BASEPIECE around x-axis;
+	turn BASEPIECE to z-axis 0.000000 speed 758 ; 
+	turn BASEPIECE to x-axis 0.000000 speed 758 ; 
+}
+
+static-var isSmoking;
+SmokeUnit(healthpercent, randpiece) 
+{
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+
+		if( healthpercent < 66 )
+		{
+			randpiece = RAND(1, 3);
+			if (randpiece == 1) emit-sfx 1024 from body;
+			if (randpiece == 2) emit-sfx 1024 from head;
+			if (randpiece == 3) emit-sfx 1024 from tail;
+		}
+		else {
+			isSmoking = 0;
+			return;
+			
+		}
+		if (healthpercent < 4) healthpercent = 4;
+		sleep healthpercent * 50;
+	}
+	sleep 97;
+	isSmoking = 0;
+}
+
+HitByWeaponId(anglex, anglez, weaponid, dmg) 
+{
+	if( get BUILD_PERCENT_LEFT) return (100);
+	if (isSmoking == 0)	{
+		isSmoking = 1;
+		start-script SmokeUnit();
+	}
+	
+	start-script HitByWeapon(dmg, anglez,anglex); 
+	return (100); 
+}
+
+
+
+
+
+
+
+Swim() {
+	set-signal-mask SIG_WALK;
+	if (bMoving) { 
+			turn head to x-axis -765  speed 22975 / animSpeed; 
+			turn head to z-axis 49  speed 1482 / animSpeed; 
+			turn head to y-axis 524  speed 15722 / animSpeed; 
+			turn lfoot to x-axis 1136  speed 18027 / animSpeed; 
+			turn lfoot to z-axis 75  speed 2261 / animSpeed; 
+			turn lfoot to y-axis -424  speed 12721 / animSpeed; 
+			turn lknee to x-axis 587  speed 18418 / animSpeed; 
+			turn lthigh to x-axis -87  speed 12041 / animSpeed; 
+			turn lthigh to z-axis 29  speed 884 / animSpeed; 
+			turn lthigh to y-axis 409  speed 12281 / animSpeed; 
+			turn rfoot to x-axis 781  speed 17622 / animSpeed; 
+			turn rfoot to z-axis -43  speed 1292 / animSpeed; 
+			turn rfoot to y-axis 454  speed 13623 / animSpeed; 
+			turn rknee to x-axis 785  speed 17503 / animSpeed; 
+			turn rshin to x-axis 88  speed 2413 / animSpeed; 
+			turn rthigh to x-axis -576  speed 13246 / animSpeed; 
+			turn rthigh to z-axis -34  speed 1036 / animSpeed; 
+			turn rthigh to y-axis -446  speed 13389 / animSpeed; 
+		sleep ((33*animSpeed) -1);
+	}
+	while(bMoving) {
+		if (bMoving) { 
+			move body to z-axis -68766  speed 2062983 / animSpeed; 
+			move body to y-axis 15869  speed 476073 / animSpeed; 
+			turn body to x-axis 850  speed 25518 / animSpeed; 
+			turn head to x-axis -1810  speed 31332 / animSpeed; 
+			turn head to z-axis 131  speed 2466 / animSpeed; 
+			turn head to y-axis 539  speed 460 / animSpeed; 
+			turn lfoot to x-axis 9494  speed 250733 / animSpeed; 
+			turn lfoot to z-axis -4094  speed 125092 / animSpeed; 
+			turn lfoot to y-axis 5811  speed 187067 / animSpeed; 
+
+			turn lknee to x-axis 329  speed 7741 / animSpeed; 
+			turn lknee to z-axis -12  speed 493 / animSpeed; 
+			turn lshin to x-axis 193  speed 26063 / animSpeed; 
+			turn lshin to z-axis -17  speed 694 / animSpeed; 
+			turn lthigh to x-axis -7408  speed 219634 / animSpeed; 
+			turn lthigh to z-axis -2049  speed 62382 / animSpeed; 
+			turn lthigh to y-axis -3372  speed 113461 / animSpeed; 
+			turn rfoot to x-axis 9164  speed 251503 / animSpeed; 
+			turn rfoot to z-axis 2299  speed 70281 / animSpeed; 
+			turn rfoot to y-axis -4283  speed 142131 / animSpeed; 
+			turn rknee to x-axis 246  speed 16163 / animSpeed; 
+			turn rshin to x-axis 1365  speed 38297 / animSpeed; 
+			turn rshin to z-axis 11  speed 441 / animSpeed; 
+			turn rthigh to x-axis -7784  speed 216216 / animSpeed; 
+			turn rthigh to z-axis 2788  speed 84697 / animSpeed; 
+			turn rthigh to y-axis 4184  speed 138918 / animSpeed; 
+			turn tail to z-axis -101  speed 3056 / animSpeed; 
+			turn tail to y-axis -822  speed 24666 / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { 
+			turn body to x-axis 288  speed 16873 / animSpeed; 
+			turn head to x-axis -970  speed 25207 / animSpeed; 
+			turn head to z-axis 65  speed 1991 / animSpeed; 
+			turn head to y-axis 526  speed 390 / animSpeed; 
+			turn lfoot to x-axis 2623  speed 206105 / animSpeed; 
+			turn lfoot to z-axis 1239  speed 160027 / animSpeed; 
+			turn lfoot to y-axis -2138  speed 238513 / animSpeed; 
+
+			turn lknee to x-axis -1179  speed 45284 / animSpeed; 
+			turn lknee to z-axis 5  speed 560 / animSpeed; 
+			turn lshin to x-axis 1941  speed 52449 / animSpeed; 
+			turn lshin to z-axis 16  speed 1023 / animSpeed; 
+			turn lshin to y-axis 15  speed 595 / animSpeed; 
+			turn lthigh to x-axis 2667  speed 302288 / animSpeed; 
+			turn lthigh to z-axis -4909  speed 85779 / animSpeed; 
+			turn lthigh to y-axis 7183  speed 316674 / animSpeed; 
+
+			turn rfoot to x-axis 2290  speed 206224 / animSpeed; 
+			turn rfoot to z-axis -1102  speed 102069 / animSpeed; 
+			turn rfoot to y-axis 2039  speed 189693 / animSpeed; 
+
+			turn rknee to x-axis -878  speed 33747 / animSpeed; 
+			turn rknee to z-axis -8  speed 499 / animSpeed; 
+			turn rshin to x-axis 2451  speed 32597 / animSpeed; 
+			turn rshin to z-axis -20  speed 958 / animSpeed; 
+			turn rshin to y-axis -11  speed 419 / animSpeed; 
+			turn rthigh to x-axis 2408  speed 305787 / animSpeed; 
+			turn rthigh to z-axis 4862  speed 62228 / animSpeed; 
+			turn rthigh to y-axis -6870  speed 331657 / animSpeed; 
+
+			turn tail to z-axis 0  speed 3056 / animSpeed; 
+			turn tail to y-axis 0  speed 24666 / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { 
+			move body to z-axis 58595  speed 3820845 / animSpeed; 
+			move body to y-axis 23302  speed 223000 / animSpeed; 
+			turn body to x-axis -274  speed 16873 / animSpeed; 
+			turn head to x-axis 35  speed 30165 / animSpeed; 
+			turn head to z-axis -11  speed 2303 / animSpeed; 
+			turn lfoot to x-axis 4069  speed 43368 / animSpeed; 
+			turn lfoot to z-axis 1332  speed 2773 / animSpeed; 
+			turn lfoot to y-axis -1207  speed 27940 / animSpeed; 
+			turn lknee to x-axis -9596  speed 252508 / animSpeed; 
+			turn lknee to z-axis -86  speed 2782 / animSpeed; 
+			turn lknee to y-axis -73  speed 1990 / animSpeed; 
+			turn lshin to x-axis 6201  speed 127777 / animSpeed; 
+			turn lshin to z-axis -28  speed 1336 / animSpeed; 
+			turn lshin to y-axis 32  speed 509 / animSpeed; 
+			turn lthigh to x-axis 5878  speed 96331 / animSpeed; 
+			turn lthigh to z-axis -10907  speed 179940 / animSpeed; 
+			turn lthigh to y-axis 13568  speed 191556 / animSpeed; 
+			turn rfoot to x-axis 3963  speed 50167 / animSpeed; 
+			turn rfoot to z-axis -1284  speed 5463 / animSpeed; 
+			turn rfoot to y-axis 1213  speed 24776 / animSpeed; 
+			turn rknee to x-axis -8802  speed 237732 / animSpeed; 
+			turn rknee to z-axis 35  speed 1321 / animSpeed; 
+			turn rknee to y-axis 28  speed 528 / animSpeed; 
+			turn rshin to x-axis 5953  speed 105042 / animSpeed; 
+			turn rshin to z-axis 15  speed 1089 / animSpeed; 
+			turn rthigh to x-axis 5799  speed 101731 / animSpeed; 
+			turn rthigh to z-axis 10552  speed 170679 / animSpeed; 
+			turn rthigh to y-axis -13034  speed 184905 / animSpeed; 
+			turn tail to z-axis -35  speed 1079 / animSpeed; 
+			turn tail to y-axis 904  speed 27146 / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { 
+			turn body to x-axis -219  speed 1645 / animSpeed; 
+			turn head to x-axis 334  speed 8958 / animSpeed; 
+			turn head to z-axis -34  speed 684 / animSpeed; 
+			turn lfoot to x-axis 2906  speed 34883 / animSpeed; 
+			turn lfoot to z-axis 809  speed 15681 / animSpeed; 
+			turn lfoot to y-axis -1417  speed 6287 / animSpeed; 
+			turn lknee to x-axis -5637  speed 118768 / animSpeed; 
+			turn lknee to z-axis -14  speed 2168 / animSpeed; 
+			turn lknee to y-axis -4  speed 2062 / animSpeed; 
+			turn lshin to x-axis 4122  speed 62368 / animSpeed; 
+			turn lshin to z-axis -9  speed 559 / animSpeed; 
+			turn lshin to y-axis 19  speed 367 / animSpeed; 
+			turn lthigh to x-axis 5710  speed 5057 / animSpeed; 
+			turn lthigh to z-axis -8351  speed 76666 / animSpeed; 
+			turn lthigh to y-axis 11002  speed 76968 / animSpeed; 
+			turn rfoot to x-axis 2665  speed 38936 / animSpeed; 
+			turn rfoot to z-axis -726  speed 16751 / animSpeed; 
+			turn rfoot to y-axis 1365  speed 4544 / animSpeed; 
+			turn rknee to x-axis -5168  speed 109020 / animSpeed; 
+			turn rknee to z-axis 5  speed 919 / animSpeed; 
+			turn rknee to y-axis 6  speed 670 / animSpeed; 
+			turn rshin to x-axis 4267  speed 50583 / animSpeed; 
+			turn rshin to z-axis -4  speed 596 / animSpeed; 
+			turn rthigh to x-axis 5586  speed 6397 / animSpeed; 
+			turn rthigh to z-axis 8149  speed 72085 / animSpeed; 
+			turn rthigh to y-axis -10627  speed 72206 / animSpeed; 
+			turn tail to z-axis 0  speed 1079 / animSpeed; 
+			turn tail to y-axis 0  speed 27146 / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { 
+			turn body to x-axis -164  speed 1645 / animSpeed; 
+			turn head to x-axis 632  speed 8958 / animSpeed; 
+			turn head to z-axis -57  speed 684 / animSpeed; 
+			turn lfoot to x-axis 597  speed 69281 / animSpeed; 
+			turn lfoot to z-axis 109  speed 21014 / animSpeed; 
+			turn lfoot to y-axis -1858  speed 13236 / animSpeed; 
+			turn lknee to x-axis -1106  speed 135939 / animSpeed; 
+			turn lknee to z-axis 30  speed 1337 / animSpeed; 
+			turn lknee to y-axis -23  speed 586 / animSpeed; 
+			turn lshin to x-axis 2181  speed 58232 / animSpeed; 
+			turn lshin to z-axis 50  speed 1798 / animSpeed; 
+			turn lshin to y-axis 4  speed 461 / animSpeed; 
+			turn lthigh to x-axis 4615  speed 32845 / animSpeed; 
+			turn lthigh to z-axis -4890  speed 103850 / animSpeed; 
+			turn lthigh to y-axis 7378  speed 108723 / animSpeed; 
+			turn rfoot to x-axis 299  speed 70980 / animSpeed; 
+			turn rfoot to z-axis -6  speed 21585 / animSpeed; 
+			turn rfoot to y-axis 1765  speed 11998 / animSpeed; 
+			turn rknee to x-axis -819  speed 130468 / animSpeed; 
+			turn rknee to z-axis -32  speed 1126 / animSpeed; 
+			turn rknee to y-axis 29  speed 692 / animSpeed; 
+			turn rshin to x-axis 2604  speed 49869 / animSpeed; 
+			turn rshin to z-axis -56  speed 1567 / animSpeed; 
+			turn rshin to y-axis 1  speed 469 / animSpeed; 
+			turn rthigh to x-axis 4415  speed 35118 / animSpeed; 
+			turn rthigh to z-axis 4744  speed 102146 / animSpeed; 
+			turn rthigh to y-axis -7063  speed 106912 / animSpeed; 
+			turn tail to z-axis 24  speed 723 / animSpeed; 
+			turn tail to y-axis -936  speed 28099 / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { 
+			turn body to x-axis -109  speed 1645 / animSpeed; 
+			turn head to x-axis 931  speed 8958 / animSpeed; 
+			turn head to z-axis -80  speed 684 / animSpeed; 
+			turn lfoot to x-axis -145  speed 22280 / animSpeed; 
+			turn lfoot to z-axis -121  speed 6923 / animSpeed; 
+			turn lfoot to y-axis -396  speed 43847 / animSpeed; 
+			turn lknee to x-axis 1467  speed 77214 / animSpeed; 
+			turn lknee to z-axis 3  speed 795 / animSpeed; 
+			turn lknee to y-axis -3  speed 605 / animSpeed; 
+			turn lshin to x-axis -194  speed 71280 / animSpeed; 
+			turn lshin to z-axis 3  speed 1402 / animSpeed; 
+			turn lthigh to x-axis 3353  speed 37872 / animSpeed; 
+			turn lthigh to z-axis -885  speed 120136 / animSpeed; 
+			turn lthigh to y-axis 2631  speed 142411 / animSpeed; 
+			turn rfoot to x-axis -528  speed 24830 / animSpeed; 
+			turn rfoot to z-axis 120  speed 3821 / animSpeed; 
+			turn rfoot to y-axis 146  speed 48556 / animSpeed; 
+			turn rknee to x-axis 1716  speed 76075 / animSpeed; 
+			turn rknee to z-axis -1  speed 935 / animSpeed; 
+			turn rknee to y-axis 0  speed 851 / animSpeed; 
+			turn rshin to x-axis 564  speed 61202 / animSpeed; 
+			turn rshin to z-axis 0  speed 1677 / animSpeed; 
+			turn rthigh to x-axis 2868  speed 46413 / animSpeed; 
+			turn rthigh to z-axis 723  speed 120645 / animSpeed; 
+			turn rthigh to y-axis -2297  speed 142977 / animSpeed; 
+			turn tail to z-axis 0  speed 723 / animSpeed; 
+			turn tail to y-axis 0  speed 28099 / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { 
+			turn body to x-axis -54  speed 1645 / animSpeed; 
+			turn head to x-axis 82  speed 25457 / animSpeed; 
+			turn head to z-axis -15  speed 1941 / animSpeed; 
+			turn lfoot to x-axis 517  speed 19882 / animSpeed; 
+			turn lfoot to z-axis -27  speed 2812 / animSpeed; 
+			turn lfoot to y-axis 448  speed 25352 / animSpeed; 
+			turn lknee to x-axis 1388  speed 2349 / animSpeed; 
+			turn lshin to x-axis -725  speed 15908 / animSpeed; 
+			turn lthigh to x-axis 801  speed 76558 / animSpeed; 
+			turn lthigh to z-axis 131  speed 30509 / animSpeed; 
+			turn lthigh to y-axis 86  speed 76351 / animSpeed; 
+			turn rfoot to x-axis 166  speed 20859 / animSpeed; 
+			turn rfoot to z-axis 10  speed 3300 / animSpeed; 
+			turn rfoot to y-axis -446  speed 17791 / animSpeed; 
+			turn rknee to x-axis 1590  speed 3776 / animSpeed; 
+			turn rshin to x-axis 68  speed 14885 / animSpeed; 
+			turn rthigh to x-axis 272  speed 77871 / animSpeed; 
+			turn rthigh to z-axis -130  speed 25593 / animSpeed; 
+			turn rthigh to y-axis -101  speed 65892 / animSpeed; 
+			turn tail to y-axis 896  speed 26909 / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { 
+			move body to z-axis 0  speed 1757862 / animSpeed; 
+			move body to y-axis 0  speed 699073 / animSpeed; 
+			turn body to x-axis 0  speed 1645 / animSpeed; 
+			turn head to x-axis -765  speed 25457 / animSpeed; 
+			turn head to z-axis 49  speed 1941 / animSpeed; 
+			turn lfoot to x-axis 1136  speed 18567 / animSpeed; 
+			turn lfoot to z-axis 75  speed 3099 / animSpeed; 
+			turn lfoot to y-axis -424  speed 26169 / animSpeed; 
+			turn lknee to x-axis 587  speed 24037 / animSpeed; 
+			turn lshin to x-axis -675  speed 1500 / animSpeed; 
+			turn lthigh to x-axis -87  speed 26651 / animSpeed; 
+			turn lthigh to z-axis 29  speed 3060 / animSpeed; 
+			turn lthigh to y-axis 409  speed 9685 / animSpeed; 
+			turn rfoot to x-axis 781  speed 18441 / animSpeed; 
+			turn rfoot to z-axis -43  speed 1607 / animSpeed; 
+			turn rfoot to y-axis 454  speed 27018 / animSpeed; 
+			turn rknee to x-axis 785  speed 24142 / animSpeed; 
+			turn rshin to x-axis 88  speed 602 / animSpeed; 
+			turn rthigh to x-axis -576  speed 25499 / animSpeed; 
+			turn rthigh to z-axis -34  speed 2866 / animSpeed; 
+			turn rthigh to y-axis -446  speed 10343 / animSpeed; 
+			turn tail to y-axis 0  speed 26909 / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+	}
+}
+
+StopSwimming() {
+	animSpeed = 10; 
+	move body to y-axis 0  speed 1765336 / animSpeed;
+	move body to z-axis 0  speed 9648600 / animSpeed;
+	turn body to x-axis 0.000000 speed 64439.995256 / animSpeed;
+	turn head to x-axis 0.000000 speed 79122.937166 / animSpeed;
+	turn head to y-axis 0.000000 speed 39703.779570 / animSpeed;
+	turn head to z-axis 0.000000 speed 6228.372150 / animSpeed;
+	turn lfoot to x-axis 811.135416 speed 633164.685608 / animSpeed;
+	turn lfoot to y-axis 0.000000 speed 602305.884180 / animSpeed;
+	turn lfoot to z-axis 0.000000 speed 404109.526548 / animSpeed;
+	turn lknee to x-axis -39.943540 speed 637648.674754 / animSpeed;
+	turn lknee to y-axis 0.000000 speed 5207.115914 / animSpeed;
+	turn lknee to z-axis 0.000000 speed 7027.069504 / animSpeed;
+	turn lshin to x-axis -1015.431872 speed 322669.943232 / animSpeed;
+	turn lshin to y-axis 0.000000 speed 1504.067838 / animSpeed;
+	turn lshin to z-axis 0.000000 speed 4540.550014 / animSpeed;
+	turn lthigh to x-axis 475.931456 speed 763353.553326 / animSpeed;
+	turn lthigh to y-axis 0.000000 speed 799683.516268 / animSpeed;
+	turn lthigh to z-axis 0.000000 speed 454395.640790 / animSpeed;
+	turn rfoot to x-axis 293.963852 speed 635110.609952 / animSpeed;
+	turn rfoot to y-axis 0.000000 speed 479023.594686 / animSpeed;
+	turn rfoot to z-axis 0.000000 speed 257750.719590 / animSpeed;
+	turn rknee to x-axis 306.096518 speed 600335.781500 / animSpeed;
+	turn rknee to y-axis 0.000000 speed 2149.509180 / animSpeed;
+	turn rknee to z-axis 0.000000 speed 3337.234082 / animSpeed;
+	turn rshin to x-axis 0.000000 speed 265259.880158 / animSpeed;
+	turn rshin to y-axis 0.000000 speed 1184.831284 / animSpeed;
+	turn rshin to z-axis 0.000000 speed 4236.002680 / animSpeed;
+	turn rthigh to x-axis -205.232118 speed 772190.618290 / animSpeed;
+	turn rthigh to y-axis 0.000000 speed 837519.581444 / animSpeed;
+	turn rthigh to z-axis 0.000000 speed 431008.000150 / animSpeed;
+	turn tail to y-axis 0.000000 speed 70958.246268 / animSpeed;
+	turn tail to z-axis 0.000000 speed 7719.639746 / animSpeed;
+}
+
+static-var isSwimming;
+UnitSpeed(){
+	maxSpeed = get MAX_SPEED; 
+	animFramesPerKeyframe = MOVESPEED; 
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); 
+	while(TRUE){
+
+		
+		if (bMoving == TRUE){
+			var groundheight;
+			groundheight = (get GROUND_WATER_HEIGHT (get UNIT_XZ))/65536;
+			
+			if (groundheight > ((-1 * MOVESCALE)/2)){
+				if (isSwimming == TRUE){
+					
+					call-script StopSwimming();
+					start-script UnitSpeed();
+					start-script Walk();
+					isSwimming = FALSE;
+					signal SIG_WALK;
+				}
+
+			}else{
+				if (isSwimming == FALSE){
+					call-script StopWalking();
+					start-script Swim();
+					start-script UnitSpeed();
+					isSwimming = TRUE;
+					signal SIG_WALK;
+				}
+			}
+		}
+		animSpeed = (get CURRENT_SPEED);
+		if (animSpeed<1) animSpeed=1;
+		animSpeed = (maxSpeed * MOVESPEED) / animSpeed;
+		
+		if (animSpeed<2) animSpeed=2;
+		if (animspeed> 2* MOVESPEED) animSpeed = 2 * MOVESPEED;
+		sleep 197;
+	}
+}
+
+
+StartMoving(){
+	signal SIG_WALK;
+	set-signal-mask SIG_WALK;
+	bMoving=TRUE;
+	start-script UnitSpeed();
+	if (isSwimming == TRUE) start-script Swim();
+	else start-script Walk();
+}
+
+StopMoving(){
+	signal SIG_WALK;
+	bMoving=FALSE;
+	if (!isDying){
+		if (isSwimming == TRUE ) call-script StopSwimming();
+		else call-script StopWalking();
+		start-script Idle();
+	}
+}
+
+Create()
+{
+	isDying = FALSE;
+	animSpeed = MOVESPEED;
+	emit-sfx 1026  from base;
+	emit-sfx 1026  from base;
+	emit-sfx 1026  from base;
+	emit-sfx 1026  from base;
+	turn base to x-axis -16380.000000 now;
+	move base to y-axis -65536.000000 *MOVESCALE now;
+	move base to y-axis 0.000000 speed 6553600 ; 
+	turn base to x-axis 0.000000 speed 16380.000000;
+	var smoke;
+	smoke = 0;
+	while(smoke < 9){
+	
+		smoke = smoke + 1;
+		sleep 90;
+		emit-sfx 1026  from head;
+	}
+	gun_1 = 1;
+	isSwimming = 0;
+	return (0);
+}
+
+
+SweetSpot(piecenum)
+{
+	piecenum=body;
+}
+
+
+RestoreAfterDelay()
+{
+	sleep 1000;
+	turn aimy1 to y-axis 0.000000 speed 32760.000000;
+	turn aimy1 to x-axis 0.000000 speed 32760.000000;
+}
+
+
+SweetSpot(piecenum)
+{
+	piecenum = body;
+	return (0);
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = head;
+	return (0);
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = head;
+	return (0);
+}
+
+RestoreAfterDelay()
+{
+	sleep 1000;
+
+	turn aimy1 to y-axis 0.000000 speed 32760.000000;
+	turn aimy1 to x-axis 0.000000 speed 32760.000000;
+	return (0);
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	if (heading > 10920.000000 ) heading = 10920.000000;
+	if (heading < -10920.000000 ) heading = -10920.000000;
+	if (pitch > 10920.000000 ) pitch = 10920.000000;
+	if (pitch < -10920.000000 ) pitch = -10920.000000;
+	turn aimy1 to y-axis heading speed 45500.000000;
+	turn aimy1 to x-axis 0.000000 - pitch speed 36400.000000;
+	wait-for-turn aimy1 around y-axis;
+
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+Shot1()
+{
+	turn lforearm to y-axis -25480.000000 speed 109200.000000;
+	turn rforearm to y-axis 25480.000000 speed 109200.000000;
+	turn lblade to y-axis 25480.000000 speed 109200.000000;
+	turn rblade to y-axis -25480.000000 speed 109200.000000;
+	wait-for-turn rblade around y-axis;
+	turn lforearm to y-axis 0.000000 speed 21840.000000;
+	turn rforearm to y-axis 0.000000 speed 21840.000000;
+	turn lblade to y-axis 0.000000 speed 21840.000000;
+	turn rblade to y-axis 0.000000 speed 21840.000000;
+	return (0);
+}

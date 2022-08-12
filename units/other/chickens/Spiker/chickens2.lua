@@ -61,7 +61,7 @@ return {
 		unitname = "chickens2",
 		upright = false,
 		workertime = 0,
-		waterline = 24,
+		waterline = 29,
 		customparams = {
 			maxrange = "375",
 			subfolder = "other/chickens",
