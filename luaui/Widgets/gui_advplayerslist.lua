@@ -94,7 +94,7 @@ local gl_CallList = gl.CallList
 
 local math_isInRect = math.isInRect
 
-local RectRound, UiElement, elementCorner
+local RectRound, UiElement, elementCorner, UiSelectHighlight
 local bgpadding = 3
 
 --------------------------------------------------------------------------------
@@ -916,8 +916,10 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function widget:PlayerChanged(playerID)
-    myAllyTeamID = Spring.GetMyAllyTeamID()
-    mySpecStatus, fullView = Spring.GetSpectatingState()
+    myPlayerID = Spring.GetMyPlayerID()
+    myAllyTeamID = Spring.GetLocalAllyTeamID()
+    myTeamID = Spring.GetLocalTeamID()
+    mySpecStatus, fullView, _ = Spring.GetSpectatingState()
     if mySpecStatus then
         hideShareIcons = true
     end
@@ -1709,6 +1711,24 @@ function widget:DrawScreen()
 	else
 		CreateMainList()
 	end
+
+    -- draw hover
+    if mySpecStatus then
+        local posY
+        local x, y, b = Spring.GetMouseState()
+        for _, i in ipairs(drawList) do
+            if i > -1 and i < 64 then
+               posY = widgetPosY + widgetHeight - player[i].posY
+               if myTeamID ~= player[i].team and not player[i].spec and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY-2, m_name.posX + widgetPosX + m_name.width, posY + 16) then
+                   UiSelectHighlight(widgetPosX, posY, widgetPosX + widgetPosX + 2 + 4, posY + playerOffset, nil, b and 0.28 or 0.14)
+                   if b and myTeamID ~= player[i].team then
+                       Spring_SendCommands("specteam " .. player[i].team)
+                       CreateMainList()
+                   end
+               end
+            end
+        end
+    end
 
 	-- draws share energy/metal sliders
 	if ShareSlider then
@@ -2947,7 +2967,7 @@ function widget:MousePress(x, y, button)
                             Spring_SendCommands("toggleignore " .. clickedPlayer.name)
                             return true
                         elseif not player[i].spec then
-                            Spring_SendCommands("specteam " .. player[i].team)
+                            --Spring_SendCommands("specteam " .. player[i].team)
                         end
 
                         if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
@@ -3633,7 +3653,8 @@ function widget:ViewResize()
 	elementCorner = WG.FlowUI.elementCorner
 
 	RectRound = WG.FlowUI.Draw.RectRound
-	UiElement = WG.FlowUI.Draw.Element
+    UiElement = WG.FlowUI.Draw.Element
+    UiSelectHighlight = WG.FlowUI.Draw.SelectHighlight
 
     updateWidgetScale()
 
