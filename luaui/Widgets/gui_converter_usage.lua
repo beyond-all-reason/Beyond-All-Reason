@@ -5,7 +5,7 @@ function widget:GetInfo()
       author    = "Lexon, Floris",
       date      = "05.08.2022",
       layer     = 0,
-      enabled   = true  --  loaded by default?
+      enabled   = false  --  loaded by default?
     }
   end
 
