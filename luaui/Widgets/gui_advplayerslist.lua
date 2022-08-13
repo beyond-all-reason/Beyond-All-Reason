@@ -1712,7 +1712,7 @@ function widget:DrawScreen()
 		CreateMainList()
 	end
 
-    -- draw hover
+    -- handle/draw hover highlight
     if mySpecStatus then
         local posY
         local x, y, b = Spring.GetMouseState()
@@ -1721,10 +1721,6 @@ function widget:DrawScreen()
                posY = widgetPosY + widgetHeight - player[i].posY
                if myTeamID ~= player[i].team and not player[i].spec and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY-2, m_name.posX + widgetPosX + m_name.width, posY + 16) then
                    UiSelectHighlight(widgetPosX, posY, widgetPosX + widgetPosX + 2 + 4, posY + playerOffset, nil, b and 0.28 or 0.14)
-                   if b and myTeamID ~= player[i].team then
-                       Spring_SendCommands("specteam " .. player[i].team)
-                       CreateMainList()
-                   end
                end
             end
         end
@@ -2967,7 +2963,8 @@ function widget:MousePress(x, y, button)
                             Spring_SendCommands("toggleignore " .. clickedPlayer.name)
                             return true
                         elseif not player[i].spec then
-                            --Spring_SendCommands("specteam " .. player[i].team)
+                            Spring_SendCommands("specteam " .. player[i].team)
+                            CreateMainList()
                         end
 
                         if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
