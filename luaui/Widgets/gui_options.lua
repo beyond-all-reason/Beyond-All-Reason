@@ -2883,6 +2883,8 @@ function init()
 		{ id = "buildbar", group = "ui", category = types.basic, widget = "BuildBar", name = texts.option.buildbar, type = "bool", value = GetWidgetToggleValue("BuildBar"), description = texts.option.buildbar_descr },
 		--{ id = "dgunrulereminder", group = "ui", category = types.dev, widget = "Dgun Rule Reminder", name = texts.option.dgunrulereminder, type = "bool", value = GetWidgetToggleValue("Dgun Rule Reminder"), description = texts.option.dgunrulereminder_descr },
 
+		{ id = "converterusage", group = "ui", category = types.advanced, widget = "Converter Usage", name = texts.option.converterusage, type = "bool", value = GetWidgetToggleValue("Converter Usage"), description = texts.option.converterusage_descr },
+
 
 		{ id = "label_ui_visuals", group = "ui", name = texts.option.label_visuals, category = types.basic },
 		{ id = "label_ui_visuals_spacer", group = "ui", category = types.basic },

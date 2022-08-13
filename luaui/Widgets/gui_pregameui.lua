@@ -39,8 +39,10 @@ local gameStarting = false
 local timer = 0
 local timer2 = 0
 
-local buttonX = math.floor(vsx * 0.8)
-local buttonY = math.floor(vsy * 0.77)
+local buttonPosX = 0.8
+local buttonPosY = 0.76
+local buttonX = math.floor(vsx * buttonPosX)
+local buttonY = math.floor(vsy * buttonPosY)
 
 local orgbuttonH = 40
 local orgbuttonW = 115
@@ -101,8 +103,8 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 
 	vsx, vsy = Spring.GetViewGeometry()
 	uiScale = (0.75 + (vsx * vsy / 6000000))
-	buttonX = math.floor(vsx * 0.78)
-	buttonY = math.floor(vsy * 0.78)
+	buttonX = math.floor(vsx * buttonPosX)
+	buttonY = math.floor(vsy * buttonPosY)
 	orgbuttonW = font:GetTextWidth('       '..buttonText) * 24
 	buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
 	buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
