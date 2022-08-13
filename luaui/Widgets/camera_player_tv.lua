@@ -15,6 +15,8 @@ end
 	/playertv #playerID			(playerID is optional)
 ]]--
 
+local alwaysDisplayName = true
+
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
@@ -42,6 +44,7 @@ local tsOrderedPlayerCount = 0
 local tsOrderedPlayers = {}
 
 local isSpec, fullview = Spring.GetSpectatingState()
+local myTeamPlayerID = select(2, Spring.GetTeamInfo(Spring.GetMyTeamID()))
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.7 + (vsx * vsy / 5000000))
 
@@ -184,7 +187,6 @@ local function createList()
 
 		font:Begin()
 		font:Print(text, toggleButton[3]-((toggleButton[3]-toggleButton[1])/2), toggleButton[2] + (7 * widgetScale), fontSize, 'oc')
-		font:End()
 
 		-- Player Viewpoint Button
 		if not toggled2 then
@@ -201,7 +203,6 @@ local function createList()
 		RectRound(toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4], elementCorner, 1, 1, 0, toggleButton2[1] < left and 1 or 0, color1, color2)
 		RectRound(toggleButton2[1] + bgpadding, toggleButton2[2], toggleButton2[3]-bgpadding, toggleButton[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton2[1] < left and 1 or 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
 
-		font:Begin()
 		font:Print(text, toggleButton2[3]-((toggleButton2[3]-toggleButton2[1])/2), toggleButton2[2] + (7 * widgetScale), fontSize, 'oc')
 		font:End()
 	end)
@@ -345,6 +346,7 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged(playerID)
+	myTeamPlayerID = select(2, Spring.GetTeamInfo(Spring.GetMyTeamID()))
 	isSpec, fullview = Spring.GetSpectatingState()
 	tsOrderPlayers()
 	if not rejoining then
@@ -633,14 +635,20 @@ function widget:DrawScreen()
 					prevLockPlayerID = lockPlayerID
 				end
 			end
-			if lockPlayerID then
-				-- create player name
-				prevLockPlayerID = lockPlayerID
-				lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
-				if lockPlayerID then
-					if not drawlistsPlayername[lockPlayerID] then
-						drawlistsPlayername[lockPlayerID] = gl.CreateList(function()
-							local name, _, spec, teamID, _, _, _, _, _ = Spring.GetPlayerInfo(lockPlayerID, false)
+			if lockPlayerID or (alwaysDisplayName and isSpec) then
+				local playerID
+				if not lockPlayerID then
+					playerID = myTeamPlayerID
+				else
+					prevLockPlayerID = lockPlayerID
+					lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
+					playerID = lockPlayerID
+				end
+				if playerID then
+					if not drawlistsPlayername[playerID] then
+						-- create player name
+						drawlistsPlayername[playerID] = gl.CreateList(function()
+							local name, _, spec, teamID, _, _, _, _, _ = Spring.GetPlayerInfo(playerID, false)
 							local nameColourR, nameColourG, nameColourB = 1, 1, 1
 							if not spec then
 								nameColourR, nameColourG, nameColourB, _ = spGetTeamColor(teamID)
@@ -659,7 +667,7 @@ function widget:DrawScreen()
 					-- draw player name
 					gl.PushMatrix()
 					gl.Translate(0, top, 0)
-					gl.CallList(drawlistsPlayername[lockPlayerID])
+					gl.CallList(drawlistsPlayername[playerID])
 					gl.PopMatrix()
 				end
 			end
