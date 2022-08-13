@@ -305,6 +305,7 @@ local function AssignLightsToAllWeapons()
 		
 		if muzzleFlash then 
 			muzzleFlashLights[weaponID] = GetLightClass("MuzzleFlash", "White", sizeclass, nil)
+			muzzleFlashLights[weaponID].yOffset = muzzleFlashLights[weaponID].lightConfig.radius / 5
 		end
 		if explosionLight then 
 			explosionLights[weaponID] = GetLightClass("Explosion", nil, sizeclass, nil)
@@ -331,6 +332,13 @@ GetLightClass("MuzzleFlash", nil, "Medium", {r = 0.4, g = 0.4, b = 0.4, scatteri
 explosionLights[WeaponDefNames["armmg_armmg_weapon"].id] =
 GetLightClass("Explosion", nil, "Small", {r = 3.8, g = 3.2, b = 2.2, colortime = 2.8, sustain = 14, lifetime = 22, scattering = 0.7})
 
+muzzleFlashLights[WeaponDefNames["corint_cor_intimidator"].id] = 
+GetLightClass("MuzzleFlash", nil, "Tiny", {posx = -7, posy = 16, posz = 5, radius = 45,
+											color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 85,
+											r = 1, g = 0.2, b = 0, a = 0.69999999,
+											modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
+											lifetime = 200, sustain = 4})
+muzzleFlashLights[WeaponDefNames["corint_cor_intimidator"].id].yOffset = 16
 
 -- verification questions:
 -- colortime determines how slow the initial rgb color(1) fades to color2 ?

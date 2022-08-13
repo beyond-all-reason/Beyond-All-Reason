@@ -436,26 +436,26 @@ local unitDefLights = {
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	[UnitDefNames['corint'].id] = {
-		hotbarrel1 = {
-			lightType = 'point',
-			pieceName = 'light',
-			lightConfig = { posx = -7, posy = 8, posz = 5, radius = 30,
-				color2r = 0, color2g = 0, color2b = 1, colortime = 0,
-				r = 1, g = 0.2, b = 0, a = 0.69999999,
-				modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
-				lifetime = 0, sustain = 0, animtype = 0},
-		},
-		hotbarrel2 = {
-			lightType = 'point',
-			pieceName = 'light',
-			lightConfig = { posx = 7, posy = 8, posz = 5, radius = 30,
-				color2r = 0, color2g = 0, color2b = 1, colortime = 0,
-				r = 1, g = 0.2, b = 0, a = 0.69999999,
-				modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
-				lifetime = 0, sustain = 0, animtype = 0},
-		},
-	},
+	-- [UnitDefNames['corint'].id] = {
+	-- 	hotbarrel1 = {
+	-- 		lightType = 'point',
+	-- 		pieceName = 'light',
+	-- 		lightConfig = { posx = -7, posy = 8, posz = 5, radius = 30,
+	-- 			color2r = 0, color2g = 0, color2b = 0, colortime = 300,
+	-- 			r = 1, g = 0.2, b = 0, a = 0.69999999,
+	-- 			modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
+	-- 			lifetime = 300, sustain = 1, animtype = 0},
+	-- 	},
+	-- 	hotbarrel2 = {
+	-- 		lightType = 'point',
+	-- 		pieceName = 'light',
+	-- 		lightConfig = { posx = 7, posy = 8, posz = 5, radius = 30,
+	-- 			color2r = 0, color2g = 0, color2b = 0, colortime = 300,
+	-- 			r = 1, g = 0.2, b = 0, a = 0.69999999,
+	-- 			modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
+	-- 			lifetime = 300, sustain = 1, animtype = 0},
+	-- 	},
+	-- },
 	[UnitDefNames['corlab'].id] = {
 		buildlight = { -- this is the lightname
 			lightType = 'cone',
@@ -499,6 +499,32 @@ local unitDefLights = {
 }
 
 local unitEventLights = {
+
+	WeaponBarrelGlow =  {
+		[UnitDefNames['corint'].id] = {
+			barrelglow1 = {
+				lightType = 'point',
+				pieceName = 'light',
+				lightConfig = { posx = -7, posy = 8, posz = 5, radius = 30,
+					color2r = 0, color2g = 0, color2b = 0, colortime = 300,
+					r = 1, g = 0.2, b = 0, a = 0.69999999,
+					modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
+					lifetime = 300, sustain = 1, animtype = 0},
+			},
+		},
+		[UnitDefNames['corint'].id] = {
+			barrelglow2 = {
+				lightType = 'point',
+				pieceName = 'light',
+				lightConfig = { posx = 7, posy = 8, posz = 5, radius = 30,
+					color2r = 0, color2g = 0, color2b = 0, colortime = 300,
+					r = 1, g = 0.2, b = 0, a = 0.69999999,
+					modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
+					lifetime = 300, sustain = 1, animtype = 0},
+			},
+		},
+	},
+
 	UnitIdle =  {
 		[UnitDefNames['armcom'].id] = {
 			idleBlink = {
