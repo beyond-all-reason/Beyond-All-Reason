@@ -47,7 +47,8 @@ static-var gun_1,maxSpeed, animFramesPerKeyframe, bMoving, animSpeed, isDying, a
 #define MAXTILT 100
 #include "chicken_hitbyweapon.h"
 
-#include "chicken_create_move.h"
+#include "chicken_allterrain_swim.h"
+#include "chicken_create_move_swim.h"
 
 #include "chicken_killed_allterrain.h"
 
