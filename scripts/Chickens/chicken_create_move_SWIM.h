@@ -4,12 +4,20 @@ UnitSpeed(){
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
 	animFramesPerKeyframe = MOVESPEED; //we need to calc the frames per keyframe value, from the known animtime
 	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	var groundheight;
+	var unitxz;
 	while(TRUE){
 		
 		//get PRINT ((GET UNIT_Y)/65000, bMoving, 2, 3);
 		if (bMoving == TRUE){
-			var groundheight;
-			groundheight = (get GROUND_WATER_HEIGHT (get UNIT_XZ))/65536;
+			unitxz = (get UNIT_XZ);
+			groundheight = 0;
+			if (unitxz > 0 ){
+				groundheight = (get GROUND_WATER_HEIGHT(unitxz));
+			}
+			groundheight = groundheight /[1.0000];
+			
+			//groundheight = (get GROUND_WATER_HEIGHT (get UNIT_XZ))/65536;
 			//get PRINT (groundheight, get IN_WATER, get GAME_FRAME);
 			if (groundheight > (((-1) * MOVESCALE)/2)){
 				if (isSwimming == TRUE){
