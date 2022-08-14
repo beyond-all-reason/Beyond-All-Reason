@@ -49,6 +49,7 @@ local alwaysHideSpecs = false
 local lockcameraHideEnemies = true            -- specfullview
 local lockcameraLos = true                    -- togglelos
 
+local hideDeadTeams = true
 local absoluteResbarValues = false
 
 local vsx, vsy = Spring.GetViewGeometry()
@@ -201,7 +202,7 @@ local prevClickedPlayer
 local lockPlayerID, leftPosX, lastSliderSound, release
 local curFrame, PrevGameFrame, MainList, desiredLosmode, drawListOffset
 
-local deadPlayerHeightReduction = 10
+local deadPlayerHeightReduction = 7
 
 local reportTake = false
 local tookTeamID
@@ -1492,7 +1493,6 @@ function SortAllyTeams(vOffset)
     -- (labels and separators are drawn)
     local allyTeamID
     local allyTeamList = Spring_GetAllyTeamList()
-    local firstenemy = true
     local allyTeamsCount = table.maxn(allyTeamList) - 1
 
     --find own ally team
@@ -1512,6 +1512,7 @@ function SortAllyTeams(vOffset)
     end
 
     -- add the others
+    local firstenemy = true
     for allyTeamID = 0, allyTeamsCount - 1 do
         if allyTeamID ~= myAllyTeamID then
             if firstenemy then
@@ -1544,7 +1545,7 @@ function SortTeams(allyTeamID, vOffset)
         drawList[#drawList + 1] = -1
         vOffset = SortPlayers(teamID, allyTeamID, vOffset) -- adds players form the team
         if select(3, Spring_GetTeamInfo(teamID, false)) then
-            vOffset = vOffset - (deadPlayerHeightReduction / 2)
+            vOffset = vOffset - deadPlayerHeightReduction
         end
     end
 
@@ -1599,7 +1600,7 @@ function SortPlayers(teamID, allyTeamID, vOffset)
     -- add no player token if no player found in this team at this point
     if noPlayer then
         if enemyListShow or player[64 + teamID].allyteam == myAllyTeamID then
-            vOffset = vOffset + playerOffset - (deadPlayerHeightReduction / 2)
+            vOffset = vOffset + playerOffset - deadPlayerHeightReduction
             drawListOffset[#drawListOffset + 1] = vOffset
             drawList[#drawList + 1] = 64 + teamID  -- no players team
             player[64 + teamID].posY = vOffset
@@ -1717,9 +1718,9 @@ function widget:DrawScreen()
         local posY
         local x, y, b = Spring.GetMouseState()
         for _, i in ipairs(drawList) do
-            if i > -1 and i < 64 then
+            if i > -1 then -- and i < 64
                posY = widgetPosY + widgetHeight - player[i].posY
-               if myTeamID ~= player[i].team and not player[i].spec and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY-2, m_name.posX + widgetPosX + m_name.width, posY + 16) then
+               if myTeamID ~= player[i].team and not player[i].spec and not player[i].dead and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY-2, m_name.posX + widgetPosX + m_name.width, posY + 16) then
                    UiSelectHighlight(widgetPosX, posY, widgetPosX + widgetPosX + 2 + 4, posY + playerOffset, nil, b and 0.28 or 0.14)
                end
             end
@@ -2017,15 +2018,20 @@ function DrawSeparator(vOffset)
 end
 
 function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
+
+    --if hideDeadTeams and player[playerID].dead then --and not player[playerID].totake then   -- totake is still active when teammates
+    --    return
+    --end
+
     tipY = nil
     local rank = player[playerID].rank
     local skill = player[playerID].skill
     local name = player[playerID].name
     local team = player[playerID].team
     local allyteam = player[playerID].allyteam
-    local red = player[playerID].red
-    local green = player[playerID].green
-    local blue = player[playerID].blue
+    --local red = player[playerID].red
+    --local green = player[playerID].green
+    --local blue = player[playerID].blue
     local dark = player[playerID].dark
     local pingLvl = player[playerID].pingLvl
     local cpuLvl = player[playerID].cpuLvl
@@ -2103,7 +2109,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
                     DrawDot(posY)
                 end
             end
-            if m_ID.active then
+            if m_ID.active and not dead then
                 DrawID(team, posY, dark, dead)
             end
             if m_skill.active then
@@ -2957,9 +2963,9 @@ function widget:MousePress(x, y, button)
                         end
                     end
                 end
-                if i > -1 and i < 64 then
+                if i > -1 then -- and i < 64
                     if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + 16) then
-                        if ctrl then
+                        if ctrl and i < 64 then
                             Spring_SendCommands("toggleignore " .. clickedPlayer.name)
                             return true
                         elseif not player[i].spec then
@@ -2967,7 +2973,7 @@ function widget:MousePress(x, y, button)
                             CreateMainList()
                         end
 
-                        if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
+                        if i < 64 and (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
                             LockCamera(i)
                             prevClickedPlayer = {}
                             SortList()

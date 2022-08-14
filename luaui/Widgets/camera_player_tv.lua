@@ -44,7 +44,8 @@ local tsOrderedPlayerCount = 0
 local tsOrderedPlayers = {}
 
 local isSpec, fullview = Spring.GetSpectatingState()
-local myTeamPlayerID = select(2, Spring.GetTeamInfo(Spring.GetMyTeamID()))
+local myTeamID = Spring.GetMyTeamID()
+local myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.7 + (vsx * vsy / 5000000))
 
@@ -346,7 +347,8 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged(playerID)
-	myTeamPlayerID = select(2, Spring.GetTeamInfo(Spring.GetMyTeamID()))
+	myTeamID = Spring.GetMyTeamID()
+	myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
 	isSpec, fullview = Spring.GetSpectatingState()
 	tsOrderPlayers()
 	if not rejoining then
@@ -354,8 +356,14 @@ function widget:PlayerChanged(playerID)
 			SelectTrackingPlayer()
 		end
 	end
-	if drawlistsPlayername[playerID] then
-		gl.DeleteList(drawlistsPlayername[playerID])
+	local name = Spring.GetPlayerInfo(playerID, false)
+	if select(4, Spring.GetTeamInfo(myTeamID,false)) then	-- is AI?
+		local _, _, _, aiName = Spring.GetAIInfo(myTeamID)
+		local niceName = Spring.GetGameRulesParam('ainame_' .. myTeamID)
+		name = niceName or aiName
+	end
+	if name and drawlistsPlayername[name] then
+		drawlistsPlayername[name] = gl.DeleteList(drawlistsPlayername[name])
 	end
 end
 
@@ -645,17 +653,24 @@ function widget:DrawScreen()
 					playerID = lockPlayerID
 				end
 				if playerID then
-					if not drawlistsPlayername[playerID] then
-						-- create player name
-						drawlistsPlayername[playerID] = gl.CreateList(function()
-							local name, _, spec, teamID, _, _, _, _, _ = Spring.GetPlayerInfo(playerID, false)
-							local nameColourR, nameColourG, nameColourB = 1, 1, 1
+					local name, _, spec, teamID, _, _, _, _, _ = Spring.GetPlayerInfo(playerID, false)
+					if select(4, Spring.GetTeamInfo(myTeamID,false)) then	-- is AI?
+						local _, _, _, aiName = Spring.GetAIInfo(myTeamID)
+						local niceName = Spring.GetGameRulesParam('ainame_' .. myTeamID)
+						name = niceName or aiName
+						name = Spring.I18N('ui.playersList.aiName', { name = name })
+					end
+					if not name then name = '---' end
+					-- create player name
+					if not drawlistsPlayername[name] then
+						drawlistsPlayername[name] = gl.CreateList(function()
+							local r, g, b = 1, 1, 1
 							if not spec then
-								nameColourR, nameColourG, nameColourB, _ = spGetTeamColor(teamID)
+								r, g, b, _ = spGetTeamColor(myTeamID)
 							end
 							font2:Begin()
-							font2:SetTextColor(nameColourR, nameColourG, nameColourB, 1)
-							if (nameColourR + nameColourG * 1.2 + nameColourB * 0.4) < 0.65 then
+							font2:SetTextColor(r, g, b, 1)
+							if (r + g * 1.2 + b * 0.4) < 0.65 then
 								font2:SetOutlineColor(1, 1, 1, 1)
 							else
 								font2:SetOutlineColor(0, 0, 0, 1)
@@ -665,10 +680,12 @@ function widget:DrawScreen()
 						end)
 					end
 					-- draw player name
-					gl.PushMatrix()
-					gl.Translate(0, top, 0)
-					gl.CallList(drawlistsPlayername[playerID])
-					gl.PopMatrix()
+					if drawlistsPlayername[name] then
+						gl.PushMatrix()
+						gl.Translate(0, top, 0)
+						gl.CallList(drawlistsPlayername[name])
+						gl.PopMatrix()
+					end
 				end
 			end
 		end
@@ -714,8 +731,8 @@ function widget:Shutdown()
 	for i = 1, #drawlistsCountdown do
 		gl.DeleteList(drawlistsCountdown[i])
 	end
-	for i, v in pairs(drawlistsPlayername) do
-		gl.DeleteList(drawlistsPlayername[i])
+	for name, v in pairs(drawlistsPlayername) do
+		gl.DeleteList(drawlistsPlayername[name])
 	end
 	drawlistsCountdown = {}
 	drawlistsPlayername = {}
