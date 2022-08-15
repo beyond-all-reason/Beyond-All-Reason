@@ -576,6 +576,23 @@ local unitEventLights = {
 		},	
 	},
 	
+	
+	-- These lights must be indexed by numbers, as these will be the ones triggered by the
+	-- The COB lua_UnitScriptLight(lightIndex, count) call does this job!
+	UnitScriptLights = {
+		[UnitDefNames['corint'].id] = {
+			[1] = { -- Give it a nice name in a comment
+				lightType = 'point',
+				pieceName = 'light',
+				lightConfig = { posx = 7, posy = 8, posz = 5, radius = 310,
+					color2r = 0, color2g = 0, color2b = 0, colortime = 300,
+					r = 1, g = 0.2, b = 0, a = 0.69999999,
+					modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
+					lifetime = 300, sustain = 1, animtype = 0},
+			},
+		},
+	},
+	
 }
 
 

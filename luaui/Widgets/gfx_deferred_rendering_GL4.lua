@@ -961,6 +961,16 @@ local function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
 	end
 end
 
+local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
+	Spring.Echo("Widgetside UnitScriptLight", unitID, unitDefID, lightIndex, param)
+	if unitEventLights.UnitScriptLights[unitDefID] and unitEventLights.UnitScriptLights[unitDefID][lightIndex] then 
+		local lightTable = unitEventLights.UnitScriptLights[unitDefID][lightIndex]
+		if lightTable.initComplete == nil then InitializeLight(lightTable) end 
+		local instanceID = tostring(unitID) .. "UnitScriptLight" .. tostring(lightIndex) .. "_" .. tostring(param)
+		AddLight(instanceID, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
+		
+	end
+end
  
 function widget:Initialize()
 
@@ -1021,6 +1031,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('AddLight', WG['lightsgl4'].AddLight)
 	widgetHandler:RegisterGlobal('RemoveLight', WG['lightsgl4'].RemoveLight)
 	
+	widgetHandler:RegisterGlobal('UnitScriptLight', UnitScriptLight)
 	
 	widgetHandler:RegisterGlobal('GadgetWeaponExplosion', GadgetWeaponExplosion)
 	widgetHandler:RegisterGlobal('GadgetWeaponBarrelfire', GadgetWeaponBarrelfire)
@@ -1059,6 +1070,9 @@ function widget:Shutdown()
 	
 	widgetHandler:DeregisterGlobal('GadgetWeaponExplosion')
 	widgetHandler:DeregisterGlobal('GadgetWeaponBarrelfire')
+	
+	widgetHandler:DeregisterGlobal('UnitScriptLight')
+
 end
 
 local windX = 0
