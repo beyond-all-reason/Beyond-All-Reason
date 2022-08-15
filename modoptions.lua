@@ -653,6 +653,14 @@ local options={
 		section="options",
 	},
 	{
+		key    = "map_atmosphere",
+		name   = "Map Atmosphere and Ambient Sounds",
+		desc   = "",
+		type   = "bool",
+		def    = true,
+		section= "options",
+	},
+	{
 		key    = "ffa_mode",
 		name   = "FFA Mode",
 		desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
@@ -676,6 +684,7 @@ local options={
 		name   = 'Cooperative mode',
 		desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
 		type   = 'bool',
+		hidden = true,
 		def    = false,
 		section= 'options',
 	},
@@ -1338,16 +1347,6 @@ local options={
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,
-	},
-
-	{
-		key    = 'mapatmospherics',
-		name   = 'Map Atmospherics',
-		desc   = 'Map Atmospherics',
-		hidden = true,
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = true,
 	},
 
 	{
