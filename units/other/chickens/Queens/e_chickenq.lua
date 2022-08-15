@@ -78,7 +78,7 @@ return {
 			},
 		},
 		weapondefs = {
-			goo = 
+			goo = {
 				accuracy = 300,
 				areaofeffect = 200,
 				avoidfeature = 0,
