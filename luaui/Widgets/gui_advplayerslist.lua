@@ -1720,7 +1720,7 @@ function widget:DrawScreen()
         for _, i in ipairs(drawList) do
             if i > -1 then -- and i < 64
                posY = widgetPosY + widgetHeight - player[i].posY
-               if myTeamID ~= player[i].team and not player[i].spec and not player[i].dead and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY-2, m_name.posX + widgetPosX + m_name.width, posY + 16) then
+               if myTeamID ~= player[i].team and not player[i].spec and not player[i].dead and player[i].name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + playerOffset) then
                    UiSelectHighlight(widgetPosX, posY, widgetPosX + widgetPosX + 2 + 4, posY + playerOffset, nil, b and 0.28 or 0.14)
                end
             end
@@ -2948,13 +2948,13 @@ function widget:MousePress(x, y, button)
                         if i > -1 and i < 64 then
                             if clickedPlayer.pointTime ~= nil then
                                 if right then
-                                    if IsOnRect(x, y, widgetPosX - 33, posY - 2, widgetPosX - 17, posY + 16) then
+                                    if IsOnRect(x, y, widgetPosX - 33, posY - 2, widgetPosX - 17, posY + playerOffset) then
                                         --point button
                                         Spring.SetCameraTarget(clickedPlayer.pointX, clickedPlayer.pointY, clickedPlayer.pointZ, 1)
                                         return true
                                     end
                                 else
-                                    if IsOnRect(x, y, widgetPosX + widgetWidth + 17, posY - 2, widgetPosX + widgetWidth + 33, posY + 16) then
+                                    if IsOnRect(x, y, widgetPosX + widgetWidth + 17, posY - 2, widgetPosX + widgetWidth + 33, posY + playerOffset) then
                                         Spring.SetCameraTarget(clickedPlayer.pointX, clickedPlayer.pointY, clickedPlayer.pointZ, 1)
                                         return true
                                     end
@@ -2964,7 +2964,7 @@ function widget:MousePress(x, y, button)
                     end
                 end
                 if i > -1 then -- and i < 64
-                    if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + 16) then
+                    if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + playerOffset) then
                         if ctrl and i < 64 then
                             Spring_SendCommands("toggleignore " .. clickedPlayer.name)
                             return true
@@ -3004,7 +3004,7 @@ function widget:MousePress(x, y, button)
                             end
                         end
                         if m_share.active and clickedPlayer.dead ~= true and not hideShareIcons then
-                            if IsOnRect(x, y, m_share.posX + widgetPosX + 1, posY, m_share.posX + widgetPosX + 17, posY + 16) then
+                            if IsOnRect(x, y, m_share.posX + widgetPosX + 1, posY, m_share.posX + widgetPosX + 17, posY + playerOffset) then
                                 -- share units button
                                 if release ~= nil then
                                     if release >= now then
@@ -3027,12 +3027,12 @@ function widget:MousePress(x, y, button)
                                 end
                                 return true
                             end
-                            if IsOnRect(x, y, m_share.posX + widgetPosX + 17, posY, m_share.posX + widgetPosX + 33, posY + 16) then
+                            if IsOnRect(x, y, m_share.posX + widgetPosX + 17, posY, m_share.posX + widgetPosX + 33, posY + playerOffset) then
                                 -- share energy button (initiates the slider)
                                 energyPlayer = clickedPlayer
                                 return true
                             end
-                            if IsOnRect(x, y, m_share.posX + widgetPosX + 33, posY, m_share.posX + widgetPosX + 49, posY + 16) then
+                            if IsOnRect(x, y, m_share.posX + widgetPosX + 33, posY, m_share.posX + widgetPosX + 49, posY + playerOffset) then
                                 -- share metal button (initiates the slider)
                                 metalPlayer = clickedPlayer
                                 return true
@@ -3047,14 +3047,14 @@ function widget:MousePress(x, y, button)
                     if i > -1 and i < 64 then
                         --chat button
                         if m_chat.active then
-                            if IsOnRect(x, y, m_chat.posX + widgetPosX + 1, posY, m_chat.posX + widgetPosX + 17, posY + 16) then
+                            if IsOnRect(x, y, m_chat.posX + widgetPosX + 1, posY, m_chat.posX + widgetPosX + 17, posY + playerOffset) then
                                 Spring_SendCommands("chatall", "pastetext /w " .. clickedPlayer.name .. ' \1')
                                 return true
                             end
                         end
                         --ally button
                         if m_alliance.active and drawAllyButton and not mySpecStatus and player[i] ~= nil and player[i].dead ~= true and i ~= myPlayerID then
-                            if IsOnRect(x, y, m_alliance.posX + widgetPosX + 1, posY, m_alliance.posX + widgetPosX + m_alliance.width, posY + 16) then
+                            if IsOnRect(x, y, m_alliance.posX + widgetPosX + 1, posY, m_alliance.posX + widgetPosX + m_alliance.width, posY + playerOffset) then
                                 if Spring_AreTeamsAllied(player[i].team, myTeamID) then
                                     Spring_SendCommands("ally " .. player[i].allyteam .. " 0")
                                 else
