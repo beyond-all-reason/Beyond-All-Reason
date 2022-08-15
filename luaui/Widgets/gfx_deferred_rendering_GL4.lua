@@ -1109,7 +1109,7 @@ function widget:UnitIdle(unitID, unitDefID, teamID)
 			for lightname, lightTable in pairs(unitEventLight) do
 				if lightname ~= 'initComplete' then
 					if not lightTable.initComplete then InitializeLight(lightTable, unitID) end
-					AddLight(tostring(unitID) ..  lightname, unitID, nil, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
+					AddLight(tostring(unitID) ..  lightname, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
 					--[[
 					if lightTable.lightType == 'point' then
 						AddPointLight( tostring(unitID) ..  lightname, unitID, nil, nil, lightTable.lightParamTable)
@@ -1136,7 +1136,7 @@ function widget:UnitFinished(unitID, unitDefID, teamID)
 		if not lightTable.initComplete then InitializeLight(lightTable, unitID) end
 		--Spring.Echo("Unitfinished",  unitEventLights['UnitFinished'], lightTable.lightType )
 		lightTable.lightParamTable[2] = Spring.GetUnitHeight(unitID) + 64
-		AddLight(tostring(unitID) ..  "UnitFinished", unitID, nil, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
+		AddLight(tostring(unitID) ..  "UnitFinished", unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
 	end
 end
 
@@ -1149,7 +1149,7 @@ function widget:UnitCreated(unitID, unitDefID, teamID)
 		if not lightTable.initComplete then InitializeLight(lightTable, unitID) end
 		--Spring.Echo("Unitfinished",  unitEventLights['UnitFinished'], lightTable.lightType )
 		lightTable.lightParamTable[2] = Spring.GetUnitHeight(unitID) + 64
-		AddLight(tostring(unitID) ..  "UnitCreated", unitID, nil, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
+		AddLight(tostring(unitID) ..  "UnitCreated", unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
 	end
 end
 
