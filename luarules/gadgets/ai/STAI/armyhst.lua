@@ -371,16 +371,18 @@ function ArmyHST:Init()
 		armuwmme = true ,
 		coruwmme = true ,
 		}
-
+	ArmyHST.t2mex = {
+		armmoho = true,
+		cormoho = true,
+		armuwmme = true,
+		coruwmme = true,
+		}
 	-- what mexes upgrade to what
 	ArmyHST.mexUpgrade = {
 		cormex = "cormoho",
 		armmex = "armmoho",
-		coruwmex = "coruwmme",--ex coruwmex caution this will be changed --TODO
-		armuwmex = "armuwmme",--ex armuwmex
 		armamex = "armmoho",
-		corexp = "cormexp",
-
+		corexp = "cormoho",
 		}
 
 	self._flak_ = {
@@ -730,7 +732,7 @@ ArmyHST.factoryExitSides = {
 -- }
 
 -- what mexes upgrade to what
-ArmyHST.mexUpgrade = {
+--[[ArmyHST.mexUpgrade = {
 	cormex = "cormoho",
 	armmex = "armmoho",
 	coruwmex = "coruwmme",--ex coruwmex caution this will be changed --TODO
@@ -739,6 +741,7 @@ ArmyHST.mexUpgrade = {
 	corexp = "cormexp",
 
 	}
+]]
 
 -- factories that can build advanced construction units (i.e. moho mines)
 ArmyHST.advFactories = {
@@ -1321,7 +1324,7 @@ function ArmyHST:GetUnitTable()
 		elseif	utable.isBuilding and not utable.needsWater then
 			utable.mtype = 'veh'
 			utable.LAYER = 'G'
-		elseif  unitDef.moveDef.name and (string.find(unitDef.moveDef.name, 'abot') or string.find(unitDef.moveDef.name, 'vbot')  or string.find(unitDef.moveDef.name,'atank'))  then
+		elseif  unitDef.moveDef.name and (string.find(unitDef.moveDef.name, 'abot') or string.find(unitDef.moveDef.name, 'commanderbot') or string.find(unitDef.moveDef.name, 'vbot')  or string.find(unitDef.moveDef.name,'atank'))  then
 			utable.mtype = 'amp'
 			utable.LAYER = 'X'
 		elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'uboat') then

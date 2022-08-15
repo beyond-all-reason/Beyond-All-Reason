@@ -49,9 +49,9 @@ function BehaviourFactory:defaultBehaviours(unit)
 		--self:EchoDebug()
 		--table.insert(b, WardBST)
 		table.insert(b,TaskQueueBST)
-		if army.unitTable[un].techLevel >=4 then
-			table.insert(b, MexUpBST)
-		end
+		--if army.unitTable[un].techLevel >=4 then
+		--	table.insert(b, MexUpBST)
+		--end
 	end
 	if army.rezs[un] then
 		--self:EchoDebug()

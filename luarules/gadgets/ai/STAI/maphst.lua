@@ -33,7 +33,6 @@ function MapHST:Init()
 	self.groundMetals = {}
 	self.networks = {} --hold data in a "specific network" area(about GAS (area,mex,geos,trampling)
 	self.layers = {} --hold the "global layer" data about a GAS (area,mex,geos,trampling)
-
 	self.startLocations = {}
 	self.ai.armyhst.UWMetalSpotCheckUnitType = self.game:GetTypeByName(self.ai.armyhst.UWMetalSpotCheckUnit)
 	self:gridAnalisy()
@@ -85,8 +84,8 @@ end
 function MapHST:PosToGrid(pos)
 	local X = math.ceil(pos.x / self.gridSize)
 	local Z = math.ceil(pos.z / self.gridSize)
-	if not self.GRID[Z] or not self.GRID[X][Z] then
-		self:Warn( X,Z,'is out of GRID')
+	if not self.GRID[X] or not self.GRID[X][Z] then
+		self:Warn( X,Z,'is out of GRID',pos.x,pos.z)
 	end
 	return X, Z
 end
@@ -140,6 +139,7 @@ function MapHST:areaCells(X,Z,R,grid) -- return alist of cells in range R from a
 end
 
 function MapHST:GetCell(X,Z,grid) --accept 1one position({t.x,t.y,t.z}) OR 2two XZ grid coordinate; return a CEll if exist
+
 	if type(X) == 'table' and X.x and X.z then
 		grid = Z
 		X,Z = self:PosToGrid(X)
@@ -397,9 +397,7 @@ function MapHST:geoScan()--insert GEOS in to the correct CELL and layer's networ
 		for layer,nets in pairs(self.networks) do
 			if nets then
 				for index,network in pairs(nets) do
-
 						table.insert(network.geos,spot)
-
 				end
 			end
 		end
@@ -682,7 +680,10 @@ end
 
 function MapHST:MobilityNetworkHere(mtype, position)
 	if not mtype or not position then return nil end
-	return self:GetCell(position,self.GRID).moveLayers[mtype]
+	local cell = self:GetCell(position,self.GRID)
+	if cell then
+		return cell.moveLayers[mtype]
+	end
 end
 
 function MapHST:MobilityOfUnit(unit)

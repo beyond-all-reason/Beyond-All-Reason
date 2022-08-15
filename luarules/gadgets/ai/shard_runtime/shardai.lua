@@ -101,7 +101,7 @@ function ShardAI:GameMessage(text)
 	end
 end
 
-function ShardAI:UnitCreated(engineunit)
+function ShardAI:UnitCreated(engineunit,builderId)
 	if self.gameend == true then
 		return
 	end
@@ -115,7 +115,7 @@ function ShardAI:UnitCreated(engineunit)
 	end
 	for i,m in ipairs(self.modules) do
 		--self.game:StartTimer(m:Name() .. ' C')
-		m:UnitCreated(engineunit)
+		m:UnitCreated(engineunit,builderId)
 		--self.game:StopTimer(m:Name() .. ' C')
 
 	end

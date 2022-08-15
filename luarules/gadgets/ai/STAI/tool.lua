@@ -269,35 +269,69 @@ function Tool:tableConcat(tables)
 	return T
 end
 
+function Tool:getTeamUnitsByClass(classes)
+	local list = {}
+	for i,class in pairs(classes) do
+
+		if not self.ai.armyhst[class] then
+			self:EchoDebug(class , 'is not a valid class to searching for a unit')
+		else
+			for name,data in pairs(self.ai.armyhst[class]) do
+				local current = game:GetTeamUnitsByDefs(self.ai.id,self.ai.armyhst.unitTable[name].defId)
+				for index,unit in pairs(current) do
+					table.insert(list,current)
+				end
+			end
+		end
+	end
+	return(list)
+end
+
 function Tool:countFinished( nameORid )
 	local team = self.game:GetTeamID()
 	local counter = 0
-	if type(nameORid ) == 'string' then
-		nameORid = self.ai.armyhst.unitTable[nameORid].defId
-	end
-	if type(nameORid ) ~= 'number' then
-		self:EchoDebug('type not valid in count finish unit')
-	end
-	local targetList = self.ai.game:GetTeamUnitsByDefs(self.ai.id, nameORid)
-	for index , value in pairs(targetList) do
-		if value:internal():IsBeingBuilt() == 1 then
-			counter = counter +1
+	if self.ai.armyhst[nameORid] then
+		for name,data in pairs(self.ai.armyhst[nameORid]) do
+			local def = self.ai.armyhst.unitTable[name].defId
+			local targetList = game:GetTeamUnitsByDefs(self.ai.id, def)
+			print(targetList)
+
+			for index , value in pairs(targetList) do
+				print(index,value)
+				if game:GetUnitByID(value):IsBeingBuilt() == 1 then
+					counter = counter +1
+				end
+			end
+		end
+
+	else
+		if type(nameORid ) == 'string' then
+			nameORid = self.ai.armyhst.unitTable[nameORid].defId
+		end
+		if type(nameORid ) ~= 'number' then
+			self:EchoDebug('type not valid in count finish unit')
+		end
+		local targetList = game:GetTeamUnitsByDefs(self.ai.id, nameORid)
+		for index , value in pairs(targetList) do
+			if value:internal():IsBeingBuilt() == 1 then
+				counter = counter +1
+			end
 		end
 	end
 	return counter
 end
 
-function Tool:countMyUnit( targets )
+function Tool:countMyUnit( targets ,finish)
 	local team = self.game:GetTeamID()
 	local counter = 0
 	for i,target in pairs(targets) do
 		self:EchoDebug('target',target)
 		if type(target) == 'number' then
-			counter = counter + self.game:GetTeamUnitDefCount(team,target)
+			counter = counter + game:GetTeamUnitDefCount(team,target)
 		elseif self.ai.armyhst[target] then
 			for name,t in pairs(self.ai.armyhst[target]) do
 				local id = self.ai.armyhst.unitTable[name].defId
-				counter = counter + self.game:GetTeamUnitDefCount(team,id)
+				counter = counter + game:GetTeamUnitDefCount(team,id)
 			end
 
 		else
@@ -314,6 +348,8 @@ function Tool:countMyUnit( targets )
 	self:EchoDebug('counter',counter)
 	return counter
 end
+
+
 
 function Tool:mtypedLvCount(tpLv)
 	local team = self.game:GetTeamID()

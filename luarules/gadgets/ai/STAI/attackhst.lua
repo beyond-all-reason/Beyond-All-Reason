@@ -12,7 +12,7 @@ local floor = math.floor
 local ceil = math.ceil
 
 function AttackHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.visualdbg = true
 	self.recruits = {}
 	self.squads = {}
@@ -474,13 +474,11 @@ function AttackHST:targetCell(representative, position, ourThreat,squad,TYPE)
 	local bestTarget = nil
 	local bestDefense = 0
 	local bestDefCell = nil
-	print('1')
 	local topDist = self.ai.tool:DistanceXZ(0,0, Game.mapSizeX, Game.mapSizeZ)
 	if TYPE == 1 then
 		local first = self:getFrontCell(squad,representative)
 		if first then return first end
 	end
-	print('3')
 	if TYPE == -1 then
 		local centerDist= math.huge
 		local squadToCenter = self.ai.tool:distance(squad.position,self.ai.loshst.CENTER)
@@ -507,10 +505,6 @@ function AttackHST:targetCell(representative, position, ourThreat,squad,TYPE)
 		end
 
 	end
-	print('4')
-
-
-
 	for X, cells in pairs(self.ai.loshst.ENEMY) do
 		for Z, cell in pairs(cells) do
 			for squadIndex,squad in pairs(self.squads) do

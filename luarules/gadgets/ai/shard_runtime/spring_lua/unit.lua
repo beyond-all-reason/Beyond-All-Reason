@@ -169,9 +169,21 @@ function ShardUnit:Cloaked()
 	return Spring.GetUnitIsCloaked(self.id)
 end
 
+function ShardUnit:GetUnitIsBuilding()
+	return Spring.GetUnitIsBuilding(self.id)
+end
+
+function ShardUnit:GetCurrentBuildPower()
+	return Spring.GetUnitCurrentBuildPower(self.id)
+end
+
+function ShardUnit:IsBlocking()
+	return Spring.GetUnitBlocking(self.unitid)
+end
+
 function ShardUnit:CurrentStockpile()
 	local numStockpiled, numStockpileQued, buildPercent = Spring.GetUnitStockpile(self.id)
-	return numStockpiled
+	return numStockpiled, numStockpileQued, buildPercent
 end
 
 function ShardUnit:Type()

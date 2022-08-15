@@ -11,8 +11,6 @@ shard_include ("raidhst")
 shard_include ("loshst")
 shard_include ("targethst")
 shard_include ("scouthst")
--- shard_include ("defendhst")
--- shard_include ("turtlehst")
 shard_include ("ecohst")
 shard_include ("damagehst")
 shard_include ("cleanhst")
@@ -32,12 +30,10 @@ return {
 	RaidHST,
 	BuildSiteHST,
 	LabBuildHST,
--- 	TurtleHST,
 	LosHST,
 	TargetHST,
 	DamageHST,
 	ScoutHST,
--- 	DefendHST,
 	CleanHST,
 	NanoHST,
 	OverviewHST,

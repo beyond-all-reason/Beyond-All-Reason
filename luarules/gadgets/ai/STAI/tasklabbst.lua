@@ -38,7 +38,7 @@ function TaskLabBST:preFilter()
 	local topLevel = self.ai.maxFactoryLevel
  	local threshold = 1 - (techLv / topLevel) + 0.05
 	self:EchoDebug('prefilter threshold', threshold)
-	if self.ai.Energy.full > 0.1 and self.ai.Metal.full > threshold then
+	if self.ai.Energy.full > 0.1 and self.ai.Metal.full > 0.1 then
 		self.unit:Internal():FactoryUnWait()
 	else
 		self.unit:Internal():FactoryWait()
@@ -64,6 +64,11 @@ function TaskLabBST:Update()
 end
 
 function TaskLabBST:getQueue()
+	if self.spec.techLevel >= 3 then
+		if self.ai.tool:countFinished('_fus_') < 1 and self.ai.tool:countFinished('t2mex') < 2 then
+			return self.ai.taskshst.labs.premode
+		end
+	end
 	return self.ai.taskshst.labs.default
 end
 
@@ -73,6 +78,7 @@ function TaskLabBST:getSoldier()
 	local param
 	local utype
 	self.queue = self:getQueue(self.name)
+
 	for i = self.qIndex , #self.queue do
 		param = self.queue[i]
 		soldier,utype = self:getSoldierFromCategory(param.category)

@@ -62,10 +62,6 @@ local game = {}
 		return Spring.GetUnitsInCylinder(pos.x, pos.z, range, team)
 	end
 
-	function game:GetUnitIsBuilding(id)
-		return Spring.GetUnitIsBuilding(id)
-	end
-
 	function game:GetTeamUnitDefCount(team,unitDef)
 		return Spring.GetTeamUnitDefCount(team,unitDef)
 	end

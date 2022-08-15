@@ -16,10 +16,26 @@ function TasksHST:Init()
 	self:startLabsParams()
 end
 
+
+
 function TasksHST:startLabsParams()
 	local M = self.ai.Metal
 	local E = self.ai.Energy
+	self.labs.premode = {
+		{category = 'techs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1, mtype = nil, max = 3,},
+			wave = 1},
+			{category = 'raiders',
+			economy = function()
+				return  (E.full > 0.3 and M.full > 0.3 )
+			end,
+			numeric = {min = 1,max = 10},
+			wave = 1},
 
+		}
 	self.labs.default = {
 			{category = 'techs',
 			economy = function()

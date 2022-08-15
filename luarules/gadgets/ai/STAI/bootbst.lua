@@ -1,4 +1,3 @@
--- Sends units out of factories and holds units in place who are being repaired after resurrection
 BootBST = class(Behaviour)
 
 function BootBST:Name()
@@ -16,7 +15,6 @@ function BootBST:Init()
 	self.mobile = not self.ai.armyhst.unitTable[self.name].isBuilding
 	self.mtype = self.ai.armyhst.unitTable[self.name].mtype
 	self.lastInFactoryCheck = self.game:Frame()
-	self.repairedBy = self.ai.buildsitehst:ResurrectionRepairedBy(self.id)
 	-- air units don't need to leave the factory
 	self.ignoreFactories = self.mtype == "air" or not self.mobile
 	self.finished = false
@@ -31,42 +29,16 @@ end
 
 function BootBST:OwnerDead()
 	self.factory = nil
-	if self.repairedBy then self.repairedBy:ResurrectionComplete() end
-	self.ai.buildsitehst:RemoveResurrectionRepairedBy(self.id)
-	self.repairedBy = nil
 end
 
 function BootBST:Update()
-	 --self.uFrame = self.uFrame or 0
-	local f = self.game:Frame()
-	--if f - self.uFrame < self.ai.behUp['bootbst']  then
-	--	return
-	--end
-	--self.uFrame = f
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'BootBST' then return end
+	local f = self.game:Frame()
 	if not self.finished then return end
 	if self.ignoreFactories then return end
-
-
-
-	if self.repairedBy then
-		--if f % 30 == 0 then
-			if self.unit:Internal():GetHealth() == self.unit:Internal():GetMaxHealth() then
-				self.repairedBy:ResurrectionComplete()
-				self.repairedBy = nil
-				self.unit:ElectBehaviour()
-			end
-		--end
-		return
-	end
-
-
-
 	if self.factory then
-		--if f % 30 == 0 then
 			local u = self.unit:Internal()
 			local pos = u:GetPosition()
-			-- self:EchoDebug(pos.x .. " " .. pos.z .. " " .. self.factory.exitRect.x1 .. " " .. self.factory.exitRect.z1 .. " " .. self.factory.exitRect.x2 .. " " .. self.factory.exitRect.z2)
 			if not self.ai.tool:PositionWithinRect(pos, self.factory.exitRect) then
 				self.factory = nil
 				self.unit:ElectBehaviour()
@@ -79,7 +51,6 @@ function BootBST:Update()
 
 				end
 			end
-		--end
 	else
 		if f > self.lastInFactoryCheck + 300 then
 			-- units (especially construction units) can still get stuck in factories long after they're built
@@ -174,12 +145,7 @@ function BootBST:ExitFactory(face)
 	elseif out.z < 1 then
 		out.z = 1
 	end
--- 	local out2 = api.Position()
--- 	out2.x = pos.x + outX
--- 	out2.y = pos.y + 0
--- 	out2.z = pos.z + outZ
  	u:Move(out)
-
 	self.lastOrderFrame = self.game:Frame()
 	self.lastExitSide = face
 end

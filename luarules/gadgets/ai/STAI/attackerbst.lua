@@ -9,9 +9,8 @@ function AttackerBST:Name()
 	return "AttackerBST"
 end
 
-AttackerBST.DebugEnabled = false
-
 function AttackerBST:Init()
+	self.DebugEnabled = false
 	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.network = network

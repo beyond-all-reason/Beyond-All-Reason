@@ -1,14 +1,3 @@
-
-local DebugEnabledPlans = false
-local DebugEnabledDraw = false
-
-
-local function EchoDebugPlans(inStr)
-	if DebugEnabledPlans then
-		self.game:SendToConsole("BuildSiteHST Plans: " .. inStr)
-	end
-end
-
 BuildSiteHST = class(Module)
 
 function BuildSiteHST:Name()
@@ -21,17 +10,9 @@ end
 
 function BuildSiteHST:Init()
 	self.DebugEnabled = false
-	self.debugPlotDrawn = {}
-	local mapSize = self.map:MapDimensions()
-	self.ai.maxElmosX = mapSize.x * 8
-	self.ai.maxElmosZ = mapSize.z * 8
-	self.ai.maxElmosDiag = math.sqrt(self.ai.maxElmosX^2 + self.ai.maxElmosZ^2)
-	self.ai.lvl1Mexes = 1 -- this way mexupgrading doesn't revert to taskqueuing before it has a chance to find mexes to upgrade
-	self.resurrectionRepair = {}
 	self.dontBuildRects = {}
 	self.plans = {}
 	self.constructing = {}
-	-- self.history = {}
 	self:DontBuildOnMetalOrGeoSpots()
 end
 
@@ -105,112 +86,14 @@ function BuildSiteHST:LandWaterFilter(pos, unitTypeToBuild, builder)
 	end
 end
 
-
-
 function BuildSiteHST:GetBuildSpacing(unitTypeToBuild)
 	local army = self.ai.armyhst
 	local spacing = 100
 	local un = unitTypeToBuild:Name()
 	if army.factoryMobilities[un] then
-		--self:EchoDebug()
-		spacing = 150
+		spacing = 300
 	elseif army._mex_[un] then
 		spacing = 50
--- 	elseif army._nano_[un] then
--- 		spacing = 0
---  	elseif army._wind_[un] then
---  		spacing = 80
---  	elseif army._tide_[un] then
---  		spacing = 80
---  	elseif army._solar_[un] then
---  		spacing = 80
---  	elseif army._estor_[un] then
---  		spacing = 80
---  	elseif army._mstor_[un] then
---  		spacing = 80
---  	elseif army._convs_[un] then
--- 		spacing = 80
--- 	elseif army._llt_[un] then
--- 		spacing = 50
--- 		--self:EchoDebug()
--- 	elseif army._popup1_[un] then
--- 		spacing = 50
--- 		--self:EchoDebug()
--- 		spacing = 50
--- 	elseif army._specialt_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 5
--- 	elseif army._heavyt_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 50
--- 	elseif army._aa1_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 50
--- 	elseif army._flak_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 50
--- 	elseif army._fus_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 50
--- 	elseif army._popup2_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 50
--- 	elseif army._jam_[un] then
--- 		--self:EchoDebug()
--- 	elseif army._radar_[un] then
--- 		--self:EchoDebug()
--- 	elseif army._geo_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 5
--- 	elseif army._silo_[un] then
--- 		--self:EchoDebug()
--- 	elseif army._antinuke_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 5
--- 	elseif army._sonar_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 4
--- 	elseif army._shield_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 5
--- 	elseif army._juno_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 4
--- 	elseif army._laser2_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 4
--- 	elseif army._lol_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 5
--- 	elseif army._coast1_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 5
--- 	elseif army._coast2_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 5
--- 	elseif army._plasma_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 4
--- 	elseif army._torpedo1_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 4
--- 	elseif army._torpedo2_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 4
--- 	elseif army._torpedoground_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 5
--- 	elseif army._aabomb_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 5
--- 	elseif army._aaheavy_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 5
--- 	elseif army._aa2_[un] then
--- 		--self:EchoDebug()
--- 		spacing = 5
--- 	else
--- 		spacing = 5
 	end
 	return spacing
 end
@@ -223,13 +106,11 @@ function BuildSiteHST:ClosestHighestLevelFactory(builderPos, maxDist)
 	local factorybhvr
 	if self.ai.factoriesAtLevel[maxLevel] ~= nil then
 		for i, factory in pairs(self.ai.factoriesAtLevel[maxLevel]) do
--- 			if not self.ai.outmodedFactoryID[factory.id] then
-				local dist = self.ai.tool:Distance(builderPos, factory.position)
-				if dist < minDist then
-					minDist = dist
-					factorybhvr = factory
-				end
--- 			end
+			local dist = self.ai.tool:Distance(builderPos, factory.position)
+			if dist < minDist then
+				minDist = dist
+				factorybhvr = factory
+			end
 		end
 	end
 	if factorybhvr then
@@ -252,24 +133,18 @@ function BuildSiteHST:DontBuildRectangle(x1, z1, x2, z2, unitID)
 	table.insert(self.dontBuildRects, {x1 = x1, z1 = z1, x2 = x2, z2 = z2, unitID = unitID})
 end
 
--- handle deaths
 function BuildSiteHST:DoBuildRectangleByUnitID(unitID)
-	for i = #self.dontBuildRects, 1, -1 do
-		local rect = self.dontBuildRects[i]
+	for i,rect in pairs(self.dontBuildRects) do
 		if rect.unitID == unitID then
 			table.remove(self.dontBuildRects, i)
 		end
 	end
-	self:PlotAllDebug()
 end
 
 function BuildSiteHST:DontBuildOnMetalOrGeoSpots()
-	--local spots = self.ai.maphst.scoutSpots["air"][1]
-
 	for i, p in pairs(self.ai.maphst.allSpots) do
 		self:DontBuildRectangle(p.x-40, p.z-40, p.x+40, p.z+40)
 	end
-	self:PlotAllDebug()
 end
 
 function BuildSiteHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minimumDistance, attemptNumber, buildDistance, maximumDistance)
@@ -288,7 +163,6 @@ function BuildSiteHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minim
 	local target = self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minimumDistance, validFunction)
 	self.DebugEnabled = false
  	return target
-
 end
 
 function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosition) --TODO clean this
@@ -296,7 +170,7 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 	if not self.ai.maphst:isInMap(pos) then return end
 	-- sanity check: is it REALLY possible to build here?
  	local range = self:GetBuildSpacing(unitTypeToBuild)
-  	local neighbours = self.game:getUnitsInCylinder(pos, range) --security distance between buildings prevent units stuck --TODO refine and TEST
+  	local neighbours = game:getUnitsInCylinder(pos, range) --security distance between buildings prevent units stuck --TODO refine and TEST
 	for idx, unitID in pairs (neighbours) do
 		local unitName = self.game:GetUnitByID(unitID):Name()
 		local mobile = self.ai.armyhst.unitTable[unitName].speed > 0
@@ -326,7 +200,6 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 		for i, dont in pairs(self.dontBuildRects) do
 			if self.ai.tool:RectsOverlap(rect, dont) then
 				pos = nil
-
 			end
 		end
 	end
@@ -341,10 +214,7 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 	-- don't build where the builder can't go
 	if pos ~= nil then
 		if not self.ai.maphst:UnitCanGoHere(builder, pos) then
-			--Spring.Echo(builder:Name(), 'CAN NOT GO', pos.x,pos.z)
 			return nil
-		else
-			--Spring.Echo(builder:Name(), 'go to', pos.x,pos.z)
 		end
 	end
 	return pos
@@ -394,7 +264,6 @@ function BuildSiteHST:searchPosInList(utype, builder,minDist,maxDist,list,neighb
 	if not list then return end
 	for index, pos in pairs(list) do
 		self:EchoDebug(index,pos)
-
 		if not neighbours or not self:unitsNearCheck(pos, maxDist,number,neighbours)then
 			tmpPos = self:ClosestBuildSpot(builder, pos, utype , minDist, nil, nil, maxDist)
 			if tmpPos then
@@ -436,7 +305,6 @@ function BuildSiteHST:BuildNearNano(builder, utype)
 		end
 	end
 	return self:BuildNearLastNano(builder, utype)
-
 end
 
 function BuildSiteHST:BuildNearLastNano(builder, utype)
@@ -449,20 +317,6 @@ function BuildSiteHST:BuildNearLastNano(builder, utype)
 	end
 	return p
 end
-
--- function BuildSiteHST:buildOnCircle(center,uname)
--- 	local posx
--- 	local posz
--- 	for i=1,8 do
--- 		local x = radius *  math.cos(math.ceil((360/8)*i))
--- 		local z = radius *  math.sin(math.ceil((360/8)*i))
--- 		posx=posx+x
--- 		posz=posz+z
--- 		local posy = Spring.getGroundHeight(posx,posz)
--- 		local neighbours = self:unitsNearCheck({x=posx,y=posy,z=posz},500,1,uname)
--- 		if not neighbours then return {x=posx,y=posy,z=posz} end
--- 	end
--- end
 
 function BuildSiteHST:unitsNearCheck(pos,range,number,targets)
 	number = number or 1
@@ -485,24 +339,17 @@ function BuildSiteHST:unitsNearCheck(pos,range,number,targets)
 	return false
 end
 
-function BuildSiteHST:UnitCreated(unit)
+function BuildSiteHST:UnitCreated(unit,builderId)
 	local unitName = unit:Name()
 	local position = unit:GetPosition()
 	local unitID = unit:ID()
 	local planned = false
-	for i = #self.plans, 1, -1 do
-		local plan = self.plans[i]
+	for i,plan in pairs(self.plans) do
 		if plan.unitName == unitName and self.ai.tool:PositionWithinRect(position, plan) then
--- 			if plan.resurrect then
--- 				-- so that BootBST will hold it in place while it gets repaired
--- 				self:EchoDebug("resurrection of " .. unitName .. " begun")
--- 				self.resurrectionRepair[unitID] = plan.behaviour
--- 			else
-			self:EchoDebug(plan.behaviour.name .. " began constructing " .. unitName)
+			self:EchoDebug(plan.behaviour.name," began constructing ",unitName)
 			if self.ai.armyhst.unitTable[unitName].isBuilding or self.ai.armyhst._nano_[unitName] then
-				-- so that oversized factory lane rectangles will overlap with existing buildings
+			-- so that oversized factory lane rectangles will overlap with existing buildings
 				self:DontBuildRectangle(plan.x1, plan.z1, plan.x2, plan.z2, unitID)
-				--self.ai.turtlehst:PlanCreated(plan, unitID)
 			end
 			-- tell the builder behaviour that construction has begun
 			plan.behaviour:ConstructionBegun(unitID, plan.unitName, plan.position)
@@ -517,34 +364,25 @@ function BuildSiteHST:UnitCreated(unit)
 	end
 	if not planned and (self.ai.armyhst.unitTable[unitName].isBuilding or self.ai.armyhst._nano_[unitName]) then
 		-- for when we're restarting the AI, or other contingency
-		-- game:SendToConsole("unplanned building creation " .. unitName .. " " .. unitID .. " " .. position.x .. ", " .. position.z)
 		local rect = { position = position, unitName = unitName }
 		self:CalculateRect(rect)
 		self:DontBuildRectangle(rect.x1, rect.z1, rect.x2, rect.z2, unitID)
-		--self.ai.turtlehst:NewUnit(unitName, position, unitID)--TEST
 	end
-	self:PlotAllDebug()
-	--self.game:StopTimer('unitCreatedt')
 end
 
--- prevents duplication of expensive buildings and building more than one factory at once
--- true means there's a duplicate, false means there isn't TODO REDO
 function BuildSiteHST:CheckForDuplicates(unitName)
 	if unitName == nil then return true end
-	if unitName == self.ai.armyhst.DummyUnitName then return true end
 	local utable = self.ai.armyhst.unitTable[unitName]
-	local isFactory = utable.isBuilding and utable.buildOptions
-	local isExpensive = utable.metalCost > 300
-	if not isFactory and not isExpensive then return false end
-	EchoDebugPlans("looking for duplicate plan for " .. unitName)
+	local isFactory = self.ai.armyhst.factoryMobilities[unitName]
+	self:EchoDebug("looking for duplicate plan for ", unitName)
 	for i, plan in pairs(self.plans) do
-		local thisIsFactory = self.ai.armyhst.unitTable[plan.unitName].isBuilding and self.ai.armyhst.unitTable[plan.unitName].buildOptions
-		if isFactory and thisIsFactory then return true end
-		if isExpensive and plan.unitName == unitName then return true end
+		local factoryPlanned = self.ai.armyhst.factoryMobilities[plan.unitName]
+		if isFactory and factoryPlanned then return true end
+		if plan.unitName == unitName then return true end
 	end
-	EchoDebugPlans("looking for duplicate construction for " .. unitName)
+	self:EchoDebug("looking for duplicate construction for ", unitName)
 	for unitID, construct in pairs(self.constructing) do
-		if isExpensive and construct.unitName == unitName then
+		if construct.unitName == unitName then
 			self:EchoDebug('there is already one of this')
 			return true
 		end
@@ -557,13 +395,10 @@ function BuildSiteHST:MyUnitBuilt(unit)
 	local done = self.constructing[unitID]
 	if done then
 		self:EchoDebug(done.behaviour.name , done.behaviour.id,  " completed ", done.unitName, unitID)
-		EchoDebugPlans(done.behaviour.name .. " " .. done.behaviour.id ..  " completed " .. done.unitName .. " " .. unitID)
 		done.behaviour:ConstructionComplete()
 		done.frame = self.game:Frame()
-		-- table.insert(self.history, done)
 		self.constructing[unitID] = nil
 	end
-	self:calculateEcoCenter()
 end
 
 function BuildSiteHST:UnitDead(unit)
@@ -576,26 +411,11 @@ function BuildSiteHST:UnitDead(unit)
 	self:DoBuildRectangleByUnitID(unitID)
 end
 
-function BuildSiteHST:CalculateRect(rect)
-	local unitName = rect.unitName
-	if self.ai.armyhst.factoryExitSides[unitName] ~= nil and self.ai.armyhst.factoryExitSides[unitName] ~= 0 then
-		self:CalculateFactoryLane(rect)
-		return
-	end
-	local position = rect.position
-	local outX = self.ai.armyhst.unitTable[unitName].xsize * 4
-	local outZ = self.ai.armyhst.unitTable[unitName].zsize * 4
-	rect.x1 = position.x - outX
-	rect.z1 = position.z - outZ
-	rect.x2 = position.x + outX
-	rect.z2 = position.z + outZ
-end
-
 function BuildSiteHST:CalculateFactoryLane(rect)
 	local unitName = rect.unitName
 	local position = rect.position
-	local outX = self.ai.armyhst.unitTable[unitName].xsize * 6--original = 4
-	local outZ = self.ai.armyhst.unitTable[unitName].zsize * 6--original = 4
+	local outX = self.ai.armyhst.unitTable[unitName].xsize * 6
+	local outZ = self.ai.armyhst.unitTable[unitName].zsize * 6
 	local tall = outZ * 10
 	local facing = self:GetFacing(position)
 	if facing == 0 then
@@ -621,104 +441,40 @@ function BuildSiteHST:CalculateFactoryLane(rect)
 	end
 end
 
-function BuildSiteHST:NewPlan(unitName, position, behaviour, resurrect)
-	if resurrect then
-		EchoDebugPlans("new plan to resurrect " .. unitName .. " at " .. position.x .. ", " .. position.z)
-	else
-		EchoDebugPlans(behaviour.name .. " plans to build " .. unitName .. " at " .. position.x .. ", " .. position.z)
+function BuildSiteHST:CalculateRect(rect)
+	local unitName = rect.unitName
+	if self.ai.armyhst.factoryExitSides[unitName] ~= nil and self.ai.armyhst.factoryExitSides[unitName] ~= 0 then
+		self:CalculateFactoryLane(rect)
+		return
 	end
-	local plan = {unitName = unitName, position = position, behaviour = behaviour, resurrect = resurrect}
+	local position = rect.position
+	local outX = self.ai.armyhst.unitTable[unitName].xsize * 4
+	local outZ = self.ai.armyhst.unitTable[unitName].zsize * 4
+	rect.x1 = position.x - outX
+	rect.z1 = position.z - outZ
+	rect.x2 = position.x + outX
+	rect.z2 = position.z + outZ
+end
+
+function BuildSiteHST:NewPlan(unitName, position, behaviour)
+	self:EchoDebug(behaviour.name, " plans to build ", unitName .. " at ", position.x , position.z)
+	local plan = {unitName = unitName, position = position, behaviour = behaviour}
 	self:CalculateRect(plan)
--- 	if self.ai.armyhst.unitTable[unitName].isBuilding or self.ai.armyhst._nano_[unitName] then
--- 		self.ai.turtlehst:NewUnit(unitName, position, plan)--TEST
--- 	end
 	table.insert(self.plans, plan)
-	self:PlotAllDebug()
 end
 
 function BuildSiteHST:ClearMyPlans(behaviour)
-	for i = #self.plans, 1, -1 do
-		local plan = self.plans[i]
+	for i,plan in pairs(self.plans) do
 		if plan.behaviour == behaviour then
--- 			if not plan.resurrect and (self.ai.armyhst.unitTable[plan.unitName].isBuilding or self.ai.armyhst._nano_[plan.unitName]) then
--- 				self.ai.turtlehst:PlanCancelled(plan)--TEST
--- 			end
 			table.remove(self.plans, i)
 		end
 	end
-	self:PlotAllDebug()
 end
 
 function BuildSiteHST:ClearMyConstruction(behaviour)
 	for unitID, construct in pairs(self.constructing) do
 		if construct.behaviour == behaviour then
 			self.constructing[unitID] = nil
-		end
-	end
-	self:PlotAllDebug()
-end
-
-function BuildSiteHST:RemoveResurrectionRepairedBy(unitID)
-	self.resurrectionRepair[unitID] = nil
-end
-
-function BuildSiteHST:ResurrectionRepairedBy(unitID)
-	return self.resurrectionRepair[unitID]
-end
-
-function BuildSiteHST:calculateEcoCenter()
-	local count = 0
-	local x,y,z = 0,0,0
-	for i,v in pairs(self.game:GetUnits()) do
-		if self.ai.armyhst.unitTable[v:Name()].speed == 0 then
-			count = count + 1
-			local p = v:GetPosition()
-			x,y,z = x+p.x, y+p.y,z+p.z
-		end
-
-
-	end
-	x,y,z = x/count, y/count, z/count
--- 	map:DrawPoint({x=x,y=y,z=z}, {255,255,255,255}, 'center', 1)
-
-end
-
-function BuildSiteHST:PlotRectDebug(rect)
-	if DebugEnabledDraw and not rect.drawn then
-		local label
-		local color
-		if rect.unitName then
-			color = {0, 1, 0} -- plan
-		else
-			color = {1, 0, 0} -- don't build here
-		end
-		local pos1 = {x=rect.x1, y=0, z=rect.z1}
-		local pos2 = {x=rect.x2, y=0, z=rect.z2}
-		local id = self.map:DrawRectangle(pos1, pos2, color)
-		rect.drawn = color
-		self.debugPlotDrawn[#self.debugPlotDrawn+1] = rect
-	end
-end
-
-function BuildSiteHST:PlotAllDebug()
-	if DebugEnabledDraw then
-		local isThere = {}
-		for i, plan in pairs(self.plans) do
-			self:PlotRectDebug(plan)
-			isThere[plan] = true
-		end
-		for i, rect in pairs(self.dontBuildRects) do
-			self:PlotRectDebug(rect)
-			isThere[rect] = true
-		end
-		for i = #self.debugPlotDrawn, 1, -1 do
-			local rect = self.debugPlotDrawn[i]
-			if not isThere[rect] then
-				local pos1 = {x=rect.x1, y=0, z=rect.z1}
-				local pos2 = {x=rect.x2, y=0, z=rect.z2}
-				self.map:EraseRectangle(pos1, pos2, rect.drawn)
-				table.remove(self.debugPlotDrawn, i)
-			end
 		end
 	end
 end

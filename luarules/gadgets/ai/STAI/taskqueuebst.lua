@@ -389,7 +389,7 @@ function TaskQueueBST:GetQueue()
 	local id = self.ai.armyhst.unitTable[self.name].defId
 	local counter = self.game:GetTeamUnitDefCount(team,id)
 	if self.isCommander then
-		if  self.ai.tool:countMyUnit({'_llt_'}) < 1 then --self.ai.tool:countMyUnit({'techs'}) < 1 and
+		if self.ai.tool:countMyUnit({'techs'}) < 1 then -- and self.ai.tool:countMyUnit({'_llt_'}) < 1
 			self:removeOldBuildersRole(self.name,self.id)
 			table.insert(buildersRole.starter[self.name], self.id)
 			self.role = 'starter'
@@ -499,6 +499,7 @@ function TaskQueueBST:ProgressQueue()
 				if type(jobName) == "table" and jobName[1] == "ReclaimEnemyMex" then
 					jobName = jobName[1]
 				else
+					--self.ai.buildsitehst.plans[self.id] = (jobName,p)
 					self.ai.buildsitehst:NewPlan(jobName, p, self)
 					local facing = self.ai.buildsitehst:GetFacing(p)
 					local command = self.unit:Internal():Build(jobName, p, facing)
@@ -515,9 +516,6 @@ function TaskQueueBST:ProgressQueue()
 				self.failOut = nil
 				self.progress = false
 				self.assistant = false
--- 				if jobName == "ReclaimEnemyMex" then
--- 					self.watchdogTimeout = self.watchdogTimeout + 450 -- give it 15 more seconds to reclaim it
--- 				end
 			else
 				self.progress = true
 				self.target = nil
@@ -545,7 +543,7 @@ function TaskQueueBST:assist()
 				self.assistant = true
 				return
 			end
-		elseif self.ai.armyhst.techs[unitName] and Spring.GetUnitIsBuilding(unitID) then
+		elseif self.ai.armyhst.techs[unitName] and self.unit:Internal():GetUnitIsBuilding() then
 			self.unit:Internal():Guard(unitID)
 			self.assistant = true
 			return
@@ -608,6 +606,8 @@ end
 -- end
 
 function TaskQueueBST:VisualDBG()
+	local ch = 8
+	self.map:EraseAll(ch)
 	if not self.visualdbg then
 		return
 	end
@@ -618,7 +618,12 @@ function TaskQueueBST:VisualDBG()
 		support = {0,0,1,1},
 		expand = {0,1,1,1},
 		}
-	self.unit:Internal():EraseHighlight(nil, nil, 8 )
-	self.unit:Internal():DrawHighlight(colours[self.role] , self.role, 8 )
-
+	self.unit:Internal():EraseHighlight(nil, nil, ch )
+	self.unit:Internal():DrawHighlight(colours[self.role] , self.role, ch )
+	for i,plan in pairs(self.ai.buildsitehst.plans) do
+		map:DrawCircle(plan.position, 100 ,{0,1,1,1}, 'plan',true, ch)
+	end
+	for i,rect in pairs(self.ai.buildsitehst.dontBuildRects) do
+		map:DrawRectangle({x=rect.x1,y=0,z=rect.z1}, {x=rect.x2,y=0,z=rect.z2}, {1,0,0,1}, nil, true, ch)
+	end
 end
