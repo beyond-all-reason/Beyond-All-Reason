@@ -26,12 +26,6 @@ local glDrawFuncAtUnit = gl.DrawFuncAtUnit
 local glBillboard = gl.Billboard
 local glTranslate = gl.Translate
 
-local vsx, vsy = Spring.GetViewGeometry()
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local fontfileScale = (0.5 + (vsx * vsy / 5700000))
-local fontfileSize = 50
-local fontfileOutlineSize = 9
-local fontfileOutlineStrength = 10
 local font, chobbyInterface
 
 local etaTable = {}
@@ -44,8 +38,7 @@ end
 
 
 function widget:ViewResize()
-	font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-	--font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+	font = WG['fonts'].getFont(nil, 1, 0.2, 13.0)
 end
 
 local function makeETA(unitID, unitDefID)
