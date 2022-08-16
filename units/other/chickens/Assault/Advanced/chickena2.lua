@@ -87,7 +87,7 @@ return {
 				edgeeffectiveness = 0.35,
 				explosiongenerator = "custom:blood_explode_blue",
 				firestarter = 0,
-				flighttime = 2.5,
+				flighttime = 8,
 				heightmod = 0.5,
 				impulseboost = 0,
 				impulsefactor = 0.4,
