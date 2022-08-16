@@ -66,7 +66,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 150,
-				object = "Units/cormex_dead.s3o",
+				object = "Units/scavbuildings/LEGMEXT15_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
