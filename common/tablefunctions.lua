@@ -16,19 +16,17 @@ end
 if not table.merge then
 	-- Recursively merge two tables and return the result in a new table.
 	-- When there is a conflict, values in 'secondary' override values in 'primary'.
-	function table.merge(primary, secondary, deep)
+	function table.merge(primary, secondary)
 		local new = table.copy(primary)
-		for i, v in pairs(secondary) do
-			-- key not used in primary, assign it the value at same key in secondary
-			if not new[i] then
-				if (deep and type(v) == "table") then
-					new[i] = table.copy(v)
-				else
-					new[i] = v
-				end
-			-- values at key in both primary and secondary are tables, merge those
-			elseif type(new[i]) == "table" and type(v) == "table"  then
-				new[i] = table.merge(new[i], v, deep)
+		for key, v in pairs(secondary) do
+			-- key not used in default, assign it the value at same key in override
+			if not new[key] and type(v) == "table" then
+				new[key] = table.copy(v)
+				-- values at key in both default and override are tables, merge those
+			elseif type(new[key]) == "table" and type(v) == "table"  then
+				new[key] = table.merge(new[key], v)
+			else
+				new[key] = v
 			end
 		end
 		return new
@@ -36,17 +34,13 @@ if not table.merge then
 end
 
 if not table.mergeInPlace then
-	function table.mergeInPlace(primary, secondary, deep)
-		for i, v in pairs(secondary) do
-			if primary[i] and type(primary[i]) == "table" and type(v) == "table" then
-				table.mergeInPlace(primary[i], v, deep)
-			else
-				if (deep and type(v) == "table") then
-					primary[i] = table.copy(v)
-				else
-					primary[i] = v
-				end
-			end
+	-- Recursively merge values, mutating the table 'mergeTarget'.
+	-- When there is a conflict, values in 'mergeData' take precedence.
+	function table.mergeInPlace(mergeTarget, mergeData)
+		local mergedData = table.merge(mergeTarget, mergeData)
+
+		for key, value in pairs(mergedData) do
+			mergeTarget[key] = value
 		end
 	end
 end
