@@ -1,0 +1,148 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, turret, flarer, barrelr, flarel, barrell;
+
+static-var  restore_delay, gun_1;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+#define BASEPIECE base
+#define HITSPEED <65.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 2
+#define MAXTILT 100
+
+Create()
+{
+	hide flarer;
+	hide flarel;
+	gun_1 = 0;
+	restore_delay = 3000;
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn turret to y-axis <0.000000> speed <90.000000>;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn turret to y-axis heading speed <120.000000>;
+	turn barrell to x-axis -1*pitch speed <120.000000>;
+	turn barrelr to x-axis -1*pitch speed <120.000000>;
+	
+	wait-for-turn turret around y-axis;
+		
+	wait-for-turn barrell around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	gun_1 = !gun_1;
+	if( gun_1 == 0 )
+	{
+		emit-sfx 1024 + 0 from flarel;
+		move barrell to z-axis [-1.000000] speed [400.000000];
+		wait-for-move barrell along z-axis;
+		move barrell to z-axis [0.000000] speed [1.000000];
+	}
+	if( gun_1 == 1 )
+	{
+		emit-sfx 1024 + 0 from flarer;
+		move barrelr to z-axis [-1.000000] speed [400.000000];
+		wait-for-move barrelr along z-axis;
+		move barrelr to z-axis [0.000000] speed [1.000000];
+	}
+	return (0);
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = turret;
+}
+
+QueryPrimary(piecenum)
+{
+	if( gun_1 == 0 )
+	{
+		piecenum = flarel;
+		return (0);
+	}
+	if( gun_1 == 1 )
+	{
+		piecenum = flarer;
+		return (0);
+	}
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = turret;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turret type BITMAPONLY | NOHEATCLOUD;
+		explode barrell type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrell type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type SMOKE | FALL | NOHEATCLOUD;
+		explode barrell type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare type SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrell type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}
