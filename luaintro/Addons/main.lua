@@ -360,10 +360,10 @@ local progressByLastLine = {
 	["Creating Projectile Textures"] = {48, 60},
 	["Creating Water"] = {54, 65},
 	["PathCosts"] = {58, 65},
-	["Loading LuaRules"] = {65, 75},
-	["Loading LuaUI"] = {78, 85},
-	["Loading Skirmish AIs"] = {86, 95},
-	["[LoadFinalize] finalizing PFS"] = {90, 95},
+	["[LoadFinalize] finalizing PFS"] = {62, 65},
+	["Loading LuaRules"] = {69, 75},
+	["Loading LuaUI"] = {82, 85},
+	["Loading Skirmish AIs"] = {90, 95},
 	["Finalizing"] = {100, 100}
 }
 for name,val in pairs(progressByLastLine) do
