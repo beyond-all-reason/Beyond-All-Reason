@@ -1505,7 +1505,22 @@ local options={
 		max    = 10,
 		step   = 0.1,
 	},
-
+	{
+		key     = "tweakunits",
+		name    = "Tweak Units",
+		desc    = "A base64 encoded lua table of unit parameters to change.",
+		section = 'options_experimental',
+		type    = "string",
+		def     = "",
+	},
+	{
+		key     = "tweakdefs",
+		name    = "Tweak Defs",
+		desc    = "A base64 encoded snippet of code that modifies game definitions.",
+		section = 'options_experimental',
+		type    = "string",
+		def     = "",
+	},
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- End Options
@@ -1513,4 +1528,29 @@ local options={
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 }
+
+for i = 1, 9 do
+	options[#options + 1] =  {
+		key     = "tweakunits" .. i,
+		name    = "Tweak Units " .. i,
+		desc    = "A base64 encoded lua table of unit parameters to change.",
+		section = 'options_experimental',
+		type    = "string",
+		def     = "",
+		hidden = true,
+	}
+end
+
+for i = 1, 9 do
+	options[#options + 1] =  {
+		key     = "tweakdefs" .. i,
+		name    = "Tweak Defs " .. i,
+		desc    = "A base64 encoded snippet of code that modifies game definitions.",
+		section = 'options_experimental',
+		type    = "string",
+		def     = "",
+		hidden = true,
+	}
+end
+
 return options
