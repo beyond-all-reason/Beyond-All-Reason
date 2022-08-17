@@ -217,12 +217,20 @@ local function preProcessTweakOptions()
 		while modOptions[name] and modOptions[name] ~= "" do
 			local postsFuncStr = string.base64Decode(modOptions[name])
 			local postfunc, err = loadstring(postsFuncStr)
-			Spring.Echo("Loading tweakdefs modoption", append or 0)
-			if postfunc then
-				postfunc()
+			if err then 
+				Spring.Echo("Error parsing modoption", name, "from string", postsFuncStr)
+			else
+					
+				Spring.Echo("Loading tweakdefs modoption", append or 0)
+				if postfunc then
+					local success, result = pcall(postfunc)
+					if not success then 
+						Spring.Echo("Error executing tweakdef", name, postsFuncStr)
+					end
+				end
+				append = (append or 0) + 1
+				name = "tweakdefs" .. append
 			end
-			append = (append or 0) + 1
-			name = "tweakdefs" .. append
 		end
 	end
 
@@ -236,18 +244,22 @@ local function preProcessTweakOptions()
 		local append = false
 		local modoptName = "tweakunits"
 		while modOptions[modoptName] and modOptions[modoptName] ~= "" do
-			local tweaks = Spring.Utilities.CustomKeyToUsefulTable(modOptions[modoptName])
-			if type(tweaks) == "table" then
-				Spring.Echo("Loading tweakunits modoption", append or 0)
-				for name, ud in pairs(UnitDefs) do
-					if tweaks[name] then
-						Spring.Echo("Loading tweakunits for " .. name)
-						table.mergeInPlace(ud, system.lowerkeys(tweaks[name]), true)
+			local success, tweaks = pcall(Spring.Utilities.CustomKeyToUsefulTable, modOptions[modoptName])
+			if not success then 
+				Spring.Echo("Failed to parse modoption", modoptName, "with value", modOptions[modoptName])
+			else
+				if type(tweaks) == "table" then
+					Spring.Echo("Loading tweakunits modoption", append or 0)
+					for name, ud in pairs(UnitDefs) do
+						if tweaks[name] then
+							Spring.Echo("Loading tweakunits for " .. name)
+							table.mergeInPlace(ud, system.lowerkeys(tweaks[name]), true)
+						end
 					end
 				end
+				append = (append or 0) + 1
+				modoptName = "tweakunits" .. append
 			end
-			append = (append or 0) + 1
-			modoptName = "tweakunits" .. append
 		end
 	end
 end
