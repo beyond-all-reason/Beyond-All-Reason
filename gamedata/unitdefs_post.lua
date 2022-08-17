@@ -1,7 +1,6 @@
 -- see alldefs.lua for documentation
 VFS.Include("gamedata/alldefs_post.lua")
 VFS.Include("gamedata/post_save_to_customparams.lua")
-local system = VFS.Include('gamedata/system.lua')
 
 local regularUnitDefs = {}
 local scavengerUnitDefs = {}
@@ -194,64 +193,6 @@ local function createScavengerUnitDefs()
 	end
 end
 
-local function preProcessTweakOptions()
-	local modOptions = {}
-	if (Spring.GetModOptions) then
-		modOptions = Spring.GetModOptions()
-	end
-
-	--------------------------------------------------------------------------------
-	--------------------------------------------------------------------------------
-	-- Balance Testing
-	--
-
-	-- modOptions.tweakdefs = 'Zm9yIG5hbWUsIHVkIGluIHBhaXJzKFVuaXREZWZzKSBkbwoJaWYgdWQuYnVpbGRjb3N0bWV0YWwgdGhlbgoJCXVkLmJ1aWxkY29zdG1ldGFsID0gMTAKCWVuZAplbmQ='
-	-- =>
-	-- for name, ud in pairs(UnitDefs) do
-	-- if ud.buildcostmetal then
-	--   ud.buildcostmetal = 10
-	-- end
-	do
-		local append = false
-		local name = "tweakdefs"
-		while modOptions[name] and modOptions[name] ~= "" do
-			local postsFuncStr = string.base64Decode(modOptions[name])
-			local postfunc, err = loadstring(postsFuncStr)
-			Spring.Echo("Loading tweakdefs modoption", append or 0)
-			if postfunc then
-				postfunc()
-			end
-			append = (append or 0) + 1
-			name = "tweakdefs" .. append
-		end
-	end
-
-	--modOptions.tweakunits = 'ewphcm1sYWIgPSB7YnVpbGRDb3N0TWV0YWwgPSAxMCB9Cn0='
-	--=>
-	--{
-	--armlab = {buildCostMetal = 10 }
-	--}
-
-	do
-		local append = false
-		local modoptName = "tweakunits"
-		while modOptions[modoptName] and modOptions[modoptName] ~= "" do
-			local tweaks = Spring.Utilities.CustomKeyToUsefulTable(modOptions[modoptName])
-			if type(tweaks) == "table" then
-				Spring.Echo("Loading tweakunits modoption", append or 0)
-				for name, ud in pairs(UnitDefs) do
-					if tweaks[name] then
-						Spring.Echo("Loading tweakunits for " .. name)
-						table.mergeInPlace(ud, system.lowerkeys(tweaks[name]), true)
-					end
-				end
-			end
-			append = (append or 0) + 1
-			modoptName = "tweakunits" .. append
-		end
-	end
-end
-
 local function postProcessAllUnitDefs()
 	for name, unitDef in pairs(UnitDefs) do
 		UnitDef_Post(name, unitDef)
@@ -278,7 +219,6 @@ if SaveDefsToCustomParams then
 	bakeUnitDefs()
 end
 
-preProcessTweakOptions()
 preProcessUnitDefs()
 createScavengerUnitDefs()
 postProcessAllUnitDefs()

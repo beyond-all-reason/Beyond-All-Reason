@@ -36,27 +36,11 @@ end
 if not table.mergeInPlace then
 	-- Recursively merge values, mutating the table 'mergeTarget'.
 	-- When there is a conflict, values in 'mergeData' take precedence.
-	function table.mergeInPlace(mergeTarget, mergeData, deep)
-		if not deep then
-			local mergedData = table.merge(mergeTarget, mergeData)
+	function table.mergeInPlace(mergeTarget, mergeData)
+		local mergedData = table.merge(mergeTarget, mergeData)
 
-			for key, value in pairs(mergedData) do
-				mergeTarget[key] = value
-			end
-
-			return
-		end
-
-		for i, v in pairs(mergeData) do
-			if mergeTarget[i] and type(mergeTarget[i]) == "table" and type(v) == "table"  then
-				table.mergeInPlace(mergeTarget[i], v, deep)
-			else
-				if type(v) == "table" then
-					mergeTarget[i] = table.copy(v)
-				else
-					mergeTarget[i] = v
-				end
-			end
+		for key, value in pairs(mergedData) do
+			mergeTarget[key] = value
 		end
 	end
 end
