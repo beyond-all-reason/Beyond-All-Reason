@@ -25,7 +25,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 89,
-		maxdamage = 920,
+		maxdamage = 2400,
 		maxreversevelocity = 3,
 		maxslope = 18,
 		maxvelocity = 3.2,
@@ -102,7 +102,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 500,
 				damage = {
-					default = 300,
+					default = 700,
 				},
 			},
 		},
