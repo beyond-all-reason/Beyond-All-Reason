@@ -1320,8 +1320,8 @@ if gadgetHandler:IsSyncedCode() then
 			squadCreationQueue.units[#squadCreationQueue.units+1] = unitID
 			if HEALER[UnitDefNames[defs.unitName].id] then
 				squadCreationQueue.role = "healer"
-				if squadCreationQueue.life < 20 then
-					squadCreationQueue.life = 20
+				if squadCreationQueue.life < 50 then
+					squadCreationQueue.life = 50
 				end
 			end
 			if ARTILLERY[UnitDefNames[defs.unitName].id] then
