@@ -40,7 +40,7 @@ return {
 			[3] = "legstr",
 			[4] = "coramph",
 			[5] = "legshot",
-			[6] = "corsumo",
+			[6] = "leginc",
 			[7] = "legsrail",
 			[8] = "legbart",
 			[9] = "corhrk",

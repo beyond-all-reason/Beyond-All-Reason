@@ -85,7 +85,7 @@ local glUniform = gl.Uniform
 local glGetUniformLocation = gl.GetUniformLocation
 
 local brightShaderIllumLoc, brightShaderFragLoc
-local brightShaderIvsxLoc, brightShaderIvsyLoc
+--local brightShaderIvsxLoc, brightShaderIvsyLoc
 local brightShaderTimeLoc
 local blurShaderFragLoc, blurShaderHorizontalLoc
 local combineShaderDebgDrawLoc
@@ -117,7 +117,7 @@ end
 local function MakeBloomShaders()
 	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
 
-	Spring.Echo("New bloom init preset:", preset)
+	--Spring.Echo("New bloom init preset:", preset)
 	vsx = math.max(4,viewSizeX); ivsx = 1.0 / vsx --we can do /n here!
 	vsy = math.max(4,viewSizeY); ivsy = 1.0 / vsy
 	qvsx,qvsy = math.floor(vsx/presets[preset].quality), math.floor(vsy/presets[preset].quality)
@@ -254,13 +254,13 @@ local function MakeBloomShaders()
 
 			uniform float illuminationThreshold;
 			uniform float fragGlowAmplifier;
-			uniform float ivsx;
-			uniform float ivsy;
-			uniform float time;
+			//uniform float ivsx;
+			//uniform float ivsy;
+			//uniform float time;
 
 			void main(void) {
 				vec2 halfpixeloffset = vec2(IQVSX, IQVSY);
-				float time0 = sin(time*0.01);
+				//float time0 = sin(time*0.01);
 				vec2 texCoors = vec2(gl_TexCoord[0]);
 				float modelDepth = texture2D(modelDepthTex, texCoors).r;
 				float mapDepth = texture2D(mapDepthTex, texCoors).r;
@@ -302,9 +302,9 @@ local function MakeBloomShaders()
 			mapDepthTex = 3,
 		},
 		uniformFloat = {
-			ivsx = 0,
-			ivsy = 0,
-			time = 0,
+			--ivsx = 0,
+			--ivsy = 0,
+			--time = 0,
 		}
 	})
 
@@ -312,8 +312,8 @@ local function MakeBloomShaders()
 		RemoveMe("[BloomShader::Initialize] brightShader compilation failed"); print(glGetShaderLog()); return
 	end
 
-	brightShaderIvsxLoc = glGetUniformLocation(brightShader, "ivsx")
-	brightShaderIvsyLoc = glGetUniformLocation(brightShader, "ivsy")
+	--brightShaderIvsxLoc = glGetUniformLocation(brightShader, "ivsx")
+	--brightShaderIvsyLoc = glGetUniformLocation(brightShader, "ivsy")
 	--brightShaderTimeLoc = glGetUniformLocation(brightShader, "time")
 	brightShaderIllumLoc = glGetUniformLocation(brightShader, "illuminationThreshold")
 	brightShaderFragLoc = glGetUniformLocation(brightShader, "fragGlowAmplifier")
@@ -383,8 +383,8 @@ local function Bloom()
 	glUseShader(brightShader)
 		glUniform(   brightShaderIllumLoc, illumThreshold)
 		glUniform(   brightShaderFragLoc, glowAmplifier)
-		glUniform(   brightShaderIvsxLoc, 0.5/qvsx)
-		glUniform(   brightShaderIvsyLoc, 0.5/qvsy)
+		--glUniform(   brightShaderIvsxLoc, 0.5/qvsx)
+		--glUniform(   brightShaderIvsyLoc, 0.5/qvsy)
 		local gf = Spring.GetGameFrame()
 		--glUniform(   brightShaderTimeLoc, df)
 		glTexture(0, "$model_gbuffer_difftex")

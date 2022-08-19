@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  body, head, tail, lthigh, lknee, lshin, lfoot, rthigh,
+piece  base, body, head, tail, lthigh, lknee, lshin, lfoot, rthigh,
        rknee, rshin, rfoot, lforearm, lupperarm, lblade, rforearm, rupperarm,
        rblade, aimy1;
 
@@ -13,7 +13,7 @@ static-var   Static_Var_2, Static_Var_3;
 #define SIG_AIM				2
 
 
-static-var maxSpeed, animFramesPerKeyframe, bMoving, animSpeed;
+static-var maxSpeed, animFramesPerKeyframe, bMoving, animSpeed, isDying, gun_1;
 
 // For N:\animations\Chickens\chicken_walk_remaster_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5))
 #define MOVESCALE 100 //Higher values are bigger, 100 is default
@@ -48,49 +48,16 @@ static-var maxSpeed, animFramesPerKeyframe, bMoving, animSpeed;
 #define MAXTILT 100
 #include "chicken_hitbyweapon.h"
 
-
-// REMEMBER TO animspeed = 6 in Create() !!
-UnitSpeed(){
-	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
-	animFramesPerKeyframe = MOVESPEED; //we need to calc the frames per keyframe value, from the known animtime
-	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
-	while(TRUE){
-		animSpeed = (get CURRENT_SPEED);
-		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * MOVESPEED) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
-		if (animSpeed<3) animSpeed=3;
-		if (animspeed> 2* MOVESPEED) animSpeed = 2 * MOVESPEED;
-		sleep 197;
-	}
-}
-StartMoving(){
-	signal SIG_WALK;
-	bMoving=TRUE;
-	start-script Walk();
-}
 #include "chicken_death_2legged_ptaq.h"
 
-static-var isDying;
+
 #include "chicken_killed_2legged.h"
 
-StopMoving(){
-	signal SIG_WALK;
-	bMoving=FALSE;
-	if (!isDying){
-		call-script StopWalking();
-		start-script Idle();
-	}
-}
+#include "chicken_hitbyweapon.h"
 
-Create()
-{
-	isDying = FALSE;
-	emit-sfx 1024 + 2 from body;
-	animSpeed = MOVESPEED;
-	start-script UnitSpeed();
-	return (0);
-}
+#include "chicken_swim_2legged_v1.h"
+#include "chicken_create_move_swim.h"
+
 
 SweetSpot(piecenum)
 {

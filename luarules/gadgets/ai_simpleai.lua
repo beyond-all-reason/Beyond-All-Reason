@@ -2,9 +2,7 @@ local enabled = false
 local teams = Spring.GetTeamList()
 local SimpleAITeamIDs = {}
 local SimpleAITeamIDsCount = 0
-local SimpleCheaterAITeamIDs = {}
-local SimpleCheaterAITeamIDsCount = 0
-local UDN = UnitDefNames
+--local UDN = UnitDefNames
 local wind = Game.windMax
 local mapsizeX = Game.mapSizeX
 local mapsizeZ = Game.mapSizeZ
@@ -29,11 +27,6 @@ for i = 1, #teams do
 		SimpleFactories[teamID] = {}
 		SimpleT1Mexes[teamID] = 0
 		SimpleFactoryDelay[teamID] = 0
-
-		if string.sub(luaAI, 1, 15) == 'SimpleCheaterAI' or string.sub(luaAI, 1, 16) == 'SimpleDefenderAI' or string.sub(luaAI, 1, 19) == 'SimpleConstructorAI' then
-			SimpleCheaterAITeamIDsCount = SimpleCheaterAITeamIDsCount + 1
-			SimpleCheaterAITeamIDs[SimpleCheaterAITeamIDsCount] = teamID
-		end
 	end
 end
 
@@ -433,7 +426,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 			if #Spring.GetFullBuildQueue(unitID, 0) < 5 then
 				local r = math.random(0, 5)
 				local luaAI = Spring.GetTeamLuaAI(unitTeam)
-				if r == 0 or string.sub(luaAI, 1, 19) == 'SimpleConstructorAI' then
+				if r == 0 or mcurrent > mstorage*0.9 or string.sub(luaAI, 1, 19) == 'SimpleConstructorAI' then
 					local project = SimpleConstructorDefs[math.random(1, #SimpleConstructorDefs)]
 					for i2 = 1,#buildOptions do
 						if buildOptions[i2] == project then
@@ -477,11 +470,11 @@ if gadgetHandler:IsSyncedCode() then
 			for i = 1, SimpleAITeamIDsCount do
 				if n%(15*SimpleAITeamIDsCount) == 15*(i-1) then
 					local teamID = SimpleAITeamIDs[i]
-					local _, _, isDead, _, faction, allyTeamID = Spring.GetTeamInfo(teamID)
-					local mcurrent, mstorage, _, mincome, mexpense = Spring.GetTeamResources(teamID, "metal")
-					local ecurrent, estorage, _, eincome, eexpense = Spring.GetTeamResources(teamID, "energy")
-					for j = 1, #SimpleCheaterAITeamIDs do
-						if teamID == SimpleCheaterAITeamIDs[j] then
+					local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(teamID)
+					local mcurrent, mstorage = Spring.GetTeamResources(teamID, "metal")
+					local ecurrent, estorage = Spring.GetTeamResources(teamID, "energy")
+					for j = 1, #SimpleAITeamIDs do
+						if teamID == SimpleAITeamIDs[j] then
 							-- --cheats
 							if mcurrent < mstorage * 0.20 then
 								Spring.SetTeamResource(teamID, "m", mstorage * 0.25)
@@ -499,13 +492,9 @@ if gadgetHandler:IsSyncedCode() then
 						local unitDefID = Spring.GetUnitDefID(unitID)
 						local unitName = UnitDefs[unitDefID].name
 						local unitTeam = teamID
-						local unitHealth, unitMaxHealth, _, _, unitBuildProgress = Spring.GetUnitHealth(unitID)
-						local unitMaxRange = Spring.GetUnitMaxRange(unitID)
+						local unitHealth, unitMaxHealth, _, _, _ = Spring.GetUnitHealth(unitID)
 						local unitCommands = Spring.GetCommandQueue(unitID, 0)
 						local unitposx, unitposy, unitposz = Spring.GetUnitPosition(unitID)
-						--Spring.Echo(faction)
-
-						--if faction == "arm" then
 
 						-- builders
 						for u = 1, #SimpleCommanderDefs do

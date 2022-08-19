@@ -41,4 +41,5 @@ static-var gun_1,maxSpeed, animFramesPerKeyframe, bMoving, animSpeed, isDying;
 
 #include "chicken_killed_2legged.h"
 
-#include "chicken_create_move.h"
+#include "chicken_swim_2legged_v1.h"
+#include "chicken_create_move_swim.h"

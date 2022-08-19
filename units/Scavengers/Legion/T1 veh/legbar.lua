@@ -158,7 +158,7 @@ return {
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "cannhvy2",
-				sprayangle = 1000,
+				sprayangle = 1300,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 250,

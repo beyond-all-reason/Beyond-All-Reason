@@ -25,7 +25,7 @@ return {
 		maxdamage = 100,
 		maxelevator = 0.003,
 		maxpitch = 0.625,
-		maxrudder = 0.01,
+		maxrudder = 0.015,
 		maxslope = 10,
 		maxvelocity = 8.5,
 		maxwaterdepth = 0,

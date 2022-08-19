@@ -267,6 +267,12 @@ local function short(n, f)
 end
 
 local function updateRejoin()
+	if not rejoinArea[1] then
+		init()
+		if not rejoinArea[1] then
+			return
+		end
+	end
 	local area = rejoinArea
 
 	local catchup = gameFrame / serverFrame

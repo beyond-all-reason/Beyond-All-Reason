@@ -214,6 +214,7 @@ local unitOrderTable = {
 	[UDN["armsnipe"].id]       = 006720,
 	[UDN["corsumo"].id]        = 006730,
 	[UDN["corgol"].id]         = 006740,
+	[UDN["leginc"].id]         = 006750,
 
 	[UDN["armvader"].id]       = 006810, --AMPHIBIOUS KAMIKAZE BOMBS
 	[UDN["corroach"].id]       = 006820,

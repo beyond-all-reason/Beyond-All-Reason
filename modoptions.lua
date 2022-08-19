@@ -653,6 +653,14 @@ local options={
 		section="options",
 	},
 	{
+		key    = "map_atmosphere",
+		name   = "Map Atmosphere and Ambient Sounds",
+		desc   = "",
+		type   = "bool",
+		def    = true,
+		section= "options",
+	},
+	{
 		key    = "ffa_mode",
 		name   = "FFA Mode",
 		desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
@@ -676,6 +684,7 @@ local options={
 		name   = 'Cooperative mode',
 		desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
 		type   = 'bool',
+		hidden = true,
 		def    = false,
 		section= 'options',
 	},
@@ -1341,16 +1350,6 @@ local options={
 	},
 
 	{
-		key    = 'mapatmospherics',
-		name   = 'Map Atmospherics',
-		desc   = 'Map Atmospherics',
-		hidden = true,
-		type   = 'bool',
-		section = 'options_experimental',
-		def  = true,
-	},
-
-	{
 		key    = 'experimentalmassoverride',
 		name   = 'Mass Override',
 		desc   = 'Mass Override',
@@ -1433,6 +1432,15 @@ local options={
 	},
 
 	{
+		key    = 'experimentalrebalancewreckstandarization',
+		name   = 'Rebalance Candidate: Standarized wreck metal values. *0.6 of metal cost for wreck, *0.25 for heap.',
+		desc   = '',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = true,
+	},
+
+	{
 		key		= "experimentalreversegear",
 		name	= "Reverse gear - Allows units to move backwards over short distances",
 		desc	= "Allows units to move backwards over short distances",
@@ -1497,7 +1505,22 @@ local options={
 		max    = 10,
 		step   = 0.1,
 	},
-
+	{
+		key     = "tweakunits",
+		name    = "Tweak Units",
+		desc    = "A base64 encoded lua table of unit parameters to change.",
+		section = 'options_experimental',
+		type    = "string",
+		def     = "",
+	},
+	{
+		key     = "tweakdefs",
+		name    = "Tweak Defs",
+		desc    = "A base64 encoded snippet of code that modifies game definitions.",
+		section = 'options_experimental',
+		type    = "string",
+		def     = "",
+	},
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- End Options
@@ -1505,4 +1528,29 @@ local options={
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 }
+
+for i = 1, 9 do
+	options[#options + 1] =  {
+		key     = "tweakunits" .. i,
+		name    = "Tweak Units " .. i,
+		desc    = "A base64 encoded lua table of unit parameters to change.",
+		section = 'options_experimental',
+		type    = "string",
+		def     = "",
+		hidden = true,
+	}
+end
+
+for i = 1, 9 do
+	options[#options + 1] =  {
+		key     = "tweakdefs" .. i,
+		name    = "Tweak Defs " .. i,
+		desc    = "A base64 encoded snippet of code that modifies game definitions.",
+		section = 'options_experimental',
+		type    = "string",
+		def     = "",
+		hidden = true,
+	}
+end
+
 return options

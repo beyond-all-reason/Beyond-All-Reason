@@ -132,6 +132,7 @@ return {
 		"armmanni_scav",
 		"cortrem_scav",
 		"corhrk_scav",
+		"leginc_scav",
 
 		-- Bots
 		"armmar_scav",
