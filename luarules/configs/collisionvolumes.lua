@@ -178,7 +178,7 @@ dynamicPieceCollisionVolume['cortoast'] = {
 dynamicPieceCollisionVolume['corvipe'] = {
 	on = {
 		['0']={38,26,38,0,0,0,2,0},
-		['5']={25,45,25,0,25,0,1,1},
+		['1']={25,45,25,0,25,0,1,1}, -- changed to [1] so the cylinder collision is attached to the turret and not a door 
 		['offsets']={0,23,0},
 	},
 	off = {

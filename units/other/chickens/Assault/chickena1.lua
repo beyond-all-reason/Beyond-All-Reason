@@ -53,7 +53,7 @@ return {
 		turnrate = 920,
 		unitname = "chickena1",
 		upright = false,
-		waterline = 20,
+		waterline = 24,
 		workertime = 0,
 		customparams = {
 			maxrange = "200",
@@ -89,7 +89,7 @@ return {
 				edgeeffectiveness = 0.63,
 				explosiongenerator = "custom:blood_explode_blue",
 				firestarter = 0,
-				flighttime = 5,
+				flighttime = 7,
 				heightmod = 0.5,
 				impulseboost = 0,
 				impulsefactor = 0.4,

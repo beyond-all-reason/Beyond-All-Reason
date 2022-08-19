@@ -75,7 +75,12 @@ Spring.SetConfigInt("MaxDynamicModelLights", 0)
 Spring.SetConfigInt("LoadingMT", 0)
 
 -- Chobby had this set to 100 before and it introduced latency of 4ms a sim-frame, having a 10%-15% penalty compared it the default
-Spring.SetConfigInt("LuaGarbageCollectionMemLoadMult", 2)
+-- This was set to 2 as of 2022.08.16, Beherith reduced it to 1 for even less GC probability
+Spring.SetConfigInt("LuaGarbageCollectionMemLoadMult", 1)
+
+-- Reduce the max runtime of GC to 1 ms instead of 5 (2022.08.16)
+Spring.SetConfigInt("LuaGarbageCollectionRunTimeMult", 1)
+
 
 -- we used 3 as default toggle, changing to 4
 if (Spring.GetConfigInt("GroundDecals", 3) or 3) >= 4 then

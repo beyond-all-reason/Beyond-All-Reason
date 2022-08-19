@@ -523,12 +523,12 @@ local function updateGrassInstanceVBO(wx, wz, size, sizemod, vboOffset)
 	--Spring.Echo(wx, wz, sizemod)
 	local vboOffset = vboOffset or world2grassmap(wx,wz) * grassInstanceVBOStep
 	if vboOffset<0 or vboOffset >= #grassInstanceData then	-- top left of map gets vboOffset: 0
-		--Spring.Echo("vboOffset > #grassInstanceData",vboOffset,#grassInstanceData, " you probably need to /editgrass")
+		--Spring.Echo(boOffset > #grassInstanceData",vboOffset,#grassInstanceData, " you probably need to /editgrass")
 		return
 	end
 
 	local oldsize = grassInstanceData[vboOffset + 4]
-	if oldsize <= 0 and not placementMode then return end
+	if (not oldsize or oldsize <= 0) and not placementMode then return end
 
 	local oldpx = grassInstanceData[vboOffset + 1] -- We must read all instance params, because we need to write them all at once
 	local oldry = grassInstanceData[vboOffset + 2]

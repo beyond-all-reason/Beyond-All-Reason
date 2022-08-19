@@ -46,7 +46,8 @@ static-var bMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
 
 #include "chicken_killed_2legged.h"
 
-#include "chicken_create_move.h"
+#include "chicken_swim_2legged_v1.h"
+#include "chicken_create_move_swim.h"
 
 lua_FlameShot(weapon) //Distortion and lups flame effect
 {

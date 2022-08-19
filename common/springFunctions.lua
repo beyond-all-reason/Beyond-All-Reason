@@ -3,6 +3,7 @@ local utilitiesDirectory = 'common/springUtilities/'
 local tga = VFS.Include(utilitiesDirectory .. 'image_tga.lua')
 local team = VFS.Include(utilitiesDirectory .. 'teamFunctions.lua')
 local syncFunctions = VFS.Include(utilitiesDirectory .. 'synced.lua')
+local tableFunctions = VFS.Include(utilitiesDirectory .. 'tableFunctions.lua')
 
 local utilities = {
 	LoadTGA = tga.LoadTGA,
@@ -24,6 +25,8 @@ local utilities = {
 		local devUI = Spring.GetConfigInt('DevUI', 0)
 		return (devUI > 0) and true or false
 	end,
+
+	CustomKeyToUsefulTable = tableFunctions.CustomKeyToUsefulTable,
 }
 
 local debugUtilities = VFS.Include(utilitiesDirectory .. 'debug.lua')

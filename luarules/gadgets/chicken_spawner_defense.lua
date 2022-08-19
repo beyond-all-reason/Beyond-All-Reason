@@ -426,8 +426,8 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenacidallterrain"].id] = { distance = 300, chance = 1 },
 	}
 	local COWARD = {
-		[UnitDefNames["chickenh1"].id] = { distance = 300, chance = 0.5 },
-		[UnitDefNames["chickenh1b"].id] = { distance = 15, chance = 0.1 },
+		[UnitDefNames["chickenh1"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenh1b"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenr1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenr2"].id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames["chickenh5"].id] = { distance = 500, chance = 1 },
@@ -1064,20 +1064,19 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 				
-				if overseerSpawned == false and mRandom() > config.spawnChance then
-					if currentWave >= 5 and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh5"].id) < SetCount(humanTeams)*config.chickenSpawnMultiplier then
-						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh5", team = chickenTeamID, })
-						cCount = cCount + 1
-						cCount = cCount + SpawnRandomOffWaveSquad(burrowID, "chickenh1", 10)
-						cCount = cCount + SpawnRandomOffWaveSquad(burrowID, "chickenh1b", 10)
-					end
-					overseerSpawned = true
-				elseif scoutSpawned == false and mRandom() > config.spawnChance then
+				
+				if scoutSpawned == false and mRandom() > config.spawnChance then
 					if currentWave >= 5 and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenf2"].id) < SetCount(humanTeams)*config.chickenSpawnMultiplier then
 						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenf2", team = chickenTeamID, })
 						cCount = cCount + 1
 					end
 					scoutSpawned = true
+				elseif overseerSpawned == false and mRandom() > config.spawnChance then
+					if currentWave >= 3 and Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh5"].id) < SetCount(humanTeams)*config.chickenSpawnMultiplier then
+						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh5", team = chickenTeamID, })
+						cCount = cCount + 1
+					end
+					overseerSpawned = true
 				elseif currentWave >= 2 and loopCounter == 1 then
 					local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
 					local targetCleaners = currentWave*SetCount(humanTeams)*config.chickenSpawnMultiplier
@@ -1321,8 +1320,8 @@ if gadgetHandler:IsSyncedCode() then
 			squadCreationQueue.units[#squadCreationQueue.units+1] = unitID
 			if HEALER[UnitDefNames[defs.unitName].id] then
 				squadCreationQueue.role = "healer"
-				if squadCreationQueue.life < 20 then
-					squadCreationQueue.life = 20
+				if squadCreationQueue.life < 50 then
+					squadCreationQueue.life = 50
 				end
 			end
 			if ARTILLERY[UnitDefNames[defs.unitName].id] then
@@ -1625,7 +1624,7 @@ if gadgetHandler:IsSyncedCode() then
 				timeOfLastSpawn = t
 			end
 
-			if swarmSpawning and burrowCount > 0 and (((config.chickenMaxSpawnRate/swarmMultiplier) < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount) and (t - timeOfLastWave) > (config.chickenMaxSpawnRate*0.5)/swarmMultiplier) then
+			if swarmSpawning and burrowCount > 0 and (((config.chickenMaxSpawnRate/swarmMultiplier) < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount) and (t - timeOfLastWave) > (config.chickenMaxSpawnRate*0.25)/swarmMultiplier) then
 				local cCount = Wave()
 				if resetSwarmWaveCounter and config.swarmMode then
 					chickenEvent("wave", "Too Many", currentWave)
@@ -1690,11 +1689,14 @@ if gadgetHandler:IsSyncedCode() then
 				if math.random(1,config.chickenMaxSpawnRate) == 1 then
 					SpawnRandomOffWaveSquad(overseerID)
 				end
-				if math.random(1,config.chickenMaxSpawnRate*0.1) == 1 then
+				if n%30 == 0 then
 					local curH, maxH = GetUnitHealth(overseerID)
 					if curH and maxH and curH < (maxH * 0.5) then
-						SpawnRandomOffWaveSquad(overseerID, "chickenh1", 1)
-						SpawnRandomOffWaveSquad(overseerID, "chickenh1b", 1)
+						if math.random(0,1) == 0 then
+							SpawnRandomOffWaveSquad(overseerID, "chickenh1", 1)
+						else
+							SpawnRandomOffWaveSquad(overseerID, "chickenh1b", 1)
+						end
 					end
 				end
 			end

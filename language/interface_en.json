@@ -102,10 +102,12 @@
 				"playerTV": "TV",
 				"cancelPlayerTV": "Turn off TV",
 				"cancelCamera": "Turn off Player Cam",
-				"playerView": "Player Viewpoint",
+				"tooltip": "Auto camera-track the top ranked players\n(switches player every 40 seconds by default)",
+				"playerView": "Player View",
 				"globalView": "Turn off Player View",
 				"playerViewTooltip": "Only view what the player can see",
-				"tooltip": "Auto camera-track the top ranked players\n(switches player every 40 seconds by default)"
+				"playerCamera": "Player Camera",
+				"playerCameraTooltip": "Follow player camera perspective and apply selections"
 			},
 			"teamEconomy": {
 				"tooltip": "Team metal/energy income\n(Lighter portion is income from reclaiming)"

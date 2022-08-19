@@ -49,6 +49,7 @@ local alwaysHideSpecs = false
 local lockcameraHideEnemies = true            -- specfullview
 local lockcameraLos = true                    -- togglelos
 
+local hideDeadTeams = true
 local absoluteResbarValues = false
 
 local vsx, vsy = Spring.GetViewGeometry()
@@ -94,7 +95,7 @@ local gl_CallList = gl.CallList
 
 local math_isInRect = math.isInRect
 
-local RectRound, UiElement, elementCorner
+local RectRound, UiElement, elementCorner, UiSelectHighlight
 local bgpadding = 3
 
 --------------------------------------------------------------------------------
@@ -201,7 +202,7 @@ local prevClickedPlayer
 local lockPlayerID, leftPosX, lastSliderSound, release
 local curFrame, PrevGameFrame, MainList, desiredLosmode, drawListOffset
 
-local deadPlayerHeightReduction = 10
+local deadPlayerHeightReduction = 7
 
 local reportTake = false
 local tookTeamID
@@ -916,8 +917,10 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function widget:PlayerChanged(playerID)
-    myAllyTeamID = Spring.GetMyAllyTeamID()
-    mySpecStatus, fullView = Spring.GetSpectatingState()
+    myPlayerID = Spring.GetMyPlayerID()
+    myAllyTeamID = Spring.GetLocalAllyTeamID()
+    myTeamID = Spring.GetLocalTeamID()
+    mySpecStatus, fullView, _ = Spring.GetSpectatingState()
     if mySpecStatus then
         hideShareIcons = true
     end
@@ -1490,7 +1493,6 @@ function SortAllyTeams(vOffset)
     -- (labels and separators are drawn)
     local allyTeamID
     local allyTeamList = Spring_GetAllyTeamList()
-    local firstenemy = true
     local allyTeamsCount = table.maxn(allyTeamList) - 1
 
     --find own ally team
@@ -1510,6 +1512,7 @@ function SortAllyTeams(vOffset)
     end
 
     -- add the others
+    local firstenemy = true
     for allyTeamID = 0, allyTeamsCount - 1 do
         if allyTeamID ~= myAllyTeamID then
             if firstenemy then
@@ -1542,7 +1545,7 @@ function SortTeams(allyTeamID, vOffset)
         drawList[#drawList + 1] = -1
         vOffset = SortPlayers(teamID, allyTeamID, vOffset) -- adds players form the team
         if select(3, Spring_GetTeamInfo(teamID, false)) then
-            vOffset = vOffset - (deadPlayerHeightReduction / 2)
+            vOffset = vOffset - deadPlayerHeightReduction
         end
     end
 
@@ -1597,7 +1600,7 @@ function SortPlayers(teamID, allyTeamID, vOffset)
     -- add no player token if no player found in this team at this point
     if noPlayer then
         if enemyListShow or player[64 + teamID].allyteam == myAllyTeamID then
-            vOffset = vOffset + playerOffset - (deadPlayerHeightReduction / 2)
+            vOffset = vOffset + playerOffset - deadPlayerHeightReduction
             drawListOffset[#drawListOffset + 1] = vOffset
             drawList[#drawList + 1] = 64 + teamID  -- no players team
             player[64 + teamID].posY = vOffset
@@ -1709,6 +1712,20 @@ function widget:DrawScreen()
 	else
 		CreateMainList()
 	end
+
+    -- handle/draw hover highlight
+    if mySpecStatus then
+        local posY
+        local x, y, b = Spring.GetMouseState()
+        for _, i in ipairs(drawList) do
+            if i > -1 then -- and i < 64
+               posY = widgetPosY + widgetHeight - player[i].posY
+               if myTeamID ~= player[i].team and not player[i].spec and not player[i].dead and player[i].name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + playerOffset) then
+                   UiSelectHighlight(widgetPosX, posY, widgetPosX + widgetPosX + 2 + 4, posY + playerOffset, nil, b and 0.28 or 0.14)
+               end
+            end
+        end
+    end
 
 	-- draws share energy/metal sliders
 	if ShareSlider then
@@ -2001,15 +2018,20 @@ function DrawSeparator(vOffset)
 end
 
 function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
+
+    --if hideDeadTeams and player[playerID].dead then --and not player[playerID].totake then   -- totake is still active when teammates
+    --    return
+    --end
+
     tipY = nil
     local rank = player[playerID].rank
     local skill = player[playerID].skill
     local name = player[playerID].name
     local team = player[playerID].team
     local allyteam = player[playerID].allyteam
-    local red = player[playerID].red
-    local green = player[playerID].green
-    local blue = player[playerID].blue
+    --local red = player[playerID].red
+    --local green = player[playerID].green
+    --local blue = player[playerID].blue
     local dark = player[playerID].dark
     local pingLvl = player[playerID].pingLvl
     local cpuLvl = player[playerID].cpuLvl
@@ -2087,7 +2109,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
                     DrawDot(posY)
                 end
             end
-            if m_ID.active then
+            if m_ID.active and not dead then
                 DrawID(team, posY, dark, dead)
             end
             if m_skill.active then
@@ -2926,13 +2948,13 @@ function widget:MousePress(x, y, button)
                         if i > -1 and i < 64 then
                             if clickedPlayer.pointTime ~= nil then
                                 if right then
-                                    if IsOnRect(x, y, widgetPosX - 33, posY - 2, widgetPosX - 17, posY + 16) then
+                                    if IsOnRect(x, y, widgetPosX - 33, posY - 2, widgetPosX - 17, posY + playerOffset) then
                                         --point button
                                         Spring.SetCameraTarget(clickedPlayer.pointX, clickedPlayer.pointY, clickedPlayer.pointZ, 1)
                                         return true
                                     end
                                 else
-                                    if IsOnRect(x, y, widgetPosX + widgetWidth + 17, posY - 2, widgetPosX + widgetWidth + 33, posY + 16) then
+                                    if IsOnRect(x, y, widgetPosX + widgetWidth + 17, posY - 2, widgetPosX + widgetWidth + 33, posY + playerOffset) then
                                         Spring.SetCameraTarget(clickedPlayer.pointX, clickedPlayer.pointY, clickedPlayer.pointZ, 1)
                                         return true
                                     end
@@ -2941,14 +2963,17 @@ function widget:MousePress(x, y, button)
                         end
                     end
                 end
-                if i > -1 and i < 64 then
-                    if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + 16) then
-                        if ctrl then
-                            Spring_SendCommands { "toggleignore " .. clickedPlayer.name }
+                if i > -1 then -- and i < 64
+                    if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + playerOffset) then
+                        if ctrl and i < 64 then
+                            Spring_SendCommands("toggleignore " .. clickedPlayer.name)
                             return true
+                        elseif not player[i].spec then
+                            Spring_SendCommands("specteam " .. player[i].team)
+                            CreateMainList()
                         end
 
-                        if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
+                        if i < 64 and (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
                             LockCamera(i)
                             prevClickedPlayer = {}
                             SortList()
@@ -2979,7 +3004,7 @@ function widget:MousePress(x, y, button)
                             end
                         end
                         if m_share.active and clickedPlayer.dead ~= true and not hideShareIcons then
-                            if IsOnRect(x, y, m_share.posX + widgetPosX + 1, posY, m_share.posX + widgetPosX + 17, posY + 16) then
+                            if IsOnRect(x, y, m_share.posX + widgetPosX + 1, posY, m_share.posX + widgetPosX + 17, posY + playerOffset) then
                                 -- share units button
                                 if release ~= nil then
                                     if release >= now then
@@ -3002,12 +3027,12 @@ function widget:MousePress(x, y, button)
                                 end
                                 return true
                             end
-                            if IsOnRect(x, y, m_share.posX + widgetPosX + 17, posY, m_share.posX + widgetPosX + 33, posY + 16) then
+                            if IsOnRect(x, y, m_share.posX + widgetPosX + 17, posY, m_share.posX + widgetPosX + 33, posY + playerOffset) then
                                 -- share energy button (initiates the slider)
                                 energyPlayer = clickedPlayer
                                 return true
                             end
-                            if IsOnRect(x, y, m_share.posX + widgetPosX + 33, posY, m_share.posX + widgetPosX + 49, posY + 16) then
+                            if IsOnRect(x, y, m_share.posX + widgetPosX + 33, posY, m_share.posX + widgetPosX + 49, posY + playerOffset) then
                                 -- share metal button (initiates the slider)
                                 metalPlayer = clickedPlayer
                                 return true
@@ -3022,14 +3047,14 @@ function widget:MousePress(x, y, button)
                     if i > -1 and i < 64 then
                         --chat button
                         if m_chat.active then
-                            if IsOnRect(x, y, m_chat.posX + widgetPosX + 1, posY, m_chat.posX + widgetPosX + 17, posY + 16) then
+                            if IsOnRect(x, y, m_chat.posX + widgetPosX + 1, posY, m_chat.posX + widgetPosX + 17, posY + playerOffset) then
                                 Spring_SendCommands("chatall", "pastetext /w " .. clickedPlayer.name .. ' \1')
                                 return true
                             end
                         end
                         --ally button
                         if m_alliance.active and drawAllyButton and not mySpecStatus and player[i] ~= nil and player[i].dead ~= true and i ~= myPlayerID then
-                            if IsOnRect(x, y, m_alliance.posX + widgetPosX + 1, posY, m_alliance.posX + widgetPosX + m_alliance.width, posY + 16) then
+                            if IsOnRect(x, y, m_alliance.posX + widgetPosX + 1, posY, m_alliance.posX + widgetPosX + m_alliance.width, posY + playerOffset) then
                                 if Spring_AreTeamsAllied(player[i].team, myTeamID) then
                                     Spring_SendCommands("ally " .. player[i].allyteam .. " 0")
                                 else
@@ -3059,7 +3084,7 @@ function widget:MousePress(x, y, button)
                         --name
                         if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + 12) then
                             if ctrl then
-                                Spring_SendCommands { "toggleignore " .. clickedPlayer.name }
+                                Spring_SendCommands("toggleignore " .. clickedPlayer.name)
                                 SortList()
                                 CreateLists()
                                 return true
@@ -3157,7 +3182,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function Spec(teamID)
-    Spring_SendCommands { "specteam " .. teamID }
+    Spring_SendCommands("specteam " .. teamID)
     SortList()
 end
 
@@ -3631,7 +3656,8 @@ function widget:ViewResize()
 	elementCorner = WG.FlowUI.elementCorner
 
 	RectRound = WG.FlowUI.Draw.RectRound
-	UiElement = WG.FlowUI.Draw.Element
+    UiElement = WG.FlowUI.Draw.Element
+    UiSelectHighlight = WG.FlowUI.Draw.SelectHighlight
 
     updateWidgetScale()
 

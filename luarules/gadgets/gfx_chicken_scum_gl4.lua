@@ -254,6 +254,7 @@ else
 		SHADOWSTRENGTH = 0.4, -- how much light a shadowed fragment can recieve
 		CREEPTEXREZ = 0.003,
 		JIGGLEAMPLITUDE = 0.2,
+		VOIDWATER = (gl.GetMapRendering("voidWater") and 1 or 0), 
 	}
 
 	---- GL4 Backend Stuff----
@@ -381,6 +382,10 @@ else
 	void main(void)
 	{
 		if (any(lessThan(vec4(v_worldUV.xz, mapSize.xy - v_worldUV.xz) , vec4(0.0) ))) discard; // Discard out-of-map fragments
+		#if (VOIDWATER == 1)
+			if (v_worldUV.y < 0) discard;
+		#endif
+		
 		float time = timeInfo.x+timeInfo.w;
 
 		float internalradius = length (v_localxz.xy) ; //dot(v_localxz.xy, v_localxz.xy);

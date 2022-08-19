@@ -155,7 +155,7 @@ local chickenTypes = {
 
 local optionValues = {
 	[difficulties.veryeasy] = {
-		chickenMaxSpawnRate  = 60,
+		chickenMaxSpawnRate  = 120,
 		burrowSpawnRate   = 120,
 		turretSpawnRate	  = 360,
 		queenSpawnMult    = 0,
@@ -169,7 +169,7 @@ local optionValues = {
 		queenName         = 've_chickenq',
 	},
 	[difficulties.easy] = {
-		chickenMaxSpawnRate  = 60,
+		chickenMaxSpawnRate  = 120,
 		burrowSpawnRate   = 105,
 		turretSpawnRate	  = 320,
 		queenSpawnMult    = 0,
@@ -184,7 +184,7 @@ local optionValues = {
 	},
 
 	[difficulties.normal] = {
-		chickenMaxSpawnRate  = 60,
+		chickenMaxSpawnRate  = 120,
 		burrowSpawnRate   = 70,
 		turretSpawnRate	  = 210,
 		queenSpawnMult    = 1,
@@ -199,7 +199,7 @@ local optionValues = {
 	},
 
 	[difficulties.hard] = {
-		chickenMaxSpawnRate  = 60,
+		chickenMaxSpawnRate  = 120,
 		burrowSpawnRate   = 45,
 		turretSpawnRate	  = 140,
 		queenSpawnMult    = 1,
@@ -214,7 +214,7 @@ local optionValues = {
 	},
 
 	[difficulties.veryhard] = {
-		chickenMaxSpawnRate  = 60,
+		chickenMaxSpawnRate  = 120,
 		burrowSpawnRate   = 25,
 		turretSpawnRate	  = 70,
 		queenSpawnMult    = 3,
@@ -228,7 +228,7 @@ local optionValues = {
 		queenName         = 'vh_chickenq',
 	},
 	[difficulties.epic] = {
-		chickenMaxSpawnRate  = 60,
+		chickenMaxSpawnRate  = 120,
 		burrowSpawnRate   = 10,
 		turretSpawnRate	  = 40,
 		queenSpawnMult    = 3,
@@ -243,7 +243,7 @@ local optionValues = {
 	},
 
 	[difficulties.survival] = {
-		chickenMaxSpawnRate  = 60,
+		chickenMaxSpawnRate  = 120,
 		burrowSpawnRate   = 120,
 		turretSpawnRate	  = 360,
 		queenSpawnMult    = 0,
@@ -293,6 +293,7 @@ if accumulativeSquads == true then
 
 		addSquad(4, { "10 chickenp1" 																}) -- Small Pyro
 		addSquad(4, { "4 chickenp1" , "1 chickenp2"													}) -- Small Pyros with mom
+		addSquad(4, { "30 chicken_dodo1" 															}) -- Small Kamikaze
 
 		addSquad(5, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  									}) -- Better Basic Raptor
 		addSquad(5, { "3 chickene2" 																}) -- EMP Brawler
@@ -317,9 +318,8 @@ if accumulativeSquads == true then
 		addSquad(7, { "5 chickenelectricallterrain", "5 chickenacidallterrain" 						}) -- EMP and Acid AllTerrain Combo
 
 		addSquad(8, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  									}, 2) -- Better Basic Raptor
-		addSquad(8, { "70 chicken_dodo1" 															}) -- Kamikaze
-		addSquad(8, { "35 chicken_dodo2" 															}) -- Kamikaze
-		addSquad(8, { "35 chicken_dodoair" 															}) -- Kamikaze
+		addSquad(8, { "35 chicken_dodo2" 															}) -- Big Kamikaze
+		addSquad(8, { "35 chicken_dodoair" 															}) -- Air Kamikaze
 		addSquad(8, { "10 chickens2" 																}) -- Apex Spiker
 		addSquad(8, { "10 chickenacidallterrain" 													}) -- Acid AllTerrain 
 		addSquad(8, { "4 chickenacidassault" 														}) -- Acid Brawler
@@ -328,8 +328,6 @@ if accumulativeSquads == true then
 		addSquad(8, { "3 chickenacidbomber" 														}) -- Acid Bomber
 		addSquad(8, { "3 chickenacidarty" 															}) -- Acid Artillery
 
-		addSquad(9, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  									}, 2) -- Better Basic Raptor
-		addSquad(9, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  									}, 2) -- Better Basic Raptor
 		addSquad(9, { "3 chickenf1apex", "3 chickenf1apexb" 										}) -- Apex Bomber
 		addSquad(9, { "10 chickenw2" 																}) -- Apex Fighter
 		addSquad(9, { "5 chicken2" , "5 chicken2b" 													}, 2) -- Apex Swarmer
@@ -337,8 +335,6 @@ if accumulativeSquads == true then
 		addSquad(9, { "2 chickenapexallterrainassault", "2 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
 		addSquad(9, { "1 chickenr2", "3 chickenr1" 													}) -- Meteor Artillery
 
-		addSquad(10, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  								}, 2) -- Better Basic Raptor
-		addSquad(10, { "4 chicken1x", "4 chicken1y", "4 chicken1z"  								}, 2) -- Better Basic Raptor
 		addSquad(10, { "3 chickenf1apex", "3 chickenf1apexb" 										}) -- Apex Bomber
 		addSquad(10, { "20 chickenw2" 																}) -- Apex Fighter
 		addSquad(10, { "5 chicken2" , "5 chicken2b" 												}, 2) -- Apex Swarmer
@@ -381,15 +377,17 @@ if accumulativeSquads == true then
 			addSquad(i, { i*2 .." chicken1d", i*2 .." chicken1", i*2 .." chicken1b" })
 		end
 		if i >= 3 and i <= 6 then -- Better Swarmer, Brawler and Spiker
-			addSquad(i, { i*2 .." chicken1x", i*2 .." chicken1y" })
-			addSquad(i, { i*2 .." chicken1y", i*2 .." chicken1z" })  
-			addSquad(i, { i*2 .." chicken1z", i*2 .." chicken1x" }) 
 			addSquad(i, { i ..  " chickena1" })
 			addSquad(i, { i ..  " chickena1b"})
 			addSquad(i, { i ..  " chickena1c"})
 			addSquad(i, { i*4 .." chickens1" })
 		end
-			if i >= 7 and i <= 10 then -- More AllTerrains over time
+		if i >= 3 then
+			addSquad(i, { i*2 .." chicken1x", i*2 .." chicken1y" })
+			addSquad(i, { i*2 .." chicken1y", i*2 .." chicken1z" })
+			addSquad(i, { i*2 .." chicken1z", i*2 .." chicken1x" })
+		end
+		if i >= 7 and i <= 10 then -- More AllTerrains over time
 			addSquad(i, { i*3 .." chickenc3" }, 2)
 			addSquad(i, { i*2 .." chickenc3b" }, 2)
 			addSquad(i, { i .." chickenc3c" }, 2)

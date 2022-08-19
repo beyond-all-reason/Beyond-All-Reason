@@ -9,7 +9,7 @@ ANGULAR_CONSTANT = 182.00000
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-b", "--bosfile", type = str, help= "The bos file to optimize")#, default = "../units/armcrus.bos")
-parser.add_argument("-d", "--directory", type = str, help= "the directory of bos files to work on", default = '../units/')
+parser.add_argument("-d", "--directory", type = str, help= "the directory of bos files to work on") #, default = '../units/')
 
 args = parser.parse_args()
 
@@ -116,13 +116,13 @@ def performmath(expression):
 			result = str(int(float(eval(expression))))
 		#print ("Success! ",expression, '=', result)
 	except:
-		print "[info] Failed to eval() expression", expression
+		print ("[info] Failed to eval() expression", expression)
 		#raise
 		return origexpression
 	return ' '+ result +' '+ resultstr+ ' '
 
 test_num = re.compile(r"<-?\d*\.?\d*>")
-print test_num.findall("<0.1>, <.1>, <-90>, <6.> 90 <7  > 90.0")
+print (test_num.findall("<0.1>, <.1>, <-90>, <6.> 90 <7  > 90.0"))
 
 ANGULAR = re.compile(r"<-?\d*\.?\d*>")
 LINEAR = re.compile(r"\[-?\d*\.?\d*\]")
