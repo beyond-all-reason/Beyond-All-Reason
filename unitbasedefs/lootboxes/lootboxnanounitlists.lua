@@ -159,6 +159,7 @@ return {
 		"armmanni",
 		"cortrem",
 		"corhrk",
+		"leginc",
 
 		-- Bots
 		"armmar",
