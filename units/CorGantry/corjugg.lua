@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 513000,
 		buildcostmetal = 20000,
 		buildpic = "CORJUGG.DDS",
-		buildtime = 629630,
+		buildtime = 630000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
