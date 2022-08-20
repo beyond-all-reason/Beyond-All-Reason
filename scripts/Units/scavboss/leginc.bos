@@ -146,7 +146,7 @@ Create()
 {
 	hide flare;
 	hide aimy1;
-	restore_delay = 3000;
+	restore_delay = 10000;
 	bMoving = FALSE;
 	animSpeed = 10;
 	start-script StopMoving();
@@ -154,7 +154,7 @@ Create()
 
 SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = Func_Var_1 * 5;
+	restore_delay = 10000;
 }
 
 SweetSpot(piecenum)
