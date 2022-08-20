@@ -902,7 +902,10 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	elseif selectedBuilder and currentBuildCategory then
 		if alt or ctrl or meta then return end
 
-		Spring.SetActiveCommand(spGetCmdDescIndex(uDefID), 3, false, true, alt, ctrl, meta, shift)
+		local uDef = UnitDefs[-uDefID]
+		local isRepeatMex = uDef.customParams.metal_extractor and uDef.name == activeCmd and not (uDef.stealth or #uDef.weapons > 0)
+		local cmd = isRepeatMex and 'areamex' or spGetCmdDescIndex(uDefID)
+		Spring.SetActiveCommand(cmd, 3, false, true, alt, ctrl, meta, shift)
 
 		return true
 	end
