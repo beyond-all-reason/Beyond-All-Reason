@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "Onoff for Hound and trajectory",
-		desc = "onoff action will now also switch between Hound weapons and high/low trajectory",
+		desc = "onoff action will now work with units affected by the cmd_onoffdesc.lua",
 		author = "Lexon",
 		date = "19.08.2022",
 		license = "GNU GPL, v2 or later",
@@ -32,6 +32,8 @@ local function onoff()
 	for _, unit in pairs(selectedUnits) do
 		spGiveOrderToUnit(unit, CMD.ONOFF, { weapon }, 0)
 	end
+
+	return true
 end
 
 function widget:Initialize()
