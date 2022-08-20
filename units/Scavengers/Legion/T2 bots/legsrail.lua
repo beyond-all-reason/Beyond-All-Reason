@@ -146,7 +146,7 @@ return {
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
-				weaponvelocity = 2000,
+				weaponvelocity = 3000,
 				customparams = {
 					light_color = "0.66 0.83 1",
 					light_radius_mult = 0.5,
