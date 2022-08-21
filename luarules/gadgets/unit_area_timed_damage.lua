@@ -107,6 +107,14 @@ local TimedDamageWeapons = {
         range = 60,
         resistance = "test",
     },
+	[WeaponDefNames.leginf_rapidnapalm.id] = {
+        ceg = "fire-area-redux-75", 
+        damageCeg = "burnflamexl", 
+        time = 10,
+        damage = 15,
+        range = 60,
+        resistance = "test",
+    },
 	[WeaponDefNames.legnap_napalmbombs.id] = {
         ceg = "fire-area-150", 
         damageCeg = "burnflamexl", 

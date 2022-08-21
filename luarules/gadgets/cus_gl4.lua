@@ -821,6 +821,8 @@ local function initBinsAndTextures()
 				objectDefToUniformBin[unitDefID] = 'armunit'
 			elseif 	unitDef.name:sub(1,3) == 'cor' then
 				objectDefToUniformBin[unitDefID] = 'corunit'
+			elseif 	unitDef.name:sub(1,3) == 'leg' then
+				objectDefToUniformBin[unitDefID] = 'armunit'
 			end
 			local normalTex = GetNormal(unitDef, nil)
 			local textureTable = {
