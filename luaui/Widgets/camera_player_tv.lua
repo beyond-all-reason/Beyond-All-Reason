@@ -61,11 +61,17 @@ local math_isInRect = math.isInRect
 
 local spGetTeamColor = Spring.GetTeamColor
 
+local aiTeams = {}
 local teamColorKeys = {}
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
 	local r, g, b, a = spGetTeamColor(teams[i])
 	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+
+	local _, _, _, isAiTeam = Spring.GetTeamInfo(teams[i], false)
+	if isAiTeam then
+		aiTeams[teams[i]] = true
+	end
 end
 teams = nil
 
@@ -190,7 +196,7 @@ local function createList()
 		font:Print(text, toggleButton[3]-((toggleButton[3]-toggleButton[1])/2), toggleButton[2] + (7 * widgetScale), fontSize, 'oc')
 
 		-- Player Camera Button
-		if not toggled and not lockPlayerID then
+		if not toggled and not lockPlayerID and not aiTeams[myTeamID] then
 			text = '\255\240\240\240   ' .. Spring.I18N('ui.playerTV.playerCamera') .. '   '
 			color1 = { 0.6, 0.6, 0.6, 0.66 }
 			color2 = { 0.4, 0.4, 0.4, 0.66 }
@@ -265,7 +271,7 @@ local function createList()
 		font:Print(text, toggleButton2[3] - (textWidth / 2), toggleButton2[2] + (0.32 * widgetHeight * widgetScale), fontSize, 'oc')
 		font:End()
 	end)
-	if not toggled and not lockPlayerID then
+	if not toggled and not lockPlayerID and not aiTeams[myTeamID] then
 		drawlist[4] = gl.CreateList(function()
 			-- Player Camera Button highlight
 			if toggled2 then
@@ -522,7 +528,7 @@ function widget:Update(dt)
 				Spring.SetMouseCursor('cursornormal')
 				WG['tooltip'].ShowTooltip('playertv', Spring.I18N('ui.playerTV.playerViewTooltip'))
 			end
-			if not toggled and toggleButton3 ~= nil and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4]) then
+			if not toggled and toggleButton3 ~= nil and not aiTeams[myTeamID] and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4]) then
 				Spring.SetMouseCursor('cursornormal')
 				WG['tooltip'].ShowTooltip('playertv', Spring.I18N('ui.playerTV.playerCameraTooltip'))
 			end

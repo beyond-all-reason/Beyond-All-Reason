@@ -202,7 +202,7 @@ local prevClickedPlayer
 local lockPlayerID, leftPosX, lastSliderSound, release
 local curFrame, PrevGameFrame, MainList, desiredLosmode, drawListOffset
 
-local deadPlayerHeightReduction = 7
+local deadPlayerHeightReduction = 6
 
 local reportTake = false
 local tookTeamID

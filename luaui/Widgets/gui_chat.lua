@@ -1760,6 +1760,8 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 		local color = ''
 		if sfind(line,'Error', nil, true) then
 			color = '\255\255\133\133'
+		elseif sfind(line,'Sync error for', nil, true) then
+			color = '\255\255\133\133'
 		elseif sfind(line,'Warning', nil, true) then
 			color = '\255\255\190\170'
 		elseif sfind(line,'Failed to load', nil, true) then
