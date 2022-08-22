@@ -75,7 +75,7 @@ SchedulerHST.MScheduler = {
 
 SchedulerHST.BScheduler = {
 		'AttackerBST',
-		'TaskQueueBST',
+		'BuildersBST',
 		'TaskLabBST',
 		'RaidBST',
 		'BomberBST',

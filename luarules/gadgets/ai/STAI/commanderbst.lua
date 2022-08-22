@@ -5,7 +5,7 @@ function CommanderBST:Name()
 end
 
 function CommanderBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	local u = self.unit:Internal()
 	self.id = u:ID()
 
@@ -13,12 +13,7 @@ function CommanderBST:Init()
 end
 
 function CommanderBST:Update()
-	 --self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
-	--if f - self.uFrame < self.ai.behUp['commanderbst'] then
-	--	return
---	end
-	--self.uFrame = f
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'CommanderBST' then return end
 	if self.lowHealth and f >= self.nextHealthCheck then
 		if self.unit:Internal():GetHealth() >= self.unit:Internal():GetMaxHealth() * 0.95 then
@@ -58,7 +53,6 @@ function CommanderBST:Activate()
 	end
 
 	if self.factoryToHelp then
--- 		self:HelpFactory()
 		self:HelpEconomist()
 	elseif self.safeHouse then
 		self:MoveToSafety()
@@ -106,27 +100,21 @@ function CommanderBST:HelpFactory()
 end
 
 function CommanderBST:HelpEconomist()
-	local economists = self.ai.armyhst.buildersRole.eco
-	for i,v in pairs ( economists) do
-		for index,unitID in pairs(v) do
-			self.unit:Internal():Guard(unitID)
-			break
+	for id,role in pairs ( self.ai.buildingshst.roles) do
+		if role.role == 'eco' then
+			self.unit:Internal():Guard(id)
 		end
 	end
-
 end
-
-
 
 function CommanderBST:FindSafeHouse()
 	local factoryPos, factoryUnit
-	--local safePos = self.ai.turtlehst:MostTurtled(self.unit:Internal(), nil, false, true, true)
 	local safepos--TEST
 	if safePos then
-		factoryPos, factoryUnit = self.ai.buildsitehst:ClosestHighestLevelFactory(safePos, 500)
+		factoryPos, factoryUnit = self.ai.buildingshst:ClosestHighestLevelFactory(safePos, 500)
 	end
 	if not factoryUnit then
-		factoryPos, factoryUnit = self.ai.buildsitehst:ClosestHighestLevelFactory(self.unit:Internal():GetPosition(), 9999)
+		factoryPos, factoryUnit = self.ai.buildingshst:ClosestHighestLevelFactory(self.unit:Internal():GetPosition(), 9999)
 	end
 	self.safeHouse = safePos or factoryPos
 	local helpNew

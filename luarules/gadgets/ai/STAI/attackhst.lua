@@ -260,7 +260,6 @@ function AttackHST:SquadStepComplete(squad)
 end
 
 function AttackHST:SquadFindPath(squad)
-
 	if squad.target == nil then
 		self:Warn('no target to search path')
 		return
@@ -272,7 +271,6 @@ function AttackHST:SquadFindPath(squad)
 		self:Warn('no pathfinder')
 		return
 	end
-
 	local path, remaining, maxInvalid = squad.pathfinder:Find(25)
 	if path then
 	local pt = {}
@@ -486,24 +484,39 @@ function AttackHST:targetCell(representative, position, ourThreat,squad,TYPE)
 		local sqtg = nil
 		local crtg = nil
 		local squadDist = math.huge
+		local defend = nil
+		local defDist = math.huge
+		local cellToDefend = nil
 		for index,blob in pairs(self.ai.targethst.BLOBS)do
-			for i,cell in pairs(blob.cells) do
-				if self.ai.tool:distance(cell.POS,squad.position) < squadDist then
-					squadDist = self.ai.tool:distance(cell.POS,squad.position)
-					sqtg = cell
-				end
-				if self.ai.tool:distance(cell.POS,self.ai.loshst.CENTER) < centerDist then
-					centerDist = self.ai.tool:distance(cell.POS,self.ai.loshst.CENTER)
-					crtg = cell
+			local cell = self.ai.maphst:GetCell(blob.position,self.ai.loshst.ENEMY)
+			if self.ai.tool:distance(cell.POS,squad.position) < squadDist then
+				sqtg = cell
+			end
+			if self.ai.tool:distance(cell.POS,self.ai.loshst.CENTER) < centerDist then
+				centerDist = self.ai.tool:distance(cell.POS,self.ai.loshst.CENTER)
+				crtg = cell
+			end
+
+			if centerDist < squadDist then
+				defend = crtg
+			else
+				defend = sqtg
+			end
+
+		end
+		if defend then
+			for X,cells in pairs(self.ai.loshst.OWN) do
+				for Z, cell in pairs(cells) do
+					if self.ai.tool:distance(defend.POS,cell.POS) < defDist then
+						defDist = self.ai.tool:distance(defend.POS,cell.POS)
+						cellToDefend = cell
+					end
 				end
 			end
 		end
-		if centerDist < squadDist then
-			return crtg
-		else
-			return sqtg
-		end
-
+		--if cellToDefend then
+			return cellToDefend
+		--end
 	end
 	for X, cells in pairs(self.ai.loshst.ENEMY) do
 		for Z, cell in pairs(cells) do

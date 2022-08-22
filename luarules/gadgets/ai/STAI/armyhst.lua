@@ -416,9 +416,9 @@ function ArmyHST:Init()
 
 
 	self._fus_ = {
-		armfus = 'armafus' ,--will become afus in taskqueuebst:specialfilter()
+		armfus = 'armafus' ,--will become afus in buildersbst:specialfilter()
 		armuwfus = 'armuwfus' , --no advuwfus
-		corfus = 'corafus' ,--will become afus in taskqueuebst:specialfilter()
+		corfus = 'corafus' ,--will become afus in buildersbst:specialfilter()
 		coruwfus = 'coruwfus' ,--no advuwfus
 		-- 		armckfus = true , --clackable, better to think about it later
 
@@ -630,13 +630,6 @@ function ArmyHST:Init()
 	self:GetUnitTable()
 	self:GetFeatureTable()
 
-	self.buildersRole = {
-		default = {},
-		eco = {},
-		expand = {},
-		support = {},
-		starter = {},
-		}
 end
 
 

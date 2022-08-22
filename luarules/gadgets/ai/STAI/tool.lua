@@ -294,10 +294,7 @@ function Tool:countFinished( nameORid )
 		for name,data in pairs(self.ai.armyhst[nameORid]) do
 			local def = self.ai.armyhst.unitTable[name].defId
 			local targetList = game:GetTeamUnitsByDefs(self.ai.id, def)
-			print(targetList)
-
 			for index , value in pairs(targetList) do
-				print(index,value)
 				if game:GetUnitByID(value):IsBeingBuilt() == 1 then
 					counter = counter +1
 				end

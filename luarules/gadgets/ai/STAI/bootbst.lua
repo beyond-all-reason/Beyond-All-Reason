@@ -3,16 +3,15 @@ BootBST = class(Behaviour)
 function BootBST:Name()
 	return "BootBST"
 end
-
-BootBST.DebugEnabled = false
-
+--[[
 local CMD_MOVE_STATE = 50
-local MOVESTATE_HOLDPOS = 0
+local MOVESTATE_HOLDPOS = 0]]
 
 function BootBST:Init()
+	DebugEnabled = false
 	self.id = self.unit:Internal():ID()
 	self.name = self.unit:Internal():Name()
-	self.mobile = not self.ai.armyhst.unitTable[self.name].isBuilding
+	self.mobile = self.ai.armyhst.unitTable[self.name].speed == 0
 	self.mtype = self.ai.armyhst.unitTable[self.name].mtype
 	self.lastInFactoryCheck = self.game:Frame()
 	-- air units don't need to leave the factory
@@ -43,10 +42,10 @@ function BootBST:Update()
 				self.factory = nil
 				self.unit:ElectBehaviour()
 			elseif self.active and self.lastOrderFrame and self.lastExitSide then
-				-- twelve seconds after the first attempt, try a different side
+				-- 4 seconds after the first attempt, try a different side
 				-- if there's only one side, try it again
-				if f > self.lastOrderFrame + 360 then
-					local face, nsew =self.ai.buildsitehst:GetFacing(pos)
+				if f > self.lastOrderFrame + 12 then
+					local face, nsew =self.ai.buildingshst:GetFacing(pos)
 					self:ExitFactory(face)
 
 				end
@@ -110,7 +109,7 @@ end
 
 function BootBST:ExitFactory(face)
 	local pos = self.factory.position
-	face = face or self.ai.buildsitehst:GetFacing(pos)
+	face = face or self.ai.buildingshst:GetFacing(pos)
 	self:EchoDebug(self.name .. " exiting " .. face)
 	local outX, outZ
 	if face == 0 then

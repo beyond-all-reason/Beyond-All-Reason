@@ -1,7 +1,7 @@
 shard_include ("schedulerhst")
 shard_include ("armyhst")
 shard_include ("maphst")
-shard_include ("buildsitehst")
+shard_include ("buildingshst")
 shard_include ("unithst")
 shard_include ("labbuildhst")
 shard_include ("attackhst")
@@ -28,7 +28,7 @@ return {
 	AttackHST,
 	BomberHST,
 	RaidHST,
-	BuildSiteHST,
+	BuildingsHST,
 	LabBuildHST,
 	LosHST,
 	TargetHST,

@@ -635,7 +635,7 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 	local spotDistance = math.huge
 	for index, spot in pairs(self.networks[layer][net].metals) do
 		if self:UnitCanGoHere(builder, spot) then
-			if not self.ai.buildsitehst:PlansOverlap(spot, uname) then
+			if not self.ai.buildingshst:PlansOverlap(spot, uname) then
 				if self.ai.targethst:IsSafeCell(spot, builder) then
 					if map:CanBuildHere(unittype, spot) then
 						local CELL = self:GetCell(spot,self.ai.loshst.ENEMY)
@@ -667,7 +667,7 @@ function MapHST:ClosestFreeGeo(unittype, builder, position)--get the closest fre
 	local bestDistance, bestPos
 	for i,p in pairs(self.networks[layer][net].geos) do----(self.GEOS) do
 		-- dont use this spot if we're already building there
-		if not self.ai.buildsitehst:PlansOverlap(p, uname) and self:UnitCanGoHere(builder, p) and self.map:CanBuildHere(unittype, p) and self.ai.targethst:IsSafeCell(p, builder) then
+		if not self.ai.buildingshst:PlansOverlap(p, uname) and self:UnitCanGoHere(builder, p) and self.map:CanBuildHere(unittype, p) and self.ai.targethst:IsSafeCell(p, builder) then
 			local dist = self.ai.tool:Distance(position, p)
 			if not bestDistance or dist < bestDistance then
 				bestDistance = dist

@@ -199,11 +199,11 @@ function UnitHST:GameEnd()
 	end
 end
 
-function UnitHST:UnitCreated(engineUnit)
+function UnitHST:UnitCreated(engineUnit,builderId)
 	local u = self:AIRepresentation(engineUnit)
 	if u == nil then return end
 	if u:HasBehaviours() then
-		u:UnitCreated(u)
+		u:UnitCreated(u,builderId)
 	end
 	--TODO fix this expensive load
 -- 	self.game:StartTimer(u:Internal():Name()..' UC')

@@ -269,7 +269,7 @@ function LabBuildHST:GetBuilderFactory(builder)
 	if not factories then return false end
 	for order = 1, #factories do
 		local factoryName = factories[order]
-		if not self.ai.buildsitehst:CheckForDuplicates(factoryName) then -- need to check for duplicates right now, not 15 seconds ago
+		if not self.ai.buildingshst:CheckForDuplicates(factoryName) then -- need to check for duplicates right now, not 15 seconds ago
 			self:EchoDebug(factoryName .. ' not duplicated')
 			self:EchoDebug(builder:Name())
 			local p = self:FactoryPosition(factoryName,builder)
@@ -286,7 +286,7 @@ end
 
 function LabBuildHST:FactoryPosition(factoryName,builder)
 	local utype = self.game:GetTypeByName(factoryName)
-	local site = self.ai.buildsitehst
+	local site = self.ai.buildingshst
 	local p
 	p = 	site:BuildNearNano(builder, utype) or
 			site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'}) or

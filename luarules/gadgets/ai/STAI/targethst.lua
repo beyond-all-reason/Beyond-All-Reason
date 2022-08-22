@@ -11,17 +11,13 @@ end
 function TargetHST:Init()
 	self.DebugEnabled = false
  	self.BLOBS = {}
-
 	self.pathModParam = 0.3
 	self.pathModifierFuncs = {}
-	--self.enemyMexSpots = {}
 	self.enemyFrontList = {}
 end
 
 function TargetHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
-	--self.enemyMexSpots = {}
-	--self:UpdateEnemies()
 	self:EnemiesCellsAnalisy()
 	self:perifericalTarget()
 	self:enemyFront()
@@ -265,7 +261,7 @@ function TargetHST:drawDBG()
 		map:DrawCircle(cell.POS, cellElmosHalf/2, colours.f, 'front', true, ch)
 	end
 	for i,blob in pairs(self.BLOBS) do
-		map:DrawCircle(blob.position, math.max(blob.metal/5,500), {0,1,math.random(),1}, blob.metal, true, ch)
+		map:DrawCircle(blob.position, math.max(blob.metal/5,500), {math.random(),math.random(),math.random(),1}, blob.metal, true, ch)
 	end
 end
 
