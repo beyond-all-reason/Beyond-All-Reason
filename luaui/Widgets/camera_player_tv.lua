@@ -218,7 +218,7 @@ local function createList()
 			color2 = { 0.6, 0.05, 0.05, 0.66 }
 		end
 		textWidth = math.floor(font:GetTextWidth(text) * fontSize)
-		if toggled or lockPlayerID then
+		if toggled or lockPlayerID or aiTeams[myTeamID] then
 			toggleButton2 = { toggleButton[1] - textWidth-bgpadding, bottom, toggleButton[1]-bgpadding, top }
 		else
 			toggleButton2 = { toggleButton3[1] - textWidth-bgpadding, bottom, toggleButton3[1]-bgpadding, top }
@@ -298,8 +298,10 @@ local function createList()
 		end
 		backgroundGuishader = gl.CreateList(function()
 			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], elementCorner, 1, 0, 0, 0)
-			RectRound(toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4], elementCorner, 1, 1, 0, toggleButton2[1] < left and 1 or 0)
-			if not toggled and not lockPlayerID then
+			if toggleButton2 then
+				RectRound(toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4], elementCorner, 1, 1, 0, toggleButton2[1] < left and 1 or 0)
+			end
+			if not toggled and not lockPlayerID and not aiTeams[myTeamID] then
 				RectRound(toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4], elementCorner, 1, 1, 0, toggleButton3[1] < left and 1 or 0)
 			end
 		end)
@@ -377,6 +379,12 @@ function widget:Initialize()
 		playerChangeDelay = value
 		createCountdownLists()
 	end
+	WG['playertv'].GetAlwaysDisplayName = function()
+		return alwaysDisplayName
+	end
+	WG['playertv'].SetAlwaysDisplayName = function(value)
+		alwaysDisplayName = value
+	end
 end
 
 function widget:GameStart()
@@ -410,6 +418,7 @@ function widget:PlayerChanged(playerID)
 	if name and drawlistsPlayername[name] then
 		drawlistsPlayername[name] = gl.DeleteList(drawlistsPlayername[name])
 	end
+	createList()
 end
 
 
@@ -510,6 +519,9 @@ function widget:Update(dt)
 	if not toggled2 and Spring.GetMapDrawMode() == 'los' then
 		toggled2 = true
 		createList()
+	elseif toggled2 and Spring.GetMapDrawMode() ~= 'los' then
+		toggled2 = false
+		createList()
 	end
 
 	passedTime = passedTime + dt
@@ -561,13 +573,13 @@ function widget:DrawScreen()
 			gl.CallList(drawlist[1])
 			gl.PopMatrix()
 			local mx, my, mb = Spring.GetMouseState()
-			if toggleButton ~= nil and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
+			if toggleButton ~= nil and drawlist[2] and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
 				gl.CallList(drawlist[2])
 			end
-			if toggleButton2 ~= nil and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4]) then
+			if toggleButton2 ~= nil and drawlist[3] and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4]) then
 				gl.CallList(drawlist[3])
 			end
-			if not toggled and not lockPlayerID and toggleButton3 ~= nil and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4]) then
+			if not toggled and not lockPlayerID and toggleButton3 ~= nil and drawlist[4] and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4]) then
 				gl.CallList(drawlist[4])
 			end
 		end
@@ -819,6 +831,7 @@ end
 function widget:GetConfigData(data)
 	return {
 		toggled = toggled,
+		alwaysDisplayName = alwaysDisplayName,
 		playerChangeDelay = playerChangeDelay
 	}
 end
@@ -826,6 +839,9 @@ end
 function widget:SetConfigData(data)
 	if Spring.GetGameFrame() > 0 and data.toggled ~= nil then
 		toggled = data.toggled
+	end
+	if data.alwaysDisplayName then
+		alwaysDisplayName = data.alwaysDisplayName
 	end
 	if data.playerChangeDelay then
 		playerChangeDelay = data.playerChangeDelay

@@ -2970,6 +2970,9 @@ function widget:MousePress(x, y, button)
                             return true
                         elseif not player[i].spec then
                             Spring_SendCommands("specteam " .. player[i].team)
+                            if lockPlayerID then
+                                LockCamera(player[i].ai and nil or i)
+                            end
                             CreateMainList()
                         end
 

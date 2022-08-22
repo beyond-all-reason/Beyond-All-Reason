@@ -2814,6 +2814,15 @@ function init()
 		{ id = "unittotals", group = "ui", category = types.basic, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   " .. texts.option.unittotals, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = texts.option.unittotals_descr },
 		{ id = "mascot", group = "ui", category = types.advanced, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   " .. texts.option.mascot, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = texts.option.mascot_descr },
 
+		{ id = "displayselectedname", group = "ui", category = types.advanced, name = texts.option.displayselectedname, type = "bool", value = (WG['playertv'] ~= nil and WG['playertv'].GetAlwaysDisplayName() or false), description = texts.option.displayselectedname_descr,
+		  onload = function(i)
+			  loadWidgetData("Player-TV", "displayselectedname", { 'alwaysDisplayName' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Player-TV', 'playertv', 'SetAlwaysDisplayName', { 'alwaysDisplayName' }, value)
+		  end,
+		},
+
 		{ id = "console_hidespecchat", group = "ui", category = types.basic, name = texts.option.console .. "   " .. widgetOptionColor .. texts.option.console_hidespecchat, type = "bool", value = (Spring.GetConfigInt("HideSpecChat", 0) == 1), description = texts.option.console_hidespecchat_descr,
 		  onload = function(i)
 		  end,

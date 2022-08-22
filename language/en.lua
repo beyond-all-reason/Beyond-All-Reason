@@ -570,6 +570,8 @@ return {
 			lockcamera_los_descr = 'When viewing a players camera and los, shows shaded los ranges too',
 			playertv_countdown = 'Player TV countdown',
 			playertv_countdown_descr = 'Countdown time before it switches player',
+			displayselectedname = 'Display selected playername',
+			displayselectedname_descr = 'Display the selected playername above the playerlist area',
 			loadscreen_tips = 'Loadscreen tips',
 			loadscreen_tips_descr = 'Show tips at the startup load screen',
 			networksmoothing = 'Network smoothing',
