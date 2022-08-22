@@ -65,7 +65,6 @@ if gadgetHandler:IsSyncedCode() then
 		"dallabill",
 		"[D]4RK_HUNT[E]R",
 		"Dave",
-		"Derpiederp",
 		"Diana",
 		"EnJoY",
 		"ewang",
@@ -114,7 +113,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Woody",
 		"Yavarin",
 		"Zagupi",
-		"Zerpiederp", --Tourney prize $100
+		"Zerpiederp", --Tourney prize $100 on top of regular donation 
 		"zGeneral",
 
 		-- BAR Content Creators
