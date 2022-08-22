@@ -103,6 +103,7 @@ if gadgetHandler:IsSyncedCode() then
 		"rlm",
 		"rous",
 		"Rikerss", --Merch $20+
+		"Sovgut", --Tourney prize $50
 		"Spanker",
 		"SuperMadmax",
 		"sversuge",
@@ -113,6 +114,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Woody",
 		"Yavarin",
 		"Zagupi",
+		"Zerpiederp", --Tourney prize $100
 		"zGeneral",
 
 		-- BAR Content Creators
