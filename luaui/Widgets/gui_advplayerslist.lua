@@ -228,6 +228,7 @@ local lastGpuMemData = {}
 local myPlayerID = Spring.GetMyPlayerID()
 local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local myTeamID = Spring.GetLocalTeamID()
+local myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
 local mySpecStatus, fullView, _ = Spring.GetSpectatingState()
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
@@ -920,6 +921,7 @@ function widget:PlayerChanged(playerID)
     myPlayerID = Spring.GetMyPlayerID()
     myAllyTeamID = Spring.GetLocalAllyTeamID()
     myTeamID = Spring.GetLocalTeamID()
+    myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
     mySpecStatus, fullView, _ = Spring.GetSpectatingState()
     if mySpecStatus then
         hideShareIcons = true
@@ -2969,11 +2971,13 @@ function widget:MousePress(x, y, button)
                             Spring_SendCommands("toggleignore " .. clickedPlayer.name)
                             return true
                         elseif not player[i].spec then
-                            Spring_SendCommands("specteam " .. player[i].team)
-                            if lockPlayerID then
-                                LockCamera(player[i].ai and nil or i)
+                            if i ~= myTeamPlayerID then
+                                Spring_SendCommands("specteam " .. player[i].team)
+                                if lockPlayerID then
+                                    LockCamera(player[i].ai and nil or i)
+                                end
+                                CreateMainList()
                             end
-                            CreateMainList()
                         end
 
                         if i < 64 and (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedPlayer == prevClickedPlayer then
