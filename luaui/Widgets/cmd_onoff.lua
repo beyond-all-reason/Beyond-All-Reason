@@ -13,26 +13,23 @@ end
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitStates = Spring.GetUnitStates
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetUnitDefID = Spring.GetUnitDefID
 
 local function onoff()
 	local selectedUnits = spGetSelectedUnits()
-
-	if selectedUnits[1] == nil then return end
-
-	local weapon = spGetUnitStates(selectedUnits[1])["active"]
-
-	if weapon == true then
-		weapon = 0
-	elseif weapon == false then
-		weapon = 1
-	else
-		return
-	end
+	local firstOnoff = nil
 
 	for _, unit in pairs(selectedUnits) do
-		spGiveOrderToUnit(unit, CMD.ONOFF, { weapon }, 0)
-	end
+		local unitDefID = spGetUnitDefID(unit)
 
+		if UnitDefs[unitDefID].onOffable == true then
+			if firstOnoff == nil then
+				local isActive = spGetUnitStates(unit)["active"]
+				if isActive then firstOnoff = 0 else firstOnoff = 1 end
+			end
+			spGiveOrderToUnit(unit, CMD.ONOFF, { firstOnoff }, 0)
+		end
+	end
 	return true
 end
 
