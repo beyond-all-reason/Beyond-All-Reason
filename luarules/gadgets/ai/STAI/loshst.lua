@@ -222,6 +222,7 @@ function LosHST:setupCell(grid,X,Z)--GAS are 3 layer. Unit of measure is usually
 	--S = submerged
 
 	local CELL = {}
+
 	CELL.X = X
 	CELL.Z = Z
 	CELL.POS = self.ai.maphst.GRID[X][Z].POS --self.ai.maphst:GridToPos(X,Z)
@@ -285,6 +286,9 @@ end
 
 
 function LosHST:setCellRadar(grid,unit,X,Z)
+	if not self.ai.maphst:GridToPos(X,Z) then
+		return
+	end
 	grid[X] = grid[X] or {}
 	grid[X][Z] = grid[X][Z] or self:setupCell(grid,X,Z)
 	local CELL = grid[X][Z]
@@ -297,7 +301,7 @@ function LosHST:setCellRadar(grid,unit,X,Z)
 	local speedX,speedY,speedZ, SPEED = Spring.GetUnitVelocity ( unit:ID() )
 	local target = {x = uPos.x+( speedX*100),y = uPos.y,z = uPos.z + (speedZ*100)}
 	CELL.SPEED = CELL.SPEED + SPEED
-	CELL.units[unit:ID()] = unit.name
+	CELL.units[unit:ID()] = unit:Name()
 	CELL.unitsCount = CELL.unitsCount + 1
 	CELL.ARMED = CELL.ARMED + M
 	if SPEED > 0 then
@@ -346,12 +350,15 @@ function LosHST:setCellRadar(grid,unit,X,Z)
 end
 
 function LosHST:setCellLos(grid,unit,X,Z)
+	if not self.ai.maphst:GridToPos(X,Z) then
+		return
+	end
 	grid[X] = grid[X] or {}
 	grid[X][Z] = grid[X][Z] or self:setupCell(grid,X,Z)
 	local CELL = grid[X][Z]
 -- 	print(unit,unit:Name())
 	CELL.unitsCount = CELL.unitsCount + 1
-	CELL.units[unit:ID()] = unit.name
+	CELL.units[unit:ID()] = unit:Name()
 	local name = unit:Name()
 	local uPos = unit:GetPosition()
 	local ut = self.ai.armyhst.unitTable[name]

@@ -6,12 +6,15 @@ end
 
 function AntinukeBST:Init()
 	self.DebugEnabled = true
-	self.unit:Internal():Stockpile()
-	self.unit:Internal():Stockpile()
 end
 
 function AntinukeBST:Update()
-	self.stock, self.pile = self:CurrentStockpile()
+	self:SetStock()
+end
+
+function AntinukeBST:SetStock()
+
+	self.stock, self.pile = self.unit:Internal():CurrentStockpile()
 	if self.stock + self.pile < 2 then
 		self.unit:Internal():Stockpile()
 	end

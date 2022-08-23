@@ -69,9 +69,6 @@ function TargetHST:blobCell(grid,param,x,z,blobref)--rolling on the cell to extr
 	if x > self.ai.maphst.gridSideX or x < 1 or z > self.ai.maphst.gridSideZ or z < 1 then
 		return
 	end
-	--print('blob param',param,grid[x][z][param])
-
-
 	if grid[x][z][param] and grid[x][z][param] > 0 then
 		if not self.BLOBS[blobref] then
 			self.BLOBS[blobref] = {metal = 0,position = {x=0,y=0,z=0},cells = {}}
@@ -80,25 +77,29 @@ function TargetHST:blobCell(grid,param,x,z,blobref)--rolling on the cell to extr
 		for X = -1, 1,1 do
 			for Z = -1,1,1 do
 				if x ~= x + X or z ~= z + Z then
-					--self.ai.targethst.blobchecked[grid[x+X][z+Z]] = true
 					if not self.blobchecked[blobref] then
 						self:blobCell(grid,param,x+X,z+Z,blobref)
 					end
 				end
 			end
 		end
-
 	end
 	local blob = self.BLOBS[blobref]
 	if not blob then return end
+	local blobUnits = {}
 	for i,v in pairs(blob.cells) do
 		blob.position.x = blob.position.x + v.POS.x
 		blob.position.z = blob.position.z + v.POS.z
 		blob.metal = blob.metal + v.metal
+		for id,name in pairs(v.units) do
+			blobUnits[id] = name
+		end
+
 	end
 	blob.position.x = blob.position.x / #blob.cells
 	blob.position.z = blob.position.z / #blob.cells
 	blob.position.y = map:GetGroundHeight(x,z)
+	blob.units = blobUnits
 	if blob.metal > 0 then return blob end
 
 
@@ -189,7 +190,6 @@ function TargetHST:NearbyVulnerable(position)
 	local danger,subValues, cells = self.ai.maphst:getCellsFields(position,{'ARMED','UNARM'},1,self.ai.loshst.ENEMY)
 	if subValues.armed == 0 and subValues.unarm > 0 then
 		for index , cell in pairs(cells) do
-			--local cell = self.ENEMIES[grid.X][grid.Z]
 			for id,name in pairs (cell.units ) do
 				return id
 			end
@@ -260,7 +260,17 @@ function TargetHST:drawDBG()
 	for i,cell in pairs(self.enemyFrontList) do
 		map:DrawCircle(cell.POS, cellElmosHalf/2, colours.f, 'front', true, ch)
 	end
+	local cellElmosHalf = self.ai.maphst.gridSizeHalf
 	for i,blob in pairs(self.BLOBS) do
-		map:DrawCircle(blob.position, math.max(blob.metal/5,500), {0,1,math.random(),1}, blob.metal, true, ch)
+
+		for ref,cell in pairs(blob.cells) do
+			local pos1 = {}
+			local pos2 = {}
+			pos1.x, pos1.z = cell.POS.x - cellElmosHalf, cell.POS.z - cellElmosHalf
+			pos2.x, pos2.z = cell.POS.x + cellElmosHalf, cell.POS.z + cellElmosHalf
+			map:DrawRectangle(pos1, pos2, colours.g, blob.metal, false, ch)
+
+		end
+		map:DrawCircle(blob.position, 128, colours.r, nil, true, ch)
 	end
 end

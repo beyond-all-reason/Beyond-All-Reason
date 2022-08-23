@@ -177,10 +177,8 @@ function AttackHST:SquadMass(squad)
 end
 
 function AttackHST:SquadPosition(squad)
-
 	local p = {x=0,z=0}
 	for i,member in pairs(squad.members) do
-
 		local uPos = member.unit:Internal():GetPosition()
 		p.x = p.x + uPos.x
 		p.z = p.z + uPos.z
@@ -190,7 +188,6 @@ function AttackHST:SquadPosition(squad)
 	p.y = map:GetGroundHeight(p.x,p.z)
 	squad.position = p
 	self:EchoDebug('squad position',p.x,p.z)
-
 end
 
 function AttackHST:SquadAttack(squad)
@@ -286,7 +283,7 @@ function AttackHST:SquadFindPath(squad)
 	end
 	self:EchoDebug('path not found')
 end
-
+--[[
 function AttackHST:SquadMove(squad)
 	squad.formation = {}
 	local pos = squad.path[squad.step]
@@ -320,7 +317,7 @@ function AttackHST:SquadMove(squad)
 
 	end
 end
-
+]]
 function AttackHST:SquadAdvance(squad)
 	self:EchoDebug("advance",squad.squadID)
 	squad.idleCount = 0
@@ -425,6 +422,7 @@ end
 
 function AttackHST:SquadTargetExist(squad)
 	if squad.target then --maybe the target is already nil if the cell is destroied??
+
 		if not self.ai.loshst.ENEMY[squad.target.X] or not self.ai.loshst.ENEMY[squad.target.X][squad.target.Z] then
 			self:EchoDebug('squad' ,squad.squadID,'target',X,Z,'no more available, Reset!')
 			self:SquadResetTarget(squad)
@@ -448,7 +446,7 @@ function AttackHST:SquadReTarget(squad,TYPE)
 	local leader,leaderPos = self:SquadSetLeader(squad)
 	if not leader then return end
 	self:EchoDebug('search another target')
-	squad.target = self:targetCell(leader,nil,nil,squad,TYPE)
+	squad.target,squad.blobTarget = self:targetCell(leader,nil,nil,squad,TYPE)
 	if not squad.target then return end
 	local path = self:SquadFindPath(squad)
 	if path then
@@ -487,20 +485,27 @@ function AttackHST:targetCell(representative, position, ourThreat,squad,TYPE)
 		local defend = nil
 		local defDist = math.huge
 		local cellToDefend = nil
+		local blobsq = nil
+		local blobcr = nil
+		local blobtg = nil
 		for index,blob in pairs(self.ai.targethst.BLOBS)do
 			local cell = self.ai.maphst:GetCell(blob.position,self.ai.loshst.ENEMY)
 			if self.ai.tool:distance(cell.POS,squad.position) < squadDist then
 				sqtg = cell
+				blobsq = blob
 			end
 			if self.ai.tool:distance(cell.POS,self.ai.loshst.CENTER) < centerDist then
 				centerDist = self.ai.tool:distance(cell.POS,self.ai.loshst.CENTER)
 				crtg = cell
+				blobcr = blob
 			end
 
 			if centerDist < squadDist then
 				defend = crtg
+				blobtg = blobcr
 			else
 				defend = sqtg
+				blobtg = blobsq
 			end
 
 		end
@@ -514,9 +519,7 @@ function AttackHST:targetCell(representative, position, ourThreat,squad,TYPE)
 				end
 			end
 		end
-		--if cellToDefend then
-			return cellToDefend
-		--end
+		return cellToDefend,blobtg
 	end
 	for X, cells in pairs(self.ai.loshst.ENEMY) do
 		for Z, cell in pairs(cells) do

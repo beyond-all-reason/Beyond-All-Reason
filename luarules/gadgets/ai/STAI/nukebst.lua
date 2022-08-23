@@ -5,7 +5,7 @@ function NukeBST:Name()
 end
 
 function NukeBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	local uname = self.unit:Internal():Name()
 	if uname == "armemp" then
 		self.stunning = true
@@ -20,36 +20,46 @@ function NukeBST:Init()
     self.finished = false
 end
 
-function NukeBST:OwnerBuilt()
-	self.finished = true
-	self.unit:Internal():Stockpile()
-	self.unit:Internal():Stockpile()
+function NukeBST:SetStock()
+	self.stock, self.pile = self.unit:Internal():CurrentStockpile()
+	if self.stock + self.pile < 2 then
+		self.unit:Internal():Stockpile()
+	end
 end
+
 
 function NukeBST:Update()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'NukeBST' then return end
 	local f = game:Frame()
 	if not self.active then return end
-	if self.finished then
+	self:SetStock()
+	if self.stock > 0 and not self.gotTarget then
 		self.gotTarget = false
-		self.stock, self.pile = self:CurrentStockpile()
-		if self.stock + self.pile < 2 then
-			self.unit:Internal():Stockpile()
-		end
+
 		local bestCell
 		if self.tactical then
 			bestCell = self.ai.targethst:GetBestBombardCell(self.position, self.range, 2500)
 		elseif self.stunning then
 			bestCell = self.ai.targethst:GetBestBombardCell(self.position, self.range, 3000, true) -- only targets threats
 		else
-			bestCell = self.ai.self:GetBestNukeCell()
+			bestCell = self:GetBestNukeCell()
 		end
 		if bestCell then
 			self.gotTarget = true
-			self.unit:Internal():AreaAttack(bestCell.POS,0)
+			self.currentTarget = bestCell
+
 			self:EchoDebug("got target")
 		end
+	elseif self.stock > 0 and self.gotTarget then
+		if not self.ai.loshst.ENEMY[self.currentTarget.X] or not self.ai.loshst.ENEMY[self.currentTarget.X][self.currentTarget.Z] then
+			self.gotTarget = nil
+			self.currentTarget = nil
+			return
+		end
+		self.unit:Internal():AttackPos(self.currentTarget.POS)
+		print('current target:',self.currentTarget.POS.x,self.currentTarget.POS.z)
 	end
+
 end
 
 function NukeBST:GetBestNukeCell()
@@ -57,10 +67,10 @@ function NukeBST:GetBestNukeCell()
 	local bestValueThreat = 0
 	for X, cells in pairs(self.ai.loshst.ENEMY) do
 		for Z, cell in pairs(cells) do
-			local areaCell = self.ai.armyhst:areaCells(X,Z,2,self.ai.loshst.ENEMY)
-			if areaCell > bestValueThreat then
+			local areaCell = self.ai.maphst:getCellsFields(cell.POS,{'ENEMY'},2,self.ai.loshst.ENEMY)
+			if areaCell and areaCell > bestValueThreat then
 				best = cell
-				bestValueThreat = valuethreat
+				bestValueThreat = areaCell
 			end
 		end
 	end

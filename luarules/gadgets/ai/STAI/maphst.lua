@@ -154,7 +154,7 @@ function MapHST:GetCell(X,Z,grid) --accept 1one position({t.x,t.y,t.z}) OR 2two 
 	return grid[X][Z]
 end
 
-function MapHST:getCellsFields(p,fields,range,grid,caller) --return the required list of values of a cell/cells
+function MapHST:getCellsFields(p,fields,range,grid) --return the required list of values of a cell/cells
 	if not fields or not p or type(fields) ~= 'table' then
 		self:Warn('incomplete or incorrect params for get cells params',p,fields,range,grid)
 		return

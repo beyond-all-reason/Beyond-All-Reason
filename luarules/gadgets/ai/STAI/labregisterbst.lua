@@ -87,7 +87,7 @@ function LabRegisterBST:Register()
 	end
 	table.insert(self.ai.factoriesAtLevel[level], self)
 	if level > self.ai.maxFactoryLevel then
-		self.ai.bomberhst:NeedLess()
+-- 		self.ai.bomberhst:NeedLess()
 		-- set the current maximum factory level
 		self.ai.maxFactoryLevel = level
 	end

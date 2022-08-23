@@ -49,7 +49,6 @@ function AttackerBST:OwnerDead()
 	self.attacking = nil
 	self.active = nil
 	self.unit = nil
-	--self.ai.attackhst:NeedMore(self)
 	self.ai.attackhst:RemoveRecruit(self)
 	self.ai.attackhst:RemoveMember(self)
 end
@@ -87,13 +86,8 @@ function AttackerBST:Deactivate()
 end
 
 function AttackerBST:Update()
-	 --self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'AttackerBST' then return end
-	--if f - self.uFrame < self.ai.behUp['attackerbst']  then
-	--	return
-	--end
-	--self.uFrame = f
 	if not self.active and self.squad and self.target then
 		self.unit:ElectBehaviour()
 	end
