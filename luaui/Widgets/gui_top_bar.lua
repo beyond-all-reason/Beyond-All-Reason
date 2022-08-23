@@ -1152,6 +1152,8 @@ local function drawResbarValues(res, updateText)
 			dlistResValues[res][currentResValue[res]] = glCreateList(function()
 				-- Text: current
 				font2:Begin()
+				font2:SetTextColor(1, 1, 1, 1)
+				font2:SetOutlineColor(0, 0, 0, 1)
 				font2:Print(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
 				font2:End()
 			end)

@@ -1279,6 +1279,8 @@ local function drawUnitInfo()
 
 		-- display unit(def) info text
 		font:Begin()
+		font:SetTextColor(1, 1, 1, 1)
+		font:SetOutlineColor(0, 0, 0, 1)
 		font:Print(text, customInfoArea[3] - width + (bgpadding*2.4), customInfoArea[4] - contentPadding - (infoFontsize * 0.55), infoFontsize, "o")
 		font:End()
 
@@ -1293,6 +1295,8 @@ local function drawEngineTooltip()
 	local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
 	local text, numLines = font:WrapText(currentTooltip, contentWidth * (loadedFontSize / fontSize))
 	font:Begin()
+	font:SetTextColor(1, 1, 1, 1)
+	font:SetOutlineColor(0, 0, 0, 1)
 	font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8), fontSize, "o")
 	font:End()
 end
