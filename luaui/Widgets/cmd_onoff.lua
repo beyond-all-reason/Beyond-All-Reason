@@ -22,7 +22,7 @@ local function onoff()
 	for _, unit in pairs(selectedUnits) do
 		local unitDefID = spGetUnitDefID(unit)
 
-		if UnitDefs[unitDefID].onOffable == true then
+		if UnitDefs[unitDefID].onOffable then
 			if firstOnoff == nil then
 				local isActive = spGetUnitStates(unit)["active"]
 				if isActive then firstOnoff = 0 else firstOnoff = 1 end
