@@ -303,7 +303,8 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- share info
 		teamStartPoints[teamID] = { x, y, z }
-		spSetTeamRulesParam(teamID, startUnitParamName, startUnit, { public = true }) -- visible to all (and picked up by advpllist)
+		--spSetTeamRulesParam(teamID, startUnitParamName, startUnit, { public = true }) -- visible to all (and picked up by advpllist)
+		spSetTeamRulesParam(teamID, startUnitParamName, startUnit, { allied = true, public = false })
 
 		-- team storage is set up by game_team_resources
 	end
