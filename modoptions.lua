@@ -290,7 +290,7 @@ local options={
 		desc   = 'Scavengers Base Difficulty Level',
 		type   = 'list',
 		section = 'options_scavengers',
-		def  = "veryeasy",
+		def  = "medium",
 		items={
 			{key="noob", name="Noob", desc="Noob"},
 			{key="veryeasy", name="Very Easy", desc="Very Easy"},
