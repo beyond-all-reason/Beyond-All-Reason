@@ -10,24 +10,31 @@ function widget:GetInfo()
 	}
 end
 
-local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGetUnitStates = Spring.GetUnitStates
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitDefID = Spring.GetUnitDefID
 
 local function onoff()
-	local selectedUnits = spGetSelectedUnits()
+	--Should return { [number unitDefID] = { [1] = [number unitID], etc... }, ... }
+	local selectedUnitsSorted = spGetSelectedUnitsSorted()
 	local firstOnoff = nil
 
-	for _, unit in pairs(selectedUnits) do
-		local unitDefID = spGetUnitDefID(unit)
+	for unitDefId, units in pairs(selectedUnitsSorted) do
+		--Actual return doesn't seem to match documentation
+		--First element is of selectedUnitsSorted is n = numberOfSelectedUnits
+		--Skip that
+		if unitDefId ~= "n" then
+			if UnitDefs[unitDefId].onOffable == true then
+				if firstOnoff == nil then
+					local isActive = spGetUnitStates(units[1])["active"]
+					if isActive then firstOnoff = 0 else firstOnoff = 1 end
+				end
 
-		if UnitDefs[unitDefID].onOffable == true then
-			if firstOnoff == nil then
-				local isActive = spGetUnitStates(unit)["active"]
-				if isActive then firstOnoff = 0 else firstOnoff = 1 end
+				for _, unit in pairs(units) do
+					spGiveOrderToUnit(unit, CMD.ONOFF, { firstOnoff }, 0)
+				end
 			end
-			spGiveOrderToUnit(unit, CMD.ONOFF, { firstOnoff }, 0)
 		end
 	end
 	return true
