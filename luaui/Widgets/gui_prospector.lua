@@ -197,11 +197,12 @@ function widget:DrawWorld()
 	if GetGameFrame() < 1 and defaultDefID and drawMode == "metal" then
 		local mx, my = GetMouseState()
 		local _, coords = TraceScreenRay(mx, my, true, true)
+		coords = coords or {}
 		if WG.MexSnap and WG.MexSnap.curPosition then
 			coords[1] = WG.MexSnap.curPosition[1]
 			coords[3] = WG.MexSnap.curPosition[3]
 		end
-		if not coords then
+		if not (coords[1] and coords[3]) then
 			return
 		end
 
