@@ -483,7 +483,12 @@ end
 function TargetHST:clearEnemies()---wrong, clear the cells by parsing enemycells
 	for x,Ztable in pairs(self.CELLS) do
 		for z, cell in pairs(Ztable)do
-			self:NewCell(x,z)
+			if self.CELLS[x][z] and self.CELLS[x][z].gx then 
+				-- this is an existing cell, because it has a gx member field, so instead of making new ones, just try to clear the cell?
+				self:ClearCell(self.CELLS[x][z])
+			else
+				self:NewCell(x,z)
+			end
 		end
 	end
 	self.ENEMYCELLS = {}
@@ -502,6 +507,43 @@ function TargetHST:GetCellHere(pos)
 	else
 		self:Warn('try to get non-existing cell ',gridX,gridZ,pos.x,pos.z)
 	end
+end
+
+-- Yes this does look very verbose, but this is the absolute fastest way of doing this, without too much boilerplate
+local cellTablesNeedingCleaning = {'enemyUnits','enemyBuildings','friendlyUnits','myUnits','damagedUnits','resurrectables','reclamables','repairable'}
+local numberOfCellTablesNeedingCleaning = #cellTablesNeedingCleaning
+
+local cellValuesToZero = {'badPositions','spots',
+	'unarmGI','unarmAI','unarmSI','unarmI',
+	'unarmGM','unarmAM','unarmSM','unarmM',
+	'armedGM','armedAM','armedSM','armedM',
+	'armedGI','armedAI','armedSI','armedI',
+	'unarmG','unarmA','unarmS','armedG','armedA','armedS','G','A','S',
+	'G_balance','S_balance','A_balance','unarm','armed',
+	'ENEMY','ENEMY_BALANCE','offense','defense','economy','intelligence',
+	'MOBILE','IMMOBILE','IM'}
+local numberOfCellValuesToZero = #cellValuesToZero
+
+function TargetHST:ClearCell(CELL)
+	-- Clean the tables (or make new ones if needed)
+	for i=1, numberOfCellTablesNeedingCleaning do
+		local cellTableName = cellTablesNeedingCleaning[i]
+		local tableToClean = CELL[cellTableName]
+		if tableToClean == nil then 
+			CELL[cellTableName] = {}
+		else
+			for k,v in pairs(tableToClean) do -- Yes, you may change the value of a table member to nil during pairs
+				tableToClean[k] = nil 
+			end
+		end
+	end
+	-- Zero the values, this will create them if needed too
+	for i = 1, numberOfCellValuesToZero do 
+		CELL[cellValuesToZero[i]] = 0
+	end
+	-- Nil some values that are not zero by default
+	CELL.base = nil
+	CELL.CONTROL = nil
 end
 
 function TargetHST:NewCell(px, pz)
