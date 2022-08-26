@@ -30,6 +30,7 @@ end
 
 
 function TargetHST:setCellEnemyValues(enemy,CELL)
+	CELL.dirty = "setCellEnemyValues"
 	CELL.enemyUnits[enemy.id] = enemy.name
 	if not enemy.mobile then
 		CELL.enemyBuildings[enemy.id] = enemy.name
@@ -171,6 +172,7 @@ function TargetHST:EnemiesCellsAnalisy() --MOVE TO TACTICALHST!!!
 	for i, G in pairs(self.ai.targethst.ENEMYCELLS) do
 		local cell = self.ai.targethst.CELLS[G.x][G.z]
 		if cell.base then
+			cell.dirty = "EnemiesCellsAnalisy"
 			self.enemyBasePosition = self.enemyBasePosition or {x=0,z=0}
 			self.enemyBasePosition.x = self.enemyBasePosition.x + cell.pos.x
 			self.enemyBasePosition.z = self.enemyBasePosition.z + cell.pos.z
@@ -254,9 +256,13 @@ function TargetHST:perifericalTarget()
 		end
 	end
 	if not tgX or not tgZ then return end
-	tgX.distalX = true
+	tgX.distalX = true -- NOTE THESE PROBABLY MAKE THEM DIRTY AND BUGGY!
 	tgZ.distalZ = true
 	tgXZ.distalXZ = true
+	-- ooh gotta mark as dirty and clear these too
+	tgX.dirty = "TargetHST:perifericalTarget"
+	tgZ.dirty = "TargetHST:perifericalTarget"
+	tgXZ.dirty = "TargetHST:perifericalTarget"
 	self.distals.tgX = tgX
 	self.distals.tgZ = tgZ
 	self.distals.tgXZ = tgXZ
@@ -271,7 +277,8 @@ function TargetHST:UpdateMetalGeoSpots()
 		local gridX,gridZ = self:PosToGrid(spot)
 		local cell = self.CELLS[gridX][gridZ]
 		self.SPOT_CELLS[gridX .. ':' .. gridZ] = {gridX = gridX, gridZ = gridZ, underwater = underwater,inLos = inLos}
-		cell.spots = cell.spots + 1
+		cell.spots = cell.spots + 1		
+		cell.dirty = "UpdateMetalGeoSpots"
 	end
 end
 
@@ -315,6 +322,7 @@ function TargetHST:AddBadPosition(position, mtype, threat, duration)
 						}
 			self.BAD_CELLS[px .. ':' ..pz] = newRecord
 			self.CELLS[px][pz].badPositions = self.CELLS[px][pz].badPositions + 1
+			self.CELLS[px][pz].dirty = "AddBadPosition"
 		end
 	end
 end
@@ -326,6 +334,7 @@ function TargetHST:UpdateBadPositions()
 		if not cell then
 			self:Warn('no cell',G.gridX,G.gridZ,G.gx,G.gz)
 		elseif f - G.frame  > 300 then	--reset  bad position every 10 seconds
+			cell.dirty = "UpdateBadPositions"
 			cell.badPositions = 0
 			self.BAD_CELLS[G.gridX.. ':' ..G.gridZ] = nil
 		end
@@ -338,6 +347,7 @@ function TargetHST:UpdateDamagedUnits()
 		local cell = self:GetCellHere(eUnitPos)
 		if not cell then return end
 		cell.damagedUnits[engineUnit:ID()] = engineUnit
+		cell.dirty = "UpdateDamagedUnits"
 	end
 end
 
@@ -481,16 +491,35 @@ end
 
 
 function TargetHST:clearEnemies()---wrong, clear the cells by parsing enemycells
+	local cleartimer = Spring.GetTimerMicros()
+	local count = 0
+	local dirtyreasons = {}
 	for x,Ztable in pairs(self.CELLS) do
 		for z, cell in pairs(Ztable)do
+			count = count+1
 			if self.CELLS[x][z] and self.CELLS[x][z].gx then 
 				-- this is an existing cell, because it has a gx member field, so instead of making new ones, just try to clear the cell?
-				self:ClearCell(self.CELLS[x][z])
+				if self.CELLS[x][z].dirty then 
+					local reason = self.CELLS[x][z].dirty
+					if dirtyreasons[reason] then 
+						dirtyreasons[reason] = dirtyreasons[reason] + 1
+					else
+						dirtyreasons[reason] = 1
+					end
+					self:ClearCell(self.CELLS[x][z])
+				end
 			else
 				self:NewCell(x,z)
 			end
 		end
 	end
+	local dt = Spring.DiffTimers(Spring.GetTimerMicros(), cleartimer,true, true)
+	Spring.Echo("DT is", dt, 'ms', count, dirty)
+	local dirtystring = "Dirty cell reasons: "
+	for reason,count in pairs(dirtyreasons) do 
+		dirtystring = dirtystring .. " ".. reason .. "=" .. tostring(count)
+	end
+	Spring.Echo(dirtystring)
 	self.ENEMYCELLS = {}
 end
 
@@ -544,6 +573,10 @@ function TargetHST:ClearCell(CELL)
 	-- Nil some values that are not zero by default
 	CELL.base = nil
 	CELL.CONTROL = nil
+	CELL.dirty = nil
+	CELL.distalX = nil
+	CELL.distalZ = nil
+	CELL.distalXZ = nil
 end
 
 function TargetHST:NewCell(px, pz)
