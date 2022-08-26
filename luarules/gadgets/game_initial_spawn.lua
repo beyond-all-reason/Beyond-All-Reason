@@ -93,7 +93,13 @@ if gadgetHandler:IsSyncedCode() then
 			if teamID ~= gaiaTeamID then
 				-- set & broadcast (current) start unit
 				local _, _, _, _, teamSide, teamAllyID = spGetTeamInfo(teamID, false)
-				spSetTeamRulesParam(teamID, startUnitParamName, teamSide == 'cortex' and corcomDefID or armcomDefID or legcomDefID, { allied = true, public = false })
+				local comDefID = armcomDefID
+				if teamSide == 'cortex' then
+					comDefID = corcomDefID
+				elseif teamSide == 'legion' then
+					comDefID = legcomDefID
+				end
+				spSetTeamRulesParam(teamID, startUnitParamName, comDefID, { allied = true, public = false })
 				spawnTeams[teamID] = teamAllyID
 
 				-- record that this allyteam will spawn something
