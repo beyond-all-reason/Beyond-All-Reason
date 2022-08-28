@@ -9,10 +9,8 @@
 #line 30000
 uniform float iconDistance;
 in DataVS {
-	vec4 v_worldPosRad;
-	vec4 v_params;
-	vec3 v_centerpos;
-	vec4 v_fragWorld;
+	flat vec3 v_centerpos; // xyz and radius?
+	flat vec4 v_teamcolor; // red or teamcolor, and alpha modifier
 };
 
 uniform sampler2D mapDepths;
@@ -34,21 +32,20 @@ void main(void)
 	mapWorldPos = cameraViewProjInv * mapWorldPos;
 	mapWorldPos.xyz = mapWorldPos.xyz / mapWorldPos.w; // YAAAY this works!
 
-
 	vec3 mapToComm = v_centerpos.xyz - mapWorldPos.xyz;
 	distancetocomm = length(mapToComm);
 	
-	
-	
-	fragColor.rgb = vec3(fract(distancetocomm * 0.01));
-	fragColor.a = 0.5;
-	if (distancetocomm > BLASTRADIUS) fragColor.a = 0.03	;
+
+	if (distancetocomm > BLASTRADIUS) fragColor.a = 0.0	;
 	
 	fragColor.rgba = vec4(1.0, 0.0, 0.0, 0.0);
+	fragColor.rgb = v_teamcolor.rgb;
 	fragColor.a += lineblast(DGUNRANGE + ((BLASTRADIUS - DGUNRANGE) * 0.37), 3, 0.5);
 	fragColor.a += lineblast(DGUNRANGE + ((BLASTRADIUS - DGUNRANGE) * 0.475), 2, 0.25);
 	fragColor.a += lineblast(DGUNRANGE + ((BLASTRADIUS - DGUNRANGE) * 0.652), 2, 0.185);
 	fragColor.a += lineblast(DGUNRANGE + ((BLASTRADIUS - DGUNRANGE) * 0.83), 2, 0.13);
 	fragColor.a += lineblast(BLASTRADIUS                                   , 2, 0.085);
 	
+	fragColor.a *= OPACITYMULTIPLIER;
+	fragColor.a *= v_teamcolor.a;
 }
