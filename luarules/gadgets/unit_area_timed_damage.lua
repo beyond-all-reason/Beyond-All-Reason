@@ -45,7 +45,7 @@ local TimedDamageWeapons = {
         ceg = "acid-area-75", 
         damageCeg = "acid-damage-gen", 
         time = 10,
-        damage = 300,
+        damage = 1200,
         range = 75,
         resistance = "_CHICKENACID_",
     },
