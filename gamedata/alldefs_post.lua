@@ -1104,6 +1104,13 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 	end
+	
+	-- ExplosionSpeed is calculated same way engine does it, and then doubled
+	if wDef.damage and wDef.damage.default then 
+		local globaldamage = math.max(30, wDef.damage.default / 20)
+		local defExpSpeed = (8 + (globaldamage * 2.5))/ (9 + (math.sqrt(globaldamage) * 0.70)) * 0.5
+		wDef.explosionSpeed = defExpSpeed * 2
+	end
 end
 -- process effects
 function ExplosionDef_Post(name, eDef)
