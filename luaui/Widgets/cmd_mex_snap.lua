@@ -21,6 +21,7 @@ local spTraceScreenRay = Spring.TraceScreenRay
 local math_pi = math.pi
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
 
+local activeCmdID, bx, by, bz, bface
 local unitshape
 
 local isMex = {}
@@ -74,7 +75,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 	end
 
-	for key,value in ipairs(mapBlackList) do
+	for _,value in ipairs(mapBlackList) do
 		if Game.mapName == value then
 			Spring.Echo("<Snap Mex> This map is incompatible - removing mex snap widget.")
 			widgetHandler:RemoveWidget()
@@ -92,25 +93,16 @@ function widget:GameStart()
 	preGamestartPlayer = false
 end
 
-function widget:DrawWorld()
-	if not WG.DrawUnitShapeGL4 then
-		widget:Shutdown()
-		return
-	end
-
-	-- Check command is to build a mex
-	local cmdID
-
+function widget:Update()
 	if preGamestartPlayer then
-		cmdID = WG['buildmenu'] and WG['buildmenu'].getPreGameDefID()
-		if cmdID then cmdID = -cmdID end
+		activeCmdID = WG['buildmenu'] and WG['buildmenu'].getPreGameDefID()
+		if activeCmdID then activeCmdID = -activeCmdID end
 	else
-		_, cmdID = spGetActiveCommand()
+		_, activeCmdID = spGetActiveCommand()
 	end
 
-	if not (cmdID and isMex[-cmdID]) then
+	if not (activeCmdID and isMex[-activeCmdID]) then
 		WG.MexSnap.curPosition = nil
-		clearShape()
 		return
 	end
 
@@ -118,28 +110,42 @@ function widget:DrawWorld()
 	local mx, my = spGetMouseState()
 	local _, pos = spTraceScreenRay(mx, my, true)
 	if not pos then
-		clearShape()
+		WG.MexSnap.curPosition = nil
 		return
 	end
 
 	-- Find build position and check if it is valid (Would get 100% metal)
-	local bx, by, bz = Spring.Pos2BuildPos(-cmdID, pos[1], pos[2], pos[3])
+	bx, by, bz = Spring.Pos2BuildPos(-activeCmdID, pos[1], pos[2], pos[3])
 	local closestSpot = GetClosestPosition(bx, bz, WG['resource_spot_finder'].metalSpotsList)
 	if not closestSpot or WG['resource_spot_finder'].IsMexPositionValid(closestSpot, bx, bz) then
-		clearShape()
+		WG.MexSnap.curPosition = nil
 		return
 	end
 
 	-- Get the closet position that would give 100%
-	local bface = Spring.GetBuildFacing()
-	local mexPositions = WG['resource_spot_finder'].GetBuildingPositions(closestSpot, -cmdID, bface, true)
+	bface = Spring.GetBuildFacing()
+	local mexPositions = WG['resource_spot_finder'].GetBuildingPositions(closestSpot, -activeCmdID, bface, true)
 	local bestPos = GetClosestPosition(bx, bz, mexPositions)
 	if not bestPos then
 		WG.MexSnap.curPosition = nil
-		clearShape()
 		return
 	end
 	WG.MexSnap.curPosition = bestPos
+end
+
+function widget:DrawWorld()
+	if not WG.DrawUnitShapeGL4 then
+		widget:Shutdown()
+		return
+	end
+
+	local bestPos = WG.MexSnap.curPosition
+
+	if not bestPos then
+		clearShape()
+
+		return
+	end
 
 	-- Draw line
 	gl.DepthTest(false)
@@ -150,7 +156,7 @@ function widget:DrawWorld()
 	gl.DepthTest(true)
 
 	-- Add/update unit shape rendering
-	local newUnitshape = {-cmdID, bestPos.x, bestPos.y, bestPos.z, bface}
+	local newUnitshape = {-activeCmdID, bestPos.x, bestPos.y, bestPos.z, bface}
 	if not unitshape or (unitshape[1]~= newUnitshape[1] or unitshape[2]~= newUnitshape[2] or unitshape[3]~= newUnitshape[3] or unitshape[4]~= newUnitshape[4] or unitshape[5]~= newUnitshape[5]) then
 		clearShape()
 		unitshape = newUnitshape
@@ -159,18 +165,19 @@ function widget:DrawWorld()
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	if isMex[-cmdID] then
-		local bx, bz = cmdParams[1], cmdParams[3]
-		local closestSpot = GetClosestPosition(bx, bz, WG['resource_spot_finder'].metalSpotsList)
-		if closestSpot and not WG['resource_spot_finder'].IsMexPositionValid(closestSpot, bx, bz) then
+	if not isMex[-cmdID] then
+		return
+	end
 
-			local bface = cmdParams[4]
-			local mexPositions = WG['resource_spot_finder'].GetBuildingPositions(closestSpot, -cmdID, bface, true)
-			local bestPos = GetClosestPosition(bx, bz, mexPositions)
-			if bestPos then
-				GiveNotifyingOrder(cmdID, {bestPos.x, bestPos.y, bestPos.z, bface}, cmdOpts)
-				return true
-			end
+	local cbx, cbz = cmdParams[1], cmdParams[3]
+	local closestSpot = GetClosestPosition(bx, bz, WG['resource_spot_finder'].metalSpotsList)
+	if closestSpot and not WG['resource_spot_finder'].IsMexPositionValid(closestSpot, cbx, cbz) then
+		local cbface = cmdParams[4]
+		local mexPositions = WG['resource_spot_finder'].GetBuildingPositions(closestSpot, -cmdID, cbface, true)
+		local bestPos = GetClosestPosition(bx, bz, mexPositions)
+		if bestPos then
+			GiveNotifyingOrder(cmdID, {bestPos.x, bestPos.y, bestPos.z, bface}, cmdOpts)
+			return true
 		end
 	end
 end
