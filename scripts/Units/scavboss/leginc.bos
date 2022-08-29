@@ -5,12 +5,12 @@
 
 piece  aimy1, turret, flare, barrel, pelvis, rfhip, rfthigh, rfleg, rbhip, rbthigh, rbleg, lfhip, lfthigh, lfleg, lbhip, lbthigh, lbleg;
 
-static-var  restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving, wpn2_lasthead;
+static-var  gun_1, restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving, wpn2_lasthead;
 
 // Signal definitions
 #define SIG_MOVE			2
 #define SIG_WALK			4
-#define SIG_AIM_3			8
+#define SIG_AIM				8
 
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcrash_anim_walk.blend 
@@ -144,9 +144,10 @@ StopMoving()
 
 Create()
 {
+	gun_1 = 0;
 	hide flare;
 	hide aimy1;
-	restore_delay = 10000;
+	restore_delay = 1000;
 	bMoving = FALSE;
 	animSpeed = 10;
 	start-script StopMoving();
@@ -154,7 +155,7 @@ Create()
 
 SetMaxReloadTime(Func_Var_1)
 {
-	restore_delay = 10000;
+	restore_delay = 1000;
 }
 
 SweetSpot(piecenum)
@@ -167,7 +168,17 @@ AimFromPrimary(piecenum)
 	piecenum = aimy1;
 }
 
+AimFromSecondary(piecenum)
+{
+	piecenum = aimy1;
+}
+
 QueryPrimary(piecenum)
+{
+	piecenum = flare;
+}
+
+QuerySecondary(piecenum)
 {
 	piecenum = flare;
 }
@@ -181,6 +192,7 @@ ExecuteRestoreAfterDelay()
 	turn aimy1 to y-axis <0.000000> speed <20.000000>;
 	turn barrel to x-axis <0.000000> speed <20.000000>;
 	wpn2_lasthead = 1000000;
+	gun_1 = 0;
 }
 SetStunned(State)
 {
@@ -191,16 +203,42 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM_3;
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
 AimPrimary(heading, pitch)
 {
-	signal SIG_AIM_3;
+	//signal SIG_AIM;
+	while(gun_1 == 0)
+	{
+		sleep 30;
+	}
 	turn aimy1 to y-axis heading speed <20.000000>;
-	turn barrel to x-axis -1*pitch speed <20.000000>;
+	turn barrel to x-axis -1*pitch speed <2.000000>;
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 500) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
+	{
+		wpn2_lasthead = 1000000;
+		wait-for-turn aimy1 around y-axis;
+	}
+	wpn2_lasthead = heading;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM;
+	while(gun_1 == 1)
+	{
+		emit-sfx 2048 from flare;
+		start-script RestoreAfterDelay();
+		sleep 300;
+		return (0);
+	}
+	turn aimy1 to y-axis heading speed <20.000000>;
+	turn barrel to x-axis -1*pitch speed <2.000000>;
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 500) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
 	{
 		wpn2_lasthead = 1000000;
@@ -213,6 +251,12 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
+	return (0);
+}
+
+FireSecondary()
+{
+	gun_1 = 1;
 	return (1);
 }
 
