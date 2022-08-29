@@ -1061,7 +1061,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				
 				if overseerSpawned == false then
-					if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh5"].id) < config.chickenSpawnMultiplier then
+					if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh5"].id) < config.chickenSpawnMultiplier*SetCount(humanTeams) then
 						table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh5", team = chickenTeamID, })
 						cCount = cCount + 1
 					end
