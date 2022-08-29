@@ -1542,8 +1542,16 @@ function widget:MousePress(x, y, button)
 		if selBuildQueueDefID then
 			if button == 1 then
 
-				local mx, my, button = spGetMouseState()
-				local _, pos = spTraceScreenRay(mx, my, true)
+				local pos
+				local curMexPosition = WG.MexSnap and WG.MexSnap.curPosition
+
+				if curMexPosition then
+					pos = { curMexPosition.x, curMexPosition.y, curMexPosition.z }
+				else
+					local mx, my = spGetMouseState()
+					_, pos = spTraceScreenRay(mx, my, true)
+				end
+
 				if not pos then
 					return
 				end
@@ -1706,6 +1714,9 @@ function widget:Initialize()
 	widget:SelectionChanged(spGetSelectedUnits())
 
 	WG['buildmenu'] = {}
+	WG['buildmenu'].getPreGameDefID = function()
+		return selBuildQueueDefID
+	end
 	WG['buildmenu'].getGroups = function()
 		return groups, unitGroup
 	end

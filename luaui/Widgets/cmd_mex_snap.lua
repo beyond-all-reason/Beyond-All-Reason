@@ -19,6 +19,7 @@ local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local math_pi = math.pi
+local preGamestartPlayer = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
 
 local unitshape
 
@@ -52,8 +53,8 @@ local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
 end
 
 local function DoLine(x1, y1, z1, x2, y2, z2)
-    gl.Vertex(x1, y1, z1)
-    gl.Vertex(x2, y2, z2)
+	gl.Vertex(x1, y1, z1)
+	gl.Vertex(x2, y2, z2)
 end
 
 local function clearShape()
@@ -87,6 +88,10 @@ function widget:Shutdown()
 	end
 end
 
+function widget:GameStart()
+	preGamestartPlayer = false
+end
+
 function widget:DrawWorld()
 	if not WG.DrawUnitShapeGL4 then
 		widget:Shutdown()
@@ -94,8 +99,17 @@ function widget:DrawWorld()
 	end
 
 	-- Check command is to build a mex
-	local _, cmdID = spGetActiveCommand()
+	local cmdID
+
+	if preGamestartPlayer then
+		cmdID = WG['buildmenu'] and WG['buildmenu'].getPreGameDefID()
+		if cmdID then cmdID = -cmdID end
+	else
+		_, cmdID = spGetActiveCommand()
+	end
+
 	if not (cmdID and isMex[-cmdID]) then
+		WG.MexSnap.curPosition = nil
 		clearShape()
 		return
 	end
