@@ -666,7 +666,7 @@ function drawBuildmenuBg()
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
 end
 
-local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColor, edgeAlpha, disabled)
+local function drawCell(cellRectID, usedZoom, cellColor, disabled)
 	local uDefID = cmds[cellRectID].id * -1
 
 	-- unit icon
@@ -734,11 +734,6 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	if showOrderDebug and smartOrderUnits and unitOrderDebug[uDefID] then
 		local text = unitOrderDebug[uDefID]
 		font2:Print("\255\175\175\175" .. text, cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.05), cellRects[cellRectID][4] - cellPadding - priceFontSize, priceFontSize * 0.82, "o")
-	end
-
-	-- draw build progress pie on top of texture
-	if progress and showBuildProgress then
-		RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
 	end
 
 	-- factory queue number
@@ -882,7 +877,7 @@ function drawBuildmenu()
 				WG['buildmenu'].selectedID = uDefID
 			end
 
-			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, nil, nil, unitRestricted[uDefID] or unitDisabled[uDefID])
+			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, unitRestricted[uDefID] or unitDisabled[uDefID])
 		end
 	end
 
@@ -1066,7 +1061,6 @@ function widget:DrawScreen()
 					for cellRectID, cellRect in pairs(cellRects) do
 						if math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
 							hoveredCellID = cellRectID
-							local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
 							local uDefID = cmds[cellRectID].id * -1
 							WG['buildmenu'].hoverID = uDefID
 							gl.Color(1, 1, 1, 1)
@@ -1173,14 +1167,14 @@ function widget:DrawScreen()
 								end
 								if not (unitRestricted[uDefID] or unitDisabled[uDefID]) then
 
-									local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
+									local unsetShowPrice
 									if not showPrice then
 										unsetShowPrice = true
 										showPrice = true
 									end
 
 									-- re-draw cell with hover zoom (and price shown)
-									drawCell(hoveredCellID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15, unitRestricted[uDefID] or unitDisabled[uDefID])
+									drawCell(hoveredCellID, usedZoom, cellColor, unitRestricted[uDefID] or unitDisabled[uDefID])
 
 									if unsetShowPrice then
 										showPrice = false
@@ -1211,10 +1205,8 @@ function widget:DrawScreen()
 						local unitBuildDefID = spGetUnitDefID(unitBuildID)
 						if unitBuildDefID then
 							-- loop all shown cells
-							local cellIsSelected
-							for cellRectID, cellRect in pairs(cellRects) do
+							for cellRectID, _ in pairs(cellRects) do
 								if not drawncellRectIDs[cellRectID] then
-									cellIsSelected = false
 									if cellRectID > maxCellRectID then
 										break
 									end
@@ -1391,54 +1383,54 @@ local function unbindBuildUnits()
 	boundUnits = {}
 end
 
-function widget:GameFrame(n)
+function widget:GameStart()
+	preGamestartPlayer = false
 
 	if checkGeothermalFeatures then
 		checkGeothermalFeatures()
 		checkGeothermalFeatures = nil
 	end
 
-	if preGamestartPlayer then
-		unbindBuildUnits()
-	end
+	-- Deattach pregame action handlers
+	widgetHandler.actionHandler:RemoveAction(self, "stop")
+	widgetHandler.actionHandler:RemoveAction(self, "buildfacing")
+	widgetHandler.actionHandler:RemoveAction(self, "buildmenu_pregame_deselect")
+	unbindBuildUnits()
+end
+
+function widget:GameFrame(n)
 	-- handle the pregame build queue
-	preGamestartPlayer = false
-	if n <= 90 and #buildQueue > 0 then
+	if not (n <= 90 and #buildQueue > 0 and n > 1) then return end
 
-		if n < 2 then
-			return
-		end -- Give the unit frames 0 and 1 to spawn
+	-- inform gadget how long is our queue
+	local t = 0
+	for i = 1, #buildQueue do
+		t = t + UnitDefs[buildQueue[i][1]].buildTime
+	end
+	if startDefID then
+		local buildTime = t / UnitDefs[startDefID].buildSpeed
+		Spring.SendCommands("luarules initialQueueTime " .. buildTime)
+	end
 
-		-- inform gadget how long is our queue
-		local t = 0
-		for i = 1, #buildQueue do
-			t = t + UnitDefs[buildQueue[i][1]].buildTime
-		end
-		if startDefID then
-			local buildTime = t / UnitDefs[startDefID].buildSpeed
-			Spring.SendCommands("luarules initialQueueTime " .. buildTime)
-		end
-
-		local tasker
-		-- Search for our starting unit
-		local units = Spring.GetTeamUnits(Spring.GetMyTeamID())
-		for u = 1, #units do
-			local uID = units[u]
-			if GetUnitCanCompleteQueue(uID) then
-				tasker = uID
-				if Spring.GetUnitRulesParam(uID, "startingOwner") == Spring.GetMyPlayerID() then
-					-- we found our com even if cooping, assigning queue to this particular unit
-					break
-				end
+	local tasker
+	-- Search for our starting unit
+	local units = Spring.GetTeamUnits(Spring.GetMyTeamID())
+	for u = 1, #units do
+		local uID = units[u]
+		if GetUnitCanCompleteQueue(uID) then
+			tasker = uID
+			if Spring.GetUnitRulesParam(uID, "startingOwner") == Spring.GetMyPlayerID() then
+				-- we found our com even if cooping, assigning queue to this particular unit
+				break
 			end
 		end
-		if tasker then
-			for b = 1, #buildQueue do
-				local buildData = buildQueue[b]
-				Spring.GiveOrderToUnit(tasker, -buildData[1], { buildData[2], buildData[3], buildData[4], buildData[5] }, { "shift" })
-			end
-			buildQueue = {}
+	end
+	if tasker then
+		for b = 1, #buildQueue do
+			local buildData = buildQueue[b]
+			Spring.GiveOrderToUnit(tasker, -buildData[1], { buildData[2], buildData[3], buildData[4], buildData[5] }, { "shift" })
 		end
+		buildQueue = {}
 	end
 end
 
@@ -1682,15 +1674,23 @@ local function bindBuildUnits(widget)
 end
 
 local function buildmenuPregameDeselectHandler()
-	if preGamestartPlayer and selBuildQueueDefID then
-		setPreGamestartDefID()
+	if not (preGamestartPlayer and selBuildQueueDefID) then return end
 
-		return true
-	end
+	setPreGamestartDefID()
+	return true
+end
+
+local function clearPregameBuildQueue()
+	if not preGamestartPlayer then return end
+
+	setPreGamestartDefID()
+	buildQueue = {}
+	return true
 end
 
 function widget:Initialize()
-	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, 'p')
+	widgetHandler.actionHandler:AddAction(self, "stop", clearPregameBuildQueue, nil, "p")
+	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "buildmenu_pregame_deselect", buildmenuPregameDeselectHandler, nil, "p")
 
 	checkGeothermalFeatures()
