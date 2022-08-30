@@ -1991,7 +1991,7 @@ function init()
 		--   end,
 		-- },
 
-		{ id = "water", group = "gfx", category = types.basic, name = texts.option.water, type = "select", options = { 'basic', 'bump-mapped' }, value = desiredWaterValue + 1,
+		{ id = "water", group = "gfx", category = types.basic, name = texts.option.water, type = "select", options = { 'low', 'high' }, value = desiredWaterValue + 1,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
