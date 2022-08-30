@@ -1980,12 +1980,24 @@ function init()
 		--  end,
 		--},
 
-		{ id = "water", group = "gfx", category = types.basic, name = texts.option.water, type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
+		-- { id = "water", group = "gfx", category = types.basic, name = texts.option.water, type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
+		--   onload = function(i)
+		--   end,
+		--   onchange = function(i, value)
+		-- 	  desiredWaterValue = value - 1
+		-- 	  if waterDetected then
+		-- 		  Spring.SendCommands("water " .. desiredWaterValue)
+		-- 	  end
+		--   end,
+		-- },
+
+		{ id = "water", group = "gfx", category = types.basic, name = texts.option.water, type = "select", options = { 'basic', 'bump-mapped' }, value = desiredWaterValue + 1,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  desiredWaterValue = value - 1
 			  if waterDetected then
+				if desiredWaterValue > 0 then desiredWaterValue = 4 end
 				  Spring.SendCommands("water " .. desiredWaterValue)
 			  end
 		  end,
