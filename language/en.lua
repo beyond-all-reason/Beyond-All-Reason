@@ -198,7 +198,7 @@ return {
 			mapedgeextension_curvature_descr = 'Curve the mirrored edges away into the floor/seabed',
 			lineofsight = 'Line of Sight',
 			losopacity = 'opacity',
-			water = 'Water type',
+			water = 'Water quality',
 			decals = 'Ground scars',
 			decals_descr = 'NOTE: Changes require a restart',
 			grounddetail = 'Ground detail',
