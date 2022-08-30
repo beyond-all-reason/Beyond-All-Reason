@@ -902,7 +902,10 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	elseif selectedBuilder and currentBuildCategory then
 		if alt or ctrl or meta then return end
 
-		Spring.SetActiveCommand(spGetCmdDescIndex(uDefID), 3, false, true, alt, ctrl, meta, shift)
+		local uDef = UnitDefs[-uDefID]
+		local isRepeatMex = uDef.customParams.metal_extractor and uDef.name == activeCmd and not (uDef.stealth or #uDef.weapons > 0)
+		local cmd = isRepeatMex and 'areamex' or spGetCmdDescIndex(uDefID)
+		Spring.SetActiveCommand(cmd, 3, false, true, alt, ctrl, meta, shift)
 
 		return true
 	end
@@ -976,11 +979,20 @@ local function buildFacingHandler(_, _, args)
 end
 
 local function buildmenuPregameDeselectHandler()
-	if preGamestartPlayer and selBuildQueueDefID then
-		setPreGamestartDefID()
+	if not (preGamestartPlayer and selBuildQueueDefID) then return end
 
-		return true
-	end
+	setPreGamestartDefID()
+
+	return true
+end
+
+local function clearPregameBuildQueue()
+	if not preGamestartPlayer then return end
+
+	setPreGamestartDefID()
+	buildQueue = {}
+
+	return true
 end
 
 function widget:Initialize()
@@ -989,6 +1001,7 @@ function widget:Initialize()
 	end
 
 	-- For some reason when handler = true widgetHandler:AddAction is not available
+	widgetHandler.actionHandler:AddAction(self, "stop", clearPregameBuildQueue, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_next_page", nextPageHandler, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_prev_page", prevPageHandler, nil, "p")
@@ -1020,6 +1033,9 @@ function widget:Initialize()
 	widget:SelectionChanged(spGetSelectedUnits())
 
 	WG['buildmenu'] = {}
+	WG['buildmenu'].getPreGameDefID = function()
+		return selBuildQueueDefID
+	end
 	WG['buildmenu'].getGroups = function()
 		return groups, unitGroup
 	end
@@ -1270,7 +1286,7 @@ local function drawCategoryButtons()
 	end
 end
 
-local function drawCell(cellRectID, usedZoom, cellColor, progress, disabled)
+local function drawCell(cellRectID, usedZoom, cellColor, disabled)
 	local cmd = cellcmds[cellRectID]
 	local uid = cmd.id * -1
 	-- unit icon
@@ -1332,11 +1348,6 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, disabled)
 			text = "\255\245\245\245" .. unitMetalCost[uid] .. "\n\255\255\255\000"
 		end
 		font2:Print(text .. unitEnergyCost[uid], cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
-	end
-
-	-- draw build progress pie on top of texture
-	if progress and showBuildProgress then
-		RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
 	end
 
 	-- factory queue number
@@ -1637,7 +1648,7 @@ function drawGrid(activeArea)
 					WG['buildmenu'].selectedID = uDefID
 				end
 
-				drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, unitRestricted[uDefID])
+				drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, unitRestricted[uDefID])
 			else
 				hotkeyActions[tostring(arow) .. tostring(coll)] = nil
 			end
@@ -1808,7 +1819,9 @@ function widget:DrawScreen()
 		return
 	end
 
-	WG['buildmenu'].hoverID = nil
+	if WG['buildmenu'] then
+		WG['buildmenu'].hoverID = nil
+	end
 	if not (preGamestartPlayer or selectedBuilder or selectedFactory or alwaysShow) then
 		if WG['guishader'] and dlistGuishader then
 			WG['guishader'].RemoveDlist('buildmenu')
@@ -2021,7 +2034,7 @@ function widget:DrawScreen()
 										showPrice = true
 									end
 
-									drawCell(hoveredCellID, usedZoom, cellColor, nil, unitRestricted[uDefID])
+									drawCell(hoveredCellID, usedZoom, cellColor, unitRestricted[uDefID])
 
 									if unsetShowPrice then
 										showPrice = false
@@ -2229,46 +2242,48 @@ local function GetUnitCanCompleteQueue(uID)
 	return true
 end
 
-function widget:GameFrame(n)
-	-- handle the pregame build queue
+function widget:GameStart()
 	preGamestartPlayer = false
 
-	if n <= 90 and #buildQueue > 0 then
+	-- Deattach pregame action handlers
+	widgetHandler.actionHandler:RemoveAction(self, "stop")
+	widgetHandler.actionHandler:RemoveAction(self, "buildfacing")
+	widgetHandler.actionHandler:RemoveAction(self, "buildmenu_pregame_deselect")
+end
 
-		if n < 2 then
-			return
-		end -- Give the unit frames 0 and 1 to spawn
+function widget:GameFrame(n)
+	-- handle the pregame build queue
+	if not (n <= 90 and #buildQueue > 0 and n > 1) then return end
 
-		-- inform gadget how long is our queue
-		local t = 0
-		for i = 1, #buildQueue do
-			t = t + UnitDefs[buildQueue[i][1]].buildTime
-		end
-		if startDefID then
-			local buildTime = t / UnitDefs[startDefID].buildSpeed
-			Spring.SendCommands("luarules initialQueueTime " .. buildTime)
-		end
+	-- inform gadget how long is our queue
+	local t = 0
+	for i = 1, #buildQueue do
+		t = t + UnitDefs[buildQueue[i][1]].buildTime
+	end
+	if startDefID then
+		local buildTime = t / UnitDefs[startDefID].buildSpeed
+		Spring.SendCommands("luarules initialQueueTime " .. buildTime)
+	end
 
-		local tasker
-		-- Search for our starting unit
-		local units = Spring.GetTeamUnits(Spring.GetMyTeamID())
-		for u = 1, #units do
-			local uID = units[u]
-			if GetUnitCanCompleteQueue(uID) then
-				tasker = uID
-				if Spring.GetUnitRulesParam(uID, "startingOwner") == Spring.GetMyPlayerID() then
-					-- we found our com even if cooping, assigning queue to this particular unit
-					break
-				end
+	local tasker
+	-- Search for our starting unit
+	local units = Spring.GetTeamUnits(Spring.GetMyTeamID())
+	for u = 1, #units do
+		local uID = units[u]
+		if GetUnitCanCompleteQueue(uID) then
+			tasker = uID
+			if Spring.GetUnitRulesParam(uID, "startingOwner") == Spring.GetMyPlayerID() then
+				-- we found our com even if cooping, assigning queue to this particular unit
+				break
 			end
 		end
-		if tasker then
-			for b = 1, #buildQueue do
-				local buildData = buildQueue[b]
-				Spring.GiveOrderToUnit(tasker, -buildData[1], { buildData[2], buildData[3], buildData[4], buildData[5] }, { "shift" })
-			end
-			buildQueue = {}
+	end
+	if tasker then
+		for b = 1, #buildQueue do
+			local buildData = buildQueue[b]
+			Spring.GiveOrderToUnit(tasker, -buildData[1], { buildData[2], buildData[3], buildData[4], buildData[5] }, { "shift" })
 		end
+		buildQueue = {}
 	end
 end
 
@@ -2411,12 +2426,20 @@ function widget:MousePress(x, y, button)
 
 		if selBuildQueueDefID then
 			if button == 1 then
+				local pos
+				local curMexPosition = WG.MexSnap and WG.MexSnap.curPosition
 
-				local mx, my, _ = spGetMouseState()
-				local _, pos = spTraceScreenRay(mx, my, true)
+				if curMexPosition then
+					pos = { curMexPosition.x, curMexPosition.y, curMexPosition.z }
+				else
+					local mx, my = spGetMouseState()
+					_, pos = spTraceScreenRay(mx, my, true)
+				end
+
 				if not pos then
 					return
 				end
+
 				local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
 				local buildFacing = Spring.GetBuildFacing()
 

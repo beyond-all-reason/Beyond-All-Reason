@@ -90,7 +90,7 @@ local difficultyOption = Spring.GetModOptions().chicken_difficulty
 -- 	"chickenf",
 -- 	"chickenc",
 -- 	"chickenr",
--- 	"chickend",
+-- 	"chicken_turret",
 -- }
 
 local function commaValue(amount)

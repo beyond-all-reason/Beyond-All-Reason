@@ -78,6 +78,7 @@
 				"thousands": "%{number}k",
 				"milliseconds": "%{number} ms",
 				"seconds": "%{number} sec",
+				"resincome": "Resource income",
 				"commandDelay": "%{labelColor}Total command delay: %{delayColor}%{delay}",
 				"cpu": "CPU: %{cpuUsage}%%",
 				"framerate": "FPS: %{fps}",
@@ -101,10 +102,12 @@
 				"playerTV": "TV",
 				"cancelPlayerTV": "Turn off TV",
 				"cancelCamera": "Turn off Player Cam",
-				"playerView": "Player Viewpoint",
+				"tooltip": "Auto camera-track the top ranked players\n(switches player every 40 seconds by default)",
+				"playerView": "Player View",
 				"globalView": "Turn off Player View",
 				"playerViewTooltip": "Only view what the player can see",
-				"tooltip": "Auto camera-track the top ranked players\n(switches player every 40 seconds by default)"
+				"playerCamera": "Player Camera",
+				"playerCameraTooltip": "Follow player camera perspective and apply selections"
 			},
 			"teamEconomy": {
 				"tooltip": "Team metal/energy income\n(Lighter portion is income from reclaiming)"
@@ -553,7 +556,7 @@
 				"techPercentage": "Boss Anger: %{count}%%",
 				"techPercentageEndless": "Tech Progress: %{count}%%",
 				"techLevel": "Scavengers Tier: %{count}",
-				"bossFightCountdown": "Scavengers retreat in: %{count} Seconds",
+				"bossFightCountdown": "Boss arrives in: %{count} Seconds",
 				"bossHealth": "Boss Health: %{count}%%",
 				"gracePeriod": "Grace Period: %{count} Seconds",
 				"killedScavengers": "Killed Scavengers: %{count}",

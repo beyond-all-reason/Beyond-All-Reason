@@ -387,8 +387,9 @@ AimPrimary(heading, pitch)
 	while( gun_2 )
 	{
 		wait-for-move lturret along z-axis;
-		gun_1 = 0;
 		gun_2 = 0;
+		gun_1 = 0;
+		return (0);
 	}
 	return (1);
 }
@@ -402,28 +403,30 @@ FirePrimary()
 {
 	if (gun_1 == 0)
 	{
-	emit-sfx 1024 + 0 from lflare;
-	move lturret to z-axis [-1.5] now;
-	move rturret to z-axis [-1.5] now;
-	move uturret to z-axis [-1.5] now;
+		emit-sfx 1024 + 0 from lflare;
+		move lturret to z-axis [-1.5] now;
+		move rturret to z-axis [-1.5] now;
+		move uturret to z-axis [-1.5] now;
 	}
+	
 	else if (gun_1 == 1)
 	{
-	emit-sfx 1024 + 0 from rflare;
-	move lturret to z-axis [-3] now;
-	move rturret to z-axis [-3] now;
-	move uturret to z-axis [-3] now;
+		emit-sfx 1024 + 0 from rflare;
+		move lturret to z-axis [-3] now;
+		move rturret to z-axis [-3] now;
+		move uturret to z-axis [-3] now;
 	}
+	
 	else if (gun_1 == 2)
 	{
-	emit-sfx 1024 + 0 from uflare;
-	move lturret to z-axis [-4.5] now;
-	move rturret to z-axis [-4.5] now;
-	move uturret to z-axis [-4.5] now;
-	move lturret to z-axis [0.000000] speed [2.250000];
-	move rturret to z-axis [0.000000] speed [2.250000];
-	move uturret to z-axis [0.000000] speed [2.250000];
-	gun_2 = 1;
+		emit-sfx 1024 + 0 from uflare;
+		move lturret to z-axis [-4.5] now;
+		move rturret to z-axis [-4.5] now;
+		move uturret to z-axis [-4.5] now;
+		move lturret to z-axis [0.000000] speed [2.50000];
+		move rturret to z-axis [0.000000] speed [2.50000];
+		move uturret to z-axis [0.000000] speed [2.50000];
+		gun_2 = 1;
 	}
 	++gun_1;
 }

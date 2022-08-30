@@ -89,7 +89,7 @@ end
 function AttackerBST:Update()
 	 --self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
-	if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'AttackerBST' then return end
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'AttackerBST' then return end
 	--if f - self.uFrame < self.ai.behUp['attackerbst']  then
 	--	return
 	--end

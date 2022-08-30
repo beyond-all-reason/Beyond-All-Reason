@@ -38,7 +38,7 @@ end
 
 
 function widget:ViewResize()
-	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+	font = WG['fonts'].getFont(nil, 1, 0.2, 13.0)
 end
 
 local function makeETA(unitID, unitDefID)

@@ -200,11 +200,15 @@ local unitRange = {} -- table of unit types with their radar ranges
 local isBuilding = {} -- unitDefID keys
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.sonarRadius and unitDef.sonarRadius > minSonarDistance then	-- save perf by excluding low radar range units
-		if not unitRange[unitDefID] then unitRange[unitDefID] = {} end
-		unitRange[unitDefID]['range'] = unitDef.sonarRadius
+		if string.find(unitDef.name, "chicken", nil, true) then 
+			-- skip chickens from sonar
+		else
+			if not unitRange[unitDefID] then unitRange[unitDefID] = {} end
+			unitRange[unitDefID]['range'] = unitDef.sonarRadius
 
-		if unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
-			isBuilding[unitDefID] = true
+			if unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
+				isBuilding[unitDefID] = true
+			end
 		end
 	end
 end

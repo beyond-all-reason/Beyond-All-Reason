@@ -135,6 +135,9 @@ WG.FlowUI.Draw.RectRound = function(px, py, sx, sy,  cs,   tl, tr, br, bl,   c1,
 	--  optional: tl,tr,br,bl  0 = no corner (1 = always)
 	--  optional: c1,c2 for top-down color gradients
 	local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
+		--if sy == nil then
+		--	Spring.Debug.TraceFullEcho(nil,nil,nil, "sy is nil in DrawRectRound")
+		--end
 		local csyMult = 1 / ((sy - py) / cs)
 
 		if c1 then
@@ -845,7 +848,7 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 		local boolGlow = radius * 1.75
 		gl.Blending(GL.SRC_ALPHA, GL.ONE)
 		gl.Color(color[1], color[2], color[3], 0.33 * glowMult)
-		gl.Texture(":l:LuaUI/Images/glow.dds")
+		gl.Texture("LuaUI/Images/glow.dds")
 		gl.TexRect(x-boolGlow, y-boolGlow, x+boolGlow, y+boolGlow)
 		boolGlow = boolGlow * 2.2
 		gl.Color(0.55, 1, 0.55, 0.1 * glowMult)

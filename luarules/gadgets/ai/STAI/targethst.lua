@@ -131,7 +131,7 @@ end
 
 function TargetHST:Update()
 -- 	local f = self.game:Frame()
-	if Shard.moduleTeam ~= self.ai.id or Shard.moduleUpdate ~= self:Name() then return end
+	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	--if f == 0 or (f % 71 + game:GetTeamID() == 0) then
 	--if f == 0 or (f % 71) == 0 then
 -- 		self.cells = {}--TODO

@@ -36,7 +36,7 @@ function NukeBST:Update()
 -- 	end
 -- 	self.uFrame = f
 	local f = game:Frame()
-	if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'NukeBST' then return end
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'NukeBST' then return end
 	if not self.active then return end
 
 	--local f = self.game:Frame()

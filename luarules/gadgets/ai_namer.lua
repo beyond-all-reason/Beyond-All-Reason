@@ -65,7 +65,6 @@ if gadgetHandler:IsSyncedCode() then
 		"dallabill",
 		"[D]4RK_HUNT[E]R",
 		"Dave",
-		"Derpiederp",
 		"Diana",
 		"EnJoY",
 		"ewang",
@@ -103,6 +102,7 @@ if gadgetHandler:IsSyncedCode() then
 		"rlm",
 		"rous",
 		"Rikerss", --Merch $20+
+		"Sovgut", --Tourney prize $50
 		"Spanker",
 		"SuperMadmax",
 		"sversuge",
@@ -113,6 +113,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Woody",
 		"Yavarin",
 		"Zagupi",
+		"Zerpiederp", --Tourney prize $100 on top of regular donation 
 		"zGeneral",
 
 		-- BAR Content Creators
@@ -322,9 +323,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Whirlwind",
 		"Wolverine"
 	}
-	local namelistChicken = {'Attila the Hen', 'Big Bird', 'Chicken Little', 'Cluck Norris', 'Chick Norris', 'Dixie Chick', 'Egghead',
-							 'Hen Solo', 'Donald Cluck'
-	}
+	local namelistChicken = {'Alien Raptors'}
 	local namelistScavengers = {'Scavengers'}
 
 	local takenNames = {}

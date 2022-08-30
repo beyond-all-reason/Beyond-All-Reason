@@ -38,7 +38,7 @@ local maxLinesScroll = maxLinesScrollFull
 local hide = false
 local fontsizeMult = 1
 local usedFontSize = charSize*widgetScale*fontsizeMult
-local usedConsoleFontSize = charSize*widgetScale*fontsizeMult*consoleFontSizeMult
+local usedConsoleFontSize = usedFontSize*consoleFontSizeMult
 local orgLines = {}
 local chatLines = {}
 local consoleLines = {}
@@ -1346,6 +1346,9 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 		cursorBlinkTimer = 0
 		autocomplete(inputText)
 		updateTextInputDlist = true
+		if WG['limitidlefps'] and WG['limitidlefps'].update then
+			WG['limitidlefps'].update()
+		end
 		return true
 	end
 end
@@ -1757,6 +1760,8 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 		local color = ''
 		if sfind(line,'Error', nil, true) then
 			color = '\255\255\133\133'
+		elseif sfind(line,'Sync error for', nil, true) then
+			color = '\255\255\133\133'
 		elseif sfind(line,'Warning', nil, true) then
 			color = '\255\255\190\170'
 		elseif sfind(line,'Failed to load', nil, true) then
@@ -1899,11 +1904,11 @@ function widget:ViewResize()
 	elementCorner = WG.FlowUI.elementCorner
 	elementPadding = WG.FlowUI.elementPadding
 	elementMargin = WG.FlowUI.elementMargin
-
 	RectRound = WG.FlowUI.Draw.RectRound
 
+	charSize = 21 - (3.5 * ((vsx/vsy) - 1.78))
 	usedFontSize = charSize*widgetScale*fontsizeMult
-	usedConsoleFontSize = charSize*widgetScale*fontsizeMult*consoleFontSizeMult
+	usedConsoleFontSize = usedFontSize*consoleFontSizeMult
 	font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.19, 1.75)
 	font3 = WG['fonts'].getFont(fontfile3, (charSize/18)*fontsizeMult, 0.19, 1.75)
 
@@ -1921,6 +1926,7 @@ function widget:ViewResize()
 	maxTimeWidth = font3:GetTextWidth('00:00') * usedFontSize
 	lineSpaceWidth = 24*widgetScale
 	lineHeight = floor(usedFontSize*lineHeightMult)
+	consoleLineHeight = math.floor(usedConsoleFontSize*lineHeightMult)
 	backgroundPadding = elementPadding + floor(lineHeight*0.5)
 
 	local posY2 = 0.94

@@ -75,7 +75,8 @@ else
 
     local myAllyID = Spring.GetMyAllyTeamID()
     local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-    local spIsPosInLos = Spring.IsPosInLos
+	local spIsPosInLos = Spring.IsPosInLos
+	local spGetSpectatingState = Spring.GetSpectatingState
 
     function gadget:PlayerChanged(playerID)
         if playerID == Spring.GetMyPlayerID() then
@@ -86,7 +87,7 @@ else
     local function SpawnExplosion(_,px,py,pz, weaponID, ownerID)
         if Script.LuaUI("GadgetWeaponExplosion") or Script.LuaUI("GadgetWeaponExplosionGrass") then
             if ownerID ~= nil then
-                if spGetUnitAllyTeam(ownerID) == myAllyID or spIsPosInLos(px, py, pz, myAllyID) then
+                if spGetUnitAllyTeam(ownerID) == myAllyID or spIsPosInLos(px, py, pz, myAllyID) or select(2, spGetSpectatingState()) then
 					if Script.LuaUI("GadgetWeaponExplosion") then
 						Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 					end

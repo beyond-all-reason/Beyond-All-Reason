@@ -14,6 +14,10 @@ if Spring.GetModOptions().unit_restrictions_noextractors then
 	return
 end
 
+if Spring.GetModOptions().scoremode_chess and Spring.GetModOptions().scoremode ~= 'disabled' then
+	return
+end
+
 local showValue			= false
 local metalViewOnly		= false
 
@@ -50,6 +54,7 @@ local sceduledCheckedSpotsFrame = Spring.GetGameFrame()
 
 local isSpec, fullview = Spring.GetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
+local incomeMultiplier = select(7, Spring.GetTeamInfo(Spring.GetMyTeamID(), false))
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
@@ -310,7 +315,8 @@ function widget:Initialize()
 		local spotsCount = #spots
 		for i = 1, #mSpots do
 			local spot = mSpots[i]
-			local value = string.format("%0.1f",math.round(spot.worth/1000,1))
+			local value = string.format("%0.1f",math.round((spot.worth/1000) * incomeMultiplier,1))
+
 			if tonumber(value) > 0.001 and tonumber(value) < maxValue then
 				local scale = 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
 
@@ -366,6 +372,12 @@ function widget:PlayerChanged(playerID)
 	local prevMyAllyTeamID = myAllyTeamID
 	isSpec, fullview = Spring.GetSpectatingState()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
+	local oldIncomeMultiplier = incomeMultiplier
+	incomeMultiplier = select(7, Spring.GetTeamInfo(Spring.GetMyTeamID(), false))
+	if incomeMultiplier ~= oldIncomeMultiplier then
+		widget:Shutdown()
+		widget:Initialize()
+	end
 	if fullview ~= prevFullview or myAllyTeamID ~= prevMyAllyTeamID then
 		checkMetalspots()
 	end

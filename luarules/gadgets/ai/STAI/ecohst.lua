@@ -23,7 +23,7 @@ function EcoHST:Init()
 end
 
 function EcoHST:Update()
-	--if Shard.moduleTeam ~= self.ai.id or Shard.moduleUpdate ~= self:Name() then return end
+	--if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	local sample = {}
 	-- because resource data is stored as userdata
 	for i = 1, resourceCount do

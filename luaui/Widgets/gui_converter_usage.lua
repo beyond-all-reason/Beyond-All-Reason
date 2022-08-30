@@ -1,0 +1,201 @@
+function widget:GetInfo()
+    return {
+      name      = "Converter Usage",
+      desc      = "Shows the % of converters that are in use, their energy consumption and metal production",
+      author    = "Lexon, Floris",
+      date      = "05.08.2022",
+      layer     = 0,
+      enabled   = false  --  loaded by default?
+    }
+  end
+
+local vsx, vsy = Spring.GetViewGeometry()
+local widgetScale = (0.80 + (vsx * vsy / 6000000))
+
+local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local font2
+
+local RectRound, UiElement
+local dlistGuishader, dlistCU
+local area = {}
+
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetTeamRulesParam = Spring.GetTeamRulesParam
+
+local glCreateList = gl.CreateList
+local glCallList = gl.CallList
+local glGetViewSizes = gl.GetViewSizes
+local glDeleteList = gl.DeleteList
+
+local floor = math.floor
+local round = math.round
+
+--Current energy converted to metal
+local mConverted, eConverted
+
+--Energy needed for maximum potential metal production
+local eConvertedMax
+
+--Converter efficiency - eConverted / eConvertedMax
+--How many converters are active 0 - 100%
+local converterUse
+
+local function formatRes(number)
+    local label
+    if number > 10000 then
+        label = table.concat({ math.floor(round(number / 1000)), "k" })
+    elseif number > 1000 then
+        label = table.concat({ string.sub(round(number / 1000, 1), 1, 2 + (string.find(round(number / 1000, 1), ".", nil, true) or 0)), "k" })
+    elseif number > 10 then
+        label = string.sub(round(number, 0), 1, 3 + (string.find(round(number, 0), ".", nil, true) or 0))
+    else
+        label = string.sub(round(number, 1), 1, 2 + (string.find(round(number, 1), ".", nil, true) or 0))
+    end
+    return tostring(label)
+end
+
+local function updateUI()
+    local freeArea = WG['topbar'].GetFreeArea()
+    widgetScale = freeArea[5]
+    area[1] = freeArea[1]
+    area[2] = freeArea[2]
+    area[3] = freeArea[1] + floor(90 * widgetScale)
+    if area[3] > freeArea[3] then
+        area[3] = freeArea[3]
+    end
+    area[4] = freeArea[4]
+
+	if dlistGuishader ~= nil then
+		if WG['guishader'] then
+			WG['guishader'].RemoveDlist('converter_usage')
+		end
+		glDeleteList(dlistGuishader)
+	end
+	dlistGuishader = glCreateList(function()
+		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1)
+	end)
+
+    local fontSize = (area[4] - area[2]) * 0.4
+    local color = "\255\255\255\255"
+    local tooltipText = "\255\215\255\215Energy converter usage\nShows how many of your energy converters are active and producing metal."
+
+    if dlistCU ~= nil then
+        glDeleteList(dlistCU)
+    end
+	dlistCU = glCreateList(function()
+		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
+
+		if WG['guishader'] then
+			WG['guishader'].InsertDlist(dlistGuishader, 'converter_usage')
+		end
+
+        --Some coloring and tooltip text
+        if converterUse < 20 then
+            color = "\255\255\000\000" --Red
+            tooltipText = tooltipText .. "\n\n\255\255\000\000You have too many energy converters for your energy productoon.\n\255\255\000\000Stop building energy converteres and increase your energy production."
+        elseif converterUse < 40 then
+            color = "\255\255\100\000" --Orange
+            tooltipText = tooltipText .. "\n\n\255\255\100\000You have too many energy converters for your energy productoon.\n\255\255\100\000Increase your energy production."
+        elseif converterUse < 50 then
+            color = "\255\255\255\000" --Yellow
+        elseif converterUse < 70 then
+            color = "\255\215\230\100" --Yelleen?
+        else
+            color = "\255\000\255\000" --Green
+        end
+
+        -- converter use
+        font2:Begin()
+		font2:Print(color .. converterUse .. "%", area[1] + (fontSize * 0.4), area[2] + ((area[4] - area[2]) / 2.05) - (fontSize / 5), fontSize, 'ol')
+
+        fontSize = fontSize * 0.75
+
+        -- energy used
+		font2:Print("\255\255\255\000" .. "-" .. formatRes(eConverted), area[3] - (fontSize * 0.42), area[2] + 3.2 * ((area[4] - area[2]) / 4) - (fontSize / 5), fontSize, 'or')
+
+        -- metal produced
+		font2:Print("\255\240\255\240" .. "+" .. formatRes(mConverted), area[3]  -(fontSize * 0.42), area[2] + 0.8 * ((area[4] - area[2]) / 4) - (fontSize / 5), fontSize, 'or')
+		font2:End()
+
+        if WG['tooltip'] ~= nil then
+            WG['tooltip'].AddTooltip('converter_usage', area, tooltipText)
+        end
+	end)
+end
+
+function widget:DrawScreen()
+    if dlistCU and dlistGuishader then
+        glCallList(dlistCU)
+    end
+    if area[1] then
+        local x, y = Spring.GetMouseState()
+        if math.isInRect(x, y, area[1], area[2], area[3], area[4]) then
+            Spring.SetMouseCursor('cursornormal')
+        end
+    end
+end
+
+function widget:MousePress(x, y, button)
+    if area[1] then
+        local x, y = Spring.GetMouseState()
+        if math.isInRect(x, y, area[1], area[2], area[3], area[4]) then
+            return true
+        end
+    end
+end
+
+function widget:Shutdown()
+    if dlistGuishader ~= nil then
+        if WG['guishader'] then
+            WG['guishader'].RemoveDlist('converter_usage')
+        end
+        glDeleteList(dlistGuishader)
+    end
+    if dlistCU ~= nil then
+        glDeleteList(dlistCU)
+    end
+end
+
+function widget:ViewResize()
+    vsx, vsy = glGetViewSizes()
+
+    RectRound = WG.FlowUI.Draw.RectRound
+    UiElement = WG.FlowUI.Draw.Element
+
+    font2 = WG['fonts'].getFont(fontfile2)
+end
+
+function widget:Initialize()
+    widget:ViewResize()
+end
+
+local sec = 0
+function widget:Update(dt)
+    sec = sec + dt
+    if sec > 0.6 then
+        sec = 0
+        local myTeamID = spGetMyTeamID()
+        eConverted = spGetTeamRulesParam(myTeamID, "mmUse")
+        mConverted = eConverted * spGetTeamRulesParam(myTeamID, "mmAvgEffi")
+        eConvertedMax = spGetTeamRulesParam(myTeamID, "mmCapacity")
+        converterUse = 0
+
+        if eConvertedMax > 0 then
+            converterUse = floor(100 * eConverted / eConvertedMax)
+            eConverted = floor(eConverted)
+            mConverted = floor(mConverted)
+            updateUI()
+        else
+            -- Dont draw if there are no converters
+            if dlistGuishader ~= nil then
+                if WG['guishader'] then
+                    WG['guishader'].RemoveDlist('converter_usage')
+                end
+                dlistGuishader = glDeleteList(dlistGuishader)
+            end
+            if dlistCU ~= nil then
+                dlistCU = glDeleteList(dlistCU)
+            end
+        end
+    end
+end

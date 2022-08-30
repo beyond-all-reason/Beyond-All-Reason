@@ -112,13 +112,13 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Rebalance Candidates
-	
-	if Spring.GetModOptions().experimentalrebalancet2labs == true then -- 
+
+	if Spring.GetModOptions().experimentalrebalancet2labs == true then --
 		if name == "coralab" or name == "coravp" or name == "armalab" or name == "armavp" then
 			uDef.buildcostmetal = 1800 --2900
 		end
 		if name == "coraap" or name == "corasy" or name == "armaap" or name == "armasy" then
-			uDef.buildcostmetal = 2100 --3200 
+			uDef.buildcostmetal = 2100 --3200
 		end
 	end
 
@@ -157,7 +157,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corwint2"
 		end
-	end 
+	end
 
 	if Spring.GetModOptions().experimentalrebalancehovercrafttech == true then
 		if name == "corhp" or name == "corfhp" or name == "armhp" or name == "armfhp" then
@@ -179,36 +179,51 @@ function UnitDef_Post(name, uDef)
 	end
 
 	---------------------------------------------------------------------------------------------------
-	
+
 	if Spring.GetModOptions().newdgun then
-		if name == 'armcom' or name == 'corcom' or name == 'armcomcon' or name == 'corcomcon' then
-			local dgun = uDef.weapondefs.disintegrator
-			dgun.cratermult = 0.05
-			dgun.edgeeffectiveness = 1
-			dgun.damage = {
-				default = 99999,
-				commanders = 100,
-				scavboss = 1000,
-			}
+		if uDef.customparams.iscommander then
+			uDef.customparams.paralyzemultiplier = 0
 
-			local laser = uDef.weapondefs.armcomlaser or uDef.weapondefs.corcomlaser
-			local uwLaser = uDef.weapondefs.armcomsealaser or uDef.weapondefs.corcomsealaser
-			laser.damage = {
-				bombers = 180,
-				default = 75,
-				fighters = 110,
-				subs = 5,
-				commanders = 25,
-			}
-
-			uwLaser.damage = {
-				default = 200,
-				subs = 100,
-				commanders = 60,
-			}
+			if uDef.weapondefs.disintegrator then
+				uDef.weapondefs.disintegrator = {
+					areaofeffect = 160,
+					avoidfeature = false,
+					commandfire = true,
+					craterboost = 0,
+					cratermult = 0,
+					edgeeffectiveness = 1,
+					explosiongenerator = "custom:genericshellexplosion-large-lightning",
+					gravityaffected = "true",
+					impulseboost = 0.001,
+					impulsefactor = 0.001,
+					model = "airbomb.s3o",
+					name = "EMP Grenade",
+					noselfdamage = true,
+					paralyzer = true,
+					paralyzetime = 5.5,
+					range = 320,
+					reloadtime = 7,
+					soundhit = "EMGPULS1",
+					soundhitwet = "splslrg",
+					soundstart = "bombrel",
+					turret = true,
+					weapontype = "Cannon",
+					weaponvelocity = 240,
+					customparams = {
+						expl_light_color = "0.5 0.5 1",
+						expl_light_mult = 1.2,
+						expl_light_radius_mult = 0.9,
+						expl_light_life_mult = 1.55,
+						expl_light_heat_life_mult = "1.6",
+					},
+					damage = {
+						default = 10000,
+					},
+				}
+			end
 		end
 	end
-	
+
 	-- Control Mode Tweaks
 	if Spring.GetModOptions().scoremode ~= "disabled" then
 		if Spring.GetModOptions().scoremode_chess == true then
@@ -250,7 +265,7 @@ function UnitDef_Post(name, uDef)
 				armnanotcplat = true,
 				cornanotc = true,
 				cornanotcplat = true,
-				armbotrail = true, -- it spawns units so it will add dead launched peewees to respawn queue. 
+				armbotrail = true, -- it spawns units so it will add dead launched peewees to respawn queue.
 			}
 			if factories[name] then
 				uDef.unitrestricted = 0
@@ -337,7 +352,7 @@ function UnitDef_Post(name, uDef)
 				uDef.unitrestricted = 0
 			end
 		end
-		
+
 		if Spring.GetModOptions().unit_restrictions_noconverters then
 			if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
 				uDef.unitrestricted = 0
@@ -549,10 +564,14 @@ function UnitDef_Post(name, uDef)
 		if (uDef.mass and uDef.mass < 500) or not uDef.mass then uDef.mass = 500 end
 		uDef.canhover = true
 		uDef.autoheal = math.ceil(math.sqrt(chickHealth * 0.1))
+		uDef.customparams.paralyzemultiplier = uDef.customparams.paralyzemultiplier or .2
 		uDef.idleautoheal = math.ceil(math.sqrt(chickHealth * 0.1))
 		uDef.customparams.areadamageresistance = "_CHICKENACID_"
 		uDef.upright = false
 		uDef.floater = true
+		if uDef.sightdistance then 
+			uDef.sonardistance = uDef.sightdistance 
+		end
 		if (not uDef.canfly) and uDef.maxvelocity then
 			uDef.maxreversevelocity = uDef.maxvelocity*0.65
 		end
@@ -601,16 +620,48 @@ function UnitDef_Post(name, uDef)
 		--Spring.Echo("Final Emit Height: ".. uDef.losemitheight)
 	end
 
-	if uDef.name and uDef.name ~= "Commander" then
+	if not uDef.customparams.iscommander then
 		if uDef.featuredefs and uDef.maxdamage then
 			if uDef.featuredefs.dead then
 				uDef.featuredefs.dead.damage = uDef.maxdamage
+				if Spring.GetModOptions().experimentalrebalancewreckstandarization then
+					if uDef.buildcostmetal and uDef.buildcostenergy then
+						if name and not string.find(name, "_scav") then
+							if name and uDef.featuredefs.dead.metal then
+								Spring.Echo(name .. " Wreck Before: " .. uDef.featuredefs.dead.metal)
+							elseif uDef.name then
+								Spring.Echo(name .. " Wreck Before: " .. uDef.featuredefs.dead.metal)
+							end
+							--uDef.featuredefs.dead.metal = (uDef.buildcostmetal + (uDef.buildcostenergy/100))*0.5
+							uDef.featuredefs.dead.metal = uDef.buildcostmetal*0.6
+							if name and not string.find(name, "_scav") then
+								Spring.Echo(name .. " Wreck After: " .. uDef.featuredefs.dead.metal)
+							end
+						end
+					end
+				end
 			end
 		end
 
 		if uDef.featuredefs and uDef.maxdamage then
 			if uDef.featuredefs.heap then
 				uDef.featuredefs.heap.damage = uDef.maxdamage
+				if Spring.GetModOptions().experimentalrebalancewreckstandarization then
+					if uDef.buildcostmetal and uDef.buildcostenergy then
+						if name and not string.find(name, "_scav") then
+							if name and uDef.featuredefs.heap.metal then
+								Spring.Echo(name .. " Heap Before: " .. uDef.featuredefs.heap.metal)
+							elseif uDef.name then
+								Spring.Echo(name .. " Heap Before: " .. uDef.featuredefs.heap.metal)
+							end
+							--uDef.featuredefs.heap.metal = (uDef.buildcostmetal + (uDef.buildcostenergy/100))*0.2
+							uDef.featuredefs.heap.metal = uDef.buildcostmetal*0.25
+							if name and not string.find(name, "_scav") then
+								Spring.Echo(name .. " Heap After: " .. uDef.featuredefs.heap.metal)
+							end
+						end
+					end
+				end
 			end
 		end
     end
@@ -797,7 +848,7 @@ function UnitDef_Post(name, uDef)
 		if x ~= 1 then
 			uDef.workertime = uDef.workertime*x
 		end
-		
+
 		-- increase terraformspeed to be able to restore ground faster
 		uDef.terraformspeed = uDef.workertime * 30
 	end
@@ -833,7 +884,7 @@ function UnitDef_Post(name, uDef)
 	if uDef.airsightdistance then
 		local x = Spring.GetModOptions().multiplier_losrange
 		if x ~= 1 then
-			uDef.airsightdistance = uDef.airsightdistance*x	
+			uDef.airsightdistance = uDef.airsightdistance*x
 		end
 	end
 
@@ -1018,7 +1069,7 @@ function WeaponDef_Post(name, wDef)
 
 	-- Multipliers
 
-	-- Weapon Range 
+	-- Weapon Range
 	if true then -- dumb way to keep the x local here
 		local x = Spring.GetModOptions().multiplier_weaponrange
 		if x ~= 1 then
@@ -1037,7 +1088,7 @@ function WeaponDef_Post(name, wDef)
 				wDef.weaponvelocity = wDef.weaponvelocity*x
 			end
 			if wDef.weapontype == "StarburstLauncher" and wDef.weapontimer then
-				wDef.weapontimer = wDef.weapontimer*x
+				wDef.weapontimer = wDef.weapontimer+(wDef.weapontimer*((x-1)*0.4))
 			end
 		end
 	end
@@ -1052,6 +1103,13 @@ function WeaponDef_Post(name, wDef)
 				end
 			end
 		end
+	end
+	
+	-- ExplosionSpeed is calculated same way engine does it, and then doubled
+	if wDef.damage and wDef.damage.default then 
+		local globaldamage = math.max(30, wDef.damage.default / 20)
+		local defExpSpeed = (8 + (globaldamage * 2.5))/ (9 + (math.sqrt(globaldamage) * 0.70)) * 0.5
+		wDef.explosionSpeed = defExpSpeed * 2
 	end
 end
 -- process effects

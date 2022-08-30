@@ -27,29 +27,29 @@ local height = 0
 local cellMarginOriginal = 0.055
 local cellMargin = cellMarginOriginal
 local commandInfo = {
-	move			= { red = 0.64,	green = 1,		blue = 0.64,	shortcut = 'M' },
-	stop			= { red = 1,	green = 0.3,	blue = 0.3,		shortcut = 'S' },
-	attack			= { red = 1,	green = 0.5,	blue = 0.35,	shortcut = 'A' },
-	areaattack		= { red = 1,	green = 0.35,	blue = 0.15,	shortcut = 'A' },
-	manualfire		= { red = 1,	green = 0.7,	blue = 0.7,		shortcut = 'D' },
-	patrol			= { red = 0.73,	green = 0.73,	blue = 1,		shortcut = 'P' },
-	fight			= { red = 0.9,	green = 0.5,	blue = 1,		shortcut = 'F' },
+	move			= { red = 0.64,	green = 1,		blue = 0.64 },
+	stop			= { red = 1,	green = 0.3,	blue = 0.3 },
+	attack			= { red = 1,	green = 0.5,	blue = 0.35 },
+	areaattack		= { red = 1,	green = 0.35,	blue = 0.15 },
+	manualfire		= { red = 1,	green = 0.7,	blue = 0.7 },
+	patrol			= { red = 0.73,	green = 0.73,	blue = 1 },
+	fight			= { red = 0.9,	green = 0.5,	blue = 1 },
 	resurrect		= { red = 1,	green = 0.75,	blue = 1, },
-	guard			= { red = 0.33,	green = 0.92,	blue = 1,		shortcut = 'G' },
-	wait			= { red = 0.7,	green = 0.66,	blue = 0.6,		shortcut = 'W' },
-	repair			= { red = 1,	green = 0.95,	blue = 0.7,		shortcut = 'R' },
-	reclaim			= { red = 0.86,	green = 1,		blue = 0.86,	shortcut = 'E' },
+	guard			= { red = 0.33,	green = 0.92,	blue = 1 },
+	wait			= { red = 0.7,	green = 0.66,	blue = 0.6 },
+	repair			= { red = 1,	green = 0.95,	blue = 0.7 },
+	reclaim			= { red = 0.86,	green = 1,		blue = 0.86 },
 	restore			= { red = 0.77,	green = 1,		blue = 0.77 },
 	capture			= { red = 1,	green = 0.85,	blue = 0.22 },
-	settarget		= { red = 1,	green = 0.66,	blue = 0.35,	shortcut = 'Y' },
-	canceltarget	= { red = 0.8,	green = 0.55,	blue = 0.2,		shortcut = 'J' },
+	settarget		= { red = 1,	green = 0.66,	blue = 0.35 },
+	canceltarget	= { red = 0.8,	green = 0.55,	blue = 0.2 },
 	areamex			= { red = 0.93,	green = 0.93,	blue = 0.93 },
 	upgrademex		= { red = 0.93,	green = 0.93,	blue = 0.93 },
-	loadunits		= { red = 0.1,	green = 0.7,	blue = 1,		shortcut = 'L' },
-	unloadunits		= { red = 0,	green = 0.5,	blue = 1,		shortcut = 'U' },
+	loadunits		= { red = 0.1,	green = 0.7,	blue = 1 },
+	unloadunits		= { red = 0,	green = 0.5,	blue = 1 },
 	landatairbase	= { red = 0.4,	green = 0.7,	blue = 0.4 },
-	wantcloak		= { red = nil,	green = nil,	blue = nil,		shortcut = 'K' },
-	onoff			= { red = nil,	green = nil,	blue = nil,		shortcut = 'X' },
+	wantcloak		= { red = nil,	green = nil,	blue = nil },
+	onoff			= { red = nil,	green = nil,	blue = nil },
 }
 local isStateCommand = {}
 
@@ -90,7 +90,7 @@ local hiddenCommands = {
 	[CMD.SQUADWAIT] = true,
 	[CMD.DEATHWAIT] = true,
 	[CMD.TIMEWAIT] = true,
-	[39812] = true, --raw move
+	[39812] = true, -- raw move
 	[34922] = true, -- set unit target
 }
 
@@ -123,6 +123,14 @@ local RectRound, UiElement, UiButton, elementCorner
 
 local isSpectating = Spring.GetSpectatingState()
 local cursorTextures = {}
+local actionHotkeys = {}
+
+for _, keybinding in pairs(Spring.GetKeyBindings()) do
+	local cmd = keybinding.command
+	if (not actionHotkeys[cmd]) or keybinding.boundWith:len() < actionHotkeys[cmd]:len() then
+		actionHotkeys[cmd] = keybinding.boundWith
+	end
+end
 
 local function convertColor(r, g, b)
 	return string.char(255, (r * 255), (g * 255), (b * 255))
@@ -425,6 +433,7 @@ function DrawRect(px, py, sx, sy, zoom)
 	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
 end
 
+
 local function drawCell(cell, zoom)
 	if not zoom then
 		zoom = 1
@@ -513,8 +522,11 @@ local function drawCell(cell, zoom)
 			if isStateCommand[cmd.id] then
 				local currentStateIndex = cmd.params[1]
 				local commandState = cmd.params[currentStateIndex + stateOffset]
-
-				text = Spring.I18N('ui.orderMenu.' .. commandState)
+				if commandState then
+					text = Spring.I18N('ui.orderMenu.' .. commandState)
+				else
+					text = '?'
+				end
 			else
 				if cmd.action == 'stockpile' then
 					-- Stockpile command name gets mutated to reflect the current status, so can just pass it in
@@ -657,13 +669,10 @@ function widget:DrawScreen()
 						if WG['tooltip'] then
 							local tooltipKey = cmd.action .. '_tooltip'
 							local tooltip = Spring.I18N('ui.orderMenu.' .. tooltipKey)
-							local shortcut = ''
+							local hotkey = actionHotkeys[cmd.action]
 
-							if commandInfo[cmd.action] and commandInfo[cmd.action].shortcut then
-								shortcut =  commandInfo[cmd.action].shortcut
-							end
-							if tooltip ~= '' and shortcut ~= '' then
-								tooltip = Spring.I18N('ui.orderMenu.hotkeyTooltip', { hotkey = shortcut, tooltip = tooltip, highlightColor = "\255\255\215\100", textColor = "\255\240\240\240" })
+							if tooltip ~= '' and hotkey then
+								tooltip = Spring.I18N('ui.orderMenu.hotkeyTooltip', { hotkey = hotkey:upper(), tooltip = tooltip, highlightColor = "\255\255\215\100", textColor = "\255\240\240\240" })
 							end
 							if tooltip ~= '' then
 								WG['tooltip'].ShowTooltip('ordermenu', tooltip)

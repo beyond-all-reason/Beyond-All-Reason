@@ -22,6 +22,8 @@ local chickenOrangeColor = "#CC8914" -- Chicken Orange
 local gaiaGrayColor      = "#7F7F7F" -- Gaia Grey
 
 if gadgetHandler:IsSyncedCode() then
+
+	-- NEW IceXuick Colors V6
 	local ffaColors = {
 		"#004DFF", -- 1
 		"#FF1005", -- 2
@@ -30,7 +32,7 @@ if gadgetHandler:IsSyncedCode() then
 		"#F80889", -- 5
 		"#09F5F5", -- 6
 		"#FF6107", -- 7
-		"#FCEEA4", -- 8
+		"#F190B3", -- 8
 		"#097E1C", -- 9
 		"#C88B2F", -- 10
 		"#7CA1FF", -- 11
@@ -51,7 +53,7 @@ if gadgetHandler:IsSyncedCode() then
 		"#4A4376", -- 26
 		"#773A01", -- 27
 		"#B7EA63", -- 28
-		"#FF6058", -- 29
+		"#9F0D05", -- 29
 		"#7EB900", -- 30
 	}
 
@@ -90,7 +92,7 @@ if gadgetHandler:IsSyncedCode() then
 		"#F190B3", -- 8
 		"#2C32AC", -- 9
 		"#3EFFA2", -- 10
-		"#9F0D05", -- 11
+		"#FF6058", -- 11
 		"#7CA1FF", -- 12
 		"#A35274", -- 13
 		"#B04523", -- 14
@@ -147,11 +149,11 @@ if gadgetHandler:IsSyncedCode() then
 				"#09F5F5", --4
 				"#097E1C", --5
 				"#7CA1FF", --6
-				"#4F2684", --7
+				"#B4FF39", --7
 				"#3EFFA2", --8
 				"#0B849B", --9
 				"#689E3D", --10
-				"#B4FF39", --11
+				"#4F2684", --11
 				"#2C32AC", --12
 				"#6968A0", --13
 				"#D8EEFF", --14
@@ -168,7 +170,7 @@ if gadgetHandler:IsSyncedCode() then
 				"#FF6107", --3
 				"#F80889", --4
 				"#FCEEA4", --5
-				"#9F0D05", --6
+				"#FF6058", --6
 				"#F190B3", --7
 				"#C88B2F", --8
 				"#B04523", --9
@@ -182,7 +184,7 @@ if gadgetHandler:IsSyncedCode() then
 				"#DD783F", --17
 				"#FFAAF3", --18
 				"#764A4A", --19
-				"#FF6058", --20
+				"#9F0D05", --20
 			},
 		},
 
@@ -239,11 +241,11 @@ if gadgetHandler:IsSyncedCode() then
 				"#FF1005", -- 1
 				"#FF6107", -- 2
 				"#FFD200", -- 3
-				"#9F0D05", -- 4
+				"#FF6058", -- 4
 				"#FFBB7C", -- 5
 				"#C88B2F", -- 6
 				"#F5A200", -- 7
-				"#FF6058", -- 8
+				"#9F0D05", -- 8
 			},
 			{ -- Third Team (Green)
 				"#0CE818", -- 1
@@ -296,7 +298,7 @@ if gadgetHandler:IsSyncedCode() then
 			{ -- Second Team (Red)
 				"#FF1005", -- 1
 				"#FF6107", -- 2
-				"#9F0D05", -- 3
+				"#FF6058", -- 3
 				"#B04523", -- 4
 				"#F80889", -- 5
 				"#971C48", -- 6
@@ -365,9 +367,9 @@ if gadgetHandler:IsSyncedCode() then
 			{ -- Second Team (Red)
 				"#FF1005", -- 1
 				"#FF6107", -- 2
-				"#9F0D05", -- 3
+				"#FF6058", -- 3
 				"#B04523", -- 4
-				"#FF6058", -- 5
+				"#9F0D05", -- 5
 			},
 			{ -- Third Team (Green)
 				"#0CE818", -- 1
@@ -440,8 +442,8 @@ if gadgetHandler:IsSyncedCode() then
 			{ -- Second Team (Red)
 				"#FF1005", -- 1
 				"#FF6058", -- 2
-				"#9F0D05", -- 3
-				"#B04523", -- 4
+				"#B04523", -- 3
+				"#9F0D05", -- 4
 			},
 			{ -- Third Team (Green)
 				"#0CE818", -- 1

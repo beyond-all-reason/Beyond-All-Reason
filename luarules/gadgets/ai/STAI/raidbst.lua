@@ -60,7 +60,7 @@ function RaidBST:Update()
 -- 		return
 -- 	end
 -- 	self.uFrame = f
-	if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'RaidBST' then return end
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'RaidBST' then return end
 	local u = self.unit:Internal()
 	if not self.ai.raidhst.raiders[u:ID()] and self.unit:Internal():IsAlive() then
 		local p = u:GetPosition()

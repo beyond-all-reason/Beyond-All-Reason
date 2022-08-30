@@ -53,14 +53,18 @@ SmokeUnit(healthpercent, randpiece) // ah yes, clever use of stack variables
 		
 		if( healthpercent < 66 )
 		{
-      randpiece = RAND(1, 3);
-      if (randpiece == 1) emit-sfx 1024 from body;
-      if (randpiece == 2) emit-sfx 1024 from head;
-      if (randpiece == 3) emit-sfx 1024 from tail;
-    } 
-    else break;
-		if (healthpercent < 4) healthpercent `= 4; 
-    sleep healthpercent * 50;
+			randpiece = RAND(1, 3);
+			if (randpiece == 1) emit-sfx 1024 from body;
+			if (randpiece == 2) emit-sfx 1024 from head;
+			if (randpiece == 3) emit-sfx 1024 from tail;
+		} 
+		else {
+			isSmoking = 0;
+			return;
+			//break; // bos2cob.py does not like this one!
+		}
+		if (healthpercent < 4) healthpercent = 4; 
+		sleep healthpercent * 50;
 	}
 	sleep 97;
 	isSmoking = 0;

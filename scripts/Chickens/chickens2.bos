@@ -48,7 +48,8 @@ static-var maxSpeed, animFramesPerKeyframe, bMoving, animSpeed,isDying,gun_1;
 
 #include "chicken_killed_2legged.h"
 
-#include "chicken_create_move.h"
+#include "chicken_swim_2legged_v1.h"
+#include "chicken_create_move_swim.h"
 
 AimFromPrimary(piecenum)
 	{	piecenum=head;	}

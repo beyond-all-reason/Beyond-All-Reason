@@ -29,7 +29,7 @@ end
 function DamageHST:Update()
 -- 	local f = self.game:Frame()
 -- 	if f > self.lastDamageCheckFrame + 90 then
-		if Shard.moduleTeam ~= self.ai.id or Shard.moduleUpdate ~= self:Name() then return end
+		if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 		for unitID, engineUnit in pairs(self.isDamaged) do
 			local health = engineUnit:GetHealth()
 			if not health or (health == engineUnit:GetMaxHealth()) then

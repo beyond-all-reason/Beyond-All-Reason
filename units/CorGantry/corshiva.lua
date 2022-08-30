@@ -146,6 +146,7 @@ return {
 			shiva_rocket = {
 				areaofeffect = 60,
 				avoidfeature = false,
+				burnblow = true,
 				cegtag = "missiletrailmedium-starburst",
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -153,7 +154,7 @@ return {
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 100,
-				flighttime = 10,
+				flighttime = 7,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,

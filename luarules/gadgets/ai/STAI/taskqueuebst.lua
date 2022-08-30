@@ -143,16 +143,10 @@ end
 
 function TaskQueueBST:Update()
 
--- 	 self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
---[[
-	if f - self.uFrame < self.ai.behUp['taskqueuebst'] then
-		return
-	end
-	self.uFrame = f]]
-	--print('dcevvrgbthyujyujtyhrgvdscx',Shard.behaviourTeam,Shard.behaviourUpdate,self.ai.id)
-	if Shard.behaviourTeam ~= self.ai.id or Shard.behaviourUpdate ~= 'TaskQueueBST' then return end
 
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'TaskQueueBST' then return end
+	--print('schedulertaskq',f,self.ai.id)
 	self:VisualDBG()
 	if not self:IsActive() then
 		return

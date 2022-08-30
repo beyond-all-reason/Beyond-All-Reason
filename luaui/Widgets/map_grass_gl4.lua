@@ -15,7 +15,7 @@ function widget:GetInfo()
     author    = "Beherith (mysterme@gmail.com)",
     date      = "2021.04.12",
     license   = "Lua code: GPL V2, Shader Code: CC-BY-NC-ND 4.0",
-    layer     = -1000000000000,
+    layer     = -9999999,
     enabled   = not isPotatoGpu,
   }
 end
@@ -523,12 +523,12 @@ local function updateGrassInstanceVBO(wx, wz, size, sizemod, vboOffset)
 	--Spring.Echo(wx, wz, sizemod)
 	local vboOffset = vboOffset or world2grassmap(wx,wz) * grassInstanceVBOStep
 	if vboOffset<0 or vboOffset >= #grassInstanceData then	-- top left of map gets vboOffset: 0
-		--Spring.Echo("vboOffset > #grassInstanceData",vboOffset,#grassInstanceData, " you probably need to /editgrass")
+		--Spring.Echo(boOffset > #grassInstanceData",vboOffset,#grassInstanceData, " you probably need to /editgrass")
 		return
 	end
 
 	local oldsize = grassInstanceData[vboOffset + 4]
-	if oldsize <= 0 and not placementMode then return end
+	if (not oldsize or oldsize <= 0) and not placementMode then return end
 
 	local oldpx = grassInstanceData[vboOffset + 1] -- We must read all instance params, because we need to write them all at once
 	local oldry = grassInstanceData[vboOffset + 2]
@@ -616,7 +616,7 @@ local function adjustUnitGrass(unitID, multiplier)
 	end
 end
 
-local function clearMetalspotGrass()
+local function clearAllUnitGrass()
 	local allUnits = Spring.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
@@ -627,16 +627,31 @@ local function clearMetalspotGrass()
 	end
 end
 
+local function clearGeothermalGrass()
+	if WG['resource_spot_finder'] then
+		local spots = WG['resource_spot_finder'].geoSpotsList
+		if spots then
+			local maxValue = 15
+			for i = 1, #spots do
+				local spot = spots[i]
+				adjustGrass(spot.x, spot.z, math.max(96, math.max((spot.maxZ-spot.minZ), (spot.maxX-spot.minX))*1.2), 1)
+			end
+		end
+	end
+end
+
 -- because not all maps have done this for us
-local function clearAllUnitGrass()
-	local mSpots = WG['resource_spot_finder'].metalSpotsList
-	if mSpots then
-		local maxValue = 15
-		for i = 1, #mSpots do
-			local spot = mSpots[i]
-			local value = string.format("%0.1f",math.round(spot.worth/1000,1))
-			if tonumber(value) > 0.001 and tonumber(value) < maxValue then
-				adjustGrass(spot.x, spot.z, math.max((spot.maxZ-spot.minZ), (spot.maxX-spot.minX))*1.2, 1)
+local function clearMetalspotGrass()
+	if WG['resource_spot_finder'] then
+		local spots = WG['resource_spot_finder'].metalSpotsList
+		if spots then
+			local maxValue = 15
+			for i = 1, #spots do
+				local spot = spots[i]
+				local value = string.format("%0.1f",math.round(spot.worth/1000,1))
+				if tonumber(value) > 0.001 and tonumber(value) < maxValue then
+					adjustGrass(spot.x, spot.z, math.max((spot.maxZ-spot.minZ), (spot.maxX-spot.minX))*1.2, 1)
+				end
 			end
 		end
 	end
@@ -677,6 +692,23 @@ function widget:GameFrame(gf)
 			end
 		end
 	end
+
+	-- fake the commander spawn explosion
+	if gf == 85 then
+		local isCommander = {}
+		for unitDefID, unitDef in pairs(UnitDefs) do
+			if unitDef.customParams.iscommander then
+				isCommander[unitDefID] = true
+			end
+		end
+		local allUnits = Spring.GetAllUnits()
+		for _, unitID in pairs(allUnits) do
+			if isCommander[Spring.GetUnitDefID(unitID)] then
+				local x,_,z = Spring.GetUnitPosition(unitID)
+				adjustGrass(x, z, 90, 1)
+			end
+		end
+	end
 end
 
 function widget:MousePress(x,y,button)
@@ -685,7 +717,13 @@ function widget:MousePress(x,y,button)
 	end
 end
 
-function widget:Update()
+local firstUpdate = true
+function widget:Update(dt)
+	if firstUpdate then
+		firstUpdate = false
+		clearGeothermalGrass()	-- uses Spring.GetAllFeatures() which is empty at the time of widget:Initialize
+	end
+
 	if not placementMode then return end
 	local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState ( )
 	local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState ( )
@@ -1236,10 +1274,12 @@ function widget:Initialize()
 	if Game.waterDamage > 0 then
 		WG['grassgl4'].removeGrassBelowHeight(20)
 	end
+	widgetHandler:RegisterGlobal('GadgetRemoveGrass', WG['grassgl4'].removeGrass)
 	widgetHandler:RegisterGlobal('GadgetWeaponExplosionGrass', GadgetWeaponExplosionGrass)
 end
 
 function widget:Shutdown()
+	widgetHandler:DeregisterGlobal('GadgetRemoveGrass')
 	widgetHandler:DeregisterGlobal('GadgetWeaponExplosionGrass')
 end
 
