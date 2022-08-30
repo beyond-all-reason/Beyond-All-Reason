@@ -186,13 +186,13 @@ QuerySecondary(piecenum)
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
+    gun_1 = 0;
+	if (Stunned) {
         return (1);
     }
 	turn aimy1 to y-axis <0.000000> speed <20.000000>;
 	turn barrel to x-axis <0.000000> speed <20.000000>;
 	wpn2_lasthead = 1000000;
-	gun_1 = 0;
 }
 SetStunned(State)
 {
@@ -216,7 +216,7 @@ AimPrimary(heading, pitch)
 		sleep 30;
 	}
 	turn aimy1 to y-axis heading speed <20.000000>;
-	turn barrel to x-axis -1*pitch speed <2.000000>;
+	turn barrel to x-axis -1*pitch speed <5.000000>;
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 500) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
 	{
 		wpn2_lasthead = 1000000;
@@ -238,7 +238,7 @@ AimSecondary(heading, pitch)
 		return (0);
 	}
 	turn aimy1 to y-axis heading speed <20.000000>;
-	turn barrel to x-axis -1*pitch speed <2.000000>;
+	turn barrel to x-axis -1*pitch speed <5.000000>;
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 500) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
 	{
 		wpn2_lasthead = 1000000;
