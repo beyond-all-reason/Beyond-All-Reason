@@ -569,8 +569,8 @@ function UnitDef_Post(name, uDef)
 		uDef.customparams.areadamageresistance = "_CHICKENACID_"
 		uDef.upright = false
 		uDef.floater = true
-		if uDef.sightdistance then 
-			uDef.sonardistance = uDef.sightdistance 
+		if uDef.sightdistance then
+			uDef.sonardistance = uDef.sightdistance
 		end
 		if (not uDef.canfly) and uDef.maxvelocity then
 			uDef.maxreversevelocity = uDef.maxvelocity*0.65
@@ -1104,12 +1104,12 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 	end
-	
-	-- ExplosionSpeed is calculated same way engine does it, and then doubled
-	if wDef.damage and wDef.damage.default then 
+
+	-- ExplosionSpeed is calculated same way engine does it, and then multiplied
+	if wDef.damage and wDef.damage.default then
 		local globaldamage = math.max(30, wDef.damage.default / 20)
 		local defExpSpeed = (8 + (globaldamage * 2.5))/ (9 + (math.sqrt(globaldamage) * 0.70)) * 0.5
-		wDef.explosionSpeed = defExpSpeed * 2
+		wDef.explosionSpeed = defExpSpeed * 1.6
 	end
 end
 -- process effects
