@@ -320,20 +320,32 @@ function BuildingsHST:BuildNearLastNano(builder, utype)
 end
 
 function BuildingsHST:unitsNearCheck(pos,range,number,targets)
+	if not range or not pos then return false end
 	number = number or 1
-	local neighbours = self.game:getUnitsInCylinder(pos, range)
-	if not neighbours  then return false end
 	local counter = 0
+	for i,target in pairs(targets) do
+		for builder,project in pairs(self.builders) do
+			if not project.unitID and project.unitName == target or (self.ai.armyhst[target] and self.ai.armyhst[target][project.unitName]) then
+				if self.ai.tool:distance(project.position, pos) < range then
+					counter = counter + 1
+					if counter >= number then
+						self:EchoDebug(' block by a project',counter ,project.unitName)
+						return true
+					end
+				end
+			end
+		end
+	end
+	local neighbours = self.game:getUnitsInCylinder(pos, range)
+	if not neighbours then return false end
 	for idx, typeDef in pairs(neighbours) do
-		local unitName = self.game:GetUnitByID(typeDef):Name()
 		for i,target in pairs(targets) do
 			if unitName ==  target or (self.ai.armyhst[target] and self.ai.armyhst[target][unitName]) then
 				counter = counter +1
 				if counter >= number then
-					self:EchoDebug(' block by ',counter ,unitName)
+					self:EchoDebug(' block by a building',counter ,unitName)
 					return true
 				end
-				break
 			end
 		end
 	end
@@ -365,16 +377,16 @@ function BuildingsHST:UnitCreated(unit,builderID)
 	local position = unit:GetPosition()
 	local unitID = unit:ID()
 	local planned = false
-	local plan = self.builders[builderID]
-	if plan and plan.unitName == unitName and self.ai.tool:PositionWithinRect(position, plan) then
-		self:EchoDebug(plan.builderName," began constructing ",unitName)
+	local project = self.builders[builderID]
+	if project and project.unitName == unitName and self.ai.tool:PositionWithinRect(position, project) then
+		self:EchoDebug(project.builderName," began constructing ",unitName)
 		if self.ai.armyhst.unitTable[unitName].speed == 0 then
-			self:DontBuildRectangle(plan.x1, plan.z1, plan.x2, plan.z2, unitID)
+			self:DontBuildRectangle(project.x1, project.z1, project.x2, project.z2, unitID)
 		end
-		plan.frame = self.game:Frame()
-		plan.unitID = unitID
-		self.sketch[unitID] = plan
- 		self.builders[builderID] = plan
+		project.frame = self.game:Frame()
+		project.unitID = unitID
+		self.sketch[unitID] = project
+ 		self.builders[builderID] = project
 		planned = true
 	end
 	if not planned and self.ai.armyhst.unitTable[unitName].speed == 0 then

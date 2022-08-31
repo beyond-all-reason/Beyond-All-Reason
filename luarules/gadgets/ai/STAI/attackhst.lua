@@ -13,17 +13,11 @@ local ceil = math.ceil
 
 function AttackHST:Init()
 	self.DebugEnabled = false
-	self.visualdbg = true
 	self.recruits = {}
 	self.squads = {}
--- 	self.ai.IDsWeAreAttacking = {}
-	self.minAttackCounter = 4
-	self.maxAttackCounter = 4
-	self.baseAttackCounter = 4
 	self.idleTimeMult = 45  --originally set to 3 * 30
 	self.squadID = 1
 	self.fearFactor = 0.66
-	self.defensive = nil
 	self.squadMassLimit = 0
 	self.squadFreezedTime = 1800 -- if a squad is stopped in one point from a while then try a random move foreach unit
 end
@@ -41,7 +35,6 @@ function AttackHST:Update()
 	self:SetMassLimit()
 	for index , squad in pairs(self.squads) do
 		if self:SquadsIntegrityCheck(squad) then
-
 			self:SquadPosition(squad)
 			self:SquadMass(squad)
 			self:SquadAdvance(squad)
@@ -283,41 +276,7 @@ function AttackHST:SquadFindPath(squad)
 	end
 	self:EchoDebug('path not found')
 end
---[[
-function AttackHST:SquadMove(squad)
-	squad.formation = {}
-	local pos = squad.path[squad.step]
-	local X
-	local Z
-	local range = #squad.members*10
-	for index,member in pairs(squad.members) do
-		ref = index/10
 
-		if squad.position.x < pos.x then
-			X = range * math.sin(ref) * -1
-		else
-			X = (range * math.sin(ref))
-		end
-		if squad.position.z < pos.z then
-			Z = range * math.cos(ref) * -1
-		else
-			Z = (range * math.cos(ref))
-		end
-
-		local unit = member.unit:Internal()
-
-		local arch = api.Position()
-		arch.x = pos.x + X
-		arch.z = pos.z + Z
-		arch.y = Spring.GetGroundHeight(arch.x,arch.z)
-		self:EchoDebug('arch',arch.x,arch.z)
-		self:EchoDebug('go to next node',index,arch.x,arch.z)
-		squad.formation[index] = arch
-		unit:AttackMove(arch)
-
-	end
-end
-]]
 function AttackHST:SquadAdvance(squad)
 	self:EchoDebug("advance",squad.squadID)
 	squad.idleCount = 0
@@ -325,6 +284,22 @@ function AttackHST:SquadAdvance(squad)
 		return
 	end
 	self:EchoDebug('squad.pathStep',squad.step,'#squad.path',#squad.path)
+	if self:SquadAttack(squad) then
+		return
+	end
+	if squad.target and self.ai.loshst.OWN[squad.target.X] and self.ai.loshst.OWN[squad.target.X][squad.target.Z] then
+		for i,member in pairs(squad.members) do
+			member:MoveRandom(squad.target.POS,128)
+		end
+		return
+	end
+	if not self.target then
+		for i,member in pairs(squad.members) do
+			member:MoveRandom(self.ai.loshst.CENTER,128)
+		end
+		return
+	end
+
 	self:SquadStepComplete(squad)
 	--self:SquadMove(squad)
 
@@ -411,13 +386,13 @@ end
 
 
 function AttackHST:SquadsTargetUpdate(squad)
-	if not squad.target or not self:SquadTargetExist(squad) then
-		if not squad.lock then
-			self:SquadReTarget(squad,-1)
-		else
-			self:SquadReTarget(squad,1)
-		end
+	if squad.lock then
+		self:SquadReTarget(squad,-1)
+	elseif squad.target or not self:SquadTargetExist(squad) then
+		self:SquadReTarget(squad,1)
 	end
+
+
 end
 
 function AttackHST:SquadTargetExist(squad)
@@ -499,7 +474,6 @@ function AttackHST:targetCell(representative, position, ourThreat,squad,TYPE)
 				crtg = cell
 				blobcr = blob
 			end
-
 			if centerDist < squadDist then
 				defend = crtg
 				blobtg = blobcr
@@ -604,3 +578,40 @@ function AttackHST:visualDBG()
 		end
 	end
 end
+
+
+--[[
+function AttackHST:SquadMove(squad)
+	squad.formation = {}
+	local pos = squad.path[squad.step]
+	local X
+	local Z
+	local range = #squad.members*10
+	for index,member in pairs(squad.members) do
+		ref = index/10
+
+		if squad.position.x < pos.x then
+			X = range * math.sin(ref) * -1
+		else
+			X = (range * math.sin(ref))
+		end
+		if squad.position.z < pos.z then
+			Z = range * math.cos(ref) * -1
+		else
+			Z = (range * math.cos(ref))
+		end
+
+		local unit = member.unit:Internal()
+
+		local arch = api.Position()
+		arch.x = pos.x + X
+		arch.z = pos.z + Z
+		arch.y = Spring.GetGroundHeight(arch.x,arch.z)
+		self:EchoDebug('arch',arch.x,arch.z)
+		self:EchoDebug('go to next node',index,arch.x,arch.z)
+		squad.formation[index] = arch
+		unit:AttackMove(arch)
+
+	end
+end
+]]

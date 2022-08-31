@@ -11,6 +11,7 @@ end
 function TargetHST:Init()
 	self.DebugEnabled = false
  	self.BLOBS = {}
+	self.blobindex = 1
 	self.pathModParam = 0.3
 	self.pathModifierFuncs = {}
 	self.enemyFrontList = {}
@@ -19,6 +20,7 @@ end
 function TargetHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	self:EnemiesCellsAnalisy()
+	self:ScanEnemyCell()
 	self:perifericalTarget()
 	self:enemyFront()
 	self:GetBlobs()
@@ -44,6 +46,8 @@ function TargetHST:EnemiesCellsAnalisy() --MOVE TO TACTICALHST!!!
 		self.enemyBasePosition.y = Spring.GetGroundHeight(self.enemyBasePosition.x, self.enemyBasePosition.z)
 	end
 end
+
+
 
 function TargetHST:GetBlobs()
 	self.blobchecked = {}
@@ -104,6 +108,20 @@ function TargetHST:blobCell(grid,param,x,z,blobref)--rolling on the cell to extr
 
 
 end
+
+	--[[for index,suquad in pairs(self.ai.attackhst.squads) do
+		local bestdistance = math.huge
+		local bestblob = nil
+		for blobref,blob in pairs(self.BLOBS) do
+			local dist = self.ai.tool:distance(squad.position,blob.position)
+			if dist < bestdistance and not blob.hunted then
+				bestdistance = dist
+				bestblob = blobref
+				blob.hunted = squad.id
+			end
+		end
+	end]]
+
 
 function TargetHST:enemyFront()
 	self.enemyFrontCellsX = {}
@@ -237,6 +255,75 @@ function TargetHST:GetPathModifierFunc(unitName, adjacent)
 	return modifier_node_func
 end
 
+function TargetHST:ScanEnemyCell()
+	self.enemyEdgeNordEst = nil
+ 	self.enemyEdgeNordWest = nil
+ 	self.enemyEdgeSudEst = nil
+ 	self.enemyEdgeSudWest = nil
+	self.enemyEdgeNord = nil
+	self.enemyEdgeSud = nil
+	self.enemyEdgeEst = nil
+	self.enemyEdgeWest = nil
+	self.borders = {}
+
+	for X,cells in pairs (self.ai.loshst.ENEMY) do
+		for Z, cell in pairs(cells) do
+			self:FindEnemyEdges(cell)
+		end
+	end
+	if self.enemyEdgeEst then
+		for Z = self.enemyEdgeEst.Z , self.enemyEdgeSudEst.Z , 1 do
+			self.borders[self.enemyEdgeEst.X] = self.borders[self.enemyEdgeEst.X] or {}
+			self.borders[self.enemyEdgeEst.X][Z] = {X = self.enemyEdgeEst.X, Z = Z, POS = self.ai.maphst:GridToPos(self.enemyEdgeEst.X,Z) }
+		end
+	end
+end
+function TargetHST:FindEnemyEdges(cell)
+	--print('immobile',cell.IMMOBILE)
+		self.enemyEdgeNordEst = self.enemyEdgeNordEst or cell
+	self.enemyEdgeNordWest = self.enemyEdgeNordWest or cell
+	self.enemyEdgeSudEst = self.enemyEdgeSudEst or cell
+	self.enemyEdgeSudWest = self.enemyEdgeSudWest or cell
+	self.enemyEdgeNord = self.enemyEdgeNord or cell
+	self.enemyEdgeSud = self.enemyEdgeSud or cell
+	self.enemyEdgeEst = self.enemyEdgeEst or cell
+	self.enemyEdgeWest = self.enemyEdgeWest or cell
+	if cell.IMMOBILE == 0 then
+		return
+	end
+
+
+
+	local pos = cell.POS
+	if pos.x >= self.enemyEdgeEst.POS.x then
+		self.enemyEdgeEst = cell
+	end
+	if pos.x <= self.enemyEdgeWest.POS.x then
+		self.enemyEdgeWest = cell
+	end
+	if pos.z >= self.enemyEdgeSud.POS.z then
+		self.enemyEdgeSud = cell
+	end
+	if pos.z <= self.enemyEdgeNord.POS.z then
+		self.enemyEdgeNord = cell
+	end
+	if pos.x <= self.enemyEdgeNordWest.POS.x and pos.z <= self.enemyEdgeNordWest.POS.z then
+		self.enemyEdgeNordWest = cell
+	end
+	if pos.x >= self.enemyEdgeSudEst.POS.x and pos.z >= self.enemyEdgeSudEst.POS.z then
+		self.enemyEdgeSudEst = cell
+	end
+	if pos.x >= self.enemyEdgeNordEst.POS.x and pos.z <= self.enemyEdgeNordEst.POS.z then
+		self.enemyEdgeNordEst = cell
+	end
+	if pos.x <= self.enemyEdgeSudWest.POS.x and pos.z >= self.enemyEdgeSudWest.POS.z then
+		self.enemyEdgeSudWest = cell
+	end
+
+
+
+end
+
 function TargetHST:drawDBG()
 	local ch = 4
 	self.map:EraseAll(ch)
@@ -268,9 +355,27 @@ function TargetHST:drawDBG()
 			local pos2 = {}
 			pos1.x, pos1.z = cell.POS.x - cellElmosHalf, cell.POS.z - cellElmosHalf
 			pos2.x, pos2.z = cell.POS.x + cellElmosHalf, cell.POS.z + cellElmosHalf
-			map:DrawRectangle(pos1, pos2, colours.g, blob.metal, false, ch)
+			map:DrawRectangle(pos1, pos2, colours.g, i, false, ch)
 
 		end
 		map:DrawCircle(blob.position, 128, colours.r, nil, true, ch)
 	end
+	if self.enemyEdgeNordEst then
+		map:DrawCircle(self.enemyEdgeNordEst.POS, 128, colours.a, 'NordEst', true, ch)
+		map:DrawCircle(self.enemyEdgeNordWest.POS, 128, colours.a, 'NordWest', true, ch)
+		map:DrawCircle(self.enemyEdgeSudEst.POS, 128, colours.a, 'SudEst', true, ch)
+		map:DrawCircle(self.enemyEdgeSudWest.POS, 128, colours.a, 'SudWest', true, ch)
+		map:DrawCircle(self.enemyEdgeNord.POS, 128, colours.a, 'Nord', true, ch)
+		map:DrawCircle(self.enemyEdgeWest.POS, 128, colours.a, 'West', true, ch)
+		map:DrawCircle(self.enemyEdgeEst.POS, 128, colours.a, 'Est', true, ch)
+		map:DrawCircle(self.enemyEdgeSud.POS, 128, colours.a, 'Sud', true, ch)
+	end
+	for X,cells in pairs(self.borders) do
+		for Z,cell in pairs(cells) do
+			map:DrawCircle(cell.POS, 128, colours.p, 'B', true, ch)
+		end
+	end
+
+
+
 end

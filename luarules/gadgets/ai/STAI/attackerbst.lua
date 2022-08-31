@@ -118,6 +118,11 @@ function AttackerBST:Update()
 	end
 end
 
+function AttackerBST:MoveRandom(pos,dist)
+	local away = self.ai.tool:RandomAway(pos, dist)
+
+	self.unit:Internal():AttackMove(away)
+end
 function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 	self.idle = false
 	self.attacking = true

@@ -882,7 +882,6 @@ function TasksHST:startRolesParams()
 
 		{ 	category = 'factoryMobilities' ,
 			economy = function(_,param,name)--ecofunc()
-					print(self.ai.tool:countMyUnit({'_mex_'}))
 					return M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2 and E.income > 40
 
 				end,--economicParameters
