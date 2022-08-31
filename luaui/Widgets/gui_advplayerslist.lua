@@ -3585,7 +3585,7 @@ function widget:Update(delta)
     end
 
     if desiredLosmode and desiredLosmodeChanged + 0.9 > os.clock() then
-        if desiredLosmode ~= Spring.GetMapDrawMode() then
+        if (desiredLosmode == "los" and Spring.GetMapDrawMode() == "normal") or (desiredLosmode == "normal" and Spring.GetMapDrawMode() == "los") then
             -- this is needed else the minimap/world doesnt update properly
             Spring.SendCommands("togglelos")
         end
