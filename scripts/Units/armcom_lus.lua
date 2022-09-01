@@ -1,4 +1,4 @@
---INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 29
+--INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 31
 
 
 
@@ -460,6 +460,328 @@ function walk()
 	end
 end
 
+local isDancing = false
+local function Dance1()
+	Signal(SIG_WALK)
+	SetSignalMask(SIG_WALK)
+	local speedMult = 1/4
+	local sleepTime = 33*4
+
+	-- Frame: 6 (first step)
+	Turn(head, y_axis, 0.104720, 3.141593 * speedMult) -- delta=6.00
+	Turn(lfoot, x_axis, -0.034375, 2.583373 * speedMult) -- delta=4.93
+	Turn(lfoot, z_axis, -0.089446, 2.779274 * speedMult) -- delta=-5.31
+	Turn(lfoot, y_axis, -0.010538, 0.357694 * speedMult) -- delta=-0.68
+	Turn(lleg, x_axis, 0.623476, 9.469870 * speedMult) -- delta=-18.09
+	Turn(lleg, z_axis, -0.062029, 1.920557 * speedMult) -- delta=-3.67
+	Turn(lleg, y_axis, -0.033957, 1.039222 * speedMult) -- delta=-1.98
+	Turn(lthigh, x_axis, -0.547990, 6.484738 * speedMult) -- delta=12.38
+	Turn(lthigh, z_axis, 0.358445, 5.849047 * speedMult) -- delta=11.17
+	Turn(lthigh, y_axis, -0.015696, 7.280939 * speedMult) -- delta=-13.91
+	Move(pelvis, x_axis, - 2.217917, 66.537516 * speedMult) -- delta=2.22
+	Move(pelvis, z_axis, 0.147905, 4.437149 * speedMult) -- delta=0.15
+	Move(pelvis, y_axis, -2.880190, 56.405711 * speedMult) -- delta=-1.88
+	Turn(pelvis, z_axis, -0.005986, 0.179589 * speedMult) -- delta=-0.34
+	Turn(pelvis, y_axis, 0.142962, 4.288851 * speedMult) -- delta=8.19
+	Turn(rfoot, x_axis, -0.373382, 11.118076 * speedMult) -- delta=21.23
+	Turn(rfoot, z_axis, -0.110572, 1.809677 * speedMult) -- delta=-3.46
+	Turn(rfoot, y_axis, -0.002176, 0.323880 * speedMult) -- delta=0.62
+	Turn(rleg, x_axis, 0.999798, 18.246797 * speedMult) -- delta=-34.85
+	Turn(rleg, z_axis, -0.113808, 2.496211 * speedMult) -- delta=-4.77
+	Turn(rleg, y_axis, -0.096141, 2.554709 * speedMult) -- delta=-4.88
+	Turn(rloarm, x_axis, -1.454183, 15.770044 * speedMult) -- delta=30.12
+	Turn(rloarm, z_axis, 0.162961, 4.888822 * speedMult) -- delta=9.34
+	Turn(rloarm, y_axis, 0.180905, 5.427164 * speedMult) -- delta=10.37
+	Turn(rthigh, x_axis, -0.598987, 7.256664 * speedMult) -- delta=13.86
+	Turn(rthigh, z_axis, -0.031948, 3.129578 * speedMult) -- delta=5.98
+	Turn(rthigh, y_axis, -0.389890, 4.697058 * speedMult) -- delta=-8.97
+	Turn(ruparm, x_axis, -0.219471, 19.513449 * speedMult) -- delta=37.27
+	Turn(ruparm, z_axis, -0.205374, 0.331390 * speedMult) -- delta=0.63
+	Turn(ruparm, y_axis, 0.360376, 10.811294 * speedMult) -- delta=20.65
+	Turn(torso, z_axis, -0.003670, 0.110091 * speedMult) -- delta=-0.21
+	Turn(torso, y_axis, 0.087730, 2.631910 * speedMult) -- delta=5.03
+	Sleep(sleepTime)
+
+	while true do
+		-- Frame:11
+		Turn(biggun, x_axis, -0.987343, 2.389807 * speedMult) -- delta=4.56
+		Turn(biggun, z_axis, 0.194777, 5.843318 * speedMult) -- delta=11.16
+		Turn(biggun, y_axis, -0.296897, 8.906900 * speedMult) -- delta=-17.01
+		Turn(head, x_axis, -0.071538, 1.466077 * speedMult) -- delta=2.80
+		Turn(head, y_axis, 0.066710, 1.140282 * speedMult) -- delta=-2.18
+		Turn(lfoot, x_axis, -0.070893, 1.095543 * speedMult) -- delta=2.09
+		Turn(lfoot, z_axis, -0.051773, 1.130211 * speedMult) -- delta=2.16
+		Turn(lfoot, y_axis, -0.004320, 0.186516 * speedMult) -- delta=0.36
+		Turn(lleg, x_axis, 0.638559, 0.452492 * speedMult) -- delta=-0.86
+		Turn(lleg, z_axis, -0.037388, 0.739218 * speedMult) -- delta=1.41
+		Turn(lleg, y_axis, -0.020323, 0.409030 * speedMult) -- delta=0.78
+		Turn(lthigh, x_axis, -0.531268, 0.501670 * speedMult) -- delta=-0.96
+		Turn(lthigh, z_axis, 0.287272, 2.135185 * speedMult) -- delta=-4.08
+		Turn(lthigh, y_axis, 0.069817, 2.565378 * speedMult) -- delta=4.90
+		Turn(luparm, x_axis, 0.239702, 2.878582 * speedMult) -- delta=5.50
+		Turn(luparm, z_axis, 0.308320, 0.767303 * speedMult) -- delta=1.47
+		Turn(luparm, y_axis, 0.007498, 3.550799 * speedMult) -- delta=-6.78
+		Move(pelvis, x_axis, - 1.298512, 27.582171 * speedMult) -- delta=-0.92
+		Move(pelvis, y_axis, -2.482196, 11.939836 * speedMult) -- delta=0.40
+		Turn(pelvis, z_axis, -0.003503, 0.074496 * speedMult) -- delta=0.14
+		Turn(pelvis, y_axis, 0.083659, 1.779079 * speedMult) -- delta=-3.40
+		Turn(rfoot, x_axis, -0.287489, 2.576805 * speedMult) -- delta=-4.92
+		Turn(rfoot, z_axis, -0.078112, 0.973786 * speedMult) -- delta=1.86
+		Turn(rfoot, y_axis, -0.005787, 0.108303 * speedMult) -- delta=-0.21
+		Turn(rleg, x_axis, 0.887214, 3.377523 * speedMult) -- delta=6.45
+		Turn(rleg, z_axis, -0.068411, 1.361919 * speedMult) -- delta=2.60
+		Turn(rleg, y_axis, -0.053363, 1.283335 * speedMult) -- delta=2.45
+		Turn(rloarm, x_axis, -1.201357, 7.584786 * speedMult) -- delta=-14.49
+		Turn(rloarm, z_axis, 0.184737, 0.653298 * speedMult) -- delta=1.25
+		Turn(rloarm, y_axis, 0.149388, 0.945526 * speedMult) -- delta=-1.81
+		Turn(rthigh, x_axis, -0.569125, 0.895861 * speedMult) -- delta=-1.71
+		Turn(rthigh, z_axis, -0.088142, 1.685803 * speedMult) -- delta=-3.22
+		Turn(rthigh, y_axis, -0.307811, 2.462378 * speedMult) -- delta=4.70
+		Turn(ruparm, x_axis, -0.193913, 0.766759 * speedMult) -- delta=-1.46
+		Turn(ruparm, z_axis, -0.236640, 0.937956 * speedMult) -- delta=-1.79
+		Turn(ruparm, y_axis, 0.351718, 0.259751 * speedMult) -- delta=-0.50
+		Sleep(sleepTime)
+		-- Frame:16
+		Turn(biggun, x_axis, -1.212098, 6.742664 * speedMult) -- delta=12.88
+		Turn(biggun, z_axis, 0.744327, 16.486506 * speedMult) -- delta=31.49
+		Turn(biggun, y_axis, -1.134569, 25.130179 * speedMult) -- delta=-48.00
+		Turn(head, x_axis, -0.120407, 1.466076 * speedMult) -- delta=2.80
+		Turn(head, y_axis, -0.040530, 3.217223 * speedMult) -- delta=-6.14
+		Turn(lfoot, x_axis, -0.329679, 7.763561 * speedMult) -- delta=14.83
+		Turn(lfoot, z_axis, 0.045192, 2.908938 * speedMult) -- delta=5.56
+		Turn(lfoot, y_axis, 0.000907, 0.156820 * speedMult) -- delta=0.30
+		Turn(lleg, x_axis, 1.006559, 11.040006 * speedMult) -- delta=-21.08
+		Turn(lleg, z_axis, 0.044217, 2.448153 * speedMult) -- delta=4.68
+		Turn(lleg, y_axis, 0.038324, 1.759399 * speedMult) -- delta=3.36
+		Turn(lthigh, x_axis, -0.648732, 3.523938 * speedMult) -- delta=6.73
+		Turn(lthigh, z_axis, 0.095675, 5.747931 * speedMult) -- delta=-10.98
+		Turn(lthigh, y_axis, 0.288374, 6.556719 * speedMult) -- delta=12.52
+		Turn(luparm, x_axis, -0.031022, 8.121713 * speedMult) -- delta=15.51
+		Turn(luparm, z_axis, 0.380483, 2.164890 * speedMult) -- delta=4.13
+		Turn(luparm, y_axis, -0.326446, 10.018325 * speedMult) -- delta=-19.13
+		Move(pelvis, x_axis,   1.748151, 91.399884 * speedMult) -- delta=-3.05
+		Move(pelvis, y_axis, -3.133945, 19.552481 * speedMult) -- delta=-0.65
+		Turn(pelvis, z_axis, 0.003503, 0.210186 * speedMult) -- delta=0.40
+		Turn(pelvis, y_axis, -0.083659, 5.019544 * speedMult) -- delta=-9.59
+		Turn(rfoot, x_axis, -0.149899, 4.127694 * speedMult) -- delta=-7.88
+		Turn(rfoot, z_axis, 0.023681, 3.053790 * speedMult) -- delta=5.83
+		Turn(rfoot, y_axis, 0.000735, 0.195655 * speedMult) -- delta=0.37
+		Turn(rleg, x_axis, 0.808571, 2.359271 * speedMult) -- delta=4.51
+		Turn(rleg, z_axis, 0.021656, 2.702012 * speedMult) -- delta=5.16
+		Turn(rleg, y_axis, 0.013585, 2.008457 * speedMult) -- delta=3.84
+		Turn(rloarm, x_axis, -0.488026, 21.399937 * speedMult) -- delta=-40.87
+		Turn(rloarm, z_axis, 0.197631, 0.386821 * speedMult) -- delta=0.74
+		Turn(rloarm, y_axis, 0.060464, 2.667732 * speedMult) -- delta=-5.09
+		Turn(rthigh, x_axis, -0.612584, 1.303782 * speedMult) -- delta=2.49
+		Turn(rthigh, z_axis, -0.313405, 6.757903 * speedMult) -- delta=-12.91
+		Turn(rthigh, y_axis, -0.045035, 7.883266 * speedMult) -- delta=15.06
+		Turn(ruparm, x_axis, -0.121801, 2.163356 * speedMult) -- delta=-4.13
+		Turn(ruparm, z_axis, -0.324852, 2.646378 * speedMult) -- delta=-5.05
+		Turn(ruparm, y_axis, 0.327289, 0.732871 * speedMult) -- delta=-1.40
+		Sleep(sleepTime)
+		-- Frame:21
+		Turn(biggun, x_axis, -1.291758, 2.389805 * speedMult) -- delta=4.56
+		Turn(biggun, z_axis, 0.939105, 5.843316 * speedMult) -- delta=11.16
+		Turn(biggun, y_axis, -1.431466, 8.906901 * speedMult) -- delta=-17.01
+		Turn(head, x_axis, -0.022669, 2.932153 * speedMult) -- delta=-5.60
+		Turn(head, y_axis, -0.078540, 1.140281 * speedMult) -- delta=-2.18
+		Turn(lfoot, x_axis, -0.341054, 0.341257 * speedMult) -- delta=0.65
+		Turn(lfoot, z_axis, 0.060865, 0.470197 * speedMult) -- delta=0.90
+		Turn(lleg, x_axis, 0.977672, 0.866606 * speedMult) -- delta=1.66
+		Turn(lleg, z_axis, 0.058164, 0.418409 * speedMult) -- delta=0.80
+		Turn(lleg, y_axis, 0.049017, 0.320781 * speedMult) -- delta=0.61
+		Turn(lthigh, x_axis, -0.609187, 1.186348 * speedMult) -- delta=-2.27
+		Turn(lthigh, z_axis, 0.060475, 1.055982 * speedMult) -- delta=-2.02
+		Turn(lthigh, y_axis, 0.367412, 2.371146 * speedMult) -- delta=4.53
+		Turn(luparm, x_axis, -0.126974, 2.878580 * speedMult) -- delta=5.50
+		Turn(luparm, z_axis, 0.406060, 0.767303 * speedMult) -- delta=1.47
+		Turn(luparm, y_axis, -0.444806, 3.550799 * speedMult) -- delta=-6.78
+		Move(pelvis, x_axis,   2.217917, 14.092977 * speedMult) -- delta=-0.47
+		Move(pelvis, y_axis, -2.880190, 7.612646 * speedMult) -- delta=0.25
+		Turn(pelvis, z_axis, 0.005986, 0.074496 * speedMult) -- delta=0.14
+		Turn(pelvis, y_axis, -0.142962, 1.779079 * speedMult) -- delta=-3.40
+		Turn(rfoot, x_axis, -0.079087, 2.124373 * speedMult) -- delta=-4.06
+		Turn(rfoot, z_axis, 0.037979, 0.428943 * speedMult) -- delta=0.82
+		Turn(rfoot, y_axis, 0.002916, 0.065420 * speedMult) -- delta=0.12
+		Turn(rleg, x_axis, 0.698885, 3.290602 * speedMult) -- delta=6.28
+		Turn(rleg, z_axis, 0.029508, 0.235572 * speedMult) -- delta=0.45
+		Turn(rleg, y_axis, 0.017087, 0.105057 * speedMult) -- delta=0.20
+		Turn(rloarm, x_axis, -0.235200, 7.584786 * speedMult) -- delta=-14.49
+		Turn(rloarm, z_axis, 0.201643, 0.120344 * speedMult) -- delta=0.23
+		Turn(rloarm, y_axis, 0.028946, 0.945525 * speedMult) -- delta=-1.81
+		Turn(rthigh, x_axis, -0.573331, 1.177593 * speedMult) -- delta=-2.25
+		Turn(rthigh, z_axis, -0.333499, 0.602813 * speedMult) -- delta=-1.15
+		Turn(rthigh, y_axis, 0.009676, 1.641329 * speedMult) -- delta=3.13
+		Turn(ruparm, x_axis, -0.096242, 0.766759 * speedMult) -- delta=-1.46
+		Turn(ruparm, z_axis, -0.356118, 0.937957 * speedMult) -- delta=-1.79
+		Turn(ruparm, y_axis, 0.318631, 0.259751 * speedMult) -- delta=-0.50
+		Sleep(sleepTime)
+		-- Frame:26
+		Turn(biggun, x_axis, -1.212098, 2.389805 * speedMult) -- delta=-4.56
+		Turn(biggun, z_axis, 0.744327, 5.843318 * speedMult) -- delta=-11.16
+		Turn(biggun, y_axis, -1.134569, 8.906897 * speedMult) -- delta=17.01
+		Turn(head, x_axis, -0.070142, 1.424188 * speedMult) -- delta=2.72
+		Turn(head, y_axis, -0.048856, 0.890506 * speedMult) -- delta=1.70
+		Turn(lfoot, x_axis, -0.329679, 0.341257 * speedMult) -- delta=-0.65
+		Turn(lfoot, z_axis, 0.045192, 0.470197 * speedMult) -- delta=-0.90
+		Turn(lleg, x_axis, 1.006559, 0.866606 * speedMult) -- delta=-1.66
+		Turn(lleg, z_axis, 0.044217, 0.418409 * speedMult) -- delta=-0.80
+		Turn(lleg, y_axis, 0.038324, 0.320781 * speedMult) -- delta=-0.61
+		Turn(lthigh, x_axis, -0.648732, 1.186348 * speedMult) -- delta=2.27
+		Turn(lthigh, z_axis, 0.095675, 1.055982 * speedMult) -- delta=2.02
+		Turn(lthigh, y_axis, 0.288374, 2.371146 * speedMult) -- delta=-4.53
+		Turn(luparm, x_axis, -0.031022, 2.878582 * speedMult) -- delta=-5.50
+		Turn(luparm, z_axis, 0.380483, 0.767303 * speedMult) -- delta=-1.47
+		Turn(luparm, y_axis, -0.326446, 3.550799 * speedMult) -- delta=6.78
+		Move(pelvis, x_axis,   1.748151, 14.092977 * speedMult) -- delta=0.47
+		Move(pelvis, y_axis, -3.133945, 7.612646 * speedMult) -- delta=-0.25
+		Turn(pelvis, z_axis, 0.003503, 0.074496 * speedMult) -- delta=-0.14
+		Turn(pelvis, y_axis, -0.083659, 1.779079 * speedMult) -- delta=3.40
+		Turn(rfoot, x_axis, -0.149899, 2.124373 * speedMult) -- delta=4.06
+		Turn(rfoot, z_axis, 0.023681, 0.428943 * speedMult) -- delta=-0.82
+		Turn(rfoot, y_axis, 0.000735, 0.065420 * speedMult) -- delta=-0.12
+		Turn(rleg, x_axis, 0.808571, 3.290602 * speedMult) -- delta=-6.28
+		Turn(rleg, z_axis, 0.021656, 0.235572 * speedMult) -- delta=-0.45
+		Turn(rleg, y_axis, 0.013585, 0.105057 * speedMult) -- delta=-0.20
+		Turn(rloarm, x_axis, -0.488026, 7.584788 * speedMult) -- delta=14.49
+		Turn(rloarm, z_axis, 0.193620, 0.240688 * speedMult) -- delta=-0.46
+		Turn(rloarm, y_axis, 0.060464, 0.945526 * speedMult) -- delta=1.81
+		Turn(rthigh, x_axis, -0.612584, 1.177593 * speedMult) -- delta=2.25
+		Turn(rthigh, z_axis, -0.313405, 0.602813 * speedMult) -- delta=1.15
+		Turn(rthigh, y_axis, -0.045035, 1.641329 * speedMult) -- delta=-3.13
+		Turn(ruparm, x_axis, -0.121801, 0.766759 * speedMult) -- delta=1.46
+		Turn(ruparm, z_axis, -0.324852, 0.937957 * speedMult) -- delta=1.79
+		Turn(ruparm, y_axis, 0.327289, 0.259751 * speedMult) -- delta=0.50
+		Sleep(sleepTime)
+		-- Frame:31
+		Turn(biggun, x_axis, -0.987343, 6.742668 * speedMult) -- delta=-12.88
+		Turn(biggun, z_axis, 0.194777, 16.486502 * speedMult) -- delta=-31.49
+		Turn(biggun, y_axis, -0.296897, 25.130180 * speedMult) -- delta=48.00
+		Turn(head, x_axis, -0.117614, 1.424188 * speedMult) -- delta=2.72
+		Turn(head, y_axis, 0.042922, 2.753353 * speedMult) -- delta=5.26
+		Turn(lfoot, x_axis, -0.070893, 7.763561 * speedMult) -- delta=-14.83
+		Turn(lfoot, z_axis, -0.051773, 2.908938 * speedMult) -- delta=-5.56
+		Turn(lfoot, y_axis, -0.004320, 0.156820 * speedMult) -- delta=-0.30
+		Turn(lleg, x_axis, 0.638559, 11.040006 * speedMult) -- delta=21.08
+		Turn(lleg, z_axis, -0.037388, 2.448153 * speedMult) -- delta=-4.68
+		Turn(lleg, y_axis, -0.020323, 1.759399 * speedMult) -- delta=-3.36
+		Turn(lthigh, x_axis, -0.531268, 3.523938 * speedMult) -- delta=-6.73
+		Turn(lthigh, z_axis, 0.287272, 5.747931 * speedMult) -- delta=10.98
+		Turn(lthigh, y_axis, 0.069817, 6.556719 * speedMult) -- delta=-12.52
+		Turn(luparm, x_axis, 0.239702, 8.121711 * speedMult) -- delta=-15.51
+		Turn(luparm, z_axis, 0.308320, 2.164890 * speedMult) -- delta=-4.13
+		Turn(luparm, y_axis, 0.007498, 10.018324 * speedMult) -- delta=19.13
+		Move(pelvis, x_axis, - 1.298512, 91.399884 * speedMult) -- delta=3.05
+		Move(pelvis, y_axis, -2.482196, 19.552481 * speedMult) -- delta=0.65
+		Turn(pelvis, z_axis, -0.003503, 0.210186 * speedMult) -- delta=-0.40
+		Turn(pelvis, y_axis, 0.083659, 5.019544 * speedMult) -- delta=9.59
+		Turn(rfoot, x_axis, -0.287489, 4.127694 * speedMult) -- delta=7.88
+		Turn(rfoot, z_axis, -0.078112, 3.053790 * speedMult) -- delta=-5.83
+		Turn(rfoot, y_axis, -0.005787, 0.195655 * speedMult) -- delta=-0.37
+		Turn(rleg, x_axis, 0.887214, 2.359271 * speedMult) -- delta=-4.51
+		Turn(rleg, z_axis, -0.068411, 2.702012 * speedMult) -- delta=-5.16
+		Turn(rleg, y_axis, -0.053363, 2.008457 * speedMult) -- delta=-3.84
+		Turn(rloarm, x_axis, -1.201357, 21.399928 * speedMult) -- delta=40.87
+		Turn(rloarm, z_axis, 0.170984, 0.679086 * speedMult) -- delta=-1.30
+		Turn(rloarm, y_axis, 0.149388, 2.667732 * speedMult) -- delta=5.09
+		Turn(rthigh, x_axis, -0.569125, 1.303782 * speedMult) -- delta=-2.49
+		Turn(rthigh, z_axis, -0.088142, 6.757903 * speedMult) -- delta=12.91
+		Turn(rthigh, y_axis, -0.307811, 7.883266 * speedMult) -- delta=-15.06
+		Turn(ruparm, x_axis, -0.193913, 2.163356 * speedMult) -- delta=4.13
+		Turn(ruparm, z_axis, -0.236640, 2.646377 * speedMult) -- delta=5.05
+		Turn(ruparm, y_axis, 0.351718, 0.732870 * speedMult) -- delta=1.40
+		Sleep(sleepTime)
+		-- Frame:36
+		Turn(biggun, x_axis, -0.907682, 2.389804 * speedMult) -- delta=-4.56
+		Turn(biggun, z_axis, 0.000000, 5.843321 * speedMult) -- delta=-11.16
+		Turn(biggun, y_axis, 0.000000, 8.906903 * speedMult) -- delta=17.01
+		Turn(head, x_axis, -0.022669, 2.848377 * speedMult) -- delta=-5.44
+		Turn(head, y_axis, 0.104720, 1.853928 * speedMult) -- delta=3.54
+		Turn(lfoot, x_axis, -0.034375, 1.095543 * speedMult) -- delta=-2.09
+		Turn(lfoot, z_axis, -0.089446, 1.130211 * speedMult) -- delta=-2.16
+		Turn(lfoot, y_axis, -0.010538, 0.186516 * speedMult) -- delta=-0.36
+		Turn(lleg, x_axis, 0.623476, 0.452492 * speedMult) -- delta=0.86
+		Turn(lleg, z_axis, -0.062029, 0.739218 * speedMult) -- delta=-1.41
+		Turn(lleg, y_axis, -0.033957, 0.409030 * speedMult) -- delta=-0.78
+		Turn(lthigh, x_axis, -0.547990, 0.501670 * speedMult) -- delta=0.96
+		Turn(lthigh, z_axis, 0.358445, 2.135185 * speedMult) -- delta=4.08
+		Turn(lthigh, y_axis, -0.015696, 2.565378 * speedMult) -- delta=-4.90
+		Turn(luparm, x_axis, 0.335655, 2.878582 * speedMult) -- delta=-5.50
+		Turn(luparm, z_axis, 0.282743, 0.767303 * speedMult) -- delta=-1.47
+		Turn(luparm, y_axis, 0.125858, 3.550800 * speedMult) -- delta=6.78
+		Move(pelvis, x_axis, - 2.217917, 27.582171 * speedMult) -- delta=0.92
+		Move(pelvis, y_axis, -2.880190, 11.939836 * speedMult) -- delta=-0.40
+		Turn(pelvis, z_axis, -0.005986, 0.074496 * speedMult) -- delta=-0.14
+		Turn(pelvis, y_axis, 0.142962, 1.779079 * speedMult) -- delta=3.40
+		Turn(rfoot, x_axis, -0.373382, 2.576805 * speedMult) -- delta=4.92
+		Turn(rfoot, z_axis, -0.110572, 0.973786 * speedMult) -- delta=-1.86
+		Turn(rfoot, y_axis, -0.002176, 0.108303 * speedMult) -- delta=0.21
+		Turn(rleg, x_axis, 0.999798, 3.377523 * speedMult) -- delta=-6.45
+		Turn(rleg, z_axis, -0.113808, 1.361919 * speedMult) -- delta=-2.60
+		Turn(rleg, y_axis, -0.096141, 1.283335 * speedMult) -- delta=-2.45
+		Turn(rloarm, x_axis, -1.454183, 7.584794 * speedMult) -- delta=14.49
+		Turn(rloarm, z_axis, 0.162961, 0.240689 * speedMult) -- delta=-0.46
+		Turn(rloarm, y_axis, 0.180905, 0.945526 * speedMult) -- delta=1.81
+		Turn(rthigh, x_axis, -0.598987, 0.895861 * speedMult) -- delta=1.71
+		Turn(rthigh, z_axis, -0.031948, 1.685803 * speedMult) -- delta=3.22
+		Turn(rthigh, y_axis, -0.389890, 2.462378 * speedMult) -- delta=-4.70
+		Turn(ruparm, x_axis, -0.219471, 0.766759 * speedMult) -- delta=1.46
+		Turn(ruparm, z_axis, -0.205374, 0.937957 * speedMult) -- delta=1.79
+		Turn(ruparm, y_axis, 0.360376, 0.259752 * speedMult) -- delta=0.50
+		Sleep(sleepTime)
+	end
+end
+
+local function StopDance1()
+	isDancing = false
+	Signal(SIG_WALK)
+	SetSignalMask(SIG_WALK)
+
+	local speedMult = 4
+
+	Move(pelvis, x_axis, 0.000000, 182.799768 * speedMult)
+	Move(pelvis, y_axis, -1.000000, 94.009519 * speedMult)
+	Move(pelvis, z_axis, 0.000000, 7.395249 * speedMult)
+	Turn(biggun, x_axis, -0.907682, 13.485335 * speedMult)
+	Turn(biggun, y_axis, 0.000000, 50.260359 * speedMult)
+	Turn(biggun, z_axis, 0.000000, 32.973012 * speedMult)
+	Turn(dish, y_axis, 0.130900, -1.090831 * speedMult)
+	Turn(head, x_axis, -0.022669, 5.864306 * speedMult)
+	Turn(head, y_axis, 0.000000, 6.434447 * speedMult)
+	Turn(lfoot, x_axis, 0.051737, 15.527122 * speedMult)
+	Turn(lfoot, y_axis, 0.000000, 0.596157 * speedMult)
+	Turn(lfoot, z_axis, 0.003196, 5.817875 * speedMult)
+	Turn(lleg, x_axis, 0.307814, 22.080013 * speedMult)
+	Turn(lleg, y_axis, 0.000000, 3.518799 * speedMult)
+	Turn(lleg, z_axis, 0.001989, 4.896306 * speedMult)
+	Turn(lthigh, x_axis, -0.331832, 10.807897 * speedMult)
+	Turn(lthigh, y_axis, 0.227002, 13.113438 * speedMult)
+	Turn(lthigh, z_axis, 0.163477, 11.495862 * speedMult)
+	Turn(luparm, x_axis, 0.335655, 16.243426 * speedMult)
+	Turn(luparm, y_axis, 0.125858, 20.036650 * speedMult)
+	Turn(luparm, z_axis, 0.282743, 4.329781 * speedMult)
+	Turn(pelvis, y_axis, 0.000000, 10.039089 * speedMult)
+	Turn(pelvis, z_axis, 0.000000, 0.420372 * speedMult)
+	Turn(rfoot, x_axis, -0.002780, 18.530126 * speedMult)
+	Turn(rfoot, y_axis, -0.012972, 0.539800 * speedMult)
+	Turn(rfoot, z_axis, -0.050249, 6.107579 * speedMult)
+	Turn(rleg, x_axis, 0.391571, 30.411328 * speedMult)
+	Turn(rleg, y_axis, -0.010984, 4.257849 * speedMult)
+	Turn(rleg, z_axis, -0.030601, 5.404025 * speedMult)
+	Turn(rloarm, x_axis, -0.928515, 42.799873 * speedMult)
+	Turn(rloarm, y_axis, 0.000000, 9.045273 * speedMult)
+	Turn(rloarm, z_axis, 0.000000, 8.148036 * speedMult)
+	Turn(rthigh, x_axis, -0.357098, 12.094440 * speedMult)
+	Turn(rthigh, y_axis, -0.233321, 15.766531 * speedMult)
+	Turn(rthigh, z_axis, -0.136268, 13.515805 * speedMult)
+	Turn(ruparm, x_axis, 0.430977, 32.522415 * speedMult)
+	Turn(ruparm, y_axis, 0.000000, 18.018824 * speedMult)
+	Turn(ruparm, z_axis, -0.216421, 5.292757 * speedMult)
+	Turn(torso, x_axis, -0.039513, -0.329272 * speedMult)
+	Turn(torso, y_axis, 0.000000, 4.386516 * speedMult)
+	Turn(torso, z_axis, 0.000000, 0.183485 * speedMult)
+end
+
 function SprayNano(heading, pitch)
 	SetSignalMask(SIG_AIM)
 	Sleep(1000)
@@ -504,11 +826,15 @@ function StopWalking()
 	turn(torso,3, 0.000000, 18.561539)
 end
 
+local boredTime = 0
 function AmIBored()
-	if bMoving == false and isAiming == false and isBuilding == false then
-		return true
-	else
-		return false
+	if bMoving == false and isAiming == false and isBuilding == false and isDancing == false then
+		boredTime = boredTime + 1
+	end
+	if boredTime > (600 * (1000/131)) and not isDancing then
+		isDancing = true
+		StartThread(Dance1)
+		boredTime = 0
 	end
 end
 
@@ -531,6 +857,8 @@ function UnitSpeed()
 			animSpeed = 8
 		end
 		Sleep (131)
+		StartThread(AmIBored)
+		
 	end
 end
 
@@ -551,6 +879,7 @@ function script.Create()
 	isAiming = false
 	isAimingDgun = false
 	isBuilding = false
+	isDancing = false
 	bAiming = false
 	buildHeading = 0
 	buildPitch = 0
@@ -562,6 +891,7 @@ function script.Create()
 end
 
 function script.StartMoving()
+	if isDancing then StartThread(StopDance1) end
 	bMoving = true
 	StartThread(walk)
 end
