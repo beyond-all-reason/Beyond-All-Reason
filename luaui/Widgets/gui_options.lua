@@ -1991,14 +1991,15 @@ function init()
 		--   end,
 		-- },
 
-		{ id = "water", group = "gfx", category = types.basic, name = texts.option.water, type = "select", options = { 'low', 'high' }, value = desiredWaterValue + 1,
+		{ id = "water", group = "gfx", category = types.basic, name = texts.option.water, type = "select", options = { 'low', 'high' }, value = desiredWaterValue == 4 and 2 or 1,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  desiredWaterValue = value - 1
+			  desiredWaterValue = value > 1 and 4 or 0
 			  if waterDetected then
 				if desiredWaterValue > 0 then desiredWaterValue = 4 end
 				  Spring.SendCommands("water " .. desiredWaterValue)
+				  Spring.SetConfigInt("water", 4)
 			  end
 		  end,
 		},

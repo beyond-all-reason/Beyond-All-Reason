@@ -328,6 +328,7 @@ if gadgetHandler:IsSyncedCode() then
 		config.minChickens = nextDifficulty.minChickens
 		config.maxBurrows = nextDifficulty.maxBurrows
 		config.maxXP = nextDifficulty.maxXP
+		config.queenResistanceMult = nextDifficulty.queenResistanceMult
 		if config.swarmMode then
 			config.maxChickens = config.maxChickens*10
 			config.minChickens = config.minChickens*10
@@ -1133,15 +1134,18 @@ if gadgetHandler:IsSyncedCode() then
 			if attackerDefID then
 				if not queenResistance[weaponID] then
 					queenResistance[weaponID] = {}
-					queenResistance[weaponID].damage = damage
+					queenResistance[weaponID].damage = (damage * 3 * config.queenResistanceMult)
 					queenResistance[weaponID].notify = 0
 				end
-				local resistPercent = math.min((queenResistance[weaponID].damage * 3) / queenMaxHP, 0.99)
+				local resistPercent = math.min((queenResistance[weaponID].damage) / queenMaxHP, 0.99)
 				if resistPercent > 0.5 then
 					if queenResistance[weaponID].notify == 0 then
 						SendToUnsynced('QueenResistant', attackerDefID)
 						queenResistance[weaponID].notify = 1
 						if mRandom() < config.spawnChance then
+							SpawnRandomOffWaveSquad(queenID, "chickenw2", 4)
+							SpawnRandomOffWaveSquad(queenID, "chickenh1", 5)
+							SpawnRandomOffWaveSquad(queenID, "chickenh1b", 5)
 							SpawnRandomOffWaveSquad(queenID)
 						end
 						for i = 1, SetCount(humanTeams)*2 do
@@ -1150,19 +1154,21 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					damage = damage - (damage * resistPercent)
 				end
-				queenResistance[weaponID].damage = queenResistance[weaponID].damage + damage
+				queenResistance[weaponID].damage = queenResistance[weaponID].damage + (damage * 3 * config.queenResistanceMult)
 				return damage
 			end
 		end
 
 		if weaponID == COMMANDER_BLOB and attackerID and not overseerCommanders[attackerID] and attackerTeam and unitTeam and not Spring.AreTeamsAllied(attackerTeam, unitTeam) then
-			overseerCommanders[attackerID] = Spring.GetGameFrame() + 450
+			overseerCommanders[attackerID] = Spring.GetGameFrame() + 150
 			local ux, uy, uz = Spring.GetUnitPosition(unitID)
 			if ux and uy and uz then
 				if mRandom() < config.spawnChance then
+					SpawnRandomOffWaveSquad(attackerID, "chickenh1", 5)
+					SpawnRandomOffWaveSquad(attackerID, "chickenh1b", 5)
 					SpawnRandomOffWaveSquad(attackerID)
 				end
-				local nearchicks = Spring.GetUnitsInCylinder(ux, uz, 1250, attackerTeam)
+				local nearchicks = Spring.GetUnitsInCylinder(ux, uz, 2000, attackerTeam)
 				for i = 1, #nearchicks, 1 do
 					if nearchicks[i] ~= attackerID and (not overseers[nearchicks[i]]) then
 						Spring.GiveOrderToUnit(nearchicks[i], CMD.ATTACK, { unitID }, 0)
@@ -1360,26 +1366,20 @@ if gadgetHandler:IsSyncedCode() then
 				_, queenMaxHP = GetUnitHealth(queenID)
 				SetUnitExperience(queenID, config.maxXP)
 				timeOfLastWave = t
-				for i = 1, 20 do
-					if mRandom() < config.spawnChance then
-						table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1", team = chickenTeamID, })
-						table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1b", team = chickenTeamID, })
-					end
+				if mRandom() < config.spawnChance then
+					SpawnRandomOffWaveSquad(queenID, "chickenh1", 20)
+					SpawnRandomOffWaveSquad(queenID, "chickenh1b", 20)
 				end
 			end
 		else
 			if mRandom() < config.spawnChance / 60 then
 				for i = 1,SetCount(humanTeams) do
-					table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh2", team = chickenTeamID, })
-					for i = 1, mRandom(1, 2) do
-						table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh3", team = chickenTeamID, })
-						table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1", team = chickenTeamID, })
-					end
-					for i = 1, mRandom(1, 5) do
-						table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh4", team = chickenTeamID })
-					end
-					SpawnRandomOffWaveSquad(queenID)
+					SpawnRandomOffWaveSquad(queenID, "chickenh2", 1)
+					SpawnRandomOffWaveSquad(queenID, "chickenh3", 2)
+					SpawnRandomOffWaveSquad(queenID, "chickenh4", 5)
+					SpawnRandomOffWaveSquad(queenID, "chickenw2", 4)
 				end
+				SpawnRandomOffWaveSquad(queenID)
 			end
 		end
 	end
@@ -1504,7 +1504,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if n % 90 == 0 then
 			if (queenAnger >= 100) then
-				damageMod = (damageMod + 0.005)
+				damageMod = (damageMod + 0.001)
 			end
 		end
 
@@ -1646,9 +1646,9 @@ if gadgetHandler:IsSyncedCode() then
 					local curH, maxH = GetUnitHealth(overseerID)
 					if curH and maxH and curH < (maxH * 0.5) then
 						if mRandom(0,1) == 0 then
-							SpawnRandomOffWaveSquad(overseerID, "chickenh1", math.random(1,5))
+							SpawnRandomOffWaveSquad(overseerID, "chickenh1", 5)
 						else
-							SpawnRandomOffWaveSquad(overseerID, "chickenh1b", math.random(1,5))
+							SpawnRandomOffWaveSquad(overseerID, "chickenh1b", 5)
 						end
 					end
 				end
