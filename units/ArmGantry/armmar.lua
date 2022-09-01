@@ -25,7 +25,7 @@ return {
 		movementclass = "ATANK3",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMMAR.s3o",
-		script = "Units/armmar_lus.lua",
+		script = "Units/armmar.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3",
 		sightdistance = 455,
