@@ -22,7 +22,7 @@ return {
 		maxslope = 15,
 		maxvelocity = 0.75,
 		maxwaterdepth = 23,
-		movementclass = "HBOT3",
+		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/leginc.s3o",
 		pushresistant = true,

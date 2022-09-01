@@ -5,7 +5,7 @@
 
 piece  aimy1, turret, flare, barrel, pelvis, rfhip, rfthigh, rfleg, rbhip, rbthigh, rbleg, lfhip, lfthigh, lfleg, lbhip, lbthigh, lbleg;
 
-static-var  gun_1, restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving, wpn2_lasthead;
+static-var  gun_1, restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving, wpn2_lasthead, force1;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -29,6 +29,10 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 	}
 	while(bMoving) {
 		if (bMoving) { //Frame:8
+			if (gun_1 == 1){
+				force1 = 1;
+				gun_1 = 0;
+			}
 			move pelvis to y-axis [2] speed [60] / animSpeed;
 			move lfleg to z-axis [0.000000] speed [65.700002] / animSpeed; 
 			move lfhip to z-axis [0.000000] speed [108.299997] / animSpeed; 
@@ -56,7 +60,11 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 			move lbhip to y-axis [0] speed [60] / animSpeed; 
 		sleep ((33*animSpeed) -1);
 		}
-		if (bMoving) { //Frame:16
+		if (bMoving) {
+			if (force1 == 1){
+				force1 = 0;
+				gun_1 = 1;
+			}
 			move pelvis to y-axis [2] speed [60] / animSpeed;
 			move lfleg to z-axis [0.000000] speed [81.000001] / animSpeed; 
 			move lfhip to z-axis [0.000000] speed [121.926298] / animSpeed; 
@@ -145,6 +153,7 @@ StopMoving()
 Create()
 {
 	gun_1 = 0;
+	force1 = 0;
 	hide flare;
 	hide aimy1;
 	restore_delay = 1000;
@@ -217,7 +226,7 @@ AimPrimary(heading, pitch)
 	}
 	turn aimy1 to y-axis heading speed <20.000000>;
 	turn barrel to x-axis -1*pitch speed <5.000000>;
-	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 500) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 500) AND ((get ABS(wpn2_lasthead - heading)) < 65036)))
 	{
 		wpn2_lasthead = 1000000;
 		wait-for-turn aimy1 around y-axis;
@@ -239,7 +248,7 @@ AimSecondary(heading, pitch)
 	}
 	turn aimy1 to y-axis heading speed <20.000000>;
 	turn barrel to x-axis -1*pitch speed <5.000000>;
-	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 500) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 500) AND ((get ABS(wpn2_lasthead - heading)) < 65036)))
 	{
 		wpn2_lasthead = 1000000;
 		wait-for-turn aimy1 around y-axis;
