@@ -1557,7 +1557,10 @@ fragment = [[
 		outColor.rgb *= brightnessFactor; // this is to correct for lack of env mapping, the nastiest hack there has ever been...
 
 		#if (RENDERING_MODE == 0)
+			
 			fragData[0] = vec4(outColor, texColor2.a);
+			//fragData[0] = vec4(vec3(aoTerm/1.3), texColor2.a);
+			
 			//fragData[0] = vec4(vec3(fract((shadowVertexPos.xyz )  ))	, 1.0); //debug
 			//fragData[0] = vec4(vec3(fract(healthMix	))	, 1.0); //debug
 			//fragData[0] = vec4(debugloscolor	, 1.0); //debug
