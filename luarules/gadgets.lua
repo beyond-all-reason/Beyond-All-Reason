@@ -203,10 +203,10 @@ end
 
 function gadgetHandler:LoadGadget(filename)
 	local kbytes = 0
-	if gcinfo then -- only present in special debug builds, otherwise gcinfo is not preset in synced context!
+	if collectgarbage then -- only present in special debug builds, otherwise collectgarbage is not preset in synced context!
 		collectgarbage("collect") -- call it twice, mark
 		collectgarbage("collect") -- sweep
-		kbytes = gcinfo() 
+		kbytes = collectgarbage("count")
 	end 
 	
 	local basename = Basename(filename)
@@ -284,7 +284,7 @@ function gadgetHandler:LoadGadget(filename)
 	if kbytes > 0 then 
 		collectgarbage("collect") -- mark
 		collectgarbage("collect") -- sweep
-		Spring.Echo("LoadGadget",filename,"delta=",gcinfo()-kbytes,"total=",gcinfo(),"KB, synced =", IsSyncedCode()) 
+		Spring.Echo("LoadGadget",filename,"delta=",collectgarbage("count")-kbytes,"total=",collectgarbage("count"),"KB, synced =", IsSyncedCode()) 
 	end
 	return gadget
 end
@@ -498,10 +498,10 @@ function gadgetHandler:InsertGadget(gadget)
 		end
 	end
 		local kbytes = 0
-	if gcinfo then 	
+	if collectgarbage then 	
 		collectgarbage("collect")
 		collectgarbage("collect")
-		kbytes= gcinfo()
+		kbytes= collectgarbage("count")
 	end
 	
 	self:UpdateCallIns()
@@ -513,7 +513,7 @@ function gadgetHandler:InsertGadget(gadget)
 	if kbytes > 0 then 
 		collectgarbage("collect")
 		collectgarbage("collect")
-		Spring.Echo("Initialize",gadget.ghInfo.name,"delta=",gcinfo()-kbytes,"total=",gcinfo(),"KB, synced =", IsSyncedCode()) 
+		Spring.Echo("Initialize",gadget.ghInfo.name,"delta=",collectgarbage("count")-kbytes,"total=",collectgarbage("count"),"KB, synced =", IsSyncedCode()) 
 	end
 end
 
