@@ -96,6 +96,7 @@ local shaderSourceCache = {
 			globalFogColor = {1,1,1,1},
 		},
 		shaderName = "Ground Fog GL4",
+		shaderConfig = shaderConfig
 	}
 
 local function checkShaderUpdates(shadersourcecache, delaytime)
@@ -108,7 +109,8 @@ local function checkShaderUpdates(shadersourcecache, delaytime)
 		local gsSrcNew = shadersourcecache.gssrcpath and VFS.LoadFile(shadersourcecache.gssrcpath)
 		if  vsSrcNew == shadersourcecache.vsSrc and 
 			fsSrcNew == shadersourcecache.fsSrc and 
-			gsSrcNew == shadersourcecache.gsSrc then 
+			gsSrcNew == shadersourcecache.gsSrc and 
+			not forceupdate then 
 			--Spring.Echo("No change in shaders")
 			return nil
 		else
@@ -118,7 +120,7 @@ local function checkShaderUpdates(shadersourcecache, delaytime)
 			shadersourcecache.gsSrc = gsSrcNew
 			
 			local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-			local shaderDefines = LuaShader.CreateShaderDefinesString(shaderConfig)
+			local shaderDefines = LuaShader.CreateShaderDefinesString(shadersourcecache.shaderConfig)
 			if vsSrcNew then 
 				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 				vsSrcNew = vsSrcNew:gsub("//__DEFINES__", shaderDefines)
