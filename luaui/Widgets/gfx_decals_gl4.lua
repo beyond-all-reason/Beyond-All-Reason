@@ -300,6 +300,52 @@ local decalIndex = 0
 local decalTimes = {} -- maps instanceID to expected fadeout timeInfo
 local decalRemoveQueue = {} -- maps gameframes to list of decals that will be removed
 
+-----------------------------------------------------------------------------------------------
+-- This part is kinda useless for now, but we could prevent or control excessive decal spam right here!
+local areaResolution = 256 -- elmos per square, for a 64x map this is 
+local decalToArea = {} -- maps instanceID to a position key on the map 
+local areaDecals = {} -- {positionkey = {decallist, totalarea},}
+local saturationThreshold = 1 * areaResolution
+local floor = math.floor
+
+local function hashPos(mapx, mapz) -- packs XZ into 1000*x + z
+	return floor(mapx / areaResolution) * 1000 + floor(mapz/areaResolution)
+end
+
+local function initAreas() 
+	for x= areaResolution /2, Game.mapSizeX, areaResolution do 
+		for z= areaResolution /2, Game.mapSizeZ, areaResolution do 
+			areaDecals[hashPos(x,z)] = {instanceIDsToArea = {}, totalarea = 0}
+		end
+	end
+end
+
+local function AddDecalToArea(instanceID, posx, posz, width, length)
+	local hash = hashPos(posx,posz)
+	local maparea = areaDecals[hash]
+	local area = width * length
+	maparea.instanceIDs[instanceID] =  area
+	maparea.totalarea = maparea.totalarea + area
+	decalToArea[instanceID] = hash
+end
+
+local function RemoveDecalFromArea(instanceID) 
+	local hashpos = decalToArea[instanceID]
+	if hashpos then 
+		local maparea = areaDecals[hashPos(posx,posz)]
+		if maparea.instanceIDs[instanceID] then 
+			maparea.totalarea = math.max(0,maparea.totalarea - maparea.instanceIDs[instanceID])
+			maparea.instanceIDs[instanceID] = nil
+		end
+		decalToArea[instanceID] = nil
+	end
+end
+
+local function CheckDecalAreaSaturation(posx, posz, width, lenght)
+	return (math.sqrt(areaDecals[hashPos(posx,posz)].totalarea) > saturationThreshold)
+end
+-----------------------------------------------------------------------------------------------
+
 local function AddDecal(decaltexturename, posx, posz, rotation, width, length, heatstart, heatdecay, alphastart, alphadecay, maxalpha, spawnframe)
 	-- Documentation
 	-- decaltexturename, full path to the decal texture name, it must have been added to the atlasses, e.g. 'bitmaps/scars/scar1.bmp'
@@ -311,6 +357,13 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 	-- alphastart: The initial transparency amount, can be > 1 too
 	-- alphadecay: How much alpha is reduced each frame, when alphastart/alphadecay goes below 0, the decal will get automatically removed.
 	-- maxalpha: The highest amount of transparency this decal can have
+	
+	if CheckDecalAreaSaturation(posx, posz, width, length) then 
+		Spring.Echo("Map area is oversaturated with decals!", posx, posz, width, length)
+		return nil 
+	else
+	
+	end
 	
 	spawnframe = spawnframe or Spring.GetGameFrame()
 	--Spring.Echo(decaltexturename, atlassedImages[decaltexturename], atlasColorAlpha)
@@ -346,6 +399,8 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 	else
 		decalRemoveQueue[deathtime][#decalRemoveQueue[deathtime] + 1 ] = decalIndex
 	end
+	
+	AddDecalToArea(decalIndex, posx, posz, width, length)
 	return decalIndex, lifetime
 end
 
@@ -398,6 +453,7 @@ function widget:DrawWorldPreUnit()
 end
 
 local function RemoveDecal(instanceID)
+	RemoveDecalFromArea(instanceID)
 	if decalVBO.instanceIDtoIndex[instanceID] then
 		popElementInstance(decalVBO, instanceID)
 	elseif decalLargeVBO.instanceIDtoIndex[instanceID] then
