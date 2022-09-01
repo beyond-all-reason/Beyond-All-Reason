@@ -408,6 +408,7 @@ function popElementInstance(iT, instanceID, noUpload)
 
 	if iT.instanceIDtoIndex[instanceID] == nil then -- if key is instanceID yet does not exist, then warn and bail
 		Spring.Echo("Tried to remove element ",instanceID,'From instanceTable', iT.myName, 'but it does not exist in it')
+		Spring.Debug.TraceFullEcho(10,10,3)
 		return nil 
 	end
 	if iT.usedElements == 0 then -- Dont remove the last element
