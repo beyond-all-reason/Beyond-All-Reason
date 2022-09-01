@@ -1174,6 +1174,13 @@ local spGetProjectilePosition = Spring.GetProjectilePosition
 
 -- Beam type projectiles are indeed an oddball, as they live for exactly 3 frames, no?
 
+local function PrintProjectileInfo(projectileID)
+	local px, py, pz = spGetProjectilePosition(projectileID)
+	local weapon, piece = Spring.GetProjectileType(projectileID)
+	local weaponDefID = weapon and Spring.GetProjectileDefID ( projectileID ) 
+	Spring.Debug.TraceFullEcho()
+end
+
 local function updateProjectileLights(newgameframe)
 	local debugproj = false
 	local nowprojectiles = Spring.GetVisibleProjectiles()
@@ -1189,75 +1196,76 @@ local function updateProjectileLights(newgameframe)
 	for i= 1, #nowprojectiles do
 		local projectileID = nowprojectiles[i]
 		local px, py, pz = spGetProjectilePosition(projectileID)
-
-		local lightType = 'point' -- default
-		if trackedProjectiles[projectileID] then 
-			if newgameframe then
-				--update proj pos
-				lightType = trackedProjectileTypes[projectileID] 
-				if lightType == 'point' then 
-					local instanceIndex = updateLightPosition(projectilePointLightVBO, projectileID, px,py,pz)
-				elseif lightType == 'cone' then 
-					local dx,dy,dz = Spring.GetProjectileVelocity(projectileID)
-					updateLightPosition(projectileConeLightVBO, projectileID, px,py,pz, nil, dx,dy,dz)
-				end -- NOTE: WE DONT UPDATE BEAM POS!
-				if debugproj then Spring.Echo("Updated", instanceIndex, projectileID, px, py, pz) end
-			end
-		else
-			-- add projectile		
-			
-			local weapon, piece = Spring.GetProjectileType(projectileID)
-			if piece then 
-				local explosionflags = Spring.GetPieceProjectileParams(projectileID)
-				if explosionflags and explosionflags%32 > 15 then 
-					local gib = gibLight.lightParamTable
-					gib[1] = px
-					gib[2] = py
-					gib[3] = pz
-					AddLight(projectileID, nil, nil, projectilePointLightVBO, gib, noUpload)
-					--Spring.Echo("added gib")
-					--Spring.Debug.TableEcho(gib)
+		if px then -- we are somehow getting projectiles with no position?	
+			local lightType = 'point' -- default
+			if trackedProjectiles[projectileID] then 
+				if newgameframe then
+					--update proj pos
+					lightType = trackedProjectileTypes[projectileID] 
+					if lightType == 'point' then 
+						local instanceIndex = updateLightPosition(projectilePointLightVBO, projectileID, px,py,pz)
+					elseif lightType == 'cone' then 
+						local dx,dy,dz = Spring.GetProjectileVelocity(projectileID)
+						updateLightPosition(projectileConeLightVBO, projectileID, px,py,pz, nil, dx,dy,dz)
+					end -- NOTE: WE DONT UPDATE BEAM POS!
+					if debugproj then Spring.Echo("Updated", instanceIndex, projectileID, px, py, pz) end
 				end
 			else
-				local weaponDefID = Spring.GetProjectileDefID ( projectileID ) 
-				if projectileDefLights[weaponDefID] then 
-					local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
-					lightType = projectileDefLights[weaponDefID].lightType
-					lightParamTable[1] = px
-					lightParamTable[2] = py
-					lightParamTable[3] = pz
-					if debugproj then Spring.Echo(lightType, projectileDefLights[weaponDefID].lightClassName) end
-					
-					if lightType == 'beam' then 
-						local dx,dy,dz = Spring.GetProjectileVelocity(projectileID)
-						--dx, dy, dz = InterpolateBeam(px,py,pz, dx, dy,dz)
-						lightParamTable[5] = px + dx
-						lightParamTable[6] = py + dy
-						lightParamTable[7] = pz + dz
-					elseif lightType == 'cone' then 
-					
-						local dx,dy,dz = Spring.GetProjectileVelocity(projectileID)						lightParamTable[5] = dx
-						lightParamTable[6] = dy
-						lightParamTable[7] = dz
-					end 
-					if debugproj then Spring.Echo(lightType, px,py,pz, dx, dy,dz) end
-					
-					AddLight(projectileID, nil, nil, projectileLightVBOMap[lightType], lightParamTable,noUpload)
-					--AddLight(projectileID, nil, nil, projectilePointLightVBO, lightParamTable)
-				else 
-					Spring.Echo("No projectile light defined for", projectileID, weaponDefID)
-					testprojlighttable[1] = px
-					testprojlighttable[2] = py
-					testprojlighttable[3] = pz
-					AddPointLight(projectileID, nil, nil, projectilePointLightVBO, testprojlighttable)
+				-- add projectile		
+				
+				local weapon, piece = Spring.GetProjectileType(projectileID)
+				if piece then 
+					local explosionflags = Spring.GetPieceProjectileParams(projectileID)
+					if explosionflags and explosionflags%32 > 15 then 
+						local gib = gibLight.lightParamTable
+						gib[1] = px
+						gib[2] = py
+						gib[3] = pz
+						AddLight(projectileID, nil, nil, projectilePointLightVBO, gib, noUpload)
+						--Spring.Echo("added gib")
+						--Spring.Debug.TableEcho(gib)
+					end
+				else
+					local weaponDefID = Spring.GetProjectileDefID ( projectileID ) 
+					if projectileDefLights[weaponDefID] then 
+						local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
+						lightType = projectileDefLights[weaponDefID].lightType
+						lightParamTable[1] = px
+						lightParamTable[2] = py
+						lightParamTable[3] = pz
+						if debugproj then Spring.Echo(lightType, projectileDefLights[weaponDefID].lightClassName) end
+						
+						if lightType == 'beam' then 
+							local dx,dy,dz = Spring.GetProjectileVelocity(projectileID)
+							--dx, dy, dz = InterpolateBeam(px,py,pz, dx, dy,dz)
+							lightParamTable[5] = px + dx
+							lightParamTable[6] = py + dy
+							lightParamTable[7] = pz + dz
+						elseif lightType == 'cone' then 
+						
+							local dx,dy,dz = Spring.GetProjectileVelocity(projectileID)						lightParamTable[5] = dx
+							lightParamTable[6] = dy
+							lightParamTable[7] = dz
+						end 
+						if debugproj then Spring.Echo(lightType, px,py,pz, dx, dy,dz) end
+						
+						AddLight(projectileID, nil, nil, projectileLightVBOMap[lightType], lightParamTable,noUpload)
+						--AddLight(projectileID, nil, nil, projectilePointLightVBO, lightParamTable)
+					else 
+						Spring.Echo("No projectile light defined for", projectileID, weaponDefID, px, pz)
+						testprojlighttable[1] = px
+						testprojlighttable[2] = py
+						testprojlighttable[3] = pz
+						AddPointLight(projectileID, nil, nil, projectilePointLightVBO, testprojlighttable)
+					end
 				end
+				numadded = numadded + 1
+				if debugproj then Spring.Echo("Adding projlight", projectileID, Spring.GetProjectileName(projectileID)) end
+				--trackedProjectiles[]
+				trackedProjectileTypes[projectileID] = lightType
 			end
-			numadded = numadded + 1
-			if debugproj then Spring.Echo("Adding projlight", projectileID, Spring.GetProjectileName(projectileID)) end
-			--trackedProjectiles[]
-			trackedProjectileTypes[projectileID] = lightType
+			trackedProjectiles[projectileID] = gameFrame
 		end
-		trackedProjectiles[projectileID] = gameFrame
 	end
 	-- remove theones that werent updated 
 	local numremoved = 0
@@ -1277,7 +1285,10 @@ local function updateProjectileLights(newgameframe)
 				trackedProjectiles[projectileID] = nil
 				local lightType = trackedProjectileTypes[projectileID] 
 				--RemoveLight('point', projectileID, nil)
-				popElementInstance(projectileLightVBOMap[lightType], projectileID, noUpload) 
+				if projectileLightVBOMap[lightType].instanceIDtoIndex[projectileID] then -- god the indirections here ... 
+					local success = popElementInstance(projectileLightVBOMap[lightType], projectileID, noUpload) 
+					if success == nil then PrintProjectileInfo(projectileID) end 
+				end
 				trackedProjectileTypes[projectileID] = nil
 			end
 		end
