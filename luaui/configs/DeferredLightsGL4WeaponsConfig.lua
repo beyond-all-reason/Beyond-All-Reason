@@ -67,6 +67,7 @@ local BaseClasses = {
 		},
 	},
 
+	
 	MissileProjectile = {
 		lightType = 'point', -- or cone or beam
 		lightConfig = {
@@ -74,6 +75,17 @@ local BaseClasses = {
 			r = 1, g = 1, b = 1, a = 0.15, 
 			color2r = 0.75, color2g = 0.75, color2b = 0.75, colortime = 0.6, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 1, specular = 0.2, scattering = 0.6, lensflare = 0, 
+			lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
+		},
+	},
+	
+	LaserAimProjectile = {
+		lightType = 'cone', -- or cone or beam
+		lightConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 500, 
+			r = 1, g = 0, b = 0, a = 1, 
+			dirx = 1, diry = 0, dirz = 1, theta = 0.02,  -- cone lights only, specify direction and half-angle in radians
+			modelfactor = 10, specular = 0, scattering = 5, lensflare = 1, 
 			lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
 		},
 	},
@@ -125,7 +137,7 @@ local BaseClasses = {
 }
 
 
-local SizeRadius = {Tiny = 55, Small = 100, Medium = 220, Large = 400, Mega = 800, Giga = 1600, Tera = 3600}
+local SizeRadius = {Tiny = 55, Smaller = 75, Small = 100, Small150 = 150, Medium = 200, Medium250 = 250, Medium300 = 300, Medium350 = 350, Large = 400, Larger = 500, Largest = 650, Mega = 800, Mega1000 = 1000, Mega1300 = 1500, Giga = 1600, Tera = 3600}
 local ColorSets = { -- TODO add advanced dual-color sets!
 	Red = 		{r = 1, g = 0, b = 0},
 	Green = 	{r = 0, g = 1, b = 0},
@@ -138,6 +150,18 @@ local ColorSets = { -- TODO add advanced dual-color sets!
 	Cold  = 	{r = 0.5, g = 0.75, b = 1.0},
 	Team  = 	{r = -1, g = -1, b = -1},
 }
+
+local function GetClosestSizeClass(desiredsize) 
+	local delta = math.huge
+	local best = nil
+	for classname, size in pairs(SizeRadius) do 
+		if math.abs(size-desiredsize) < delta then 
+			delta = math.abs(size-desiredsize)
+			best = classname
+		end
+	end
+	return best, SizeRadius[best]
+end
 
 local Lifetimes = {Fast = 5, Quick = 10, Moderate = 30, Long = 90, Glacial = 270}
 
@@ -165,8 +189,6 @@ local function GetLightClass(baseClassname, colorkey, sizekey, additionaloverrid
 			lightClassKey = lightClassKey .. "_" .. tostring(k) .. "=" .. tostring(v)
 		end
 	end
-	
-	
 	
 	if lightClasses[lightClassKey] then 
 		return lightClasses[lightClassKey] 
@@ -339,6 +361,11 @@ GetLightClass("MuzzleFlash", nil, "Tiny", {posx = -7, posy = 16, posz = 5, radiu
 											modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
 											lifetime = 200, sustain = 4})
 muzzleFlashLights[WeaponDefNames["corint_cor_intimidator"].id].yOffset = 16
+
+--projectileDefLights[WeaponDefNames["armrock_arm_bot_rocket"].id] = GetLightClass("LaserAimProjectile", "Red", "Large")
+--projectileDefLights[WeaponDefNames["corstorm_cor_bot_rocket"].id] = GetLightClass("LaserAimProjectile", "Red", "Large")
+
+
 
 -- verification questions:
 -- colortime determines how slow the initial rgb color(1) fades to color2 ?
