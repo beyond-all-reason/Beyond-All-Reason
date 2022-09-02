@@ -1471,6 +1471,7 @@ function widget:Update(dt)
 			elseif showRejoinUI then
 				showRejoinUI = false
 				updateRejoin()
+				init()
 			end
 		end
 	end
