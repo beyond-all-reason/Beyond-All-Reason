@@ -24,14 +24,10 @@ local scaleFontAmount = 120
 local fontShadow = true        -- only shows if font has a white outline
 local shadowOpacity = 0.35
 
-local showPlayerRank = true
+local showPlayerRank = false
+local showSkillValue = true
 local playerRankSize = fontSize * 1.05
 local playerRankImages = "luaui\\images\\advplayerslist\\ranks\\"
-local useSkill = false
-if useSkill then
-	playerRankSize = fontSize * 2.5
-	playerRankImages = "luaui\\images\\Ranks\\rank"
-end
 
 local comLevelSize = fontSize * 2.5
 local comLevelImages = "luaui\\images\\Ranks\\rank"
@@ -78,7 +74,7 @@ local vsx, vsy = Spring.GetViewGeometry()
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 50
-local fontfileOutlineSize = 9
+local fontfileOutlineSize = 8.5
 local fontfileOutlineStrength = 10
 local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 local shadowFont = gl.LoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.6)
@@ -140,7 +136,6 @@ local function GetCommAttributes(unitID, unitDefID)
 		return nil
 	end
 
-
 	local playerRank
 	local name = ''
 	local luaAI = Spring.GetTeamLuaAI(team)
@@ -171,29 +166,23 @@ local function GetCommAttributes(unitID, unitDefID)
 		bgColor = { 1, 1, 1, 1 }	-- try to keep these values the same as the playerlist
 	end
 
-
-	if useSkill then
-		playerRank = nil
+	local skill
+	if showSkillValue then
 		local playerID = select(2, GetTeamInfo(team, false))
 		local customtable = select(11, GetPlayerInfo(playerID))
 		if customtable and customtable.skill then
-			local skill = customtable.skill
+			skill = customtable.skill
 			skill = skill and tonumber(skill:match("-?%d+%.?%d*")) or 0
-			skill = math.floor(skill * 0.25)
-			playerRank = skill
-			if playerRank > 16 then
-				playerRank = 16
-			elseif playerRank < 1 then
-				playerRank = 1
-			end
+			skill = math.floor(skill)
 		end
 	end
+
 	local xp = GetUnitRulesParam(unitID, "xp")
 	if not xp then
 		xp = GetUnitExperience(unitID)
 	end
 	local height = comHeight[unitDefID] + heightOffset
-	return { name, { r, g, b, a }, height, bgColor, nil, playerRank and playerRank+1, math.floor(xp or 0) }
+	return { name, { r, g, b, a }, height, bgColor, nil, playerRank and playerRank+1, math.floor(xp or 0), skill}
 end
 
 local function RemoveLists()
@@ -254,6 +243,15 @@ local function createComnameList(attributes)
 			glTexture(playerRankImages..attributes[6]..'.png')
 			glTexRect(x_l-halfSize, y_l-halfSize, x_l+halfSize, y_l+halfSize)
 			glTexture(false)
+
+			-- skill value
+			if showSkillValue and attributes[8] then
+				font:Begin()
+				font:SetTextColor(0.66,0.66,0.66,1)
+				font:SetOutlineColor(0,0,0,0.6)
+				font:Print(attributes[8], x_l-(playerRankSize*0.86), y_l-(playerRankSize*0.29), playerRankSize*0.66, "con")
+				font:End()
+			end
 		end
 		-- unba commander level
 		if unba and attributes[7] then
@@ -555,6 +553,7 @@ end
 
 function widget:GetConfigData()
 	return {
+		version = 1.1,
 		nameScaling = nameScaling,
 		showPlayerRank = showPlayerRank,
 	}
@@ -565,7 +564,7 @@ function widget:SetConfigData(data)
 	if data.nameScaling ~= nil then
 		nameScaling = data.nameScaling
 	end
-	if data.showPlayerRank ~= nil then
+	if data.version and data.showPlayerRank ~= nil then
 		showPlayerRank = data.showPlayerRank
 	end
 end
