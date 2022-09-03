@@ -226,7 +226,7 @@ local function createComnameList(attributes)
 			gl.Texture(false)
 		end
 		-- unba commander level
-		if showPlayerRank and attributes[7] then
+		if unba and attributes[7] then
 			local halfSize = comLevelSize*0.5
 			--local x_r = x + (((font:GetTextWidth(name) * fontSize) * 0.5) + halfSize + (fontSize * 0.1))
 			--local y_r = y + (fontSize * 0.44)
