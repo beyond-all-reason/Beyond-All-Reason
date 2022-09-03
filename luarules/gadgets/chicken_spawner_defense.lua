@@ -1581,6 +1581,7 @@ if gadgetHandler:IsSyncedCode() then
 					if mRandom(1,2) == 1 then
 						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh2", team = chickenTeamID, squadID = 3})
 					end
+					break
 				end
 			end
 			for unitID, _ in pairs(broodRaptors2) do
@@ -1592,6 +1593,7 @@ if gadgetHandler:IsSyncedCode() then
 					if mRandom(1,2) == 1 then
 						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh3", team = chickenTeamID, squadID = 5})
 					end
+					break
 				end
 			end
 		end
