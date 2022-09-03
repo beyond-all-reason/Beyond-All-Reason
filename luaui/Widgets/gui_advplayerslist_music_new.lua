@@ -595,35 +595,8 @@ function widget:MouseRelease(x, y, button)
 end
 
 function widget:Update(dt)
-	if not showGUI then return end
 	local mx, my, mlb = Spring.GetMouseState()
-	if math_isInRect(mx, my, left, bottom, right, top) then
-		mouseover = true
-	end
-	local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
-	if volume ~= curVolume then
-		volume = curVolume
-		doCreateList = true
-	end
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.5 then
-		uiOpacitySec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale",1)
-			widget:ViewResize()
-		end
-		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader'] ~= nil)then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
-			guishaderEnabled = (WG['guishader'] ~= nil)
-			doCreateList = true
-		end
-	end
-	if doCreateList then
-		createList()
-		doCreateList = nil
-	end
-
+	
 	local frame = Spring.GetGameFrame()
 	local _,_,paused = Spring.GetGameSpeed()
 	if playing and (paused or frame < 1) then
@@ -636,6 +609,35 @@ function widget:Update(dt)
 	end
 	if paused then
 		updateFade()
+	end
+
+	if showGUI then
+		if math_isInRect(mx, my, left, bottom, right, top) then
+			mouseover = true
+		end
+		local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
+		if volume ~= curVolume then
+			volume = curVolume
+			doCreateList = true
+		end
+		uiOpacitySec = uiOpacitySec + dt
+		if uiOpacitySec > 0.5 then
+			uiOpacitySec = 0
+			if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
+				ui_scale = Spring.GetConfigFloat("ui_scale",1)
+				widget:ViewResize()
+			end
+			uiOpacitySec = 0
+			if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader'] ~= nil)then
+				ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+				guishaderEnabled = (WG['guishader'] ~= nil)
+				doCreateList = true
+			end
+		end
+		if doCreateList then
+			createList()
+			doCreateList = nil
+		end
 	end
 end
 
