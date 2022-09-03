@@ -9,15 +9,18 @@ function widget:GetInfo()
 	}
 end
 
-math.randomseed( os.clock() )
+----------------------------------------------------------------------
+-- CONFIG
+----------------------------------------------------------------------
 
------------------------------------
-------CONFIG-----------------------
------------------------------------
+local showGUI = false
 local minSilenceTime = 10
 local maxSilenceTime = 120
 local warLowLevel = 1500
 local warHighLevel = 30000
+
+----------------------------------------------------------------------
+----------------------------------------------------------------------
 
 local specMultiplier = #Spring.GetAllyTeamList() - 1
 
@@ -27,11 +30,8 @@ local function applySpectatorThresholds()
 	appliedSpectatorThresholds = true
 	--Spring.Echo("[Music Player] Spectator mode enabled")
 end
------------------------------------
------------------------------------
------------------------------------
 
-
+math.randomseed( os.clock() )
 
 local peaceTracks = {}
 local warhighTracks = {}
@@ -441,7 +441,7 @@ function widget:Initialize()
 			return false
 		end
 		updatePosition()
-		return {top,left,bottom,right,widgetScale}
+		return {showGUI and top or bottom,left,bottom,right,widgetScale}
 	end
 	WG['music'].GetMusicVolume = function()
 		return maxMusicVolume
@@ -453,6 +453,12 @@ function widget:Initialize()
 			setMusicVolume(fadeLevel)
 		end
 		createList()
+	end
+	WG['music'].GetShowGui = function()
+		return showGUI
+	end
+	WG['music'].SetShowGui = function(value)
+		showGUI = value
 	end
 	WG['music'].getTracksConfig = function(value)
 		local tracksConfig = {}
@@ -522,7 +528,7 @@ local function getSliderValue(button, x)
 end
 
 function widget:MouseMove(x, y)
-	if draggingSlider ~= nil then
+	if showGUI and draggingSlider ~= nil then
 		if draggingSlider == 'musicvolume' then
 			maxMusicVolume = math.floor(getVolumeCoef(getSliderValue(draggingSlider, x)) * 100)
 			Spring.SetConfigInt("snd_volmusic", maxMusicVolume)
@@ -541,6 +547,7 @@ end
 
 local function mouseEvent(x, y, button, release)
 	if Spring.IsGUIHidden() then return false end
+	if not showGUI then return end
 	if button == 1 then
 		if not release then
 			local sliderWidth = (3.3 * widgetScale) -- should be same as in createlist()
@@ -588,6 +595,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function widget:Update(dt)
+	if not showGUI then return end
 	local mx, my, mlb = Spring.GetMouseState()
 	if math_isInRect(mx, my, left, bottom, right, top) then
 		mouseover = true
@@ -639,6 +647,7 @@ end
 
 function widget:DrawScreen()
 	if chobbyInterface then return end
+	if not showGUI then return end
 	updatePosition()
 	local mx, my, mlb = Spring.GetMouseState()
 	mouseover = false
@@ -859,7 +868,8 @@ end
 
 function widget:GetConfigData(data)
 	return {
-		curTrack = currentTrack
+		curTrack = currentTrack,
+		showGUI = showGUI
 	}
 end
 
@@ -868,6 +878,9 @@ function widget:SetConfigData(data)
 		if data.curTrack ~= nil then
 			currentTrack = data.curTrack
 		end
+	end
+	if data.showGUI ~= nil then
+		showGUI = data.showGUI
 	end
 end
 

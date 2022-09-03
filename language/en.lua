@@ -425,6 +425,8 @@ return {
 			mascot_descr = 'Shows a mascot on top of the playerslist',
 			unittotals = 'unit totals',
 			unittotals_descr = 'Show your unit totals on top of the playerlist',
+			musicplayer = 'music/audio controls',
+			musicplayer_descr = 'Show music and general volume sliders and displays track progress and name on hover',
 			musicplayer = 'music player',
 			musicplayer_descr = 'Show music player on top of playerlist',
 			console = 'Console',
