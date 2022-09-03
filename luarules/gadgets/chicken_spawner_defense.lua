@@ -402,6 +402,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenacidallterrainassault"].id] = { distance = 200, chance = 1 },		
 		[UnitDefNames["chickenacidarty"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenacidallterrain"].id] = { distance = 300, chance = 1 },
+		[UnitDefNames["chickenh3"].id] = { distance = 500, chance = 0.1 },
 	}
 	local COWARD = {
 		[UnitDefNames["chickenh1"].id] = { distance = 500, chance = 1 },
@@ -410,6 +411,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenr2"].id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames["chickenearty1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenacidarty"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickenh2"].id] = { distance = 500, chance = 1 },
 	}
 	local BERSERK = {
 		[UnitDefNames["ve_chickenq"].id] = { chance = 0.01 },
@@ -437,6 +439,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenp1"].id] = { chance = 0.2 },
 		[UnitDefNames["chickenp2"].id] = { chance = 0.2 },
 		[UnitDefNames["chickenpyroallterrain"].id] = { chance = 0.2 },
+		[UnitDefNames["chickenh4"].id] = { chance = 1 },
 	}
 	local HEALER = {
 		[UnitDefNames["chickenh1"].id] = true,
