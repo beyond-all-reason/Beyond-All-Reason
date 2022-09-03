@@ -1581,23 +1581,15 @@ if gadgetHandler:IsSyncedCode() then
 			for unitID, _ in pairs(broodRaptors1) do
 				if mRandom() < config.spawnChance then
 					if mRandom(0,math.ceil((brood3count*4)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))) == 0 then
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID, squadID = 1})
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID, squadID = 2})
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID, squadID = 3})
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID, squadID = 4})
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID, squadID = 5})
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID, squadID = 6})
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID, squadID = 7})
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID, squadID = 8})
+						SpawnRandomOffWaveSquad(unitID, "chickenh4", 8)
 						break
 					end
 					if mRandom(0,math.ceil((brood2count*8)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))) == 0 then
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh3", team = chickenTeamID, squadID = 1})
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh3", team = chickenTeamID, squadID = 2})
+						SpawnRandomOffWaveSquad(unitID, "chickenh3", 2)
 						break
 					end
 					if mRandom(0,math.ceil((brood1count*16)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))) == 1 then
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh2", team = chickenTeamID, squadID = 1})
+						SpawnRandomOffWaveSquad(unitID, "chickenh2", 1)
 						break
 					end
 				end
@@ -1605,14 +1597,11 @@ if gadgetHandler:IsSyncedCode() then
 			for unitID, _ in pairs(broodRaptors2) do
 				if mRandom() < config.spawnChance then
 					if mRandom(0,math.ceil((brood3count*8)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))) == 0 then
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID, squadID = 1})
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID, squadID = 2})
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID, squadID = 3})
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID, squadID = 4})
+						SpawnRandomOffWaveSquad(unitID, "chickenh4", 4)
 						break
 					end
 					if mRandom(0,math.ceil((brood2count*16)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))) == 0 then
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh3", team = chickenTeamID, squadID = 1})
+						SpawnRandomOffWaveSquad(unitID, "chickenh3", 1)
 						break
 					end
 				end
@@ -1620,7 +1609,7 @@ if gadgetHandler:IsSyncedCode() then
 			for unitID, _ in pairs(broodRaptors3) do
 				if mRandom() < config.spawnChance then
 					if mRandom(0,math.ceil((brood3count*16)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))) == 0 then
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID, squadID = 1})
+						SpawnRandomOffWaveSquad(unitID, "chickenh4", 1)
 						break
 					end
 				end
