@@ -163,7 +163,7 @@ local function GetCommAttributes(unitID, unitDefID)
 	end
 
 	local height = comHeight[unitDefID] + heightOffset
-	return { name, { r, g, b, a }, height, bgColor, nil, playerRank+1, math.floor(GetUnitExperience(unitID)) }
+	return { name, { r, g, b, a }, height, bgColor, nil, playerRank and playerRank+1, math.floor(GetUnitExperience(unitID)) }
 end
 
 local function RemoveLists()
