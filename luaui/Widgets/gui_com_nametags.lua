@@ -25,11 +25,16 @@ local fontShadow = true        -- only shows if font has a white outline
 local shadowOpacity = 0.35
 
 local showPlayerRank = true
-local playerRankImages = "luaui\\images\\advplayerslist\\ranks\\"
 local playerRankSize = fontSize * 1.05
+local playerRankImages = "luaui\\images\\advplayerslist\\ranks\\"
+local useSkill = false
+if useSkill then
+	playerRankSize = fontSize * 2.5
+	playerRankImages = "luaui\\images\\Ranks\\rank"
+end
 
-local comLevelImages = "luaui\\images\\Ranks\\rank"
 local comLevelSize = fontSize * 2.5
+local comLevelImages = "luaui\\images\\Ranks\\rank"
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -46,7 +51,10 @@ local IsUnitIcon = Spring.IsUnitIcon
 local GetCameraPosition = Spring.GetCameraPosition
 local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitExperience = Spring.GetUnitExperience
+local GetUnitRulesParam = Spring.GetUnitRulesParam
 
+local glTexture = gl.Texture
+local glTexRect = gl.TexRect
 local glDepthTest = gl.DepthTest
 local glAlphaTest = gl.AlphaTest
 local glColor = gl.Color
@@ -132,6 +140,7 @@ local function GetCommAttributes(unitID, unitDefID)
 		return nil
 	end
 
+
 	local playerRank
 	local name = ''
 	local luaAI = Spring.GetTeamLuaAI(team)
@@ -162,8 +171,29 @@ local function GetCommAttributes(unitID, unitDefID)
 		bgColor = { 1, 1, 1, 1 }	-- try to keep these values the same as the playerlist
 	end
 
+
+	if useSkill then
+		playerRank = nil
+		local playerID = select(2, GetTeamInfo(team, false))
+		local customtable = select(11, GetPlayerInfo(playerID))
+		if customtable and customtable.skill then
+			local skill = customtable.skill
+			skill = skill and tonumber(skill:match("-?%d+%.?%d*")) or 0
+			skill = math.floor(skill * 0.25)
+			playerRank = skill
+			if playerRank > 16 then
+				playerRank = 16
+			elseif playerRank < 1 then
+				playerRank = 1
+			end
+		end
+	end
+	local xp = GetUnitRulesParam(unitID, "xp")
+	if not xp then
+		xp = GetUnitExperience(unitID)
+	end
 	local height = comHeight[unitDefID] + heightOffset
-	return { name, { r, g, b, a }, height, bgColor, nil, playerRank and playerRank+1, math.floor(GetUnitExperience(unitID)) }
+	return { name, { r, g, b, a }, height, bgColor, nil, playerRank and playerRank+1, math.floor(xp or 0) }
 end
 
 local function RemoveLists()
@@ -221,9 +251,9 @@ local function createComnameList(attributes)
 			local halfSize = playerRankSize*0.5
 			local x_l = x - (((font:GetTextWidth(name) * fontSize) * 0.5) + halfSize + (fontSize * 0.1))
 			local y_l = y + (fontSize * 0.33)
-			gl.Texture(playerRankImages..attributes[6]..'.png')
-			gl.TexRect(x_l-halfSize, y_l-halfSize, x_l+halfSize, y_l+halfSize)
-			gl.Texture(false)
+			glTexture(playerRankImages..attributes[6]..'.png')
+			glTexRect(x_l-halfSize, y_l-halfSize, x_l+halfSize, y_l+halfSize)
+			glTexture(false)
 		end
 		-- unba commander level
 		if unba and attributes[7] then
@@ -232,9 +262,9 @@ local function createComnameList(attributes)
 			--local y_r = y + (fontSize * 0.44)
 			local x_r = 0
 			local y_r = y + (fontSize * 0.4) + (comLevelSize * 0.42)
-			gl.Texture(comLevelImages..(attributes[7]+2)..'.png')
-			gl.TexRect(x_r-halfSize, y_r-halfSize, x_r+halfSize, y_r+halfSize)
-			gl.Texture(false)
+			glTexture(comLevelImages..(attributes[7]+2)..'.png')
+			glTexRect(x_r-halfSize, y_r-halfSize, x_r+halfSize, y_r+halfSize)
+			glTexture(false)
 		end
 	end)
 end

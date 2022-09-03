@@ -24,6 +24,7 @@ if gadgetHandler:IsSyncedCode() then  --Sync?
 	local experiences = {}
 	local taxes = {}
 
+	local isCommander = {}
 	local expvalues = {}
 	local taxvalue = {}
 	local oldteams = {}
@@ -33,6 +34,9 @@ if gadgetHandler:IsSyncedCode() then  --Sync?
 		expvalues[unitDefID] = math.sqrt(uDef.metalCost + uDef.energyCost/60)/500
 		taxvalues[unitDefID] = taxvalues[categories[unitDefID]] or 1.025
 		taxvalues[categories[unitDefID]] = nil
+		if uDef.customParams.iscommander then
+			isCommander[unitDefID] = true
+		end
 	end
 
 	local function AddExperienceValue(team, cat, value)
@@ -120,6 +124,13 @@ if gadgetHandler:IsSyncedCode() then  --Sync?
 		else
 			gadget:UnitDestroyed(unitID, unitDefID, oldTeam)
 			gadget:UnitCreated(unitID, unitDefID, newTeam)
+		end
+	end
+
+	function gadget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldXP)
+		if isCommander[unitDefID] then
+			if xp < 0 then xp = 0 end
+			Spring.SetUnitRulesParam(unitID, "xp", xp, { 'inlos' }) --'inradar'
 		end
 	end
 

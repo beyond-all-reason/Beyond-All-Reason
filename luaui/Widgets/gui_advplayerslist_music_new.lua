@@ -595,8 +595,6 @@ function widget:MouseRelease(x, y, button)
 end
 
 function widget:Update(dt)
-	local mx, my, mlb = Spring.GetMouseState()
-	
 	local frame = Spring.GetGameFrame()
 	local _,_,paused = Spring.GetGameSpeed()
 	if playing and (paused or frame < 1) then
@@ -612,6 +610,7 @@ function widget:Update(dt)
 	end
 
 	if showGUI then
+		local mx, my, mlb = Spring.GetMouseState()
 		if math_isInRect(mx, my, left, bottom, right, top) then
 			mouseover = true
 		end
