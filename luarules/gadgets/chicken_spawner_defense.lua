@@ -582,15 +582,7 @@ if gadgetHandler:IsSyncedCode() then
 		local role = squadsTable[squadID].squadRole
 		local targetCount = SetCount(squadPotentialTarget)
 		local pos = false
-		
-		for target in pairs(unitTargetPool) do
-			if unitTargetPool[target] == squadID then
-				local x,y,z = Spring.GetUnitPosition(target)
-				--Spring.MarkerErasePosition (x, y, z)
-				unitTargetPool[target] = nil
-				break
-			end
-		end
+		unitTargetPool[squadID] = nil
 		local loops = 0
 		repeat
 			loops = loops + 1
@@ -600,7 +592,7 @@ if gadgetHandler:IsSyncedCode() then
 						local x,y,z = Spring.GetUnitPosition(target)
 						if y >= 0 then
 							pos = {x = x, y = y, z = z}
-							unitTargetPool[target] = squadID
+							unitTargetPool[squadID] = target
 							break
 						end
 					end
@@ -682,7 +674,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function manageAllSquads() -- Get new target for all squads that need it
 		for i = 1,#squadsTable do
 			local hasTarget = false
-			for target, squad in pairs(unitTargetPool) do
+			for squad, target in pairs(unitTargetPool) do
 				if i == squad then
 					hasTarget = true
 					break
@@ -1004,6 +996,7 @@ if gadgetHandler:IsSyncedCode() then
 		local cCount = 0
 		local loopCounter = 0
 		local squadCounter = 0
+		local cleanerSpawned = 0
 		repeat
 			loopCounter = loopCounter + 1
 			for burrowID in pairs(burrows) do
@@ -1037,19 +1030,19 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 				
-				if loopCounter == 1 then
-					local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
-					local targetCleaners = currentWave*SetCount(humanTeams)*config.chickenSpawnMultiplier*2
-					local cleanerSpawnCount = math.ceil((targetCleaners - aliveCleaners)*0.25)
-					if cleanerSpawnCount > 0 then
-						if mRandom(0,1) == 0 then
-							for i = 1,math.ceil(cleanerSpawnCount) do
-								table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = i })
-							end
-						else
-							for i = 1,math.ceil(cleanerSpawnCount) do
-								table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = i })
-							end
+				local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
+				local targetCleaners = currentWave*SetCount(humanTeams)*config.chickenSpawnMultiplier*2
+				local cleanerSpawnCount = math.ceil((targetCleaners - aliveCleaners)*0.25)
+				if targetCleaners - cleanerSpawned > 0 then
+					if mRandom(0,1) == 0 then
+						for i = 1,math.ceil(cleanerSpawnCount) do
+							table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = i })
+							cleanerSpawned = cleanerSpawned + 1
+						end
+					else
+						for i = 1,math.ceil(cleanerSpawnCount) do
+							table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = i })
+							cleanerSpawned = cleanerSpawned + 1
 						end
 					end
 				end
@@ -1679,11 +1672,11 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		squadPotentialTarget[unitID] = nil
-		if unitTargetPool[unitID] then
-			refreshSquad(unitTargetPool[unitID])
-			unitTargetPool[unitID] = nil
+		for squad in ipairs(unitTargetPool) do
+			if unitTargetPool[squad] == unitID then
+				refreshSquad(squad)
+			end
 		end
-		
 
 		if unitTeam == chickenTeamID and chickenDefTypes[unitDefID] then
 			local name = unitName[unitDefID]
