@@ -1576,21 +1576,21 @@ if gadgetHandler:IsSyncedCode() then
 			local brood3count = SetCount(broodRaptors3)
 			for unitID, _ in pairs(broodRaptors1) do
 				if mRandom(0,brood2count*2) == 0 then
-					table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh3", team = chickenTeamID})
-					table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh3", team = chickenTeamID})
+					table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh3", team = chickenTeamID, squadID = 1})
+					table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh3", team = chickenTeamID, squadID = 2})
 					if mRandom(1,2) == 1 then
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh2", team = chickenTeamID})
+						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh2", team = chickenTeamID, squadID = 3})
 					end
 				end
 			end
 			for unitID, _ in pairs(broodRaptors2) do
 				if mRandom(0,brood3count*2) == 0 then
-					table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID})
-					table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID})
-					table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID})
-					table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID})
+					table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID, squadID = 1})
+					table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID, squadID = 2})
+					table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID, squadID = 3})
+					table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID, squadID = 4})
 					if mRandom(1,2) == 1 then
-						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh3", team = chickenTeamID})
+						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh3", team = chickenTeamID, squadID = 5})
 					end
 				end
 			end
