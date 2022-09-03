@@ -92,6 +92,9 @@ if gadgetHandler:IsSyncedCode() then
 	local lsx1, lsz1, lsx2, lsz2
 	local burrows = {}
 	local heroChicken = {}
+	local broodRaptors1 = {}
+	local broodRaptors2 = {}
+	local broodRaptors3 = {}
 	local unitName = {}
 	local unitShortName = {}
 	local squadsTable = {}
@@ -1060,6 +1063,15 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitTeam == chickenTeamID or chickenDefTypes[unitDefID] then
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{3},0)
+			if UnitDefs[unitDefID].name == "chickenh2" then
+				broodRaptors1[unitID] = true
+			end
+			if UnitDefs[unitDefID].name == "chickenh3" then
+				broodRaptors2[unitID] = true
+			end
+			if UnitDefs[unitDefID].name == "chickenh4" then
+				broodRaptors3[unitID] = true
+			end
 			return
 		end
 		if squadPotentialTarget[unitID] then
@@ -1558,6 +1570,31 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
+		if n%30 == 20 then
+			--local brood1count = SetCount(broodRaptors1)
+			local brood2count = SetCount(broodRaptors2)
+			local brood3count = SetCount(broodRaptors3)
+			for unitID, _ in pairs(broodRaptors1) do
+				if mRandom(0,brood2count*2) == 0 then
+					table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh3", team = chickenTeamID})
+					table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh3", team = chickenTeamID})
+					if mRandom(1,2) == 1 then
+						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh2", team = chickenTeamID})
+					end
+				end
+			end
+			for unitID, _ in pairs(broodRaptors2) do
+				if mRandom(0,brood3count*2) == 0 then
+					table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID})
+					table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID})
+					table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID})
+					table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh4", team = chickenTeamID})
+					if mRandom(1,2) == 1 then
+						table.insert(spawnQueue, { burrow = unitID, unitName = "chickenh3", team = chickenTeamID})
+					end
+				end
+			end
+		end
 	end
 
 	local chickenEggColors = {"pink","white","red", "blue", "darkgreen", "purple", "green", "yellow", "darkred", "acidgreen"}
@@ -1702,6 +1739,16 @@ if gadgetHandler:IsSyncedCode() then
 				attemptingToSpawnSpecialLightTurret = attemptingToSpawnSpecialLightTurret + mRandom(2,5)
 				attemptingToSpawnSpecialHeavyTurret = attemptingToSpawnSpecialHeavyTurret + mRandom(1,2)
 			end
+		end
+
+		if UnitDefs[unitDefID].name == "chickenh2" then
+			broodRaptors1[unitID] = nil
+		end
+		if UnitDefs[unitDefID].name == "chickenh3" then
+			broodRaptors2[unitID] = nil
+		end
+		if UnitDefs[unitDefID].name == "chickenh4" then
+			broodRaptors3[unitID] = nil
 		end
 	end
 
