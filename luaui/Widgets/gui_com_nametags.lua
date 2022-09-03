@@ -28,14 +28,15 @@ local showPlayerRank = true
 local playerRankImages = "luaui\\images\\advplayerslist\\ranks\\"
 local playerRankSize = fontSize * 1.05
 
-local comLevelImages = "luaui\\images\\ranks\\"
-local comLevelSize = fontSize * 1
+local comLevelImages = "luaui\\images\\Ranks\\rank"
+local comLevelSize = fontSize * 2.5
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 local GetUnitTeam = Spring.GetUnitTeam
 local GetPlayerInfo = Spring.GetPlayerInfo
+local GetTeamInfo = Spring.GetTeamInfo
 local GetPlayerList = Spring.GetPlayerList
 local GetTeamColor = Spring.GetTeamColor
 local GetUnitDefID = Spring.GetUnitDefID
@@ -82,6 +83,8 @@ if #Spring.GetTeamList() - 1 == #Spring.GetAllyTeamList() - 1 then
 end
 
 local unba = Spring.GetModOptions().unba
+
+local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousName = '?????'
@@ -139,7 +142,9 @@ local function GetCommAttributes(unitID, unitDefID)
 	else
 		local players = GetPlayerList(team)
 		name = (#players > 0) and GetPlayerInfo(players[1], false) or '------'
-		playerRank = select(9, GetPlayerInfo(players[1], false))
+		if players[1] then
+			playerRank = select(9, GetPlayerInfo(players[1], false))
+		end
 
 		for _, pID in ipairs(players) do
 			local pname, active, isspec = GetPlayerInfo(pID, false)
@@ -157,10 +162,8 @@ local function GetCommAttributes(unitID, unitDefID)
 		bgColor = { 1, 1, 1, 1 }	-- try to keep these values the same as the playerlist
 	end
 
-	local comLevel = 2
-
 	local height = comHeight[unitDefID] + heightOffset
-	return { name, { r, g, b, a }, height, bgColor, nil, playerRank+1, comLevel }
+	return { name, { r, g, b, a }, height, bgColor, nil, playerRank+1, math.floor(GetUnitExperience(unitID)) }
 end
 
 local function RemoveLists()
@@ -180,7 +183,7 @@ local function createComnameList(attributes)
 	end
 	comnameList[attributes[1]] = gl.CreateList(function()
 		local x,y = 0,0
-		if not anonymousMode and showPlayerRank and not unba and attributes[6] then
+		if not anonymousMode and showPlayerRank and not unba and attributes[6] and not isSinglePlayer then
 			x = (playerRankSize*0.5)
 		end
 		local outlineColor = { 0, 0, 0, 1 }
@@ -213,12 +216,24 @@ local function createComnameList(attributes)
 		font:Print(name, x, y, fontSize, "con")
 		font:End()
 
-		if not anonymousMode and showPlayerRank and attributes[6] then
+		-- player rank
+		if showPlayerRank and attributes[6] and not anonymousMode and not isSinglePlayer then
 			local halfSize = playerRankSize*0.5
-			x = x - (((font:GetTextWidth(name) * fontSize) * 0.5) + halfSize + (fontSize * 0.1))
-			y = y + (fontSize * 0.33)
+			local x_l = x - (((font:GetTextWidth(name) * fontSize) * 0.5) + halfSize + (fontSize * 0.1))
+			local y_l = y + (fontSize * 0.33)
 			gl.Texture(playerRankImages..attributes[6]..'.png')
-			gl.TexRect(x-halfSize, y-halfSize, x+halfSize, y+halfSize)
+			gl.TexRect(x_l-halfSize, y_l-halfSize, x_l+halfSize, y_l+halfSize)
+			gl.Texture(false)
+		end
+		-- unba commander level
+		if showPlayerRank and attributes[7] then
+			local halfSize = comLevelSize*0.5
+			--local x_r = x + (((font:GetTextWidth(name) * fontSize) * 0.5) + halfSize + (fontSize * 0.1))
+			--local y_r = y + (fontSize * 0.44)
+			local x_r = 0
+			local y_r = y + (fontSize * 0.4) + (comLevelSize * 0.42)
+			gl.Texture(comLevelImages..(attributes[7]+2)..'.png')
+			gl.TexRect(x_r-halfSize, y_r-halfSize, x_r+halfSize, y_r+halfSize)
 			gl.Texture(false)
 		end
 	end)
@@ -283,7 +298,7 @@ function widget:Update(dt)
 	if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
 		if myTeamID ~= Spring.GetMyTeamID() then
 			-- old
-			local name = GetPlayerInfo(select(2, Spring.GetTeamInfo(myTeamID, false)), false)
+			local name = GetPlayerInfo(select(2, GetTeamInfo(myTeamID, false)), false)
 			if comnameList[name] ~= nil then
 				gl.DeleteList(comnameList[name])
 				comnameList[name] = nil
@@ -291,7 +306,7 @@ function widget:Update(dt)
 			-- new
 			myTeamID = Spring.GetMyTeamID()
 			myPlayerID = Spring.GetMyPlayerID()
-			name = GetPlayerInfo(select(2, Spring.GetTeamInfo(myTeamID, false)), false)
+			name = GetPlayerInfo(select(2, GetTeamInfo(myTeamID, false)), false)
 			if comnameList[name] ~= nil then
 				gl.DeleteList(comnameList[name])
 				comnameList[name] = nil
@@ -485,7 +500,7 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 	CheckCom(unitID, GetUnitDefID(unitID), unitTeam)
 end
 
-if unba or true then
+if unba then
 	function widget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldXP)
 		if comHeight[unitDefID] then
 			if xp < 0 then
@@ -496,6 +511,8 @@ if unba or true then
 			end
 			if math.floor(xp) ~= math.floor(oldXP) then
 				GetCommAttributes(unitID, unitDefID)
+				local name, _ = GetPlayerInfo(select(2, GetTeamInfo(unitTeam, false)), false)
+				comnameList[name] = nil
 			end
 		end
 	end
@@ -503,7 +520,6 @@ end
 
 function toggleNameScaling()
 	nameScaling = not nameScaling
-
 	return true
 end
 
