@@ -3150,6 +3150,15 @@ function init()
 
 		{ id = "unitenergyicons", group = "ui", category = types.advanced, widget = "Unit Energy Icons", name = texts.option.unitenergyicons, type = "bool", value = GetWidgetToggleValue("Unit Energy Icons"), description = texts.option.unitenergyicons_descr },
 
+		{ id = "nametags_rank", group = "ui", category = types.advanced, name = texts.option.nametags_rank, type = "bool", value = true, description = texts.option.nametags_rank_descr,
+		  onload = function(i)
+			  loadWidgetData("Commander Name Tags", "nametags_rank", { 'showPlayerRank' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Commander Name Tags', 'nametags', 'SetShowPlayerRank', { 'showPlayerRank' }, value)
+		  end,
+		},
+
 		{ id = "commandsfx", group = "ui", category = types.basic, widget = "Commands FX", name = texts.option.commandsfx, type = "bool", value = GetWidgetToggleValue("Commands FX"), description = texts.option.commandsfx_descr },
 
 		{ id = "commandsfxopacity", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.commandsfxopacity, type = "slider", min = 0.25, max = 1, step = 0.1, value = 1, description = '',
