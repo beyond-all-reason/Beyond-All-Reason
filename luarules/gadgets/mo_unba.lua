@@ -130,7 +130,7 @@ if gadgetHandler:IsSyncedCode() then  --Sync?
 	function gadget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldXP)
 		if isCommander[unitDefID] then
 			if xp < 0 then xp = 0 end
-			Spring.SetUnitRulesParam(unitID, "xp", xp, { 'inlos' }) --'inradar'
+			Spring.SetUnitRulesParam(unitID, "xp", xp, { inlos = true }) --'inradar'
 		end
 	end
 
