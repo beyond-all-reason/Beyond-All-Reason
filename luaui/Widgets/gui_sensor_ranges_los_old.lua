@@ -1,22 +1,21 @@
 function widget:GetInfo()
 	return {
-		name = "Sensor Ranges LOS",
+		name = "Sensor Ranges LOS OLD",
 		desc = "Shows LOS ranges of all ally units. (GL4)",
-		author = "Beherith GL4, Borg_King",
+		author = "Beherith GL4",
 		date = "2021.06.18",
 		license = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer = 0,
-		enabled = true
+		enabled = false
 	}
 end
 
 -------   Configurables: -------------------
-local rangeColor = { 0.9, 0.9, 0.9, 0.74 } -- default range color
+local rangeColor = { 0.9, 0.9, 0.9, 0.24 } -- default range color
 local opacity = 0.08
 local useteamcolors = false
 local usestipple = 0 -- 0 or 1
 local rangeLineWidth = 4.5 -- (note: will end up larger for larger vertical screen resolution size)
--- local intendedRingRadius = 5
 
 local circleSegments = 64
 local rangecorrectionelmos = 16 -- how much smaller they are drawn than truth due to LOS mipping
@@ -138,7 +137,6 @@ local function initgl4()
 	if circleInstanceVBO then
 		clearInstanceTable(circleInstanceVBO)
 	end
-	
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
@@ -170,7 +168,6 @@ local function initgl4()
 	circleInstanceVBO.numVertices = numVertices
 	circleInstanceVBO.vertexVBO = circleVBO
 	circleInstanceVBO.VAO = makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
-	
 end
 
 -- Functions shortcuts
@@ -187,10 +184,8 @@ local glLineWidth = gl.LineWidth
 local glStencilFunc = gl.StencilFunc
 local glStencilOp = gl.StencilOp
 local glStencilTest = gl.StencilTest
-local glStencilMask = gl.StencilMask
 local GL_ALWAYS = GL.ALWAYS
 local GL_EQUAL = GL.EQUAL
-local GL_NOTEQUAL = GL.NOTEQUAL
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_KEEP = 0x1E00 --GL.KEEP
 local GL_REPLACE = GL.REPLACE
@@ -314,7 +309,7 @@ local function processUnit(unitID, unitDefID, caller, teamID)
 		true, -- updateExisting
 		caller == "Initialize" -- dont upload on init
 	)
-	
+
 end
 
 function widget:Initialize()
@@ -340,7 +335,6 @@ function widget:Initialize()
 		processUnit(units[i], spGetUnitDefID(units[i]), "Initialize")
 	end
 	uploadAllElements(circleInstanceVBO) --upload initialized at once
-	
 end
 
 function widget:Shutdown()
@@ -350,7 +344,7 @@ end
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	if unitList[unitID] then
 		unitList[unitID] = nil
-		popElementInstance(circleInstanceVBO, unitID)		
+		popElementInstance(circleInstanceVBO, unitID)
 	end
 end
 
@@ -392,9 +386,10 @@ function widget:GameFrame(n)
 				if crashable[unitDefID] then
 					instanceData[instanceDataOffset + 8] = spGetUnitSensorRadius(unitID, "los")
 				end
+
 			end
 		end
-		uploadAllElements(circleInstanceVBO)		
+		uploadAllElements(circleInstanceVBO)
 	end
 end
 
@@ -428,26 +423,34 @@ function widget:DrawWorld()
 	gl.Texture(0, "$heightmap")
 	circleShader:Activate()
 	circleShader:SetUniform("circleopacity", useteamcolors and opacity*2 or opacity)
-	
-	-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
-	-- Borg_King: Draw solid circles into masking stencil buffer
+
+	-- Draw outer circles into stencil buffer
+	glStencilFunc(GL_ALWAYS, 1, 1) -- Always Passes, 1 Bit Plane, 1 As Mask
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
-	glStencilFunc(GL_ALWAYS, 1, 1) -- Always Passes, 0 Bit Plane, 0 As Mask
-	glStencilMask(1)
-	
+	glLineWidth(rangeLineWidth + 1.0)
+	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
+
+	-- Draw inverse inner circles into stencil buffer
+	glStencilFunc(GL_ALWAYS, 0, 0) -- Always Passes, 0 Bit Plane, 0 As Mask
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 0 Where Draw Any Polygon
 	circleInstanceVBO.VAO:DrawArrays(GL_TRIANGLE_FAN, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
-	
-	-- Borg_King: Draw thick ring with partial width outside of solid circle, replacing stencil to 0 (draw) where test passes
-	glColorMask(true, true, true, true)	-- re-enable color drawing
-	glStencilFunc(GL_NOTEQUAL, 1, 1)
-	glStencilMask(0)
+
+	glColorMask(true, true, true, true)
+
+	glDepthTest(true)
+	glStencilFunc(GL_EQUAL, 1, 1)
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+
+	-- Render outer circles using resulting stencil
 	glColor(rangeColor[1], rangeColor[2], rangeColor[3], rangeColor[4])
 	glLineWidth(rangeLineWidth * lineScale * 2)
 	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
-	
+
 	circleShader:Deactivate()
 	gl.Texture(0, false)
+
 	glStencilTest(false)
+
 	glDepthTest(true)
 	glColor(1.0, 1.0, 1.0, 1.0) --reset like a nice boi
 	glLineWidth(1.0)
@@ -470,5 +473,4 @@ function widget:SetConfigData(data)
 		useteamcolors = data.useteamcolors
 	end
 end
-
 
