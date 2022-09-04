@@ -88,7 +88,7 @@
 	"build_delay": [[3, 0], [0, 1200]],
 
 	// 1 constructor of each UnitDef that has no DefendTask is assigned to tasks near base
-	"base_builder": false,
+	"base_builder": true,
 
 	// [0] - metal-expenditure multiplier for build condition of new factory or assistant 
 	// [1] - energy-expenditure multiplier for build condition of new factory or assistant

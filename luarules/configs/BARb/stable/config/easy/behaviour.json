@@ -514,14 +514,15 @@
 		"role": ["skirmish"]
 	},
 	"armart": {
-		"role": ["artillery"]
+		"role": ["artillery"],
+		"attribute": ["siege"]
 	},
 	"armjanus": {
 		"role": ["assault"]
 	},
 	"armsam": {
-		"role": ["anti_air"],
-		"attribute": ["skirmish"]
+		"role": ["artillery", "anti_air"],
+		"attribute": ["siege"]
 	},
 
 	// adv vehicles - armavp
@@ -547,7 +548,8 @@
 		"attribute": ["artillery"]
 	},
 	"armmart": {
-		"role": ["artillery"]
+		"role": ["artillery"],
+		"attribute": ["siege"]
 	},
 	"armmerl": {
 		"role": ["artillery"]
@@ -846,8 +848,8 @@
 		"role": ["artillery"]
 	},
 	"cormist": {
-		"role": ["anti_air"],
-		"attribute": ["skirmish"]
+		"role": ["artillery", "anti_air"],
+		"attribute": ["siege"]
 	},
 
 	// adv vehicles - coravp
