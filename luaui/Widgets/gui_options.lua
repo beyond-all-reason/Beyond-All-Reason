@@ -2776,14 +2776,14 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'rank' }, value, { 'rank', value })
 		  end,
 		},
-		{ id = "advplayerlist_side", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_side, type = "bool", value = true, description = texts.option.advplayerlist_side_descr,
-		  onload = function(i)
-			  loadWidgetData("AdvPlayersList", "advplayerlist_side", { 'm_active_Table', 'side' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'side' }, value, { 'side', value })
-		  end,
-		},
+		--{ id = "advplayerlist_side", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_side, type = "bool", value = true, description = texts.option.advplayerlist_side_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("AdvPlayersList", "advplayerlist_side", { 'm_active_Table', 'side' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'side' }, value, { 'side', value })
+		--  end,
+		--},
 		{ id = "advplayerlist_skill", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_skill, type = "bool", value = true, description = texts.option.advplayerlist_skill_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_skill", { 'm_active_Table', 'skill' })
@@ -2824,7 +2824,15 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
 		  end,
 		},
-		{ id = "unittotals", group = "ui", category = types.basic, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   " .. texts.option.unittotals, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = texts.option.unittotals_descr },
+		{ id = "unittotals", group = "ui", category = types.advanced, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   " .. texts.option.unittotals, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = texts.option.unittotals_descr },
+		{ id = "musicplayer", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. widgetOptionColor .. texts.option.musicplayer, type = "bool", value = (WG['music'] ~= nil and WG['music'].GetShowGui() or false), description = texts.option.musicplayer_descr,
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList Music Player New", "musicplayer", { 'showGUI' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList Music Player New', 'music', 'SetShowGui', { 'showGUI' }, value)
+		  end,
+		},
 		{ id = "mascot", group = "ui", category = types.advanced, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   " .. texts.option.mascot, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = texts.option.mascot_descr },
 
 		{ id = "displayselectedname", group = "ui", category = types.advanced, name = texts.option.displayselectedname, type = "bool", value = (WG['playertv'] ~= nil and WG['playertv'].GetAlwaysDisplayName() or false), description = texts.option.displayselectedname_descr,
@@ -3149,6 +3157,15 @@ function init()
 		{ id = "showbuilderqueue", group = "ui", category = types.advanced, widget = "Show Builder Queue", name = texts.option.showbuilderqueue, type = "bool", value = GetWidgetToggleValue("Show Builder Queue"), description = texts.option.showbuilderqueue_descr },
 
 		{ id = "unitenergyicons", group = "ui", category = types.advanced, widget = "Unit Energy Icons", name = texts.option.unitenergyicons, type = "bool", value = GetWidgetToggleValue("Unit Energy Icons"), description = texts.option.unitenergyicons_descr },
+
+		{ id = "nametags_rank", group = "ui", category = types.advanced, name = texts.option.nametags_rank, type = "bool", value = true, description = texts.option.nametags_rank_descr,
+		  onload = function(i)
+			  loadWidgetData("Commander Name Tags", "nametags_rank", { 'showPlayerRank' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Commander Name Tags', 'nametags', 'SetShowPlayerRank', { 'showPlayerRank' }, value)
+		  end,
+		},
 
 		{ id = "commandsfx", group = "ui", category = types.basic, widget = "Commands FX", name = texts.option.commandsfx, type = "bool", value = GetWidgetToggleValue("Commands FX"), description = texts.option.commandsfx_descr },
 

@@ -47,8 +47,8 @@ local buttonY = math.floor(vsy * buttonPosY)
 local orgbuttonH = 40
 local orgbuttonW = 115
 
-local buttonH = orgbuttonH * uiScale
-local buttonW = orgbuttonW * uiScale
+local buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
+local buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
 
 local buttonList, buttonHoverList
 local buttonText = ''

@@ -113,6 +113,7 @@ return {
 				accuracy = 780,
 				areaofeffect = 192,
 				avoidfeature = false,
+				cegtag = "arty-heavy",
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.85,

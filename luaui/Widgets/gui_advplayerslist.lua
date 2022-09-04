@@ -486,7 +486,7 @@ modules = {
     m_rank,
     m_country,
     m_ID,
-    m_side,
+    --m_side,
     m_name,
     m_skill,
     m_resources,
