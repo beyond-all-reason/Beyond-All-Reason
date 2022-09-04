@@ -445,6 +445,7 @@ function widget:DrawWorld()
 	glLineWidth(rangeLineWidth * lineScale * 2)
 	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
 	
+	glStencilMask(1)
 	circleShader:Deactivate()
 	gl.Texture(0, false)
 	glStencilTest(false)
