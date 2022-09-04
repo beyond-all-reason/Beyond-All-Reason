@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 -------   Configurables: -------------------
-local rangeColor = { 0.9, 0.9, 0.9, 0.74 } -- default range color
+local rangeColor = { 0.9, 0.9, 0.9, 0.24 } -- default range color
 local opacity = 0.08
 local useteamcolors = false
 local usestipple = 0 -- 0 or 1
