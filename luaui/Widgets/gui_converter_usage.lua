@@ -92,10 +92,10 @@ local function updateUI()
         --Some coloring and tooltip text
         if converterUse < 20 then
             color = "\255\255\000\000" --Red
-            tooltipText = tooltipText .. "\n\n\255\255\000\000You have too many energy converters for your energy productoon.\n\255\255\000\000Stop building energy converteres and increase your energy production."
+            tooltipText = tooltipText .. "\n\n\255\255\000\000You have too many energy converters for your energy production.\n\255\255\000\000Stop building energy converters and increase your energy production."
         elseif converterUse < 40 then
             color = "\255\255\100\000" --Orange
-            tooltipText = tooltipText .. "\n\n\255\255\100\000You have too many energy converters for your energy productoon.\n\255\255\100\000Increase your energy production."
+            tooltipText = tooltipText .. "\n\n\255\255\100\000You have too many energy converters for your energy production.\n\255\255\100\000Increase your energy production."
         elseif converterUse < 50 then
             color = "\255\255\255\000" --Yellow
         elseif converterUse < 70 then
