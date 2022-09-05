@@ -58,7 +58,7 @@
 				},
 				"converter_usage": {
 					"defaultTooltip": "Energy converter usage\nShows how many of your energy converters are active and producing metal.",
-					"tooManyConverters1Tooltip": "You have too many energy converters for your energy production",
+					"tooManyConverters1Tooltip": "You have too many energy converters for your energy production.",
 					"tooManyConverters2Tooltip": "Stop building energy converters and increase your energy production."
 				}
 			},
