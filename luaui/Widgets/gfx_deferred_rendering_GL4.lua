@@ -31,12 +31,6 @@ local math_sqrt = math.sqrt
 local math_min = math.min
 local math_max = math.max
 
-local glowImg = "LuaUI/Images/glow2.dds"
-local beamGlowImg = ":n:LuaUI/Images/barglow-center.png"
-local beamGlowEndImg = ":n:LuaUI/Images/barglow-edge.png"
-
-local GLSLRenderer = true
-
 local vsx, vsy, chobbyInterface, forceNonGLSL
 local ivsx = 1.0
 local ivsy = 1.0
@@ -63,7 +57,7 @@ local uniformViewPrjInvBeam
 --------------------------------------------------------------------------------
 --Light falloff functions: http://gamedev.stackexchange.com/questions/56897/glsl-light-attenuation-color-and-intensity-formula
 --------------------------------------------------------------------------------
-local autoupdate = true
+local autoupdate = false
 
 local unitDefLight  -- Table of lights per unitDefID
 local unitEventLights -- Table of lights per unitDefID
@@ -152,7 +146,7 @@ local deferredLightGL4Config = {globalLightMult = 1, globalRadiusMult = 1, globa
 
 local shaderConfig = {
 	MIERAYLEIGHRATIO = 0.1, -- The ratio of Rayleigh scattering to Mie scattering
-	RAYMARCHSTEPS = 4, -- must be at least one
+	RAYMARCHSTEPS = 4, -- must be at least one, this one one of the main quality parameters
 	USE3DNOISE = 1, -- dont touch this
 	SURFACECOLORMODULATION = 0.5, -- This specifies how much the lit surfaces color affects direct light blending, 0 is does not effect it, 1.0 is full effect
 	BLEEDFACTOR = 0.5, -- How much oversaturated color channels will bleed into other color channels. 
@@ -890,7 +884,6 @@ function AddRandomLight(which)
 end
 
 
-
 local function LoadLightConfig()
 	local success, result =	pcall(VFS.Include, 'luaui/configs/DeferredLightsGL4config.lua')
 	--Spring.Echo("Loading GL4 light config", success, result)
@@ -968,7 +961,6 @@ local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
 		if lightTable.initComplete == nil then InitializeLight(lightTable) end 
 		local instanceID = tostring(unitID) .. "UnitScriptLight" .. tostring(lightIndex) .. "_" .. tostring(param)
 		AddLight(instanceID, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
-		
 	end
 end
  
@@ -1110,17 +1102,6 @@ function widget:UnitIdle(unitID, unitDefID, teamID)
 				if lightname ~= 'initComplete' then
 					if not lightTable.initComplete then InitializeLight(lightTable, unitID) end
 					AddLight(tostring(unitID) ..  lightname, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
-					--[[
-					if lightTable.lightType == 'point' then
-						AddPointLight( tostring(unitID) ..  lightname, unitID, nil, nil, lightTable.lightParamTable)
-					end
-					if lightTable.lightType == 'cone' then 
-						AddConeLight(tostring(unitID) ..  lightname, unitID, nil, nil, lightTable.lightParamTable) 
-					end
-					if lightTable.lightType == 'beam' then 
-						AddBeamLight(tostring(unitID) ..  lightname, unitID, nil, nil, lightTable.lightParamTable) 
-					end
-					]]--
 				end
 			end
 		end
@@ -1212,7 +1193,6 @@ local function updateProjectileLights(newgameframe)
 				end
 			else
 				-- add projectile		
-				
 				local weapon, piece = Spring.GetProjectileType(projectileID)
 				if piece then 
 					local explosionflags = Spring.GetPieceProjectileParams(projectileID)
@@ -1271,9 +1251,7 @@ local function updateProjectileLights(newgameframe)
 	local numremoved = 0
 	for projectileID, gf in pairs(trackedProjectiles) do
 		if gf < gameFrame then
-			--SO says we can modify or remove elements while iterating, we just cant add
-			
-			
+			-- SO says we can modify or remove elements while iterating, we just cant add
 			-- a possible hack to keep projectiles visible, is trying to keep getting their pos
 			local px, py, pz = spGetProjectilePosition(projectileID)
 			if px then
@@ -1302,8 +1280,6 @@ local function updateProjectileLights(newgameframe)
 	if debugproj then 
 		--Spring.Echo("#points", projectilePointLightVBO.usedElements, '#projs', #nowprojectiles ) 
 	end
-	local trackedprojcount = 0
-	for k,v in pairs(trackedProjectiles) do trackedprojcount = trackedprojcount + 1 end 
 end
 
 local configCache = {lastUpdate = Spring.GetTimer()}
@@ -1332,9 +1308,11 @@ function widget:RecvLuaMsg(msg, playerID)
 		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 	end
 end
-
+local tf = Spring.GetTimerMicros()
 function widget:DrawWorld() -- We are drawing in world space, probably a bad idea but hey
 	--glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
+	local t0 = Spring.GetTimerMicros()
+	--if true then return end
 	if autoupdate then deferredLightShader = checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4") or deferredLightShader end
 	
 	
@@ -1343,20 +1321,8 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		beamLightVBO.usedElements > 0 or 
 		unitConeLightVBO.usedElements > 0 or
 		coneLightVBO.usedElements > 0 then 
-	
-	
 		local alt, ctrl, meta, shft = Spring.GetModKeyState()
-		--[[		
-		local screenCopyTex = nil
-		if WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
-			--screenCopyTex = WG['screencopymanager'].GetScreenCopy() -- TODO DOESNT WORK? CRASHES THE GL PIPE
-		end
-		if screenCopyTex == nil then
-			--glTexture(6, false)
-		else 
-			--glTexture(6, screenCopyTex)
-		end
-		]]--
+
 		if ctrl then
 			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		else
@@ -1375,12 +1341,6 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		glTexture(6, "$map_gbuffer_difftex")
 		glTexture(7, "$model_gbuffer_difftex")
 		glTexture(8, noisetex3dcube)
-		--glTexture(9, "$heightmap")
-		--glTexture(10,"$normals")
-
-
-
-		--Spring.Echo(screenCopyTex)
 		
 		deferredLightShader:Activate()
 		deferredLightShader:SetUniformFloat("nightFactor", nightFactor)
@@ -1435,12 +1395,18 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		
 		deferredLightShader:Deactivate()
 		
-		for i = 0, 10 do glTexture(i, false) end 
+		for i = 0, 8 do glTexture(i, false) end 
 		gl.Culling(GL.BACK)
 		gl.DepthTest(true)
 		gl.DepthMask(true)
 		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
+	local t1 = 	Spring.GetTimerMicros()
+	if (Spring.GetDrawFrame() % 50 == 0 ) then 
+		local dt =  Spring.DiffTimers(t1,t0)
+		Spring.Echo("Deltat is ", dt,'us, so total load should be', dt * Spring.GetFPS() / 10 ,'%') 
+		Spring.Echo("epoch is ", Spring.DiffTimers(t1,tf)) 
+	end 
 end
 
 
