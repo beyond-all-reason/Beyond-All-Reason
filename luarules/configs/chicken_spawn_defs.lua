@@ -335,6 +335,7 @@ if accumulativeSquads == true then
 		addSquad(8, { "4 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
 		addSquad(8, { "6 chickenacidbomber" 														}) -- Acid Bomber
 		addSquad(8, { "3 chickenacidarty" 															}) -- Acid Artillery
+		addSquad(8, { "5 chickenh4" 																}) -- Hatchling
 
 		addSquad(9, { "6 chickenf1apex", "6 chickenf1apexb" 										}) -- Apex Bomber
 		addSquad(9, { "20 chickenw2" 																}) -- Apex Fighter
@@ -342,6 +343,8 @@ if accumulativeSquads == true then
 		addSquad(9, { "3 chickena2", "3 chickena2b"													}) -- Apex Brawler
 		addSquad(9, { "2 chickenapexallterrainassault", "2 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
 		addSquad(9, { "1 chickenr2", "3 chickenr1" 													}) -- Meteor Artillery
+		addSquad(9, { "5 chickenh3" 																}) -- Brood Mother
+		addSquad(9, { "10 chickenh4" 																}) -- Hatchling
 
 		addSquad(10, { "6 chickenf1apex", "6 chickenf1apexb" 										}) -- Apex Bomber
 		addSquad(10, { "40 chickenw2" 																}) -- Apex Fighter

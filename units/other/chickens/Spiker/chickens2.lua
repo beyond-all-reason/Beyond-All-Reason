@@ -111,7 +111,7 @@ return {
 				waterweapon = 1,
 				weaponacceleration = 25,
 				weapontimer = 4,
-				weaponvelocity = 220,
+				weaponvelocity = 600,
 				damage = {
 					default = 1500,
 				},

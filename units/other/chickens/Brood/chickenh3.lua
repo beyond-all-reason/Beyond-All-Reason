@@ -92,7 +92,7 @@ return {
 				name = "Claws",
 				noselfdamage = true,
 				range = 200,
-				reloadtime = 0.73333,
+				reloadtime = 1,
 				soundstart = "smallchickenattack",
 				targetborder = 1,
 				tolerance = 5000,
@@ -100,7 +100,7 @@ return {
 				waterweapon = true,
 				weapontimer = 0.1,
 				weapontype = "Cannon",
-				weaponvelocity = 500,
+				weaponvelocity = 1000,
 				damage = {
 					default = 200,
 				},
