@@ -313,12 +313,14 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			if gf == gameoverAnimFrame then
 				for unitID, _ in pairs(gameoverAnimUnits) do
-					if Spring.GetCOBScriptID(unitID, 'GameOverAnim') then
-						Spring.CallCOBScript(unitID, 'GameOverAnim', 0, true)
-					else
-						local func = Spring.UnitScript.GetScriptEnv(unitID)['GameOverAnim']
-						if func then
-							Spring.UnitScript.CallAsUnit(unitID, func, true)
+					if Spring.IsValidUnit(unitID) then
+						if Spring.GetCOBScriptID(unitID, 'GameOverAnim') then
+							Spring.CallCOBScript(unitID, 'GameOverAnim', 0, true)
+						else
+							local scriptEnv = Spring.UnitScript.GetScriptEnv(unitID)
+							if scriptEnv and scriptEnv['GameOverAnim'] then
+								Spring.UnitScript.CallAsUnit(unitID, scriptEnv['GameOverAnim'], true)
+							end
 						end
 					end
 				end
