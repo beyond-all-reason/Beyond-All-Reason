@@ -1,5 +1,4 @@
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function widget:GetInfo()
 	return {
@@ -13,62 +12,9 @@ function widget:GetInfo()
 		enabled = false
 	}
 end
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
-local glBlending = gl.Blending
-local glDepthMask = gl.DepthMask
-local glDepthTest = gl.DepthTest
-local glGetViewSizes = gl.GetViewSizes
-local glTexture = gl.Texture
-local spEcho = Spring.Echo
-local spGetCameraPosition = Spring.GetCameraPosition
-local spWorldToScreenCoords = Spring.WorldToScreenCoords
-local spGetGroundHeight = Spring.GetGroundHeight
-local gameFrame = 0
-
-local math_sqrt = math.sqrt
-local math_min = math.min
-local math_max = math.max
-
-local vsx, vsy, chobbyInterface, forceNonGLSL
-local ivsx = 1.0
-local ivsy = 1.0
-local screenratio = 1.0
-
--- dynamic light shaders
-local depthPointShader = nil
-local depthBeamShader = nil
-
--- shader uniforms
-local lightposlocPoint = nil
-local lightcolorlocPoint = nil
-local lightparamslocPoint = nil
-local uniformEyePosPoint
-local uniformViewPrjInvPoint
-
-local lightposlocBeam = nil
-local lightpos2locBeam = nil
-local lightcolorlocBeam = nil
-local lightparamslocBeam = nil
-local uniformEyePosBeam
-local uniformViewPrjInvBeam
-
---------------------------------------------------------------------------------
---Light falloff functions: http://gamedev.stackexchange.com/questions/56897/glsl-light-attenuation-color-and-intensity-formula
---------------------------------------------------------------------------------
-local autoupdate = false
-
-local unitDefLight  -- Table of lights per unitDefID
-local unitEventLights -- Table of lights per unitDefID
-local muzzleFlashLights  -- one light per weaponDefID
-local projectileDefLights  -- one light per weaponDefID
-local explosionLights  -- one light per weaponDefID
-local gibLight  -- one light for all pieceprojectiles
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
+-------------------------------- Notes, TODO ----------------------------------
+do
 -- GL4 notes:
 -- A spot light is a sphere?
 -- A cone light is a cone
@@ -86,10 +32,11 @@ local gibLight  -- one light for all pieceprojectiles
 	-- beamlasers
 		-- might get away with not updating their pos each frame?
 		-- probably not, due to continuous lasers like beamer turret (though that one may be spawned every frame...)
+		-- TODO: beamttl needs to be fixes, as we are way over spamming these, with up to 3 lights per beam
 	-- lightning
-		-- these move too?
+		-- TODO: see if the multi-spawn
 	-- plasma balls
-		-- these are actually easy to sim, but might not be worth it
+		-- these are actually easy to sim, but might not be worth it, not simmed
 	-- missiles
 		-- unsimable, must be queried
 	-- rockets
@@ -125,23 +72,71 @@ local gibLight  -- one light for all pieceprojectiles
 	-- yeah raymarch is expensive!
 
 --TODO:
-	--Reload config
-	--Fix initialize
-	--convert config to dicts
-	--load config to tale on init
-	--noupload pass
-	--reload shaderconfig
+	-- XX Reload config
+	-- XX Fix initialize
+	-- XX convert config to dicts
+	-- XX load config to tale on init
+	-- XX noupload pass
+	-- reload shaderconfig
 	--cursorlight
-	--light types should know their vbo?
+	-- XX light types should know their vbo?
 		-- this one is much harder than expected
-	-- initialize config dicts -- DONE
-	-- rework dicts -- DONE
-	-- unitdefidpiecemapcache -- DONE
-	-- Draw pre-water
+	-- XX initialize config dicts -- DONE
+	-- XX rework dicts -- DONE
+	-- XX unitdefidpiecemapcache -- DONE
+	-- Draw pre-water?
 	-- optimizations:
-		-- only upload dirty VBOs
+		-- XX only upload dirty VBOs
+		-- Smaller, single channel noise texture
+		
+end
 
-	
+----------------------------- Localize for optmization ------------------------------------
+
+local glBlending = gl.Blending
+local glDepthMask = gl.DepthMask
+local glDepthTest = gl.DepthTest
+local glTexture = gl.Texture
+local spEcho = Spring.Echo
+
+
+-- Strong: 
+local spIsSphereInView = Spring.IsSphereInView
+local spGetProjectilePosition = Spring.GetProjectilePosition
+local spGetProjectileVelocity = Spring.GetProjectileVelocity
+local spGetProjectileType = Spring.GetProjectileType
+local spGetPieceProjectileParams = Spring.GetPieceProjectileParams
+local spGetProjectileDefID = Spring.GetProjectileDefID
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetGroundHeight = Spring.GetGroundHeight
+
+
+-- Weak:
+local spIsGUIHidden = Spring.IsGUIHidden
+local spGetUnitHeight = Spring.GetUnitHeight -- weak
+
+local math_min = math.min
+local math_max = math.max
+local math_ceil = math.ceil
+
+local gameFrame = 0
+local chobbyInterface
+
+--------------------------------------------------------------------------------
+--Light falloff functions: http://gamedev.stackexchange.com/questions/56897/glsl-light-attenuation-color-and-intensity-formula
+------------------------------ Debug switches ------------------------------
+local autoupdate = true
+
+------------------------------ Light and Shader configurations ------------------
+
+local unitDefLight  -- Table of lights per unitDefID
+local unitEventLights -- Table of lights per unitDefID
+local muzzleFlashLights  -- one light per weaponDefID
+local projectileDefLights  -- one light per weaponDefID
+local explosionLights  -- one light per weaponDefID
+local gibLight  -- one light for all pieceprojectiles
+
+
 local deferredLightGL4Config = {globalLightMult = 1, globalRadiusMult = 1, globalLifeMult = 1} 
 
 local shaderConfig = {
@@ -152,28 +147,72 @@ local shaderConfig = {
 	BLEEDFACTOR = 0.5, -- How much oversaturated color channels will bleed into other color channels. 
 }
 
+-- the 3d noise texture used for this shader
 local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
+
+--[[
+local examplePointLight = {
+	lightType = 'point', 
+	pieceName = nil,
+	alwaysVisible = true,
+	posx = 0, posy = 0, posz = 0, radius = 0, 
+	r = 1, g = 1, b = 1, a = 1, 
+	color2r = 1, color2g = 1, color2b = 1, colortime = 15, -- point lights only, colortime in seconds for unit-attached
+	dirx = 0, diry = 0, dirz = 1, theta = 0.5,  -- cone lights only, specify direction and half-angle in radians
+	pos2x = 100, pos2y = 100, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
+	modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
+	lifetime = 0, sustain = 1, 	aninmtype = 0 -- unused
+}
+]]--
+
+
+------------------------------ Data structures and management variables ------------
 
 -- These will contain 'global' type lights, ones that dont get updated every frame
 local coneLightVBO = {}
 local beamLightVBO = {}
 local pointLightVBO = {}
-local lightVBOMap 
-local autoLightInstanceID = 128000 -- as MAX_PROJECTILES = 128000, so they get unique ones
+local lightVBOMap -- a table of the above 3, keyed by light type
 
 -- These contain cob-controlled lights
 local unitConeLightVBO = {}
 local unitPointLightVBO = {}
 local unitBeamLightVBO = {}
-local unitLightVBOMap 
-
-local cursorPointLightVBO = {} -- this will contain ally and player cursor lights
+local unitLightVBOMap -- a table of the above 3, keyed by light type
 
 -- these will be separate, as they need per-frame updates!
 local projectilePointLightVBO = {}  -- for plasma balls
 local projectileBeamLightVBO = {}  -- for lasers
 local projectileConeLightVBO = {} -- for rockets
-local projectileLightVBOMap
+local projectileLightVBOMap -- a table of the above 3, keyed by light type
+
+local cursorPointLightVBO = {} -- this will contain ally and player cursor lights
+
+local lightRemoveQueue = {} -- stores lights that have expired life {gameframe = {lightIDs ... }}
+
+local unitDefPeiceMapCache = {} -- maps unitDefID to piecemap
+
+local lightParamTableSize = 29
+local lightCacheTable = {} -- this is a reusable table cache for saving memory later on
+for i = 1, lightParamTableSize do lightCacheTable[i] = 0 end 
+local pieceIndexPos = 25
+local spawnFramePos = 17
+lightCacheTable[13] = 1 --modelfactor_specular_scattering_lensflare
+lightCacheTable[14] = 1
+lightCacheTable[15] = 1
+lightCacheTable[16] = 1
+
+local lightParamKeyOrder = {
+	posx = 1, posy = 2, posz = 3, radius = 4, 
+	r = 9, g = 10, b = 11, a = 12, 
+	color2r = 5, color2g = 6, color2b = 7, colortime = 8, -- point lights only, colortime in seconds for unit-attached
+	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- cone lights only, specify direction and half-angle in radians
+	pos2x = 5, pos2y = 6, pos2z = 7, -- beam lights only, specifies the endpoint of the beam
+	modelfactor = 13, specular = 14, scattering = 15, lensflare = 16, 
+	lifetime = 18, sustain = 19, animtype = 20 -- unused
+}
+
+local autoLightInstanceID = 128000 -- as MAX_PROJECTILES = 128000, so they get unique ones
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
@@ -181,16 +220,20 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 local deferredLightShader = nil
 
-local function goodbye(reason) 
-	Spring.Echo('Exiting', reason)
-	widgetHandler:RemoveWidget()
-end
-
 local vsSrcPath = "LuaUI/Widgets/Shaders/deferred_lights_gl4.vert.glsl"
 local fsSrcPath = "LuaUI/Widgets/Shaders/deferred_lights_gl4.frag.glsl"
 
 local lastshaderupdate = nil
 local shaderSourceCache = {}
+
+local chobbyInterface = false
+---------------------- INITIALIZATION FUNCTIONS ----------------------------------
+
+local function goodbye(reason) 
+	Spring.Echo('Exiting', reason)
+	widgetHandler:RemoveWidget()
+end
+
 local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, delaytime)
 	if lastshaderupdate == nil or 
 		Spring.DiffTimers(Spring.GetTimer(), lastshaderupdate) > (delaytime or 2.25) then 
@@ -261,30 +304,11 @@ local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, d
 			end
 		end
 	end
-	return nils
-end
-
-
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
+	return nil
 end
 
 function widget:ViewResize()
-	vsx, vsy = gl.GetViewSizes()
-	ivsx = 1.0 / vsx --we can do /n here!
-	ivsy = 1.0 / vsy
-	if Spring.GetMiniMapDualScreen() == 'left' then
-		vsx = vsx / 2
-	end
-	if Spring.GetMiniMapDualScreen() == 'right' then
-		vsx = vsx / 2
-	end
-	screenratio = vsy / vsx --so we dont overdraw and only always draw a square
 end
-
-widget:ViewResize()
 
 local function createLightInstanceVBO(vboLayout, vertexVBO, numVertices, indexVBO, VBOname, unitIDattribID)
 	local targetLightVBO = makeInstanceVBOTable( vboLayout, 64, VBOname, unitIDattribID)
@@ -297,6 +321,11 @@ local function createLightInstanceVBO(vboLayout, vertexVBO, numVertices, indexVB
 end
  
 local function initGL4()
+	deferredLightShader =  checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4")
+	if not deferredLightShader then 
+		goodbye("Failed to compile Deferred Lights GL4 shader") 
+		return false
+	end 
 	-- init the VBO
 	local vboLayout = {
 			{id = 3, name = 'worldposrad', size = 4}, 
@@ -336,39 +365,61 @@ local function initGL4()
 	projectileLightVBOMap = { point = projectilePointLightVBO,  beam = projectileBeamLightVBO,  cone = projectileConeLightVBO, }
 	unitLightVBOMap = { point = unitPointLightVBO,  beam = unitBeamLightVBO,  cone = unitConeLightVBO, }
 	lightVBOMap = { point = pointLightVBO,  beam = beamLightVBO,  cone = coneLightVBO, }
-	
-	deferredLightShader =  checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4")
-	if not deferredLightShader then goodbye("Failed to compile Deferred Lights GL4 shader") end 
+	return pointLightVBO and unitPointLightVBO and coneLightVBO and beamLightVBO
+end
+
+
+---InitializeLight
+---Takes a light definition table, and tries to check wether its already been initialized, if not, it inits it in-place
+---@param lightTable table
+---@param unitID number 
+local function InitializeLight(lightTable, unitID)
+	if not lightTable.initComplete then  -- late init
+		-- do the table to flattable conversion, if it doesnt exist yet
+		if not lightTable.lightParamTable then -- perform correct init
+			local lightparams = {}
+			for i = 1, lightParamTableSize do lightparams[i] = 0 end 
+			for paramname, tablepos in pairs(lightParamKeyOrder) do 
+				lightparams[tablepos] = lightTable.lightConfig[paramname] or lightparams[tablepos]
+			end
+			lightparams[lightParamKeyOrder.radius] = deferredLightGL4Config.globalRadiusMult * lightparams[lightParamKeyOrder.radius]
+			lightparams[lightParamKeyOrder.a] = deferredLightGL4Config.globalLightMult * lightparams[lightParamKeyOrder.a]
+			lightparams[lightParamKeyOrder.lifetime] = math.floor(deferredLightGL4Config.globalLifeMult * lightparams[lightParamKeyOrder.lifetime] )
+			--lightparams[lightParamKeyOrder.sustain] = math.floor(deferredLightGL4Config.globalLifeMult * lightparams[lightParamKeyOrder.sustain] ) -- not needed yet
+			lightTable.lightParamTable = lightparams
+		end
+
+		if unitID then 
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			if unitDefID and not unitDefPeiceMapCache[unitDefID] then 
+				unitDefPeiceMapCache[unitDefID] = Spring.GetUnitPieceMap(unitID)
+			end
+			local pieceMap = unitDefPeiceMapCache[unitDefID]
+			if pieceMap[lightTable.pieceName] then -- if its not a real piece, it will default to the model worldpos!
+				lightTable.pieceIndex = pieceMap[lightTable.pieceName] 
+				lightTable.lightParamTable[pieceIndexPos] = lightTable.pieceIndex
+			end
+				--Spring.Echo(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
+		end
+
+		lightTable.initComplete = true
+	end
 end
 
 
 --------------------------------------------------------------------------------
-------
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
-local lightRemoveQueue = {}
 local function calcLightExpiry(targetVBO, lightParamTable, instanceID)
 	if lightParamTable[18] <= 0 then -- LifeTime less than 0 means never expires
 		return nil 
 	end
-	local deathtime = math.ceil(lightParamTable[17] + lightParamTable[18])
+	local deathtime = math_ceil(lightParamTable[17] + lightParamTable[18])
 	if lightRemoveQueue[deathtime] == nil then
 		lightRemoveQueue[deathtime] = {}
 	end
 	lightRemoveQueue[deathtime][instanceID] = targetVBO
 	return deathtime
 end
-
-local lightParamTableSize = 29
-local lightCacheTable = {}
-for i = 1, lightParamTableSize do lightCacheTable[i] = 0 end 
-local pieceIndexPos = 25
-local spawnFramePos = 17
-lightCacheTable[13] = 1 --modelfactor_specular_scattering_lensflare
-lightCacheTable[14] = 1
-lightCacheTable[15] = 1
-lightCacheTable[16] = 1
 
 ---AddLight
 ---Note that instanceID can be nil if an auto-generated one is OK.
@@ -679,85 +730,24 @@ local function updateLightPosition(lightVBO, instanceID, posx, posy, posz, radiu
 	if instanceIndex == nil then return nil end
 	instanceIndex = (instanceIndex - 1 ) * lightVBO.instanceStep
 	local instData = lightVBO.instanceData
-	if posx then instData[instanceIndex + 1] = posx end
-	if posy then instData[instanceIndex + 2] = posy end
-	if posz then instData[instanceIndex + 3] = posz end
-	-- only pos for now
-
-	
+	if posx then 
+		instData[instanceIndex + 1] = posx 
+		instData[instanceIndex + 2] = posy 
+		instData[instanceIndex + 3] = posz 
+	end
 	if radius then instData[instanceIndex + 4] = radius end
-	if p2x then instData[instanceIndex + 5] = p2x end
-	if p2y then instData[instanceIndex + 6] = p2y end
-	if p2z then instData[instanceIndex + 7] = p2z end
+	
+	if p2x then 
+		instData[instanceIndex + 5] = p2x 
+		instData[instanceIndex + 6] = p2y 
+		instData[instanceIndex + 7] = p2z 
+	end
 	if theta then instData[instanceIndex + 8] = theta end
-	lightVBO.dirty = true -- YEEEEES
+	lightVBO.dirty = true
 	return instanceIndex 
 end
 
 -- multiple lights per unitdef/piece are possible, as the lights are keyed by lightname
-
-local unitDefPeiceMapCache = {} -- maps unitDefID to piecemap
-
---[[
-local examplePointLight = {
-	lightType = 'point', 
-	pieceName = nil,
-	posx = 0, posy = 0, posz = 0, radius = 0, 
-	r = 1, g = 1, b = 1, a = 1, 
-	color2r = 1, color2g = 1, color2b = 1, colortime = 15, -- point lights only, colortime in seconds for unit-attached
-	dirx = 0, diry = 0, dirz = 1, theta = 0.5,  -- cone lights only, specify direction and half-angle in radians
-	pos2x = 100, pos2y = 100, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
-	modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
-	lifetime = 0, sustain = 1, 	aninmtype = 0 -- unused
-}
-]]--
-local lightParamKeyOrder = {
-	posx = 1, posy = 2, posz = 3, radius = 4, 
-	r = 9, g = 10, b = 11, a = 12, 
-	color2r = 5, color2g = 6, color2b = 7, colortime = 8, -- point lights only, colortime in seconds for unit-attached
-	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- cone lights only, specify direction and half-angle in radians
-	pos2x = 5, pos2y = 6, pos2z = 7, -- beam lights only, specifies the endpoint of the beam
-	modelfactor = 13, specular = 14, scattering = 15, lensflare = 16, 
-	lifetime = 18, sustain = 19, animtype = 20 -- unused
-}
-
----InitializeLight
----Takes a light definition table, and tries to check wether its already been initialized, if not, it inits it in-place
----@param lightTable table
----@param unitID number 
-local function InitializeLight(lightTable, unitID)
-
-	if not lightTable.initComplete then  -- late init
-		-- do the table to flattable conversion, if it doesnt exist yet
-		if not lightTable.lightParamTable then -- perform correct init
-			local lightparams = {}
-			for i = 1, lightParamTableSize do lightparams[i] = 0 end 
-			for paramname, tablepos in pairs(lightParamKeyOrder) do 
-				lightparams[tablepos] = lightTable.lightConfig[paramname] or lightparams[tablepos]
-			end
-			lightparams[lightParamKeyOrder.radius] = deferredLightGL4Config.globalRadiusMult * lightparams[lightParamKeyOrder.radius]
-			lightparams[lightParamKeyOrder.a] = deferredLightGL4Config.globalLightMult * lightparams[lightParamKeyOrder.a]
-			lightparams[lightParamKeyOrder.lifetime] = math.floor(deferredLightGL4Config.globalLifeMult * lightparams[lightParamKeyOrder.lifetime] )
-			--lightparams[lightParamKeyOrder.sustain] = math.floor(deferredLightGL4Config.globalLifeMult * lightparams[lightParamKeyOrder.sustain] ) -- not needed yet
-			lightTable.lightParamTable = lightparams
-		end
-
-		if unitID then 
-			local unitDefID = Spring.GetUnitDefID(unitID)
-			if unitDefID and not unitDefPeiceMapCache[unitDefID] then 
-				unitDefPeiceMapCache[unitDefID] = Spring.GetUnitPieceMap(unitID)
-			end
-			local pieceMap = unitDefPeiceMapCache[unitDefID]
-			if pieceMap[lightTable.pieceName] then -- if its not a real piece, it will default to the model worldpos!
-				lightTable.pieceIndex = pieceMap[lightTable.pieceName] 
-				lightTable.lightParamTable[pieceIndexPos] = lightTable.pieceIndex
-			end
-				--Spring.Echo(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
-		end
-
-		lightTable.initComplete = true
-	end
-end
 
 local function AddStaticLightsForUnit(unitID, unitDefID, noUpload)
 	if unitDefLights[unitDefID] then
@@ -932,25 +922,29 @@ local adjustfornight = {'unitAmbientColor', 'unitDiffuseColor', 'unitSpecularCol
 local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	if explosionLights[weaponID] then
 		local lightParamTable = explosionLights[weaponID].lightParamTable
-		local groundHeight = Spring.GetGroundHeight(px,pz) or 1
-		py = math.max(groundHeight + (explosionLights[weaponID].yOffset or 0), py)
-		lightParamTable[1] = px
-		lightParamTable[2] = py
-		lightParamTable[3] = pz
-		--Spring.Echo("GadgetWeaponExplosion added:",  explosionLights[weaponID].lightClassName, px, py, pz)
-		AddLight(nil, nil, nil, pointLightVBO, lightParamTable) --(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
+		if explosionLights[weaponID].alwaysVisible or spIsSphereInView(px,py,pz, lightParamTable[4]) then
+			local groundHeight = spGetGroundHeight(px,pz) or 1
+			py = math_max(groundHeight + (explosionLights[weaponID].yOffset or 0), py)
+			lightParamTable[1] = px
+			lightParamTable[2] = py
+			lightParamTable[3] = pz
+			--Spring.Echo("GadgetWeaponExplosion added:",  explosionLights[weaponID].lightClassName, px, py, pz)
+			AddLight(nil, nil, nil, pointLightVBO, lightParamTable) --(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
+		end
 	end
 end
 
 local function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
 	if muzzleFlashLights[weaponID] then 
 		local lightParamTable = muzzleFlashLights[weaponID].lightParamTable
-		local groundHeight = Spring.GetGroundHeight(px,pz) or 1
-		lightParamTable[1] = px
-		lightParamTable[2] = py
-		lightParamTable[3] = pz
-		--Spring.Echo("GadgetWeaponBarrelfire added:",  muzzleFlashLights[weaponID].lightClassName, px, py, pz)
-		AddLight(nil, nil, nil, pointLightVBO, lightParamTable) --(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
+		if muzzleFlashLights[weaponID].alwaysVisible or spIsSphereInView(px,py,pz, lightParamTable[4]) then
+			local groundHeight = spGetGroundHeight(px,pz) or 1
+			lightParamTable[1] = px
+			lightParamTable[2] = py
+			lightParamTable[3] = pz
+			--Spring.Echo("GadgetWeaponBarrelfire added:",  muzzleFlashLights[weaponID].lightClassName, px, py, pz)
+			AddLight(nil, nil, nil, pointLightVBO, lightParamTable) --(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
+		end
 	end
 end
 
@@ -1064,13 +1058,10 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('GadgetWeaponBarrelfire')
 	
 	widgetHandler:DeregisterGlobal('UnitScriptLight')
-
 end
 
 local windX = 0
 local windZ = 0
-
-
 
 function widget:GameFrame(n)
 	if n % 100 == 0 then 
@@ -1116,7 +1107,7 @@ function widget:UnitFinished(unitID, unitDefID, teamID)
 		end
 		if not lightTable.initComplete then InitializeLight(lightTable, unitID) end
 		--Spring.Echo("Unitfinished",  unitEventLights['UnitFinished'], lightTable.lightType )
-		lightTable.lightParamTable[2] = Spring.GetUnitHeight(unitID) + 64
+		lightTable.lightParamTable[2] = spGetUnitHeight(unitID) + 64
 		AddLight(tostring(unitID) ..  "UnitFinished", unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
 	end
 end
@@ -1129,7 +1120,7 @@ function widget:UnitCreated(unitID, unitDefID, teamID)
 		end
 		if not lightTable.initComplete then InitializeLight(lightTable, unitID) end
 		--Spring.Echo("Unitfinished",  unitEventLights['UnitFinished'], lightTable.lightType )
-		lightTable.lightParamTable[2] = Spring.GetUnitHeight(unitID) + 64
+		lightTable.lightParamTable[2] = spGetUnitHeight(unitID) + 64
 		AddLight(tostring(unitID) ..  "UnitCreated", unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
 	end
 end
@@ -1139,7 +1130,6 @@ local updateCount = 0
 local trackedProjectiles = {}
 local trackedProjectileTypes = {}
 local lastgf = -2
-local removalqueue = {}
 
 local testprojlighttable = {0,16,0,200, --pos + radius
 								0.25, 0.25,0.125, 5, -- color2, colortime
@@ -1151,7 +1141,6 @@ local testprojlighttable = {0,16,0,200, --pos + radius
 								0,0,0,0 -- instData always 0!
 								}
 
-local spGetProjectilePosition = Spring.GetProjectilePosition
 
 -- Beam type projectiles are indeed an oddball, as they live for exactly 3 frames, no?
 
@@ -1186,16 +1175,16 @@ local function updateProjectileLights(newgameframe)
 					if lightType == 'point' then 
 						local instanceIndex = updateLightPosition(projectilePointLightVBO, projectileID, px,py,pz)
 					elseif lightType == 'cone' then 
-						local dx,dy,dz = Spring.GetProjectileVelocity(projectileID)
+						local dx,dy,dz = spGetProjectileVelocity(projectileID)
 						updateLightPosition(projectileConeLightVBO, projectileID, px,py,pz, nil, dx,dy,dz)
 					end -- NOTE: WE DONT UPDATE BEAM POS!
 					if debugproj then Spring.Echo("Updated", instanceIndex, projectileID, px, py, pz) end
 				end
 			else
 				-- add projectile		
-				local weapon, piece = Spring.GetProjectileType(projectileID)
+				local weapon, piece = spGetProjectileType(projectileID)
 				if piece then 
-					local explosionflags = Spring.GetPieceProjectileParams(projectileID)
+					local explosionflags = spGetPieceProjectileParams(projectileID)
 					if explosionflags and explosionflags%32 > 15 then 
 						local gib = gibLight.lightParamTable
 						gib[1] = px
@@ -1206,7 +1195,7 @@ local function updateProjectileLights(newgameframe)
 						--Spring.Debug.TableEcho(gib)
 					end
 				else
-					local weaponDefID = Spring.GetProjectileDefID ( projectileID ) 
+					local weaponDefID = spGetProjectileDefID ( projectileID ) 
 					if projectileDefLights[weaponDefID] then 
 						local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
 						lightType = projectileDefLights[weaponDefID].lightType
@@ -1216,14 +1205,14 @@ local function updateProjectileLights(newgameframe)
 						if debugproj then Spring.Echo(lightType, projectileDefLights[weaponDefID].lightClassName) end
 						
 						if lightType == 'beam' then 
-							local dx,dy,dz = Spring.GetProjectileVelocity(projectileID)
+							local dx,dy,dz = spGetProjectileVelocity(projectileID)
 							--dx, dy, dz = InterpolateBeam(px,py,pz, dx, dy,dz)
 							lightParamTable[5] = px + dx
 							lightParamTable[6] = py + dy
 							lightParamTable[7] = pz + dz
 						elseif lightType == 'cone' then 
 						
-							local dx,dy,dz = Spring.GetProjectileVelocity(projectileID)						lightParamTable[5] = dx
+							local dx,dy,dz = spGetProjectileVelocity(projectileID)						lightParamTable[5] = dx
 							lightParamTable[6] = dy
 							lightParamTable[7] = dz
 						end 
@@ -1301,26 +1290,22 @@ function widget:Update()
 	updateProjectileLights()
 end
 
+------------------------------- Drawing all the lights ---------------------------------
 
-local chobbyInterface = false
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
+
 local tf = Spring.GetTimerMicros()
 function widget:DrawWorld() -- We are drawing in world space, probably a bad idea but hey
-	--glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
+	if chobbyInterface then return end
 	local t0 = Spring.GetTimerMicros()
 	--if true then return end
 	if autoupdate then deferredLightShader = checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4") or deferredLightShader end
-	
 	
 	if pointLightVBO.usedElements > 0 or 
 		unitPointLightVBO.usedElements > 0 or 
 		beamLightVBO.usedElements > 0 or 
 		unitConeLightVBO.usedElements > 0 or
 		coneLightVBO.usedElements > 0 then 
+
 		local alt, ctrl, meta, shft = Spring.GetModKeyState()
 
 		if ctrl then
@@ -1344,35 +1329,31 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		
 		deferredLightShader:Activate()
 		deferredLightShader:SetUniformFloat("nightFactor", nightFactor)
-		deferredLightShader:SetUniformFloat("attachedtounitID", 0)
 		deferredLightShader:SetUniformFloat("windX", windX)
 		deferredLightShader:SetUniformFloat("windZ", windZ)
 		--Spring.Echo(windX, windZ)
+		
 
-		-- Fixed worldpos lights
-		if pointLightVBO.usedElements > 0 then
-			deferredLightShader:SetUniformFloat("pointbeamcone", 0)
-			pointLightVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, pointLightVBO.usedElements, 0)
-		end
-		if beamLightVBO.usedElements > 0 then
-			deferredLightShader:SetUniformFloat("pointbeamcone", 1)
-			beamLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, beamLightVBO.usedElements, 0)
-		end
-		if coneLightVBO.usedElements > 0 then
-			deferredLightShader:SetUniformFloat("pointbeamcone", 2)
-			coneLightVBO.VAO:DrawArrays(GL.TRIANGLES, nil, 0, coneLightVBO.usedElements, 0)
+		-- Fixed worldpos lights, cursors, projectiles, world lights
+		deferredLightShader:SetUniformFloat("attachedtounitID", 0) -- worldpos stuff
+		deferredLightShader:SetUniformFloat("pointbeamcone", 0)
+		
+		if not spIsGUIHidden() then
+			cursorPointLightVBO:draw()
 		end
 		
-		-- Projectile lights
-		deferredLightShader:SetUniformFloat("pointbeamcone", 0)
+		pointLightVBO:draw()
 		projectilePointLightVBO:draw()
 		
+		
 		deferredLightShader:SetUniformFloat("pointbeamcone", 1)
+		beamLightVBO:draw()
 		projectileBeamLightVBO:draw()
-		
+
 		deferredLightShader:SetUniformFloat("pointbeamcone", 2)
+		coneLightVBO:draw()
 		projectileConeLightVBO:draw()
-		
+
 		-- Unit Attached Lights
 		deferredLightShader:SetUniformFloat("attachedtounitID", 1)		
 		
@@ -1385,14 +1366,6 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		deferredLightShader:SetUniformFloat("pointbeamcone", 2)
 		unitConeLightVBO:draw()
 			
-		-- World space cursor lights 
-		deferredLightShader:SetUniformFloat("attachedtounitID", 0)		
-	
-		if not Spring.IsGUIHidden() and not chobbyInterface then
-			deferredLightShader:SetUniformFloat("pointbeamcone", 0)
-			cursorPointLightVBO:draw()
-		end 
-		
 		deferredLightShader:Deactivate()
 		
 		for i = 0, 8 do glTexture(i, false) end 
@@ -1409,6 +1382,12 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	end 
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+	end
+end
+--------------------------- Ingame Configurables -------------------
 
 function widget:GetConfigData(data) -- Called by RemoveWidget
 	--Spring.Debug.TraceEcho("GetConfigData DLGL4")
