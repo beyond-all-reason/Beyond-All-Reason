@@ -1095,35 +1095,35 @@ if gadgetHandler:IsSyncedCode() then
 
 		if unitID == queenID then
 			-- special case queen
-			if weaponID == -1 and damage > 25000 then
-				damage = 25000
+			if weaponID == -1 and damage > 1 then
+				damage = 1
 			end
-			if attackerDefID then
-				if not queenResistance[weaponID] then
-					queenResistance[weaponID] = {}
-					queenResistance[weaponID].damage = (damage * 3 * config.queenResistanceMult)
-					queenResistance[weaponID].notify = 0
-				end
-				local resistPercent = math.min((queenResistance[weaponID].damage) / queenMaxHP, 0.99)
-				if resistPercent > 0.5 then
-					if queenResistance[weaponID].notify == 0 then
+			if not queenResistance[weaponID] then
+				queenResistance[weaponID] = {}
+				queenResistance[weaponID].damage = (damage * 3 * config.queenResistanceMult)
+				queenResistance[weaponID].notify = 0
+			end
+			local resistPercent = math.min((queenResistance[weaponID].damage) / queenMaxHP, 0.99)
+			if resistPercent > 0.5 then
+				if queenResistance[weaponID].notify == 0 then
+					if attackerDefID then
 						SendToUnsynced('QueenResistant', attackerDefID)
-						queenResistance[weaponID].notify = 1
-						if mRandom() < config.spawnChance then
-							SpawnRandomOffWaveSquad(queenID, "chickenw2", 4)
-							SpawnRandomOffWaveSquad(queenID, "chickenh1", 5)
-							SpawnRandomOffWaveSquad(queenID, "chickenh1b", 5)
-							SpawnRandomOffWaveSquad(queenID)
-						end
-						for i = 1, SetCount(humanTeams)*2 do
-							table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1", team = chickenTeamID, })
-						end
 					end
-					damage = damage - (damage * resistPercent)
+					queenResistance[weaponID].notify = 1
+					if mRandom() < config.spawnChance then
+						SpawnRandomOffWaveSquad(queenID, "chickenw2", 4)
+						SpawnRandomOffWaveSquad(queenID, "chickenh1", 5)
+						SpawnRandomOffWaveSquad(queenID, "chickenh1b", 5)
+						SpawnRandomOffWaveSquad(queenID)
+					end
+					for i = 1, SetCount(humanTeams)*2 do
+						table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1", team = chickenTeamID, })
+					end
 				end
-				queenResistance[weaponID].damage = queenResistance[weaponID].damage + (damage * 3 * config.queenResistanceMult)
-				return damage
+				damage = damage - (damage * resistPercent)
 			end
+			queenResistance[weaponID].damage = queenResistance[weaponID].damage + (damage * 3 * config.queenResistanceMult)
+			return damage
 		end
 
 		return damage, 1
