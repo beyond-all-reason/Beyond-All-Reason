@@ -45,7 +45,7 @@ local TimedDamageWeapons = {
         ceg = "acid-area-75", 
         damageCeg = "acid-damage-gen", 
         time = 10,
-        damage = 300,
+        damage = 1200,
         range = 75,
         resistance = "_CHICKENACID_",
     },
@@ -123,6 +123,39 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "test",
     },
+	[WeaponDefNames.legbart_scav_clusternapalm.id] = {
+        ceg = "fire-area-75", 
+        damageCeg = "burnflamexl", 
+        time = 10,
+        damage = 15,
+        range = 60,
+        resistance = "test",
+    },
+	[WeaponDefNames.legbar_scav_clusternapalm.id] = {
+        ceg = "fire-area-75", 
+        damageCeg = "burnflamexl", 
+        time = 10,
+        damage = 15,
+        range = 60,
+        resistance = "test",
+    },
+	[WeaponDefNames.leginf_scav_rapidnapalm.id] = {
+        ceg = "fire-area-redux-75", 
+        damageCeg = "burnflamexl", 
+        time = 10,
+        damage = 15,
+        range = 60,
+        resistance = "test",
+    },
+	[WeaponDefNames.legnap_scav_napalmbombs.id] = {
+        ceg = "fire-area-150", 
+        damageCeg = "burnflamexl", 
+        time = 15,
+        damage = 30,
+        range = 150,
+        resistance = "test",
+    },
+	
 }
 
 local TimedDamageDyingUnits = {

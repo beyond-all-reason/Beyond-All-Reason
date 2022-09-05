@@ -92,6 +92,7 @@ local function updateUI()
         --Some coloring and tooltip text
         if converterUse < 20 then
             color = "\255\255\000\000" --Red
+        converter-text-fix
             tooltipText = tooltipText .. "\n\n\255\255\075\075"..Spring.I18N('ui.topbar.converter_usage.tooManyConverters1Tooltip').."\n\255\255\000\000"..Spring.I18N('ui.topbar.converter_usage.tooManyConverters1Tooltip')
         elseif converterUse < 40 then
             color = "\255\255\100\000" --Orange

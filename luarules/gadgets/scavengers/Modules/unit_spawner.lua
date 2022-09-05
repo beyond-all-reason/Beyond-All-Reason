@@ -235,7 +235,7 @@ local function unitGroupSpawn(n)
 				local spawnTier = math_random(1,100)
 				local groupunit = {}
 				local numOfTypes = 0
-				local newTypeNumber = math_random(1,3)
+				local newTypeNumber = math_random(2,4)
 				--Spring.Echo(newTypeNumber)
 				local landLevel, seaLevel = positionCheckLibrary.MapIsLandOrSea()
 				if (posy <= -20 and aircraftchanceonsea == 0) or (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) or (posy > 0 and landLevel < 40) or (posy < 0 and seaLevel < 30) then

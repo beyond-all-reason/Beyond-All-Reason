@@ -81,9 +81,15 @@ AimWeapon2()
 	return (TRUE);
 }
 
+AimWeapon3()
+{
+	return (TRUE);
+}
+
 FireWeapon1()
 {
 	emit-sfx 1024 from base;
+	emit-sfx 2048 + 2 from base; //Weapon3 creates a dragon's eye once weapon1 fires
 	emit-sfx 4096 + 1 from base; //Weapon2 detonates the crawling bomb once weapon1 fires
 }
 
@@ -97,6 +103,11 @@ AimFromWeapon1(piecenum)
 	piecenum = base;
 }
 
+FireWeapon2()
+{
+	emit-sfx 4096 from base;
+}
+
 QueryWeapon2(piecenum)
 {
 	piecenum = base;
@@ -107,9 +118,19 @@ AimFromWeapon2(piecenum)
 	piecenum = base;
 }
 
-FireWeapon2()
+FireWeapon3()
 {
-	emit-sfx 4096 from base;
+	return (0);
+}
+
+QueryWeapon3(piecenum)
+{
+	piecenum = base;
+}
+
+AimFromWeapon3(piecenum)
+{
+	piecenum = base;
 }
 
 SweetSpot(piecenum)

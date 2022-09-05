@@ -197,9 +197,7 @@ return {
 				def = "WEAPON",
 			},
 			[2] = {
-				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "CC_LASER",
-				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

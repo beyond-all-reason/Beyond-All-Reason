@@ -13,6 +13,7 @@ end
 --------------------------------------------------------------------------------
 -- config
 --------------------------------------------------------------------------------
+
 local hideBelowGameframe = 130	-- delay to give spawn fx some time
 local drawForIcon = true      -- note that commander icon still gets drawn on top of the name
 local nameScaling = true
@@ -23,35 +24,20 @@ local scaleFontAmount = 120
 local fontShadow = true        -- only shows if font has a white outline
 local shadowOpacity = 0.35
 
-local vsx, vsy = Spring.GetViewGeometry()
+local showPlayerRank = false
+local showSkillValue = true
+local playerRankSize = fontSize * 1.05
+local playerRankImages = "luaui\\images\\advplayerslist\\ranks\\"
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local fontfileScale = (0.5 + (vsx * vsy / 5700000))
-local fontfileSize = 50
-local fontfileOutlineSize = 9
-local fontfileOutlineStrength = 10
-local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-local shadowFont = gl.LoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.6)
-local fontfileScale2 = fontfileScale * 0.66
-local fonticon = gl.LoadFont(fontfile, fontfileSize * fontfileScale2, fontfileOutlineSize * fontfileScale2, fontfileOutlineStrength * 0.33)
-
-local singleTeams = false
-if #Spring.GetTeamList() - 1 == #Spring.GetAllyTeamList() - 1 then
-	singleTeams = true
-end
-
-local spec = Spring.GetSpectatingState()
-
-local usedFontSize, chobbyInterface
-
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousName = '?????'
+local comLevelSize = fontSize * 2.5
+local comLevelImages = "luaui\\images\\Ranks\\rank"
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 local GetUnitTeam = Spring.GetUnitTeam
 local GetPlayerInfo = Spring.GetPlayerInfo
+local GetTeamInfo = Spring.GetTeamInfo
 local GetPlayerList = Spring.GetPlayerList
 local GetTeamColor = Spring.GetTeamColor
 local GetUnitDefID = Spring.GetUnitDefID
@@ -60,6 +46,11 @@ local IsUnitVisible = Spring.IsUnitVisible
 local IsUnitIcon = Spring.IsUnitIcon
 local GetCameraPosition = Spring.GetCameraPosition
 local GetUnitPosition = Spring.GetUnitPosition
+local GetUnitExperience = Spring.GetUnitExperience
+local GetUnitRulesParam = Spring.GetUnitRulesParam
+
+local glTexture = gl.Texture
+local glTexRect = gl.TexRect
 local glDepthTest = gl.DepthTest
 local glAlphaTest = gl.AlphaTest
 local glColor = gl.Color
@@ -72,7 +63,37 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local glBlending = gl.Blending
 local glScale = gl.Scale
 local glCallList = gl.CallList
+
 local diag = math.diag
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+local vsx, vsy = Spring.GetViewGeometry()
+
+local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local fontfileScale = (0.5 + (vsx * vsy / 5700000))
+local fontfileSize = 50
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 10
+local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
+local shadowFont = gl.LoadFont(fontfile, fontfileSize * fontfileScale, 35 * fontfileScale, 1.6)
+local fontfileScale2 = fontfileScale * 0.66
+local fonticon = gl.LoadFont(fontfile, fontfileSize * fontfileScale2, fontfileOutlineSize * fontfileScale2, fontfileOutlineStrength * 0.33)
+
+local singleTeams = false
+if #Spring.GetTeamList() - 1 == #Spring.GetAllyTeamList() - 1 then
+	singleTeams = true
+end
+
+local unba = Spring.GetModOptions().unba
+
+local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousName = '?????'
+
+local usedFontSize, chobbyInterface
 
 local comms = {}
 local comnameList = {}
@@ -87,15 +108,15 @@ teams = nil
 
 local drawScreenUnits = {}
 local CheckedForSpec = false
+
+local spec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local GaiaTeam = Spring.GetGaiaTeamID()
 
-local comDefs = {}
 local comHeight = {}
 for unitDefID, defs in pairs(UnitDefs) do
 	if defs.customParams.iscommander then
-		comDefs[unitDefID] = true
 		comHeight[unitDefID] = defs.height
 	end
 end
@@ -105,6 +126,13 @@ if WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColor
 	sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
 end
 
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+local function round(num, idp)
+	local mult = 10 ^ (idp or 0)
+	return math.floor(num * mult + 0.5) / mult
+end
 
 -- gets the name, color, and height of the commander
 local function GetCommAttributes(unitID, unitDefID)
@@ -113,6 +141,7 @@ local function GetCommAttributes(unitID, unitDefID)
 		return nil
 	end
 
+	local playerRank
 	local name = ''
 	local luaAI = Spring.GetTeamLuaAI(team)
 	if luaAI and luaAI ~= "" and string.find(luaAI, 'Scavengers')  then
@@ -122,9 +151,13 @@ local function GetCommAttributes(unitID, unitDefID)
 	else
 		local players = GetPlayerList(team)
 		name = (#players > 0) and GetPlayerInfo(players[1], false) or '------'
+		if players[1] then
+			playerRank = select(9, GetPlayerInfo(players[1], false))
+		end
 
 		for _, pID in ipairs(players) do
 			local pname, active, isspec = GetPlayerInfo(pID, false)
+			playerRank = select(9, GetPlayerInfo(pID, false))
 			if active and not isspec then
 				name = pname
 				break
@@ -138,8 +171,23 @@ local function GetCommAttributes(unitID, unitDefID)
 		bgColor = { 1, 1, 1, 1 }	-- try to keep these values the same as the playerlist
 	end
 
+	local skill
+	if showSkillValue then
+		local playerID = select(2, GetTeamInfo(team, false))
+		local customtable = select(11, GetPlayerInfo(playerID))
+		if customtable and customtable.skill then
+			skill = customtable.skill
+			skill = skill and tonumber(skill:match("-?%d+%.?%d*")) or 0
+			skill = round(skill, 0)
+		end
+	end
+
+	local xp = GetUnitRulesParam(unitID, "xp")
+	if not xp then
+		xp = GetUnitExperience(unitID)
+	end
 	local height = comHeight[unitDefID] + heightOffset
-	return { name, { r, g, b, a }, height, bgColor }
+	return { name, { r, g, b, a }, height, bgColor, nil, playerRank and playerRank+1, math.floor(xp or 0), skill}
 end
 
 local function RemoveLists()
@@ -158,6 +206,10 @@ local function createComnameList(attributes)
 		gl.DeleteList(comnameList[attributes[1]])
 	end
 	comnameList[attributes[1]] = gl.CreateList(function()
+		local x,y = 0,0
+		if (not anonymousMode or spec) and showPlayerRank and not unba and attributes[6] and not isSinglePlayer then
+			x = (playerRankSize*0.5)
+		end
 		local outlineColor = { 0, 0, 0, 1 }
 		if (attributes[2][1] + attributes[2][2] * 1.2 + attributes[2][3] * 0.4) < 0.65 then
 			outlineColor = { 1, 1, 1, 1 }		-- try to keep these values the same as the playerlist
@@ -172,27 +224,57 @@ local function createComnameList(attributes)
 				shadowFont:Begin()
 				shadowFont:SetTextColor({ 0, 0, 0, shadowOpacity })
 				shadowFont:SetOutlineColor({ 0, 0, 0, shadowOpacity })
-				shadowFont:Print(name, 0, 0, fontSize, "con")
+				shadowFont:Print(name, x, y, fontSize, "con")
 				shadowFont:End()
 				glTranslate(0, (fontSize / 44), 0)
 			end
 			font:SetTextColor(outlineColor)
 			font:SetOutlineColor(outlineColor)
 
-			font:Print(name, -(fontSize / 38), -(fontSize / 33), fontSize, "con")
-			font:Print(name, (fontSize / 38), -(fontSize / 33), fontSize, "con")
+			font:Print(name, x-(fontSize / 38), y-(fontSize / 33), fontSize, "con")
+			font:Print(name, x+(fontSize / 38), y-(fontSize / 33), fontSize, "con")
 		end
 		font:Begin()
 		font:SetTextColor(attributes[2])
 		font:SetOutlineColor(outlineColor)
-		font:Print(name, 0, 0, fontSize, "con")
+		font:Print(name, x, y, fontSize, "con")
 		font:End()
+
+		-- player rank
+		if showPlayerRank and attributes[6] and (not anonymousMode or spec) and not isSinglePlayer then
+			local halfSize = playerRankSize*0.5
+			local x_l = x - (((font:GetTextWidth(name) * fontSize) * 0.5) + halfSize + (fontSize * 0.1))
+			local y_l = y + (fontSize * 0.33)
+			glTexture(playerRankImages..attributes[6]..'.png')
+			glTexRect(x_l-halfSize, y_l-halfSize, x_l+halfSize, y_l+halfSize)
+			glTexture(false)
+
+			-- skill value
+			if showSkillValue and attributes[8] then
+				font:Begin()
+				font:SetTextColor(0.66,0.66,0.66,1)
+				font:SetOutlineColor(0,0,0,0.6)
+				font:Print(attributes[8], x_l-(playerRankSize*0.86), y_l-(playerRankSize*0.29), playerRankSize*0.66, "con")
+				font:End()
+			end
+		end
+		-- unba commander level
+		if unba and attributes[7] then
+			local halfSize = comLevelSize*0.5
+			--local x_r = x + (((font:GetTextWidth(name) * fontSize) * 0.5) + halfSize + (fontSize * 0.1))
+			--local y_r = y + (fontSize * 0.44)
+			local x_r = 0
+			local y_r = y + (fontSize * 0.4) + (comLevelSize * 0.42)
+			glTexture(comLevelImages..(attributes[7]+2)..'.png')
+			glTexRect(x_r-halfSize, y_r-halfSize, x_r+halfSize, y_r+halfSize)
+			glTexture(false)
+		end
 	end)
 end
 
 
 local function CheckCom(unitID, unitDefID, unitTeam)
-	if comDefs[unitDefID] and unitTeam ~= GaiaTeam then
+	if comHeight[unitDefID] and unitTeam ~= GaiaTeam then
 		comms[unitID] = GetCommAttributes(unitID, unitDefID)
 	end
 end
@@ -224,7 +306,7 @@ local function CheckAllComs()
 		local unitID = allUnits[i]
 		local unitDefID = GetUnitDefID(unitID)
 		local unitTeam = GetUnitTeam(unitID)
-		if comDefs[unitDefID] and unitTeam ~= GaiaTeam then
+		if comHeight[unitDefID] and unitTeam ~= GaiaTeam then
 			comms[unitID] = GetCommAttributes(unitID, unitDefID)
 		end
 	end
@@ -249,7 +331,7 @@ function widget:Update(dt)
 	if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
 		if myTeamID ~= Spring.GetMyTeamID() then
 			-- old
-			local name = GetPlayerInfo(select(2, Spring.GetTeamInfo(myTeamID, false)), false)
+			local name = GetPlayerInfo(select(2, GetTeamInfo(myTeamID, false)), false)
 			if comnameList[name] ~= nil then
 				gl.DeleteList(comnameList[name])
 				comnameList[name] = nil
@@ -257,7 +339,7 @@ function widget:Update(dt)
 			-- new
 			myTeamID = Spring.GetMyTeamID()
 			myPlayerID = Spring.GetMyPlayerID()
-			name = GetPlayerInfo(select(2, Spring.GetTeamInfo(myTeamID, false)), false)
+			name = GetPlayerInfo(select(2, GetTeamInfo(myTeamID, false)), false)
 			if comnameList[name] ~= nil then
 				gl.DeleteList(comnameList[name])
 				comnameList[name] = nil
@@ -360,31 +442,6 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
---PROFILING CODE---
-local avgTimeUS = 0
-local profileCount = 0
-local profileName = ""
-local profileTimer = Spring.GetTimer()
-local profilePeriod = 200.0
-local function startTimer()
-	profileTimer = Spring.GetTimer()
-	profileCount = profileCount + 1
-end
-
-local function profileDT()
-	local dt_us = Spring.DiffTimers(Spring.GetTimer(), profileTimer) * 1000000
-	avgTimeUS = ((profilePeriod - 1.0) * avgTimeUS + dt_us) / profilePeriod
-	if profileCount > 100 then
-		Spring.Echo(profileName .. " " .. avgTimeUS .. " us")
-		profileCount = 0
-	end
-	return avgTimeUS
-end
-
-local function fastDrawName()
-	gl.Text("MyComander", 0, 0, 16, "o")
-end
---END PROFILING CODE---
 
 function widget:DrawWorld()
 	if chobbyInterface then return end
@@ -426,6 +483,16 @@ function widget:DrawWorld()
 end
 
 function widget:Initialize()
+	WG.nametags = {}
+	WG.nametags.GetShowPlayerRank = function()
+		return showPlayerRank
+	end
+	WG.nametags.SetShowPlayerRank = function(value)
+		showPlayerRank = value
+		RemoveLists()
+		CheckAllComs()
+	end
+
 	CheckAllComs()
 end
 
@@ -466,26 +533,43 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 	CheckCom(unitID, GetUnitDefID(unitID), unitTeam)
 end
 
+if unba then
+	function widget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldXP)
+		if comHeight[unitDefID] then
+			if xp < 0 then
+				xp = 0
+			end
+			if oldXP < 0 then
+				oldXP = 0
+			end
+			if math.floor(xp) ~= math.floor(oldXP) then
+				GetCommAttributes(unitID, unitDefID)
+				local name, _ = GetPlayerInfo(select(2, GetTeamInfo(unitTeam, false)), false)
+				comnameList[name] = nil
+			end
+		end
+	end
+end
+
 function toggleNameScaling()
 	nameScaling = not nameScaling
-
 	return true
 end
 
 function widget:GetConfigData()
 	return {
+		version = 1.1,
 		nameScaling = nameScaling,
-		--drawForIcon = drawForIcon
+		showPlayerRank = showPlayerRank,
 	}
 end
 
 function widget:SetConfigData(data)
-	--load config
 	widgetHandler:AddAction("comnamescale", toggleNameScaling, nil, 'p')
 	if data.nameScaling ~= nil then
 		nameScaling = data.nameScaling
 	end
-	--if data.drawForIcon ~= nil then
-	--	drawForIcon = data.drawForIcon
-	--end
+	if data.version and data.showPlayerRank ~= nil then
+		showPlayerRank = data.showPlayerRank
+	end
 end

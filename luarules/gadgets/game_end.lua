@@ -46,12 +46,17 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local isCommander = {}
 	local unitDecoration = {}
 	for udefID,def in ipairs(UnitDefs) do
+		if def.customParams.iscommander then
+			isCommander[udefID] = true
+		end
 		if def.customParams.decoration then
 			unitDecoration[udefID] = true
 		end
 	end
+
 
 	local KillTeam = Spring.KillTeam
 	local GetTeamList = Spring.GetTeamList
@@ -73,6 +78,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local gameoverFrame
 	local gameoverWinners
+	local gameoverAnimFrame
+	local gameoverAnimUnits
 
 	local allyTeamInfos = {}
 	--allyTeamInfos structure: (excluding gaia)
@@ -299,11 +306,22 @@ if gadgetHandler:IsSyncedCode() then
 		return winnersCorrectFormatCount
 	end
 
-
 	function gadget:GameFrame(gf)
 		if gameoverFrame then
 			if gf == gameoverFrame then
 				GameOver(gameoverWinners)
+			end
+			if gf == gameoverAnimFrame then
+				for unitID, _ in pairs(gameoverAnimUnits) do
+					if Spring.GetCOBScriptID(unitID, 'GameOverAnim') then
+						Spring.CallCOBScript(unitID, 'GameOverAnim', 0, true)
+					else
+						local func = Spring.UnitScript.GetScriptEnv(unitID)['GameOverAnim']
+						if func then
+							Spring.UnitScript.CallAsUnit(unitID, func, true)
+						end
+					end
+				end
 			end
 		else
 			local winners
@@ -327,6 +345,23 @@ if gadgetHandler:IsSyncedCode() then
 				local delay = GG.maxDeathFrame or 250
 				gameoverFrame = gf + delay + 70
 				gameoverWinners = winners
+
+				-- make all winner commanders dance!
+				gameoverAnimFrame = gf + 55		-- delay a bit because walking commanders need to stop walking + a delay look nice
+				gameoverAnimUnits = {}
+				if type(winners) == 'table' then
+					local units = Spring.GetAllUnits()
+					for i, unitID in ipairs(units) do
+						if isCommander[Spring.GetUnitDefID(unitID)] then
+							for u, allyTeamID in pairs(winners) do
+								if Spring.GetUnitAllyTeam(unitID) == allyTeamID then
+									Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)	-- give stop cmd so commanders can animate in place
+									gameoverAnimUnits[unitID] = true
+								end
+							end
+						end
+					end
+				end
 			end
 		end
 	end

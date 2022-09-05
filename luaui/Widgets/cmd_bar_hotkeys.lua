@@ -215,6 +215,7 @@ local function makeBindsTable(keyLayout)
 	local C = keyLayout[1][3]
 	local V = keyLayout[1][4]
 	local B = keyLayout[1][5]
+	local N = keyLayout[1][6]
 	local M = keyLayout[1][7]
 	local A = keyLayout[2][1]
 	local S = keyLayout[2][2]

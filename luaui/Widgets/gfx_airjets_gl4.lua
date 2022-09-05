@@ -732,7 +732,7 @@ local function DrawParticles(isReflection)
 
 	if jetInstanceVBO.usedElements > 0 then
 		gl.Culling(false)
-
+		gl.DepthMask(false)
 		glDepthTest(true)
 
 		glAlphaTest(GL_GREATER, 0)
@@ -753,6 +753,7 @@ local function DrawParticles(isReflection)
 
 		glAlphaTest(false)
 		glDepthTest(false)
+		gl.DepthMask(true)
 	end
 end
 

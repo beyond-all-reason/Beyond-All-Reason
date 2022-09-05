@@ -128,7 +128,7 @@ local rules = {
 }
 
 local function UpdateRules()
-	
+
 	if not gameInfo then
 		gameInfo = {}
 	end
@@ -182,9 +182,11 @@ local function CreatePanelDisplayList()
 
 	local currentTime = GetGameSeconds()
 	local techLevel = ""
-	
+
 	-- Tech Level Counters
 	font:Begin()
+	font:SetTextColor(1, 1, 1, 1)
+	font:SetOutlineColor(0, 0, 0, 1)
 	if currentTime > gameInfo.scavStatsGracePeriod then
 		if gameInfo.scavStatsBossFightCountdownStarted == 0 then
 			-- Tech Percentage
@@ -213,7 +215,7 @@ local function CreatePanelDisplayList()
 
 	font:Print(Spring.I18N('ui.scavengers.difficultyLevel', { count = gameInfo.scavStatsDifficulty }), panelMarginX, PanelRow(9), panelFontSize, "")
 	font:End()
-	
+
 	--font:Print(techLevel, panelMarginX, PanelRow(1), panelFontSize, "")
 	--font:Print(Spring.I18N('ui.scavengers.techLevel', { count = gameInfo.chickenCounts }), panelMarginX, PanelRow(2), panelFontSize, "")
 	--font:Print(Spring.I18N('ui.chickens.chickenKillCount', { count = gameInfo.chickenKills }), panelMarginX, PanelRow(3), panelFontSize, "")
@@ -224,9 +226,9 @@ local function CreatePanelDisplayList()
 	-- 	font:Print(Spring.I18N('ui.chickens.score', { score = commaValue(scoreCount) }), 88, h - 170, panelFontSize "")
 	-- else
 	-- 	local difficultyCaption = Spring.I18N('ui.chickens.difficulty.' .. difficultyOption)
-	-- 	
+	--
 	-- end
-	
+
 
 	gl.Texture(false)
 	gl.PopMatrix()
