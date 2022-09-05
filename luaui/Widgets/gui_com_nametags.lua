@@ -129,6 +129,11 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local function round(num, idp)
+	local mult = 10 ^ (idp or 0)
+	return math.floor(num * mult + 0.5) / mult
+end
+
 -- gets the name, color, and height of the commander
 local function GetCommAttributes(unitID, unitDefID)
 	local team = GetUnitTeam(unitID)
@@ -173,7 +178,7 @@ local function GetCommAttributes(unitID, unitDefID)
 		if customtable and customtable.skill then
 			skill = customtable.skill
 			skill = skill and tonumber(skill:match("-?%d+%.?%d*")) or 0
-			skill = math.floor(skill)
+			skill = round(skill, 0)
 		end
 	end
 
@@ -202,7 +207,7 @@ local function createComnameList(attributes)
 	end
 	comnameList[attributes[1]] = gl.CreateList(function()
 		local x,y = 0,0
-		if not anonymousMode and showPlayerRank and not unba and attributes[6] and not isSinglePlayer then
+		if (not anonymousMode or spec) and showPlayerRank and not unba and attributes[6] and not isSinglePlayer then
 			x = (playerRankSize*0.5)
 		end
 		local outlineColor = { 0, 0, 0, 1 }
@@ -236,7 +241,7 @@ local function createComnameList(attributes)
 		font:End()
 
 		-- player rank
-		if showPlayerRank and attributes[6] and not anonymousMode and not isSinglePlayer then
+		if showPlayerRank and attributes[6] and (not anonymousMode or spec) and not isSinglePlayer then
 			local halfSize = playerRankSize*0.5
 			local x_l = x - (((font:GetTextWidth(name) * fontSize) * 0.5) + halfSize + (fontSize * 0.1))
 			local y_l = y + (fontSize * 0.33)
