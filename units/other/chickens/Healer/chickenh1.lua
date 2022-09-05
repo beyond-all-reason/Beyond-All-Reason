@@ -1,10 +1,10 @@
 return {
 	chickenh1 = {
-		acceleration = 0.0575,
+		acceleration = 1,
 		activatewhenbuilt = true,
 		autoheal = 32,
 		bmcode = 1,
-		brakerate = 0.23,
+		brakerate = 1,
 		buildcostenergy = 600,
 		buildcostmetal = 40,
 		builddistance = 400,

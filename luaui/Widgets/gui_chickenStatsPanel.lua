@@ -170,6 +170,8 @@ local function CreatePanelDisplayList()
 	end
 
 	font:Begin()
+	font:SetTextColor(1, 1, 1, 1)
+	font:SetOutlineColor(0, 0, 0, 1)
 	font:Print(techLevel, panelMarginX, PanelRow(1), panelFontSize, "")
 	font:Print(Spring.I18N('ui.chickens.chickenCount', { count = gameInfo.chickenCounts }), panelMarginX, PanelRow(2), panelFontSize, "")
 	font:Print(Spring.I18N('ui.chickens.chickenKillCount', { count = gameInfo.chickenKills }), panelMarginX, PanelRow(3), panelFontSize, "")

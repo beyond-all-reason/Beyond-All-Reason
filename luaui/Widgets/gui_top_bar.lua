@@ -184,7 +184,7 @@ local draggingShareIndicatorValue = {}
 
 local font, font2, chobbyInterface, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover
 local draggingConversionIndicatorValue, draggingShareIndicator, draggingConversionIndicator
-local conversionIndicatorArea, quitscreenArea, quitscreenQuitArea, quitscreenResignArea, hoveringTopbar, hideQuitWindow
+local conversionIndicatorArea, quitscreenArea, quitscreenStayArea, quitscreenQuitArea, quitscreenResignArea, hoveringTopbar, hideQuitWindow
 local dlistButtonsGuishader, dlistRejoinGuishader, dlistComsGuishader, dlistButtonsGuishader, dlistWindGuishader, dlistTidalGuishader, dlistQuit
 --local dlistButtons1, dlistButtons2, dlistRejoin, dlistComs1, dlistComs2, dlistWind1, dlistWind2
 
@@ -1471,6 +1471,7 @@ function widget:Update(dt)
 			elseif showRejoinUI then
 				showRejoinUI = false
 				updateRejoin()
+				init()
 			end
 		end
 	end
@@ -1541,8 +1542,8 @@ function widget:DrawScreen()
 	glPushMatrix()
 
 	local now = os.clock()
-	local x, y, b = spGetMouseState()
-	hoveringTopbar = hoveringElement(x, y)
+	local mx, my, mb = spGetMouseState()
+	hoveringTopbar = hoveringElement(mx, my)
 
 	if hoveringTopbar then
 		Spring.SetMouseCursor('cursornormal')
@@ -1631,7 +1632,7 @@ function widget:DrawScreen()
 		end
 	end
 
-        self:drawTidal()
+    self:drawTidal()
 
 	if displayComCounter and dlistComs1 then
 		glCallList(dlistComs1)
@@ -1661,13 +1662,13 @@ function widget:DrawScreen()
 	if dlistButtons1 then
 		glCallList(dlistButtons1)
 		-- hovered?
-		if not showQuitscreen and buttonsArea['buttons'] ~= nil and math_isInRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
+		if not showQuitscreen and buttonsArea['buttons'] ~= nil and math_isInRect(mx, my, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
 			for button, pos in pairs(buttonsArea['buttons']) do
-				if math_isInRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
+				if math_isInRect(mx, my, pos[1], pos[2], pos[3], pos[4]) then
 					local paddingsize = 1
 					RectRound(buttonsArea['buttons'][button][1]+paddingsize, buttonsArea['buttons'][button][2]+paddingsize, buttonsArea['buttons'][button][3]-paddingsize, buttonsArea['buttons'][button][4]-paddingsize, 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 0,0,0, 0.06 })
 					glBlending(GL_SRC_ALPHA, GL_ONE)
-					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 1, 1, 1, b and 0.13 or 0.03 }, { 0.44, 0.44, 0.44, b and 0.4 or 0.2 })
+					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 1, 1, 1, b and 0.13 or 0.03 }, { 0.44, 0.44, 0.44, mb and 0.4 or 0.2 })
 					local mult = 1
 					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][4] - ((buttonsArea['buttons'][button][4] - buttonsArea['buttons'][button][2]) * 0.4), buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.3 * widgetScale, 0, 0, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.18 * mult })
 					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][2] + ((buttonsArea['buttons'][button][4] - buttonsArea['buttons'][button][2]) * 0.25), 3.3 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 1, 1, 1, 0.045 * mult }, { 1, 1, 1, 0 })
@@ -1776,7 +1777,7 @@ function widget:DrawScreen()
 
 				-- stay button
 				if gameIsOver or not chobbyLoaded then
-					if math_isInRect(x, y, quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4]) then
+					if math_isInRect(mx, my, quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4]) then
 						color1 = { 0, 0.4, 0, 0.4 + (0.5 * fadeProgress) }
 						color2 = { 0.05, 0.6, 0.05, 0.4 + (0.5 * fadeProgress) }
 					else
@@ -1789,7 +1790,7 @@ function widget:DrawScreen()
 
 				-- resign button
 				if not spec then
-					if math_isInRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
+					if math_isInRect(mx, my, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
 						color1 = { 0.28, 0.28, 0.28, 0.4 + (0.5 * fadeProgress) }
 						color2 = { 0.45, 0.45, 0.45, 0.4 + (0.5 * fadeProgress) }
 					else
@@ -1802,7 +1803,7 @@ function widget:DrawScreen()
 
 				-- quit button
 				if gameIsOver or not chobbyLoaded then
-					if math_isInRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
+					if math_isInRect(mx, my, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
 						color1 = { 0.4, 0, 0, 0.4 + (0.5 * fadeProgress) }
 						color2 = { 0.6, 0.05, 0.05, 0.4 + (0.5 * fadeProgress) }
 					else

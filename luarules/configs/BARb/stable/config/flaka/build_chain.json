@@ -42,7 +42,7 @@
 	},
 
 	//"land":  [0, 15, 3, 5, 20, 6, 16, 20, 8, 10, 8, 24, 20, 12, 8, 24, 12], //19 adv solar is test
-	"land": [0, 1, 3, 8],
+	"land": [0, 1, 3, 4, 8],
 	"water": [0, 1],
 	"prevent": 1,  					// number of preventive defences, count to every cluster but not base
 	"amount": {  					// income bound factor
@@ -55,7 +55,7 @@
 	"point_range": 600, 
 
 	// Base defence and time to build it, in seconds
-	"base": [[6, 700], [14, 1000], [22, 1100], [7, 1200], [12, 1300], [22, 1400], [28, 1500]],
+	"base": [[17, 270], [6, 700], [14, 1000], [22, 1100], [7, 1200], [12, 1300], [22, 1400], [28, 1600]],
 	"superweapon": {
 		"unit": {
 			"armada": ["armbrtha", "armvulc", "armsilo"],
@@ -84,6 +84,7 @@
 	"energy": {
 		// <UnitDef>: {<elements>}
 		"armadvsol": {
+
 			// Available elements:
 			// "energy": [max energy income, <"mex"|true>]
 			// "pylon": <boolean>
@@ -116,7 +117,13 @@
 					{"unit": "armfmkr", "category": "convert", "offset": [-96, 80], "condition": {"energy": true}},
 					{"unit": "armfmkr", "category": "convert", "offset": [-112, 80], "condition": {"energy": true}},
                     {"unit": "armfmkr", "category": "convert", "offset": [-80, 80], "condition": {"energy": true}}	
-				]
+				],
+                [
+                    {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 15}},
+                    {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 15}},
+                    {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 15}},
+                    {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 15}}
+                ]
 			]
         },
         "armwin": {
@@ -139,14 +146,38 @@
             ]
 		    ]
 		}, 
-
-
 		"armsolar": {
 			"hub": [
-                    [{"unit": "armllt", "category": "defence", "offset": [120, 0], "condition": {"chance":0.25}}],
-                    [{"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 12}, "priority":"now"}]
-                   ]
+                [
+                    {"unit": "armllt", "category": "defence", "offset": [120, 0], "condition": {"chance":0.25}},
+                    {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 12}, "priority":"now"},
+                    {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 12}, "priority":"now"},
+                    {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 12}, "priority":"now"},
+                    {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 12}, "priority":"now"}
+                ]
+            ]
 		},
+        "armgeo": {
+            "hub":[
+                [
+					{"unit": "armfmkr", "category": "convert", "offset": [-80, 80], "priority": "now"},
+					{"unit": "armfmkr", "category": "convert", "offset": [-96, 80], "priority": "now"},
+					{"unit": "armfmkr", "category": "convert", "offset": [-112, 80], "priority": "now"},
+                    {"unit": "armfmkr", "category": "convert", "offset": [-80, 80], "priority": "now"}	
+				],
+                [
+                    {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 15}, "priority": "now"},
+                    {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 15}, "priority": "now"},
+                    {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 15}, "priority": "now"},
+                    {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 15}, "priority": "now"}
+                ],
+          
+                [
+                    {"unit": "armllt", "category": "defence", "offset": [120, 0]},
+                ]
+            ]
+
+        },
         "armmakr": {
 			"hub": [
                     [{"unit": "armllt", "category": "defence", "offset": [150, 0], "condition": {"chance":0.20}}]
@@ -608,6 +639,27 @@
             ]
         }
     },
-    "pylon":{}
+    "pylon":{
+        "armmstor": {
+            "hub": [
+            [
+                {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 12}, "priority":"now"},
+                {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 12}, "priority":"now"},
+                {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 12}, "priority":"now"},
+                {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 12}, "priority":"now"}
+            ]
+        ]
+    },
+    "cormstor": {
+        "hub": [
+            [
+                {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 12}, "priority":"now"},
+                {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 12}, "priority":"now"},
+                {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 12}, "priority":"now"},
+                {"unit": "armwin", "category": "bunker", "offset": [-200, 0], "condition": {"wind": 12}, "priority":"now"}
+            ]
+        ]
+    }
+    }
 }
 }

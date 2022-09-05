@@ -88,7 +88,7 @@ local function updateUI()
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistGuishader, 'converter_usage')
 		end
-        Spring.I18N('ui.topbar.quit.reallyResign')
+
         --Some coloring and tooltip text
         if converterUse < 20 then
             color = "\255\255\000\000" --Red

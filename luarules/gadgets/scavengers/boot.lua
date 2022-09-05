@@ -147,9 +147,9 @@ function gadget:GameFrame(n)
 	end
 
 	if scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists == true then
-		-- if n%30 == 0 then
-		-- 	startboxProtectionController.spawnStartBoxProtection(n)
-		-- end
+		if n%30 == 0 then
+			startboxProtectionController.spawnStartBoxProtection(n)
+		end
 		if n%10 == 0 then
 			startboxProtectionController.executeStartBoxProtection(n)
 		end

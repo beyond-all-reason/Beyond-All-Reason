@@ -100,7 +100,7 @@ return {
 				waterweapon = true,
 				weapontimer = 0.1,
 				weapontype = "Cannon",
-				weaponvelocity = 500,
+				weaponvelocity = 1000,
 				damage = {
 					default = 700,
 				},

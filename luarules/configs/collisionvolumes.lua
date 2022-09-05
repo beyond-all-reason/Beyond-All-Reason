@@ -109,6 +109,10 @@ unitCollisionVolume['armvp'] = {
 	on={120,34,92,0,0,0,2,1,0},
 	off={90,34,92,0,0,0,2,1,0},
 }
+unitCollisionVolume['cortoast'] = {
+	on={49,45,49,-0.5,0,0,0,1,0},
+	off={49,26,49,-0.5,0,0,0,1,0},
+}
 unitCollisionVolume['cordoom'] = {
 	on={63,112,63,0,12,0,1,1,1},
 	off={45,87,45,0,0,0,2,1,0},
@@ -166,15 +170,15 @@ for name, v in pairs(pieceCollisionVolume) do
 	end
 end
 
-dynamicPieceCollisionVolume['cortoast'] = {
-	on = {
-		['1']={60,40,60,-13,10,0,0,0},
-		['5']={8,8,31,0,1,3,1,2},
-	},
-	off = {
-		['1']={12,58,58,-2,13,0,1,0},
-	}
-}
+-- dynamicPieceCollisionVolume['cortoast'] = {
+-- 	on = {
+-- 		['1']={60,40,60,-13,10,0,0,0},
+-- 		['5']={8,8,31,0,1,3,1,2},
+-- 	},
+-- 	off = {
+-- 		['1']={12,58,58,-2,13,0,1,0},
+-- 	}
+-- }
 dynamicPieceCollisionVolume['corvipe'] = {
 	on = {
 		['0']={38,26,38,0,0,0,2,0},

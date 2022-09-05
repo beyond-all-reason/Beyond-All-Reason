@@ -1762,6 +1762,20 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine)
 			color = '\255\255\133\133'
 		elseif sfind(line,'Sync error for', nil, true) then
 			color = '\255\255\133\133'
+		elseif sfind(line,' is lagging behind', nil, true) then
+			color = '\255\255\133\133'
+			local playername = ssub(line, 1, sfind(line, ' is lagging behind'))
+			line = ''
+			if names[playername] then
+				if not names[playername][2] then
+					line = line..convertColor(spGetTeamColor(names[playername][3]))..playername
+				else
+					line = line..convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..playername
+				end
+			else
+				line = line..playername
+			end
+			line = line .. ' is lagging behind'
 		elseif sfind(line,'Warning', nil, true) then
 			color = '\255\255\190\170'
 		elseif sfind(line,'Failed to load', nil, true) then

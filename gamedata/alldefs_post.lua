@@ -569,8 +569,8 @@ function UnitDef_Post(name, uDef)
 		uDef.customparams.areadamageresistance = "_CHICKENACID_"
 		uDef.upright = false
 		uDef.floater = true
-		if uDef.sightdistance then 
-			uDef.sonardistance = uDef.sightdistance 
+		if uDef.sightdistance then
+			uDef.sonardistance = uDef.sightdistance
 		end
 		if (not uDef.canfly) and uDef.maxvelocity then
 			uDef.maxreversevelocity = uDef.maxvelocity*0.65
@@ -690,7 +690,7 @@ function UnitDef_Post(name, uDef)
 
 			uDef.crashdrag = 0.01	-- default 0.005
 
-			if not (string.find(name, "fepoch") or string.find(name, "fblackhy")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
+			if not (string.find(name, "fepoch") or string.find(name, "fblackhy") or string.find(name, "corcrw") or string.find(name, "legfort")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
 				if not Spring.GetModOptions().experimentalnoaircollisions then
 					uDef.collide = false
 				else
@@ -1101,6 +1101,20 @@ function WeaponDef_Post(name, wDef)
 				for damageClass, damageValue in pairs(wDef.damage) do
 					wDef.damage[damageClass] = wDef.damage[damageClass] * x
 				end
+			end
+		end
+	end
+
+	-- ExplosionSpeed is calculated same way engine does it, and then doubled
+	-- Note that this modifier will only effect weapons fired from actual units, via super clever hax of using the weapon name as prefix
+	if wDef.damage and wDef.damage.default then 
+		if string.find(name,'_', nil, true) then
+			local prefix = string.sub(name,1,3)
+			if prefix == 'arm' or prefix == 'cor' or prefix == 'leg' or prefix == 'chi' then 
+				local globaldamage = math.max(30, wDef.damage.default / 20)
+				local defExpSpeed = (8 + (globaldamage * 2.5))/ (9 + (math.sqrt(globaldamage) * 0.70)) * 0.5
+				wDef.explosionSpeed = defExpSpeed * 2
+				--Spring.Echo("Changing explosionSpeed for weapon:", name, wDef.name, wDef.weapontype, wDef.damage.default, wDef.explosionSpeed)
 			end
 		end
 	end

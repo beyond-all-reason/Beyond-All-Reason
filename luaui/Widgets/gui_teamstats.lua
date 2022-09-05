@@ -655,6 +655,8 @@ function ReGenerateTextDisplayList()
 	local baseYSize = boxSizes.y.max - (0.002*vsy) -- small align adjustment so text is in the middle of a row
 
 	font:Begin()
+	font:SetTextColor(1, 1, 1, 1)
+	font:SetOutlineColor(0, 0, 0, 1)
 		--print the header
 		local colCount = 0
 		local heightCorrection = fontSize*((1-fontSizePercentage)/2)

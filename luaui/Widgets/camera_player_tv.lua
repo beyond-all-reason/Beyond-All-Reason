@@ -333,60 +333,6 @@ local function updatePosition(force)
 	end
 end
 
-function widget:Initialize()
-	widget:ViewResize()
-	isSpec, fullview = Spring.GetSpectatingState()
-
-	if isSpec and not fullview then
-		toggled2 = true
-	end
-	if WG['advplayerlist_api'] == nil then
-		Spring.Echo("Top TS camera tracker: AdvPlayerlist not found! ...exiting")
-		widgetHandler:RemoveWidget()
-		return
-	end
-
-	local humanPlayers = 0
-	local playersList = Spring.GetPlayerList()
-	for _, playerID in ipairs(playersList) do
-		local _, active, spec, team = Spring.GetPlayerInfo(playerID, false)
-		if not spec then
-			playersTS[playerID] = GetSkill(playerID)
-			if not select(3, Spring.GetTeamInfo(team, false)) and not select(4, Spring.GetTeamInfo(team, false)) then
-				humanPlayers = humanPlayers + 1
-			end
-		end
-	end
-	if humanPlayers == 0 then
-		widgetHandler:RemoveWidget()
-		return
-	end
-
-	tsOrderPlayers()
-
-	updatePosition()
-	WG['playertv'] = {}
-	WG['playertv'].GetPosition = function()
-		return { top, left, bottom, right, widgetScale }
-	end
-	WG['playertv'].isActive = function()
-		return (toggled and isSpec)
-	end
-	WG['playertv'].GetPlayerChangeDelay = function()
-		return playerChangeDelay
-	end
-	WG['playertv'].SetPlayerChangeDelay = function(value)
-		playerChangeDelay = value
-		createCountdownLists()
-	end
-	WG['playertv'].GetAlwaysDisplayName = function()
-		return alwaysDisplayName
-	end
-	WG['playertv'].SetAlwaysDisplayName = function(value)
-		alwaysDisplayName = value
-	end
-end
-
 function widget:GameStart()
 	isSpec, fullview = Spring.GetSpectatingState()
 	nextTrackingPlayerChange = os.clock()-0.3
@@ -518,6 +464,9 @@ function widget:Update(dt)
 
 	if not toggled2 and Spring.GetMapDrawMode() == 'los' then
 		toggled2 = true
+		if WG['advplayerlist_api'] and WG['advplayerlist_api'].SetLosMode then
+			WG['advplayerlist_api'].SetLosMode('los')
+		end
 		createList()
 	elseif toggled2 and Spring.GetMapDrawMode() ~= 'los' then
 		toggled2 = false
@@ -661,6 +610,9 @@ local function togglePlayerTV(state)
 	elseif not rejoining then
 		toggled = true
 		toggled2 = true
+		if WG['advplayerlist_api'] and WG['advplayerlist_api'].SetLosMode then
+			WG['advplayerlist_api'].SetLosMode('los')
+		end
 		switchPlayerCam()
 		createList()
 	end
@@ -702,6 +654,66 @@ local function togglePlayerView(state)
 		end
 	end
 	createList()
+end
+
+function widget:Initialize()
+	widget:ViewResize()
+	isSpec, fullview = Spring.GetSpectatingState()
+
+	if isSpec and not fullview then
+		toggled2 = true
+	end
+	if WG['advplayerlist_api'] == nil then
+		Spring.Echo("Top TS camera tracker: AdvPlayerlist not found! ...exiting")
+		widgetHandler:RemoveWidget()
+		return
+	end
+
+	local humanPlayers = 0
+	local playersList = Spring.GetPlayerList()
+	for _, playerID in ipairs(playersList) do
+		local _, active, spec, team = Spring.GetPlayerInfo(playerID, false)
+		if not spec then
+			playersTS[playerID] = GetSkill(playerID)
+			if not select(3, Spring.GetTeamInfo(team, false)) and not select(4, Spring.GetTeamInfo(team, false)) then
+				humanPlayers = humanPlayers + 1
+			end
+		end
+	end
+	if humanPlayers == 0 then
+		widgetHandler:RemoveWidget()
+		return
+	end
+
+	tsOrderPlayers()
+
+	updatePosition()
+	WG['playertv'] = {}
+	WG['playertv'].GetPosition = function()
+		return { top, left, bottom, right, widgetScale }
+	end
+	WG['playertv'].isActive = function()
+		return (toggled and isSpec)
+	end
+	WG['playertv'].GetPlayerChangeDelay = function()
+		return playerChangeDelay
+	end
+	WG['playertv'].SetPlayerChangeDelay = function(value)
+		playerChangeDelay = value
+		createCountdownLists()
+	end
+	WG['playertv'].GetAlwaysDisplayName = function()
+		return alwaysDisplayName
+	end
+	WG['playertv'].SetAlwaysDisplayName = function(value)
+		alwaysDisplayName = value
+	end
+	WG['playertv'].TogglePlayerView = function(value)
+		togglePlayerView(value)
+	end
+	WG['playertv'].TogglePlayerCamera = function()
+		togglePlayerCamera()
+	end
 end
 
 function widget:MousePress(mx, my, mb)

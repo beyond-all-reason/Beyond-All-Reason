@@ -1159,7 +1159,7 @@ local function drawUnitInfo()
 				if unitDefInfo[displayUnitDefID].maxCoverage then
 					addTextInfo(texts.coverrange, unitDefInfo[displayUnitDefID].maxCoverage)
 				elseif maxRange then
-					addTextInfo(texts.weaponrange, maxRange)
+					addTextInfo(texts.weaponrange, math_floor(maxRange))
 				end
 
 				addTextInfo(texts.reloadtime, round(currentReloadTime, 2))

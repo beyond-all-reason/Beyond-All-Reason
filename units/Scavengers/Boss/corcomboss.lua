@@ -242,6 +242,7 @@ return {
 				avoidfriendly = false,
 				avoidground = false,
 				bouncerebound = 0,
+				cameraShake = 500,
 				cegtag = "gausscannonprojectilexl",
 				commandfire = true,
 				craterareaofeffect = 0,
