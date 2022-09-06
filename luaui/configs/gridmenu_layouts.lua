@@ -29,9 +29,9 @@ local labGrids = {
 		"cormort", "corroach", "coraak", "corsumo",             -- morty, skuttle, AA bot, sumo
 	},
 	legalab = {
-		"corack", "corfast", "legstr", "corspy",               -- T2 con, freaker, pyro, spy
-		"corvoyr", "corspec", "legshot", "corhrk",              -- radar bot, jammer bot, can, dominator
-		"legbart", "corroach", "coraak", "corsumo",             -- morty, skuttle, AA bot, sumo
+		"legack", "corfast", "legstr", "corspy",               -- T2 con, freaker, strider, spy
+		"corvoyr", "corspec", "legshot", "legsrail",              -- radar bot, jammer bot, shotgun, dominator
+		"legbart", "corroach", "coraak", "leginc",             -- belcher, skuttle, AA bot, sumo
 	},
 	-- T1 vehicle
 	armvp = {
@@ -62,6 +62,11 @@ local labGrids = {
 		"corvrad", "coreter", "corgol", "cortrem",             -- radar, jammer, goli, tremor
 		"corseal", "corparrow", "corsent", "corvroc",          -- croc, poison arrow, AA, diplomat
 	},
+	legavp = {
+		"legacv", "legmrv", "legsco", "cormart",              -- T2 con, Quickshot, scorpion, pillager
+		"corvrad", "coreter", "corgol", "leginf",             -- radar, jammer, goli, inferno
+		"corseal", "corban", "corsent", "corvroc",          -- croc, poison arrow, AA, diplomat
+	},
 	-- T1 air
 	armap = {
 		"armca", "armfig", "armkam", "armthund",           -- T1 con, fig, gunship, bomber
@@ -88,8 +93,8 @@ local labGrids = {
 		"corcrw",                                              -- krow
 	},
 	legaap = {
-		"coraca", "corvamp", "corape", "legnap",              -- T2 con, fig, gunship, bomber
-		"corawac", "legmineb", "cortitan", "",                 -- radar, transport, torpedo,
+		"legaca", "corvamp", "corape", "legnap",              -- T2 con, fig, gunship, bomber
+		"corawac", "", "cortitan", "legmineb",                 -- radar, transport, torpedo, mine bomber
 		"legfort",                                              -- krow
 	},
 	-- seaplanes
@@ -705,6 +710,29 @@ local unitGrids = {
 			{ },                                                --
 		}
 	},
+	
+	legack = {
+		{
+			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
+			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
+		},
+		{
+			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "corint", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
+		},
+		{
+			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
+			{ "corsd", "corasp", },                             -- intrusion counter, air repair pad
+			{ "corgate", },                                     -- anti-nuke, shield
+		},
+		{
+			{ "corlab", },                                      -- T1 lab,
+			{ "corgant", "legalab", },                          -- T3 lab, T2 lab
+			{ },                                                --
+		}
+	},
 
 	--T2 vehicle cons
 	armacv = {
@@ -753,6 +781,29 @@ local unitGrids = {
 		}
 	},
 
+	legacv = {
+		{
+			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
+			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
+		},
+		{
+			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "corint", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
+		},
+		{
+			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
+			{ "corsd", "corasp", },                             -- intrusion counter, air repair pad
+			{ "corgate", },                                     -- anti-nuke, shield
+		},
+		{
+			{ "corvp", },                                       -- T1 lab,
+			{ "corgant", "legavp", },                           -- T3 lab, T2 lab
+			{ },                                                --
+		}
+	},
+
 	--T2 air cons
 	armaca = {
 		{
@@ -796,6 +847,28 @@ local unitGrids = {
 		{
 			{ "corap", },                                       -- T1 lab,
 			{ "corgant", "coraap", },                           -- T3 lab, T2 lab
+			{ "corplat", },                                     -- seaplane lab (aircon only)
+		}
+	},
+	legaca = {
+		{
+			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
+			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
+		},
+		{
+			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
+			{ "corint", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
+		},
+		{
+			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
+			{ "corsd", "corasp", },                             -- intrusion counter, air repair pad
+			{ "corgate", },                                     -- anti-nuke, shield
+		},
+		{
+			{ "corap", },                                       -- T1 lab,
+			{ "corgant", "legaap", },                           -- T3 lab, T2 lab
 			{ "corplat", },                                     -- seaplane lab (aircon only)
 		}
 	},
