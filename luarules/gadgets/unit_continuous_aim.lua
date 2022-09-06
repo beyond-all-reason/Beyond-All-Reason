@@ -106,7 +106,7 @@ local convertedUnits = {
 	[UnitDefNames.legcomt2com.id] = 5,
 	[UnitDefNames.legstr.id] = 5,
 	[UnitDefNames.legbart.id] = 5,
-	[UnitDefNames.legraid.id] = 5,
+	[UnitDefNames.legmrv.id] = 5,
 	[UnitDefNames.legsco.id] = 5,
 }
 
