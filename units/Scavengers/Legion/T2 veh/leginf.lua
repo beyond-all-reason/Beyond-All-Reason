@@ -1,6 +1,7 @@
 return {
 	leginf = {
 		acceleration = 0.0098,
+		airsightdistance = 1050,
 		brakerate = 0.0196,
 		buildcostenergy = 30000,
 		buildcostmetal = 2000,

@@ -461,6 +461,12 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
 			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
 			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
+		elseif name == "legca" or name == "legck" or name == "legcv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
+			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
+			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
+			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
 		elseif name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armapt3"
@@ -470,6 +476,14 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+5] = "armbotrail"
 			uDef.buildoptions[numBuildoptions+6] = "armannit3"
 		elseif name == "coraca" or name == "corack" or name == "coracv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corapt3"
+			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
+      		uDef.buildoptions[numBuildoptions+3] = "corwint2"
+			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
+			uDef.buildoptions[numBuildoptions+5] = "corscavfort"
+			uDef.buildoptions[numBuildoptions+6] = "cordoomt3"
+		elseif name == "legaca" or name == "legack" or name == "legacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corapt3"
 			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"

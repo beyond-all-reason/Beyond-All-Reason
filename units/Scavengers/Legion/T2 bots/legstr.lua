@@ -85,7 +85,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-small",
+				[1] = "custom:barrelshot-tiny",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
@@ -119,7 +119,7 @@ return {
 				accuracy = 7,
 				areaofeffect = 16,
 				avoidfeature = false,
-				burst = 3,
+				burst = 2,
 				burstrate = 0.033,
 				burnblow = false,
 				craterareaofeffect = 0,
@@ -138,7 +138,7 @@ return {
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 3,
 				range = 300,
-				reloadtime = 0.1,
+				reloadtime = 0.07,
 				rgbcolor = "1 0.95 0.4",
 				--size = 2.25,
 				soundhit = "bimpact3",
