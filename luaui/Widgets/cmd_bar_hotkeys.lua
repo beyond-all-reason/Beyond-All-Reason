@@ -35,7 +35,7 @@ local function loadBindings()
 	reloadBuildMenuBindings()
 
 	for _, v in ipairs(makeBindsTable(keyLayout)) do
-		local command = 'bind '..v[1]..' '..v[2]..(v[3] or '')
+		local command = 'bind '..v[1]..' '..v[2]..' '..(v[3] or '')
 		Spring.SendCommands(command)
 	end
 end
