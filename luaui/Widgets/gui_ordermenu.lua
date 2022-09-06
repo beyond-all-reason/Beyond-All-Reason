@@ -123,14 +123,7 @@ local RectRound, UiElement, UiButton, elementCorner
 
 local isSpectating = Spring.GetSpectatingState()
 local cursorTextures = {}
-local actionHotkeys = {}
-
-for _, keybinding in pairs(Spring.GetKeyBindings()) do
-	local cmd = keybinding.command
-	if (not actionHotkeys[cmd]) or keybinding.boundWith:len() < actionHotkeys[cmd]:len() then
-		actionHotkeys[cmd] = keybinding.boundWith
-	end
-end
+local actionHotkeys = VFS.Include("luaui/Widgets/Include/action_hotkeys.lua")
 
 local function convertColor(r, g, b)
 	return string.char(255, (r * 255), (g * 255), (b * 255))

@@ -250,7 +250,6 @@
 				"disclaimer": "These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!",
 				"chat": {
 					"title": "Chat",
-					"sendKey": "enter",
 					"send": "Send chat message",
 					"alliesKey": "alt + enter",
 					"allies": "Send chat message to allies",
@@ -261,11 +260,9 @@
 				},
 				"menus": {
 					"title": "Menus",
-					"settingsKey": "f10",
 					"settings": "Settings",
 					"widgetsKey": "f11",
 					"widgets": "Widget list",
-					"shareKey": "h",
 					"share": "Share units / resources"
 				},
 				"camera": {
@@ -278,7 +275,6 @@
 					"tilt": "Change camera angle",
 					"dragKey": "middle click (+ drag)",
 					"drag": "Drag camera",
-					"flipKey": "ctrl + shift + o",
 					"flip": "Flip camera"
 				},
 				"cameraModes": {
@@ -287,26 +283,18 @@
 					"change": "Change camera type",
 					"fullscreenKey": "alt + backspace",
 					"fullscreen": "Toggle fullscreen",
-					"overviewKey": "tab",
 					"overview": "Toggle overview camera",
-					"losKey": "l",
 					"los": "Toggle LOS view",
-					"heightmapKey": "f1",
 					"heightmap": "Show height map",
-					"traversabilityKey": "f2",
 					"traversability": "Show passability (for selected unit)",
-					"mapmarksKey": "f3",
 					"mapmarks": "Cycle through map marks",
-					"resourceSpotsKey": "f4",
 					"resourceSpots": "Show metal map",
-					"interfaceKey": "f5",
 					"interface": "Hide GUI"
 				},
 				"sound": {
 					"title": "Sound",
 					"volumeKey": "-/+",
 					"volume": "Change volume",
-					"muteKey": "f6",
 					"mute": "Toggle mute"
 				},
 				"selection": {
@@ -325,33 +313,19 @@
 					"title": "Selecting orders",
 					"defaultKey": "(none)",
 					"default": "default order (usually move)",
-					"moveKey": "m",
 					"move": "move",
 					"attack": "attack",
-					"attackKey": "a",
-					"stopKey": "s",
 					"stop": "stop (clears order queue)",
-					"repairKey": "r",
 					"repair": "repair",
-					"reclaimKey": "e",
 					"reclaim": "reclaim",
-					"resurrectKey": "o",
 					"resurrect": "resurrect",
-					"patrolKey": "p",
 					"patrol": "patrol",
-					"fightKey": "f",
 					"fight": "fight",
-					"setTargetKey": "y",
 					"setTarget": "set priority target",
-					"cancelTargetKey": "j",
 					"cancelTarget": "cancel priority target",
-					"waitKey": "w",
 					"wait": "wait (pause current command)",
 					"cloak": "cloak",
-					"cloakKey": "k",
-					"dGunKey": "d",
 					"dGun": "manual fire (dgun)",
-					"selfDestructKey": "ctrl + d",
 					"selfDestruct": "self-destruct"
 				},
 				"issueOrders": {
@@ -382,7 +356,7 @@
 					"intel": "Cycle through radar/defence/etc",
 					"factoriesKey": "v",
 					"factories": "Cycle through factories",
-					"rotateKey": "[ and ], or o",
+					"rotateKey": "[ and ]",
 					"rotate": "Change facing of buildings"
 				},
 				"issueBuildOrders": {
@@ -419,11 +393,11 @@
 				},
 				"drawing": {
 					"title": "Drawing",
-					"mapmarkKey": "q + dbl click",
+					"mapmarkKey": "` + dbl click",
 					"mapmark": "Place map mark",
-					"drawKey": "q + drag left mouse",
+					"drawKey": "` + drag left mouse",
 					"draw": "Draw on map",
-					"eraseKey": "q + drag right mouse",
+					"eraseKey": "` + drag right mouse",
 					"erase": "Erase drawings and markers"
 				},
 				"console": {

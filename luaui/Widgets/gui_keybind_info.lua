@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "Bluestone",
 		date = "April 2015",
 		license = "Mouthwash",
-		layer = -99990,
+		layer = 3,
 		enabled = true,
 	}
 end
@@ -17,41 +17,52 @@ local lineType = {
 	key = 3,
 }
 
+local actionHotkeys
+
+local function getActionHotkey(action)
+	local key = actionHotkeys[action]
+
+	if not key then return "(none)" end
+
+	return key:upper():gsub("ANY%+",""):gsub("SC_",""):gsub("%+"," + ")
+end
+
 local function refreshText()
+	actionHotkeys = VFS.Include("luaui/Widgets/Include/action_hotkeys.lua")
+
 	keybindsText = {
 		{ type = lineType.title, text = Spring.I18N('ui.keybinds.chat.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.chat.sendKey'),		text = Spring.I18N('ui.keybinds.chat.send')			},
+		{ type = lineType.key, key = getActionHotkey('chat'),		text = Spring.I18N('ui.keybinds.chat.send')			},
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.chat.alliesKey'),		text = Spring.I18N('ui.keybinds.chat.allies')		},
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.chat.spectatorsKey'),	text = Spring.I18N('ui.keybinds.chat.spectators')	},
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.chat.ignoreKey'),		text = Spring.I18N('ui.keybinds.chat.ignore')		},
 		{ type = lineType.blank },
 		{ type = lineType.title, text = Spring.I18N('ui.keybinds.menus.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.menus.settingsKey'),		text = Spring.I18N('ui.keybinds.menus.settings')	},
+		{ type = lineType.key, key = getActionHotkey('options'),		text = Spring.I18N('ui.keybinds.menus.settings')	},
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.menus.widgetsKey'),		text = Spring.I18N('ui.keybinds.menus.widgets')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.menus.widgetsTweakKey'),	text = Spring.I18N('ui.keybinds.menus.widgetsTweak')},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.menus.shareKey'),			text = Spring.I18N('ui.keybinds.menus.share')		},
+		{ type = lineType.key, key = getActionHotkey('sharedialog'),			text = Spring.I18N('ui.keybinds.menus.share')		},
 		{ type = lineType.blank },
 		{ type = lineType.title, text = Spring.I18N('ui.keybinds.camera.title') },
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.camera.zoomKey'),	text = Spring.I18N('ui.keybinds.camera.zoom')	},
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.camera.panKey'),	text = Spring.I18N('ui.keybinds.camera.pan')	},
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.camera.tiltKey'),	text = Spring.I18N('ui.keybinds.camera.tilt')	},
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.camera.dragKey'),	text = Spring.I18N('ui.keybinds.camera.drag')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.camera.flipKey'),	text = Spring.I18N('ui.keybinds.camera.flip')	},
+		{ type = lineType.key, key = getActionHotkey('cameraflip'),	text = Spring.I18N('ui.keybinds.camera.flip')	},
 		{ type = lineType.blank },
 		{ type = lineType.title, text = Spring.I18N('ui.keybinds.cameraModes.title') },
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.cameraModes.changeKey'),			text = Spring.I18N('ui.keybinds.cameraModes.change')		},
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.cameraModes.fullscreenKey'),		text = Spring.I18N('ui.keybinds.cameraModes.fullscreen')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.cameraModes.overviewKey'),		text = Spring.I18N('ui.keybinds.cameraModes.overview')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.cameraModes.losKey'),				text = Spring.I18N('ui.keybinds.cameraModes.los')			},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.cameraModes.heightmapKey'),		text = Spring.I18N('ui.keybinds.cameraModes.heightmap')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.cameraModes.traversabilityKey'),	text = Spring.I18N('ui.keybinds.cameraModes.traversability')},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.cameraModes.mapmarksKey'),		text = Spring.I18N('ui.keybinds.cameraModes.mapmarks')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.cameraModes.resourceSpotsKey'),	text = Spring.I18N('ui.keybinds.cameraModes.resourceSpots')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.cameraModes.interfaceKey'),		text = Spring.I18N('ui.keybinds.cameraModes.interface')		},
+		{ type = lineType.key, key = getActionHotkey('toggleoverview'),		text = Spring.I18N('ui.keybinds.cameraModes.overview')		},
+		{ type = lineType.key, key = getActionHotkey('togglelos'),				text = Spring.I18N('ui.keybinds.cameraModes.los')			},
+		{ type = lineType.key, key = getActionHotkey('showelevation'),		text = Spring.I18N('ui.keybinds.cameraModes.heightmap')		},
+		{ type = lineType.key, key = getActionHotkey('showpathtraversability'),	text = Spring.I18N('ui.keybinds.cameraModes.traversability')},
+		{ type = lineType.key, key = getActionHotkey('lastmsgpos'),		text = Spring.I18N('ui.keybinds.cameraModes.mapmarks')		},
+		{ type = lineType.key, key = getActionHotkey('showmetalmap'),	text = Spring.I18N('ui.keybinds.cameraModes.resourceSpots')	},
+		{ type = lineType.key, key = getActionHotkey('hideinterface'),		text = Spring.I18N('ui.keybinds.cameraModes.interface')		},
 		{ type = lineType.blank },
 		{ type = lineType.title, text = Spring.I18N('ui.keybinds.sound.title') },
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.sound.volumeKey'),	text = Spring.I18N('ui.keybinds.sound.volume')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.sound.muteKey'),		text = Spring.I18N('ui.keybinds.sound.mute')	},
+		{ type = lineType.key, key = getActionHotkey('mutesound'),		text = Spring.I18N('ui.keybinds.sound.mute')	},
 		{ type = lineType.blank },
 		{ type = lineType.title, text = Spring.I18N('ui.keybinds.selection.title') },
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.selection.unitsKey'), text = Spring.I18N('ui.keybinds.selection.units') },
@@ -62,22 +73,22 @@ local function refreshText()
 		{ type = lineType.blank },
 		{ type = lineType.title, text = Spring.I18N('ui.keybinds.orders.title') },
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.orders.defaultKey'),		text = Spring.I18N('ui.keybinds.orders.default')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.orders.moveKey'),			text = Spring.I18N('ui.keybinds.orders.move')			},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.orders.attackKey'),		text = Spring.I18N('ui.keybinds.orders.attack')			},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.orders.setTargetKey'),	text = Spring.I18N('ui.keybinds.orders.setTarget')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.orders.repairKey'),		text = Spring.I18N('ui.keybinds.orders.repair')			},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.orders.reclaimKey'),		text = Spring.I18N('ui.keybinds.orders.reclaim')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.orders.resurrectKey'),	text = Spring.I18N('ui.keybinds.orders.resurrect')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.orders.fightKey'),		text = Spring.I18N('ui.keybinds.orders.fight')			},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.orders.patrolKey'),		text = Spring.I18N('ui.keybinds.orders.patrol')			},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.orders.cloakKey'),		text = Spring.I18N('ui.keybinds.orders.cloak')			},
+		{ type = lineType.key, key = getActionHotkey('move'),			text = Spring.I18N('ui.keybinds.orders.move')			},
+		{ type = lineType.key, key = getActionHotkey('attack'),		text = Spring.I18N('ui.keybinds.orders.attack')			},
+		{ type = lineType.key, key = getActionHotkey('settargetnoground'),	text = Spring.I18N('ui.keybinds.orders.setTarget')		},
+		{ type = lineType.key, key = getActionHotkey('repair'),		text = Spring.I18N('ui.keybinds.orders.repair')			},
+		{ type = lineType.key, key = getActionHotkey('reclaim'),		text = Spring.I18N('ui.keybinds.orders.reclaim')		},
+		{ type = lineType.key, key = getActionHotkey('resurrect'),	text = Spring.I18N('ui.keybinds.orders.resurrect')		},
+		{ type = lineType.key, key = getActionHotkey('fight'),		text = Spring.I18N('ui.keybinds.orders.fight')			},
+		{ type = lineType.key, key = getActionHotkey('patrol'),		text = Spring.I18N('ui.keybinds.orders.patrol')			},
+		{ type = lineType.key, key = getActionHotkey('wantcloak'),		text = Spring.I18N('ui.keybinds.orders.cloak')			},
 		{ type = lineType.blank },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.orders.stopKey'),			text = Spring.I18N('ui.keybinds.orders.stop')			},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.orders.waitKey'),			text = Spring.I18N('ui.keybinds.orders.wait')			},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.orders.cancelTargetKey'),	text = Spring.I18N('ui.keybinds.orders.cancelTarget')	},
+		{ type = lineType.key, key = getActionHotkey('stop'),			text = Spring.I18N('ui.keybinds.orders.stop')			},
+		{ type = lineType.key, key = getActionHotkey('wait'),			text = Spring.I18N('ui.keybinds.orders.wait')			},
+		{ type = lineType.key, key = getActionHotkey('canceltarget'),	text = Spring.I18N('ui.keybinds.orders.cancelTarget')	},
 		{ type = lineType.blank },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.orders.dGunKey'),			text = Spring.I18N('ui.keybinds.orders.dGun')			},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.orders.selfDestructKey'),	text = Spring.I18N('ui.keybinds.orders.selfDestruct')	},
+		{ type = lineType.key, key = getActionHotkey('manualfire'),			text = Spring.I18N('ui.keybinds.orders.dGun')			},
+		{ type = lineType.key, key = getActionHotkey('selfd'),	text = Spring.I18N('ui.keybinds.orders.selfDestruct')	},
 		{ type = lineType.blank },
 		{ type = lineType.title, text = Spring.I18N('ui.keybinds.issueOrders.title') },
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueOrders.orderKey'),		text = Spring.I18N('ui.keybinds.issueOrders.order')		},
@@ -109,7 +120,7 @@ local function refreshText()
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.buildersKey'),		text = Spring.I18N('ui.keybinds.massSelect.builders')	},
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.createGroupKey'),	text = Spring.I18N('ui.keybinds.massSelect.createGroup')},
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.createAutoGroupKey'),	text = Spring.I18N('ui.keybinds.massSelect.createAutoGroup')},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.removeAutoGroupKey'),	text = Spring.I18N('ui.keybinds.massSelect.removeAutoGroup')},
+		{ type = lineType.key, key = getActionHotkey('remove_from_autogroup'),	text = Spring.I18N('ui.keybinds.massSelect.removeAutoGroup')},
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.groupKey'),		text = Spring.I18N('ui.keybinds.massSelect.group')		},
 		{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.sameTypeKey'),		text = Spring.I18N('ui.keybinds.massSelect.sameType')	},
 		{ type = lineType.blank },
@@ -176,9 +187,9 @@ local function drawTextTable(lines, x, y)
 			-- keybind line
 			local bind = string.upper(line.key)
 			local description = line.text
-			local line = keybindColor .. bind .. "   " .. descriptionColor .. description
-			font:Print(line, x + 14, y - (fontSize * 0.94) * lineIndex, fontSize * 0.8)
-			width = math.max(font:GetTextWidth(line) * 11, width)
+			local text = keybindColor .. bind .. "   " .. descriptionColor .. description
+			font:Print(text, x + 14, y - (fontSize * 0.94) * lineIndex, fontSize * 0.8)
+			width = math.max(font:GetTextWidth(text) * 11, width)
 		end
 		height = height + 13
 
@@ -364,6 +375,10 @@ function widget:Initialize()
 			show = state
 		else
 			show = not show
+		end
+
+		if show then
+			refreshText()
 		end
 	end
 	WG['keybinds'].isvisible = function()
