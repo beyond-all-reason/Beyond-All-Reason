@@ -642,6 +642,8 @@ local newUnitOrder = {}
 for id, value in pairs(unitOrderTable) do
 	if UnitDefNames[id] then
 		newUnitOrder[UnitDefNames[id].id] = value
+	else
+		Spring.Echo("WARNING: luaui/configs/buildmenu_sorting.lua: UnitDef '"..id.."' doesnt exist!")
 	end
 end
 unitOrderTable = newUnitOrder
