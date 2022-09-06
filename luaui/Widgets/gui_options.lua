@@ -26,7 +26,7 @@ local texts = {}    -- loaded from external language file
 local languageCodes = { 'en', 'fr', 'zh' }
 languageCodes = table.merge(languageCodes, table.invert(languageCodes))
 
-local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua").layouts
+local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")
 
 local languageNames = {}
 for key, code in ipairs(languageCodes) do
@@ -2362,17 +2362,20 @@ function init()
 		  end,
 		},
 
-		{ id = "keylayout", group = "control", category = types.basic, name = texts.option.keylayout, type = "select", options = keyLayouts, value = 1, description = texts.option.keylayout_descr,
+		{ id = "label_ui_hotkeys", group = "control", name = texts.option.label_hotkeys, category = types.basic },
+		{ id = "label_ui_hotkeys_spacer", group = "control", category = types.basic },
+
+		{ id = "keylayout", group = "control", category = types.basic, name = texts.option.keylayout, type = "select", options = keyLayouts.layouts, value = 1, description = texts.option.keylayout_descr,
 			onload = function()
 				local keyLayout = Spring.GetConfigString("KeyboardLayout")
 
 				if not keyLayout or keyLayout == '' then
-					keyLayout = keyLayouts[1]
-					Spring.SetConfigString("KeyboardLayout", keyLayouts[1])
+					keyLayout = keyLayouts.layouts[1]
+					Spring.SetConfigString("KeyboardLayout", keyLayouts.layouts[1])
 				end
 
 				local value = 1
-				for i, v in ipairs(keyLayouts) do
+				for i, v in ipairs(keyLayouts.layouts) do
 					if v == keyLayout then
 						value = i
 						break
@@ -2382,9 +2385,42 @@ function init()
 				options[getOptionByID('keylayout')].value = value
 			end,
 			onchange = function(_, value)
-				Spring.SetConfigString("KeyboardLayout", keyLayouts[value])
-				if WG['buildmenu'] and WG['buildmenu'].reloadBindings then
-					WG['buildmenu'].reloadBindings()
+				Spring.SetConfigString("KeyboardLayout", keyLayouts.layouts[value])
+				if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
+					WG['bar_hotkeys'].reloadBindings()
+				end
+			end,
+		},
+
+		{ id = "keybindings", group = "control", category = types.basic, name = texts.option.keybindings, type = "select", options = keyLayouts.keybindingLayouts, value = 1, description = texts.option.keybindings_descr,
+			onload = function()
+				local keyFile = Spring.GetConfigString("KeybindingFile")
+				local value = 1
+
+				if keyFile and not keyFile == '' and VFS.FileExists(keyFile) then
+					for i, v in ipairs(keyLayouts.keybindingLayoutFiles) do
+						if v == keyFile then
+							value = i
+							break
+						end
+					end
+				end
+
+				Spring.SetConfigString("KeybindingFile", keyLayouts.keybindingLayoutFiles[value])
+
+				options[getOptionByID('keybindings')].value = value
+			end,
+			onchange = function(_, value)
+				local keyFile = keyLayouts.keybindingLayoutFiles[value]
+
+				if not keyFile or keyFile == '' or not VFS.FileExists(keyFile) then
+					return
+				end
+
+				Spring.SetConfigString("KeybindingFile", keyFile)
+
+				if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
+					WG['bar_hotkeys'].reloadBindings()
 				end
 			end,
 		},

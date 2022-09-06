@@ -12,10 +12,12 @@ function widget:GetInfo()
 end
 
 local currentLayout
+local currentKeybindingsFile
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 
 local function makeBindsTable(keyLayout)
-	return VFS.Include("luaui/configs/bar_hotkeys.lua", {
+	local bindingsFile = VFS.FileExists(currentKeybindingsFile) and currentKeybindingsFile or "luaui/configs/bar_hotkeys.lua"
+	return VFS.Include(bindingsFile, {
 		table = table,
 		Q = keyLayout[3][1], W = keyLayout[3][2], E = keyLayout[3][3], R = keyLayout[3][4], T = keyLayout[3][5], Y = keyLayout[3][6], U = keyLayout[3][7], I = keyLayout[3][8], O = keyLayout[3][9], P = keyLayout[3][10],
 		A = keyLayout[2][1], S = keyLayout[2][2], D = keyLayout[2][3], F = keyLayout[2][4], G = keyLayout[2][5], H = keyLayout[2][6], J = keyLayout[2][7], K = keyLayout[2][8], L = keyLayout[2][9],
@@ -23,16 +25,18 @@ local function makeBindsTable(keyLayout)
 	})
 end
 
-local function reloadBuildMenuBindings()
-	if WG['buildmenu'] and WG['buildmenu'].reloadBindings then
-		WG['buildmenu'].reloadBindings()
+local function reloadWidgetsBindings()
+	local reloadableWidgets = {'buildmenu', 'ordermenu'}
+
+	for _, w in pairs(reloadableWidgets) do
+		if WG[w] and WG[w].reloadBindings then
+			WG[w].reloadBindings()
+		end
 	end
 end
 
 local function loadBindings()
 	local keyLayout = keyConfig.keyLayouts[currentLayout]
-
-	reloadBuildMenuBindings()
 
 	for _, v in ipairs(makeBindsTable(keyLayout)) do
 		local command = 'bind '..v[1]..' '..v[2]..' '..(v[3] or '')
@@ -44,17 +48,21 @@ local function reloadBindings()
 	Spring.SendCommands("unbindall")
 
 	currentLayout = Spring.GetConfigString("KeyboardLayout", 'qwerty')
+	currentKeybindingsFile = Spring.GetConfigString("KeybindingFile", "luaui/configs/bar_hotkeys.lua")
 
 	loadBindings()
+
+	reloadWidgetsBindings()
 end
 
 function widget:Initialize()
 	reloadBindings()
 
-	WG.reloadBindings = reloadBindings
+	WG['bar_hotkeys'] = {}
+	WG['bar_hotkeys'].reloadBindings = reloadBindings
 end
 
 function widget:Shutdown()
 	Spring.SendCommands("keyreload")
-	reloadBuildMenuBindings()
+	reloadWidgetsBindings()
 end
