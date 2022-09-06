@@ -427,7 +427,7 @@
 	"armvader": {
 		"role": ["raider"],
 		"attribute": ["melee"],
-		"retreat": 0,
+		"retreat": 0
 	},
 	"armaak": {
 		"role": ["anti_air"]
