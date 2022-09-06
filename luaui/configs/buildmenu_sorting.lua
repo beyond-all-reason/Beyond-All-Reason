@@ -41,11 +41,11 @@ local unitOrderTable = {
 
 	[UDN["armack"].id]         = 002400,
 	[UDN["corack"].id]         = 002450,
-	--[UDN["legack"].id]         = 002455,
+	[UDN["legack"].id]         = 002455,
 
 	[UDN["armacv"].id]         = 002500,
 	[UDN["coracv"].id]         = 002550,
-	--[UDN["legacv"].id]         = 002555,
+	[UDN["legacv"].id]         = 002555,
 
 	[UDN["armaca"].id]         = 002600,
 	[UDN["coraca"].id]         = 002650,
@@ -185,13 +185,13 @@ local unitOrderTable = {
 	[UDN["legstr"].id]         = 006105,
 	[UDN["corpyro"].id]        = 006110,
 	[UDN["armlatnk"].id]       = 006120,
-	--[UDN["legmrv"].id]         = 006130,
+	[UDN["legmrv"].id]         = 006130,
 
 	[UDN["armzeus"].id]        = 006300, --MAIN BATTLE
 	[UDN["armmav"].id]         = 006310,
 	[UDN["armbull"].id]        = 006320,
 	[UDN["correap"].id]        = 006330,
-	--[UDN["legsco"].id]         = 006335,
+	[UDN["legsco"].id]         = 006335,
 	[UDN["armmanni"].id]       = 006340,
 	[UDN["corgatreap"].id]     = 006350,
 
@@ -207,7 +207,7 @@ local unitOrderTable = {
 	[UDN["armmart"].id]        = 006520,
 	[UDN["cormart"].id]        = 006530,
 	[UDN["cortrem"].id]        = 006540,
-	--[UDN["leginf"].id]         = 006550,
+	[UDN["leginf"].id]         = 006550,
 
 	[UDN["armsptk"].id]        = 006600, --ALL-TERRAIN
 	[UDN["cortermite"].id]     = 006610,
@@ -448,7 +448,7 @@ local unitOrderTable = {
    [UDN["legalab"].id]        = 102426,
    [UDN["armavp"].id]         = 102450,
    [UDN["coravp"].id]         = 102475,
-   --[UDN["legavp"].id]         = 102477,
+   [UDN["legavp"].id]         = 102477,
    [UDN["armaap"].id]         = 102500,
    [UDN["coraap"].id]         = 102525,
    [UDN["legaap"].id]         = 102530,

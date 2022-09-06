@@ -53,7 +53,7 @@ return {
 			[6] = "corestor",
 			[7] = "legmex",
 			[8] = "legmext15",
-			[9] = "coravp",
+			[9] = "legavp",
 			[10] = "leglab",
 			[11] = "legvp",
 			[12] = "legap",
@@ -73,7 +73,6 @@ return {
 			[26] = "corjamt",
 			[27] = "corjuno",
 			[28] = "corsy",
-			[29] = "legalab",
 		},
 		customparams = {
 			unitgroup = 'builder',
