@@ -114,11 +114,6 @@ if gadgetHandler:IsSyncedCode() then
 		life = 10,
 		regroup = true,
 	}
-
-	local attemptingToSpawnHeavyTurret = 1
-	local attemptingToSpawnLightTurret = 10
-	local attemptingToSpawnSpecialHeavyTurret = 0
-	local attemptingToSpawnSpecialLightTurret = 0
 	
 	local heavyTurret = "chicken_turretl"
 	local lightTurret = "chicken_turrets"
@@ -300,7 +295,6 @@ if gadgetHandler:IsSyncedCode() then
 			config.chickenSpawnMultiplier = config.chickenSpawnMultiplier*2
 		end
 		config.queenName = nextDifficulty.queenName
-		config.turretSpawnRate = nextDifficulty.turretSpawnRate
 		config.burrowSpawnRate = nextDifficulty.burrowSpawnRate
 		config.queenSpawnMult = nextDifficulty.queenSpawnMult
 		config.spawnChance = nextDifficulty.spawnChance
@@ -776,9 +770,6 @@ if gadgetHandler:IsSyncedCode() then
 			if canSpawnBurrow then
 				local unitID = CreateUnit(config.burrowName, x, y, z, mRandom(0,3), chickenTeamID)
 				if unitID then
-					if mRandom(1,4) == 1 and minBurrows < maxBurrows and Spring.GetGameFrame() > (config.gracePeriod*30)+150 then
-						minBurrows = minBurrows + 1
-					end
 					burrows[unitID] = 0
 					SetUnitBlocking(unitID, false, false)
 					setChickenXP(unitID)
@@ -802,13 +793,9 @@ if gadgetHandler:IsSyncedCode() then
 					if canSpawnBurrow then
 						local unitID = CreateUnit(config.burrowName, x, y, z, mRandom(0,3), chickenTeamID)
 						if unitID then
-							if mRandom(1,4) == 1 and minBurrows < maxBurrows and Spring.GetGameFrame() > (config.gracePeriod*30)+150 then
-								minBurrows = minBurrows + 1
-							end
 							burrows[unitID] = 0
 							SetUnitBlocking(unitID, false, false)
 							setChickenXP(unitID)
-							attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 1
 							break
 						end
 					elseif i == 100 then
@@ -1325,7 +1312,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function spawnCreepStructure(unitDefName, spread)
 		local structureDefID = UnitDefNames[unitDefName].id
 		local canSpawnStructure = true
-		local spread = 128
+		local spread = spread or 128
 		local spawnPosX = mRandom(lsx1,lsx2)
 		local spawnPosZ = mRandom(lsz1,lsz2)
 
@@ -1356,73 +1343,60 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function queueTurretSpawnIfNeeded()
 		local burrowCount = SetCount(burrows)
-		if mRandom(0,config.turretSpawnRate*6) == 0 and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
-			if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < burrowCount or Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < 2 then
-				attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + 1
-			end
-		end
-		if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id) < burrowCount*2 then
-			if attemptingToSpawnHeavyTurret > 0 then
-				for i = 1,attemptingToSpawnHeavyTurret do
-					local heavyTurretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(heavyTurret, spread)
-					if heavyTurretUnitID then
-						attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret - 1
-						setChickenXP(heavyTurretUnitID)
-						Spring.GiveOrderToUnit(heavyTurretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
-						attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 5
-						if mRandom(1,4) == 1 then
-							attemptingToSpawnSpecialHeavyTurret = attemptingToSpawnSpecialHeavyTurret + 1
-						end
+		local heavyTurretCount = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id)
+		local lightTurretCount = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id)
+		if burrowCount*4*config.spawnChance > heavyTurretCount then
+			local attempts = 0
+			repeat
+				attempts = attempts + 1
+				local heavyTurretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(heavyTurret)
+				if heavyTurretUnitID then
+					setChickenXP(heavyTurretUnitID)
+					Spring.GiveOrderToUnit(heavyTurretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
+					if mRandom(1,4) == 1 then
+						attempts = 0
+						local specialHeavyTurret = specialHeavyTurrets[mRandom(1,#specialHeavyTurrets)]
+						repeat 
+							attempts = attempts + 1
+							local specialHeavyTurretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(specialHeavyTurret)
+							if specialHeavyTurretUnitID then
+								setChickenXP(specialHeavyTurretUnitID)
+								Spring.GiveOrderToUnit(specialHeavyTurretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
+							end
+						until specialHeavyTurretUnitID or attempts > 100
 					end
 				end
-			end
+			until heavyTurretUnitID or attempts > 100
 		end
 
-		if mRandom(0,config.turretSpawnRate*6) == 0 and Spring.GetGameFrame() > (config.gracePeriod*30)+9000 then
-			if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < burrowCount*5 or Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < 10 then
-				attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 10
-			end
-		end
-		if Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id) < burrowCount*10 then
-			if attemptingToSpawnLightTurret > 0 then
-				for i = 1,attemptingToSpawnLightTurret do
-					local lightTurretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(lightTurret, spread)
+		if burrowCount*20*config.spawnChance > lightTurretCount or heavyTurretCount*10*config.spawnChance > lightTurretCount then
+			for i = 1,5 do
+				local attempts = 0
+				repeat
+					attempts = attempts + 1
+					local lightTurretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(lightTurret)
 					if lightTurretUnitID then
-						attemptingToSpawnLightTurret = attemptingToSpawnLightTurret - 1
 						setChickenXP(lightTurretUnitID)
 						Spring.GiveOrderToUnit(lightTurretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
 						if mRandom(1,4) == 1 then
-							attemptingToSpawnSpecialLightTurret = attemptingToSpawnSpecialLightTurret + 1
+							attempts = 0
+							local specialLightTurret = specialLightTurrets[mRandom(1,#specialLightTurrets)]
+							repeat 
+								attempts = attempts + 1
+								local specialLightTurretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(specialLightTurret)
+								if specialLightTurretUnitID then
+									setChickenXP(specialLightTurretUnitID)
+									Spring.GiveOrderToUnit(specialLightTurretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
+								end
+							until specialLightTurretUnitID or attempts > 100
 						end
 					end
-				end
-			end
-		end
-
-		if attemptingToSpawnSpecialHeavyTurret > 0 then
-			for i = 1,attemptingToSpawnSpecialHeavyTurret do
-				local specialTurret = specialHeavyTurrets[mRandom(1,#specialHeavyTurrets)]
-				local heavyTurretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(specialTurret, spread)
-				if heavyTurretUnitID then
-					attemptingToSpawnSpecialHeavyTurret = attemptingToSpawnSpecialHeavyTurret - 1
-					setChickenXP(heavyTurretUnitID)
-					Spring.GiveOrderToUnit(heavyTurretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
-				end
-			end
-		end
-
-		if attemptingToSpawnSpecialLightTurret > 0 then
-			for i = 1,attemptingToSpawnSpecialLightTurret do
-				local specialTurret = specialLightTurrets[mRandom(1,#specialLightTurrets)]
-				local lightTurretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(specialTurret, spread)
-				if lightTurretUnitID then
-					attemptingToSpawnSpecialLightTurret = attemptingToSpawnSpecialLightTurret - 1
-					setChickenXP(lightTurretUnitID)
-					Spring.GiveOrderToUnit(lightTurretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
-				end
+				until lightTurretUnitID or attempts > 100
 			end
 		end
 	end
+
+
 
 	function gadget:GameFrame(n)
 
@@ -1511,10 +1485,6 @@ if gadgetHandler:IsSyncedCode() then
 				chickenEvent("burrowSpawn")
 				SetGameRulesParam("chicken_hiveCount", SetCount(burrows))
 			elseif burrowSpawnTime < t - timeOfLastSpawn and burrowCount >= maxBurrows then
-				if mRandom(0,3) == 1 then
-					attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + 1
-				end
-				attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 2
 				timeOfLastSpawn = t
 			end
 
@@ -1528,7 +1498,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			chickenCount = UpdateUnitCount()
 		end
-		if n%30 == 10 and n > 300 and chickenTeamUnitCount < chickenUnitCap then
+		if n%(config.burrowSpawnRate*30) == 10 and n > config.gracePeriod*30 and chickenTeamUnitCount < chickenUnitCap and mRandom() < config.spawnChance then
 			queueTurretSpawnIfNeeded()
 		end
 		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands
@@ -1734,24 +1704,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 
-			attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + mRandom(1,2)
-			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + mRandom(2,5)
 			SetGameRulesParam("chicken_hiveCount", SetCount(burrows))
-		end
-
-		if UnitDefs[unitDefID].name == "chicken_turrets" then
-			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + 1
-			if mRandom(1,4) == 1 then
-				attemptingToSpawnSpecialLightTurret = attemptingToSpawnSpecialLightTurret + 1
-			end
-		end
-		if UnitDefs[unitDefID].name == "chicken_turretl" then
-			attemptingToSpawnLightTurret = attemptingToSpawnLightTurret + mRandom(2,5)
-			attemptingToSpawnHeavyTurret = attemptingToSpawnHeavyTurret + mRandom(1,2)
-			if mRandom(1,4) == 1 then
-				attemptingToSpawnSpecialLightTurret = attemptingToSpawnSpecialLightTurret + mRandom(2,5)
-				attemptingToSpawnSpecialHeavyTurret = attemptingToSpawnSpecialHeavyTurret + mRandom(1,2)
-			end
 		end
 
 		if UnitDefs[unitDefID].name == "chickenh2" then

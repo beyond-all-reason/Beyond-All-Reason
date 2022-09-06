@@ -55,6 +55,11 @@
 					"expenseTooltip": "%{resource} spending  (per second)",
 					"storageTooltip": "%{resource} storage",
 					"conversionTooltip": "%{titleColor}Energy Conversion Slider\nExcess energy above this point\nwill power your Energy Converters"
+				},
+				"converter_usage": {
+					"defaultTooltip": "Energy converter usage\nShows how many of your energy converters are active and producing metal.",
+					"tooManyConverters1Tooltip": "You have too many energy converters for your energy production.",
+					"tooManyConverters2Tooltip": "Stop building energy converters and increase your energy production."
 				}
 			},
 			"playersList": {

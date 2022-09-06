@@ -16,7 +16,7 @@
 					//"armgeo": [4, 8, 16, 300, 0.6], //eff 0.6
 					"armgmm":[4, 8, 25, 600, 2.2],
 					//"armageo":[0, 1, 35, 1000, 3.0], //eff 3.0
-					"armfus": [3, 4, 30, 900, 1.9],		// efficiency=1.937984
+					"armfus": [3, 4, 50, 900, 1.9],		// efficiency=1.937984
 					"armckfus": [1, 3, 50, 2000, 0.230], // efficiency=2.400266
 					"armafus": [50,100, 70, 4000, 6.44],
                     "armuwfus": [6, 12, 35, 600, 2.8]  // efficiency=6.443299
@@ -42,7 +42,7 @@
                     "coradvsol": [20, 30, 12, 220, 0.220], //efficiency=0.237542
                     //"corgeo": [4, 8, 16, 300, 0.6], //0.6
                    // "corageo": [0, 1, 35, 1000, 3.0], //eff 3.0
-					"corfus": [4, 6, 30, 600, 2.06],  // efficiency=2.057844
+					"corfus": [4, 6, 50, 600, 2.06],  // efficiency=2.057844
 					"corafus": [50, 100, 60, 4000, 6.44],
                     "coruwfus": [6, 12, 35, 600, 2.8] // efficiency=6.443299
 				},
@@ -61,7 +61,7 @@
 		},
 		
 		
-		"factor": [[8.0, 1], [20, 300], [40.0, 3600]], //desired energy factor at a certain time
+		"factor": [[6.0, 1], [20, 300], [30, 420], [60.0, 3600]], //desired energy factor at a certain time
 		// desired energy rule #1: e-income >= m-income * factor
 		// income factor for energy, time is in seconds
 		// [[<start_factor>, <start_time>], [<end_factor>, <end_time>]]
@@ -105,7 +105,7 @@
 	"buildpower": 1.2, //1.25, 1.5, 1.3
 	"excess": -1.0, 	// Metal excess to income ratio, -1 to disable
 
-	"ms_pull": [[0.70, 0.0], [0.60, 0.25], [0.65, 0.50], [0.5, 0.8]], 
+	"ms_pull":  [[0.57, 0.0], [0.66, 0.34]],
     // AI balances metal spent on tasks for mobile cons / metal spent on tasks for factories. (mobile to static reatio in%)
     // [[<value1>, <start_mex_percent>], [<value2>, <end_mex_percent>]]
     // mex percent = % of mex of whole map 

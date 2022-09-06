@@ -3,7 +3,7 @@
 
 
 --Skeleton pieces
-local head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot ,lfoot, dish, barrel, aimy1, bigguncyl,hatpoint = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg" ,"rleg","rfoot" ,"lfoot", "dish", "barrel", "aimy1","bigguncyl","hatpoint")    
+local head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot ,lfoot, dish, barrel, aimy1, bigguncyl,hatpoint = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg" ,"rleg","rfoot" ,"lfoot", "dish", "barrel", "aimy1","bigguncyl","hatpoint")
 
 local weapons = {
 	[1] = "laser",
@@ -39,7 +39,7 @@ local weapons = {
 	[31] = "dgun",
 	[32] = "dgun",
 	}
-	
+
 
 
 local SIG_AIM = 2
@@ -53,7 +53,7 @@ local CEGLevelUp = "commander-levelup"
 local ValidID = Spring.ValidUnitID
 
 local function BelowWater(piecename)
-	local _,y,_ = Spring.GetUnitPiecePosition(unitID, piecename) 
+	local _,y,_ = Spring.GetUnitPiecePosition(unitID, piecename)
   -- this returns unit space, so why does it work for corcom?
   local _, py, _ = Spring.GetUnitPosition(unitID)
   --Spring.Echo(piecename, 'ypos', y, py)
@@ -69,7 +69,7 @@ local rad = math.rad
 local function turn(piece, axis, goal, speed)
 	if speed then
 		if axis == 3 then
-			Turn(piece, axis, -rad(goal), rad(speed))		
+			Turn(piece, axis, -rad(goal), rad(speed))
 		else
 			Turn(piece, axis, rad(goal), rad(speed))
 		end
@@ -166,7 +166,7 @@ function walk()
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:16
-				
+
 				if (leftArm) then turn(biggun, 1, -47.068049, 28.724907/animSpeed) end--delta=0.96
 				turn(head, 1, -0.505722, 15.861819/animSpeed) --delta=0.53
 				turn(head, 2, -6.127755, 45.958102/animSpeed) --delta=1.53
@@ -310,7 +310,7 @@ function walk()
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:36
-				
+
 				if (leftArm) then turn(biggun, 1, -56.389444, 34.090567/animSpeed) end--delta=1.14
 				turn(head, 1, 0.023005, 47.585536/animSpeed) --delta=-1.59
 				turn(head, 2, 7.659692, 45.958102/animSpeed) --delta=1.53
@@ -838,6 +838,14 @@ function AmIBored()
 	end
 end
 
+
+function GameOverAnim()
+	if not isDancing then
+		isDancing = true
+		StartThread(Dance1)
+	end
+end
+
 function UnitSpeed()
 	maxSpeed = UnitDefs[Spring.GetUnitDefID(unitID)].speed
 	animFramesPerKeyframe = 4 --we need to calc the frames per keyframe value, from the known animtime
@@ -858,7 +866,7 @@ function UnitSpeed()
 		end
 		Sleep (131)
 		StartThread(AmIBored)
-		
+
 	end
 end
 
@@ -895,7 +903,7 @@ function script.StartMoving()
 	bMoving = true
 	StartThread(walk)
 end
-	
+
 function script.StopMoving()
 	Signal(SIG_WALK)
 	bMoving = false
@@ -941,11 +949,11 @@ function script.AimWeapon(weapon, heading, pitch)
 			leftArm = false
 			SetSignalMask(SIG_AIM)
 			Signal(SIG_AIM)
-      
+
 			Turn(aimy1, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
 			Turn(rloarm, 1, rad(-55), rad(390.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 			Turn(ruparm, 1, rad(-40)-pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
-      
+
 			WaitForTurn(aimy1,2)
 			isAiming = true
 			if isBuilding == true then

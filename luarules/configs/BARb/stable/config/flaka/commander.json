@@ -14,8 +14,8 @@
 				"factory": {
 					"armlab": [
 						// [<weight>, [<role>, <role>, ...]]
-						[0.3, ["scout", "builder", "raider", "raider", "builder", "raider", "builder", "raider", "raider", "raider", "raider", "raider", "builder", "raider"]], //push
-						[0.6, ["builder", "raider", "builder", "raider", "builder", "builder"]],
+						[0.3, ["scout", "scout", "builder", "scout", "raider", "raider", "builder", "raider", "builder", "raider", "raider", "raider", "raider", "raider", "builder", "raider"]], //raider
+						[0.3, ["builder", "scout", "raider", "builder", "raider", "builder", "builder"]],  //builder
 						[0.4, ["scout", "builder", "raider", "raider", "raider", "builder", "raider", "raider", "builder"]]    //standard
                     ],                 
 					"armvp": [
