@@ -49,6 +49,7 @@ local unitOrderTable = {
 
 	[UDN["armaca"].id]         = 002600,
 	[UDN["coraca"].id]         = 002650,
+	[UDN["legaca"].id]         = 002660,
 
 	[UDN["armacsub"].id]       = 002700,
 	[UDN["coracsub"].id]       = 002750,

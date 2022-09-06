@@ -546,6 +546,7 @@ local units = {
 	h_chickenq = { "chicken_queen.png", 4.19999981 },
 	cor_hat_viking = { "blank.png", 1.04999995 },
 	legaap = { "factory_air_t2.png", 1.9425 },
+	legaca = { "air_t2_worker.png", 1.62749982 },
 	legack = { "bot_t2_worker.png", 1.39649999 },
 	legacv = { "vehicle_t2_worker.png", 1.36499989 },
 	legalab = { "factory_bot_t2.png", 1.9425 },
