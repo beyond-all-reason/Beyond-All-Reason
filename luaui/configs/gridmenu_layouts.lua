@@ -728,7 +728,7 @@ local unitGrids = {
 			{ "corgate", },                                     -- anti-nuke, shield
 		},
 		{
-			{ "corlab", },                                      -- T1 lab,
+			{ "leglab", },                                      -- T1 lab,
 			{ "corgant", "legalab", },                          -- T3 lab, T2 lab
 			{ },                                                --
 		}
@@ -798,7 +798,7 @@ local unitGrids = {
 			{ "corgate", },                                     -- anti-nuke, shield
 		},
 		{
-			{ "corvp", },                                       -- T1 lab,
+			{ "legvp", },                                       -- T1 lab,
 			{ "corgant", "legavp", },                           -- T3 lab, T2 lab
 			{ },                                                --
 		}
@@ -867,7 +867,7 @@ local unitGrids = {
 			{ "corgate", },                                     -- anti-nuke, shield
 		},
 		{
-			{ "corap", },                                       -- T1 lab,
+			{ "legap", },                                       -- T1 lab,
 			{ "corgant", "legaap", },                           -- T3 lab, T2 lab
 			{ "corplat", },                                     -- seaplane lab (aircon only)
 		}
