@@ -27,7 +27,7 @@ return {
 		maxslope = 16,
 		maxvelocity = 1.65,
 		maxwaterdepth = 18,
-		movementclass = "MTANKCON",
+		movementclass = "TANK3",
 		objectname = "Units/CORACV.s3o",
 		radardistance = 50,
 		script = "Units/CORACV.cob",
