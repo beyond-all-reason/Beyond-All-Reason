@@ -111,6 +111,8 @@ return {
 		"corvroc",
 		"corban",
 		"corparrow",
+		"legmrv",
+		"legsco",
 
 		-- Hovercraft
 		"corhal",
@@ -160,6 +162,7 @@ return {
 		"cortrem",
 		"corhrk",
 		"leginc",
+		"leginf",
 
 		-- Bots
 		"armmar",
