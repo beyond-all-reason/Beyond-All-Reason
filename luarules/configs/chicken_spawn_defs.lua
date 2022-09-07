@@ -336,7 +336,11 @@ if accumulativeSquads == true then
 		addSquad(9, { "5 chicken2" , "5 chicken2b" 													}, 2) -- Apex Swarmer
 		addSquad(9, { "3 chickena2", "3 chickena2b"													}) -- Apex Brawler
 		addSquad(9, { "2 chickenapexallterrainassault", "2 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
-		addSquad(9, { "1 chickenr2", "3 chickenr1" 													}) -- Meteor Artillery
+		if Spring.GetModOptions().unit_restrictions_nonukes then
+			addSquad(9, { "1 chickenr2", "3 chickenr1" 												}) -- Meteor Artillery
+		else
+			addSquad(9, { "3 chickenr1" 															}) -- Meteor Artillery
+		end
 		addSquad(9, { "5 chickenh3" 																}) -- Brood Mother
 		addSquad(9, { "10 chickenh4" 																}) -- Hatchling
 
@@ -345,7 +349,11 @@ if accumulativeSquads == true then
 		addSquad(10, { "5 chicken2" , "5 chicken2b" 												}, 2) -- Apex Swarmer
 		addSquad(10, { "3 chickena2", "3 chickena2b"												}) -- Apex Brawler
 		addSquad(10, { "2 chickenapexallterrainassault", "2 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
-		addSquad(10, { "1 chickenr2", "3 chickenr1" 												}) -- Meteor Artillery
+		if Spring.GetModOptions().unit_restrictions_nonukes then
+			addSquad(10, { "1 chickenr2", "3 chickenr1" 											}) -- Meteor Artillery
+		else
+			addSquad(10, { "3 chickenr1" 															}) -- Meteor Artillery
+		end
 		addSquad(10, { "5 chickenh2" 																}) -- Apex Brood Mother
 		addSquad(10, { "10 chickenh3" 																}) -- Brood Mother
 		addSquad(10, { "20 chickenh4" 																}) -- Hatchling
@@ -358,7 +366,11 @@ if accumulativeSquads == true then
 		addSquad(i, { "5 chicken2" , "5 chicken2b" 													}) -- Apex Swarmer
 		addSquad(i, { "5 chickena2", "5 chickena2b"													}) -- Apex Brawler
 		addSquad(i, { "5 chickenapexallterrainassault", "5 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
-		addSquad(i, { "1 chickenr2", "3 chickenr1", "3 chickenearty1", "3 chickenacidarty" 			}) -- Meteor Artillery
+		if Spring.GetModOptions().unit_restrictions_nonukes then
+			addSquad(i, { "1 chickenr2", "3 chickenr1", "3 chickenearty1", "3 chickenacidarty" 		}) -- Meteor Artillery
+		else
+			addSquad(i, { "3 chickenr1", "3 chickenearty1", "3 chickenacidarty" 					}) -- Artillery
+		end
 		addSquad(i, { "5 chickenh2" 																}) -- Apex Brood Mother
 		addSquad(i, { "10 chickene2" 																}) -- EMP Brawler
 		addSquad(i, { "10 chickenelectricallterrainassault" 										}) -- EMP AllTerrain Brawler
