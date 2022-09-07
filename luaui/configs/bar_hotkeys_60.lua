@@ -1,3 +1,5 @@
+-- BAR hotkey config file: default for 60% keyboards
+-- remap F-keys to use meta+ (spacebar) and ` to Q with modifiers	
 local bindings = {
 	{            "esc", "quitmessage"                },
 	{      "Shift+esc", "quitmenu"                   },
@@ -115,8 +117,8 @@ local bindings = {
 	{      "Shift+"..M, "move"            },
 	{                P, "patrol"          },
 	{      "Shift+"..P, "patrol"          },
-	{        "Any+"..Q, "drawinmap"       }, --some keyboards don't have ` or \
-	{        "Any+"..Q, "drawlabel"       },
+	{                Q, "drawinmap"       }, --some keyboards don't have ` or \
+	{                Q, "drawlabel"       },
 	{        Q..','..Q, "drawlabel"       }, -- double hit Q for drawlabel
 	{                R, "repair"          },
 	{      "Shift+"..R, "repair"          },
@@ -135,28 +137,24 @@ local bindings = {
 	{  "Ctrl+"..T, "trackmode" },
 	{   "Any+"..T, "track" },
 
-	{ "Ctrl+f1", "viewfps"  },
-	{ "Ctrl+f2", "viewta"   },
-	{ "Ctrl+f3", "viewspring" },
-	{ "Ctrl+f4", "viewrot"  },
-	{ "Ctrl+f5", "viewfree" },
+	{ "Ctrl+meta+1", "viewfps"  },
+	{ "Ctrl+meta+2", "viewta"   },
+	{ "Ctrl+meta+3", "viewspring" },
+	{ "Ctrl+meta+4", "viewrot"  },
+	{ "Ctrl+meta+5", "viewfree" },
 
-	{ "Any+f1" , "ShowElevation"          },
-	{ "Any+f2" , "ShowPathTraversability" },
-	{ "Any+f3" , "LastMsgPos"             },
-	{ "Any+f4" , "ShowMetalMap"           },
-	{ "Any+f5" , "HideInterface"          },
-	{ "Any+f6" , "MuteSound"              },
-	{ "Any+f7" , "DynamicSky"             },
+	{ "meta+1" , "ShowElevation"          },
+	{ "meta+2" , "ShowPathTraversability" },
+	{ "meta+3" , "LastMsgPos"             },
+	{ "meta+4" , "ShowMetalMap"           },
+	{ "meta+5" , "HideInterface"          },
+	{ "meta+6" , "MuteSound"              },
+	{ "meta+7" , "DynamicSky"             },
 	{    "f11" , "luaui selector"         },
-	{ "Any+f12", "screenshot"     , "png" },
+	{  "meta+8", "screenshot"     , "png" },
 
 	{ "Ctrl+Shift+f8", "savegame"       },
 	{ "Alt+enter",     "fullscreen"     },
-
-	{ "Any+sc_`" , "drawinmap" },
-	{ "Any+sc_`" , "drawlabel" },
-	{ "sc_`,sc_`", "drawlabel" },
 
 	{ "Any+up",       "moveforward"  },
 	{ "Any+down",     "moveback"     },
@@ -330,8 +328,8 @@ local bindings = {
 	{         Y, "settargetnoground" },
 
 	-- if WG['Auto Group'] then
-	{ "Alt+sc_`",  "remove_from_autogroup" },
-	{ "Ctrl+sc_`", "remove_one_unit_from_group" },
+	{ "Alt+"..Q,  "remove_from_autogroup" },
+	{ "Ctrl+meta+"..Q, "remove_one_unit_from_group" },
 }
 
 for i = 0, 9 do
