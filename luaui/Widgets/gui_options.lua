@@ -2406,7 +2406,9 @@ function init()
 					end
 				end
 
-				Spring.SetConfigString("KeybindingFile", keyLayouts.keybindingLayoutFiles[value])
+				if keyLayouts.keybindingLayoutFiles then
+					Spring.SetConfigString("KeybindingFile", keyLayouts.keybindingLayoutFiles[value])
+				end
 
 				options[getOptionByID('keybindings')].value = value
 			end,
