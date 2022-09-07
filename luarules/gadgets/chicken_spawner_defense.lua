@@ -1345,7 +1345,7 @@ if gadgetHandler:IsSyncedCode() then
 		local burrowCount = SetCount(burrows)
 		local heavyTurretCount = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id)
 		local lightTurretCount = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id)
-		if burrowCount*4*config.spawnChance > heavyTurretCount then
+		if burrowCount*4*config.spawnChance > heavyTurretCount or mRandom(1,4) == 1 then
 			local attempts = 0
 			repeat
 				attempts = attempts + 1
@@ -1369,7 +1369,7 @@ if gadgetHandler:IsSyncedCode() then
 			until heavyTurretUnitID or attempts > 100
 		end
 
-		if burrowCount*20*config.spawnChance > lightTurretCount or heavyTurretCount*10*config.spawnChance > lightTurretCount then
+		if burrowCount*20*config.spawnChance > lightTurretCount or heavyTurretCount*10*config.spawnChance > lightTurretCount or mRandom(1,4) == 1 then
 			for i = 1,5 do
 				local attempts = 0
 				repeat
