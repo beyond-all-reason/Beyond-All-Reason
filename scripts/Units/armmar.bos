@@ -13,9 +13,58 @@ static-var  bAiming, Static_Var_3, restore_delay, gun_1, gun_2, wpn1_lasthead, w
 // For N:\animations\Chickens\armmar_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7))
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
+static-var walkCount;
 #define SIG_WALK 4
-Walk() {// For N:\animations\Chickens\armmar_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7)) 
+
+LOLEMPTYFUNCTION(){
+	// Ok let me tell you what wierd error this script has, which is probably an error of scriptor.
+	// The script will when shooting and walking at the same time, call the first function that is defined
+	// I was able to debug with with the calledFrom param of Walk, because it was called with 0, which I never
+	// call it with. So anyhow, this is the hacky fix, an empty, silly function. It is what is is.
+	sleep 1;
+}
+
+StopWalking() {
+	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
+	move llfinger to y-axis [0.000000] speed [22.593379] / animSpeed;
+	move lrfinger to y-axis [0.000000] speed [22.593379] / animSpeed;
+	move pelvis to x-axis [0.000000] speed [95.224223] / animSpeed;
+	move pelvis to y-axis [0.000000] speed [71.680188] / animSpeed;
+	move pelvis to z-axis [0.000000] speed [34.333324] / animSpeed;
+	move rlfinger to y-axis [0.000000] speed [22.593379] / animSpeed;
+	move rrfinger to y-axis [0.000000] speed [22.593331] / animSpeed;
+	turn lfoot to x-axis <0.000000> speed <1715.941456> / animSpeed;
+	turn lfoot to y-axis <0.000000> speed <69.394246> / animSpeed;
+	turn lfoot to z-axis <0.000000> speed <278.816078> / animSpeed;
+	turn lleg to x-axis <0.000000> speed <2596.107306> / animSpeed;
+	turn lleg to y-axis <0.000000> speed <71.056270> / animSpeed;
+	turn lleg to z-axis <0.000000> speed <213.986681> / animSpeed;
+	turn llfinger to x-axis <0.000000> speed <858.497405> / animSpeed;
+	turn lrfinger to x-axis <0.000000> speed <858.497405> / animSpeed;
+	turn lthigh to x-axis <0.000000> speed <1927.200029> / animSpeed;
+	turn lthigh to y-axis <0.000000> speed <258.965182> / animSpeed;
+	turn lthigh to z-axis <0.000000> speed <353.003809> / animSpeed;
+	turn luparm to x-axis <0.000000> speed <2135.376511> / animSpeed;
+	turn pelvis to x-axis <0.000000> speed <165.869191> / animSpeed;
+	turn rfoot to x-axis <0.000000> speed <1724.294730> / animSpeed;
+	turn rfoot to y-axis <0.000000> speed <88.715494> / animSpeed;
+	turn rfoot to z-axis <0.000000> speed <263.237059> / animSpeed;
+	turn rleg to x-axis <0.000000> speed <2541.928708> / animSpeed;
+	turn rleg to y-axis <0.000000> speed <79.441837> / animSpeed;
+	turn rleg to z-axis <0.000000> speed <202.299995> / animSpeed;
+	turn rlfinger to x-axis <0.000000> speed <858.497405> / animSpeed;
+	turn rrfinger to x-axis <0.000000> speed <858.497405> / animSpeed;
+	turn rthigh to x-axis <0.000000> speed <1907.148899> / animSpeed;
+	turn rthigh to y-axis <0.000000> speed <236.502842> / animSpeed;
+	turn rthigh to z-axis <0.000000> speed <356.179619> / animSpeed;
+	turn ruparm to x-axis <0.000000> speed <2135.376511> / animSpeed;
+	turn torso to y-axis <0.000000> speed <99.999999> / animSpeed;
+}
+
+
+Walk(calledfrom) {// For N:\animations\Chickens\armmar_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7)) 
 	set-signal-mask SIG_WALK;
+	walkCount = walkCount + 1;
 	if (bMoving) { //Frame:6
 			turn lfoot to x-axis <-33.421407> speed <1002.642225> / animSpeed; //delta=33.42
 			turn lfoot to z-axis <1.015298> speed <30.458947> / animSpeed; //delta=-1.02
@@ -36,6 +85,8 @@ Walk() {// For N:\animations\Chickens\armmar_walk_v2.blend Created by https://gi
 		sleep ((33*animSpeed) -1);
 	}
 	while(bMoving) {
+		
+		//get PRINT (get GAME_FRAME, 666,calledfrom,walkCount);
 		if (bMoving) { //Frame:12
 			turn lfoot to x-axis <-32.878383> speed <16.290718> / animSpeed; //delta=-0.54
 			turn lfoot to z-axis <3.346333> speed <69.931035> / animSpeed; //delta=-2.33
@@ -298,45 +349,11 @@ Walk() {// For N:\animations\Chickens\armmar_walk_v2.blend Created by https://gi
 	}
 }
 // Call this from MotionControl()!
-StopWalking() {
-	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
-	move llfinger to y-axis [0.000000] speed [22.593379] / animSpeed;
-	move lrfinger to y-axis [0.000000] speed [22.593379] / animSpeed;
-	move pelvis to x-axis [0.000000] speed [95.224223] / animSpeed;
-	move pelvis to y-axis [0.000000] speed [71.680188] / animSpeed;
-	move pelvis to z-axis [0.000000] speed [34.333324] / animSpeed;
-	move rlfinger to y-axis [0.000000] speed [22.593379] / animSpeed;
-	move rrfinger to y-axis [0.000000] speed [22.593331] / animSpeed;
-	turn lfoot to x-axis <0.000000> speed <1715.941456> / animSpeed;
-	turn lfoot to y-axis <0.000000> speed <69.394246> / animSpeed;
-	turn lfoot to z-axis <0.000000> speed <278.816078> / animSpeed;
-	turn lleg to x-axis <0.000000> speed <2596.107306> / animSpeed;
-	turn lleg to y-axis <0.000000> speed <71.056270> / animSpeed;
-	turn lleg to z-axis <0.000000> speed <213.986681> / animSpeed;
-	turn llfinger to x-axis <0.000000> speed <858.497405> / animSpeed;
-	turn lrfinger to x-axis <0.000000> speed <858.497405> / animSpeed;
-	turn lthigh to x-axis <0.000000> speed <1927.200029> / animSpeed;
-	turn lthigh to y-axis <0.000000> speed <258.965182> / animSpeed;
-	turn lthigh to z-axis <0.000000> speed <353.003809> / animSpeed;
-	turn luparm to x-axis <0.000000> speed <2135.376511> / animSpeed;
-	turn pelvis to x-axis <0.000000> speed <165.869191> / animSpeed;
-	turn rfoot to x-axis <0.000000> speed <1724.294730> / animSpeed;
-	turn rfoot to y-axis <0.000000> speed <88.715494> / animSpeed;
-	turn rfoot to z-axis <0.000000> speed <263.237059> / animSpeed;
-	turn rleg to x-axis <0.000000> speed <2541.928708> / animSpeed;
-	turn rleg to y-axis <0.000000> speed <79.441837> / animSpeed;
-	turn rleg to z-axis <0.000000> speed <202.299995> / animSpeed;
-	turn rlfinger to x-axis <0.000000> speed <858.497405> / animSpeed;
-	turn rrfinger to x-axis <0.000000> speed <858.497405> / animSpeed;
-	turn rthigh to x-axis <0.000000> speed <1907.148899> / animSpeed;
-	turn rthigh to y-axis <0.000000> speed <236.502842> / animSpeed;
-	turn rthigh to z-axis <0.000000> speed <356.179619> / animSpeed;
-	turn ruparm to x-axis <0.000000> speed <2135.376511> / animSpeed;
-	turn torso to y-axis <0.000000> speed <99.999999> / animSpeed;
-}
 
 Swim() {// For N:\animations\Chickens\armmar_enterwater_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7)) 
 	set-signal-mask SIG_WALK;
+	
+	//get PRINT (get GAME_FRAME, 777);
 	if (bMoving) { //Frame:6
 
 		if (bMoving) { //Frame:30
@@ -401,7 +418,7 @@ UnitSpeed(){
 	var groundheight;
 	var unitxz;
 	while(TRUE){
-		
+		//get PRINT(get GAME_FRAME, isSwimming);
 		//get PRINT ((GET UNIT_Y)/65000, bMoving, 2, 3);
 		if (bMoving == TRUE){
 			unitxz = (get UNIT_XZ);
@@ -415,19 +432,22 @@ UnitSpeed(){
 			//get PRINT (groundheight, get IN_WATER, get GAME_FRAME);
 			if (groundheight > (((-1) * 66))){
 				if (isSwimming == TRUE){
+					//get PRINT( get GAME_FRAME, 6666);
+					signal SIG_WALK;
 					// switch to walk
 					call-script StopSwimming();
-					start-script Walk();
+					start-script Walk(11);
 					isSwimming = FALSE;
-					signal SIG_WALK;
 				}
 				
 			}else{
 				if (isSwimming == FALSE){
+				
+					//get PRINT( get GAME_FRAME, 7777);
+					signal SIG_WALK;
 					call-script StopWalking();
 					start-script Swim();
 					isSwimming = TRUE;
-					signal SIG_WALK;
 				}
 			}
 		}
@@ -446,9 +466,13 @@ StartMoving(){
 	signal SIG_WALK;
 	set-signal-mask SIG_WALK;
 	bMoving=TRUE;
-	start-script UnitSpeed();
-	if (isSwimming == TRUE) start-script Swim();
-	else start-script Walk();
+	//start-script UnitSpeed();
+	if (isSwimming == TRUE) {
+		start-script Swim();
+	}
+	else {
+		start-script Walk(22);
+	}
 }
 
 StopMoving(){
@@ -457,7 +481,9 @@ StopMoving(){
 		//if (isSwimming == TRUE ) call-script StopSwimming();
 		//else call-script StopWalking();
 		
-		if (isSwimming == FALSE ) call-script StopWalking();
+		if (isSwimming == FALSE ) {
+			call-script StopWalking();
+		}
 
 
 }
@@ -486,7 +512,8 @@ Create()
 	gun_1 = 1;
 	gun_2 = 1;
 	animSpeed = 4;
-	restore_delay = 3000;
+	restore_delay = 3000; 
+	walkCount = 0;
 	start-script UnitSpeed();
 }
 
@@ -502,9 +529,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn torso to y-axis <0.000000> speed <120.000000>;
-	turn luparm to x-axis <0.000000> speed <120.000000>;
-	turn ruparm to x-axis <0.000000> speed <120.000000>;
+	turn aimy1 to y-axis <0.000000> speed <120.000000>;
+	turn aimx1 to x-axis <0.000000> speed <120.000000>;
 	turn laaturret to y-axis <0.000000> speed <120.000000>;
 	turn raaturret to y-axis <0.000000> speed <120.000000>;
 	bAiming = FALSE;
@@ -529,9 +555,9 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	bAiming = TRUE;
-	turn torso to y-axis heading speed <140.000000>;
-	turn luparm to x-axis 0 - pitch speed <360>;
-	turn ruparm to x-axis 0 - pitch speed <360>;
+	turn aimy1 to y-axis heading speed <140.000000>;
+	turn aimx1 to x-axis 0 - pitch speed <360>;
+	//turn ruparm to x-axis 0 - pitch speed <360>;
 	while( !Static_Var_3 )
 	{
 		return(0);
@@ -539,8 +565,8 @@ AimPrimary(heading, pitch)
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
-		wait-for-turn torso around y-axis;
-		wait-for-turn luparm around x-axis;
+		wait-for-turn aimy1 around y-axis;
+		wait-for-turn aimx1 around x-axis;
 	}
 	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
