@@ -98,4 +98,12 @@ return {
 	copyKeyLayout = copyKeyLayout,
 	layouts = layouts,
 	keyLayouts = keyLayouts,
+	keybindingLayouts = {
+		'Default',
+		'Custom'
+	},
+	keybindingLayoutFiles = {
+		'luaui/configs/bar_hotkeys.lua',
+		'luaui/configs/bar_hotkeys_custom.lua'
+	}
 }

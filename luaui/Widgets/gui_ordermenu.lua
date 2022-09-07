@@ -328,6 +328,9 @@ function widget:Initialize()
 	WG['ordermenu'].getPosition = function()
 		return posX, posY, width, height
 	end
+	WG['ordermenu'].reloadBindings = function()
+		actionHotkeys = VFS.Include("luaui/Widgets/Include/action_hotkeys.lua")
+	end
 	WG['ordermenu'].setBottomPosition = function(value)
 		stickToBottom = value
 		widget:ViewResize()
