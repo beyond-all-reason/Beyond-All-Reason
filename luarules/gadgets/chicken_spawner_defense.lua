@@ -1155,12 +1155,14 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			if queenID and unitID == queenID then
 				local curH, maxH = GetUnitHealth(unitID)
-				local spawnChance = math.ceil(curH/maxH*10000)
-				if mRandom(0,spawnChance) == 1 then
-					for i = 1,SetCount(humanTeams) do
-						SpawnRandomOffWaveSquad(unitID, "chickenh1", 5)
-						SpawnRandomOffWaveSquad(unitID, "chickenh1b", 5)
-						SpawnRandomOffWaveSquad(unitID)
+				if curH and maxH then
+					local spawnChance = math.ceil(curH/maxH*10000)
+					if mRandom(0,spawnChance) == 1 then
+						for i = 1,SetCount(humanTeams) do
+							SpawnRandomOffWaveSquad(unitID, "chickenh1", 5)
+							SpawnRandomOffWaveSquad(unitID, "chickenh1b", 5)
+							SpawnRandomOffWaveSquad(unitID)
+						end
 					end
 				end
 			end
