@@ -100,10 +100,16 @@ return {
 	keyLayouts = keyLayouts,
 	keybindingLayouts = {
 		'Default',
+		'Default 60% Keyboard',
+		'Grid Optimized',
+		'Grid Optimized 60% Keyboard',
 		'Custom'
 	},
 	keybindingLayoutFiles = {
 		'luaui/configs/bar_hotkeys.lua',
+		'luaui/configs/bar_hotkeys_60.lua',
+		'luaui/configs/bar_hotkeys_grid.lua',
+		'luaui/configs/bar_hotkeys_grid_60.lua',
 		'luaui/configs/bar_hotkeys_custom.lua'
 	}
 }
