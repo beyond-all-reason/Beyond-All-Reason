@@ -2397,17 +2397,16 @@ function init()
 				local keyFile = Spring.GetConfigString("KeybindingFile")
 				local value = 1
 
-				if keyFile and not keyFile == '' and VFS.FileExists(keyFile) then
-					for i, v in ipairs(keyLayouts.keybindingLayoutFiles) do
-						if v == keyFile then
-							value = i
-							break
-						end
-					end
+				if (not keyFile) or (keyFile == '') or (not VFS.FileExists(keyFile)) then
+					keyFile = keyLayouts.keybindingLayoutFiles[1]
+					Spring.SetConfigString("KeybindingFile", keyFile)
 				end
 
-				if keyLayouts.keybindingLayoutFiles then
-					Spring.SetConfigString("KeybindingFile", keyLayouts.keybindingLayoutFiles[value])
+				for i, v in ipairs(keyLayouts.keybindingLayoutFiles) do
+					if v == keyFile then
+						value = i
+						break
+					end
 				end
 
 				options[getOptionByID('keybindings')].value = value
