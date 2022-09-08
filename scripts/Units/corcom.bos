@@ -732,6 +732,13 @@ StopDancing() {
 
 static-var idleTime;
 
+GameOverAnim() {
+  	if (bDancing == FALSE){
+  	  	start-script Dance();
+  	}
+  	bDancing = TRUE;
+}
+
 UnitSpeed(){
  maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
  animFramesPerKeyframe = 6; //we need to calc the frames per keyframe value, from the known animtime
