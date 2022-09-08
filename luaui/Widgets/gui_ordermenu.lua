@@ -10,6 +10,9 @@ function widget:GetInfo()
 	}
 end
 
+local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local currentLayout
+
 local cellZoom = 1
 local cellClickedZoom = 1.05
 local cellHoverZoom = 1.035
@@ -123,7 +126,7 @@ local RectRound, UiElement, UiButton, elementCorner
 
 local isSpectating = Spring.GetSpectatingState()
 local cursorTextures = {}
-local actionHotkeys = VFS.Include("luaui/Widgets/Include/action_hotkeys.lua")
+local actionHotkeys
 
 local function convertColor(r, g, b)
 	return string.char(255, (r * 255), (g * 255), (b * 255))
@@ -320,7 +323,13 @@ function widget:ViewResize()
 	doUpdate = true
 end
 
+local function reloadBindings()
+	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
+	actionHotkeys = VFS.Include("luaui/Widgets/Include/action_hotkeys.lua")
+end
+
 function widget:Initialize()
+	reloadBindings()
 	widget:ViewResize()
 	widget:SelectionChanged()
 
@@ -328,9 +337,7 @@ function widget:Initialize()
 	WG['ordermenu'].getPosition = function()
 		return posX, posY, width, height
 	end
-	WG['ordermenu'].reloadBindings = function()
-		actionHotkeys = VFS.Include("luaui/Widgets/Include/action_hotkeys.lua")
-	end
+	WG['ordermenu'].reloadBindings = reloadBindings
 	WG['ordermenu'].setBottomPosition = function(value)
 		stickToBottom = value
 		widget:ViewResize()
@@ -665,9 +672,9 @@ function widget:DrawScreen()
 						if WG['tooltip'] then
 							local tooltipKey = cmd.action .. '_tooltip'
 							local tooltip = Spring.I18N('ui.orderMenu.' .. tooltipKey)
-							local hotkey = actionHotkeys[cmd.action]
+							local hotkey = keyConfig.sanitizeKey(actionHotkeys[cmd.action], currentLayout)
 
-							if tooltip ~= '' and hotkey then
+							if tooltip ~= '' and hotkey ~= '' then
 								tooltip = Spring.I18N('ui.orderMenu.hotkeyTooltip', { hotkey = hotkey:upper(), tooltip = tooltip, highlightColor = "\255\255\215\100", textColor = "\255\240\240\240" })
 							end
 							if tooltip ~= '' then
