@@ -1090,7 +1090,7 @@ if gadgetHandler:IsSyncedCode() then
 				queenResistance[weaponID].damage = (damage * 3 * config.queenResistanceMult)
 				queenResistance[weaponID].notify = 0
 			end
-			local resistPercent = math.min((queenResistance[weaponID].damage) / queenMaxHP, 0.99)
+			local resistPercent = math.min((queenResistance[weaponID].damage) / queenMaxHP, 0.90)
 			if resistPercent > 0.5 then
 				if queenResistance[weaponID].notify == 0 then
 					if attackerDefID then
