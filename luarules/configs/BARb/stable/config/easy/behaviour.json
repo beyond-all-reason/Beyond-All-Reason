@@ -327,13 +327,13 @@
 		"role": ["static"],
 		"since": 120,
 		"cooldown": 0,
-		"limit": 10
+		"limit": 5
 	},
 	"cormstor" : {
 		"role": ["static"],
 		"since": 120,
 		"cooldown": 0,
-		"limit": 10
+		"limit": 5
 	},
 	"armestor" : {
 		"role": ["static"],
@@ -345,7 +345,7 @@
 		"role": ["static"],
 		"since": 120,
 		"cooldown": 0,
-		"limit": 10
+		"limit": 5
 	},
 	"armuwadvms" : {
 		"role": ["static"],
@@ -374,10 +374,11 @@
 //		"midposoffset": [0, 0, 0]
 //	},
 
+
 	// bot - armlab
 	"armck": {
 		"role": ["builder"],
-		"limit": 20,
+		"limit": 25,
 		"build_speed": 5.0
 	},
 	"armpw": {
@@ -385,7 +386,7 @@
 	},
 	"armrectr": {
 		"role": ["raider"],
-		"limit": 10,
+		"limit": 5,
 		"since": 200
 	},
 	"armrock": {
@@ -411,7 +412,7 @@
 	"armack": {
 		"role": ["builderT2"],
 		"attribute": ["solo"],
-		"limit": 10,
+		"limit": 3,
 		"build_speed": 10.0
 	},
 	"armfark": {
@@ -709,10 +710,14 @@
 		"attribute": ["skirmish"]
 	},
 
-	// bot - corlab
+
+
+
+
+	// CORE bot - corlab
 	"corck": {
 		"role": ["builder"],
-		"limit": 20,
+		"limit": 25,
 		"build_speed": 5.0
 	},
 	"corak": {
@@ -721,7 +726,7 @@
 	},
 	"cornecro": {
 		"role": ["raider"],
-		"limit": 10,
+		"limit": 5,
 		"since": 200
 	},
 	"corstorm": {
@@ -739,7 +744,7 @@
 	"corack": {
 		"role": ["builderT2"],
 		"attribute": ["solo"],
-		"limit": 10,
+		"limit": 3,
 		"build_speed": 10.0
 	},
 	"corfast": {
@@ -856,7 +861,7 @@
 	"coracv": {
 		"role": ["builderT2"],
 		"attribute": ["solo"],
-		"limit": 10,
+		"limit": 3,
 		"build_speed": 10.0
 	},
 	"correap": {
