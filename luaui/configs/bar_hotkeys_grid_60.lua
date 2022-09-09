@@ -32,8 +32,8 @@
 		{       "Any+sc_w", "gridmenu_key 3 2"    },
 		{       "Any+sc_e", "gridmenu_key 3 3"    },
 		{       "Any+sc_r", "gridmenu_key 3 4"    },
-		{       "Any+sc_b", "gridmenu_next_page"  },
-		{       "Any+sc_n", "gridmenu_prev_page"  },
+		{           "sc_b", "gridmenu_next_page"  },
+		{           "sc_n", "gridmenu_prev_page"  },
 
 		-- { "Any+"..H, "sharedialog"    }, deprecated by player list sharing
 		-- { "Shift+backspace", "togglecammode" },
