@@ -12,7 +12,11 @@ end
 
 local CMD_CLOAK = 37382
 
-local cloakingUnitDefs = {[UnitDefNames["armpb"].id]=true, [UnitDefNames["armamb"].id]=true}
+local cloakingUnitDefs = {
+	[UnitDefNames["armpb"].id]=true,
+	[UnitDefNames["armamb"].id]=true,
+	[UnitDefNames["armferret"].id]=true
+}
 local cloakunits = {}
 local gameStarted
 
