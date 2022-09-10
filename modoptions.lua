@@ -266,7 +266,7 @@ local options={
 	},
 	{
 		key    = 'scavtechcurve',
-		name   = 'Game Lenght Multiplier',
+		name   = 'Game Length Multiplier',
 		desc   = 'Higher than 1 - Longer, Lower than 1 - Shorter',
 		type   = 'number',
 		section= 'options_scavengers',
