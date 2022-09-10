@@ -6,7 +6,7 @@
     //But there's possibility that AI will just run from enemy till it has big enough group, but it may loose its base. So if with attack=0.8..1.0 AI is not loosing base then everything is ok and i think this range is optimal.
 
 	"quota": {
-		"scout": 1,  // max scout units out of raiders
+		"scout": 2,  // max scout units out of raiders
 		"raid": [6.0, 150.0],  // [<min>, <avg>] power of raider squad 2.5,48
 		"attack": 60.0,  // min power of attack group ---- was 40
 		"thr_mod": {				//AI attacks everything with final threat (after all calculations) <= 1
@@ -22,7 +22,7 @@
 			"static": 1.0,  // additional 64-elmo-cells for static units
 			"speed": [0.75, 4.0]  // [<64elmo_cells_speed_mod>, <max_64elmo_cells>]
 		},
-		"num_batch": 4
+		"num_batch": 3 //repeat unit build if response factory build is called
 	},
 
     // If unit's health drops below specified percent it will retreat
@@ -328,10 +328,11 @@
 		"armguard": {
 			"role": ["static"],
 			"on": false,
-			"limit": 1,
 			"threat":{
 				"vs":{"raider": 0.5, "assault": 0.5, "skirmish": 0.5}
-			}
+			},
+            "since": 600,
+			"limit": 3
 		},
 		"armclaw": {
 			"role": ["static"],
@@ -342,34 +343,6 @@
 				"surf": 1.5, 
 				"vs": {"assault": 0.7}
 			}
-		},
-		"armrl": {
-			"role": ["anti_air"],
-			"threat":{"air":3.0, "surf":0.0, "water":0.0}
-		},
-		"armcir": {
-			"role": ["anti_air"],
-			"threat": {"air":3.0, "surf":0.0, "water":0.0}
-		},
-		"armferret": {
-			"role": ["anti_air"],
-			"threat": {"air":3.0, "surf":0.0, "water":0.0}
-		},
-		"armflak": {
-			"role": ["anti_air"],
-			"threat": {"air":4.0, "surf":0.0, "water":0.0}
-		},
-		"armmercury": {
-			"role": ["anti_air"],
-			"threat": {"air":2.0, "surf":0.0, "water":0.0}
-		},
-		"armtl": {
-			"role": ["static"],
-			"threat": {"air":0.0, "surf":1.0, "water":1.0, "vs": {"comm": 10}}  //problem with surf units staying on surf here (as for all other torpedo launchers) cause they cant be hit by them  
-		},
-		"armatl": {
-			"role": ["static"],
-			"threat": {"air":0.0, "surf":1.0, "water":1.0}
 		},
 		"armpb": {
 			"role": ["static"],
@@ -390,11 +363,42 @@
 				"vs": {"raider":0.2}
 			}
 		},
+		"armbrtha": {
+			"role": ["static"]
+		},
+		"armrl": {
+			"role": ["anti_air"],
+			"threat":{"air":3.0, "surf":0.0, "water":0.0}
+		},
+		"armferret": {
+			"role": ["anti_air"],
+			"threat": {"air":3.0, "surf":0.0, "water":0.0}
+		},
+		"armcir": {
+			"role": ["anti_air"],
+			"threat": {"air":3.0, "surf":0.0, "water":0.0}
+		},
+		"armflak": {
+			"role": ["anti_air"],
+			"threat": {"air":4.0, "surf":0.0, "water":0.0}
+		},
+		"armmercury": {
+			"role": ["anti_air"],
+			"threat": {"air":2.0, "surf":0.0, "water":0.0}
+		},
+		"armtl": {
+			"role": ["static"],
+			"threat": {"air":0.0, "surf":1.0, "water":1.0, "vs": {"comm": 10}}  //problem with surf units staying on surf here (as for all other torpedo launchers) cause they cant be hit by them  
+		},
+		"armatl": {
+			"role": ["static"],
+			"threat": {"air":0.0, "surf":1.0, "water":1.0}
+		},
 		"armkraken": {
 			"role": ["static"],
 			"threat": {"air":0.0, "surf":1.0, "water":1.0}
 		},
-
+		
 // DEFENSE - Cortex
 		"corllt": {
 			"role": ["static"],
@@ -446,7 +450,9 @@
 		"corpun": {
 			"role": ["static"],
 			"on": false,
-			"threat": {"air": 0.0, "water": 0.1,"surf": 0.5}
+			"threat": {"air": 0.0, "water": 0.1,"surf": 0.5},
+            "since": 600,
+			"limit": 3
 		},
 		"corrl": {
 			"role": ["anti_air"],
@@ -494,7 +500,8 @@
 		},
         "armsilo":{
 			"role":	["static"],
-            "threat":{"air": 0.0, "water": 0.0, "surf": 0.1}
+            "threat":{"air": 0.0, "water": 0.0, "surf": 0.1},
+			"limit": 1
         },
 
 
@@ -562,7 +569,8 @@
 		},
         "corsilo":{
 			"role":	["static"],
-            "threat":{"air": 0.0, "water": 0.0, "surf": 0.1}
+            "threat":{"air": 0.0, "water": 0.0, "surf": 0.1},
+			"limit": 1
         },
 	                  
 // ECO (energy & metal)
@@ -758,7 +766,7 @@
 			"role": ["builder"],
 			//"attribute": ["solo"],
 			"limit": 12,
-			"build_speed": 8.0  
+			"build_speed": 4.0  
 		},
 		"armack": {
 			"role": ["builderT2"],
@@ -928,7 +936,7 @@
 			"role": ["assault"],
 			"attribute": ["siege"],
 			"retreat": 0.6,
-			"limit": 20,
+			"limit": 10,
 			"threat": {"air": 0.0, "water": 0.0, "surf": 0.8,
 				"vs": {"artillery": 1.8, "anti_air": 1.8, "raiders":0.5}
 			}
@@ -977,6 +985,7 @@
 		},
 		"armzeus": {
 			"role": ["skirmish"],  //is it more skirmish or riot?
+			"attribute": ["melee"],
 			"threat":{"air": 0.0, "water": 0.0, "surf": 1.2, 
 				"vs":{"artillery": 2.0, "anti_air": 2.0}
 			}
@@ -1072,8 +1081,8 @@
 			"retreat": 0.6
 		},
 		"armvang": {
-			"role": ["artillery", "heavy"],
-			"attribute": ["siege", "support"],
+			"role": ["artillery"],
+			//"attribute": ["siege", "support"],
 			"threat": {"air": 0.0, "water": 0.0} 
 		},
 		"armbanth": {
@@ -1081,13 +1090,13 @@
 			"attribute": ["melee"],
 			"threat": {"air": 0.0, "water": 0.0, "surf":1.0},
             "power": 1.5,
-            "retreat": 0.1
+            "retreat": 0.3
 		},
 		"armthor":{
 			"role":["super"],
 			"threat": {"air": 0.0, "water": 0.0, "surf":1.0},
 			"power": 0.1, //cause of its paralyzer weaponry
-            "retreat": 0.2
+            "retreat": 0.4
 		},
 
 
@@ -1388,8 +1397,9 @@
 			"retreat": 0.6
 		},
 		"corstorm": {
-			"role": ["assault"],
-			"attribute": ["siege"]
+			"role": ["artillery"],  //assault
+			"attribute": ["siege"],
+            "limit": 10
 		},
 		"corthud": {
 			"role": ["skirmish"],
@@ -1420,7 +1430,8 @@
 			"threat":{"air":0.5}
 		},
 		"corcan": {
-			"role": ["skirmish"]
+			"role": ["skirmish"],
+			"attribute": ["melee"]
 		},
 		"cormort": {
 			"role": ["assault"],
@@ -1482,7 +1493,10 @@
 
 
 		// T3 CORE EXPERIMENTAL - corgant
-
+		"corsok": {
+			"role": ["skirmish"],
+			"retreat": 0.6
+		},
 		"corshiva": {
 			"role": ["assault", "heavy"],
 			"retreat": 0.6
@@ -1491,9 +1505,10 @@
 			"role": ["raider", "heavy"]
 		},
 		"corcat": {
-			"role": ["artillery", "heavy"],
+			"role": ["artillery"],
 			"attribute": ["siege"],
-			"threat": {"surf": 0.5, "vs":{"static":2.0, "artillery":2.0}}
+			"threat": {"surf": 0.5, "vs":{"static":4.0, "artillery":4.0}},
+            "power": 0.5
 		},
 		"corkorg": {
 			"role": ["super"],
@@ -1503,6 +1518,7 @@
 		},
 		"corjugg": {
 			"role": ["super"],
+			"attribute": ["melee"],
             "power": 1.5,
 			"retreat": 0.00
 		},

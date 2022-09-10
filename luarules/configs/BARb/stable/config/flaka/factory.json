@@ -30,7 +30,7 @@
 		"require_energy": false,
 
 		// If income*ecoFactor < income_tier[N] then 'tierN' probability will be used
-		"income_tier": [2, 20,  35, 50, 100],
+		"income_tier": [2, 25,  35, 50, 100],
 
 		"unit":      ["armck", "armpw", "armrectr", "armrock", "armham", "armjeth", "armwar", "armflea"],
 
@@ -165,9 +165,9 @@
 		"unit":      ["armmar", "armraz", "armvang", "armbanth", "armlun", "armthor"],
 
 		"land": {
-			"tier0": [ 0.05,     0.50,     0.30,      0.00,     0.00,        0.10],
-			"tier1": [ 0.05,     0.30,     0.30,      0.30,     0.00,       0.10],
-            "tier2": [ 0.05,     0.25,     0.25,      0.25,     0.00,       0.25]
+			"tier0": [ 0.05,     0.40,     0.45,      0.00,     0.00,        0.10],
+			"tier1": [ 0.05,     0.30,     0.50,      0.30,     0.00,       0.10],
+            "tier2": [ 0.05,     0.30,     0.40,      0.25,     0.00,       0.25]
         },
         
         "water":{
@@ -511,15 +511,21 @@
 
 		"require_energy": true,
 
-		"income_tier": [100,200],
+		"income_tier": [100, 200],
 
-		"unit":      ["corshiva", "corkarg", "corcat", "corkorg", "corjugg"],
+		"unit":      ["corsok", "corshiva", "corkarg", "corcat", "corkorg", "corjugg"],
 
 		"land": {
-			"tier0": [ 0.50,       0.30,      0.20,     0.00,      0.00],
-			"tier1": [ 0.30,       0.20,      0.20,     0.20,      0.10],
-            "tier2": [ 0.00,       0.20,      0.20,     0.40,      0.20]
+			"tier0": [ 1.00, 	0.50,       0.30,      0.20,     0.00,      0.00],
+			"tier1": [ 0.01,	0.30,       0.20,      0.20,     0.20,      0.10],
+            "tier2": [ 0.01,	0.00,       0.20,      0.20,     0.40,      0.20]
+		},	
+		"water":{
+			"tier0": [ 1.00, 	0.50,       0.30,      0.20,     0.00,      0.00],
+			"tier1": [ 0.20,	0.30,       0.00,      0.20,     0.20,      0.10],
+            "tier2": [ 0.20,	0.20,       0.00,      0.20,     0.40,      0.20]
 		},
+
 
 		"caretaker": 20
 	},
@@ -528,14 +534,14 @@
 
 		"require_energy": true,
 
-		"income_tier": [100,200],
+		"income_tier": [100, 200],
 
-		"unit":      ["corshiva", "corkarg", "corcat", "corkorg", "corjugg"],
+		"unit":      ["corsok", "corshiva", "corkarg", "corcat", "corkorg", "corjugg"],
 
 		"water": {
-			"tier0": [ 0.50,       0.00,      0.00,     0.00,      0.00],
-			"tier1": [ 0.30,       0.00,      0.00,     0.20,      0.10],
-            "tier2": [ 0.00,       0.00,      0.00,     0.40,      0.20]
+			"tier0": [ 1.00,	0.50,       0.00,      0.00,     0.00,      0.00],
+			"tier1": [ 0.10,	0.30,       0.00,      0.00,     0.20,      0.10],
+            "tier2": [ 0.10,	0.00,       0.00,      0.00,     0.40,      0.20]
 		},
 
 		"caretaker": 20

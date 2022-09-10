@@ -14,7 +14,7 @@
 		},
 		
 	// Actual number of defences per cluster bounded by income - the order of defenses that should be build with numbers as above.
-	"land":  [0, 2, 3, 5, 6, 4, 7, 13, 8, 10, 11, 12],
+	"land":  [0, 3, 5, 6, 4, 8, 10, 11, 12],
 	"water": [1, 1, 4, 9, 10, 9, 10],
 	"prevent": 1,  // number of preventive defences
 	"amount": {  // income bound factor
@@ -32,12 +32,12 @@
 
 	"superweapon": {
 		"unit": {
-			"armada": ["armmercury",  "armemp",  "armbrtha", "armvulc", "armamd", "armsilo"],
-			"cortex": ["corscreamer", "cortron", "corint",   "corbuzz", "corfmd", "corsilo"]
+			"armada": [ "armbrtha",  "armsilo", "armvulc"], //"armmercury", "armamd", "armemp", 
+			"cortex": [ "corint",    "corsilo", "corbuzz" ] //"corscreamer", "corfmd", "cortron", 
 		},
-		"weight":     [ 0.20,          0.14,      0.25,       0.06,      0.15,     0.15],
+		"weight":     [    0.5,      0.3,       0.1  ],
 
-		"condition": [30, 600]  // [<Minimum income>, <maximum seconds to build>]
+		"condition": [40, 600]  // [<Minimum income>, <maximum seconds to build>]
 	},
 
 	// Fallback defence
@@ -142,20 +142,14 @@
 				[  // chain1
 //					{"unit": "cormmkr", "category": "convert", "offset": [0, 60]},
 //					{"unit": "cormmkr", "category": "convert", "offset": [0, 100]},
-					{"unit": "corfmd", "category": "defence", "offset": [-120, -120], "condition": {"chance": 0.5}},
+					
 					{"unit": "cormadsam", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
 				]
 			]
 		},
 		"corafus": {
 			"hub": [
-				[  // chain1
-//					{"unit": "cormmkr", "category": "convert", "offset": [120, 120]},
-//					{"unit": "cormmkr", "category": "convert", "offset": [120, -120]},
-//					{"unit": "cormmkr", "category": "convert", "offset": [150, 120]},
-//					{"unit": "cormmkr", "category": "convert", "offset": [120, 150]},
-//					{"unit": "cormmkr", "category": "convert", "offset": [150, 150]},
-					{"unit": "corfmd", "category": "defence", "offset": [180, -180], "condition": {"chance": 0.5}},
+				[
 					{"unit": "cordoom", "category": "defence", "offset": [-180, 180]},
 					{"unit": "corvipe", "category": "defence", "offset": [-80, -80], "condition": {"chance": 0.5}},
 					{"unit": "cormadsam", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
@@ -191,25 +185,25 @@
 			"hub": [[{"unit": "corllt", "category": "defence", "offset": {"front": 5}, "priority": "now"}]]
 		},
 		"armalab": {
-			"hub": [[{"unit": "armarad", "category": "defence", "offset": {"back": 100}, "priority": "high"}],
-					[{"unit": "armamb", "category": "defence", "offset": {"front": 100}, "priority": "high"}]
+			"hub": [[{"unit": "armarad", "category": "defence", "offset": {"back": 100}, "priority": "normal"}],
+					[{"unit": "armamb", "category": "defence", "offset": {"front": 100}, "priority": "low"}]
 		]
 		},
 		"armavp": {
-			"hub": [[{"unit": "armarad", "category": "defence", "offset": {"back": 5}, "priority": "high"}],
-			[{"unit": "armamb", "category": "defence", "offset": {"front": 100}, "priority": "high"}]
+			"hub": [[{"unit": "armarad", "category": "defence", "offset": {"back": 5}, "priority": "normal"}],
+			[{"unit": "armamb", "category": "defence", "offset": {"front": 100}, "priority": "low"}]
 		]
 		},
 		"coralab": {
 			"hub": [
 				[{"unit": "corvipe", "category": "defence", "offset": {"front": 200}, "priority": "high"}],
-				[{"unit": "corarad", "category": "defence", "offset": {"back": 100}, "priority": "high"}],
-				[{"unit": "armamb", "category": "defence", "offset": {"front": 150}, "priority": "normal"}]
+				[{"unit": "corarad", "category": "defence", "offset": {"back": 100}, "priority": "norm"}],
+				[{"unit": "cortoast", "category": "defence", "offset": {"front": 150}, "priority": "low"}]
 		]
 		},
 		"coravp": {
-			"hub": [[{"unit": "corarad", "category": "defence", "offset": {"back": 5}, "priority": "high"}],
-			[{"unit": "cortoast", "category": "defence", "offset": {"front": 150}, "priority": "high"}]
+			"hub": [[{"unit": "corarad", "category": "defence", "offset": {"back": 5}, "priority": "normal"}],
+			[{"unit": "cortoast", "category": "defence", "offset": {"front": 150}, "priority": "low"}]
 		]
 		}
 	},
@@ -223,6 +217,23 @@
 //			"energy": [200, true],
 			"porc": true
 		}
+	},
+	"radar":{
+		"armrad": {
+			"hub": [
+				[{"unit": "armllt", "category": "defence", "offset": {"front": 100}, "priority": "now"}],
+				[{"unit": "armrl", "category": "defence", "offset": {"back": 10},"condition": {"air": true}, "priority": "high"}],
+				[{"unit": "armguard", "category": "defence", "offset": [100, 100], "priority": "normal"}]
+			]
+		},
+		"corrad": {
+			"hub": [
+				[{"unit": "corllt", "category": "defence", "offset": {"front": 100}, "priority": "now"}],
+				[{"unit": "corrl", "category": "defence", "offset": {"back": 10}, "condition": {"air": true}, "priority": "high"}],
+				[{"unit": "corpun", "category": "defence", "offset": [100, -100], "priority": "normal"}]
+		]
+		}
+
 	}
 }
 }

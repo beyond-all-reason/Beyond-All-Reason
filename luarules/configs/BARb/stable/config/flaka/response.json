@@ -36,7 +36,7 @@
 
 	"assault": {
 		"vs":         ["static", "skirmish",   "riot"],
-		"ratio":      [0.40, 		0.50,		0.40],
+		"ratio":      [0.30, 		0.40,		0.40],
 		"importance": [5.00, 		5.00,		5.00],
 		"max_percent": 0.8,
 		"eps_step": 0.075
@@ -71,7 +71,7 @@
 	},
 	"artillery": {
 		"vs":         ["static"],
-		"ratio":      [ 0.20  ],
+		"ratio":      [ 0.30  ],
 		"importance": [ 5.00 ],
 		"max_percent": 0.20,
 		"eps_step": -0.075

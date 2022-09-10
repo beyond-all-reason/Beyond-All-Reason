@@ -117,7 +117,7 @@
 		},
 		"def_hvy": {
 			"type": ["circle", "def_low"],
-			"yard": [8, 8]	
+			"radius": 8
 		},
 		"def_air": {
 			"type": ["rectangle", "unknown"],
@@ -180,8 +180,8 @@
 		"mex2": ["armmoho", "cormoho", "armuwmme", "coruwmme"],
 		"converter": ["armmakr", "cormakr", "armmmkr", "cormmkr", "armfmkr", "corfmkr", "armuwmmm", "coruwmmm"],
 		"def_low": ["armllt", "corllt", "armbeamer", "corhllt"],
-		"def_mid": ["armclaw", "cormaw", "armpb", "corvipe"],
-		"def_hvy":  ["armamb", "armanni", "cortoast", "cordoom"],
+		"def_mid": ["armclaw", "cormaw", "armpb", "corvipe", "armhlt", "corhlt"],
+		"def_hvy":  ["armamb", "armanni", "cortoast", "cordoom", "armguard", "corpun"],
 		"def_air": ["armferret", "armcir", "corrl", "cormadsam", "corerad"],
 		"caretaker": ["armnanotc", "armasp", "cornanotc", "corasp"],
 		"small": ["armrad", "corrad"]
