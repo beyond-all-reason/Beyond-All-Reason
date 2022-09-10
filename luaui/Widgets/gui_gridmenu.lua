@@ -461,10 +461,6 @@ end
 
 local minWaterUnitDepth = -11
 local showWaterUnits = false
-local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-if not voidWater and mapMinWater <= minWaterUnitDepth then
-	showWaterUnits = true
-end
 
 ------------------------------------
 -- /UNIT ORDER ----------------------
@@ -1101,10 +1097,9 @@ function widget:Update(dt)
 			doUpdate = true
 		end
 
+		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
 		if not voidWater and mapMinWater <= minWaterUnitDepth then
-			if not showWaterUnits then
-				showWaterUnits = true
-			end
+			showWaterUnits = true
 		end
 
 		local prevOrdermenuLeft = ordermenuLeft
