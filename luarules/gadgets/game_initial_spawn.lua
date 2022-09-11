@@ -43,7 +43,7 @@ if gadgetHandler:IsSyncedCode() then
 		[corcomDefID] = true,
 		[legcomDefID] = true,
 	}
-	if Spring.GetModOptions().experimentallegionfaction == true then
+	if not Spring.GetModOptions().unba and Spring.GetModOptions().experimentallegionfaction then
 		validStartUnits[legcomDefID] = true
 	end
 	local spawnTeams = {} -- spawnTeams[teamID] = allyID
