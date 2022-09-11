@@ -44,10 +44,10 @@ widget:ViewResize()
 -- GL4 notes:
 local shaderConfig = {
 	MIERAYLEIGHRATIO = 0.1,
-	RAYMARCHSTEPS = 4, -- must be at least one
+	RAYMARCHSTEPS = 64, -- must be at least one
 	USE3DNOISE = 1,
 	USEDEFERREDBUFFERS = 1, 
-	RESOLUTION = 1,
+	RESOLUTION = 2,
 	FOGTOP = 300,
 }
 
@@ -61,6 +61,12 @@ local dithernoise2d =  "LuaUI/images/lavadistortion.png"
 local fogPlaneVAO 
 local resolution = 64
 local groundFogShader
+
+local vsx, vsy
+local combineShader
+local fogTexture
+local distortiontex = "LuaUI/images/fractal_voronoi_tiled_1024_1.png"
+
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
@@ -93,71 +99,37 @@ local shaderSourceCache = {
 			fadeDistance = 300000,
 			windX = 0,
 			windZ = 0,
-			globalFogColor = {1,1,1,1},
+			globalFogColor = globalFogColor,
+			fogUniforms = {100,}, --fogHeight, grounddensity, globaldensity
 		},
 		shaderName = "Ground Fog GL4",
 		shaderConfig = shaderConfig
 	}
 
-local function checkShaderUpdates(shadersourcecache, delaytime)
-	-- todo: extract shaderconfig
-	if shadersourcecache.lastshaderupdate == nil or 
-		Spring.DiffTimers(Spring.GetTimer(), shadersourcecache.lastshaderupdate) > (delaytime or 0.5) then 
-		shadersourcecache.lastshaderupdate = Spring.GetTimer()
-		local vsSrcNew = shadersourcecache.vssrcpath and VFS.LoadFile(shadersourcecache.vssrcpath)
-		local fsSrcNew = shadersourcecache.fssrcpath and VFS.LoadFile(shadersourcecache.fssrcpath)
-		local gsSrcNew = shadersourcecache.gssrcpath and VFS.LoadFile(shadersourcecache.gssrcpath)
-		if  vsSrcNew == shadersourcecache.vsSrc and 
-			fsSrcNew == shadersourcecache.fsSrc and 
-			gsSrcNew == shadersourcecache.gsSrc and 
-			not forceupdate then 
-			--Spring.Echo("No change in shaders")
-			return nil
-		else
-			local compilestarttime = Spring.GetTimer()
-			shadersourcecache.vsSrc = vsSrcNew
-			shadersourcecache.fsSrc = fsSrcNew
-			shadersourcecache.gsSrc = gsSrcNew
-			
-			local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-			local shaderDefines = LuaShader.CreateShaderDefinesString(shadersourcecache.shaderConfig)
-			if vsSrcNew then 
-				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-				vsSrcNew = vsSrcNew:gsub("//__DEFINES__", shaderDefines)
-			end
-			if fsSrcNew then 
-				fsSrcNew = fsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", shaderDefines)
-			end
-			if gsSrcNew then 
-				gsSrcNew = gsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-				gsSrcNew = gsSrcNew:gsub("//__DEFINES__", shaderDefines)
-			end
-			local reinitshader =  LuaShader(
-				{
-				vertex = vsSrcNew,
-				fragment = fsSrcNew,
-				geometry = gsSrcNew,
-				uniformInt = shadersourcecache.uniformInt,
-				uniformFloat = shadersourcecache.uniformFloat,
-				},
-				shadersourcecache.shaderName
-			)
-			local shaderCompiled = reinitshader:Initialize()
-			
-			Spring.Echo(shadersourcecache.shaderName, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", Spring.GetGameFrame(), "success", shaderCompiled or false)
-			if shaderCompiled then 
-				reinitshader.ignoreUnkUniform = true
-				return reinitshader
-			else
-				return nil
-			end
-		end
+
+
+function widget:ViewResize()
+	vsx, vsy = gl.GetViewSizes()
+	if Spring.GetMiniMapDualScreen() == 'left' then
+		vsx = vsx / 2
 	end
-	return nil
+	if Spring.GetMiniMapDualScreen() == 'right' then
+		vsx = vsx / 2
+	end
+
+	if fogTexture then gl.DeleteTexture(fogTexture) end
+
+	fogTexture = gl.CreateTexture(vsx/ shaderConfig.RESOLUTION, vsy/shaderConfig.RESOLUTION, {
+		min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
+		fbo = true,
+		format = GL_RGBA32F_ARB,
+		})
 end
 
- 
+
 local function initGL4()
 	-- init the VBO
 	local planeVBO, numVertices = makePlaneVBO(1,1,Game.mapSizeX/resolution,Game.mapSizeZ/resolution)
@@ -166,7 +138,7 @@ local function initGL4()
 	fogPlaneVAO:AttachVertexBuffer(planeVBO)
 	fogPlaneVAO:AttachIndexBuffer(planeIndexVBO)
 	
-	groundFogShader =  checkShaderUpdates(shaderSourceCache)
+	groundFogShader =  LuaShader.CheckShaderUpdates(shaderSourceCache)
 	if not groundFogShader then goodbye("Failed to compile Ground Fog GL4") end 
 	Spring.Echo("Number of triangles= ", Game.mapSizeX/resolution,Game.mapSizeZ/resolution)
 	return true
@@ -179,13 +151,45 @@ function widget:Initialize()
 		return
 	end
 	if initGL4() == false then return end
-	WG['groundfoggl4'] = {}
-	WG['groundfoggl4'].AddPointLight = AddPointLight
-	widgetHandler:RegisterGlobal('AddPointLight', WG['groundfoggl4'].AddPointLight)
+	
+		widget:ViewResize()
+	
+	combineShader = LuaShader({
+		--while this vertex shader seems to do nothing, it actually does the very important world space to screen space mapping for gl.TexRect!
+		vertex = [[
+			#version 150 compatibility
+			void main(void)
+			{
+				gl_TexCoord[0] = gl_MultiTexCoord0;
+				gl_Position    = gl_Vertex;
+			} ]],
+		fragment = [[
+			#version 150 compatibility
+			uniform sampler2D fogbase;
+			uniform sampler2D distortion;
+			uniform float gameframe;
+			uniform float distortionlevel;
+			void main(void) {
+				vec2 distUV = gl_TexCoord[0].st * 4 + vec2(0, - gameframe*4);
+				vec4 dist = (texture2D(distortion, distUV) * 2.0 - 1.0) * distortionlevel;
+				vec4 dx = dFdx(dist);
+				vec4 dy = dFdy(dist);
+				
+				gl_FragColor = texture2D(fogbase, gl_TexCoord[0].st + dist.xy);
+			}
+		]],
+		uniformInt = { fogbase = 0, distortion = 1},
+		uniformFloat = { gameframe = 0, distortionlevel = 0},
+	})
+	
+	shaderCompiled = combineShader:Initialize()
+	if (shaderCompiled == nil) then
+		goodbye("[Global Fog::combineShader] combineShader compilation failed")
+	end
 end
 
 function widget:Shutdown()
-	-- TODO: delete the VBOs and shaders like a good boy 
+	if fogTexture then gl.DeleteTexture(fogTexture) end
 end
 
 local windX = 0
@@ -199,10 +203,36 @@ end
 function widget:Update()
 end
 
+local toTexture = true
+
+local function renderToTextureFunc() -- this draws the fogspheres onto the texture
+
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)	
+	
+	--gl.Blending(true);
+	--gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.DST_ALPHA, GL.SRC_ALPHA, GL.ONE);
+	--gl.BlendEquation(GL_FUNC_ADD);
+	
+	--gl.Culling(GL.FRONT)
+	fogPlaneVAO:DrawElements(GL.TRIANGLES)
+	--gl.Culling(GL.BACK)
+end
+
+local function renderToTextureClear() -- this func is needed to clear the render target
+	gl.Blending(GL.ZERO, GL.ZERO)
+	gl.Color(1,1,1,1)
+	gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+end
+
 function widget:DrawWorld() 
 	-- We are drawing in world space, probably a bad idea but hey
 	--	glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
-	groundFogShader =  checkShaderUpdates(shaderSourceCache) or groundFogShader
+	groundFogShader =  LuaShader.CheckShaderUpdates(shaderSourceCache) or groundFogShader
+	
+	if toTexture then 
+		gl.RenderToTexture(fogTexture, renderToTextureClear)
+	end
 	
 	
 	local alt, ctrl, meta, shft = Spring.GetModKeyState()	
@@ -231,9 +261,13 @@ function widget:DrawWorld()
 	groundFogShader:SetUniformFloat("windX", windX)
 	groundFogShader:SetUniformFloat("windZ", windZ)
 	groundFogShader:SetUniformFloat("globalFogColor", globalFogColor[1], globalFogColor[2],globalFogColor[3],globalFogColor[4])
+	groundFogShader:SetUniformFloat("fogUniforms", globalFogColor[1], globalFogColor[2],globalFogColor[3],globalFogColor[4])
 	
-	
-	fogPlaneVAO:DrawElements(GL.TRIANGLES)
+	if toTexture then 
+		gl.RenderToTexture(fogTexture, renderToTextureFunc)
+	else
+		fogPlaneVAO:DrawElements(GL.TRIANGLES)
+	end
 
 	groundFogShader:Deactivate()
 	
@@ -242,4 +276,18 @@ function widget:DrawWorld()
 	gl.DepthTest(true)
 	gl.DepthMask(true)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	
+	if toTexture then 
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		combineShader:Activate()
+		combineShader:SetUniformFloat("gameframe", Spring.GetGameFrame()/1000)
+		combineShader:SetUniformFloat("distortionlevel", 0.0001) -- 0.001
+		gl.Texture(0, fogTexture)
+		gl.Texture(1, distortiontex)
+		gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+		combineShader:Deactivate()
+		--gl.TexRect(0, 0, 10000, 10000, 0, 0, 1, 1) -- dis is for debuggin!
+		gl.Texture(0, false)
+		gl.Texture(1, false)
+	end
 end

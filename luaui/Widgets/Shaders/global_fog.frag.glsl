@@ -203,7 +203,7 @@ void main(void)
 	//fragColor.a  *= (noisesample.b + 1);
 	
 	// Marching:
-	const float steps = 32;
+	const float steps = RAYMARCHSTEPS;
 	vec3 rayStart = mapWorldPos.xyz;
 	vec3 rayEnd = clamp((FOGTOP - mapWorldPos.y)/ (camPos.y- mapWorldPos.y),   0, 1) * mapToCam + mapWorldPos.xyz;
 	if (camPos.y <= mapWorldPos.y) rayEnd = mapWorldPos.xyz +  mapToCam;
@@ -211,6 +211,7 @@ void main(void)
 	float collectedNoise = 0.0;
 	float collectedShadow = 0.0;
 	
+	// TODO: FIX ABOVE FOG TOP!
 	if (mapWorldPos.y < FOGTOP || 1==1 ) { // add special case where cam is below fogtop!
 		float rayJitterOffset = (2 * rand(screenUV)) / steps ;
 		for (float f = 0; f < 1.0; f += 1.0 / steps){
