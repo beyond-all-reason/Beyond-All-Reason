@@ -83,9 +83,9 @@ local BaseClasses = {
 		lightType = 'cone', -- or cone or beam
 		lightConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 500, 
-			r = 1, g = 0, b = 0, a = 1, 
+			r = 5, g = 0, b = 0, a = 1, 
 			dirx = 1, diry = 0, dirz = 1, theta = 0.02,  -- cone lights only, specify direction and half-angle in radians
-			modelfactor = 10, specular = 0, scattering = 5, lensflare = 1, 
+			modelfactor = 10, specular = 0.5, scattering = 1, lensflare = 1, 
 			lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
 		},
 	},
@@ -362,6 +362,7 @@ GetLightClass("MuzzleFlash", nil, "Tiny", {posx = -7, posy = 16, posz = 5, radiu
 											lifetime = 200, sustain = 4})
 muzzleFlashLights[WeaponDefNames["corint_cor_intimidator"].id].yOffset = 16
 
+-- hue hue turning these on will completely break the game...
 --projectileDefLights[WeaponDefNames["armrock_arm_bot_rocket"].id] = GetLightClass("LaserAimProjectile", "Red", "Large")
 --projectileDefLights[WeaponDefNames["corstorm_cor_bot_rocket"].id] = GetLightClass("LaserAimProjectile", "Red", "Large")
 

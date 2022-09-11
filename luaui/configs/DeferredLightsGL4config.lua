@@ -8,13 +8,23 @@
 
 local exampleLight = {
 	lightType = 'point', -- or cone or beam
-	pieceName = nil, -- optional
+	-- if pieceName == nil then the light is treated as WORLD-SPACE
+	-- if pieceName == valid piecename, then the light is attached to that piece
+	-- if pieceName == invalid piecename, then the light is attached to base of unit
+	pieceName = nil,
+	-- If you want to make the light be offset from the top of the unit, specify how many elmos above it should be!
+	aboveUnit = nil,
+	-- Lights that should spawn even if they are outside of view need this set:
+	alwaysVisible = nil,
 	lightConfig = {
 		posx = 0, posy = 0, posz = 0, radius = 100, 
 		r = 1, g = 1, b = 1, a = 1, 
-		color2r = 1, color2g = 1, color2b = 1, colortime = 15, -- point lights only, colortime in seconds for unit-attached
-		dirx = 0, diry = 0, dirz = 1, theta = 0.5,  -- cone lights only, specify direction and half-angle in radians
-		pos2x = 100, pos2y = 100, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
+		-- point lights only, colortime in seconds for unit-attached:
+			color2r = 1, color2g = 1, color2b = 1, colortime = 15, 
+		-- cone lights only, specify direction and half-angle in radians:
+			dirx = 0, diry = 0, dirz = 1, theta = 0.5,  
+		-- beam lights only, specifies the endpoint of the beam:
+			pos2x = 100, pos2y = 100, pos2z = 100, 
 		modelfactor = 1, specular = 1, scattering = 1, lensflare = 1, 
 		lifetime = 0, sustain = 1, 	aninmtype = 0 -- unused	
 	},
@@ -499,7 +509,7 @@ local unitDefLights = {
 }
 
 local unitEventLights = {
-
+	------------------------------------ Put lights that are slaved to ProjectileCreated here! ---------------------------------
 	WeaponBarrelGlow =  {
 		[UnitDefNames['corint'].id] = {
 			barrelglow1 = {
@@ -524,7 +534,25 @@ local unitEventLights = {
 			},
 		},
 	},
+	--------------------------------- Put lights that are spawned from COB/LUS here ! ---------------------------------
+	-- These lights _must_ be indexed by numbers! As these will be the ones triggered by the
+	-- The COB lua_UnitScriptLight(lightIndex, count) call does this job!
+	UnitScriptLights = {
+		[UnitDefNames['corint'].id] = {
+			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'light',
+				lightName = 'barrelglowcorint',
+				lightConfig = { posx = 7, posy = 8, posz = 5, radius = 310,
+					color2r = 0, color2g = 0, color2b = 0, colortime = 300,
+					r = 1, g = 0.2, b = 0, a = 0.69999999,
+					modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
+					lifetime = 300, sustain = 1, animtype = 0},
+			},
+		},
+	},
 
+	------------------------------- Put additional lights tied to events here! --------------------------------
 	UnitIdle =  {
 		[UnitDefNames['armcom'].id] = {
 			idleBlink = {
@@ -552,48 +580,135 @@ local unitEventLights = {
 		
 	UnitFinished = {
 		default = {
-			
-			lightType = 'cone',
-			--pieceName = 'justatthebase',
-			aboveUnit = true,
-			lightConfig = { posx = 0, posy = 32, posz = 0, radius = 160,
-				dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
-				r = -1, g = 1, b = 1, a = 0.8,
-				modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
-				lifetime = 20, sustain = 2, animtype = 0},
+			default = {
+				lightType = 'cone',
+				pieceName = 'base',
+				aboveUnit = 100,
+				lightConfig = { posx = 0, posy = 32, posz = 0, radius = 160,
+					dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
+					r = -1, g = 1, b = 1, a = 0.8,
+					modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
+					lifetime = 20, sustain = 2, animtype = 0},
+			},
 		},
 	},
 	
 	UnitCreated = {
 		default = {
-			lightType = 'cone',
-			--pieceName = 'justatthebase',
-			lightConfig = { posx = 0, posy = 32, posz = 0, radius = 200,
-				dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
-				r = -1, g = 1, b = 1, a = 0.6,
-				modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
-				lifetime = 15, sustain = 2, animtype = 0},
+			default = {
+				lightType = 'cone',
+				pieceName = 'base',
+				aboveUnit = 100,
+				lightConfig = { posx = 0, posy = 32, posz = 0, radius = 200,
+					dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
+					r = -1, g = 1, b = 1, a = 0.6,
+					modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
+					lifetime = 15, sustain = 2, animtype = 0},
+			},	
 		},	
 	},
 	
-	
-	-- These lights _must_ be indexed by numbers! As these will be the ones triggered by the
-	-- The COB lua_UnitScriptLight(lightIndex, count) call does this job!
-	UnitScriptLights = {
-		[UnitDefNames['corint'].id] = {
-			[1] = { --MUST BE NUMBER, Give it a nice name in a comment,
-				lightType = 'point',
-				pieceName = 'light',
-				lightName = 'barrelglowcorint',
-				lightConfig = { posx = 7, posy = 8, posz = 5, radius = 310,
-					color2r = 0, color2g = 0, color2b = 0, colortime = 300,
-					r = 1, g = 0.2, b = 0, a = 0.69999999,
-					modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
-					lifetime = 300, sustain = 1, animtype = 0},
-			},
-		},
+	UnitCloaked = {
+		default = {
+			default = {
+				lightType = 'cone',
+				pieceName = 'base',
+				aboveUnit = 100,
+				lightConfig = { posx = 0, posy = 32, posz = 0, radius = 200,
+					dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
+					r = -1, g = 1, b = 1, a = 0.6,
+					modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
+					lifetime = 15, sustain = 2, animtype = 0},
+			},	
+		},	
 	},
 	
+	UnitDecloaked = {
+		default = {
+			default = {
+				lightType = 'cone',
+				pieceName = 'base',
+				aboveUnit = 100,
+				lightConfig = { posx = 0, posy = 32, posz = 0, radius = 200,
+					dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
+					r = -1, g = 1, b = 1, a = 0.6,
+					modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
+					lifetime = 15, sustain = 2, animtype = 0},
+			},	
+		},	
+	},
+	
+	StockpileChanged = {
+		default = {
+			default = {
+				lightType = 'cone',
+				pieceName = 'base',
+				aboveUnit = 100,
+				lightConfig = { posx = 0, posy = 32, posz = 0, radius = 200,
+					dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
+					r = 1, g = 0, b = 0, a = 0.6,
+					modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
+					lifetime = 15, sustain = 2, animtype = 0},
+			},	
+		},	
+	},
+	UnitMoveFailed = {
+		default = {
+			default = {
+				lightType = 'cone',
+				pieceName = 'base',
+				aboveUnit = 100,
+				lightConfig = { posx = 0, posy = 32, posz = 0, radius = 200,
+					dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
+					r = 1, g = 0, b = 0, a = 0.6,
+					modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
+					lifetime = 15, sustain = 2, animtype = 0},
+			},	
+		},	
+	},
+	
+	UnitGiven = {
+		default = {
+			default = {
+				lightType = 'cone',
+				pieceName = 'base',
+				aboveUnit = 100,
+				lightConfig = { posx = 0, posy = 32, posz = 0, radius = 200,
+					dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
+					r = -1, g = 1, b = 1, a = 0.6,
+					modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
+					lifetime = 15, sustain = 2, animtype = 0},
+			},	
+		},	
+	},
+	UnitTaken = {
+		default = {
+			default = {
+				lightType = 'cone',
+				pieceName = 'base',
+				aboveUnit = 100,
+				lightConfig = { posx = 0, posy = 32, posz = 0, radius = 200,
+					dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
+					r = -1, g = 1, b = 1, a = 0.6,
+					modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
+					lifetime = 15, sustain = 2, animtype = 0},
+			},	
+		},	
+	},
+	UnitDestroyed = { -- note: dont do piece-attached lights here!
+		default = {
+			default = {
+				lightType = 'cone',
+				pieceName = '',
+				aboveUnit = 100,
+				lightConfig = { posx = 0, posy = 32, posz = 0, radius = 200,
+					dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
+					r = 1, g = 0, b = 0, a = 0.6,
+					modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
+					lifetime = 15, sustain = 2, animtype = 0},
+			},	
+		},	
+	},
 }
 
 

@@ -79,6 +79,7 @@ do
 	-- XX noupload pass
 	-- reload shaderconfig
 	-- cursorlight
+		-- ally and own, click sensitive!
 	-- XX light types should know their vbo?
 		-- this one is much harder than expected
 	-- XX initialize config dicts -- DONE
@@ -88,7 +89,8 @@ do
 	-- optimizations:
 		-- XX only upload dirty VBOs
 		-- Smaller, single channel noise texture
-		
+	-- Beam lights double length for projectiles!
+	-- list type configs for events
 end
 
 ----------------------------- Localize for optmization ------------------------------------
@@ -109,6 +111,8 @@ local spGetPieceProjectileParams = Spring.GetPieceProjectileParams
 local spGetProjectileDefID = Spring.GetProjectileDefID
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGroundHeight = Spring.GetGroundHeight
+local spIsSphereInView  = Spring.IsSphereInView
+local spGetUnitPosition  = Spring.GetUnitPosition
 
 
 -- Weak:
@@ -161,7 +165,7 @@ local examplePointLight = {
 ]]--
 
 ------------------------------ Debug switches ------------------------------
-local autoupdate = true
+local autoupdate = false
 local debugproj = false
 local addrandomlights = false
 
@@ -219,14 +223,10 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 local deferredLightShader = nil
 
-local vsSrcPath = "LuaUI/Widgets/Shaders/deferred_lights_gl4.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/deferred_lights_gl4.frag.glsl"
-
-local lastshaderupdate = nil
 local shaderSourceCache = {
 	shaderName = 'Deferred Lights GL4',
-	vsSrcPath = "LuaUI/Widgets/Shaders/deferred_lights_gl4.vert.glsl",
-	fsSrcPath = "LuaUI/Widgets/Shaders/deferred_lights_gl4.frag.glsl",
+	vssrcpath = "LuaUI/Widgets/Shaders/deferred_lights_gl4.vert.glsl",
+	fssrcpath = "LuaUI/Widgets/Shaders/deferred_lights_gl4.frag.glsl",
 	shaderConfig = shaderConfig,
 	uniformInt = {
 		mapDepths = 0,
@@ -348,6 +348,7 @@ local function InitializeLight(lightTable, unitID)
 		if not lightTable.lightParamTable then -- perform correct init
 			local lightparams = {}
 			for i = 1, lightParamTableSize do lightparams[i] = 0 end 
+			if lightTable.lightConfig == nil then Spring.Debug.TraceFullEcho() end 
 			for paramname, tablepos in pairs(lightParamKeyOrder) do 
 				lightparams[tablepos] = lightTable.lightConfig[paramname] or lightparams[tablepos]
 			end
@@ -921,6 +922,10 @@ local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
 	Spring.Echo("Widgetside UnitScriptLight", unitID, unitDefID, lightIndex, param)
 	if unitEventLights.UnitScriptLights[unitDefID] and unitEventLights.UnitScriptLights[unitDefID][lightIndex] then 
 		local lightTable = unitEventLights.UnitScriptLights[unitDefID][lightIndex]
+		if not lightTable.alwaysVisible then
+			local px,py,pz = spGetUnitPosition(unitID)
+			if px == nil or spIsSphereInView(px,py,pz, lightTable[4]) == false then return end
+		end	
 		if lightTable.initComplete == nil then InitializeLight(lightTable) end 
 		local instanceID = tostring(unitID) .. "UnitScriptLight" .. tostring(lightIndex) .. "_" .. tostring(param)
 		AddLight(instanceID, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
@@ -1066,16 +1071,38 @@ end
 
 -- This should simplify adding all kinds of events
 -- You are permitted to define as many lights as you wish, but its probably stupid to do so.
-local lightEventHandler(eventName, unitID, unitDefID, teamID)
+local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 	if Spring.ValidUnitID(unitID) and Spring.GetUnitIsDead(unitID) == false and unitEventLights[eventName] then 
 		if unitEventLights[eventName] then 
 			-- get the default event if it is defined
-			local lightList =  unitEventLights['UnitIdle'][unitDefID] or unitEventLights[eventName]['default'] 
+			local lightList =  unitEventLights[eventName][unitDefID] or unitEventLights[eventName]['default'] 
 			if lightList then
 				for lightname, lightTable in pairs(lightList) do 
-					if not lightTable.initComplete then InitializeLight(lightTable, unitID) end 
-					--if lightTable.aboveUnit then lightTable.lightParamTable end
-					AddLight(eventName .. tostring(unitID) ..  lightname, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
+					local visible = lightTable.alwaysVisible
+					local px,py,pz = spGetUnitPosition(unitID)
+					if not visible then
+						if px and spIsSphereInView(px,py,pz, lightTable[4]) then visible = true end
+					end	
+					if visible then 
+						if not lightTable.initComplete then InitializeLight(lightTable, unitID) end 
+						--if lightTable.aboveUnit then lightTable.lightParamTable end
+						local lightParamTable = lightTable.lightParamTable
+						if lightTable.pieceName then 
+							if lightTable.aboveUnit then -- if its above the unit, then add the aboveunit offset to the units height too!
+								-- this is done via a quick copy of the table
+								for i=1, lightParamTableSize do lightCacheTable[i] = lightParamTable[i] end 
+								lightCacheTable[2] = lightCacheTable[2] + lightTable.aboveUnit + Spring.GetUnitHeight(unitID)
+								lightParamTable = lightCacheTable
+							end					
+							AddLight(eventName .. tostring(unitID) ..  lightname, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightParamTable)
+						else
+							for i=1, lightParamTableSize do lightCacheTable[i] = lightParamTable[i] end 
+							lightCacheTable[1] = lightCacheTable[1] + px
+							lightCacheTable[2] = lightParamTable[2] + py + ((lightTable.aboveUnit and Spring.GetUnitHeight(unitID)) or 0)
+							lightCacheTable[3] = lightCacheTable[3] + pz
+							AddLight(eventName .. tostring(unitID) ..  lightname, unitID, lightTable.pieceIndex, lightVBOMap[lightTable.lightType], lightCacheTable)
+						end
+					end
 				end 
 			end
 		end
@@ -1083,86 +1110,44 @@ local lightEventHandler(eventName, unitID, unitDefID, teamID)
 end
 
 function widget:UnitIdle(unitID, unitDefID, teamID) -- oh man we need a sane way to handle height :D
-	lightEventHandler("UnitIdle", unitID, unitDefID, teamID) 
+	eventLightSpawner("UnitIdle", unitID, unitDefID, teamID) 
+end
+function widget:UnitFinished(unitID, unitDefID, teamID) 
+	eventLightSpawner("UnitFinished", unitID, unitDefID, teamID) 
+end
+function widget:UnitCreated(unitID, unitDefID, teamID) 
+	eventLightSpawner("UnitCreated", unitID, unitDefID, teamID) 
+end
+function widget:UnitFromFactory(unitID, unitDefID, teamID) 
+	eventLightSpawner("UnitFromFactory", unitID, unitDefID, teamID) 
+end
+function widget:UnitDestroyed(UnitDestroyed, unitDefID, teamID) -- dont do piece-attached lights here!
+	eventLightSpawner("UnitIdle", unitID, unitDefID, teamID) 
+end
+function widget:UnitTaken(unitID, unitDefID, teamID)
+	eventLightSpawner("UnitTaken", unitID, unitDefID, teamID) 
+end
+function widget:UnitGiven(unitID, unitDefID, teamID)
+	eventLightSpawner("UnitGiven", unitID, unitDefID, teamID) 
 end
 
-function widget:UnitIdle(unitID, unitDefID, teamID)
-	if unitEventLights['UnitIdle'] then 
-		if unitEventLights['UnitIdle'][unitDefID] then 
-			local unitEventLight = unitEventLights['UnitIdle'][unitDefID]
-			--InitializeLight(lightTable, unitID)
-			for lightname, lightTable in pairs(unitEventLight) do
-				if lightname ~= 'initComplete' then
-					if not lightTable.initComplete then InitializeLight(lightTable, unitID) end
-					AddLight(tostring(unitID) ..  lightname, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
-				end
-			end
-		end
+function widget:UnitCloaked(unitID, unitDefID, teamID)
+	eventLightSpawner("UnitCloaked", unitID, unitDefID, teamID) 
+end
+function widget:UnitDecloaked(unitID, unitDefID, teamID)
+	eventLightSpawner("UnitDecloaked", unitID, unitDefID, teamID) 
+end
+function widget:UnitMoveFailed(unitID, unitDefID, teamID)
+	eventLightSpawner("UnitMoveFailed", unitID, unitDefID, teamID) 
+end
+
+function widget:StockpileChanged(unitID, unitDefID, teamID, weaponNum, oldCount, newCount)
+	if newCount > oldCount then 
+		eventLightSpawner("StockpileChanged", unitID, unitDefID, teamID)
 	end
 end
 
-function widget:UnitFinished(unitID, unitDefID, teamID)
-	if unitEventLights['UnitFinished'] then 
-		local lightTable = unitEventLights['UnitFinished']['default']
-		if unitEventLights['UnitFinished'][unitDefID] then 
-			lightTable = unitEventLights['UnitFinished'][unitDefID]
-		end
-		if not lightTable.initComplete then InitializeLight(lightTable, unitID) end
-		--Spring.Echo("Unitfinished",  unitEventLights['UnitFinished'], lightTable.lightType )
-		lightTable.lightParamTable[2] = spGetUnitHeight(unitID) + 64
-		AddLight(tostring(unitID) ..  "UnitFinished", unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
-	end
-end
 
-function widget:UnitCreated(unitID, unitDefID, teamID)
-	if unitEventLights['UnitCreated'] then 
-		local lightTable = unitEventLights['UnitCreated']['default']
-		if unitEventLights['UnitCreated'][unitDefID] then 
-			lightTable = unitEventLights['UnitCreated'][unitDefID]
-		end
-		if not lightTable.initComplete then InitializeLight(lightTable, unitID) end
-		--Spring.Echo("Unitfinished",  unitEventLights['UnitFinished'], lightTable.lightType )
-		lightTable.lightParamTable[2] = spGetUnitHeight(unitID) + 64
-		AddLight(tostring(unitID) ..  "UnitCreated", unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
-	end
-end
-
---[[
-Any of these awesome callins may also be added! 
-local enabledcallins = {
-	UnitCreated = true,
-	UnitFinished = true,
-	UnitFromFactory = true,
-	UnitDestroyed = true,
-	UnitDestroyedByTeam = true,
-	UnitTaken = true,
-	UnitExperience = true,
-	UnitCommand = true,
-	UnitCmdDone = true,
-	UnitDamaged = true,
-	UnitGiven = true,
-	UnitIdle = true,
-	UnitEnteredRadar = true,
-	UnitEnteredLos = true,
-	UnitLeftRadar = true,
-	UnitLeftLos = true,
-	UnitEnteredWater = true,
-	UnitEnteredAir = true,
-	UnitLeftWater = true,
-	UnitLeftAir = true,
-	UnitSeismicPing = true,
-	UnitLoaded = true,
-	UnitUnloaded = true,
-	UnitCloaked = true, 
-	UnitDecloaked = true,
-	UnitMoveFailed = true,
-	StockpileChanged  = true,
-	RenderUnitDestroyed  = true,
-	FeatureCreated = true,
-	FeatureDestroyed = true,
-	}
-
-]]--
 
 -- Beam type projectiles are indeed an oddball, as they live for exactly 3 frames, no?
 
@@ -1400,8 +1385,8 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	local t1 = 	Spring.GetTimerMicros()
 	if (Spring.GetDrawFrame() % 50 == 0 ) then 
 		local dt =  Spring.DiffTimers(t1,t0)
-		Spring.Echo("Deltat is ", dt,'us, so total load should be', dt * Spring.GetFPS() / 10 ,'%') 
-		Spring.Echo("epoch is ", Spring.DiffTimers(t1,tf)) 
+		--Spring.Echo("Deltat is ", dt,'us, so total load should be', dt * Spring.GetFPS() / 10 ,'%') 
+		--Spring.Echo("epoch is ", Spring.DiffTimers(t1,tf)) 
 	end 
 end
 
