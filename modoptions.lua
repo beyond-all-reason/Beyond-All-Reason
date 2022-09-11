@@ -46,7 +46,6 @@ local options={
 		min    = 0,
 		max    = 10000,
 		step   = 1,
-		hidden = true,
 	},
 
 	{
@@ -59,7 +58,6 @@ local options={
 		min    = 0,
 		max    = 10000,
 		step   = 1,
-		hidden = true,
 	},
 	{
 		key="map_tidal",
