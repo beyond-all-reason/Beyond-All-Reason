@@ -187,7 +187,7 @@ local function GetCommAttributes(unitID, unitDefID)
 		xp = GetUnitExperience(unitID)
 	end
 	local height = comHeight[unitDefID] + heightOffset
-	return { name, { r, g, b, a }, height, bgColor, nil, playerRank and playerRank+1, math.floor(xp or 0), skill}
+	return { name, { r, g, b, a }, height, bgColor, nil, playerRank and playerRank+1, xp, skill}
 end
 
 local function RemoveLists()
@@ -265,7 +265,7 @@ local function createComnameList(attributes)
 			--local y_r = y + (fontSize * 0.44)
 			local x_r = 0
 			local y_r = y + (fontSize * 0.4) + (comLevelSize * 0.42)
-			glTexture(comLevelImages..(attributes[7]+2)..'.png')
+			glTexture(comLevelImages..(math.floor(attributes[7]*100)+2)..'.png')
 			glTexRect(x_r-halfSize, y_r-halfSize, x_r+halfSize, y_r+halfSize)
 			glTexture(false)
 		end
