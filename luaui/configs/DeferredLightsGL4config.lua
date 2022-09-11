@@ -551,10 +551,11 @@ local unitEventLights = {
 	},
 		
 	UnitFinished = {
-	
 		default = {
+			
 			lightType = 'cone',
 			--pieceName = 'justatthebase',
+			aboveUnit = true,
 			lightConfig = { posx = 0, posy = 32, posz = 0, radius = 160,
 				dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
 				r = -1, g = 1, b = 1, a = 0.8,
@@ -564,7 +565,6 @@ local unitEventLights = {
 	},
 	
 	UnitCreated = {
-	
 		default = {
 			lightType = 'cone',
 			--pieceName = 'justatthebase',
@@ -577,13 +577,14 @@ local unitEventLights = {
 	},
 	
 	
-	-- These lights must be indexed by numbers, as these will be the ones triggered by the
+	-- These lights _must_ be indexed by numbers! As these will be the ones triggered by the
 	-- The COB lua_UnitScriptLight(lightIndex, count) call does this job!
 	UnitScriptLights = {
 		[UnitDefNames['corint'].id] = {
-			[1] = { -- Give it a nice name in a comment
+			[1] = { --MUST BE NUMBER, Give it a nice name in a comment,
 				lightType = 'point',
 				pieceName = 'light',
+				lightName = 'barrelglowcorint',
 				lightConfig = { posx = 7, posy = 8, posz = 5, radius = 310,
 					color2r = 0, color2g = 0, color2b = 0, colortime = 300,
 					r = 1, g = 0.2, b = 0, a = 0.69999999,

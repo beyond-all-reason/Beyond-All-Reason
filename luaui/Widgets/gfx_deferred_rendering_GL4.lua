@@ -78,7 +78,7 @@ do
 	-- XX load config to tale on init
 	-- XX noupload pass
 	-- reload shaderconfig
-	--cursorlight
+	-- cursorlight
 	-- XX light types should know their vbo?
 		-- this one is much harder than expected
 	-- XX initialize config dicts -- DONE
@@ -119,13 +119,8 @@ local math_min = math.min
 local math_max = math.max
 local math_ceil = math.ceil
 
-local gameFrame = 0
-local chobbyInterface
-
 --------------------------------------------------------------------------------
 --Light falloff functions: http://gamedev.stackexchange.com/questions/56897/glsl-light-attenuation-color-and-intensity-formula
------------------------------- Debug switches ------------------------------
-local autoupdate = true
 
 ------------------------------ Light and Shader configurations ------------------
 
@@ -165,6 +160,10 @@ local examplePointLight = {
 }
 ]]--
 
+------------------------------ Debug switches ------------------------------
+local autoupdate = true
+local debugproj = false
+local addrandomlights = false
 
 ------------------------------ Data structures and management variables ------------
 
@@ -224,87 +223,57 @@ local vsSrcPath = "LuaUI/Widgets/Shaders/deferred_lights_gl4.vert.glsl"
 local fsSrcPath = "LuaUI/Widgets/Shaders/deferred_lights_gl4.frag.glsl"
 
 local lastshaderupdate = nil
-local shaderSourceCache = {}
+local shaderSourceCache = {
+	shaderName = 'Deferred Lights GL4',
+	vsSrcPath = "LuaUI/Widgets/Shaders/deferred_lights_gl4.vert.glsl",
+	fsSrcPath = "LuaUI/Widgets/Shaders/deferred_lights_gl4.frag.glsl",
+	shaderConfig = shaderConfig,
+	uniformInt = {
+		mapDepths = 0,
+		modelDepths = 1,
+		mapNormals = 2,
+		modelNormals = 3,
+		--mapExtra = 4, 
+		--modelExtra = 5,
+		mapDiffuse = 6,
+		modelDiffuse = 7,
+		noise3DCube = 8,
+		--heightmapTex = 9,
+		--mapnormalsTex = 10,
+		},
+	uniformFloat = {
+		pointbeamcone = 0,
+		--fadeDistance = 3000,
+		attachedtounitID = 0,
+		nightFactor = 1.0,
+		windX = 0.0,
+		windZ = 0.0, 
+	  },
+}
 
+local gameFrame = 0
 local chobbyInterface = false
+
+local trackedProjectiles = {}
+local trackedProjectileTypes = {}
+local lastgf = -2
+
+local testprojlighttable = {0,16,0,200, --pos + radius
+								0.25, 0.25,0.125, 5, -- color2, colortime
+								1.0,1.0,0.5,0.5, -- RGBA
+								0.1,1,0.25,1, -- modelfactor_specular_scattering_lensflare
+								0,0,200,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,0,0, -- color2
+								0, -- pieceIndex
+								0,0,0,0 -- instData always 0!
+								}
+
+
 ---------------------- INITIALIZATION FUNCTIONS ----------------------------------
 
 local function goodbye(reason) 
 	Spring.Echo('Exiting', reason)
 	widgetHandler:RemoveWidget()
-end
-
-local function checkShaderUpdates(vssrcpath, fssrcpath, gssrcpath, shadername, delaytime)
-	if lastshaderupdate == nil or 
-		Spring.DiffTimers(Spring.GetTimer(), lastshaderupdate) > (delaytime or 2.25) then 
-		lastshaderupdate = Spring.GetTimer()
-		local vsSrcNew = vssrcpath and VFS.LoadFile(vssrcpath)
-		local fsSrcNew = fssrcpath and VFS.LoadFile(fssrcpath)
-		local gsSrcNew = gssrcpath and VFS.LoadFile(gssrcpath)
-		if  vsSrcNew == shaderSourceCache.vsSrc and 
-			fsSrcNew == shaderSourceCache.fsSrc and 
-			gsSrcNew == shaderSourceCache.gsSrc then 
-			--Spring.Echo("No change in shaders")
-			return nil
-		else
-			local compilestarttime = Spring.GetTimer()
-			shaderSourceCache.vsSrc = vsSrcNew
-			shaderSourceCache.fsSrc = fsSrcNew
-			shaderSourceCache.gsSrc = gsSrcNew
-			
-			local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-			if vsSrcNew then 
-				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-				vsSrcNew = vsSrcNew:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig))
-			end
-			if fsSrcNew then 
-				fsSrcNew = fsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig))
-			end
-			if gsSrcNew then 
-				gsSrcNew = gsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-				gsSrcNew = gsSrcNew:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig))
-			end
-			local reinitshader =  LuaShader(
-				{
-				vertex = vsSrcNew,
-				fragment = fsSrcNew,
-				geometry = gsSrcNew,
-				uniformInt = {
-					mapDepths = 0,
-					modelDepths = 1,
-					mapNormals = 2,
-					modelNormals = 3,
-					--mapExtra = 4, 
-					--modelExtra = 5,
-					mapDiffuse = 6,
-					modelDiffuse = 7,
-					noise3DCube = 8,
-					--heightmapTex = 9,
-					--mapnormalsTex = 10,
-					},
-				uniformFloat = {
-					pointbeamcone = 0,
-					--fadeDistance = 3000,
-					attachedtounitID = 0,
-					nightFactor = 1.0,
-					windX = 0.0,
-					windZ = 0.0, 
-				  },
-				},
-				shadername
-			)
-			local shaderCompiled = reinitshader:Initialize()
-			
-			Spring.Echo(shadername, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", gameFrame, "success", shaderCompiled or false)
-			if shaderCompiled then 
-				return reinitshader
-			else
-				return nil
-			end
-		end
-	end
-	return nil
 end
 
 function widget:ViewResize()
@@ -321,7 +290,7 @@ local function createLightInstanceVBO(vboLayout, vertexVBO, numVertices, indexVB
 end
  
 local function initGL4()
-	deferredLightShader =  checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4")
+	deferredLightShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0)
 	if not deferredLightShader then 
 		goodbye("Failed to compile Deferred Lights GL4 shader") 
 		return false
@@ -957,7 +926,12 @@ local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
 		AddLight(instanceID, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
 	end
 end
- 
+
+local function GetLightVBO(vboName)
+	if vboName == 'cursorPointLightVBO' then return cursorPointLightVBO end
+	return nil
+end
+
 function widget:Initialize()
 
 	Spring.Debug.TraceEcho("Initialize DLGL4")
@@ -998,8 +972,10 @@ function widget:Initialize()
 		Spring.SetSunLighting(nightLightingParams)
 	end 
 	
-	math.randomseed(1)
-	--for i=1, 1 do AddRandomLight(	math.random()) end   
+	if addrandomlights then 
+		math.randomseed(1)
+		for i=1, 1 do AddRandomLight(	math.random()) end
+	end
 	
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
@@ -1011,16 +987,19 @@ function widget:Initialize()
 	WG['lightsgl4'].AddConeLight  = AddConeLight
 	WG['lightsgl4'].AddLight  = AddLight
 	WG['lightsgl4'].RemoveLight  = RemoveLight
+	WG['lightsgl4'].GetLightVBO  = GetLightVBO
+	
 	widgetHandler:RegisterGlobal('AddPointLight', WG['lightsgl4'].AddPointLight)
 	widgetHandler:RegisterGlobal('AddBeamLight', WG['lightsgl4'].AddBeamLight)
 	widgetHandler:RegisterGlobal('AddConeLight', WG['lightsgl4'].AddConeLight)
 	widgetHandler:RegisterGlobal('AddLight', WG['lightsgl4'].AddLight)
 	widgetHandler:RegisterGlobal('RemoveLight', WG['lightsgl4'].RemoveLight)
-	
-	widgetHandler:RegisterGlobal('UnitScriptLight', UnitScriptLight)
+	widgetHandler:RegisterGlobal('GetLightVBO', WG['lightsgl4'].GetLightVBO)
 	
 	widgetHandler:RegisterGlobal('GadgetWeaponExplosion', GadgetWeaponExplosion)
 	widgetHandler:RegisterGlobal('GadgetWeaponBarrelfire', GadgetWeaponBarrelfire)
+	
+	widgetHandler:RegisterGlobal('UnitScriptLight', UnitScriptLight)
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
@@ -1051,8 +1030,9 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('AddPointLight')
 	widgetHandler:DeregisterGlobal('AddBeamLight')
 	widgetHandler:DeregisterGlobal('AddConeLight')
-	widgetHandler:DeregisterGlobal('RemoveLight')
 	widgetHandler:DeregisterGlobal('AddLight')
+	widgetHandler:DeregisterGlobal('RemoveLight')
+	widgetHandler:DeregisterGlobal('GetLightVBO')
 	
 	widgetHandler:DeregisterGlobal('GadgetWeaponExplosion')
 	widgetHandler:DeregisterGlobal('GadgetWeaponBarrelfire')
@@ -1064,8 +1044,8 @@ local windX = 0
 local windZ = 0
 
 function widget:GameFrame(n)
-	if n % 100 == 0 then 
-		--AddRandomDecayingPointLight()
+	if addrandomlights and (n % 100 == 0) then 
+		AddRandomDecayingPointLight()
 	end
 	gameFrame = n
 	local windDirX, _, windDirZ, windStrength = Spring.GetWind()
@@ -1082,6 +1062,28 @@ function widget:GameFrame(n)
 		end
 		lightRemoveQueue[n] = nil
 	end
+end
+
+-- This should simplify adding all kinds of events
+-- You are permitted to define as many lights as you wish, but its probably stupid to do so.
+local lightEventHandler(eventName, unitID, unitDefID, teamID)
+	if Spring.ValidUnitID(unitID) and Spring.GetUnitIsDead(unitID) == false and unitEventLights[eventName] then 
+		if unitEventLights[eventName] then 
+			-- get the default event if it is defined
+			local lightList =  unitEventLights['UnitIdle'][unitDefID] or unitEventLights[eventName]['default'] 
+			if lightList then
+				for lightname, lightTable in pairs(lightList) do 
+					if not lightTable.initComplete then InitializeLight(lightTable, unitID) end 
+					--if lightTable.aboveUnit then lightTable.lightParamTable end
+					AddLight(eventName .. tostring(unitID) ..  lightname, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
+				end 
+			end
+		end
+	end
+end
+
+function widget:UnitIdle(unitID, unitDefID, teamID) -- oh man we need a sane way to handle height :D
+	lightEventHandler("UnitIdle", unitID, unitDefID, teamID) 
 end
 
 function widget:UnitIdle(unitID, unitDefID, teamID)
@@ -1125,22 +1127,42 @@ function widget:UnitCreated(unitID, unitDefID, teamID)
 	end
 end
 
+--[[
+Any of these awesome callins may also be added! 
+local enabledcallins = {
+	UnitCreated = true,
+	UnitFinished = true,
+	UnitFromFactory = true,
+	UnitDestroyed = true,
+	UnitDestroyedByTeam = true,
+	UnitTaken = true,
+	UnitExperience = true,
+	UnitCommand = true,
+	UnitCmdDone = true,
+	UnitDamaged = true,
+	UnitGiven = true,
+	UnitIdle = true,
+	UnitEnteredRadar = true,
+	UnitEnteredLos = true,
+	UnitLeftRadar = true,
+	UnitLeftLos = true,
+	UnitEnteredWater = true,
+	UnitEnteredAir = true,
+	UnitLeftWater = true,
+	UnitLeftAir = true,
+	UnitSeismicPing = true,
+	UnitLoaded = true,
+	UnitUnloaded = true,
+	UnitCloaked = true, 
+	UnitDecloaked = true,
+	UnitMoveFailed = true,
+	StockpileChanged  = true,
+	RenderUnitDestroyed  = true,
+	FeatureCreated = true,
+	FeatureDestroyed = true,
+	}
 
-local updateCount = 0
-local trackedProjectiles = {}
-local trackedProjectileTypes = {}
-local lastgf = -2
-
-local testprojlighttable = {0,16,0,200, --pos + radius
-								0.25, 0.25,0.125, 5, -- color2, colortime
-								1.0,1.0,0.5,0.5, -- RGBA
-								0.1,1,0.25,1, -- modelfactor_specular_scattering_lensflare
-								0,0,200,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								}
-
+]]--
 
 -- Beam type projectiles are indeed an oddball, as they live for exactly 3 frames, no?
 
@@ -1152,7 +1174,6 @@ local function PrintProjectileInfo(projectileID)
 end
 
 local function updateProjectileLights(newgameframe)
-	local debugproj = false
 	local nowprojectiles = Spring.GetVisibleProjectiles()
 	gameFrame = Spring.GetGameFrame()
 	local newgameframe = true
@@ -1298,7 +1319,9 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	if chobbyInterface then return end
 	local t0 = Spring.GetTimerMicros()
 	--if true then return end
-	if autoupdate then deferredLightShader = checkShaderUpdates(vsSrcPath, fsSrcPath, nil, "Deferred Lights GL4") or deferredLightShader end
+	if autoupdate then 
+		deferredLightShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0) or deferredLightShader 
+	end
 	
 	if pointLightVBO.usedElements > 0 or 
 		unitPointLightVBO.usedElements > 0 or 
