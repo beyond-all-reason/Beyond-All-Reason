@@ -353,7 +353,7 @@ return {
 					expl_light_heat_life_mult = "1.6",
 				},
 				damage = {
-					default = 10000,
+					default = 20000,
 				},
 			},
 		},
