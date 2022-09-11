@@ -837,7 +837,7 @@ local options={
 		key    = "usemexconfig",
 		name   = "Use metal spots as point locations?",
 		type   = 'bool',
-		def    = true,
+		def    = false,
 		section= "controlvictoryoptions",
     },
 	{

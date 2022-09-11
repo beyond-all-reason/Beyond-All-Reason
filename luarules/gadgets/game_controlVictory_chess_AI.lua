@@ -52,7 +52,12 @@ local function distance(pos1,pos2)
 	return dist
 end
 
-local capturePointRadius = Spring.GetModOptions().captureradius
+local capturePointRadius
+if Spring.GetModOptions().usemexconfig then
+	capturePointRadius = 100
+else
+	capturePointRadius = 150
+end
 local capturePointRadius = math.floor(capturePointRadius*0.75)
 local AIMainAttackers = {}
 local AIDiverseAttackers = {}

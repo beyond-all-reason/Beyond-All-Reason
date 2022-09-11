@@ -18,8 +18,9 @@ end
 local selectedScoreMode = modOptions.scoremode
 local useMapConfig = modOptions.usemapconfig
 local useMexConfig = modOptions.usemexconfig
-local numberOfControlPoints = modOptions.numberofcontrolpoints
-local captureRadius = modOptions.captureradius
+local numberOfControlPointsX = math.ceil(Game.mapSizeX/1000) --modOptions.numberofcontrolpoints
+local numberOfControlPointsZ = math.ceil(Game.mapSizeZ/1000) --modOptions.numberofcontrolpoints
+local captureRadius = 100 -- modOptions.captureradius
 local decapSpeed = modOptions.decapspeed
 local startTime = modOptions.starttime
 local metalPerPoint = modOptions.metalperpoint
@@ -155,6 +156,11 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function gCaptureRadius()
+		if useMexConfig then
+			captureRadius = 100
+		else
+			captureRadius = 150
+		end
 		return captureRadius or 0
 	end
 
@@ -221,181 +227,35 @@ if gadgetHandler:IsSyncedCode() then
 					}
 				end
 			elseif not mapConfigExists then
-				if numberOfControlPoints == "7" then
-					--Since no config file is found, we create 7 points spaced out in a circle on the map
-					local angle = math.random() * math.pi * 2
-					points = {}
-					for i = 2, 7 do
-						local angle = angle + i * math.pi * 2 / 6
-						points[i] = {
-							x = mapx / 2 + mapx * .4 * math.sin(angle),
-							y = 0,
-							z = mapz / 2 + mapz * .4 * math.cos(angle),
-							--We can make them move around if we want to by uncommenting these lines and the ones below
-							--velx=moveSpeed * 10 * -1 * math.cos(angle),
-							--velz=moveSpeed * 10 * math.sin(angle),
-							owner = nil,
-							aggressor = nil,
-							capture = 0,
-						}
+				--numberOfControlPointsX
+				--numberOfControlPointsZ
+				local numOfPoints = 0
+				local waterDamage = Game.waterDamage
+				local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
+				for xnum = 1,numberOfControlPointsX do
+					for znum = 1,numberOfControlPointsZ do
+						local pointx = ((Game.mapSizeX/numberOfControlPointsX) * xnum)
+						local pointz = ((Game.mapSizeZ/numberOfControlPointsZ) * znum)
+						if pointx < Game.mapSizeX and pointz < Game.mapSizeZ then
+							pointx = pointx + math.random(-200, 200)
+							pointz = pointz + math.random(-200, 200)
+							local pointy = Spring.GetGroundHeight(pointx, pointz)
+							if positionCheckLibrary.FlatAreaCheck(pointx, pointy, pointz, captureRadius, 30, true) then
+								if not (waterDamage > 0 and pointy < 0) then
+									numOfPoints = numOfPoints + 1
+									points[numOfPoints] = {
+										x = pointx,
+										y = pointy,
+										z = pointz,
+										owner = nil,
+										aggressor = nil,
+										capture = 0,
+									}
+								end
+							end
+						end
 					end
 				end
-
-				if numberOfControlPoints == "13" then
-					local angle = math.random() * math.pi * 2
-					points = {}
-					for i = 2, 7 do
-						local angle = angle + i * math.pi * 2 / 6
-						points[i] = {
-							x = mapx / 2 + mapx * .2 * math.sin(angle),
-							y = 0,
-							z = mapz / 2 + mapz * .2 * math.cos(angle),
-							--We can make them move around if we want to by uncommenting these lines and the ones below
-							--velx=moveSpeed * 10 * -1 * math.cos(angle),
-							--velz=moveSpeed * 10 * math.sin(angle),
-							owner = nil,
-							aggressor = nil,
-							capture = 0,
-						}
-					end
-
-					for i = 8, 13 do
-						local angle = angle + i * math.pi * 2 / 6 + 9
-						points[i] = {
-							x = mapx / 2 + mapx * .4 * math.sin(angle),
-							y = 0,
-							z = mapz / 2 + mapz * .4 * math.cos(angle),
-							--We can make them move around if we want to by uncommenting these lines and the ones below
-							--velx=moveSpeed * 10 * -1 * math.cos(angle),
-							--velz=moveSpeed * 10 * math.sin(angle),
-							owner = nil,
-							aggressor = nil,
-							capture = 0,
-						}
-					end
-
-				end
-
-				if numberOfControlPoints == "19" then
-					local angle = math.random() * math.pi * 2
-					points = {}
-					for i = 2, 7 do
-						local angle = angle + i * math.pi * 2 / 6
-						points[i] = {
-							x = mapx / 2 + mapx * .18 * math.sin(angle),
-							y = 0,
-							z = mapz / 2 + mapz * .18 * math.cos(angle),
-							--We can make them move around if we want to by uncommenting these lines and the ones below
-							--velx=moveSpeed * 10 * -1 * math.cos(angle),
-							--velz=moveSpeed * 10 * math.sin(angle),
-							owner = nil,
-							aggressor = nil,
-							capture = 0,
-						}
-					end
-
-					for i = 8, 13 do
-						local angle = angle + i * math.pi * 2 / 6 + 9
-						points[i] = {
-							x = mapx / 2 + mapx * .3 * math.sin(angle),
-							y = 0,
-							z = mapz / 2 + mapz * .3 * math.cos(angle),
-							--We can make them move around if we want to by uncommenting these lines and the ones below
-							--velx=moveSpeed * 10 * -1 * math.cos(angle),
-							--velz=moveSpeed * 10 * math.sin(angle),
-							owner = nil,
-							aggressor = nil,
-							capture = 0,
-						}
-					end
-
-					for i = 14, 19 do
-						local angle = angle + i * math.pi * 2 / 6 + 18
-						points[i] = {
-							x = mapx / 2 + mapx * .4 * math.sin(angle),
-							y = 0,
-							z = mapz / 2 + mapz * .4 * math.cos(angle),
-							--We can make them move around if we want to by uncommenting these lines and the ones below
-							--velx=moveSpeed * 10 * -1 * math.cos(angle),
-							--velz=moveSpeed * 10 * math.sin(angle),
-							owner = nil,
-							aggressor = nil,
-							capture = 0,
-						}
-					end
-				end
-
-				if numberOfControlPoints == "25" then
-					local angle = math.random() * math.pi * 2
-					points = {}
-					for i = 2, 7 do
-						local angle = angle + i * math.pi * 2 / 6
-						points[i] = {
-							x = mapx / 2 + mapx * .16 * math.sin(angle),
-							y = 0,
-							z = mapz / 2 + mapz * .16 * math.cos(angle),
-							--We can make them move around if we want to by uncommenting these lines and the ones below
-							--velx=moveSpeed * 10 * -1 * math.cos(angle),
-							--velz=moveSpeed * 10 * math.sin(angle),
-							owner = nil,
-							aggressor = nil,
-							capture = 0,
-						}
-					end
-
-					for i = 8, 13 do
-						local angle = angle + i * math.pi * 2 / 6 + 9
-						points[i] = {
-							x = mapx / 2 + mapx * .26 * math.sin(angle),
-							y = 0,
-							z = mapz / 2 + mapz * .26 * math.cos(angle),
-							--We can make them move around if we want to by uncommenting these lines and the ones below
-							--velx=moveSpeed * 10 * -1 * math.cos(angle),
-							--velz=moveSpeed * 10 * math.sin(angle),
-							owner = nil,
-							aggressor = nil,
-							capture = 0,
-						}
-					end
-
-					for i = 14, 19 do
-						local angle = angle + i * math.pi * 2 / 6 + 20
-						points[i] = {
-							x = mapx / 2 + mapx * .29 * math.sin(angle),
-							y = 0,
-							z = mapz / 2 + mapz * .29 * math.cos(angle),
-							--We can make them move around if we want to by uncommenting these lines and the ones below
-							--velx=moveSpeed * 10 * -1 * math.cos(angle),
-							--velz=moveSpeed * 10 * math.sin(angle),
-							owner = nil,
-							aggressor = nil,
-							capture = 0,
-						}
-					end
-
-					for i = 20, 25 do
-						local angle = angle + i * math.pi * 2 / 6 + 36
-						points[i] = {
-							x = mapx / 2 + mapx * .4 * math.sin(angle),
-							y = 0,
-							z = mapz / 2 + mapz * .4 * math.cos(angle),
-							--We can make them move around if we want to by uncommenting these lines and the ones below
-							--velx=moveSpeed * 10 * -1 * math.cos(angle),
-							--velz=moveSpeed * 10 * math.sin(angle),
-							owner = nil,
-							aggressor = nil,
-							capture = 0,
-						}
-					end
-				end
-				points[1] = {
-					x = mapx / 2,
-					y = 0,
-					z = mapz / 2,
-					owner = nil,
-					aggressor = nil,
-					capture = 0,
-				}
 			end
 		end
 
