@@ -17,7 +17,7 @@ end
 
 local selectedScoreMode = modOptions.scoremode
 local useMapConfig = modOptions.usemapconfig
-local useMexConfig = false --modOptions.usemexconfig
+local useMexConfig = modOptions.usemexconfig
 local numberOfControlPoints = modOptions.numberofcontrolpoints
 local captureRadius = modOptions.captureradius
 local decapSpeed = modOptions.decapspeed

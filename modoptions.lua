@@ -838,7 +838,6 @@ local options={
 	{
 		key    = "usemexconfig",
 		name   = "Use metal spots as point locations?",
-		hidden = true,
 		type   = 'bool',
 		def    = true,
 		section= "controlvictoryoptions",
@@ -849,7 +848,7 @@ local options={
 		desc   = 'Radius around a point in which to capture it.',
 		type   = 'number',
 		section= 'controlvictoryoptions',
-		def    = 200,
+		def    = 100,
 		min    = 100,
 		max    = 1000,
 		step   = 25,  -- quantization is aligned to the def value
