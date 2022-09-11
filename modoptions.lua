@@ -24,56 +24,6 @@
 
 
 local options={
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	-- Resources
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	{
-		key		= "resources_options",
-		name	= "Resources",
-		desc	= "Resources",
-		type	= "section",
-	},
-
-	{
-		key    = "startmetal",
-		name   = "Starting metal",
-		desc   = "Determines amount of metal and metal storage that each player will start with",
-		type   = "number",
-		section= "resources_options",
-		def    = 1000,
-		min    = 0,
-		max    = 10000,
-		step   = 1,
-	},
-
-	{
-		key    = "startenergy",
-		name   = "Starting energy",
-		desc   = "Determines amount of energy and energy storage that each player will start with",
-		type   = "number",
-		section= "resources_options",
-		def    = 1000,
-		min    = 0,
-		max    = 10000,
-		step   = 1,
-	},
-	{
-		key="map_tidal",
-		name="Tidal Strength",
-		desc="Unchanged = map setting, low = 13e/sec, medium = 18e/sec, high = 23e/sec.",
-		hidden = true,
-		type="list",
-		def="unchanged",
-		section="resources_options",
-		items={
-			{key="unchanged", name="Unchanged", desc="Use map settings"},
-			{key="low", name="Low", desc="Set tidal incomes to 13 energy per second"},
-			{key="medium", name="Medium", desc="Set tidal incomes to 18 energy per second"},
-			{key="high", name="High", desc="Set tidal incomes to 23 energy per second"},
-		}
-	},
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -503,6 +453,45 @@ local options={
 		name	= "Other",
 		desc	= "Options",
 		type	= "section",
+	},
+
+	{
+		key    = "startmetal",
+		name   = "Starting metal",
+		desc   = "Determines amount of metal and metal storage that each player will start with",
+		type   = "number",
+		section= "options",
+		def    = 1000,
+		min    = 0,
+		max    = 10000,
+		step   = 1,
+	},
+
+	{
+		key    = "startenergy",
+		name   = "Starting energy",
+		desc   = "Determines amount of energy and energy storage that each player will start with",
+		type   = "number",
+		section= "options",
+		def    = 1000,
+		min    = 0,
+		max    = 10000,
+		step   = 1,
+	},
+	{
+		key="map_tidal",
+		name="Tidal Strength",
+		desc="Unchanged = map setting, low = 13e/sec, medium = 18e/sec, high = 23e/sec.",
+		hidden = true,
+		type="list",
+		def="unchanged",
+		section="options",
+		items={
+			{key="unchanged", name="Unchanged", desc="Use map settings"},
+			{key="low", name="Low", desc="Set tidal incomes to 13 energy per second"},
+			{key="medium", name="Medium", desc="Set tidal incomes to 18 energy per second"},
+			{key="high", name="High", desc="Set tidal incomes to 23 energy per second"},
+		}
 	},
 
 	{
