@@ -229,6 +229,7 @@ else  -- UNSYCNED
 
 	local foglightenabled = lavaFogEnabled
 	local fogheightabovelava = lavaFogHeight
+	local allowDeferredMapRendering =  (Spring.GetConfigInt("AllowDeferredMapRendering") == 1) -- map depth buffer is required for the foglight shader pass
 
 	local tideamplitude = lavaTideamplitude
 	local tideperiod = lavaTideperiod
@@ -772,7 +773,7 @@ else  -- UNSYCNED
 	end
 
 	function gadget:DrawWorld()
-		if lavatidelevel and foglightenabled then
+		if lavatidelevel and foglightenabled and allowDeferredMapRendering then
 				--Now to draw the fog light a good 32 elmos above it :)
 			foglightShader:Activate()
 			foglightShader:SetUniform("lavaHeight",lavatidelevel + fogheightabovelava)
