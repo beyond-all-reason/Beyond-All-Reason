@@ -1794,19 +1794,21 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction("HasChickenEvent")
 	end
 
-	nocolorshift = {0,0,0}
-	colorshiftcache = {0,0,0}
 
-	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-        if string.find(UnitDefs[unitDefID].name, "chicken") then
-            gl.SetUnitBufferUniforms(unitID, nocolorshift, 8)
-            if (not string.find(UnitDefs[unitDefID].name, "chicken_hive")) and (not string.find(UnitDefs[unitDefID].name, "chicken_turret")) then
-				colorshiftcache[1] = mRandom(-500,500)*0.0001 -- hue (hue hue)
-				colorshiftcache[2] = mRandom(-1000,1000)*0.0001 -- saturation         
-				colorshiftcache[3] = mRandom(-1000,1000)*0.0001 -- brightness
-                gl.SetUnitBufferUniforms(unitID, colorshiftcache, 8)
-            end
-        end
-    end
+	local nocolorshift = {0,0,0}
+	local colorshiftcache = {0,0,0}
+	if gl.SetUnitBufferUniforms then 
+		function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+			if string.find(UnitDefs[unitDefID].name, "chicken") then
+				gl.SetUnitBufferUniforms(unitID, nocolorshift, 8)
+				if (not string.find(UnitDefs[unitDefID].name, "chicken_hive")) and (not string.find(UnitDefs[unitDefID].name, "chicken_turret")) then
+					colorshiftcache[1] = mRandom(-500,500)*0.0001 -- hue (hue hue)
+					colorshiftcache[2] = mRandom(-1000,1000)*0.0001 -- saturation         
+					colorshiftcache[3] = mRandom(-1000,1000)*0.0001 -- brightness
+					gl.SetUnitBufferUniforms(unitID, colorshiftcache, 8)
+				end
+			end
+		end
+	end
 
 end
