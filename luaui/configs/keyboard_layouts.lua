@@ -99,6 +99,7 @@ return {
 	sanitizeKey = sanitizeKey,
 	keybindingLayouts = {
 		'Default',
+		'Default (Mnemonic)',
 		'Default 60% Keyboard',
 		'Grid Optimized',
 		'Grid Optimized 60% Keyboard',
@@ -106,6 +107,7 @@ return {
 	},
 	keybindingLayoutFiles = {
 		'luaui/configs/bar_hotkeys.lua',
+		'luaui/configs/bar_hotkeys_mnemonic.lua',
 		'luaui/configs/bar_hotkeys_60.lua',
 		'luaui/configs/bar_hotkeys_grid.lua',
 		'luaui/configs/bar_hotkeys_grid_60.lua',
