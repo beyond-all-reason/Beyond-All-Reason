@@ -5,7 +5,7 @@ function gadget:GetInfo()
         author    = 'Bluestone, Damgam',
         version   = 'v1.0',
         date      = '23/04/2013',
-        license   = 'WTFPL',
+		license   = "GNU GPL, v2 or later",
         layer     = 0,
         enabled   = true
     }
@@ -22,7 +22,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames['legmos'].id] = 8,
 		[UnitDefNames['legmineb'].id] = 1,
 	}
-  
+
 	local isStockpilingUnitScav = {}
 	for defID, maxCount in pairs(isStockpilingUnit) do
 		isStockpilingUnitScav[UnitDefNames[UnitDefs[defID].name .. "_scav"].id] = maxCount
@@ -38,7 +38,7 @@ if gadgetHandler:IsSyncedCode() then
 		if unitID then
 			if cmdID == CMD_STOCKPILE or (cmdID == CMD_INSERT and cmdParams[2]==CMD_STOCKPILE) then
 				local pile,pileQ = Spring.GetUnitStockpile(unitID)
-				if pile == nil then 
+				if pile == nil then
 					return true
 				end
 				local pilelimit = isStockpilingUnit[unitDefID] or 99

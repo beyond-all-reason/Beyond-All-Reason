@@ -4,6 +4,7 @@ function widget:GetInfo()
 		desc	= "Plays music and offers volume controls",
 		author	= "Damgam",
 		date	= "2021",
+		license = "GNU GPL, v2 or later",
 		layer	= -3,
 		enabled	= true
 	}

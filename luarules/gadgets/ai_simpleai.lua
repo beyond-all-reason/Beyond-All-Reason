@@ -36,6 +36,7 @@ function gadget:GetInfo()
 		desc = "123",
 		author = "Damgam",
 		date = "2020",
+		license = "GNU GPL, v2 or later",
 		layer = -100,
 		enabled = enabled,
 	}
@@ -263,7 +264,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 						break
 					end
 				end
-			
+
 			elseif mcurrent < mstorage * 0.30 or r == 1 then
 				-- if type == "Commander" then
 				-- 	for t = 1,10 do
@@ -505,8 +506,8 @@ if gadgetHandler:IsSyncedCode() then
 								else
 									Spring.GiveOrderToUnit(unitID, 37382, {0}, 0)
 								end
-								
-								
+
+
 								local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 250, true)
 								local unitHealthPercentage = (unitHealth/unitMaxHealth)*100
 
@@ -554,7 +555,7 @@ if gadgetHandler:IsSyncedCode() then
 								end
 							end
 						end
-						
+
 						if unitCommands == 0 then
 							for u = 1, #SimpleConstructorDefs do
 								if unitDefID == SimpleConstructorDefs[u] then

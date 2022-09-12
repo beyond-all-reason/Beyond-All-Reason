@@ -12,6 +12,7 @@ function gadget:GetInfo()
       desc      = "123",
       author    = "Damgam",
       date      = "2021",
+	  license   = "GNU GPL, v2 or later",
       layer     = -100,
       enabled   = spawnpadSpawnEnabled,
     }

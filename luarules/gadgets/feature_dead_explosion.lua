@@ -3,6 +3,7 @@ function gadget:GetInfo()
 		name = "Feature Death Explosion",
 		author = "Damgam",
 		date = "2022",
+		license = "GNU GPL, v2 or later",
 		layer = -79,
 		enabled = true,
 	}

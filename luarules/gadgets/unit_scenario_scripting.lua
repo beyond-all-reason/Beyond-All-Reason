@@ -37,7 +37,7 @@ function gadget:GetInfo()
 		desc      = "Controller for Scenarios, including NPC and AI controllers and objective triggers",
 		author    = "Damgam",
 		date      = "2021",
-		license   = "CC BY NC ND",
+		license   = "GNU GPL, v2 or later",
 		layer     = 1000000,
 		enabled   = true,
 	}

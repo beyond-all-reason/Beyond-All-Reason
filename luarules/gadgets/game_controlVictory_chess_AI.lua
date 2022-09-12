@@ -40,6 +40,7 @@ function gadget:GetInfo()
 	  desc      = "123",
 	  author    = "Damgam",
 	  date      = "2021",
+	  license   = "GNU GPL, v2 or later",
 	  layer     = -100,
 	  enabled   = gadgetEnabled,
 	}
@@ -152,7 +153,7 @@ function GetRandomAllyPoint(unitID)
 	local unitDefID = Spring.GetUnitDefID(unitID)
 	local unitPositionX, unitPositionY, unitPositionZ = Spring.GetUnitPosition(unitID)
 	local position = {x=unitPositionX, y=unitPositionY, z=unitPositionZ}
-	for i = 1,1000 do 
+	for i = 1,1000 do
 		local r = math.random(1,#controlPoints)
 		local point = controlPoints[r]
 		local pointAlly = controlPoints[r].pointOwner
@@ -177,7 +178,7 @@ function GetRandomEnemyPoint(unitID)
 	local unitDefID = Spring.GetUnitDefID(unitID)
 	local unitPositionX, unitPositionY, unitPositionZ = Spring.GetUnitPosition(unitID)
 	local position = {x=unitPositionX, y=unitPositionY, z=unitPositionZ}
-	for i = 1,1000 do 
+	for i = 1,1000 do
 		local r = math.random(1,#controlPoints)
 		local point = controlPoints[r]
 		local pointAlly = controlPoints[r].pointOwner
@@ -285,13 +286,13 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	--if UnitDefs[unitDefID].canmove then
-		
+
 		if controlAITeams[unitTeam] then
 			if not AIMainAttackersCount[unitTeam] then AIMainAttackersCount[unitTeam] = 0 end
 			if not AIDefendersCount[unitTeam] then AIDefendersCount[unitTeam] = 0 end
 			if not AIDiverseAttackersCount[unitTeam] then AIDiverseAttackersCount[unitTeam] = 0 end
 			if not AIBuildersCount[unitTeam] then AIBuildersCount[unitTeam] = 0 end
-			
+
 			if UnitDefs[unitDefID].buildOptions and #UnitDefs[unitDefID].buildOptions > 0 then
 				AIBuilders[unitID] = true
 				AIBuilderBuildoptions[unitID] = UnitDefs[unitDefID].buildOptions
@@ -332,7 +333,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		AIBuilderBuildoptions[unitID] = nil
 		AIBuildersCount[unitTeam] = AIBuildersCount[unitTeam] - 1
 	end
-	
+
 	if controlAITeams[unitTeam] then
 
 	end

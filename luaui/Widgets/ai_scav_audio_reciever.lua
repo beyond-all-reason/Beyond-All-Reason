@@ -4,7 +4,7 @@ function widget:GetInfo()
 	desc      = "AAA",
 	author    = "Damgam",
 	date      = "2020",
-	license   = "who cares?",
+	license   = "GNU GPL, v2 or later",
 	layer     = 30000,
 	enabled   = true, --enabled by default
 	}

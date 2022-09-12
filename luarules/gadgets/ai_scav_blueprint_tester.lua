@@ -19,15 +19,16 @@ function gadget:GetInfo()
       desc      = "Utility to test scav blueprints",
       author    = "Damgam",
       date      = "2021",
+	  license   = "GNU GPL, v2 or later",
       layer     = -100,
       enabled   = enabled,
     }
 end
 
-if gadgetHandler:IsSyncedCode() then 
+if gadgetHandler:IsSyncedCode() then
 
     function gadget:RecvLuaMsg(msg, playerID)
-        
+
 
         if string.find(msg, "scavblptest") then
             local filename = string.gsub(msg, "scavblptest ", "")
@@ -101,7 +102,7 @@ if gadgetHandler:IsSyncedCode() then
         end
     end
 else
-    
+
     function gadget:Initialize()
 		gadgetHandler:AddChatAction(cmdname, RequestScavTest)
 	end

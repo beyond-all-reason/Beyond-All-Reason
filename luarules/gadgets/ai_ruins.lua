@@ -42,6 +42,7 @@ function gadget:GetInfo()
       desc      = "123",
       author    = "Damgam",
       date      = "2020",
+	  license   = "GNU GPL, v2 or later",
       layer     = -100,
       enabled   = ruinSpawnEnabled,
     }
@@ -207,7 +208,7 @@ local function SpawnMexes(mexSpots)
 	for i = 1,#mexSpots do
 		if math.random(0,3) == 0 then
 			SpawnAsNeutral = true
-			
+
 			local spot = mexSpots[i]
 			local posx = spot.x
 			local posz = spot.z
@@ -252,7 +253,7 @@ function gadget:GameFrame(n)
 			SpawnMexes(mexSpots)
 		end
 	end
-	
+
 	if n < (10/ruinDensityMultiplier) or n%(10/ruinDensityMultiplier) ~= 0 or n > spawnCutoffFrame+5 then
 		return
 	end
