@@ -38,6 +38,9 @@ if gadgetHandler:IsSyncedCode() then
 		if unitID then
 			if cmdID == CMD_STOCKPILE or (cmdID == CMD_INSERT and cmdParams[2]==CMD_STOCKPILE) then
 				local pile,pileQ = Spring.GetUnitStockpile(unitID)
+				if pile == nil then 
+					return true
+				end
 				local pilelimit = isStockpilingUnit[unitDefID] or 99
 				local addQ = 1
 				if cmdOptions.shift then
