@@ -607,6 +607,9 @@ end
 
 function widget:PlayerChanged(playerID)
 	isSpec = Spring.GetSpectatingState()
+	if isSpec and inputMode == 'a:' then
+		inputMode = 's:'
+	end
 end
 
 function widget:PlayerAdded(playerID)
