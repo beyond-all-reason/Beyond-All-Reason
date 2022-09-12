@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc = "Provides information on the controls",
 		author = "Bluestone",
 		date = "April 2015",
-		license = "Mouthwash",
+		license = "GNU GPL, v2 or later, Mouthwash",
 		layer = 3,
 		enabled = true,
 	}

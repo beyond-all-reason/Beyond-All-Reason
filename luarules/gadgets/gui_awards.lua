@@ -4,7 +4,7 @@ function gadget:GetInfo()
 		desc = "Awards Awards",
 		author = "Bluestone",
 		date = "2013-07-06",
-		license = "GPLv2",
+		license = "GNU GPL, v2 or later",
 		layer = -1,
 		enabled = true -- loaded by default?
 	}
