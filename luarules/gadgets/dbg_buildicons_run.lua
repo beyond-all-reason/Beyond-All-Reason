@@ -4,7 +4,7 @@ function gadget:GetInfo()
 		desc = "builds them all slow-like",
 		author = "Beherith, Floris",
 		date = "2015",
-		license = "Horses",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true  --  loaded by default?
 	}

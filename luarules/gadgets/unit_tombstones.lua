@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		desc		= "Adds a tombstone next to commander wreck",
 		author		= "Floris",
 		date		= "December 2021",
-		license		= "",
+		license     = "GNU GPL, v2 or later",
 		layer		= 0,
 		enabled		= true,
 	}

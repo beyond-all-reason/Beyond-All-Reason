@@ -6,7 +6,7 @@ function widget:GetInfo()
 		desc      = "Shows units selected by teammates",
 		author    = "Beherith, Floris",
 		date      = "April 2022",
-		license   = "GNU GPL v2",
+		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true
 	}

@@ -4,7 +4,7 @@ function gadget:GetInfo()
 		desc = "",
 		author = "Floris",
 		date = "September 2018",
-		license = "GPL",
+		license = "GNU GPL, v2 or later",
 		layer = 1,
 		enabled = true,
 	}

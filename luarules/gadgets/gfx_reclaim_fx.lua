@@ -4,7 +4,7 @@ function gadget:GetInfo()
 		desc      = "Unit/feature reclaim effect",
 		author    = "Floris",
 		date      = "December 2016",
-		license   = "PD",
+		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true,
 	}

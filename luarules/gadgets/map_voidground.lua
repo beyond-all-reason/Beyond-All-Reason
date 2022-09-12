@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		desc = "Destroys units in the void",
 		author = "Floris, Beherith",
 		date = "October 2021",
-		license = "",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true,
 	}
@@ -18,9 +18,9 @@ local success, mapinfo= pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua con
 if not success or mapinfo == nil then
   Spring.Echo("Map VoidWater failed to load the mapinfo.lua")
   return
-end 
+end
 
-if mapinfo.voidwater then 
+if mapinfo.voidwater then
   --Spring.Echo("Map has voidwater")
 else
   --Spring.Echo("Map does not have voidwater")

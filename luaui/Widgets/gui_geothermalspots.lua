@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc    = "Displays rotating circles around geothermal spots",
 		author  = "Floris, Beherith GL4",
 		date    = "August 2021",
-		license = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
+		license = "Lua GNU GPL, v2 or later,   GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer   = 2,
 		enabled = true,
 	}

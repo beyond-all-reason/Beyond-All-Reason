@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		desc = "Makes geothermal features stick to ground level height (fixing broken maps like: Desert 3.25)",
 		author = "Floris",
 		date = "August 2021",
-		license = "GPL",
+		license = "GNU GPL, v2 or later",
 		layer = -1,
 		enabled = true,
 	}

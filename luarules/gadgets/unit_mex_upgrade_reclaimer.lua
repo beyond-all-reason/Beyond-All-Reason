@@ -4,7 +4,7 @@ function gadget:GetInfo()
 		desc      = "Insta reclaims/refunds t1 mex when t2 on top has finished, also shares t2 mexes build upon ally t1 mex owner",
 		author    = "Floris",
 		date      = "October 2021",
-		license   = "",
+		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true,
 	}

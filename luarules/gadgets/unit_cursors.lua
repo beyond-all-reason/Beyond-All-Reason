@@ -4,7 +4,7 @@ function gadget:GetInfo()
 		desc = "Assigns some UI related mouse cursors",
 		author = "Floris",
 		date = "August 2021",
-		license = "GNU GPL, v2 or later",
+		license   = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true
 	}

@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc      = "API to handle translations",
 		author    = "Floris",
 		date      = "December 2020",
-		license   = "",
+		license   = "GNU GPL, v2 or later",
 		layer     = -math.huge,
 		enabled   = true,
 	}

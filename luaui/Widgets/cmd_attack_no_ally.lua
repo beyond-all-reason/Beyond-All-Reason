@@ -4,7 +4,7 @@ function widget:GetInfo()
       desc         = "Prevents attack-aim to snap onto ally units (targets ground instead)",
       author       = "Ceddral, Floris",
       date         = "April 2018",
-      license      = "GPL",
+	  license      = "GNU GPL, v2 or later",
       layer        = 0,
       enabled      = true
    }
