@@ -146,9 +146,10 @@
 		{ "Alt+backspace", "fullscreen"       },
 
 		{ "Ctrl+sc_`", "remove_one_unit_from_group" },
-		{ "Alt+sc_`",  "remove_from_autogroup" },
-		{ "Any+sc_`" , "drawinmap" },
-		{ "Any+sc_`" , "drawlabel" },
+		{  "Alt+sc_`", "remove_from_autogroup"      },
+
+		{ "sc_`,sc_`", "drawlabel"       }, -- double hit ` for drawlabel
+		{      "sc_`", "drawinmap"       },
 
 		{ "Any+up",       "moveforward"  },
 		{ "Any+down",     "moveback"     },

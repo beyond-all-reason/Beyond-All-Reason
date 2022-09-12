@@ -117,9 +117,8 @@ local bindings = {
 	{      "Shift+sc_m", "move"            },
 	{            "sc_p", "patrol"          },
 	{      "Shift+sc_p", "patrol"          },
-	{        "Any+sc_q", "drawinmap"       }, --some keyboards don't have ` or \
-	{        "Any+sc_q", "drawlabel"       },
 	{       "sc_q,sc_q", "drawlabel"       }, -- double hit Q for drawlabel
+	{            "sc_q", "drawinmap"       },
 	{            "sc_r", "repair"          },
 	{      "Shift+sc_r", "repair"          },
 	{            "sc_s", "stop"            },

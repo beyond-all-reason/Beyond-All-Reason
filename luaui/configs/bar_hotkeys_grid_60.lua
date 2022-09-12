@@ -148,8 +148,8 @@
 
 		{      "Ctrl+meta+sc_q", "remove_one_unit_from_group" },
 		{            "Alt+sc_q", "remove_from_autogroup"      },
-		{           "meta+sc_q", "drawinmap"                  },
 		{ "meta+sc_q,meta+sc_q", "drawlabel"                  },
+		{           "meta+sc_q", "drawinmap"                  },
 
 		{ "Any+up",       "moveforward"  },
 		{ "Any+down",     "moveback"     },
