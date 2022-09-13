@@ -84,7 +84,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 
 				spEcho('format incomplete',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
 				spEcho('recvluamsg',msg)
-				spEcho('splitting lenght',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
+				spEcho('splitting length',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
 				spEcho('GiveOrderToUnit : ')
 				spEcho('unit',unit,type(unit))
 				spEcho('id',id,type(id))
@@ -127,7 +127,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 			end
 			if dbg then
 				spEcho('recvluamsg',msg)
-				spEcho('splitting lenght',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
+				spEcho('splitting length',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
 				spEcho('GiveOrderToUnit : ')
 				spEcho('unit',unit,type(unit))
 				spEcho('id',id,type(id))

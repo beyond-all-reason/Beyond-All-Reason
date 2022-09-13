@@ -57,7 +57,7 @@ scavSpawnBeacon = {}
 scavStockpiler = {}
 scavNuke = {}
 scavConverted = {}
-UnitSuffixLenght = {}
+UnitSuffixLength = {}
 numOfSpawnBeacons = 0
 numOfSpawnBeaconsTeams = {}
 scavMaxUnits = 2000
@@ -505,4 +505,3 @@ function collectScavStats()
 
 	spSetGameRulesParam("scavStatsDifficulty", scavStatsDifficulty)
 end
-

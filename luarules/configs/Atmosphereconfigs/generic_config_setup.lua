@@ -11,8 +11,8 @@ local transitionSpeed = (mapsizez/mapsizex) * 0.66
 local windmin = Game.windMin
 local windmax = Game.windMax
 
-local fullcyclelenght = math.ceil(mapsizex+mapsizez)*2
-local nightlenght = math.ceil(fullcyclelenght*0.66) -- % of the cycle at which night begins and stays until the end of cycle
+local fullcyclelength = math.ceil(mapsizex+mapsizez)*2
+local nightlength = math.ceil(fullcyclelength*0.66) -- % of the cycle at which night begins and stays until the end of cycle
 
 VFS.Include("luarules/configs/map_biomes.lua")
 
@@ -67,13 +67,13 @@ end
 -- fireflieschance = 100
 
 function gadget:GameFrame(n)
-    local clock = n%fullcyclelenght
+    local clock = n%fullcyclelength
 
     if clock == 10 then -- new day
         if math_random(0,100) < badweatherchance then
             badweatherplanned = true
-            badweatherclockstart = math_random(1,math.floor(fullcyclelenght*0.75))
-            badweatherclockend = math_random(badweatherclockstart,fullcyclelenght-1)
+            badweatherclockstart = math_random(1,math.floor(fullcyclelength*0.75))
+            badweatherclockend = math_random(badweatherclockstart,fullcyclelength-1)
             if snowyMap then
                 thunderstormenabled = false
             else
@@ -88,7 +88,7 @@ function gadget:GameFrame(n)
         if thunderstormenabled and math_random(1,30) == 1 then
             SpawnCEGInRandomMapPosAvoidUnits("lightningstrike", 0, 128, lightningsounds[math_random(1,#lightningsounds)], 1)
         end
-        if clock > nightlenght then
+        if clock > nightlength then
             SendToUnsynced("MapAtmosphereConfigSetSun", 0.8, transitionSpeed, 0.8, 0.8, 0.8*atmospherelevelmult)
             SendToUnsynced("MapAtmosphereConfigSetFog", 0.5, 0.9, transitionSpeed*2.5, transitionSpeed*1.5)
         else
@@ -96,7 +96,7 @@ function gadget:GameFrame(n)
             SendToUnsynced("MapAtmosphereConfigSetFog", 0.5, 0.9, transitionSpeed*2.5, transitionSpeed*1.5)
         end
     else
-        if clock > nightlenght then
+        if clock > nightlength then
             SendToUnsynced("MapAtmosphereConfigSetSun", 0.9, transitionSpeed, 0.9, 0.9, 0.9*atmospherelevelmult)
             SendToUnsynced("MapAtmosphereConfigSetFog", 1, 1, transitionSpeed*2.5, transitionSpeed*1.5)
         else
