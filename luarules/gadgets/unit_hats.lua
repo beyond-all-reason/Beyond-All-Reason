@@ -4,7 +4,7 @@ function gadget:GetInfo()
 		desc = "Handles cosmetic-only hat behaviour",
 		author = "Beherith",
 		date = "2020",
-		license = "CC BY NC ND",
+		license   = "GNU GPL, v2 or later",
 		layer = 1000,
 		enabled = true,
 	}

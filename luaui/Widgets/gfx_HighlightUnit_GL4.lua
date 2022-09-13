@@ -5,7 +5,7 @@ function widget:GetInfo()
     desc      = "Highlight any unit, feature, unitDef or FeatureDef via WG.HighlightUnitGL4",
     author    = "Beherith,ivand",
     date      = "2022.01.04",
-    license   = "GPL",
+	license   = "GNU GPL, v2 or later",
     layer     = -9999,
     enabled   = true,
   }

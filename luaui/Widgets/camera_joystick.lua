@@ -4,17 +4,17 @@ function widget:GetInfo()
 		desc			= "Control Rotateable overhead (CTRL+F4) camera with a joystick via joystick server from https://github.com/Beherith/camera_joystick_springrts",
 		author		= "Beherith",
 		date			= "2021.04.06",
-		license	 = "GPL V2, By Beherith (mysterme@gmail.com)",
+		license   = "GNU GPL, v2 or later",
 		layer		 = 1,		 --	after the normal widgets
 		enabled	 = false	--	loaded by default?
 	}
 end
 ---------------------INFO------------------------
 -- 1. Start your joystick server: https://github.com/Beherith/camera_joystick_springrts
--- 2. Set your controller type with /luaui joystick 
+-- 2. Set your controller type with /luaui joystick
 
 -- https://www.pygame.org/docs/ref/joystick.html
--- Use AntiMicro to configure commands for OBS, and to get button/axis numbers in 1-based Lua form: 
+-- Use AntiMicro to configure commands for OBS, and to get button/axis numbers in 1-based Lua form:
 -- https://github.com/AntiMicro/antimicro/releases/tag/2.23
 --   Y
 -- X   B
@@ -38,7 +38,7 @@ local DpadRight 		= {'hats',2,1} -- increase smoothing
 local DpadLeft 			= {'hats',2,-1} -- decrease smoothing
 local Abutton 			= {'buttons',1,1} -- cross button, pause game
 local Bbutton 			= {'buttons',2,1} -- circle button, hide interface
-local Xbutton 			= {'buttons',3,1} -- square button, toggle los 
+local Xbutton 			= {'buttons',3,1} -- square button, toggle los
 local Ybutton 			= {'buttons',4,1} -- triangle button, print joystick status
 local LShoulderbutton 	= {'buttons',5,1} -- decrease game speed
 local RShoulderbutton 	= {'buttons',6,1} -- increase game speed
@@ -63,7 +63,7 @@ local function XiaomiWireless()
 	DpadLeft = {'hats',2,-1} -- decrease smoothing
 	Abutton = {'buttons',1,1} -- pause game
 	Bbutton = {'buttons',2,1} -- hide interface
-	Xbutton = {'buttons',4,1} -- toggle los 
+	Xbutton = {'buttons',4,1} -- toggle los
 	Ybutton = {'buttons',5,1} -- print joystick status
 	LShoulderbutton = {'buttons',7,1} -- decrease game speed
 	RShoulderbutton = {'buttons',8,1} -- increase game speed
@@ -90,7 +90,7 @@ local function XBox360()
 	DpadLeft = {'hats',2,-1} -- decrease smoothing
 	Abutton = {'buttons',1,1} -- pause game
 	Bbutton = {'buttons',2,1} -- hide interface
-	Xbutton = {'buttons',3,1} -- toggle los 
+	Xbutton = {'buttons',3,1} -- toggle los
 	Ybutton = {'buttons',4,1} -- print joystick status
 	LShoulderbutton = {'buttons',5,1} -- decrease game speed
 	RShoulderbutton = {'buttons',6,1} -- increase game speed
@@ -116,7 +116,7 @@ local function XBoxSeriesS()
 	DpadLeft = {'hats',2,-1} -- decrease smoothing
 	Abutton = {'buttons',1,1} -- pause game
 	Bbutton = {'buttons',2,1} -- hide interface
-	Xbutton = {'buttons',3,1} -- toggle los 
+	Xbutton = {'buttons',3,1} -- toggle los
 	Ybutton = {'buttons',4,1} -- print joystick status
 	LShoulderbutton = {'buttons',5,1} -- decrease game speed
 	RShoulderbutton = {'buttons',6,1} -- increase game speed
@@ -143,7 +143,7 @@ local function PS4()
 	DpadLeft = {'buttons',14,1} -- decrease smoothing
 	Abutton = {'buttons',1,1} -- cross button, pause game
 	Bbutton = {'buttons',2,1} -- circle button, hide interface
-	Xbutton = {'buttons',3,1} -- square button, toggle los 
+	Xbutton = {'buttons',3,1} -- square button, toggle los
 	Ybutton = {'buttons',4,1} -- triangle button, print joystick status
 	LShoulderbutton = {'buttons',10,1} -- decrease game speed
 	RShoulderbutton = {'buttons',11,1} -- increase game speed
@@ -171,7 +171,7 @@ local function PS3()
 	DpadLeft = {'hats',2,-1} -- decrease smoothing
 	Abutton = {'buttons',1,1} -- cross button, pause game
 	Bbutton = {'buttons',2,1} -- circle button, hide interface
-	Xbutton = {'buttons',3,1} -- square button, toggle los 
+	Xbutton = {'buttons',3,1} -- square button, toggle los
 	Ybutton = {'buttons',4,1} -- triangle button, print joystick status
 	LShoulderbutton = {'buttons',5,1} -- decrease game speed
 	RShoulderbutton = {'buttons',6,1} -- increase game speed
@@ -183,13 +183,13 @@ local function PS3()
 end
 
 local function toggleRecording() end
-local function togglePlayback() end 
+local function togglePlayback() end
 
 ------------- BIND COMMANDS TO BUTTONS DEBOUNCED! -------------------------------
 local buttonCommands = { -- key is button number, value is command like you would type into console without the beginning /
 	[Abutton[2]] = function() Spring.SendCommands("pause") end,
-	[Bbutton[2]] = function() Spring.SendCommands("hideinterface") end, 
-	[Xbutton[2]] = function() Spring.SendCommands("togglelos") end, 
+	[Bbutton[2]] = function() Spring.SendCommands("hideinterface") end,
+	[Xbutton[2]] = function() Spring.SendCommands("togglelos") end,
 	[LShoulderbutton[2]] = function() Spring.SendCommands("slowdown") end,
 	[RShoulderbutton[2]] = function() Spring.SendCommands("speedup") end,
 	[RStickButton[2]] = function() Spring.SendCommands("MiniMap Maximize") end,
@@ -231,7 +231,7 @@ local joystickCamFile = "Joystick_Camera_Recordings.lua"
 local function strtable(t)
 	local res = '{'
 	for k,v in pairs(t) do
-		--if k == 'oldHeight' or k == 'name' or k == 'mode' then 
+		--if k == 'oldHeight' or k == 'name' or k == 'mode' then
 			-- dont save these
 		--else
 			res = res .. tostring(k) .. '=' .. tostring(v) ..', '
@@ -240,39 +240,39 @@ local function strtable(t)
 	return res .. '}'
 end
 
-local function SaveRecording() 
+local function SaveRecording()
 	local jcf = io.open(joystickCamFile,'a')
 	jcf:write(string.format("local recordingID_%s = {\n",tostring(os.date("%Y%m%d_%H%M%S"))))
-	for i=1, #storedCameraSequence do 
+	for i=1, #storedCameraSequence do
 		jcf:write(string.format("    [%d] = %s ,\n", i, strtable(storedCameraSequence[i])))
 	end
 	jcf:write(string.format("}\n"))
 	jcf:close()
-end 
+end
 
-toggleRecording = function ()  
-	if isplayingback then 
+toggleRecording = function ()
+	if isplayingback then
 		Spring.Echo("Cant start playback while recording")
-		return 
+		return
 	end
 	isrecording = not isrecording
 	Spring.Echo("Camera joystick recording toggled to", isrecording)
-	if isrecording then 
+	if isrecording then
 		storedCameraSequence = {}
 	else
 		SaveRecording()
 	end
-end 
+end
 
 togglePlayback = function()
-	if isrecording then 
+	if isrecording then
 		Spring.Echo("Cant start playback while recording")
 		return
 	end
 	isplayingback = not isplayingback
 	Spring.Echo("Camera joystick playback toggled to", isrecording)
-	
-	if isplayingback then 
+
+	if isplayingback then
 		playbackpos = 1
 	end
 end
@@ -319,32 +319,32 @@ local function SocketConnect(host, port)
 	end
 	set = newset()
 	set:insert(client)
-	
+
 	Spring.Echo("Connected to joystick server", res, err)
 	return true
 end
 
 function widget:TextCommand(command)
-	if string.find(command, "joystick", nil, true) then 
+	if string.find(command, "joystick", nil, true) then
 		command = string.lower(command)
-		if string.find(command, "ps3", nil, true) then 
+		if string.find(command, "ps3", nil, true) then
 			Spring.Echo("Enabling PS3 controller layout")
 			PS3()
-		elseif string.find(command, "ps4",nil, true) then 
+		elseif string.find(command, "ps4",nil, true) then
 			Spring.Echo("Enabling PS4 controller layout")
-			PS4() 
-		elseif string.find(command, "xbox", nil, true) then 
+			PS4()
+		elseif string.find(command, "xbox", nil, true) then
 			Spring.Echo("Enabling XBox Series S controller layout")
-			XBoxSeriesS() 
-		elseif string.find(command, "xbox360", nil, true) then 
-			Spring.Echo("Enabling XBox 360 controller layout") 
+			XBoxSeriesS()
+		elseif string.find(command, "xbox360", nil, true) then
+			Spring.Echo("Enabling XBox 360 controller layout")
 			XBox360()
-		elseif string.find(command, "xiaomi", nil, true) then 
+		elseif string.find(command, "xiaomi", nil, true) then
 			Spring.Echo("Enabling Xiaomi wireless controller layout")
 			XiaomiWireless()
 		else
 			Spring.Echo("Could not find a matching controller type for command", command)
-		end 
+		end
 		return true
 	end
 	return false
@@ -378,31 +378,31 @@ local buttonorder = { LeftXAxis, LeftYAxis, RightXAxis, RightYAxis, RightTrigger
 local oldjoystate = nil
 local function SocketDataReceived(sock, str)
 	--Spring.Echo(str)
-	
+
 	local newjoystate = Json.decode(str)
-	
+
 	if joystate.axes == nil then
 		joystate = newjoystate
 	-- validate all defined controls:
-	for i, but in ipairs(buttonorder) do 
-		if but and joystate[but[1]][but[2]] == nil then 
+	for i, but in ipairs(buttonorder) do
+		if but and joystate[but[1]][but[2]] == nil then
 			Spring.Echo(joystatetostr(joystate))
-			Spring.Echo("Warning: control missing:",but[1],but[2]) 
+			Spring.Echo("Warning: control missing:",but[1],but[2])
 		end
 	end
-	
+
 	else
 		for i,a in ipairs(newjoystate.axes) do
-			if DeadZone and math.abs(newjoystate.axes[i] ) < DeadZone then 
-				newjoystate.axes[i] = 0 
+			if DeadZone and math.abs(newjoystate.axes[i] ) < DeadZone then
+				newjoystate.axes[i] = 0
 				a = 0
 			end
 			joystate.axes[i] = smoothing*joystate.axes[i] + (1-smoothing) * a
 		end
 	if joystate.hats then
 		joystate.hats = newjoystate.hats
-	else 
-		joystate.hats = {} 
+	else
+		joystate.hats = {}
 	end
 		for btnindex, cmd in pairs(buttonCommands) do
 			if joystate.buttons[btnindex] then
@@ -427,7 +427,7 @@ local function rotateVector(vector,axis,phi)
 	local rcos = math.cos(math.pi*phi/180);
 	local rsin = math.sin(math.pi*phi/180);
 	local u,v,w = axis[1],axis[2],axis[3];
-	
+
 
 	matrix[0][0] =		rcos + u*u*(1-rcos);
 	matrix[1][0] =	w * rsin + v*u*(1-rcos);
@@ -460,17 +460,17 @@ local function axesexponent(axin)
 end
 
 
-function widget:Update(dt) -- dt in seconds	
-	if isplayingback then 
-		playbackpos = playbackpos + 1 
-		if playbackpos <= #storedCameraSequence then 
-			spSetCameraState(storedCameraSequence[playbackpos]) 
+function widget:Update(dt) -- dt in seconds
+	if isplayingback then
+		playbackpos = playbackpos + 1
+		if playbackpos <= #storedCameraSequence then
+			spSetCameraState(storedCameraSequence[playbackpos])
 		else
 			playbackpos = 1
-			isplayingback = false 
+			isplayingback = false
 		end
 	end
-	
+
 	if set==nil or #set<=0 then
 		return
 	end
@@ -495,7 +495,7 @@ function widget:Update(dt) -- dt in seconds
 		end
 	end
 
-	if isplayingback then return end 
+	if isplayingback then return end
 
 	local cs = spGetCameraState()
 
@@ -505,24 +505,24 @@ function widget:Update(dt) -- dt in seconds
 			Spring.Echo(joystatetostr(joystate))
 		end
 
-		if joystate[DpadUp[1]][DpadUp[2]] and joystate[DpadUp[1]][DpadUp[2]] == DpadUp[3] then 
+		if joystate[DpadUp[1]][DpadUp[2]] and joystate[DpadUp[1]][DpadUp[2]] == DpadUp[3] then
 			movemult = movemult * movechangefactor
 			rotmult = rotmult * movechangefactor
 			Spring.Echo("Speed increased to ",movemult)
 		end
 
-		if joystate[DpadDown[1]][DpadDown[2]] and joystate[DpadDown[1]][DpadDown[2]] == DpadDown[3] then 
+		if joystate[DpadDown[1]][DpadDown[2]] and joystate[DpadDown[1]][DpadDown[2]] == DpadDown[3] then
 			movemult = movemult / movechangefactor
 			rotmult = rotmult / movechangefactor
 			Spring.Echo("Speed decreased to ",movemult)
 		end
 
-		if joystate[DpadRight[1]][DpadRight[2]] and joystate[DpadRight[1]][DpadRight[2]] == DpadRight[3] then 
+		if joystate[DpadRight[1]][DpadRight[2]] and joystate[DpadRight[1]][DpadRight[2]] == DpadRight[3] then
 			smoothing = smoothchangefactor * 1.0 + (1.0 - smoothchangefactor ) * smoothing
 			Spring.Echo("Smoothing increased to ",smoothing)
 		end
 
-		if joystate[DpadLeft[1]][DpadLeft[2]] and joystate[DpadLeft[1]][DpadLeft[2]] == DpadLeft[3] then 
+		if joystate[DpadLeft[1]][DpadLeft[2]] and joystate[DpadLeft[1]][DpadLeft[2]] == DpadLeft[3] then
 			smoothing = (1.0 - smoothchangefactor ) * smoothing
 			Spring.Echo("Smoothing decreased to ",smoothing)
 		end
@@ -551,7 +551,7 @@ function widget:Update(dt) -- dt in seconds
 			cs.px = cs.px + -1*(ndx * fbmove) * movemult * frameSpeed
 			cs.pz = cs.pz + -1*(ndz * fbmove) * movemult * frameSpeed
 		end
-		
+
 			-- Turn left-right
 		if joystate[RightXAxis[1]][RightXAxis[2]] then
 			local lrturn = axesexponent(joystate[RightXAxis[1]][RightXAxis[2]])
@@ -567,7 +567,7 @@ function widget:Update(dt) -- dt in seconds
 				local rotUpx, rotUpy, rotUpz = rotateVector({cs.dx, cs.dy, cs.dz}, {ndz,0,-ndx} , turnupdown * rotmult * frameSpeed)
 				cs.dx = rotUpx
 				cs.dy = rotUpy
-				cs.dz = rotUpz 
+				cs.dz = rotUpz
 			end
 		end
 
@@ -583,12 +583,12 @@ function widget:Update(dt) -- dt in seconds
 				end
 			end
 		end
-		
+
 		-- Prevent the camera from going too low
 		local gh = Spring.GetGroundHeight(cs.px,cs.pz)
 		cs.py = math.max(mincameraheight, math.max(cs.py , gh + 32))
-		--if cs.py < gh + 32 then cs.py =gh + 32 end 
-		
+		--if cs.py < gh + 32 then cs.py =gh + 32 end
+
 		spSetCameraState(cs)
 		if isrecording then
 			storedCameraSequence[#storedCameraSequence + 1] = cs

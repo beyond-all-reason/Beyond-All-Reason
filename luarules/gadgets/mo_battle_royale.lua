@@ -1,12 +1,12 @@
 function gadget:GetInfo()
 	return {
-		name			= "Battle Royale",
-		desc			= "Implements a shrinking cylinder of death with configurable rate that destroys all units",
+		name		= "Battle Royale",
+		desc		= "Implements a shrinking cylinder of death with configurable rate that destroys all units",
 		author		= "Beherith",
-		date			= "20210827",
-		license	 = "GPL_V2",
-		layer		 = 0,
-		enabled	 = false	--	still WIP
+		date		= "20210827",
+		license		= "GNU GPL, v2 or later",
+		layer		= 0,
+		enabled		= false	--	still WIP
 	}
 end
 
@@ -20,7 +20,7 @@ end
 		def    = 0.1,
 		section= "options",
 	},
-  
+
 	 {
 	 	key    = 'battle_royale_shrinktime',
 	 	name   = 'Battle Royale Shrink Time',
@@ -57,7 +57,7 @@ if gadgetHandler:IsSyncedCode() then
       Spring.Echo("Battle Royale reset to", startradius/2)
       radius = startradius/2
   end
-  
+
   function gadget:Initialize()
 		gadgetHandler:AddChatAction('battleroyaledebug', BattleRoyaleDebug )
   end
@@ -78,7 +78,7 @@ if gadgetHandler:IsSyncedCode() then
 			local ux,uy,uz = Spring.GetUnitPosition(unitID)
 			if ux and distsqrgreater(ux - mapCenterX, uz - mapCenterZ, radiussquared) then
 			  --Spring.DestroyUnit(unitID, true, false)
-			  numdestroyed = numdestroyed + 1 
+			  numdestroyed = numdestroyed + 1
 			end
 		end
 		--Spring.Echo("BattleRoyale radius =", radius, "destroyed", numdestroyed)
@@ -89,8 +89,8 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameOver()
 		gadgetHandler:RemoveGadget(self)
 	end
-  
-	
+
+
 else
 	-------------------------
 	--    UNSYNCED CODE    --
@@ -98,12 +98,12 @@ else
   local luaShaderDir = "LuaUI/Widgets/Include/"
   local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
   VFS.Include(luaShaderDir.."instancevbotable.lua")
-  
+
   local circleSegments = 1024
   local circleShader = nil
   local circleInstanceVBO = nil
-  
-  local minY, maxY 
+
+  local minY, maxY
   local hextexture = "LuaUI/Images/hexgrid.tga"
 
   local function goodbye(reason)
@@ -129,24 +129,24 @@ else
   //__ENGINEUNIFORMBUFFERDEFS__
   #line 11000
   float heightAtWorldPos(vec2 w){
-    vec2 uvhm =   vec2(clamp(w.x,8.0,mapSize.x-8.0),clamp(w.y,8.0, mapSize.y-8.0))/ mapSize.xy; 
+    vec2 uvhm =   vec2(clamp(w.x,8.0,mapSize.x-8.0),clamp(w.y,8.0, mapSize.y-8.0))/ mapSize.xy;
     return textureLod(heightmapTex, uvhm, 0.0).x;
   }
   void main() {
     vec4 circleWorldPos = posrad;
     circleWorldPos.xz = circlepointposition.xz * circleWorldPos.w +  circleWorldPos.xz;
 
-    // get heightmap 
-    if (circlepointposition.y > 0) 
+    // get heightmap
+    if (circlepointposition.y > 0)
        circleWorldPos.y = circleuniforms.x;
     else
       circleWorldPos.y = circleuniforms.y;
-    
-    
+
+
     // -- MAP OUT OF BOUNDS
     vec2 mymin = min(circleWorldPos.xz,mapSize.xy - circleWorldPos.xz);
     float inboundsness = min(mymin.x, mymin.y);
-    
+
     // dump to FS
     worldscale_circumference = (posrad.w) * (circlepointposition.w-0.5) * 0.62831853;
     worldPos = circleWorldPos;
@@ -161,7 +161,7 @@ else
   #extension GL_ARB_uniform_buffer_object : require
   #extension GL_ARB_shading_language_420pack: require
   #line 20000
-  uniform vec4 circleuniforms; 
+  uniform vec4 circleuniforms;
   uniform sampler2D heightmapTex;
   uniform sampler2D hexTex;
   //__ENGINEUNIFORMBUFFERDEFS__
@@ -177,24 +177,24 @@ else
     UV.y = ((worldPos.y - circleuniforms.x)) / 64.0 ;
     UV.x = worldscale_circumference /(  8 );// (2.0*3.141592));
     vec4 hex = texture2D(hexTex, UV);
-    
+
     fragColor.rgba = blendedcolor.rgba;
-    
+
     fragColor.rgb = hex.rgb;
     // out color
     vec4 wallcolor = vec4(0.0);
     // Dark Blue matrix
     wallcolor = mix(wallcolor, vec4(0.1, 0.3, 0.9, 0.5), hex.r);
-    
+
     // light blue edges
     wallcolor = mix(wallcolor, vec4(0.2, 0.6, 1.0, 1.0), hex.b);
-    
+
     // pulsing effect for the alpha glow channel:
     float timemod = 0.1 + 10 * max(0.0,(sin(0.1*(worldscale_circumference+ worldPos.y*0.1) + (timeInfo.x + timeInfo.w) *0.02)-0.9));
     wallcolor += mix(wallcolor, vec4(0.5, 1.0, 1.0, 1.0), (1.0 - hex.a) * timemod);
     fragColor.rgba = wallcolor;
     fragColor.a *= blendedcolor.a;
-    
+
   }
   ]]
 
@@ -228,7 +228,7 @@ else
     circleInstanceVBO.vertexVBO = circleVBO
     circleInstanceVBO.VAO = makeVAOandAttach(circleInstanceVBO.vertexVBO,       circleInstanceVBO.instanceVBO)
   end
-  
+
   local battleroyaleradius = -1
 	local function BattleRoyaleRadius(_, radius)
     if battleroyaleradius == -1 then
@@ -243,12 +243,12 @@ else
         true -- overwrite
       )
 	end
-  
+
   local function BattleRoyaleDebug()
   end
-  
+
   function gadget:Initialize()
-    minY, maxY = Spring.GetGroundExtremes ( ) 
+    minY, maxY = Spring.GetGroundExtremes ( )
 		gadgetHandler:AddSyncAction("BattleRoyaleRadius", BattleRoyaleRadius)
     initgl4()
   end
@@ -274,5 +274,5 @@ else
       gl.DepthMask(false)
     end
   end
-  
+
 end

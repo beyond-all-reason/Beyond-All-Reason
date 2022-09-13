@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		desc      = "Calculates and fixes garbage Airmesh",
 		author    = "Beherith",
 		date      = "2021 jan",
-		license   = "GPL",
+		license   = "GNU GPL, v2 or later",
 		layer     = 0,	--higher layer is loaded last
 		enabled   = false, --REMOVE THIS GADGET ONCE ENGINE IS FIXED
 	}
@@ -28,7 +28,7 @@ function gadget:Initialize()
   --Spring.LevelSmoothMesh( 100, 100, 200, 200, 1000)
 
   Spring.SetSmoothMeshFunc(function()
-    local smoothheightresolution = Game.squareSize * 2 
+    local smoothheightresolution = Game.squareSize * 2
     local toolow = 0
     local toohigh = 0
     local toohighfixed = 0
@@ -36,17 +36,17 @@ function gadget:Initialize()
         for x=0,Game.mapSizeX, smoothheightresolution do
             local trueheight = Spring.GetGroundHeight(x,z)
             local oldsmoothheight = Spring.GetSmoothMeshHeight(x,z)
-            
+
             if trueheight > oldsmoothheight then
               Spring.SetSmoothMesh(x,z, trueheight)
               toolow = toolow + 1
-            end  
-            
+            end
+
 --            if trueheight < oldsmoothheight - 10 then
 --              toohigh = toohigh + 1
 --              local nearmax = 0;
 --              local steepness = 0.5;
-              
+
 --              for offset = -320, 320 , smoothheightresolution *2 do
 --                local h = Spring.GetGroundHeight(x+offset, z+offset)
 --                if (h - steepness* math.abs(offset)) > nearmax then

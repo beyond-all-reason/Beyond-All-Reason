@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		desc = "Prevent mobile unit outside-of-map hax (unless its gaia)",
 		author = "Beherith",
 		date = "3 27 2011",
-		license = "CC BY SA",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true  --  loaded by default?
 	}

@@ -13,7 +13,7 @@ function widget:GetInfo()
 		desc      = "Applies bloom to units only",
 		author    = "Kloot, Beherith",
 		date      = "2018-05-13",
-		license   = "GPL V2",
+		license   = "GNU GPL, v2 or later",
 		layer     = 99999,
 		enabled   = not isPotatoGpu,
 	}
@@ -190,11 +190,11 @@ local function MakeBloomShaders()
 
 	blurShader = glCreateShader({
 		fragment = "#version 150 compatibility\n"..
-			"#define IQVSX " .. tostring(iqvsx) .. "\n" .. 
+			"#define IQVSX " .. tostring(iqvsx) .. "\n" ..
 			"#define IQVSY " .. tostring(iqvsy) .. "\n" .. [[
 			uniform sampler2D texture0;
 			uniform float fragBlurAmplifier;
-			const float invKernelSum = 0.012; 
+			const float invKernelSum = 0.012;
 			uniform float horizontal;
 			#define inverseRX 1.0
 
@@ -215,7 +215,7 @@ local function MakeBloomShaders()
 				newblur  += 13 * texture2D(texture0, texCoors + offset * -2.0 + subpixel, lod).rgb;
 				newblur  += 10 * texture2D(texture0, texCoors + offset * -4.0 + subpixel, lod).rgb;
 				newblur  += 6  * texture2D(texture0, texCoors + offset * -6.0 + subpixel, lod).rgb;
-				
+
 				/*
 				// OLD CRAPPY METHOD:
 					newblur  = 10 * texture2D(texture0, texCoors + vec2()         ).rgb;
@@ -241,11 +241,11 @@ local function MakeBloomShaders()
 
 
 	brightShader = glCreateShader({
-		fragment =   
+		fragment =
 			"#version 150 compatibility \n" ..
-			"#define IQVSX " .. tostring(iqvsx) .. "\n" .. 
+			"#define IQVSX " .. tostring(iqvsx) .. "\n" ..
 			"#define IQVSY " .. tostring(iqvsy) .. "\n" .. [[
-			
+
 			uniform sampler2D modelDiffuseTex;
 			uniform sampler2D modelEmitTex;
 
@@ -265,7 +265,7 @@ local function MakeBloomShaders()
 				float modelDepth = texture2D(modelDepthTex, texCoors).r;
 				float mapDepth = texture2D(mapDepthTex, texCoors).r;
 				float unoccludedModel = float(modelDepth < mapDepth); // this is 1 for a model fragment
-				
+
 				texCoors +=  halfpixeloffset *  0.25;
 
 				vec4 color = vec4(texture2D(modelDiffuseTex, texCoors));
@@ -401,7 +401,7 @@ local function Bloom()
 	glUseShader(0)
 
 	if not debugBrightShader then
-		if presets[preset].blurPasses > 0 then 
+		if presets[preset].blurPasses > 0 then
 			glUseShader(blurShader)
 			for i = 1, presets[preset].blurPasses do
 
@@ -410,7 +410,7 @@ local function Bloom()
 					glTexture(brightTexture1)
 					glRenderToTexture(brightTexture2, gl.TexRect, -1, 1, 1, -1)
 					glTexture(false)
-					
+
 					glUniform(blurShaderFragLoc, blurAmplifier)
 					glUniform(blurShaderHorizontalLoc, 1)
 					glTexture(brightTexture2)

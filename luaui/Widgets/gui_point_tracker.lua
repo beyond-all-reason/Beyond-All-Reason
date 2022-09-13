@@ -5,7 +5,7 @@ function widget:GetInfo()
 		desc = "Tracks recently placed map points.",
 		author = "Beherith",
 		date = "20211020",
-		license = "GNU LGPL, v2.1 or later",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true  --  loaded by default?
 	}
@@ -53,7 +53,7 @@ end
 -- GL4 Notes --
 -- We arent going to use triangles to point, nor are we going to apply names to points
 -- but what we are going to do, is clamp the center of the crosshair to screen space
--- and clamp the size of it to always be screensized 
+-- and clamp the size of it to always be screensized
 -- GL4 Stuff --
 
 local mapMarkInstanceVBO = nil
@@ -72,11 +72,11 @@ local shaderParams = {
     MAPMARKERSIZE = 0.035,
     LIFEFRAMES = timeToLive,
   }
-local vsSrc =  
+local vsSrc =
 [[
 #version 420
 
-layout (location = 0) in vec2 position; 
+layout (location = 0) in vec2 position;
 layout (location = 1) in vec4 worldposradius;
 layout (location = 2) in vec4 colorlife;
 
@@ -94,7 +94,7 @@ void main()
 {
   // project into view space
   vec4 worldPosInCamSpace;
-  
+
   float viewratio = 1.0;
    if (isMiniMap > 0.5) {
     worldPosInCamSpace  = mmDrawViewProj * vec4(worldposradius.xyz, 1.0);
@@ -104,24 +104,24 @@ void main()
     viewratio = viewGeometry.x / viewGeometry.y;
    }
   // Note that the W component of the worldPosInCamSpace contains the normalization factor for camera into clip space
-  
+
   //stretch to square:
   vec2 stretched = vec2(position.x , position.y * viewratio);
-  
+
   // NDC into clip space
   vec3 clipspaceposition = worldPosInCamSpace.xyz / worldPosInCamSpace.w;
-  
+
   // Ensure that it will always be in clip space
   clipspaceposition.xy = clamp(clipspaceposition.xy , -1.0, 1.0);
-  
+
   // De normalize back into view space
   worldPosInCamSpace.xy = clipspaceposition.xy * worldPosInCamSpace.w;
-  
+
   // And transform the points in clip space, but adding the verts for the points
   worldPosInCamSpace.xy += stretched.xy * MAPMARKERSIZE * worldPosInCamSpace.w;
-  
+
   gl_Position = worldPosInCamSpace;
-  
+
   //blendedcolor = vec4((gl_Position.rg/ gl_Position.w), 0.0, 1.0); //1.0 - (timeInfo.x - colorlife.w)/1000);
   blendedcolor = vec4(colorlife.rgb, 1.0 - ((timeInfo.x + timeInfo.w) - colorlife.w) / LIFEFRAMES);
 }
@@ -153,11 +153,11 @@ function makeMarkerVBO()
 	-- makes points with xyzw GL.LINES
 	local markerVBO = gl.GetVBO(GL.ARRAY_BUFFER,false)
 	if markerVBO == nil then return nil end
-	
+
 	local VBOLayout = {	 {id = 0, name = "position_xy", size = 2}, 	}
-	
+
 	local VBOData = { -- A CROSSHAIR, each set of 4 points in a line in XY space
-    -1, -1,    -1, 1, 
+    -1, -1,    -1, 1,
     -1,  1,     1, 1,
     1, 1,     1, -1,
     1, -1 , -1, -1 ,
@@ -165,8 +165,8 @@ function makeMarkerVBO()
     0.75, 0,   1.25, 0,
     0, 0.75, 0, 1.25,
     -0.75, 0,   -1.25, 0,
-    0, 0.01,  0, -0.01, 
-    0.01,0,  -0.01,0,  
+    0, 0.01,  0, -0.01,
+    0.01,0,  -0.01,0,
 	}
 	markerVBO:Define(	#VBOData/2,	VBOLayout)
 	markerVBO:Upload(VBOData)
@@ -185,7 +185,7 @@ local function initGL4()
       uniformInt = {
         },
 	uniformFloat = {
-        isMiniMap = 0, 
+        isMiniMap = 0,
       },
     },
     "mapMarkShader GL4"
@@ -203,9 +203,9 @@ local function initGL4()
   mapMarkInstanceVBO.vertexVBO = markerVBO
   mapMarkInstanceVBO.VAO = makeVAOandAttach(mapMarkInstanceVBO.vertexVBO, mapMarkInstanceVBO.instanceVBO)
   mapMarkInstanceVBO.primitiveType = GL.LINES
-  
+
   if false then -- testing
-    pushElementInstance(mapMarkInstanceVBO,	{	200, 400, 200, 2000, 1, 0, 1, 1000000 },	nil, true)  
+    pushElementInstance(mapMarkInstanceVBO,	{	200, 400, 200, 2000, 1, 0, 1, 1000000 },	nil, true)
   end
 end
 
@@ -255,7 +255,7 @@ function widget:DrawScreen()
 end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz, label)
-  
+
 	local spectator, fullView = GetSpectatingState()
 	local _, _, _, playerTeam = GetPlayerInfo(playerID, false)
 	if label == "Start " .. playerTeam
@@ -266,7 +266,7 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz, label)
   instanceIDgen= instanceIDgen + 1
 	local r, g, b = GetPlayerColor(playerID)
   local gf = Spring.GetGameFrame()
-  
+
   pushElementInstance(
 			mapMarkInstanceVBO,
 			{
@@ -275,7 +275,7 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz, label)
 			},
       instanceIDgen, -- key, generate me one if nil
       true -- update exisiting
-		)  
+		)
   if mapPoints[gf] then
     mapPoints[gf][#mapPoints[gf] + 1]= instanceIDgen
   else

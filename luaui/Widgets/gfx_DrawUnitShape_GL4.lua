@@ -5,7 +5,7 @@ function widget:GetInfo()
     desc      = "Faster gl.UnitShape, Use WG.UnitShapeGL4",
     author    = "ivand, Beherith",
     date      = "2021.11.04",
-    license   = "GPL",
+	license   = "GNU GPL, v2 or later",
     layer     = -9999,
     enabled   = true,
   }
@@ -282,7 +282,7 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID,
 	elseif armUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = armDrawUnitShapeVBOTable
 	else
 		Spring.Echo("The given unitDefID", unitDefID, "is neither arm nor cor, only those two are supported at the moment")
-		
+
 		Spring.Debug.TraceFullEcho(nil,nil,nil,"DrawUnitGL4")
 		return nil
 	end

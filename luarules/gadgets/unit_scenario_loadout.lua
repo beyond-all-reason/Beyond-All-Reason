@@ -4,7 +4,7 @@ function gadget:GetInfo()
 		desc = "Places initial units defined in scenariooptions.loadout",
 		author = "Beherith",
 		date = "2021.03.20",
-		license = "CC BY NC ND",
+		license = "GNU GPL, v2 or later",
 		layer = 1000000,
 		enabled = true,
 	}
@@ -46,7 +46,7 @@ function gadget:GamePreload()
     Spring.Echo("Scenario: Loading saved game, skipping loadout")
 		gadgetHandler:RemoveGadget(self)
   end
-  
+
 	if Spring.GetGameFrame() < 1 and not loadoutcomplete then
 		-- so that loaded savegames dont re-place
 		if Spring.GetModOptions().scenariooptions then
@@ -60,7 +60,7 @@ function gadget:GamePreload()
 					for k, unit in pairs(unitloadout) do
 						-- make sure unitdefname is valid
 						if UnitDefNames[unit.name] then
-								
+
 							local rot = rot_to_facing(unit.rot)
 							local unitID = Spring.CreateUnit(unit.name, unit.x, Spring.GetGroundHeight(unit.x, unit.z), unit.z, rot, unit.team)
 							if unitID then
@@ -69,7 +69,7 @@ function gadget:GamePreload()
 							if unit.name == "armnanotc" or unit.name == "cornanotc" or unit.name == "armnanotcplat" or unit.name == "cornanotcplat" then
 								nanoturretunitIDs[unitID] = true
 							end
-							if unit.neutral == true or unit.neutral == 'true' then 
+							if unit.neutral == true or unit.neutral == 'true' then
 								Spring.SetUnitNeutral(unitID, true)
 							end
 						else

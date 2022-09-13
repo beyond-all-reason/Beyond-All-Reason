@@ -14,7 +14,7 @@ function widget:GetInfo()
     desc      = "Instanced rendering of garbagegrass",
     author    = "Beherith (mysterme@gmail.com)",
     date      = "2021.04.12",
-    license   = "Lua code: GPL V2, Shader Code: CC-BY-NC-ND 4.0",
+    license   = "Lua code: GNU GPL, v2 or later, Shader Code: CC-BY-NC-ND 4.0",
     layer     = -9999999,
     enabled   = not isPotatoGpu,
   }

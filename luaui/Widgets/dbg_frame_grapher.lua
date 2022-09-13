@@ -11,7 +11,7 @@ function widget:GetInfo()
 		desc = "Draw frame time graph in bottom right, bar height is time elapsed between frames, blue bars are estimated sim frames, purple bars are CTO errors, and bars are shaded black if their CTO error differs from ideal",
 		author = "Beherith",
 		date = "2021.mar.29",
-		license = "GPLv2",
+		license = "GNU GPL, v2 or later",
 		layer = -100000,
 		enabled = false, --  loaded by default
 	}
@@ -19,7 +19,7 @@ end
 
 ---------------------------Speedups-----------------------------
 local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers 
+local spDiffTimers = Spring.DiffTimers
 ---------------------------Internal vars---------------------------
 local timerstart = nil
 ----------------------------GL4 vars----------------------------
@@ -50,16 +50,16 @@ out DataVS {
 
 void main() {
 	// current time will be equal to full right, e.g an x coord of 1
-  
-  float rect_width_pixels  = time_duration_wasgf.y / viewGeometry.x - 1 / viewGeometry.x; 
+
+  float rect_width_pixels  = time_duration_wasgf.y / viewGeometry.x - 1 / viewGeometry.x;
   float rect_height_pixels = 8 * time_duration_wasgf.y / viewGeometry.y;
   float rect_bottom_right  = 1.0 -  (shaderparams.x * 1.0 - time_duration_wasgf.x  ) / viewGeometry.x;
-  
+
   if (time_duration_wasgf.z > 0.5) {
 	//rect_width_pixels = rect_width_pixels + 1 / viewGeometry.x;
 	//rect_height_pixels = rect_height_pixels + 60 / viewGeometry.y;
   }
-  
+
 
   gl_Position = vec4(
     rect_bottom_right - coords.x*rect_width_pixels,
@@ -67,12 +67,12 @@ void main() {
     0.5 + 0.1*time_duration_wasgf.z + time_duration_wasgf.w * 0.1,
     1.0
   );
-  
+
   if (rect_bottom_right < 0 ) gl_Position.xy = vec2(-1.0);
   if (time_duration_wasgf.y > 200.0 ) gl_Position.xy = vec2(-1.0);
-  
+
   //gl_Position = vec4(coords.x , coords.y, 0.5, 1.0); // easy debugging
-  
+
   v_time_duration_wasgf = time_duration_wasgf ;
 }
 ]]
@@ -119,7 +119,7 @@ function widget:Initialize()
       uniformInt = {}, --  usually textures go here
       uniformFloat = {  shaderparams = {alpha, 0.5, 0.5, 0.5},} -- other uniform params
       })
-    
+
   local shaderCompiled = rectShader:Initialize()
   if not shaderCompiled then
    Spring.Echo("Failed to compile shaders for: frame grapher v2")
@@ -127,7 +127,7 @@ function widget:Initialize()
   end
   timerstart = Spring.GetTimer()
   timerold = Spring.GetTimer()
-end 
+end
 
 function widget:Shutdown()
 	if rectShader then rectShader:Finalize() end
@@ -148,17 +148,17 @@ function widget:GameFrame(n)
 end
 
 function widget:DrawScreen()
-	drawspergameframe = drawspergameframe + 1 
+	drawspergameframe = drawspergameframe + 1
 	local drawpersimframe = math.floor(Spring.GetFPS()/30.0 +0.5 )
-	
+
 	local timernew = spGetTimer()
 	local lastframeduration = spDiffTimers(timernew, timerold)*1000 -- in MILLISECONDS
 	timerold = timernew
   local lastframetime = spDiffTimers(timernew, timerstart) * 1000 -- in MILLISECONDS
   local fto = Spring.GetFrameTimeOffset()
-  
+
   local CTOError = 0
-  
+
   if drawpersimframe == 2 then
 	CTOError = 4 * math.min(math.abs(fto-0.5), math.abs(fto))
   elseif drawpersimframe ==3 then
@@ -167,26 +167,26 @@ function widget:DrawScreen()
 	CTOError = 8 * math.min(math.min(math.abs(fto-0.25), math.abs(fto -0.5)), math.min(math.abs(fto), math.abs(fto-0.75)))
   end
   --Spring.Echo(Spring.GetGameFrame(), fto, CTOError)
-  
+
   rectInstancePtr = rectInstancePtr+1
   if rectInstancePtr >= maxframes then rectInstancePtr = 0 end
   pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration, 0, CTOError}, rectInstancePtr, true)
   if wasgameframe>0 then
-      
+
     rectInstancePtr = rectInstancePtr+1
     if rectInstancePtr >= maxframes then rectInstancePtr = 0 end
     pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration-prevframems, 1, CTOError}, rectInstancePtr, true)
   end
-  
+
   if fto > 0.99 then
-      
+
     rectInstancePtr = rectInstancePtr+1
     if rectInstancePtr >= maxframes then rectInstancePtr = 0 end
     pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration, 1, 3}, rectInstancePtr, true)
   end
-  
-  
-  
+
+
+
   rectShader:Activate()
    -- We should be setting individual uniforms AFTER activate
   rectShader:SetUniform("shaderparams", lastframetime,0,0,0)

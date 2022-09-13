@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc	  = "Swap buffers with /luaui prevbuffer|nextbuffer, show alpha in red with /luaui ",
 		author	= "Beherith",
 		date	  = "2016-03-30",
-		license   = "GPL V2",
+		license   = "GNU GPL, v2 or later",
 		layer	 = -9999,
 		enabled   = false,
 	}
@@ -52,11 +52,11 @@ local function RemoveMe(msg)
 	widgetHandler:RemoveWidget()
 end
 
-local function MakeShader() 
+local function MakeShader()
 	if (gl.DeleteShader) then
 		if myshader ~= nil then gl.DeleteShader(myshader or 0) end
 	end
-	
+
 	myshader = gl.CreateShader({
 		fragment = [[
 			uniform sampler2D texture0;
@@ -114,7 +114,7 @@ function widget:Shutdown()
 	end
 end
 
-function widget:DrawWorld() 
+function widget:DrawWorld()
 	gl.Blending(GL.ONE, GL.ZERO)
 	gl.UseShader(myshader)
 	gl.UniformInt(myshaderDebgDrawLoc, dbgDraw)
@@ -124,13 +124,13 @@ function widget:DrawWorld()
 	gl.Texture(0, false)
 	gl.UseShader(0)
 	gl.Blending("reset")
-end 
+end
 
 function AddChatActions()
 	local function EchoVars()
 		Spring.Echo("[deferred buffer visualizer] buff=".. tostring(currentbuffer) .. " alphaasred=" ..tostring(dbgDraw) .. " info:".. deferredbuffers[currentbuffer] .. ":" .. deferredbuffer_info[deferredbuffers[currentbuffer]])
 	end
-	
+
 	local function nextbuffer() currentbuffer = math.min(currentbuffer+1, #deferredbuffers) ; EchoVars() end
 	local function prevbuffer() currentbuffer = math.max(currentbuffer-1, 1) ; EchoVars() end
 	local function DebugToggle()
@@ -139,10 +139,10 @@ function AddChatActions()
 		else
 			dbgDraw = 1
 		end
-		EchoVars() 
+		EchoVars()
 	end
 	local function DebugOff() dbgDraw = 0; EchoVars() end
-	
+
 	widgetHandler:AddAction("nextbuffer", nextbuffer, nil, 't')
 	widgetHandler:AddAction("prevbuffer", prevbuffer, nil, 't')
 	widgetHandler:AddAction("alphabuffer", DebugToggle, nil, 't')

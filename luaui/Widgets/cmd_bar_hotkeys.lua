@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc = "Enables BAR Hotkeys" ,
 		author = "Beherith",
 		date = "23 march 2012",
-		license = "GNU LGPL, v2.1 or later",
+		license = "GNU GPL, v2 or later",
 		layer = 1,
 		enabled = true,
 		handler = true,
