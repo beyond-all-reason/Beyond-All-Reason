@@ -12,13 +12,64 @@
 --along with this program.  If not, see <http://www.gnu.org/licenses/>.
 --==================================================================================================
 --Variables for the MockUp
-Spring ={}
 numberMock =42
 stringMock ="TestString"
 tableMock ={exampletable= true}
+arrayMock = {}
 booleanMock =true
 functionMock =function (bar) return bar; end
+
+Spring ={}
+Game = {}
+Engine = {}
+VFS = {}
+GL = {
+	SRC_ALPHA = stringMock,
+	ONE_MINUS_SRC_ALPHA = stringMock,
+	ONE = stringMock,
+	DST_ALPHA = stringMock,
+	ONE_MINUS_SRC_COLOR = stringMock,
+}
+gl = {}
 --==================================================================================================
+
+Game = {
+	armorTypes = arrayMock,
+	gameID = numberMock,
+	gameSpeed = numberMock,
+	gameName = stringMock,
+	gameShortName = stringMock,
+	gameVersion = stringMock,
+	gravity = numberMock,
+	mapName = stringMock,
+	mapX = numberMock,
+	mapY = numberMock,
+	mapZ = numberMock,
+	mapSizeX = numberMock,
+	mapSizeY = numberMock,
+	mapSizeZ = numberMock,
+	modName = stringMock,
+	squareSize = numberMock,
+	version = stringMock,
+	startPosType = numberMock,
+	tidal = numberMock,
+	waterDamage = numberMock,
+	windMin = numberMock,
+	windMax = numberMock,
+	commEnds = booleanMock,
+	limitDGun = booleanMock,
+	diminishingMetal = booleanMock,
+}
+
+Engine = {
+	version = stringMock,
+	versionFull = stringMock,
+}
+
+function VFS.Include(path)
+    assert(type(path) == "string", "Argument path is of invalid type - expected string");
+    return numberMock
+end
 
 function Spring.SetUnitRulesParam (unitID, paramName)
     assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
@@ -2085,3 +2136,335 @@ function Spring.GetClipboard    ( )
 return  stringMock
  end
 
+function gl.Flush()
+	return nil
+end
+
+function gl.Finish()
+	return nil
+end
+
+function gl.GetSun()
+	return numberMock, numberMock, numberMock
+end
+
+function gl.GetAtmosphere(name)
+	assert(type(name) == "string","Argument name is of invalid type - expected string");
+
+	return numberMock, numberMock, numberMock
+end
+
+function gl.GetWaterRendering(name)
+	assert(type(name) == "string","Argument name is of invalid type - expected string");
+
+	return numberMock, numberMock, numberMock
+end
+
+function gl.GetMapRendering(name)
+	assert(type(name) == "string","Argument name is of invalid type - expected string");
+
+	return numberMock, numberMock, numberMock
+end
+
+function gl.ConfigScreen(screenWidth, screenDistance)
+	assert(type(screenWidth) == "number","Argument screenWidth is of invalid type - expected number");
+	assert(type(screenDistance) == "number","Argument screenDistance is of invalid type - expected number");
+
+	return nil
+end
+
+function gl.DrawMiniMap(transform)
+	assert(type(transform) == "boolean","Argument transform is of invalid type - expected boolean");
+
+	return nil
+end
+
+function gl.SlaveMiniMap(mode)
+	assert(type(mode) == "boolean","Argument mode is of invalid type - expected boolean");
+
+	return nil
+end
+
+function gl.ConfigMiniMap(intPX, intPY, intSX, intSY)
+	assert(type(intPX) == "number","Argument intPX is of invalid type - expected number");
+	assert(type(intPY) == "number","Argument intPY is of invalid type - expected number");
+	assert(type(intSX) == "number","Argument intSX is of invalid type - expected number");
+	assert(type(intSY) == "number","Argument intSY is of invalid type - expected number");
+
+	return nil
+end
+
+function gl.GetViewSizes()
+	return numberMock, numberMock
+end
+
+--gl.Viewport ( number x, number y, number w, number h )
+--return: nil
+--gl.PushMatrix ( )
+--return: nil
+--gl.PopMatrix ( )
+--return: nil
+--gl.Translate ( number x, number y, number z )
+--return: nil
+--gl.Scale ( number x, number y, number z )
+--return: nil
+--gl.Scale ( number angle, number x, number y, number z )
+--return: nil
+--gl.Billboard ( )
+--return: nil
+--gl.MatrixMode ( number mode )
+--return: nil
+--gl.LoadIdentity ( )
+--return: nil
+--gl.LoadMatrix ( 16 numbers or a matrix name )
+--return: nil
+--gl.MultMatrix ( ??? )
+--return: ???
+--gl.Ortho ( number left, number right, number bottom, number top, number near, number far )
+--return: nil
+--gl.Frustum ( number left, number right, number bottom, number top, number near, number far )
+--return: nil
+--gl.PushPopMatrix ( ??? )
+--return: ???
+--gl.ClipPlane ( number intPlane, bool enable | number A, number B, number C, number D )
+--return: nil
+--gl.Clear ( GL.DEPTH_BUFFER_BIT [, number cleardepth ] )
+--return: nil
+--gl.SwapBuffers ( )
+--return: nil
+--gl.ResetState ( )
+--return: nil
+--gl.ResetMatrices ( )
+--return: nil
+--gl.BeginEnd ( number GLType, function [, arg1, ... ] )
+--return: nil
+--gl.Color ( number r, number g, number b [, number a ] | table colors = { number r, number g, number b [, number a ] } )
+--return: nil
+--gl.Vertex ( table vertex = { number x, number y, [, number z [, number w ]] } )
+--return: nil
+--gl.Vertex ( number x, number y )
+--return: nil
+--gl.Vertex ( number x, number y, number z )
+--return: nil
+--gl.Vertex ( number x, number y, number z, number w )
+--return: nil
+--gl.Normal ( table normal = { number x, number y, number z } | number x, number y, number z )
+--return: nil
+--gl.EdgeFlag ( bool enable )
+--return: nil
+--gl.Rect ( number x1, number y1, number x2, number y2 )
+--return: nil
+--gl.TexRect ( number x1, number y1, number x2, number y2 [, bool flip_s, bool flip_t | number s1, number t1, number s2, number t2 ] )
+--return: nil
+--gl.Shape ( number GLtype, table elements )
+--return: nil
+--gl.SecondaryColor ( table color = { number r, number g, number b } | number r, number g, number b )
+--return: nil
+--gl.FogCoord ( number value )
+--return: nil
+--gl.CreateList ( function [, arg1 [, arg2 ... ]] )
+--return: number listID
+--gl.CallList ( number listID )
+--return: nil
+--gl.DeleteList ( number listID )
+--return: nil
+--gl.CreateVertexArray ( number numElements, number numIndices [, bool persistentBuffer = false ] )
+--return: number bufferID
+--gl.UpdateVertexArray ( number bufferID, number elementPos, number indexPos, table tbl | function func )
+--return: bool success
+--gl.RenderVertexArray ( number bufferID, number primType [, number firstIndex = 0, number count = numElements ] )
+--return: bool success
+--gl.DeleteVertexArray ( number bufferID )
+--return: bool success
+--gl.Text ( string "text", number x, number y, number size [, string "options" ] )
+--return: nil
+--gl.GetTextWidth ( string "text" )
+--return: number width
+--gl.GetTextHeight ( string "text" )
+--return: nil | number height, number descender, number numlines
+--gl.BeginText ( )
+--return: nil
+--gl.EndText ( )
+--return: nil
+--gl.Unit ( number unitID [, bool rawdraw, number intLOD ] )
+--return: nil
+--gl.UnitRaw ( number unitID [, bool rawdraw, number intLOD ] )
+--return: nil
+--gl.UnitShape ( number unitDefID, number teamID, bool rawState, bool toScreen, bool opaque )
+--return: nil
+--gl.UnitMultMatrix ( number unitID )
+--return: nil
+--gl.UnitPieceMultMatrix ( number unitID, number intPiece )
+--return: nil
+--gl.UnitPiece ( number unitID, number intPiece )
+--return: nil
+--gl.UnitPieceMatrix ( number unitID, number intPiece )
+--return: nil
+--gl.Feature ( number featureID )
+--return: nil
+--gl.FeatureRaw ( number featureID [, bool rawdraw, number intLOD ] )
+--return: nil
+--gl.FeatureShape ( number featureDefID, number teamID, bool custom, bool drawScreen, bool opaque )
+--return: nil
+--gl.FeatureMultMatrix ( number featureID )
+--return: nil
+--gl.FeaturePieceMultMatrix ( number featureID, number intPiece )
+--return: nil
+--gl.FeaturePiece ( number featureID, number intPiece )
+--return: nil
+--gl.FeaturePieceMatrix ( number featureID, number intPiece )
+--return: nil
+--gl.DrawListAtUnit ( number unitID, number listID [, bool midPos, number scaleX, number scaleY, number scaleZ, number degrees, number rotX, number rotY, number rotZ ] )
+--return: nil
+--gl.DrawFuncAtUnit ( number unitID, bool midPos, function [, arg1, ... ] )
+--return: nil
+--gl.Blending ( bool enable | number srcmode, number dstmode )
+--return: nil
+--gl.Blending ( string mode )
+--return: nil
+--gl.BlendEquation ( number mode )
+--return: nil
+--gl.BlendFunc ( number srcmode, number dstmode )
+--return: nil
+--gl.BlendEquationSeparate ( number modeRGB, number modeAlpha )
+--return: nil
+--gl.BlendFuncSeparate ( number srcRGB, number [Lua_ConstGL#BlendingFactorDest, number srcAlpha, number dstAlpha )
+--return: nil
+--gl.AlphaTest ( bool enable | number func, number threshold )
+--return: nil
+--gl.DepthTest ( bool enable | number func )
+--return: nil
+--gl.Culling ( bool enable | number face )
+--return: nil
+--gl.DepthClamp ( bool enable )
+--return: nil
+--gl.DepthMask ( bool enable )
+--return: nil
+--gl.ColorMask ( bool masked )
+--return: nil
+--gl.ColorMask ( bool r, bool g, bool b, bool a )
+--return: nil
+--gl.LogicOp ( bool enable | number func )
+--return: nil
+--gl.Fog ( bool enable )
+--return: nil
+--gl.Smoothing ( bool enable | number point, bool enable | number line, bool enable | number polygon )
+--return: nil
+--gl.EdgeFlag ( bool enable )
+--return: nil
+--gl.Scissor ( bool enable )
+--return: nil
+--gl.Scissor ( number intX, number intY, number intW, number intH )
+--return: nil
+--gl.LineStipple ( string any )
+--return: nil
+--gl.LineStipple ( bool enable )
+--return: nil
+--gl.LineStipple ( number intFactor, number pattern )
+--return: nil
+--gl.PolygonMode ( number face, number mode )
+--return: nil
+--gl.PolygonOffset ( bool enable | number factor, number units )
+--return: nil
+--gl.PushAttrib ( [ number attrib ] )
+--return: nil
+--gl.PopAttrib ( )
+--return: nil
+--gl.StencilTest ( bool enable )
+--return: nil
+--gl.StencilMask ( number mask )
+--return: nil
+--gl.StencilFunc ( number func, number ref, number mask )
+--return: nil
+--gl.StencilOp ( number fail, number zfail, number zpass )
+--return: nil
+--gl.StencilMaskSeparate ( number face, number mask )
+--return: nil
+--gl.StencilFuncSeparate ( number face, number func, number ref, number mask )
+--return: nil
+--gl.StencilOpSeparate ( number face, number fail, number zfail, number zpass )
+--return: nil
+--gl.LineWidth ( number width )
+--return: nil
+--gl.PointSize ( number size )
+--return: nil
+--gl.PointSprite ( bool enable [, bool coord_replace, bool coord_origin_upper ] )
+--return: nil
+--gl.PointParameter ( number v1, number v2, number v3 [, number sizeMin, number sizeMax, number sizeFade ] )
+--return: nil
+--gl.Texture ( [ number texNum, ] bool enable | string name )
+--return: nil | bool loaded
+--gl.CreateTexture ( number intXSize, number intYSize [, table texProps ] )
+--return: string texture
+--gl.DeleteTexture ( string texture )
+--return: bool deleted
+--gl.DeleteTextureFBO ( string texture )
+--return: bool deleted
+--gl.TextureInfo ( string texture )
+--return: nil | table texInfo
+--gl.MultiTexCoord ( number x [, number y [, number z [, number w ]]] | table texCoords = { number x [, number y [, number z [, number w ]]] } )
+--return: nil
+--gl.TexEnv ( number target, number pname, number var1, number var2, number var3 )
+--return: nil
+--gl.MultiTexEnv ( number texNum, number target, number pname, number var1, number var2, number var3 )
+--return: nil
+--gl.TexGen ( number target, bool pname, number var1, number var2, number var3 )
+--return: nil
+--gl.MultiTexGen ( number intTexNum, number target, number pname, number var1, number var2, number var3 )
+--return: nil
+--gl.CopyToTexture ( string texture, number intXOff, number intYOff, number intX, number intY, number intW, number intH [, number target, number level ] )
+--return: nil
+--gl.RenderToTexture ( string fbotexture, function lua_func )
+--return: nil
+--gl.GenerateMipmap ( string texture )
+--return: bool created
+--gl.UnitTextures ( number unitID, bool enable )
+--return: bool enabled
+--gl.UnitShapeTextures ( number unitDefID, bool enable )
+--return: bool enabled
+--gl.FeatureTextures ( number featureID, bool enable )
+--return: bool enabled
+--gl.FeatureShapeTextures ( number featureDefID, bool enable )
+--return: bool enabled
+--gl.SaveImage ( number x, number y, number w, number h, string filename [, table imgProps = { alpha=bool, yflip=bool, grayscale16bit=bool, readbuffer=number } ] )
+--return: nil | bool success
+--gl.ReadPixels ( number x, number y, number w, number h [, number format = GL.RGBA ] )
+--return: nil | number r [, g [, b [, a {rbracket
+--gl.Lighting ( bool enable )
+--return: nil
+--gl.ShadeModel ( number mode )
+--return: nil
+--gl.Light ( number intLight, bool enable )
+--return: nil
+--gl.Material ( table material )
+--return: nil
+--gl.HasExtension ( string extname )
+--return: bool hasExtension
+--gl.GetNumber ( number ext, number intCount )
+--return: number number1 [, number number2, number number3, ... #count ]
+--gl.GetString ( number ext )
+--return: string extString
+--gl.DrawGroundCircle ( number x, number y, number z, number radius, number divs [, number slope ] )
+--return: nil
+--gl.DrawGroundQuad ( number x1, number z1, number x2, number z2 [, bool useNorm [, number tu1, number tv1, number tu2, number tv2 ] | [ bool useTextureCoord ] ] )
+--return: nil
+--gl.CreateQuery ( )
+--return: nil | userdata query
+--gl.DeleteQuery ( userdata query )
+--return: nil
+--gl.RunQuery ( userdata query, function func, arg1, arg2, ... )
+--return: nil
+--gl.GetQuery ( userdata query )
+--return: nil | number renderedFragments
+--gl.ActiveTexture ( number intTexNum, function func [, arg1, ... ] )
+--return: nil
+--gl.GetGlobalTexNames ( )
+--return: table texNames = { [1] = string texture, etc ... }
+--gl.GetGlobalTexCoords ( string 3doTextureName )
+--return: number xstart, number ystart, number xend, number yend
+--gl.UnsafeState ( number state [, bool disable_state ], bool func, arg1, arg2, ... )
+--return: nil
+--gl.GetShadowMapParams ( )
+--return: number xmid, number ymid, number p17, number p18
+--gl.GetMatrixData ( string "billboard" )
+--return: nil | number number1, etc...
