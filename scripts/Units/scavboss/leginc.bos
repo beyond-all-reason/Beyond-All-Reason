@@ -11,6 +11,7 @@ static-var  gun_1, restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, bM
 #define SIG_MOVE			2
 #define SIG_WALK			4
 #define SIG_AIM				8
+#define SIG_AIM_2			16
 
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcrash_anim_walk.blend 
@@ -61,10 +62,6 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) {
-			if (force1 == 1){
-				force1 = 0;
-				gun_1 = 1;
-			}
 			move pelvis to y-axis [2] speed [60] / animSpeed;
 			move lfleg to z-axis [0.000000] speed [81.000001] / animSpeed; 
 			move lfhip to z-axis [0.000000] speed [121.926298] / animSpeed; 
@@ -79,6 +76,10 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations
 		sleep ((33*animSpeed) -1);
 		}
 		if (bMoving) { //Frame:20
+			if (force1 == 1){
+				force1 = 0;
+				gun_1 = 1;
+			}
 			move pelvis to y-axis [0] speed [60] / animSpeed;
 			move lfleg to z-axis [-2.190000] speed [65.700002] / animSpeed; 
 			move lfhip to z-axis [-3.610000] speed [108.299997] / animSpeed; 
@@ -219,10 +220,10 @@ RestoreAfterDelay()
 
 AimPrimary(heading, pitch)
 {
-	//signal SIG_AIM;
+	signal SIG_AIM_2;
 	while(gun_1 == 0)
 	{
-		sleep 30;
+		sleep 600;
 	}
 	turn aimy1 to y-axis heading speed <20.000000>;
 	turn barrel to x-axis -1*pitch speed <5.000000>;
@@ -230,6 +231,7 @@ AimPrimary(heading, pitch)
 	{
 		wpn2_lasthead = 1000000;
 		wait-for-turn aimy1 around y-axis;
+		wait-for-turn barrel around x-axis;
 	}
 	wpn2_lasthead = heading;
 	start-script RestoreAfterDelay();
@@ -252,6 +254,7 @@ AimSecondary(heading, pitch)
 	{
 		wpn2_lasthead = 1000000;
 		wait-for-turn aimy1 around y-axis;
+		wait-for-turn barrel around x-axis;
 	}
 	wpn2_lasthead = heading;
 	start-script RestoreAfterDelay();
