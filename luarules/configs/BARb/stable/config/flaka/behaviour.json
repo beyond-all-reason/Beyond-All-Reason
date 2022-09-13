@@ -119,7 +119,7 @@
 			"attribute": ["support"],
 			"midposoffset": [0, 0, 21],
 			"limit": 1,
-			"build_speed": 30.0 // bp 600
+			"build_speed": 1.0 // bp 600
 		},
 		"armvp": {
 			"role": ["static"],
@@ -150,7 +150,7 @@
 			"role": ["static"],
 			"attribute": ["support"],
 			"limit": 1,
-			"build_speed": 3.0 //bp 300
+			"build_speed": 1.0 //bp 300
 		},
 		"corvp": {
 			"role": ["builder"],
@@ -230,7 +230,7 @@
 			"role": ["static"],
 			"attribute": ["support"],
 			"midposoffset": [0, 0, 21],
-			"build_speed": 30.0, //bp 300
+			"build_speed": 1.0, //bp 300
 			"limit": 1
 		},
         "corsy": {

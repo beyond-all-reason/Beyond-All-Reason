@@ -33,10 +33,10 @@
 	//superweapons get only build when there is nothing else to do
 	"superweapon": {
 		"unit": {
-			"armada": [ "armbrtha",  "armsilo", "armvulc"], //"armmercury", "armamd", "armemp", 
-			"cortex": [ "corint",    "corsilo", "corbuzz" ] //"corscreamer", "corfmd", "cortron", 
+			"armada": [ "armbrtha",  "armvulc"], //"armmercury", "armamd", "armemp", "armsilo"
+			"cortex": [ "corint",  "corbuzz" ] //"corscreamer", "corfmd", "cortron", "corsilo"
 		},
-		"weight":     [    0.5,      0.3,       0.1  ],
+		"weight":     [    0.5,      0.1  ],
 
 		"condition": [40, 600]  // [<Minimum income>, <maximum seconds to build>]
 	},
@@ -138,7 +138,8 @@
 		"corfus": {
 			"hub": [
 				[  
-					{"unit": "cormadsam", "category": "defence", "offset": [-80, 80], "condition": {"air": true}},
+                    {"unit": "cornanotc", "category": "defence", "offset": {"front": 100}},	
+                    {"unit": "cormadsam", "category": "defence", "offset": [-80, 80], "condition": {"air": true}},
 					{"unit": "corsilo", "category": "defence", "offset": [200, 0], "condition": {"chance": 0.2}}
 				]
 			]
@@ -220,6 +221,7 @@
 				[{"unit": "armllt", "category": "defence", "offset": {"front": 100}, "priority": "now"}],
 				[{"unit": "armrl", "category": "defence", "offset": {"back": 10},"condition": {"air": true}, "priority": "high"}],
 				[{"unit": "armguard", "category": "defence", "offset": [120, 100], "priority": "normal"}],
+                [{"unit": "armamb", "category": "defence", "offset": [120, 100], "priority": "low"}],
 				[{"unit": "armanni", "category": "defence", "offset": [70, -100], "priority": "low"}],
 				[
 					{"unit": "armjamt", "category": "defence", "offset": [-60, 0], "priority": "low"},
@@ -234,6 +236,7 @@
 				[{"unit": "corllt", "category": "defence", "offset": {"front": 100}, "priority": "now"}],
 				[{"unit": "corrl", "category": "defence", "offset": {"back": 10}, "condition": {"air": true}, "priority": "high"}],
 				[{"unit": "corpun", "category": "defence", "offset": [100, -100], "priority": "normal"}],
+                [{"unit": "cortoast", "category": "defence", "offset": [120, 100], "priority": "low"}],
 				[{"unit": "cordoom", "category": "defence", "offset": [80, -100], "priority": "low"}],
 				[
 					{"unit": "corjamt", "category": "defence", "offset": [-60, 0], "priority": "low"},
