@@ -14,6 +14,7 @@ end
 local currentLayout
 local currentKeybindingsFile
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local copyFileString = VFS.Include("luaui/Widgets/Include/io_utils.lua").copyFileString
 
 local function makeBindsTable()
 	local bindingsFile = VFS.FileExists(currentKeybindingsFile) and currentKeybindingsFile or "luaui/configs/bar_hotkeys.lua"
@@ -50,7 +51,17 @@ local function reloadBindings()
 	reloadWidgetsBindings()
 end
 
+local function copyDefaultCustom()
+	if VFS.FileExists("bar_hotkeys_custom.lua") then return end
+
+	local fileToCopy = Spring.GetConfigString("KeybindingFile", "luaui/configs/bar_hotkeys.lua")
+	fileToCopy = (fileToCopy ~= "bar_hotkeys_custom.lua") and fileToCopy or "luaui/configs/bar_hotkeys.lua"
+
+	copyFileString("luaui/configs/bar_hotkeys.lua", "bar_hotkeys_custom.lua")
+end
+
 function widget:Initialize()
+	copyDefaultCustom()
 	reloadBindings()
 
 	WG['bar_hotkeys'] = {}

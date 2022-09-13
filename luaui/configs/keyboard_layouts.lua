@@ -111,6 +111,6 @@ return {
 		'luaui/configs/bar_hotkeys_60.lua',
 		'luaui/configs/bar_hotkeys_grid.lua',
 		'luaui/configs/bar_hotkeys_grid_60.lua',
-		'luaui/configs/bar_hotkeys_custom.lua'
+		'bar_hotkeys_custom.lua'
 	}
 }
