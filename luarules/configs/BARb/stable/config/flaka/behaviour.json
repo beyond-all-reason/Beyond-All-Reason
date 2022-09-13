@@ -48,7 +48,7 @@
     // "threat"  : how ai sees enemy units
     // "power" : how ai sees own units
 	// threat categories: air, surface (= water & land), water (= underwater), default
-	// threat roles: scout, raider, skrimish, assualt, heavy, anti_heavy, artillery, super
+	// threat roles: scout, raider, skrimish, assault, heavy, anti_heavy, artillery, super
 
     //when are thread modifiers needed?
     // => basically when the simple formula dps*hp does not work to calculate the thread/power of a unit:
@@ -150,7 +150,7 @@
 			"role": ["static"],
 			"attribute": ["support"],
 			"limit": 1,
-			"build_speed": 30.0 //bp 300
+			"build_speed": 3.0 //bp 300
 		},
 		"corvp": {
 			"role": ["builder"],
@@ -366,6 +366,12 @@
 		"armbrtha": {
 			"role": ["static"]
 		},
+        "armsilo":{
+			"role":	["super", "static"],
+            "threat":{"air": 0.0, "water": 0.0, "surf": 0.1},
+			"limit": 1
+        },
+
 		"armrl": {
 			"role": ["anti_air"],
 			"threat":{"air":3.0, "surf":0.0, "water":0.0}
@@ -386,6 +392,7 @@
 			"role": ["anti_air"],
 			"threat": {"air":2.0, "surf":0.0, "water":0.0}
 		},
+
 		"armtl": {
 			"role": ["static"],
 			"threat": {"air":0.0, "surf":1.0, "water":1.0, "vs": {"comm": 10}}  //problem with surf units staying on surf here (as for all other torpedo launchers) cause they cant be hit by them  
@@ -498,11 +505,21 @@
             "role": ["static"],
             "threat": {"air": 0.0, "water": 0.0,"surf": 1.0,  "vs": {"heavy": 1.5}} 
 		},
-        "armsilo":{
-			"role":	["static"],
+        "corjuno":{
+			"role":["super", "static"],
+			"since": 900
+		},
+        "cortron":{
+			"role":	["super", "static"],
             "threat":{"air": 0.0, "water": 0.0, "surf": 0.1},
 			"limit": 1
         },
+        "corsilo":{
+			"role":	["super", "static"],
+            "threat":{"air": 0.0, "water": 0.0, "surf": 0.1},
+			"limit": 1
+        },
+
 
 
 
@@ -516,10 +533,10 @@
 			"limit": 3
 		},
 		"armemp":{
-			"role":	["static"]
+			"role":	["super", "static"] //without "super" it does not shoot
 		},
 		"cortron":{
-			"role":	["static"]
+			"role":	["super", "static"]
 		},
 		"armveil":{
 			"role": ["static"]
@@ -544,13 +561,10 @@
 			"since": 600
 		},
 		"armjuno":{
-			"role":["static"],
+			"role":["super", "static"],
 			"since": 900
 		},
-		"corjuno":{
-			"role":["static"],
-			"since": 900
-		},
+
 		"armmakr": {
 			"role": ["static"],
 			"since": 300
@@ -567,11 +581,7 @@
 			"role": ["static"],
 			"ignore": true
 		},
-        "corsilo":{
-			"role":	["static"],
-            "threat":{"air": 0.0, "water": 0.0, "surf": 0.1},
-			"limit": 1
-        },
+
 	                  
 // ECO (energy & metal)
 		"armmex" : {
@@ -1056,7 +1066,7 @@
 		},
 		"armspy": {
 			"role": ["scout"],
-			"limit": 1,
+			"limit": 2,
 			"threat":{"air": 0.0, "water": 0.0, "surf": 0.0} 
 		},
 		
