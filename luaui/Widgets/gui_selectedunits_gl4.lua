@@ -216,6 +216,10 @@ local function init()
 end
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	if not init() then return end
 	WG.selectedunits = {}
 	WG.selectedunits.getOpacity = function()

@@ -350,6 +350,10 @@ function widget:UnitDestroyed(unitID)
 end
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.model and unitDef.model.textures and unitDef.model.textures.tex1:lower() == "arm_color.dds" then
 			armUnitDefIDs[unitDefID] = true

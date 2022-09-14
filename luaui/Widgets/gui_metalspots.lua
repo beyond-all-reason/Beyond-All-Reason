@@ -281,7 +281,11 @@ function widget:ViewResize()
 	end
 end
 
-function widget:Initialize()
+function widget:Initialize()	
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	if not WG['resource_spot_finder'].metalSpotsList then
 		Spring.Echo("<metalspots> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget()

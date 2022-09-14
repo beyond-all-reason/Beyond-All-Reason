@@ -1027,6 +1027,10 @@ end
 
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	initGL4()
 	reInitialize()
 

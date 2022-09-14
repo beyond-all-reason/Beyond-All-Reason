@@ -279,6 +279,10 @@ local numPoints
 local mirrorParams = {}
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	VFS.Include("luarules/configs/lavaConfig.lua")
 	if lavaMap == true then
 		widgetHandler:RemoveWidget(self)

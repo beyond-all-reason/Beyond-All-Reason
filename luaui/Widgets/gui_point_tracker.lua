@@ -226,7 +226,11 @@ end
 --callins
 ----------------------------------------------q------------------
 
-function widget:Initialize()
+function widget:Initialize()	
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
   initGL4()
 	myPlayerID = Spring.GetMyPlayerID()
 	WG.PointTracker = {
