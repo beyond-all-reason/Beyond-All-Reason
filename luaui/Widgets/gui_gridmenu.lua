@@ -756,9 +756,7 @@ local function setPreGamestartDefID(uDefID)
 	end
 end
 
-local function gridmenuCategoryHandler(_, _, args, _, isRepeat)
-	if isRepeat or selectedFactory then return end
-
+local function gridmenuCategoryHandler(_, _, args)
 	local cIndex = args and tonumber(args[1])
 
 	if not cIndex or cIndex < 1 or cIndex > 4 then
@@ -795,8 +793,6 @@ local function enqueueUnit(uDefID, opts)
 end
 
 local function gridmenuKeyHandler(_, _, args, _, isRepeat)
-	if isRepeat then return end
-
 	-- validate args
 	local row = args and tonumber(args[1])
 	local col = args and tonumber(args[2])
@@ -809,6 +805,10 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 
 	if not uDefID then
 		return
+	end
+
+	if isRepeat and selectedBuilder then
+		return currentCategoryIndex and true or false
 	end
 
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
@@ -946,7 +946,7 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_next_page", nextPageHandler, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_prev_page", prevPageHandler, nil, "p")
-	widgetHandler.actionHandler:AddAction(self, "gridmenu_key", gridmenuKeyHandler, nil, "p")
+	widgetHandler.actionHandler:AddAction(self, "gridmenu_key", gridmenuKeyHandler, nil, "pR")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_category", gridmenuCategoryHandler, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_categories", gridmenuCategoriesHandler, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "buildmenu_pregame_deselect", buildmenuPregameDeselectHandler, nil, "p")
