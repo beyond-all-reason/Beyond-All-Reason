@@ -15,13 +15,10 @@ function BomberHST:Init()
 	self.squadID = 1
 end
 
-
 function BomberHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	self:SetMassLimit()
-	self:DraftSquadsBomber()
-
-
+	self:DraftBomberSquads()
 	for index,squad in pairs(self.squads) do
 		if self:SquadsIntegrityCheck(squad) then
 			self:SquadPosition(squad)
@@ -30,7 +27,6 @@ function BomberHST:Update()
 		end
 	end
 end
-
 
 function BomberHST:IsRecruit(bmbrbehaviour)
 	if self.recruits[bmbrbehaviour].id then
@@ -70,7 +66,7 @@ function BomberHST:SquadDisband(squad)
 	self.squads[squad.squadID] = nil
 end
 
-function BomberHST:DraftSquadsBomber()
+function BomberHST:DraftBomberSquads()
 	local f = self.game:Frame()
 	for id, bomber in pairs(self.recruits) do
 		if not bomber.squad then
@@ -130,9 +126,8 @@ function BomberHST:SquadMass(squad)
 end
 
 function BomberHST:SquadsTargetUpdate(squad)
-	if not squad.target or not self:SquadTargetExist(squad) then
+	if squad.lock and (not squad.target or not self:SquadTargetExist(squad)) then
 		self:GetTarget(squad)
-
 	end
 end
 
@@ -177,8 +172,6 @@ function BomberHST:GetTarget(squad)
 		local bu
 		local bv = 0
 		for id,name in pairs(bestCell.units) do
--- 			local u = game:GetUnitByID(name)
--- 			local name = u:Name()
 			local ut = self.ai.armyhst.unitTable[name]
 			self:EchoDebug(id,name,ut.metalCost)
 			if ut.metalCost > bv then

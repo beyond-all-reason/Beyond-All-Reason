@@ -227,7 +227,7 @@ function LabBuildHST:ConditionsToBuildFactories(builder)
 		self.factoryCount = self.ai.tool:countMyUnit({'factoryMobilities'})
 		local uTn = self.ai.armyhst.unitTable[factoryName]
 		local factoryCountSq = self.ai.tool:countMyUnit({'factoryMobilities'}) * self.ai.tool:countMyUnit({'factoryMobilities'})
-		local sameFactoryCount = self.ai.tool:countFinished(factoryName)
+		local sameFactoryCount = self.ai.tool:countFinished({factoryName})
 		local sameFactoryMetal = sameFactoryCount * 20
 		local sameFactoryEnergy = sameFactoryCount * 500
 		self:EchoDebug('labparams',factoryCountSq,sameFactoryCount,sameFactoryMetal,sameFactoryEnergy)
@@ -315,7 +315,7 @@ function LabBuildHST:PostPositionalFilter(factoryName,p)
 		self:EchoDebug('dont build this if we dont have air')
 		return false
 	elseif mtype == 'bot' then
-		if self.ai.tool:countFinished(factoryName) > 0 and self.ai.armyhst.unitTable[factoryName].techLevel == 1 then
+		if self.ai.tool:countFinished({factoryName}) > 0 and self.ai.armyhst.unitTable[factoryName].techLevel == 1 then
 			local sameLabs = self.ai.game.GetTeamUnitsByDefs(self.ai.id, UnitDefNames[factoryName].id)
 			for ct, id in pairs(sameLabs) do
 				local sameLab = self.game:GetUnitByID(id)
@@ -332,7 +332,7 @@ function LabBuildHST:PostPositionalFilter(factoryName,p)
 			return false
 		end
 	elseif mtype == 'veh' then
-		if self.ai.tool:countFinished(factoryName) > 0 and self.ai.armyhst.unitTable[factoryName].techLevel == 1 then
+		if self.ai.tool:countFinished({factoryName}) > 0 and self.ai.armyhst.unitTable[factoryName].techLevel == 1 then
 			local sameLabs = Spring.GetTeamUnitsByDefs(self.ai.id, UnitDefNames[factoryName].id)
 			for ct, id in pairs(sameLabs) do
 				local sameLab = self.game:GetUnitByID(id)

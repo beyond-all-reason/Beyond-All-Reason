@@ -65,7 +65,9 @@ end
 
 function TaskLabBST:getQueue()
 	if self.spec.techLevel >= 3 then
-		if self.ai.tool:countFinished('_fus_') < 1 and self.ai.tool:countFinished('t2mex') < 2 then
+		print(self.name,'lab mode _fus_', self.ai.tool:countFinished({'_fus_'}),'t2mex',self.ai.tool:countFinished({'t2mex'}))
+		if self.ai.tool:countFinished({'_fus_'}) < 1 and self.ai.tool:countFinished({'t2mex'}) < 2 then
+
 			return self.ai.taskshst.labs.premode
 		end
 	end

@@ -68,8 +68,9 @@ end
 
 function BomberBST:Update()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'BomberBST' then return end
-	self:EchoDebug('update',self.squad,self.ai.bomberhst.squads[self.squad].target)
+self:EchoDebug('update squad',self.squad)
 	if self.squad and self.ai.bomberhst.squads[self.squad].target then
+		self:EchoDebug('update',self.squad,self.ai.bomberhst.squads[self.squad].target)
 		self:EchoDebug('go to bomb',self.ai.bomberhst.squads[self.squad].target)
 		self:BombUnit(self.ai.bomberhst.squads[self.squad].targetUnit)
 	end

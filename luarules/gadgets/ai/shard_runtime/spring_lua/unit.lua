@@ -417,6 +417,11 @@ function ShardUnit:AreaRESURRECT( p, radius )--Position p, double radius)
 	return self:AreaResurrect( p, radius )
 end
 
+function ShardUnit:AttackPos( pos )
+	local order = self:SyncOrder( self.id, CMD.ATTACK, { pos.x, pos.y, pos.z }, 0 )
+-- 	return Spring.GiveOrderToUnit( self.id, CMD.ATTACK, { gid }, 0 )
+end
+
 function ShardUnit:Attack( unit )
 	local gid = self:Unit_to_id( unit )
 	local order = self:SyncOrder( self.id, CMD.ATTACK, { gid }, 0 )

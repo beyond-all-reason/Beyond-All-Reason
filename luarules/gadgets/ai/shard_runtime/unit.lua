@@ -61,14 +61,18 @@ function Unit:GameEnd()
 	end
 end
 
-function Unit:UnitCreated(unit)
+function Unit:UnitCreated(unit, unitDefId, teamId, builderId)
 	if unit then -- TEMPORARY FIX
 		if unit.engineID == self.engineID then
-			return
+			for k,v in pairs(self.behaviours) do
+				--self.game:StartTimer(v:Name() .. 'OCreated')
+				v:OwnerCreated(unit, unitDefId, teamId, builderId)
+-- 				self.game:StopTimer(v:Name() .. 'OCreated')
+			end
 		end
 		for k,v in pairs(self.behaviours) do
 			--self.game:StartTimer(v:Name() .. 'Created')
-			v:UnitCreated(unit)
+			v:UnitCreated(unit, unitDefId, teamId, builderId)
 			--self.game:StopTimer(v:Name() .. 'Created')
 
 		end

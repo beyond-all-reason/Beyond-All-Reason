@@ -320,7 +320,7 @@ function BuildingsHST:BuildNearLastNano(builder, utype)
 end
 
 function BuildingsHST:unitsNearCheck(pos,range,number,targets)
-	if not range or not pos then return false end
+	if not range or not pos then return end
 	number = number or 1
 	local counter = 0
 	for i,target in pairs(targets) do
@@ -338,7 +338,8 @@ function BuildingsHST:unitsNearCheck(pos,range,number,targets)
 	end
 	local neighbours = self.game:getUnitsInCylinder(pos, range)
 	if not neighbours then return false end
-	for idx, typeDef in pairs(neighbours) do
+	for idx, unitID in pairs(neighbours) do
+		local unitName = self.game:GetUnitByID(unitID):Name()
 		for i,target in pairs(targets) do
 			if unitName ==  target or (self.ai.armyhst[target] and self.ai.armyhst[target][unitName]) then
 				counter = counter +1
@@ -349,7 +350,7 @@ function BuildingsHST:unitsNearCheck(pos,range,number,targets)
 			end
 		end
 	end
-	return false
+	return
 end
 
 function BuildingsHST:CheckForDuplicates(unitName)
@@ -372,7 +373,7 @@ function BuildingsHST:CheckForDuplicates(unitName)
 	return false
 end
 
-function BuildingsHST:UnitCreated(unit,builderID)
+function BuildingsHST:UnitCreated(unit, unitDefId, teamId, builderID)
 	local unitName = unit:Name()
 	local position = unit:GetPosition()
 	local unitID = unit:ID()

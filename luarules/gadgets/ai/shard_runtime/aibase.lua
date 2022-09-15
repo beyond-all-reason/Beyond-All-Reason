@@ -24,7 +24,7 @@ end
 function AIBase:GameMessage(text)
 end
 
-function AIBase:UnitCreated(engineunit,builderId)
+function AIBase:UnitCreated(unit, unitDefId, teamId, builderId)
 end
 
 function AIBase:UnitBuilt(engineunit)

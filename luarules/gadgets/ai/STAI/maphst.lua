@@ -49,6 +49,10 @@ function MapHST:basicMapInfo()--capture and set foundamental map info
 	self.mapSize = map:MapDimensions()
 	self.elmoMapSizeX = self.mapSize.x * 8
 	self.elmoMapSizeZ = self.mapSize.z * 8
+	self.elmoMapCenter = {x = self.elmoMapSizeX/2,y = map:GetGroundHeight(self.elmoMapSizeX/2,self.elmoMapSizeZ/2), z = self.elmoMapSizeZ/2}
+	self.elmoMapMaxCenterDistance = self.ai.tool:distance({x=0,y=0,z=0},self.elmoMapCenter)
+	self.elmoMapMaxDistance = self.ai.tool:distance({x=0,y=0,z=0},{x=self.elmoMapSizeX,y=map:GetGroundHeight(self.elmoMapSizeX,self.elmoMapSizeZ),z=self.elmoMapSizeZ})
+	print('self.elmoMapMaxDistance',self.elmoMapMaxDistance,'self.elmoMapMaxCenterDistance',self.elmoMapMaxCenterDistance)
 	self:EchoDebug(self.ai.tool:gcd(self.elmoMapSizeX,self.elmoMapSizeZ))
 	self.elmoArea = self.elmoMapSizeX * self.elmoMapSizeZ
 	self.gridSize = 256 --math.max( math.floor(math.max(MapHST.mapSize.x * 8, MapHST.mapSize.z * 8) / 128),32)-- don't make grids smaller than 32
@@ -94,7 +98,7 @@ function MapHST:GridToPos(X,Z)
 	local pos = {}
 	pos.x = X * self.gridSize - self.gridSizeHalf
 	pos.z = Z * self.gridSize - self.gridSizeHalf
-	pos.y  = Spring.GetGroundHeight(pos.x,pos.z)
+	pos.y  = map:GetGroundHeight(pos.x,pos.z)
 	if not self:isInMap(pos) then
 		self:Warn(pos.x,pos.z,'is not in map')
 		return
@@ -464,13 +468,9 @@ function MapHST:gridThePath(wp)
 	--local first = table.remove(waypoints)
 	--first = {x = first[1],y = first[2],z = first[3]}
 	local gridPath = {}
-
 	gridPath[1] = gridPath[1] or {x = wp[1][1],y = wp[1][2],z = wp[1][3]}
 -- 	table.remove(wp)
 	for i,wpos in pairs(wp) do
-
-
-
 		wpos = {x = wpos[1],y = wpos[2],z = wpos[3]}
 		local lastX,lastZ = self.ai.maphst:PosToGrid(gridPath[#gridPath])
 		local wposX,wposZ = self.ai.maphst:PosToGrid(wpos)
@@ -483,30 +483,41 @@ function MapHST:gridThePath(wp)
 end
 
 function MapHST:spotToCellMoveTest()--check how many time a unit(i chose commander) walk on a CELL, the analisy is from cell to cell foreach cell, CAUTION is heavy computable
-	self:EchoDebug('self.spotPathMobRank START')
+	self:EchoDebug('mobility commander rank START')
 	local counter = 0
 	local utable = self.ai.armyhst.unitTable
-	local className = UnitDefNames['corcom'].moveDef.name
-	local classID = UnitDefNames['armcom'].id
+	local className = UnitDefNames['armcom'].moveDef.name
+	local classID = utable.armcom.defId--UnitDefNames['armcom'].id
 	local layer = 'amp'
 	local doing = {}
 	self.ttt={trampled = 0}
 	--for index , spotPos in pairs(spot) do
-	for X1,Zetas1 in pairs(self.GRID) do
-		for Z1 in pairs(Zetas1) do
-			self.GRID[X1][Z1].trampled = 1
-			--[[for X2,Zetas2 in pairs(self.GRID) do
-				for Z2 in pairs(Zetas2) do
+	for X1 = 1,self.gridSideX - 1 , 2 do
+		for Z1 = 1,self.gridSideZ - 1, 2 do
+			for X2 = 2,self.gridSideX, 2 do
+				for Z2 = 2,self.gridSideZ, 2 do
+					--print(X1,Z1,X2,Z2)
 					local POS1 = self:GridToPos(X1,Z1)
 					local POS2 = self:GridToPos(X2,Z2)
+					local POS1ToCenter = self.ai.tool:distance(POS1,self.elmoMapCenter)/self.elmoMapMaxCenterDistance
+					local POS2ToCenter = self.ai.tool:distance(POS2,self.elmoMapCenter)/self.elmoMapMaxCenterDistance
+					local POS1toPOS2 = self.ai.tool:distance(POS1,POS2)/ self.elmoMapMaxDistance
+					local proportional = ((POS1ToCenter +POS2ToCenter) / 2 )
+					print('proportional',proportional,X1,Z1,X2,Z2)
+					--local proportional = (((POS1ToCenter +POS2ToCenter) / 2 ) + POS1toPOS2) / 2
+					--local proportional = (POS1ToCenter + POS2ToCenter + POS1toPOS2) / 3
+-- 					print(POS1.x,POS1.z,POS2.x,POS2.z)
 					if X1 ~= X2 or  Z1 ~= Z2 then
-						if self.GRID[X1][Z1].moveLayers[layer] == self.GRID[X2][Z2].moveLayers[layer] then
+
+-- 						if self.GRID[X1][Z1].moveLayers[layer] == self.GRID[X2][Z2].moveLayers[layer] then
 -- 							self:EchoDebug('')
-						else
+-- 						else
 							if Spring.TestMoveOrder(classID,POS1.x,POS1.y,POS1.z) and Spring.TestMoveOrder(classID,POS2.x,POS2.y,POS2.z)then
+
 								if doing[X1..';'..Z1] == X2..';'..Z2  or doing[X2..';'..Z2] == X1..';'..Z1 then
 									---
 								else
+
 									local dist  = self.ai.tool:distance(POS1,POS2)
 									local metapath = Spring.RequestPath(className, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z)
 									if metapath then
@@ -521,7 +532,6 @@ function MapHST:spotToCellMoveTest()--check how many time a unit(i chose command
 												print('WARNING THIS PATH IS INCOMPLETE',POS1.x, POS1.z, last[1], last[3],className,POS2.x,POS2.z,distance_to_goal)
 											else
 												counter = counter + 1
-												map:DrawLine(POS1, POS2, {0,1,1,1}, nil, false, 8 )
 												local first = table.remove(waypoints)
 												first = {x = first[1],y = first[2],z = first[3]}
 												for i,v in pairs(waypoints) do
@@ -530,7 +540,7 @@ function MapHST:spotToCellMoveTest()--check how many time a unit(i chose command
 													local firstX,firstZ = self:PosToGrid(first)
 													local wposX,wposZ = self:PosToGrid(wpos)
 													if firstX ~= wposX or firstZ ~= wposZ then
-														self.GRID[firstX][firstZ].trampled = self.GRID[firstX][firstZ].trampled +1
+														self.GRID[firstX][firstZ].trampled = self.GRID[firstX][firstZ].trampled + (self.ai.tool:distance(wpos,self.elmoMapCenter)/self.elmoMapMaxCenterDistance)
 														if self.GRID[firstX][firstZ].trampled > self.ttt.trampled then
 															self.ttt = self.GRID[firstX][firstZ]
 														end
@@ -542,13 +552,13 @@ function MapHST:spotToCellMoveTest()--check how many time a unit(i chose command
 									end
 								end
 							end
-						end
+						--end
 					end
 				end
-			end]]
+			end
 		end
 	end
-	self:EchoDebug(counter,'path evalutated:', 'most trampled',self.ttt.X,self.ttt.Z,self.ttt.trampled)
+	self:EchoDebug(counter,'mobility commander evalutated:', 'most trampled',self.ttt.X,self.ttt.Z,self.ttt.trampled)
 end
 
 function MapHST:SetStartLocation()-- find start locations (loading them into air's list for later localization)
@@ -639,7 +649,7 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 				if self.ai.targethst:IsSafeCell(spot, builder) then
 					if map:CanBuildHere(unittype, spot) then
 						local CELL = self:GetCell(spot,self.ai.loshst.ENEMY)
-						if not CELL or CELL.enemy == 0 then
+						if not CELL or CELL.ENEMY == 0 then
 							local distance = self.ai.tool:distance(position,spot)
 -- 							if distance < 300 then
 -- 								return spot
@@ -777,8 +787,8 @@ function MapHST:DrawDebug()
 	end
 	for X,Zetas in pairs(self.GRID) do
 		for Z, CELL in pairs(Zetas) do
-			if CELL.trampled > self.ttt.trampled / 2 then
-				map:DrawPoint(CELL.POS, {1,1,1,1}, CELL.trampled, 9)
+			if CELL.trampled > self.ttt.trampled / 2 then --CELL.trampled > 1 then --
+				map:DrawPoint(CELL.POS, {1,1,1,1}, math.ceil(CELL.trampled), 9)
 			end
 			local pos1, pos2 = {},{}
 			pos1.x, pos1.z = CELL.POS.x - self.gridSizeHalf, CELL.POS.z - self.gridSizeHalf

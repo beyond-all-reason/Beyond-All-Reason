@@ -11,7 +11,6 @@ end
 function TargetHST:Init()
 	self.DebugEnabled = false
  	self.BLOBS = {}
-	self.blobindex = 1
 	self.pathModParam = 0.3
 	self.pathModifierFuncs = {}
 	self.enemyFrontList = {}
@@ -54,74 +53,54 @@ function TargetHST:GetBlobs()
 	self.BLOBS = {}
 	for X, cells in pairs(self.ai.loshst.ENEMY) do
 		for Z,cell in pairs( cells) do
-			local blob
 			local blobref = X..':'..Z
-			if not self.blobchecked[X .. ':' ..Z] then
-				blob = self:blobCell(self.ai.loshst.ENEMY,'SPEED',X,Z,blobref)
-			end
-			if blob then
-				self.BLOBS[blobref] = blob
-				--print('blob',blob.metal,blob.position.x,blob.position.z)
+			if not self.blobchecked[blobref] then
+				self:blobCell(self.ai.loshst.ENEMY,'SPEED',X,Z,blobref)
 			end
 		end
 	end
 	self.blobchecked = nil
+	for ref, blob in pairs(self.BLOBS) do
+		for i,v in pairs(blob.cells) do
+			for id,name in pairs(v.units) do
+				blob.units[id] = name
+			end
+			blob.position.x = blob.position.x + v.POS.x
+			blob.position.z = blob.position.z + v.POS.z
+			blob.metal = blob.metal + v.metal
+		end
+		blob.position.x = blob.position.x / #blob.cells
+		blob.position.z = blob.position.z / #blob.cells
+		blob.position.y = map:GetGroundHeight(blob.position.x,blob.position.z)
+		local defendDist = math.huge
+		local defendCell = nil
+		for X, cells in pairs(self.ai.loshst.OWN) do
+			for Z, cell in pairs(cells) do
+				local dist = self.ai.tool:distance(cell.POS,blob.position)
+				if dist < defendDist then
+					defendDist = dist
+					defendCell = cell
+				end
+			end
+		end
+		blob.defend = defendCell
+	end
 end
 
 function TargetHST:blobCell(grid,param,x,z,blobref)--rolling on the cell to extrapolate blob of param
-	self.blobchecked[blobref] = true
-	if x > self.ai.maphst.gridSideX or x < 1 or z > self.ai.maphst.gridSideZ or z < 1 then
-		return
-	end
-	if grid[x][z][param] and grid[x][z][param] > 0 then
-		if not self.BLOBS[blobref] then
-			self.BLOBS[blobref] = {metal = 0,position = {x=0,y=0,z=0},cells = {}}
-		end
+	self.blobchecked[x .. ':' .. z] = true
+	if grid[x] and grid[x][z] and grid[x][z][param] and grid[x][z][param] > 0 then
+		self.BLOBS[blobref] = self.BLOBS[blobref] or {metal = 0,position = {x=0,y=0,z=0},cells = {},units={},defend = nil}
 		table.insert(self.BLOBS[blobref].cells,grid[x][z])
 		for X = -1, 1,1 do
 			for Z = -1,1,1 do
-				if x ~= x + X or z ~= z + Z then
-					if not self.blobchecked[blobref] then
-						self:blobCell(grid,param,x+X,z+Z,blobref)
-					end
+				if not self.blobchecked[x+X..':'..z+Z] then
+					self:blobCell(grid,param,x+X,z+Z,blobref)
 				end
 			end
 		end
 	end
-	local blob = self.BLOBS[blobref]
-	if not blob then return end
-	local blobUnits = {}
-	for i,v in pairs(blob.cells) do
-		blob.position.x = blob.position.x + v.POS.x
-		blob.position.z = blob.position.z + v.POS.z
-		blob.metal = blob.metal + v.metal
-		for id,name in pairs(v.units) do
-			blobUnits[id] = name
-		end
-
-	end
-	blob.position.x = blob.position.x / #blob.cells
-	blob.position.z = blob.position.z / #blob.cells
-	blob.position.y = map:GetGroundHeight(x,z)
-	blob.units = blobUnits
-	if blob.metal > 0 then return blob end
-
-
 end
-
-	--[[for index,suquad in pairs(self.ai.attackhst.squads) do
-		local bestdistance = math.huge
-		local bestblob = nil
-		for blobref,blob in pairs(self.BLOBS) do
-			local dist = self.ai.tool:distance(squad.position,blob.position)
-			if dist < bestdistance and not blob.hunted then
-				bestdistance = dist
-				bestblob = blobref
-				blob.hunted = squad.id
-			end
-		end
-	end]]
-
 
 function TargetHST:enemyFront()
 	self.enemyFrontCellsX = {}
@@ -358,7 +337,7 @@ function TargetHST:drawDBG()
 			map:DrawRectangle(pos1, pos2, colours.g, i, false, ch)
 
 		end
-		map:DrawCircle(blob.position, 128, colours.r, nil, true, ch)
+		map:DrawCircle(blob.position, 128, colours.s, nil, true, ch)
 	end
 	if self.enemyEdgeNordEst then
 		map:DrawCircle(self.enemyEdgeNordEst.POS, 128, colours.a, 'NordEst', true, ch)

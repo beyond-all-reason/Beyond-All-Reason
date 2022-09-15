@@ -57,7 +57,7 @@ function LosHST:Update()
 		local unit = game:GetUnitByID(id)
 		local uPos = unit:GetPosition()
 		if not  uPos or not unit:IsAlive()then
-			self:cleanEnemy(id)
+			self.ownImmobile[id] = nil
 		else
 			local X,Z = self.ai.maphst:PosToGrid(uPos)
 			self:setCellLos(self.OWN,unit,X,Z)
@@ -138,7 +138,7 @@ function LosHST:UnitDamaged(unit, attacker, damage)
 	--end
 end
 
-function LosHST:UnitBuilt(unit, unitDefID, teamId)
+function LosHST:UnitCreated(unit, unitDefID, teamId)
 	if teamId == self.ai.id then
 		if UnitDefs[unitDefID].speed == 0 then
 			self.ownImmobile[unit:ID()] = unitDefID
@@ -193,8 +193,6 @@ function LosHST:setPosLayer(unitName,Pos)
 	return 0 , floating
 end
 
-
-
 function LosHST:getCenter()
 	self.CENTER = api.Position()
 	local count = 0
@@ -207,7 +205,6 @@ function LosHST:getCenter()
 			self.CENTER.z = self.CENTER.z + upos.z
 			count = count+1
 		end
-
 	end
 	self.CENTER.x = self.CENTER.x / count
 	self.CENTER.y = self.CENTER.y / count

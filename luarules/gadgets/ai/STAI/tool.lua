@@ -287,38 +287,34 @@ function Tool:getTeamUnitsByClass(classes)
 	return(list)
 end
 
-function Tool:countFinished( nameORid )
-	local team = self.game:GetTeamID()
+function Tool:countFinished( targets,team )--accept units names, units def number or classes
+	local team = team or self.game:GetTeamID()
+	local defs = {}
 	local counter = 0
-	if self.ai.armyhst[nameORid] then
-		for name,data in pairs(self.ai.armyhst[nameORid]) do
-			local def = self.ai.armyhst.unitTable[name].defId
-			local targetList = game:GetTeamUnitsByDefs(self.ai.id, def)
-			for index , value in pairs(targetList) do
-				if game:GetUnitByID(value):IsBeingBuilt() == 1 then
-					counter = counter +1
-				end
+	for i,target in pairs(targets) do
+		if self.ai.armyhst[target] then
+			for name,data in pairs(self.ai.armyhst[target]) do
+				local def = self.ai.armyhst.unitTable[name].defId
+				table.insert(defs,def)
 			end
-		end
+		elseif self.ai.armyhst.unitTable[target] then
+			table.insert(defs,self.ai.armyhst.unitTable[target].defId)
 
-	else
-		if type(nameORid ) == 'string' then
-			nameORid = self.ai.armyhst.unitTable[nameORid].defId
-		end
-		if type(nameORid ) ~= 'number' then
-			self:EchoDebug('type not valid in count finish unit')
-		end
-		local targetList = game:GetTeamUnitsByDefs(self.ai.id, nameORid)
-		for index , value in pairs(targetList) do
-			if value:internal():IsBeingBuilt() == 1 then
-				counter = counter +1
-			end
+		elseif UnitDefs[target] then
+			table.insert(defs,def)
 		end
 	end
-	return counter
+	defs = game:GetTeamUnitsByDefs(team,defs)
+
+	for index,id in pairs(defs) do
+		if game:GetUnitByID(id):IsBeingBuilt() then
+			counter = counter + 1
+		end
+	end
+	return counter, defs
 end
 
-function Tool:countMyUnit( targets ,finish)
+function Tool:countMyUnit( targets)
 	local team = self.game:GetTeamID()
 	local counter = 0
 	for i,target in pairs(targets) do

@@ -264,9 +264,8 @@ else
 			end
 
 			if Spring.GetUnitTeam(unitId) == thisAI.id then
-				--prepareTheAI(thisAI)
 				thisAI:Prepare()
-				thisAI.UnitCreated(thisAI, unit,builderId)
+				thisAI:UnitCreated(unit, unitDefId, teamId, builderId)
 			end
 			-- thisAI:UnitCreated(unitId, unitDefId, teamId, builderId)
 		end
@@ -287,7 +286,7 @@ else
 				thisAI.neutralUnitIds[unitId] = nil
 				-- thisAI:UnitDestroyed(unitId, unitDefId, teamId, attackerId, attackerDefId, attackerTeamId)
 			end
-			Shard:unshardify_unit(self.engineUnit)
+-- 			Shard:unshardify_unit(self.engineUnit)
 		end
 	end
 
@@ -311,7 +310,7 @@ else
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
 				thisAI:Prepare()
-				thisAI:UnitIdle(unit)
+				thisAI:UnitIdle(unit,unitDefId, teamId)
 				-- thisAI:UnitIdle(unitId, unitDefId, teamId)
 			end
 		end
@@ -388,6 +387,13 @@ else
 		end
 	end
 
+	function gadget:UnitMoved(a,b,c,d)
+		print('unit moved',a,b,c,d)
+	end
+
+	function gadget:UnitMoveFailed(a,b,c,d)
+		print('unit move failed',a,b,c,d)
+	end
 	function gadget:FeatureDestroyed(featureID)
 		Shard:unshardify_feature(featureID)
 	end

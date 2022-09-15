@@ -52,7 +52,9 @@ function ShardAI:Init()
 			if m == nil then
 				self:Warn("Error! Shard tried to init a nil module!")
 			else
+				local RAM = gcinfo()
 				m:Init()
+				print (m:Name(),gcinfo() - RAM)
 			end
 		end
 
@@ -80,8 +82,14 @@ function ShardAI:Update()
 			self:Warn("nil module!")
 		else
  			self.game:StartTimer(m:Name() .. ' ai')
+			--local RAM = gcinfo()
+
 			m:Update()
  			self.game:StopTimer(m:Name() .. ' ai')
+			--RAM = gcinfo() - RAM
+			--if RAM > 10 and m:Name() ~= 'UnitHandler' then
+			--	print (m:Name(),RAM)
+			--end
 		end
 	end
 end
@@ -101,11 +109,11 @@ function ShardAI:GameMessage(text)
 	end
 end
 
-function ShardAI:UnitCreated(engineunit,builderId)
+function ShardAI:UnitCreated(unit, unitDefId, teamId, builderId)
 	if self.gameend == true then
 		return
 	end
-	if engineunit == nil then
+	if unit == nil then
 		self:Warn("shard found nil engineunit")
 		return
 	end
@@ -115,7 +123,7 @@ function ShardAI:UnitCreated(engineunit,builderId)
 	end
 	for i,m in ipairs(self.modules) do
 		--self.game:StartTimer(m:Name() .. ' C')
-		m:UnitCreated(engineunit,builderId)
+		m:UnitCreated(unit, unitDefId, teamId, builderId)
 		--self.game:StopTimer(m:Name() .. ' C')
 
 	end
@@ -242,6 +250,7 @@ function ShardAI:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 end
 
 function ShardAI:UnitMoveFailed(engineunit)
+	print('UNIT MOVE FAILED')
 	if self.gameend == true then
 		return
 	end
