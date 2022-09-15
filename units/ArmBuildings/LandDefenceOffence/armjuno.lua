@@ -8,7 +8,7 @@ return {
 		buildtime = 21833,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -2 0",
-		collisionvolumescales = "44 88 44",
+		collisionvolumescales = "44 128 44",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		explodeas = "largeBuildingexplosiongeneric",

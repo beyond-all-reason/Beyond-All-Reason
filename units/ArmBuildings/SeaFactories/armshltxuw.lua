@@ -11,7 +11,7 @@ return {
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		collisionvolumeoffsets = "0 -5 8",
 		collisionvolumescales = "137 58 145",
-		collisionvolumetype = "CylY",
+		collisionvolumetype = "Box",
 		corpse = "ARMSHLT_DEAD",
 		energystorage = 1400,
 		explodeas = "hugeBuildingexplosiongeneric-uw",
