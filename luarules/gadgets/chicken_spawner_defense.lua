@@ -1545,15 +1545,15 @@ if gadgetHandler:IsSyncedCode() then
 			local brood3count = SetCount(broodRaptors3)
 			for unitID, _ in pairs(broodRaptors1) do
 				if mRandom() < config.spawnChance then
-					if mRandom(0,math.ceil((brood3count*4)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))) == 0 then
+					if mRandom(0,math.ceil((brood3count*4)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))+1) == 0 then
 						SpawnRandomOffWaveSquad(unitID, "chickenh4", 8)
 						break
 					end
-					if mRandom(0,math.ceil((brood2count*8)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))) == 0 then
+					if mRandom(0,math.ceil((brood2count*8)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))+1) == 0 then
 						SpawnRandomOffWaveSquad(unitID, "chickenh3", 2)
 						break
 					end
-					if mRandom(0,math.ceil((brood1count*16)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))) == 1 then
+					if mRandom(0,math.ceil((brood1count*16)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))+1) == 1 then
 						SpawnRandomOffWaveSquad(unitID, "chickenh2", 1)
 						break
 					end
@@ -1561,11 +1561,11 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			for unitID, _ in pairs(broodRaptors2) do
 				if mRandom() < config.spawnChance then
-					if mRandom(0,math.ceil((brood3count*8)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))) == 0 then
+					if mRandom(0,math.ceil((brood3count*8)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))+1) == 0 then
 						SpawnRandomOffWaveSquad(unitID, "chickenh4", 4)
 						break
 					end
-					if mRandom(0,math.ceil((brood2count*16)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))) == 0 then
+					if mRandom(0,math.ceil((brood2count*16)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))+1) == 0 then
 						SpawnRandomOffWaveSquad(unitID, "chickenh3", 1)
 						break
 					end
@@ -1573,7 +1573,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			for unitID, _ in pairs(broodRaptors3) do
 				if mRandom() < config.spawnChance then
-					if mRandom(0,math.ceil((brood3count*16)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))) == 0 then
+					if mRandom(0,math.ceil((brood3count*16)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))+1) == 0 then
 						SpawnRandomOffWaveSquad(unitID, "chickenh4", 1)
 						break
 					end
