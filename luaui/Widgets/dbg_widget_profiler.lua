@@ -9,7 +9,7 @@ function widget:GetInfo()
 		version = "2.0",
 		date = "2007+",
 		license = "GNU GPL, v2 or later",
-		layer = -math.huge,
+		layer = -1000000,
 		handler = true,
 		enabled = false  --  loaded by default?
 	}
@@ -49,7 +49,7 @@ local callinStats = {}
 local highres
 local spGetTimer = Spring.GetTimer
 
-if Spring.GetTimerMicros and  Spring.GetConfigInt("UseHighResTimer", 0) == 1 then 
+if Spring.GetTimerMicros and  Spring.GetConfigInt("UseHighResTimer", 0) == 1 then
 	spGetTimer = Spring.GetTimerMicros
 	highres = true
 end
@@ -102,16 +102,16 @@ function widget:TextCommand(s)
 		n = n + 1
 		token[n] = w
 	end
-	if token[1] == "widgetprofilertickrate" then 
-		if token[2] then 
+	if token[1] == "widgetprofilertickrate" then
+		if token[2] then
 			tick = tonumber(token[2]) or tick
 		end
-		if token[3] then 
+		if token[3] then
 			averageTime = tonumber(token[3]) or averageTime
 		end
 		Spring.Echo("Setting widget profiler to tick=", tick, "averageTime=", averageTime)
 	end
-	
+
 end
 
 
@@ -189,7 +189,7 @@ local function StartHook()
 	Spring.Echo("start profiling")
 
 	local wh = widgetHandler
-	
+
 	--wh.actionHandler:AddAction("widgetprofiler", widgetprofileraction, "Configure the tick rate of the widget profiler", 't')
 
 	local CallInsList = {}
@@ -304,7 +304,7 @@ end
 
 function widget:Shutdown()
 	StopHook()
-	
+
 end
 
 local lm, _, gm, _, um, _, sm, _ = spGetLuaMemUsage()
@@ -333,7 +333,7 @@ local totals_colour = "\255\200\200\255"
 local exp = math.exp
 
 local function CalcLoad(old_load, new_load, t)
-	if t and t > 0 then 
+	if t and t > 0 then
 		local exptick = exp(-tick / t)
 		return old_load * exptick + new_load * (1 - exptick)
 	else

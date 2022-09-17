@@ -6,7 +6,7 @@ function widget:GetInfo()
 		author = "aegis (Ryan Hileman)",
 		date = "Jan 2, 2011",
 		license = "Public Domain",
-		layer = -99999999999,
+		layer = -999999,
 		enabled = true
 	}
 end

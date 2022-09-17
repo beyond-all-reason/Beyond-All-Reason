@@ -5,7 +5,7 @@ function widget:GetInfo()
       author    = "Beherith",
       date      = "2022.02.18",
       license   = "GNU GPL, v2 or later",
-      layer     = -8288888,
+      layer     = -828888,
 	  handler   = true,
       enabled   = true
    }
@@ -16,7 +16,7 @@ end
 -- 3 things want screencopies, at least:
 -- GUIshader - Done -- dont care if its not sharpened, in fact!
 -- CAS - Done
--- TODO: 
+-- TODO:
 	-- LUPS distortionFBO - hard because large areas might have a noticable lack of sharpening...
 
 -- Code snippet to use if you want to request a copy:
@@ -28,19 +28,19 @@ end
 		else
 			-- gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy) -- copy screen to screencopy, and render screencopy into blurtex
 			Spring.Echo("no manager",  WG['screencopymanager'] )
-			return 
+			return
 		end
 		if screencopy == nil then return end
 ]]--
 
-local ScreenCopy 
+local ScreenCopy
 local lastScreenCopyFrame
 local vsx, vsy = widgetHandler:GetViewSizes()
 local firstCopy = true
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx, vsy = viewSizeX, viewSizeY
-	if ScreenCopy then gl.DeleteTexture(ScreenCopy) end 
+	if ScreenCopy then gl.DeleteTexture(ScreenCopy) end
 	ScreenCopy = gl.CreateTexture(vsx  , vsy, {
 		border = false,
 		min_filter = GL.LINEAR,
@@ -53,11 +53,11 @@ end
 local function GetScreenCopy()
 	local df = Spring.GetDrawFrame()
 	--Spring.Echo("GetScreenCopy", df)
-	if df ~= lastScreenCopyFrame then 
-		gl.CopyToTexture(ScreenCopy, 0, 0, 0, 0, vsx, vsy) 
+	if df ~= lastScreenCopyFrame then
+		gl.CopyToTexture(ScreenCopy, 0, 0, 0, 0, vsx, vsy)
 		lastScreenCopyFrame = df
-	end	
-	if firstCopy then 
+	end
+	if firstCopy then
 		firstCopy = false
 		return nil
 	end
@@ -65,7 +65,7 @@ local function GetScreenCopy()
 end
 
 function widget:Initialize()
-	if gl.CopyToTexture == nil then 
+	if gl.CopyToTexture == nil then
 		Spring.Echo("Screencopy Manager api: your hardware is missing the necessary CopyToTexture feature")
 		widgetHandler:RemoveWidget()
 		return false

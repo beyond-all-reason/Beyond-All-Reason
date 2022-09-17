@@ -6,7 +6,7 @@ function widget:GetInfo()
 		author  = "git blame",
 		date    = "git log",
 		license = "PD",
-		layer   = math.huge,
+		layer   = 999999,
 		enabled = false,
 	}
 end

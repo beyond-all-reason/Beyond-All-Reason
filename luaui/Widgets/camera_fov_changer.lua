@@ -5,7 +5,7 @@ function widget:GetInfo()
 	author    = "",
 	date      = "",
 	license   = "GNU GPL, v2 or later",
-	layer     = 99999999,
+	layer     = 999999,
 	enabled   = false  --  loaded by a horse?
 	}
 end
