@@ -6,7 +6,7 @@ function gadget:GetInfo()
     author    = "Bluestone",
     date      = "",
     license   = "GNU GPL, v2 or later",
-    layer     = -math.huge,
+    layer     = -999990,
     enabled   = true,
   }
 end

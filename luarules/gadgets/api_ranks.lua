@@ -9,7 +9,7 @@ function gadget:GetInfo()
 		author = "jK",
 		date = "Dec 19, 2007",
 		license = "GNU GPL, v2 or later",
-		layer = -math.huge,
+		layer = -990000,
 		enabled = true  --  loaded by default?
 	}
 end

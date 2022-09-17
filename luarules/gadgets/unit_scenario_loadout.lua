@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author = "Beherith",
 		date = "2021.03.20",
 		license = "GNU GPL, v2 or later",
-		layer = 1000000,
+		layer = 999999,
 		enabled = true,
 	}
 end
