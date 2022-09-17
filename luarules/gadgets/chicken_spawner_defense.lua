@@ -1018,7 +1018,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				
 				local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
-				local targetCleaners = currentWave*SetCount(humanTeams)*config.chickenSpawnMultiplier*2
+				local targetCleaners = currentWave*SetCount(humanTeams)*config.chickenSpawnMultiplier*2*config.spawnChance
 				local cleanerSpawnCount = math.ceil((targetCleaners - aliveCleaners)*0.25)
 				if targetCleaners - cleanerSpawned > 0 and cleanerSpawnCount > 0 then
 					if mRandom(0,1) == 0 then
@@ -1297,6 +1297,7 @@ if gadgetHandler:IsSyncedCode() then
 					SpawnRandomOffWaveSquad(queenID, "chickenh1", 20)
 					SpawnRandomOffWaveSquad(queenID, "chickenh1b", 20)
 				end
+				Spring.SetGameRulesParam("BossFightStarted", 1)
 			end
 		else
 			if mRandom() < config.spawnChance / 60 then
