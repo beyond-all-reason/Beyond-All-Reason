@@ -2128,7 +2128,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
             end
         end
         if m_rank.active then
-            DrawRank(rank, posY)
+            DrawRank(tonumber(rank), posY)
         end
         if m_country.active and country ~= "" then
             DrawCountry(country, posY)
