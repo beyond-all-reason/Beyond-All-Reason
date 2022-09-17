@@ -503,7 +503,7 @@ function MapHST:spotToCellMoveTest()--check how many time a unit(i chose command
 					local POS2ToCenter = self.ai.tool:distance(POS2,self.elmoMapCenter)/self.elmoMapMaxCenterDistance
 					local POS1toPOS2 = self.ai.tool:distance(POS1,POS2)/ self.elmoMapMaxDistance
 					local proportional = ((POS1ToCenter +POS2ToCenter) / 2 )
-					print('proportional',proportional,X1,Z1,X2,Z2)
+					--print('proportional',proportional,X1,Z1,X2,Z2)
 					--local proportional = (((POS1ToCenter +POS2ToCenter) / 2 ) + POS1toPOS2) / 2
 					--local proportional = (POS1ToCenter + POS2ToCenter + POS1toPOS2) / 3
 -- 					print(POS1.x,POS1.z,POS2.x,POS2.z)

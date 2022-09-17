@@ -14,6 +14,7 @@ function TaskLabBST:Init()
 	self:EchoDebug(self.name)
 	self.spec = self.ai.armyhst.unitTable[self.name]
 	self.mtype = self.ai.armyhst.factoryMobilities[self.name]
+	self.network = self.ai.maphst:MobilityNetworkHere(mtype,self.position)
 	self.isAirFactory = self.mtype == 'air'
 	self.qIndex = 1
 	self:resetCounters()
@@ -31,6 +32,14 @@ function TaskLabBST:Init()
 		self.units[uName].defId = unit
 	end
 
+end
+
+function TaskLabBST:OwnerBuilt()
+	self.ai.labbuildhst.labList[self.id] = self
+end
+
+function TaskLabBST:OwnerDead()
+	self.ai.labbuildhst.labList[self.id] = nil
 end
 
 function TaskLabBST:preFilter()
@@ -198,6 +207,14 @@ function TaskLabBST:resetCounters()
 	end
 end
 
+function TaskLabBST:GetMtypedLvCount(unitName)
+	local counter = self.ai.tool:mtypedLvCount(self.ai.armyhst.unitTable[unitName].mtypedLv)
+	self:EchoDebug('mtypedLvmtype ' , counter)
+	return counter
+end
+
+
+--[[
 function TaskLabBST:GetAmpOrGroundWeapon()
 	if (self.ai.armyhst.factoryMobilities[self.name][1] == 'bot' or self.ai.armyhst.factoryMobilities[self.name][1] == 'veh') then
 		return
@@ -216,9 +233,4 @@ function TaskLabBST:GetAmpOrGroundWeapon()
 	end
 	return false
 end
-
-function TaskLabBST:GetMtypedLvCount(unitName)
-	local counter = self.ai.tool:mtypedLvCount(self.ai.armyhst.unitTable[unitName].mtypedLv)
-	self:EchoDebug('mtypedLvmtype ' , counter)
-	return counter
-end
+]]

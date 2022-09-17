@@ -4,46 +4,27 @@ function CleanerBST:Name()
 	return "CleanerBST"
 end
 
-local CMD_PATROL = 15
-
 function CleanerBST:Init()
 	self.DebugEnabled = false
-
 	self.name = self.unit:Internal():Name()
 	self.id = self.unit:Internal():ID()
 	self:EchoDebug("init")
 	self.cleaningRadius = 390
-	if self.ai.armyhst._nano_[self.name] then
-		self.isStationary = true
-		self.cleaningRadius = 390
-	else
-		self.cleaningRadius = 300
-	end
-	self.ignore = {}
 	self.frameCounter = 0
-
 end
 
 function CleanerBST:Update()
-	 --self.uFrame = self.uFrame or 0
 	local f = self.game:Frame()
-	--if f - self.uFrame < self.ai.behUp['cleanerbst'] then
-	--	return
-	--end
-	--self.uFrame = f
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'CleanerBST' then return end
-	local cleanH =self.ai.cleanhst
-	if not cleanH.theCleaner[self.id]   then
+	if not self.ai.cleanhst.theCleaner[self.id]   then
 		self:EchoDebug(self.id,'do update')
+		self:Patroling()--TEST
 		self:Search()
 	else
-		self:EchoDebug('cleanthis', cleanH.theCleaner[self.id])
-		self:Clean(cleanH.theCleaner[self.id])
-		self.unit:ElectBehaviour()
-
+		self:EchoDebug('cleanthis', self.ai.cleanhst.theCleaner[self.id])
+		self:Clean(self.ai.cleanhst.theCleaner[self.id])
+		--self.unit:ElectBehaviour()
 	end
-
-	self.frameCounter = 0
 end
 
 function CleanerBST:OwnerBuilt()
@@ -52,10 +33,7 @@ end
 
 function CleanerBST:OwnerIdle()
 	self:EchoDebug("idle",self.id)
-
-	if not self.ai.cleanhst.theCleaner[self.id] then
-		self:Search()
-	end
+	self:Patroling()
 end
 
 function CleanerBST:Activate()
@@ -64,16 +42,9 @@ function CleanerBST:Activate()
 end
 function CleanerBST:Deactivate()
 	self:EchoDebug('deactivate command',self.ai.cleanhst.theCleaner[self.id])
-
 end
 
 function CleanerBST:Priority()
-	if self.ai.cleanhst.theCleaner[self.id] then
-		return 103
-	else
-		self:Deactivate()
-		return 0
-	end
 end
 
 function CleanerBST:Clean(targetId)
@@ -84,8 +55,8 @@ function CleanerBST:Clean(targetId)
 end
 
 function CleanerBST:reset()
-	self.ai.cleanhst.theCleaner = {}
-	self.ai.cleanhst.dirt = {}
+	self.ai.cleanhst.theCleaner = nil
+	self.ai.cleanhst.dirt = nil
 end
 
 function CleanerBST:ecoCondition()
@@ -122,7 +93,7 @@ function CleanerBST:Search()
 	end
 end
 
-function CleanerBST:Patroling() --TODO move nano patroling to another place (activate-deactivate behaviour)
+function CleanerBST:Patroling()
 	local uPos = self.unit:Internal():GetPosition()
 	self.unit:Internal():Patrol({uPos.x,uPos.y,uPos.z,0})
 end

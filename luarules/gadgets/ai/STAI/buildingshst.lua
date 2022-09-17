@@ -290,21 +290,21 @@ function BuildingsHST:searchPosInList(utype, builder,minDist,maxDist,list,neighb
 end
 
 function BuildingsHST:BuildNearNano(builder, utype)
-	self:EchoDebug("looking for spot near nano hotspots")
-	local nanoHots = self.ai.nanohst:GetHotSpots()
-	if nanoHots then
-		self:EchoDebug("got " .. #nanoHots .. " nano hotspots")
-		local hotRadius = self.ai.nanohst:HotBuildRadius()
-		for i = 1, #nanoHots do
-			local hotPos = nanoHots[i]
-			-- find somewhere within hotspot
-			local p = self:ClosestBuildSpot(builder, hotPos, utype, 10, nil, nil, hotRadius)
-			if p then
-				self:EchoDebug('found Position for near nano hotspot at: ' .. hotPos.x ..' ' ..hotPos.z)
-				return p
-			end
-		end
-	end
+-- 	self:EchoDebug("looking for spot near nano hotspots")
+-- 	local nanoHots = self.ai.nanohst:GetHotSpots()
+-- 	if nanoHots then
+-- 		self:EchoDebug("got " .. #nanoHots .. " nano hotspots")
+-- 		local hotRadius = self.ai.nanohst:HotBuildRadius()
+-- 		for i = 1, #nanoHots do
+-- 			local hotPos = nanoHots[i]
+-- 			-- find somewhere within hotspot
+-- 			local p = self:ClosestBuildSpot(builder, hotPos, utype, 10, nil, nil, hotRadius)
+-- 			if p then
+-- 				self:EchoDebug('found Position for near nano hotspot at: ' .. hotPos.x ..' ' ..hotPos.z)
+-- 				return p
+-- 			end
+-- 		end
+-- 	end
 	return self:BuildNearLastNano(builder, utype)
 end
 

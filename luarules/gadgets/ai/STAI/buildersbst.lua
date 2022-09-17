@@ -5,7 +5,7 @@ function BuildersBST:Name()
 end
 
 function BuildersBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.active = false
 	self.watchdogTimeout = 1800
 	local u = self.unit:Internal()
@@ -28,12 +28,6 @@ end
 
 function BuildersBST:OwnerDead()
 	if self.unit ~= nil then
--- 		for i, idx in pairs(self.ai.armyhst.buildersRole[self.role][self.name]) do
--- 			if self.id == idx then
--- 				table.remove(self.ai.armyhst.buildersRole[self.role][self.name],i)
--- 				self.role = nil
--- 			end
--- 		end
 		self.ai.buildingshst.roles[self.id] = nil
 		self.ai.buildingshst:ClearMyProjects(self.id)
 	end
@@ -69,16 +63,7 @@ function BuildersBST:Deactivate()
 end
 
 function BuildersBST:Priority()
-	return 100--[[
-	if self.failOut then
-		return 50
-	elseif not self.ai.buildingshst.builders[self.id]  or self.role == 'expand' then
-		return 50
-	elseif self.role == 'eco' then
-		return 1000
-	else
-		return 75
-	end]]
+	return 100
 end
 function BuildersBST:Watchdog()
 	if self.watchdogTimeout < game:Frame() then
@@ -265,22 +250,6 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 	end
 end
 
-function BuildersBST:GetAmpOrGroundWeapon()
-	if self.ai.enemyBasePosition then
-		if self.ai.maphst:MobilityNetworkHere('veh', self.position) ~= self.ai.maphst:MobilityNetworkHere('veh', self.ai.enemyBasePosition) and self.ai.maphst:MobilityNetworkHere('amp', self.position) == self.ai.maphst:MobilityNetworkHere('amp', self.ai.enemyBasePosition) then
-			self:EchoDebug('canbuild amphibious because of enemyBasePosition')
-			return true
-		end
-	end
-	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]
-	local network = self.ai.maphst:MobilityNetworkHere(mtype, self.position)
-	if not network or not self.ai.labbuildhst.factoryBuilded[mtype] or not self.ai.labbuildhst.factoryBuilded[mtype][network] then
-		self:EchoDebug('canbuild amphibious because ' .. mtype .. ' network here is too small or has not enough spots')
-		return true
-	end
-	return false
-end
-
 function BuildersBST:limitedNumber(name,number)
 	if not name then return end
 	self:EchoDebug(number,'limited for ',name)
@@ -331,14 +300,17 @@ function BuildersBST:ProgressQueue()
 	end
 	self.idx = self.idx + 1
 	for index = self.idx, #self.queue do
+
 		self.idx = index
 		self:EchoDebug(self.name,self.role,'queue idx',self.idx ,'JOB', JOB)
 		JOB = self.queue[index]
 		local utype = nil
 		local p
 		local jobName, p = self:getOrder(builder,JOB)
+
 		self:EchoDebug('jobName',jobName)
-		if JOB then
+		if JOB and jobName then
+			self.game:StartTimer(jobName .. ' job')
 			self:EchoDebug(self.name .. " filtering...",jobName)
 			local success = false
 			if JOB.special and jobName then
@@ -362,6 +334,7 @@ function BuildersBST:ProgressQueue()
 				utype, jobName, p = self:findPlace(utype, jobName,JOB.category,JOB.location)
 				self:EchoDebug('p',p)
 			end
+			self.game:StopTimer(jobName .. ' job')
 			if jobName and not utype   then
 				self:Warn('warning' , self.name , " cannot build:",jobName,", couldnt grab the unit type from the engine")
 				return
@@ -380,12 +353,14 @@ function BuildersBST:ProgressQueue()
 				self.failOut = nil
 				self.assistant = false
 				self:EchoDebug(self.name , " successful build command for ", utype:Name())
+				--
 				return true
 			else
 				self.fails = self.fails + 1
 				if self.fails >  #self.queue +1 then
 					self.failOut = self.game:Frame()
 					self:assist()
+					--self.game:StopTimer(jobName .. ' job')--?????no return here?????
 				end
 			end
 		end
@@ -425,17 +400,22 @@ function BuildersBST:assist()
 	end
 end
 
+
+
 --[[
-function BuildersBST:removeOldBuildersRole()
-	for role,roleTable in pairs(self.ai.armyhst.buildersRole) do
-		for name,nameTable in pairs (roleTable) do
-			for index,unitID in pairs(nameTable) do
-				if self.id == unitID then
-					table.remove(self.ai.armyhst.buildersRole[role][name],index)
-				end
-			end
+function BuildersBST:GetAmpOrGroundWeapon()
+	if self.ai.enemyBasePosition then
+		if self.ai.maphst:MobilityNetworkHere('veh', self.position) ~= self.ai.maphst:MobilityNetworkHere('veh', self.ai.enemyBasePosition) and self.ai.maphst:MobilityNetworkHere('amp', self.position) == self.ai.maphst:MobilityNetworkHere('amp', self.ai.enemyBasePosition) then
+			self:EchoDebug('canbuild amphibious because of enemyBasePosition')
+			return true
 		end
 	end
-	self.role = nil
+	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]
+	local network = self.ai.maphst:MobilityNetworkHere(mtype, self.position)
+	if not network or not self.ai.labbuildhst.factoryBuilded[mtype] or not self.ai.labbuildhst.factoryBuilded[mtype][network] then
+		self:EchoDebug('canbuild amphibious because ' .. mtype .. ' network here is too small or has not enough spots')
+		return true
+	end
+	return false
 end
 ]]

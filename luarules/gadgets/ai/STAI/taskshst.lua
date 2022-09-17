@@ -546,7 +546,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'_mex_'},min = 50}
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_torpedo1_','_torpedo2_'}}
 			},
 
 		{ 	category = '_torpedo2_' ,
@@ -555,7 +555,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'_mex_'},min = 50}
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_torpedo2_'}}
 			},
 
 	--	{ 	category = '_torpedoground_' ,economy = true,false,false},

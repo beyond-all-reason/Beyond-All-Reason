@@ -72,7 +72,31 @@ function LabBuildHST:factoriesRating()
 			t[i] = v.rating
 		end
 	end
-	self.factoryRating = self.ai.tool:reverseSortByValue(t)
+	local sorting = {}
+	local rank = {}
+	for name, rating in pairs(t) do
+        self:EchoDebug('name,rating,rank[rating]',name,rating,rank[rating])
+		if not rank[rating] then
+			rank[rating] = {}
+			table.insert(rank[rating],name)
+		else
+			table.insert(rank[rating],name)
+		end
+		table.insert(sorting, rating)
+	end
+	table.sort(sorting)
+	local factoriesRanking = {}
+	local ranksByFactories = {}
+	for i,v in pairs(sorting) do
+		for ii = #rank[v], 1, -1 do
+			local factoryName = table.remove(rank[v],ii)
+			table.insert(factoriesRanking, factoryName)
+			ranksByFactories[factoryName] = #factoriesRanking
+			self:EchoDebug('i-factoryname',(i .. ' ' .. factoryName))
+		end
+	end
+
+	self.factoryRating = factoriesRanking
 end
 
 function LabBuildHST:MyUnitBuilt(engineUnit)
@@ -95,12 +119,7 @@ function LabBuildHST:MyUnitBuilt(engineUnit)
 end
 
 function LabBuildHST:Update()
--- 	local f = self.game:Frame()
--- 	if f % 401 ~= 0 then
--- 		return
--- 	end
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
-
 	self:UpdateFactories()
 end
 
@@ -142,11 +161,27 @@ function LabBuildHST:AvailableFactories(factoriesPreCleaned)
 	end
 end
 
+function LabBuildHST:AvailableFactories2(factoriesPreCleaned)
+	self.factories = {}
+	for i,factory in pairs(factoriesPreCleaned) do
+		for id,builder in pairs (self.ai.buildingshst.roles) do
+			local builderType = game:GetTypeByName(builder.name)
+			local factoryType = game:GetTypeByName(factory)
+			if builderType:CanBuild(factoryName) then
+				table.insert(self.factories,factoryName)
+				break
+			end
+		end
+	end
+	for i, v in pairs(self.factories) do
+		self:EchoDebug(i .. ' ' .. v  .. ' is available Factories' )
+	end
+end
+
 function LabBuildHST:PrePositionFilter()
 	self:EchoDebug('pre positional filtering...')
 	local factoriesPreCleaned = {}
-	for rank, lab in pairs(self.factoryRating) do
-		local factoryName = lab[1]
+	for rank, factoryName in pairs(self.factoryRating) do
 		local buildMe = true
 		local utn=self.ai.armyhst.unitTable[factoryName]
 		local level = utn.techLevel
@@ -160,7 +195,7 @@ function LabBuildHST:PrePositionFilter()
 			self:EchoDebug(factoryName ..' already have ')
 			buildMe = false
 		end
- 		if buildMe and mtype == 'air' and not isAdvanced and self.ai.tool:countMyUnit({'factoryMobilities'}) == 1 then
+ 		if buildMe and mtype == 'air' and not self.ai.overviewhst.T2LAB  then
  			self:EchoDebug(factoryName ..' dont build air before advanced ')
  			buildMe = false
  		end
@@ -226,7 +261,7 @@ function LabBuildHST:ConditionsToBuildFactories(builder)
 		local factoryName = self.factories[order]
 		self.factoryCount = self.ai.tool:countMyUnit({'factoryMobilities'})
 		local uTn = self.ai.armyhst.unitTable[factoryName]
-		local factoryCountSq = self.ai.tool:countMyUnit({'factoryMobilities'}) * self.ai.tool:countMyUnit({'factoryMobilities'})
+		local factoryCountSq = self.factoryCount * self.factoryCount
 		local sameFactoryCount = self.ai.tool:countFinished({factoryName})
 		local sameFactoryMetal = sameFactoryCount * 20
 		local sameFactoryEnergy = sameFactoryCount * 500
@@ -288,7 +323,7 @@ function LabBuildHST:FactoryPosition(factoryName,builder)
 	local utype = self.game:GetTypeByName(factoryName)
 	local site = self.ai.buildingshst
 	local p
-	p = 	site:BuildNearNano(builder, utype) or
+	p = 	--site:BuildNearNano(builder, utype) or
 			site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'}) or
 			site:searchPosNearCategories(utype, builder,50,1000,{'factoryMobilities'}) or
 			site:searchPosNearCategories(utype, builder,50,nil,{'_mex_'}) or
@@ -348,7 +383,6 @@ function LabBuildHST:PostPositionalFilter(factoryName,p)
 			self:EchoDebug('dont build veh where are already bot not on top of tech level')
 			return false
 		end
-
 	end
 	return true
 end
