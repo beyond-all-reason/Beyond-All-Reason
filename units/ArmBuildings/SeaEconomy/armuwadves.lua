@@ -7,7 +7,7 @@ return {
 		buildtime = 20302,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
-		collisionvolumeoffsets = "0 -1 8",
+		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "42 62 62",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
@@ -45,7 +45,7 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "3.87525939941 -1.79256192627 3.92627716064",
+				collisionvolumeoffsets = "0 0 0",
 				collisionvolumescales = "42 62 62",
 				collisionvolumetype = "Box",
 				damage = 4200,
