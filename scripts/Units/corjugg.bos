@@ -667,7 +667,7 @@ AimFromWeapon1(piecenum)
 QueryWeapon1(piecenum)
 {
 
-	piecenum = mainbarrel;
+	piecenum = mainbarrelflare;
 }
 
 AimWeapon1(heading, pitch)
