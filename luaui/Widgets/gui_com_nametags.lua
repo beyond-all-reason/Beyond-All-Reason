@@ -542,7 +542,7 @@ if unba then
 			if oldXP < 0 then
 				oldXP = 0
 			end
-			if math.floor(xp) ~= math.floor(oldXP) then
+			if math.floor(xp*100) ~= math.floor(oldXP*100) then
 				GetCommAttributes(unitID, unitDefID)
 				local name, _ = GetPlayerInfo(select(2, GetTeamInfo(unitTeam, false)), false)
 				comnameList[name] = nil
