@@ -1358,6 +1358,11 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 	end
 end
 
+function widget:KeyRelease()
+	-- Since we grab the keyboard, we need to specify a KeyRelease to make sure other release actions can be triggered
+	return false
+end
+
 function widget:KeyPress(key, mods, isRepeat)
 	if not Spring.IsGUIHidden() and handleTextInput then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
@@ -1384,7 +1389,6 @@ function widget:KeyPress(key, mods, isRepeat)
 					cancelChatInput()
 				end
 				updateTextInputDlist = true
-				return true
 			end
 
 			if ctrl and key == 118 then -- CTRL + V
@@ -1398,7 +1402,6 @@ function widget:KeyPress(key, mods, isRepeat)
 			elseif not alt and not ctrl then
 				if key == 27 then -- ESC
 					cancelChatInput()
-					return true
 				elseif key == 8 then -- BACKSPACE
 					if inputTextPosition > 0 then
 						inputText = utf8.sub(inputText, 1, inputTextPosition-1) .. utf8.sub(inputText, inputTextPosition+1)

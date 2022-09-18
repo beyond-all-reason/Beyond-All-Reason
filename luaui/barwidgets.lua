@@ -1394,11 +1394,9 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
 	local textOwner = self.textOwner
 
 	if textOwner then
-		if textOwner.KeyPress then
-			textOwner:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
+		if (not textOwner.KeyPress) or textOwner:KeyPress(key, mods, isRepeat, label, unicode, scanCode) then
+			return true
 		end
-
-		return true
 	end
 
 	if self.actionHandler:KeyAction(true, key, mods, isRepeat, scanCode) then
@@ -1417,11 +1415,9 @@ function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode)
 	local textOwner = self.textOwner
 
 	if textOwner then
-		if textOwner.KeyRelease then
-			textOwner:KeyRelease(key, mods, label, unicode, scanCode)
+		if (not textOwner.KeyRelease) or textOwner:KeyRelease(key, mods, label, unicode, scanCode) then
+			return true
 		end
-
-		return true
 	end
 
 	if self.actionHandler:KeyAction(false, key, mods, false, scanCode) then
