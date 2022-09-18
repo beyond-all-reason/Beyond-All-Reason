@@ -1609,21 +1609,34 @@ local function buildUnitHandler(_, _, _, data)
 	end
 
 	-- Find the buildcycle for current key and iterate on it
-	local pressedKeys = Spring.GetPressedKeys()
-	local pressedKey
-	for k, v in pairs(pressedKeys) do
-		local key = SYMKEYS[k]
-		if v and key and #key == 1 then
-			pressedKey = string.lower(key)
-			break
+	local pressedKey, pressedScan
+	for k, v in pairs(Spring.GetPressedKeys()) do
+		if v and tonumber(k) then
+			local key = Spring.GetKeySymbol(tonumber(k))
+			if key and #key == 1 then
+				pressedKey = key
+				break
+			end
+		end
+	end
+
+	-- check if engine supports GetPressedScans first, adjust when/if https://github.com/beyond-all-reason/spring/pull/388 is deployed
+	local pressedScans = Spring.GetPressedScans and Spring.GetPressedScans() or {}
+	for k, v in pairs(pressedScans) do
+		if v and tonumber(k) then
+			local scan = Spring.GetScanSymbol(tonumber(k))
+			if scan and #scan == 4 then -- quick hack to avoid modifiers
+				pressedScan = scan
+				break
+			end
 		end
 	end
 
 	-- didnt find a suitable binding to cycle from
-	if not pressedKey then return end
+	if not (pressedKey or pressedScan) then return end
 
 	local buildCycle = {}
-	for _, keybind in ipairs(Spring.GetKeyBindings(pressedKey)) do
+	for _, keybind in ipairs(Spring.GetKeyBindings(pressedKey, pressedScan)) do
 		if string.sub(keybind.command, 1, 10) == 'buildunit_' then
 			local uDefName = string.sub(keybind.command, 11)
 			local uDef = UnitDefNames[uDefName]
