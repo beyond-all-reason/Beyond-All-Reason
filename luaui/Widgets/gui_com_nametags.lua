@@ -39,7 +39,6 @@ for i=1, 100 do
 	end
 	maxRank = i
 end
-Spring.Echo(maxRank)
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -193,9 +192,15 @@ local function GetCommAttributes(unitID, unitDefID)
 		end
 	end
 
-	local xp = GetUnitRulesParam(unitID, "xp")
-	if not xp then
-		xp = GetUnitExperience(unitID)
+	local xp = 0
+	if unba then
+		xp = GetUnitRulesParam(unitID, "xp")
+		if not xp then
+			xp = GetUnitExperience(unitID)
+		end
+		if comms[unitID] and xp ~= comms[unitID][7] and comnameList[name] then
+			comnameList[name] = gl.DeleteList(comnameList[name])
+		end
 	end
 	local height = comHeight[unitDefID] + heightOffset
 	return { name, { r, g, b, a }, height, bgColor, nil, playerRank and playerRank+1, xp, skill}
@@ -348,16 +353,14 @@ function widget:Update(dt)
 			-- old
 			local name = GetPlayerInfo(select(2, GetTeamInfo(myTeamID, false)), false)
 			if comnameList[name] ~= nil then
-				gl.DeleteList(comnameList[name])
-				comnameList[name] = nil
+				comnameList[name] = gl.DeleteList(comnameList[name])
 			end
 			-- new
 			myTeamID = Spring.GetMyTeamID()
 			myPlayerID = Spring.GetMyPlayerID()
 			name = GetPlayerInfo(select(2, GetTeamInfo(myTeamID, false)), false)
 			if comnameList[name] ~= nil then
-				gl.DeleteList(comnameList[name])
-				comnameList[name] = nil
+				comnameList[name] = gl.DeleteList(comnameList[name])
 			end
 			CheckAllComs()
 			sec = 0
@@ -557,7 +560,7 @@ if unba then
 			if oldXP < 0 then
 				oldXP = 0
 			end
-			--if math.floor(xp*100) ~= math.floor(oldXP*100) then	-- doesnt seem to do the job well :S
+			--if math.floor(xp*100) ~= math.floor(oldXP*100) then
 				GetCommAttributes(unitID, unitDefID)
 				local name, _ = GetPlayerInfo(select(2, GetTeamInfo(unitTeam, false)), false)
 				comnameList[name] = gl.DeleteList(comnameList[name])
