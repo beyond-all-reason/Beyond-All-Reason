@@ -222,6 +222,9 @@
 				"High traj": "High Traj",
 				"trajectory_tooltip": "Sets fire mode in artillery state (firing upwards instead of forwards)",
 
+				"wait": "Wait",
+				"wait_tooltip": "Pause unit actions",
+
 				"customOnOff": {
 					"lowTrajectory": "Low Trajectory",
 					"highTrajectory": "High Trajectory",
