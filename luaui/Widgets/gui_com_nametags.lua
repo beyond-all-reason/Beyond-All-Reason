@@ -32,6 +32,15 @@ local playerRankImages = "luaui\\images\\advplayerslist\\ranks\\"
 local comLevelSize = fontSize * 2.5
 local comLevelImages = "luaui\\images\\Ranks\\rank"
 
+local maxRank = 1
+for i=1, 100 do
+	if not VFS.FileExists(comLevelImages..i..'.png') then
+		break
+	end
+	maxRank = i
+end
+Spring.Echo(maxRank)
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -68,6 +77,8 @@ local diag = math.diag
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -265,7 +276,11 @@ local function createComnameList(attributes)
 			--local y_r = y + (fontSize * 0.44)
 			local x_r = 0
 			local y_r = y + (fontSize * 0.4) + (comLevelSize * 0.42)
-			glTexture(comLevelImages..(math.floor(attributes[7]*100)+2)..'.png')
+			if VFS.FileExists(comLevelImages..(math.floor(attributes[7]*100)+2)..'.png') then
+				glTexture(comLevelImages..(math.floor(attributes[7]*100)+2)..'.png')
+			else
+				glTexture(comLevelImages..maxRank..'.png')
+			end
 			glTexRect(x_r-halfSize, y_r-halfSize, x_r+halfSize, y_r+halfSize)
 			glTexture(false)
 		end
@@ -542,11 +557,11 @@ if unba then
 			if oldXP < 0 then
 				oldXP = 0
 			end
-			if math.floor(xp*100) ~= math.floor(oldXP*100) then
+			--if math.floor(xp*100) ~= math.floor(oldXP*100) then	-- doesnt seem to do the job well :S
 				GetCommAttributes(unitID, unitDefID)
 				local name, _ = GetPlayerInfo(select(2, GetTeamInfo(unitTeam, false)), false)
-				comnameList[name] = nil
-			end
+				comnameList[name] = gl.DeleteList(comnameList[name])
+			--end
 		end
 	end
 end
