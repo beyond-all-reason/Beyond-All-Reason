@@ -37,7 +37,6 @@ local bindings = {
 	{     "sc_i", "customgameinfo" },
 
 	{        "Any+sc_j", "mouse2" },
-	{       "backspace", "mousestate" },
 	{ "Shift+backspace", "togglecammode" },
 	{  "Ctrl+backspace", "togglecammode" },
 	{         "Any+tab", "toggleoverview" },
