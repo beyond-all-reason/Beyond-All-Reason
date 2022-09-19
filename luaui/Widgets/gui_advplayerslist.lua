@@ -932,7 +932,9 @@ function widget:PlayerChanged(playerID)
     if mySpecStatus then
         hideShareIcons = true
     end
-    InitializePlayers()
+    if Spring.GetGameFrame() > 0 then
+        GetAllPlayers()
+    end
 end
 
 function widget:Initialize()
@@ -1145,7 +1147,7 @@ function SetSidePics()
     end
 end
 
-local function GetAllPlayers()
+function GetAllPlayers()
     local tplayerCount = 0
     local allteams = Spring_GetTeamList()
     teamN = table.maxn(allteams) - 1 --remove gaia
