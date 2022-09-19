@@ -33,7 +33,9 @@ local drawlist = {}
 local advplayerlistPos = {}
 local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
-local gameMaxUnits = Spring.GetModOptions().maxunits
+
+-- calc actual player max unit limit = 32000 / (players+gaia)
+local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 / #Spring.GetTeamList()))
 
 local totalUnits = 0
 local totalGaiaUnits = 0
@@ -69,7 +71,7 @@ local function updateValues()
 
 		if displayFeatureCount then
 			local features = Spring.GetAllFeatures()
-			text = text..'    '..#features
+			text = text..'    \255\170\170\170'..#features
 		end
 
 		font:Begin()
