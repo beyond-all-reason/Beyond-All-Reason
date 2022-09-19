@@ -102,6 +102,7 @@ if gadgetHandler:IsSyncedCode() then
 	local squadPotentialTarget = {}
 	local unitTargetPool = {}
 	local unitCowardCooldown = {}
+	local unitTeleportCooldown = {}
 	local squadCreationQueue = {
 		units = {},
 		role = false,
@@ -382,7 +383,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local SKIRMISH = {
 		[UnitDefNames["chickens1"].id] = { distance = 270, chance = 0.33 },
-		[UnitDefNames["chickens2"].id] = { distance = 500, chance = 0.5, teleport = true},
+		[UnitDefNames["chickens2"].id] = { distance = 250, chance = 0.5, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["chickens3"].id] = { distance = 440, chance = 0.1 },
 		[UnitDefNames["chickenr1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenr2"].id] = { distance = 500, chance = 1 },
@@ -401,7 +402,7 @@ if gadgetHandler:IsSyncedCode() then
 	local COWARD = {
 		[UnitDefNames["chickenh1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenh1b"].id] = { distance = 500, chance = 1 },
-		[UnitDefNames["chickens2"].id] = { distance = 500, chance = 0.5, teleport = true},
+		[UnitDefNames["chickens2"].id] = { distance = 250, chance = 0.5, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["chickenr1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenr2"].id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames["chickenearty1"].id] = { distance = 500, chance = 1 },
@@ -416,7 +417,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["h_chickenq"].id] = { chance = 0.2 },
 		[UnitDefNames["vh_chickenq"].id] = { chance = 0.3 },
 		[UnitDefNames["epic_chickenq"].id] = { chance = 0.5 },
-		[UnitDefNames["chickens2"].id] = {chance = 0.2, teleport = true},
+		[UnitDefNames["chickens2"].id] = {chance = 0.2, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["chickena1"].id] = { chance = 0.2 },
 		[UnitDefNames["chickena1b"].id] = { chance = 0.2 },
 		[UnitDefNames["chickena1c"].id] = { chance = 0.2 },
@@ -1124,14 +1125,16 @@ if gadgetHandler:IsSyncedCode() then
 			if SKIRMISH[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < SKIRMISH[attackerDefID].chance) then
 				local ux, uy, uz = GetUnitPosition(unitID)
 				local x, y, z = GetUnitPosition(attackerID)
+				--if SKIRMISH[attackerDefID].teleport and (not unitTeleportCooldown[attackerID]) then unitTeleportCooldown[attackerID] = 1 end
 				if x and ux then
 					local angle = math.atan2(ux - x, uz - z)
 					local distance = mRandom(math.ceil(SKIRMISH[attackerDefID].distance*0.75), math.floor(SKIRMISH[attackerDefID].distance*1.25))
-					if SKIRMISH[attackerDefID].teleport and positionCheckLibrary.FlatAreaCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64) then
+					if SKIRMISH[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64) then
 						Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
 						Spring.SetUnitPosition(attackerID, x - (math.sin(angle) * distance), z - (math.cos(angle) * distance))
-						Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+						Spring.GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
 						Spring.SpawnCEG("scav-spawnexplo", x - (math.sin(angle) * distance), y ,z - (math.cos(angle) * distance), 0,0,0)
+						unitTeleportCooldown[attackerID] = Spring.GetGameFrame() + SKIRMISH[attackerDefID].teleportcooldown*30
 					else
 						Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
 					end
@@ -1142,14 +1145,16 @@ if gadgetHandler:IsSyncedCode() then
 				if curH and maxH and curH < (maxH * 0.8) then
 					local ax, ay, az = GetUnitPosition(attackerID)
 					local x, y, z = GetUnitPosition(unitID)
+					--if COWARD[unitDefID].teleport and (not unitTeleportCooldown[unitID]) then unitTeleportCooldown[unitID] = 1 end
 					if x and ax then
 						local angle = math.atan2(ax - x, az - z)
 						local distance = mRandom(math.ceil(COWARD[unitDefID].distance*0.75), math.floor(COWARD[unitDefID].distance*1.25))
-						if COWARD[unitDefID].teleport and positionCheckLibrary.FlatAreaCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64) then
+						if COWARD[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64) then
 							Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
 							Spring.SetUnitPosition(unitID, x - (math.sin(angle) * distance), z - (math.cos(angle) * distance))
 							Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
 							Spring.SpawnCEG("scav-spawnexplo", x - (math.sin(angle) * distance), y ,z - (math.cos(angle) * distance), 0,0,0)
+							unitTeleportCooldown[unitID] = Spring.GetGameFrame() + COWARD[unitDefID].teleportcooldown*30
 						else
 							Spring.GiveOrderToUnit(unitID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
 						end
@@ -1159,14 +1164,16 @@ if gadgetHandler:IsSyncedCode() then
 			elseif BERSERK[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < BERSERK[unitDefID].chance) then
 				local ax, ay, az = GetUnitPosition(attackerID)
 				local x, y, z = GetUnitPosition(unitID)
+				--if BERSERK[unitDefID].teleport and (not unitTeleportCooldown[unitID]) then unitTeleportCooldown[unitID] = 1 end
 				if ax then
-					if BERSERK[unitDefID].teleport and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
+					if BERSERK[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
 						Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
 						ax = ax + mRandom(-64,64)
 						az = az + mRandom(-64,64)
 						Spring.SetUnitPosition(unitID, ax, ay, az)
 						Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
 						Spring.SpawnCEG("scav-spawnexplo", ax, ay, az, 0,0,0)
+						unitTeleportCooldown[unitID] = Spring.GetGameFrame() + BERSERK[unitDefID].teleportcooldown*30
 					else
 						Spring.GiveOrderToUnit(unitID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
 					end
@@ -1175,14 +1182,16 @@ if gadgetHandler:IsSyncedCode() then
 			elseif BERSERK[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < BERSERK[attackerDefID].chance) then
 				local ax, ay, az = GetUnitPosition(unitID)
 				local x, y, z = GetUnitPosition(attackerID)
+				--if BERSERK[attackerDefID].teleport and (not unitTeleportCooldown[attackerID]) then unitTeleportCooldown[attackerID] = 1 end
 				if ax then
-					if BERSERK[attackerDefID].teleport and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
+					if BERSERK[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
 						Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
 						ax = ax + mRandom(-64,64)
 						az = az + mRandom(-64,64)
 						Spring.SetUnitPosition(attackerID, ax, ay, az)
 						Spring.GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
 						Spring.SpawnCEG("scav-spawnexplo", ax, ay, az, 0,0,0)
+						unitTeleportCooldown[attackerID] = Spring.GetGameFrame() + BERSERK[attackerDefID].teleportcooldown*30
 					else
 						Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
 					end
@@ -1754,6 +1763,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if UnitDefs[unitDefID].name == "chickenh4" then
 			broodRaptors3[unitID] = nil
+		end
+		if unitTeleportCooldown[unitID] then
+			unitTeleportCooldown[unitID] = nil
 		end
 	end
 
