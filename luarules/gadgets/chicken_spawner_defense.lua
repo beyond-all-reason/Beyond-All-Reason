@@ -382,18 +382,18 @@ if gadgetHandler:IsSyncedCode() then
 
 	local SKIRMISH = {
 		[UnitDefNames["chickens1"].id] = { distance = 270, chance = 0.33 },
-		[UnitDefNames["chickens2"].id] = { distance = 500, chance = 0.5 },
+		[UnitDefNames["chickens2"].id] = { distance = 500, chance = 0.5, teleport = true},
 		[UnitDefNames["chickens3"].id] = { distance = 440, chance = 0.1 },
 		[UnitDefNames["chickenr1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenr2"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickene1"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["chickene2"].id] = { distance = 200, chance = 0.01 },	
-		[UnitDefNames["chickenelectricallterrainassault"].id] = { distance = 200, chance = 0.01 },	
+		[UnitDefNames["chickenelectricallterrainassault"].id] = { distance = 200, chance = 0.01 },
 		[UnitDefNames["chickenearty1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenelectricallterrain"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["chickenacidswarmer"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["chickenacidassault"].id] = { distance = 200, chance = 1 },
-		[UnitDefNames["chickenacidallterrainassault"].id] = { distance = 200, chance = 1 },		
+		[UnitDefNames["chickenacidallterrainassault"].id] = { distance = 200, chance = 1 },
 		[UnitDefNames["chickenacidarty"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenacidallterrain"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["chickenh2"].id] = { distance = 500, chance = 0.25 },
@@ -401,6 +401,7 @@ if gadgetHandler:IsSyncedCode() then
 	local COWARD = {
 		[UnitDefNames["chickenh1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenh1b"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickens2"].id] = { distance = 500, chance = 0.5, teleport = true},
 		[UnitDefNames["chickenr1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenr2"].id] = { distance = 500, chance = 0.1 },
 		[UnitDefNames["chickenearty1"].id] = { distance = 500, chance = 1 },
@@ -415,6 +416,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["h_chickenq"].id] = { chance = 0.2 },
 		[UnitDefNames["vh_chickenq"].id] = { chance = 0.3 },
 		[UnitDefNames["epic_chickenq"].id] = { chance = 0.5 },
+		[UnitDefNames["chickens2"].id] = {chance = 0.2, teleport = true},
 		[UnitDefNames["chickena1"].id] = { chance = 0.2 },
 		[UnitDefNames["chickena1b"].id] = { chance = 0.2 },
 		[UnitDefNames["chickena1c"].id] = { chance = 0.2 },
@@ -450,7 +452,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chicken_dodo1"].id] = true,
 		[UnitDefNames["chicken_dodo2"].id] = true,
 	}
-	
+
 	local SMALL_UNIT = UnitDefNames["chicken1"].id
 	-- local MEDIUM_UNIT = UnitDefNames["chicken1"].id
 	-- local LARGE_UNIT = UnitDefNames["chicken1"].id
@@ -1125,7 +1127,14 @@ if gadgetHandler:IsSyncedCode() then
 				if x and ux then
 					local angle = math.atan2(ux - x, uz - z)
 					local distance = mRandom(math.ceil(SKIRMISH[attackerDefID].distance*0.75), math.floor(SKIRMISH[attackerDefID].distance*1.25))
-					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
+					if SKIRMISH[attackerDefID].teleport and positionCheckLibrary.FlatAreaCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64) then
+						Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+						Spring.SetUnitPosition(attackerID, x - (math.sin(angle) * distance), z - (math.cos(angle) * distance))
+						Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+						Spring.SpawnCEG("scav-spawnexplo", x - (math.sin(angle) * distance), y ,z - (math.cos(angle) * distance), 0,0,0)
+					else
+						Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
+					end
 					unitCowardCooldown[attackerID] = Spring.GetGameFrame() + 900
 				end
 			elseif COWARD[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < COWARD[unitDefID].chance) then
@@ -1136,20 +1145,47 @@ if gadgetHandler:IsSyncedCode() then
 					if x and ax then
 						local angle = math.atan2(ax - x, az - z)
 						local distance = mRandom(math.ceil(COWARD[unitDefID].distance*0.75), math.floor(COWARD[unitDefID].distance*1.25))
-						Spring.GiveOrderToUnit(unitID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
+						if COWARD[unitDefID].teleport and positionCheckLibrary.FlatAreaCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64) then
+							Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+							Spring.SetUnitPosition(unitID, x - (math.sin(angle) * distance), z - (math.cos(angle) * distance))
+							Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+							Spring.SpawnCEG("scav-spawnexplo", x - (math.sin(angle) * distance), y ,z - (math.cos(angle) * distance), 0,0,0)
+						else
+							Spring.GiveOrderToUnit(unitID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
+						end
 						unitCowardCooldown[unitID] = Spring.GetGameFrame() + 900
 					end
 				end
 			elseif BERSERK[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < BERSERK[unitDefID].chance) then
 				local ax, ay, az = GetUnitPosition(attackerID)
+				local x, y, z = GetUnitPosition(unitID)
 				if ax then
-					Spring.GiveOrderToUnit(unitID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
+					if BERSERK[unitDefID].teleport and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
+						Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+						ax = ax + mRandom(-64,64)
+						az = az + mRandom(-64,64)
+						Spring.SetUnitPosition(unitID, ax, ay, az)
+						Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+						Spring.SpawnCEG("scav-spawnexplo", ax, ay, az, 0,0,0)
+					else
+						Spring.GiveOrderToUnit(unitID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
+					end
 					unitCowardCooldown[unitID] = Spring.GetGameFrame() + 900
 				end
 			elseif BERSERK[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < BERSERK[attackerDefID].chance) then
 				local ax, ay, az = GetUnitPosition(unitID)
+				local x, y, z = GetUnitPosition(attackerID)
 				if ax then
-					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
+					if BERSERK[attackerDefID].teleport and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
+						Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+						ax = ax + mRandom(-64,64)
+						az = az + mRandom(-64,64)
+						Spring.SetUnitPosition(attackerID, ax, ay, az)
+						Spring.GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
+						Spring.SpawnCEG("scav-spawnexplo", ax, ay, az, 0,0,0)
+					else
+						Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
+					end
 					unitCowardCooldown[attackerID] = Spring.GetGameFrame() + 900
 				end
 			end
