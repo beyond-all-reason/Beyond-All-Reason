@@ -1731,7 +1731,7 @@ function widget:DrawScreen()
         local x, y, b = Spring.GetMouseState()
         for _, i in ipairs(drawList) do
             if i > -1 then -- and i < 64
-                posY = widgetPosY + widgetHeight - player[i].posY
+                posY = widgetPosY + widgetHeight - (player[i].posY or 0)
                 if myTeamID ~= player[i].team and not player[i].spec and not player[i].dead and player[i].name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX + 1, posY, m_name.posX + widgetPosX + m_name.width, posY + playerOffset) then
                     UiSelectHighlight(widgetPosX, posY, widgetPosX + widgetPosX + 2 + 4, posY + playerOffset, nil, b and 0.28 or 0.14)
                 end
