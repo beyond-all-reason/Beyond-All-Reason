@@ -2948,7 +2948,7 @@ function widget:MousePress(x, y, button)
             if i > -1 then
                 clickedPlayer = player[i]
                 clickedPlayer.id = i
-                posY = widgetPosY + widgetHeight - clickedPlayer.posY
+                posY = widgetPosY + widgetHeight - (clickedPlayer.posY or 0)
             end
 
             if mySpecStatus then
