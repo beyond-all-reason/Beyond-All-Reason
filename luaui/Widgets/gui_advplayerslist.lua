@@ -934,6 +934,7 @@ function widget:PlayerChanged(playerID)
     end
     if Spring.GetGameFrame() > 0 then
         GetAllPlayers()
+        CreateLists()
     end
 end
 

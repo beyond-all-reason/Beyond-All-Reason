@@ -124,7 +124,7 @@ return {
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-catapult",
 				firestarter = 70,
-				flighttime = 5.5,
+				flighttime = 4,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "catapultmissile.s3o",	--catapultmissile.s3o
