@@ -821,6 +821,21 @@ local function drawSelection()
 	glColor(1, 1, 1, 1)
 end
 
+function ColourString(R, G, B)
+	local R255 = math.floor(R * 255)
+	local G255 = math.floor(G * 255)
+	local B255 = math.floor(B * 255)
+	if R255 % 10 == 0 then
+		R255 = R255 + 1
+	end
+	if G255 % 10 == 0 then
+		G255 = G255 + 1
+	end
+	if B255 % 10 == 0 then
+		B255 = B255 + 1
+	end
+	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
+end
 
 local function drawUnitInfo()
 	local fontSize = (height * vsy * 0.123) * (0.94 - ((1 - math.max(1.05, ui_scale)) * 0.4))
@@ -960,6 +975,13 @@ local function drawUnitInfo()
 			local color = bfcolormap[math_min(math_max(math_floor((health / maxHealth) * 100), 0), 100)]
 			valueY3 = convertColor(color[1], color[2], color[3]) .. math_floor(health)
 		end
+
+		-- display unit owner name
+		local fontSizeOwner = fontSize * 0.87
+		local teamID = Spring.GetUnitTeam(displayUnitID)
+		local playerID = select(2, Spring.GetTeamInfo(teamID))
+		local name = Spring.GetPlayerInfo(playerID, false)
+		font2:Print(ColourString(Spring.GetTeamColor(teamID))..name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
 	else
 		valueY1 = metalColor .. unitDefInfo[displayUnitDefID].metalCost
 		valueY2 = energyColor .. unitDefInfo[displayUnitDefID].energyCost
