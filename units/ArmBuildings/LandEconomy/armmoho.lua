@@ -56,7 +56,7 @@ return {
 				category = "corpses",
 				collisionvolumeoffsets = "0 0 0",
 				collisionvolumescales = "70 70 70",
-				collisionvolumetype = "Box",
+				collisionvolumetype = "CylY",
 				damage = 1500,
 				energy = 0,
 				featuredead = "HEAP",
