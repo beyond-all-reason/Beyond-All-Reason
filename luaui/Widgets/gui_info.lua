@@ -135,6 +135,7 @@ local string_lines = string.lines
 local os_clock = os.clock
 
 local myTeamID = Spring.GetMyTeamID()
+local mySpec = Spring.GetSpectatingState()
 
 local GL_QUADS = GL.QUADS
 local glTexture = gl.Texture
@@ -376,6 +377,7 @@ end
 
 function widget:PlayerChanged(playerID)
 	myTeamID = Spring.GetMyTeamID()
+	mySpec = Spring.GetSpectatingState()
 end
 
 function widget:ViewResize()
@@ -977,11 +979,13 @@ local function drawUnitInfo()
 		end
 
 		-- display unit owner name
-		local fontSizeOwner = fontSize * 0.87
 		local teamID = Spring.GetUnitTeam(displayUnitID)
-		local playerID = select(2, Spring.GetTeamInfo(teamID))
-		local name = Spring.GetPlayerInfo(playerID, false)
-		font2:Print(ColourString(Spring.GetTeamColor(teamID))..name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
+		if mySpec or myTeamID ~= teamID then
+			local playerID = select(2, Spring.GetTeamInfo(teamID))
+			local name = Spring.GetPlayerInfo(playerID, false)
+			local fontSizeOwner = fontSize * 0.87
+			font2:Print(ColourString(Spring.GetTeamColor(teamID))..name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
+		end
 	else
 		valueY1 = metalColor .. unitDefInfo[displayUnitDefID].metalCost
 		valueY2 = energyColor .. unitDefInfo[displayUnitDefID].energyCost
