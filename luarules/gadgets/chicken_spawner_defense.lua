@@ -417,7 +417,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["h_chickenq"].id] = { chance = 0.2 },
 		[UnitDefNames["vh_chickenq"].id] = { chance = 0.3 },
 		[UnitDefNames["epic_chickenq"].id] = { chance = 0.5 },
-		[UnitDefNames["chickens2"].id] = {chance = 0.2, teleport = true, teleportcooldown = 2,},
+		[UnitDefNames["chickens2"].id] = {chance = 0.2, distance = 750, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["chickena1"].id] = { chance = 0.2 },
 		[UnitDefNames["chickena1b"].id] = { chance = 0.2 },
 		[UnitDefNames["chickena1c"].id] = { chance = 0.2 },
@@ -1125,7 +1125,6 @@ if gadgetHandler:IsSyncedCode() then
 			if SKIRMISH[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < SKIRMISH[attackerDefID].chance) then
 				local ux, uy, uz = GetUnitPosition(unitID)
 				local x, y, z = GetUnitPosition(attackerID)
-				--if SKIRMISH[attackerDefID].teleport and (not unitTeleportCooldown[attackerID]) then unitTeleportCooldown[attackerID] = 1 end
 				if x and ux then
 					local angle = math.atan2(ux - x, uz - z)
 					local distance = mRandom(math.ceil(SKIRMISH[attackerDefID].distance*0.75), math.floor(SKIRMISH[attackerDefID].distance*1.25))
@@ -1145,7 +1144,6 @@ if gadgetHandler:IsSyncedCode() then
 				if curH and maxH and curH < (maxH * 0.8) then
 					local ax, ay, az = GetUnitPosition(attackerID)
 					local x, y, z = GetUnitPosition(unitID)
-					--if COWARD[unitDefID].teleport and (not unitTeleportCooldown[unitID]) then unitTeleportCooldown[unitID] = 1 end
 					if x and ax then
 						local angle = math.atan2(ax - x, az - z)
 						local distance = mRandom(math.ceil(COWARD[unitDefID].distance*0.75), math.floor(COWARD[unitDefID].distance*1.25))
@@ -1164,8 +1162,8 @@ if gadgetHandler:IsSyncedCode() then
 			elseif BERSERK[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < BERSERK[unitDefID].chance) then
 				local ax, ay, az = GetUnitPosition(attackerID)
 				local x, y, z = GetUnitPosition(unitID)
-				--if BERSERK[unitDefID].teleport and (not unitTeleportCooldown[unitID]) then unitTeleportCooldown[unitID] = 1 end
-				if ax then
+				local separation = Spring.GetUnitSeparation(unitID, attackerID)
+				if ax and separation < (BERSERK[unitDefID].distance or 1000) then
 					if BERSERK[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
 						Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
 						ax = ax + mRandom(-64,64)
@@ -1182,8 +1180,8 @@ if gadgetHandler:IsSyncedCode() then
 			elseif BERSERK[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < BERSERK[attackerDefID].chance) then
 				local ax, ay, az = GetUnitPosition(unitID)
 				local x, y, z = GetUnitPosition(attackerID)
-				--if BERSERK[attackerDefID].teleport and (not unitTeleportCooldown[attackerID]) then unitTeleportCooldown[attackerID] = 1 end
-				if ax then
+				local separation = Spring.GetUnitSeparation(unitID, attackerID)
+				if ax and separation < (BERSERK[attackerDefID].distance or 1000) then
 					if BERSERK[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
 						Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
 						ax = ax + mRandom(-64,64)
