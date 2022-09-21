@@ -434,8 +434,8 @@ local options={
 	},
 	{
 		key    = "chicken_queenanger",
-		name   = "Killing burrows reduces queen hatch.",
-		desc   = "Killing burrows reduces queen hatch.",
+		name   = "Killing burrows delays queen hatching.",
+		desc   = "Killing burrows delays queen hatching.",
 		type   = "bool",
 		def    = true,
 		section= "chicken_defense_options",
