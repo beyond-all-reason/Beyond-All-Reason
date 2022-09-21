@@ -79,6 +79,7 @@ if gadgetHandler:IsSyncedCode() then
 	local t = 0 -- game time in secondstarget
 	local timeCounter = 0
 	local queenAnger = 0
+	local techAnger = 0
 	local queenMaxHP = 0
 	local burrowAnger = 0
 	local firstSpawn = true
@@ -278,6 +279,7 @@ if gadgetHandler:IsSyncedCode() then
 		config.gracePeriod = t-1
 		queenTime = (config.queenTime + config.gracePeriod)
 		queenAnger = 0  -- reenable chicken spawning
+		techAnger = 0
 		burrowAnger = 0
 		SetGameRulesParam("queenAnger", queenAnger)
 		local nextDifficulty
@@ -934,11 +936,11 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		else
-			local queenAngerPerTier = 100/#config.waves
-			if queenAnger >= 100 then
+			local techAngerPerTier = 100/#config.waves
+			if techAnger >= 100 then
 				currentWave = #config.waves
 			else
-				currentWave = math.ceil(queenAnger/queenAngerPerTier)
+				currentWave = math.ceil(techAnger/techAngerPerTier)
 			end
 
 			if currentWave > #config.waves then
@@ -972,11 +974,11 @@ if gadgetHandler:IsSyncedCode() then
 		currentMaxWaveSize = config.minChickens + math.ceil((queenAnger*0.01)*(maxWaveSize - config.minChickens))
 		squadManagerKillerLoop()
 		
-		local queenAngerPerTier = 100/#config.waves
-		if queenAnger >= 100 then
+		local techAngerPerTier = 100/#config.waves
+		if techAnger >= 100 then
 			currentWave = #config.waves
 		else
-			currentWave = math.ceil(queenAnger/queenAngerPerTier)
+			currentWave = math.ceil(techAnger/techAngerPerTier)
 		end
 
 		if currentWave > #config.waves then
@@ -1391,7 +1393,7 @@ if gadgetHandler:IsSyncedCode() then
 		local burrowCount = SetCount(burrows)
 		local heavyTurretCount = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id)
 		local lightTurretCount = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id)
-		if burrowCount*4*config.spawnChance > heavyTurretCount or mRandom(1,4) == 1 then
+		if burrowCount*4*config.spawnChance > heavyTurretCount or mRandom(1,16) == 1 then
 			local attempts = 0
 			repeat
 				attempts = attempts + 1
@@ -1415,7 +1417,7 @@ if gadgetHandler:IsSyncedCode() then
 			until heavyTurretUnitID or attempts > 100
 		end
 
-		if burrowCount*20*config.spawnChance > lightTurretCount or heavyTurretCount*10*config.spawnChance > lightTurretCount or mRandom(1,4) == 1 then
+		if burrowCount*20*config.spawnChance > lightTurretCount or heavyTurretCount*10*config.spawnChance > lightTurretCount or mRandom(1,16) == 1 then
 			for i = 1,5 do
 				local attempts = 0
 				repeat
@@ -1483,15 +1485,12 @@ if gadgetHandler:IsSyncedCode() then
 			if not queenID then
 				if t < config.gracePeriod then
 					queenAnger = 0
+					techAnger = 0
 				else
-					queenAnger = math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) + burrowAnger, 100)
+					queenAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - burrowAnger, 100), 0)
+					techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100), 100), 0)
 				end
 				SetGameRulesParam("queenAnger", queenAnger)
-			end
-
-			if t < config.gracePeriod then
-				-- do nothing in the grace period
-				return
 			end
 
 			if queenAnger >= 100 then
@@ -1513,7 +1512,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			local burrowSpawnTime = (config.burrowSpawnRate - quicken)
 
-			if burrowCount < minBurrows or (burrowSpawnTime < t - timeOfLastSpawn and burrowCount < maxBurrows) then
+			if t > config.burrowSpawnRate and burrowCount < minBurrows or (burrowSpawnTime < t - timeOfLastSpawn and burrowCount < maxBurrows) then
 				if firstSpawn then
 					SpawnBurrow()
 					timeOfLastSpawn = t
@@ -1534,17 +1533,19 @@ if gadgetHandler:IsSyncedCode() then
 				timeOfLastSpawn = t
 			end
 
-			if burrowCount > 0 and (((config.chickenMaxSpawnRate) < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount) and (t - timeOfLastWave) > (config.chickenMaxSpawnRate*0.25)) then
-				local cCount = Wave()
-				if cCount and cCount > 0 then
-					chickenEvent("wave", cCount, currentWave)
+			if t > config.gracePeriod+5 then
+				if burrowCount > 0 and (((config.chickenMaxSpawnRate) < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount) and (t - timeOfLastWave) > (config.chickenMaxSpawnRate*0.25)) then
+					local cCount = Wave()
+					if cCount and cCount > 0 then
+						chickenEvent("wave", cCount, currentWave)
+					end
+					lastWaveUnitCount = cCount
+					timeOfLastWave = t
 				end
-				lastWaveUnitCount = cCount
-				timeOfLastWave = t
 			end
 			chickenCount = UpdateUnitCount()
 		end
-		if n%(config.burrowSpawnRate*30) == 10 and n > config.gracePeriod*30 and chickenTeamUnitCount < chickenUnitCap and mRandom() < config.spawnChance then
+		if n%(config.burrowSpawnRate*30) == 10 and chickenTeamUnitCount < chickenUnitCap then
 			queueTurretSpawnIfNeeded()
 		end
 		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands

@@ -381,8 +381,8 @@ local options={
 	},
 	{
 		key    = "chicken_queentime",
-		name   = "Max Queen Arrival (Minutes)",
-		desc   = "Queen will spawn after given time.",
+		name   = "Minimum Queen Hatching Time (Minutes)",
+		desc   = "",
 		type   = "number",
 		def    = 40,
 		min    = 1,

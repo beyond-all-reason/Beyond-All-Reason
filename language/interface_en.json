@@ -511,13 +511,13 @@
 				"modOptions": "Mod options"
 			},
 			"chickens": {
-				"queenIsAngry": "The Queen is angered!",
+				"queenIsAngry": "The Queen is here!",
 				"queenResistant": "The Queen is becoming resistant to %{unit} attacks!",
 				"wave": "Wave %{waveNumber}",
 				"waveCount": "%{count} Raptors!",
 				"chickenCount": "Raptors: %{count}",
 				"chickenKillCount": "Raptors Killed: %{count}",
-				"queenAnger": "Queen Anger: %{anger}%%",
+				"queenAnger": "Queen Hatch: %{anger}%%",
 				"queenHealth": "Queen Health: %{health}%%",
 				"gracePeriod": "Grace Period: %{time}",
 				"burrowCount": "Burrows: %{count}",
