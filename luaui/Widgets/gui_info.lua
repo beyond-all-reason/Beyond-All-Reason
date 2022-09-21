@@ -983,6 +983,9 @@ local function drawUnitInfo()
 		if mySpec or myTeamID ~= teamID then
 			local playerID = select(2, Spring.GetTeamInfo(teamID))
 			local name = Spring.GetPlayerInfo(playerID, false)
+			if not name then
+				name = '---'
+			end
 			local fontSizeOwner = fontSize * 0.87
 			font2:Print(ColourString(Spring.GetTeamColor(teamID))..name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
 		end
