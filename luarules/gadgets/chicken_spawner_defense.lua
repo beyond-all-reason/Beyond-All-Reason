@@ -217,7 +217,7 @@ if gadgetHandler:IsSyncedCode() then
 		local x = mRandom(MAPSIZEX - 16)
 		local z = mRandom(MAPSIZEZ - 16)
 		local y = GetGroundHeight(x, z)
-		return { x, y, z }
+		return { x = x, y = y, z = z }
 	end
 
 	local function getRandomEnemyPos()
