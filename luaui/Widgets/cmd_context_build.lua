@@ -55,6 +55,10 @@ local unitlist = {--- Human friendly list. Automatically converted to unitdef ID
 	{'corllt','cortl'},
 	{'armnanotc','armnanotcplat'},
 	{'cornanotc','cornanotcplat'},
+	{'armvp','armamsub'},
+	{'corvp','coramsub'},
+	{'armap','armplat'},
+	{'corap','corplat'},
 }
 
 local GetActiveCommand		= Spring.GetActiveCommand
