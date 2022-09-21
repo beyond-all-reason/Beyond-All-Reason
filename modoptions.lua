@@ -434,8 +434,8 @@ local options={
 	},
 	{
 		key    = "chicken_queenanger",
-		name   = "Killing burrows adds to queen anger.",
-		desc   = "Killing burrows adds to queen anger.",
+		name   = "Killing burrows reduces queen hatch.",
+		desc   = "Killing burrows reduces queen hatch.",
 		type   = "bool",
 		def    = true,
 		section= "chicken_defense_options",
@@ -824,7 +824,7 @@ local options={
     },
 	{
 		key    = "usemexconfig",
-		name   = "Use metal spots as point locations?",
+		name   = "Use metal spots as point locations",
 		type   = 'bool',
 		def    = false,
 		section= "controlvictoryoptions",
