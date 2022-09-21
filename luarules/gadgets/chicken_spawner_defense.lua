@@ -1734,8 +1734,8 @@ if gadgetHandler:IsSyncedCode() then
 
 			burrows[unitID] = nil
 			if config.addQueenAnger then
-				burrowAnger = (burrowAnger + config.angerBonus)
-				config.maxXP = config.maxXP*1.05
+				burrowAnger = burrowAnger + ((queenAnger*config.angerBonus)*0.01)
+				config.maxXP = config.maxXP*1.01
 			end
 
 			for i, defs in pairs(spawnQueue) do
