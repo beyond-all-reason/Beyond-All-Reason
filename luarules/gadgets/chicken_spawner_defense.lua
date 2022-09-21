@@ -936,15 +936,15 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		else
-			local techAngerPerTier = 100/#config.waves
+			local techAngerPerTier = 100/config.wavesAmount
 			if techAnger >= 100 then
-				currentWave = #config.waves
+				currentWave = config.wavesAmount
 			else
 				currentWave = math.ceil(techAnger/techAngerPerTier)
 			end
 
-			if currentWave > #config.waves then
-				currentWave = #config.waves
+			if currentWave > config.wavesAmount then
+				currentWave = config.wavesAmount
 			end
 
 			local waveLevel = currentWave
@@ -952,7 +952,12 @@ if gadgetHandler:IsSyncedCode() then
 				local waveLevelPower = mRandom(1, currentWave^2)
 				waveLevel = math.ceil(math.sqrt(waveLevelPower))
 			end
-			local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
+			local squad = config.basicWaves[waveLevel][mRandom(1, #config.basicWaves[waveLevel])]
+			if config.specialWaves[waveLevel] and math.random(1,100) <= 25 then
+				squad = config.specialWaves[waveLevel][mRandom(1, #config.specialWaves[waveLevel])]
+			elseif config.superWaves[waveLevel] and math.random(1,100) <= 1 then
+				squad = config.superWaves[waveLevel][mRandom(1, #config.superWaves[waveLevel])]
+			end
 			for i, sString in pairs(squad) do
 				local nEnd, _ = string.find(sString, " ")
 				local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
@@ -974,15 +979,15 @@ if gadgetHandler:IsSyncedCode() then
 		currentMaxWaveSize = config.minChickens + math.ceil((queenAnger*0.01)*(maxWaveSize - config.minChickens))
 		squadManagerKillerLoop()
 		
-		local techAngerPerTier = 100/#config.waves
+		local techAngerPerTier = 100/config.wavesAmount
 		if techAnger >= 100 then
-			currentWave = #config.waves
+			currentWave = config.wavesAmount
 		else
 			currentWave = math.ceil(techAnger/techAngerPerTier)
 		end
 
-		if currentWave > #config.waves then
-			currentWave = #config.waves
+		if currentWave > config.wavesAmount then
+			currentWave = config.wavesAmount
 		end
 
 		local cCount = 0
@@ -1000,7 +1005,12 @@ if gadgetHandler:IsSyncedCode() then
 							local waveLevelPower = mRandom(1, currentWave^2)
 							waveLevel = math.ceil(math.sqrt(waveLevelPower))
 						end
-						local squad = config.waves[waveLevel][mRandom(1, #config.waves[waveLevel])]
+						local squad = config.basicWaves[waveLevel][mRandom(1, #config.basicWaves[waveLevel])]
+						if config.specialWaves[waveLevel] and math.random(1,100) <= 25 then
+							squad = config.specialWaves[waveLevel][mRandom(1, #config.specialWaves[waveLevel])]
+						elseif config.superWaves[waveLevel] and math.random(1,100) <= 1 then
+							squad = config.superWaves[waveLevel][mRandom(1, #config.superWaves[waveLevel])]
+						end
 						local skipSpawn = false
 						if cCount > 1 and mRandom() > config.spawnChance then
 							skipSpawn = true
