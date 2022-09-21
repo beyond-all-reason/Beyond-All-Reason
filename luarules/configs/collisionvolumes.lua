@@ -77,10 +77,7 @@ local pieceCollisionVolume = {}			--per piece collision volume definitions
 local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume definitions
 
 
-unitCollisionVolume['armamb'] = {
-	on={49,45,49,-0.5,0,0,0,1,0},
-	off={49,26,49,-0.5,0,0,0,1,0},
-}
+
 unitCollisionVolume['armanni'] = {
 	on={54,81,54,0,-2,0,2,1,0},
 	off={54,56,54,0,-15,0,2,1,0},
@@ -129,10 +126,7 @@ unitCollisionVolume['cormaw'] = {
 	on={35,57,35,0,-5,-3,0,1,0},
 	off={35,31,35,0,-5,-3,0,1,0},
 }
-unitCollisionVolume['shiva'] = {
-	on={58,50,59,0,15,-3,0,1,0},
-	off={58,50,59,0,15,-3,0,1,0},
-}
+
 for name, v in pairs(unitCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do
 		if string.find(ud.name, name) then
