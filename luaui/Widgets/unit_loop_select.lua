@@ -8,7 +8,7 @@ function widget:GetInfo()
 		date      = "Jul 18, 2009",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
-		enabled   = true  --  loaded by default?
+		enabled   = false  --  loaded by default?
 	}
 end
 
@@ -45,8 +45,6 @@ local glBeginEnd = gl.BeginEnd
 
 local spGetMouseState = Spring.GetMouseState
 local spGetActiveCommand = Spring.GetActiveCommand
-local spGetDefaultCommand = Spring.GetDefaultCommand
-local spGetModKeyState = Spring.GetModKeyState
 local spGetSpecState = Spring.GetSpectatingState
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetVisibleUnits = Spring.GetVisibleUnits
@@ -56,6 +54,12 @@ local spGetSelUnits = Spring.GetSelectedUnits
 local spSelUnitArray = Spring.SelectUnitArray
 
 local tremove = table.remove
+
+local active = false
+-- deselect selection
+local deselect = false
+-- add to selection
+local add = false
 
 ---------------------------------------------------------------------------
 -- Code
@@ -91,7 +95,7 @@ local function sVerts(nodes)
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
+function widget:RecvLuaMsg(msg)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
 	end
@@ -128,9 +132,8 @@ function widget:MousePress(mx, my, mButton)
 	local _, actCmdID = spGetActiveCommand()
 	if (actCmdID ~= nil) then return false end
 
-	-- Only handle if meta is also pressed
-	local _, _, meta, _ = spGetModKeyState()
-	if not meta then return false end
+	-- Only handle if active
+	if not active then return false end
 
 	-- Start dragging
 	local _, pos = spTraceScreenRay(mx, my, true)
@@ -147,7 +150,7 @@ function widget:MousePress(mx, my, mButton)
 	return true
 end
 
-function widget:MouseMove(mx, my, mdx, mdy, mButton)
+function widget:MouseMove(mx, my)
 
 	local _, pos = spTraceScreenRay(mx, my, true)
 
@@ -158,7 +161,7 @@ function widget:MouseMove(mx, my, mdx, mdy, mButton)
 	lx = wx; ly = wy; lz = wz
 end
 
-function widget:MouseRelease(mx, my, mButton)
+function widget:MouseRelease(mx, my)
 
 	-- Add final node (If different)
 	local _, pos = spTraceScreenRay(mx, my, true)
@@ -283,11 +286,7 @@ function widget:MouseRelease(mx, my, mButton)
 	end
 
 	-- Select the units
-	-- Different things happen depending on mod keys
-	local _, ctrl, _, shift = spGetModKeyState()
-
-	if ctrl then
-
+	if deselect then
 		-- ctrl 'inverts' when selecting
 		-- For units that we are going to select, if they are already selected, they become unselected
 		local selUnits = spGetSelUnits()
@@ -317,7 +316,7 @@ function widget:MouseRelease(mx, my, mButton)
 			end
 		end
 	else
-		if shift then
+		if add then
 
 			-- Easy, add units we already have selected, unless they are in poly
 			-- We probably don't want to have duplicates in what we select
@@ -353,6 +352,39 @@ function widget:MouseRelease(mx, my, mButton)
 	fAlpha = 1.0
 	sNodes = {}
 	dragging = false
+end
+
+local function setActive()
+  active = true
+end
+
+local function unsetActive()
+  active = false
+end
+
+local function setDeselect()
+  deselect = true
+end
+
+local function unsetDeselect()
+  deselect = false
+end
+
+local function setAdd()
+  add = true
+end
+
+local function unsetAdd()
+  add = false
+end
+
+function widget:Initialize()
+	widgetHandler:AddAction("selectloop", setActive, nil, "p")
+	widgetHandler:AddAction("selectloop", unsetActive, nil, "r")
+	widgetHandler:AddAction("selectloop_deselect", setDeselect, nil, "p")
+	widgetHandler:AddAction("selectloop_deselect", unsetDeselect, nil, "r")
+	widgetHandler:AddAction("selectloop_add", setAdd, nil, "p")
+	widgetHandler:AddAction("selectloop_add", unsetAdd, nil, "r")
 end
 
 ---------------------------------------------------------------------------
