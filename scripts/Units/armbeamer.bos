@@ -7,6 +7,8 @@ piece  base, flare, turret, sleeve, barrel;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5,
             Static_Var_6, Static_Var_7;
+			
+static-var lastheading, lastpitch;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -15,16 +17,34 @@ static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5
 Create()
 {
 	hide flare;
+	// Initializing with large negative values, to ensure first aim does wait-for-turn
+	lastheading=-1000000;
+	lastpitch=-1000000;
 }
 
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
+	// values in <> are degrees per second
+	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
+	// In general, 6 cau per frame ~= 1 degree per second
 	turn turret to y-axis heading speed <500.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <250.000000>;
+	// if the turret can turn to its new heading in one frame, just return true and do not wait for turn
+	if ( (get ABS(lastheading-heading)<3000) AND (get ABS(lastpitch-pitch)<1500) )
+	{
+		lastheading = heading;
+		lastpitch = pitch;
+		return (1);
+	}
+	// if turret needs more than one frame to turn to new heading, wait for the turn
+	// seems to take 3 frames for wait-for-turn to process
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
+	// after waiting for the turn, set the lastheading and lastpitch variables
+	lastheading = heading;
+	lastpitch = pitch;
 	return (1);
 }
 
@@ -38,7 +58,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	sleep 150;
+	//sleep 150; // this sleep should not be necessary, no return is expected from FirePrimary and nothing is being done before or after the sleep
 }
 
 AimFromPrimary(piecenum)

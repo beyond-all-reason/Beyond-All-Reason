@@ -23,6 +23,7 @@ local convertedUnits = {
 	--[UnitDefNames.armpincer.id] = true,
 	--[UnitDefNames.armsam.id] = true,
 	--[UnitDefNames.armstump.id] = true,
+	[UnitDefNames.armbeamer.id] = 3, 
 	[UnitDefNames.armpw.id] = 2,
 	[UnitDefNames.armpwt4.id] = 2,
 	[UnitDefNames.armflea.id] = 2,
