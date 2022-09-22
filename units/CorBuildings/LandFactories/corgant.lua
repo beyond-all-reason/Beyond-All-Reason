@@ -52,7 +52,6 @@ return {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/landfactories",
-			--midposoffset = [[0 0 21]],
 			techlevel = 3,
 		},
 		featuredefs = {

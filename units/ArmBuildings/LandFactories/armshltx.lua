@@ -50,7 +50,6 @@ return {
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbuildings/landfactories",
-			midposoffset = [[0 0 21]],
 			techlevel = 3,
 		},
 		featuredefs = {
