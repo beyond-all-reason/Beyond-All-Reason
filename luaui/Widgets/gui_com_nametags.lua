@@ -32,6 +32,14 @@ local playerRankImages = "luaui\\images\\advplayerslist\\ranks\\"
 local comLevelSize = fontSize * 2.5
 local comLevelImages = "luaui\\images\\Ranks\\rank"
 
+local maxRank = 1
+for i=1, 100 do
+	if not VFS.FileExists(comLevelImages..i..'.png') then
+		break
+	end
+	maxRank = i
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -68,6 +76,8 @@ local diag = math.diag
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -182,9 +192,15 @@ local function GetCommAttributes(unitID, unitDefID)
 		end
 	end
 
-	local xp = GetUnitRulesParam(unitID, "xp")
-	if not xp then
-		xp = GetUnitExperience(unitID)
+	local xp = 0
+	if unba then
+		xp = GetUnitRulesParam(unitID, "xp")
+		if not xp then
+			xp = GetUnitExperience(unitID)
+		end
+		if comms[unitID] and xp ~= comms[unitID][7] and comnameList[name] then
+			comnameList[name] = gl.DeleteList(comnameList[name])
+		end
 	end
 	local height = comHeight[unitDefID] + heightOffset
 	return { name, { r, g, b, a }, height, bgColor, nil, playerRank and playerRank+1, xp, skill}
@@ -265,7 +281,11 @@ local function createComnameList(attributes)
 			--local y_r = y + (fontSize * 0.44)
 			local x_r = 0
 			local y_r = y + (fontSize * 0.4) + (comLevelSize * 0.42)
-			glTexture(comLevelImages..(math.floor(attributes[7]*100)+2)..'.png')
+			if VFS.FileExists(comLevelImages..(math.floor(attributes[7]*100)+2)..'.png') then
+				glTexture(comLevelImages..(math.floor(attributes[7]*100)+2)..'.png')
+			else
+				glTexture(comLevelImages..maxRank..'.png')
+			end
 			glTexRect(x_r-halfSize, y_r-halfSize, x_r+halfSize, y_r+halfSize)
 			glTexture(false)
 		end
@@ -333,16 +353,14 @@ function widget:Update(dt)
 			-- old
 			local name = GetPlayerInfo(select(2, GetTeamInfo(myTeamID, false)), false)
 			if comnameList[name] ~= nil then
-				gl.DeleteList(comnameList[name])
-				comnameList[name] = nil
+				comnameList[name] = gl.DeleteList(comnameList[name])
 			end
 			-- new
 			myTeamID = Spring.GetMyTeamID()
 			myPlayerID = Spring.GetMyPlayerID()
 			name = GetPlayerInfo(select(2, GetTeamInfo(myTeamID, false)), false)
 			if comnameList[name] ~= nil then
-				gl.DeleteList(comnameList[name])
-				comnameList[name] = nil
+				comnameList[name] = gl.DeleteList(comnameList[name])
 			end
 			CheckAllComs()
 			sec = 0
@@ -542,11 +560,11 @@ if unba then
 			if oldXP < 0 then
 				oldXP = 0
 			end
-			if math.floor(xp) ~= math.floor(oldXP) then
+			--if math.floor(xp*100) ~= math.floor(oldXP*100) then
 				GetCommAttributes(unitID, unitDefID)
 				local name, _ = GetPlayerInfo(select(2, GetTeamInfo(unitTeam, false)), false)
-				comnameList[name] = nil
-			end
+				comnameList[name] = gl.DeleteList(comnameList[name])
+			--end
 		end
 	end
 end

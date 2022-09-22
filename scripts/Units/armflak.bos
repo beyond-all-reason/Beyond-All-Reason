@@ -39,11 +39,11 @@ RestoreAfterDelay()
 
 Create()
 {
-	hide flare4;
-	hide flare3;
 	hide flare1;
 	hide flare2;
-	gun_1 = flare1;
+	hide flare3;
+	hide flare4;
+	gun_1 = 1;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
@@ -66,50 +66,61 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	if( gun_1 == 0 )
+	if( gun_1 == 1 )
 	{
 	    emit-sfx 1024 + 0 from flare1;
 		move barrel1 to z-axis [-10.000000] now;
 		sleep 100;
 		move barrel1 to z-axis [0.000000] speed [37.500000];
-		gun_1 = flare2;
+		gun_1 = 2;
 		return (0);
 	}
-	if( gun_1 == 1 )
+	if( gun_1 == 2 )
 	{
 	    emit-sfx 1024 + 0 from flare2;
 		move barrel2 to z-axis [-10.000000] now;
 		sleep 100;
 		move barrel2 to z-axis [0.000000] speed [37.500000];
-		gun_1 = flare3;
+		gun_1 = 3;
+		return (0);
 	}
-	if( gun_1 == 2 )
+	if( gun_1 == 3 )
 	{
 	    emit-sfx 1024 + 0 from flare3;
 		move barrel3 to z-axis [-10.000000] now;
 		sleep 100;
 		move barrel3 to z-axis [0.000000] speed [37.500000];
-		gun_1 = flare4;
+		gun_1 = 4;
+		return (0);
 	}
-	if( gun_1 == 3 )
+	if( gun_1 == 4 )
 	{
 	    emit-sfx 1024 + 0 from flare4;
 		move barrel4 to z-axis [-10.000000] now;
 		sleep 100;
 		move barrel4 to z-axis [0.000000] speed [37.500000];
-		gun_1 = flare1;
+		gun_1 = 1;
+		return (0);
 	}
 }
 
 QueryPrimary(piecenum)
 {
-	if( gun_1 == 0 )
+	if( gun_1 == 1 )
 	{
 		piecenum = flare1;
 	}
-	if( gun_1 == 1 )
+	if( gun_1 == 2 )
 	{
 		piecenum = flare2;
+	}
+	if( gun_1 == 3 )
+	{
+		piecenum = flare3;
+	}
+	if( gun_1 == 4 )
+	{
+		piecenum = flare4;
 	}
 }
 

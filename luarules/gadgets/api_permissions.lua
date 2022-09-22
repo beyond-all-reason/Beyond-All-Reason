@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		author	= 'Floris',
 		date	= 'February 2021',
 		license	= 'GNU GPL, v2 or later',
-		layer	= -math.huge,
+		layer	= -999000,
 		enabled	= true
 	}
 end

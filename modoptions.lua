@@ -381,8 +381,8 @@ local options={
 	},
 	{
 		key    = "chicken_queentime",
-		name   = "Max Queen Arrival (Minutes)",
-		desc   = "Queen will spawn after given time.",
+		name   = "Minimum Queen Hatching Time (Minutes)",
+		desc   = "",
 		type   = "number",
 		def    = 40,
 		min    = 1,
@@ -434,8 +434,8 @@ local options={
 	},
 	{
 		key    = "chicken_queenanger",
-		name   = "Killing burrows adds to queen anger.",
-		desc   = "Killing burrows adds to queen anger.",
+		name   = "Killing burrows delays queen hatching.",
+		desc   = "Killing burrows delays queen hatching.",
 		type   = "bool",
 		def    = true,
 		section= "chicken_defense_options",
@@ -824,7 +824,7 @@ local options={
     },
 	{
 		key    = "usemexconfig",
-		name   = "Use metal spots as point locations?",
+		name   = "Use metal spots as point locations",
 		type   = 'bool',
 		def    = false,
 		section= "controlvictoryoptions",

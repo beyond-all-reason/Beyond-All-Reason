@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author = "jK, Bluestone",
 		date = "2007+",
 		license = "GNU GPL, v2 or later",
-		layer = math.huge,
+		layer = 1000000,
 		handler = true,
 		enabled = true,
 	}
@@ -117,8 +117,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 else
 	local t, s
-	
-	if Spring.GetTimerMicros and  Spring.GetConfigInt("UseHighResTimer", 0) == 1 then 
+
+	if Spring.GetTimerMicros and  Spring.GetConfigInt("UseHighResTimer", 0) == 1 then
 		spGetTimer = Spring.GetTimerMicros
 		highres = true
 	end
@@ -325,29 +325,29 @@ else
 			Kill(nil, nil, nil, pID, nil)
 		elseif pID == Spring.GetMyPlayerID() then
 			running = true
-			
+
 			tick = (words and words[1] and tonumber(words[1])) or tick
 			averageTime = (words and words[2] and tonumber(words[2])) or averageTime
-			
+
 			if highres and true then -- this tests the timers for correctness
 				local starttime = Spring.GetTimer()
 				local starttimeus = Spring.GetTimerMicros()
 				local j = 0
-				for i = 1, 1000000 do 
-					j = j + 1 
+				for i = 1, 1000000 do
+					j = j + 1
 				end
-				
+
 				local endtime = Spring.GetTimer()
 				local endtimeus = Spring.GetTimerMicros()
-				
+
 				Spring.Echo("GetTimer secs", Spring.DiffTimers( endtime,starttime, nil))
 				Spring.Echo("GetTimer msecs", Spring.DiffTimers( endtime, starttime,true))
 				Spring.Echo("GetTimerMicros secs", Spring.DiffTimers( endtimeus,starttimeus, nil, true))
 				Spring.Echo("GetTimerMicros msecs", Spring.DiffTimers( endtimeus, starttimeus,true, true))
 			end
-			
-			
-			
+
+
+
 			StartHook() -- the unsynced one!
 			startTickTimer = spGetTimer()
 
@@ -395,11 +395,11 @@ else
 	local redStrengthSYNCED = {}
 
 	local luarulesMemory, _, globalMemory, _, unsyncedMemory, _, syncedMemory, _ = spGetLuaMemUsage()
-	
+
 	local exp = math.exp
-	
+
 	local function CalcLoad(old_load, new_load, t)
-		if t and t > 0 then 
+		if t and t > 0 then
 			local exptick = exp(-tick / t)
 			return old_load * exptick + new_load * (1 - exptick)
 		else
@@ -655,7 +655,7 @@ else
 		end
 
 		local deltaTime = spDiffTimers(spGetTimer(), startTickTimer, nil, highres)
-		
+
 
 		if deltaTime >= tick then
 			startTickTimer = spGetTimer()

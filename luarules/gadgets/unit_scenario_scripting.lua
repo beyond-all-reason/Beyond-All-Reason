@@ -38,7 +38,7 @@ function gadget:GetInfo()
 		author    = "Damgam",
 		date      = "2021",
 		license   = "GNU GPL, v2 or later",
-		layer     = 1000000,
+		layer     = 999999,
 		enabled   = true,
 	}
 end

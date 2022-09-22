@@ -5,10 +5,12 @@ function widget:GetInfo()
 		author    = "Floris",
 		date      = "May 2021",
 		license   = "GNU GPL, v2 or later",
-		layer     = -9999999999,
+		layer     = -980000,
 		enabled   = true
 	}
 end
+
+local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
 
 local showHistoryWhenChatInput = true
 local enableShortcutClick = true -- enable ctrl+click to goto mapmark coords... while not being in history mode
@@ -910,7 +912,7 @@ local function drawChatInput()
 			if inputTextInsertActive then
 				textCursorWidth = math.floor(textCursorWidth * 5)
 			end
-			local textCursorPos = floor(usedFont:GetTextWidth(ssub(inputText, 1, inputTextPosition)) * inputFontSize)
+			local textCursorPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, inputTextPosition)) * inputFontSize)
 
 			-- background
 			local r,g,b,a
@@ -1337,13 +1339,13 @@ end
 function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
 	if handleTextInput and not chobbyInterface and not Spring.IsGUIHidden() and showTextInput then
 		if inputTextInsertActive then
-			inputText = ssub(inputText, 1, inputTextPosition) .. char .. ssub(inputText, inputTextPosition+2)
-			if inputTextPosition <= slen(inputText) then
-				inputTextPosition = inputTextPosition + slen(char) -- utf8 can bu multiple chars
+			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition+2)
+			if inputTextPosition <= utf8.len(inputText) then
+				inputTextPosition = inputTextPosition + 1
 			end
 		else
-			inputText = ssub(inputText, 1, inputTextPosition) .. char .. ssub(inputText, inputTextPosition+1)
-			inputTextPosition = inputTextPosition + slen(char) -- utf8 can bu multiple chars
+			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition+1)
+			inputTextPosition = inputTextPosition + 1
 		end
 		inputHistory[#inputHistory] = inputText
 		cursorBlinkTimer = 0
@@ -1356,121 +1358,41 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 	end
 end
 
-function widget:KeyPress(key, mods, isRepeat)
-	if not Spring.IsGUIHidden() and handleTextInput then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+function widget:KeyRelease()
+	-- Since we grab the keyboard, we need to specify a KeyRelease to make sure other release actions can be triggered
+	return false
+end
+
+function widget:KeyPress(key)
+	if Spring.IsGUIHidden() or not handleTextInput then
+		return
+	end
+
+	local alt, ctrl, _, shift = Spring.GetModKeyState()
+
+	if key == 13 then -- RETURN	 (keypad enter = 271)
 		if showTextInput then
-			if key == 13 then -- RETURN	 (keypad enter = 271)
-				if ctrl or alt or shift then
-					-- switch mode
-					if ctrl then
-						inputMode = ''
-					elseif alt and not isSpec then
-						inputMode = (inputMode == 'a:' and '' or 'a:')
+			if ctrl or alt or shift then
+				-- switch mode
+				if ctrl then
+					inputMode = ''
+				elseif alt and not isSpec then
+					inputMode = (inputMode == 'a:' and '' or 'a:')
+				else
+					inputMode = (inputMode == 's:' and '' or 's:')
+				end
+			else
+				-- send chat/cmd
+				if inputText ~= '' then
+					if ssub(inputText, 1, 1) == '/' then
+						Spring.SendCommands(ssub(inputText, 2))
 					else
-						inputMode = (inputMode == 's:' and '' or 's:')
+						Spring.SendCommands("say "..inputMode..inputText)
 					end
-				else
-					-- send chat/cmd
-					if inputText ~= '' then
-						if ssub(inputText, 1, 1) == '/' then
-							Spring.SendCommands(ssub(inputText, 2))
-						else
-							Spring.SendCommands("say "..inputMode..inputText)
-						end
-					end
-					cancelChatInput()
 				end
-				updateTextInputDlist = true
-				return true
+				cancelChatInput()
 			end
-
-			if ctrl and key == 118 then -- CTRL + V
-				local clipboardText = Spring.GetClipboard()
-				inputText = ssub(inputText, 1, inputTextPosition) .. clipboardText .. ssub(inputText, inputTextPosition+1)
-				inputTextPosition = inputTextPosition + slen(clipboardText)
-				inputHistory[#inputHistory] = inputText
-				cursorBlinkTimer = 0
-				autocomplete(inputText, true)
-
-			elseif not alt and not ctrl then
-				if key == 27 then -- ESC
-					cancelChatInput()
-					return true
-				elseif key == 8 then -- BACKSPACE
-					if inputTextPosition > 0 then
-						inputText = ssub(inputText, 1, inputTextPosition-1) .. ssub(inputText, inputTextPosition+1)
-						inputTextPosition = inputTextPosition - 1
-						inputHistory[#inputHistory] = inputText
-						if not (prevAutocompleteLetters and inputTextPosition == #inputText and ssub(inputText, #inputText) ~= ' ') then
-							prevAutocompleteLetters = nil
-						end
-					end
-					cursorBlinkTimer = 0
-					autocomplete(inputText, not prevAutocompleteLetters)
-				elseif key == 127 then -- DELETE
-					if inputTextPosition < slen(inputText) then
-						inputText = ssub(inputText, 1, inputTextPosition) .. ssub(inputText, inputTextPosition+2)
-						inputHistory[#inputHistory] = inputText
-					end
-					cursorBlinkTimer = 0
-					autocomplete(inputText, true)
-				elseif key == 277 then -- INSERT
-					inputTextInsertActive = not inputTextInsertActive
-				elseif key == 276 then -- LEFT
-					inputTextPosition = inputTextPosition - 1
-					if inputTextPosition < 0 then
-						inputTextPosition = 0
-					end
-					cursorBlinkTimer = 0
-				elseif key == 275 then -- RIGHT
-					inputTextPosition = inputTextPosition + 1
-					if inputTextPosition > slen(inputText) then
-						inputTextPosition = slen(inputText)
-					end
-					cursorBlinkTimer = 0
-				elseif key == 278 or key == 280 then -- HOME / PGUP
-					inputTextPosition = 0
-					cursorBlinkTimer = 0
-				elseif key == 279 or key == 281 then -- END / PGDN
-					inputTextPosition = slen(inputText)
-					cursorBlinkTimer = 0
-				elseif key == 273 then -- UP
-					inputHistoryCurrent = inputHistoryCurrent - 1
-					if inputHistoryCurrent < 1 then
-						inputHistoryCurrent = 1
-					end
-					if inputHistory[inputHistoryCurrent] then
-						inputText = inputHistory[inputHistoryCurrent]
-						inputHistory[#inputHistory] = inputText
-					end
-					inputTextPosition = slen(inputText)
-					cursorBlinkTimer = 0
-					autocomplete(inputText, true)
-				elseif key == 274 then -- DOWN
-					inputHistoryCurrent = inputHistoryCurrent + 1
-					if inputHistoryCurrent >= #inputHistory then
-						inputHistoryCurrent = #inputHistory
-					end
-					inputText = inputHistory[inputHistoryCurrent]
-					inputTextPosition = slen(inputText)
-					cursorBlinkTimer = 0
-					autocomplete(inputText, true)
-				elseif key == 9 then -- TAB
-					if autocompleteText then
-						inputText = ssub(inputText, 1, inputTextPosition) .. autocompleteText .. ssub(inputText, inputTextPosition+1)
-						inputTextPosition = inputTextPosition + slen(autocompleteText)
-						inputHistory[#inputHistory] = inputText
-						autocompleteText = nil
-						autocompleteWords = {}
-					end
-				else
-					-- regular chars/keys handled in widget:TextInput
-				end
-			end
-			updateTextInputDlist = true
-			return true
-		elseif key == 13 then -- RETURN	 (keypad enter = 271)
+		else
 			cancelChatInput()
 			showTextInput = true
 			if showHistoryWhenChatInput then
@@ -1493,10 +1415,101 @@ function widget:KeyPress(key, mods, isRepeat)
 			end
 			-- again just to be safe, had report locking could still happen
 			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-			updateTextInputDlist = true
-			return true
+		end
+
+		updateTextInputDlist = true
+		return true
+	end
+
+	if not showTextInput then
+		return false
+	end
+
+	if ctrl and key == 118 then -- CTRL + V
+		local clipboardText = Spring.GetClipboard()
+		inputText = utf8.sub(inputText, 1, inputTextPosition) .. clipboardText .. utf8.sub(inputText, inputTextPosition+1)
+		inputTextPosition = inputTextPosition + utf8.len(clipboardText)
+		inputHistory[#inputHistory] = inputText
+		cursorBlinkTimer = 0
+		autocomplete(inputText, true)
+
+	elseif not alt and not ctrl then
+		if key == 27 then -- ESC
+			cancelChatInput()
+		elseif key == 8 then -- BACKSPACE
+			if inputTextPosition > 0 then
+				inputText = utf8.sub(inputText, 1, inputTextPosition-1) .. utf8.sub(inputText, inputTextPosition+1)
+				inputTextPosition = inputTextPosition - 1
+				inputHistory[#inputHistory] = inputText
+				if not (prevAutocompleteLetters and inputTextPosition == #inputText and ssub(inputText, #inputText) ~= ' ') then
+					prevAutocompleteLetters = nil
+				end
+			end
+			cursorBlinkTimer = 0
+			autocomplete(inputText, not prevAutocompleteLetters)
+		elseif key == 127 then -- DELETE
+			if inputTextPosition < utf8.len(inputText) then
+				inputText = utf8.sub(inputText, 1, inputTextPosition) .. utf8.sub(inputText, inputTextPosition+2)
+				inputHistory[#inputHistory] = inputText
+			end
+			cursorBlinkTimer = 0
+			autocomplete(inputText, true)
+		elseif key == 277 then -- INSERT
+			inputTextInsertActive = not inputTextInsertActive
+		elseif key == 276 then -- LEFT
+			inputTextPosition = inputTextPosition - 1
+			if inputTextPosition < 0 then
+				inputTextPosition = 0
+			end
+			cursorBlinkTimer = 0
+		elseif key == 275 then -- RIGHT
+			inputTextPosition = inputTextPosition + 1
+			if inputTextPosition > utf8.len(inputText) then
+				inputTextPosition = utf8.len(inputText)
+			end
+			cursorBlinkTimer = 0
+		elseif key == 278 or key == 280 then -- HOME / PGUP
+			inputTextPosition = 0
+			cursorBlinkTimer = 0
+		elseif key == 279 or key == 281 then -- END / PGDN
+			inputTextPosition = utf8.len(inputText)
+			cursorBlinkTimer = 0
+		elseif key == 273 then -- UP
+			inputHistoryCurrent = inputHistoryCurrent - 1
+			if inputHistoryCurrent < 1 then
+				inputHistoryCurrent = 1
+			end
+			if inputHistory[inputHistoryCurrent] then
+				inputText = inputHistory[inputHistoryCurrent]
+				inputHistory[#inputHistory] = inputText
+			end
+			inputTextPosition = utf8.len(inputText)
+			cursorBlinkTimer = 0
+			autocomplete(inputText, true)
+		elseif key == 274 then -- DOWN
+			inputHistoryCurrent = inputHistoryCurrent + 1
+			if inputHistoryCurrent >= #inputHistory then
+				inputHistoryCurrent = #inputHistory
+			end
+			inputText = inputHistory[inputHistoryCurrent]
+			inputTextPosition = utf8.len(inputText)
+			cursorBlinkTimer = 0
+			autocomplete(inputText, true)
+		elseif key == 9 then -- TAB
+			if autocompleteText then
+				inputText = utf8.sub(inputText, 1, inputTextPosition) .. autocompleteText .. utf8.sub(inputText, inputTextPosition+1)
+				inputTextPosition = inputTextPosition + utf8.len(autocompleteText)
+				inputHistory[#inputHistory] = inputText
+				autocompleteText = nil
+				autocompleteWords = {}
+			end
+		else
+			-- regular chars/keys handled in widget:TextInput
 		end
 	end
+
+	updateTextInputDlist = true
+	return true
 end
 
 function widget:MousePress(x, y, button)

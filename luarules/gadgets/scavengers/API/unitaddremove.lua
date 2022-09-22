@@ -25,6 +25,7 @@ local function AddScavUnit(unitID, unitDefID, unitName, unitTeam)
 	end
 	for i = 1,#bossUnitList.Bosses do
 		if unitName == bossUnitList.Bosses[i] then
+			Spring.SetGameRulesParam("BossFightStarted", 1)
 			FinalBossUnitID = unitID
 			initialbosshealth = Spring.GetUnitHealth(unitID)
 			local stopScavUnits = Spring.GetTeamUnits(ScavengerTeamID)

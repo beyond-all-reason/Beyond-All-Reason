@@ -9,7 +9,7 @@ function widget:GetInfo()
 		author = "beherith, aeonios",
 		date = "2015 Sept.",
 		license = "GNU GPL, v2 or later",
-		layer = -99999990,
+		layer = -999990,
 		enabled = true
 	}
 end

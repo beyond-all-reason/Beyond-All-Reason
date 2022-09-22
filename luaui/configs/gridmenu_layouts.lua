@@ -495,9 +495,9 @@ local unitGrids = {
 			{ "armeyes", "armdrag", },                        -- perimeter camera, dragon's teeth
 		},
 		{
-			{ "armsy", "armfhp", "armamsub", "armplat", },    -- shipyard, floating hover, amphibious lab, seaplane lab
+			{ "armsy", "armvp", "armap", "armlab", },         -- shipyard, veh lab, air lab, bot lab
 			{ "armnanotcplat", "armasy", },                   -- floating nano, T2 shipyard
-			{ "armlab", "armvp", "armap", },                  -- bot lab, vehicle lab, air lab
+			{ "armfhp", "", "armamsub", "armplat", },         -- floating hover lab, amphibious lab, seaplane lab
 		}
 	},
 
@@ -517,9 +517,9 @@ local unitGrids = {
 			{ "coreyes", "cordrag", },                        -- perimeter camera, dragon's teeth
 		},
 		{
-			{ "corsy", "corfhp", "coramsub", "corplat", },    -- shipyard, floating hover, amphibious lab, seaplane lab
+			{ "corsy", "corvp", "corap", "corlab",  },        -- shipyard, vehicle lab, air lab, bot lab
 			{ "cornanotcplat", "corasy", },                   -- floating nano, T2 shipyard
-			{ "corlab", "corvp", "corap", },                  -- bot lab, vehicle lab, air lab
+			{ "corfhp", "", "coramsub", "corplat",  },        -- floating hover, amphibious lab, seaplane lab 
 		}
 	},
 
@@ -542,7 +542,7 @@ local unitGrids = {
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armnanotcplat", },                -- nano, floating nano
+			{ "armnanotc", "armavp", "armnanotcplat", "armasy",  },    -- nano, T2 veh lab, floating nano, T2 shipyard
 			{ "armhp", "armfhp", "armamsub", "armplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -565,9 +565,9 @@ local unitGrids = {
 		},
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "cornanotcplat", },                -- nano, floating nano
+			{ "cornanotc", "coravp", "cornanotcplat", "corasy", },   -- nano, T2 veh lab, floating nano, T2 shipyard
 			{ "corhp", "corfhp", "coramsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
-		}
+		},
 	},
 
 	-- Seaplane cons
@@ -636,7 +636,7 @@ local unitGrids = {
 		},
 		{
 			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armnanotcplat", "armavp", },      -- nano, floating nano, T2 veh lab
+			{ "armnanotc", "armavp", "armnanotcplat", },     -- nano, T2 veh lab, floating nano
 			{ "armhp", "armfhp", "armamsub", "armplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -659,7 +659,7 @@ local unitGrids = {
 		},
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "cornanotcplat", "coravp", },      -- nano, floating nano, T2 veh lab
+			{ "cornanotc", "coravp", "cornanotcplat", },     -- nano, T2 veh lab, floating nano
 			{ "corhp", "corfhp", "coramsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},

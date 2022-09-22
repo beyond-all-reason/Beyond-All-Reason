@@ -50,6 +50,10 @@ if Spring.GetModOptions().teamcolors_anonymous_mode then
 	Spring.SetTeamColor = function() return true end
 end
 
+if Spring.IsReplay() then
+	allowuserwidgets = true
+end
+
 widgetHandler = {
 	widgets = {},
 
@@ -649,7 +653,7 @@ local function SafeWrapFuncNoGL(func, funcName)
 	local wh = widgetHandler
 	return function(w, ...)
 		-- New method avoids needless table creation, but is limited to at most 2 return values per callin!
-		local r1, r2, r3 = pcall(func, w, ...) 
+		local r1, r2, r3 = pcall(func, w, ...)
 		if r1 then
 			return r2, r3
 		else
@@ -1394,11 +1398,9 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
 	local textOwner = self.textOwner
 
 	if textOwner then
-		if textOwner.KeyPress then
-			textOwner:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
+		if (not textOwner.KeyPress) or textOwner:KeyPress(key, mods, isRepeat, label, unicode, scanCode) then
+			return true
 		end
-
-		return true
 	end
 
 	if self.actionHandler:KeyAction(true, key, mods, isRepeat, scanCode) then
@@ -1417,11 +1419,9 @@ function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode)
 	local textOwner = self.textOwner
 
 	if textOwner then
-		if textOwner.KeyRelease then
-			textOwner:KeyRelease(key, mods, label, unicode, scanCode)
+		if (not textOwner.KeyRelease) or textOwner:KeyRelease(key, mods, label, unicode, scanCode) then
+			return true
 		end
-
-		return true
 	end
 
 	if self.actionHandler:KeyAction(false, key, mods, false, scanCode) then

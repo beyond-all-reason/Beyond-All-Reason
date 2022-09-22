@@ -8,7 +8,7 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "sept 2016",
 		license = "GNU GPL, v2 or later",
-		layer = 99999999,
+		layer = 999999,
 		enabled = true
 	}
 end

@@ -77,7 +77,7 @@ function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, wea
 				local x,y,z = fx,fy,fz
 				local _, mm, _, me, _ = Spring.GetFeatureResources(featureID)
 				if me ~= nil and me > 0 then
-					local numFx = math.floor(me/250)
+					local numFx = math.min(25, math.floor(me/250))
 					local posMultiplier = 0.5
 					Spring.SpawnCEG("energyshards1", x, y, z)
 					for i=1, numFx, 1 do
@@ -88,7 +88,7 @@ function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, wea
 					end
 				end
 				if mm ~= nil and mm > 0 then
-					local numFx = math.floor(mm/90)
+					local numFx = math.min(25,math.floor(mm/90))
 					local posMultiplier = 0.5
 					Spring.SpawnCEG("metalshards1", x, y, z)
 					for i=1, numFx, 1 do

@@ -11,6 +11,16 @@ local bindings = {
 	{            "esc", "customgameinfo_close"       },
 	{            "esc", "buildmenu_pregame_deselect" },
 
+	{  "Any+sc_z", "selectbox_same"     }, -- select only units that share type with current selection modifier | Smart Select Widget
+	{ "Any+space", "selectbox_idle"     }, -- select only idle units modifier | Smart Select Widget
+	{ "Any+shift", "selectbox_all"      }, -- select all units modifier | Smart Select Widget
+	{  "Any+ctrl", "selectbox_deselect" }, -- select units not present in current selection modifier | Smart Select Widget
+	{   "Any+alt", "selectbox_mobile"   }, -- select only mobile units modifier | Smart Select Widget
+
+	{      "Any+space", "selectloop"        }, -- activate select shape | Loop Select Widget
+	{       "Any+ctrl", "selectloop_invert" }, -- select units not present in current selection modifier | Loop Select Widget
+	{      "Any+shift", "selectloop_add"    }, -- add to selection modifier | Loop Select Widget
+
 	{           "sc_z", "gridmenu_category 1" },
 	{           "sc_x", "gridmenu_category 2" },
 	{           "sc_c", "gridmenu_category 3" },
@@ -39,7 +49,6 @@ local bindings = {
 	{     "sc_i", "customgameinfo" },
 
 	{         "Any+sc_j", "mouse2" },
-	{       "backspace", "mousestate" },
 	{ "Shift+backspace", "togglecammode" },
 	{  "Ctrl+backspace", "togglecammode" },
 	{         "Any+tab", "toggleoverview" },

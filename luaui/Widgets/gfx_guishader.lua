@@ -10,7 +10,7 @@ function widget:GetInfo()
 		author = "Floris (original blurapi widget by: jK)",
 		date = "17 february 2015",
 		license = "GNU GPL, v2 or later",
-		layer = -99999999, -- other widgets can be run earlier (lower layer) and thus guishader blur are will lag behind a frame, (like tooltip screenblur)
+		layer = -990000, -- other widgets can be run earlier (lower layer) and thus guishader blur are will lag behind a frame, (like tooltip screenblur)
 		enabled = true  --  loaded by default?
 	}
 end
@@ -54,7 +54,7 @@ local intensityMult = (vsx + vsy) / 1600
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx, vsy = viewSizeX, viewSizeY
 	ivsx, ivsy = vsx, vsy
-	
+
 	if screencopyUI then gl.DeleteTexture(screencopyUI) end
 	screencopyUI = gl.CreateTexture(vsx, vsy, {
 		border = false,
@@ -63,7 +63,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 		wrap_s = GL.CLAMP,
 		wrap_t = GL.CLAMP,
 	})
-	
+
 	intensityMult = (vsx + vsy) / 2800
 	updateStencilTexture = true
 	updateStencilTextureScreen = true
@@ -198,7 +198,7 @@ function CreateShaders()
 			ivsy = 0,
 		}
 	})
-	
+
 
 	if blurShader == nil then
 		Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader blurShader: shader error: " .. gl.GetShaderLog())
@@ -209,7 +209,7 @@ function CreateShaders()
 	intensityLoc = gl.GetUniformLocation(blurShader, "intensity")
 	ivsxLoc = gl.GetUniformLocation(blurShader, "ivsx")
 	ivsyLoc = gl.GetUniformLocation(blurShader, "ivsy")
-	
+
 	screencopyUI = gl.CreateTexture(vsx, vsy, {
 		border = false,
 		min_filter = GL.LINEAR,
@@ -217,7 +217,7 @@ function CreateShaders()
 		wrap_s = GL.CLAMP,
 		wrap_t = GL.CLAMP,
 	})
-	
+
 	if screencopyUI == nil then
 		Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader api: texture error")
 		widgetHandler:RemoveWidget()
@@ -249,11 +249,11 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 		return
 	end
 
-	if not screenBlur and blurShader then 
+	if not screenBlur and blurShader then
 		if not next(guishaderRects) and not next(guishaderDlists) then
 			return
 		end
-		
+
 		if WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
 			screencopy = WG['screencopymanager'].GetScreenCopy()
 		else
@@ -261,9 +261,9 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 			widgetHandler:RemoveWidget()
 			return false
 		end
-		
+
 		if screencopy == nil then return end
-		
+
 		gl.Texture(false)
 		gl.Color(1, 1, 1, 1) --needed? nope
 		gl.Blending(true)
@@ -273,20 +273,20 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 			updateStencilTexture = false;
 		end
 
-		
+
 		gl.Blending(true)
 		gl.Texture(screencopy)
 		gl.Texture(2, stenciltex)
-		gl.UseShader(blurShader) 
-		
+		gl.UseShader(blurShader)
+
 		gl.Uniform(intensityLoc, math.max(blurIntensity, 0.0015))
 		gl.Uniform(ivsxLoc, 0.5/vsx)
 		gl.Uniform(ivsyLoc, 0.5/vsy)
 
 		gl.TexRect(0, vsy, vsx, 0) -- draw the blurred version
-		gl.UseShader(0) 
+		gl.UseShader(0)
 		gl.Texture(2, false)
-		gl.Texture(false) 
+		gl.Texture(false)
 		gl.Blending(false)
 	end
 end
@@ -300,26 +300,26 @@ local function DrawScreen() -- This blurs the UI elements obscured by other UI e
 		gl.Texture(false)
 		gl.Color(1, 1, 1, 1)
 		gl.Blending(true)
-		
+
 		if updateStencilTextureScreen then
 			DrawStencilTexture(false, screenBlur)
 			updateStencilTextureScreen = false
 		end
-		
+
 		gl.CopyToTexture(screencopyUI, 0, 0, 0, 0, vsx, vsy)
 		gl.Texture(screencopyUI)
 
 		gl.Texture(2, stenciltexScreen)
 		gl.UseShader(blurShader)
-		
+
 		gl.Uniform(intensityLoc, math.max(blurIntensity, 0.0015))
 		gl.Uniform(ivsxLoc, 0.5/vsx)
 		gl.Uniform(ivsyLoc, 0.5/vsy)
 
 		gl.TexRect(0, vsy, vsx, 0) -- draw the blurred version
-		gl.UseShader(0) 
+		gl.UseShader(0)
 		gl.Texture(2, false)
-		gl.Texture(false) 
+		gl.Texture(false)
 	end
 
 	for k, v in pairs(renderDlists) do
@@ -357,13 +357,13 @@ function widget:Initialize()
 
 	WG['guishader'] = {}
 	WG['guishader'].InsertDlist = function(dlist, name)
-		if guishaderDlists[name] ~= dlist then 
+		if guishaderDlists[name] ~= dlist then
 			guishaderDlists[name] = dlist
 			updateStencilTexture = name
 			--Spring.Debug.TraceFullEcho(nil,nil,nil, "InsertDlist")
 			--Spring.Debug.TraceEcho("InsertDlist", dlist, name)
 		end
-		
+
 	end
 	WG['guishader'].RemoveDlist = function(name)
 		local found = false
@@ -371,7 +371,7 @@ function widget:Initialize()
 			found = true
 		end
 		guishaderDlists[name] = nil
-		if found then 
+		if found then
 			updateStencilTexture = name
 		end
 		return found
@@ -394,7 +394,7 @@ function widget:Initialize()
 			found = true
 		end
 		guishaderRects[name] = nil
-		if found then 
+		if found then
 			updateStencilTexture = name
 		end
 		return found

@@ -135,6 +135,7 @@ local string_lines = string.lines
 local os_clock = os.clock
 
 local myTeamID = Spring.GetMyTeamID()
+local mySpec = Spring.GetSpectatingState()
 
 local GL_QUADS = GL.QUADS
 local glTexture = gl.Texture
@@ -376,6 +377,7 @@ end
 
 function widget:PlayerChanged(playerID)
 	myTeamID = Spring.GetMyTeamID()
+	mySpec = Spring.GetSpectatingState()
 end
 
 function widget:ViewResize()
@@ -821,6 +823,21 @@ local function drawSelection()
 	glColor(1, 1, 1, 1)
 end
 
+function ColourString(R, G, B)
+	local R255 = math.floor(R * 255)
+	local G255 = math.floor(G * 255)
+	local B255 = math.floor(B * 255)
+	if R255 % 10 == 0 then
+		R255 = R255 + 1
+	end
+	if G255 % 10 == 0 then
+		G255 = G255 + 1
+	end
+	if B255 % 10 == 0 then
+		B255 = B255 + 1
+	end
+	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
+end
 
 local function drawUnitInfo()
 	local fontSize = (height * vsy * 0.123) * (0.94 - ((1 - math.max(1.05, ui_scale)) * 0.4))
@@ -959,6 +976,18 @@ local function drawUnitInfo()
 		if health then
 			local color = bfcolormap[math_min(math_max(math_floor((health / maxHealth) * 100), 0), 100)]
 			valueY3 = convertColor(color[1], color[2], color[3]) .. math_floor(health)
+		end
+
+		-- display unit owner name
+		local teamID = Spring.GetUnitTeam(displayUnitID)
+		if mySpec or myTeamID ~= teamID then
+			local playerID = select(2, Spring.GetTeamInfo(teamID))
+			local name = Spring.GetPlayerInfo(playerID, false)
+			if not name then
+				name = '---'
+			end
+			local fontSizeOwner = fontSize * 0.87
+			font2:Print(ColourString(Spring.GetTeamColor(teamID))..name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
 		end
 	else
 		valueY1 = metalColor .. unitDefInfo[displayUnitDefID].metalCost

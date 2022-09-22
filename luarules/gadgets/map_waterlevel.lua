@@ -9,7 +9,7 @@ function gadget:GetInfo()
 		author = "Doo",
 		date = "Nov 2017",
 		license = "GNU GPL, v2 or later",
-		layer = math.huge, --higher layer is loaded last
+		layer = 999999, --higher layer is loaded last
 		enabled = true,
 	}
 end
