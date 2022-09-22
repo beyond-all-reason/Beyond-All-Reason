@@ -6,7 +6,10 @@
 piece  pelvis, torso, lleg, lfoot, rleg, rfoot, head,
        rflare , lflare , lancher,tflare ,lthigh,rthigh,neck, rbarrel, lbarrel, rtoe, ltoe,aimy1, aimx1;
 
-static-var  bMoving, bAiming, restore_delay, gun_1, wpn1_lasthead, wpn3_lasthead;
+static-var  bMoving, bAiming, restore_delay, gun_1, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy;
+//wpn1_lasthead, wpn3_lasthead
+
+static-var  Stunned;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -352,11 +355,15 @@ Create()
 	hide tflare;
 	hide pelvis;
 	bMoving = FALSE;
-	bAiming = FALSE;
+	//bAiming = FALSE;
 	animSpeed = 4;
 	restore_delay = 3000;
 	hide pelvis;
 	gun_1 = 0;
+	// Initializing with large negative values, to ensure first aim does wait-for-turn
+	gun_lasthead = -1000000;
+	torp_lasthead = -1000000;
+	torp_deploy = FALSE;
 }
 
 #define BASEPIECE pelvis
@@ -393,7 +400,6 @@ SweetSpot(piecenum)
 	piecenum = torso;
 }
 
-static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
@@ -402,44 +408,66 @@ ExecuteRestoreAfterDelay()
 	turn aimy1 to y-axis <0.000000> speed <90.000000>;
 
 	wait-for-turn head around y-axis;
-	wpn1_lasthead = 1000000;
-	wpn3_lasthead = 1000000;
+	gun_lasthead = -1000000;
+	torp_lasthead = -1000000;
 	move lancher to y-axis [0] speed [25];
 	turn lancher to y-axis <0> speed <200.000000>;
 	wait-for-turn lancher around y-axis;
 	bAiming = FALSE;
 }
+
 SetStunned(State)
 {
     Stunned = State;
-	if (!Stunned) {
-	    start-script ExecuteRestoreAfterDelay();
-	}
+	//if (!Stunned) {
+	//    start-script ExecuteRestoreAfterDelay();
+	//}
 }
-RestoreAfterDelay()
+RestoreAfterDelayGun()
 {
-	set-signal-mask SIG_AIM;
 	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelay();
+	if (Stunned) {
+        return (1);
+    }
+	gun_lasthead = -1000000;
+	gun_lastpitch = -1000000;
+	turn head to y-axis <0.000000> speed <90.000000>;
+	turn head to x-axis <0.000000> speed <50.000000>;
+
+	wait-for-turn head around y-axis;
+	wait-for-turn head around x-axis;
+	//wpn3_lasthead = -1000000;
+	//move lancher to y-axis [0] speed [25];
+	//turn lancher to y-axis <0> speed <200.000000>;
+	//wait-for-turn lancher around y-axis;
 }
 
 AimSecondary(heading, pitch)
 {
-    //if ( get IN_WATER(0) == 1 )
-    //{									  
-    // return (0);
-    // }
 	signal SIG_AIM_3;
-	turn aimy1 to y-axis heading speed <200.000000>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	set-signal-mask SIG_AIM_3;
+	// values in <> are degrees per second
+	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
+	// In general, 6 cau per frame ~= 1 degree per second
+	turn head to y-axis heading speed <200.000000>;
+	turn head to x-axis <0.000000> - pitch speed <100.000000>;
+	// if the turret can turn to its new heading in one frame, just return true and do not wait for turn
+	if ( (get ABS(gun_lasthead-heading)<1200) AND (get ABS(gun_lastpitch-pitch)<600) )
 	{
-		wpn1_lasthead = 1000000;
-		wait-for-turn aimy1 around y-axis;
+		gun_lasthead = heading;
+		gun_lastpitch = pitch;
+		// start the restore to neutral script
+		start-script RestoreAfterDelayGun();
+		return (1);
 	}
-	wpn1_lasthead = heading;
-	start-script RestoreAfterDelay();
-	return (1);
-	
+	// if turret needs more than one frame to turn to new heading, wait for the turn
+	// seems to take 3 frames for wait-for-turn to process
+	wait-for-turn head around y-axis;
+	wait-for-turn head around x-axis;
+	gun_lasthead = heading;
+	gun_lastpitch = pitch;
+	// start the restore to neutral script
+	start-script RestoreAfterDelayGun();
 	return (1);
 }
 
@@ -465,7 +493,7 @@ QuerySecondary(piecenum)
 {
 	if( !gun_1 )
 	{
-		piecenum =rflare;
+		piecenum = rflare;
 	}
 	if( gun_1 )
 	{
@@ -473,28 +501,66 @@ QuerySecondary(piecenum)
 	}
 }
 //sec
+
+RestoreAfterDelayTorp()
+{
+	sleep restore_delay;
+	if (Stunned) {
+        return (1);
+    }
+	torp_lasthead = -1000000;
+	turn lancher to y-axis <0> speed <200.000000>;
+	wait-for-turn lancher around y-axis;
+	torp_deploy = FALSE;
+	move lancher to y-axis [0] speed [25];
+	//bAiming = FALSE;
+	//wait-for-turn lancher around y-axis;
+}
+
 AimPrimary(heading, pitch)
 {
 	if ( get IN_WATER(0) == 0 )
     {
      return (0);
-    }
+    }	
 	signal SIG_AIM;
-	
-	move lancher to y-axis [5] speed [25];
+	set-signal-mask SIG_AIM;
+	// values in <> are degrees per second
+	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
+	// In general, 6 cau per frame ~= 1 degree per second
+	if (torp_deploy == FALSE)
+	{
+		move lancher to y-axis [5] speed [25];
+		wait-for-move lancher along y-axis;
+		torp_deploy = TRUE;
+	}
 	turn lancher to y-axis heading speed <200.000000>;
-
-	
-	bAiming = TRUE;
-
-	start-script RestoreAfterDelay();
+	//if (((get ABS(gun_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	//{
+	//	wpn1_lasthead = 1000000;
+	//	wait-for-turn aimy1 around y-axis;
+	//}
+	// if the turret can turn to its new heading in one frame, just return true and do not wait for turn
+	if (get ABS(torp_lasthead - heading) < 1200)
+	{
+		torp_lasthead = heading;
+		// start the restore to neutral script
+		start-script RestoreAfterDelayTorp();	
+		return (1);
+	}
+	// if turret needs more than one frame to turn to new heading, wait for the turn
+	// seems to take 3 frames for wait-for-turn to process
+	wait-for-turn lancher around y-axis;
+	torp_lasthead = heading;
+	// start the restore to neutral script
+	start-script RestoreAfterDelayTorp();	
 	return (1);
 
 }
 
 FirePrimary()
 {
-	sleep 200;
+	// sleep 200; // this sleep should not be necessary, no return is expected from FirePrimary and nothing is being done before or after the sleep
 }
 
 AimFromPrimary(piecenum)
