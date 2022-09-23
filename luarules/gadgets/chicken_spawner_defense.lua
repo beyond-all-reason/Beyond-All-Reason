@@ -306,6 +306,7 @@ if gadgetHandler:IsSyncedCode() then
 		config.maxBurrows = nextDifficulty.maxBurrows
 		config.maxXP = nextDifficulty.maxXP
 		config.queenResistanceMult = nextDifficulty.queenResistanceMult
+		config.angerBonus = nextDifficulty.angerBonus
 		if config.swarmMode then
 			config.maxChickens = config.maxChickens*10
 			config.minChickens = config.minChickens*10

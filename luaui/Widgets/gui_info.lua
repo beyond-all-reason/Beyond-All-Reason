@@ -839,6 +839,18 @@ function ColourString(R, G, B)
 	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
 end
 
+function GetAIName(teamID)
+	local _, _, _, name, _, options = Spring.GetAIInfo(teamID)
+	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
+	if niceName then
+		name = niceName
+		--if Spring.Utilities.ShowDevUI() and options.profile then
+		--	name = name .. " [" .. options.profile .. "]"
+		--end
+	end
+	return Spring.I18N('ui.playersList.aiName', { name = name })
+end
+
 local function drawUnitInfo()
 	local fontSize = (height * vsy * 0.123) * (0.94 - ((1 - math.max(1.05, ui_scale)) * 0.4))
 
@@ -981,8 +993,11 @@ local function drawUnitInfo()
 		-- display unit owner name
 		local teamID = Spring.GetUnitTeam(displayUnitID)
 		if mySpec or myTeamID ~= teamID then
-			local playerID = select(2, Spring.GetTeamInfo(teamID))
+			local _, playerID, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
 			local name = Spring.GetPlayerInfo(playerID, false)
+			if isAiTeam then
+				name = GetAIName(teamID)
+			end
 			if not name then
 				name = '---'
 			end
