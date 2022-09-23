@@ -9,7 +9,7 @@ return {
 		buildtime = 1400000,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 -14 0",
+		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "80 160 80",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
@@ -66,6 +66,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "80 10 80",
 				damage = 12000,
 				energy = 0,
 				featurereclamate = "SMUDGE01",

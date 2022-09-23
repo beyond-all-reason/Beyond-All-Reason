@@ -11,7 +11,7 @@ return {
 		cloakcost = 75,
 		cloakcostmoving = 200,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "26 44 20",
+		collisionvolumescales = "30 44 20",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		explodeas = "mediumexplosiongeneric",
@@ -47,8 +47,8 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "-6.88437652588 -4.41893039551 -2.47041320801",
-				collisionvolumescales = "49.6789398193 12.193939209 52.2985229492",
+				collisionvolumeoffsets = "0 0 0",
+				collisionvolumescales = "30 44 20",
 				collisionvolumetype = "Box",
 				damage = 400,
 				energy = 0,
@@ -67,7 +67,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumescales = "35.0 4.0 20",
 				collisionvolumetype = "cylY",
 				damage = 300,
 				energy = 0,
