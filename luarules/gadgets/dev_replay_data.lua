@@ -10,11 +10,10 @@ function gadget:GetInfo()
 	}
 end
 
--- check if game is a replay
-local IsGameReplay = Spring.IsReplay()
-
 -- put gadget in unsynced space
 if not gadgetHandler:IsSyncedCode() then
+	-- check if game is a replay
+	local IsGameReplay = Spring.IsReplay()
 	-- handle the UnitDamaged callin
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 		-- only do something if it is a replay
