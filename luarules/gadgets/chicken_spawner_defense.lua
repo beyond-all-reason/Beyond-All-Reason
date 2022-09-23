@@ -1506,7 +1506,7 @@ if gadgetHandler:IsSyncedCode() then
 				else
 					queenAnger = 100
 				end
-				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - playerAgressionLevel*5, 100), 0)
+				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - (playerAgressionLevel*5) + queenAngerAgressionLevel, 100), 0)
 				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgressionLevel*0.01)/(config.queenTime/1200))
 				if techAnger < 1 then techAnger = 1 end
 				if playerAgressionLevel+1 <= maxBurrows then
