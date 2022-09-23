@@ -81,7 +81,9 @@ if gadgetHandler:IsSyncedCode() then
 	local queenAnger = 0
 	local techAnger = 0
 	local queenMaxHP = 0
-	local burrowAnger = 0
+	local playerAgression = 0
+	local playerAgressionLevel = 0
+	local queenAngerAgressionLevel = 0
 	local firstSpawn = true
 	local gameOver = nil
 	local humanTeams = {}
@@ -280,7 +282,7 @@ if gadgetHandler:IsSyncedCode() then
 		queenTime = (config.queenTime + config.gracePeriod)
 		queenAnger = 0  -- reenable chicken spawning
 		techAnger = 0
-		burrowAnger = 0
+		playerAgression = 0
 		SetGameRulesParam("queenAnger", queenAnger)
 		local nextDifficulty
 		if config.queenName == "ve_chickenq" then -- Enter Easy Phase
@@ -805,7 +807,6 @@ if gadgetHandler:IsSyncedCode() then
 							break
 						end
 					elseif i == 100 then
-						burrowAnger = (burrowAnger + config.angerBonus)
 						timeOfLastSpawn = 1
 					end
 				end
@@ -977,7 +978,7 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		currentMaxWaveSize = config.minChickens + math.ceil((queenAnger*0.01)*(maxWaveSize - config.minChickens))
+		currentMaxWaveSize = (config.minChickens + math.ceil((queenAnger*0.01)*(maxWaveSize - config.minChickens)))*((playerAgressionLevel*0.1)+1)
 		squadManagerKillerLoop()
 		
 		local techAngerPerTier = 100/config.wavesAmount
@@ -1034,7 +1035,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				
 				local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
-				local targetCleaners = currentWave*SetCount(humanTeams)*config.chickenSpawnMultiplier*2*config.spawnChance
+				local targetCleaners = currentMaxWaveSize*0.1
 				local cleanerSpawnCount = math.ceil((targetCleaners - aliveCleaners)*0.25)
 				if targetCleaners - cleanerSpawned > 0 and cleanerSpawnCount > 0 then
 					if mRandom(0,1) == 0 then
@@ -1493,16 +1494,29 @@ if gadgetHandler:IsSyncedCode() then
 		if n >= timeCounter then
 			timeCounter = (n + UPDATE)
 			t = GetGameSeconds()
-			if not queenID then
-				if t < config.gracePeriod then
-					queenAnger = 0
-					techAnger = 0
+			playerAgression = playerAgression*0.998
+			playerAgressionLevel = math.floor(playerAgression)
+			SetGameRulesParam("chickenPlayerAgressionLevel", playerAgressionLevel)
+			if t < config.gracePeriod then
+				queenAnger = 0
+				techAnger = 0
+			else
+				if not queenID then
+					queenAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) + queenAngerAgressionLevel, 100), 0)
 				else
-					queenAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - burrowAnger, 100), 0)
-					techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100), 100), 0)
+					queenAnger = 100
 				end
-				SetGameRulesParam("queenAnger", queenAnger)
+				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - playerAgressionLevel*5, 100), 0)
+				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgressionLevel*0.01)/(config.queenTime/1200))
+				Spring.Echo(queenAngerAgressionLevel)
+				if techAnger < 1 then techAnger = 1 end
+				if playerAgressionLevel+1 <= maxBurrows then
+					minBurrows = playerAgressionLevel+1
+				else
+					minBurrows = maxBurrows
+				end
 			end
+			SetGameRulesParam("queenAnger", queenAnger)
 
 			if queenAnger >= 100 then
 				-- check if the queen should be alive
@@ -1556,7 +1570,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			chickenCount = UpdateUnitCount()
 		end
-		if n%(config.burrowSpawnRate*30) == 10 and chickenTeamUnitCount < chickenUnitCap then
+		if n%((math.ceil(config.burrowSpawnRate))*30) == 10 and chickenTeamUnitCount < chickenUnitCap then
 			queueTurretSpawnIfNeeded()
 		end
 		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands
@@ -1739,13 +1753,19 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+		if config.addQueenAnger then
+			if string.find(UnitDefs[unitDefID].name, "chicken_turret") then
+				playerAgression = playerAgression + config.angerBonus*0.25
+			end
+		end
+
 		if unitDefID == config.burrowDef and not gameOver then
 			local kills = GetGameRulesParam(config.burrowName .. "Kills")
 			SetGameRulesParam(config.burrowName .. "Kills", kills + 1)
 
 			burrows[unitID] = nil
 			if config.addQueenAnger then
-				burrowAnger = burrowAnger + ((queenAnger*config.angerBonus)*0.01)
+				playerAgression = playerAgression + config.angerBonus
 				config.maxXP = config.maxXP*1.01
 			end
 
@@ -1780,11 +1800,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:TeamDied(teamID)
-		if humanTeams[teamID] then
-			if minBurrows > 1 then
-				minBurrows = (minBurrows - 1)
-			end
-		end
 		humanTeams[teamID] = nil
 		--computerTeams[teamID] = nil
 	end

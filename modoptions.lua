@@ -381,7 +381,7 @@ local options={
 	},
 	{
 		key    = "chicken_queentime",
-		name   = "Minimum Queen Hatching Time (Minutes)",
+		name   = "Max Queen Hatching Time (Minutes)",
 		desc   = "",
 		type   = "number",
 		def    = 40,
