@@ -93,6 +93,13 @@ local function MinimapToWorldCoords(x, y)
 	x = ((x - px + plx) / sx) * mapWidth
 	local z = (1 - ((y - py) / sy)) * mapHeight
 	y = spGetGroundHeight(x, z)
+
+	local camState = Spring.GetCameraState()
+	if camState.mode == 1 and camState.flipped == 1 then -- minimap is flipped
+		x = mapWidth - x
+		z = mapHeight - z
+	end
+
 	return x, y, z
 end
 
