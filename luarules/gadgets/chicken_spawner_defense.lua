@@ -1537,14 +1537,14 @@ if gadgetHandler:IsSyncedCode() then
 			local burrowSpawnTime = (config.burrowSpawnRate - quicken)
 
 			if t > config.burrowSpawnRate and burrowCount < minBurrows or (burrowSpawnTime < t - timeOfLastSpawn and burrowCount < maxBurrows) then
+				if (config.burrowSpawnType == "initialbox") and (GetGameSeconds() > config.gracePeriod) then
+					config.burrowSpawnType = "initialbox_post"
+				end
 				if firstSpawn then
 					SpawnBurrow()
 					timeOfLastSpawn = t
 					timeOfLastWave = (config.gracePeriod + 10) - config.chickenMaxSpawnRate
 					firstSpawn = false
-					if (config.burrowSpawnType == "initialbox") then
-						config.burrowSpawnType = "initialbox_post"
-					end
 				else
 					SpawnBurrow()
 				end
