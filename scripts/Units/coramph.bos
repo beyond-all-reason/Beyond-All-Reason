@@ -7,7 +7,6 @@ piece  pelvis, torso, lleg, lfoot, rleg, rfoot, head,
        rflare , lflare , lancher,tflare ,lthigh,rthigh,neck, rbarrel, lbarrel, rtoe, ltoe,aimy1, aimx1;
 
 static-var  bMoving, bAiming, restore_delay, gun_1, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy;
-//wpn1_lasthead, wpn3_lasthead
 
 static-var  Stunned;
 
@@ -355,7 +354,6 @@ Create()
 	hide tflare;
 	hide pelvis;
 	bMoving = FALSE;
-	//bAiming = FALSE;
 	animSpeed = 4;
 	restore_delay = 3000;
 	hide pelvis;
@@ -400,28 +398,9 @@ SweetSpot(piecenum)
 	piecenum = torso;
 }
 
-ExecuteRestoreAfterDelay()
-{
-    if (Stunned) {
-        return (1);
-    }
-	turn aimy1 to y-axis <0.000000> speed <90.000000>;
-
-	wait-for-turn head around y-axis;
-	gun_lasthead = -1000000;
-	torp_lasthead = -1000000;
-	move lancher to y-axis [0] speed [25];
-	turn lancher to y-axis <0> speed <200.000000>;
-	wait-for-turn lancher around y-axis;
-	bAiming = FALSE;
-}
-
 SetStunned(State)
 {
     Stunned = State;
-	//if (!Stunned) {
-	//    start-script ExecuteRestoreAfterDelay();
-	//}
 }
 RestoreAfterDelayGun()
 {
@@ -433,13 +412,6 @@ RestoreAfterDelayGun()
 	gun_lastpitch = -1000000;
 	turn head to y-axis <0.000000> speed <90.000000>;
 	turn head to x-axis <0.000000> speed <50.000000>;
-
-	wait-for-turn head around y-axis;
-	wait-for-turn head around x-axis;
-	//wpn3_lasthead = -1000000;
-	//move lancher to y-axis [0] speed [25];
-	//turn lancher to y-axis <0> speed <200.000000>;
-	//wait-for-turn lancher around y-axis;
 }
 
 AimSecondary(heading, pitch)
@@ -500,7 +472,6 @@ QuerySecondary(piecenum)
 		piecenum = lflare;
 	}
 }
-//sec
 
 RestoreAfterDelayTorp()
 {
@@ -511,10 +482,9 @@ RestoreAfterDelayTorp()
 	torp_lasthead = -1000000;
 	turn lancher to y-axis <0> speed <200.000000>;
 	wait-for-turn lancher around y-axis;
+	// torpedo tube has started moving down, set variable to FALSE to redeploy on next aim call
 	torp_deploy = FALSE;
 	move lancher to y-axis [0] speed [25];
-	//bAiming = FALSE;
-	//wait-for-turn lancher around y-axis;
 }
 
 AimPrimary(heading, pitch)
@@ -525,21 +495,19 @@ AimPrimary(heading, pitch)
     }	
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
+	// checks if the torpedo launcher is deployed
+	if (torp_deploy == FALSE)
+	{
+		//if not, move it up to the deploy position, and wait
+		move lancher to y-axis [5] speed [25];
+		wait-for-move lancher along y-axis;
+		// after moving, set variable to true, so deploy is skipped on future aims 
+		torp_deploy = TRUE;
+	}
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
-	if (torp_deploy == FALSE)
-	{
-		move lancher to y-axis [5] speed [25];
-		wait-for-move lancher along y-axis;
-		torp_deploy = TRUE;
-	}
 	turn lancher to y-axis heading speed <200.000000>;
-	//if (((get ABS(gun_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
-	//{
-	//	wpn1_lasthead = 1000000;
-	//	wait-for-turn aimy1 around y-axis;
-	//}
 	// if the turret can turn to its new heading in one frame, just return true and do not wait for turn
 	if (get ABS(torp_lasthead - heading) < 1200)
 	{
@@ -560,7 +528,6 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	// sleep 200; // this sleep should not be necessary, no return is expected from FirePrimary and nothing is being done before or after the sleep
 }
 
 AimFromPrimary(piecenum)
