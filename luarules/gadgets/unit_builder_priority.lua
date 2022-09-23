@@ -88,8 +88,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     end
     -- build the list of which unitdef can have low prio mode
     canPassive[unitDefID] = ((unitDef.canAssist and unitDef.buildSpeed > 0) or #unitDef.buildOptions > 0)
-    cost[unitDefID] = {}
-    cost[unitDefID].buildTime = unitDef.buildTime
+    cost[unitDefID] = { buildTime = unitDef.buildTime }
     for _,resName in pairs(resTable) do
         cost[unitDefID][resName] = unitDef[resName .. "Cost"]
     end
@@ -187,7 +186,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 		for builderID in pairs(canBuild[teamID]) do
 			local builtUnit = spGetUnitIsBuilding(builderID)
 			local targetCosts = builtUnit and costID[builtUnit] or nil
-			if builtUnit and targetCosts then
+			if builtUnit and targetCosts and realBuildSpeed[builderID] then	-- added check for realBuildSpeed[builderID] else line below could error (unsure why)
 				local rate = realBuildSpeed[builderID] / targetCosts.buildTime
 				for _,resName in pairs(resTable) do
 					local expense = targetCosts[resName]
