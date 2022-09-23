@@ -168,6 +168,9 @@
 		{ "Any+pageup",   "moveup"       },
 		{ "Any+pagedown", "movedown"     },
 
+		{ "Any+alt",   "movereset" }, -- fast camera reset on some camera states, e.g. middle mouse held
+		{ "Any+ctrl",  "movetilt"  }, -- Move inclination of camera
+
 		{ "Ctrl+sc_e",    "select", "AllMap++_ClearSelection_SelectAll+"                                                                                       },
 		{  "Ctrl+tab",    "select", "AllMap+_Builder_Idle+_ClearSelection_SelectOne+"                                                                          },
 		{       "tab",    "select", "AllMap+_ManualFireUnit_Not_IdMatches_cordecom_Not_IdMatches_armdecom_Not_IdMatches_armthor+_ClearSelection_SelectOne+"    },

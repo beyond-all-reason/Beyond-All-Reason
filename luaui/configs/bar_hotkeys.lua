@@ -171,8 +171,11 @@ local bindings = {
 	{ "Any+pageup",   "moveup"       },
 	{ "Any+pagedown", "movedown"     },
 
-	{ "Any+ctrl",     "moveslow"     },
-	{ "Any+shift",    "movefast"     },
+	{ "Any+ctrl",  "moveslow"  },
+	{ "Any+shift", "movefast"  },
+
+	{ "Any+alt",   "movereset" }, -- fast camera reset on some camera states, e.g. middle mouse held
+	{ "Any+ctrl",  "movetilt"  }, -- Move inclination of camera
 
 	{ "Ctrl+sc_a", "select", "AllMap++_ClearSelection_SelectAll+"                                                                                    },
 	{ "Ctrl+sc_b", "select", "AllMap+_Builder_Idle+_ClearSelection_SelectOne+"                                                                       },

@@ -156,6 +156,9 @@ local bindings = {
 	{ "Any+ctrl",     "moveslow"     },
 	{ "Any+shift",    "movefast"     },
 
+	{ "Any+alt",   "movereset" }, -- fast camera reset on some camera states, e.g. middle mouse held
+	{ "Any+ctrl",  "movetilt"  }, -- Move inclination of camera
+
 	{ "Ctrl+a", "select", "AllMap++_ClearSelection_SelectAll+"                                                                                    },
 	{ "Ctrl+b", "select", "AllMap+_Builder_Idle+_ClearSelection_SelectOne+"                                                                       },
 	{ "Ctrl+c", "select", "AllMap+_ManualFireUnit_Not_IdMatches_cordecom_Not_IdMatches_armdecom_Not_IdMatches_armthor+_ClearSelection_SelectOne+" },
