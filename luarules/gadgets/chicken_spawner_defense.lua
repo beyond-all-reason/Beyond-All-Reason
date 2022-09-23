@@ -1508,7 +1508,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) - playerAgressionLevel*5, 100), 0)
 				queenAngerAgressionLevel = queenAngerAgressionLevel + ((playerAgressionLevel*0.01)/(config.queenTime/1200))
-				Spring.Echo(queenAngerAgressionLevel)
 				if techAnger < 1 then techAnger = 1 end
 				if playerAgressionLevel+1 <= maxBurrows then
 					minBurrows = playerAgressionLevel+1
