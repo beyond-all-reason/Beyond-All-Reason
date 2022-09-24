@@ -56,7 +56,7 @@ function widget:CommandNotify(id, params, options)
 	if isGuard then
 		local mx, my, mb = Spring.GetMouseState()
 		local type, unitID = Spring.TraceScreenRay(mx, my)
-		if not (type == 'unit' and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] < 0.002) then
+		if not (type == 'unit' and WG['resource_spot_builder'] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] < 0.002) then
 			return
 		end
 	end
