@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx, vsy = Spring.GetViewGeometry()
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
@@ -866,8 +868,14 @@ function widget:DrawInMiniMap(sx, sy)
 		local pt = math.min(sx, sy)
 
 		gl.LoadIdentity()
-		gl.Translate(0, 1, 0)
-		gl.Scale(1 / msx, -1 / msz, 1)
+
+		if getMiniMapFlipped() then
+			gl.Translate(1, 0, 0)
+			gl.Scale(-1 / msx, 1 / msz, 1)
+		else
+			gl.Translate(0, 1, 0)
+			gl.Scale(1 / msx, -1 / msz, 1)
+		end
 
 		local r, g, b = Spring.GetTeamColor(myTeamID)
 		local alpha = 0.5 + math.abs((Spring.GetGameSeconds() % 0.25) * 4 - 0.5)

@@ -26,6 +26,9 @@ end
 Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
 Spring.SetConfigInt("CubeTexSizeReflection", 2048)
 
+-- Allow minimap to flip on camera rotation
+Spring.SetConfigInt("MiniMapCanFlip", 1)
+
 -- disable grass
 Spring.SetConfigInt("GrassDetail", 0)
 

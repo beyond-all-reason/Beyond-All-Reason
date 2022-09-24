@@ -11,6 +11,8 @@ function widget:GetInfo()
 	}
 end
 
+local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+
 local selectBuildingsWithMobile = false		-- whether to select buildings when mobile units are inside selection rectangle
 local includeNanosAsMobile = true
 local includeBuilders = false
@@ -94,8 +96,7 @@ local function MinimapToWorldCoords(x, y)
 	local z = (1 - ((y - py) / sy)) * mapHeight
 	y = spGetGroundHeight(x, z)
 
-	local camState = Spring.GetCameraState()
-	if camState.mode == 1 and camState.flipped == 1 then -- minimap is flipped
+	if getMiniMapFlipped() then
 		x = mapWidth - x
 		z = mapHeight - z
 	end
