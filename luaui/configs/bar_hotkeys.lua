@@ -316,6 +316,7 @@ local bindings = {
 	{ "numpad1", "movefast"    },
 
 	-- snd_volume_osd
+	{ "numpad+", "snd_volume_increase" },
 	{    "sc_=", "snd_volume_increase" },
 	{    "sc_-", "snd_volume_decrease" },
 	{ "numpad-", "snd_volume_decrease" },
