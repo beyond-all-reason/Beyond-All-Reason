@@ -1536,25 +1536,27 @@ if gadgetHandler:IsSyncedCode() then
 
 			local burrowSpawnTime = (config.burrowSpawnRate - quicken)
 
-			if t > config.burrowSpawnRate and burrowCount < minBurrows or (burrowSpawnTime < t - timeOfLastSpawn and burrowCount < maxBurrows) then
-				if (config.burrowSpawnType == "initialbox") and (GetGameSeconds() > config.gracePeriod) then
-					config.burrowSpawnType = "initialbox_post"
-				end
-				if firstSpawn then
-					SpawnBurrow()
+			if n%30 == 13 then
+				if t > config.burrowSpawnRate and burrowCount < minBurrows or (burrowSpawnTime < t - timeOfLastSpawn and burrowCount < maxBurrows) then
+					if (config.burrowSpawnType == "initialbox") and (GetGameSeconds() > config.gracePeriod) then
+						config.burrowSpawnType = "initialbox_post"
+					end
+					if firstSpawn then
+						SpawnBurrow()
+						timeOfLastSpawn = t
+						timeOfLastWave = (config.gracePeriod + 10) - config.chickenMaxSpawnRate
+						firstSpawn = false
+					else
+						SpawnBurrow()
+					end
+					if burrowCount >= minBurrows then
+						timeOfLastSpawn = t
+					end
+					chickenEvent("burrowSpawn")
+					SetGameRulesParam("chicken_hiveCount", SetCount(burrows))
+				elseif burrowSpawnTime < t - timeOfLastSpawn and burrowCount >= maxBurrows then
 					timeOfLastSpawn = t
-					timeOfLastWave = (config.gracePeriod + 10) - config.chickenMaxSpawnRate
-					firstSpawn = false
-				else
-					SpawnBurrow()
 				end
-				if burrowCount >= minBurrows then
-					timeOfLastSpawn = t
-				end
-				chickenEvent("burrowSpawn")
-				SetGameRulesParam("chicken_hiveCount", SetCount(burrows))
-			elseif burrowSpawnTime < t - timeOfLastSpawn and burrowCount >= maxBurrows then
-				timeOfLastSpawn = t
 			end
 
 			if t > config.gracePeriod+5 then
