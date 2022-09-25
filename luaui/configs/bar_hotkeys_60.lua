@@ -80,7 +80,6 @@ local bindings = {
 	{ "Alt+insert",  "increasespeed" },
 	{ "Alt+delete",  "decreasespeed" },
 	{ "Alt+sc_=",    "increasespeed" },
-	{ "Alt++",       "increasespeed" },
 	{ "Alt+sc_-",    "decreasespeed" },
 	{ "Alt+numpad+", "increasespeed" },
 	{ "Alt+numpad-", "decreasespeed" },
@@ -316,7 +315,6 @@ local bindings = {
 	{ "numpad1", "movefast"    },
 
 	-- snd_volume_osd
-	{ "      +", "snd_volume_increase" },
 	{ "numpad+", "snd_volume_increase" },
 	{ "   sc_=", "snd_volume_increase" },
 	{ "   sc_-", "snd_volume_decrease" },
