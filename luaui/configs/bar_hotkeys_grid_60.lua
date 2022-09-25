@@ -186,7 +186,6 @@
 
 		-- snd_volume_osd
 		{ "backspace", "MuteSound" },
-		{ "      +", "snd_volume_increase" },
 		{ "numpad+", "snd_volume_increase" },
 		{ "   sc_=", "snd_volume_increase" },
 		{ "   sc_-", "snd_volume_decrease" },
