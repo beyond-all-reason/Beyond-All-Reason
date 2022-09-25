@@ -167,8 +167,8 @@ local optionValues = {
 		spawnChance       = 0.25,
 		damageMod         = 0.1,
 		maxBurrows        = 2,
-		minChickens		  = 20,
-		maxChickens		  = 30,
+		minChickens		  = 1,
+		maxChickens		  = 75,
 		queenName         = 've_chickenq',
 		queenResistanceMult   = 0.25,
 	},
@@ -182,8 +182,8 @@ local optionValues = {
 		spawnChance       = 0.33,
 		damageMod         = 0.2,
 		maxBurrows        = 3,
-		minChickens		  = 25,
-		maxChickens		  = 45,
+		minChickens		  = 5,
+		maxChickens		  = 100,
 		queenName         = 'e_chickenq',
 		queenResistanceMult   = 0.5,
 	},
@@ -196,10 +196,10 @@ local optionValues = {
 		angerBonus        = 1,
 		maxXP			  = 0.8,
 		spawnChance       = 0.4,
-		damageMod         = 0.4,
+		damageMod         = 0.3,
 		maxBurrows        = 4,
-		minChickens		  = 30,
-		maxChickens		  = 60,
+		minChickens		  = 10,
+		maxChickens		  = 125,
 		queenName         = 'n_chickenq',
 		queenResistanceMult   = 1,
 	},
@@ -212,10 +212,10 @@ local optionValues = {
 		angerBonus        = 1,
 		maxXP			  = 1,
 		spawnChance       = 0.5,
-		damageMod         = 0.6,
+		damageMod         = 0.4,
 		maxBurrows        = 5,
-		minChickens		  = 35,
-		maxChickens		  = 75,
+		minChickens		  = 15,
+		maxChickens		  = 150,
 		queenName         = 'h_chickenq',
 		queenResistanceMult   = 2,
 	},
@@ -228,10 +228,10 @@ local optionValues = {
 		angerBonus        = 1,
 		maxXP			  = 1.5,
 		spawnChance       = 0.6,
-		damageMod         = 0.8,
+		damageMod         = 0.5,
 		maxBurrows        = 6,
-		minChickens		  = 40,
-		maxChickens		  = 90,
+		minChickens		  = 20,
+		maxChickens		  = 175,
 		queenName         = 'vh_chickenq',
 		queenResistanceMult   = 3,
 	},
@@ -243,10 +243,10 @@ local optionValues = {
 		angerBonus        = 1,
 		maxXP			  = 3,
 		spawnChance       = 0.8,
-		damageMod         = 1,
+		damageMod         = 0.6,
 		maxBurrows        = 10,
-		minChickens		  = 45,
-		maxChickens		  = 105,
+		minChickens		  = 25,
+		maxChickens		  = 200,
 		queenName         = 'epic_chickenq',
 		queenResistanceMult   = 5,
 	},
@@ -343,7 +343,7 @@ addSuperSquad(5,    { "2 chickenr1" 																	}) -- Artillery
 	addSpecialSquad(3, { "10 chickenp1", "8 chickene1" 													}) -- Small Pyro and EMP Swarmer
 	
 	addSpecialSquad(4, { "4 chickenp1" , "1 chickenp2"													}) -- Small Pyros with mom
-	addSpecialSquad(4, { "30 chicken_dodo1" 															}) -- Small Kamikaze
+	addSpecialSquad(4, { "15 chicken_dodo1" 															}) -- Small Kamikaze
 
 	addSpecialSquad(5, { "3 chickene2" 																	}) -- EMP Brawler
 	addSpecialSquad(5, { "10 chickenw1", "10 chickenw1b", "10 chickenw1c", "10 chickenw1d" 				}) -- Fighter
@@ -362,7 +362,7 @@ addSuperSquad(5,    { "2 chickenr1" 																	}) -- Artillery
 	addSpecialSquad(7, { "3 chickenelectricallterrainassault" 											}) -- EMP AllTerrain Brawler
 	addSpecialSquad(7, { "5 chickenelectricallterrain", "5 chickenacidallterrain" 						}) -- EMP and Acid AllTerrain Combo
 
-	addSpecialSquad(8, { "35 chicken_dodo2" 															}) -- Big Kamikaze
+	addSpecialSquad(8, { "25 chicken_dodo2" 															}) -- Big Kamikaze
 	addSpecialSquad(8, { "35 chicken_dodoair" 															}) -- Air Kamikaze
 	addSpecialSquad(8, { "10 chickens2" 																}) -- Apex Spiker
 	addSpecialSquad(8, { "10 chickenacidallterrain" 													}) -- Acid AllTerrain 
@@ -403,8 +403,8 @@ addSuperSquad(5,    { "2 chickenr1" 																	}) -- Artillery
 	
 if difficulty >= 5 then
 	for i = 11,12 do
-	addSpecialSquad(i, { "6 chickenf1apex", "6 chickenf1apexb" 											}) -- Apex Bomber
-	addSpecialSquad(i, { "20 chickenw2" 																}) -- Apex Fighter
+	addSpecialSquad(i, { "3 chickenf1apex", "3 chickenf1apexb" 											}) -- Apex Bomber
+	addSpecialSquad(i, { "10 chickenw2" 																}) -- Apex Fighter
 	addSpecialSquad(i, { "5 chicken2" , "5 chicken2b" 													}) -- Apex Swarmer
 	addSpecialSquad(i, { "5 chickena2", "5 chickena2b"													}) -- Apex Brawler
 	addSpecialSquad(i, { "5 chickenapexallterrainassault", "5 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
@@ -413,15 +413,15 @@ if difficulty >= 5 then
 	else
 		addSpecialSquad(i, { "3 chickenr1", "3 chickenearty1", "3 chickenacidarty" 						}) -- Artillery
 	end
-	addSpecialSquad(i, { "5 chickenh2" 																	}) -- Apex Brood Mother
-	addSpecialSquad(i, { "10 chickene2" 																}) -- EMP Brawler
-	addSpecialSquad(i, { "10 chickenelectricallterrainassault" 											}) -- EMP AllTerrain Brawler
-	addSpecialSquad(i, { "10 chickenacidassault" 														}) -- Acid Brawler
-	addSpecialSquad(i, { "10 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
-	addSpecialSquad(i, { "100 chicken_dodo2" 															}) -- Kamikaze
-	addSpecialSquad(i, { "100 chicken_dodoair" 															}) -- Air Kamikaze
-	addSpecialSquad(i, { "20 chickenp2" 																}) -- Apex Pyro
-	addSpecialSquad(i, { "20 chickens2" 																}) -- Apex Spiker
+	addSpecialSquad(i, { "2 chickenh2" 																	}) -- Apex Brood Mother
+	addSpecialSquad(i, { "3 chickene2" 																    }) -- EMP Brawler
+	addSpecialSquad(i, { "3 chickenelectricallterrainassault" 											}) -- EMP AllTerrain Brawler
+	addSpecialSquad(i, { "3 chickenacidassault" 														}) -- Acid Brawler
+	addSpecialSquad(i, { "3 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
+	addSpecialSquad(i, { "25 chicken_dodo2" 															}) -- Kamikaze
+	addSpecialSquad(i, { "75 chicken_dodoair" 															}) -- Air Kamikaze
+	addSpecialSquad(i, { "10 chickenp2" 																}) -- Apex Pyro
+	addSpecialSquad(i, { "10 chickens2" 																}) -- Apex Spiker
 	end
 end
 
