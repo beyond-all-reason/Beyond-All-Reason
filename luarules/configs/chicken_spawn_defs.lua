@@ -340,8 +340,9 @@ addSuperSquad(5,    { "2 chickenr1" 																	}) -- Artillery
 
 	addSpecialSquad(2, { "8 chickenp1" 																	}) -- Small Pyro
 
-	addSpecialSquad(3, { "10 chickenp1", "8 chickene1" 													}) -- Small Pyro and EMP Swarmer
-	
+	addSpecialSquad(3, { "10 chickenp1"  												            	}) -- Small Pyro
+	addSpecialSquad(3, { "8 chickene1"                                                                  }) -- Small Paralyzer
+
 	addSpecialSquad(4, { "4 chickenp1" , "1 chickenp2"													}) -- Small Pyros with mom
 	addSpecialSquad(4, { "15 chicken_dodo1" 															}) -- Small Kamikaze
 
