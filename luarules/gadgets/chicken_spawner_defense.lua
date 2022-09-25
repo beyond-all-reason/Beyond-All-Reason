@@ -978,7 +978,7 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		currentMaxWaveSize = (config.minChickens + math.ceil((queenAnger*0.01)*(maxWaveSize - config.minChickens)))*((playerAgressionLevel*0.1)+1)
+		currentMaxWaveSize = (config.minChickens + math.ceil((queenAnger*0.01)*(maxWaveSize - config.minChickens)))
 		squadManagerKillerLoop()
 		
 		local techAngerPerTier = 100/config.wavesAmount
