@@ -34,7 +34,7 @@
 				"selectSameType": "Select all units of the same type by pressing CTRL+Z.",
 				"separateBuildings": "Spread out buildings to prevent chain explosions.\nPress ALT+Z and ALT+X to adjust auto-spacing.",
 				"separateBuildings2": "Remember to separate your highly explosive buildings (like Energy Converters) from the rest of your base.",
-				"shareResources":"To share resources with teammates:\nClick-and-drag the metal/energy bars next the player's name.",
+				"shareResources":"To share resources with teammates:\nClick-and-drag the metal/energy bars next to the player's name.",
 				"shareUnits":"To share units with teammates:\nSelect the unit(s) and click the two-arrows icon next to the player's name.",
 				"showMetalSpots": "Have trouble finding metal spots and geothermal vents?\nPress F4 to switch to the resource view.",
 				"takeUnits": "Did your teammate drop out of the game? Type /take to add all of their units to your army.",
