@@ -77,9 +77,8 @@ local bindings = {
 
 	{ "Alt+insert",  "increasespeed" },
 	{ "Alt+delete",  "decreasespeed" },
-	{ "Alt+=",       "increasespeed" },
-	{ "Alt++",       "increasespeed" },
-	{ "Alt+-",       "decreasespeed" },
+	{   "Alt+sc_=",  "increasespeed" },
+	{   "Alt+sc_-",  "decreasespeed" },
 	{ "Alt+numpad+", "increasespeed" },
 	{ "Alt+numpad-", "decreasespeed" },
 
@@ -317,10 +316,9 @@ local bindings = {
 	{ "numpad1", "movefast"    },
 
 	-- snd_volume_osd
-	{ "      +", "snd_volume_increase" },
 	{ "numpad+", "snd_volume_increase" },
-	{ "      =", "snd_volume_increase" },
-	{ "      -", "snd_volume_decrease" },
+	{    "sc_=", "snd_volume_increase" },
+	{    "sc_-", "snd_volume_decrease" },
 	{ "numpad-", "snd_volume_decrease" },
 
 	-- los_colors
