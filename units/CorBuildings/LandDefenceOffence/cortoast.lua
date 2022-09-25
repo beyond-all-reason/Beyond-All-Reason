@@ -31,6 +31,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 416,
+		usepiececollisionvolumes = 1,
 		yardmap = "ooooooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
@@ -50,8 +51,8 @@ return {
 				blocking = true,
 				category = "corpses",
 				collisionvolumeoffsets = "0 0 0",
-				collisionvolumescales = "50 15 50",
-				collisionvolumetype = "Box",
+				collisionvolumescales = "96 86 96",
+				collisionvolumetype = "cylY",
 				damage = 2304,
 				energy = 0,
 				featuredead = "HEAP",

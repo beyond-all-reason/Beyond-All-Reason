@@ -18,7 +18,7 @@ return {
 		cloakcost = 50,
 		cloakcostmoving = 100,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "23 25 34",
+		collisionvolumescales = "26 28 15",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		explodeas = "smallExplosionGeneric",
