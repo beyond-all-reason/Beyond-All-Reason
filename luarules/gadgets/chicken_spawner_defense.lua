@@ -1001,7 +1001,7 @@ if gadgetHandler:IsSyncedCode() then
 						squadCounter = 0
 						local waveLevel = currentWave
 						local squad = config.basicWaves[waveLevel][mRandom(1, #config.basicWaves[waveLevel])]
-						if config.specialWaves[waveLevel] and math.random(1,100) <= 25 then
+						if config.specialWaves[waveLevel] and math.random(1,100) <= 20 then
 							squad = config.specialWaves[waveLevel][mRandom(1, #config.specialWaves[waveLevel])]
 						elseif config.superWaves[waveLevel] and math.random(1,100) <= 1 then
 							squad = config.superWaves[waveLevel][mRandom(1, #config.superWaves[waveLevel])]
