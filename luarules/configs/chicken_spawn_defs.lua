@@ -482,7 +482,6 @@ local config = {
 	specialWaves           = specialWaves,
 	superWaves             = superWaves,
 	difficultyParameters   = optionValues,
-	accumulativeSquads	   = accumulativeSquads,
 }
 
 for key, value in pairs(optionValues[difficulty]) do
