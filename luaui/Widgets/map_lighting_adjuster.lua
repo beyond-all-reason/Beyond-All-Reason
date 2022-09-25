@@ -117,6 +117,10 @@ local mapSunLighting = {
 		unitDiffuseColor = {1.0, 0.7, 0.7},
 		unitSpecularColor = {1.0, 0.5, 0.5},
 	},
+	['rosetta 1.4'] = {
+		unitAmbientColor = { 0.8, 0.8, 0.8 },
+		unitSpecularColor = {1.0, 0.9, 0.9},
+	},
 }
 
 local mapSun = {
