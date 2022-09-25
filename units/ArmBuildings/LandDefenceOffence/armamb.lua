@@ -17,6 +17,7 @@ return {
 		collisionvolumetype = "CylY",
 		damagemodifier = 0.25,
 		explodeas = "smallBuildingexplosiongeneric",
+		usepiececollisionvolumes = 1,
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
