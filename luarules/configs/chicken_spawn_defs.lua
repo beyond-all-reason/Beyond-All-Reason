@@ -159,8 +159,8 @@ local chickenTypes = {
 local optionValues = {
 	[difficulties.veryeasy] = {
 		chickenMaxSpawnRate  = 120,
-		burrowSpawnRate   = 120,
-		turretSpawnRate	  = 1,
+		burrowSpawnRate   = 105,
+		turretSpawnRate   = 210,
 		queenSpawnMult    = 0,
 		angerBonus        = 1,
 		maxXP			  = 0.2,
@@ -174,7 +174,8 @@ local optionValues = {
 	},
 	[difficulties.easy] = {
 		chickenMaxSpawnRate  = 120,
-		burrowSpawnRate   = 105,
+		burrowSpawnRate   = 90,
+		turretSpawnRate   = 180,
 		queenSpawnMult    = 0,
 		angerBonus        = 1,
 		maxXP			  = 0.4,
@@ -189,7 +190,8 @@ local optionValues = {
 
 	[difficulties.normal] = {
 		chickenMaxSpawnRate  = 120,
-		burrowSpawnRate   = 70,
+		burrowSpawnRate   = 75,
+		turretSpawnRate   = 150,
 		queenSpawnMult    = 1,
 		angerBonus        = 1,
 		maxXP			  = 0.8,
@@ -204,7 +206,8 @@ local optionValues = {
 
 	[difficulties.hard] = {
 		chickenMaxSpawnRate  = 120,
-		burrowSpawnRate   = 45,
+		burrowSpawnRate   = 60,
+		turretSpawnRate   = 120,
 		queenSpawnMult    = 1,
 		angerBonus        = 1,
 		maxXP			  = 1,
@@ -219,7 +222,8 @@ local optionValues = {
 
 	[difficulties.veryhard] = {
 		chickenMaxSpawnRate  = 120,
-		burrowSpawnRate   = 25,
+		burrowSpawnRate   = 45,
+		turretSpawnRate   = 90,
 		queenSpawnMult    = 3,
 		angerBonus        = 1,
 		maxXP			  = 1.5,
@@ -233,7 +237,8 @@ local optionValues = {
 	},
 	[difficulties.epic] = {
 		chickenMaxSpawnRate  = 120,
-		burrowSpawnRate   = 10,
+		burrowSpawnRate   = 30,
+		turretSpawnRate   = 60,
 		queenSpawnMult    = 3,
 		angerBonus        = 1,
 		maxXP			  = 3,
@@ -248,7 +253,8 @@ local optionValues = {
 
 	[difficulties.survival] = {
 		chickenMaxSpawnRate  = 120,
-		burrowSpawnRate   = 120,
+		burrowSpawnRate   = 150,
+		turretSpawnRate   = 300,
 		queenSpawnMult    = 0,
 		angerBonus        = 1,
 		maxXP			  = 0.2,
@@ -330,7 +336,7 @@ addSuperSquad(2,    { "2 chickenr1" 																	}) -- Artillery
 -- Special Squads -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-	addSpecialSquad(1, 	{ "1 chickenf2"											 						}) -- Observer
+	--addSpecialSquad(1, 	{ "1 chickenf2"											 						}) -- Observer
 
 	addSpecialSquad(2, { "8 chickene1" 																	}) -- EMP Swarmer
 

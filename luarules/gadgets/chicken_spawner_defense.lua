@@ -301,6 +301,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		config.queenName = nextDifficulty.queenName
 		config.burrowSpawnRate = nextDifficulty.burrowSpawnRate
+		config.turretSpawnRate = nextDifficulty.turretSpawnRate
 		config.queenSpawnMult = nextDifficulty.queenSpawnMult
 		config.spawnChance = nextDifficulty.spawnChance
 		config.maxChickens = nextDifficulty.maxChickens
@@ -1491,8 +1492,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		if n >= timeCounter then
-			timeCounter = (n + UPDATE)
+		if n%30 == 16 then
 			t = GetGameSeconds()
 			playerAgression = playerAgression*0.998
 			playerAgressionLevel = math.floor(playerAgression)
@@ -1523,7 +1523,6 @@ if gadgetHandler:IsSyncedCode() then
 				updateQueenLife()
 			end
 
-			local quicken = 0
 			local burrowCount = SetCount(burrows)
 
 			if config.burrowSpawnRate < (t - timeOfLastFakeSpawn) then
@@ -1534,29 +1533,25 @@ if gadgetHandler:IsSyncedCode() then
 				timeOfLastFakeSpawn = t
 			end
 
-			local burrowSpawnTime = (config.burrowSpawnRate - quicken)
-
-			if n%30 == 13 then
-				if t > config.burrowSpawnRate and burrowCount < minBurrows or (burrowSpawnTime < t - timeOfLastSpawn and burrowCount < maxBurrows) then
-					if (config.burrowSpawnType == "initialbox") and (GetGameSeconds() > config.gracePeriod) then
-						config.burrowSpawnType = "initialbox_post"
-					end
-					if firstSpawn then
-						SpawnBurrow()
-						timeOfLastSpawn = t
-						timeOfLastWave = (config.gracePeriod + 10) - config.chickenMaxSpawnRate
-						firstSpawn = false
-					else
-						SpawnBurrow()
-					end
-					if burrowCount >= minBurrows then
-						timeOfLastSpawn = t
-					end
-					chickenEvent("burrowSpawn")
-					SetGameRulesParam("chicken_hiveCount", SetCount(burrows))
-				elseif burrowSpawnTime < t - timeOfLastSpawn and burrowCount >= maxBurrows then
+			if t > config.burrowSpawnRate and burrowCount < minBurrows or (config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount < maxBurrows) then
+				if (config.burrowSpawnType == "initialbox") and (GetGameSeconds() > config.gracePeriod) then
+					config.burrowSpawnType = "initialbox_post"
+				end
+				if firstSpawn then
+					SpawnBurrow()
+					timeOfLastSpawn = t
+					timeOfLastWave = (config.gracePeriod + 10) - config.chickenMaxSpawnRate
+					firstSpawn = false
+				else
+					SpawnBurrow()
+				end
+				if burrowCount >= minBurrows then
 					timeOfLastSpawn = t
 				end
+				chickenEvent("burrowSpawn")
+				SetGameRulesParam("chicken_hiveCount", SetCount(burrows))
+			elseif config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount >= maxBurrows then
+				timeOfLastSpawn = t
 			end
 
 			if t > config.gracePeriod+5 then
@@ -1571,7 +1566,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			chickenCount = UpdateUnitCount()
 		end
-		if n%((math.ceil(config.burrowSpawnRate))*30) == 10 and chickenTeamUnitCount < chickenUnitCap then
+		if playerAgressionLevel > 0 and n%((math.ceil(config.turretSpawnRate/playerAgressionLevel))*30) == 0 and chickenTeamUnitCount < chickenUnitCap then
 			queueTurretSpawnIfNeeded()
 		end
 		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands
@@ -1754,11 +1749,11 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		if config.addQueenAnger then
-			if string.find(UnitDefs[unitDefID].name, "chicken_turret") then
-				playerAgression = playerAgression + config.angerBonus*0.25
-			end
-		end
+		-- if config.addQueenAnger then
+		-- 	if string.find(UnitDefs[unitDefID].name, "chicken_turret") then
+		-- 		playerAgression = playerAgression + config.angerBonus*0.25
+		-- 	end
+		-- end
 
 		if unitDefID == config.burrowDef and not gameOver then
 			local kills = GetGameRulesParam(config.burrowName .. "Kills")
