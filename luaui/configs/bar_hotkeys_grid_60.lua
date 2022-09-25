@@ -70,8 +70,8 @@
 
         { "Ctrl+v", "pastetext" },
 
-		{ "Alt+=",       "increasespeed" }, --add scancodes for = and - after engine update
-		{ "Alt+-",       "decreasespeed" },
+		{ "Alt+sc_=",    "increasespeed" },
+		{ "Alt+sc_-",    "decreasespeed" },
 		{ "Alt+numpad+", "increasespeed" },
 		{ "Alt+numpad-", "decreasespeed" },
 
@@ -188,8 +188,8 @@
 		{ "backspace", "MuteSound" },
 		{ "      +", "snd_volume_increase" },
 		{ "numpad+", "snd_volume_increase" },
-		{ "      =", "snd_volume_increase" },
-		{ "      -", "snd_volume_decrease" },
+		{ "   sc_=", "snd_volume_increase" },
+		{ "   sc_-", "snd_volume_decrease" },
 		{ "numpad-", "snd_volume_decrease" },
 	}
 
