@@ -227,6 +227,7 @@ else
 	local scumShader = nil
 	local luaShaderDir = "LuaUI/gadgets/Include/"
 	local debugmode = false
+	local headless = false
 
 	local glTexture = gl.Texture
 	local glCulling = gl.Culling
@@ -254,6 +255,7 @@ else
 		SHADOWSTRENGTH = 0.4, -- how much light a shadowed fragment can recieve
 		CREEPTEXREZ = 0.003,
 		JIGGLEAMPLITUDE = 0.2,
+		VOIDWATER = (gl.GetMapRendering("voidWater") and 1 or 0), 
 	}
 
 	---- GL4 Backend Stuff----
@@ -381,6 +383,10 @@ else
 	void main(void)
 	{
 		if (any(lessThan(vec4(v_worldUV.xz, mapSize.xy - v_worldUV.xz) , vec4(0.0) ))) discard; // Discard out-of-map fragments
+		#if (VOIDWATER == 1)
+			if (v_worldUV.y < 0) discard;
+		#endif
+		
 		float time = timeInfo.x+timeInfo.w;
 
 		float internalradius = length (v_localxz.xy) ; //dot(v_localxz.xy, v_localxz.xy);
@@ -445,6 +451,11 @@ else
 	end
 
 	local function initGL4(shaderConfig, DPATname)
+		if gl.CreateShader == nil then 
+			headless = true
+			return
+		end
+		
 		local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 		vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 		fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
@@ -633,15 +644,16 @@ else
 		end
 
 		--Spring.Echo(scumID, growthrate, radius, gf)
-		pushElementInstance(
-			scumVBO, -- push into this Instance VBO Table
-				{scum.posx, scum.posy, scum.posz, scum.radius ,  --
-				scum.spawnframe,  scum.growthrate, 0, 0, -- alphastart_alphadecay_heatstart_heatdecay
-				},
-			scumID, -- this is the key inside the VBO Table, should be unique per unit
-			true, -- update existing element
-			false) -- noupload, dont use unless you know what you are doing and want to batch push/pop
-
+		if not headless then 
+			pushElementInstance(
+				scumVBO, -- push into this Instance VBO Table
+					{scum.posx, scum.posy, scum.posz, scum.radius ,  --
+					scum.spawnframe,  scum.growthrate, 0, 0, -- alphastart_alphadecay_heatstart_heatdecay
+					},
+				scumID, -- this is the key inside the VBO Table, should be unique per unit
+				true, -- update existing element
+				false) -- noupload, dont use unless you know what you are doing and want to batch push/pop
+		end
 		if scum.growthrate < 0 then
 			if debugmode then Spring.Echo("Removal of scum ID", scumID,"Scheduled for ",  deathtime - gf , "from now" ) end
 			if scumRemoveQueue[deathtime] == nil then
@@ -656,6 +668,7 @@ else
 	local usestencil = false
 
 	function gadget:DrawWorldPreUnit()
+		if headless then return end
 		if debugmode then
 			local mx, my, mb = Spring.GetMouseState()
 			local _, coords = Spring.TraceScreenRay(mx, my, true)
@@ -715,7 +728,7 @@ else
 			numscums = numscums - 1
 		end
 		UpdateBins(instanceID, true)
-		if scumVBO.instanceIDtoIndex[instanceID] then
+		if scumVBO.instanceIDtoIndex[instanceID] and (not headless) then
 			popElementInstance(scumVBO, instanceID)
 		end
 	end

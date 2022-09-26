@@ -54,12 +54,16 @@ if gadgetHandler:IsSyncedCode() then
 	local cornuke = WeaponDefNames["corsilo_crblmssl"].id
 	local scavArmNuke = WeaponDefNames["armsilo_scav_nuclear_missile"].id
 	local scavCorNuke = WeaponDefNames["corsilo_scav_crblmssl"].id
+	local chickenNuke = WeaponDefNames["chickenr2_meteorlauncher"].id
 	local gamestarted = (Spring.GetGameFrame() > 0)
 	local gameover = false
 
 	function gadget:Initialize()
 		Script.SetWatchProjectile(armnuke, true)
 		Script.SetWatchProjectile(cornuke, true)
+		Script.SetWatchProjectile(scavArmNuke, true)
+		Script.SetWatchProjectile(scavCorNuke, true)
+		Script.SetWatchProjectile(chickenNuke, true)
 	end
 
 	function gadgetHandler:TeamDied(teamID)
@@ -101,7 +105,7 @@ if gadgetHandler:IsSyncedCode() then
 
 -- NUKE LAUNCH send to all but ally team
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-		if Spring.GetProjectileDefID(proID) == armnuke or Spring.GetProjectileDefID(proID) == cornuke or Spring.GetProjectileDefID(proID) == scavArmNuke or Spring.GetProjectileDefID(proID) == scavCorNuke then
+		if Spring.GetProjectileDefID(proID) == armnuke or Spring.GetProjectileDefID(proID) == cornuke or Spring.GetProjectileDefID(proID) == scavArmNuke or Spring.GetProjectileDefID(proID) == scavCorNuke or Spring.GetProjectileDefID(proID) == chickenNuke then
 			local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(proOwnerID)))
 			for ct, player in pairs (players) do
 				if tostring(player) then

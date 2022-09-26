@@ -5,7 +5,7 @@ function gadget:GetInfo()
         desc      = "makes units neutral and stealthy when unit has customparam: objectify", -- (like walls)
         author    = "Bluestone, Floris",
         date      = "Feb 2015",
-        license   = "",
+        license   = "GNU GPL, v2 or later",
         layer     = 0,
         enabled   = true  --  loaded by default?
     }

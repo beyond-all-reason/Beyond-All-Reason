@@ -23,6 +23,7 @@ local DownloadBuilds = VFS.Include('gamedata/download_builds.lua')
 
 local system = VFS.Include('gamedata/system.lua')
 VFS.Include('gamedata/VFSUtils.lua')
+
 local section = 'unitdefs.lua'
 
 --------------------------------------------------------------------------------

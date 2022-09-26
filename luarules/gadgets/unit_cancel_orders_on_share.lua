@@ -4,7 +4,7 @@ function gadget:GetInfo()
         desc      = "Prevents units carrying on with orders once shared/taken and turns on mexes that have been captured",
         author    = "Bluestone, Beherith",
         date      = "Jan 2015",
-        license   = "GPL V2",
+        license   = "GNU GPL, v2 or later",
         layer     = 0,
         enabled   = true
     }
@@ -31,12 +31,12 @@ if (not gadgetHandler:IsSyncedCode()) then
 else -- SYNCED
 
   local recievedMexes = {}
-  
+
   function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
     -- if the unit is a metal extractor, turn it on:
-    if UnitDefs[unitDefID] and UnitDefs[unitDefID].extractsMetal and UnitDefs[unitDefID].extractsMetal > 0 then 
+    if UnitDefs[unitDefID] and UnitDefs[unitDefID].extractsMetal and UnitDefs[unitDefID].extractsMetal > 0 then
       recievedMexes[#recievedMexes+1] = unitID
-    end 
+    end
   end
 
   function gadget:GameFrame(n)

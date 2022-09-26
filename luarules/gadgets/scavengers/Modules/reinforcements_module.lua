@@ -171,7 +171,7 @@ local function spawnPlayerReinforcements(n)
 									table.insert(ActiveReinforcementUnits, ReUnit)
 
 									local unitDefID = Spring.GetUnitDefID(ReUnit)
-									UnitSuffixLenght[ReUnit] = string.len(scavconfig.unitnamesuffix)
+									UnitSuffixLength[ReUnit] = string.len(scavconfig.unitnamesuffix)
 									if scavconfig.modules.constructorControllerModule then
 										if scavconfig.constructorControllerModuleConfig.useresurrectors then
 											if constructorUnitList.ResurrectorsID[unitDefID] then
@@ -226,7 +226,7 @@ local function reinforcementsMoveOrder(n)
 				local unitDefID = Spring.GetUnitDefID(unitID)
 				if unitDefID then
 					local UnitName = UnitDefs[unitDefID].name
-					UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
+					UnitSuffixLength[unitID] = string.len(scavconfig.unitnamesuffix)
 					FriendlyArmyOrders = true
 
 					if scavconfig.modules.constructorControllerModule then

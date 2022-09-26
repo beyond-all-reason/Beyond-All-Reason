@@ -7,7 +7,7 @@ function widget:GetInfo()
 		date      = "Jan 11, 2009",
 		version   = 1.7,
 		license   = "GNU GPL, v2 or later",
-		layer     = -9999999990,
+		layer     = -999990,
 		enabled   = true,  --  loaded by default?
 	}
 end
@@ -243,6 +243,8 @@ end
 local function DrawTextBuffer()
 	local num = #textBuffer
 	font:Begin()
+	font:SetTextColor(1, 1, 1, 1)
+	font:SetOutlineColor(0, 0, 0, 1)
 	for i=1, num do
 		font:Print(textBuffer[i][1], textBuffer[i][3], textBuffer[i][4], fontSize, "o")
 		font:Print(textBuffer[i][2], textBuffer[i][3] + (fontSize*6.5), textBuffer[i][4], fontSize, "o")

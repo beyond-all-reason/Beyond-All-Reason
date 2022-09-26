@@ -4,7 +4,8 @@ function widget:GetInfo()
 	desc      = "Overrides increasing/decreasing game speed behaviour",
 	author    = "Beherith",
 	date      = "2020",
-	layer     = -math.huge,
+	license   = "GNU GPL, v2 or later",
+	layer     = -999999,
 	enabled   = true,
   }
 end

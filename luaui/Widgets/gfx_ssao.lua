@@ -18,7 +18,7 @@ function widget:GetInfo()
         author    = "ivand",
         date      = "2019",
         license   = "GPL",
-        layer     = math.huge,
+        layer     = 999999,
         enabled   = not isPotatoGpu,
     }
 end

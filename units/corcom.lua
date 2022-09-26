@@ -126,7 +126,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumescales = "35 12 54",
 				collisionvolumetype = "cylY",
 				damage = 5000,
 				energy = 0,

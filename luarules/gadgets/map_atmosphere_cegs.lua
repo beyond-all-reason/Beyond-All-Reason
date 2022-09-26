@@ -1,22 +1,16 @@
 
 
---if VFS.FileExists("luarules/configs/Atmosphereconfigs/" .. Game.mapName .. ".lua") then
---elseif enableGenericConfig ~= "disabled" then
---end
-
-
 function gadget:GetInfo()
 	return {
 		name = "Map Atmosphere CEGs",
 		desc = "123",
 		author = "Damgam",
 		date = "2020",
+		license = "GNU GPL, v2 or later",
 		layer = -100,
-		enabled = true,
+		enabled = Spring.GetModOptions().map_atmosphere,
 	}
 end
-
-local enableGenericConfig = Spring.GetModOptions().mapatmospherics or "enabled"
 
 local currentMapname = Game.mapName:lower()
 local mapList = VFS.DirList("luarules/configs/Atmosphereconfigs/", "*.lua")

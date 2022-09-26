@@ -119,6 +119,10 @@ function widget:DrawWorld()
 end
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	if not initGL4() then return end
 
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then

@@ -56,7 +56,7 @@ return {
 		unitname = "chickens1",
 		upright = false,
 		workertime = 0,
-		waterline = 20,
+		waterline = 24,
 		customparams = {
 			maxrange = "375",
 			subfolder = "other/chickens",
@@ -106,7 +106,7 @@ return {
 				waterweapon = true,
 				weaponacceleration = 25,
 				weapontimer = 4,
-				weaponvelocity = 220,
+				weaponvelocity = 600,
 				damage = {
 					default = 775,
 				},
@@ -139,7 +139,7 @@ return {
 				weaponacceleration = 70,
 				weapontimer = 1,
 				weapontype = "Cannon",
-				weaponvelocity = 325,
+				weaponvelocity = 600,
 				damage = {
 					default = 325,
 				},

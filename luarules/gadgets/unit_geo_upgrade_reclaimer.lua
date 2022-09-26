@@ -4,7 +4,7 @@ function gadget:GetInfo()
 		desc      = "Insta reclaims/refunds t1 geo when t2 on top has finished, also shares t2 geos build upon ally t1 geo owner",
 		author    = "Floris",
 		date      = "February 2022",
-		license   = "",
+		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true,
 	}

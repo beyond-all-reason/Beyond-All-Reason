@@ -217,7 +217,7 @@ function UnitDef_Post(name, uDef)
 						expl_light_heat_life_mult = "1.6",
 					},
 					damage = {
-						default = 10000,
+						default = 20000,
 					},
 				}
 			end
@@ -461,6 +461,12 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
 			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
 			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
+		elseif name == "legca" or name == "legck" or name == "legcv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
+			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
+			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
+			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
 		elseif name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armapt3"
@@ -470,6 +476,14 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+5] = "armbotrail"
 			uDef.buildoptions[numBuildoptions+6] = "armannit3"
 		elseif name == "coraca" or name == "corack" or name == "coracv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corapt3"
+			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
+      		uDef.buildoptions[numBuildoptions+3] = "corwint2"
+			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
+			uDef.buildoptions[numBuildoptions+5] = "corscavfort"
+			uDef.buildoptions[numBuildoptions+6] = "cordoomt3"
+		elseif name == "legaca" or name == "legack" or name == "legacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corapt3"
 			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
@@ -569,6 +583,9 @@ function UnitDef_Post(name, uDef)
 		uDef.customparams.areadamageresistance = "_CHICKENACID_"
 		uDef.upright = false
 		uDef.floater = true
+		if uDef.sightdistance then
+			uDef.sonardistance = uDef.sightdistance
+		end
 		if (not uDef.canfly) and uDef.maxvelocity then
 			uDef.maxreversevelocity = uDef.maxvelocity*0.65
 		end
@@ -617,18 +634,48 @@ function UnitDef_Post(name, uDef)
 		--Spring.Echo("Final Emit Height: ".. uDef.losemitheight)
 	end
 
-	if uDef.name and uDef.name ~= "Commander" then
+	if not uDef.customparams.iscommander then
+		local wreckinfo = ''
 		if uDef.featuredefs and uDef.maxdamage then
 			if uDef.featuredefs.dead then
 				uDef.featuredefs.dead.damage = uDef.maxdamage
+				if Spring.GetModOptions().experimentalrebalancewreckstandarization then
+					if uDef.buildcostmetal and uDef.buildcostenergy then
+						if name and not string.find(name, "_scav") then
+							if (name and uDef.featuredefs.dead.metal) or uDef.name then
+								wreckinfo = wreckinfo .. name ..  " Wreck Before: " .. tostring(uDef.featuredefs.dead.metal) .. ','
+							end
+							--uDef.featuredefs.dead.metal = (uDef.buildcostmetal + (uDef.buildcostenergy/100))*0.5
+							uDef.featuredefs.dead.metal = math.floor(uDef.buildcostmetal*0.6)
+							if name and not string.find(name, "_scav") then
+								wreckinfo = wreckinfo .. " Wreck After: " .. tostring(uDef.featuredefs.dead.metal) .. " ; "
+							end
+						end
+					end
+				end
 			end
 		end
 
 		if uDef.featuredefs and uDef.maxdamage then
 			if uDef.featuredefs.heap then
 				uDef.featuredefs.heap.damage = uDef.maxdamage
+				if Spring.GetModOptions().experimentalrebalancewreckstandarization then
+					if uDef.buildcostmetal and uDef.buildcostenergy then
+						if name and not string.find(name, "_scav") then
+							if (name and uDef.featuredefs.heap.metal) or uDef.name then
+								wreckinfo = wreckinfo .. name ..  " Heap Before: " .. tostring(uDef.featuredefs.heap.metal) .. ','
+							end
+							--uDef.featuredefs.heap.metal = (uDef.buildcostmetal + (uDef.buildcostenergy/100))*0.2
+							uDef.featuredefs.heap.metal = math.floor(uDef.buildcostmetal*0.25)
+							if name and not string.find(name, "_scav") then
+								wreckinfo = wreckinfo ..  " Heap After: " .. tostring(uDef.featuredefs.heap.metal)
+							end
+						end
+					end
+				end
 			end
 		end
+		if wreckinfo ~= '' then Spring.Echo(wreckinfo) end
     end
 
 	if uDef.maxslope then
@@ -655,7 +702,7 @@ function UnitDef_Post(name, uDef)
 
 			uDef.crashdrag = 0.01	-- default 0.005
 
-			if not (string.find(name, "fepoch") or string.find(name, "fblackhy")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
+			if not (string.find(name, "fepoch") or string.find(name, "fblackhy") or string.find(name, "corcrw") or string.find(name, "legfort")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
 				if not Spring.GetModOptions().experimentalnoaircollisions then
 					uDef.collide = false
 				else
@@ -1066,6 +1113,20 @@ function WeaponDef_Post(name, wDef)
 				for damageClass, damageValue in pairs(wDef.damage) do
 					wDef.damage[damageClass] = wDef.damage[damageClass] * x
 				end
+			end
+		end
+	end
+
+	-- ExplosionSpeed is calculated same way engine does it, and then doubled
+	-- Note that this modifier will only effect weapons fired from actual units, via super clever hax of using the weapon name as prefix
+	if wDef.damage and wDef.damage.default then 
+		if string.find(name,'_', nil, true) then
+			local prefix = string.sub(name,1,3)
+			if prefix == 'arm' or prefix == 'cor' or prefix == 'leg' or prefix == 'chi' then 
+				local globaldamage = math.max(30, wDef.damage.default / 20)
+				local defExpSpeed = (8 + (globaldamage * 2.5))/ (9 + (math.sqrt(globaldamage) * 0.70)) * 0.5
+				wDef.explosionSpeed = defExpSpeed * 2
+				--Spring.Echo("Changing explosionSpeed for weapon:", name, wDef.name, wDef.weapontype, wDef.damage.default, wDef.explosionSpeed)
 			end
 		end
 	end

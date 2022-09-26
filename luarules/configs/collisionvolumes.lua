@@ -77,10 +77,7 @@ local pieceCollisionVolume = {}			--per piece collision volume definitions
 local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume definitions
 
 
-unitCollisionVolume['armamb'] = {
-	on={49,45,49,-0.5,0,0,0,1,0},
-	off={49,26,49,-0.5,0,0,0,1,0},
-}
+
 unitCollisionVolume['armanni'] = {
 	on={54,81,54,0,-2,0,2,1,0},
 	off={54,56,54,0,-15,0,2,1,0},
@@ -125,10 +122,7 @@ unitCollisionVolume['cormaw'] = {
 	on={35,57,35,0,-5,-3,0,1,0},
 	off={35,31,35,0,-5,-3,0,1,0},
 }
-unitCollisionVolume['shiva'] = {
-	on={58,50,59,0,15,-3,0,1,0},
-	off={58,50,59,0,15,-3,0,1,0},
-}
+
 for name, v in pairs(unitCollisionVolume) do
 	for udid, ud in pairs(UnitDefs) do
 		if string.find(ud.name, name) then
@@ -136,6 +130,7 @@ for name, v in pairs(unitCollisionVolume) do
 		end
 	end
 end
+
 
 pieceCollisionVolume['armrad'] = {
 	['1']={22,58,22,0,30,0,1,1},
@@ -166,19 +161,19 @@ for name, v in pairs(pieceCollisionVolume) do
 	end
 end
 
-dynamicPieceCollisionVolume['cortoast'] = {
-	on = {
-		['1']={60,40,60,-13,10,0,0,0},
-		['5']={8,8,31,0,1,3,1,2},
-	},
-	off = {
-		['1']={12,58,58,-2,13,0,1,0},
-	}
-}
+-- dynamicPieceCollisionVolume['cortoast'] = {
+-- 	on = {
+-- 		['1']={60,40,60,-13,10,0,0,0},
+-- 		['5']={8,8,31,0,1,3,1,2},
+-- 	},
+-- 	off = {
+-- 		['1']={12,58,58,-2,13,0,1,0},
+-- 	}
+-- }
 dynamicPieceCollisionVolume['corvipe'] = {
 	on = {
 		['0']={38,26,38,0,0,0,2,0},
-		['5']={25,45,25,0,25,0,1,1},
+		['1']={25,45,25,0,25,0,1,1}, -- changed to [1] so the cylinder collision is attached to the turret and not a door 
 		['offsets']={0,23,0},
 	},
 	off = {

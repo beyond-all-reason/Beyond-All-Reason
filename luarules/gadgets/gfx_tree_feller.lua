@@ -4,7 +4,7 @@ function gadget:GetInfo()
 		desc = "Destroys features that have 0 m and >0 energy",
 		author = "Beherith",
 		date = "march 201",
-		license = "CC BY NC ND",
+		license   = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true,
 	}

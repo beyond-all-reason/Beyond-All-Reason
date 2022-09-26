@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author    = "Floris",
 		date      = "January 2021",
 		license   = "GNU GPL, v2 or later",
-		layer     = math.huge,
+		layer     = 1000000,
 		enabled   = true
 	}
 end
@@ -17,7 +17,7 @@ WG.FlowUI.chobbyInterface = false
 
 WG.FlowUI.opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 WG.FlowUI.scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-WG.FlowUI.tileOpacity = Spring.GetConfigFloat("ui_tileopacity", 0.012)
+WG.FlowUI.tileOpacity = Spring.GetConfigFloat("ui_tileopacity", 0.011)
 WG.FlowUI.tileScale = Spring.GetConfigFloat("ui_tilescale", 7)
 WG.FlowUI.tileSize = WG.FlowUI.tileScale
 
@@ -135,6 +135,9 @@ WG.FlowUI.Draw.RectRound = function(px, py, sx, sy,  cs,   tl, tr, br, bl,   c1,
 	--  optional: tl,tr,br,bl  0 = no corner (1 = always)
 	--  optional: c1,c2 for top-down color gradients
 	local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
+		--if sy == nil then
+		--	Spring.Debug.TraceFullEcho(nil,nil,nil, "sy is nil in DrawRectRound")
+		--end
 		local csyMult = 1 / ((sy - py) / cs)
 
 		if c1 then

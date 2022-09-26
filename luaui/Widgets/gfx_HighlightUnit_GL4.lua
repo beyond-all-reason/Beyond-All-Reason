@@ -5,7 +5,7 @@ function widget:GetInfo()
     desc      = "Highlight any unit, feature, unitDef or FeatureDef via WG.HighlightUnitGL4",
     author    = "Beherith,ivand",
     date      = "2022.01.04",
-    license   = "GPL",
+	license   = "GNU GPL, v2 or later",
     layer     = -9999,
     enabled   = true,
   }
@@ -216,7 +216,11 @@ if TESTMODE then
 	end
 end
 
-function widget:Initialize()
+function widget:Initialize()	
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	local vertVBO = gl.GetVBO(GL.ARRAY_BUFFER, false) -- GL.ARRAY_BUFFER, false
 	local indxVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false) -- GL.ARRAY_BUFFER, false
 	vertVBO:ModelsVBO()

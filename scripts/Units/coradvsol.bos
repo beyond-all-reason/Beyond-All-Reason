@@ -9,9 +9,15 @@ piece  base,fan;
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
-Create()
+
+Activate()
 {
 	spin fan around y-axis speed <-70.0000> accelerate <15.0>;
+}
+
+Deactivate()
+{
+	stop-spin fan around y-axis decelerate <0.2>;
 }
 
 SweetSpot(piecenum)

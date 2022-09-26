@@ -5,7 +5,7 @@ function gadget:GetInfo()
         version   = "cake",
         author    = "Bluestone",
         date      = "July 2014",
-        license   = "GNU GPL, v3 or later",
+        license   = "GNU GPL, v2 or later",
         layer     = 0,
         enabled   = false,  --  loaded by default?
     }

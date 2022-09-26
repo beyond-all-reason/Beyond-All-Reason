@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc      = "Displays ghosted buildings for buildings in progress",	-- engine nowadays already draws it, but we can add a highlight effect to distinct it!
 		author    = "very_bad_soldier, Bluestone, Floris (GL4)",
 		date      = "April 7, 2009",
-		license   = "GNU GPL v2",
+		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true
 	}

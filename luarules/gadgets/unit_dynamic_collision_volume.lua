@@ -34,9 +34,29 @@ if gadgetHandler:IsSyncedCode() then
 
 	local spArmor = Spring.GetUnitArmored
 	local pairs = pairs
-
+	
+	local unitDefMidAndAimPos = {} -- this is a table read from customparams mapping unitDefID to 
+	local featureDefMidAndAimPos = {} -- this is a table read from customparams mapping unitDefID to 
+		-- {unitDefID  = {aimx, aimz, aimy, midx, midy, midz}}
+	local function parseMidAndAimPos(defID, def, midAimPosTable, prefix)
+		if def.customParams then
+			if def.customParams['unit'..prefix..'pos'] then 
+				if midAimPosTable[defID] == nil then 
+					midAimPosTable[defID] = {}
+				end 
+				local midaimpossplit = string.split(def.customParams['unit'..prefix..'pos'], " ")
+				if midaimpossplit[1] and tonumber(midaimpossplit[1]) then midAimPosTable[defID][prefix..'x'] = tonumber(midaimpossplit[1]) end 
+				if midaimpossplit[2] and tonumber(midaimpossplit[2]) then midAimPosTable[defID][prefix..'y'] = tonumber(midaimpossplit[2]) end 
+				if midaimpossplit[3] and tonumber(midaimpossplit[3]) then midAimPosTable[defID][prefix..'z'] = tonumber(midaimpossplit[3]) end 
+				--Spring.Echo("Setting", 'unit'..prefix..'pos','to', midaimpossplit[1],midaimpossplit[2],midaimpossplit[3])
+			end
+		end
+	end
+	
 	local is3doFeature = {}
 	for featureDefID, def in pairs(FeatureDefs) do
+		parseMidAndAimPos(featureDefID, def, featureDefMidAndAimPos, 'aim')
+		parseMidAndAimPos(featureDefID, def, featureDefMidAndAimPos, 'mid')
 		if def.modelpath:lower():find(".3do") then
 			is3doFeature[featureDefID] = true
 		end
@@ -46,13 +66,16 @@ if gadgetHandler:IsSyncedCode() then
 	local unitModeltype ={}
 	local canFly = {}
 	for unitDefID, def in pairs(UnitDefs) do
+		parseMidAndAimPos(unitDefID, def, unitDefMidAndAimPos, 'aim')
+		parseMidAndAimPos(unitDefID, def, unitDefMidAndAimPos, 'mid')
 		unitName[unitDefID] = def.name
 		unitModeltype[unitDefID] = def.modeltype
 		if def.canFly then
 			canFly[unitDefID] = def.canFly
 		end
 	end
-
+	--unitDefMidAndAimPos[UnitDefNames['armllt'].id] = { midx = -5, midy = 0, midz= 0, aimx = -40, aimy = 20, aimz = 20}
+	--unitDefMidAndAimPos[UnitDefNames['corak'].id] = { midx = 0, midy = 0, midz= 0, aimx = -40, aimy = 20, aimz = 20}
 	--Process all initial map features
 	function gadget:Initialize()
 		--loading the file here allows to have /luarules reload dyn reload it as necessary
@@ -110,20 +133,29 @@ if gadgetHandler:IsSyncedCode() then
 		for i=1,#allUnits do
 			local unitID = allUnits[i]
 			gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
-			gadget:UnitFinished(unitID, spGetUnitDefID(unitID))
+			--gadget:UnitFinished(unitID, spGetUnitDefID(unitID))
 		end
 		for i=1,#allFeatures do
 			gadget:FeatureCreated(allFeatures[i])
 		end
 	end
 
-
 	--Reduces the diameter of default (unspecified) collision volume for 3DO models,
 	--for S3O models it's not needed and will in fact result in wrong collision volume
 	--also handles per piece collision volume definitions
 	--also makes sure subs are underwater
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-
+		if unitDefMidAndAimPos[unitDefID] then 
+			local midAndAimPos = unitDefMidAndAimPos[unitDefID]
+			Spring.SetUnitMidAndAimPos(unitID, 
+				midAndAimPos['midx'] or 0,
+				midAndAimPos['midy'] or 0,
+				midAndAimPos['midz'] or 0,
+				(midAndAimPos['aimx'] or 0) * -1, -- because engine is bugged
+				midAndAimPos['aimy'] or 0,
+				midAndAimPos['aimz'] or 0, -- relative?
+				true)
+		end
 		if pieceCollisionVolume[unitName[unitDefID]] then
 			local t = pieceCollisionVolume[unitName[unitDefID]]
 			for pieceIndex=0, #spGetPieceList(unitID)-1 do
@@ -197,11 +229,35 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
+		
+		-- Check if a unit is pop-up type (the list must be entered manually)
+		-- If a building was constructed add it to the list for later radius and height scaling
+		-- Changed from UnitFinished to UnitCreated
+		-- Some building's scripting change their collision while still under construction
+		-- These buildings should be added to the list of popupUnits to update when they are created, not when finished
+		local un = unitName[unitDefID]
+		if unitCollisionVolume[un] then
+			popupUnits[unitID]={name=un, state=-1, perPiece=false}
+		elseif dynamicPieceCollisionVolume[un] then
+			popupUnits[unitID]={name=un, state=-1, perPiece=true, numPieces = #spGetPieceList(unitID)-1}
+		end
 	end
 
 
 	-- Same as for 3DO units, but for features
 	function gadget:FeatureCreated(featureID, allyTeam)
+		if featureDefMidAndAimPos[featureDefID] then 
+			--Spring.SetFeatureMidAndAimPos ( number featureID, number mpX, number mpY, number mpZ, number apX, number apY, number apZ [, bool relative )
+			local midAndAimPos = featureDefMidAndAimPos[featureDefID]
+			Spring.SetFeatureMidAndAimPos(featureID, 
+				midAndAimPos['midx'] or 0,
+				midAndAimPos['midy'] or 0,
+				midAndAimPos['midz'] or 0,
+				(midAndAimPos['aimx'] or 0) * -1, -- because engine is bugged
+				midAndAimPos['aimy'] or 0,
+				midAndAimPos['aimz'] or 0-- relative?
+				)
+		end
 		if is3doFeature[Spring.GetFeatureDefID(featureID)] then
 			local rs, hs
 			if spGetFeatureRadius(featureID)>47 then
@@ -216,20 +272,7 @@ if gadgetHandler:IsSyncedCode() then
 			spSetFeatureRadiusAndHeight(featureID, spGetFeatureRadius(featureID)*rs, spGetFeatureHeight(featureID)*hs)
 		end
 	end
-
-
-	-- Check if a unit is pop-up type (the list must be entered manually)
-	-- If a building was constructed add it to the list for later radius and height scaling
-	function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-		local un = unitName[unitDefID]
-		if unitCollisionVolume[un] then
-			popupUnits[unitID]={name=un, state=-1, perPiece=false}
-		elseif dynamicPieceCollisionVolume[un] then
-			popupUnits[unitID]={name=un, state=-1, perPiece=true, numPieces = #spGetPieceList(unitID)-1}
-		end
-	end
-
-
+	
 	--check if a pop-up type unit was destroyed
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		if popupUnits[unitID] then

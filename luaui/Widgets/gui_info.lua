@@ -135,6 +135,7 @@ local string_lines = string.lines
 local os_clock = os.clock
 
 local myTeamID = Spring.GetMyTeamID()
+local mySpec = Spring.GetSpectatingState()
 
 local GL_QUADS = GL.QUADS
 local glTexture = gl.Texture
@@ -376,6 +377,7 @@ end
 
 function widget:PlayerChanged(playerID)
 	myTeamID = Spring.GetMyTeamID()
+	mySpec = Spring.GetSpectatingState()
 end
 
 function widget:ViewResize()
@@ -821,6 +823,33 @@ local function drawSelection()
 	glColor(1, 1, 1, 1)
 end
 
+function ColourString(R, G, B)
+	local R255 = math.floor(R * 255)
+	local G255 = math.floor(G * 255)
+	local B255 = math.floor(B * 255)
+	if R255 % 10 == 0 then
+		R255 = R255 + 1
+	end
+	if G255 % 10 == 0 then
+		G255 = G255 + 1
+	end
+	if B255 % 10 == 0 then
+		B255 = B255 + 1
+	end
+	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
+end
+
+function GetAIName(teamID)
+	local _, _, _, name, _, options = Spring.GetAIInfo(teamID)
+	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
+	if niceName then
+		name = niceName
+		--if Spring.Utilities.ShowDevUI() and options.profile then
+		--	name = name .. " [" .. options.profile .. "]"
+		--end
+	end
+	return Spring.I18N('ui.playersList.aiName', { name = name })
+end
 
 local function drawUnitInfo()
 	local fontSize = (height * vsy * 0.123) * (0.94 - ((1 - math.max(1.05, ui_scale)) * 0.4))
@@ -960,6 +989,21 @@ local function drawUnitInfo()
 			local color = bfcolormap[math_min(math_max(math_floor((health / maxHealth) * 100), 0), 100)]
 			valueY3 = convertColor(color[1], color[2], color[3]) .. math_floor(health)
 		end
+
+		-- display unit owner name
+		local teamID = Spring.GetUnitTeam(displayUnitID)
+		if mySpec or myTeamID ~= teamID then
+			local _, playerID, _, isAiTeam = Spring.GetTeamInfo(teamID, false)
+			local name = Spring.GetPlayerInfo(playerID, false)
+			if isAiTeam then
+				name = GetAIName(teamID)
+			end
+			if not name then
+				name = '---'
+			end
+			local fontSizeOwner = fontSize * 0.87
+			font2:Print(ColourString(Spring.GetTeamColor(teamID))..name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
+		end
 	else
 		valueY1 = metalColor .. unitDefInfo[displayUnitDefID].metalCost
 		valueY2 = energyColor .. unitDefInfo[displayUnitDefID].energyCost
@@ -1047,7 +1091,7 @@ local function drawUnitInfo()
 
 
 	-- draw transported unit list
-	elseif displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and #Spring.GetUnitIsTransporting(displayUnitID) > 0 then
+	elseif displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and (Spring.GetUnitIsTransporting(displayUnitID) and #Spring.GetUnitIsTransporting(displayUnitID) or 0) > 0 then
 		local units = Spring.GetUnitIsTransporting(displayUnitID)
 		if #units > 0 then
 			gridHeight = math_ceil(height * 0.975)
@@ -1116,7 +1160,7 @@ local function drawUnitInfo()
 			dps = unitDefInfo[displayUnitDefID].dps
 		end
 
-		-- get unit specifc data
+		-- get unit specific data
 		if displayMode == 'unit' then
 			-- get lots of unit info from functions: https://springrts.com/wiki/Lua_SyncedRead
 			metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
@@ -1134,7 +1178,9 @@ local function drawUnitInfo()
 
 		else
 			-- get unitdef specific data
-
+			if unitDefInfo[displayUnitDefID].maxWeaponRange then
+				maxRange = unitDefInfo[displayUnitDefID].maxWeaponRange
+			end
 		end
 
 		if unitDefInfo[displayUnitDefID].weapons then
@@ -1157,7 +1203,7 @@ local function drawUnitInfo()
 				if unitDefInfo[displayUnitDefID].maxCoverage then
 					addTextInfo(texts.coverrange, unitDefInfo[displayUnitDefID].maxCoverage)
 				elseif maxRange then
-					addTextInfo(texts.weaponrange, maxRange)
+					addTextInfo(texts.weaponrange, math_floor(maxRange))
 				end
 
 				addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
@@ -1277,6 +1323,8 @@ local function drawUnitInfo()
 
 		-- display unit(def) info text
 		font:Begin()
+		font:SetTextColor(1, 1, 1, 1)
+		font:SetOutlineColor(0, 0, 0, 1)
 		font:Print(text, customInfoArea[3] - width + (bgpadding*2.4), customInfoArea[4] - contentPadding - (infoFontsize * 0.55), infoFontsize, "o")
 		font:End()
 
@@ -1291,6 +1339,8 @@ local function drawEngineTooltip()
 	local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
 	local text, numLines = font:WrapText(currentTooltip, contentWidth * (loadedFontSize / fontSize))
 	font:Begin()
+	font:SetTextColor(1, 1, 1, 1)
+	font:SetOutlineColor(0, 0, 0, 1)
 	font:Print(text, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.8), fontSize, "o")
 	font:End()
 end
@@ -1464,7 +1514,7 @@ function widget:MouseRelease(x, y, button)
 		-- transported unit list
 		if displayMode == 'unit' and button == 1 then
 			local units = Spring.GetUnitIsTransporting(displayUnitID)
-			if #units > 0 then
+			if units and #units > 0 then
 				for cellID, unitID in pairs(units) do
 					local unitDefID = spGetUnitDefID(unitID)
 					if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then

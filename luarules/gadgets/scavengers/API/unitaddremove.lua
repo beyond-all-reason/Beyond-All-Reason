@@ -3,13 +3,13 @@
 -----------------------------------------------------------------------------------------------------------------------------------------------------
 local function AddScavUnit(unitID, unitDefID, unitName, unitTeam)
 	if (UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or scavNoSelfD[unitID]) and (unitName ~= staticUnitList.scavSpawnBeacon) then
-		BaseCleanupQueue[#BaseCleanupQueue+1] = unitID 
+		BaseCleanupQueue[#BaseCleanupQueue+1] = unitID
 	end
 	Spring.SetUnitExperience(unitID, math_random() * (spawnmultiplier*0.01*scavconfig.unitControllerModuleConfig.veterancymultiplier))
 	if string.find(unitName, scavconfig.unitnamesuffix) then
-		UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
+		UnitSuffixLength[unitID] = string.len(scavconfig.unitnamesuffix)
 	else
-		UnitSuffixLenght[unitID] = 0
+		UnitSuffixLength[unitID] = 0
 		local frame = Spring.GetGameFrame()
 		if frame > 30 then
 			local heading = Spring.GetUnitHeading(unitID)
@@ -25,14 +25,15 @@ local function AddScavUnit(unitID, unitDefID, unitName, unitTeam)
 	end
 	for i = 1,#bossUnitList.Bosses do
 		if unitName == bossUnitList.Bosses[i] then
+			Spring.SetGameRulesParam("BossFightStarted", 1)
 			FinalBossUnitID = unitID
 			initialbosshealth = Spring.GetUnitHealth(unitID)
 			local stopScavUnits = Spring.GetTeamUnits(ScavengerTeamID)
 			for y = 1,#stopScavUnits do
-				local unitID = stopScavUnits[y]							
+				local unitID = stopScavUnits[y]
 				Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
 			end
-			
+
 		end
 	end
 	if constructorUnitList.SwapUnitsToScav[unitDefID] then
@@ -187,7 +188,7 @@ local function RemoveScavUnit(unitID, unitDefID, unitTeam, unitName, attackerID,
 	scavSpawnBeacon[unitID] = nil
 	scavStockpiler[unitID] = nil
 	scavNuke[unitID] = nil
-	UnitSuffixLenght[unitID] = nil
+	UnitSuffixLength[unitID] = nil
 	ConstructorNumberOfRetries[unitID] = nil
 	CaptureProgressForBeacons[unitID] = nil
 	Spring.SetUnitHealth(unitID, {capture = 0})
@@ -228,7 +229,7 @@ local function RemoveNonScavUnit(unitID, unitDefID, unitTeam, unitName, attacker
 				FriendlyCollectors[unitID] = nil
 				FriendlyReclaimers[unitID] = nil
 				FriendlyResurrectors[unitID] = nil
-				UnitSuffixLenght[unitID] = nil
+				UnitSuffixLength[unitID] = nil
 				selfdx[unitID] = nil
 				selfdy[unitID] = nil
 				selfdz[unitID] = nil
@@ -308,7 +309,7 @@ local function CaptureScavUnit(unitID, unitDefID, unitName, unitNewTeam, unitOld
 	scavSpawnBeacon[unitID] = nil
 	scavStockpiler[unitID] = nil
 	scavNuke[unitID] = nil
-	UnitSuffixLenght[unitID] = nil
+	UnitSuffixLength[unitID] = nil
 	ConstructorNumberOfRetries[unitID] = nil
 	CaptureProgressForBeacons[unitID] = nil
 	Spring.SetUnitHealth(unitID, {capture = 0})
@@ -331,12 +332,12 @@ local function CaptureNonScavUnit(unitID, unitDefID, unitName, unitNewTeam, unit
 		end
 	end
 	if (UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or scavNoSelfD[unitID]) and (unitName ~= staticUnitList.scavSpawnBeacon) then
-		BaseCleanupQueue[#BaseCleanupQueue+1] = unitID 
+		BaseCleanupQueue[#BaseCleanupQueue+1] = unitID
 	end
 	if string.find(unitName, scavconfig.unitnamesuffix) then
-		UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
+		UnitSuffixLength[unitID] = string.len(scavconfig.unitnamesuffix)
 	else
-		UnitSuffixLenght[unitID] = 0
+		UnitSuffixLength[unitID] = 0
 		local frame = Spring.GetGameFrame()
 		if frame > 30 then
 			local heading = Spring.GetUnitHeading(unitID)
@@ -350,7 +351,7 @@ local function CaptureNonScavUnit(unitID, unitDefID, unitName, unitNewTeam, unit
 			end
 		end
 	end
-	--Spring.Echo("Scavs just captured me " .. UnitName .. " and my suffix lenght is " .. UnitSuffixLenght[unitID])
+	--Spring.Echo("Scavs just captured me " .. UnitName .. " and my suffix length is " .. UnitSuffixLength[unitID])
 	if UnitDefs[unitDefID].name == staticUnitList.scavSpawnBeacon then
 		scavStatsScavSpawners = scavStatsScavSpawners + 1
 		numOfSpawnBeaconsTeams[unitOldTeam] = numOfSpawnBeaconsTeams[unitOldTeam] - 1

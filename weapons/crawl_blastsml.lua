@@ -43,7 +43,7 @@ return {
 		},
 	},
 	fb_blastsml = {
-		areaofeffect = 200,
+		areaofeffect = 240,
 		craterboost = 0,
 		cratermult = 0,
 		edgeeffectiveness = 0.34999999403954,
@@ -60,7 +60,7 @@ return {
 		weaponvelocity = 250,
 		damage = {
 			commanders = 300,
-			default = 500,
+			default = 600,
 		},
 	},
 }

@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc    = "Displays rotating circles around geothermal spots",
 		author  = "Floris, Beherith GL4",
 		date    = "August 2021",
-		license = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
+		license = "Lua GNU GPL, v2 or later,   GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer   = 2,
 		enabled = true,
 	}
@@ -271,7 +271,10 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
-
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	if checkGeothermalFeatures then
 		checkGeothermalFeatures()
 	end

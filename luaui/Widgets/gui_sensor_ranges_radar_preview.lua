@@ -43,7 +43,7 @@ local radarTruthShader = nil
 
 local smallradVAO = nil
 local largeradVAO = nil
-local selectedRadarUnitID = falsec
+local selectedRadarUnitID = false
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.name == 'armarad' then
@@ -265,6 +265,10 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	initgl4()
 	WG.radarpreview = {
 		getShowPulseEffect = function()
@@ -298,7 +302,13 @@ end
 function widget:DrawWorld()
 	local cmdID
 	if selectedRadarUnitID then
-		cmdID = -Spring.GetUnitDefID(selectedRadarUnitID)
+		cmdID = Spring.GetUnitDefID(selectedRadarUnitID)
+		if cmdID then
+			cmdID = -cmdID
+		else
+			selectedRadarUnitID = false
+			return
+		end
 	else
 		cmdID = select(2, spGetActiveCommand())
 		if cmdID == nil or cmdID >= 0 then

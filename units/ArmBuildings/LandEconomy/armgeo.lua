@@ -11,7 +11,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -4 0",
-		collisionvolumescales = "60 50 60",
+		collisionvolumescales = "60 70 60",
 		collisionvolumetype = "Box",
 		corpse = "dead",
 		energymake = 300,
@@ -30,7 +30,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "geo",
 		sightdistance = 273,
-		yardmap = "h yyyyyyyy yooooooy yobbbboy yobggboy yobggboy yobbbboy yooooooy yyyyyyyy",
+		yardmap = "h yooyyooy oyooooyo oobbbboo yobggboy yobggboy oobbbboo oyooooyo yooyyooy",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armgeo_aoplane.dds",
@@ -50,8 +50,8 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "1.99999237061 -7.92236328095e-06 -0.0428466796875",
-				collisionvolumescales = "68.1631622314 53.8843841553 59.4699707031",
+				collisionvolumeoffsets = "0 0 0",
+				collisionvolumescales = "60 70 60",
 				collisionvolumetype = "Box",
 				damage = 1050,
 				energy = 0,

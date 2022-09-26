@@ -59,7 +59,7 @@ return {
 				footprintz = 6,
 				height = 40,
 				hitdensity = 100,
-				metal = 23,
+				metal = 222,
 				object = "Units/scavbuildings/armwint2_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",

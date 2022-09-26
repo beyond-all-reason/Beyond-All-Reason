@@ -23,7 +23,7 @@ function widget:GetInfo()
 		author = "trepan, jK, Bluestone",
 		date = "Jan 8, 2007",
 		license = "GNU GPL, v2 or later",
-		layer = (-math.huge) + 1,
+		layer = 999999,
 		handler = true,
 		enabled = true
 	}

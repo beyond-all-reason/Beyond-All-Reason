@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "Oct 23, 2010, (last update: March 3, 2022)",
 		license = "GNU GPL, v2 or later",
 		handler = true,
-		layer = 0,
+		layer = 1,
 		enabled = true  --  loaded by default?
 	}
 end
@@ -56,7 +56,7 @@ function widget:CommandNotify(id, params, options)
 	if isGuard then
 		local mx, my, mb = Spring.GetMouseState()
 		local type, unitID = Spring.TraceScreenRay(mx, my)
-		if not (type == 'unit' and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] < 0.002) then
+		if not (type == 'unit' and WG['resource_spot_builder'] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] and WG['resource_spot_builder'].GetMexBuildings()[spGetUnitDefID(unitID)] < 0.002) then
 			return
 		end
 	end
@@ -76,7 +76,7 @@ function widget:CommandsChanged()
 		if #selectedUnits > 0 then
 			local customCommands = widgetHandler.customCommands
 			for i = 1, #selectedUnits do
-				if WG['resource_spot_builder'].GetMexConstructors()[selectedUnits[i]] then
+				if WG['resource_spot_builder'] and WG['resource_spot_builder'].GetMexConstructors()[selectedUnits[i]] then
 					customCommands[#customCommands + 1] = {
 						id = CMD_AREA_MEX,
 						type = CMDTYPE.ICON_AREA,
@@ -94,7 +94,7 @@ end
 
 
 function widget:Initialize()
-	if not WG['resource_spot_finder'].metalSpotsList or (#WG['resource_spot_finder'].metalSpotsList > 0 and #WG['resource_spot_finder'].metalSpotsList <= 2) then
+	if WG['resource_spot_finder'] and (not WG['resource_spot_finder'].metalSpotsList or (#WG['resource_spot_finder'].metalSpotsList > 0 and #WG['resource_spot_finder'].metalSpotsList <= 2)) then
 		metalMap = true
 	end
 end

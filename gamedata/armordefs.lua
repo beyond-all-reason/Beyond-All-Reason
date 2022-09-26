@@ -311,7 +311,7 @@ local armorDefs = {
 		"coruwadvms",
 
 		"corgatreap",
-		
+
 		"armpwt4",
 		"armrattet4",
 		"armvadert4",
@@ -322,14 +322,14 @@ local armorDefs = {
 		"armsptkt4",
 		"cordemont4",
 		"corgolt4",
-		
+
 		"scavmist",
 		"scavmistxl",
 		"scavmistxxl",
-		
+
 		"armapt3",
 		"corapt3",
-		
+
 	},
 	bombers = {
 		"chickenf1",
@@ -349,7 +349,8 @@ local armorDefs = {
 		"corhurc",
 		"corsb",
 		"cortitan",
-		"legnap", 
+		"cords",
+		"legnap",
 		"legkam",
 		"legcib",
 		"legmineb",
@@ -368,6 +369,9 @@ local armorDefs = {
 		"corsfig",
 		"corvamp",
 		"legfig",
+	},
+	space = {
+		"armsat",
 	},
 	mines = {
 		"armfmine3",

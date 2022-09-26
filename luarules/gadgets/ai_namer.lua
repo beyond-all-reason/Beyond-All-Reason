@@ -6,6 +6,7 @@ function gadget:GetInfo()
 		desc	= "Assignes names to AI teams",
 		author	= "Floris",
 		date	= "May 2018",
+		license = "GNU GPL, v2 or later",
 		layer	= 0,
 		enabled = true,
 	}
@@ -65,7 +66,6 @@ if gadgetHandler:IsSyncedCode() then
 		"dallabill",
 		"[D]4RK_HUNT[E]R",
 		"Dave",
-		"Derpiederp",
 		"Diana",
 		"EnJoY",
 		"ewang",
@@ -103,6 +103,7 @@ if gadgetHandler:IsSyncedCode() then
 		"rlm",
 		"rous",
 		"Rikerss", --Merch $20+
+		"Sovgut", --Tourney prize $50
 		"Spanker",
 		"SuperMadmax",
 		"sversuge",
@@ -113,6 +114,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Woody",
 		"Yavarin",
 		"Zagupi",
+		"Zerpiederp", --Tourney prize $100 on top of regular donation
 		"zGeneral",
 
 		-- BAR Content Creators

@@ -4,6 +4,7 @@ function widget:GetInfo()
     desc      = "Changes taskbar icon",
     author    = "Floris",
     date      = "June 2021",
+	license   = "GNU GPL, v2 or later",
     layer     = 0,
     enabled   = true,
   }
@@ -13,7 +14,6 @@ local doNotify = true
 local doBlink = true
 
 local imgPrefix = 'bitmaps/logo'
-local imagePlain = ".png"
 local imagePlain2 = "2.png"
 local imageBattle = ".png"
 local imageBattleNotif = "_notif.png"

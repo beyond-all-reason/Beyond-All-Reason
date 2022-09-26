@@ -12,6 +12,7 @@ function gadget:GetInfo()
       desc      = "123",
       author    = "Damgam",
       date      = "2021",
+	  license   = "GNU GPL, v2 or later",
       layer     = -100,
       enabled   = spawnpadSpawnEnabled,
     }
@@ -32,8 +33,10 @@ function SpawnAssistDrones(unitID, unitDefID, unitTeam)
     local spawnpadunit = spawnpads[unitDefID]
     local spawnpadID = Spring.CreateUnit(spawnpadunit, posx, posy, posz, 0, unitTeam)
     --Spring.SpawnCEG("scav-spawnexplo", posx, posy+10, posz,0,0,0)
-    Spring.GiveOrderToUnit(spawnpadID, CMD.GUARD, unitID, {})
-    Spring.SetUnitBlocking(spawnpadID, false)
+	if spawnpadID then
+		Spring.GiveOrderToUnit(spawnpadID, CMD.GUARD, unitID, {})
+		Spring.SetUnitBlocking(spawnpadID, false)
+	end
 end
 
 local commandersList = {}

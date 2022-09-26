@@ -4,7 +4,7 @@ function gadget:GetInfo()
 		desc = "Applies lower 'reaimTime for continuous aim'",
 		author = "Doo",
 		date = "April 2018",
-		license = "Whatever works",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true, -- When we will move on 105 :)
 	}
@@ -23,6 +23,7 @@ local convertedUnits = {
 	--[UnitDefNames.armpincer.id] = true,
 	--[UnitDefNames.armsam.id] = true,
 	--[UnitDefNames.armstump.id] = true,
+	[UnitDefNames.armbeamer.id] = 3, 
 	[UnitDefNames.armpw.id] = 2,
 	[UnitDefNames.armpwt4.id] = 2,
 	[UnitDefNames.armflea.id] = 2,
@@ -94,6 +95,7 @@ local convertedUnits = {
 	[UnitDefNames.legcen.id] = 2,
 	[UnitDefNames.leggat.id] = 5,
 	[UnitDefNames.leggob.id] = 5,
+	[UnitDefNames.leginc.id] = 1,
 	[UnitDefNames.leglob.id] = 5,
 	[UnitDefNames.legmos.id] = 5,
 	[UnitDefNames.leghades.id] = 5,
@@ -105,6 +107,8 @@ local convertedUnits = {
 	[UnitDefNames.legcomt2com.id] = 5,
 	[UnitDefNames.legstr.id] = 5,
 	[UnitDefNames.legbart.id] = 5,
+	[UnitDefNames.legmrv.id] = 5,
+	[UnitDefNames.legsco.id] = 5,
 }
 
 -- add for scavengers copies

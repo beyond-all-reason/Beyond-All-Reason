@@ -29,7 +29,6 @@ if gadgetHandler:IsSyncedCode() then
 local CMD_INSERT 		= CMD.INSERT
 local CMD_MOVE			= CMD.MOVE
 local CMD_REMOVE        = CMD.REMOVE
-local CMD_WAIT			= CMD.WAIT
 local CMD_STOP			= CMD.STOP
 local CMD_GUARD			= CMD.GUARD
 local CMD_LOAD_ONTO		= CMD.LOAD_ONTO
@@ -38,7 +37,6 @@ local CMD_UNLOAD_UNIT   = 81 --CMD.UNLOAD_UNIT   --81
 local CMD_UNLOAD_UNITS  = 80 --CMD.UNLOAD_UNITS  --80
 local CMD_LOAD_UNITS	= CMD.LOAD_UNITS
 local CMD_OPT_INTERNAL 	= CMD.OPT_INTERNAL
-local CMD_OPT_SHIFT 	= CMD.OPT_SHIFT
 
 local loadtheseunits = {}               --// { [passengerUnitID] = transportID, ... }
     --- Whenever an unload is registered, this table holds which transports are moving towards unload range
@@ -60,7 +58,6 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitDefID    = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spUnitAttach = Spring.UnitAttach
 local spUnitDetach = Spring.UnitDetach
 local spUnitDetachFromAir = Spring.UnitDetachFromAir
@@ -69,7 +66,6 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 
 local mcSetPosition         = Spring.MoveCtrl.SetPosition
---local mcSetRotation         = Spring.MoveCtrl.SetRotation
 local mcDisable             = Spring.MoveCtrl.Disable
 local mcEnable              = Spring.MoveCtrl.Enable
 
@@ -401,7 +397,7 @@ function gadget:GameFrame(f)
         local unitID = tonumber(data.unitID)
         local frame = tonumber(data.frame)
         local clickPos = data.clickPos
-        if f >= frame and IsValidUnit(unitID) then
+        if f >= frame and Spring.ValidUnitID(unitID) then
             local px, py, pz = spGetUnitPosition(unitID)
             if px ~= nil and py ~= nil and pz ~= nil then
                 mcEnable(unitID)

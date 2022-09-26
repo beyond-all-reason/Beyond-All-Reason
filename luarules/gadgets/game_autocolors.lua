@@ -4,6 +4,7 @@ function gadget:GetInfo()
 		desc = "Automatically assigns colors to teams",
 		author = "Damgam, Born2Crawl (color palette)",
 		date = "2021",
+		license = "GNU GPL, v2 or later",
 		layer = -100,
 		enabled = true,
 	}
@@ -165,7 +166,7 @@ if gadgetHandler:IsSyncedCode() then
 				"#37713A", --20
 			},
 			{ -- Second Team (Warm)
-				"#FF1005", --1 
+				"#FF1005", --1
 				"#FFD200", --2
 				"#FF6107", --3
 				"#F80889", --4

@@ -424,10 +424,7 @@ Create()
 	hide flare3;
 	hide flare2;
 	hide aimy1;
-	hide flare1;
-	hide flare2;
-	hide flare3;
-	fire_count=4;
+	fire_count=0;
 	animspeed = 4;
 	maxreloadtime=0;
 	open=FALSE;
@@ -448,20 +445,22 @@ SetMaxReloadTime(t)
 
 FirePrimary()
 {
-	signal SIG_FIRE1;
-	set-signal-mask SIG_FIRE1;
-	++fire_count;
-	if(fire_count>=3)
-	{
-		fire_count=0;
-	}
-	sleep 1;
+	//signal SIG_FIRE1;
+	//set-signal-mask SIG_FIRE1;
+	//++fire_count;
+	//if(fire_count>=3)
+	//{
+	//	fire_count=0;
+	//}
+	//sleep 1;
 	return(1);
 	
 }
 
-Shot1()
+Shot1(zero)
 {
+	signal SIG_FIRE1;
+	set-signal-mask SIG_FIRE1;
 	if(fire_count==0)
 	{
 		emit-sfx 1024+0 from flare1;	
@@ -474,6 +473,13 @@ Shot1()
 	{
 		emit-sfx 1024+0 from flare3;
 	}
+	sleep 32;
+	++fire_count;
+	if(fire_count>=3)
+	{
+		fire_count=0;
+	}
+	return(1);
 }
 
 QueryPrimary(piecenum)

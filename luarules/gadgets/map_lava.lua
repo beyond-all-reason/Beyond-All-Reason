@@ -15,7 +15,13 @@ tideIndex = 1
 tideContinueFrame = 0
 lavaGrow = 0
 gameframe = 0
-voidWaterMap = gl.GetMapRendering("voidWater")
+
+voidWaterMap = false
+local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
+if success or mapinfo ~= nil then
+	voidWaterMap = mapinfo.voidwater
+end
+
 --_G.Game.mapSizeX = Game.mapSizeX
 --_G.Game.mapSizeY = Game.mapSizeY
 
@@ -223,6 +229,7 @@ else  -- UNSYCNED
 
 	local foglightenabled = lavaFogEnabled
 	local fogheightabovelava = lavaFogHeight
+	local allowDeferredMapRendering =  (Spring.GetConfigInt("AllowDeferredMapRendering") == 1) -- map depth buffer is required for the foglight shader pass
 
 	local tideamplitude = lavaTideamplitude
 	local tideperiod = lavaTideperiod
@@ -654,6 +661,10 @@ else  -- UNSYCNED
 			gadgetHandler:RemoveGadget(self)
 			return
 		end
+		if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+			gadgetHandler:RemoveGadget()
+			return
+		end
 
 		Spring.SetDrawWater(false)
 
@@ -766,7 +777,7 @@ else  -- UNSYCNED
 	end
 
 	function gadget:DrawWorld()
-		if lavatidelevel and foglightenabled then
+		if lavatidelevel and foglightenabled and allowDeferredMapRendering then
 				--Now to draw the fog light a good 32 elmos above it :)
 			foglightShader:Activate()
 			foglightShader:SetUniform("lavaHeight",lavatidelevel + fogheightabovelava)

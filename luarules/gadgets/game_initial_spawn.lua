@@ -43,7 +43,7 @@ if gadgetHandler:IsSyncedCode() then
 		[corcomDefID] = true,
 		[legcomDefID] = true,
 	}
-	if Spring.GetModOptions().experimentallegionfaction == true then
+	if not Spring.GetModOptions().unba and Spring.GetModOptions().experimentallegionfaction then
 		validStartUnits[legcomDefID] = true
 	end
 	local spawnTeams = {} -- spawnTeams[teamID] = allyID
@@ -93,7 +93,13 @@ if gadgetHandler:IsSyncedCode() then
 			if teamID ~= gaiaTeamID then
 				-- set & broadcast (current) start unit
 				local _, _, _, _, teamSide, teamAllyID = spGetTeamInfo(teamID, false)
-				spSetTeamRulesParam(teamID, startUnitParamName, teamSide == 'cortex' and corcomDefID or armcomDefID or legcomDefID)
+				local comDefID = armcomDefID
+				if teamSide == 'cortex' then
+					comDefID = corcomDefID
+				elseif teamSide == 'legion' then
+					comDefID = legcomDefID
+				end
+				spSetTeamRulesParam(teamID, startUnitParamName, comDefID, { allied = true, public = false })
 				spawnTeams[teamID] = teamAllyID
 
 				-- record that this allyteam will spawn something
@@ -303,7 +309,8 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- share info
 		teamStartPoints[teamID] = { x, y, z }
-		spSetTeamRulesParam(teamID, startUnitParamName, startUnit, { public = true }) -- visible to all (and picked up by advpllist)
+		--spSetTeamRulesParam(teamID, startUnitParamName, startUnit, { public = true }) -- visible to all (and picked up by advpllist)
+		spSetTeamRulesParam(teamID, startUnitParamName, startUnit, { allied = true, public = false })
 
 		-- team storage is set up by game_team_resources
 	end

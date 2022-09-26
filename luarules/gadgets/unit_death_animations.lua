@@ -4,13 +4,13 @@ function gadget:GetInfo()
 		desc      = "Prevent moving of Dying units",
 		author    = "Beherith",
 		date      = "2020",
-		license   = "CC BY NC ND",
+		license   = "GNU GPL, v2 or later",
 		layer     = 1000,
 		enabled   = true,
 	}
 end
 
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
@@ -31,31 +31,31 @@ end
 
 local SetUnitNoSelect	= Spring.SetUnitNoSelect
 local GiveOrderToUnit	= Spring.GiveOrderToUnit
-local SetUnitBlocking = Spring.SetUnitBlocking 
+local SetUnitBlocking = Spring.SetUnitBlocking
 local CMD_STOP = CMD.STOP
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 	if hasDeathAnim[unitDefID] then
 		--Spring.Echo("gadget:UnitDestroyed",unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 		SetUnitNoSelect(unitID,true)
-    SetUnitBlocking(unitID,false) -- non blocking while dying
+    	SetUnitBlocking(unitID,false) -- non blocking while dying
 		GiveOrderToUnit(unitID, CMD_STOP, 0, 0)
-    dyingUnits[unitID] = true
+    	dyingUnits[unitID] = true
 	end
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) -- do not allow dying units to be moved
-  if dyingUnits[unitID] then
-    return false
-  else
-    return true
-  end
+	return dyingUnits[unitID] and false or true
 end
 
 function gadget:RenderUnitDestroyed(unitID, unitDefID, unitTeam) --called when killed anim finishes
-  if dyingUnits[unitID] then dyingUnits[unitID] = nil end
+	if dyingUnits[unitID] then
+		dyingUnits[unitID] = nil
+	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID) -- for unitID reuse, just in case
-  if dyingUnits[unitID] then dyingUnits[unitID] = nil end
+	if dyingUnits[unitID] then
+		dyingUnits[unitID] = nil
+	end
 end

@@ -4,7 +4,7 @@ function widget:GetInfo()
 	desc      = "Generates Lua blueprint code from selected units",
 	author    = "Damgam",
 	date      = "2020",
-	license   = "who cares?",
+	license   = "GNU GPL, v2 or later",
 	layer     = 0,
 	enabled   = true,
 	}

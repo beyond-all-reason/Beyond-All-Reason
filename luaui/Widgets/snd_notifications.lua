@@ -20,7 +20,7 @@ local displayMessages = true
 local spoken = true
 local idleBuilderNotificationDelay = 10 * 30	-- (in gameframes)
 local lowpowerThreshold = 6		-- if there is X secs a low power situation
-local tutorialPlayLimit = 3		-- display the same tutorial message only this many times in total (max is always 1 play per game)
+local tutorialPlayLimit = 2		-- display the same tutorial message only this many times in total (max is always 1 play per game)
 
 --------------------------------------------------------------------------------
 
@@ -420,6 +420,8 @@ end
 function widget:GameFrame(gf)
 	gameframe = gf
 
+	if isSpec then return end
+
 	if not displayMessages and not spoken then return end
 
 	if gameframe < 60 then return end	-- dont alert stuff for first 2 secs so gadgets can still spawn stuff without it triggering notifications
@@ -448,7 +450,7 @@ function widget:GameFrame(gf)
 		end
 
 		-- low power check
-		if (e_currentLevel / e_storage) < 0.025 and e_currentLevel < 3000 then
+		if e_currentLevel and (e_currentLevel / e_storage) < 0.025 and e_currentLevel < 3000 then
 			lowpowerDuration = lowpowerDuration + 1
 			if lowpowerDuration >= lowpowerThreshold then
 				queueNotification('LowPower')

@@ -81,7 +81,7 @@ end
 function DestroyOldBuildings()
 	local unitCount = Spring.GetTeamUnitCount(ScavengerTeamID)
 	local unitCountBuffer = scavMaxUnits*0.1
-	if unitCount + unitCountBuffer > scavMaxUnits then 
+	if unitCount + unitCountBuffer > scavMaxUnits then
 		for i = 1,((unitCount + unitCountBuffer)-scavMaxUnits) do
 			if i > 5 then
 				break
@@ -147,9 +147,9 @@ function gadget:GameFrame(n)
 	end
 
 	if scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists == true then
-		-- if n%30 == 0 then
-		-- 	startboxProtectionController.spawnStartBoxProtection(n)
-		-- end
+		if n%30 == 0 then
+			startboxProtectionController.spawnStartBoxProtection(n)
+		end
 		if n%10 == 0 then
 			startboxProtectionController.executeStartBoxProtection(n)
 		end
@@ -204,7 +204,7 @@ function gadget:GameFrame(n)
 	end
 
 	if n%30 == 0 and globalScore then
-		
+
 		if scavteamhasplayers == false then
 			Spring.SetTeamResource(ScavengerTeamID, "ms", 1000000)
 			Spring.SetTeamResource(ScavengerTeamID, "es", 1000000)
@@ -216,7 +216,7 @@ function gadget:GameFrame(n)
 		end
 		local scavUnits = Spring.GetTeamUnits(ScavengerTeamID)
 		local scavUnitsCount = #scavUnits
-		if (scavUnitsCount < (scavconfig.unitSpawnerModuleConfig.minimumspawnbeacons*4) or numOfSpawnBeacons == 0) and n > scavconfig.gracePeriod*3 then 
+		if (scavUnitsCount < (scavconfig.unitSpawnerModuleConfig.minimumspawnbeacons*4) or numOfSpawnBeacons == 0) and n > scavconfig.gracePeriod*3 then
 			killedscavengers = killedscavengers + 1000
 			if BossWaveStarted and (BossWaveTimeLeft and BossWaveTimeLeft > 20) then
 				BossWaveTimeLeft = 20
@@ -245,8 +245,6 @@ function gadget:GameFrame(n)
 
 	if n%30 == 0 then
 		if n > scavconfig.gracePeriod and scavengerGamePhase == "initial" then
-			local scoreNow = globalScore
-			endOfGracePeriodScore = scoreNow
 			scavengerGamePhase = "action"
 		end
 		if globalScore then
@@ -384,9 +382,9 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		-- CMD.CLOAK = 37382
 		local UnitName = UnitDefs[unitDefID].name
 		if string.find(UnitName, scavconfig.unitnamesuffix) then
-			UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
+			UnitSuffixLength[unitID] = string.len(scavconfig.unitnamesuffix)
 		else
-			UnitSuffixLenght[unitID] = 0
+			UnitSuffixLength[unitID] = 0
 		end
 
 		-- if staticUnitList.WallsID[unitDefID] then

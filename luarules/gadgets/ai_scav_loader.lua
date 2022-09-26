@@ -18,6 +18,7 @@ function gadget:GetInfo()
     desc      = "123",
     author    = "Damgam",
     date      = "2019",
+	license   = "GNU GPL, v2 or later",
     layer     = -100,
     enabled   = enabled,
   }
@@ -28,7 +29,7 @@ function gadget:GameOver()
 end
 
 if gadgetHandler:IsSyncedCode() then
-		
+
 	if enabled then
 		VFS.Include('luarules/gadgets/scavengers/boot.lua')
 	end

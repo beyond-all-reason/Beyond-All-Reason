@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		desc = "Sets up a constant 10 or 15 elmos load/unload radius for air transports and allows unload as soon as distance is reached (104.0.1 - maintenace 686+)",
 		author = "Doo",
 		date = "2018",
-		license = "PD",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true,
 	}

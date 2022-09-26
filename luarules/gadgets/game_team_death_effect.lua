@@ -4,7 +4,7 @@ function gadget:GetInfo()
 		desc = "blows up a teams units in a gradual/wave like manner",
 		author = "Floris", -- original: KDR_11k (David Becker)",
 		date = "September 2021",
-		license = "",
+		license = "GNU GPL, v2 or later",
 		layer = 1,
 		enabled = true
 	}

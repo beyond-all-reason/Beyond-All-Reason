@@ -393,6 +393,352 @@ StopWalking() {
 	turn torso to y-axis <0.000000> speed <84.999997>;
 	turn torso to z-axis <0.000000> speed <13.020986>;
 }
+
+// For N:\animations\corcom_anim_dance1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7))
+// this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
+static-var danceSpeed, bDancing;
+Dance() {// For N:\animations\corcom_anim_dance1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 7)) 
+	set-signal-mask SIG_WALK;
+	while(bDancing) {
+		if (bDancing) { //Frame:12
+			turn biggun to x-axis <4.412566> speed <396.710898> / danceSpeed; //delta=-13.22
+			turn biggun to z-axis <11.881886> speed <415.575039> / danceSpeed; //delta=-13.85
+			turn biggun to y-axis <17.256061> speed <513.126683> / danceSpeed; //delta=17.10
+			turn l_foot to x-axis <-4.961550> speed <73.833291> / danceSpeed; //delta=2.46
+			turn lleg to x-axis <25.619085> speed <457.189231> / danceSpeed; //delta=-15.24
+			turn lleg to z-axis <7.145892> speed <221.065825> / danceSpeed; //delta=-7.37
+			turn lleg to y-axis <-3.267474> speed <163.519999> / danceSpeed; //delta=-5.45
+			turn lthigh to x-axis <-21.142294> speed <389.238001> / danceSpeed; //delta=12.97
+			turn lthigh to z-axis <-7.134507> speed <178.318299> / danceSpeed; //delta=5.94
+			turn lthigh to y-axis <10.253208> speed <56.606038> / danceSpeed; //delta=-1.89
+			turn luparm to x-axis <-28.415125> speed <1061.581546> / danceSpeed; //delta=35.39
+			turn luparm to z-axis <1.425264> speed <42.757923> / danceSpeed; //delta=-1.43
+			turn luparm to y-axis <5.221505> speed <299.833685> / danceSpeed; //delta=-9.99
+			turn nanolathe to x-axis <-15.204308> speed <659.986285> / danceSpeed; //delta=22.00
+			turn nanolathe to z-axis <3.613617> speed <164.127403> / danceSpeed; //delta=-5.47
+			turn nanolathe to y-axis <-1.147630> speed <31.120627> / danceSpeed; //delta=-1.04
+			move pelvis to x-axis [1.322422] speed [39.672657] / danceSpeed; //delta=1.32
+			move pelvis to z-axis [-0.354404] speed [10.632118] / danceSpeed; //delta=-0.35
+			move pelvis to y-axis [-2.012339] speed [51.333447] / danceSpeed; //delta=-1.71
+			turn pelvis to z-axis <-0.364392> speed <10.931764> / danceSpeed; //delta=0.36
+			turn pelvis to y-axis <4.151225> speed <124.536739> / danceSpeed; //delta=4.15
+			turn r_foot to x-axis <-6.904981> speed <238.926014> / danceSpeed; //delta=7.96
+			turn rleg to x-axis <32.270147> speed <491.761070> / danceSpeed; //delta=-16.39
+			turn rleg to z-axis <6.432222> speed <215.630260> / danceSpeed; //delta=-7.19
+			turn rleg to y-axis <-9.170835> speed <197.449471> / danceSpeed; //delta=-6.58
+			turn rthigh to x-axis <-21.267713> speed <271.662996> / danceSpeed; //delta=9.06
+			turn rthigh to z-axis <-2.841574> speed <129.806199> / danceSpeed; //delta=4.33
+			turn rthigh to y-axis <-26.533666> speed <24.264213> / danceSpeed; //delta=-0.81
+			turn ruparm to x-axis <-2.217281> speed <326.764181> / danceSpeed; //delta=10.89
+			turn ruparm to z-axis <3.355986> speed <100.679584> / danceSpeed; //delta=-3.36
+			turn ruparm to y-axis <14.556984> speed <811.949418> / danceSpeed; //delta=27.06
+		sleep ((33*danceSpeed) -1);
+		}
+		if (bDancing) { //Frame:18
+			turn biggun to x-axis <-8.811130> speed <396.710898> / danceSpeed; //delta=13.22
+			turn biggun to z-axis <-1.970615> speed <415.575039> / danceSpeed; //delta=13.85
+			turn biggun to y-axis <0.151839> speed <513.126683> / danceSpeed; //delta=-17.10
+			turn l_foot to x-axis <8.610276> speed <407.154774> / danceSpeed; //delta=-13.57
+			turn l_foot to z-axis <-0.356323> speed <6.105959> / danceSpeed; //delta=-0.20
+			turn l_foot to y-axis <-0.110989> speed <5.177364> / danceSpeed; //delta=0.17
+			turn lleg to x-axis <2.243565> speed <701.265616> / danceSpeed; //delta=23.38
+			turn lleg to z-axis <8.129674> speed <29.513461> / danceSpeed; //delta=-0.98
+			turn lleg to y-axis <-7.991459> speed <141.719546> / danceSpeed; //delta=-4.72
+			turn lthigh to x-axis <-12.531527> speed <258.322997> / danceSpeed; //delta=-8.61
+			turn lthigh to z-axis <-6.910861> speed <6.709355> / danceSpeed; //delta=-0.22
+			turn lthigh to y-axis <12.510087> speed <67.706342> / danceSpeed; //delta=2.26
+			turn luparm to x-axis <7.822892> speed <1087.140532> / danceSpeed; //delta=-36.24
+			turn luparm to z-axis <-0.000000> speed <42.757923> / danceSpeed; //delta=1.43
+			turn luparm to y-axis <13.861978> speed <259.214208> / danceSpeed; //delta=8.64
+			turn nanolathe to x-axis <-1.007948> speed <425.890824> / danceSpeed; //delta=-14.20
+			turn nanolathe to z-axis <-1.913956> speed <165.827179> / danceSpeed; //delta=5.53
+			turn nanolathe to y-axis <0.020782> speed <35.052340> / danceSpeed; //delta=1.17
+			move pelvis to x-axis [2.484856] speed [34.873034] / danceSpeed; //delta=1.16
+			move pelvis to z-axis [-1.458395] speed [33.119737] / danceSpeed; //delta=-1.10
+			move pelvis to y-axis [-0.120361] speed [56.759327] / danceSpeed; //delta=1.89
+			turn pelvis to x-axis <0.266259> speed <5.002170> / danceSpeed; //delta=-0.17
+			turn pelvis to z-axis <-0.821843> speed <13.723538> / danceSpeed; //delta=0.46
+			turn pelvis to y-axis <9.501728> speed <160.515102> / danceSpeed; //delta=5.35
+			turn r_foot to x-axis <0.285490> speed <215.714116> / danceSpeed; //delta=-7.19
+			turn rleg to x-axis <12.889479> speed <581.420058> / danceSpeed; //delta=19.38
+			turn rleg to z-axis <12.224929> speed <173.781195> / danceSpeed; //delta=-5.79
+			turn rleg to y-axis <-13.221499> speed <121.519900> / danceSpeed; //delta=-4.05
+			turn rthigh to x-axis <-11.275657> speed <299.761686> / danceSpeed; //delta=-9.99
+			turn rthigh to z-axis <-9.362821> speed <195.637407> / danceSpeed; //delta=6.52
+			turn rthigh to y-axis <-27.579010> speed <31.360301> / danceSpeed; //delta=-1.05
+			turn ruparm to x-axis <8.674858> speed <326.764181> / danceSpeed; //delta=-10.89
+			turn ruparm to z-axis <0.000000> speed <100.679584> / danceSpeed; //delta=3.36
+			turn ruparm to y-axis <-12.507997> speed <811.949418> / danceSpeed; //delta=-27.06
+		sleep ((33*danceSpeed) -1);
+		}
+		if (bDancing) { //Frame:24
+			turn biggun to x-axis <4.412566> speed <396.710898> / danceSpeed; //delta=-13.22
+			turn biggun to z-axis <11.881886> speed <415.575039> / danceSpeed; //delta=-13.85
+			turn biggun to y-axis <17.256061> speed <513.126683> / danceSpeed; //delta=17.10
+			turn l_foot to x-axis <-4.724640> speed <400.047467> / danceSpeed; //delta=13.33
+			turn l_foot to z-axis <-0.574607> speed <6.548532> / danceSpeed; //delta=0.22
+			turn l_foot to y-axis <-0.286214> speed <5.256762> / danceSpeed; //delta=-0.18
+			turn lleg to x-axis <28.232742> speed <779.675334> / danceSpeed; //delta=-25.99
+			turn lleg to z-axis <5.996777> speed <63.986932> / danceSpeed; //delta=2.13
+			turn lleg to y-axis <-3.060277> speed <147.935456> / danceSpeed; //delta=4.93
+			turn lthigh to x-axis <-23.994185> speed <343.879722> / danceSpeed; //delta=11.46
+			turn lthigh to z-axis <-5.884272> speed <30.797682> / danceSpeed; //delta=-1.03
+			turn lthigh to y-axis <9.704153> speed <84.178018> / danceSpeed; //delta=-2.81
+			turn luparm to x-axis <-28.415125> speed <1087.140532> / danceSpeed; //delta=36.24
+			turn luparm to z-axis <1.425264> speed <42.757923> / danceSpeed; //delta=-1.43
+			turn luparm to y-axis <5.221505> speed <259.214208> / danceSpeed; //delta=-8.64
+			turn nanolathe to x-axis <-15.204308> speed <425.890824> / danceSpeed; //delta=14.20
+			turn nanolathe to z-axis <3.613617> speed <165.827179> / danceSpeed; //delta=-5.53
+			turn nanolathe to y-axis <-1.147630> speed <35.052340> / danceSpeed; //delta=-1.17
+			move pelvis to y-axis [-2.271224] speed [64.525874] / danceSpeed; //delta=-2.15
+			turn pelvis to x-axis <0.133130> speed <3.993891> / danceSpeed; //delta=0.13
+			turn pelvis to z-axis <-0.410922> speed <12.327651> / danceSpeed; //delta=-0.41
+			turn pelvis to y-axis <4.750864> speed <142.525920> / danceSpeed; //delta=-4.75
+			turn r_foot to x-axis <-6.811951> speed <212.923224> / danceSpeed; //delta=7.10
+			turn rleg to x-axis <34.591800> speed <651.069648> / danceSpeed; //delta=-21.70
+			turn rleg to z-axis <7.129181> speed <152.872440> / danceSpeed; //delta=5.10
+			turn rleg to y-axis <-10.011830> speed <96.290043> / danceSpeed; //delta=3.21
+			turn rthigh to x-axis <-23.832613> speed <376.708685> / danceSpeed; //delta=12.56
+			turn rthigh to z-axis <-2.845345> speed <195.524280> / danceSpeed; //delta=-6.52
+			turn rthigh to y-axis <-26.751472> speed <24.826115> / danceSpeed; //delta=0.83
+			turn ruparm to x-axis <-2.217281> speed <326.764181> / danceSpeed; //delta=10.89
+			turn ruparm to z-axis <3.355986> speed <100.679584> / danceSpeed; //delta=-3.36
+			turn ruparm to y-axis <14.556984> speed <811.949418> / danceSpeed; //delta=27.06
+		sleep ((33*danceSpeed) -1);
+		}
+		if (bDancing) { //Frame:30
+			turn biggun to x-axis <-8.811130> speed <396.710898> / danceSpeed; //delta=13.22
+			turn biggun to z-axis <-1.970615> speed <415.575039> / danceSpeed; //delta=13.85
+			turn biggun to y-axis <0.151839> speed <513.126683> / danceSpeed; //delta=-17.10
+			turn l_foot to x-axis <-2.500440> speed <66.725983> / danceSpeed; //delta=-2.22
+			turn lleg to x-axis <10.379444> speed <535.598948> / danceSpeed; //delta=17.85
+			turn lleg to z-axis <-0.222968> speed <186.592354> / danceSpeed; //delta=6.22
+			turn lleg to y-axis <2.183193> speed <157.304089> / danceSpeed; //delta=5.24
+			turn lthigh to x-axis <-8.167694> speed <474.794726> / danceSpeed; //delta=-15.83
+			turn lthigh to z-axis <-1.190563> speed <140.811263> / danceSpeed; //delta=-4.69
+			turn lthigh to y-axis <12.140076> speed <73.077714> / danceSpeed; //delta=2.44
+			turn luparm to x-axis <8.674858> speed <1112.699518> / danceSpeed; //delta=-37.09
+			turn luparm to z-axis <-0.000000> speed <42.757923> / danceSpeed; //delta=1.43
+			turn luparm to y-axis <12.507997> speed <218.594757> / danceSpeed; //delta=7.29
+			turn nanolathe to x-axis <-8.811130> speed <191.795349> / danceSpeed; //delta=-6.39
+			turn nanolathe to z-axis <-1.970615> speed <167.526961> / danceSpeed; //delta=5.58
+			turn nanolathe to y-axis <0.151839> speed <38.984052> / danceSpeed; //delta=1.30
+			move pelvis to x-axis [0.000000] speed [74.545691] / danceSpeed; //delta=-2.48
+			move pelvis to z-axis [0.000000] speed [43.751855] / danceSpeed; //delta=1.46
+			move pelvis to y-axis [-0.301224] speed [59.099994] / danceSpeed; //delta=1.97
+			turn pelvis to x-axis <-0.000000> speed <3.993891> / danceSpeed; //delta=0.13
+			turn pelvis to z-axis <-0.000000> speed <12.327651> / danceSpeed; //delta=-0.41
+			turn pelvis to y-axis <0.000000> speed <142.525920> / danceSpeed; //delta=-4.75
+			turn r_foot to x-axis <1.059220> speed <236.135122> / danceSpeed; //delta=-7.87
+			turn rleg to x-axis <15.878112> speed <561.410660> / danceSpeed; //delta=18.71
+			turn rleg to z-axis <-0.755453> speed <236.539015> / danceSpeed; //delta=7.88
+			turn rleg to y-axis <-2.589186> speed <222.679328> / danceSpeed; //delta=7.42
+			turn rthigh to x-axis <-12.212280> speed <348.609995> / danceSpeed; //delta=-11.62
+			turn rthigh to z-axis <1.485299> speed <129.919326> / danceSpeed; //delta=-4.33
+			turn rthigh to y-axis <-25.724859> speed <30.798399> / danceSpeed; //delta=1.03
+			turn ruparm to x-axis <8.674858> speed <326.764181> / danceSpeed; //delta=-10.89
+			turn ruparm to z-axis <0.000000> speed <100.679584> / danceSpeed; //delta=3.36
+			turn ruparm to y-axis <-12.507997> speed <811.949418> / danceSpeed; //delta=-27.06
+		sleep ((33*danceSpeed) -1);
+		}
+		if (bDancing) { //Frame:36
+			turn biggun to x-axis <3.794682> speed <378.174375> / danceSpeed; //delta=-12.61
+			turn biggun to z-axis <2.083262> speed <121.616333> / danceSpeed; //delta=-4.05
+			turn biggun to y-axis <1.703742> speed <46.557091> / danceSpeed; //delta=1.55
+			turn l_foot to x-axis <-11.416738> speed <267.488927> / danceSpeed; //delta=8.92
+			turn lleg to x-axis <28.468283> speed <542.665172> / danceSpeed; //delta=-18.09
+			turn lleg to z-axis <-13.095212> speed <386.167302> / danceSpeed; //delta=12.87
+			turn lleg to y-axis <11.616349> speed <282.994677> / danceSpeed; //delta=9.43
+			turn lthigh to x-axis <-18.890922> speed <321.696838> / danceSpeed; //delta=10.72
+			turn lthigh to z-axis <5.958035> speed <214.457961> / danceSpeed; //delta=-7.15
+			turn lthigh to y-axis <12.528788> speed <11.661336> / danceSpeed; //delta=0.39
+			turn luparm to x-axis <-2.217281> speed <326.764181> / danceSpeed; //delta=10.89
+			turn luparm to z-axis <-3.355986> speed <100.679584> / danceSpeed; //delta=3.36
+			turn luparm to y-axis <-14.556984> speed <811.949418> / danceSpeed; //delta=-27.06
+			turn nanolathe to x-axis <4.412566> speed <396.710898> / danceSpeed; //delta=-13.22
+			turn nanolathe to z-axis <11.881886> speed <415.575039> / danceSpeed; //delta=-13.85
+			turn nanolathe to y-axis <17.256061> speed <513.126683> / danceSpeed; //delta=17.10
+			move pelvis to x-axis [-2.162155] speed [64.864662] / danceSpeed; //delta=-2.16
+			move pelvis to z-axis [-0.288482] speed [8.654463] / danceSpeed; //delta=-0.29
+			move pelvis to y-axis [-2.041225] speed [52.200036] / danceSpeed; //delta=-1.74
+			turn pelvis to x-axis <-0.228130> speed <6.843894> / danceSpeed; //delta=0.23
+			turn pelvis to z-axis <2.480456> speed <74.413673> / danceSpeed; //delta=-2.48
+			turn pelvis to y-axis <-4.691711> speed <140.751335> / danceSpeed; //delta=-4.69
+			turn r_foot to x-axis <1.507166> speed <13.438371> / danceSpeed; //delta=-0.45
+			turn rleg to x-axis <27.678290> speed <354.005341> / danceSpeed; //delta=-11.80
+			turn rleg to z-axis <-11.537334> speed <323.456413> / danceSpeed; //delta=10.78
+			turn rleg to y-axis <3.548651> speed <184.135130> / danceSpeed; //delta=6.14
+			turn rthigh to x-axis <-23.399366> speed <335.612572> / danceSpeed; //delta=11.19
+			turn rthigh to z-axis <8.945256> speed <223.798705> / danceSpeed; //delta=-7.46
+			turn rthigh to y-axis <-22.755281> speed <89.087353> / danceSpeed; //delta=2.97
+			turn ruparm to x-axis <-87.459596> speed <2884.033623> / danceSpeed; //delta=96.13
+			//turn ruparm to z-axis <-72.074410> speed <2162.232303> / danceSpeed; //delta=72.07//WARNING: possible gimbal lock issue detected in frame 36 bone ruparm
+
+			//turn ruparm to y-axis <72.417784> speed <2547.773421> / danceSpeed; //delta=84.93//WARNING: possible gimbal lock issue detected in frame 36 bone ruparm
+
+		sleep ((33*danceSpeed) -1);
+		}
+		if (bDancing) { //Frame:42
+			turn biggun to x-axis <-20.307201> speed <723.056496> / danceSpeed; //delta=24.10
+			turn biggun to z-axis <-2.762465> speed <145.371823> / danceSpeed; //delta=4.85
+			turn biggun to y-axis <-1.845309> speed <106.471515> / danceSpeed; //delta=-3.55
+			turn l_foot to x-axis <-4.381066> speed <211.070147> / danceSpeed; //delta=-7.04
+			turn lleg to x-axis <10.539486> speed <537.863925> / danceSpeed; //delta=17.93
+			turn lleg to z-axis <-13.927504> speed <24.968755> / danceSpeed; //delta=0.83
+			turn lleg to y-axis <9.814428> speed <54.057626> / danceSpeed; //delta=-1.80
+			turn lthigh to x-axis <-8.344638> speed <316.388526> / danceSpeed; //delta=-10.55
+			turn lthigh to z-axis <9.335824> speed <101.333643> / danceSpeed; //delta=-3.38
+			turn lthigh to y-axis <11.342474> speed <35.589401> / danceSpeed; //delta=-1.19
+			turn luparm to x-axis <8.674858> speed <326.764181> / danceSpeed; //delta=-10.89
+			turn luparm to z-axis <-0.000000> speed <100.679584> / danceSpeed; //delta=-3.36
+			turn luparm to y-axis <12.507997> speed <811.949418> / danceSpeed; //delta=27.06
+			turn nanolathe to x-axis <-8.811130> speed <396.710898> / danceSpeed; //delta=13.22
+			turn nanolathe to z-axis <-1.970615> speed <415.575039> / danceSpeed; //delta=13.85
+			turn nanolathe to y-axis <0.151839> speed <513.126683> / danceSpeed; //delta=-17.10
+			move pelvis to x-axis [-2.570332] speed [12.245286] / danceSpeed; //delta=-0.41
+			move pelvis to z-axis [-0.425786] speed [4.119114] / danceSpeed; //delta=-0.14
+			move pelvis to y-axis [-0.257565] speed [53.509809] / danceSpeed; //delta=1.78
+			turn pelvis to z-axis <2.345427> speed <4.050857> / danceSpeed; //delta=0.14
+			turn pelvis to y-axis <-4.436875> speed <7.645082> / danceSpeed; //delta=0.25
+			turn r_foot to x-axis <9.155279> speed <229.443392> / danceSpeed; //delta=-7.65
+			turn r_foot to z-axis <-0.163522> speed <4.275903> / danceSpeed; //delta=0.14
+			turn rleg to x-axis <8.817890> speed <565.811983> / danceSpeed; //delta=18.86
+			turn rleg to z-axis <-10.574455> speed <28.886347> / danceSpeed; //delta=-0.96
+			turn rthigh to x-axis <-12.516724> speed <326.479260> / danceSpeed; //delta=-10.88
+			turn rthigh to z-axis <8.362114> speed <17.494283> / danceSpeed; //delta=0.58
+			turn rthigh to y-axis <-26.486347> speed <111.931979> / danceSpeed; //delta=-3.73
+			turn ruparm to x-axis <-64.801905> speed <679.730727> / danceSpeed; //delta=-22.66
+			turn ruparm to z-axis <6.710672> speed <2363.552474> / danceSpeed; //delta=-78.79
+			turn ruparm to y-axis <-4.515351> speed <2307.994068> / danceSpeed; //delta=-76.93//WARNING: possible gimbal lock issue detected in frame 42 bone ruparm
+
+		sleep ((33*danceSpeed) -1);
+		}
+		if (bDancing) { //Frame:48
+			turn biggun to x-axis <3.794682> speed <723.056496> / danceSpeed; //delta=-24.10
+			turn biggun to z-axis <2.083262> speed <145.371823> / danceSpeed; //delta=-4.85
+			turn biggun to y-axis <1.703742> speed <106.471515> / danceSpeed; //delta=3.55
+			turn l_foot to x-axis <-9.757099> speed <161.280962> / danceSpeed; //delta=5.38
+			turn lleg to x-axis <24.808668> speed <428.075464> / danceSpeed; //delta=-14.27
+			turn lleg to z-axis <-21.833487> speed <237.179497> / danceSpeed; //delta=7.91
+			turn lleg to y-axis <16.295496> speed <194.432050> / danceSpeed; //delta=6.48
+			turn lthigh to x-axis <-19.081308> speed <322.100118> / danceSpeed; //delta=10.74
+			turn lthigh to z-axis <14.223341> speed <146.625532> / danceSpeed; //delta=-4.89
+			turn lthigh to y-axis <10.932663> speed <12.294341> / danceSpeed; //delta=-0.41
+			turn luparm to x-axis <-2.217281> speed <326.764181> / danceSpeed; //delta=10.89
+			turn luparm to z-axis <-3.355986> speed <100.679584> / danceSpeed; //delta=3.36
+			turn luparm to y-axis <-14.556984> speed <811.949418> / danceSpeed; //delta=-27.06
+			turn nanolathe to x-axis <4.412566> speed <396.710898> / danceSpeed; //delta=-13.22
+			turn nanolathe to z-axis <11.881886> speed <415.575039> / danceSpeed; //delta=-13.85
+			turn nanolathe to y-axis <17.256061> speed <513.126683> / danceSpeed; //delta=17.10
+			move pelvis to x-axis [-3.416748] speed [25.392480] / danceSpeed; //delta=-0.85
+			move pelvis to z-axis [-0.751052] speed [9.757995] / danceSpeed; //delta=-0.33
+			move pelvis to y-axis [-1.997489] speed [52.197726] / danceSpeed; //delta=-1.74
+			turn pelvis to z-axis <2.228590> speed <3.505110> / danceSpeed; //delta=0.12
+			turn pelvis to y-axis <-4.214925> speed <6.658512> / danceSpeed; //delta=0.22
+			turn r_foot to x-axis <5.930340> speed <96.748161> / danceSpeed; //delta=3.22
+			turn rleg to x-axis <23.825488> speed <450.227919> / danceSpeed; //delta=-15.01
+			turn rleg to z-axis <-16.945238> speed <191.123489> / danceSpeed; //delta=6.37
+			turn rleg to y-axis <6.802076> speed <96.438177> / danceSpeed; //delta=3.21
+			turn rthigh to x-axis <-24.819907> speed <369.095491> / danceSpeed; //delta=12.30
+			turn rthigh to z-axis <13.861226> speed <164.973375> / danceSpeed; //delta=-5.50
+			turn rthigh to y-axis <-24.863369> speed <48.689328> / danceSpeed; //delta=1.62
+			turn ruparm to x-axis <-87.459596> speed <679.730727> / danceSpeed; //delta=22.66
+			//turn ruparm to z-axis <-7.374416> speed <2462.552651> / danceSpeed; //delta=82.09
+			//turn ruparm to y-axis <73.217784> speed <2331.994055> / danceSpeed; //delta=77.73//WARNING: possible gimbal lock issue detected in frame 48 bone ruparm
+
+		sleep ((33*danceSpeed) -1);
+		}
+		if (bDancing) { //Frame:54
+			turn biggun to x-axis <-8.811130> speed <378.174375> / danceSpeed; //delta=12.61
+			turn biggun to z-axis <-1.970615> speed <121.616333> / danceSpeed; //delta=4.05
+			turn biggun to y-axis <0.151839> speed <46.557091> / danceSpeed; //delta=-1.55
+			turn l_foot to x-axis <-2.500440> speed <217.699742> / danceSpeed; //delta=-7.26
+			turn l_foot to z-axis <-0.542706> speed <4.232115> / danceSpeed; //delta=-0.14
+			turn l_foot to y-axis <-0.244723> speed <3.372665> / danceSpeed; //delta=0.11
+			turn lleg to x-axis <10.379444> speed <432.876711> / danceSpeed; //delta=14.43
+			turn lleg to z-axis <-0.222968> speed <648.315555> / danceSpeed; //delta=-21.61
+			turn lleg to y-axis <2.183193> speed <423.369101> / danceSpeed; //delta=-14.11
+			turn lthigh to x-axis <-8.167694> speed <327.408431> / danceSpeed; //delta=-10.91
+			turn lthigh to z-axis <-1.190563> speed <462.417136> / danceSpeed; //delta=15.41
+			turn lthigh to y-axis <12.140076> speed <36.222406> / danceSpeed; //delta=1.21
+			turn luparm to x-axis <6.970926> speed <275.646209> / danceSpeed; //delta=-9.19
+			turn luparm to z-axis <0.000000> speed <100.679584> / danceSpeed; //delta=-3.36
+			turn luparm to y-axis <15.215961> speed <893.188346> / danceSpeed; //delta=29.77
+			turn nanolathe to x-axis <6.795234> speed <71.480038> / danceSpeed; //delta=-2.38
+			turn nanolathe to z-axis <-1.857297> speed <412.175481> / danceSpeed; //delta=13.74
+			turn nanolathe to y-axis <-0.110275> speed <520.990107> / danceSpeed; //delta=-17.37
+			move pelvis to x-axis [0.000000] speed [102.502427] / danceSpeed; //delta=3.42
+			move pelvis to z-axis [0.000000] speed [22.531573] / danceSpeed; //delta=0.75
+			move pelvis to y-axis [-0.301224] speed [50.887953] / danceSpeed; //delta=1.70
+			turn pelvis to x-axis <-0.000000> speed <5.743188> / danceSpeed; //delta=-0.19
+			turn pelvis to z-axis <-0.000000> speed <66.857706> / danceSpeed; //delta=2.23
+			turn pelvis to y-axis <0.000000> speed <126.447740> / danceSpeed; //delta=4.21
+			turn r_foot to x-axis <1.059220> speed <146.133602> / danceSpeed; //delta=4.87
+			turn r_foot to z-axis <0.006041> speed <5.040858> / danceSpeed; //delta=-0.17
+			turn rleg to x-axis <15.878112> speed <238.421277> / danceSpeed; //delta=7.95
+			turn rleg to z-axis <-0.755453> speed <485.693555> / danceSpeed; //delta=-16.19
+			turn rleg to y-axis <-2.589186> speed <281.737869> / danceSpeed; //delta=-9.39
+			turn rthigh to x-axis <-12.212280> speed <378.228803> / danceSpeed; //delta=-12.61
+			turn rthigh to z-axis <1.485299> speed <371.277797> / danceSpeed; //delta=12.38
+			turn rthigh to y-axis <-25.724859> speed <25.844702> / danceSpeed; //delta=-0.86
+			turn ruparm to x-axis <8.674858> speed <2884.033623> / danceSpeed; //delta=-96.13
+			turn ruparm to z-axis <0.000000> speed <2261.232479> / danceSpeed; //delta=-75.37//WARNING: possible gimbal lock issue detected in frame 54 bone ruparm
+
+			//turn ruparm to y-axis <-12.507997> speed <2571.773408> / danceSpeed; //delta=-85.73//WARNING: possible gimbal lock issue detected in frame 54 bone ruparm
+
+		sleep ((33*danceSpeed) -1);
+		}
+	}
+}
+
+StopDancing() {
+	danceSpeed = 10; // tune restore speed here, higher values are slower restore speeds
+	move pelvis to x-axis [0.000000] speed [170.837379] / danceSpeed;
+	move pelvis to y-axis [-0.301224] speed [107.543124] / danceSpeed;
+	move pelvis to z-axis [0.000000] speed [72.919758] / danceSpeed;
+	turn biggun to x-axis <-8.811130> speed <1205.094159> / danceSpeed;
+	turn biggun to y-axis <0.151839> speed <855.211138> / danceSpeed;
+	turn biggun to z-axis <-1.970615> speed <692.625066> / danceSpeed;
+	turn l_foot to x-axis <-2.500440> speed <678.591290> / danceSpeed;
+	turn l_foot to y-axis <-0.244723> speed <8.761270> / danceSpeed;
+	turn l_foot to z-axis <-0.542706> speed <10.914219> / danceSpeed;
+	turn lleg to x-axis <10.379444> speed <1299.458890> / danceSpeed;
+	turn lleg to y-axis <2.183193> speed <705.615168> / danceSpeed;
+	turn lleg to z-axis <-0.222968> speed <1080.525924> / danceSpeed;
+	turn lthigh to x-axis <-8.167694> speed <791.324544> / danceSpeed;
+	turn lthigh to y-axis <12.140076> speed <140.296696> / danceSpeed;
+	turn lthigh to z-axis <-1.190563> speed <770.695227> / danceSpeed;
+	turn luparm to x-axis <6.970926> speed <1854.499197> / danceSpeed;
+	turn luparm to y-axis <15.215961> speed <1488.647243> / danceSpeed;
+	turn luparm to z-axis <0.000000> speed <167.799306> / danceSpeed;
+	turn nanolathe to x-axis <6.795234> speed <1099.977142> / danceSpeed;
+	turn nanolathe to y-axis <-0.110275> speed <868.316846> / danceSpeed;
+	turn nanolathe to z-axis <-1.857297> speed <692.625066> / danceSpeed;
+	turn pelvis to x-axis <0.000000> speed <11.406491> / danceSpeed;
+	turn pelvis to y-axis <0.000000> speed <267.525170> / danceSpeed;
+	turn pelvis to z-axis <0.000000> speed <124.022788> / danceSpeed;
+	turn r_foot to x-axis <1.059220> speed <398.210023> / danceSpeed;
+	turn r_foot to z-axis <0.000000> speed <8.401430> / danceSpeed;
+	turn rleg to x-axis <15.878112> speed <1085.116081> / danceSpeed;
+	turn rleg to y-axis <-2.589186> speed <469.563115> / danceSpeed;
+	turn rleg to z-axis <-0.755453> speed <809.489258> / danceSpeed;
+	turn rthigh to x-axis <-12.212280> speed <630.381338> / danceSpeed;
+	turn rthigh to y-axis <-25.724859> speed <186.553298> / danceSpeed;
+	turn rthigh to z-axis <1.485299> speed <618.796329> / danceSpeed;
+	turn ruparm to x-axis <8.674858> speed <4806.722705> / danceSpeed;
+	turn ruparm to y-axis <-12.507997> speed <4286.289013> / danceSpeed;
+	turn ruparm to z-axis <0.000000> speed <4104.254418> / danceSpeed;
+}
+
+static-var idleTime;
+
+GameOverAnim() {
+  	if (bDancing == FALSE){
+  	  	start-script Dance();
+  	}
+  	bDancing = TRUE;
+}
+
 UnitSpeed(){
  maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
  animFramesPerKeyframe = 6; //we need to calc the frames per keyframe value, from the known animtime
@@ -406,6 +752,21 @@ UnitSpeed(){
   if (animspeed>12) animSpeed = 12;
   //animSpeed = 1;
   sleep 197;
+  if ((bMoving == FALSE) && (bAiming == FALSE) && (bIsBuilding == FALSE)){
+  	idleTime = idleTime + 200;
+  }else{
+  	idleTime = 0;
+  	bDancing = FALSE;
+  }
+  //get PRINT (idleTime);
+  if (idleTime > 600000) {
+  	if (bDancing == FALSE){
+  	  	start-script Dance();
+  	}
+  	bDancing = TRUE;
+  	
+  	idleTime = 0;
+  }
  }
 }
 
@@ -433,9 +794,12 @@ Create()
 	hide teleport;
 	hide rbigflash;
 	hide lfirept;
+	idleTime = 0;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	bIsBuilding = 0;
+	bDancing = FALSE;
+	danceSpeed = 8;
 	gun_2 = torso;
 	Busy = 1;
 	gun_3 = torso;
@@ -447,6 +811,7 @@ Create()
 	animSpeed = 6;
 	currentSpeed = 100;
 	//call-script TeleportControl();
+	start-script UnitSpeed();
 }
 
 StartMoving()
@@ -456,7 +821,6 @@ StartMoving()
 	signal SIG_WALK;
 	set-signal-mask SIG_WALK;
 	start-script walk();
-	start-script UnitSpeed();
 }
 
 StopMoving()

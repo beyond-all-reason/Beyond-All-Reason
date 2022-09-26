@@ -2,11 +2,11 @@
 function widget:GetInfo()
 	return {
 		name = "SmartSelect",
-		desc = "Selects units as you drag over them. (SHIFT: select all, Z: same type, SPACE: new idle units, CTRL: invert selection)",
+		desc = "Selects units as you drag over them.",
 		author = "aegis (Ryan Hileman)",
 		date = "Jan 2, 2011",
 		license = "Public Domain",
-		layer = -99999999999,
+		layer = -999999,
 		enabled = true
 	}
 end
@@ -14,16 +14,16 @@ end
 local selectBuildingsWithMobile = false		-- whether to select buildings when mobile units are inside selection rectangle
 local includeNanosAsMobile = true
 local includeBuilders = false
-local sameSelectKey = 'z'	-- only select new units identical to those already selected
-local idleSelectKey = 'space'	-- only select new idle units
 
+local idle = false -- whether to select only idle units
+local same = false -- whether to select only units that share type with current selection
+local deselect = false -- whether to select units not present in current selection
+local all = false -- whether to select all units
+local mobile = false -- whether to select only mobile units
 
 local spGetMouseState = Spring.GetMouseState
-local spGetModKeyState = Spring.GetModKeyState
-local spGetKeyState = Spring.GetKeyState
 
 local spTraceScreenRay = Spring.TraceScreenRay
-local spWorldToScreenCoords = Spring.WorldToScreenCoords
 
 local spGetUnitsInScreenRectangle = Spring.GetUnitsInScreenRectangle
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
@@ -42,7 +42,7 @@ local spGetUnitNoSelect = Spring.GetUnitNoSelect
 local GaiaTeamID = Spring.GetGaiaTeamID()
 local selectedUnits = Spring.GetSelectedUnits()
 
-local spec, fullview = Spring.GetSpectatingState()
+local spec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 
 
@@ -56,10 +56,10 @@ for udid, udef in pairs(UnitDefs) do
 		ignoreUnits[udid] = true
 	end
 
-	local mobile = (udef.canMove and udef.speed > 0.000001)  or  (includeNanosAsMobile and (udef.name == "armnanotc" or udef.name == "cornanotc"))
+	local isMobile = (udef.canMove and udef.speed > 0.000001)  or  (includeNanosAsMobile and (udef.name == "armnanotc" or udef.name == "cornanotc"))
 	local builder = (udef.canReclaim and udef.reclaimSpeed > 0)  or  (udef.canResurrect and udef.resurrectSpeed > 0)  or  (udef.canRepair and udef.repairSpeed > 0) or (udef.buildOptions and udef.buildOptions[1])
-	local building = (mobile == false)
-	local combat = (builder == false) and (mobile == true) and (#udef.weapons > 0)
+	local building = (isMobile == false)
+	local combat = (not builder) and isMobile and (#udef.weapons > 0)
 
 	if string.find(udef.name, 'armspid') then
 		builder = false
@@ -67,15 +67,13 @@ for udid, udef in pairs(UnitDefs) do
 	combatFilter[udid] = combat
 	builderFilter[udid] = builder
 	buildingFilter[udid] = building
-	mobileFilter[udid] = mobile
+	mobileFilter[udid] = isMobile
 end
 
-sameSelectKey = Spring.GetKeyCode(sameSelectKey)
-idleSelectKey = Spring.GetKeyCode(idleSelectKey)
 local minimapOnLeft = (Spring.GetMiniMapDualScreen() == "left")
 local mapWidth, mapHeight = Game.mapSizeX, Game.mapSizeZ
 
-local lastCoords, lastMeta, filtered, lastSelection, minimapRect
+local lastCoords, lastMeta, lastSelection
 local referenceCoords, referenceScreenCoords, referenceSelection, referenceSelectionTypes
 
 local function sort(v1, v2)
@@ -95,6 +93,13 @@ local function MinimapToWorldCoords(x, y)
 	x = ((x - px + plx) / sx) * mapWidth
 	local z = (1 - ((y - py) / sy)) * mapHeight
 	y = spGetGroundHeight(x, z)
+
+	local camState = Spring.GetCameraState()
+	if camState.mode == 1 and camState.flipped == 1 then -- minimap is flipped
+		x = mapWidth - x
+		z = mapHeight - z
+	end
+
 	return x, y, z
 end
 
@@ -105,7 +110,6 @@ local function GetUnitsInMinimapRectangle(x1, y1, x2, y2, team)
 	left, right = sort(left, right)
 	bottom, top = sort(bottom, top)
 
-	minimapRect = { left, bottom, right, top }
 	return spGetUnitsInRectangle(left, bottom, right, top, team)
 end
 
@@ -141,7 +145,6 @@ WG.SmartSelect_MousePress2 = function(x, y, button)	--function widget:MousePress
 		referenceScreenCoords = { x, y }
 		lastMeta = nil
 		lastSelection = nil
-		filtered = false
 
 		if spIsAboveMiniMap(x, y) then
 			referenceCoords = { 0, 0, 0 }
@@ -154,8 +157,8 @@ WG.SmartSelect_MousePress2 = function(x, y, button)	--function widget:MousePress
 	end
 end
 
-function widget:PlayerChanged(playerID)
-	spec, fullview = Spring.GetSpectatingState()
+function widget:PlayerChanged()
+	spec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
 end
 
@@ -166,22 +169,19 @@ function widget:Update()
 		local x, y, pressed = spGetMouseState()
 
 		if (pressed or lastSelection) and referenceSelection ~= nil then
-			local px, py, sx, sy = spGetMiniMapGeometry()
-
-			local alt, ctrl, meta, shift = spGetModKeyState()
 			if #referenceSelection == 0 then	-- no point in inverting an empty selection
-				ctrl = false
+				deselect = false
 			end
 
 			if referenceScreenCoords ~= nil and x == referenceScreenCoords[1] and y == referenceScreenCoords[2] then -- sameLast
 				if lastCoords == referenceCoords then
 					return
-				elseif lastMeta ~= nil and alt == lastMeta[1] and ctrl == lastMeta[2] and meta == lastMeta[3] and shift == lastMeta[4] then
+				elseif lastMeta ~= nil and mobile == lastMeta[1] and deselect == lastMeta[2] and idle == lastMeta[3] and all == lastMeta[4] then
 					return
 				end
 			end
 			lastCoords = { x, y }
-			lastMeta = { alt, ctrl, meta, shift }
+			lastMeta = { mobile, deselect, idle, all }
 
 			-- get all units within selection rectangle
 			local mouseSelection, originalMouseSelection
@@ -189,9 +189,8 @@ function widget:Update()
 			if r ~= nil and spIsAboveMiniMap(r[1], r[2]) then
 				mouseSelection = GetUnitsInMinimapRectangle(r[1], r[2], x, y, nil)
 			else
-				local d = referenceCoords
-				local x1, y1 = spWorldToScreenCoords(d[1], d[2], d[3])
-				mouseSelection = spGetUnitsInScreenRectangle(x, y, x1, y1, nil)
+				local x1, y1, x2, y2 = Spring.GetSelectionBox()
+				mouseSelection = x1 and spGetUnitsInScreenRectangle(x1, y1, x2, y2, nil) or {}
 			end
 			originalMouseSelection = mouseSelection
 
@@ -220,7 +219,7 @@ function widget:Update()
 				mouseSelection = tmp
 			end
 
-			if spGetKeyState(idleSelectKey) then
+			if idle then
 				tmp = {}
 				for i = 1, #mouseSelection do
 					uid = mouseSelection[i]
@@ -233,7 +232,7 @@ function widget:Update()
 			end
 
 			-- only select new units identical to those already selected
-			if spGetKeyState(sameSelectKey) and #referenceSelection > 0 then
+			if same and #referenceSelection > 0 then
 				tmp = {}
 				for i = 1, #mouseSelection do
 					uid = mouseSelection[i]
@@ -244,8 +243,8 @@ function widget:Update()
 				mouseSelection = tmp
 			end
 
-			if alt then		-- only select mobile combat units
-				if not ctrl then
+			if mobile then		-- only select mobile combat units
+				if not deselect then
 					tmp = {}
 					for i = 1, #referenceSelection do
 						uid = referenceSelection[i]
@@ -265,7 +264,7 @@ function widget:Update()
 				end
 				mouseSelection = tmp
 
-			elseif selectBuildingsWithMobile == false and shift == false and ctrl == false then
+			elseif selectBuildingsWithMobile == false and all == false and deselect == false then
 				-- only select mobile units, not buildings
 				local mobiles = false
 				for i = 1, #mouseSelection do
@@ -301,7 +300,7 @@ function widget:Update()
 				newSelection = referenceSelection
 			end
 
-			if ctrl then	-- deselect units inside the selection rectangle, if we already had units selected
+			if deselect then	-- deselect units inside the selection rectangle, if we already had units selected
 				local negative = {}
 				for i = 1, #mouseSelection do
 					uid = mouseSelection[i]
@@ -318,7 +317,7 @@ function widget:Update()
 				newSelection = tmp
 				spSelectUnitArray(newSelection)
 
-			elseif shift then	-- append units inside selection rectangle to current selection
+			elseif all then	-- append units inside selection rectangle to current selection
 				spSelectUnitArray(newSelection)
 				spSelectUnitArray(mouseSelection, true)
 
@@ -341,13 +340,11 @@ function widget:Update()
 				referenceSelection = nil
 				referenceSelectionTypes = nil
 				referenceCoords = nil
-				minimapRect = nil
 			end
 		else
 			referenceSelection = nil
 			referenceSelectionTypes = nil
 			referenceCoords = nil
-			minimapRect = nil
 		end
 	end
 end
@@ -356,7 +353,58 @@ function widget:Shutdown()
 	WG['smartselect'] = nil
 end
 
+local function setSameSelect()
+  same = true
+end
+
+local function unsetSameSelect()
+  same = false
+end
+
+local function setIdleSelect()
+  idle = true
+end
+
+local function unsetIdleSelect()
+  idle = false
+end
+
+local function setDeselectSelect()
+  deselect = true
+end
+
+local function unsetDeselectSelect()
+  deselect = false
+end
+
+local function setAllSelect()
+  all = true
+end
+
+local function unsetAllSelect()
+  all = false
+end
+
+local function setMobileSelect()
+  mobile = true
+end
+
+local function unsetMobileSelect()
+  mobile = false
+end
+
 function widget:Initialize()
+	widgetHandler:AddAction("selectbox_same", setSameSelect, nil, "p")
+	widgetHandler:AddAction("selectbox_same", unsetSameSelect, nil, "r")
+	widgetHandler:AddAction("selectbox_idle", setIdleSelect, nil, "p")
+	widgetHandler:AddAction("selectbox_idle", unsetIdleSelect, nil, "r")
+	widgetHandler:AddAction("selectbox_deselect", setDeselectSelect, nil, "p")
+	widgetHandler:AddAction("selectbox_deselect", unsetDeselectSelect, nil, "r")
+	widgetHandler:AddAction("selectbox_all", setAllSelect, nil, "p")
+	widgetHandler:AddAction("selectbox_all", unsetAllSelect, nil, "r")
+	widgetHandler:AddAction("selectbox_mobile", setMobileSelect, nil, "p")
+	widgetHandler:AddAction("selectbox_mobile", unsetMobileSelect, nil, "r")
+
 	WG['smartselect'] = {}
 	WG['smartselect'].getIncludeBuildings = function()
 		return selectBuildingsWithMobile
@@ -373,7 +421,7 @@ function widget:Initialize()
 	WG['smartselect'].updateSelection = false
 end
 
-function widget:GetConfigData(data)
+function widget:GetConfigData()
 	return {
 		selectBuildingsWithMobile = selectBuildingsWithMobile,
 		includeNanosAsMobile = includeNanosAsMobile,

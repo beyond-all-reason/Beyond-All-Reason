@@ -52,7 +52,7 @@ return {
 		unitname = "chickenp1",
 		upright = false,
 		workertime = 0,
-		waterline = 36,
+		waterline = 42,
 		customparams = {
 			maxrange = "200",
 			subfolder = "other/chickens",
@@ -191,13 +191,13 @@ return {
 				def = "FLAMETHROWER",
 				onlytargetcategory = "SURFACE",
 			},
-			[3] = {
-				badtargetcategory = "VTOL",
-				def = "WEAPON",
-				maindir = "0 0 1",
-				maxangledif = 125,
-				--onlytargetcategory = "NOTAIR",
-			},
+			-- [3] = {
+			-- 	badtargetcategory = "VTOL",
+			-- 	def = "WEAPON",                --- Torpedoes are erroring the script
+			-- 	maindir = "0 0 1",
+			-- 	maxangledif = 125,
+			-- 	--onlytargetcategory = "NOTAIR",
+			-- },
 		},
 	},
 }

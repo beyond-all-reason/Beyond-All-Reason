@@ -133,9 +133,6 @@ Create()
 	restore_delay = 3000;
 	start-script NanoEmit();
 	call-script InitState();
-	
-	spin tower around y-axis speed <25.005495>;
-	spin collar around y-axis speed <15.000000>;
 }
 
 #define SMOKEPIECE base
@@ -143,11 +140,15 @@ Create()
 
 Activate()
 {
+	spin tower around y-axis speed <25.005495>;
+	spin collar around y-axis speed <15.000000>;
 	start-script RequestState(0);
 }
 
 Deactivate()
 {
+	stop-spin tower around y-axis decelerate <0.2>;
+	stop-spin collar around y-axis decelerate <0.2>;
 	start-script RequestState(1);
 }
 

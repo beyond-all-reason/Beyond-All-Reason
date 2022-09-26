@@ -10,6 +10,7 @@ function widget:GetInfo()
 		desc    = "",
 		author  = "Floris",
 		date    = "Jan 2020",
+		license = "GNU GPL, v2 or later",
 		layer   = -99990,
 		enabled = true,
 	}

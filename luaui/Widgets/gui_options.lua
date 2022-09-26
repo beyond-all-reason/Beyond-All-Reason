@@ -4,6 +4,7 @@ function widget:GetInfo()
 		desc = "",
 		author = "Floris",
 		date = "September 2016",
+		license = "GNU GPL, v2 or later",
 		layer = -99990,
 		enabled = true,
 		handler = true,
@@ -26,7 +27,7 @@ local texts = {}    -- loaded from external language file
 local languageCodes = { 'en', 'fr', 'zh', 'test_unicode'}
 languageCodes = table.merge(languageCodes, table.invert(languageCodes))
 
-local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua").layouts
+local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")
 
 local languageNames = {}
 for key, code in ipairs(languageCodes) do
@@ -1980,13 +1981,26 @@ function init()
 		--  end,
 		--},
 
-		{ id = "water", group = "gfx", category = types.basic, name = texts.option.water, type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
+		-- { id = "water", group = "gfx", category = types.basic, name = texts.option.water, type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
+		--   onload = function(i)
+		--   end,
+		--   onchange = function(i, value)
+		-- 	  desiredWaterValue = value - 1
+		-- 	  if waterDetected then
+		-- 		  Spring.SendCommands("water " .. desiredWaterValue)
+		-- 	  end
+		--   end,
+		-- },
+
+		{ id = "water", group = "gfx", category = types.basic, name = texts.option.water, type = "select", options = { 'low', 'high' }, value = desiredWaterValue == 4 and 2 or 1,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  desiredWaterValue = value - 1
+			  desiredWaterValue = value > 1 and 4 or 0
 			  if waterDetected then
+				if desiredWaterValue > 0 then desiredWaterValue = 4 end
 				  Spring.SendCommands("water " .. desiredWaterValue)
+				  Spring.SetConfigInt("water", 4)
 			  end
 		  end,
 		},
@@ -2349,17 +2363,20 @@ function init()
 		  end,
 		},
 
-		{ id = "keylayout", group = "control", category = types.basic, name = texts.option.keylayout, type = "select", options = keyLayouts, value = 1, description = texts.option.keylayout_descr,
+		{ id = "label_ui_hotkeys", group = "control", name = texts.option.label_hotkeys, category = types.basic },
+		{ id = "label_ui_hotkeys_spacer", group = "control", category = types.basic },
+
+		{ id = "keylayout", group = "control", category = types.basic, name = texts.option.keylayout, type = "select", options = keyLayouts.layouts, value = 1, description = texts.option.keylayout_descr,
 			onload = function()
 				local keyLayout = Spring.GetConfigString("KeyboardLayout")
 
 				if not keyLayout or keyLayout == '' then
-					keyLayout = keyLayouts[1]
-					Spring.SetConfigString("KeyboardLayout", keyLayouts[1])
+					keyLayout = keyLayouts.layouts[1]
+					Spring.SetConfigString("KeyboardLayout", keyLayouts.layouts[1])
 				end
 
 				local value = 1
-				for i, v in ipairs(keyLayouts) do
+				for i, v in ipairs(keyLayouts.layouts) do
 					if v == keyLayout then
 						value = i
 						break
@@ -2369,9 +2386,43 @@ function init()
 				options[getOptionByID('keylayout')].value = value
 			end,
 			onchange = function(_, value)
-				Spring.SetConfigString("KeyboardLayout", keyLayouts[value])
-				if WG['buildmenu'] and WG['buildmenu'].reloadBindings then
-					WG['buildmenu'].reloadBindings()
+				Spring.SetConfigString("KeyboardLayout", keyLayouts.layouts[value])
+				if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
+					WG['bar_hotkeys'].reloadBindings()
+				end
+			end,
+		},
+
+		{ id = "keybindings", group = "control", category = types.basic, name = texts.option.keybindings, type = "select", options = keyLayouts.keybindingLayouts, value = 1, description = texts.option.keybindings_descr,
+			onload = function()
+				local keyFile = Spring.GetConfigString("KeybindingFile")
+				local value = 1
+
+				if (not keyFile) or (keyFile == '') or (not VFS.FileExists(keyFile)) then
+					keyFile = keyLayouts.keybindingLayoutFiles[1]
+					Spring.SetConfigString("KeybindingFile", keyFile)
+				end
+
+				for i, v in ipairs(keyLayouts.keybindingLayoutFiles) do
+					if v == keyFile then
+						value = i
+						break
+					end
+				end
+
+				options[getOptionByID('keybindings')].value = value
+			end,
+			onchange = function(_, value)
+				local keyFile = keyLayouts.keybindingLayoutFiles[value]
+
+				if not keyFile or keyFile == '' or not VFS.FileExists(keyFile) then
+					return
+				end
+
+				Spring.SetConfigString("KeybindingFile", keyFile)
+
+				if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
+					WG['bar_hotkeys'].reloadBindings()
 				end
 			end,
 		},
@@ -2763,14 +2814,14 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'rank' }, value, { 'rank', value })
 		  end,
 		},
-		{ id = "advplayerlist_side", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_side, type = "bool", value = true, description = texts.option.advplayerlist_side_descr,
-		  onload = function(i)
-			  loadWidgetData("AdvPlayersList", "advplayerlist_side", { 'm_active_Table', 'side' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'side' }, value, { 'side', value })
-		  end,
-		},
+		--{ id = "advplayerlist_side", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_side, type = "bool", value = true, description = texts.option.advplayerlist_side_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("AdvPlayersList", "advplayerlist_side", { 'm_active_Table', 'side' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'side' }, value, { 'side', value })
+		--  end,
+		--},
 		{ id = "advplayerlist_skill", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_skill, type = "bool", value = true, description = texts.option.advplayerlist_skill_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_skill", { 'm_active_Table', 'skill' })
@@ -2787,6 +2838,22 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'cpuping' }, value, { 'cpuping', value })
 		  end,
 		},
+		{ id = "advplayerlist_income", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_income, type = "bool", value = true, description = texts.option.advplayerlist_income_descr,
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_income", { 'm_active_Table', 'income' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'income' }, value, { 'income', value })
+		  end,
+		},
+		{ id = "advplayerlist_absresbars", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_absresbars, type = "bool", value = false, description = texts.option.advplayerlist_absresbars_descr,
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "advplayerlist_absresbars", { 'absoluteResbarValues' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetAbsoluteResbars', { 'absoluteResbarValues' }, value)
+		  end,
+		},
 		{ id = "advplayerlist_share", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_share, type = "bool", value = true, description = texts.option.advplayerlist_share_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_share", { 'm_active_Table', 'share' })
@@ -2795,8 +2862,25 @@ function init()
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
 		  end,
 		},
-		{ id = "unittotals", group = "ui", category = types.basic, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   " .. texts.option.unittotals, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = texts.option.unittotals_descr },
+		{ id = "unittotals", group = "ui", category = types.advanced, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   " .. texts.option.unittotals, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = texts.option.unittotals_descr },
+		{ id = "musicplayer", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. widgetOptionColor .. texts.option.musicplayer, type = "bool", value = (WG['music'] ~= nil and WG['music'].GetShowGui() or false), description = texts.option.musicplayer_descr,
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList Music Player New", "musicplayer", { 'showGUI' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList Music Player New', 'music', 'SetShowGui', { 'showGUI' }, value)
+		  end,
+		},
 		{ id = "mascot", group = "ui", category = types.advanced, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   " .. texts.option.mascot, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = texts.option.mascot_descr },
+
+		{ id = "displayselectedname", group = "ui", category = types.advanced, name = texts.option.displayselectedname, type = "bool", value = (WG['playertv'] ~= nil and WG['playertv'].GetAlwaysDisplayName() or false), description = texts.option.displayselectedname_descr,
+		  onload = function(i)
+			  loadWidgetData("Player-TV", "displayselectedname", { 'alwaysDisplayName' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Player-TV', 'playertv', 'SetAlwaysDisplayName', { 'alwaysDisplayName' }, value)
+		  end,
+		},
 
 		{ id = "console_hidespecchat", group = "ui", category = types.basic, name = texts.option.console .. "   " .. widgetOptionColor .. texts.option.console_hidespecchat, type = "bool", value = (Spring.GetConfigInt("HideSpecChat", 0) == 1), description = texts.option.console_hidespecchat_descr,
 		  onload = function(i)
@@ -2866,6 +2950,8 @@ function init()
 		{ id = "idlebuilders", group = "ui", category = types.basic, widget = "Idle Builders", name = texts.option.idlebuilders, type = "bool", value = GetWidgetToggleValue("Idle Builders"), description = texts.option.idlebuilders_descr },
 		{ id = "buildbar", group = "ui", category = types.basic, widget = "BuildBar", name = texts.option.buildbar, type = "bool", value = GetWidgetToggleValue("BuildBar"), description = texts.option.buildbar_descr },
 		--{ id = "dgunrulereminder", group = "ui", category = types.dev, widget = "Dgun Rule Reminder", name = texts.option.dgunrulereminder, type = "bool", value = GetWidgetToggleValue("Dgun Rule Reminder"), description = texts.option.dgunrulereminder_descr },
+
+		{ id = "converterusage", group = "ui", category = types.advanced, widget = "Converter Usage", name = texts.option.converterusage, type = "bool", value = GetWidgetToggleValue("Converter Usage"), description = texts.option.converterusage_descr },
 
 
 		{ id = "label_ui_visuals", group = "ui", name = texts.option.label_visuals, category = types.basic },
@@ -3109,6 +3195,15 @@ function init()
 		{ id = "showbuilderqueue", group = "ui", category = types.advanced, widget = "Show Builder Queue", name = texts.option.showbuilderqueue, type = "bool", value = GetWidgetToggleValue("Show Builder Queue"), description = texts.option.showbuilderqueue_descr },
 
 		{ id = "unitenergyicons", group = "ui", category = types.advanced, widget = "Unit Energy Icons", name = texts.option.unitenergyicons, type = "bool", value = GetWidgetToggleValue("Unit Energy Icons"), description = texts.option.unitenergyicons_descr },
+
+		{ id = "nametags_rank", group = "ui", category = types.advanced, name = texts.option.nametags_rank, type = "bool", value = true, description = texts.option.nametags_rank_descr,
+		  onload = function(i)
+			  loadWidgetData("Commander Name Tags", "nametags_rank", { 'showPlayerRank' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Commander Name Tags', 'nametags', 'SetShowPlayerRank', { 'showPlayerRank' }, value)
+		  end,
+		},
 
 		{ id = "commandsfx", group = "ui", category = types.basic, widget = "Commands FX", name = texts.option.commandsfx, type = "bool", value = GetWidgetToggleValue("Commands FX"), description = texts.option.commandsfx_descr },
 
@@ -4387,14 +4482,15 @@ function init()
 			  Spring.SendCommands("water 4")
 		  end,
 		},
-		{ id = "water_windspeed", group = "dev", category = types.dev, name = widgetOptionColor .. "   windspeed", type = "slider", min = 0.0, max = 2.0, step = 0.01, value = gl.GetWaterRendering("windSpeed"), description = "The speed of bumpwater tiles moving",
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SetWaterParams({ windSpeed = value })
-			  Spring.SendCommands("water 4")
-		  end,
-		},
+		-- gl.GetWaterRendering("windSpeed") seems to not exist
+		--{ id = "water_windspeed", group = "dev", category = types.dev, name = widgetOptionColor .. "   windspeed", type = "slider", min = 0.0, max = 2.0, step = 0.01, value = gl.GetWaterRendering("windSpeed"), description = "The speed of bumpwater tiles moving",
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  Spring.SetWaterParams({ windSpeed = value })
+		--	  Spring.SendCommands("water 4")
+		--  end,
+		--},
 		{ id = "water_ambientfactor", group = "dev", category = types.dev, name = widgetOptionColor .. "   ambient factor", type = "slider", min = 0, max = 2, step = 0.001, value = gl.GetWaterRendering("ambientFactor"), description = "How much ambient lighting the water surface gets (ideally very little)",
 		  onload = function(i)
 		  end,

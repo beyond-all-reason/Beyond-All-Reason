@@ -78,8 +78,9 @@ local modrules = {
 		allowPushingEnemyUnits = false,		-- Can enemy ground units push each other during collisions?
 		allowHoverUnitStrafing = true,		-- Allows hovercraft units to slide in turns.
 
-		allowDirectionalPathing = true,
-		allowAircraftToLeaveMap = true,
+		allowDirectionalPathing = true,  	-- determines if ground speed going downhill != going uphill
+		allowAircraftToLeaveMap = true,		-- determines if gunships are allowed to leave map boundaries
+		maxCollisionPushMultiplier = 1, 	-- mitigate slow units being pushed faster than they can normally walk by fast units
 	},
 
 	featureLOS = {

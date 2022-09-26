@@ -18,7 +18,7 @@ local minZlibSize = 130  --minimum size threshold of msg to use zlib (msg smalle
 
 local HEADER_SEL_UNCOMPRESSED = "cosu"
 local HEADER_SEL_COMPRESSED = "cosc"
-local HEADER_LENGHT = string.len(HEADER_SEL_UNCOMPRESSED)
+local HEADER_LENGTH = string.len(HEADER_SEL_UNCOMPRESSED)
 
 
 if gadgetHandler:IsSyncedCode() then
@@ -36,7 +36,7 @@ if gadgetHandler:IsSyncedCode() then
 	_G.validationSelunits = validation
 
 	function gadget:RecvLuaMsg(inMsg, playerID)
-		if inMsg:sub(1,2)==validation and (inMsg:sub(3,HEADER_LENGHT+2)==HEADER_SEL_UNCOMPRESSED or inMsg:sub(3,HEADER_LENGHT+2)==HEADER_SEL_COMPRESSED) then
+		if inMsg:sub(1,2)==validation and (inMsg:sub(3,HEADER_LENGTH+2)==HEADER_SEL_UNCOMPRESSED or inMsg:sub(3,HEADER_LENGTH+2)==HEADER_SEL_COMPRESSED) then
 			SendToUnsynced("selectionUpdate",playerID,inMsg:sub(7),inMsg:sub(6,6) == "c")
 			return true
 		end

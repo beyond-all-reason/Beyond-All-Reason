@@ -4,7 +4,7 @@ function gadget:GetInfo()
 		desc = "Handles cosmetic-only hat behaviour",
 		author = "Beherith",
 		date = "2020",
-		license = "CC BY NC ND",
+		license   = "GNU GPL, v2 or later",
 		layer = 1000,
 		enabled = true,
 	}
@@ -58,11 +58,15 @@ local unitDefCanWearHats = {
 }
 
 -- give tourney winner a hat
+local champs = {
+	["Raghna"] = true,
+	["Malady"] = true,
+}
 function gadget:GameFrame(gf)
 	if gf == 90 and UnitDefNames['cor_hat_viking'] then
 		for _, playerID in ipairs(Spring.GetPlayerList()) do
 			local playerName, _, spec, teamID = Spring.GetPlayerInfo(playerID, false)
-			if not spec and playerName == "Raghna" then
+			if not spec and champs[playerName] then
 				local units = Spring.GetTeamUnits(teamID)
 				for k = 1, #units do
 					local unitID = units[k]

@@ -4,7 +4,7 @@ function gadget:GetInfo()
 		desc      = "Make aircraft crash-land instead of exploding",
 		author    = "Beherith",
 		date      = "aug 2012",
-		license   = "PD",
+		license   = "GNU GPL, v2 or later",
 		layer     = 1000,
 		enabled   = true,
 	}

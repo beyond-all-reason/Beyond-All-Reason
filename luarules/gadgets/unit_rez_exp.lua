@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "-",
 		version = 1,
 		license = "WTFPL",
-		layer = -math.huge,
+		layer = -999999,
 		enabled = false, --  disabled, it doesnt reliably work most of the time
 	}
 end

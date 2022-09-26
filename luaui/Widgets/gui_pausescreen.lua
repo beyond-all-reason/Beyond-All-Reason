@@ -7,8 +7,8 @@ function widget:GetInfo()
 		desc = "Displays an overlay when the game is paused",
 		author = "Floris",
 		date = "sept 2016",
-		license = "GNU GPL v2",
-		layer = 99999999,
+		license = "GNU GPL, v2 or later",
+		layer = 999999,
 		enabled = true
 	}
 end

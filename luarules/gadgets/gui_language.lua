@@ -4,8 +4,8 @@ function gadget:GetInfo()
 		desc      = "api to handle translations",
 		author    = "Floris",
 		date      = "December 2020",
-		license   = "",
-		layer     = -math.huge,
+		license   = "GNU GPL, v2 or later",
+		layer     = -999999,
 		enabled   = true,
 	}
 end

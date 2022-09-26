@@ -5,8 +5,8 @@ function gadget:GetInfo()
     desc      = "Collect stats, send to LuaUI on GameOver",
     author    = "Bluestone",
     date      = "",
-    license   = "GNU GPL, v3 or later",
-    layer     = -math.huge,
+    license   = "GNU GPL, v2 or later",
+    layer     = -999990,
     enabled   = true,
   }
 end

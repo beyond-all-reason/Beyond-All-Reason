@@ -25,7 +25,12 @@ function widget:GetInfo()
 end
 
 local selectedScoreMode = modOptions.scoremode
-local captureRadius = modOptions.captureradius
+local captureRadius
+if modOptions.usemexconfig then
+	captureRadius = 100
+else
+	captureRadius = 150
+end
 local startTime = modOptions.starttime
 local metalPerPoint = modOptions.metalperpoint
 local energyPerPoint = modOptions.energyperpoint

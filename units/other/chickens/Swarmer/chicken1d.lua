@@ -52,7 +52,7 @@ return {
 		turnrate = 1840,
 		unitname = "chicken1d",
 		upright = false,
-		waterline = 16,
+		waterline = 19,
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens",
@@ -100,7 +100,7 @@ return {
 				waterweapon = true,
 				weapontimer = 0.1,
 				weapontype = "Cannon",
-				weaponvelocity = 500,
+				weaponvelocity = 1000,
 				damage = {
 					default = 120,
 				},

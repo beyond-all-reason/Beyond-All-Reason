@@ -4,6 +4,7 @@ function gadget:GetInfo()
 		desc	= "Broadcasts GPU mem usage",
 		author	= "Floris",
 		date	= "May 2018",
+		license = "GNU GPL, v2 or later",
 		layer	= 0,
 		enabled = true,
 	}

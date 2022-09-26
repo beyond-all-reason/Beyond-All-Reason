@@ -55,6 +55,11 @@
 					"expenseTooltip": "%{resource} spending  (per second)",
 					"storageTooltip": "%{resource} storage",
 					"conversionTooltip": "%{titleColor}Energy Conversion Slider\nExcess energy above this point\nwill power your Energy Converters"
+				},
+				"converter_usage": {
+					"defaultTooltip": "Energy converter usage\nShows how many of your energy converters are active and producing metal.",
+					"tooManyConverters1Tooltip": "You have too many energy converters for your energy production.",
+					"tooManyConverters2Tooltip": "Stop building energy converters and increase your energy production."
 				}
 			},
 			"playersList": {
@@ -78,6 +83,7 @@
 				"thousands": "%{number}k",
 				"milliseconds": "%{number} ms",
 				"seconds": "%{number} sec",
+				"resincome": "Resource income",
 				"commandDelay": "%{labelColor}Total command delay: %{delayColor}%{delay}",
 				"cpu": "CPU: %{cpuUsage}%%",
 				"framerate": "FPS: %{fps}",
@@ -101,10 +107,12 @@
 				"playerTV": "TV",
 				"cancelPlayerTV": "Turn off TV",
 				"cancelCamera": "Turn off Player Cam",
-				"playerView": "Player Viewpoint",
+				"tooltip": "Auto camera-track the top ranked players\n(switches player every 40 seconds by default)",
+				"playerView": "Player View",
 				"globalView": "Turn off Player View",
 				"playerViewTooltip": "Only view what the player can see",
-				"tooltip": "Auto camera-track the top ranked players\n(switches player every 40 seconds by default)"
+				"playerCamera": "Player Camera",
+				"playerCameraTooltip": "Follow player camera perspective and apply selections"
 			},
 			"teamEconomy": {
 				"tooltip": "Team metal/energy income\n(Lighter portion is income from reclaiming)"
@@ -214,6 +222,9 @@
 				"High traj": "High Traj",
 				"trajectory_tooltip": "Sets fire mode in artillery state (firing upwards instead of forwards)",
 
+				"wait": "Wait",
+				"wait_tooltip": "Pause unit actions",
+
 				"customOnOff": {
 					"lowTrajectory": "Low Trajectory",
 					"highTrajectory": "High Trajectory",
@@ -242,7 +253,6 @@
 				"disclaimer": "These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!",
 				"chat": {
 					"title": "Chat",
-					"sendKey": "enter",
 					"send": "Send chat message",
 					"alliesKey": "alt + enter",
 					"allies": "Send chat message to allies",
@@ -253,11 +263,9 @@
 				},
 				"menus": {
 					"title": "Menus",
-					"settingsKey": "f10",
 					"settings": "Settings",
 					"widgetsKey": "f11",
 					"widgets": "Widget list",
-					"shareKey": "h",
 					"share": "Share units / resources"
 				},
 				"camera": {
@@ -270,7 +278,6 @@
 					"tilt": "Change camera angle",
 					"dragKey": "middle click (+ drag)",
 					"drag": "Drag camera",
-					"flipKey": "ctrl + shift + o",
 					"flip": "Flip camera"
 				},
 				"cameraModes": {
@@ -279,26 +286,18 @@
 					"change": "Change camera type",
 					"fullscreenKey": "alt + backspace",
 					"fullscreen": "Toggle fullscreen",
-					"overviewKey": "tab",
 					"overview": "Toggle overview camera",
-					"losKey": "l",
 					"los": "Toggle LOS view",
-					"heightmapKey": "f1",
 					"heightmap": "Show height map",
-					"traversabilityKey": "f2",
 					"traversability": "Show passability (for selected unit)",
-					"mapmarksKey": "f3",
 					"mapmarks": "Cycle through map marks",
-					"resourceSpotsKey": "f4",
 					"resourceSpots": "Show metal map",
-					"interfaceKey": "f5",
 					"interface": "Hide GUI"
 				},
 				"sound": {
 					"title": "Sound",
 					"volumeKey": "-/+",
 					"volume": "Change volume",
-					"muteKey": "f6",
 					"mute": "Toggle mute"
 				},
 				"selection": {
@@ -317,33 +316,19 @@
 					"title": "Selecting orders",
 					"defaultKey": "(none)",
 					"default": "default order (usually move)",
-					"moveKey": "m",
 					"move": "move",
 					"attack": "attack",
-					"attackKey": "a",
-					"stopKey": "s",
 					"stop": "stop (clears order queue)",
-					"repairKey": "r",
 					"repair": "repair",
-					"reclaimKey": "e",
 					"reclaim": "reclaim",
-					"resurrectKey": "o",
 					"resurrect": "resurrect",
-					"patrolKey": "p",
 					"patrol": "patrol",
-					"fightKey": "f",
 					"fight": "fight",
-					"setTargetKey": "y",
 					"setTarget": "set priority target",
-					"cancelTargetKey": "j",
 					"cancelTarget": "cancel priority target",
-					"waitKey": "w",
 					"wait": "wait (pause current command)",
 					"cloak": "cloak",
-					"cloakKey": "k",
-					"dGunKey": "d",
 					"dGun": "manual fire (dgun)",
-					"selfDestructKey": "ctrl + d",
 					"selfDestruct": "self-destruct"
 				},
 				"issueOrders": {
@@ -374,7 +359,7 @@
 					"intel": "Cycle through radar/defence/etc",
 					"factoriesKey": "v",
 					"factories": "Cycle through factories",
-					"rotateKey": "[ and ], or o",
+					"rotateKey": "[ and ]",
 					"rotate": "Change facing of buildings"
 				},
 				"issueBuildOrders": {
@@ -411,11 +396,11 @@
 				},
 				"drawing": {
 					"title": "Drawing",
-					"mapmarkKey": "q + dbl click",
+					"mapmarkKey": "` + dbl click",
 					"mapmark": "Place map mark",
-					"drawKey": "q + drag left mouse",
+					"drawKey": "` + drag left mouse",
 					"draw": "Draw on map",
-					"eraseKey": "q + drag right mouse",
+					"eraseKey": "` + drag right mouse",
 					"erase": "Erase drawings and markers"
 				},
 				"console": {
@@ -526,13 +511,14 @@
 				"modOptions": "Mod options"
 			},
 			"chickens": {
-				"queenIsAngry": "The Queen is angered!",
+				"queenIsAngry": "The Queen is here!",
 				"queenResistant": "The Queen is becoming resistant to %{unit} attacks!",
 				"wave": "Wave %{waveNumber}",
 				"waveCount": "%{count} Raptors!",
 				"chickenCount": "Raptors: %{count}",
 				"chickenKillCount": "Raptors Killed: %{count}",
-				"queenAnger": "Queen Anger: %{anger}%%",
+				"chickenPlayerAgression": "Player Agression Level: %{count}",
+				"queenAnger": "Queen Hatch: %{anger}%%",
 				"queenHealth": "Queen Health: %{health}%%",
 				"gracePeriod": "Grace Period: %{time}",
 				"burrowCount": "Burrows: %{count}",

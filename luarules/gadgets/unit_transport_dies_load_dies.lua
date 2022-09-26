@@ -21,7 +21,7 @@ function gadget:GetInfo()
 		desc      = "kills units in transports when transports dies (except commandos, lootboxes, scavengerbeacons and hats)",
 		author    = "knorke, bluestone, icexuick, beherith",
 		date      = "Dec 2012",
-		license   = "horse has fallen over",
+		license   = "GNU GPL, v2 or later, horses",
 		layer     = 0,
 		enabled   = true
 	}

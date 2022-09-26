@@ -4,6 +4,7 @@ function gadget:GetInfo()
     	desc      = "units spawn and wander around the map",
     	author    = "Floris (original: knorke, 2013)",
     	date      = "2016",
+		license   = "GNU GPL, v2 or later",
     	layer     = -100, --negative, otherwise critters spawned by gadget do not disappear on death (spawned with /give they always die)
     	enabled   = true,
 	}

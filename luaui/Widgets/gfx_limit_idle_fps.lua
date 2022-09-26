@@ -5,8 +5,8 @@ function widget:GetInfo()
 		desc = "Reduces FPS when being offscreen or idle (by setting vsync to a high number)" ,
 		author = "Floris",
 		date = "february 2020",
-		license = "",
-		layer = -99999999999,
+		license = "GNU GPL, v2 or later",
+		layer = -999999,
 		enabled = true
 	}
 end

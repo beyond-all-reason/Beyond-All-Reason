@@ -8,7 +8,7 @@ function widget:GetInfo()
 		author = "quantum + Doo",
 		date = "2018",
 		license = "GNU GPL, v2 or later",
-		layer = math.huge,
+		layer = 999999,
 		enabled = false  --  loaded by default?
 	}
 end

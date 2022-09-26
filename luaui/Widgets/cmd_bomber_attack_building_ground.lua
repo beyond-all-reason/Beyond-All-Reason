@@ -4,7 +4,7 @@ function widget:GetInfo()
       desc         = "Bombers attack ground under buildings instead of snapping on the unit itself (which disappears when out of los)",
       author       = "Floris",
       date         = "May 2021",
-      license      = "GPL",
+	  license      = "GNU GPL, v2 or later",
       layer        = 0,
       enabled      = true
    }

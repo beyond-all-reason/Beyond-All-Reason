@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc    = "Displays rotating circles around metal spots",
 		author  = "Floris, Beherith GL4",
 		date    = "October 2019",
-		license = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
+		license  = "Lua: GNU GPL, v2 or later,  GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer   = 2,
 		enabled = true,
 	}
@@ -54,6 +54,7 @@ local sceduledCheckedSpotsFrame = Spring.GetGameFrame()
 
 local isSpec, fullview = Spring.GetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
+local incomeMultiplier = select(7, Spring.GetTeamInfo(Spring.GetMyTeamID(), false))
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
@@ -280,7 +281,11 @@ function widget:ViewResize()
 	end
 end
 
-function widget:Initialize()
+function widget:Initialize()	
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	if not WG['resource_spot_finder'].metalSpotsList then
 		Spring.Echo("<metalspots> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget()
@@ -314,7 +319,8 @@ function widget:Initialize()
 		local spotsCount = #spots
 		for i = 1, #mSpots do
 			local spot = mSpots[i]
-			local value = string.format("%0.1f",math.round(spot.worth/1000,1))
+			local value = string.format("%0.1f",math.round((spot.worth/1000) * incomeMultiplier,1))
+
 			if tonumber(value) > 0.001 and tonumber(value) < maxValue then
 				local scale = 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
 
@@ -370,6 +376,12 @@ function widget:PlayerChanged(playerID)
 	local prevMyAllyTeamID = myAllyTeamID
 	isSpec, fullview = Spring.GetSpectatingState()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
+	local oldIncomeMultiplier = incomeMultiplier
+	incomeMultiplier = select(7, Spring.GetTeamInfo(Spring.GetMyTeamID(), false))
+	if incomeMultiplier ~= oldIncomeMultiplier then
+		widget:Shutdown()
+		widget:Initialize()
+	end
 	if fullview ~= prevFullview or myAllyTeamID ~= prevMyAllyTeamID then
 		checkMetalspots()
 	end

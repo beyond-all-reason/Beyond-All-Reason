@@ -6,7 +6,7 @@ function widget:GetInfo()
 		desc      = "Shows units selected by teammates",
 		author    = "Beherith, Floris",
 		date      = "April 2022",
-		license   = "GNU GPL v2",
+		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true
 	}
@@ -329,6 +329,10 @@ local function init()
 end
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	if not init() then return end
 	for _, playerID in pairs(Spring.GetPlayerList()) do
 		widget:PlayerAdded(playerID)

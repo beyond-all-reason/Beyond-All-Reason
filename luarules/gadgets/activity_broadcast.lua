@@ -5,6 +5,7 @@ function gadget:GetInfo()
 		desc	= "Checks if there is keyboard/mouse activity or camera changes",
 		author	= "Floris",
 		date	= "July,2016",
+		license = "GNU GPL, v2 or later",
 		layer	= 0,
 		enabled = true,
 	}
@@ -39,7 +40,7 @@ if gadgetHandler:IsSyncedCode() then
 			return true
 		end
 	end
-	
+
 else
 	--------------------------------------------------------------------------------
 	-- unsynced
@@ -49,27 +50,27 @@ else
 	local GetLastUpdateSeconds	= Spring.GetLastUpdateSeconds
 	local SendLuaRulesMsg				= Spring.SendLuaRulesMsg
 	local GetCameraState				= Spring.GetCameraState
-	
+
 	local activity							= false
 	local old_mx,old_my					= 0,0
 	local updateTimer						= 0
 	local prevCameraState				= GetCameraState()
 	local validation = SYNCED.validationActivity
-	
+
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("activityBroadcast", handleActivityEvent)
 	end
-	
+
 	function gadget:Shutdown()
 		gadgetHandler:RemoveSyncAction("activityBroadcast")
 	end
-	
+
 	function handleActivityEvent(_,playerID)
 		if Script.LuaUI("ActivityEvent") then
 			Script.LuaUI.ActivityEvent(playerID)
 		end
 	end
-	
+
 	function gadget:Update()
 		updateTimer = updateTimer + GetLastUpdateSeconds()
 		if updateTimer > sendPacketEvery then
@@ -81,7 +82,7 @@ else
 			end
 			-- camera
 			local cameraState = GetCameraState()
-			if not activity then 
+			if not activity then
 					for i,stateindex in pairs(cameraState) do
 					if stateindex ~= prevCameraState[i] then
 						activity = true
@@ -90,7 +91,7 @@ else
 				end
 			end
 			prevCameraState = cameraState
-			
+
 			if activity then
 				SendLuaRulesMsg("^"..validation)
 			end
@@ -98,7 +99,7 @@ else
 			updateTimer = 0
 		end
 	end
-	
+
 	function gadget:KeyPress(key, mods, isRepeat)
 		activity = true
 	end

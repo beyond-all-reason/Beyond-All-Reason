@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "April 2017",
 		license = "GNU GPL, v2 or later",
-		layer = -9999999999,
+		layer = -991000,
 		enabled = true,
 	}
 end
@@ -53,6 +53,7 @@ local uiSec = 0
 
 function widget:Initialize()
 	widget:ViewResize(vsx, vsy)
+	Spring.Echo(math.huge)
 
 	if WG['tooltip'] == nil then
 		WG['tooltip'] = {}

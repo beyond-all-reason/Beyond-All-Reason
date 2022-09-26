@@ -4,20 +4,24 @@ function widget:GetInfo()
 		desc	= "Plays music and offers volume controls",
 		author	= "Damgam",
 		date	= "2021",
-		layer	= -4,
+		license = "GNU GPL, v2 or later",
+		layer	= -3,
 		enabled	= true
 	}
 end
 
-math.randomseed( os.clock() )
+----------------------------------------------------------------------
+-- CONFIG
+----------------------------------------------------------------------
 
------------------------------------
-------CONFIG-----------------------
------------------------------------
+local showGUI = false
 local minSilenceTime = 10
 local maxSilenceTime = 120
 local warLowLevel = 1500
 local warHighLevel = 30000
+
+----------------------------------------------------------------------
+----------------------------------------------------------------------
 
 local specMultiplier = #Spring.GetAllyTeamList() - 1
 
@@ -27,23 +31,22 @@ local function applySpectatorThresholds()
 	appliedSpectatorThresholds = true
 	--Spring.Echo("[Music Player] Spectator mode enabled")
 end
------------------------------------
------------------------------------
------------------------------------
 
-
+math.randomseed( os.clock() )
 
 local peaceTracks = {}
 local warhighTracks = {}
 local warlowTracks = {}
 local gameoverTracks = {}
+local bossFightTracks = {}
 
 local currentTrack
-local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, gameoverTracksPlayCounter
+local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, bossFightTracksPlayCounter, gameoverTracksPlayCounter
 local fadeOutSkipTrack = false
 local interruptionEnabled
 local silenceTimerEnabled
 local deviceLostSafetyCheck = 0
+local bossHasSpawned = false
 
 local function ReloadMusicPlaylists()
 	deviceLostSafetyCheck = 0
@@ -55,12 +58,14 @@ local function ReloadMusicPlaylists()
 	local warhighTracksNew 			= VFS.DirList(musicDirNew..'/warhigh', '*.ogg')
 	local warlowTracksNew 			= VFS.DirList(musicDirNew..'/warlow', '*.ogg')
 	local gameoverTracksNew 		= VFS.DirList(musicDirNew..'/gameover', '*.ogg')
+	local bossFightTracksNew   		= VFS.DirList(musicDirNew..'/bossfight', '*.ogg')
 
 	-- Old Soundtrack List
 	local musicDirOld 			= 'music/legacy'
 	local peaceTracksOld 			= VFS.DirList(musicDirOld..'/peace', '*.ogg')
 	local warhighTracksOld 			= VFS.DirList(musicDirOld..'/warhigh', '*.ogg')
 	local warlowTracksOld 			= VFS.DirList(musicDirOld..'/warlow', '*.ogg')
+	local bossFightTracksOld  		= VFS.DirList(musicDirOld..'/bossfight', '*.ogg')
 
 	-- Custom Soundtrack List
 	local musicDirCustom 		= 'music/custom'
@@ -70,9 +75,10 @@ local function ReloadMusicPlaylists()
 	local warlowTracksCustom 		= VFS.DirList(musicDirCustom..'/warlow', '*.ogg')
 	local warTracksCustom 			= VFS.DirList(musicDirCustom..'/war', '*.ogg')
 	local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', '*.ogg')
+	local bossFightTracksCustom 	= VFS.DirList(musicDirCustom..'/bossfight', '*.ogg')
 
 	-----------------------------------SETTINGS---------------------------------------
-	
+
 	interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
 	silenceTimerEnabled 			= Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
 	local newSoundtrackEnabled 		= Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
@@ -85,18 +91,21 @@ local function ReloadMusicPlaylists()
 	warhighTracks = {}
 	warlowTracks = {}
 	gameoverTracks = {}
+	bossFightTracks = {}
 
 	if newSoundtrackEnabled then
 		table.append(peaceTracks, peaceTracksNew)
 		table.append(warhighTracks, warhighTracksNew)
 		table.append(warlowTracks, warlowTracksNew)
 		table.append(gameoverTracks, gameoverTracksNew)
+		table.append(bossFightTracks, bossFightTracksNew)
 	end
 
 	if oldSoundtrackEnabled then
 		table.append(peaceTracks, peaceTracksOld)
 		table.append(warhighTracks, warhighTracksOld)
 		table.append(warlowTracks, warlowTracksOld)
+		table.append(bossFightTracks, bossFightTracksOld)
 	end
 
 	if customSoundtrackEnabled then
@@ -110,8 +119,12 @@ local function ReloadMusicPlaylists()
 		table.append(warhighTracks, warTracksCustom)
 		table.append(warlowTracks, warTracksCustom)
 		table.append(gameoverTracks, gameoverTracksCustom)
+		table.append(bossFightTracks, bossFightTracksCustom)
 	end
 
+	if #bossFightTracks == 0 then
+		bossFightTracks = warhighTracks
+	end
 	----------------------------------SHUFFLE--------------------------------------
 
 	local function shuffleMusic(playlist)
@@ -134,43 +147,54 @@ local function ReloadMusicPlaylists()
 	warhighTracks 	= shuffleMusic(warhighTracks)
 	warlowTracks 	= shuffleMusic(warlowTracks)
 	gameoverTracks 	= shuffleMusic(gameoverTracks)
+	bossFightTracks = shuffleMusic(bossFightTracks)
 
-	-- Spring.Echo("----- MUSIC PLAYER PLAYLIST -----")
-	-- Spring.Echo("----- peaceTracks -----")
-	-- for i = 1,#peaceTracks do
-	-- 	Spring.Echo(peaceTracks[i])
-	-- end
-	-- Spring.Echo("----- warlowTracks -----")
-	-- for i = 1,#warlowTracks do
-	-- 	Spring.Echo(warlowTracks[i])
-	-- end
-	-- Spring.Echo("----- warhighTracks -----")
-	-- for i = 1,#warhighTracks do
-	-- 	Spring.Echo(warhighTracks[i])
-	-- end
-	-- Spring.Echo("----- gameoverTracks -----")
-	-- for i = 1,#gameoverTracks do
-	-- 	Spring.Echo(gameoverTracks[i])
-	-- end
+	Spring.Echo("----- MUSIC PLAYER PLAYLIST -----")
+	Spring.Echo("----- peaceTracks -----")
+	for i = 1,#peaceTracks do
+		Spring.Echo(peaceTracks[i])
+	end
+	Spring.Echo("----- warlowTracks -----")
+	for i = 1,#warlowTracks do
+		Spring.Echo(warlowTracks[i])
+	end
+	Spring.Echo("----- warhighTracks -----")
+	for i = 1,#warhighTracks do
+		Spring.Echo(warhighTracks[i])
+	end
+	Spring.Echo("----- gameoverTracks -----")
+	for i = 1,#gameoverTracks do
+		Spring.Echo(gameoverTracks[i])
+	end
+	Spring.Echo("----- bossFightTracks -----")
+	for i = 1,#bossFightTracks do
+		Spring.Echo(bossFightTracks[i])
+	end
 
 	if #peaceTracks > 1 then
 		peaceTracksPlayCounter = math.random(#peaceTracks)
 	else
 		peaceTracksPlayCounter = 1
 	end
-	
+
 	if #warhighTracks > 1 then
 		warhighTracksPlayCounter = math.random(#warhighTracks)
 	else
 		warhighTracksPlayCounter = 1
 	end
-	
+
 	if #warlowTracks > 1 then
 		warlowTracksPlayCounter = math.random(#warlowTracks)
 	else
 		warlowTracksPlayCounter = 1
 	end
-	
+
+	if #bossFightTracks > 1 then
+		bossFightTracksPlayCounter = math.random(#bossFightTracks)
+	else
+		bossFightTracksPlayCounter = 1
+	end
+
 	if #gameoverTracks > 1 then
 		gameoverTracksPlayCounter = math.random(#gameoverTracks)
 	else
@@ -441,7 +465,7 @@ function widget:Initialize()
 			return false
 		end
 		updatePosition()
-		return {top,left,bottom,right,widgetScale}
+		return {showGUI and top or bottom,left,bottom,right,widgetScale}
 	end
 	WG['music'].GetMusicVolume = function()
 		return maxMusicVolume
@@ -453,6 +477,12 @@ function widget:Initialize()
 			setMusicVolume(fadeLevel)
 		end
 		createList()
+	end
+	WG['music'].GetShowGui = function()
+		return showGUI
+	end
+	WG['music'].SetShowGui = function(value)
+		showGUI = value
 	end
 	WG['music'].getTracksConfig = function(value)
 		local tracksConfig = {}
@@ -522,7 +552,7 @@ local function getSliderValue(button, x)
 end
 
 function widget:MouseMove(x, y)
-	if draggingSlider ~= nil then
+	if showGUI and draggingSlider ~= nil then
 		if draggingSlider == 'musicvolume' then
 			maxMusicVolume = math.floor(getVolumeCoef(getSliderValue(draggingSlider, x)) * 100)
 			Spring.SetConfigInt("snd_volmusic", maxMusicVolume)
@@ -541,6 +571,7 @@ end
 
 local function mouseEvent(x, y, button, release)
 	if Spring.IsGUIHidden() then return false end
+	if not showGUI then return end
 	if button == 1 then
 		if not release then
 			local sliderWidth = (3.3 * widgetScale) -- should be same as in createlist()
@@ -588,34 +619,6 @@ function widget:MouseRelease(x, y, button)
 end
 
 function widget:Update(dt)
-	local mx, my, mlb = Spring.GetMouseState()
-	if math_isInRect(mx, my, left, bottom, right, top) then
-		mouseover = true
-	end
-	local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
-	if volume ~= curVolume then
-		volume = curVolume
-		doCreateList = true
-	end
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.5 then
-		uiOpacitySec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale",1)
-			widget:ViewResize()
-		end
-		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader'] ~= nil)then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
-			guishaderEnabled = (WG['guishader'] ~= nil)
-			doCreateList = true
-		end
-	end
-	if doCreateList then
-		createList()
-		doCreateList = nil
-	end
-
 	local frame = Spring.GetGameFrame()
 	local _,_,paused = Spring.GetGameSpeed()
 	if playing and (paused or frame < 1) then
@@ -629,6 +632,36 @@ function widget:Update(dt)
 	if paused then
 		updateFade()
 	end
+
+	if showGUI then
+		local mx, my, mlb = Spring.GetMouseState()
+		if math_isInRect(mx, my, left, bottom, right, top) then
+			mouseover = true
+		end
+		local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
+		if volume ~= curVolume then
+			volume = curVolume
+			doCreateList = true
+		end
+		uiOpacitySec = uiOpacitySec + dt
+		if uiOpacitySec > 0.5 then
+			uiOpacitySec = 0
+			if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
+				ui_scale = Spring.GetConfigFloat("ui_scale",1)
+				widget:ViewResize()
+			end
+			uiOpacitySec = 0
+			if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader'] ~= nil)then
+				ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+				guishaderEnabled = (WG['guishader'] ~= nil)
+				doCreateList = true
+			end
+		end
+		if doCreateList then
+			createList()
+			doCreateList = nil
+		end
+	end
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -639,6 +672,7 @@ end
 
 function widget:DrawScreen()
 	if chobbyInterface then return end
+	if not showGUI then return end
 	updatePosition()
 	local mx, my, mlb = Spring.GetMouseState()
 	mouseover = false
@@ -695,7 +729,7 @@ function PlayNewTrack(paused)
 	silenceTimer = 0
 	appliedSilence = false
 	warMeter = warMeter * 0.75
-	
+
 	if (not gameOver) and Spring.GetGameFrame() > 1 then
 		fadeLevel = 0
 		fadeDirection = 1
@@ -710,6 +744,9 @@ function PlayNewTrack(paused)
 		currentTrackList = gameoverTracks
 		currentTrackListString = "gameOver"
 		playedGameOverTrack = true
+	elseif bossHasSpawned then
+		currentTrackList = bossFightTracks
+		currentTrackListString = "bossFight"
 	elseif warMeter >= warHighLevel then
 		currentTrackList = warhighTracks
 		currentTrackListString = "warHigh"
@@ -748,6 +785,14 @@ function PlayNewTrack(paused)
 				warlowTracksPlayCounter = warlowTracksPlayCounter + 1
 			else
 				warlowTracksPlayCounter = 1
+			end
+		end
+		if currentTrackListString == "bossFight" then
+			currentTrack = currentTrackList[bossFightTracksPlayCounter]
+			if bossFightTracksPlayCounter <= #bossFightTracks then
+				bossFightTracksPlayCounter = bossFightTracksPlayCounter + 1
+			else
+				bossFightTracksPlayCounter = 1
 			end
 		end
 		if currentTrackListString == "gameOver" then
@@ -794,6 +839,9 @@ function widget:GameFrame(n)
 	end
 
 	if n%30 == 15 then
+		if Spring.GetGameRulesParam("BossFightStarted") then
+			bossHasSpawned = true
+		end
 		if deviceLostSafetyCheck >= 3 then
 			return
 		end
@@ -801,7 +849,7 @@ function widget:GameFrame(n)
 		if not appliedSpectatorThresholds and Spring.GetSpectatingState() == true then
 			applySpectatorThresholds()
 		end
-		
+
 		local musicVolume = getMusicVolume()
 		if musicVolume > 0 then
 			playing = true
@@ -825,16 +873,17 @@ function widget:GameFrame(n)
 					Spring.SetSoundStreamVolume(musicVolume)
 					if (totalTime < playedTime+11.1) then
 						fadeDirection = -1
-					elseif (currentTrackListString == "intro" and n > 30)
+					elseif (bossHasSpawned and currentTrackListString ~= "bossFight")
+					or (currentTrackListString == "intro" and n > 30)
 					or ((currentTrackListString == "peace" and warMeter > warHighLevel * 0.8) and interruptionEnabled) -- Peace in battle times, let's play some WarLow music at 80% of WarHigh threshold
 					or ((currentTrackListString == "warLow" and warMeter > warHighLevel * 3) and interruptionEnabled) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at tripple of WarHigh threshold
-					or (( (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.2 ) and interruptionEnabled) then -- War music is playing, but it has been quite peaceful recently. Let's switch to peace music at 20% of WarLow threshold 
+					or (( (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.2 ) and interruptionEnabled) then -- War music is playing, but it has been quite peaceful recently. Let's switch to peace music at 20% of WarLow threshold
 						fadeDirection = -1
 						fadeOutSkipTrack = true
 					end
 				end
 			elseif totalTime == 0 then -- there's no music
-				if silenceTimerEnabled then
+				if silenceTimerEnabled and not bossHasSpawned then
 					if warMeter > warHighLevel * 3 and silenceTimer > 1 then
 						silenceTimer = 1
 					elseif appliedSilence and silenceTimer <= 0 then
@@ -859,7 +908,8 @@ end
 
 function widget:GetConfigData(data)
 	return {
-		curTrack = currentTrack
+		curTrack = currentTrack,
+		showGUI = showGUI
 	}
 end
 
@@ -868,6 +918,9 @@ function widget:SetConfigData(data)
 		if data.curTrack ~= nil then
 			currentTrack = data.curTrack
 		end
+	end
+	if data.showGUI ~= nil then
+		showGUI = data.showGUI
 	end
 end
 

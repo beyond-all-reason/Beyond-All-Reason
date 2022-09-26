@@ -13,10 +13,6 @@ return {
     desc = 'EasyAI'
   },
   {
-    name = 'SimpleCheaterAI',
-    desc = 'EasyAI'
-  },
-  {
     name = 'SimpleDefenderAI',
     desc = 'EasyAI'
   },

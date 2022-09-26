@@ -13,10 +13,10 @@ if customparamDefsDetected then
     function widget:GetInfo()
         return {
             name      = "Write customparam.__def to files",
-            desc      = "Bluestone",
-            author    = "Robert De Bruce",
+            desc      = "",
+            author    = "Bluestone",
             date      = "-1",
-            license   = "Those stupid trees",
+            license   = "GNU GPL, v2 or later",
             layer     = 0,
             enabled   = true  --  loaded by default?
         }

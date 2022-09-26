@@ -8,8 +8,8 @@ function gadget:GetInfo()
 		desc = "Implements map_waterlevel modoption or enable cheats and do /luarules waterlevel #",
 		author = "Doo",
 		date = "Nov 2017",
-		license = "GPL",
-		layer = math.huge, --higher layer is loaded last
+		license = "GNU GPL, v2 or later",
+		layer = 999999, --higher layer is loaded last
 		enabled = true,
 	}
 end

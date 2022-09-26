@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		desc      = "Allows to set units' turret turnspeeds from UnitDefs tables",
 		author    = "Doo",
 		date      = "May 2018",
-		license   = "Whatever works",
+		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true,
 	}

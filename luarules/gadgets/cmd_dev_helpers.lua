@@ -11,7 +11,7 @@ function gadget:GetInfo()
 		desc = "provides various luarules commands to help developers, can only be used after /cheat",
 		author = "Bluestone",
 		date = "",
-		license = "Horses",
+		license = "GNU GPL, v2 or later, Horses",
 		layer = 0,
 		enabled = true  --  loaded by default?
 	}
@@ -86,6 +86,7 @@ if gadgetHandler:IsSyncedCode() then
 	local mapcy = Spring.GetGroundHeight(mapcx,mapcz)
 	local fightertestenabled = false
 	local placementradius = 2000
+	local keepfeatures = 150
 	local fighterteststartgameframe = 0
 	local fightertesttotalunitsspawned = 0
 
@@ -125,6 +126,54 @@ if gadgetHandler:IsSyncedCode() then
 			)
 			Spring.SendCommands({cmd})
 			fightertesttotalunitsspawned = fightertesttotalunitsspawned + feedstep
+		end
+	end
+	
+	local function SpawnUnitDefsForTeamSynced(teamID, unitDefName)
+		--Spring.GetTeamUnitDefCount ( number teamID, number unitDefID )
+		--return: nil | number count 
+		local unitDefID = UnitDefNames[unitDefName].id
+		
+		
+		local unitcount = Spring.GetTeamUnitDefCount(teamID, unitDefID)
+		
+		if (unitcount < maxunits) then
+			local cx = mapcx + placementradius*(getrandom() - 0.5)
+			local cz = mapcz + placementradius*(getrandom()- 0.5)
+			
+			local sqrtfeed = math.ceil(math.sqrt(feedstep))
+			local footprint = math.max(UnitDefs[unitDefID].xsize, UnitDefs[unitDefID].zsize)
+			local newUnitIDs = {}
+			local numspawned = 0
+			for x=1,sqrtfeed do
+				for z = 1, sqrtfeed do 
+					if numspawned < feedstep then
+						local px = cx + 12 * footprint * x
+						local pz = cz + 12 * footprint * z
+						local py = Spring.GetGroundHeight(px,pz)
+						local unitID = Spring.CreateUnit(unitDefID, px, py, pz, "n", teamID)
+						if unitID then 
+							numspawned = numspawned + 1 
+							newUnitIDs[#newUnitIDs + 1] = unitID
+						end
+					end
+				end
+			end
+			
+			--Spring.GiveOrderToUnitArray ( table unitArray = { [1] = number unitID, etc... }, number cmdID, table params = {number, etc...}, table options = {"alt", "ctrl", "shift", "right"} )
+			--return: nil | bool true 
+			--CMD.MOVE, { p.x, p.y, p.z }, 0 )
+			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.REPEAT, { 1 }, 0)
+			
+			local ncx = mapcx + placementradius*(getrandom() - 0.5)
+			local ncz = mapcz + placementradius*(getrandom() - 0.5)
+			local gh = Spring.GetGroundHeight(ncx,ncz)
+			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, {ncx,gh,ncz}, {"shift"})
+			
+			local gh = Spring.GetGroundHeight(cx,cz)
+			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, {cx,gh,cz}, {"shift"})
+			
+			fightertesttotalunitsspawned = fightertesttotalunitsspawned + numspawned
 		end
 	end
 
@@ -182,6 +231,7 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveChatAction('loadmissiles')
 		gadgetHandler:RemoveChatAction('halfhealth')
 	end
+	
 
 	function fightertest(words)
 		fightertestenabled = not fightertestenabled
@@ -206,7 +256,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 		if words[4] then
-			maxunitsint = tonumber(words[4])
+			local maxunitsint = tonumber(words[4])
 			if maxunitsint == nil then
 				Spring.Echo(words[4], "must be the number of max units to keep spawning, using", maxunits, "instead")
 			else
@@ -214,7 +264,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if words[5] then
-			feedstepint = tonumber(words[5])
+			local feedstepint = tonumber(words[5])
 			if feedstepint == nil then
 				Spring.Echo(words[5], "must be the number units to spawn each step, using", maxunits, "instead")
 			else
@@ -222,27 +272,62 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if words[6] then
-			placementradiusint = tonumber(words[6])
+			local placementradiusint = tonumber(words[6])
 			if placementradiusint == nil then
-				Spring.Echo(words[5], "must be the radius in which to spawn units, using ", placementradius, "instead")
+				Spring.Echo(words[6], "must be the radius in which to spawn units, using ", placementradius, "instead")
 			else
 				placementradius = math.floor(placementradiusint)
 			end
 		end
+		if words[7] then
+			local keepfeaturesint = tonumber(words[7])
+			if keepfeaturesint == nil then
+				Spring.Echo(words[7], "must be the number of frames wrecks will live ", placementradius, "instead")
+			else
+				keepfeatures = math.floor(keepfeaturesint)
+			end
+		end
 
-
-		Spring.Echo(string.format("Starting fightertest %s vs %s with %i maxunits and %i units per step in a %d radius",
+		Spring.Echo(string.format("Starting fightertest %s vs %s with %i maxunits and %i units per step in a %d radius, features live %d frames",
 				team1unitDefName,
 				team2unitDefName,
 				maxunits,
 				feedstep,
-				placementradius))
+				placementradius,
+				keepfeatures))
+	end
+	
+	
+	local featurestoremove = {}
+	function gadget:FeatureCreated(featureID, allyTeam)
+		if fightertestenabled then 
+			local featureDefID = Spring.GetFeatureDefID(featureID)
+			if FeatureDefNames[team1unitDefName .. "_dead"].id == featureDefID or 
+				FeatureDefNames[team1unitDefName .. "_heap"].id == featureDefID or 
+				FeatureDefNames[team2unitDefName .. "_dead"].id == featureDefID or 
+				FeatureDefNames[team2unitDefName .. "_heap"].id == featureDefID then 
+				featurestoremove[featureID] = Spring.GetGameFrame() + keepfeatures 
+			end
+		end
 	end
 
 	function gadget:GameFrame(n)
-		if (n % 3 == 0) and fightertestenabled then
-			SpawnUnitDefsForTeam(0, team1unitDefName)
-			SpawnUnitDefsForTeam(1, team2unitDefName)
+		if fightertestenabled then 
+			if (n % 3 == 0)  then
+				SpawnUnitDefsForTeamSynced(0, team1unitDefName)
+				SpawnUnitDefsForTeamSynced(1, team2unitDefName)
+			end
+			
+			if (n % 3 == 1)  then
+				for featureID, deathtime in pairs(featurestoremove) do 
+					if deathtime < n then 
+						if Spring.ValidFeatureID(featureID) then 
+							Spring.DestroyFeature(featureID)
+						end
+						featurestoremove[featureID] = nil
+					end
+				end
+			end
 		end
 	end
 
@@ -321,8 +406,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	function ExecuteRemoveUnitDefName(unitdefname)
 		local unitDefID = UnitDefNames[unitdefname].id
-		local wreckFeatureDefID
-		local heapFeatureDefID
 		if unitDefID then
 			if FeatureDefNames[unitdefname .. "_dead"] then
 				wreckFeatureDefID = FeatureDefNames[unitdefname .. "_dead"].id

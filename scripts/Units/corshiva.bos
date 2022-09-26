@@ -848,7 +848,7 @@ QueryPrimary(piecenum)
 QuerySecondary(piecenum)
 {
 	
-	piecenum = rlauncher; // not sure what should go here 
+	piecenum = rocketflare; // not sure what should go here 
 }
 
 SweetSpot(piecenum)
