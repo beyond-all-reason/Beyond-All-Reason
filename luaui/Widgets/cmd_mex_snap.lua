@@ -36,13 +36,11 @@ local function GetClosestPosition(x, z, positions)
 	local bestDist = math.huge
 	for i = 1, #positions do
 		local pos = positions[i]
-		if pos.x then
-			local dx, dz = x - pos.x, z - pos.z
-			local dist = dx * dx + dz * dz
-			if dist < bestDist then
-				bestPos = pos
-				bestDist = dist
-			end
+		local dx, dz = x - pos.x, z - pos.z
+		local dist = dx * dx + dz * dz
+		if dist < bestDist then
+			bestPos = pos
+			bestDist = dist
 		end
 	end
 	return bestPos
