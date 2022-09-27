@@ -170,7 +170,12 @@ if gadgetHandler:IsSyncedCode() then
 			local gh = Spring.GetGroundHeight(ncx,ncz)
 			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, {ncx,gh,ncz}, {"shift"})
 			
-			local gh = Spring.GetGroundHeight(cx,cz)
+			ncx = mapcx + placementradius*(getrandom() - 0.5)
+			ncz = mapcz + placementradius*(getrandom() - 0.5)
+			gh = Spring.GetGroundHeight(ncx,ncz)
+			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, {ncx,gh,ncz}, {"shift"})
+			
+			gh = Spring.GetGroundHeight(cx,cz)
 			Spring.GiveOrderToUnitArray(newUnitIDs, CMD.MOVE, {cx,gh,cz}, {"shift"})
 			
 			fightertesttotalunitsspawned = fightertesttotalunitsspawned + numspawned
