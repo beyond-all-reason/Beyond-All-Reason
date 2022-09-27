@@ -64,6 +64,8 @@ local function drawFactionpicker()
 
 	local contentPadding = math.floor((height * vsy * 0.09) * (1 - ((1 - ui_scale) * 0.5)))
 	font2:Begin()
+	font2:SetTextColor(1, 1, 1, 1)
+	font2:SetOutlineColor(0, 0, 0, 0.66)
 	font2:Print(Spring.I18N('ui.factionPicker.pick'), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.7), fontSize, "o")
 
 	local contentWidth = math.floor(backgroundRect[3] - backgroundRect[1] - contentPadding)

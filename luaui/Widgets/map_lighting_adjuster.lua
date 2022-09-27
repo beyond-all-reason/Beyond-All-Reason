@@ -124,6 +124,13 @@ local mapSunLighting = {
 		modelShadowDensity = 0.7,
 		groundShadowDensity = 0.7,
 	},
+	['tma20x 1.8'] = {
+		unitAmbientColor = { 0.6, 0.6, 0.6 },
+		unitDiffuseColor = {1.1, 1.1, 1.0},
+		unitSpecularColor = {1.2, 1.05, 1.05},
+		modelShadowDensity = 0.82,
+		groundShadowDensity = 0.9,
+	},
 }
 
 local mapSun = {
