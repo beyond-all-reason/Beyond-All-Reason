@@ -1441,6 +1441,14 @@ local options={
 		type    = "string",
 		def     = "",
 	},
+	{
+		key     = "debugcommands",
+		name    = "Debug Commands",
+		desc    = "A pipe separated list of commands to execute at [gameframe]:luarules fightertest|100:forcequit...", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+		section = 'options_experimental',
+		type    = "string",
+		def     = "",
+	},
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- End Options

@@ -177,10 +177,24 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local debugcommands = nil
 	function gadget:Initialize()
+		if Spring.GetModOptions() and Spring.GetModOptions().debugcommands then 
+			debugcommands = {}
+			local commands = string.split(Spring.GetModOptions().debugcommands, '|')
+			for i,command in ipairs(commands) do 
+				local cmdsplit = string.split(command,':')
+				if cmdsplit[1] and cmdsplit[2] and tonumber(cmdsplit[1]) then 
+					debugcommands[tonumber(cmdsplit[1])] = cmdsplit[2]
+					Spring.Echo("Adding debug command",cmdsplit[1], cmdsplit[2])
+				end
+			end
+			
+		end
 		checkStartPlayers()
 		gadgetHandler:AddChatAction('loadmissiles', LoadMissiles, "")
 		gadgetHandler:AddChatAction('halfhealth', HalfHealth, "")
+		
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
@@ -327,6 +341,13 @@ if gadgetHandler:IsSyncedCode() then
 						featurestoremove[featureID] = nil
 					end
 				end
+			end
+		end
+		if debugcommands then 
+			if debugcommands[n] then 
+				Spring.Echo("Executing debugcommand", debugcommands[n])
+				Spring.SendCommands(debugcommands[n])
+				debugcommands[n] = nil
 			end
 		end
 	end
