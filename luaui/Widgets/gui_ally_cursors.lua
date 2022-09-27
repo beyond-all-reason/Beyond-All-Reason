@@ -15,6 +15,8 @@ end
 local cursorSize = 11
 local drawNamesCursorSize = 8.5
 
+local rotY = 0
+
 local dlistAmount = 5        -- number of dlists generated for each player (# available opacity levels)
 
 local packetInterval = 0.33
@@ -65,7 +67,7 @@ local alliedCursorsTime = {}        -- for API purpose
 local usedCursorSize = cursorSize
 local allycursorDrawList = {}
 local myPlayerID = Spring.GetMyPlayerID()
-local mySpec, fullview = Spring.GetSpectatingState()
+local _, fullview = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local isReplay = Spring.IsReplay()
 
@@ -79,7 +81,7 @@ local playerPos = {}
 local teamColorKeys = {}
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
-	local r, g, b, a = spGetTeamColor(teams[i])
+	local r, g, b = spGetTeamColor(teams[i])
 	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
 end
 teams = nil
@@ -90,7 +92,7 @@ local font, chobbyInterface, functionID, wx_old, wz_old
 --------------------------------------------------------------------------------
 
 local function deleteDlists()
-	for playerID, dlists in pairs(allycursorDrawList) do
+	for _, dlists in pairs(allycursorDrawList) do
 		for _, dlist in pairs(dlists) do
 			glDeleteList(dlist)
 		end
@@ -218,7 +220,6 @@ local function SetTeamColor(teamID, playerID, a)
 	end
 	teamColors[playerID] = color
 	gl.Color(color)
-	return
 end
 
 
@@ -343,7 +344,7 @@ function widget:PlayerAdded(playerID)
 	widget:PlayerChanged(playerID)
 end
 
-function widget:PlayerRemoved(playerID, reason)
+function widget:PlayerRemoved(playerID)
 	specList[playerID] = nil
 	notIdle[playerID] = nil
 	cursors[playerID] = nil
@@ -405,6 +406,26 @@ local function createCursorDrawList(playerID, opacityMultiplier)
 	end
 end
 
+local function getCameraRotationY()
+	local x, y, z = Spring.GetCameraDirection()
+
+	local length = math.sqrt(x^2 + y^2 + z^2)
+
+	-- We are only concerned with rotY
+	x = x/length;
+	z = z/length;
+
+	return math.deg(math.atan2(x, -z))
+
+	-- General implementation
+	--
+	-- x = x/length;
+	-- y = y/length;
+	-- z = z/length;
+
+	-- return math.acos(y), math.atan2(x, -z), 0;
+end
+
 local function DrawCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity)
 	if not spIsSphereInView(wx, wy, wz, usedCursorSize) then
 		return
@@ -438,10 +459,9 @@ local function DrawCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity)
 			allycursorDrawList[playerID][opacityMultiplier] = glCreateList(createCursorDrawList, playerID, opacityMultiplier)
 		end
 
-		local rotValue = 0
 		gl.PushMatrix()
 		gl.Translate(wx, wy, wz)
-		gl.Rotate(rotValue, 0, 1, 0)
+		gl.Rotate(-rotY, 0, 1, 0)
 		if drawNamesScaling then
 			gl.Scale(glScale, 0, glScale)
 		end
@@ -453,7 +473,7 @@ local function DrawCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity)
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
+function widget:RecvLuaMsg(msg)
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 	end
@@ -487,7 +507,7 @@ function widget:Update(dt)
 		-- check if team colors have changed
 		local teams = Spring.GetTeamList()
 		for i = 1, #teams do
-			local r, g, b, a = spGetTeamColor(teams[i])
+			local r, g, b = spGetTeamColor(teams[i])
 			if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
 				teamColorKeys[teams[i]] = r..'_'..g..'_'..b
 				local players = Spring.GetPlayerList(teams[i])
@@ -500,8 +520,7 @@ function widget:Update(dt)
 
 	local now = clock()
 	local camX, camY, camZ = spGetCameraPosition()
-	--local camRotX, camRotY, camRotZ = Spring.GetCameraDirection()		-- x is fucked when springstyle camera tries to stay/snap angularly
-	--Spring.Echo(camRotX.."   "..camRotY.."   "..camRotZ)
+	rotY = getCameraRotationY()
 	for playerID, data in pairs(alliedCursorsPos) do
 		local wx, wz = data[1], data[2]
 		local lastUpdatedDiff = now - data[#data - 2] + 0.025
@@ -573,7 +592,7 @@ function widget:DrawWorldPreUnit()
 	gl.DepthTest(false)
 end
 
-function widget:GetConfigData(data)
+function widget:GetConfigData()
 	return {
 		addLights = addLights,
 		lightRadiusMult = lightRadiusMult,
