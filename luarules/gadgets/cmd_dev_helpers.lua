@@ -250,7 +250,7 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveChatAction('loadmissiles')
 		gadgetHandler:RemoveChatAction('halfhealth')
 	end
-	
+	local featuredefstoremove = {}
 
 	function fightertest(words)
 		fightertestenabled = not fightertestenabled
@@ -314,6 +314,15 @@ if gadgetHandler:IsSyncedCode() then
 				feedstep,
 				placementradius,
 				keepfeatures))
+		featuredefstoremove = {}
+		for _, udn in ipairs({team1unitDefName,team2unitDefName}) do
+			for _, wreckheap in ipairs({'_dead','_heap'}) do 
+				if FeatureDefNames[udn .. wreckheap] and FeatureDefNames[udn .. wreckheap].id then 
+					featuredefstoremove[FeatureDefNames[udn .. wreckheap].id] = true
+					Spring.Echo(udn .. wreckheap)
+				end
+			end
+		end
 	end
 	
 	
@@ -321,10 +330,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:FeatureCreated(featureID, allyTeam)
 		if fightertestenabled then 
 			local featureDefID = Spring.GetFeatureDefID(featureID)
-			if FeatureDefNames[team1unitDefName .. "_dead"].id == featureDefID or 
-				FeatureDefNames[team1unitDefName .. "_heap"].id == featureDefID or 
-				FeatureDefNames[team2unitDefName .. "_dead"].id == featureDefID or 
-				FeatureDefNames[team2unitDefName .. "_heap"].id == featureDefID then 
+			if featureDefID and featuredefstoremove[featureDefID] then 
 				featurestoremove[featureID] = Spring.GetGameFrame() + keepfeatures 
 			end
 		end
