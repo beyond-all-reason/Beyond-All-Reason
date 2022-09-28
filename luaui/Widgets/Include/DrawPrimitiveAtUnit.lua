@@ -78,6 +78,8 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
     SUniformsBuffer uni[];
 }; 
 
+#define UNITID (uni[instData.y].composite >> 16)
+
 #line 10000
 
 uniform float addRadius = 0.0;
