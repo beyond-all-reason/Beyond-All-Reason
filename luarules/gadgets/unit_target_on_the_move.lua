@@ -94,8 +94,13 @@ if gadgetHandler:IsSyncedCode() then
 			validUnits[unitDefID] = true
 		end
 		local weapons = unitDef.weapons
+		--Spring.Debug.TableEcho(weapons)
 		if #weapons > 0 then
+			-- filter this down to only the params that actually get used, weapons is an array full of stuff!
 			unitWeapons[unitDefID] = weapons
+			for i=1, #weapons do
+				unitWeapons[unitDefID][i] = true
+			end
 		end
 		unitAlwaysSeen[unitDefID] = unitDef.isBuilding or unitDef.speed == 0
 	end
