@@ -17,6 +17,8 @@ local enabled = true
 local opacityMult = 1
 
 local noiseTex = ":l:LuaUI/Images/rgbnoise.png"
+--local noiseTex = "LuaUI/Images/uniformnoise_128_rgba_1pixoffset.tga"
+local noiseTex3D = "LuaUI/Images/worley_rgbnorm_01_asum_128_v1.dds"
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -301,6 +303,7 @@ const float noiseCloudness = float(0.7) * 0.5; // TODO: configurable
 
 uniform sampler2D tex0;
 uniform sampler2D tex1;
+uniform sampler3D tex2;
 
 uniform vec3 eyePos;
 uniform mat4 viewProjectionInv;
@@ -328,7 +331,7 @@ in AABB aabbCamera;
 //float sunSpecularColor = suncolor; //FIXME
 const float sunSpecularExponent = float(100.0);
 
-float noise(in vec3 x)
+float noise_old(in vec3 x)
 {
 	vec3 p = floor(x);
 	vec3 f = fract(x);
@@ -338,6 +341,22 @@ float noise(in vec3 x)
 	return smoothstep(0.5 - noiseCloudness, 0.5 + noiseCloudness, mix( rg.x, rg.y, f.y ));
 }
 
+/*
+float noise(in vec3 x)
+{
+	vec3 p = floor(x);
+	vec3 f = fract(x);
+	f = f*f*(3.0-2.0*f);
+	vec2 uv = (p.xz + vec2(37.0,17.0)*p.y) + f.xz;
+	vec2 rg = texture2D( tex1, (uv + 0.5) * noiseTexSizeInv).yx;
+	return smoothstep(0.5 - noiseCloudness, 0.5 + noiseCloudness, mix( rg.x, rg.y, f.y ));
+}
+*/
+
+float noise(in vec3 x)
+{
+	return texture3D( tex2, x * 0.2).r;
+}
 
 bool IntersectBox(in Ray r, in AABB aabb, out float t0, out float t1)
 {
@@ -574,6 +593,7 @@ local function init()
 			uniformInt = {
 				tex0 = 0,
 				tex1 = 1,
+				tex2 = 2,
 			},
 		})
 
@@ -642,6 +662,8 @@ local function renderToTextureFunc()
 	glTexture(0, false)
 	glTexture(1, noiseTex)
 	glTexture(1, false)
+	glTexture(2, noiseTex3D)
+	glTexture(2, false)
 
 	gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
 end
