@@ -202,14 +202,14 @@ void main()
 		vec3 centertoend = lightCenterPosition - worldposrad2.xyz;
 		float halfbeamlength = length(centertoend);
 		// Scale the box to correct size (along beam is Y dir)
-		if (attachedtounitID > 0){
-			worldPos.xyz = position.xyz * vec3( lightRadius , halfbeamlength + lightRadius, lightRadius );
-			}
-		else{
+		//if (attachedtounitID > 0){
+			worldPos.xyz = position.xyz * vec3( lightRadius , step(position.y, 0) *halfbeamlength + lightRadius, lightRadius );
+			//}
+		//else{
 			worldPos.xyz = position.xyz * vec3( lightRadius ,  step(position.y, 0) * halfbeamlength + lightRadius, lightRadius );
 			//worldPos.xyz = position.xyz * vec3( lightRadius , halfbeamlength + lightRadius, lightRadius );
 			//worldPos.xyz += vec3(50);
-			}
+			//}
 		
 		// TODO rotate this box
 		vec3 oldfw = vec3(0,1,0); // The old forward direction is -y
