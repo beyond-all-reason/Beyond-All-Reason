@@ -424,16 +424,16 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["vh_chickenq"].id] = { chance = 0.3 },
 		[UnitDefNames["epic_chickenq"].id] = { chance = 0.5 },
 		[UnitDefNames["chickens2"].id] = {chance = 0.2, distance = 750, teleport = true, teleportcooldown = 2,},
-		[UnitDefNames["chickena1"].id] = { chance = 0.2 },
-		[UnitDefNames["chickena1b"].id] = { chance = 0.2 },
-		[UnitDefNames["chickena1c"].id] = { chance = 0.2 },
-		[UnitDefNames["chickenallterraina1"].id] = { chance = 0.2 },
-		[UnitDefNames["chickenallterraina1b"].id] = { chance = 0.2 },
-		[UnitDefNames["chickenallterraina1c"].id] = { chance = 0.2 },
-		[UnitDefNames["chickena2"].id] = { chance = 0.2 },
-		[UnitDefNames["chickena2b"].id] = { chance = 0.2 },
-		[UnitDefNames["chickenapexallterrainassault"].id] = { chance = 0.2 },
-		[UnitDefNames["chickenapexallterrainassaultb"].id] = { chance = 0.2 },
+		[UnitDefNames["chickena1"].id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames["chickena1b"].id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames["chickena1c"].id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames["chickenallterraina1"].id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames["chickenallterraina1b"].id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames["chickenallterraina1c"].id] = { chance = 0.2, distance = 1500 },
+		[UnitDefNames["chickena2"].id] = { chance = 0.2, distance = 3000 },
+		[UnitDefNames["chickena2b"].id] = { chance = 0.2, distance = 3000 },
+		[UnitDefNames["chickenapexallterrainassault"].id] = { chance = 0.2, distance = 3000 },
+		[UnitDefNames["chickenapexallterrainassaultb"].id] = { chance = 0.2, distance = 3000 },
 		[UnitDefNames["chickene2"].id] = { chance = 0.05 },
 		[UnitDefNames["chickenelectricallterrainassault"].id] = { chance = 0.05 },
 		[UnitDefNames["chickenacidassault"].id] = { chance = 0.05 },
@@ -1170,7 +1170,7 @@ if gadgetHandler:IsSyncedCode() then
 				local ax, ay, az = GetUnitPosition(attackerID)
 				local x, y, z = GetUnitPosition(unitID)
 				local separation = Spring.GetUnitSeparation(unitID, attackerID)
-				if ax and separation < (BERSERK[unitDefID].distance or 1000) then
+				if ax and separation < (BERSERK[unitDefID].distance or 10000) then
 					if BERSERK[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
 						Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
 						ax = ax + mRandom(-64,64)
@@ -1188,7 +1188,7 @@ if gadgetHandler:IsSyncedCode() then
 				local ax, ay, az = GetUnitPosition(unitID)
 				local x, y, z = GetUnitPosition(attackerID)
 				local separation = Spring.GetUnitSeparation(unitID, attackerID)
-				if ax and separation < (BERSERK[attackerDefID].distance or 1000) then
+				if ax and separation < (BERSERK[attackerDefID].distance or 10000) then
 					if BERSERK[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
 						Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
 						ax = ax + mRandom(-64,64)
