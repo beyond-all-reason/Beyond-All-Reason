@@ -424,7 +424,6 @@ function widget:Initialize()
 		gaussianBlurShader:SetUniformFloatArrayAlways("offsets", gaussOffsets)
 	end)
 
-	widget:SunChanged()
 end
 
 local sec = 0
@@ -444,12 +443,6 @@ function widget:Update(dt)
 	end
 end
 
-function widget:SunChanged()
-	ssaoShader:ActivateWith( function()
-		local shadowDensity = gl.GetSun("shadowDensity", "unit")
-		ssaoShader:SetUniformFloatAlways("shadowDensity", shadowDensity)
-	end)
-end
 
 function widget:Shutdown()
 
@@ -548,6 +541,8 @@ local function DoDrawSSAO(isScreenSpace)
 		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 		ssaoShader:Activate()
 			ssaoShader:SetUniformMatrix("projMatrix", "projection")
+			local shadowDensity = gl.GetSun("shadowDensity", "unit")
+			ssaoShader:SetUniformFloat("shadowDensity", shadowDensity)
 
 			gl.Texture(0, gbuffFuseViewPosTex)
 			gl.Texture(1, gbuffFuseViewNormalTex)
