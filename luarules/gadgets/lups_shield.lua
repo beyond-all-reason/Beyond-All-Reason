@@ -112,11 +112,22 @@ if gadgetHandler:IsSyncedCode() then
 		gameFrame = n
 	end
 
-	local unitWeapons = {}
+	local unitBeamWeapons = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		local weapons = unitDef.weapons
-		if #weapons > 0 then
-			unitWeapons[unitDefID] = unitDef.weapons
+		local hasbeamweapon = false
+		for i=1,#weapons do
+			local weaponDefID = weapons[i].weaponDef
+			if WeaponDefs[weaponDefID].type == "LightningCannon" or 
+				WeaponDefs[weaponDefID].type == "BeamLaser" then
+				hasbeamweapon = true
+			end
+		end
+		if hasbeamweapon then
+			unitBeamWeapons[unitDefID] = {}
+			for i=1,#weapons do
+				unitBeamWeapons[unitDefID][i] = weapons[i].weaponDef
+			end
 		end
 	end
 	local weaponType = {}
@@ -124,7 +135,7 @@ if gadgetHandler:IsSyncedCode() then
 	local weaponBeamtime = {}
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		weaponType[weaponDefID] = weaponDef.type
-		weaponDamages[weaponDefID] = weaponDef.damages
+		weaponDamages[weaponDefID] = {[SHIELDARMORIDALT] = weaponDef.damages[SHIELDARMORIDALT], [SHIELDARMORID] = weaponDef.damages[SHIELDARMORID]}
 		weaponBeamtime[weaponDefID] = weaponDef.beamtime
 	end
 
@@ -135,7 +146,7 @@ if gadgetHandler:IsSyncedCode() then
 		if proID and proID ~= -1 then
 			weaponDefID = Spring.GetProjectileDefID(proID)
 		elseif beamEmitterUnitID then -- hitscan weapons
-			weaponDefID = unitWeapons[ Spring.GetUnitDefID(beamEmitterUnitID) ][beamEmitterWeaponNum].weaponDef
+			weaponDefID = unitBeamWeapons[ Spring.GetUnitDefID(beamEmitterUnitID) ][beamEmitterWeaponNum].weaponDef
 			if weaponType[weaponDefID] ~= "LightningCannon" then
 				dmgMod = 1 / (weaponBeamtime[weaponDefID] * GAMESPEED)
 			end
