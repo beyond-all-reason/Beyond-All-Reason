@@ -3,14 +3,26 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, flare, turret, gun, barrel,bore,cylinder;
+piece  base, flare, turret, gun, barrel, bore, cylinder, light;
 
+static-var shotcount;
 // Signal definitions
 #define SIG_AIM				2
 
 Create()
 {
 	hide flare;
+	hide light;
+	shotcount = 0;
+}
+
+// This should call deferred lightings stuff
+// Note that any two numbers can be passed, use lightIndex primarily!
+// but count can be optionally handled later on. 
+// The number passed in lightIndex will index UnitScriptLights[unitDefID][lightIndex]
+lua_UnitScriptLight(lightIndex, count) 
+{
+	return 0;
 }
 
 #define SMOKEPIECE base
@@ -27,8 +39,18 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
+HotBarrel()
+{
+	show light;
+	sleep 7000;
+	hide light;
+	return (1);
+}
+
 FirePrimary()
 {
+	shotcount = shotcount + 1;
+	start-script HotBarrel();
 	move barrel to z-axis [-7.500000] speed [500.000000];
 	move gun to z-axis [-4.000000] speed [500.000000];
 	wait-for-move barrel along z-axis;
@@ -36,6 +58,7 @@ FirePrimary()
 	sleep 200;
 	move barrel to z-axis [0.000000] speed [3.500000];
 	move gun to z-axis [0.000000] speed [3.500000];
+	call-script lua_UnitScriptLight(1, shotcount);
 }
 
 TargetCleared(Func_Var_1)

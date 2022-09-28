@@ -98,12 +98,16 @@ StartBuilding(heading, pitch)
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
 	turn turret to y-axis heading speed <160.038462>;
+	turn nano1 to x-axis -1*pitch now;
 	wait-for-turn turret around y-axis;
 	set INBUILDSTANCE to 1;
+	show nano1;
 }
 
 StopBuilding()
 {
+	
+	hide nano1;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	sleep 6000;

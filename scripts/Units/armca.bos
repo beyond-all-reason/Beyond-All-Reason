@@ -126,6 +126,7 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	hide emit;
+	hide nano;
 	hide thrust;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
@@ -153,6 +154,7 @@ StartBuilding(heading, pitch)
 	
 	start-script RequestState(0);
 	signal SIG_BUILD;
+	show nano;
 	turn doorbl to z-axis <-135> speed <270>;
 	turn doorbr to z-axis  <135> speed <270>;
 	turn arm1 to x-axis <-60> speed <60>;
@@ -171,8 +173,8 @@ StopBuilding()
 	set-signal-mask 0;
 	signal SIG_BUILD;	
 	start-script RequestState(1);
-
 	set INBUILDSTANCE to 0;
+	hide nano;
 	return (0);
 }
 
