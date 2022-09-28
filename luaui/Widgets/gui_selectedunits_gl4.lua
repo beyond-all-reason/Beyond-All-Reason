@@ -134,7 +134,7 @@ function widget:DrawWorldPreUnit()
 		glStencilMask(0)
 		glDepthTest(true)
 
-		selectShader:SetUniform("addRadius", 1.7)
+		selectShader:SetUniform("addRadius", 1.3)
 		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
 
 		glStencilMask(1)
