@@ -36,10 +36,67 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		debugZombies 		= true,  -- this is new, and its for debugging non-existing stuff on unitdestroyed
 	}
 
+
 	if unitIDattribID ~= nil then
 		instanceTable.indextoUnitID = {}
 		instanceTable.unitIDattribID = unitIDattribID
 		instanceTable.popUnitIDFailuresInGameFrame = {}
+	end
+	
+	function instanceTable:clearInstanceTable() 
+		-- this wont resize it, but quickly sets it to empty
+		self.usedElements = 0
+		self.instanceIDtoIndex = {}
+		self.indextoInstanceID = {}
+		if self.indextoUnitID then self.indextoUnitID = {} end
+	end
+
+	function instanceTable:makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a vertex buffer to an instance buffer, and optionally, an index buffer if one is supplied.
+		-- There is a special case for this, when we are using a vertexVBO as a quasi-instanceVBO, e.g. when we are using the geometry shader to draw a vertex as each instance. 
+		--iT.vertexVBO = vertexVBO
+		--iT.indexVBO = indexVBO
+		local newVAO = nil 
+		newVAO = gl.GetVAO()
+		if newVAO == nil then goodbye("Failed to create newVAO") end
+		self.VAO = newVAO
+		if vertexVBO == nil then -- the special case where are using 'vertices' as 'instances'
+			newVAO:AttachVertexBuffer(instanceVBO)
+		else
+			newVAO:AttachVertexBuffer(vertexVBO)
+			newVAO:AttachInstanceBuffer(instanceVBO)
+			self.vertexVBO = vertexVBO
+			self.instanceVBO = instanceVBO
+		end
+		if indexVBO then
+			newVAO:AttachIndexBuffer(indexVBO)     
+			self.indexVBO = indexVBO
+			function self:Draw()
+				self.VAO:DrawElements(GL.TRIANGLES, nil, 0, self.usedElements, 0)
+			end
+		else
+			function self:Draw()
+				self.VAO:DrawArrays(GL.TRIANGLES, nil, 0, self.usedElements, 0)
+			end
+		end
+		return newVAO
+	end
+	
+	function instanceTable:clearInstanceTable() 
+		-- this wont resize it, but quickly sets it to empty
+		self.usedElements = 0
+		self.instanceIDtoIndex = {}
+		self.indextoInstanceID = {}
+		if self.indextoUnitID then self.indextoUnitID = {} end
+	end
+
+	function instanceTable:draw()
+		if self.usedElements > 0 then 
+			if self.indexVBO then 
+				self.VAO:DrawElements(self.primitiveType, self.numVertices, 0, self.usedElements,0)
+			else
+				self.VAO:DrawArrays  (self.primitiveType, self.numVertices, 0, self.usedElements,0)
+			end
+		end
 	end
 	
 	newInstanceVBO:Upload(instanceData)
@@ -70,6 +127,9 @@ function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a vertex b
 	if indexVBO then
 		newVAO:AttachIndexBuffer(indexVBO)     
 	end
+	-- this allows us to set up our sane 
+
+
 	return newVAO
 end
 
@@ -278,6 +338,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	-- returns: the index of the instanceID in the table on success, else nil
 	if #thisInstance ~= iT.instanceStep then
 		Spring.Echo("Trying to upload an oddly sized instance into",iT.myName, #thisInstance, "instead of ",iT.instanceStep)
+		Spring.Debug.TraceFullEcho(20,20,20, "pushElementInstance Failure")
 	end
 	local iTusedElements = iT.usedElements
 	local iTStep    = iT.instanceStep 
@@ -304,9 +365,9 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 			endOffset = (thisInstanceIndex - 1) * iTStep
 		end
 	end
-
+	local instanceData = iT.instanceData
 	for i =1, iTStep  do -- copy data, but fast
-		iT.instanceData[endOffset + i] =  thisInstance[i]
+		instanceData[endOffset + i] =  thisInstance[i]
 	end
 
 	if unitID ~= nil then 
@@ -335,7 +396,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	end
 
 	if iT.debug then validateInstanceVBOTable(iT, 'push') end 
-	return thisInstanceIndex
+	return instanceID
 end
 
 function popElementInstance(iT, instanceID, noUpload) 
@@ -347,6 +408,7 @@ function popElementInstance(iT, instanceID, noUpload)
 
 	if iT.instanceIDtoIndex[instanceID] == nil then -- if key is instanceID yet does not exist, then warn and bail
 		Spring.Echo("Tried to remove element ",instanceID,'From instanceTable', iT.myName, 'but it does not exist in it')
+		Spring.Debug.TraceFullEcho(10,10,3)
 		return nil 
 	end
 	if iT.usedElements == 0 then -- Dont remove the last element
@@ -393,9 +455,10 @@ function popElementInstance(iT, instanceID, noUpload)
 		iT.indextoInstanceID[lastElementIndex] = nil --- somehow this got forgotten? TODO for VBOIDtable
 
 		local oldOffset = (oldElementIndex-1)*iTStep 
-		for i= 1, iTStep do 
-			local data =  iT.instanceData[endOffset + i]
-			iT.instanceData[oldOffset + i ] = data
+		local instanceData = iT.instanceData
+		for i = 1, iTStep do 
+			local data =  instanceData[endOffset + i]
+			instanceData[oldOffset + i ] = data
 		end
 		--size_t LuaVBOImpl::Upload(const sol::stack_table& luaTblData, const sol::optional<int> attribIdxOpt, const sol::optional<int> elemOffsetOpt, const sol::optional<int> luaStartIndexOpt, const sol::optional<int> luaFinishIndexOpt)
 		--Spring.Echo("Removing instanceID",instanceID,"from iT at position", oldElementIndex, "shuffling back at", iT.usedElements,"endoffset=",endOffset,'oldOffset=',oldOffset)
@@ -480,16 +543,17 @@ function popElementInstance(iT, instanceID, noUpload)
 	return oldElementIndex
 end
 
-function getElementInstanceData(iT, instanceID)
+function getElementInstanceData(iT, instanceID, cacheTable)
 	-- iT: instanceTable created with makeInstanceTable
 	-- instanceID: an optional key given to the item, so it can be easily removed by reference, defaults to the index of the instance in the buffer (1 based)
 	local instanceIndex = iT.instanceIDtoIndex[instanceID] 
 	if instanceIndex == nil then return nil end
-	local iData = {}
+	local iData = cacheTable or {}
 	local iTStep = iT.instanceStep
 	instanceIndex = (instanceIndex-1) * iTStep
+	local instanceData = iT.instanceData
 	for i = 1, iTStep do
-		iData[i] = iT.instanceData[instanceIndex + i]
+		iData[i] = instanceData[instanceIndex + i]
 	end
 	return iData
 end
@@ -520,8 +584,9 @@ function uploadElementRange(iT, startElementIndex, endElementIndex)
 	if iT.indextoUnitID then
 		--we need to reslice the table
 		local unitIDRange = {}
+		local indextoUnitID = iT.indextoUnitID
 		for i = startElementIndex, endElementIndex do
-			unitIDRange[#unitIDRange + 1] = iT.indextoUnitID[i]
+			unitIDRange[#unitIDRange + 1] = indextoUnitID[i]
 		end
 		if iT.featureIDs then
 			iT.instanceVBO:InstanceDataFromFeatureIDs(unitIDRange, iT.unitIDattribID, startElementIndex - 1)
@@ -533,7 +598,11 @@ end
 
 function drawInstanceVBO(iT)
 	if iT.usedElements > 0 then 
-		iT.VAO:DrawArrays(iT.primitiveType, iT.numVertices, 0, iT.usedElements,0)
+		if iT.indexVBO then 
+			iT.VAO:DrawElements(iT.primitiveType, iT.numVertices, 0, iT.usedElements,0)
+		else
+			iT.VAO:DrawArrays(iT.primitiveType, iT.numVertices, 0, iT.usedElements,0)
+		end
 	end
 end
 
