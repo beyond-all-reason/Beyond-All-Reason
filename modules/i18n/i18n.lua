@@ -12,7 +12,6 @@ for _, file in ipairs(translationFiles) do
 end
 
 i18n.loadFile('language/test_french.lua')
-i18n.loadFile('language/test_chinese.lua')
 i18n.loadFile('language/test_unicode.lua')
 
 i18n.languages = {
