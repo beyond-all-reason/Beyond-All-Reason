@@ -202,6 +202,13 @@ function gadgetHandler:Initialize()
 end
 
 function gadgetHandler:LoadGadget(filename)
+	local kbytes = 0
+	if collectgarbage then -- only present in special debug builds, otherwise collectgarbage is not preset in synced context!
+		collectgarbage("collect") -- call it twice, mark
+		collectgarbage("collect") -- sweep
+		kbytes = collectgarbage("count")
+	end 
+	
 	local basename = Basename(filename)
 	local text = VFS.LoadFile(filename, VFSMODE)
 	if text == nil then
@@ -274,6 +281,11 @@ function gadgetHandler:LoadGadget(filename)
 		return nil
 	end
 
+	if kbytes > 0 then 
+		collectgarbage("collect") -- mark
+		collectgarbage("collect") -- sweep
+		Spring.Echo("LoadGadget",filename,"delta=",collectgarbage("count")-kbytes,"total=",collectgarbage("count"),"KB, synced =", IsSyncedCode()) 
+	end
 	return gadget
 end
 
@@ -478,7 +490,6 @@ function gadgetHandler:InsertGadget(gadget)
 	if gadget == nil then
 		return
 	end
-
 	ArrayInsert(self.gadgets, true, gadget)
 	for _, listname in ipairs(CALLIN_LIST) do
 		local func = gadget[listname]
@@ -486,12 +497,24 @@ function gadgetHandler:InsertGadget(gadget)
 			ArrayInsert(self[listname .. 'List'], func, gadget)
 		end
 	end
-
+		local kbytes = 0
+	if collectgarbage then 	
+		collectgarbage("collect")
+		collectgarbage("collect")
+		kbytes= collectgarbage("count")
+	end
+	
 	self:UpdateCallIns()
 	if gadget.Initialize then
 		gadget:Initialize()
 	end
 	self:UpdateCallIns()
+
+	if kbytes > 0 then 
+		collectgarbage("collect")
+		collectgarbage("collect")
+		Spring.Echo("Initialize",gadget.ghInfo.name,"delta=",collectgarbage("count")-kbytes,"total=",collectgarbage("count"),"KB, synced =", IsSyncedCode()) 
+	end
 end
 
 function gadgetHandler:RemoveGadget(gadget)
