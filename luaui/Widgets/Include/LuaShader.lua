@@ -210,7 +210,39 @@ vec3 rgb2hsv(vec3 c){
 
 ]]
 
-    return eubs
+
+	local waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB = gl.GetWaterRendering("absorb")
+	local waterMinColorR, waterMinColorG, waterMinColorB = gl.GetWaterRendering("minColor")
+	local waterBaseColorR, waterBaseColorG, waterBaseColorB = gl.GetWaterRendering("baseColor")
+	
+	--Spring.Echo(waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB)
+	--Spring.Debug.TableEcho(waterAbsorbColor)
+	local waterUniforms = 
+[[ 
+#define WATERABSORBCOLOR vec3(%f,%f,%f)
+#define WATERMINCOLOR vec3(%f,%f,%f)
+#define WATERBASECOLOR vec3(%f,%f,%f)
+#define SMF_SHALLOW_WATER_DEPTH_INV 0.1
+
+// vertex below shallow water depth --> alpha=1
+// vertex above shallow water depth --> alpha=waterShadeAlpha
+vec4 waterBlend(float fragmentheight){
+	if (fragmentheight>=0) return vec4(0.0);
+	vec4 waterBlendResult = vec4(1.0, 1.0, 1.0, 0.0);
+	waterBlendResult.rgb = WATERBASECOLOR.rgb;
+	waterBlendResult.rgb -= WATERABSORBCOLOR * clamp( -fragmentheight, 0, 1023);
+	waterBlendResult.rgb = max(waterBlendResult.rgb, WATERMINCOLOR);
+	waterBlendResult.a = clamp(-fragmentheight * SMF_SHALLOW_WATER_DEPTH_INV, 0.0, 1.0);
+	return waterBlendResult;
+}
+]]
+	waterUniforms = string.format(waterUniforms, 
+		waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB,
+		waterMinColorR, waterMinColorG, waterMinColorB, 
+		waterBaseColorR, waterBaseColorG, waterBaseColorB
+	)
+
+    return eubs .. waterUniforms
 end
 
 local function CreateShaderDefinesString(args) -- Args is a table of stuff that are the shader parameters
@@ -220,6 +252,7 @@ local function CreateShaderDefinesString(args) -- Args is a table of stuff that 
   end
   return table.concat(defines)
 end
+
 
 local LuaShader = setmetatable({}, {
 	__call = function(self, ...) return new(self, ...) end,
@@ -231,6 +264,67 @@ LuaShader.isDeferredShadingEnabled = IsDeferredShadingEnabled()
 LuaShader.GetAdvShadingActive = GetAdvShadingActive
 LuaShader.GetEngineUniformBufferDefs = GetEngineUniformBufferDefs
 LuaShader.CreateShaderDefinesString = CreateShaderDefinesString
+
+
+local function CheckShaderUpdates(shadersourcecache, delaytime)
+	-- todo: extract shaderconfig
+	if shadersourcecache.lastshaderupdate == nil or 
+		Spring.DiffTimers(Spring.GetTimer(), shadersourcecache.lastshaderupdate) > (delaytime or 0.5) then 
+		shadersourcecache.lastshaderupdate = Spring.GetTimer()
+		local vsSrcNew = shadersourcecache.vssrcpath and VFS.LoadFile(shadersourcecache.vssrcpath)
+		local fsSrcNew = shadersourcecache.fssrcpath and VFS.LoadFile(shadersourcecache.fssrcpath)
+		local gsSrcNew = shadersourcecache.gssrcpath and VFS.LoadFile(shadersourcecache.gssrcpath)
+		if  vsSrcNew == shadersourcecache.vsSrc and 
+			fsSrcNew == shadersourcecache.fsSrc and 
+			gsSrcNew == shadersourcecache.gsSrc and 
+			not forceupdate then 
+			--Spring.Echo("No change in shaders")
+			return nil
+		else
+			local compilestarttime = Spring.GetTimer()
+			shadersourcecache.vsSrc = vsSrcNew
+			shadersourcecache.fsSrc = fsSrcNew
+			shadersourcecache.gsSrc = gsSrcNew
+			
+			local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
+			local shaderDefines = LuaShader.CreateShaderDefinesString(shadersourcecache.shaderConfig)
+			if vsSrcNew then 
+				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				vsSrcNew = vsSrcNew:gsub("//__DEFINES__", shaderDefines)
+			end
+			if fsSrcNew then 
+				fsSrcNew = fsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", shaderDefines)
+			end
+			if gsSrcNew then 
+				gsSrcNew = gsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				gsSrcNew = gsSrcNew:gsub("//__DEFINES__", shaderDefines)
+			end
+			local reinitshader =  LuaShader(
+				{
+				vertex = vsSrcNew,
+				fragment = fsSrcNew,
+				geometry = gsSrcNew,
+				uniformInt = shadersourcecache.uniformInt,
+				uniformFloat = shadersourcecache.uniformFloat,
+				},
+				shadersourcecache.shaderName
+			)
+			local shaderCompiled = reinitshader:Initialize()
+			
+			Spring.Echo(shadersourcecache.shaderName, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", Spring.GetGameFrame(), "success", shaderCompiled or false)
+			if shaderCompiled then 
+				reinitshader.ignoreUnkUniform = true
+				return reinitshader
+			else
+				return nil
+			end
+		end
+	end
+	return nil
+end
+
+LuaShader.CheckShaderUpdates = CheckShaderUpdates
 
 
 local function lines(str)
@@ -510,6 +604,8 @@ function LuaShader:Deactivate()
 	self.active = false
 	glUseShader(0)
 end
+
+
 -----------------============ End of general LuaShader methods ============-----------------
 
 
@@ -566,6 +662,7 @@ local function isUpdateRequired(uniform, tbl)
 	return update
 end
 -----------------============ End of friend LuaShader functions ============-----------------
+
 
 
 -----------------============ LuaShader uniform manipulation functions ============-----------------
