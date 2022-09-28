@@ -150,7 +150,7 @@ pieceCollisionVolume['corint'] = {
 	['3']={13,13,34,0,1,28,1,2},
 }
 pieceCollisionVolume['armvulc'] = {
-	['2']={98,140,98,0,-40,0,1,1},
+	['0']={98,140,98,0,40,0,1,1},
 	['5']={55,55,174,0,18,0,1,2},
 }
 for name, v in pairs(pieceCollisionVolume) do
