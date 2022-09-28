@@ -298,6 +298,9 @@ function widget:Initialize()
 	WG['allycursors'].getSpectatorNames = function()
 		return showSpectatorName
 	end
+	WG['allycursors'].getCursors = function()
+		return cursors
+	end
 
 	local now = clock() - (idleCursorTime * 0.95)
 	local pList = Spring.GetPlayerList()
@@ -307,6 +310,7 @@ function widget:Initialize()
 	if addLights and WG.DeferredLighting_RegisterFunction then
 		functionID = WG.DeferredLighting_RegisterFunction(GetLights)
 	end
+
 end
 
 function widget:Shutdown()
