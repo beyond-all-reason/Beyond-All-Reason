@@ -379,10 +379,8 @@ addSuperSquad(5,    { "2 chickenr1" 																	}) -- Artillery
 	addSpecialSquad(9, { "5 chicken2" , "5 chicken2b" 													}, 7) -- Apex Swarmer
 	addSpecialSquad(9, { "3 chickena2", "3 chickena2b"													}, 2) -- Apex Brawler
 	addSpecialSquad(9, { "2 chickenapexallterrainassault", "2 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
-	if Spring.GetModOptions().unit_restrictions_nonukes then
-		addSpecialSquad(9, { "3 chickenr1" 																}) -- Meteor Artillery
-	else
-		addSpecialSquad(9, { "3 chickenr1" 																}) -- Meteor Artillery
+	addSpecialSquad(9, { "3 chickenr1" 																}) -- Meteor Artillery
+	if not Spring.GetModOptions().unit_restrictions_nonukes then
 		addSpecialSquad(9, { "2 chickenr2", "3 chickenr1" 												}) -- Meteor Artillery
 	end
 	addSpecialSquad(9, { "3 chickenh3" 																	}) -- Brood Mother
@@ -393,10 +391,8 @@ addSuperSquad(5,    { "2 chickenr1" 																	}) -- Artillery
 	addSpecialSquad(10, { "5 chicken2" , "5 chicken2b" 													}, 5) -- Apex Swarmer
 	addSpecialSquad(10, { "3 chickena2", "3 chickena2b"													}, 2) -- Apex Brawler
 	addSpecialSquad(10, { "2 chickenapexallterrainassault", "2 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
-	if Spring.GetModOptions().unit_restrictions_nonukes then
-		addSpecialSquad(10, { "3 chickenr1" 															}) -- Meteor Artillery
-	else
-		addSpecialSquad(10, { "3 chickenr1" 															}) -- Meteor Artillery
+	addSpecialSquad(10, { "3 chickenr1" 																}) -- Artillery
+	if not Spring.GetModOptions().unit_restrictions_nonukes then
 		addSpecialSquad(10, { "2 chickenr2", "3 chickenr1" 												}) -- Meteor Artillery
 	end
 	addSpecialSquad(10, { "2 chickenh2" 																}) -- Apex Brood Mother
@@ -411,10 +407,8 @@ if difficulty >= 5 then
 	addSpecialSquad(i, { "5 chicken2" , "5 chicken2b" 													}) -- Apex Swarmer
 	addSpecialSquad(i, { "5 chickena2", "5 chickena2b"													}) -- Apex Brawler
 	addSpecialSquad(i, { "5 chickenapexallterrainassault", "5 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
-	if Spring.GetModOptions().unit_restrictions_nonukes then
-		addSpecialSquad(i, { "3 chickenr1", "3 chickenearty1", "3 chickenacidarty" 						}) -- Artillery
-	else
-		addSpecialSquad(i, { "3 chickenr1", "3 chickenearty1", "3 chickenacidarty" 						}) -- Artillery
+	addSpecialSquad(i, { "3 chickenr1", "3 chickenearty1", "3 chickenacidarty" 							}) -- Artillery
+	if not Spring.GetModOptions().unit_restrictions_nonukes then
 		addSpecialSquad(i, { "2 chickenr2", "3 chickenr1", "3 chickenearty1", "3 chickenacidarty" 		}) -- Meteor Artillery
 	end
 	addSpecialSquad(i, { "2 chickenh2" 																	}) -- Apex Brood Mother
