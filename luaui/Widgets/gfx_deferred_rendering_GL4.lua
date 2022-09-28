@@ -1321,7 +1321,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 
 		local alt, ctrl, meta, shft = Spring.GetModKeyState()
 
-		if ctrl then
+		if ctrl and (Spring.GetConfigInt('DevUI', 0) == 1) then
 			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		else
 			glBlending(GL.SRC_ALPHA, GL.ONE)
