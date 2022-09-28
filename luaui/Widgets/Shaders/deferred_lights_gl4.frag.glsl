@@ -746,7 +746,7 @@ void main(void)
 			
 			miescattersum += (max(0, 0.1 - relativeclosenesstobeam) * noise  * 10.0);
 		}
-		
+		/*
 		// LIGHTNING TESTER
 		// march the worley noise in 128 steps and add it in!
 		rayleighScatterSum = 0;
@@ -765,6 +765,7 @@ void main(void)
 			miescattersum += (max(0, 0.1 - relativeclosenesstobeam) * noise  * 10.0);
 		
 		}
+		*/
 		
 		// Simplest occlusion calculation just integrates scatter in between fragment distance and eye distance
 		// cone close distance is negative if rayorigin is inside it
