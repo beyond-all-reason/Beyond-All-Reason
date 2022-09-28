@@ -19,36 +19,46 @@ local GetFeaturePosition = Spring.GetFeaturePosition
 local GetUnitDefID = Spring.GetUnitDefID
 local GetFeatureResources = Spring.GetFeatureResources
 
-local unitList = {}
+local featureListMaxResource = {}
+local featureListReclaimTime = {}
+local unitListReclaimSpeed = {}
+
 for unitDefID, defs in pairs(UnitDefs) do
     if defs.reclaimSpeed > 0 then
-        unitList[unitDefID] = defs.reclaimSpeed / 30
+        unitListReclaimSpeed[unitDefID] = defs.reclaimSpeed / 30
     end
 end
 
-local featureList = {}
 for featureDefID, fdefs in pairs(FeatureDefs) do
     local maxResource = math.max(fdefs.metal, fdefs.energy)
+	
     if maxResource > 0 then
-        featureList[featureDefID] = {}
-        for unitDefID, reclaimSpeed in pairs(unitList) do
-            local oldformula = (reclaimSpeed*0.70 + 10*0.30) * 1.5  / fdefs.reclaimTime
-            local newformula = reclaimSpeed / fdefs.reclaimTime
-            featureList[featureDefID][unitDefID] = (((maxResource * oldformula) * 1) - (maxResource * newformula)) / maxResource
-        end
+		featureListMaxResource[featureDefID] = maxResource
+		featureListReclaimTime[featureDefID] = fdefs.reclaimTime
     end
 end
-unitList = nil
+
+local function getStep(featureDefID, unitDefID)
+	local maxResource = featureListMaxResource[featureDefID]
+	local reclaimTime = featureListReclaimTime[featureDefID]
+	local reclaimSpeed = unitListReclaimSpeed[unitDefID]
+	if maxResource == nil or reclaimTime == nil or reclaimSpeed == nil then return nil end
+	local oldformula = (reclaimSpeed*0.70 + 10*0.30) * 1.5  / reclaimTime
+	local newformula = reclaimSpeed / reclaimTime
+	return (((maxResource * oldformula) * 1) - (maxResource * newformula)) / maxResource
+end
+
 
 function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, step)
-    if step > 0 or featureList[featureDefID] == nil then
+    if step > 0 or featureListMaxResource[featureDefID] == nil then
         return true
     end
     local unitDefID = GetUnitDefID(builderID)
-    if featureList[featureDefID][unitDefID] == nil then
-        return true
-    end
-    local newpercent = select(5, GetFeatureResources(featureID)) - featureList[featureDefID][unitDefID]
+	
+	local newstep = getStep(featureDefID, unitDefID)
+	if newstep == nil then return true end
+	
+    local newpercent = select(5, GetFeatureResources(featureID)) - newstep
     SetFeatureReclaim(featureID, newpercent)
     return true
 end
