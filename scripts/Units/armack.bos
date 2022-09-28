@@ -5,7 +5,7 @@
 
 #define SIG_BUILD		4	
 
-piece  torso, pelvis, lleg, lfoot, rleg, rfoot,
+piece  torso, pelvis, lleg, lfoot, rleg, rfoot, beacon1, beacon2,
        rthigh, lthigh, cover, gun, nano, aimy1;
 
 static-var  bMoving, notBuilding, nanoNozzle, statechg_DesiredState,
@@ -288,6 +288,8 @@ Stop()
 	set INBUILDSTANCE to 0;
 	turn cover to x-axis <0> speed <180>;
 	turn aimy1 to y-axis <0> speed <180>;
+	hide beacon1;
+	hide beacon2;
 	sleep 500;
 
 }
@@ -315,6 +317,10 @@ RequestState(requestedstate, currentstate)
 			call-script Go();
 			notBuilding = 0;
 			currentstate = 0;
+			show beacon1;
+			show beacon2;
+			spin beacon1 around y-axis speed <450>;
+			spin beacon2 around y-axis speed <-450>;
 		}
 	}
 	statechg_StateChanging = FALSE;
@@ -323,6 +329,8 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	hide nano;
+	hide beacon1;
+	hide beacon2;
 	hide aimy1;
 	bMoving = FALSE;
 	notBuilding = 1;

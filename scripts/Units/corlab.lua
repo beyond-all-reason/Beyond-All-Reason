@@ -1,4 +1,4 @@
-local pad,base,door1,door2,crane1,crane2,turret1,turret2,nano1,nano2  = piece("pad","base","door1","door2","crane1","crane2","turret1","turret2","nano1","nano2");
+local pad,base,door1,door2,crane1,crane2,turret1,turret2,nano1,nano2,cagelight,cagelight_emit  = piece("pad","base","door1","door2","crane1","crane2","turret1","turret2","nano1","nano2","cagelight","cagelight_emit");
 
 local spray = 0;
 
@@ -45,6 +45,8 @@ end
 
 function script.Create()
 	spray = 0;
+	Hide (cagelight_emit);
+	--Turn (cagelight, x_axis, 45, 0);
 	UnitScript.StartThread(smoke_unit, base);
 end
 
@@ -111,13 +113,23 @@ end
 function script.StartBuilding(heading, pitch)
 	StartThread(MoveCrane1);
 	StartThread(MoveCrane2);
+	Show (cagelight_emit);
+	--Turn (cagelight, x_axis,45,1);
+	--WaitForTurn(cagelight, x_axis);
+	--Sleep(10)
+	Spin (cagelight_emit, y_axis,4);
+	--Spin (cagelight,x_axis,20);
 end
 
 function script.StopBuilding()
 	Signal(SIG_CRANE1);
 	Signal (SIG_CRANE2);
-	Move(crane1,x_axis, 20, 20);
-	Move(crane2,x_axis, 20, 20);
+	Hide (cagelight_emit);
+	Turn (cagelight_emit, y_axis,0,15);
+	--Turn (cagelight, x_axis,45,0);
+	--Turn (cagelight,y_axis,0,15);
+	Move(crane1, x_axis, 20, 20);
+	Move(crane2, x_axis, 20, 20);
 end
 
 function script.QueryBuildInfo()

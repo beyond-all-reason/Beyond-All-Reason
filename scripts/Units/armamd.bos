@@ -18,7 +18,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, flare, door1, door2;
+piece  base, flare, door1, door2, antenna;
 
 static-var  Static_Var_1, restore_delay, gun_1, statechg_DesiredState, statechg_StateChanging;
 

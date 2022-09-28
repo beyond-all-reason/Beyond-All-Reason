@@ -5,7 +5,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, door1, door2, flare;
+piece  base, door1, door2, flare, cagelight1, cagelight2, cagelight3, cagelight4, cagelight_emit1, cagelight_emit2, cagelight_emit3, cagelight_emit4;
 
 static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
 
@@ -20,6 +20,14 @@ activatescr()
 				emit-sfx 4096 + 1 from flare;
 				turn door1 to z-axis <180> speed <10>;
 				turn door2 to z-axis <-180> speed <10>;
+				spin cagelight1 around y-axis speed <420>;
+				spin cagelight2 around y-axis speed <420>;
+				spin cagelight3 around y-axis speed <420>;
+				spin cagelight4 around y-axis speed <420>;
+				show cagelight_emit1;
+				show cagelight_emit2;
+				show cagelight_emit3;
+				show cagelight_emit4;
 		sleep 8500;
 	}
 	return (0);
@@ -29,15 +37,26 @@ deactivatescr()
 {
 	if( TRUE )
 	{
+				turn cagelight1 to y-axis <225> speed <50>;
+				turn cagelight2 to y-axis <-45> speed <50>;
+				turn cagelight3 to y-axis <135> speed <50>;
+				turn cagelight4 to y-axis <45> speed <50>;
 				turn door1 to z-axis <0> speed <10>;
 				turn door2 to z-axis <0> speed <10>;
 				wait-for-turn door1 around z-axis;
+				hide cagelight_emit1;
+				hide cagelight_emit2;
+				hide cagelight_emit3;
+				hide cagelight_emit4;
 		sleep 3000;
 	}
+	turn cagelight1 to y-axis <0> speed <50>;
+	turn cagelight2 to y-axis <0> speed <50>;
+	turn cagelight3 to y-axis <0> speed <50>;
+	turn cagelight4 to y-axis <0> speed <50>;
 			sleep 10000;
 	return (0);
 }
-
 
 Go()
 {
@@ -88,9 +107,35 @@ RequestState(requestedstate, currentstate)
 	return (0);
 }
 
+LaunchLights()
+{
+	spin cagelight1 around y-axis speed <420>;
+	spin cagelight2 around y-axis speed <420>;
+	spin cagelight3 around y-axis speed <420>;
+	spin cagelight4 around y-axis speed <420>;
+	show cagelight_emit1;
+	show cagelight_emit2;
+	show cagelight_emit3;
+	show cagelight_emit4;
+	sleep 10000;
+	turn cagelight1 to y-axis <0> speed <180>;
+	turn cagelight2 to y-axis <0> speed <180>;
+	turn cagelight3 to y-axis <0> speed <180>;
+	turn cagelight4 to y-axis <0> speed <180>;
+	hide cagelight_emit1;
+	hide cagelight_emit2;
+	hide cagelight_emit3;
+	hide cagelight_emit4;
+	return (1);
+}
+
 Create()
 {
 	hide flare;
+	hide cagelight_emit1;
+	hide cagelight_emit2;
+	hide cagelight_emit3;
+	hide cagelight_emit4;
 	gun_1 = base;
 	restore_delay = 3000;
 	call-script InitState();
@@ -143,6 +188,7 @@ FirePrimary()
 {
 	gun_1 = base;
 	start-script RequestState(1);
+	//start-script LaunchLights();
 	return (0);
 }
 
