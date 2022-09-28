@@ -22,9 +22,9 @@ if tonumber(Spring.GetConfigInt("MaxTextureAtlasSizeX",2048) or 2048) < maxTextu
 	Spring.SetConfigInt("MaxTextureAtlasSizeY", maxTextureAtlasSize)
 end
 
--- Sets necessary spring configuration parameters, so shaded units look the way they should
+-- Sets necessary spring configuration parameters, so shaded units look the way they should (pbr gadget also does this)
 Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
-Spring.SetConfigInt("CubeTexSizeReflection", 2048)
+Spring.SetConfigInt("CubeTexSizeReflection", 1024)
 
 -- disable grass
 Spring.SetConfigInt("GrassDetail", 0)
