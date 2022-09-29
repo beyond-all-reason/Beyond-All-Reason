@@ -339,7 +339,7 @@ function widget:Initialize()
 		processUnit(units[i], spGetUnitDefID(units[i]), "Initialize")
 	end
 	uploadAllElements(circleInstanceVBO) --upload initialized at once
-	
+	Spring.Echo("Sensor Ranges Los New; vsx=",vsx,"vsy=",vsy,"rangeLineWidth=",rangeLineWidth,"lineScale=",lineScale)
 end
 
 function widget:Shutdown()
