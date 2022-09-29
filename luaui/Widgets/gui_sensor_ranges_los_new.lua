@@ -420,6 +420,8 @@ function widget:DrawWorld()
 	end
 
 	--if true then return end
+	
+	gl.Clear(GL.STENCIL_BUFFER_BIT) -- clear stencil buffer before starting work
 	glColorMask(false, false, false, false) -- disable color drawing
 	glStencilTest(true)
 	glDepthTest(false)
