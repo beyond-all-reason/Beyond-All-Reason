@@ -138,6 +138,13 @@ if gadgetHandler:IsSyncedCode() then
 			"chickenelectricallterrain",
 			"chickenelectricallterrainassault",
 		},
+		["chicken_miniqueen_acid"] = {
+			"chickenacidswarmer",
+			"chickenacidassault",
+			"chickenacidarty",
+			"chickenacidallterrain",
+			"chickenacidallterrainassault",
+		},
 	}
 
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -1139,7 +1146,7 @@ if gadgetHandler:IsSyncedCode() then
 	function SpawnMiniQueenMinions(unitID, unitDefID)
 		local unitName = UnitDefs[unitDefID].name
 		if miniQueenMinions[unitName] then
-			if mRandom() <= config.spawnChance and mRandom() <= config.spawnChance and mRandom() <= config.spawnChance and mRandom() <= config.spawnChance then
+			if mRandom(1,100) == 1 and mRandom() < config.spawnChance then
 				local minion = miniQueenMinions[unitName][math.random(1,#miniQueenMinions[unitName])]
 				SpawnRandomOffWaveSquad(unitID, minion, 3)
 			end

@@ -89,6 +89,22 @@ local TimedDamageWeapons = {
         range = 150,
         resistance = "_CHICKENACID_",
     },
+    [WeaponDefNames.chicken_miniqueen_acid_acidgoo.id] = {
+        ceg = "acid-area-75", 
+        damageCeg = "acid-damage-gen", 
+        time = 10,
+        damage = 150,
+        range = 75,
+        resistance = "_CHICKENACID_",
+    },
+    [WeaponDefNames.chicken_miniqueen_acid_spike_acid_blob.id] = {
+        ceg = "acid-area-75", 
+        damageCeg = "acid-damage-gen", 
+        time = 10,
+        damage = 150,
+        range = 75,
+        resistance = "_CHICKENACID_",
+    },
 
 
 	[WeaponDefNames.legbart_clusternapalm.id] = {
