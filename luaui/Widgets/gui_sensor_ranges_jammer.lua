@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 -------   Configurables: -------------------
-local rangeLineWidth = 1.0 -- (note: will end up larger for larger vertical screen resolution size)
+local rangeLineWidth = 2.0 -- (note: will end up larger for larger vertical screen resolution size)
 local minJammerDistance = 60
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -220,7 +220,7 @@ end
 
 function widget:ViewResize(newX,newY)
 	vsx, vsy = Spring.GetViewGeometry()
-	lineScale = vsy+500 / 1300
+	lineScale = (vsy+500) / 1300
 end
 
 -- collect data about the unit and store it into unitList

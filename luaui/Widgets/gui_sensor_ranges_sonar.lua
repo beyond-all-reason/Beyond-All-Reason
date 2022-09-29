@@ -231,7 +231,7 @@ end
 
 function widget:ViewResize(newX,newY)
 	vsx, vsy = Spring.GetViewGeometry()
-	lineScale = vsy+500 / 1300
+	lineScale = (vsy + 500) / 1300
 end
 
 -- collect data about the unit and store it into unitList
