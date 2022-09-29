@@ -119,15 +119,25 @@ if gadgetHandler:IsSyncedCode() then
 		regroup = true,
 	}
 	
-	local heavyTurret = "chicken_turretl"
-	local lightTurret = "chicken_turrets"
-	local specialHeavyTurrets = {
+	heavyTurret = "chicken_turretl"
+	lightTurret = "chicken_turrets"
+	specialHeavyTurrets = {
 		"chicken_turretl_acid",
 		"chicken_turretl_electric",
 	}
-	local specialLightTurrets = {
+	specialLightTurrets = {
 		"chicken_turrets_acid",
 		"chicken_turrets_electric",
+	}
+
+	miniQueenMinions = {
+		["chicken_miniqueen_electric"] = {
+			"chickene1",
+			"chickene2",
+			"chickenearty1",
+			"chickenelectricallterrain",
+			"chickenelectricallterrainassault",
+		},
 	}
 
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -1126,6 +1136,16 @@ if gadgetHandler:IsSyncedCode() then
 		return damage, 1
 	end
 
+	function SpawnMiniQueenMinions(unitID, unitDefID)
+		local unitName = UnitDefs[unitDefID].name
+		if miniQueenMinions[unitName] then
+			if mRandom() <= config.spawnChance and mRandom() <= config.spawnChance and mRandom() <= config.spawnChance and mRandom() <= config.spawnChance then
+				local minion = miniQueenMinions[unitName][math.random(1,#miniQueenMinions[unitName])]
+				SpawnRandomOffWaveSquad(unitID, minion, 3)
+			end
+		end
+	end
+
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 
 		if not chickenteamhasplayers then
@@ -1216,6 +1236,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
+			SpawnMiniQueenMinions(unitID, unitDefID)
 		end
 	end
 

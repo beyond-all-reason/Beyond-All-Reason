@@ -137,7 +137,6 @@ return {
 				def = "chickenparalyzerbig",
 				maindir = "0 0 1",
 				maxangledif = 125,
-				onlytargetcategory = "NOTAIR",
 			},
 		},
 	},

@@ -85,6 +85,8 @@ local chickenTypes = {
 	chickenacidbomber 					=  true,
 	chickenacidallterrain				=  true,
 	chickenacidallterrainassault		=  true,
+
+	chicken_miniqueen_electric			=  true,
   }
 
   local defenders = {
@@ -154,6 +156,8 @@ local chickenTypes = {
 	chickenacidbomber 					=   "acidgreen",
 	chickenacidallterrain				=	"acidgreen",
 	chickenacidallterrainassault		=   "acidgreen",
+
+	chicken_miniqueen_electric			=   "blue",
   }
 
 local optionValues = {
@@ -353,6 +357,8 @@ end
 	if not Spring.GetModOptions().unit_restrictions_nonukes then
 		addSpecialSquad(7, { "2 chickenr2"																}, 2) -- Meteor Artillery
 	end
+
+	addSuperSquad(5, {"1 chicken_miniqueen_electric"													}) -- Electric Miniqueen
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Special Squads -----------------------------------------------------------------------------------------------------------------------------------------------------------------
