@@ -52,6 +52,9 @@ local CEGHeal = "heal"
 local CEGLevelUp = "commander-levelup"
 local ValidID = Spring.ValidUnitID
 
+-- for the AimPrimary script, to skip wait-for-turn if needed
+local last_primary_heading = -1000000
+
 local function BelowWater(piecename)
 	local _,y,_ = Spring.GetUnitPiecePosition(unitID, piecename)
   -- this returns unit space, so why does it work for corcom?
@@ -932,7 +935,12 @@ function script.AimWeapon(weapon, heading, pitch)
 			Turn(aimy1, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
 			Turn(rloarm, 1, rad(-55), rad(390.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 			Turn(ruparm, 1, rad(-40)-pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
-			WaitForTurn(aimy1,2)
+			-- if the turret cannot turn to its new heading in one frame, wait for turn
+			if math.abs(last_primary_heading-heading)>rad(10.0000) then
+				-- seems to take 1 frame for WaitForTurn to process
+				WaitForTurn(aimy1,2)
+			end
+			last_primary_heading=heading;
 			isAiming = true
 			if isBuilding == true then
 				StartThread(ResumeBuilding)
@@ -1046,6 +1054,8 @@ function Restore()
 	turn(ruparm, 1, 0, 95.0000)
 	rightArm = true
 	leftArm = true
+	-- for the AimPrimary script, to ensure wait-for-turn is called at least on the first aim
+	last_primary_heading = -1000000
 end
 
 

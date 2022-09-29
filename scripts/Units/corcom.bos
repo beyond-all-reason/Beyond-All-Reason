@@ -9,6 +9,9 @@ piece torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis,
 static-var bMoving, bAiming, Busy, gun_3, gun_2, counter,
       bIsBuilding, buildPitch, buildHeading, maxSpeed, currentSpeed, animSpeed, justMoved;
 
+// for the AimPrimary script, to skip wait-for-turn if needed
+static-var last_primary_heading,last_primary_pitch;
+
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_WALK            4
@@ -806,6 +809,9 @@ Create()
 	buildHeading = 0;
 	buildPitch = 0;
 	counter = 0;
+	// set last headings and pitches to large negative numbers
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
 	//maxSpeed = get UNKNOWN_UNIT_VALUE(75);
 	maxSpeed = get MAX_SPEED;
 	animSpeed = 6;
@@ -850,6 +856,9 @@ RestorePosition()
 	turn aimx1 to x-axis <0> speed <90>;
 	//wait-for-turn aimy1 around y-axis;
 	bAiming = FALSE;
+	// set last headings and pitches to large negative numbers
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
 	return (0);
 }
 
@@ -885,11 +894,21 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
+	// values in <> are degrees per second
+	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
+	// In general, 6 cau per frame ~= 1 degree per second
 	turn aimy1 to y-axis heading speed <300.000000>;
 	turn aimx1 to x-axis <-5.000000> - pitch speed <250.000000>;
 	//turn nanolathe to x-axis <000000> speed <250.000000>;
-	wait-for-turn aimy1 around y-axis;
-	wait-for-turn aimx1 around x-axis;
+	// if the turret cannot turn to its new heading in one frame, wait for turn
+	if ( (get ABS(last_primary_heading-heading)>1800) OR (get ABS(last_primary_pitch-pitch)>1500) )
+	{
+		// seems to take 3 frames for wait-for-turn to process
+		wait-for-turn aimy1 around y-axis;
+		wait-for-turn aimx1 around x-axis;
+	}
+	last_primary_heading=heading;
+	last_primary_pitch=pitch;
 	gun_2 = lfirept;
 	if( bIsBuilding == 1 )
 	{
