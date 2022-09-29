@@ -789,7 +789,7 @@ void main(void)
 	vec3 reflection = reflect(lightDirection, normals.xyz);
 	specular = dot(reflection, viewDirection);
 	specular = v_modelfactor_specular_scattering_lensflare.y * pow(max(0.0, specular), 8.0 * ( 1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x) ) * (1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x);
-	attenuation = attenuation;// * attenuation;
+	attenuation = pow(attenuation, 1.0);
 	
 	
 	
@@ -843,6 +843,6 @@ void main(void)
 	//fragColor.rgb = vec3((worlddepth - v_depths_center_map_model_min.z)* 100 + 0.5);
 	//fragColor.rgb = (fract(lightEmitPosition*0.02));
 	fragColor.a = 1.0;
-	
+	//fragColor.rgb = vec3(attenuation);
 	//fragColor.rgb = fract(v_lightcenter_gradient_height.www*0.1);
 }

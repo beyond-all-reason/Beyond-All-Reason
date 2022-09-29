@@ -89,8 +89,9 @@ do
 	-- optimizations:
 		-- XX only upload dirty VBOs
 		-- Smaller, single channel noise texture
-	-- Beam lights double length for projectiles!
+	-- XX Beam lights double length for projectiles!
 	-- Some falloff issues result in a bit of overdraw
+	-- allow for customizable attenuation
 	-- XX list type configs for events
 	-- Handle playerchanged -- hasnt crashed yet :P
 		-- clear every goddamned unit light and buffer
@@ -170,7 +171,7 @@ local examplePointLight = {
 ]]--
 
 ------------------------------ Debug switches ------------------------------
-local autoupdate = true
+local autoupdate = false
 local debugproj = false
 local addrandomlights = false
 
@@ -1171,6 +1172,7 @@ local function updateProjectileLights(newgameframe)
 	--Spring.Echo(gameFrame, lastgf, newgameframe)
 	lastgf = gameFrame
 	-- turn off uploading vbo
+	-- one known issue regarding to every gameframe respawning lights is to actually get them to update existing dead light candidates, this is very very hard to do sanely
 	-- BUG: having a lifetime associated with each projectile kind of bugs out updates
 	local numadded = 0
 	local noUpload = true
@@ -1295,10 +1297,13 @@ local function checkConfigUpdates()
 		configCache.lastUpdate = Spring.GetTimer()
 	end
 end
-
+local expavg = 0
 function widget:Update()
 	if autoupdate then checkConfigUpdates() end
+	local tus = Spring.GetTimerMicros()
 	updateProjectileLights()
+	expavg = expavg * 0.98 + 0.02 * Spring.DiffTimers(Spring.GetTimerMicros(),tus)
+	--if Spring.GetGameFrame() % 120 ==0 then Spring.Echo("Update is on average", expavg,'ms') end 
 end
 
 ------------------------------- Drawing all the lights ---------------------------------
@@ -1321,11 +1326,12 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 
 		local alt, ctrl, meta, shft = Spring.GetModKeyState()
 
-		if ctrl and (Spring.GetConfigInt('DevUI', 0) == 1) then
+		if (ctrl and (Spring.GetConfigInt('DevUI', 0) == 1) )then
 			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		else
 			glBlending(GL.SRC_ALPHA, GL.ONE)
 		end
+		if alt then return end
 		
 		gl.Culling(GL.BACK)
 		gl.DepthTest(false)
