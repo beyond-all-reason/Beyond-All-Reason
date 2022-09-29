@@ -24,7 +24,7 @@ local newerVersion = false	-- configdata will set this true if it's a newer vers
 
 local texts = {}    -- loaded from external language file
 
-local languageCodes = { 'en', 'fr', 'zh' }
+local languageCodes = { 'en', 'fr', 'zh', 'test_unicode'}
 languageCodes = table.merge(languageCodes, table.invert(languageCodes))
 
 local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")

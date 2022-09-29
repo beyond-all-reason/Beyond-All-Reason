@@ -18,6 +18,7 @@ i18n.languages = {
 	en = "English",
 	fr = "Français",
 	zh = "中文",
+	test_unicode = "test_unicode"
 }
 
 function i18n.setLanguage(language)
