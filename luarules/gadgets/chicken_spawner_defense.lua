@@ -461,6 +461,8 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenp2"].id] = { chance = 0.2 },
 		[UnitDefNames["chickenpyroallterrain"].id] = { chance = 0.2 },
 		[UnitDefNames["chickenh4"].id] = { chance = 1 },
+		[UnitDefNames["chicken_miniqueen_electric"].id] = { chance = 0.01 },
+		[UnitDefNames["chicken_miniqueen_acid"].id] = { chance = 0.01 },
 	}
 	local HEALER = {
 		[UnitDefNames["chickenh1"].id] = true,
