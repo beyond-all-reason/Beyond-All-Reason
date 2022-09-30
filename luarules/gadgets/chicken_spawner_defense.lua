@@ -1244,6 +1244,14 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			SpawnMiniQueenMinions(unitID, unitDefID)
+			if unitTeam == chickenTeamID or attackerTeam == chickenTeamID then
+				if (unitID and unitSquadTable[unitID] and squadsTable[unitSquadTable[unitID]] and squadsTable[unitSquadTable[unitID]].life and squadsTable[unitSquadTable[unitID]].life < 5) then
+					squadsTable[unitSquadTable[unitID]].life = 5
+				end
+				if (attackerID and unitSquadTable[attackerID] and squadsTable[unitSquadTable[attackerID]] and squadsTable[unitSquadTable[attackerID]].life and squadsTable[unitSquadTable[attackerID]].life < 5) then
+					squadsTable[unitSquadTable[attackerID]].life = 5
+				end
+			end
 		end
 	end
 
@@ -1408,7 +1416,7 @@ if gadgetHandler:IsSyncedCode() then
 				canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
 			end
 			if canSpawnStructure then
-				if GG.IsPosInChickenScum(spawnPosX, spawnPosY, spawnPosZ) then
+				if GG.IsPosInChickenScum(spawnPosX, spawnPosY, spawnPosZ) or playerAgressionLevel >= 10 then
 					canSpawnStructure = true
 				else
 					canSpawnStructure = false
