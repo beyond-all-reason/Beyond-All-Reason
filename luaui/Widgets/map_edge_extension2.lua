@@ -200,8 +200,54 @@ void MyEmitVertex(vec2 xzVec) {
 	EmitVertex();
 }
 
-void main() {
+vec4 MyTestVertex(vec2 xzVec) {
+	vec4 worldPos = gl_in[0].gl_Position + vec4(xzVec.x, 0.0, xzVec.y, 0.0);
 
+	uv = worldPos.xz / mapSize.xy;
+
+	vec2 ts = vec2(textureSize(heightTex, 0));
+
+	//avoid sampling edges
+	vec2 uvHM = NORM2SNORM(uv);
+	uvHM *= (ts - vec2(1.0)) / ts;
+	uvHM = SNORM2NORM(uvHM);
+	uvHM = clamp(uvHM,0,1);
+	worldPos.y = textureLod(heightTex, uvHM, 0.0).x;
+
+	const vec2 edgeTightening = vec2(0.5); // to tighten edges a little better
+	worldPos.xz = abs(dataIn[0].vMirrorParams.xy * mapSize.xy - worldPos.xz);
+	worldPos.xz += dataIn[0].vMirrorParams.zw * (mapSize.xy - edgeTightening);
+
+	if (curvature == 1.0) {
+		const float curvatureBend = 150.0;
+
+		vec2 refPoint = SNORM2NORM(dataIn[0].vMirrorParams.zw) * mapSize.xy;
+		if (dataIn[0].vMirrorParams.x != 0.0) {
+			worldPos.y -= pow((worldPos.x - refPoint.x) / curvatureBend, 2.0);
+		}
+
+		if (dataIn[0].vMirrorParams.y != 0.0) {
+			worldPos.y -= pow((worldPos.z - refPoint.y) / curvatureBend, 2.0);
+		}
+	}
+
+
+	return (worldPos);
+}
+
+bool vertexClipped2(vec4 clipspace, float tolerance) {
+  return any(lessThan(clipspace.xy, -clipspace.ww * tolerance)) ||
+         any(greaterThan(clipspace.xy, clipspace.ww * tolerance));
+}
+
+void main() {
+	#if 1
+		// this 'early clipping' will prevent generation of triangle strips is the quad is out of view
+		vec4 myworldpos = MyTestVertex(vec2(gridSize*0.5));
+		vec3 tocamera = myworldpos.xyz - cameraViewInv[3].xyz ;
+		float idist = inversesqrt(dot(tocamera,tocamera));
+		if (vertexClipped2 (cameraViewProj * myworldpos, 1.0 + (1.5*gridSize) * idist )) return;
+	#endif
 	#if 1 //culling case
 		if ( all(equal(dataIn[0].vMirrorParams.xy, vec2(1.0))) ) {
 			MyEmitVertex(vec2(gridSize,      0.0)); //TR
@@ -220,6 +266,7 @@ void main() {
 		MyEmitVertex(vec2(gridSize, gridSize)); //BR
 		MyEmitVertex(vec2(gridSize,      0.0)); //TR
 	#endif
+	
 
 	EndPrimitive();
 }
