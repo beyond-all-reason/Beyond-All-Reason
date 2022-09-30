@@ -62,21 +62,21 @@ function SchedulerHST:BehavioursScheduler()
 end
 
 SchedulerHST.MScheduler = {
+	'LosHST',
 	'AttackHST',
 	'BomberHST',
 	'RaidHST',
-	'LosHST',
 	'TargetHST',
 	'DamageHST',
 	'OverviewHST',
-	'LabBuildHST',
+	'LabsHST',
 	--'DefendHST',
 	}
 
 SchedulerHST.BScheduler = {
 		'AttackerBST',
 		'BuildersBST',
-		'TaskLabBST',
+		'LabsBST',
 		'RaidBST',
 		'BomberBST',
 		--'WardBST',

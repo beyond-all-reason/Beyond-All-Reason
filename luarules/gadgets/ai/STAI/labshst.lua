@@ -1,20 +1,20 @@
-LabBuildHST = class(Module)
+LabsHST = class(Module)
 
-function LabBuildHST:Name()
-	return "LabBuildHST"
+function LabsHST:Name()
+	return "LabsHST"
 end
 
-function LabBuildHST:internalName()
-	return "labbuildhst"
+function LabsHST:internalName()
+	return "labshst"
 end
 
-function LabBuildHST:Init()
+function LabsHST:Init()
 	self.DebugEnabled = true
 	self.labs = {}
 	self:factoriesRating()
 end
 
-function LabBuildHST:factoriesRating()
+function LabsHST:factoriesRating()
 	local networks = self.ai.maphst.networks
  	for layer,net in pairs(networks) do
 		self.factoryBuilded[layer] = {}
@@ -50,7 +50,6 @@ function LabBuildHST:factoriesRating()
 			topRatingArea = math.max(topRatingArea,factoryRating[factory].area)
 			topRatingSpots = math.max(topRatingSpots,factoryRating[factory].allSpots)
 		end
-
 	end
 	local t= {}
 	for i,v in pairs(factoryRating) do
@@ -90,13 +89,11 @@ function LabBuildHST:factoriesRating()
 			self:EchoDebug('i-factoryname',(i .. ' ' .. factoryName))
 		end
 	end
-
 	self.factoryRating = factoriesRanking
 	self.ranksByFactories = ranksByFactories
 end
 
-
-function LabBuildHST:FactoriesUnderConstruction()
+function LabsHST:FactoriesUnderConstruction()
 	for id,sketch in pairs(self.ai.buildingshst.sketch) do
 		if self.ai.armyhst.factoryMobilities[sketch.unitName] then
 			self:EchoDebug('factory under contruction',sketch.unitName,'at',sketch.position.x,sketch.position.z)
@@ -105,7 +102,7 @@ function LabBuildHST:FactoriesUnderConstruction()
 	end
 end
 
-function LabBuildHST:ConditionsToBuildFactories2()
+function LabsHST:ConditionsToBuildFactories2()
 	local fatoryCount = 0
 	for id,factory in pairs(self.labs) do
 		fatoryCount = fatoryCount + 1
@@ -115,7 +112,7 @@ function LabBuildHST:ConditionsToBuildFactories2()
 	end
 end
 
-function LabBuildHST:Update()
+function LabsHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	if self:FactoriesUnderConstruction() then
 		return
@@ -127,14 +124,13 @@ function LabBuildHST:Update()
 	self.ai.buildingshst:VisualDBG()--here cause buildingshst have no update
 end
 
-
-function LabBuildHST:UpdateFactories()
+function LabsHST:UpdateFactories()
 	local factoriesPreCleaned = self:PrePositionFilter()
 	local availableFactories = self:AvailableFactories(factoriesPreCleaned)
 
 end
 
-function LabBuildHST:AvailableFactories(factoriesPreCleaned)
+function LabsHST:AvailableFactories(factoriesPreCleaned)
 	local availableFactories = {}
 	for order,factoryName in pairs (factoriesPreCleaned) do
 		local utype = self.game:GetTypeByName(factoryName)
@@ -149,7 +145,7 @@ function LabBuildHST:AvailableFactories(factoriesPreCleaned)
 	end
 end
 
-function LabBuildHST:GetLabListParam(param,value)
+function LabsHST:GetLabListParam(param,value)
 	for id, factory in pairs(self.labs) do
 		if factory[param] and factory[param] == value then
 			return id,factory.name
@@ -157,7 +153,7 @@ function LabBuildHST:GetLabListParam(param,value)
 	end
 end
 
-function LabBuildHST:PrePositionFilter()
+function LabsHST:PrePositionFilter()
 	self:EchoDebug('pre positional filtering...')
 	local factoriesPreCleaned = {}
 	for rank, factoryName in pairs(self.factoryRating) do
@@ -169,12 +165,10 @@ function LabBuildHST:PrePositionFilter()
 		local T3 = level == 5
 		local mtype = self.ai.armyhst.factoryMobilities[factoryName][1]
 		self:EchoDebug(factoryName,isAdvanced,isExperimental)
-
 		if self.game:GetTeamUnitDefCount(self.ai.id,utn.defId) > 0 then
 			self:EchoDebug(' already have a ',factoryName)
 			buildMe = false
 		end
-
 		if buildMe and mtype == 'bot' and level == 1 then--dont start bot if veh is up and we d not have t3
 			for id,lab in pairs(self.labs) do
 				if lab.mtype == 'veh' and not self.ai.overviewhst.T3LAB then
@@ -226,7 +220,7 @@ function LabBuildHST:PrePositionFilter()
 	return factoriesPreCleaned
 end
 
-function LabBuildHST:FactoryPosition(factoryName,builder)
+function LabsHST:FactoryPosition(factoryName,builder)
 	local utype = self.game:GetTypeByName(factoryName)
 	local site = self.ai.buildingshst
 	local p
@@ -252,7 +246,7 @@ function LabBuildHST:FactoryPosition(factoryName,builder)
 	end
 end
 
-function LabBuildHST:PostPositionalFilter(factoryName,p)
+function LabsHST:PostPositionalFilter(factoryName,p)
 	for i, mtype in pairs(self.ai.armyhst.factoryMobilities[factoryName]) do
 		local network = self.ai.maphst:MobilityNetworkHere(mtype, p)
 		if not self.ai.maphst.networks[mtype][network].area / self.ai.maphst.gridArea > 0.05 then--5% of the maphst

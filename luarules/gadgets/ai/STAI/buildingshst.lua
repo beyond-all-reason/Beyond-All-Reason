@@ -105,15 +105,15 @@ function BuildingsHST:ClosestHighestLevelFactory(builderPos, maxDist)--TODO move
 	local maxLevel = self.ai.maxFactoryLevel
 	self:EchoDebug(maxLevel .. " max factory level")
 	local factorybhvr
-	if self.ai.factoriesAtLevel[maxLevel] ~= nil then
-		for i, factory in pairs(self.ai.factoriesAtLevel[maxLevel]) do
-			local dist = self.ai.tool:Distance(builderPos, factory.position)
+	--if self.ai.factoriesAtLevel[maxLevel] ~= nil then
+		for id, lab in pairs(self.ai.labshst.labs) do
+			local dist = self.ai.tool:Distance(builderPos, lab.position)
 			if dist < minDist then
 				minDist = dist
-				factorybhvr = factory
+				factorybhvr = lab.behaviour
 			end
 		end
-	end
+	--end
 	if factorybhvr then
 		local factoryPos = factorybhvr.position
 		local newpos = api.Position()

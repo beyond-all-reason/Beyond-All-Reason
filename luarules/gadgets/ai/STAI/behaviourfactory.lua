@@ -168,8 +168,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 		--elseif self.ai.armyhst.bigPlasmaList[un] then
 		--	table.insert(b, BombardBST)
 		elseif self.ai.armyhst.unitTable[un].isStaticBuilder then
-			table.insert(b,TaskLabBST)
-			--table.insert(b, LabRegisterBST)
+			table.insert(b,LabsBST)
 		end
 	end
 

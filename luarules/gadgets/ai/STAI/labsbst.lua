@@ -1,10 +1,10 @@
-TaskLabBST = class(Behaviour)
+LabsBST = class(Behaviour)
 
-function TaskLabBST:Name()
-	return "TaskLabBST"
+function LabsBST:Name()
+	return "LabsBST"
 end
 
-function TaskLabBST:Init()
+function LabsBST:Init()
 	self.DebugEnabled = false
 	self:EchoDebug('initialize tasklab')
 	local u = self.unit:Internal()
@@ -37,22 +37,22 @@ function TaskLabBST:Init()
     	x2 = self.position.x + 40,
     	z2 = self.position.z + 40,
 	}
-	self.ai.labbuildhst.labList[self.id] = {id = self.id,behaviour = self,name = self.name , position = self.position, underConstruction = true}
+	self.ai.labshst.labs[self.id] = {id = self.id,behaviour = self,name = self.name , position = self.position, underConstruction = true}
 
 end
 
 
-function TaskLabBST:OwnerBuilt()
-	self.ai.labbuildhst.labList[self.id].underConstruction = nil
-	self.ai.labbuildhst:UpdateFactories()
+function LabsBST:OwnerBuilt()
+	self.ai.labshst.labs[self.id].underConstruction = nil
+	self.ai.labshst:UpdateFactories()
 end
 
-function TaskLabBST:OwnerDead()
-	self.ai.labbuildhst.labList[self.id] = nil
-	self.ai.labbuildhst:UpdateFactories()
+function LabsBST:OwnerDead()
+	self.ai.labshst.labs[self.id] = nil
+	self.ai.labshst:UpdateFactories()
 end
 
-function TaskLabBST:preFilter()
+function LabsBST:preFilter()
 	local techLv = self.spec.techLevel
 	local topLevel = self.ai.maxFactoryLevel
  	local threshold = 1 - (techLv / topLevel) + 0.05
@@ -65,9 +65,9 @@ function TaskLabBST:preFilter()
 	end
 end
 
-function TaskLabBST:Update()
+function LabsBST:Update()
 	local f = self.game:Frame()
-	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'TaskLabBST' then return end
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'LabsBST' then return end
 
 	self:preFilter() -- work or no resource??
 	if Spring.GetFactoryCommands(self.id,0) > 1 then return end --factory alredy work
@@ -83,7 +83,7 @@ function TaskLabBST:Update()
 	end
 end
 
-function TaskLabBST:getQueue()
+function LabsBST:getQueue()
 	if self.spec.techLevel >= 3 then
 		print(self.name,'lab mode _fus_', self.ai.tool:countFinished({'_fus_'}),'t2mex',self.ai.tool:countFinished({'t2mex'}))
 		if self.ai.tool:countFinished({'_fus_'}) < 1 and self.ai.tool:countFinished({'t2mex'}) < 2 then
@@ -94,7 +94,7 @@ function TaskLabBST:getQueue()
 	return self.ai.taskshst.labs.default
 end
 
-function TaskLabBST:getSoldier()
+function LabsBST:getSoldier()
 	self:EchoDebug('soldier')
 	local soldier
 	local param
@@ -124,14 +124,14 @@ function TaskLabBST:getSoldier()
 
 end
 
-function TaskLabBST:specialFilters(soldier,category)
+function LabsBST:specialFilters(soldier,category)
 	if category == 'antiairs' and not self.ai.needAntiAir then
 		return nil
 	end
 	return soldier
 end
 
-function TaskLabBST:getSoldierFromCategory(category)--we will take care about only one soldier per category per lab, if there are more than create another category
+function LabsBST:getSoldierFromCategory(category)--we will take care about only one soldier per category per lab, if there are more than create another category
 	for name,_ in pairs(self.ai.armyhst[category]) do
 		utype = self.game:GetTypeByName(name)
 		if self.unit:Internal():CanBuild(utype) then
@@ -140,7 +140,7 @@ function TaskLabBST:getSoldierFromCategory(category)--we will take care about on
 	end
 end
 
-function TaskLabBST:ecoCheck(category,param,name,test)
+function LabsBST:ecoCheck(category,param,name,test)
 	self:EchoDebug(category ,name, " (before eco check)")
 	if not name  or not param then
 		self:EchoDebug('ecofilter stop',name,cat, param)
@@ -151,7 +151,7 @@ function TaskLabBST:ecoCheck(category,param,name,test)
 	end
 end
 
-function TaskLabBST:countCheck(soldier,numeric)
+function LabsBST:countCheck(soldier,numeric)
 	self:EchoDebug('countcheck',soldier)
 	if not soldier then return end
 	local Min = numeric.min or 0
@@ -171,7 +171,7 @@ function TaskLabBST:countCheck(soldier,numeric)
 	end
 end
 
-function TaskLabBST:toAmphibious(soldier)
+function LabsBST:toAmphibious(soldier)
 	local army = self.ai.armyhst
 	local maphst = self.ai.maphst
 -- 	local amphRank = (((maphst.mobilityCount['shp']) / maphst.gridArea ) +  ((#maphst.UWMetalSpots) /(#maphst.landMetalSpots + #maphst.UWMetalSpots)))/ 2
@@ -198,7 +198,7 @@ function TaskLabBST:toAmphibious(soldier)
 	return soldier
 end
 
-function TaskLabBST:ampRating()
+function LabsBST:ampRating()
 	-- precalculate amphibious rank
 	local ampSpots = self.ai.maphst:AccessibleSpotsHere('amp', self.unit:Internal():GetPosition())
 	local vehSpots = self.ai.maphst:AccessibleSpotsHere('veh', self.unit:Internal():GetPosition())
@@ -211,22 +211,20 @@ function TaskLabBST:ampRating()
 	self.amphRank = amphRank
 end
 
-function TaskLabBST:resetCounters()
+function LabsBST:resetCounters()
 	if self.isAirFactory then
 		self.ai.couldBomb = 0
 		self.ai.hasBombed = 0
 	end
 end
 
-function TaskLabBST:GetMtypedLvCount(unitName)
+function LabsBST:GetMtypedLvCount(unitName)
 	local counter = self.ai.tool:mtypedLvCount(self.ai.armyhst.unitTable[unitName].mtypedLv)
 	self:EchoDebug('mtypedLvmtype ' , counter)
 	return counter
 end
 
-
-
-function TaskLabBST:GetAmpOrGroundWeapon()
+function LabsBST:GetAmpOrGroundWeapon()
 	if (self.ai.armyhst.factoryMobilities[self.name][1] == 'bot' or self.ai.armyhst.factoryMobilities[self.name][1] == 'veh') then
 		return
 	end
@@ -238,10 +236,9 @@ function TaskLabBST:GetAmpOrGroundWeapon()
 	end
 	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]
 	local network = self.ai.maphst:MobilityNetworkHere(mtype, self.position)
-	if not network or not self.ai.labbuildhst.factoryBuilded[mtype] or not self.ai.labbuildhst.factoryBuilded[mtype][network] then
-		self:EchoDebug('canbuild amphibious because ' .. mtype .. ' network here is too small or has not enough spots')
+	if not network then
+		self:EchoDebug('canbuild amphibious because no network')
 		return true
 	end
 	return false
 end
-
