@@ -169,7 +169,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 		--	table.insert(b, BombardBST)
 		elseif self.ai.armyhst.unitTable[un].isStaticBuilder then
 			table.insert(b,TaskLabBST)
-			table.insert(b, LabRegisterBST)
+			--table.insert(b, LabRegisterBST)
 		end
 	end
 

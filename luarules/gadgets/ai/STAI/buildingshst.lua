@@ -92,7 +92,7 @@ function BuildingsHST:GetBuildSpacing(unitTypeToBuild)
 	local spacing = 100
 	local un = unitTypeToBuild:Name()
 	if army.factoryMobilities[un] then
-		spacing = 300
+		spacing = 100
 	elseif army._mex_[un] then
 		spacing = 50
 	end
@@ -252,7 +252,10 @@ function BuildingsHST:searchPosNearCategories(utype,builder,minDist,maxDist,cate
 		if not neighbours or not self:unitsNearCheck(unitPos, maxDist,number,neighbours) then
 			p = self:ClosestBuildSpot(builder, unitPos, utype , minDist, nil, nil, maxDist )
 		end
-		if p then return p end
+
+		if p then
+			return p
+		end
 	end
 end
 
@@ -418,12 +421,13 @@ function BuildingsHST:UnitDead(unit)
 end
 
 function BuildingsHST:ClearMyProjects(builderID)
-	for id,sketch in pairs(self.sketch) do
-		if sketch.builderID == builderID then
-			self.sketch[id] = nil
-			break
-		end
-	end
+	self.sketch[builderID] = nil
+-- 	for id,sketch in pairs(self.sketch) do
+-- 		if sketch.builderID == builderID then
+-- 			self.sketch[id] = nil
+-- 			break
+-- 		end
+-- 	end
 	self.builders[builderID] = nil
 end
 
@@ -491,11 +495,14 @@ end
 
 function BuildingsHST:RoleCounter(builderName,targetRole)
 	local counter = 0
+	local globalCount = 0
 	for id,role in pairs(self.roles) do
+		globalCount = globalCount + 1
 		if role.builderName == builderName and role.role == targetRole then
 			counter = counter + 1
 		end
 	end
+	print('globalCount', globalCount)
 	return counter
 end
 

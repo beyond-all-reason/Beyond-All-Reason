@@ -186,12 +186,9 @@ function MapHST:moveLayerTest(pos)--check where units can stay or not
 	for layer,unitName in pairs(self.ai.armyhst.mobUnitExampleName) do
 		if not self.topology[layer] then
 			self.topology[layer] = {}
-
 		end
 		if Spring.TestMoveOrder(self.ai.armyhst.unitTable[unitName].defId, pos.x, pos.y, pos.z,nil,nil,nil,true,false,true) then
 			layers[layer] = 0
-
-
 		else
 			layers[layer] = false
 		end
@@ -444,7 +441,11 @@ function MapHST:getPath(unitName,POS1,POS2,toGrid)
 
 	if metapath then
 		local waypoints, pathStartIdx = metapath:GetPathWayPoints()
-		if not waypoints or  #waypoints  <= 1  or self.ai.tool:DistanceXZ(POS1.x, POS1.z,POS2.x, POS2.z) < 256 then
+		if not waypoints then
+			self:Warn('no path found',POS1,POS2)
+		elseif #waypoints  <= 1 then
+			self:Warn('path have 0 lenght',POS1,POS2)
+		elseif self.ai.tool:DistanceXZ(POS1.x, POS1.z,POS2.x, POS2.z) < 256 then
 			self:Warn('path too short',POS1,POS2)
 			return
 
@@ -643,28 +644,45 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 	local uname = unittype:Name()
 	local spotPosition = nil
 	local spotDistance = math.huge
+
+	if not layer or not net then return end
+	print(unittype,uname,layer,net,#self.networks[layer][net].metals)
 	for index, spot in pairs(self.networks[layer][net].metals) do
+		--print(index,spot.x,spot.z)
 		if self:UnitCanGoHere(builder, spot) then
 			if not self.ai.buildingshst:PlansOverlap(spot, uname) then
 				if self.ai.targethst:IsSafeCell(spot, builder) then
 					if map:CanBuildHere(unittype, spot) then
 						local CELL = self:GetCell(spot,self.ai.loshst.ENEMY)
 						if not CELL or CELL.ENEMY == 0 then
-							local distance = self.ai.tool:distance(position,spot)
--- 							if distance < 300 then
--- 								return spot
--- 							else
-							if distance < spotDistance then
-								spotPosition = spot
-								spotDistance = distance
-							end
--- 							end
+							--local Distance = self.ai.tool:Distance(position,spot)
+							local distance = self.ai.tool:Distance(position,spot)
+							--print(distance-Distance)
+ 							--if distance < 300 then
+ 							--	return spot
+ 							--else
+								if distance < spotDistance then
+									spotPosition = spot
+									spotDistance = distance
+								end
+ 							--end
+						else
+							print(spot.x,spot.z,'reject cause ENEMY')
 						end
+					else
+						print(spot.x,spot.z,'reject cause CANTBUILDHERE')
 					end
+				else
+					print(spot.x,spot.z,'reject cause NOTSAFE')
 				end
+			else
+				print(spot.x,spot.z,'reject cause PLANsOverlap')
 			end
+		else
+			print(spot.x,spot.z,'reject cause CANT GO HER')
 		end
 	end
+	--print('returned',spotPosition.x,spotPosition.z)
 	return spotPosition
 end
 

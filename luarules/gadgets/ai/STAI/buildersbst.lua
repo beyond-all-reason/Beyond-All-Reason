@@ -5,7 +5,7 @@ function BuildersBST:Name()
 end
 
 function BuildersBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.active = false
 	self.watchdogTimeout = 1800
 	local u = self.unit:Internal()
@@ -42,11 +42,11 @@ function BuildersBST:OwnerIdle()
 	self.unit:ElectBehaviour()
 end
 
-function BuildersBST:OwnerMoveFailed()
-	-- sometimes builders get stuck
-	self:Warn('builder stuck',self.id)
-	self:OwnerIdle()
-end
+-- function BuildersBST:OwnerMoveFailed()
+-- 	-- sometimes builders get stuck
+-- 	self:Warn('builder stuck',self.id)
+-- 	self:OwnerIdle()
+-- end
 function BuildersBST:Activate()
 	local buildings = self.ai.buildingshst
 	if buildings.builders[self.id]then
@@ -73,16 +73,20 @@ end
 
 
 function BuildersBST:Update()
-	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'BuildersBST' then return end
+	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'BuildersBST' then
+		return
+	end
 	local f = self.game:Frame()
-	self.ai.buildingshst:VisualDBG()
+-- 	self.ai.buildingshst:VisualDBG()
 	if not self:IsActive() then
 		return
 	end
+	--self.game:StartTimer(self.role..'builderbst')
+	--self.game:StartTimer(self.name..'builderbst')
 	self.builder, self.sketch = self.ai.buildingshst:GetMyProject(self.id)
 	if not self.sketch and not self.builder and self.failOut then
 		self:EchoDebug(self.name,'failout')
-		if f > self.failOut + 360 then --wait 360 frame before check again queue
+		if f > self.failOut + 600 then --wait 360 frame before check again queue
 			self:EchoDebug(self.name,'failout reset')
 			self.failOut = nil
 		end
@@ -98,8 +102,12 @@ function BuildersBST:Update()
 		self:Warn(' no builder to execute sketch',self.sketch)
 		--ERROR impossible have a building in build and no builder in construction
 	else
+-- 		self.game:StartTimer(self.unit:Internal():Name() .. ' bst ' .. self.role)
 		self:ProgressQueue()
+-- 		self.game:StopTimer(self.unit:Internal():Name() .. ' bst '.. self.role)
 	end
+	--self.game:StopTimer(self.name..'builderbst')
+	--self.game:StopTimer(self.role..'builderbst')
 end
 
 function BuildersBST:CategoryEconFilter(cat,param,name)
@@ -167,6 +175,7 @@ end
 
 function BuildersBST:findPlace(utype, value,cat,loc)
 	if not value or not cat or not utype then return end
+
 	local POS = nil
 	local builder = self.unit:Internal()
 	local builderPos = builder:GetPosition()
@@ -197,6 +206,7 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 		local uw
 		local reclaimEnemyMex
 		POS, uw, reclaimEnemyMex = self.ai.maphst:ClosestFreeMex(utype, builder)
+		if not POS then print('no pos for mex found') end
 		self:EchoDebug(POS, uw, reclaimEnemyMex)
 		if POS  then
 			if reclaimEnemyMex then
@@ -242,6 +252,7 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 			end
 		end
 	end
+
 	if POS then
 		self:EchoDebug('found pos for .. ' ,value)
 		return utype, value, POS
@@ -297,6 +308,7 @@ function BuildersBST:ProgressQueue()
 	local builder = self.unit:Internal()
 	if self.idx > #self.queue then
 		self.idx = 0
+		self.queue = self.ai.taskshst.roles[self.role]
 	end
 	self.idx = self.idx + 1
 	for index = self.idx, #self.queue do
@@ -310,31 +322,41 @@ function BuildersBST:ProgressQueue()
 
 		self:EchoDebug('jobName',jobName)
 		if JOB and jobName then
-			self.game:StartTimer(jobName .. ' job')
+			--self.game:StartTimer(jobName .. ' job')
 			self:EchoDebug(self.name .. " filtering...",jobName)
 			local success = false
 			if JOB.special and jobName then
+				--self.game:StartTimer(self.unit:Internal():Name() .. ' special ' .. self.role)
 				jobName = self:specialFilter(JOB.category,JOB.special,jobName)
+				--self.game:StopTimer(self.unit:Internal():Name() .. ' special ' .. self.role)
 			end
 			if JOB.numeric and jobName then
+				--self.game:StartTimer(self.unit:Internal():Name() .. ' numeric ' .. self.role)
 				jobName = self:limitedNumber(jobName, JOB.numeric)
+				--self.game:StopTimer(self.unit:Internal():Name() .. ' numeric ' .. self.role)
 			end
 			if JOB.duplicate and jobName then
+				--self.game:StartTimer(self.unit:Internal():Name() .. ' dupli ' .. self.role)
 				if self.ai.buildingshst:CheckForDuplicates(jobName) then
 					jobName = nil
 				end
+				--self.game:StopTimer(self.unit:Internal():Name() .. ' dupli ' .. self.role)
 			end
 			if JOB.economy and jobName then
+				--self.game:StartTimer(self.unit:Internal():Name() .. ' economy ' .. self.role)
 				jobName = self:CategoryEconFilter(JOB.category,JOB.economy,jobName)
+				--self.game:StopTimer(self.unit:Internal():Name() .. ' economy ' .. self.role)
 			end
 			if jobName  then
 				utype = self.game:GetTypeByName(jobName)
 			end
 			if jobName and utype and not p then
+				--self.game:StartTimer(self.unit:Internal():Name() .. ' place ' .. self.role)
 				utype, jobName, p = self:findPlace(utype, jobName,JOB.category,JOB.location)
+				--self.game:StopTimer(self.unit:Internal():Name() .. ' place ' .. self.role)
 				self:EchoDebug('p',p)
 			end
-			self.game:StopTimer(jobName .. ' job')
+			--self.game:StopTimer(jobName .. ' job')
 			if jobName and not utype   then
 				self:Warn('warning' , self.name , " cannot build:",jobName,", couldnt grab the unit type from the engine")
 				return
@@ -359,8 +381,19 @@ function BuildersBST:ProgressQueue()
 				self.fails = self.fails + 1
 				if self.fails >  #self.queue +1 then
 					self.failOut = self.game:Frame()
+					if self.ai.buildingshst.roles[self.id].role == 'expand' then
+						self.ai.buildingshst.roles[self.id].role = 'support'
+					elseif self.ai.buildingshst.roles[self.id].role == 'support' then
+						self.ai.buildingshst.roles[self.id].role = 'default'
+					elseif self.ai.buildingshst.roles[self.id].role == 'default' then
+						self.ai.buildingshst.roles[self.id].role = 'expand'
+					end
+
+
+
 					self:assist()
-					--self.game:StopTimer(jobName .. ' job')--?????no return here?????
+					return
+
 				end
 			end
 		end
@@ -370,19 +403,52 @@ end
 function BuildersBST:assist()
 	if self.assistant then return end
 	local builderPos = self.unit:Internal():GetPosition()
-	local unitsNear = self.game:getUnitsInCylinder(builderPos, 2500)
-	for index, unitID in pairs(unitsNear) do
-		local unitName = self.game:GetUnitByID(unitID):Name()
-		if self.role == 'eco' then
-			if self.ai.armyhst.factoryMobilities[unitName] then
-				self.unit:Internal():Guard(unitID)
-				self.assistant = true
-				return
+	if self.role ~= 'eco' then
+		local bossDist = math.huge
+		local bossTarget
+		for bossID,project in pairs(self.ai.buildingshst.sketch) do
+			if project.position then
+				if self.ai.maphst:UnitCanGoHere(self.unit:Internal(), project.position) then
+					local dist = self.ai.tool:Distance( builderPos,project.position)
+					if dist < bossDist then
+						bossDist = dist
+						bossTarget = bossID
+					end
+				end
 			end
-		elseif self.ai.armyhst.techs[unitName] and self.unit:Internal():GetUnitIsBuilding() then
-			self.unit:Internal():Guard(unitID)
+		end
+		if bossTarget then
+			self.unit:Internal():Guard(bossTarget)
 			self.assistant = true
-			return
+		end
+	else
+		local bossDist = math.huge
+		local bossTarget
+		for bossID,project in pairs(self.ai.buildingshst.sketch) do
+			if project.position and self.ai.armyhst.unitTable[project.builderName].techLevel >= self.ai.armyhst.unitTable[self.name].techLevel then
+				if self.ai.maphst:UnitCanGoHere(self.unit:Internal(), project.position) then
+					local dist = self.ai.tool:Distance( builderPos,project.position)
+					if dist < bossDist then
+						bossDist = dist
+						bossTarget = bossID
+					end
+				end
+			end
+		end
+		if bossTarget then
+			self.unit:Internal():Guard(bossTarget)
+			self.assistant = true
+		else
+
+			local unitsNear = self.game:getUnitsInCylinder(builderPos, 2500)
+			for index, unitID in pairs(unitsNear) do
+				local unitName = self.game:GetUnitByID(unitID):Name()
+				if self.ai.armyhst.factoryMobilities[unitName] then
+					self.unit:Internal():Guard(unitID)
+					self.assistant = true
+					return
+				end
+			end
 		end
 	end
 	for i = 1, 3 do
@@ -391,7 +457,7 @@ function BuildersBST:assist()
 				self.unit:Internal():AreaReclaim(builderPos, r ) or
 				self.unit:Internal():AreaRepair( builderPos, r)
 		if doing  then
-			self:EchoDebug('assistant')
+			self:EchoDebug('assistant reclaim or repair')
 			self.assitant = true
 		else
 			self:EchoDebug('assistant not work')

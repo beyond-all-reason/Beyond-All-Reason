@@ -21,8 +21,9 @@ function UnitHST:Init()
 
 end
 
-function UnitHST:Update()
+function UnitHST:Update()--is before shardlua/unit
 	for k,unit in pairs(self.myActiveUnits) do
+		local RAM = gcinfo()
 		if ShardSpringLua then
 			local ux, uy, uz = Spring.GetUnitPosition(unit:Internal():ID())
 			if not ux then
@@ -33,10 +34,13 @@ function UnitHST:Update()
 		end
 		if unit then
 			if unit:HasBehaviours() then
- 				self.game:StartTimer(unit:Internal():Name() .. ' hst')
 				unit:Update()
- 				self.game:StartTimer(unit:Internal():Name() .. ' hst')
+
 			end
+		end
+		RAM = gcinfo() - RAM
+		if RAM > 100 then
+			print ('unithst',RAM/1000)
 		end
 	end
 	for uID, frame in pairs(self.reallyActuallyDead) do
@@ -44,7 +48,6 @@ function UnitHST:Update()
 			self.reallyActuallyDead[uID] = nil
 		end
 	end
-
 end
 
 function UnitHST:GameEnd()

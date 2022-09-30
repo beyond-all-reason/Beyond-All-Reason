@@ -22,9 +22,14 @@ end
 function OverviewHST:EvaluateSituation()
 	local M = self.ai.Metal
 	local E = self.ai.Energy
+	local m = 10
+	local e = 80
  	self.T1LAB = self.ai.factoriesAtLevel[1] and #self.ai.factoriesAtLevel[1] ~= 0
  	self.T2LAB = self.ai.factoriesAtLevel[3] and #self.ai.factoriesAtLevel[3] ~= 0
  	self.T3LAB = self.ai.factoriesAtLevel[5] and #self.ai.factoriesAtLevel[5] ~= 0
+	self.ECONOMY = math.floor(math.min(M.income / m,E.income / e))
+	print('ECONOMY STAGE',self.ECONOMY ,math.floor(M.income / m), math.floor(E.income / e))
+
 -- 	self.GEO1
 -- 	self.GEO2
  	self.POWERPLANT = self.ai.tool:countMyUnit({'_fus_'})

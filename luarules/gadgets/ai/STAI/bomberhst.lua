@@ -43,7 +43,7 @@ function BomberHST:RemoveRecruit(bmbrbehaviour)
 end
 
 function BomberHST:SetMassLimit()
-	self.squadMassLimit = 0 + (self.ai.Metal.income * 80)
+	self.squadMassLimit = 0 + (math.max(self.ai.Metal.income * 20, 4000))
 	self:EchoDebug('squadmasslimit',self.squadMassLimit)
 end
 
@@ -55,9 +55,11 @@ function BomberHST:SquadsIntegrityCheck(squad)
 			self:RemoveRecruit(member)
 		end
 	end
+
 	for id,_ in pairs(squad.members) do
 		return true
 	end
+
 	self:SquadDisband(squad, squad.squadID)
 end
 
@@ -75,7 +77,7 @@ function BomberHST:DraftBomberSquads()
 					squad.members[id] = bomber
 					bomber.squad = index
 					squad.counter = squad.counter + 1
-					if (squad.mass > self.squadMassLimit or #squad.members > 10) or (squad.mass > 15000)then
+					if (squad.mass > self.squadMassLimit or #squad.members > 10) or (squad.mass > 2000)then
 						squad.lock = true
 					end
 				end
@@ -92,7 +94,7 @@ function BomberHST:DraftBomberSquads()
 				squad.mass = 0
 				bomber.squad = self.squadID
 				squad.colour = {0,math.random(),math.random(),1}
-				if (squad.mass > self.squadMassLimit ) or (squad.mass > 15000)then
+				if (squad.mass > self.squadMassLimit ) or (squad.mass > 2000)then
 					squad.lock = true
 				end
 			end
@@ -122,10 +124,14 @@ function BomberHST:SquadMass(squad)
 		local mass = bmbrbehaviour.mass
 		squad.mass = squad.mass + mass
 	end
+	if (squad.mass > self.squadMassLimit or #squad.members >= 20)then
+		squad.lock = true
+	end
 	self:EchoDebug('squad mass',squad.mass)
 end
 
 function BomberHST:SquadsTargetUpdate(squad)
+	self:EchoDebug(squad.lock , squad.target ,self:SquadTargetExist(squad))
 	if squad.lock and (not squad.target or not self:SquadTargetExist(squad)) then
 		self:GetTarget(squad)
 	end

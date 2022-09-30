@@ -70,7 +70,7 @@ SchedulerHST.MScheduler = {
 	'DamageHST',
 	'OverviewHST',
 	'LabBuildHST',
-	'DefendHST',
+	--'DefendHST',
 	}
 
 SchedulerHST.BScheduler = {
@@ -80,15 +80,15 @@ SchedulerHST.BScheduler = {
 		'RaidBST',
 		'BomberBST',
 		--'WardBST',
-		'MexupBST',
+		--'MexupBST',
 		'ReclaimBST',
 		'CleanerBST',
 		--'DefendBST',
-		'LabregisterBST',
+		--'LabregisterBST',
 		'ScoutBST',
 		'AntinukeBST',
 		'NukeBST',
-		'BombardBST',
+		--'BombardBST',
 		'CommanderBST',
 		'BootBST',
 		}

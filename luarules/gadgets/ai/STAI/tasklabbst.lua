@@ -31,15 +31,25 @@ function TaskLabBST:Init()
 		self.units[uName].army = self.ai.armyhst.unitTable[uName]
 		self.units[uName].defId = unit
 	end
+    self.exitRect = {
+    	x1 = self.position.x - 40,
+    	z1 = self.position.z - 40,
+    	x2 = self.position.x + 40,
+    	z2 = self.position.z + 40,
+	}
+	self.ai.labbuildhst.labList[self.id] = {id = self.id,behaviour = self,name = self.name , position = self.position, underConstruction = true}
 
 end
 
+
 function TaskLabBST:OwnerBuilt()
-	self.ai.labbuildhst.labList[self.id] = self
+	self.ai.labbuildhst.labList[self.id].underConstruction = nil
+	self.ai.labbuildhst:UpdateFactories()
 end
 
 function TaskLabBST:OwnerDead()
 	self.ai.labbuildhst.labList[self.id] = nil
+	self.ai.labbuildhst:UpdateFactories()
 end
 
 function TaskLabBST:preFilter()
@@ -58,6 +68,7 @@ end
 function TaskLabBST:Update()
 	local f = self.game:Frame()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'TaskLabBST' then return end
+
 	self:preFilter() -- work or no resource??
 	if Spring.GetFactoryCommands(self.id,0) > 1 then return end --factory alredy work
 	self:GetAmpOrGroundWeapon() -- need more amph to attack in this map?
@@ -214,7 +225,7 @@ function TaskLabBST:GetMtypedLvCount(unitName)
 end
 
 
---[[
+
 function TaskLabBST:GetAmpOrGroundWeapon()
 	if (self.ai.armyhst.factoryMobilities[self.name][1] == 'bot' or self.ai.armyhst.factoryMobilities[self.name][1] == 'veh') then
 		return
@@ -233,4 +244,4 @@ function TaskLabBST:GetAmpOrGroundWeapon()
 	end
 	return false
 end
-]]
+

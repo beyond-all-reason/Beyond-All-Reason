@@ -301,13 +301,13 @@ function Tool:countFinished( targets,team )--accept units names, units def numbe
 			table.insert(defs,self.ai.armyhst.unitTable[target].defId)
 
 		elseif UnitDefs[target] then
-			table.insert(defs,def)
+			table.insert(defs,target)
 		end
 	end
 	defs = game:GetTeamUnitsByDefs(team,defs)
 
 	for index,id in pairs(defs) do
-		if game:GetUnitByID(id):IsBeingBuilt() then
+		if not game:GetUnitByID(id):IsBeingBuilt() then
 			counter = counter + 1
 		end
 	end

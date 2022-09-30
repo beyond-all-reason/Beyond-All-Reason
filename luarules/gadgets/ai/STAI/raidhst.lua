@@ -277,7 +277,7 @@ function RaidHST:goToNextNode(squad)
 
 		self:EchoDebug(index,mPos,squad.formation[index].x,squad.formation[index].y,squad.formation[index].z,squadToPath1)
 		squadToPath1 = squadToPath1 + self.ai.tool:Distance(mPos ,squad.formation[index])
-		if self.ai.tool:Distance(mPos ,squad.formation[index]) > 128 then
+		if self.ai.tool:Distance(mPos ,squad.formation[index]) > 256 then
 			arrival = false
 		end
 
@@ -324,7 +324,7 @@ function RaidHST:squadMove(squad)
 		self:EchoDebug('go to next node',index,arch.x,arch.z)
 		squad.formation[index] = arch
 		unit:Move(arch)
---  		unit:Move(pos)
+  		--unit:Move(self.ai.tool:RandomAway( pos, 128))
 	end
 end
 
@@ -335,7 +335,7 @@ function RaidHST:squadOnTarget(squad)
 		self:EchoDebug('no target on target')
 		return nil
 	end
-	if self.ai.tool:distance(squad.position,squad.target.POS) < 256 then
+	if self.ai.tool:Distance(squad.position,squad.target.POS) < 256 then
 		self:EchoDebug('im on target')
 		squad.onTarget = true
 		self:Roam(squad)
