@@ -90,10 +90,13 @@ void main() {
 	float vID = float(gl_VertexID);
 
 	float X = mapSize.x / gridSize;
-	float Y = mapSize.y / gridSize;
 
-	float x =   mod(vID , X) / X * mapSize.x;
-	float y = floor(vID / X) / Y * mapSize.y;
+	float modX = mod(vID, X);
+	//this is sometimes true in the magic land of amd drivers!
+	if (modX >= X) 	modX=0;
+
+	float x = (  modX          )* gridSize;
+	float y = ((vID - modX) / X)* gridSize;
 
 	gl_Position = vec4(x, 0.0, y, 1.0);
 
@@ -140,17 +143,9 @@ out DataGS {
 
 void MyEmitVertex(vec2 xzVec) {
 	vec4 worldPos = gl_in[0].gl_Position + vec4(xzVec.x, 0.0, xzVec.y, 0.0);
-
 	uv = worldPos.xz / mapSize.xy;
-
-	vec2 ts = vec2(textureSize(heightTex, 0));
-
-	//avoid sampling edges
-	vec2 uvHM = NORM2SNORM(uv);
-	uvHM *= (ts - vec2(1.0)) / ts;
-	uvHM = SNORM2NORM(uvHM);
-
-	worldPos.y = textureLod(heightTex, uvHM, 0.0).x;
+	vec2 UVHM =  heighmapUVatWorldPos(worldPos.xz);
+	worldPos.y = textureLod(heightTex, UVHM, 0.0).x;
 
 	const vec2 edgeTightening = vec2(0.5); // to tighten edges a little better
 	worldPos.xz = abs(dataIn[0].vMirrorParams.xy * mapSize.xy - worldPos.xz);
@@ -202,17 +197,9 @@ void MyEmitVertex(vec2 xzVec) {
 
 vec4 MyTestVertex(vec2 xzVec) {
 	vec4 worldPos = gl_in[0].gl_Position + vec4(xzVec.x, 0.0, xzVec.y, 0.0);
-
-	uv = worldPos.xz / mapSize.xy;
-
-	vec2 ts = vec2(textureSize(heightTex, 0));
-
-	//avoid sampling edges
-	vec2 uvHM = NORM2SNORM(uv);
-	uvHM *= (ts - vec2(1.0)) / ts;
-	uvHM = SNORM2NORM(uvHM);
-	uvHM = clamp(uvHM,0,1);
-	worldPos.y = textureLod(heightTex, uvHM, 0.0).x;
+	
+	vec2 UVHM =  heighmapUVatWorldPos(worldPos.xz);
+	worldPos.y = textureLod(heightTex, UVHM, 0.0).x;
 
 	const vec2 edgeTightening = vec2(0.5); // to tighten edges a little better
 	worldPos.xz = abs(dataIn[0].vMirrorParams.xy * mapSize.xy - worldPos.xz);
@@ -231,23 +218,15 @@ vec4 MyTestVertex(vec2 xzVec) {
 		}
 	}
 
-
 	return (worldPos);
 }
 
-bool vertexClipped2(vec4 clipspace, float tolerance) {
-  return any(lessThan(clipspace.xy, -clipspace.ww * tolerance)) ||
-         any(greaterThan(clipspace.xy, clipspace.ww * tolerance));
-}
-
 void main() {
-	#if 1
-		// this 'early clipping' will prevent generation of triangle strips is the quad is out of view
-		vec4 myworldpos = MyTestVertex(vec2(gridSize*0.5));
-		vec3 tocamera = myworldpos.xyz - cameraViewInv[3].xyz ;
-		float idist = inversesqrt(dot(tocamera,tocamera));
-		if (vertexClipped2 (cameraViewProj * myworldpos, 1.0 + (1.5*gridSize) * idist )) return;
-	#endif
+
+	// this 'early clipping' will prevent generation of triangle strips is the quad is out of view
+	// use a 10x multiplier on the tolerance radius, as some triangles arent in spheres, but are highly elongated
+	//if (isSphereVisibleXY(MyTestVertex(vec2(gridSize*0.5)), 10.0*gridSize)) return;
+
 	#if 1 //culling case
 		if ( all(equal(dataIn[0].vMirrorParams.xy, vec2(1.0))) ) {
 			MyEmitVertex(vec2(gridSize,      0.0)); //TR
@@ -317,7 +296,7 @@ void main() {
 
 	fragColor.rgb = mix(fogColor.rgb, fragColor.rgb, alphaFog.y);
 	fragColor.a = alphaFog.x;
-
+	//fragColor.a *= 0.5;
 }
 ]]
 
