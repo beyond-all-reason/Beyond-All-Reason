@@ -225,7 +225,7 @@ void main() {
 
 	// this 'early clipping' will prevent generation of triangle strips is the quad is out of view
 	// use a 10x multiplier on the tolerance radius, as some triangles arent in spheres, but are highly elongated
-	//if (isSphereVisibleXY(MyTestVertex(vec2(gridSize*0.5)), 10.0*gridSize)) return;
+	if (isSphereVisibleXY(MyTestVertex(vec2(gridSize*0.5)), 10.0*gridSize)) return;
 
 	#if 1 //culling case
 		if ( all(equal(dataIn[0].vMirrorParams.xy, vec2(1.0))) ) {
