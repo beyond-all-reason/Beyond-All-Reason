@@ -261,64 +261,106 @@ local units = {
 	armyork = { "vehicle_t2_aa.png", 1.36499989 },
 	armzeus = { "armzeus_1.28.png", 1.34399986 },
 	armkraken = { "armpb_1.4.png", 1.46999991 },
+
+	-- Chickens -----------------------------------------------------------
+
 	chicken1 = { "chicken.png", 0.94499993 },
 	chicken1b = { "chicken.png", 0.94499993 },
 	chicken1c = { "chicken.png", 0.94499993 },
 	chicken1d = { "chicken.png", 0.94499993 },
-	chicken1x = { "chicken.png", 0.94499993 },
-	chicken1y = { "chicken.png", 0.94499993 },
-	chicken1z = { "chicken.png", 0.94499993 },
+
+	chicken1x = { "chicken.png", 1.1 },
+	chicken1y = { "chicken.png", 1.1 },
+	chicken1z = { "chicken.png", 1.1 },
+
 	chicken2 = { "chicken.png", 1.25999999 },
 	chicken2b = { "chicken.png", 1.25999999 },
+
 	chicken_dodo1 = { "chicken_bomb.png", 0.94499993 },
 	chicken_dodo2 = { "chicken_bomb.png", 1.1 },
 	chicken_dodoair = { "chicken_air.png", 1.0 },
+
 	chickena1 = { "chicken.png", 1.57499993 },
 	chickena1b = { "chicken.png", 1.57499993 },
 	chickena1c = { "chicken.png", 1.57499993 },
 	chickena2 = { "chicken.png", 1.57499993 },
 	chickena2b = { "chicken.png", 1.57499993 },
-	chickenc2 = { "chicken.png", 1.57499993 },
+	chickenallterraina1 = { "chicken.png", 1.57499993 },
+	chickenallterraina1b = { "chicken.png", 1.57499993 },
+	chickenallterraina1c = { "chicken.png", 1.57499993 },
+	chickenapexallterrainassault = { "chicken.png", 1.57499993 },
+	chickenapexallterrainassaultb = { "chicken.png", 1.57499993 },
+
 	chickenc3 = { "chicken.png", 1.25999999 },
 	chickenc3b = { "chicken.png", 1.25999999 },
 	chickenc3c = { "chicken.png", 1.25999999 },
-	chicken_turrets = { "chicken_tentacle.png", 1.57499993 },
-	chicken_turretl = { "chicken_tentacle2.png", 2.9 },
+
 	chickenf1 = { "chicken_air.png", 1.5 },
 	chickenf1b = { "chicken_air.png", 1.5 },
 	chickenf1apex = { "chicken_air.png", 2 },
 	chickenf1apexb = { "chicken_air.png", 2 },
+
 	chickenf2 = { "chicken_air.png", 1.78499997 },
+
 	chickenh1 = { "chicken.png", 0.94499993 },
 	chickenh1b = { "chicken.png", 0.94499993 },
+
 	chickenh2 = { "chicken.png", 1.25999999 },
 	chickenh3 = { "chicken.png", 1.25999999 },
 	chickenh4 = { "chicken.png", 0.94499993 },
+
 	chickenh5 = { "chicken_overseer.png", 1.95499993 },
+
 	chickenp1 = { "chicken_flame.png", 0.94499993 },
 	chickenp2 = { "chicken_flame.png", 1.57499993 },
+	chickenpyroallterrain = { "chicken_flame.png", 1.47 },
+
 	chickenr1 = { "chicken_arty.png", 1.57499993 },
 	chickenr2 = { "chicken_arty.png", 2.72999978 },
+
 	chickens1 = { "chicken_spike.png", 1.45999999 },
 	chickens2 = { "chicken_spike.png", 1.77499993 },
-	chickens3 = { "chicken_air.png", 1.36499989 },
+
 	chickenw1 = { "chicken_air.png", 1.36499989 },
 	chickenw1b = { "chicken_air.png", 1.36499989 },
 	chickenw1c = { "chicken_air.png", 1.36499989 },
 	chickenw1d = { "chicken_air.png", 1.36499989 },
 	chickenw2 = { "chicken_air.png", 1.36499989 },
+
 	chickene1 = { "chicken_paralyze.png", 0.94499993 },
 	chickene2 = { "chicken_paralyze.png", 1.57499993 },
 	chickenearty1 = { "chicken_earty.png", 1.57499993 },
 	chickenebomber1 = { "chicken_air.png", 1.78499997 },
+	chickenelectricallterrain = { "chicken_paralyze.png", 1.47 },
+	chickenelectricallterrainassault = { "chicken_paralyze.png", 1.57499993 },
+
 	chickenacidswarmer = { "chicken_acid.png", 1.25999999 },
 	chickenacidassault = { "chicken_acid.png", 1.57499993 },
 	chickenacidbomber = { "chicken_air_acid.png", 1.78499997 },
 	chickenacidarty = { "chicken_acid_arty.png", 1.57499993 },
 	chickenacidallterrain = { "chicken_acid.png", 1.47 },
-	chickenpyroallterrain = { "chicken_flame.png", 1.47 },
-	chickenelectricallterrain = { "chicken_paralyze.png", 1.47 },
+	chickenacidallterrainassault = { "chicken_acid.png", 1.57499993 },
+
+	chicken_turrets = { "chicken_tentacle.png", 1.57499993 },
+	chicken_turretl = { "chicken_tentacle2.png", 2.9 },
+	chicken_turrets_electric = { "chicken_tentacle.png", 1.57499993 },
+	chicken_turretl_electric  = { "chicken_tentacle2.png", 2.9 },
+	chicken_turrets_acid  = { "chicken_tentacle.png", 1.57499993 },
+	chicken_turretl_acid  = { "chicken_tentacle2.png", 2.9 },
 	chicken_hive = { "chicken_roost.png", 1.99499993 },
+
+	chicken_miniqueen_electric = { "chicken_queen.png", 4.19999981 },
+	chicken_miniqueen_acid = { "chicken_queen.png", 4.19999981 },
+
+	ve_chickenq = { "chicken_queen.png", 4.19999981 },
+	e_chickenq = { "chicken_queen.png", 4.19999981 },
+	h_chickenq = { "chicken_queen.png", 4.19999981 },
+	n_chickenq = { "chicken_queen.png", 4.19999981 },
+	vh_chickenq = { "chicken_queen.png", 4.19999981 },
+	epic_chickenq = { "chicken_queen.png", 4.19999981 },
+
+	-----------------------------------------------------------------------
+
 	chip = { "blank.png", 1.04999995 },
 	coraak = { "amphib_t2_aa.png", 1.67999995 },
 	coraap = { "factory_air_t2.png", 1.9425 },
@@ -540,10 +582,7 @@ local units = {
 	critter_penguinking = { "blank.png", 1.04999995 },
 	dbg_sphere = { "allterrain.png", 1.04999995 },
 	dice = { "blank.png", 1.04999995 },
-	e_chickenq = { "chicken_queen.png", 4.19999981 },
-	epic_chickenq = { "chicken_queen.png", 4.19999981 },
 	freefusion = { "fusion.png", 1.46999991 },
-	h_chickenq = { "chicken_queen.png", 4.19999981 },
 	cor_hat_viking = { "blank.png", 1.04999995 },
 	legaap = { "factory_air_t2.png", 1.9425 },
 	legaca = { "air_t2_worker.png", 1.62749982 },
@@ -636,7 +675,6 @@ local units = {
 	lootdroppod_printer = { "mine.png", 0.55649996 },
 	meteor = { "blank.png", 1.04999995 },
 	mission_command_tower = { "mission_command_tower.png", 2.46749973 },
-	n_chickenq = { "chicken_queen.png", 4.19999981 },
 	nuketest = { "aa.png", 0.89249998 },
 	nuketestcor = { "aa.png", 0.89249998 },
 	nuketestcororg = { "aa.png", 0.89249998 },
@@ -656,8 +694,6 @@ local units = {
 	corscavdtl = { "wall_0.4.png", 0.41999999 },
 	corscavdtm = { "wall_0.4.png", 0.41999999 },
 	corscavfort = { "wall_0.4.png", 0.41999999 },
-	ve_chickenq = { "chicken_queen.png", 4.19999981 },
-	vh_chickenq = { "chicken_queen.png", 4.19999981 },
 	xmasball = { "blank.png", 1.04999995 },
 	xmasball2 = { "blank.png", 1.04999995 },
 	corfdoom = { "cordoom_1.95.png", 1.5 },
