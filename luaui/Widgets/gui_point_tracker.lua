@@ -297,5 +297,8 @@ end
 
 function widget:DrawInMiniMap(sx, sy)
 	if not enabled then return	end
+	-- this fixes drawing on only 1 quadrant of minimap as pwe
+  gl.ClipDistance ( 1, false)
+  gl.ClipDistance ( 3, false)
   DrawMapMarksWorld(1)
 end
