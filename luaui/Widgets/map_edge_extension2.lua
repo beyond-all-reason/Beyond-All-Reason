@@ -560,7 +560,6 @@ function widget:DrawWorldPreUnit()
 	end
 	gl.DepthTest(GL.LEQUAL)
 	gl.DepthMask(true)
-	gl.Culling(true)
 
 	gl.Texture(0, colorTex)
 	gl.Texture(1, "$heightmap")
