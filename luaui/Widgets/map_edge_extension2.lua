@@ -554,6 +554,9 @@ function widget:DrawWorldPreUnit()
 	--local q = gl.CreateQuery()
 	if hasClipDistance then
 		gl.ClipDistance(4, true)	--on engine 8xx Error in DrawWorldPreUnit(): [string "LuaUI/Widgets/map_edge_extension2.lua"]:526: gl.ClipDistance: bad clip number (use 1 or 2)
+		gl.Culling(true)
+	else
+		gl.Culling(false) -- amdlinux on steam deck or else half the tris are invisible
 	end
 	gl.DepthTest(GL.LEQUAL)
 	gl.DepthMask(true)
