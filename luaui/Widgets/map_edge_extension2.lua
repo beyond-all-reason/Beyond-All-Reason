@@ -90,10 +90,13 @@ void main() {
 	float vID = float(gl_VertexID);
 
 	float X = mapSize.x / gridSize;
-	float Y = mapSize.y / gridSize;
 
-	float x =   mod(vID , X) / X * mapSize.x;
-	float y = floor(vID / X) / Y * mapSize.y;
+	float modX = mod(vID, X);
+	//this is sometimes true in the magic land of amd drivers!
+	if (modX >= X) 	modX=0;
+
+	float x = (  modX          )* gridSize;
+	float y = ((vID - modX) / X)* gridSize;
 
 	gl_Position = vec4(x, 0.0, y, 1.0);
 
@@ -140,17 +143,9 @@ out DataGS {
 
 void MyEmitVertex(vec2 xzVec) {
 	vec4 worldPos = gl_in[0].gl_Position + vec4(xzVec.x, 0.0, xzVec.y, 0.0);
-
 	uv = worldPos.xz / mapSize.xy;
-
-	vec2 ts = vec2(textureSize(heightTex, 0));
-
-	//avoid sampling edges
-	vec2 uvHM = NORM2SNORM(uv);
-	uvHM *= (ts - vec2(1.0)) / ts;
-	uvHM = SNORM2NORM(uvHM);
-
-	worldPos.y = textureLod(heightTex, uvHM, 0.0).x;
+	vec2 UVHM =  heighmapUVatWorldPos(worldPos.xz);
+	worldPos.y = textureLod(heightTex, UVHM, 0.0).x;
 
 	const vec2 edgeTightening = vec2(0.5); // to tighten edges a little better
 	worldPos.xz = abs(dataIn[0].vMirrorParams.xy * mapSize.xy - worldPos.xz);
@@ -200,7 +195,37 @@ void MyEmitVertex(vec2 xzVec) {
 	EmitVertex();
 }
 
+vec4 MyTestVertex(vec2 xzVec) {
+	vec4 worldPos = gl_in[0].gl_Position + vec4(xzVec.x, 0.0, xzVec.y, 0.0);
+	
+	vec2 UVHM =  heighmapUVatWorldPos(worldPos.xz);
+	worldPos.y = textureLod(heightTex, UVHM, 0.0).x;
+
+	const vec2 edgeTightening = vec2(0.5); // to tighten edges a little better
+	worldPos.xz = abs(dataIn[0].vMirrorParams.xy * mapSize.xy - worldPos.xz);
+	worldPos.xz += dataIn[0].vMirrorParams.zw * (mapSize.xy - edgeTightening);
+
+	if (curvature == 1.0) {
+		const float curvatureBend = 150.0;
+
+		vec2 refPoint = SNORM2NORM(dataIn[0].vMirrorParams.zw) * mapSize.xy;
+		if (dataIn[0].vMirrorParams.x != 0.0) {
+			worldPos.y -= pow((worldPos.x - refPoint.x) / curvatureBend, 2.0);
+		}
+
+		if (dataIn[0].vMirrorParams.y != 0.0) {
+			worldPos.y -= pow((worldPos.z - refPoint.y) / curvatureBend, 2.0);
+		}
+	}
+
+	return (worldPos);
+}
+
 void main() {
+
+	// this 'early clipping' will prevent generation of triangle strips is the quad is out of view
+	// use a 10x multiplier on the tolerance radius, as some triangles arent in spheres, but are highly elongated
+	if (isSphereVisibleXY(MyTestVertex(vec2(gridSize*0.5)), 10.0*gridSize)) return;
 
 	#if 1 //culling case
 		if ( all(equal(dataIn[0].vMirrorParams.xy, vec2(1.0))) ) {
@@ -220,6 +245,7 @@ void main() {
 		MyEmitVertex(vec2(gridSize, gridSize)); //BR
 		MyEmitVertex(vec2(gridSize,      0.0)); //TR
 	#endif
+	
 
 	EndPrimitive();
 }
@@ -270,7 +296,7 @@ void main() {
 
 	fragColor.rgb = mix(fogColor.rgb, fragColor.rgb, alphaFog.y);
 	fragColor.a = alphaFog.x;
-
+	//fragColor.a *= 0.5;
 }
 ]]
 
@@ -528,10 +554,12 @@ function widget:DrawWorldPreUnit()
 	--local q = gl.CreateQuery()
 	if hasClipDistance then
 		gl.ClipDistance(4, true)	--on engine 8xx Error in DrawWorldPreUnit(): [string "LuaUI/Widgets/map_edge_extension2.lua"]:526: gl.ClipDistance: bad clip number (use 1 or 2)
+		gl.Culling(true)
+	else
+		gl.Culling(false) -- amdlinux on steam deck or else half the tris are invisible
 	end
 	gl.DepthTest(GL.LEQUAL)
 	gl.DepthMask(true)
-	gl.Culling(true)
 
 	gl.Texture(0, colorTex)
 	gl.Texture(1, "$heightmap")

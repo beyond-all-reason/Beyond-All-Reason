@@ -192,6 +192,17 @@ vec2 heighmapUVatWorldPos(vec2 worldpos){
 	uvhm = uvhm	* inverseMapSize;
 	return uvhm;
 }
+
+// Note that this function does not check the Z or depth of the clip space, but in regular springrts top-down views, this isnt needed either. 
+// the radius to cameradist ratio is a good proxy for visibility in the XY plane
+bool isSphereVisibleXY(vec4 wP, float wR){ //worldPos, worldRadius
+	vec3 ToCamera = wP.xyz - cameraViewInv[3].xyz; // vector from worldpos to camera
+	float isqrtDistRatio = wR * inversesqrt(dot(ToCamera, ToCamera)); // calculate the relative screen-space size of it
+	vec4 cWPpos = cameraViewProj * wP; // transform the worldpos into clip space
+	vec2 clipVec = cWPpos.ww * (1.0 + isqrtDistRatio); // normalize the clip tolerance
+	return any(greaterThan(abs(cWPpos.xy), clipVec)); // check if the clip space coords lie outside of the tolerance relaxed [-1.0, 1.0] space
+}
+
 /*
 vec3 hsv2rgb(vec3 c){
 	vec4 K=vec4(1.,2./3.,1./3.,3.);
