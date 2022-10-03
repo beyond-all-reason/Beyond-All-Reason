@@ -221,9 +221,9 @@ RestoreAfterDelay()
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM_2;
-	while(gun_1 == 0)
+	if(gun_1 == 0)
 	{
-		sleep 600;
+		return (0);
 	}
 	turn aimy1 to y-axis heading speed <20.000000>;
 	turn barrel to x-axis -1*pitch speed <5.000000>;
@@ -241,11 +241,10 @@ AimPrimary(heading, pitch)
 AimSecondary(heading, pitch)
 {
 	signal SIG_AIM;
-	while(gun_1 == 1)
+	if(gun_1 == 1)
 	{
 		emit-sfx 2048 from flare;
 		start-script RestoreAfterDelay();
-		sleep 300;
 		return (0);
 	}
 	turn aimy1 to y-axis heading speed <20.000000>;
