@@ -64,33 +64,9 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 				if cmdOptions.right then
 					addQ = -addQ
 				end
-				if addQ > 0 then
-					if pile+pileQ+addQ <= pilelimit then
-						return true
-					else
-						if pile+pileQ <= pilelimit then
-							local count = pilelimit - pile - pileQ
-							while count < 0  do
-								if count <= -100 then
-									SpGiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "ctrl", "shift" })
-									count = count + 100
-								elseif count <= -20 then
-									SpGiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "ctrl" })
-									count = count + 20
-								elseif count <= -5 then
-									SpGiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "shift" })
-									count = count + 5
-								else
-									SpGiveOrderToUnit(unitID, CMD.STOCKPILE, {}, 0)
-									count = count + 1
-								end
-							end
-							return false
-						else
-							return false
-						end
-					end
-				elseif addQ < 0 then
+				if addQ > 0 and pile+pileQ+addQ <= pilelimit then
+					return true
+				else
 					return false
 				end
 			end
