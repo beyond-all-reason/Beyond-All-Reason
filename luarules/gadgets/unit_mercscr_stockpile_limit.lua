@@ -127,9 +127,7 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 	end
 
 	function gadget:StockpileChanged(unitID, unitDefID, unitTeam)
-		if unitTeam == SpGetMyTeamID() then
-			UpdateStockpile(unitID, unitDefID)
-		end
+		UpdateStockpile(unitID, unitDefID)
 	end
 
 else -- UNSYNCED --
