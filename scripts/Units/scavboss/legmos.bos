@@ -13,7 +13,7 @@ static-var gun_1, speedwings, bMoving;
 IdleHover()
 {
 	while(TRUE){
-		while(bMoving == 1)
+		if(bMoving == 1)
 		{
 			turn lwingd to z-axis <20.000000> speed <800>;
 			turn lwingu to z-axis <0.000000> speed <800>;
@@ -36,7 +36,7 @@ IdleHover()
 			turn rwingu to z-axis <20.000000> speed <800>;
 			sleep 25;
 		}
-		sleep 200;
+		else sleep 200;
 	}
 }
 
