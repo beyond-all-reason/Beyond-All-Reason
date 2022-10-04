@@ -68,7 +68,7 @@ return {
 			"legap",
 			"legaap",
 			"corplat",
-			"corgant",
+			"leggant",
 		},
 		customparams = {
 			unitgroup = 'buildert2',

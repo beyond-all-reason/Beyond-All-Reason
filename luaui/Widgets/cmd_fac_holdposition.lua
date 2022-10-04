@@ -56,6 +56,8 @@ local unitArray_ = {
   "leglab",
   "legvp",
   "legalab",
+  "legavp",
+  "leggant",
 }
 local unitArray = {}
 for _, name in pairs(unitArray_) do
