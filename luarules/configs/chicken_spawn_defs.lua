@@ -85,7 +85,8 @@ local chickenTypes = {
 	chickenacidallterrainassault		=  true,
 
 	chicken_miniqueen_electric			=  true,
-	chicken_miniqueen_acid			=  true,
+	chicken_miniqueen_acid				=  true,
+	chicken_miniqueen_healer			=  true,
   }
 
   local defenders = {
@@ -156,6 +157,7 @@ local chickenTypes = {
 
 	chicken_miniqueen_electric			=   "blue",
 	chicken_miniqueen_acid				=   "acidgreen",
+	chicken_miniqueen_healer			=  	"white",
   }
 
 local optionValues = {
@@ -358,6 +360,7 @@ end
 
 	addSuperSquad(5, {"1 chicken_miniqueen_electric"													}) -- Electric Miniqueen
 	addSuperSquad(5, {"1 chicken_miniqueen_acid"														}) -- Acid Miniqueen
+	addSuperSquad(5, {"1 chicken_miniqueen_healer"														}) -- Healer Miniqueen
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Special Squads -----------------------------------------------------------------------------------------------------------------------------------------------------------------

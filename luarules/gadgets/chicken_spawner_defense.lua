@@ -145,6 +145,10 @@ if gadgetHandler:IsSyncedCode() then
 			"chickenacidallterrain",
 			"chickenacidallterrainassault",
 		},
+		["chicken_miniqueen_healer"] = {
+			"chickenh1",
+			"chickenh1b",
+		},
 	}
 
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -462,6 +466,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenh4"].id] = { chance = 1 },
 		[UnitDefNames["chicken_miniqueen_electric"].id] = { chance = 0.01 },
 		[UnitDefNames["chicken_miniqueen_acid"].id] = { chance = 0.01 },
+		[UnitDefNames["chicken_miniqueen_healer"].id] = { chance = 0.01 },
 	}
 	local HEALER = {
 		[UnitDefNames["chickenh1"].id] = true,
@@ -1715,6 +1720,13 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			elseif UnitDefs[unitDefID].name == "chicken_turrets" then
 				for i = 1,mRandom(3,10) do
+					local x = x + mRandom(-16,16)
+					local z = z + mRandom(-16,16)
+					local y = GetGroundHeight(x, z)
+					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
+				end
+			elseif miniQueenMinions[UnitDefs[unitDefID].name] then
+				for i = 1,mRandom(100,200) do
 					local x = x + mRandom(-16,16)
 					local z = z + mRandom(-16,16)
 					local y = GetGroundHeight(x, z)

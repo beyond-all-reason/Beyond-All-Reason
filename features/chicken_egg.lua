@@ -20,8 +20,8 @@ local chicken_egg =  {
 local eggs = {}
 local sizes = {"s","m","l",}
 local colors = {"pink","white","red", "blue", "darkgreen", "purple", "green", "yellow", "darkred", "acidgreen"}
-local mvalues = {s = 20, m = 50, l = 100}
-local evalues = {s = 200, m = 500, l = 1000}
+local mvalues = {s = 50, m = 100, l = 200}
+local evalues = {s = 100, m = 250, l = 500}
 
 for _, size in pairs(sizes) do
     for _, color in pairs(colors) do
