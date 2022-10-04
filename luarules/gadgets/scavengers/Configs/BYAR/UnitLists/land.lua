@@ -159,6 +159,7 @@ return {
 		"corjugg_scav",
 		"armbanth_scav",
 		"armthor_scav",
+		"legpede_scav",
 
 		-- Superboss
 		"armpwt4_scav",

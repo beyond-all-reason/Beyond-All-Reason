@@ -240,6 +240,7 @@ local unitOrderTable = {
 	['corkarg']        = 007030,
 	['armvang']        = 007040,
 	['corshiva']       = 007050,
+	['legpede']        = 007055,
 	['armthor']        = 007060,
 	['corkorg']        = 007070,
 	['armbanth']       = 007080,
@@ -453,6 +454,7 @@ local unitOrderTable = {
    ['legaap']         = 102530,
    ['armshltx']       = 102550,
    ['corgant']        = 102575,
+   ['leggant']        = 102576,
    ['armapt3']        = 102700, --scavengers
    ['corapt3']        = 102725, --scavengers
 

@@ -43,7 +43,7 @@ return {
 		buildoptions = {
 			"corfus",
 			"corafus",
-			"corgant",
+			"leggant",
 			"corageo",
 			"corbhmth",
 			"cormoho",

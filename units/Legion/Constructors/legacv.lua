@@ -72,7 +72,7 @@ return {
 			[26] = "corbuzz",
 			[27] = "legvp",
 			[28] = "legavp",
-			[29] = "corgant",
+			[29] = "leggant",
 		},
 		customparams = {
 			unitgroup = 'buildert2',

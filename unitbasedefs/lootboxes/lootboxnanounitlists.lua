@@ -216,6 +216,7 @@ return {
 		"corjugg",
 		"armbanth",
 		"armthor",
+		"legpede",
 
 		-- Superboss
 		"armpwt4",
