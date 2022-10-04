@@ -74,10 +74,6 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 		return true
 	end
 
-else -- UNSYNCED --
-
-	local SpGetSpectatingState = Spring.GetSpectatingState
-	local SpGetMyTeamID = Spring.GetMyTeamID
 	local GetUnitStockpile	= Spring.GetUnitStockpile
 	local GiveOrderToUnit	= Spring.GiveOrderToUnit
 
@@ -89,45 +85,43 @@ else -- UNSYNCED --
 	end
 
 	function UpdateStockpile(unitID, unitDefID)
-		if not SpGetSpectatingState() then
-			local MaxStockpile = isStockpilingUnit[unitDefID] or defaultStockpileLimit
+		local MaxStockpile = isStockpilingUnit[unitDefID] or defaultStockpileLimit
 
-			local stock,queued = GetUnitStockpile(unitID)
-			if queued and stock then
-				local count = stock + queued - MaxStockpile
-				while count < 0  do
-					if count <= -100 then
-						GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "ctrl", "shift" })
-						count = count + 100
-					elseif count <= -20 then
-						GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "ctrl" })
-						count = count + 20
-					elseif count <= -5 then
-						GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "shift" })
-						count = count + 5
-					else
-						GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, 0)
-						count = count + 1
-					end
+		local stock,queued = GetUnitStockpile(unitID)
+		if queued and stock then
+			local count = stock + queued - MaxStockpile
+			while count < 0  do
+				if count <= -100 then
+					GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "ctrl", "shift" })
+					count = count + 100
+				elseif count <= -20 then
+					GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "ctrl" })
+					count = count + 20
+				elseif count <= -5 then
+					GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "shift" })
+					count = count + 5
+				else
+					GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, 0)
+					count = count + 1
 				end
 			end
 		end
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		if unitTeam == SpGetMyTeamID() and canStockpile[unitDefID] then
+		if canStockpile[unitDefID] then
 			UpdateStockpile(unitID, unitDefID)
 		end
 	end
 	
 	function gadget:UnitGiven(unitID, unitDefID, unitTeam)
-		if unitTeam == SpGetMyTeamID() and canStockpile[unitDefID] then
+		if canStockpile[unitDefID] then
 			UpdateStockpile(unitID, unitDefID)
 		end
 	end
 	
 	function gadget:UnitCaptured(unitID, unitDefID, unitTeam)
-		if unitTeam == SpGetMyTeamID() and canStockpile[unitDefID] then
+		if canStockpile[unitDefID] then
 			UpdateStockpile(unitID, unitDefID)
 		end
 	end
@@ -137,5 +131,10 @@ else -- UNSYNCED --
 			UpdateStockpile(unitID, unitDefID)
 		end
 	end
+
+else -- UNSYNCED --
+
+	local SpGetSpectatingState = Spring.GetSpectatingState
+	local SpGetMyTeamID = Spring.GetMyTeamID
 end
 
