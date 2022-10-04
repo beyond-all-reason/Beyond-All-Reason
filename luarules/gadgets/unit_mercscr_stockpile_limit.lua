@@ -64,20 +64,34 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 				if cmdOptions.right then
 					addQ = -addQ
 				end
-				if pile+pileQ+addQ <= pilelimit then
-					return true
-				else
-					if pile+pileQ <= pilelimit then
-						local added = 0
-						local needed = pilelimit - pile - pileQ
-						while added < needed do
-							SpGiveOrderToUnit(unitID, CMD_STOCKPILE, {}, 0) -- because SetUnitStockpile can't set the queue!
-							added = added + 1
-						end
-						return false
+				if addQ > 0 then
+					if pile+pileQ+addQ <= pilelimit then
+						return true
 					else
-						return false
+						if pile+pileQ <= pilelimit then
+							local count = pilelimit - pile - pileQ
+							while count < 0  do
+								if count <= -100 then
+									SpGiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "ctrl", "shift" })
+									count = count + 100
+								elseif count <= -20 then
+									SpGiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "ctrl" })
+									count = count + 20
+								elseif count <= -5 then
+									SpGiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "shift" })
+									count = count + 5
+								else
+									SpGiveOrderToUnit(unitID, CMD.STOCKPILE, {}, 0)
+									count = count + 1
+								end
+							end
+							return false
+						else
+							return false
+						end
 					end
+				elseif addQ < 0 then
+					return false
 				end
 			end
 		end
@@ -118,26 +132,6 @@ else -- UNSYNCED --
 					else
 						GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, 0)
 						count = count + 1
-					end
-				end
-			end
-
-			local stock,queued = GetUnitStockpile(unitID)
-			if queued and stock then
-				local count = stock + queued - MaxStockpile
-				while count > 0 do
-					if count >= 100 then
-						GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "right", "ctrl", "shift" })
-						count = count - 100
-					elseif count >= 20 then
-						GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "right", "ctrl" })
-						count = count - 20
-					elseif count >= 5 then
-						GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "right", "shift" })
-						count = count - 5
-					else
-						GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "right" })
-						count = count - 1
 					end
 				end
 			end
