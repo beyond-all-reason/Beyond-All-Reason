@@ -57,7 +57,7 @@ function NukeBST:Update()
 			return
 		end
 		self.unit:Internal():AttackPos(self.currentTarget.POS)
-		print('current target:',self.currentTarget.POS.x,self.currentTarget.POS.z)
+		self:EchoDebug('current target:',self.currentTarget.POS.x,self.currentTarget.POS.z)
 	end
 
 end

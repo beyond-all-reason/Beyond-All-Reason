@@ -258,7 +258,6 @@ function TargetHST:ScanEnemyCell()
 	end
 end
 function TargetHST:FindEnemyEdges(cell)
-	--print('immobile',cell.IMMOBILE)
 		self.enemyEdgeNordEst = self.enemyEdgeNordEst or cell
 	self.enemyEdgeNordWest = self.enemyEdgeNordWest or cell
 	self.enemyEdgeSudEst = self.enemyEdgeSudEst or cell

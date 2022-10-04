@@ -96,12 +96,17 @@ end
 
 function BootBST:FindMyFactory()
 	local pos = self.unit:Internal():GetPosition()
-	for level, factories in pairs(self.ai.factoriesAtLevel) do
-		for i, factory in pairs(factories) do
-			if self.ai.tool:PositionWithinRect(pos, factory.exitRect) then
-				self.factory = factory
-				return
-			end
+-- 	for level, factories in pairs(self.ai.factoriesAtLevel) do
+-- 		for i, factory in pairs(factories) do
+-- 			if self.ai.tool:PositionWithinRect(pos, factory.exitRect) then
+-- 				self.factory = factory
+-- 				return
+-- 			end
+-- 		end
+-- 	end
+	for id,lab in pairs(self.ai.labshst.labs) do
+		if self.ai.tool:PositionWithinRect(pos, lab.exitRect) then
+			self.factory = lab.behaviour
 		end
 	end
 	self.factory = nil

@@ -13,12 +13,10 @@ function SchedulerHST:Init()
  	local teams = Spring.GetTeamList()
  	for index,id in pairs(teams) do
 		local luaAI = Spring.GetTeamLuaAI(id)
-		--print(luaAI)
 		if luaAI == 'STAI' then
 			table.insert(self.AIs,id)
 		end
  	end
-	--print(#self.AIs)
 	self.moduleTeamIndex = 1
 	self.moduleTeam = 0
 	self.moduleIndex = 1
@@ -32,7 +30,7 @@ end
 function SchedulerHST:Update()
 	local moduleS, Mteam = self:ModulesScheduler()
 	local behaviourS, Bteam = self:BehavioursScheduler()
-	--print(game:Frame(),'team',self.ai.id,'moduleS, Mteam',self.moduleUpdate, self.moduleTeam,'behaviourS, Bteam',self.behaviourUpdate, self.behaviourTeam)
+	--self:EchoDebug(game:Frame(),'team',self.ai.id,'moduleS, Mteam',self.moduleUpdate, self.moduleTeam,'behaviourS, Bteam',self.behaviourUpdate, self.behaviourTeam)
 end
 
 function SchedulerHST:ModulesScheduler()

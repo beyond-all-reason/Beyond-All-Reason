@@ -16,12 +16,6 @@ end
 
 function LabsHST:factoriesRating()
 	local networks = self.ai.maphst.networks
- 	for layer,net in pairs(networks) do
-		self.factoryBuilded[layer] = {}
- 		for index, network in pairs(net) do
-			self.factoryBuilded[layer][index] = 0
- 		end
- 	end
 	local factoryRating = {}
 	local topRatingArea = 0
 	local topRatingSpots = 0
@@ -60,15 +54,26 @@ function LabsHST:factoriesRating()
 			v.allSpots = v.allSpots / topRatingSpots
 			v.rating = (v.area+v.allSpots)/2
 			if self.ai.armyhst.factoryMobilities[i][1] == 'hov' or self.ai.armyhst.factoryMobilities[i][1] == 'amp' then
-				v.rating = v.rating * 0.66
+				if factoryRating['armsy'].area < 0.33 then
+					v.rating = 0
+
+				elseif factoryRating['armvp'].area < 0.6 and factoryRating['armsy'].area < 0.6 then
+
+					v.rating = 1
+
+				else
+					v.rating = v.rating * 0.4
+				end
 			end
 
 			t[i] = v.rating
+			self:EchoDebug('tmp',i,v.rating)
 		end
 	end
 	local sorting = {}
 	local rank = {}
 	for name, rating in pairs(t) do
+
         self:EchoDebug('name,rating,rank[rating]',name,rating,rank[rating])
 		if not rank[rating] then
 			rank[rating] = {}
@@ -81,52 +86,52 @@ function LabsHST:factoriesRating()
 	table.sort(sorting)
 	local factoriesRanking = {}
 	local ranksByFactories = {}
-	for i,v in pairs(sorting) do
+	for i= #sorting,1,-1 do--in pairs(sorting) do
+		local v = sorting[i]
 		for ii = #rank[v], 1, -1 do
 			local factoryName = table.remove(rank[v],ii)
 			table.insert(factoriesRanking, factoryName)
-			ranksByFactories[factoryName] = #factoriesRanking
-			self:EchoDebug('i-factoryname',(i .. ' ' .. factoryName))
+			ranksByFactories[factoryName] = t[factoryName]
+			self:EchoDebug('i-factoryname',i,factoryName,t[factoryName])
 		end
 	end
 	self.factoryRating = factoriesRanking
 	self.ranksByFactories = ranksByFactories
+	for i,v in pairs(self.factoryRating) do
+		self:EchoDebug(i,v,self.ranksByFactories[v])
+	end
 end
 
 function LabsHST:FactoriesUnderConstruction()
-	for id,sketch in pairs(self.ai.buildingshst.sketch) do
-		if self.ai.armyhst.factoryMobilities[sketch.unitName] then
-			self:EchoDebug('factory under contruction',sketch.unitName,'at',sketch.position.x,sketch.position.z)
+	for id,project in pairs(self.ai.buildingshst.builders) do
+		if self.ai.armyhst.factoryMobilities[project.unitName] then
+			self:EchoDebug('factory under contruction',project.unitName,'at',project.position.x,project.position.z)
 			return true
 		end
 	end
 end
 
-function LabsHST:ConditionsToBuildFactories2()
-	local fatoryCount = 0
+function LabsHST:EconomyToBuildFactories()
+	local factoryCount = 0
 	for id,factory in pairs(self.labs) do
-		fatoryCount = fatoryCount + 1
+		factoryCount = factoryCount + 1
 	end
-	if self.ai.Energy.income > factoryCount * 800 then
+	local factoryCountPow = factoryCount * factoryCount
+	if self.ai.overviewhst.ECONOMY >= factoryCount * 4 or self.ai.Energy.income > factoryCountPow * 800 then
 		return true
 	end
+	self:EchoDebug('not economy to build factory')
 end
 
 function LabsHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
-	if self:FactoriesUnderConstruction() then
-		return
-	end
-	if not self:ConditionsToBuildFactories2() then
-		return
-	end
-	self:UpdateFactories()
 	self.ai.buildingshst:VisualDBG()--here cause buildingshst have no update
 end
 
 function LabsHST:UpdateFactories()
 	local factoriesPreCleaned = self:PrePositionFilter()
-	local availableFactories = self:AvailableFactories(factoriesPreCleaned)
+	return self:AvailableFactories(factoriesPreCleaned)
+
 
 end
 
@@ -135,14 +140,15 @@ function LabsHST:AvailableFactories(factoriesPreCleaned)
 	for order,factoryName in pairs (factoriesPreCleaned) do
 		local utype = self.game:GetTypeByName(factoryName)
 		for id,role in pairs(self.ai.buildingshst.roles) do
-		local builderType = self.game:GetTypeByName(builderName)
+		local builderType = self.game:GetTypeByName(role.builderName)
 			if builderType:CanBuild(utype) then
 				table.insert(availableFactories,factoryName)
-				(factoryName , ' is available Factories' )
+				self:EchoDebug(factoryName , ' is available Factories' ,self.ranksByFactories[factoryName])
 				break
 			end
 		end
 	end
+	return availableFactories
 end
 
 function LabsHST:GetLabListParam(param,value)
@@ -223,39 +229,75 @@ end
 function LabsHST:FactoryPosition(factoryName,builder)
 	local utype = self.game:GetTypeByName(factoryName)
 	local site = self.ai.buildingshst
-	local p
-	if p = site:BuildNearNano(builder, utype) then
+	local p = site:BuildNearNano(builder, utype)
+	if p then
 		self:EchoDebug(' position to build', factoryName, 'found at', p.x,p.z,'near nano')
 		return p
 	end
-	if p = site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'}) then
+	p = site:searchPosNearCategories(utype, builder,50,780,{'_nano_'})
+	if p then
 		self:EchoDebug(' position to build', factoryName, 'found at', p.x,p.z,'near _nano_ ')
 		return p
 	end
-	if p = site:searchPosNearCategories(utype, builder,50,1000,{'factoryMobilities'}) then
+	p = site:searchPosNearCategories(utype, builder,50,1000,{'factoryMobilities'})
+	if p then
 		self:EchoDebug(' position to build', factoryName, 'found at', p.x,p.z,'near factory')
 		return p
 	end
-	if p = site:searchPosNearCategories(utype, builder,50,nil,{'_mex_'}) then
+	p = site:searchPosNearCategories(utype, builder,50,nil,{'_mex_'})
+	if p then
 		self:EchoDebug(' position to build', factoryName, 'found at', p.x,p.z,'near mex')
 		return p
 	end
-	if p = site:searchPosNearCategories(utype, builder,50,nil,{'_llt_'}) then
+	p = site:searchPosNearCategories(utype, builder,50,nil,{'_llt_'})
+	if p then
 		self:EchoDebug(' position to build', factoryName, 'found at', p.x,p.z,'near llt')
 		return p
 	end
 end
 
-function LabsHST:PostPositionalFilter(factoryName,p)
+function LabsHST:PostPositionalFilter(p,factoryName)
 	for i, mtype in pairs(self.ai.armyhst.factoryMobilities[factoryName]) do
 		local network = self.ai.maphst:MobilityNetworkHere(mtype, p)
-		if not self.ai.maphst.networks[mtype][network].area / self.ai.maphst.gridArea > 0.05 then--5% of the maphst
+		if  (self.ai.maphst.networks[mtype][network].area / self.ai.maphst.gridArea) < 0.05 then--5% of the maphst
 			self:EchoDebug('area to small to build lab: ',factoryName)
 			return
 		end
-		if not #self.ai.maphst.networks[mtype][network].metals / #self.ai.maphst.metals > 0.05 then--5% of the metals
+		if #self.ai.maphst.networks[mtype][network].metals / #self.ai.maphst.METALS < 0.05 then--5% of the metals
 			self:EchoDebug('not enough spots to build lab: ', factoryName)
 			return
 		end
 	end
+	return p,factoryName
+end
+
+function LabsHST:GetBuilderFactory(builder)
+
+	if self:FactoriesUnderConstruction() then
+		return
+	end
+	if not self:EconomyToBuildFactories() then
+		return
+	end
+	local availableFactories = self:UpdateFactories()
+	if builder:CanBuild(availableFactories[1]) then
+		local p = self:FactoryPosition(availableFactories[1],builder)
+		if p then
+			p = self:PostPositionalFilter(p,availableFactories[1])
+			if p then
+				return p,availableFactories[1]
+			end
+		end
+	end
+	--[[for rank,lab in pairs(availableFactories) do
+		if builder:CanBuild(lab) then
+			local p = self:FactoryPosition(lab,builder)
+			if p then
+				self:PostPositionalFilter(p,lab)
+				if p then
+					return p,lab
+				end
+			end
+		end
+	end]]
 end

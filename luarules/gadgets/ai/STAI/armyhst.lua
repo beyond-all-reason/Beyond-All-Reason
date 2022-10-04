@@ -669,8 +669,8 @@ ArmyHST.factoryMobilities = {
 	armamsub = {"amp","sub"},
 	corgant = {"bot", "amp"},
 	armshltx = {"bot", "amp"},
-	corgantuw = {"amp"},
-	armshltxuw = {"amp"},
+	corgantuw = {"amp","hov"},
+	armshltxuw = {"amp","hov"},
 	}
 
 -- for calculating what factories to build

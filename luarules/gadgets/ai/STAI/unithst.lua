@@ -9,7 +9,7 @@ function UnitHST:internalName()
 end
 
 function UnitHST:Init()
-	local RAM = gcinfo()
+	--local RAM = gcinfo()
 	self.units = {}
 	self.myActiveUnits = {}
 	self.myInactiveUnits = {}
@@ -17,7 +17,7 @@ function UnitHST:Init()
 	self.behaviourFactory = BehaviourFactory()
 	self.behaviourFactory:SetAI(self.ai)
 	self.behaviourFactory:Init()
-	print ('unithst',gcinfo() - RAM)
+	--self:EchoDebug('unithst',gcinfo() - RAM)
 
 end
 

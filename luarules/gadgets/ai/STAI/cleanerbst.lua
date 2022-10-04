@@ -18,12 +18,10 @@ function CleanerBST:Update()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'CleanerBST' then return end
 	if not self.ai.cleanhst.theCleaner[self.id]   then
 		self:EchoDebug(self.id,'do update')
-		self:Patroling()--TEST
 		self:Search()
 	else
 		self:EchoDebug('cleanthis', self.ai.cleanhst.theCleaner[self.id])
 		self:Clean(self.ai.cleanhst.theCleaner[self.id])
-		--self.unit:ElectBehaviour()
 	end
 end
 
@@ -88,7 +86,7 @@ function CleanerBST:Search()
 			self:EchoDebug('name',unitName)
 			self.ai.cleanhst.theCleaner[self.id] = targetID
 			self.ai.cleanhst.dirt[targetID] = self.id
-			return
+			return targetID
 		end
 	end
 end

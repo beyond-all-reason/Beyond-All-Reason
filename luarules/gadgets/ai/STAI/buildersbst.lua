@@ -5,7 +5,7 @@ function BuildersBST:Name()
 end
 
 function BuildersBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.active = false
 	self.watchdogTimeout = 1800
 	local u = self.unit:Internal()
@@ -23,7 +23,6 @@ function BuildersBST:Init()
 end
 
 function BuildersBST:OwnerBuilt()
-	--if self:IsActive() then self.progress = true end
 end
 
 function BuildersBST:OwnerDead()
@@ -42,11 +41,6 @@ function BuildersBST:OwnerIdle()
 	self.unit:ElectBehaviour()
 end
 
--- function BuildersBST:OwnerMoveFailed()
--- 	-- sometimes builders get stuck
--- 	self:Warn('builder stuck',self.id)
--- 	self:OwnerIdle()
--- end
 function BuildersBST:Activate()
 	local buildings = self.ai.buildingshst
 	if buildings.builders[self.id]then
@@ -77,18 +71,16 @@ function BuildersBST:Update()
 		return
 	end
 	local f = self.game:Frame()
--- 	self.ai.buildingshst:VisualDBG()
 	if not self:IsActive() then
 		return
 	end
-	--self.game:StartTimer(self.role..'builderbst')
-	--self.game:StartTimer(self.name..'builderbst')
 	self.builder, self.sketch = self.ai.buildingshst:GetMyProject(self.id)
 	if not self.sketch and not self.builder and self.failOut then
 		self:EchoDebug(self.name,'failout')
 		if f > self.failOut + 600 then --wait 360 frame before check again queue
 			self:EchoDebug(self.name,'failout reset')
 			self.failOut = nil
+			self.fails = 0
 		end
 
 	elseif self.builder and self.sketch and self.sketch.unitID then
@@ -98,16 +90,12 @@ function BuildersBST:Update()
 		self:EchoDebug(self.name ,self.role,'move to',self.builder.position.x,self.builder.position.z , 'to build', self.builder.unitName )
 		self:Watchdog()
 
-	elseif self.sketch and not self.builder then
+	elseif self.sketch and not self.builder then--WARNING  have a building in build and no builder in construction
 		self:Warn(' no builder to execute sketch',self.sketch)
-		--ERROR impossible have a building in build and no builder in construction
+
 	else
--- 		self.game:StartTimer(self.unit:Internal():Name() .. ' bst ' .. self.role)
 		self:ProgressQueue()
--- 		self.game:StopTimer(self.unit:Internal():Name() .. ' bst '.. self.role)
 	end
-	--self.game:StopTimer(self.name..'builderbst')
-	--self.game:StopTimer(self.role..'builderbst')
 end
 
 function BuildersBST:CategoryEconFilter(cat,param,name)
@@ -152,8 +140,6 @@ function BuildersBST:specialFilter(cat,param,name)
 		elseif  self.ai.armyhst.unitTable[name].techLevel > 1 then
 			check= true
  		end
-				--local factoryPos = factory.unit:Internal():GetPosition()
-				--local nanoNear = buildSiteHST:unitsNearCheck(factoryPos,400,level * 10,'_nano_')
 	elseif cat == '_wind_' then
 		check = map:AverageWind() > 7
 	elseif cat == '_tide_' then
@@ -181,7 +167,6 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 	local builderPos = builder:GetPosition()
 	local army = self.ai.armyhst
 	local site = self.ai.buildingshst
-	local closestFactory = self.ai.buildingshst:ClosestHighestLevelFactory(builderPos)
 	if loc and type(loc) == 'table' then
 		if loc.categories then
 			for index, category in pairs(loc.categories) do
@@ -225,34 +210,28 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 		local currentLevel = 0
 		local target = nil
 		local mtype = self.ai.armyhst.unitTable[self.name].mtype
-		for level, factories in pairs (self.ai.factoriesAtLevel)  do
-			self:EchoDebug( ' analysis for level ' .. level)
-			for index, factory in pairs(factories) do
-				local factoryName = factory.unit:Internal():Name()
-				if mtype == self.ai.armyhst.factoryMobilities[factoryName][1] and level > currentLevel then
-					if not self.ai.buildingshst:unitsNearCheck(factory.unit:Internal():GetPosition(),390,10+(5*level),{'_nano_'}) then
-						self:EchoDebug( self.name .. ' can push up self mtype ' .. factoryName)
-						currentLevel = level
-						target = factory
-					end
+		for id,lab in pairs(self.ai.labshst.labs) do
+			print(mtype,lab.level,self.ai.armyhst.factoryMobilities[lab.name][1],currentLevel)
+			if mtype == self.ai.armyhst.factoryMobilities[lab.name][1] and lab.level >= currentLevel then
+				if not self.ai.buildingshst:unitsNearCheck(lab.position,390,10+(5*lab.level),{'_nano_'}) then
+					self:EchoDebug( self.name, ' can push up self mtype ', lab.name)
+					currentLevel = lab.level
+					target = lab
 				end
 			end
 		end
 		if target then
-			self:EchoDebug(self.name..' search position for nano near ' ..target.unit:Internal():Name())
-			local factoryPos = target.unit:Internal():GetPosition()
-
-			POS = site:ClosestBuildSpot(builder, factoryPos, utype,nil,nil,nil,390)
+			self:EchoDebug(self.name,' search position for nano near ',target.name )
+			POS = site:ClosestBuildSpot(builder, target.position, utype,nil,nil,nil,390)
 		end
 		if not POS then
-			local factoryPos = site:ClosestHighestLevelFactory(builder:GetPosition(), 5000)
-			if factoryPos then
+			local lab = site:ClosestHighestLevelFactory(builder:GetPosition(), 5000)
+			if lab then
 				self:EchoDebug("searching for top level factory")
-				POS = site:ClosestBuildSpot(builder, factoryPos, utype,nil,nil,nil,390)
+				POS = site:ClosestBuildSpot(builder, lab.position, utype,nil,nil,nil,390)
 			end
 		end
 	end
-
 	if POS then
 		self:EchoDebug('found pos for .. ' ,value)
 		return utype, value, POS
@@ -296,9 +275,6 @@ function BuildersBST:getOrder(builder,params)
 	end
 end
 
-
-
-
 function BuildersBST:ProgressQueue()
 	self:EchoDebug(self.name," progress queue",self.role,self.idx,#self.queue)
 	if self.isCommander then
@@ -322,41 +298,29 @@ function BuildersBST:ProgressQueue()
 
 		self:EchoDebug('jobName',jobName)
 		if JOB and jobName then
-			--self.game:StartTimer(jobName .. ' job')
 			self:EchoDebug(self.name .. " filtering...",jobName)
 			local success = false
 			if JOB.special and jobName then
-				--self.game:StartTimer(self.unit:Internal():Name() .. ' special ' .. self.role)
 				jobName = self:specialFilter(JOB.category,JOB.special,jobName)
-				--self.game:StopTimer(self.unit:Internal():Name() .. ' special ' .. self.role)
 			end
 			if JOB.numeric and jobName then
-				--self.game:StartTimer(self.unit:Internal():Name() .. ' numeric ' .. self.role)
 				jobName = self:limitedNumber(jobName, JOB.numeric)
-				--self.game:StopTimer(self.unit:Internal():Name() .. ' numeric ' .. self.role)
 			end
 			if JOB.duplicate and jobName then
-				--self.game:StartTimer(self.unit:Internal():Name() .. ' dupli ' .. self.role)
 				if self.ai.buildingshst:CheckForDuplicates(jobName) then
 					jobName = nil
 				end
-				--self.game:StopTimer(self.unit:Internal():Name() .. ' dupli ' .. self.role)
 			end
 			if JOB.economy and jobName then
-				--self.game:StartTimer(self.unit:Internal():Name() .. ' economy ' .. self.role)
 				jobName = self:CategoryEconFilter(JOB.category,JOB.economy,jobName)
-				--self.game:StopTimer(self.unit:Internal():Name() .. ' economy ' .. self.role)
 			end
 			if jobName  then
 				utype = self.game:GetTypeByName(jobName)
 			end
 			if jobName and utype and not p then
-				--self.game:StartTimer(self.unit:Internal():Name() .. ' place ' .. self.role)
 				utype, jobName, p = self:findPlace(utype, jobName,JOB.category,JOB.location)
-				--self.game:StopTimer(self.unit:Internal():Name() .. ' place ' .. self.role)
 				self:EchoDebug('p',p)
 			end
-			--self.game:StopTimer(jobName .. ' job')
 			if jobName and not utype   then
 				self:Warn('warning' , self.name , " cannot build:",jobName,", couldnt grab the unit type from the engine")
 				return
@@ -369,8 +333,7 @@ function BuildersBST:ProgressQueue()
 				self.ai.buildingshst:NewPlan(jobName, p, self.id,self.name)
 				local facing = self.ai.buildingshst:GetFacing(p)
 				local command = self.unit:Internal():Build(jobName, p, facing)
-				self.watchdogTimeout = math.huge--game:Frame() + math.max(self.ai.tool:Distance(self.unit:Internal():GetPosition(), p) * 1.5, 460)
-
+				self.watchdogTimeout = math.huge
 				self.fails = 0
 				self.failOut = nil
 				self.assistant = false
@@ -379,7 +342,7 @@ function BuildersBST:ProgressQueue()
 				return true
 			else
 				self.fails = self.fails + 1
-				if self.fails >  #self.queue +1 then
+				if self.fails >  #self.queue  then
 					self.failOut = self.game:Frame()
 					if self.ai.buildingshst.roles[self.id].role == 'expand' then
 						self.ai.buildingshst.roles[self.id].role = 'support'
@@ -388,12 +351,8 @@ function BuildersBST:ProgressQueue()
 					elseif self.ai.buildingshst.roles[self.id].role == 'default' then
 						self.ai.buildingshst.roles[self.id].role = 'expand'
 					end
-
-
-
 					self:assist()
 					return
-
 				end
 			end
 		end
@@ -465,23 +424,3 @@ function BuildersBST:assist()
 
 	end
 end
-
-
-
---[[
-function BuildersBST:GetAmpOrGroundWeapon()
-	if self.ai.enemyBasePosition then
-		if self.ai.maphst:MobilityNetworkHere('veh', self.position) ~= self.ai.maphst:MobilityNetworkHere('veh', self.ai.enemyBasePosition) and self.ai.maphst:MobilityNetworkHere('amp', self.position) == self.ai.maphst:MobilityNetworkHere('amp', self.ai.enemyBasePosition) then
-			self:EchoDebug('canbuild amphibious because of enemyBasePosition')
-			return true
-		end
-	end
-	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]
-	local network = self.ai.maphst:MobilityNetworkHere(mtype, self.position)
-	if not network or not self.ai.labshst.factoryBuilded[mtype] or not self.ai.labshst.factoryBuilded[mtype][network] then
-		self:EchoDebug('canbuild amphibious because ' .. mtype .. ' network here is too small or has not enough spots')
-		return true
-	end
-	return false
-end
-]]

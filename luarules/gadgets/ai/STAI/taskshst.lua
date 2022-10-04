@@ -745,7 +745,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_convs_' ,
 			economy = function(_,param,name)--ecofunc()
-					return E.income > E.usage * 1.1 and E.full > 0.8 and  E.income > 500
+					return (E.income > E.usage * 1.1 and E.full > 0.9 and  E.income > 200) or (self.ai.ecohst.extraEnergy > 100 and self.ai.tool:countFinished({'_convs_'}) == 0)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter

@@ -52,7 +52,7 @@ function MapHST:basicMapInfo()--capture and set foundamental map info
 	self.elmoMapCenter = {x = self.elmoMapSizeX/2,y = map:GetGroundHeight(self.elmoMapSizeX/2,self.elmoMapSizeZ/2), z = self.elmoMapSizeZ/2}
 	self.elmoMapMaxCenterDistance = self.ai.tool:distance({x=0,y=0,z=0},self.elmoMapCenter)
 	self.elmoMapMaxDistance = self.ai.tool:distance({x=0,y=0,z=0},{x=self.elmoMapSizeX,y=map:GetGroundHeight(self.elmoMapSizeX,self.elmoMapSizeZ),z=self.elmoMapSizeZ})
-	print('self.elmoMapMaxDistance',self.elmoMapMaxDistance,'self.elmoMapMaxCenterDistance',self.elmoMapMaxCenterDistance)
+	self:EchoDebug('self.elmoMapMaxDistance',self.elmoMapMaxDistance,'self.elmoMapMaxCenterDistance',self.elmoMapMaxCenterDistance)
 	self:EchoDebug(self.ai.tool:gcd(self.elmoMapSizeX,self.elmoMapSizeZ))
 	self.elmoArea = self.elmoMapSizeX * self.elmoMapSizeZ
 	self.gridSize = 256 --math.max( math.floor(math.max(MapHST.mapSize.x * 8, MapHST.mapSize.z * 8) / 128),32)-- don't make grids smaller than 32
@@ -370,17 +370,18 @@ function MapHST:SimplifyMetalSpots(number) --reduce the number of metal spots fo
 	return spots
 end
 
-function MapHST:metalScan()--insert GEOS in to the correct CELL and layer's network
+function MapHST:metalScan()--insert MEX in to the correct CELL and layer's network
 	for i, spot in pairs(self.METALS) do
 		local CELL = self:GetCell(spot,self.GRID)
 		table.insert(CELL.metalSpots,spot)
 		for layer,nets in pairs(self.networks) do
-			if nets then
-				for index,network in pairs(nets) do
-	-- 				if network  then
-						table.insert(network.metals,spot)
-	-- 				end
-				end
+			if CELL.moveLayers[layer] then
+				table.insert(self.networks[layer][CELL.moveLayers[layer]].metals,spot)
+				--for index,network in pairs(nets) do
+	 			--	if network  then
+				--		table.insert(self.networks[layer][index].metals,spot)
+	 			--	end
+				--end
 			end
 		end
 		if map:CanBuildHere(self.ai.armyhst.UWMetalSpotCheckUnitType, spot) then
@@ -396,10 +397,13 @@ function MapHST:geoScan()--insert GEOS in to the correct CELL and layer's networ
 		local CELL = self:GetCell(spot,self.GRID)
 		table.insert(CELL.geoSpots,spot)
 		for layer,nets in pairs(self.networks) do
-			if nets then
-				for index,network in pairs(nets) do
-						table.insert(network.geos,spot)
-				end
+			if CELL.moveLayers[layer] then
+				table.insert(self.networks[layer][CELL.moveLayers[layer]].geos,spot)
+				--for index,network in pairs(nets) do
+				--	if network then
+				--		table.insert(self.networks[layer][index].geos,spot)
+				--	end
+				--end
 			end
 		end
 	end
@@ -530,7 +534,7 @@ function MapHST:spotToCellMoveTest()--check how many time a unit(i chose command
 											doing[X1..';'..Z1] = X2..';'..Z2
 											local distance_to_goal = self.ai.tool:DistanceXZ(POS2.x, POS2.z, last[1], last[3])
 											if distance_to_goal > self.gridSizeHalf then
-												print('WARNING THIS PATH IS INCOMPLETE',POS1.x, POS1.z, last[1], last[3],className,POS2.x,POS2.z,distance_to_goal)
+												self:Warn('WARNING THIS PATH IS INCOMPLETE',POS1.x, POS1.z, last[1], last[3],className,POS2.x,POS2.z,distance_to_goal)
 											else
 												counter = counter + 1
 												local first = table.remove(waypoints)
@@ -646,16 +650,13 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 	local spotDistance = math.huge
 
 	if not layer or not net then return end
-	print(unittype,uname,layer,net,#self.networks[layer][net].metals)
 	for index, spot in pairs(self.networks[layer][net].metals) do
-		--print(index,spot.x,spot.z)
 		if self:UnitCanGoHere(builder, spot) then
 			if not self.ai.buildingshst:PlansOverlap(spot, uname) then
 				if self.ai.targethst:IsSafeCell(spot, builder) then
 					if map:CanBuildHere(unittype, spot) then
 						local CELL = self:GetCell(spot,self.ai.loshst.ENEMY)
 						if not CELL or CELL.ENEMY == 0 then
-							--local Distance = self.ai.tool:Distance(position,spot)
 							local distance = self.ai.tool:Distance(position,spot)
 							--print(distance-Distance)
  							--if distance < 300 then
@@ -667,22 +668,21 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 								end
  							--end
 						else
-							print(spot.x,spot.z,'reject cause ENEMY')
+							self:EchoDebug(spot.x,spot.z,'reject cause ENEMY')
 						end
 					else
-						print(spot.x,spot.z,'reject cause CANTBUILDHERE')
+						self:EchoDebug(spot.x,spot.z,'reject cause CANTBUILDHERE')
 					end
 				else
-					print(spot.x,spot.z,'reject cause NOTSAFE')
+					self:EchoDebug(spot.x,spot.z,'reject cause NOTSAFE')
 				end
 			else
-				print(spot.x,spot.z,'reject cause PLANsOverlap')
+				self:EchoDebug(spot.x,spot.z,'reject cause PLANsOverlap')
 			end
 		else
-			print(spot.x,spot.z,'reject cause CANT GO HER')
+			self:EchoDebug(spot.x,spot.z,'reject cause CANT GO HER')
 		end
 	end
-	--print('returned',spotPosition.x,spotPosition.z)
 	return spotPosition
 end
 

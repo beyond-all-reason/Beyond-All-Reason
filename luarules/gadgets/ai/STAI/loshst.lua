@@ -353,7 +353,6 @@ function LosHST:setCellLos(grid,unit,X,Z)
 	grid[X] = grid[X] or {}
 	grid[X][Z] = grid[X][Z] or self:setupCell(grid,X,Z)
 	local CELL = grid[X][Z]
--- 	print(unit,unit:Name())
 	CELL.unitsCount = CELL.unitsCount + 1
 	CELL.units[unit:ID()] = unit:Name()
 	local name = unit:Name()

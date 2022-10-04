@@ -13,7 +13,7 @@ function LabsBST:Init()
 	self.position = u:GetPosition()
 	self:EchoDebug(self.name)
 	self.spec = self.ai.armyhst.unitTable[self.name]
-	self.mtype = self.ai.armyhst.factoryMobilities[self.name]
+	self.mtype = self.ai.armyhst.factoryMobilities[self.name][1]
 	self.network = self.ai.maphst:MobilityNetworkHere(mtype,self.position)
 	self.isAirFactory = self.mtype == 'air'
 	self.qIndex = 1
@@ -37,31 +37,26 @@ function LabsBST:Init()
     	x2 = self.position.x + 40,
     	z2 = self.position.z + 40,
 	}
-	self.ai.labshst.labs[self.id] = {id = self.id,behaviour = self,name = self.name , position = self.position, underConstruction = true}
 
 end
 
-
+function LabsBST:OwnerCreated()
+	self.ai.labshst.labs[self.id] = {id = self.id,behaviour = self,name = self.name , position = self.position, underConstruction = true,level = self.spec.techLevel,exitRect = self.exitRect,mtype = self.mtype}
+end
 function LabsBST:OwnerBuilt()
 	self.ai.labshst.labs[self.id].underConstruction = nil
-	self.ai.labshst:UpdateFactories()
 end
 
 function LabsBST:OwnerDead()
 	self.ai.labshst.labs[self.id] = nil
-	self.ai.labshst:UpdateFactories()
 end
 
 function LabsBST:preFilter()
-	local techLv = self.spec.techLevel
-	local topLevel = self.ai.maxFactoryLevel
- 	local threshold = 1 - (techLv / topLevel) + 0.05
 	self:EchoDebug('prefilter threshold', threshold)
 	if self.ai.Energy.full > 0.1 and self.ai.Metal.full > 0.1 then
 		self.unit:Internal():FactoryUnWait()
 	else
 		self.unit:Internal():FactoryWait()
--- 		return true
 	end
 end
 
@@ -85,9 +80,7 @@ end
 
 function LabsBST:getQueue()
 	if self.spec.techLevel >= 3 then
-		print(self.name,'lab mode _fus_', self.ai.tool:countFinished({'_fus_'}),'t2mex',self.ai.tool:countFinished({'t2mex'}))
 		if self.ai.tool:countFinished({'_fus_'}) < 1 and self.ai.tool:countFinished({'t2mex'}) < 2 then
-
 			return self.ai.taskshst.labs.premode
 		end
 	end

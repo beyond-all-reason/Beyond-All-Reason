@@ -102,28 +102,17 @@ end
 function BuildingsHST:ClosestHighestLevelFactory(builderPos, maxDist)--TODO move in labregister or something
 	if not builderPos then return end
 	local minDist = maxDist or math.huge
-	local maxLevel = self.ai.maxFactoryLevel
-	self:EchoDebug(maxLevel .. " max factory level")
-	local factorybhvr
-	--if self.ai.factoriesAtLevel[maxLevel] ~= nil then
-		for id, lab in pairs(self.ai.labshst.labs) do
-			local dist = self.ai.tool:Distance(builderPos, lab.position)
-			if dist < minDist then
-				minDist = dist
-				factorybhvr = lab.behaviour
-			end
+	local Lab
+	local maxLevel = 0
+	for id, lab in pairs(self.ai.labshst.labs) do
+		local dist = self.ai.tool:Distance(builderPos, lab.position)
+		if lab.level >= maxLevel and dist < minDist then
+			minDist = dist
+			maxLevel = lab.level
+			Lab = lab
 		end
-	--end
-	if factorybhvr then
-		local factoryPos = factorybhvr.position
-		local newpos = api.Position()
-		newpos.x = factoryPos.x
-		newpos.z = factoryPos.z
-		newpos.y = factoryPos.y
-		return newpos, factorybhvr.unit:Internal()
-	else
-		return
 	end
+	return Lab
 end
 
 function BuildingsHST:DontBuildRectangle(x1, z1, x2, z2, unitID)
@@ -223,6 +212,9 @@ end
 
 function BuildingsHST:searchPosNearCategories(utype,builder,minDist,maxDist,categories,neighbours,number)
 	if not categories then return end
+	if self.ai.armyhst.factoryMobilities[utype:Name()] then
+		self.DebugEnabled = true
+	end
 	self:EchoDebug(categories,'searcing')
 	local army = self.ai.armyhst
 	local builderName = builder:Name()
@@ -254,9 +246,11 @@ function BuildingsHST:searchPosNearCategories(utype,builder,minDist,maxDist,cate
 		end
 
 		if p then
+			self.DebugEnabled = false
 			return p
 		end
 	end
+	self.DebugEnabled = false
 end
 
 function BuildingsHST:searchPosInList(utype, builder,minDist,maxDist,list,neighbours,number)
@@ -422,12 +416,12 @@ end
 
 function BuildingsHST:ClearMyProjects(builderID)
 	self.sketch[builderID] = nil
--- 	for id,sketch in pairs(self.sketch) do
--- 		if sketch.builderID == builderID then
--- 			self.sketch[id] = nil
--- 			break
--- 		end
--- 	end
+ 	for id,sketch in pairs(self.sketch) do
+ 		if sketch.builderID == builderID then
+ 			self.sketch[id] = nil
+ 			break
+ 		end
+ 	end
 	self.builders[builderID] = nil
 end
 
@@ -496,14 +490,22 @@ end
 function BuildingsHST:RoleCounter(builderName,targetRole)
 	local counter = 0
 	local globalCount = 0
+	local roleCount = 0
+	local nameCount = 0
 	for id,role in pairs(self.roles) do
 		globalCount = globalCount + 1
 		if role.builderName == builderName and role.role == targetRole then
 			counter = counter + 1
 		end
+		if role.builderName == builderName then
+			nameCount = nameCount + 1
+		end
+		if role.role == targetRole then
+			roleCount = roleCount + 1
+		end
+
 	end
-	print('globalCount', globalCount)
-	return counter
+	return counter,nameCount, roleCount,globalCount
 end
 
 function BuildingsHST:SetRole(builderID)
