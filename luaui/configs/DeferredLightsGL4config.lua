@@ -565,6 +565,7 @@ local unitEventLights = {
 					lifetime = 12, sustain = 0, animtype = 0},
 			},
 		},
+		--[[
 		[UnitDefNames['armstump'].id] = { -- BLINK BLINK
 			idleBlink = {
 				lightType = 'point',
@@ -576,6 +577,7 @@ local unitEventLights = {
 					lifetime = 12, sustain = 0, animtype = 0},
 			},
 		}
+		]]--
 	},
 		
 	UnitFinished = {
