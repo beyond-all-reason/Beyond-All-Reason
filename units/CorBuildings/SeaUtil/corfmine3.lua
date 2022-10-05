@@ -48,6 +48,7 @@ return {
 			removestop = true,
 			removewait = true,
 			subfolder = "corbuildings/seautil",
+			instantselfd = true,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

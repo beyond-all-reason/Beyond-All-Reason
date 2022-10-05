@@ -41,6 +41,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",
 			techlevel = 2,
+			instantselfd = true,
 		},
 		featuredefs = {
 			corpse = {
