@@ -72,6 +72,11 @@ void main()
 {
 	// take the vertex, scale it to size, and rotate it around 0,0
 	
+	if (isSphereVisibleXY(vec4(worldPos.xyz,1.0), 1.0* max(lengthwidthrotation.x, lengthwidthrotation.y))) {
+		gl_Position= vec4(0,0,-100,1);
+		return; // yay for useless visiblity culling!
+	}
+	
 	vec4 vertexPos = vec4(xyworld_xyfract.x, 0.0, xyworld_xyfract.y, 1.0);
 	vertexPos.xz *= lengthwidthrotation.xy * 0.5;
 	

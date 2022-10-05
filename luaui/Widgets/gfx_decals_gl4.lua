@@ -302,10 +302,10 @@ local decalRemoveQueue = {} -- maps gameframes to list of decals that will be re
 
 -----------------------------------------------------------------------------------------------
 -- This part is kinda useless for now, but we could prevent or control excessive decal spam right here!
-local areaResolution = 256 -- elmos per square, for a 64x map this is 
+local areaResolution = 256 -- elmos per square, for a 64x map this is uh, big.
 local decalToArea = {} -- maps instanceID to a position key on the map 
 local areaDecals = {} -- {positionkey = {decallist, totalarea},}
-local saturationThreshold = 1 * areaResolution
+local saturationThreshold = 100 * areaResolution
 local floor = math.floor
 
 local function hashPos(mapx, mapz) -- packs XZ into 1000*x + z
@@ -315,7 +315,7 @@ end
 local function initAreas() 
 	for x= areaResolution /2, Game.mapSizeX, areaResolution do 
 		for z= areaResolution /2, Game.mapSizeZ, areaResolution do 
-			areaDecals[hashPos(x,z)] = {instanceIDsToArea = {}, totalarea = 0}
+			areaDecals[hashPos(x,z)] = {instanceIDs = {}, totalarea = 0}
 		end
 	end
 end
@@ -332,7 +332,7 @@ end
 local function RemoveDecalFromArea(instanceID) 
 	local hashpos = decalToArea[instanceID]
 	if hashpos then 
-		local maparea = areaDecals[hashPos(posx,posz)]
+		local maparea = areaDecals[hashpos]
 		if maparea.instanceIDs[instanceID] then 
 			maparea.totalarea = math.max(0,maparea.totalarea - maparea.instanceIDs[instanceID])
 			maparea.instanceIDs[instanceID] = nil
@@ -341,7 +341,9 @@ local function RemoveDecalFromArea(instanceID)
 	end
 end
 
-local function CheckDecalAreaSaturation(posx, posz, width, lenght)
+local function CheckDecalAreaSaturation(posx, posz, width, length)
+	local hash = hashPos(posx,posz)
+	--Spring.Echo(hash,posx,posz, next(areaDecals))
 	return (math.sqrt(areaDecals[hashPos(posx,posz)].totalarea) > saturationThreshold)
 end
 -----------------------------------------------------------------------------------------------
@@ -448,7 +450,14 @@ function widget:DrawWorldPreUnit()
 		glCulling(GL.BACK) -- This is the correct default mode! 
 		glDepthTest(GL_LEQUAL)
 		gl.DepthMask(false)
-		
+		if false then 
+			local tricount = 4*4*2 * decalVBO.usedElements + 32*32*2*decalLargeVBO.usedElements + 4*4*32*32*2*decalExtraLargeVBO.usedElements
+			Spring.Echo(string.format("Small decal = %d, Medium decal = %d, Large decal = %d, tris = %d",
+				decalVBO.usedElements,
+				decalLargeVBO.usedElements,
+				decalExtraLargeVBO.usedElements,
+				tricount))
+		end
 	end
 end
 
@@ -483,11 +492,11 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	
+	initAreas()
 	math.randomseed(1)
 	if true then 
-		for i= 1, 100 do 
-			local w = math.random() * 32 + 2
+		for i= 1, 2000 do 
+			local w = math.random() * 15 + 7
 			w = w * w
 			local j = math.floor(math.random()*10 + 1)
 			local idx = string.format("luaui/images/decals_gl4/groundScars/t_groundcrack_%02d_a.png", j)
