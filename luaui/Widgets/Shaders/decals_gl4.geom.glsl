@@ -83,7 +83,8 @@ void main(){
 	centerpos = dataIn[0].v_centerpos;
 	rotY = rotation3dY(dataIn[0].v_lengthwidthrotation.z); // Create a rotation matrix around Y from the unit's rotation
 	//rotY = mat3(1.0);
-
+	float maxradius =  max(dataIn[0].v_lengthwidthrotation.x, dataIn[0].v_lengthwidthrotation.y);
+	if (isSphereVisibleXY(vec4(centerpos.xyz,1.0), 1.0* maxradius)) return; // yay for useless visiblity culling!
 	uvoffsets = dataIn[0].v_uvoffsets; // if an atlas is used, then use this, otherwise dont
 	decalDimensions = vec3(dataIn[0].v_lengthwidthrotation.x * 0.5, 0.0, dataIn[0].v_lengthwidthrotation.y * 0.5);
 	g_parameters = dataIn[0].v_parameters;
