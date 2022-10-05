@@ -177,13 +177,14 @@ local callInLists = {
 	'TextInput',
 	'MousePress',
 	'MouseWheel',
-	"ControllerAdded",
-	"ControllerRemoved",
-	"ControllerConnected",
-	"ControllerDisconnected",
-	"ControllerButtonUp",
-	"ControllerButtonDown",
-	"ControllerAxisMotion",
+	'ControllerAdded',
+	'ControllerRemoved',
+	'ControllerConnected',
+	'ControllerDisconnected',
+	'ControllerRemapped',
+	'ControllerButtonUp',
+	'ControllerButtonDown',
+	'ControllerAxisMotion',
 	'IsAbove',
 	'GetTooltip',
 	'GroupChanged',
@@ -1557,27 +1558,36 @@ function widgetHandler:ControllerDisconnected(instanceId)
 	return false
 end
 
-function widgetHandler:ControllerButtonUp(axis, value, name)
+function widgetHandler:ControllerRemapped(instanceId)
+	for _, w in ipairs(self.ControllerRemappedList) do
+		if w:ControllerRemapped(instanceId) then
+			return true
+		end
+	end
+	return false
+end
+
+function widgetHandler:ControllerButtonUp(instanceId, button, state, name)
 	for _, w in ipairs(self.ControllerButtonUpList) do
-		if w:ControllerButtonUp(axis, value, name) then
+		if w:ControllerButtonUp(instanceId, button, state, name) then
 			return true
 		end
 	end
 	return false
 end
 
-function widgetHandler:ControllerButtonDown(axis, value, name)
+function widgetHandler:ControllerButtonDown(instanceId, button, state, name)
 	for _, w in ipairs(self.ControllerButtonDownList) do
-		if w:ControllerButtonDown(axis, value, name) then
+		if w:ControllerButtonDown(instanceId, button, state, name) then
 			return true
 		end
 	end
 	return false
 end
 
-function widgetHandler:ControllerAxisMotion(axis, value, name)
+function widgetHandler:ControllerAxisMotion(instanceId, axis, value, name)
 	for _, w in ipairs(self.ControllerAxisMotionList) do
-		if w:ControllerAxisMotion(axis, value, name) then
+		if w:ControllerAxisMotion(instanceId, axis, value, name) then
 			return true
 		end
 	end
