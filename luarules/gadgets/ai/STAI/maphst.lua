@@ -14,7 +14,7 @@ local mCeil = math.ceil
 
 function MapHST:Init()
 
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self:EchoDebug('MapHST START')
 	if self.map_loaded then
 		print('map already loaded')

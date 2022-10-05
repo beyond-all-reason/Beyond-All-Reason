@@ -397,7 +397,7 @@ end
 function AttackHST:SquadsTargetDefense(SQUAD)
 	local targetDist = math.huge
 	local targetCell
-	for index,blob in pairs(self.ai.targethst.BLOBS)do
+	for index,blob in pairs(self.ai.targethst.MOBILE_BLOBS)do
 		local targetHandled = self:SquadsTargetHandled(blob.defend)
 		if not targetHandled or targetHandled == SQUAD.squadID then
 			local dist = self.ai.tool:distance(blob.defend.POS,SQUAD.position)
@@ -454,7 +454,7 @@ function AttackHST:SquadResetTarget(squad)
 	squad.step = nil
 	squad.idleCount = 0
 end
-
+--[[
 function AttackHST:getFrontCell(squad,representative)
 	if not squad then return end
 	if not self.ai.targethst.distals then return end
@@ -472,7 +472,7 @@ function AttackHST:getFrontCell(squad,representative)
 	self:EchoDebug('best frontal Target',bestTarget)
 	return bestTarget
 end
-
+]]
 
 function AttackHST:RemoveMember(attkbhvr)
 	if attkbhvr == nil then return end

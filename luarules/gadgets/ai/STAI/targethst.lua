@@ -10,7 +10,9 @@ end
 
 function TargetHST:Init()
 	self.DebugEnabled = false
- 	self.BLOBS = {}
+
+	self.IMMOBILE_BLOBS = {}
+	self.MOBILE_BLOBS = {}
 	self.pathModParam = 0.3
 	self.pathModifierFuncs = {}
 	self.enemyFrontList = {}
@@ -19,10 +21,12 @@ end
 function TargetHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	self:EnemiesCellsAnalisy()
-	self:ScanEnemyCell()
-	self:perifericalTarget()
-	self:enemyFront()
-	self:GetBlobs()
+	--self:ScanEnemyCell()
+	--self:perifericalTarget()
+	--self:enemyFront()
+	self:GetMobileBlobs()
+	self:GetImmobileBlobs()
+
 	self:drawDBG()
 end
 
@@ -46,21 +50,20 @@ function TargetHST:EnemiesCellsAnalisy() --MOVE TO TACTICALHST!!!
 	end
 end
 
-
-
-function TargetHST:GetBlobs()
+--[[
+function TargetHST:GetBlobs(GRID,PARAM,MATH)
 	self.blobchecked = {}
-	self.BLOBS = {}
+	self[GRID] = {}
 	for X, cells in pairs(self.ai.loshst.ENEMY) do
 		for Z,cell in pairs( cells) do
 			local blobref = X..':'..Z
 			if not self.blobchecked[blobref] then
-				self:blobCell(self.ai.loshst.ENEMY,'SPEED',X,Z,blobref)
+				self:blobCell(self.ai.loshst.ENEMY,PARAM,X,Z,blobref,GRID,MATH)
 			end
 		end
 	end
 	self.blobchecked = nil
-	for ref, blob in pairs(self.BLOBS) do
+	for ref, blob in pairs(self[GRID]) do
 		for i,v in pairs(blob.cells) do
 			for id,name in pairs(v.units) do
 				blob.units[id] = name
@@ -87,21 +90,141 @@ function TargetHST:GetBlobs()
 	end
 end
 
-function TargetHST:blobCell(grid,param,x,z,blobref)--rolling on the cell to extrapolate blob of param
+function TargetHST:blobCell(grid,param,x,z,blobref,GRID,MATH)--rolling on the cell to extrapolate blob of param
+	self.blobchecked[x .. ':' .. z] = true
+	if grid[x] and grid[x][z] and grid[x][z][param] then
+		local value
+ 		if MATH == '>' then
+ 			value = grid[x][z][param] > 0
+ 		elseif MATH == '<' then
+ 			value = grid[x][z][param] < 0
+		elseif MATH == '==' then
+			value = grid[x][z][param] == 0
+		end
+		if value then
+
+			self[GRID][blobref] = self[GRID][blobref] or {metal = 0,position = {x=0,y=0,z=0},cells = {},units={},defend = nil}
+			table.insert(self[GRID][blobref].cells,grid[x][z])
+			for X = -1, 1,1 do
+				for Z = -1,1,1 do
+					if not self.blobchecked[x+X..':'..z+Z] then
+						self:blobCell(grid,param,x+X,z+Z,blobref)
+					end
+				end
+			end
+		end
+	end
+end
+]]
+
+function TargetHST:GetMobileBlobs()
+	self.blobchecked = {}
+	self.MOBILE_BLOBS = {}
+	for X, cells in pairs(self.ai.loshst.ENEMY) do
+		for Z,cell in pairs( cells) do
+			local blobref = X..':'..Z
+			if not self.blobchecked[blobref] then
+				self:blobMobileCell(self.ai.loshst.ENEMY,'SPEED',X,Z,blobref)
+			end
+		end
+	end
+	self.blobchecked = nil
+	for ref, blob in pairs(self.MOBILE_BLOBS) do
+		for i,v in pairs(blob.cells) do
+			for id,name in pairs(v.units) do
+				blob.units[id] = name
+			end
+			blob.position.x = blob.position.x + v.POS.x
+			blob.position.z = blob.position.z + v.POS.z
+			blob.metal = blob.metal + v.metal
+		end
+		blob.position.x = blob.position.x / #blob.cells
+		blob.position.z = blob.position.z / #blob.cells
+		blob.position.y = map:GetGroundHeight(blob.position.x,blob.position.z)
+		local defendDist = math.huge
+		local defendCell = nil
+		for X, cells in pairs(self.ai.loshst.OWN) do
+			for Z, cell in pairs(cells) do
+				local dist = self.ai.tool:distance(cell.POS,blob.position)
+				if dist < defendDist then
+					defendDist = dist
+					defendCell = cell
+				end
+			end
+		end
+		blob.defend = defendCell
+	end
+end
+
+function TargetHST:blobMobileCell(grid,param,x,z,blobref)--rolling on the cell to extrapolate blob of param
 	self.blobchecked[x .. ':' .. z] = true
 	if grid[x] and grid[x][z] and grid[x][z][param] and grid[x][z][param] > 0 then
-		self.BLOBS[blobref] = self.BLOBS[blobref] or {metal = 0,position = {x=0,y=0,z=0},cells = {},units={},defend = nil}
-		table.insert(self.BLOBS[blobref].cells,grid[x][z])
+		self.MOBILE_BLOBS[blobref] = self.MOBILE_BLOBS[blobref] or {metal = 0,position = {x=0,y=0,z=0},cells = {},units={},defend = nil}
+		table.insert(self.MOBILE_BLOBS[blobref].cells,grid[x][z])
 		for X = -1, 1,1 do
 			for Z = -1,1,1 do
 				if not self.blobchecked[x+X..':'..z+Z] then
-					self:blobCell(grid,param,x+X,z+Z,blobref)
+					self:blobMobileCell(grid,param,x+X,z+Z,blobref)
 				end
 			end
 		end
 	end
 end
 
+function TargetHST:GetImmobileBlobs()
+	self.blobchecked = {}
+	self.IMMOBILE_BLOBS = {}
+	for X, cells in pairs(self.ai.loshst.ENEMY) do
+		for Z,cell in pairs( cells) do
+			local blobref = X..':'..Z
+			if not self.blobchecked[blobref] then
+				self:blobImmobileCell(self.ai.loshst.ENEMY,'IMMOBILE',X,Z,blobref)
+			end
+		end
+	end
+	self.blobchecked = nil
+	for ref, blob in pairs(self.IMMOBILE_BLOBS) do
+		for i,v in pairs(blob.cells) do
+			for id,name in pairs(v.units) do
+				blob.units[id] = name
+			end
+			blob.position.x = blob.position.x + v.POS.x
+			blob.position.z = blob.position.z + v.POS.z
+			blob.metal = blob.metal + v.metal
+		end
+		blob.position.x = blob.position.x / #blob.cells
+		blob.position.z = blob.position.z / #blob.cells
+		blob.position.y = map:GetGroundHeight(blob.position.x,blob.position.z)
+		local defendDist = math.huge
+		local defendCell = nil
+		for X, cells in pairs(self.ai.loshst.OWN) do
+			for Z, cell in pairs(cells) do
+				local dist = self.ai.tool:distance(cell.POS,blob.position)
+				if dist < defendDist then
+					defendDist = dist
+					defendCell = cell
+				end
+			end
+		end
+		blob.defend = defendCell
+	end
+end
+
+function TargetHST:blobImmobileCell(grid,param,x,z,blobref)--rolling on the cell to extrapolate blob of param
+	self.blobchecked[x .. ':' .. z] = true
+	if grid[x] and grid[x][z] and grid[x][z][param] and grid[x][z][param] > 0 then
+		self.IMMOBILE_BLOBS[blobref] = self.IMMOBILE_BLOBS[blobref] or {metal = 0,position = {x=0,y=0,z=0},cells = {},units={},defend = nil}
+		table.insert(self.IMMOBILE_BLOBS[blobref].cells,grid[x][z])
+		for X = -1, 1,1 do
+			for Z = -1,1,1 do
+				if not self.blobchecked[x+X..':'..z+Z] then
+					self:blobImmobileCell(grid,param,x+X,z+Z,blobref)
+				end
+			end
+		end
+	end
+end
+--[[
 function TargetHST:enemyFront()
 	self.enemyFrontCellsX = {}
 	self.enemyFrontCellsZ = {}
@@ -182,7 +305,7 @@ function TargetHST:perifericalTarget()
 	self.distals.tgXZ = tgXZ
 	return tgX,tgZ,tgXZ
 end
-
+]]--
 function TargetHST:NearbyVulnerable(position)
 	local danger,subValues, cells = self.ai.maphst:getCellsFields(position,{'ARMED','UNARM'},1,self.ai.loshst.ENEMY)
 	if subValues.armed == 0 and subValues.unarm > 0 then
@@ -196,7 +319,7 @@ end
 
 
 
-function TargetHST:IsSafeCell(position, unitName, threshold, adjacent)
+function TargetHST:IsSafeCell(position, unitName, threshold, adjacent) --TODO move and improve in damagehst
 	if not position then
 		self:Warn('nil position in safe position check')
 		return
@@ -233,7 +356,7 @@ function TargetHST:GetPathModifierFunc(unitName, adjacent)
 	self.pathModifierFuncs[unitName] = modifier_node_func
 	return modifier_node_func
 end
-
+--[[
 function TargetHST:ScanEnemyCell()
 	self.enemyEdgeNordEst = nil
  	self.enemyEdgeNordWest = nil
@@ -301,58 +424,61 @@ function TargetHST:FindEnemyEdges(cell)
 
 
 end
-
+]]
 function TargetHST:drawDBG()
 	local ch = 4
 	self.map:EraseAll(ch)
 	if not self.ai.drawDebug then
 		return
 	end
-	local colours={
-			g = {1,0,0,1},--'red'
-			a = {0,1,0,1},--'green'
-			s = {0,0,1,1},--'blue'
-			p = {0,1,1,1},
-			f = {1,1,0,1},
-			unbalance = {1,1,1,1},
-			balance = {0,0,0,1},
-
-			}
+	local colours = self.ai.tool.COLOURS
 	if self.enemyBasePosition then
-		map:DrawPoint(self.enemyBasePosition, {1,1,1,1}, 'BASE',  ch)
+		map:DrawPoint(self.enemyBasePosition, colours.black, 'BASE',  ch)
 	end
-
+--[[
 	for i,cell in pairs(self.enemyFrontList) do
 		map:DrawCircle(cell.POS, cellElmosHalf/2, colours.f, 'front', true, ch)
-	end
+	end]]
 	local cellElmosHalf = self.ai.maphst.gridSizeHalf
-	for i,blob in pairs(self.BLOBS) do
+	for i,blob in pairs(self.MOBILE_BLOBS) do
 
 		for ref,cell in pairs(blob.cells) do
 			local pos1 = {}
 			local pos2 = {}
 			pos1.x, pos1.z = cell.POS.x - cellElmosHalf, cell.POS.z - cellElmosHalf
 			pos2.x, pos2.z = cell.POS.x + cellElmosHalf, cell.POS.z + cellElmosHalf
-			map:DrawRectangle(pos1, pos2, colours.g, i, false, ch)
+			map:DrawRectangle(pos1, pos2, colours.yellow, i, false, ch)
 
 		end
-		map:DrawCircle(blob.position, 128, colours.s, nil, true, ch)
+		map:DrawCircle(blob.position, 128, colours.red, nil, true, ch)
 	end
-	if self.enemyEdgeNordEst then
-		map:DrawCircle(self.enemyEdgeNordEst.POS, 128, colours.a, 'NordEst', true, ch)
-		map:DrawCircle(self.enemyEdgeNordWest.POS, 128, colours.a, 'NordWest', true, ch)
-		map:DrawCircle(self.enemyEdgeSudEst.POS, 128, colours.a, 'SudEst', true, ch)
-		map:DrawCircle(self.enemyEdgeSudWest.POS, 128, colours.a, 'SudWest', true, ch)
-		map:DrawCircle(self.enemyEdgeNord.POS, 128, colours.a, 'Nord', true, ch)
-		map:DrawCircle(self.enemyEdgeWest.POS, 128, colours.a, 'West', true, ch)
-		map:DrawCircle(self.enemyEdgeEst.POS, 128, colours.a, 'Est', true, ch)
-		map:DrawCircle(self.enemyEdgeSud.POS, 128, colours.a, 'Sud', true, ch)
-	end
-	for X,cells in pairs(self.borders) do
-		for Z,cell in pairs(cells) do
-			map:DrawCircle(cell.POS, 128, colours.p, 'B', true, ch)
+	for i,blob in pairs(self.IMMOBILE_BLOBS) do
+
+		for ref,cell in pairs(blob.cells) do
+			local pos1 = {}
+			local pos2 = {}
+			pos1.x, pos1.z = cell.POS.x - cellElmosHalf, cell.POS.z - cellElmosHalf
+			pos2.x, pos2.z = cell.POS.x + cellElmosHalf, cell.POS.z + cellElmosHalf
+			map:DrawRectangle(pos1, pos2, colours.aqua, i, false, ch)
+
 		end
+		map:DrawCircle(blob.position, 128, colours.blue, nil, true, ch)
 	end
+-- 	if self.enemyEdgeNordEst then
+-- 		map:DrawCircle(self.enemyEdgeNordEst.POS, 128, colours.a, 'NordEst', true, ch)
+-- 		map:DrawCircle(self.enemyEdgeNordWest.POS, 128, colours.a, 'NordWest', true, ch)
+-- 		map:DrawCircle(self.enemyEdgeSudEst.POS, 128, colours.a, 'SudEst', true, ch)
+-- 		map:DrawCircle(self.enemyEdgeSudWest.POS, 128, colours.a, 'SudWest', true, ch)
+-- 		map:DrawCircle(self.enemyEdgeNord.POS, 128, colours.a, 'Nord', true, ch)
+-- 		map:DrawCircle(self.enemyEdgeWest.POS, 128, colours.a, 'West', true, ch)
+-- 		map:DrawCircle(self.enemyEdgeEst.POS, 128, colours.a, 'Est', true, ch)
+-- 		map:DrawCircle(self.enemyEdgeSud.POS, 128, colours.a, 'Sud', true, ch)
+-- 	end
+-- 	for X,cells in pairs(self.borders) do
+-- 		for Z,cell in pairs(cells) do
+-- 			map:DrawCircle(cell.POS, 128, colours.p, 'B', true, ch)
+-- 		end
+-- 	end
 
 
 

@@ -5,7 +5,7 @@ function BuildersBST:Name()
 end
 
 function BuildersBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.active = false
 	self.watchdogTimeout = 1800
 	local u = self.unit:Internal()

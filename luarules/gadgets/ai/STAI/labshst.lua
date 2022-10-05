@@ -39,7 +39,7 @@ function LabsHST:factoriesRating()
 					factoryRating[factory].allSpots = factoryRating[factory].allSpots + (self.ai.maphst.layers[mtype].allSpots or 0)
 				end
 			end
-			factoryRating[factory].area  =factoryRating[factory].area / unitCount
+			factoryRating[factory].area  = (factoryRating[factory].area / unitCount)
 			factoryRating[factory].allSpots = factoryRating[factory].allSpots / unitCount
 			topRatingArea = math.max(topRatingArea,factoryRating[factory].area)
 			topRatingSpots = math.max(topRatingSpots,factoryRating[factory].allSpots)
@@ -53,23 +53,32 @@ function LabsHST:factoriesRating()
 			v.area = v.area / topRatingArea
 			v.allSpots = v.allSpots / topRatingSpots
 			v.rating = (v.area+v.allSpots)/2
-			if self.ai.armyhst.factoryMobilities[i][1] == 'hov' or self.ai.armyhst.factoryMobilities[i][1] == 'amp' then
-				if factoryRating['armsy'].area < 0.33 then
-					v.rating = 0
 
-				elseif factoryRating['armvp'].area < 0.6 and factoryRating['armsy'].area < 0.6 then
-
-					v.rating = 1
-
-				else
-					v.rating = v.rating * 0.4
-				end
-			end
 
 			t[i] = v.rating
 			self:EchoDebug('tmp',i,v.rating)
 		end
 	end
+	for i,v in pairs(t) do
+		print(i,v)
+		if self.ai.armyhst.factoryMobilities[i][1] == 'hov' or self.ai.armyhst.factoryMobilities[i][1] == 'amp' then
+			if not t['armsy'] or  t['armsy'] < 0.33 then
+				t[i] = nil
+
+			elseif not t['armvp'] or  (t['armvp'] < 0.6 and t['armsy'] < 0.6) then
+
+				t[i] = 1
+
+			else
+				t[i] = t[i] * 0.49
+			end
+		end
+		if self.ai.armyhst.factoryMobilities[i][1] == 'veh' then
+			local areaRatio = self.ai.maphst.gridArea / (64*64) --the ratio of max teoric  map dimension
+			t[i] = t[i] * 1+(areaRatio *0.1)
+		end
+	end
+
 	local sorting = {}
 	local rank = {}
 	for name, rating in pairs(t) do
@@ -227,9 +236,11 @@ function LabsHST:PrePositionFilter()
 end
 
 function LabsHST:FactoryPosition(factoryName,builder)
+	if not factoryName or not builder then return end
 	local utype = self.game:GetTypeByName(factoryName)
 	local site = self.ai.buildingshst
 	local p = site:BuildNearNano(builder, utype)
+
 	if p then
 		self:EchoDebug(' position to build', factoryName, 'found at', p.x,p.z,'near nano')
 		return p
