@@ -1097,7 +1097,9 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 							if lightTable.aboveUnit then -- if its above the unit, then add the aboveunit offset to the units height too!
 								-- this is done via a quick copy of the table
 								for i=1, lightParamTableSize do lightCacheTable[i] = lightParamTable[i] end 
-								lightCacheTable[2] = lightCacheTable[2] + lightTable.aboveUnit + Spring.GetUnitHeight(unitID)
+								local unitHeight = Spring.GetUnitHeight(unitID)
+								if unitHeight == nil then Spring.Echo("Unitheight is nil for unitID", unitID, "unitDefName", UnitDefs[unitDefID].name) end
+								lightCacheTable[2] = lightCacheTable[2] + lightTable.aboveUnit + unitHeight
 								lightParamTable = lightCacheTable
 							end					
 							AddLight(eventName .. tostring(unitID) ..  lightname, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightParamTable)
