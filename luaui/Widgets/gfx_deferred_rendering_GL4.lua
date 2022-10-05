@@ -1236,11 +1236,11 @@ local function updateProjectileLights(newgameframe)
 						AddLight(projectileID, nil, nil, projectileLightVBOMap[lightType], lightParamTable,noUpload)
 						--AddLight(projectileID, nil, nil, projectilePointLightVBO, lightParamTable)
 					else 
-						Spring.Echo("No projectile light defined for", projectileID, weaponDefID, px, pz)
-						testprojlighttable[1] = px
-						testprojlighttable[2] = py
-						testprojlighttable[3] = pz
-						AddPointLight(projectileID, nil, nil, projectilePointLightVBO, testprojlighttable)
+						--Spring.Echo("No projectile light defined for", projectileID, weaponDefID, px, pz)
+						--testprojlighttable[1] = px
+						--testprojlighttable[2] = py
+						--testprojlighttable[3] = pz
+						--AddPointLight(projectileID, nil, nil, projectilePointLightVBO, testprojlighttable)
 					end
 				end
 				numadded = numadded + 1
