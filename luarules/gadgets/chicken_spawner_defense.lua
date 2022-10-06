@@ -65,6 +65,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
+	Spring.SetGameRulesParam("BossFightStarted", 0)
 	local queenLifePercent = 100
 	local maxTries = 30
 	local chickenUnitCap = math.floor(Game.maxUnits*0.95)
@@ -304,6 +305,7 @@ if gadgetHandler:IsSyncedCode() then
 		queenAnger = 0  -- reenable chicken spawning
 		techAnger = 0
 		playerAgression = 0
+		queenAngerAgressionLevel = 0
 		SetGameRulesParam("queenAnger", queenAnger)
 		local nextDifficulty
 		if config.queenName == "ve_chickenq" then -- Enter Easy Phase
@@ -1771,6 +1773,7 @@ if gadgetHandler:IsSyncedCode() then
 			-- queen destroyed
 			queenID = nil
 			queenResistance = {}
+			Spring.SetGameRulesParam("BossFightStarted", 0)
 
 			if config.difficulty == config.difficulties.survival then
 				updateDifficultyForSurvival()

@@ -839,8 +839,10 @@ function widget:GameFrame(n)
 	end
 
 	if n%30 == 15 then
-		if Spring.GetGameRulesParam("BossFightStarted") then
+		if Spring.GetGameRulesParam("BossFightStarted") and Spring.GetGameRulesParam("BossFightStarted") == 1 then
 			bossHasSpawned = true
+		else
+			bossHasSpawned = false
 		end
 		if deviceLostSafetyCheck >= 3 then
 			return
@@ -874,6 +876,7 @@ function widget:GameFrame(n)
 					if (totalTime < playedTime+11.1) then
 						fadeDirection = -1
 					elseif (bossHasSpawned and currentTrackListString ~= "bossFight")
+					or ((not bossHasSpawned) and currentTrackListString == "bossFight")
 					or (currentTrackListString == "intro" and n > 30)
 					or ((currentTrackListString == "peace" and warMeter > warHighLevel * 0.8) and interruptionEnabled) -- Peace in battle times, let's play some WarLow music at 80% of WarHigh threshold
 					or ((currentTrackListString == "warLow" and warMeter > warHighLevel * 3) and interruptionEnabled) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at tripple of WarHigh threshold
