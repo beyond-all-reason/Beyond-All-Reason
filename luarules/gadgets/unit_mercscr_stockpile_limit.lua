@@ -40,6 +40,9 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 		[UnitDefNames['armcarry'].id] = 20,
 		[UnitDefNames['corcarry'].id] = 20,
 
+		[UnitDefNames['armscab'].id] = 20,
+		[UnitDefNames['cormabm'].id] = 20,
+
 		[UnitDefNames['armemp'].id] = 10,
 		[UnitDefNames['cortron'].id] = 10,
 
