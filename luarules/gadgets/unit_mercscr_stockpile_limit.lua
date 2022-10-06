@@ -11,37 +11,52 @@ function gadget:GetInfo()
     }
 end
 
-local CMD_STOCKPILE = CMD.STOCKPILE
-local CMD_INSERT = CMD.INSERT
-local SpGiveOrderToUnit = Spring.GiveOrderToUnit
 
-----------------------------------------------------------------------------
--- Config
-----------------------------------------------------------------------------
-local defaultStockpileLimit = 99
-local isStockpilingUnit = { -- number represents maximum stockpile
-	[UnitDefNames['armmercury'].id] = 5,
-	[UnitDefNames['corscreamer'].id] = 5,
-
-	[UnitDefNames['armthor'].id] = 2,
-
-	[UnitDefNames['legmos'].id] = 8,
-	[UnitDefNames['legmineb'].id] = 1,
-}
-----------------------------------------------------------------------------
--- Scav copies
-----------------------------------------------------------------------------
-
-local isStockpilingUnitScav = {}
-for defID, maxCount in pairs(isStockpilingUnit) do
-	isStockpilingUnitScav[UnitDefNames[UnitDefs[defID].name .. "_scav"].id] = maxCount
-end
-table.mergeInPlace(isStockpilingUnit, isStockpilingUnitScav)
-
-----------------------------------------------------------------------------
-----------------------------------------------------------------------------
 
 if gadgetHandler:IsSyncedCode() then -- SYNCED --
+
+	local CMD_STOCKPILE = CMD.STOCKPILE
+	local CMD_INSERT = CMD.INSERT
+
+	----------------------------------------------------------------------------
+	-- Config
+	----------------------------------------------------------------------------
+	local defaultStockpileLimit = 99
+	local isStockpilingUnit = { -- number represents maximum stockpile
+		[UnitDefNames['armmercury'].id] = 5,
+		[UnitDefNames['corscreamer'].id] = 5,
+
+		[UnitDefNames['armthor'].id] = 2,
+
+		[UnitDefNames['legmos'].id] = 8,
+		[UnitDefNames['legmineb'].id] = 1,
+
+		[UnitDefNames['armsilo'].id] = 10,
+		[UnitDefNames['corsilo'].id] = 10,
+
+		[UnitDefNames['armamd'].id] = 20,
+		[UnitDefNames['corfmd'].id] = 20,
+
+		[UnitDefNames['armcarry'].id] = 20,
+		[UnitDefNames['corcarry'].id] = 20,
+
+		[UnitDefNames['armemp'].id] = 10,
+		[UnitDefNames['cortron'].id] = 10,
+
+		[UnitDefNames['armbotrail'].id] = 50,
+	}
+	----------------------------------------------------------------------------
+	-- Scav copies
+	----------------------------------------------------------------------------
+
+	local isStockpilingUnitScav = {}
+	for defID, maxCount in pairs(isStockpilingUnit) do
+		isStockpilingUnitScav[UnitDefNames[UnitDefs[defID].name .. "_scav"].id] = maxCount
+	end
+	table.mergeInPlace(isStockpilingUnit, isStockpilingUnitScav)
+
+	----------------------------------------------------------------------------
+	----------------------------------------------------------------------------
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) -- Can't use StockPileChanged because that doesn't get called when the stockpile queue changes
 		if unitID then
@@ -129,10 +144,5 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 	function gadget:StockpileChanged(unitID, unitDefID, unitTeam)
 		UpdateStockpile(unitID, unitDefID)
 	end
-
-else -- UNSYNCED --
-
-	local SpGetSpectatingState = Spring.GetSpectatingState
-	local SpGetMyTeamID = Spring.GetMyTeamID
 end
 
