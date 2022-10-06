@@ -144,6 +144,7 @@ return {
 		"armlunchbox_scav",
 		"armmeatball_scav",
 		"armassimilator_scav",
+		"legpede_scav",
 
 		-- Vehicles
 		"armthor_scav",
@@ -159,7 +160,6 @@ return {
 		"corjugg_scav",
 		"armbanth_scav",
 		"armthor_scav",
-		"legpede_scav",
 
 		-- Superboss
 		"armpwt4_scav",

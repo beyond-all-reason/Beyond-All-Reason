@@ -49,6 +49,7 @@ for udefID,_ in pairs(isCommander) do
 end
 local armcomDefID = UnitDefNames["armcom"].id
 local corcomDefID = UnitDefNames["corcom"].id
+local legcomDefID = UnitDefNames["legcomdef"].id
 
 function CommCount(unitTeam)
 
@@ -61,7 +62,7 @@ function CommCount(unitTeam)
 	-- Spring.Echo(teamsInAllyID[currentAllyTeamID])
 	local count = 0
 	for _, teamID in pairs(teamsInAllyID[select(6,GetTeamInfo(unitTeam,false))]) do -- [_] = teamID,
-		count = count + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
+		count = count + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID) + Spring.GetTeamUnitDefCount(teamID, legcomDefID)
 	end
 	-- Spring.Echo(currentAllyTeamID..","..count)
 	return count
