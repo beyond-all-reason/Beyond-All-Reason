@@ -155,8 +155,8 @@
 		{ "Any+f12", "screenshot"     , "png" },
 		{ "Alt+backspace", "fullscreen"       },
 
-		{ "Ctrl+sc_`", "remove_one_unit_from_group" },
-		{  "Alt+sc_`", "remove_from_autogroup"      },
+		{ "Ctrl+sc_`", "group unset" },
+		{ "Alt+sc_`",  "remove_from_autogroup" },
 
 		{ "sc_`,sc_`", "drawlabel"       }, -- double hit ` for drawlabel
 		{      "sc_`", "drawinmap"       },
