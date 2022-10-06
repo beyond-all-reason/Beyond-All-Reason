@@ -156,10 +156,10 @@
 		{ "Any+f12", "screenshot"     , "png" },
 		{ "Alt+backspace", "fullscreen"       },
 
-		{      "Ctrl+meta+sc_q", "remove_one_unit_from_group" },
-		{            "Alt+sc_q", "remove_from_autogroup"      },
-		{ "meta+sc_q,meta+sc_q", "drawlabel"                  },
-		{           "meta+sc_q", "drawinmap"                  },
+		{      "Ctrl+meta+sc_q", "group unset"           },
+		{            "Alt+sc_q", "remove_from_autogroup" },
+		{ "meta+sc_q,meta+sc_q", "drawlabel"             },
+		{           "meta+sc_q", "drawinmap"             },
 
 		{ "Any+up",       "moveforward"  },
 		{ "Any+down",     "moveback"     },
