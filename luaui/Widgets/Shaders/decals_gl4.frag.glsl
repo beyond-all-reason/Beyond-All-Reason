@@ -24,9 +24,15 @@ uniform sampler2D infoTex;
 uniform sampler2D miniMapTex;
 uniform sampler2D mapNormalsTex;
 uniform sampler2D atlasColorAlpha;
-uniform sampler2D atlasHeights;
 uniform sampler2D atlasNormals;
-uniform sampler2D atlasORM;
+
+#if (PARALLAX == 1)
+	uniform sampler2D atlasHeights;
+#endif
+
+#if (AMBIENTOCCLUSION == 1)
+	uniform sampler2D atlasORM;
+#endif
 out vec4 fragColor;
 
 
@@ -92,11 +98,17 @@ void main(void)
 	vec3 tangentviewdir =  normalize(tangentfragpos - tangentviewpos); // Y points up!
 	vec3 tspace = tangentfragpos - tangentviewpos;
 	
-	vec4 tex3color = texture(atlasHeights, g_uv.xy);
-	//float height = 
-	
-	// do parallax here !
-	vec2 parallaxUV = (tangentviewdir.xz) * (1.0 - tex3color.b )* 0.00002;
+	#if (PARALLAX == 1) 
+		vec4 tex3color = texture(atlasHeights, g_uv.xy);
+		//float height = 
+		
+		// do parallax here !
+		vec2 parallaxUV = (tangentviewdir.xz) * (1.0 - tex3color.b )* 0.00002;
+	#else
+		vec2 parallaxUV = vec2(0.0);
+		
+	#endif
+
 	
 	vec2 uvhm = heighmapUVatWorldPos(g_position.xz);
 	vec4 minimapcolor = textureLod(miniMapTex, uvhm, 0.0);
@@ -104,44 +116,65 @@ void main(void)
 	mapnormal.g = sqrt( 1.0 - dot( mapnormal.rb, mapnormal.rb)); // reconstruct Y	from it
 	float offaxis = 1.0 - clamp(dot(mapnormal,-camtoworld), 0.0, 1.0);
 	float bias = (offaxis*offaxis)*-2.0;
+	
 	vec4 tex1color = texture(atlasColorAlpha, g_uv.xy - parallaxUV.xy, bias);
+	// bail early if theres shit here, but this might not be useful in the long term, due to no emissive application?
+	if (tex1color.a < 0.005){fragColor.rgba = vec4(0.0); discard; return;}
+	
 	vec4 tex2color = texture(atlasNormals, g_uv.xy  - parallaxUV.xy, bias);
-	vec4 tex4color = texture(atlasORM, g_uv.xy  - parallaxUV.xy);
 	vec3 fragNormal = tex2color.rgb * 2.0 - 1.0;
+	if (dot(tex2color.rgb, vec3(1.0)) < 0.001) fragNormal = vec3(0.0, 0.0, 1.0);// check if the normals are missing, if yes, then sub with Z up. 
+	
 	fragNormal.xy = -  fragNormal.xy;
 	
-
 	
-	vec3 blendedcolor = tex1color.rgb * (minimapcolor.rgb * 2.0);
-	fragColor.rgb = blendedcolor;
-	fragColor.a = tex1color.a * tex1color.a * 0.9;
+	// Ambient color calculation, tint with minimap, and with sunAmbientMap
+	vec3 blendedcolor = tex1color.rgb * (minimapcolor.rgb * 2.0); // just your basic color modulation
+	fragColor.rgb = blendedcolor * (sunAmbientMap.rgb * 2.0); 
 	
-	//float lifeTime = (timeInfo.x + timeInfo.w) - 
+	
+	// the fuck is this doing? alpha sharpening?
+	fragColor.a = tex1color.a * tex1color.a * 0.9; 
+	
+	// Get heat
 	float hotness = max(0,g_uv.z)* 0.0001;
-	
 	vec3 heatColor = Temperature(max(0,g_uv.z));
 
-
+	// Reorient the normals of the decal according to what we sampled from mapnormals and decal
 	vec3 worldspacenormal = tbnmatrix * fragNormal.rgb;
-	
 	vec3 reorientedNormal = ReOrientNormalUnpacked(mapnormal.xzy, worldspacenormal.xzy).xzy;
 	
-	float diffuselight = clamp(dot(sunDir.xyz, reorientedNormal), 0.0, 1.0)*1.5;
-	fragColor.rgb *= diffuselight;
-	//fragColor.rgb = vec3(diffuselight);
+	// diffuse lighting, apply global sunDiffuseMap
+	float diffuselight = clamp(dot(sunDir.xyz, reorientedNormal), 0.0, 1.0);
+	fragColor.rgb += vec3(diffuselight) * ( fragColor.rgb * sunDiffuseMap.rgb * 2.0);
 	
 	// Specular Color
 	vec3 reflvect = reflect(normalize(1.0 * sunDir.xyz), reorientedNormal);
-	float specular = clamp(pow(clamp(dot(normalize(camtoworld), normalize(reflvect)), 0.0, 1.0), 4.0), 0.0, 1.0) * 0.25;// * shadow;
-	//fragColor.rgb = vec3(specular);
+	float specular = clamp(pow(clamp(dot(normalize(camtoworld), normalize(reflvect)), 0.0, 1.0), SPECULAREXPONENT), 0.0, 1.0) * SPECULARSTRENGTH;// * shadow;
+	fragColor.rgb += fragColor.rgb * specular;
 	
+	// Apply darkening based on LOS texture
 	vec2 losUV = clamp(g_position.xz, vec2(0.0), mapSize.xy ) / mapSize.zw;
 	float loslevel = dot(vec3(0.33), texture(infoTex, losUV).rgb) ; // lostex is PO2
 	loslevel = clamp(loslevel * 4.0 - 1.0, LOSDARKNESS, 1.0);
-	
-	fragColor.rgb += fragColor.rgb * specular;
 	fragColor.rgb *= loslevel;
 	
+	// Blend underwater parts of the decals correctly
+	vec4 waterblendfactors = waterBlend(g_position.y);
+	fragColor.rgb = mix(fragColor.rgb, fragColor.rgb * waterblendfactors.rgb, waterblendfactors.a);
+	#if (AMBIENTOCCLUSION == 1) 
+		vec4 tex4color = texture(atlasORM, g_uv.xy  - parallaxUV.xy);
+	#else
+		vec4 tex4color = vec4 (0.0);
+	#endif
+	fragColor.rgb *= 0.6;
+	// add emissive heat, if required
+	fragColor.rgb += heatColor * pow(tex4color.r, 2) * hotness ;
+	
+	// plenty of debug outputs for your viewing pleasure
+	//fragColor.a *= g_parameters.z ;
+	//fragColor.r += hotness;
+	//fragColor.rgb += heatColor;
 	//fragColor.rgb = tbnmatrix[2] * 0.5 + 0.5;
 	//fragColor.rgb = tangentviewdir.yyy * 0.5 + 0.5;
 	//fragColor.rgb = tex1color.rgb;
@@ -153,11 +186,4 @@ void main(void)
 	//fragColor.a = 1.0;
 	//fragColor.rgb = g_uv.zyy;
 	//fragColor.rgba = vec4(0.5);
-	vec4 waterblendfactors = waterBlend(g_position.y);
-	fragColor.rgb = mix(fragColor.rgb, fragColor.rgb * waterblendfactors.rgb, waterblendfactors.a);
-	
-	fragColor.rgb += heatColor * pow(tex4color.r, 2) * hotness ;
-	//fragColor.a *= g_parameters.z ;
-	//fragColor.r += hotness;
-	//fragColor.rgb += heatColor;
 }

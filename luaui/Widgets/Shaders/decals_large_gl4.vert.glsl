@@ -12,6 +12,7 @@ layout (location = 1) in vec4 lengthwidthrotation; // l w rot and maxalpha
 layout (location = 2) in vec4 uvoffsets;
 layout (location = 3) in vec4 alphastart_alphadecay_heatstart_heatdecay;
 layout (location = 4) in vec4 worldPos; // also gameframe it was created on
+layout (location = 4) in vec4 parameters; // like wether this is a standard atlas or not
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
@@ -72,10 +73,12 @@ void main()
 {
 	// take the vertex, scale it to size, and rotate it around 0,0
 	
-	if (isSphereVisibleXY(vec4(worldPos.xyz,1.0), 1.0* max(lengthwidthrotation.x, lengthwidthrotation.y))) {
-		gl_Position= vec4(0,0,-100,1);
-		return; // yay for useless visiblity culling!
-	}
+	#if 0
+		//if (isSphereVisibleXY(vec4(worldPos.xyz,1.0), 1.0* max(lengthwidthrotation.x, lengthwidthrotation.y))) {
+		//	gl_Position= vec4(0,0,-100,1);
+		//	return; // yay for useless visiblity culling!
+		//}
+	#endif
 	
 	vec4 vertexPos = vec4(xyworld_xyfract.x, 0.0, xyworld_xyfract.y, 1.0);
 	vertexPos.xz *= lengthwidthrotation.xy * 0.5;
@@ -86,7 +89,7 @@ void main()
 	vertexPos.xyz = rotY * vertexPos.xyz;
 
 	// set the UVS
-	g_uv.xy = transformUV(xyworld_xyfract.x * 0.5 + 0.5, xyworld_xyfract.y* 0.5 + 0.5);
+	g_uv.xy = transformUV(xyworld_xyfract.x * 0.5 + 0.5, xyworld_xyfract.y * 0.5 + 0.5);
 	
 	// rotate the normals into the world
 	vec3 Nup = vec3(0.0, 1.0, 0.0);
@@ -98,7 +101,7 @@ void main()
 	vertexPos.xz += worldPos.xz;
 	
 	// get the height here:
-	vertexPos.y  = textureLod(heightmapTex, heighmapUVatWorldPos(vertexPos.xz), 0.0).x;
+	vertexPos.y  = textureLod(heightmapTex, heighmapUVatWorldPos(vertexPos.xz), 0.0).x + HEIGHTOFFSET;
 	
 	// Output it to the FS
 	gl_Position = cameraViewProj * vertexPos;
@@ -118,7 +121,7 @@ void main()
 	
 	g_uv.z = exp(- 0.033 * lifetonow * alphastart_alphadecay_heatstart_heatdecay.w) * alphastart_alphadecay_heatstart_heatdecay.z ;
 	
-	float currentAlpha = min(1.0, lifetonow*0.166)  * alphastart - lifetonow* alphadecay;
+	float currentAlpha =  min(1.0, (lifetonow / FADEINTIME)) * alphastart - lifetonow* alphadecay;
 	currentAlpha = min(currentAlpha, lengthwidthrotation.w);
 	g_color.a = currentAlpha;
 	
