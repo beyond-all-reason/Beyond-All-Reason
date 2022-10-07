@@ -12,16 +12,23 @@ end
 if gadgetHandler:IsSyncedCode() then
 
     local effectsTable = {
-        [1] = {ceg = "wallexplosion-metal", sound = "xplodragmetal"},
-        [2] = {ceg = "wallexplosion-metal", sound = "xplodragmetal"},
-        [3] = {ceg = "wallexplosion-metal", sound = "xplodragmetal"},
-        [4] = {ceg = "wallexplosion-metal", sound = "xplodragmetal"},
-        [5] = {ceg = "wallexplosion-metal", sound = "xplodragmetal"},
+        [1] = {ceg = "corpsedestroyed", sound = "xplodragmetal"},
+        [2] = {ceg = "corpsedestroyed", sound = "xplodragmetal"},
+        [3] = {ceg = "corpsedestroyed", sound = "xplodragmetal"},
+        [4] = {ceg = "corpsedestroyed", sound = "xplodragmetal"},
+        [5] = {ceg = "corpsedestroyed", sound = "xplodragmetal"},
     }
+
+	local isCorpse = {}
+	for featureDefID, featureDef in pairs(FeatureDefs) do
+		if featureDef.customParams.category and featureDef.customParams.category == 'corpses' then
+			isCorpse[featureDefID] = true
+		end
+	end
 
     function gadget:FeatureDestroyed(featureID, allyTeamID)
         local featureDefID = Spring.GetFeatureDefID(featureID)
-        if FeatureDefs[featureDefID].customParams and FeatureDefs[featureDefID].customParams.category and FeatureDefs[featureDefID].customParams.category == 'corpses' then
+        if isCorpse[featureDefID] then
             local _, _, resurrectProgress = Spring.GetFeatureHealth(featureID)
             if resurrectProgress < 0.98 then
                 local fsize
