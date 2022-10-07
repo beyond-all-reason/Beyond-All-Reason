@@ -5,11 +5,13 @@
 
 piece  base, turret, flare, barrel, sleeve, rfhip, rfthigh, rfleg, rffoot, lfhip, lfthigh, lfleg, lffoot, lbhip, lbthigh, lbleg, lbankle, rbhip, rbthigh, rbleg, rbankle, aimx1, aimy1;
 
-static-var  bMoving, bAiming, Static_Var_3,  oldHeading, bSteering, wpn1_lasthead, speedmult;
+static-var  bMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading, last_primary_pitch, speedmult, trajectoryMode;
 
-// Signal definitions
 #define SIG_WALK			2
 #define SIG_AIM				4
+
+#define LOW_TRAJECTORY		0
+#define HIGH_TRAJECTORY		1
 
 // Generated for N:\animations\armvang_anim_walk_2legs_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O
@@ -461,33 +463,31 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 3) / animSpeed;
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>6) animSpeed = 6;
 		sleep 98;
 	}
 }
+
 StartMoving(){
 	bMoving=TRUE;
 	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
+	set-signal-mask SIG_WALK;
 	start-script UnitSpeed();
 	start-script Walk();
 }
+
 StopMoving(){
 	signal SIG_WALK;
 	bMoving = FALSE;
 	call-script StopWalking();
 }
 
-
-
 Steering(heading)
 {
 	while( 1 )
 	{
 		heading = get HEADING;
-
 
 		if ( heading < oldheading )	bSteering=TRUE;
 		if ( heading > oldheading )	bSteering=TRUE;
@@ -497,7 +497,6 @@ Steering(heading)
 		oldheading = heading;
 	}
 }
-
 
 #define BASEPIECE base
 #define HITSPEED <35.0>
@@ -520,9 +519,7 @@ Create()
 	hide flare;
 	dont-cache flare;
 	bMoving = FALSE;
-	bAiming = FALSE;
 	bSteering = FALSE;
-	Static_Var_3 = 1;
 	oldHeading = get HEADING;
 	animSpeed = 3;
 	start-script Steering();
@@ -531,8 +528,29 @@ Create()
 	turn lbhip to y-axis <-54> now;
 	turn rbhip to y-axis <54> now;
 	speedmult = 70;
+	// set last heading values to large negative, ensure first aim waits for the turn
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
+	trajectoryMode = LOW_TRAJECTORY;
 }
 
+Activate()
+{
+	signal SIG_AIM;
+	trajectoryMode = HIGH_TRAJECTORY;
+	// set last heading values to large negative, ensure first aim waits for the turn
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
+}
+
+Deactivate()
+{
+	signal SIG_AIM;
+	trajectoryMode = LOW_TRAJECTORY;
+	// set last heading values to large negative, ensure first aim waits for the turn
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
+}
 
 SweetSpot(piecenum)
 {
@@ -542,16 +560,21 @@ SweetSpot(piecenum)
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
+    if (Stunned)
+	{
         return (1);
     }
+	set-signal-mask 0;
 	turn aimy1 to y-axis <0.000000> speed <36.000000>;
 	turn aimx1 to x-axis <0.000000> speed <30.000000>;
+	// set last heading values to large negative, ensure first aim waits for the turn
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
 	wpn1_lasthead = 1000000;
-	bAiming = FALSE;
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -559,11 +582,23 @@ SetStunned(State)
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
+
 RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM;
 	sleep 8000;
 	start-script ExecuteRestoreAfterDelay();
+}
+
+fireCommon()
+{
+	emit-sfx 1024 + 0 from flare;
+	sleep 1;
+	move barrel to z-axis [-10] speed [25];
+	move sleeve to z-axis [-0.5] speed [12];
+	sleep 751;
+	move sleeve to z-axis [0] speed [0.5];
+	move barrel to z-axis [0.000000] speed [4.000000];
 }
 
 AimFromPrimary(piecenum)
@@ -578,38 +613,92 @@ QueryPrimary(piecenum)
 
 AimPrimary(heading, pitch)
 {
-	bAiming = TRUE;
+	if (trajectoryMode == HIGH_TRAJECTORY)
+	{
+		return(0);
+	}
+
 	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	// values in <> are degrees per second
+	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
+	// In general, 6 cau per frame ~= 1 degree per second
 	turn aimy1 to y-axis heading speed <30.000000>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <45.000000>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))
+	if ( (get ABS(last_primary_heading-heading)>180) OR (get ABS(last_primary_pitch-pitch)>270) )
 	{
-		wpn1_lasthead = 1000000;
+		// seems to take 3 frames for wait-for-turn to process
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn aimx1 around x-axis;
 	}
-	wpn1_lasthead = heading;
+	last_primary_heading=heading;
+	last_primary_pitch=pitch;
 	start-script RestoreAfterDelay();
+
+	// Prevent low-trajectory "bonus shots" while high-trajectory is reloading
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
+	if( reloading )
+	{
+		return(0);
+	}
+
 	return (1);
 }
 
 FirePrimary()
 {
-	
-	emit-sfx 1024 + 0 from flare;
-	sleep 1;
-	move barrel to z-axis [-10] speed [25];
-	move sleeve to z-axis [-0.5] speed [12];
-	//turn body to x-axis <-20> speed <30>;
-	//turn base to x-axis <-5> speed <5>;
-	sleep 751;
-	
-	//turn body to x-axis <0> speed <10>;
-	move sleeve to z-axis [0] speed [0.5];
+	call-script fireCommon();
+}
 
-	//turn base to x-axis <0> speed <5>;
-	move barrel to z-axis [0.000000] speed [4.000000];
-	
+AimFromSecondary(piecenum)
+{
+	piecenum = turret;
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = flare;
+}
+
+AimSecondary(heading, pitch)
+{
+	if (trajectoryMode == LOW_TRAJECTORY)
+	{
+		return(0);
+	}
+
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	// values in <> are degrees per second
+	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
+	// In general, 6 cau per frame ~= 1 degree per second
+	turn aimy1 to y-axis heading speed <30.000000>;
+	turn aimx1 to x-axis <0.000000> - pitch speed <45.000000>;
+	if ( (get ABS(last_primary_heading-heading)>180) OR (get ABS(last_primary_pitch-pitch)>270) )
+	{
+		// seems to take 3 frames for wait-for-turn to process
+		wait-for-turn aimy1 around y-axis;
+		wait-for-turn aimx1 around x-axis;
+	}
+	last_primary_heading=heading;
+	last_primary_pitch=pitch;
+	start-script RestoreAfterDelay();
+
+	// Prevent high-trajectory "bonus shots" while low-trajectory is reloading
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
+	if( reloading )
+	{
+		return(0);
+	}
+
+	return (1);
+}
+
+FireSecondary()
+{	
+	call-script fireCommon();
 }
 
 Killed(severity, corpsetype)
@@ -624,18 +713,9 @@ Killed(severity, corpsetype)
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode sleeve type BITMAPONLY | NOHEATCLOUD;
 		explode barrel type BITMAPONLY | NOHEATCLOUD;
-		//explode flare type BITMAPONLY | NOHEATCLOUD;
-		//explode lbthigh type BITMAPONLY | NOHEATCLOUD;
-		//explode lbleg type BITMAPONLY | NOHEATCLOUD;
-		//explode lbankle type BITMAPONLY | NOHEATCLOUD;
-		//explode lfthigh type BITMAPONLY | NOHEATCLOUD;
-		//explode lfleg type BITMAPONLY | NOHEATCLOUD;
-		//explode lffoot type BITMAPONLY | NOHEATCLOUD;
-		//explode rbthigh type BITMAPONLY | NOHEATCLOUD;
-		//explode rbleg type BITMAPONLY | NOHEATCLOUD;
-		//explode rbankle type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
+
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
@@ -646,18 +726,9 @@ Killed(severity, corpsetype)
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbthigh type FALL | NOHEATCLOUD;
-		//explode lbleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbankle type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lffoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbthigh type FALL | NOHEATCLOUD;
-		//explode rbleg type FALL | NOHEATCLOUD;
-		//explode rbankle type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
+
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
@@ -668,18 +739,9 @@ Killed(severity, corpsetype)
 		explode turret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type SMOKE | FALL | NOHEATCLOUD;
-		//explode lbthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbleg type SMOKE | FALL | NOHEATCLOUD;
-		//explode lbankle type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lffoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbankle type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
+
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode rfthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -688,15 +750,5 @@ Killed(severity, corpsetype)
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lbankle type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lffoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rbleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rbankle type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

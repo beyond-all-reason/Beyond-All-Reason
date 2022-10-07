@@ -336,9 +336,9 @@ local bindings = {
 	{ "Alt+sc_y", "settarget"         },
 	{     "sc_y", "settargetnoground" },
 
+	{ "Ctrl+meta+sc_q", "group unset" },
 	-- if WG['Auto Group'] then
 	{ "Alt+sc_q",  "remove_from_autogroup" },
-	{ "Ctrl+meta+sc_q", "remove_one_unit_from_group" },
 }
 
 for i = 0, 9 do
