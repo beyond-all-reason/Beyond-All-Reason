@@ -1604,12 +1604,14 @@ function SortPlayers(teamID, allyTeamID, vOffset)
 
     -- add AI teams
     if select(4, Spring_GetTeamInfo(teamID, false)) then
-        -- is AI
-        vOffset = vOffset + playerOffset
-        drawListOffset[#drawListOffset + 1] = vOffset
-        drawList[#drawList + 1] = 64 + teamID -- new AI team (instead of players)
-        player[64 + teamID].posY = vOffset
-        noPlayer = false
+        if enemyListShow or player[64 + teamID].allyteam == myAllyTeamID then
+            -- is AI
+            vOffset = vOffset + playerOffset
+            drawListOffset[#drawListOffset + 1] = vOffset
+            drawList[#drawList + 1] = 64 + teamID -- new AI team (instead of players)
+            player[64 + teamID].posY = vOffset
+            noPlayer = false
+        end
     end
 
     -- add no player token if no player found in this team at this point
@@ -1927,17 +1929,26 @@ end
 function CreateMainList()
     numberOfSpecs = 0
     numberOfEnemies = 0
-    local pList = Spring_GetPlayerList()
     local active, spec
-    for _, playerID in ipairs(pList) do
+    local playerList = Spring_GetPlayerList()
+    for _, playerID in ipairs(playerList) do
         _, active, spec = Spring_GetPlayerInfo(playerID)
-        if active then
-            if spec then
-                numberOfSpecs = numberOfSpecs + 1
-            elseif player[playerID].allyteam ~= myAllyTeamID then
-                numberOfEnemies = numberOfEnemies + 1
+        if active and spec then
+            numberOfSpecs = numberOfSpecs + 1
+        end
+    end
+    local playerID, isAiTeam, allyTeamID
+    local teamList = Spring_GetTeamList()
+    for i = 1, #teamList do
+        local teamID = teamList[i]
+        if teamID ~= gaiaTeamID then
+            _, playerID, _, isAiTeam, _, allyTeamID = Spring_GetTeamInfo(teamID, false)
+            _, active = Spring_GetPlayerInfo(playerID)
+            if active or isAiTeam then
+                if allyTeamID ~= myAllyTeamID then
+                    numberOfEnemies = numberOfEnemies + 1
+                end
             end
-
         end
     end
 
@@ -2582,7 +2593,7 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
             font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(0.75, 0.7 * widgetScale))
             font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
         else
-            font2:SetTextColor(r, g, b, 0.78)
+            font2:SetTextColor(r, g, b, 0.8)
             font2:SetOutlineColor(0, 0, 0, 0.3)
             font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "n")
         end
@@ -3266,6 +3277,7 @@ function widget:GetConfigData(data)
             lockcameraLos = lockcameraLos,
             hasresetskill = true,
             absoluteResbarValues = absoluteResbarValues,
+            playerSpecs = playerSpecs,
         }
 
         return settings
@@ -3340,23 +3352,29 @@ function widget:SetConfigData(data)
             end
         end
 
-        if data.lockPlayerID ~= nil and Spring.GetGameFrame() > 0 then
-            lockPlayerID = data.lockPlayerID
-            if lockPlayerID and not select(3, Spring_GetPlayerInfo(lockPlayerID), false) then
-                if not lockcameraHideEnemies then
-                    if not fullView then
-                        Spring.SendCommands("specfullview")
-                        if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode() == "los" then
-                            desiredLosmode = 'normal'
-                            desiredLosmodeChanged = os.clock()
+        if Spring.GetGameFrame() > 0 then
+            if data.playerSpecs then
+                playerSpecs = data.playerSpecs
+            end
+
+            if data.lockPlayerID ~= nil then
+                lockPlayerID = data.lockPlayerID
+                if lockPlayerID and not select(3, Spring_GetPlayerInfo(lockPlayerID), false) then
+                    if not lockcameraHideEnemies then
+                        if not fullView then
+                            Spring.SendCommands("specfullview")
+                            if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode() == "los" then
+                                desiredLosmode = 'normal'
+                                desiredLosmodeChanged = os.clock()
+                            end
                         end
-                    end
-                else
-                    if fullView then
-                        Spring.SendCommands("specfullview")
-                        if lockcameraLos and mySpecStatus then
-                            desiredLosmode = 'los'
-                            desiredLosmodeChanged = os.clock()
+                    else
+                        if fullView then
+                            Spring.SendCommands("specfullview")
+                            if lockcameraLos and mySpecStatus then
+                                desiredLosmode = 'los'
+                                desiredLosmodeChanged = os.clock()
+                            end
                         end
                     end
                 end
