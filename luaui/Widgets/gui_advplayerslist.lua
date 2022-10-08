@@ -2378,7 +2378,6 @@ function DrawSidePic(team, playerID, posY, leader, dark, ai)
 end
 
 function DrawRank(rank, posY)
-    gl_Color(1, 1, 1, 1)
     if rank == 0 then
         DrawRankImage(pics["rank0"], posY)
     elseif rank == 1 then

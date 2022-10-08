@@ -115,7 +115,7 @@ local function initGL4()
 	shaderConfig.USE_CIRCLES = nil
 	shaderConfig.USE_CORNERRECT = nil
 	energyIconVBO, energyIconShader = InitDrawPrimitiveAtUnit(shaderConfig, "energy icons")
-	if energyIconVBO == nil then 
+	if energyIconVBO == nil then
 		widgetHandler:RemoveWidget()
 		return false
 	end
@@ -189,13 +189,11 @@ local function updateStalling()
 		if teamEnergy[teamID] and teamEnergy[teamID] < maxStall then
 			for unitID, unitDefID in pairs(units) do
 				if teamEnergy[teamID] and unitConf[unitDefID][3] > teamEnergy[teamID] and -- more neededEnergy than we have
-
 					(not unitConf[unitDefID][4] or ((unitConf[unitDefID][4] and (select(4, spGetUnitResources(unitID))) or 999999) < unitConf[unitDefID][3])) then
 
 					if spGetUnitRulesParam(unitID, "under_construction") ~= 1 and-- not under construction
 						energyIconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
-						if Spring.ValidUnitID(unitID) ~= true or  Spring.GetUnitIsDead(unitID) == true then
-						else
+						if Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID) then
 							pushElementInstance(
 								energyIconVBO, -- push into this Instance VBO Table
 									{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],  -- lengthwidthcornerheight
@@ -229,11 +227,7 @@ function widget:Update(dt)
 	end
 	if Spring.GetGameFrame() ~= lastGameFrame then
 		lastGameFrame = Spring.GetGameFrame()
-		if not fullview then
-			teamList = Spring.GetTeamList(Spring.GetMyAllyTeamID())
-		else
-			teamList = Spring.GetTeamList()
-		end
+		teamList = Spring.GetTeamList(fullview and Spring.GetMyAllyTeamID())
 		teamEnergy = {}
 		UpdateTeamEnergy()
 	end
