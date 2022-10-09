@@ -227,7 +227,11 @@ function widget:Update(dt)
 	end
 	if Spring.GetGameFrame() ~= lastGameFrame then
 		lastGameFrame = Spring.GetGameFrame()
-		teamList = Spring.GetTeamList(fullview and Spring.GetMyAllyTeamID())
+		if not fullview then
+			teamList = Spring.GetTeamList(Spring.GetMyAllyTeamID())
+		else
+			teamList = Spring.GetTeamList()
+		end
 		teamEnergy = {}
 		UpdateTeamEnergy()
 	end
