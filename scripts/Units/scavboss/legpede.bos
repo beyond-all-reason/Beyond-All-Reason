@@ -17,7 +17,7 @@ piece	base1, rdoor1, ldoor1, legr1, legrb1, legl1, leglb1, steer2, base2, rdoor2
 		stand5, aimy15, turret5, sleeve5, flare5, barrel15, barrel25, barrel35, barrel45, stand6, sleeve6, barrel6, flare6;
 
 static-var fire_count_3, fire_count_4, restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving, wpn2_lasthead, wpn5_lasthead, 
-			oldHeading, speed2, speed3, speed4, speed5, speed6, steerstore;
+			oldHeading, speed2, speed3, speed4, speed5, speed6, steerstore, steerslow, turnslow;
 
 #define SIG_AIM 2
 #define SIG_FIRE3 4
@@ -35,19 +35,34 @@ Steering(heading, steery, currentSpeed)
 	while(1)
 	{
 		heading = get HEADING;
-		steery = (oldHeading - heading)*7;
+		steery = (oldHeading - heading)*10;
+		if ((steery - steerstore > <5> or steery - steerstore < <-5>) AND (steery < <5> and steery > <-5>)){
+			turnslow = 5;
+			steerslow = 30;
+		}	
+		else if (steerslow > 10 AND steerslow < 20){
+			turnslow = 6;
+		}
+		else if (steerslow > 0 AND steerslow < 10){
+			turnslow = 8;
+		}
+		else if (steerslow < 0){
+			turnslow = 10;
+		}
 		steerstore = steery;
-		speed2 = <24> / 2;
-		speed3 = <14> / 2;
-		speed4 = <12> / 2;
-		speed5 = <11> / 2;
-		speed6 = <9> / 2;
-		turn steer2 to y-axis steery speed speed2;
-		turn steer3 to y-axis steery speed speed3;
-		turn steer4 to y-axis steery speed speed4;
-		turn steer5 to y-axis steery speed speed5;
-		turn steer6 to y-axis steery speed speed6;
-		sleep 66;
+		steerslow = steerslow - 1;
+		speed2 = <26> / 20;
+		speed3 = <15> / 20;
+		speed4 = <13> / 20;
+		speed5 = <12> / 20;
+		speed6 = <10> / 20;
+		turn steer2 to y-axis steery speed speed2 * turnslow;
+		turn steer3 to y-axis steery speed speed3 * turnslow;
+		turn steer4 to y-axis steery speed speed4 * turnslow;
+		turn steer5 to y-axis steery speed speed5 * turnslow;
+		turn steer6 to y-axis steery speed speed6 * turnslow;
+		sleep 33;
+		//sleep 66;
 		oldHeading = heading;
 	}
 }
@@ -979,6 +994,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Create()
 {
 	turn sleeve6 to y-axis <180> now;
+	steerslow = 0;
 	speed2 = 1;
 	speed3 = 1;
 	speed4 = 1;
@@ -1099,6 +1115,7 @@ AimWeapon2(heading, pitch)
 		wait-for-turn sleeve2 around x-axis;
 	}
 	wpn2_lasthead = heading;
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
