@@ -2049,6 +2049,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
     --    return
     --end
 
+    player[playerID].posY = vOffset
+
     tipY = nil
     local rank = player[playerID].rank
     local skill = player[playerID].skill
@@ -3009,6 +3011,7 @@ function widget:MousePress(x, y, button)
                                     end
                                 end
                                 CreateMainList()
+                                return true
                             end
                         end
 

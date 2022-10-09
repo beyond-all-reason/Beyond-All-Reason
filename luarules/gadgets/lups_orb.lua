@@ -222,7 +222,7 @@ function gadget:UnitDestroyed(unitID, unitDefID)
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	local health, maxHealth, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
 	if buildProgress and buildProgress >= 1 then
 		gadget:UnitDestroyed(unitID, unitDefID, oldTeam)
 		gadget:UnitFinished(unitID, unitDefID, newTeam)
@@ -230,7 +230,7 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 end
 
 function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
-	local health, maxHealth, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
 	if buildProgress and buildProgress >= 1 then
 		gadget:UnitDestroyed(unitID, unitDefID, oldTeam)
 		gadget:UnitFinished(unitID, unitDefID, newTeam)
