@@ -136,6 +136,7 @@ local bindings = {
 	{ "Any+f5" , "HideInterface"          },
 	{ "Any+f6" , "MuteSound"              },
 	{ "Any+f7" , "DynamicSky"             },
+	{    "f10" , "options"                },
 	{    "f11" , "luaui selector"         },
 	{ "Any+f12", "screenshot"     , "png" },
 

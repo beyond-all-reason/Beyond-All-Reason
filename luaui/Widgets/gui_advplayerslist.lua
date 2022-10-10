@@ -234,7 +234,6 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 
 --General players/spectator count and tables
 local player = {}
-local playerSpecs = {}
 local playerReadyState = {}
 local numberOfSpecs = 0
 local numberOfEnemies = 0
@@ -1149,7 +1148,6 @@ function SetSidePics()
 end
 
 function GetAllPlayers()
-    local tplayerCount = 0
     local allteams = Spring_GetTeamList()
     teamN = table.maxn(allteams) - 1 --remove gaia
     for i = 0, teamN - 1 do
@@ -1157,16 +1155,6 @@ function GetAllPlayers()
         player[i + 64] = CreatePlayerFromTeam(i)
         for _, playerID in ipairs(teamPlayers) do
             player[playerID] = CreatePlayer(playerID)
-            tplayerCount = tplayerCount + 1
-        end
-
-        local isAiTeam = select(4, Spring.GetTeamInfo(teamN, false))
-        local luaAI = (Spring.GetTeamLuaAI(teamN) ~= "")
-        if not (isAiTeam or (luaAI ~= nil and luaAI ~= '')) then
-            if tplayerCount > 0 then
-                playerSpecs[i] = true -- (this isnt correct when team consists of only AI)
-            end
-            tplayerCount = 0
         end
     end
     local specPlayers = Spring_GetTeamList()
@@ -2187,12 +2175,6 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
     else
         -- spectator
         if specListShow and m_name.active then
-
-            if playerSpecs[playerID] ~= nil and (lockPlayerID ~= nil and lockPlayerID ~= playerID or lockPlayerID == nil) then
-                if recentBroadcasters[playerID] ~= nil and type(recentBroadcasters[playerID]) == "number" then
-                    DrawCamera(posY, false)
-                end
-            end
             DrawSmallName(name, team, posY, false, playerID, alpha)
         end
     end
@@ -2576,9 +2558,6 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
     end
 
     local ignored = WG.ignoredPlayers and WG.ignoredPlayers[name]
-    if originalColourNames[playerID] then
-        name = originalColourNames[playerID] .. name
-    end
 
     local textindent = 4
     local explayerindent = -3
@@ -2586,26 +2565,14 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
         textindent = 0
     end
 
-    font2:Begin()
-    if playerSpecs[playerID] ~= nil then
-        local r,g,b = Spring_GetTeamColor(team)
-        if dark then
-            font2:SetTextColor(r, g, b, 1)
-            font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(0.75, 0.7 * widgetScale))
-            font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
-        else
-            font2:SetTextColor(r, g, b, 0.8)
-            font2:SetOutlineColor(0, 0, 0, 0.3)
-            font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "n")
-        end
-    else
-        font2:SetTextColor(0, 0, 0, 0.3)
-        font2:SetOutlineColor(0, 0, 0, 0.3)
-        font2:Print(name, m_name.posX + textindent + widgetPosX + 2.2, posY + 3.3, 10, "n")
-        font2:Print(name, m_name.posX + textindent + widgetPosX + 3.8, posY + 3.3, 10, "n")
-        font2:SetTextColor(1, 1, 1, alpha)
-        font2:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + 4, 10, "n")
+    if originalColourNames[playerID] then
+        name = originalColourNames[playerID] .. name
     end
+
+    font2:Begin()
+    font2:SetOutlineColor(0, 0, 0, 0.3)
+    font2:SetTextColor(1, 1, 1, alpha)
+    font2:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + 4, 10, "n")
     font2:End()
 
     if ignored then
@@ -3244,9 +3211,9 @@ end
 --  Save/load
 ---------------------------------------------------------------------------------------------------
 
-function widget:GetConfigData(data)
+function widget:GetConfigData()
     -- save
-    if m_side ~= nil then
+    if m_name ~= nil then
         local m_active_Table = {}
         for n, module in pairs(modules) do
             m_active_Table[module.name] = module.active
@@ -3279,7 +3246,7 @@ function widget:GetConfigData(data)
             lockcameraLos = lockcameraLos,
             hasresetskill = true,
             absoluteResbarValues = absoluteResbarValues,
-            playerSpecs = playerSpecs,
+            originalColourNames = originalColourNames,
         }
 
         return settings
@@ -3290,6 +3257,7 @@ local dataversion = 1
 function widget:SetConfigData(data)
     -- load
     if data.widgetVersion ~= nil and widgetVersion == data.widgetVersion then
+
         if data.customScale ~= nil then
             customScale = data.customScale
         end
@@ -3355,8 +3323,8 @@ function widget:SetConfigData(data)
         end
 
         if Spring.GetGameFrame() > 0 then
-            if data.playerSpecs then
-                playerSpecs = data.playerSpecs
+            if data.originalColourNames then
+                originalColourNames = data.originalColourNames
             end
 
             if data.lockPlayerID ~= nil then
