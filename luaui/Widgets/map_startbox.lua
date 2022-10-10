@@ -232,11 +232,15 @@ function widget:Initialize()
 			end
 		end)
 	end)
-
+	local waterlevel = 0 
+	if Spring.GetModOptions().map_waterlevel ~= 0 then
+		waterlevel = Spring.GetModOptions().map_waterlevel
+	end
+	
 	startboxDListStencil = gl.CreateList(function()
 		local minY, maxY = Spring.GetGroundExtremes()
-		minY = minY - 200
-		maxY = maxY + 500
+		minY = minY - 200 - waterlevel
+		maxY = maxY + 500 - waterlevel
 		for _, at in ipairs(Spring.GetAllyTeamList()) do
 			if true or at ~= gaiaAllyTeamID then
 				local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(at)
@@ -257,8 +261,8 @@ function widget:Initialize()
 
 	startboxDListColor = gl.CreateList(function()
 		local minY, maxY = Spring.GetGroundExtremes()
-		minY = minY - 200
-		maxY = maxY + 500
+		minY = minY - 200 - waterlevel
+		maxY = maxY + 500 - waterlevel
 		for _, at in ipairs(Spring.GetAllyTeamList()) do
 			if true or at ~= gaiaAllyTeamID then
 				local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(at)
