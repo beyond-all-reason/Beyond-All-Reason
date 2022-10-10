@@ -1023,7 +1023,7 @@ function DRAWALL(primitiveType, stencilMask)
 					--	Spring.Echo(defRangeClass,iT.usedElements)
 					
 					stencilMask = 2 ^ ( 4 * (i-1) + (j-1)) 
-					Spring.Echo(stencilMask)
+					--Spring.Echo(stencilMask)
 					gl.StencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- Always Passes, 0 Bit Plane, 0 As Mask
 					iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
 				end
@@ -1036,7 +1036,7 @@ function DRAWALL(primitiveType, stencilMask)
 			local iT = defenseRangeVAOs[defRangeClass]
 			if iT.usedElements > 0 and  buttonConfig[allyState]["ground"] then
 				stencilMask = 2 ^ ( 4 * (i-1) + 3) 
-				Spring.Echo(stencilMask)
+				--Spring.Echo(stencilMask)
 				gl.StencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- Always Passes, 0 Bit Plane, 0 As Mask
 				iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
 			end
