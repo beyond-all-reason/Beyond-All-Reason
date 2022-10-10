@@ -1,7 +1,5 @@
 include("keysym.h.lua")
 
-local versionNumber = "6.32"
-
 function widget:GetInfo()
 	return {
 		name      = "Defense Range GL4",
@@ -52,18 +50,21 @@ end
 --X cordoom multiweapon :)
 --merge mobile antis into this
 
+-- TODO3: 2022.10.10
+  -- allow specs to enable? Doesnt make much sense with new stencil based drawing...
+
 
 ------ CLASSIG DEFENSE RANGE THINGS  --------------
-local debug = false --generates debug message
+local DEBUG = false --generates debug message
 local enabledAsSpec = true
 
 
-local modConfig = {}
+local currentModConfig = {}
 -- BAR
 --to support other mods
 --table initialized and unitList is needed!
-modConfig["BYAR"] = {}
-modConfig["BYAR"]["unitList"] = {
+currentModConfig = {}
+currentModConfig["unitList"] = {
 	-- ARMADA
 	armclaw = { weapons = { 1 } },
 	armllt = { weapons = { 1 } },
@@ -140,28 +141,28 @@ modConfig["BYAR"]["unitList"] = {
 
 -- add scavs
 local toscav = {}
-for k,v in pairs(modConfig["BYAR"]["unitList"]) do
+for k,v in pairs(currentModConfig["unitList"]) do
 	toscav[#toscav+1] = k
 end
 for i,k in ipairs(toscav) do
-	modConfig["BYAR"]["unitList"][k..'_scav'] =  modConfig["BYAR"]["unitList"][k]
+	currentModConfig["unitList"][k..'_scav'] =  currentModConfig["unitList"][k]
 end
 
 --implement this if you want dps-depending ring-colors
 --colors will be interpolated by dps scores between min and max values. values outside range will be set to nearest value in range -> min or max
-modConfig["BYAR"]["armorTags"] = {}
-modConfig["BYAR"]["armorTags"]["air"] = "vtol"
-modConfig["BYAR"]["armorTags"]["ground"] = "else"
-modConfig["BYAR"]["dps"] = {}
-modConfig["BYAR"]["dps"]["ground"] = {}
-modConfig["BYAR"]["dps"]["air"] = {}
-modConfig["BYAR"]["dps"]["ground"]["min"] = 50
-modConfig["BYAR"]["dps"]["ground"]["max"] = 500
-modConfig["BYAR"]["dps"]["air"]["min"] = 80
-modConfig["BYAR"]["dps"]["air"]["max"] = 500
-modConfig["BYAR"]["dps"]["cannon"] = {}
-modConfig["BYAR"]["dps"]["cannon"]["min"] = 80
-modConfig["BYAR"]["dps"]["cannon"]["max"] = 500
+currentModConfig["armorTags"] = {}
+currentModConfig["armorTags"]["air"] = "vtol"
+currentModConfig["armorTags"]["ground"] = "else"
+currentModConfig["dps"] = {}
+currentModConfig["dps"]["ground"] = {}
+currentModConfig["dps"]["air"] = {}
+currentModConfig["dps"]["ground"]["min"] = 50
+currentModConfig["dps"]["ground"]["max"] = 500
+currentModConfig["dps"]["air"]["min"] = 80
+currentModConfig["dps"]["air"]["max"] = 500
+currentModConfig["dps"]["cannon"] = {}
+currentModConfig["dps"]["cannon"]["min"] = 80
+currentModConfig["dps"]["cannon"]["max"] = 500
 --end of dps-colors
 
 
@@ -245,7 +246,6 @@ local spec, fullview = spGetSpectatingState()
 local myAllyTeam = Spring.GetMyAllyTeamID()
 
 local defences = {}
-local currentModConfig = {}
 
 local updateTimes = {}
 updateTimes["remove"] = 0
@@ -343,7 +343,7 @@ local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 local sphereCylinderShader = nil
-local cannonShader = nil
+
 
 local function goodbye(reason)
   Spring.Echo("DefenseRange GL4 widget exiting with reason: "..reason)
@@ -390,6 +390,7 @@ layout (location = 4) in vec4 projectileParams; // projectileSpeed, iscylinder!!
 
 uniform vec4 circleuniforms; // none yet
 uniform float linewidthplus = 0.0;
+uniform float cannonmode = 0.0;
 
 uniform sampler2D heightmapTex;
 uniform sampler2D losTex; // hmm maybe?
@@ -446,12 +447,10 @@ float GetRange2DCannon(float yDiff,float projectileSpeed,float rangeFactor,float
 }
 
 //float heightMod  default: 0.2 (0.8 for #Cannon, 1.0 for #BeamLaser and #LightningCannon)
-
-//    Changes the spherical weapon range into an ellipsoid. Values above 1.0 mean the weapon cannot target as high as it can far, values below 1.0 mean it can target higher than it can far. For example 0.5 would allow the weapon to target twice as high as far.
+//Changes the spherical weapon range into an ellipsoid. Values above 1.0 mean the weapon cannot target as high as it can far, values below 1.0 mean it can target higher than it can far. For example 0.5 would allow the weapon to target twice as high as far.
 
 //float heightBoostFactor default: -1.0
-
-    //Controls the boost given to range by high terrain. Values > 1.0 result in increased range, 0.0 means the cannon has fixed range regardless of height difference to target. Any value < 0.0 (i.e. the default value) result in an automatically calculated value based on range and theoretical maximum range.
+//Controls the boost given to range by high terrain. Values > 1.0 result in increased range, 0.0 means the cannon has fixed range regardless of height difference to target. Any value < 0.0 (i.e. the default value) result in an automatically calculated value based on range and theoretical maximum range.
 
 #define RANGE posscale.w
 #define PROJECTILESPEED projectileParams.x
@@ -469,28 +468,8 @@ void main() {
 
 	// get heightmap
 	circleWorldPos.y = heightAtWorldPos(circleWorldPos.xz);
-	/*
-	#ifndef CANNON
-		if (ISCYLINDER < 0.5){ // isCylinder
-			//simple implementation, 4 samples per point
-			for (int i = 0; i<mod(timeInfo.x/4,30); i++){
-			//for (int i = 0; i<4; i++){
-				// draw vector from centerpoint to new height point and normalize it to range length
-				vec3 tonew = circleWorldPos.xyz - posscale.xyz;
-				tonew.y *= HEIGHTMOD;
-				tonew = normalize(tonew) * RANGE;
-				circleWorldPos.xz = posscale.xz + tonew.xz;
-				circleWorldPos.y = heightAtWorldPos(circleWorldPos.xz);
-			}
-		}
-	#endif
+	if (cannonmode > 0.5){
 
-	*/
-	#ifndef Cannon
-	//circleWorldPos.y+= 500;
-	#endif
-
-	#ifdef CANNON
 
 
 		// BAR only has 3 distinct ballistic projectiles, heightBoostFactor is only a handful from -1 to 2.8 and 6 and 8
@@ -524,7 +503,7 @@ void main() {
 				heightDiff = circleWorldPos.y - posscale.y;
 				adjRadius = GetRange2DCannon(heightDiff * HEIGHTMOD, PROJECTILESPEED, rangeFactor, HEIGHTBOOSTFACTOR);
 		}
-	#endif
+	}
 
 	circleWorldPos.y += 6; // lift it from the ground
 
@@ -539,12 +518,13 @@ void main() {
 	float distToCam = length(posscale.xyz - camPos.xyz); //dist from cam
 
 	alphaControl.z  = clamp((visibility.y -distToCam)/(visibility.y - visibility.x + 1.0),visibility.z,visibility.w);
-	#ifdef CANNON
+	
+	if (cannonmode > 0.5){
 	// cannons should fade distance based on their range
 		float cvmin = max(visibility.x, 2* RANGE);
 		float cvmax = max(visibility.y, 4* RANGE);
 		alphaControl.z  = clamp((cvmin - distToCam)/(cvmax - cvmin + 1.0),visibility.z,visibility.w);
-	#endif
+	}
 
 
 	// --- NO FOG
@@ -589,6 +569,7 @@ local fsSrc =  [[
 
 #line 20000
 
+uniform float linewidthplus = 0.0;
 uniform vec4 circleuniforms;
 
 uniform sampler2D heightmapTex;
@@ -619,12 +600,9 @@ void main() {
 	fragColor.a = clamp((alphaControl.z+clamp(alphaControl.w,0.0,1.0))*0.5, 0.0,1.0);
 	//	fragColor.a = clamp(alphaControl.z, 0.0,1.0);
 
-
-
 	// outofbounds
 	fragColor.a *= alphaControl.y;
-
-
+	//(linewidthplus
 	if (fragColor.a < 0.01) // needed for depthmask
 	discard;
 }
@@ -655,26 +633,6 @@ local function makeShaders()
   shaderCompiled = sphereCylinderShader:Initialize()
   if not shaderCompiled then goodbye("Failed to compile sphereCylinderShader GL4 ") end
 
-  cannonShader =  LuaShader(
-    {
-      vertex = vsSrc:gsub("//__DEFINES__", "#define CANNON 1\n#define MYGRAVITY "..tostring(Game.gravity+0.01)),
-      fragment = fsSrc,
-      --geometry = gsSrc, no geom shader for now
-      uniformInt = {
-        heightmapTex = 0,
-		losTex = 1,
-        },
-      uniformFloat = {
-		linewidthplus = 0,
-        circleuniforms = {1,1,1,1},
-      },
-    },
-    "cannonShader GL4"
-  )
-  shaderCompiled = cannonShader:Initialize()
-  if not shaderCompiled then goodbye("Failed to compile cannonShader GL4 ") end
-
-
 end
 
 local function initGL4()
@@ -699,7 +657,6 @@ end
 function widget:Initialize()
 	state["myPlayerID"] = spGetLocalTeamID()
 
-	DetectMod()
 
 	initGL4()
 
@@ -1045,27 +1002,6 @@ function widget:Update(dt)
 
 end
 
-function DetectMod()
-	state["curModID"] = upper(Game.gameShortName or "")
-
-	if modConfig[state["curModID"]] == nil then
-		spEcho("<DefenseRange> Unsupported Game, shutting down...")
-		widgetHandler:RemoveWidget()
-		return
-	end
-
-	currentModConfig = modConfig[state["curModID"]]
-
-	--load mod specific color config if existent
-	if currentModConfig["color"] ~= nil then
-		colorConfig = currentModConfig["color"]
-		printDebug("Game-specfic color configuration loaded")
-	end
-
-	printDebug( "<DefenseRange> ModName: " .. Game.modName .. " Detected Mod: " .. state["curModID"] )
-end
-
-
 
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
@@ -1077,7 +1013,8 @@ local allyenemypairs = {"ally","enemy"}
 local groundnukeair = {"ground","air","nuke"}
 
 function DRAWALL(primitiveType, stencilMask)
-		sphereCylinderShader:Activate()
+		
+		sphereCylinderShader:SetUniform("cannonmode",0)
 		for i,allyState in ipairs(allyenemypairs) do
 			for j, wt in ipairs(groundnukeair) do
 				local defRangeClass = allyState..wt
@@ -1086,23 +1023,25 @@ function DRAWALL(primitiveType, stencilMask)
 					--	Spring.Echo(defRangeClass,iT.usedElements)
 					
 					stencilMask = 2 ^ ( 4 * (i-1) + (j-1)) 
+					Spring.Echo(stencilMask)
 					gl.StencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- Always Passes, 0 Bit Plane, 0 As Mask
 					iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
 				end
 			end
 		end
-		sphereCylinderShader:Deactivate()
-		cannonShader:Activate()
-		for i,allyState in ipairs({"ally","enemy"}) do
+		
+		sphereCylinderShader:SetUniform("cannonmode",1)
+		for i,allyState in ipairs(allyenemypairs) do
 			local defRangeClass = allyState.."cannon"
 			local iT = defenseRangeVAOs[defRangeClass]
 			if iT.usedElements > 0 and  buttonConfig[allyState]["ground"] then
 				stencilMask = 2 ^ ( 4 * (i-1) + 3) 
+				Spring.Echo(stencilMask)
 				gl.StencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- Always Passes, 0 Bit Plane, 0 As Mask
 				iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
 			end
 		end
-		cannonShader:Deactivate()
+
 end
 
 function widget:DrawWorldPreUnit()
@@ -1124,23 +1063,24 @@ function widget:DrawWorldPreUnit()
 		gl.DepthTest(false) -- always draw
 		gl.ColorMask(false, false, false, false) -- disable color drawing
 		gl.StencilTest(true) -- enable stencil test
-		gl.StencilMask(63) -- all 6 bits
+		gl.StencilMask(255) -- all 8 bits
 		
-		
-
 		
 		gl.StencilOp(GL_KEEP, GL_KEEP, GL.REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
-		DRAWALL(GL.TRIANGLE_FAN)
+		
+		sphereCylinderShader:Activate()
+		DRAWALL(GL.TRIANGLE_FAN) -- FILL THE CIRCLES
 		
 		gl.LineWidth(5)
 		gl.ColorMask(true, true, true, true)	-- re-enable color drawing
 		gl.StencilMask(0)
-		DRAWALL(GL.LINE_LOOP)
+		DRAWALL(GL.LINE_LOOP) -- DRAW THE OUTER RIGS
 		
 		gl.LineWidth(1)
 		gl.StencilTest(false)
-		DRAWALL(GL.LINE_LOOP)
-
+		DRAWALL(GL.LINE_LOOP) -- DRAW THE INNER RINGS
+		
+		sphereCylinderShader:Deactivate()
 
 		glTexture(0, false)
 		glTexture(1, false)
@@ -1150,7 +1090,7 @@ function widget:DrawWorldPreUnit()
 end
 
 function printDebug(value)
-	if debug then
+	if DEBUG then
 		if type(value) == "boolean" then
 			if value == true then spEcho( "true" )
 				else spEcho("false") end
