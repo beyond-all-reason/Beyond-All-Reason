@@ -212,13 +212,11 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 end
 wdefParams = nil
 
-local unitRadius = {}
 local unitNumWeapons = {}
 local canMove = {}
 local unitName = {}
 local unitWeapons = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitRadius[unitDefID] = unitDef.radius
 	local weapons = unitDef.weapons
 	if #weapons > 0 then
 		unitNumWeapons[unitDefID] = #weapons
@@ -236,8 +234,8 @@ end
 --Button display configuration
 --position only relevant if no saved config data found
 local buttonConfig = {
-	ally = { ground = false, air = false, nuke = false,  radar = false },
-	enemy = { ground = true, air = true, nuke = true,  radar = false }
+	ally = { ground = true, air = true, nuke = true },
+	enemy = { ground = true, air = true, nuke = true }
 }
 
 local _,oldcamy,_ = Spring.GetCameraPosition() --for tracking if we should change the alpha/linewidth based on camheight
@@ -268,6 +266,8 @@ local GL_LINE_LOOP          = GL.LINE_LOOP
 local glDepthTest           = gl.DepthTest
 local glLineWidth           = gl.LineWidth
 local glTexture             = gl.Texture
+
+local GL_KEEP = 0x1E00 --GL.KEEP
 
 local upper                 = string.upper
 local floor                 = math.floor
@@ -389,6 +389,7 @@ layout (location = 3) in vec4 visibility; // FadeStart, FadeEnd, StartAlpha, End
 layout (location = 4) in vec4 projectileParams; // projectileSpeed, iscylinder!!!! , heightBoostFactor , heightMod
 
 uniform vec4 circleuniforms; // none yet
+uniform float linewidthplus = 0.0;
 
 uniform sampler2D heightmapTex;
 uniform sampler2D losTex; // hmm maybe?
@@ -574,6 +575,7 @@ void main() {
 	worldPos.a = RANGE;
 	alphaControl.x = circlepointposition.z; // save circle progress here
 	gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
+	alphaControl.x = 0.0;
 }
 ]]
 
@@ -644,6 +646,7 @@ local function makeShaders()
         losTex = 1,
         },
       uniformFloat = {
+		linewidthplus = 0,
         circleuniforms = {1,1,1,1},
       },
     },
@@ -662,6 +665,7 @@ local function makeShaders()
 		losTex = 1,
         },
       uniformFloat = {
+		linewidthplus = 0,
         circleuniforms = {1,1,1,1},
       },
     },
@@ -761,12 +765,12 @@ function UnitDetected( unitID, allyTeam, teamId , unitDefID )
 	if unitDefID == nil then unitDefID = spGetUnitDefID(unitID) end
 
 	if canMove[unitDefID] and not  mobileAntiUnitDefs[unitDefID] then
-			return
+		return
 	end
 
-	if (not unitNumWeapons[unitDefID]) and unitRadius[unitDefID] and unitRadius[unitDefID] < 100 then
-			--not interesting, has no weapons and no radar coverage, lame
-			return
+	if (not unitNumWeapons[unitDefID]) then
+		--not interesting, has no weapons and no radar coverage, lame
+		return
 	end
 
 	local tag
@@ -1069,7 +1073,39 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-function widget:DrawWorld()
+local allyenemypairs = {"ally","enemy"}
+local groundnukeair = {"ground","air","nuke"}
+
+function DRAWALL(primitiveType, stencilMask)
+		sphereCylinderShader:Activate()
+		for i,allyState in ipairs(allyenemypairs) do
+			for j, wt in ipairs(groundnukeair) do
+				local defRangeClass = allyState..wt
+				local iT = defenseRangeVAOs[defRangeClass]
+				if iT.usedElements > 0 and buttonConfig[allyState][wt] then
+					--	Spring.Echo(defRangeClass,iT.usedElements)
+					
+					stencilMask = 2 ^ ( 4 * (i-1) + (j-1)) 
+					gl.StencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- Always Passes, 0 Bit Plane, 0 As Mask
+					iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
+				end
+			end
+		end
+		sphereCylinderShader:Deactivate()
+		cannonShader:Activate()
+		for i,allyState in ipairs({"ally","enemy"}) do
+			local defRangeClass = allyState.."cannon"
+			local iT = defenseRangeVAOs[defRangeClass]
+			if iT.usedElements > 0 and  buttonConfig[allyState]["ground"] then
+				stencilMask = 2 ^ ( 4 * (i-1) + 3) 
+				gl.StencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- Always Passes, 0 Bit Plane, 0 As Mask
+				iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
+			end
+		end
+		cannonShader:Deactivate()
+end
+
+function widget:DrawWorldPreUnit()
 	if fullview and not enabledAsSpec then
 		return
 	end
@@ -1081,29 +1117,30 @@ function widget:DrawWorld()
 
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
+		
+		-- Stencil Setup
+		
+		gl.Clear(GL.STENCIL_BUFFER_BIT) -- clear prev stencil
+		gl.DepthTest(false) -- always draw
+		gl.ColorMask(false, false, false, false) -- disable color drawing
+		gl.StencilTest(true) -- enable stencil test
+		gl.StencilMask(63) -- all 6 bits
+		
+		
 
-		sphereCylinderShader:Activate()
-		for _,allyState in ipairs({"ally","enemy"}) do
-			for j, wt in ipairs({"ground","air","nuke"}) do
-				local defRangeClass = allyState..wt
-				local iT = defenseRangeVAOs[defRangeClass]
-				if iT.usedElements > 0 and buttonConfig[allyState][wt] then
-					--	Spring.Echo(defRangeClass,iT.usedElements)
-					iT.VAO:DrawArrays(GL.LINE_STRIP,iT.numVertices,0,iT.usedElements,0) -- +1!!!
-				end
-			end
-		end
-		sphereCylinderShader:Deactivate()
+		
+		gl.StencilOp(GL_KEEP, GL_KEEP, GL.REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
+		DRAWALL(GL.TRIANGLE_FAN)
+		
+		gl.LineWidth(5)
+		gl.ColorMask(true, true, true, true)	-- re-enable color drawing
+		gl.StencilMask(0)
+		DRAWALL(GL.LINE_LOOP)
+		
+		gl.LineWidth(1)
+		gl.StencilTest(false)
+		DRAWALL(GL.LINE_LOOP)
 
-		cannonShader:Activate()
-		for i,allyState in ipairs({"ally","enemy"}) do
-			local defRangeClass = allyState.."cannon"
-			local iT = defenseRangeVAOs[defRangeClass]
-			if iT.usedElements > 0 and  buttonConfig[allyState]["ground"] then
-				iT.VAO:DrawArrays(GL.LINE_STRIP,iT.numVertices,0,iT.usedElements,0) -- +1!!!
-			end
-		end
-		cannonShader:Deactivate()
 
 		glTexture(0, false)
 		glTexture(1, false)
@@ -1128,7 +1165,7 @@ function printDebug(value)
 	end
 end
 
-
+--[[
 --SAVE / LOAD CONFIG FILE
 function widget:GetConfigData()
 	local data = {}
@@ -1145,3 +1182,4 @@ function widget:SetConfigData(data)
 	end
 end
 
+]]--
