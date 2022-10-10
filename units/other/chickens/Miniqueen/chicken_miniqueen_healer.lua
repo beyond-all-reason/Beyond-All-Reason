@@ -11,7 +11,7 @@ return {
 		builder = true,
 		buildpic = "chickens/chicken_miniqueen_healer.DDS",
 		buildtime = 1500000,
-		canattack = true,
+		canattack = false,
 		canguard = true,
 		canmove = true,
 		canpatrol = true,
