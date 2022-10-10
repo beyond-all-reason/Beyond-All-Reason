@@ -151,6 +151,7 @@
 		{ "Any+f7" , "ShowMetalMap"           },
 		{ "Any+f8" , "ShowElevation"          },
 
+		{    "f10" , "options"                },
 		{    "f11" , "luaui selector"         },
 		{ "Any+f12", "screenshot"     , "png" },
 		{ "Alt+backspace", "fullscreen"       },

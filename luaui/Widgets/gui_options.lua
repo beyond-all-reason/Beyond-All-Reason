@@ -5133,7 +5133,6 @@ function widget:Initialize()
 	end
 
 	Spring.SendCommands("minimap unitsize " .. (Spring.GetConfigFloat("MinimapIconScale", 3.5)))        -- spring wont remember what you set with '/minimap iconssize #'
-	Spring.SendCommands({ "bind f10 options" })
 
 	WG['options'] = {}
 	WG['options'].toggle = function(state)
