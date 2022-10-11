@@ -396,8 +396,8 @@ uniform sampler2D heightmapTex;
 uniform sampler2D losTex; // hmm maybe?
 
 out DataVS {
-	vec4 worldPos; // pos and radius
-	vec4 blendedcolor;
+	flat vec4 worldPos; // pos and radius
+	flat vec4 blendedcolor;
 	vec4 alphaControl; // xyzw: circumference progress, outofboundsalpha,  fadealpha ,mousealpha,
 };
 
@@ -468,13 +468,12 @@ void main() {
 
 	// get heightmap
 	circleWorldPos.y = heightAtWorldPos(circleWorldPos.xz);
+	
+
 	if (cannonmode > 0.5){
-
-
 
 		// BAR only has 3 distinct ballistic projectiles, heightBoostFactor is only a handful from -1 to 2.8 and 6 and 8
 		// gravity we can assume to be linear
-
 
 		float heightDiff = (circleWorldPos.y - YGROUND) * 0.5;
 
@@ -503,6 +502,20 @@ void main() {
 				heightDiff = circleWorldPos.y - posscale.y;
 				adjRadius = GetRange2DCannon(heightDiff * HEIGHTMOD, PROJECTILESPEED, rangeFactor, HEIGHTBOOSTFACTOR);
 		}
+	}else{
+		if (ISCYLINDER < 0.5){ // isCylinder
+			//simple implementation, 4 samples per point
+			//for (int i = 0; i<mod(timeInfo.x/4,30); i++){
+			for (int i = 0; i<8; i++){
+				// draw vector from centerpoint to new height point and normalize it to range length
+				vec3 tonew = circleWorldPos.xyz - posscale.xyz;
+				tonew.y *= HEIGHTMOD;
+				tonew = normalize(tonew) * RANGE;
+				circleWorldPos.xz = posscale.xz + tonew.xz;
+				circleWorldPos.y = heightAtWorldPos(circleWorldPos.xz);
+			}
+		}
+	
 	}
 
 	circleWorldPos.y += 6; // lift it from the ground
@@ -526,29 +539,20 @@ void main() {
 		alphaControl.z  = clamp((cvmin - distToCam)/(cvmax - cvmin + 1.0),visibility.z,visibility.w);
 	}
 
-
-	// --- NO FOG
-	//float fogDist = length((cameraView * vec4(circleWorldPos.xyz,1.0)).xyz);
-	//float fogFactor = (fogParams.y - fogDist) * fogParams.w;
-	//blendedcolor.rgb = mix(color1.rgb, fogColor.rgb, fogFactor);
+	// --- YES FOG
+	float fogDist = length((cameraView * vec4(circleWorldPos.xyz,1.0)).xyz);
+	float fogFactor = (fogParams.y - fogDist) * fogParams.w;
+	blendedcolor.rgb = mix(color1.rgb, fogColor.rgb, fogFactor);
 	blendedcolor.rgb = color1.rgb;
 
 	// -- DARKEN OUT OF LOS
 	vec4 losTexSample = texture(losTex, vec2(circleWorldPos.x / mapSize.z, circleWorldPos.z / mapSize.w)); // lostex is PO2
 	float inlos = dot(losTexSample.rgb,vec3(0.33));
 	inlos = clamp(inlos*5 -1.4	, 0.5,1.0); // fuck if i know why, but change this if LOSCOLORS are changed!
-	blendedcolor.rgb *= inlos;
+	//blendedcolor.rgb *= inlos;
+	alphaControl.x = inlos;
 
-	// -- TEAMCOLORIZATION
-	blendedcolor.a = color1.a; // pass over teamID
 
-	// -- MOUSE DISTANCE ALPHA
-	float disttomousefromcenter = RANGE *1.5 - length(posscale.xz - mouseWorldPos.xz);
-	// this will be positive if in mouse, negative else
-	float mousealpha = clamp( disttomousefromcenter / (RANGE * 0.33), 0.0, 1.0);
-	alphaControl.w = mousealpha;
-	alphaControl.w = mousealpha;
-	
 	// DISABLE THIS FOR NOW:
 	alphaControl.w = 1.0;
 
@@ -558,13 +562,12 @@ void main() {
 	float highightme = clamp( (disttomousefromunit ) + 1.0, 1.0, 2.0);
 	alphaControl.w = highightme;
 
-
 	// ------------ dump the stuff for FS --------------------
 	worldPos = circleWorldPos;
 	worldPos.a = RANGE;
-	alphaControl.x = circlepointposition.z; // save circle progress here
+	//alphaControl.x = circlepointposition.z; // save circle progress here
 	gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
-	alphaControl.x = 0.0;
+	//alphaControl.x = 0.0;
 }
 ]]
 
@@ -587,8 +590,8 @@ uniform sampler2D losTex; // hmm maybe?
 //__ENGINEUNIFORMBUFFERDEFS__
 
 in DataVS {
-	vec4 worldPos; // w = range
-	vec4 blendedcolor;
+	flat vec4 worldPos; // w = range
+	flat vec4 blendedcolor;
 	vec4 alphaControl;// xyzw: circumference progress, outofboundsalpha,  fadealpha ,mousealpha,
 };
 
@@ -596,25 +599,21 @@ out vec4 fragColor;
 
 void main() {
 	fragColor.rgba = vec4(1.0);
-	fragColor.rgb = blendedcolor.rgb;
+	fragColor.rgb = blendedcolor.rgb * alphaControl.x;
 
 	// mousepos teamcolorization
-	uint teamidx = uint(blendedcolor.a);
-	float animationmix = clamp( sign(fract(alphaControl.x * worldPos.w*0.1 - timeInfo.y*0.2) - 0.75),0.0,1.0);
-	vec3 teamcolorized = mix(blendedcolor.rgb, teamColor[teamidx].rgb, animationmix * alphaControl.w);
+	//uint teamidx = uint(blendedcolor.a);
+	//float animationmix = clamp( sign(fract(alphaControl.x * worldPos.w*0.1 - timeInfo.y*0.2) - 0.75),0.0,1.0);
+	//vec3 teamcolorized = mix(blendedcolor.rgb, teamColor[teamidx].rgb, animationmix * alphaControl.w);
 	//fragColor.rgb = teamcolorized; //removed for now
 
 	//mousepos alpha override
-
+	//
 	fragColor.a = clamp((alphaControl.z+clamp(alphaControl.w,0.0,2.0))*0.5, 0.0,2.0);
-	//	fragColor.a = clamp(alphaControl.z, 0.0,1.0);
 
 	// outofbounds
 	fragColor.a *= alphaControl.y;
-	//(lineAlphaUniform
 	fragColor.a *= lineAlphaUniform;
-	//if (fragColor.a < 0.01) // needed for depthmask
-	//discard;
 }
 ]]
 
@@ -1032,10 +1031,9 @@ function DRAWALL(primitiveType, stencilMask)
 				if iT.usedElements > 0 and buttonConfig[allyState][wt] then
 					--	Spring.Echo(defRangeClass,iT.usedElements)
 					
-					stencilMask = 2 ^ ( 4 * (i-1) + (j-1)) 
-					gl.StencilMask(stencilMask)
-					--Spring.Echo(stencilMask)
-					gl.StencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- Always Passes, 0 Bit Plane, 0 As Mask
+					stencilMask = 2 ^ ( 4 * (i-1) + (j-1)) -- from 1 to 128
+					gl.StencilMask(stencilMask)  -- only allow these bits to get written
+					gl.StencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- what to do with the stencil
 					iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
 				end
 			end
@@ -1049,7 +1047,7 @@ function DRAWALL(primitiveType, stencilMask)
 				stencilMask = 2 ^ ( 4 * (i-1) + 3) 
 				--Spring.Echo(stencilMask)
 				gl.StencilMask(stencilMask)
-				gl.StencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- Always Passes, 0 Bit Plane, 0 As Mask
+				gl.StencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) 
 				iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
 			end
 		end
@@ -1063,8 +1061,8 @@ function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
 	if not spIsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 		glLineWidth(lineConfig["lineWidth"])
-		glDepthTest(GL.LEQUAL)
-		gl.DepthMask(true)
+
+		--gl.DepthMask(false)
 
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
