@@ -322,11 +322,11 @@ end
 ------ GL4 THINGS  -----
 -- nukes and cannons:
 local largeCircleVBO = nil
-local largeCircleSegments = 1024
+local largeCircleSegments = 512
 
 -- others:
 local smallCircleVBO = nil
-local smallCircleSegments = 256
+local smallCircleSegments = 128
 
 local weaponTypeToString = {"ground","air","nuke","ground","cannon"}
 local defenseRangeClasses = {'enemyair','enemyground','enemynuke','allyair','allyground','allynuke', 'enemycannon', 'allycannon'}
@@ -613,8 +613,8 @@ void main() {
 	fragColor.a *= alphaControl.y;
 	//(lineAlphaUniform
 	fragColor.a *= lineAlphaUniform;
-	if (fragColor.a < 0.01) // needed for depthmask
-	discard;
+	//if (fragColor.a < 0.01) // needed for depthmask
+	//discard;
 }
 ]]
 
