@@ -95,8 +95,8 @@ customDefs.corcom = {
 	showplayername = false,
 	stealth = false,
 
-	objectname = "Units/CORCOM.s3o",
-	script = "Units/CORCOM.cob",
+	--objectname = "Units/CORCOM.s3o",
+	--script = "Units/CORCOM.cob",
 	--workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',
@@ -194,8 +194,8 @@ customDefs.armcom = {
 	stealth = false,
 	--workertime = 200,				-- can get multiplied in unitdef_post
 
-	objectname = "Units/ARMCOM.s3o",
-	script = "Units/ARMCOM_lus.lua",
+	--objectname = "Units/ARMCOM.s3o",
+	--script = "Units/ARMCOM_lus.lua",
 	customparams = {
 		iscommander = 'nil',
 	},
