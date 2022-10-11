@@ -389,7 +389,7 @@ layout (location = 3) in vec4 visibility; // FadeStart, FadeEnd, StartAlpha, End
 layout (location = 4) in vec4 projectileParams; // projectileSpeed, iscylinder!!!! , heightBoostFactor , heightMod
 
 uniform vec4 circleuniforms; // none yet
-uniform float linewidthplus = 0.0;
+uniform float lineAlphaUniform = 1.0;
 uniform float cannonmode = 0.0;
 
 uniform sampler2D heightmapTex;
@@ -548,6 +548,15 @@ void main() {
 	float mousealpha = clamp( disttomousefromcenter / (RANGE * 0.33), 0.0, 1.0);
 	alphaControl.w = mousealpha;
 	alphaControl.w = mousealpha;
+	
+	// DISABLE THIS FOR NOW:
+	alphaControl.w = 1.0;
+
+	// -- IN-SHADER HIGHLIGHTING
+	float disttomousefromunit = sign(64.0 - length(posscale.xz - mouseWorldPos.xz));
+	// this will be positive if in mouse, negative else
+	float highightme = clamp( (disttomousefromunit ) + 1.0, 1.0, 2.0);
+	alphaControl.w = highightme;
 
 
 	// ------------ dump the stuff for FS --------------------
@@ -569,7 +578,7 @@ local fsSrc =  [[
 
 #line 20000
 
-uniform float linewidthplus = 0.0;
+uniform float lineAlphaUniform = 1.0;
 uniform vec4 circleuniforms;
 
 uniform sampler2D heightmapTex;
@@ -597,12 +606,13 @@ void main() {
 
 	//mousepos alpha override
 
-	fragColor.a = clamp((alphaControl.z+clamp(alphaControl.w,0.0,1.0))*0.5, 0.0,1.0);
+	fragColor.a = clamp((alphaControl.z+clamp(alphaControl.w,0.0,2.0))*0.5, 0.0,2.0);
 	//	fragColor.a = clamp(alphaControl.z, 0.0,1.0);
 
 	// outofbounds
 	fragColor.a *= alphaControl.y;
-	//(linewidthplus
+	//(lineAlphaUniform
+	fragColor.a *= lineAlphaUniform;
 	if (fragColor.a < 0.01) // needed for depthmask
 	discard;
 }
@@ -624,7 +634,7 @@ local function makeShaders()
         losTex = 1,
         },
       uniformFloat = {
-		linewidthplus = 0,
+		lineAlphaUniform = 1,
         circleuniforms = {1,1,1,1},
       },
     },
@@ -1023,6 +1033,7 @@ function DRAWALL(primitiveType, stencilMask)
 					--	Spring.Echo(defRangeClass,iT.usedElements)
 					
 					stencilMask = 2 ^ ( 4 * (i-1) + (j-1)) 
+					gl.StencilMask(stencilMask)
 					--Spring.Echo(stencilMask)
 					gl.StencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- Always Passes, 0 Bit Plane, 0 As Mask
 					iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
@@ -1037,6 +1048,7 @@ function DRAWALL(primitiveType, stencilMask)
 			if iT.usedElements > 0 and  buttonConfig[allyState]["ground"] then
 				stencilMask = 2 ^ ( 4 * (i-1) + 3) 
 				--Spring.Echo(stencilMask)
+				gl.StencilMask(stencilMask)
 				gl.StencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- Always Passes, 0 Bit Plane, 0 As Mask
 				iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
 			end
@@ -1058,7 +1070,7 @@ function widget:DrawWorldPreUnit()
 		glTexture(1, "$info")
 		
 		-- Stencil Setup
-		
+		-- 	-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 		gl.Clear(GL.STENCIL_BUFFER_BIT) -- clear prev stencil
 		gl.DepthTest(false) -- always draw
 		gl.ColorMask(false, false, false, false) -- disable color drawing
@@ -1069,6 +1081,7 @@ function widget:DrawWorldPreUnit()
 		gl.StencilOp(GL_KEEP, GL_KEEP, GL.REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
 		
 		sphereCylinderShader:Activate()
+		sphereCylinderShader:SetUniform("lineAlphaUniform",1)
 		DRAWALL(GL.TRIANGLE_FAN) -- FILL THE CIRCLES
 		
 		gl.LineWidth(5)
@@ -1076,7 +1089,9 @@ function widget:DrawWorldPreUnit()
 		gl.StencilMask(0)
 		DRAWALL(GL.LINE_LOOP) -- DRAW THE OUTER RIGS
 		
-		gl.LineWidth(1)
+		sphereCylinderShader:SetUniform("lineAlphaUniform",0.5)
+		
+		gl.LineWidth(0.33)
 		gl.StencilTest(false)
 		DRAWALL(GL.LINE_LOOP) -- DRAW THE INNER RINGS
 		
