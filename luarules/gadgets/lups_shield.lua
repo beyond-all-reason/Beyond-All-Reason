@@ -147,7 +147,7 @@ if gadgetHandler:IsSyncedCode() then
 		elseif beamEmitterUnitID then -- hitscan weapons
 			local uDefID = Spring.GetUnitDefID(beamEmitterUnitID)
 			if unitBeamWeapons[ uDefID ] and unitBeamWeapons[ uDefID ][beamEmitterWeaponNum] then
-				weaponDefID = unitBeamWeapons[ uDefID ][beamEmitterWeaponNum].weaponDef
+				weaponDefID = unitBeamWeapons[ uDefID ][beamEmitterWeaponNum]
 				if weaponType[weaponDefID] ~= "LightningCannon" then
 					dmgMod = 1 / (weaponBeamtime[weaponDefID] * GAMESPEED)
 				end
