@@ -72,6 +72,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_MOVE;
 	sleep 5000;
 	start-script ExecuteRestoreAfterDelay();
 }

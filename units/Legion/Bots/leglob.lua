@@ -2,10 +2,10 @@ return {
 	leglob = {
 		acceleration = 0.12995,
 		brakerate = 0.77625,
-		buildcostenergy = 500,
+		buildcostenergy = 400,
 		buildcostmetal = 70,
 		buildpic = "LEGLOB.DDS",
-		buildtime = 1500,
+		buildtime = 1200,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",

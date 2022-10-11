@@ -12,7 +12,6 @@ return {
 		category = "ALL WEAPON NOTSUB VTOL NOTHOVER",
 		collide = true,
 		cruisealt = 70,
-		energyuse = 0.8,
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
