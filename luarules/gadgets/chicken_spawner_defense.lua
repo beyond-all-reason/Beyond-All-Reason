@@ -1424,7 +1424,13 @@ if gadgetHandler:IsSyncedCode() then
 				canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
 			end
 			if canSpawnStructure then
-				if GG.IsPosInChickenScum(spawnPosX, spawnPosY, spawnPosZ) or playerAgressionLevel >= 10 then
+				if GG.IsPosInChickenScum(spawnPosX, spawnPosY, spawnPosZ) then
+					canSpawnStructure = true
+				elseif playerAgressionLevel >= 5 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, true)
+					canSpawnStructure = true
+				elseif playerAgressionLevel >= 10 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, false)
+					canSpawnStructure = true
+				elseif playerAgressionLevel >= 15 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, false, false)
 					canSpawnStructure = true
 				else
 					canSpawnStructure = false
