@@ -326,6 +326,7 @@ return {
 			cameramovespeed_descr = 'Smoothness of camera moving mode',
 			scrollspeed = 'scroll zoom speed',
 			scrollinverse = 'reverse scrolling',
+			minimumcameraheight = 'minimum camera height',
 			lockcamera = 'Tracking cam',
 			lockcamera_transitiontime = 'smoothing',
 			lockcamera_transitiontime_descr = 'When viewing a players camera...\nhow smooth should the transitions between camera movement be?',
