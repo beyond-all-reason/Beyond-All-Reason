@@ -184,14 +184,14 @@ local function spawnConstructor(n)
 			spawnBeaconsController.SpawnBeacon(n)
 
 			if scavconfig.constructorControllerModuleConfig.useresurrectors then
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + 32, posy, posz, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - 32, posy, posz, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + 32, posy, posz, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - 32, posy, posz, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - 32, posy, posz + 32, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + 32, posy, posz - 32, math.random(0, 3), ScavengerTeamID)
 
 				if posy > 0 then
 					local resurrector = constructorUnitList.Resurrectors[math.random(#constructorUnitList.Resurrectors)]
@@ -232,7 +232,7 @@ local function spawnConstructor(n)
 			if constructor then
 				constructorTimer = 0
 				spawnQueueLibrary.AddToSpawnQueue(constructor, posx, posy, posz, math.random(0, 3), ScavengerTeamID, n + 150)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz, math.random(0, 3), ScavengerTeamID)
 			end
 		else
 			constructorTimer = constructorTimer +  math.ceil(n / scavconfig.constructorControllerModuleConfig.constructortimerreductionframes)
