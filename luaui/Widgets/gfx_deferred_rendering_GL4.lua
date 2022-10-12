@@ -371,6 +371,11 @@ local function InitializeLight(lightTable, unitID)
 				unitDefPeiceMapCache[unitDefID] = Spring.GetUnitPieceMap(unitID)
 			end
 			local pieceMap = unitDefPeiceMapCache[unitDefID]
+			
+			if pieceMap == nil then 
+				Spring.Debug.TraceFullEcho(nil,nil,nil,"InitializeLight, pieceMap == nil")
+			end
+			
 			if pieceMap[lightTable.pieceName] then -- if its not a real piece, it will default to the model worldpos!
 				lightTable.pieceIndex = pieceMap[lightTable.pieceName] 
 				lightTable.lightParamTable[pieceIndexPos] = lightTable.pieceIndex
