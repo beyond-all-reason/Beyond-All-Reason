@@ -435,7 +435,7 @@ local function Bloom()
 	glUseShader(0)
 
 	gl.Blending("reset")
-	gl.DepthMask(true)
+	gl.DepthMask(false) --"BK OpenGL state resets", was true
 end
 
 function widget:DrawWorld()

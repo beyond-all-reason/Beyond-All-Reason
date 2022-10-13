@@ -2,7 +2,7 @@ include("keysym.h.lua")
 
 function widget:GetInfo()
 	return {
-		name      = "Defense Range GL4",
+		name      = "Defense Range GL4 fixed?",
 		desc      = "Displays range of defenses (enemy and ally)",
 		author    = "Beherith, very_bad_soldier",
 		date      = "2021.04.26",
@@ -265,8 +265,16 @@ lineConfig["lineWidth"] = 1.33 -- calcs dynamic now
 
 local GL_LINE_LOOP          = GL.LINE_LOOP
 local glDepthTest           = gl.DepthTest
+local glDepthMask			= gl.DepthMask
 local glLineWidth           = gl.LineWidth
 local glTexture             = gl.Texture
+local glClear				= gl.Clear
+local glColorMask			= gl.ColorMask
+local glStencilTest			= gl.StencilTest
+local glStencilMask			= gl.StencilMask
+local glStencilOp			= gl.StencilOp
+
+local GL_KEEP = 0x1E00 --GL.KEEP
 
 local GL_KEEP = 0x1E00 --GL.KEEP
 
@@ -1027,41 +1035,44 @@ function widget:DrawWorldPreUnit()
 	if not spIsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 		glLineWidth(lineConfig["lineWidth"])
 
-		--gl.DepthMask(false)
+		--gl.DepthMask(false) --"BK OpenGL state resets", already commented out
 
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
 		
 		-- Stencil Setup
 		-- 	-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
-		gl.Clear(GL.STENCIL_BUFFER_BIT) -- clear prev stencil
-		gl.DepthTest(false) -- always draw
-		gl.ColorMask(false, false, false, false) -- disable color drawing
-		gl.StencilTest(true) -- enable stencil test
-		gl.StencilMask(255) -- all 8 bits
-		gl.StencilOp(GL_KEEP, GL_KEEP, GL.REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
+
+		glClear(GL.STENCIL_BUFFER_BIT) -- clear prev stencil
+		glDepthTest(false) -- always draw
+		glColorMask(false, false, false, false) -- disable color drawing
+		glStencilTest(true) -- enable stencil test
+		glStencilMask(255) -- all 8 bits
+		glStencilOp(GL_KEEP, GL_KEEP, GL.REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
 		
 		sphereCylinderShader:Activate()
 		sphereCylinderShader:SetUniform("lineAlphaUniform",1)
 		DRAWRINGS(GL.TRIANGLE_FAN) -- FILL THE CIRCLES
 		
-		gl.LineWidth(4)
-		gl.ColorMask(true, true, true, true)	-- re-enable color drawing
-		gl.StencilMask(0)
+		glLineWidth(4)
+		glColorMask(true, true, true, true)	-- re-enable color drawing
+		glStencilMask(0)
+
 		DRAWRINGS(GL.LINE_LOOP) -- DRAW THE OUTER RINGS
 		
 		sphereCylinderShader:SetUniform("lineAlphaUniform",0.5)
 		
-		gl.LineWidth(0.5)
-		gl.StencilTest(false)
+		glLineWidth(0.5)
+		glStencilTest(false)
+
 		DRAWRINGS(GL.LINE_LOOP) -- DRAW THE INNER RINGS
 		
 		sphereCylinderShader:Deactivate()
 
 		glTexture(0, false)
 		glTexture(1, false)
-		glDepthTest(GL.LEQUAL)
-		gl.DepthMask(true)
+		glDepthTest(false)
+		--glDepthMask(false)  --"BK OpenGL state resets", was false but now commented out (redundant set of false states)
 	end
 end
 

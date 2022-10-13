@@ -1672,6 +1672,7 @@ function widget:DrawWorld()
 		healthBarShader:Deactivate()
 		gl.Texture(false)
 		gl.DepthTest(false)
+    gl.DepthMask(false) --"BK OpenGL state resets", reset to default state
 	end
 end
 
