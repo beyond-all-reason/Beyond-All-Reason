@@ -187,7 +187,7 @@ function gadget:GameFrame(n)
 			end
         end
         if LootboxesToSpawn >= 1 and lootboxSpawnEnabled then
-            for k = 1,1000 do
+            for k = 1,50 do
                 local posx = math.floor(math_random(xBorder,mapsizeX-xBorder)/16)*16
                 local posz = math.floor(math_random(zBorder,mapsizeZ-zBorder)/16)*16
                 local posy = spGroundHeight(posx, posz)
