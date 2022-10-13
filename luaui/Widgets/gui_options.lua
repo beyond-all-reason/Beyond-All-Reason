@@ -2363,6 +2363,12 @@ function init()
 		  end,
 		},
 
+		{ id = "mincamheight", group = "control", category = types.advanced, name = texts.option.mincamheight, type = "slider", min = 0, max = 1200, step = 1, value = Spring.GetConfigInt("MinimumCameraHeight", 0), description = texts.option.mincamheight_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("MinimumCameraHeight", value)
+		  end,
+		},
+
 		{ id = "label_ui_hotkeys", group = "control", name = texts.option.label_hotkeys, category = types.basic },
 		{ id = "label_ui_hotkeys_spacer", group = "control", category = types.basic },
 
@@ -2510,7 +2516,6 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  cameraTransitionTime = value
-			  Spring.SetConfigFloat("CameraTransitionTime", value)
 		  end,
 		},
 		{ id = "camerapanspeed", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.camerapanspeed, type = "slider", min = -0.01, max = -0.00195, step = 0.0001, value = Spring.GetConfigFloat("MiddleClickScrollSpeed", 0.0035), description = texts.option.camerapanspeed_descr,
@@ -2554,13 +2559,6 @@ function init()
 					  Spring.SetConfigInt("ScrollWheelSpeed", options[getOptionByID('scrollspeed')].value)
 				  end
 			  end
-		  end,
-		},
-		{ id = "minimumcameraheight", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.minimumcameraheight, type = "slider", min = 0, max = 10000, step = 1, value = math.abs(tonumber(Spring.GetConfigInt("MinimumCameraHeight", 0) or 0)), description = '',
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			Spring.SetConfigInt("MinimumCameraHeight", value)
 		  end,
 		},
 

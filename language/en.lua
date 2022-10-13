@@ -324,6 +324,8 @@ return {
 			camerapanspeed_descr = 'Smoothness of camera panning mode',
 			cameramovespeed = 'move speed',
 			cameramovespeed_descr = 'Smoothness of camera moving mode',
+			mincamheight = 'Minimum camera height',
+			mincamheight_descr = 'Define the minimum cam distance from the ground',
 			scrollspeed = 'scroll zoom speed',
 			scrollinverse = 'reverse scrolling',
 			minimumcameraheight = 'minimum camera height',
