@@ -22,7 +22,7 @@ return {
 		mass = 100000,
 		maxdamage = 50000,
 		maxslope = 14,
-		maxvelocity = 1.9,
+		maxvelocity = 1.8,
 		maxwaterdepth = 20,
 		movementclass = "HTANK5",
 		nochasecategory = "VTOL",
