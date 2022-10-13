@@ -315,7 +315,7 @@ function widget:Shutdown()
 end
 
 local function DrawStartboxes3dWithStencil()
-	gl.DepthMask(false)
+	gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 	if gl.DepthClamp then
 		gl.DepthClamp(true)
 	end

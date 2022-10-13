@@ -482,7 +482,7 @@ function widget:DrawWorld()
 	if paralyzedDrawUnitVBOTable.usedElements > 0 then
 		--if Spring.GetGameFrame() % 90 == 0 then Spring.Echo("Drawing paralyzed units #", paralyzedDrawUnitVBOTable.usedElements) end
 		gl.Culling(GL.BACK)
-		gl.DepthMask(false)
+		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		gl.DepthTest(true)
 		gl.PolygonOffset( -2 ,-2)
 		paralyzedUnitShader:Activate()
@@ -491,7 +491,7 @@ function widget:DrawWorld()
 		paralyzedUnitShader:Deactivate()
 		--gl.Texture(0, false)
 		gl.PolygonOffset( false )
-		gl.DepthMask(true)
+		--gl.DepthMask(true) --"BK OpenGL state resets", was true but now commented out (redundant set of false states)
 		gl.Culling(false)
 	end
 end

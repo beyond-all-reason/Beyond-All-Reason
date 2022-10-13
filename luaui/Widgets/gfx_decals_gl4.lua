@@ -416,7 +416,7 @@ function widget:DrawWorldPreUnit()
 		--Spring.Echo(decalVBO.usedElements,decalLargeVBO.usedElements)
 		glCulling(GL.BACK) 
 		glDepthTest(GL_LEQUAL)
-		gl.DepthMask(false)
+		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		glTexture(0, '$heightmap')
 		glTexture(1, '$minimap')
 		glTexture(2, '$info')
@@ -453,7 +453,9 @@ function widget:DrawWorldPreUnit()
 		for i = 0, 8 do glTexture(i, false) end
 		glCulling(GL.BACK) -- This is the correct default mode! 
 		glDepthTest(GL_LEQUAL)
-		gl.DepthMask(false)
+
+		--gl.DepthMask(false) --"BK OpenGL state resets", already set as false
+		
 		if false then 
 			local tricount = 4*4*2 * decalVBO.usedElements + resolution*resolution*2*decalLargeVBO.usedElements + 4*4*resolution*resolution*2*decalExtraLargeVBO.usedElements
 			Spring.Echo(string.format("Small decal = %d, Medium decal = %d, Large decal = %d, tris = %d",

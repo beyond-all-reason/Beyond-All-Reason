@@ -504,5 +504,6 @@ function widget:DrawWorld()
 		gl.UnitShapeTextures(udefID, false)
 		gl.PolygonOffset( false )
 		gl.Culling(false)
+    gl.DepthMask(false) --"BK OpenGL state resets", reset to default state
 	end
 end

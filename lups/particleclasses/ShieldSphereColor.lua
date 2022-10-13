@@ -184,7 +184,7 @@ function ShieldSphereColorParticle:EndDraw()
 	end
 
 	gl.DepthTest(true)
-	gl.DepthMask(true)
+	gl.DepthMask(false) --"BK OpenGL state resets", was true
 end
 
 -----------------------------------------------------------------

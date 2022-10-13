@@ -1342,7 +1342,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		
 		gl.Culling(GL.BACK)
 		gl.DepthTest(false)
-		gl.DepthMask(false)
+		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		glTexture(0, "$map_gbuffer_zvaltex")
 		glTexture(1, "$model_gbuffer_zvaltex")
 		glTexture(2, "$map_gbuffer_normtex")
@@ -1397,7 +1397,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		for i = 0, 8 do glTexture(i, false) end 
 		gl.Culling(GL.BACK)
 		gl.DepthTest(true)
-		gl.DepthMask(true)
+		--gl.DepthMask(true) --"BK OpenGL state resets", was true but now commented out (redundant set of false states)
 		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
 	local t1 = 	Spring.GetTimerMicros()

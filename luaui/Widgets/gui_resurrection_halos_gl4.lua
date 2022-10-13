@@ -111,7 +111,7 @@ function widget:DrawWorld()
 		resurrectionHalosShader:SetUniform("iconDistance", 99999) -- pass
 		resurrectionHalosShader:SetUniform("addRadius", 0)
 		gl.DepthTest(true)
-		gl.DepthMask(false)
+		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		resurrectionHalosVBO.VAO:DrawArrays(GL.POINTS, resurrectionHalosVBO.usedElements)
 		resurrectionHalosShader:Deactivate()
 		gl.Texture(0, false)

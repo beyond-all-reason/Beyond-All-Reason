@@ -244,7 +244,7 @@ function widget:DrawWorld()
 	gl.Culling(GL.BACK)
 	gl.Culling(false)
 	gl.DepthTest(GL.LEQUAL)
-	gl.DepthMask(false)
+	gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 	gl.Texture(0, "$map_gbuffer_zvaltex")
 	gl.Texture(1, "$model_gbuffer_zvaltex")
 	gl.Texture(2, "$heightmap")
@@ -274,7 +274,7 @@ function widget:DrawWorld()
 	for i = 0, 8 do gl.Texture(i, false) end 
 	gl.Culling(GL.BACK)
 	gl.DepthTest(true)
-	gl.DepthMask(true)
+	gl.DepthMask(true) --"BK OpenGL state resets", need for toTexture block?
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	
 	if toTexture then 
@@ -290,4 +290,5 @@ function widget:DrawWorld()
 		gl.Texture(0, false)
 		gl.Texture(1, false)
 	end
+  gl.DepthMask(false) --"BK OpenGL state resets", reset to default state
 end

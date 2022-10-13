@@ -732,7 +732,7 @@ local function DrawParticles(isReflection)
 
 	if jetInstanceVBO.usedElements > 0 then
 		gl.Culling(false)
-		gl.DepthMask(false)
+		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove both state changes
 		glDepthTest(true)
 
 		glAlphaTest(GL_GREATER, 0)
@@ -753,7 +753,7 @@ local function DrawParticles(isReflection)
 
 		glAlphaTest(false)
 		glDepthTest(false)
-		gl.DepthMask(true)
+		--gl.DepthMask(false) --"BK OpenGL state resets", was true but now commented out (redundant set of false states)
 	end
 end
 

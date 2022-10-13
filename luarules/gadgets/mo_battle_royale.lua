@@ -258,7 +258,7 @@ else
 
   function gadget:DrawWorld()
     if circleInstanceVBO.usedElements > 0 then
-      gl.DepthMask(false)
+      gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
       gl.DepthTest(true)
       gl.AlphaTest(GL.GREATER, 0)
       gl.Blending(GL.SRC_ALPHA, GL.ONE)
@@ -271,7 +271,7 @@ else
       gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
       gl.AlphaTest(false)
       gl.DepthTest(false)
-      gl.DepthMask(false)
+      --gl.DepthMask(false)  --"BK OpenGL state resets", already set as false
     end
   end
 
