@@ -25,7 +25,6 @@ local killfriendly = true -- only different allyteams get hit
 local projectiles = {} -- {owner = proOwnerID, gameframe = Spring.GetGameFrame(), alreadydamaged = {}}
 
 local weapons = {}
-local dgunProjectileWeaponID
 for weaponID, weaponDef in pairs(WeaponDefs) do
     if weaponDef.type == 'DGun' and weaponDef.damages  then -- to filter out decoy comm -- and weaponDef.damage.default > 5000
 		for _, v in pairs(weaponDef.damages) do
@@ -34,9 +33,11 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 			end
 		end
     end
-	if weaponDef.name == 'dgun_projectile' then
-		dgunProjectileWeaponID = weaponID
-	end
+end
+
+local dgunProjectileWeaponID
+if WeaponDefNames['armcom_disintegrator'] then
+	dgunProjectileWeaponID = WeaponDefNames['armcom_disintegrator'].id
 end
 if not dgunProjectileWeaponID then
 	Spring.Echo('Dgun projectile volume: -=== dgun projectile weapon not found ===-')
