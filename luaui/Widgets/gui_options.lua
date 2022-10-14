@@ -2363,12 +2363,6 @@ function init()
 		  end,
 		},
 
-		{ id = "mincamheight", group = "control", category = types.advanced, name = texts.option.mincamheight, type = "slider", min = 0, max = 1200, step = 1, value = Spring.GetConfigInt("MinimumCameraHeight", 0), description = texts.option.mincamheight_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("MinimumCameraHeight", value)
-		  end,
-		},
-
 		{ id = "label_ui_hotkeys", group = "control", name = texts.option.label_hotkeys, category = types.basic },
 		{ id = "label_ui_hotkeys_spacer", group = "control", category = types.basic },
 
@@ -2594,6 +2588,12 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockLos', { 'lockcameraLos' }, value)
+		  end,
+		},
+
+		{ id = "mincamheight", group = "control", category = types.advanced, name = texts.option.mincamheight, type = "slider", min = 0, max = 1500, step = 1, value = Spring.GetConfigInt("MinimumCameraHeight", 350), description = texts.option.mincamheight_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("MinimumCameraHeight", value)
 		  end,
 		},
 
