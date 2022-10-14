@@ -18,7 +18,7 @@ end
 
 local sparkWeapons = {}
 local weapons = {
-	lightningxl = {ceg = "genericshellexplosion-splash-large-lightning", forkdamage = 0.4,   maxunits=12, range = 175},
+	thunder = {ceg = "genericshellexplosion-splash-large-lightning", forkdamage = 0.33,   maxunits=2, range = 60},	-- CHANGE ME TO MAKE ME STRONGER ZECRUS!
     lightning   = {ceg = "genericshellexplosion-splash-lightning",       forkdamage = 0.33,   maxunits=2,  range = 60},
     dclaw       = {ceg = "genericshellexplosion-splash-lightning",       forkdamage = 0.33, maxunits=2,  range = 60},
 
@@ -52,7 +52,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 		local x,y,z = Spring.GetUnitPosition(unitID)
         local nearUnits = Spring.GetUnitsInSphere(x,y,z,sparkWeapons[weaponID].range)
 		local count = 0
-		for i=1,#nearUnits do
+		for i=1, #nearUnits do
 			local nearUnit = nearUnits[i]
 			if count >= sparkWeapons[weaponID].maxunits then
 				return

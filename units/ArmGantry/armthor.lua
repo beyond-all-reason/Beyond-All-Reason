@@ -122,7 +122,7 @@ return {
 			},
 		},
 		weapondefs = {
-			lightningxl = {
+			thunder = {
 				areaofeffect = 48,
 				avoidfeature = false,
 				beamttl = 1,
@@ -270,7 +270,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "LIGHTNINGXL",
+				def = "thunder",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
