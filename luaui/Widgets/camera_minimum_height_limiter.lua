@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local desiredLevel = Spring.GetConfigInt("MinimumCameraHeight", 0)
+local desiredLevel = Spring.GetConfigInt("MinimumCameraHeight", 350)
 local optionRefresh = 0
 
 function widget:Update()
