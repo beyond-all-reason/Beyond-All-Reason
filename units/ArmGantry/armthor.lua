@@ -163,6 +163,10 @@ return {
 					light_color = "0.2 0.5 1",
 					light_mult = 1.6,
 					light_radius_mult = 1.5,
+					spark_ceg = "genericshellexplosion-splash-large-lightning",
+					spark_forkdamage = "0.33", --old value = "0.4", currently setting to playtested glitched value
+					spark_maxunits = "2", --old value = "12", currently setting to playtested glitched value
+					spark_range = "60", --old value = "175", currently setting to playtested glitched value
 				},
 				damage = {
 					default = 320,
