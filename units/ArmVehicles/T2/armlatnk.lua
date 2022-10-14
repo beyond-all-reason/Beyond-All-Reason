@@ -204,6 +204,10 @@ return {
 					expl_light_color = "0.2 0.5 1",
 					light_color = "0.2 0.5 1",
 					light_mult = "0.7",
+					spark_ceg = "genericshellexplosion-splash-lightning",
+					spark_forkdamage = "0.33",
+					spark_maxunits = "2",
+					spark_range = "60",
 				},
 				damage = {
 					default = 22.7,
