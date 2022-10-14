@@ -17,18 +17,19 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local sparkWeapons = {}
-local weapons = {
-	thunder = {ceg = "genericshellexplosion-splash-large-lightning", forkdamage = 0.33,   maxunits=2, range = 60},	-- CHANGE ME TO MAKE ME STRONGER ZECRUS!
-    lightning   = {ceg = "genericshellexplosion-splash-lightning",       forkdamage = 0.33,   maxunits=2,  range = 60},
-    dclaw       = {ceg = "genericshellexplosion-splash-lightning",       forkdamage = 0.33, maxunits=2,  range = 60},
 
-}
 for wdid, wd in pairs(WeaponDefNames) do
-    for name, v in pairs(weapons) do
-        if string.find(wd.name, name) then
-            sparkWeapons[wd.id] = v
-        end
-    end
+	if wd.customParams ~= nil then
+		if wd.customParams.spark_ceg ~= nil then
+			-- ZECRUS, values can be tuned in the unitdef file
+			sparkWeapons[wd.id] = 	{	
+									ceg = wd.customParams.spark_ceg, 
+									forkdamage = tonumber(wd.customParams.spark_forkdamage), 
+									maxunits = tonumber(wd.customParams.spark_maxunits), 
+									range = tonumber(wd.customParams.spark_range)
+									}
+		end
+	end
 end
 
 local immuneToSplash = {
