@@ -144,7 +144,7 @@ return {
 				intensity = 28,
 				name = "Heavy Lighting Cannon",
 				noselfdamage = true,
-				range = 640,
+				range = 540,
 				reloadtime = 3.1,
 				rgbcolor = "0.5 0.5 1",
 				soundhit = "lasrfir2",
@@ -163,9 +163,13 @@ return {
 					light_color = "0.2 0.5 1",
 					light_mult = 1.6,
 					light_radius_mult = 1.5,
+					spark_ceg = "genericshellexplosion-splash-large-lightning",
+					spark_forkdamage = "0.5", --old value = "0.4", currently setting to playtested glitched value
+					spark_maxunits = "5", --old value = "12", currently setting to playtested glitched value
+					spark_range = "125", --old value = "175", currently setting to playtested glitched value
 				},
 				damage = {
-					default = 320,
+					default = 300,
 					subs = 30,
 				},
 			},
