@@ -161,9 +161,9 @@ function UnitDef_Post(name, uDef)
 
 	if Spring.GetModOptions().experimentalrebalancehovercrafttech == true then
 		if name == "corhp" or name == "corfhp" or name == "armhp" or name == "armfhp" then
-			uDef.buildcostmetal = 730 --1100
-			uDef.buildcostenergy = 1800 --4200
-			uDef.buildtime = 7150 --11000
+			uDef.buildcostmetal = 900 --730 --1100
+			uDef.buildcostenergy = 3000 --1800 --4200
+			uDef.buildtime = 11000 --7150 --11000
 			uDef.workertime = 100 --200
 		end
 		if name == "armch" then
