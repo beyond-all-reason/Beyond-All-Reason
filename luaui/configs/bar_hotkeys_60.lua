@@ -173,6 +173,9 @@ local bindings = {
 	{ "Any+ctrl",     "moveslow"     },
 	{ "Any+shift",    "movefast"     },
 
+	{ "Any+alt",   "movereset" }, -- fast camera reset on some camera states, e.g. middle mouse held
+	{ "Any+ctrl",  "movetilt"  }, -- Move inclination of camera
+
 	{ "Ctrl+sc_a", "select", "AllMap++_ClearSelection_SelectAll+"                                                                                    },
 	{ "Ctrl+sc_b", "select", "AllMap+_Builder_Idle+_ClearSelection_SelectOne+"                                                                       },
 	{ "Ctrl+sc_c", "select", "AllMap+_ManualFireUnit_Not_IdMatches_cordecom_Not_IdMatches_armdecom_Not_IdMatches_armthor+_ClearSelection_SelectOne+" },
@@ -333,9 +336,9 @@ local bindings = {
 	{ "Alt+sc_y", "settarget"         },
 	{     "sc_y", "settargetnoground" },
 
+	{ "Ctrl+meta+sc_q", "group unset" },
 	-- if WG['Auto Group'] then
 	{ "Alt+sc_q",  "remove_from_autogroup" },
-	{ "Ctrl+meta+sc_q", "remove_one_unit_from_group" },
 }
 
 for i = 0, 9 do

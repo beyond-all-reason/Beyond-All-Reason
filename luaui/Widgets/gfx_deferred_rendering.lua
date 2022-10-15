@@ -534,7 +534,7 @@ end
 -- adding a glow to Cannon projectiles
 function widget:DrawWorld()
 	local lights = pointLights
-	gl.DepthMask(false)
+	gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 	glBlending(GL.SRC_ALPHA, GL.ONE)
 	gl.Texture(glowImg)
 	local size = 1
@@ -554,7 +554,7 @@ function widget:DrawWorld()
 	end
 	gl.Billboard(false)
 	gl.Texture(false)
-	gl.DepthMask(true)
+	--gl.DepthMask(false) --"BK OpenGL state resets", was true but now commented out (redundant set of false states)
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 

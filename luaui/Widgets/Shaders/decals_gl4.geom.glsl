@@ -56,7 +56,7 @@ void offsetVertex4( float x, float y, float z, float u, float v){
 	vec4 worldPos = vec4(centerpos.xyz + rotY * ( primitiveCoords ), 1.0);
 	
 	vec2 uvhm = heighmapUVatWorldPos(worldPos.xz);
-	worldPos.y = textureLod(heightmapTex, uvhm, 0.0).x + 0.01;
+	worldPos.y = textureLod(heightmapTex, uvhm, 0.0).x + HEIGHTOFFSET;
 	gl_Position = cameraViewProj * worldPos;
 	gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in Z
 	g_uv.zw = dataIn[0].v_parameters.zw;
@@ -83,7 +83,6 @@ void main(){
 	centerpos = dataIn[0].v_centerpos;
 	rotY = rotation3dY(dataIn[0].v_lengthwidthrotation.z); // Create a rotation matrix around Y from the unit's rotation
 	//rotY = mat3(1.0);
-
 	uvoffsets = dataIn[0].v_uvoffsets; // if an atlas is used, then use this, otherwise dont
 	decalDimensions = vec3(dataIn[0].v_lengthwidthrotation.x * 0.5, 0.0, dataIn[0].v_lengthwidthrotation.y * 0.5);
 	g_parameters = dataIn[0].v_parameters;

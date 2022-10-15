@@ -122,7 +122,7 @@ return {
 			},
 		},
 		weapondefs = {
-			lightningxl = {
+			thunder = {
 				areaofeffect = 48,
 				avoidfeature = false,
 				beamttl = 1,
@@ -164,9 +164,9 @@ return {
 					light_mult = 1.6,
 					light_radius_mult = 1.5,
 					spark_ceg = "genericshellexplosion-splash-large-lightning",
-					spark_forkdamage = "0.5", --old value = "0.4", currently setting to playtested glitched value
-					spark_maxunits = "5", --old value = "12", currently setting to playtested glitched value
-					spark_range = "125", --old value = "175", currently setting to playtested glitched value
+					spark_forkdamage = "0.5", --old value = "0.4", 
+					spark_maxunits = "5", --old value = "12", 
+					spark_range = "125", --old value = "175", 
 				},
 				damage = {
 					default = 300,
@@ -274,7 +274,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "LIGHTNINGXL",
+				def = "thunder",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

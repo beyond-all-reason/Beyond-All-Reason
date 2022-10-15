@@ -76,6 +76,8 @@ end
 
 local function draw_buttons(b)
 	font:Begin()
+	font:SetTextColor(1, 1, 1, 1)
+	font:SetOutlineColor(0, 0, 0, 0.7)
 	for i = 1, #b do
 		UiButton(math.floor((b[i].x * vsx) + 0.5), math.floor((b[i].y * vsy) + 0.5), math.floor(((b[i].x + bWidth) * vsx) + 0.5), math.floor(((b[i].y + bHeight) * vsy) + 0.5), 0,1,1,0, 1,1,1,1, nil, { 0, 0, 0, ui_opacity }, { 0.2, 0.2, 0.2, ui_opacity }, bgpadding * 0.5)
 		font:Print(b[i].text, math.floor((b[i].x * vsx) + 0.5), math.floor(((b[i].y + bHeight / 2) * vsy) + 0.5), math.floor((0.0115 * vsx) + 0.5), 'vo')
@@ -165,6 +167,9 @@ function widget:DrawScreen()
 	local mousex, mousey, buttonstate = Spring.GetMouseState()
 	local b = buttons
 	local topbutton = #buttons-1
+	font:Begin()
+	font:SetTextColor(1, 1, 1, 1)
+	font:SetOutlineColor(0, 0, 0, 0.7)
 	if point_in_rect(b[#buttons].x, b[#buttons].y, b[topbutton].x + bWidth, b[topbutton].y + bHeight, mousex / vsx, mousey / vsy) then
 
 		for i = 1, #b do
@@ -174,13 +179,12 @@ function widget:DrawScreen()
 				RectRound(math.floor((b[i].x * vsx) + 0.5), math.floor((b[i].y * vsy) + 0.5), math.floor(((b[i].x + bWidth) * vsx) + 0.5), math.floor(((b[i].y + bHeight) * vsy) + 0.5), bgpadding * 0.5, 0,1,1,0, { 0.3, 0.3, 0.3, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, buttonstate and 0.25 or 0.15 })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-				font:Begin()
 				font:Print(b[i].text, math.floor((b[i].x * vsx) + 0.5), math.floor(((b[i].y + bHeight / 2) * vsy) + 0.5), math.floor((0.0115 * vsx) + 0.5), 'vo')
-				font:End()
 				break
 			end
 		end
 	end
+	font:End()
 end
 
 function widget:MousePress(x, y, button)

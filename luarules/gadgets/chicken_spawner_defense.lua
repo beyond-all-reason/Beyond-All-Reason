@@ -65,6 +65,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
+	Spring.SetGameRulesParam("BossFightStarted", 0)
 	local queenLifePercent = 100
 	local maxTries = 30
 	local chickenUnitCap = math.floor(Game.maxUnits*0.95)
@@ -144,6 +145,10 @@ if gadgetHandler:IsSyncedCode() then
 			"chickenacidarty",
 			"chickenacidallterrain",
 			"chickenacidallterrainassault",
+		},
+		["chicken_miniqueen_healer"] = {
+			"chickenh1",
+			"chickenh1b",
 		},
 	}
 
@@ -300,6 +305,7 @@ if gadgetHandler:IsSyncedCode() then
 		queenAnger = 0  -- reenable chicken spawning
 		techAnger = 0
 		playerAgression = 0
+		queenAngerAgressionLevel = 0
 		SetGameRulesParam("queenAnger", queenAnger)
 		local nextDifficulty
 		if config.queenName == "ve_chickenq" then -- Enter Easy Phase
@@ -462,6 +468,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenh4"].id] = { chance = 1 },
 		[UnitDefNames["chicken_miniqueen_electric"].id] = { chance = 0.01 },
 		[UnitDefNames["chicken_miniqueen_acid"].id] = { chance = 0.01 },
+		[UnitDefNames["chicken_miniqueen_healer"].id] = { chance = 0.01 },
 	}
 	local HEALER = {
 		[UnitDefNames["chickenh1"].id] = true,
@@ -1096,7 +1103,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 
-		if unitTeam == chickenTeamID and attackerTeam == chickenTeamID then
+		if unitTeam == chickenTeamID and attackerTeam == chickenTeamID and attackerDefID ~= UnitDefNames["chickenr2"].id then
 			return 0
 		end
 
@@ -1314,7 +1321,7 @@ if gadgetHandler:IsSyncedCode() then
 				squadCreationQueue.burrow = defs.burrow
 			end
 			squadCreationQueue.units[#squadCreationQueue.units+1] = unitID
-			if HEALER[UnitDefNames[defs.unitName].id] then
+			if HEALER[UnitDefNames[defs.unitName].id] or miniQueenMinions[defs.unitName] then
 				squadCreationQueue.role = "healer"
 				if squadCreationQueue.life < 100 then
 					squadCreationQueue.life = 100
@@ -1417,7 +1424,13 @@ if gadgetHandler:IsSyncedCode() then
 				canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
 			end
 			if canSpawnStructure then
-				if GG.IsPosInChickenScum(spawnPosX, spawnPosY, spawnPosZ) or playerAgressionLevel >= 10 then
+				if GG.IsPosInChickenScum(spawnPosX, spawnPosY, spawnPosZ) then
+					canSpawnStructure = true
+				elseif playerAgressionLevel >= 5 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, true) then
+					canSpawnStructure = true
+				elseif playerAgressionLevel >= 10 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, true, false) then
+					canSpawnStructure = true
+				elseif playerAgressionLevel >= 15 and positionCheckLibrary.VisibilityCheckEnemy(spawnPosX, spawnPosY, spawnPosZ, spread, chickenAllyTeamID, true, false, false) then
 					canSpawnStructure = true
 				else
 					canSpawnStructure = false
@@ -1720,6 +1733,13 @@ if gadgetHandler:IsSyncedCode() then
 					local y = GetGroundHeight(x, z)
 					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
 				end
+			elseif miniQueenMinions[UnitDefs[unitDefID].name] then
+				for i = 1,mRandom(100,200) do
+					local x = x + mRandom(-16,16)
+					local z = z + mRandom(-16,16)
+					local y = GetGroundHeight(x, z)
+					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
+				end
 			else
 				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
 			end
@@ -1759,6 +1779,7 @@ if gadgetHandler:IsSyncedCode() then
 			-- queen destroyed
 			queenID = nil
 			queenResistance = {}
+			Spring.SetGameRulesParam("BossFightStarted", 0)
 
 			if config.difficulty == config.difficulties.survival then
 				updateDifficultyForSurvival()

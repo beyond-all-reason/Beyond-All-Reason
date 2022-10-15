@@ -552,13 +552,38 @@ function widget:TextCommand(command)
 
 	if string.find(command, "execute", nil, true) == 1 then
 		local cmd = string.sub(command, string.find(command, "execute", nil, true) + 8, nil)
-		local success, functionize = pcall(loadstring( 'return function() return {' .. cmd .. '} end'))
+		local success, functionize = pcall(loadstring( 'return function() return {' .. cmd .. '} end')) -- note, because of the return{} stuff, this cant execute any arbitrary for loop
 		if not success then
 			Spring.Echo("Failed to parse command:",success, cmd)
 		else
 			local success, data = pcall(functionize)
 			if not success then
-				Spring.Echo("Failed to execute command:", succes, cmd)
+				Spring.Echo("Failed to execute command:", success, cmd)
+			else
+				if type(data) == type({}) then
+					if #data == 1 then
+						Spring.Echo(data[1])
+					elseif #data == 0 then
+						Spring.Echo("nil")
+					else
+						Spring.Debug.TableEcho(data)
+					end
+				else
+					Spring.Echo(data)
+				end
+			end
+		end
+	end
+	
+	if string.find(command, "noreturnexecute", nil, true) == 1 then
+		local cmd = string.sub(command, string.find(command, "noreturnexecute", nil, true) + 16, nil)
+		local success, functionize = pcall(loadstring( 'return function() ' .. cmd .. ' end')) -- 
+		if not success then
+			Spring.Echo("Failed to parse command:",success, cmd)
+		else
+			local success, data = pcall(functionize)
+			if not success then
+				Spring.Echo("Failed to execute command:", success, cmd)
 			else
 				if type(data) == type({}) then
 					if #data == 1 then

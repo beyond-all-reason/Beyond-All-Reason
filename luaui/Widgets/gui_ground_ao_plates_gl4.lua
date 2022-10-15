@@ -84,7 +84,7 @@ function widget:DrawWorldPreUnit()
 		--Spring.Echo(groundPlateVBO.usedElements)
 		glCulling(GL_BACK)
 		glDepthTest(GL_LEQUAL)
-		glDepthMask(false)
+		glDepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		glTexture(0, atlasID)
 		groundPlateShader:Activate()
 		groundPlateVBO.VAO:DrawArrays(GL_POINTS,groundPlateVBO.usedElements)
@@ -93,7 +93,7 @@ function widget:DrawWorldPreUnit()
 		glCulling(false)
 		gl.DepthTest(GL.ALWAYS)
 		gl.DepthTest(false)
-		gl.DepthMask(false)
+		--gl.DepthMask(false) --"BK OpenGL state resets", already set as false
 	end
 end
 

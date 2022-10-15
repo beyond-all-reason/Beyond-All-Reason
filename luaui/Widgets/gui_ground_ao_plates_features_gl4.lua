@@ -110,7 +110,7 @@ function widget:DrawWorldPreUnit()
 		local disticon = Spring.GetConfigInt("FeatureFadeDistance", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		glCulling(GL_BACK)
 		glDepthTest(GL_LEQUAL)
-		gl.DepthMask(false)
+		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		--glDepthTest(false)
 		glTexture(0, atlasID)
 		groundPlateShader:Activate()
@@ -122,7 +122,7 @@ function widget:DrawWorldPreUnit()
 		glCulling(false)
 		gl.DepthTest(GL.ALWAYS)
 		gl.DepthTest(false)
-		gl.DepthMask(false)
+		gl.DepthMask(false) --"BK OpenGL state resets", already set as false
 	end
 end
 

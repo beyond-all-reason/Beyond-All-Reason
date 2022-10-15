@@ -220,12 +220,23 @@ local function makeSpotVBO()
 				a3 = ((i+circleInnerOffset+detailPartWidth - (width / detail)) * radstep) - ((width / detail)*0.6)
 				a4 = ((i+circleInnerOffset+detailPartWidth) * radstep) - ((width / detail)*0.6)
 
-				arrayAppend(VBOData, {math.sin(a3)*innersize, math.cos(a3)*innersize, dir, a3})
-				arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, a4})
-				arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
 
-				arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
-				arrayAppend(VBOData, {math.sin(a2)*outersize, math.cos(a2)*outersize, dir, a2})
+				arrayAppend(VBOData, {math.sin(a3)*innersize, math.cos(a3)*innersize, dir, a3})
+				if dir == 1 then 
+					arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, a4})
+					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
+				else
+					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
+					arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, a4})
+				end
+				
+				if dir == -1 then 
+					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
+					arrayAppend(VBOData, {math.sin(a2)*outersize, math.cos(a2)*outersize, dir, a2})
+				else
+					arrayAppend(VBOData, {math.sin(a2)*outersize, math.cos(a2)*outersize, dir, a2})
+					arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
+				end
 				arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, a4})
 			end
 		end

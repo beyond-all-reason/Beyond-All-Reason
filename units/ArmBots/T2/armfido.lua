@@ -158,7 +158,7 @@ return {
 				name = "Close-quarters g2g gauss-cannon",
 				noselfdamage = true,
 				range = 650,
-				reloadtime = 1.76667,
+				reloadtime = 2.73333,
 				separation = 1.8,
 				nogap = false,
 				sizeDecay = 0.08,

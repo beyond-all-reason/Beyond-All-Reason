@@ -40,6 +40,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots/t2",
 			techlevel = 2,
+			instantselfd = true,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

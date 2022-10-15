@@ -269,6 +269,13 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
+	
+	if (smallradarrange > 2200) then 
+		Spring.Echo("Sensor Ranges Radar Preview does not support increased radar ranges modoptions, removing.")
+		widgetHandler:RemoveWidget()
+		return
+	end
+	
 	initgl4()
 	WG.radarpreview = {
 		getShowPulseEffect = function()

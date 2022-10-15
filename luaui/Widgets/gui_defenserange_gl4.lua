@@ -1,10 +1,8 @@
 include("keysym.h.lua")
 
-local versionNumber = "6.32"
-
 function widget:GetInfo()
 	return {
-		name      = "Defense Range GL4",
+		name      = "Defense Range GL4 fixed?",
 		desc      = "Displays range of defenses (enemy and ally)",
 		author    = "Beherith, very_bad_soldier",
 		date      = "2021.04.26",
@@ -40,7 +38,6 @@ end
 	-- 2. zoomed out anti fades in, all others fade out
 	-- 3. mouse will always return it to full vis, with teamcolorized stipples at 1/4th distribution
 
-
 	--X allow for distance fade config for each class
 	--X minalpha, maxalpha, fadestart, fadend
 	--X also pass in mouse cursor ground pos as uniform, and fade ground def based on that :)
@@ -52,18 +49,24 @@ end
 --X cordoom multiweapon :)
 --merge mobile antis into this
 
+-- TODO3: 2022.10.10
+  -- allow specs to enable? Doesnt make much sense with new stencil based drawing...
+  -- LRPCs
+  -- Fog 
+  -- dont check allied defenses for losness
+  -- use luashader uvhm implementation
+  -- fix mobile antis
+
 
 ------ CLASSIG DEFENSE RANGE THINGS  --------------
-local debug = false --generates debug message
+local DEBUG = false --generates debug message
 local enabledAsSpec = true
 
 
-local modConfig = {}
--- BAR
---to support other mods
---table initialized and unitList is needed!
-modConfig["BYAR"] = {}
-modConfig["BYAR"]["unitList"] = {
+local currentModConfig = {}
+
+currentModConfig = {}
+local unitList = {
 	-- ARMADA
 	armclaw = { weapons = { 1 } },
 	armllt = { weapons = { 1 } },
@@ -130,7 +133,6 @@ modConfig["BYAR"]["unitList"] = {
 	scavengerdroppodbeacon_scav = { weapons = { 1 } },
 
 	armannit3 = { weapons = { 1 } },
-	--armbotrail = { weapons = { 1 } },
 	armminivulc = { weapons = { 1 } },
 
 	cordoomt3 = { weapons = { 1 } },
@@ -140,28 +142,28 @@ modConfig["BYAR"]["unitList"] = {
 
 -- add scavs
 local toscav = {}
-for k,v in pairs(modConfig["BYAR"]["unitList"]) do
+for k,v in pairs(unitList) do
 	toscav[#toscav+1] = k
 end
 for i,k in ipairs(toscav) do
-	modConfig["BYAR"]["unitList"][k..'_scav'] =  modConfig["BYAR"]["unitList"][k]
+	unitList[k..'_scav'] =  unitList[k]
 end
 
 --implement this if you want dps-depending ring-colors
 --colors will be interpolated by dps scores between min and max values. values outside range will be set to nearest value in range -> min or max
-modConfig["BYAR"]["armorTags"] = {}
-modConfig["BYAR"]["armorTags"]["air"] = "vtol"
-modConfig["BYAR"]["armorTags"]["ground"] = "else"
-modConfig["BYAR"]["dps"] = {}
-modConfig["BYAR"]["dps"]["ground"] = {}
-modConfig["BYAR"]["dps"]["air"] = {}
-modConfig["BYAR"]["dps"]["ground"]["min"] = 50
-modConfig["BYAR"]["dps"]["ground"]["max"] = 500
-modConfig["BYAR"]["dps"]["air"]["min"] = 80
-modConfig["BYAR"]["dps"]["air"]["max"] = 500
-modConfig["BYAR"]["dps"]["cannon"] = {}
-modConfig["BYAR"]["dps"]["cannon"]["min"] = 80
-modConfig["BYAR"]["dps"]["cannon"]["max"] = 500
+currentModConfig["armorTags"] = {}
+currentModConfig["armorTags"]["air"] = "vtol"
+currentModConfig["armorTags"]["ground"] = "else"
+currentModConfig["dps"] = {}
+currentModConfig["dps"]["ground"] = {}
+currentModConfig["dps"]["air"] = {}
+currentModConfig["dps"]["ground"]["min"] = 50
+currentModConfig["dps"]["ground"]["max"] = 500
+currentModConfig["dps"]["air"]["min"] = 80
+currentModConfig["dps"]["air"]["max"] = 500
+currentModConfig["dps"]["cannon"] = {}
+currentModConfig["dps"]["cannon"]["min"] = 80
+currentModConfig["dps"]["cannon"]["max"] = 500
 --end of dps-colors
 
 
@@ -212,13 +214,11 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 end
 wdefParams = nil
 
-local unitRadius = {}
 local unitNumWeapons = {}
 local canMove = {}
 local unitName = {}
 local unitWeapons = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitRadius[unitDefID] = unitDef.radius
 	local weapons = unitDef.weapons
 	if #weapons > 0 then
 		unitNumWeapons[unitDefID] = #weapons
@@ -236,8 +236,8 @@ end
 --Button display configuration
 --position only relevant if no saved config data found
 local buttonConfig = {
-	ally = { ground = false, air = false, nuke = false,  radar = false },
-	enemy = { ground = true, air = true, nuke = true,  radar = false }
+	ally = { ground = true, air = true, nuke = true },
+	enemy = { ground = true, air = true, nuke = true }
 }
 
 local _,oldcamy,_ = Spring.GetCameraPosition() --for tracking if we should change the alpha/linewidth based on camheight
@@ -247,7 +247,6 @@ local spec, fullview = spGetSpectatingState()
 local myAllyTeam = Spring.GetMyAllyTeamID()
 
 local defences = {}
-local currentModConfig = {}
 
 local updateTimes = {}
 updateTimes["remove"] = 0
@@ -266,8 +265,18 @@ lineConfig["lineWidth"] = 1.33 -- calcs dynamic now
 
 local GL_LINE_LOOP          = GL.LINE_LOOP
 local glDepthTest           = gl.DepthTest
+local glDepthMask			= gl.DepthMask
 local glLineWidth           = gl.LineWidth
 local glTexture             = gl.Texture
+local glClear				= gl.Clear
+local glColorMask			= gl.ColorMask
+local glStencilTest			= gl.StencilTest
+local glStencilMask			= gl.StencilMask
+local glStencilOp			= gl.StencilOp
+
+local GL_KEEP = 0x1E00 --GL.KEEP
+
+local GL_KEEP = 0x1E00 --GL.KEEP
 
 local upper                 = string.upper
 local floor                 = math.floor
@@ -322,11 +331,11 @@ end
 ------ GL4 THINGS  -----
 -- nukes and cannons:
 local largeCircleVBO = nil
-local largeCircleSegments = 1024
+local largeCircleSegments = 512
 
 -- others:
 local smallCircleVBO = nil
-local smallCircleSegments = 256
+local smallCircleSegments = 128
 
 local weaponTypeToString = {"ground","air","nuke","ground","cannon"}
 local defenseRangeClasses = {'enemyair','enemyground','enemynuke','allyair','allyground','allynuke', 'enemycannon', 'allycannon'}
@@ -343,7 +352,7 @@ local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 local sphereCylinderShader = nil
-local cannonShader = nil
+
 
 local function goodbye(reason)
   Spring.Echo("DefenseRange GL4 widget exiting with reason: "..reason)
@@ -389,13 +398,15 @@ layout (location = 3) in vec4 visibility; // FadeStart, FadeEnd, StartAlpha, End
 layout (location = 4) in vec4 projectileParams; // projectileSpeed, iscylinder!!!! , heightBoostFactor , heightMod
 
 uniform vec4 circleuniforms; // none yet
+uniform float lineAlphaUniform = 1.0;
+uniform float cannonmode = 0.0;
 
 uniform sampler2D heightmapTex;
 uniform sampler2D losTex; // hmm maybe?
 
 out DataVS {
-	vec4 worldPos; // pos and radius
-	vec4 blendedcolor;
+	flat vec4 worldPos; // pos and radius
+	flat vec4 blendedcolor;
 	vec4 alphaControl; // xyzw: circumference progress, outofboundsalpha,  fadealpha ,mousealpha,
 };
 
@@ -408,13 +419,13 @@ float heightAtWorldPos(vec2 w){
 	return textureLod(heightmapTex, uvhm, 0.0).x;
 }
 
-
 float GetRangeFactor(float projectileSpeed) { // returns >0 if weapon can shoot here, <0 if it cannot, 0 if just right
 	// on first run, with yDiff = 0, what do we get?
 	float speed2d = projectileSpeed * 0.707106;
 	float gravity =  120.0 	* (0.001111111);
 	return ((speed2d * speed2d) * 2.0 ) / (gravity);
 }
+
 float GetRange2DCannon(float yDiff,float projectileSpeed,float rangeFactor,float heightBoostFactor) { // returns >0 if weapon can shoot here, <0 if it cannot, 0 if just right
 	// on first run, with yDiff = 0, what do we get?
 
@@ -445,12 +456,10 @@ float GetRange2DCannon(float yDiff,float projectileSpeed,float rangeFactor,float
 }
 
 //float heightMod  default: 0.2 (0.8 for #Cannon, 1.0 for #BeamLaser and #LightningCannon)
-
-//    Changes the spherical weapon range into an ellipsoid. Values above 1.0 mean the weapon cannot target as high as it can far, values below 1.0 mean it can target higher than it can far. For example 0.5 would allow the weapon to target twice as high as far.
+//Changes the spherical weapon range into an ellipsoid. Values above 1.0 mean the weapon cannot target as high as it can far, values below 1.0 mean it can target higher than it can far. For example 0.5 would allow the weapon to target twice as high as far.
 
 //float heightBoostFactor default: -1.0
-
-    //Controls the boost given to range by high terrain. Values > 1.0 result in increased range, 0.0 means the cannon has fixed range regardless of height difference to target. Any value < 0.0 (i.e. the default value) result in an automatically calculated value based on range and theoretical maximum range.
+//Controls the boost given to range by high terrain. Values > 1.0 result in increased range, 0.0 means the cannon has fixed range regardless of height difference to target. Any value < 0.0 (i.e. the default value) result in an automatically calculated value based on range and theoretical maximum range.
 
 #define RANGE posscale.w
 #define PROJECTILESPEED projectileParams.x
@@ -468,33 +477,12 @@ void main() {
 
 	// get heightmap
 	circleWorldPos.y = heightAtWorldPos(circleWorldPos.xz);
-	/*
-	#ifndef CANNON
-		if (ISCYLINDER < 0.5){ // isCylinder
-			//simple implementation, 4 samples per point
-			for (int i = 0; i<mod(timeInfo.x/4,30); i++){
-			//for (int i = 0; i<4; i++){
-				// draw vector from centerpoint to new height point and normalize it to range length
-				vec3 tonew = circleWorldPos.xyz - posscale.xyz;
-				tonew.y *= HEIGHTMOD;
-				tonew = normalize(tonew) * RANGE;
-				circleWorldPos.xz = posscale.xz + tonew.xz;
-				circleWorldPos.y = heightAtWorldPos(circleWorldPos.xz);
-			}
-		}
-	#endif
+	
 
-	*/
-	#ifndef Cannon
-	//circleWorldPos.y+= 500;
-	#endif
-
-	#ifdef CANNON
-
+	if (cannonmode > 0.5){
 
 		// BAR only has 3 distinct ballistic projectiles, heightBoostFactor is only a handful from -1 to 2.8 and 6 and 8
 		// gravity we can assume to be linear
-
 
 		float heightDiff = (circleWorldPos.y - YGROUND) * 0.5;
 
@@ -523,7 +511,20 @@ void main() {
 				heightDiff = circleWorldPos.y - posscale.y;
 				adjRadius = GetRange2DCannon(heightDiff * HEIGHTMOD, PROJECTILESPEED, rangeFactor, HEIGHTBOOSTFACTOR);
 		}
-	#endif
+	}else{
+		if (ISCYLINDER < 0.5){ // isCylinder
+			//simple implementation, 4 samples per point
+			//for (int i = 0; i<mod(timeInfo.x/4,30); i++){
+			for (int i = 0; i<8; i++){
+				// draw vector from centerpoint to new height point and normalize it to range length
+				vec3 tonew = circleWorldPos.xyz - posscale.xyz;
+				tonew.y *= HEIGHTMOD;
+				tonew = normalize(tonew) * RANGE;
+				circleWorldPos.xz = posscale.xz + tonew.xz;
+				circleWorldPos.y = heightAtWorldPos(circleWorldPos.xz);
+			}
+		}
+	}
 
 	circleWorldPos.y += 6; // lift it from the ground
 
@@ -538,42 +539,43 @@ void main() {
 	float distToCam = length(posscale.xyz - camPos.xyz); //dist from cam
 
 	alphaControl.z  = clamp((visibility.y -distToCam)/(visibility.y - visibility.x + 1.0),visibility.z,visibility.w);
-	#ifdef CANNON
+	
+	if (cannonmode > 0.5){
 	// cannons should fade distance based on their range
 		float cvmin = max(visibility.x, 2* RANGE);
 		float cvmax = max(visibility.y, 4* RANGE);
 		alphaControl.z  = clamp((cvmin - distToCam)/(cvmax - cvmin + 1.0),visibility.z,visibility.w);
-	#endif
+	}
 
-
-	// --- NO FOG
-	//float fogDist = length((cameraView * vec4(circleWorldPos.xyz,1.0)).xyz);
-	//float fogFactor = (fogParams.y - fogDist) * fogParams.w;
-	//blendedcolor.rgb = mix(color1.rgb, fogColor.rgb, fogFactor);
+	// --- YES FOG
+	float fogDist = length((cameraView * vec4(circleWorldPos.xyz,1.0)).xyz);
+	float fogFactor = (fogParams.y - fogDist) * fogParams.w;
+	blendedcolor.rgb = mix(color1.rgb, fogColor.rgb, fogFactor);
 	blendedcolor.rgb = color1.rgb;
 
 	// -- DARKEN OUT OF LOS
 	vec4 losTexSample = texture(losTex, vec2(circleWorldPos.x / mapSize.z, circleWorldPos.z / mapSize.w)); // lostex is PO2
 	float inlos = dot(losTexSample.rgb,vec3(0.33));
 	inlos = clamp(inlos*5 -1.4	, 0.5,1.0); // fuck if i know why, but change this if LOSCOLORS are changed!
-	blendedcolor.rgb *= inlos;
+	//blendedcolor.rgb *= inlos;
+	alphaControl.x = inlos;
 
-	// -- TEAMCOLORIZATION
-	blendedcolor.a = color1.a; // pass over teamID
 
-	// -- MOUSE DISTANCE ALPHA
-	float disttomousefromcenter = RANGE *1.5 - length(posscale.xz - mouseWorldPos.xz);
+	// DISABLE THIS FOR NOW:
+	alphaControl.w = 1.0;
+
+	// -- IN-SHADER HIGHLIGHTING
+	float disttomousefromunit = sign(64.0 - length(posscale.xz - mouseWorldPos.xz));
 	// this will be positive if in mouse, negative else
-	float mousealpha = clamp( disttomousefromcenter / (RANGE * 0.33), 0.0, 1.0);
-	alphaControl.w = mousealpha;
-	alphaControl.w = mousealpha;
-
+	float highightme = clamp( (disttomousefromunit ) + 1.0, 1.0, 2.0);
+	alphaControl.w = highightme;
 
 	// ------------ dump the stuff for FS --------------------
 	worldPos = circleWorldPos;
 	worldPos.a = RANGE;
-	alphaControl.x = circlepointposition.z; // save circle progress here
+	//alphaControl.x = circlepointposition.z; // save circle progress here
 	gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
+	//alphaControl.x = 0.0;
 }
 ]]
 
@@ -587,6 +589,7 @@ local fsSrc =  [[
 
 #line 20000
 
+uniform float lineAlphaUniform = 1.0;
 uniform vec4 circleuniforms;
 
 uniform sampler2D heightmapTex;
@@ -595,8 +598,8 @@ uniform sampler2D losTex; // hmm maybe?
 //__ENGINEUNIFORMBUFFERDEFS__
 
 in DataVS {
-	vec4 worldPos; // w = range
-	vec4 blendedcolor;
+	flat vec4 worldPos; // w = range
+	flat vec4 blendedcolor;
 	vec4 alphaControl;// xyzw: circumference progress, outofboundsalpha,  fadealpha ,mousealpha,
 };
 
@@ -604,27 +607,21 @@ out vec4 fragColor;
 
 void main() {
 	fragColor.rgba = vec4(1.0);
-	fragColor.rgb = blendedcolor.rgb;
+	fragColor.rgb = blendedcolor.rgb * alphaControl.x;
 
 	// mousepos teamcolorization
-	uint teamidx = uint(blendedcolor.a);
-	float animationmix = clamp( sign(fract(alphaControl.x * worldPos.w*0.1 - timeInfo.y*0.2) - 0.75),0.0,1.0);
-	vec3 teamcolorized = mix(blendedcolor.rgb, teamColor[teamidx].rgb, animationmix * alphaControl.w);
+	//uint teamidx = uint(blendedcolor.a);
+	//float animationmix = clamp( sign(fract(alphaControl.x * worldPos.w*0.1 - timeInfo.y*0.2) - 0.75),0.0,1.0);
+	//vec3 teamcolorized = mix(blendedcolor.rgb, teamColor[teamidx].rgb, animationmix * alphaControl.w);
 	//fragColor.rgb = teamcolorized; //removed for now
 
 	//mousepos alpha override
-
-	fragColor.a = clamp((alphaControl.z+clamp(alphaControl.w,0.0,1.0))*0.5, 0.0,1.0);
-	//	fragColor.a = clamp(alphaControl.z, 0.0,1.0);
-
-
+	//
+	fragColor.a = clamp((alphaControl.z+clamp(alphaControl.w,0.0,2.0))*0.5, 0.0,2.0);
 
 	// outofbounds
 	fragColor.a *= alphaControl.y;
-
-
-	if (fragColor.a < 0.01) // needed for depthmask
-	discard;
+	fragColor.a *= lineAlphaUniform;
 }
 ]]
 
@@ -635,41 +632,23 @@ local function makeShaders()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	sphereCylinderShader =  LuaShader(
-    {
-      vertex = vsSrc:gsub("//__DEFINES__", "#define MYGRAVITY "..tostring(Game.gravity+0.1)),
-      fragment = fsSrc,
-      --geometry = gsSrc, no geom shader for now
-      uniformInt = {
-        heightmapTex = 0,
-        losTex = 1,
-        },
-      uniformFloat = {
-        circleuniforms = {1,1,1,1},
-      },
-    },
-    "sphereCylinderShader GL4"
-  )
-  shaderCompiled = sphereCylinderShader:Initialize()
-  if not shaderCompiled then goodbye("Failed to compile sphereCylinderShader GL4 ") end
-
-  cannonShader =  LuaShader(
-    {
-      vertex = vsSrc:gsub("//__DEFINES__", "#define CANNON 1\n#define MYGRAVITY "..tostring(Game.gravity+0.01)),
-      fragment = fsSrc,
-      --geometry = gsSrc, no geom shader for now
-      uniformInt = {
-        heightmapTex = 0,
-		losTex = 1,
-        },
-      uniformFloat = {
-        circleuniforms = {1,1,1,1},
-      },
-    },
-    "cannonShader GL4"
-  )
-  shaderCompiled = cannonShader:Initialize()
-  if not shaderCompiled then goodbye("Failed to compile cannonShader GL4 ") end
-
+	{
+		vertex = vsSrc:gsub("//__DEFINES__", "#define MYGRAVITY "..tostring(Game.gravity+0.1)),
+		fragment = fsSrc,
+		--geometry = gsSrc, no geom shader for now
+		uniformInt = {
+			heightmapTex = 0,
+			losTex = 1,
+		},
+		uniformFloat = {
+			lineAlphaUniform = 1,
+			circleuniforms = {1,1,1,1},
+		},
+	},
+	"sphereCylinderShader GL4"
+	)
+	shaderCompiled = sphereCylinderShader:Initialize()
+	if not shaderCompiled then goodbye("Failed to compile sphereCylinderShader GL4 ") end
 
 end
 
@@ -695,50 +674,17 @@ end
 function widget:Initialize()
 	state["myPlayerID"] = spGetLocalTeamID()
 
-	DetectMod()
-
 	initGL4()
 
 	init()
 
 	WG['defrange'] = {}
-	WG['defrange'].getAllyAir = function()
-		return buttonConfig.ally.air
+	for _,ae in ipairs({'ally','enemy'}) do 
+		for _,wt in ipairs({'ground','air','nuke'}) do
+			WG['defrange']['get'..ae..wt] = function()	return buttonConfig[ae][wt] end
+			WG['defrange']['set'..ae..wt] = function(value) buttonConfig[at][wt] = value end
+		end
 	end
-	WG['defrange'].setAllyAir = function(value)
-		buttonConfig.ally.air = value
-	end
-	WG['defrange'].getAllyGround = function()
-		return buttonConfig.ally.ground
-	end
-	WG['defrange'].setAllyGround = function(value)
-		buttonConfig.ally.ground = value
-	end
-	WG['defrange'].getAllyNuke = function()
-		return buttonConfig.ally.nuke
-	end
-	WG['defrange'].setAllyNuke = function(value)
-		buttonConfig.ally.nuke = value
-	end
-	WG['defrange'].getEnemyAir = function()
-		return buttonConfig.enemy.air
-	end
-	WG['defrange'].setEnemyAir = function(value)
-		buttonConfig.enemy.air = value
-	end
-	WG['defrange'].getEnemyGround = function()
-		return buttonConfig.enemy.ground
-	end
-	WG['defrange'].setEnemyGround = function(value)
-		buttonConfig.enemy.ground = value
-	end
-	WG['defrange'].getEnemyNuke = function()
-		return buttonConfig.enemy.nuke
-	end
-	WG['defrange'].setEnemyNuke = function(value)
-		buttonConfig.enemy.nuke = value
-	end
-
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
@@ -761,12 +707,12 @@ function UnitDetected( unitID, allyTeam, teamId , unitDefID )
 	if unitDefID == nil then unitDefID = spGetUnitDefID(unitID) end
 
 	if canMove[unitDefID] and not  mobileAntiUnitDefs[unitDefID] then
-			return
+		return
 	end
 
-	if (not unitNumWeapons[unitDefID]) and unitRadius[unitDefID] and unitRadius[unitDefID] < 100 then
-			--not interesting, has no weapons and no radar coverage, lame
-			return
+	if (not unitNumWeapons[unitDefID]) then
+		--not interesting, has no weapons and no radar coverage, lame
+		return
 	end
 
 	local tag
@@ -781,7 +727,7 @@ function UnitDetected( unitID, allyTeam, teamId , unitDefID )
 	--local x, y, z --= spGetUnitPosition(unitID)
 
 	-- bugged, midpos === aimpos!, try --local wx, wy, wz = Spring.GetUnitWeaponVectors ( unitID, i ) instead?
-	local x, y, z ,mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition( unitID,true,true)  -- aimpos Spring.GetUnitPosition ( number unitID [, bool midPos [, bool aimPos ]] )
+	local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)  -- aimpos Spring.GetUnitPosition ( number unitID [, bool midPos [, bool aimPos ]] )
 
 	y = apy
 	local range = 0
@@ -803,7 +749,7 @@ function UnitDetected( unitID, allyTeam, teamId , unitDefID )
 				uName = uName or unitName[unitDefID]
 			end
 
-			if currentModConfig["unitList"][uName] == nil or currentModConfig["unitList"][uName]["weapons"][i] == nil then
+			if unitList[uName] == nil or unitList[uName]["weapons"][i] == nil then
 				printDebug("Weapon skipped! Name: "..  unitName[unitDefID] .. " weaponidx: " .. i )
 			else
 				--get definition from weapon table
@@ -811,7 +757,7 @@ function UnitDetected( unitID, allyTeam, teamId , unitDefID )
 
 				range = weaponDef.range --get normal weapon range
 
-				weaponType = currentModConfig["unitList"][uName]["weapons"][i]
+				weaponType = unitList[uName]["weapons"][i]
 				printDebug("Weapon #" .. i .. " Range: " .. range )
 
 				local dam = weaponDef.damages
@@ -906,7 +852,8 @@ end
 
 function GetColorsByTypeAndDps( dps, type, isEnemy )
 	--BEWARE: dps can be nil here! when antinuke for example
- -- get alternative color for weapons ground AND air
+	-- this func is garbage
+	-- get alternative color for weapons ground AND air
 	local color1 = nil
 	local color2 = nil
 	if ( type == 4 ) then -- show combo units with "ground"-colors
@@ -985,12 +932,18 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	if mobileAntiUnits[unitID] then
 		popElementInstance(defenseRangeVAOs[mobileAntiUnits[unitID][1]],mobileAntiUnits[unitID][2])
 		mobileAntiUnits[unitID] = nil
+		if defences[unitID] then 
+			for vaoKey, instanceKey in pairs(defences[unitID].instanceKeys) do
+				popElementInstance(defenseRangeVAOs[vaoKey],instanceKey)
+			end
+		end
 		defences[unitID] = nil
 	end
 end
 
 function widget:Update(dt)
-	if fullview and not enabledAsSpec then
+	spec, fullview = spGetSpectatingState()
+	if spec then
 		return
 	end
 
@@ -999,7 +952,7 @@ function widget:Update(dt)
 
 	if (timef - updateTimes["line"]) > 0.2 and timef ~= updateTimes["line"] then
 		updateTimes["line"] = timef
-        lineConfig["lineWidth"] = 1.33
+		lineConfig["lineWidth"] = 1.33
 	end
 
 	for unitID, mobileantiinfo in pairs(mobileAntiUnits) do
@@ -1017,21 +970,16 @@ function widget:Update(dt)
 	-- update timers once every <updateInt> seconds
 	if time % updateTimes["removeInterval"] == 0 and time ~= updateTimes["remove"] then
 		updateTimes["remove"] = time
-		--do update stuff:
-
-		--if not spec then
-		--	return false
-		--end
 
 		--remove dead units
-		for k, def in pairs(defences) do
-			local x, y, z = def["pos"][1], def["pos"][2], def["pos"][3]
+		for unitID, defense in pairs(defences) do
+			local x, y, z = defense["pos"][1], defense["pos"][2], defense["pos"][3]
 			local _, losState, _ = spGetPositionLosState(x, y, z)
 			if losState then
-				if not spGetUnitDefID(def["unitId"]) then
+				if not spGetUnitDefID(unitID) then
 					printDebug("Unit killed.")
-					defences[k] = nil
-					for vaoKey, instanceKey in pairs(def.instanceKeys) do
+					defences[unitID] = nil
+					for vaoKey, instanceKey in pairs(defense.instanceKeys) do
 						popElementInstance(defenseRangeVAOs[vaoKey],instanceKey)
 					end
 				end
@@ -1041,79 +989,95 @@ function widget:Update(dt)
 
 end
 
-function DetectMod()
-	state["curModID"] = upper(Game.gameShortName or "")
-
-	if modConfig[state["curModID"]] == nil then
-		spEcho("<DefenseRange> Unsupported Game, shutting down...")
-		widgetHandler:RemoveWidget()
-		return
-	end
-
-	currentModConfig = modConfig[state["curModID"]]
-
-	--load mod specific color config if existent
-	if currentModConfig["color"] ~= nil then
-		colorConfig = currentModConfig["color"]
-		printDebug("Game-specfic color configuration loaded")
-	end
-
-	printDebug( "<DefenseRange> ModName: " .. Game.modName .. " Detected Mod: " .. state["curModID"] )
-end
-
-
-
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
 	end
 end
 
-function widget:DrawWorld()
+local allyenemypairs = {"ally","enemy"}
+local groundnukeair = {"ground","air","nuke"}
+
+local function DRAWRINGS(primitiveType)
+	local stencilMask
+	sphereCylinderShader:SetUniform("cannonmode",0)
+	for i,allyState in ipairs(allyenemypairs) do
+		for j, wt in ipairs(groundnukeair) do
+			local defRangeClass = allyState..wt
+			local iT = defenseRangeVAOs[defRangeClass]
+			if iT.usedElements > 0 and buttonConfig[allyState][wt] then
+				stencilMask = 2 ^ ( 4 * (i-1) + (j-1)) -- from 1 to 128
+				gl.StencilMask(stencilMask)  -- only allow these bits to get written
+				gl.StencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- what to do with the stencil
+				iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
+			end
+		end
+	end
+	
+	sphereCylinderShader:SetUniform("cannonmode",1)
+	for i,allyState in ipairs(allyenemypairs) do
+		local defRangeClass = allyState.."cannon"
+		local iT = defenseRangeVAOs[defRangeClass]
+		if iT.usedElements > 0 and  buttonConfig[allyState]["ground"] then
+			stencilMask = 2 ^ ( 4 * (i-1) + 3) 
+			gl.StencilMask(stencilMask)
+			gl.StencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) 
+			iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
+		end
+	end
+end
+
+function widget:DrawWorldPreUnit()
 	if fullview and not enabledAsSpec then
 		return
 	end
 	if chobbyInterface then return end
 	if not spIsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 		glLineWidth(lineConfig["lineWidth"])
-		glDepthTest(GL.LEQUAL)
-		gl.DepthMask(true)
+
+		--gl.DepthMask(false) --"BK OpenGL state resets", already commented out
 
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
+		
+		-- Stencil Setup
+		-- 	-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 
+		glClear(GL.STENCIL_BUFFER_BIT) -- clear prev stencil
+		glDepthTest(false) -- always draw
+		glColorMask(false, false, false, false) -- disable color drawing
+		glStencilTest(true) -- enable stencil test
+		glStencilMask(255) -- all 8 bits
+		glStencilOp(GL_KEEP, GL_KEEP, GL.REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
+		
 		sphereCylinderShader:Activate()
-		for _,allyState in ipairs({"ally","enemy"}) do
-			for j, wt in ipairs({"ground","air","nuke"}) do
-				local defRangeClass = allyState..wt
-				local iT = defenseRangeVAOs[defRangeClass]
-				if iT.usedElements > 0 and buttonConfig[allyState][wt] then
-					--	Spring.Echo(defRangeClass,iT.usedElements)
-					iT.VAO:DrawArrays(GL.LINE_STRIP,iT.numVertices,0,iT.usedElements,0) -- +1!!!
-				end
-			end
-		end
-		sphereCylinderShader:Deactivate()
+		sphereCylinderShader:SetUniform("lineAlphaUniform",1)
+		DRAWRINGS(GL.TRIANGLE_FAN) -- FILL THE CIRCLES
+		
+		glLineWidth(4)
+		glColorMask(true, true, true, true)	-- re-enable color drawing
+		glStencilMask(0)
 
-		cannonShader:Activate()
-		for i,allyState in ipairs({"ally","enemy"}) do
-			local defRangeClass = allyState.."cannon"
-			local iT = defenseRangeVAOs[defRangeClass]
-			if iT.usedElements > 0 and  buttonConfig[allyState]["ground"] then
-				iT.VAO:DrawArrays(GL.LINE_STRIP,iT.numVertices,0,iT.usedElements,0) -- +1!!!
-			end
-		end
-		cannonShader:Deactivate()
+		DRAWRINGS(GL.LINE_LOOP) -- DRAW THE OUTER RINGS
+		
+		sphereCylinderShader:SetUniform("lineAlphaUniform",0.5)
+		
+		glLineWidth(0.5)
+		glStencilTest(false)
+
+		DRAWRINGS(GL.LINE_LOOP) -- DRAW THE INNER RINGS
+		
+		sphereCylinderShader:Deactivate()
 
 		glTexture(0, false)
 		glTexture(1, false)
-		glDepthTest(GL.LEQUAL)
-		gl.DepthMask(true)
+		glDepthTest(false)
+		--glDepthMask(false)  --"BK OpenGL state resets", was false but now commented out (redundant set of false states)
 	end
 end
 
 function printDebug(value)
-	if debug then
+	if DEBUG then
 		if type(value) == "boolean" then
 			if value == true then spEcho( "true" )
 				else spEcho("false") end
@@ -1128,7 +1092,7 @@ function printDebug(value)
 	end
 end
 
-
+--[[
 --SAVE / LOAD CONFIG FILE
 function widget:GetConfigData()
 	local data = {}
@@ -1145,3 +1109,4 @@ function widget:SetConfigData(data)
 	end
 end
 
+]]--

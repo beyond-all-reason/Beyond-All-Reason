@@ -17,18 +17,19 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local sparkWeapons = {}
-local weapons = {
-	lightningxl = {ceg = "genericshellexplosion-splash-large-lightning", forkdamage = 0.4,   maxunits=12, range = 175},
-    lightning   = {ceg = "genericshellexplosion-splash-lightning",       forkdamage = 0.33,   maxunits=2,  range = 60},
-    dclaw       = {ceg = "genericshellexplosion-splash-lightning",       forkdamage = 0.33, maxunits=2,  range = 60},
 
-}
 for wdid, wd in pairs(WeaponDefNames) do
-    for name, v in pairs(weapons) do
-        if string.find(wd.name, name) then
-            sparkWeapons[wd.id] = v
-        end
-    end
+	if wd.customParams ~= nil then
+		if wd.customParams.spark_ceg ~= nil then
+			-- ZECRUS, values can be tuned in the unitdef file
+			sparkWeapons[wd.id] = 	{	
+									ceg = wd.customParams.spark_ceg, 
+									forkdamage = tonumber(wd.customParams.spark_forkdamage), 
+									maxunits = tonumber(wd.customParams.spark_maxunits), 
+									range = tonumber(wd.customParams.spark_range)
+									}
+		end
+	end
 end
 
 local immuneToSplash = {
@@ -52,7 +53,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 		local x,y,z = Spring.GetUnitPosition(unitID)
         local nearUnits = Spring.GetUnitsInSphere(x,y,z,sparkWeapons[weaponID].range)
 		local count = 0
-		for i=1,#nearUnits do
+		for i=1, #nearUnits do
 			local nearUnit = nearUnits[i]
 			if count >= sparkWeapons[weaponID].maxunits then
 				return

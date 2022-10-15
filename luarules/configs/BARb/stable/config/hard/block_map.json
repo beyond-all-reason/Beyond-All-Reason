@@ -24,9 +24,9 @@
 		},
 		"fac_land_t2":{
 			"type": ["rectangle", "factory"],
-			"size": [8 ,8],
-			"yard": [5, 10],
-			"offset": [0, 4],
+			//"size": [8 ,8],
+			"yard": [12, 20],
+			"offset": [4, 6],
 			"ignore": ["none"]
 		},		
 		"fac_air": {

@@ -488,7 +488,7 @@ end
 
 local function DoDrawSSAO(isScreenSpace)
 	gl.DepthTest(false)
-	gl.DepthMask(false)
+	gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 	gl.Blending(false)
 
 
@@ -609,8 +609,8 @@ local function DoDrawSSAO(isScreenSpace)
 
 
 	gl.Blending("alpha")
-	--gl.DepthMask(true)
-	--gl.DepthTest(true)
+	--gl.DepthMask(true) --"BK OpenGL state resets", already commented out
+	--gl.DepthTest(true) --"BK OpenGL state resets", already commented out
 end
 
 function widget:DrawWorld()

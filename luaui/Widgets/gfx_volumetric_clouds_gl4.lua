@@ -404,7 +404,7 @@ function widget:DrawWorld()
 		--glCulling(false)
 		glDepthTest(GL_LEQUAL)
 		--glDepthTest(false)
-		gl.DepthMask(false)
+		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		gl.Texture(0, "$map_gbuffer_zvaltex")-- Texture file
 		gl.Texture(1, "$model_gbuffer_zvaltex")-- Texture file
 		gl.Texture(2, "$heightmap")-- Texture file

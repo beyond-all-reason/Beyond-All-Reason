@@ -2591,6 +2591,12 @@ function init()
 		  end,
 		},
 
+		{ id = "mincamheight", group = "control", category = types.advanced, name = texts.option.mincamheight, type = "slider", min = 0, max = 1500, step = 1, value = Spring.GetConfigInt("MinimumCameraHeight", 350), description = texts.option.mincamheight_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("MinimumCameraHeight", value)
+		  end,
+		},
+
 		-- INTERFACE
 		{ id = "label_ui_interface", group = "ui", name = texts.option.label_interface, category = types.basic },
 		{ id = "label_ui_interface_spacer", group = "ui", category = types.basic },
@@ -5133,7 +5139,6 @@ function widget:Initialize()
 	end
 
 	Spring.SendCommands("minimap unitsize " .. (Spring.GetConfigFloat("MinimapIconScale", 3.5)))        -- spring wont remember what you set with '/minimap iconssize #'
-	Spring.SendCommands({ "bind f10 options" })
 
 	WG['options'] = {}
 	WG['options'].toggle = function(state)

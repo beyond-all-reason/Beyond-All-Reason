@@ -371,6 +371,11 @@ local function InitializeLight(lightTable, unitID)
 				unitDefPeiceMapCache[unitDefID] = Spring.GetUnitPieceMap(unitID)
 			end
 			local pieceMap = unitDefPeiceMapCache[unitDefID]
+			
+			if pieceMap == nil then 
+				Spring.Debug.TraceFullEcho(nil,nil,nil,"InitializeLight, pieceMap == nil")
+			end
+			
 			if pieceMap[lightTable.pieceName] then -- if its not a real piece, it will default to the model worldpos!
 				lightTable.pieceIndex = pieceMap[lightTable.pieceName] 
 				lightTable.lightParamTable[pieceIndexPos] = lightTable.pieceIndex
@@ -1097,7 +1102,9 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 							if lightTable.aboveUnit then -- if its above the unit, then add the aboveunit offset to the units height too!
 								-- this is done via a quick copy of the table
 								for i=1, lightParamTableSize do lightCacheTable[i] = lightParamTable[i] end 
-								lightCacheTable[2] = lightCacheTable[2] + lightTable.aboveUnit + Spring.GetUnitHeight(unitID)
+								local unitHeight = Spring.GetUnitHeight(unitID)
+								if unitHeight == nil then Spring.Echo("Unitheight is nil for unitID", unitID, "unitDefName", UnitDefs[unitDefID].name) end
+								lightCacheTable[2] = lightCacheTable[2] + lightTable.aboveUnit + unitHeight
 								lightParamTable = lightCacheTable
 							end					
 							AddLight(eventName .. tostring(unitID) ..  lightname, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightParamTable)
@@ -1234,11 +1241,11 @@ local function updateProjectileLights(newgameframe)
 						AddLight(projectileID, nil, nil, projectileLightVBOMap[lightType], lightParamTable,noUpload)
 						--AddLight(projectileID, nil, nil, projectilePointLightVBO, lightParamTable)
 					else 
-						Spring.Echo("No projectile light defined for", projectileID, weaponDefID, px, pz)
-						testprojlighttable[1] = px
-						testprojlighttable[2] = py
-						testprojlighttable[3] = pz
-						AddPointLight(projectileID, nil, nil, projectilePointLightVBO, testprojlighttable)
+						--Spring.Echo("No projectile light defined for", projectileID, weaponDefID, px, pz)
+						--testprojlighttable[1] = px
+						--testprojlighttable[2] = py
+						--testprojlighttable[3] = pz
+						--AddPointLight(projectileID, nil, nil, projectilePointLightVBO, testprojlighttable)
 					end
 				end
 				numadded = numadded + 1
@@ -1335,7 +1342,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		
 		gl.Culling(GL.BACK)
 		gl.DepthTest(false)
-		gl.DepthMask(false)
+		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		glTexture(0, "$map_gbuffer_zvaltex")
 		glTexture(1, "$model_gbuffer_zvaltex")
 		glTexture(2, "$map_gbuffer_normtex")
@@ -1390,7 +1397,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		for i = 0, 8 do glTexture(i, false) end 
 		gl.Culling(GL.BACK)
 		gl.DepthTest(true)
-		gl.DepthMask(true)
+		--gl.DepthMask(true) --"BK OpenGL state resets", was true but now commented out (redundant set of false states)
 		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
 	local t1 = 	Spring.GetTimerMicros()

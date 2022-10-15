@@ -9,7 +9,8 @@
 layout (location = 0) in vec4 lengthwidthrotation; // l w rot and maxalpha
 layout (location = 1) in vec4 uvoffsets;
 layout (location = 2) in vec4 alphastart_alphadecay_heatstart_heatdecay;
-layout (location = 3) in vec4 worldPos; // also gameframe it was created on
+layout (location = 3) in vec4 worldPos; // w = also gameframe it was created on
+layout (location = 4) in vec4 parameters; // x con
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
@@ -44,28 +45,20 @@ void main()
 	//v_parameters.zw = alphastart_alphadecay_heatstart_heatdecay.xz - alphastart_alphadecay_heatstart_heatdecay.yw * timeInfo.x * 0.03333;
 	
 	//v_parameters.x = 0.0;
+	float maxradius =  max(lengthwidthrotation.x, lengthwidthrotation.y);
 	
 	v_lengthwidthrotation = lengthwidthrotation;
-	bvec4 isClipped = bvec4(
-		vertexClipped(cameraViewProj * (v_centerpos + vec4( lengthwidthrotation.x, 0, lengthwidthrotation.y, 0)), 1.1),
-		vertexClipped(cameraViewProj * (v_centerpos - vec4( lengthwidthrotation.x, 0, lengthwidthrotation.y, 0)), 1.1),
-		vertexClipped(cameraViewProj * (v_centerpos - vec4(-lengthwidthrotation.x, 0, lengthwidthrotation.y, 0)), 1.1),
-		vertexClipped(cameraViewProj * (v_centerpos + vec4(-lengthwidthrotation.x, 0, lengthwidthrotation.y, 0)), 1.1)
-	);
+
 	v_skipdraw = 0u;
-	
-	if (all(isClipped.xyz)) { // this doesnt seem to work, clips close stuff...
-		//v_skipdraw = 1u;
-		//v_parameters.x = 1.0;
-	}
-	
+	if (isSphereVisibleXY(vec4(v_centerpos), 1.0* maxradius)) v_skipdraw = 1u; // yay for visiblity culling!
+
 	float currentFrame = timeInfo.x + timeInfo.w;
 	float lifetonow = (timeInfo.x + timeInfo.w) - worldPos.w;
 	float alphastart = alphastart_alphadecay_heatstart_heatdecay.x;
 	float alphadecay = alphastart_alphadecay_heatstart_heatdecay.y;
 	// fade in the decal over 200 ms?
 	
-	float currentAlpha = min(1.0, lifetonow*0.05)  * alphastart - lifetonow* alphadecay;
+	float currentAlpha = min(1.0, (lifetonow / FADEINTIME))  * alphastart - lifetonow* alphadecay;
 	currentAlpha = min(currentAlpha, lengthwidthrotation.w);
 	v_lengthwidthrotation.w = currentAlpha;
 	// heatdecay is:

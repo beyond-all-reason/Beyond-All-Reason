@@ -155,6 +155,7 @@ local bindings = {
 	{ "Any+f5" , "HideInterface"          },
 	{ "Any+f6" , "MuteSound"              },
 	{ "Any+f7" , "DynamicSky"             },
+	{    "f10" , "options"                },
 	{    "f11" , "luaui selector"         },
 	{ "Any+f12", "screenshot"     , "png" },
 
@@ -171,8 +172,11 @@ local bindings = {
 	{ "Any+pageup",   "moveup"       },
 	{ "Any+pagedown", "movedown"     },
 
-	{ "Any+ctrl",     "moveslow"     },
-	{ "Any+shift",    "movefast"     },
+	{ "Any+ctrl",  "moveslow"  },
+	{ "Any+shift", "movefast"  },
+
+	{ "Any+alt",   "movereset" }, -- fast camera reset on some camera states, e.g. middle mouse held
+	{ "Any+ctrl",  "movetilt"  }, -- Move inclination of camera
 
 	{ "Ctrl+sc_a", "select", "AllMap++_ClearSelection_SelectAll+"                                                                                    },
 	{ "Ctrl+sc_b", "select", "AllMap+_Builder_Idle+_ClearSelection_SelectOne+"                                                                       },
@@ -334,9 +338,9 @@ local bindings = {
 	{ "Alt+sc_y", "settarget"         },
 	{     "sc_y", "settargetnoground" },
 
+	{ "Ctrl+sc_`", "group unset" },
 	-- if WG['Auto Group'] then
 	{ "Alt+sc_`",  "remove_from_autogroup" },
-	{ "Ctrl+sc_`", "remove_one_unit_from_group" },
 }
 
 for i = 0, 9 do

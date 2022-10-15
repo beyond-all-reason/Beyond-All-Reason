@@ -55,14 +55,14 @@ function SpawnBlueprint(n)
 					Spring.CreateUnit( building.unitDefID, posx + building.xOffset, posy, posz + building.zOffset, building.direction, ScavengerTeamID, false, false)
 				end
 
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + radius, posy, posz, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - radius, posy, posz, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz + radius, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz - radius, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + radius, posy, posz + radius, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - radius, posy, posz + radius, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - radius, posy, posz - radius, math.random(0, 3), ScavengerTeamID)
-				Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + radius, posy, posz - radius, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + radius, posy, posz, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - radius, posy, posz, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz + radius, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx, posy, posz - radius, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + radius, posy, posz + radius, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - radius, posy, posz + radius, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx - radius, posy, posz - radius, math.random(0, 3), ScavengerTeamID)
+				-- Spring.CreateUnit(staticUnitList.scavSpawnEffectUnit, posx + radius, posy, posz - radius, math.random(0, 3), ScavengerTeamID)
 				break
 			end
 		end

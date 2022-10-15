@@ -793,8 +793,8 @@
 		"armfark": {
 			"role": ["builder"], //support,mine
 			//"attribute": ["support"], //without attribute
-			"build_speed": 7.0,  //bp 140
-			"limit": 10,
+			"build_speed": 1.0,  //bp 140 											test!!!!!
+			"limit": 20,
             "since": 1500
 		},
         "corfast": {
@@ -844,9 +844,9 @@
 		"armconsul": {
 			"role": ["builder"],
 			//"attribute": ["support"],
-			"build_speed": 7.5,  //bp 150
+			"build_speed": 1.0 ,  //bp 150 																test!!!
             "since": 1500,
-			"limit": 10
+			"limit": 20
 		},
 		"armca": {
 			"role": ["builder", "air"],

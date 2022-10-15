@@ -11,8 +11,17 @@ function gadget:GetInfo()
     }
 end
 
-if gadgetHandler:IsSyncedCode() then
 
+
+if gadgetHandler:IsSyncedCode() then -- SYNCED --
+
+	local CMD_STOCKPILE = CMD.STOCKPILE
+	local CMD_INSERT = CMD.INSERT
+
+	----------------------------------------------------------------------------
+	-- Config
+	----------------------------------------------------------------------------
+	local defaultStockpileLimit = 99
 	local isStockpilingUnit = { -- number represents maximum stockpile
 		[UnitDefNames['armmercury'].id] = 5,
 		[UnitDefNames['corscreamer'].id] = 5,
@@ -21,18 +30,36 @@ if gadgetHandler:IsSyncedCode() then
 
 		[UnitDefNames['legmos'].id] = 8,
 		[UnitDefNames['legmineb'].id] = 1,
+
+		[UnitDefNames['armsilo'].id] = 10,
+		[UnitDefNames['corsilo'].id] = 10,
+
+		[UnitDefNames['armamd'].id] = 20,
+		[UnitDefNames['corfmd'].id] = 20,
+
+		[UnitDefNames['armcarry'].id] = 20,
+		[UnitDefNames['corcarry'].id] = 20,
+
+		[UnitDefNames['armscab'].id] = 20,
+		[UnitDefNames['cormabm'].id] = 20,
+
+		[UnitDefNames['armemp'].id] = 10,
+		[UnitDefNames['cortron'].id] = 10,
+
+		[UnitDefNames['armbotrail'].id] = 50,
 	}
+	----------------------------------------------------------------------------
+	-- Scav copies
+	----------------------------------------------------------------------------
 
 	local isStockpilingUnitScav = {}
 	for defID, maxCount in pairs(isStockpilingUnit) do
 		isStockpilingUnitScav[UnitDefNames[UnitDefs[defID].name .. "_scav"].id] = maxCount
 	end
-
 	table.mergeInPlace(isStockpilingUnit, isStockpilingUnitScav)
 
-	local CMD_STOCKPILE = CMD.STOCKPILE
-	local CMD_INSERT = CMD.INSERT
-	local SpGiveOrderToUnit = Spring.GiveOrderToUnit
+	----------------------------------------------------------------------------
+	----------------------------------------------------------------------------
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) -- Can't use StockPileChanged because that doesn't get called when the stockpile queue changes
 		if unitID then
@@ -41,7 +68,7 @@ if gadgetHandler:IsSyncedCode() then
 				if pile == nil then
 					return true
 				end
-				local pilelimit = isStockpilingUnit[unitDefID] or 99
+				local pilelimit = isStockpilingUnit[unitDefID] or defaultStockpileLimit
 				local addQ = 1
 				if cmdOptions.shift then
 					if cmdOptions.ctrl then
@@ -55,47 +82,70 @@ if gadgetHandler:IsSyncedCode() then
 				if cmdOptions.right then
 					addQ = -addQ
 				end
-				if pile+pileQ == pilelimit and (not cmdOptions.right) then
-					SendToUnsynced("PileLimit",teamID,pilelimit)
-				end
-
-				if pile+pileQ+addQ <= pilelimit then
+				if addQ > 0 and pile+pileQ+addQ <= pilelimit then
 					return true
 				else
-					if pile+pileQ <= pilelimit then
-						local added = 0
-						local needed = pilelimit - pile - pileQ
-						while added < needed do
-							SpGiveOrderToUnit(unitID, CMD_STOCKPILE, {}, 0) -- because SetUnitStockpile can't set the queue!
-							added = added + 1
-						end
-						return false
-					else
-						return false
-					end
+					return false
 				end
 			end
 		end
 		return true
 	end
 
--- UNSYNCED --
-else
+	local GetUnitStockpile	= Spring.GetUnitStockpile
+	local GiveOrderToUnit	= Spring.GiveOrderToUnit
 
-	local SpGetSpectatingState = Spring.GetSpectatingState
-	local SpGetMyTeamID = Spring.GetMyTeamID
-	local SpEcho = Spring.Echo
-
-	function gadget:Initialize()
-		gadgetHandler:AddSyncAction("PileLimit",PileLimit)
-	end
-
-	function PileLimit(_,teamID,pilelimit)
-		local myTeamID = SpGetMyTeamID()
-		if myTeamID == teamID and not SpGetSpectatingState() then
-			--SpEcho("Stockpile queue is already full (max " .. tostring(pilelimit) .. ").")
+	local canStockpile = {}
+	for udid, ud in pairs(UnitDefs) do
+		if ud.canStockpile then
+			canStockpile[udid] = true
 		end
 	end
 
+	function UpdateStockpile(unitID, unitDefID)
+		local MaxStockpile = isStockpilingUnit[unitDefID] or defaultStockpileLimit
+
+		local stock,queued = GetUnitStockpile(unitID)
+		if queued and stock then
+			local count = stock + queued - MaxStockpile
+			while count < 0  do
+				if count <= -100 then
+					GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "ctrl", "shift" })
+					count = count + 100
+				elseif count <= -20 then
+					GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "ctrl" })
+					count = count + 20
+				elseif count <= -5 then
+					GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "shift" })
+					count = count + 5
+				else
+					GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, 0)
+					count = count + 1
+				end
+			end
+		end
+	end
+
+	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+		if canStockpile[unitDefID] then
+			UpdateStockpile(unitID, unitDefID)
+		end
+	end
+	
+	function gadget:UnitGiven(unitID, unitDefID, unitTeam)
+		if canStockpile[unitDefID] then
+			UpdateStockpile(unitID, unitDefID)
+		end
+	end
+	
+	function gadget:UnitCaptured(unitID, unitDefID, unitTeam)
+		if canStockpile[unitDefID] then
+			UpdateStockpile(unitID, unitDefID)
+		end
+	end
+
+	function gadget:StockpileChanged(unitID, unitDefID, unitTeam)
+		UpdateStockpile(unitID, unitDefID)
+	end
 end
 

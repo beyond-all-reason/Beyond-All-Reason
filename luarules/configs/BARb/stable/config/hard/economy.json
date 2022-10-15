@@ -98,7 +98,7 @@
 
 //mspull - // Mobile constructor to static constructor metal pull ratio; [[<value>, <start_mex_percent>], [<value>, <end_mex_percent>]]
 
-	"mex_up": 3,  // maximum number of simultaneous mex upgrades 2/3
+	"mex_up": 4,  // maximum number of simultaneous mex upgrades 2/3
 	"goal_exec": 50.0,  // assign builders till targeted time (in s) to build reached => low value: builders focus on few projects; high value: builder do more task; old values: 45, 50
 	"build_mod": 1000.0,  // default build_mod for UnitDef, if it's not specified
 	"eps_step": 0.2,
