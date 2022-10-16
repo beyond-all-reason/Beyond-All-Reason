@@ -38,9 +38,9 @@ local unitDefLights = {
 			lightType = 'cone',
 			pieceName = 'justattachtobase', -- invalid ones will attach to the worldpos of the unit
 			lightConfig = { posx = 0, posy = 23, posz = 7, radius = 150,
-				dirx = 0, diry = -0.07, dirz = 1, theta = 0.30000001,
-				r = 1, g = 1, b = 0.89999998, a = 0.60000002,
-				modelfactor = -0.33, specular = 1, scattering = 1.5, lensflare = 0.60000002,
+				dirx = 0, diry = -0.07, dirz = 1, theta = 0.3,
+				r = 1, g = 1, b = 0.89999998, a = 0.5,
+				modelfactor = -0.5, specular = 0.5, scattering = 1.5, lensflare = 0.60000002,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
