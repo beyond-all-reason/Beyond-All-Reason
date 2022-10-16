@@ -77,21 +77,23 @@ function ShardAI:Update()
 	if self.gameend == true then
 		return
 	end
+	self.game:StartTimer('UPDATE')
 	for i,m in ipairs(self.modules) do
 		if m == nil then
 			self:Warn("nil module!")
 		else
- 			self.game:StartTimer(m:Name() .. ' ai')
+ 			self.game:StartTimer(m:Name() .. ' hst')
 			--local RAM = gcinfo()
 
 			m:Update()
- 			self.game:StopTimer(m:Name() .. ' ai')
+ 			self.game:StopTimer(m:Name() .. ' hst')
 			--RAM = gcinfo() - RAM
-			--if RAM > 10 and m:Name() ~= 'UnitHandler' then
-			--	print (m:Name(),RAM)
+			--if RAM > 100 and m:Name() ~= 'UnitHandler' then
+			--	print (m:Name(),RAM/1000)
 			--end
 		end
 	end
+	self.game:StopTimer('UPDATE')
 end
 
 function ShardAI:GameMessage(text)

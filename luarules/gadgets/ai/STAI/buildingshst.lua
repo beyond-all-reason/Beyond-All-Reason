@@ -75,7 +75,7 @@ function BuildingsHST:LandWaterFilter(pos, unitTypeToBuild, builder)
 	if waterBuildOrder then self:EchoDebug(unitName .. " would be in water") else self:EchoDebug(unitName .. " would be on land") end
 	if (water and not waterBuildOrder) or (not water and waterBuildOrder) then
 		self:EchoDebug("builder would traverse the shore to build " .. unitName)
-		local dist = self.ai.tool:Distance(pos, builderPos)
+		local dist = self.ai.tool:distance(pos, builderPos)
 		if dist > 250 then
 			self:EchoDebug("build too far away from shore to build " .. unitName)
 			return false
@@ -97,22 +97,6 @@ function BuildingsHST:GetBuildSpacing(unitTypeToBuild)
 		spacing = 50
 	end
 	return spacing
-end
-
-function BuildingsHST:ClosestHighestLevelFactory(builderPos, maxDist)--TODO move in labregister or something
-	if not builderPos then return end
-	local minDist = maxDist or math.huge
-	local Lab
-	local maxLevel = 0
-	for id, lab in pairs(self.ai.labshst.labs) do
-		local dist = self.ai.tool:Distance(builderPos, lab.position)
-		if lab.level >= maxLevel and dist < minDist then
-			minDist = dist
-			maxLevel = lab.level
-			Lab = lab
-		end
-	end
-	return Lab
 end
 
 function BuildingsHST:DontBuildRectangle(x1, z1, x2, z2, unitID)
@@ -151,7 +135,6 @@ function BuildingsHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minim
 		return vpos
 	end
 	local target = self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minimumDistance, validFunction)
-	self.DebugEnabled = false
  	return target
 end
 
@@ -212,9 +195,6 @@ end
 
 function BuildingsHST:searchPosNearCategories(utype,builder,minDist,maxDist,categories,neighbours,number)
 	if not categories then return end
-	if self.ai.armyhst.factoryMobilities[utype:Name()] then
-		self.DebugEnabled = true
-	end
 	self:EchoDebug(categories,'searcing')
 	local army = self.ai.armyhst
 	local builderName = builder:Name()
@@ -246,11 +226,9 @@ function BuildingsHST:searchPosNearCategories(utype,builder,minDist,maxDist,cate
 		end
 
 		if p then
-			self.DebugEnabled = false
 			return p
 		end
 	end
-	self.DebugEnabled = false
 end
 
 function BuildingsHST:searchPosInList(utype, builder,minDist,maxDist,list,neighbours,number)
@@ -265,7 +243,7 @@ function BuildingsHST:searchPosInList(utype, builder,minDist,maxDist,list,neighb
 		if not neighbours or not self:unitsNearCheck(pos, maxDist,number,neighbours)then
 			tmpPos = self:ClosestBuildSpot(builder, pos, utype , minDist, nil, nil, maxDist)
 			if tmpPos then
-				tmpDist = self.ai.tool:Distance(pos,builder:GetPosition())
+				tmpDist = self.ai.tool:distance(pos,builder:GetPosition())
 				self:EchoDebug('tmpdist',tmpDist)
 				if tmpDist < 389 then --  here is used to exit the cycle if builder is sufficient near to go here without search more
 					self:EchoDebug(index,'dist < 389')
@@ -286,34 +264,18 @@ function BuildingsHST:searchPosInList(utype, builder,minDist,maxDist,list,neighb
 	return p
 end
 
-function BuildingsHST:BuildNearNano(builder, utype)
--- 	self:EchoDebug("looking for spot near nano hotspots")
--- 	local nanoHots = self.ai.nanohst:GetHotSpots()
--- 	if nanoHots then
--- 		self:EchoDebug("got " .. #nanoHots .. " nano hotspots")
--- 		local hotRadius = self.ai.nanohst:HotBuildRadius()
--- 		for i = 1, #nanoHots do
--- 			local hotPos = nanoHots[i]
--- 			-- find somewhere within hotspot
--- 			local p = self:ClosestBuildSpot(builder, hotPos, utype, 10, nil, nil, hotRadius)
--- 			if p then
--- 				self:EchoDebug('found Position for near nano hotspot at: ' .. hotPos.x ..' ' ..hotPos.z)
--- 				return p
--- 			end
--- 		end
--- 	end
-	return self:BuildNearLastNano(builder, utype)
-end
-
-function BuildingsHST:BuildNearLastNano(builder, utype)
-	self:EchoDebug("looking for spot near last nano")
-	local p = nil
-	if self.ai.lastNanoBuild then
-		self:EchoDebug('found position near last nano')
-		-- find somewhere at most 400 away
-		p = self:ClosestBuildSpot(builder, self.ai.lastNanoBuild, utype, 30, nil, nil, 400)
+function BuildingsHST:BuildNearNano(builder, utype,minDist)
+	minDist = minDist or 50
+	maxDist = maxDist or 390
+	local nanoCount,nanos = self.ai.tool:countFinished( {'_nano_'})
+	for i,id in pairs (nanos) do
+		local nanoUnit = game:GetUnitByID(id)
+		local nanoPos = nanoUnit:GetPosition()
+		local p = self:ClosestBuildSpot(builder, nanoPos, utype, 10, nil, nil, maxDist)
+		if p then
+			self:EchoDebug('found Position for near nano hotspot at: ' .. nanoPos.x ..' ' ..nanoPos.z)
+		end
 	end
-	return p
 end
 
 function BuildingsHST:unitsNearCheck(pos,range,number,targets)
@@ -541,12 +503,32 @@ function BuildingsHST:SetRole(builderID)
 			end
 		end
 	end
-
 	self.roles[builderID] = {
 		role = role,
 		builderName = builder:Name()
 	}
 	return role
+end
+
+function BuildingsHST:NearestBuilderRole(unit, targetRole)
+	local unitPos = unit:GetPosition()
+	local bestDist = math.huge
+	local bestBuilder
+	for id,role in pairs ( self.ai.buildingshst.roles) do
+		local targetUnit = game:GetUnitByID(id)
+		local targetPos = targetUnit:GetPosition()
+
+		if not targetRole or targetRole == role.role  then
+			if self.ai.maphst:UnitCanGoHere(unit,targetPos) then
+				local d = self.ai.tool:DISTANCE(unitPos,targetPos)
+				if d < bestDist then
+					bestDist = d
+					bestBuilder = id
+				end
+			end
+		end
+	end
+	return bestBuilder
 end
 
 function BuildingsHST:VisualDBG()
@@ -576,3 +558,35 @@ function BuildingsHST:VisualDBG()
 		map:DrawRectangle({x=rect.x1,y=0,z=rect.z1}, {x=rect.x2,y=0,z=rect.z2}, {1,0,0,1}, nil, true, ch)
 	end
 end
+
+--[[
+function BuildingsHST:BuildNearNano(builder, utype)
+-- 	self:EchoDebug("looking for spot near nano hotspots")
+-- 	local nanoHots = self.ai.nanohst:GetHotSpots()
+-- 	if nanoHots then
+-- 		self:EchoDebug("got " .. #nanoHots .. " nano hotspots")
+-- 		local hotRadius = self.ai.nanohst:HotBuildRadius()
+-- 		for i = 1, #nanoHots do
+-- 			local hotPos = nanoHots[i]
+-- 			-- find somewhere within hotspot
+-- 			local p = self:ClosestBuildSpot(builder, hotPos, utype, 10, nil, nil, hotRadius)
+-- 			if p then
+-- 				self:EchoDebug('found Position for near nano hotspot at: ' .. hotPos.x ..' ' ..hotPos.z)
+-- 				return p
+-- 			end
+-- 		end
+-- 	end
+	return self:BuildNearLastNano(builder, utype)
+end
+
+function BuildingsHST:BuildNearLastNano(builder, utype)
+	self:EchoDebug("looking for spot near last nano")
+	local p = nil
+	if self.ai.lastNanoBuild then
+		self:EchoDebug('found position near last nano')
+		-- find somewhere at most 400 away
+		p = self:ClosestBuildSpot(builder, self.ai.lastNanoBuild, utype, 30, nil, nil, 400)
+	end
+	return p
+end
+]]

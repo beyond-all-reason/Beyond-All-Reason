@@ -95,7 +95,7 @@ function MexUpBST:StartUpgradeProcess()
 				local pos = unit:GetPosition()
 				if self.ai.targethst:IsSafeCell(pos, selfUnit) then
 					if map:CanBuildHere(upgradetype, mexUnit:GetPosition()) then
-						local dist = self.ai.tool:Distance(pos, selfPos)
+						local dist = self.ai.tool:distance(pos, selfPos)
 						if dist < closestDistance then
 							mexUnit = unit
 							closestDistance = dist

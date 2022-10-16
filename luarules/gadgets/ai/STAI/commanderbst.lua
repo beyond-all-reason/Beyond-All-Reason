@@ -5,7 +5,7 @@ function CommanderBST:Name()
 end
 
 function CommanderBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	local u = self.unit:Internal()
 	self.id = u:ID()
 	self.save = false
@@ -23,24 +23,22 @@ function CommanderBST:Update()
 		self.save = false
 	end
 	if self.active and self.save == 1 then
-		self:GetSafeBuilder()
+		self.safeBuilder = self.ai.buildingshst:NearestBuilderRole(self.unit:Internal(), 'eco')
 		if self.safeBuilder then
 			self.unit:Internal():Guard(game:GetUnitByID(self.safeBuilder))
 		else
-			self:GetSafeHouse()
+			self.safeHouse = self.ai.labshst:ClosestHighestLevelFactory(self.unit:Internal())
 			if self.safeHouse then
 				self:HelpFactory()
 			end
 		end
 	end
 	if self.active and self.save == 2 then
-		self:GetSafeHouse()
+		self.safeHouse = self.ai.labshst:ClosestHighestLevelFactory(self.unit:Internal())
 		if self.safeHouse then
 			self:HelpFactory()
 		end
 	end
-
-
 	self.unit:ElectBehaviour()
 end
 
@@ -51,9 +49,7 @@ end
 function CommanderBST:OwnerDamaged(attacker,damage)
 	if self.unit:Internal():GetHealth() < self.unit:Internal():GetMaxHealth() * 0.75 then
 		self.save = true
-
 	end
-
 end
 
 function CommanderBST:Activate()
@@ -93,20 +89,7 @@ function CommanderBST:HelpFactory()
 		if math.random() > 0.5 then --TODO workaround, wait to rework it better
 			self.unit:Internal():Patrol({pos.x,pos.y,pos.z,0})
 		else
-
 			self.unit:Internal():Guard(game:GetUnitByID(self.safeHouse.id))
 		end
 	end
-end
-
-function CommanderBST:GetSafeBuilder()
-	for id,role in pairs ( self.ai.buildingshst.roles) do
-		if role.role == 'eco' then
-			self.safeBuilder = id
-		end
-	end
-end
-
-function CommanderBST:GetSafeHouse()
-	self.safeHouse = self.ai.buildingshst:ClosestHighestLevelFactory(self.unit:Internal():GetPosition(), 9999)
 end

@@ -14,15 +14,17 @@ local mCeil = math.ceil
 
 function MapHST:Init()
 
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self:EchoDebug('MapHST START')
 	if self.map_loaded then
 		print('map already loaded')
 		return
 	end
 	self:basicMapInfo()
+	self:InitPathCost()
 	self.topology = {air = {}}
 	self:createGrid()
+
 	self.METALS = map:GetMetalSpots()
 	self.GEOS = map:GetGeoSpots()
 	self.METALS = self:SimplifyMetalSpots(self.gridSize * 2)-- is a random choice, can be 1 or 9999999999
@@ -45,13 +47,89 @@ function MapHST:Init()
 	self:EchoDebug('MapHST STOP')
 end
 
+function MapHST:PosToHeightMap(pos)
+	local x = (pos.x / 8) + 1
+	local z = (pos.z / 8) + 1
+	return x,z
+end
+
+function MapHST:HeightMapToPos(x,z)
+	local pos = {}
+	pos.x = x - 1 * 8
+	pos.z = z - 1 * 8
+	pos.y = map:GetGroundHeight(pos.x,pos.z)
+	return pos
+end
+
+function MapHST:PosToNodeIndex(pos)
+	local X,Z = self:PosToGrid(pos)
+	return self:GridToNodeIndex(X,Z)
+end
+
+function MapHST:GridToNodeIndex(X,Z)
+	return (((X - 1) *self.ai.maphst.gridSideX) + Z) -1
+end
+
+function MapHST:NodeIndexToGrid(index)
+	index = index + 1
+	local Z = index % self.gridSideX
+	index = index - Z
+	local X = index / self.gridSideX
+	return X,Z
+end
+
+function MapHST:NormalizeHeighMapIndex(index)
+	return index - 1
+end
+
+function  MapHST:NodeIndexToPos(index)
+	local X,Z = self: NodeIndexToGrid(index)
+	return self:GridToPos(X,Z)
+end
+
+function NodeIndexToHeighMap(index)
+	local pos = NodeIndexToPos(index)
+	return PosToHeightMap(pos)
+end
+
+function MapHST:InitPathCost()
+	self:EchoDebug('init path test')
+	local id = game:GetTeamID()
+
+	self.heightMapX = (self.elmoMapSizeX / 8) + 1
+	self.heightMapZ = (self.elmoMapSizeZ / 8) + 1
+	self:EchoDebug('self.heightMapX',self.heightMapX,'self.heightMapZ',self.heightMapZ)
+	self:EchoDebug(Spring.GetPathNodeCosts(id))
+	self:EchoDebug(Spring.InitPathNodeCostsArray(id,self.gridSideX,self.gridSideZ))
+	self:EchoDebug(#Spring.GetPathNodeCosts(game:GetTeamID()))
+	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),0,123))
+	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),1,111))
+
+	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),575,999))
+	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),576,987))
+
+	self:EchoDebug(Spring.SetPathNodeCosts(id))
+	for i,v in pairs(Spring.GetPathNodeCosts(game:GetTeamID())) do
+		if v > 0 then
+			self:EchoDebug('get path node cost',i,v)
+		end
+	end
+	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),0,0))
+	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),1,0))
+
+	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),575,0))
+	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),576,0))
+	self:EchoDebug('end init path test')
+
+end
+
 function MapHST:basicMapInfo()--capture and set foundamental map info
 	self.mapSize = map:MapDimensions()
 	self.elmoMapSizeX = self.mapSize.x * 8
 	self.elmoMapSizeZ = self.mapSize.z * 8
 	self.elmoMapCenter = {x = self.elmoMapSizeX/2,y = map:GetGroundHeight(self.elmoMapSizeX/2,self.elmoMapSizeZ/2), z = self.elmoMapSizeZ/2}
 	self.elmoMapMaxCenterDistance = self.ai.tool:distance({x=0,y=0,z=0},self.elmoMapCenter)
-	self.elmoMapMaxDistance = self.ai.tool:distance({x=0,y=0,z=0},{x=self.elmoMapSizeX,y=map:GetGroundHeight(self.elmoMapSizeX,self.elmoMapSizeZ),z=self.elmoMapSizeZ})
+	self.elmoMapMaxDistance = self.ai.tool:distance({x=0,y=0,z=0},{x=self.elmoMapSizeX,y = 0,z=self.elmoMapSizeZ})
 	self:EchoDebug('self.elmoMapMaxDistance',self.elmoMapMaxDistance,'self.elmoMapMaxCenterDistance',self.elmoMapMaxCenterDistance)
 	self:EchoDebug(self.ai.tool:gcd(self.elmoMapSizeX,self.elmoMapSizeZ))
 	self.elmoArea = self.elmoMapSizeX * self.elmoMapSizeZ
@@ -60,9 +138,9 @@ function MapHST:basicMapInfo()--capture and set foundamental map info
 	self.gridSideX = self.elmoMapSizeX / self.gridSize
 	self.gridSideZ = self.elmoMapSizeZ / self.gridSize
 	self.gridArea = self.gridSideX * self.gridSideZ
-	self:EchoDebug("grid size: " .. self.gridSize ..'cell count', self.gridArea,self.gridSideX,self.gridSideZ)
+	self:EchoDebug('ElmoX',self.elmoMapSizeX , 'ElmoZ',self.elmoMapSizeZ ,'ElmoArea',self.elmoArea)
+	self:EchoDebug("grid size: " .. self.gridSize ..'grid area', self.gridArea,self.gridSideX,self.gridSideZ)
 end
-
 
 function MapHST:createGrid()
 	self.GRID = {}
@@ -421,7 +499,7 @@ function MapHST:MergePositions(posTable, cutoff, includeNonMerged)
 		local merge = nil
 		for i = #list, 1, -1 do
 			local pos2 = list[i]
-			local dist = self.ai.tool:Distance(pos1, pos2)
+			local dist = self.ai.tool:distance(pos1, pos2)
 			if dist < cutoff then
 				self:EchoDebug("merging " .. pos1.x .. "," .. pos1.z .. " with " .. pos2.x .. "," .. pos2.z .. " -- " .. dist .. " away")
 				merge = self.ai.tool:MiddleOfTwo(pos1, pos2)
@@ -439,23 +517,28 @@ function MapHST:MergePositions(posTable, cutoff, includeNonMerged)
 	return merged
 end
 
+
+
 function MapHST:getPath(unitName,POS1,POS2,toGrid)
 	local mclass = self.ai.armyhst.unitTable[unitName].mclass
 	local metapath = Spring.RequestPath(mclass, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z)
 
+
 	if metapath then
 		local waypoints, pathStartIdx = metapath:GetPathWayPoints()
 		if not waypoints then
-			self:Warn('no path found',POS1,POS2)
+			self:Warn('no path found',POS1.x,POS1.z,POS2.x,POS2.z)
+			return
 		elseif #waypoints  <= 1 then
-			self:Warn('path have 0 lenght',POS1,POS2)
-		elseif self.ai.tool:DistanceXZ(POS1.x, POS1.z,POS2.x, POS2.z) < 256 then
+			self:Warn('path have 0 lenght',POS1.x,POS1.z,POS2.x,POS2.z)
+			return
+		elseif self.ai.tool:distance(POS1,POS2) < 256 then
 			self:Warn('path too short',POS1,POS2)
 			return
 
 		else
 			local last = waypoints[#waypoints]
-			local distance_to_goal = self.ai.tool:DistanceXZ(POS2.x, POS2.z, last[1], last[3])
+			local distance_to_goal = self.ai.tool:distance(POS2, {x=last[1],z=last[3]})
 			if distance_to_goal > self.gridSize then
 				self:Warn('invalid path find',POS1,POS2)
 				return
@@ -532,7 +615,7 @@ function MapHST:spotToCellMoveTest()--check how many time a unit(i chose command
 											local last = waypoints[#waypoints]
 											doing[X2..';'..Z2] = X1..';'..Z1
 											doing[X1..';'..Z1] = X2..';'..Z2
-											local distance_to_goal = self.ai.tool:DistanceXZ(POS2.x, POS2.z, last[1], last[3])
+											local distance_to_goal = self.ai.tool:distance(POS2, {x=last[1], z=last[3]})
 											if distance_to_goal > self.gridSizeHalf then
 												self:Warn('WARNING THIS PATH IS INCOMPLETE',POS1.x, POS1.z, last[1], last[3],className,POS2.x,POS2.z,distance_to_goal)
 											else
@@ -603,7 +686,7 @@ function MapHST:GuessStartLocations(spots)
 	while #spotsCopy > 0 do
 		local closest = nil
 		for i, to in pairs(spotsCopy) do
-			local dist = self.ai.tool:Distance(from, to)
+			local dist = self.ai.tool:distance(from, to)
 			if dist < minDist then
 				minDist = dist
 				closest = i
@@ -657,7 +740,7 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 					if map:CanBuildHere(unittype, spot) then
 						local CELL = self:GetCell(spot,self.ai.loshst.ENEMY)
 						if not CELL or CELL.ENEMY == 0 then
-							local distance = self.ai.tool:Distance(position,spot)
+							local distance = self.ai.tool:distance(position,spot)
 							--print(distance-Distance)
  							--if distance < 300 then
  							--	return spot
@@ -696,7 +779,7 @@ function MapHST:ClosestFreeGeo(unittype, builder, position)--get the closest fre
 	for i,p in pairs(self.networks[layer][net].geos) do----(self.GEOS) do
 		-- dont use this spot if we're already building there
 		if not self.ai.buildingshst:PlansOverlap(p, uname) and self:UnitCanGoHere(builder, p) and self.map:CanBuildHere(unittype, p) and self.ai.targethst:IsSafeCell(p, builder) then
-			local dist = self.ai.tool:Distance(position, p)
+			local dist = self.ai.tool:distance(position, p)
 			if not bestDistance or dist < bestDistance then
 				bestDistance = dist
 				bestPos = p
@@ -805,6 +888,7 @@ function MapHST:DrawDebug()
 	end
 	for X,Zetas in pairs(self.GRID) do
 		for Z, CELL in pairs(Zetas) do
+			map:DrawPoint(CELL.POS, nil, X .. ':' ..Z.. ' = ' ..((X - 1) *self.ai.maphst.gridSideX) + Z, 9)
 			if CELL.trampled > self.ttt.trampled / 2 then --CELL.trampled > 1 then --
 				map:DrawPoint(CELL.POS, {1,1,1,1}, math.ceil(CELL.trampled), 9)
 			end
@@ -848,8 +932,8 @@ function MapHST:GetPathGraph(mtype, targetNodeSize)
 			local cellsComplete = true
 			local goodCells = {}
 			local goodCellsCount = 0
-			for ccx = cx, cx+cellsPerNodeSide-1 do
-				for ccz = cz, cz+cellsPerNodeSide-1 do
+			for ccx = cx, cx + cellsPerNodeSide - 1 do
+				for ccz = cz, cz + cellsPerNodeSide - 1 do
 					if myTopology[ccx] and myTopology[ccx][ccz] then
 						goodCellsCount = goodCellsCount + 1
 						goodCells[goodCellsCount] = {ccx, ccz}

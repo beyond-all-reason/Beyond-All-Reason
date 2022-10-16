@@ -78,48 +78,17 @@ function Tool:RandomAway(pos, dist, opposite, angle)
 	end
 end
 
-function Tool:distance(pos1,pos2)
-	local xd = pos1.x-pos2.x
-	local zd = pos1.z-pos2.z
-	local yd = pos1.y-pos2.y
-	if yd < 0 then
-		yd = -yd
-	end
-	local dist = math.sqrt(xd*xd + zd*zd + yd*yd*yd)
-	return dist
+function Tool:DISTANCE(POS1,POS2)
+	local x = POS2.x - POS1.x
+	local y = POS2.y - POS1.y
+	local z = POS2.z - POS1.z
+	return sqrt( (x*x) + (y*y) + (z*z) )
 end
 
-function Tool:DistanceSq(pos1,pos2)
-	local xd = pos1.x-pos2.x
-	local yd = pos1.z-pos2.z
-	return xd*xd + yd*yd
-end
-
-function Tool:Distance(pos1,pos2)
-	local xd = pos1.x-pos2.x
-	local yd = pos1.z-pos2.z
-	local dist = sqrt(xd*xd + yd*yd)
-	return dist
-end
-
-function Tool:DistanceXZ(x1, z1, x2, z2)
-	local xd = x1 - x2
-	local zd = z1 - z2
-	return sqrt(xd*xd + zd*zd)
-end
-
-function Tool:Distance3d(pos1, pos2)
-	local dx = pos2.x - pos1.x
-	local dy = pos2.y - pos1.y
-	local dz = pos2.z - pos1.z
-	return math.sqrt( dx*dx + dy*dy + dz*dz )
-end
-
-function Tool:ManhattanDistance(pos1,pos2)
-	local xd = math.abs(pos1.x-pos2.x)
-	local yd = math.abs(pos1.z-pos2.z)
-	local dist = xd + yd
-	return dist
+function Tool:distance(POS1,POS2)
+	local x = POS2.x - POS1.x
+	local z = POS2.z - POS1.z
+	return sqrt( (x*x) + (z*z) )
 end
 
 function Tool:sumPos(pos1, pos2)
@@ -369,38 +338,6 @@ function Tool:mtypedLvCount(tpLv)
 	return counter
 end
 
--- function Tool:CustomCommand(unit, cmdID, cmdParams)
--- 	local floats = api.vectorFloat()
--- 	for i = 1, #cmdParams do
--- 		floats:push_back(cmdParams[i])
--- 	end
--- 	return unit:ExecuteCustomCommand(cmdID, floats)
--- end
-
-function Tool:UnitNameSanity(unitOrName)--TODO move to tool
-	if not unitOrName then
-		self.game:Warn('nil unit or name')
-		return
-	end
-	if type(unitOrName) == 'string' then
-		if not self.ai.armyhst.unitTable[unitOrName] then
-			self.game:Warn('invalid string name',unitOrName)
-			return
-		else
-			return unitOrName
-		end
-	else
-		local uName = unitOrName:Name()
-		if uName ~= nil  and self.ai.armyhst.unitTable[uName]then
-			return uName
-		else
-			self.game:Warn('invalid object unit give invalid name',unitOrName)
-			return
-		end
-	end
-	self.game:Warn('unknow reason to exit from unit name sanity')
-end
-
 function Tool:WhatHurtsUnit(unitName, mtype, position)
 	local hurts = whatHurtsMtype[mtype] or whatHurtsUnit[unitName]
 	if hurts ~= nil then return hurts else hurts = {} end
@@ -531,3 +468,84 @@ function Tool:SimplifyPath(path)
 	end
 	return path
 end
+
+
+-- function Tool:CustomCommand(unit, cmdID, cmdParams)
+-- 	local floats = api.vectorFloat()
+-- 	for i = 1, #cmdParams do
+-- 		floats:push_back(cmdParams[i])
+-- 	end
+-- 	return unit:ExecuteCustomCommand(cmdID, floats)
+-- end
+--[[
+function Tool:UnitNameSanity(unitOrName)--TODO move to tool
+	if not unitOrName then
+		self.game:Warn('nil unit or name')
+		return
+	end
+	if type(unitOrName) == 'string' then
+		if not self.ai.armyhst.unitTable[unitOrName] then
+			self.game:Warn('invalid string name',unitOrName)
+			return
+		else
+			return unitOrName
+		end
+	else
+		local uName = unitOrName:Name()
+		if uName ~= nil  and self.ai.armyhst.unitTable[uName]then
+			return uName
+		else
+			self.game:Warn('invalid object unit give invalid name',unitOrName)
+			return
+		end
+	end
+	self.game:Warn('unknow reason to exit from unit name sanity')
+end
+]]
+
+--[[
+function Tool:distance(pos1,pos2)
+	local xd = pos1.x-pos2.x
+	local zd = pos1.z-pos2.z
+	local yd = pos1.y-pos2.y
+	if yd < 0 then
+		yd = -yd
+	end
+	local dist = math.sqrt(xd*xd + zd*zd + yd*yd*yd)
+	return dist
+end
+
+function Tool:DistanceSq(pos1,pos2)
+	local xd = pos1.x-pos2.x
+	local yd = pos1.z-pos2.z
+	return xd*xd + yd*yd
+end
+
+function Tool:Distance(pos1,pos2)
+	local xd = pos1.x-pos2.x
+	local yd = pos1.z-pos2.z
+	local dist = sqrt(xd*xd + yd*yd)
+	return dist
+end
+
+function tool:distance(x1, z1, x2, z2)
+	local xd = x1 - x2
+	local zd = z1 - z2
+	return sqrt(xd*xd + zd*zd)
+end
+
+function Tool:Distance3d(pos1, pos2)
+	local dx = pos2.x - pos1.x
+	local dy = pos2.y - pos1.y
+	local dz = pos2.z - pos1.z
+	return math.sqrt( dx*dx + dy*dy + dz*dz )
+end
+
+
+function Tool:ManhattanDistance(pos1,pos2)
+	local xd = math.abs(pos1.x-pos2.x)
+	local yd = math.abs(pos1.z-pos2.z)
+	local dist = xd + yd
+	return dist
+end
+]]

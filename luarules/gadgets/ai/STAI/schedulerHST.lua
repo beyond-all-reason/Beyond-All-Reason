@@ -61,32 +61,32 @@ end
 
 SchedulerHST.MScheduler = {
 	'LosHST',
-	'AttackHST',
-	'BomberHST',
-	'RaidHST',
+	'OverviewHST',
 	'TargetHST',
 	'DamageHST',
-	'OverviewHST',
+	'ScoutHST',
+	'AttackHST',
+	'RaidHST',
+	'BomberHST',
+
 	'LabsHST',
+
+
+
 	--'DefendHST',
 	}
 
 SchedulerHST.BScheduler = {
-		'AttackerBST',
-		'BuildersBST',
-		'LabsBST',
-		'RaidBST',
-		'BomberBST',
-		--'WardBST',
-		--'MexupBST',
-		'ReclaimBST',
-		'CleanerBST',
-		--'DefendBST',
-		--'LabregisterBST',
-		'ScoutBST',
-		'AntinukeBST',
-		'NukeBST',
-		--'BombardBST',
-		'CommanderBST',
-		'BootBST',
+	'BootBST',
+	'CommanderBST',
+	'BuildersBST',
+	'LabsBST',
+	'ScoutBST',
+	'RaidBST',
+	'AttackerBST',
+	'BomberBST',
+	'ReclaimBST',
+	'CleanerBST',
+	'AntinukeBST',
+	'NukeBST',
 		}

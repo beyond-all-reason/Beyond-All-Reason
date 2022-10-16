@@ -14,67 +14,96 @@ function DamageHST:Init()
 	self.DAMAGED = {}
 end
 
-function DamageHST:UnitDamaged(engineUnit, attacker, damage)
-	local teamID = engineUnit:Team()
+function DamageHST:UnitDamaged(defender, attacker, damage)
+	local teamID = defender:Team()
 	if teamID ~= game:GetTeamID() and not self.ai.friendlyTeamID[teamID] then
 		return
 	end
-	local unitID = engineUnit:ID()
-	self.isDamaged[unitID] = engineUnit
+	local defenderID = defender:ID()
+	local defenderName = defender:Name()
+	self.isDamaged[defenderID] = defender
 	-- even if the attacker can't be seen, human players know what weapons look like
-	-- in non-lua shard, the attacker is nil if it's an enemy engineUnit, so this becomes useless
+	-- in non-lua shard, the attacker is nil if it's an enemy defender, so this becomes useless
 	if attacker ~= nil and attacker:AllyTeam() ~= self.ai.allyId then --   we know what is it and self.ai.loshst:IsKnownEnemy(attacker) ~= 2 then
 		local mtype
-		local ut = self.ai.armyhst.unitTable[engineUnit:Name()]
-		if ut then
+		local defenderUt = self.ai.armyhst.unitTable[defenderName]
+		if defenderUt then
 			local attackerut = self.ai.armyhst.unitTable[attacker:Name()]
-			local threat = attackerut.metalCost or damage
+			local attackerThreat = attackerut.metalCost or damage or 100
+			local defenderThreat = defenderUt.metalCost or damage or 100
 
  			if attackerut then
  				if attackerut.isBuilding then
-					self.ai.loshst.losEnemy[attacker:ID()] = ut.defId
+					self.ai.loshst.losEnemy[attacker:ID()] = defenderUt.defId
 					self.ai.loshst.radarEnemy[attacker:ID()] = 	nil
 --  					self.ai.loshst:scanEnemy(attacker,isShoting)---isshoting maybe need to be true?
 --  					return
  				end
- 				threat = attackerut.metalCost
+
  			end
-			self:AddBadPosition(engineUnit:GetPosition(), ut.mtype, threat, 900)
+			self:AddBadPosition(defender:GetPosition(), defenderUt.mtype, attackerThreat,defenderThreat, 900)
 		end
 	end
 end
 
-function DamageHST:AddBadPosition(position, mtype, threat, duration)
-	threat = threat or badCellThreat
+function DamageHST:AddBadPosition(position, mtype, attackerThreat,defenderThreat, duration)
 	duration = duration or 1800
 	local X, Z = self.ai.maphst:PosToGrid(position)
-	local gas = self.ai.tool:WhatHurtsUnit(nil, mtype, position)
+	--local gas = self.ai.tool:WhatHurtsUnit(nil, mtype, position)
 	local f = self.game:Frame()
-	for groundAirSubmerged, yes in pairs(gas) do
-		if yes then
+	--for groundAirSubmerged, yes in pairs(gas) do
+	--	if yes then
 			local newRecord =
 					{
 						X = X,
 						Z = Z,
+
+						POS = self.ai.maphst:GridToPos(X,Z),
 						groundAirSubmerged = groundAirSubmerged,
 						frame = f,
-						threat = threat,
+						attackerThreat = attackerThreat,
+						defenderThreat = defenderThreat,
 						duration = duration,
+						nodeCostIndex = self.ai.maphst:GridToNodeIndex(X,Z)
 						}
+
 			self.DAMAGED[X] = self.DAMAGED[X] or {}
-			self.DAMAGED[X][Z] = newRecord
--- 			selfai.maphst.GRID[px][pz].damageCell = selfai.maphst.GRID[px][pz].damageCell + 1
-		end
-	end
+			if not self.DAMAGED[X][Z] then
+				self.DAMAGED[X][Z] = newRecord
+			else
+				self.DAMAGED[X][Z].frame = f
+				self.DAMAGED[X][Z].attackerThreat = self.DAMAGED[X][Z].attackerThreat + newRecord.attackerThreat
+				self.DAMAGED[X][Z].defenderThreat = self.DAMAGED[X][Z].defenderThreat + newRecord.defenderThreat
+
+			end
+		--end
+	--end
 end
 
 function DamageHST:UpdateBadPositions()
 	local f = self.game:Frame()
 	for X,cells in pairs(self.DAMAGED) do
 		for Z, cell in pairs(cells) do
-			if f - cell.frame  > 300 then	--reset  bad position every 10 seconds
-				self.DAMAGED[X][Z] = nil
+			if f - cell.frame  > 300 then	-- reduce  bad position every 10 seconds
+				cell.frame = f
+				cell.attackerThreat = math.floor(cell.attackerThreat * 0.9)
+				cell.defenderThreat = math.floor(cell.defenderThreat * 0.9)
+				print(self.DAMAGED[X][Z].defenderThreat)
+
+
+				if cell.defenderThreat < 1 then
+					self.DAMAGED[X][Z] = nil
+				end
+
 			end
+			self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),cell.nodeCostIndex,cell.defenderThreat))
+			self:EchoDebug('cost of ',cell.nodeCostIndex)
+			self:EchoDebug('X,Z',X,Z,'index',self.ai.maphst:GridToNodeIndex(X,Z))
+			self:EchoDebug('cell.POS.x,cell.POS.z',cell.POS.x,cell.POS.z ,self.ai.maphst:PosToNodeIndex(cell.POS))
+			self:EchoDebug('node cost PosToHeightMap',Spring.GetPathNodeCost(game:GetTeamID(),self.ai.maphst:PosToHeightMap(cell.POS)))
+
+
+			self:EchoDebug('cost of ',cell.nodeCostIndex , X,Z , cell.POS.x,cell.POS.z ,cell.defenderThreat , Spring.GetPathNodeCost(game:GetTeamID(),self.ai.maphst:PosToHeightMap(cell.POS)))
 		end
 	end
 end
@@ -92,12 +121,44 @@ function DamageHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	self:UpdateBadPositions()
 	self:UpdateDamagedUnits()
+	local prepathnodecost = Spring.GetPathNodeCosts(game:GetTeamID())
+	for i,v in pairs(prepathnodecost) do
+		if v > 0 then
+			print('get path node cost',i,v)
+		end
+	end
+	self:VisualDBG()
 end
 
 function DamageHST:UnitDead(engineUnit)
 	self.isDamaged[engineUnit:ID()] = nil
-	local pos = engineUnit:GetPosition()
-	local name = engineUnit:Name()
-	local mtype = self.ai.armyhst.unitTable[name].mtype
-	self:AddBadPosition(pos, mtype)
 end
+
+function DamageHST:VisualDBG()
+	local ch = 6
+ 	self.map:EraseAll(ch)
+	if not self.ai.drawDebug then
+		return
+	end
+	local colours = self.ai.tool.COLOURS
+	for id,damaged in pairs(self.isDamaged) do
+		damaged:EraseHighlight(nil, nil, ch )
+		damaged:DrawHighlight(colours.green ,nil , ch )
+	end
+	local cellElmosHalf = self.ai.maphst.gridSizeHalf
+	for X,cells in pairs(self.DAMAGED) do
+		for Z, cell in pairs(cells) do
+			local p = cell.POS
+			local pos1, pos2 = api.Position(), api.Position()--z,api.Position(),api.Position(),api.Position()
+			pos1.x, pos1.z = p.x - cellElmosHalf, p.z - cellElmosHalf
+			pos2.x, pos2.z = p.x + cellElmosHalf, p.z + cellElmosHalf
+			pos1.y=Spring.GetGroundHeight(pos1.x,pos1.z)
+			pos2.y=Spring.GetGroundHeight(pos2.x,pos2.z)
+			map:DrawRectangle(p, pos2, colours.blue, cell.defenderThreat, false, ch)
+			map:DrawRectangle(pos1, p, colours.red, cell.attackerThreat, false, ch)
+			map:DrawPoint(p, colours.black, cell.X .. ':' ..cell.Z .. '=' .. cell.nodeCostIndex, ch)
+		end
+	end
+end
+
+
