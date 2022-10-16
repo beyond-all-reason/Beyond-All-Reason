@@ -9,7 +9,7 @@ function LabsHST:internalName()
 end
 
 function LabsHST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.labs = {}
 	self:factoriesRating()
 end
@@ -300,23 +300,15 @@ function LabsHST:GetBuilderFactory(builder)
 			end
 		end
 	end
-end
-
-function LabsHST:ClosestHighestLevelFactory(builder, maxDist)
-	if not builder then return end
-	local builderPos = builder:GetPosition()
-	local minDist = maxDist or math.huge
-	local Lab
-	local maxLevel = 0
-	for id, lab in pairs(self.ai.labshst.labs) do
-		if self.ai.maphst:UnitCanGoHere(builder, lab.position) then
-			local dist = self.ai.tool:distance(builderPos, lab.position)
-			if lab.level >= maxLevel and dist <= minDist then
-				minDist = dist
-				maxLevel = lab.level
-				Lab = lab
+	--[[for rank,lab in pairs(availableFactories) do
+		if builder:CanBuild(lab) then
+			local p = self:FactoryPosition(lab,builder)
+			if p then
+				self:PostPositionalFilter(p,lab)
+				if p then
+					return p,lab
+				end
 			end
 		end
-	end
-	return Lab
+	end]]
 end

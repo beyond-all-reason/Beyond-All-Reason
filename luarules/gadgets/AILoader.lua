@@ -64,7 +64,10 @@ local spGetGaiaTeamID = Spring.GetGaiaTeamID()
 
 --SYNCED CODE
 if gadgetHandler:IsSyncedCode() then
+
+
 	function gadget:Initialize()
+
 		GG.AiHelpers.Start()
 	end
 function gadget:RecvLuaMsg(msg, playerID)
@@ -76,7 +79,9 @@ function gadget:RecvLuaMsg(msg, playerID)
 			local opts = string.split(msg,';')
 			local timeout = string.split(msg,'#')
 			local unit = string.split(msg,'!')
+
 			if #id ~= 3 or #cmd ~= 3 or #pos ~= 3 or #opts ~= 3 or #timeout ~= 3 or #unit ~= 3 then
+
 				spEcho('format incomplete',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
 				spEcho('recvluamsg',msg)
 				spEcho('splitting lenght',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
@@ -90,6 +95,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 				Spring.Debug.TableEcho(pos)
 				return
 			end
+
 			id = id[2]
 			cmd = cmd[2]
 			pos = pos[2]
@@ -144,6 +150,7 @@ else
 	function gadget:Initialize()
 		local teamList = spGetTeamList()
 		spEcho("Looking for AIs")
+
 		for i = 1, #teamList do
 			local id = teamList[i]
 			local _, _, _, isAI, side, allyId = spGetTeamInfo(id, false)
@@ -156,6 +163,7 @@ else
 				end
 			end
 		end
+
 		-- catch up to started game
 		if Spring.GetGameFrame() > 1 then
 			self:GameStart()
@@ -227,18 +235,14 @@ else
 	end
 
 	function gadget:GameFrame(n)
+
 		-- for each AI...
 
 		for _, thisAI in ipairs(Shard.AIs) do
-			local RAM = gcinfo()
 			-- update sets of unit ids : own, friendlies, enemies
 			--1 run AI game frame update handlers
 			thisAI:Prepare()
 			thisAI:Update()
-			RAM = gcinfo() - RAM
-			if RAM > 1000 then
-				print ('AIloader',RAM/1000)
-			end
 		end
 	end
 
@@ -273,7 +277,7 @@ else
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
 				thisAI:Prepare()
-				thisAI:UnitDead(unit,unitDefId, teamId, attackerId, attackerDefId, attackerTeamId)
+				thisAI:UnitDead(unit)
 
 				thisAI.ownUnitIds[unitId] = nil
 				thisAI.friendlyUnitIds[unitId] = nil
@@ -330,7 +334,7 @@ else
 			for _, thisAI in ipairs(Shard.AIs) do
 				thisAI:Prepare()
 				-- thisAI:UnitTaken(unitId, unitDefId, teamId, newTeamId)
-				thisAI:UnitDead(unit, unitDefId, teamId, newTeamId)
+				thisAI:UnitDead(unit)
 			end
 		end
 	end
@@ -341,7 +345,7 @@ else
 			for _, thisAI in ipairs(Shard.AIs) do
 				thisAI:Prepare()
 				-- thisAI:UnitCreated(unitId, unitDefId, teamId, oldTeamId)
-				thisAI:UnitCreated(unit, unitDefId, teamId, oldTeamId)
+				thisAI:UnitCreated(unit)
 			end
 		end
 	end

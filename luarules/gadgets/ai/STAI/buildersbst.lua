@@ -65,26 +65,6 @@ function BuildersBST:Watchdog()
 	end
 end
 
-function BuildersBST:Evade()
-	local home = self.ai.labshst:ClosestHighestLevelFactory(self.unit:Internal())
-	if home then
-		self.unit:Internal():Guard(home.id)
-		self.ai.buildingshst:ClearMyProjects(self.id)
-		return
--- 		home = home.position
-	else
-		home = self.unit:Internal():GetPosition()
-		home = self.ai.tool:RandomAway(home,300)
-		self.unit:Internal():Move(home)
-		self.ai.buildingshst:ClearMyProjects(self.id)
-	end
-
-
-	if home then
-
-	end
-
-end
 
 function BuildersBST:Update()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'BuildersBST' then
@@ -95,11 +75,6 @@ function BuildersBST:Update()
 		return
 	end
 	self.builder, self.sketch = self.ai.buildingshst:GetMyProject(self.id)
-	local health,maxHealth,paralyzeDamage, captureProgress, buildProgress,relativeHealth = self.unit:Internal():GetHealtsParams()
-	if 	relativeHealth < 0.99 and buildProgress == 1 then
-		self:Evade()
-		return
-	end
 	if not self.sketch and not self.builder and self.failOut then
 		self:EchoDebug(self.name,'failout')
 		if f > self.failOut + 600 then --wait 360 frame before check again queue
@@ -250,7 +225,7 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 			POS = site:ClosestBuildSpot(builder, target.position, utype,nil,nil,nil,390)
 		end
 		if not POS then
-			local lab = self.ai.labshst:ClosestHighestLevelFactory(builder,5000)
+			local lab = site:ClosestHighestLevelFactory(builder:GetPosition(), 5000)
 			if lab then
 				self:EchoDebug("searching for top level factory")
 				POS = site:ClosestBuildSpot(builder, lab.position, utype,nil,nil,nil,390)
@@ -393,7 +368,7 @@ function BuildersBST:assist()
 		for bossID,project in pairs(self.ai.buildingshst.sketch) do
 			if project.position then
 				if self.ai.maphst:UnitCanGoHere(self.unit:Internal(), project.position) then
-					local dist = self.ai.tool:distance( builderPos,project.position)
+					local dist = self.ai.tool:Distance( builderPos,project.position)
 					if dist < bossDist then
 						bossDist = dist
 						bossTarget = bossID
@@ -411,7 +386,7 @@ function BuildersBST:assist()
 		for bossID,project in pairs(self.ai.buildingshst.sketch) do
 			if project.position and self.ai.armyhst.unitTable[project.builderName].techLevel >= self.ai.armyhst.unitTable[self.name].techLevel then
 				if self.ai.maphst:UnitCanGoHere(self.unit:Internal(), project.position) then
-					local dist = self.ai.tool:distance( builderPos,project.position)
+					local dist = self.ai.tool:Distance( builderPos,project.position)
 					if dist < bossDist then
 						bossDist = dist
 						bossTarget = bossID

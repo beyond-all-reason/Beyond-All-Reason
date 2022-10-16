@@ -34,13 +34,13 @@ function TasksHST:startLabsParams()
 			economy = function()
 				return true
 			end,
-			numeric = {min = 1, mtype = 5, max = 2,},
+			numeric = {min = 3, mtype = 5, max = 7,},
 			wave = 1},
 
 
 			{category = 'scouts',
 			economy = function()
-				return true
+				return (E.income < 100 )
 			end,
 			numeric = {min = 1,mtype = 10,max = 2},
 			wave = 2},
@@ -48,10 +48,7 @@ function TasksHST:startLabsParams()
 
 			{category = 'raiders',
 			economy = function()
-				if E.income > 400 then
-					return math.random() > 0.66
-				end
-				return  ( true)
+				return  (E.income < 400 )
 			end,
 			numeric = {min = 1,max = 20},
 			wave = 10},
@@ -630,7 +627,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'_mex_'},min = 50,neighbours = {'_llt_','_popup2_','_popup1_'},list = self.map:GetMetalSpots()} ,
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_llt_','_popup2_','_popup1_'}} ,--,list = self.map:GetMetalSpots()
 			},
 
 		{ 	category = '_popup2_' ,

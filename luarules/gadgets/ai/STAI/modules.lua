@@ -14,6 +14,7 @@ shard_include ("scouthst")
 shard_include ("ecohst")
 shard_include ("damagehst")
 shard_include ("cleanhst")
+--shard_include ("nanohst")
 shard_include ("overviewhst")
 shard_include ("taskshst")
 shard_include ('tool')
@@ -34,6 +35,7 @@ return {
 	DamageHST,
 	ScoutHST,
 	CleanHST,
+	--NanoHST,
 	OverviewHST,
 	UnitHST,
 	TasksHST,

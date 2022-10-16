@@ -12,6 +12,6 @@ function STAI:test()
 	Spring:Echo('test')
 
 	for i,v in pairs(STAI) do
-		Spring.Echo('STAI AI module:',i,v)
+		print(i,v)
 	end
 end

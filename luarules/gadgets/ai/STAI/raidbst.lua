@@ -5,7 +5,7 @@ function RaidBST:Name()
 end
 
 function RaidBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	local u = self.unit:Internal()
 	self.id = u:ID()
 	self.name =u:Name()
@@ -39,8 +39,7 @@ end
 function RaidBST:Priority()
 	local raider = self.ai.raidhst.raiders[self.id]
 	local mySquad = self.ai.raidhst.squads[self.squadID]
-	print('uyyuweeqyiwqeytui',self.squadID)
- 	if raider  and mySquad and  mySquad.target and mySquad.path then
+ 	if raider and raider.inSquad and mySquad and  mySquad.target and mySquad.path then
 		self:EchoDebug('be a raider')
  		return 101
  	else
@@ -70,7 +69,7 @@ function RaidBST:Update()
 		self:EchoDebug(self.squadID,'squadID')
 		self.ai.raidhst.raiders[u:ID()] = {name = self.name,squadID =  self.squadID, mclass = self.ai.armyhst.unitTable[self.name].mclass,mtype = self.mtype}
 	end
- 	self.unit:ElectBehaviour()
+	self.unit:ElectBehaviour()
 end
 
 function RaidBST:Activate()

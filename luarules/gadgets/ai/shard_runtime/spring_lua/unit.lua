@@ -527,7 +527,7 @@ end
 
 function ShardUnit:GetHealtsParams()
 	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth( self.id )
-	return health, maxHealth, paralyzeDamage, captureProgress, buildProgress, health/maxHealth
+	return health, maxHealth, paralyzeDamage, captureProgress, buildProgress
 end
 
 function ShardUnit:GetHealth()

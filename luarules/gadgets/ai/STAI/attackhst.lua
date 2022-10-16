@@ -275,15 +275,14 @@ function AttackHST:SquadFindPath(squad,target)
 		self:Warn('no pathfinder')
 		return
 	end
-
 	--local path, remaining, maxInvalid = squad.pathfinder:Find(25)
 	local path = self.ai.maphst:getPath(squad.leader:Name(),squad.leaderPos,target.POS,true)
 	if path then
-		--local pt = {}
+		local pt = {}
  		self:EchoDebug("got path of", #path, "nodes", maxInvalid, "maximum invalid neighbors!!!!!!!!!!!!!!!!!!")
   		--for index,cell in pairs(path) do
  		--	table.insert(pt,cell.position)
-   		--	self:EchoDebug('path','index',index,'pos',cell.position.x,cell.position.z)
+--   			self:EchoDebug('path','index',index,'pos',cell.position.x,cell.position.z)
   		--end
 
 		step = 1
@@ -341,11 +340,12 @@ function AttackHST:SquadsTargetUpdate2()
 			self:SquadResetTarget(squad)
 			local defense = self:SquadsTargetDefense(squad)
 			if defense then
+
 				squad.target = defense
 				self:EchoDebug('set defensive target for',squad.squadID,squad.target.X,squad.target.Z)
 			else
 
-				local offense = self:SquadsTargetAttack2(squad)
+				local offense = self:SquadsTargetAttack(squad)
 				if offense and squad.lock then
 					path, step = self:SquadFindPath(squad,offense)
 					if path and step then
@@ -394,19 +394,16 @@ function AttackHST:SquadsTargetPrevent(squad)
 
 end
 
-function AttackHST:SquadsTargetDefense(squad)
+function AttackHST:SquadsTargetDefense(SQUAD)
 	local targetDist = math.huge
 	local targetCell
 	for index,blob in pairs(self.ai.targethst.MOBILE_BLOBS)do
-
 		local targetHandled = self:SquadsTargetHandled(blob.defend)
-		if not targetHandled or targetHandled == squad.squadID then
-			local dist = self.ai.tool:distance(blob.defend.POS,squad.position)
-			if blob.defendDist < 500 then --defend only near blob
-				if dist < targetDist then
-					targetDist = dist
-					targetCell = blob.defend
-				end
+		if not targetHandled or targetHandled == SQUAD.squadID then
+			local dist = self.ai.tool:distance(blob.defend.POS,SQUAD.position)
+			if dist < targetDist then
+				targetDist = dist
+				targetCell = blob.defend
 			end
 		end
 	end
@@ -417,16 +414,18 @@ function AttackHST:SquadsTargetAttack(squad)
 	local bestValue = math.huge
 	local bestTarget = nil
 	local bestDist = math.huge
-	local worstDist = 0
+	--local topDist = self.ai.tool:DistanceXZ(0,0, Game.mapSizeX, Game.mapSizeZ)
+	--local first = self:getFrontCell(squad,representative)
+-- 	if first then
+-- 		return first
+-- 	end
 	for X, cells in pairs(self.ai.loshst.ENEMY) do
 		for Z, cell in pairs(cells) do
 			if not self:SquadsTargetHandled(cell) then
 				if cell.IMMOBILE > 0   then
 					if self.ai.maphst:UnitCanGoHere(squad.leader, cell.POS) then
-						local dist = self.ai.tool:distance(cell.POS,self.ai.targethst.enemyCenter)
-						--local dist = self.ai.tool:distance(cell.POS,squad.position)
-						if dist > worstDist then
-							worstDist = dist
+						local dist = self.ai.tool:Distance(cell.POS,squad.position)
+						if dist < bestDist then
 							bestDist = dist
 							bestTarget = cell
 							bestValue = cell.IMMOBILE
@@ -437,29 +436,6 @@ function AttackHST:SquadsTargetAttack(squad)
 		end
 	end
 	return bestTarget
-end
-
-function AttackHST:SquadsTargetAttack2(squad)
-	local bestValue = 0
-	local bestTarget = nil
-	local bestDist = math.huge
-	local worstDist = 0
-
-	for ref, blob in pairs(self.ai.targethst.IMMOBILE_BLOBS) do
-		if not self:SquadsTargetHandled(blob) then
-			if self.ai.maphst:UnitCanGoHere(squad.leader, blob.position) then
-				local dist = self.ai.tool:distance(blob.position,self.ai.targethst.enemyCenter)
-				local value = blob.metal * dist
-				if dist > worstDist then
-					worstDist = dist
--- 					bestValue = value
-					bestTarget = blob.refCell
-				end
-			end
-		end
-	end
-	return bestTarget
-
 end
 
 function AttackHST:SquadTargetExist(squad,grid)
@@ -478,6 +454,25 @@ function AttackHST:SquadResetTarget(squad)
 	squad.step = nil
 	squad.idleCount = 0
 end
+--[[
+function AttackHST:getFrontCell(squad,representative)
+	if not squad then return end
+	if not self.ai.targethst.distals then return end
+	local bestDist = math.huge
+	local bestTarget = nil
+	for i, cell in pairs(self.ai.targethst.enemyFrontList) do
+		if self.ai.maphst:UnitCanGoHere(representative, cell.POS) then
+			local dist = self.ai.tool:Distance(cell.POS,representative:GetPosition())
+			if dist < bestDist  then
+				bestTarget = cell
+				bestDist = dist
+			end
+		end
+	end
+	self:EchoDebug('best frontal Target',bestTarget)
+	return bestTarget
+end
+]]
 
 function AttackHST:RemoveMember(attkbhvr)
 	if attkbhvr == nil then return end
@@ -539,7 +534,7 @@ end
 
 function AttackHST:visualDBG()
 	local ch = 6
-
+	self.map:EraseAll(ch)
 	if not self.ai.drawDebug then
 		return
 	end
@@ -560,3 +555,59 @@ function AttackHST:visualDBG()
 		end
 	end
 end
+
+--[[
+function AttackHST:SquadMove(squad)
+	squad.formation = {}
+	local pos = squad.path[squad.step]
+	local X
+	local Z
+	local range = #squad.members*10
+	for index,member in pairs(squad.members) do
+		ref = index/10
+
+		if squad.position.x < pos.x then
+			X = range * math.sin(ref) * -1
+		else
+			X = (range * math.sin(ref))
+		end
+		if squad.position.z < pos.z then
+			Z = range * math.cos(ref) * -1
+		else
+			Z = (range * math.cos(ref))
+		end
+
+		local unit = member.unit:Internal()
+
+		local arch = api.Position()
+		arch.x = pos.x + X
+		arch.z = pos.z + Z
+		arch.y = Spring.GetGroundHeight(arch.x,arch.z)
+		self:EchoDebug('arch',arch.x,arch.z)
+		self:EchoDebug('go to next node',index,arch.x,arch.z)
+		squad.formation[index] = arch
+		unit:AttackMove(arch)
+
+	end
+end
+
+
+function AttackHST:getDistCell(squad,representative)
+	if not squad then return end
+	if not self.ai.targethst.distals then return end
+	local bestDist = math.huge
+	local bestTarget = nil
+	for i, cell in pairs(self.ai.targethst.distals) do
+		if self.ai.maphst:UnitCanGoHere(representative, cell.POS) then
+			local dist = self.ai.tool:Distance(cell.POS,representative:GetPosition())
+			if dist < bestDist  then
+				bestTarget = cell
+				bestDist = dist
+			end
+		end
+	end
+	self:EchoDebug('best distals Target',bestTarget)
+	return bestTarget
+end
+
+]]

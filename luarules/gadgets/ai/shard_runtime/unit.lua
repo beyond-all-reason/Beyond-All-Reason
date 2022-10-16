@@ -53,7 +53,6 @@ function Unit:Update()
 		behaviour:Update()
 		self.game:StopTimer(behaviour:Name() .. ' Unit')
 	end
-
 end
 
 function Unit:GameEnd()
