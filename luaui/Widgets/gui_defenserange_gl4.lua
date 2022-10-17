@@ -68,38 +68,40 @@ local buttonConfig = {
 }
 
 local colorConfig = { --An array of R, G, B, Alpha
-	drawStencil = true, -- wether to draw the outer, merged rings (quite expensive!)
-	drawInnerRings = true, -- wether to draw inner, per defense rings (very cheap)
-	externalalpha = 1.0, -- alpha of outer rings
-	internalalpha = 0.25, -- alpha of inner rings
-	ground = {
-		color = {1.0, 0.2, 0.0, 1.0},
-		fadeparams = { 2000, 6000, 1.0, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-		externallinethickness = 5.0,
-		internallinethickness = 1.0,
-	},
-	air = {
-		color = {0.8, 0.2, 1.0, 1.0},
-		fadeparams = { 3000, 6000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-		externallinethickness = 5.0,
-		internallinethickness = 1.0,
-	},
-	nuke = {
-		color = {0.8, 0.8, 0.8, 1.0},
-		fadeparams = {5000, 4000, 0.6, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-		externallinethickness = 5.0,
-		internallinethickness = 1.0,
-	},
-	cannon = {
-		color = {1.0, 1.0, 0.0, 1.0},
-		fadeparams = {5000, 7000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-		externallinethickness = 5.0,
-		internallinethickness = 1.0,
-	},
+    drawStencil = true, -- wether to draw the outer, merged rings (quite expensive!)
+    drawInnerRings = true, -- wether to draw inner, per defense rings (very cheap)
+    externalalpha = 0.70, -- alpha of outer rings
+    internalalpha = 0.1, -- alpha of inner rings
+    distanceScaleStart = 2000, -- Linewidth is 100% up to this camera height
+    distanceScaleEnd = 4000, -- Linewidth becomes 50% above this camera height
+    ground = {
+        color = {1.0, 0.2, 0.0, 1.0},
+        fadeparams = { 2000, 6000, 1.0, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        externallinethickness = 4.0,
+        internallinethickness = 2.0,
+    },
+    air = {
+        color = {0.90, 0.45, 1.2, 1.0},
+        fadeparams = { 3000, 6000, 0.4, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        externallinethickness = 4.0,
+        internallinethickness = 2.0,
+    },
+    nuke = {
+        color = {0.7, 0.8, 1.0, 1.0},
+        fadeparams = {5000, 4000, 0.6, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        externallinethickness = 4.0,
+        internallinethickness = 2.0,
+    },
+    cannon = {
+        color = {1.0, 0.6, 0.0, 1.0},
+        fadeparams = {5000, 7000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        externallinethickness = 4.0,
+        internallinethickness = 2.0,
+    },
 }
 
---- Camera Height based line shrinkage:
 
+--- Camera Height based line shrinkage:
 
 
 ----------------------------------
@@ -134,9 +136,6 @@ local function initializeUnitDefRing(unitDefID)
 		local weaponDefID = weapons[weaponNum].weaponDef
 		local weaponDef = WeaponDefs[weaponDefID]
 		
-		--local weaponDef = WeaponDefs[weaponDefID]
-		--Spring.Echo(weaponNum, weaponDefID, weaponDef, weaponDef.range,weaponDef.damages, weaponDef.name)
-		--for k,v in pairs(weaponDef.damages) do Spring.Echo(k,v) end 
 		local range = weaponDef.range
 		local dps = 0
 		local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
@@ -161,7 +160,7 @@ local function initializeUnitDefRing(unitDefID)
 				isCylinder = 0
 			end
 			
-			local ringParams = {range, color[1],color[2], color[3], 1.0 , 
+			local ringParams = {range, color[1],color[2], color[3], color[4], 
 				fadeparams[1], fadeparams[2], fadeparams[3], fadeparams[4],
 				weaponDef.projectilespeed or 1, 
 				isCylinder, 
@@ -736,7 +735,7 @@ end
 local cacheTable = {}
 for i=1,16 do cacheTable[i] = 0 end 
 
-local function UnitDetected(unitID, unitDefID, unitTeam)
+local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 	if unitDefRings[unitDefID] == nil then return end -- no rings for this
 	
 	if defenses[unitID] ~= nil then return end -- already has rings
@@ -771,7 +770,7 @@ local function UnitDetected(unitID, unitDefID, unitTeam)
 				--Spring.Echo("added",vaokey,s)
 			end
 			local instanceID = 1000000 * weaponType + unitID
-			pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID)
+			pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, noUpload)
 			addedrings = addedrings + 1
 			if defenses[unitID] == nil then 
 				--lazy creation
@@ -801,6 +800,15 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
+	-- the set of visible units changed. Now is a good time to reevalueate our life choices
+	-- This happens when we move from team to team, or when we move from spec to other
+	-- my
+	spec, fullview = Spring.GetSpectatingState()
+	if (not enabledAsSpec) and spec then
+		Spring.Echo("Defense Range GL4 disabled in spectating state")
+		widget:RemoveWidget()
+		return
+	end
 	defenses = {}
 	enemydefenses = {}
 	defensePosHash = {}
@@ -809,7 +817,10 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 		clearInstanceTable(instanceTable) -- clear all instances
 	end
 	for unitID, unitDefID in pairs(extVisibleUnits) do
-		UnitDetected(unitID, unitDefID, Spring.GetUnitTeam(unitID)) -- add them with noUpload = true
+		UnitDetected(unitID, unitDefID, Spring.GetUnitTeam(unitID), true) -- add them with noUpload = true
+	end
+	for vaokey, instanceTable in pairs(defenseRangeVAOs) do
+		uploadAllElements(instanceTable) -- clear all instances
 	end
 end
 
@@ -879,16 +890,6 @@ function widget:FeatureCreated(featureID, allyTeam)
 	end
 end
 
-function CheckSpecState()
-	local playerID = spGetMyPlayerID()
-	if select(3,spGetPlayerInfo(playerID,false)) == true then
-		widgetHandler:RemoveWidget()
-		return false
-	end
-
-	return true
-end
-
 local gameFrame = 0
 local lastUpdatedGameFrame = 0
 local antiupdaterate = 1
@@ -900,10 +901,10 @@ function widget:GameFrame(gf)
 	gameFrame = gf
 end
 function widget:Update(dt)
-	spec, fullview = spGetSpectatingState()
-	if spec then
-		return
-	end
+	--spec, fullview = spGetSpectatingState()
+	--if spec then
+	--	return
+	--end
 	
 	if gameFrame >= lastUpdatedGameFrame + antiupdaterate then 
 		lastUpdatedGameFrame = gameFrame
@@ -963,9 +964,17 @@ local drawcounts = {}
 
 local cameraHeightFactor = 0
 
-local function GetCameraHeightFactor()
+local function GetCameraHeightFactor() -- returns a smoothstepped value between 0 and 1 for height based rescaling of line width.
 	local camX, camY, camZ = Spring.GetCameraPosition()
-	return camY - math_max(spGetGroundHeight(camX, camZ), 0)
+	local camheight = camY - math.max(Spring.GetGroundHeight(camX, camZ), 0)
+	-- Smoothstep to half line width as camera goes over 2k height to 4k height
+	--genType t;  /* Or genDType t; */
+    --t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+    --return t * t * (3.0 - 2.0 * t);
+	
+	camheight = math.max(0.0, math.min(1.0, (camheight - colorConfig.distanceScaleStart) / (colorConfig.distanceScaleEnd - colorConfig.distanceScaleStart)))
+	--return camheight * camheight * (3 - 2 *camheight)
+	return 1
 end
 
 local groundnukeair = {"ground","air","nuke"}
@@ -980,7 +989,7 @@ local function DRAWRINGS(primitiveType, linethickness)
 			drawcounts[stencilMask] = iT.usedElements
 			if iT.usedElements > 0 and buttonConfig[allyState][wt] then
 				if linethickness then 
-					glLineWidth(colorConfig[wt][linethickness])
+					glLineWidth(colorConfig[wt][linethickness] * cameraHeightFactor)
 				end
 				glStencilMask(stencilMask)  -- only allow these bits to get written
 				glStencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- what to do with the stencil
@@ -997,7 +1006,7 @@ local function DRAWRINGS(primitiveType, linethickness)
 		drawcounts[stencilMask] = iT.usedElements
 		if iT.usedElements > 0 and buttonConfig[allyState]["ground"] then
 			if linethickness then 
-				glLineWidth(colorConfig['cannon'][linethickness])
+				glLineWidth(colorConfig['cannon'][linethickness] * cameraHeightFactor)
 			end
 			glStencilMask(stencilMask)
 			glStencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) 
@@ -1007,12 +1016,12 @@ local function DRAWRINGS(primitiveType, linethickness)
 end
 
 function widget:DrawWorldPreUnit()
-	if fullview and not enabledAsSpec then
-		return
-	end
+	--if fullview and not enabledAsSpec then
+	--	return
+	--end
 	if chobbyInterface then return end
 	if not spIsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
-	
+		cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
 		
