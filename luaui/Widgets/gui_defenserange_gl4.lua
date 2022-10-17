@@ -52,7 +52,7 @@ end
 -- TODO3: 2022.10.10
   -- allow specs to enable? Doesnt make much sense with new stencil based drawing...
   -- X LRPCs
-  -- X Fog 
+  -- X Fog
   -- X dont check allied defenses for losness
   -- use luashader uvhm implementation
   -- X fix mobile antis
@@ -120,7 +120,7 @@ local mobileAntiUnitDefs = {
 	[UnitDefNames.corcarry.id] = true,
 }
 
-local defensePosHash = {} -- key: {poshash=unitID} 
+local defensePosHash = {} -- key: {poshash=unitID}
 -- poshash is 4096 * posx/8 + posz/8
 
 local featureDefIDtoUnitDefID = {} -- this table maps featureDefIDs to unitDefIDs for faster lookups on feature creation
@@ -135,12 +135,12 @@ local function initializeUnitDefRing(unitDefID)
 		local weaponDef = weapons[weaponNum]
 		local weaponDefID = weapons[weaponNum].weaponDef
 		local weaponDef = WeaponDefs[weaponDefID]
-		
+
 		local range = weaponDef.range
 		local dps = 0
 		local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
 		--Spring.Echo(weaponType)
-		if weaponType ~= nil and weaponType > 0 then 
+		if weaponType ~= nil and weaponType > 0 then
 			local damage = 0
 			if weaponType == 2 then --AA
 				damage = weaponDef.damages[vtoldamagetag]
@@ -154,24 +154,24 @@ local function initializeUnitDefRing(unitDefID)
 			dps = damage * (weaponDef.salvoSize or 1) / (weaponDef.reload or 1)
 			local color = colorConfig[weaponTypeMap[weaponType]].color
 			local fadeparams =  colorConfig[weaponTypeMap[weaponType]].fadeparams
-			
+
 			local isCylinder = 1
 			if weaponType == 1 or weaponType == 4 then -- all non-cannon ground weapons are spheres, aa and antinuke are cyls
 				isCylinder = 0
 			end
-			
-			local ringParams = {range, color[1],color[2], color[3], color[4], 
+
+			local ringParams = {range, color[1],color[2], color[3], color[4],
 				fadeparams[1], fadeparams[2], fadeparams[3], fadeparams[4],
-				weaponDef.projectilespeed or 1, 
-				isCylinder, 
-				weaponDef.heightBoostFactor or 0, 
+				weaponDef.projectilespeed or 1,
+				isCylinder,
+				weaponDef.heightBoostFactor or 0,
 				weaponDef.heightMod or 0 }
 			unitDefRings[unitDefID]['rings'][weaponNum] = ringParams
 		end
 	end
 end
 
-local function initUnitList() 
+local function initUnitList()
 	unitDefRings = {
 		-- ARMADA
 		[UnitDefNames['armclaw'].id]  = { weapons = { 1 } },
@@ -247,7 +247,7 @@ local function initUnitList()
 		[UnitDefNames['corminibuzz'].id]  = { weapons = { 1 } }
 	}
 
-	for unitDefID, _ in pairs(unitDefRings) do 
+	for unitDefID, _ in pairs(unitDefRings) do
 		initializeUnitDefRing(unitDefID)
 	end
 	-- Initialize Colors too
@@ -258,11 +258,11 @@ local function initUnitList()
 	-- add scavs
 	for k,_ in pairs(scavlist) do
 		--Spring.Echo(k, UnitDefs[k].name)
-		if UnitDefNames[UnitDefs[k].name .. '_scav'] then 
+		if UnitDefNames[UnitDefs[k].name .. '_scav'] then
 			unitDefRings[UnitDefNames[UnitDefs[k].name .. '_scav'].id] = unitDefRings[k]
 		end
 	end
-	
+
 	local scavlist = {}
 	for k,_ in pairs(mobileAntiUnitDefs) do
 		scavlist[k] = true
@@ -270,19 +270,19 @@ local function initUnitList()
 	for k,v in pairs(scavlist) do
 		mobileAntiUnitDefs[UnitDefNames[UnitDefs[k].name .. '_scav'].id] = mobileAntiUnitDefs[k]
 	end
-	
+
 	-- Initialize featureDefIDtoUnitDefID
 	local wreckheaps = {"_dead","_heap"}
-	for unitDefID,_ in pairs(unitDefRings) do 
+	for unitDefID,_ in pairs(unitDefRings) do
 		local unitDefName = UnitDefs[unitDefID].name
-		for i, suffix in pairs(wreckheaps) do 
-			if FeatureDefNames[unitDefName..suffix] then 
+		for i, suffix in pairs(wreckheaps) do
+			if FeatureDefNames[unitDefName..suffix] then
 				featureDefIDtoUnitDefID[FeatureDefNames[unitDefName..suffix].id] = unitDefID
 				--Spring.Echo(FeatureDefNames[unitDefName..suffix].id, unitDefID)
 			end
 		end
 	end
-	
+
 end
 
 --Button display configuration
@@ -293,11 +293,11 @@ local spec, fullview = spGetSpectatingState()
 local myAllyTeam = Spring.GetMyAllyTeamID()
 
 local defenses = {} -- table of unitID keys to info tables:
-	--unitID = {posx = 0, posy = 0, posz = 0, teamID = 0, 
+	--unitID = {posx = 0, posy = 0, posz = 0, teamID = 0,
 	--	vaokeys = {key1 = targetvao1, ... }
 	--}
 local enemydefenses = {} -- a minor optimization to prevent iterating over our own on removal search
-	 
+
 local mobileAntiUnits = {}
 
 
@@ -515,7 +515,7 @@ void main() {
 
 	// get heightmap
 	circleWorldPos.y = heightAtWorldPos(circleWorldPos.xz);
-	
+
 
 	if (cannonmode > 0.5){
 
@@ -578,33 +578,33 @@ void main() {
 	// FadeStart, FadeEnd, StartAlpha, EndAlpha
 	float fadeDist = visibility.y - visibility.x;
 	FADEALPHA  = clamp((visibility.y - distToCam)/(fadeDist),0,1);//,visibility.z,visibility.w);
-	
+
 	//--- Optimize by anything faded out getting transformed back to origin with 0 range?
 	//seems pretty ok!
 	if (FADEALPHA < 0.001) {
 		circleWorldPos.xyz = posscale.xyz;
 	}
-	
+
 	if (cannonmode > 0.5){
 	// cannons should fade distance based on their range
 		float cvmin = max(visibility.x, 2* RANGE);
 		float cvmax = max(visibility.y, 4* RANGE);
 		//FADEALPHA = clamp((cvmin - distToCam)/(cvmax - cvmin + 1.0),visibility.z,visibility.w);
 	}
-	
+
 	blendedcolor = color1;
-	
+
 	// -- DARKEN OUT OF LOS
 	vec4 losTexSample = texture(losTex, vec2(circleWorldPos.x / mapSize.z, circleWorldPos.z / mapSize.w)); // lostex is PO2
 	float inlos = dot(losTexSample.rgb,vec3(0.33));
 	inlos = clamp(inlos*5 -1.4	, 0.5,1.0); // fuck if i know why, but change this if LOSCOLORS are changed!
 	blendedcolor.rgb *= inlos;
-	
+
 	// --- YES FOG
 	float fogDist = length((cameraView * vec4(circleWorldPos.xyz,1.0)).xyz);
 	float fogFactor = clamp((fogParams.y - fogDist) * fogParams.w, 0, 1);
 	blendedcolor.rgb = mix(fogColor.rgb, vec3(blendedcolor), fogFactor);
-	
+
 
 	// -- IN-SHADER MOUSE-POS BASED HIGHLIGHTING
 	float disttomousefromunit = 1.0 - smoothstep(48, 64, length(posscale.xz - mouseWorldPos.xz));
@@ -618,9 +618,9 @@ void main() {
 	alphaControl.x = circlepointposition.z; // save circle progress here
 	gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
 
-	
+
 	//lets blend the alpha here, and save work in FS:
-	float outalpha = OUTOFBOUNDSALPHA * (MOUSEALPHA + FADEALPHA *  lineAlphaUniform); 
+	float outalpha = OUTOFBOUNDSALPHA * (MOUSEALPHA + FADEALPHA *  lineAlphaUniform);
 	blendedcolor.a *= outalpha ;
 	//blendedcolor.rgb = vec3(fract(distToCam/100));
 }
@@ -682,8 +682,8 @@ local function makeShaders()
 	"defenseRangeShader GL4"
 	)
 	shaderCompiled = defenseRangeShader:Initialize()
-	if not shaderCompiled then 
-		goodbye("Failed to compile defenseRangeShader GL4 ") 
+	if not shaderCompiled then
+		goodbye("Failed to compile defenseRangeShader GL4 ")
 		return false
 	end
 	return true
@@ -709,61 +709,63 @@ end
 
 function widget:Initialize()
 	initUnitList()
-	
-	if initGL4() == false then 
+
+	if initGL4() == false then
 		return
 	end
-	
+
 	WG['defrange'] = {}
-	for _,ae in ipairs({'ally','enemy'}) do 
+	for _,ae in ipairs({'ally','enemy'}) do
+		local Ae = string.upper(string.sub(ae, 1, 1)) .. string.sub(ae, 2)
 		for _,wt in ipairs({'ground','air','nuke'}) do
-			WG['defrange']['get'..ae..wt] = function()	return buttonConfig[ae][wt] end
-			WG['defrange']['set'..ae..wt] = function(value) buttonConfig[at][wt] = value end
+			local Wt = string.upper(string.sub(wt, 1, 1)) .. string.sub(wt, 2)
+			WG['defrange']['get'..Ae..Wt] = function() return buttonConfig[ae][wt] end
+			WG['defrange']['set'..Ae..Wt] = function(value) buttonConfig[ae][wt] = value end
 		end
 	end
-	
+
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
 end
 
 local floor = math.floor
-local function hashPos(x,z) 
+local function hashPos(x,z)
 	return floor(x/8)*4096 + floor(z/8)
 end
 
 local cacheTable = {}
-for i=1,16 do cacheTable[i] = 0 end 
+for i=1,16 do cacheTable[i] = 0 end
 
 local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 	if unitDefRings[unitDefID] == nil then return end -- no rings for this
-	
+
 	if defenses[unitID] ~= nil then return end -- already has rings
-	
+
 	-- otherwise we must add it!
-	
+
 	--local weapons = unitDefs[unitDefID].weapons
 	local alliedUnit = Spring.IsUnitAllied(unitID)
 	local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
 
-	--for weaponNum = 1, #weapons do 
+	--for weaponNum = 1, #weapons do
 	local addedrings = 0
 	for i, weaponType in pairs(unitDefRings[unitDefID]['weapons']) do
 		local allystring = alliedUnit and "ally" or "enemy"
-		if buttonConfig[allystring][buttonconfigmap[weaponType]] then 
+		if buttonConfig[allystring][buttonconfigmap[weaponType]] then
 			--local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
 			cacheTable[1] = mpx
 			cacheTable[2] = mpy
 			cacheTable[3] = mpz
 			local vaokey = allystring .. weaponTypeToString[weaponType]
-			
-			local ringParams = unitDefRings[unitDefID]['rings'][i] 
-			for i = 1,13 do 
+
+			local ringParams = unitDefRings[unitDefID]['rings'][i]
+			for i = 1,13 do
 				cacheTable[i+3] = ringParams[i]
 			end
-			if true then 
+			if true then
 				local s = ' '
-				for i = 1,16 do 
+				for i = 1,16 do
 					s = s .. "; " ..tostring(cacheTable[i])
 				end
 				--Spring.Echo("Adding rings for", unitID, x,z)
@@ -772,27 +774,27 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 			local instanceID = 1000000 * weaponType + unitID
 			pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, noUpload)
 			addedrings = addedrings + 1
-			if defenses[unitID] == nil then 
+			if defenses[unitID] == nil then
 				--lazy creation
 				defenses[unitID] = { posx = mpx, posy = mpy, posz = mpz, vaokeys = {}, allied = alliedUnit, unitDefID = unitDefID}
 			end
 			defenses[unitID].vaokeys[instanceID] = vaokey
 		end
 	end
-	if addedrings == 0 then 
+	if addedrings == 0 then
 		return
 	end
-	
-	if mobileAntiUnitDefs[unitDefID] then 
+
+	if mobileAntiUnitDefs[unitDefID] then
 		mobileAntiUnits[unitID] = true
 	end
-	
+
 	if alliedUnit then -- if allied rings are on, then add them!
 	else
 		enemydefenses[unitID] = true
 		defensePosHash[hashPos(x,z)] = unitID
 	end
-	
+
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
@@ -849,15 +851,15 @@ end
 
 function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
 	if defenses[unitID] == nil then return end -- nothing to do
-	
+
 	local defense = defenses[unitID]
 	--local teamID = Spring.GetUnitTeam(unitID)
 	local removeme = false
-	
-	if mobileAntiUnits[unitID] then 
+
+	if mobileAntiUnits[unitID] then
 		removeme = true
 	else
-		if defense.allied then 
+		if defense.allied then
 			removeme = true
 		else
 			removeme = checkEnemyUnitConfirmedDead(unitID, defense)
@@ -865,9 +867,9 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 			-- we also dont know the reason for removal, but we can check wether its pos is in los:
 		end
 	end
-	if removeme then 
+	if removeme then
 		removeUnit(unitID, defense)
-	end 
+	end
 end
 
 
@@ -876,13 +878,13 @@ function widget:FeatureCreated(featureID, allyTeam)
 	-- ugh this will require a unitdefid based hash and some other nasty tricks
 	-- check if the feature was created outside of LOS
 	local featureDefID = Spring.GetFeatureDefID(featureID)
-	if featureDefID and featureDefIDtoUnitDefID[featureDefID] then 
+	if featureDefID and featureDefIDtoUnitDefID[featureDefID] then
 		local fx, fy, fz = Spring.GetFeaturePosition(featureID)
 		local poshash = floor(fx/8)*4096 + floor(fz/8)
 		local unitID = defensePosHash[poshash]
-		if unitID then 
-			if defenses[unitID] and defenses[unitID].allied == false and 
-				featureDefIDtoUnitDefID[featureDefID] == defenses[unitID].unitDefID then 
+		if unitID then
+			if defenses[unitID] and defenses[unitID].allied == false and
+				featureDefIDtoUnitDefID[featureDefID] == defenses[unitID].unitDefID then
 				--Spring.Echo("feature created at a likely dead defense pos!")
 				removeUnit(unitID,defenses[unitID])
 			end
@@ -905,10 +907,10 @@ function widget:Update(dt)
 	--if spec then
 	--	return
 	--end
-	
-	if gameFrame >= lastUpdatedGameFrame + antiupdaterate then 
+
+	if gameFrame >= lastUpdatedGameFrame + antiupdaterate then
 		lastUpdatedGameFrame = gameFrame
-		
+
 		--update the goddamned stupid mobile anti vbo ffs
 		for unitID, mobileantiinfo in pairs(mobileAntiUnits) do
 			local px, py, pz = spGetUnitPosition(unitID)
@@ -927,7 +929,7 @@ function widget:Update(dt)
 				end
 			end
 		end
-		
+
 	end
 
 	if gameFrame >= lastRemoval + removalRate then
@@ -936,7 +938,7 @@ function widget:Update(dt)
 		--remove dead units
 		local scanned = 0
 		for unitID, _ in pairs(enemydefenses) do
-			if unitID % removalRate == removestep then 
+			if unitID % removalRate == removestep then
 				local defense = defenses[unitID]
 				scanned = scanned + 1
 				if defense.allied == false then
@@ -971,7 +973,7 @@ local function GetCameraHeightFactor() -- returns a smoothstepped value between 
 	--genType t;  /* Or genDType t; */
     --t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
     --return t * t * (3.0 - 2.0 * t);
-	
+
 	camheight = math.max(0.0, math.min(1.0, (camheight - colorConfig.distanceScaleStart) / (colorConfig.distanceScaleEnd - colorConfig.distanceScaleStart)))
 	--return camheight * camheight * (3 - 2 *camheight)
 	return 1
@@ -988,7 +990,7 @@ local function DRAWRINGS(primitiveType, linethickness)
 			stencilMask = 2 ^ ( 4 * (i-1) + (j-1)) -- from 1 to 128
 			drawcounts[stencilMask] = iT.usedElements
 			if iT.usedElements > 0 and buttonConfig[allyState][wt] then
-				if linethickness then 
+				if linethickness then
 					glLineWidth(colorConfig[wt][linethickness] * cameraHeightFactor)
 				end
 				glStencilMask(stencilMask)  -- only allow these bits to get written
@@ -997,19 +999,19 @@ local function DRAWRINGS(primitiveType, linethickness)
 			end
 		end
 	end
-	
+
 	defenseRangeShader:SetUniform("cannonmode",1)
 	for i,allyState in ipairs(allyenemypairs) do
 		local defRangeClass = allyState.."cannon"
 		local iT = defenseRangeVAOs[defRangeClass]
-		stencilMask = 2 ^ ( 4 * (i-1) + 3) 
+		stencilMask = 2 ^ ( 4 * (i-1) + 3)
 		drawcounts[stencilMask] = iT.usedElements
 		if iT.usedElements > 0 and buttonConfig[allyState]["ground"] then
-			if linethickness then 
+			if linethickness then
 				glLineWidth(colorConfig['cannon'][linethickness] * cameraHeightFactor)
 			end
 			glStencilMask(stencilMask)
-			glStencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) 
+			glStencilFunc(GL.NOTEQUAL, stencilMask, stencilMask)
 			iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
 		end
 	end
@@ -1024,7 +1026,7 @@ function widget:DrawWorldPreUnit()
 		cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
-		
+
 		-- Stencil Setup
 		-- 	-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 		if colorConfig.drawStencil then
@@ -1034,7 +1036,7 @@ function widget:DrawWorldPreUnit()
 			glStencilTest(true) -- enable stencil test
 			glStencilMask(255) -- all 8 bits
 			glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
-			
+
 			defenseRangeShader:Activate()
 			DRAWRINGS(GL.TRIANGLE_FAN) -- FILL THE CIRCLES
 			--glLineWidth(math.max(0.1,4 + math.sin(gameFrame * 0.04) * 10))
@@ -1044,31 +1046,31 @@ function widget:DrawWorldPreUnit()
 			defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig.externalalpha)
 			DRAWRINGS(GL.LINE_LOOP, 'externallinethickness') -- DRAW THE OUTER RINGS
 			glStencilTest(false)
-			
+
 		end
-		
-		if colorConfig.drawInnerRings then 
+
+		if colorConfig.drawInnerRings then
 			defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig.internalalpha)
 			DRAWRINGS(GL.LINE_LOOP, 'internallinethickness') -- DRAW THE INNER RINGS
 		end
-			
+
 		defenseRangeShader:Deactivate()
 
 		glTexture(0, false)
 		glTexture(1, false)
 		glDepthTest(false)
-		if false and Spring.GetDrawFrame() % 60 == 0 then 
+		if false and Spring.GetDrawFrame() % 60 == 0 then
 			local s = 'drawcounts: '
 			for k,v in pairs(drawcounts) do s = s .. " " .. tostring(k) .. ":" .. tostring(v) end
 			Spring.Echo(s)
 		end
-		
+
 	end
 end
 
 --- SHIT THAT NEEDS TO BE IN CONFIG:
 
--- ALLY/ENEMY 
+-- ALLY/ENEMY
 -- AIR/NUKE/GROUND
 -- OPACITY
 -- ENABLE IN SPEC MODE
