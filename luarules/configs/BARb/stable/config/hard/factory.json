@@ -250,7 +250,7 @@
 	},
 	
 	"armasy": {
-		"importance": [0.0, 3.0],
+		"importance": [0.0, 6.0],
 
 		"require_energy": false,
 
@@ -612,7 +612,7 @@
 	},
 	
 	"corasy": {
-		"importance": [0.0, 3.0],
+		"importance": [0.0, 6.0],
 
 		"require_energy": true,
 

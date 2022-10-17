@@ -1639,22 +1639,22 @@
 			"limit": 10
 		},
 		"corpt": {
-			"role": ["scout", "anti_air"],
-			"attribute": ["anti_air", "siege"],
+			"role": ["artillery", "anti_air"],
+			"attribute": ["anti_air", "siege", "support"],
 			"limit": 8
 		},
 		"coresupp": {
-			"role": ["raider"]
+			"role": ["scout"]
 		},
 		"corpship": {
-			"role": ["skirmish"]
+			"role": ["riot"]
 		},
 		"corsub": {
 			"role": ["sub"]		
 		},
 		"corroy": {
-			"role": ["assault"],
-			"attribute": ["siege"],
+			"role": ["artillery"], //assault
+			"attribute": ["siege", "support"],
 			"retreat": 0.5
 		},
 	
