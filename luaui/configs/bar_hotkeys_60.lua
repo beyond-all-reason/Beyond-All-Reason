@@ -44,11 +44,9 @@ local bindings = {
 	{           "sc_b", "gridmenu_next_page"  },
 	{           "sc_n", "gridmenu_prev_page"  },
 
-	{     "sc_c", "controlunit"    },
 	{ "Any+sc_h", "sharedialog"    },
 	{     "sc_i", "customgameinfo" },
 
-	{         "Any+sc_j", "mouse2" },
 	{ "Shift+backspace", "togglecammode" },
 	{  "Ctrl+backspace", "togglecammode" },
 	{         "Any+tab", "toggleoverview" },
