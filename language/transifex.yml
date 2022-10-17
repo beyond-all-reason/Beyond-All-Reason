@@ -1,9 +1,9 @@
 git:
   filters:
   - filter_type: dir
-    source_file_dir: language/en
+    file_format: KEYVALUEJSON
     source_file_extension: json
     source_language: en
-    file_format: KEYVALUEJSON
+    source_file_dir: language/en
     translation_files_expression: 'language/<lang>/'
     pr_branch_name: transifex_<br_unique_id>
