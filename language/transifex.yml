@@ -1,7 +1,7 @@
 git:
   filters:
   - filter_type: dir
-    source_file_dir: language/en
+    source_file_dir: language/en/
     source_file_extension: json
     source_language: en
     file_format: KEYVALUEJSON
