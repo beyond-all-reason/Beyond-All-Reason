@@ -85,6 +85,7 @@ if gadgetHandler:IsSyncedCode() then
 	local playerAgression = 0
 	local playerAgressionLevel = 0
 	local queenAngerAgressionLevel = 0
+	local difficultyCounter = 0
 	local firstSpawn = true
 	local gameOver = nil
 	local humanTeams = {}
@@ -285,9 +286,6 @@ if gadgetHandler:IsSyncedCode() then
 	-- Difficulty
     --
 
-	if config.difficulty == config.difficulties.survival then
-		config.queenTime = config.queenTime*0.5
-	end
 	if config.swarmMode then
 		config.maxChickens = config.maxChickens*10
 		config.minChickens = config.minChickens*10
@@ -308,20 +306,22 @@ if gadgetHandler:IsSyncedCode() then
 		queenAngerAgressionLevel = 0
 		SetGameRulesParam("queenAnger", queenAnger)
 		local nextDifficulty
-		if config.queenName == "ve_chickenq" then -- Enter Easy Phase
+		local difficultyCounter = difficultyCounter + 1
+		if difficultyCounter == 1 then
 			nextDifficulty = config.difficultyParameters[1]
-		elseif config.queenName == "e_chickenq" then -- Enter Normal Phase
+		elseif difficultyCounter == 2 then
 			nextDifficulty = config.difficultyParameters[2]
-		elseif config.queenName == "n_chickenq" then -- Enter Hard Phase
+		elseif difficultyCounter == 3 then
 			nextDifficulty = config.difficultyParameters[3]
-		elseif config.queenName == "h_chickenq" then -- Enter Very Hard Phase
+		elseif difficultyCounter == 4 then
 			nextDifficulty = config.difficultyParameters[4]
-		elseif config.queenName == "vh_chickenq" then -- Enter Epic Phase
+		elseif difficultyCounter == 5 then
 			nextDifficulty = config.difficultyParameters[5]
-		elseif config.queenName == "epic_chickenq" then -- We're already at Epic, just multiply some numbers to make it even harder
+		elseif difficultyCounter > 5 then -- We're already at Epic, just multiply some numbers to make it even harder
 			nextDifficulty = config.difficultyParameters[5]
 			config.chickenSpawnMultiplier = config.chickenSpawnMultiplier*2
 		end
+		config.chickenMaxSpawnRate = nextDifficulty.chickenMaxSpawnRate
 		config.queenName = nextDifficulty.queenName
 		config.burrowSpawnRate = nextDifficulty.burrowSpawnRate
 		config.turretSpawnRate = nextDifficulty.turretSpawnRate

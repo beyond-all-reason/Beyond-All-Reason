@@ -1,11 +1,13 @@
 
 local difficulties = {
-	veryeasy = 0,
-	easy     = 1,
-	normal   = 2,
-	hard     = 3,
-	veryhard = 4,
-	epic     = 5,
+	-- veryeasy = 0,
+	-- easy     = 1,
+	normal   = 0,
+	hard     = 1,
+	veryhard = 2,
+	insane   = 3,
+	epic     = 4,
+	unbeatable = 5,
 	survival = 6,
 }
 
@@ -161,36 +163,36 @@ local chickenTypes = {
   }
 
 local optionValues = {
-	[difficulties.veryeasy] = {
-		chickenMaxSpawnRate  = 120,
-		burrowSpawnRate   = 105,
-		turretSpawnRate   = 210,
-		queenSpawnMult    = 0,
-		angerBonus        = 1,
-		maxXP			  = 0.1,
-		spawnChance       = 0.25,
-		damageMod         = 0.1,
-		maxBurrows        = 2,
-		minChickens		  = 5,
-		maxChickens		  = 75,
-		queenName         = 've_chickenq',
-		queenResistanceMult   = 0.25,
-	},
-	[difficulties.easy] = {
-		chickenMaxSpawnRate  = 120,
-		burrowSpawnRate   = 90,
-		turretSpawnRate   = 180,
-		queenSpawnMult    = 0,
-		angerBonus        = 1,
-		maxXP			  = 0.25,
-		spawnChance       = 0.33,
-		damageMod         = 0.2,
-		maxBurrows        = 3,
-		minChickens		  = 10,
-		maxChickens		  = 100,
-		queenName         = 'e_chickenq',
-		queenResistanceMult   = 0.5,
-	},
+	-- [difficulties.veryeasy] = {
+	-- 	chickenMaxSpawnRate  = 120,
+	-- 	burrowSpawnRate   = 105,
+	-- 	turretSpawnRate   = 210,
+	-- 	queenSpawnMult    = 0,
+	-- 	angerBonus        = 1,
+	-- 	maxXP			  = 0.1,
+	-- 	spawnChance       = 0.25,
+	-- 	damageMod         = 0.1,
+	-- 	maxBurrows        = 2,
+	-- 	minChickens		  = 5,
+	-- 	maxChickens		  = 75,
+	-- 	queenName         = 've_chickenq',
+	-- 	queenResistanceMult   = 0.25,
+	-- },
+	-- [difficulties.easy] = {
+	-- 	chickenMaxSpawnRate  = 120,
+	-- 	burrowSpawnRate   = 90,
+	-- 	turretSpawnRate   = 180,
+	-- 	queenSpawnMult    = 0,
+	-- 	angerBonus        = 1,
+	-- 	maxXP			  = 0.25,
+	-- 	spawnChance       = 0.33,
+	-- 	damageMod         = 0.2,
+	-- 	maxBurrows        = 3,
+	-- 	minChickens		  = 10,
+	-- 	maxChickens		  = 100,
+	-- 	queenName         = 'e_chickenq',
+	-- 	queenResistanceMult   = 0.5,
+	-- },
 
 	[difficulties.normal] = {
 		chickenMaxSpawnRate  = 120,
@@ -201,9 +203,9 @@ local optionValues = {
 		maxXP			  = 0.5,
 		spawnChance       = 0.4,
 		damageMod         = 0.4,
-		maxBurrows        = 4,
-		minChickens		  = 15,
-		maxChickens		  = 125,
+		maxBurrows        = 10,
+		minChickens		  = 5,
+		maxChickens		  = 50,
 		queenName         = 'n_chickenq',
 		queenResistanceMult   = 1,
 	},
@@ -217,13 +219,12 @@ local optionValues = {
 		maxXP			  = 1,
 		spawnChance       = 0.5,
 		damageMod         = 0.6,
-		maxBurrows        = 5,
-		minChickens		  = 20,
-		maxChickens		  = 150,
+		maxBurrows        = 15,
+		minChickens		  = 10,
+		maxChickens		  = 100,
 		queenName         = 'h_chickenq',
 		queenResistanceMult   = 2,
 	},
-
 	[difficulties.veryhard] = {
 		chickenMaxSpawnRate  = 120,
 		burrowSpawnRate   = 45,
@@ -233,13 +234,13 @@ local optionValues = {
 		maxXP			  = 1.5,
 		spawnChance       = 0.6,
 		damageMod         = 0.8,
-		maxBurrows        = 6,
-		minChickens		  = 25,
-		maxChickens		  = 175,
+		maxBurrows        = 20,
+		minChickens		  = 15,
+		maxChickens		  = 150,
 		queenName         = 'vh_chickenq',
 		queenResistanceMult   = 3,
 	},
-	[difficulties.epic] = {
+	[difficulties.insane] = {
 		chickenMaxSpawnRate  = 120,
 		burrowSpawnRate   = 30,
 		turretSpawnRate   = 60,
@@ -248,27 +249,57 @@ local optionValues = {
 		maxXP			  = 2,
 		spawnChance       = 0.8,
 		damageMod         = 1,
-		maxBurrows        = 10,
-		minChickens		  = 30,
+		maxBurrows        = 30,
+		minChickens		  = 20,
+		maxChickens		  = 200,
+		queenName         = 'epic_chickenq',
+		queenResistanceMult   = 4,
+	},
+	[difficulties.epic] = {
+		chickenMaxSpawnRate  = 90,
+		burrowSpawnRate   = 20,
+		turretSpawnRate   = 40,
+		queenSpawnMult    = 3,
+		angerBonus        = 1,
+		maxXP			  = 5,
+		spawnChance       = 0.85,
+		damageMod         = 1.5,
+		maxBurrows        = 40,
+		minChickens		  = 50,
 		maxChickens		  = 200,
 		queenName         = 'epic_chickenq',
 		queenResistanceMult   = 5,
 	},
+	[difficulties.unbeatable] = {
+		chickenMaxSpawnRate  = 60,
+		burrowSpawnRate   = 10,
+		turretSpawnRate   = 20,
+		queenSpawnMult    = 3,
+		angerBonus        = 1,
+		maxXP			  = 10,
+		spawnChance       = 0.9,
+		damageMod         = 2,
+		maxBurrows        = 50,
+		minChickens		  = 100,
+		maxChickens		  = 200,
+		queenName         = 'epic_chickenq',
+		queenResistanceMult   = 6,
+	},
 
 	[difficulties.survival] = {
 		chickenMaxSpawnRate  = 120,
-		burrowSpawnRate   = 150,
-		turretSpawnRate   = 300,
-		queenSpawnMult    = 0,
+		burrowSpawnRate   = 75,
+		turretSpawnRate   = 150,
+		queenSpawnMult    = 1,
 		angerBonus        = 1,
-		maxXP			  = 0.2,
-		spawnChance       = 0.25,
-		damageMod         = 0.1,
-		maxBurrows        = 2,
-		minChickens		  = 1,
+		maxXP			  = 0.5,
+		spawnChance       = 0.4,
+		damageMod         = 0.4,
+		maxBurrows        = 10,
+		minChickens		  = 5,
 		maxChickens		  = 50,
-		queenName         = 've_chickenq',
-		queenResistanceMult   = 0.25,
+		queenName         = 'n_chickenq',
+		queenResistanceMult   = 1,
 	},
 }
 
@@ -277,7 +308,7 @@ local optionValues = {
 -------------------------------------------------------------------------------
 
 local wavesAmount = 10
-if difficulty >= 5 then
+if difficulty >= 3 then
 	wavesAmount = 12
 end
 
@@ -430,8 +461,8 @@ end
 	addSpecialSquad(10, { "10 chickenh4" 																}) -- Hatchling
 
 	
-if difficulty >= 5 then
-	for i = 11,12 do
+if difficulty >= 3 then
+	for i = 11,wavesAmount do
 	addSpecialSquad(i, { "3 chickenf1apex", "3 chickenf1apexb" 											}) -- Apex Bomber
 	addSpecialSquad(i, { "10 chickenw2" 																}) -- Apex Fighter
 	addSpecialSquad(i, { "5 chicken2" , "5 chicken2b" 													}) -- Apex Swarmer
