@@ -33,6 +33,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1,
 		turnrate = 800,
+		usepiececollisionvolumes = 1,
 		customparams = {
 			unitgroup = 'weapon',
 			model_author = "Flaka",
