@@ -6,4 +6,6 @@ git:
     source_language: en
     source_file_dir: language/en
     translation_files_expression: 'language/<lang>/'
+
+  settings:
     pr_branch_name: transifex_<br_unique_id>
