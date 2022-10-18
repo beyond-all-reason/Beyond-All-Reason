@@ -527,7 +527,9 @@
 				"normal": "Normal",
 				"hard": "Hard",
 				"veryhard": "Very Hard",
+				"insane": "Insane",
 				"epic": "Epic",
+				"unbeatable": "Unbeatable",
 				"survival": "Survival"
 			}
 		},
