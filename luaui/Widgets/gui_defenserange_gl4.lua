@@ -294,6 +294,8 @@ end
 local spGetSpectatingState = Spring.GetSpectatingState
 local spec, fullview = spGetSpectatingState()
 local myAllyTeam = Spring.GetMyAllyTeamID()
+local myTeam = Spring.GetMyTeamID()
+local numallyteams = 2
 
 local defenses = {} -- table of unitID keys to info tables:
 	--unitID = {posx = 0, posy = 0, posz = 0, teamID = 0,
@@ -711,10 +713,20 @@ function widget:Initialize()
 		for _,wt in ipairs({'ground','air','nuke'}) do
 			local Wt = string.upper(string.sub(wt, 1, 1)) .. string.sub(wt, 2)
 			WG['defrange']['get'..Ae..Wt] = function() return buttonConfig[ae][wt] end
-			WG['defrange']['set'..Ae..Wt] = function(value) buttonConfig[ae][wt] = value end
+			WG['defrange']['set'..Ae..Wt] = function(value) 
+				buttonConfig[ae][wt] = value 
+				Spring.Echo(string.format("Defense Range GL4 Setting %s%s to %s",Ae,Wt, value and 'on' or 'off'))
+				if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
+					widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+				end
+			end
 		end
 	end
-
+	myAllyTeam = Spring.GetMyAllyTeamID()
+	local allyteamlist = Spring.GetAllyTeamList( )
+	--Spring.Echo("# of allyteams = ", #allyteamlist)
+	numallyteams = #allyteamlist
+	
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
@@ -736,7 +748,7 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 	-- otherwise we must add it!
 
 	--local weapons = unitDefs[unitDefID].weapons
-	local alliedUnit = Spring.IsUnitAllied(unitID)
+	local alliedUnit = (Spring.GetUnitAllyTeam(unitID) == myAllyTeam)
 	local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
 
 	--for weaponNum = 1, #weapons do
@@ -883,6 +895,46 @@ function widget:FeatureCreated(featureID, allyTeam)
 	end
 end
 
+function widget:PlayerChanged(playerID)
+	--[[
+	Spring.Echo("playerchanged", playerID)
+	local GetLocalPlayerID  = Spring.GetLocalPlayerID( )
+	--Spring.Echo("GetLocalPlayerID", GetLocalPlayerID)
+	local GetMyTeamID = Spring.GetMyTeamID ( )
+	--Spring.Echo("GetMyTeamID", GetMyTeamID)
+	]]--
+	local nowspGetSpectatingState = Spring.GetSpectatingState()
+	local nowspec, nowfullview = spGetSpectatingState()
+	local nowmyAllyTeam = Spring.GetMyAllyTeamID()
+	-- When we start, check if there are >2 allyteams
+	local reinit = false
+	-- check spec transition
+	if spec ~= nowspec then 
+		--keep allyteam, but reinit
+		reinit = true
+		-- When widget starts, allied check is fine, its correct w.r.t to myteamid
+	end
+	spec = nowspec
+	
+	if numallyteams > 3 then -- one for gaia
+		if nowmyAllyTeam ~= myAllyTeam then 
+			reinit = true
+		end
+	else
+		-- if there are only 2 ally teams, no need to reinit
+	end
+
+	if reinit then 
+		myAllyTeam = nowmyAllyTeam -- only update if we reinit
+		--Spring.Echo("DefenseRange GL4 allyteam change detected, reinitializing")
+		if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
+			widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+		end
+	else
+		--Spring.Echo("No change needed", numallyteams, myAllyTeam)
+	end
+end
+
 local gameFrame = 0
 local lastUpdatedGameFrame = 0
 local antiupdaterate = 1
@@ -893,6 +945,7 @@ local removestep = 0
 function widget:GameFrame(gf)
 	gameFrame = gf
 end
+
 function widget:Update(dt)
 	--spec, fullview = spGetSpectatingState()
 	--if spec then
@@ -1022,7 +1075,7 @@ function widget:DrawWorldPreUnit()
 		-- 	-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 		if colorConfig.drawStencil then
 			glClear(GL.STENCIL_BUFFER_BIT) -- clear prev stencil
-			glDepthTest(false) -- always draw
+			glDepthTest(GL.LEQUAL) -- always draw
 			glColorMask(false, false, false, false) -- disable color drawing
 			glStencilTest(true) -- enable stencil test
 			glStencilMask(255) -- all 8 bits
@@ -1055,7 +1108,6 @@ function widget:DrawWorldPreUnit()
 			for k,v in pairs(drawcounts) do s = s .. " " .. tostring(k) .. ":" .. tostring(v) end
 			Spring.Echo(s)
 		end
-
 	end
 end
 
