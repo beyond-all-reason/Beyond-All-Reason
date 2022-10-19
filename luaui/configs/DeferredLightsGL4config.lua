@@ -169,7 +169,7 @@ local unitDefLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 10, radius = 420,
 				dirx = 0, diry = -0.25, dirz = 1, theta = 0.25999999,
 				r = -1, g = 1, b = 1, a = 1,
-				modelfactor = 0.2, specular = 2, scattering = 3, lensflare = 10,
+				modelfactor = 0.2, specular = 2, scattering = 3, lensflare = 1,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
