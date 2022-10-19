@@ -239,8 +239,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function getRandomMapPos()
-		local x = mRandom(MAPSIZEX - 16)
-		local z = mRandom(MAPSIZEZ - 16)
+		local x = mRandom(16, MAPSIZEX - 16)
+		local z = mRandom(16, MAPSIZEZ - 16)
 		local y = GetGroundHeight(x, z)
 		return { x = x, y = y, z = z }
 	end
@@ -248,27 +248,28 @@ if gadgetHandler:IsSyncedCode() then
 	local function getRandomEnemyPos()
 		local loops = 0
 		local targetCount = SetCount(squadPotentialTarget)
+		local pos = {}
+		local pickedTarget = nil
 		repeat
 			loops = loops + 1
 			for target in pairs(squadPotentialTarget) do
 				if mRandom(1,targetCount) == 1 then
 					if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
 						local x,y,z = Spring.GetUnitPosition(target)
-						if y >= 0 then
-							pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
-							break
-						end
+						pos = {x = x+mRandom(-32,32), y = y, z = z+mRandom(-32,32)}
+						pickedTarget = target
+						break
 					end
 				end
 			end
 
-		until pos or loops >= 10
+		until pos.x or loops >= 10
 		
-		if not pos then
+		if not pos.x then
 			pos = getRandomMapPos()
 		end
 
-		return {pos.x, pos.y, pos.z}
+		return pos, pickedTarget
 	end
 
 	local function setChickenXP(unitID)
@@ -598,7 +599,8 @@ if gadgetHandler:IsSyncedCode() then
 						elseif role == "raid" or role == "kamikaze" then
 							Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+mRandom(-128, 128), targety, targetz+mRandom(-128, 128)} , {})
 						elseif role == "aircraft" then
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, getRandomEnemyPos() , {})
+							local pos = getRandomEnemyPos()
+							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x, pos.y, pos.z} , {})
 						end
 					end
 				end
@@ -606,35 +608,44 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	-- local function refreshSquad(squadID) -- Get new target for a squad
+	-- 	local targetCount = SetCount(squadPotentialTarget)
+	-- 	local pos = false
+	-- 	unitTargetPool[squadID] = nil
+	-- 	local loops = 0
+	-- 	repeat
+	-- 		loops = loops + 1
+	-- 		for target in pairs(squadPotentialTarget) do
+	-- 			if mRandom(1,targetCount) == 1 then
+	-- 				if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
+	-- 					local x,y,z = Spring.GetUnitPosition(target)
+	-- 					if y >= 0 then
+	-- 						pos = {x = x, y = y, z = z}
+	-- 						unitTargetPool[squadID] = target
+	-- 						break
+	-- 					end
+	-- 				end
+	-- 			end
+	-- 		end
+
+	-- 	until pos or loops >= 10
+		
+	-- 	if not pos then
+	-- 		pos, target = getRandomEnemyPos()
+	-- 	end
+
+	-- 	squadsTable[squadID].target = pos
+		
+	-- 	-- Spring.MarkerAddPoint (squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z, "Squad #" .. squadID .. " target")
+	-- 	local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
+	-- 	squadCommanderGiveOrders(squadID, targetx, targety, targetz)
+	-- end
+
 	local function refreshSquad(squadID) -- Get new target for a squad
-		local role = squadsTable[squadID].squadRole
-		local targetCount = SetCount(squadPotentialTarget)
-		local pos = false
-		unitTargetPool[squadID] = nil
-		local loops = 0
-		repeat
-			loops = loops + 1
-			for target in pairs(squadPotentialTarget) do
-				if mRandom(1,targetCount) == 1 then
-					if ValidUnitID(target) and not GetUnitIsDead(target) and not GetUnitNeutral(target) then
-						local x,y,z = Spring.GetUnitPosition(target)
-						if y >= 0 then
-							pos = {x = x, y = y, z = z}
-							unitTargetPool[squadID] = target
-							break
-						end
-					end
-				end
-			end
-
-		until pos or loops >= 10
-		
-		if not pos then
-			pos = getRandomEnemyPos()
-		end
-
+		local pos, pickedTarget = getRandomEnemyPos()
+		--Spring.Echo(pos.x, pos.y, pos.z, pickedTarget)
+		unitTargetPool[squadID] = pickedTarget
 		squadsTable[squadID].target = pos
-		
 		-- Spring.MarkerAddPoint (squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z, "Squad #" .. squadID .. " target")
 		local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
 		squadCommanderGiveOrders(squadID, targetx, targety, targetz)
@@ -1642,7 +1653,8 @@ if gadgetHandler:IsSyncedCode() then
 							refreshSquad(squadID)
 						end
 					else
-						Spring.GiveOrderToUnit(chickens[i], CMD.FIGHT, getRandomEnemyPos(), {})
+						local pos = getRandomEnemyPos()
+						Spring.GiveOrderToUnit(chickens[i], CMD.FIGHT, {pos.x, pos.y, pos.z}, {})
 					end
 				end
 			end
