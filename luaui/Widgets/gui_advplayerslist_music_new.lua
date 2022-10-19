@@ -228,16 +228,13 @@ local widgetScale = 1
 local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 local borderPadding = bgpadding
-local uiOpacitySec = 0
 
 local vsx, vsy = Spring.GetViewGeometry()
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.6) or 0.6)
 
 --local playing = (Spring.GetConfigInt('music', 1) == 1)
 local playing = true
 local shutdown
-local guishaderEnabled = (WG['guishader'] ~= nil)
 
 local playTex	= ":l:"..LUAUI_DIRNAME.."Images/music/play.png"
 local pauseTex	= ":l:"..LUAUI_DIRNAME.."Images/music/pause.png"
@@ -642,20 +639,6 @@ function widget:Update(dt)
 		if volume ~= curVolume then
 			volume = curVolume
 			doCreateList = true
-		end
-		uiOpacitySec = uiOpacitySec + dt
-		if uiOpacitySec > 0.5 then
-			uiOpacitySec = 0
-			if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
-				ui_scale = Spring.GetConfigFloat("ui_scale",1)
-				widget:ViewResize()
-			end
-			uiOpacitySec = 0
-			if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader'] ~= nil)then
-				ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
-				guishaderEnabled = (WG['guishader'] ~= nil)
-				doCreateList = true
-			end
 		end
 		if doCreateList then
 			createList()

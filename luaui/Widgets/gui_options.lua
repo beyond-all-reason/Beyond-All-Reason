@@ -777,10 +777,6 @@ function widget:Update(dt)
 				changes = true
 			end
 		end
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			changes = true
-		end
 		if changes then
 			if windowList then
 				gl.DeleteList(windowList)
@@ -2624,8 +2620,20 @@ function init()
 		{ id = "guiopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guiopacity, type = "slider", min = 0.3, max = 1, step = 0.01, value = Spring.GetConfigFloat("ui_opacity", 0.6), description = '',
 		  onload = function(i)
 		  end,
-		  onchange = function(i, value)
+		  onchange = function(i, value, force)
 			  Spring.SetConfigFloat("ui_opacity", value)
+			  ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+			  if windowList then
+				  gl.DeleteList(windowList)
+			  end
+			  windowList = gl.CreateList(DrawWindow)
+
+			  if force then
+				  Spring.SetConfigFloat("ui_opacity", value)
+				  Spring.SendCommands("luarules reloadluaui")
+			  else
+				  sceduleOptionApply = { os.clock() + 1.5, getOptionByID('guiopacity') }
+			  end
 		  end,
 		},
 		{ id = "guitilescale", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.guitilescale, type = "slider", min = 4, max = 40, step = 1, value = Spring.GetConfigFloat("ui_tilescale", 7), description = '',
@@ -2964,7 +2972,7 @@ function init()
 		{ id = "continuouslyclearmapmarks", group = "ui", category = types.advanced, name = texts.option.continuouslyclearmapmarks, type = "bool", value = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1, description = texts.option.continuouslyclearmapmarks_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("ContinuouslyClearMapmarks", (value and 1 or 0))
-			  if value then 
+			  if value then
 				  Spring.SendCommands({"clearmapmarks"})
 			  end
 		  end,

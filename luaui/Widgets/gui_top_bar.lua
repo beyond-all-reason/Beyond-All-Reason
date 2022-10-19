@@ -1340,7 +1340,6 @@ local function updateAllyTeamOverflowing()
 	end
 end
 
-local uiOpacitySec = 0
 local sec = 0
 local sec2 = 0
 local secComCount = 0
@@ -1473,21 +1472,6 @@ function widget:Update(dt)
 				updateRejoin()
 				init()
 			end
-		end
-	end
-
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.5 then
-		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			init()
-		end
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			height = orgHeight * (1 + (ui_scale - 1) / 1.7)
-			shutdown()
-			widget:ViewResize()
 		end
 	end
 end

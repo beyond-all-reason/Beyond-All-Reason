@@ -23,8 +23,6 @@ local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold
 
 local textFile = VFS.LoadFile("gamedata/scavengers/infotext.txt")
 
-local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-
 local numGames = 0
 
 local screenHeightOrg = 520
@@ -157,7 +155,7 @@ end
 
 function DrawWindow()
 	-- background
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, ui_opacity + 0.2)
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 
 	-- title background
 	local title = Spring.I18N('ui.topbar.button.scavengers')
@@ -185,17 +183,6 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-local uiOpacitySec = 0
-function widget:Update(dt)
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.5 then
-		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			widget:ViewResize()
-		end
-	end
-end
 
 function widget:DrawScreen()
   if chobbyInterface then return end

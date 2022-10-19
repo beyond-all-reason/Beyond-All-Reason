@@ -16,7 +16,7 @@ local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.6)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local buttonWidth = 0.037
@@ -211,18 +211,7 @@ function widget:MousePress(x, y, button)
     end
 end
 
-local uiOpacitySec = 0
 function widget:Update(dt)
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.33 then
-		uiOpacitySec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) or ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.66) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.66)
-			widget:ViewResize()
-		end
-	end
-
 	isActive = #Spring.GetSelectedUnits() == 0
 end
 

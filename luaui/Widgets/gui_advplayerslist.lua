@@ -178,7 +178,6 @@ local timeCounter = 0
 local updateRate = 0.75
 local updateRatePreStart = 0.25
 local lastTakeMsg = -120
-local uiOpacitySec = 0.5
 local hoverPlayerlist = false
 
 --------------------------------------------------------------------------------
@@ -208,9 +207,6 @@ local reportTake = false
 local tookTeamID
 local tookTeamName
 local tookFrame = -120
-
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local playSounds = true
 local sliderdrag = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
@@ -3548,20 +3544,6 @@ function widget:Update(delta)
         Spring.SetMouseCursor('cursornormal')
     end
 
-    uiOpacitySec = uiOpacitySec + delta
-    if uiOpacitySec > 0.5 then
-        uiOpacitySec = 0
-        if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-            ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-            widget:ViewResize()
-        end
-        uiOpacitySec = 0
-        if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.66) then
-            ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.66)
-            CreateBackground()
-        end
-    end
-
     totalTime = totalTime + delta
     timeCounter = timeCounter + delta
     curFrame = Spring_GetGameFrame()
@@ -3655,7 +3637,7 @@ function updateWidgetScale()
         customScale = 0.65
     end
     widgetScale = (vsy / 980) * (1 + ((vsx / vsy) * 0.065)) * customScale
-    widgetScale = widgetScale * (1 + (ui_scale - 1) / 1.25)
+    widgetScale = widgetScale * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
 
     widgetPosX = vsx - (widgetWidth * widgetScale) - bgpadding
     widgetRight = vsx - bgpadding

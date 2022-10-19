@@ -1082,16 +1082,6 @@ function widget:Update(dt)
 	if sec > 0.33 then
 		sec = 0
 		checkGuishader()
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize()
-			doUpdate = true
-		end
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			clear()
-			doUpdate = true
-		end
 		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
 			widget:ViewResize()
 			doUpdate = true

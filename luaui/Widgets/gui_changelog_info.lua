@@ -266,17 +266,6 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-local uiOpacitySec = 0
-function widget:Update(dt)
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.5 then
-		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			widget:ViewResize()
-		end
-	end
-end
 
 function widget:DrawScreen()
 	if chobbyInterface then

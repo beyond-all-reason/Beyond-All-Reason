@@ -101,9 +101,8 @@ local vsx, vsy = Spring.GetViewGeometry()
 local ordermenuLeft = vsx / 5
 local advplayerlistLeft = vsx * 0.8
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.6)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
@@ -607,17 +606,6 @@ function widget:Update(dt)
 	if sec > 0.33 then
 		sec = 0
 		checkGuishader()
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize()
-			doUpdate = true
-		end
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			glossMult = 1 + (2 - (ui_opacity * 2))
-			clear()
-			doUpdate = true
-		end
 		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
 			widget:ViewResize()
 			doUpdate = true
