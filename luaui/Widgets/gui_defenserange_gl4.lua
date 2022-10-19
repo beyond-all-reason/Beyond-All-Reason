@@ -713,8 +713,8 @@ function widget:Initialize()
 		for _,wt in ipairs({'ground','air','nuke'}) do
 			local Wt = string.upper(string.sub(wt, 1, 1)) .. string.sub(wt, 2)
 			WG['defrange']['get'..Ae..Wt] = function() return buttonConfig[ae][wt] end
-			WG['defrange']['set'..Ae..Wt] = function(value) 
-				buttonConfig[ae][wt] = value 
+			WG['defrange']['set'..Ae..Wt] = function(value)
+				buttonConfig[ae][wt] = value
 				Spring.Echo(string.format("Defense Range GL4 Setting %s%s to %s",Ae,Wt, value and 'on' or 'off'))
 				if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 					widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
@@ -726,7 +726,7 @@ function widget:Initialize()
 	local allyteamlist = Spring.GetAllyTeamList( )
 	--Spring.Echo("# of allyteams = ", #allyteamlist)
 	numallyteams = #allyteamlist
-	
+
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
@@ -909,22 +909,22 @@ function widget:PlayerChanged(playerID)
 	-- When we start, check if there are >2 allyteams
 	local reinit = false
 	-- check spec transition
-	if spec ~= nowspec then 
+	if spec ~= nowspec then
 		--keep allyteam, but reinit
 		reinit = true
 		-- When widget starts, allied check is fine, its correct w.r.t to myteamid
 	end
 	spec = nowspec
-	
+
 	if numallyteams > 3 then -- one for gaia
-		if nowmyAllyTeam ~= myAllyTeam then 
+		if nowmyAllyTeam ~= myAllyTeam then
 			reinit = true
 		end
 	else
 		-- if there are only 2 ally teams, no need to reinit
 	end
 
-	if reinit then 
+	if reinit then
 		myAllyTeam = nowmyAllyTeam -- only update if we reinit
 		--Spring.Echo("DefenseRange GL4 allyteam change detected, reinitializing")
 		if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
@@ -1123,7 +1123,7 @@ end
 
 
 
---[[
+
 --SAVE / LOAD CONFIG FILE
 function widget:GetConfigData()
 	local data = {}
@@ -1135,9 +1135,9 @@ function widget:SetConfigData(data)
 	if data ~= nil then
 		if data["enabled"] ~= nil then
 			buttonConfig = data["enabled"]
-			printDebug("enabled config found...")
+			--printDebug("enabled config found...")
 		end
 	end
 end
 
-]]--
+
