@@ -454,6 +454,8 @@ return {
 			console_handleinput_descr = 'Integrates chat text input instead of using in-engine method',
 			console_inputbutton = 'input mode toggle button',
 			console_inputbutton_descr = 'Enable text input mode toggle button',
+			continuouslyclearmapmarks = 'Hide all map drawings/marks',
+			continuouslyclearmapmarks_descr = 'Continuously clear all map marks: drawings and points',
 			idlebuilders = 'Idle builders',
 			idlebuilders_descr = 'Displays a row of idle builder units at the bottom of the screen',
 			buildbar = 'Factory dock',

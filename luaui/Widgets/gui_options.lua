@@ -63,6 +63,8 @@ local sounds = {
 	toggleOffClick = 'LuaUI/Sounds/switchoff.wav',
 }
 
+local continuouslyClean = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1
+
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
@@ -654,6 +656,7 @@ local function updateGrabinput()
 end
 
 local sec = 0
+local sec2 = 0
 local lastUpdate = 0
 local ambientplayerCheck = false
 local muteFadeTime = 0.35
@@ -753,6 +756,12 @@ function widget:Update(dt)
 			heightmapChangeClock = nil
 			heightmapChangeBuffer = {}
 		end
+	end
+
+	sec2 = sec2 + dt
+	if sec2 > 0.5 then
+		sec2 = 0
+		continuouslyClean = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1
 	end
 
 	sec = sec + dt
@@ -2952,6 +2961,15 @@ function init()
 		  end,
 		},
 
+		{ id = "continuouslyclearmapmarks", group = "ui", category = types.advanced, name = texts.option.continuouslyclearmapmarks, type = "bool", value = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1, description = texts.option.continuouslyclearmapmarks_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("ContinuouslyClearMapmarks", (value and 1 or 0))
+			  if value then 
+				  Spring.SendCommands({"clearmapmarks"})
+			  end
+		  end,
+		},
+
 		{ id = "unitgroups", group = "ui", category = types.basic, widget = "Unit Groups", name = texts.option.unitgroups, type = "bool", value = GetWidgetToggleValue("Unit Groups"), description = texts.option.unitgroups_descr },
 		{ id = "idlebuilders", group = "ui", category = types.basic, widget = "Idle Builders", name = texts.option.idlebuilders, type = "bool", value = GetWidgetToggleValue("Idle Builders"), description = texts.option.idlebuilders_descr },
 		{ id = "buildbar", group = "ui", category = types.basic, widget = "BuildBar", name = texts.option.buildbar, type = "bool", value = GetWidgetToggleValue("BuildBar"), description = texts.option.buildbar_descr },
@@ -4968,6 +4986,12 @@ function init()
 		gl.DeleteList(windowList)
 	end
 	windowList = gl.CreateList(DrawWindow)
+end
+
+function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
+	if continuouslyClean then
+		return true
+	end
 end
 
 function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
