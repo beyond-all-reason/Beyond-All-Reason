@@ -54,8 +54,11 @@ end
   -- X LRPCs
   -- X Fog
   -- X dont check allied defenses for losness
-  -- use luashader uvhm implementation
+  -- X use luashader uvhm implementation
   -- X fix mobile antis
+  -- isallied is totally wrong
+  -- dont check for losness in non fullview spec mode!
+  -- smartly reinit when selected allyteam changes and there are > 2 allyteams
 
 
 ------------------ CONFIGURABLES --------------
@@ -71,18 +74,18 @@ local colorConfig = { --An array of R, G, B, Alpha
     drawStencil = true, -- wether to draw the outer, merged rings (quite expensive!)
     drawInnerRings = true, -- wether to draw inner, per defense rings (very cheap)
     externalalpha = 0.70, -- alpha of outer rings
-    internalalpha = 0.1, -- alpha of inner rings
+    internalalpha = 0.0, -- alpha of inner rings
     distanceScaleStart = 2000, -- Linewidth is 100% up to this camera height
     distanceScaleEnd = 4000, -- Linewidth becomes 50% above this camera height
     ground = {
         color = {1.0, 0.2, 0.0, 1.0},
-        fadeparams = { 2000, 6000, 1.0, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        fadeparams = { 2000, 5000, 1.0, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 4.0,
         internallinethickness = 2.0,
     },
     air = {
         color = {0.90, 0.45, 1.2, 1.0},
-        fadeparams = { 3000, 6000, 0.4, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        fadeparams = { 2000, 5000, 0.4, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 4.0,
         internallinethickness = 2.0,
     },
@@ -94,7 +97,7 @@ local colorConfig = { --An array of R, G, B, Alpha
     },
     cannon = {
         color = {1.0, 0.6, 0.0, 1.0},
-        fadeparams = {5000, 7000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        fadeparams = {3000, 6000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 4.0,
         internallinethickness = 2.0,
     },
@@ -438,9 +441,7 @@ uniform sampler2D heightmapTex;
 uniform sampler2D losTex; // hmm maybe?
 
 out DataVS {
-	//flat vec4 worldPos; // pos and radius
 	flat vec4 blendedcolor;
-	//vec4 alphaControl; // xyzw: circumference progress, outofboundsalpha,  fadealpha ,mousealpha,
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -448,7 +449,7 @@ out DataVS {
 #line 11000
 
 float heightAtWorldPos(vec2 w){
-	vec2 uvhm =   vec2(clamp(w.x,8.0,mapSize.x-8.0),clamp(w.y,8.0, mapSize.y-8.0))/ mapSize.xy;
+	vec2 uvhm =  heighmapUVatWorldPos(w);
 	return textureLod(heightmapTex, uvhm, 0.0).x;
 }
 
@@ -634,29 +635,19 @@ local fsSrc =  [[
 
 //_DEFINES__
 
-#define OUTOFBOUNDSALPHA alphaControl.y
-#define FADEALPHA alphaControl.z
-#define MOUSEALPHA alphaControl.w
-
 #line 20000
 
-uniform float lineAlphaUniform = 1.0;
-
-uniform sampler2D heightmapTex;
-uniform sampler2D losTex; // hmm maybe?
 
 //_ENGINEUNIFORMBUFFERDEFS__
 
 in DataVS {
-	//flat vec4 worldPos; // w = range
 	flat vec4 blendedcolor;
-	//vec4 alphaControl;// xyzw: circumference progress, outofboundsalpha,  fadealpha ,mousealpha,
 };
 
 out vec4 fragColor;
 
 void main() {
-	fragColor = blendedcolor; // now pared down to only this, all work is done in fragment shader now
+	fragColor = blendedcolor; // now pared down to only this, all work is done in vertex shader now
 }
 ]]
 
