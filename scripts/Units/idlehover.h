@@ -6,28 +6,18 @@
 static-var isIdle, IdleX, IdleY, IdleZ, wasIdle;
 IdleHover()
 {
-	var groundheight;
-	groundheight = 0;
-	var unitxz;
-	unitxz = 0;
 	while(TRUE){
 		// Detect 'idleness' 
 		wasIdle = isIdle;
 		// get PRINT(get GAME_FRAME, get CURRENT_SPEED, (get UNIT_Y)/65500, (get GROUND_HEIGHT)/65500);
-		
-		unitxz = (get UNIT_XZ);
-		if (unitxz > 0 ){
-			groundheight = (get GROUND_HEIGHT(unitxz)); // GROUND HEIGHT EXPECT PACKED COORDS!
-		}
-		if (groundheight < 0 ) groundheight = 0;
-		
-		if (((get CURRENT_SPEED) < 10000) AND (((get UNIT_Y) - groundheight) > [32] )) {
+		if (((get CURRENT_SPEED) < 10000) AND (((get UNIT_Y) - (get GROUND_HEIGHT)) > [64] )) {
 			isIdle = TRUE;
 		}
 		else
 		{
 			isIdle = FALSE;
 		}
+	
 	
 		if (isIdle){
 			var newIdleX;
