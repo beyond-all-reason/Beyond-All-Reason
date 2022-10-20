@@ -1,3 +1,4 @@
+
 #define TA			// This is a TA script
 
 #include "sfxtype.h"
@@ -15,7 +16,6 @@ activatescr()
 	if( TRUE )
 	{
 
-		spin fan around y-axis speed <360> accelerate <10>;
 		sleep 998;
 	}
 	sleep 44;
@@ -32,7 +32,6 @@ deactivatescr()
 		sleep 500;
 		move doorl to x-axis [0] speed [10];
 		move doorr to x-axis [0] speed [10];
-		stop-spin fan around y-axis decelerate <20>;
 		sleep 998;
 	}
 	sleep 44;
@@ -104,6 +103,7 @@ Create()
 
 Activate()
 {
+	spin fan around y-axis speed <360> accelerate <10>;
 	show thrust;
 	start-script RequestState(0);
 	return (0);
@@ -111,6 +111,8 @@ Activate()
 
 Deactivate()
 {
+	
+	stop-spin fan around y-axis decelerate <20>;
 	hide thrust;
 	start-script RequestState(1);
 	return (0);
