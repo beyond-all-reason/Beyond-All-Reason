@@ -961,7 +961,7 @@ local function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
 end
 
 local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
-	Spring.Echo("Widgetside UnitScriptLight", unitID, unitDefID, lightIndex, param)
+	--Spring.Echo("Widgetside UnitScriptLight", unitID, unitDefID, lightIndex, param)
 	if unitEventLights.UnitScriptLights[unitDefID] and unitEventLights.UnitScriptLights[unitDefID][lightIndex] then 
 		local lightTable = unitEventLights.UnitScriptLights[unitDefID][lightIndex]
 		if not lightTable.alwaysVisible then
