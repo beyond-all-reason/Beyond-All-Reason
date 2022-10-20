@@ -712,11 +712,6 @@ function widget:Update(dt)
 				autocompleteCommands[#autocompleteCommands+1] = 'option '..option
 			end
 		end
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) or ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66)  then
-			ui_scale = Spring.GetConfigFloat("ui_scale",1)
-			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.65)
-			widget:ViewResize()
-		end
 		if hideSpecChat ~= (Spring.GetConfigInt('HideSpecChat', 0) == 1) then
 			hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
 			widget:ViewResize()
