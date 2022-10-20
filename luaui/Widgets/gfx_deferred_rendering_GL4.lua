@@ -1170,9 +1170,11 @@ end
 function widget:UnitDestroyed(unitID, unitDefID, teamID) -- dont do piece-attached lights here!
 	eventLightSpawner("UnitDestroyed", unitID, unitDefID, teamID) 
 end
-function widget:UnitTaken(unitID, unitDefID, teamID)
-	eventLightSpawner("UnitTaken", unitID, unitDefID, teamID) 
-end
+
+-- THIS ONE DOESNT WORK, some shit is being pulled and i cant get the unit height of the unit being taken here!
+--function widget:UnitTaken(unitID, unitDefID, teamID)
+	--eventLightSpawner("UnitTaken", unitID, unitDefID, teamID) 
+--end
 function widget:UnitGiven(unitID, unitDefID, teamID)
 	eventLightSpawner("UnitGiven", unitID, unitDefID, teamID) 
 end
