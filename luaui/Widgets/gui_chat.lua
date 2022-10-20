@@ -726,7 +726,7 @@ function widget:Update(dt)
 		local teams = Spring.GetTeamList()
 		local detectedChanges = false
 		for i = 1, #teams do
-			local r, g, b, a = spGetTeamColor(teams[i])
+			local r, g, b = spGetTeamColor(teams[i])
 			if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
 				teamColorKeys[teams[i]] = r..'_'..g..'_'..b
 				detectedChanges = true
@@ -735,13 +735,13 @@ function widget:Update(dt)
 
 		-- detect a change in muted players
 		if WG.ignoredPlayers then
-			for name, value in pairs(ignoredPlayers) do
-				if WG.ignoredPlayers[name] == nil or WG.ignoredPlayers[name] ~= value then
+			for name, _ in pairs(ignoredPlayers) do
+				if not WG.ignoredPlayers[name] then
 					detectedChanges = true
 				end
 			end
-			for name, value in pairs(WG.ignoredPlayers) do
-				if ignoredPlayers[name] == nil or ignoredPlayers[name] ~= value then
+			for name, _ in pairs(WG.ignoredPlayers) do
+				if not ignoredPlayers[name] then
 					detectedChanges = true
 				end
 			end

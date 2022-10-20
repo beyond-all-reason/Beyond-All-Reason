@@ -2623,10 +2623,7 @@ function init()
 		  onchange = function(i, value, force)
 			  Spring.SetConfigFloat("ui_opacity", value)
 			  ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			  if windowList then
-				  gl.DeleteList(windowList)
-			  end
-			  windowList = gl.CreateList(DrawWindow)
+			  forceUpdate = true
 
 			  if force then
 				  Spring.SetConfigFloat("ui_opacity", value)

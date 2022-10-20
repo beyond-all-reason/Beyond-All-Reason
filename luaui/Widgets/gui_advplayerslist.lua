@@ -1676,24 +1676,23 @@ function widget:DrawScreen()
     end
 
     local mouseX, mouseY, mouseButtonL = Spring_GetMouseState()
+
     -- update lists frequently if there is mouse interaction
-    local NeedUpdate = false
-    local CurGameFrame = Spring_GetGameFrame()
-
-    if mouseX > widgetPosX + m_name.posX + m_name.width - 5 and mouseX < widgetPosX + widgetWidth and mouseY > widgetPosY - 16 and mouseY < widgetPosY + widgetHeight then
-        local DrawFrame = Spring_GetDrawFrame()
-        if PrevGameFrame == nil then
-            PrevGameFrame = CurGameFrame
-        end
-        if DrawFrame % 5 == 0 or CurGameFrame > PrevGameFrame + 1 then
-            NeedUpdate = true
-        end
-    end
-
-    if NeedUpdate then
-        CreateLists()
-        PrevGameFrame = CurGameFrame
-    end
+    --local NeedUpdate = false
+    --local CurGameFrame = Spring_GetGameFrame()
+    --if mouseX > widgetPosX + m_name.posX + m_name.width - 5 and mouseX < widgetPosX + widgetWidth and mouseY > widgetPosY - 16 and mouseY < widgetPosY + widgetHeight then
+    --    local DrawFrame = Spring_GetDrawFrame()
+    --    if PrevGameFrame == nil then
+    --        PrevGameFrame = CurGameFrame
+    --    end
+    --    if DrawFrame % 5 == 0 or CurGameFrame > PrevGameFrame + 1 then
+    --        NeedUpdate = true
+    --    end
+    --end
+    --if NeedUpdate then
+    --    CreateLists()
+    --    PrevGameFrame = CurGameFrame
+    --end
 
     -- draws the background
     if Background then
