@@ -80,8 +80,8 @@ return {
 		weapondefs = {
 			semiauto = {
 				accuracy = 7,
-				areaofeffect = 16,
-				avoidfeature = false,
+				areaofeffect = 0,--16,
+				avoidfeature = true,
 				avoidfriendly = false,
 				burst = 2,
 				burstrate = 0.1,
@@ -114,6 +114,7 @@ return {
 				sprayangle = 500,
 				thickness = 0.6,
 				tolerance = 2400,
+				turret = true,
 				--weapontimer = 1,
 				weapontype = "LaserCannon",
 				weaponvelocity = 1500,
@@ -127,10 +128,10 @@ return {
 					expl_light_color = "0.45 0.40 0.35",
 				},
 				damage = {
-					bombers = 54,
+					bombers = 36,--54,
 					commanders = 1,
 					default = 2,
-					fighters = 54,
+					fighters = 36,--54,
 					vtol = 36,
 				},
 			},
@@ -139,6 +140,8 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR",
 				def = "SEMIAUTO",
+				maindir = "0 0 1",
+				maxangledif = 10,
 				onlytargetcategory = "VTOL",
 			},
 		},
