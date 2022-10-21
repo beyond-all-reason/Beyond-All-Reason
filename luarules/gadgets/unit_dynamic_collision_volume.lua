@@ -220,9 +220,9 @@ if gadgetHandler:IsSyncedCode() then
 				local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetUnitCollisionData(unitID)
 				if vtype>=3 and xs==ys and ys==zs then
 					if ys*hs < 13 then -- Limit Max V height
-						spSetUnitCollisionData(unitID, xs*ws, 13, zs*rs,  xo, yo, zo,  1, htype, 1)
+						spSetUnitCollisionData(unitID, xs*ws, 13, zs*rs,  xo, yo, zo,  3, htype, 0)
 					elseif canFly[unitDefID] then
-						spSetUnitCollisionData(unitID, xs*ws, ys*hs, zs*rs,  xo, yo, zo,  1, htype, 1)
+						spSetUnitCollisionData(unitID, xs*ws, ys*hs, zs*rs,  xo, yo, zo,  3, htype, 0)
 					else
 						spSetUnitCollisionData(unitID, xs*ws, ys*hs, zs*rs,  xo, yo, zo,  vtype, htype, axis)
 					end
