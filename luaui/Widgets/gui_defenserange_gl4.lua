@@ -1075,7 +1075,7 @@ function widget:DrawWorldPreUnit()
 		-- 	-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 		if colorConfig.drawStencil then
 			glClear(GL.STENCIL_BUFFER_BIT) -- clear prev stencil
-			glDepthTest(GL.LEQUAL) -- always draw
+			glDepthTest(false) -- always draw
 			glColorMask(false, false, false, false) -- disable color drawing
 			glStencilTest(true) -- enable stencil test
 			glStencilMask(255) -- all 8 bits
@@ -1088,6 +1088,7 @@ function widget:DrawWorldPreUnit()
 			glStencilMask(0)
 
 			defenseRangeShader:SetUniform("lineAlphaUniform",colorConfig.externalalpha)
+			glDepthTest(GL.LEQUAL) -- test for depth on these outside cases
 			DRAWRINGS(GL.LINE_LOOP, 'externallinethickness') -- DRAW THE OUTER RINGS
 			glStencilTest(false)
 
