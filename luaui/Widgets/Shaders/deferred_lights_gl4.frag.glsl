@@ -804,6 +804,7 @@ void main(void)
 	fragColor.rgb = targetcolor.rgb;
 	
 	// light mixdown:
+	bool isblack = all(lessThan(targetcolor.rgb, vec3(0.005)));
 	targetcolor.rgb = max(vec3(0.2), targetcolor.rgb); // we shouldnt let the targetcolor be fully black, or else we will have a bad time blending onto it.
 	
 	// Sum up the additives of Rayleigh, Mie and LensFlare, colorize and alpha control them
@@ -814,6 +815,7 @@ void main(void)
 
 	// Modulate color with target color of the surface. 
 	blendedlights = mix(blendedlights, blendedlights * targetcolor.rgb * 2.0, SURFACECOLORMODULATION);
+	if (isblack) {blendedlights.rgb = vec3(0.0);}
 	
 	// Calculate attenuation and blend more lights onto models
 	blendedlights *= attenuation * 2.0 * (1.0 + 2.0 * ismodel * v_modelfactor_specular_scattering_lensflare.x);
@@ -843,6 +845,8 @@ void main(void)
 	//fragColor.rgb = vec3((worlddepth - v_depths_center_map_model_min.z)* 100 + 0.5);
 	//fragColor.rgb = (fract(lightEmitPosition*0.02));
 	fragColor.a = 1.0;
+	//fragColor.rgb = vec3(targetcolor);
 	//fragColor.rgb = vec3(attenuation);
 	//fragColor.rgb = fract(v_lightcenter_gradient_height.www*0.1);
+	
 }
