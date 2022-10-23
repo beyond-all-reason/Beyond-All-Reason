@@ -150,6 +150,7 @@ local shaderConfig = {
 	USE3DNOISE = 1, -- dont touch this
 	SURFACECOLORMODULATION = 0.5, -- This specifies how much the lit surfaces color affects direct light blending, 0 is does not effect it, 1.0 is full effect
 	BLEEDFACTOR = 0.5, -- How much oversaturated color channels will bleed into other color channels. 
+	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
 }
 
 -- the 3d noise texture used for this shader
