@@ -9,6 +9,7 @@ function SchedulerHST:internalName()
 end
 
 function SchedulerHST:Init()
+	self.DebugEnabled = false
  	self.AIs={}
  	local teams = Spring.GetTeamList()
  	for index,id in pairs(teams) do
@@ -30,7 +31,7 @@ end
 function SchedulerHST:Update()
 	local moduleS, Mteam = self:ModulesScheduler()
 	local behaviourS, Bteam = self:BehavioursScheduler()
-	--self:EchoDebug(game:Frame(),'team',self.ai.id,'moduleS, Mteam',self.moduleUpdate, self.moduleTeam,'behaviourS, Bteam',self.behaviourUpdate, self.behaviourTeam)
+	self:EchoDebug(game:Frame(),'team',self.ai.id,'moduleS, Mteam',self.moduleUpdate, self.moduleTeam,'behaviourS, Bteam',self.behaviourUpdate, self.behaviourTeam)
 end
 
 function SchedulerHST:ModulesScheduler()
@@ -68,12 +69,7 @@ SchedulerHST.MScheduler = {
 	'AttackHST',
 	'RaidHST',
 	'BomberHST',
-
 	'LabsHST',
-
-
-
-	--'DefendHST',
 	}
 
 SchedulerHST.BScheduler = {

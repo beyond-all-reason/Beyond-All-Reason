@@ -52,9 +52,15 @@ function LabsBST:OwnerDead()
 end
 
 function LabsBST:preFilter()
-	self:EchoDebug('prefilter threshold', threshold)
-	if self.ai.Energy.full > 0.1 and self.ai.Metal.full > 0.1 then
+	self:EchoDebug('prefilter')
+	if self.ai.Energy.full > 0.1  then
 		self.unit:Internal():FactoryUnWait()
+	elseif self.ai.Metal.full < 0.1 then
+		for id, lab in pairs(self.ai.labshst.labs) do
+			if lab.underConstruction then
+				self.unit:Internal():FactoryWait()
+			end
+		end
 	else
 		self.unit:Internal():FactoryWait()
 	end

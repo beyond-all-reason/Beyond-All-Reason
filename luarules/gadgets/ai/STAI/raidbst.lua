@@ -5,7 +5,7 @@ function RaidBST:Name()
 end
 
 function RaidBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	local u = self.unit:Internal()
 	self.id = u:ID()
 	self.name =u:Name()
@@ -25,11 +25,12 @@ end
 
 
 function RaidBST:OwnerDead()
-	if self.squadID then
-		for index,unitID in pairs(self.ai.raidhst.squads[self.squadID].members) do
+	if self.inSquad then
+		--print(self.ai.raidhst.squads[self.inSquad])
+		for index,unitID in pairs(self.ai.raidhst.squads[self.inSquad].members) do
 			if self.id == unitID then
-				table.remove(self.ai.raidhst.squads[self.squadID].members,index)
-	-- 			self.ai.raidhst.squads[self.squadID].members[index] = nil
+				table.remove(self.ai.raidhst.squads[self.inSquad].members,index)
+	-- 			self.ai.raidhst.squads[self.inSquad].members[index] = nil
 			end
 		end
 	end
@@ -38,13 +39,12 @@ end
 
 function RaidBST:Priority()
 	local raider = self.ai.raidhst.raiders[self.id]
-	local mySquad = self.ai.raidhst.squads[self.squadID]
-	print('uyyuweeqyiwqeytui',self.squadID)
+	local mySquad = self.ai.raidhst.squads[self.inSquad]
  	if raider  and mySquad and  mySquad.target and mySquad.path then
-		self:EchoDebug('be a raider')
+		self:EchoDebug('priority  raider',self.id)
  		return 101
  	else
-		self:EchoDebug('not a raider')
+		self:EchoDebug('priority not raider',self.id)
  		return 0
  	end
 end

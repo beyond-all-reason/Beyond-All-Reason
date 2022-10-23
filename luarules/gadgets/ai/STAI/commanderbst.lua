@@ -17,9 +17,11 @@ function CommanderBST:Update()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'CommanderBST' then return end
 	if self.ai.overviewhst.T2LAB then
 		self.save = 1
-	elseif self.unit:Internal():GetHealth() <= self.unit:Internal():GetMaxHealth() * 0.75 then
+	elseif self.unit:Internal():GetHealth() <= self.unit:Internal():GetMaxHealth() * 0.99 then
 		self.save = 2
-	elseif self.unit:Internal():GetHealth() > self.unit:Internal():GetMaxHealth() * 0.75 then
+	elseif self.ai.maphst:getCellsFields(self.unit:Internal():GetPosition(),{'ARMED'},2,self.ai.loshst.ENEMY) > 100 then
+		self.save = 2
+	elseif self.unit:Internal():GetHealth() > self.unit:Internal():GetMaxHealth() * 0.99 then
 		self.save = false
 	end
 	if self.active and self.save == 1 then
@@ -69,9 +71,8 @@ function CommanderBST:Deactivate()
 end
 
 function CommanderBST:Priority()
-
-	local _, queueL = Spring.GetRealBuildQueue(self.id)
-	self:EchoDebug('Spring.GetRealBuildQueue(self.id)',Spring.GetRealBuildQueue(self.id),'queueL',queueL)
+	--local _, queueL = Spring.GetRealBuildQueue(self.id)
+	--self:EchoDebug('Spring.GetRealBuildQueue(self.id)',Spring.GetRealBuildQueue(self.id),'queueL',queueL)
 	if self.save then
 		return 200
 	else

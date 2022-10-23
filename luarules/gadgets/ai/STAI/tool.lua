@@ -92,10 +92,11 @@ function Tool:distance(POS1,POS2)
 end
 
 function Tool:sumPos(pos1, pos2)
-	pos1.x = pos1.x + pos2.x
-	pos1.y = pos1.y + pos2.y
-	pos1.z = pos1.z + pos2.z
-	return pos1
+	pos = api.Position()
+	pos.x = pos1.x + pos2.x
+	pos.y = pos1.y + pos2.y
+	pos.z = pos1.z + pos2.z
+	return pos
 end
 
 function Tool:MiddleOfTwo(pos1, pos2)
@@ -371,13 +372,13 @@ function Tool:WhatHurtsUnit(unitName, mtype, position)
 	return hurts
 end
 
-function Tool:BehaviourPosition(behaviour)
-	if behaviour == nil then return end
-	if behaviour.unit == nil then return end
-	local unit = behaviour.unit:Internal()
-	if unit == nil then return end
-	return unit:GetPosition()
+function Tool:UnitPos(UNIT)
+	if not UNIT then return end
+	if not UNIT.unit then return end
+	if not UNIT.unit:Internal() then return end
+	return UNIT.unit:Internal():GetPosition()
 end
+
 
 function Tool:HorizontalLine(grid, x, z, tx, sets, adds)
 	for ix = x, tx do
@@ -477,75 +478,3 @@ end
 -- 	end
 -- 	return unit:ExecuteCustomCommand(cmdID, floats)
 -- end
---[[
-function Tool:UnitNameSanity(unitOrName)--TODO move to tool
-	if not unitOrName then
-		self.game:Warn('nil unit or name')
-		return
-	end
-	if type(unitOrName) == 'string' then
-		if not self.ai.armyhst.unitTable[unitOrName] then
-			self.game:Warn('invalid string name',unitOrName)
-			return
-		else
-			return unitOrName
-		end
-	else
-		local uName = unitOrName:Name()
-		if uName ~= nil  and self.ai.armyhst.unitTable[uName]then
-			return uName
-		else
-			self.game:Warn('invalid object unit give invalid name',unitOrName)
-			return
-		end
-	end
-	self.game:Warn('unknow reason to exit from unit name sanity')
-end
-]]
-
---[[
-function Tool:distance(pos1,pos2)
-	local xd = pos1.x-pos2.x
-	local zd = pos1.z-pos2.z
-	local yd = pos1.y-pos2.y
-	if yd < 0 then
-		yd = -yd
-	end
-	local dist = math.sqrt(xd*xd + zd*zd + yd*yd*yd)
-	return dist
-end
-
-function Tool:DistanceSq(pos1,pos2)
-	local xd = pos1.x-pos2.x
-	local yd = pos1.z-pos2.z
-	return xd*xd + yd*yd
-end
-
-function Tool:Distance(pos1,pos2)
-	local xd = pos1.x-pos2.x
-	local yd = pos1.z-pos2.z
-	local dist = sqrt(xd*xd + yd*yd)
-	return dist
-end
-
-function tool:distance(x1, z1, x2, z2)
-	local xd = x1 - x2
-	local zd = z1 - z2
-	return sqrt(xd*xd + zd*zd)
-end
-
-function Tool:Distance3d(pos1, pos2)
-	local dx = pos2.x - pos1.x
-	local dy = pos2.y - pos1.y
-	local dz = pos2.z - pos1.z
-	return math.sqrt( dx*dx + dy*dy + dz*dz )
-end
-
-
-function Tool:ManhattanDistance(pos1,pos2)
-	local xd = math.abs(pos1.x-pos2.x)
-	local yd = math.abs(pos1.z-pos2.z)
-	local dist = xd + yd
-	return dist
-end
-]]

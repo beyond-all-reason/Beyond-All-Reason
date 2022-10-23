@@ -36,8 +36,7 @@ function BootBST:Update()
 	if not self.finished then return end
 	if self.ignoreFactories then return end
 	if self.factory then
-			local u = self.unit:Internal()
-			local pos = u:GetPosition()
+			local pos = self.ai.tool:UnitPos(self)
 			if not self.ai.tool:PositionWithinRect(pos, self.factory.exitRect) then
 				self.factory = nil
 				self.unit:ElectBehaviour()
@@ -95,15 +94,7 @@ function BootBST:SetMoveState()
 end
 
 function BootBST:FindMyFactory()
-	local pos = self.unit:Internal():GetPosition()
--- 	for level, factories in pairs(self.ai.factoriesAtLevel) do
--- 		for i, factory in pairs(factories) do
--- 			if self.ai.tool:PositionWithinRect(pos, factory.exitRect) then
--- 				self.factory = factory
--- 				return
--- 			end
--- 		end
--- 	end
+	local pos = self.ai.tool:UnitPos(self)
 	for id,lab in pairs(self.ai.labshst.labs) do
 		if self.ai.tool:PositionWithinRect(pos, lab.exitRect) then
 			self.factory = lab.behaviour

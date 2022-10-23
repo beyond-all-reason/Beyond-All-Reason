@@ -88,7 +88,7 @@ function DamageHST:UpdateBadPositions()
 				cell.frame = f
 				cell.attackerThreat = math.floor(cell.attackerThreat * 0.9)
 				cell.defenderThreat = math.floor(cell.defenderThreat * 0.9)
-				print(self.DAMAGED[X][Z].defenderThreat)
+				self:EchoDebug(self.DAMAGED[X][Z].defenderThreat)
 
 
 				if cell.defenderThreat < 1 then
@@ -121,12 +121,12 @@ function DamageHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	self:UpdateBadPositions()
 	self:UpdateDamagedUnits()
-	local prepathnodecost = Spring.GetPathNodeCosts(game:GetTeamID())
-	for i,v in pairs(prepathnodecost) do
-		if v > 0 then
-			print('get path node cost',i,v)
-		end
-	end
+-- 	local prepathnodecost = Spring.GetPathNodeCosts(game:GetTeamID())
+-- 	for i,v in pairs(prepathnodecost) do
+-- 		if v > 0 then
+-- 			self:EchoDebug('get path node cost',i,v)
+-- 		end
+-- 	end
 	self:VisualDBG()
 end
 

@@ -230,15 +230,15 @@ else
 		-- for each AI...
 
 		for _, thisAI in ipairs(Shard.AIs) do
-			local RAM = gcinfo()
+			--local RAM = gcinfo()
 			-- update sets of unit ids : own, friendlies, enemies
 			--1 run AI game frame update handlers
 			thisAI:Prepare()
 			thisAI:Update()
-			RAM = gcinfo() - RAM
-			if RAM > 1000 then
-				print ('AIloader',RAM/1000)
-			end
+			--RAM = gcinfo() - RAM
+			--if RAM > 1000 then
+			--	print ('AIloader',RAM/1000)
+			--end
 		end
 	end
 
@@ -383,13 +383,13 @@ else
 		end
 	end
 
-	function gadget:UnitMoved(a,b,c,d)
-		print('unit moved',a,b,c,d)
-	end
+-- 	function gadget:UnitMoved(a,b,c,d)
+-- 		print('unit moved',a,b,c,d)
+-- 	end
 
-	function gadget:UnitMoveFailed(a,b,c,d)
-		print('unit move failed',a,b,c,d)
-	end
+-- 	function gadget:UnitMoveFailed(a,b,c,d)
+-- 		print('unit move failed',a,b,c,d)
+-- 	end
 	function gadget:FeatureDestroyed(featureID)
 		Shard:unshardify_feature(featureID)
 	end

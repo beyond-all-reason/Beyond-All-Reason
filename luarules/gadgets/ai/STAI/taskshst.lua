@@ -677,7 +677,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = 2 , --numericalParameter
-			location = {categories = {'factoryMobilities'},min = 100,neighbours = {'_llt_','_popup2_','_popup1_'}} ,
+			location = {categories = {'_mex_','factoryMobilities'},max = 1000,min = 50,neighbours = {'_llt_','_popup2_','_popup1_'},list = self.map:GetMetalSpots()} ,
 			},
 
 		{ 	category = '_wind_' ,
@@ -878,11 +878,21 @@ function TasksHST:startRolesParams()
 	---------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------
+	self.roles.assist = {
+			{ 	category = '_mex_' ,
+			economy = function(_,param,name)--ecofunc()
+					return false
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true ,
+	        },
 
+		}
 	self.roles.starter = {
 		{ 	category = '_mex_' ,
 			economy = function(_,param,name)--ecofunc()
-					return self.ai.tool:countMyUnit({'factoryMobilities'}) == 0
+					return true
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -923,8 +933,8 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'factoryMobilities'},min = 100,neighbours = {'_llt_','_popup2_','_popup1_'}}
-	        } ,
+			location = {categories = {'factoryMobilities','_mex_'},min = 100,neighbours = {'_llt_','_popup2_','_popup1_'}}
+	        },list = self.map:GetMetalSpots() ,
 
 		{ 	category = 'factoryMobilities' ,
 			economy = function(_,param,name)--ecofunc()
@@ -936,7 +946,7 @@ function TasksHST:startRolesParams()
 			location = true ,
 	        },
 		}
-	self.roles.assistant = {}
+
 end
 
 -- function TasksHST:wrap( theTable, theFunction )

@@ -35,11 +35,8 @@ function RaidHST:Update()
 			self:resetSquad(squad)
 			return
 		end
-
 		self:EchoDebug('update squad',squadID)
 		self:getSquadPosition(squad)
--- 		local run = self:running(squad)
--- 		self:EchoDebug('RUN',run)
 		self:visualDBG(squad)
 		if squad.lock then
 			self:EchoDebug(squad.target,squad.path,squad.onTarget)
@@ -48,7 +45,7 @@ function RaidHST:Update()
 				self:doAttack(squad)
 
 			elseif squad.target and squad.path then
-				self:EchoDebug('go to next pathhhhh')
+				self:EchoDebug('go to next path')
 				self:goToNextNode(squad)
 			elseif not squad.target and not squad.onTarget then
 				self:EchoDebug('search another target')
@@ -58,12 +55,6 @@ function RaidHST:Update()
 			if #squad.members > self.minRaidCount then
 				squad.lock = true
 			end
--- 			if not squad.target then
--- 				self:targeting(squad)
--- 			else
--- 				self:EchoDebug('nil run',run)
--- 				self:resetSquad(squad)
--- 			end
 		end
 	end
 	self:EchoDebug('stop update')
@@ -128,7 +119,7 @@ function RaidHST:targeting(squad,targetType)
 		return
 	end
 	local target = nil
-	target = self.getRaidCell3(squad) or self:getRaidCell2(squad)
+	target = self:getRaidCell4(squad)
 
 	if not target then
 		self:EchoDebug('no target for ' ,squad.squadID)
@@ -145,32 +136,9 @@ function RaidHST:targeting(squad,targetType)
 	if squad.path  then
 		squad.target = target
 	end
-	print('squad.path',squad.path)
 	if squad.target and squad.path then return true end --tell me im ready to raids
 end
 
-
---[[
-function RaidHST:getRaidCell1(squad)
-	if not squad then return end
-	local leader = self.game:GetUnitByID(squad.members[1])
-	local bestDist = math.huge
-	local bestTarget = nil
-	for X, cells in pairs(self.ai.loshst.ENEMY) do
-		for Z, cell in pairs(cells) do
-			if self.ai.maphst:UnitCanGoHere(leader, cell.POS) then
-				local dist = self.ai.tool:distance(cell.POS,squad.position) < bestDist
-				if dist < bestDist  then
-					bestTarget = cell
-					bestDist = dist
-				end
-			end
-		end
-	end
-	self:EchoDebug('bestTarget',bestTarget)
-	return bestTarget
-end
-]]
 function RaidHST:getRaidCell2(squad)
 	if not squad then return end
 	local leader = self.game:GetUnitByID(squad.members[1])
@@ -199,25 +167,22 @@ function RaidHST:getRaidCell2(squad)
 	return bestTarget
 end
 
-function RaidHST:getRaidCell3(squad)
-	if not squad then return end
-	if not self.ai.targethst.distals then return end
+function RaidHST:getRaidCell4(squad)
 	local leader = self.game:GetUnitByID(squad.members[1])
-	local bestDist = math.huge
+	local bestValue = 0
 	local bestTarget = nil
+	local bestDist = math.huge
 	local worstDist = 0
-	for i, cell in pairs(self.ai.targethst.distals) do
-		if self.ai.maphst:UnitCanGoHere(leader, cell.POS) then
-			local dist = self.ai.tool:distance(cell.POS,self.ai.targethst.enemyCenter)
-			--local dist = self.ai.tool:distance(cell.POS,squad.position) < bestDist
-			if dist > worstDist  then
+
+	for ref, blob in pairs(self.ai.targethst.IMMOBILE_BLOBS) do
+		if self.ai.maphst:UnitCanGoHere(leader, blob.position) then
+			local dist = self.ai.tool:distance(blob.position,self.ai.targethst.enemyCenter)
+			if dist > worstDist then
 				worstDist = dist
-				bestTarget = cell
-				bestDist = dist
+				bestTarget = blob.refCell
 			end
 		end
 	end
-	self:EchoDebug('best distals Target',bestTarget)
 	return bestTarget
 end
 
@@ -242,7 +207,6 @@ function RaidHST:getSquadPosition(squad)
 	squadPos.z = squadPos.z / # members
 	squadPos.y = Spring.GetGroundHeight(squadPos.x,squadPos.z)
 	squad.position = {x = squadPos.x, y = squadPos.y, z = squadPos.z}
-	--squad.Cell,squad.CellX,squad.CellZ = self.ai.maphst:GetCell(squad.position)
 	self:EchoDebug('actual squad.position',squad.position.x,squad.position.z)
 end
 
@@ -398,6 +362,30 @@ function RaidHST:visualDBG(squad)
 end
 
 
+
+
+--[[
+function RaidHST:getRaidCell1(squad)
+	if not squad then return end
+	local leader = self.game:GetUnitByID(squad.members[1])
+	local bestDist = math.huge
+	local bestTarget = nil
+	for X, cells in pairs(self.ai.loshst.ENEMY) do
+		for Z, cell in pairs(cells) do
+			if self.ai.maphst:UnitCanGoHere(leader, cell.POS) then
+				local dist = self.ai.tool:distance(cell.POS,squad.position) < bestDist
+				if dist < bestDist  then
+					bestTarget = cell
+					bestDist = dist
+				end
+			end
+		end
+	end
+	self:EchoDebug('bestTarget',bestTarget)
+	return bestTarget
+end
+]]
+
 --[[
 function RaidHST:FindPath(squad)
  	if not squad.pathfinder then
@@ -498,4 +486,29 @@ function RaidHST:nearestEnemy(squad) --TEST control this function can give false
 	return ene
 end
 
+]]
+
+
+--[[
+function RaidHST:getRaidCell3(squad)
+	if not squad then return end
+	if not self.ai.targethst.distals then return end
+	local leader = self.game:GetUnitByID(squad.members[1])
+	local bestDist = math.huge
+	local bestTarget = nil
+	local worstDist = 0
+	for i, cell in pairs(self.ai.targethst.distals) do
+		if self.ai.maphst:UnitCanGoHere(leader, cell.POS) then
+			local dist = self.ai.tool:distance(cell.POS,self.ai.targethst.enemyCenter)
+			--local dist = self.ai.tool:distance(cell.POS,squad.position) < bestDist
+			if dist > worstDist  then
+				worstDist = dist
+				bestTarget = cell
+				bestDist = dist
+			end
+		end
+	end
+	self:EchoDebug('best distals Target',bestTarget)
+	return bestTarget
+end
 ]]

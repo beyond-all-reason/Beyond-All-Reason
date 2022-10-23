@@ -9,7 +9,7 @@ function ScoutHST:internalName()
 end
 
 function ScoutHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.spotsToScout = {}
 	self.lastCount = {}
 	self.sameCount = {}
@@ -111,7 +111,8 @@ function ScoutHST:Update()
 	for X, cells in pairs(self.SCOUTED) do
 		for Z,cellFrame in pairs(cells) do
 			if frame > cellFrame + 3600 then
-				cell = nil
+				self.SCOUTED[X][Z] = nil
+-- 				cell = nil
 			end
 		end
 	end

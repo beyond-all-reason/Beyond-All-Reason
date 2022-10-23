@@ -3,14 +3,6 @@ BomberBST = class(Behaviour)
 function BomberBST:Name()
 	return "BomberBST"
 end
---[[
-local CMD_MOVE = 10
-local CMD_OPT_SHIFT = 32
-local CMD_OPT_RIGHT = 16
-local CMD_INSERT = 1
-local CMD_IDLEMODE = 145
-local IDLEMODE_LAND = 1
-local IDLEMODE_FLY = 0]]
 
 function BomberBST:Init()
 	self.DebugEnabled = false
@@ -27,7 +19,7 @@ function BomberBST:Init()
 		self.hurts = "ground"
 		self.layer = 'G'
 	end
-	self.homepos = self.unit:Internal():GetPosition()
+	self.homepos = self.ai.tool:UnitPos(self)
 	self:EchoDebug("init", self.weapon)
 	self:SetIdleMode()
 	self.unit:ElectBehaviour()
@@ -55,7 +47,7 @@ end
 function BomberBST:Activate()
 	self:EchoDebug("activate")
 	self.active = true
-	if self.squad and self.ai.bomberhst.squads[self.squad].target then
+	if self.squad and self.ai.bomberhst.squads[self.squad] and self.ai.bomberhst.squads[self.squad].target then
 		self:BombUnit(self.ai.bomberhst.squads[self.squad].targetUnit)
 	end
 end
@@ -69,7 +61,7 @@ end
 function BomberBST:Update()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'BomberBST' then return end
 self:EchoDebug('update squad',self.squad)
-	if self.squad and self.ai.bomberhst.squads[self.squad].target then
+	if self.squad and self.ai.bomberhst.squads[self.squad] and self.ai.bomberhst.squads[self.squad].target then
 		self:EchoDebug('update',self.squad,self.ai.bomberhst.squads[self.squad].target)
 		self:EchoDebug('go to bomb',self.ai.bomberhst.squads[self.squad].target)
 		self:BombUnit(self.ai.bomberhst.squads[self.squad].targetUnit)

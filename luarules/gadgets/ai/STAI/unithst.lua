@@ -40,7 +40,7 @@ function UnitHST:Update()--is before shardlua/unit
 		end
 		RAM = gcinfo() - RAM
 		if RAM > 100 then
-			print ('unithst',RAM/1000)
+			self:EchoDebug('unithst gcinfo',RAM/1000)
 		end
 	end
 	for uID, frame in pairs(self.reallyActuallyDead) do
@@ -71,7 +71,7 @@ function UnitHST:UnitCreated(unit, unitDefId, teamId, builderId)
 -- 		if unit:HasBehaviours() then
 -- 			self.game:StartTimer(unit:Internal():Name()..' crea')
 -- 			unit:UnitCreated(u)
--- 			print(u:Internal():Name() .. ' UC ' .. unit:Internal():Name())
+-- 			self:EchoDebug(u:Internal():Name() .. ' UC ' .. unit:Internal():Name())
 -- 			self.game:StopTimer(unit:Internal():Name()..' crea')
 -- 		end
 -- 	end

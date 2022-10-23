@@ -5,7 +5,7 @@ function AntinukeBST:Name()
 end
 
 function AntinukeBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 end
 
 function AntinukeBST:Update()

@@ -50,7 +50,7 @@ end
 function BomberHST:SquadsIntegrityCheck(squad)
 	self:EchoDebug('integrity',squad.squadID)
 	for id,member in pairs(squad.members) do
-		if not member.unit or not member.unit:Internal() or not member.unit:Internal():GetPosition() then
+		if not self.ai.tool:UnitPos(member) then
 			squad.members[id] = nil
 			self:RemoveRecruit(member)
 		end
@@ -106,7 +106,7 @@ function BomberHST:SquadPosition(squad)
 	local p = {x=0,z=0}
 	squad.counter = 0
 	for i,member in pairs(squad.members) do
-		local uPos = member.unit:Internal():GetPosition()
+		local uPos = self.ai.tool:UnitPos(member)
 		p.x = p.x + uPos.x
 		p.z = p.z + uPos.z
 		squad.counter = squad.counter + 1

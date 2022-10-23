@@ -60,7 +60,7 @@ function LabsHST:factoriesRating()
 		end
 	end
 	for i,v in pairs(t) do
-		print(i,v)
+		self:EchoDebug('pre sorted',i,v)
 		if self.ai.armyhst.factoryMobilities[i][1] == 'hov' or self.ai.armyhst.factoryMobilities[i][1] == 'amp' then
 			if not t['armsy'] or  t['armsy'] < 0.33 then
 				t[i] = nil

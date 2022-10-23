@@ -5,7 +5,7 @@ function MexUpBST:Name()
 end
 
 function MexUpBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.active = false
 	self.mohoStarted = false
 	self.released = false

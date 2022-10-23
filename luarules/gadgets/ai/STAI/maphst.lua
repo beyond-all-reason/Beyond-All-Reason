@@ -14,7 +14,7 @@ local mCeil = math.ceil
 
 function MapHST:Init()
 
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self:EchoDebug('MapHST START')
 	if self.map_loaded then
 		print('map already loaded')
@@ -230,7 +230,6 @@ function MapHST:GetCell(X,Z,grid) --accept 1one position({t.x,t.y,t.z}) OR 2two 
 		return
 	end
 	if not grid[X][Z] then
-		--dbgwarn
 		return
 	end
 	return grid[X][Z]
@@ -522,21 +521,19 @@ end
 function MapHST:getPath(unitName,POS1,POS2,toGrid)
 	local mclass = self.ai.armyhst.unitTable[unitName].mclass
 	local metapath = Spring.RequestPath(mclass, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z)
-
-
 	if metapath then
 		local waypoints, pathStartIdx = metapath:GetPathWayPoints()
 		if not waypoints then
-			self:Warn('no path found',POS1.x,POS1.z,POS2.x,POS2.z)
+			self:Warn(unitName,'no path found',POS1.x,POS1.z,POS2.x,POS2.z)
 			return
-		elseif #waypoints  <= 1 then
-			self:Warn('path have 0 lenght',POS1.x,POS1.z,POS2.x,POS2.z)
+		elseif #waypoints == 0 then
+			self:Warn(unitName,'path have 0 lenght',POS1.x,POS1.z,POS2.x,POS2.z)
 			return
-		elseif self.ai.tool:distance(POS1,POS2) < 256 then
-			self:Warn('path too short',POS1,POS2)
-			return
-
+-- 		elseif self.ai.tool:distance(POS1,POS2) < 256 then
+-- 			self:Warn(unitName,'path too short',POS1,POS2)
+-- 			return
 		else
+
 			local last = waypoints[#waypoints]
 			local distance_to_goal = self.ai.tool:distance(POS2, {x=last[1],z=last[3]})
 			if distance_to_goal > self.gridSize then

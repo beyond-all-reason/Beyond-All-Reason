@@ -35,10 +35,6 @@ function OverviewHST:LabsLevels()
 	end
 end
 
-
-
-
-
 function OverviewHST:EvaluateSituation()
 	local M = self.ai.Metal
 	local E = self.ai.Energy

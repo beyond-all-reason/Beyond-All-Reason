@@ -66,6 +66,7 @@ function BuildersBST:Watchdog()
 end
 
 function BuildersBST:Evade()
+	--[[
 	local home = self.ai.labshst:ClosestHighestLevelFactory(self.unit:Internal())
 	if home then
 		self.unit:Internal():Guard(home.id)
@@ -73,16 +74,13 @@ function BuildersBST:Evade()
 		return
 -- 		home = home.position
 	else
-		home = self.unit:Internal():GetPosition()
+		home = self.ai.tool:UnitPos(self)
 		home = self.ai.tool:RandomAway(home,300)
 		self.unit:Internal():Move(home)
 		self.ai.buildingshst:ClearMyProjects(self.id)
 	end
-
-
-	if home then
-
-	end
+	]]
+	self:Assist()
 
 end
 
@@ -96,7 +94,7 @@ function BuildersBST:Update()
 	end
 	self.builder, self.sketch = self.ai.buildingshst:GetMyProject(self.id)
 	local health,maxHealth,paralyzeDamage, captureProgress, buildProgress,relativeHealth = self.unit:Internal():GetHealtsParams()
-	if 	relativeHealth < 0.99 and buildProgress == 1 then
+	if 	relativeHealth < 0.99 and buildProgress == 1 and not self.isCommander then
 		self:Evade()
 		return
 	end
@@ -189,7 +187,7 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 
 	local POS = nil
 	local builder = self.unit:Internal()
-	local builderPos = builder:GetPosition()
+	local builderPos =  self.ai.tool:UnitPos(self)
 	local army = self.ai.armyhst
 	local site = self.ai.buildingshst
 	if loc and type(loc) == 'table' then
@@ -216,7 +214,9 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 		local uw
 		local reclaimEnemyMex
 		POS, uw, reclaimEnemyMex = self.ai.maphst:ClosestFreeMex(utype, builder)
-		if not POS then print('no pos for mex found') end
+		if not POS then
+			self:EchoDebug('no pos for mex found')
+		end
 		self:EchoDebug(POS, uw, reclaimEnemyMex)
 		if POS  then
 			if reclaimEnemyMex then
@@ -236,7 +236,7 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 		local target = nil
 		local mtype = self.ai.armyhst.unitTable[self.name].mtype
 		for id,lab in pairs(self.ai.labshst.labs) do
-			print(mtype,lab.level,self.ai.armyhst.factoryMobilities[lab.name][1],currentLevel)
+			self:EchoDebug(mtype,lab.level,self.ai.armyhst.factoryMobilities[lab.name][1],currentLevel)
 			if mtype == self.ai.armyhst.factoryMobilities[lab.name][1] and lab.level >= currentLevel then
 				if not self.ai.buildingshst:unitsNearCheck(lab.position,390,10+(5*lab.level),{'_nano_'}) then
 					self:EchoDebug( self.name, ' can push up self mtype ', lab.name)
@@ -376,7 +376,7 @@ function BuildersBST:ProgressQueue()
 					elseif self.ai.buildingshst.roles[self.id].role == 'default' then
 						self.ai.buildingshst.roles[self.id].role = 'expand'
 					end
-					self:assist()
+					self:Assist()
 					return
 				end
 			end
@@ -384,9 +384,9 @@ function BuildersBST:ProgressQueue()
 	end
 end
 
-function BuildersBST:assist()
+function BuildersBST:Assist()
 	if self.assistant then return end
-	local builderPos = self.unit:Internal():GetPosition()
+	local builderPos = self.ai.tool:UnitPos(self)
 	if self.role ~= 'eco' then
 		local bossDist = math.huge
 		local bossTarget

@@ -5,7 +5,7 @@ function NukeBST:Name()
 end
 
 function NukeBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	local uname = self.unit:Internal():Name()
 	if uname == "armemp" then
 		self.stunning = true

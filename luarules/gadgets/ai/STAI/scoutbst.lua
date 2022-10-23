@@ -6,7 +6,7 @@ end
 
 function ScoutBST:Init()
 	self.id = self.unit:Internal():ID()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.target = nil
 	self.attacking = nil
 	self.evading = nil
@@ -30,13 +30,13 @@ function ScoutBST:Priority()
 		self:EchoDebug('not in raider')
 		return 0
 	end
-	print('kshdcbdscbous',raider.inSquad)
+	self:EchoDebug('priority',raider.inSquad)
 	local mySquad = self.ai.raidhst.squads[raider.inSquad]
  	if raider and mySquad and  mySquad.target and mySquad.path then
-		self:EchoDebug('not a scout')
+		self:EchoDebug('priority scout',self.id)
  		return 0
  	else
-		self:EchoDebug('be a scout')
+		self:EchoDebug('priority scout',self.id)
  		return 200
  	end
 end
@@ -72,7 +72,6 @@ function ScoutBST:Evading()
 	end
 
 	home = self.ai.tool:RandomAway(home,300)
-	print(home)
 	if home then
 		self.unit:Internal():Move(home)
 	end
@@ -86,7 +85,7 @@ function ScoutBST:Attacking()
 		return
 	end
 	self.target = nil
-	self:Attack( self.attacking )
+	self:AttackMove( self.attacking.POS )
 end
 
 function ScoutBST:Scouting()
@@ -107,7 +106,7 @@ function ScoutBST:ImmediateTarget()
 		for X, cell in pairs(cells) do
 			local danger,subValues, targetCells = self.ai.maphst:getCellsFields(cell.POS,{'ARMED'},1,self.ai.loshst.ENEMY)
 			if self.ai.maphst:UnitCanGoHere(self.unit:Internal()) then
-				if subValues.ARMED == 0 then
+				if danger < 1 then
 					local d = self.ai.tool:DISTANCE(scoutPos,cell.POS)
 					if d < bestDist then
 						bestDist = d
@@ -134,15 +133,16 @@ function ScoutBST:Update()
 		local X,Z = self.ai.maphst:PosToGrid(scoutPos)
 		self.ai.scouthst.SCOUTED[X] = self.ai.scouthst.SCOUTED[X] or {}
 		self.ai.scouthst.SCOUTED[X][Z] = game:Frame()
-		self:EchoDebug('scout',self.id,'scoutCell',X,Z)
+		self:EchoDebug('scout',self.id,'scoutCell',X,Z,game:Frame())
 		local health,maxHealth,paralyzeDamage, captureProgress, buildProgress,relativeHealth = unit:GetHealtsParams()
-		if 	relativeHealth < 0.99 and buildProgress == 1 then
+		if 	relativeHealth < 0.99 and buildProgress == 1 and not self.attacking then
 			self:Evading()
 			return
 		else
 			self.evading = nil
 		end
 		if not self.evading and self.isWeapon then
+			--self.attacking = self:bestAdjacentPos(self.unit:Internal(),nil)
 			self.attacking = self:ImmediateTarget()
 		end
 		if self.attacking then

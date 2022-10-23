@@ -91,6 +91,7 @@ function TargetHST:GetMobileBlobs()
 		blob.position.x = blob.position.x / #blob.cells
 		blob.position.z = blob.position.z / #blob.cells
 		blob.position.y = map:GetGroundHeight(blob.position.x,blob.position.z)
+
 		local defendDist = math.huge
 		local defendCell = nil
 		for X, cells in pairs(self.ai.loshst.OWN) do
@@ -104,6 +105,20 @@ function TargetHST:GetMobileBlobs()
 		end
 		blob.defend = defendCell
 		blob.defendDist = defendDist
+
+		local refDist = math.huge
+		local refCell = nil
+ 		for X, cells in pairs(self.ai.loshst.OWN) do
+ 			for Z, cell in pairs(cells) do
+ 				local dist = self.ai.tool:distance(cell.POS,blob.position)
+ 				if dist < refDist then
+ 					refDist = dist
+ 					refCell = cell
+ 				end
+ 			end
+ 		end
+		blob.refCell = refCell
+		blob.refDist = refDist
 	end
 end
 
@@ -150,10 +165,10 @@ function TargetHST:GetImmobileBlobs()
 		local refCell = nil
 
 
- 		for X, cells in pairs(self.ai.loshst.OWN) do
+ 		for X, cells in pairs(self.ai.loshst.ENEMY) do
  			for Z, cell in pairs(cells) do
  				local dist = self.ai.tool:distance(cell.POS,blob.position)
- 				if dist < defendDist then
+ 				if dist < refDist then
  					refDist = dist
  					refCell = cell
  				end
@@ -198,12 +213,8 @@ end
 function TargetHST:GetPathModifierFunc(unitName, adjacent)
 	local divisor = self.ai.armyhst.unitTable[unitName].metalCost * self.pathModParam
 	local modifier_node_func = function ( node, distanceToGoal, distanceStartToGoal )
--- 		print(node)
--- 		for i,v in pairs(node.position) do
--- 			print(i,v)
--- 		end
 		local threatMod = self.ai.maphst:getCellsFields(node.position,{'defenderThreat'},1,self.ai.damagehst.DAMAGED) --/ divisor
-		print('threatMod',threatMod)
+		self:EchoDebug('threatMod',threatMod)
 		if distanceToGoal then
 			if distanceToGoal <= 500 then
 				return 0
@@ -214,7 +225,7 @@ function TargetHST:GetPathModifierFunc(unitName, adjacent)
 			return threatMod
 		end
 	end
-	print ('modifier_node_func',modifier_node_func)
+	self:EchoDebug('modifier_node_func',modifier_node_func)
 	self.pathModifierFuncs[unitName] = modifier_node_func
 	return modifier_node_func
 end

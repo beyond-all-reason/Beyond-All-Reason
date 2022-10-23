@@ -4,7 +4,7 @@ BehaviourFactory = class(AIBase)
 function BehaviourFactory:Init()
 	self.behaviours = shard_include( "behaviours" )
 	self.scoutslist = {}
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 end
 
 function BehaviourFactory:AddBehaviours(unit)
