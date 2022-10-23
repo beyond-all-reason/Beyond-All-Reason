@@ -33,7 +33,7 @@ function AttackHST:Watchdog(squad)
 	local f = game:Frame()
 	squad.watchdogCell = squad.watchdogCell or self.ai.maphst:GetCell(squad.position,self.ai.maphst.GRID)
 	local watchdogCell = self.ai.maphst:GetCell(squad.position,self.ai.maphst.GRID)
-	if squad.watchdogCell.X == watchdogCell.X and squad.watchdogCell.Z == watchdogCell.Z then
+	if squad.watchdogCell and squad.watchdogCell.X == watchdogCell.X and squad.watchdogCell.Z == watchdogCell.Z then
 		if f > squad.watchdogTimer + 300 then
 			self:SquadResetTarget(squad)
 		else
