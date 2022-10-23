@@ -112,7 +112,7 @@ end
 
 function AttackerBST:MoveRandom(pos,dist)
 	local away = self.ai.tool:RandomAway(pos, dist)
-
+	if not self.unit then return end
 	self.unit:Internal():AttackMove(away)
 end
 function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
