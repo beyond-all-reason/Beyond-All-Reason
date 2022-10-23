@@ -41,7 +41,7 @@ function gadget:Initialize()
 	local gaiateamid = Spring.GetGaiaTeamID()
 end
 
-function gadget:GamePreload()
+function gadget:GameStart()
   if Spring.GetGameRulesParam("loadedGame") == 1 then
     Spring.Echo("Scenario: Loading saved game, skipping loadout")
 		gadgetHandler:RemoveGadget(self)
