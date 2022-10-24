@@ -19,11 +19,9 @@ local landLevel
 local seaLevel
 
 -- Get TeamIDs and AllyTeamIDs of Scavengers and Chickens
-local teams = Spring.GetTeamList()
 local scavengerTeamID
 local scavengerAllyTeamID
 local chickenTeamID
-local chickenAllyTeamID
 if Spring.Utilities.Gametype.IsScavengers() or Spring.Utilities.Gametype.IsChickens() then
     local teams = Spring.GetTeamList()
     for i = 1,#teams do
@@ -162,10 +160,16 @@ local function VisibilityCheckEnemy(posx, posy, posz, posradius, allyTeamID, che
     return true
 end
 
-local function StartboxCheck(posx, posy, posz, posradius, allyTeamID, returnTrueWhenNoStartbox) -- Return True when position is within startbox.
-    local posradius = posradius or 1000
+local function StartboxCheck(posx, posy, posz, allyTeamID, returnTrueWhenNoStartbox) -- Return True when position is within startbox.
+    --local posradius = posradius or 1000
     
-    if allyTeamID == GaiaAllyTeamID then return false end
+    if allyTeamID == GaiaAllyTeamID then 
+        if returnTrueWhenNoStartbox then
+            return true
+        else
+            return false
+        end
+    end
 
     if AllyTeamStartboxes[allyTeamID+1].allyTeamHasStartbox == false then
         if returnTrueWhenNoStartbox then
@@ -176,9 +180,17 @@ local function StartboxCheck(posx, posy, posz, posradius, allyTeamID, returnTrue
     end
 
     if posx >= AllyTeamStartboxes[allyTeamID+1].xMin and posz >= AllyTeamStartboxes[allyTeamID+1].zMin and posx <= AllyTeamStartboxes[allyTeamID+1].xMax and posz <= AllyTeamStartboxes[allyTeamID+1].zMax then -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 everytime
-        return true
+        if returnTrueWhenNoStartbox then
+            return true
+        else
+            return false
+        end
     else
-        return false
+        if returnTrueWhenNoStartbox then
+            return true
+        else
+            return false
+        end
     end
 end
 

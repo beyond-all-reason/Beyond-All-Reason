@@ -50,7 +50,7 @@ local function generateMoveOrder(unitID, shift)
 			local posx = pos[1]
 			local posy = pos[2]
 			local posz = pos[3]
-			if positionCheckLibrary.StartboxCheck(posx, posy, posz, 32, ScavengerAllyTeamID) == false then
+			if positionCheckLibrary.StartboxCheck(posx, posy, posz, ScavengerAllyTeamID) == false then
 				if positionCheckLibrary.MapEdgeCheck(posx, posy, posz, 32) == true then
 					Spring.GiveOrderToUnit(unitID, CMD.MOVE, {posx, posy, posz}, {"shift"})
 					break
@@ -390,7 +390,7 @@ local function constructNewBlueprint(n, unitID)
 		local canConstructHere = positionCheckLibrary.OccupancyCheck(posX, posY, posZ, blueprintRadius+192)
 							 and positionCheckLibrary.FlatAreaCheck(posX, posY, posZ, blueprintRadius)
 							 and positionCheckLibrary.MapEdgeCheck(posX, posY, posZ, blueprintRadius)
-							 and (not positionCheckLibrary.StartboxCheck(posX, posY, posZ, blueprintRadius, ScavengerAllyTeamID) or (not scavconfig.modules.startBoxProtection))
+							 and (not positionCheckLibrary.StartboxCheck(posX, posY, posZ, ScavengerAllyTeamID) or (not scavconfig.modules.startBoxProtection))
 
 		if canConstructHere then
 			buffConstructorBuildSpeed(unitID)
