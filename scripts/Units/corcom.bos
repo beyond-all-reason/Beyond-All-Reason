@@ -800,7 +800,7 @@ Create()
 	idleTime = 0;
 	bMoving = FALSE;
 	bAiming = FALSE;
-	bIsBuilding = 0;
+	bIsBuilding = FALSE;
 	bDancing = FALSE;
 	danceSpeed = 8;
 	gun_2 = torso;
@@ -901,7 +901,7 @@ AimPrimary(heading, pitch)
 	turn aimx1 to x-axis <-5.000000> - pitch speed <250.000000>;
 	//turn nanolathe to x-axis <000000> speed <250.000000>;
 	// if the turret cannot turn to its new heading in one frame, wait for turn
-	if ( (get ABS(last_primary_heading-heading)>1800) OR (get ABS(last_primary_pitch-pitch)>1500) )
+	if ( (get ABS(last_primary_heading - heading)>1800) OR (get ABS(last_primary_pitch - pitch)>1500) )
 	{
 		// seems to take 3 frames for wait-for-turn to process
 		wait-for-turn aimy1 around y-axis;
@@ -910,7 +910,7 @@ AimPrimary(heading, pitch)
 	last_primary_heading=heading;
 	last_primary_pitch=pitch;
 	gun_2 = lfirept;
-	if( bIsBuilding == 1 )
+	if( bIsBuilding )
 	{
 		start-script ResumeBuilding();
 	}
@@ -996,7 +996,7 @@ AimSecondary(heading, pitch)
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
 	gun_2 = lfirept;
-	if( bIsBuilding == 1 )
+	if( bIsBuilding )
 	{
 		start-script ResumeBuilding();
 	}
@@ -1031,7 +1031,7 @@ StartBuilding(heading, pitch)
 	signal SIG_AIM;
 	//set-signal-mask SIG_AIM;
 	bAiming = TRUE;
-	bIsBuilding = 1;
+	bIsBuilding = TRUE;
 	//while( !Busy ) //aiming shouldnt block construction
 	//{
 	//	sleep 30;
@@ -1056,7 +1056,7 @@ TargetCleared(Func_Var_1)
 
 StopBuilding()
 {
-	bIsBuilding = 0;
+	bIsBuilding = FALSE;
 	set INBUILDSTANCE to 0;
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
