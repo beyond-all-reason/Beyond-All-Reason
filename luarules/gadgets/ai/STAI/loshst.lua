@@ -1,11 +1,4 @@
-
-local DebugDrawEnabled = false
-
-
-LosHST = class(Module)
-
-local losGridElmos = 256
-local losGridElmosHalf = losGridElmos / 2
+LosHST = class(Module) ---track every units: OWN ALLY ENEMY and insert in the right cell, then give to this cell a status 1 or  allynumber/teamnumber
 
 function LosHST:Name()
 	return "LosHST"
@@ -15,145 +8,159 @@ function LosHST:internalName()
 	return "loshst"
 end
 
-
-
 function LosHST:Init()
 	self.DebugEnabled = false
-	self.visualdbg = true
 	self.knownEnemies = {}
+	self.losEnemy = {}
+	self.radarEnemy = {}
+	self.ownImmobile = {}
+	self.ownMobile = {}
+	self.allyImmobile = {}
+	self.allyMobile = {}
+	self.ALLIES = {}
+	self.OWN = {}
+	self.ENEMY = {}
 	self.ai.friendlyTeamID = {}
 end
 
 function LosHST:Update()
--- 	local f = self.game:Frame()
--- 	if f % 13 + game:GetTeamID() == 0 then
-		if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
-		self:getCenter()
-        self.ai.friendlyTeamID = {}
-        self.ai.friendlyTeamID[self.game:GetTeamID()] = true
-        for teamID, _ in pairs(self.ai.alliedTeamIds) do
-            self.ai.friendlyTeamID[teamID] = true
-        end
-		-- update enemy jamming and populate list of enemies
-		local enemies = self.game:GetEnemies()
-		self.knownEnemies = {}
-		if enemies ~= nil then
-			local enemyList = {}
-			for i, e in pairs(enemies) do
-
-
-				if not e:IsAlive() then
-					self:cleanEnemy(e:ID())
-				else
-					local upos = e:GetPosition()
-					if self.ai.buildsitehst:isInMap(upos) then
-						enemy = self:scanEnemy(e)
-						if enemy then
-							self.knownEnemies[e:ID()] = enemy
-						end
-					end
-				end
-			end
+	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
+	self.ENEMY = {}
+	self.OWN = {}
+	self.ALLY = {}
+	for id,def in pairs(self.losEnemy) do
+		local unit = game:GetUnitByID(id)
+		local uPos = unit:GetPosition()
+		if self.losEnemy[id] and self.radarEnemy[id] then
+			self:Warn('unit in los and in radar, with losStatus:' ,game:GetUnitLos(id))
+		elseif not  uPos or not unit:IsAlive()then
+			self:cleanEnemy(id)
+		else
+			local X,Z = self.ai.maphst:PosToGrid(uPos)
+			self:setCellLos(self.ENEMY,unit,X,Z)
 		end
-		self:Draw()
--- 	end
+	end
+	for id,def in pairs(self.radarEnemy) do
+		local unit = game:GetUnitByID(id)
+		local uPos = unit:GetPosition()
+
+		if self.losEnemy[id] and self.radarEnemy[id] then
+			self:Warn('unit in los and in radar, with losStatus:' ,game:GetUnitLos(id))
+		elseif not  uPos or not unit:IsAlive()then
+			self:cleanEnemy(id)
+		else
+			local X,Z = self.ai.maphst:PosToGrid(uPos)
+			self:setCellRadar(self.ENEMY,unit,X,Z)
+		end
+	end
+	for id,def in pairs(self.ownImmobile) do
+		local unit = game:GetUnitByID(id)
+		local uPos = unit:GetPosition()
+		if not  uPos or not unit:IsAlive()then
+			self.ownImmobile[id] = nil
+		else
+			local X,Z = self.ai.maphst:PosToGrid(uPos)
+			self:setCellLos(self.OWN,unit,X,Z)
+		end
+	end
+	self:Draw()
 end
 
-function LosHST:UnitDead(unit)
-	if self.knownEnemies[unit:ID()] then
-		self:cleanEnemy(unit:ID())
+function LosHST:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	if allyTeam ~= self.ai.allyId then
+		return
 	end
+	local los = game:GetUnitLos(unitID)
+	local unit = game:GetUnitByID(unitID)
+	local position = unit:GetPosition()
+	self:EchoDebug(	'ENTER LOS',los,unitID,unitTeam,allyTeam,unitDefID,UnitDefs[unitDefID].name)
+	self.losEnemy[unitID] = unitDefID
+	self.radarEnemy[unitID] = nil
+end
+
+function LosHST:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+	if allyTeam ~= self.ai.allyId then
+		return
+	end
+	local los = game:GetUnitLos(unitID)
+	local unit = game:GetUnitByID(unitID)
+	local speed = UnitDefs[unitDefID].speed
+	if speed == 0  then
+		self.losEnemy[unitID] = unitDefID
+		self.radarEnemy[unitID] = nil
+	else
+		self.losEnemy[unitID] = nil
+	end
+	self:EchoDebug('LEFT LOS',los,unitID,unitTeam,allyTeam,unitDefID)
+end
+
+function LosHST:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+	if allyTeam ~= self.ai.allyId then
+		return
+	end
+	local los = game:GetUnitLos(unitID)
+	local unit = game:GetUnitByID(unitID)
+	local isImmobile = UnitDefs[unitDefID].speed == 0
+	if not self.losEnemy[unitID] then
+		self.radarEnemy[unitID] = unitDefID
+	end
+	self:EchoDebug('ENTER RADAR',los,unitID,unitTeam,allyTeam,unitDefID)
+end
+
+function LosHST:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+	if allyTeam ~= self.ai.allyId then
+		return
+	end
+	local los = game:GetUnitLos(unitID)
+	local unit = game:GetUnitByID(unitID)
+	local speed = UnitDefs[unitDefID].speed
+	self.radarEnemy[unitID] = nil
+	self:EchoDebug('LEFT RADAR',los,unitID,unitTeam,allyTeam,unitDefID)
+end
+
+
+
+function LosHST:UnitDead(unit)--this is a bit cheat, we always know if a unit died but is not computability to track allways all dead unit and try it everytime
+	self:cleanEnemy(unit:ID())
+	self.ownImmobile[unit:ID()] = nil
+	self.ownMobile[unit:ID()] = nil
+	self.allyImmobile[unit:ID()] = nil
+	self.allyMobile[unit:ID()] = nil
+	self:getCenter()
+
+
 end
 
 function LosHST:UnitDamaged(unit, attacker, damage)
-	if  attacker ~= nil and attacker:AllyTeam() ~= self.ai.allyId then --TODO --WARNING NOTE ATTENTION CAUTION TEST ALERT
-		self:scanEnemy(attacker,true) --a shoting unit is individuable by a medium player so is managed as a unit in LOS :full view
+	--if  attacker ~= nil and attacker:AllyTeam() ~= self.ai.allyId then --TODO --WARNING NOTE ATTENTION CAUTION TEST ALERT
+		--a shoting unit is individuable by a medium player so is managed as a unit in LOS :full view
+		--self.losEnemy[attacker:ID()] = self.ai.armyhst.unitTable[attacker:Name()].defId
+	--end
+end
+
+function LosHST:UnitCreated(unit, unitDefID, teamId)
+	if teamId == self.ai.id then
+		if UnitDefs[unitDefID].speed == 0 then
+			self.ownImmobile[unit:ID()] = unitDefID
+		else
+			self.ownMobile[unit:ID()] = unitDefID
+		end
+	elseif unit:AllyTeam() == self.ai.allyId then
+		if UnitDefs[unitDefID].speed == 0 then
+			self.allyImmobile[unit:ID()] = unitDefID
+		else
+			self.allyMobile[unit:ID()] = unitDefID
+		end
 	end
+	self:getCenter()
 end
 
 function LosHST:cleanEnemy(id)
-	self:EchoDebug('try to clean',id)
-	--if self.ai.IDsWeAreAttacking[id] then
-		--self.ai.attackhst:TargetDied(self.ai.IDsWeAreAttacking[id])
-	--end
-	--if self.ai.IDsWeAreRaiding[id] then
-		--self.ai.raidhst:TargetDied(self.ai.IDsWeAreRaiding[id])
-	--end
-	if self.knownEnemies[id] then
-		self:EchoDebug('clean',id,self.knownEnemies[id].name,self.knownEnemies[id].guls,self.knownEnemies[id].SPEED>0)
-		table.remove(self.knownEnemies,id)
-		self.knownEnemies[id] = nil--WARNING double removing why i dont !!!
-		return
-	end
-	self:EchoDebug(id,'not cleaned')
+	self:EchoDebug('unit dead removed from los and radar',id)
+	self.losEnemy[id] = nil
+	self.radarEnemy[id] = nil
 end
 
-function LosHST:scanEnemy(enemy,isShoting)
-	-- game:SendToConsole("updating known enemies")
-	local t = {} --a temporary table
-	t.id = enemy:ID()
-	t.name = enemy:Name()
-	local ut =self.ai.armyhst.unitTable[t.name]
-	if not t.name then
-		self:Warn('nil name')
-	end
-	t.position = enemy:GetPosition() --if is died pos is nil -- exixtance check
-	--we are interessed where the unit is right now, this is the threatening DEFENSIVE
-	t.HIT = ut.HIT -- this is the most important OFFENSIVE data
-	t.hitBy = ut.hitBy
-	t.knownid = true
-	t.hidden = false
-	t.mobile = ut.speed > 0
-	t.health = enemy:GetHealth()
-	t.M = ut.metalCost
-
-
-	t.mType =ut.mtype
-	t.GULS = Spring.GetUnitLosState(t.id ,self.ai.allyId,true)
-
-	if not t.position then
-		t = nil
-		self:Warn('how do you are there????? ? ?  ?  ?   ?   ?     ?        ?                 ?              ?')
-	elseif not t.position or t.GULS == 0 then--enemy dead,or not in sensor at all
-		t = nil
-	else
-		self:EchoDebug('GULS',t.id,t.GULS)
-
-		if isShoting or t.GULS >=7 or (t.GULS == 4 and ut.speed == 0) or (t.GULS == 6 and ut.speed == 0) then
-			t.view = 1
-			--full view
-
-		elseif t.GULS == 2  or (t.GULS == 6) then -- blip RADAR check speed to hazard a mobile/immobile bet
-			t.view = 0 --RADAR
-
-		elseif t.GULS == 4 then --mobile HIDDEN i see you one time, you are somewhere!!
-			t.view = -1 --HIDDEN
-
-		else
-			t = nil
-			self:Warn('unespected GULS response',GULS,t.id,t.position.x,t.position.z,t.name)
-		end
-		if t then
-			t.layer = self:setPosLayer(t.name,t.position)
-			t.speedX,t.speedY,t.speedZ, t.SPEED = Spring.GetUnitVelocity ( t.id )
-			--self:EchoDebug(t.name,'X-Z SPEED',t.speedX,t.speedZ,t.SPEED)
-			t.target = {x = t.position.x+( t.speedX*30),y = t.position.y,z = t.position.z + (t.speedZ*30)}
-			t.dirX,t.dirY,t.dirZ = Spring.GetUnitDirection ( t.id )
-			--self:EchoDebug(t.name,'dir X-Z',t.dirX,t.dirZ)
-
-		else
-			self:cleanEnemy(enemy:ID())
-		end
- 	end
-
-
-	return t
-end
-
--- function LosHST:IsKnownEnemy(unit)
--- 	local id = unit:ID()
--- 	return self.knownEnemies[id]
--- end
 
 
 function LosHST:viewPos(upos)
@@ -162,10 +169,7 @@ function LosHST:viewPos(upos)
 	if inLos and upos.y < 0 then return -1 end
 	if inLos then return 0 end
 	if inRadar then return true end
-	--if inRadar then return nil end
-
-	--if inRadar and upos.y < 0 and not jammed then return 'inSonar' -1 end
-	--if inRadar and upos.y >= 0 and not jammed then return 'inRadar' 0 end
+	---sonar????? is the same?
 	return nil
 end
 
@@ -175,8 +179,7 @@ end
 
 function LosHST:setPosLayer(unitName,Pos)
 	local ut = self.ai.armyhst.unitTable[unitName]
-	local float = false
-
+	local floating = false
 	if ut.mtype == 'air' then
 		self.ai.needAntiAir = true --TODO need to move from here
 		return 1
@@ -185,34 +188,22 @@ function LosHST:setPosLayer(unitName,Pos)
 		return -1
 	end
 	if Spring.GetGroundHeight(Pos.x,Pos.z) < 0 then --TEST  WARNING
-		float = true
+		floating = true
 	end
-
-	return 0 , float
+	return 0 , floating
 end
-
 
 function LosHST:getCenter()
 	self.CENTER = api.Position()
 	local count = 0
-	self.distal = 0
-	local media = 0
-	local mediaz = 0
-	local countmedia = 0
-	self.distalUnit = nil
-	local myunits = game:GetUnits() --game:GetFriendlies()???
-	self:EchoDebug('myunits',#myunits)
-	if not myunits then return end
-	for i,u in pairs(myunits) do
-		local ut = self.ai.armyhst.unitTable[u:Name()]
-		if not ut.isWeapon then
-			local upos = u:GetPosition()
-			if upos then
-				self.CENTER.x = self.CENTER.x + upos.x
-				self.CENTER.y = self.CENTER.y + upos.y
-				self.CENTER.z = self.CENTER.z + upos.z
-				count = count+1
-			end
+	for uid,uDef in pairs(self.ownImmobile) do
+		local u = game:GetUnitByID(uid)
+		local upos = u:GetPosition()
+		if upos then
+			self.CENTER.x = self.CENTER.x + upos.x
+			self.CENTER.y = self.CENTER.y + upos.y
+			self.CENTER.z = self.CENTER.z + upos.z
+			count = count+1
 		end
 	end
 	self.CENTER.x = self.CENTER.x / count
@@ -220,54 +211,334 @@ function LosHST:getCenter()
 	self.CENTER.z = self.CENTER.z / count
 end
 
+function LosHST:setupCell(grid,X,Z)--GAS are 3 layer. Unit of measure is usually metal cost!
+	--I = immoble
+	-- M = mobile
+	--G = ground
+	--A = air
+	--S = submerged
 
-function LosHST:Draw()
-	self.map:EraseAll(5)
-	if not self.visualdbg then
-		return
-	end
+	local CELL = {}
 
-	for id,data in pairs(self.knownEnemies) do
-		local u = self.game:GetUnitByID(id)
--- 		u:EraseHighlight(nil, nil, 5 )
--- 		self:Warn('unitidlosdraw',id,u:GetPosition())
--- 		print(u:GetPosition())
- 		if not u:IsAlive() then
- 			self:Warn('unit dead',id,u:Name())
-			u:DrawHighlight({1,1,1,1} , nil, 5 )
- 			--self:cleanEnemy(id)
+	CELL.X = X
+	CELL.Z = Z
+	CELL.POS = self.ai.maphst.GRID[X][Z].POS --self.ai.maphst:GridToPos(X,Z)
+	CELL.metal = 0
+	CELL.units = {}--hold all the units
+	CELL.buildings = {}
+	CELL.metalMedia = 0
+	CELL.unitsCount = 0
 
--- 		self:Warn('losname',data.name)
-
-		else
-			--self:EchoDebug('draw',data.name,data.GULS,data.id)
-			if data.view ==1 then
-				if data.layer == 1 then --A
-					u:DrawHighlight({1,0,0,1} , nil, 5 )
-				end
-				if data.layer == -1 then--S
-					u:DrawHighlight({0,0,1,1} , nil, 5 )
-				end
-				if data.layer == 0 then--G
-					u:DrawHighlight({0,1,0,1} , nil, 5 )
-				end
-			end
-			if data.view == 0 then --R
-				u:DrawHighlight({1,0,1,1} , nil, 5 )
-			end
-			if data.view == -1 then -- H
-				u:DrawHighlight({1,1,0,1} , nil, 5 )
-			end
-			--self:EchoDebug('speeeed',data.SPEED,data.name)
-			if data.SPEED and data.SPEED > 0 then
-				map:DrawLine(data.position, {x=data.position.x+(data.speedX*30),y=data.position.y,z=data.position.z+(data.speedZ*30)}, {0,1,1,1}, nil, false, 5 )
-
-			end
-		end
-	end
+	--unarm GAS immobiles
+	CELL.unarmGI = 0
+	CELL.unarmAI = 0
+	CELL.unarmSI = 0
+	CELL.unarmI = 0
+	--unarm GAS mobile
+	CELL.unarmGM = 0
+	CELL.unarmAM = 0
+	CELL.unarmSM = 0
+	CELL.unarmM = 0
+	--armed GAS mobile
+	CELL.armedGM = 0
+	CELL.armedAM = 0
+	CELL.armedSM = 0
+	CELL.armedM = 0
+	--armed GAS immobile
+	CELL.armedGI = 0
+	CELL.armedAI = 0
+	CELL.armedSI = 0
+	CELL.armedI = 0
+	--  unarm GAS sum
+	CELL.unarmG = 0
+	CELL.unarmA = 0
+	CELL.unarmS = 0
+	--armed GAS sum
+	CELL.armedG = 0
+	CELL.armedA = 0
+	CELL.armedS = 0
+	--GAS SUM
+	CELL.G = 0
+	CELL.A = 0
+	CELL.S = 0
+	-- GAS balanced unarm - armed
+	CELL.G_balance = 0
+	CELL.S_balance = 0
+	CELL.A_balance = 0
+	--totals unarmed armed
+	CELL.UNARM = 0 -- total amount of armed units in metal
+	CELL.ARMED = 0 -- total amount of unarmed int in metal
+	CELL.SOLDIERS = 0 --armed mobile units in Metal
+	CELL.TURRETS = 0 --armed immobile units in Metal
+	CELL.BUILDINGS = 0 --immobile unarmed units in metal value
+	CELL.WORKERS = 0 -- mobile unarmed value in metal
+	CELL.MOBILE = 0 -- total amount of mobile units in metal
+	CELL.IMMOBILE = 0 --total amount of immobile units in metal
+	CELL.IM_balance = 0 -- mobile - immobile in metal
+	CELL.ENEMY = 0 --total amount of metal in cell
+	CELL.ENEMY_BALANCE = 0 -- this is balanced SOLDIERS - TURRETS
+	CELL.SPEED = 0
+	return CELL
 end
 
 
+function LosHST:setCellRadar(grid,unit,X,Z)
+	if not self.ai.maphst:GridToPos(X,Z) then
+		return
+	end
+	grid[X] = grid[X] or {}
+	grid[X][Z] = grid[X][Z] or self:setupCell(grid,X,Z)
+	local CELL = grid[X][Z]
+	if CELL.metalMedia == 0 then
+		CELL.metalMedia = 30 + game:Frame() / 90
+	end
+	CELL.metal = CELL.metal + CELL.metalMedia
+	local M = CELL.metalMedia
+	local uPos = unit:GetPosition()
+	local speedX,speedY,speedZ, SPEED = Spring.GetUnitVelocity ( unit:ID() )
+	local target = {x = uPos.x+( speedX*100),y = uPos.y,z = uPos.z + (speedZ*100)}
+	CELL.SPEED = CELL.SPEED + SPEED
+	CELL.units[unit:ID()] = unit:Name()
+	CELL.unitsCount = CELL.unitsCount + 1
+	CELL.ARMED = CELL.ARMED + M
+	if SPEED > 0 then
+		CELL.SOLDIERS = CELL.SOLDIERS + M
+		CELL.MOBILE = CELL.MOBILE + M
+		CELL.armedGM = CELL.armedGM + M
+		CELL.armedAM = CELL.armedAM + M
+		CELL.armedSM = CELL.armedSM + M
+	else
+		CELL.TURRETS = CELL.TURRETS + M
+		CELL.IMMOBILE = CELL.IMMOBILE + M
+		CELL.armedGI = CELL.armedGI + M
+		CELL.armedAI = CELL.armedAI + M
+		CELL.armedSI = CELL.armedSI + M
+	end
+	CELL.UNARM = CELL.UNARM + M
+	if SPEED > 0 then
+		CELL.WORKERS = CELL.WORKERS + M
+		CELL.MOBILE = CELL.MOBILE + M
+		CELL.unarmAM = CELL.unarmAM + M
+		CELL.unarmSM = CELL.unarmSM + M
+		CELL.unarmGM = CELL.unarmGM + M
+	else
+		CELL.BUILDINGS = CELL.BUILDINGS + M
+		CELL.IMMOBILE = CELL.IMMOBILE + M
+		CELL.unarmAI = CELL.unarmAM + M
+		CELL.unarmSI = CELL.unarmSM + M
+		CELL.unarmGI = CELL.unarmGM + M
+	end
+	CELL.unarmG = CELL.unarmGM + CELL.unarmGI
+	CELL.unarmA = CELL.unarmAM + CELL.unarmAI
+	CELL.unarmS = CELL.unarmSM + CELL.unarmSI
+	CELL.armedG = CELL.armedGI + CELL.armedGM
+	CELL.armedA = CELL.armedAI + CELL.armedAM
+	CELL.armedS = CELL.armedSI + CELL.armedSM
+	CELL.G = CELL.armedG + CELL.unarmG
+	CELL.A = CELL.armedA + CELL.unarmA
+	CELL.S = CELL.armedS + CELL.unarmS
+	CELL.G_balance = CELL.armedG - CELL.unarmG
+	CELL.A_balance = CELL.armedA - CELL.unarmA
+	CELL.S_balance = CELL.armedS - CELL.unarmS
+	CELL.ENEMY = CELL.ARMED + CELL.UNARM --TOTAL VALUE
+	CELL.ENEMY_BALANCE = CELL.ARMED - CELL.UNARM
+	CELL.IM_balance = CELL.MOBILE - CELL.IMMOBILE
+
+end
+
+function LosHST:setCellLos(grid,unit,X,Z)
+	if not self.ai.maphst:GridToPos(X,Z) then
+		return
+	end
+	grid[X] = grid[X] or {}
+	grid[X][Z] = grid[X][Z] or self:setupCell(grid,X,Z)
+	local CELL = grid[X][Z]
+	CELL.unitsCount = CELL.unitsCount + 1
+	CELL.units[unit:ID()] = unit:Name()
+	local name = unit:Name()
+	local uPos = unit:GetPosition()
+	local ut = self.ai.armyhst.unitTable[name]
+	local M = ut.metalCost
+	local mobile = ut.speed > 0
+	local layer = self:setPosLayer(ut.name,uPos)
+	local speedX,speedY,speedZ, SPEED = Spring.GetUnitVelocity ( unit:ID() )
+	local target = {x = uPos.x+( speedX*100),y = uPos.y,z = uPos.z + (speedZ*100)}
+	CELL.SPEED = CELL.SPEED + SPEED
+	CELL.metal = CELL.metal + M
+	if CELL.unitsCount > 0 then
+		CELL.metalMedia = CELL.metal / CELL.unitsCount
+	end
+	if not mobile then
+		CELL.buildings[unit.id] = unit.name
+
+	end
+	if ut.isFactory then
+		CELL.base = unit.name
+	end
+	if ut.isWeapon then
+		CELL.ARMED = CELL.ARMED + M
+		if mobile  then
+			CELL.SOLDIERS = CELL.SOLDIERS + M
+			CELL.MOBILE = CELL.MOBILE + M
+			if layer == 0 then
+				CELL.armedGM = CELL.armedGM + M
+			elseif layer == 1 then
+				CELL.armedAM = CELL.armedAM + M
+			elseif layer == -1 then
+				CELL.armedSM = CELL.armedSM + M
+			end
+		else
+			CELL.TURRETS = CELL.TURRETS + M
+			CELL.IMMOBILE = CELL.IMMOBILE + M
+			if layer == 0 then
+				CELL.armedGI = CELL.armedGI + M
+			elseif layer == 1 then
+				CELL.armedAI = CELL.armedAI + M
+			elseif layer == -1 then
+				CELL.armedSI = CELL.armedSI + M
+			end
+		end
+
+	else
+		CELL.UNARM = CELL.UNARM + M
+		if mobile then
+			CELL.WORKERS = CELL.WORKERS + M
+			CELL.MOBILE = CELL.MOBILE + M
+			if layer > 0 then
+				CELL.unarmAM = CELL.unarmAM + M
+			elseif layer < 0  then
+				CELL.unarmSM = CELL.unarmSM + M
+			elseif layer == 0 then
+				CELL.unarmGM = CELL.unarmGM + M
+			end
+		else
+			CELL.BUILDINGS = CELL.BUILDINGS + M
+			CELL.IMMOBILE = CELL.IMMOBILE + M
+			if layer > 0 then
+				CELL.unarmAI = CELL.unarmAM + M
+			elseif layer < 0 then
+				CELL.unarmSI = CELL.unarmSM + M
+			elseif layer == 0 then
+				CELL.unarmGI = CELL.unarmGM + M
+			end
+		end
+	end
+
+	CELL.unarmG = CELL.unarmGM + CELL.unarmGI
+	CELL.unarmA = CELL.unarmAM + CELL.unarmAI
+	CELL.unarmS = CELL.unarmSM + CELL.unarmSI
+	CELL.armedG = CELL.armedGI + CELL.armedGM
+	CELL.armedA = CELL.armedAI + CELL.armedAM
+	CELL.armedS = CELL.armedSI + CELL.armedSM
+	CELL.G = CELL.armedG + CELL.unarmG
+	CELL.A = CELL.armedA + CELL.unarmA
+	CELL.S = CELL.armedS + CELL.unarmS
+	CELL.G_balance = CELL.armedG - CELL.unarmG
+	CELL.A_balance = CELL.armedA - CELL.unarmA
+	CELL.S_balance = CELL.armedS - CELL.unarmS
+	CELL.ENEMY = CELL.ARMED + CELL.UNARM --TOTAL VALUE
+	CELL.ENEMY_BALANCE = CELL.ARMED - CELL.UNARM
+	CELL.IM_balance = CELL.MOBILE - CELL.IMMOBILE
+	grid[X][Z] = CELL
+end
+
+
+function LosHST:Draw()
+	local ch = 5
+	self.map:EraseAll(ch)
+	if not self.ai.drawDebug then
+		return
+	end
+	for id,def in pairs(self.losEnemy) do
+		local u = self.game:GetUnitByID(id)
+		u:DrawHighlight({1,0,0,1} , nil, ch )
+	end
+	for id,def in pairs(self.radarEnemy) do
+		local u = self.game:GetUnitByID(id)
+		u:DrawHighlight({0,1,0,1} , nil, ch )
+	end
+
+	local colours={
+			g = {1,0,0,1},--'red'
+			a = {0,1,0,1},--'green'
+			s = {0,0,1,1},--'blue'
+			p = {0,1,1,1},
+			f = {1,1,0,1},
+			unbalance = {1,1,1,1},
+			balance = {0,0,0,1},
+
+			}
+	if self.enemyBasePosition then
+		map:DrawPoint(self.enemyBasePosition, {1,1,1,1}, 'BASE',  ch)
+	end
+	map:DrawPoint(self.CENTER, {1,1,1,1}, 'BASE',  ch)
+	local cellElmosHalf = self.ai.maphst.gridSizeHalf
+	for X,cells in pairs (self.ENEMY) do
+		for Z,cell in pairs (cells) do
+			local p = cell.POS
+			--map:DrawCircle(p,cellElmosHalf, colours.balance, cell.ENEMY,false,  4)
+			local pos1, pos2 = api.Position(), api.Position()--z,api.Position(),api.Position(),api.Position()
+			pos1.x, pos1.z = p.x - cellElmosHalf, p.z - cellElmosHalf
+			pos2.x, pos2.z = p.x + cellElmosHalf, p.z + cellElmosHalf
+			pos1.y=Spring.GetGroundHeight(pos1.x,pos1.z)
+			pos2.y=Spring.GetGroundHeight(pos2.x,pos2.z)
+			self:EchoDebug('drawing',pos1.x,pos1.z,pos2.x,pos2.z)
+			if cell.ENEMY_BALANCE > 0 then
+				map:DrawRectangle(pos1, pos2, colours.balance, cell.ENEMY_BALANCE, false, ch)
+			else
+				map:DrawRectangle(pos1, pos2, colours.unbalance, cell.ENEMY_BALANCE, false, ch)
+			end
+			posG = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
+			posS = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
+			posB = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
+			posA = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
+
+			if cell.G > 0 then
+				map:DrawCircle(posG, cellElmosHalf/2,colours.g , cell.G, true, ch)
+			end
+			if cell.A > 0 then
+				map:DrawCircle(posA, cellElmosHalf/2,colours.a, cell.A, true, ch)
+			end
+			if cell.S > 0 then
+				map:DrawCircle(posS, cellElmosHalf/2, colours.s, cell.S, true, ch)
+			end
+		end
+
+	end
+	for X,cells in pairs (self.OWN) do
+		for Z,cell in pairs (cells) do
+			local p = cell.POS
+			--map:DrawCircle(p,cellElmosHalf, colours.balance, cell.ENEMY,false,  4)
+			local pos1, pos2 = api.Position(), api.Position()--z,api.Position(),api.Position(),api.Position()
+			pos1.x, pos1.z = p.x - cellElmosHalf, p.z - cellElmosHalf
+			pos2.x, pos2.z = p.x + cellElmosHalf, p.z + cellElmosHalf
+			pos1.y=Spring.GetGroundHeight(pos1.x,pos1.z)
+			pos2.y=Spring.GetGroundHeight(pos2.x,pos2.z)
+			self:EchoDebug('drawing',pos1.x,pos1.z,pos2.x,pos2.z)
+			if cell.ENEMY_BALANCE > 0 then
+				map:DrawRectangle(pos1, pos2, colours.p, cell.ENEMY_BALANCE, false, ch)
+			else
+				map:DrawRectangle(pos1, pos2, colours.f, cell.ENEMY_BALANCE, false, ch)
+			end
+			posG = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
+			posS = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
+			posB = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
+			posA = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
+
+			if cell.G > 0 then
+				map:DrawCircle(posG, cellElmosHalf/2,colours.g , cell.G, true, ch)
+			end
+			if cell.A > 0 then
+				map:DrawCircle(posA, cellElmosHalf/2,colours.a, cell.A, true, ch)
+			end
+			if cell.S > 0 then
+				map:DrawCircle(posS, cellElmosHalf/2, colours.s, cell.S, true, ch)
+			end
+		end
+
+	end
+
+end
 
 
 --[[ suggested of beherith
@@ -307,7 +578,7 @@ LOS
 9  1001
 8  1000 last of LOS first time i see it
 
-7 0111 see one time, in radar with continous LOS
+7 0111 see one time, in radar with continous radar coverage LOS
 
 RADAR
 6 0110 see one time, in radar but intermittent so if mobile then RADAR, if building then LOS
@@ -315,7 +586,7 @@ RADAR
 4 0100 see on time, now HIDDEN but if is a building then LOS
 
 3 0011 never seen ,in radar, with continous coverage ?? IMPOSSIBLE
-2 0010 just in radar, never seen in losRADAR PURE
+2 0010 just in radar, never seen in los RADAR PURE
 
 1 0001 not in radar not in los but continous.... IMPOSSIBLE
 ]]--
@@ -371,8 +642,8 @@ isnt 'typed' meaning that its a radar dot that has been revealed or not?
 I definately think so
 so if you use raw = true
 then result = 15 ( 1 1 1 1 ) means in radar, in los, known unittype
-also, if result is > 2, that means that the unitdefID is known
-cause the unitdefID of a unit is 'forgotten' if the unit leaves radar
+also, if result is > 2, that means that the unitDefID is known
+cause the unitDefID of a unit is 'forgotten' if the unit leaves radar
 so the key info here is these 4 bits:
 I think the bits might be:
 bit 0 : LOS_INLOS, unit is in LOS right now,
@@ -381,741 +652,22 @@ bit 2: LOS_PREVLOS unit was in los at least once already, so the unitDefID can b
 bit 3: LOS_CONTRADAR: unit has had continous radar coverage since it was spotted in LOS]]--
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 --[[
-local DebugDrawEnabled = false
-
-
-LosHST = class(Module)
-
-local sqrt = math.sqrt
-local losGridElmos = 128
-local losGridElmosHalf = losGridElmos / 2
-local gridSizeX
-local gridSizeZ
-
-local function EmptyLosTable()
-	local t = {}
-	t[1] = false
-	t[2] = false
-	t[3] = false
-	t[4] = false
-	return t
-end
-
-function LosHST:Name()
-	return "LosHST"
-end
-
-function LosHST:internalName()
-	return "loshst"
-end
-
-LosHST.DebugEnabled = false
-
-function LosHST:Init()
-	self.losGrid = {}
-	self.ai.knownEnemies = {}
-	self.ai.knownWrecks = {}
-	self.ai.wreckCount = 0
-	self.ai.lastLOSUpdate = 0
-	self.ai.friendlyTeamID = {}
-	self.immobileE = {}
-	self.mobileE = {}
-	self.draw = {}
-	self:Update()
-end
-
-
-
-function LosHST:Update()
-	local f = self.game:Frame()
-	if f % 23 == 0 then
-		self:getCenter()
-        self.ai.friendlyTeamID = {}
-        self.ai.friendlyTeamID[self.game:GetTeamID()] = true
-        for teamID, _ in pairs(self.ai.alliedTeamIds) do
-            self.ai.friendlyTeamID[teamID] = true
-        end
-		-- update enemy jamming and populate list of enemies
-		local enemies = self.game:GetEnemies()
-
-		if enemies ~= nil then
-			local enemyList = {}
-			for i, e in pairs(enemies) do
-				--self:unitLosState(e:ID())
-				local uname = e:Name()
-				local upos = e:GetPosition()
-				-- so that we only have to poll GetEnemies() once
-				--enemyList[e:ID()] = { unit = e, unitName = uname, position = upos, unitID = e:ID(), cloaked = e:IsCloaked(), beingBuilt = e:IsBeingBuilt(), health = e:GetHealth(), los = 0 , blip = 0})
- 				table.insert(enemyList, { unit = e, unitName = uname, position = upos, unitID = e:ID(), cloaked = e:IsCloaked(), beingBuilt = e:IsBeingBuilt(), health = e:GetHealth(), los = 0 , blip = 0})
-			end
-			-- update known enemies
-			self:UpdateEnemies(enemyList)
-		end
-		-- update known wrecks
-		self:UpdateWrecks()
-		self.ai.lastLOSUpdate = f
-	end
-end
-
-function LosHST:unitLosState(id)
-	local guls = Spring.GetUnitLosState(id ,0,true)
---[[int LuaSyncedRead::GetUnitLosState(lua_State* L)
-{
-    const CUnit* unit = ParseUnit(L, __func__, 1);
-    if (unit == nullptr)
-        return 0;
-
-    const int allyTeamID = GetEffectiveLosAllyTeam(L, 2);
-    unsigned short losStatus;
-    if (allyTeamID < 0) {
-        losStatus = (allyTeamID == CEventClient::AllAccessTeam) ? (LOS_ALL_MASK_BITS | LOS_ALL_BITS) : 0;
-    } else {
-        losStatus = unit->losStatus[allyTeamID];
-    }
-
-    constexpr int currMask = LOS_INLOS   | LOS_INRADAR;
-    constexpr int prevMask = LOS_PREVLOS | LOS_CONTRADAR;
-
-    const bool isTyped = ((losStatus & prevMask) == prevMask);
-
-    if (luaL_optboolean(L, 3, false)) {
-        // return a numeric value
-        if (!CLuaHandle::GetHandleFullRead(L))
-            losStatus &= ((prevMask * isTyped) | currMask);
-
-        lua_pushnumber(L, losStatus);
-        return 1;
-    }
-
-    lua_createtable(L, 0, 3);
-    if (losStatus & LOS_INLOS) {
-        HSTR_PUSH_BOOL(L, "los", true);
-    }
-    if (losStatus & LOS_INRADAR) {
-        HSTR_PUSH_BOOL(L, "radar", true);
-    }
-    if ((losStatus & LOS_INLOS) || isTyped) {
-        HSTR_PUSH_BOOL(L, "typed", true);
-    }
-    return 1;
-}
-ugh this is nasty
-ok raw means it returns number instead of table
-so the numeric integer of the mask bits
-and I dont think you can get wether a unit is seen in airlos or regular los
-its either seen or not
-raw is generally preferred, as is much faster in than creating a table
-isnt 'typed' meaning that its a radar dot that has been revealed or not?
-I definately think so
-so if you use raw = true
-then result = 15 ( 1 1 1 1 ) means in radar, in los, known unittype
-also, if result is > 2, that means that the unitdefID is known
-cause the unitdefID of a unit is 'forgotten' if the unit leaves radar
-so the key info here is these 4 bits:
-I think the bits might be:
-bit 0 : LOS_INLOS, unit is in LOS right now,
-bit 1 : LOS_INRADAR unit is in radar right now,
-bit 2: LOS_PREVLOS unit was in los at least once already, so the unitDefID can be queried
-bit 3: LOS_CONTRADAR: unit has had continous radar coverage since it was spotted in LOS
-
-end
-function LosHST:scanEnemies2()
-	local enemies = self.game:GetEnemies()
-	if enemies ~= nil then
-		local enemyList = {}
-		for i, e in pairs(enemies) do
-			local uname = e:Name()
-			local upos = e:GetPosition()
-			local _,_,_, jammed = Spring.GetPositionLosState(upos.x, upos.y, upos.z, self.ai.allyId) --TEST i think is the reverse thing
-			local _inLos, _inAirLos, _inRadar = self:LAR(id)
-			-- so that we only have to poll GetEnemies() once
-			local specs = self.ai.armyhst.unitTable[uname]
-			enemyList[e:ID()] = { 	unit = e,
-									unitName = uname,
-									position = upos,
-									unitID = e:ID(),
-									cloaked = e:IsCloaked(),
-			                        inJam = jammed,
-									beingBuilt = e:IsBeingBuilt(),
-									health = e:GetHealth(),
-									sighting = 0,
-									inAirLos = _inAirLos and specs.mtype == "air" and not cloaked,
-									inSurfaceLos = _inLos and pos.y > 0 and not cloaked,
-									inSubmergedLos = _inLos and specs.mtype == "sub"and not cloaked,
-									inRadar = _inRadar and (not jammed or not cloaked),
-			                      }
-			local enemy = enemyList[e:ID()]
-			enemy.inLos = (_inAirLos or _inLos) and not enemy.cloaked
-			enemy.isMobile = (enemy.inLos and specs.speed > 0) or (enemy.inRadar and Spring.GetUnitVelocity(e:ID()))
-			enemy.isImmobile = specs.isImmobile
-			if (not enemy.inJam and not enemy.cloaked) and enemy.inLos then
-				--set last sighting time
-				enemy.sighting  =  self.game:Frame()
-			end
-			if (jammed or cloaked and inRadar) and ( not enemy.inLos  and not enemy.isImmobile) and self.game:Frame() - enemy.sighting > 600 then
-				--remove old mobile units dont sight from much time
-				enemy = nil
-			end
-			if enemy.inSurfaceLos then
-				e.unit:Internal():DrawHighlight( {100,0,0,100}, 'surf', 9 )
-			elseif enemy.inSubmergedLos then
-				e.unit:Internal():DrawHighlight( {100,0,0,100}, 'sub', 9 )
-			elseif enemy.inRadar then
-				e.unit:Internal():DrawHighlight( {0,100,0,100}, 'radar', 9 )
-			elseif enemy.inAirLos then
-				e.unit:Internal():DrawHighlight( {0,0,100,100}, 'air', 9 )
-			elseif enemy.isMobile then
-				e.unit:Internal():DrawHighlight( {100,100,100,100}, 'mobile', 9 )
-			elseif enemy.isImmobile then
-				e.unit:Internal():DrawHighlight( {0,0,0,100}, 'immobile', 9 )
-			end
-		end
-	end
-end
-function LosHST:LAR(id)
-	local inLos = Spring.IsUnitInLos(id, self.ai.allyId)
-	local inAirLos = Spring.IsUnitInAirLos(id, self.ai.allyId)
-	local inRadar = Spring.IsUnitInRadar(id, self.ai.allyId)
-	return inLos , inAirLos, inRadar
-end
-
-function LosHST:ScanEnemy(enemies)
-	if enemyList == nil then return end
-	if #enemyList == 0 then return end
-	self.cloaked = {}
-	self.jammed = {}
-
-	for id, enemy  in ipairs(enemies) do
-		local id = e.unitID
-		local ename = e.unitName
-		local pos = e.position
-		local inLos, inAirLos, inRadar = self:LAR(id)
-		local specs = self.ai.armyhst.unitTable[ename]
-		if e.cloaked then
-			self.enemyCloaked[id] = enemy
-		end
-		if inJam then
-			self.enemyJammed[id] = enemy
-		end
-		if inAirLos and specs.mtype == "air"  then
-			self.enemyAir[id] = enemy
-		end
-		if inLos then
-			if specs.mtype == "sub" or pos.y < 0 then
-				enemySub[id] = enemy
-			else
-				enemyGround[id] = enemy
-			end
-		end
-		if inRadar and not (inLos or inAirLos) then
-			if pos.y < 0 then
-				self.enemySubRadar[id] = enemy
-			else
-				self.enemyGroundRadar[id] = enemy
-			end
-		end
-		if specs.speed > 0 then
-			self.enemyMobile[id] = enemy
-		else
-			self.enemyImmobile[id] = enemy
-		end
-
-	end
-end
-
-
-function LosHST:UpdateEnemies(enemyList)
-	if enemyList == nil then return end
-	if #enemyList == 0 then return end
-	-- game:SendToConsole("updating known enemies")
-	local known = {}
-	local exists = {}
-	for i, e  in pairs(enemyList) do
-
-		local id = e.unitID
-		local ename = e.unitName
-		local pos = e.position
-		exists[id] = pos
-		if not e.cloaked then
-			local lt
-			local t = {}
-			t[2] = Spring.IsUnitInLos(id, self.ai.allyId)
-			if Spring.IsUnitInRadar(id, self.ai.allyId) then
-				if pos.y < 0 then -- underwater
-					t[3] = true
--- 					self.unit:Internal():DrawHighlight( {0,100,0}, id, 9 )--Spring.GetUnitLosState
-				else
-					t[1] = true
--- 					self.unit:Internal():DrawHighlight( {0,0,0}, id, 9 )
-				end
-			end
-			if Spring.IsUnitInAirLos(id, self.ai.allyId) then
-				t[4] = true
-			end
-			lt = t
-
-			local los = 0
-			local persist = false
-			local underWater = (self.ai.armyhst.unitTable[ename].mtype == "sub")
-			if underWater then
-				if lt[3] then
-					-- sonar
-					los = 2
-				end
-			else
-				if lt[1] and not lt[2] and not self.ai.armyhst.unitTable[ename].stealth then
-					los = 1
-				elseif lt[2] then
-					los = 2
-				elseif lt[4] and self.ai.armyhst.unitTable[ename].mtype == "air" then
-					self.ai.needAntiAir = true
-					-- air los
-					los = 2
-				end
-			end
-			if los == 0 and self.ai.armyhst.unitTable[ename].isBuilding then
-				-- don't remove from knownenemies if it's a building that was once seen
-
-				persist = true
-			elseif los == 1 then
-				-- don't remove from knownenemies if it's a now blip
-				persist = true
-			elseif los == 2 then
-				known[id] = los
-				self.ai.knownEnemies[id] = e
-
-				e.los = los
-			end
-			if persist == true then
-				if self.ai.knownEnemies[id] ~= nil then
-					if self.ai.knownEnemies[id].los == 2 then
-						known[id] = self.ai.knownEnemies[id].los
-					end
-				end
-			end
-			if los == 1 and not known[id] and self.ai.knownEnemies[id] ~= 2 then
-				-- don't overwrite seen with radar-seen unless it was previously not known
-				self.ai.knownEnemies[id] = e
-				e.los = los
-				known[id] = los
-			end
-			if self.ai.knownEnemies[id] ~= nil  then
-				if known[id] == 2 and self.ai.knownEnemies[id].los == 2 then
-				end
-			end
-		end
-	end
-	-- remove unit ghosts outside of radar range and building ghosts if they don't exist
-	-- this is cheating a little bit, because dead units outside of sight will automatically be removed
-	-- also populate moving blips (whether in radar or in sight) for analysis
-	local blips = {}
-	local f = self.game:Frame()
-	for id, e in pairs(self.ai.knownEnemies) do
-		if not exists[id] then
-			-- enemy died
-			if self.ai.IDsWeAreAttacking[id] then
-				self.ai.attackhst:TargetDied(self.ai.IDsWeAreAttacking[id])
-			end
-			--if self.ai.IDsWeAreRaiding[id] then
-				--self.ai.raidhst:TargetDied(self.ai.IDsWeAreRaiding[id])
-			--end
-			self:EchoDebug("enemy " .. e.unitName .. " died!")
-
-			local mtypes = self.ai.armyhst.unitTable[e.unitName].weaponMtype--self.ai.tool:UnitWeaponMtypeList(e.unitName)
-			for i, mtype in pairs(mtypes) do
--- 				self.ai.raidhst:NeedMore(mtype)
--- 				self.ai.attackhst:NeedLess(mtype)
-				if mtype == "air" then self.ai.bomberhst:NeedLess() end
-			end
-			if DebugDrawEnabled then
-				self.map:ErasePoint(nil, nil, id, 3)
-			end
-			self.ai.knownEnemies[id] = nil
-		elseif not known[id] then
-			if e.ghost then
-				local gpos = e.ghost.position
-				if gpos then
-					if self:IsInLos(gpos) or self:IsInRadar(gpos) then
-						-- the ghost is not where it was last seen, but it's still somewhere
-						e.ghost.position = nil
-					end
-				end
-				-- expire ghost
-				-- if f > e.ghost.frame + 600 then
-					-- self.ai.knownEnemies[id] = nil
-				-- end
-			else
-				e.ghost = { frame = f, position = e.position }
-			end
-		else
-			if not self.ai.armyhst.unitTable[e.unitName].isBuilding then
-				local count = true
-				if e.los == 2 then
-					-- if we know what kind of unit it is, only count as a potential threat blip if it's a hurty unit
-					-- air doesn't count because there are no buildings in the air
--- 					local threatLayers = self.ai.tool:UnitThreatRangeLayers(e.unitName)
-					local threatLayers = self.ai.armyhst.unitTable[e.unitName].threatLayers
-					if threatLayers.ground.threat == 0 and threatLayers.submerged.threat == 0 then
-						count = false
-					end
-				end
-				if count then table.insert(blips, e) end
-			end
-			e.ghost = nil
-		end
-	end
-	-- send blips off for analysis
-	self.ai.tacticalhst:NewEnemyPositions(blips)
-end
-
-function LosHST:UpdateWrecks()
-	local wrecks = self.map:GetMapFeatures()
-	if wrecks == nil then
-		self.ai.knownWrecks = {}
-		return
-	end
-	if #wrecks == 0 then
-		self.ai.knownWrecks = {}
-		return
-	end
-	-- game:SendToConsole("updating known wrecks")
-	local known = {}
-	for i, feature  in pairs(wrecks) do
-		if feature ~= nil then
-			local featureName = feature:Name()
-			-- only count features that aren't geovents and that are known to be reclaimable or guessed to be so
-			local okay = false
-			if featureName ~= "geovent" then -- don't get geo spots
-				if self.ai.armyhst.featureTable[featureName] then
-					if self.ai.armyhst.featureTable[featureName].reclaimable then
-						okay = true
-					end
-				else
-					for findString, metalValue in pairs(self.ai.armyhst.baseFeatureMetal) do
-						if string.find(featureName, findString) then
-							okay = true
-							break
-						end
-					end
-				end
-			end
-			if okay then
-				local position = feature:GetPosition()
-				local los = self:GroundLos(position)
-				local id = feature:ID()
-				local persist = false
-				local wreck = { feature = feature, los = los, featureName = featureName, position = position}
-				if los == 0 or los == 1 then
-					-- don't remove from knownenemies if it was once seen
-					persist = true
-				elseif los == 2 then
-					known[id] = true
-					self.ai.knownWrecks[id] = wreck
-				end
-				if persist == true then
-					if self.ai.knownWrecks[id] ~= nil then
-						if self.ai.knownWrecks[id].los == 2 then
-							known[id] = true
-						end
-					end
-				end
-			end
-		end
-	end
-	self.ai.wreckCount = 0
-	-- remove wreck ghosts that aren't there anymore
-	for id, los in pairs(self.ai.knownWrecks) do
-		-- game:SendToConsole("known enemy " .. id .. " " .. los)
-		if known[id] == nil then
-			-- game:SendToConsole("removed")
-			self.ai.knownWrecks[id] = nil
-		else
-			self.ai.wreckCount = self.ai.wreckCount + 1
-		end
-	end
-	-- cleanup
-	known = {}
-end
-
-
-
-function LosHST:IsInLos(pos)
-	return self:GroundLos(pos) == 2
-end
-
-function LosHST:IsInRadar(pos)
-	return self:GroundLos(pos) == 1
-end
-
-function LosHST:IsInSonar(pos)
-	return self:GroundLos(pos) == 3
-end
-
-function LosHST:IsInAirLos(pos)
-	return self:GroundLos(pos) == 4
-end
-
-function LosHST:GroundLos(upos)
-	local LosOrRadar, inLos, inRadar, jammed = Spring.GetPositionLosState(upos.x, upos.y, upos.z, self.ai.allyId)
-	if inLos then return 2 end
-	if upos.y < 0 then -- underwater
-		if inRadar then return 3 end
-	end
-	if inRadar then return 1 end
-	if Spring.IsPosInAirLos(upos.x, upos.y, upos.z, self.ai.allyId) then
-		return 4
-	else
-		return 0
-	end
-	local gx = math.ceil(upos.x / losGridElmos)
-	local gz = math.ceil(upos.z / losGridElmos)
-	if self.losGrid[gx] == nil then
-		return 0
-	elseif self.losGrid[gx][gz] == nil then
-		return 0
-	else
-		if self.ai.maphst:IsUnderWater(upos) then
-			if self.losGrid[gx][gz][3] then
-				return 3
-			else
-				return 0
-			end
-		elseif self.losGrid[gx][gz][1] and not self.losGrid[gx][gz][2] then
-			return 1
-		elseif self.losGrid[gx][gz][2] then
-			return 2
-		else
-			return 0
-		end
-	end
-end
-
-function LosHST:AllLos(upos)
-	local t = {}
-	local LosOrRadar, inLos, inRadar, jammed = Spring.GetPositionLosState(upos.x, upos.y, upos.z, self.ai.allyId)
-	if inLos then t[2] = true end
-	if inRadar then
-		if upos.y < 0 then -- underwater
-			t[3] = true
-		else
-			t[1] = true
-		end
-	end
-	if Spring.IsPosInAirLos(upos.x, upos.y, upos.z, self.ai.allyId) then
-		t[4] = true
-	end
-	return t
-end
-
-function LosHST:IsKnownEnemy(unit)
-	local id = unit:ID()
-	if self.ai.knownEnemies[id] then
-		return self.ai.knownEnemies[id].los
-	else
-		return 0
-	end
-end
-
-function LosHST:IsKnownWreck(feature)
-	local id = feature:ID()
-	if self.ai.knownWrecks[id] then
-		return self.ai.knownWrecks[id]
-	else
-		return 0
-	end
-end
-
-function LosHST:GhostPosition(unit)
-	local id = unit:ID()
-	if self.ai.knownEnemies[id] then
-		if self.ai.knownEnemies[id].ghost then
-			return self.ai.knownEnemies[id].position
-		end
-	end
-	return nil
-end
-
-function LosHST:KnowEnemy(unit, los)
-	los = los or 2
-	local knownEnemy = self.ai.knownEnemies[unit:ID()]
-	if knownEnemy and knownEnemy.los >= los then
-		return
-	end
-	local upos = unit:GetPosition()
-	if not upos or not upos.x then
-		return
-	end
-	local enemy = { unit = unit, unitName = unit:Name(), position = upos, unitID = unit:ID(), cloaked = unit:IsCloaked(), beingBuilt = unit:IsBeingBuilt(), health = unit:GetHealth(), los = los }
-	self.ai.knownEnemies[unit:ID()] = enemy
-end
-
-
--- local mapColors = {
--- 	[1] = { 1, 1, 0 },
--- 	[2] = { 0, 0, 1 },
--- 	[3] = { 1, 0, 0 },
--- 	JAM = { 0, 0, 0 },
--- 	known = { 1, 1, 1 },
--- }
-
--- local function GetColorFromLabel(label)
--- 	local color = mapColors[label] or { 1, 1, 1 }
--- 	color[4] = color[4] or 0.5
--- 	return color
--- end
-
--- local function PlotDebug(x, z, label)
--- 	if DebugDrawEnabled then
--- 		x = math.ceil(x)
--- 		z = math.ceil(z)
--- 		local pos = api.Position()
--- 		pos.x, pos.z = x, z
--- 		map:DrawPoint(pos, GetColorFromLabel(label), label, 3)
--- 	end
--- end
-
--- local function PlotSquareDebug(x, z, size, label)
--- 	if DebugDrawEnabled then
--- 		x = math.ceil(x)
--- 		z = math.ceil(z)
--- 		size = math.ceil(size)
--- 		local pos1 = api.Position()
--- 		local pos2 = api.Position()
--- 		local halfSize = size / 2
--- 		pos1.x = x - halfSize
--- 		pos1.z = z - halfSize
--- 		pos2.x = x + halfSize
--- 		pos2.z = z + halfSize
--- 		map:DrawRectangle(pos1, pos2, GetColorFromLabel(label), label, false, 3)
--- 	end
--- end
-
--- function LosHST:HorizontalLine(x, z, tx, val, jam)
--- 	-- self:EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " with value " .. val)
--- 	for ix = x, tx do
--- 		if jam then
--- 			if self.losGrid[ix] == nil then return end
--- 			if self.losGrid[ix][z] == nil then return end
--- 			if DebugDrawEnabled then
--- 				if self.losGrid[ix][z][val] == true then PlotSquareDebug(ix * losGridElmos, z * losGridElmos, losGridElmos, "JAM") end
--- 			end
--- 			if self.losGrid[ix][z][val] then self.losGrid[ix][z][val] = false end
--- 		else
--- 			if self.losGrid[ix] == nil then self.losGrid[ix] = {} end
--- 			if self.losGrid[ix][z] == nil then
--- 				self.losGrid[ix][z] = EmptyLosTable()
--- 			end
--- 			if self.losGrid[ix][z][val] == false and DebugDrawEnabled then PlotSquareDebug(ix * losGridElmos, z * losGridElmos, losGridElmos, val) end
--- 			self.losGrid[ix][z][val] = true
--- 		end
--- 	end
--- end
-
--- function LosHST:Plot4(cx, cz, x, z, val, jam)
--- 	self:HorizontalLine(cx - x, cz + z, cx + x, val, jam)
--- 	if x ~= 0 and z ~= 0 then
---         self:HorizontalLine(cx - x, cz - z, cx + x, val, jam)
---     end
--- end
-
--- function LosHST:FillCircle(cx, cz, radius, val, jam)
--- 	-- convert to grid coordinates
--- 	cx = math.ceil(cx / losGridElmos)
--- 	cz = math.ceil(cz / losGridElmos)
--- 	radius = math.floor(radius / losGridElmos)
--- 	if radius > 0 then
--- 		local err = -radius
--- 		local x = radius
--- 		local z = 0
--- 		while x >= z do
--- 	        local lastZ = z
--- 	        err = err + z
--- 	        z = z + 1
--- 	        err = err + z
--- 	        self:Plot4(cx, cz, x, lastZ, val, jam)
--- 	        if err >= 0 then
--- 	            if x ~= lastZ then self:Plot4(cx, cz, lastZ, x, val, jam) end
--- 	            err = err - x
--- 	            x = x - 1
--- 	            err = err - x
--- 	        end
--- 	    end
--- 	end
--- end
+contr,prevlos, rad,los
+0 	0000	NIL
+1 	0001	L
+2 	0010	R
+3 	0011	L
+4 	0100	HIDDEN
+5 	0101	L
+6 	0110	R
+7 	0111	L
+8 	1000	IMPOSSIBLE
+9 	1001	L
+10 	1010	IMPOSSIBLE
+11	1011	L
+12	1100	was in los and not in radar but have contradar ??? strange
+13	1101	L
+14	1110	L in radar, already seen and have continous coverage so keep the ID last IDDD IN LOS
+15	1111	L
 ]]

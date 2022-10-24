@@ -52,7 +52,9 @@ function ShardAI:Init()
 			if m == nil then
 				self:Warn("Error! Shard tried to init a nil module!")
 			else
+				--local RAM = gcinfo()
 				m:Init()
+				--print (m:Name(),gcinfo() - RAM)
 			end
 		end
 
@@ -75,15 +77,23 @@ function ShardAI:Update()
 	if self.gameend == true then
 		return
 	end
+	self.game:StartTimer('UPDATE')
 	for i,m in ipairs(self.modules) do
 		if m == nil then
 			self:Warn("nil module!")
 		else
- 			self.game:StartTimer(m:Name() .. ' ai')
+ 			self.game:StartTimer(m:Name() .. ' hst')
+			--local RAM = gcinfo()
+
 			m:Update()
- 			self.game:StopTimer(m:Name() .. ' ai')
+ 			self.game:StopTimer(m:Name() .. ' hst')
+			--RAM = gcinfo() - RAM
+			--if RAM > 100 and m:Name() ~= 'UnitHandler' then
+			--	print (m:Name(),RAM/1000)
+			--end
 		end
 	end
+	self.game:StopTimer('UPDATE')
 end
 
 function ShardAI:GameMessage(text)
@@ -101,11 +111,11 @@ function ShardAI:GameMessage(text)
 	end
 end
 
-function ShardAI:UnitCreated(engineunit)
+function ShardAI:UnitCreated(unit, unitDefId, teamId, builderId)
 	if self.gameend == true then
 		return
 	end
-	if engineunit == nil then
+	if unit == nil then
 		self:Warn("shard found nil engineunit")
 		return
 	end
@@ -115,13 +125,13 @@ function ShardAI:UnitCreated(engineunit)
 	end
 	for i,m in ipairs(self.modules) do
 		--self.game:StartTimer(m:Name() .. ' C')
-		m:UnitCreated(engineunit)
+		m:UnitCreated(unit, unitDefId, teamId, builderId)
 		--self.game:StopTimer(m:Name() .. ' C')
 
 	end
 end
 
-function ShardAI:UnitBuilt(engineunit)
+function ShardAI:UnitBuilt(engineunit, unitDefId, teamId)
 	if self.gameend == true then
 		return
 	end
@@ -131,7 +141,7 @@ function ShardAI:UnitBuilt(engineunit)
 	end
 	for i,m in ipairs(self.modules) do
 		--self.game:StartTimer(m:Name() .. ' B')
-		m:UnitBuilt(engineunit)
+		m:UnitBuilt(engineunit, unitDefId, teamId)
 		--self.game:StopTimer(m:Name() .. ' B')
 	end
 end
@@ -181,7 +191,68 @@ function ShardAI:UnitDamaged(engineunit,engineattacker,enginedamage)
 	end
 end
 
+function ShardAI:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	if self.gameend == true then
+		return
+	end
+	if unitID == nil then
+		return
+	end
+	-- self.game:SendToConsole("UnitDamage for " .. enginedamage:Damage())
+	for i,m in ipairs(self.modules) do
+		--self.game:StartTimer(m:Name() .. ' G')
+		m:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+		--self.game:StopTimer(m:Name() .. ' G')
+	end
+end
+
+function ShardAI:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+	if self.gameend == true then
+		return
+	end
+	if unitID == nil then
+		return
+	end
+	-- self.game:SendToConsole("UnitDamage for " .. enginedamage:Damage())
+	for i,m in ipairs(self.modules) do
+		--self.game:StartTimer(m:Name() .. ' G')
+		m:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+		--self.game:StopTimer(m:Name() .. ' G')
+	end
+end
+
+function ShardAI:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+	if self.gameend == true then
+		return
+	end
+	if unitID == nil then
+		return
+	end
+	-- self.game:SendToConsole("UnitDamage for " .. enginedamage:Damage())
+	for i,m in ipairs(self.modules) do
+		--self.game:StartTimer(m:Name() .. ' G')
+		m:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+		--self.game:StopTimer(m:Name() .. ' G')
+	end
+end
+
+function ShardAI:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+	if self.gameend == true then
+		return
+	end
+	if unitID == nil then
+		return
+	end
+	-- self.game:SendToConsole("UnitDamage for " .. enginedamage:Damage())
+	for i,m in ipairs(self.modules) do
+		--self.game:StartTimer(m:Name() .. ' G')
+		m:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+		--self.game:StopTimer(m:Name() .. ' G')
+	end
+end
+
 function ShardAI:UnitMoveFailed(engineunit)
+	print('UNIT MOVE FAILED')
 	if self.gameend == true then
 		return
 	end

@@ -4,24 +4,20 @@ function AntinukeBST:Name()
 	return "AntinukeBST"
 end
 
-AntinukeBST.DebugEnabled = true
-
 function AntinukeBST:Init()
-    self.finished = false
+	self.DebugEnabled = false
 end
 
-function AntinukeBST:OwnerBuilt()
-	self.finished = true
-	self.unit:Internal():Stockpile()
-	self.unit:Internal():Stockpile()
+function AntinukeBST:Update()
+	self:SetStock()
 end
 
-function AntinukeBST:Activate()
-	self.active = true
-end
+function AntinukeBST:SetStock()
 
-function AntinukeBST:Deactivate()
-	self.active = false
+	self.stock, self.pile = self.unit:Internal():CurrentStockpile()
+	if self.stock + self.pile < 2 then
+		self.unit:Internal():Stockpile()
+	end
 end
 
 function AntinukeBST:Priority()

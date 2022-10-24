@@ -1,5 +1,3 @@
-
-
 SchedulerHST = class(Module)
 
 function SchedulerHST:Name()
@@ -11,46 +9,32 @@ function SchedulerHST:internalName()
 end
 
 function SchedulerHST:Init()
-
+	self.DebugEnabled = false
  	self.AIs={}
  	local teams = Spring.GetTeamList()
  	for index,id in pairs(teams) do
 		local luaAI = Spring.GetTeamLuaAI(id)
-		--print(luaAI)
 		if luaAI == 'STAI' then
 			table.insert(self.AIs,id)
 		end
-
  	end
-	--print(#self.AIs)
-
 	self.moduleTeamIndex = 1
 	self.moduleTeam = 0
 	self.moduleIndex = 1
 	self.moduleUpdate = nil
-
-
 	self.behaviourTeamIndex = 1
 	self.behaviourTeam = 0
 	self.behaviourIndex = 1
 	self.behaviourUpdate = nil
-
 end
 
 function SchedulerHST:Update()
 	local moduleS, Mteam = self:ModulesScheduler()
 	local behaviourS, Bteam = self:BehavioursScheduler()
-	print(game:Frame(),'team',self.ai.id,'moduleS, Mteam',self.moduleUpdate, self.moduleTeam,'behaviourS, Bteam',self.behaviourUpdate, self.behaviourTeam)
-
-
-
-
-
+	self:EchoDebug(game:Frame(),'team',self.ai.id,'moduleS, Mteam',self.moduleUpdate, self.moduleTeam,'behaviourS, Bteam',self.behaviourUpdate, self.behaviourTeam)
 end
 
 function SchedulerHST:ModulesScheduler()
-
-
 	if self.moduleTeamIndex > #self.AIs then
 		self.moduleTeamIndex = 1
 		self.moduleIndex = self.moduleIndex + 1
@@ -62,7 +46,6 @@ function SchedulerHST:ModulesScheduler()
 	self.moduleTeam = self.AIs[self.moduleTeamIndex]
 	self.moduleTeamIndex = self.moduleTeamIndex + 1
 end
-
 
 function SchedulerHST:BehavioursScheduler()
 	if self.behaviourTeamIndex > #self.AIs then
@@ -77,59 +60,29 @@ function SchedulerHST:BehavioursScheduler()
 	self.behaviourTeamIndex = self.behaviourTeamIndex + 1
 end
 
-
-
-
 SchedulerHST.MScheduler = {
-	'AttackHST',
-	'BomberHST',
-	'RaidHST',
 	'LosHST',
+	'OverviewHST',
 	'TargetHST',
 	'DamageHST',
-	'OverviewHST',
-	'LabBuildHST',
-	'DefendHST',
+	'ScoutHST',
+	'AttackHST',
+	'RaidHST',
+	'BomberHST',
+	'LabsHST',
 	}
 
 SchedulerHST.BScheduler = {
-		'AttackerBST',
-		'TaskQueueBST',
-		'TaskLabBST',
-		'RaidBST',
-		'BomberBST',
-		'WardBST',
-		'MexupBST',
-		'ReclaimBST',
-		'CleanerBST',
-		'DefendBST',
-		'LabregisterBST',
-		'ScoutBST',
-		'AntinukeBST',
-		'NukeBST',
-		'BombardBST',
-		'CommanderBST',
-		'BootBST',
+	'BootBST',
+	'CommanderBST',
+	'BuildersBST',
+	'LabsBST',
+	'ScoutBST',
+	'RaidBST',
+	'AttackerBST',
+	'BomberBST',
+	'ReclaimBST',
+	'CleanerBST',
+	'AntinukeBST',
+	'NukeBST',
 		}
-
---[[
-SchedulerHST.ModuleScheda = {
-	SleepST = true,
-	ArmyHST = false,
-	MapHST = false,
-	EcoHST = true,
-
-	BuildSiteHST = false,
-
-	TurtleHST = false,
-
-	ScoutHST = false,
-
-	CleanHST = false,
-	NanoHST = false,
-
-	UnitHST = true,
-	TasksHST = false,
-	Tool = false,
-
-}]]

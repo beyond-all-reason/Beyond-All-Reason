@@ -235,12 +235,12 @@ local function GetSpots()
 			spotsInBlob[id] = nil
 		end
 	end
-	-- for i = 1, #spots do
-	-- 	local spot = spots[i]
-	-- 	if not spot.y then
-	-- 		Spring.MarkerAddPoint(spot.x, spGetGroundHeight(spot.x, spot.z), spot.z, "bad")
-	-- 	end
-	-- end
+	 for i = 1, #spots do
+	 	local spot = spots[i]
+	 	if not spot.y then
+	 		Spring.MarkerAddPoint(spot.x, spGetGroundHeight(spot.x, spot.z), spot.z, "bad")
+	 	end
+	 end
 	return spots
 end
 

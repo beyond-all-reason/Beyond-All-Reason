@@ -47,10 +47,10 @@ local mCeil = math.ceil
 ----------------------------------------------------------------
 
 local function dist ( x1, y1, x2, y2 )
-	-- return math.sqrt ( math.pow ( x2 - x1, 2 ) + math.pow ( y2 - y1, 2 ) )
-	local dx = x2 - x1
-	local dy = y2 - y1
-	return dx*dx + dy*dy
+	return math.sqrt ( math.pow ( x2 - x1, 2 ) + math.pow ( y2 - y1, 2 ) )
+	--local dx = x2 - x1
+	--local dy = y2 - y1
+	--return dx*dx + dy*dy
 	-- return math.abs( (x2-x1) + (y2-y1) )
 end
 
@@ -202,7 +202,7 @@ function PathfinderAStar:Find(iterations)
 	local distCache = self.graph.distCache
 	local modifierFunc = self.modifierFunc
 	distanceStartToGoal = self.distanceStartToGoal
-	-- local standardNeighborDist = self.graph.nodeDist
+	local standardNeighborDist = self.graph.nodeDist
 	while #self.openset > 0 and it <= iterations do
 		local current = lowest_f_score(self.openset, self.f_score)
 		if current == goal then
@@ -218,15 +218,15 @@ function PathfinderAStar:Find(iterations)
 		for i = 1, #neighbors do
 			local neighbor = neighbors[i]
 			if not_in(self.closedset, neighbor) then
-				-- local tentative_g_score = self.g_score[current] + modifierFunc(neighbor) -- dist_between(current, neighbor, distFunc, distCache)
-				if not_in(self.openset, neighbor) then -- or tentative_g_score < self.g_score[neighbor] then
+				local tentative_g_score = self.g_score[current] + modifierFunc(neighbor) - dist_between(current, neighbor, distFunc, distCache)
+				if not_in(self.openset, neighbor) or tentative_g_score < self.g_score[neighbor] then
 					self.came_from[neighbor] = current
 					local d = dist_between(neighbor, goal, distFunc, distCache)
 					self.g_score[neighbor] = self.g_score[current] + modifierFunc(neighbor, d, distanceStartToGoal)
 					self.f_score[neighbor] = self.g_score[neighbor] + d
-					-- if not_in(self.openset, neighbor) then
+					 if not_in(self.openset, neighbor) then
 						self.openset[#self.openset+1] = neighbor
-					-- end
+					 end
 				end
 			end
 		end
