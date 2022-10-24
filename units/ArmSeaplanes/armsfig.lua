@@ -86,6 +86,7 @@ return {
 			armsfig_weapon = {
 				areaofeffect = 8,
 				avoidfeature = false,
+				avoidfriendly = false,
 				burnblow = true,
 				canattackground = false,
 				cegtag = "missiletrailfighter",
