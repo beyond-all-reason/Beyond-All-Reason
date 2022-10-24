@@ -344,10 +344,11 @@ function RaidHST:resetSquad(squad)
 end
 
 function RaidHST:visualDBG(squad)
+	local ch = 6
 	if not self.ai.drawDebug then
 		return
 	end
-	local ch = 6
+
 	if squad.position then
 		self.map:DrawPoint(squad.position, squad.colour, squad.squadID, ch)
 	end

@@ -41,7 +41,7 @@ function MapHST:Init()
 	self:metalScan()
 	self:geoScan()
 	self:LayerScan()
-	self:spotToCellMoveTest()
+	--self:spotToCellMoveTest()
 	self:DrawDebug()
 	self.map_loaded = true
 	self:EchoDebug('MapHST STOP')
@@ -94,31 +94,31 @@ end
 
 function MapHST:InitPathCost()
 	self:EchoDebug('init path test')
-	local id = game:GetTeamID()
-
-	self.heightMapX = (self.elmoMapSizeX / 8) + 1
-	self.heightMapZ = (self.elmoMapSizeZ / 8) + 1
-	self:EchoDebug('self.heightMapX',self.heightMapX,'self.heightMapZ',self.heightMapZ)
-	self:EchoDebug(Spring.GetPathNodeCosts(id))
-	self:EchoDebug(Spring.InitPathNodeCostsArray(id,self.gridSideX,self.gridSideZ))
-	self:EchoDebug(#Spring.GetPathNodeCosts(game:GetTeamID()))
-	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),0,123))
-	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),1,111))
-
-	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),575,999))
-	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),576,987))
-
-	self:EchoDebug(Spring.SetPathNodeCosts(id))
-	for i,v in pairs(Spring.GetPathNodeCosts(game:GetTeamID())) do
-		if v > 0 then
-			self:EchoDebug('get path node cost',i,v)
-		end
-	end
-	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),0,0))
-	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),1,0))
-
-	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),575,0))
-	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),576,0))
+-- 	local id = game:GetTeamID()
+--
+-- 	self.heightMapX = (self.elmoMapSizeX / 8) + 1
+-- 	self.heightMapZ = (self.elmoMapSizeZ / 8) + 1
+-- 	self:EchoDebug('self.heightMapX',self.heightMapX,'self.heightMapZ',self.heightMapZ)
+-- 	self:EchoDebug(Spring.GetPathNodeCosts(id))
+-- 	self:EchoDebug(Spring.InitPathNodeCostsArray(id,self.gridSideX,self.gridSideZ))
+-- 	self:EchoDebug(#Spring.GetPathNodeCosts(game:GetTeamID()))
+-- 	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),0,123))
+-- 	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),1,111))
+--
+-- 	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),575,999))
+-- 	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),576,987))
+--
+-- 	self:EchoDebug(Spring.SetPathNodeCosts(id))
+-- 	for i,v in pairs(Spring.GetPathNodeCosts(game:GetTeamID())) do
+-- 		if v > 0 then
+-- 			self:EchoDebug('get path node cost',i,v)
+-- 		end
+-- 	end
+-- 	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),0,0))
+-- 	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),1,0))
+--
+-- 	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),575,0))
+-- 	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),576,0))
 	self:EchoDebug('end init path test')
 
 end
@@ -221,7 +221,6 @@ function MapHST:areaCells(X,Z,R,grid) -- return alist of cells in range R from a
 end
 
 function MapHST:GetCell(X,Z,grid) --accept 1one position({t.x,t.y,t.z}) OR 2two XZ grid coordinate; return a CEll if exist
-
 	if type(X) == 'table' and X.x and X.z then
 		grid = Z
 		X,Z = self:PosToGrid(X)

@@ -22,13 +22,14 @@ function ScoutBST:Init()
 	end
 	self.lastUpdateFrame = self.game:Frame()
 	self.ai.scouthst.scouts[self.id] = self
+
 end
 
 function ScoutBST:Priority()
 	local raider = self.ai.raidhst.raiders[self.id]
 	if not raider or not raider.inSquad then
 		self:EchoDebug('not in raider')
-		return 0
+		return 1
 	end
 	self:EchoDebug('priority',raider.inSquad)
 	local mySquad = self.ai.raidhst.squads[raider.inSquad]
@@ -168,6 +169,7 @@ function ScoutBST:Update()
 		end
 
 	end
+	self.unit:ElectBehaviour()
 end
 
 

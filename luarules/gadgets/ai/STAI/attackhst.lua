@@ -15,18 +15,16 @@ function AttackHST:Init()
 	self.DebugEnabled = false
 	self.recruits = {}
 	self.squads = {}
-	--self.idleTimeMult = 45  --originally set to 3 * 30
 	self.squadID = 1
-	self.fearFactor = 0.66
 	self.squadMassLimit = 0
-	self.countLimit = 2
-	self.squadFreezedTime = 1800 -- if a squad is stopped in one point from a while then try a random move foreach unit
+	self.countLimit = 4
+	self.squadFreezedTime = 300
 end
 
 
 function AttackHST:SetMassLimit()
-	self.squadMassLimit = 0 + (self.ai.Metal.income * 100)
-	self:EchoDebug('squadmasslimit',self.squadMassLimit)
+	self.squadMassLimit = math.ceil(self.ai.Metal.income * 100)
+	self:EchoDebug('squad mass limit',self.squadMassLimit)
 end
 
 function AttackHST:Watchdog(squad)
@@ -34,7 +32,7 @@ function AttackHST:Watchdog(squad)
 	squad.watchdogCell = squad.watchdogCell or self.ai.maphst:GetCell(squad.position,self.ai.maphst.GRID)
 	local watchdogCell = self.ai.maphst:GetCell(squad.position,self.ai.maphst.GRID)
 	if squad.watchdogCell and squad.watchdogCell.X == watchdogCell.X and squad.watchdogCell.Z == watchdogCell.Z then
-		if f > squad.watchdogTimer + 300 then
+		if f > squad.watchdogTimer + self.squadFreezedTime then
 			self:SquadResetTarget(squad)
 		else
 			squad.watchdogTimer = f
@@ -47,12 +45,10 @@ function AttackHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	local f = self.game:Frame()
 	self:DraftAttackSquads()
-	self:SetMassLimit()
 	for index , squad in pairs(self.squads) do
 		if self:SquadCheck(squad) then
 			self:Watchdog(squad)
 			if not self:SquadAttack(squad) then
-
 				self:SquadAdvance(squad)
 			end
 		end
@@ -73,11 +69,12 @@ function AttackHST:DraftAttackSquads()
 						self:SquadFormation(squad)
 						if (squad.mass > self.squadMassLimit or #squad.members > self.countLimit) or (squad.mass > 15000)then
 							squad.lock = true
-							self.countLimit = self.countLimit + self.ai.overviewhst.ECONOMY
+							self.countLimit = math.min(15,self.countLimit + self.ai.overviewhst.ECONOMY)
 						end
 					end
 				end
 				if not soldier.squad then
+					self:SetMassLimit()
 					self.squadID = self.squadID + 1
 					self.squads[self.squadID] = {}
 					local squad = self.squads[self.squadID]
@@ -95,6 +92,7 @@ function AttackHST:DraftAttackSquads()
 					--squad.graph = self.ai.maphst:GetPathGraph(squad.mtype)
 					if (squad.mass > self.squadMassLimit or #squad.members > 5 + self.ai.overviewhst.ECONOMY) or (squad.mass > 15000)then
 						squad.lock = true
+
 					end
 				end
 			end
@@ -103,48 +101,48 @@ function AttackHST:DraftAttackSquads()
 end
 
 function AttackHST:SquadCheck(squad)
-		self:EchoDebug('integrity',squad.squadID,#squad.members)
-		local check = nil
-		local pos = api:Position()
-		local mass = 0
-		local memberCount = 0
-		for i,member in pairs(squad.members) do
-			local uPos = self.ai.tool:UnitPos(member)
-			if not uPos then
-				table.remove(squad.members,i)
-				self:RemoveRecruit(member)
-			else
-				check = true
-				pos = self.ai.tool:sumPos(pos,uPos)
-				memberCount = memberCount + 1
-				mass = mass + member.mass
+	self:EchoDebug('integrity',squad.squadID,#squad.members)
+	local check = nil
+	local pos = api:Position()
+	local mass = 0
+	local memberCount = 0
+	for i,member in pairs(squad.members) do
+		local uPos = self.ai.tool:UnitPos(member)
+		if not uPos then
+			table.remove(squad.members,i)
+			self:RemoveRecruit(member)
+		else
+			check = true
+			pos = self.ai.tool:sumPos(pos,uPos)
+			memberCount = memberCount + 1
+			mass = mass + member.mass
+		end
+	end
+	if not check then
+		self:SquadDisband(squad, squad.squadID)
+		return
+	end
+	squad.position = {x = pos.x / memberCount,z = pos.z / memberCount}
+	squad.position.y = map:GetGroundHeight(squad.position.x,squad.position.x)
+	squad.mass = mass
+	local memberDist = math.huge
+	local leader = nil
+	local leaderPos = nil
+	for i,member in pairs(squad.members) do
+		local p = self.ai.tool:UnitPos(member)
+		if p then
+			local d = self.ai.tool:distance(p,squad.position)
+			if d < memberDist then
+				memberDist = d
+				leader = member.unit:Internal()
+				leaderPos = p
 			end
 		end
-		if not check then
-			self:SquadDisband(squad, squad.squadID)
-			return
-		end
-		squad.position = {x = pos.x / memberCount,z = pos.z / memberCount}
-		squad.position.y = map:GetGroundHeight(squad.position.x,squad.position.x)
-		squad.mass = mass
-		local memberDist = math.huge
-		local leader = nil
-		local leaderPos = nil
-		for i,member in pairs(squad.members) do
-			local p = self.ai.tool:UnitPos(member)
-			if p then
-				local d = self.ai.tool:distance(p,squad.position)
-				if d < memberDist then
-					memberDist = d
-					leader = member.unit:Internal()
-					leaderPos = p
-				end
-			end
-		end
-		self:EchoDebug('set Leader',leader,leaderPos.x,leaderPos.z)
-		squad.leader = leader
-		squad.leaderPos = leaderPos
-		return true
+	end
+	self:EchoDebug('set Leader',leader,leaderPos.x,leaderPos.z)
+	squad.leader = leader
+	squad.leaderPos = leaderPos
+	return true
 end
 
 function AttackHST:SquadDisband(squad)
@@ -157,7 +155,7 @@ function AttackHST:SquadDisband(squad)
 end
 
 function AttackHST:SquadFormation(squad)
-	self:EchoDebug('squadformation')
+	self:EchoDebug('squad formation')
 	local members = squad.members
 	if #squad.members < 1 then
 		return
@@ -212,42 +210,23 @@ function AttackHST:SquadAttack(squad)
 		self:EchoDebug('squad',squad.squadID,'no target to attack')
 		return
 	end
-	local attack = false
 	if self.ai.loshst.OWN[squad.target.X] and self.ai.loshst.OWN[squad.target.X][squad.target.Z] then
 		self:EchoDebug('squad',squad.squadID,'attack a defensive position',squad.target.X,squad.target.Z)
-		attack = true
+		for i,member in pairs(squad.members) do
+			member:MoveRandom(squad.target.POS,128)
+		end
+		self:EchoDebug('squad',squad.squadID,'execute defense')
+		return true
 	end
 	if self.ai.loshst.ENEMY[squad.target.X] and self.ai.loshst.ENEMY[squad.target.X][squad.target.Z]  and self.ai.tool:distance(squad.position,squad.target.POS) < 256 then
 		self:EchoDebug('squad',squad.squadID,'are near to offensive target, do attack')
 		for i,member in pairs(squad.members) do
 			for id,_ in pairs(squad.target.units) do
 				member.unit:Internal():Attack(id)
-
 			end
 		end
-		attack = true
-		return
-	end
-	if attack then
-		for i,member in pairs(squad.members) do
-
-			member:MoveRandom(squad.target.POS,128)
-		end
-		self:EchoDebug('squad',squad.squadID,'execute attack')
 		return true
 	end
-	return false
-end
-
-function AttackHST:MemberIdle(attkbhvr, squad)
-	if attkbhvr then
-		squad = attkbhvr.squad
-		squad.idleCount = (squad.idleCount or 0) + 1
-	end
-end
-
-function AttackHST:SquadSetLeader(squad)
-
 end
 
 function AttackHST:SquadStepComplete(squad)
@@ -316,7 +295,7 @@ function AttackHST:SquadAdvance(squad)
  		if squad.step == #squad.path then
  			reverseAttackAngle = self.ai.tool:AngleAdd(nextAngle, pi)
  		end
- 		self:EchoDebug('advance',pos,nextPerpendicularAngle,reverseAttackAngle)
+ 		--self:EchoDebug('advance',pos,nextPerpendicularAngle,reverseAttackAngle)
 		member:Advance(pos, nextPerpendicularAngle, reverseAttackAngle)
 	end
 	self:EchoDebug('advance after members move')
@@ -342,12 +321,10 @@ function AttackHST:SquadsTargetUpdate2()
 				squad.role = 'defense'
 				self:EchoDebug('set defensive target for',squad.squadID,squad.target.X,squad.target.Z)
 			else
-
 				local offense = self:SquadsTargetAttack2(squad)
 				if offense and squad.lock then
 					path, step = self:SquadFindPath(squad,offense)
 					if path and step then
-
 						squad.target = offense
 						squad.role = 'offense'
 						squad.path = path
@@ -364,33 +341,10 @@ function AttackHST:SquadsTargetUpdate2()
 					else
 						self:EchoDebug('squad', squadID, 'have no target')
 					end
-
 				end
 			end
 		end
 	end
-end
-
-function AttackHST:SquadsTargetPrevent(squad)
-	local frontDist = math.huge
-	local preventDist = 0
-	local preventCell = nil
-	local preventSquad = nil
-	for X,cells in pairs(self.ai.loshst.OWN) do
-		for Z, cell in pairs(cells) do
-			local targetHandled = self:SquadsTargetHandled(cell)
-			if not targetHandled or targetHandled == squad.squadID then
-				local dist = self.ai.tool:distance(cell.POS,self.ai.targethst.enemyCenter)
-				if dist < frontDist then
-					preventDist = dist
-					preventCell = cell
-					preventSquad = squad.squadID
-				end
-			end
-		end
-	end
-	return preventCell
-
 end
 
 function AttackHST:SquadsTargetPrevent2(squad)
@@ -415,18 +369,15 @@ function AttackHST:SquadsTargetPrevent2(squad)
 		end
 	end
 	return preventCell
-
 end
 
 function AttackHST:SquadsTargetDefense(squad)
 	local targetDist = math.huge
 	local targetCell
 	for index,blob in pairs(self.ai.targethst.MOBILE_BLOBS)do
-
 		local targetHandled = self:SquadsTargetHandled(blob.defend)
 		if not targetHandled or targetHandled == squad.squadID then
 			local dist = self.ai.tool:distance(blob.position,self.ai.loshst.CENTER)
-
 			if dist < targetDist then
 				targetDist = dist
 				if blob.metal > squad.mass then
@@ -438,32 +389,6 @@ function AttackHST:SquadsTargetDefense(squad)
 		end
 	end
 	return  targetCell
-end
-
-function AttackHST:SquadsTargetAttack(squad)
-	local bestValue = math.huge
-	local bestTarget = nil
-	local bestDist = math.huge
-	local worstDist = 0
-	for X, cells in pairs(self.ai.loshst.ENEMY) do
-		for Z, cell in pairs(cells) do
-			if not self:SquadsTargetHandled(cell) then
-				if cell.IMMOBILE > 0   then
-					if self.ai.maphst:UnitCanGoHere(squad.leader, cell.POS) then
-						local dist = self.ai.tool:distance(cell.POS,self.ai.targethst.enemyCenter)
-						--local dist = self.ai.tool:distance(cell.POS,squad.position)
-						if dist > worstDist then
-							worstDist = dist
-							bestDist = dist
-							bestTarget = cell
-							bestValue = cell.IMMOBILE
-						end
-					end
-				end
-			end
-		end
-	end
-	return bestTarget
 end
 
 function AttackHST:SquadsTargetAttack2(squad)
@@ -484,7 +409,6 @@ function AttackHST:SquadsTargetAttack2(squad)
 		end
 	end
 	return bestTarget
-
 end
 
 function AttackHST:SquadResetTarget(squad)
@@ -552,17 +476,26 @@ function AttackHST:RemoveRecruit(attkbhvr)
 	return false
 end
 
+function AttackHST:MemberIdle(attkbhvr, squad)
+	if attkbhvr then
+		squad = attkbhvr.squad
+		squad.idleCount = (squad.idleCount or 0) + 1
+	end
+end
+
 function AttackHST:visualDBG()
 	local ch = 6
-
 	if not self.ai.drawDebug then
 		return
 	end
+	self.map:EraseAll(ch)
 	for index , squad in pairs(self.squads) do
 		self.map:DrawCircle(squad.position,100, squad.colour, squad.squadID,squad.lock, ch)
 		for i,member in pairs(squad.members) do
-			member.unit:Internal():EraseHighlight(nil, nil, ch )
-			member.unit:Internal():DrawHighlight(squad.colour ,nil , ch )
+			if member.unit then
+				member.unit:Internal():EraseHighlight(nil, nil, ch )
+				member.unit:Internal():DrawHighlight(squad.colour ,nil , ch )
+			end
 		end
 		if squad.path then
 			for i , p in pairs(squad.path) do
@@ -637,5 +570,55 @@ function AttackHST:SquadTargetExist(squad,grid)
 		return false
 	end
 	return true
+end
+]]
+--[[
+function AttackHST:SquadsTargetPrevent(squad)
+	local frontDist = math.huge
+	local preventDist = 0
+	local preventCell = nil
+	local preventSquad = nil
+	for X,cells in pairs(self.ai.loshst.OWN) do
+		for Z, cell in pairs(cells) do
+			local targetHandled = self:SquadsTargetHandled(cell)
+			if not targetHandled or targetHandled == squad.squadID then
+				local dist = self.ai.tool:distance(cell.POS,self.ai.targethst.enemyCenter)
+				if dist < frontDist then
+					preventDist = dist
+					preventCell = cell
+					preventSquad = squad.squadID
+				end
+			end
+		end
+	end
+	return preventCell
+end
+]]
+
+--[[
+function AttackHST:SquadsTargetAttack(squad)
+	local bestValue = math.huge
+	local bestTarget = nil
+	local bestDist = math.huge
+	local worstDist = 0
+	for X, cells in pairs(self.ai.loshst.ENEMY) do
+		for Z, cell in pairs(cells) do
+			if not self:SquadsTargetHandled(cell) then
+				if cell.IMMOBILE > 0   then
+					if self.ai.maphst:UnitCanGoHere(squad.leader, cell.POS) then
+						local dist = self.ai.tool:distance(cell.POS,self.ai.targethst.enemyCenter)
+						--local dist = self.ai.tool:distance(cell.POS,squad.position)
+						if dist > worstDist then
+							worstDist = dist
+							bestDist = dist
+							bestTarget = cell
+							bestValue = cell.IMMOBILE
+						end
+					end
+				end
+			end
+		end
+	end
+	return bestTarget
 end
 ]]

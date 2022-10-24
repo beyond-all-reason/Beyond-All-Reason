@@ -37,15 +37,16 @@ local quadZ = { -1, -1, 1, 1 }
 local output = ''
 
 Tool.COLOURS = {
-			red = {1,0,0,1},
-			green = {0,1,0,1},
-			blue = {0,0,1,1},
-			aqua = {0,1,1,1},
-			yellow = {1,1,0,1},
-			purple = {1,0,1,1},
-			white = {1,1,1,1},
-			black = {0,0,0,1},
+			red = {1,0,0,1}, --ship
+			green = {0,1,0,1}, --kbot
+			blue = {0,0,1,1}, -- air
 
+			aqua = {0,1,1,1}, --hov
+			yellow = {1,1,0,1}, -- amp
+			purple = {1,0,1,1}, -- sub
+
+			white = {1,1,1,1},
+			black = {0,0,0,1}, --veh
 			}
 
 
