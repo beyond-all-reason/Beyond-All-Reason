@@ -1,4 +1,5 @@
 
+
 function widget:GetInfo()
 	return {
 		name      = 'FlowUI GL4 Tester',
@@ -16,6 +17,12 @@ local glLineWidth = gl.LineWidth
 local glDepthTest = gl.DepthTest
 local GL_LINES = GL.LINES
 local chobbyInterface
+local font
+local rectRoundVBO = nil
+local vsx, vsy = Spring.GetViewGeometry()
+local groups = {} -- {energy = 'LuaUI/Images/groupicons/'energy.png',...}, retrieves from buildmenu in initialize
+local unitGroup = {}	-- {unitDefID = 'energy'}retrieves from buildmenu in initialize
+local unitIcon = {}	-- {unitDefID = 'icons/'}, retrieves from buildmenu in initialize
 
 --- OO stuff
 -- Each uielement should have a parent, and can have any number of childrent
@@ -72,25 +79,75 @@ local chobbyInterface
 
 -- We can entirely avoid alpha blended, if we specify a 'highlighttexture' and a blendfactor
 
-local vsx, vsy = Spring.GetViewSizes()
 
 
 -- Notes from 2022.10.21 ---------------------------------------------------------
 -- We can ignore the WHOLE blendedprimitives shit from above because of in-shader highlighting!
 -- WHERE IS THE ORIGIN IN SCREENSPACE: BOTTOM LEFT!
 -- what if we just went the array table way?
+local Draw = {}
+local vsx, vsy = 1920, 1024
+local nameCounter = 0
+local ROOT
+local floor = math.floor
+-- what if I enabled LEFT, RIGHT, TOP, BOTTOM? 
+-- and calced X,Y, W,H from it?
 
 local metaElement = {
-	name = "unnamed",
-	left = 0,
-	right = vsx,
-	top = vsy, 
-	bottom = 0,
-	depth = 0.5, -- halfway?
-	texts = {}, 
-	hidden = false, 
-	instanceKeys = {}, -- a table of the instancekeys corresponding to this piece of shit
+} 
+
+-- This will be the base metatable, and contains the functions and static members that we want
+local metaElement_mt = { 
+	__index = metaElement,
+	vsx = vsx,
+	vsy = vsy,
+	vbokeys = {left = 1, bottom = 2, right=3, top = 4, tl = 5, tr = 6, br = 7, bl = 8,
+		color1r = 9, color1g = 10, color1b = 11, color1a = 12, color2r = 13, color2g = 14, color2b = 15, color2a = 16,
+		uvbottom = 17, uvleft = 18, uvtop = 19, uvright = 20, 
+		fronttexture = 21, edge = 22, zdepth = 23, progress = 24,
+		hide = 25, blendmode = 26, globalbg = 27, unused = 28,
+	},
+	currtextcolor = {1,1,1,1},
+	curroutlinecolor = {0,0,0,1},
 }
+
+local function newElement(o) -- This table contains the default properties 
+	if o == nil then o = {} end 
+	if o.name == nil then -- auto namer
+		nameCounter = nameCounter + 1
+	end
+	
+	local element =   {
+		name = o.name or 'element'..tostring(nameCounter),
+		left = x or 0,
+		bottom = y or 0,
+		right = w or vsx, 
+		top = h or vsy,
+		depth = depth or 0.5, -- halfway?
+		treedepth = 1, -- how deep we are in the render tree
+		onclick = {},
+		--self.childern = {},
+		--textelements = {}, 
+		--visible = true, 
+		--clickable = false,
+		--parent = ROOT,
+		--instanceKeys = {}, -- a table of the instancekeys corresponding to this piece of shit
+	}
+	
+	local obj = setmetatable(element, metaElement_mt)
+	for k,v in pairs(o) do obj[k] = v end 
+	
+	if not obj.root then 
+		local parent = obj.parent or ROOT
+
+		if parent.children == nil then 
+			parent.children = {[obj.name] = obj}
+		else
+			parent.children[obj.name] = obj
+		end
+	end
+	return obj
+end
 
 -- Get the 'smallest' element of the chain that is 'hit' 
 function metaElement:MouseOver(mx,my) 
@@ -110,35 +167,133 @@ function metaElement:MouseOver(mx,my)
 	end
 end
 
-function metaElmenet:AddText(ox, oy, text, textparams)
-	if self.texts == nil then self.texts = {} end 
-	self.texts[#self.texts + 1] = {ox,oy,text, textparams}
-	return #self.texts
+function metaElement:UpdateTextPosition(text)
+	-- todo fix alignment
+end
+
+-- Note that this takes 
+-- aligment can be any of ['top', 'left','bottom','right', 'center', 'topleft', ]
+function metaElement:AddText(ox, oy, text, fontsize, textoptions, alignment, textcolor, outlinecolor)
+	-- it is now that we need to cache text height, and width
+	local newtext = {
+			ox = ox, -- offset from bottom left corner 
+			oy = oy,
+			text = text,
+			fontsize = fontsize or 16,
+			textoptions = textoptions or "",
+			textcolor = textcolor,
+			outlinecolor = outlinecolor,
+			alignment = alignment,
+		}
+
+	newtext.textwidth  = font:GetTextWidth(text)  * newtext.fontsize
+	newtext.textheight = font:GetTextHeight(text) * newtext.fontsize
+
+	
+	if self.textelements == nil then self.textelements = {} end 
+	self.textelements[#self.textelements + 1] = newtext
+	self:UpdateTextPosition(newtext)
+	return #self.textelements
 end
 
 function metaElement:RemoveText(textindex)
-	if self.texts then 
-		return table.remove(self.texts, textindex)
+	if self.textelements then 
+		return table.remove(self.textelements, textindex)
 	end
 end
+
+function metaElement:DrawText(px,py) -- parentx,parenty
+	--Spring.Echo(self)
+	if self.textelements then 
+		for i, text in ipairs(self.textelements) do
+			font:Print(text.text, text.ox + self.left, text.oy + self.bottom, text.fontsize, text.textoptions)
+			--Spring.Echo(text.text,text.ox, px, text.oy, py)
+		end
+	end
+	if self.children then
+		for name, child in pairs(self.children) do 
+			child:DrawText(self.left, self.bottom)
+		end
+	end
+end
+
 
 function metaElement:Click(mx,my, clicktype)
 	local hit = false
-	if mx <= right and mx >= left and my <= top and my >= bottom then hit = true end
-	
-	if self.onClick[clicktype] then 
-		
+	self.x = 1
+	--Spring.Echo("Testing",self.name, self.left,self.right,self.top,self.bottom)
+	if mx >= self.left and mx <= self.right and my <= self.top and my >= self.bottom then hit = true end
+	--Spring.Echo("result:",hit)
+	if hit == false then return nil 
+	else 
+		--Spring.Echo("Testing",self.name, self.left,self.right,self.top,self.bottom)
+		if self.children then 
+			for childname, childElement in pairs(self.children) do 
+				if childElement:Click(mx,my,clicktype) then
+					return childElement
+				end
+			end
+		end
+		for click, val in pairs(clicktype) do 
+			if self.onclick[click] then 
+				Spring.Echo("Clicked", self.name)
+				self.onclick[click]()
+			end
+		end
+		return self -- no children were 'hit'
 	end
+	
 end
 
-function metaElement:New()
-	-- i have no idea how to do this
+function metaElement:CalculatePosition()
+	-- to automatically do top left bototm right and percentage values
+	-- also check if it changed, and then update it in vbo maybe?
 end
 
+function metaElement:NewContainer(o)
+	return newElement(o)
+end
+
+function metaElement:NewButton(o) -- yay this objs shit again!
+	local obj = newElement(o)
+	
+	--parent, VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
+	obj.instanceKeys = Draw.Button( rectRoundVBO or obj.VBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right, obj.top,  
+		obj.tl or 1, obj.tr or 1, obj.br or 1, obj.bl or 1,  obj.ptl or 1, obj.ptr or 1, obj.pbr or 1, obj.pbl or 1,  obj.opacity or 1, 		obj.color1, obj.color2, obj.bgpadding or 3)
+	return obj
+	
+end
+
+function metaElement:NewCheckBox(obj) end
+function metaElement:NewSelector(obj) end
+function metaElement:NewSlider(obj) end
+function metaElement:NewUiUnit(o) 
+	local obj = newElement(o)
+	
+	obj.instanceKeys = Draw.Unit(rectRoundVBO or obj.VBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right,obj.top,  
+			obj.cs, obj.tl or 1, obj.tr or 1, obj.br or 1, obj.bl or 1,  obj.zoom or 1, obj.bordersize ,0.8, --zoom,  borderSize, borderOpacity
+			obj.texture,
+			obj.radartexture,
+			obj.grouptexture,
+			obj.price,
+			obj.queueCount
+		)
+	
+			--Draw.Unit = function(VBO, instanceID, z, px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  borderSize, borderOpacity,  texture, radarTexture, groupTexture, price, queueCount)
+			--Draw.Unit(rectRoundVBO, nil, 0.5, x,y,w,y+2*s, 20, 
+			--1,1,1,1,
+			--1, nil, 0.8, -- zoom, bordersize, borderOpacity
+			--"unitpics/corcom.dds", 
+			--"icons/bantha.png",
+			--"luaui/images/flowui_gl4/metal.png", --grouptexture
+			--500, 7)
+	end
+function metaElement:NewRectRound(obj) end
+function metaElement:NewEmpty(obj) end
 
 local testElement = {
 	name = 'test',
-	left = 0,
+	left = 0, -- could be string types? As those can be parsed quite quick for percentage
 	right = 0,
 	top = 0, 
 	bottom = 0,
@@ -149,19 +304,104 @@ local testElement = {
 	--MouseOver = 
 }
 
-local ROOT = {}
-
-local function traceMouse(r)
-	
+ROOT = metaElement:NewContainer({root = true})
+local clickcache = {}
+local lasthitelement = nil -- this is to store which one was last hit to fire off mouseentered mouseleft events 
+-- TODO: debounce clicking!
+local function uiUpdate(mx,my,left,middle,right)
+	-- this needs to be revamped, to trace the element under cursor, and then act based on clickedness
+	local clicked = left or middle or right
+	if left then clickcache.left = true else clickcache.left = nil end 
+	if middle then clickcache.middle = true else clickcache.middle = nil end 
+	if right then clickcache.right = true else clickcache.right = nil end 
+	if clicked then 
+		ROOT:Click(mx,my,clickcache)
+	end
 end
 
+local dlist = nil
+local function DrawText()
+	if false then 
+		if dlist == nil then 
+			dlist = gl.CreateList(function () 
+			font:Begin()
+			ROOT:DrawText(0,0)
+		--font:SubmitBuffered(true) 
+			font:End()
+			end
+			)
+		else
+			gl.CallList(dlist)
+		end
 
-	
-
-
+	else
+		font:Begin()
+		ROOT:DrawText(0,0)
+		--font:SubmitBuffered(true) 
+		font:End()
+	end
+end
 ---
+local function makebuttonarray()
+	for i = 1, 10 do
+		for j = 1, 10 do 
+			--rectRoundVBO, nil, 0.4, x,y,w,h, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, {0.2, 0.8, 0.2, 0.8 }, WG.FlowUI.elementCorner * 0.5
+			local newbtn = metaElement:NewButton({
+					left = 100 + 100*i,
+					bottom = 300 + 50 *j,
+					right = 190 + 100*i,
+					top = 340 + 50 *j,
+					parent = ROOT,
+					onclick = {left = function() Spring.Echo("left clicked",i,j) end},
+					textelements = {{text = "mytext"..tostring(i).."-"..tostring(j),ox = 0, oy= 16,fontsize = 16,textoptions = 'nB'},},
+					
+				})
+			
+			
+		end
+	end
+end
 
-
+local function makeunitbuttonarray()
+	-- what can my boy build?
+	local unitDef = UnitDefs[UnitDefNames['armcom'].id]
+	for k,v in pairs(unitDef.buildOptions) do
+		Spring.Echo(k,v)
+	end
+	for i = 1, 10 do
+		for j = 1, 10 do 
+			--rectRoundVBO, nil, 0.4, x,y,w,h, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, {0.2, 0.8, 0.2, 0.8 }, WG.FlowUI.elementCorner * 0.5
+			local idx = ((i-1)*10+j) % (#unitDef.buildOptions) + 1
+			if unitDef.buildOptions[idx] then 
+				local thisunitdefid = unitDef.buildOptions[idx]
+				local newbtn = metaElement:NewUiUnit({
+						left = 1000 + 100*i,
+						bottom = 100 + 100 *j,
+						right = 1100 + 100*i,
+						top = 200 + 100 *j,
+						parent = ROOT,
+						texture = 'unitpics/'.. UnitDefs[thisunitdefid].name ..'.dds',
+						radartexture = unitIcon[thisunitdefid],
+						grouptexture = groups[unitGroup[thisunitdefid]],
+						onclick = {left = function() Spring.Echo("left clicked unit",i,j) end},
+						textelements = {{text = unitDef.name,ox = 0, oy= 0,fontsize = 16,textoptions = 'nB'},},
+						
+					})
+			else
+				break
+			end
+				
+				
+			
+		end
+	end
+end
+local start = collectgarbage("count")
+--makebuttonarray()
+start = collectgarbage("count") - start
+print ("yay", start)
+local brk = 0
+print ("end")
 ----------------------------------------------------------------
 -- GL4 STUFF
 ----------------------------------------------------------------
@@ -169,7 +409,6 @@ end
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
-local rectRoundVBO = nil
 local rectRoundShader = nil
 local rectRoundVAO = nil
 local vsx,vsy = gl.GetViewSizes()
@@ -306,14 +545,20 @@ void addvertexflowui(float spx, float spy, float distfromside){
 	g_fronttex_edge_backtex_hide.y = future_feather;
 	
 	// pack mouseposness into 'backtex', ergo g_fronttex_edge_backtex_hide.z
-	
 	g_fronttex_edge_backtex_hide.z = 0.0;
 	bvec2 righttopmouse = lessThan(mouseScreenPos.xy, vec2(RIGHT, TOP));
 	bvec2 leftbottommouse = greaterThan(mouseScreenPos.xy, vec2(LEFT, BOTTOM));
 	g_fronttex_edge_backtex_hide.z = 0;
 	if (all(bvec4(righttopmouse, leftbottommouse)) ) {
-		g_fronttex_edge_backtex_hide.z = BLENDMODE + 1.0;
+		g_fronttex_edge_backtex_hide.z = BLENDMODE + 0.5;	
+		// also pack clickedness into this //	uint mouseStatus; // bits 0th to 32th: LMB, MMB, RMB, offscreen, mmbScroll, locked
+		if ((mouseStatus & 1u) > 0u){
+			g_fronttex_edge_backtex_hide.z += BLENDMODE + 0.5;
+		}
 	}
+	
+
+	
 	g_fronttex_edge_backtex_hide.w = HIDE;
 	
 	gl_Position = vec4(g_screenpos.x, g_screenpos.y, DEPTH, 1.0);
@@ -595,7 +840,7 @@ end
 			{id = 4, name = 'uvoffsets', size = 4},
 			{id = 5, name = 'fronttexture_edge_z_progress', size = 4},]]--
 
-local Draw = {}
+
 
 Draw.TransformUVAtlasxXyY = function (atlascoordsxXyY, uvcoordsxyXY)
 	if atlascoordsxXyY == nil or uvcoordsxyXY == nil then 
@@ -698,6 +943,10 @@ Draw.TexturedRectRound =  function (VBO, instanceID, z, px, py, sx, sy,  cs,  tl
 	else
 		fronttextalpha = 1.0
 		--Spring.Echo('TexturedRectRound',texture)
+		if atlasID == nil or texture == nil then 
+			--Spring.Debug.TraceFullEcho(30,30,30)
+			Spring.Echo(atlasID, texture)
+		end
 		texture = ({gl.GetAtlasTexture(atlasID, texture)})
 		--Spring.Echo(texture)
 	end 
@@ -929,7 +1178,7 @@ Draw.Button = function(VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl,
 	local gloss4 = Draw.RectRound(VBO, nil, z-0.002,px + pxPad, sy- ((sy-py)*0.5), sx - sxPad, sy, bgpadding, tl, tr, 0, 0, { 1,1,1, 0 }, { 1,1,1, 0.07 * glossMult })
 	local gloss5 = Draw.RectRound(VBO, nil, z-0.002,px + pxPad, py + pyPad, sx - sxPad, py + pyPad + ((sy-py)*0.5), bgpadding, 0, 0, br, bl, { 1,1,1, 0.05 * glossMult }, { 1,1,1, 0 })
 	--gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	--TODO: return {background,highlighttop,highlightbottom, gloss1, gloss2, gloss3, gloss4, gloss5}
+	return {background,highlighttop,highlightbottom, gloss1, gloss2, gloss3, gloss4, gloss5}
 end
 
 --[[
@@ -1368,6 +1617,28 @@ function widget:Initialize()
 	end]]--	
 
 	--Draw.Button(rectRoundVBO, nil, 0.4, 500,0,1524,1000, 24,24,32,60, 1,1,1,1, nil, { math.random(), math.random(), math.random(), 0.8 }, { math.random(), math.random(), math.random(), 0.8 },  WG.FlowUI.elementCorner*0.4)
+	font = WG['fonts'].getFont(nil, 1.4, 0.35, 1.4)
+	if WG['buildmenu'] then
+		if WG['buildmenu'].getGroups then
+			groups, unitGroup = WG['buildmenu'].getGroups()
+		end
+	end
+	if Script.LuaRules('GetIconTypes') then
+		local iconTypesMap = Script.LuaRules.GetIconTypes()
+		for udid, unitDef in pairs(UnitDefs) do
+			if unitDef.iconType and iconTypesMap[unitDef.iconType] then
+				unitIcon[udid] = iconTypesMap[unitDef.iconType]
+			end
+		end
+	end
+	
+	if atlasID == nil then 
+		atlasID = WG['flowui_atlas'] 
+		atlassedImages = WG['flowui_atlassedImages'] 
+	end
+	
+	makebuttonarray()
+	makeunitbuttonarray()
 end
 
 function widget:Shutdown()
@@ -1382,13 +1653,18 @@ end
 
 elems = 0
 
+function widget:Update()
+	local mx, my, left, middle, right = Spring.GetMouseState()
+	uiUpdate(mx, my, left, middle, right)
+end
+
 function widget:DrawScreen()
 	if atlasID == nil then 
 		atlasID = WG['flowui_atlas'] 
 		atlassedImages = WG['flowui_atlassedImages'] 
 		Spring.Debug.TableEcho({gl.GetAtlasTexture(atlasID, "unitpics/armcom.dds")})
 	end
-	if elems < 100 then
+	if elems < 3  then
 		elems = elems+1
 		local x = math.floor(math.random()*vsx) 
 		local y = math.floor(math.random()*vsy)
@@ -1435,13 +1711,13 @@ function widget:DrawScreen()
 			Draw.Scroller( rectRoundVBO, nil, 0.5, x,y,x+s/2,y+2*s, 1000, 20)
 		end
 	end
-	local UiButton = WG.FlowUI.Draw.Button
-	UiButton(500, 500, 600, 550, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.8, 0.2, 0.8 }, WG.FlowUI.elementCorner * 0.5)
+	--local UiButton = WG.FlowUI.Draw.Button
+	--UiButton(500, 500, 600, 550, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.8, 0.2, 0.8 }, WG.FlowUI.elementCorner * 0.5)
 	if chobbyInterface then return end
 	
 	
 	if rectRoundVBO.dirty then uploadAllElements(rectRoundVBO) end -- do updates!
-	gl.Blending(GL.SRC_ALPHA, GL.ONE) -- bloomy
+	--gl.Blending(GL.SRC_ALPHA, GL.ONE) -- bloomy
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- regular
 	gl.Texture(0, "luaui/images/backgroundtile.png")
 	gl.Texture(1, atlasID)
@@ -1450,4 +1726,5 @@ function widget:DrawScreen()
 	rectRoundShader:Deactivate()
 	gl.Texture(1, false)
 	gl.Texture(0, false)
+	DrawText()
 end
