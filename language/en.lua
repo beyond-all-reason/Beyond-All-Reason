@@ -76,7 +76,7 @@ return {
 		capture = 'Capture',
 		cloak = 'Cloak',
 		waterweapon = 'Waterweapon',
-		manuelfire = 'Manuelfire',
+		manuelfire = 'Manual Fire',
 		stockpile = 'Stockpile',
 		paralyzer = 'Paralyzer',
 		kamikaze = 'Kamikaze',
