@@ -1396,42 +1396,42 @@ end
 --  Keyboard call-ins
 --
 
-function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
+function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 	local textOwner = self.textOwner
 
 	if textOwner then
-		if (not textOwner.KeyPress) or textOwner:KeyPress(key, mods, isRepeat, label, unicode, scanCode) then
+		if (not textOwner.KeyPress) or textOwner:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions) then
 			return true
 		end
 	end
 
-	if self.actionHandler:KeyAction(true, key, mods, isRepeat, scanCode) then
+	if self.actionHandler:KeyAction(true, key, mods, isRepeat, scanCode, actions) then
 		return true
 	end
 
 	for _, w in ipairs(self.KeyPressList) do
-		if w:KeyPress(key, mods, isRepeat, label, unicode, scanCode) then
+		if w:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions) then
 			return true
 		end
 	end
 	return false
 end
 
-function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode)
+function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
 	local textOwner = self.textOwner
 
 	if textOwner then
-		if (not textOwner.KeyRelease) or textOwner:KeyRelease(key, mods, label, unicode, scanCode) then
+		if (not textOwner.KeyRelease) or textOwner:KeyRelease(key, mods, label, unicode, scanCode, actions) then
 			return true
 		end
 	end
 
-	if self.actionHandler:KeyAction(false, key, mods, false, scanCode) then
+	if self.actionHandler:KeyAction(false, key, mods, false, scanCode, actions) then
 		return true
 	end
 
 	for _, w in ipairs(self.KeyReleaseList) do
-		if w:KeyRelease(key, mods, label, unicode, scanCode) then
+		if w:KeyRelease(key, mods, label, unicode, scanCode, actions) then
 			return true
 		end
 	end

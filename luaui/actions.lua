@@ -206,16 +206,16 @@ local function MakeKeySetString(key, mods, getSymbol)
 end
 
 
-local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release)
+local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, actions)
   local callInfoList = actionMap[cmd]
   if (callInfoList == nil) then
     return false
   end
-  for i,callInfo in ipairs(callInfoList) do
+  for _, callInfo in ipairs(callInfoList) do
     --local widget = callInfo[1]
     local func   = callInfo[2]
     local data   = callInfo[3]
-    if (func(cmd, optLine, optWords, data, isRepeat, release)) then
+    if (func(cmd, optLine, optWords, data, isRepeat, release, actions)) then
       return true
     end
   end
@@ -223,35 +223,33 @@ local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release)
 end
 
 
-function actionHandler:KeyAction(press, key, mods, isRepeat, scanCode)
-  local defBinds
-
-  local keyset = MakeKeySetString(key, mods, Spring.GetKeySymbol)
-
-  if scanCode then -- engine supports scancodes
+function actionHandler:KeyAction(press, key, mods, isRepeat, scanCode, actions)
+  if (not actions) then -- engine does not support actions sent in Key(Press|Release)
+    local keyset = MakeKeySetString(key, mods, Spring.GetKeySymbol)
     local scanset = MakeKeySetString(scanCode, mods, Spring.GetScanSymbol)
-    defBinds = Spring.GetKeyBindings(keyset, scanset)
+
+    actions = Spring.GetKeyBindings(keyset, scanset)
+  end
+
+  if (not(actions and next(actions))) then return false end
+
+  local actionSet
+  if (press) then
+    actionSet = isRepeat and self.keyRepeatActions or self.keyPressActions
   else
-    defBinds = Spring.GetKeyBindings(keyset)
+    actionSet = self.keyReleaseActions
   end
 
-  if (defBinds) then
-    local actionSet
-    if (press) then
-      actionSet = isRepeat and self.keyRepeatActions or self.keyPressActions
-    else
-      actionSet = self.keyReleaseActions
-    end
-    for _, bAction in ipairs(defBinds) do
-      local bCmd = bAction["command"]
-      local bOpts = bAction["extra"]
-      local words = MakeWords(bOpts)
+  for _, bAction in ipairs(actions) do
+    local bCmd = bAction["command"]
+    local bOpts = bAction["extra"]
+    local words = MakeWords(bOpts)
 
-      if (TryAction(actionSet, bCmd, bOpts, words, isRepeat, not press)) then
-        return true
-      end
+    if (TryAction(actionSet, bCmd, bOpts, words, isRepeat, not press, actions)) then
+      return true
     end
   end
+
   return false
 end
 
@@ -280,8 +278,8 @@ function actionHandler:RecvFromSynced(...)
     if (callInfoList == nil) then
       return false
     end
-    
-    for i,callInfo in ipairs(callInfoList) do
+
+    for _,callInfo in ipairs(callInfoList) do
       -- local widget = callInfo[1]
       local func = callInfo[2]
       if (func(...)) then
