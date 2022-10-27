@@ -180,7 +180,7 @@ local function CreatePanelDisplayList()
 	--font:Print(Spring.I18N('ui.chickens.burrowKillCount', { count = gameInfo.chicken_hiveKills }), panelMarginX, PanelRow(5), panelFontSize, "")
 
 	if gotScore then
-		font:Print(Spring.I18N('ui.chickens.score', { score = commaValue(scoreCount) }), 88, h - 170, panelFontSize "")
+		font:Print(Spring.I18N('ui.chickens.score', { score = commaValue(scoreCount) }), 88, h - 170, panelFontSize, "")
 	else
 		local difficultyCaption = Spring.I18N('ui.chickens.difficulty.' .. difficultyOption)
 		font:Print(Spring.I18N('ui.chickens.mode', { mode = difficultyCaption }), 120, h - 170, panelFontSize, "")
