@@ -26,6 +26,7 @@ local chickenTypes = {
 	h_chickenq     						=  true,
 	vh_chickenq    						=  true,
 	chicken1       						=  true,
+	chicken1_mini						=  true,
 	chicken1b      						=  true,
 	chicken1c      						=  true,
 	chicken1d      						=  true,
@@ -97,6 +98,7 @@ local chickenTypes = {
 
   local chickenEggs = {
 	chicken1       						=   "purple", 
+	chicken1_mini						=   "purple",
 	chicken1b      						=   "pink",
 	chicken1c      						=   "purple",
 	chicken1d      						=   "purple",
@@ -488,11 +490,16 @@ end
 -- Basic Squads
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+addBasicSquad(1, {"4 chicken1_mini"})
+addBasicSquad(1, {"6 chicken1_mini"})
+addBasicSquad(1, {"8 chicken1_mini"})
+addBasicSquad(1, {"10 chicken1_mini"})
+
 for i = 1,wavesAmount do
 	if i >= 1 and i <= 4 then -- Basic Swarmer
 		addBasicSquad(i, { i*2 .." chicken1", i*2 .." chicken1b", i*2 .." chicken1c" })
-		addBasicSquad(i, { i*2 .." chicken1b", i*2 .." chicken1c", i*2 .." chicken1d" })  
-		addBasicSquad(i, { i*2 .." chicken1c", i*2 .." chicken1d", i*2 .." chicken1" }) 
+		addBasicSquad(i, { i*2 .." chicken1b", i*2 .." chicken1c", i*2 .." chicken1d" })
+		addBasicSquad(i, { i*2 .." chicken1c", i*2 .." chicken1d", i*2 .." chicken1" })
 		addBasicSquad(i, { i*2 .." chicken1d", i*2 .." chicken1", i*2 .." chicken1b" })
 	end
 	if i >= 2 then
