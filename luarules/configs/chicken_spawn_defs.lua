@@ -206,7 +206,7 @@ local optionValues = {
 		spawnChance       = 0.4,
 		damageMod         = 0.4,
 		maxBurrows        = 10,
-		minChickens		  = 5,
+		minChickens		  = 1,
 		maxChickens		  = 50,
 		queenName         = 'n_chickenq',
 		queenResistanceMult   = 1,
@@ -222,7 +222,7 @@ local optionValues = {
 		spawnChance       = 0.5,
 		damageMod         = 0.6,
 		maxBurrows        = 15,
-		minChickens		  = 10,
+		minChickens		  = 1,
 		maxChickens		  = 100,
 		queenName         = 'h_chickenq',
 		queenResistanceMult   = 2,
@@ -237,7 +237,7 @@ local optionValues = {
 		spawnChance       = 0.6,
 		damageMod         = 0.8,
 		maxBurrows        = 20,
-		minChickens		  = 15,
+		minChickens		  = 1,
 		maxChickens		  = 150,
 		queenName         = 'vh_chickenq',
 		queenResistanceMult   = 3,
@@ -252,7 +252,7 @@ local optionValues = {
 		spawnChance       = 0.8,
 		damageMod         = 1,
 		maxBurrows        = 30,
-		minChickens		  = 20,
+		minChickens		  = 1,
 		maxChickens		  = 200,
 		queenName         = 'epic_chickenq',
 		queenResistanceMult   = 4,
@@ -267,7 +267,7 @@ local optionValues = {
 		spawnChance       = 0.85,
 		damageMod         = 1.5,
 		maxBurrows        = 40,
-		minChickens		  = 50,
+		minChickens		  = 1,
 		maxChickens		  = 200,
 		queenName         = 'epic_chickenq',
 		queenResistanceMult   = 5,
@@ -282,7 +282,7 @@ local optionValues = {
 		spawnChance       = 0.9,
 		damageMod         = 2,
 		maxBurrows        = 50,
-		minChickens		  = 100,
+		minChickens		  = 1,
 		maxChickens		  = 200,
 		queenName         = 'epic_chickenq',
 		queenResistanceMult   = 6,
@@ -298,7 +298,7 @@ local optionValues = {
 		spawnChance       = 0.4,
 		damageMod         = 0.4,
 		maxBurrows        = 10,
-		minChickens		  = 5,
+		minChickens		  = 1,
 		maxChickens		  = 50,
 		queenName         = 'n_chickenq',
 		queenResistanceMult   = 1,
@@ -490,10 +490,10 @@ end
 -- Basic Squads
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-addBasicSquad(1, {"4 chicken1_mini"})
-addBasicSquad(1, {"6 chicken1_mini"})
-addBasicSquad(1, {"8 chicken1_mini"})
-addBasicSquad(1, {"10 chicken1_mini"})
+addBasicSquad(1, {"4 chicken1_mini"}, 5)
+addBasicSquad(1, {"6 chicken1_mini"}, 5)
+addBasicSquad(1, {"8 chicken1_mini"}, 5)
+addBasicSquad(1, {"10 chicken1_mini"}, 5)
 
 for i = 1,wavesAmount do
 	if i >= 1 and i <= 4 then -- Basic Swarmer
