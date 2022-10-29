@@ -124,7 +124,7 @@ function LabsBST:getSoldier()
 end
 
 function LabsBST:specialFilters(soldier,category)
-	if category == 'antiairs' and not self.ai.needAntiAir then
+	if category == 'antiairs' and not self.ai.loshst.needAntiAir then
 		return nil
 	end
 	return soldier

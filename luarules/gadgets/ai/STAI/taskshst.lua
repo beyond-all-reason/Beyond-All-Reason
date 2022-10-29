@@ -16,8 +16,6 @@ function TasksHST:Init()
 	self:startLabsParams()
 end
 
-
-
 function TasksHST:startLabsParams()
 	local M = self.ai.Metal
 	local E = self.ai.Energy
@@ -302,20 +300,262 @@ function TasksHST:startLabsParams()
 }
 end
 
+
+
+
 function TasksHST:startRolesParams()
 	local M = self.ai.Metal
 	local E = self.ai.Energy
-------------------------------------------------------------------------------------------------------------------------------------
-	------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------------
-	------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------------
-	------------------------------------------------------------------------------------------------------------------------------------
-	------------------------------------------------------------------------------------------------------------------------------------
-	------------------------------------------------------------------------------------------------------------------------------------
-	------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
 
+	self.roles.starter = {
+		{ 	category = '_mex_' ,
+			economy = function(_,param,name)--ecofunc()
+					return true
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true ,
+	        },
+		{ 	category = '_wind_' ,
+			economy = function(_,param,name)--ecofunc()
+					return  true --E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {min = 50,categories = {'_nano_','factoryMobilities'},himself = true} ,
+	        special = function(_,name,cat)--special filter
+					if map:AverageWind() > 7 then
+						return name,cat
+					end
+					 end,
+	        },
+
+		{ 	category = '_tide_' ,
+			economy = function(_,param,name)--ecofunc()
+					return  true --E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {min = 50,categories = {'_nano_','factoryMobilities'},himself = true} ,
+	        special = 	function(_,name,cat)--special filter
+					if map:TidalStrength() >= 10 then
+						return name,cat
+					end
+						end,
+	        },
+
+		{ 	category = '_solar_' ,
+			economy = function(_,param,name)--ecofunc()
+					return  true --E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location ={min = 50,categories = {'_nano_','factoryMobilities'},himself = true}
+			} ,
+
+		{ 	category = '_llt_' ,
+			economy = function(_,param,name)--ecofunc()
+					return self.ai.tool:countMyUnit({'factoryMobilities'}) > 0
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'factoryMobilities','_mex_'},min = 100,neighbours = {'_llt_','_popup2_','_popup1_'},list = self.map:GetMetalSpots()}
+	        } ,
+
+		{ 	category = '_torpedo1_' ,
+			economy = function(_,param,name)--ecofunc()
+					return self.ai.tool:countMyUnit({'factoryMobilities'}) > 0
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'factoryMobilities','_mex_'},min = 100,neighbours = {'_torpedo1_','_torpedo2_'},list = self.map:GetMetalSpots()}
+			},
+		{ 	category = 'factoryMobilities' ,
+			economy = function(_,param,name)--ecofunc()
+					return M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2 and E.income > 40
+
+				end,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true ,
+	        },
+		}
+------------------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+	--------------------------------------------------------------------------------------------------------------------------------
+	--------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+
+	self.roles.eco = {
+		{ 	category = 'factoryMobilities' ,
+			economy = function(_,param,name)--ecofunc()
+					return M.income > 6 and E.income > 30
+				end,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true , --positional category to search near
+	        },
+
+		{ 	category = '_llt_' ,
+			economy = function(_,param,name)--ecofunc()
+					return true
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = 2 , --numericalParameter
+			location = {categories = {'factoryMobilities'},max = 1000,min = 50,neighbours = {'_llt_','_popup2_','_popup1_'},list = self.map:GetMetalSpots()} ,
+			},
+
+		{ 	category = '_wind_' ,
+			economy = function(_,param,name)--ecofunc()
+					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 30) and self.ai.Energy.income < 3000
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        special = function(_,name,cat)--special filter
+					if map:AverageWind() > 7 then
+						return name,cat
+					end
+					 end,
+	        },
+
+		{ 	category = '_tide_' ,
+			economy = function(_,param,name)--ecofunc()
+					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 30) and self.ai.Energy.income < 3000
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        special = function(_,name,cat)--special filter
+					 if  map:TidalStrength() >= 10 then
+						return name,cat
+					end
+					 end,
+	        },
+
+		{ 	category = '_solar_' ,
+			economy = function(_,param,name)--ecofunc(_,param,name)
+					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 50) and self.ai.Energy.income < 3000
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+			special = function(_,name,cat,builderID)--special filter
+					local builder = game:GetUnitByID(builderID)
+                    local newName = self.ai.armyhst[cat][name]
+                    self:EchoDebug('newName',newName)
+                    if builder:CanBuild(game:GetTypeByName(newName)) then
+                        if self.ai.Metal.reserves > 100 and self.ai.Energy.income > 200  then
+                            return newName, cat
+                        end
+                    end
+                    return name,cat
+					 end } , --specialFilter
+
+		{ 	category = '_fus_' ,
+			economy = function(_,param,name)--ecofunc()
+					return ( E.income < E.usage * 1.25) or E.full < 0.5
+				end,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_nano_','factoryMobilities','selfCat'}} ,
+			special = function(_,name,cat,builderID)--special filter
+                    local newName = self.ai.armyhst[cat][name]
+					local builder = game:GetUnitByID(builderID)
+                    self:EchoDebug('newName',newName)
+                    if builder:CanBuild(game:GetTypeByName(newName)) then
+                        if self.ai.Energy.income > 4000  then
+                            return newName, cat
+                        end
+                    end
+					return name,cat
+                end } ,
+
+		{ 	category = '_nano_' ,
+			economy = function(_,param,name)--ecofunc()
+					return (E.full > 0.3  and M.full > 0.3 and self.ai.overviewhst.ECONOMY > 0) --or
+					--(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 60 ))
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true , --positional category to search near
+	        },
+
+		{ 	category = '_estor_' ,
+			economy = function(_,param,name)--ecofunc()
+					return E.full > 0.75 and E.income > 400
+				end,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 1 , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        },
+
+		{ 	category = '_mstor_' ,
+			economy = function(_,param,name)--ecofunc()
+					return  M.full > 0.75 and M.income > 20 and E.income > 200
+				end,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 1 , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        },
+
+		{ 	category = '_convs_' ,
+			economy = function(_,param,name)--ecofunc()
+					return (E.income > E.usage * 1.1 and E.full > 0.9 and  E.income > 200) or (self.ai.ecohst.extraEnergy > 100 and self.ai.tool:countFinished({'_convs_'}) == 0)
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+	        special = function(_,name,cat)--special filter
+                if self.ai.tool:countMyUnit( {'_fus_'}  ) < 2 and self.ai.armyhst.unitTable[name].techLevel == 1 then
+                    return name,cat
+                elseif  self.ai.armyhst.unitTable[name].techLevel > 1 then
+                    return name,cat
+                end
+            end,
+	        },
+
+		{ 	category = '_jam_' ,
+			economy = function(_,param,name)--ecofunc()
+					return M.full > 0.5 and M.income > 50 and E.income > 1000
+				end,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 1 , --numericalParameter
+			location = {categories = {'factoryMobilities'},min = 100,neighbours = {'_jam_'}} ,
+	        },
+
+		{ 	category = '_antinuke_' ,
+			economy = function(_,param,name)--ecofunc()
+					return self.ai.overviewhst.ECONOMY > 7 and E.full > 0.5 and M.full > 0.2
+				end,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 1 , --numericalParameter
+			location = {categories = {'_nano_'},min = 50} ,
+	        },
+
+	}
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	self.roles.default = {
 		{ 	category = 'factoryMobilities' ,
 			economy = function(_,param,name)--ecofunc()
@@ -332,7 +572,11 @@ function TasksHST:startRolesParams()
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
 			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
-	        special = true},
+	        special = function(_,name,cat)--special filter
+					if map:AverageWind() > 7 then
+						return name,cat
+					end
+					 end},
 
 		{ 	category = '_tide_' ,
 			economy = function(_,param,name)--ecofunc()
@@ -341,7 +585,11 @@ function TasksHST:startRolesParams()
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
 			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
-	        special = true},
+	        special = function(_,name,cat)--special filter
+					if map:TidalStrength() >= 10 then
+						return name,cat
+					end
+					 end},
 
 		{ 	category = '_solar_' ,
 			economy = function(_,param,name)--ecofunc()
@@ -350,7 +598,17 @@ function TasksHST:startRolesParams()
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
 			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
-			special = true } , --specialFilter
+			special = function(_,name,cat,builderID)--special filter
+                    local newName = self.ai.armyhst[cat][name]
+					local builder = game:GetUnitByID(builderID)
+                    self:EchoDebug('newName',newName)
+                    if builder:CanBuild(game:GetTypeByName(newName)) then
+                        if self.ai.Metal.reserves > 100 and self.ai.Energy.income > 200  then
+                            return newName, cat
+                        end
+                    end
+                    return name,cat
+					 end } , --specialFilter
 
 		{ 	category = '_mstor_' ,
 			economy = function(_,param,name)--ecofunc()
@@ -363,7 +621,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_estor_' ,
 			economy = function(_,param,name)--ecofunc()
-					return E.full > 0.9 and E.income > 400  and M.full > 0.1
+					return E.full > 0.9 and E.income > 400
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = 1 , --numericalParameter
@@ -405,7 +663,11 @@ function TasksHST:startRolesParams()
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
 			location = {categories = {'_mex_'},min = 50,neighbours = {'_aa1_'}} ,
-	        special = true ,},
+	        special = function(_,name,cat)--special filter
+					 if  self.ai.loshst.needAntiAir then
+						return name,cat
+					end
+					 end ,},
 
 		{ 	category = '_flak_' ,
 			economy = function(_,param,name)--ecofunc()
@@ -414,7 +676,11 @@ function TasksHST:startRolesParams()
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
 			location = {categories = {'_mex_'},min = 50,neighbours = {'_flak_'}} ,
-			special = true } , --specialFilter
+			special = function(_,name,cat)--special filter
+					 if  self.ai.loshst.needAntiAir then
+						return name,cat
+					end
+					 end } ,
 
 		{ 	category = '_specialt_' ,
 			economy = function(_,param,name)--ecofunc()
@@ -432,7 +698,17 @@ function TasksHST:startRolesParams()
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
 			location = {categories = {'_nano_'}} ,
-			special = true } , --specialFilter
+			special = function(_,name,cat,builderID)--special filter
+					local builder = game:GetUnitByID(builderID)
+                    local newName = self.ai.armyhst[cat][name]
+                    self:EchoDebug('newName',newName)
+                    if builder:CanBuild(game:GetTypeByName(newName)) then
+                        if self.ai.Energy.income > 4000  then
+                            return newName, param, cat
+                        end
+                    end
+                    return name,cat
+					 end } , --specialFilter
 
 		{ 	category = '_popup1_' ,
 			economy = function(_,param,name)--ecofunc()
@@ -580,7 +856,11 @@ function TasksHST:startRolesParams()
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
 			location = {categories = {'_heavyt_'},min = 50,neighbours = {'_aabomb_'}} ,
-			special = true } , --specialFilter
+			special = function(_,name,cat)--special filter
+					if self.ai.loshst.needAntiAir then
+						return name,cat
+					end
+					 end } ,
 
 		{ 	category = '_aaheavy_' ,
 			economy = function(_,param,name)--ecofunc()
@@ -589,7 +869,11 @@ function TasksHST:startRolesParams()
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
 			location = {categories = {'factoryMobilities'},min = 50,neighbours = {'_aaheavy_'}} ,
-			special = true } , --specialFilter
+			special = function(_,name,cat)--special filter
+					if self.ai.loshst.needAntiAir then
+						return name,cat
+					end
+					 end } , --specialFilter
 
 		{ 	category = '_aa2_' ,
 			economy = function(_,param,name)--ecofunc()
@@ -598,7 +882,11 @@ function TasksHST:startRolesParams()
 			duplicate = true , --duplicateFilter
 			numeric = 1 , --numericalParameter
 			location = {categories = {'factoryMobilities'},min = 50,neighbours = {'_aa2_'}} ,
-			special = true } , --specialFilter
+			special = function(_,name,cat)--special filter
+					 if self.ai.loshst.needAntiAir then
+						return name,cat
+					end
+					 end } , --specialFilter
 
 	}
 ----------------------------------------------------------------------------------------------------------------------------------
@@ -632,7 +920,14 @@ function TasksHST:startRolesParams()
 			numeric = false , --numericalParameter
 			location = {categories = {'_mex_'},min = 50,neighbours = {'_llt_','_popup2_','_popup1_'},list = self.map:GetMetalSpots()} ,
 			},
-
+		{ 	category = '_torpedo1_' ,
+			economy = function(_,param,name)--ecofunc()
+					return true
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'_mex_'},min = 100,neighbours = {'_torpedo1_','_torpedo2_'},list = self.map:GetMetalSpots()}
+			},
 		{ 	category = '_popup2_' ,
 			economy = function(_,param,name)--ecofunc()
 					return true
@@ -648,133 +943,11 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'_mex_','_llt_',},himself = true} ,
-			special = false } , --specialFilter
+			location = {categories = {'_mex_','_llt_',},himself = true}
+	        } ,
 
 	}
---------------------------------------------------------------------------------------------------------------------------------
-	--------------------------------------------------------------------------------------------------------------------------------
-	--------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------
 
-	self.roles.eco = {
-		{ 	category = 'factoryMobilities' ,
-			economy = function(_,param,name)--ecofunc()
-					return M.income > 6 and E.income > 30
-				end,--economicParameters
-			duplicate = true , --duplicateFilter
-			numeric = false , --numericalParameter
-			location = true , --positional category to search near
-	        },
-
-		{ 	category = '_llt_' ,
-			economy = function(_,param,name)--ecofunc()
-					return true
-				end,--economicParameters
-			duplicate = false , --duplicateFilter
-			numeric = 2 , --numericalParameter
-			location = {categories = {'_mex_','factoryMobilities'},max = 1000,min = 50,neighbours = {'_llt_','_popup2_','_popup1_'},list = self.map:GetMetalSpots()} ,
-			},
-
-		{ 	category = '_wind_' ,
-			economy = function(_,param,name)--ecofunc()
-					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 30) and self.ai.Energy.income < 3000
-				end,--economicParameters
-			duplicate = false , --duplicateFilter
-			numeric = false , --numericalParameter
-			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
-	        special = true,
-	        },
-
-		{ 	category = '_tide_' ,
-			economy = function(_,param,name)--ecofunc()
-					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 30) and self.ai.Energy.income < 3000
-				end,--economicParameters
-			duplicate = false , --duplicateFilter
-			numeric = false , --numericalParameter
-			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
-	        special = true,
-	        },
-
-		{ 	category = '_solar_' ,
-			economy = function(_,param,name)--ecofunc(_,param,name)
-					return ((E.full < 0.75 or E.income < E.usage * 1.25  )  or E.income < 50) and self.ai.Energy.income < 3000
-				end,--economicParameters
-			duplicate = false , --duplicateFilter
-			numeric = false , --numericalParameter
-			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
-			special = true } , --specialFilter
-
-		{ 	category = '_fus_' ,
-			economy = function(_,param,name)--ecofunc()
-					return ( E.income < E.usage * 1.25) or E.full < 0.5
-				end,--economicParameters
-			duplicate = true , --duplicateFilter
-			numeric = false , --numericalParameter
-			location = {categories = {'_nano_','factoryMobilities','selfCat'}} ,
-			special = true } , --specialFilter
-
-		{ 	category = '_nano_' ,
-			economy = function(_,param,name)--ecofunc()
-					return (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100) --or
-					--(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 60 ))
-				end,--economicParameters
-			duplicate = false , --duplicateFilter
-			numeric = false , --numericalParameter
-			location = true , --positional category to search near
-	        },
-
-		{ 	category = '_estor_' ,
-			economy = function(_,param,name)--ecofunc()
-					return E.full > 0.75 and E.income > 400
-				end,--economicParameters
-			duplicate = true , --duplicateFilter
-			numeric = 1 , --numericalParameter
-			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
-	        },
-
-		{ 	category = '_mstor_' ,
-			economy = function(_,param,name)--ecofunc()
-					return  M.full > 0.75 and M.income > 20 and E.income > 200
-				end,--economicParameters
-			duplicate = true , --duplicateFilter
-			numeric = 1 , --numericalParameter
-			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
-	        },
-
-		{ 	category = '_convs_' ,
-			economy = function(_,param,name)--ecofunc()
-					return (E.income > E.usage * 1.1 and E.full > 0.9 and  E.income > 200) or (self.ai.ecohst.extraEnergy > 100 and self.ai.tool:countFinished({'_convs_'}) == 0)
-				end,--economicParameters
-			duplicate = false , --duplicateFilter
-			numeric = false , --numericalParameter
-			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
-	        special = true,
-	        },
-
-		{ 	category = '_jam_' ,
-			economy = function(_,param,name)--ecofunc()
-					return M.full > 0.5 and M.income > 50 and E.income > 1000
-				end,--economicParameters
-			duplicate = true , --duplicateFilter
-			numeric = 1 , --numericalParameter
-			location = {categories = {'factoryMobilities'},min = 100,neighbours = {'_jam_'}} ,
-	        },
-
-		{ 	category = '_antinuke_' ,
-			economy = function(_,param,name)--ecofunc()
-					return E.income > 4000 and M.income > 75 and E.full > 0.5 and M.full > 0.2
-				end,--economicParameters
-			duplicate = true , --duplicateFilter
-			numeric = 1 , --numericalParameter
-			location = {categories = {'_nano_'},min = 50} ,
-	        },
-
-	}
 ------------------------------------------------------------------------------------------------------------------------------------
 	------------------------------------------------------------------------------------------------------------------------------------
 	------------------------------------------------------------------------------------------------------------------------------------
@@ -799,7 +972,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_specialt_' ,
 			economy = function(_,param,name)--ecofunc()
-					return E.income > 40 and M.income > 4 and M.full > 0.1
+					return self.ai.overviewhst.ECONOMY > 2 and M.full > 0.1
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -808,7 +981,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_popup1_' ,
 			economy = function(_,param,name)--ecofunc()
-					return (E.income > 200 and M.income > 25  )
+					return (self.ai.overviewhst.ECONOMY > 3 and self.ai.loshst.needAntiAir )
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -826,7 +999,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_heavyt_' ,
 			economy = function(_,param,name)--ecofunc()
-					return E.income > 100 and M.income > 15 and M.full > 0.3
+					return self.ai.overviewhst.ECONOMY > 1 and M.full > 0.3
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -835,7 +1008,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_laser2_' ,
 			economy = function(_,param,name)--ecofunc()
-					return E.income > 2000 and M.income > 50 and E.full > 0.5 and M.full > 0.3
+					return self.ai.overviewhst.ECONOMY > 5 and E.full > 0.2 and M.full > 0.2
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -844,14 +1017,18 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_aa1_' ,
 			economy = function(_,param,name)--ecofunc()
-					return  E.full > 0.1 and E.full < 0.5
+					return  M.full < 0.2 or E.full < 0.5
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
 			location = {categories = {'_mex_'},min = 50,neighbours = {'_aa1_'}} ,
-	        special = true,
+	        special = function(_,name,cat)--special filter
+					if self.ai.loshst.needAntiAir then
+						return name,cat
+					end
+					 end,
 	        },
-
+--[[
 		{ 	category = '_aabomb_' ,
 			economy = function(_,param,name)--ecofunc()
 					return E.full > 0.5 and M.full > 0.5
@@ -859,16 +1036,65 @@ function TasksHST:startRolesParams()
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
 			location = {categories = {'_heavyt_'},min = 50,neighbours = {'_aabomb_'}} ,
-			special = true } , --specialFilter
-
+			special = function(_,name,cat)--special filter
+					 if self.ai.loshst.needAntiAir then
+						return name,cat
+					end
+					 end } ,]]
+		{ 	category = '_aaheavy_' ,
+			economy = function(_,param,name)--ecofunc()
+					return M.full > 0.2 and E.full > 0.5
+				end,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = {categories = {'factoryMobilities'},min = 50,neighbours = {'_aaheavy_'}} ,
+			special = function(_,name,cat)--special filter
+					if self.ai.loshst.needAntiAir then
+						return name,cat
+					end
+				end } , --specialFilter
 		{ 	category = '_flak_' ,
 			economy = function(_,param,name)--ecofunc()
-					return E.full > 0.1 and E.full < 0.5
+					return E.full > 0.1
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
 			location = {categories = {'_mex_'},min = 50,neighbours = {'_flak_'}} ,
-			special = true } , --specialFilter
+			special = function(_,name,cat)--special filter
+					 if self.ai.loshst.needAntiAir then
+						return name,cat
+					end
+					 end },
+		{ 	category = '_coast1_' ,
+			economy = function(_,param,name)--ecofunc()
+					return self.ai.overviewhst.ECONOMY > 7 and E.full > 0.2 and M.full > 0.2
+				end,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 2 , --numericalParameter
+			location = {categories = {'_heavyt_','_laser2_'},min = 50} ,
+	        special = function(_,name,cat,builderID)
+				local mex = self.ai.overviewhst.X100M > 0.25
+				local t2 = self.ai.overviewhst.T2LAB
+				if mex and not t2 then
+					return name,cat
+				end
+	        end
+	        },
+		{ 	category = '_coast2_' ,
+			economy = function(_,param,name)--ecofunc()
+					return self.ai.overviewhst.ECONOMY > 15 and E.full > 0.2 and M.full > 0.2
+				end,--economicParameters
+			duplicate = true , --duplicateFilter
+			numeric = 2 , --numericalParameter
+			location = {categories = {'_heavyt_','_laser2_'},min = 50} ,
+	        special = function(_,name,cat,builderID)
+				local mex = self.ai.overviewhst.X100M > 0.25
+				local t2 = self.ai.overviewhst.T2LAB
+				if mex and t2 then
+					return name,cat
+				end
+	        end
+	        },
 	}
 ---------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------
@@ -879,6 +1105,7 @@ function TasksHST:startRolesParams()
 	---------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------
 	self.roles.assist = {
+		--[[
 			{ 	category = '_mex_' ,
 			economy = function(_,param,name)--ecofunc()
 					return false
@@ -886,66 +1113,19 @@ function TasksHST:startRolesParams()
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
 			location = true ,
+	        },]]
+			{ 	category = '_nano_' ,
+			economy = function(_,param,name)--ecofunc()
+					return (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100) --or
+					--(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 60 ))
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true , --positional category to search near
 	        },
 
 		}
-	self.roles.starter = {
-		{ 	category = '_mex_' ,
-			economy = function(_,param,name)--ecofunc()
-					return true
-				end,--economicParameters
-			duplicate = false , --duplicateFilter
-			numeric = false , --numericalParameter
-			location = true ,
-	        },
-		{ 	category = '_wind_' ,
-			economy = function(_,param,name)--ecofunc()
-					return  true --E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
-				end,--economicParameters
-			duplicate = false , --duplicateFilter
-			numeric = false , --numericalParameter
-			location = {min = 50,categories = {'_nano_','factoryMobilities'},himself = true} ,
-	        special = true,
-	        },
 
-		{ 	category = '_tide_' ,
-			economy = function(_,param,name)--ecofunc()
-					return  true --E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
-				end,--economicParameters
-			duplicate = false , --duplicateFilter
-			numeric = false , --numericalParameter
-			location = {min = 50,categories = {'_nano_','factoryMobilities'},himself = true} ,
-	        special = true,
-	        },
-
-		{ 	category = '_solar_' ,
-			economy = function(_,param,name)--ecofunc()
-					return  true --E.income < 40 and (M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2)
-				end,--economicParameters
-			duplicate = false , --duplicateFilter
-			numeric = false , --numericalParameter
-			location ={min = 50,categories = {'_nano_','factoryMobilities'},himself = true} ,
-			special = true } , --specialFilter
-
-		{ 	category = '_llt_' ,
-			economy = function(_,param,name)--ecofunc()
-					return self.ai.tool:countMyUnit({'factoryMobilities'}) > 0
-				end,--economicParameters
-			duplicate = false , --duplicateFilter
-			numeric = false , --numericalParameter
-			location = {categories = {'factoryMobilities','_mex_'},min = 100,neighbours = {'_llt_','_popup2_','_popup1_'}}
-	        },list = self.map:GetMetalSpots() ,
-
-		{ 	category = 'factoryMobilities' ,
-			economy = function(_,param,name)--ecofunc()
-					return M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2 and E.income > 40
-
-				end,--economicParameters
-			duplicate = true , --duplicateFilter
-			numeric = false , --numericalParameter
-			location = true ,
-	        },
-		}
 
 end
 

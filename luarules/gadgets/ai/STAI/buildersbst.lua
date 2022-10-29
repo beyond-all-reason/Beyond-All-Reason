@@ -66,22 +66,7 @@ function BuildersBST:Watchdog()
 end
 
 function BuildersBST:Evade()
-	--[[
-	local home = self.ai.labshst:ClosestHighestLevelFactory(self.unit:Internal())
-	if home then
-		self.unit:Internal():Guard(home.id)
-		self.ai.buildingshst:ClearMyProjects(self.id)
-		return
--- 		home = home.position
-	else
-		home = self.ai.tool:UnitPos(self)
-		home = self.ai.tool:RandomAway(home,300)
-		self.unit:Internal():Move(home)
-		self.ai.buildingshst:ClearMyProjects(self.id)
-	end
-	]]
 	self:Assist()
-
 end
 
 function BuildersBST:Update()
@@ -134,51 +119,16 @@ function BuildersBST:CategoryEconFilter(cat,param,name)
 	end
 end
 
-function BuildersBST:specialFilter(cat,param,name)
-	self:EchoDebug(cat ,name, self.role, " (before special filter)")
-	if not name then return end
-	local tasks = self.ai.taskshst
-	local check = false
-	if cat == '_solar_' then
-		local newName = self.ai.armyhst[cat][name]
-		self:EchoDebug('newName',newName)
-		if self.unit:Internal():CanBuild(self.game:GetTypeByName(newName)) then
-			if self.ai.Metal.reserves > 100 and self.ai.Energy.income > 200 and self.role == 'eco' then
-				name = newName
-			end
-		end
-		check =  true
-	elseif cat == '_fus_' then
-		local newName = self.ai.armyhst[cat][name]
-		self:EchoDebug('newName',newName)
-		if self.unit:Internal():CanBuild(game:GetTypeByName(newName)) then
-			if self.ai.Metal.reserves > 1000 and self.ai.Energy.income > 4000 and self.role == 'eco' then
-				name = newName
-			end
-		end
-		check =  true
- 	elseif (cat == '_convs_' ) then
- 		if self.ai.tool:countMyUnit( {'_fus_'}  ) < 2 and self.ai.armyhst.unitTable[name].techLevel == 1 then
- 			check= true
-		elseif  self.ai.armyhst.unitTable[name].techLevel > 1 then
-			check= true
- 		end
-	elseif cat == '_wind_' then
-		check = map:AverageWind() > 7
-	elseif cat == '_tide_' then
-		check = map:TidalStrength() >= 10
-	elseif cat == '_aa1_' then
-		check =  self.ai.needAntiAir
-	elseif cat == '_flak_' then
-		check = self.ai.needAntiAir
-	elseif cat == '_aabomb_' then
-		check = self.ai.needAntiAir
+function BuildersBST:CategorySpecialFilter(cat,name)
+	self:EchoDebug(cat ,name,self.role, " (before Special filter)")
+	if not name  then
+		self:EchoDebug('special fiter stop',name, cat)
+		return
 	end
-	if check then
-		self:EchoDebug('special filter pass',cat,name)
-		return  name
-	else
-		self:EchoDebug('special filter block',cat,name)
+	local specialName,specialCat = self.ai.taskshst.roles[self.role][self.idx]:special(name,cat,self.id)
+	if specialName  then
+		self:EchoDebug('special filter',specialName, specialParam, specialCat,self.idx)
+		return specialName, specialCat
 	end
 end
 
@@ -326,7 +276,7 @@ function BuildersBST:ProgressQueue()
 			self:EchoDebug(self.name .. " filtering...",jobName)
 			local success = false
 			if JOB.special and jobName then
-				jobName = self:specialFilter(JOB.category,JOB.special,jobName)
+				jobName = self:CategorySpecialFilter(JOB.category,jobName)
 			end
 			if JOB.numeric and jobName then
 				jobName = self:limitedNumber(jobName, JOB.numeric)
@@ -369,7 +319,9 @@ function BuildersBST:ProgressQueue()
 				self.fails = self.fails + 1
 				if self.fails >  #self.queue  then
 					self.failOut = self.game:Frame()
-					if self.ai.buildingshst.roles[self.id].role == 'expand' then
+					if self.ai.buildingshst.roles[self.id].role == 'assist' then
+						self.ai.buildingshst.roles[self.id].role = nil
+					elseif self.ai.buildingshst.roles[self.id].role == 'expand' then
 						self.ai.buildingshst.roles[self.id].role = 'support'
 					elseif self.ai.buildingshst.roles[self.id].role == 'support' then
 						self.ai.buildingshst.roles[self.id].role = 'default'
@@ -449,3 +401,53 @@ function BuildersBST:Assist()
 
 	end
 end
+
+--[[
+function BuildersBST:specialFilter(cat,param,name)
+	self:EchoDebug(cat ,name, self.role,'before special filter')
+	if not name then return end
+	local tasks = self.ai.taskshst
+	local check = false
+	if cat == '_solar_' then
+		local newName = self.ai.armyhst[cat][name]
+		self:EchoDebug('newName',newName)
+		if self.unit:Internal():CanBuild(self.game:GetTypeByName(newName)) then
+			if self.ai.Metal.reserves > 100 and self.ai.Energy.income > 200 and self.role == 'eco' then
+				name = newName
+			end
+		end
+		check =  true
+	elseif cat == '_fus_' then
+-- 		local newName = self.ai.armyhst[cat][name]
+-- 		self:EchoDebug('newName',newName)
+-- 		if self.unit:Internal():CanBuild(game:GetTypeByName(newName)) then
+-- 			if self.ai.Metal.reserves > 1000 and self.ai.Energy.income > 4000 and self.role == 'eco' then
+-- 				name = newName
+-- 			end
+-- 		end
+-- 		check =  true
+ 	elseif (cat == '_convs_' ) then
+--  		if self.ai.tool:countMyUnit( {'_fus_'}  ) < 2 and self.ai.armyhst.unitTable[name].techLevel == 1 then
+--  			check= true
+-- 		elseif  self.ai.armyhst.unitTable[name].techLevel > 1 then
+-- 			check= true
+--  		end
+	elseif cat == '_wind_' then
+-- 		check = map:AverageWind() > 7
+	elseif cat == '_tide_' then
+-- 		check = map:TidalStrength() >= 10
+	elseif cat == '_aa1_' then
+-- 		check =  self.ai.loshst.needAntiAir
+	elseif cat == '_flak_' then
+-- 		check = self.ai.needAntiAir
+	elseif cat == '_aabomb_' then
+-- 		check = self.ai.needAntiAir
+	end
+	if check then
+		self:EchoDebug('special filter pass',cat,name)
+		return  name
+	else
+		self:EchoDebug('special filter block',cat,name)
+	end
+end
+]]
