@@ -758,6 +758,117 @@ if gadgetHandler:IsSyncedCode() then
 
 	end
 
+	local function SpawnRandomOffWaveSquad(burrowID, chickenType, count)
+		if gameOver then
+			return
+		end
+		local squadCounter = 0
+		if chickenType then
+			if not count then count = 1 end
+			squad = { count .. " " .. chickenType }
+			for i, sString in pairs(squad) do
+				local nEnd, _ = string.find(sString, " ")
+				local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
+				local chickenName = string.sub(sString, (nEnd + 1))
+				for j = 1, unitNumber, 1 do
+					squadCounter = squadCounter + 1
+					table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
+				end
+			end
+		else
+			local techAngerPerTier = 100/config.wavesAmount
+			if techAnger >= 100 then
+				currentWave = config.wavesAmount
+			else
+				currentWave = math.ceil(techAnger/techAngerPerTier)
+			end
+
+			if currentWave > config.wavesAmount then
+				currentWave = config.wavesAmount
+			end
+
+			local waveLevel = currentWave
+			local squad = config.basicWaves[waveLevel][mRandom(1, #config.basicWaves[waveLevel])]
+			if config.specialWaves[waveLevel] and math.random(1,100) <= 20 then
+				squad = config.specialWaves[waveLevel][mRandom(1, #config.specialWaves[waveLevel])]
+			elseif config.superWaves[waveLevel] and math.random(1,100) <= 1 then
+				squad = config.superWaves[waveLevel][mRandom(1, #config.superWaves[waveLevel])]
+			end
+			for i, sString in pairs(squad) do
+				local nEnd, _ = string.find(sString, " ")
+				local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
+				local chickenName = string.sub(sString, (nEnd + 1))
+				for j = 1, unitNumber, 1 do
+					squadCounter = squadCounter + 1
+					table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
+				end
+			end
+		end
+		return squadCounter
+	end
+
+	local function SetupBurrow(unitID, x, y, z)
+		burrows[unitID] = 0
+		SetUnitBlocking(unitID, false, false)
+		setChickenXP(unitID)
+		-- spawn turrets
+		local turretID = CreateUnit(lightTurret, x-32, y, z-32, mRandom(0,3), chickenTeamID)
+		if turretID then
+			SetUnitBlocking(turretID, false, false)
+			setChickenXP(turretID)
+			Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+		end
+		local turretID = CreateUnit(lightTurret, x+32, y, z-32, mRandom(0,3), chickenTeamID)
+		if turretID then
+			SetUnitBlocking(turretID, false, false)
+			setChickenXP(turretID)
+			Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+		end
+		local turretID = CreateUnit(lightTurret, x-32, y, z+32, mRandom(0,3), chickenTeamID)
+		if turretID then
+			SetUnitBlocking(turretID, false, false)
+			setChickenXP(turretID)
+			Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+		end
+		local turretID = CreateUnit(lightTurret, x+32, y, z+32, mRandom(0,3), chickenTeamID)
+		if turretID then
+			SetUnitBlocking(turretID, false, false)
+			setChickenXP(turretID)
+			Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+		end
+		-- spawn more turrets sometimes
+		if math.random(1,5) == 1 then
+			local turretID = CreateUnit(lightTurret, x+48, y, z, mRandom(0,3), chickenTeamID)
+			if turretID then
+				SetUnitBlocking(turretID, false, false)
+				setChickenXP(turretID)
+				Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+			end
+			local turretID = CreateUnit(lightTurret, x-48, y, z, mRandom(0,3), chickenTeamID)
+			if turretID then
+				SetUnitBlocking(turretID, false, false)
+				setChickenXP(turretID)
+				Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+			end
+			local turretID = CreateUnit(lightTurret, x, y, z+48, mRandom(0,3), chickenTeamID)
+			if turretID then
+				SetUnitBlocking(turretID, false, false)
+				setChickenXP(turretID)
+				Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+			end
+			local turretID = CreateUnit(lightTurret, x, y, z-48, mRandom(0,3), chickenTeamID)
+			if turretID then
+				SetUnitBlocking(turretID, false, false)
+				setChickenXP(turretID)
+				Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+			end
+		end
+		-- spawn scouts
+		for j = 1,SetCount(humanTeams) do
+			SpawnRandomOffWaveSquad(unitID, config.chickenScouts[mRandom(1,#config.chickenScouts)], 1)
+		end
+	end
+
 	local function SpawnBurrow(number)
 
 		local unitDefID = UnitDefNames[config.burrowName].id
@@ -815,9 +926,7 @@ if gadgetHandler:IsSyncedCode() then
 			if canSpawnBurrow then
 				local unitID = CreateUnit(config.burrowName, x, y, z, mRandom(0,3), chickenTeamID)
 				if unitID then
-					burrows[unitID] = 0
-					SetUnitBlocking(unitID, false, false)
-					setChickenXP(unitID)
+					SetupBurrow(unitID, x, y, z)
 				end
 			else
 				for i = 1,100 do
@@ -838,9 +947,7 @@ if gadgetHandler:IsSyncedCode() then
 					if canSpawnBurrow then
 						local unitID = CreateUnit(config.burrowName, x, y, z, mRandom(0,3), chickenTeamID)
 						if unitID then
-							burrows[unitID] = 0
-							SetUnitBlocking(unitID, false, false)
-							setChickenXP(unitID)
+							SetupBurrow(unitID, x, y, z)
 							break
 						end
 					elseif i == 100 then
@@ -955,55 +1062,6 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		return nil
-	end
-
-	local function SpawnRandomOffWaveSquad(burrowID, chickenType, count)
-		if gameOver then
-			return
-		end
-		local squadCounter = 0
-		if chickenType then
-			if not count then count = 1 end
-			squad = { count .. " " .. chickenType }
-			for i, sString in pairs(squad) do
-				local nEnd, _ = string.find(sString, " ")
-				local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
-				local chickenName = string.sub(sString, (nEnd + 1))
-				for j = 1, unitNumber, 1 do
-					squadCounter = squadCounter + 1
-					table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
-				end
-			end
-		else
-			local techAngerPerTier = 100/config.wavesAmount
-			if techAnger >= 100 then
-				currentWave = config.wavesAmount
-			else
-				currentWave = math.ceil(techAnger/techAngerPerTier)
-			end
-
-			if currentWave > config.wavesAmount then
-				currentWave = config.wavesAmount
-			end
-
-			local waveLevel = currentWave
-			local squad = config.basicWaves[waveLevel][mRandom(1, #config.basicWaves[waveLevel])]
-			if config.specialWaves[waveLevel] and math.random(1,100) <= 20 then
-				squad = config.specialWaves[waveLevel][mRandom(1, #config.specialWaves[waveLevel])]
-			elseif config.superWaves[waveLevel] and math.random(1,100) <= 1 then
-				squad = config.superWaves[waveLevel][mRandom(1, #config.superWaves[waveLevel])]
-			end
-			for i, sString in pairs(squad) do
-				local nEnd, _ = string.find(sString, " ")
-				local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
-				local chickenName = string.sub(sString, (nEnd + 1))
-				for j = 1, unitNumber, 1 do
-					squadCounter = squadCounter + 1
-					table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
-				end
-			end
-		end
-		return squadCounter
 	end
 
 	local function Wave()

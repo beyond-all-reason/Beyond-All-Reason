@@ -164,6 +164,17 @@ local chickenTypes = {
 	chicken_miniqueen_healer			=  	"white",
   }
 
+  chickenScouts = {
+	"chicken1_mini",
+	"chicken1_mini",
+	"chicken1_mini",
+	"chicken1_mini",
+	"chicken1_mini",
+	"chickenf2",
+	"chickenh1",
+	"chickenh1b",
+  }
+
 local optionValues = {
 	-- [difficulties.veryeasy] = {
 	-- 	chickenMaxSpawnRate  = 120,
@@ -541,6 +552,7 @@ local config = {
 	minBaseDistance        = 500,
 	chickenTypes           = table.copy(chickenTypes),
 	chickenEggs			   = table.copy(chickenEggs),
+	chickenScouts 		   = table.copy(chickenScouts),
 	defenders              = table.copy(defenders),
 	waves                  = waves,
 	wavesAmount            = wavesAmount,
