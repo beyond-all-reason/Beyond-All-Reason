@@ -68,7 +68,6 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 2.3, length = 18, piece = "thrusta", limit = true  },
 		{ color = { 0.7, 0.4, 0.1 }, width = 2.3, length = 18, piece = "thrustb", limit = true  },
 	},
-
 	-- fighters
 	["armfig"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 45, piece = "thrust", limit = true },
@@ -180,6 +179,12 @@ local effectDefs = {
 	--	{ color = { 0.1, 0.4, 0.6 }, width = 3.7, length = 15, piece = "thrust1", light = 1 },
 	--	{ color = { 0.1, 0.4, 0.6 }, width = 3.7, length = 15, piece = "thrust2", light = 1 },
 	--},
+
+	-- bladewing
+	["corbw"] = {
+		{ color = { 0.1, 0.4, 0.6 }, width = 1.8, length = 7.5, piece = "thrusta", limit = true  },
+		{ color = { 0.1, 0.4, 0.6 }, width = 1.8, length = 7.5, piece = "thrustb", limit = true  },
+	},
 
 	-- bombers
 	["armstil"] = {
@@ -539,7 +544,7 @@ void main()
 	jetcolor.rgb = color;
 	jetcolor.a = clamp((timeInfo.x + timeInfo.w - widthlengthtime.z)*0.053, 0.0, 1.0);
 	if ((uni[instData.y].composite & 0x00000001u) == 0u )  jetcolor = vec4(0.0); // disable if drawflag is set to 0
-	
+
 	if (reflectionPass > 0) {  // when reflecting, dont reflect underwater jets
 		if (worldPos.y < -5.0) jetcolor = vec4(0.0);
 	}
@@ -592,7 +597,7 @@ void main(void)
 		fragColor.rgba *= jetcolor.a;
 		//fragColor.rgba = vec4(1.0);
 		if (reflectionPass > 0) fragColor.rgba *= 3.0;
-		
+
 }
 ]]
 
