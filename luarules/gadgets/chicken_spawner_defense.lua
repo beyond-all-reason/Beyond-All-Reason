@@ -811,56 +811,58 @@ if gadgetHandler:IsSyncedCode() then
 		burrows[unitID] = 0
 		SetUnitBlocking(unitID, false, false)
 		setChickenXP(unitID)
-		-- spawn turrets
-		local turretID = CreateUnit(lightTurret, x-32, y, z-32, mRandom(0,3), chickenTeamID)
-		if turretID then
-			SetUnitBlocking(turretID, false, false)
-			setChickenXP(turretID)
-			Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
-		end
-		local turretID = CreateUnit(lightTurret, x+32, y, z-32, mRandom(0,3), chickenTeamID)
-		if turretID then
-			SetUnitBlocking(turretID, false, false)
-			setChickenXP(turretID)
-			Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
-		end
-		local turretID = CreateUnit(lightTurret, x-32, y, z+32, mRandom(0,3), chickenTeamID)
-		if turretID then
-			SetUnitBlocking(turretID, false, false)
-			setChickenXP(turretID)
-			Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
-		end
-		local turretID = CreateUnit(lightTurret, x+32, y, z+32, mRandom(0,3), chickenTeamID)
-		if turretID then
-			SetUnitBlocking(turretID, false, false)
-			setChickenXP(turretID)
-			Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
-		end
-		-- spawn more turrets sometimes
-		if math.random(1,5) == 1 then
-			local turretID = CreateUnit(lightTurret, x+48, y, z, mRandom(0,3), chickenTeamID)
+		-- spawn some turrets
+		if mRandom(1,2) == 1 then
+			local turretID = CreateUnit(lightTurret, x-32, y, z-32, mRandom(0,3), chickenTeamID)
 			if turretID then
 				SetUnitBlocking(turretID, false, false)
 				setChickenXP(turretID)
 				Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
 			end
-			local turretID = CreateUnit(lightTurret, x-48, y, z, mRandom(0,3), chickenTeamID)
+			local turretID = CreateUnit(lightTurret, x+32, y, z-32, mRandom(0,3), chickenTeamID)
 			if turretID then
 				SetUnitBlocking(turretID, false, false)
 				setChickenXP(turretID)
 				Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
 			end
-			local turretID = CreateUnit(lightTurret, x, y, z+48, mRandom(0,3), chickenTeamID)
+			local turretID = CreateUnit(lightTurret, x-32, y, z+32, mRandom(0,3), chickenTeamID)
 			if turretID then
 				SetUnitBlocking(turretID, false, false)
 				setChickenXP(turretID)
 				Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
 			end
-			local turretID = CreateUnit(lightTurret, x, y, z-48, mRandom(0,3), chickenTeamID)
+			local turretID = CreateUnit(lightTurret, x+32, y, z+32, mRandom(0,3), chickenTeamID)
 			if turretID then
 				SetUnitBlocking(turretID, false, false)
 				setChickenXP(turretID)
 				Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+			end
+			-- spawn more turrets sometimes
+			if mRandom(1,5) == 1 then
+				local turretID = CreateUnit(lightTurret, x+48, y, z, mRandom(0,3), chickenTeamID)
+				if turretID then
+					SetUnitBlocking(turretID, false, false)
+					setChickenXP(turretID)
+					Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+				end
+				local turretID = CreateUnit(lightTurret, x-48, y, z, mRandom(0,3), chickenTeamID)
+				if turretID then
+					SetUnitBlocking(turretID, false, false)
+					setChickenXP(turretID)
+					Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+				end
+				local turretID = CreateUnit(lightTurret, x, y, z+48, mRandom(0,3), chickenTeamID)
+				if turretID then
+					SetUnitBlocking(turretID, false, false)
+					setChickenXP(turretID)
+					Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+				end
+				local turretID = CreateUnit(lightTurret, x, y, z-48, mRandom(0,3), chickenTeamID)
+				if turretID then
+					SetUnitBlocking(turretID, false, false)
+					setChickenXP(turretID)
+					Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+				end
 			end
 		end
 		-- spawn scouts
