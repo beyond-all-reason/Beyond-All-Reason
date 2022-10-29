@@ -866,7 +866,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		-- spawn scouts
-		for j = 1,SetCount(humanTeams) do
+		for j = 1,SetCount(humanTeams*config.chickenSpawnMultiplier) do
 			SpawnRandomOffWaveSquad(unitID, config.chickenScouts[mRandom(1,#config.chickenScouts)], 1)
 		end
 	end
