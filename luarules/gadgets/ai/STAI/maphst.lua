@@ -26,6 +26,8 @@ function MapHST:Init()
 	self:createGrid()
 
 	self.METALS = map:GetMetalSpots()
+	print('metals',#self.METALS)
+	self:GetMetalSpots()
 	self.GEOS = map:GetGeoSpots()
 	self.METALS = self:SimplifyMetalSpots(self.gridSize * 2)-- is a random choice, can be 1 or 9999999999
 	self.allSpots = self.ai.tool:tableConcat({self.METALS,self.GEOS})
@@ -41,10 +43,26 @@ function MapHST:Init()
 	self:metalScan()
 	self:geoScan()
 	self:LayerScan()
-	--self:spotToCellMoveTest()
+	self:spotToCellMoveTest()
 	self:DrawDebug()
 	self.map_loaded = true
 	self:EchoDebug('MapHST STOP')
+end
+
+function MapHST:GetMetalSpots()
+	if #self.METALS > 10 then
+		return
+	end
+	for X,cells in pairs(self.GRID) do
+		for Z,cell in pairs(cells) do
+			local metal = Spring.GetMetalAmount ( cell.POS.x / 16, cell.POS.z / 16)
+			if metal > 1 then
+				table.insert(self.METALS,cell.POS)
+				--self.map:DrawPoint(cell.POS, {1,0,0,1}, metal, 9)
+				--print('metal2',metal)
+			end
+		end
+	end
 end
 
 function MapHST:PosToHeightMap(pos)

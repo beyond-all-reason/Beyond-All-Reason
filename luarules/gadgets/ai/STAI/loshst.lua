@@ -73,8 +73,9 @@ function LosHST:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 	local los = game:GetUnitLos(unitID)
 	local unit = game:GetUnitByID(unitID)
 	local position = unit:GetPosition()
+	local X,Z = self.ai.maphst:PosToGrid(position)
 	self:EchoDebug(	'ENTER LOS',los,unitID,unitTeam,allyTeam,unitDefID,UnitDefs[unitDefID].name)
-	self.losEnemy[unitID] = unitDefID
+	self.losEnemy[unitID] = {X=X,Z=Z}
 	self.radarEnemy[unitID] = nil
 end
 
@@ -86,7 +87,7 @@ function LosHST:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 	local unit = game:GetUnitByID(unitID)
 	local speed = UnitDefs[unitDefID].speed
 	if speed == 0  then
-		self.losEnemy[unitID] = unitDefID
+		self.losEnemy[unitID] = {X=X,Z=Z}
 		self.radarEnemy[unitID] = nil
 	else
 		self.losEnemy[unitID] = nil
@@ -100,9 +101,11 @@ function LosHST:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
 	end
 	local los = game:GetUnitLos(unitID)
 	local unit = game:GetUnitByID(unitID)
-	local isImmobile = UnitDefs[unitDefID].speed == 0
+	local position = unit:GetPosition()
+	local X,Z = self.ai.maphst:PosToGrid(position)
+	--local isImmobile = UnitDefs[unitDefID].speed == 0
 	if not self.losEnemy[unitID] then
-		self.radarEnemy[unitID] = unitDefID
+		self.radarEnemy[unitID] = {X=X,Z=Z}
 	end
 	self:EchoDebug('ENTER RADAR',los,unitID,unitTeam,allyTeam,unitDefID)
 end
@@ -113,7 +116,9 @@ function LosHST:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 	end
 	local los = game:GetUnitLos(unitID)
 	local unit = game:GetUnitByID(unitID)
-	local speed = UnitDefs[unitDefID].speed
+	local position = unit:GetPosition()
+	local X,Z = self.ai.maphst:PosToGrid(position)
+	--local speed = UnitDefs[unitDefID].speed
 	self.radarEnemy[unitID] = nil
 	self:EchoDebug('LEFT RADAR',los,unitID,unitTeam,allyTeam,unitDefID)
 end
@@ -127,15 +132,6 @@ function LosHST:UnitDead(unit)--this is a bit cheat, we always know if a unit di
 	self.allyImmobile[unit:ID()] = nil
 	self.allyMobile[unit:ID()] = nil
 	self:getCenter()
-
-
-end
-
-function LosHST:UnitDamaged(unit, attacker, damage)
-	--if  attacker ~= nil and attacker:AllyTeam() ~= self.ai.allyId then --TODO --WARNING NOTE ATTENTION CAUTION TEST ALERT
-		--a shoting unit is individuable by a medium player so is managed as a unit in LOS :full view
-		--self.losEnemy[attacker:ID()] = self.ai.armyhst.unitTable[attacker:Name()].defId
-	--end
 end
 
 function LosHST:UnitCreated(unit, unitDefID, teamId)
@@ -181,7 +177,7 @@ function LosHST:setPosLayer(unitName,Pos)
 	local ut = self.ai.armyhst.unitTable[unitName]
 	local floating = false
 	if ut.mtype == 'air' then
-		self.ai.needAntiAir = true --TODO need to move from here
+		self.needAntiAir = true --TODO need to move from here
 		return 1
 	end
 	if (ut.mtype == 'sub' or ut.mtype == 'amp') and Pos.y < -5 then
@@ -292,13 +288,13 @@ function LosHST:setCellRadar(grid,unit,X,Z)
 	if CELL.metalMedia == 0 then
 		CELL.metalMedia = 30 + game:Frame() / 90
 	end
-	CELL.metal = CELL.metal + CELL.metalMedia
 	local M = CELL.metalMedia
-	local uPos = unit:GetPosition()
+	CELL.metal = CELL.metal + M
+	--local uPos = unit:GetPosition()
 	local speedX,speedY,speedZ, SPEED = Spring.GetUnitVelocity ( unit:ID() )
-	local target = {x = uPos.x+( speedX*100),y = uPos.y,z = uPos.z + (speedZ*100)}
+	--local target = {x = uPos.x+( speedX*100),y = uPos.y,z = uPos.z + (speedZ*100)}
 	CELL.SPEED = CELL.SPEED + SPEED
-	CELL.units[unit:ID()] = unit:Name()
+	CELL.units[unit:ID()] = M
 	CELL.unitsCount = CELL.unitsCount + 1
 	CELL.ARMED = CELL.ARMED + M
 	if SPEED > 0 then
@@ -346,6 +342,75 @@ function LosHST:setCellRadar(grid,unit,X,Z)
 
 end
 
+function LosHST:removeUnitRadar(grid,unit,X,Z)
+	if not self.ai.maphst:GridToPos(X,Z) then
+		return
+	end
+	if not grid[X] or not grid[X][Z] then
+		self:Warn('try to remove unit in a nil cell',X,Z)
+	end
+
+	local CELL = grid[X][Z]
+	if not CELL.units then
+		self:Warn('unit not where i think it was')
+	end
+	local M = CELL.units[unit:ID()]
+	CELL.units[unit:ID()] = nil
+	CELL.unitsCount = CELL.unitsCount - 1
+	CELL.metal = CELL.metal - M
+
+	--local uPos = unit:GetPosition()
+	local speedX,speedY,speedZ, SPEED = Spring.GetUnitVelocity ( unit:ID() )
+	--local target = {x = uPos.x+( speedX*100),y = uPos.y,z = uPos.z + (speedZ*100)}
+	CELL.SPEED = CELL.SPEED - SPEED
+	CELL.unitsCount = CELL.unitsCount - 1
+	CELL.ARMED = CELL.ARMED - M
+	if SPEED > 0 then
+		CELL.SOLDIERS = CELL.SOLDIERS - M
+		CELL.MOBILE = CELL.MOBILE - M
+		CELL.armedGM = CELL.armedGM - M
+		CELL.armedAM = CELL.armedAM - M
+		CELL.armedSM = CELL.armedSM - M
+	else
+		CELL.TURRETS = CELL.TURRETS - M
+		CELL.IMMOBILE = CELL.IMMOBILE - M
+		CELL.armedGI = CELL.armedGI - M
+		CELL.armedAI = CELL.armedAI - M
+		CELL.armedSI = CELL.armedSI - M
+	end
+	CELL.UNARM = CELL.UNARM - M
+	if SPEED > 0 then
+		CELL.WORKERS = CELL.WORKERS - M
+		CELL.MOBILE = CELL.MOBILE - M
+		CELL.unarmAM = CELL.unarmAM - M
+		CELL.unarmSM = CELL.unarmSM - M
+		CELL.unarmGM = CELL.unarmGM - M
+	else
+		CELL.BUILDINGS = CELL.BUILDINGS - M
+		CELL.IMMOBILE = CELL.IMMOBILE - M
+		CELL.unarmAI = CELL.unarmAM - M
+		CELL.unarmSI = CELL.unarmSM - M
+		CELL.unarmGI = CELL.unarmGM - M
+	end
+	CELL.unarmG = CELL.unarmGM + CELL.unarmGI
+	CELL.unarmA = CELL.unarmAM + CELL.unarmAI
+	CELL.unarmS = CELL.unarmSM + CELL.unarmSI
+	CELL.armedG = CELL.armedGI + CELL.armedGM
+	CELL.armedA = CELL.armedAI + CELL.armedAM
+	CELL.armedS = CELL.armedSI + CELL.armedSM
+	CELL.G = CELL.armedG + CELL.unarmG
+	CELL.A = CELL.armedA + CELL.unarmA
+	CELL.S = CELL.armedS + CELL.unarmS
+	CELL.G_balance = CELL.armedG - CELL.unarmG
+	CELL.A_balance = CELL.armedA - CELL.unarmA
+	CELL.S_balance = CELL.armedS - CELL.unarmS
+	CELL.ENEMY = CELL.ARMED + CELL.UNARM --TOTAL VALUE
+	CELL.ENEMY_BALANCE = CELL.ARMED - CELL.UNARM
+	CELL.IM_balance = CELL.MOBILE - CELL.IMMOBILE
+
+end
+
+
 function LosHST:setCellLos(grid,unit,X,Z)
 	if not self.ai.maphst:GridToPos(X,Z) then
 		return
@@ -353,12 +418,12 @@ function LosHST:setCellLos(grid,unit,X,Z)
 	grid[X] = grid[X] or {}
 	grid[X][Z] = grid[X][Z] or self:setupCell(grid,X,Z)
 	local CELL = grid[X][Z]
-	CELL.unitsCount = CELL.unitsCount + 1
-	CELL.units[unit:ID()] = unit:Name()
 	local name = unit:Name()
 	local uPos = unit:GetPosition()
 	local ut = self.ai.armyhst.unitTable[name]
 	local M = ut.metalCost
+	CELL.unitsCount = CELL.unitsCount + 1
+	CELL.units[unit:ID()] = M
 	local mobile = ut.speed > 0
 	local layer = self:setPosLayer(ut.name,uPos)
 	local speedX,speedY,speedZ, SPEED = Spring.GetUnitVelocity ( unit:ID() )
@@ -439,10 +504,114 @@ function LosHST:setCellLos(grid,unit,X,Z)
 	CELL.ENEMY = CELL.ARMED + CELL.UNARM --TOTAL VALUE
 	CELL.ENEMY_BALANCE = CELL.ARMED - CELL.UNARM
 	CELL.IM_balance = CELL.MOBILE - CELL.IMMOBILE
-	grid[X][Z] = CELL
+-- 	grid[X][Z] = CELL theorically already done
 end
 
 
+
+function LosHST:removeUnitLos(grid,unit,X,Z)
+	if not self.ai.maphst:GridToPos(X,Z) then
+		return
+	end
+	if not grid[X] or not grid[X][Z] then
+		self:Warn('try to remove unit in a nil cell',X,Z)
+	end
+
+	local CELL = grid[X][Z]
+	if not CELL.units then
+		self:Warn('unit not where i think it was')
+	end
+	local M = CELL.units[unit:ID()]
+	CELL.units[unit:ID()] = nil
+	CELL.unitsCount = CELL.unitsCount - 1
+	CELL.metal = CELL.metal - M
+	local name = unit:Name()
+	local uPos = unit:GetPosition()
+	local ut = self.ai.armyhst.unitTable[name]
+
+	local mobile = ut.speed > 0
+	local layer = self:setPosLayer(ut.name,uPos)
+ 	local speedX,speedY,speedZ, SPEED = Spring.GetUnitVelocity ( unit:ID() )
+ 	local target = {x = uPos.x+( speedX*100),y = uPos.y,z = uPos.z + (speedZ*100)}
+	CELL.SPEED = CELL.SPEED - SPEED
+
+
+	if CELL.unitsCount > 0 then
+		CELL.metalMedia = CELL.metal / CELL.unitsCount
+	end
+	if not mobile then
+		CELL.buildings[unit.id] = nil
+
+	end
+	if ut.isFactory then
+		CELL.base = nil
+	end
+	if ut.isWeapon then
+		CELL.ARMED = CELL.ARMED - M
+		if mobile  then
+			CELL.SOLDIERS = CELL.SOLDIERS - M
+			CELL.MOBILE = CELL.MOBILE - M
+			if layer == 0 then
+				CELL.armedGM = CELL.armedGM - M
+			elseif layer == 1 then
+				CELL.armedAM = CELL.armedAM - M
+			elseif layer == -1 then
+				CELL.armedSM = CELL.armedSM - M
+			end
+		else
+			CELL.TURRETS = CELL.TURRETS - M
+			CELL.IMMOBILE = CELL.IMMOBILE - M
+			if layer == 0 then
+				CELL.armedGI = CELL.armedGI - M
+			elseif layer == 1 then
+				CELL.armedAI = CELL.armedAI - M
+			elseif layer == -1 then
+				CELL.armedSI = CELL.armedSI - M
+			end
+		end
+
+	else
+		CELL.UNARM = CELL.UNARM - M
+		if mobile then
+			CELL.WORKERS = CELL.WORKERS - M
+			CELL.MOBILE = CELL.MOBILE - M
+			if layer > 0 then
+				CELL.unarmAM = CELL.unarmAM - M
+			elseif layer < 0  then
+				CELL.unarmSM = CELL.unarmSM - M
+			elseif layer == 0 then
+				CELL.unarmGM = CELL.unarmGM - M
+			end
+		else
+			CELL.BUILDINGS = CELL.BUILDINGS - M
+			CELL.IMMOBILE = CELL.IMMOBILE - M
+			if layer > 0 then
+				CELL.unarmAI = CELL.unarmAM - M
+			elseif layer < 0 then
+				CELL.unarmSI = CELL.unarmSM - M
+			elseif layer == 0 then
+				CELL.unarmGI = CELL.unarmGM - M
+			end
+		end
+	end
+
+	CELL.unarmG = CELL.unarmGM + CELL.unarmGI
+	CELL.unarmA = CELL.unarmAM + CELL.unarmAI
+	CELL.unarmS = CELL.unarmSM + CELL.unarmSI
+	CELL.armedG = CELL.armedGI + CELL.armedGM
+	CELL.armedA = CELL.armedAI + CELL.armedAM
+	CELL.armedS = CELL.armedSI + CELL.armedSM
+	CELL.G = CELL.armedG + CELL.unarmG
+	CELL.A = CELL.armedA + CELL.unarmA
+	CELL.S = CELL.armedS + CELL.unarmS
+	CELL.G_balance = CELL.armedG - CELL.unarmG
+	CELL.A_balance = CELL.armedA - CELL.unarmA
+	CELL.S_balance = CELL.armedS - CELL.unarmS
+	CELL.ENEMY = CELL.ARMED + CELL.UNARM --TOTAL VALUE
+	CELL.ENEMY_BALANCE = CELL.ARMED - CELL.UNARM
+	CELL.IM_balance = CELL.MOBILE - CELL.IMMOBILE
+	--grid[X][Z] = CELL theorically already done
+end
 function LosHST:Draw()
 	local ch = 5
 	self.map:EraseAll(ch)
@@ -539,6 +708,13 @@ function LosHST:Draw()
 	end
 
 end
+
+
+
+
+
+
+
 
 
 --[[ suggested of beherith
