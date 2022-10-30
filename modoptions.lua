@@ -684,6 +684,14 @@ local options={
 	},
 
 	{
+		key    = 'assistdronesair',
+		name   = 'Assist Drones: Use Air Drones',
+		type   = 'bool',
+		def    = false,
+		section= "options",
+	},
+
+	{
 		key="commanderbuildersenabled",
 		name="Base Construction Turret",
 		type="list",

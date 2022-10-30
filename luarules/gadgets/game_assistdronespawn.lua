@@ -23,11 +23,21 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local drones = {
-    [UDN.armcom.id] = "armassistdrone_land",
-    [UDN.corcom.id] = "corassistdrone_land",
-	[UDN.legcomdef.id] = "legassistdrone_land",
-}
+local drones = {}
+if Spring.GetModOptions().assistdronesair == true then
+    drones = {
+        [UDN.armcom.id] = "armassistdrone",
+        [UDN.corcom.id] = "corassistdrone",
+        [UDN.legcomdef.id] = "legassistdrone",
+    }
+else
+    drones = {
+        [UDN.armcom.id] = "armassistdrone_land",
+        [UDN.corcom.id] = "corassistdrone_land",
+        [UDN.legcomdef.id] = "legassistdrone_land",
+    }
+end
+
 
 function SpawnAssistDrones(unitID, unitDefID, unitTeam)
 	local posx, posy, posz = Spring.GetUnitPosition(unitID)

@@ -170,9 +170,6 @@ local chickenTypes = {
 	"chicken1_mini",
 	"chicken1_mini",
 	"chicken1_mini",
-	"chickenf2",
-	"chickenh1",
-	"chickenh1b",
   }
 
 local optionValues = {
@@ -412,7 +409,7 @@ end
 
 	--addSpecialSquad(1,    { "1 chickenf2"									 	                     }) -- Observer
 
-	addSpecialSquad(2, { "8 chickenp1" 																	}) -- Small Pyro
+	--addSpecialSquad(2, { "8 chickenp1" 																	}) -- Small Pyro
 
 	addSpecialSquad(3, { "10 chickenp1"  												            	}) -- Small Pyro
 	addSpecialSquad(3, { "8 chickene1"                                                                  }) -- Small Paralyzer
