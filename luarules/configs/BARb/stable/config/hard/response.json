@@ -85,15 +85,15 @@
 	},
 	"anti_sub": {
 		"vs":         ["sub"],
-		"ratio":      [ 0.5],
+		"ratio":      [ 0.8],
 		"importance": [ 5.0],
-		"max_percent": 0.20,
+		"max_percent": 0.30,
 		"eps_step": 0.0
 	},
 	"sub":{
-		"vs":         ["skirmish", "heavy"],
-		"ratio":      [ 0.50,        0.50],
-		"importance": [ 5.0,         5.0],
+		"vs":         ["skirmish", "assault", "riot", "heavy", "super"],
+		"ratio":      [ 0.50,        0.50,		0.5,	0.5,	0.5],
+		"importance": [ 5.0,         5.0,		5.0, 	5.0, 	5.0],
 		"max_percent": 0.50,
 		"eps_step": 0.0
 	},
