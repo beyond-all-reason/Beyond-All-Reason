@@ -498,7 +498,7 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 	local msgColor = '\255\180\180\180'
 	local msgHighlightColor = '\255\215\215\215'
 	local metalColor = '\255\255\255\255'
-	local energyColor = '\255\255\255\150'
+	local energyColor = '\255\255\255\180'
 	-- metal/energy given
 	if lineType == 1 and sfind(text, 'I sent ', nil, true) then
 		if sfind(text, ' metal to ', nil, true) then

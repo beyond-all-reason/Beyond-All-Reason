@@ -565,7 +565,9 @@ local function updateButtons()
 	end
 	dlistButtons2 = glCreateList(function()
 		font2:Begin()
-		font2:Print('\255\240\240\240' .. text, area[1], area[2] + ((area[4] - area[2]) * 0.52) - (fontsize / 5), fontsize, 'o')
+		font2:SetTextColor(0.92, 0.92, 0.92, 1)
+		font2:SetOutlineColor(0, 0, 0, 1)
+		font2:Print(text, area[1], area[2] + ((area[4] - area[2]) * 0.52) - (fontsize / 5), fontsize, 'o')
 		font2:End()
 	end)
 end
@@ -1160,7 +1162,7 @@ local function drawResbarValues(res, updateText)
 				if res == 'metal' then
 					font2:SetTextColor(0.95, 0.95, 0.95, 1)
 				else
-					font2:SetTextColor(1, 1, 0.72, 1)
+					font2:SetTextColor(1, 1, 0.74, 1)
 				end
 				font2:SetOutlineColor(0, 0, 0, 1)
 				font2:Print(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
