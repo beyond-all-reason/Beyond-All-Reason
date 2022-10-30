@@ -495,8 +495,10 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 	local wordwrappedText = wordWrap(textLines, lineMaxWidth, usedFontSize)
 
 	local sendMetal, sendEnergy, sendUnits
-	local msgColor = '\255\185\185\185'
+	local msgColor = '\255\180\180\180'
 	local msgHighlightColor = '\255\215\215\215'
+	local metalColor = '\255\255\255\255'
+	local energyColor = '\255\255\255\150'
 	-- metal/energy given
 	if lineType == 1 and sfind(text, 'I sent ', nil, true) then
 		if sfind(text, ' metal to ', nil, true) then
@@ -504,14 +506,14 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 			local playername = teamcolorPlayername(ssub(text, sfind(text, ' metal to ')+10))
 			--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendMetal..' metal to '..playername
 			--msgColor = ssub(text, 1, sfind(text, 'I sent ')-1)
-			text = msgColor..'shared '..msgHighlightColor..sendMetal..msgColor..' metal to '..playername
+			text = msgColor..'shared '..metalColor..sendMetal..metalColor.. ' metal'..msgColor..' to '..playername
 			lineType = 5
 		elseif sfind(text, ' energy to ', nil, true) then
 			sendEnergy = tonumber(string.match(ssub(text, sfind(text, 'I sent ')+7), '([0-9]*)'))
 			local playername = teamcolorPlayername(ssub(text, sfind(text, ' energy to ')+11))	-- no dot stripping needed here
 			--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendEnergy..' energy to '..playername
 			--msgColor = ssub(text, 1, sfind(text, 'I sent ')-1)
-			text = msgColor..'shared '..msgHighlightColor..sendEnergy..msgColor..' energy to '..playername
+			text = msgColor..'shared '..energyColor..sendEnergy..energyColor..' energy'..msgColor..' to '..playername
 			lineType = 5
 		end
 
