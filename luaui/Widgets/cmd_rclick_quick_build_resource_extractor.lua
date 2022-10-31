@@ -12,6 +12,8 @@ function widget:GetInfo()
 	}
 end
 
+-- TODO: exclude currently cloaked units (like commander)
+
 ------------------------------------------------------------
 -- Config
 ------------------------------------------------------------

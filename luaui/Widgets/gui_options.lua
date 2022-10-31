@@ -2596,7 +2596,7 @@ function init()
 		  end,
 		},
 
-		{ id = "mincamheight", group = "control", category = types.advanced, name = texts.option.mincamheight, type = "slider", min = 0, max = 1500, step = 1, value = Spring.GetConfigInt("MinimumCameraHeight", 350), description = texts.option.mincamheight_descr,
+		{ id = "mincamheight", group = "control", category = types.advanced, name = texts.option.mincamheight, type = "slider", min = 0, max = 1500, step = 1, value = Spring.GetConfigInt("MinimumCameraHeight", 300), description = texts.option.mincamheight_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("MinimumCameraHeight", value)
 		  end,
