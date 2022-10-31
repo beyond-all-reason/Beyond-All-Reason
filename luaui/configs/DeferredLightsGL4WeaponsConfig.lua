@@ -60,7 +60,7 @@ local BaseClasses = {
 		lightType = 'point', -- or cone or beam
 		lightConfig = {
 			posx = 0, posy = 10, posz = 0, radius = 125, 
-			r = 1, g = 1, b = 1, a = 0.11, 
+			r = 1, g = 0.8, b = 0.6, a = 0.11, 
 			color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 1.5, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.5, specular = 0.6, scattering = 0.5, lensflare = 0, 
 			lifetime = 0, sustain = 0, 	aninmtype = 0, -- unused
@@ -72,8 +72,8 @@ local BaseClasses = {
 		lightType = 'point', -- or cone or beam
 		lightConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 150, 
-			r = 1, g = 1, b = 1, a = 0.15, 
-			color2r = 0.75, color2g = 0.75, color2b = 0.75, colortime = 0.6, -- point lights only, colortime in seconds for unit-attached
+			r = 1, g = 0.7, b = 0.2, a = 0.15, 
+			color2r = 0.6, color2g = 0.4, color2b = 0.10, colortime = 1.6, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.3, specular = 0.1, scattering = 0.6, lensflare = 0, 
 			lifetime = 0, sustain = 0, 	aninmtype = 0, -- unused
 		},
@@ -137,14 +137,33 @@ local BaseClasses = {
 }
 
 
-local SizeRadius = {Micro = 30, Tiny = 55, Smaller = 75, Small = 100, SmallMedium = 150, Medium = 200, MediumLarge = 300, Large = 400, Larger = 500, Largest = 650, Mega = 800, MegaXL = 1000, MegaXXL = 1500, Giga = 1600, Tera = 3600}
+local SizeRadius = {
+	Micro = 		30,
+	Tiny = 			55,
+	Smaller = 		75,
+	Small = 		100,
+	SmallMedium = 	150,
+	Medium = 		200,
+	MediumLarge = 	300,
+	Large = 		400,
+	Larger = 		500,
+	Largest = 		650,
+	Mega = 			800,
+	MegaXL = 		1000,
+	MegaXXL = 		1500,
+	Giga = 			2000,
+	Tera = 			3500,
+	Planetary = 	5000,
+}
 local ColorSets = { -- TODO add advanced dual-color sets!
 	Red = 		{r = 1, g = 0, b = 0},
 	Green = 	{r = 0, g = 1, b = 0},
 	Blue = 		{r = 0, g = 0, b = 1},
+	Purple = 	{r = 0.7, g = 0.3, b = 1},
 	Yellow = 	{r = 1, g = 1, b = 0},
 	White = 	{r = 1, g = 1, b = 1},
-	Plasma  = 	{r = 0.84, g = 0.73, b = 0.15},
+	Plasma  = 	{r = 0.85, g = 0.73, b = 0.15},
+	HeatRay  = 	{r = 0.87, g = 0.70, b = 0.11}, 
 	Emg  = 		{r = 0.42, g = 0.32, b = 0.07},
 	Fire  = 	{r = 0.8, g = 0.3, b = 0.05},
 	Warm  = 	{r = 0.7, g = 0.7, b = 0.1},
@@ -353,6 +372,84 @@ GetLightClass("CannonProjectile", "Emg", "Tiny", {a = 0.1, radius = 25,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 0, sustain = 0})
 
+--armanni
+projectileDefLights[WeaponDefNames["armanni_ata"].id] = 
+GetLightClass("LaserProjectile", "Blue", "Larger", {a = 0.14,
+											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
+											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
+											lifetime = 0, sustain = 0})
+
+--armanni_scav
+-- could use a custom script that replaces color for all _scav units with "purple"
+projectileDefLights[WeaponDefNames["armanni_scav_ata"].id] = 
+GetLightClass("LaserProjectile", "Purple", "Larger", {a = 0.12,
+											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
+											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
+											lifetime = 0, sustain = 0})
+
+--armannit3
+projectileDefLights[WeaponDefNames["armannit3_ata"].id] = 
+GetLightClass("LaserProjectile", "Blue", "Largest", {a = 0.14,
+											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
+											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
+											lifetime = 0, sustain = 0})
+
+--armannit3_scav
+projectileDefLights[WeaponDefNames["armannit3_scav_ata"].id] = 
+GetLightClass("LaserProjectile", "Purple", "Largest", {a = 0.14,
+											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
+											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
+											lifetime = 0, sustain = 0})
+
+
+--cordoom
+projectileDefLights[WeaponDefNames["cordoom_atadr"].id] = 
+GetLightClass("LaserProjectile", "Blue", "Large", {a = 0.14,
+											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
+											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
+											lifetime = 0, sustain = 0})
+
+--cordoom_scav
+projectileDefLights[WeaponDefNames["cordoom_scav_atadr"].id] = 
+GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.14,
+											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
+											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
+											lifetime = 0, sustain = 0})
+
+--cordoomt3
+projectileDefLights[WeaponDefNames["cordoomt3_armagmheat"].id] = 
+GetLightClass("LaserProjectile", "HeatRay", "Larger", {a = 0.14,
+											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
+											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
+											lifetime = 0, sustain = 0})
+
+--cordoomt3_scav
+projectileDefLights[WeaponDefNames["cordoomt3_scav_armagmheat"].id] = 
+GetLightClass("LaserProjectile", "Purple", "Larger", {a = 0.14,
+											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
+											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
+											lifetime = 0, sustain = 0})
+
+--corkorg
+projectileDefLights[WeaponDefNames["corkorg_corkorg_laser"].id] = 
+GetLightClass("LaserProjectile", "HeatRay", "Large", {a = 0.15,
+											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
+											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
+											lifetime = 4, sustain = 0})
+
+--corkorg_shotgun
+projectileDefLights[WeaponDefNames["corkorg_corkorg_fire"].id] = 
+GetLightClass("CannonProjectile", "Plasma", "Small", {a = 0.05,
+											modelfactor = 0.2, specular = 0.1, scattering = 0.9, lensflare = 3})
+
+--corkorg_scav
+projectileDefLights[WeaponDefNames["corkorg_scav_corkorg_laser"].id] = 
+GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.15,
+											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
+											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
+											lifetime = 4, sustain = 0})
+
+
 --armbull
 muzzleFlashLights[WeaponDefNames["armbull_arm_bull"].id] = 
 GetLightClass("MuzzleFlash", nil, "Smaller", {r = 1, g = 1, b = 1, scattering = 0.2})
@@ -364,7 +461,7 @@ GetLightClass("CannonProjectile", "Plasma", "Smaller")
 
 --corgol
 explosionLights[WeaponDefNames["corgol_cor_gol"].id] =
-GetLightClass("Explosion", nil, "Medium", {r = 4, g = 3.5, b = 2.5, colortime = 3.8, sustain = 14, lifetime = 26, scattering = 0.7,})
+GetLightClass("Explosion", nil, "Medium", {r = 4, g = 3.5, b = 2.5, colortime = 3.8, sustain = 14, lifetime = 26, scattering = 0.7})
 
 --armmg
 muzzleFlashLights[WeaponDefNames["armmg_armmg_weapon"].id] = 
@@ -374,12 +471,42 @@ GetLightClass("Explosion", nil, "Small", {r = 3.8, g = 3.2, b = 2.2, colortime =
 
 --corint
 muzzleFlashLights[WeaponDefNames["corint_cor_intimidator"].id] = 
-GetLightClass("MuzzleFlash", nil, "Tiny", {posx = -7, posy = 16, posz = 5, radius = 45,
-											color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 85,
-											r = 1, g = 0.2, b = 0, a = 0.69999999,
-											modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
-											lifetime = 200, sustain = 4})
+GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 0, posz = 0, radius = 240,
+											color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 50,
+											r = 1.2, g = 1.0, b = 0.9, a = 0.5,
+											modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
+											lifetime = 17, sustain = 2})
 muzzleFlashLights[WeaponDefNames["corint_cor_intimidator"].id].yOffset = 16
+
+--corsilo
+explosionLights[WeaponDefNames["corsilo_crblmssl"].id] =
+GetLightClass("Explosion", nil, "Tera", {r = 3, g = 3, b = 2.8, a = 0.2,
+										color2r = 1.0, color2g = 0.6, color2b = 0.18, colortime = 120,
+										sustain = 30, lifetime = 200,
+										modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
+
+--corsilo engine
+projectileDefLights[WeaponDefNames["corsilo_crblmssl"].id] = 
+GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
+										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
+
+--armsilo
+explosionLights[WeaponDefNames["armsilo_nuclear_missile"].id] =
+GetLightClass("Explosion", nil, "Giga", {r = 3, g = 3, b = 2.8, a = 0.18,
+										color2r = 1.0, color2g = 0.6, color2b = 0.18, colortime = 110,
+										sustain = 25, lifetime = 180,
+										modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
+
+--armsilo engine
+projectileDefLights[WeaponDefNames["armsilo_nuclear_missile"].id] = 
+GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
+										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
+
+--armrl engine
+projectileDefLights[WeaponDefNames["armrl_armrl_missile"].id] = 
+GetLightClass("MissileProjectile", "Purple", "Tiny", {a = 0.7,
+										color2r = 0.5, color2g = 0.2, color2b = 0.8, colortime = 1.6,
+										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 2})
 
 -- hue hue turning these on will completely break the game...
 --projectileDefLights[WeaponDefNames["armrock_arm_bot_rocket"].id] = GetLightClass("LaserAimProjectile", "Red", "Large")

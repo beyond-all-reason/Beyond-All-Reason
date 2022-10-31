@@ -104,8 +104,8 @@ local unitDefLights = {
 			pieceName = 'sleeve',
 			lightConfig = { posx = 0, posy = 0, posz = 7, radius = 450,
 				dirx = 0, diry = 0, dirz = 1, theta = 0.2,
-				r = 1, g = 1, b = 1, a = 1,
-				modelfactor = 1, specular = 1, scattering = 1, lensflare = 1,
+				r = 1, g = 1, b = 1, a = 0.5,
+				modelfactor = 0.2, specular = 0.2, scattering = 2, lensflare = 0,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
@@ -159,6 +159,35 @@ local unitDefLights = {
 				dirx = 0, diry = -0.12, dirz = 1, theta = 0.18,
 				r = 1, g = 1, b = 1, a = 0.5,
 				modelfactor = -0.1, specular = 0.15, scattering = 3.4, lensflare = 1,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	[UnitDefNames['corkorg'].id] = {
+		headlightkorg = {
+			lightType = 'point',
+			pieceName = 'head',
+			lightConfig = { posx = 0, posy = 28, posz = 12, radius = 34,
+				color2r = 0.4, color2g = 0, color2b = 0, colortime = 50,
+				r = 2, g = 0.2, b = 0, a = 1,
+				modelfactor = 0.2, specular = 0.2, scattering = 0, lensflare = 0,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+		shoulderlightkorgleft = {
+			lightType = 'point',
+			pieceName = 'luparm',
+			lightConfig = { posx = 14, posy = 20, posz = 0, radius = 26,
+				color2r = 1.6, color2g = 0.2, color2b = 0, colortime = 50,
+				r = 0.4, g = 0.0, b = 0, a = 1,
+				modelfactor = 0.2, specular = 0.2, scattering = 0, lensflare = 0,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+		shoulderlightkorgright = {
+			lightType = 'point',
+			pieceName = 'ruparm',
+			lightConfig = { posx = -14, posy = 20, posz = 0, radius = 26,
+				color2r = 1.6, color2g = 0.2, color2b = 0, colortime = 50,
+				r = 0.4, g = 0.0, b = 0, a = 1,
+				modelfactor = 0.2, specular = 0.2, scattering = 0, lensflare = 0,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},	
@@ -506,51 +535,75 @@ local unitDefLights = {
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	[UnitDefNames['armgate'].id] = {
+		shieldglow = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = 32, posz = 0, radius = 130,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 70,
+				r = 0.2, g = 0.9, b = 0.3, a = 0.2,
+				modelfactor = 0.1, specular = 1.0, scattering = 0.35, lensflare = 0,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 }
 
 local unitEventLights = {
 	------------------------------------ Put lights that are slaved to ProjectileCreated here! ---------------------------------
-	WeaponBarrelGlow =  {
-		[UnitDefNames['corint'].id] = {
-			barrelglow1 = {
-				lightType = 'point',
-				pieceName = 'light',
-				lightConfig = { posx = -7, posy = 8, posz = 5, radius = 30,
-					color2r = 0, color2g = 0, color2b = 0, colortime = 300,
-					r = 1, g = 0.2, b = 0, a = 0.69999999,
-					modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
-					lifetime = 300, sustain = 1, animtype = 0},
-			},
-		},
-		[UnitDefNames['corint'].id] = {
-			barrelglow2 = {
-				lightType = 'point',
-				pieceName = 'light',
-				lightConfig = { posx = 7, posy = 8, posz = 5, radius = 30,
-					color2r = 0, color2g = 0, color2b = 0, colortime = 300,
-					r = 1, g = 0.2, b = 0, a = 0.69999999,
-					modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
-					lifetime = 300, sustain = 1, animtype = 0},
-			},
-		},
-	},
+	-- WeaponBarrelGlow =  {
+	-- 	[UnitDefNames['corint'].id] = {
+	-- 		barrelglow1 = {
+	-- 			lightType = 'point',
+	-- 			pieceName = 'light',
+	-- 			lightConfig = { posx = -7, posy = 8, posz = 5, radius = 30,
+	-- 				color2r = 0, color2g = 0, color2b = 0, colortime = 300,
+	-- 				r = 1, g = 1, b = 1, a = 0.69999999,
+	-- 				modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
+	-- 				lifetime = 300, sustain = 1, animtype = 0},
+	-- 		},
+	-- 	},
+	-- 	[UnitDefNames['corint'].id] = {
+	-- 		barrelglow2 = {
+	-- 			lightType = 'point',
+	-- 			pieceName = 'light',
+	-- 			lightConfig = { posx = 7, posy = 8, posz = 5, radius = 30,
+	-- 				color2r = 0, color2g = 0, color2b = 0, colortime = 300,
+	-- 				r = 1, g = 1, b = 1, a = 0.69999999,
+	-- 				modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
+	-- 				lifetime = 300, sustain = 1, animtype = 0},
+	-- 		},
+	-- 	},
+	-- },
 	--------------------------------- Put lights that are spawned from COB/LUS here ! ---------------------------------
 	-- These lights _must_ be indexed by numbers! As these will be the ones triggered by the
 	-- The COB lua_UnitScriptLight(lightIndex, count) call does this job!
-	UnitScriptLights = {
-		[UnitDefNames['corint'].id] = {
-			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
-				lightType = 'point',
-				pieceName = 'light',
-				lightName = 'barrelglowcorint',
-				lightConfig = { posx = 7, posy = 8, posz = 5, radius = 310,
-					color2r = 0, color2g = 0, color2b = 0, colortime = 300,
-					r = 1, g = 0.2, b = 0, a = 0.69999999,
-					modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
-					lifetime = 300, sustain = 1, animtype = 0},
-			},
-		},
-	},
+
+	--corint disabled for now since it has static positioning - now only 'working' when shooting to east:
+	
+	-- UnitScriptLights = {
+	-- 	[UnitDefNames['corint'].id] = {
+	-- 		[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+	-- 			lightType = 'point',
+	-- 			pieceName = 'light', --seems it spawns not from this piece, but from center of model/unit.
+	-- 			lightName = 'corintbarrelglow',
+	-- 			lightConfig = { posx = 64, posy = 88, posz = -24, radius = 30,
+	-- 				color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 300,
+	-- 				r = 1, g = 0.2, b = 0, a = 0.6,
+	-- 				modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
+	-- 				lifetime = 400, sustain = 2},
+	-- 		},
+	-- 		[2] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+	-- 			lightType = 'point',
+	-- 			pieceName = 'light', --seems it spawns not from this piece, but from center of model/unit.
+	-- 			lightName = 'corintbarrelglow',
+	-- 			lightConfig = { posx = 72, posy = 88, posz = 0, radius = 30,
+	-- 				color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 300,
+	-- 				r = 1, g = 0.2, b = 0, a = 0.6,
+	-- 				modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
+	-- 				lifetime = 400, sustain = 2},
+	-- 		},
+	-- 	},
+	-- },
 
 	------------------------------- Put additional lights tied to events here! --------------------------------
 	UnitIdle =  {
