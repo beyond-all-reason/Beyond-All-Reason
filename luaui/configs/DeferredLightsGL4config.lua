@@ -146,8 +146,8 @@ local unitDefLights = {
 			pieceName = 'base',
 			lightConfig = { posx = 0, posy = 0, posz = 10, radius = 100,
 				dirx = 0, diry = -0.08, dirz = 1, theta = 0.25999999,
-				r = 1, g = 1, b = 1, a = 1.20000005,
-				modelfactor = 1, specular = 1, scattering = 1, lensflare = 1,
+				r = 1, g = 1, b = 0.89999998, a = 0.5,
+				modelfactor = -0.5, specular = 0.5, scattering = 1.5, lensflare = 0.60000002,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
@@ -579,7 +579,7 @@ local unitEventLights = {
 	-- The COB lua_UnitScriptLight(lightIndex, count) call does this job!
 
 	--corint disabled for now since it has static positioning - now only 'working' when shooting to east:
-	
+
 	-- UnitScriptLights = {
 	-- 	[UnitDefNames['corint'].id] = {
 	-- 		[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
