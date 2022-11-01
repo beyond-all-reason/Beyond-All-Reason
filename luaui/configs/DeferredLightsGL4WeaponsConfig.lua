@@ -326,8 +326,11 @@ local function AssignLightsToAllWeapons()
 			--explosionLights[weaponID].yOffset = 6 + (radius/700)
 
 		elseif weaponDef.type == 'LightningCannon' then
-			if damage < 500 then sizeclass = 'Tiny' end
-			if damage > 500 then sizeclass = 'Small' end
+			if not scavenger then
+				t.r, t.g, t.b = 0.2, 0.45, 1
+			end
+			t.a = orgMult*0.6
+			sizeclass = GetClosestSizeClass(radius*8)
 			projectileDefLights[weaponID] = GetLightClass("LaserProjectile", "Cold", sizeclass, t)
 		elseif weaponDef.type == 'MissileLauncher' or weaponDef.type == 'StarburstLauncher' then
 			-- for newsize, sizerad in pairs(SizeRadius) do
