@@ -329,23 +329,25 @@ local function AssignLightsToAllWeapons()
 			if not scavenger then
 				t.r, t.g, t.b = 0.2, 0.45, 1
 			end
-			t.a = orgMult*0.6
+			t.a = orgMult*0.5
 			sizeclass = GetClosestSizeClass(radius*8)
 			projectileDefLights[weaponID] = GetLightClass("LaserProjectile", "Cold", sizeclass, t)
 		elseif weaponDef.type == 'MissileLauncher' or weaponDef.type == 'StarburstLauncher' then
 			-- for newsize, sizerad in pairs(SizeRadius) do
 			-- 	if damage > sizerad and SizeRadius[sizeclass] > sizerad then sizeclass = newsize end
 			-- end
+			t.a = orgMult
 			projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
 		elseif weaponDef.type == 'Cannon' then
 			--for newsize, sizerad in pairs(SizeRadius) do
 			--	if damage > sizerad and SizeRadius[sizeclass] > sizerad then sizeclass = newsize end
 			--end
+			t.a = orgMult*0.15
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Plasma", sizeclass, t)
 		elseif weaponDef.type == 'DGun' then
 			--muzzleFlash = true --doesnt work
 			sizeclass = "Medium"
-			t = table.merge({a = orgMult*0.15}, t)
+			t.a = orgMult*0.66
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass, t)
 			projectileDefLights[weaponID].yOffset = 32
 		elseif weaponDef.type == 'LaserCannon' then
@@ -359,19 +361,30 @@ local function AssignLightsToAllWeapons()
 			sizeclass = "Large"
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Cold", sizeclass, t)
 		elseif weaponDef.type == 'Flame' then
-			sizeclass = "Small"
+			--sizeclass = "Small"
+			sizeclass = GetClosestSizeClass(radius*3)
+			t.a = orgMult*0.17
 			projectileDefLights[weaponID] = GetLightClass("FlameProjectile", "Fire", sizeclass, t)
 		end
 
 		if muzzleFlash then
-			muzzleFlashLights[weaponID] = GetLightClass("MuzzleFlash", "White", GetClosestSizeClass(radius*0.4), nil)
+			if scavenger then
+				t.r, t.g, t.b = 0.99, 0.9, 1
+			end
+			t.a = orgMult
+			muzzleFlashLights[weaponID] = GetLightClass("MuzzleFlash", "White", GetClosestSizeClass(radius*0.4), t)
 			muzzleFlashLights[weaponID].yOffset = muzzleFlashLights[weaponID].lightConfig.radius / 5
 		end
 		if explosionLight then
 			if scavenger then
 				t.r, t.g, t.b = 0.99, 0.9, 1
 			end
-			t = table.merge({a = orgMult, lifetime = life, colortime = 0.037*(life/30)}, t)
+			t.a = orgMult
+			if weaponDef.type == 'DGun' then
+				t.a = orgMult*0.17
+			end
+			t.lifetime = life
+			t.colortime = 0.037*(life/30)
 			explosionLights[weaponID] = GetLightClass("Explosion", nil, sizeclass, t)
 			explosionLights[weaponID].yOffset = explosionLights[weaponID].lightConfig.radius / 5
 		end
