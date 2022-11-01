@@ -317,49 +317,46 @@ local function AssignLightsToAllWeapons()
 				--Spring.Echo(weaponID, damage, sizeclass, sizerad, newsize)
 				if damage > sizerad and SizeRadius[sizeclass] < sizerad then sizeclass = newsize end
 			end
+			sizeclass = GetClosestSizeClass((10 * (weaponDef.size * weaponDef.size * weaponDef.size) + radius) * 0.5)
+			t.a = orgMult * 0.15
 			projectileDefLights[weaponID] = GetLightClass("LaserProjectile", beamcolor, sizeclass, t)
-
-			--damage = damage/weaponDef.beamtime
-			--radius = (radius*3) + (damage/150)
-			--orgMult = math.min(0.6, (0.15 + (damage/5000)))
-			--projectileDefLights[weaponID] = GetLightClass("LaserProjectile", beamcolor, GetClosestSizeClass(radius))
-			--explosionLights[weaponID].yOffset = 6 + (radius/700)
 
 		elseif weaponDef.type == 'LightningCannon' then
 			if not scavenger then
 				t.r, t.g, t.b = 0.2, 0.45, 1
 			end
-			t.a = orgMult*0.5
+			t.a = orgMult*0.55
 			sizeclass = GetClosestSizeClass(radius*8)
 			projectileDefLights[weaponID] = GetLightClass("LaserProjectile", "Cold", sizeclass, t)
+
 		elseif weaponDef.type == 'MissileLauncher' or weaponDef.type == 'StarburstLauncher' then
-			-- for newsize, sizerad in pairs(SizeRadius) do
-			-- 	if damage > sizerad and SizeRadius[sizeclass] > sizerad then sizeclass = newsize end
-			-- end
 			t.a = orgMult
 			projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
+
 		elseif weaponDef.type == 'Cannon' then
-			--for newsize, sizerad in pairs(SizeRadius) do
-			--	if damage > sizerad and SizeRadius[sizeclass] > sizerad then sizeclass = newsize end
-			--end
 			t.a = orgMult*0.15
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Plasma", sizeclass, t)
+
 		elseif weaponDef.type == 'DGun' then
-			--muzzleFlash = true --doesnt work
+			muzzleFlash = true --doesnt work
 			sizeclass = "Medium"
 			t.a = orgMult*0.66
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass, t)
 			projectileDefLights[weaponID].yOffset = 32
+
 		elseif weaponDef.type == 'LaserCannon' then
 			if damage < 25 then sizeclass = 'Small' end
 			if damage > 25 then sizeclass = 'Medium' end
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass, t)
+
 		elseif weaponDef.type == 'TorpedoLauncher' then
 			sizeclass = "Small"
 			projectileDefLights[weaponID] = GetLightClass("TorpedoProjectile", "Cold", sizeclass, t)
+
 		elseif weaponDef.type == 'Shield' then
 			sizeclass = "Large"
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Cold", sizeclass, t)
+
 		elseif weaponDef.type == 'Flame' then
 			--sizeclass = "Small"
 			sizeclass = GetClosestSizeClass(radius*3)
@@ -371,7 +368,7 @@ local function AssignLightsToAllWeapons()
 			if scavenger then
 				t.r, t.g, t.b = 0.99, 0.9, 1
 			end
-			t.a = orgMult
+			t.a = orgMult*1.1
 			muzzleFlashLights[weaponID] = GetLightClass("MuzzleFlash", "White", GetClosestSizeClass(radius*0.4), t)
 			muzzleFlashLights[weaponID].yOffset = muzzleFlashLights[weaponID].lightConfig.radius / 5
 		end
@@ -395,6 +392,71 @@ AssignLightsToAllWeapons()
 
 -----------------Manual Overrides--------------------
 
+--corint
+muzzleFlashLights[WeaponDefNames["corint_cor_intimidator"].id] =
+GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 0, posz = 0, radius = 240,
+											color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 50,
+											r = 1.2, g = 1.0, b = 0.9, a = 0.5,
+											modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
+											lifetime = 17, sustain = 2})
+muzzleFlashLights[WeaponDefNames["corint_cor_intimidator"].id].yOffset = 16
+
+
+--armbrtha
+muzzleFlashLights[WeaponDefNames["armbrtha_arm_berthacannon"].id] =
+GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
+											 color2r = 0.3, color2g = 0.1, color2b = 0.05, colortime = 13,
+											 r = 1.2, g = 1.1, b = 1.0, a = 0.6,
+											 modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
+											 lifetime = 20, sustain = 2})
+muzzleFlashLights[WeaponDefNames["armbrtha_arm_berthacannon"].id].yOffset = 8
+explosionLights[WeaponDefNames["armbrtha_arm_berthacannon"].id] =
+GetLightClass("Explosion", nil, "Large", {colortime = 4, sustain = 12, lifetime = 26, scattering = 0.7})
+
+--armvulc
+muzzleFlashLights[WeaponDefNames["armvulc_armvulc_weapon"].id] =
+GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
+											 r = 1.2, g = 1.1, b = 1.0, a = 0.5,
+											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
+											 modelfactor = 0.5, specular = 0.3, scattering = 2.8, lensflare = 4,
+											 lifetime = 20, sustain = 2})
+muzzleFlashLights[WeaponDefNames["armvulc_armvulc_weapon"].id].yOffset = 4
+explosionLights[WeaponDefNames["armvulc_armvulc_weapon"].id] =
+GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
+
+
+--corsilo
+explosionLights[WeaponDefNames["corsilo_crblmssl"].id] =
+GetLightClass("Explosion", nil, "Tera", {r = 3, g = 3, b = 2.8, a = 0.2,
+										 color2r = 1.0, color2g = 0.6, color2b = 0.18, colortime = 120,
+										 sustain = 30, lifetime = 200,
+										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
+
+--corsilo engine
+projectileDefLights[WeaponDefNames["corsilo_crblmssl"].id] =
+GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
+													 modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
+
+--armsilo
+explosionLights[WeaponDefNames["armsilo_nuclear_missile"].id] =
+GetLightClass("Explosion", nil, "Giga", {r = 3, g = 3, b = 2.8, a = 0.18,
+										 color2r = 1.0, color2g = 0.6, color2b = 0.18, colortime = 110,
+										 sustain = 25, lifetime = 180,
+										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
+
+--armsilo engine
+projectileDefLights[WeaponDefNames["armsilo_nuclear_missile"].id] =
+GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
+													 modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
+
+--cortron
+explosionLights[WeaponDefNames["cortron_cortron_weapon"].id] =
+GetLightClass("Explosion", nil, "Large", {r = 3, g = 2.5, b = 2.0, a = 0.25,
+										  color2r = 0.9, color2g = 0.5, color2b = 0.15, colortime = 80,
+										  sustain = 30, lifetime = 150,
+										  modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
+
+--[[
 --armpw
 explosionLights[WeaponDefNames["armpw_emg"].id] =
 GetLightClass("Explosion", nil, "Micro", {r = 2.4, g = 1.8, b = 1.0, a = 0.12, colortime = 2.4,
@@ -492,14 +554,6 @@ GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.15,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 4, sustain = 0})
 
-
---[[armbull
-muzzleFlashLights[WeaponDefNames["armbull_arm_bull"].id] =
-GetLightClass("MuzzleFlash", nil, "Smaller", {r = 1, g = 1, b = 1, scattering = 0.2})
-projectileDefLights[WeaponDefNames["armbull_arm_bull"].id] =
-GetLightClass("CannonProjectile", "Plasma", "Smaller")
-]]
-
 --armcom
 muzzleFlashLights[WeaponDefNames["armcom_disintegrator"].id] =
 GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
@@ -536,15 +590,6 @@ projectileDefLights[WeaponDefNames["armkam_med_emg"].id] =
 GetLightClass("CannonProjectile", "Warm", "Micro", {r = 1, g = 1, b = 1, a = 0.1,
 											modelfactor = 0.1, specular = 0.1, scattering = 0.2, lensflare = 0})
 
---corint
-muzzleFlashLights[WeaponDefNames["corint_cor_intimidator"].id] =
-GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 0, posz = 0, radius = 240,
-											color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 50,
-											r = 1.2, g = 1.0, b = 0.9, a = 0.5,
-											modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
-											lifetime = 17, sustain = 2})
-muzzleFlashLights[WeaponDefNames["corint_cor_intimidator"].id].yOffset = 16
-
 --corcat
 explosionLights[WeaponDefNames["corcat_exp_heavyrocket"].id] =
 GetLightClass("Explosion", nil, "Mediumer", {r = 3, g = 2.5, b = 2.0, a = 0.25,
@@ -553,58 +598,6 @@ GetLightClass("Explosion", nil, "Mediumer", {r = 3, g = 2.5, b = 2.0, a = 0.25,
 										modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
 
---armbrtha
-muzzleFlashLights[WeaponDefNames["armbrtha_arm_berthacannon"].id] =
-GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
-											color2r = 0.3, color2g = 0.1, color2b = 0.05, colortime = 13,
-											r = 1.2, g = 1.1, b = 1.0, a = 0.6,
-											modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
-											lifetime = 20, sustain = 2})
-muzzleFlashLights[WeaponDefNames["armbrtha_arm_berthacannon"].id].yOffset = 8
-explosionLights[WeaponDefNames["armbrtha_arm_berthacannon"].id] =
-GetLightClass("Explosion", nil, "Large", {colortime = 4, sustain = 12, lifetime = 26, scattering = 0.7})
-
---armvulc
-muzzleFlashLights[WeaponDefNames["armvulc_armvulc_weapon"].id] =
-GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
-											r = 1.2, g = 1.1, b = 1.0, a = 0.5,
-											color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
-											modelfactor = 0.5, specular = 0.3, scattering = 2.8, lensflare = 4,
-											lifetime = 20, sustain = 2})
-muzzleFlashLights[WeaponDefNames["armvulc_armvulc_weapon"].id].yOffset = 4
-explosionLights[WeaponDefNames["armvulc_armvulc_weapon"].id] =
-GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
-
---corsilo
-explosionLights[WeaponDefNames["corsilo_crblmssl"].id] =
-GetLightClass("Explosion", nil, "Tera", {r = 3, g = 3, b = 2.8, a = 0.2,
-										color2r = 1.0, color2g = 0.6, color2b = 0.18, colortime = 120,
-										sustain = 30, lifetime = 200,
-										modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
-
---corsilo engine
-projectileDefLights[WeaponDefNames["corsilo_crblmssl"].id] =
-GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
-										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
-
---armsilo
-explosionLights[WeaponDefNames["armsilo_nuclear_missile"].id] =
-GetLightClass("Explosion", nil, "Giga", {r = 3, g = 3, b = 2.8, a = 0.18,
-										color2r = 1.0, color2g = 0.6, color2b = 0.18, colortime = 110,
-										sustain = 25, lifetime = 180,
-										modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
-
---armsilo engine
-projectileDefLights[WeaponDefNames["armsilo_nuclear_missile"].id] =
-GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
-										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
-
---cortron
-explosionLights[WeaponDefNames["cortron_cortron_weapon"].id] =
-GetLightClass("Explosion", nil, "Large", {r = 3, g = 2.5, b = 2.0, a = 0.25,
-										color2r = 0.9, color2g = 0.5, color2b = 0.15, colortime = 80,
-										sustain = 30, lifetime = 150,
-										modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
 
 --armrl engine
 projectileDefLights[WeaponDefNames["armrl_armrl_missile"].id] =
@@ -621,7 +614,7 @@ explosionLights[WeaponDefNames["corjugg_juggernaut_fire"].id] =
 GetLightClass("Explosion", nil, "Small", {r = 1.3, g = 1.1, b = 0.8, a = 0.75,
 										color2r = 0.35, color2g = 0.20, color2b = 0.05, colortime = 7,
 										sustain = 8, lifetime = 26, scattering = 0.7})
-
+]]
 
 -- hue hue turning these on will completely break the game...
 --projectileDefLights[WeaponDefNames["armrock_arm_bot_rocket"].id] = GetLightClass("LaserAimProjectile", "Red", "Large")
