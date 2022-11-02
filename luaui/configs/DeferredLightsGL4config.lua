@@ -810,6 +810,9 @@ for typename, typetable in pairs(allLights) do
 end
 ]]--
 
+-- Icexuick Check-list
+
+-- 1.	seems that unitEventLights do not attach to proper piecename (see corint) they spawn on unit-center instead of the piece
 
 return allLights
 

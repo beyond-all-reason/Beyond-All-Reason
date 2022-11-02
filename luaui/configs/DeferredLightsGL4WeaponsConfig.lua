@@ -636,6 +636,7 @@ GetLightClass("Explosion", nil, "Small", {r = 1.3, g = 1.1, b = 0.8, a = 0.75,
 --		currently disabled this for CannonProjectile, so lights don't disappear half-way down trajectory
 --		For FlameProjectile this does work very nice to add more colorvariation - and with manual lifetime tweaks makes it work for pyro + cordemont4
 -- 3.	DGun only has explosion GL4 lights, projectile lights do not seem to show/work properly (also muzzleflash does not work on DGun weapons)
+-- 4.	When projectiles hit water, they get asigned a different explosion CEG, but also lighting is removed. I think some subtle blue-ish explo light on water can make it look better.. but how?
 
 
 --------------------------------------------------------------------------------
