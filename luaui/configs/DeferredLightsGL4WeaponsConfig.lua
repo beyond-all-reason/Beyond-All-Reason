@@ -329,8 +329,12 @@ local function AssignLightsToAllWeapons()
 			sizeclass = GetClosestSizeClass(radius*8)
 			projectileDefLights[weaponID] = GetLightClass("LaserProjectile", "Cold", sizeclass, t)
 
-		elseif weaponDef.type == 'MissileLauncher' or weaponDef.type == 'StarburstLauncher' then
-			t.a = orgMult
+		elseif weaponDef.type == 'MissileLauncher'then
+			t.a = orgMult * 0.3
+			projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
+
+		elseif weaponDef.type == 'StarburstLauncher' then
+			t.a = orgMult * 0.75
 			projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
 
 		elseif weaponDef.type == 'Cannon' then
