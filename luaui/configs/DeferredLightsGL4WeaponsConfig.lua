@@ -283,7 +283,7 @@ local function AssignLightsToAllWeapons()
 				break
 			end
 		end
-		local radius = 2 + ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
+		local radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
 		local orgMult = (math.max(0.25, math.min(damage/1600, 0.6)) + (radius/2800))
 		local life = (7.5*(1.0+radius/2000)+(orgMult * 5)) * 0.8
 		radius = ((orgMult * 75) + (radius * 2.4)) * 0.33
@@ -305,21 +305,25 @@ local function AssignLightsToAllWeapons()
 		end
 		if weaponDef.type == 'BeamLaser' then
 			muzzleFlash = false
-			explosionLight = false
 			local beamcolor = 'White'
-			if r > g + b then beamcolor = 'Red'
-			elseif g > r + b then beamcolor = 'Green'
-			elseif b > r + g then beamcolor = 'Blue'
-			elseif b < (r + g)/2 then beamcolor = 'Yellow'
-			end
+			--if r > g + b then beamcolor = 'Red'
+			--elseif g > r + b then beamcolor = 'Green'
+			--elseif b > r + g then beamcolor = 'Blue'
+			--elseif b < (r + g)/2 then beamcolor = 'Yellow'
+			--end
 
-			for newsize, sizerad in pairs(SizeRadius) do
-				--Spring.Echo(weaponID, damage, sizeclass, sizerad, newsize)
-				if damage > sizerad and SizeRadius[sizeclass] < sizerad then sizeclass = newsize end
-			end
-			sizeclass = GetClosestSizeClass((10 * (weaponDef.size * weaponDef.size * weaponDef.size) + radius) * 0.5)
-			t.a = orgMult * 0.15
-			projectileDefLights[weaponID] = GetLightClass("LaserProjectile", beamcolor, sizeclass, t)
+			t.r, t.g, t.b = math.min(1, r+0.3), math.min(1, g+0.3), math.min(1, b+0.3)
+			t.color2r, t.color2g, t.color2b = r, g, b
+
+			radius = (4 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (5 * radius * orgMult)
+			t.a = (orgMult * 0.1) / (0.2 + weaponDef.beamtime)
+
+			sizeclass = GetClosestSizeClass(radius)
+			--sizeclass = GetClosestSizeClass((10 * (weaponDef.size * weaponDef.size * weaponDef.size) + radius) * 0.55)
+			projectileDefLights[weaponID] = GetLightClass("LaserProjectile", nil, sizeclass, t)
+
+			radius = ((orgMult * 2500) + radius) * 0.2
+			sizeclass = GetClosestSizeClass(radius)
 
 		elseif weaponDef.type == 'LightningCannon' then
 			if not scavenger then
@@ -330,7 +334,7 @@ local function AssignLightsToAllWeapons()
 			projectileDefLights[weaponID] = GetLightClass("LaserProjectile", "Cold", sizeclass, t)
 
 		elseif weaponDef.type == 'MissileLauncher'then
-			t.a = orgMult * 0.3
+			t.a = orgMult * 0.33
 			projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
 
 		elseif weaponDef.type == 'StarburstLauncher' then
@@ -380,14 +384,17 @@ local function AssignLightsToAllWeapons()
 			if scavenger then
 				t.r, t.g, t.b = 0.99, 0.9, 1
 			end
+			t.lifetime = life
+			t.colortime = 0.037*(life/30)
 			t.a = orgMult
 			if weaponDef.type == 'DGun' then
 				t.a = orgMult*0.17
 			elseif weaponDef.type == 'Flame' then
 				t.a = orgMult*0.17
+			elseif weaponDef.type == 'BeamLaser' then
+				t.a = (orgMult*0.04) / (0.2 + weaponDef.beamtime)
+				t.colortime = 1
 			end
-			t.lifetime = life
-			t.colortime = 0.037*(life/30)
 			explosionLights[weaponID] = GetLightClass("Explosion", nil, sizeclass, t)
 			explosionLights[weaponID].yOffset = explosionLights[weaponID].lightConfig.radius / 5
 		end
