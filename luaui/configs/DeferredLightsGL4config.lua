@@ -270,10 +270,10 @@ local unitDefLights = {
 		eyeglow = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = 0, posy = 10, posz = 0, radius = 300,
+			lightConfig = { posx = 0, posy = 12, posz = 0, radius = 300,
 				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-				r = 1, g = 1, b = 1, a = 0.30000001,
-				modelfactor = 0.1, specular = 0.5, scattering = 1, lensflare = 2,
+				r = 0.8, g = 0.8, b = 0.8, a = 0.20,
+				modelfactor = 0.1, specular = 0.1, scattering = 0.8, lensflare = 1,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
@@ -580,7 +580,7 @@ local unitEventLights = {
 
 	--corint disabled for now since it has static positioning - now only 'working' when shooting to east:
 
-	-- UnitScriptLights = {
+	UnitScriptLights = {
 	-- 	[UnitDefNames['corint'].id] = {
 	-- 		[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 	-- 			lightType = 'point',
@@ -603,7 +603,7 @@ local unitEventLights = {
 	-- 				lifetime = 400, sustain = 2},
 	-- 		},
 	-- 	},
-	-- },
+	},
 
 	------------------------------- Put additional lights tied to events here! --------------------------------
 	UnitIdle =  {
