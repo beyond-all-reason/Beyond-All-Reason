@@ -297,8 +297,13 @@ local function AssignLightsToAllWeapons()
 		local muzzleFlash = true
 		local explosionLight = true
 		local sizeclass = GetClosestSizeClass(radius)
-		local scavenger = string.find(weaponDef.name, '_scav')
 		local t = {}
+		local aa = string.find(weaponDef.cegTag, 'aa')
+		if aa then
+			t.r, t.g, t.b = 1, 0.5, 0.6
+			t.color2r, t.color2g, t.color2b = 1, 0.5, 0.6
+		end
+		local scavenger = string.find(weaponDef.name, '_scav')
 		if scavenger then
 			t.r, t.g, t.b = 0.96, 0.3, 1
 			t.color2r, t.color2g, t.color2b = 0.96, 0.3, 1
@@ -373,6 +378,9 @@ local function AssignLightsToAllWeapons()
 		end
 
 		if muzzleFlash then
+			if aa then
+				t.r, t.g, t.b = 1, 0.7, 0.85
+			end
 			if scavenger then
 				t.r, t.g, t.b = 0.99, 0.9, 1
 			end
@@ -381,6 +389,9 @@ local function AssignLightsToAllWeapons()
 			muzzleFlashLights[weaponID].yOffset = muzzleFlashLights[weaponID].lightConfig.radius / 5
 		end
 		if explosionLight then
+			if aa then
+				t.r, t.g, t.b = 1, 0.7, 0.85
+			end
 			if scavenger then
 				t.r, t.g, t.b = 0.99, 0.9, 1
 			end
