@@ -553,6 +553,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+
+	--or Spring.GetGameSeconds() <= config.gracePeriod
 	local function squadCommanderGiveOrders(squadID, targetx, targety, targetz)
 		local units = squadsTable[squadID].squadUnits
 		local role = squadsTable[squadID].squadRole
@@ -581,7 +583,7 @@ if gadgetHandler:IsSyncedCode() then
 				if count > 0 then
 					local xaverage = xsum/count
 					local zaverage = zsum/count
-					if xmin < xaverage-256 or xmax > xaverage+256 or zmin < zaverage-256 or zmax > zaverage+256 then
+					if xmin < xaverage-384 or xmax > xaverage+384 or zmin < zaverage-384 or zmax > zaverage+384 then
 						targetx = xaverage
 						targetz = zaverage
 						targety = Spring.GetGroundHeight(targetx, targetz)
@@ -595,9 +597,9 @@ if gadgetHandler:IsSyncedCode() then
 					-- Spring.Echo("GiveOrderToUnit #" .. i)
 					if not unitCowardCooldown[unitID] then
 						if role == "assault" or role == "healer" or role == "artillery" then
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+mRandom(-128, 128), targety, targetz+mRandom(-128, 128)} , {})
+							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
 						elseif role == "raid" or role == "kamikaze" then
-							Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+mRandom(-128, 128), targety, targetz+mRandom(-128, 128)} , {})
+							Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
 						elseif role == "aircraft" then
 							local pos = getRandomEnemyPos()
 							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x, pos.y, pos.z} , {})
@@ -865,9 +867,13 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		-- spawn scouts
-		for j = 1,SetCount(humanTeams)*config.chickenSpawnMultiplier do
-			SpawnRandomOffWaveSquad(unitID, config.chickenScouts[mRandom(1,#config.chickenScouts)], 1)
+		-- spawn units together with burrow
+		if Spring.GetGameSeconds() > config.gracePeriod then
+			for i = 1,SetCount(humanTeams)*config.chickenSpawnMultiplier do
+				if mRandom() <= config.spawnChance then
+					SpawnRandomOffWaveSquad(unitID)
+				end
+			end
 		end
 	end
 
