@@ -288,6 +288,11 @@ local function AssignLightsToAllWeapons()
 		local life = (7.5*(1.0+radius/2000)+(orgMult * 5)) * 0.8
 		radius = ((orgMult * 75) + (radius * 2.4)) * 0.33
 
+		if string.find(weaponDef.name, 'juno') then
+			radius = 160
+			orgMult = 1
+		end
+
 		local r, g, b = 1, 0.8, 0.45
 		if weaponDef.visuals ~= nil and weaponDef.visuals.colorR ~= nil then
 			r = weaponDef.visuals.colorR
