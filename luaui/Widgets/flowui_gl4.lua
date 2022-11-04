@@ -85,20 +85,29 @@ local unitIcon = {}	-- {unitDefID = 'icons/'}, retrieves from buildmenu in initi
 -- We can ignore the WHOLE blendedprimitives shit from above because of in-shader highlighting!
 -- WHERE IS THE ORIGIN IN SCREENSPACE: BOTTOM LEFT!
 -- what if we just went the array table way?
+
+-- TODO: 2022.10.28
+-- Remove element, make sure that the Z order of individual graphical elements is correct when removing elements.
+	-- the best way to ensure that removal happens in the correct order, is to set all drawn elements to nonhidden
+	-- then override the rebuilding of the VBO
+-- Allow the querying and creation of one 'root element and'  per widget. 
+-- rename the alignment stuff of left right top down etc with all caps!
+
+-- todo 2022.11.04
+-- auto Z with treedepth!
+
+
 local Draw = {}
-local vsx, vsy = 1920, 1024
+local vsx, vsy = Spring.GetViewGeometry()
 local nameCounter = 0
 local ROOT
 local floor = math.floor
 -- what if I enabled LEFT, RIGHT, TOP, BOTTOM? 
 -- and calced X,Y, W,H from it?
 
-local metaElement = {
-} 
 
 -- This will be the base metatable, and contains the functions and static members that we want
-local metaElement_mt = { 
-	__index = metaElement,
+local metaElement = {	
 	vsx = vsx,
 	vsy = vsy,
 	vbokeys = {left = 1, bottom = 2, right=3, top = 4, tl = 5, tr = 6, br = 7, bl = 8,
@@ -107,8 +116,15 @@ local metaElement_mt = {
 		fronttexture = 21, edge = 22, zdepth = 23, progress = 24,
 		hide = 25, blendmode = 26, globalbg = 27, unused = 28,
 	},
+	textalignments = {topleft = 1, top = 2, topright = 3, left = 4, center = 5, right = 6, bottomleft = 7, bottom = 8, bottomright =9},
 	currtextcolor = {1,1,1,1},
 	curroutlinecolor = {0,0,0,1},
+	vboCache = {}, -- This is a 'reusable' table for getElementInstanceData
+	textChanged = false, -- this is used to indicate wether rebuilding text display list is needed
+} 
+
+local metaElement_mt = { 
+	__index = metaElement,
 }
 
 local function newElement(o) -- This table contains the default properties 
@@ -125,8 +141,9 @@ local function newElement(o) -- This table contains the default properties
 		top = h or vsy,
 		depth = depth or 0.5, -- halfway?
 		treedepth = 1, -- how deep we are in the render tree
-		onclick = {},
-		--self.childern = {},
+		hidden = false,
+		MouseEvents = {}, --{left = func, right = func.., middle, enter, leave, hover} these funcs get self as first param
+		--self.children = {},
 		--textelements = {}, 
 		--visible = true, 
 		--clickable = false,
@@ -145,51 +162,71 @@ local function newElement(o) -- This table contains the default properties
 		else
 			parent.children[obj.name] = obj
 		end
+		obj.treedepth = obj.parent.treedepth + 1
 	end
+	if obj.textelements then 
+		for i, textelement in ipairs(obj.textelements) do obj:UpdateTextPosition(textelement) end 
+	end
+	
 	return obj
 end
 
--- Get the 'smallest' element of the chain that is 'hit' 
-function metaElement:MouseOver(mx,my) 
-	print (self)
-	local hit = false
-	if mx <= right and mx >= left and my <= top and my >= bottom then hit = true end
-	if hit == false then return nil 
-	else 
-		if self.children then 
-			for childname, childElement in pairs(self.children) do 
-				if childElement:MouseOver(mx,y) then
-					return childElement
-				end
-			end
-		end
-		return self -- no children were 'hit'
-	end
-end
-
-function metaElement:UpdateTextPosition(text)
-	-- todo fix alignment
-end
-
 -- Note that this takes 
--- aligment can be any of ['top', 'left','bottom','right', 'center', 'topleft', ]
+-- aligment can be any of ['top', 'left','bottom','right', 'center', 'topleft', 'topright', 'bottomleft', 'bottomright' ]
+-- [1 2 3]
+-- [4 5 6]
+-- [7 8 9]
+function metaElement:UpdateTextPosition(newtext) -- for internal use only!
+	newtext.textwidth  = font:GetTextWidth(newtext.text)  * newtext.fontsize
+	newtext.textheight = font:GetTextHeight(newtext.text) * newtext.fontsize
+	if newtext.alignment == nil then return end
+	--Spring.Debug.TraceFullEcho(nil,nil,nil,newtext.alignment)
+	if self.textalignments[newtext.alignment] == nil then 
+		--Spring.Echo("Text alignment for",newtext.text, "is invalid:", newtext.alignment)
+		--return 
+	end
+	local elementwidth = self.right - self.left
+	local elementheight = self.top - self.bottom
+	local alignInteger = tonumber(newtext.alignment) or self.texalignments[newtext.alignment] or 5 --default center
+	
+	Spring.Echo(newtext.alignment, newtext.text, newtext.textwidth, newtext.textheight, elementwidth, elementheight)
+	--if true then return end
+	--X coord
+	if alignInteger % 3 == 1 then -- left
+		newtext.ox = 0
+	elseif alignInteger % 3 == 0 then -- right
+		newtext.ox = elementwidth - newtext.textwidth
+	else -- X center
+		newtext.ox = (elementwidth - newtext.textwidth)/2
+	end
+	--Y coord
+	if alignInteger <= 3 then -- top
+		newtext.oy = elementheight - newtext.textheight
+	elseif alignInteger >= 7 then -- bottom
+		newtext.oy = 0
+	else -- Y center
+		newtext.oy = (elementheight - newtext.textheight)/2
+	end
+	newtext.ox = floor(newtext.ox)
+	newtext.oy = floor(newtext.oy)
+	ROOT.textChanged = true
+end
+
+
 function metaElement:AddText(ox, oy, text, fontsize, textoptions, alignment, textcolor, outlinecolor)
 	-- it is now that we need to cache text height, and width
+	ROOT.textChanged = true
 	local newtext = {
-			ox = ox, -- offset from bottom left corner 
+			ox = ox, -- offset from bottom left corner of parent element
 			oy = oy,
 			text = text,
 			fontsize = fontsize or 16,
 			textoptions = textoptions or "",
 			textcolor = textcolor,
 			outlinecolor = outlinecolor,
-			alignment = alignment,
+			alignment = alignment or 'center',
 		}
 
-	newtext.textwidth  = font:GetTextWidth(text)  * newtext.fontsize
-	newtext.textheight = font:GetTextHeight(text) * newtext.fontsize
-
-	
 	if self.textelements == nil then self.textelements = {} end 
 	self.textelements[#self.textelements + 1] = newtext
 	self:UpdateTextPosition(newtext)
@@ -198,6 +235,7 @@ end
 
 function metaElement:RemoveText(textindex)
 	if self.textelements then 
+		ROOT.textChanged = true
 		return table.remove(self.textelements, textindex)
 	end
 end
@@ -217,33 +255,94 @@ function metaElement:DrawText(px,py) -- parentx,parenty
 	end
 end
 
-
-function metaElement:Click(mx,my, clicktype)
+function metaElement:GetElementUnderMouse(mx,my)
+	if self.hidden then return false end
 	local hit = false
 	self.x = 1
 	--Spring.Echo("Testing",self.name, self.left,self.right,self.top,self.bottom)
 	if mx >= self.left and mx <= self.right and my <= self.top and my >= self.bottom then hit = true end
 	--Spring.Echo("result:",hit)
-	if hit == false then return nil 
-	else 
-		--Spring.Echo("Testing",self.name, self.left,self.right,self.top,self.bottom)
-		if self.children then 
-			for childname, childElement in pairs(self.children) do 
-				if childElement:Click(mx,my,clicktype) then
-					return childElement
-				end
-			end
-		end
-		for click, val in pairs(clicktype) do 
-			if self.onclick[click] then 
-				Spring.Echo("Clicked", self.name)
-				self.onclick[click]()
-			end
-		end
-		return self -- no children were 'hit'
-	end
+	if hit == false then return nil end
 	
+	--Spring.Echo("Testing",self.name, self.left,self.right,self.top,self.bottom)
+	local childHit 
+	if self.children then 
+		for _, childElement in pairs(self.children) do -- assume no overlap between children, hit-first
+			childHit = childElement:GetElementUnderMouse(mx,my)
+			if childHit then break end
+		end
+	end
+	return childHit or self -- no children were hit, only us
+
 end
+
+-- Will set all children to that visibility state too!
+function metaElement:SetVisibility(newvisibility)
+	if newvisibility == false then 
+		self.hidden = true -- this is for hit tests
+	else
+		self.hidden = false
+	end
+	ROOT.textChanged = true
+	self:UpdateVBOKeys('hide', newvisibility and 0 or 1)
+	
+	if self.children then 
+		for _, childElement in pairs(self.children) do 
+			childElement:SetVisibility(newvisibility)
+		end
+	end
+end
+
+function metaElement:UpdateVBOKeys(keyname, value)
+	if self.instanceKeys then 
+		for i,instanceKey in ipairs(self.instanceKeys) do 
+			local VBO = self.VBO or rectRoundVBO
+			--local instanceoffset = (VBO.instanceIDtoIndex[instanceKey] - 1) * VBO.instanceStep + self.vbokeys[keyname]
+			--VBO.instanceData[instanceoffset] = value
+			
+			getElementInstanceData(VBO, instanceKey, self.vboCache)
+			self.vboCache[self.vbokeys[keyname]] = value
+			pushElementInstance(VBO,self.vboCache, instanceKey, true) 
+			--Spring.Echo("Setting VBO Key", keyname, self.name, 'to',value,'for',instanceKey, #self.vboCache)
+			--todo needs a 'refresh' trigger for the ivbo
+		end
+	end
+end
+
+function metaElement:Destroy(depth)
+	--Spring.Echo("Destroying",self.name)
+	depth = (depth or 0 ) + 1
+	-- 1. hide self and children
+	self:SetVisibility(false)
+	if next(self.textelements) then ROOT.textChanged = true end
+	-- somehow mark them as dead
+	-- trigger a resize on critical amouts of elements changed?
+	-- POPPING BACK ELEMENTS IS FORBIDDEN AS IT WILL BREAK DRAW ORDER!
+	-- CANNOT USE popElementInstance !
+	-- instead track the number of destroyed elements
+	for i, instanceKey in ipairs(self.instanceKeys) do 
+		local VBO = self.VBO or rectRoundVBO
+		VBO.instanceIDtoIndex[instanceKey] = nil 
+		VBO.destroyedElements = (VBO.destroyedElements or 0) + 1 -- this is how we keep track
+		metaElement:UpdateVBOKeys('hide',1)
+	end
+	if self.children then
+		for _, childElement in pairs(self.children) do 
+			childElement:Destroy(depth)
+		end
+	end
+	if (depth == 1) then 
+		local VBO = self.VBO or rectRoundVBO
+		if VBO.destroyedElements * 3 > VBO.usedElements then 
+			--Spring.Echo("Compacting")
+			VBO:compact()
+		end
+	end
+	--deparent
+	self.parent.children[self.name] = nil
+	self.parent = nil
+end
+
 
 function metaElement:CalculatePosition()
 	-- to automatically do top left bototm right and percentage values
@@ -256,12 +355,11 @@ end
 
 function metaElement:NewButton(o) -- yay this objs shit again!
 	local obj = newElement(o)
-	
+	--Spring.Echo(obj.name, obj.left, obj.right, obj.top, obj.bottom)
 	--parent, VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
 	obj.instanceKeys = Draw.Button( rectRoundVBO or obj.VBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right, obj.top,  
 		obj.tl or 1, obj.tr or 1, obj.br or 1, obj.bl or 1,  obj.ptl or 1, obj.ptr or 1, obj.pbr or 1, obj.pbl or 1,  obj.opacity or 1, 		obj.color1, obj.color2, obj.bgpadding or 3)
 	return obj
-	
 end
 
 function metaElement:NewCheckBox(obj) end
@@ -291,49 +389,70 @@ function metaElement:NewUiUnit(o)
 function metaElement:NewRectRound(obj) end
 function metaElement:NewEmpty(obj) end
 
-local testElement = {
-	name = 'test',
-	left = 0, -- could be string types? As those can be parsed quite quick for percentage
-	right = 0,
-	top = 0, 
-	bottom = 0,
-	instanceKeys = {},
-	children = {},
-	textelements = {},
-	--onclick = {left, right, middle, double }
-	--MouseOver = 
-}
-
 ROOT = metaElement:NewContainer({root = true})
-local clickcache = {}
+
+local lastmouse = {mx = 0, my = 0, left = false, middle = false, right = false}
 local lasthitelement = nil -- this is to store which one was last hit to fire off mouseentered mouseleft events 
 -- TODO: debounce clicking!
 local function uiUpdate(mx,my,left,middle,right)
 	-- this needs to be revamped, to trace the element under cursor, and then act based on clickedness
-	local clicked = left or middle or right
-	if left then clickcache.left = true else clickcache.left = nil end 
-	if middle then clickcache.middle = true else clickcache.middle = nil end 
-	if right then clickcache.right = true else clickcache.right = nil end 
-	if clicked then 
-		ROOT:Click(mx,my,clickcache)
+	local elementundercursor
+	if false and mx == lastmouse.mx and my == lastmouse.my then -- this will probably be bad in the future!
+		elementundercursor = lasthitelement
+	else	
+		elementundercursor = ROOT:GetElementUnderMouse(mx,my) -- root will always hit!
+		
+		if lasthitelement and lasthitelement.MouseEvents and (elementundercursor == nil or elementundercursor.name ~= lasthitelement.name) then
+			if lasthitelement.MouseEvents.leave then 
+				lasthitelement.MouseEvents.leave(lasthitelement)
+			end
+			if elementundercursor and elementundercursor.MouseEvents and elementundercursor.MouseEvents.enter then
+				elementundercursor.MouseEvents.enter(elementundercursor)
+			end
+		end
 	end
+	lasthitelement = elementundercursor
+	if elementundercursor and elementundercursor.MouseEvents then 
+		--Spring.Echo(elementundercursor, elementundercursor.name)
+		if left and left ~= lastmouse.left then 
+			if elementundercursor.MouseEvents.left then elementundercursor.MouseEvents.left(elementundercursor) end 
+		end
+		if middle and middle ~= lastmouse.middle then 
+			if elementundercursor.MouseEvents.middle then elementundercursor.MouseEvents.middle(elementundercursor) end 
+		end
+		if right and right ~= lastmouse.right then 
+			if elementundercursor.MouseEvents.right then elementundercursor.MouseEvents.right(elementundercursor) end 
+		end
+		if elementundercursor.MouseEvents.hover then
+			elementundercursor.MouseEvents.hover(elementundercursor)
+		end
+	end
+	lastmouse.mx = mx
+	lastmouse.my = my
+	lastmouse.left = left
+	lastmouse.middle = middle
+	lastmouse.right = right
 end
 
-local dlist = nil
+local textDisplayList = nil
+local useTextDisplayList = true
 local function DrawText()
-	if false then 
-		if dlist == nil then 
-			dlist = gl.CreateList(function () 
+	--if true then return end
+	if useTextDisplayList then 
+		--Spring.Echo("ROOT.textChanged",ROOT.textChanged)
+		if textDisplayList == nil or ROOT.textChanged then 
+			--Spring.Echo("Textchanged rebuilding display lists")
+			ROOT.textChanged = false
+			textDisplayList = gl.CreateList(function () 
 			font:Begin()
 			ROOT:DrawText(0,0)
-		--font:SubmitBuffered(true) 
+			--font:SubmitBuffered(true) -- doesnt help at all :(
 			font:End()
 			end
 			)
-		else
-			gl.CallList(dlist)
 		end
-
+		gl.CallList(textDisplayList)
+		
 	else
 		font:Begin()
 		ROOT:DrawText(0,0)
@@ -341,7 +460,10 @@ local function DrawText()
 		font:End()
 	end
 end
----
+
+
+-------------------------- SILLY UNIT TESTS --------------------------------
+
 local function makebuttonarray()
 	for i = 1, 10 do
 		for j = 1, 10 do 
@@ -352,8 +474,8 @@ local function makebuttonarray()
 					right = 190 + 100*i,
 					top = 340 + 50 *j,
 					parent = ROOT,
-					onclick = {left = function() Spring.Echo("left clicked",i,j) end},
-					textelements = {{text = "mytext"..tostring(i).."-"..tostring(j),ox = 0, oy= 16,fontsize = 16,textoptions = 'nB'},},
+					MouseEvents = {left = function() Spring.Echo("left clicked",i,j) end},
+					textelements = {{text = "mytext"..tostring(i).."-"..tostring(j),ox = 0, oy= 16,fontsize = 16,textoptions = 'B'},},
 					
 				})
 			
@@ -368,8 +490,9 @@ local function makeunitbuttonarray()
 	for k,v in pairs(unitDef.buildOptions) do
 		Spring.Echo(k,v)
 	end
-	for i = 1, 10 do
-		for j = 1, 10 do 
+	local n = 10
+	for i = 1, n do
+		for j = 1, n do 
 			--rectRoundVBO, nil, 0.4, x,y,w,h, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, {0.2, 0.8, 0.2, 0.8 }, WG.FlowUI.elementCorner * 0.5
 			local idx = ((i-1)*10+j) % (#unitDef.buildOptions) + 1
 			if unitDef.buildOptions[idx] then 
@@ -383,8 +506,17 @@ local function makeunitbuttonarray()
 						texture = 'unitpics/'.. UnitDefs[thisunitdefid].name ..'.dds',
 						radartexture = unitIcon[thisunitdefid],
 						grouptexture = groups[unitGroup[thisunitdefid]],
-						onclick = {left = function() Spring.Echo("left clicked unit",i,j) end},
-						textelements = {{text = unitDef.name,ox = 0, oy= 0,fontsize = 16,textoptions = 'nB'},},
+						MouseEvents = {left = function(obj) 
+								local instanceKeys = ''
+								for i, instanceKey in ipairs(obj.instanceKeys) do instanceKeys = instanceKeys .. "," .. tostring(instanceKey) end
+								Spring.Echo("left clicked unit",obj.name, instanceKeys) 
+						end, 
+							right = function(obj)
+								Spring.Echo("right clicked", obj.name)
+								obj:Destroy()
+							end
+						},
+						textelements = {{text = unitDef.name,ox = 0, oy= 0,fontsize = 16,textoptions = 'B',alignment = (i%9 + 1)},},
 						
 					})
 			else
@@ -396,12 +528,58 @@ local function makeunitbuttonarray()
 		end
 	end
 end
+
+local function AddRecursivelySplittingButton()
+					local newbtn = metaElement:NewButton({
+						left = 300 ,
+						bottom = 100 ,
+						right = 1100 ,
+						top = 200 ,
+						parent = ROOT,
+						MouseEvents = {left = function(obj) 
+								-- add two buttons above self
+								local lefthalf = metaElement:NewButton({
+										left = obj.left,
+										bottom = obj.bottom,
+										right = obj.left + (obj.right - obj.left)/2,
+										top = obj.top,
+										MouseEvents = obj.MouseEvents,
+										textelements = {{text = "left",ox = 0, oy= 0,fontsize = 16,textoptions = 'B',alignment = 5},},
+										parent = obj,
+									})
+								local righthalf = metaElement:NewButton({
+										left = obj.left + (obj.right - obj.left)/2,
+										bottom = obj.bottom,
+										right = obj.right,
+										top = obj.top,
+										MouseEvents = obj.MouseEvents,
+										textelements = {{text = "right",ox = 0, oy= 0,fontsize = 16,textoptions = 'B',alignment = 5},},
+										parent = obj,
+										})
+			
+								Spring.Echo("left clicked unit",obj.name, instanceKeys) 
+						end, 
+							right = function(obj)
+								-- destroy self
+								Spring.Echo("right clicked", obj.name)
+								obj:Destroy()
+							end
+						},
+						textelements = {{text = "splitme",ox = 0, oy= 0,fontsize = 16,textoptions = 'B',alignment = 5},},
+						
+					})
+					
+
+end
+
+--[[
 local start = collectgarbage("count")
 --makebuttonarray()
 start = collectgarbage("count") - start
 print ("yay", start)
 local brk = 0
 print ("end")
+]]--
 ----------------------------------------------------------------
 -- GL4 STUFF
 ----------------------------------------------------------------
@@ -580,6 +758,7 @@ float centery;
 
 #line 20149
 void main() {
+	if (HIDE > 0.5) return; // bail early for hidden elements
 	vec4 gs_cornersizes = dataIn[0].v_cornersizes;
 
 	// for progress angles, we will be idiots and only calc it for zero corners
@@ -733,6 +912,8 @@ void main() {
 	
 }
 ]]
+
+
 
 local function goodbye(reason)
   Spring.Echo(widget:GetInfo().name .." widget exiting with reason: "..reason)
@@ -891,37 +1072,7 @@ end
 
 -- this is just an overload for replacing gl.TexRect
 Draw.TexRect = function (VBO, instanceID, z, px, py, sx, sy,  texture, color, uvs) -- returns table of instanceIDs
-	
-	return Draw.TexturedRectRound(VBO, instanceID, z, px, py, sx, sy,  0,  0, 0, 0, 0,  0, 0, 0,  texture)
-	--[[
-	if z == nil then z = 0.5 end  -- fools depth sort
-	
-	local fronttextalpha = 0
-	if texture == nil then 
-		texture = {0,0,0,0}
-	else
-		fronttextalpha = 1.0
-		Spring.Echo('TexRect',texture)
-		texture = ({gl.GetAtlasTexture(atlasID, texture)})
-		Spring.Echo(texture)
-	end 
-	if uvs == nil then uvs = {0,0,1,1} end
-	-- remap uvs
-	
-	uvs = Draw.TransformUVAtlasxXyY(texture, uvs)
-	
-	if color == nil then color = {1,1,1,1} end
-	local VBOData = {
-		px, py, sx, sy, 
-		0, 0, 0, 0, 
-		color[1],color[2],color[3],color[4],
-		color[1],color[2],color[3],color[4],
-		uvs[1],uvs[4],uvs[3],uvs[2],
-		fronttextalpha, 0, z, 1,
-		0,0,0,0,
-		}
-	return pushElementInstance(VBO, VBOData, instanceID,true)
-	]]--	
+	return Draw.TexturedRectRound(VBO, instanceID, z, px, py, sx, sy,  0,  0, 0, 0, 0,  0, 0, 0,  texture)	
 end
 --[[
 	TexturedRectRound
@@ -1301,7 +1452,18 @@ Draw.Unit = function(VBO, instanceID, z, px, py, sx, sy,  cs,  tl, tr, br, bl,  
 		--	(sx - px) * 0.29, "ro"
 		--)
 	end
-	return elementIDs
+	local cnt = 0
+	for k,v in pairs(elementIDs) do
+		cnt = cnt + 1
+	end
+	if cnt < 7 then 
+		Spring.Echo("Some elements not spawned in ",texture) 
+		
+		for k,v in pairs(elementIDs) do
+			Spring.Echo(k,v)
+		end
+	end
+	return elementIDs 
 end
 
 --[[
@@ -1639,6 +1801,7 @@ function widget:Initialize()
 	
 	makebuttonarray()
 	makeunitbuttonarray()
+	AddRecursivelySplittingButton()
 end
 
 function widget:Shutdown()
@@ -1664,7 +1827,7 @@ function widget:DrawScreen()
 		atlassedImages = WG['flowui_atlassedImages'] 
 		Spring.Debug.TableEcho({gl.GetAtlasTexture(atlasID, "unitpics/armcom.dds")})
 	end
-	if elems < 3  then
+	if elems < 0  then
 		elems = elems+1
 		local x = math.floor(math.random()*vsx) 
 		local y = math.floor(math.random()*vsy)
@@ -1719,11 +1882,14 @@ function widget:DrawScreen()
 	if rectRoundVBO.dirty then uploadAllElements(rectRoundVBO) end -- do updates!
 	--gl.Blending(GL.SRC_ALPHA, GL.ONE) -- bloomy
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- regular
+
 	gl.Texture(0, "luaui/images/backgroundtile.png")
 	gl.Texture(1, atlasID)
-	rectRoundShader:Activate()
-	rectRoundVAO:DrawArrays(GL.POINTS)
-	rectRoundShader:Deactivate()
+	if rectRoundVBO.usedElements > 0 then 
+		rectRoundShader:Activate()
+		rectRoundVAO:DrawArrays(GL.POINTS,rectRoundVBO.usedElements, 0, nil, 0)
+		rectRoundShader:Deactivate()
+	end
 	gl.Texture(1, false)
 	gl.Texture(0, false)
 	DrawText()

@@ -40,7 +40,7 @@ end
 local function makeAtlas()
 	local atlasSize = 8192
 	Spring.Echo("attempt to make atlas")
-	atlasID = gl.CreateTextureAtlas(atlasSize,atlasSize,0)
+	atlasID = gl.CreateTextureAtlas(atlasSize,atlasSize,1)
 	Spring.Echo("Attempt to add texture")
 
 	addDirToAtlas(atlasID, "unitpics/")
