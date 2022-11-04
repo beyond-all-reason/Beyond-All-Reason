@@ -50,7 +50,7 @@ local waveSpacingY = 7
 local moving
 local capture
 local gameInfo
-local waveSpeed = 0.2
+local waveSpeed = 0.1
 local waveCount = 0
 local waveTime
 local enabled
@@ -97,6 +97,7 @@ local rules = {
 }
 
 local waveColor = "\255\255\0\0"
+local textColor = "\255\255\255\255"
 
 
 local chickenTypes = {
@@ -193,12 +194,18 @@ end
 
 local function getMarqueeMessage(chickenEventArgs)
 	local messages = {}
-
-	if chickenEventArgs.type == "wave" then
-		messages[1] = Spring.I18N('ui.chickens.wave', { waveNumber = chickenEventArgs.waveCount })
-		messages[2] = waveColor .. Spring.I18N('ui.chickens.waveCount', { count = chickenEventArgs.number })
+	if chickenEventArgs.type == "firstWave" then
+		messages[1] = textColor .. Spring.I18N('ui.chickens.firstWave1')
+		messages[2] = textColor .. Spring.I18N('ui.chickens.firstWave2')
+	elseif chickenEventArgs.type == "airWave" then
+		messages[1] = textColor .. Spring.I18N('ui.chickens.airWave1')
+		messages[2] = textColor .. Spring.I18N('ui.chickens.airWave2')
+	elseif chickenEventArgs.type == "miniQueen" then
+		messages[1] = textColor .. Spring.I18N('ui.chickens.miniBoss1')
+		messages[2] = textColor .. Spring.I18N('ui.chickens.miniBoss2')
 	elseif chickenEventArgs.type == "queen" then
-		messages[1] = Spring.I18N('ui.chickens.queenIsAngry')
+		messages[1] = textColor .. Spring.I18N('ui.chickens.queenIsAngry1')
+		messages[2] = textColor .. Spring.I18N('ui.chickens.queenIsAngry2')
 	end
 
 	refreshMarqueeMessage = false
@@ -261,26 +268,36 @@ local function UpdateRules()
 end
 
 function ChickenEvent(chickenEventArgs)
-	if chickenEventArgs.type == "wave" then
-		if gameInfo.chicken_hiveCount < 1 then
-			return
-		end
-		waveCount = waveCount + 1
-		chickenEventArgs.waveCount = waveCount
+	if chickenEventArgs.type == "firstWave" or chickenEventArgs.type == "airWave" or chickenEventArgs.type == "miniQueen" or chickenEventArgs.type == "queen" then
 		showMarqueeMessage = true
 		refreshMarqueeMessage = true
 		messageArgs = chickenEventArgs
 		waveTime = Spring.GetTimer()
-	elseif chickenEventArgs.type == "burrowSpawn" then
-		UpdateRules()
-	elseif chickenEventArgs.type == "queen" then
-		showMarqueeMessage = true
-		refreshMarqueeMessage = true
-		messageArgs = chickenEventArgs
-		waveTime = Spring.GetTimer()
-	elseif chickenEventArgs.type == "score" .. (Spring.GetMyTeamID()) then
-		gotScore = chickenEventArgs.number
 	end
+
+
+
+
+	-- if chickenEventArgs.type == "wave" then
+	-- 	if gameInfo.chicken_hiveCount < 1 then
+	-- 		return
+	-- 	end
+	-- 	waveCount = waveCount + 1
+	-- 	chickenEventArgs.waveCount = waveCount
+	-- 	showMarqueeMessage = true
+	-- 	refreshMarqueeMessage = true
+	-- 	messageArgs = chickenEventArgs
+	-- 	waveTime = Spring.GetTimer()
+	-- elseif chickenEventArgs.type == "burrowSpawn" then
+	-- 	UpdateRules()
+	-- elseif chickenEventArgs.type == "queen" then
+	-- 	showMarqueeMessage = true
+	-- 	refreshMarqueeMessage = true
+	-- 	messageArgs = chickenEventArgs
+	-- 	waveTime = Spring.GetTimer()
+	-- elseif chickenEventArgs.type == "score" .. (Spring.GetMyTeamID()) then
+	-- 	gotScore = chickenEventArgs.number
+	-- end
 end
 
 function widget:Initialize()

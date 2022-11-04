@@ -490,6 +490,10 @@ if gadgetHandler:IsSyncedCode() then
 	-- local MEDIUM_UNIT = UnitDefNames["chicken1"].id
 	-- local LARGE_UNIT = UnitDefNames["chicken1"].id
 
+	local function chickenEvent(type, num, tech)
+		SendToUnsynced("ChickenEvent", type, num, tech)
+	end
+
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
 	--
@@ -1091,63 +1095,91 @@ if gadgetHandler:IsSyncedCode() then
 			currentWave = config.wavesAmount
 		end
 
+		local waveType = "normal"
+		if currentWave >= 6 and mRandom() <= 0.01 then
+			waveType = "miniboss"
+		elseif config.airWaves[currentWave] and mRandom() <= 0.1 then
+			waveType = "air"
+		end
+
 		local cCount = 0
 		local loopCounter = 0
 		local squadCounter = 0
 		local cleanerSpawned = 0
-		repeat
-			loopCounter = loopCounter + 1
-			for burrowID in pairs(burrows) do
-				if cCount < currentMaxWaveSize then
-					for mult = 1,config.chickenSpawnMultiplier do
-						squadCounter = 0
-						local waveLevel = currentWave
-						local squad = config.basicWaves[waveLevel][mRandom(1, #config.basicWaves[waveLevel])]
-						if config.specialWaves[waveLevel] and math.random(1,100) <= 20 then
-							squad = config.specialWaves[waveLevel][mRandom(1, #config.specialWaves[waveLevel])]
-						elseif config.superWaves[waveLevel] and math.random(1,100) <= 1 then
-							squad = config.superWaves[waveLevel][mRandom(1, #config.superWaves[waveLevel])]
-						end
-						local skipSpawn = false
-						if cCount > 1 and mRandom() > config.spawnChance then
-							skipSpawn = true
-						end
-						if not skipSpawn then
-							for i, sString in pairs(squad) do
-								if cCount < currentMaxWaveSize then
-									local nEnd, _ = string.find(sString, " ")
-									local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
-									local chickenName = string.sub(sString, (nEnd + 1))
-									for j = 1, unitNumber, 1 do
-										squadCounter = squadCounter + 1
-										table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
+		if waveType == "miniboss" then
+			repeat
+				for burrowID in pairs(burrows) do
+					if mRandom(1,SetCount(burrows)) == 1 then
+						table.insert(spawnQueue, { burrow = burrowID, unitName = config.miniBosses[mRandom(1,#config.miniBosses)], team = chickenTeamID, squadID = 0 })
+						cCount = 1
+						break
+					end
+				end
+			until (cCount > 0 or loopCounter >= 100)
+		else
+			repeat
+				loopCounter = loopCounter + 1
+				for burrowID in pairs(burrows) do
+					if cCount < currentMaxWaveSize then
+						for mult = 1,config.chickenSpawnMultiplier do
+							squadCounter = 0
+							local squad
+							if waveType == "air" then
+								squad = config.airWaves[currentWave][mRandom(1, #config.airWaves[currentWave])]
+							else
+								squad = config.basicWaves[currentWave][mRandom(1, #config.basicWaves[currentWave])]
+								if config.specialWaves[currentWave] and math.random(1,100) <= 20 then
+									squad = config.specialWaves[currentWave][mRandom(1, #config.specialWaves[currentWave])]
+								elseif config.superWaves[currentWave] and math.random(1,100) <= 1 then
+									squad = config.superWaves[currentWave][mRandom(1, #config.superWaves[currentWave])]
+								end
+							end
+							local skipSpawn = false
+							if cCount > 1 and mRandom() > config.spawnChance then
+								skipSpawn = true
+							end
+							if not skipSpawn then
+								for i, sString in pairs(squad) do
+									if cCount < currentMaxWaveSize then
+										local nEnd, _ = string.find(sString, " ")
+										local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
+										local chickenName = string.sub(sString, (nEnd + 1))
+										for j = 1, unitNumber, 1 do
+											squadCounter = squadCounter + 1
+											table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
+										end
+										cCount = cCount + unitNumber
 									end
-									cCount = cCount + unitNumber
 								end
 							end
 						end
 					end
-				end
-				
-				local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
-				local targetCleaners = currentMaxWaveSize*0.1
-				local cleanerSpawnCount = math.ceil((targetCleaners - aliveCleaners)*0.25)
-				if targetCleaners - cleanerSpawned > 0 and cleanerSpawnCount > 0 then
-					if mRandom(0,1) == 0 then
-						for i = 1,math.ceil(cleanerSpawnCount) do
-							table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = i })
-							cleanerSpawned = cleanerSpawned + 1
-						end
-					else
-						for i = 1,math.ceil(cleanerSpawnCount) do
-							table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = i })
-							cleanerSpawned = cleanerSpawned + 1
+					
+					local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
+					local targetCleaners = currentMaxWaveSize*0.1
+					local cleanerSpawnCount = math.ceil((targetCleaners - aliveCleaners)*0.25)
+					if targetCleaners - cleanerSpawned > 0 and cleanerSpawnCount > 0 then
+						if mRandom(0,1) == 0 then
+							for i = 1,math.ceil(cleanerSpawnCount) do
+								table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = i })
+								cleanerSpawned = cleanerSpawned + 1
+							end
+						else
+							for i = 1,math.ceil(cleanerSpawnCount) do
+								table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = i })
+								cleanerSpawned = cleanerSpawned + 1
+							end
 						end
 					end
 				end
-			end
-		until (cCount > currentMaxWaveSize or loopCounter >= 100)
+			until (cCount > currentMaxWaveSize or loopCounter >= 100)
+		end
 
+		if waveType == "air" then
+			chickenEvent("airWave")
+		elseif waveType == "miniBoss" then
+			chickenEvent("miniQueen")
+		end
 		return cCount
 	end
 
@@ -1445,10 +1477,6 @@ if gadgetHandler:IsSyncedCode() then
 		spawnQueue[i] = nil
 	end
 
-	local function chickenEvent(type, num, tech)
-		SendToUnsynced("ChickenEvent", type, num, tech)
-	end
-
 	local function updateSpawnQueen()
 		if not queenID and not gameOver then
 			-- spawn queen if not exists
@@ -1577,9 +1605,13 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 
-
+	local announcedFirstWave = false
 	function gadget:GameFrame(n)
 
+		if announcedFirstWave == false and GetGameSeconds() > config.gracePeriod then
+			chickenEvent("firstWave")
+			announcedFirstWave = true
+		end
 		-- remove initial commander (no longer required)
 		if n == 1 then
 			PutChickenAlliesInChickenTeam(n)
@@ -1676,9 +1708,6 @@ if gadgetHandler:IsSyncedCode() then
 			if t > config.gracePeriod+5 then
 				if burrowCount > 0 and (((config.chickenMaxSpawnRate) < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount) and (t - timeOfLastWave) > (config.chickenMaxSpawnRate*0.25)) then
 					local cCount = Wave()
-					if cCount and cCount > 0 then
-						chickenEvent("wave", cCount, currentWave)
-					end
 					lastWaveUnitCount = cCount
 					timeOfLastWave = t
 				end

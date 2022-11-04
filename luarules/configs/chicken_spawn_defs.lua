@@ -18,6 +18,7 @@ local waves = {}
 local basicWaves = {}
 local specialWaves = {}
 local superWaves = {}
+local airWaves = {}
 
 local chickenTypes = {
 	ve_chickenq    						=  true,
@@ -362,13 +363,31 @@ local function addSuperSquad(wave, unitList, weight)
     end
 end
 
+local function addAirSquad(wave, unitList, weight)
+	if not weight then weight = 1 end
+    for i = 1, weight do 
+		for j = wave,wavesAmount do
+			if not airWaves[j] then
+				airWaves[j] = {}
+			end
+			table.insert(airWaves[j], unitList)
+		end
+    end
+end
+
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
--- Super Squads -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- MiniBoss Squads ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-	addSuperSquad(5, { "2 chickenf1apex"  																}) -- Apex Bomber
-	addSuperSquad(5, { "2 chickenf1apexb" 																}) -- Apex Bomber
-	addSuperSquad(5, { "5 chickenw2" 																	}) -- Apex Fighter
+local miniBosses = {
+	"chicken_miniqueen_electric", 	-- Electric Miniqueen
+	"chicken_miniqueen_acid", 		-- Acid Miniqueen
+	"chicken_miniqueen_healer", 	-- Healer Miniqueen
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Super Squads -------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	addSuperSquad(5, { "5 chicken2"																		}) -- Apex Swarmer
 	addSuperSquad(5, { "5 chicken2b" 																	}) -- Apex Swarmer
 	addSuperSquad(5, { "2 chickena2" 																	}) -- Apex Brawler
@@ -384,7 +403,6 @@ end
 	addSuperSquad(5, { "2 chickenacidassault" 															}) -- Acid Brawler
 	addSuperSquad(5, { "2 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
 	addSuperSquad(5, { "5 chicken_dodo2" 																}) -- Kamikaze
-	addSuperSquad(5, { "10 chicken_dodoair" 															}) -- Air Kamikaze
 	addSuperSquad(4, { "6 chickenp2" 																	}) -- Apex Pyro
 	addSuperSquad(5, { "5 chickens2" 																	}) -- Apex Spiker
 	if not Spring.GetModOptions().unit_restrictions_nonukes then
@@ -410,9 +428,6 @@ end
 	addSpecialSquad(4, { "15 chicken_dodo1" 															}) -- Small Kamikaze
 
 	addSpecialSquad(5, { "3 chickene2" 																	}) -- EMP Brawler
-	addSpecialSquad(5, { "10 chickenw1", "10 chickenw1b", "10 chickenw1c", "10 chickenw1d" 				}) -- Fighter
-	addSpecialSquad(5, { "10 chickenf1", "10 chickenf1b" 												}) -- Bomber
-	addSpecialSquad(5, { "10 chickenebomber1" 															}) -- EMP Bomber
 	addSpecialSquad(5, { "10 chickenacidswarmer" 														}) -- Acid Swarmer
 
 	addSpecialSquad(6, { "10 chickenpyroallterrain" 													}) -- Pyro AllTerrain
@@ -427,18 +442,14 @@ end
 	addSpecialSquad(7, { "5 chickenelectricallterrain", "5 chickenacidallterrain" 						}) -- EMP and Acid AllTerrain Combo
 
 	addSpecialSquad(8, { "25 chicken_dodo2" 															}) -- Big Kamikaze
-	addSpecialSquad(8, { "35 chicken_dodoair" 															}) -- Air Kamikaze
 	addSpecialSquad(8, { "10 chickens2" 																}) -- Apex Spiker
 	addSpecialSquad(8, { "10 chickenacidallterrain" 													}) -- Acid AllTerrain 
 	addSpecialSquad(8, { "4 chickenacidassault" 														}) -- Acid Brawler
 	addSpecialSquad(8, { "3 chickene2" 																	}) -- EMP Brawler
 	addSpecialSquad(8, { "4 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
-	addSpecialSquad(8, { "6 chickenacidbomber" 															}) -- Acid Bomber
 	addSpecialSquad(8, { "3 chickenacidarty" 															}) -- Acid Artillery
 	addSpecialSquad(8, { "5 chickenh4" 																	}) -- Hatchling
 
-	addSpecialSquad(9, { "6 chickenf1apex", "6 chickenf1apexb" 											}) -- Apex Bomber
-	addSpecialSquad(9, { "20 chickenw2" 																}) -- Apex Fighter
 	addSpecialSquad(9, { "5 chicken2" , "5 chicken2b" 													}, 7) -- Apex Swarmer
 	addSpecialSquad(9, { "3 chickena2", "3 chickena2b"													}, 2) -- Apex Brawler
 	addSpecialSquad(9, { "2 chickenapexallterrainassault", "2 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
@@ -449,8 +460,6 @@ end
 	addSpecialSquad(9, { "3 chickenh3" 																	}) -- Brood Mother
 	addSpecialSquad(9, { "10 chickenh4" 																}) -- Hatchling
 
-	addSpecialSquad(10, { "6 chickenf1apex", "6 chickenf1apexb" 										}) -- Apex Bomber
-	addSpecialSquad(10, { "30 chickenw2" 																}) -- Apex Fighter
 	addSpecialSquad(10, { "5 chicken2" , "5 chicken2b" 													}, 5) -- Apex Swarmer
 	addSpecialSquad(10, { "3 chickena2", "3 chickena2b"													}, 2) -- Apex Brawler
 	addSpecialSquad(10, { "2 chickenapexallterrainassault", "2 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
@@ -465,8 +474,6 @@ end
 	
 if difficulty >= 3 then
 	for i = 11,wavesAmount do
-	addSpecialSquad(i, { "3 chickenf1apex", "3 chickenf1apexb" 											}) -- Apex Bomber
-	addSpecialSquad(i, { "10 chickenw2" 																}) -- Apex Fighter
 	addSpecialSquad(i, { "5 chicken2" , "5 chicken2b" 													}) -- Apex Swarmer
 	addSpecialSquad(i, { "5 chickena2", "5 chickena2b"													}) -- Apex Brawler
 	addSpecialSquad(i, { "5 chickenapexallterrainassault", "5 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
@@ -480,14 +487,13 @@ if difficulty >= 3 then
 	addSpecialSquad(i, { "3 chickenacidassault" 														}) -- Acid Brawler
 	addSpecialSquad(i, { "3 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
 	addSpecialSquad(i, { "25 chicken_dodo2" 															}) -- Kamikaze
-	addSpecialSquad(i, { "75 chicken_dodoair" 															}) -- Air Kamikaze
 	addSpecialSquad(i, { "10 chickenp2" 																}) -- Apex Pyro
 	addSpecialSquad(i, { "10 chickens2" 																}) -- Apex Spiker
 	end
 end
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
--- Basic Squads
+-- Basic Squads -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 addBasicSquad(1, {"4 chicken1_mini"}, 5)
@@ -523,7 +529,32 @@ for i = 1,wavesAmount do
 	end
 end
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Air Squads ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+addAirSquad(5, { "2 chickenw1", "2 chickenw1b", "2 chickenw1c", "2 chickenw1d" 				}) -- Fighter
+addAirSquad(5, { "4 chickenf1", "4 chickenf1b" 												}) -- Bomber
+
+addAirSquad(7, { "2 chickenebomber1" 														}) -- EMP Bomber
+addAirSquad(7, { "2 chickenacidbomber" 														}) -- Acid Bomber
+
+addAirSquad(8, { "1 chicken_dodoair" 														}) -- Air Kamikaze
+
+addAirSquad(9, { "2 chickenf1apex", "2 chickenf1apexb" 										}) -- Apex Bomber
+addAirSquad(9, { "6 chickenw2" 																}) -- Apex Fighter
+
+addAirSquad(10, { "4 chickenf1apex", "4 chickenf1apexb" 									}) -- Apex Bomber
+addAirSquad(10, { "12 chickenw2" 															}) -- Apex Fighter
+
+if difficulty >= 3 then
+	for i = 11,wavesAmount do
+		addAirSquad(i, { "6 chickenf1apex", "6 chickenf1apexb" 								}) -- Apex Bomber
+		addAirSquad(i, { "18 chickenw2" 													}) -- Apex Fighter
+		addAirSquad(i, { "1 chicken_dodoair" 												}) -- Air Kamikaze
+	end
+end
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 local config = {
 	difficulty             = difficulty,
@@ -547,6 +578,8 @@ local config = {
 	basicWaves		   	   = basicWaves,
 	specialWaves           = specialWaves,
 	superWaves             = superWaves,
+	airWaves			   = airWaves,
+	miniBosses			   = miniBosses,
 	difficultyParameters   = optionValues,
 }
 
