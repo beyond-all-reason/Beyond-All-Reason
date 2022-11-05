@@ -209,7 +209,7 @@ local optionValues = {
 		maxBurrows        = 10,
 		minChickens		  = 1,
 		maxChickens		  = 50,
-		queenName         = 'n_chickenq',
+		queenName         = 've_chickenq',
 		queenResistanceMult   = 1,
 	},
 
@@ -225,7 +225,7 @@ local optionValues = {
 		maxBurrows        = 15,
 		minChickens		  = 1,
 		maxChickens		  = 100,
-		queenName         = 'h_chickenq',
+		queenName         = 'e_chickenq',
 		queenResistanceMult   = 2,
 	},
 	[difficulties.veryhard] = {
@@ -240,7 +240,7 @@ local optionValues = {
 		maxBurrows        = 20,
 		minChickens		  = 1,
 		maxChickens		  = 150,
-		queenName         = 'vh_chickenq',
+		queenName         = 'n_chickenq',
 		queenResistanceMult   = 3,
 	},
 	[difficulties.insane] = {
@@ -255,7 +255,7 @@ local optionValues = {
 		maxBurrows        = 30,
 		minChickens		  = 1,
 		maxChickens		  = 200,
-		queenName         = 'epic_chickenq',
+		queenName         = 'h_chickenq',
 		queenResistanceMult   = 4,
 	},
 	[difficulties.epic] = {
@@ -270,7 +270,7 @@ local optionValues = {
 		maxBurrows        = 40,
 		minChickens		  = 1,
 		maxChickens		  = 200,
-		queenName         = 'epic_chickenq',
+		queenName         = 'vh_chickenq',
 		queenResistanceMult   = 5,
 	},
 	[difficulties.unbeatable] = {
