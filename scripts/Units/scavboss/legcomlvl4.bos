@@ -6,9 +6,10 @@
 //INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 20
 
 piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot,
-		lfoot, dish, barrel, aimy1, aimx1, aimx2, hatpoint, teleport, turretmis, misbox, misflare;  
+		lfoot, dish, barrel, aimy1, aimx1, aimx2, hatpoint, teleport, railturretl, railsleevel, railflarel, sleeve, barrelr, flare, 
+		barrel1l, barrel2l, barrel3l, barrel4l, railturretr, railsleever, railflarer, barrel1r, barrel2r, barrel3r, barrel4r;  
 
-static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm,animSpeed;
+static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm,animSpeed, torsoaim, gun_1;
 
 // Signal definitions
 #define SIG_AIM 2
@@ -429,7 +430,7 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 4) / animSpeed;
+		animSpeed = (maxSpeed * 54 / 10) / animSpeed;
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>8) animSpeed = 8;
@@ -480,12 +481,16 @@ Create(){
 	hide hatpoint;
 	hide aimy1;
 	hide teleport;
+	hide railflarer;
+	hide railflarel;
 	//turn rloarm to  x-axis <-15> speed <130.0000> ; //-- Turn(rloarm, x-axis, math.rad(-15),math.rad(130))
 	turn lflare to x-axis <90> now; //	Turn(lflare, x-axis,math.rad(90))
 	turn nano to x-axis <90> now; //Turn(nano, x-axis,math.rad(90))
 	turn laserflare to x-axis <90> now; //	Turn(laserflare, x-axis,math.rad(90))
 	spin dish around y-axis speed <100>; //Spin(dish, y-axis, 2.5)
 	animSpeed = 4;
+	gun_1 = 1;
+	torsoaim = 0;
 	bMoving = 0;
 	isAiming = 0;
 	isBuilding = 0;
@@ -514,7 +519,8 @@ RestoreAfterDelay(){
 	turn luparm to  x-axis <0> speed <95.0000> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
 	turn rloarm to  x-axis <-38> speed <95.0000> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
 	turn ruparm to  x-axis <0> speed <95.0000> ; //-- Turn(ruparm, x-axis, 0, math.rad(95))
-	
+	stop-spin barrelr around y-axis;
+	torsoaim = 0;
 	isAiming = 0;
 	isAimingDgun = 0;
 	rightarm = 1;
@@ -546,7 +552,7 @@ SweetSpot(piecenum)
 /////////// pew pew laser
 QueryPrimary(piecenum) //pew laser
 {
-	piecenum = laserflare;
+	piecenum = flare;
 	return (0);
 }
 
@@ -565,7 +571,8 @@ AimPrimary(heading, pitch) //pew pew
 	//call-script FixArms(0, 1);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn torso to  y-axis heading + <10> speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	torsoaim = heading;
 	turn rloarm to  x-axis <-55> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 	turn ruparm to x-axis <-40> - pitch speed <390.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
 	wait-for-turn torso around y-axis;
@@ -582,8 +589,8 @@ AimPrimary(heading, pitch) //pew pew
 
 FirePrimary()
 {
-	sleep 100;
-	return (0);
+	emit-sfx 1024 + 0 from flare;
+	spin barrelr around y-axis speed <900.000000>;
 }
 
 /////////// uw weapon
@@ -618,6 +625,7 @@ AimSecondary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	torsoaim = heading;
 	turn rloarm to  x-axis <-55> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 	turn ruparm to x-axis <-40> - pitch speed <390.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
 	wait-for-turn torso around y-axis;
@@ -684,30 +692,69 @@ AimTertiary(heading, pitch)
 
 QueryWeapon4(piecenum) //ferret
 {
-	piecenum = misflare;
-	return (0);
+	if (gun_1){
+		piecenum = railflarer;
+	}
+	else {
+		piecenum = railflarel;
+	}
 }
 
 AimFromWeapon4(piecenum)
 {
-	piecenum = turretmis;
-	return (0);
+	if (gun_1){
+		piecenum = railflarer;
+	}
+	else {
+		piecenum = railflarel;
+	}
 }
 
 FireWeapon4()
 {
-	emit-sfx 1024 + 2 from misflare;
-	return (0);
+	if (gun_1){
+		emit-sfx 1024 + 0 from railflarer;
+		move barrel1r to z-axis [-3.000000] speed [500.000000];
+		move barrel2r to z-axis [-3.000000] speed [500.000000];
+		move barrel3r to z-axis [-3.000000] speed [500.000000];
+		move barrel4r to z-axis [-3.000000] speed [500.000000];
+		wait-for-move barrel1r along z-axis;
+		move barrel1r to z-axis [0.000000] speed [3.000000];	
+		move barrel2r to z-axis [0.000000] speed [3.000000];	
+		move barrel3r to z-axis [0.000000] speed [3.000000];	
+		move barrel4r to z-axis [0.000000] speed [3.000000];
+		sleep 300;
+		gun_1 = 2;	
+	}
+	else {
+		emit-sfx 1024 + 0 from railflarel;
+		move barrel1l to z-axis [-3.000000] speed [500.000000];
+		move barrel2l to z-axis [-3.000000] speed [500.000000];
+		move barrel3l to z-axis [-3.000000] speed [500.000000];
+		move barrel4l to z-axis [-3.000000] speed [500.000000];
+		wait-for-move barrel1l along z-axis;
+		move barrel1l to z-axis [0.000000] speed [3.000000];	
+		move barrel2l to z-axis [0.000000] speed [3.000000];	
+		move barrel3l to z-axis [0.000000] speed [3.000000];	
+		move barrel4l to z-axis [0.000000] speed [3.000000];
+		sleep 300;
+		gun_1 = 0;	
+	}
+	gun_1 = !gun_1;
 }
 
 AimWeapon4(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
-	turn turretmis to y-axis heading speed <250.000000>;
-	turn misbox to x-axis <0> - pitch speed <200.000000>;
-	wait-for-turn turretmis around y-axis;
-	wait-for-turn misbox around x-axis;
+	turn railturretr to y-axis heading - torsoaim speed <250.000000>;
+	turn railsleever to x-axis <0> - pitch speed <200.000000>;
+	turn railturretl to y-axis heading - torsoaim speed <250.000000>;
+	turn railsleevel to x-axis <0> - pitch speed <200.000000>;
+	wait-for-turn railturretr around y-axis;
+	wait-for-turn railsleever around x-axis;
+	wait-for-turn railturretl around y-axis;
+	wait-for-turn railsleevel around x-axis;
 	return (1);
 }
 

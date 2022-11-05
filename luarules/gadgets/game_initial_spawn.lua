@@ -37,7 +37,7 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	local armcomDefID = UnitDefNames.armcom.id
 	local corcomDefID = UnitDefNames.corcom.id
-	local legcomDefID = UnitDefNames.legcomdef.id
+	local legcomDefID = UnitDefNames.legcom.id
 	local validStartUnits = {
 		[armcomDefID] = true,
 		[corcomDefID] = true,

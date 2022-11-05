@@ -49,7 +49,7 @@ for udefID,_ in pairs(isCommander) do
 end
 local armcomDefID = UnitDefNames["armcom"].id
 local corcomDefID = UnitDefNames["corcom"].id
-local legcomDefID = UnitDefNames["legcomdef"].id
+local legcomDefID = UnitDefNames["legcom"].id
 
 local function CommCount(unitTeam)
 
