@@ -47,6 +47,12 @@ if gadgetHandler:IsSyncedCode() then -- SYNCED --
 		[UnitDefNames['cortron'].id] = 10,
 
 		[UnitDefNames['armbotrail'].id] = 50,
+		
+		[UnitDefNames['legcom'].id] = 2,
+		[UnitDefNames['legcomlvl2'].id] = 2,
+		[UnitDefNames['legcomlvl3'].id] = 3,
+		[UnitDefNames['legcomlvl4'].id] = 4,
+		
 	}
 	----------------------------------------------------------------------------
 	-- Scav copies

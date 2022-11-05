@@ -25,7 +25,7 @@ end
 local spawnpads = {
     [UDN.armcom.id] = "armrespawn",
     [UDN.corcom.id] = "correspawn",
-	[UDN.legcomdef.id] = "correspawn",
+	[UDN.legcom.id] = "correspawn",
 }
 
 function SpawnAssistDrones(unitID, unitDefID, unitTeam)

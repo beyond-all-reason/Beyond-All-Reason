@@ -56,6 +56,13 @@ Steering(heading, steery, currentSpeed)
 		speed4 = <13> / 20;
 		speed5 = <12> / 20;
 		speed6 = <10> / 20;
+		currentspeed = (get CURRENT_SPEED);
+		if (currentspeed > maxSpeed){
+			steerslow = steerslow - 1;
+			if ((currentspeed * 2) > (maxSpeed * 3)){
+				steerslow = steerslow - 2;
+			}
+		}
 		turn steer2 to y-axis steery speed speed2 * turnslow;
 		turn steer3 to y-axis steery speed speed3 * turnslow;
 		turn steer4 to y-axis steery speed speed4 * turnslow;
@@ -917,7 +924,7 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 5) / animSpeed; 
+		animSpeed = (maxSpeed * 7 / 2) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>14) animSpeed = 14;
@@ -1012,7 +1019,7 @@ Create()
 	hide flare6;
 	fire_count_3 = 0;
 	fire_count_4 = 0;
-	animSpeed = 7;
+	animSpeed = 4;
 	while(get BUILD_PERCENT_LEFT)
 	{
 		sleep 250;

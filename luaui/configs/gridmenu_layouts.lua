@@ -260,7 +260,7 @@ local unitGrids = {
 			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
 		}
 	},
-    legcomdef = {
+    legcom = {
 		{
 			{ "legmex", "corsolar", "corwin", },                -- mex, solar, wind
 			{ "", "cortide", "coruwms", },               -- T1.5 mex, tidal, uw m storage

@@ -6,7 +6,7 @@
 //INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 20
 
 piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot,
-		lfoot, dish, barrel, aimy1, aimx1, aimx2, hatpoint, teleport, turretmis, misbox, misflare;  
+		lfoot, dish, barrel, aimy1, aimx1, aimx2, hatpoint, teleport, turretmis, misbox, misflare, sleeve, barrelr, flare;  
 
 static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm,animSpeed;
 
@@ -429,7 +429,7 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 4) / animSpeed;
+		animSpeed = (maxSpeed * 49 / 10) / animSpeed;
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>8) animSpeed = 8;
@@ -514,7 +514,7 @@ RestoreAfterDelay(){
 	turn luparm to  x-axis <0> speed <95.0000> ; //-- Turn(luparm, x-axis, 0, math.rad(95))
 	turn rloarm to  x-axis <-38> speed <95.0000> ; //-- Turn(rloarm, x-axis, math.rad(-38), math.rad(95))
 	turn ruparm to  x-axis <0> speed <95.0000> ; //-- Turn(ruparm, x-axis, 0, math.rad(95))
-	
+	stop-spin barrelr around y-axis;
 	isAiming = 0;
 	isAimingDgun = 0;
 	rightarm = 1;
@@ -546,7 +546,7 @@ SweetSpot(piecenum)
 /////////// pew pew laser
 QueryPrimary(piecenum) //pew laser
 {
-	piecenum = laserflare;
+	piecenum = flare;
 	return (0);
 }
 
@@ -565,7 +565,7 @@ AimPrimary(heading, pitch) //pew pew
 	//call-script FixArms(0, 1);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn torso to  y-axis heading speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn torso to  y-axis heading + <10> speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	turn rloarm to  x-axis <-55> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 	turn ruparm to x-axis <-40> - pitch speed <390.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
 	wait-for-turn torso around y-axis;
@@ -582,8 +582,8 @@ AimPrimary(heading, pitch) //pew pew
 
 FirePrimary()
 {
-	sleep 100;
-	return (0);
+	emit-sfx 1024 + 0 from flare;
+	spin barrelr around y-axis speed <900.000000>;
 }
 
 /////////// uw weapon
