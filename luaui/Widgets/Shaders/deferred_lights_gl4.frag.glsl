@@ -572,14 +572,14 @@ void main(void)
 	if (gl_FragCoord.z > worlddepth) {
 		if (modeldepth < mapdepth) { // We are processing a model fragment
 			ismodel = 1;
-			normals =  texture2D(modelNormals, screenUV) * 2.0 - 1.0;
-			extratex = texture2D(modelExtra  , screenUV);
-			targetcolor = texture2D(modelDiffuse  , screenUV);
+			normals =  texture(modelNormals, screenUV) * 2.0 - 1.0;
+			extratex = texture(modelExtra  , screenUV);
+			targetcolor = texture(modelDiffuse  , screenUV);
 			
 		}else{
-			normals =  texture2D(mapNormals  , screenUV) * 2.0 - 1.0;
-			extratex = texture2D(mapExtra    , screenUV);
-			targetcolor = texture2D(mapDiffuse    , screenUV) * nightFactor;
+			normals =  texture(mapNormals  , screenUV) * 2.0 - 1.0;
+			extratex = texture(mapExtra    , screenUV);
+			targetcolor = texture(mapDiffuse    , screenUV) * nightFactor;
 		}
 	}
 	
