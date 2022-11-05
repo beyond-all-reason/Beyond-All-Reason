@@ -288,8 +288,30 @@ local unitDefLights = {
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	[UnitDefNames['corfus'].id] = {
+		fusionglow = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = 55, posz = 0, radius = 70,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.55,
+							modelfactor = 0.1, specular = 0.5, scattering = 1, lensflare = 5,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	[UnitDefNames['corafus'].id] = {
+		fusionglow = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = 60, posz = 0, radius = 90,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.66,
+							modelfactor = 0.1, specular = 0.5, scattering = 1, lensflare = 5,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	[UnitDefNames['armafus'].id] = {
-		controllight = {
+		--[[controllight = {
 			lightType = 'cone',
 			pieceName = 'collar1',
 			lightConfig = { posx = -25, posy = 38, posz = -25, radius = 100,
@@ -297,13 +319,13 @@ local unitDefLights = {
 				r = -1, g = 1, b = 1, a = 5,
 				modelfactor = 0.1, specular = 1, scattering = 2, lensflare = 2,
 				lifetime = 0, sustain = 0, animtype = 0},
-		},
+		},]]
 		fusionglow = {
 			lightType = 'point',
 			pieceName = 'base',
 			lightConfig = { posx = 0, posy = 45, posz = 0, radius = 90,
 				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-				r = -1, g = 1, b = 1, a = 0.89999998,
+				r = -1, g = 1, b = 1, a = 0.66,
 				modelfactor = 0.1, specular = 0.5, scattering = 1, lensflare = 5,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
@@ -314,7 +336,7 @@ local unitDefLights = {
 			pieceName = 'gun_emit',
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 10,
 				color2r = 0.40000001, color2g = 0.69999999, color2b = 1.20000005, colortime = 30,
-				r = 0.2, g = 0.5, b = 1, a = 0.70000001,
+				r = 0.2, g = 0.5, b = 1, a = 0.65000001,
 				modelfactor = 0.1, specular = 0.75, scattering = 2, lensflare = 7,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
@@ -332,7 +354,7 @@ local unitDefLights = {
 			pieceName = 'static_emit',
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 10,
 				color2r = 0.40000001, color2g = 0.69999999, color2b = 1.20000005, colortime = 30,
-				r = 0.2, g = 0.5, b = 1, a = 0.70000001,
+				r = 0.2, g = 0.5, b = 1, a = 0.65000001,
 				modelfactor = 0.1, specular = 0.75, scattering = 2, lensflare = 10,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
@@ -341,9 +363,9 @@ local unitDefLights = {
 		flamelight = {
 			lightType = 'point',
 			pieceName = 'lloarm',
-			lightConfig = { posx = 0, posy = -1.4, posz = 15, radius = 28,
+			lightConfig = { posx = 0, posy = -1.4, posz = 15, radius = 30,
 				color2r = 0.89999998, color2g = 0.5, color2b = 0.05, colortime = 5,
-				r = 0.94999999, g = 0.66000003, b = 0.07, a = 0.21,
+				r = 0.94999999, g = 0.66000003, b = 0.07, a = 0.18,
 				modelfactor = 0.1, specular = 0.8, scattering = 0.35, lensflare = 0,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
@@ -607,17 +629,17 @@ local unitEventLights = {
 
 	------------------------------- Put additional lights tied to events here! --------------------------------
 	UnitIdle =  {
-		[UnitDefNames['armcom'].id] = {
+		--[[[UnitDefNames['armcom'].id] = {
 			idleBlink = {
 				lightType = 'point',
 				pieceName = 'head',
 				lightConfig = { posx = 0, posy = 20, posz = 0, radius = 110,
 					color2r = 0, color2g = 0, color2b = 0, colortime = 6,
-					r = -1, g = 1, b = 1, a = 1,
+					r = -1, g = 1, b = 1, a = 0.25,
 					modelfactor = 0.2, specular = 0.7, scattering = 0.7, lensflare = 1,
 					lifetime = 12, sustain = 0, animtype = 0},
 			},
-		},
+		},]]--
 		--[[
 		[UnitDefNames['armstump'].id] = { -- BLINK BLINK
 			idleBlink = {
@@ -625,7 +647,7 @@ local unitEventLights = {
 				pieceName = 'justatthebase',
 				lightConfig = { posx = 0, posy = 30, posz = 0, radius = 80,
 					color2r = 0, color2g = 0, color2b = 0, colortime = 6,
-					r = -1, g = 1, b = 1, a = 1,
+					r = -1, g = 1, b = 1, a = 0.25,
 					modelfactor = 0.2, specular = 0.7, scattering = 0.7, lensflare = 1,
 					lifetime = 12, sustain = 0, animtype = 0},
 			},
