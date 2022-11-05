@@ -125,7 +125,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "NAPALMBOMBS",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},
