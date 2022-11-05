@@ -19,7 +19,7 @@ return {
 		idleautoheal = 5,
 		idletime = 600,
 		mass = 200000,
-		maxdamage = 25000,
+		maxdamage = 22000,
 		maxvelocity = 1.7,
 		maxwaterdepth = 12,
 		movementclass = "HBOT4",
@@ -40,7 +40,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",
-			techlevel = 3,
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
