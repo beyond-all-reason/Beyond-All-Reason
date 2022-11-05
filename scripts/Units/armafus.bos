@@ -37,7 +37,6 @@ Stop()
 }
 Create()
 {
-	hide emit;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -51,8 +50,10 @@ SetStunned(State)
 {
     Stunned = State;
 	if (Stunned) {
+		hide emit;
 	    call-script Stop();
 	} else {
+		show emit;
 	    call-script Go();
 	}
 }

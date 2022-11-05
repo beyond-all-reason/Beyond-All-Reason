@@ -291,8 +291,8 @@ local unitDefLights = {
 	[UnitDefNames['corfus'].id] = {
 		fusionglow = {
 			lightType = 'point',
-			pieceName = 'base',
-			lightConfig = { posx = 0, posy = 55, posz = 0, radius = 70,
+			pieceName = 'emit',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 70,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = -1, g = 1, b = 1, a = 0.55,
 							modelfactor = 0.1, specular = 0.5, scattering = 1, lensflare = 5,
@@ -302,8 +302,8 @@ local unitDefLights = {
 	[UnitDefNames['corafus'].id] = {
 		fusionglow = {
 			lightType = 'point',
-			pieceName = 'base',
-			lightConfig = { posx = 0, posy = 60, posz = 0, radius = 90,
+			pieceName = 'emit',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 90,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = -1, g = 1, b = 1, a = 0.66,
 							modelfactor = 0.1, specular = 0.5, scattering = 1, lensflare = 5,
@@ -311,23 +311,14 @@ local unitDefLights = {
 		},
 	},
 	[UnitDefNames['armafus'].id] = {
-		--[[controllight = {
-			lightType = 'cone',
-			pieceName = 'collar1',
-			lightConfig = { posx = -25, posy = 38, posz = -25, radius = 100,
-				dirx = 1, diry = 0, dirz = 1, theta = 0.5,
-				r = -1, g = 1, b = 1, a = 5,
-				modelfactor = 0.1, specular = 1, scattering = 2, lensflare = 2,
-				lifetime = 0, sustain = 0, animtype = 0},
-		},]]
 		fusionglow = {
 			lightType = 'point',
-			pieceName = 'base',
-			lightConfig = { posx = 0, posy = 45, posz = 0, radius = 90,
-				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-				r = -1, g = 1, b = 1, a = 0.66,
-				modelfactor = 0.1, specular = 0.5, scattering = 1, lensflare = 5,
-				lifetime = 0, sustain = 0, animtype = 0},
+			pieceName = 'emit',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 90,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.66,
+							modelfactor = 0.1, specular = 0.5, scattering = 1, lensflare = 5,
+							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['armzeus'].id] = {
