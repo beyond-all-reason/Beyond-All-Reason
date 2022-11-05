@@ -36,59 +36,19 @@ local quadZ = { -1, -1, 1, 1 }
 
 local output = ''
 
-function Tool:ModuleScheduler(module)
-	STAI.fum = STAI.fum or 0
-	self.ai[module].uFrame = self.ai[module].uFrame or 0
-	local f = game:Frame()
-	if f - self.ai[module].uFrame <= self.ModuleScheda[self.ai[module]:Name()] - self.ai.index  then
-		return false
-	end
+Tool.COLOURS = {
+			red = {1,0,0,1}, --ship
+			green = {0,1,0,1}, --kbot
+			blue = {0,0,1,1}, -- air
 
-	self.ai[module].uFrame = f
-	--self.DebugEnabled = true
-	if STAI.fum == f then
-		print('sameframecallmodule',module, self.ai.id,STAI.fum)
-	end
-	STAI.fum = f
-	--self:EchoDebug('module',module,f)
-	--self.DebugEnabled = false
-	return true
+			aqua = {0,1,1,1}, --hov
+			yellow = {1,1,0,1}, -- amp
+			purple = {1,0,1,1}, -- sub
 
-end
+			white = {1,1,1,1},
+			black = {0,0,0,1}, --veh
+			}
 
-Tool.ModuleScheda = {
-	SleepST = 0,
-	ArmyHST = 999999,
-	MapHST = 999998,
-	EcoHST = 0,
-	AttackHST = 20,
-	BomberHST = 210,
-	RaidHST = 60,
-	BuildSiteHST = 999994,
-	LabBuildHST = 40,
-	TurtleHST = 999995,
-	LosHST = 50,
-	TargetHST = 70,
-	DamageHST = 90,
-	ScoutHST = 999991,
-	DefendHST = 30,
-	CleanHST = 999993,
-	NanoHST = 999992,
-	OverviewHST = 240,
-	UnitHST = 0,
-	TasksHST = 999997,
-	Tool = 999996,
-
-}
-
-function Tool:ConstrainToMap(x, z)
-	local mapSize = self.ai.map:MapDimensions()
-	local maxElmosX = mapSize.x * 8
-	local maxElmosZ = mapSize.z * 8
-	x = max(min(x, maxElmosX-mapBuffer), mapBuffer)
-	z = max(min(z, maxElmosZ-mapBuffer), mapBuffer)
-	return x, z
-end
 
 function Tool:RandomAway(pos, dist, opposite, angle)
 	if angle == nil then
@@ -119,48 +79,25 @@ function Tool:RandomAway(pos, dist, opposite, angle)
 	end
 end
 
-function Tool:distance(pos1,pos2)
-	local xd = pos1.x-pos2.x
-	local zd = pos1.z-pos2.z
-	local yd = pos1.y-pos2.y
-	if yd < 0 then
-		yd = -yd
-	end
-	local dist = math.sqrt(xd*xd + zd*zd + yd*yd*yd)
-	return dist
+function Tool:DISTANCE(POS1,POS2)
+	local x = POS2.x - POS1.x
+	local y = POS2.y - POS1.y
+	local z = POS2.z - POS1.z
+	return sqrt( (x*x) + (y*y) + (z*z) )
 end
 
-function Tool:DistanceSq(pos1,pos2)
-	local xd = pos1.x-pos2.x
-	local yd = pos1.z-pos2.z
-	return xd*xd + yd*yd
+function Tool:distance(POS1,POS2)
+	local x = POS2.x - POS1.x
+	local z = POS2.z - POS1.z
+	return sqrt( (x*x) + (z*z) )
 end
 
-function Tool:Distance(pos1,pos2)
-	local xd = pos1.x-pos2.x
-	local yd = pos1.z-pos2.z
-	local dist = sqrt(xd*xd + yd*yd)
-	return dist
-end
-
-function Tool:DistanceXZ(x1, z1, x2, z2)
-	local xd = x1 - x2
-	local zd = z1 - z2
-	return sqrt(xd*xd + zd*zd)
-end
-
-function Tool:Distance3d(pos1, pos2)
-	local dx = pos2.x - pos1.x
-	local dy = pos2.y - pos1.y
-	local dz = pos2.z - pos1.z
-	return math.sqrt( dx*dx + dy*dy + dz*dz )
-end
-
-function Tool:ManhattanDistance(pos1,pos2)
-	local xd = math.abs(pos1.x-pos2.x)
-	local yd = math.abs(pos1.z-pos2.z)
-	local dist = xd + yd
-	return dist
+function Tool:sumPos(pos1, pos2)
+	pos = api.Position()
+	pos.x = pos1.x + pos2.x
+	pos.y = pos1.y + pos2.y
+	pos.z = pos1.z + pos2.z
+	return pos
 end
 
 function Tool:MiddleOfTwo(pos1, pos2)
@@ -228,27 +165,49 @@ end
 
 function Tool:pairsByKeys(t, f)
 	local a = {}
-	for n in pairs(t) do table.insert(a, n) end
+	for n in pairs(t) do
+		table.insert(a, n)
+	end
 	table.sort(a, f)
 	local i = 0      -- iterator variable
 	local iter = function ()   -- iterator function
 		i = i + 1
-		if a[i] == nil then return nil
-	else return a[i], t[a[i]]
-end
-end
-return iter
+		if a[i] == nil then
+			return nil
+		else
+			return a[i], t[a[i]]
+		end
+	end
+	return iter
 end
 
 function Tool:tableSorting(t)
 	local Tkey = {}
 	local Tvalue = {}
-	for key, value in self.ai.tool:pairsByKeys(t) do
+	for key, value in self:pairsByKeys(t) do
       self:EchoDebug(key, value)
 	  table.insert(Tkey,key)
 	  table.insert(Tvalue,value)
     end
 	return Tkey, Tvalue
+end
+
+function Tool:sortByValue(t)
+	local sorted = {}
+	for k, v in pairs(t) do
+		table.insert(sorted,{k,v})
+	end
+	table.sort(sorted, function(a,b) return a[2] < b[2] end)
+	return sorted
+end
+
+function Tool:reverseSortByValue(t)
+	local sorted = {}
+	for k, v in pairs(t) do
+		table.insert(sorted,{k,v})
+	end
+	table.sort(sorted, function(a,b) return a[2] > b[2] end)
+	return sorted
 end
 
 function Tool:listHasKey( value, list )
@@ -276,35 +235,80 @@ function Tool:dictHasKey( value, list )
 	return false
 end
 
-function Tool:countFinished( nameORid )
-	local team = self.game:GetTeamID()
-	local counter = 0
-	if type(nameORid ) == 'string' then
-		nameORid = self.ai.armyhst.unitTable[nameORid].defId
-	end
-	if type(nameORid ) ~= 'number' then
-		self:EchoDebug('type not valid in count finish unit')
-	end
-	local targetList = self.ai.game:GetTeamUnitsByDefs(self.ai.id, nameORid)
-	for index , value in pairs(targetList) do
-		if value:internal():IsBeingBuilt() == 1 then
-			counter = counter +1
-		end
-	end
-	return counter
+function Tool:gcd(a, b)
+	return b==0 and a or self:gcd(b,a%b)
 end
 
-function Tool:countMyUnit( targets )
+function Tool:tableConcat(tables)
+	if type(tables) ~= 'table' then
+		self:Warn('concatenation require a table of tables')
+		return
+	end
+	local T = {}
+	for index,t in pairs(tables) do
+		for k, value in pairs(t) do
+			table.insert(T,-1,value)
+		end
+	end
+	return T
+end
+
+function Tool:getTeamUnitsByClass(classes)
+	local list = {}
+	for i,class in pairs(classes) do
+
+		if not self.ai.armyhst[class] then
+			self:EchoDebug(class , 'is not a valid class to searching for a unit')
+		else
+			for name,data in pairs(self.ai.armyhst[class]) do
+				local current = game:GetTeamUnitsByDefs(self.ai.id,self.ai.armyhst.unitTable[name].defId)
+				for index,unit in pairs(current) do
+					table.insert(list,current)
+				end
+			end
+		end
+	end
+	return(list)
+end
+
+function Tool:countFinished( targets,team )--accept units names, units def number or classes
+	local team = team or self.game:GetTeamID()
+	local defs = {}
+	local counter = 0
+	for i,target in pairs(targets) do
+		if self.ai.armyhst[target] then
+			for name,data in pairs(self.ai.armyhst[target]) do
+				local def = self.ai.armyhst.unitTable[name].defId
+				table.insert(defs,def)
+			end
+		elseif self.ai.armyhst.unitTable[target] then
+			table.insert(defs,self.ai.armyhst.unitTable[target].defId)
+
+		elseif UnitDefs[target] then
+			table.insert(defs,target)
+		end
+	end
+	defs = game:GetTeamUnitsByDefs(team,defs)
+
+	for index,id in pairs(defs) do
+		if not game:GetUnitByID(id):IsBeingBuilt() then
+			counter = counter + 1
+		end
+	end
+	return counter, defs
+end
+
+function Tool:countMyUnit( targets)
 	local team = self.game:GetTeamID()
 	local counter = 0
 	for i,target in pairs(targets) do
 		self:EchoDebug('target',target)
 		if type(target) == 'number' then
-			counter = counter + self.game:GetTeamUnitDefCount(team,target)
+			counter = counter + game:GetTeamUnitDefCount(team,target)
 		elseif self.ai.armyhst[target] then
 			for name,t in pairs(self.ai.armyhst[target]) do
 				local id = self.ai.armyhst.unitTable[name].defId
-				counter = counter + self.game:GetTeamUnitDefCount(team,id)
+				counter = counter + game:GetTeamUnitDefCount(team,id)
 			end
 
 		else
@@ -322,6 +326,8 @@ function Tool:countMyUnit( targets )
 	return counter
 end
 
+
+
 function Tool:mtypedLvCount(tpLv)
 	local team = self.game:GetTeamID()
 	local counter = 0
@@ -332,38 +338,6 @@ function Tool:mtypedLvCount(tpLv)
 		end
 	end
 	return counter
-end
-
--- function Tool:CustomCommand(unit, cmdID, cmdParams)
--- 	local floats = api.vectorFloat()
--- 	for i = 1, #cmdParams do
--- 		floats:push_back(cmdParams[i])
--- 	end
--- 	return unit:ExecuteCustomCommand(cmdID, floats)
--- end
-
-function Tool:UnitNameSanity(unitOrName)--TODO move to tool
-	if not unitOrName then
-		self.game:Warn('nil unit or name')
-		return
-	end
-	if type(unitOrName) == 'string' then
-		if not self.ai.armyhst.unitTable[unitOrName] then
-			self.game:Warn('invalid string name',unitOrName)
-			return
-		else
-			return unitOrName
-		end
-	else
-		local uName = unitOrName:Name()
-		if uName ~= nil  and self.ai.armyhst.unitTable[uName]then
-			return uName
-		else
-			self.game:Warn('invalid object unit give invalid name',unitOrName)
-			return
-		end
-	end
-	self.game:Warn('unknow reason to exit from unit name sanity')
 end
 
 function Tool:WhatHurtsUnit(unitName, mtype, position)
@@ -399,13 +373,13 @@ function Tool:WhatHurtsUnit(unitName, mtype, position)
 	return hurts
 end
 
-function Tool:BehaviourPosition(behaviour)
-	if behaviour == nil then return end
-	if behaviour.unit == nil then return end
-	local unit = behaviour.unit:Internal()
-	if unit == nil then return end
-	return unit:GetPosition()
+function Tool:UnitPos(UNIT)
+	if not UNIT then return end
+	if not UNIT.unit then return end
+	if not UNIT.unit:Internal() then return end
+	return UNIT.unit:Internal():GetPosition()
 end
+
 
 function Tool:HorizontalLine(grid, x, z, tx, sets, adds)
 	for ix = x, tx do
@@ -496,3 +470,12 @@ function Tool:SimplifyPath(path)
 	end
 	return path
 end
+
+
+-- function Tool:CustomCommand(unit, cmdID, cmdParams)
+-- 	local floats = api.vectorFloat()
+-- 	for i = 1, #cmdParams do
+-- 		floats:push_back(cmdParams[i])
+-- 	end
+-- 	return unit:ExecuteCustomCommand(cmdID, floats)
+-- end

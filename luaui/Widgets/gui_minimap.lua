@@ -20,15 +20,11 @@ local maxHeight = maxAllowedHeight
 local maxWidth = math.min(maxHeight * (Game.mapX / Game.mapY), maxAllowedWidth * (vsx / vsy))
 local usedWidth = math.floor(maxWidth * vsy)
 local usedHeight = math.floor(maxHeight * vsy)
-
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-
 local backgroundRect = { 0, 0, 0, 0 }
 
 local delayedSetup = false
 local sec = 0
-local uiOpacitySec = 0
+local sec2 = 0
 
 local spGetCameraState = Spring.GetCameraState
 local math_isInRect = math.isInRect
@@ -135,19 +131,11 @@ function widget:Update(dt)
 		end
 	end
 
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.5 then
+	sec2 = sec2 + dt
+	if sec2 > 0.5 then
+		sec2 = 0
 		Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
-		uiOpacitySec = 0
 		checkGuishader()
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize()
-		end
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			dlistMinimap = gl.DeleteList(dlistMinimap)
-		end
 	end
 end
 

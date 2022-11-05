@@ -344,7 +344,7 @@ function widget:GameFrame(n)
 	end
 end
 
-function widget:DrawWorld()
+function widget:DrawWorldPreUnit()
     if chobbyInterface then return end
     if spec and fullview then return end
     if spIsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end

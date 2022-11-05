@@ -30,6 +30,11 @@ local game = {}
 		return Shard:shardify_unittype(def.id)
 	end
 
+	function game:GetUnitLos(id,bitmask)
+		bitmask = bitmask or true
+		return Spring.GetUnitLosState(id ,self.ai.allyId,bitmask)
+
+	end
 
 	function game:ConfigFolderPath() -- returns string with path to the folder
 		return "luarules/gadgets/ai/" .. self:GameName() .. "/"
@@ -55,10 +60,6 @@ local game = {}
 
 	function game:getUnitsInCylinder(pos, range)
 		return Spring.GetUnitsInCylinder(pos.x, pos.z, range, team)
-	end
-
-	function game:GetUnitIsBuilding(id)
-		return Spring.GetUnitIsBuilding(id)
 	end
 
 	function game:GetTeamUnitDefCount(team,unitDef)
@@ -135,6 +136,7 @@ local game = {}
 		end
  	end
  	function game:DrawDisplay(onOff)
+		self.ai.drawDebug = onOff
  		--return SendToUnsynced('ShardDrawDisplay',onOff)
 		if (Script.LuaUI('ShardDrawDisplay')) then
 			Script.LuaUI.ShardDrawDisplay(onOff)

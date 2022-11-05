@@ -23,18 +23,28 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local drones = {
-    [UDN.armcom.id] = "armassistdrone",
-    [UDN.corcom.id] = "corassistdrone",
-	[UDN.legcom.id] = "legassistdrone",
-}
+local drones = {}
+if Spring.GetModOptions().assistdronesair == true then
+    drones = {
+        [UDN.armcom.id] = "armassistdrone",
+        [UDN.corcom.id] = "corassistdrone",
+        [UDN.legcomdef.id] = "legassistdrone",
+    }
+else
+    drones = {
+        [UDN.armcom.id] = "armassistdrone_land",
+        [UDN.corcom.id] = "corassistdrone_land",
+        [UDN.legcomdef.id] = "legassistdrone_land",
+    }
+end
+
 
 function SpawnAssistDrones(unitID, unitDefID, unitTeam)
 	local posx, posy, posz = Spring.GetUnitPosition(unitID)
     local droneunit = drones[unitDefID]
 	for i = 1,droneCount do
-		local posx = posx+math.random(-64*i,64*i)
-		local posz = posz+math.random(-64*i,64*i)
+		local posx = posx+math.random(-64,64)
+		local posz = posz+math.random(-64,64)
 		local droneID = Spring.CreateUnit(droneunit, posx, posy+10, posz, 0, unitTeam)
         if droneID then
             Spring.SpawnCEG("scav-spawnexplo", posx, posy+10, posz,0,0,0)

@@ -67,12 +67,12 @@ function DrawScreen(vsx, vsy)
 	return widgetHandler:DrawScreen()
 end
 
-function KeyPress(key, mods, isRepeat, label, unicode, scanCode)
-	return widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
+function KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
+	return widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 end
 
-function KeyRelease(key, mods, label, unicode, scanCode)
-	return widgetHandler:KeyRelease(key, mods, label, unicode, scanCode)
+function KeyRelease(key, mods, label, unicode, scanCode, actions)
+	return widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
 end
 
 function TextInput(utf8, ...)
@@ -89,6 +89,38 @@ end
 
 function MouseRelease(x, y, button)
 	return widgetHandler:MouseRelease(x, y, button)
+end
+
+function ControllerAdded(deviceIndex)
+	return widgetHandler:ControllerAdded(deviceIndex)
+end
+
+function ControllerRemoved(instanceId)
+	return widgetHandler:ControllerRemoved(instanceId)
+end
+
+function ControllerConnected(instanceId)
+	return widgetHandler:ControllerConnected(instanceId)
+end
+
+function ControllerDisconnected(instanceId)
+	return widgetHandler:ControllerDisconnected(instanceId)
+end
+
+function ControllerRemapped(instanceId)
+	return widgetHandler:ControllerRemapped(instanceId)
+end
+
+function ControllerButtonUp(instanceId, button, value, name)
+	return widgetHandler:ControllerButtonUp(instanceId, button, value, name)
+end
+
+function ControllerButtonDown(instanceId, button, value, name)
+	return widgetHandler:ControllerButtonDown(instanceId, button, value, name)
+end
+
+function ControllerAxisMotion(instanceId, axis, value, name)
+	return widgetHandler:ControllerAxisMotion(instanceId, axis, value, name)
 end
 
 function IsAbove(x, y)

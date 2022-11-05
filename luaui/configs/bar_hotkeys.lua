@@ -42,11 +42,9 @@ local bindings = {
 	{           "sc_b", "gridmenu_next_page"  },
 	{           "sc_n", "gridmenu_prev_page"  },
 
-	{     "sc_c", "controlunit"    },
 	{ "Any+sc_h", "sharedialog"    },
 	{     "sc_i", "customgameinfo" },
 
-	{        "Any+sc_j", "mouse2" },
 	{ "Shift+backspace", "togglecammode" },
 	{  "Ctrl+backspace", "togglecammode" },
 	{         "Any+tab", "toggleoverview" },
@@ -175,8 +173,9 @@ local bindings = {
 	{ "Any+ctrl",  "moveslow"  },
 	{ "Any+shift", "movefast"  },
 
-	{ "Any+alt",   "movereset" }, -- fast camera reset on some camera states, e.g. middle mouse held
-	{ "Any+ctrl",  "movetilt"  }, -- Move inclination of camera
+	{ "Any+alt",   "movereset"  }, -- fast camera reset on mousewheel
+	{ "Any+alt",   "moverotate" }, -- rotate on x,y with mmb hold + move (Spring Camera)
+	{ "Any+ctrl",  "movetilt"   }, -- rotate on x with mousewheel
 
 	{ "Ctrl+sc_a", "select", "AllMap++_ClearSelection_SelectAll+"                                                                                    },
 	{ "Ctrl+sc_b", "select", "AllMap+_Builder_Idle+_ClearSelection_SelectOne+"                                                                       },

@@ -34,7 +34,7 @@ local function spawnBeacon(n)
 					canSpawnBeaconHere = positionCheckLibrary.ScavengerSpawnAreaCheck(posx, posy, posz, 192)
 				end
 				if canSpawnBeaconHere and numOfSpawnBeacons > scavconfig.unitSpawnerModuleConfig.minimumspawnbeacons*0.25 then
-					if positionCheckLibrary.StartboxCheck(posx, posy, posz, 256, ScavengerAllyTeamID, true) == true then
+					if positionCheckLibrary.StartboxCheck(posx, posy, posz, ScavengerAllyTeamID, true) == true then
 						canSpawnBeaconHere = false
 					end
 				end
@@ -49,7 +49,7 @@ local function spawnBeacon(n)
 							end
 						else
 							if numOfSpawnBeacons < 2 then
-								canSpawnBeaconHere = positionCheckLibrary.StartboxCheck(posx, posy, posz, posradius, ScavengerAllyTeamID)
+								canSpawnBeaconHere = positionCheckLibrary.StartboxCheck(posx, posy, posz, ScavengerAllyTeamID)
 							elseif numOfSpawnBeacons == 2 then
 								canSpawnBeaconHere = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 750)
 							elseif numOfSpawnBeacons < scavconfig.unitSpawnerModuleConfig.minimumspawnbeacons*0.2 then
@@ -103,7 +103,7 @@ local function spawnBeacon(n)
 								if math.random(0,3) == 0 then
 									local rx = posx+xtable[y][1]+math.random(-64,64)
 									local rz = posz+ztable[y][1]+math.random(-64,64)
-									if positionCheckLibrary.StartboxCheck(rx, Spring.GetGroundHeight(rx, rz), rz, 64, ScavengerAllyTeamID, true) == false then
+									if positionCheckLibrary.StartboxCheck(rx, Spring.GetGroundHeight(rx, rz), rz, ScavengerAllyTeamID, true) == false then
 										if Spring.GetGroundHeight(rx, rz) > -20 then
 											spawnQueueLibrary.AddToSpawnQueue(grouptier[math_random(1,#grouptier)], rx, posy, rz, math_random(0,3),ScavengerTeamID, n+150, false)
 										else
@@ -115,7 +115,7 @@ local function spawnBeacon(n)
 								if math.random(0,3) == 0 or scavengerGamePhase ~= "initial" then
 									local rx = posx+xtable[y][2]+math.random(-64,64)
 									local rz = posz+ztable[y][2]+math.random(-64,64)
-									if positionCheckLibrary.StartboxCheck(rx, Spring.GetGroundHeight(rx, rz), rz, 64, ScavengerAllyTeamID, true) == false then
+									if positionCheckLibrary.StartboxCheck(rx, Spring.GetGroundHeight(rx, rz), rz, ScavengerAllyTeamID, true) == false then
 										if Spring.GetGroundHeight(rx, rz) > -20 then
 											spawnQueueLibrary.AddToSpawnQueue(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], rx, posy, rz, math_random(0,3),ScavengerTeamID, n+150, false)
 										else
@@ -190,7 +190,7 @@ local function spawnBeacon(n)
 							if scavengerGamePhase ~= "initial" or math.random(0,3) == 0 then
 								local rx = posx+xtable[y][3]
 								local rz = posz+ztable[y][3]
-								if positionCheckLibrary.StartboxCheck(rx, Spring.GetGroundHeight(rx, rz), rz, 64, ScavengerAllyTeamID, true) == false then
+								if positionCheckLibrary.StartboxCheck(rx, Spring.GetGroundHeight(rx, rz), rz, ScavengerAllyTeamID, true) == false then
 									if Spring.GetGroundHeight(rx, rz) > -20 then
 										local turret = grouptier[math_random(1,#grouptier)]
 										spawnQueueLibrary.AddToSpawnQueue(turret, rx, posy, rz, math_random(0,3),ScavengerTeamID, n+150, false)

@@ -177,13 +177,14 @@ local callInLists = {
 	'TextInput',
 	'MousePress',
 	'MouseWheel',
-	"ControllerAdded",
-	"ControllerRemoved",
-	"ControllerConnected",
-	"ControllerDisconnected",
-	"ControllerButtonUp",
-	"ControllerButtonDown",
-	"ControllerAxisMotion",
+	'ControllerAdded',
+	'ControllerRemoved',
+	'ControllerConnected',
+	'ControllerDisconnected',
+	'ControllerRemapped',
+	'ControllerButtonUp',
+	'ControllerButtonDown',
+	'ControllerAxisMotion',
 	'IsAbove',
 	'GetTooltip',
 	'GroupChanged',
@@ -1396,42 +1397,42 @@ end
 --  Keyboard call-ins
 --
 
-function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
+function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 	local textOwner = self.textOwner
 
 	if textOwner then
-		if (not textOwner.KeyPress) or textOwner:KeyPress(key, mods, isRepeat, label, unicode, scanCode) then
+		if (not textOwner.KeyPress) or textOwner:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions) then
 			return true
 		end
 	end
 
-	if self.actionHandler:KeyAction(true, key, mods, isRepeat, scanCode) then
+	if self.actionHandler:KeyAction(true, key, mods, isRepeat, scanCode, actions) then
 		return true
 	end
 
 	for _, w in ipairs(self.KeyPressList) do
-		if w:KeyPress(key, mods, isRepeat, label, unicode, scanCode) then
+		if w:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions) then
 			return true
 		end
 	end
 	return false
 end
 
-function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode)
+function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
 	local textOwner = self.textOwner
 
 	if textOwner then
-		if (not textOwner.KeyRelease) or textOwner:KeyRelease(key, mods, label, unicode, scanCode) then
+		if (not textOwner.KeyRelease) or textOwner:KeyRelease(key, mods, label, unicode, scanCode, actions) then
 			return true
 		end
 	end
 
-	if self.actionHandler:KeyAction(false, key, mods, false, scanCode) then
+	if self.actionHandler:KeyAction(false, key, mods, false, scanCode, actions) then
 		return true
 	end
 
 	for _, w in ipairs(self.KeyReleaseList) do
-		if w:KeyRelease(key, mods, label, unicode, scanCode) then
+		if w:KeyRelease(key, mods, label, unicode, scanCode, actions) then
 			return true
 		end
 	end
@@ -1557,27 +1558,36 @@ function widgetHandler:ControllerDisconnected(instanceId)
 	return false
 end
 
-function widgetHandler:ControllerButtonUp(axis, value, name)
+function widgetHandler:ControllerRemapped(instanceId)
+	for _, w in ipairs(self.ControllerRemappedList) do
+		if w:ControllerRemapped(instanceId) then
+			return true
+		end
+	end
+	return false
+end
+
+function widgetHandler:ControllerButtonUp(instanceId, button, state, name)
 	for _, w in ipairs(self.ControllerButtonUpList) do
-		if w:ControllerButtonUp(axis, value, name) then
+		if w:ControllerButtonUp(instanceId, button, state, name) then
 			return true
 		end
 	end
 	return false
 end
 
-function widgetHandler:ControllerButtonDown(axis, value, name)
+function widgetHandler:ControllerButtonDown(instanceId, button, state, name)
 	for _, w in ipairs(self.ControllerButtonDownList) do
-		if w:ControllerButtonDown(axis, value, name) then
+		if w:ControllerButtonDown(instanceId, button, state, name) then
 			return true
 		end
 	end
 	return false
 end
 
-function widgetHandler:ControllerAxisMotion(axis, value, name)
+function widgetHandler:ControllerAxisMotion(instanceId, axis, value, name)
 	for _, w in ipairs(self.ControllerAxisMotionList) do
-		if w:ControllerAxisMotion(axis, value, name) then
+		if w:ControllerAxisMotion(instanceId, axis, value, name) then
 			return true
 		end
 	end

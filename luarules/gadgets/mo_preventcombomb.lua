@@ -51,7 +51,7 @@ local armcomDefID = UnitDefNames["armcom"].id
 local corcomDefID = UnitDefNames["corcom"].id
 local legcomDefID = UnitDefNames["legcom"].id
 
-function CommCount(unitTeam)
+local function CommCount(unitTeam)
 
 	local allyteamlist = Spring.GetAllyTeamList()
 	local teamsInAllyID = {}
@@ -74,39 +74,43 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		return 0, 0
 	end
 
-	local hp,_ = GetUnitHealth(unitID)
-	hp = hp or 0
-	local combombDamage = hp-200-math_random(1,10)
-	if combombDamage < 0 then
-		combombDamage = 0
-	elseif combombDamage > hp*0.33 then
-		combombDamage = hp*0.33
-	end
-	if combombDamage > damage then
-		combombDamage = damage
-	end
-	if isDGUN[weaponID] then
-		if immuneDgunList[unitID] then
-			-- immune
-			return 0, 0
-		elseif isCommander[attackerDefID] and isCommander[unitDefID] and CommCount(UnitTeam(unitID)) <= 1 and attackerID and CommCount(UnitTeam(attackerID)) <= 1 then
-			-- make unitID immune to DGun, kill attackedID
-			immuneDgunList[unitID] = GetGameFrame() + 45
-			DestroyUnit(attackerID,false,false,unitID)
-			return combombDamage, 0
+	if isDGUN[weaponID] or weaponID == COM_BLAST then
+
+		local hp,_ = GetUnitHealth(unitID)
+		hp = hp or 0
+		local combombDamage = hp-200-math_random(1,10)
+		if combombDamage < 0 then
+			combombDamage = 0
+		elseif combombDamage > hp*0.33 then
+			combombDamage = hp*0.33
 		end
-	elseif weaponID == COM_BLAST and isCommander[unitDefID] and CommCount(UnitTeam(unitID)) <= 1 and attackerID and CommCount(UnitTeam(attackerID)) <= 1 then
-		if unitID ~= attackerID then
-			-- make unitID immune to DGun
-			immuneDgunList[unitID] = GetGameFrame() + 45
-			--prevent falling damage to the unitID, and lock position
-			MoveCtrl.Enable(unitID)
-			ctrlCom[unitID] = GetGameFrame() + 30
-			cantFall[unitID] = GetGameFrame() + 30
-			return combombDamage, 0
-		else
-			--com blast hurts the attackerID
-			return damage
+		if combombDamage > damage then
+			combombDamage = damage
+		end
+
+		if isDGUN[weaponID] then
+			if immuneDgunList[unitID] then
+				-- immune
+				return 0, 0
+			elseif isCommander[attackerDefID] and isCommander[unitDefID] and CommCount(UnitTeam(unitID)) <= 1 and attackerID and CommCount(UnitTeam(attackerID)) <= 1 then
+				-- make unitID immune to DGun, kill attackerID
+				immuneDgunList[unitID] = GetGameFrame() + 45
+				DestroyUnit(attackerID,false,false,unitID)
+				return combombDamage, 0
+			end
+		elseif weaponID == COM_BLAST and isCommander[unitDefID] and CommCount(UnitTeam(unitID)) <= 1 and attackerID and CommCount(UnitTeam(attackerID)) <= 1 then
+			if unitID ~= attackerID then
+				-- make unitID immune to DGun
+				immuneDgunList[unitID] = GetGameFrame() + 45
+				--prevent falling damage to the unitID, and lock position
+				MoveCtrl.Enable(unitID)
+				ctrlCom[unitID] = GetGameFrame() + 30
+				cantFall[unitID] = GetGameFrame() + 30
+				return combombDamage, 0
+			else
+				--com blast hurts the attackerID
+				return damage
+			end
 		end
 	end
 

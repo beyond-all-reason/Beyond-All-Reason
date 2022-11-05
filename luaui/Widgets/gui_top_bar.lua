@@ -565,7 +565,9 @@ local function updateButtons()
 	end
 	dlistButtons2 = glCreateList(function()
 		font2:Begin()
-		font2:Print('\255\240\240\240' .. text, area[1], area[2] + ((area[4] - area[2]) * 0.52) - (fontsize / 5), fontsize, 'o')
+		font2:SetTextColor(0.92, 0.92, 0.92, 1)
+		font2:SetOutlineColor(0, 0, 0, 1)
+		font2:Print(text, area[1], area[2] + ((area[4] - area[2]) * 0.52) - (fontsize / 5), fontsize, 'o')
 		font2:End()
 	end)
 end
@@ -783,7 +785,12 @@ local function updateResbarText(res)
 		end
 		dlistResbar[res][6] = glCreateList(function()
 			font2:Begin()
-			font2:Print("\255\210\210\210" .. short(r[res][2]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
+			if res == 'metal' then
+				font2:SetTextColor(0.55, 0.55, 0.55, 1)
+			else
+				font2:SetTextColor(0.57, 0.57, 0.45, 1)
+			end
+			font2:Print(short(r[res][2]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
 			font2:End()
 		end)
 	end
@@ -934,7 +941,7 @@ local function updateResbar(res)
 	resbarDrawinfo[res].barGlowLeftTexRect = { resbarDrawinfo[res].barTexRect[1] - (glowSize * 2.5), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4] + glowSize }
 	resbarDrawinfo[res].barGlowRightTexRect = { resbarDrawinfo[res].barTexRect[3] + (glowSize * 2.5), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[3], resbarDrawinfo[res].barTexRect[4] + glowSize }
 
-	resbarDrawinfo[res].textCurrent = { short(r[res][1]), barArea[1] + barWidth / 2, barArea[2] + barHeight * 1.8, (height / 2.6) * widgetScale, 'ocd' }
+	resbarDrawinfo[res].textCurrent = { short(r[res][1]), barArea[1] + barWidth / 2, barArea[2] + barHeight * 1.8, (height / 2.5) * widgetScale, 'ocd' }
 	resbarDrawinfo[res].textStorage = { "\255\150\150\150" .. short(r[res][2]), barArea[3], barArea[2] + barHeight * 2.1, (height / 3.2) * widgetScale, 'ord' }
 	resbarDrawinfo[res].textPull = { "\255\210\100\100" .. short(r[res][3]), barArea[1] - (10 * widgetScale), barArea[2] + barHeight * 2.15, (height / 3) * widgetScale, 'ord' }
 	resbarDrawinfo[res].textExpense = { "\255\210\100\100" .. short(r[res][5]), barArea[1] + (10 * widgetScale), barArea[2] + barHeight * 2.15, (height / 3) * widgetScale, 'old' }
@@ -1152,7 +1159,11 @@ local function drawResbarValues(res, updateText)
 			dlistResValues[res][currentResValue[res]] = glCreateList(function()
 				-- Text: current
 				font2:Begin()
-				font2:SetTextColor(1, 1, 1, 1)
+				if res == 'metal' then
+					font2:SetTextColor(0.95, 0.95, 0.95, 1)
+				else
+					font2:SetTextColor(1, 1, 0.74, 1)
+				end
 				font2:SetOutlineColor(0, 0, 0, 1)
 				font2:Print(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
 				font2:End()
@@ -1340,7 +1351,6 @@ local function updateAllyTeamOverflowing()
 	end
 end
 
-local uiOpacitySec = 0
 local sec = 0
 local sec2 = 0
 local secComCount = 0
@@ -1473,21 +1483,6 @@ function widget:Update(dt)
 				updateRejoin()
 				init()
 			end
-		end
-	end
-
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.5 then
-		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			init()
-		end
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			height = orgHeight * (1 + (ui_scale - 1) / 1.7)
-			shutdown()
-			widget:ViewResize()
 		end
 	end
 end

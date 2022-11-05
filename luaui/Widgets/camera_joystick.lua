@@ -354,7 +354,10 @@ function widget:Initialize()
 	Spring.SendCommands({"set SmoothTimeOffset 2"})
 	Spring.Echo("Started Camera Joystick, make sure you are running the joystick server, and switch camera to Ctrl+F4")
 	if debugMode then dumpConfig() end
-	SocketConnect(host, port)
+	local connected = SocketConnect(host, port)
+	if connected then 
+		Spring.SetConfigInt("RotOverheadClampMap",0)
+	end
 end
 
 local function joystatetostr(js)

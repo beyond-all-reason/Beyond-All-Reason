@@ -15,9 +15,6 @@ local displayFeatureCount = false
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
-
 local widgetScale = 1
 local glPushMatrix   = gl.PushMatrix
 local glPopMatrix    = gl.PopMatrix
@@ -40,10 +37,8 @@ local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 
 local totalUnits = 0
 local totalGaiaUnits = 0
 
-local guishaderEnabled = (WG['guishader'])
 local passedTime = 0
 local passedTime2 = 0
-local uiOpacitySec = 0.5
 
 local math_isInRect = math.isInRect
 
@@ -110,21 +105,6 @@ function widget:Shutdown()
 end
 
 function widget:Update(dt)
-
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.5 then
-		uiOpacitySec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale",1)
-			widget:ViewResize()
-		end
-		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader']) then
-			guishaderEnabled = (WG['guishader'])
-			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
-			createList()
-		end
-	end
 	passedTime = passedTime + dt
 	passedTime2 = passedTime2 + dt
 	if passedTime > 0.1 then

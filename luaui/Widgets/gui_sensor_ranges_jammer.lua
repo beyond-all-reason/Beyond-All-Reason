@@ -61,7 +61,7 @@ out DataVS {
 #line 11000
 
 float heightAtWorldPos(vec2 w){
-	vec2 uvhm =   vec2(clamp(w.x,8.0,mapSize.x-8.0),clamp(w.y,8.0, mapSize.y-8.0))/ mapSize.xy;
+	vec2 uvhm = heighmapUVatWorldPos(w);
 	return textureLod(heightmapTex, uvhm, 0.0).x;
 }
 
@@ -72,7 +72,7 @@ void main() {
 	circleWorldPos.xz = circlepointposition.xy * circleWorldPos.w +  circleWorldPos.xz;
 
 	// get heightmap
-	circleWorldPos.y = max(0.0,heightAtWorldPos(circleWorldPos.xz))+32.0;
+	circleWorldPos.y = max(0.0,heightAtWorldPos(circleWorldPos.xz))+16.0;
 
 	// -- MAP OUT OF BOUNDS
 	vec2 mymin = min(circleWorldPos.xz,mapSize.xy - circleWorldPos.xz);
@@ -340,7 +340,7 @@ function widget:GameFrame(n)
 	end
 end
 
-function widget:DrawWorld()
+function widget:DrawWorldPreUnit()
 	if chobbyInterface then
 		return
 	end
@@ -360,7 +360,7 @@ function widget:DrawWorld()
 	--if true then return end
 	glColorMask(false, false, false, false)
 	glStencilTest(true)
-	glDepthTest(false)
+	glDepthTest(GL.LEQUAL)
 
 	gl.Texture(0, "$heightmap")
 	circleShader:Activate()

@@ -88,13 +88,50 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		self.indextoInstanceID = {}
 		if self.indextoUnitID then self.indextoUnitID = {} end
 	end
+	
+	function instanceTable:compact()
+		self.destroyedElements = 0
+		-- so this is for the edge case, where we have silently removed elements from instanceIDtoIndex
+		-- where we have holes everywhere, so we have to 'compact' the table, 
+		-- by copying back contiguously while preserving element order
+		local newInstanceIDtoIndex = {}
+		local newIndexToInstanceID = {}
+		local newInstanceData = {}
+		local newUsedElements = 0
+		for i = 1, self.usedElements do
+			local instanceID = self.indextoInstanceID[i]
+			local index = self.instanceIDtoIndex[self.indextoInstanceID[i]] 
+			if index then 
+				local instanceStep = self.instanceStep
+				local instanceData = self.instanceData
+				for j=1, instanceStep do 
+					newInstanceData[newUsedElements * instanceStep + j] = instanceData[(i-1)*instanceStep +j]
+				end
+				newUsedElements = newUsedElements + 1
+				newInstanceIDtoIndex[instanceID] = newUsedElements
+				newIndexToInstanceID[newUsedElements] = instanceID
+			else
+			    Spring.Echo("compacting index",i, 'instanceID', instanceID) 
+			end
+		end
+		Spring.Echo("Post compacting", self.usedElements, newUsedElements)
+		self.usedElements = newUsedElements
+		self.instanceIDtoIndex = newInstanceIDtoIndex
+		self.indextoInstanceID = newIndexToInstanceID
+		self.instanceData = newInstanceData
+		--iT.instanceVBO:Upload(iT.instanceData,nil,oldElementIndex-1,oldOffset +1,oldOffset + iTStep)
+		if self.usedElements > 0 then 
+			self.instanceVBO:Upload(self.instanceData)
+		end
+	end
+	
 
-	function instanceTable:draw()
+	function instanceTable:draw(primitiveType)
 		if self.usedElements > 0 then 
 			if self.indexVBO then 
-				self.VAO:DrawElements(self.primitiveType, self.numVertices, 0, self.usedElements,0)
+				self.VAO:DrawElements(primitiveType or self.primitiveType, self.numVertices, 0, self.usedElements,0)
 			else
-				self.VAO:DrawArrays  (self.primitiveType, self.numVertices, 0, self.usedElements,0)
+				self.VAO:DrawArrays  (primitiveType or self.primitiveType, self.numVertices, 0, self.usedElements,0)
 			end
 		end
 	end

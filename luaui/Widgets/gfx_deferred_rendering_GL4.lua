@@ -142,7 +142,7 @@ local explosionLights  -- one light per weaponDefID
 local gibLight  -- one light for all pieceprojectiles
 
 
-local deferredLightGL4Config = {globalLightMult = 1, globalRadiusMult = 1, globalLifeMult = 1} 
+local deferredLightGL4Config = {globalLightMult = 1, globalRadiusMult = 1, globalLifeMult = 1}  -- Changing any of these requires the entire widget to be reloaded!
 
 local shaderConfig = {
 	MIERAYLEIGHRATIO = 0.1, -- The ratio of Rayleigh scattering to Mie scattering
@@ -150,6 +150,7 @@ local shaderConfig = {
 	USE3DNOISE = 1, -- dont touch this
 	SURFACECOLORMODULATION = 0.5, -- This specifies how much the lit surfaces color affects direct light blending, 0 is does not effect it, 1.0 is full effect
 	BLEEDFACTOR = 0.5, -- How much oversaturated color channels will bleed into other color channels. 
+	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
 }
 
 -- the 3d noise texture used for this shader
@@ -178,16 +179,19 @@ local addrandomlights = false
 ------------------------------ Data structures and management variables ------------
 
 -- These will contain 'global' type lights, ones that dont get updated every frame
-local coneLightVBO = {}
-local beamLightVBO = {}
-local pointLightVBO = {}
-local lightVBOMap -- a table of the above 3, keyed by light type
+local pointLightVBO = {} -- an instanceVBOTable
+local coneLightVBO = {} -- an instanceVBOTable
+local beamLightVBO = {} -- an instanceVBOTable
+local lightVBOMap -- a table of the above 3, keyed by light type, {point = pointLightVBO, ...}
 
--- These contain cob-controlled lights
-local unitConeLightVBO = {}
-local unitPointLightVBO = {}
-local unitBeamLightVBO = {}
-local unitLightVBOMap -- a table of the above 3, keyed by light type
+-- These contain the unitdef defined, cob-instanced and unit event based lights
+local unitPointLightVBO = {} -- an instanceVBOTable, with unit-attachment
+local unitConeLightVBO = {} -- an instanceVBOTable
+local unitBeamLightVBO = {} -- an instanceVBOTable
+local unitLightVBOMap -- a table of the above 3, keyed by light type,  {point = unitPointLightVBO, ...}
+
+local unitAttachedLights = {} -- this is a table mapping unitID's to all their attached instanceIDs and vbos
+	--{unitID = { instanceID = targetVBO, ... }}
 
 -- these will be separate, as they need per-frame updates!
 local projectilePointLightVBO = {}  -- for plasma balls
@@ -211,7 +215,7 @@ lightCacheTable[14] = 1
 lightCacheTable[15] = 1
 lightCacheTable[16] = 1
 
-local lightParamKeyOrder = {
+local lightParamKeyOrder = { -- This table is a 'quick-ish' way of building the lua array from human-readable light parameters
 	posx = 1, posy = 2, posz = 3, radius = 4, 
 	r = 9, g = 10, b = 11, a = 12, 
 	color2r = 5, color2g = 6, color2b = 7, colortime = 8, -- point lights only, colortime in seconds for unit-attached
@@ -219,9 +223,19 @@ local lightParamKeyOrder = {
 	pos2x = 5, pos2y = 6, pos2z = 7, -- beam lights only, specifies the endpoint of the beam
 	modelfactor = 13, specular = 14, scattering = 15, lensflare = 16, 
 	lifetime = 18, sustain = 19, animtype = 20 -- unused
+	-- NOTE THERE ARE 4 MORE UNUSED SLOTS HERE RESERVED FOR FUTURE USE!
 }
 
 local autoLightInstanceID = 128000 -- as MAX_PROJECTILES = 128000, so they get unique ones
+
+
+local gameFrame = 0
+local chobbyInterface = false
+
+local trackedProjectiles = {} -- used for finding out which projectiles can be culled {projectileID = updateFrame, ...} 
+local trackedProjectileTypes = {} -- we have to track the types [point, light, cone] of projectile lights for efficient updates
+local lastGameFrame = -2
+
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
@@ -256,14 +270,6 @@ local shaderSourceCache = {
 		windZ = 0.0, 
 	  },
 }
-
-local gameFrame = 0
-local chobbyInterface = false
-
-local trackedProjectiles = {}
-local trackedProjectileTypes = {}
-local lastgf = -2
-
 local testprojlighttable = {0,16,0,200, --pos + radius
 								0.25, 0.25,0.125, 5, -- color2, colortime
 								1.0,1.0,0.5,0.5, -- RGBA
@@ -278,7 +284,7 @@ local testprojlighttable = {0,16,0,200, --pos + radius
 ---------------------- INITIALIZATION FUNCTIONS ----------------------------------
 
 local function goodbye(reason) 
-	Spring.Echo('Exiting', reason)
+	Spring.Echo('Deferred Lights GL4 exiting:', reason)
 	widgetHandler:RemoveWidget()
 end
 
@@ -286,7 +292,7 @@ function widget:ViewResize()
 end
 
 local function createLightInstanceVBO(vboLayout, vertexVBO, numVertices, indexVBO, VBOname, unitIDattribID)
-	local targetLightVBO = makeInstanceVBOTable( vboLayout, 64, VBOname, unitIDattribID)
+	local targetLightVBO = makeInstanceVBOTable( vboLayout, 16, VBOname, unitIDattribID)
 	if vertexVBO == nil or targetLightVBO == nil then goodbye("Failed to make "..VBOname) end 
 	targetLightVBO.vertexVBO = vertexVBO
 	targetLightVBO.numVertices = numVertices
@@ -344,7 +350,7 @@ local function initGL4()
 end
 
 
----InitializeLight
+---InitializeLight(lightTable, unitID)
 ---Takes a light definition table, and tries to check wether its already been initialized, if not, it inits it in-place
 ---@param lightTable table
 ---@param unitID number 
@@ -390,6 +396,8 @@ end
 
 --------------------------------------------------------------------------------
 
+---calcLightExpiry(targetVBO, lightParamTable, instanceID)
+---Calculates the gameframe that a light might expire at, and if it will, then it places it into the removal queue
 local function calcLightExpiry(targetVBO, lightParamTable, instanceID)
 	if lightParamTable[18] <= 0 then -- LifeTime less than 0 means never expires
 		return nil 
@@ -402,7 +410,7 @@ local function calcLightExpiry(targetVBO, lightParamTable, instanceID)
 	return deathtime
 end
 
----AddLight
+---AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
 ---Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
 ---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
@@ -424,11 +432,18 @@ local function AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, 
 	if lightparams[18] > 0 then 
 		calcLightExpiry(targetVBO, lightparams, instanceID) -- This will add lights that have >0 lifetime to the removal queue
 	end
+	if unitID then 
+		if unitAttachedLights[unitID] == nil then 
+			unitAttachedLights[unitID] = {[instanceID] = targetVBO} 
+		else
+			unitAttachedLights[unitID][instanceID] = targetVBO
+		end
+	end
 	return instanceID
 end
 
 ---AddPointLight
----Note that instanceID can be nil if an auto-generated one is OK.
+---DEPRECTATED Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
 ---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light, 
@@ -544,7 +559,7 @@ local function AddRandomDecayingPointLight()
 end
 
 ---AddBeamLight
----Note that instanceID can be nil if an auto-generated one is OK.
+---DEPRECTATED Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
 ---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light, 
@@ -626,7 +641,7 @@ local function AddBeamLight(instanceID, unitID, pieceIndex, targetVBO, px_or_tab
 end
 
 ---AddConeLight
----Note that instanceID can be nil if an auto-generated one is OK.
+---DEPRECATED! Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
 ---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light, 
@@ -706,6 +721,9 @@ local function AddConeLight(instanceID, unitID, pieceIndex, targetVBO, px_or_tab
 	return instanceID
 end
 
+---updateLightPosition(lightVBO, instanceID, posx, posy, posz, radius, p2x, p2y, p2z, theta)
+---This function is for internal use only, to update the position of a light. 
+---Only use if you know the consequences of updating a VBO in-place!
 local function updateLightPosition(lightVBO, instanceID, posx, posy, posz, radius, p2x, p2y, p2z, theta)
 	local instanceIndex = lightVBO.instanceIDtoIndex[instanceID]
 	if instanceIndex == nil then return nil end
@@ -732,6 +750,8 @@ end
 
 local function AddStaticLightsForUnit(unitID, unitDefID, noUpload)
 	if unitDefLights[unitDefID] then
+		local _,_,_,_, buildprogress = Spring.GetUnitHealth(unitID)
+		if buildprogress < 0.99999 then return end
 		local unitDefLight = unitDefLights[unitDefID]
 		if unitDefLight.initComplete ~= true then  -- late init
 			for lightname, lightParams in pairs(unitDefLight) do
@@ -743,33 +763,41 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noUpload)
 			if lightname ~= 'initComplete' then
 				--Spring.Debug.TraceFullEcho(nil,nil,nil,"AddStaticLightsForUnit")
 				--Spring.Debug.TableEcho(lightParams)
-				if lightParams.lightType == 'point' then
-					AddPointLight( tostring(unitID) ..  lightname, unitID, nil, nil, lightParams.lightParamTable)
-				elseif lightParams.lightType == 'cone' then 
-					AddConeLight(tostring(unitID) ..  lightname, unitID, nil, nil, lightParams.lightParamTable) 
-				elseif lightParams.lightType == 'beam' then 
-					AddBeamLight(tostring(unitID) ..  lightname, unitID, nil, nil, lightParams.lightParamTable) 
-				end
+				local targetVBO = unitLightVBOMap[lightParams.lightType]
+				AddLight(tostring(unitID) ..  lightname, unitID, lightParams.pieceIndex, targetVBO, lightParams.lightParamTable) 
 			end
 		end
 	end
 end
 
-local function RemoveStaticLightsFromUnit(unitID, unitDefID)
-	if unitDefLights[unitDefID] then 
-		local unitDefLight = unitDefLights[unitDefID]
-		for lightname, lightParams in pairs(unitDefLight) do
-			if lightname ~= 'initComplete' then
-				if lightParams.lightType == 'point' then
-					popElementInstance(unitPointLightVBO, tostring(unitID) ..  lightname) 
-				elseif lightParams.lightType == 'cone' then 
-					popElementInstance(unitConeLightVBO, tostring(unitID) ..  lightname)
-				elseif lightParams.lightType == 'beam' then 
-					popElementInstance(unitBeamLightVBO, tostring(unitID) ..  lightname)
+---RemoveUnitAttachedLights(unitID, instanceID)
+---Removes all or 1 light attached to a unit
+---@param unitID the unit to remove lights from
+---@param instanceID which light to remove, if nil, then all lights will be removed
+---@returns the number of lights that got removed
+local function RemoveUnitAttachedLights(unitID, instanceID)
+	local numremoved = 0
+	if unitAttachedLights[unitID] then 
+		if instanceID and unitAttachedLights[unitID][instanceID] then 
+			popElementInstance(unitAttachedLights[unitID][instanceID],instanceID) 
+			numremoved = numremoved + 1
+			unitAttachedLights[unitID][instanceID] = nil
+		else
+			for instanceID, targetVBO in pairs(unitAttachedLights[unitID]) do 
+				if targetVBO.instanceIDtoIndex[instanceID] then 
+					numremoved = numremoved + 1
+					popElementInstance(targetVBO,instanceID)
+				else
+					--Spring.Echo("Light attached to unit no longer is in targetVBO", unitID, instanceID, targetVBO.myName)
 				end
 			end
+			--Spring.Echo("Removed lights from unitID", unitID, numremoved, successes)
+			unitAttachedLights[unitID] = nil
 		end
+	else
+		--Spring.Echo("RemoveUnitAttachedLights: No lights attached to", unitID)
 	end
+	return numremoved
 end
 
 ---RemoveLight(lightshape, instanceID, unitID)
@@ -779,16 +807,20 @@ end
 ---@param unitID number make this non-nil to remove it from a unit
 ---@returns the same instanceID on success, nil if the light was not found
 local function RemoveLight(lightshape, instanceID, unitID, noUpload)
-	if lightshape == 'point' then 
-		if unitID then return popElementInstance(unitPointLightVBO, instanceID) 
-		else return popElementInstance(pointLightVBO, instanceID) end
-	elseif lightshape =='beam' then 
-		if unitID then return popElementInstance(unitBeamLightVBO, instanceID) 
-		else return popElementInstance(beamLightVBO, instanceID) end
-	elseif lightshape =='cone' then 
-		if unitID then return popElementInstance(unitConeLightVBO, instanceID) 
-		else return popElementInstance(coneLightVBO, instanceID) end
-	else return nil end
+	if unitID then 
+		if unitAttachedLights[unitID] and unitAttachedLights[unitID][instanceID] then 
+			local targetVBO = unitAttachedLights[unitID][instanceID]
+			unitAttachedLights[unitID][instanceID] = nil
+			return popElementInstance(targetVBO, instanceID)
+		else
+			Spring.Echo("RemoveLight tried to remove a non-existing unitlight", lightshape, instanceID, unitID)
+		end
+	elseif lightshape then 
+		return popElementInstance(lightVBOMap[lightshape], instanceID)
+	else
+		Spring.Echo("RemoveLight tried to remove a non-existing light", lightshape, instanceID, unitID)
+	end
+	return nil
 end
 
 local function RemoveProjectileLight(lightshape, instanceID, unitID, noUpload)
@@ -930,7 +962,7 @@ local function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
 end
 
 local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
-	Spring.Echo("Widgetside UnitScriptLight", unitID, unitDefID, lightIndex, param)
+	--Spring.Echo("Widgetside UnitScriptLight", unitID, unitDefID, lightIndex, param)
 	if unitEventLights.UnitScriptLights[unitDefID] and unitEventLights.UnitScriptLights[unitDefID][lightIndex] then 
 		local lightTable = unitEventLights.UnitScriptLights[unitDefID][lightIndex]
 		if not lightTable.alwaysVisible then
@@ -1035,9 +1067,9 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	uploadAllElements(unitConeLightVBO) -- upload them all
 end
 
-function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
+function widget:VisibleUnitRemoved(unitID) -- remove all the lights for this unit
 	--if debugmode then Spring.Debug.TraceEcho("remove",unitID,reason) end
-	RemoveStaticLightsFromUnit(unitID, Spring.GetUnitDefID(unitID))
+	RemoveUnitAttachedLights(unitID)
 end
 
 function widget:Shutdown()
@@ -1065,10 +1097,10 @@ function widget:GameFrame(n)
 	end
 	gameFrame = n
 	local windDirX, _, windDirZ, windStrength = Spring.GetWind()
-	--windStrength = math.min(20, math.max(3, windStrength))	
+	--windStrength = math.min(20, math.max(3, windStrength))
 	--Spring.Echo(windDirX,windDirZ,windStrength)
-	windX = windX + windDirX *  0.016
-	windZ = windZ + windDirZ * 0.016	
+	windX = windX + windDirX * 0.016
+	windZ = windZ + windDirZ * 0.016
 	if lightRemoveQueue[n] then 
 		for instanceID, targetVBO in pairs(lightRemoveQueue[n]) do
 			if targetVBO.instanceIDtoIndex[instanceID] then 
@@ -1113,7 +1145,7 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 							lightCacheTable[1] = lightCacheTable[1] + px
 							lightCacheTable[2] = lightParamTable[2] + py + ((lightTable.aboveUnit and Spring.GetUnitHeight(unitID)) or 0)
 							lightCacheTable[3] = lightCacheTable[3] + pz
-							AddLight(eventName .. tostring(unitID) ..  lightname, unitID, lightTable.pieceIndex, lightVBOMap[lightTable.lightType], lightCacheTable)
+							AddLight(eventName .. tostring(unitID) ..  lightname, nil, lightTable.pieceIndex, lightVBOMap[lightTable.lightType], lightCacheTable)
 						end
 					end
 				end 
@@ -1122,6 +1154,7 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 	end
 end
 
+-- Below are the registered spawners for events
 function widget:UnitIdle(unitID, unitDefID, teamID) -- oh man we need a sane way to handle height :D
 	eventLightSpawner("UnitIdle", unitID, unitDefID, teamID) 
 end
@@ -1131,19 +1164,21 @@ end
 function widget:UnitCreated(unitID, unitDefID, teamID) 
 	eventLightSpawner("UnitCreated", unitID, unitDefID, teamID) 
 end
-function widget:UnitFromFactory(unitID, unitDefID, teamID) 
-	eventLightSpawner("UnitFromFactory", unitID, unitDefID, teamID) 
+function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
+	eventLightSpawner("UnitFromFactory", unitID, unitDefID, teamID)  -- i have no idea of the differences here
+	eventLightSpawner("UnitFromFactoryBuilder", factID, factDefID, teamID) 
 end
-function widget:UnitDestroyed(UnitDestroyed, unitDefID, teamID) -- dont do piece-attached lights here!
-	eventLightSpawner("UnitIdle", unitID, unitDefID, teamID) 
+function widget:UnitDestroyed(unitID, unitDefID, teamID) -- dont do piece-attached lights here!
+	eventLightSpawner("UnitDestroyed", unitID, unitDefID, teamID) 
 end
-function widget:UnitTaken(unitID, unitDefID, teamID)
-	eventLightSpawner("UnitTaken", unitID, unitDefID, teamID) 
-end
+
+-- THIS ONE DOESNT WORK, some shit is being pulled and i cant get the unit height of the unit being taken here!
+--function widget:UnitTaken(unitID, unitDefID, teamID)
+	--eventLightSpawner("UnitTaken", unitID, unitDefID, teamID) 
+--end
 function widget:UnitGiven(unitID, unitDefID, teamID)
 	eventLightSpawner("UnitGiven", unitID, unitDefID, teamID) 
 end
-
 function widget:UnitCloaked(unitID, unitDefID, teamID)
 	eventLightSpawner("UnitCloaked", unitID, unitDefID, teamID) 
 end
@@ -1160,8 +1195,6 @@ function widget:StockpileChanged(unitID, unitDefID, teamID, weaponNum, oldCount,
 	end
 end
 
-
-
 -- Beam type projectiles are indeed an oddball, as they live for exactly 3 frames, no?
 
 local function PrintProjectileInfo(projectileID)
@@ -1175,9 +1208,9 @@ local function updateProjectileLights(newgameframe)
 	local nowprojectiles = Spring.GetVisibleProjectiles()
 	gameFrame = Spring.GetGameFrame()
 	local newgameframe = true
-	if gameFrame == lastgf then newgameframe = false end 
-	--Spring.Echo(gameFrame, lastgf, newgameframe)
-	lastgf = gameFrame
+	if gameFrame == lastGameFrame then newgameframe = false end 
+	--Spring.Echo(gameFrame, lastGameFrame, newgameframe)
+	lastGameFrame = gameFrame
 	-- turn off uploading vbo
 	-- one known issue regarding to every gameframe respawning lights is to actually get them to update existing dead light candidates, this is very very hard to do sanely
 	-- BUG: having a lifetime associated with each projectile kind of bugs out updates

@@ -22,7 +22,10 @@ end
 function Behaviour:GameEnd()
 end
 
-function Behaviour:UnitCreated(unit)
+function Behaviour:UnitCreated(unit, unitDefId, teamId, builderId)
+end
+
+function Behaviour:OwnerCreated(unit, unitDefId, teamId, builderId)
 end
 
 function Behaviour:UnitBuilt(unit)
@@ -53,8 +56,8 @@ function Behaviour:UnitMoveFailed(unit)
 	self:UnitIdle(unit)
 end
 
-function Behaviour:OwnerMoveFailed()
-	self:OwnerIdle()
+function Behaviour:OwnerMoveFailed(unit)
+	self:OwnerIdle(unit)
 end
 
 function Behaviour:SetUnit(unit)

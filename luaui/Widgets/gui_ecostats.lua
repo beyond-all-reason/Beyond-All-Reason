@@ -72,7 +72,6 @@ local textsize = 14
 local maxPlayers = 0
 local refreshCaptions = false
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local widgetScale = 0.95 + (vsx * vsy / 7500000)        -- only used for rounded corners atm
@@ -1278,21 +1277,7 @@ function widget:GameFrame(frameNum)
 	end
 end
 
-local uiOpacitySec = 0.5
 function widget:Update(dt)
-
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.5 then
-		uiOpacitySec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize(Spring.GetViewGeometry())
-		end
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.66) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.66)
-			Reinit()
-		end
-	end
 	if myFullview ~= select(2, Spring.GetSpectatingState()) then
 		myFullview = select(2, Spring.GetSpectatingState())
 		if myFullview then

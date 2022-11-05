@@ -397,7 +397,7 @@ function widget:GameFrame(n)
 	end
 end
 
-function widget:DrawWorld()
+function widget:DrawWorldPreUnit()
 	if chobbyInterface then
 		return
 	end

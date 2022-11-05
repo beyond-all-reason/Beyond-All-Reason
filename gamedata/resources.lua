@@ -29,6 +29,7 @@ local resources = {
 			trail             = 'default/trail.tga',
 			wake              = 'default/wake.tga',
 			wakegrey          = 'projectiletextures/wakegrey.tga',
+			explowaveblastxl  = 'projectiletextures/explowaveblastxl.png',
 			flashside3        = 'projectiletextures/flashside3.tga',
 			flare             = 'default/flare.tga',
 			flare2            = 'default/flare2.tga',

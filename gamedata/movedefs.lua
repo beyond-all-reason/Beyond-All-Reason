@@ -43,6 +43,17 @@ local moveDatas = {
 		maxwaterslope = 50,
 	},
 	-- amphibious tanks
+	ATANK2 = {
+		crushstrength = 30,
+		depthmod = 0,
+		footprintx = 2,
+		footprintz = 2,
+		maxslope = 36,
+		slopeMod = 18,
+		maxwaterdepth = 5000,
+		maxwaterslope = 80,
+	},
+	-- amphibious tanks
 	ATANK3 = {
 		crushstrength = 30,
 		depthmod = 0,

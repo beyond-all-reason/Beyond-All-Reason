@@ -185,11 +185,9 @@ bool MyEmitTestVertex(vec2 xzVec, bool testme) {
 	alphaFog = vec2(alpha, fogFactor);
 	if (testme ) {
 		// this 'early clipping' will prevent generation of triangle strips is the quad is out of view
-		// use a 10x multiplier on the tolerance radius, as some triangles arent in spheres, but are highly elongated
-		//if (isSphereVisibleXY(MyTestVertex(vec2(gridSize*0.5)), 10.0*gridSize)) return;
-		bool invisible = isSphereVisibleXY(worldPos, 0.01*gridSize);
-		//if ((invisible) || (alpha < 0.05) || (fogFactor < 0.025)) return true;
-		//if (invisible) return true;
+		// use a 25x multiplier on the tolerance radius, as some triangles arent in spheres, but are highly elongated
+		bool invisible = isSphereVisibleXY(worldPos, 25.0*gridSize);
+		if ((invisible) || (alpha < 0.05))  return true; // also could be ||  (fogFactor < 0.025)) 
 	}
 	gl_Position = cameraViewProj * worldPos;
 	EmitVertex();

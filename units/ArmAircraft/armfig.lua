@@ -81,6 +81,7 @@ return {
 			armvtol_missile = {
 				areaofeffect = 8,
 				avoidfeature = false,
+				avoidfriendly = false,
 				burnblow = true,
 				canattackground = false,
 				cegtag = "missiletrailfighter",

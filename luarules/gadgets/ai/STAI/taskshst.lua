@@ -16,22 +16,31 @@ function TasksHST:Init()
 	self:startLabsParams()
 end
 
+
+
 function TasksHST:startLabsParams()
 	local M = self.ai.Metal
 	local E = self.ai.Energy
-
+	self.labs.premode = {
+		{category = 'techs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1, mtype = nil, max = 3,},
+			wave = 1},
+		}
 	self.labs.default = {
 			{category = 'techs',
 			economy = function()
 				return true
 			end,
-			numeric = {min = 3, mtype = 5, max = 10,},
+			numeric = {min = 1, mtype = 5, max = 2,},
 			wave = 1},
 
 
 			{category = 'scouts',
 			economy = function()
-				return (E.income < 100 )
+				return true
 			end,
 			numeric = {min = 1,mtype = 10,max = 2},
 			wave = 2},
@@ -39,7 +48,10 @@ function TasksHST:startLabsParams()
 
 			{category = 'raiders',
 			economy = function()
-				return  (E.income < 400 )
+				if E.income > 400 then
+					return math.random() > 0.66
+				end
+				return  ( true)
 			end,
 			numeric = {min = 1,max = 20},
 			wave = 10},
@@ -49,7 +61,7 @@ function TasksHST:startLabsParams()
 			economy = function()
 				return true
 			end,
-			numeric = {min = 3,mtype = nil,max = 10},
+			numeric = {min = 3,mtype = nil,max = 7},
 			wave = 1},
 
 
@@ -82,7 +94,7 @@ function TasksHST:startLabsParams()
 			economy = function()
 				return true
 			end,
-			numeric = {min = 3,mtype = nil,max = 10},
+			numeric = {min = 3,mtype = nil,max = 7},
 			wave = 3},
 
 
@@ -98,7 +110,7 @@ function TasksHST:startLabsParams()
 			economy = function()
 				return true
 			end,
-			numeric = {min = 3,mtype = nil,max = 10},
+			numeric = {min = 3,mtype = nil,max = 7},
 			wave = 1},
 
 
@@ -146,7 +158,7 @@ function TasksHST:startLabsParams()
 			economy = function()
 				return true
 			end,
-			numeric = {min = 1,mtype = 2,max = nil},
+			numeric = {min = 1,mtype = nil,max = 1},
 			wave = 1},
 
 
@@ -162,7 +174,7 @@ function TasksHST:startLabsParams()
 			economy = function()
 				return true
 			end,
-			numeric = {min = 10,mtype = 4,max = 20},
+			numeric = {min = 10,mtype = nil,max = 20},
 			wave = 10},
 
 
@@ -293,6 +305,17 @@ end
 function TasksHST:startRolesParams()
 	local M = self.ai.Metal
 	local E = self.ai.Energy
+------------------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------------------------------------------------
+
 	self.roles.default = {
 		{ 	category = 'factoryMobilities' ,
 			economy = function(_,param,name)--ecofunc()
@@ -435,7 +458,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {list = self.ai.hotSpot, min = 50 , neighbours = {'_heavyt_','_laser2_'}} ,
+			location = {list = self.ai.maphst.hotSpots, min = 50 , neighbours = {'_heavyt_','_laser2_'}} ,
 	        },
 
 		{ 	category = '_jam_' ,
@@ -509,7 +532,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'_nano_'},min = 50,neighbours = {'_laser2_'},list = self.ai.hotSpot}
+			location = {categories = {'_nano_'},min = 50,neighbours = {'_laser2_'},list = self.ai.maphst.hotSpots}
 	        } ,
 
 
@@ -537,7 +560,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'_mex_'},min = 50}
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_torpedo1_','_torpedo2_'}}
 			},
 
 		{ 	category = '_torpedo2_' ,
@@ -546,7 +569,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'_mex_'},min = 50}
+			location = {categories = {'_mex_'},min = 50,neighbours = {'_torpedo2_'}}
 			},
 
 	--	{ 	category = '_torpedoground_' ,economy = true,false,false},
@@ -579,6 +602,18 @@ function TasksHST:startRolesParams()
 
 	}
 ----------------------------------------------------------------------------------------------------------------------------------
+	----------------------------------------------------------------------------------------------------------------------------------
+	----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+	----------------------------------------------------------------------------------------------------------------------------------
+	----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+
 	self.roles.expand = {
 		{ 	category = '_mex_' ,
 			economy = function(_,param,name)--ecofunc()
@@ -618,6 +653,14 @@ function TasksHST:startRolesParams()
 
 	}
 --------------------------------------------------------------------------------------------------------------------------------
+	--------------------------------------------------------------------------------------------------------------------------------
+	--------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+
 	self.roles.eco = {
 		{ 	category = 'factoryMobilities' ,
 			economy = function(_,param,name)--ecofunc()
@@ -634,7 +677,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = 2 , --numericalParameter
-			location = {categories = {'factoryMobilities'},min = 100,neighbours = {'_llt_','_popup2_','_popup1_'}} ,
+			location = {categories = {'_mex_','factoryMobilities'},max = 1000,min = 50,neighbours = {'_llt_','_popup2_','_popup1_'},list = self.map:GetMetalSpots()} ,
 			},
 
 		{ 	category = '_wind_' ,
@@ -705,7 +748,7 @@ function TasksHST:startRolesParams()
 
 		{ 	category = '_convs_' ,
 			economy = function(_,param,name)--ecofunc()
-					return E.income > E.usage * 1.1 and E.full > 0.8 and  E.income > 500
+					return (E.income > E.usage * 1.1 and E.full > 0.9 and  E.income > 200) or (self.ai.ecohst.extraEnergy > 100 and self.ai.tool:countFinished({'_convs_'}) == 0)
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -733,6 +776,17 @@ function TasksHST:startRolesParams()
 
 	}
 ------------------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------
+	------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------
+
 	self.roles.support = {
 		{ 	category = '_radar_' ,
 			economy = function(_,param,name)--ecofunc()
@@ -776,7 +830,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {list = self.ai.hotSpot, min = 50 , neighbours = {'_heavyt_','_laser2_'}} ,
+			location = {list = self.ai.maphst.hotSpots, min = 50 , neighbours = {'_heavyt_','_laser2_'}} ,
 	        },
 
 		{ 	category = '_laser2_' ,
@@ -785,7 +839,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {min = 50,neighbours = {'_laser2_'},list = self.ai.hotSpot} ,
+			location = {min = 50,neighbours = {'_laser2_'},list = self.ai.maphst.hotSpots} ,
 	        },
 
 		{ 	category = '_aa1_' ,
@@ -817,10 +871,28 @@ function TasksHST:startRolesParams()
 			special = true } , --specialFilter
 	}
 ---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+	self.roles.assist = {
+			{ 	category = '_mex_' ,
+			economy = function(_,param,name)--ecofunc()
+					return false
+				end,--economicParameters
+			duplicate = false , --duplicateFilter
+			numeric = false , --numericalParameter
+			location = true ,
+	        },
+
+		}
 	self.roles.starter = {
 		{ 	category = '_mex_' ,
 			economy = function(_,param,name)--ecofunc()
-					return self.ai.tool:countMyUnit({'factoryMobilities'}) == 0
+					return true
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
@@ -861,19 +933,20 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'factoryMobilities'},min = 100,neighbours = {'_llt_','_popup2_','_popup1_'}}
-	        } ,
+			location = {categories = {'factoryMobilities','_mex_'},min = 100,neighbours = {'_llt_','_popup2_','_popup1_'}}
+	        },list = self.map:GetMetalSpots() ,
 
 		{ 	category = 'factoryMobilities' ,
 			economy = function(_,param,name)--ecofunc()
 					return M.income > 6 or self.ai.tool:countMyUnit({'_mex_'}) >= 2 and E.income > 40
+
 				end,--economicParameters
 			duplicate = true , --duplicateFilter
 			numeric = false , --numericalParameter
 			location = true ,
 	        },
 		}
-	self.roles.assistant = {}
+
 end
 
 -- function TasksHST:wrap( theTable, theFunction )
