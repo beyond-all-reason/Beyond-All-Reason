@@ -28,13 +28,13 @@ if Spring.GetModOptions().assistdronesair == true then
     drones = {
         [UDN.armcom.id] = "armassistdrone",
         [UDN.corcom.id] = "corassistdrone",
-        [UDN.legcomdef.id] = "legassistdrone",
+        [UDN.legcom.id] = "legassistdrone",
     }
 else
     drones = {
         [UDN.armcom.id] = "armassistdrone_land",
         [UDN.corcom.id] = "corassistdrone_land",
-        [UDN.legcomdef.id] = "legassistdrone_land",
+        [UDN.legcom.id] = "legassistdrone_land",
     }
 end
 

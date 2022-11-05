@@ -110,9 +110,9 @@ local convertedUnits = {
 	[UnitDefNames.legmrv.id] = 5,
 	[UnitDefNames.legsco.id] = 5,
 	[UnitDefNames.legcom.id] = 5,
-	[UnitDefNames.legcomlvl2.id] = 3,
-	[UnitDefNames.legcomlvl3.id] = 3,
-	[UnitDefNames.legcomlvl4.id] = 3,
+	[UnitDefNames.legcomlvl2.id] = 5,
+	[UnitDefNames.legcomlvl3.id] = 5,
+	[UnitDefNames.legcomlvl4.id] = 5,
 }
 
 -- add for scavengers copies
