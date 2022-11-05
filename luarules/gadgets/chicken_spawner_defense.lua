@@ -1111,7 +1111,7 @@ if gadgetHandler:IsSyncedCode() then
 				for burrowID in pairs(burrows) do
 					if mRandom(1,SetCount(burrows)) == 1 then
 						table.insert(spawnQueue, { burrow = burrowID, unitName = config.miniBosses[mRandom(1,#config.miniBosses)], team = chickenTeamID, squadID = 0 })
-						cCount = 1
+						cCount = currentMaxWaveSize
 						break
 					end
 				end
@@ -1238,7 +1238,7 @@ if gadgetHandler:IsSyncedCode() then
 			if resistPercent > 0.5 then
 				if queenResistance[weaponID].notify == 0 then
 					if attackerDefID then
-						SendToUnsynced('QueenResistant', attackerDefID)
+						chickenEvent("queenResistance", attackerDefID)
 					end
 					queenResistance[weaponID].notify = 1
 					if mRandom() < config.spawnChance then
@@ -2003,21 +2003,12 @@ else	-- UNSYNCED
 		end
 	end
 
-	local function queenResistant(_, attackerDefId)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy( 'ui.chickens.queenResistant', { unitDefId = attackerDefId })
-			Spring.Echo(message)
-		end
-	end
-
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction('ChickenEvent', WrapToLuaUI)
-		gadgetHandler:AddSyncAction('QueenResistant', queenResistant)
 		gadgetHandler:AddChatAction("HasChickenEvent", HasChickenEvent, "toggles hasChickenEvent setting")
 	end
 
 	function gadget:Shutdown()
-		gadgetHandler:RemoveSyncAction('QueenResistant')
 		gadgetHandler:RemoveChatAction("HasChickenEvent")
 	end
 

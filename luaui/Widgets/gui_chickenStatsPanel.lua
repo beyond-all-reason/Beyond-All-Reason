@@ -56,6 +56,8 @@ local waveTime
 local enabled
 local gotScore
 local scoreCount = 0
+local resistancesTable = {}
+local currentlyResistantTo = {}
 
 local guiPanel --// a displayList
 local updatePanel
@@ -213,6 +215,21 @@ local function getMarqueeMessage(chickenEventArgs)
 	return messages
 end
 
+local function getResistancesMessage()
+	local messages = {}
+	messages[1] = textColor .. Spring.I18N('ui.chickens.resistanceUnits')
+	for i = 1,#resistancesTable do
+		local attackerName = UnitDefs[resistancesTable[i]].name
+		messages[i+1] = textColor .. Spring.I18N('units.names.' .. attackerName)
+	end
+	resistancesTable = {}
+
+	refreshMarqueeMessage = false
+	
+
+	return messages
+end
+
 local function Draw()
 	if not enabled or not gameInfo then
 		return
@@ -250,6 +267,10 @@ local function Draw()
 			messageArgs = nil
 			waveY = viewSizeY
 		end
+	elseif #resistancesTable > 0 then
+		marqueeMessage = getResistancesMessage()
+		waveTime = Spring.GetTimer()
+		showMarqueeMessage = true
 	end
 end
 
@@ -273,6 +294,15 @@ function ChickenEvent(chickenEventArgs)
 		refreshMarqueeMessage = true
 		messageArgs = chickenEventArgs
 		waveTime = Spring.GetTimer()
+	end
+
+	if chickenEventArgs.type == "queenResistance" then
+		if chickenEventArgs.number then
+			if not currentlyResistantTo[chickenEventArgs.number] then
+				table.insert(resistancesTable, chickenEventArgs.number)
+				currentlyResistantTo[chickenEventArgs.number] = true
+			end
+		end
 	end
 
 
