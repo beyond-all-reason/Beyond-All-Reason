@@ -1980,7 +1980,7 @@ function init()
 			onchange = function(i, value)
 				Spring.SetConfigInt("headlights", value and 1 or 0)
 				local id = getOptionByID('lighteffects2')
-				if options[id].value then
+				if id and options[id].value then
 					options[id].onchange(id, false)
 					options[id].onchange(id, true)
 				end

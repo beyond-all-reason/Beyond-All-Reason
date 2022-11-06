@@ -118,7 +118,7 @@ local BaseClasses = {
 		lightConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 250,
 			r = 2, g = 2, b = 2, a = 0.3,
-			color2r = 0.7, color2g = 0.55, color2b = 0.28, colortime = 1.2, -- point lights only, colortime in seconds for unit-attached
+			color2r = 0.7, color2g = 0.55, color2b = 0.28, colortime = 0.1, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.15, specular = 0.15, scattering = 0.4, lensflare = 1,
 			lifetime = 12, sustain = 4, aninmtype = 0, -- unused
 		},
@@ -308,6 +308,10 @@ local function AssignLightsToAllWeapons()
 			t.r, t.g, t.b = 1, 0.5, 0.6
 			t.color2r, t.color2g, t.color2b = 1, 0.5, 0.6
 		end
+		if weaponDef.paralyzer then
+			t.r, t.g, t.b = 0.5, 0.5, 1
+			t.color2r, t.color2g, t.color2b = 0.25, 0.25, 1
+		end
 		local scavenger = string.find(weaponDef.name, '_scav')
 		if scavenger then
 			t.r, t.g, t.b = 0.96, 0.3, 1
@@ -315,25 +319,25 @@ local function AssignLightsToAllWeapons()
 		end
 		if weaponDef.type == 'BeamLaser' then
 			muzzleFlash = false
-			local beamcolor = 'White'
-			--if r > g + b then beamcolor = 'Red'
-			--elseif g > r + b then beamcolor = 'Green'
-			--elseif b > r + g then beamcolor = 'Blue'
-			--elseif b < (r + g)/2 then beamcolor = 'Yellow'
-			--end
 
-			t.r, t.g, t.b = math.min(1, r+0.3), math.min(1, g+0.3), math.min(1, b+0.3)
-			t.color2r, t.color2g, t.color2b = r, g, b
+			if not weaponDef.paralyzer then
+				t.r, t.g, t.b = math.min(1, r+0.3), math.min(1, g+0.3), math.min(1, b+0.3)
+				t.color2r, t.color2g, t.color2b = r, g, b
+			end
 
 			radius = (4 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (5 * radius * orgMult)
 			t.a = (orgMult * 0.1) / (0.2 + weaponDef.beamtime)
 
+			if weaponDef.paralyzer then
+				radius = radius * 0.5
+			end
 			sizeclass = GetClosestSizeClass(radius)
-			--sizeclass = GetClosestSizeClass((10 * (weaponDef.size * weaponDef.size * weaponDef.size) + radius) * 0.55)
 			projectileDefLights[weaponID] = GetLightClass("LaserProjectile", nil, sizeclass, t)
 
-			radius = ((orgMult * 2500) + radius) * 0.2
-			sizeclass = GetClosestSizeClass(radius)
+			if not weaponDef.paralyzer then
+				radius = ((orgMult * 2500) + radius) * 0.2
+				sizeclass = GetClosestSizeClass(radius)
+			end
 
 		elseif weaponDef.type == 'LightningCannon' then
 			if not scavenger then
@@ -402,7 +406,7 @@ local function AssignLightsToAllWeapons()
 			end
 			t.lifetime = life
 			t.colortime = 0.037*(life/30)
-			t.a = orgMult
+
 			if weaponDef.type == 'DGun' then
 				t.a = orgMult*0.17
 			elseif weaponDef.type == 'Flame' then
