@@ -779,6 +779,16 @@ local unitEventLights = {
 	},
 }
 
+local headlights = Spring.GetConfigInt("headlights", 1) == 1
+if not headlights then
+	for unitDefID, lights in pairs(unitDefLights) do
+		for name, params in pairs(lights) do
+			if string.find(name, "headlight") then
+				unitDefLights[unitDefID][name] = nil
+			end
+		end
+	end
+end
 
 local allLights = {unitEventLights = unitEventLights, unitDefLights = unitDefLights, }
 

@@ -1952,6 +1952,40 @@ function init()
 		  end,
 		},
 
+		{ id = "lighteffects2", group = "gfx", category = types.dev, name = texts.option.lighteffects2, type = "bool", value = GetWidgetToggleValue("Deferred rendering GL4"), description = texts.option.lighteffects2_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if value then
+				  if widgetHandler.orderList["Deferred rendering"] ~= nil then
+					  widgetHandler:DisableWidget("Deferred rendering")
+				  end
+				  if widgetHandler.orderList["Light Effects"] ~= nil then
+					  widgetHandler:DisableWidget("Light Effects")
+				  end
+				  widgetHandler:EnableWidget("Deferred rendering GL4")
+			  else
+				  if widgetHandler.orderList["Deferred rendering"] ~= nil then
+					  widgetHandler:EnableWidget("Deferred rendering")
+				  end
+				  if widgetHandler.orderList["Light Effects"] ~= nil then
+					  widgetHandler:EnableWidget("Light Effects")
+				  end
+				  widgetHandler:DisableWidget("Deferred rendering GL4")
+			  end
+		  end,
+		},
+		{ id = "lighteffects2_headlights", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.lighteffects2_headlights, type = "bool", value = Spring.GetConfigInt("headlights", 1) == 1, description = texts.option.lighteffects2_headlights_descr,
+			onchange = function(i, value)
+				Spring.SetConfigInt("headlights", value and 1 or 0)
+				local id = getOptionByID('lighteffects2')
+				if options[id].value then
+					options[id].onchange(id, false)
+					options[id].onchange(id, true)
+				end
+			end,
+		},
+
 		{ id = "heatdistortion", group = "gfx", category = types.dev, widget = "Lups", name = texts.option.heatdistortion, type = "bool", value = GetWidgetToggleValue("Lups"), description = texts.option.heatdistortion_descr },
 
 		{ id = "darkenmap", group = "gfx", category = types.advanced, name = texts.option.darkenmap, min = 0, max = 0.33, step = 0.01, type = "slider", value = 0, description = texts.option.darkenmap_descr,
