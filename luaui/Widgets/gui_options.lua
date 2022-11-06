@@ -1927,6 +1927,11 @@ function init()
 					  widgetHandler:EnableWidget("Deferred rendering")
 				  end
 				  widgetHandler:EnableWidget("Light Effects")
+
+				  local id = getOptionByID('lighteffects2')
+				  if options[id].value then
+					  options[id].onchange(id, false)
+				  end
 			  else
 				  if widgetHandler.orderList["Deferred rendering"] ~= nil then
 					  widgetHandler:DisableWidget("Deferred rendering")
@@ -1957,19 +1962,15 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  if value then
-				  if widgetHandler.orderList["Deferred rendering"] ~= nil then
-					  widgetHandler:DisableWidget("Deferred rendering")
-				  end
-				  if widgetHandler.orderList["Light Effects"] ~= nil then
-					  widgetHandler:DisableWidget("Light Effects")
+				  local id = getOptionByID('lighteffects')
+				  if options[id].value then
+					  options[id].onchange(id, false)
 				  end
 				  widgetHandler:EnableWidget("Deferred rendering GL4")
 			  else
-				  if widgetHandler.orderList["Deferred rendering"] ~= nil then
-					  widgetHandler:EnableWidget("Deferred rendering")
-				  end
-				  if widgetHandler.orderList["Light Effects"] ~= nil then
-					  widgetHandler:EnableWidget("Light Effects")
+				  local id = getOptionByID('lighteffects')
+				  if not options[id].value then
+					  options[id].onchange(id, true)
 				  end
 				  widgetHandler:DisableWidget("Deferred rendering GL4")
 			  end
