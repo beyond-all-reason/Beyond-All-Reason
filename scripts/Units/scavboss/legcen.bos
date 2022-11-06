@@ -11,6 +11,7 @@ static-var  gun_1, gun_2, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead,
 // Signal definitions
 #define SIG_AIM		2
 #define SIG_WALK 	4
+#define SIG_FIRE1 	8
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\PtaQ\Documents\GitHub\BAR\support\Animation_sources\armfido_anim_walk2.blend 
 	//set-signal-mask SIG_WALK;
@@ -384,13 +385,13 @@ AimPrimary(heading, pitch)
 	}
 	start-script RestoreAfterDelay();
 	wpn1_lasthead = heading;
-	while( gun_2 )
-	{
-		wait-for-move lturret along z-axis;
-		gun_2 = 0;
-		gun_1 = 0;
-		return (0);
-	}
+	//while( gun_2 )
+	//{
+	//	wait-for-move lturret along z-axis;
+	//	gun_2 = 0;
+	//	gun_1 = 0;
+	//	return (0);
+	//}
 	return (1);
 }
 
@@ -401,6 +402,14 @@ AimFromPrimary(piecenum)
 
 FirePrimary()
 {
+	return(1);
+}
+
+Shot1(zero)
+{
+	signal SIG_FIRE1;
+	set-signal-mask SIG_FIRE1;
+	
 	if (gun_1 == 0)
 	{
 		emit-sfx 1024 + 0 from lflare;
@@ -408,7 +417,6 @@ FirePrimary()
 		move rturret to z-axis [-1.5] now;
 		move uturret to z-axis [-1.5] now;
 	}
-	
 	else if (gun_1 == 1)
 	{
 		emit-sfx 1024 + 0 from rflare;
@@ -416,7 +424,6 @@ FirePrimary()
 		move rturret to z-axis [-3] now;
 		move uturret to z-axis [-3] now;
 	}
-	
 	else if (gun_1 == 2)
 	{
 		emit-sfx 1024 + 0 from uflare;
@@ -426,9 +433,14 @@ FirePrimary()
 		move lturret to z-axis [0.000000] speed [2.50000];
 		move rturret to z-axis [0.000000] speed [2.50000];
 		move uturret to z-axis [0.000000] speed [2.50000];
-		gun_2 = 1;
 	}
+	sleep 32;
 	++gun_1;
+	if(gun_1>=3)
+	{
+		gun_1=0;
+	}
+	return(1);
 }
 
 QueryPrimary(piecenum)
