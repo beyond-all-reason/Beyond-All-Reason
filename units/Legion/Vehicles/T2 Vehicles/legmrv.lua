@@ -134,6 +134,8 @@ return {
 			cor_reap = {
 				areaofeffect = 64,
 				avoidfeature = false,
+				burst = 4,
+				burstrate = 0.15,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -145,7 +147,7 @@ return {
 				name = "PlasmaCannon",
 				noselfdamage = true,
 				range = 300,
-				reloadtime = 0.15,
+				reloadtime = 3,
 				soundhit = "xplomed2",
 				soundhitwet = "splssml",
 				soundstart = "cannon3",

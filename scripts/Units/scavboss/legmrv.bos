@@ -12,6 +12,7 @@ static-var  restore_delay, moveSpeed, wheelSpeed, Static_Var_1, gun_1, gun_2, st
 // Signal definitions
 #define SIG_MOVE 			2
 #define SIG_AIM				4
+#define SIG_FIRE1			8
 
 RockUnit(anglex, anglez)
 {
@@ -121,21 +122,28 @@ AimPrimary(heading, pitch)
 	wait-for-turn turret around y-axis;
 	wait-for-turn gunr around x-axis;
 	start-script RestoreAfterDelay();
-	while( gun_2 )
-	{
-		wait-for-move barrelr along z-axis;
-		wait-for-move barrelr2 along z-axis;
-		wait-for-move barrell along z-axis;
-		wait-for-move barrell2 along z-axis;
-		gun_2 = 0;
-		gun_1 = 0;
-		return (0);
-	}
+	//while( gun_2 )
+	//{
+	//	wait-for-move barrelr along z-axis;
+	//	wait-for-move barrelr2 along z-axis;
+	//	wait-for-move barrell along z-axis;
+	//	wait-for-move barrell2 along z-axis;
+	//	gun_2 = 0;
+	//	gun_1 = 0;
+	//	return (0);
+	//}
 	return (1);
 }
 
 FirePrimary()
 {
+	return (1);
+}
+
+Shot1(zero)
+{
+	signal SIG_FIRE1;
+	set-signal-mask SIG_FIRE1;
 	if (gun_1 == 0){
 		move barrelr to z-axis [-3] now;
 		move barrelr to z-axis [0] speed [1];
@@ -154,7 +162,11 @@ FirePrimary()
 		move barrell2 to z-axis [0] speed [1];
 	}
 	++gun_1;
-	return (0);
+	if(gun_1>=4)
+	{
+		gun_1=0;
+	}
+	return(1);
 }
 
 AimFromPrimary(piecenum)
