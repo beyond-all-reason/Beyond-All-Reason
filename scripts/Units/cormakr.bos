@@ -14,15 +14,15 @@ MMStatus(State)
 	if (State)
 	{
 	    show light;
-		move cover to y-axis [-20] speed [20];	
-		turn cover2 to x-axis <180> speed <180>;
+		move cover to y-axis [-20] speed [40];
+		turn cover2 to x-axis <180> speed <240>;
 		sleep 100;
 	}
 	else
 	{
 	    hide light;
-		move cover to y-axis [0.0] speed [20];
-		turn cover2 to x-axis <0> speed <180>;
+		move cover to y-axis [0.0] speed [40];
+		turn cover2 to x-axis <0> speed <240>;
 		wait-for-turn cover2 around x-axis;
 	}
 	//get PRINT(Active);

@@ -1972,17 +1972,15 @@ function init()
 				  if not options[id].value then
 					  options[id].onchange(id, true)
 				  end
-				  widgetHandler:DisableWidget("Deferred rendering GL4")
 			  end
 		  end,
 		},
 		{ id = "lighteffects2_headlights", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.lighteffects2_headlights, type = "bool", value = Spring.GetConfigInt("headlights", 1) == 1, description = texts.option.lighteffects2_headlights_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt("headlights", value and 1 or 0)
-				local id = getOptionByID('lighteffects2')
-				if id and options[id].value then
-					options[id].onchange(id, false)
-					options[id].onchange(id, true)
+				if widgetHandler.orderList["Deferred rendering GL4"] ~= nil then
+					widgetHandler:DisableWidget("Deferred rendering GL4")
+					widgetHandler:EnableWidget("Deferred rendering GL4")
 				end
 			end,
 		},
