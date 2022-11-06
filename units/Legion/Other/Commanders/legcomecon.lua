@@ -46,7 +46,7 @@ return {
 		radaremitheight = 40,
 		reclaimable = false,
    		releaseheld  = true,
-		script = "Units/scavboss/legcomdef.cob",
+		script = "Units/scavboss/legcom.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
 		selfdestructcountdown = 5,
