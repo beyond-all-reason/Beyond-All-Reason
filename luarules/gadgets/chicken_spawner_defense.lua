@@ -1271,7 +1271,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
-
 		if not chickenteamhasplayers then
 			if SKIRMISH[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < SKIRMISH[attackerDefID].chance) then
 				local ux, uy, uz = GetUnitPosition(unitID)
@@ -1362,11 +1361,11 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			SpawnMiniQueenMinions(unitID, unitDefID)
 			if unitTeam == chickenTeamID or attackerTeam == chickenTeamID then
-				if (unitID and unitSquadTable[unitID] and squadsTable[unitSquadTable[unitID]] and squadsTable[unitSquadTable[unitID]].life and squadsTable[unitSquadTable[unitID]].life < 5) then
-					squadsTable[unitSquadTable[unitID]].life = 5
+				if (unitID and unitSquadTable[unitID] and squadsTable[unitSquadTable[unitID]] and squadsTable[unitSquadTable[unitID]].squadLife and squadsTable[unitSquadTable[unitID]].squadLife < 5) then
+					squadsTable[unitSquadTable[unitID]].squadLife = 5
 				end
-				if (attackerID and unitSquadTable[attackerID] and squadsTable[unitSquadTable[attackerID]] and squadsTable[unitSquadTable[attackerID]].life and squadsTable[unitSquadTable[attackerID]].life < 5) then
-					squadsTable[unitSquadTable[attackerID]].life = 5
+				if (attackerID and unitSquadTable[attackerID] and squadsTable[unitSquadTable[attackerID]] and squadsTable[unitSquadTable[attackerID]].squadLife and squadsTable[unitSquadTable[attackerID]].squadLife < 5) then
+					squadsTable[unitSquadTable[attackerID]].squadLife = 5
 				end
 			end
 		end
