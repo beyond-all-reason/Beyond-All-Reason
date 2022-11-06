@@ -86,6 +86,8 @@ if gadgetHandler:IsSyncedCode() then
 	local playerAgressionLevel = 0
 	local queenAngerAgressionLevel = 0
 	local difficultyCounter = 0
+	local airWaveCooldown = 0
+	local miniBossCooldown = 0
 	local firstSpawn = true
 	local gameOver = nil
 	local humanTeams = {}
@@ -1096,11 +1098,17 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local waveType = "normal"
-		if currentWave >= 6 and mRandom() <= 0.01 then
+		if miniBossCooldown <= 0 and currentWave >= 6 and mRandom() <= 0.1 then
+			miniBossCooldown = 5
 			waveType = "miniboss"
-		elseif config.airWaves[currentWave] and mRandom() <= 0.1 then
+		elseif airWaveCooldown <= 0 and config.airWaves[currentWave] and mRandom() <= 0.1 then
+			airWaveCooldown = 5
 			waveType = "air"
 		end
+
+		miniBossCooldown = miniBossCooldown - 1
+		airWaveCooldown = airWaveCooldown - 1
+			
 
 		local cCount = 0
 		local loopCounter = 0
