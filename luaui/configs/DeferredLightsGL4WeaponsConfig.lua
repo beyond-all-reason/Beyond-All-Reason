@@ -406,6 +406,7 @@ local function AssignLightsToAllWeapons()
 			end
 			t.lifetime = life
 			t.colortime = 0.037*(life/30)
+			t.a = orgMult
 
 			if weaponDef.type == 'DGun' then
 				t.a = orgMult*0.17
