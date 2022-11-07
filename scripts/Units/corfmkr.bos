@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, cover2;
+piece  base, cover2, light;
 
 static-var  mmState, Active;
 
@@ -41,10 +41,12 @@ MMStatus(State)
 	Active = State;
 	if (State)
 	{
+		show light;
 		turn cover2 to x-axis <180> speed <180>;
 	}
 	else
 	{
+		hide light;
 		turn cover2 to x-axis <0> speed <180>;
 	}
 	//get PRINT(Active);
