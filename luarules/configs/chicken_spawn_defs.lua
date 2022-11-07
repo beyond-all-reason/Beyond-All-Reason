@@ -388,10 +388,6 @@ local miniBosses = {
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Super Squads -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	addSuperSquad(5, { "5 chicken2"																		}) -- Apex Swarmer
-	addSuperSquad(5, { "5 chicken2b" 																	}) -- Apex Swarmer
-	addSuperSquad(5, { "2 chickena2" 																	}) -- Apex Brawler
-	addSuperSquad(5, { "2 chickena2b"																	}) -- Apex Brawler
 	addSuperSquad(5, { "2 chickenapexallterrainassault"													}) -- Apex AllTerrain Brawler
 	addSuperSquad(5, { "2 chickenapexallterrainassaultb"												}) -- Apex AllTerrain Brawler
 	addSuperSquad(3, { "6 chickenr1"																	}) -- Artillery
@@ -404,7 +400,7 @@ local miniBosses = {
 	addSuperSquad(5, { "2 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
 	addSuperSquad(5, { "5 chicken_dodo2" 																}) -- Kamikaze
 	addSuperSquad(4, { "6 chickenp2" 																	}) -- Apex Pyro
-	addSuperSquad(5, { "5 chickens2" 																	}) -- Apex Spiker
+	addSuperSquad(5, { "5 chickens2" 																	}, 2) -- Apex Spiker
 	if not Spring.GetModOptions().unit_restrictions_nonukes then
 		addSpecialSquad(7, { "1 chickenr2"																}, 2) -- Meteor Artillery
 	end
@@ -413,13 +409,12 @@ local miniBosses = {
 -- Special Squads -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-	--addSpecialSquad(1,    { "1 chickenf2"									 	                     }) -- Observer
-
-	--addSpecialSquad(2, { "8 chickenp1" 																	}) -- Small Pyro
+	addSpecialSquad(2, { "5 chickens1" 																	}, 5) -- Spiker
 
 	addSpecialSquad(3, { "10 chickenp1"  												            	}) -- Small Pyro
 	addSpecialSquad(3, { "8 chickene1"                                                                  }) -- Small Paralyzer
 
+	addSpecialSquad(4, { "5 chickens1" 																	}, 5) -- Spiker
 	addSpecialSquad(4, { "4 chickenp1" , "1 chickenp2"													}) -- Small Pyros with mom
 	addSpecialSquad(4, { "15 chicken_dodo1" 															}) -- Small Kamikaze
 
@@ -430,15 +425,21 @@ local miniBosses = {
 	addSpecialSquad(6, { "10 chickenelectricallterrain" 												}) -- EMP AllTerrain
 	addSpecialSquad(6, { "5 chickene1", "5 chickenacidswarmer" 											}) -- EMP and Acid Swarmer Combo
 	addSpecialSquad(6, { "3 chickenr1" 																	}) -- Artillery
+	addSpecialSquad(6, { "15 chickenc3"																	}, 3) -- AllTerrain Swarmer Small
+	addSpecialSquad(6, { "10 chickenc3b" 																}, 3) -- AllTerrain Swarmer Medium
+	addSpecialSquad(6, { "5 chickenc3c" 																}, 3) -- AllTerrain Swarmer Big
+	addSpecialSquad(6, { "6 chickenallterraina1" 														}) -- AllTerrain Brawler
+	addSpecialSquad(6, { "6 chickenallterraina1b" 														}) -- AllTerrain Brawler
+	addSpecialSquad(6, { "6 chickenallterraina1c" 														}) -- AllTerrain Brawler
+	addSpecialSquad(6, { "5 chickenelectricallterrain", "5 chickenacidallterrain" 						}) -- EMP and Acid AllTerrain Combo
 
 	addSpecialSquad(7, { "3 chickenearty1" 																}) -- EMP Artillery
 	addSpecialSquad(7, { "8 chickenp2" 																	}) -- Apex Pyro
 	addSpecialSquad(7, { "3 chickene2" 																	}) -- EMP Brawler
 	addSpecialSquad(7, { "3 chickenelectricallterrainassault" 											}) -- EMP AllTerrain Brawler
-	addSpecialSquad(7, { "5 chickenelectricallterrain", "5 chickenacidallterrain" 						}) -- EMP and Acid AllTerrain Combo
+	addSpecialSquad(7, { "10 chickens2" 																}, 2) -- Apex Spiker
 
 	addSpecialSquad(8, { "25 chicken_dodo2" 															}) -- Big Kamikaze
-	addSpecialSquad(8, { "10 chickens2" 																}) -- Apex Spiker
 	addSpecialSquad(8, { "10 chickenacidallterrain" 													}) -- Acid AllTerrain 
 	addSpecialSquad(8, { "4 chickenacidassault" 														}) -- Acid Brawler
 	addSpecialSquad(8, { "3 chickene2" 																	}) -- EMP Brawler
@@ -446,8 +447,6 @@ local miniBosses = {
 	addSpecialSquad(8, { "3 chickenacidarty" 															}) -- Acid Artillery
 	addSpecialSquad(8, { "5 chickenh4" 																	}) -- Hatchling
 
-	addSpecialSquad(9, { "5 chicken2" , "5 chicken2b" 													}, 7) -- Apex Swarmer
-	addSpecialSquad(9, { "3 chickena2", "3 chickena2b"													}, 2) -- Apex Brawler
 	addSpecialSquad(9, { "2 chickenapexallterrainassault", "2 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
 	addSpecialSquad(9, { "3 chickenr1" 																	}) -- Artillery
 	if not Spring.GetModOptions().unit_restrictions_nonukes then
@@ -456,8 +455,6 @@ local miniBosses = {
 	addSpecialSquad(9, { "3 chickenh3" 																	}) -- Brood Mother
 	addSpecialSquad(9, { "10 chickenh4" 																}) -- Hatchling
 
-	addSpecialSquad(10, { "5 chicken2" , "5 chicken2b" 													}, 5) -- Apex Swarmer
-	addSpecialSquad(10, { "3 chickena2", "3 chickena2b"													}, 2) -- Apex Brawler
 	addSpecialSquad(10, { "2 chickenapexallterrainassault", "2 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
 	addSpecialSquad(10, { "3 chickenr1" 																}) -- Artillery
 	if not Spring.GetModOptions().unit_restrictions_nonukes then
@@ -470,8 +467,6 @@ local miniBosses = {
 	
 if difficulty >= 3 then
 	for i = 11,wavesAmount do
-	addSpecialSquad(i, { "5 chicken2" , "5 chicken2b" 													}) -- Apex Swarmer
-	addSpecialSquad(i, { "5 chickena2", "5 chickena2b"													}) -- Apex Brawler
 	addSpecialSquad(i, { "5 chickenapexallterrainassault", "5 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
 	addSpecialSquad(i, { "3 chickenr1", "3 chickenearty1", "3 chickenacidarty" 							}) -- Artillery
 	if not Spring.GetModOptions().unit_restrictions_nonukes then
@@ -484,7 +479,7 @@ if difficulty >= 3 then
 	addSpecialSquad(i, { "3 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
 	addSpecialSquad(i, { "25 chicken_dodo2" 															}) -- Kamikaze
 	addSpecialSquad(i, { "10 chickenp2" 																}) -- Apex Pyro
-	addSpecialSquad(i, { "10 chickens2" 																}) -- Apex Spiker
+	addSpecialSquad(i, { "10 chickens2" 																}, 2) -- Apex Spiker
 	end
 end
 
@@ -492,36 +487,28 @@ end
 -- Basic Squads -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-addBasicSquad(1, {"4 chicken1_mini"}, 5)
-addBasicSquad(1, {"6 chicken1_mini"}, 5)
-addBasicSquad(1, {"8 chicken1_mini"}, 5)
-addBasicSquad(1, {"10 chicken1_mini"}, 5)
+addBasicSquad(1, {"2 chicken1_mini"})
 
 for i = 1,wavesAmount do
-	if i >= 1 and i <= 4 then -- Basic Swarmer
-		addBasicSquad(i, { i*2 .." chicken1", i*2 .." chicken1b", i*2 .." chicken1c" })
-		addBasicSquad(i, { i*2 .." chicken1b", i*2 .." chicken1c", i*2 .." chicken1d" })
-		addBasicSquad(i, { i*2 .." chicken1c", i*2 .." chicken1d", i*2 .." chicken1" })
-		addBasicSquad(i, { i*2 .." chicken1d", i*2 .." chicken1", i*2 .." chicken1b" })
+	if i >= 2 and i <= 4 then -- Basic Swarmer
+		addBasicSquad(i, { i*2 .." chicken1", i*2 .." chicken1b", i*2 .." chicken1c" }, 2)
+		addBasicSquad(i, { i*2 .." chicken1b", i*2 .." chicken1c", i*2 .." chicken1d" }, 2)
+		addBasicSquad(i, { i*2 .." chicken1c", i*2 .." chicken1d", i*2 .." chicken1" }, 2)
+		addBasicSquad(i, { i*2 .." chicken1d", i*2 .." chicken1", i*2 .." chicken1b" }, 2)
 	end
-	if i >= 2 then
-		addBasicSquad(i, { i*2 .." chicken1x", i*2 .." chicken1y" })
-		addBasicSquad(i, { i*2 .." chicken1y", i*2 .." chicken1z" })
-		addBasicSquad(i, { i*2 .." chicken1z", i*2 .." chicken1x" })
+	if i >= 2 and i <= 6 then -- Better Swarmer + Brawlers
+		addBasicSquad(i, { i ..  " chickena1" }, 2)
+		addBasicSquad(i, { i ..  " chickena1b"}, 2)
+		addBasicSquad(i, { i ..  " chickena1c"}, 2)
 	end
-	if i >= 2 and i <= 6 then -- Brawler and Spiker
-		addBasicSquad(i, { i ..  " chickena1" })
-		addBasicSquad(i, { i ..  " chickena1b"})
-		addBasicSquad(i, { i ..  " chickena1c"})
-		addBasicSquad(i, { i*4 .." chickens1" })
+	if i >= 3 and i <= 7 then
+		addBasicSquad(i, { i*2 .." chicken1x", i*2 .." chicken1y" }, 4)
+		addBasicSquad(i, { i*2 .." chicken1y", i*2 .." chicken1z" }, 4)
+		addBasicSquad(i, { i*2 .." chicken1z", i*2 .." chicken1x" }, 4)
 	end
-	if i >= 6  then -- More AllTerrains over time
-		addBasicSquad(i, { i*3 .." chickenc3" }, 2)
-		addBasicSquad(i, { i*2 .." chickenc3b" }, 2)
-		addBasicSquad(i, { i .." chickenc3c" }, 2)
-		addBasicSquad(i, { i .." chickenallterraina1" })
-		addBasicSquad(i, { i .." chickenallterraina1b" })
-		addBasicSquad(i, { i .." chickenallterraina1c" })
+	if i >= 7 then -- Apex Swarmer and  Apex Brawler
+		addBasicSquad(i, { i*2 .." chicken2" , i*2 .." chicken2b" }, 8)
+		addBasicSquad(i, { i .." chickena2", i .." chickena2b" }, 2)
 	end
 end
 
