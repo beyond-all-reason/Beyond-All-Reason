@@ -228,7 +228,7 @@ function DrawMapMarksWorld(isMiniMap)
 	  glLineWidth(lineWidth)
 		mapMarkShader:Activate()
 		mapMarkShader:SetUniform("isMiniMap",isMiniMap)
-		mapMarkShader:SetUniform("cameraFlipped", getMiniMapFlipped())
+		mapMarkShader:SetUniform("cameraFlipped", getMiniMapFlipped() and 1 or 0)
 
 		drawInstanceVBO(mapMarkInstanceVBO)
 
