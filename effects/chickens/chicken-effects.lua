@@ -1052,7 +1052,7 @@ local definitions = {
     },
   },
   
-  ["fire-area-75"] = {
+  ["fire-area-75-old"] = {
      usedefaultexplosions = false,
      acid_area = {
        air                = true,
@@ -1062,14 +1062,14 @@ local definitions = {
        underwater         = 1,
        water              = true,
        properties = {
-         colormap           = [[0.3 0.1 0.1 0.95   0.3 0.1 0.1 0.75   0.3 0.1 0.1 0.5    0.3 0.1 0.1 0.2   0.3 0.1 0.1 0.5   0.3 0.1 0.1 0.75    0.3 0.1 0.1 0.95]],
+         colormap           = [[0 0 0 0.1   0.12 0.1 0.1 0.95   0.12 0.1 0.1 0.75   0.12 0.1 0.1 0.5    0.12 0.1 0.1 0.4   0.11 0.08 0.08 0.4   0.10 0.07 0.07 0.4   0.08 0.06 0.06 0.4   0 0 0 0.1]],
          dir                = [[0, 1, 0]],
          frontoffset        = 0,
          fronttexture       = [[bloodcentersplatshwhite]],
          length             = 15,
          sidetexture        = [[none]],
          size               = [[30 r10]],
-         sizegrowth         = 0.0,
+         sizegrowth         = 0.05,
          ttl                = 330,
          pos                = [[0, 20, 0]],
          rotParams          = [[0 r0, 0, -180 r360]],

@@ -142,6 +142,7 @@ local SizeRadius = {
 	Tiny = 			55,
 	Smaller = 		75,
 	Small = 		100,
+	Smallish = 		125,
 	SmallMedium = 	150,
 	Medium = 		200,
 	Mediumer = 		250,
@@ -489,6 +490,13 @@ GetLightClass("Explosion", nil, "Large", {r = 3, g = 2.5, b = 2.0, a = 0.25,
 										  color2r = 0.9, color2g = 0.5, color2b = 0.15, colortime = 80,
 										  sustain = 30, lifetime = 150,
 										  modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
+
+--legbart
+explosionLights[WeaponDefNames["legbart_clusternapalm"].id] =
+GetLightClass("Explosion", nil, "Smallish", {r = 0.5, g = 0.4, b = 0.12, a = 0.28,
+										 color2r = 2.0, color2g = 1.4, color2b = 0.8, colortime = 50,
+										 sustain = 30, lifetime = 150,
+										 modelfactor = 0.25, specular = 0.23, scattering = 0.2, lensflare = 0})
 
 --[[
 --armpw
