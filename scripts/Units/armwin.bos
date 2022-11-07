@@ -3,13 +3,14 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, blades, turbine;
+piece  base, blades, turbine, emit;
 
 static-var  WindSpeed, WindDirection, LastDirection, Built, Stunned;
 
 
 Go()
 {
+	show emit;
 	sleep RAND(1, 500);
 	
 	//Take 5s to turn and accelerate
@@ -75,6 +76,7 @@ SetDirection(windDir) //called every 450 frames
 
 Stop()
 {
+	hide emit;
 	stop-spin blades around z-axis decelerate <10.0>;
 }
 
