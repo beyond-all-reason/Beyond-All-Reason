@@ -145,6 +145,28 @@ local unitDefLights = {
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	[UnitDefNames['armnanotc'].id] = {
+		nanolight = {
+			lightType = 'point',
+			pieceName = 'emitnano',
+			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 20,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.3,
+							modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	[UnitDefNames['cornanotc'].id] = {
+		nanolight = {
+			lightType = 'point',
+			pieceName = 'emitnano',
+			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 20,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.3,
+							modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	[UnitDefNames['armrl'].id] = {
 		searchlightrl = {
 			lightType = 'cone',
@@ -514,7 +536,7 @@ local unitDefLights = {
 			pieceName = 'rtbarrel',
 			lightConfig = { posx = 0, posy = 0, posz = 12, radius = 14,
 				color2r = 0.40000001, color2g = 0.69999999, color2b = 1.20000005, colortime = 30,
-				r = 0.2, g = 0.5, b = 1, a = 0.8,
+				r = 0.2, g = 0.5, b = 1, a = 1,
 				modelfactor = 0.1, specular = 0.75, scattering = 1.5, lensflare = 7,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
@@ -575,6 +597,28 @@ local unitDefLights = {
 				r = 2, g = 0, b = 0, a = 0.85000002,
 				modelfactor = 0.1, specular = 4, scattering = 2, lensflare = 4,
 				lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	[UnitDefNames['armsolar'].id] = {
+		fusionglow1 = {
+			lightType = 'point',
+			pieceName = 'emit',
+			lightConfig = { posx = 0, posy = 2, posz = 0, radius = 33,
+							color2r = 1, color2g = 1, color2b = 0, colortime = 0,
+							r = 1, g = 1, b = 0, a = 0.8,
+							modelfactor = 0.35, specular = 0.5, scattering = 0.3, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	[UnitDefNames['coradvsol'].id] = {
+		fusionglow1 = {
+			lightType = 'point',
+			pieceName = 'emit',
+			lightConfig = { posx = 0, posy = 5, posz = 0, radius = 36,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 1, g = 1, b = 0.7, a = 0.11,
+							modelfactor = 0.25, specular = 0.35, scattering = 2, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['cormakr'].id] = {

@@ -10,12 +10,14 @@ static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateCha
 
 Activatescr()
 {
+    show emitnano;
 	sleep 1;
 	return (0);
 }
 
 Deactivatescr()
 {
+    hide emitnano;
 	sleep 1;
 	return (0);
 }
