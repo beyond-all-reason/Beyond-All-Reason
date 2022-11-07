@@ -120,7 +120,7 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				duration = 0.02,
+				duration = 0.03,
 				edgeeffectiveness = 0.85,
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				fallOffRate = 0.2,

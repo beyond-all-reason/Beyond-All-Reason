@@ -10,6 +10,7 @@ static-var  bMoving, bAiming, Static_Var_3, restore_delay, wpn1_lasthead, minigu
 
 // Signal definitions
 #define SIG_AIM				2
+#define SIG_FIRE1 			4
 
 
 walk()
@@ -304,10 +305,10 @@ AimPrimary(heading, pitch)
 	turn body to y-axis heading speed <180.000000>;
 	turn luparm to x-axis 0 - pitch speed <360>;
 	turn ruparm to x-axis 0 - pitch speed <360>;
-	while( !Static_Var_3 )
-	{
-		return(0);
-	}
+	//while( !Static_Var_3 )
+	//{
+	//	return(0);
+	//}
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
@@ -321,19 +322,31 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	if( miniguncount == 0)
-	{
-		emit-sfx 1024 + 0 from rflare;
-		miniguncount = 3;
-	}
-	if( miniguncount == 1)
-	{	
-		emit-sfx 1024 + 0 from lflare;
-		miniguncount = 2;
-	}
-	miniguncount = miniguncount - 2;
 	spin rbarrel around z-axis speed <900.000000>;
 	spin lbarrel around z-axis speed <-900.000000>;
+	return(1);
+}
+
+Shot1(zero)
+{
+	signal SIG_FIRE1;
+	set-signal-mask SIG_FIRE1;
+	
+	if(miniguncount == 0)
+	{
+		emit-sfx 1024 + 0 from rflare;
+	}
+	if(miniguncount == 1)
+	{
+		emit-sfx 1024 + 0 from lflare;
+	}
+	sleep 32;
+	++miniguncount;
+	if(miniguncount>=2)
+	{
+		miniguncount=0;
+	}
+	return(1);
 }
 
 AimFromPrimary(piecenum)
@@ -343,11 +356,11 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
-	if( miniguncount == 0)
+	if(miniguncount == 0)
 	{
 		piecenum = rflare;
 	}
-	if( miniguncount == 1)
+	if(miniguncount == 1)
 	{
 		piecenum = lflare;
 	}
