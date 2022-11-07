@@ -24,6 +24,8 @@ function widget:GetInfo()
 	}
 end
 
+local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+
 local selectedScoreMode = modOptions.scoremode
 local captureRadius
 if modOptions.usemexconfig then
@@ -390,9 +392,15 @@ end
 function widget:DrawInMiniMap()
 	PushMatrix()
 	gl.LoadIdentity()
-	Translate(0, 1, 0)
-	Scale(1 / Game.mapSizeX, 1 / Game.mapSizeZ, 0)
-	Rotate(90, 1, 0, 0)
+	if getMiniMapFlipped() then
+		Translate(1, 0, 0)
+		Scale(-1 / Game.mapSizeX, -1 / Game.mapSizeZ, 0)
+		Rotate(90, 1, 0, 0)
+	else
+		Translate(0, 1, 0)
+		Scale(1 / Game.mapSizeX, 1 / Game.mapSizeZ, 0)
+		Rotate(90, 1, 0, 0)
+	end
 	drawPoints(true)
 	PopMatrix()
 end
