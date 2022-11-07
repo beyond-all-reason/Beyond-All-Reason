@@ -8,12 +8,13 @@
 piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot,
 		lfoot, dish, barrel, aimy1, aimx1, aimx2, hatpoint, teleport, turretmis, misbox, misflare, sleeve, barrelr, flare;  
 
-static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm,animSpeed;
+static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm, animSpeed, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM 2
 #define SIG_WALK 4
 #define SIG_AIM_2 8
+#define SIG_FIRE1 16
 
 // Generated for D:\spring\animation\armcom_anim_walk_v4.blend
 // Using https://github.com/Beherith/Skeletor_S3O
@@ -482,6 +483,7 @@ Create(){
 	hide teleport;
 	//turn rloarm to  x-axis <-15> speed <130.0000> ; //-- Turn(rloarm, x-axis, math.rad(-15),math.rad(130))
 	turn lflare to x-axis <90> now; //	Turn(lflare, x-axis,math.rad(90))
+	turn flare to x-axis <90> now;
 	turn nano to x-axis <90> now; //Turn(nano, x-axis,math.rad(90))
 	turn laserflare to x-axis <90> now; //	Turn(laserflare, x-axis,math.rad(90))
 	spin dish around y-axis speed <100>; //Spin(dish, y-axis, 2.5)
@@ -519,6 +521,7 @@ RestoreAfterDelay(){
 	isAimingDgun = 0;
 	rightarm = 1;
 	leftarm = 1;
+	wpn1_lasthead = 1000000;
 }
 
 
@@ -568,7 +571,12 @@ AimPrimary(heading, pitch) //pew pew
 	turn torso to  y-axis heading + <10> speed <300.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	turn rloarm to  x-axis <-55> speed <390.0000> ; //-- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 	turn ruparm to x-axis <-40> - pitch speed <390.0000> ; //-- Turn(ruparm,	x-axis, math.rad(-45) - pitch, math.rad(390))
-	wait-for-turn torso around y-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn torso around y-axis;
+	}
+	wpn1_lasthead = heading;
 	//wait-for-turn rloarm around x-axis;
 	//wait-for-turn ruparm around x-axis;
 	isAiming = 1;
@@ -582,8 +590,16 @@ AimPrimary(heading, pitch) //pew pew
 
 FirePrimary()
 {
-	emit-sfx 1024 + 0 from flare;
 	spin barrelr around y-axis speed <900.000000>;
+	return (1);
+}
+
+Shot1(zero)
+{
+	signal SIG_FIRE1;
+	set-signal-mask SIG_FIRE1;
+	emit-sfx 1024 + 3 from flare;
+	return(1);
 }
 
 /////////// uw weapon

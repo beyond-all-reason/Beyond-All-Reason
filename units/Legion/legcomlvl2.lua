@@ -149,6 +149,7 @@ return {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstepcom",
+				[4] = "custom:barrelshot-tiny",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",
@@ -234,11 +235,11 @@ return {
 					expl_light_color = "0.45 0.40 0.35",
 				},
 				damage = {
-					bombers = 26,
-					commanders = 13,
-					default = 26,
-					fighters = 26,
-					vtol = 26,
+					bombers = 22,
+					commanders = 11,
+					default = 22,
+					fighters = 22,
+					vtol = 22,
 				},
 			},
 			torpedo = {
