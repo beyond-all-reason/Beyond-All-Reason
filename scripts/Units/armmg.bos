@@ -6,7 +6,7 @@
 piece  base, pole, flare, turret, sleeve, barrel;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5,
-            Static_Var_6, Static_Var_7, restore_delay;
+            Static_Var_6, Static_Var_7, restore_delay, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -44,6 +44,7 @@ ExecuteRestoreAfterDelay()
 	spin barrel around z-axis speed <150.000000>;
 	sleep (restore_delay / 4);
 	stop-spin barrel around z-axis;
+	wpn1_lasthead = 1000000;
 	set-signal-mask 0;
 }
 
@@ -67,16 +68,21 @@ AimPrimary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	turn pole to y-axis heading speed <200.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <100.000000>;
-	wait-for-turn pole around y-axis;
-	wait-for-turn sleeve around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn pole around y-axis;
+		wait-for-turn sleeve around x-axis;
+	}
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
 FirePrimary()
 {
-	emit-sfx 1024 + 0 from flare;
 	spin barrel around z-axis speed <900.000000>;
+	emit-sfx 1024 + 0 from flare;
 }
 
 AimFromPrimary(piecenum)

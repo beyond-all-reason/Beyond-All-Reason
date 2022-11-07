@@ -101,7 +101,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-small",
+				[1] = "custom:barrelshot-tiny",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
@@ -135,7 +135,7 @@ return {
 				areaofeffect = 16,
 				avoidfeature = false,
 				burst = 6,
-				burstrate = 0.0675,
+				burstrate = 0.066,
 				burnblow = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -152,7 +152,7 @@ return {
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 3,
-				range = 425,
+				range = 400,
 				reloadtime = 0.4,
 				rgbcolor = "1 0.95 0.4",
 				--size = 2.25,
@@ -177,11 +177,11 @@ return {
 					expl_light_color = "0.45 0.40 0.35",
 				},
 				damage = {
-					bombers = 13,
-					commanders = 7,
-					default = 13,
-					fighters = 13,
-					vtol = 13,
+					bombers = 12,
+					commanders = 6,
+					default = 12,
+					fighters = 12,
+					vtol = 12,
 				},
 			},
 		},
