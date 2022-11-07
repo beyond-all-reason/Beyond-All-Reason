@@ -140,7 +140,7 @@ local unitDefLights = {
 				pieceName = 'barrel',
 				lightConfig = { posx = 0, posy = 0, posz = 6, radius = 16,
 				color2r = 0, color2g = 0.15, color2b = 1.5, colortime = 0,
-				r = 0, g = 0.2, b = 1.5, a = 1,
+				r = 0, g = 0.15, b = 1.3, a = 1,
 				modelfactor = 1, specular = 1, scattering = 1, lensflare = 10,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
@@ -371,7 +371,7 @@ local unitDefLights = {
 	[UnitDefNames['armfus'].id] = {
 		fusionglow1 = {
 			lightType = 'point',
-			pieceName = 'ball1',
+			pieceName = 'emit1',
 			lightConfig = { posx = 0, posy = 19, posz = 0, radius = 30,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = -1, g = 1, b = 1, a = 1,
@@ -380,8 +380,8 @@ local unitDefLights = {
 		},
 		fusionglow2 = {
 			lightType = 'point',
-			pieceName = 'ball2',
-			lightConfig = { posx = 0, posy = 19, posz = 0, radius = 30,
+			pieceName = 'emit2',
+			lightConfig = { posx = 0, posy = 19, posz = 0, radius = 40,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = -1, g = 1, b = 1, a = 1,
 							modelfactor = 0.3, specular = 0.66, scattering = 0.4, lensflare = 5,
@@ -865,6 +865,7 @@ local unitDefLights = {
 		},
 	},
 }
+unitDefLights[UnitDefNames['armshltxuw'].id] = unitDefLights[UnitDefNames['armshltx'].id]
 
 local unitEventLights = {
 	------------------------------------ Put lights that are slaved to ProjectileCreated here! ---------------------------------
