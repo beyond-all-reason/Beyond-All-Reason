@@ -394,7 +394,7 @@ local unitDefLights = {
 		fusionglow1 = {
 			lightType = 'point',
 			pieceName = 'emit1',
-			lightConfig = { posx = 0, posy = 19, posz = 0, radius = 30,
+			lightConfig = { posx = 0, posy = 19, posz = 0, radius = 40,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = -1, g = 1, b = 1, a = 1,
 							modelfactor = 0.3, specular = 0.66, scattering = 0.4, lensflare = 5,
