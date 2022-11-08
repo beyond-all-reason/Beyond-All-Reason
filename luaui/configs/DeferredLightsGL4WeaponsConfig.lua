@@ -380,6 +380,10 @@ local function AssignLightsToAllWeapons()
 			sizeclass = "Large"
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Cold", sizeclass, t)
 
+		-- elseif weaponDef.type == 'AircraftBomb' then
+		-- 	t.a = life * 1.8
+		-- 	projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
+
 		elseif weaponDef.type == 'Flame' then
 			--sizeclass = "Small"
 			sizeclass = GetClosestSizeClass(radius*3)
@@ -416,6 +420,12 @@ local function AssignLightsToAllWeapons()
 			elseif weaponDef.type == 'BeamLaser' then
 				t.a = (orgMult*0.04) / (0.2 + weaponDef.beamtime)
 				t.colortime = 1
+			elseif weaponDef.type == 'AircraftBomb' then
+				t.lifetime = life*2.4
+				t.a = orgMult*0.9
+				t.color2r, t.color2g, t.color2b = 0.72, 0.47, 0.2
+				t.colortime = 0.012
+				t.sustain = 2
 			end
 			explosionLights[weaponID] = GetLightClass("Explosion", nil, sizeclass, t)
 			explosionLights[weaponID].yOffset = explosionLights[weaponID].lightConfig.radius / 5
@@ -497,6 +507,13 @@ GetLightClass("Explosion", nil, "Smallish", {r = 0.5, g = 0.4, b = 0.12, a = 0.2
 										 color2r = 2.0, color2g = 1.4, color2b = 0.8, colortime = 50,
 										 sustain = 30, lifetime = 150,
 										 modelfactor = 0.25, specular = 0.23, scattering = 0.2, lensflare = 0})
+
+--armthundt4
+explosionLights[WeaponDefNames["armthundt4_armbomb"].id] =
+GetLightClass("Explosion", nil, "Large", {r = 2, g = 1.5, b = 1.0, a = 0.22,
+										  color2r = 0.9, color2g = 0.5, color2b = 0.15, colortime = 65,
+										  sustain = 4, lifetime = 55,
+										  modelfactor = 0.1, specular = 0.2, scattering = 0.2, lensflare = 4})
 
 --[[
 --armpw
