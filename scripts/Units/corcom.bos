@@ -864,6 +864,7 @@ RestorePosition()
 
 ResumeBuilding()
 {
+	show nanospray;
 	sleep 400;
 	if( bIsBuilding AND ( !gun_2 ) )
 	{
@@ -1027,6 +1028,7 @@ QueryWeapon4(piecenum)
 
 StartBuilding(heading, pitch)
 {
+	show nanospray;
 	gun_3 = torso;
 	signal SIG_AIM;
 	//set-signal-mask SIG_AIM;
@@ -1056,6 +1058,7 @@ TargetCleared(Func_Var_1)
 
 StopBuilding()
 {
+	hide nanospray;
 	bIsBuilding = FALSE;
 	set INBUILDSTANCE to 0;
 	signal SIG_AIM;

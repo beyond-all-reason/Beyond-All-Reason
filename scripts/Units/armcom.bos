@@ -522,6 +522,7 @@ RestoreAfterDelay(){
 
 ResumeBuilding()
 {
+	show nano;
 	sleep 800;
 	if( isBuilding AND ( !isAiming ) )
 	{
@@ -699,6 +700,7 @@ SprayNano(heading, pitch){
 
 StartBuilding(heading, pitch)
 {
+	show nano;
 	signal SIG_AIM;
 	//set-signal-mask SIG_AIM;
 	isBuilding		= 1;
@@ -731,6 +733,7 @@ TargetCleared(Func_Var_1)
 
 StopBuilding()
 {
+	hide nano;
 	rightArm = 1;
 	isBuilding = 0;
 	set INBUILDSTANCE to 0;
