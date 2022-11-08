@@ -521,7 +521,7 @@
 			"waveCount": "%{count} Raptors!",
 			"chickenCount": "Raptors: %{count}",
 			"chickenKillCount": "Raptors Killed: %{count}",
-			"chickenPlayerAgression": "Player Agression Level: %{count}",
+			"chickenPlayerAgression": "Player Aggression Level: %{count}",
 			"queenAnger": "Queen Hatch: %{anger}%%",
 			"queenHealth": "Queen Health: %{health}%%",
 			"gracePeriod": "Grace Period: %{time}",
