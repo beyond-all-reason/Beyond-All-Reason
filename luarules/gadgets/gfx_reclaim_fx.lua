@@ -27,7 +27,13 @@ end
 local featureList = {}
 for featureDefID, fdef in pairs(FeatureDefs) do
 	if fdef.model and fdef.model.minx and fdef.model.maxx then
-		featureList[featureDefID] = {minx=fdef.model.minx, maxx=fdef.model.maxx+1, miny=fdef.model.miny, maxy=fdef.model.maxy+1, minz=fdef.model.minz, maxz=fdef.model.maxz+1}
+		featureList[featureDefID] = {
+			minx=fdef.model.minx, 
+			maxx=math.max(fdef.model.maxx+1, fdef.model.minx+ 1), 
+			miny=fdef.model.miny, 
+			maxy=math.max(fdef.model.maxy+1, fdef.model.miny + 1), 
+			minz=fdef.model.minz, 
+			maxz=math.max(fdef.model.maxz+1, fdef.model.minz + 1) }
 	end
 end
 
