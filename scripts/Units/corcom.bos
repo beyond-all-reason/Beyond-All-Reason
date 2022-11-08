@@ -789,14 +789,12 @@ bigfire()
 Create()
 {
 	hide rbigflash;
-	hide lfirept;
 	hide nanospray;
 	hide aimx1;
 	hide hatpoint;
 	hide aimy1;
 	hide teleport;
 	hide rbigflash;
-	hide lfirept;
 	idleTime = 0;
 	bMoving = FALSE;
 	bAiming = FALSE;
@@ -920,9 +918,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	show lfirept;
 	sleep 100;
-	hide lfirept;
 	sleep 400;
 	gun_2 = torso;
 	return (0);
@@ -1006,10 +1002,8 @@ AimSecondary(heading, pitch)
 
 FireSecondary()
 {
-	show lfirept;
 	emit-sfx 1024 + 0 from lfirept;
 	sleep 100;
-	hide lfirept;
 	emit-sfx 1024 + 0 from lfirept;
 	sleep 400;
 	gun_2 = torso;
