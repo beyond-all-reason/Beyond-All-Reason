@@ -76,6 +76,50 @@ local unitDefLights = {
 		},
 	},
 
+	[UnitDefNames['armmark'].id] = {
+		greenblob = {
+			lightType = 'point',
+			pieceName = 'torso',
+			lightConfig = { posx = 0, posy = 10.5, posz = 0, radius = 17,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0, g = 1, b = 0, a = 0.33,
+							modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	[UnitDefNames['corvoyr'].id] = {
+		greenblob = {
+			lightType = 'point',
+			pieceName = 'torso',
+			lightConfig = { posx = 0, posy = 14, posz = 0, radius = 17,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0, g = 1, b = 0, a = 0.33,
+							modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	[UnitDefNames['armseer'].id] = {
+		greenblob = {
+			lightType = 'point',
+			pieceName = 'eye',
+			lightConfig = { posx = 0, posy = 5.5, posz = 0, radius = 17,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0, g = 1, b = 0, a = 0.60000002,
+							modelfactor = 0.80000001, specular = 0.89999998, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	[UnitDefNames['corvrad'].id] = {
+		greenblob = {
+			lightType = 'point',
+			pieceName = 'blink',
+			lightConfig = { posx = 0, posy = 2, posz = 0, radius = 17,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0, g = 1, b = 0, a = 0.45,
+							modelfactor = 0.8, specular = 0.9, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	[UnitDefNames['armarad'].id] = {
 		greenblob = {
 			lightType = 'point',
@@ -191,24 +235,68 @@ local unitDefLights = {
 	},
 	[UnitDefNames['armjamt'].id] = {
 		cloaklightred = {
-				lightType = 'point',
-				pieceName = 'turret',
-				lightConfig = { posx = 0, posy = 30, posz = 0, radius = 28,
-				color2r = 0, color2g = 0, color2b = 1, colortime = 0,
-				r = 1, g = 0, b = 0, a = 0.5,
-				modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
-				lifetime = 0, sustain = 0, animtype = 0},
+			lightType = 'point',
+			pieceName = 'turret',
+			lightConfig = { posx = 0, posy = 30, posz = 0, radius = 28,
+							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
+							r = 1, g = 0, b = 0, a = 0.5,
+							modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	[UnitDefNames['armjam'].id] = {
+		cloaklightred = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = 21, posz = 0, radius = 22,
+							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
+							r = 1, g = 0, b = 0, a = 0.42,
+							modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['corjamt'].id] = {
 		cloaklightred = {
-				lightType = 'point',
-				pieceName = 'base',
-				lightConfig = { posx = 0, posy = 44, posz = 0, radius = 28,
-				color2r = 0, color2g = 0, color2b = 1, colortime = 0,
-				r = 1, g = 0, b = 0, a = 0.5,
-				modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
-				lifetime = 0, sustain = 0, animtype = 0},
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = 44, posz = 0, radius = 28,
+							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
+							r = 1, g = 0, b = 0, a = 0.5,
+							modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	[UnitDefNames['coreter'].id] = {
+		cloaklightred = {
+			lightType = 'point',
+			pieceName = 'base',
+			lightConfig = { posx = 0, posy = 39, posz = -3.5, radius = 25,
+							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
+							r = 1, g = 0, b = 0, a = 0.45,
+							modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	[UnitDefNames['armaser'].id] = {
+		cloaklightred = {
+			lightType = 'point',
+			pieceName = 'torso',
+			lightConfig = { posx = 0, posy = 33, posz = -3.5, radius = 25,
+							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
+							r = 1, g = 0, b = 0, a = 0.4,
+							modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	[UnitDefNames['corspec'].id] = {
+		cloaklightred = {
+			lightType = 'point',
+			pieceName = 'head',
+			lightConfig = { posx = 0, posy = 11, posz = 5, radius = 22,
+							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
+							r = 1, g = 0, b = 0, a = 0.4,
+							modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
 	[UnitDefNames['armveil'].id] = {
