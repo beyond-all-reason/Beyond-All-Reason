@@ -39,7 +39,10 @@ function widget:Initialize()
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	widget:Shutdown()
+	for unitID, _ in pairs(unitshapes) do
+		RemoveHighLight(unitID, true)
+	end
+	WG.RefreshHighlightUnitGL4()
 	for unitID, unitDefID in pairs(extVisibleUnits) do 
 		widget:VisibleUnitAdded(unitID, unitDefID)
 	end
@@ -54,16 +57,22 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	end
 end
 
-function widget:VisibleUnitRemoved(unitID) 
-	if unitID and unitshapes[unitID] then
-		WG.StopHighlightUnitGL4(unitshapes[unitID])
+local function RemoveHighLight(unitID, noUpload)
+	if unitID and unitshapes[unitID] and WG.StopHighlightUnitGL4 then
+		WG.StopHighlightUnitGL4(unitshapes[unitID], noUpload)
 		unitshapes[unitID] = nil
 	end
 end
 
+function widget:VisibleUnitRemoved(unitID) 
+	RemoveHighLight(unitID)
+end
+
 function widget:Shutdown()
 	for unitID, _ in pairs(unitshapes) do
-		widget:VisibleUnitRemoved(unitID, true)
+		RemoveHighLight(unitID, true)
 	end
-	WG.RefreshHighlightUnitGL4()
+	if WG.RefreshHighlightUnitGL4 then 
+		WG.RefreshHighlightUnitGL4()
+	end
 end
