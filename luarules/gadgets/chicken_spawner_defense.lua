@@ -1099,7 +1099,7 @@ if gadgetHandler:IsSyncedCode() then
 		if miniBossCooldown <= 0 and currentWave >= 6 and mRandom() <= config.spawnChance then
 			miniBossCooldown = 5
 			waveType = "miniboss"
-		elseif Spring.GetModOptions().noair == false and airWaveCooldown <= 0 and config.airWaves[currentWave] and mRandom() <= config.spawnChance then
+		elseif Spring.GetModOptions().unit_restrictions_noair == false and airWaveCooldown <= 0 and config.airWaves[currentWave] and mRandom() <= config.spawnChance then
 			airWaveCooldown = 5
 			waveType = "air"
 		end
@@ -1247,7 +1247,7 @@ if gadgetHandler:IsSyncedCode() then
 						chickenEvent("queenResistance", attackerDefID)
 					end
 					queenResistance[weaponID].notify = 1
-					if Spring.GetModOptions().noair == false and mRandom() < config.spawnChance then
+					if Spring.GetModOptions().unit_restrictions_noair == false and mRandom() < config.spawnChance then
 						SpawnRandomOffWaveSquad(queenID, "chickenw2", 4)
 					end
 					if mRandom() < config.spawnChance then
@@ -1519,7 +1519,7 @@ if gadgetHandler:IsSyncedCode() then
 					SpawnRandomOffWaveSquad(queenID, "chickenh2", 1)
 					SpawnRandomOffWaveSquad(queenID, "chickenh3", 2)
 					SpawnRandomOffWaveSquad(queenID, "chickenh4", 5)
-					if Spring.GetModOptions().noair == false then
+					if Spring.GetModOptions().unit_restrictions_noair == false then
 						SpawnRandomOffWaveSquad(queenID, "chickenw2", 4)
 					end
 				end
