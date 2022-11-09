@@ -24,10 +24,10 @@ Spring.CreateDir("music/custom/menu")
 ----------------------------------------------------------------------
 
 local showGUI = false
-local minSilenceTime = 10
-local maxSilenceTime = 120
-local warLowLevel = 1500
-local warHighLevel = 30000
+local minSilenceTime = 60
+local maxSilenceTime = 300
+local warLowLevel = 2000
+local warHighLevel = 40000
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -35,8 +35,8 @@ local warHighLevel = 30000
 local specMultiplier = #Spring.GetAllyTeamList() - 1
 
 local function applySpectatorThresholds()
-	warLowLevel = 1500*specMultiplier
-	warHighLevel = 30000*specMultiplier
+	warLowLevel = 2000*specMultiplier
+	warHighLevel = 40000*specMultiplier
 	appliedSpectatorThresholds = true
 	--Spring.Echo("[Music Player] Spectator mode enabled")
 end
@@ -879,7 +879,7 @@ function widget:GameFrame(n)
 				end
 			elseif totalTime == 0 then -- there's no music
 				if silenceTimerEnabled and not bossHasSpawned then
-					if warMeter > warHighLevel * 3 and silenceTimer > 1 then
+					if warMeter > warHighLevel * 5 and silenceTimer > 1 then
 						silenceTimer = 1
 					elseif appliedSilence and silenceTimer <= 0 then
 						PlayNewTrack()
