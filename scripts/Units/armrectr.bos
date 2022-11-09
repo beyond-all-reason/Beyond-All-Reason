@@ -295,6 +295,7 @@ Deactivate()
 
 StartBuilding(heading, pitch)
 {
+	show nano;
 	signal SIG_BUILD;
 	set-signal-mask SIG_BUILD;
 	turn aimy1 to y-axis heading speed <260.000000>;
@@ -304,6 +305,7 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
+	hide nano;
 	signal SIG_BUILD;	
 	set INBUILDSTANCE to 0;
 	turn aimy1 to y-axis <0> speed <260.000000>;
