@@ -1183,7 +1183,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if waveType == "air" then
 			chickenEvent("airWave")
-		elseif waveType == "miniBoss" then
+		elseif waveType == "miniboss" then
 			chickenEvent("miniQueen")
 		end
 		return cCount
