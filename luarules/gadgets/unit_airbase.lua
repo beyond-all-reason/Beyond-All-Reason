@@ -516,7 +516,10 @@ if gadgetHandler:IsSyncedCode() then
 							if radius then
 								local unitDefID = Spring.GetUnitDefID(unitID)
 								if isAirUnit[unitDefID] and uy > Spring.GetGroundHeight(ux,uz)+10 then -- maybe landed planes are "not a flying unit" so lets try checking ground height
-									Spring.SetUnitLandGoal(unitID, px, py, pz, radius)	-- sometimes this gives an error: "not a flying unit"
+									if Spring.GetUnitMoveTypeData(unitID) and Spring.GetUnitMoveTypeData(unitID).aircraftState == "crashing" then 
+										-- crashing aircraft probably dont count as 'flying units', attempt #10 at fixing "not a flying unit"
+										Spring.SetUnitLandGoal(unitID, px, py, pz, radius)	-- sometimes this gives an error: "not a flying unit"
+									end
 								end
 							end
 						end
