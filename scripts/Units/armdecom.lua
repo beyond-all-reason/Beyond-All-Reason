@@ -37,7 +37,7 @@
 -- Unit animation preferences
 	leftArm		=	true;
 	rightArm	=	true;
-	heavy		=	true;			
+	heavy		=	true;
 
 -- Signal definitions
 local SIG_AIM			=	2
@@ -51,7 +51,7 @@ end
 function script.StopMoving()
 	isMoving = false
 	StartThread(poser)
-end	
+end
 
 --#include "\headers\smoke.h"
 include("include/walk.lua")
@@ -83,15 +83,16 @@ end
 function script.Create()
 	-- Initial State
 	--StartThread(TeleportControl)
+	Hide(nano)
 	Turn(r_forearm, x_axis, math.rad(-15),math.rad(130))
 	Turn(lflare, x_axis,math.rad(90))
 	Turn(nano, x_axis,math.rad(90))
 	Turn(laserflare, x_axis,math.rad(90))
 
 	Spin(dish, y_axis, 2.5)
-	
+
 	if(heavy == true ) then
-		SquatStance()	
+		SquatStance()
 	else
 		StandStance()
 	end
@@ -101,7 +102,7 @@ end
 
 -----------------------------------------------------------------------
 --gun functions;
------------------------------------------------------------------------	
+-----------------------------------------------------------------------
 function script.AimFromWeapon(weaponID)
 	if weaponID == 3 then
 		return l_arm
@@ -116,7 +117,7 @@ function script.QueryWeapon(weaponID)
 	if weaponID == 3 then
 		return lflare
 	else
-		return laserflare	
+		return laserflare
 	end
 end
 
@@ -125,13 +126,13 @@ function Teleport()
 end
 
 -----------------------------------------------------------------------
--- This coroutine is restarted with each time a unit reaims, 
+-- This coroutine is restarted with each time a unit reaims,
 -- not the most efficient and should be optimized. Possible
 -- augmentation needed to lus.
 -----------------------------------------------------------------------
 local function RestoreAfterDelayLeft()
 	Sleep(300)
-	
+
 	Turn(base, y_axis, 0, math.rad(305))
 	Turn(l_forearm, x_axis, math.rad(-38), math.rad(95))
 	Turn(l_arm, x_axis, 0, math.rad(95))
@@ -142,11 +143,11 @@ end
 
 local function RestoreAfterDelayRight()
 	Sleep(1500)
-	
+
 	Turn(base, y_axis, 0, math.rad(305))
 	Turn(r_forearm, x_axis, math.rad(-38), math.rad(95))
 	Turn(r_arm, x_axis, 0, math.rad(95))
-	
+
 	isAiming = false
 	isAimingDgun = false
 end
@@ -156,62 +157,62 @@ function script.AimWeapon(weaponID, heading, pitch)
 	if weaponID == 4 then
 		return false
 	end
-	
-	-- Spring.Echo("AimWeapon " .. weaponID)	
+
+	-- Spring.Echo("AimWeapon " .. weaponID)
 	-- weapon2 is supposed to only fire underwater, check for it.
 	if weaponID == 2 then
-		local _, basepos, _ = Spring.GetUnitPosition(unitID) 
+		local _, basepos, _ = Spring.GetUnitPosition(unitID)
 		if basepos > -16 then
 			return false
 		end
-	end 
-	
+	end
+
 	Turn(base, x_axis, 0, math.rad(395))
 	Turn(cod, x_axis, 0, math.rad(395))
-	
+
 	Signal(SIG_AIM)
 	SetSignalMask(SIG_AIM)
 	isAiming = true
-		
+
 	if weaponID == 3 then
 		FixArms(true, false)
 		isAimingDgun = true
-		
+
 		Turn(base, y_axis, heading, math.rad(300))
 		Turn(l_forearm, x_axis, math.rad(-85), math.rad(390))
 		Turn(l_arm,	x_axis, math.rad(-5) - pitch, math.rad(390))
-				
+
 		WaitForTurn(base, y_axis)
 		WaitForTurn(l_arm, x_axis)
 		WaitForTurn(l_forearm, x_axis)
 		-- Spring.Echo("AimWeapon done turning")
 
 		StartThread(RestoreAfterDelayLeft)
-		
-		firedWeapon		= false		
+
+		firedWeapon		= false
 		-- Spring.Echo("AimWeapon end")
 		return true
 	elseif not isAimingDgun then
 		FixArms(false, true)
-		
+
 		Turn(base, y_axis, heading, math.rad(300))
 		Turn(r_forearm, x_axis, math.rad(-55), math.rad(390))
 		Turn(r_arm,	x_axis, math.rad(-45) - pitch, math.rad(390))
-				
+
 		WaitForTurn(base, y_axis)
 		WaitForTurn(r_arm, x_axis)
 		WaitForTurn(r_forearm, x_axis)
 		-- Spring.Echo("AimWeapon " .. weaponID .. " done turning")
 
 		StartThread(RestoreAfterDelayRight)
-				
-		firedWeapon		= false		
+
+		firedWeapon		= false
 		-- Spring.Echo("AimWeapon " .. weaponID .. " end")
-		return true	
-	end	
+		return true
+	end
 end
 
-function script.FireWeapon(weaponID) 	
+function script.FireWeapon(weaponID)
 	Sleep(500)
 	firedWeapon		= true
 	isAiming = false
@@ -221,14 +222,15 @@ function script.FireWeapon(weaponID)
 end
 
 function script.StartBuilding(heading, pitch)
+	Show(nano)
 --	Spring.Echo("StartBuilding")
-Spring.SetUnitNanoPieces( unitID, {nano} )
+	Spring.SetUnitNanoPieces( unitID, {nano} )
 	isBuilding		= true;
-	
-		
+
+
 	Turn(base, x_axis, 0, math.rad(395))
 	Turn(cod, x_axis, 0, math.rad(395))
-	
+
 	Turn(base, y_axis, heading, math.rad(300))
 	Turn(r_forearm, x_axis, math.rad(-55), math.rad(390))
 	Turn(r_arm,	x_axis, math.rad(-55) - pitch, math.rad(390))
@@ -238,6 +240,7 @@ Spring.SetUnitNanoPieces( unitID, {nano} )
 end
 
 function script.StopBuilding()
+	Hide(nano)
 	--Sleep(200) --SLEEPING HERE WILL FUCK YOUR SHIT UP!
 	isBuilding		= false;
 	SetUnitValue(COB.INBUILDSTANCE, 0)
@@ -246,30 +249,30 @@ end
 
 -----------------------------------------------------------------------
 -- death stuffs
------------------------------------------------------------------------	
+-----------------------------------------------------------------------
 function script.Killed(recentDamage, maxHealth)
 	return 1 --cause commdeath does nothing but.
 	-- fall over
---	Turn(cod, x_axis, math.rad(270), 5)	
+--	Turn(cod, x_axis, math.rad(270), 5)
 	-- reset parts
-	-- Turn(base, y_axis, 0, 8)	
+	-- Turn(base, y_axis, 0, 8)
 	-- Turn(r_arm, z_axis, 4, 3)
 	-- Turn(l_arm, z_axis, -4, 3)
 	-- fall
 	-- Move(cod, y_axis, -30, 100)
 	-- Turn(base, x_axis, 0.5, 8)
 	-- Turn(right_l, x_axis, -0.5, 8)
-	-- Turn(left_l, x_axis, -0.5, 8)			
+	-- Turn(left_l, x_axis, -0.5, 8)
 	-- WaitForMove(cod, y_axis)
 	-- land
 	-- Turn(r_forearm, x_axis, 0, 5)
 	-- Turn(l_forearm, x_axis, 0, 5)
-	-- Move(cod, y_axis, -35, 200)	
+	-- Move(cod, y_axis, -35, 200)
 	-- Turn(base, x_axis, 0, 10)
 	-- Turn(right_l, x_axis, 0, 10)
 	-- Turn(left_l, x_axis, 0, 10)
 	-- WaitForMove(cod, y_axis)
-	
+
 	-- local severity = recentDamage/maxHealth
 	-- if (severity <= 99) then
 		-- Explode(l_arm, SFX.FALL)
