@@ -53,7 +53,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	if buildProgress and buildProgress < 1 then
 		local teamID = unitTeam or spGetUnitTeam(unitID) -- as unitTeam is passed except on VisibleUnitsChanged
 		local r, g, b = teamColor[teamID][1], teamColor[teamID][2], teamColor[teamID][3]
-		unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r, g, b, highlightAlpha, edgeAlpha, edgeExponent, animAmount)
+		unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r, g, b, highlightAlpha, edgeAlpha, edgeExponent, animAmount, 0, 0, 0, 0, "underconstruction")
 	end
 end
 
