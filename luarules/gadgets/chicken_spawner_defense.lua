@@ -1097,10 +1097,10 @@ if gadgetHandler:IsSyncedCode() then
 
 		local waveType = "normal"
 		if miniBossCooldown <= 0 and currentWave >= 6 and mRandom() <= config.spawnChance then
-			miniBossCooldown = 20
+			miniBossCooldown = mRandom(10,20)
 			waveType = "miniboss"
 		elseif Spring.GetModOptions().unit_restrictions_noair == false and airWaveCooldown <= 0 and config.airWaves[currentWave] and mRandom() <= config.spawnChance then
-			airWaveCooldown = 8
+			airWaveCooldown = mRandom(5,10)
 			waveType = "air"
 		end
 
