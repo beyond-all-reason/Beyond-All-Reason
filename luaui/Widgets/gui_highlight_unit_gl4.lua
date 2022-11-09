@@ -149,6 +149,12 @@ function widget:SelectionChanged(sel)
 	processSelection()
 end
 
+function widget:VisibleUnitRemoved(unitID)
+		if unitshapes[unitID] then
+			removeUnitShape(unitID, true)
+		end
+end
+
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 end
