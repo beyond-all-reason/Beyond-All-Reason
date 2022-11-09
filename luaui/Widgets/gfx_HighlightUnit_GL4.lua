@@ -192,13 +192,17 @@ local function HighlightUnitGL4(objectID, objecttype, r, g, b, alpha, edgealpha,
 	return uniqueID
 end
 
-local function StopHighlightUnitGL4(uniqueID)
+local function StopHighlightUnitGL4(uniqueID, noUpload)
 	if highlightUnitVBOTable.instanceIDtoIndex[uniqueID] then
-		popElementInstance(highlightUnitVBOTable, uniqueID)
+		popElementInstance(highlightUnitVBOTable, uniqueID, noUpload)
 	else
 		Spring.Echo("Unable to remove what you wanted in StopHighlightUnitGL4", uniqueID)
 	end
 	--Spring.Echo("Popped element", uniqueID)
+end
+
+local function RefreshHighlightUnitGL4()
+	uploadAllElements(highlightUnitVBOTable)
 end
 
 local unitIDtoUniqueID = {}
@@ -274,6 +278,7 @@ function widget:Initialize()
 	end
 	WG['HighlightUnitGL4'] = HighlightUnitGL4
 	WG['StopHighlightUnitGL4'] = StopHighlightUnitGL4
+	WG['RefreshHighlightUnitGL4'] = RefreshHighlightUnitGL4
 end
 
 function widget:Shutdown()
@@ -282,6 +287,7 @@ function widget:Shutdown()
 
 	WG['HighlightUnitGL4'] = nil
 	WG['StopHighlightUnitGL4'] = nil
+	WG['RefreshHighlightUnitGL4'] = nil
 end
 
 function widget:DrawWorld()
