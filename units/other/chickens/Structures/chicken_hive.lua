@@ -32,7 +32,7 @@ return {
 		script = "Chickens/chicken_hive.cob",
 		seismicsignature = 0,
 		selfdestructas = "ROOST_DEATH",
-		sightdistance = 450,
+		sightdistance = 100,
 		side = "THUNDERBIRDS",
 		smoothanim = true,
 		tedclass = "ENERGY",
