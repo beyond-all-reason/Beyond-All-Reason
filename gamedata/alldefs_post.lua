@@ -584,8 +584,6 @@ function UnitDef_Post(name, uDef)
 		uDef.upright = false
 		uDef.floater = true
 		uDef.turninplaceanglelimit = 360
-		uDef.acceleration = 5000
-		uDef.brakerate = 5000
 		if uDef.sightdistance then
 			uDef.sonardistance = uDef.sightdistance*2
 			uDef.radardistance = uDef.sightdistance*2
@@ -594,8 +592,8 @@ function UnitDef_Post(name, uDef)
 		if (not uDef.canfly) and uDef.maxvelocity then
 			uDef.maxreversevelocity = uDef.maxvelocity*0.65
 			uDef.turnrate = uDef.maxvelocity*300
-			
-			
+			uDef.acceleration = uDef.maxvelocity*0.05
+			uDef.brakerate = uDef.maxvelocity*0.05
 		end
 	end
 
