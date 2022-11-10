@@ -258,6 +258,7 @@ Deactivate()
 
 StartBuilding(heading, pitch)
 {
+	show nano;
 	start-script RequestState(0);
 	show cagelight_emit;
 	spin cagelight_emit around z-axis speed <200>;
@@ -270,6 +271,7 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
+	hide nano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	hide cagelight_emit;

@@ -213,6 +213,8 @@ Deactivate()
 
 StartBuilding(heading, pitch)
 {
+	show rnano;
+	show lnano;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
@@ -223,6 +225,8 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
+	hide rnano;
+	hide lnano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	sleep 6000;
