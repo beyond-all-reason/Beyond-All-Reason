@@ -130,7 +130,7 @@ return {
 				projectiles = 4,
 				range = 625,
 				reloadtime = 5,
-				rgbcolor = "1 0.25 0.1",
+				rgbcolor = "1 0.8 0.16",
 				size = 3,
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",

@@ -154,7 +154,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				explosiongenerator = "custom:burnblack",
+				explosiongenerator = "custom:burnblackxl",
 				firestarter = 100,
 				flamegfxtime = 1,
 				groundbounce = true,
