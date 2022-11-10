@@ -1725,7 +1725,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if t > config.gracePeriod+5 then
-				if burrowCount > 0 and (((config.chickenMaxSpawnRate) < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount) and (t - timeOfLastWave) > (config.chickenMaxSpawnRate*0.25)) then
+				if burrowCount > 0 and SetCount(spawnQueue) == 0 and (((config.chickenMaxSpawnRate) < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount)) then
 					local cCount = Wave()
 					lastWaveUnitCount = cCount
 					timeOfLastWave = t
@@ -1845,7 +1845,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
 		if unitTeam == chickenTeamID then
-			playerAgression = playerAgression+0.01
+			playerAgression = playerAgression+(0.01/config.chickenSpawnMultiplier)
 			local x,y,z = Spring.GetUnitPosition(unitID)
 			if unitDefID == config.burrowDef or UnitDefs[unitDefID].name == "chicken_turretl" then
 				for i = 1,mRandom(10,40) do
@@ -1939,7 +1939,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			burrows[unitID] = nil
 			if config.addQueenAnger then
-				playerAgression = playerAgression + config.angerBonus
+				playerAgression = playerAgression + (config.angerBonus/config.chickenSpawnMultiplier)
 				config.maxXP = config.maxXP*1.01
 			end
 
