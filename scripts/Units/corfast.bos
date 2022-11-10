@@ -346,6 +346,7 @@ Create()
 
 StartBuilding(heading, pitch)
 {
+	show flare;
 	signal SIG_BUILD;
 	building = 1;	
 	turn aimy1 to y-axis heading speed <250.000000>;
@@ -357,6 +358,7 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
+	hide flare;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;	
 	set INBUILDSTANCE to 0;

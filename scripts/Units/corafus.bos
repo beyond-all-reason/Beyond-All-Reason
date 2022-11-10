@@ -6,9 +6,10 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base;
+piece  base, emit;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
 InitState()
 {
@@ -25,6 +26,16 @@ Create()
 		sleep 1000;
 	}
 	return (0);
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+		hide emit;
+	} else {
+		show emit;
+	}
 }
 
 #define SMOKEPIECE base

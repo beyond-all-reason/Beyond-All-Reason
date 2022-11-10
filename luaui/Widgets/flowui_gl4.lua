@@ -365,6 +365,13 @@ end
 function metaElement:NewCheckBox(obj) end
 function metaElement:NewSelector(obj) end
 function metaElement:NewSlider(obj) end
+
+--Toggle state = (default: 0) 0 / 0.5 / 1
+function metaElement:NewToggle(o) 
+	local obj = newElement(o)
+	obj.instanceKeys = Draw.Toggle(rectRoundVBO or obj.VBO, obj.name, obj.depth, obj.left, obj.bottom, obj.right, obj.top, obj.state)
+end
+
 function metaElement:NewUiUnit(o) 
 	local obj = newElement(o)
 	
@@ -387,7 +394,8 @@ function metaElement:NewUiUnit(o)
 			--500, 7)
 	end
 function metaElement:NewRectRound(obj) end
-function metaElement:NewEmpty(obj) end
+
+--function metaElement:NewEmpty(obj) end
 
 ROOT = metaElement:NewContainer({root = true})
 
@@ -395,6 +403,7 @@ local lastmouse = {mx = 0, my = 0, left = false, middle = false, right = false}
 local lasthitelement = nil -- this is to store which one was last hit to fire off mouseentered mouseleft events 
 -- TODO: debounce clicking!
 local function uiUpdate(mx,my,left,middle,right)
+	--if true then return end
 	-- this needs to be revamped, to trace the element under cursor, and then act based on clickedness
 	local elementundercursor
 	if false and mx == lastmouse.mx and my == lastmouse.my then -- this will probably be bad in the future!
@@ -491,6 +500,7 @@ local function makeunitbuttonarray()
 		Spring.Echo(k,v)
 	end
 	local n = 10
+	local s = 110
 	for i = 1, n do
 		for j = 1, n do 
 			--rectRoundVBO, nil, 0.4, x,y,w,h, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, {0.2, 0.8, 0.2, 0.8 }, WG.FlowUI.elementCorner * 0.5
@@ -498,10 +508,10 @@ local function makeunitbuttonarray()
 			if unitDef.buildOptions[idx] then 
 				local thisunitdefid = unitDef.buildOptions[idx]
 				local newbtn = metaElement:NewUiUnit({
-						left = 1000 + 100*i,
-						bottom = 100 + 100 *j,
-						right = 1100 + 100*i,
-						top = 200 + 100 *j,
+						left = 1000 + s*i,
+						bottom = 100 + s *j,
+						right = 1000 + s*(i + 1),
+						top = 100 + s*(j+ 1),
 						parent = ROOT,
 						texture = 'unitpics/'.. UnitDefs[thisunitdefid].name ..'.dds',
 						radartexture = unitIcon[thisunitdefid],
@@ -890,7 +900,7 @@ out vec4 fragColor;
 #line 20000
 void main() {
 	//vec4 bgTex = texture(bgTex, g_uv.zw/BACKGROUND_TILESIZE); // sample background texture, even if we might discard it
-	vec4 fronttex = texture(uiAtlas, g_uv.xy);
+	vec4 fronttex = texture(uiAtlas, g_uv.xy, - 0.75);
 	fragColor = g_color;
 	//fragColor.rgb = mix(fragColor.rgb, bgTex.rgb, bgTex.a * g_fronttex_edge_backtex_hide.y);
 	fragColor.rgba = mix(fragColor.rgba, fronttex.rgba, g_fronttex_edge_backtex_hide.x);// * g_fronttex_edge_backtex_hide.x );
@@ -1722,32 +1732,7 @@ Draw.SelectHighlight = function(VBO, instanceID, z, px, py, sx, sy,  cs, opacity
 	return {darkoutline, body, top, bottom}
 end
 
--- remove a set of elements from the VBO
-Draw.RemoveUIElements = function(VBO, instanceIDs, noUpload)
-	for i,k in ipairs(instanceIDs) do
-		popElementInstance(VBO, k, noUpload)
-	end
-	return noUpload
-end
 
--- toggle the visibilitystate to true, or false, pass nil to toggle the original value 
-Draw.ToggleUIElements = function(VBO, instanceIDs, visibilitystate, noUpload)
-	local visibility_index = 4 * 6 
-	for i,k in ipairs(instanceIDs) do
-		local offset = VBO.intanceIDtoIndex[k]
-		if k then 
-			if visibilitystate ~= nil then
-				VBO.instanceData[offset + visibility_index] = visibilitystate
-			else
-				VBO.instanceData[offset + visibility_index] = 1.0 - VBO.instanceData[offset + visibility_index]
-			end
-		end
-	end
-	if noUpload ~= true then 
-		uploadAllElements(VBO)
-	end
-	return noUpload
-end
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------

@@ -7,32 +7,23 @@ piece  base, cover, cover2, light;
 
 static-var Active;
 
-LightOn()
-{
-	show light;
-}
-LightOff()
-{
-	hide light;
-}
 
 MMStatus(State)
 {
 	Active = State;
 	if (State)
 	{
-		call-script LightOn();
-		move cover to y-axis [-20] speed [20];	
-		turn cover2 to x-axis <180> speed <180>;
+	    show light;
+		move cover to y-axis [-20] speed [40];
+		turn cover2 to x-axis <180> speed <240>;
 		sleep 100;
-		call-script LightOn();	
 	}
 	else
 	{
-		move cover to y-axis [0.0] speed [20];
-		turn cover2 to x-axis <0> speed <180>;
+	    hide light;
+		move cover to y-axis [0.0] speed [40];
+		turn cover2 to x-axis <0> speed <240>;
 		wait-for-turn cover2 around x-axis;
-		call-script LightOff();
 	}
 	//get PRINT(Active);
 }

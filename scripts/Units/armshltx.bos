@@ -3,7 +3,8 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad, head1, head2, head3, head4, head5, nano1, nano2, nano3, nano4, nano5;
+piece  base, pad, head1, head2, head3, head4, head5, nano1, nano2, nano3, nano4, nano5,
+	   blink1a, blink1b, blink1c, blink2a, blink2b, blink2c;
 
 static-var  spray, statechg_DesiredState, statechg_StateChanging;
 

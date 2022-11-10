@@ -1927,6 +1927,11 @@ function init()
 					  widgetHandler:EnableWidget("Deferred rendering")
 				  end
 				  widgetHandler:EnableWidget("Light Effects")
+
+				  local id = getOptionByID('lighteffects2')
+				  if options[id].value then
+					  options[id].onchange(id, false)
+				  end
 			  else
 				  if widgetHandler.orderList["Deferred rendering"] ~= nil then
 					  widgetHandler:DisableWidget("Deferred rendering")
@@ -1950,6 +1955,34 @@ function init()
 		  onchange = function(i, value)
 			  saveOptionValue('Light Effects', 'lighteffects', 'setAdditionalFlashes', { 'additionalLightingFlashes' }, value)
 		  end,
+		},
+
+		{ id = "lighteffects2", group = "gfx", category = types.dev, name = texts.option.lighteffects2, type = "bool", value = GetWidgetToggleValue("Deferred rendering GL4"), description = texts.option.lighteffects2_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if value then
+				  local id = getOptionByID('lighteffects')
+				  if options[id].value then
+					  options[id].onchange(id, false)
+				  end
+				  widgetHandler:EnableWidget("Deferred rendering GL4")
+			  else
+				  local id = getOptionByID('lighteffects')
+				  if not options[id].value then
+					  options[id].onchange(id, true)
+				  end
+			  end
+		  end,
+		},
+		{ id = "lighteffects2_headlights", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.lighteffects2_headlights, type = "bool", value = Spring.GetConfigInt("headlights", 1) == 1, description = texts.option.lighteffects2_headlights_descr,
+			onchange = function(i, value)
+				Spring.SetConfigInt("headlights", value and 1 or 0)
+				if widgetHandler.orderList["Deferred rendering GL4"] ~= nil then
+					widgetHandler:DisableWidget("Deferred rendering GL4")
+					widgetHandler:EnableWidget("Deferred rendering GL4")
+				end
+			end,
 		},
 
 		{ id = "heatdistortion", group = "gfx", category = types.dev, widget = "Lups", name = texts.option.heatdistortion, type = "bool", value = GetWidgetToggleValue("Lups"), description = texts.option.heatdistortion_descr },

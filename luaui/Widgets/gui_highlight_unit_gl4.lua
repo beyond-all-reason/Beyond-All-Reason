@@ -93,7 +93,7 @@ local function addUnitShape(unitID)
 			unitshapes[unitID] = nil
 		end
 		if mult > 0 then
-			unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r,g,b, a*mult, (unitIsSelected and selectedEdgeAlpha or edgeAlpha)*mult, unitIsSelected and selectedEdgeExponent or edgeExponent, (unitIsSelected and selectedAnimationAlpha or animationAlpha) * mult)
+			unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r,g,b, a*mult, (unitIsSelected and selectedEdgeAlpha or edgeAlpha)*mult, unitIsSelected and selectedEdgeExponent or edgeExponent, (unitIsSelected and selectedAnimationAlpha or animationAlpha) * mult, 0,0,0,0,"mouseover") 
 			return unitshapes[unitID]
 		end
 	end
@@ -147,6 +147,12 @@ end
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
 	processSelection()
+end
+
+function widget:VisibleUnitRemoved(unitID)
+		if unitshapes[unitID] then
+			removeUnitShape(unitID, true)
+		end
 end
 
 function widget:ViewResize()

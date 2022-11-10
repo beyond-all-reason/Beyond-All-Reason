@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, engines, enginec, wingl, wingr, doorl, doorr, thrustc, thrust1, thrust2, thrust3, thrust4;
+piece  base, engines, enginec, wingl, wingr, doorl, doorr, thrustc, thrust1, thrust2, thrust3, thrust4, blinka, blinkb;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 
@@ -91,6 +91,23 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
+Blink()
+{
+	while( TRUE )
+	{
+		//sleep 120;
+		show blinka;
+		show blinkb;
+		sleep 250;
+		hide blinka;
+		hide blinkb;
+		//sleep 120;
+		sleep 1700;
+	}
+	sleep 50;
+	start-script Blink();
+}
+
 InitState()
 {
 	statechg_DesiredState = TRUE;
@@ -137,6 +154,7 @@ Create()
 	turn thrustc to x-axis <-90> now; 
 	call-script InitState();
 	start-script SmokeUnit();
+	start-script Blink();
 }
 
 Activate()

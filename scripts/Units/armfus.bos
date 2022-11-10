@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece base, collar1, ball1, collar2, ball2;
+piece base, collar1, ball1, collar2, ball2, emit1, emit2;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
@@ -21,6 +21,8 @@ InitState()
 Go()
 {
 	set ARMORED to 1;
+	show emit1;
+	show emit2;
 	spin ball1 around y-axis speed <-30.00000>;
 	spin ball2 around y-axis speed <-30.00000>;
 	spin collar1 around y-axis speed <60.00000>;
@@ -30,6 +32,8 @@ Go()
 Stop()
 {
 	set ARMORED to 0;
+	hide emit1;
+	hide emit2;
 	spin ball1 around y-axis speed <0.000000>;
 	spin ball2 around y-axis speed <0.000000>;
 	spin collar1 around y-axis speed <0.000000>;

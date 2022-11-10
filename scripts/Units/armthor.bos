@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece  base, turret, sleeve, rtbarrel, ltbarrel, lempslv, lempbarrel, rempslv, rempbarrel, rlauncher,
-flare1, flare2, flare3, flare4, flare5, flare7;
+flare1, flare2, flare3, flare4, flare5, flare7, spark_emit1, spark_emit2;
 
 static-var  moveSpeed, currentSpeed, animSpeed, restore_delay, currentBarrel, currentLauncher;
 
@@ -43,6 +43,8 @@ Create()
 	hide flare4;
 	hide flare5;
 	hide flare7;
+	hide spark_emit1;
+	hide spark_emit2;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
 	currentBarrel = 0;
@@ -76,17 +78,6 @@ static-var  Stunned;
 // Stun logic needs to be looked at, the restore is usually set to unstoppable mask 0,
 // which can cause problems if the unit gets a target while doing the restore animation
 // not relevant for unparalyzable thor, but might be needed for other units
-SetStunned(State)
-{
-    Stunned = State;
-	if (!Stunned)
-	{
-		start-script RestoreAfterDelay_tesla();
-		start-script RestoreAfterDelay_EMP_missile();
-		start-script RestoreAfterDelay_lEMP();
-		start-script RestoreAfterDelay_rEMP();
-	}
-}
 
 RestoreAfterDelay_tesla()
 {
@@ -124,6 +115,18 @@ RestoreAfterDelay_rEMP()
 	turn rempslv to y-axis <0> speed <90>;
 }
 
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned)
+	{
+		start-script RestoreAfterDelay_tesla();
+		start-script RestoreAfterDelay_EMP_missile();
+		start-script RestoreAfterDelay_lEMP();
+		start-script RestoreAfterDelay_rEMP();
+	}
+}
+
 SweetSpot(piecenum)
 {
 	piecenum = base;
@@ -155,26 +158,49 @@ Rock_Main_Cannon()
 	turn base to x-axis <0.000000> speed <20.000000>;
 }
 
+FireSparks1()
+{
+		show spark_emit1;
+		sleep 225;
+		hide spark_emit1;
+		return (1);
+}
+
+FireSparks2()
+{
+		show spark_emit2;
+		sleep 225;
+		hide spark_emit2;
+		return (1);
+}
+
 FireWeapon1()
 {
 	start-script Rock_Main_Cannon();
 	if( currentBarrel == 0 )
 	{
+		//show spark_emit2;
 		move ltbarrel to z-axis [-2.400000] speed [500.000000];
 		spin ltbarrel around z-axis speed <360> accelerate <120>;
 		emit-sfx 1024 + 0 from flare2;
+		start-script FireSparks2();
 		sleep 100;
+		//hide spark_emit2;
 		wait-for-move ltbarrel along z-axis;
 		move ltbarrel to z-axis [0.000000] speed [3.000000];
 		wait-for-move ltbarrel along z-axis;
 		stop-spin ltbarrel around z-axis decelerate <15>;
+		
 	}
 	if( currentBarrel == 1 )
 	{
+		//show spark_emit1;
 		move rtbarrel to z-axis [-2.400000] speed [500.000000];
 		spin rtbarrel around z-axis speed <360> accelerate <120>;
 		emit-sfx 1024 + 0 from flare1;
+		start-script FireSparks1();
 		sleep 100;
+		//hide spark_emit1;
 		wait-for-move rtbarrel along z-axis;
 		move rtbarrel to z-axis [0.000000] speed [3.000000];
 		wait-for-move rtbarrel along z-axis;
@@ -254,12 +280,12 @@ AimWeapon3(heading, pitch)
 	// In general, 6 cau per frame ~= 1 degree per second
 	turn lempslv to y-axis heading speed <120>;
 	// if weapon will take more than 1 frame to turn to new angle, wait for turn
-	if ( (get ABS(last_lempslv_heading-heading)>720) )
+	if ( (get ABS(last_lempslv_heading - heading) > 720) )
 	{
 		// seems to take 3 frames for wait-for-turn to process
 		wait-for-turn lempslv around y-axis;
 	}
-	last_lempslv_heading=heading;
+	last_lempslv_heading = heading;
 	start-script RestoreAfterDelay_lEMP();
 	return (1);
 }
@@ -305,7 +331,7 @@ AimWeapon4(heading, pitch)
 	// In general, 6 cau per frame ~= 1 degree per second
 	turn rempslv to y-axis heading speed <120>;
 	// if weapon will take more than 1 frame to turn to new angle, wait for turn
-	if ( (get ABS(last_rempslv_heading-heading)>720) )
+	if ( (get ABS(last_rempslv_heading - heading)>720) )
 	{
 		// seems to take 3 frames for wait-for-turn to process
 		wait-for-turn rempslv around y-axis;

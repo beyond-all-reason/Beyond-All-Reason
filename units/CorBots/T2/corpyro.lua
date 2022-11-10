@@ -102,7 +102,7 @@ return {
 				avoidfeature = false,
 				burst = 16,
 				burstrate = 0.05,
-				cegtag = "burnflame",
+				cegtag = "burnflame-anim",
 				colormap = "1 0.95 0.9 0.032   0.55 0.55 0.40 0.028   0.40 0.28 0.19 0.024   0.033 0.018 0.011 0.04   0.0 0.0 0.0 0.01",
 				craterareaofeffect = 0,
 				craterboost = 0,

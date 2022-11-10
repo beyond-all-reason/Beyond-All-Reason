@@ -575,19 +575,25 @@ function UnitDef_Post(name, uDef)
 		uDef.buildcostenergy = chickHealth*5
 		uDef.buildtime = chickHealth*10
 		uDef.hidedamage = true
-		if (uDef.mass and uDef.mass < 500) or not uDef.mass then uDef.mass = 500 end
+		uDef.mass = chickHealth
 		uDef.canhover = true
-		uDef.autoheal = math.ceil(math.sqrt(chickHealth * 0.1))
+		uDef.autoheal = math.ceil(math.sqrt(chickHealth * 0.2))
 		uDef.customparams.paralyzemultiplier = uDef.customparams.paralyzemultiplier or .2
-		uDef.idleautoheal = math.ceil(math.sqrt(chickHealth * 0.1))
+		uDef.idleautoheal = math.ceil(math.sqrt(chickHealth * 0.2))
 		uDef.customparams.areadamageresistance = "_CHICKENACID_"
 		uDef.upright = false
 		uDef.floater = true
+		uDef.turninplaceanglelimit = 360
 		if uDef.sightdistance then
-			uDef.sonardistance = uDef.sightdistance
+			uDef.sonardistance = uDef.sightdistance*2
+			uDef.radardistance = uDef.sightdistance*2
+			uDef.airsightdistance = uDef.sightdistance*2
 		end
 		if (not uDef.canfly) and uDef.maxvelocity then
 			uDef.maxreversevelocity = uDef.maxvelocity*0.65
+			uDef.turnrate = uDef.maxvelocity*300
+			uDef.acceleration = uDef.maxvelocity*0.05
+			uDef.brakerate = uDef.maxvelocity*0.05
 		end
 	end
 

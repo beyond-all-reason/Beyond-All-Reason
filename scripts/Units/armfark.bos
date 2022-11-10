@@ -289,6 +289,8 @@ Create()
 {
 	hide aimx1;
 	hide aimy1;
+    hide lnano;
+    hide rnano;
 	bMoving = FALSE;
 	animSpeed = 3;
 	nanoNozzle = 0;
@@ -311,6 +313,8 @@ BuildAnim(){
 
 StartBuilding(heading, pitch)
 {
+    show lnano;
+    show rnano;
 	signal SIG_BUILD;
 	turn aimy1 to y-axis heading speed <240.000000>;
 	turn aimx1 to x-axis <-50> - pitch speed <240.0>;
@@ -321,6 +325,8 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
+    hide lnano;
+    hide rnano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	turn aimy1 to y-axis <0.000000> speed <160.000000>;

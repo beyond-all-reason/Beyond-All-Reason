@@ -58,8 +58,35 @@ end
 
 ]]
 
+if string.find(mapName, "stronghold") then
+	lavaMap = true
+	lavaLevel = 20
+	lavaGrow = 0
+	
+	lavaDamage = 25 -- damage per second
+	lavaTideamplitude = 3
+	lavaTideperiod = 95
+	lavaDiffuseEmitTex = "LuaUI/images/lava7_diffuseemit.dds"
+	lavaNormalHeightTex = "LuaUI/images/lava7_normalheight.dds"
+	lavaLOSdarkness = 0.7
+	lavaColorCorrection = "vec3(1.1, 1.0, 0.88)"
+	lavaShadowStrength = 1.0 -- how much light a shadowed fragment can recieve
+	lavaCoastColor = "vec3(2.2, 0.4, 0.0)"
+	lavaCoastLightBoost = 0.7
+	lavaCoastWidth = 36.0
+	lavaFogFactor = 0.08 -- how dense the fog is
+	lavaFogColor = "vec3(2.0, 0.31, 0.0)"
+	lavaFogHeight = 85
+	lavaFogAbove = 0.18
+	lavaUVscale = 0.5
+	lavaSwirlFreq = 0.017
+	lavaSwirlAmp = 0.0024
 
-if string.find(mapName, "incandescence") then
+	if isLavaGadget and isLavaGadget == "synced" then
+		addTideRhym (19, 0.3, 5*6000)
+	end
+
+elseif string.find(mapName, "incandescence") then
 	lavaMap = true
 	lavaLevel = 207
 	lavaDamage = 150 -- damage per second
@@ -77,6 +104,7 @@ if string.find(mapName, "incandescence") then
 	lavaFogColor = "vec3(2.0, 0.31, 0.0)"
 	lavaFogHeight = 85
 	lavaFogAbove = 0.18
+
 
 	if isLavaGadget and isLavaGadget == "synced" then
 		addTideRhym (206, 0.25, 5*6000) -- needs to be -1 than pre-game lava level

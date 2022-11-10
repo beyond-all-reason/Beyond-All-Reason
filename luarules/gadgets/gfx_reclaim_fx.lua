@@ -27,7 +27,13 @@ end
 local featureList = {}
 for featureDefID, fdef in pairs(FeatureDefs) do
 	if fdef.model and fdef.model.minx and fdef.model.maxx then
-		featureList[featureDefID] = {minx=fdef.model.minx, maxx=fdef.model.maxx+1, miny=fdef.model.miny, maxy=fdef.model.maxy+1, minz=fdef.model.minz, maxz=fdef.model.maxz+1}
+		featureList[featureDefID] = {
+			minx=fdef.model.minx, 
+			maxx=math.max(fdef.model.maxx+1, fdef.model.minx+ 1), 
+			miny=fdef.model.miny, 
+			maxy=math.max(fdef.model.maxy+1, fdef.model.miny + 1), 
+			minz=fdef.model.minz, 
+			maxz=math.max(fdef.model.maxz+1, fdef.model.minz + 1) }
 	end
 end
 
@@ -60,7 +66,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 			for i=1, unitNumFx[unitDefID], 1 do
 				x = ux + (random(unitMinX[unitDefID], unitMaxX[unitDefID])*posMultiplier)
 				z = uz + (random(unitMinZ[unitDefID], unitMaxX[unitDefID])*posMultiplier)
-				y = uy + (random() * unitMaxY[unitDefID]*posMultiplier)
+				y = uy + (random(0,1) * unitMaxY[unitDefID]*posMultiplier)
 				Spring.SpawnCEG("metalshards"..(((i+1)%3)+1), x, y, z)
 			end
 		end
@@ -83,7 +89,7 @@ function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, wea
 					for i=1, numFx, 1 do
 						x = fx + (random(fdef.minx, fdef.maxx)*posMultiplier)
 						z = fz + (random(fdef.minz, fdef.maxz)*posMultiplier)
-						y = fy + (random() * fdef.maxy*posMultiplier)
+						y = fy + (random(0,1) * fdef.maxy*posMultiplier)
 						Spring.SpawnCEG("energyshards"..(((i+1)%3)+1), x, y, z)
 					end
 				end
@@ -94,7 +100,7 @@ function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, wea
 					for i=1, numFx, 1 do
 						x = fx + (random(fdef.minx, fdef.maxx)*posMultiplier)
 						z = fz + (random(fdef.minz, fdef.maxz)*posMultiplier)
-						y = fy + (random() * fdef.maxy*posMultiplier)
+						y = fy + (random(0,1) * fdef.maxy*posMultiplier)
 						Spring.SpawnCEG("metalshards"..(((i+1)%3)+1), x, y, z)
 					end
 				end

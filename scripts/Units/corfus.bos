@@ -18,11 +18,24 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base;
+piece  base, emit;
+
+static-var  Stunned;
 
 
 Create()
 {
+}
+
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+		hide emit;
+	} else {
+		show emit;
+	}
 }
 
 #define SMOKEPIECE base
