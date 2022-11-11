@@ -73,7 +73,7 @@ if gadgetHandler:IsSyncedCode() then
 	local currentWave = 1
 	local lastWaveUnitCount = 0
 	local minBurrows = 1
-	local timeOfLastSpawn = 0
+	local timeOfLastSpawn = -999999
 	local timeOfLastFakeSpawn = 0
 	local timeOfLastWave = 0
 	local chickenCount = 0
@@ -98,6 +98,7 @@ if gadgetHandler:IsSyncedCode() then
 	local chickenTeamID, chickenAllyTeamID
 	local lsx1, lsz1, lsx2, lsz2
 	local burrows = {}
+	local burrowTurrets = {}
 	local heroChicken = {}
 	local broodRaptors1 = {}
 	local broodRaptors2 = {}
@@ -814,63 +815,68 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		return squadCounter
 	end
-
 	local function SetupBurrow(unitID, x, y, z)
 		burrows[unitID] = 0
 		SetUnitBlocking(unitID, false, false)
 		setChickenXP(unitID)
 		-- spawn some turrets
-		if mRandom(1,2) == 1 then
-			local turretID = CreateUnit(lightTurret, x-32, y, z-32, mRandom(0,3), chickenTeamID)
+		local turretID = CreateUnit(lightTurret, x-32, y, z-32, mRandom(0,3), chickenTeamID)
+		if turretID then
+			SetUnitBlocking(turretID, false, false)
+			setChickenXP(turretID)
+			Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+			burrowTurrets[turretID] = unitID
+		end
+		local turretID = CreateUnit(lightTurret, x+32, y, z-32, mRandom(0,3), chickenTeamID)
+		if turretID then
+			SetUnitBlocking(turretID, false, false)
+			setChickenXP(turretID)
+			Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+			burrowTurrets[turretID] = unitID
+		end
+		local turretID = CreateUnit(lightTurret, x-32, y, z+32, mRandom(0,3), chickenTeamID)
+		if turretID then
+			SetUnitBlocking(turretID, false, false)
+			setChickenXP(turretID)
+			Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+			burrowTurrets[turretID] = unitID
+		end
+		local turretID = CreateUnit(lightTurret, x+32, y, z+32, mRandom(0,3), chickenTeamID)
+		if turretID then
+			SetUnitBlocking(turretID, false, false)
+			setChickenXP(turretID)
+			Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+			burrowTurrets[turretID] = unitID
+		end
+		-- spawn more turrets sometimes
+		if mRandom(1,5) == 1 then
+			local turretID = CreateUnit(lightTurret, x+48, y, z, mRandom(0,3), chickenTeamID)
 			if turretID then
 				SetUnitBlocking(turretID, false, false)
 				setChickenXP(turretID)
 				Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+				burrowTurrets[turretID] = unitID
 			end
-			local turretID = CreateUnit(lightTurret, x+32, y, z-32, mRandom(0,3), chickenTeamID)
+			local turretID = CreateUnit(lightTurret, x-48, y, z, mRandom(0,3), chickenTeamID)
 			if turretID then
 				SetUnitBlocking(turretID, false, false)
 				setChickenXP(turretID)
 				Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+				burrowTurrets[turretID] = unitID
 			end
-			local turretID = CreateUnit(lightTurret, x-32, y, z+32, mRandom(0,3), chickenTeamID)
+			local turretID = CreateUnit(lightTurret, x, y, z+48, mRandom(0,3), chickenTeamID)
 			if turretID then
 				SetUnitBlocking(turretID, false, false)
 				setChickenXP(turretID)
 				Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
+				burrowTurrets[turretID] = unitID
 			end
-			local turretID = CreateUnit(lightTurret, x+32, y, z+32, mRandom(0,3), chickenTeamID)
+			local turretID = CreateUnit(lightTurret, x, y, z-48, mRandom(0,3), chickenTeamID)
 			if turretID then
 				SetUnitBlocking(turretID, false, false)
 				setChickenXP(turretID)
 				Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
-			end
-			-- spawn more turrets sometimes
-			if mRandom(1,5) == 1 then
-				local turretID = CreateUnit(lightTurret, x+48, y, z, mRandom(0,3), chickenTeamID)
-				if turretID then
-					SetUnitBlocking(turretID, false, false)
-					setChickenXP(turretID)
-					Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
-				end
-				local turretID = CreateUnit(lightTurret, x-48, y, z, mRandom(0,3), chickenTeamID)
-				if turretID then
-					SetUnitBlocking(turretID, false, false)
-					setChickenXP(turretID)
-					Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
-				end
-				local turretID = CreateUnit(lightTurret, x, y, z+48, mRandom(0,3), chickenTeamID)
-				if turretID then
-					SetUnitBlocking(turretID, false, false)
-					setChickenXP(turretID)
-					Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
-				end
-				local turretID = CreateUnit(lightTurret, x, y, z-48, mRandom(0,3), chickenTeamID)
-				if turretID then
-					SetUnitBlocking(turretID, false, false)
-					setChickenXP(turretID)
-					Spring.GiveOrderToUnit(turretID, CMD.PATROL, {x, y, z}, {"meta"})
-				end
+				burrowTurrets[turretID] = unitID
 			end
 		end
 		-- spawn units together with burrow
@@ -881,13 +887,12 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-
 		-- increase burrow spawn box in initialbox_post
 		if config.burrowSpawnType == "initialbox_post" then
-			lsx1 = math.max(lsx1 * 0.99, config.spawnSquare)
-			lsz1 = math.max(lsz1 * 0.99, config.spawnSquare)
-			lsx2 = math.min(lsx2 * 1.01, MAPSIZEX - config.spawnSquare)
-			lsz2 = math.min(lsz2 * 1.01, MAPSIZEZ - config.spawnSquare)
+			lsx1 = math.max(lsx1 - (16*config.chickenSpawnMultiplier*SetCount(humanTeams)), config.spawnSquare)
+			lsz1 = math.max(lsz1 - (16*config.chickenSpawnMultiplier*SetCount(humanTeams)), config.spawnSquare)
+			lsx2 = math.min(lsx2 + (16*config.chickenSpawnMultiplier*SetCount(humanTeams)), MAPSIZEX - config.spawnSquare)
+			lsz2 = math.min(lsz2 + (16*config.chickenSpawnMultiplier*SetCount(humanTeams)), MAPSIZEZ - config.spawnSquare)
 		end
 	end
 
@@ -900,7 +905,7 @@ if gadgetHandler:IsSyncedCode() then
 			local tries = 0
 			local canSpawnBurrow = false
 			repeat
-				if config.burrowSpawnType == "initialbox" or config.burrowSpawnType == "alwaysbox" then
+				if config.burrowSpawnType == "initialbox" or config.burrowSpawnType == "initialbox_post" or config.burrowSpawnType == "alwaysbox" then
 					x = mRandom(lsx1, lsx2)
 					z = mRandom(lsz1, lsz2)
 				else
@@ -1009,17 +1014,7 @@ if gadgetHandler:IsSyncedCode() then
 		local tries = 0
 		local canSpawnQueen = false
 		repeat
-			if config.burrowSpawnType == "initialbox" then
-				x = mRandom(lsx1, lsx2)
-				z = mRandom(lsz1, lsz2)
-			elseif config.burrowSpawnType == "alwaysbox" then
-				x = mRandom(lsx1, lsx2)
-				z = mRandom(lsz1, lsz2)
-			elseif config.burrowSpawnType == "initialbox_post" then
-				lsx1 = math.max(lsx1 * 0.99, config.spawnSquare)
-				lsz1 = math.max(lsz1 * 0.99, config.spawnSquare)
-				lsx2 = math.min(lsx2 * 1.01, MAPSIZEX - config.spawnSquare)
-				lsz2 = math.min(lsz2 * 1.01, MAPSIZEZ - config.spawnSquare)
+			if config.burrowSpawnType == "initialbox" or config.burrowSpawnType == "initialbox_post" or config.burrowSpawnType == "alwaysbox" then
 				x = mRandom(lsx1, lsx2)
 				z = mRandom(lsz1, lsz2)
 			else
@@ -1054,9 +1049,9 @@ if gadgetHandler:IsSyncedCode() then
 			return CreateUnit(config.queenName, x, y, z, mRandom(0,3), chickenTeamID)
 		else
 			for i = 1,100 do
-				local x = mRandom(RaptorStartboxXMin, RaptorStartboxXMax)
-				local z = mRandom(RaptorStartboxZMin, RaptorStartboxZMax)
-				local y = GetGroundHeight(x, z)
+				x = mRandom(RaptorStartboxXMin, RaptorStartboxXMax)
+				z = mRandom(RaptorStartboxZMin, RaptorStartboxZMax)
+				y = GetGroundHeight(x, z)
 
 				canSpawnQueen = positionCheckLibrary.StartboxCheck(x, y, z, chickenAllyTeamID, true)
 				if canSpawnQueen then
@@ -1272,6 +1267,14 @@ if gadgetHandler:IsSyncedCode() then
 			return damage
 		end
 
+		if burrowTurrets[unitID] and (not paralyzer) then
+			local health, maxHealth = Spring.GetUnitHealth(burrowTurrets[unitID])
+			if health and maxHealth then
+				Spring.SetUnitHealth(burrowTurrets[unitID], health-damage)
+				--Spring.AddUnitDamage(burrowTurrets[unitID], damage)
+			end
+			damage = 0
+		end
 		return damage, 1
 	end
 
@@ -1387,7 +1390,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameStart()
-		if config.burrowSpawnType == "initialbox" or config.burrowSpawnType == "alwaysbox" then
+		if config.burrowSpawnType == "initialbox" or config.burrowSpawnType == "alwaysbox" or config.burrowSpawnType == "initialbox_post" then
 			local _, _, _, _, _, luaAllyID = Spring.GetTeamInfo(chickenTeamID, false)
 			if luaAllyID then
 				lsx1, lsz1, lsx2, lsz2 = Spring.GetAllyTeamStartBox(luaAllyID)
@@ -1704,18 +1707,17 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if t > config.burrowSpawnRate and burrowCount < minBurrows or (config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount < maxBurrows) then
-				if (config.burrowSpawnType == "initialbox") and (GetGameSeconds() > config.gracePeriod) then
+				if (config.burrowSpawnType == "initialbox") and (t > config.gracePeriod) then
 					config.burrowSpawnType = "initialbox_post"
 				end
 				if firstSpawn then
 					SpawnBurrow()
-					timeOfLastSpawn = t
 					timeOfLastWave = (config.gracePeriod + 10) - config.chickenMaxSpawnRate
 					firstSpawn = false
 				else
 					SpawnBurrow()
 				end
-				if burrowCount >= minBurrows then
+				if burrowCount >= minBurrows and t > config.gracePeriod then
 					timeOfLastSpawn = t
 				end
 				chickenEvent("burrowSpawn")
@@ -1732,6 +1734,14 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			chickenCount = UpdateUnitCount()
+
+			for turret,burrow in pairs(burrowTurrets) do
+				local h,mh = Spring.GetUnitHealth(burrow)
+				if h and mh then
+					Spring.SetUnitMaxHealth(turret, mh)
+					Spring.SetUnitHealth(turret, h)
+				end
+			end
 		end
 		if playerAgressionLevel > 0 and n%((math.ceil(config.turretSpawnRate/playerAgressionLevel))*100) == 0 and chickenTeamUnitCount < chickenUnitCap then
 			queueTurretSpawnIfNeeded()
@@ -1842,12 +1852,31 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local deleteBurrowTurrets = {}
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
 		if unitTeam == chickenTeamID then
 			playerAgression = playerAgression+(0.01/config.chickenSpawnMultiplier)
 			local x,y,z = Spring.GetUnitPosition(unitID)
-			if unitDefID == config.burrowDef or UnitDefs[unitDefID].name == "chicken_turretl" then
+			if unitDefID == config.burrowDef then
+				for turret, burrow in pairs(burrowTurrets) do
+					if burrowTurrets[turret] == unitID then
+						table.insert(deleteBurrowTurrets, turret)
+					end
+				end
+				if #deleteBurrowTurrets > 0 then
+					for i = 1,#deleteBurrowTurrets do
+						Spring.DestroyUnit(deleteBurrowTurrets[i], false, false)
+					end
+					deleteBurrowTurrets = {}
+				end
+				for i = 1,mRandom(10,40) do
+					local x = x + mRandom(-64,64)
+					local z = z + mRandom(-64,64)
+					local y = GetGroundHeight(x, z)
+					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
+				end
+			elseif UnitDefs[unitDefID].name == "chicken_turretl" then
 				for i = 1,mRandom(10,40) do
 					local x = x + mRandom(-32,32)
 					local z = z + mRandom(-32,32)
@@ -1855,6 +1884,7 @@ if gadgetHandler:IsSyncedCode() then
 					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
 				end
 			elseif UnitDefs[unitDefID].name == "chicken_turrets" then
+				burrowTurrets[unitID] = nil
 				for i = 1,mRandom(3,10) do
 					local x = x + mRandom(-16,16)
 					local z = z + mRandom(-16,16)
@@ -1878,7 +1908,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if unitSquadTable[unitID] then
-			for index, id in pairs(squadsTable[unitSquadTable[unitID]].squadUnits) do
+			for index, id in ipairs(squadsTable[unitSquadTable[unitID]].squadUnits) do
 				if id == unitID then
 					table.remove(squadsTable[unitSquadTable[unitID]].squadUnits, index)
 				end
