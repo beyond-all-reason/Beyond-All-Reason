@@ -188,7 +188,7 @@ local TimedDamageWeapons = {
         resistance = "test",
     },
 	[WeaponDefNames.leginf_scav_rapidnapalm.id] = {
-        ceg = "fire-area-redux-75", 
+        ceg = "fire-area-75", 
         damageCeg = "burnflamexl", 
         time = 10,
         damage = 15,
