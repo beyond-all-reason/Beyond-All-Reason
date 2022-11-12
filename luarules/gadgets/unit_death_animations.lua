@@ -20,6 +20,8 @@ local hasDeathAnim = {
   [UnitDefNames.corstorm.id] = true,
   [UnitDefNames.corsumo.id] = true,
   [UnitDefNames.armraz.id] = true,
+  [UnitDefNames.armpw.id] = true,
+
 }
 
 local dyingUnits = {}
