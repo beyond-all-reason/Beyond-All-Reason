@@ -155,7 +155,7 @@ return {
 				paralyzer = true,
 				paralyzetime = 20,
 				range = 500,
-				reloadtime = 1,
+				reloadtime = 15,
 				rgbcolor = "0.5 0.5 1",
 				--soundhit = "xplomed3",
 				--soundhitwet = "sizzle",
