@@ -77,6 +77,8 @@ Deactivate()
 
 StartBuilding(heading, pitch)
 {
+	show rflare;
+	show lflare;
 	signal SIG_BUILD;
 	turn lwheel to y-axis <90> speed <120.000000>;
 	turn rwheel to y-axis <90> speed <120.000000>;
@@ -98,6 +100,8 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
+	hide rflare;
+	hide lflare;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	sleep 6000;
