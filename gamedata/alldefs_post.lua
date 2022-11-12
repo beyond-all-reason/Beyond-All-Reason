@@ -1048,6 +1048,34 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
+		-- prepared to strip these customparams for when we remove old deferred lighting widgets
+		--if wDef.customparams then
+		--	wDef.customparams.expl_light_opacity = nil
+		--	wDef.customparams.expl_light_heat_radius = nil
+		--	wDef.customparams.expl_light_radius = nil
+		--	wDef.customparams.expl_light_color = nil
+		--	wDef.customparams.expl_light_nuke = nil
+		--	wDef.customparams.expl_light_skip = nil
+		--	wDef.customparams.expl_light_heat_life_mult = nil
+		--	wDef.customparams.expl_light_heat_radius_mult = nil
+		--	wDef.customparams.expl_light_heat_strength_mult = nil
+		--	wDef.customparams.expl_light_life = nil
+		--	wDef.customparams.expl_light_life_mult = nil
+		--	wDef.customparams.expl_noheatdistortion = nil
+		--	wDef.customparams.light_skip = nil
+		--	wDef.customparams.light_fade_time = nil
+		--	wDef.customparams.light_fade_offset = nil
+		--	wDef.customparams.light_beam_mult = nil
+		--	wDef.customparams.light_beam_start = nil
+		--	wDef.customparams.light_beam_mult_frames = nil
+		--	wDef.customparams.light_camera_height = nil
+		--	wDef.customparams.light_ground_height = nil
+		--	wDef.customparams.light_color = nil
+		--	wDef.customparams.light_radius = nil
+		--	wDef.customparams.light_radius_mult = nil
+		--	wDef.customparams.light_mult = nil
+		--end
+
 		if wDef.damage ~= nil then
 			wDef.damage.indestructable = 0
 		end
@@ -1125,10 +1153,10 @@ function WeaponDef_Post(name, wDef)
 
 	-- ExplosionSpeed is calculated same way engine does it, and then doubled
 	-- Note that this modifier will only effect weapons fired from actual units, via super clever hax of using the weapon name as prefix
-	if wDef.damage and wDef.damage.default then 
+	if wDef.damage and wDef.damage.default then
 		if string.find(name,'_', nil, true) then
 			local prefix = string.sub(name,1,3)
-			if prefix == 'arm' or prefix == 'cor' or prefix == 'leg' or prefix == 'chi' then 
+			if prefix == 'arm' or prefix == 'cor' or prefix == 'leg' or prefix == 'chi' then
 				local globaldamage = math.max(30, wDef.damage.default / 20)
 				local defExpSpeed = (8 + (globaldamage * 2.5))/ (9 + (math.sqrt(globaldamage) * 0.70)) * 0.5
 				wDef.explosionSpeed = defExpSpeed * 2
