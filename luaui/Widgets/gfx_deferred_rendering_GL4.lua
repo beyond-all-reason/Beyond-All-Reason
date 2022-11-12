@@ -129,7 +129,7 @@ local math_min = math.min
 local math_max = math.max
 local math_ceil = math.ceil
 
---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
 --Light falloff functions: http://gamedev.stackexchange.com/questions/56897/glsl-light-attenuation-color-and-intensity-formula
 
 ------------------------------ Light and Shader configurations ------------------
@@ -141,6 +141,7 @@ local projectileDefLights  -- one light per weaponDefID
 local explosionLights  -- one light per weaponDefID
 local gibLight  -- one light for all pieceprojectiles
 
+local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local deferredLightGL4Config = {globalLightMult = 1, globalRadiusMult = 1, globalLifeMult = 1}  -- Changing any of these requires the entire widget to be reloaded!
 
@@ -1366,12 +1367,12 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 
 		local alt, ctrl, meta, shft = Spring.GetModKeyState()
 
-		if (ctrl and (Spring.GetConfigInt('DevUI', 0) == 1) )then
+		if (ctrl and isSinglePlayer and (Spring.GetConfigInt('DevUI', 0) == 1) )then
 			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		else
 			glBlending(GL.SRC_ALPHA, GL.ONE)
 		end
-		if alt and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
+		if alt and isSinglePlayer and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
 
 		gl.Culling(GL.BACK)
 		gl.DepthTest(false)
