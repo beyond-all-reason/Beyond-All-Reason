@@ -144,6 +144,8 @@ Deactivate()
 
 StartBuilding(Func_Var_1)
 {
+	show rnano;
+	show lnano;
 	Static_Var_2 = Func_Var_1;
 	start-script RequestState(0);
 	return (0);
@@ -151,6 +153,8 @@ StartBuilding(Func_Var_1)
 
 StopBuilding()
 {
+	hide rnano;
+	hide lnano;
 	start-script RequestState(1);
 	return (0);
 }
