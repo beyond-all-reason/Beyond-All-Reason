@@ -1074,6 +1074,7 @@ function WeaponDef_Post(name, wDef)
 		--	wDef.customparams.light_radius = nil
 		--	wDef.customparams.light_radius_mult = nil
 		--	wDef.customparams.light_mult = nil
+		--	wDef.customparams.fake_Weapon = nil
 		--end
 
 		if wDef.damage ~= nil then
