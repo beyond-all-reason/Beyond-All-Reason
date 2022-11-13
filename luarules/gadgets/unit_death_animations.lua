@@ -22,6 +22,10 @@ local hasDeathAnim = {
   [UnitDefNames.armraz.id] = true,
   [UnitDefNames.armpw.id] = true,
   [UnitDefNames.armck.id] = true,
+  [UnitDefNames.armrectr.id] = true,
+  [UnitDefNames.armrock.id] = true,
+
+
 }
 
 local dyingUnits = {}
