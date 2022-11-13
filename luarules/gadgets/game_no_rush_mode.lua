@@ -29,6 +29,7 @@ local CommandsToCatchMap = { -- CMDTYPES: ICON_MAP, ICON_AREA, ICON_UNIT_OR_MAP,
     [CMD.RESTORE] = true,
     [CMD.RESURRECT] = true,
     [CMD.CAPTURE] = true,
+    [34923] = true, -- Set Target
 }
 
 local CommandsToCatchUnit = { -- CMDTYPES: ICON_UNIT, ICON_UNIT_OR_MAP, ICON_UNIT_OR_AREA
@@ -105,26 +106,26 @@ if gadgetHandler:IsSyncedCode() then
             end
         end
 
-        -- Spring.Echo("-------------------------------------------------------------------------------------------")
-        -- Spring.Echo("New Allow Command")
-        -- Spring.Echo("--------")
-        -- Spring.Echo("Command ID:", cmdID)
-        -- for paramname, value in pairs(cmdParams) do
-        --     Spring.Echo("-------- cmdParam")
-        --     Spring.Echo("Parameter Name:", paramname)
-        --     Spring.Echo("Value:", value)
-        -- end
-        -- for optionname, value in pairs(cmdOptions) do
-        --     Spring.Echo("-------- cmdOption")
-        --     Spring.Echo("Option Name:", optionname)
-        --     Spring.Echo("Value:", value)
-        -- end
-        -- Spring.Echo("-------- cmdTag")
-        -- Spring.Echo("Tag Name:", tagname)
-        -- Spring.Echo("Value:", value)
-        -- Spring.Echo("-------------------------------------------------------------------------------------------")
-        -- Spring.Echo("Allowed:", allowed)
-        -- Spring.Echo("-------------------------------------------------------------------------------------------")
+        Spring.Echo("-------------------------------------------------------------------------------------------")
+        Spring.Echo("New Allow Command")
+        Spring.Echo("--------")
+        Spring.Echo("Command ID:", cmdID)
+        for paramname, value in pairs(cmdParams) do
+            Spring.Echo("-------- cmdParam")
+            Spring.Echo("Parameter Name:", paramname)
+            Spring.Echo("Value:", value)
+        end
+        for optionname, value in pairs(cmdOptions) do
+            Spring.Echo("-------- cmdOption")
+            Spring.Echo("Option Name:", optionname)
+            Spring.Echo("Value:", value)
+        end
+        Spring.Echo("-------- cmdTag")
+        Spring.Echo("Tag Name:", tagname)
+        Spring.Echo("Value:", value)
+        Spring.Echo("-------------------------------------------------------------------------------------------")
+        Spring.Echo("Allowed:", allowed)
+        Spring.Echo("-------------------------------------------------------------------------------------------")
 
         return allowed
     end
