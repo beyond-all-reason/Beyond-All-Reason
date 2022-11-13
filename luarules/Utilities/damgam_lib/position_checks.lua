@@ -162,35 +162,21 @@ end
 
 local function StartboxCheck(posx, posy, posz, allyTeamID, returnTrueWhenNoStartbox) -- Return True when position is within startbox.
     --local posradius = posradius or 1000
-    
+    if not returnTrueWhenNoStartbox then returnTrueWhenNoStartbox = false end
+
     if allyTeamID == GaiaAllyTeamID then 
-        if returnTrueWhenNoStartbox then
-            return true
-        else
-            return false
-        end
+        return not returnTrueWhenNoStartbox
+    end
+    local startbox = AllyTeamStartboxes[allyTeamID+1]
+
+    if startbox.allyTeamHasStartbox == false then
+        return not returnTrueWhenNoStartbox
     end
 
-    if AllyTeamStartboxes[allyTeamID+1].allyTeamHasStartbox == false then
-        if returnTrueWhenNoStartbox then
-            return true
-        else
-            return false
-        end
-    end
-
-    if posx >= AllyTeamStartboxes[allyTeamID+1].xMin and posz >= AllyTeamStartboxes[allyTeamID+1].zMin and posx <= AllyTeamStartboxes[allyTeamID+1].xMax and posz <= AllyTeamStartboxes[allyTeamID+1].zMax then -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 everytime
-        if returnTrueWhenNoStartbox then
-            return true
-        else
-            return false
-        end
+    if posx >= startbox.xMin and posz >= startbox.zMin and posx <= startbox.xMax and posz <= startbox.zMax then -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 everytime
+        return not returnTrueWhenNoStartbox
     else
-        if returnTrueWhenNoStartbox then
-            return true
-        else
-            return false
-        end
+        return returnTrueWhenNoStartbox
     end
 end
 
