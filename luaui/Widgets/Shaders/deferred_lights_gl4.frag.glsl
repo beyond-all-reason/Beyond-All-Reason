@@ -19,6 +19,7 @@ in DataVS {
 	vec4 v_lightcenter_gradient_height;
 	vec4 v_position;
 	vec4 v_noiseoffset;
+	noperspective vec2 v_screenUV;
 };
 
 uniform sampler2D mapDepths;
@@ -536,7 +537,7 @@ float FastApproximateScattering(vec3 campos, vec3 viewdirection, vec3 lightposit
 
 
 // UNTESTED
-vec3 ScreenToWorld(vec2 screen_uv, float depth){ // returns world XYZ from screenUV and depth
+vec3 ScreenToWorld(vec2 screen_uv, float depth){ // returns world XYZ from v_screenUV and depth
 	vec4 fragToScreen =  vec4( vec3(screen_uv * 2.0 - 1.0, depth),  1.0);
 	fragToScreen = cameraViewProjInv * fragToScreen;
 	return fragToScreen.xyz / fragToScreen.w;
@@ -554,14 +555,11 @@ vec3 WorldToScreen(vec3 worldCoords){ // returns screen UV and depth position
 #line 31000
 void main(void)
 {
-	// corresponding screenspace pos:
-	vec2 screenUV = gl_FragCoord.xy / viewGeometry.xy;
-	
 	fragColor.rgba = vec4(fract(gl_FragCoord.zzz * 1.0),1.0);
 	//return;
 	
-	float mapdepth = texture(mapDepths, screenUV).x;
-	float modeldepth = texture(modelDepths, screenUV).x;
+	float mapdepth = texture(mapDepths, v_screenUV).x;
+	float modeldepth = texture(modelDepths, v_screenUV).x;
 	float worlddepth = min(mapdepth, modeldepth);
 	vec4 normals = vec4(0, 1, 0, 0); // points up by default
 	vec4 extratex = vec4(0);
@@ -572,19 +570,19 @@ void main(void)
 	if (gl_FragCoord.z > worlddepth) {
 		if (modeldepth < mapdepth) { // We are processing a model fragment
 			ismodel = 1;
-			normals =  texture(modelNormals, screenUV) * 2.0 - 1.0;
-			extratex = texture(modelExtra  , screenUV);
-			targetcolor = texture(modelDiffuse  , screenUV);
+			normals =  texture(modelNormals, v_screenUV) * 2.0 - 1.0;
+			extratex = texture(modelExtra  , v_screenUV);
+			targetcolor = texture(modelDiffuse  , v_screenUV);
 			
 		}else{
-			normals =  texture(mapNormals  , screenUV) * 2.0 - 1.0;
-			extratex = texture(mapExtra    , screenUV);
-			targetcolor = texture(mapDiffuse    , screenUV) * nightFactor;
+			normals =  texture(mapNormals  , v_screenUV) * 2.0 - 1.0;
+			extratex = texture(mapExtra    , v_screenUV);
+			targetcolor = texture(mapDiffuse    , v_screenUV) * nightFactor;
 		}
 	}
 	
 	
-	vec4 fragWorldPos =  vec4( vec3(screenUV.xy * 2.0 - 1.0, worlddepth),  1.0);
+	vec4 fragWorldPos =  vec4( vec3(v_screenUV.xy * 2.0 - 1.0, worlddepth),  1.0);
 	fragWorldPos = cameraViewProjInv * fragWorldPos;
 	fragWorldPos.xyz = fragWorldPos.xyz / fragWorldPos.w; // YAAAY this works!
 	

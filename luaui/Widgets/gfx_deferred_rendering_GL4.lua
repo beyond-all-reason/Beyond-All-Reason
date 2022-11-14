@@ -102,20 +102,15 @@ end
 ----------------------------- Localize for optmization ------------------------------------
 
 local glBlending = gl.Blending
-local glDepthMask = gl.DepthMask
-local glDepthTest = gl.DepthTest
 local glTexture = gl.Texture
-local spEcho = Spring.Echo
 
 
 -- Strong:
-local spIsSphereInView = Spring.IsSphereInView
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetProjectileType = Spring.GetProjectileType
 local spGetPieceProjectileParams = Spring.GetPieceProjectileParams
 local spGetProjectileDefID = Spring.GetProjectileDefID
-local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGroundHeight = Spring.GetGroundHeight
 local spIsSphereInView  = Spring.IsSphereInView
 local spGetUnitPosition  = Spring.GetUnitPosition
@@ -123,9 +118,7 @@ local spGetUnitPosition  = Spring.GetUnitPosition
 
 -- Weak:
 local spIsGUIHidden = Spring.IsGUIHidden
-local spGetUnitHeight = Spring.GetUnitHeight -- weak
 
-local math_min = math.min
 local math_max = math.max
 local math_ceil = math.ceil
 
@@ -134,7 +127,6 @@ local math_ceil = math.ceil
 
 ------------------------------ Light and Shader configurations ------------------
 
-local unitDefLight  -- Table of lights per unitDefID
 local unitEventLights -- Table of lights per unitDefID
 local muzzleFlashLights  -- one light per weaponDefID
 local projectileDefLights  -- one light per weaponDefID
@@ -292,9 +284,6 @@ local function goodbye(reason)
 	widgetHandler:RemoveWidget()
 end
 
-function widget:ViewResize()
-end
-
 local function createLightInstanceVBO(vboLayout, vertexVBO, numVertices, indexVBO, VBOname, unitIDattribID)
 	local targetLightVBO = makeInstanceVBOTable( vboLayout, 16, VBOname, unitIDattribID)
 	if vertexVBO == nil or targetLightVBO == nil then goodbye("Failed to make "..VBOname) end
@@ -331,7 +320,7 @@ local function initGL4()
 			{id = 10, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 	}
 
-	local pointVBO, numPointVertices, pointIndexVBO, numIndices = makeSphereVBO(8, 4, 1)
+	local pointVBO, _, pointIndexVBO, _ = makeSphereVBO(8, 4, 1)
 	pointLightVBO 			= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Point Light VBO")
 	unitPointLightVBO 		= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Unit Point Light VBO", 10)
 	cursorPointLightVBO 	= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Cursor Point Light VBO")
@@ -530,7 +519,7 @@ local function AddPointLight(instanceID, unitID, pieceIndex, targetVBO, px_or_ta
 end
 
 local function AddRandomDecayingPointLight()
-	local instanceID = AddPointLight(nil,nil,nil, nil,
+	AddPointLight(nil,nil,nil, nil,
 		Game.mapSizeX * 0.5 + math.random()*2000,
 		Spring.GetGroundHeight(Game.mapSizeX * 0.5,Game.mapSizeZ * 0.5) + 50,
 		Game.mapSizeZ * 0.5,
@@ -541,7 +530,7 @@ local function AddRandomDecayingPointLight()
 		gameFrame, 100, 20, 1)
 	--Spring.Echo("AddRandomDecayingPointLight", instanceID)
 
-	instanceID = AddPointLight(nil,nil,nil,nil,
+	AddPointLight(nil,nil,nil,nil,
 		Game.mapSizeX * 0.5 + math.random()*2000,
 		Spring.GetGroundHeight(Game.mapSizeX * 0.5,Game.mapSizeZ * 0.5) + 50,
 		Game.mapSizeZ * 0.5 + 400,
@@ -552,7 +541,7 @@ local function AddRandomDecayingPointLight()
 		gameFrame, 30, 0.2, 1)
 	--Spring.Echo("AddRandomExplosionPointLight", instanceID)
 
-	instanceID = AddPointLight(nil,nil,nil,nil,
+	AddPointLight(nil,nil,nil,nil,
 		Game.mapSizeX * 0.5 + math.random()*2000,
 		Spring.GetGroundHeight(Game.mapSizeX * 0.5,Game.mapSizeZ * 0.5) + 50,
 		Game.mapSizeZ * 0.5 + 800,
@@ -844,9 +833,8 @@ end
 
 local function InterpolateBeam(x, y, z, dx, dy, dz)
 	local finalDx, finalDy, finalDz = 0, 0, 0
-	for i = 1, 10 do
+	for _ = 1, 10 do
 		local h = spGetGroundHeight(x + dx + finalDx, z + dz + finalDz)
-		local mult
 		dx, dy, dz = dx*0.5, dy*0.5, dz*0.5
 		if h < y + dy + finalDy then
 			finalDx, finalDy, finalDz = finalDx + dx, finalDy + dy, finalDz + dz
@@ -1326,14 +1314,14 @@ local function updateProjectileLights(newgameframe)
 		end
 	end
 	-- upload all changed elements in one go
-	for vboname, targetVBO in pairs(projectileLightVBOMap) do
+	for _, targetVBO in pairs(projectileLightVBOMap) do
 		if targetVBO.dirty then
 			uploadAllElements(targetVBO)
 		end
 	end
-	if debugproj then
-		--Spring.Echo("#points", projectilePointLightVBO.usedElements, '#projs', #nowprojectiles )
-	end
+	--if debugproj then
+	--	Spring.Echo("#points", projectilePointLightVBO.usedElements, '#projs', #nowprojectiles )
+	--end
 end
 
 local configCache = {lastUpdate = Spring.GetTimer()}
@@ -1361,11 +1349,12 @@ end
 ------------------------------- Drawing all the lights ---------------------------------
 
 
-local tf = Spring.GetTimerMicros()
+-- local tf = Spring.GetTimerMicros()
 function widget:DrawWorld() -- We are drawing in world space, probably a bad idea but hey
 	if chobbyInterface then return end
-	local t0 = Spring.GetTimerMicros()
+	--local t0 = Spring.GetTimerMicros()
 	--if true then return end
+
 	if autoupdate then
 		deferredLightShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0) or deferredLightShader
 	end
@@ -1376,7 +1365,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		unitConeLightVBO.usedElements > 0 or
 		coneLightVBO.usedElements > 0 then
 
-		local alt, ctrl, meta, shft = Spring.GetModKeyState()
+		local alt, ctrl = Spring.GetModKeyState()
 
 		if ctrl and (isSinglePlayer or spec) and (Spring.GetConfigInt('DevUI', 0) == 1) then
 			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
@@ -1445,22 +1434,22 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		--gl.DepthMask(true) --"BK OpenGL state resets", was true but now commented out (redundant set of false states)
 		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
-	local t1 = 	Spring.GetTimerMicros()
-	if (Spring.GetDrawFrame() % 50 == 0 ) then
-		local dt =  Spring.DiffTimers(t1,t0)
-		--Spring.Echo("Deltat is ", dt,'us, so total load should be', dt * Spring.GetFPS() / 10 ,'%')
-		--Spring.Echo("epoch is ", Spring.DiffTimers(t1,tf))
-	end
+	--local t1 = 	Spring.GetTimerMicros()
+	--if (Spring.GetDrawFrame() % 50 == 0 ) then
+	--	local dt =  Spring.DiffTimers(t1,t0)
+	--	Spring.Echo("Deltat is ", dt,'us, so total load should be', dt * Spring.GetFPS() / 10 ,'%')
+	--	Spring.Echo("epoch is ", Spring.DiffTimers(t1,tf))
+	--end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
+function widget:RecvLuaMsg(msg)
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 	end
 end
 --------------------------- Ingame Configurables -------------------
 
-function widget:GetConfigData(data) -- Called by RemoveWidget
+function widget:GetConfigData(_) -- Called by RemoveWidget
 	--Spring.Debug.TraceEcho("GetConfigData DLGL4")
 	local savedTable = {
 		globalLightMult = deferredLightGL4Config.globalLightMult,

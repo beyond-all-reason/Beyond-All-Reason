@@ -17,35 +17,17 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local glBeginEnd = gl.BeginEnd
-local glBillboard = gl.Billboard
 local glBlending = gl.Blending
-local glCallList = gl.CallList
-local glClear = gl.Clear
-local glColor = gl.Color
-local glCreateList = gl.CreateList
 local glCreateShader = gl.CreateShader
-local glCreateTexture = gl.CreateTexture
 local glDeleteShader = gl.DeleteShader
-local glDeleteTexture = gl.DeleteTexture
-local glDepthMask = gl.DepthMask
-local glDepthTest = gl.DepthTest
 local glGetShaderLog = gl.GetShaderLog
 local glGetUniformLocation = gl.GetUniformLocation
-local glGetViewSizes = gl.GetViewSizes
-local glPopMatrix = gl.PopMatrix
-local glPushMatrix = gl.PushMatrix
-local glTexCoord = gl.TexCoord
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
-local glRect = gl.Rect
 local glRenderToTexture = gl.RenderToTexture
 local glUniform = gl.Uniform
-local glUniformInt = gl.UniformInt
 local glUniformMatrix = gl.UniformMatrix
 local glUseShader = gl.UseShader
-local glVertex = gl.Vertex
-local glTranslate = gl.Translate
 local spEcho = Spring.Echo
 local spGetCameraPosition = Spring.GetCameraPosition
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
@@ -56,14 +38,10 @@ local math_min = math.min
 local math_max = math.max
 
 local glowImg = "LuaUI/Images/glow2.dds"
-local beamGlowImg = ":n:LuaUI/Images/barglow-center.png"
-local beamGlowEndImg = ":n:LuaUI/Images/barglow-edge.png"
 
 local GLSLRenderer = true
 
-local vsx, vsy, chobbyInterface, forceNonGLSL
-local ivsx = 1.0
-local ivsy = 1.0
+local vsx, vsy, forceNonGLSL
 local screenratio = 1.0
 
 -- dynamic light shaders
@@ -73,14 +51,12 @@ local depthBeamShader = nil
 -- shader uniforms
 local lightposlocPoint = nil
 local lightcolorlocPoint = nil
-local lightparamslocPoint = nil
 local uniformEyePosPoint
 local uniformViewPrjInvPoint
 
 local lightposlocBeam = nil
 local lightpos2locBeam = nil
 local lightcolorlocBeam = nil
-local lightparamslocBeam = nil
 local uniformEyePosBeam
 local uniformViewPrjInvBeam
 
@@ -101,23 +77,8 @@ local collectionFunctionCount = 0
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:ViewResize()
 	vsx, vsy = gl.GetViewSizes()
-	ivsx = 1.0 / vsx --we can do /n here!
-	ivsy = 1.0 / vsy
-	if Spring.GetMiniMapDualScreen() == 'left' then
-		vsx = vsx / 2
-	end
-	if Spring.GetMiniMapDualScreen() == 'right' then
-		vsx = vsx / 2
-	end
 	screenratio = vsy / vsx --so we dont overdraw and only always draw a square
 end
 
@@ -311,82 +272,86 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	if not forceNonGLSL and Spring.GetMiniMapDualScreen() ~= 'left' then
-		--FIXME dualscreen
-		if not glCreateShader then
-			spEcho("gfx_deferred_rendering.lua: Shaders not found, removing self.")
-			GLSLRenderer = false
-			widgetHandler:RemoveWidget()
-			return
-		else
-			depthPointShader = depthPointShader or glCreateShader({
-				defines = {
-					"#version 150 compatibility\n",
-					"#define BEAM_LIGHT 0\n",
-					"#define CLIP_CONTROL " .. (Platform ~= nil and Platform.glSupportClipSpaceControl and 1 or 0) .. "\n"
-				},
-				vertex = vertSrc,
-				fragment = fragSrc,
-				uniformInt = {
-					modelnormals = 0,
-					modeldepths = 1,
-					mapnormals = 2,
-					mapdepths = 3,
-					modelExtra = 4,
-				},
-			})
 
-			if not depthPointShader then
-				spEcho(glGetShaderLog())
-				spEcho("gfx_deferred_rendering.lua: Bad depth point shader, removing self.")
-				GLSLRenderer = false
-				widgetHandler:RemoveWidget()
-				return
-			else
-				lightposlocPoint = glGetUniformLocation(depthPointShader, "lightpos")
-				lightcolorlocPoint = glGetUniformLocation(depthPointShader, "lightcolor")
-				uniformEyePosPoint = glGetUniformLocation(depthPointShader, 'eyePos')
-				uniformViewPrjInvPoint = glGetUniformLocation(depthPointShader, 'viewProjectionInv')
-			end
-			--fragSrc = "#define BEAM_LIGHT \n" .. fragSrc
-			depthBeamShader = depthBeamShader or glCreateShader({
-				defines = {
-					"#version 150 compatibility\n",
-					"#define BEAM_LIGHT 1\n",
-					"#define CLIP_CONTROL " .. (Platform ~= nil and Platform.glSupportClipSpaceControl and 1 or 0) .. "\n"
-				},
-				vertex = vertSrc,
-				fragment = fragSrc,
-				uniformInt = {
-					modelnormals = 0,
-					modeldepths = 1,
-					mapnormals = 2,
-					mapdepths = 3,
-					modelExtra = 4,
-				},
-			})
-
-			if not depthBeamShader then
-				spEcho(glGetShaderLog())
-				spEcho("gfx_deferred_rendering.lua: Bad depth beam shader, removing self.")
-				GLSLRenderer = false
-				widgetHandler:RemoveWidget()
-				return
-			else
-				lightposlocBeam = glGetUniformLocation(depthBeamShader, 'lightpos')
-				lightpos2locBeam = glGetUniformLocation(depthBeamShader, 'lightpos2')
-				lightcolorlocBeam = glGetUniformLocation(depthBeamShader, 'lightcolor')
-				uniformEyePosBeam = glGetUniformLocation(depthBeamShader, 'eyePos')
-				uniformViewPrjInvBeam = glGetUniformLocation(depthBeamShader, 'viewProjectionInv')
-			end
-
-			WG.DeferredLighting_RegisterFunction = DeferredLighting_RegisterFunction
-			WG.DeferredLighting_UnRegisterFunction = DeferredLighting_UnRegisterFunction
-		end
-		screenratio = vsy / vsx --so we dont overdraw and only always draw a square
-	else
+	if forceNonGLSL then
 		GLSLRenderer = false
+
+		widget:ViewResize()
+		return
 	end
+
+	if not glCreateShader then
+		spEcho("gfx_deferred_rendering.lua: Shaders not found, removing self.")
+		GLSLRenderer = false
+		widgetHandler:RemoveWidget()
+		return
+	end
+
+	depthPointShader = depthPointShader or glCreateShader({
+		defines = {
+			"#version 150 compatibility\n",
+			"#define BEAM_LIGHT 0\n",
+			"#define CLIP_CONTROL " .. (Platform ~= nil and Platform.glSupportClipSpaceControl and 1 or 0) .. "\n"
+		},
+		vertex = vertSrc,
+		fragment = fragSrc,
+		uniformInt = {
+			modelnormals = 0,
+			modeldepths = 1,
+			mapnormals = 2,
+			mapdepths = 3,
+			modelExtra = 4,
+		},
+	})
+
+	if not depthPointShader then
+		spEcho(glGetShaderLog())
+		spEcho("gfx_deferred_rendering.lua: Bad depth point shader, removing self.")
+		GLSLRenderer = false
+		widgetHandler:RemoveWidget()
+		return
+	end
+
+	lightposlocPoint = glGetUniformLocation(depthPointShader, "lightpos")
+	lightcolorlocPoint = glGetUniformLocation(depthPointShader, "lightcolor")
+	uniformEyePosPoint = glGetUniformLocation(depthPointShader, 'eyePos')
+	uniformViewPrjInvPoint = glGetUniformLocation(depthPointShader, 'viewProjectionInv')
+	--fragSrc = "#define BEAM_LIGHT \n" .. fragSrc
+	depthBeamShader = depthBeamShader or glCreateShader({
+		defines = {
+			"#version 150 compatibility\n",
+			"#define BEAM_LIGHT 1\n",
+			"#define CLIP_CONTROL " .. (Platform ~= nil and Platform.glSupportClipSpaceControl and 1 or 0) .. "\n"
+		},
+		vertex = vertSrc,
+		fragment = fragSrc,
+		uniformInt = {
+			modelnormals = 0,
+			modeldepths = 1,
+			mapnormals = 2,
+			mapdepths = 3,
+			modelExtra = 4,
+		},
+	})
+
+	if not depthBeamShader then
+		spEcho(glGetShaderLog())
+		spEcho("gfx_deferred_rendering.lua: Bad depth beam shader, removing self.")
+		GLSLRenderer = false
+		widgetHandler:RemoveWidget()
+		return
+	end
+
+	lightposlocBeam = glGetUniformLocation(depthBeamShader, 'lightpos')
+	lightpos2locBeam = glGetUniformLocation(depthBeamShader, 'lightpos2')
+	lightcolorlocBeam = glGetUniformLocation(depthBeamShader, 'lightcolor')
+	uniformEyePosBeam = glGetUniformLocation(depthBeamShader, 'eyePos')
+	uniformViewPrjInvBeam = glGetUniformLocation(depthBeamShader, 'viewProjectionInv')
+
+	WG.DeferredLighting_RegisterFunction = DeferredLighting_RegisterFunction
+	WG.DeferredLighting_UnRegisterFunction = DeferredLighting_UnRegisterFunction
+
+	screenratio = vsy / vsx --so we dont overdraw and only always draw a square
 
 	widget:ViewResize()
 end
