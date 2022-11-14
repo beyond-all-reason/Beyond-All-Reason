@@ -19,7 +19,7 @@ function open()
 	Move(crane1,x_axis,21,42);
 	Move(crane2,x_axis,21,42);
 	UnitScript.WaitForMove(crane1, x_axis);
-	Sleep(1000);	
+	Sleep(1000);
 	--Open yard
 	open_yard();
 	--Get into buildstance
@@ -44,6 +44,8 @@ function close()
 end
 
 function script.Create()
+	Hide(nano2);
+	Hide(nano1);
 	spray = 0;
 	Hide (cagelight_emit);
 	--Turn (cagelight, x_axis, 45, 0);
@@ -89,7 +91,7 @@ end
 local function MoveCrane1()
     Signal(SIG_CRANE1);
     SetSignalMask(SIG_CRANE1);
-    
+
 	while true do
         Move(crane1,x_axis, 40,10);
         WaitForMove(crane1, x_axis);
@@ -101,7 +103,7 @@ end
 local function MoveCrane2()
     Signal(SIG_CRANE2);
     SetSignalMask(SIG_CRANE2);
-    
+
     while true do
         Move(crane2,x_axis, 2,10);
         WaitForMove(crane2, x_axis);
@@ -111,6 +113,8 @@ local function MoveCrane2()
 end
 
 function script.StartBuilding(heading, pitch)
+	Show(nano2);
+	Show(nano1);
 	StartThread(MoveCrane1);
 	StartThread(MoveCrane2);
 	Show (cagelight_emit);
@@ -122,6 +126,8 @@ function script.StartBuilding(heading, pitch)
 end
 
 function script.StopBuilding()
+	Hide(nano2);
+	Hide(nano1);
 	Signal(SIG_CRANE1);
 	Signal (SIG_CRANE2);
 	Hide (cagelight_emit);
@@ -139,7 +145,7 @@ end
 function script.Killed(recentDamage, maxHealth)
 	local severity = (recentDamage / maxHealth) * 100;
 	local corpsetype;
-	
+
 	if (severity <= 25) then
 		corpsetype = 1;
 		UnitScript.Explode(base,SFX.NONE + SFX.NO_HEATCLOUD);

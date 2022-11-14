@@ -174,12 +174,20 @@ Deactivate()
 
 StartBuilding()
 {
+	show nano2;
+	show nano4;
+	show nano3;
+	show nano1;
 	spin fan1 around z-axis speed <200> accelerate <5>;
 	spin fan2 around z-axis speed <200> accelerate <5>;
 }
 
 StopBuilding()
 {
+	hide nano2;
+	hide nano4;
+	hide nano3;
+	hide nano1;
 	stop-spin fan1 around z-axis decelerate <3>;
 	stop-spin fan2 around z-axis decelerate <3>;
 }
