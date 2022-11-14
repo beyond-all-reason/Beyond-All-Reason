@@ -47,12 +47,12 @@ local updateStencilTexture = false
 local updateStencilTextureScreen = false
 
 local oldvs = 0
-local vsx, vsy = widgetHandler:GetViewSizes()
+local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
 local ivsx, ivsy = vsx, vsy
 local intensityMult = (vsx + vsy) / 1600
 
-function widget:ViewResize(viewSizeX, viewSizeY)
-	vsx, vsy = viewSizeX, viewSizeY
+function widget:ViewResize(_, _)
+	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
 	ivsx, ivsy = vsx, vsy
 
 	if screencopyUI then gl.DeleteTexture(screencopyUI) end
@@ -306,7 +306,7 @@ local function DrawScreen() -- This blurs the UI elements obscured by other UI e
 			updateStencilTextureScreen = false
 		end
 
-		gl.CopyToTexture(screencopyUI, 0, 0, 0, 0, vsx, vsy)
+		gl.CopyToTexture(screencopyUI, 0, 0, vpx, vpy, vsx, vsy)
 		gl.Texture(screencopyUI)
 
 		gl.Texture(2, stenciltexScreen)

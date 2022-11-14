@@ -88,9 +88,6 @@ local centerPosY = 0.5
 local screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
 local screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
 
-local wsx, wsy, wpx, wpy = Spring.GetWindowGeometry()
-local ssx, ssy, spx, spy = Spring.GetScreenGeometry()
-
 local changesRequireRestart = false
 local useNetworkSmoothing = false
 
@@ -109,7 +106,7 @@ local math_isInRect = math.isInRect
 local chobbyInterface, font, font2, font3, backgroundGuishader, currentGroupTab, windowList, optionButtonBackward, optionButtonForward
 local groupRect, titleRect, countDownOptionID, countDownOptionClock, sceduleOptionApply, checkedForWaterAfterGamestart, checkedWidgetDataChanges
 local savedConfig, forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover
-local fontOption, draggingSlider, lastSliderSound, selectClickAllowHide, draggingSliderPreDragValue
+local fontOption, draggingSlider, lastSliderSound, selectClickAllowHide
 
 local glColor = gl.Color
 local glTexRect = gl.TexRect
@@ -3014,6 +3011,22 @@ function init()
 		--{ id = "dgunrulereminder", group = "ui", category = types.dev, widget = "Dgun Rule Reminder", name = texts.option.dgunrulereminder, type = "bool", value = GetWidgetToggleValue("Dgun Rule Reminder"), description = texts.option.dgunrulereminder_descr },
 
 		{ id = "converterusage", group = "ui", category = types.advanced, widget = "Converter Usage", name = texts.option.converterusage, type = "bool", value = GetWidgetToggleValue("Converter Usage"), description = texts.option.converterusage_descr },
+
+		{ id = "dualmode_enabled", group = "ui", category = types.advanced, name = texts.option.dualmode .. widgetOptionColor .. "  " .. texts.option.dualmode_enabled, type = "bool", value = Spring.GetConfigInt("DualScreenMode"), description = texts.option.dualmode_enabled_descr,
+		  onchange = function(_, value)
+			  Spring.SetConfigInt("DualScreenMode", value and 1 or 0)
+		  end,
+		},
+		{ id = "dualmode_left", group = "ui", category = types.advanced, name = widgetOptionColor .. "  " .. texts.option.dualmode_left, type = "bool", value = Spring.GetConfigInt("DualScreenMiniMapOnLeft"), description = texts.option.dualmode_left_descr,
+		  onchange = function(_, value)
+			  Spring.SetConfigInt("DualScreenMiniMapOnLeft", value and 1 or 0)
+		  end,
+		},
+		{ id = "dualmode_minimap_aspectratio", group = "ui", category = types.advanced, name = widgetOptionColor .. "  " .. texts.option.dualmode_minimap_aspectratio, type = "bool", value = Spring.GetConfigInt("DualScreenMiniMapAspectRatio"), description = texts.option.dualmode_minimap_aspectratio_descr,
+		  onchange = function(_, value)
+			  Spring.SetConfigInt("DualScreenMiniMapAspectRatio", value and 1 or 0)
+		  end,
+		},
 
 
 		{ id = "label_ui_visuals", group = "ui", name = texts.option.label_visuals, category = types.basic },
