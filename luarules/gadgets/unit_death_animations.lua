@@ -31,14 +31,14 @@ local hasDeathAnim = {
 local dyingUnits = {}
 
 for udid, ud in pairs(UnitDefs) do --almost all chickens have dying anims
-	if ud.customParams.subfolder and ud.customParams.subfolder == "other/chickens" then
+	if string.find(ud.name, "chicken") or ud.customParams.subfolder and ud.customParams.subfolder == "other/chickens" then
 		hasDeathAnim[udid] = true
 	end
 end
 
 local SetUnitNoSelect	= Spring.SetUnitNoSelect
 local GiveOrderToUnit	= Spring.GiveOrderToUnit
-local SetUnitBlocking = Spring.SetUnitBlocking
+local SetUnitBlocking 	= Spring.SetUnitBlocking
 local CMD_STOP = CMD.STOP
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
