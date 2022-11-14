@@ -70,12 +70,6 @@ Stop()
 	call-script deactivatescr();
 }
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
 RequestState(requestedstate, currentstate)
 {
 	if( statechg_StateChanging )
@@ -108,7 +102,8 @@ Create()
 	hide nano2;
 	hide nano1;
 	spray = base;
-	call-script InitState();
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
 }
 
 #define SMOKEPIECE base
@@ -133,6 +128,20 @@ QueryNanoPiece(piecenum)
 }
 
 
+StartBuilding(Func_Var_1)
+{
+	show nano2;
+	show nano1;
+	return (0);
+}
+
+StopBuilding()
+{
+	hide nano2;
+	hide nano1;
+	return (0);
+}
+
 Activate()
 {
 	signal SIG_ACTIVATE;
@@ -143,7 +152,7 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-  sleep 5000;
+    sleep 5000;
 	set-signal-mask 0;
 	start-script RequestState(1);
 }

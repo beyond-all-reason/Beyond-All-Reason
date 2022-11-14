@@ -186,11 +186,15 @@ Deactivate()
 
 StartBuilding()
 {
+	show emitr;
+	show emitl;
 	return (0);
 }
 
 StopBuilding()
 {
+	hide emitr;
+	hide emitl;
 	return (0);
 }
 
