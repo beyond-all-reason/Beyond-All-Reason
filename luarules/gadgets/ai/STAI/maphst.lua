@@ -14,16 +14,17 @@ local mCeil = math.ceil
 
 function MapHST:Init()
 
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self:EchoDebug('MapHST START')
 	if self.map_loaded then
 		print('map already loaded')
 		return
 	end
 	self:basicMapInfo()
-	self:InitPathCost()
+
 	self.topology = {air = {}}
 	self:createGrid()
+	self:InitPathCost()
 
 	self.METALS = map:GetMetalSpots()
 	print('metals',#self.METALS)
@@ -50,7 +51,7 @@ function MapHST:Init()
 end
 
 function MapHST:GetMetalSpots()
-	if #self.METALS > 10 then
+	if #self.METALS > 1 then
 		return
 	end
 	for X,cells in pairs(self.GRID) do
@@ -112,14 +113,24 @@ end
 
 function MapHST:InitPathCost()
 	self:EchoDebug('init path test')
--- 	local id = game:GetTeamID()
+	local id = game:GetTeamID()
 --
--- 	self.heightMapX = (self.elmoMapSizeX / 8) + 1
--- 	self.heightMapZ = (self.elmoMapSizeZ / 8) + 1
--- 	self:EchoDebug('self.heightMapX',self.heightMapX,'self.heightMapZ',self.heightMapZ)
--- 	self:EchoDebug(Spring.GetPathNodeCosts(id))
--- 	self:EchoDebug(Spring.InitPathNodeCostsArray(id,self.gridSideX,self.gridSideZ))
--- 	self:EchoDebug(#Spring.GetPathNodeCosts(game:GetTeamID()))
+ 	self.heightMapX = (self.elmoMapSizeX / 8) + 1
+ 	self.heightMapZ = (self.elmoMapSizeZ / 8) + 1
+ 	self:EchoDebug('self.heightMapX',self.heightMapX,'self.heightMapZ',self.heightMapZ)
+ 	self:EchoDebug(Spring.GetPathNodeCosts(id))
+ 	self:EchoDebug(Spring.InitPathNodeCostsArray(id,self.gridSideX,self.gridSideZ))
+ 	self:EchoDebug(#Spring.GetPathNodeCosts(id))
+	self:EchoDebug(Spring.SetPathNodeCosts(id))
+	for X , cells in pairs(self.GRID) do
+		for Z, cell in pairs(cells) do
+			local cost = self.ai.tool:distance(cell.POS,self.elmoMapCenter)
+	              cost = (cost / self.elmoMapMaxCenterDistance) * - 1
+			local i = self:GridToNodeIndex(X,Z)
+			local set = Spring.SetPathNodeCost(id,i,cost)
+		end
+	end
+
 -- 	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),0,123))
 -- 	self:EchoDebug(Spring.SetPathNodeCost(game:GetTeamID(),1,111))
 --

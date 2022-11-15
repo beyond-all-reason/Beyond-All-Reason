@@ -121,8 +121,8 @@ function ArmyHST:Init()
 		corfav = true,
 		armflea = true,
 		armfast = true,
-		armdecade = true,
-		coresupp = true,
+		armpt = true,
+		corpt = true,
 
 
 
@@ -138,8 +138,10 @@ function ArmyHST:Init()
 		armzeus = true,
 		armsh = true,
 		corsh = true,
-		corsub = true,
-		armsub = true,
+		armdecade = true,
+		coresupp = true,
+-- 		corsub = true,
+-- 		armsub = true,
 		armsubk = true,
 		corshark = true,
 		armraz = true,
@@ -176,7 +178,7 @@ function ArmyHST:Init()
 		}
 
 	self.battles = {
-		armham = true,
+		armham = 'armwar',
 		corthud = true,
 		armstump = true,
 		corraid = true,

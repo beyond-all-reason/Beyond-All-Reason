@@ -25,22 +25,26 @@ end
 
 function LosHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
-	self.ENEMY = {}
+	--self.ENEMY = {}
 	self.OWN = {}
 	self.ALLY = {}
-	for id,def in pairs(self.losEnemy) do
+	for id,grid in pairs(self.losEnemy) do
 		local unit = game:GetUnitByID(id)
 		local uPos = unit:GetPosition()
 		if self.losEnemy[id] and self.radarEnemy[id] then
 			self:Warn('unit in los and in radar, with losStatus:' ,game:GetUnitLos(id))
 		elseif not  uPos or not unit:IsAlive()then
 			self:cleanEnemy(id)
+			self:UnloadUnitLosCell(self.ENEMY,unit,grid.X,grid.Z)
 		else
 			local X,Z = self.ai.maphst:PosToGrid(uPos)
-			self:setCellLos(self.ENEMY,unit,X,Z)
+			if X ~= grid.X or Z ~= grid.Z then
+				self:UnloadUnitLosCell(self.ENEMY,unit,grid.X,grid.Z)
+				self:LoadUnitLosCell(self.ENEMY,unit,X,Z)
+			end
 		end
 	end
-	for id,def in pairs(self.radarEnemy) do
+	for id,grid in pairs(self.radarEnemy) do
 		local unit = game:GetUnitByID(id)
 		local uPos = unit:GetPosition()
 
@@ -48,9 +52,13 @@ function LosHST:Update()
 			self:Warn('unit in los and in radar, with losStatus:' ,game:GetUnitLos(id))
 		elseif not  uPos or not unit:IsAlive()then
 			self:cleanEnemy(id)
+			self:UnloadUnitRadarCell(self.ENEMY,unit,grid.X,grid.Z)
 		else
 			local X,Z = self.ai.maphst:PosToGrid(uPos)
-			self:setCellRadar(self.ENEMY,unit,X,Z)
+			if X ~= grid.X or Z ~= grid.Z then
+				self:UnloadUnitRadarCell(self.ENEMY,unit,grid.X,grid.Z)
+				self:LoadUnitRadarCell(self.ENEMY,unit,X,Z)
+			end
 		end
 	end
 	for id,def in pairs(self.ownImmobile) do
@@ -76,6 +84,8 @@ function LosHST:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 	local X,Z = self.ai.maphst:PosToGrid(position)
 	self:EchoDebug(	'ENTER LOS',los,unitID,unitTeam,allyTeam,unitDefID,UnitDefs[unitDefID].name)
 	self.losEnemy[unitID] = {X=X,Z=Z}
+	self:LoadUnitLosCell(self.ENEMY,unit,X,Z)
+	self:UnloadUnitRadarCell(self.ENEMY,unit,X,Z)
 	self.radarEnemy[unitID] = nil
 end
 
@@ -85,11 +95,15 @@ function LosHST:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 	end
 	local los = game:GetUnitLos(unitID)
 	local unit = game:GetUnitByID(unitID)
+	local position = unit:GetPosition()
+	local X,Z = self.ai.maphst:PosToGrid(position)
 	local speed = UnitDefs[unitDefID].speed
 	if speed == 0  then
-		self.losEnemy[unitID] = {X=X,Z=Z}
+		--self.losEnemy[unitID] = {X=X,Z=Z}
+		self:UnloadUnitRadarCell(self.ENEMY,unit,X,Z)
 		self.radarEnemy[unitID] = nil
 	else
+		self:UnloadUnitLosCell(self.ENEMY,unit,X,Z)
 		self.losEnemy[unitID] = nil
 	end
 	self:EchoDebug('LEFT LOS',los,unitID,unitTeam,allyTeam,unitDefID)
@@ -106,6 +120,7 @@ function LosHST:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
 	--local isImmobile = UnitDefs[unitDefID].speed == 0
 	if not self.losEnemy[unitID] then
 		self.radarEnemy[unitID] = {X=X,Z=Z}
+		self:LoadUnitRadarCell(self.ENEMY,unit,X,Z)
 	end
 	self:EchoDebug('ENTER RADAR',los,unitID,unitTeam,allyTeam,unitDefID)
 end
@@ -120,6 +135,7 @@ function LosHST:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 	local X,Z = self.ai.maphst:PosToGrid(position)
 	--local speed = UnitDefs[unitDefID].speed
 	self.radarEnemy[unitID] = nil
+	self:UnloadUnitRadarCell(self.ENEMY,unit,X,Z)
 	self:EchoDebug('LEFT RADAR',los,unitID,unitTeam,allyTeam,unitDefID)
 end
 
@@ -153,8 +169,14 @@ end
 
 function LosHST:cleanEnemy(id)
 	self:EchoDebug('unit dead removed from los and radar',id)
+	local unit = game:GetUnitByID(unitID)
+	local position = unit:GetPosition()
+	local X,Z = self.ai.maphst:PosToGrid(position)
+	self:UnloadUnitRadarCell(self.ENEMY,unit,X,Z)
+	self:UnloadUnitLosCell(self.ENEMY,unit,X,Z)
 	self.losEnemy[id] = nil
 	self.radarEnemy[id] = nil
+
 end
 
 

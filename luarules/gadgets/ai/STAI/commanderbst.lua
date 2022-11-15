@@ -15,6 +15,27 @@ end
 function CommanderBST:Update()
 	local f = self.game:Frame()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'CommanderBST' then return end
+
+	local mapST = self.ai.maphst
+	for i = 0,(mapST.gridSideX*mapST.gridSideZ) do
+		print('iii',i)
+		Spring.SetPathNodeCost(game:GetTeamID(),i,math.random())
+		--
+
+	end
+	Spring.SetPathNodeCosts(game:GetTeamID())
+	local prepathnodecost = Spring.GetPathNodeCosts(game:GetTeamID())
+ 	for i,v in pairs(prepathnodecost) do
+ 		if v>0 then
+ 			print('get path node cost',i,v)
+ 		end
+ 	end
+
+	local testpath = mapST:getPath('armcom',mapST.GRID[1][1].POS,mapST.GRID[mapST.gridSideX][mapST.gridSideZ].POS,true)
+	self.map:EraseAll(2)
+	for i,p in pairs(testpath) do
+		 self.map:DrawPoint(p, {1,0,0,1}, metal, 2)
+	end
 	if self.ai.overviewhst.T2LAB then
 		self.save = 1
 	elseif self.unit:Internal():GetHealth() <= self.unit:Internal():GetMaxHealth() * 0.99 then

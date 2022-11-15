@@ -27,6 +27,63 @@ function TasksHST:startLabsParams()
 			numeric = {min = 1, mtype = nil, max = 3,},
 			wave = 1},
 		}
+	self.labs.t1bot = {
+			{category = 'techs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1, mtype = 5, max = 2,},
+			wave = 1},
+
+			{category = 'raiders',
+			economy = function()
+				if self.ai.overviewhst.ECONOMY < 3 then
+					return true
+				end
+				return
+			end,
+			numeric = {min = 1,max = 20},
+			wave = 10},
+
+			{category = 'battles',
+			economy = function()
+				if self.ai.overviewhst.ECONOMY >= 3 then
+					return true
+				end
+				return
+			end,
+			numeric = {min = 3},
+            wave = 5,
+			special = function(_,name,category)
+				if type(self.ai.armyhst[category][name] ) == 'string' then
+					if self.ai.overviewhst.ECONOMY >= 4 and M.full > 0.1 then
+						return self.ai.armyhst[category][name]
+					end
+				end
+	        end, },
+			{category = 'artillerys',
+			economy = function(_,name)
+				if self.ai.overviewhst.ECONOMY >= 4 then
+					return true
+				end
+				return
+			end,
+			numeric = {min = 0,mtype = 10,max = 10},
+			wave = 3},
+
+			{category = 'antiairs',
+			economy = function()
+				return true
+			end,
+			numeric = {min = 1,mtype = 7,max = 8},
+			wave = 2
+	        special = function(_,name,category)
+				if self.ai.loshst.needAntiAir then
+					return true
+				end
+	        end,},
+
+		}
 	self.labs.default = {
 			{category = 'techs',
 			economy = function()

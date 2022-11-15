@@ -120,19 +120,29 @@ function LabsBST:getSoldier()
 			return soldier,param,utype
 		end
 	end
-
 end
 
 function LabsBST:specialFilters(soldier,category)
-	if category == 'antiairs' and not self.ai.loshst.needAntiAir then
-		return nil
+	if self.queue[self.qIndex].special then
+		local soldier,category = self.queue[self.qIndex]:special(soldier,category)
+		if soldier then
+			return soldier
+		end
 	end
-	return soldier
 end
 
-function LabsBST:getSoldierFromCategory(category)--we will take care about only one soldier per category per lab, if there are more than create another category
-	for name,_ in pairs(self.ai.armyhst[category]) do
-		utype = self.game:GetTypeByName(name)
+function LabsBST:getSoldierFromCategory(category)
+	for name,options in pairs(self.ai.armyhst[category]) do
+		if type(options) == 'string' and self.queue[self.qIndex].nameCheck then
+			local newType =  self.game:GetTypeByName(options)
+			if self.unit:Internal():CanBuild(utype) then
+				local newName = self.queue[self.qIndex]:nameCheck(newName)
+				if newName then
+					return newName, newType
+				end
+			end
+		end
+		local utype = self.game:GetTypeByName(name)
 		if self.unit:Internal():CanBuild(utype) then
 			return name,utype
 		end
