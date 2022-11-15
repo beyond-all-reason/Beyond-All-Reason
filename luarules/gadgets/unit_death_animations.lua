@@ -39,6 +39,9 @@ end
 local SetUnitNoSelect	= Spring.SetUnitNoSelect
 local GiveOrderToUnit	= Spring.GiveOrderToUnit
 local SetUnitBlocking 	= Spring.SetUnitBlocking
+local MoveCtrlEnable 	= Spring.MoveCtrl.Enable
+local MoveCtrlDisable 	= Spring.MoveCtrl.Disable
+local MoveCtrlSetVelocity = Spring.MoveCtrl.SetVelocity
 local CMD_STOP = CMD.STOP
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
@@ -47,6 +50,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 		SetUnitNoSelect(unitID,true)
     	SetUnitBlocking(unitID,false) -- non blocking while dying
 		GiveOrderToUnit(unitID, CMD_STOP, 0, 0)
+		MoveCtrlEnable(unitID)
+		MoveCtrlSetVelocity(unitID, 0, 0, 0)
     	dyingUnits[unitID] = true
 	end
 end
@@ -57,6 +62,7 @@ end
 
 function gadget:RenderUnitDestroyed(unitID, unitDefID, unitTeam) --called when killed anim finishes
 	if dyingUnits[unitID] then
+		MoveCtrlDisable(unitID) -- just in case, not sure if it's needed
 		dyingUnits[unitID] = nil
 	end
 end
