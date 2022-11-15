@@ -376,7 +376,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local arrayWidth = math.ceil(math.sqrt(#giveUnits))
-		local spacing = 120
+		local spacing = 140
 		local n = 0
 		local x, z = ox, oz
 		for _, uDID in ipairs(giveUnits) do
