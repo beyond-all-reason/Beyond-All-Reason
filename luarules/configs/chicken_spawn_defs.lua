@@ -394,7 +394,6 @@ local miniBosses = {
 	addSuperSquad(4, { "3 chickenearty1"																}) -- Artillery
 	addSuperSquad(5, { "3 chickenacidarty" 																}) -- Artillery
 	addSuperSquad(5, { "2 chickenh2" 																	}) -- Apex Brood Mother
-	addSuperSquad(3, { "3 chickene2" 																    }) -- EMP Brawler
 	addSuperSquad(4, { "3 chickenelectricallterrainassault" 											}) -- EMP AllTerrain Brawler
 	addSuperSquad(5, { "2 chickenacidassault" 															}) -- Acid Brawler
 	addSuperSquad(5, { "2 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
@@ -415,7 +414,7 @@ local miniBosses = {
 	addSpecialSquad(3, { "8 chickene1"                                                                  }) -- Small Paralyzer
 
 	addSpecialSquad(4, { "5 chickens1" 																	}, 5) -- Spiker
-	addSpecialSquad(4, { "4 chickenp1" , "1 chickenp2"													}) -- Small Pyros with mom
+	addSpecialSquad(4, { "4 chickenp1" ,																}) -- Small Pyros
 	addSpecialSquad(4, { "15 chicken_dodo1" 															}) -- Small Kamikaze
 
 	addSpecialSquad(5, { "3 chickene2" 																	}) -- EMP Brawler
@@ -487,28 +486,28 @@ end
 -- Basic Squads -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-addBasicSquad(1, {"2 chicken1_mini"})
+addBasicSquad(1, {"5 chicken1_mini"}, 10)
 
 for i = 1,wavesAmount do
-	if i >= 2 and i <= 4 then -- Basic Swarmer
+	if i <= 4 then -- Basic Swarmer
 		addBasicSquad(i, { i*2 .." chicken1", i*2 .." chicken1b", i*2 .." chicken1c" }, 2)
 		addBasicSquad(i, { i*2 .." chicken1b", i*2 .." chicken1c", i*2 .." chicken1d" }, 2)
 		addBasicSquad(i, { i*2 .." chicken1c", i*2 .." chicken1d", i*2 .." chicken1" }, 2)
 		addBasicSquad(i, { i*2 .." chicken1d", i*2 .." chicken1", i*2 .." chicken1b" }, 2)
 	end
-	if i >= 2 and i <= 6 then -- Better Swarmer + Brawlers
-		addBasicSquad(i, { i ..  " chickena1" }, 2)
-		addBasicSquad(i, { i ..  " chickena1b"}, 2)
-		addBasicSquad(i, { i ..  " chickena1c"}, 2)
-	end
-	if i >= 3 and i <= 7 then
+	if i >= 3 and i <= 7 then -- Better Swarmer
 		addBasicSquad(i, { i*2 .." chicken1x", i*2 .." chicken1y" }, 4)
 		addBasicSquad(i, { i*2 .." chicken1y", i*2 .." chicken1z" }, 4)
 		addBasicSquad(i, { i*2 .." chicken1z", i*2 .." chicken1x" }, 4)
 	end
+	if i >= 4 and i <= 6 then -- Brawlers
+		addBasicSquad(i, { i ..  " chickena1" }, 5)
+		addBasicSquad(i, { i ..  " chickena1b"}, 5)
+		addBasicSquad(i, { i ..  " chickena1c"}, 5)
+	end
 	if i >= 7 then -- Apex Swarmer and  Apex Brawler
-		addBasicSquad(i, { i*2 .." chicken2" , i*2 .." chicken2b" }, 8)
-		addBasicSquad(i, { i .." chickena2", i .." chickena2b" }, 2)
+		addBasicSquad(i, { i*2 .." chicken2" , i*2 .." chicken2b" }, 5)
+		addBasicSquad(i, { i .." chickena2", i .." chickena2b" }, 5)
 	end
 end
 

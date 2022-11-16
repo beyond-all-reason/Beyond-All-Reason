@@ -88,6 +88,7 @@ if gadgetHandler:IsSyncedCode() then
 	local difficultyCounter = 0
 	local airWaveCooldown = 0
 	local miniBossCooldown = 0
+	local specialWaveCooldown = 0
 	local firstSpawn = true
 	local gameOver = nil
 	local humanTeams = {}
@@ -1075,8 +1076,6 @@ if gadgetHandler:IsSyncedCode() then
 		if gameOver then
 			return
 		end
-
-		currentMaxWaveSize = (config.minChickens + math.ceil((queenAnger*0.01)*(maxWaveSize - config.minChickens)))
 		squadManagerKillerLoop()
 		
 		local techAngerPerTier = 100/config.wavesAmount
@@ -1091,16 +1090,21 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local waveType = "normal"
-		if miniBossCooldown <= 0 and currentWave >= 6 and mRandom() <= config.spawnChance then
-			miniBossCooldown = mRandom(10,20)
-			waveType = "miniboss"
-		elseif Spring.GetModOptions().unit_restrictions_noair == false and airWaveCooldown <= 0 and config.airWaves[currentWave] and mRandom() <= config.spawnChance then
-			airWaveCooldown = mRandom(5,10)
-			waveType = "air"
+		if specialWaveCooldown <= 0 then
+			if miniBossCooldown <= 0 and currentWave >= 6 and mRandom() <= config.spawnChance then
+				miniBossCooldown = mRandom(10,20)
+				specialWaveCooldown = mRandom(2,4)
+				waveType = "miniboss"
+			elseif Spring.GetModOptions().unit_restrictions_noair == false and airWaveCooldown <= 0 and config.airWaves[currentWave] and mRandom() <= config.spawnChance then
+				airWaveCooldown = mRandom(5,10)
+				specialWaveCooldown = mRandom(2,4)
+				waveType = "air"
+			end
 		end
 
 		miniBossCooldown = miniBossCooldown - 1
 		airWaveCooldown = airWaveCooldown - 1
+		specialWaveCooldown = specialWaveCooldown - 1
 			
 
 		local cCount = 0
@@ -1670,6 +1674,7 @@ if gadgetHandler:IsSyncedCode() then
 			playerAgression = playerAgression*0.99
 			playerAgressionLevel = math.floor(playerAgression)
 			SetGameRulesParam("chickenPlayerAgressionLevel", playerAgressionLevel)
+			currentMaxWaveSize = (config.minChickens + math.ceil((queenAnger*0.01)*(maxWaveSize - config.minChickens)))
 			if t < config.gracePeriod then
 				queenAnger = 0
 				techAnger = 0
@@ -1727,7 +1732,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if t > config.gracePeriod+5 then
-				if burrowCount > 0 and SetCount(spawnQueue) == 0 and (((config.chickenMaxSpawnRate) < (t - timeOfLastWave)) or (chickenCount < lastWaveUnitCount)) then
+				if burrowCount > 0 and SetCount(spawnQueue) == 0 and (((config.chickenMaxSpawnRate) < (t - timeOfLastWave)) or (chickenCount < currentMaxWaveSize)) then
 					local cCount = Wave()
 					lastWaveUnitCount = cCount
 					timeOfLastWave = t
