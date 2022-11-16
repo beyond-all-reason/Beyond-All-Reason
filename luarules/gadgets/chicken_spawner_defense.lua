@@ -951,7 +951,7 @@ if gadgetHandler:IsSyncedCode() then
 					local z = mRandom(RaptorStartboxZMin, RaptorStartboxZMax)
 					local y = GetGroundHeight(x, z)
 
-					canSpawnBurrow = positionCheckLibrary.StartboxCheck(x, y, z, chickenAllyTeamID, true)
+					canSpawnBurrow = positionCheckLibrary.StartboxCheck(x, y, z, chickenAllyTeamID)
 					if canSpawnBurrow then
 						canSpawnBurrow = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, false)
 					end
@@ -1053,7 +1053,7 @@ if gadgetHandler:IsSyncedCode() then
 				z = mRandom(RaptorStartboxZMin, RaptorStartboxZMax)
 				y = GetGroundHeight(x, z)
 
-				canSpawnQueen = positionCheckLibrary.StartboxCheck(x, y, z, chickenAllyTeamID, true)
+				canSpawnQueen = positionCheckLibrary.StartboxCheck(x, y, z, chickenAllyTeamID)
 				if canSpawnQueen then
 					canSpawnQueen = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, false)
 				end
