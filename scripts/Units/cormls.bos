@@ -127,12 +127,14 @@ Deactivate()
 
 StartBuilding(Func_Var_1)
 {
+	show nano;
 	Static_Var_2 = Func_Var_1;
 	start-script RequestState(0);
 }
 
 StopBuilding()
 {
+	hide nano;
 	start-script RequestState(1);
 }
 

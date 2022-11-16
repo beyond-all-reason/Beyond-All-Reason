@@ -126,7 +126,6 @@ StartMoving()
 {
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
-
 }
 
 StopMoving()
@@ -137,12 +136,14 @@ StopMoving()
 
 StartBuilding()
 {
+	hide emit;
 	set INBUILDSTANCE to 1;
 	return (0);
 }
 
 StopBuilding()
 {
+	hide emit;
 	set INBUILDSTANCE to 0;
 	return (0);
 }

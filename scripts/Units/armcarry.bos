@@ -122,6 +122,19 @@ Create()
 	start-script RockOnWaves();
 }
 
+StartBuilding()
+{
+	show nanoemit2;
+	show nanoemit1;
+	return (0);
+}
+
+StopBuilding()
+{
+	hide nanoemit2;
+	hide nanoemit1;
+	return (0);
+}
 Activate()
 {
 	start-script Lights();

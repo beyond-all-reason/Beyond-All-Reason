@@ -116,8 +116,8 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	hide nano2;
 	hide nano1;
+	hide nano2;
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
@@ -137,6 +137,8 @@ Deactivate()
 
 StartBuilding(heading, pitch)
 {
+	show nano1;
+	show nano2;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
@@ -147,6 +149,8 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
+	hide nano1;
+	hide nano2;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	sleep 6000;
