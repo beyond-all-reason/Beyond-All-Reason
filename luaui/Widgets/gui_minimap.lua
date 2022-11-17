@@ -35,6 +35,8 @@ local leftclicked = false
 local RectRound, UiElement, elementCorner, elementPadding, elementMargin
 local dlistGuishader, dlistMinimap, oldMinimapGeometry, chobbyInterface
 
+local dualscreenMode = ((Spring.GetConfigInt("DualScreenMode", 0) or 0) == 1)
+
 local function checkGuishader(force)
 	if WG['guishader'] then
 		if force and dlistGuishader then
@@ -78,7 +80,9 @@ function widget:ViewResize()
 	Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
 
 	backgroundRect = { 0, vsy - (usedHeight), usedWidth, vsy }
-	checkGuishader(true)
+	if not dualscreenMode then
+		checkGuishader(true)
+	end
 	dlistMinimap = gl.DeleteList(dlistMinimap)
 end
 
@@ -111,13 +115,16 @@ function widget:GameStart()
 	widget:ViewResize()
 end
 
-function widget:Shutdown()
+local function clear()
 	dlistMinimap = gl.DeleteList(dlistMinimap)
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('minimap')
 		dlistGuishader = nil
 	end
+end
 
+function widget:Shutdown()
+	clear()
 	gl.SlaveMiniMap(false)
 	Spring.SendCommands("minimap geometry " .. oldMinimapGeometry)
 end
@@ -134,8 +141,20 @@ function widget:Update(dt)
 	sec2 = sec2 + dt
 	if sec2 > 0.5 then
 		sec2 = 0
-		Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
-		checkGuishader()
+		if not dualscreenMode then
+			Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
+			checkGuishader()
+		end
+
+		local newDualscreenMode = ((Spring.GetConfigInt("DualScreenMode", 0) or 0) == 1)
+		if dualscreenMode ~= newDualscreenMode then
+			dualscreenMode = newDualscreenMode
+			if dualscreenMode then
+				clear()
+			else
+				widget:Initialize()
+			end
+		end
 	end
 end
 
@@ -149,6 +168,10 @@ local st = spGetCameraState()
 local stframe = 0
 function widget:DrawScreen()
 	if chobbyInterface then
+		return
+	end
+	if dualscreenMode then
+		gl.DrawMiniMap()
 		return
 	end
 	local x, y, b = Spring.GetMouseState()
@@ -211,33 +234,39 @@ local function minimapToWorld(x, y)
 end
 
 function widget:MouseMove(x, y)
-	if leftclicked and leftClickMove then
-		local px, py, pz = minimapToWorld(x, y)
-		if py then
-			Spring.SetCameraTarget(px, py, pz, 0.04)
+	if not dualscreenMode then
+		if leftclicked and leftClickMove then
+			local px, py, pz = minimapToWorld(x, y)
+			if py then
+				Spring.SetCameraTarget(px, py, pz, 0.04)
+			end
 		end
 	end
 end
 
 function widget:MousePress(x, y, button)
-	if Spring.IsGUIHidden() then
-		return
-	end
-	leftclicked = false
-	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4]) then
-		if not math_isInRect(x, y, backgroundRect[1], backgroundRect[2] + 1, backgroundRect[3] - 1, backgroundRect[4]) then
-			return true
-		elseif button == 1 and leftClickMove then
-			leftclicked = true
-			local px, py, pz = minimapToWorld(x, y)
-			if py then
-				Spring.SetCameraTarget(px, py, pz, 0.2)
+	if not dualscreenMode then
+		if Spring.IsGUIHidden() then
+			return
+		end
+		leftclicked = false
+		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4]) then
+			if not math_isInRect(x, y, backgroundRect[1], backgroundRect[2] + 1, backgroundRect[3] - 1, backgroundRect[4]) then
 				return true
+			elseif button == 1 and leftClickMove then
+				leftclicked = true
+				local px, py, pz = minimapToWorld(x, y)
+				if py then
+					Spring.SetCameraTarget(px, py, pz, 0.2)
+					return true
+				end
 			end
 		end
 	end
 end
 
 function widget:MouseRelease(x, y, button)
-	leftclicked = false
+	if not dualscreenMode then
+		leftclicked = false
+	end
 end
