@@ -53,7 +53,27 @@ local function checkGuishader(force)
 	end
 end
 
+local function clear()
+	dlistMinimap = gl.DeleteList(dlistMinimap)
+	if WG['guishader'] and dlistGuishader then
+		WG['guishader'].DeleteDlist('minimap')
+		dlistGuishader = nil
+	end
+end
+
 function widget:ViewResize()
+	local newDualscreenMode = ((Spring.GetConfigInt("DualScreenMode", 0) or 0) == 1)
+	if dualscreenMode ~= newDualscreenMode then
+		dualscreenMode = newDualscreenMode
+		if dualscreenMode then
+			clear()
+		else
+			widget:Initialize()
+		end
+
+		return
+	end
+
 	vsx, vsy = Spring.GetViewGeometry()
 
 	elementPadding = WG.FlowUI.elementPadding
@@ -77,10 +97,10 @@ function widget:ViewResize()
 	usedWidth = math.floor(maxWidth * vsy)
 	usedHeight = math.floor(maxHeight * vsy)
 
-	Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
-
 	backgroundRect = { 0, vsy - (usedHeight), usedWidth, vsy }
+
 	if not dualscreenMode then
+		Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
 		checkGuishader(true)
 	end
 	dlistMinimap = gl.DeleteList(dlistMinimap)
@@ -115,18 +135,13 @@ function widget:GameStart()
 	widget:ViewResize()
 end
 
-local function clear()
-	dlistMinimap = gl.DeleteList(dlistMinimap)
-	if WG['guishader'] and dlistGuishader then
-		WG['guishader'].DeleteDlist('minimap')
-		dlistGuishader = nil
-	end
-end
-
 function widget:Shutdown()
 	clear()
 	gl.SlaveMiniMap(false)
-	Spring.SendCommands("minimap geometry " .. oldMinimapGeometry)
+
+	if not dualscreenMode then
+		Spring.SendCommands("minimap geometry " .. oldMinimapGeometry)
+	end
 end
 
 function widget:Update(dt)
@@ -139,23 +154,14 @@ function widget:Update(dt)
 	end
 
 	sec2 = sec2 + dt
-	if sec2 > 0.5 then
-		sec2 = 0
-		if not dualscreenMode then
-			Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
-			checkGuishader()
-		end
+	if sec2 <= 0.5 then return end
 
-		local newDualscreenMode = ((Spring.GetConfigInt("DualScreenMode", 0) or 0) == 1)
-		if dualscreenMode ~= newDualscreenMode then
-			dualscreenMode = newDualscreenMode
-			if dualscreenMode then
-				clear()
-			else
-				widget:Initialize()
-			end
-		end
-	end
+	sec2 = 0
+
+	if dualscreenMode then return end
+
+	Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
+	checkGuishader()
 end
 
 function widget:RecvLuaMsg(msg, playerID)
