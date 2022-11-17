@@ -1137,8 +1137,8 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 						if px and spIsSphereInView(px,py,pz, lightTable[4]) then visible = true end
 					end
 					if visible then
-						if not lightTable.initComplete then 
-							if not InitializeLight(lightTable, unitID) then return end 
+						if not lightTable.initComplete then
+							if not InitializeLight(lightTable, unitID) then return end
 						end
 						--if lightTable.aboveUnit then lightTable.lightParamTable end
 						local lightParamTable = lightTable.lightParamTable
@@ -1378,12 +1378,12 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 
 		local alt, ctrl, meta, shft = Spring.GetModKeyState()
 
-		if (ctrl and isSinglePlayer and not spec and (Spring.GetConfigInt('DevUI', 0) == 1) )then
+		if ctrl and (isSinglePlayer or spec) and (Spring.GetConfigInt('DevUI', 0) == 1) then
 			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		else
 			glBlending(GL.SRC_ALPHA, GL.ONE)
 		end
-		if alt and isSinglePlayer and not spec and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
+		if alt and (isSinglePlayer or spec) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
 
 		gl.Culling(GL.BACK)
 		gl.DepthTest(false)
