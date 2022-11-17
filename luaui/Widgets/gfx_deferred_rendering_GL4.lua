@@ -382,8 +382,9 @@ local function InitializeLight(lightTable, unitID)
 			end
 			local pieceMap = unitDefPeiceMapCache[unitDefID]
 
-			if pieceMap == nil then
-				Spring.Debug.TraceFullEcho(nil,nil,nil,"InitializeLight, pieceMap == nil")
+			if pieceMap == nil or unitDefID == nil then
+				return false
+				--Spring.Debug.TraceFullEcho(nil,nil,nil,"InitializeLight, pieceMap == nil")
 			end
 
 			if pieceMap[lightTable.pieceName] then -- if its not a real piece, it will default to the model worldpos!
@@ -395,6 +396,7 @@ local function InitializeLight(lightTable, unitID)
 
 		lightTable.initComplete = true
 	end
+	return true
 end
 
 
@@ -759,7 +761,7 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noUpload)
 		local unitDefLight = unitDefLights[unitDefID]
 		if unitDefLight.initComplete ~= true then  -- late init
 			for lightname, lightParams in pairs(unitDefLight) do
-				InitializeLight(lightParams, unitID)
+				if not InitializeLight(lightParams, unitID) then return end
 			end
 			unitDefLight.initComplete = true
 		end
@@ -1135,7 +1137,9 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 						if px and spIsSphereInView(px,py,pz, lightTable[4]) then visible = true end
 					end
 					if visible then
-						if not lightTable.initComplete then InitializeLight(lightTable, unitID) end
+						if not lightTable.initComplete then 
+							if not InitializeLight(lightTable, unitID) then return end 
+						end
 						--if lightTable.aboveUnit then lightTable.lightParamTable end
 						local lightParamTable = lightTable.lightParamTable
 						if lightTable.pieceName then
