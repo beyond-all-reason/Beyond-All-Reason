@@ -45,7 +45,7 @@ return {
 		selfdestructas = "DODO_DEATH1",
 		selfdestructcountdown = 0,
 		side = "THUNDERBIRDS",
-		sightdistance = 36,
+		sightdistance = 50,
 		smoothanim = true,
 		stealth = 1,
 		steeringmode = "2",

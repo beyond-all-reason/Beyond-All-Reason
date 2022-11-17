@@ -52,7 +52,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "TALON_DEATH",
 		side = "THUNDERBIRDS",
-		sightdistance = 500,
+		sightdistance = 1000,
 		smoothanim = true,
 		speedtofront = 0.07,
 		steeringmode = "2",
