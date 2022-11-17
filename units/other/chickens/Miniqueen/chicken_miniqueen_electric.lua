@@ -43,7 +43,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BUG_DEATH",
 		side = "THUNDERBIRDS",
-		sightdistance = 1500,
+		sightdistance = 500,
 		smoothanim = true,
 		steeringmode = "2",
 		tedclass = "BOT",
