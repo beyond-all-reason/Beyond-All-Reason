@@ -10605,6 +10605,13 @@ if not headlights then
 	end
 end
 
+-- add scavenger equivalents
+for unitDefID, lights in pairs(unitDefLights) do
+	if UnitDefNames[UnitDefs[unitDefID].name..'_scav'] then
+		unitDefLights[UnitDefNames[UnitDefs[unitDefID].name..'_scav'].id] = lights
+	end
+end
+
 local allLights = {unitEventLights = unitEventLights, unitDefLights = unitDefLights, }
 
 ----------------- Debugging code to do the reverse dump ---------------
