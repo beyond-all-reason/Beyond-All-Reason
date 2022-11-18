@@ -23,7 +23,7 @@ return {
 		"corthud_scav",
 		"corstorm_scav",
 		"corcrash_scav",
-		"corkark_scav",
+		"legkark_scav",
 		"leggob_scav",
 		"legcen_scav",
 		"legbal_scav",

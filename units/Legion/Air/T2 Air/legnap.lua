@@ -31,7 +31,7 @@ return {
 		maxwaterdepth = 0,
 		noautofire = true,
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/LEGNAP.s3o",
+		objectname = "Units/LEGNAP.s3o",
 		script = "Units/CORHURC.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",

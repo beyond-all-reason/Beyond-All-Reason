@@ -200,7 +200,7 @@ local landUnitsList = {
                 "corthud",
                 "corstorm",
                 --"corcrash",
-                "corkark",
+                "legkark",
                 "leggob",
                 "legcen",
                 "legbal",
