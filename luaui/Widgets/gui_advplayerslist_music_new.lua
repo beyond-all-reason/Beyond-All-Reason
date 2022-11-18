@@ -820,7 +820,7 @@ function widget:UnitDamaged(unitID, unitDefID, _, damage)
 		end
 		if totalTime == 0 and silenceTimer >= 0 then
 			silenceTimer = silenceTimer - 1
-			Spring.Echo("silenceTimer: ", silenceTimer)
+			--Spring.Echo("silenceTimer: ", silenceTimer)
 		end
 	end
 end
@@ -889,7 +889,7 @@ function widget:GameFrame(n)
 				end
 			elseif totalTime == 0 then -- there's no music
 				if silenceTimerEnabled and not bossHasSpawned then
-					Spring.Echo("silenceTimer: ", silenceTimer)
+					--Spring.Echo("silenceTimer: ", silenceTimer)
 					if silenceTimer > 0 then
 						silenceTimer = silenceTimer - 1
 					elseif silenceTimer <= 0 then
@@ -927,14 +927,14 @@ end
 
 function widget:UnitCreated(_, _, _, builderID)
 	if builderID and warMeter < warLowLevel and silenceTimer > 0 and totalTime == 0 then
-		Spring.Echo("silenceTimer: ", silenceTimer)
+		--Spring.Echo("silenceTimer: ", silenceTimer)
 		silenceTimer = silenceTimer - 10
 	end
 end
 
 function widget:UnitFinished()
 	if warMeter < warLowLevel and silenceTimer > 0 and totalTime == 0 then
-		Spring.Echo("silenceTimer: ", silenceTimer)
+		--Spring.Echo("silenceTimer: ", silenceTimer)
 		silenceTimer = silenceTimer - 10
 	end
 end
