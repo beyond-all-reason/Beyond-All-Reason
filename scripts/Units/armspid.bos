@@ -611,6 +611,7 @@ FirePrimary()
 
 StartBuilding(heading, pitch)
 {
+	show flare;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
@@ -621,6 +622,7 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
+	hide flare;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	sleep 1000;
