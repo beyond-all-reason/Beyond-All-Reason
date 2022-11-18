@@ -928,13 +928,13 @@ end
 function widget:UnitCreated(_, _, _, builderID)
 	if builderID and warMeter < warLowLevel and silenceTimer > 0 and totalTime == 0 then
 		--Spring.Echo("silenceTimer: ", silenceTimer)
-		silenceTimer = silenceTimer - 10
+		silenceTimer = silenceTimer - 2
 	end
 end
 
 function widget:UnitFinished()
 	if warMeter < warLowLevel and silenceTimer > 0 and totalTime == 0 then
 		--Spring.Echo("silenceTimer: ", silenceTimer)
-		silenceTimer = silenceTimer - 10
+		silenceTimer = silenceTimer - 5
 	end
 end
