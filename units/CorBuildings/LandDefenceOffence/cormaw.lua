@@ -33,6 +33,7 @@ return {
 		stealth = true,
 		turnrate = 0,
 		upright = true,
+		yardmap = "ffff",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/cormaw_aoplane.dds",
