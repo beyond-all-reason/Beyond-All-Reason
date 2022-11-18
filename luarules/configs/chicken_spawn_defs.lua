@@ -94,7 +94,7 @@ local chickenTypes = {
   }
 
   local defenders = {
-	chicken_turrets = true,
+	chicken_turrets_burrow = true,
   }
 
   local chickenEggs = {

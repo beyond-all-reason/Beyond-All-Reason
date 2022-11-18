@@ -342,6 +342,7 @@ local units = {
 	chickenacidallterrainassault = { "chicken_acid.png", 1.57499993 },
 
 	chicken_turrets = { "chicken_tentacle.png", 1.57499993 },
+	chicken_turrets_burrow = { "chicken_tentacle.png", 0 },
 	chicken_turretl = { "chicken_tentacle2.png", 2.9 },
 	chicken_turrets_electric = { "chicken_tentacle.png", 1.57499993 },
 	chicken_turretl_electric  = { "chicken_tentacle2.png", 2.9 },
