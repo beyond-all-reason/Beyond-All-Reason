@@ -60,7 +60,7 @@ return {
 			[18] = "cordrag",
 			[19] = "cormaw",
 			[20] = "corllt",
-			[21] = "armmg",
+			[21] = "legmg",
 			[22] = "corpun",
 			[23] = "corrl",
 			[24] = "cormadsam",

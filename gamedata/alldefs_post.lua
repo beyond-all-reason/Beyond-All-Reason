@@ -439,9 +439,6 @@ function UnitDef_Post(name, uDef)
 		elseif name == "coravp" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
-		elseif name == "corlab" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corkark"
 		-- elseif name == "corap" then
 		-- 	local numBuildoptions = #uDef.buildoptions
 		-- 	uDef.buildoptions[numBuildoptions+1] = "corassistdrone"
@@ -454,7 +451,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
 			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
 			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
-			uDef.buildoptions[numBuildoptions+5] = "armmg"
+			uDef.buildoptions[numBuildoptions+5] = "legmg"
 		elseif name == "corca" or name == "corck" or name == "corcv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"

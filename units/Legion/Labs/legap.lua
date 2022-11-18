@@ -25,7 +25,7 @@ return {
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 100,
-		objectname = "Units/scavboss/LEGAP.s3o",
+		objectname = "Units/LEGAP.s3o",
 		radardistance = 510,
 		radaremitheight = 40,
 		script = "Units/CORAP.cob",

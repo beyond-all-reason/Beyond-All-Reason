@@ -535,13 +535,6 @@ customDefs.corgantuw = {
 	},
 }
 
-numBuildoptions = #UnitDefs.corlab.buildoptions
-customDefs.corlab = {
-	buildoptions = {
-		[numBuildoptions+1] = "corkark",
-	},
-}
-
 numBuildoptions = #UnitDefs.coravp.buildoptions
 customDefs.coravp = {
 	buildoptions = {
@@ -587,7 +580,7 @@ customDefs.armca = {
 		[numBuildoptions+2] = "corscavdtl",
 		[numBuildoptions+3] = "corscavdtf",
 		[numBuildoptions+4] = "corscavdtm",
-		[numBuildoptions+5] = "armmg",
+		[numBuildoptions+5] = "legmg",
 	},
 }
 
@@ -598,7 +591,7 @@ customDefs.armck = {
 		[numBuildoptions+2] = "corscavdtl",
 		[numBuildoptions+3] = "corscavdtf",
 		[numBuildoptions+4] = "corscavdtm",
-		[numBuildoptions+5] = "armmg",
+		[numBuildoptions+5] = "legmg",
 	},
 }
 
@@ -609,7 +602,7 @@ customDefs.armcv = {
 		[numBuildoptions+2] = "corscavdtl",
 		[numBuildoptions+3] = "corscavdtf",
 		[numBuildoptions+4] = "corscavdtm",
-		[numBuildoptions+5] = "armmg",
+		[numBuildoptions+5] = "legmg",
 	},
 }
 

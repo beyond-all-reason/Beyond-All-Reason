@@ -215,7 +215,7 @@ local function tinyDefences14()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -16, zOffset = 16, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -16, zOffset = -16, direction = 3},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 16, zOffset = -16, direction = 3},
-			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = 16, zOffset = 16, direction = 3},
+			{ unitDefID = UnitDefNames.legmg_scav.id, xOffset = 16, zOffset = 16, direction = 3},
 		},
 	}
 end

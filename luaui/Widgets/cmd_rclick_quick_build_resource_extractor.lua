@@ -18,7 +18,7 @@ end
 -- Config
 ------------------------------------------------------------
 local t1geoThreshold = 300 --any building producing this much or less is considered tier 1
-local t1mexThreshold = 0.001 --any building producing this much or less is considered tier 1
+local t1mexThreshold = 0.0025 --any building producing this much or less is considered tier 1
 
 local enableMoveIsQuickBuildGeo = true		-- auto make move cmd an area geo cmd
 local enableMoveIsQuickBuildMex = true		-- auto make move cmd an area mex cmd

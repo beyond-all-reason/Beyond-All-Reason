@@ -1,10 +1,10 @@
 return {
-	corkark = {
+	legkark = {
 		acceleration = 0.0828,
 		brakerate = 0.8211,
 		buildcostenergy = 2400,
 		buildcostmetal = 280,
-		buildpic = "CORKARK.DDS",
+		buildpic = "LEGKARK.DDS",
 		buildtime = 4000,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -25,8 +25,8 @@ return {
 		movementclass = "BOT2",
 		name = "Karkinos",
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/CORKARK.s3o",
-		script = "Units/scavboss/CORKARK.cob",
+		objectname = "Units/LEGKARK.s3o",
+		script = "Units/LEGKARK.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 400,
@@ -47,7 +47,7 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "-0.527076721191 -5.09926749023 6.06378173828",
+				collisionvolumeoffsets = "-0.527076721191 -15.09926749023 6.06378173828",
 				collisionvolumescales = "37.3442840576 10.0486450195 42.9995422363",
 				collisionvolumetype = "Box",
 				damage = 880,
@@ -59,7 +59,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 161,
-				object = "Units/scavboss/corkark_dead.s3o",
+				object = "Units/legkark_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
