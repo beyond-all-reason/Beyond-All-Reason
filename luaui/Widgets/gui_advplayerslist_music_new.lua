@@ -885,6 +885,8 @@ function widget:GameFrame(n)
 					or ((currentTrackListString == "warLow" and warMeter <= warLowLevel * 0.5 ) and interruptionEnabled) then -- WarLow music is playing, but it has been quite peaceful recently. Let's switch to peace music at 50% of WarLow threshold
 						fadeDirection = -2
 						fadeOutSkipTrack = true
+					elseif playedTime >= totalTime - 12 then
+						fadeDirection = -1
 					end
 				end
 			elseif totalTime == 0 then -- there's no music
