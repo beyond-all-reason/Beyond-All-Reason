@@ -816,6 +816,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		return squadCounter
 	end
+	
 	local function SetupBurrow(unitID, x, y, z)
 		burrows[unitID] = 0
 		SetUnitBlocking(unitID, false, false)
@@ -888,13 +889,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		-- increase burrow spawn box in initialbox_post
-		if config.burrowSpawnType == "initialbox_post" then
-			lsx1 = math.max(lsx1 - (16*config.chickenSpawnMultiplier*SetCount(humanTeams)), config.spawnSquare)
-			lsz1 = math.max(lsz1 - (16*config.chickenSpawnMultiplier*SetCount(humanTeams)), config.spawnSquare)
-			lsx2 = math.min(lsx2 + (16*config.chickenSpawnMultiplier*SetCount(humanTeams)), MAPSIZEX - config.spawnSquare)
-			lsz2 = math.min(lsz2 + (16*config.chickenSpawnMultiplier*SetCount(humanTeams)), MAPSIZEZ - config.spawnSquare)
-		end
 	end
 
 	local function SpawnBurrow(number)
@@ -939,6 +933,17 @@ if gadgetHandler:IsSyncedCode() then
 					canSpawnBurrow = positionCheckLibrary.MapEdgeCheck(x, y, z, 256)
 				end
 
+				if canSpawnBurrow then
+					for burrowID, _ in pairs(burrows) do
+						local bx, _, bz = Spring.GetUnitPosition(burrowID)
+						local spread = 100*SetCount(burrows)
+						if x > bx-spread and x < bx+spread and z > bz-spread and z < bz+spread then
+							canSpawnBurrow = false
+							break
+						end
+					end
+				end
+
 			until (canSpawnBurrow == true or tries >= maxTries * 4)
 
 			if canSpawnBurrow then
@@ -947,10 +952,10 @@ if gadgetHandler:IsSyncedCode() then
 					SetupBurrow(unitID, x, y, z)
 				end
 			else
-				for i = 1,100 do
-					local x = mRandom(RaptorStartboxXMin, RaptorStartboxXMax)
-					local z = mRandom(RaptorStartboxZMin, RaptorStartboxZMax)
-					local y = GetGroundHeight(x, z)
+				for j = 1,100 do
+					x = mRandom(RaptorStartboxXMin, RaptorStartboxXMax)
+					z = mRandom(RaptorStartboxZMin, RaptorStartboxZMax)
+					y = GetGroundHeight(x, z)
 
 					canSpawnBurrow = positionCheckLibrary.StartboxCheck(x, y, z, chickenAllyTeamID)
 					if canSpawnBurrow then
@@ -963,12 +968,22 @@ if gadgetHandler:IsSyncedCode() then
 						canSpawnBurrow = positionCheckLibrary.OccupancyCheck(x, y, z, 128)
 					end
 					if canSpawnBurrow then
+						for burrowID, _ in pairs(burrows) do
+							local bx, _, bz = Spring.GetUnitPosition(burrowID)
+							local spread = 100*SetCount(burrows)
+							if x > bx-spread and x < bx+spread and z > bz-spread and z < bz+spread then
+								canSpawnBurrow = false
+								break
+							end
+						end
+					end
+					if canSpawnBurrow then
 						local unitID = CreateUnit(config.burrowName, x, y, z, mRandom(0,3), chickenTeamID)
 						if unitID then
 							SetupBurrow(unitID, x, y, z)
 							break
 						end
-					elseif i == 100 then
+					elseif j == 100 then
 						timeOfLastSpawn = 1
 					end
 				end
@@ -1574,6 +1589,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function queueTurretSpawnIfNeeded()
+
 		local burrowCount = SetCount(burrows)
 		local heavyTurretCount = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id)
 		local lightTurretCount = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[lightTurret].id)
@@ -1630,6 +1646,14 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local function updateRaptorSpawnBox()
+		if config.burrowSpawnType == "initialbox_post" then
+			lsx1 = math.max(RaptorStartboxXMin - ((MAPSIZEX*0.01) * queenAnger), 0)
+			lsz1 = math.max(RaptorStartboxZMin - ((MAPSIZEZ*0.01) * queenAnger), 0)
+			lsx2 = math.min(RaptorStartboxXMax + ((MAPSIZEX*0.01) * queenAnger), MAPSIZEX)
+			lsz2 = math.min(RaptorStartboxZMax + ((MAPSIZEZ*0.01) * queenAnger), MAPSIZEZ)
+		end
+	end
 
 	local announcedFirstWave = false
 	function gadget:GameFrame(n)
@@ -1747,6 +1771,8 @@ if gadgetHandler:IsSyncedCode() then
 					Spring.SetUnitHealth(turret, h)
 				end
 			end
+
+			updateRaptorSpawnBox()
 		end
 		if playerAgressionLevel > 0 and n%((math.ceil(config.turretSpawnRate/playerAgressionLevel))*100) == 0 and chickenTeamUnitCount < chickenUnitCap then
 			queueTurretSpawnIfNeeded()
@@ -1789,6 +1815,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if n%30 == 20 then -- math.ceil((brood3count*4)/(SetCount(humanTeams)*config.chickenSpawnMultiplier))
+
 			local brood1count = SetCount(broodRaptors1)
 			local brood2count = SetCount(broodRaptors2)
 			local brood3count = SetCount(broodRaptors3)
