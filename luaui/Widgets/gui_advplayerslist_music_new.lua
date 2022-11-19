@@ -818,8 +818,8 @@ function widget:UnitDamaged(unitID, unitDefID, _, damage)
 		else
 			warMeter = math.ceil(warMeter + damage)
 		end
-		if totalTime == 0 and silenceTimer >= 0 then
-			silenceTimer = silenceTimer - 1
+		if totalTime == 0 and silenceTimer >= 0 and damage and damage > 0 then
+			silenceTimer = silenceTimer - damage*0.001
 			--Spring.Echo("silenceTimer: ", silenceTimer)
 		end
 	end
