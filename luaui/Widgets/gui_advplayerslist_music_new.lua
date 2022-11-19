@@ -726,7 +726,6 @@ function PlayNewTrack(paused)
 	fadeOutSkipTrack = false
 	silenceTimer = math.random(minSilenceTime,maxSilenceTime)
 	-- appliedSilence = false
-	warMeter = warMeter * 0.75
 
 	if (not gameOver) and Spring.GetGameFrame() > 1 then
 		fadeLevel = 0
@@ -870,7 +869,7 @@ function widget:GameFrame(n)
 		playedTime, totalTime = Spring.GetSoundStreamTime()
 
 		if warMeter > 0 then
-			warMeter = math.floor(warMeter - (warMeter * 0.05))
+			warMeter = math.floor(warMeter - (warMeter * 0.04))
 			if warMeter > warHighLevel*3 then
 				warMeter = warHighLevel*3
 			end
