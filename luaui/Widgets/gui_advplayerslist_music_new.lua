@@ -28,6 +28,7 @@ local minSilenceTime = 60
 local maxSilenceTime = 300
 local warLowLevel = 1000
 local warHighLevel = 20000
+local warMeterResetTime = 60 -- seconds
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -39,6 +40,7 @@ local function applySpectatorThresholds()
 	warHighLevel = 20000*specMultiplier
 	minSilenceTime = 60*specMultiplier
 	maxSilenceTime = 300*specMultiplier
+	warMeterResetTime = 60/specMultiplier
 	appliedSpectatorThresholds = true
 	--Spring.Echo("[Music Player] Spectator mode enabled")
 end
@@ -218,6 +220,7 @@ local currentTrackListString = "intro"
 
 local defaultMusicVolume = 50
 local warMeter = 0
+local warMeterResetTimer = 0
 local gameOver = false
 local playedGameOverTrack = false
 local fadeLevel = 100
@@ -812,6 +815,7 @@ end
 
 function widget:UnitDamaged(unitID, unitDefID, _, damage)
 	if damage > 1 then
+		warMeterResetTimer = 0
 		local curHealth, maxHealth = Spring.GetUnitHealth(unitID)
 		if damage > maxHealth then
 			warMeter = math.ceil(warMeter + maxHealth)
@@ -869,6 +873,10 @@ function widget:GameFrame(n)
 			warMeter = math.floor(warMeter - (warMeter * 0.05))
 			if warMeter > warHighLevel*3 then
 				warMeter = warHighLevel*3
+			end
+			warMeterResetTimer = warMeterResetTimer + 1
+			if warMeterResetTimer > warMeterResetTime then
+				warMeter = 0
 			end
 		end
 
