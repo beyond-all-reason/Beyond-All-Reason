@@ -226,8 +226,8 @@ local playedGameOverTrack = false
 local fadeLevel = 100
 local faderMin = 45 -- range in dB for volume faders, from -faderMin to 0dB
 
-playedTime = 1
-totalTime = 1
+playedTime = 0
+totalTime = 0
 
 -- local appliedSilence = false
 local silenceTimer = math.random(minSilenceTime,maxSilenceTime)
@@ -248,8 +248,8 @@ local borderPadding = bgpadding
 local vsx, vsy = Spring.GetViewGeometry()
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.6) or 0.6)
 
---local playing = (Spring.GetConfigInt('music', 1) == 1)
-local playing = true
+local playing = (Spring.GetConfigInt('music', 1) == 1)
+--local playing = true
 local shutdown
 
 local playTex	= ":l:"..LUAUI_DIRNAME.."Images/music/play.png"
@@ -635,6 +635,7 @@ function widget:Update(dt)
 	local frame = Spring.GetGameFrame()
 	local _,_,paused = Spring.GetGameSpeed()
 	if playing and (paused or frame < 1) then
+		local _, totalTime = Spring.GetSoundStreamTime()
 		if totalTime == 0 then
 			PlayNewTrack(true)
 		end
