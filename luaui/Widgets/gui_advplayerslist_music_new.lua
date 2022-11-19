@@ -27,7 +27,7 @@ local showGUI = false
 local minSilenceTime = 60
 local maxSilenceTime = 300
 local warLowLevel = 1000
-local warHighLevel = 40000
+local warHighLevel = 20000
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -36,7 +36,7 @@ local specMultiplier = #Spring.GetAllyTeamList() - 1
 
 local function applySpectatorThresholds()
 	warLowLevel = 1000*specMultiplier
-	warHighLevel = 40000*specMultiplier
+	warHighLevel = 20000*specMultiplier
 	minSilenceTime = 60*specMultiplier
 	maxSilenceTime = 300*specMultiplier
 	appliedSpectatorThresholds = true
