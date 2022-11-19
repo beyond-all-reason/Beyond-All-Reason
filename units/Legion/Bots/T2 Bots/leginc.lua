@@ -117,6 +117,7 @@ return {
 				avoidfeature = false,
 				beamtime = 0.033,
 				camerashake = 0.1,
+				--cegtag = "fire-incinerator",
 				--collidefriendly = false,
 				corethickness = 0.3,
 				craterareaofeffect = 72,
@@ -154,9 +155,9 @@ return {
 					light_radius_mult = 0.6,
 				},
 				damage = {
-					commanders = 16,
-					default = 33,
-					vtol = 11,
+					commanders = 5, --16,
+					default = 15, --33,
+					vtol = 5, --11,
 				},
 			},
 			targetray = {

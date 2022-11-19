@@ -5,7 +5,7 @@
 
 piece  aimy1, turret, flare, barrel, pelvis, rfhip, rfthigh, rfleg, rbhip, rbthigh, rbleg, lfhip, lfthigh, lfleg, lbhip, lbthigh, lbleg;
 
-static-var  gun_1, restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving, wpn2_lasthead, force1;
+static-var  gun_1, restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving, wpn2_lasthead, force1, oldpitch;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -155,6 +155,7 @@ Create()
 {
 	gun_1 = 0;
 	force1 = 0;
+	oldpitch = <0>;
 	hide flare;
 	hide aimy1;
 	restore_delay = 1000;
@@ -197,6 +198,7 @@ static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
     gun_1 = 0;
+	oldpitch = <0>;
 	if (Stunned) {
         return (1);
     }
@@ -225,13 +227,25 @@ AimPrimary(heading, pitch)
 	{
 		return (0);
 	}
-	turn aimy1 to y-axis heading speed <20.000000>;
-	turn barrel to x-axis -1*pitch speed <5.000000>;
+	turn aimy1 to y-axis heading speed <15.000000>;
+	if (get ABS(oldpitch - pitch) < <5>)
+	{
+		turn barrel to x-axis -1*pitch speed <2.000000>;
+	}
+	if (get ABS(oldpitch - pitch) > <5> AND get ABS(oldpitch - pitch) < <15>)
+	{
+	turn barrel to x-axis -1*pitch speed <3.500000>;
+	}
+	if (get ABS(oldpitch - pitch) > <15>)
+	{
+	turn barrel to x-axis -1*pitch speed <7.000000>;
+	}
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 500) AND ((get ABS(wpn2_lasthead - heading)) < 65036)))
 	{
 		wpn2_lasthead = 1000000;
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn barrel around x-axis;
+		oldpitch = pitch;
 	}
 	wpn2_lasthead = heading;
 	start-script RestoreAfterDelay();
@@ -247,8 +261,8 @@ AimSecondary(heading, pitch)
 		start-script RestoreAfterDelay();
 		return (0);
 	}
-	turn aimy1 to y-axis heading speed <20.000000>;
-	turn barrel to x-axis -1*pitch speed <5.000000>;
+	turn aimy1 to y-axis heading speed <15.000000>;
+	turn barrel to x-axis -1*pitch speed <7.000000>;
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 500) AND ((get ABS(wpn2_lasthead - heading)) < 65036)))
 	{
 		wpn2_lasthead = 1000000;
