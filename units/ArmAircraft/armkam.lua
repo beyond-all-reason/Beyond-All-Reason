@@ -104,7 +104,6 @@ return {
 				thickness = 0.9,
 				tolerance = 6000,
 				turret = false,
-				weapontimer = 1,
 				weapontype = "LaserCannon",
 				weaponvelocity = 800,
 				customparams = {

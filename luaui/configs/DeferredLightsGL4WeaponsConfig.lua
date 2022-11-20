@@ -304,6 +304,7 @@ local function AssignLightsToAllWeapons()
 		local explosionLight = true
 		local sizeclass = GetClosestSizeClass(radius)
 		local t = {}
+		t.r, t.g, t.b = r, g, b
 		local aa = string.find(weaponDef.cegTag, 'aa')
 		if aa then
 			t.r, t.g, t.b = 1, 0.5, 0.6
@@ -340,6 +341,13 @@ local function AssignLightsToAllWeapons()
 				sizeclass = GetClosestSizeClass(radius)
 			end
 
+		elseif weaponDef.type == 'LaserCannon' then
+			radius = (4 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (3 * radius * orgMult)
+			t.a = (orgMult * 0.1) + weaponDef.duration
+
+			sizeclass = GetClosestSizeClass(radius)
+			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass, t)
+
 		elseif weaponDef.type == 'LightningCannon' then
 			if not scavenger then
 				t.r, t.g, t.b = 0.2, 0.45, 1
@@ -366,11 +374,6 @@ local function AssignLightsToAllWeapons()
 			t.a = orgMult*0.66
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass, t)
 			projectileDefLights[weaponID].yOffset = 32
-
-		elseif weaponDef.type == 'LaserCannon' then
-			if damage < 25 then sizeclass = 'Small' end
-			if damage > 25 then sizeclass = 'Medium' end
-			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass, t)
 
 		elseif weaponDef.type == 'TorpedoLauncher' then
 			sizeclass = "Small"
