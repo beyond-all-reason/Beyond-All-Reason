@@ -160,7 +160,6 @@ StartBuilding()
 	show nano3;
 	show nano4;
 	show nano5;
-	spin pad around y-axis speed <30.005495>;
 }
 
 StopBuilding()
@@ -170,7 +169,6 @@ StopBuilding()
 	hide nano3;
 	hide nano4;
 	hide nano5;
-	stop-spin pad around y-axis;
 }
 Activate()
 {
