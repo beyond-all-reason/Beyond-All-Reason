@@ -134,7 +134,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				--mygravity = 0.2,
+				mygravity = 0.08,
 				name = "HeavyCannon",
 				noselfdamage = true,
 				projectiles = 1,
