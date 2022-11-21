@@ -196,7 +196,8 @@ function widget:Update()
 				mouseSelection = GetUnitsInMinimapRectangle(r[1], r[2], x, y, nil)
 			else
 				local x1, y1, x2, y2 = Spring.GetSelectionBox()
-				mouseSelection = x1 and spGetUnitsInScreenRectangle(x1, y1, x2, y2, nil) or {}
+				if not x1 then return end -- selection box is not valid anymore (mouserelease/minimum threshold/chorded/etc)
+				mouseSelection = spGetUnitsInScreenRectangle(x1, y1, x2, y2, nil) or {}
 			end
 			originalMouseSelection = mouseSelection
 
