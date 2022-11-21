@@ -42,6 +42,8 @@ Stop()
 }
 Create()
 {
+	hide emit1;
+	hide emit2;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{

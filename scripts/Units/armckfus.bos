@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece base, collar1, ball1, collar2, ball2;
+piece base, collar1, ball1, collar2, ball2, emit1, emit2;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 
@@ -16,6 +16,8 @@ InitState()
 }
 Create()
 {
+	hide emit1;
+	hide emit2;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -33,12 +35,16 @@ Create()
 
 Go()
 {
+	show emit1;
+	show emit2;
 	set ARMORED to 1;
 	return (0);
 }
 
 Stop()
 {
+	hide emit1;
+	hide emit2;
 	set ARMORED to 0;
 	return (0);
 }
