@@ -163,6 +163,9 @@ void main() {
 }
 ]]
 
+local uniqueIDtoUnitID = {}
+local unitIDtoUniqueID = {} -- table of tables, as a unitid can have multiple highlights fuck yeah
+
 local function HighlightUnitGL4(objectID, objecttype, r, g, b, alpha, edgealpha, edgeexponent, animamount, px, py, pz, rotationY, consumerID)
 	-- Documentation for HighlightUnitGL4:
 	-- objectID: the unitID, unitDefID, featureID or featureDefID you want
@@ -194,34 +197,73 @@ local function HighlightUnitGL4(objectID, objecttype, r, g, b, alpha, edgealpha,
 			0,0,0,0
 		},
 		key, true, nil, objectID, objecttype)
+	uniqueIDtoUnitID[key] = objectID
+	if unitIDtoUniqueID[objectID] then
+		unitIDtoUniqueID[objectID][key] = true
+	else
+		unitIDtoUniqueID[objectID] = {}
+		unitIDtoUniqueID[objectID][key] = true
+	end
 	return key
 end
 
 local function StopHighlightUnitGL4(uniqueID, noUpload)
 	if highlightUnitVBOTable.instanceIDtoIndex[uniqueID] then
 		popElementInstance(highlightUnitVBOTable, uniqueID, noUpload)
+		unitID = uniqueIDtoUnitID[uniqueID]
+		uniqueIDtoUnitID[uniqueID] = nil
+		if unitIDtoUniqueID[unitID][uniqueID] then
+			unitIDtoUniqueID[unitID][uniqueID] = nil
+		else
+			Spring.Echo("Warning", uniqueID, "no longer present in highlightUnitVBOTable")
+		end
 	else
-		Spring.Echo("Unable to remove what you wanted in StopHighlightUnitGL4", uniqueID)
+		return nil
+		--Spring.Echo("Unable to remove what you wanted in StopHighlightUnitGL4", uniqueID)
 	end
-	--Spring.Echo("Popped element", uniqueID)
+	return uniqueID
+	--Spring.("Popped element", uniqueID)
 end
 
 local function RefreshHighlightUnitGL4()
 	uploadAllElements(highlightUnitVBOTable)
 end
 
-local unitIDtoUniqueID = {}
-local unitDefIDtoUniqueID = {}
+
 local TESTMODE = false
 
 if TESTMODE then
 	function widget:UnitCreated(unitID, unitDefID)
-		unitIDtoUniqueID[unitID] =  HighlightUnitGL4(unitID, "unitID", 0.0,0.25,1,    0.2, 0.5, 3.0, 0.2)
-		local px, py, pz = Spring.GetUnitPosition(unitID)
+		local uniqueID = HighlightUnitGL4(unitID, "unitID", 0.0,0.25,1,    0.2, 0.5, 3.0, 0.2)
+
 	end
 	function widget:UnitDestroyed(unitID)
 		StopHighlightUnitGL4(unitIDtoUniqueID[unitID])
-		unitIDtoUniqueID[unitID] = nil
+	end
+end
+
+function widget:GameFrame(n) 
+	--validateInstanceVBOIDTable(highlightUnitVBOTable, "api validation")
+end
+
+-- TODO: the api is the correct place for removal on unit
+
+local unitIDtoUniqueIDs = {} -- This is a special table, where 
+
+function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits) -- extVisibleUnits is a table of [unitID:unitDefID]
+	-- use uniqueIDtoUnitID
+	for uniqueID, unitID in pairs(uniqueIDtoUnitID) do 
+		if extVisibleUnits[unitID] == nil then -- no longer visible, so we must remove the uniqueID
+			StopHighlightUnitGL4(uniqueID)
+		end
+	end
+end
+
+function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
+	if unitIDtoUniqueID[unitID] then 
+		for uniqueID, _ in pairs(unitIDtoUniqueID[unitID]) do 
+			StopHighlightUnitGL4(uniqueID)
+		end
 	end
 end
 
