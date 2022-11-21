@@ -49,7 +49,9 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	for unitID, _ in pairs(unitshapes) do
 		RemoveHighLight(unitID, true)
 	end
-	WG.RefreshHighlightUnitGL4()
+	if WG.RefreshHighlightUnitGL4 then 
+		WG.RefreshHighlightUnitGL4()
+	end
 	for unitID, unitDefID in pairs(extVisibleUnits) do 
 		widget:VisibleUnitAdded(unitID, unitDefID)
 	end
