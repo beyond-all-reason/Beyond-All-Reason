@@ -6,29 +6,8 @@
 piece base, collar1, ball1, collar2, ball2, emit1, emit2;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-Create()
-{
-	hide emit1;
-	hide emit2;
-	call-script InitState();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
-	spin ball1 around y-axis speed <-30.005495>;
-	spin ball2 around y-axis speed <-30.005495>;
-	spin collar1 around y-axis speed <60.010989>;
-	spin collar2 around y-axis speed <60.010989>;
-	return (0);
-}
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
@@ -49,6 +28,39 @@ Stop()
 	return (0);
 }
 
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+Create()
+{
+	hide emit1;
+	hide emit2;
+	call-script InitState();
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 1000;
+	}
+	spin ball1 around y-axis speed <-30.005495>;
+	spin ball2 around y-axis speed <-30.005495>;
+	spin collar1 around y-axis speed <60.010989>;
+	spin collar2 around y-axis speed <60.010989>;
+	call-script Go();
+	return (0);
+}
+
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script Go();
+	}
+}
 
 RequestState(requestedstate, currentstate)
 {
