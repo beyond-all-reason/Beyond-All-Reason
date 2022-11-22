@@ -1584,8 +1584,10 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			if canSpawnStructure then
 				local structureUnitID = Spring.CreateUnit(structureDefID, spawnPosX, spawnPosY, spawnPosZ, mRandom(0,3), chickenTeamID)
-				SetUnitBlocking(structureUnitID, false, false)
-				return structureUnitID, spawnPosX, spawnPosY, spawnPosZ
+				if structureUnitID then
+					SetUnitBlocking(structureUnitID, false, false)
+					return structureUnitID, spawnPosX, spawnPosY, spawnPosZ
+				end
 			end
 		end
 	end
