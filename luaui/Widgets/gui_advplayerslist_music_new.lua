@@ -28,7 +28,7 @@ local minSilenceTime = 60
 local maxSilenceTime = 300
 local warLowLevel = 1000
 local warHighLevel = 20000
-local warMeterResetTime = 60 -- seconds
+local warMeterResetTime = 30 -- seconds
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -40,7 +40,6 @@ local function applySpectatorThresholds()
 	warHighLevel = 20000*specMultiplier
 	minSilenceTime = 60*specMultiplier
 	maxSilenceTime = 300*specMultiplier
-	warMeterResetTime = 60/specMultiplier
 	appliedSpectatorThresholds = true
 	--Spring.Echo("[Music Player] Spectator mode enabled")
 end

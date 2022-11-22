@@ -1261,23 +1261,25 @@ if gadgetHandler:IsSyncedCode() then
 						chickenEvent("queenResistance", attackerDefID)
 					end
 					queenResistance[weaponID].notify = 1
-					if Spring.GetModOptions().unit_restrictions_noair == false and mRandom() < config.spawnChance then
-						SpawnRandomOffWaveSquad(queenID, "chickenw2", 4)
-					end
 					if mRandom() < config.spawnChance then
-						SpawnRandomOffWaveSquad(queenID, "chickenh1", 5)
-					end
-					if mRandom() < config.spawnChance then
-						SpawnRandomOffWaveSquad(queenID, "chickenh1b", 5)
-					end
-					if mRandom() < config.spawnChance then
-						SpawnRandomOffWaveSquad(queenID)
-					end
-					if mRandom() < config.spawnChance then
-						SpawnRandomOffWaveSquad(queenID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
-					end
-					for i = 1, SetCount(humanTeams)*2 do
-						table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1", team = chickenTeamID})
+						if Spring.GetModOptions().unit_restrictions_noair == false and mRandom() < config.spawnChance then
+							SpawnRandomOffWaveSquad(queenID, "chickenw2", 4)
+						end
+						if mRandom() < config.spawnChance then
+							SpawnRandomOffWaveSquad(queenID, "chickenh1", 5)
+						end
+						if mRandom() < config.spawnChance then
+							SpawnRandomOffWaveSquad(queenID, "chickenh1b", 5)
+						end
+						if mRandom() < config.spawnChance then
+							SpawnRandomOffWaveSquad(queenID)
+						end
+						if mRandom() < config.spawnChance then
+							SpawnRandomOffWaveSquad(queenID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
+						end
+						for i = 1, SetCount(humanTeams)*2 do
+							table.insert(spawnQueue, { burrow = queenID, unitName = "chickenh1", team = chickenTeamID})
+						end
 					end
 				end
 				damage = damage - (damage * resistPercent)
