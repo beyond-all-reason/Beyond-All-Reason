@@ -40,7 +40,7 @@ local unitDefLights = {
 			lightConfig = { posx = 0, posy = 23, posz = 7, radius = 150,
 							dirx = 0, diry = -0.07, dirz = 1, theta = 0.3,
 							r = 1, g = 1, b = 0.89999998, a = 0.5,
-							modelfactor = -0.5, specular = 0.5, scattering = 1.5, lensflare = 0.60000002,
+							modelfactor = -0.5, specular = 0, scattering = 1.5, lensflare = 0.60000002,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 		eyes = {
@@ -49,7 +49,7 @@ local unitDefLights = {
 			lightConfig = { posx = 0, posy = 1.5, posz = 5, radius = 9,
 							color2r = 1, color2g = 1, color2b = 0.25, colortime = 0,
 							r = 1, g = 1, b = 0.25, a = 0.09,
-							modelfactor = 0.3, specular = 0.5, scattering = 0.7, lensflare = 0,
+							modelfactor = 0.3, specular = 0, scattering = 0.7, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 		arm1 = {
@@ -58,7 +58,7 @@ local unitDefLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 9,
 							color2r = 1, color2g = 1, color2b = 0.25, colortime = 0,
 							r = 1, g = 1, b = 0.25, a = 0.09,
-							modelfactor = 0.3, specular = 0.8, scattering = 0.7, lensflare = 0,
+							modelfactor = 0.3, specular = 0, scattering = 0.7, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 		arm2 = {
@@ -67,7 +67,7 @@ local unitDefLights = {
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 10,
 							color2r = 1, color2g = 1, color2b = 0.25, colortime = 0,
 							r = 1, g = 1, b = 0.25, a = 0.11,
-							modelfactor = 0.4, specular = 0.8, scattering = 0.7, lensflare = 0,
+							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
