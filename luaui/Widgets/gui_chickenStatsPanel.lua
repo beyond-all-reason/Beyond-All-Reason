@@ -280,7 +280,7 @@ local function UpdateRules()
 	end
 
 	for _, rule in ipairs(rules) do
-		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 999
+		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 0
 	end
 	gameInfo.chickenCounts = getChickenCounts('Count')
 	gameInfo.chickenKills = getChickenCounts('Kills')
