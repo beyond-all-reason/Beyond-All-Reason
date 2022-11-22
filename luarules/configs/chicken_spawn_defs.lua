@@ -226,7 +226,7 @@ local optionValues = {
 		minChickens		  = 1,
 		maxChickens		  = 50,
 		queenName         = 'e_chickenq',
-		queenResistanceMult   = 2,
+		queenResistanceMult   = 1.5,
 	},
 	[difficulties.veryhard] = {
 		chickenMaxSpawnRate  = 120,
@@ -241,7 +241,7 @@ local optionValues = {
 		minChickens		  = 1,
 		maxChickens		  = 75,
 		queenName         = 'n_chickenq',
-		queenResistanceMult   = 3,
+		queenResistanceMult   = 2,
 	},
 	[difficulties.insane] = {
 		chickenMaxSpawnRate  = 120,
@@ -256,7 +256,7 @@ local optionValues = {
 		minChickens		  = 1,
 		maxChickens		  = 100,
 		queenName         = 'h_chickenq',
-		queenResistanceMult   = 4,
+		queenResistanceMult   = 2.5,
 	},
 	[difficulties.epic] = {
 		chickenMaxSpawnRate  = 90,
@@ -271,7 +271,7 @@ local optionValues = {
 		minChickens		  = 1,
 		maxChickens		  = 125,
 		queenName         = 'vh_chickenq',
-		queenResistanceMult   = 5,
+		queenResistanceMult   = 3,
 	},
 	[difficulties.unbeatable] = {
 		chickenMaxSpawnRate  = 60,
@@ -286,7 +286,7 @@ local optionValues = {
 		minChickens		  = 1,
 		maxChickens		  = 150,
 		queenName         = 'epic_chickenq',
-		queenResistanceMult   = 6,
+		queenResistanceMult   = 3,
 	},
 
 	[difficulties.survival] = {
