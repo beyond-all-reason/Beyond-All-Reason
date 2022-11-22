@@ -1760,7 +1760,10 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if t > config.gracePeriod+5 then
-				if burrowCount > 0 and SetCount(spawnQueue) == 0 and (((config.chickenMaxSpawnRate) < (t - timeOfLastWave)) or (chickenCount < currentMaxWaveSize)) then
+				if burrowCount > 0
+				and SetCount(spawnQueue) == 0
+				and ((config.chickenMaxSpawnRate) < (t - timeOfLastWave) or (chickenCount < currentMaxWaveSize))
+				and ((not config.swarmMode) or (t - timeOfLastWave) > 300) then
 					local cCount = Wave()
 					lastWaveUnitCount = cCount
 					timeOfLastWave = t
