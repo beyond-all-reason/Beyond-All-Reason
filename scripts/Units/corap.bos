@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad, head,nano1,nano2,       dish;
+piece  base, pad, head, nano1, nano2, dish;
 
 static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
