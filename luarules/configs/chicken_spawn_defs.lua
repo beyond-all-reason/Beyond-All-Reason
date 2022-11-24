@@ -506,8 +506,8 @@ for i = 1,wavesAmount do
 		addBasicSquad(i, { i ..  " chickena1c"}, 5)
 	end
 	if i >= 7 then -- Apex Swarmer and  Apex Brawler
-		addBasicSquad(i, { i*2 .." chicken2" , i*2 .." chicken2b" }, 5)
-		addBasicSquad(i, { i .." chickena2", i .." chickena2b" }, 5)
+		addBasicSquad(i, { "2 chicken2" , "2 chicken2b" }, 5)
+		addBasicSquad(i, { "1 chickena2", "1 chickena2b" }, 5)
 	end
 end
 
