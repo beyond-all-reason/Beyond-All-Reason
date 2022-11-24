@@ -19,6 +19,8 @@ local highlightunitShader, unitShapeShader
 local highlightUnitVBOTable
 local uniqueID = 0
 
+local debugmode = 0
+
 local highlightunitShaderConfig = {
 	ANIMSPEED = 0.066,
 	ANIMFREQUENCY = 0.033,
@@ -204,10 +206,25 @@ local function HighlightUnitGL4(objectID, objecttype, r, g, b, alpha, edgealpha,
 		unitIDtoUniqueID[objectID] = {}
 		unitIDtoUniqueID[objectID][key] = true
 	end
+	if debugmode > 0 then 
+		local unitdefname = "unknown unitdefname"
+		if objecttype == 'unitID' then 
+			unitdefname = UnitDefs[Spring.GetUnitDefID(objectID)].name
+		end
+		Spring.Echo("HighlightUnitGL4", objectID, objecttype, consumerID, key, unitdefname)
+	end
 	return key
 end
 
 local function StopHighlightUnitGL4(uniqueID, noUpload)
+	if debugmode > 0 then 
+		local unitdefname = "bad unitdefid"
+		if uniqueIDtoUnitID[uniqueID] then 
+			unitdefname =  UnitDefs[Spring.GetUnitDefID(uniqueIDtoUnitID[uniqueID])].name
+		end
+		Spring.Echo("StopHighlightUnitGL4", uniqueID, noUpload, 'from index',highlightUnitVBOTable.instanceIDtoIndex[uniqueID], unitdefname )
+
+	end
 	if highlightUnitVBOTable.instanceIDtoIndex[uniqueID] then
 		popElementInstance(highlightUnitVBOTable, uniqueID, noUpload)
 		unitID = uniqueIDtoUnitID[uniqueID]
@@ -243,7 +260,7 @@ if TESTMODE then
 end
 
 function widget:GameFrame(n) 
-	--validateInstanceVBOIDTable(highlightUnitVBOTable, "api validation")
+	validateInstanceVBOIDTable(highlightUnitVBOTable, "api validation")
 end
 
 -- TODO: the api is the correct place for removal on unit
@@ -335,6 +352,29 @@ function widget:Shutdown()
 	WG['HighlightUnitGL4'] = nil
 	WG['StopHighlightUnitGL4'] = nil
 	WG['RefreshHighlightUnitGL4'] = nil
+end
+
+function widget:TextCommand(command)
+	if string.find(command, "debugapihighlightunit", nil, true) == 1 then
+		local startmatch, endmatch = string.find(command, "debugapihighlightunit", nil, true)
+		local param = string.sub(command, endmatch + 2,nil)
+		if param and tonumber(param) then
+			local newdebuglevel = tonumber(param)
+			if newdebuglevel ~= debugmode then
+				Spring.Echo("Debug level for API HighLightUnit GL4 set to:", newdebuglevel)
+				debugmode = newdebuglevel
+			end
+		end
+		
+		for uniqueID, unitID in pairs(uniqueIDtoUnitID) do 
+			local unitdefname = "bad unitid"
+			if Spring.GetUnitDefID(unitID) then 
+				unitdefname =  UnitDefs[Spring.GetUnitDefID(unitID)].name
+			end
+			Spring.Echo("debugapihighlightunit", uniqueID, unitID, unitdefname, highlightUnitVBOTable.instanceIDtoIndex[uniqueID] )
+		end
+		
+	end
 end
 
 function widget:DrawWorld()
