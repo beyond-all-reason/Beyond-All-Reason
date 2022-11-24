@@ -219,7 +219,7 @@ end
 local function StopHighlightUnitGL4(uniqueID, noUpload)
 	if debugmode > 0 then 
 		local unitdefname = "bad unitdefid"
-		if uniqueIDtoUnitID[uniqueID] then 
+		if uniqueIDtoUnitID[uniqueID] and Spring.GetUnitDefID(uniqueIDtoUnitID[uniqueID]) then 
 			unitdefname =  UnitDefs[Spring.GetUnitDefID(uniqueIDtoUnitID[uniqueID])].name
 		end
 		Spring.Echo("StopHighlightUnitGL4", uniqueID, noUpload, 'from index',highlightUnitVBOTable.instanceIDtoIndex[uniqueID], unitdefname )
