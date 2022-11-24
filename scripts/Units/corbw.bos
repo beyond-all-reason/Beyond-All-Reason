@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, flare;
+piece  base, flare, thrusta, thrustb;
 
 #define SIG_AIM				2
 
@@ -23,12 +23,25 @@ piece  base, flare;
 Create()
 {
 	hide flare;
-	hide flare;
+	hide thrusta;
+	hide thrustb;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
 	}
 	start-script IdleHover();
+}
+
+Activate()
+{
+	show thrusta;
+	show thrustb;
+}
+
+Deactivate()
+{
+	hide thrusta;
+	hide thrustb;
 }
 
 QueryPrimary(piecenum)
