@@ -669,7 +669,7 @@ else	-- UNSYNCED
 		local techLevels = {}
 
 		local facSuffix = { --ignore t3
-			["veh"] = "vp", ["bot"] = "lab", ["air"] = "ap", ["ship"] = "sy", ["hover"] = "hp" --hover are special case, no t2 fac
+			["veh"] = "vp", ["bot"] = "lab", ["ship"] = "sy", ["hover"] = "hp" --hover are special case, no t2 fac
 		}
 		local techSuffix = {
 			["t1"] = "", ["t2"] = "a" --t3 added later
@@ -793,6 +793,12 @@ else	-- UNSYNCED
 		if string.find(line, "building") then
 			local Condition = function(ud)
 				return ud.isBuilding
+			end
+			Accept[#Accept + 1] = Condition
+		end
+		if string.find(line, "air") then
+			local Condition = function(ud)
+				return ud.canFly
 			end
 			Accept[#Accept + 1] = Condition
 		end
