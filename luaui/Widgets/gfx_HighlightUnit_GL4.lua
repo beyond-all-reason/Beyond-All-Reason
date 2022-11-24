@@ -270,9 +270,10 @@ local unitIDtoUniqueIDs = {} -- This is a special table, where
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits) -- extVisibleUnits is a table of [unitID:unitDefID]
 	-- use uniqueIDtoUnitID
 	for uniqueID, unitID in pairs(uniqueIDtoUnitID) do 
-		if extVisibleUnits[unitID] == nil then -- no longer visible, so we must remove the uniqueID
+		-- i am no longer nice to consumers
+		--if extVisibleUnits[unitID] == nil then -- no longer visible, so we must remove the uniqueID
 			StopHighlightUnitGL4(uniqueID)
-		end
+		--end
 	end
 end
 
