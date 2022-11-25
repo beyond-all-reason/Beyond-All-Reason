@@ -136,7 +136,7 @@ StopMoving()
 
 StartBuilding()
 {
-	hide emit;
+	show emit;
 	set INBUILDSTANCE to 1;
 	return (0);
 }
