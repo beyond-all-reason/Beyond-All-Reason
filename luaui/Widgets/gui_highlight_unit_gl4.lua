@@ -193,6 +193,13 @@ function widget:Update()
 				end
 			end
 		end
+		-- after we are done, check if all that we added are still valid!
+		for unitID, uniqueID in pairs(unitshapes) do
+			if Spring.ValidUnitID(unitID) ~= true then 
+				removeUnitShape(unitID, force)
+			end
+		end
+		
 	end
 end
 
