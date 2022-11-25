@@ -5,10 +5,13 @@
 
 piece  base, spinner;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
+static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging, Stunned;
 
 Go()
 {
+	if (Stunned) {
+		return(0);
+	}
 	set ARMORED to 0;
 	spin spinner around y-axis speed Static_Var_1 accelerate Static_Var_2;
 }
@@ -21,6 +24,7 @@ Stop()
 
 SetStunned(State)
 {
+	State = Stunned;
 	if (State) {
 	    call-script Stop();
 	}else{

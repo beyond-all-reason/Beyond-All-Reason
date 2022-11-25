@@ -5,11 +5,14 @@
 
 piece  base, arms1, arms2,pins;
 
-static-var  meatspin, statechg_DesiredState, statechg_StateChanging;
+static-var  meatspin, statechg_DesiredState, statechg_StateChanging, Stunned;
 
 
 Go()
 {
+	if (Stunned) {
+		return(0);
+	}
 	spin arms1 around y-axis speed meatspin accelerate <0.500000>;
 	spin arms2 around y-axis speed -1*meatspin accelerate <0.500000>;
 }
@@ -29,6 +32,7 @@ InitState()
 
 SetStunned(State)
 {
+	Stunned = State;
 	if (State) {
 	    call-script Stop();
 	}else{
