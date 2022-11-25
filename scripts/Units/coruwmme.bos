@@ -15,6 +15,9 @@ static-var  Stunned;
 
 Go()
 {
+	if (Stunned) {
+		return(0);
+	}
 	spin disc around y-axis speed Static_Var_1 accelerate Static_Var_2;
 	set ARMORED to 0;
 	Static_Var_4 = 1;
@@ -76,7 +79,7 @@ Create()
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (Stunned) {
 	    call-script Stop();
 	} else {

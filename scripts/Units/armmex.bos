@@ -5,11 +5,14 @@
 
 piece  base, arms1, arms2;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
+static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging, Stunned;
 
 
 Go()
 {
+	if (Stunned) {
+		return(0);
+	}
 	spin arms1 around y-axis speed Static_Var_1 accelerate Static_Var_2;
 	spin arms2 around y-axis speed -1*Static_Var_1 accelerate Static_Var_2;
 }
@@ -29,6 +32,7 @@ InitState()
 
 SetStunned(State)
 {
+	Stunned = State;
 	if (State) {
 	    call-script Stop();
 	}else{

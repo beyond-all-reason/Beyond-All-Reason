@@ -16,6 +16,9 @@ static-var  Stunned;
 
 Go()
 {
+	if (Stunned) {
+		return(0);
+	}
 	signal SIG_WORK;
 	set-signal-mask SIG_WORK;
 	
@@ -49,7 +52,7 @@ Stop()
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (Stunned) {
 	    call-script Stop();
 	} else {

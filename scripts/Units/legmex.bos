@@ -5,11 +5,14 @@
 
 piece  base,fan,top,column;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
+static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging, Stunned;
 
 
 Go()
 {
+	if (Stunned) {
+		return(0);
+	}
 	set ARMORED to 0;
 	move fan to y-axis [3.000000] speed [10.000000];
 	wait-for-move fan along y-axis;
@@ -32,6 +35,7 @@ InitState()
 
 SetStunned(State)
 {
+	Stunned = State;
 	if (State) {
 	    call-script Stop();
 	}else{
