@@ -8,7 +8,7 @@ piece  base, arms1, arms2,pins;
 static-var  meatspin, statechg_DesiredState, statechg_StateChanging;
 
 
-fixGo()
+Go()
 {
 	spin arms1 around y-axis speed meatspin accelerate <0.500000>;
 	spin arms2 around y-axis speed -1*meatspin accelerate <0.500000>;
@@ -33,7 +33,7 @@ SetStunned(State)
 	    call-script Stop();
 	}else{
 	    if (statechg_DesiredState == 0) {
-	        call-script fixGo();
+	        call-script Go();
 	    }
 	}
 }
@@ -52,7 +52,7 @@ RequestState(requestedstate, currentstate)
 	{
 		if( statechg_DesiredState == 0 )
 		{
-			call-script fixGo();
+			call-script Go();
 			currentstate = 0;
 		}
 		if( statechg_DesiredState == 1 )

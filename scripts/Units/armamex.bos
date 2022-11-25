@@ -7,7 +7,7 @@ piece  base, spinner;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
 
-fixGo()
+Go()
 {
 	set ARMORED to 0;
 	spin spinner around y-axis speed Static_Var_1 accelerate Static_Var_2;
@@ -25,7 +25,7 @@ SetStunned(State)
 	    call-script Stop();
 	}else{
 	    if (statechg_DesiredState == 0) {
-	        call-script fixGo();
+	        call-script Go();
 	    }
 	}
 }
@@ -50,7 +50,7 @@ RequestState(requestedstate, currentstate)
 	{
 		if( statechg_DesiredState == 0 )
 		{
-			call-script fixGo();
+			call-script Go();
 			currentstate = 0;
 		}
 		if( statechg_DesiredState == 1 )
@@ -72,7 +72,7 @@ Create()
 
 Activate()
 {
-	call-script fixGo();
+	call-script Go();
 	start-script RequestState(0);
 }
 
