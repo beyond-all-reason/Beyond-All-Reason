@@ -17,7 +17,6 @@ local GL_RGBA32F_ARB = 0x8814
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-widget:ViewResize()
 
 -- GL4 notes:
 local shaderConfig = {
@@ -101,6 +100,7 @@ function widget:ViewResize()
 		})
 end
 
+widget:ViewResize()
 
 local function initGL4()
 	-- init the VBO
