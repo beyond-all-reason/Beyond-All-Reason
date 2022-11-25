@@ -11,6 +11,7 @@ uniform float iconDistance;
 in DataVS {
 	flat vec3 v_centerpos; // xyz and radius?
 	flat vec4 v_teamcolor; // red or teamcolor, and alpha modifier
+	noperspective vec2 v_screenUV;
 };
 
 uniform sampler2D mapDepths;
@@ -25,10 +26,9 @@ float lineblast( float radius, float width, float strength){
 #line 31000
 void main(void)
 {
-	vec2 screenUV = gl_FragCoord.xy  / viewGeometry.xy;
-	float mapdepth = texture(mapDepths, screenUV).x;
+	float mapdepth = texture(mapDepths, v_screenUV).x;
 	// Transform screen-space depth to world-space position
-	vec4 mapWorldPos =  vec4( vec3(screenUV.xy * 2.0 - 1.0, mapdepth),  1.0);
+	vec4 mapWorldPos =  vec4( vec3(v_screenUV.xy * 2.0 - 1.0, mapdepth),  1.0);
 	mapWorldPos = cameraViewProjInv * mapWorldPos;
 	mapWorldPos.xyz = mapWorldPos.xyz / mapWorldPos.w; // YAAAY this works!
 
