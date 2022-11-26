@@ -260,7 +260,9 @@ if TESTMODE then
 end
 
 function widget:GameFrame(n) 
-	validateInstanceVBOIDTable(highlightUnitVBOTable, "api validation")
+	if (n%61) == 1 then
+		validateInstanceVBOIDTable(highlightUnitVBOTable, "api validation")
+	end
 end
 
 -- TODO: the api is the correct place for removal on unit
