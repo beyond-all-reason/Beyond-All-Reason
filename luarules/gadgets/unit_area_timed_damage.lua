@@ -195,6 +195,14 @@ local TimedDamageWeapons = {
         range = 60,
         resistance = "test",
     },
+	[WeaponDefNames.leginc_scav_heatraylarge.id] = {
+        ceg = "fire-incinerator", 
+        damageCeg = "burnflamexl", 
+        time = 3,
+        damage = 10,
+        range = 37,
+        resistance = "test",
+    },
 	[WeaponDefNames.leginf_scav_rapidnapalm.id] = {
         ceg = "fire-area-75", 
         damageCeg = "burnflamexl", 
