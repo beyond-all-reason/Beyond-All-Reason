@@ -1745,6 +1745,21 @@ function init()
 				end
 			end,
 		},
+		{ id = "dualmode_enabled", group = "gfx", category = types.advanced, name = texts.option.dualmode .. widgetOptionColor .. "  " .. texts.option.dualmode_enabled, type = "bool", value = Spring.GetConfigInt("DualScreenMode"), description = texts.option.dualmode_enabled_descr,
+		  onchange = function(_, value)
+			  Spring.SetConfigInt("DualScreenMode", value and 1 or 0)
+		  end,
+		},
+		{ id = "dualmode_left", group = "gfx", category = types.advanced, name = widgetOptionColor .. "  " .. texts.option.dualmode_left, type = "bool", value = Spring.GetConfigInt("DualScreenMiniMapOnLeft"), description = texts.option.dualmode_left_descr,
+		  onchange = function(_, value)
+			  Spring.SetConfigInt("DualScreenMiniMapOnLeft", value and 1 or 0)
+		  end,
+		},
+		{ id = "dualmode_minimap_aspectratio", group = "gfx", category = types.advanced, name = widgetOptionColor .. "  " .. texts.option.dualmode_minimap_aspectratio, type = "bool", value = Spring.GetConfigInt("DualScreenMiniMapAspectRatio"), description = texts.option.dualmode_minimap_aspectratio_descr,
+		  onchange = function(_, value)
+			  Spring.SetConfigInt("DualScreenMiniMapAspectRatio", value and 1 or 0)
+		  end,
+		},
 		{ id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync,  type = "select", options = { 'off', 'enabled', 'adaptive'}, value = 1, description = texts.option.vsync_descr,
 		  onload = function(i)
 			  local vsync =  Spring.GetConfigInt("VSyncGame", 0)
@@ -3011,22 +3026,6 @@ function init()
 		--{ id = "dgunrulereminder", group = "ui", category = types.dev, widget = "Dgun Rule Reminder", name = texts.option.dgunrulereminder, type = "bool", value = GetWidgetToggleValue("Dgun Rule Reminder"), description = texts.option.dgunrulereminder_descr },
 
 		{ id = "converterusage", group = "ui", category = types.advanced, widget = "Converter Usage", name = texts.option.converterusage, type = "bool", value = GetWidgetToggleValue("Converter Usage"), description = texts.option.converterusage_descr },
-
-		{ id = "dualmode_enabled", group = "ui", category = types.advanced, name = texts.option.dualmode .. widgetOptionColor .. "  " .. texts.option.dualmode_enabled, type = "bool", value = Spring.GetConfigInt("DualScreenMode"), description = texts.option.dualmode_enabled_descr,
-		  onchange = function(_, value)
-			  Spring.SetConfigInt("DualScreenMode", value and 1 or 0)
-		  end,
-		},
-		{ id = "dualmode_left", group = "ui", category = types.advanced, name = widgetOptionColor .. "  " .. texts.option.dualmode_left, type = "bool", value = Spring.GetConfigInt("DualScreenMiniMapOnLeft"), description = texts.option.dualmode_left_descr,
-		  onchange = function(_, value)
-			  Spring.SetConfigInt("DualScreenMiniMapOnLeft", value and 1 or 0)
-		  end,
-		},
-		{ id = "dualmode_minimap_aspectratio", group = "ui", category = types.advanced, name = widgetOptionColor .. "  " .. texts.option.dualmode_minimap_aspectratio, type = "bool", value = Spring.GetConfigInt("DualScreenMiniMapAspectRatio"), description = texts.option.dualmode_minimap_aspectratio_descr,
-		  onchange = function(_, value)
-			  Spring.SetConfigInt("DualScreenMiniMapAspectRatio", value and 1 or 0)
-		  end,
-		},
 
 
 		{ id = "label_ui_visuals", group = "ui", name = texts.option.label_visuals, category = types.basic },
