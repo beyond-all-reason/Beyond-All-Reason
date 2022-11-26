@@ -1745,7 +1745,7 @@ function init()
 				end
 			end,
 		},
-		{ id = "dualmode_enabled", group = "gfx", category = types.advanced, name = texts.option.dualmode .. widgetOptionColor .. "  " .. texts.option.dualmode_enabled, type = "bool", value = Spring.GetConfigInt("DualScreenMode"), description = texts.option.dualmode_enabled_descr,
+		{ id = "dualmode_enabled", group = "gfx", category = types.advanced, name = texts.option.dualmode, type = "bool", value = Spring.GetConfigInt("DualScreenMode"), description = texts.option.dualmode_enabled_descr,
 		  onchange = function(_, value)
 			  Spring.SetConfigInt("DualScreenMode", value and 1 or 0)
 		  end,
