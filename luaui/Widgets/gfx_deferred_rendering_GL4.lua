@@ -1331,6 +1331,9 @@ local function checkConfigUpdates()
 		local newconfb = VFS.LoadFile('luaui/configs/DeferredLightsGL4WeaponsConfig.lua')
 		if newconfa ~= configCache.confa or newconfb ~= configCache.confb then
 			LoadLightConfig()
+			if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
+				widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+			end
 			configCache.confa = newconfa
 			configCache.confb = newconfb
 		end
