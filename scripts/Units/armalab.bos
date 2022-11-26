@@ -32,6 +32,19 @@ deactivatescr()
 	sleep 7;
 }
 
+StartBuilding()
+{
+	show nano1;
+	show nano2;
+	return (0);
+}
+
+StopBuilding()
+{
+	hide nano1;
+	hide nano2;
+	return (0);
+}
 
 OpenYard()
 {

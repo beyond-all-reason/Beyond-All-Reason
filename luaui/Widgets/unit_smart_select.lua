@@ -72,7 +72,8 @@ for udid, udef in pairs(UnitDefs) do
 	mobileFilter[udid] = isMobile
 end
 
-local minimapOnLeft = (Spring.GetMiniMapDualScreen() == "left")
+local dualScreen
+local vpy
 local mapWidth, mapHeight = Game.mapSizeX, Game.mapSizeZ
 
 local lastCoords, lastMeta, lastSelection
@@ -88,12 +89,11 @@ end
 
 local function MinimapToWorldCoords(x, y)
 	local px, py, sx, sy = spGetMiniMapGeometry()
-	local plx = 0
-	if minimapOnLeft then
-		plx = sx
+	if dualScreen == "left" then
+		x = x + sx + px
 	end
-	x = ((x - px + plx) / sx) * mapWidth
-	local z = (1 - ((y - py) / sy)) * mapHeight
+	x = ((x - px) / sx) * mapWidth
+	local z = (1 - (y - py + vpy)/sy) * mapHeight
 	y = spGetGroundHeight(x, z)
 
 	if getMiniMapFlipped() then
@@ -114,6 +114,11 @@ local function GetUnitsInMinimapRectangle(x1, y1, x2, y2, team)
 	return spGetUnitsInRectangle(left, bottom, right, top, team)
 end
 
+
+function widget:ViewResize()
+	dualScreen = Spring.GetMiniMapDualScreen()
+	_, _, _, vpy = Spring.GetViewGeometry()
+end
 
 function widget:SelectionChanged(sel)
 	local equalSelection = true
@@ -191,7 +196,8 @@ function widget:Update()
 				mouseSelection = GetUnitsInMinimapRectangle(r[1], r[2], x, y, nil)
 			else
 				local x1, y1, x2, y2 = Spring.GetSelectionBox()
-				mouseSelection = x1 and spGetUnitsInScreenRectangle(x1, y1, x2, y2, nil) or {}
+				if not x1 then return end -- selection box is not valid anymore (mouserelease/minimum threshold/chorded/etc)
+				mouseSelection = spGetUnitsInScreenRectangle(x1, y1, x2, y2, nil) or {}
 			end
 			originalMouseSelection = mouseSelection
 
@@ -420,6 +426,8 @@ function widget:Initialize()
 		includeBuilders = value
 	end
 	WG['smartselect'].updateSelection = false
+
+	widget:ViewResize();
 end
 
 function widget:GetConfigData()

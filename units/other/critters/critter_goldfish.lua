@@ -14,6 +14,7 @@ return {
 		canmove = true,
 		canpatrol = true,
 		canstop = true,
+		cantbetransported = true,
 		capturable = false,
 		category = "NOWEAPON MOBILE NOTLAND NOTAIR UNDERWATER",
 		explodeas = "TINYBUG_DEATH",

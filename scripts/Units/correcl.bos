@@ -119,8 +119,8 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	hide nano1;
-	hide wake1;
 	hide nano2;
+	hide wake1;
 	hide wake2;
 	nano=0;
 	Static_Var_1 = 0;
@@ -142,6 +142,8 @@ Deactivate()
 
 StartBuilding(Func_Var_1)
 {
+	show nano1;
+	show nano2;
 	Static_Var_1 = Func_Var_1;
 	start-script RequestState(0);
 	return (0);
@@ -149,6 +151,8 @@ StartBuilding(Func_Var_1)
 
 StopBuilding()
 {
+	hide nano1;
+	hide nano2;
 	start-script RequestState(1);
 	return (0);
 }

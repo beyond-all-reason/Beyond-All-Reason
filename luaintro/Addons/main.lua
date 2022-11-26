@@ -159,7 +159,7 @@ local blurtex2
 local stenciltex
 local guishaderRects = {}
 local guishaderDlists = {}
-local vsx, vsy   = Spring.GetViewGeometry()
+local vsx, vsy, vpx, vpy   = Spring.GetViewGeometry()
 local ivsx, ivsy = vsx, vsy
 
 local wsx, wsy, _, _ = Spring.GetWindowGeometry()
@@ -393,7 +393,7 @@ function addon.DrawLoadScreen()
 		aspectRatio = texInfo.xsize / texInfo.ysize
 	end
 
-	local vsx, vsy = gl.GetViewSizes()
+	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
 	local screenAspectRatio = vsx / vsy
 
 	local xDiv = 0
@@ -459,7 +459,7 @@ function addon.DrawLoadScreen()
 			gl.Color(1,1,1,1)
 			gl.Blending(false)
 
-			gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
+			gl.CopyToTexture(screencopy, 0, 0, vpx, vpy, vsx, vsy)
 			gl.Texture(screencopy)
 			gl.TexRect(0,1,1,0)
 			gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
@@ -523,7 +523,7 @@ function addon.DrawLoadScreen()
 		loadProgress = math.min(math.max(loadProgress, lastProgress[1]), lastProgress[2])
 	end
 
-	local vsx, vsy = gl.GetViewSizes()
+	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
 
 	local loadvalue = math.max(0, loadProgress) * (1-posX-posX)
 	loadvalue = math.floor((loadvalue * vsx)+0.5) / vsx

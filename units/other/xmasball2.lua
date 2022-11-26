@@ -8,6 +8,7 @@ return {
 		canattack = false,
 		canmove = true,
 		canrepeat = false,
+		cantbetransported = true,
 		capturable = false,
 		category = "OBJECT",
 		collisionvolumeoffsets = "0 0 0",

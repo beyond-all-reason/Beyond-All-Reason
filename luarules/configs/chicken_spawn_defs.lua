@@ -94,7 +94,7 @@ local chickenTypes = {
   }
 
   local defenders = {
-	chicken_turrets = true,
+	chicken_turrets_burrow = true,
   }
 
   local chickenEggs = {
@@ -206,8 +206,8 @@ local optionValues = {
 		maxXP			  = 0.5,
 		spawnChance       = 0.2,
 		damageMod         = 0.4,
-		maxBurrows        = 10,
-		minChickens		  = 1,
+		maxBurrows        = 1000,
+		minChickens		  = 13,
 		maxChickens		  = 25,
 		queenName         = 've_chickenq',
 		queenResistanceMult   = 1,
@@ -222,11 +222,11 @@ local optionValues = {
 		maxXP			  = 1,
 		spawnChance       = 0.3,
 		damageMod         = 0.6,
-		maxBurrows        = 15,
-		minChickens		  = 1,
+		maxBurrows        = 1000,
+		minChickens		  = 25,
 		maxChickens		  = 50,
 		queenName         = 'e_chickenq',
-		queenResistanceMult   = 2,
+		queenResistanceMult   = 1.5,
 	},
 	[difficulties.veryhard] = {
 		chickenMaxSpawnRate  = 120,
@@ -237,11 +237,11 @@ local optionValues = {
 		maxXP			  = 1.5,
 		spawnChance       = 0.4,
 		damageMod         = 0.8,
-		maxBurrows        = 20,
-		minChickens		  = 1,
+		maxBurrows        = 1000,
+		minChickens		  = 38,
 		maxChickens		  = 75,
 		queenName         = 'n_chickenq',
-		queenResistanceMult   = 3,
+		queenResistanceMult   = 2,
 	},
 	[difficulties.insane] = {
 		chickenMaxSpawnRate  = 120,
@@ -252,11 +252,11 @@ local optionValues = {
 		maxXP			  = 2,
 		spawnChance       = 0.5,
 		damageMod         = 1,
-		maxBurrows        = 30,
-		minChickens		  = 1,
+		maxBurrows        = 1000,
+		minChickens		  = 50,
 		maxChickens		  = 100,
 		queenName         = 'h_chickenq',
-		queenResistanceMult   = 4,
+		queenResistanceMult   = 2.5,
 	},
 	[difficulties.epic] = {
 		chickenMaxSpawnRate  = 90,
@@ -267,11 +267,11 @@ local optionValues = {
 		maxXP			  = 5,
 		spawnChance       = 0.6,
 		damageMod         = 1.5,
-		maxBurrows        = 40,
-		minChickens		  = 1,
+		maxBurrows        = 1000,
+		minChickens		  = 63,
 		maxChickens		  = 125,
 		queenName         = 'vh_chickenq',
-		queenResistanceMult   = 5,
+		queenResistanceMult   = 3,
 	},
 	[difficulties.unbeatable] = {
 		chickenMaxSpawnRate  = 60,
@@ -282,11 +282,11 @@ local optionValues = {
 		maxXP			  = 10,
 		spawnChance       = 0.8,
 		damageMod         = 2,
-		maxBurrows        = 50,
-		minChickens		  = 1,
+		maxBurrows        = 1000,
+		minChickens		  = 75,
 		maxChickens		  = 150,
 		queenName         = 'epic_chickenq',
-		queenResistanceMult   = 6,
+		queenResistanceMult   = 3,
 	},
 
 	[difficulties.survival] = {
@@ -298,8 +298,8 @@ local optionValues = {
 		maxXP			  = 0.5,
 		spawnChance       = 0.2,
 		damageMod         = 0.4,
-		maxBurrows        = 10,
-		minChickens		  = 1,
+		maxBurrows        = 1000,
+		minChickens		  = 13,
 		maxChickens		  = 25,
 		queenName         = 'n_chickenq',
 		queenResistanceMult   = 1,
@@ -327,6 +327,31 @@ end
 --     end
 -- end
 
+local function addSuperSquad(wave, unitList, weight)
+	if not weight then weight = 1 end
+    for i = 1, weight do 
+		for j = wave,wavesAmount do
+			if not superWaves[j] then
+				superWaves[j] = {}
+			end
+			table.insert(superWaves[j], unitList)
+		end
+    end
+end
+
+local function addSpecialSquad(wave, unitList, weight)
+	if not weight then weight = 1 end
+	addSuperSquad(math.max(wave-3, 1), unitList, weight)
+    for i = 1, weight do 
+		for j = wave,wavesAmount do
+			if not specialWaves[j] then
+				specialWaves[j] = {}
+			end
+			table.insert(specialWaves[j], unitList)
+		end
+    end
+end
+
 local function addBasicSquad(wave, unitList, weight)
 	if not weight then weight = 1 end
     for i = 1, weight do 
@@ -339,29 +364,9 @@ local function addBasicSquad(wave, unitList, weight)
     end
 end
 
-local function addSpecialSquad(wave, unitList, weight)
-	if not weight then weight = 1 end
-    for i = 1, weight do 
-		for j = wave,wavesAmount do
-			if not specialWaves[j] then
-				specialWaves[j] = {}
-			end
-			table.insert(specialWaves[j], unitList)
-		end
-    end
-end
 
-local function addSuperSquad(wave, unitList, weight)
-	if not weight then weight = 1 end
-    for i = 1, weight do 
-		for j = wave,wavesAmount do
-			if not superWaves[j] then
-				superWaves[j] = {}
-			end
-			table.insert(superWaves[j], unitList)
-		end
-    end
-end
+
+
 
 local function addAirSquad(wave, unitList, weight)
 	if not weight then weight = 1 end
@@ -386,26 +391,6 @@ local miniBosses = {
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
--- Super Squads -------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	addSuperSquad(5, { "2 chickenapexallterrainassault"													}) -- Apex AllTerrain Brawler
-	addSuperSquad(5, { "2 chickenapexallterrainassaultb"												}) -- Apex AllTerrain Brawler
-	addSuperSquad(3, { "6 chickenr1"																	}) -- Artillery
-	addSuperSquad(4, { "3 chickenearty1"																}) -- Artillery
-	addSuperSquad(5, { "3 chickenacidarty" 																}) -- Artillery
-	addSuperSquad(5, { "2 chickenh2" 																	}) -- Apex Brood Mother
-	addSuperSquad(3, { "3 chickene2" 																    }) -- EMP Brawler
-	addSuperSquad(4, { "3 chickenelectricallterrainassault" 											}) -- EMP AllTerrain Brawler
-	addSuperSquad(5, { "2 chickenacidassault" 															}) -- Acid Brawler
-	addSuperSquad(5, { "2 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
-	addSuperSquad(5, { "5 chicken_dodo2" 																}) -- Kamikaze
-	addSuperSquad(4, { "6 chickenp2" 																	}) -- Apex Pyro
-	addSuperSquad(5, { "5 chickens2" 																	}, 2) -- Apex Spiker
-	if not Spring.GetModOptions().unit_restrictions_nonukes then
-		addSpecialSquad(7, { "1 chickenr2"																}, 2) -- Meteor Artillery
-	end
-
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Special Squads -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -415,7 +400,7 @@ local miniBosses = {
 	addSpecialSquad(3, { "8 chickene1"                                                                  }) -- Small Paralyzer
 
 	addSpecialSquad(4, { "5 chickens1" 																	}, 5) -- Spiker
-	addSpecialSquad(4, { "4 chickenp1" , "1 chickenp2"													}) -- Small Pyros with mom
+	addSpecialSquad(4, { "4 chickenp1" ,																}) -- Small Pyros
 	addSpecialSquad(4, { "15 chicken_dodo1" 															}) -- Small Kamikaze
 
 	addSpecialSquad(5, { "3 chickene2" 																	}) -- EMP Brawler
@@ -487,28 +472,28 @@ end
 -- Basic Squads -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-addBasicSquad(1, {"2 chicken1_mini"})
+addBasicSquad(1, {"5 chicken1_mini"}, 10)
 
 for i = 1,wavesAmount do
-	if i >= 2 and i <= 4 then -- Basic Swarmer
+	if i <= 4 then -- Basic Swarmer
 		addBasicSquad(i, { i*2 .." chicken1", i*2 .." chicken1b", i*2 .." chicken1c" }, 2)
 		addBasicSquad(i, { i*2 .." chicken1b", i*2 .." chicken1c", i*2 .." chicken1d" }, 2)
 		addBasicSquad(i, { i*2 .." chicken1c", i*2 .." chicken1d", i*2 .." chicken1" }, 2)
 		addBasicSquad(i, { i*2 .." chicken1d", i*2 .." chicken1", i*2 .." chicken1b" }, 2)
 	end
-	if i >= 2 and i <= 6 then -- Better Swarmer + Brawlers
-		addBasicSquad(i, { i ..  " chickena1" }, 2)
-		addBasicSquad(i, { i ..  " chickena1b"}, 2)
-		addBasicSquad(i, { i ..  " chickena1c"}, 2)
-	end
-	if i >= 3 and i <= 7 then
+	if i >= 3 and i <= 7 then -- Better Swarmer
 		addBasicSquad(i, { i*2 .." chicken1x", i*2 .." chicken1y" }, 4)
 		addBasicSquad(i, { i*2 .." chicken1y", i*2 .." chicken1z" }, 4)
 		addBasicSquad(i, { i*2 .." chicken1z", i*2 .." chicken1x" }, 4)
 	end
+	if i >= 4 and i <= 6 then -- Brawlers
+		addBasicSquad(i, { i ..  " chickena1" }, 5)
+		addBasicSquad(i, { i ..  " chickena1b"}, 5)
+		addBasicSquad(i, { i ..  " chickena1c"}, 5)
+	end
 	if i >= 7 then -- Apex Swarmer and  Apex Brawler
-		addBasicSquad(i, { i*2 .." chicken2" , i*2 .." chicken2b" }, 8)
-		addBasicSquad(i, { i .." chickena2", i .." chickena2b" }, 2)
+		addBasicSquad(i, { "2 chicken2" , "2 chicken2b" }, 5)
+		addBasicSquad(i, { "1 chickena2", "1 chickena2b" }, 5)
 	end
 end
 

@@ -775,7 +775,7 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 				--Spring.Echo("added",vaokey,s)
 			end
 			local instanceID = 1000000 * weaponType + unitID
-			pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, noUpload)
+			pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, true,  noUpload)
 			addedrings = addedrings + 1
 			if defenses[unitID] == nil then
 				--lazy creation

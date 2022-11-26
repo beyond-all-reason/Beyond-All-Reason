@@ -6,14 +6,18 @@
 piece  base, column, turret, barrel1, barrel2, flare1, flare2;
 
 static-var  Static_Var_1, restore_delay, Static_Var_3, Static_Var_4, Static_Var_5,
-            gun_1, Static_Var_7, Static_Var_8, statechg_DesiredState, statechg_StateChanging;
+            gun_1, Static_Var_7, Static_Var_8, statechg_DesiredState, statechg_StateChanging,
+            Stunned;
 
 // Signal definitions
 #define SIG_AIM				2
 
 
-fixGo()
+Go()
 {
+	if (Stunned) {
+		return (0);
+	}
 	spin column around y-axis speed Static_Var_3 accelerate Static_Var_4;
 }
 
@@ -42,7 +46,7 @@ RequestState(requestedstate, currentstate)
 	{
 		if( statechg_DesiredState == 0 )
 		{
-			call-script fixGo();
+			call-script Go();
 			currentstate = 0;
 		}
 		if( statechg_DesiredState == 1 )
@@ -86,7 +90,6 @@ SetMaxReloadTime(Func_Var_1)
 	restore_delay = Func_Var_1 * 8;
 }
 
-static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
@@ -97,7 +100,7 @@ ExecuteRestoreAfterDelay()
 }
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (!Stunned) {
 	    start-script ExecuteRestoreAfterDelay();
 	}
@@ -105,7 +108,7 @@ SetStunned(State)
 	    call-script Stop();
 	}else{
 	    if (statechg_DesiredState == 0) {
-	        call-script fixGo();
+	        call-script Go();
 	    }
 	}
 }

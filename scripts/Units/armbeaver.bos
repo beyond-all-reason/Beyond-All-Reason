@@ -110,6 +110,8 @@ Deactivate()
 
 StartBuilding(heading, pitch)
 {
+	show nano2;
+	show nano1;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
@@ -120,6 +122,8 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
+	hide nano2;
+	hide nano1;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	sleep 6000;

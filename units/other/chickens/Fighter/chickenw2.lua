@@ -53,7 +53,7 @@ return {
 		selfdestructas = "TALON_DEATH",
 		separation = "0.2",
 		side = "THUNDERBIRDS",
-		sightdistance = 0,
+		sightdistance = 600,
 		smoothanim = true,
 		speedtofront = 0.07,
 		steeringmode = "1",

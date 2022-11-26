@@ -128,11 +128,11 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	hide nano3;
-	hide nano2;
-	hide pad;
-	hide nano4;
 	hide nano1;
+	hide nano2;
+	hide nano3;
+	hide nano4;
+	hide pad;
 	spin dish around y-axis speed <60>;
 	unitviewer = FALSE;
 	spray = nano1;
@@ -189,18 +189,26 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-  sleep 5000;
+    sleep 5000;
 	set-signal-mask 0;
 	start-script RequestState(1);
 }
 
 StartBuilding()
 {
+	show nano1;
+	show nano2;
+	show nano3;
+	show nano4;
 	spin pad around y-axis speed <30.005495>;
 }
 
 StopBuilding()
 {
+	hide nano1;
+	hide nano2;
+	hide nano3;
+	hide nano4;
 	stop-spin pad around y-axis;
 }
 

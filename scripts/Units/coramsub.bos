@@ -87,9 +87,9 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	hide nano2;
 	hide pad;
 	hide nano1;
+	hide nano2;
 	spray = base;
 	unitviewer = FALSE;
 	call-script InitState();
@@ -116,6 +116,18 @@ Demo()
 	return (0);
 }
 
+StartBuilding()
+{
+	show nano1;
+	show nano2;
+}
+
+StopBuilding()
+{
+	hide nano1;
+	hide nano2;
+}
+
 Activate()
 {
 	signal SIG_ACTIVATE;
@@ -127,7 +139,7 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-  sleep 5000;
+    sleep 5000;
 	set-signal-mask 0;
 	start-script RequestState(1);
 	return (0);

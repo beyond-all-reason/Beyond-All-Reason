@@ -50,7 +50,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "DODO_DEATHAIR",
 		side = "THUNDERBIRDS",
-		sightdistance = 1000,
+		sightdistance = 100,
 		smoothanim = true,
 		speedtofront = 0.07,
 		steeringmode = "2",

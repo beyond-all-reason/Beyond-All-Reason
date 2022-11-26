@@ -26,8 +26,6 @@ if not Spring.GetGameRulesParam("difficulty") then
 end
 
 local GetGameSeconds = Spring.GetGameSeconds
-local gl = gl
-local math = math
 
 local displayList
 local panelTexture = ":n:LuaUI/Images/chickenpanel.tga"
@@ -225,7 +223,7 @@ local function getResistancesMessage()
 	resistancesTable = {}
 
 	refreshMarqueeMessage = false
-	
+
 
 	return messages
 end
@@ -280,7 +278,7 @@ local function UpdateRules()
 	end
 
 	for _, rule in ipairs(rules) do
-		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 999
+		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 0
 	end
 	gameInfo.chickenCounts = getChickenCounts('Count')
 	gameInfo.chickenKills = getChickenCounts('Kills')
@@ -345,6 +343,12 @@ function widget:Initialize()
 	viewSizeX, viewSizeY = gl.GetViewSizes()
 	local x = math.abs(math.floor(viewSizeX - 320))
 	local y = math.abs(math.floor(viewSizeY - 300))
+
+	-- reposition if scavengers panel is shown as well
+	if Spring.Utilities.Gametype.IsScavengers() then
+		x = x - 315
+	end
+
 	updatePos(x, y)
 end
 

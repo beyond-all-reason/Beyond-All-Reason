@@ -5,11 +5,14 @@
 
 piece  base,column,column2,column3,column4;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
+static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging, Stunned;
 
 
-fixGo()
+Go()
 {
+	if (Stunned) {
+		return(0);
+	}
 	set ARMORED to 0;
 	move column3 to y-axis [3.000000] speed [10.000000];
 	move column4 to y-axis [3.000000] speed [10.000000];
@@ -36,11 +39,12 @@ InitState()
 
 SetStunned(State)
 {
+	Stunned = State;
 	if (State) {
 	    call-script Stop();
 	}else{
 	    if (statechg_DesiredState == 0) {
-	        call-script fixGo();
+	        call-script Go();
 	    }
 	}
 }
@@ -59,7 +63,7 @@ RequestState(requestedstate, currentstate)
 	{
 		if( statechg_DesiredState == 0 )
 		{
-			call-script fixGo();
+			call-script Go();
 			currentstate = 0;
 		}
 		if( statechg_DesiredState == 1 )

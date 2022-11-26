@@ -127,7 +127,7 @@ end
 local function processSelection()
 	local prevUnitIsSelected = unitIsSelected
 	unitIsSelected = false
-	for unitID, v in next, unitshapes, nil do
+	for unitID, shapeKey in pairs(unitshapes) do
 		if isUnitSelected(unitID) then
 			unitIsSelected = true
 		end
@@ -149,10 +149,17 @@ function widget:SelectionChanged(sel)
 	processSelection()
 end
 
-function widget:VisibleUnitRemoved(unitID)
-		if unitshapes[unitID] then
-			removeUnitShape(unitID, true)
-		end
+function widget:VisibleUnitRemoved(unitID) -- E.g. when a unit dies
+	if unitshapes[unitID] then
+		removeUnitShape(unitID, true)
+	end
+end
+
+function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits) 
+	-- Called when players are changed, better remove all of them now!
+	for unitID, shapeKey in pairs(unitshapes) do
+		removeUnitShape(unitID, true)
+	end
 end
 
 function widget:ViewResize()
@@ -186,6 +193,13 @@ function widget:Update()
 				end
 			end
 		end
+		-- after we are done, check if all that we added are still valid!
+		for unitID, uniqueID in pairs(unitshapes) do
+			if Spring.ValidUnitID(unitID) ~= true then 
+				removeUnitShape(unitID, force)
+			end
+		end
+		
 	end
 end
 

@@ -376,7 +376,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local arrayWidth = math.ceil(math.sqrt(#giveUnits))
-		local spacing = 120
+		local spacing = 140
 		local n = 0
 		local x, z = ox, oz
 		for _, uDID in ipairs(giveUnits) do
@@ -669,7 +669,7 @@ else	-- UNSYNCED
 		local techLevels = {}
 
 		local facSuffix = { --ignore t3
-			["veh"] = "vp", ["bot"] = "lab", ["air"] = "ap", ["ship"] = "sy", ["hover"] = "hp" --hover are special case, no t2 fac
+			["veh"] = "vp", ["bot"] = "lab", ["ship"] = "sy", ["hover"] = "hp" --hover are special case, no t2 fac
 		}
 		local techSuffix = {
 			["t1"] = "", ["t2"] = "a" --t3 added later
@@ -729,6 +729,12 @@ else	-- UNSYNCED
 		if string.find(line, "cor") then
 			local Condition = function(ud)
 				return ud.name:sub(1, 3) == "cor" and not string.find(ud.name, '_scav')
+			end
+			Accept[#Accept + 1] = Condition
+		end
+		if string.find(line, "leg") then
+			local Condition = function(ud)
+				return ud.name:sub(1, 3) == "leg" and not string.find(ud.name, '_scav')
 			end
 			Accept[#Accept + 1] = Condition
 		end
@@ -793,6 +799,12 @@ else	-- UNSYNCED
 		if string.find(line, "building") then
 			local Condition = function(ud)
 				return ud.isBuilding
+			end
+			Accept[#Accept + 1] = Condition
+		end
+		if string.find(line, "air") then
+			local Condition = function(ud)
+				return ud.canFly
 			end
 			Accept[#Accept + 1] = Condition
 		end

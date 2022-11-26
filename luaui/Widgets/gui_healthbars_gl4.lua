@@ -1091,6 +1091,13 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 			gl.SetUnitBufferUniforms(unitID, uniformcache, 0)
 		end
 		--Spring.Echo(unitID, unitDefID, unitDefCanStockpile[unitDefID])
+		if debugmode then 
+			if unitDefCanStockpile[unitDefID] then
+				Spring.Echo("unitDefCanStockpile", unitAllyTeam, myAllyTeamID, fullview)
+			end
+			
+		end
+		
 		if unitDefCanStockpile[unitDefID] and ((unitAllyTeam == myAllyTeamID) or fullview) then
 			unitStockPileWatch[unitID] = 0.0
 			addBarForUnit(unitID, unitDefID, "stockpile", reason)
@@ -1273,36 +1280,6 @@ end
 --[12:40 PM] Beherith: Transitions between any of the above 3 should trigger a full reinit
 --[12:41 PM] Beherith: But some internal transitions, for stuff that is draw differently for allies might require additional checks, for spectators who have fullview off?
 
-function widget:PlayerChanged(playerID)
-
-	local currentspec, currentfullview = Spring.GetSpectatingState()
-	local currentTeamID = Spring.GetMyTeamID()
-	local currentAllyTeamID = Spring.GetMyAllyTeamID()
-	local currentPlayerID = Spring.GetMyPlayerID()
-	local reinit = false
-
-	if debugmode then Spring.Echo("HBGL4 widget:PlayerChanged",'spec', currentspec, 'fullview', currentfullview, 'teamID', currentTeamID, 'allyTeamID', currentAllyTeamID, "playerID", currentPlayerID) end
-
-	-- cases where we need to trigger:
-	if (currentspec ~= spec) or -- we transition from spec to player, yes this is needed
-		(currentfullview ~= fullview) or -- we turn on or off fullview
-		((currentAllyTeamID ~= myAllyTeamID) and not currentfullview)  -- our ALLYteam changes, and we are not in fullview
-		--((currentTeamID ~= myTeamID) and not currentfullview)
-
-		then
-		-- do the actual reinit stuff, but first change my own
-		reinit = true
-		if debugmode then Spring.Echo("HBGL4 triggered a playerchanged reinit") end
-
-	end
-	-- save the state:
-	spec = currentspec
-	fullview = currentfullview
-	myAllyTeamID = currentAllyTeamID
-	myTeamID = currentTeamID
-	myPlayerID = currentPlayerID
-	if reinit then init() end
-end
 
 local function FeatureReclaimStartedHealthbars (featureID, step) -- step is negative for reclaim, positive for resurrect
 	--Spring.Echo("FeatureReclaimStartedHealthbars", featureID)
@@ -1434,8 +1411,13 @@ function widget:Shutdown()
 	Spring.Echo("Healthbars GL4 unloaded hooks")
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
 
-
+--[[
 function widget:UnitCreated(unitID, unitDefID, teamID)
 	addBarsForUnit(unitID, unitDefID, teamID, nil, 'UnitCreated')
 end
@@ -1459,11 +1441,6 @@ function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 	removeBarsFromUnit(unitID, 'UnitLeftLos')
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 	local newAllyTeamID = select( 6, Spring.GetTeamInfo(newTeamID))
@@ -1482,6 +1459,69 @@ function widget:UnitGiven(unitID, unitDefID, newTeamID)
 	--Spring.Echo("widget:UnitGiven",unitID, unitDefID, newTeamID)
 	removeBarsFromUnit(unitID, 'UnitGiven')
 	addBarsForUnit(unitID, unitDefID, newTeamID, nil,  'UnitTaken')
+end
+]]--
+
+
+function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	addBarsForUnit(unitID, unitDefID, unitTeam, nil, 'VisibleUnitAdded')
+end
+
+function widget:VisibleUnitRemoved(unitID)
+	removeBarsFromUnit(unitID, 'VisibleUnitRemoved')
+end
+
+function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
+	unitBars = {}
+	unitShieldWatch = {}
+	unitCaptureWatch = {}
+	unitEmpDamagedWatch = {}
+	unitParalyzedWatch = {}
+	unitBeingBuiltWatch = {}
+	unitStockPileWatch = {}
+	unitReloadWatch = {}
+	spec, fullview = Spring.GetSpectatingState()
+	myTeamID = Spring.GetMyTeamID()
+	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myPlayerID = Spring.GetMyPlayerID()
+
+	
+	clearInstanceTable(healthBarVBO) -- clear all instances
+	for unitID, unitDefID in pairs(extVisibleUnits) do
+		addBarsForUnit(unitID, unitDefID, Spring.GetUnitTeam(unitID), nil, "VisibleUnitsChanged") -- TODO: add them with noUpload = true
+	end
+	--uploadAllElements(healthBarVBO) -- upload them all
+end
+
+function widget:PlayerChanged(playerID)
+
+	local currentspec, currentfullview = Spring.GetSpectatingState()
+	local currentTeamID = Spring.GetMyTeamID()
+	local currentAllyTeamID = Spring.GetMyAllyTeamID()
+	local currentPlayerID = Spring.GetMyPlayerID()
+	local reinit = false
+
+	if debugmode then Spring.Echo("HBGL4 widget:PlayerChanged",'spec', currentspec, 'fullview', currentfullview, 'teamID', currentTeamID, 'allyTeamID', currentAllyTeamID, "playerID", currentPlayerID) end
+
+	-- cases where we need to trigger:
+	if (currentspec ~= spec) or -- we transition from spec to player, yes this is needed
+		(currentfullview ~= fullview) or -- we turn on or off fullview
+		((currentAllyTeamID ~= myAllyTeamID) and not currentfullview)  -- our ALLYteam changes, and we are not in fullview
+		--((currentTeamID ~= myTeamID) and not currentfullview)
+
+		then
+		-- do the actual reinit stuff, but first change my own
+		reinit = true
+		if debugmode then Spring.Echo("HBGL4 triggered a playerchanged reinit") end
+
+	end
+	-- save the state:
+	spec = currentspec
+	fullview = currentfullview
+	myAllyTeamID = currentAllyTeamID
+	myTeamID = currentTeamID
+	myPlayerID = currentPlayerID
+	--if reinit then init() end
 end
 
 

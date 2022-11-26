@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, fan;
+piece  base, fan, emit;
 
 static-var  Active;
 
@@ -35,10 +35,12 @@ MMStatus(State)
 	if (State)
 	{
 		spin fan around y-axis speed <300.000000> accelerate <10>;
+	    show emit;
 	}
 	else
 	{
 		stop-spin fan around y-axis decelerate <5>;
+	    hide emit;
 	}
 }
 

@@ -153,6 +153,23 @@ QueryNanoPiece(piecenum)
 
 }
 
+StartBuilding()
+{
+	show nano1;
+	show nano2;
+	show nano3;
+	show nano4;
+	show nano5;
+}
+
+StopBuilding()
+{
+	hide nano1;
+	hide nano2;
+	hide nano3;
+	hide nano4;
+	hide nano5;
+}
 Activate()
 {
 	signal SIG_ACTIVATE;

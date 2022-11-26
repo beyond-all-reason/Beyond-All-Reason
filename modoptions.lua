@@ -78,6 +78,27 @@ local options={
 	},
 
 	{
+		key    		= 'norush',
+		name   		= "No Rush mode - Work in Progress, Requires Startboxes (doesn't work in FFA or 1v1 preset)",
+		desc   		= 'No Rush mode',
+		type   		= "bool",
+		section		= 'restrictions',
+		def    		= false,
+	},
+
+	{
+		key    		= 'norushtimer',
+		name   		= "No Rush Time (in minutes)",
+		desc   		= 'No Rush Time (in minutes)',
+		type   		= "number",
+		section		= 'restrictions',
+		def    		= 5,
+		min    		= 5,
+		max    		= 30,
+		step   		= 1,
+	},
+
+	{
 		key    		= 'disable_fogofwar',
 		name   		= 'Disable Fog of War',
 		desc   		= 'Disable Fog of War',

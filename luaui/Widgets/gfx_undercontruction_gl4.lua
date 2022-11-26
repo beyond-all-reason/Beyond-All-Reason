@@ -38,11 +38,20 @@ function widget:Initialize()
 	widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 end
 
+local function RemoveHighLight(unitID, noUpload)
+	if unitID and unitshapes[unitID] and WG.StopHighlightUnitGL4 then
+		WG.StopHighlightUnitGL4(unitshapes[unitID], noUpload)
+		unitshapes[unitID] = nil
+	end
+end
+
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	for unitID, _ in pairs(unitshapes) do
 		RemoveHighLight(unitID, true)
 	end
-	WG.RefreshHighlightUnitGL4()
+	if WG.RefreshHighlightUnitGL4 then 
+		WG.RefreshHighlightUnitGL4()
+	end
 	for unitID, unitDefID in pairs(extVisibleUnits) do 
 		widget:VisibleUnitAdded(unitID, unitDefID)
 	end
@@ -54,13 +63,6 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 		local teamID = unitTeam or spGetUnitTeam(unitID) -- as unitTeam is passed except on VisibleUnitsChanged
 		local r, g, b = teamColor[teamID][1], teamColor[teamID][2], teamColor[teamID][3]
 		unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r, g, b, highlightAlpha, edgeAlpha, edgeExponent, animAmount, 0, 0, 0, 0, "underconstruction")
-	end
-end
-
-local function RemoveHighLight(unitID, noUpload)
-	if unitID and unitshapes[unitID] and WG.StopHighlightUnitGL4 then
-		WG.StopHighlightUnitGL4(unitshapes[unitID], noUpload)
-		unitshapes[unitID] = nil
 	end
 end
 

@@ -38,7 +38,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIGBUG_DEATH",
 		side = "THUNDERBIRDS",
-		sightdistance = 350,
+		sightdistance = 300,
 		smoothanim = true,
 		sonardistance = 450,
 		steeringmode = "2",
