@@ -993,6 +993,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function updateQueenLife()
 		if not queenID then
+			SetGameRulesParam("queenLife", 0)
 			return
 		end
 		local curH, maxH = GetUnitHealth(queenID)
@@ -1007,12 +1008,12 @@ if gadgetHandler:IsSyncedCode() then
 	local function SpawnQueen()
 		local bestScore = 0
 		local sx, sy, sz
-		for burrowID, turretCount in pairs(burrows) do
+		for burrowID, _ in pairs(burrows) do
 			-- Try to spawn the queen at the 'best' burrow
 			local x, y, z = GetUnitPosition(burrowID)
 			if x and y and z then
 				local score = 0
-				score = score + (mRandom() * turretCount)
+				score = math.random(1,1000)
 				if score > bestScore then
 					bestScore = score
 					sx = x
@@ -1030,17 +1031,10 @@ if gadgetHandler:IsSyncedCode() then
 		local tries = 0
 		local canSpawnQueen = false
 		repeat
-			if config.burrowSpawnType == "initialbox" or config.burrowSpawnType == "initialbox_post" or config.burrowSpawnType == "alwaysbox" then
-				x = mRandom(lsx1, lsx2)
-				z = mRandom(lsz1, lsz2)
-			else
-				x = mRandom(config.spawnSquare, MAPSIZEX - config.spawnSquare)
-				z = mRandom(config.spawnSquare, MAPSIZEZ - config.spawnSquare)
-			end
-
+			x = mRandom(RaptorStartboxXMin, RaptorStartboxXMax)
+			z = mRandom(RaptorStartboxZMin, RaptorStartboxZMax)
 			y = GetGroundHeight(x, z)
 			tries = tries + 1
-
 			canSpawnQueen = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, false)
 			
 			if canSpawnQueen then
