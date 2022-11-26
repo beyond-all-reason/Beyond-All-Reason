@@ -799,7 +799,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			local waveLevel = currentWave
 			local squad = config.basicWaves[waveLevel][mRandom(1, #config.basicWaves[waveLevel])]
-			if config.specialWaves[waveLevel] and math.random(1,100) <= 20 then
+			if config.specialWaves[waveLevel] and math.random(1,100) <= 33 then
 				squad = config.specialWaves[waveLevel][mRandom(1, #config.specialWaves[waveLevel])]
 			elseif config.superWaves[waveLevel] and math.random(1,100) <= 1 then
 				squad = config.superWaves[waveLevel][mRandom(1, #config.superWaves[waveLevel])]
@@ -993,6 +993,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function updateQueenLife()
 		if not queenID then
+			SetGameRulesParam("queenLife", 0)
 			return
 		end
 		local curH, maxH = GetUnitHealth(queenID)
@@ -1007,12 +1008,12 @@ if gadgetHandler:IsSyncedCode() then
 	local function SpawnQueen()
 		local bestScore = 0
 		local sx, sy, sz
-		for burrowID, turretCount in pairs(burrows) do
+		for burrowID, _ in pairs(burrows) do
 			-- Try to spawn the queen at the 'best' burrow
 			local x, y, z = GetUnitPosition(burrowID)
 			if x and y and z then
 				local score = 0
-				score = score + (mRandom() * turretCount)
+				score = math.random(1,1000)
 				if score > bestScore then
 					bestScore = score
 					sx = x
@@ -1030,17 +1031,10 @@ if gadgetHandler:IsSyncedCode() then
 		local tries = 0
 		local canSpawnQueen = false
 		repeat
-			if config.burrowSpawnType == "initialbox" or config.burrowSpawnType == "initialbox_post" or config.burrowSpawnType == "alwaysbox" then
-				x = mRandom(lsx1, lsx2)
-				z = mRandom(lsz1, lsz2)
-			else
-				x = mRandom(config.spawnSquare, MAPSIZEX - config.spawnSquare)
-				z = mRandom(config.spawnSquare, MAPSIZEZ - config.spawnSquare)
-			end
-
+			x = mRandom(RaptorStartboxXMin, RaptorStartboxXMax)
+			z = mRandom(RaptorStartboxZMin, RaptorStartboxZMax)
 			y = GetGroundHeight(x, z)
 			tries = tries + 1
-
 			canSpawnQueen = positionCheckLibrary.FlatAreaCheck(x, y, z, 128, 30, false)
 			
 			if canSpawnQueen then
@@ -1131,69 +1125,68 @@ if gadgetHandler:IsSyncedCode() then
 				for burrowID in pairs(burrows) do
 					if mRandom(1,SetCount(burrows)) == 1 then
 						table.insert(spawnQueue, { burrow = burrowID, unitName = config.miniBosses[mRandom(1,#config.miniBosses)], team = chickenTeamID, squadID = 0 })
-						cCount = currentMaxWaveSize
+						cCount = 1
 						break
 					end
 				end
 			until (cCount > 0 or loopCounter >= 100)
-		else
-			repeat
-				loopCounter = loopCounter + 1
-				for burrowID in pairs(burrows) do
-					if cCount < currentMaxWaveSize then
-						for mult = 1,config.chickenSpawnMultiplier do
-							squadCounter = 0
-							local squad
-							if waveType == "air" then
-								squad = config.airWaves[currentWave][mRandom(1, #config.airWaves[currentWave])]
-							else
-								squad = config.basicWaves[currentWave][mRandom(1, #config.basicWaves[currentWave])]
-								if config.specialWaves[currentWave] and math.random(1,100) <= 20 then
-									squad = config.specialWaves[currentWave][mRandom(1, #config.specialWaves[currentWave])]
-								elseif config.superWaves[currentWave] and math.random(1,100) <= 1 then
-									squad = config.superWaves[currentWave][mRandom(1, #config.superWaves[currentWave])]
-								end
-							end
-							local skipSpawn = false
-							if cCount > 1 and mRandom() > config.spawnChance then
-								skipSpawn = true
-							end
-							if not skipSpawn then
-								for i, sString in pairs(squad) do
-									if cCount < currentMaxWaveSize then
-										local nEnd, _ = string.find(sString, " ")
-										local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
-										local chickenName = string.sub(sString, (nEnd + 1))
-										for j = 1, unitNumber, 1 do
-											squadCounter = squadCounter + 1
-											table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
-										end
-										cCount = cCount + unitNumber
-									end
-								end
+		end
+		repeat
+			loopCounter = loopCounter + 1
+			for burrowID in pairs(burrows) do
+				if cCount < currentMaxWaveSize then
+					for mult = 1,config.chickenSpawnMultiplier do
+						squadCounter = 0
+						local squad
+						if waveType == "air" then
+							squad = config.airWaves[currentWave][mRandom(1, #config.airWaves[currentWave])]
+						else
+							squad = config.basicWaves[currentWave][mRandom(1, #config.basicWaves[currentWave])]
+							if config.specialWaves[currentWave] and math.random(1,100) <= 33 then
+								squad = config.specialWaves[currentWave][mRandom(1, #config.specialWaves[currentWave])]
+							elseif config.superWaves[currentWave] and math.random(1,100) <= 1 then
+								squad = config.superWaves[currentWave][mRandom(1, #config.superWaves[currentWave])]
 							end
 						end
-					end
-					
-					local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
-					local targetCleaners = currentMaxWaveSize*0.1
-					local cleanerSpawnCount = math.ceil((targetCleaners - aliveCleaners)*0.25)
-					if targetCleaners - cleanerSpawned > 0 and cleanerSpawnCount > 0 then
-						if mRandom(0,1) == 0 then
-							for i = 1,math.ceil(cleanerSpawnCount) do
-								table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = i })
-								cleanerSpawned = cleanerSpawned + 1
-							end
-						else
-							for i = 1,math.ceil(cleanerSpawnCount) do
-								table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = i })
-								cleanerSpawned = cleanerSpawned + 1
+						local skipSpawn = false
+						if cCount > 1 and mRandom() > config.spawnChance then
+							skipSpawn = true
+						end
+						if not skipSpawn then
+							for i, sString in pairs(squad) do
+								if cCount < currentMaxWaveSize then
+									local nEnd, _ = string.find(sString, " ")
+									local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
+									local chickenName = string.sub(sString, (nEnd + 1))
+									for j = 1, unitNumber, 1 do
+										squadCounter = squadCounter + 1
+										table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID, squadID = squadCounter })
+									end
+									cCount = cCount + unitNumber
+								end
 							end
 						end
 					end
 				end
-			until (cCount > currentMaxWaveSize or loopCounter >= 100)
-		end
+				
+				local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
+				local targetCleaners = currentMaxWaveSize*0.1
+				local cleanerSpawnCount = math.ceil((targetCleaners - aliveCleaners)*0.25)
+				if targetCleaners - cleanerSpawned > 0 and cleanerSpawnCount > 0 then
+					if mRandom(0,1) == 0 then
+						for i = 1,math.ceil(cleanerSpawnCount) do
+							table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = i })
+							cleanerSpawned = cleanerSpawned + 1
+						end
+					else
+						for i = 1,math.ceil(cleanerSpawnCount) do
+							table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = i })
+							cleanerSpawned = cleanerSpawned + 1
+						end
+					end
+				end
+			end
+		until (cCount > currentMaxWaveSize or loopCounter >= 100)
 
 		if waveType == "air" then
 			chickenEvent("airWave")

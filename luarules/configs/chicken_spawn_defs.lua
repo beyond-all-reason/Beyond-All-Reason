@@ -327,6 +327,31 @@ end
 --     end
 -- end
 
+local function addSuperSquad(wave, unitList, weight)
+	if not weight then weight = 1 end
+    for i = 1, weight do 
+		for j = wave,wavesAmount do
+			if not superWaves[j] then
+				superWaves[j] = {}
+			end
+			table.insert(superWaves[j], unitList)
+		end
+    end
+end
+
+local function addSpecialSquad(wave, unitList, weight)
+	if not weight then weight = 1 end
+	addSuperSquad(math.max(wave-3, 1), unitList, weight)
+    for i = 1, weight do 
+		for j = wave,wavesAmount do
+			if not specialWaves[j] then
+				specialWaves[j] = {}
+			end
+			table.insert(specialWaves[j], unitList)
+		end
+    end
+end
+
 local function addBasicSquad(wave, unitList, weight)
 	if not weight then weight = 1 end
     for i = 1, weight do 
@@ -339,29 +364,9 @@ local function addBasicSquad(wave, unitList, weight)
     end
 end
 
-local function addSpecialSquad(wave, unitList, weight)
-	if not weight then weight = 1 end
-    for i = 1, weight do 
-		for j = wave,wavesAmount do
-			if not specialWaves[j] then
-				specialWaves[j] = {}
-			end
-			table.insert(specialWaves[j], unitList)
-		end
-    end
-end
 
-local function addSuperSquad(wave, unitList, weight)
-	if not weight then weight = 1 end
-    for i = 1, weight do 
-		for j = wave,wavesAmount do
-			if not superWaves[j] then
-				superWaves[j] = {}
-			end
-			table.insert(superWaves[j], unitList)
-		end
-    end
-end
+
+
 
 local function addAirSquad(wave, unitList, weight)
 	if not weight then weight = 1 end
@@ -384,25 +389,6 @@ local miniBosses = {
 	"chicken_miniqueen_acid", 		-- Acid Miniqueen
 	"chicken_miniqueen_healer", 	-- Healer Miniqueen
 }
-
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
--- Super Squads -------------------------------------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	addSuperSquad(5, { "2 chickenapexallterrainassault"													}) -- Apex AllTerrain Brawler
-	addSuperSquad(5, { "2 chickenapexallterrainassaultb"												}) -- Apex AllTerrain Brawler
-	addSuperSquad(3, { "6 chickenr1"																	}) -- Artillery
-	addSuperSquad(4, { "3 chickenearty1"																}) -- Artillery
-	addSuperSquad(5, { "3 chickenacidarty" 																}) -- Artillery
-	addSuperSquad(5, { "2 chickenh2" 																	}) -- Apex Brood Mother
-	addSuperSquad(4, { "3 chickenelectricallterrainassault" 											}) -- EMP AllTerrain Brawler
-	addSuperSquad(5, { "2 chickenacidassault" 															}) -- Acid Brawler
-	addSuperSquad(5, { "2 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
-	addSuperSquad(5, { "5 chicken_dodo2" 																}) -- Kamikaze
-	addSuperSquad(4, { "6 chickenp2" 																	}) -- Apex Pyro
-	addSuperSquad(5, { "5 chickens2" 																	}, 2) -- Apex Spiker
-	if not Spring.GetModOptions().unit_restrictions_nonukes then
-		addSpecialSquad(7, { "1 chickenr2"																}, 2) -- Meteor Artillery
-	end
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Special Squads -----------------------------------------------------------------------------------------------------------------------------------------------------------------

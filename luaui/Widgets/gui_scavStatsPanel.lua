@@ -29,8 +29,6 @@ end
 -- end
 
 local GetGameSeconds = Spring.GetGameSeconds
-local gl = gl
-local math = math
 
 local displayList
 local panelTexture = ":n:LuaUI/Images/scavpanel.png"
