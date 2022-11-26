@@ -1136,7 +1136,8 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 								for i=1, lightParamTableSize do lightCacheTable[i] = lightParamTable[i] end
 								local unitHeight = Spring.GetUnitHeight(unitID)
 								if unitHeight == nil then Spring.Echo("Unitheight is nil for unitID", unitID, "unitDefName", UnitDefs[unitDefID].name) end
-								lightCacheTable[2] = lightCacheTable[2] + lightTable.aboveUnit + unitHeight
+
+								lightCacheTable[2] = lightCacheTable[2] + lightTable.aboveUnit + (unitHeight or 0)
 								lightParamTable = lightCacheTable
 							end
 							AddLight(eventName .. tostring(unitID) ..  lightname, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightParamTable)
