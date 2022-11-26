@@ -8034,7 +8034,7 @@ local unitDefLights = {
 		barrel3 = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = -6, posy = 17, posz = -47, radius = 4,
+			lightConfig = { posx = -6, posy = 17, posz = -47, radius = 22,
 							color2r = 1, color2g = 1, color2b = 1, colortime = 0,
 							r = 1, g = 1, b = 0.2, a = 0.1,
 							modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0,
@@ -8043,7 +8043,7 @@ local unitDefLights = {
 		barrel4 = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = 6, posy = 17, posz = -47, radius = 4,
+			lightConfig = { posx = 6, posy = 17, posz = -47, radius = 22,
 							color2r = 1, color2g = 1, color2b = 1, colortime = 0,
 							r = 1, g = 1, b = 0.2, a = 0.1,
 							modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0,
