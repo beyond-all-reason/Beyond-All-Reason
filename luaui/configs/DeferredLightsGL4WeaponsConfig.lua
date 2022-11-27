@@ -286,7 +286,7 @@ local function AssignLightsToAllWeapons()
 		end
 		local radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
 		local orgMult = (math.max(0.25, math.min(damage/1600, 0.6)) + (radius/2800))
-		local life = (7.5*(1.0+radius/2000)+(orgMult * 5))
+		local life = 8 + (5*(radius/2000)+(orgMult * 5))
 		radius = ((orgMult * 75) + (radius * 2.4)) * 0.33
 
 		if string.find(weaponDef.name, 'juno') then
@@ -304,21 +304,21 @@ local function AssignLightsToAllWeapons()
 		local explosionLight = true
 		local sizeclass = GetClosestSizeClass(radius)
 		local t = {}
-		t.r, t.g, t.b = r, g, b
 		local aa = string.find(weaponDef.cegTag, 'aa')
 		if aa then
-			t.r, t.g, t.b = 1, 0.5, 0.6
+			r, g, b = 1, 0.5, 0.6
 			t.color2r, t.color2g, t.color2b = 1, 0.5, 0.6
 		end
 		if weaponDef.paralyzer then
-			t.r, t.g, t.b = 0.5, 0.5, 1
+			r, g, b = 0.5, 0.5, 1
 			t.color2r, t.color2g, t.color2b = 0.25, 0.25, 1
 		end
 		local scavenger = string.find(weaponDef.name, '_scav')
 		if scavenger then
-			t.r, t.g, t.b = 0.96, 0.3, 1
+			r, g, b = 0.96, 0.3, 1
 			t.color2r, t.color2g, t.color2b = 0.96, 0.3, 1
 		end
+		t.r, t.g, t.b = r, g, b
 		if weaponDef.type == 'BeamLaser' then
 			muzzleFlash = false
 
@@ -425,12 +425,20 @@ local function AssignLightsToAllWeapons()
 				t.colortime = 1
 			else
 				if weaponDef.type == 'AircraftBomb' then
-					life = life * 1.2
+					if weaponDef.paralyzer then
+						t.r = t.r * 1.7	-- make more red
+						t.g = t.g * 0.4	-- make more red
+						t.b = t.b * 0.4	-- make more red
+						life = life * 2.5
+						orgMult = orgMult * 0.15
+					else
+						t.r = t.r * 1.7	-- make more red
+						t.g = t.g * 0.4	-- make more red
+						t.b = t.b * 0.4	-- make more red
+						life = life * 1.2
+					end
 					t.lifetime = life
 					t.colortime = 25 / life
-					t.r = t.r * 1.7	-- make more red
-					t.g = t.g * 0.4	-- make more red
-					t.b = t.b * 0.4	-- make more red
 				end
 				t.r = (1.3 + t.r) / 2.3	-- make more white
 				t.g = (1.3 + t.g) / 2.3	-- make more white

@@ -1211,7 +1211,7 @@ local unitDefLights = {
 		corner1 = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = -5, posy = 26.3, posz = 5, radius = 11,
+			lightConfig = { posx = -5, posy = 26.3, posz = 5, radius = 12,
 							color2r = 1, color2g = 1, color2b = 1, colortime = 0,
 							r = 1, g = 1, b = 1, a = 0.045,
 							modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0,
@@ -1220,7 +1220,7 @@ local unitDefLights = {
 		corner2 = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = 5, posy = 26.3, posz = 5, radius = 11,
+			lightConfig = { posx = 5, posy = 26.3, posz = 5, radius = 12,
 							color2r = 1, color2g = 1, color2b = 1, colortime = 0,
 							r = 1, g = 1, b = 1, a = 0.045,
 							modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0,
@@ -1229,7 +1229,7 @@ local unitDefLights = {
 		corner3 = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = -5, posy = 26.3, posz = -5, radius = 11,
+			lightConfig = { posx = -5, posy = 26.3, posz = -5, radius = 12,
 							color2r = 1, color2g = 1, color2b = 1, colortime = 0,
 							r = 1, g = 1, b = 1, a = 0.045,
 							modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0,
@@ -1238,7 +1238,7 @@ local unitDefLights = {
 		corner4 = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = 5, posy = 26.3, posz = -5, radius = 11,
+			lightConfig = { posx = 5, posy = 26.3, posz = -5, radius = 12,
 							color2r = 1, color2g = 1, color2b = 1, colortime = 0,
 							r = 1, g = 1, b = 1, a = 0.045,
 							modelfactor = 0.4, specular = 0, scattering = 0.8, lensflare = 0,
