@@ -286,7 +286,7 @@ local function AssignLightsToAllWeapons()
 		end
 		local radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
 		local orgMult = (math.max(0.25, math.min(damage/1600, 0.6)) + (radius/2800))
-		local life = (7.5*(1.0+radius/2000)+(orgMult * 5)) * 0.8
+		local life = (7.5*(1.0+radius/2000)+(orgMult * 5))
 		radius = ((orgMult * 75) + (radius * 2.4)) * 0.33
 
 		if string.find(weaponDef.name, 'juno') then
@@ -365,7 +365,7 @@ local function AssignLightsToAllWeapons()
 			projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
 
 		elseif weaponDef.type == 'Cannon' then
-			t.a = orgMult*0.15
+			t.a = orgMult*0.18
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Plasma", sizeclass, t)
 
 		elseif weaponDef.type == 'DGun' then
@@ -413,7 +413,7 @@ local function AssignLightsToAllWeapons()
 				t.r, t.g, t.b = 0.99, 0.9, 1
 			end
 			t.lifetime = life
-			t.colortime = 0.037*(life/30)
+			t.colortime = 25 / life
 			t.a = orgMult
 
 			if weaponDef.type == 'DGun' then
@@ -423,12 +423,21 @@ local function AssignLightsToAllWeapons()
 			elseif weaponDef.type == 'BeamLaser' then
 				t.a = (orgMult*0.04) / (0.2 + weaponDef.beamtime)
 				t.colortime = 1
-			elseif weaponDef.type == 'AircraftBomb' then
-				t.lifetime = life*2.4
-				t.a = orgMult*0.9
-				t.color2r, t.color2g, t.color2b = 0.72, 0.47, 0.2
-				t.colortime = 0.012
-				t.sustain = 2
+			else
+				if weaponDef.type == 'AircraftBomb' then
+					life = life * 1.2
+					t.lifetime = life
+					t.colortime = 25 / life
+					t.r = t.r * 1.7	-- make more red
+					t.g = t.g * 0.4	-- make more red
+					t.b = t.b * 0.4	-- make more red
+				end
+				t.r = (1.3 + t.r) / 2.3	-- make more white
+				t.g = (1.3 + t.g) / 2.3	-- make more white
+				t.b = (1.3 + t.b) / 2.3	-- make more white
+				t.a = orgMult*1.8
+				local mult = 0.5
+				t.color2r, t.color2g, t.color2b = r*mult, g*mult, b*mult
 			end
 			explosionLights[weaponID] = GetLightClass("Explosion", nil, sizeclass, t)
 			explosionLights[weaponID].yOffset = explosionLights[weaponID].lightConfig.radius / 5
