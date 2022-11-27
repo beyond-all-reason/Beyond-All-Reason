@@ -340,7 +340,7 @@ return {
 				},
 			},
 			napalmmissile = {
-				areaofeffect = 200,
+				areaofeffect = 300,
 				avoidfeature = false,
 				burnblow = true,
 				cegtag = "missiletraillarge-red",
@@ -357,7 +357,7 @@ return {
 				noselfdamage = true,
 				--paralyzer = true,
 				--paralyzetime = 5.5,
-				range = 500,
+				range = 450,
 				reloadtime = 5,
 				smoketrail = true,
 				smokePeriod = 7,

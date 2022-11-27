@@ -112,7 +112,7 @@ return {
 		},
 		weapondefs = {
 			clusternapalm = {
-				areaofeffect = 90,
+				areaofeffect = 150,
 				avoidfeature = false,
 				cegtag = "burnflame",
 				colormap = "0.75 0.73 0.67 0.024   0.37 0.4 0.30 0.021   0.22 0.21 0.14 0.018  0.024 0.014 0.009 0.03   0.0 0.0 0.0 0.008",

@@ -86,7 +86,7 @@ return {
 		},
 		weapondefs = {
 			napalmbombs = {
-				areaofeffect = 180,
+				areaofeffect = 300,
 				avoidfeature = false,
 				burst = 4,
 				burstrate = 0.6,
