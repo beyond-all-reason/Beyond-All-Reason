@@ -350,7 +350,7 @@ function popElementInstance(iT, instanceID, noUpload)
 							iT.lastpopgameframe = gf
 							if iT.numZombies and iT.numZombies > 0 then -- WE HAVE ZOMBIES AAAAARGH
 								--Error: validateInstanceVBOIDTable [string "LuaUI/'
-								local s = ' Error: popElementInstance [string "LuaUI/  We have ' .. tostring(iT.numZombies) .. " zombie units left over in " .. iT.myName .. " after removing:" .. tostring(instanceID) .. " zombies:"
+								local s = 'Error: popElementInstance [string "LuaUI/  We have ' .. tostring(iT.numZombies) .. " zombie units left over in " .. iT.myName .. " after removing:" .. tostring(instanceID) .. " zombies:"
 								for zombie, gf in pairs(iT.zombies) do 
 									s = s .. " " .. tostring(zombie)
 									--Spring.SendCommands({"pause 1"})
