@@ -332,7 +332,7 @@ return {
 				},
 			},
 			napalmmissile = {
-				areaofeffect = 200,
+				areaofeffect = 300,
 				avoidfeature = false,
 				burnblow = true,
 				cegtag = "missiletraillarge-red",
