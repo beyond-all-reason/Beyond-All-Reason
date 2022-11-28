@@ -213,7 +213,12 @@ else
 		thisAI.neutralUnitIds = thisAI.neutralUnitIds or {}
 		return thisAI
 	end
-
+	
+	local basememlimit = 200000
+	local pershardmemlimit = 50000
+	local garbagelimit = basememlimit -- in kilobytes, will adjust upwards as needed
+	local numShards = 0
+	
 	function gadget:GameStart()
 		-- Initialise AIs
 		for _, thisAI in ipairs(Shard.AIs) do
@@ -223,12 +228,13 @@ else
 			thisAI.startPos = { x, y, z }
 			thisAI:Prepare()
 			--thisAI:Init()
+			garbagelimit = math.min(1000000,garbagelimit + pershardmemlimit)
+			numShards = numShards + 1
 		end
 	end
 
 	function gadget:GameFrame(n)
 		-- for each AI...
-		local numShards = 0
 		for i, thisAI in ipairs(Shard.AIs) do
 			--local RAM = gcinfo()
 			-- update sets of unit ids : own, friendlies, enemies
@@ -236,13 +242,17 @@ else
 			thisAI:Prepare()
 			thisAI:Update()
 			
-			numShards = math.max(numShards, i)
 			if i == 1 and n % 121 == 0 then 
-				local RAMUSE = gcinfo()
+				local ramuse = gcinfo()
 				--Spring.Echo("RAMUSE",i,n, RAMUSE)
-				if RAMUSE > 300000 + 50000 * numShards then 
+				if ramuse > garbagelimit then 
 					collectgarbage("collect")
 					collectgarbage("collect")
+					local notgarbagemem = gcinfo()
+					local newgarbagelimit = math.min(1000000, notgarbagemem + basememlimit + pershardmemlimit * numShards) -- peak 1 GB
+					Spring.Echo(string.format("%d STAIs using %d MB RAM > %d MB limit, performing garbage collection and adjusting limit to %d MB", 
+						numShards, math.floor(ramuse/1000), math.floor(garbagelimit/1000), math.floor(newgarbagelimit/1000) ) )
+					garbagelimit = newgarbagelimit
 				end
 			end
 			--RAM = gcinfo() - RAM
