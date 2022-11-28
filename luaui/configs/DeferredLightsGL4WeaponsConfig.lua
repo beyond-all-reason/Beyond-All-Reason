@@ -276,7 +276,6 @@ local projectileDefLights  = {
 local function AssignLightsToAllWeapons()
 	for weaponID=1, #WeaponDefs do
 		local weaponDef = WeaponDefs[weaponID]
-		local customParams = weaponDef.customParams or {}
 		local damage = 100
 		for cat=0, #weaponDef.damages do
 			if Game.armorTypes[cat] and Game.armorTypes[cat] == 'default' then
@@ -285,7 +284,7 @@ local function AssignLightsToAllWeapons()
 			end
 		end
 		local radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
-		local orgMult = (math.max(0.25, math.min(damage/1600, 0.6)) + (radius/2800))
+		local orgMult = math.max(0.1, math.min(damage/1600, 0.6)) + (radius/2800)
 		local life = 8 + (5*(radius/2000)+(orgMult * 5))
 		radius = ((orgMult * 75) + (radius * 2.4)) * 0.33
 
@@ -352,7 +351,7 @@ local function AssignLightsToAllWeapons()
 			if not scavenger then
 				t.r, t.g, t.b = 0.2, 0.45, 1
 			end
-			t.a = orgMult*0.55
+			t.a = orgMult * 0.9
 			sizeclass = GetClosestSizeClass(radius*8)
 			projectileDefLights[weaponID] = GetLightClass("LaserProjectile", "Cold", sizeclass, t)
 
@@ -363,6 +362,9 @@ local function AssignLightsToAllWeapons()
 		elseif weaponDef.type == 'StarburstLauncher' then
 			t.a = orgMult * 0.66
 			projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
+			radius = ((orgMult * 75) + (radius * 4)) * 0.4
+			life = 8 + (5*(radius/2000)+(orgMult * 5))
+			sizeclass = GetClosestSizeClass(radius)
 
 		elseif weaponDef.type == 'Cannon' then
 			t.a = orgMult*0.18
@@ -421,8 +423,10 @@ local function AssignLightsToAllWeapons()
 			elseif weaponDef.type == 'Flame' then
 				t.a = orgMult*0.17
 			elseif weaponDef.type == 'BeamLaser' then
-				t.a = (orgMult*0.04) / (0.2 + weaponDef.beamtime)
+				t.a = (orgMult*0.11) / (0.2 + weaponDef.beamtime)
 				t.colortime = 1
+			elseif weaponDef.type == 'LightningCannon' then
+				t.a = orgMult*10.17
 			else
 				if weaponDef.type == 'AircraftBomb' then
 					if weaponDef.paralyzer then
@@ -444,7 +448,7 @@ local function AssignLightsToAllWeapons()
 				t.g = (1.3 + t.g) / 2.3	-- make more white
 				t.b = (1.3 + t.b) / 2.3	-- make more white
 				t.a = orgMult*1.8
-				local mult = 0.5
+				local mult = 0.55
 				t.color2r, t.color2g, t.color2b = r*mult, g*mult, b*mult
 			end
 			explosionLights[weaponID] = GetLightClass("Explosion", nil, sizeclass, t)
