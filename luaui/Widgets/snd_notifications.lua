@@ -73,7 +73,7 @@ addSound('AdvRadarLost', 'AdvRadarLost.wav', 8, 1.32, 'tips.notifications.advanc
 addSound('MexLost', 'MexLost.wav', 8, 1.53, 'tips.notifications.metalExtractorLost')
 
 -- resources
-addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 45, 1.63, 'tips.notifications.overflowingMetal')
+addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 80, 1.63, 'tips.notifications.overflowingMetal')
 --addSound('YouAreOverflowingEnergy', 'YouAreOverflowingEnergy.wav', 100, 1.7, 'Your are overflowing energy')
 --addSound('YouAreWastingMetal', 'YouAreWastingMetal.wav', 25, 1.5, 'Your are wasting metal')
 --addSound('YouAreWastingEnergy', 'YouAreWastingEnergy.wav', 35, 1.3, 'Your are wasting energy')
@@ -81,16 +81,16 @@ addSound('WholeTeamWastingMetal', 'WholeTeamWastingMetal.wav', 30, 1.82, 'tips.n
 addSound('WholeTeamWastingEnergy', 'WholeTeamWastingEnergy.wav', 110, 2.14, 'tips.notifications.teamWastingEnergy')
 --addSound('MetalStorageFull', 'metalstorefull.wav', 40, 1.62, 'Metal storage is full')
 --addSound('EnergyStorageFull', 'energystorefull.wav', 40, 1.65, 'Energy storage is full')
-addSound('LowPower', 'LowPower.wav', 30, 0.95, 'tips.notifications.lowPower')
+addSound('LowPower', 'LowPower.wav', 40, 0.95, 'tips.notifications.lowPower')
 addSound('WindNotGood', 'WindNotGood.wav', 9999999, 3.76, 'tips.notifications.lowWind')
 
 -- added this so they wont get immediately triggered after gamestart
-LastPlay['YouAreOverflowingMetal'] = spGetGameFrame()+400
+LastPlay['YouAreOverflowingMetal'] = spGetGameFrame()+1200
 --LastPlay['YouAreOverflowingEnergy'] = spGetGameFrame()+300
 --LastPlay['YouAreWastingMetal'] = spGetGameFrame()+300
 --LastPlay['YouAreWastingEnergy'] = spGetGameFrame()+300
-LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()+400
-LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame()+400
+LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()+1200
+LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame()+2000
 
 -- alerts
 addSound('NukeLaunched', 'NukeLaunched.wav', 3, 2, 'tips.notifications.nukeLaunched')
