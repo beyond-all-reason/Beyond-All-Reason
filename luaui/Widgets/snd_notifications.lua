@@ -763,6 +763,10 @@ function widget:KeyPress()
 	lastUserInputTime = os.clock()
 end
 
+function widget:GameOver()
+	widgetHandler:RemoveWidget()
+end
+
 function widget:GetConfigData(data)
 	return {
 		Sound = Sound,
