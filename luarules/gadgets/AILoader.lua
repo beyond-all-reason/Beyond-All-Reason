@@ -228,13 +228,23 @@ else
 
 	function gadget:GameFrame(n)
 		-- for each AI...
-
-		for _, thisAI in ipairs(Shard.AIs) do
+		local numShards = 0
+		for i, thisAI in ipairs(Shard.AIs) do
 			--local RAM = gcinfo()
 			-- update sets of unit ids : own, friendlies, enemies
 			--1 run AI game frame update handlers
 			thisAI:Prepare()
 			thisAI:Update()
+			
+			numShards = math.max(numShards, i)
+			if i == 1 and n % 121 == 0 then 
+				local RAMUSE = gcinfo()
+				--Spring.Echo("RAMUSE",i,n, RAMUSE)
+				if RAMUSE > 300000 + 50000 * numShards then 
+					collectgarbage("collect")
+					collectgarbage("collect")
+				end
+			end
 			--RAM = gcinfo() - RAM
 			--if RAM > 1000 then
 			--	print ('AIloader',RAM/1000)
