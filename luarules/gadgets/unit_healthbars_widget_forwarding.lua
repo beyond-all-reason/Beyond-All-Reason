@@ -15,14 +15,14 @@ end
 local function MinEngineVersion(minver)
 	local engineversion = Engine.versionFull -- this is "" in synced
 	if engineversion == "" then 
-		Spring.Echo("unable to fetch synced engine version")
+		--Spring.Echo("unable to fetch synced engine version")
 		return true
 	end
-	Spring.Echo(engineversion)
+	--Spring.Echo(engineversion)
 	engineversion = string.sub(engineversion, 9) -- 105.1.1-670-
-	Spring.Echo(engineversion)
+	--Spring.Echo(engineversion)
 	engineversion = string.sub(engineversion, 1, string.find(engineversion, '-', nil, true) -1)
-	Spring.Echo(engineversion)
+	--Spring.Echo(engineversion)
 	if tonumber(engineversion) ~= nil and tonumber(engineversion) >= minver then 
 		return true
 	else return false end
