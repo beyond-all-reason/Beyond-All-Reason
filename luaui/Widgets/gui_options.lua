@@ -2384,7 +2384,7 @@ function init()
 		{ id = "label_notif_messages_spacer", group = "notif", category = types.basic },
 
 		-- CONTROL
-		{ id = "hwcursor", group = "control", category = types.basic, name = texts.option.hwcursor, type = "bool", value = tonumber(Spring.GetConfigInt("hardwareCursor", 1) or 1) == 1, description = texts.option.hwcursor_descr,
+		{ id = "hwcursor", group = "control", category = types.basic, name = texts.option.hwcursor, type = "bool", value = tonumber(Spring.GetConfigInt("HardwareCursor", 0) or 0) == 1, description = texts.option.hwcursor_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
