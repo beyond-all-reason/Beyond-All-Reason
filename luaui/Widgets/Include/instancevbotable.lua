@@ -494,8 +494,7 @@ function popElementInstance(iT, instanceID, noUpload)
 		local oldOffset = (oldElementIndex-1)*iTStep 
 		local instanceData = iT.instanceData
 		for i = 1, iTStep do 
-			local data =  instanceData[endOffset + i]
-			instanceData[oldOffset + i ] = data
+			instanceData[oldOffset + i ] = instanceData[endOffset + i]
 		end
 		--size_t LuaVBOImpl::Upload(const sol::stack_table& luaTblData, const sol::optional<int> attribIdxOpt, const sol::optional<int> elemOffsetOpt, const sol::optional<int> luaStartIndexOpt, const sol::optional<int> luaFinishIndexOpt)
 		--Spring.Echo("Removing instanceID",instanceID,"from iT at position", oldElementIndex, "shuffling back at", iT.usedElements,"endoffset=",endOffset,'oldOffset=',oldOffset)

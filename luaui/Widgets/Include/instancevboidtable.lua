@@ -227,8 +227,9 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 		end
 	end
 	
+	local instanceData = iT.instanceData
 	for i =1, iTStep	do -- copy data, but fast
-		iT.instanceData[endOffset + i] =	thisInstance[i]
+		instanceData[endOffset + i] =	thisInstance[i]
 	end
 	
 	if unitID ~= nil then --always upload?
@@ -321,9 +322,9 @@ function popElementInstance(iT, instanceID, noUpload)
 
 		--oldElementIndex = (oldElementIndex)*iTStep
 		local oldOffset = (oldElementIndex-1)*iTStep 
+		local instanceData = iT.instanceData
 		for i= 1, iTStep do 
-			local data =	iT.instanceData[endOffset + i]
-			iT.instanceData[oldOffset + i ] = data
+			instanceData[oldOffset + i ] = instanceData[endOffset + i]
 		end
 		--size_t LuaVBOImpl::Upload(const sol::stack_table& luaTblData, const sol::optional<int> attribIdxOpt, const sol::optional<int> elemOffsetOpt, const sol::optional<int> luaStartIndexOpt, const sol::optional<int> luaFinishIndexOpt)
 		--Spring.Echo("Removing instanceID",instanceID,"from iT at position", oldElementIndex, "shuffling back at", iT.usedElements,"endoffset=",endOffset,'oldOffset=',oldOffset)
