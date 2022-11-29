@@ -642,6 +642,8 @@ return {
 			dgunstallassist_descr = 'When pressing D with a Com selected, units that drain energy are put on wait for a while.',
 			singleplayerpause = 'Pause when in settings/quit/lobby',
 			singleplayerpause_descr = 'Exclusively in singleplayer mode...\n\nPauses the game when showing the settings/quit window or lobby',
+			widgetselector = 'Widget selector interface',
+			widgetselector_descr = 'Allow the toggling of the widget selector interface (via F11)',
 			devmode = 'Developer UI',
 			devmode_descr = 'Toggle between how a developer or player see the UI',
 			customwidgets = 'Allow custom widgets',

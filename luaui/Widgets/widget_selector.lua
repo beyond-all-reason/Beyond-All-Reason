@@ -332,6 +332,9 @@ function widget:KeyPress(key, mods, isRepeat)
 			WG['topbar'].hideWindows()
 		end
 		show = newShow
+		if show and not (Spring.Utilities.IsDevMode() or Spring.Utilities.ShowDevUI() or Spring.GetConfigInt("widgetselector", 0) == 1) then
+			show = false
+		end
 		return true
 	end
 	if show and key == KEYSYMS.PAGEUP then

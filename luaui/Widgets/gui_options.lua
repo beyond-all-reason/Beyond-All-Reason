@@ -3034,6 +3034,12 @@ function init()
 
 		{ id = "converterusage", group = "ui", category = types.advanced, widget = "Converter Usage", name = texts.option.converterusage, type = "bool", value = GetWidgetToggleValue("Converter Usage"), description = texts.option.converterusage_descr },
 
+		{ id = "widgetselector", group = "ui", category = types.advanced, name = texts.option.widgetselector, type = "bool", value = Spring.GetConfigInt("widgetselector", 0) == 1, description = texts.option.widgetselector_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("widgetselector", (value and 1 or 0))
+		  end,
+		},
+
 
 		{ id = "label_ui_visuals", group = "ui", name = texts.option.label_visuals, category = types.basic },
 		{ id = "label_ui_visuals_spacer", group = "ui", category = types.basic },
