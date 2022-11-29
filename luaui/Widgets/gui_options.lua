@@ -660,6 +660,7 @@ local muteFadeTime = 0.35
 local isOffscreen = false
 local isOffscreenTime
 local prevOffscreenVolume
+local apiUnitTrackerEnabledCount = 0
 function widget:Update(dt)
 
 	if Spring.GetConfigInt("muteOffscreen", 0) == 1 then
@@ -759,6 +760,12 @@ function widget:Update(dt)
 	if sec2 > 0.5 then
 		sec2 = 0
 		continuouslyClean = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1
+
+		-- make sure widget is enabled
+		if apiUnitTrackerEnabledCount < 10 and widgetHandler.orderList["API Unit Tracker DEVMODE GL4"] and widgetHandler.orderList["API Unit Tracker DEVMODE GL4"] < 0.5 then
+			apiUnitTrackerEnabledCount = apiUnitTrackerEnabledCount + 1
+			widgetHandler:EnableWidget("API Unit Tracker DEVMODE GL4")
+		end
 	end
 
 	sec = sec + dt
