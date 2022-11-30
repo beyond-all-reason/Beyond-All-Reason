@@ -248,11 +248,11 @@ local gibLight = {
 	lightType = 'point', -- or cone or beam
 	pieceName = nil, -- optional
 	lightConfig = {
-		posx = 0, posy = 0, posz = 0, radius = 35,
-		r = 1, g = 1, b = 0.5, a = 0.15,
-		color2r = 0.8, color2g = 0.6, color2b = 0.1, colortime = 0.15, -- point lights only, colortime in seconds for unit-attache
-		modelfactor = 0.5, specular = 0.5, scattering = 2.5, lensflare = 0,
-		lifetime = 75, sustain = 10, aninmtype = 0 -- unused
+		posx = 0, posy = 0, posz = 0, radius = 36,
+		r = 1, g = 0.9, b = 0.5, a = 0.33,
+		color2r = 0.9, color2g = 0.75, color2b = 0.25, colortime = 0.3, -- point lights only, colortime in seconds for unit-attache
+		modelfactor = 0.4, specular = 0.5, scattering = 0.8, lensflare = 0,
+		lifetime = 300, sustain = 3, aninmtype = 0 -- unused
 	},
 }
 

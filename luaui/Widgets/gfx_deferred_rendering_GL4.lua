@@ -1239,7 +1239,7 @@ local function updateProjectileLights(newgameframe)
 				local weapon, piece = spGetProjectileType(projectileID)
 				if piece then
 					local explosionflags = spGetPieceProjectileParams(projectileID)
-					if explosionflags and explosionflags%32 > 15 then
+					--if explosionflags and explosionflags%32 > 15 then
 						local gib = gibLight.lightParamTable
 						gib[1] = px
 						gib[2] = py
@@ -1247,7 +1247,7 @@ local function updateProjectileLights(newgameframe)
 						AddLight(projectileID, nil, nil, projectilePointLightVBO, gib, noUpload)
 						--Spring.Echo("added gib")
 						--Spring.Debug.TableEcho(gib)
-					end
+					--end
 				else
 					local weaponDefID = spGetProjectileDefID ( projectileID )
 					if projectileDefLights[weaponDefID] then
