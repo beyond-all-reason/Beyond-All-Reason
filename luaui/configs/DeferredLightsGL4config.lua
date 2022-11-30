@@ -6434,7 +6434,7 @@ local unitDefLights = {
 		front1 = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = -13.5, posy = 2.5, posz = 19, radius = 14,
+			lightConfig = { posx = -12.5, posy = 2.5, posz = 19, radius = 14,
 							color2r = 1, color2g = 0.9, color2b = 0.4, colortime = 0,
 							r = 1, g = 0.85, b = 0.3, a = 0.055,
 							modelfactor = 0.3, specular = 0.5, scattering = 0.7, lensflare = 0,
@@ -6443,7 +6443,7 @@ local unitDefLights = {
 		front2 = {
 			lightType = 'point',
 			pieceName = 'base',
-			lightConfig = { posx = 13.5, posy = 2.5, posz = 19, radius = 14,
+			lightConfig = { posx = 12.5, posy = 2.5, posz = 19, radius = 14,
 						color2r = 1, color2g = 0.9, color2b = 0.4, colortime = 0,
 						r = 1, g = 0.85, b = 0.3, a = 0.055,
 						modelfactor = 0.3, specular = 0.5, scattering = 0.7, lensflare = 0,

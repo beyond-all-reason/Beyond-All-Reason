@@ -796,6 +796,9 @@ function widget:TextCommand(s)
 		n = n + 1
 		token[n] = w
 	end
+	if s == "widgetselector" then
+		show = not show
+	end
 	if n == 1 and token[1] == "reset" then
 		-- tell the widget handler to reload with a blank config
 		widgetHandler.blankOutConfig = true

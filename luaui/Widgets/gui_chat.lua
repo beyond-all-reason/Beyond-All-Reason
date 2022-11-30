@@ -308,6 +308,7 @@ local autocompleteCommands = {
 	'wiresky',
 	'wiretree',
 	'wirewater',
+	'widgetselector',
 
 	-- gadgets
 	'luarules battleroyaledebug',
