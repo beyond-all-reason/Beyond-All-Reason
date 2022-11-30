@@ -95,6 +95,8 @@ local maxBlurDistance = 10000 --Distance in Spring units above which autofocus b
 
 local vsx = nil	-- current viewport width
 local vsy = nil	-- current viewport height
+local vpx = nil	-- current viewport pos x
+local vpy = nil	-- current viewport pos y
 local dofShader = nil
 local screenTex = nil
 local depthTex = nil
@@ -138,7 +140,7 @@ local shaderPasses =
 
 
 function InitTextures()
-	vsx, vsy = gl.GetViewSizes()
+	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
 	local blurTexSizeX, blurTexSizeY = vsx/2, vsy/2;
 
 	CleanupTextures()
@@ -449,8 +451,8 @@ end
 function widget:DrawScreenEffects()
 	if chobbyInterface then return end
 	gl.Blending(false)
-	glCopyToTexture(screenTex, 0, 0, 0, 0, vsx, vsy) -- the original screen image
-	glCopyToTexture(depthTex, 0, 0, 0, 0, vsx, vsy) -- the original screen image
+	glCopyToTexture(screenTex, 0, 0, vpx, vpy, vsx, vsy) -- the original screen image
+	glCopyToTexture(depthTex, 0, 0, vpx, vpy, vsx, vsy) -- the original screen image
 
 	local mx, my = Spring.GetMouseState()
 

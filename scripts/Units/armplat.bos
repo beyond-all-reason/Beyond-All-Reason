@@ -199,11 +199,19 @@ Deactivate()
 
 StartBuilding()
 {
+	show beam1;
+	show beam2;
+	show beam3;
+	show beam4;
 	spin pad around y-axis speed <30.005495>;
 }
 
 StopBuilding()
 {
+	hide beam1;
+	hide beam2;
+	hide beam3;
+	hide beam4;
 	stop-spin pad around y-axis;
 }
 

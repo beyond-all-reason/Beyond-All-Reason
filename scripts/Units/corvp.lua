@@ -15,7 +15,7 @@ function open()
 	UnitScript.Move(doorr, x_axis, 17, 17);
 	UnitScript.Move(doorf, y_axis, -16, 16);
 	UnitScript.WaitForMove(doorl, x_axis);
-	Sleep(1000);	
+	Sleep(1000);
 	--Open yard
 	open_yard();
 	--Get into buildstance
@@ -39,6 +39,10 @@ function close()
 end
 
 function script.Create()
+	Hide(nano1);
+	Hide(nano2);
+	Hide(nano3);
+	Hide(nano4);
 	spray = 0;
 	UnitScript.StartThread(smoke_unit, base);
 end
@@ -86,11 +90,19 @@ function script.Deactivate()
 end
 
 function script.StartBuilding()
+	Show(nano1);
+	Show(nano2);
+	Show(nano3);
+	Show(nano4);
 	UnitScript.Spin(fan1, z_axis, math.rad(200), math.rad(5));
 	UnitScript.Spin(fan2, z_axis, math.rad(200), math.rad(5));
 end
 
 function script.StopBuilding()
+	Hide(nano1);
+	Hide(nano2);
+	Hide(nano3);
+	Hide(nano4);
 	UnitScript.StopSpin(fan1, z_axis, math.rad(3));
 	UnitScript.StopSpin(fan2, z_axis, math.rad(3));
 end
@@ -102,7 +114,7 @@ end
 function script.Killed(recentDamage, maxHealth)
 	local severity = (recentDamage / maxHealth) * 100;
 	local corpsetype;
-	
+
 	if (severity <= 25) then
 		corpsetype = 1;
 		UnitScript.Explode(base,SFX.NONE + SFX.NO_HEATCLOUD);

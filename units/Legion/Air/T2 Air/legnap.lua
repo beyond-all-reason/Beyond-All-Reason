@@ -31,7 +31,7 @@ return {
 		maxwaterdepth = 0,
 		noautofire = true,
 		nochasecategory = "VTOL",
-		objectname = "Units/scavboss/LEGNAP.s3o",
+		objectname = "Units/LEGNAP.s3o",
 		script = "Units/CORHURC.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
@@ -86,7 +86,7 @@ return {
 		},
 		weapondefs = {
 			napalmbombs = {
-				areaofeffect = 180,
+				areaofeffect = 300,
 				avoidfeature = false,
 				burst = 4,
 				burstrate = 0.6,

@@ -14,6 +14,7 @@ return {
 		canmove = true,
 		canpatrol = true,
 		canstop = "1",
+		cantbetransported = true,
 		capturable = false,
 		category = "MOBILE NOWEAPON NOTAIR NOTSUB",
 		defaultmissiontype = "Standby",

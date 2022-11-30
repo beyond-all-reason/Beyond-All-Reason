@@ -35,11 +35,11 @@ end
 
 local ScreenCopy
 local lastScreenCopyFrame
-local vsx, vsy = widgetHandler:GetViewSizes()
+local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
 local firstCopy = true
 
-function widget:ViewResize(viewSizeX, viewSizeY)
-	vsx, vsy = viewSizeX, viewSizeY
+function widget:ViewResize(_, _)
+	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
 	if ScreenCopy then gl.DeleteTexture(ScreenCopy) end
 	ScreenCopy = gl.CreateTexture(vsx  , vsy, {
 		border = false,
@@ -54,7 +54,7 @@ local function GetScreenCopy()
 	local df = Spring.GetDrawFrame()
 	--Spring.Echo("GetScreenCopy", df)
 	if df ~= lastScreenCopyFrame then
-		gl.CopyToTexture(ScreenCopy, 0, 0, 0, 0, vsx, vsy)
+		gl.CopyToTexture(ScreenCopy, 0, 0, vpx, vpy, vsx, vsy)
 		lastScreenCopyFrame = df
 	end
 	if firstCopy then

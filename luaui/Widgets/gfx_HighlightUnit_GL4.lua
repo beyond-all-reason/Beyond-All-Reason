@@ -19,6 +19,8 @@ local highlightunitShader, unitShapeShader
 local highlightUnitVBOTable
 local uniqueID = 0
 
+local debugmode = 0
+
 local highlightunitShaderConfig = {
 	ANIMSPEED = 0.066,
 	ANIMFREQUENCY = 0.033,
@@ -163,7 +165,10 @@ void main() {
 }
 ]]
 
-local function HighlightUnitGL4(objectID, objecttype, r, g, b, alpha, edgealpha, edgeexponent, animamount, px, py, pz, rotationY, highlight)
+local uniqueIDtoUnitID = {}
+local unitIDtoUniqueID = {} -- table of tables, as a unitid can have multiple highlights fuck yeah
+
+local function HighlightUnitGL4(objectID, objecttype, r, g, b, alpha, edgealpha, edgeexponent, animamount, px, py, pz, rotationY, consumerID)
 	-- Documentation for HighlightUnitGL4:
 	-- objectID: the unitID, unitDefID, featureID or featureDefID you want
 	-- objecttype: "unitID" or "unitDefID" or "featureID" or "featureDefID"
@@ -176,10 +181,15 @@ local function HighlightUnitGL4(objectID, objecttype, r, g, b, alpha, edgealpha,
 	-- animamount, the amount of top-down anim to add
 	-- px, py, py: Apply an offset to the position of the unit, usually all 0
 	-- rotationY: apply a rot offset, usually all 0
+	-- consumerID: just a an optional tag for which widget added this garbage to this table so we can later find out who forgot to pop shit from here.
 	-- returns: a unique handler ID number that you should store and call StopHighlightUnitGL4(uniqueID) with to stop drawing it
 	-- note that widgets are responsible for stopping the drawing of every unit that they submit!
 
 	uniqueID = uniqueID + 1
+	local key = uniqueID
+	if consumerID then 
+		key = tostring(objectID) .. consumerID
+	end
 	local staticmodel = (objecttype == "unitDefID" or objecttype == "featureDefID") and 1 or 0
 	-- Spring.Echo("HighlightUnitGL4", objecttype, objectID, staticmodel,"to uniqueID", uniqueID, r, g, b, alpha, edgealpha, edgeexponent, animamount, px, py, pz, rotationY, highlight)
 	local elementID = pushElementInstance(highlightUnitVBOTable, {
@@ -188,31 +198,92 @@ local function HighlightUnitGL4(objectID, objecttype, r, g, b, alpha, edgealpha,
 			r or 1, g or 1, b or 1, alpha or 0.25,
 			0,0,0,0
 		},
-		uniqueID, true, nil, objectID, objecttype)
-	return uniqueID
-end
-
-local function StopHighlightUnitGL4(uniqueID)
-	if highlightUnitVBOTable.instanceIDtoIndex[uniqueID] then
-		popElementInstance(highlightUnitVBOTable, uniqueID)
+		key, true, nil, objectID, objecttype)
+	uniqueIDtoUnitID[key] = objectID
+	if unitIDtoUniqueID[objectID] then
+		unitIDtoUniqueID[objectID][key] = true
 	else
-		Spring.Echo("Unable to remove what you wanted in StopHighlightUnitGL4", uniqueID)
+		unitIDtoUniqueID[objectID] = {}
+		unitIDtoUniqueID[objectID][key] = true
 	end
-	--Spring.Echo("Popped element", uniqueID)
+	if debugmode > 0 then 
+		local unitdefname = "unknown unitdefname"
+		if objecttype == 'unitID' then 
+			unitdefname = UnitDefs[Spring.GetUnitDefID(objectID)].name
+		end
+		Spring.Echo("HighlightUnitGL4", objectID, objecttype, consumerID, key, unitdefname)
+	end
+	return key
 end
 
-local unitIDtoUniqueID = {}
-local unitDefIDtoUniqueID = {}
+local function StopHighlightUnitGL4(uniqueID, noUpload)
+	if debugmode > 0 then 
+		local unitdefname = "bad unitdefid"
+		if uniqueIDtoUnitID[uniqueID] and Spring.GetUnitDefID(uniqueIDtoUnitID[uniqueID]) then 
+			unitdefname =  UnitDefs[Spring.GetUnitDefID(uniqueIDtoUnitID[uniqueID])].name
+		end
+		Spring.Echo("StopHighlightUnitGL4", uniqueID, noUpload, 'from index',highlightUnitVBOTable.instanceIDtoIndex[uniqueID], unitdefname )
+
+	end
+	if highlightUnitVBOTable.instanceIDtoIndex[uniqueID] then
+		popElementInstance(highlightUnitVBOTable, uniqueID, noUpload)
+		unitID = uniqueIDtoUnitID[uniqueID]
+		uniqueIDtoUnitID[uniqueID] = nil
+		if unitIDtoUniqueID[unitID][uniqueID] then
+			unitIDtoUniqueID[unitID][uniqueID] = nil
+		else
+			Spring.Echo("Warning", uniqueID, "no longer present in highlightUnitVBOTable")
+		end
+	else
+		return nil
+		--Spring.Echo("Unable to remove what you wanted in StopHighlightUnitGL4", uniqueID)
+	end
+	return uniqueID
+	--Spring.("Popped element", uniqueID)
+end
+
+local function RefreshHighlightUnitGL4()
+	uploadAllElements(highlightUnitVBOTable)
+end
+
+
 local TESTMODE = false
 
 if TESTMODE then
 	function widget:UnitCreated(unitID, unitDefID)
-		unitIDtoUniqueID[unitID] =  HighlightUnitGL4(unitID, "unitID", 0.0,0.25,1,    0.2, 0.5, 3.0, 0.2)
-		local px, py, pz = Spring.GetUnitPosition(unitID)
+		local uniqueID = HighlightUnitGL4(unitID, "unitID", 0.0,0.25,1,    0.2, 0.5, 3.0, 0.2)
+
 	end
 	function widget:UnitDestroyed(unitID)
 		StopHighlightUnitGL4(unitIDtoUniqueID[unitID])
-		unitIDtoUniqueID[unitID] = nil
+	end
+end
+
+function widget:GameFrame(n) 
+	if (n%61) == 1 then
+		validateInstanceVBOIDTable(highlightUnitVBOTable, "api validation")
+	end
+end
+
+-- TODO: the api is the correct place for removal on unit
+
+local unitIDtoUniqueIDs = {} -- This is a special table, where 
+
+function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits) -- extVisibleUnits is a table of [unitID:unitDefID]
+	-- use uniqueIDtoUnitID
+	for uniqueID, unitID in pairs(uniqueIDtoUnitID) do 
+		-- i am no longer nice to consumers
+		--if extVisibleUnits[unitID] == nil then -- no longer visible, so we must remove the uniqueID
+			StopHighlightUnitGL4(uniqueID)
+		--end
+	end
+end
+
+function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
+	if unitIDtoUniqueID[unitID] then 
+		for uniqueID, _ in pairs(unitIDtoUniqueID[unitID]) do 
+			StopHighlightUnitGL4(uniqueID)
+		end
 	end
 end
 
@@ -274,6 +345,7 @@ function widget:Initialize()
 	end
 	WG['HighlightUnitGL4'] = HighlightUnitGL4
 	WG['StopHighlightUnitGL4'] = StopHighlightUnitGL4
+	WG['RefreshHighlightUnitGL4'] = RefreshHighlightUnitGL4
 end
 
 function widget:Shutdown()
@@ -282,6 +354,30 @@ function widget:Shutdown()
 
 	WG['HighlightUnitGL4'] = nil
 	WG['StopHighlightUnitGL4'] = nil
+	WG['RefreshHighlightUnitGL4'] = nil
+end
+
+function widget:TextCommand(command)
+	if string.find(command, "debugapihighlightunit", nil, true) == 1 then
+		local startmatch, endmatch = string.find(command, "debugapihighlightunit", nil, true)
+		local param = string.sub(command, endmatch + 2,nil)
+		if param and tonumber(param) then
+			local newdebuglevel = tonumber(param)
+			if newdebuglevel ~= debugmode then
+				Spring.Echo("Debug level for API HighLightUnit GL4 set to:", newdebuglevel)
+				debugmode = newdebuglevel
+			end
+		end
+		
+		for uniqueID, unitID in pairs(uniqueIDtoUnitID) do 
+			local unitdefname = "bad unitid"
+			if Spring.GetUnitDefID(unitID) then 
+				unitdefname =  UnitDefs[Spring.GetUnitDefID(unitID)].name
+			end
+			Spring.Echo("debugapihighlightunit", uniqueID, unitID, unitdefname, highlightUnitVBOTable.instanceIDtoIndex[uniqueID] )
+		end
+		
+	end
 end
 
 function widget:DrawWorld()

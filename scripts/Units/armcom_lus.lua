@@ -874,6 +874,7 @@ function UnitSpeed()
 end
 
 function ResumeBuilding()
+	Show(nano)
 	Sleep(800)
 	if isBuilding and not isAiming then
 		Turn(aimy1, 2, buildHeading, rad(150.000000))
@@ -886,6 +887,7 @@ function script.Create()
 	--Turn(lflare, 1,math.rad(90)) -- WHY?
 	--Turn(nano, 1,math.rad(90)) -- WHY?
 	--Turn(laserflare, 1,math.rad(90)) -- WHY?
+	Hide(nano)
 	Spin(dish, 2, 2.5)
 	isAiming = false
 	isAimingDgun = false
@@ -1012,6 +1014,7 @@ function script.QueryWeapon(weapon)
 end
 
 function script.StartBuilding(heading, pitch)
+	Show(nano)
 	Signal(SIG_AIM)
 	isBuilding = true
 	leftArm = false
@@ -1027,6 +1030,7 @@ function script.StartBuilding(heading, pitch)
 end
 
 function script.StopBuilding()
+	Hide(nano)
 	leftArm = true
 	isBuilding = false
 	Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, false)

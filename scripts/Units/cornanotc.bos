@@ -28,6 +28,7 @@ Deactivatescr()
 
 Go()
 {
+	show emitnano;
 	call-script Activatescr();
 	turn aim to y-axis Static_Var_1 speed <320.000000>;
 	wait-for-turn aim around y-axis;
@@ -36,6 +37,7 @@ Go()
 
 Stop()
 {
+	hide emitnano;
 	set INBUILDSTANCE to 0;
 	call-script Deactivatescr();
 }

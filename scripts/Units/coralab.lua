@@ -38,6 +38,10 @@ function close()
 end
 
 function script.Create()
+	Hide(nano1);
+	Hide(nano2);
+	Hide(nano3);
+	Hide(nano4);
 	spray = 0;
 	UnitScript.StartThread(smoke_unit, base);
 end
@@ -102,6 +106,10 @@ function Build()
 end
 
 function script.StartBuilding()
+	Show(nano1);
+	Show(nano2);
+	Show(nano3);
+	Show(nano4);
 	UnitScript.Signal(SIG_BUILD);
 	UnitScript.StartThread(Build)
 end
@@ -109,7 +117,10 @@ end
 
 
 function script.StopBuilding()
-
+	Hide(nano1);
+	Hide(nano2);
+	Hide(nano3);
+	Hide(nano4);
 	UnitScript.Signal(SIG_BUILD);
 
 	UnitScript.Move(mount1, z_axis, 0, 24);

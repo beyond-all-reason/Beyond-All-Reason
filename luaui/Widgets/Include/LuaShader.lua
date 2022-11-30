@@ -672,6 +672,34 @@ local function isUpdateRequired(uniform, tbl)
 
 	return update
 end
+
+local function isUpdateRequiredNoTable(uniform, u1, u2, u3, u4)
+	if (u2 == nil) and (type(u1) == "string") then --named matrix
+		return true --no need to update cache
+	end
+
+	local update = false
+	local cachedValues = uniform.values
+	
+	if u1 and cachedValues[1] ~= u1 then 
+		update = true 
+		cachedValues[1] = val 	
+	end 
+	if u2 and cachedValues[2] ~= u2 then 
+		update = true 
+		cachedValues[2] = u2	
+	end 
+	if u3 and cachedValues[3] ~= u3 then 
+		update = true 
+		cachedValues[3] = u3 	
+	end 
+	if u4 and cachedValues[4] ~= u4 then 
+		update = true 
+		cachedValues[4] = u4 	
+	end 
+
+	return update
+end
 -----------------============ End of friend LuaShader functions ============-----------------
 
 
@@ -684,32 +712,40 @@ function LuaShader:GetUniformLocation(name)
 end
 
 --FLOAT UNIFORMS
-local function setUniformAlwaysImpl(uniform, ...)
-	glUniform(uniform.location, ...)
+local function setUniformAlwaysImpl(uniform, u1, u2, u3, u4)
+	if u4 ~= nil then 
+		glUniform(uniform.location, u1, u2, u3, u4)
+	elseif u3 ~= nil then 
+		glUniform(uniform.location, u1, u2, u3)
+	elseif u2 ~= nil then 
+		glUniform(uniform.location, u1, u2)
+	else
+		glUniform(uniform.location, u1)
+	end
 	return true --currently there is no way to check if uniform is set or not :(
 end
 
-function LuaShader:SetUniformAlways(name, ...)
+function LuaShader:SetUniformAlways(name, u1, u2, u3, u4)
 	local uniform = getUniform(self, name)
 	if not uniform then
 		return false
 	end
-	return setUniformAlwaysImpl(uniform, ...)
+	return setUniformAlwaysImpl(uniform, u1, u2, u3, u4)
 end
 
-local function setUniformImpl(uniform, ...)
-	if isUpdateRequired(uniform, {...}) then
-		return setUniformAlwaysImpl(uniform, ...)
+local function setUniformImpl(uniform, u1, u2, u3, u4)
+	if isUpdateRequiredNoTable(uniform, u1, u2, u3, u4) then
+		return setUniformAlwaysImpl(uniform, u1, u2, u3, u4)
 	end
 	return true
 end
 
-function LuaShader:SetUniform(name, ...)
+function LuaShader:SetUniform(name, u1, u2, u3, u4)
 	local uniform = getUniform(self, name)
 	if not uniform then
 		return false
 	end
-	return setUniformImpl(uniform, ...)
+	return setUniformImpl(uniform, u1, u2, u3, u4)
 end
 
 LuaShader.SetUniformFloat = LuaShader.SetUniform

@@ -145,12 +145,14 @@ Deactivate()
 
 StartBuilding(Func_Var_1)
 {
+	show flare;
 	Static_Var_1 = Func_Var_1;
 	start-script RequestState(0);
 }
 
 StopBuilding()
 {
+	hide flare;
 	start-script RequestState(1);
 }
 

@@ -466,9 +466,9 @@ local function HLTDefences12()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -32, zOffset = -96, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 0, zOffset = -96, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 32, zOffset = 80, direction = 1},
-			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = 0, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = 0, zOffset = -64, direction = 1},
-			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = 0, zOffset = 64, direction = 1},
+			{ unitDefID = UnitDefNames.legmg_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.legmg_scav.id, xOffset = 0, zOffset = -64, direction = 1},
+			{ unitDefID = UnitDefNames.legmg_scav.id, xOffset = 0, zOffset = 64, direction = 1},
 		},
 	}
 end
@@ -487,10 +487,10 @@ local function HLTDefences13()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -48, zOffset = 64, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 32, zOffset = 64, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 48, zOffset = -64, direction = 1},
-			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = -32, zOffset = 32, direction = 1},
-			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = 32, zOffset = 32, direction = 1},
-			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = -32, zOffset = -32, direction = 1},
-			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = 32, zOffset = -32, direction = 1},
+			{ unitDefID = UnitDefNames.legmg_scav.id, xOffset = -32, zOffset = 32, direction = 1},
+			{ unitDefID = UnitDefNames.legmg_scav.id, xOffset = 32, zOffset = 32, direction = 1},
+			{ unitDefID = UnitDefNames.legmg_scav.id, xOffset = -32, zOffset = -32, direction = 1},
+			{ unitDefID = UnitDefNames.legmg_scav.id, xOffset = 32, zOffset = -32, direction = 1},
 		},
 	}
 end
@@ -511,9 +511,9 @@ local function HLTDefences14()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -38, zOffset = 64, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -54, zOffset = -16, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 74, zOffset = -16, direction = 1},
-			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = -22, zOffset = -32, direction = 1},
-			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = 42, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = -22, zOffset = 32, direction = 1},
+			{ unitDefID = UnitDefNames.legmg_scav.id, xOffset = -22, zOffset = -32, direction = 1},
+			{ unitDefID = UnitDefNames.legmg_scav.id, xOffset = 42, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.legmg_scav.id, xOffset = -22, zOffset = 32, direction = 1},
 		},
 	}
 end
@@ -536,9 +536,9 @@ local function HLTDefences15()
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -32, zOffset = 0, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 32, zOffset = -64, direction = 1},
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -32, zOffset = 64, direction = 1},
-			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = 0, zOffset = 0, direction = 1},
-			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = 64, zOffset = -64, direction = 1},
-			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = -64, zOffset = 64, direction = 1},
+			{ unitDefID = UnitDefNames.legmg_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.legmg_scav.id, xOffset = 64, zOffset = -64, direction = 1},
+			{ unitDefID = UnitDefNames.legmg_scav.id, xOffset = -64, zOffset = 64, direction = 1},
 		},
 	}
 end

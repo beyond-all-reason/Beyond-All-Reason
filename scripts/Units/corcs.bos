@@ -141,9 +141,6 @@ Create()
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
-	hide nano1;
-	hide nano2;
-	hide wake;
 	turn arm to x-axis <-90> now;
 	turn beam to x-axis <-180> now;
 	while( get BUILD_PERCENT_LEFT )
@@ -166,6 +163,8 @@ Deactivate()
 
 StartBuilding(heading,pitch)
 {
+	show nano1;
+	show nano2;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
@@ -177,6 +176,8 @@ StartBuilding(heading,pitch)
 
 StopBuilding()
 {
+	hide nano1;
+	hide nano2;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	sleep 3000;

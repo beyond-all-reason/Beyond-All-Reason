@@ -101,8 +101,8 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	hide lnano;
-	hide smoke1;
 	hide rnano;
+	hide smoke1;
 	hide smoke2;
 	bMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
@@ -145,6 +145,8 @@ Deactivate()
 
 StartBuilding(heading, pitch)
 {
+	show lnano;
+	show rnano;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
@@ -156,6 +158,8 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
+	hide lnano;
+	hide rnano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	sleep 6000;

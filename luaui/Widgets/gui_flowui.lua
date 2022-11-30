@@ -138,7 +138,8 @@ WG.FlowUI.Draw.RectRound = function(px, py, sx, sy,  cs,   tl, tr, br, bl,   c1,
 		--if sy == nil then
 		--	Spring.Debug.TraceFullEcho(nil,nil,nil, "sy is nil in DrawRectRound")
 		--end
-		local csyMult = 1 / ((sy - py) / cs)
+		cs = math.max(cs, 1)
+		local csyMult = 1 / math.max(((sy - py) / cs), 1)
 
 		if c1 then
 			gl.Color(c1[1], c1[2], c1[3], c1[4])

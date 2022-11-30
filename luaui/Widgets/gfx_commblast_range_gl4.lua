@@ -114,7 +114,7 @@ local function AddBlastSphere(unitID, noUpload, oldopacity, newopacity, gamefram
 end
 
 function widget:RecvLuaMsg(msg, playerID)
-	Spring.Echo("widget:RecvLuaMsg",msg)
+	--Spring.Echo("widget:RecvLuaMsg",msg)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
 	end

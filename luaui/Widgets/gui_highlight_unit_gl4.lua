@@ -5,29 +5,31 @@ function widget:GetInfo()
 		author = "Floris (original: trepan)",
 		date = "January 2022",
 		license = "GNU GPL, v2 or later",
-		layer = 5,
+		layer = -10000,
 		enabled = true  --  loaded by default?
 	}
 end
 
 local hideBelowGameframe = 100
+
 local highlightAlpha = 0.1
 local selectedHighlightAlpha = 0.09
+
 local edgeAlpha = 1
 local selectedEdgeAlpha = 0.75
+
 local edgeExponent = 1.2
 local selectedEdgeExponent = 1.45
+
 local animationAlpha = 0.7
 local selectedAnimationAlpha = 0.5
 
 local useTeamcolor = true
 local teamColorAlphaMult = 1.25
 local teamColorMinAlpha = 0.7
-local fadeTime = 0.085
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local hidden = (Spring.GetGameFrame() <= hideBelowGameframe)
 local selectedUnits = Spring.GetSelectedUnits()
 local unitIsSelected = false
 
@@ -35,8 +37,9 @@ local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitTeam = Spring.GetUnitTeam
 
-local unitshapes = {}
-local fadeUnits = {}
+-- Beherith says: There can only be one!
+local highlightunitID = nil
+local highlightID = nil
 
 local teamColor = {}
 local teams = Spring.GetTeamList()
@@ -56,9 +59,24 @@ local function isUnitSelected(unitID)
 	return false
 end
 
+local function removeUnitShape()
+	if not WG.StopHighlightUnitGL4 then
+		widget:Shutdown("No API")
+	elseif highlightunitID and highlightID then
+		WG.StopHighlightUnitGL4(highlightID)
+		highlightunitID = nil
+		highlightID = nil
+	end
+end
+
 local function addUnitShape(unitID)
-	if not WG.HighlightUnitGL4 or not Spring.ValidUnitID(unitID) then
-		widget:Shutdown()
+	if not Spring.ValidUnitID(unitID) then
+		-- remove old and bail
+		removeUnitShape()
+		return
+	end
+	if not WG.HighlightUnitGL4  then
+		widget:Shutdown("No API")
 	else
 		local r,g,b
 		unitIsSelected = isUnitSelected(unitID)
@@ -70,77 +88,27 @@ local function addUnitShape(unitID)
 				a = a * teamColorAlphaMult
 			end
 		end
-		local mult = 1
-		if not unitshapes[unitID] then
-			fadeUnits[unitID] = os.clock()
-			mult = 0.13
-		elseif fadeUnits[unitID] then
-			if fadeUnits[unitID] > 0 then
-				mult = 0.05 + (os.clock() - fadeUnits[unitID]) / fadeTime + ((1/Spring.GetFPS())/fadeTime)
-				if mult >= 1 then
-					mult = 1
-					fadeUnits[unitID] = nil
-				end
-			else
-				mult = 1 - ((os.clock() - math.abs(fadeUnits[unitID])) / fadeTime)
-				if mult <= 0 then
-					fadeUnits[unitID] = nil
-				end
-			end
+		
+		if highlightunitID or highlightID then 
+			removeUnitShape()
 		end
-		if unitshapes[unitID] then
-			WG.StopHighlightUnitGL4(unitshapes[unitID])
-			unitshapes[unitID] = nil
-		end
-		if mult > 0 then
-			unitshapes[unitID] = WG.HighlightUnitGL4(unitID, 'unitID', r,g,b, a*mult, (unitIsSelected and selectedEdgeAlpha or edgeAlpha)*mult, unitIsSelected and selectedEdgeExponent or edgeExponent, (unitIsSelected and selectedAnimationAlpha or animationAlpha) * mult)
-			return unitshapes[unitID]
-		end
+		
+		highlightunitID = unitID
+		highlightID =  WG.HighlightUnitGL4(unitID, 'unitID', r,g,b, a, 
+				(unitIsSelected and selectedEdgeAlpha or edgeAlpha), 
+				(unitIsSelected and selectedEdgeExponent or edgeExponent), 
+				(unitIsSelected and selectedAnimationAlpha or animationAlpha),
+				0,0,0,0,"mouseover") 
+		return highlightID
 	end
 end
 
-local function removeUnitShape(unitID, force)
-	if not WG.StopHighlightUnitGL4 then
-		widget:Shutdown()
-	elseif unitID and unitshapes[unitID] then
-		if force then
-			WG.StopHighlightUnitGL4(unitshapes[unitID])
-			unitshapes[unitID] = nil
-			fadeUnits[unitID] = nil
-		elseif not fadeUnits[unitID] then
-			fadeUnits[unitID] = -os.clock()
-		elseif fadeUnits[unitID] and fadeUnits[unitID] > 0 then
-			local mult = 1 - ((os.clock() - math.abs(fadeUnits[unitID])) / fadeTime)
-			fadeUnits[unitID] = -(os.clock() - (fadeTime * mult))
-		end
-	end
-end
-
-local function clearUnitshapes(keepUnitID, force)
-	for unitID, _ in pairs(unitshapes) do
-		if not keepUnitID or unitID ~= keepUnitID then
-			removeUnitShape(unitID, force)
-		end
-	end
-end
 
 local function processSelection()
 	local prevUnitIsSelected = unitIsSelected
-	unitIsSelected = false
-	for unitID, v in next, unitshapes, nil do
-		if isUnitSelected(unitID) then
-			unitIsSelected = true
-		end
-		if prevUnitIsSelected ~= unitIsSelected then
-			removeUnitShape(unitID)
-			addUnitShape(unitID)
-		end
-	end
-end
-
-function widget:UnitDestroyed(unitID)
-	if unitshapes[unitID] then
-		removeUnitShape(unitID, true)
+	unitIsSelected = isUnitSelected(highlightunitID)
+	if highlightunitID and unitIsSelected ~= prevUnitIsSelected then  
+		addUnitShape(highlightunitID)
 	end
 end
 
@@ -149,48 +117,48 @@ function widget:SelectionChanged(sel)
 	processSelection()
 end
 
+function widget:VisibleUnitRemoved(unitID) -- E.g. when a unit dies
+	if highlightunitID == unitID then
+		removeUnitShape()
+	end
+end
+
+function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits) 
+	-- Called when players are changed, better remove all of them now!
+	removeUnitShape()
+end
+
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 end
 
 function widget:Update()
-	if hidden and Spring.GetGameFrame() > hideBelowGameframe then
-		hidden = false
-	end
 	if WG.StopHighlightUnitGL4 then
 		local mx, my = spGetMouseState()
 		if mx == math.ceil(vsx/2) and my+1 == math.ceil(vsy/2) then	-- dont highlight unit when cursor is in center and we're likely camera-panning (cause I dont know how to detect that)
-			clearUnitshapes(nil, true)
+			removeUnitShape()
 		else
 			local type, data = spTraceScreenRay(mx, my)
 			local unitID
-			local addedUnitID
 			if type == 'unit' and not Spring.IsGUIHidden() then
 				unitID = data
-				if not unitshapes[unitID] then
+				if highlightunitID ~= unitID then
 					addUnitShape(unitID)
-					addedUnitID = unitID
 				end
+			else
+				removeUnitShape()
 			end
-			clearUnitshapes(unitID)
 
-			for unitID, v in pairs(fadeUnits) do
-				if unitID ~= addedUnitID then
-					addUnitShape(unitID)
-				end
-			end
-		end
+		end	
 	end
 end
 
 function widget:Initialize()
-	if not WG.HighlightUnitGL4 then
-		widgetHandler:RemoveWidget()
-	end
 end
 
-function widget:Shutdown()
+function widget:Shutdown(reason)
+	Spring.Echo("Highlight Unit Widget Exiting", reason)
 	if WG.StopHighlightUnitGL4 then
-		clearUnitshapes(nil, true)
+		removeUnitShape()
 	end
 end

@@ -202,8 +202,8 @@ function gadgetHandler:Initialize()
 end
 
 function gadgetHandler:LoadGadget(filename)
-	local kbytes = 0
-	if collectgarbage then -- only present in special debug builds, otherwise collectgarbage is not preset in synced context!
+	local kbytes = false -- set to number to enable
+	if kbytes and collectgarbage then -- only present in special debug builds, otherwise collectgarbage is not preset in synced context!
 		collectgarbage("collect") -- call it twice, mark
 		collectgarbage("collect") -- sweep
 		kbytes = collectgarbage("count")
@@ -281,7 +281,7 @@ function gadgetHandler:LoadGadget(filename)
 		return nil
 	end
 
-	if kbytes > 0 then 
+	if kbytes then 
 		collectgarbage("collect") -- mark
 		collectgarbage("collect") -- sweep
 		Spring.Echo("LoadGadget",filename,"delta=",collectgarbage("count")-kbytes,"total=",collectgarbage("count"),"KB, synced =", IsSyncedCode()) 
@@ -497,8 +497,8 @@ function gadgetHandler:InsertGadget(gadget)
 			ArrayInsert(self[listname .. 'List'], func, gadget)
 		end
 	end
-		local kbytes = 0
-	if collectgarbage then 	
+		local kbytes = nil -- set to number to enable
+	if kbytes and collectgarbage then 	
 		collectgarbage("collect")
 		collectgarbage("collect")
 		kbytes= collectgarbage("count")
@@ -510,7 +510,7 @@ function gadgetHandler:InsertGadget(gadget)
 	end
 	self:UpdateCallIns()
 
-	if kbytes > 0 then 
+	if kbytes then 
 		collectgarbage("collect")
 		collectgarbage("collect")
 		Spring.Echo("Initialize",gadget.ghInfo.name,"delta=",collectgarbage("count")-kbytes,"total=",collectgarbage("count"),"KB, synced =", IsSyncedCode()) 

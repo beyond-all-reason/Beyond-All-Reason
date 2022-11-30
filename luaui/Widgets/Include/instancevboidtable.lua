@@ -227,8 +227,9 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 		end
 	end
 	
+	local instanceData = iT.instanceData
 	for i =1, iTStep	do -- copy data, but fast
-		iT.instanceData[endOffset + i] =	thisInstance[i]
+		instanceData[endOffset + i] =	thisInstance[i]
 	end
 	
 	if unitID ~= nil then --always upload?
@@ -321,9 +322,9 @@ function popElementInstance(iT, instanceID, noUpload)
 
 		--oldElementIndex = (oldElementIndex)*iTStep
 		local oldOffset = (oldElementIndex-1)*iTStep 
+		local instanceData = iT.instanceData
 		for i= 1, iTStep do 
-			local data =	iT.instanceData[endOffset + i]
-			iT.instanceData[oldOffset + i ] = data
+			instanceData[oldOffset + i ] = instanceData[endOffset + i]
 		end
 		--size_t LuaVBOImpl::Upload(const sol::stack_table& luaTblData, const sol::optional<int> attribIdxOpt, const sol::optional<int> elemOffsetOpt, const sol::optional<int> luaStartIndexOpt, const sol::optional<int> luaFinishIndexOpt)
 		--Spring.Echo("Removing instanceID",instanceID,"from iT at position", oldElementIndex, "shuffling back at", iT.usedElements,"endoffset=",endOffset,'oldOffset=',oldOffset)
@@ -349,7 +350,8 @@ function popElementInstance(iT, instanceID, noUpload)
 						if iT.lastpopgameframe ~= gf then -- New gameframe
 							iT.lastpopgameframe = gf
 							if iT.numZombies and iT.numZombies > 0 then -- WE HAVE ZOMBIES AAAAARGH
-								local s = "Warning: We have " .. tostring(iT.numZombies) .. " zombie units left over in " .. iT.myName
+								--Error: validateInstanceVBOIDTable [string "LuaUI/'
+								local s = 'Error: popElementInstance [string "LuaUI/  We have ' .. tostring(iT.numZombies) .. " zombie units left over in " .. iT.myName .. " after removing:" .. tostring(instanceID) .. " zombies:"
 								for zombie, gf in pairs(iT.zombies) do 
 									s = s .. " " .. tostring(zombie)
 									--Spring.SendCommands({"pause 1"})
@@ -503,6 +505,59 @@ function uploadAllElements(iT)
 	end
 end
 	
+	
+function validateInstanceVBOIDTable(iT, calledfrom)
+	-- Check each instance, and see if it has a valid unitID associated with it
+	-- Report with this key: "Error: validateInstanceVBOIDTable: error(2) = [string "LuaUI/Widgets
+	local errorKey = 'Error: validateInstanceVBOIDTable [string "LuaUI/' ..calledfrom  or " " .. ' ]'
+	local removethese = {}
+	for i=1, iT.usedElements do
+		if iT.indextoInstanceID[i] == nil then
+			Spring.Echo(errorKey, "There is a hole in indextoInstanceID", iT.myName, "at", i,"out of",iT.usedElements, calledfrom)
+			--Spring.Echo()
+			if iT.indextoUnitID[i] == nil then
+				Spring.Echo(errorKey, "It is also missing from indextoUnitID") 
+			else
+				Spring.Echo(errorKey, "But it does exist in indextoUnitID with an unitID of ", iT.indextoUnitID[i])
+				Spring.Echo(errorKey, "This is valid?", Spring.GetUnitPosition(iT.indextoUnitID[i]))
+			end
+
+		else
+			local instanceID = iT.indextoInstanceID[i]
+			local objecttype = iT.indextoObjectType[i]
+			if iT.instanceIDtoIndex[instanceID] == nil then
+				Spring.Echo(errorKey,"There is a hole instanceIDtoIndex", iT.myName, "at", i," iT.instanceIDtoIndex[instanceID] == nil ")			
+			elseif iT.instanceIDtoIndex[instanceID] ~= i then 
+				Spring.Echo(errorKey,"There is a problem in indextoInstanceID", iT.myName, "at i =", i,"  iT.indextoInstanceID[instanceID] ~= i, it is instead: ", iT.indextoInstanceID[instanceID] )			
+			end
+			if instanceID and objecttype and objecttype == 'unitID' then 
+				local unitID = iT.indextoUnitID[i]
+				if Spring.ValidUnitID(unitID) ~= true then 
+					removethese[instanceID] = true
+				end
+			end
+		end
+	end
+	local idsremoved = ""
+	for instanceID, _ in pairs(removethese) do 
+		idsremoved = idsremoved .. ';' .. tostring(instanceID)
+		popElementInstance(iT, instanceID)
+	end
+	if string.len(idsremoved) > 1 then 
+		Spring.Echo(errorKey, " removed invalid instanceIDs", idsremoved)
+	end
+	--[[
+	local indextoInstanceIDsize = counttable(iT.indextoInstanceID)
+	local instanceIDtoIndexsize = counttable(iT.instanceIDtoIndex)
+	local indextoUnitID = counttable(iT.indextoUnitID)
+	if (indextoInstanceIDsize ~= instanceIDtoIndexsize) or (instanceIDtoIndexsize ~= indextoUnitID) then
+		Spring.Echo("Table size mismatch during validation of", iT.myName, indextoInstanceIDsize, instanceIDtoIndexsize, indextoUnitID)
+	end
+	]]--
+	
+end
+
+
 --[[
 
 function uploadElementRange(iT, startElementIndex, endElementIndex)

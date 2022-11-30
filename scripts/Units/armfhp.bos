@@ -212,7 +212,7 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-  sleep 5000;
+    sleep 5000;
 	set-signal-mask 0;
 	start-script RequestState(1);
 	return (0);
@@ -220,11 +220,15 @@ Deactivate()
 
 StartBuilding()
 {
+	show emitr;
+	show emitl;
 	return (0);
 }
 
 StopBuilding()
 {
+	hide emitr;
+	hide emitl;
 	return (0);
 }
 

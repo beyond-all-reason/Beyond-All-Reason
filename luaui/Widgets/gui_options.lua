@@ -88,9 +88,6 @@ local centerPosY = 0.5
 local screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
 local screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
 
-local wsx, wsy, wpx, wpy = Spring.GetWindowGeometry()
-local ssx, ssy, spx, spy = Spring.GetScreenGeometry()
-
 local changesRequireRestart = false
 local useNetworkSmoothing = false
 
@@ -109,7 +106,7 @@ local math_isInRect = math.isInRect
 local chobbyInterface, font, font2, font3, backgroundGuishader, currentGroupTab, windowList, optionButtonBackward, optionButtonForward
 local groupRect, titleRect, countDownOptionID, countDownOptionClock, sceduleOptionApply, checkedForWaterAfterGamestart, checkedWidgetDataChanges
 local savedConfig, forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover
-local fontOption, draggingSlider, lastSliderSound, selectClickAllowHide, draggingSliderPreDragValue
+local fontOption, draggingSlider, lastSliderSound, selectClickAllowHide
 
 local glColor = gl.Color
 local glTexRect = gl.TexRect
@@ -663,6 +660,7 @@ local muteFadeTime = 0.35
 local isOffscreen = false
 local isOffscreenTime
 local prevOffscreenVolume
+local apiUnitTrackerEnabledCount = 0
 function widget:Update(dt)
 
 	if Spring.GetConfigInt("muteOffscreen", 0) == 1 then
@@ -762,6 +760,12 @@ function widget:Update(dt)
 	if sec2 > 0.5 then
 		sec2 = 0
 		continuouslyClean = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1
+
+		-- make sure widget is enabled
+		if apiUnitTrackerEnabledCount < 10 and widgetHandler.orderList["API Unit Tracker DEVMODE GL4"] and widgetHandler.orderList["API Unit Tracker DEVMODE GL4"] < 0.5 then
+			apiUnitTrackerEnabledCount = apiUnitTrackerEnabledCount + 1
+			widgetHandler:EnableWidget("API Unit Tracker DEVMODE GL4")
+		end
 	end
 
 	sec = sec + dt
@@ -1747,6 +1751,21 @@ function init()
 					WG['screenMode'].SetScreenMode(value)
 				end
 			end,
+		},
+		{ id = "dualmode_enabled", group = "gfx", category = types.advanced, name = texts.option.dualmode, type = "bool", value = Spring.GetConfigInt("DualScreenMode"), description = texts.option.dualmode_enabled_descr,
+		  onchange = function(_, value)
+			  Spring.SetConfigInt("DualScreenMode", value and 1 or 0)
+		  end,
+		},
+		{ id = "dualmode_left", group = "gfx", category = types.advanced, name = widgetOptionColor .. "  " .. texts.option.dualmode_left, type = "bool", value = Spring.GetConfigInt("DualScreenMiniMapOnLeft"), description = texts.option.dualmode_left_descr,
+		  onchange = function(_, value)
+			  Spring.SetConfigInt("DualScreenMiniMapOnLeft", value and 1 or 0)
+		  end,
+		},
+		{ id = "dualmode_minimap_aspectratio", group = "gfx", category = types.advanced, name = widgetOptionColor .. "  " .. texts.option.dualmode_minimap_aspectratio, type = "bool", value = Spring.GetConfigInt("DualScreenMiniMapAspectRatio"), description = texts.option.dualmode_minimap_aspectratio_descr,
+		  onchange = function(_, value)
+			  Spring.SetConfigInt("DualScreenMiniMapAspectRatio", value and 1 or 0)
+		  end,
 		},
 		{ id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync,  type = "select", options = { 'off', 'enabled', 'adaptive'}, value = 1, description = texts.option.vsync_descr,
 		  onload = function(i)
@@ -3014,6 +3033,12 @@ function init()
 		--{ id = "dgunrulereminder", group = "ui", category = types.dev, widget = "Dgun Rule Reminder", name = texts.option.dgunrulereminder, type = "bool", value = GetWidgetToggleValue("Dgun Rule Reminder"), description = texts.option.dgunrulereminder_descr },
 
 		{ id = "converterusage", group = "ui", category = types.advanced, widget = "Converter Usage", name = texts.option.converterusage, type = "bool", value = GetWidgetToggleValue("Converter Usage"), description = texts.option.converterusage_descr },
+
+		{ id = "widgetselector", group = "ui", category = types.advanced, name = texts.option.widgetselector, type = "bool", value = Spring.GetConfigInt("widgetselector", 0) == 1, description = texts.option.widgetselector_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("widgetselector", (value and 1 or 0))
+		  end,
+		},
 
 
 		{ id = "label_ui_visuals", group = "ui", name = texts.option.label_visuals, category = types.basic },

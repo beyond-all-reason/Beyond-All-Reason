@@ -143,10 +143,10 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	hide beam3;
-	hide pad;
 	hide beam1;
 	hide beam4;
 	hide beam2;
+	hide pad;
 	//move base to y-axis [25] now;
 	spray = 0;
 	call-script InitState();	
@@ -164,6 +164,21 @@ QueryNanoPiece(piecenum)
 	if (spray>3) spray=0;
 }
 
+StartBuilding()
+{
+	show beam1;
+	show beam2;
+	show beam3;
+	show beam4;
+}
+
+StopBuilding()
+{
+	hide beam1;
+	hide beam2;
+	hide beam3;
+	hide beam4;
+}
 
 Activate()
 {

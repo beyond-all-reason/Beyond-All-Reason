@@ -79,7 +79,6 @@ Create()
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
-	hide nano;
 	turn arm1 to x-axis <-90> speed <180>;
 	turn arm2 to x-axis <105> speed <180>;
 }
@@ -96,13 +95,9 @@ Deactivate()
 }
 
 
-
-
-
-
-
 StartBuilding(heading, pitch)
 {
+	show nano;
 //get PRINT(heading,pitch,get GAME_FRAME,0);
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
@@ -117,6 +112,7 @@ StartBuilding(heading, pitch)
 
 StopBuilding()
 {
+	hide nano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	sleep 6000;

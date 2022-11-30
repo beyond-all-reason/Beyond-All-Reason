@@ -38,7 +38,7 @@ return {
 		script = "Chickens/chickenh4.cob",
 		selfdestructas = "BUG_DEATH",
 		side = "THUNDERBIRDS",
-		sightdistance = 300,
+		sightdistance = 200,
 		smoothanim = true,
 		steeringmode = "2",
 		tedclass = "BOT",

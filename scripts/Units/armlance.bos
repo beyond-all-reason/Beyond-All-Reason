@@ -3,7 +3,6 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-//piece  base, cockpit, bombdrop, lwing1, lwing2, rwing1, rwing2, lflap1, lflap2, rflap1, rflap2, lsensor, rsensor,lbox, rbox,  connectors,  rthruster, lthruster, thrust1, thrust2;
 piece base, cockpit, rwing, rventblade, rbwing, lwing, lventblade, lbwing, fdoor, bdoor, bombdrop, thrust1;
 static-var  statechg_DesiredState, statechg_StateChanging;
 

@@ -13,7 +13,7 @@ local labGrids = {
 	},
 	leglab = {
 		"legck", "cornecro", "leggob", "",                      -- T1 con, rez bot, AK
-		"legbal", "leglob", "corkark", "legcen",                        -- storm, thud
+		"legbal", "leglob", "legkark", "legcen",                        -- storm, thud
 		"", "", "corcrash",                                        -- aa bot
 	},
 	-- T2 bot
@@ -333,7 +333,7 @@ local unitGrids = {
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "corllt", "armmg", "corhlt", "cormaw", },     -- LLT, machine gun, HLT, flame turret
+			{ "corllt", "legmg", "corhlt", "cormaw", },     -- LLT, machine gun, HLT, flame turret
 			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
 			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
 		},
@@ -399,7 +399,7 @@ local unitGrids = {
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "corllt", "armmg", "corhlt", "cormaw", },     -- LLT, machine gun, HLT, flame turret
+			{ "corllt", "legmg", "corhlt", "cormaw", },     -- LLT, machine gun, HLT, flame turret
 			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
 			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
 		},
@@ -464,7 +464,7 @@ local unitGrids = {
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "corllt", "armmg", "corhlt", "cormaw", },     -- LLT, machine gun, HLT, flame turret
+			{ "corllt", "legmg", "corhlt", "cormaw", },     -- LLT, machine gun, HLT, flame turret
 			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
 			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
 		},

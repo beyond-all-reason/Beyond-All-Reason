@@ -375,7 +375,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	-- returns: the index of the instanceID in the table on success, else nil
 	if #thisInstance ~= iT.instanceStep then
 		Spring.Echo("Trying to upload an oddly sized instance into",iT.myName, #thisInstance, "instead of ",iT.instanceStep)
-		Spring.Debug.TraceFullEcho(20,20,20, "pushElementInstance Failure")
+		Spring.Debug.TraceFullEcho(20,20,20, "pushElementInstance Failure:"..iT.myName )
 	end
 	local iTusedElements = iT.usedElements
 	local iTStep    = iT.instanceStep 
@@ -445,7 +445,7 @@ function popElementInstance(iT, instanceID, noUpload)
 
 	if iT.instanceIDtoIndex[instanceID] == nil then -- if key is instanceID yet does not exist, then warn and bail
 		Spring.Echo("Tried to remove element ",instanceID,'From instanceTable', iT.myName, 'but it does not exist in it')
-		Spring.Debug.TraceFullEcho(10,10,3)
+		Spring.Debug.TraceFullEcho(10,10,3, iT.myName)
 		return nil 
 	end
 	if iT.usedElements == 0 then -- Dont remove the last element
@@ -494,8 +494,7 @@ function popElementInstance(iT, instanceID, noUpload)
 		local oldOffset = (oldElementIndex-1)*iTStep 
 		local instanceData = iT.instanceData
 		for i = 1, iTStep do 
-			local data =  instanceData[endOffset + i]
-			instanceData[oldOffset + i ] = data
+			instanceData[oldOffset + i ] = instanceData[endOffset + i]
 		end
 		--size_t LuaVBOImpl::Upload(const sol::stack_table& luaTblData, const sol::optional<int> attribIdxOpt, const sol::optional<int> elemOffsetOpt, const sol::optional<int> luaStartIndexOpt, const sol::optional<int> luaFinishIndexOpt)
 		--Spring.Echo("Removing instanceID",instanceID,"from iT at position", oldElementIndex, "shuffling back at", iT.usedElements,"endoffset=",endOffset,'oldOffset=',oldOffset)
@@ -529,7 +528,7 @@ function popElementInstance(iT, instanceID, noUpload)
 								s = s .. " " .. tostring(zombie)
 								Spring.Echo("ZOMBIE AT", zombie, Spring.GetUnitPosition(zombie))
 								--Spring.SendCommands({"pause 1"})
-								Spring.Debug.TraceFullEcho()
+								Spring.Debug.TraceFullEcho(nil,nil,nil, iT.myName)
 							end 
 							Spring.Echo(s)
 							iT.zombies = {}

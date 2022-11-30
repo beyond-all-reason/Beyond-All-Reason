@@ -35,7 +35,7 @@ return {
 		mass = 2000000,
 		maxdamage = 250000,
 		maxslope = 40,
-		maxvelocity = 2,
+		maxvelocity = 2.75,
 		maxwaterdepth = 0,
 		movementclass = "CHICKQUEENHOVER",
 		noautofire = false,
@@ -46,7 +46,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BUG_DEATH",
 		side = "THUNDERBIRDS",
-		sightdistance = 3000,
+		sightdistance = 500,
 		smoothanim = true,
 		steeringmode = "2",
 		tedclass = "BOT",
@@ -104,7 +104,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
 				damage = {
-					default = 500,
+					default = 50,
 				},
 			},
 			meleeBig = {
@@ -133,7 +133,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 2500,
 				damage = {
-					default = 5000,
+					default = 500,
 				},
 			},
 		},

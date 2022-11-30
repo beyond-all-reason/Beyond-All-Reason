@@ -142,7 +142,8 @@ local SizeRadius = {
 	Tiny = 			55,
 	Smaller = 		75,
 	Small = 		100,
-	SmallMedium = 	150,
+	Smallish = 		130,
+	SmallMedium = 	160,
 	Medium = 		200,
 	Mediumer = 		250,
 	MediumLarge = 	300,
@@ -275,7 +276,6 @@ local projectileDefLights  = {
 local function AssignLightsToAllWeapons()
 	for weaponID=1, #WeaponDefs do
 		local weaponDef = WeaponDefs[weaponID]
-		local customParams = weaponDef.customParams or {}
 		local damage = 100
 		for cat=0, #weaponDef.damages do
 			if Game.armorTypes[cat] and Game.armorTypes[cat] == 'default' then
@@ -284,8 +284,8 @@ local function AssignLightsToAllWeapons()
 			end
 		end
 		local radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
-		local orgMult = (math.max(0.25, math.min(damage/1600, 0.6)) + (radius/2800))
-		local life = (7.5*(1.0+radius/2000)+(orgMult * 5)) * 0.8
+		local orgMult = math.max(0.1, math.min(damage/1600, 0.6)) + (radius/2800)
+		local life = 8 + (5*(radius/2000)+(orgMult * 5))
 		radius = ((orgMult * 75) + (radius * 2.4)) * 0.33
 
 		if string.find(weaponDef.name, 'juno') then
@@ -305,18 +305,19 @@ local function AssignLightsToAllWeapons()
 		local t = {}
 		local aa = string.find(weaponDef.cegTag, 'aa')
 		if aa then
-			t.r, t.g, t.b = 1, 0.5, 0.6
+			r, g, b = 1, 0.5, 0.6
 			t.color2r, t.color2g, t.color2b = 1, 0.5, 0.6
 		end
 		if weaponDef.paralyzer then
-			t.r, t.g, t.b = 0.5, 0.5, 1
+			r, g, b = 0.5, 0.5, 1
 			t.color2r, t.color2g, t.color2b = 0.25, 0.25, 1
 		end
 		local scavenger = string.find(weaponDef.name, '_scav')
 		if scavenger then
-			t.r, t.g, t.b = 0.96, 0.3, 1
+			r, g, b = 0.96, 0.3, 1
 			t.color2r, t.color2g, t.color2b = 0.96, 0.3, 1
 		end
+		t.r, t.g, t.b = r, g, b
 		if weaponDef.type == 'BeamLaser' then
 			muzzleFlash = false
 
@@ -339,11 +340,18 @@ local function AssignLightsToAllWeapons()
 				sizeclass = GetClosestSizeClass(radius)
 			end
 
+		elseif weaponDef.type == 'LaserCannon' then
+			radius = (4 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (3 * radius * orgMult)
+			t.a = (orgMult * 0.1) + weaponDef.duration
+
+			sizeclass = GetClosestSizeClass(radius)
+			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass, t)
+
 		elseif weaponDef.type == 'LightningCannon' then
 			if not scavenger then
 				t.r, t.g, t.b = 0.2, 0.45, 1
 			end
-			t.a = orgMult*0.55
+			t.a = orgMult * 0.9
 			sizeclass = GetClosestSizeClass(radius*8)
 			projectileDefLights[weaponID] = GetLightClass("LaserProjectile", "Cold", sizeclass, t)
 
@@ -354,9 +362,12 @@ local function AssignLightsToAllWeapons()
 		elseif weaponDef.type == 'StarburstLauncher' then
 			t.a = orgMult * 0.66
 			projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
+			radius = ((orgMult * 75) + (radius * 4)) * 0.4
+			life = 8 + (5*(radius/2000)+(orgMult * 5))
+			sizeclass = GetClosestSizeClass(radius)
 
 		elseif weaponDef.type == 'Cannon' then
-			t.a = orgMult*0.15
+			t.a = orgMult*0.18
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Plasma", sizeclass, t)
 
 		elseif weaponDef.type == 'DGun' then
@@ -366,11 +377,6 @@ local function AssignLightsToAllWeapons()
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass, t)
 			projectileDefLights[weaponID].yOffset = 32
 
-		elseif weaponDef.type == 'LaserCannon' then
-			if damage < 25 then sizeclass = 'Small' end
-			if damage > 25 then sizeclass = 'Medium' end
-			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass, t)
-
 		elseif weaponDef.type == 'TorpedoLauncher' then
 			sizeclass = "Small"
 			projectileDefLights[weaponID] = GetLightClass("TorpedoProjectile", "Cold", sizeclass, t)
@@ -378,6 +384,10 @@ local function AssignLightsToAllWeapons()
 		elseif weaponDef.type == 'Shield' then
 			sizeclass = "Large"
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Cold", sizeclass, t)
+
+		-- elseif weaponDef.type == 'AircraftBomb' then
+		-- 	t.a = life * 1.8
+		-- 	projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
 
 		elseif weaponDef.type == 'Flame' then
 			--sizeclass = "Small"
@@ -405,7 +415,7 @@ local function AssignLightsToAllWeapons()
 				t.r, t.g, t.b = 0.99, 0.9, 1
 			end
 			t.lifetime = life
-			t.colortime = 0.037*(life/30)
+			t.colortime = 25 / life
 			t.a = orgMult
 
 			if weaponDef.type == 'DGun' then
@@ -413,8 +423,33 @@ local function AssignLightsToAllWeapons()
 			elseif weaponDef.type == 'Flame' then
 				t.a = orgMult*0.17
 			elseif weaponDef.type == 'BeamLaser' then
-				t.a = (orgMult*0.04) / (0.2 + weaponDef.beamtime)
+				t.a = (orgMult*0.11) / (0.2 + weaponDef.beamtime)
 				t.colortime = 1
+			elseif weaponDef.type == 'LightningCannon' then
+				t.a = orgMult*10.17
+			else
+				if weaponDef.type == 'AircraftBomb' then
+					if weaponDef.paralyzer then
+						t.r = t.r * 1.7	-- make more red
+						t.g = t.g * 0.4	-- make more red
+						t.b = t.b * 0.4	-- make more red
+						life = life * 1.8	-- too high and it will flicker somehow!
+						orgMult = orgMult * 0.15
+					else
+						t.r = t.r * 1.7	-- make more red
+						t.g = t.g * 0.4	-- make more red
+						t.b = t.b * 0.4	-- make more red
+						life = life * 1.2
+					end
+					t.lifetime = life
+					t.colortime = 25 / life
+				end
+				t.r = (1.3 + t.r) / 2.3	-- make more white
+				t.g = (1.3 + t.g) / 2.3	-- make more white
+				t.b = (1.3 + t.b) / 2.3	-- make more white
+				t.a = orgMult*1.8
+				local mult = 0.55
+				t.color2r, t.color2g, t.color2b = r*mult, g*mult, b*mult
 			end
 			explosionLights[weaponID] = GetLightClass("Explosion", nil, sizeclass, t)
 			explosionLights[weaponID].yOffset = explosionLights[weaponID].lightConfig.radius / 5
@@ -489,6 +524,20 @@ GetLightClass("Explosion", nil, "Large", {r = 3, g = 2.5, b = 2.0, a = 0.25,
 										  color2r = 0.9, color2g = 0.5, color2b = 0.15, colortime = 80,
 										  sustain = 30, lifetime = 150,
 										  modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
+
+--legbart
+explosionLights[WeaponDefNames["legbart_clusternapalm"].id] =
+GetLightClass("Explosion", nil, "Smallish", {r = 0.52, g = 0.45, b = 0.12, a = 0.28,
+										 color2r = 2.0, color2g = 1.2, color2b = 0.7, colortime = 50,
+										 sustain = 30, lifetime = 175,
+										 modelfactor = 0.25, specular = 0.23, scattering = 0.15, lensflare = 0})
+
+--armthundt4
+explosionLights[WeaponDefNames["armthundt4_armbomb"].id] =
+GetLightClass("Explosion", nil, "Large", {r = 2, g = 1.5, b = 1.0, a = 0.22,
+										  color2r = 0.9, color2g = 0.5, color2b = 0.15, colortime = 65,
+										  sustain = 4, lifetime = 55,
+										  modelfactor = 0.1, specular = 0.2, scattering = 0.2, lensflare = 4})
 
 --[[
 --armpw

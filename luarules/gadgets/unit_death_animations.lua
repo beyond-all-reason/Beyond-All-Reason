@@ -19,19 +19,29 @@ local hasDeathAnim = {
   [UnitDefNames.corthud.id] = true,
   [UnitDefNames.corstorm.id] = true,
   [UnitDefNames.corsumo.id] = true,
+  [UnitDefNames.armraz.id] = true,
+  [UnitDefNames.armpw.id] = true,
+  [UnitDefNames.armck.id] = true,
+  [UnitDefNames.armrectr.id] = true,
+  [UnitDefNames.armrock.id] = true,
+
+
 }
 
 local dyingUnits = {}
 
 for udid, ud in pairs(UnitDefs) do --almost all chickens have dying anims
-	if ud.customParams.subfolder and ud.customParams.subfolder == "other/chickens" then
+	if string.find(ud.name, "chicken") or (ud.customParams.subfolder and ud.customParams.subfolder == "other/chickens") then
 		hasDeathAnim[udid] = true
 	end
 end
 
 local SetUnitNoSelect	= Spring.SetUnitNoSelect
 local GiveOrderToUnit	= Spring.GiveOrderToUnit
-local SetUnitBlocking = Spring.SetUnitBlocking
+local SetUnitBlocking 	= Spring.SetUnitBlocking
+local MoveCtrlEnable 	= Spring.MoveCtrl.Enable
+local MoveCtrlDisable 	= Spring.MoveCtrl.Disable
+local MoveCtrlSetVelocity = Spring.MoveCtrl.SetVelocity
 local CMD_STOP = CMD.STOP
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
@@ -40,6 +50,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 		SetUnitNoSelect(unitID,true)
     	SetUnitBlocking(unitID,false) -- non blocking while dying
 		GiveOrderToUnit(unitID, CMD_STOP, 0, 0)
+		MoveCtrlEnable(unitID)
+		MoveCtrlSetVelocity(unitID, 0, 0, 0)
     	dyingUnits[unitID] = true
 	end
 end
@@ -50,6 +62,7 @@ end
 
 function gadget:RenderUnitDestroyed(unitID, unitDefID, unitTeam) --called when killed anim finishes
 	if dyingUnits[unitID] then
+		MoveCtrlDisable(unitID) -- just in case, not sure if it's needed
 		dyingUnits[unitID] = nil
 	end
 end

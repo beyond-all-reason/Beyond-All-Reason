@@ -394,6 +394,8 @@ Create()
 
 StartBuilding(torsoing, pitch)
 {
+	show lnano;
+	show rnano;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
@@ -404,6 +406,8 @@ StartBuilding(torsoing, pitch)
 
 StopBuilding()
 {
+	hide lnano;
+	hide rnano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
 	sleep 3000;

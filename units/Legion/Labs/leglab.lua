@@ -41,7 +41,7 @@ return {
 			[4] = "leglob",
 			[5] = "legcen",
 			[6] = "legbal",
-			[7] = "corkark",
+			[7] = "legkark",
 			[8] = "corcrash",
 		},
 		customparams = {

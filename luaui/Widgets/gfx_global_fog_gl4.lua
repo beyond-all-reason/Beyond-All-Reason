@@ -12,34 +12,11 @@ function widget:GetInfo()
 		enabled = false
 	}
 end
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-local vsx, vsy, chobbyInterface
-local ivsx = 1.0
-local ivsy = 1.0
-local screenratio = 1.0
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
 
-function widget:ViewResize()
-	vsx, vsy = gl.GetViewSizes()
-	ivsx = 1.0 / vsx --we can do /n here!
-	ivsy = 1.0 / vsy
-	if Spring.GetMiniMapDualScreen() == 'left' then
-		vsx = vsx / 2
-	end
-	if Spring.GetMiniMapDualScreen() == 'right' then
-		vsx = vsx / 2
-	end
-	screenratio = vsy / vsx --so we dont overdraw and only always draw a square
-end
+local GL_RGBA32F_ARB = 0x8814
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
-widget:ViewResize()
 
 -- GL4 notes:
 local shaderConfig = {
@@ -109,13 +86,7 @@ local shaderSourceCache = {
 
 
 function widget:ViewResize()
-	vsx, vsy = gl.GetViewSizes()
-	if Spring.GetMiniMapDualScreen() == 'left' then
-		vsx = vsx / 2
-	end
-	if Spring.GetMiniMapDualScreen() == 'right' then
-		vsx = vsx / 2
-	end
+	vsx, vsy = Spring.GetViewGeometry()
 
 	if fogTexture then gl.DeleteTexture(fogTexture) end
 
@@ -129,6 +100,7 @@ function widget:ViewResize()
 		})
 end
 
+widget:ViewResize()
 
 local function initGL4()
 	-- init the VBO

@@ -42,6 +42,22 @@ QueryNanoPiece(piecenum)
 	return (0);
 }
 
+StartBuilding()
+{
+	show nano1;
+	show nano2;
+	show nano3;
+	show nano4;
+}
+
+StopBuilding()
+{
+	hide nano1;
+	hide nano2;
+	hide nano3;
+	hide nano4;
+}
+
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
