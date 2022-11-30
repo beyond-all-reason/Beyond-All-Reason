@@ -4,7 +4,7 @@ function widget:GetInfo()
 	return {
 		name = "Ground Fog GL4",
 		version = 3,
-		desc = "Draws funny ground fog",
+		desc = "Draws funny ground fog - DEPRECATED",
 		author = "Beherith",
 		date = "2022.07.14",
 		license = "Lua code is GPL V2, GLSL is (c) Beherith",

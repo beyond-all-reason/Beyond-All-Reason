@@ -16,19 +16,35 @@ end
 local GL_RGBA32F_ARB = 0x8814
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+-- TODO: 2022.11.30
+-- Expose fog params via uniforms:
+	-- Fog Color
+	-- Global Fog density
+	-- Fog Plane Height
+	-- Height-based fog density
+	-- 
+	
+---- CONFIGURABLE PARAMETERS: -----------------------------------------
 
-
--- GL4 notes:
 local shaderConfig = {
-	MIERAYLEIGHRATIO = 0.1,
-	RAYMARCHSTEPS = 64, -- must be at least one
-	USE3DNOISE = 1,
-	USEDEFERREDBUFFERS = 1, 
-	RESOLUTION = 2,
-	FOGTOP = 300,
+	-- These are static parameters, cannot be changed during runtime
+	RAYMARCHSTEPS = 64, -- must be at least one, quite expensive
+	USE3DNOISE = 1, -- It might be sufficient to subsample ray steps by this
+	RESOLUTION = 2, -- THIS IS EXTREMELY IMPORTANT and specifies the fog plane resolution as a whole!
+	FOGTOP = 300, -- deprecated
 }
 
-local globalFogColor = {0.8,0.8,0.8,1}
+local minHeight, maxHeight = Spring.GetGroundExtremes()
+local fogUniforms = {
+	globalFogColor = {0.8,0.8,0.8,1},
+	fogPlaneHeight = (math.max(minHeight,0) + maxHeight) /2 ,
+	fogGlobalDensity = 1.0,
+	fogGroundDensity = 1.0,
+	fogExpFactor = -0.0001 -- yes these are small negative numbers
+	}
+
+---------------------------------------------------------------------------
+local autoreload = true
 
 local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
 local simpledither = "LuaUI/images/rgba_noise_256.tga"
@@ -76,8 +92,11 @@ local shaderSourceCache = {
 			fadeDistance = 300000,
 			windX = 0,
 			windZ = 0,
-			globalFogColor = globalFogColor,
-			fogUniforms = {100,}, --fogHeight, grounddensity, globaldensity
+			globalFogColor = fogUniforms.globalFogColor,
+			fogGlobalDensity = fogUniforms.fogGlobalDensity,
+			fogGroundDensity = fogUniforms.fogGroundDensity, 
+			fogPlaneHeight = fogUniforms.fogPlaneHeight,
+			fogExpFactor = fogUniforms.fogExpFactor,
 		},
 		shaderName = "Ground Fog GL4",
 		shaderConfig = shaderConfig
@@ -116,7 +135,16 @@ local function initGL4()
 	return true
 end
 
+local function SetFogParams(paramname, paramvalue)
+	Spring.Echo("SetFogParams",paramname, paramvalue)
+	if fogUniforms[paramname] then
+		fogUniforms[paramname] = paramvalue
+	end
+end
+
 function widget:Initialize()
+	minHeight, maxHeight = Spring.GetGroundExtremes()
+	shaderConfig.FOGTOP = (math.max(minHeight,0) + maxHeight ) /2 
 	if Spring.GetConfigString("AllowDeferredMapRendering") == '0' or Spring.GetConfigString("AllowDeferredModelRendering") == '0' then
 		Spring.Echo('Ground Fog GL4 requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!')
 		widgetHandler:RemoveWidget()
@@ -157,11 +185,14 @@ function widget:Initialize()
 	shaderCompiled = combineShader:Initialize()
 	if (shaderCompiled == nil) then
 		goodbye("[Global Fog::combineShader] combineShader compilation failed")
+		return
 	end
+	WG['SetFogParams'] = SetFogParams
 end
 
 function widget:Shutdown()
 	if fogTexture then gl.DeleteTexture(fogTexture) end
+	WG.SetFogParams = nil
 end
 
 local windX = 0
@@ -173,6 +204,7 @@ function widget:GameFrame(n)
 end
 
 function widget:Update()
+	--SetFogParams("fogGroundDensity", 0.1)
 end
 
 local toTexture = true
@@ -200,7 +232,9 @@ end
 function widget:DrawWorld() 
 	-- We are drawing in world space, probably a bad idea but hey
 	--	glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
-	groundFogShader =  LuaShader.CheckShaderUpdates(shaderSourceCache) or groundFogShader
+	if autoreload then
+		groundFogShader =  LuaShader.CheckShaderUpdates(shaderSourceCache) or groundFogShader
+	end
 	
 	if toTexture then 
 		gl.RenderToTexture(fogTexture, renderToTextureClear)
@@ -232,8 +266,12 @@ function widget:DrawWorld()
 	groundFogShader:Activate()
 	groundFogShader:SetUniformFloat("windX", windX)
 	groundFogShader:SetUniformFloat("windZ", windZ)
-	groundFogShader:SetUniformFloat("globalFogColor", globalFogColor[1], globalFogColor[2],globalFogColor[3],globalFogColor[4])
-	groundFogShader:SetUniformFloat("fogUniforms", globalFogColor[1], globalFogColor[2],globalFogColor[3],globalFogColor[4])
+	groundFogShader:SetUniformFloat("globalFogColor", fogUniforms.globalFogColor[1], fogUniforms.globalFogColor[2],fogUniforms.globalFogColor[3],fogUniforms.globalFogColor[4])
+	for uniformName, uniformValue in pairs(fogUniforms) do 
+		if type(uniformValue) == 'number' then 
+			groundFogShader:SetUniformFloat(uniformName, uniformValue)
+		end
+	end
 	
 	if toTexture then 
 		gl.RenderToTexture(fogTexture, renderToTextureFunc)

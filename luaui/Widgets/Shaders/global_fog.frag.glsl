@@ -34,6 +34,12 @@ uniform float windX;
 uniform float windZ;
 uniform vec4 globalFogColor;
 
+uniform float fogGlobalDensity;
+uniform float fogGroundDensity;
+uniform float fogPlaneHeight;
+uniform float fogExpFactor;
+
+
 out vec4 fragColor;
 
 float frequency;
@@ -177,21 +183,31 @@ void main(void)
 	fragColor.a = 1.0;
 	
 	// calculate the distance fog density
-	float distanceFogAmount = 0.5 * sqrt(distToCamSquared);
+	float distanceToCamera = sqrt(distToCamSquared);
+	float distanceFogAmount = fogGlobalDensity * distanceToCamera;
 	
-	
-	// calculate the Height-based fog amount
 	
 	float fogIntegralPower = 2;
-	float fogFactor =  0.1*(1.0 +sin(time*0.03));// 
-	
-	float heightBasedFog = max(0.0, FOGTOP - mapWorldPos.y);
-	
-	
-	vec3 toCameraNormalized = normalize(mapToCam);
-	heightBasedFog = heightBasedFog / max(0.33, toCameraNormalized.y);
-	
-	heightBasedFog = fogFactor * pow(heightBasedFog, fogIntegralPower);
+	// calculate the Height-based fog amount
+	#if (0)
+		// simple approach where fog amount is only height based, but this is stupid and useless
+		float heightBasedFog = max(0.0, fogPlaneHeight - mapWorldPos.y);
+		if ((camPos.y < fogPlaneHeight) && (mapWorldPos.y < camPos.y)){ // we are under the fog plane
+			heightBasedFog = max(0.0, camPos.y - mapWorldPos.y);
+		}
+		vec3 toCameraNormalized = normalize(mapToCam);
+		heightBasedFog = heightBasedFog / max(0.33, toCameraNormalized.y);
+		heightBasedFog = fogGroundDensity * pow(heightBasedFog, fogIntegralPower);
+	#else
+		//the height based fog amount should only depend on the length of the ray underneath the fog plane limit
+		float rayFractionInFog = 1.0;
+		rayFractionInFog = clamp((fogPlaneHeight-mapWorldPos.y)/ (camPos.y - mapWorldPos.y),0.0,1.0);
+		if (mapWorldPos.y >= camPos.y) {
+			rayFractionInFog = clamp((fogPlaneHeight-camPos.y)/ (mapWorldPos.y- camPos.y),0.0,1.0);
+		}
+		float heightBasedFog = fogGroundDensity * distanceToCamera * rayFractionInFog * 30;
+		//heightBasedFog = 10000.0;
+	#endif
 
 	float noiseScale = 0.01;
 	vec3 noiseOffset = vec3(0.0);
@@ -205,14 +221,14 @@ void main(void)
 	// Marching:
 	const float steps = RAYMARCHSTEPS;
 	vec3 rayStart = mapWorldPos.xyz;
-	vec3 rayEnd = clamp((FOGTOP - mapWorldPos.y)/ (camPos.y- mapWorldPos.y),   0, 1) * mapToCam + mapWorldPos.xyz;
+	vec3 rayEnd = clamp((fogPlaneHeight - mapWorldPos.y)/ (camPos.y- mapWorldPos.y),   0, 1) * mapToCam + mapWorldPos.xyz;
 	if (camPos.y <= mapWorldPos.y) rayEnd = mapWorldPos.xyz +  mapToCam;
 	
 	float collectedNoise = 0.0;
-	float collectedShadow = 0.0;
+	float collectedShadow = 0.0; // What fraction of samples were shadowed along the way.
 	
 	// TODO: FIX ABOVE FOG TOP!
-	if (mapWorldPos.y < FOGTOP || 1==1 ) { // add special case where cam is below fogtop!
+	if (mapWorldPos.y < fogPlaneHeight || 1==1 ) { //TODO: add special case where cam is below fogtop!
 		float rayJitterOffset = (2 * rand(screenUV)) / steps ;
 		for (float f = 0; f < 1.0; f += 1.0 / steps){
 			vec3 rayPos = mix(rayStart.xyz, rayEnd, f + rayJitterOffset);
@@ -229,14 +245,14 @@ void main(void)
 			//collectedShadow += dot(vec3(0.33), abs(vec3(localShadow, rightShadow,upShadow))); 
 			collectedNoise += max(0, mySimplexSample);
 			
-			vec4 localNoise =  texture(noise64cube, rayPos.xyz * noiseScale  + noiseOffset);
+			vec4 localNoise =  texture(noise64cube, rayPos.xyz * noiseScale  + noiseOffset); // TODO: SUBSAMPLE THIS ONE!
 			//collectedNoise += max(0,localNoise.a);
 		}
 		collectedShadow /= steps;
 		collectedShadow = pow(collectedShadow, 2.0);
 		//heightBasedFog *= collectedNoise/steps;
 	}
-	if (mapWorldPos.y >= FOGTOP){
+	if (mapWorldPos.y >= fogPlaneHeight){
 		collectedShadow = 1.0;
 	}
 
@@ -244,15 +260,16 @@ void main(void)
 	//modulate the height based component only, not the distance based component
 	
 	// but modulate _before_ addition!
-	const float expfactor = -0.0001;
+	const float expfactor = fogExpFactor;
 	
 
 	float heightBasedFogExp = exp(heightBasedFog * expfactor);
 	float distanceFogAmountExp = exp(distanceFogAmount * expfactor);
 	
-	float outputfog = max(0, 0.99 - heightBasedFogExp* distanceFogAmountExp);
+	float totalfog = heightBasedFogExp * distanceFogAmountExp;
 	
-	//float outputfog = max(0, 0.99 - exp((heightBasedFog + distanceFogAmount) * -0.0001));
+	float outputfogalpha = max(0, 0.99 - totalfog);
+	
 	float shadowColorization = clamp(heightBasedFogExp/distanceFogAmountExp,0,1);
 	
 	fragColor.rgb = mix(vec3(0.0), globalFogColor.rgb, collectedShadow );
@@ -263,7 +280,7 @@ void main(void)
 	//fragColor.rgb= vec3(1.0);
 	//fragColor.rgba = vec4(heightBasedFogExp, distanceFogAmountExp,0,1);
 	//fragColor.rgba = vec4(shadowColorization,shadowColorization,shadowColorization,1);
-	fragColor.a = outputfog;
+	fragColor.a = outputfogalpha;
 	
 	return;
 	
