@@ -8,7 +8,7 @@ function widget:GetInfo()
 		author = "Beherith",
 		date = "2022.07.14",
 		license = "Lua code is GPL V2, GLSL is (c) Beherith",
-		layer = -99999992,
+		layer = 99992, -- lol this isnt even a number
 		enabled = false
 	}
 end
@@ -36,10 +36,12 @@ local shaderConfig = {
 
 local minHeight, maxHeight = Spring.GetGroundExtremes()
 local fogUniforms = {
-	globalFogColor = {0.8,0.8,0.8,1},
+	fogGlobalColor = {0.5,0.6,0.7,1}, -- bluish
+	fogSunColor = {1.0,0.9,0.8,1}, -- yellowish
+	fogShadowedColor = {0.1,0.05,0.1,1}, -- purleish tint
 	fogPlaneHeight = (math.max(minHeight,0) + maxHeight) /2 ,
 	fogGlobalDensity = 1.0,
-	fogGroundDensity = 1.0,
+	fogGroundDensity = 0.1,
 	fogExpFactor = -0.0001 -- yes these are small negative numbers
 	}
 
@@ -92,7 +94,9 @@ local shaderSourceCache = {
 			fadeDistance = 300000,
 			windX = 0,
 			windZ = 0,
-			globalFogColor = fogUniforms.globalFogColor,
+			fogGlobalColor = fogUniforms.fogGlobalColor,
+			fogSunColor = fogUniforms.fogSunColor,
+			fogShadowedColor = fogUniforms.fogShadowedColor,
 			fogGlobalDensity = fogUniforms.fogGlobalDensity,
 			fogGroundDensity = fogUniforms.fogGroundDensity, 
 			fogPlaneHeight = fogUniforms.fogPlaneHeight,
@@ -162,6 +166,7 @@ function widget:Initialize()
 			{
 				gl_TexCoord[0] = gl_MultiTexCoord0;
 				gl_Position    = gl_Vertex;
+				gl_Position.z = 0.0;
 			} ]],
 		fragment = [[
 			#version 150 compatibility
@@ -210,47 +215,21 @@ end
 local toTexture = true
 
 local function renderToTextureFunc() -- this draws the fogspheres onto the texture
-
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)	
-	
-	--gl.Blending(true);
-	--gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.DST_ALPHA, GL.SRC_ALPHA, GL.ONE);
-	--gl.BlendEquation(GL_FUNC_ADD);
-	
-	--gl.Culling(GL.FRONT)
-	fogPlaneVAO:DrawElements(GL.TRIANGLES)
-	--gl.Culling(GL.BACK)
-end
-
-local function renderToTextureClear() -- this func is needed to clear the render target
-	gl.Blending(GL.ZERO, GL.ZERO)
-	gl.Color(1,1,1,1)
-	gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+	gl.Clear(GL.COLOR_BUFFER_BIT)
+	gl.DepthMask(false) 
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	fogPlaneVAO:DrawElements(GL.TRIANGLES)
 end
 
 function widget:DrawWorld() 
-	-- We are drawing in world space, probably a bad idea but hey
-	--	glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
+
 	if autoreload then
 		groundFogShader =  LuaShader.CheckShaderUpdates(shaderSourceCache) or groundFogShader
 	end
-	
-	if toTexture then 
-		gl.RenderToTexture(fogTexture, renderToTextureClear)
-	end
-	
-	
-	local alt, ctrl, meta, shft = Spring.GetModKeyState()	
-	if ctrl then
-		gl.Blending(GL.SRC_ALPHA, GL.ONE)
-	else
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	end
-	gl.Culling(GL.BACK)
-	gl.Culling(false)
-	gl.DepthTest(GL.LEQUAL)
-	gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
+	gl.DepthMask(false) -- dont write to depth buffer
+
+	gl.Culling(GL.FRONT) -- cause our tris are reversed in plane vbo
+	--gl.DepthTest(GL.LEQUAL) no need for depth test
 	gl.Texture(0, "$map_gbuffer_zvaltex")
 	gl.Texture(1, "$model_gbuffer_zvaltex")
 	gl.Texture(2, "$heightmap")
@@ -260,16 +239,17 @@ function widget:DrawWorld()
 	gl.Texture(6, dithernoise2d)
 	gl.Texture(7, simpledither)
 	gl.Texture(8, worley3d128)
-
-	--Spring.Echo(screenCopyTex)
 	
 	groundFogShader:Activate()
 	groundFogShader:SetUniformFloat("windX", windX)
 	groundFogShader:SetUniformFloat("windZ", windZ)
-	groundFogShader:SetUniformFloat("globalFogColor", fogUniforms.globalFogColor[1], fogUniforms.globalFogColor[2],fogUniforms.globalFogColor[3],fogUniforms.globalFogColor[4])
+	--groundFogShader:SetUniformFloat("globalFogColor", fogUniforms.globalFogColor[1], fogUniforms.globalFogColor[2],fogUniforms.globalFogColor[3],fogUniforms.globalFogColor[4])
 	for uniformName, uniformValue in pairs(fogUniforms) do 
-		if type(uniformValue) == 'number' then 
+		local vtype = type(uniformValue)
+		if vtype == 'number' then 
 			groundFogShader:SetUniformFloat(uniformName, uniformValue)
+		elseif vtype == 'table' then 
+			groundFogShader:SetUniformFloat(uniformName, uniformValue[1], uniformValue[2], uniformValue[3], uniformValue[4])
 		end
 	end
 	
@@ -282,13 +262,17 @@ function widget:DrawWorld()
 	groundFogShader:Deactivate()
 	
 	for i = 0, 8 do gl.Texture(i, false) end 
-	gl.Culling(GL.BACK)
-	gl.DepthTest(true)
-	gl.DepthMask(true) --"BK OpenGL state resets", need for toTexture block?
+	gl.Culling(false)
+	--gl.DepthTest(true)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	
+	-- glColorMask(false, false, false, false)
 	if toTexture then 
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		local alt, ctrl, meta, shft = Spring.GetModKeyState()	
+		if shft then
+			gl.Blending(GL.ONE, GL.ZERO)
+		else
+			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		end
 		combineShader:Activate()
 		combineShader:SetUniformFloat("gameframe", Spring.GetGameFrame()/1000)
 		combineShader:SetUniformFloat("distortionlevel", 0.0001) -- 0.001
@@ -300,5 +284,6 @@ function widget:DrawWorld()
 		gl.Texture(0, false)
 		gl.Texture(1, false)
 	end
+  --gl.DepthTest(GL.LEQUAL)
   gl.DepthMask(false) --"BK OpenGL state resets", reset to default state
 end

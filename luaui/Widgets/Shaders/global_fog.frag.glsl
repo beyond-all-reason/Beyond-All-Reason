@@ -32,38 +32,18 @@ uniform sampler3D worley3d3level;
 
 uniform float windX;
 uniform float windZ;
-uniform vec4 globalFogColor;
+uniform vec4 fogGlobalColor;
+uniform vec4 fogSunColor;
+uniform vec4 fogShadowedColor;
 
 uniform float fogGlobalDensity;
 uniform float fogGroundDensity;
 uniform float fogPlaneHeight;
 uniform float fogExpFactor;
 
-
 out vec4 fragColor;
 
 float frequency;
-
-// https://gist.github.com/wwwtyro/beecc31d65d1004f5a9d
-vec2 raySphereIntersect(vec3 r0, vec3 rd, vec3 s0, float sr) {
-    // - r0: ray origin
-    // - rd: normalized ray direction
-    // - s0: sphere center
-    // - sr: sphere radius
-    // - Returns distance from r0 to first intersection with sphere,
-    //   or -1.0 if no intersection.
-    float a = dot(rd, rd);
-    vec3 s0_r0 = r0 - s0;
-    float b = 2.0 * dot(rd, s0_r0);
-    float c = dot(s0_r0, s0_r0) - (sr * sr);
-	float disc = b * b - 4.0 * a* c;
-    if (disc < 0.0) {
-        return vec2(-1.0, -1.0);
-    }else{
-		disc = sqrt(disc);
-		return vec2(-b - disc, -b + disc) / (2.0 * a);
-	}
-}
 
 float shadowAtWorldPos(vec3 worldPos){
 		vec4 shadowVertexPos = shadowView * vec4(worldPos,1.0);
@@ -171,21 +151,15 @@ void main(void)
 	// if mapworldpos is below 0, then adjust it back
 	if (mapWorldPos.y < -0){
 		underWaterFraction = (-mapWorldPos.y) / abs(mapToCam.y);
-		mapWorldPos.xyz = mapWorldPos.xyz + (mapToCam.xyz * underWaterFraction * 1.0001);
+		mapWorldPos.xyz = mapWorldPos.xyz + (mapToCam.xyz * underWaterFraction * 1.0001); // without the mult it NaN's the fuck out
 		//mapWorldPos.y = fract(underwaterfraction*0.1);
 	}
 	vec3 fragWorldPos = v_worldPos.xyz;
 
-	fragColor.rgb = fract(mapWorldPos.xyz * 0.01);
-	fragColor.a = fract(sqrt(distToCamSquared) * 0.01);
-	//fragColor.a = underWaterFraction * 10;
-	//fragColor.a = pow(distToCamSquared, -0.001);
-	fragColor.a = 1.0;
-	
 	// calculate the distance fog density
 	float distanceToCamera = sqrt(distToCamSquared);
 	float distanceFogAmount = fogGlobalDensity * distanceToCamera;
-	
+	vec3 toCameraNormalized = normalize(mapToCam);
 	
 	float fogIntegralPower = 2;
 	// calculate the Height-based fog amount
@@ -195,7 +169,7 @@ void main(void)
 		if ((camPos.y < fogPlaneHeight) && (mapWorldPos.y < camPos.y)){ // we are under the fog plane
 			heightBasedFog = max(0.0, camPos.y - mapWorldPos.y);
 		}
-		vec3 toCameraNormalized = normalize(mapToCam);
+		
 		heightBasedFog = heightBasedFog / max(0.33, toCameraNormalized.y);
 		heightBasedFog = fogGroundDensity * pow(heightBasedFog, fogIntegralPower);
 	#else
@@ -205,7 +179,7 @@ void main(void)
 		if (mapWorldPos.y >= camPos.y) {
 			rayFractionInFog = clamp((fogPlaneHeight-camPos.y)/ (mapWorldPos.y- camPos.y),0.0,1.0);
 		}
-		float heightBasedFog = fogGroundDensity * distanceToCamera * rayFractionInFog * 30;
+		float heightBasedFog = fogGroundDensity * distanceToCamera * rayFractionInFog * 400;
 		//heightBasedFog = 10000.0;
 	#endif
 
@@ -222,10 +196,10 @@ void main(void)
 	const float steps = RAYMARCHSTEPS;
 	vec3 rayStart = mapWorldPos.xyz;
 	vec3 rayEnd = clamp((fogPlaneHeight - mapWorldPos.y)/ (camPos.y- mapWorldPos.y),   0, 1) * mapToCam + mapWorldPos.xyz;
-	if (camPos.y <= mapWorldPos.y) rayEnd = mapWorldPos.xyz +  mapToCam;
+	if (mapWorldPos.y >= camPos.y) rayEnd = mapWorldPos.xyz +  mapToCam;
 	
 	float collectedNoise = 0.0;
-	float collectedShadow = 0.0; // What fraction of samples were shadowed along the way.
+	float collectedShadow = 0.0; // What fraction of samples were LIT along the way.
 	
 	// TODO: FIX ABOVE FOG TOP!
 	if (mapWorldPos.y < fogPlaneHeight || 1==1 ) { //TODO: add special case where cam is below fogtop!
@@ -253,29 +227,41 @@ void main(void)
 		//heightBasedFog *= collectedNoise/steps;
 	}
 	if (mapWorldPos.y >= fogPlaneHeight){
-		collectedShadow = 1.0;
+		//collectedShadow = 1.0;
 	}
-
 	
 	//modulate the height based component only, not the distance based component
 	
 	// but modulate _before_ addition!
 	const float expfactor = fogExpFactor;
 	
-
+	// Modulate the amount of fog based on how shadowed it is?
+	heightBasedFog += heightBasedFog * smoothstep( 0.0,1.0, 1.0 - collectedShadow); 
+	
 	float heightBasedFogExp = exp(heightBasedFog * expfactor);
 	float distanceFogAmountExp = exp(distanceFogAmount * expfactor);
 	
 	float totalfog = heightBasedFogExp * distanceFogAmountExp;
+	//float totalfog = exp((heightBasedFogExp + distanceFogAmountExp) * expfactor);
 	
-	float outputfogalpha = max(0, 0.99 - totalfog);
+	float outputfogalpha = min(0.90, max(0, 1.0 - totalfog));
 	
 	float shadowColorization = clamp(heightBasedFogExp/distanceFogAmountExp,0,1);
 	
-	fragColor.rgb = mix(vec3(0.0), globalFogColor.rgb, collectedShadow );
-	fragColor.rgb = mix( globalFogColor.rgb, fragColor.rgb,distanceFogAmountExp);
+	// Colorize fog based on view angle:
+	float sunAmount = abs(dot(-toCameraNormalized, sunDir.xyz));
+	vec3 fogColor = mix(fogGlobalColor.rgb, 2*fogSunColor.rgb, pow(sunAmount,4.0));
 	
-	fragColor.rgb = mix (fragColor.rgb, globalFogColor.rgb, shadowColorization);
+	// Set the base color depending on how shadowed it is, 
+	// shadowed components should tend toward fogGlobalColor
+	vec3 heightFogColor = mix(fogGlobalColor.rgb, fogColor, collectedShadow);
+	
+	// Darkened the shadowed bits towards fogShadowedColor
+	fragColor.rgb = mix(vec3(fogShadowedColor), heightFogColor.rgb, collectedShadow);
+	
+	// Above that, mix back regular fog color for distance based fog
+	fragColor.rgb = mix( fogColor.rgb, fragColor.rgb,distanceFogAmountExp);
+	//fragColor.rgb = mix (fragColor.rgb, fogColor.rgb, shadowColorization);
 	
 	//fragColor.rgb= vec3(1.0);
 	//fragColor.rgba = vec4(heightBasedFogExp, distanceFogAmountExp,0,1);
