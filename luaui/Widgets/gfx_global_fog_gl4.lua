@@ -29,9 +29,10 @@ local GL_RGBA32F_ARB = 0x8814
 local shaderConfig = {
 	-- These are static parameters, cannot be changed during runtime
 	RAYMARCHSTEPS = 64, -- must be at least one, quite expensive
-	USE3DNOISE = 1, -- It might be sufficient to subsample ray steps by this
-	RESOLUTION = 2, -- THIS IS EXTREMELY IMPORTANT and specifies the fog plane resolution as a whole!
+	RESOLUTION = 2, -- THIS IS EXTREMELY IMPORTANT and specifies the fog plane resolution as a whole! 1 = max, 2 = half, 4 = quarter etc.
 	FOGTOP = 300, -- deprecated
+	NOISESAMPLES = 8, -- how many samples of 3D noise to take
+	NOISESCALE = 0.75,
 }
 
 local minHeight, maxHeight = Spring.GetGroundExtremes()
@@ -135,7 +136,7 @@ local function initGL4()
 	
 	groundFogShader =  LuaShader.CheckShaderUpdates(shaderSourceCache)
 	if not groundFogShader then goodbye("Failed to compile Ground Fog GL4") end 
-	Spring.Echo("Number of triangles= ", Game.mapSizeX/resolution,Game.mapSizeZ/resolution)
+	--Spring.Echo("Number of triangles= ", Game.mapSizeX/resolution,Game.mapSizeZ/resolution)
 	return true
 end
 
@@ -166,7 +167,7 @@ function widget:Initialize()
 			{
 				gl_TexCoord[0] = gl_MultiTexCoord0;
 				gl_Position    = gl_Vertex;
-				gl_Position.z = 0.0;
+				gl_Position.z  = 0.0; // Can change depth here? hue hue
 			} ]],
 		fragment = [[
 			#version 150 compatibility
@@ -229,7 +230,6 @@ function widget:DrawWorld()
 	gl.DepthMask(false) -- dont write to depth buffer
 
 	gl.Culling(GL.FRONT) -- cause our tris are reversed in plane vbo
-	--gl.DepthTest(GL.LEQUAL) no need for depth test
 	gl.Texture(0, "$map_gbuffer_zvaltex")
 	gl.Texture(1, "$model_gbuffer_zvaltex")
 	gl.Texture(2, "$heightmap")
@@ -243,7 +243,7 @@ function widget:DrawWorld()
 	groundFogShader:Activate()
 	groundFogShader:SetUniformFloat("windX", windX)
 	groundFogShader:SetUniformFloat("windZ", windZ)
-	--groundFogShader:SetUniformFloat("globalFogColor", fogUniforms.globalFogColor[1], fogUniforms.globalFogColor[2],fogUniforms.globalFogColor[3],fogUniforms.globalFogColor[4])
+	
 	for uniformName, uniformValue in pairs(fogUniforms) do 
 		local vtype = type(uniformValue)
 		if vtype == 'number' then 
@@ -263,7 +263,6 @@ function widget:DrawWorld()
 	
 	for i = 0, 8 do gl.Texture(i, false) end 
 	gl.Culling(false)
-	--gl.DepthTest(true)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	-- glColorMask(false, false, false, false)
 	if toTexture then 
@@ -284,6 +283,5 @@ function widget:DrawWorld()
 		gl.Texture(0, false)
 		gl.Texture(1, false)
 	end
-  --gl.DepthTest(GL.LEQUAL)
   gl.DepthMask(false) --"BK OpenGL state resets", reset to default state
 end

@@ -17,6 +17,8 @@ uniform sampler2D heightmapTex;
 uniform sampler2D mapDepths;
 uniform sampler2D modelDepths;
 
+uniform float fogPlaneHeight;
+
 out DataVS {
 	vec4 v_worldPos;
 	vec4 v_uvs;
@@ -212,12 +214,12 @@ void main()
 	
 	const float NOISETHRESHOLD = 0.1;
 	
-	rayEnd = clamp((FOGTOP - mapWorldPos.y)/ (camPos.y- mapWorldPos.y),   0, 1) * mapToCam + mapWorldPos.xyz;
+	rayEnd = clamp((fogPlaneHeight - mapWorldPos.y)/ (camPos.y- mapWorldPos.y),   0, 1) * mapToCam + mapWorldPos.xyz;
 	
 	v_meanpos = vec4(0.001);
-	if (mapWorldPos.y < FOGTOP) {
+	if (mapWorldPos.y < fogPlaneHeight) {
 		
-		float distanceFromTop = FOGTOP - mapWorldPos.y;
+		float distanceFromTop = fogPlaneHeight - mapWorldPos.y;
 		float steps = 10.0;
 		for (float f = 0.0; f <= 1.0; f += 1.0 / steps){
 			vec3 rayPos = mix(mapWorldPos.xyz, rayEnd, f);
