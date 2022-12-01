@@ -1239,7 +1239,7 @@ local options={
 	{
 		key    = 'experimentallegionfaction',
 		name   = 'Legion Faction',
-		desc   = '3rd experimental faction',
+		desc   = '3rd experimental faction (does not work with unba enabled!)',
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,
