@@ -164,8 +164,6 @@ void main(void)
 		noiseOffset.y += cos(fragWorldPos.z*0.0012) ;
 		noiseOffset.y -= time * noiseScale ;
 	#endif
-	//vec4 noisesample = texture(noise64cube, v_meanpos.xyz * noiseScale  + noiseOffset);
-	//fragColor.a  *= (noisesample.b + 1);
 	
 	// calculate the Height-based fog amount
 	// rayStart is the distant point through fog and rayEnd is the close point through fog
@@ -200,7 +198,8 @@ void main(void)
 	
 	// TODO: FIX ABOVE FOG TOP!
 	if (rayLength> 0.0001 ) { //TODO: add special case where cam is below fogtop!
-		float rayJitterOffset = (2 * rand(screenUV)) / steps ;
+		float rayJitterOffset = (1 * rand(screenUV)) / steps ;
+		#if (RAYMARCHSTEPS > 0)
 		for (uint i = 0; i < steps; i++){
 			float f = float(i) / steps;
 			vec3 rayPos = mix(rayStart.xyz, rayEnd, f + rayJitterOffset);
@@ -216,10 +215,13 @@ void main(void)
 		
 		collectedShadow /= steps;
 		collectedShadow = pow(collectedShadow, 2.0);
+		#else
+			collectedShadow = 1.0;
+		#endif
 		#if (NOISESAMPLES > 0)
 			for (uint i = 0; i < (NOISESAMPLES); i++){
 				float f = float(i) / (NOISESAMPLES);
-				vec3 rayPos = mix(rayStart.xyz, rayEnd, f + rayJitterOffset);
+				vec3 rayPos = mix(rayStart.xyz, rayEnd, f + 0.005 * rayJitterOffset);
 			//if (1 == 1){
 				vec4 localNoise =  texture(noise64cube, rayPos.xyz * noiseScale  + noiseOffset); // TODO: SUBSAMPLE THIS ONE!
 				collectedNoise += max(0,localNoise.a);
@@ -228,7 +230,7 @@ void main(void)
 		#endif
 	}
 	if (mapWorldPos.y >= fogPlaneHeight){
-		collectedShadow = 1.0; 
+		//collectedShadow = 1.0; 
 	}
 	
 	//modulate the height based component only, not the distance based component
@@ -248,7 +250,7 @@ void main(void)
 	float totalfog = heightBasedFogExp * distanceFogAmountExp;
 	//float totalfog = exp((heightBasedFogExp + distanceFogAmountExp) * expfactor);
 	
-	float outputfogalpha = min(0.90, max(0, 1.0 - totalfog));
+	float outputfogalpha = min(0.99, max(0, 1.0 - totalfog));
 	
 	float shadowColorization = clamp(heightBasedFogExp/distanceFogAmountExp,0,1);
 	

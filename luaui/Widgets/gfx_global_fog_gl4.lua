@@ -22,13 +22,13 @@ local GL_RGBA32F_ARB = 0x8814
 	-- Global Fog density
 	-- Fog Plane Height
 	-- Height-based fog density
-	-- 
+-- Pre optimization at full screen on Colorado is 190 -> 120fps, after 190->150fps
 	
 ---- CONFIGURABLE PARAMETERS: -----------------------------------------
 
 local shaderConfig = {
 	-- These are static parameters, cannot be changed during runtime
-	RAYMARCHSTEPS = 64, -- must be at least one, quite expensive
+	RAYMARCHSTEPS = 32, -- must be at least one, quite expensive
 	RESOLUTION = 2, -- THIS IS EXTREMELY IMPORTANT and specifies the fog plane resolution as a whole! 1 = max, 2 = half, 4 = quarter etc.
 	FOGTOP = 300, -- deprecated
 	NOISESAMPLES = 8, -- how many samples of 3D noise to take
@@ -55,7 +55,7 @@ local worley3d128 = "LuaUI/images/worley_rgbnorm_01_asum_128_v1.dds"
 local dithernoise2d =  "LuaUI/images/lavadistortion.png"
 
 local fogPlaneVAO 
-local resolution = 64
+local resolution = 256
 local groundFogShader
 
 local vsx, vsy
@@ -177,6 +177,7 @@ function widget:Initialize()
 			uniform float distortionlevel;
 			void main(void) {
 				vec2 distUV = gl_TexCoord[0].st * 4 + vec2(0, - gameframe*4);
+				distUV = vec2(0.0);
 				vec4 dist = (texture2D(distortion, distUV) * 2.0 - 1.0) * distortionlevel;
 				vec4 dx = dFdx(dist);
 				vec4 dy = dFdy(dist);
