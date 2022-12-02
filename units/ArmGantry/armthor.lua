@@ -134,7 +134,7 @@ return {
 				duration = 2,
 				edgeeffectiveness = 0.15,
 				energypershot = 350,
-				explosiongenerator = "custom:genericshellexplosion-large-lightning2",
+				explosiongenerator = "custom:genericshellexplosion-large-lightning-thor",
 				fallOffRate = 0.5,
 				firestarter = 50,
 				hardStop = false,
