@@ -21,7 +21,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 10200,
-		maxdamage = 1500,
+		maxdamage = 1667,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/CORHLLT.s3o",

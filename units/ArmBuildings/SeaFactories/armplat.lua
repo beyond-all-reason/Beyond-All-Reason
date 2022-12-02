@@ -17,7 +17,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1820,
+		maxdamage = 2022,
 		minwaterdepth = 30,
 		objectname = "Units/ARMPLAT.s3o",
 		radardistance = 50,

@@ -18,7 +18,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3200,
+		maxdamage = 3556,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/CORTRON.s3o",

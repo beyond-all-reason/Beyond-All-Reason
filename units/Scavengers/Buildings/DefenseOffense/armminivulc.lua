@@ -19,7 +19,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 6000,
+		maxdamage = 6667,
 		maxslope = 13,
 		maxwaterdepth = 0,
 		objectname = "Units/scavbuildings/armminivulc.s3o",

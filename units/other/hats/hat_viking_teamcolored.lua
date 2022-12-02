@@ -23,7 +23,7 @@ return {
     	icontype = "blank",
 		idleautoheal = 100000, --so it doesnt die
 		mass = 0,
-		maxdamage = 5000000,
+		maxdamage = 5555556,
 		maxslope = 64,
 		maxwaterdepth = 1000,
 		movementclass = "NANO",

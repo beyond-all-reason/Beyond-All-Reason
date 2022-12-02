@@ -21,7 +21,7 @@ return {
 		footprintz = 2,
 		hidedamage = true,
 		idleautoheal = 0,
-		maxdamage = 4000,
+		maxdamage = 4444,
 		maxslope = 32,
 		minwaterdepth = 1,
 		objectname = "Units/ARMFDRAG.s3o",

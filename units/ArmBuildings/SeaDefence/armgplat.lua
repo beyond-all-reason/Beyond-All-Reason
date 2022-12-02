@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 680,
+		maxdamage = 756,
 		minwaterdepth = 1,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMGPLAT.s3o",

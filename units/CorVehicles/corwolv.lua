@@ -19,7 +19,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		maxdamage = 577,
+		maxdamage = 641,
 		--maxreversevelocity = 0.648,
 		maxslope = 10,
 		maxvelocity = 1.7,

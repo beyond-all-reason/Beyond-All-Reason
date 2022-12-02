@@ -23,7 +23,7 @@ return {
 		idletime = 0,
 		levelground = false,
 		mass = 165.75,
-		maxdamage = 2,
+		maxdamage = 2.2,
 		maxvelocity = 0,
 		noautofire = false,
 		objectname = "meteor.s3o",

@@ -19,7 +19,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2120,
+		maxdamage = 2356,
 		maxslope = 10,
 		minwaterdepth = 24,
 		objectname = "Units/ARMASON.s3o",

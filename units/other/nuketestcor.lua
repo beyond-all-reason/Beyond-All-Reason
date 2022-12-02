@@ -22,7 +22,7 @@ return {
 		idletime = 90,
 		levelground = false,
 		mass = 165.75,
-		maxdamage = 5560,
+		maxdamage = 6178,
 		maxvelocity = 0,
 		noautofire = false,
 		objectname = "scavs/cube.s3o",

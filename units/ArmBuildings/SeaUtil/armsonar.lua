@@ -21,7 +21,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 50,
+		maxdamage = 56,
 		maxslope = 10,
 		minwaterdepth = 10,
 		objectname = "Units/ARMSONAR.s3o",

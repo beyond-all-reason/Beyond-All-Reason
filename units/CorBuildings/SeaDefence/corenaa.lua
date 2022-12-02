@@ -22,7 +22,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1820,
+		maxdamage = 2022,
 		minwaterdepth = 2,
 		objectname = "Units/CORENAA.s3o",
 		script = "Units/CORENAA.cob",

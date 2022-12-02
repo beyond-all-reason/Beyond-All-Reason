@@ -23,7 +23,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1000, --400,
+		maxdamage = 1111, --444,
 		maxvelocity = 2.16,
 		minwaterdepth = 20,
 		movementclass = "UBOAT4",

@@ -21,7 +21,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 354,
+		maxdamage = 393,
 		maxslope = 10,
 		minwaterdepth = 20,
 		objectname = "Units/CORTIDE.s3o",

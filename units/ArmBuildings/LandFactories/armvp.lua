@@ -21,7 +21,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		levelground = false,
-		maxdamage = 2700,
+		maxdamage = 3000,
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 100,

@@ -21,7 +21,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 5100,
-		maxdamage = 300,
+		maxdamage = 333,
 		maxslope = 20,
 		maxwaterdepth = 0,
 		nochasecategory = "ALL",

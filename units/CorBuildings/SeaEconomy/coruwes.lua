@@ -17,7 +17,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3042,
+		maxdamage = 3380,
 		maxslope = 20,
 		minwaterdepth = 31,
 		objectname = "Units/CORUWES.s3o",

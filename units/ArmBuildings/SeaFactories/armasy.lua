@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 5415,
+		maxdamage = 6017,
 		metalstorage = 200,
 		minwaterdepth = 30,
 		objectname = "Units/ARMASY.s3o",

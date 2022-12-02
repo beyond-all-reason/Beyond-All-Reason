@@ -101,6 +101,8 @@ function UnitDef_Post(name, uDef)
 			uDef.flankingbonusmode = 2
 		end
 	end
+	uDef.flankingbonusmin = 1.0 -- change from default engine value of 0.9
+	uDef.flankingbonusmax = 2.1 -- change from default engine value of 1.9
 	uDef.flankingbonusmin = Spring.GetModOptions().experimentalflankingbonusmin*0.01
 	uDef.flankingbonusmax = Spring.GetModOptions().experimentalflankingbonusmax*0.01
 

@@ -23,7 +23,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 200000,
-		maxdamage = 1500,
+		maxdamage = 1667,
 		maxslope = 10,
 		maxwaterdepth = 1,
 		objectname = "Units/ARMASP.s3o",

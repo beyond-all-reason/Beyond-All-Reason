@@ -17,7 +17,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 500,
+		maxdamage = 556,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/CORMMKR.s3o",

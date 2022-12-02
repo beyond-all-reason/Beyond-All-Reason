@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1730,
+		maxdamage = 1922,
 		minwaterdepth = 5,
 		objectname = "Units/ARMFFLAK.s3o",
 		script = "Units/ARMFFLAK.cob",

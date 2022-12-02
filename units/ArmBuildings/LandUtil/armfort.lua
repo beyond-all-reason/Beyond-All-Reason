@@ -23,7 +23,7 @@ return {
 		hidedamage = true,
 		idleautoheal = 0,
 		levelground = false,
-		maxdamage = 8000,
+		maxdamage = 8889,
 		maxslope = 24,
 		maxwaterdepth = 0,
 		objectname = "Units/ARMFORT.s3o",

@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1760,
+		maxdamage = 1956,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/scavbuildings/ARMWINT2.s3o",

@@ -23,7 +23,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1080,
+		maxdamage = 1200,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/CORADVSOL.s3o",

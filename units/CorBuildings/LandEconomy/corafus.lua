@@ -22,7 +22,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 8500,
+		maxdamage = 9444,
 		maxslope = 13,
 		maxwaterdepth = 0,
 		objectname = "Units/CORAFUS.s3o",

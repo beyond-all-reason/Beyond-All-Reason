@@ -28,7 +28,7 @@ return {
 		idleautoheal = 0,
 		mass = 125,
 		maxbank = 0.2,
-		maxdamage = 10,
+		maxdamage = 11,
 		maxpitch = 0.2,
 		maxvelocity = 1.8,
 		objectname = "Critters/critter_gull.s3o",

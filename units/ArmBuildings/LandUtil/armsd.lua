@@ -20,7 +20,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		levelground = false,
-		maxdamage = 2400,
+		maxdamage = 2667,
 		maxslope = 36,
 		maxwaterdepth = 0,
 		objectname = "Units/ARMSD.s3o",

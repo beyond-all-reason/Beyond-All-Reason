@@ -22,7 +22,7 @@ return {
 		hidedamage = true,
 		idleautoheal = 0,
 		levelground = false,
-		maxdamage = 2500,
+		maxdamage = 2778,
 		maxslope = 64,
 		maxwaterdepth = 0,
 		objectname = "Units/cordrag.s3o",

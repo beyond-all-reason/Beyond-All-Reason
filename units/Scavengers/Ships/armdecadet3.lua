@@ -21,7 +21,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 13000,
+		maxdamage = 14444,
 		maxvelocity = 2.3,
 		minwaterdepth = 12,
 		movementclass = "EPICSHIP",

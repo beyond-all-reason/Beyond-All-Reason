@@ -23,7 +23,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3700,
+		maxdamage = 4111,
 		maxslope = 10,
 		maxvelocity = 0,
 		minwaterdepth = 16,

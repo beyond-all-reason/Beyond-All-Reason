@@ -20,7 +20,7 @@ return {
 		icontype = "corthovr",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 5020,
+		maxdamage = 5578,
 		maxvelocity = 1.84,
 		minwaterdepth = 12,
 		movementclass = "HOVER4",

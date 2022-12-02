@@ -22,7 +22,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		losemitheight = 87,
-		maxdamage = 330,
+		maxdamage = 367,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/CORARAD.s3o",

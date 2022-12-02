@@ -22,7 +22,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		istargetingupgrade = true,
-		maxdamage = 1375,
+		maxdamage = 1528,
 		maxslope = 10,
 		minwaterdepth = 30,
 		objectname = "Units/CORFATF.s3o",

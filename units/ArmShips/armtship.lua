@@ -21,7 +21,7 @@ return {
 		footprintz = 6,
 		icontype = "sea",
 		loadingradius = 250,
-		maxdamage = 2900,
+		maxdamage = 3222,
 		maxvelocity = 2.4,
 		minwaterdepth = 0,
 		movementclass = "BOAT5",

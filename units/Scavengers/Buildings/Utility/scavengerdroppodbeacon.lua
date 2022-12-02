@@ -27,7 +27,7 @@ return {
 		idletime = 90,
 		levelground = false,
 		mass = 10000,
-		maxdamage = 2000,
+		maxdamage = 2222,
 		maxvelocity = 0,
 		noautofire = false,
 		objectname = "scavs/scavbeaconbyar.s3o",

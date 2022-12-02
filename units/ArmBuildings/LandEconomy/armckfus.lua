@@ -23,7 +23,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		initcloaked = true,
-		maxdamage = 4000,
+		maxdamage = 4444,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		mincloakdistance = 100,

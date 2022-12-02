@@ -24,7 +24,7 @@ return {
 		idletime = 1800,
 		losemitheight = 52,
 		mass = 9999999,
-		maxdamage = 44800,
+		maxdamage = 49778,
 		maxvelocity = 1.795,
 		minwaterdepth = 15,
 		movementclass = "BOAT8",
