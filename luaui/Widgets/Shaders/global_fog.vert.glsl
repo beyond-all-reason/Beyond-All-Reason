@@ -182,8 +182,8 @@ void main()
 	vec2 screenPos = positionxy_xyfract.xy ;
 	vec2 screenUV = (positionxy_xyfract.xy * 0.5) + 0.5;// * viewGeometry.xy;
 	
-	float mapdepth = 0;//texture(mapDepths, screenUV).x;
-	float modeldepth = 0;//texture(modelDepths, screenUV).x;
+	float mapdepth = texture(mapDepths, screenUV).x;
+	float modeldepth = 100;// texture(modelDepths, screenUV).x;
 	mapdepth = min(mapdepth, modeldepth);
 
 	vec4 mapWorldPos =  vec4( vec3(screenPos, mapdepth),  1.0);
@@ -195,7 +195,7 @@ void main()
 	//v_mapPos.r = mapdepth*10;
 	//v_mapPos = mapWorldPos;
 	
-	//v_simplex.x = Perlin4D(vec4(mapWorldPos.xyz, time * 50) * 0.004);
+	v_simplex.x = Perlin4D(vec4(mapWorldPos.xyz, time * 5) * 0.001);
 	//v_simplex.y = Perlin4D(vec4(mapWorldPos.xyz, time * 50) * 0.003);
 
 	//v_mapPos.w = length(v_mapPos.xyz - cameraViewInv[3].xyz);
@@ -212,7 +212,7 @@ void main()
 
 	vec3 rayEnd = mapWorldPos.xyz;
 	
-	const float NOISETHRESHOLD = 0.1;
+	//const float NOISETHRESHOLD = 0.1;
 	
 	rayEnd = clamp((fogPlaneHeight - mapWorldPos.y)/ (camPos.y- mapWorldPos.y),   0, 1) * mapToCam + mapWorldPos.xyz;
 	/*

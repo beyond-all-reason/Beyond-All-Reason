@@ -35,6 +35,7 @@ uniform float windZ;
 uniform vec4 fogGlobalColor;
 uniform vec4 fogSunColor;
 uniform vec4 fogShadowedColor;
+uniform vec4 noiseParams;
 
 uniform float fogGlobalDensity;
 uniform float fogGroundDensity;
@@ -157,7 +158,7 @@ void main(void)
 	vec3 fragWorldPos = v_worldPos.xyz;
 
 	#if (NOISESAMPLES > 0)
-		float noiseScale =  0.001 * NOISESCALE;
+		float noiseScale =  0.001 * noiseParams.x;
 		vec3 noiseOffset = vec3(0.0);
 		noiseOffset.xz -= vec2(windX, windZ) * noiseScale ;
 		noiseOffset.y += sin(fragWorldPos.x*0.001) ;
@@ -196,37 +197,90 @@ void main(void)
 	float collectedNoise = 0.0;
 	float collectedShadow = 0.0; // What fraction of samples were LIT along the way.
 	
+	float largenoise = SimplexPerlin3D ((rayStart ) * noiseScale * noiseParams.z + noiseOffset);
+	
+	vec4 densityposition = vec4(0); // Ok, this contains the center-weighted sum of all positions, 
 	// TODO: FIX ABOVE FOG TOP!
-	if (rayLength> 0.0001 ) { //TODO: add special case where cam is below fogtop!
-		float rayJitterOffset = (1 * rand(screenUV)) / steps ;
-		#if (RAYMARCHSTEPS > 0)
-		for (uint i = 0; i < steps; i++){
-			float f = float(i) / steps;
-			vec3 rayPos = mix(rayStart.xyz, rayEnd, f + rayJitterOffset);
-			
-			
-			float localShadow= shadowAtWorldPos(rayPos); // 1 for lit, 0 for unlit
-			float shadowDelta = 0.25 * (abs(dFdx(localShadow)) + abs(dFdy(localShadow)));
-			
-			localShadow = mix(shadowDelta, 1.0 - shadowDelta, localShadow);
-			collectedShadow += localShadow;
-			//collectedShadow += dot(vec3(0.33), abs(vec3(localShadow, rightShadow,upShadow))); 
-		}
-		
-		collectedShadow /= steps;
-		collectedShadow = pow(collectedShadow, 2.0);
-		#else
-			collectedShadow = 1.0;
-		#endif
-		#if (NOISESAMPLES > 0)
-			for (uint i = 0; i < (NOISESAMPLES); i++){
-				float f = float(i) / (NOISESAMPLES);
-				vec3 rayPos = mix(rayStart.xyz, rayEnd, f + 0.005 * rayJitterOffset);
-			//if (1 == 1){
-				vec4 localNoise =  texture(noise64cube, rayPos.xyz * noiseScale  + noiseOffset); // TODO: SUBSAMPLE THIS ONE!
-				collectedNoise += max(0,localNoise.a);
+	// TODO: fix warps sampling zero simplex!
+	
+	if (rayLength> 0.0001 ) { 
+		#if 0
+			float rayJitterOffset = (1 * rand(screenUV)) / steps ;
+			#if (RAYMARCHSTEPS > 0)
+			for (uint i = 0; i < steps; i++){
+				float f = float(i) / steps;
+				vec3 rayPos = mix(rayStart.xyz, rayEnd, f + rayJitterOffset);
+				
+				float localShadow= shadowAtWorldPos(rayPos); // 1 for lit, 0 for unlit
+				float shadowDelta = 0.25 * (abs(dFdx(localShadow)) + abs(dFdy(localShadow)));
+				
+				localShadow = mix(shadowDelta, 1.0 - shadowDelta, localShadow);
+				collectedShadow += localShadow;
 			}
-			heightBasedFog *= collectedNoise/(NOISESAMPLES);
+			
+			collectedShadow /= steps;
+			collectedShadow = pow(collectedShadow, 2.0);
+			#else
+				collectedShadow = 1.0;
+			#endif
+			#if (NOISESAMPLES > 0)
+				for (uint i = 0; i < (NOISESAMPLES); i++){
+					float f = float(i) / (NOISESAMPLES);
+					vec3 rayPos = mix(rayStart.xyz, rayEnd, f + 0.005 * rayJitterOffset);
+				//if (1 == 1){
+					vec4 localNoise =  texture(noise64cube, rayPos.xyz * noiseScale  + noiseOffset); // TODO: SUBSAMPLE THIS ONE!
+					
+					float simplexnoise = SimplexPerlin3D ((rayPos ) * noiseScale * noiseParams.z + noiseOffset);
+					//simplexnoise = largenoise;
+					float thisraynoise = max(0,localNoise.a + noiseParams.y - simplexnoise);
+					collectedNoise += thisraynoise;
+				}
+				heightBasedFog *= collectedNoise/(NOISESAMPLES);
+			#endif
+			
+		#else
+			
+			#if ((RAYMARCHSTEPS > 0) && (NOISESAMPLES >0))
+				float numShadowSamplesTaken = 0.001;
+				uint shadowSteps = RAYMARCHSTEPS / NOISESAMPLES;
+				float rayJitterOffset = (1 * rand(screenUV)) / steps ;
+				for (uint n = 0; n < NOISESAMPLES; n ++){
+					float f = float(n) / NOISESAMPLES;
+					
+					vec3 rayPos = mix(rayStart.xyz, rayEnd, f + 0.5 * rayJitterOffset);
+					
+					//vec4 localNoise =  texture(noise64cube, rayPos.xyz * noiseScale + noiseOffset); // TODO: SUBSAMPLE THIS ONE!
+					vec3 skewed3dpos = (rayPos.xyz * noiseScale*0.5 + noiseOffset) * vec3(1,4,1);
+					float localNoise = 1.0 - texture(noise64cube, skewed3dpos.xzy).r; // TODO: SUBSAMPLE THIS ONE!
+					float simplexnoise = SimplexPerlin3D((rayPos) * noiseScale * noiseParams.z + noiseOffset)*0.5;
+					//simplexnoise = 0;
+					float thisraynoise = max(0, localNoise.r + noiseParams.y - simplexnoise);
+					collectedNoise += thisraynoise;
+					
+					densityposition += vec4(rayPos*thisraynoise, thisraynoise); // collecting the 'center' of the noise cloud
+					if (thisraynoise > 0 ) { // only sample shadow if we have actual fog here!
+						for (uint m = 0; m < shadowSteps; m++){ // step through the small local volume 
+							f += (float(m)) / (steps); 
+							//float f = (float(m) + float(n) * NOISESAMPLES)/ steps;
+							vec3 rayPos = mix(rayStart.xyz, rayEnd, f + rayJitterOffset);
+							
+							float localShadow= shadowAtWorldPos(rayPos); // 1 for lit, 0 for unlit
+							float shadowDelta = 0.25 * (abs(dFdx(localShadow)) + abs(dFdy(localShadow))); // magic smoothing using adjacent pixels
+							
+							localShadow = mix(shadowDelta, 1.0 - shadowDelta, localShadow);
+							collectedShadow += localShadow;
+							numShadowSamplesTaken += 1.0;
+						}
+					}
+				}
+				collectedShadow /= numShadowSamplesTaken; // get the true litness by only taking into account actual samples taken
+				densityposition.xyz /= densityposition.w;
+				heightBasedFog *= collectedNoise/(NOISESAMPLES);
+			#else // fall back to retard mode
+				collectedShadow = 1.0;
+				densityposition.xyz = (rayStart + rayEnd)*0.5;
+			#endif
+		
 		#endif
 	}
 	if (mapWorldPos.y >= fogPlaneHeight){
@@ -256,8 +310,10 @@ void main(void)
 	
 	// Colorize fog based on view angle: TODO do this on center weigth of both !
 	vec3 toCameraNormalized = normalize(mapToCam);
-	float sunAmount = abs(dot(-toCameraNormalized, sunDir.xyz));
-	vec3 fogColor = mix(fogGlobalColor.rgb, 2*fogSunColor.rgb, pow(sunAmount,4.0));
+	float sunAmount = dot(-toCameraNormalized, sunDir.xyz);
+	float sphericalharmonic = pow(2, (cos(cos(sunAmount) * 3.14*8)));
+	sphericalharmonic= abs(sunAmount);
+	vec3 fogColor = mix(fogGlobalColor.rgb, 2*fogSunColor.rgb, pow(sphericalharmonic,4.0));
 	
 	// Set the base color depending on how shadowed it is, 
 	// shadowed components should tend toward fogGlobalColor

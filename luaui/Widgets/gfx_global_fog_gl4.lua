@@ -23,7 +23,18 @@ local GL_RGBA32F_ARB = 0x8814
 	-- Fog Plane Height
 	-- Height-based fog density
 -- Pre optimization at full screen on Colorado is 190 -> 120fps, after 190->150fps
-	
+-- Fix mixing of shadow marching and noise sampling, with conditional shadow marching
+-- Fix colorization based on sun angle
+-- Use a spherical harmonics equation for this?
+-- Fix colorization of height based and distance based fog
+-- Use non constant density fog (maybe exponential is better?) 
+-- Create a better noise texture (also use this for other occasions!)
+-- Expose params to be easily tunable
+-- Create quality 'presets' and auto apply them?
+-- copy the whole self-illumination and shading thing from the fog volumes gl4 shader? 
+
+
+
 ---- CONFIGURABLE PARAMETERS: -----------------------------------------
 
 local shaderConfig = {
@@ -32,7 +43,8 @@ local shaderConfig = {
 	RESOLUTION = 2, -- THIS IS EXTREMELY IMPORTANT and specifies the fog plane resolution as a whole! 1 = max, 2 = half, 4 = quarter etc.
 	FOGTOP = 300, -- deprecated
 	NOISESAMPLES = 8, -- how many samples of 3D noise to take
-	NOISESCALE = 0.75,
+	NOISESCALE = 1.2,
+	NOISETHRESHOLD = -0.0,
 }
 
 local minHeight, maxHeight = Spring.GetGroundExtremes()
@@ -42,20 +54,28 @@ local fogUniforms = {
 	fogShadowedColor = {0.1,0.05,0.1,1}, -- purleish tint
 	fogPlaneHeight = (math.max(minHeight,0) + maxHeight) /2 ,
 	fogGlobalDensity = 1.0,
-	fogGroundDensity = 0.1,
-	fogExpFactor = -0.0001 -- yes these are small negative numbers
+	fogGroundDensity = 0.2,
+	fogExpFactor = -0.0001, -- yes these are small negative numbers
+	noiseParams = {
+		2.2, -- high-frequency cloud noise, lower numbers = lower frequency
+		0.0, -- noise bias, [-1,1] high numbers denser
+		1.5, -- low frequency big cloud noise, lower numbers = lower frequency
+		0.0,
+		},
 	}
 
 ---------------------------------------------------------------------------
 local autoreload = true
 
-local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
+--local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
+--local noisetex3dcube =  "LuaUI/images/noisetextures/cloudy8_256x256x64_L.dds"
+local noisetex3dcube =  "LuaUI/images/noisetextures/cloudy8_a_128x128x32_L.dds"
 local simpledither = "LuaUI/images/rgba_noise_256.tga"
 local worley3d128 = "LuaUI/images/worley_rgbnorm_01_asum_128_v1.dds"
 local dithernoise2d =  "LuaUI/images/lavadistortion.png"
 
 local fogPlaneVAO 
-local resolution = 256
+local resolution = 64
 local groundFogShader
 
 local vsx, vsy
@@ -88,11 +108,9 @@ local shaderSourceCache = {
 			shadowTex = 4,
 			noise64cube = 5,
 			dithernoise2d = 6,
-			simpledither = 7,
-			worley3d3level = 8,
+			worley3d3level = 7,
 		},
 		uniformFloat = {
-			fadeDistance = 300000,
 			windX = 0,
 			windZ = 0,
 			fogGlobalColor = fogUniforms.fogGlobalColor,
@@ -140,10 +158,14 @@ local function initGL4()
 	return true
 end
 
-local function SetFogParams(paramname, paramvalue)
+local function SetFogParams(paramname, paramvalue, paramIndex)
 	Spring.Echo("SetFogParams",paramname, paramvalue)
 	if fogUniforms[paramname] then
-		fogUniforms[paramname] = paramvalue
+		if paramIndex then 
+			fogUniforms[paramname][paramIndex] = paramvalue
+		else
+			fogUniforms[paramname] = paramvalue
+		end
 	end
 end
 
@@ -177,7 +199,7 @@ function widget:Initialize()
 			uniform float distortionlevel;
 			void main(void) {
 				vec2 distUV = gl_TexCoord[0].st * 4 + vec2(0, - gameframe*4);
-				distUV = vec2(0.0);
+				//distUV = vec2(0.0);
 				vec4 dist = (texture2D(distortion, distUV) * 2.0 - 1.0) * distortionlevel;
 				vec4 dx = dFdx(dist);
 				vec4 dy = dFdy(dist);
@@ -238,8 +260,7 @@ function widget:DrawWorld()
 	gl.Texture(4, "$shadow")
 	gl.Texture(5, noisetex3dcube)
 	gl.Texture(6, dithernoise2d)
-	gl.Texture(7, simpledither)
-	gl.Texture(8, worley3d128)
+	gl.Texture(7, worley3d128)
 	
 	groundFogShader:Activate()
 	groundFogShader:SetUniformFloat("windX", windX)
@@ -262,7 +283,7 @@ function widget:DrawWorld()
 
 	groundFogShader:Deactivate()
 	
-	for i = 0, 8 do gl.Texture(i, false) end 
+	for i = 0, 7 do gl.Texture(i, false) end 
 	gl.Culling(false)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	-- glColorMask(false, false, false, false)
