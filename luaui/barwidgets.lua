@@ -2067,7 +2067,7 @@ end
 
 function widgetHandler:AlliedUnitsChanged(visibleUnits, numVisibleUnits)
 	for _, w in ipairs(self.AlliedUnitsChangedList) do
-		w:AlliedUnitsChanged(alliedUnits, numAlliedUnits)
+		w:AlliedUnitsChanged(visibleUnits, numVisibleUnits)
 	end
 end
 
