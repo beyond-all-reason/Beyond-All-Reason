@@ -138,14 +138,18 @@ local BaseClasses = {
 
 
 local SizeRadius = {
-	Micro = 		30,
-	Tiny = 			55,
-	Smaller = 		75,
-	Small = 		100,
-	Smallish = 		130,
-	SmallMedium = 	160,
-	Medium = 		200,
-	Mediumer = 		250,
+	Pico = 			26,
+	Nano = 			34,
+	Micro = 		44,
+	Tiniest = 		56,
+	Tiny = 			72,
+	Smallest = 		90,
+	Smaller = 		115,
+	Small = 		140,
+	Smallish = 		165,
+	SmallMedium = 	190,
+	Medium = 		220,
+	Mediumer = 		260,
 	MediumLarge = 	300,
 	Large = 		400,
 	Larger = 		500,
@@ -368,7 +372,7 @@ local function AssignLightsToAllWeapons()
 
 		elseif weaponDef.type == 'Cannon' then
 			t.a = orgMult*0.17
-			radius = ((weaponDef.damageAreaOfEffect*1.7) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 0.7))
+			radius = (radius + (weaponDef.size * 35)) * 0.44
 			sizeclass = GetClosestSizeClass(radius)
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Plasma", sizeclass, t)
 			radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
