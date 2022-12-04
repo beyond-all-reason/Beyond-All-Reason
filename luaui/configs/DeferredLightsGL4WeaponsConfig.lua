@@ -129,9 +129,9 @@ local BaseClasses = {
 		lightConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 150,
 			r = 2, g = 2, b = 2, a = 0.7,
-			color2r = 0.75, color2g = 0.65, color2b = 0.4, colortime = 6, -- point lights only, colortime in seconds for unit-attached
+			color2r = 0.75, color2g = 0.65, color2b = 0.4, colortime = 0, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.8, specular = 0.5, scattering = 0.6, lensflare = 1,
-			lifetime = 4, sustain = 0.005, 	aninmtype = 0, -- unused
+			lifetime = 6, sustain = 0.0035, 	aninmtype = 0, -- unused
 		},
 	},
 }
@@ -367,8 +367,11 @@ local function AssignLightsToAllWeapons()
 			sizeclass = GetClosestSizeClass(radius)
 
 		elseif weaponDef.type == 'Cannon' then
-			t.a = orgMult*0.18
+			t.a = orgMult*0.17
+			radius = ((weaponDef.damageAreaOfEffect*1.7) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 0.7))
+			sizeclass = GetClosestSizeClass(radius)
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Plasma", sizeclass, t)
+			radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
 
 		elseif weaponDef.type == 'DGun' then
 			muzzleFlash = true --doesnt work
@@ -403,10 +406,12 @@ local function AssignLightsToAllWeapons()
 			if scavenger then
 				t.r, t.g, t.b = 0.99, 0.9, 1
 			end
-			t.a = orgMult*1.1
+			t.a = orgMult*1.15
+			t.colortime = 0
 			muzzleFlashLights[weaponID] = GetLightClass("MuzzleFlash", "White", GetClosestSizeClass(radius*0.4), t)
 			muzzleFlashLights[weaponID].yOffset = muzzleFlashLights[weaponID].lightConfig.radius / 5
 		end
+
 		if explosionLight then
 			if aa then
 				t.r, t.g, t.b = 1, 0.7, 0.85
