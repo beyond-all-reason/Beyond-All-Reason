@@ -248,8 +248,8 @@ local gibLight = {
 	lightType = 'point', -- or cone or beam
 	pieceName = nil, -- optional
 	lightConfig = {
-		posx = 0, posy = 0, posz = 0, radius = 36,
-		r = 1, g = 0.9, b = 0.5, a = 0.22,
+		posx = 0, posy = 0, posz = 0, radius = 38,
+		r = 1, g = 0.9, b = 0.5, a = 0.12,
 		color2r = 0.9, color2g = 0.75, color2b = 0.25, colortime = 0.3, -- point lights only, colortime in seconds for unit-attache
 		modelfactor = 0.4, specular = 0.5, scattering = 0.7, lensflare = 0,
 		lifetime = 300, sustain = 3, aninmtype = 0 -- unused
@@ -351,8 +351,8 @@ local function AssignLightsToAllWeapons()
 			if not scavenger then
 				t.r, t.g, t.b = 0.2, 0.45, 1
 			end
-			t.a = orgMult * 0.9
-			sizeclass = GetClosestSizeClass(radius*8)
+			t.a = 0.13 + (orgMult * 0.5)
+			sizeclass = GetClosestSizeClass(33 + (radius*2.5))
 			projectileDefLights[weaponID] = GetLightClass("LaserProjectile", "Cold", sizeclass, t)
 
 		elseif weaponDef.type == 'MissileLauncher'then
@@ -423,10 +423,16 @@ local function AssignLightsToAllWeapons()
 			elseif weaponDef.type == 'Flame' then
 				t.a = orgMult*0.17
 			elseif weaponDef.type == 'BeamLaser' then
-				t.a = (orgMult*0.11) / (0.2 + weaponDef.beamtime)
-				t.colortime = 1
+				local mult = 0.85
+				t.color2r, t.color2g, t.color2b = r*mult, g*mult, b*mult
+				t.colortime = 2
+				t.lifetime = life * 0.5
+				t.a = 0.02 + ((orgMult*0.055) / weaponDef.beamtime) + (weaponDef.range*0.000035)
+				radius = 1.6 * ((weaponDef.damageAreaOfEffect*4) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.1)) + (weaponDef.range*0.08)
+				sizeclass = GetClosestSizeClass(radius)
 			elseif weaponDef.type == 'LightningCannon' then
-				t.a = orgMult*10.17
+				t.a = orgMult*1.2
+				sizeclass = GetClosestSizeClass(radius*1.2)
 			else
 				if weaponDef.type == 'AircraftBomb' then
 					if weaponDef.paralyzer then
