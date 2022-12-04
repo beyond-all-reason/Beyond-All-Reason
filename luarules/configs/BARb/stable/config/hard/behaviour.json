@@ -359,8 +359,8 @@
 		},
 		"armanni": {
 			"role": ["static"],
-			"threat": {"air":0.0, "surf":0.5, "water":1.0, 
-				"vs": {"raider":0.2}
+			"threat": {"air":0.0, "surf":0.5, "water":0.1, 
+				"vs": {"scout":0.1, "raider":0.1, "heavy": 2.0, "super":2.0}
 			}
 		},
 		"armbrtha": {
@@ -499,11 +499,11 @@
 		},
 		"cordoom": {
 			"role": ["static"],
-			"threat": {"air": 0.0, "water": 0.0,"surf": 0.5, "vs": {"raider":0.5}}
+			"threat": {"air":0.0, "surf":1.0, "water":0.1, "vs": {"scout":0.4, "raider":0.4, "artillery":0.3, "anti_heavy":0.5, "anti_heavy_ass":0.5, "super":0.8}}
         },
         "corfdoom": {
             "role": ["static"],
-            "threat": {"air": 0.0, "water": 0.0,"surf": 1.0,  "vs": {"heavy": 1.5}} 
+			"threat": {"air":0.0, "surf":1.0, "water":0.1, "vs": {"scout":0.4, "raider":0.4, "artillery":0.3, "anti_heavy":0.5, "anti_heavy_ass":0.5, "super":0.8}}
 		},
         "corjuno":{
 			"role":["super", "static"],
