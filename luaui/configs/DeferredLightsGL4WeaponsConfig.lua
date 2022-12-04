@@ -440,9 +440,11 @@ local function AssignLightsToAllWeapons()
 				radius = 1.6 * ((weaponDef.damageAreaOfEffect*4) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.1)) + (weaponDef.range*0.08)
 				sizeclass = GetClosestSizeClass(radius)
 			elseif weaponDef.type == 'LightningCannon' then
-				t.a = orgMult*1.2
+				t.a = orgMult*1.25
 				sizeclass = GetClosestSizeClass(radius*1.2)
 			else
+				radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
+				sizeclass = GetClosestSizeClass(radius)
 				if weaponDef.type == 'AircraftBomb' then
 					if weaponDef.paralyzer then
 						t.r = t.r * 1.7	-- make more red
@@ -462,7 +464,7 @@ local function AssignLightsToAllWeapons()
 				t.r = (1.3 + t.r) / 2.3	-- make more white
 				t.g = (1.3 + t.g) / 2.3	-- make more white
 				t.b = (1.3 + t.b) / 2.3	-- make more white
-				t.a = orgMult*1.8
+				t.a = orgMult*2.4
 				local mult = 0.55
 				t.color2r, t.color2g, t.color2b = r*mult, g*mult, b*mult
 			end
