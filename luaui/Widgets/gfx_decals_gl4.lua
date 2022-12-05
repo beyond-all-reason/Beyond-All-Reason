@@ -61,13 +61,14 @@ local additionalcrap = {} -- a list of paths to also include for i dunno, sprays
 
 -- large decal resolution, 16x16 grid is ok
 local resolution = 16 -- 32 is 2k tris, a tad pricey...
-local largesizethreshold  = 128 -- if min(width,height)> than this, then we use the large version!
+local largesizethreshold  = 1280 -- if min(width,height)> than this, then we use the large version!
 local extralargesizeThreshold = 768 -- if min(width,height)> than this, then we use the extra large version!
 
-local autoupdate = true -- auto update shader, for debugging only!
+local autoupdate = false -- auto update shader, for debugging only!
+
 
 -- for automatic oversaturation prevention, not sure if it even works, but hey!
-local areaResolution = 256 -- elmos per square, for a 64x map this is uh, big.
+local areaResolution = 256 -- elmos per square, for a 64x map this is uh, big? for 32x32 its 4k
 local saturationThreshold = 100 * areaResolution
 
 ------------------------ GL4 BACKEND -----------------------------------
@@ -91,6 +92,7 @@ local function addDirToAtlas(atlas, path, key, filelist)
 	if filelist == nil then filelist = {} end
 	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
 	local files = VFS.DirList(path)
+	--files = table.sort(files)
 	--Spring.Echo("Adding",#files, "images to atlas from", path, key)
 	for i=1, #files do
 		if imgExts[string.sub(files[i],-3,-1)] and string.find(files[i], key, nil, true) then
@@ -146,6 +148,13 @@ local decalShader = nil
 local decalLargeShader = nil
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
+
+--------------------------- Localization for faster access -------------------
+
+local spGetGroundHeight = Spring.GetGroundHeight
+local sqrt = math.sqrt
+local diag = math.diag
+local abs = math.abs
 
 local glTexture = gl.Texture
 local glCulling = gl.Culling
@@ -295,6 +304,7 @@ end
 local decalIndex = 0
 local decalTimes = {} -- maps instanceID to expected fadeout timeInfo
 local decalRemoveQueue = {} -- maps gameframes to list of decals that will be removed
+local decalRemoveList = {} -- maps instanceID's of decals that need to be batch removed to preserve order
 
 -----------------------------------------------------------------------------------------------
 -- This part is kinda useless for now, but we could prevent or control excessive decal spam right here!
@@ -304,13 +314,18 @@ local areaDecals = {} -- {positionkey = {decallist, totalarea},}
 local floor = math.floor
 
 local function hashPos(mapx, mapz) -- packs XZ into 1000*x + z
+	if mapx == nil or mapz == nil then
+		Spring.Debug.TraceFullEcho()
+	end
+		
 	return floor(mapx / areaResolution) * 1000 + floor(mapz/areaResolution)
 end
 
 local function initAreas() 
 	for x= areaResolution /2, Game.mapSizeX, areaResolution do 
 		for z= areaResolution /2, Game.mapSizeZ, areaResolution do 
-			areaDecals[hashPos(x,z)] = {instanceIDs = {}, totalarea = 0}
+			local gh = spGetGroundHeight(x,z)
+			areaDecals[hashPos(x,z)] = {instanceIDs = {}, totalarea = 0, x = x, y = gh, z = z, smoothness = 0}
 		end
 	end
 end
@@ -341,6 +356,66 @@ local function CheckDecalAreaSaturation(posx, posz, width, length)
 	--Spring.Echo(hash,posx,posz, next(areaDecals))
 	return (math.sqrt(areaDecals[hashPos(posx,posz)].totalarea) > saturationThreshold)
 end
+
+local updatePositionX = 0
+local updatePositionZ = 0
+function widget:Update() -- this is pointlessly expensive!
+	if true then return end
+	-- run over the map, one area per frame, and calc its smoothness
+	updatePositionX = updatePositionX + areaResolution
+	if updatePositionX >= Game.mapSizeX then
+		updatePositionX = 0
+		updatePositionZ = updatePositionZ + areaResolution
+		if updatePositionZ >= Game.mapSizeZ then 
+			updatePositionZ = 0
+		end
+	end
+	if updatePositionX == nil or updatePositionZ == nil then 
+		Spring.Echo("updatePositionX == nil or updatePositionZ == nil")
+		return
+	end
+	local hash = hashPos(updatePositionX, updatePositionZ) 
+	--Spring.Echo("Updateing smoothness at",updatePositionX, updatePositionZ)
+	local step = areaResolution/ 16
+	local totalheight = 0 
+	local numsamples = 0
+	local totalsmoothness = 0
+	local prevHeight = spGetGroundHeight(updatePositionX, updatePositionZ)
+	local prevX = prevHeight
+	for x = updatePositionX, updatePositionX + areaResolution, step do 
+		for z = updatePositionZ, updatePositionZ + areaResolution, step do 
+			local h = spGetGroundHeight(x,z)
+			--numsamples = numsamples + 1 
+			--totalheight = totalheight + h
+			--local avgheight = totalheight / numsamples
+			--totalsmoothness = totalsmoothness + abs(h-avgheight)
+			totalsmoothness = totalsmoothness + abs(h-prevHeight)
+			prevHeight = h
+		end
+		prevX = prevHeight
+	end	
+	areaDecals[hash].smoothness = totalsmoothness
+end
+
+local function DrawSmoothness()				
+	gl.Color(1,1,1,1)
+	for areaHash, areaInfo in pairs(areaDecals) do 
+		--Spring.Echo(areaHash, areaInfo.x, areaInfo.y, areaInfo.z)
+		if Spring.IsSphereInView(areaInfo.x, areaInfo.y, areaInfo.z, 128) then 
+			gl.PushMatrix()
+			local text = string.format("Smoothness = %d",areaInfo.smoothness)
+			local w = gl.GetTextWidth(text) * 16.0
+			gl.Translate(areaInfo.x - w, areaInfo.y + 64, areaInfo.z)
+			gl.Text( text,0,0,16,'n')
+			gl.PopMatrix()
+		end
+	end
+end
+
+function widget:DrawWorld()
+	--DrawSmoothness()
+end
+
 -----------------------------------------------------------------------------------------------
 
 local function AddDecal(decaltexturename, posx, posz, rotation, width, length, heatstart, heatdecay, alphastart, alphadecay, maxalpha, spawnframe)
@@ -378,6 +453,9 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 
 	local posy = Spring.GetGroundHeight(posx, posz)
 	--Spring.Echo (unitDefID,decalInfo.texfile, width, length, alpha)
+	-- match the vertex shader on lifetime:
+	-- 	float currentAlpha = min(1.0, (lifetonow / FADEINTIME))  * alphastart - lifetonow* alphadecay;
+	--  currentAlpha = min(currentAlpha, lengthwidthrotation.w);
 	local lifetime = math.floor(alphastart/alphadecay)
 	decalIndex = decalIndex + 1
 	local targetVBO = decalVBO
@@ -412,6 +490,10 @@ end
 
 function widget:DrawWorldPreUnit()
 	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
+		if autoupdate and Spring.GetDrawFrame() %500 == 0 then 
+			Spring.Echo('Decals GL4 small=',decalVBO.usedElements, ' large=', decalLargeVBO.usedElements,'xlarge=', decalExtraLargeVBO.usedElements)
+		end
+		
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--Spring.Echo(decalVBO.usedElements,decalLargeVBO.usedElements)
 		glCulling(GL.BACK) 
@@ -482,10 +564,29 @@ end
 function widget:GameFrame(n)
 	if decalRemoveQueue[n] then 
 		for i=1, #decalRemoveQueue[n] do
-			RemoveDecal(decalRemoveQueue[n][i])
+			local decalID = decalRemoveQueue[n][i]
+			decalRemoveList[decalID] = true
+			--RemoveDecal(decalID)
 		end
 		decalRemoveQueue[n] = nil
 	end
+	if (n %91) == 0 then 
+		local removed = 0
+		removed = removed + compactInstanceVBO(decalVBO, decalRemoveList)
+		removed = removed + compactInstanceVBO(decalLargeVBO, decalRemoveList)
+		removed = removed + compactInstanceVBO(decalExtraLargeVBO, decalRemoveList)
+		decalRemoveList = {}
+		
+		if autoupdate and removed > 0 then 
+			Spring.Echo("Removed",removed,"decals from decal instance tables")
+		end
+		if removed > 0 then 
+			uploadAllElements(	decalVBO)
+			uploadAllElements(	decalLargeVBO)
+			uploadAllElements(	decalExtraLargeVBO)
+		end
+	end
+	
 end
 
 local function randtablechoice (t)
@@ -500,6 +601,40 @@ local function randtablechoice (t)
 	return next(t)
 end
 
+function widget:Explosion(weaponDefID, px, py, pz, AttackerID, ProjectileID) -- This callin is not registered!
+	---Spring.Echo("widget:Explosion",weaponDefID, px, py, pz, AttackerID, ProjectileID)
+end
+
+local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
+	local weaponDef = WeaponDefs[weaponID]
+	--Spring.Echo("GadgetWeaponExplosionDecal",px, py, pz, weaponID, ownerID, weaponDef.damageAreaOfEffect, weaponDef.name)
+	local idx = randtablechoice(decalImageCoords)
+	local radius = weaponDef.damageAreaOfEffect * 2
+	local gh = spGetGroundHeight(px,pz)
+	-- dont spawn decals into the air
+	-- also, modulate their alphastart by how far above ground they are
+	local exploheight = py - gh
+	if (exploheight >= radius) then return end 
+	
+	
+	
+	local alpha = (math.random() * 1.0 + 1.0) * (1.0 - exploheight/radius)
+	
+	AddDecal(idx, 
+			px, --posx
+			pz, --posz
+			math.random() * 6.28, -- rotation
+			radius, -- width
+			radius, --height 
+			math.random() * 10000, -- heatstart
+			math.random() * 1, -- heatdecay
+			alpha, -- alphastart
+			math.random() / (10* radius), -- alphadecay
+			math.random() * 0.3 + 0.7 -- maxalpha
+			)
+	
+end
+
 function widget:Initialize()
 	if makeAtlases() == false then 
 		goodbye("Failed to init texture atlas for DecalsGL4")
@@ -512,12 +647,12 @@ function widget:Initialize()
 	end
 	initAreas()
 	math.randomseed(1)
-	if true then 
-		for i= 1, 2000 do 
+	if autoupdate then 
+		for i= 1, 100 do 
 			local w = math.random() * 15 + 7
 			w = w * w
-			local j = math.floor(math.random()*10 + 1)
-			local idx = string.format("luaui/images/decals_gl4/groundScars/t_groundcrack_%02d_a.png", j)
+			local j = math.floor(math.random()*20+1)
+			--local idx = string.format("luaui/images/decals_gl4/groundScars/t_groundcrack_%02d_a.png", j)
 			local idx = randtablechoice(decalImageCoords)
 			--Spring.Echo(idx)
 			AddDecal(idx, 
@@ -540,8 +675,9 @@ function widget:Initialize()
 	WG['decalsgl4'].RemoveDecalGL4 = RemoveDecal
 	widgetHandler:RegisterGlobal('AddDecalGL4', WG['decalsgl4'].AddDecalGL4)
 	widgetHandler:RegisterGlobal('RemoveDecalGL4', WG['decalsgl4'].RemoveDecalGL4)
-	
+	widgetHandler:RegisterGlobal('GadgetWeaponExplosionDecal', GadgetWeaponExplosionDecal)
 end
+
 
 
 function widget:ShutDown()
@@ -561,4 +697,5 @@ function widget:ShutDown()
 	WG['decalsgl4'] = nil
 	widgetHandler:DeregisterGlobal('AddDecalGL4')
 	widgetHandler:DeregisterGlobal('RemoveDecalGL4')
+	widgetHandler:DeregisterGlobal('GadgetWeaponExplosionDecal')
 end
