@@ -121,7 +121,12 @@ void main(void)
 	tex1color.rgb = mix (tex1color.rgb, vec3(dot(tex1color.rgb, vec3(0.299, 0.587, 0.114))), BLACKANDWHITEFACTOR);
 	
 	// bail early if theres shit here, but this might not be useful in the long term, due to no emissive application?
-	if (tex1color.a < 0.005){fragColor.rgba = vec4(0.0); discard; return;}
+	
+	if (tex1color.a < 0.005){
+		fragColor.rgba = vec4(0.0); 
+		discard; 
+		//return;
+	}
 	
 	vec4 tex2color = texture(atlasNormals, g_uv.xy  - parallaxUV.xy, bias);
 	vec3 fragNormal = tex2color.rgb * 2.0 - 1.0;
@@ -148,7 +153,7 @@ void main(void)
 	vec3 reorientedNormal = ReOrientNormalUnpacked(mapnormal.xzy, worldspacenormal.xzy).xzy;
 	
 	// diffuse lighting, apply global sunDiffuseMap
-	float diffuselight = clamp(dot(sunDir.xyz, reorientedNormal), 0.0, 1.0);
+	float diffuselight = clamp(dot(sunDir.xyz, reorientedNormal), -1.0, 1.0);
 	fragColor.rgb += vec3(diffuselight) * ( fragColor.rgb * sunDiffuseMap.rgb * 2.0);
 	
 	// Specular Color
