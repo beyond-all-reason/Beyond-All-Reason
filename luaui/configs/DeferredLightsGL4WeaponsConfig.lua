@@ -443,8 +443,6 @@ local function AssignLightsToAllWeapons()
 				t.a = orgMult*1.25
 				sizeclass = GetClosestSizeClass(radius*1.2)
 			else
-				radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
-				sizeclass = GetClosestSizeClass(radius)
 				if weaponDef.type == 'AircraftBomb' then
 					if weaponDef.paralyzer then
 						t.r = t.r * 1.7	-- make more red
@@ -461,12 +459,24 @@ local function AssignLightsToAllWeapons()
 					t.lifetime = life
 					t.colortime = 25 / life
 				end
-				t.r = (1.3 + t.r) / 2.3	-- make more white
-				t.g = (1.3 + t.g) / 2.3	-- make more white
-				t.b = (1.3 + t.b) / 2.3	-- make more white
-				t.a = orgMult*2.4
+				radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
+				if weaponDef.customParams.unitexplosion then
+					radius = radius * 3.5
+					-- make more white
+					t.r = (1.7 + t.r) / 2.7
+					t.g = (1.7 + t.g) / 2.7
+					t.b = (1.7 + t.b) / 2.7
+					t.a = orgMult*3
+				else
+					-- make more white
+					t.r = (1.3 + t.r) / 2.3
+					t.g = (1.3 + t.g) / 2.3
+					t.b = (1.3 + t.b) / 2.3
+					t.a = orgMult*2.4
+				end
 				local mult = 0.55
 				t.color2r, t.color2g, t.color2b = r*mult, g*mult, b*mult
+				sizeclass = GetClosestSizeClass(radius)
 			end
 			explosionLights[weaponID] = GetLightClass("Explosion", nil, sizeclass, t)
 			explosionLights[weaponID].yOffset = explosionLights[weaponID].lightConfig.radius / 5
