@@ -39,6 +39,7 @@ end
 local SetUnitNoSelect	= Spring.SetUnitNoSelect
 local GiveOrderToUnit	= Spring.GiveOrderToUnit
 local SetUnitBlocking 	= Spring.SetUnitBlocking
+local UnitIconSetDraw   = Spring.UnitIconSetDraw
 local MoveCtrlEnable 	= Spring.MoveCtrl.Enable
 local MoveCtrlDisable 	= Spring.MoveCtrl.Disable
 local MoveCtrlSetVelocity = Spring.MoveCtrl.SetVelocity
@@ -49,6 +50,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 		--Spring.Echo("gadget:UnitDestroyed",unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 		SetUnitNoSelect(unitID,true)
     	SetUnitBlocking(unitID,false) -- non blocking while dying
+		Spring.UnitIconSetDraw(unitID, false) -- dont draw icons
 		GiveOrderToUnit(unitID, CMD_STOP, 0, 0)
 		MoveCtrlEnable(unitID)
 		MoveCtrlSetVelocity(unitID, 0, 0, 0)
