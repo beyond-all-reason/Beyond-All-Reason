@@ -349,6 +349,12 @@ function popElementInstance(iT, instanceID, noUpload)
 					else 
 						if iT.lastpopgameframe ~= gf then -- New gameframe
 							iT.lastpopgameframe = gf
+							-- this is a very special case, where we clobber the zombie we had stored in the _next_ frame:
+							if iT.zombies and iT.zombies[instanceID] then
+								iT.numZombies = iT.numZombies - 1 
+								iT.zombies[instanceID] = nil
+							end
+							
 							if iT.numZombies and iT.numZombies > 0 then -- WE HAVE ZOMBIES AAAAARGH
 								--Error: validateInstanceVBOIDTable [string "LuaUI/'
 								local s = 'Error: popElementInstance [string "LuaUI/  We have ' .. tostring(iT.numZombies) .. " zombie units left over in " .. iT.myName .. " after removing:" .. tostring(instanceID) .. " zombies:"
