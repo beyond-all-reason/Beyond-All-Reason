@@ -97,11 +97,12 @@ local function addDirToAtlas(atlas, path, key, filelist)
 	--files = table.sort(files)
 	--Spring.Echo("Adding",#files, "images to atlas from", path, key)
 	for i=1, #files do
-		if imgExts[string.sub(files[i],-3,-1)] and string.find(files[i], key, nil, true) then
+		local lowerfile = string.lower(files[i])
+		if imgExts[string.sub(lowerfile,-3,-1)] and string.find(lowerfile, key, nil, true) then
 			--Spring.Echo(files[i])
-			gl.AddAtlasTexture(atlas,files[i])
-			atlassedImages[files[i]] = atlas
-			filelist[files[i]] = true
+			gl.AddAtlasTexture(atlas,lowerfile)
+			atlassedImages[lowerfile] = atlas
+			filelist[lowerfile] = true
 		end
 	end
 	return filelist
@@ -514,6 +515,8 @@ function widget:DrawWorldPreUnit()
 		--glTexture(10, '$map_gbuffer_difftex')
 		--glTexture(11, '$map_gbuffer_normtex')
 		
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
+		
 		if decalVBO.usedElements > 0  then  
 			decalShader:Activate()
 			decalShader:SetUniform("fadeDistance",disticon * 1000)
@@ -610,15 +613,18 @@ end
 local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	local weaponDef = WeaponDefs[weaponID]
 	--Spring.Echo("GadgetWeaponExplosionDecal",px, py, pz, weaponID, ownerID, weaponDef.damageAreaOfEffect, weaponDef.name)
+	
+	-- randomly choose one decal
 	local idx = randtablechoice(decalImageCoords)
+	
+	-- Or hard code it: 
+	idx = "luaui/images/decals_gl4/groundscars/t_groundcrack_16_a.png"
 	local radius = weaponDef.damageAreaOfEffect * 2
 	local gh = spGetGroundHeight(px,pz)
 	-- dont spawn decals into the air
 	-- also, modulate their alphastart by how far above ground they are
 	local exploheight = py - gh
 	if (exploheight >= radius) then return end 
-	
-	
 	
 	local alpha = (math.random() * 1.0 + 1.0) * (1.0 - exploheight/radius)
 	
