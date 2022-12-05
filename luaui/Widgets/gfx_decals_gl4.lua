@@ -53,6 +53,8 @@ local shaderConfig = {
 	FADEINTIME = 4, -- number of frames to fade in over
 	SPECULAREXPONENT = 4.0, -- how shiny decal surface is?
 	SPECULARSTRENGTH = 0.25, -- how strong specular highlights are
+	BLACKANDWHITEFACTOR = 1, -- set to between [0,1] to set how strong the black and white conversion should be, 0 = original color, 1 = full black and white
+	MINIMAPCOLORBLENDFACTOR = 1, -- How much minimap color should affect decal color
 }
 
 local newgroundscarspath = "luaui/images/decals_gl4/groundScars"
@@ -64,7 +66,7 @@ local resolution = 16 -- 32 is 2k tris, a tad pricey...
 local largesizethreshold  = 1280 -- if min(width,height)> than this, then we use the large version!
 local extralargesizeThreshold = 768 -- if min(width,height)> than this, then we use the extra large version!
 
-local autoupdate = false -- auto update shader, for debugging only!
+local autoupdate = true -- auto update shader, for debugging only!
 
 
 -- for automatic oversaturation prevention, not sure if it even works, but hey!

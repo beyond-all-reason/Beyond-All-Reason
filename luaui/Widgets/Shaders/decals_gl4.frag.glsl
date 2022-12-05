@@ -118,6 +118,8 @@ void main(void)
 	float bias = (offaxis*offaxis)*-2.0;
 	
 	vec4 tex1color = texture(atlasColorAlpha, g_uv.xy - parallaxUV.xy, bias);
+	tex1color.rgb = mix (tex1color.rgb, vec3(dot(tex1color.rgb, vec3(0.299, 0.587, 0.114))), BLACKANDWHITEFACTOR);
+	
 	// bail early if theres shit here, but this might not be useful in the long term, due to no emissive application?
 	if (tex1color.a < 0.005){fragColor.rgba = vec4(0.0); discard; return;}
 	
@@ -130,6 +132,7 @@ void main(void)
 	
 	// Ambient color calculation, tint with minimap, and with sunAmbientMap
 	vec3 blendedcolor = tex1color.rgb * (minimapcolor.rgb * 2.0); // just your basic color modulation
+	blendedcolor.rgb = mix(tex1color.rgb, blendedcolor.rgb, MINIMAPCOLORBLENDFACTOR);
 	fragColor.rgb = blendedcolor * (sunAmbientMap.rgb * 2.0); 
 	
 	
