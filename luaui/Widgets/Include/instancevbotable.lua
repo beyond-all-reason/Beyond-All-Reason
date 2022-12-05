@@ -632,6 +632,44 @@ function uploadElementRange(iT, startElementIndex, endElementIndex)
 	end
 end
 
+-- This function allows for order-preserving compacting of a list of instances based on these funcs. 
+-- It is designed for Decals GL4, where draw order matters a lot!
+-- remove takes priority over keep
+function compactInstanceVBO(iT, removelist, keeplist)	
+	local usedElements = iT.usedElements
+	if usedElements == 0 then return 0 end
+	local instanceStep = iT.instanceStep
+	local instanceData = iT.instanceData
+	local instanceIDtoIndex = iT.instanceIDtoIndex
+	local indextoInstanceID = iT.indextoInstanceID
+	local newindextoInstanceID = {}
+	local newinstanceIDtoIndex = {}
+	local newUsedElements = 0
+	local numremoved = 0
+	local removemode = (removelist ~= nil) and (keeplist == nil)
+	for index, instanceID in ipairs(indextoInstanceID) do 
+		-- If its in keeplist, 
+		if (removemode and (removelist[instanceID]== nil) ) or ((removemode == false) and keeplist[instanceID]) then 
+			local instanceOffset = (index-1) * instanceStep
+			local newInstanceOffset = newUsedElements * instanceStep
+			for i = 1, instanceStep do 
+				instanceData[newInstanceOffset + i] = instanceData[instanceOffset + i]
+			end
+			newUsedElements = newUsedElements + 1
+			newindextoInstanceID[newUsedElements] = instanceID
+			newinstanceIDtoIndex[instanceID] = newUsedElements
+		else
+			numremoved = numremoved + 1
+		end
+	end
+	
+	iT.dirty = true -- we set the flag to notify that CPU and GPU contents dont match!
+	iT.usedElements = newUsedElements
+	iT.instanceIDtoIndex = newinstanceIDtoIndex
+	iT.indextoInstanceID = newindextoInstanceID
+	return numremoved
+end
+
 function drawInstanceVBO(iT)
 	if iT.usedElements > 0 then 
 		if iT.indexVBO then 
