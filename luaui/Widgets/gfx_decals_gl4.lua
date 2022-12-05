@@ -66,7 +66,7 @@ local resolution = 16 -- 32 is 2k tris, a tad pricey...
 local largesizethreshold  = 1280 -- if min(width,height)> than this, then we use the large version!
 local extralargesizeThreshold = 768 -- if min(width,height)> than this, then we use the extra large version!
 
-local autoupdate = true -- auto update shader, for debugging only!
+local autoupdate = false -- auto update shader, for debugging only!
 
 
 -- for automatic oversaturation prevention, not sure if it even works, but hey!
