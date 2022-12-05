@@ -52,8 +52,8 @@ local shaderConfig = {
 	AMBIENTOCCLUSION = 0, -- 1 for on, do not use
 	FADEINTIME = 4, -- number of frames to fade in over
 	SPECULAREXPONENT = 4.0, -- how shiny decal surface is?
-	SPECULARSTRENGTH = 0.25, -- how strong specular highlights are
-	BLACKANDWHITEFACTOR = 1, -- set to between [0,1] to set how strong the black and white conversion should be, 0 = original color, 1 = full black and white
+	SPECULARSTRENGTH = 0.50, -- how strong specular highlights are
+	BLACKANDWHITEFACTOR = 0.25, -- set to between [0,1] to set how strong the black and white conversion should be, 0 = original color, 1 = full black and white
 	MINIMAPCOLORBLENDFACTOR = 1, -- How much minimap color should affect decal color
 }
 
@@ -618,9 +618,9 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	-- randomly choose one decal
 	local idx = randtablechoice(decalImageCoords)
 	-- Or hard code it: 
-	--idx = "luaui/images/decals_gl4/groundscars/t_groundcrack_16_a.png"
+	idx = "luaui/images/decals_gl4/groundscars/t_groundcrack_10_a.png"
 	
-	local radius = weaponDef.damageAreaOfEffect * 2
+	local radius = (weaponDef.damageAreaOfEffect * 1.8) * (math.random() * 0.42 + 0.79)
 	local gh = spGetGroundHeight(px,pz)
 	-- dont spawn decals into the air
 	-- also, modulate their alphastart by how far above ground they are
@@ -634,11 +634,11 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 			pz, --posz
 			math.random() * 6.28, -- rotation
 			radius, -- width
-			radius, --height 
+			radius, -- height 
 			math.random() * 10000, -- heatstart
-			math.random() * 1, -- heatdecay
-			alpha, -- alphastart
-			math.random() / (10* radius), -- alphadecay
+			math.random() * 4, -- heatdecay
+			(math.random() * 0.34 + 0.70) * alpha, -- alphastart
+			math.random() / (5 * radius), -- alphadecay
 			math.random() * 0.3 + 0.7 -- maxalpha
 			)
 	
