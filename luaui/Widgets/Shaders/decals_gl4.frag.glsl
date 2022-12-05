@@ -12,7 +12,7 @@
 #line 30000
 uniform float iconDistance;
 in DataGS {
-	vec4 g_color;
+	//vec4 g_color;
 	vec4 g_uv;
 	vec4 g_position; // how to get tbnmatrix here?	
 	vec4 g_parameters;
@@ -170,6 +170,8 @@ void main(void)
 	fragColor.rgb *= 0.6;
 	// add emissive heat, if required
 	fragColor.rgb += heatColor * pow(tex4color.r, 2) * hotness ;
+	
+	fragColor.a *= g_position.w;
 	
 	// plenty of debug outputs for your viewing pleasure
 	//fragColor.a *= g_parameters.z ;

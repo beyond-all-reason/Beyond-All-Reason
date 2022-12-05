@@ -53,7 +53,7 @@ void main()
 	if (isSphereVisibleXY(vec4(v_centerpos), 1.0* maxradius)) v_skipdraw = 1u; // yay for visiblity culling!
 
 	float currentFrame = timeInfo.x + timeInfo.w;
-	float lifetonow = (timeInfo.x + timeInfo.w) - worldPos.w;
+	float lifetonow = currentFrame - worldPos.w;
 	float alphastart = alphastart_alphadecay_heatstart_heatdecay.x;
 	float alphadecay = alphastart_alphadecay_heatstart_heatdecay.y;
 	// fade in the decal over 200 ms?

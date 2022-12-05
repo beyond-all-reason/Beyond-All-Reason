@@ -24,7 +24,7 @@ in DataVS {
 } dataIn[];
 
 out DataGS {
-	vec4 g_color;
+	//vec4 g_color;
 	vec4 g_uv;
 	vec4 g_position; // how to get tbnmatrix here?
 	vec4 g_parameters;
@@ -61,7 +61,7 @@ void offsetVertex4( float x, float y, float z, float u, float v){
 	gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in Z
 	g_uv.zw = dataIn[0].v_parameters.zw;
 	g_position.xyz = worldPos.xyz;
-	g_position.w = length(vec2(x,z));
+	g_position.w = dataIn[0].v_lengthwidthrotation.w;
 	//g_mapnormal = textureLod(mapNormalsTex, uvhm, 0.0).raaa;
 	//g_mapnormal.g = sqrt( 1.0 - dot( g_mapnormal.ra, g_mapnormal.ra));
 	//g_mapnormal.xyz = g_mapnormal.rga;
@@ -87,7 +87,7 @@ void main(){
 	decalDimensions = vec3(dataIn[0].v_lengthwidthrotation.x * 0.5, 0.0, dataIn[0].v_lengthwidthrotation.y * 0.5);
 	g_parameters = dataIn[0].v_parameters;
 	g_uv.zw = dataIn[0].v_parameters.zw;
-	g_color.a = dataIn[0].v_lengthwidthrotation.w;
+	//g_color.a = dataIn[0].v_lengthwidthrotation.w;
 	
 	// for a simple quad
 	/*

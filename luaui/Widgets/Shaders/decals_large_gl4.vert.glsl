@@ -24,7 +24,7 @@ uniform sampler2D heightmapTex;
 
 
 out DataGS {
-	vec4 g_color;
+	//vec4 g_color;
 	vec4 g_uv;
 	vec4 g_position; // how to get tbnmatrix here?
 	vec4 g_parameters;
@@ -75,7 +75,7 @@ void main()
 	
 	#if 0
 		//if (isSphereVisibleXY(vec4(worldPos.xyz,1.0), 1.0* max(lengthwidthrotation.x, lengthwidthrotation.y))) {
-		//	gl_Position= vec4(0,0,-100,1);
+		//	gl_Position= vec4(-100,-100,-100,1);
 		//	return; // yay for useless visiblity culling!
 		//}
 	#endif
@@ -108,8 +108,8 @@ void main()
 	gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in Z
 	// passthrough the rest of the data:
 	
-	g_color = vec4(0.0);
-	g_color.a = lengthwidthrotation.w;
+	//g_color = vec4(0.0);
+	//g_color.a = lengthwidthrotation.w;
 	g_position = vertexPos;
 	g_parameters = alphastart_alphadecay_heatstart_heatdecay;
 	
@@ -123,6 +123,6 @@ void main()
 	
 	float currentAlpha =  min(1.0, (lifetonow / FADEINTIME)) * alphastart - lifetonow* alphadecay;
 	currentAlpha = min(currentAlpha, lengthwidthrotation.w);
-	g_color.a = currentAlpha;
-	
+	//g_color.a = currentAlpha;
+	g_position.w = currentAlpha;
 }
