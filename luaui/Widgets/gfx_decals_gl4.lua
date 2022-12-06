@@ -68,7 +68,7 @@ local resolution = 16 -- 32 is 2k tris, a tad pricey...
 local largesizethreshold  = 1280 -- if min(width,height)> than this, then we use the large version!
 local extralargesizeThreshold = 768 -- if min(width,height)> than this, then we use the extra large version!
 
-local autoupdate = true -- auto update shader, for debugging only!
+local autoupdate = false -- auto update shader, for debugging only!
 
 
 -- for automatic oversaturation prevention, not sure if it even works, but hey!
@@ -101,7 +101,7 @@ local function addDirToAtlas(atlas, path, key, filelist)
 	for i=1, #files do
 		local lowerfile = string.lower(files[i])
 		if imgExts[string.sub(lowerfile,-3,-1)] and string.find(lowerfile, key, nil, true) then
-			Spring.Echo(files[i])
+			--Spring.Echo(files[i])
 			gl.AddAtlasTexture(atlas,lowerfile)
 			atlassedImages[lowerfile] = atlas
 			filelist[lowerfile] = true
