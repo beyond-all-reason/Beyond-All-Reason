@@ -219,14 +219,6 @@ local shaderLargeSourceCache = {
 	shaderName = "Decals Large Gl4 Shader",
 	}
 
-
-						
-					
-																			  
-																							  
-	
-   
-
 local function goodbye(reason)
   Spring.Echo("DrawPrimitiveAtUnits GL4 widget exiting with reason: "..reason)
   widgetHandler:RemoveWidget()
@@ -422,10 +414,6 @@ local function DrawSmoothness()
 	end
 end
 
-						   
-				   
-   
-
 -----------------------------------------------------------------------------------------------
 
 local function AddDecal(decaltexturename, posx, posz, rotation, width, length, heatstart, heatdecay, alphastart, alphadecay, maxalpha, spawnframe)
@@ -595,16 +583,13 @@ function widget:GameFrame(n)
 		decalRemoveList = {}
 		
 		if autoupdate and removed > 0 then 
-			Spring.Echo("Removed",removed,"decals from decal instance tables")
+			Spring.Echo("Removed",removed,"decals from decal instance tables: s=",decalVBO.usedElements,' l=', decalLargeVBO.usedElements,'xl=', decalExtraLargeVBO.usedElements)
 		end
 		if removed > 0 then 
 			uploadAllElements(	decalVBO)
 			uploadAllElements(	decalLargeVBO)
 			uploadAllElements(	decalExtraLargeVBO)
 		end
-	end
-	if autoupdate and n %500 == 0 and decalVBO.usedElements > 0 then 
-		Spring.Echo('Decals GL4 small=',decalVBO.usedElements, ' large=', decalLargeVBO.usedElements,'xlarge=', decalExtraLargeVBO.usedElements)
 	end
 end
 
