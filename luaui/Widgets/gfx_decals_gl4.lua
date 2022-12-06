@@ -633,7 +633,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	-- randomly choose one decal
 	local heatstart = 0
 	local idx = randtablechoice(decalImageCoords)
-	local heatdecay = math.random() + 1
+	local heatdecay = math.random() + 1.1
 	-- Or hard code it: 
 	if true then 
 		idx = "luaui/images/decals_gl4/groundscars/t_groundcrack_17_a.png"
