@@ -28,6 +28,8 @@ local hasDeathAnim = {
   [UnitDefNames.armzeus.id] = true,
   [UnitDefNames.armfido.id] = true,
   [UnitDefNames.armham.id] = true,
+  [UnitDefNames.corak.id] = true,
+
 
 }
 
