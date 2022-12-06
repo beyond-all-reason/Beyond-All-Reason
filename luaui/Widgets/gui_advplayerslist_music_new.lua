@@ -29,7 +29,6 @@ local maxSilenceTime = 300
 local warLowLevel = 1000
 local warHighLevel = 20000
 local warMeterResetTime = 30 -- seconds
-local displayTrackname = true
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -338,6 +337,25 @@ local function getSliderWidth()
 	return math.floor((4.5 * widgetScale)+0.5)
 end
 
+local function capitalize(text)
+	local str = ''
+	local upperNext = true
+	local char = ''
+	for i=1, string.len(text) do
+		char = string.sub(text, i,i)
+		if upperNext then
+			str = str..string.upper(char)
+			upperNext = false
+		else
+			str = str..char
+		end
+		if char == ' ' then
+			upperNext = true
+		end
+	end
+	return str
+end
+
 local function createList()
 	local trackname
 	local padding = math.floor(2.75 * widgetScale) -- button background margin
@@ -410,7 +428,7 @@ local function createList()
 				text = text..c
 			end
 		end
-		trackname = text
+		trackname = capitalize(text)
 
 		local button = 'musicvolumeicon'
 		glColor(0.8,0.8,0.8,0.9)
@@ -699,7 +717,7 @@ function widget:DrawScreen()
 		glPushMatrix()
 		glCallList(drawlist[1])
 		--glCallList(drawlist[2])
-		if not mouseover and not draggingSlider and playing then
+		if not mouseover and not draggingSlider and playing and volume > 0 then
 			glCallList(drawlist[3])
 		else
 			glCallList(drawlist[4])
