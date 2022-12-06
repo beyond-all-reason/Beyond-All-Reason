@@ -50,6 +50,8 @@ local shaderConfig = {
 	LOSDARKNESS = 0.7, -- additional LOS darken factor
 	PARALLAX = 0, -- 1 for on, kinda broken, do not use
 	AMBIENTOCCLUSION = 0, -- 1 for on, do not use
+	USEGLOW = 1, -- 1 for on, kinda wierd at the moment
+	GLOWTHRESHOLD = 0.66,
 	FADEINTIME = 4, -- number of frames to fade in over
 	SPECULAREXPONENT = 4.0, -- how shiny decal surface is?
 	SPECULARSTRENGTH = 0.50, -- how strong specular highlights are
@@ -66,7 +68,7 @@ local resolution = 16 -- 32 is 2k tris, a tad pricey...
 local largesizethreshold  = 1280 -- if min(width,height)> than this, then we use the large version!
 local extralargesizeThreshold = 768 -- if min(width,height)> than this, then we use the extra large version!
 
-local autoupdate = false -- auto update shader, for debugging only!
+local autoupdate = true -- auto update shader, for debugging only!
 
 
 -- for automatic oversaturation prevention, not sure if it even works, but hey!
@@ -78,7 +80,7 @@ local saturationThreshold = 100 * areaResolution
 local atlasColorAlpha = nil
 local atlasNormals = nil
 local atlasHeights = nil
-local atlasORM = nil 
+local atlasRG = nil 
 
 local atlasSize = 4096
 local atlasType = 1 -- 0 is legacy, 1 is quadtree type with no padding
@@ -99,7 +101,7 @@ local function addDirToAtlas(atlas, path, key, filelist)
 	for i=1, #files do
 		local lowerfile = string.lower(files[i])
 		if imgExts[string.sub(lowerfile,-3,-1)] and string.find(lowerfile, key, nil, true) then
-			--Spring.Echo(files[i])
+			Spring.Echo(files[i])
 			gl.AddAtlasTexture(atlas,lowerfile)
 			atlassedImages[lowerfile] = atlas
 			filelist[lowerfile] = true
@@ -124,7 +126,7 @@ local function makeAtlases()
 	end 
 	
 	atlasNormals = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
-	addDirToAtlas(atlasNormals, newgroundscarspath, '_n.png')
+	addDirToAtlas(atlasNormals, newgroundscarspath, '_n.')
 	success = gl.FinalizeTextureAtlas(atlasNormals)
 	if success == false then return false end
 
@@ -134,10 +136,10 @@ local function makeAtlases()
 		success = gl.FinalizeTextureAtlas(atlasHeights)
 		if success == false then return false end
 	end
-	if shaderConfig.AMBIENTOCCLUSION == 1 then 
-		atlasORM = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
-		addDirToAtlas(atlasORM, newgroundscarspath, '_orm.png')
-		success = gl.FinalizeTextureAtlas(atlasORM)
+	if shaderConfig.USEGLOW == 1 then 
+		atlasRG = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
+		addDirToAtlas(atlasRG, newgroundscarspath, '_rg.png')
+		success = gl.FinalizeTextureAtlas(atlasRG)
 		if success == false then return false end
 	end
 	return true
@@ -193,6 +195,7 @@ local uniformInts =  {
 		atlasNormals = 6,
 		atlasHeights = ((shaderConfig.PARALLAX == 1) and 7 ) or nil, 
 		atlasORM = ((shaderConfig.AMBIENTOCCLUSION == 1) and 8 ) or nil, 
+		atlasRG = ((shaderConfig.USEGLOW == 1) and 9 ) or nil, 
 		}
 	
 local shaderSourceCache = {
@@ -219,12 +222,12 @@ local shaderLargeSourceCache = {
 	}
 
 
-function widget:Update()
-	if autoupdate then 
-		decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or decalShader
-		decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache) or		decalLargeShader
-	end
-end
+						
+					
+																			  
+																							  
+	
+   
 
 local function goodbye(reason)
   Spring.Echo("DrawPrimitiveAtUnits GL4 widget exiting with reason: "..reason)
@@ -363,6 +366,12 @@ end
 local updatePositionX = 0
 local updatePositionZ = 0
 function widget:Update() -- this is pointlessly expensive!
+	
+		if autoupdate then 
+		decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or decalShader
+		decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache) or		decalLargeShader
+	end
+	
 	if true then return end
 	-- run over the map, one area per frame, and calc its smoothness
 	updatePositionX = updatePositionX + areaResolution
@@ -415,9 +424,9 @@ local function DrawSmoothness()
 	end
 end
 
-function widget:DrawWorld()
-	--DrawSmoothness()
-end
+						   
+				   
+   
 
 -----------------------------------------------------------------------------------------------
 
@@ -494,9 +503,9 @@ end
 
 function widget:DrawWorldPreUnit()
 	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
-		if autoupdate and Spring.GetDrawFrame() %500 == 0 then 
-			Spring.Echo('Decals GL4 small=',decalVBO.usedElements, ' large=', decalLargeVBO.usedElements,'xlarge=', decalExtraLargeVBO.usedElements)
-		end
+														 
+																																		   
+	 
 		
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--Spring.Echo(decalVBO.usedElements,decalLargeVBO.usedElements)
@@ -511,7 +520,8 @@ function widget:DrawWorldPreUnit()
 		glTexture(5, atlasColorAlpha)
 		glTexture(6, atlasNormals)
 		if shaderConfig.PARALLAX == 1 then glTexture(7, atlasHeights) end
-		if shaderConfig.AMBIENTOCCLUSION == 1 then glTexture(8, atlasORM) end 
+		if shaderConfig.AMBIENTOCCLUSION == 1 then glTexture(8, atlasRG) end 
+		if shaderConfig.USEGLOW == 1 then glTexture(9, atlasRG) end 
 		--glTexture(9, '$map_gbuffer_zvaltex')
 		--glTexture(10, '$map_gbuffer_difftex')
 		--glTexture(11, '$map_gbuffer_normtex')
@@ -538,9 +548,12 @@ function widget:DrawWorldPreUnit()
 			decalLargeShader:Deactivate()
 		end 
 		
+		-- Restore the GL state
 		for i = 0, 8 do glTexture(i, false) end
 		glCulling(GL.BACK) -- This is the correct default mode! 
 		glDepthTest(GL_LEQUAL)
+		--gl.Blending(GL.SRC_ALPHA, GL.ONE)
+		gl.Blending(GL.ONE, GL.ONE)
 
 		--gl.DepthMask(false) --"BK OpenGL state resets", already set as false
 		
@@ -592,7 +605,9 @@ function widget:GameFrame(n)
 			uploadAllElements(	decalExtraLargeVBO)
 		end
 	end
-	
+	if autoupdate and n %500 == 0 and decalVBO.usedElements > 0 then 
+		Spring.Echo('Decals GL4 small=',decalVBO.usedElements, ' large=', decalLargeVBO.usedElements,'xlarge=', decalExtraLargeVBO.usedElements)
+	end
 end
 
 local function randtablechoice (t)
@@ -616,9 +631,14 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	--Spring.Echo("GadgetWeaponExplosionDecal",px, py, pz, weaponID, ownerID, weaponDef.damageAreaOfEffect, weaponDef.name)
 	
 	-- randomly choose one decal
+	local heatstart = 0
 	local idx = randtablechoice(decalImageCoords)
+	local heatdecay = math.random() + 1
 	-- Or hard code it: 
-	idx = "luaui/images/decals_gl4/groundscars/t_groundcrack_10_a.png"
+	if true then 
+		idx = "luaui/images/decals_gl4/groundscars/t_groundcrack_17_a.png"
+		heatstart = math.random() * 6000
+	end
 	
 	local radius = (weaponDef.damageAreaOfEffect * 1.8) * (math.random() * 0.44 + 0.80)
 	local gh = spGetGroundHeight(px,pz)
@@ -635,8 +655,8 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 			math.random() * 6.28, -- rotation
 			radius, -- width
 			radius, -- height 
-			math.random() * 10000, -- heatstart
-			math.random() * 4, -- heatdecay
+			heatstart, -- heatstart
+			heatdecay, -- heatdecay
 			(math.random() * 0.38 + 0.72) * alpha, -- alphastart
 			math.random() / (5 * radius), -- alphadecay
 			math.random() * 0.2 + 0.8 -- maxalpha
@@ -699,8 +719,8 @@ function widget:ShutDown()
 	if atlasNormals ~= nil then
 		gl.DeleteTextureAtlas(atlasNormals)
 	end
-	if atlasORM ~= nil then
-		gl.DeleteTextureAtlas(atlasORM)
+	if atlasRG ~= nil then
+		gl.DeleteTextureAtlas(atlasRG)
 	end
 	
 	WG['decalsgl4'] = nil

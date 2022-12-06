@@ -62,6 +62,7 @@ void main()
 	currentAlpha = min(currentAlpha, lengthwidthrotation.w);
 	v_lengthwidthrotation.w = currentAlpha;
 	// heatdecay is:
+	float heatdecay = alphastart_alphadecay_heatstart_heatdecay.w;
 	v_parameters.w = exp(- 0.033 * lifetonow * alphastart_alphadecay_heatstart_heatdecay.w);
 
 

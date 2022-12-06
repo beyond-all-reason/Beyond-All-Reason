@@ -26,6 +26,7 @@ uniform sampler2D mapNormalsTex;
 uniform sampler2D atlasColorAlpha;
 uniform sampler2D atlasNormals;
 
+
 #if (PARALLAX == 1)
 	uniform sampler2D atlasHeights;
 #endif
@@ -33,6 +34,13 @@ uniform sampler2D atlasNormals;
 #if (AMBIENTOCCLUSION == 1)
 	uniform sampler2D atlasORM;
 #endif
+
+#if (USEGLOW == 1)
+	uniform sampler2D atlasRG;
+#endif
+
+
+
 out vec4 fragColor;
 
 
@@ -145,8 +153,7 @@ void main(void)
 	fragColor.a = tex1color.a * tex1color.a * 0.9; 
 	
 	// Get heat
-	float hotness = max(0,g_uv.z)* 0.0001;
-	vec3 heatColor = Temperature(max(0,g_uv.z));
+
 
 	// Reorient the normals of the decal according to what we sampled from mapnormals and decal
 	vec3 worldspacenormal = tbnmatrix * fragNormal.rgb;
@@ -175,11 +182,26 @@ void main(void)
 	#else
 		vec4 tex4color = vec4 (0.0);
 	#endif
-	fragColor.rgb *= 0.6;
-	// add emissive heat, if required
-	fragColor.rgb += heatColor * pow(tex4color.r, 2) * hotness ;
 	
+	// Darken the whole goddamned decal:
+	fragColor.rgb *= 0.8; 
+	
+	
+	#if (USEGLOW == 1) 
+		float glowChannel = tex2color.a;
+		float hotness = max(0,g_uv.w)* 6000.0;
+		vec3 heatColor = Temperature(hotness*glowChannel);
+		//fragColor.rgb += heatColor * pow(glowChannel.r, 2) * hotness ;
+		//fragColor.rgb = vec3(fract(g_uv.w*20));
+		fragColor.rgb += (heatColor.rgb * max(glowChannel,0.0)*10);
+	#endif 
+	
+	// add emissive heat, if required
+	
+	
+	// Fade the decal out with time
 	fragColor.a *= g_position.w;
+	
 	
 	// plenty of debug outputs for your viewing pleasure
 	//fragColor.a *= g_parameters.z ;
@@ -196,4 +218,7 @@ void main(void)
 	//fragColor.a = 1.0;
 	//fragColor.rgb = g_uv.zyy;
 	//fragColor.rgba = vec4(0.5);
+	
+	//if (fract(gl_FragCoord.x * 0.01) > 0.5 ) fragColor.rgba = tex1color.rgba;
+	//else fragColor.rgba = tex2color.rgba;
 }
