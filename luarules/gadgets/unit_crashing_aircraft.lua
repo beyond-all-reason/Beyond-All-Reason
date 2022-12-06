@@ -24,6 +24,7 @@ local SetUnitWeaponState = Spring.SetUnitWeaponState
 local SetUnitStealth = Spring.SetUnitStealth
 local SetUnitNeutral = Spring.SetUnitNeutral
 local SetUnitAlwaysVisible = Spring.SetUnitAlwaysVisible
+local UnitIconSetDraw = Spring.UnitIconSetDraw
 local DestroyUnit = Spring.DestroyUnit
 
 local COB_CRASHING = COB.CRASHING
@@ -86,6 +87,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			SetUnitCOBValue(unitID, COB_CRASHING, 1)
 			SetUnitNoSelect(unitID,true)
 			SetUnitNoMinimap(unitID,true)
+			UnitIconSetDraw(unitID, false)
 			SetUnitStealth(unitID, true)
 			SetUnitAlwaysVisible(unitID, false)
 			SetUnitNeutral(unitID, true)
