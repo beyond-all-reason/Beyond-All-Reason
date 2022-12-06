@@ -29,6 +29,7 @@ local maxSilenceTime = 300
 local warLowLevel = 1000
 local warHighLevel = 20000
 local warMeterResetTime = 30 -- seconds
+local displayTrackname = true
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -355,7 +356,7 @@ local function createList()
 	buttons['volume'][5] = buttons['volume'][1] + (buttons['volume'][3] - buttons['volume'][1]) * (getVolumePos(volume/200))
 
 	local textsize = 11 * widgetScale
-	local textXPadding = 7 * widgetScale
+	local textXPadding = 10 * widgetScale
 	--local maxTextWidth = right-buttons['playpause'][3]-textXPadding-textXPadding
 	local maxTextWidth = right-textXPadding-textXPadding
 
@@ -410,6 +411,16 @@ local function createList()
 			end
 		end
 		trackname = text
+
+		local button = 'musicvolumeicon'
+		glColor(0.8,0.8,0.8,0.9)
+		glTexture(musicTex)
+		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+		glTexture(false)
+
+		font:Begin()
+		font:Print('\255\235\235\235'..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+		font:End()
 	end)
 	drawlist[4] = glCreateList( function()
 
@@ -688,7 +699,11 @@ function widget:DrawScreen()
 		glPushMatrix()
 		glCallList(drawlist[1])
 		--glCallList(drawlist[2])
-		glCallList(drawlist[4])
+		if not mouseover and not draggingSlider and playing then
+			glCallList(drawlist[3])
+		else
+			glCallList(drawlist[4])
+		end
 		if mouseover then
 
 			-- display play progress
