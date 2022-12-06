@@ -55,7 +55,7 @@ local shaderConfig = {
 	FADEINTIME = 4, -- number of frames to fade in over
 	SPECULAREXPONENT = 4.0, -- how shiny decal surface is?
 	SPECULARSTRENGTH = 0.50, -- how strong specular highlights are
-	BLACKANDWHITEFACTOR = 0.25, -- set to between [0,1] to set how strong the black and white conversion should be, 0 = original color, 1 = full black and white
+	BLACKANDWHITEFACTOR = 0.5, -- set to between [0,1] to set how strong the black and white conversion should be, 0 = original color, 1 = full black and white
 	MINIMAPCOLORBLENDFACTOR = 1, -- How much minimap color should affect decal color
 }
 
