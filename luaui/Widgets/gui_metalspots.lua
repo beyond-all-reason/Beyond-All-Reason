@@ -61,7 +61,7 @@ local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = math.min(2, (0.5 + (vsx*vsy / 5700000)))
 local fontfileSize = 80
 local fontfileOutlineSize = 22
-local fontfileOutlineStrength = 1.15
+local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local chobbyInterface
@@ -351,7 +351,7 @@ function widget:Initialize()
 						valueList[value] = gl.CreateList(function()
 							font:Begin()
 							font:SetTextColor(1,1,1,1)
-							font:SetOutlineColor(0,0,0,0.4)
+							font:SetOutlineColor(0,0,0,1)
 							font:Print(value, 0, 0, 1.05, "con")
 							font:End()
 						end)
