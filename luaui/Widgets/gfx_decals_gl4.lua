@@ -10,8 +10,6 @@ function widget:GetInfo()
 	}
 end
 
-
-
 -- Notes and TODO
 -- yes these are geometry shader decals
 -- we are gonna try to smaple heightmap
@@ -65,8 +63,8 @@ local additionalcrap = {} -- a list of paths to also include for i dunno, sprays
 
 -- large decal resolution, 16x16 grid is ok
 local resolution = 16 -- 32 is 2k tris, a tad pricey...
-local largesizethreshold  = 1280 -- if min(width,height)> than this, then we use the large version!
-local extralargesizeThreshold = 768 -- if min(width,height)> than this, then we use the extra large version!
+local largesizethreshold  = 512 -- if min(width,height)> than this, then we use the large version!
+local extralargesizeThreshold = 1024 -- if min(width,height)> than this, then we use the extra large version!
 
 local autoupdate = false -- auto update shader, for debugging only!
 
@@ -526,7 +524,6 @@ function widget:DrawWorldPreUnit()
 		--glTexture(10, '$map_gbuffer_difftex')
 		--glTexture(11, '$map_gbuffer_normtex')
 		
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
 		
 		if decalVBO.usedElements > 0  then  
 			decalShader:Activate()
@@ -553,7 +550,8 @@ function widget:DrawWorldPreUnit()
 		glCulling(GL.BACK) -- This is the correct default mode! 
 		glDepthTest(GL_LEQUAL)
 		--gl.Blending(GL.SRC_ALPHA, GL.ONE)
-		gl.Blending(GL.ONE, GL.ONE)
+		
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
 
 		--gl.DepthMask(false) --"BK OpenGL state resets", already set as false
 		
@@ -630,6 +628,8 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	local weaponDef = WeaponDefs[weaponID]
 	--Spring.Echo("GadgetWeaponExplosionDecal",px, py, pz, weaponID, ownerID, weaponDef.damageAreaOfEffect, weaponDef.name)
 	
+	
+	
 	-- randomly choose one decal
 	local heatstart = 0
 	local idx = randtablechoice(decalImageCoords)
@@ -637,7 +637,8 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	-- Or hard code it: 
 	if true then 
 		idx = "luaui/images/decals_gl4/groundscars/t_groundcrack_17_a.png"
-		heatstart = math.random() * 6000
+		heatstart = math.random() * 5000
+		heatdecay = math.random() + 0.5
 	end
 	
 	local radius = (weaponDef.damageAreaOfEffect * 1.8) * (math.random() * 0.44 + 0.80)
@@ -669,7 +670,7 @@ function widget:Initialize()
 		goodbye("Failed to init texture atlas for DecalsGL4")
 		return
 	end
-	local initsuccess = initGL4( "DecalsGL4")
+	local initsuccess = initGL4("DecalsGL4")
 	if initsuccess == nil then 
 		widgetHandler:RemoveWidget()
 		return

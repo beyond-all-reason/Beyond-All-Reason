@@ -121,6 +121,8 @@ void main()
 	
 	g_uv.z = exp(- 0.033 * lifetonow * alphastart_alphadecay_heatstart_heatdecay.w) * alphastart_alphadecay_heatstart_heatdecay.z ;
 	
+	g_uv.w = g_uv.z ;
+	
 	float currentAlpha =  min(1.0, (lifetonow / FADEINTIME)) * alphastart - lifetonow* alphadecay;
 	currentAlpha = min(currentAlpha, lengthwidthrotation.w);
 	//g_color.a = currentAlpha;
