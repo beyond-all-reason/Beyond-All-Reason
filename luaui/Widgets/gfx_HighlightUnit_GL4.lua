@@ -311,6 +311,7 @@ function widget:Initialize()
 	highlightUnitVBOTable.VAO = makeVAOandAttach(vertVBO, highlightUnitVBOTable.instanceVBO, indxVBO)
 	highlightUnitVBOTable.indexVBO = indxVBO
 	highlightUnitVBOTable.vertexVBO = vertVBO
+	highlightUnitVBOTable.debugZombies = false
 
 	local unitIDs = Spring.GetAllUnits()
 	local featuresIDs = Spring.GetAllFeatures()
@@ -367,6 +368,7 @@ function widget:TextCommand(command)
 				Spring.Echo("Debug level for API HighLightUnit GL4 set to:", newdebuglevel)
 				debugmode = newdebuglevel
 			end
+			highlightUnitVBOTable.debugZombies = (newdebuglevel>0)
 		end
 		
 		for uniqueID, unitID in pairs(uniqueIDtoUnitID) do 
