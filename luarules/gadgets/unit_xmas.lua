@@ -24,6 +24,7 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
+local forceXmas = false	-- for debugging purpose
 
 local maxDecorations = 200
 local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/2000000)
@@ -35,6 +36,9 @@ for _,teamID in ipairs(Spring.GetTeamList()) do
 	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
 		enableUnitDecorations = false
 	end
+end
+if forceXmas then
+	enableUnitDecorations = true
 end
 
 local isComWreck = {}
@@ -164,6 +168,7 @@ local function setGaiaUnitSpecifics(unitID)
 	Spring.SetUnitStealth(unitID, true)
 	Spring.SetUnitNoMinimap(unitID, true)
 	--Spring.SetUnitMaxHealth(unitID, 2)
+	Spring.UnitIconSetDraw(unitID, false)
 	Spring.SetUnitBlocking(unitID, true, true, false, false, true, false, false)
 	Spring.SetUnitSensorRadius(unitID, 'los', 0)
 	Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
@@ -335,11 +340,21 @@ function gadget:GameStart()
 				xmasRatio = xmasRatio + (1/receivedPlayerCount)
 			end
 		end
-		if xmasRatio > 0.75 then
+		if xmasRatio > 0.75 or forceXmas then
 			_G.itsXmas = true
 			initiateXmas()
 		else
 			return
+		end
+	end
+end
+
+-- in case of luarules reload
+if forceXmas then
+	function gadget:Initialize()
+		if Spring.GetGameFrame() > 0 then
+			_G.itsXmas = true
+			initiateXmas()
 		end
 	end
 end
