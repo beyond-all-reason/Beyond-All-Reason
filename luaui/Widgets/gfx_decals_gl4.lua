@@ -49,10 +49,10 @@ local shaderConfig = {
 	PARALLAX = 0, -- 1 for on, kinda broken, do not use
 	AMBIENTOCCLUSION = 0, -- 1 for on, do not use
 	USEGLOW = 1, -- 1 for on, kinda wierd at the moment
-	GLOWTHRESHOLD = 0.66,
+	GLOWTHRESHOLD = 0.99,
 	FADEINTIME = 4, -- number of frames to fade in over
 	SPECULAREXPONENT = 4.0, -- how shiny decal surface is?
-	SPECULARSTRENGTH = 0.50, -- how strong specular highlights are
+	SPECULARSTRENGTH = 0.40, -- how strong specular highlights are
 	BLACKANDWHITEFACTOR = 0.5, -- set to between [0,1] to set how strong the black and white conversion should be, 0 = original color, 1 = full black and white
 	MINIMAPCOLORBLENDFACTOR = 1, -- How much minimap color should affect decal color
 }
@@ -113,7 +113,7 @@ local function makeAtlases()
 	atlasColorAlpha = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
 	
 	addDirToAtlas(atlasColorAlpha, newgroundscarspath, '_a.png', decalImageCoords)
-	addDirToAtlas(atlasColorAlpha, oldgroundscarspath, 'scar', decalImageCoords)
+	--addDirToAtlas(atlasColorAlpha, oldgroundscarspath, 'scar', decalImageCoords)
 	success = gl.FinalizeTextureAtlas(atlasColorAlpha)
 	if success == false then return false end
 	-- read back the UVs:
@@ -442,7 +442,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 	spawnframe = spawnframe or Spring.GetGameFrame()
 	--Spring.Echo(decaltexturename, atlassedImages[decaltexturename], atlasColorAlpha)
 	local p,q,s,t = 0,1,0,1
-	Spring.Echo(decaltexturename)
+	--Spring.Echo(decaltexturename) --used for displaying which decal texture is spawned
 	if decalImageCoords[decaltexturename] == nil then 
 		Spring.Echo("Tried to spawn a decal gl4 with a texture not present in the atlas:",decaltexturename)
 	else
@@ -617,16 +617,16 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	
 	-- randomly choose one decal
 	local heatstart = 0
-	local idx = randtablechoice(decalImageCoords)
+	--local idx = randtablechoice(decalImageCoords)
 	local heatdecay = math.random() + 1.1
 	-- Or hard code it: 
 	if true then 
 		idx = "luaui/images/decals_gl4/groundscars/t_groundcrack_17_a.png"
-		heatstart = math.random() * 5000
-		heatdecay = math.random() + 0.5
+		heatstart = (math.random() * 0.3 + 1) * 2500
+		heatdecay = (math.random() * 0.2 + 1) - (weaponDef.damageAreaOfEffect/1920)
 	end
 	
-	local radius = (weaponDef.damageAreaOfEffect * 1.8) * (math.random() * 0.44 + 0.80)
+	local radius = (weaponDef.damageAreaOfEffect * 1.5) * (math.random() * 0.44 + 0.80)
 	local gh = spGetGroundHeight(px,pz)
 	-- dont spawn decals into the air
 	-- also, modulate their alphastart by how far above ground they are
