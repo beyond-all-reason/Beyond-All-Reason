@@ -70,7 +70,7 @@ local function removeUnitShape()
 end
 
 local function addUnitShape(unitID)
-	if not Spring.ValidUnitID(unitID) then
+	if (not Spring.ValidUnitID(unitID)) or (Spring.GetUnitIsDead(target) ~= false)  then
 		-- remove old and bail
 		removeUnitShape()
 		return
