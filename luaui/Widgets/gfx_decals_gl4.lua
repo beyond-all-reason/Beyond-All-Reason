@@ -442,7 +442,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 	spawnframe = spawnframe or Spring.GetGameFrame()
 	--Spring.Echo(decaltexturename, atlassedImages[decaltexturename], atlasColorAlpha)
 	local p,q,s,t = 0,1,0,1
-	Spring.Echo(decaltexturename)
+	--Spring.Echo(decaltexturename)
 	if decalImageCoords[decaltexturename] == nil then 
 		Spring.Echo("Tried to spawn a decal gl4 with a texture not present in the atlas:",decaltexturename)
 	else
@@ -622,11 +622,11 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	-- Or hard code it: 
 	if true then 
 		idx = "luaui/images/decals_gl4/groundscars/t_groundcrack_17_a.png"
-		heatstart = math.random() * 5000
-		heatdecay = math.random() + 0.5
+		heatstart = (math.random() * 0.2 + 0.9) * 4900
+		heatdecay = (math.random() * 0.3 + 1.3) - (weaponDef.damageAreaOfEffect/2250)
 	end
 	
-	local radius = (weaponDef.damageAreaOfEffect * 1.8) * (math.random() * 0.44 + 0.80)
+	local radius = (weaponDef.damageAreaOfEffect * 1.5) * (math.random() * 0.44 + 0.80)
 	local gh = spGetGroundHeight(px,pz)
 	-- dont spawn decals into the air
 	-- also, modulate their alphastart by how far above ground they are
@@ -644,7 +644,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 			heatstart, -- heatstart
 			heatdecay, -- heatdecay
 			(math.random() * 0.38 + 0.72) * alpha, -- alphastart
-			math.random() / (5 * radius), -- alphadecay
+			(math.random() * 0.4 + 0.6) / (4 * radius), -- alphadecay
 			math.random() * 0.2 + 0.8 -- maxalpha
 			)
 	
