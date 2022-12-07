@@ -213,7 +213,7 @@ function gadget:GameFrame(n)
 			if frame < n then
 				decorationsTerminal[unitID] = nil
 				if Spring.GetUnitIsDead(unitID) == false then
-					Spring.DestroyUnit(unitID, false, false)
+					Spring.DestroyUnit(unitID, false, true)
 				end
 			end
 		end
@@ -330,7 +330,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		for i=1, #units do
 			if decorationUdefIDs[Spring.GetUnitDefID(units[i])] then
 				if Spring.GetUnitIsDead(units[i]) == false then
-					Spring.DestroyUnit(units[i], false, false)
+					Spring.DestroyUnit(units[i], false, true)
 					decorations[units[i]] = nil
 					decorationsTerminal[units[i]] = nil
 					createdDecorations[units[i]] = nil
