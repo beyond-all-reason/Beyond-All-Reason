@@ -184,17 +184,17 @@ void main(void)
 	#endif
 	
 	// Darken the whole goddamned decal:
-	fragColor.rgb *= 0.85; 
+	fragColor.rgb *= 0.80; 
 	
 	
 	// add emissive heat, if required
 	#if (USEGLOW == 1) 
 		float glowChannel = tex2color.a; // Could use a power operator here?
-		float hotness = max(0,g_uv.w)* 5500.0;
+		float hotness = max(0,g_uv.w)* 5000.0;
 		vec3 heatColor = Temperature(hotness*glowChannel);
 		//fragColor.rgb += heatColor * pow(glowChannel.r, 2) * hotness ;
 		//fragColor.rgb = vec3(fract(g_uv.w*20));
-		fragColor.rgb += (heatColor.rgb * max(glowChannel,0.0)*10);
+		fragColor.rgb += (heatColor.rgb * max(glowChannel,0.0)*12); //was *10 - icex increase to more brightness
 	#endif 
 	
 	

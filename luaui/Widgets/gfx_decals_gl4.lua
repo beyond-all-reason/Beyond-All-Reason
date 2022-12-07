@@ -622,7 +622,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	-- Or hard code it: 
 	if true then 
 		idx = "luaui/images/decals_gl4/groundscars/t_groundcrack_17_a.png"
-		heatstart = (math.random() * 0.3 + 0.9) * 5000
+		heatstart = (math.random() * 0.2 + 0.9) * 4900
 		heatdecay = (math.random() * 0.3 + 1.3) - (weaponDef.damageAreaOfEffect/2250)
 	end
 	
