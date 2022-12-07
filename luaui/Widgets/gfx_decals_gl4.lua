@@ -622,11 +622,11 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	-- Or hard code it: 
 	if true then 
 		idx = "luaui/images/decals_gl4/groundscars/t_groundcrack_17_a.png"
-		heatstart = (math.random() * 0.3 + 1) * 2500
-		heatdecay = (math.random() * 0.2 + 1) - (weaponDef.damageAreaOfEffect/1920)
+		heatstart = (math.random() * 0.3 + 0.9) * 5000
+		heatdecay = (math.random() * 0.3 + 1.3) - (weaponDef.damageAreaOfEffect/2250)
 	end
 	
-	local radius = (weaponDef.damageAreaOfEffect * 1.5) * (math.random() * 0.44 + 0.80)
+	local radius = (weaponDef.damageAreaOfEffect * 1.5) * (math.random() * 0.44 + 0.85)
 	local gh = spGetGroundHeight(px,pz)
 	-- dont spawn decals into the air
 	-- also, modulate their alphastart by how far above ground they are
