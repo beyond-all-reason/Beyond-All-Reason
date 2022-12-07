@@ -146,8 +146,10 @@ function initiateXmas()
 
 		-- spawn candy canes (if not already done)
 		local detectedCandycane = false
-		for featureDefID, featureDef in pairs(FeatureDefs) do
-			if string.find(featureDef.name, 'candycane') then
+		local allfeatures = Spring.GetAllFeatures()
+		for i, featureID in ipairs(allfeatures) do
+			local featureDefID = Spring.GetFeatureDefID(featureID)
+			if string.find(FeatureDefs[featureDefID].name, 'candycane') then
 				detectedCandycane = true
 				break
 			end
