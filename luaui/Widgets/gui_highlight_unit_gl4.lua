@@ -41,6 +41,8 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local highlightunitID = nil
 local highlightID = nil
 
+local visibleUnits = {} -- table maintained based on unit tracker API calls
+
 local teamColor = {}
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
@@ -70,7 +72,7 @@ local function removeUnitShape()
 end
 
 local function addUnitShape(unitID)
-	if (not Spring.ValidUnitID(unitID)) or (Spring.GetUnitIsDead(unitID) ~= false)  then
+	if (not Spring.ValidUnitID(unitID)) or (Spring.GetUnitIsDead(unitID) ~= false) or (visibleUnits[unitID] == nil) then
 		-- remove old and bail
 		removeUnitShape()
 		return
@@ -117,14 +119,24 @@ function widget:SelectionChanged(sel)
 	processSelection()
 end
 
+
+function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam) -- E.g. when a unit dies
+	visibleUnits[unitID] = unitDefID
+end
+
 function widget:VisibleUnitRemoved(unitID) -- E.g. when a unit dies
 	if highlightunitID == unitID then
 		removeUnitShape()
 	end
+	visibleUnits[unitID] = nil
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits) 
 	-- Called when players are changed, better remove all of them now!
+	visibleUnits = {}
+	for unitID, unitDefID in pairs(extVisibleUnits) do
+			visibleUnits[unitID] = unitDefID
+	end
 	removeUnitShape()
 end
 
@@ -154,6 +166,11 @@ function widget:Update()
 end
 
 function widget:Initialize()
+	if (not WG.HighlightUnitGL4) or (not WG['unittrackerapi']) then
+		Spring.Echo("Highlight Unit GL4 requires WG.HighlightUnitGL4 and WG.unittrackerapi")
+		widgetHandler:RemoveWidget()
+	end
+	widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 end
 
 function widget:Shutdown(reason)
