@@ -626,7 +626,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		heatdecay = (math.random() * 0.3 + 1.3) - (weaponDef.damageAreaOfEffect/2250)
 	end
 	
-	local radius = (weaponDef.damageAreaOfEffect * 1.5) * (math.random() * 0.44 + 0.85)
+	local radius = (weaponDef.damageAreaOfEffect * 1.5) * (math.random() * 0.44 + 0.80)
 	local gh = spGetGroundHeight(px,pz)
 	-- dont spawn decals into the air
 	-- also, modulate their alphastart by how far above ground they are
@@ -644,7 +644,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 			heatstart, -- heatstart
 			heatdecay, -- heatdecay
 			(math.random() * 0.38 + 0.72) * alpha, -- alphastart
-			math.random() / (5 * radius), -- alphadecay
+			(math.random() * 0.4 + 0.6) / (4 * radius), -- alphadecay
 			math.random() * 0.2 + 0.8 -- maxalpha
 			)
 	
