@@ -613,6 +613,10 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	local weaponDef = WeaponDefs[weaponID]
 	--Spring.Echo("GadgetWeaponExplosionDecal",px, py, pz, weaponID, ownerID, weaponDef.damageAreaOfEffect, weaponDef.name)
 
+	local aa = string.find(weaponDef.cegTag, 'aa')
+	if aa then
+		return
+	end
 
 	-- randomly choose one decal
 	local heatstart = 0
@@ -632,14 +636,21 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	local exploheight = py - gh
 	if (exploheight >= radius) then return end
 
+	if weaponDef.paralyzer then
+
+	end
+	if weaponDef.type == 'DGun' then
+		radius = radius * 2.5
+		heatdecay = 0.6
+
+	elseif string.find(weaponDef.name, 'juno') then
+		radius = 40
+	end
+
 	-- reduce severity when explosion is above ground
 	local heightMult = 1 - (exploheight / radius)
 
 	local alpha = (math.random() * 1.0 + 1.0) * (1.0 - exploheight/radius) * heightMult
-
-	if string.find(weaponDef.name, 'juno') then
-		radius = 40
-	end
 
 	AddDecal(idx,
 			px, --posx
