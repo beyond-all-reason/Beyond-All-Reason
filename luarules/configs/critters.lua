@@ -436,7 +436,7 @@ local critterConfig = {
 	["trefoil"] = {
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_goldfish"] = rnd(15, 30) } },
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_gull"] = rnd(5, 10) } },
-		{ spawnBox = { x1 = 50, z1 = 50, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_crab"] = rnd(0, 1) } },
+		{ spawnBox = { x1 = 50, z1 = 50, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_crab"] = rnd(1, 1) } },
 	},
 
 	["quicksilver"] = {
