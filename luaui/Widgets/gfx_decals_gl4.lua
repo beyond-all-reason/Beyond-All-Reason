@@ -20,11 +20,11 @@ end
 -- advanced geoshader tricount for quads
 -- 4x4 - 40
 -- KNOWN BUG:
-	-- the pop-back can change the render order of decals to be a tad annoying.... maybe a better method of managing this is needed? 
+	-- the pop-back can change the render order of decals to be a tad annoying.... maybe a better method of managing this is needed?
 	-- possibly solvable via batched decal removal, a good amount of time after they become transparent?
 -- TODO:
 	-- use global sun params for lighting calcs
-	-- DONE disable parallax 
+	-- DONE disable parallax
 	-- DONE enable support for old-style decals
 	-- paint emission
 	-- soften and make large decal creation above saturation threshold more probabilistic
@@ -37,7 +37,7 @@ end
 	-- Add team/clan/etc sprays
 		-- determine clan from first [] of playername
 		-- which can be done on initialize?
-		-- cursor 
+		-- cursor
 	-- SHADOWS SUPPORT!
 	-- FOG SUPPORT?
 
@@ -78,7 +78,7 @@ local saturationThreshold = 100 * areaResolution
 local atlasColorAlpha = nil
 local atlasNormals = nil
 local atlasHeights = nil
-local atlasRG = nil 
+local atlasRG = nil
 
 local atlasSize = 4096
 local atlasType = 1 -- 0 is legacy, 1 is quadtree type with no padding
@@ -111,30 +111,30 @@ end
 local function makeAtlases()
 	local success
 	atlasColorAlpha = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
-	
+
 	addDirToAtlas(atlasColorAlpha, newgroundscarspath, '_a.png', decalImageCoords)
 	addDirToAtlas(atlasColorAlpha, oldgroundscarspath, 'scar', decalImageCoords)
 	success = gl.FinalizeTextureAtlas(atlasColorAlpha)
 	if success == false then return false end
 	-- read back the UVs:
-	for filepath, _ in pairs(decalImageCoords) do 
+	for filepath, _ in pairs(decalImageCoords) do
 		local p,q,s,t = gl.GetAtlasTexture(atlasColorAlpha, filepath)
 		local texel = 0.5/atlasSize
 		decalImageCoords[filepath] =  {p+texel,q-texel,s+texel,t-texel}
-	end 
-	
+	end
+
 	atlasNormals = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
 	addDirToAtlas(atlasNormals, newgroundscarspath, '_n.')
 	success = gl.FinalizeTextureAtlas(atlasNormals)
 	if success == false then return false end
 
-	if shaderConfig.PARALLAX == 1 then 
+	if shaderConfig.PARALLAX == 1 then
 		atlasHeights = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
 		addDirToAtlas(atlasHeights, newgroundscarspath, '_h.png')
 		success = gl.FinalizeTextureAtlas(atlasHeights)
 		if success == false then return false end
 	end
-	if shaderConfig.USEGLOW == 1 then 
+	if shaderConfig.USEGLOW == 1 then
 		atlasRG = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
 		addDirToAtlas(atlasRG, newgroundscarspath, '_rg.png')
 		success = gl.FinalizeTextureAtlas(atlasRG)
@@ -189,13 +189,13 @@ local uniformInts =  {
 		infoTex = 2,
 		shadowtex = 3,
 		mapNormalsTex = 4,
-		atlasColorAlpha = 5, 
+		atlasColorAlpha = 5,
 		atlasNormals = 6,
-		atlasHeights = ((shaderConfig.PARALLAX == 1) and 7 ) or nil, 
-		atlasORM = ((shaderConfig.AMBIENTOCCLUSION == 1) and 8 ) or nil, 
-		atlasRG = ((shaderConfig.USEGLOW == 1) and 9 ) or nil, 
+		atlasHeights = ((shaderConfig.PARALLAX == 1) and 7 ) or nil,
+		atlasORM = ((shaderConfig.AMBIENTOCCLUSION == 1) and 8 ) or nil,
+		atlasRG = ((shaderConfig.USEGLOW == 1) and 9 ) or nil,
 		}
-	
+
 local shaderSourceCache = {
 	vssrcpath = vsSrcPath,
 	fssrcpath = fsSrcPath,
@@ -207,7 +207,7 @@ local shaderSourceCache = {
 		},
 	shaderName = "Decals Gl4 Shader",
 	}
-	
+
 local shaderLargeSourceCache = {
 	vssrcpath = vsSrcLargePath,
 	fssrcpath = fsSrcPath,
@@ -227,7 +227,7 @@ end
 local function initGL4( DPATname)
 	decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
 	decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache)
-	
+
 	if (not decalShader) or (not decalLargeShader) then goodbye("Failed to compile ".. DPATname .." GL4 ") end
 
 	decalVBO = makeInstanceVBOTable(
@@ -246,10 +246,10 @@ local function initGL4( DPATname)
 	local smallDecalVAO = gl.GetVAO()
 	smallDecalVAO:AttachVertexBuffer(decalVBO.instanceVBO)
 	decalVBO.VAO = smallDecalVAO
-	
+
 	local planeVBO, numVertices = makePlaneVBO(1,1,resolution,resolution)
 	local planeIndexVBO, numIndices =  makePlaneIndexVBO(resolution,resolution) --, true) -- add true to cull into a circle
-	
+
 	decalLargeVBO = makeInstanceVBOTable(
 		{
 			{id = 1, name = 'lengthwidthrotation', size = 4},
@@ -270,10 +270,10 @@ local function initGL4( DPATname)
 		decalLargeVBO.instanceVBO,
 		decalLargeVBO.indexVBO
 	)
-	
+
 	planeVBO, numVertices = makePlaneVBO(1,1,resolution*4,resolution*4)
 	planeIndexVBO, numIndices =  makePlaneIndexVBO(resolution*4,resolution*4) --, true) -- add true to cull into a circle
-	
+
 	decalExtraLargeVBO = makeInstanceVBOTable(
 		{
 			{id = 1, name = 'lengthwidthrotation', size = 4},
@@ -294,7 +294,7 @@ local function initGL4( DPATname)
 		decalExtraLargeVBO.instanceVBO,
 		decalExtraLargeVBO.indexVBO
 	)
-	return decalLargeVBO ~= nil and decalVBO ~= nil and decalExtraLargeVBO ~= nil 
+	return decalLargeVBO ~= nil and decalVBO ~= nil and decalExtraLargeVBO ~= nil
 end
 
 local decalIndex = 0
@@ -305,7 +305,7 @@ local decalRemoveList = {} -- maps instanceID's of decals that need to be batch 
 -----------------------------------------------------------------------------------------------
 -- This part is kinda useless for now, but we could prevent or control excessive decal spam right here!
 
-local decalToArea = {} -- maps instanceID to a position key on the map 
+local decalToArea = {} -- maps instanceID to a position key on the map
 local areaDecals = {} -- {positionkey = {decallist, totalarea},}
 local floor = math.floor
 
@@ -313,13 +313,13 @@ local function hashPos(mapx, mapz) -- packs XZ into 1000*x + z
 	if mapx == nil or mapz == nil then
 		Spring.Debug.TraceFullEcho()
 	end
-		
+
 	return floor(mapx / areaResolution) * 1000 + floor(mapz/areaResolution)
 end
 
-local function initAreas() 
-	for x= areaResolution /2, Game.mapSizeX, areaResolution do 
-		for z= areaResolution /2, Game.mapSizeZ, areaResolution do 
+local function initAreas()
+	for x= areaResolution /2, Game.mapSizeX, areaResolution do
+		for z= areaResolution /2, Game.mapSizeZ, areaResolution do
 			local gh = spGetGroundHeight(x,z)
 			areaDecals[hashPos(x,z)] = {instanceIDs = {}, totalarea = 0, x = x, y = gh, z = z, smoothness = 0}
 		end
@@ -335,11 +335,11 @@ local function AddDecalToArea(instanceID, posx, posz, width, length)
 	decalToArea[instanceID] = hash
 end
 
-local function RemoveDecalFromArea(instanceID) 
+local function RemoveDecalFromArea(instanceID)
 	local hashpos = decalToArea[instanceID]
-	if hashpos then 
+	if hashpos then
 		local maparea = areaDecals[hashpos]
-		if maparea.instanceIDs[instanceID] then 
+		if maparea.instanceIDs[instanceID] then
 			maparea.totalarea = math.max(0,maparea.totalarea - maparea.instanceIDs[instanceID])
 			maparea.instanceIDs[instanceID] = nil
 		end
@@ -356,38 +356,38 @@ end
 local updatePositionX = 0
 local updatePositionZ = 0
 function widget:Update() -- this is pointlessly expensive!
-	
-		if autoupdate then 
+
+		if autoupdate then
 		decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or decalShader
 		decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache) or		decalLargeShader
 	end
-	
+
 	if true then return end
 	-- run over the map, one area per frame, and calc its smoothness
 	updatePositionX = updatePositionX + areaResolution
 	if updatePositionX >= Game.mapSizeX then
 		updatePositionX = 0
 		updatePositionZ = updatePositionZ + areaResolution
-		if updatePositionZ >= Game.mapSizeZ then 
+		if updatePositionZ >= Game.mapSizeZ then
 			updatePositionZ = 0
 		end
 	end
-	if updatePositionX == nil or updatePositionZ == nil then 
+	if updatePositionX == nil or updatePositionZ == nil then
 		Spring.Echo("updatePositionX == nil or updatePositionZ == nil")
 		return
 	end
-	local hash = hashPos(updatePositionX, updatePositionZ) 
+	local hash = hashPos(updatePositionX, updatePositionZ)
 	--Spring.Echo("Updateing smoothness at",updatePositionX, updatePositionZ)
 	local step = areaResolution/ 16
-	local totalheight = 0 
+	local totalheight = 0
 	local numsamples = 0
 	local totalsmoothness = 0
 	local prevHeight = spGetGroundHeight(updatePositionX, updatePositionZ)
 	local prevX = prevHeight
-	for x = updatePositionX, updatePositionX + areaResolution, step do 
-		for z = updatePositionZ, updatePositionZ + areaResolution, step do 
+	for x = updatePositionX, updatePositionX + areaResolution, step do
+		for z = updatePositionZ, updatePositionZ + areaResolution, step do
 			local h = spGetGroundHeight(x,z)
-			--numsamples = numsamples + 1 
+			--numsamples = numsamples + 1
 			--totalheight = totalheight + h
 			--local avgheight = totalheight / numsamples
 			--totalsmoothness = totalsmoothness + abs(h-avgheight)
@@ -395,15 +395,15 @@ function widget:Update() -- this is pointlessly expensive!
 			prevHeight = h
 		end
 		prevX = prevHeight
-	end	
+	end
 	areaDecals[hash].smoothness = totalsmoothness
 end
 
-local function DrawSmoothness()				
+local function DrawSmoothness()
 	gl.Color(1,1,1,1)
-	for areaHash, areaInfo in pairs(areaDecals) do 
+	for areaHash, areaInfo in pairs(areaDecals) do
 		--Spring.Echo(areaHash, areaInfo.x, areaInfo.y, areaInfo.z)
-		if Spring.IsSphereInView(areaInfo.x, areaInfo.y, areaInfo.z, 128) then 
+		if Spring.IsSphereInView(areaInfo.x, areaInfo.y, areaInfo.z, 128) then
 			gl.PushMatrix()
 			local text = string.format("Smoothness = %d",areaInfo.smoothness)
 			local w = gl.GetTextWidth(text) * 16.0
@@ -431,19 +431,19 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 	heatdecay = heatdecay or 1
 	alphastart = alphastart or 1
 	alphadecay = alphadecay or 0
-	
-	if CheckDecalAreaSaturation(posx, posz, width, length) then 
+
+	if CheckDecalAreaSaturation(posx, posz, width, length) then
 		Spring.Echo("Map area is oversaturated with decals!", posx, posz, width, length)
-		return nil 
+		return nil
 	else
-	
+
 	end
-	
+
 	spawnframe = spawnframe or Spring.GetGameFrame()
 	--Spring.Echo(decaltexturename, atlassedImages[decaltexturename], atlasColorAlpha)
 	local p,q,s,t = 0,1,0,1
 	--Spring.Echo(decaltexturename)
-	if decalImageCoords[decaltexturename] == nil then 
+	if decalImageCoords[decaltexturename] == nil then
 		Spring.Echo("Tried to spawn a decal gl4 with a texture not present in the atlas:",decaltexturename)
 	else
 		local uvs = decalImageCoords[decaltexturename]
@@ -458,44 +458,44 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 	local lifetime = math.floor(alphastart/alphadecay)
 	decalIndex = decalIndex + 1
 	local targetVBO = decalVBO
-	
-	if math.min(width,length) > extralargesizeThreshold then 
+
+	if math.min(width,length) > extralargesizeThreshold then
 		targetVBO = decalExtraLargeVBO
-	elseif math.min(width,length) > largesizethreshold then 
+	elseif math.min(width,length) > largesizethreshold then
 		targetVBO = decalLargeVBO
 	end
-	
+
 	pushElementInstance(
 		targetVBO, -- push into this Instance VBO Table
 			{length, width, rotation, maxalpha ,  -- lengthwidthrotation maxalpha
 			p,q,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
 			alphastart, alphadecay, heatstart, heatdecay, -- alphastart_alphadecay_heatstart_heatdecay
-			posx, posy, posz, spawnframe, 
+			posx, posy, posz, spawnframe,
 			0,0,0,0}, -- params
 		decalIndex, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		false) -- noupload, dont use unless you know what you want to batch push/pop
 	local deathtime = spawnframe + lifetime
 	decalTimes[decalIndex] = deathtime
-	if decalRemoveQueue[deathtime] == nil then 
+	if decalRemoveQueue[deathtime] == nil then
 		decalRemoveQueue[deathtime] = {decalIndex}
 	else
 		decalRemoveQueue[deathtime][#decalRemoveQueue[deathtime] + 1 ] = decalIndex
 	end
-	
+
 	AddDecalToArea(decalIndex, posx, posz, width, length)
 	return decalIndex, lifetime
 end
 
 function widget:DrawWorldPreUnit()
 	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
-														 
-																																		   
-	 
-		
+
+
+
+
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--Spring.Echo(decalVBO.usedElements,decalLargeVBO.usedElements)
-		glCulling(GL.BACK) 
+		glCulling(GL.BACK)
 		glDepthTest(GL_LEQUAL)
 		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		glTexture(0, '$heightmap')
@@ -506,44 +506,44 @@ function widget:DrawWorldPreUnit()
 		glTexture(5, atlasColorAlpha)
 		glTexture(6, atlasNormals)
 		if shaderConfig.PARALLAX == 1 then glTexture(7, atlasHeights) end
-		if shaderConfig.AMBIENTOCCLUSION == 1 then glTexture(8, atlasRG) end 
-		if shaderConfig.USEGLOW == 1 then glTexture(9, atlasRG) end 
+		if shaderConfig.AMBIENTOCCLUSION == 1 then glTexture(8, atlasRG) end
+		if shaderConfig.USEGLOW == 1 then glTexture(9, atlasRG) end
 		--glTexture(9, '$map_gbuffer_zvaltex')
 		--glTexture(10, '$map_gbuffer_difftex')
 		--glTexture(11, '$map_gbuffer_normtex')
-		
-		
-		if decalVBO.usedElements > 0  then  
+
+
+		if decalVBO.usedElements > 0  then
 			decalShader:Activate()
 			decalShader:SetUniform("fadeDistance",disticon * 1000)
 			decalVBO.VAO:DrawArrays(GL.POINTS, decalVBO.usedElements)
 			decalShader:Deactivate()
 		end
-		
+
 		if decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
 			--Spring.Echo("large elements:", decalLargeVBO.usedElements)
 			decalLargeShader:Activate()
 			--decalLargeShader:SetUniform("fadeDistance",disticon * 1000)
-			if decalLargeVBO.usedElements > 0 then 
+			if decalLargeVBO.usedElements > 0 then
 				decalLargeVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, decalLargeVBO.usedElements, 0)
 			end
-			if decalExtraLargeVBO.usedElements > 0 then 
+			if decalExtraLargeVBO.usedElements > 0 then
 				decalExtraLargeVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, decalExtraLargeVBO.usedElements, 0)
 			end
 			decalLargeShader:Deactivate()
-		end 
-		
+		end
+
 		-- Restore the GL state
 		for i = 0, 8 do glTexture(i, false) end
-		glCulling(GL.BACK) -- This is the correct default mode! 
+		glCulling(GL.BACK) -- This is the correct default mode!
 		glDepthTest(GL_LEQUAL)
 		--gl.Blending(GL.SRC_ALPHA, GL.ONE)
-		
+
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
 
 		--gl.DepthMask(false) --"BK OpenGL state resets", already set as false
-		
-		if false then 
+
+		if false then
 			local tricount = 4*4*2 * decalVBO.usedElements + resolution*resolution*2*decalLargeVBO.usedElements + 4*4*resolution*resolution*2*decalExtraLargeVBO.usedElements
 			Spring.Echo(string.format("Small decal = %d, Medium decal = %d, Large decal = %d, tris = %d",
 				decalVBO.usedElements,
@@ -562,12 +562,12 @@ local function RemoveDecal(instanceID)
 		popElementInstance(decalLargeVBO, instanceID)
 	elseif decalExtraLargeVBO.instanceIDtoIndex[instanceID] then
 		popElementInstance(decalExtraLargeVBO, instanceID)
-	end 
+	end
 	decalTimes[instanceID] = nil
 end
 
 function widget:GameFrame(n)
-	if decalRemoveQueue[n] then 
+	if decalRemoveQueue[n] then
 		for i=1, #decalRemoveQueue[n] do
 			local decalID = decalRemoveQueue[n][i]
 			decalRemoveList[decalID] = true
@@ -575,17 +575,17 @@ function widget:GameFrame(n)
 		end
 		decalRemoveQueue[n] = nil
 	end
-	if (n %91) == 0 then 
+	if (n %91) == 0 then
 		local removed = 0
 		removed = removed + compactInstanceVBO(decalVBO, decalRemoveList)
 		removed = removed + compactInstanceVBO(decalLargeVBO, decalRemoveList)
 		removed = removed + compactInstanceVBO(decalExtraLargeVBO, decalRemoveList)
 		decalRemoveList = {}
-		
-		if autoupdate and removed > 0 then 
+
+		if autoupdate and removed > 0 then
 			Spring.Echo("Removed",removed,"decals from decal instance tables: s=",decalVBO.usedElements,' l=', decalLargeVBO.usedElements,'xl=', decalExtraLargeVBO.usedElements)
 		end
-		if removed > 0 then 
+		if removed > 0 then
 			uploadAllElements(	decalVBO)
 			uploadAllElements(	decalLargeVBO)
 			uploadAllElements(	decalExtraLargeVBO)
@@ -595,10 +595,10 @@ end
 
 local function randtablechoice (t)
 	local i = 0
-	for _ in pairs(t) do i = i+1 end 
+	for _ in pairs(t) do i = i+1 end
 	local randi = math.floor(math.random()*i)
 	local j = 0
-	for k,v in pairs(t) do 
+	for k,v in pairs(t) do
 		if j > randi then return k,v end
 		j = j+1
 	end
@@ -612,70 +612,76 @@ end
 local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	local weaponDef = WeaponDefs[weaponID]
 	--Spring.Echo("GadgetWeaponExplosionDecal",px, py, pz, weaponID, ownerID, weaponDef.damageAreaOfEffect, weaponDef.name)
-	
-	
-	
+
+
 	-- randomly choose one decal
 	local heatstart = 0
 	local idx = randtablechoice(decalImageCoords)
 	local heatdecay = math.random() + 1.1
-	-- Or hard code it: 
-	if true then 
+	-- Or hard code it:
+	if true then
 		idx = "luaui/images/decals_gl4/groundscars/t_groundcrack_17_a.png"
 		heatstart = (math.random() * 0.2 + 0.9) * 4900
 		heatdecay = (math.random() * 0.3 + 1.3) - (weaponDef.damageAreaOfEffect/2250)
 	end
-	
+
 	local radius = (weaponDef.damageAreaOfEffect * 1.5) * (math.random() * 0.44 + 0.80)
 	local gh = spGetGroundHeight(px,pz)
 	-- dont spawn decals into the air
 	-- also, modulate their alphastart by how far above ground they are
 	local exploheight = py - gh
-	if (exploheight >= radius) then return end 
-	
-	local alpha = (math.random() * 1.0 + 1.0) * (1.0 - exploheight/radius)
-	
-	AddDecal(idx, 
+	if (exploheight >= radius) then return end
+
+	-- reduce severity when explosion is above ground
+	local heightMult = 1 - (exploheight / radius)
+
+	local alpha = (math.random() * 1.0 + 1.0) * (1.0 - exploheight/radius) * heightMult
+
+	if string.find(weaponDef.name, 'juno') then
+		radius = 40
+	end
+
+	AddDecal(idx,
 			px, --posx
 			pz, --posz
 			math.random() * 6.28, -- rotation
 			radius, -- width
-			radius, -- height 
-			heatstart, -- heatstart
-			heatdecay, -- heatdecay
+			radius, -- height
+			heatstart * heightMult, -- heatstart
+			heatdecay * heightMult, -- heatdecay
 			(math.random() * 0.38 + 0.72) * alpha, -- alphastart
 			(math.random() * 0.4 + 0.6) / (4 * radius), -- alphadecay
 			math.random() * 0.2 + 0.8 -- maxalpha
 			)
-	
+
 end
 
 function widget:Initialize()
-	if makeAtlases() == false then 
+	if makeAtlases() == false then
 		goodbye("Failed to init texture atlas for DecalsGL4")
 		return
 	end
 	local initsuccess = initGL4("DecalsGL4")
-	if initsuccess == nil then 
+	if initsuccess == nil then
 		widgetHandler:RemoveWidget()
 		return
 	end
 	initAreas()
 	math.randomseed(1)
-	if autoupdate then 
-		for i= 1, 100 do 
+	if autoupdate then
+		for i= 1, 100 do
 			local w = math.random() * 15 + 7
 			w = w * w
 			local j = math.floor(math.random()*20+1)
 			--local idx = string.format("luaui/images/decals_gl4/groundScars/t_groundcrack_%02d_a.png", j)
 			local idx = randtablechoice(decalImageCoords)
 			--Spring.Echo(idx)
-			AddDecal(idx, 
+			AddDecal(idx,
 					Game.mapSizeX * math.random() * 1.0, --posx
 					Game.mapSizeZ * math.random() * 1.0, --posz
 					math.random() * 6.28, -- rotation
 					w, -- width
-					w, --height 
+					w, --height
 					math.random() * 10000, -- heatstart
 					math.random() * 1, -- heatdecay
 					math.random() * 1.0 + 1.0, -- alphastart
@@ -684,7 +690,7 @@ function widget:Initialize()
 					)
 		end
 	end
-	
+
 	WG['decalsgl4'] = {}
 	WG['decalsgl4'].AddDecalGL4 = AddDecal
 	WG['decalsgl4'].RemoveDecalGL4 = RemoveDecal
@@ -708,7 +714,7 @@ function widget:ShutDown()
 	if atlasRG ~= nil then
 		gl.DeleteTextureAtlas(atlasRG)
 	end
-	
+
 	WG['decalsgl4'] = nil
 	widgetHandler:DeregisterGlobal('AddDecalGL4')
 	widgetHandler:DeregisterGlobal('RemoveDecalGL4')
