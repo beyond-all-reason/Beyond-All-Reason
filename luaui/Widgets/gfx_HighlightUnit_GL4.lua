@@ -6,7 +6,7 @@ function widget:GetInfo()
     author    = "Beherith,ivand",
     date      = "2022.01.04",
 	license   = "GNU GPL, v2 or later",
-    layer     = -9999,
+    layer     = -999999,
     enabled   = true,
   }
 end
@@ -267,16 +267,21 @@ end
 
 -- TODO: the api is the correct place for removal on unit
 
-local unitIDtoUniqueIDs = {} -- This is a special table, where 
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits) -- extVisibleUnits is a table of [unitID:unitDefID]
 	-- use uniqueIDtoUnitID
-	for uniqueID, unitID in pairs(uniqueIDtoUnitID) do 
+	-- at this point we cant pop back any more!
+	-- Ok this is really bad, as I have no guarantee that this will run first of all the resets.
+	uniqueIDtoUnitID = {}
+	unitIDtoUniqueID = {}
+	clearInstanceTable(highlightUnitVBOTable)
+	
+	--for uniqueID, unitID in pairs(uniqueIDtoUnitID) do 
 		-- i am no longer nice to consumers
 		--if extVisibleUnits[unitID] == nil then -- no longer visible, so we must remove the uniqueID
-			StopHighlightUnitGL4(uniqueID)
+			--StopHighlightUnitGL4(uniqueID)
 		--end
-	end
+	--end
 end
 
 function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
