@@ -59,7 +59,7 @@ function widget:Initialize()
 
 	local preventcombomb = not (Spring.GetModOptions().newdgun or Spring.GetModOptions().unba)
 	if preventcombomb then --Spring.GetModOptions().preventcombomb then
-		message2 = Spring.I18N('ui.gametypeInfo.commandersSurviveDgun')
+		--message2 = Spring.I18N('ui.gametypeInfo.commandersSurviveDgun')
 	end
 
 	if Spring.GetModOptions().unba then
