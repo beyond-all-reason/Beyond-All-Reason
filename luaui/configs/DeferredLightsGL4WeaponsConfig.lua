@@ -461,12 +461,12 @@ local function AssignLightsToAllWeapons()
 				end
 				radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
 				if weaponDef.customParams.unitexplosion then
-					radius = radius * 1.5
+					radius = radius * 1.25
 					-- make more white
 					t.r = (1.7 + t.r) / 2.7
 					t.g = (1.7 + t.g) / 2.7
 					t.b = (1.7 + t.b) / 2.7
-					t.a = orgMult*3
+					t.a = orgMult*2.8
 					t.lifetime = life * 1.15
 				else
 					-- make more white
