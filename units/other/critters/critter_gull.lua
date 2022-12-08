@@ -21,6 +21,7 @@ return {
 		collide = false,
 		collision = false,
 		cruisealt = 200,
+		explodeas = "TINYBUG_DEATH",
 		footprintx = 1,
 		footprintz = 1,
 		hoverattack = true,

@@ -19,7 +19,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "8 15 8",
 		collisionvolumetype = "CylY",
-		explodeas = "TINYBUG_DEATH",
+		explodeas = "SMALLBUG_DEATH",
 		floater = true,
 		footprintx = 1,
 		footprintz = 1,
