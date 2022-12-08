@@ -13,7 +13,7 @@ return {
 		canmove = true,
 		canpatrol = true,
 		canstop = "1",
-		cantbetransported = true,
+		cantbetransported = false,
 		capturable = false,
 		category = "MOBILE WEAPON NOTAIR NOTSUB",
 		collisionvolumeoffsets = "0 0 0",
