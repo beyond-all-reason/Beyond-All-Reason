@@ -282,13 +282,13 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 	if shadersourcecache.lastshaderupdate == nil or 
 		Spring.DiffTimers(Spring.GetTimer(), shadersourcecache.lastshaderupdate) > (delaytime or 0.5) then 
 		shadersourcecache.lastshaderupdate = Spring.GetTimer()
-		local vsSrcNew = shadersourcecache.vssrcpath and VFS.LoadFile(shadersourcecache.vssrcpath)
-		local fsSrcNew = shadersourcecache.fssrcpath and VFS.LoadFile(shadersourcecache.fssrcpath)
-		local gsSrcNew = shadersourcecache.gssrcpath and VFS.LoadFile(shadersourcecache.gssrcpath)
-		if  vsSrcNew == shadersourcecache.vsSrc and 
+		local vsSrcNew = (shadersourcecache.vssrcpath and VFS.LoadFile(shadersourcecache.vssrcpath)) or shadersourcecache.vsSrc
+		local fsSrcNew = (shadersourcecache.fssrcpath and VFS.LoadFile(shadersourcecache.fssrcpath)) or shadersourcecache.fsSrc
+		local gsSrcNew = (shadersourcecache.gssrcpath and VFS.LoadFile(shadersourcecache.gssrcpath)) or shadersourcecache.gsSrc
+		if vsSrcNew == shadersourcecache.vsSrc and 
 			fsSrcNew == shadersourcecache.fsSrc and 
 			gsSrcNew == shadersourcecache.gsSrc and 
-			not forceupdate then 
+			not shadersourcecache.forceupdate then 
 			--Spring.Echo("No change in shaders")
 			return nil
 		else
@@ -296,6 +296,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			shadersourcecache.vsSrc = vsSrcNew
 			shadersourcecache.fsSrc = fsSrcNew
 			shadersourcecache.gsSrc = gsSrcNew
+			shadersourcecache.forceupdate = nil
 			
 			local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 			local shaderDefines = LuaShader.CreateShaderDefinesString(shadersourcecache.shaderConfig)
