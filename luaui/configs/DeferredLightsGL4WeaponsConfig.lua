@@ -177,6 +177,8 @@ local ColorSets = { -- TODO add advanced dual-color sets!
 	Team  = 	{r = -1, g = -1, b = -1},
 }
 
+local globalDamageMult = Spring.GetModOptions().multiplier_weapondamage or 1
+
 local function GetClosestSizeClass(desiredsize)
 	local delta = math.huge
 	local best = nil
@@ -287,6 +289,10 @@ local function AssignLightsToAllWeapons()
 				break
 			end
 		end
+
+		-- correct damage multiplier to more sane value
+		damage = (damage / globalDamageMult) + (damage * (1.5 / (globalDamageMult-1)))
+
 		local radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
 		local orgMult = math.max(0.1, math.min(damage/1600, 0.6)) + (radius/2800)
 		local life = 8 + (5*(radius/2000)+(orgMult * 5))
@@ -296,6 +302,7 @@ local function AssignLightsToAllWeapons()
 			radius = 160
 			orgMult = 1
 		end
+
 
 		local r, g, b = 1, 0.8, 0.45
 		if weaponDef.visuals ~= nil and weaponDef.visuals.colorR ~= nil then
