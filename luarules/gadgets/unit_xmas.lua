@@ -20,7 +20,7 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
-local forceXmas = true	-- for debugging purpose
+local forceXmas = false	-- for debugging purpose
 
 if not gadgetHandler:IsSyncedCode() then
 	local uniformcache = {0}
