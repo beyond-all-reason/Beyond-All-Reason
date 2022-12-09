@@ -5,7 +5,7 @@
 
 piece  base, flare, turret, sleeve, barrel1, barrel2, barrel3, barrel4;
 
-static-var  restore_delay, wpnheading, bAiming;
+static-var  restore_delay, bAiming, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -35,7 +35,6 @@ Create()
 {
 	hide flare;
 	restore_delay = 3000;
-	wpnheading = 0;
 	bAiming = 0;
 	return (0);
 }
@@ -54,7 +53,7 @@ ExecuteRestoreAfterDelay()
     }
 	turn turret to y-axis <0.000000> speed <50.005495>;
 	turn sleeve to x-axis <0.000000> speed <50.005495>;
-	wpnheading = 0;
+	wpn1_lasthead = 1000000;
 	bAiming = 0;
 }
 SetStunned(State)
@@ -73,21 +72,17 @@ RestoreAfterDelay()
 
 AimPrimary(heading, pitch)
 {
-	//get PRINT ( heading,bAiming,wpnheading,RAND(1,256) ) ;
+	bAiming = TRUE;
 	signal SIG_AIM;
-	
-	if (bAiming == 1) return;
 	turn turret to y-axis heading speed <90>;
 	turn sleeve to x-axis <0.000000> - pitch speed <90>;
-	if ((get ABS(wpnheading - heading)) > 500){ //	needed for luarules\gadgets\unit_continuous_aim.lua
-		bAiming = 1;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))
+	{
+		wpn1_lasthead = 1000000;
 		wait-for-turn turret around y-axis;
 		wait-for-turn sleeve around x-axis;
-		bAiming = 0;
 	}
-	wait-for-turn turret around y-axis;
-	wait-for-turn sleeve around x-axis;
-	wpnheading = heading;
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }

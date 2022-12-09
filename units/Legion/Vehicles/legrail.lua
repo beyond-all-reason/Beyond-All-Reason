@@ -38,6 +38,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.056,
 		turnrate = 300,
+		usepiececollisionvolumes = 1,
 		customparams = {
 			unitgroup = 'weaponaa',
 			model_author = "Beherith",
