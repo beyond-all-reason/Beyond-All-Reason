@@ -293,6 +293,11 @@ vertex = [[
 			piecePos.xyz *= randomScale;
 		#endif
 		
+		
+		#if (XMAS == 1)
+			piecePos.xyz +=  piecePos.xyz * 10.0 * UNITUNIFORMS.userDefined[2].y; // number 9
+		#endif
+		
 		modelVertexPosOrig = piecePos;
 		vec3 modelVertexNormal = normal;
 

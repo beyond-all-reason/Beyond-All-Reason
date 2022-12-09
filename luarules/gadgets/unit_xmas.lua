@@ -11,10 +11,6 @@ function gadget:GetInfo()
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then
-	return
-end
-
 local decorationUdefIDs = {}
 local decorationUdefIDlist = {}
 for udefID,def in ipairs(UnitDefs) do
@@ -24,7 +20,19 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
-local forceXmas = false	-- for debugging purpose
+local forceXmas = true	-- for debugging purpose
+
+if not gadgetHandler:IsSyncedCode() then
+	local uniformcache = {0}
+	function gadget:UnitCreated(unitID, unitDefID)
+		if decorationUdefIDs[unitDefID] then
+			uniformcache[1] = math.random() * 0.6 - 0.25
+			gl.SetUnitBufferUniforms(unitID, uniformcache, 9)
+		end
+	end
+	return
+end
+
 
 local maxDecorations = 200
 local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/2000000)
