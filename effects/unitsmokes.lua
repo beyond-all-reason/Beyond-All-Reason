@@ -1,4 +1,153 @@
 return {
+  ["unitsmokegen"] = {
+        smoke = {
+          air                = true,
+             class              = [[CExpGenSpawner]],
+             count              = 50, --60
+             ground             = true,
+             water              = true,
+             underwater         = true,
+             properties = {
+                 delay              = [[0 r300]],
+                 explosiongenerator = [[custom:smokegen-part]],
+                 pos                = [[-2 r4, 0 r5, -2 r4]],
+                 --alwaysvisible      = true,
+            },
+    },
+  },
+  ["smokegen-part"] = {
+        smoke = {
+         air                = true,
+         class              = [[CSimpleParticleSystem]],
+         count              = 2,
+         ground             = true,
+         water              = true,
+         properties = {
+           airdrag            = 0.70,
+           colormap           = [[0.01 0.01 0.01 0.1   0.12 0.12 0.12 0.68   0.10 0.10 0.10 0.75   0.09 0.09 0.09 0.9  0.08 0.08 0.08 0.6    0.07 0.07 0.07 0.4   0.05 0.05 0.05 0.2   0.01 0.01 0.01 0.01]],
+           directional        = true,
+           emitrot            = 45,
+           emitrotspread      = 5,
+           emitvector         = [[0.3, 1, 0.3]],
+           gravity            = [[-0.03 r0.06, 0.4 r0.6, -0.03 r0.06]],
+           numparticles       = 1,
+           particlelife       = 35,
+           particlelifespread = 35,
+           particlesize       = 10,
+           particlesizespread = 30,
+           particlespeed      = 1.0,
+           particlespeedspread = 1,
+           pos                = [[0.0, 1, 0.0]],
+           sizegrowth         = [[0.12 r0.05]],
+           sizemod            = 1,
+           texture            = [[smoke-anim]],
+           animParams         = [[8,6,50 r50]],
+           rotParams          = [[-16 r16, -8 r8, -180 r360]],
+           useairlos          = true,
+         },
+    },
+  },
+
+    ["unitsmokegen2"] = {
+        smoke = {
+          air                = true,
+             class              = [[CExpGenSpawner]],
+             count              = 50, --60
+             ground             = true,
+             water              = true,
+             underwater         = true,
+             properties = {
+                 delay              = [[i6]],
+                 explosiongenerator = [[custom:smokegen-part2]],
+                 pos                = [[-2 r4, 0 r5, -2 r4]],
+                 --alwaysvisible      = true,
+            },
+    },
+  },
+  ["smokegen-part2"] = {
+        smoke = {
+         air                = true,
+         class              = [[CSimpleParticleSystem]],
+         count              = 2,
+         ground             = true,
+         water              = true,
+         properties = {
+           airdrag            = 0.72,
+           colormap           = [[0.01 0.01 0.01 0.1   0.20 0.20 0.20 0.50   0.27 0.27 0.27 0.74   0.23 0.23 0.23 0.85  0.18 0.18 0.18 0.68    0.10 0.10 0.10 0.45   0.05 0.05 0.05 0.24   0.01 0.01 0.01 0.01]],
+           directional        = true,
+           emitrot            = 30,
+           emitrotspread      = 5,
+           emitvector         = [[0.3, 1, 0.3]],
+           gravity            = [[-0.02 r0.04, 0.4 r0.5, -0.02 r0.04]],
+           numparticles       = 1,
+           particlelife       = 40,
+           particlelifespread = 28,
+           particlesize       = 20,
+           particlesizespread = 20,
+           particlespeed      = 1.6,
+           particlespeedspread = 2.0,
+           pos                = [[0.0, 1, 0.0]],
+           sizegrowth         = [[0.17 r0.04]],
+           sizemod            = 1,
+           texture            = [[smoke-ice-anim]],
+           animParams         = [[8,8,65 r40]],
+           rotParams          = [[-4 r8, -6 r12, -180 r360]],
+           useairlos          = true,
+         },
+    },
+  },
+
+    ["unitsmokegen-beh"] = {
+        smoke = {
+          air                = true,
+             class              = [[CExpGenSpawner]],
+             count              = 50, --60
+             ground             = true,
+             water              = true,
+             underwater         = true,
+             properties = {
+                 delay              = [[0 r300]],
+                 explosiongenerator = [[custom:smokegen-part-beh]],
+                 pos                = [[-2 r4, 0 r5, -2 r4]],
+                 --alwaysvisible      = true,
+            },
+    },
+  },
+  ["smokegen-part-beh"] = {
+        smoke = {
+         air                = true,
+         class              = [[CSimpleParticleSystem]],
+         count              = 2,
+         ground             = true,
+         water              = true,
+         properties = {
+           airdrag            = 0.70,
+           colormap           = [[0.01 0.01 0.01 0.1   0.12 0.12 0.12 0.68   0.10 0.10 0.10 0.75   0.09 0.09 0.09 0.9  0.08 0.08 0.08 0.6    0.07 0.07 0.07 0.4   0.05 0.05 0.05 0.2   0.01 0.01 0.01 0.01]],
+           directional        = true,
+           emitrot            = 45,
+           emitrotspread      = 5,
+           emitvector         = [[0.3, 1, 0.3]],
+           gravity            = [[-0.03 r0.06, 0.4 r0.6, -0.03 r0.06]],
+           numparticles       = 1,
+           particlelife       = 35,
+           particlelifespread = 35,
+           particlesize       = 10,
+           particlesizespread = 30,
+           particlespeed      = 1.0,
+           particlespeedspread = 1,
+           pos                = [[0.0, 1, 0.0]],
+           sizegrowth         = [[0.12 r0.05]],
+           sizemod            = 1,
+           texture            = [[smoke-beh-anim]],
+           animParams         = [[8,8,50 r50]],
+           rotParams          = [[-16 r16, -8 r8, -180 r360]],
+           useairlos          = true,
+         },
+    },
+  },
+
+
+  --- old effects below
   ["unitsmoke"] = {
         smoke = {
          air                = true,
