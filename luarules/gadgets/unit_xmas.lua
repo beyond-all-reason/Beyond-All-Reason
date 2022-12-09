@@ -40,13 +40,12 @@ local candycaneSnowMapMult = 2.5
 local addGaiaBalls = false	-- if false, only own team colored balls are added
 
 local enableUnitDecorations = true		-- burst out xmas ball after unit death
-for _,teamID in ipairs(Spring.GetTeamList()) do
-	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
-		enableUnitDecorations = false
+if not forceXmas then
+	for _,teamID in ipairs(Spring.GetTeamList()) do
+		if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
+			enableUnitDecorations = false
+		end
 	end
-end
-if forceXmas then
-	enableUnitDecorations = true
 end
 
 local isComWreck = {}

@@ -12,6 +12,7 @@ function gadget:GetInfo()
 end
 
 if gadgetHandler:IsSyncedCode() then
+	local itsXmas = GG.itsXmas
 	return false
 end
 
@@ -542,34 +543,35 @@ local function appendShaderDefinitionsToTemplate(template, alldefinitions)
 	return copytemplate
 end
 
+local itsXmas = false
 local function initMaterials()
 	defaultMaterialTemplate = VFS.Include("modelmaterials_gl4/templates/defaultMaterialTemplate.lua")
-	if SYNCED.itsXmas then -- FLORIS THIS DOESNT WORK
+	if itsXmas then
 		Spring.Echo("CUS GL4 enabled XMAS mode")
 	end
-		
-		
+
+
 	unitsNormalMapTemplate = appendShaderDefinitionsToTemplate(defaultMaterialTemplate, {
 		shaderDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
 			"#define ENABLE_OPTION_THREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
-			SYNCED.itsXmas and "#define XMAS 1" or "#define XMAS 0",
+			itsXmas and "#define XMAS 1" or "#define XMAS 0",
 		},
 		deferredDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
 			"#define ENABLE_OPTION_THREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
-			SYNCED.itsXmas and "#define XMAS 1" or "#define XMAS 0",
+			itsXmas and "#define XMAS 1" or "#define XMAS 0",
 		},
 		shadowDefinitions = {
-			SYNCED.itsXmas and "#define XMAS 1" or "",
+			itsXmas and "#define XMAS 1" or "",
 		},
 		reflectionDefinitions = {
 			"#define ENABLE_OPTION_HEALTH_TEXTURING 1",
 			"#define ENABLE_OPTION_THREADS 1",
 			"#define ENABLE_OPTION_HEALTH_DISPLACE 1",
-			SYNCED.itsXmas and "#define XMAS 1" or "#define XMAS 0",
+			itsXmas and "#define XMAS 1" or "#define XMAS 0",
 		},
 	})
 
@@ -1635,6 +1637,15 @@ local function DisableCUSGL4(optName, _, _, playerID)
 	end
 	Spring.Echo("[CustomUnitShadersGL4] Disabling")
 	gadget:Shutdown()
+end
+
+
+function gadget:GameFrame(n)
+	if not itsXmas and SYNCED.itsXmas then
+		itsXmas = true
+		initiated = false
+		ReloadCUSGL4(nil,nil,nil, Spring.GetMyPlayerID())
+	end
 end
 
 local updaterate = 1
