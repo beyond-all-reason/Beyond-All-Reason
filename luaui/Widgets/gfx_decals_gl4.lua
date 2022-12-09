@@ -659,7 +659,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 			radius, -- width
 			radius, -- height
 			heatstart * heightMult, -- heatstart
-			heatdecay * (1-heightMult), -- heatdecay
+			heatdecay * (1+(1-heightMult)), -- heatdecay
 			(math.random() * 0.38 + 0.72) * alpha, -- alphastart
 			(math.random() * 0.4 + 0.6) / (4 * radius), -- alphadecay
 			math.random() * 0.2 + 0.8 -- maxalpha
