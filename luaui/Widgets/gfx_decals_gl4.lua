@@ -654,6 +654,12 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 
 	elseif string.find(weaponDef.name, 'juno') then
 		radius = 180
+
+	elseif string.find(weaponDef.name, 'bomb') then
+		radius = radius * 1.5
+		heatstart = 5500
+		heatdecay = 0.9
+
 	end
 
 	-- reduce severity when explosion is above ground
