@@ -99,6 +99,34 @@ do
 
 end
 
+
+local cursorLights
+local cursorLightHeight = 35
+local cursorLightParams = {
+	lightType = 'point', -- or cone or beam
+	pieceName = nil, -- optional
+	lightConfig = {
+		posx = 0, posy = 0, posz = 0, radius = 350,	-- (radius is set elsewhere)
+		r = 1, g = 1, b = 1, a = 0.1,	-- (alpha is set elsewhere)
+		color2r = 0, color2g = 0, color2b = 0, colortime = 0, -- point lights only, colortime in seconds for unit-attache
+		modelfactor = 0.3, specular = 0.6, scattering = 2, lensflare = 0,
+		lifetime = 0, sustain = 0, aninmtype = 0 -- unused
+	}
+}
+local cursorLightAlpha = 0.5
+local cursorLightRadius = 0.85
+
+local teamColors = {}
+local function loadTeamColors()
+	local playerList = Spring.GetPlayerList()
+	for _, playerID in ipairs(playerList) do
+		local teamID = select(4, Spring.GetPlayerInfo(playerID, false))
+		local r, g, b = Spring.GetTeamColor(teamID)
+		teamColors[playerID] = {r, g, b}
+	end
+end
+loadTeamColors()
+
 ----------------------------- Localize for optmization ------------------------------------
 
 local glBlending = gl.Blending
@@ -387,7 +415,7 @@ local function InitializeLight(lightTable, unitID)
 	end
 	return true
 end
-
+InitializeLight(cursorLightParams)
 
 --------------------------------------------------------------------------------
 
@@ -976,6 +1004,18 @@ end
 
 function widget:PlayerChanged(playerID)
 	spec = Spring.GetSpectatingState()
+
+	local _, _, isSpec, teamID = Spring.GetPlayerInfo(playerID, false)
+	local r, g, b = Spring.GetTeamColor(teamID)
+	if isSpec then
+		teamColors[playerID] = { 1, 1, 1 }
+	elseif r and g and b then
+		teamColors[playerID] = { r, g, b }
+	end
+	if cursorLights[playerID] then
+		RemoveLight('point', cursorLights[playerID])
+		cursorLights[playerID] = nil
+	end
 end
 
 function widget:Initialize()
@@ -1205,6 +1245,7 @@ local function PrintProjectileInfo(projectileID)
 	Spring.Debug.TraceFullEcho()
 end
 
+
 local function updateProjectileLights(newgameframe)
 	local nowprojectiles = Spring.GetVisibleProjectiles()
 	gameFrame = Spring.GetGameFrame()
@@ -1341,10 +1382,56 @@ local function checkConfigUpdates()
 		configCache.lastUpdate = Spring.GetTimer()
 	end
 end
+
 local expavg = 0
-function widget:Update()
+local sec = 1
+function widget:Update(dt)
 	if autoupdate then checkConfigUpdates() end
 	local tus = Spring.GetTimerMicros()
+
+	-- update/handle Cursor Lights!
+	if WG['allycursors'] and WG['allycursors'].getLights() then
+		sec = sec + dt
+		if sec >= 0.25 then
+			if cursorLightAlpha ~= WG['allycursors'].getLightStrength() or cursorLightRadius ~= WG['allycursors'].getLightRadius() then
+				cursorLightAlpha = WG['allycursors'].getLightStrength()
+				cursorLightRadius = WG['allycursors'].getLightRadius()
+				if cursorLights then
+					for playerID, instanceID in pairs(cursorLights) do
+						popElementInstance(cursorPointLightVBO, instanceID)
+					end
+					cursorLights = nil
+				end
+			end
+		end
+		if not cursorLights then
+			cursorLights = {}
+		end
+		local cursors = WG['allycursors'].getCursors()
+		for playerID, cursor in pairs(cursors) do
+			if teamColors[playerID] and not cursor[8] then --and notIdle[playerID] then
+				if not cursorLights[playerID] then
+					local params = cursorLightParams.lightParamTable	-- see lightParamKeyOrder for which key contains what
+					params[1], params[2], params[3] = cursor[1], cursor[2] + cursorLightHeight, cursor[3]
+					params[4] = cursorLightRadius * 400
+					params[9], params[10], params[11] = teamColors[playerID][1], teamColors[playerID][2], teamColors[playerID][3]
+					params[12] = cursorLightAlpha * 0.2
+					cursorLights[playerID] = AddLight(nil, nil, nil, cursorPointLightVBO, params)	--pointLightVBO
+				else
+					updateLightPosition(cursorPointLightVBO, cursorLights[playerID], cursor[1], cursor[2]+cursorLightHeight, cursor[3])
+				end
+			end
+		end
+		uploadAllElements(cursorPointLightVBO)
+	else
+		if cursorLights then
+			for playerID, instanceID in pairs(cursorLights) do
+				popElementInstance(cursorPointLightVBO, instanceID)
+			end
+			cursorLights = nil
+		end
+	end
+
 	updateProjectileLights()
 	expavg = expavg * 0.98 + 0.02 * Spring.DiffTimers(Spring.GetTimerMicros(),tus)
 	--if Spring.GetGameFrame() % 120 ==0 then Spring.Echo("Update is on average", expavg,'ms') end

@@ -290,7 +290,7 @@ local function AssignLightsToAllWeapons()
 			end
 		end
 
-		-- correct damage multiplier to more sane value
+		-- correct damage multiplier modoption to more sane value
 		damage = (damage / globalDamageMult) + (damage * (1.5 / (globalDamageMult-1)))
 
 		local radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))

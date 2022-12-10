@@ -12034,7 +12034,7 @@ local unitDefLights = {
 			pieceName = 'lloarm',
 			lightConfig = { posx = 0, posy = -1.4, posz = 15, radius = 24,
 				color2r = 0.89999998, color2g = 0.5, color2b = 0.05, colortime = 5,
-				r = 0.95, g = 0.66, b = 0.07, a = 0.11,
+				r = 0.95, g = 0.66, b = 0.07, a = 0.1,
 				modelfactor = 0.4, specular = 0.8, scattering = 1.6, lensflare = 0,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
