@@ -442,7 +442,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 	alphadecay = alphadecay or 0
 
 	if CheckDecalAreaSaturation(posx, posz, width, length) then
-		Spring.Echo("Map area is oversaturated with decals!", posx, posz, width, length)
+		--Spring.Echo("Map area is oversaturated with decals!", posx, posz, width, length)
 		return nil
 	else
 
