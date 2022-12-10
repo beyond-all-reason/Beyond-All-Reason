@@ -2228,6 +2228,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[waterrush]],
         useairlos          = true,
+        castShadow         = true,
      },
     },
 
@@ -2282,6 +2283,7 @@ local definitions = {
         texture            = [[bigexplosmoke]],
         useairlos          = false,
         drawOrder          = 1,
+        castShadow         = true,
       },
     },
     dirt2 = {
@@ -2295,7 +2297,7 @@ local definitions = {
       underwater         = false,
       properties = {
         airdrag            = 1,
-        colormap           = [[0.04 0.03 0.01 0   0.1 0.07 0.033 0.66   0.1 0.07 0.033 0.58   0.1 0.07 0.033 0.5   0.1 0.07 0.033 0.4   0 0 0 0  ]],
+        colormap           = [[0.04 0.03 0.01 0   0.09 0.07 0.033 0.66   0.085 0.07 0.033 0.58   0.08 0.07 0.033 0.5   0.075 0.07 0.033 0.4   0 0 0 0  ]],
         directional        = true,
         emitrot            = 1,
         emitrotspread      = 13,
@@ -2315,6 +2317,7 @@ local definitions = {
         texture            = [[bigexplosmoke]],
         useairlos          = false,
         drawOrder          = 1,
+        castShadow         = true,
       },
     },
     shard1 = {
@@ -2344,6 +2347,7 @@ local definitions = {
         texture            = [[shard1]],
         useairlos          = false,
         drawOrder          = 1,
+        castShadow         = true,
       },
     },
     shard2 = {
@@ -2372,6 +2376,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[shard2]],
         useairlos          = false,
+        castShadow         = true,
       },
     },
     shard3 = {
@@ -2400,34 +2405,37 @@ local definitions = {
         sizemod            = 1,
         texture            = [[shard3]],
         useairlos          = false,
+        castShadow         = true,
       },
     },
     clouddust = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
-      count              = 1,
+      count              = 2,
       ground             = true,
       properties = {
-        airdrag            = 0.92,
-        colormap           = [[0 0 0 0.01  0.025 0.02 0.02 0.033  0.06 0.055 0.055 0.072  0.043 0.04 0.04 0.055 0.0238 0.022 0.022 0.03  0 0 0 0.01]],
+        airdrag            = 0.88,
+        colormap           = [[0.01 0.01 0.01 0.1   0.20 0.20 0.20 0.50   0.27 0.27 0.27 0.74   0.23 0.23 0.23 0.85  0.18 0.18 0.18 0.68    0.10 0.10 0.10 0.45   0.05 0.05 0.05 0.24   0.01 0.01 0.01 0.01]],
         directional        = false,
         emitrot            = 45,
         emitrotspread      = 4,
         emitvector         = [[0.5, 1, 0.5]],
         gravity            = [[0, 0.025, 0]],
-        numparticles       = 2,
-        particlelife       = 55,
-        particlelifespread = 120,
-        particlesize       = 60,
-        particlesizespread = 40,
+        numparticles       = 1,
+        particlelife       = 45,
+        particlelifespread = 50,
+        particlesize       = 68,
+        particlesizespread = 80,
         particlespeed      = 1.2,
         particlespeedspread = 2.5,
         rotParams          = [[-4 r8, -1 r2, -180 r360]],
         pos                = [[0, 4, 0]],
-        sizegrowth         = 0.18,
+        sizegrowth         = 0.22,
         sizemod            = 1.0,
-        texture            = [[bigexplosmoke]],
-        drawOrder          = 1,
+        texture            = [[smoke-ice-anim]],
+           animParams         = [[8,8,85 r40]],
+        drawOrder          = 0,
+        --castShadow         = true,
       },
     },
     dirtrush = {
@@ -2459,6 +2467,7 @@ local definitions = {
         texture            = [[dirtrush]],
         useairlos          = true,
         drawOrder          = 1,
+        castShadow         = true,
       },
     },
     --grounddust = {
@@ -2531,6 +2540,7 @@ local definitions = {
           sizegrowth         = 1.1,
           speed              = [[0, 1 0, 0]],
           texture            = [[orangenovaexplo]],
+          castShadow         = true,
         },
       },
 
@@ -2555,6 +2565,7 @@ local definitions = {
         rotParams          = [[-24 r48, -10 r20, 0 r90]],
         pos                = [[-10 r20, 0 r12, -10 r20]],
         drawOrder          = 0,
+        castShadow         = true,
       },
     },
     --kickedupwater = {
@@ -2819,6 +2830,7 @@ local definitions = {
         sizegrowth         = 2.2,
         sizemod            = 0.91,
         texture            = [[randomdots]],
+        castShadow         = true,
       },
     },
     innersmoke = {
@@ -2849,6 +2861,7 @@ local definitions = {
         particleSizeSpread=21,
         directional=0,
         rotParams          = [[-10 r20, -10 r20, -180 r360]],
+        castShadow         = true,
       },
     },
     outersmoke = {
@@ -2879,6 +2892,7 @@ local definitions = {
         particleSizeSpread=22,
         directional=0,
         rotParams          = [[-10 r20, -10 r20, -180 r360]],
+        --castShadow         = true,
       },
     },
     sparks = {
@@ -2909,6 +2923,7 @@ local definitions = {
         texture            = [[gunshotxl]],
         useairlos          = false,
         drawOrder          = 2,
+        --castShadow         = true,
       },
     },
 
@@ -2941,6 +2956,7 @@ local definitions = {
         texture            = [[bigexplosmoke]],
         useairlos          = false,
         drawOrder          = 1,
+        --castShadow         = true,
       },
     },
     dirt2 = {
@@ -2972,6 +2988,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[bigexplosmoke]],
         useairlos          = false,
+        castShadow         = true,
       },
     },
     shard1 = {
@@ -3000,6 +3017,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[shard1]],
         useairlos          = false,
+        castShadow         = true,
       },
     },
     shard2 = {
@@ -3029,6 +3047,7 @@ local definitions = {
         texture            = [[shard2]],
         useairlos          = false,
         drawOrder          = 1,
+        castShadow         = true,
       },
     },
     shard3 = {
@@ -3057,6 +3076,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[shard3]],
         useairlos          = false,
+        castShadow         = true,
       },
     },
     clouddust = {
@@ -3085,6 +3105,7 @@ local definitions = {
         sizemod            = 1.0,
         texture            = [[bigexplosmoke]],
         drawOrder          = 1,
+        castShadow         = true,
       },
     },
     bigsmoketrails = {
@@ -3108,6 +3129,7 @@ local definitions = {
         rotParams          = [[-24 r48, -10 r20, 0 r90]],
         pos                = [[-10 r20, 0 r12, -10 r20]],
         drawOrder          = 0,
+        castShadow         = true,
       },
     },
     outerflash = {
@@ -3162,6 +3184,7 @@ local definitions = {
 			  useairlos          = true,
 			  alwaysVisible      = true,
 			  drawOrder          = 1,
+        castShadow         = true,
 		  },
 	  },
     centerflare = {
@@ -3368,6 +3391,7 @@ local definitions = {
         particleSizeSpread=25,
         directional=0,
         rotParams          = [[-10 r20, -10 r20, -180 r360]],
+        castShadow         = true,
       },
     },
     outersmoke = {
@@ -3397,6 +3421,7 @@ local definitions = {
         particleSizeSpread=24,
         directional=0,
         rotParams          = [[-10 r20, -10 r20, -180 r360]],
+        castShadow         = true,
       },
     },
     sparks = {
@@ -3511,6 +3536,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[waterrush]],
         useairlos          = true,
+        castShadow         = true,
      },
     },
 
@@ -3602,6 +3628,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[shard1]],
         useairlos          = false,
+        castShadow         = true,
       },
     },
     shard2 = {
@@ -3630,6 +3657,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[shard2]],
         useairlos          = false,
+        castShadow         = true,
       },
     },
     shard3 = {
@@ -3659,6 +3687,7 @@ local definitions = {
         texture            = [[shard3]],
         useairlos          = false,
         drawOrder          = 1,
+        castShadow         = true,
       },
     },
     clouddust = {
@@ -3709,6 +3738,7 @@ local definitions = {
         rotParams          = [[-24 r48, -10 r20, 0 r90]],
         pos                = [[-20 r40, -18 r20, -20 r40]],
         drawOrder          = 0,
+        castShadow         = true,
       },
     },
     dirtrush = {
@@ -3740,6 +3770,7 @@ local definitions = {
         texture            = [[dirtrush]],
         useairlos          = true,
         drawOrder          = 1,
+        castShadow         = true,
       },
     },
     --grounddust = {

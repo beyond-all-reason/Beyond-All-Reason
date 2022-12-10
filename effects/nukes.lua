@@ -261,6 +261,7 @@ local definitions = {
             useairlos          = false,
             alwaysvisible      = true,
             drawOrder          = 2,
+            --castShadow         = true,
           },
     },
     fireglow = {
@@ -423,6 +424,7 @@ local definitions = {
         rotParams          = [[-15 r30, -5 r10, -90 r180]],
         pos                = [[-50 r100, 0 r50, -50 r100]],
         drawOrder          = 0,
+        castShadow         = true,
       },
     },
         dirt = {
@@ -453,6 +455,7 @@ local definitions = {
                 useairlos          = false,
                 alwaysvisible      = true,
                 drawOrder          = 1,
+                castShadow         = true,
             },
         },
         dirt2 = {
@@ -483,6 +486,7 @@ local definitions = {
                 useairlos          = false,
                 alwaysvisible      = true,
                 drawOrder          = 0,
+                castShadow         = true,
             },
         },
         dirt3 = {
@@ -513,6 +517,7 @@ local definitions = {
                 useairlos          = false,
                 alwaysvisible      = true,
                 drawOrder          = 0,
+                --castShadow         = true,
             },
         },
         clouddust = {
@@ -544,6 +549,7 @@ local definitions = {
                 texture            = [[bigexplosmoke]],
                 alwaysvisible      = true,
                 drawOrder          = 0,
+                castShadow         = true,
             },
         },
         dustparticles = {
@@ -606,6 +612,7 @@ local definitions = {
         sizemod            = 1.0,
         texture            = [[bigexplosmoke]],
         alwaysvisible      = true,
+        castShadow         = true,
       },
     },
 
@@ -653,6 +660,7 @@ local definitions = {
                     texture            = [[dirt]],
                     useairlos          = true,
                     alwaysvisible      = true,
+                    castShadow         = true,
                     drawOrder          = 0,
                 },
             },
@@ -684,6 +692,7 @@ local definitions = {
                     texture            = [[fogdirty]],
                     useairlos          = true,
                     alwaysvisible      = true,
+                    castShadow         = true,
                     drawOrder          = 0,
                 },
             },
@@ -715,6 +724,7 @@ local definitions = {
                     texture            = [[cloudpuff]],
                     useairlos          = true,
                     alwaysvisible      = true,
+                    castShadow         = true,
                     drawOrder          = 0,
                 },
             },
