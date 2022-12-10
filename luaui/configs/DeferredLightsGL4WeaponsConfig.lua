@@ -555,7 +555,7 @@ GetLightClass("Explosion", nil, "Large", {r = 3, g = 2.5, b = 2.0, a = 0.25,
 
 --legbart
 explosionLights[WeaponDefNames["legbart_clusternapalm"].id] =
-GetLightClass("Explosion", nil, "Smallish", {r = 0.52, g = 0.45, b = 0.12, a = 0.28,
+GetLightClass("Explosion", nil, "Smallish", {r = 0.52, g = 0.45, b = 0.12, a = 0.06,
 										 color2r = 2.0, color2g = 1.2, color2b = 0.7, colortime = 50,
 										 sustain = 30, lifetime = 175,
 										 modelfactor = 0.25, specular = 0.23, scattering = 0.15, lensflare = 0})
