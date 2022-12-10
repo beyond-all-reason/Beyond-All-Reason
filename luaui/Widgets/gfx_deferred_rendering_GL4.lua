@@ -109,7 +109,7 @@ local cursorLightParams = {
 		posx = 0, posy = 0, posz = 0, radius = 350,	-- (radius is set elsewhere)
 		r = 1, g = 1, b = 1, a = 0.1,	-- (alpha is set elsewhere)
 		color2r = 0, color2g = 0, color2b = 0, colortime = 0, -- point lights only, colortime in seconds for unit-attache
-		modelfactor = 0.3, specular = 0.6, scattering = 2, lensflare = 0,
+		modelfactor = 0.3, specular = 0.7, scattering = 0, lensflare = 0,
 		lifetime = 0, sustain = 0, aninmtype = 0 -- unused
 	}
 }
@@ -1413,7 +1413,7 @@ function widget:Update(dt)
 				if not cursorLights[playerID] then
 					local params = cursorLightParams.lightParamTable	-- see lightParamKeyOrder for which key contains what
 					params[1], params[2], params[3] = cursor[1], cursor[2] + cursorLightHeight, cursor[3]
-					params[4] = cursorLightRadius * 400
+					params[4] = cursorLightRadius * 250
 					params[9], params[10], params[11] = teamColors[playerID][1], teamColors[playerID][2], teamColors[playerID][3]
 					params[12] = cursorLightAlpha * 0.2
 					cursorLights[playerID] = AddLight(nil, nil, nil, cursorPointLightVBO, params)	--pointLightVBO
