@@ -467,6 +467,10 @@ local function AssignLightsToAllWeapons()
 					t.colortime = 25 / life
 				end
 				radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
+				if string.find(weaponDef.name, 'juno') then
+					radius = 160
+					orgMult = 0.5
+				end
 				if weaponDef.customParams.unitexplosion then
 					radius = radius * 1.25
 					-- make more white
