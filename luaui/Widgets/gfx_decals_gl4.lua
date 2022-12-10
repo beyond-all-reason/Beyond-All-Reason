@@ -350,7 +350,16 @@ end
 local function CheckDecalAreaSaturation(posx, posz, width, length)
 	local hash = hashPos(posx,posz)
 	--Spring.Echo(hash,posx,posz, next(areaDecals))
-	return (math.sqrt(areaDecals[hashPos(posx,posz)].totalarea) > saturationThreshold)
+	if not hash then
+		return false
+	else
+		local areaD = areaDecals[hashPos(posx,posz)]
+		if not areaD then
+			return false
+		else
+			return (math.sqrt(areaD.totalarea) > saturationThreshold)
+		end
+	end
 end
 
 local updatePositionX = 0
