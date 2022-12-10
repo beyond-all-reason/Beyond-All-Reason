@@ -227,6 +227,7 @@ local fadeLevel = 100
 local faderMin = 45 -- range in dB for volume faders, from -faderMin to 0dB
 
 local playedTime, totalTime = Spring.GetSoundStreamTime()
+local prevPlayedTime = playedTime
 
 local silenceTimer = math.random(minSilenceTime, maxSilenceTime)
 
@@ -647,11 +648,9 @@ local function mouseEvent(x, y, button, release)
 				playing = not playing
 				Spring.SetConfigInt('music', (playing and 1 or 0))
 				Spring.PauseSoundStream()
-				--if playing and playedTime == 0 then
-				--	PlayNewTrack()
-				--end
 				createList()
 			elseif buttons['next'] ~= nil and math_isInRect(x, y, buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]) then
+				playing = true
 				PlayNewTrack()
 			end
 			return true
@@ -671,10 +670,28 @@ function widget:MouseRelease(x, y, button)
 	return mouseEvent(x, y, button, true)
 end
 
+local playingInit = false
 function widget:Update(dt)
 	local frame = Spring.GetGameFrame()
 	local _,_,paused = Spring.GetGameSpeed()
+
 	playedTime, totalTime = Spring.GetSoundStreamTime()
+	if not playingInit then
+		playingInit = true
+		if playedTime ~= prevPlayedTime then
+			if not playing then
+				playing = true
+				createList()
+			end
+		else
+			if playing then
+				playing = false
+				createList()
+			end
+		end
+	end
+	prevPlayedTime = playedTime
+
 	if playing and (paused or frame < 1) then
 		if totalTime == 0 then
 			PlayNewTrack(true)
