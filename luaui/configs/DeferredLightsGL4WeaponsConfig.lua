@@ -298,12 +298,6 @@ local function AssignLightsToAllWeapons()
 		local life = 8 + (5*(radius/2000)+(orgMult * 5))
 		radius = ((orgMult * 75) + (radius * 2.4)) * 0.33
 
-		if string.find(weaponDef.name, 'juno') then
-			radius = 160
-			orgMult = 1
-		end
-
-
 		local r, g, b = 1, 0.8, 0.45
 		if weaponDef.visuals ~= nil and weaponDef.visuals.colorR ~= nil then
 			r = weaponDef.visuals.colorR
@@ -329,6 +323,13 @@ local function AssignLightsToAllWeapons()
 			t.color2r, t.color2g, t.color2b = 0.96, 0.3, 1
 		end
 		t.r, t.g, t.b = r, g, b
+
+		if string.find(weaponDef.name, 'juno') then
+			radius = 140
+			orgMult = 1
+			r, g, b = 0.45, 1, 0.45
+		end
+
 		if weaponDef.type == 'BeamLaser' then
 			muzzleFlash = false
 
@@ -372,8 +373,10 @@ local function AssignLightsToAllWeapons()
 
 		elseif weaponDef.type == 'StarburstLauncher' then
 			t.a = orgMult * 0.66
+			sizeclass = GetClosestSizeClass(radius)
 			projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
 			radius = ((orgMult * 75) + (radius * 4)) * 0.4
+
 			life = 8 + (5*(radius/2000)+(orgMult * 5))
 			sizeclass = GetClosestSizeClass(radius)
 
@@ -468,8 +471,9 @@ local function AssignLightsToAllWeapons()
 				end
 				radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
 				if string.find(weaponDef.name, 'juno') then
-					radius = 160
-					orgMult = 0.5
+					radius = 800
+					orgMult = 0.25
+					t.lifetime = life * 12
 				end
 				if weaponDef.customParams.unitexplosion then
 					radius = radius * 1.25

@@ -865,13 +865,10 @@ local function drawUnitInfo()
 			{unitDefInfo[displayUnitDefID].metalCost, unitDefInfo[displayUnitDefID].energyCost}
 		)
 		-- price
-		if unitGroup[displayUnitDefID] then
-			local halfSize = iconSize * 0.5
-			local padding = (halfSize + halfSize) * 0.045
-			local size = (halfSize + halfSize) * 0.18
-			font3:Print("\255\245\245\245" .. unitDefInfo[displayUnitDefID].metalCost .. "\n\255\255\255\000" .. unitDefInfo[displayUnitDefID].energyCost, iconX + padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "o")
-		end
-
+		local halfSize = iconSize * 0.5
+		local padding = (halfSize + halfSize) * 0.045
+		local size = (halfSize + halfSize) * 0.18
+		font3:Print("\255\245\245\245" .. unitDefInfo[displayUnitDefID].metalCost .. "\n\255\255\255\000" .. unitDefInfo[displayUnitDefID].energyCost, iconX + padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "o")
 	end
 	iconSize = iconSize + iconPadding
 
