@@ -717,7 +717,8 @@ function widget:DrawScreen()
 		glPushMatrix()
 		glCallList(drawlist[1])
 		--glCallList(drawlist[2])
-		if not mouseover and not draggingSlider and playing and volume > 0 then
+		local playedTime, totalTime = Spring.GetSoundStreamTime()
+		if not mouseover and not draggingSlider and playing and volume > 0 and playedTime < totalTime then
 			glCallList(drawlist[3])
 		else
 			glCallList(drawlist[4])
@@ -725,7 +726,7 @@ function widget:DrawScreen()
 		if mouseover then
 
 			-- display play progress
-			local playedTime, totalTime = Spring.GetSoundStreamTime()
+			--local playedTime, totalTime = Spring.GetSoundStreamTime()
 			local progressPx = math.floor((right - left) * (playedTime / totalTime))
 			if progressPx > 1 then
 				if progressPx < borderPadding * 5 then
