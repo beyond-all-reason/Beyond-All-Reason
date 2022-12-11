@@ -105,7 +105,7 @@ return {
 				name = "Heavy a2g napalm warheads",
 				noselfdamage = true,
 				range = 1280,
-				reloadtime = 7,
+				reloadtime = 10,
 				soundhit = "bombsmed2",
 				soundhitwet = "splslrg",
 				soundstart = "bombrelxl",
