@@ -787,7 +787,7 @@ function widget:DrawScreen()
 end
 
 function PlayNewTrack(paused)
-	if not Spring.GetConfigInt('music', 1) ~= 1 then
+	if Spring.GetConfigInt('music', 1) ~= 1 then
 		return
 	end
 	if (not paused) and Spring.GetGameFrame() > 1 then
