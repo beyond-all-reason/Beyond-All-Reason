@@ -60,7 +60,6 @@ local silenceTimerEnabled
 local deviceLostSafetyCheck = 0
 local bossHasSpawned = false
 
-
 local function ReloadMusicPlaylists()
 	deviceLostSafetyCheck = 0
 	---------------------------------COLLECT MUSIC------------------------------------
@@ -500,6 +499,9 @@ local function updatePosition(force)
 end
 
 function widget:Initialize()
+	if Spring.GetGameFrame() == 0 then
+		currentTrack = Spring.GetConfigString('music_loadscreen_track', '')
+	end
 	ReloadMusicPlaylists()
 	silenceTimer = math.random(minSilenceTime,maxSilenceTime)
 	widget:ViewResize()
