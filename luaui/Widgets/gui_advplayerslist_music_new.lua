@@ -651,6 +651,7 @@ local function mouseEvent(x, y, button, release)
 				createList()
 			elseif buttons['next'] ~= nil and math_isInRect(x, y, buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]) then
 				playing = true
+				Spring.SetConfigInt('music', (playing and 1 or 0))
 				PlayNewTrack()
 			end
 			return true
@@ -784,7 +785,9 @@ function widget:DrawScreen()
 end
 
 function PlayNewTrack(paused)
-
+	if not Spring.GetConfigInt('music', 1) ~= 1 then
+		return
+	end
 	if (not paused) and Spring.GetGameFrame() > 1 then
 		deviceLostSafetyCheck = deviceLostSafetyCheck + 1
 	end
@@ -866,6 +869,7 @@ function PlayNewTrack(paused)
 
 	if currentTrack then
 		Spring.PlaySoundStream(currentTrack, 1)
+		playing = true
 		if fadeDirection then
 			setMusicVolume(fadeLevel)
 		else

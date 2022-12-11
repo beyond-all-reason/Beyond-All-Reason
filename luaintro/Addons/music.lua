@@ -26,6 +26,9 @@ function addon.Shutdown()
 end
 
 function addon.Initialize()
+	--if Spring.GetConfigInt('music', 1) == 0 then
+	--	return
+	--end
 	if Spring.GetConfigInt('music_loadscreen', 1) == 1 then
 		local originalSoundtrackEnabled = Spring.GetConfigInt('UseSoundtrackNew', 1)
 		local legacySoundtrackEnabled 	= Spring.GetConfigInt('UseSoundtrackOld', 0)
