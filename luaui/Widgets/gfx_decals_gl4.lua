@@ -658,6 +658,13 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	local exploheight = py - gh
 	if (exploheight >= radius) then return end
 
+		-- reduce severity when explosion is above ground
+	local heightMult = 1 - (exploheight / radius)
+	local alpha = (math.random() * 1.0 + 1.5) * (1.0 - exploheight/radius) * heightMult
+	local bwfactor = 0.15 --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
+	local glowsustain = math.random() * 25 -- how many frames to elapse before glow starts to recede
+	local glowadd = math.random() * 2 -- how much additional, non-transparency controlled heat glow should the decal get
+
 	if weaponDef.paralyzer then
 	heatstart = 0
 	glowadd = 0
@@ -671,22 +678,24 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	elseif string.find(weaponDef.name, 'juno') then
 		radius = 180
 
-	elseif string.find(weaponDef.name, 'bomb') then
+	elseif string.find(weaponDef.name, 'armadvbomb' or 'coradvbomb') then
+		radius = radius * 1.8
+		heatstart = 5500
+		heatdecay = 2.0
+		glowsustain = 45
+		glowadd = 4
+
+	elseif string.find(weaponDef.name, 'armbomb' or 'corbomb') then
 		radius = radius * 1.5
 		heatstart = 5500
 		heatdecay = 4.9
-		glowadd = 4
+		glowadd = 2.5
+
+
 
 	end
 
-	-- reduce severity when explosion is above ground
-	local heightMult = 1 - (exploheight / radius)
 
-	local alpha = (math.random() * 1.0 + 1.5) * (1.0 - exploheight/radius) * heightMult
-
-	local bwfactor = 0.15 --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
-	local glowsustain = math.random() * 25 -- how many frames to elapse before glow starts to recede
-	local glowadd = math.random() * 2 -- how much additional, non-transparency controlled heat glow should the decal get
 
 	AddDecal(idx,
 			px, --posx
