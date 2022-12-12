@@ -648,7 +648,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	if true then
 		idx = "luaui/images/decals_gl4/groundscars/t_groundcrack_10_a.png"
 		heatstart = (math.random() * 0.2 + 0.9) * 4900
-		heatdecay = (math.random() * 0.3 + 1.3) - (weaponDef.damageAreaOfEffect/2250)
+		heatdecay = (math.random() * 0.4 + 2.0) - (weaponDef.damageAreaOfEffect/2250)
 	end
 
 	local radius = (weaponDef.damageAreaOfEffect * 1.5) * (math.random() * 0.44 + 0.80)
@@ -659,11 +659,14 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	if (exploheight >= radius) then return end
 
 	if weaponDef.paralyzer then
+	heatstart = 0
+	glowadd = 0
 
 	end
 	if weaponDef.type == 'DGun' then
 		radius = radius * 2.5
 		heatdecay = 0.6
+		bwfactor = 0
 
 	elseif string.find(weaponDef.name, 'juno') then
 		radius = 180
@@ -671,18 +674,19 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	elseif string.find(weaponDef.name, 'bomb') then
 		radius = radius * 1.5
 		heatstart = 5500
-		heatdecay = 0.9
+		heatdecay = 4.9
+		glowadd = 4
 
 	end
 
 	-- reduce severity when explosion is above ground
 	local heightMult = 1 - (exploheight / radius)
 
-	local alpha = (math.random() * 1.0 + 1.0) * (1.0 - exploheight/radius) * heightMult
+	local alpha = (math.random() * 1.0 + 1.5) * (1.0 - exploheight/radius) * heightMult
 
-	local bwfactor = math.random() --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
-	local glowsustain = math.random() * 100 -- how many frames to elapse before glow starts to recede
-	local glowadd = math.random() *2 -- how much additional, non-transparency controlled heat glow should the decal get
+	local bwfactor = 0.15 --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
+	local glowsustain = math.random() * 25 -- how many frames to elapse before glow starts to recede
+	local glowadd = math.random() * 2 -- how much additional, non-transparency controlled heat glow should the decal get
 
 	AddDecal(idx,
 			px, --posx
