@@ -499,7 +499,7 @@ local function updatePosition(force)
 end
 
 function widget:Initialize()
-	if Spring.GetGameFrame() == 0 then
+	if Spring.GetGameFrame() == 0 and Spring.GetConfigInt('music_loadscreen', 1) == 1 then
 		currentTrack = Spring.GetConfigString('music_loadscreen_track', '')
 	end
 	ReloadMusicPlaylists()
