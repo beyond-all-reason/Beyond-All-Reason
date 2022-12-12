@@ -291,7 +291,7 @@ local function AssignLightsToAllWeapons()
 		end
 
 		-- correct damage multiplier modoption to more sane value
-		damage = (damage / globalDamageMult) + (damage * (1.5 / (globalDamageMult-1)))
+		damage = (damage / globalDamageMult) + ((damage * (globalDamageMult-1))*0.25)
 
 		local radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
 		local orgMult = math.max(0.1, math.min(damage/1600, 0.6)) + (radius/2800)
