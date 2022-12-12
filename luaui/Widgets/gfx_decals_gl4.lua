@@ -641,7 +641,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	local heatdecay = math.random() + 1.1
 	-- Or hard code it:
 	if true then
-		idx = groundscarsPath.."t_groundcrack_10_a.png"
+		idx = groundscarsPath.."t_groundcrack_09_a.png"
 		heatstart = (math.random() * 0.2 + 0.9) * 4900
 		heatdecay = (math.random() * 0.4 + 2.0) - (weaponDef.damageAreaOfEffect/2250)
 	end
@@ -690,6 +690,15 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		heatstart = 5500
 		heatdecay = 4.9
 		glowadd = 2.5
+
+	elseif string.find(weaponDef.name, 'nuketest') then
+		radius = 513
+		heatstart = 5500
+		heatdecay = 0.8
+		glowsustain = 45
+		glowadd = 1
+		bwfactor = 0.01
+
 	end
 
 	AddDecal(
