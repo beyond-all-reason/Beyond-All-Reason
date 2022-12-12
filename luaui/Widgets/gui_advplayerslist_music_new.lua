@@ -33,13 +33,11 @@ local warMeterResetTime = 30 -- seconds
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 
-local specMultiplier = #Spring.GetAllyTeamList() - 1
-
 local function applySpectatorThresholds()
-	warLowLevel = 1000*specMultiplier
-	warHighLevel = 20000*specMultiplier
-	minSilenceTime = 60*specMultiplier
-	maxSilenceTime = 300*specMultiplier
+	warLowLevel = warLowLevel*2
+	warHighLevel = warHighLevel*2
+	minSilenceTime = minSilenceTime*2
+	maxSilenceTime = maxSilenceTime*2
 	appliedSpectatorThresholds = true
 	--Spring.Echo("[Music Player] Spectator mode enabled")
 end
