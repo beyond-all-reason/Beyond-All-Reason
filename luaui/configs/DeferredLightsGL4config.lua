@@ -7358,6 +7358,15 @@ local unitDefLights = {
 							modelfactor = 0.4, specular = 0, scattering = 1, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
+		xmas_nose = {
+			lightType = 'point',
+			pieceName = 'head',
+			lightConfig = { posx = 0, posy = 0.5, posz = 8.5, radius = 4.5,
+							color2r = 1, color2g = 0.25, color2b = 0.25, colortime = 0,
+							r = 1, g = 0.25, b = 0.25, a = 0.12,
+							modelfactor = 0.3, specular = 0.5, scattering = 11, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
 		laser = {
 			lightType = 'point',
 			pieceName = 'lfirept',
