@@ -60,8 +60,7 @@ local shaderConfig = {
 	MINIMAPCOLORBLENDFACTOR = 1, -- How much minimap color should affect decal color
 }
 
-local newgroundscarspath = "luaui/images/decals_gl4/groundScars"
-local oldgroundscarspath = "luaui/images/decals_gl4/oldScars"
+local groundscarsPath = "luaui/images/decals_gl4/groundscars/"	-- old: "luaui/images/decals_gl4/oldscars/"
 local additionalcrap = {} -- a list of paths to also include for i dunno, sprays and stuff?
 
 -- large decal resolution, 16x16 grid is ok
@@ -115,8 +114,8 @@ local function makeAtlases()
 	local success
 	atlasColorAlpha = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
 
-	addDirToAtlas(atlasColorAlpha, newgroundscarspath, '_a.png', decalImageCoords)
-	--addDirToAtlas(atlasColorAlpha, oldgroundscarspath, 'scar', decalImageCoords)
+	addDirToAtlas(atlasColorAlpha, groundscarsPath, '_a.png', decalImageCoords)
+	--addDirToAtlas(atlasColorAlpha, oldgroundscarsPath, 'scar', decalImageCoords)
 	success = gl.FinalizeTextureAtlas(atlasColorAlpha)
 	if success == false then return false end
 	-- read back the UVs:
@@ -127,19 +126,19 @@ local function makeAtlases()
 	end
 
 	atlasNormals = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
-	addDirToAtlas(atlasNormals, newgroundscarspath, '_n.')
+	addDirToAtlas(atlasNormals, groundscarsPath, '_n.')
 	success = gl.FinalizeTextureAtlas(atlasNormals)
 	if success == false then return false end
 
 	if shaderConfig.PARALLAX == 1 then
 		atlasHeights = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
-		addDirToAtlas(atlasHeights, newgroundscarspath, '_h.png')
+		addDirToAtlas(atlasHeights, groundscarsPath, '_h.png')
 		success = gl.FinalizeTextureAtlas(atlasHeights)
 		if success == false then return false end
 	end
 	if shaderConfig.USEGLOW == 1 then
 		atlasRG = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
-		addDirToAtlas(atlasRG, newgroundscarspath, '_rg.png')
+		addDirToAtlas(atlasRG, groundscarsPath, '_rg.png')
 		success = gl.FinalizeTextureAtlas(atlasRG)
 		if success == false then return false end
 	end
@@ -187,17 +186,17 @@ local gsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.geom.glsl"
 local vsSrcLargePath = "LuaUI/Widgets/Shaders/decals_large_gl4.vert.glsl"
 
 local uniformInts =  {
-		heightmapTex = 0,
-		miniMapTex = 1,
-		infoTex = 2,
-		shadowTex = 3,
-		mapNormalsTex = 4,
-		atlasColorAlpha = 5,
-		atlasNormals = 6,
-		atlasHeights = ((shaderConfig.PARALLAX == 1) and 7 ) or nil,
-		atlasORM = ((shaderConfig.AMBIENTOCCLUSION == 1) and 8 ) or nil,
-		atlasRG = ((shaderConfig.USEGLOW == 1) and 9 ) or nil,
-		}
+	heightmapTex = 0,
+	miniMapTex = 1,
+	infoTex = 2,
+	shadowTex = 3,
+	mapNormalsTex = 4,
+	atlasColorAlpha = 5,
+	atlasNormals = 6,
+	atlasHeights = ((shaderConfig.PARALLAX == 1) and 7 ) or nil,
+	atlasORM = ((shaderConfig.AMBIENTOCCLUSION == 1) and 8 ) or nil,
+	atlasRG = ((shaderConfig.USEGLOW == 1) and 9 ) or nil,
+}
 
 local shaderSourceCache = {
 	vssrcpath = vsSrcPath,
@@ -207,9 +206,9 @@ local shaderSourceCache = {
 	uniformInt = uniformInts,
 	uniformFloat = {
 		fadeDistance = 3000,
-		},
+	},
 	shaderName = "Decals Gl4 Shader",
-	}
+}
 
 local shaderLargeSourceCache = {
 	vssrcpath = vsSrcLargePath,
@@ -218,9 +217,9 @@ local shaderLargeSourceCache = {
 	uniformInt = uniformInts,
 	uniformFloat = {
 		fadeDistance = 3000,
-		},
+	},
 	shaderName = "Decals Large Gl4 Shader",
-	}
+}
 
 local function goodbye(reason)
   Spring.Echo("DrawPrimitiveAtUnits GL4 widget exiting with reason: "..reason)
@@ -368,8 +367,7 @@ end
 local updatePositionX = 0
 local updatePositionZ = 0
 function widget:Update() -- this is pointlessly expensive!
-
-		if autoupdate then
+	if autoupdate then
 		decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or decalShader
 		decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache) or		decalLargeShader
 	end
@@ -428,10 +426,10 @@ end
 
 -----------------------------------------------------------------------------------------------
 
-local function AddDecal(decaltexturename, posx, posz, rotation, 
-	width, length, 
-	heatstart, heatdecay, alphastart, alphadecay, 
-	maxalpha, 
+local function AddDecal(decaltexturename, posx, posz, rotation,
+	width, length,
+	heatstart, heatdecay, alphastart, alphadecay,
+	maxalpha,
 	bwfactor, glowsustain, glowadd, spawnframe)
 	-- Documentation
 	-- decaltexturename, full path to the decal texture name, it must have been added to the atlasses, e.g. 'bitmaps/scars/scar1.bmp'
@@ -511,9 +509,6 @@ end
 
 function widget:DrawWorldPreUnit()
 	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
-
-
-
 
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--Spring.Echo(decalVBO.usedElements,decalLargeVBO.usedElements)
@@ -597,7 +592,7 @@ function widget:GameFrame(n)
 		end
 		decalRemoveQueue[n] = nil
 	end
-	if (n %91) == 0 then
+	if n % 91 == 0 then
 		local removed = 0
 		removed = removed + compactInstanceVBO(decalVBO, decalRemoveList)
 		removed = removed + compactInstanceVBO(decalLargeVBO, decalRemoveList)
@@ -646,7 +641,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	local heatdecay = math.random() + 1.1
 	-- Or hard code it:
 	if true then
-		idx = "luaui/images/decals_gl4/groundscars/t_groundcrack_10_a.png"
+		idx = groundscarsPath.."t_groundcrack_10_a.png"
 		heatstart = (math.random() * 0.2 + 0.9) * 4900
 		heatdecay = (math.random() * 0.4 + 2.0) - (weaponDef.damageAreaOfEffect/2250)
 	end
@@ -666,10 +661,15 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	local glowadd = math.random() * 2 -- how much additional, non-transparency controlled heat glow should the decal get
 
 	if weaponDef.paralyzer then
-	heatstart = 0
-	glowadd = 0
-
+		if math.random(1,2) == 1 then
+			idx = groundscarsPath.."t_groundcrack_10_a.png"
+		else
+			idx = groundscarsPath.."t_groundcrack_17_a.png"
+		end
+		heatstart = 0
+		glowadd = 0
 	end
+
 	if weaponDef.type == 'DGun' then
 		radius = radius * 2.5
 		heatdecay = 0.6
@@ -690,29 +690,24 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		heatstart = 5500
 		heatdecay = 4.9
 		glowadd = 2.5
-
-
-
 	end
 
-
-
-	AddDecal(idx,
-			px, --posx
-			pz, --posz
-			math.random() * 6.28, -- rotation
-			radius, -- width
-			radius, -- height
-			heatstart * heightMult, -- heatstart
-			heatdecay * (1+(1-heightMult)), -- heatdecay
-			(math.random() * 0.38 + 0.72) * alpha, -- alphastart
-			(math.random() * 0.4 + 0.6) / (4 * radius), -- alphadecay
-			math.random() * 0.2 + 0.8, -- maxalpha
-			bwfactor,
-			glowsustain,
-			glowadd
-			)
-
+	AddDecal(
+		idx,
+		px, --posx
+		pz, --posz
+		math.random() * 6.28, -- rotation
+		radius, -- width
+		radius, -- height
+		heatstart * heightMult, -- heatstart
+		heatdecay * (1+(1-heightMult)), -- heatdecay
+		(math.random() * 0.38 + 0.72) * alpha, -- alphastart
+		(math.random() * 0.4 + 0.6) / (4 * radius), -- alphadecay
+		math.random() * 0.2 + 0.8, -- maxalpha
+		bwfactor,
+		glowsustain,
+		glowadd
+	)
 end
 
 function widget:Initialize()
@@ -732,21 +727,22 @@ function widget:Initialize()
 			local w = math.random() * 15 + 7
 			w = w * w
 			local j = math.floor(math.random()*20+1)
-			--local idx = string.format("luaui/images/decals_gl4/groundScars/t_groundcrack_%02d_a.png", j)
+			--local idx = string.format(groundscarsPath.."t_groundcrack_%02d_a.png", j)
 			local idx = randtablechoice(decalImageCoords)
 			--Spring.Echo(idx)
-			AddDecal(idx,
-					Game.mapSizeX * math.random() * 1.0, --posx
-					Game.mapSizeZ * math.random() * 1.0, --posz
-					math.random() * 6.28, -- rotation
-					w, -- width
-					w, --height
-					math.random() * 10000, -- heatstart
-					math.random() * 1, -- heatdecay
-					math.random() * 1.0 + 1.0, -- alphastart
-					math.random() * 0.001, -- alphadecay
-					math.random() * 0.3 + 0.7 -- maxalpha
-					)
+			AddDecal(
+				idx,
+				Game.mapSizeX * math.random() * 1.0, --posx
+				Game.mapSizeZ * math.random() * 1.0, --posz
+				math.random() * 6.28, -- rotation
+				w, -- width
+				w, --height
+				math.random() * 10000, -- heatstart
+				math.random() * 1, -- heatdecay
+				math.random() * 1.0 + 1.0, -- alphastart
+				math.random() * 0.001, -- alphadecay
+				math.random() * 0.3 + 0.7 -- maxalpha
+			)
 		end
 	end
 
