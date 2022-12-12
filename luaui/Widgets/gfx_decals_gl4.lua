@@ -40,7 +40,10 @@ end
 		-- cursor
 	-- SHADOWS SUPPORT!
 	-- FOG SUPPORT?
-
+	-- DONE LOS SUPPORT
+	-- BWfactor
+	-- glowsustain
+	-- glowadd
 ------------------------ CONFIGURABLES -----------------------------------------------
 
 local shaderConfig = {
@@ -53,7 +56,7 @@ local shaderConfig = {
 	FADEINTIME = 4, -- number of frames to fade in over
 	SPECULAREXPONENT = 4.0, -- how shiny decal surface is?
 	SPECULARSTRENGTH = 0.40, -- how strong specular highlights are
-	BLACKANDWHITEFACTOR = 0.5, -- set to between [0,1] to set how strong the black and white conversion should be, 0 = original color, 1 = full black and white
+	--BLACKANDWHITEFACTOR = 0.5, -- set to between [0,1] to set how strong the black and white conversion should be, 0 = original color, 1 = full black and white, deprecated, now controllable per-decal
 	MINIMAPCOLORBLENDFACTOR = 1, -- How much minimap color should affect decal color
 }
 
@@ -187,7 +190,7 @@ local uniformInts =  {
 		heightmapTex = 0,
 		miniMapTex = 1,
 		infoTex = 2,
-		shadowtex = 3,
+		shadowTex = 3,
 		mapNormalsTex = 4,
 		atlasColorAlpha = 5,
 		atlasNormals = 6,
@@ -425,7 +428,11 @@ end
 
 -----------------------------------------------------------------------------------------------
 
-local function AddDecal(decaltexturename, posx, posz, rotation, width, length, heatstart, heatdecay, alphastart, alphadecay, maxalpha, spawnframe)
+local function AddDecal(decaltexturename, posx, posz, rotation, 
+	width, length, 
+	heatstart, heatdecay, alphastart, alphadecay, 
+	maxalpha, 
+	bwfactor, glowsustain, glowadd, spawnframe)
 	-- Documentation
 	-- decaltexturename, full path to the decal texture name, it must have been added to the atlasses, e.g. 'bitmaps/scars/scar1.bmp'
 	-- posx, posz, world pos to place center of decal
@@ -436,10 +443,16 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 	-- alphastart: The initial transparency amount, can be > 1 too
 	-- alphadecay: How much alpha is reduced each frame, when alphastart/alphadecay goes below 0, the decal will get automatically removed.
 	-- maxalpha: The highest amount of transparency this decal can have
+	-- bwfactor: the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
+	-- glowsustain: how many frames to elapse before glow starts to recede
+	-- glowadd: how much additional, non-transparency controlled heat glow should the decal get
 	heatstart = heatstart or 0
 	heatdecay = heatdecay or 1
 	alphastart = alphastart or 1
 	alphadecay = alphadecay or 0
+	bwfactor = bwfactor or 1 -- default force to black and white
+	glowsustain = glowsustain or 1 -- how many frames to keep max heat for
+	glowadd = glowadd or 0 -- how much additional additive glow to add
 
 	if CheckDecalAreaSaturation(posx, posz, width, length) then
 		Spring.Echo("Map area is oversaturated with decals!", posx, posz, width, length)
@@ -480,7 +493,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation, width, length, h
 			p,q,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
 			alphastart, alphadecay, heatstart, heatdecay, -- alphastart_alphadecay_heatstart_heatdecay
 			posx, posy, posz, spawnframe,
-			0,0,0,0}, -- params
+			bwfactor,glowsustain,glowadd,0}, -- params
 		decalIndex, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		false) -- noupload, dont use unless you know what you want to batch push/pop
@@ -667,6 +680,10 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 
 	local alpha = (math.random() * 1.0 + 1.0) * (1.0 - exploheight/radius) * heightMult
 
+	local bwfactor = math.random() --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
+	local glowsustain = math.random() * 100 -- how many frames to elapse before glow starts to recede
+	local glowadd = math.random() *2 -- how much additional, non-transparency controlled heat glow should the decal get
+
 	AddDecal(idx,
 			px, --posx
 			pz, --posz
@@ -677,7 +694,10 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 			heatdecay * (1+(1-heightMult)), -- heatdecay
 			(math.random() * 0.38 + 0.72) * alpha, -- alphastart
 			(math.random() * 0.4 + 0.6) / (4 * radius), -- alphadecay
-			math.random() * 0.2 + 0.8 -- maxalpha
+			math.random() * 0.2 + 0.8, -- maxalpha
+			bwfactor,
+			glowsustain,
+			glowadd
 			)
 
 end

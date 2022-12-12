@@ -111,7 +111,7 @@ void main()
 	//g_color = vec4(0.0);
 	//g_color.a = lengthwidthrotation.w;
 	g_position = vertexPos;
-	g_parameters = alphastart_alphadecay_heatstart_heatdecay;
+	g_parameters = parameters;
 	
 	float currentFrame = timeInfo.x + timeInfo.w;
 	float lifetonow = (timeInfo.x + timeInfo.w) - worldPos.w;
@@ -119,12 +119,15 @@ void main()
 	float alphadecay = alphastart_alphadecay_heatstart_heatdecay.y;
 	// fade in the decal over 200 ms?
 	
-	g_uv.z = exp(- 0.033 * lifetonow * alphastart_alphadecay_heatstart_heatdecay.w) * alphastart_alphadecay_heatstart_heatdecay.z ;
-	
-	g_uv.w = g_uv.z ;
+		// heatdecay is:
+	float heatdecay = alphastart_alphadecay_heatstart_heatdecay.w;
+	float heatstart = alphastart_alphadecay_heatstart_heatdecay.z;
+	float heatsustain = parameters.y;
+	float currentheat = heatstart * exp( -0.033 * step(heatsustain, lifetonow) * (lifetonow - heatsustain) * heatdecay);
+	g_parameters.w = currentheat ;
 	
 	float currentAlpha =  min(1.0, (lifetonow / FADEINTIME)) * alphastart - lifetonow* alphadecay;
-	currentAlpha = min(currentAlpha, lengthwidthrotation.w);
+	currentAlpha = clamp(currentAlpha, 0.0, lengthwidthrotation.w);
 	//g_color.a = currentAlpha;
 	g_position.w = currentAlpha;
 }

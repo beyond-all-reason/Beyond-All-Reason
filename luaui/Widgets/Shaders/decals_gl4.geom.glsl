@@ -20,14 +20,14 @@ in DataVS {
 	vec4 v_lengthwidthrotation;
 	vec4 v_centerpos;
 	vec4 v_uvoffsets;
-	vec4 v_parameters;
+	vec4 v_parameters; // x: BWfactor, y:glowsustain, z:glowadd,
 } dataIn[];
 
 out DataGS {
 	//vec4 g_color;
 	vec4 g_uv;
 	vec4 g_position; // how to get tbnmatrix here?
-	vec4 g_parameters;
+	vec4 g_parameters; // x: BWfactor, y:glowsustain, z:glowadd,
 	mat3 tbnmatrix;
 };
 
@@ -35,11 +35,6 @@ mat3 rotY;
 vec3 decalDimensions; // length, height, widgth
 vec4 centerpos;
 vec4 uvoffsets;
-
-float heightAtWorldPos(vec2 w){
-	vec2 uvhm =   vec2(clamp(w.x,8.0,mapSize.x-8.0),clamp(w.y,8.0, mapSize.y-8.0))/ mapSize.xy; 
-	return textureLod(heightmapTex, uvhm, 0.0).x;
-}
 
 // This function takes in a set of UV coordinates [0,1] and tranforms it to correspond to the correct UV slice of an atlassed texture
 vec2 transformUV(float u, float v){// this is needed for atlassing

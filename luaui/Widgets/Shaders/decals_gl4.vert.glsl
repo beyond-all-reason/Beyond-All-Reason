@@ -10,7 +10,7 @@ layout (location = 0) in vec4 lengthwidthrotation; // l w rot and maxalpha
 layout (location = 1) in vec4 uvoffsets;
 layout (location = 2) in vec4 alphastart_alphadecay_heatstart_heatdecay;
 layout (location = 3) in vec4 worldPos; // w = also gameframe it was created on
-layout (location = 4) in vec4 parameters; // x con
+layout (location = 4) in vec4 parameters; // x: BWfactor, y:glowsustain, z:glowadd,
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
@@ -35,23 +35,24 @@ bool vertexClipped(vec4 clipspace, float tolerance) {
 #line 11000
 void main()
 {
+	// passthrough to geometry shader
 	v_centerpos = worldPos;
-	v_centerpos.y = textureLod(heightmapTex, heighmapUVatWorldPos(v_centerpos.xz), 0.0).x;
+	
+	// texture sampling here is no longer really required, but might be needed in the future if heightmap under decal changes significantly...
+	//v_centerpos.y = textureLod(heightmapTex, heighmapUVatWorldPos(v_centerpos.xz), 0.0).x; 
+	
+	// Pass all params to Geo shader
 	v_centerpos.w = 1.0;
 	v_uvoffsets = uvoffsets;
-	
-	v_parameters = alphastart_alphadecay_heatstart_heatdecay;
-	
-	//v_parameters.zw = alphastart_alphadecay_heatstart_heatdecay.xz - alphastart_alphadecay_heatstart_heatdecay.yw * timeInfo.x * 0.03333;
-	
-	//v_parameters.x = 0.0;
-	float maxradius =  max(lengthwidthrotation.x, lengthwidthrotation.y);
-	
+	v_parameters = parameters;
 	v_lengthwidthrotation = lengthwidthrotation;
 
+	// Do visibility culling in the geometry shader, quite useful.
+	float maxradius =  lengthwidthrotation.x + lengthwidthrotation.y;
 	v_skipdraw = 0u;
-	if (isSphereVisibleXY(vec4(v_centerpos), 1.0* maxradius)) v_skipdraw = 1u; // yay for visiblity culling!
+	if (isSphereVisibleXY(vec4(v_centerpos), maxradius)) v_skipdraw = 1u; 
 
+	// Calculate dynamic parameters for transparency
 	float currentFrame = timeInfo.x + timeInfo.w;
 	float lifetonow = currentFrame - worldPos.w;
 	float alphastart = alphastart_alphadecay_heatstart_heatdecay.x;
@@ -59,12 +60,15 @@ void main()
 	// fade in the decal over 200 ms?
 	
 	float currentAlpha = min(1.0, (lifetonow / FADEINTIME))  * alphastart - lifetonow* alphadecay;
-	currentAlpha = min(currentAlpha, lengthwidthrotation.w);
+	currentAlpha = clamp(currentAlpha, 0.0, lengthwidthrotation.w);
 	v_lengthwidthrotation.w = currentAlpha;
+	
 	// heatdecay is:
 	float heatdecay = alphastart_alphadecay_heatstart_heatdecay.w;
-	v_parameters.w = exp(- 0.033 * lifetonow * alphastart_alphadecay_heatstart_heatdecay.w);
-
+	float heatstart = alphastart_alphadecay_heatstart_heatdecay.z;
+	float heatsustain = parameters.y;
+	float currentheat = heatstart * exp( -0.033 * step(heatsustain, lifetonow) * (lifetonow - heatsustain) * heatdecay);
+	v_parameters.w = currentheat;
 
 	vec3 toCamera = cameraViewInv[3].xyz - v_centerpos.xyz;
 	if (dot(toCamera, toCamera) >  fadeDistance * fadeDistance) v_skipdraw = 1u;

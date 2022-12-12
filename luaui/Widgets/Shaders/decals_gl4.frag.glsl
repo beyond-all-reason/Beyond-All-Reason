@@ -3,7 +3,6 @@
 #extension GL_ARB_shading_language_420pack: require
 // This shader is (c) Beherith (mysterme@gmail.com)
 
-
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
 
@@ -15,14 +14,14 @@ in DataGS {
 	//vec4 g_color;
 	vec4 g_uv;
 	vec4 g_position; // how to get tbnmatrix here?	
-	vec4 g_parameters;
+	vec4 g_parameters; // x: BWfactor, y:glowsustain, z:glowadd,
 	mat3 tbnmatrix; // this currently contains the Z-up world-rotated orthogonal coords of each vertex
-
 };
 
 uniform sampler2D infoTex;
 uniform sampler2D miniMapTex;
 uniform sampler2D mapNormalsTex;
+uniform sampler2DShadow shadowTex;
 uniform sampler2D atlasColorAlpha;
 uniform sampler2D atlasNormals;
 
@@ -39,10 +38,17 @@ uniform sampler2D atlasNormals;
 	uniform sampler2D atlasRG;
 #endif
 
-
-
 out vec4 fragColor;
 
+// This blends shadow amounts along the warp
+float shadowAtWorldPosSoft(vec3 worldPos){
+		vec4 shadowVertexPos = shadowView * vec4(worldPos,1.0);
+		shadowVertexPos.xy += vec2(0.5);
+		float localShadow = clamp(textureProj(shadowTex, shadowVertexPos), 0.0, 1.0);
+		float shadowDelta = 0.25 * (abs(dFdx(localShadow)) + abs(dFdy(localShadow)));
+		localShadow = mix(shadowDelta, 1.0 - shadowDelta, localShadow);
+		return localShadow;
+}
 
 vec3 Temperature(float temperatureInKelvins)
 {
@@ -126,35 +132,30 @@ void main(void)
 	float bias = (offaxis*offaxis)*-2.0;
 	
 	vec4 tex1color = texture(atlasColorAlpha, g_uv.xy - parallaxUV.xy, bias);
-	tex1color.rgb = mix (tex1color.rgb, vec3(dot(tex1color.rgb, vec3(0.299, 0.587, 0.114))), BLACKANDWHITEFACTOR);
+	tex1color.rgb = mix (tex1color.rgb, vec3(dot(tex1color.rgb, vec3(0.299, 0.587, 0.114))), g_parameters.x);
 	
 	// bail early if theres shit here, but this might not be useful in the long term, due to no emissive application?
 	
 	if (tex1color.a < 0.005){
 		fragColor.rgba = vec4(0.0); 
 		discard; 
-		//return;
+		return;
 	}
 	
 	vec4 tex2color = texture(atlasNormals, g_uv.xy  - parallaxUV.xy, bias);
 	vec3 fragNormal = tex2color.rgb * 2.0 - 1.0;
 	if (dot(tex2color.rgb, vec3(1.0)) < 0.001) fragNormal = vec3(0.0, 0.0, 1.0);// check if the normals are missing, if yes, then sub with Z up. 
 	
-	fragNormal.xy = -  fragNormal.xy;
-	
+	fragNormal.xy = -fragNormal.xy;
 	
 	// Ambient color calculation, tint with minimap, and with sunAmbientMap
 	vec3 blendedcolor = tex1color.rgb * (minimapcolor.rgb * 2.0); // just your basic color modulation
 	blendedcolor.rgb = mix(tex1color.rgb, blendedcolor.rgb, MINIMAPCOLORBLENDFACTOR);
 	fragColor.rgb = blendedcolor * (sunAmbientMap.rgb * 2.0); 
 	
+	// take the square of the alpha, this is not ideal, but works well in practice
+	fragColor.a = tex1color.a * tex1color.a * 0.999; 
 	
-	// the fuck is this doing? alpha sharpening?
-	fragColor.a = tex1color.a * tex1color.a * 0.9; 
-	
-	// Get heat
-
-
 	// Reorient the normals of the decal according to what we sampled from mapnormals and decal
 	vec3 worldspacenormal = tbnmatrix * fragNormal.rgb;
 	vec3 reorientedNormal = ReOrientNormalUnpacked(mapnormal.xzy, worldspacenormal.xzy).xzy;
@@ -186,25 +187,33 @@ void main(void)
 	// Darken the whole goddamned decal:
 	fragColor.rgb *= 0.80; 
 	
+	// calculate the shadow factor, note that this is partially smoothed
+	float shadow = shadowAtWorldPosSoft(g_position.xyz);
+	fragColor.rgb *= clamp(shadow, 0.5, 1.0);
+	
+	// Fade the decal out with time
+	fragColor.a *= g_position.w;
+	//fragColor.a = fract(g_position.w*10);
 	
 	// add emissive heat, if required
 	#if (USEGLOW == 1) 
 		float glowChannel = tex2color.a; // Could use a power operator here?
-		float hotness = max(0,g_uv.w)* 5000.0;
+		float hotness = max(0,g_parameters.w);
 		vec3 heatColor = Temperature(hotness*glowChannel);
 		//fragColor.rgb += heatColor * pow(glowChannel.r, 2) * hotness ;
 		//fragColor.rgb = vec3(fract(g_uv.w*20));
 		fragColor.rgb += (heatColor.rgb * max(glowChannel,0.0)*12); //was *10 - icex increase to more brightness
+		
+		//experiment with glowadd:
+		// we kinda need to additively blend here... 
+		float heatalpha = dot (vec3(1.0),heatColor);
+		fragColor.rgba += g_parameters.z * heatalpha * vec4(heatColor.rgb ,1.0); 
 	#endif 
 	
-	
-	// Fade the decal out with time
-	fragColor.a *= g_position.w;
-	
-	
+	//fragColor.a = 1.0;
 	// plenty of debug outputs for your viewing pleasure
 	//fragColor.a *= g_parameters.z ;
-	//fragColor.r += hotness;
+	//fragColor.r += g_parameters.w;
 	//fragColor.rgb += heatColor;
 	//fragColor.rgb = tbnmatrix[2] * 0.5 + 0.5;
 	//fragColor.rgb = tangentviewdir.yyy * 0.5 + 0.5;
