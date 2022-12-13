@@ -12,7 +12,7 @@ layout (location = 1) in vec4 lengthwidthrotation; // l w rot and maxalpha
 layout (location = 2) in vec4 uvoffsets;
 layout (location = 3) in vec4 alphastart_alphadecay_heatstart_heatdecay;
 layout (location = 4) in vec4 worldPos; // also gameframe it was created on
-layout (location = 4) in vec4 parameters; // like wether this is a standard atlas or not
+layout (location = 5) in vec4 parameters; // like wether this is a standard atlas or not
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
@@ -106,25 +106,24 @@ void main()
 	// Output it to the FS
 	gl_Position = cameraViewProj * vertexPos;
 	gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in Z
+	
 	// passthrough the rest of the data:
-	
-	//g_color = vec4(0.0);
-	//g_color.a = lengthwidthrotation.w;
 	g_position = vertexPos;
-	g_parameters = alphastart_alphadecay_heatstart_heatdecay;
+	g_parameters = parameters;
 	
+	// Calc alphadecay
 	float currentFrame = timeInfo.x + timeInfo.w;
 	float lifetonow = (timeInfo.x + timeInfo.w) - worldPos.w;
 	float alphastart = alphastart_alphadecay_heatstart_heatdecay.x;
 	float alphadecay = alphastart_alphadecay_heatstart_heatdecay.y;
-	// fade in the decal over 200 ms?
-	
-	g_uv.z = exp(- 0.033 * lifetonow * alphastart_alphadecay_heatstart_heatdecay.w) * alphastart_alphadecay_heatstart_heatdecay.z ;
-	
-	g_uv.w = g_uv.z ;
-	
-	float currentAlpha =  min(1.0, (lifetonow / FADEINTIME)) * alphastart - lifetonow* alphadecay;
-	currentAlpha = min(currentAlpha, lengthwidthrotation.w);
-	//g_color.a = currentAlpha;
+	float currentAlpha = min(1.0, (lifetonow / FADEINTIME))  * alphastart - lifetonow* alphadecay;
+	currentAlpha = clamp(currentAlpha, 0.0, lengthwidthrotation.w);
 	g_position.w = currentAlpha;
+	
+	// heatdecay is:
+	float heatdecay = alphastart_alphadecay_heatstart_heatdecay.w;
+	float heatstart = alphastart_alphadecay_heatstart_heatdecay.z;
+	float heatsustain = parameters.y;
+	float currentheat = heatstart * exp( -0.033 * step(heatsustain, lifetonow) * (lifetonow - heatsustain) * heatdecay);
+	g_parameters.w = currentheat ;
 }

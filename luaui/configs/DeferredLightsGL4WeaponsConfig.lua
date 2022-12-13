@@ -570,10 +570,25 @@ GetLightClass("Explosion", nil, "Large", {r = 3, g = 2.5, b = 2.0, a = 0.25,
 
 --legbart
 explosionLights[WeaponDefNames["legbart_clusternapalm"].id] =
-GetLightClass("Explosion", nil, "Smallish", {r = 0.52, g = 0.45, b = 0.12, a = 0.28,
-										 color2r = 2.0, color2g = 1.2, color2b = 0.7, colortime = 50,
-										 sustain = 30, lifetime = 175,
-										 modelfactor = 0.25, specular = 0.23, scattering = 0.15, lensflare = 0})
+GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.54, g = 0.45, b = 0.12, a = 0.29,
+										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.03,
+										 sustain = 40, lifetime = 150,
+										 modelfactor = 0.3, specular = 0.8, scattering = 1.5, lensflare = 0})
+
+--legbar
+explosionLights[WeaponDefNames["legbar_clusternapalm"].id] =
+GetLightClass("Explosion", "Fire", "Small", {r = 0.52, g = 0.46, b = 0.18, a = 0.24,
+										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.12,
+										 sustain = 30, lifetime = 125,
+										 modelfactor = -0.3, specular = -0.3, scattering = 0.15, lensflare = 0})
+
+--legnap
+explosionLights[WeaponDefNames["legnap_napalmbombs"].id] =
+GetLightClass("Explosion", "Fire", "Small", {r = 0.54, g = 0.45, b = 0.12, a = 0.28,
+										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.12,
+										 sustain = 30, lifetime = 125,
+										 modelfactor = -0.3, specular = -0.3, scattering = 0.15, lensflare = 0})
+
 
 --armthundt4
 explosionLights[WeaponDefNames["armthundt4_armbomb"].id] =

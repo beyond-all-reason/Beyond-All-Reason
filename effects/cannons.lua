@@ -297,6 +297,7 @@ local definitions = {
                 sizegrowth         = -0.16,
                 ttl                = 10,
                 useairlos          = true,
+                castShadow         = true,
             },
         },
     --     lightningtrail = {
@@ -354,6 +355,7 @@ local definitions = {
 				sizemod            = 0.8,
 				texture            = [[gunshotglow]],
 				useairlos          = true,
+				castShadow         = true,
       		},
     	},
  --    traillight = {
