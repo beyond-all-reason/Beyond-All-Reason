@@ -177,6 +177,8 @@ local ColorSets = { -- TODO add advanced dual-color sets!
 	Team  = 	{r = -1, g = -1, b = -1},
 }
 
+local globalDamageMult = Spring.GetModOptions().multiplier_weapondamage or 1
+
 local function GetClosestSizeClass(desiredsize)
 	local delta = math.huge
 	local best = nil
@@ -287,15 +289,14 @@ local function AssignLightsToAllWeapons()
 				break
 			end
 		end
+
+		-- correct damage multiplier modoption to more sane value
+		damage = (damage / globalDamageMult) + ((damage * (globalDamageMult-1))*0.25)
+
 		local radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
 		local orgMult = math.max(0.1, math.min(damage/1600, 0.6)) + (radius/2800)
 		local life = 8 + (5*(radius/2000)+(orgMult * 5))
 		radius = ((orgMult * 75) + (radius * 2.4)) * 0.33
-
-		if string.find(weaponDef.name, 'juno') then
-			radius = 160
-			orgMult = 1
-		end
 
 		local r, g, b = 1, 0.8, 0.45
 		if weaponDef.visuals ~= nil and weaponDef.visuals.colorR ~= nil then
@@ -322,6 +323,13 @@ local function AssignLightsToAllWeapons()
 			t.color2r, t.color2g, t.color2b = 0.96, 0.3, 1
 		end
 		t.r, t.g, t.b = r, g, b
+
+		if string.find(weaponDef.name, 'juno') then
+			radius = 140
+			orgMult = 1
+			r, g, b = 0.45, 1, 0.45
+		end
+
 		if weaponDef.type == 'BeamLaser' then
 			muzzleFlash = false
 
@@ -365,8 +373,10 @@ local function AssignLightsToAllWeapons()
 
 		elseif weaponDef.type == 'StarburstLauncher' then
 			t.a = orgMult * 0.66
+			sizeclass = GetClosestSizeClass(radius)
 			projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
 			radius = ((orgMult * 75) + (radius * 4)) * 0.4
+
 			life = 8 + (5*(radius/2000)+(orgMult * 5))
 			sizeclass = GetClosestSizeClass(radius)
 
@@ -460,13 +470,18 @@ local function AssignLightsToAllWeapons()
 					t.colortime = 25 / life
 				end
 				radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
+				if string.find(weaponDef.name, 'juno') then
+					radius = 800
+					orgMult = 0.25
+					t.lifetime = life * 12
+				end
 				if weaponDef.customParams.unitexplosion then
-					radius = radius * 1.5
+					radius = radius * 1.25
 					-- make more white
 					t.r = (1.7 + t.r) / 2.7
 					t.g = (1.7 + t.g) / 2.7
 					t.b = (1.7 + t.b) / 2.7
-					t.a = orgMult*3
+					t.a = orgMult*2.8
 					t.lifetime = life * 1.15
 				else
 					-- make more white

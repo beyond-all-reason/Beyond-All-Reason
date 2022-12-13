@@ -17,6 +17,7 @@ local critterConfig = {
 		{ spawnCircle = { x = 3222, z = 5700, r = 200 }, unitNames = { ["critter_duck"] = rnd(0, 3) } },
 		{ spawnCircle = { x = 540, z = 1750, r = 120 }, unitNames = { ["critter_duck"] = rnd(1, 2) } },
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 6100, z2 = 6100 }, unitNames = { ["critter_goldfish"] = rnd(100, 150) } },
+		{ spawnBox = { x1 = 50, z1 = 50, x2 = 6100, z2 = 6100 }, unitNames = { ["critter_crab"] = rnd(1, 2) } },
 		{ spawnBox = { x1 = 150, z1 = 150, x2 = 6000, z2 = 6000 }, unitNames = { ["critter_gull"] = rnd(6, 11) } },
 	},
 
@@ -90,6 +91,7 @@ local critterConfig = {
 
 	["downs_of_destruction"] = {
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_goldfish"] = rnd(70, 110) } },
+		{ spawnBox = { x1 = 50, z1 = 50, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_crab"] = rnd(1, 2) } },
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_gull"] = rnd(7, 11) } },
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_duck"] = rnd(4, 6) } },
 	},
@@ -140,6 +142,7 @@ local critterConfig = {
 		{ spawnCircle = { x = 8100, z = 4700, r = 700 }, unitNames = { ["critter_duck"] = rnd(1, 2) } },
 		{ spawnCircle = { x = 8100, z = 4700, r = 1100 }, unitNames = { ["critter_gull"] = rnd(2, 3) } },
 		{ spawnCircle = { x = 8100, z = 4700, r = 1100 }, unitNames = { ["critter_goldfish"] = rnd(6, 10) } },
+		{ spawnCircle = { x = 8100, z = 4700, r = 1100 }, unitNames = { ["critter_crab"] = rnd(1, 2) } },
 	},
 
 	["epic-ee-crossingglade"] = {
@@ -192,6 +195,7 @@ local critterConfig = {
 		{ spawnCircle = { x = 1750, z = 3400, r = 250 }, unitNames = { ["critter_goldfish"] = rnd(1, 2) } },
 		{ spawnCircle = { x = 3250, z = 2300, r = 250 }, unitNames = { ["critter_goldfish"] = rnd(1, 2) } },
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_goldfish"] = rnd(140, 180) } },
+		{ spawnBox = { x1 = 50, z1 = 50, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_crab"] = rnd(1, 2) } },
 	},
 
 	["icysea"] = {
@@ -234,6 +238,7 @@ local critterConfig = {
 		{ spawnBox = { x1 = 6000, z1 = 300, x2 = 10200, z2 = 2000 }, unitNames = { ["critter_penguin"] = rnd(3, 6) } },
 		{ spawnBox = { x1 = 8400, z1 = 2000, x2 = 10200, z2 = 4200 }, unitNames = { ["critter_penguin"] = rnd(3, 6) } },
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 10200, z2 = 15300 }, unitNames = { ["critter_goldfish"] = rnd(220, 340) } },
+		{ spawnBox = { x1 = 50, z1 = 50, x2 = 10200, z2 = 15300 }, unitNames = { ["critter_crab"] = rnd(1, 2) } },
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 6700, z2 = 15300 }, unitNames = { ["critter_gull"] = rnd(12, 20) } },
 		{ spawnBox = { x1 = 6700, z1 = 4400, x2 = 10200, z2 = 9400 }, unitNames = { ["critter_gull"] = rnd(2, 4) } },
 		{ spawnBox = { x1 = 7980, z1 = 9980, x2 = 8490, z2 = 10220 }, unitNames = { ["critter_ant"] = rnd(-15, 3) * 5 } },
@@ -279,12 +284,14 @@ local critterConfig = {
 		{ spawnBox = { x1 = 7400, z1 = 500, x2 = 9150, z2 = 1200 }, unitNames = { ["critter_penguin"] = rnd(0, 4) } },
 		{ spawnBox = { x1 = 6150, z1 = 700, x2 = 8480, z2 = 1111 }, unitNames = { ["critter_penguin"] = rnd(0, 4) } },
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 16200, z2 = 8150 }, unitNames = { ["critter_goldfish"] = rnd(100, 200) } },
+		{ spawnBox = { x1 = 50, z1 = 50, x2 = 16200, z2 = 8150 }, unitNames = { ["critter_crab"] = rnd(0, 1) } },
 		{ spawnBox = { x1 = 100, z1 = 100, x2 = 16200, z2 = 8150 }, unitNames = { ["critter_gull"] = rnd(15, 20) } },
 	},
 
 	["paradise_lost"] = {
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 10200, z2 = 5050 }, unitNames = { ["critter_gull"] = rnd(15, 25) } },
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 10200, z2 = 5050 }, unitNames = { ["critter_goldfish"] = rnd(100, 150) } },
+		{ spawnBox = { x1 = 50, z1 = 50, x2 = 10200, z2 = 5050 }, unitNames = { ["critter_goldfish"] = rnd(0, 1) } },
 	},
 
 	["parched_mesa"] = {
@@ -344,6 +351,7 @@ local critterConfig = {
 		{ spawnCircle = { x = 1220, z = 6720, r = 450 }, unitNames = { ["critter_duck"] = rnd(0, 3) } },
 		{ spawnBox = { x1 = 100, z1 = 100, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_gull"] = rnd(7, 12) } },
 		{ spawnBox = { x1 = 100, z1 = 100, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_goldfish"] = rnd(50, 100) } },
+		{ spawnBox = { x1 = 100, z1 = 100, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_crab"] = rnd(0, 1) } },
 	},
 
 	["supreme crossing"] = {
@@ -369,6 +377,8 @@ local critterConfig = {
 		{ spawnBox = { x1 = 5000, z1 = 50, x2 = 7050, z2 = 4650 }, unitNames = { ["critter_gull"] = rnd(3, 4) } },
 		{ spawnBox = { x1 = 1700, z1 = 5750, x2 = 2600, z2 = 8150 }, unitNames = { ["critter_goldfish"] = rnd(4, 6) } },
 		{ spawnBox = { x1 = 5500, z1 = 50, x2 = 6500, z2 = 1450 }, unitNames = { ["critter_goldfish"] = rnd(4, 6) } },
+		{ spawnBox = { x1 = 1700, z1 = 5750, x2 = 2600, z2 = 8150 }, unitNames = { ["critter_crab"] = rnd(0, 1) } },
+		{ spawnBox = { x1 = 5500, z1 = 50, x2 = 6500, z2 = 1450 }, unitNames = { ["critter_crab"] = rnd(0, 1) } },
 	},
 
 	["talus"] = {
@@ -426,6 +436,7 @@ local critterConfig = {
 	["trefoil"] = {
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_goldfish"] = rnd(15, 30) } },
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_gull"] = rnd(5, 10) } },
+		{ spawnBox = { x1 = 50, z1 = 50, x2 = 8150, z2 = 8150 }, unitNames = { ["critter_crab"] = rnd(1, 1) } },
 	},
 
 	["quicksilver"] = {
@@ -433,7 +444,9 @@ local critterConfig = {
 		{ spawnBox = { x1 = 3681, z1 = 3717, x2 = 3804, z2 = 3858 }, unitNames = { ["critter_goldfish"] = rnd(1, 2) } },
 		{ spawnBox = { x1 = 1000, z1 = 500, x2 = 6500, z2 = 2400 }, unitNames = { ["critter_gull"] = rnd(2, 4) } },
 		{ spawnBox = { x1 = 500, z1 = 4300, x2 = 3500, z2 = 6700 }, unitNames = { ["critter_gull"] = rnd(2, 4) } },
-		{ spawnBox = { x1 = 50, z1 = 50, x2 = 7000, z2 = 7000 }, unitNames = { ["critter_duck"] = rnd(1, 1) } }
+		{ spawnBox = { x1 = 50, z1 = 50, x2 = 7000, z2 = 7000 }, unitNames = { ["critter_duck"] = rnd(1, 1) } },
+		{ spawnBox = { x1 = 2300, z1 = 900, x2 = 3100, z2 = 1600 }, unitNames = { ["critter_crab"] = rnd(0, 1) } },
+		{ spawnBox = { x1 = 5000, z1 = 5500, x2 = 5900, z2 = 6200 }, unitNames = { ["critter_crab"] = rnd(0, 1) } },
 	},
 
 	["tropical-v"] = {
@@ -446,6 +459,7 @@ local critterConfig = {
 		{ spawnCircle = { x = 4600, z = 5200, r = 500 }, unitNames = { ["critter_duck"] = rnd(0, 2) } },
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 9150, z2 = 10200 }, unitNames = { ["critter_goldfish"] = rnd(40, 80) } },
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 9150, z2 = 10200 }, unitNames = { ["critter_gull"] = rnd(12, 20) } },
+		{ spawnBox = { x1 = 50, z1 = 50, x2 = 9150, z2 = 10200 }, unitNames = { ["critter_crab"] = rnd(0, 1) } },
 	},
 
 	["throne v"] = {
@@ -469,6 +483,7 @@ local critterConfig = {
 		{ spawnBox = { x1 = 1200, z1 = 13500, x2 = 16000, z2 = 16300 }, unitNames = { ["critter_penguin"] = rnd(30, 40) } },
 		{ spawnBox = { x1 = 10400, z1 = 9085, x2 = 10550, z2 = 9500 }, unitNames = { ["critter_penguin"] = 2 } },
 		{ spawnBox = { x1 = 50, z1 = 50, x2 = 16300, z2 = 16300 }, unitNames = { ["critter_goldfish"] = rnd(190, 350) } },
+		{ spawnBox = { x1 = 50, z1 = 50, x2 = 16300, z2 = 16300 }, unitNames = { ["critter_crab"] = rnd(0, 1) } },
 	},
 
 

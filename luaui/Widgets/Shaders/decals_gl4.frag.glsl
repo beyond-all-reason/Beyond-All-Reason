@@ -198,6 +198,7 @@ void main(void)
 	// add emissive heat, if required
 	#if (USEGLOW == 1) 
 		float glowChannel = tex2color.a; // Could use a power operator here?
+
 		float hotness = max(0,g_parameters.w);
 		vec3 heatColor = Temperature(hotness*glowChannel);
 		//fragColor.rgb += heatColor * pow(glowChannel.r, 2) * hotness ;

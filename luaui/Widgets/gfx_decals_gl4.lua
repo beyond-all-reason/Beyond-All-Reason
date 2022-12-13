@@ -186,6 +186,7 @@ local gsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.geom.glsl"
 local vsSrcLargePath = "LuaUI/Widgets/Shaders/decals_large_gl4.vert.glsl"
 
 local uniformInts =  {
+
 	heightmapTex = 0,
 	miniMapTex = 1,
 	infoTex = 2,
@@ -448,6 +449,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	heatdecay = heatdecay or 1
 	alphastart = alphastart or 1
 	alphadecay = alphadecay or 0
+
 	bwfactor = bwfactor or 1 -- default force to black and white
 	glowsustain = glowsustain or 1 -- how many frames to keep max heat for
 	glowadd = glowadd or 0 -- how much additional additive glow to add
@@ -462,6 +464,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	spawnframe = spawnframe or Spring.GetGameFrame()
 	--Spring.Echo(decaltexturename, atlassedImages[decaltexturename], atlasColorAlpha)
 	local p,q,s,t = 0,1,0,1
+
 	--Spring.Echo(decaltexturename) --used for displaying which decal texture is spawned
 	if decalImageCoords[decaltexturename] == nil then
 		Spring.Echo("Tried to spawn a decal gl4 with a texture not present in the atlas:",decaltexturename)
@@ -491,6 +494,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 			p,q,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
 			alphastart, alphadecay, heatstart, heatdecay, -- alphastart_alphadecay_heatstart_heatdecay
 			posx, posy, posz, spawnframe,
+
 			bwfactor,glowsustain,glowadd,0}, -- params
 		decalIndex, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
@@ -592,6 +596,7 @@ function widget:GameFrame(n)
 		end
 		decalRemoveQueue[n] = nil
 	end
+
 	if n % 91 == 0 then
 		local removed = 0
 		removed = removed + compactInstanceVBO(decalVBO, decalRemoveList)

@@ -23,7 +23,7 @@ Spring.CreateDir("music/custom/menu")
 -- CONFIG
 ----------------------------------------------------------------------
 
-local showGUI = false
+local showGUI = true
 local minSilenceTime = 60
 local maxSilenceTime = 300
 local warLowLevel = 1000
@@ -33,13 +33,11 @@ local warMeterResetTime = 30 -- seconds
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 
-local specMultiplier = #Spring.GetAllyTeamList() - 1
-
 local function applySpectatorThresholds()
-	warLowLevel = 1000*specMultiplier
-	warHighLevel = 20000*specMultiplier
-	minSilenceTime = 60*specMultiplier
-	maxSilenceTime = 300*specMultiplier
+	warLowLevel = warLowLevel*2
+	warHighLevel = warHighLevel*2
+	minSilenceTime = minSilenceTime*2
+	maxSilenceTime = maxSilenceTime*2
 	appliedSpectatorThresholds = true
 	--Spring.Echo("[Music Player] Spectator mode enabled")
 end
@@ -225,11 +223,10 @@ local playedGameOverTrack = false
 local fadeLevel = 100
 local faderMin = 45 -- range in dB for volume faders, from -faderMin to 0dB
 
-playedTime = 0
-totalTime = 0
+local playedTime, totalTime = Spring.GetSoundStreamTime()
+local prevPlayedTime = playedTime
 
--- local appliedSilence = false
-local silenceTimer = math.random(minSilenceTime,maxSilenceTime)
+local silenceTimer = math.random(minSilenceTime, maxSilenceTime)
 
 local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 20)	-- user value, cause actual volume will change during fadein/outc
 local volume = Spring.GetConfigInt("snd_volmaster", 100)
@@ -248,11 +245,11 @@ local vsx, vsy = Spring.GetViewGeometry()
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.6) or 0.6)
 
 local playing = (Spring.GetConfigInt('music', 1) == 1)
---local playing = true
 local shutdown
 
 local playTex	= ":l:"..LUAUI_DIRNAME.."Images/music/play.png"
 local pauseTex	= ":l:"..LUAUI_DIRNAME.."Images/music/pause.png"
+local nextTex	= ":l:"..LUAUI_DIRNAME.."Images/music/next.png"
 local musicTex	= ":l:"..LUAUI_DIRNAME.."Images/music/music.png"
 local volumeTex	= ":l:"..LUAUI_DIRNAME.."Images/music/volume.png"
 
@@ -362,10 +359,11 @@ local function createList()
 	local padding2 = math.floor(2.5 * widgetScale) -- inner icon padding
 	local volumeWidth = math.floor(50 * widgetScale)
 	local heightoffset = -math.floor(0.9 * widgetScale)
-	--buttons['playpause'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
+	buttons['playpause'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
+	buttons['next'] = {buttons['playpause'][3]+padding, bottom+padding+heightoffset, buttons['playpause'][3]+((widgetHeight*widgetScale)-padding), top-padding+heightoffset}
 
-	--buttons['musicvolumeicon'] = {buttons['playpause'][3]+padding+padding, bottom+padding+heightoffset, buttons['playpause'][3]+((widgetHeight * widgetScale)), top-padding+heightoffset}
-	buttons['musicvolumeicon'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
+	buttons['musicvolumeicon'] = {buttons['next'][3]+padding+padding, bottom+padding+heightoffset, buttons['next'][3]+((widgetHeight * widgetScale)), top-padding+heightoffset}
+	--buttons['musicvolumeicon'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
 	buttons['musicvolume'] = {buttons['musicvolumeicon'][3]+padding, bottom+padding+heightoffset, buttons['musicvolumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
 	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (getVolumePos(maxMusicVolume/100))
 
@@ -402,13 +400,18 @@ local function createList()
 		end
 	end)
 	drawlist[2] = glCreateList( function()
-		local button = 'musicvolumeicon'
+		local button = 'playpause'
 		glColor(0.88,0.88,0.88,0.9)
 		if playing then
 			glTexture(pauseTex)
 		else
 			glTexture(playTex)
 		end
+		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+
+		button = 'next'
+		glColor(0.88,0.88,0.88,0.9)
+		glTexture(nextTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 	end)
 	drawlist[3] = glCreateList( function()
@@ -430,7 +433,7 @@ local function createList()
 		end
 		trackname = capitalize(text)
 
-		local button = 'musicvolumeicon'
+		local button = 'playpause'
 		glColor(0.8,0.8,0.8,0.9)
 		glTexture(musicTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
@@ -494,8 +497,10 @@ local function updatePosition(force)
 end
 
 function widget:Initialize()
+	if Spring.GetGameFrame() == 0 and Spring.GetConfigInt('music_loadscreen', 1) == 1 then
+		currentTrack = Spring.GetConfigString('music_loadscreen_track', '')
+	end
 	ReloadMusicPlaylists()
-	-- appliedSilence = false
 	silenceTimer = math.random(minSilenceTime,maxSilenceTime)
 	widget:ViewResize()
 	--Spring.StopSoundStream() -- only for testing purposes
@@ -541,7 +546,11 @@ function widget:Initialize()
 		end
 		return tracksConfig
 	end
-	WG['music'].RefreshTrackList = function ()
+	WG['music'].RefreshSettings = function()
+		interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
+		silenceTimerEnabled 			= Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
+	end
+	WG['music'].RefreshTrackList = function()
 		Spring.StopSoundStream()
 		ReloadMusicPlaylists()
 		PlayNewTrack()
@@ -635,13 +644,16 @@ local function mouseEvent(x, y, button, release)
 			draggingSlider = nil
 		end
 		if button == 1 and not release and math_isInRect(x, y, left, bottom, right, top) then
-			-- if buttons['playpause'] ~= nil and math_isInRect(x, y, buttons['playpause'][1], buttons['playpause'][2], buttons['playpause'][3], buttons['playpause'][4]) then
-			-- 	playing = not playing
-			-- 	Spring.SetConfigInt('music', (playing and 1 or 0))
-			-- 	Spring.PauseSoundStream()
-			-- 	createList()
-			-- 	return true
-			-- end
+			if buttons['playpause'] ~= nil and math_isInRect(x, y, buttons['playpause'][1], buttons['playpause'][2], buttons['playpause'][3], buttons['playpause'][4]) then
+				playing = not playing
+				Spring.SetConfigInt('music', (playing and 1 or 0))
+				Spring.PauseSoundStream()
+				createList()
+			elseif buttons['next'] ~= nil and math_isInRect(x, y, buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]) then
+				playing = true
+				Spring.SetConfigInt('music', (playing and 1 or 0))
+				PlayNewTrack()
+			end
 			return true
 		end
 	end
@@ -659,11 +671,29 @@ function widget:MouseRelease(x, y, button)
 	return mouseEvent(x, y, button, true)
 end
 
+local playingInit = false
 function widget:Update(dt)
 	local frame = Spring.GetGameFrame()
 	local _,_,paused = Spring.GetGameSpeed()
+
+	playedTime, totalTime = Spring.GetSoundStreamTime()
+	if not playingInit then
+		playingInit = true
+		if playedTime ~= prevPlayedTime then
+			if not playing then
+				playing = true
+				createList()
+			end
+		else
+			if playing then
+				playing = false
+				createList()
+			end
+		end
+	end
+	prevPlayedTime = playedTime
+
 	if playing and (paused or frame < 1) then
-		local _, totalTime = Spring.GetSoundStreamTime()
 		if totalTime == 0 then
 			PlayNewTrack(true)
 		end
@@ -716,28 +746,31 @@ function widget:DrawScreen()
 	if drawlist[1] ~= nil then
 		glPushMatrix()
 		glCallList(drawlist[1])
-		--glCallList(drawlist[2])
-		if not mouseover and not draggingSlider and playing and volume > 0 then
+		if not mouseover and not draggingSlider and playing and volume > 0 and playedTime < totalTime then
 			glCallList(drawlist[3])
 		else
+			glCallList(drawlist[2])
 			glCallList(drawlist[4])
 		end
 		if mouseover then
 
 			-- display play progress
-			local playedTime, totalTime = Spring.GetSoundStreamTime()
 			local progressPx = math.floor((right - left) * (playedTime / totalTime))
 			if progressPx > 1 then
 				if progressPx < borderPadding * 5 then
 					progressPx = borderPadding * 5
 				end
-				RectRound(left + borderPaddingLeft, bottom + borderPadding - (1.8 * widgetScale), left - borderPaddingRight + progressPx, top - borderPadding, borderPadding * 1.4, 2, 2, 2, 2, { 0.6, 0.6, 0.6, ui_opacity * 0.14 }, { 1, 1, 1, ui_opacity * 0.14 })
+				RectRound(left + borderPaddingLeft, bottom + borderPadding - (1.8 * widgetScale), left - borderPaddingRight + progressPx, top - borderPadding, borderPadding * 1.4, 2, 2, 2, 2, { 0.6, 0.6, 0.6, ui_opacity * 0.15 }, { 1, 1, 1, ui_opacity * 0.15 })
 			end
 
 			local color = { 1, 1, 1, 0.1 }
 			local colorHighlight = { 1, 1, 1, 0.3 }
 			glBlending(GL_SRC_ALPHA, GL_ONE)
 			local button = 'playpause'
+			if buttons[button] ~= nil and math_isInRect(mx, my, buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]) then
+				UiButton(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], 1, 1, 1, 1, 1, 1, 1, 1, 1, mlb and colorHighlight or color)
+			end
+			local button = 'next'
 			if buttons[button] ~= nil and math_isInRect(mx, my, buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]) then
 				UiButton(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], 1, 1, 1, 1, 1, 1, 1, 1, 1, mlb and colorHighlight or color)
 			end
@@ -752,13 +785,15 @@ function widget:DrawScreen()
 end
 
 function PlayNewTrack(paused)
+	if Spring.GetConfigInt('music', 1) ~= 1 then
+		return
+	end
 	if (not paused) and Spring.GetGameFrame() > 1 then
 		deviceLostSafetyCheck = deviceLostSafetyCheck + 1
 	end
 	Spring.StopSoundStream()
 	fadeOutSkipTrack = false
 	silenceTimer = math.random(minSilenceTime,maxSilenceTime)
-	-- appliedSilence = false
 
 	if (not gameOver) and Spring.GetGameFrame() > 1 then
 		fadeLevel = 0
@@ -834,7 +869,7 @@ function PlayNewTrack(paused)
 
 	if currentTrack then
 		Spring.PlaySoundStream(currentTrack, 1)
-		playedTime, totalTime = Spring.GetSoundStreamTime()
+		playing = true
 		if fadeDirection then
 			setMusicVolume(fadeLevel)
 		else
@@ -889,17 +924,15 @@ function widget:GameFrame(n)
 		end
 
 		local musicVolume = getMusicVolume()
-		if musicVolume > 0 then
-			playing = true
-		else
-			playing = false
-			-- appliedSilence = true
-			silenceTimer = math.random(minSilenceTime,maxSilenceTime)
-			Spring.StopSoundStream()
-			return
-		end
-
-		playedTime, totalTime = Spring.GetSoundStreamTime()
+		--if musicVolume > 0 then
+		--	playing = true
+		--else
+		--	playing = false
+		--	silenceTimer = math.random(minSilenceTime,maxSilenceTime)
+		--	--Spring.PauseSoundStream()
+		--	Spring.StopSoundStream()
+		--	return
+		--end
 
 		if warMeter > 0 then
 			warMeter = math.floor(warMeter - (warMeter * 0.04))
@@ -962,8 +995,8 @@ function widget:SetConfigData(data)
 			currentTrack = data.curTrack
 		end
 	end
-	if data.showGUI ~= nil then
-		showGUI = data.showGUI
+	if data.showGUIv2 ~= nil then
+		showGUI = data.showGUIv2
 	end
 end
 

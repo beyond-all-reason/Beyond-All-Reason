@@ -35,13 +35,13 @@ Steering(heading, steery, currentSpeed)
 	while(1)
 	{
 		heading = get HEADING;
-		steery = (oldHeading - heading)*10;
+		steery = (oldHeading - heading)*9;
 		if ((steery - steerstore > <5> or steery - steerstore < <-5>) AND (steery < <5> and steery > <-5>)){
-			turnslow = 5;
+			turnslow = 6;
 			steerslow = 30;
 		}	
 		else if (steerslow > 10 AND steerslow < 20){
-			turnslow = 6;
+			turnslow = 7;
 		}
 		else if (steerslow > 0 AND steerslow < 10){
 			turnslow = 8;
@@ -49,7 +49,6 @@ Steering(heading, steery, currentSpeed)
 		else if (steerslow < 0){
 			turnslow = 10;
 		}
-		steerstore = steery;
 		steerslow = steerslow - 1;
 		speed2 = <26> / 20;
 		speed3 = <15> / 20;
@@ -63,6 +62,10 @@ Steering(heading, steery, currentSpeed)
 				steerslow = steerslow - 2;
 			}
 		}
+		else if ((currentspeed * 10) < maxSpeed){
+			turnslow = 0;
+		}
+		steerstore = steery;
 		turn steer2 to y-axis steery speed speed2 * turnslow;
 		turn steer3 to y-axis steery speed speed3 * turnslow;
 		turn steer4 to y-axis steery speed speed4 * turnslow;

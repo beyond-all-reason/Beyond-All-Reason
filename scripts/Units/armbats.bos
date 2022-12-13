@@ -26,8 +26,11 @@ SetDirection(heading)
 
 MoveBarrelBlast(flarepiece) // Pass whichever piece you want to locate on XZ
 {
+
 	var flarepiece_xz;	
+	
 	flarepiece_xz = get PIECE_XZ(flarepiece); // returns packed xz worldpos of piece
+	/*
 	var flare_x;
 	var flare_z;
 	flare_z = (flarepiece_xz & 0x0000ffff); // silly unpack
@@ -71,6 +74,77 @@ MoveBarrelBlast(flarepiece) // Pass whichever piece you want to locate on XZ
 	
 	// emit the effect
 	emit-sfx 1024 + 0 from barrelblast;
+	*/
+}
+
+// Pass whichever piece you want to locate on XZ, AND the turret that it rotates around in Y
+// Also tell how many percent further out you want the emit to happend (100% is exactly under flarepiece, 200% is 2x further from TURRET)
+MoveBarrelBlastTurret(flarepiece, turretpiece, percentfurther) 
+{
+	
+	var flarepiece_xz;	
+	flarepiece_xz = get PIECE_XZ(flarepiece); // returns packed xz worldpos of piece
+	/*
+	var flare_x;
+	var flare_z;
+	flare_z = (flarepiece_xz & 0x0000ffff); // silly unpack
+	flare_x = (flarepiece_xz & 0xffff0000) / 0x00010000; // yes this works
+	//get PRINT(get GAME_FRAME, flarepiece, flare_x, flare_z);
+	
+	var unit_xz;
+	unit_xz = get UNIT_XZ(0); // returns packed xz worldpos of unit
+	var unit_x;
+	var unit_z;
+	unit_z = (unit_xz & 0x0000ffff);
+	unit_x = (unit_xz & 0xffff0000) / 0x00010000;
+	
+	var turret_xz;
+	turret_xz = get PIECE_XZ(turretpiece); // returns packed xz worldpos of unit
+	var turret_x;
+	var turret_z;
+	turret_z = (turret_xz & 0x0000ffff);
+	turret_x = (turret_xz & 0xffff0000) / 0x00010000;
+	
+	//Transform from world space to unit space
+	// Make flare relative to turret here
+	flare_x = flare_x - turret_x;
+	flare_z = flare_z - turret_z;
+	
+	// Make turret relative to unit:
+	turret_x = turret_x - unit_x;
+	turret_z = turret_z - unit_z;
+	
+	get PRINT(flare_x, flare_z, turret_x, turret_z);
+	var unit_h;
+	unit_h = get HEADING(0); // gets the units angle
+	
+	var sin_h ;
+	var cos_h ; 
+	sin_h = get KSIN(unit_h); // transform into sine and cosine
+	cos_h = get KCOS(unit_h);
+	// When the unit is pointing towards +Z, the heading is 0, the sinh is 0, the cosh is 1024
+	
+	
+	//get PRINT(666, unit_h, sin_h, cos_h);
+	// rotate the vector by HEADING angle
+	var delta_x;
+	var delta_z;
+	delta_x = percentfurther *(flare_x * cos_h + flare_z * sin_h) /(1024*100);
+	delta_z = percentfurther *(flare_z * cos_h - flare_x * sin_h) /(1024*100);
+	
+	delta_x = delta_x + (turret_x * cos_h + turret_z * sin_h) /1024;
+	delta_z = delta_z + (turret_z * cos_h - turret_x * sin_h) /1024;
+	
+	
+	//get PRINT(get GAME_FRAME, 0, delta_x, delta_z);
+	// move the piece into the correct pos, and rotate it upward
+	move barrelblast to x-axis [-1] * (delta_x) now; // x is inverted, fuck if I know why
+	move barrelblast to z-axis [1] * (delta_z) now;
+	turn barrelblast to x-axis <-90> now;
+	
+	// emit the effect
+	emit-sfx 1024 + 0 from barrelblast;
+	*/
 }
 
 #define BASEPIECE base
@@ -252,6 +326,7 @@ FireSecondary()
 		move barrel2a to z-axis [-2.500000] now;
 		sleep 100;
 		move barrel2a to z-axis [0.000000] speed [1.000000];
+		call-script MoveBarrelBlastTurret(barrel2a, turret2, 300);
 	}
 	if( weapon2barrel == 1 )
 	{

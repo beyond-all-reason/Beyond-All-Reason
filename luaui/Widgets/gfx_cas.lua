@@ -68,7 +68,7 @@ local fsCAS = [[
 uniform sampler2D screenCopyTex;
 uniform float sharpness;
 
-#if 0
+#if 0 // in case AMD drivers refuse to compile the shader, though according to GLSL spec they shouldn't
 	#define TEXEL_FETCH_OFFSET(t, c, l, o) texelFetch(t, c + o, l)
 #else
 	#define TEXEL_FETCH_OFFSET texelFetchOffset

@@ -721,12 +721,11 @@ local moveDatas = {
 local defs = {}
 
 for moveName, moveData in pairs(moveDatas) do
-	--if moveData.maxslope and (moveData.maxslope < 60) then
-	--	moveData.maxslope = 34
-	--else
-	--	moveData.IsAllTerrain = true
-	--	moveData.maxslope = 60
-	--end
+	if Spring.GetModOptions().unified_maxslope then
+		if moveData.maxslope then
+			moveData.maxslope = math.max(moveData.maxslope, 36)
+		end
+	end
 	
 	moveData.heatmapping = true
 	moveData.name = moveName

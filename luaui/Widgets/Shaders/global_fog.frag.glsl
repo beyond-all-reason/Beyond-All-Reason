@@ -51,6 +51,28 @@ float shadowAtWorldPos(vec3 worldPos){
 		shadowVertexPos.xy += vec2(0.5);
 		return clamp(textureProj(shadowTex, shadowVertexPos), 0.0, 1.0);
 }
+float losLevelAtWorldPos(vec3 worldPos){ // this returns 
+	#if (INFOLOSAPI == 1)
+		vec2 losUV = clamp(worldPos.xz, vec2(0.0), mapSize.xy ) / mapSize.xy;
+		vec4 infoTexSample = texture(infoTex, losUV);
+		return infoTexSample.r;
+	#else
+		vec2 losUV = clamp(worldPos.xz, vec2(0.0), mapSize.xy ) / mapSize.zw;
+		vec4 infoTexSample = texture(infoTex, losUV);
+		float loslevel = dot(vec3(0.33), infoTexSample.rgb) ; // lostex is PO2
+		float dx = dFdx(loslevel);
+		float dy = dFdy(loslevel);
+		vec4 neighbourinos = vec4(loslevel, loslevel + dx, loslevel + dy, loslevel+ dx + dy) ;// me, l/r, t/b, opposite
+		//vec4 neighbourinos = vec4(loslevel) ;// me, l/r, t/b, opposite
+		
+		loslevel = dot(neighbourinos, vec4(0.25));
+		loslevel = smoothstep(0.4, 0.5, loslevel);
+		//loslevel = 
+		//loslevel = step(0.5,loslevel);
+		return loslevel;
+		//return loslevel;
+	#endif
+}
 
 float rand(vec2 co){
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
@@ -294,6 +316,14 @@ void main(void)
 	
 	// calculate the distance fog density
 	float distanceFogAmount = fogGlobalDensity * length(mapToCam);
+	
+	// reduce height-based fog for in-los areas:
+	float inlos = losLevelAtWorldPos( mapWorldPos.xyz);
+	heightBasedFog *= (1.0 - inlos);
+	//fragColor.a = 1.0;
+	//fragColor.rgb = vec3(inlos);
+	//return;
+	
 	
 	// Modulate the amount of fog based on how shadowed it is?
 	heightBasedFog += heightBasedFog * smoothstep( 0.0,1.0, 1.0 - collectedShadow); 

@@ -31,7 +31,8 @@ local GL_RGBA32F_ARB = 0x8814
 -- Create a better noise texture (also use this for other occasions!)
 -- Expose params to be easily tunable
 -- Create quality 'presets' and auto apply them?
--- copy the whole self-illumination and shading thing from the fog volumes gl4 shader? 
+-- copy the whole self-illumination and shading thing from the fog volumes gl4 shader?
+-- better LOS shader usage?
 
 
 
@@ -45,6 +46,7 @@ local shaderConfig = {
 	NOISESAMPLES = 8, -- how many samples of 3D noise to take
 	NOISESCALE = 1.2,
 	NOISETHRESHOLD = -0.0,
+	INFOLOSAPI = 0,
 }
 
 local minHeight, maxHeight = Spring.GetGroundExtremes()
@@ -54,10 +56,10 @@ local fogUniforms = {
 	fogShadowedColor = {0.1,0.05,0.1,1}, -- purleish tint
 	fogPlaneHeight = (math.max(minHeight,0) + maxHeight) /2 ,
 	fogGlobalDensity = 1.0,
-	fogGroundDensity = 0.2,
+	fogGroundDensity = 0.3,
 	fogExpFactor = -0.0001, -- yes these are small negative numbers
 	noiseParams = {
-		2.2, -- high-frequency cloud noise, lower numbers = lower frequency
+		4.2, -- high-frequency cloud noise, lower numbers = lower frequency
 		0.0, -- noise bias, [-1,1] high numbers denser
 		1.5, -- low frequency big cloud noise, lower numbers = lower frequency
 		0.0,
@@ -172,6 +174,10 @@ end
 function widget:Initialize()
 	minHeight, maxHeight = Spring.GetGroundExtremes()
 	shaderConfig.FOGTOP = (math.max(minHeight,0) + maxHeight ) /2 
+	if WG['infolosapi'] then 
+		Spring.Echo("Global Fog using INFOLOS api")
+		shaderConfig.INFOLOSAPI = 1 
+	end
 	if Spring.GetConfigString("AllowDeferredMapRendering") == '0' or Spring.GetConfigString("AllowDeferredModelRendering") == '0' then
 		Spring.Echo('Ground Fog GL4 requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!')
 		widgetHandler:RemoveWidget()
@@ -256,7 +262,11 @@ function widget:DrawWorld()
 	gl.Texture(0, "$map_gbuffer_zvaltex")
 	gl.Texture(1, "$model_gbuffer_zvaltex")
 	gl.Texture(2, "$heightmap")
-	gl.Texture(3, "$info")
+	if shaderConfig.INFOLOSAPI == 1 then 
+		gl.Texture(3, WG['infolosapi'].GetInfoLOSTexture()) --$info:los
+	else
+		gl.Texture(3, "$info") --$info:los
+	end
 	gl.Texture(4, "$shadow")
 	gl.Texture(5, noisetex3dcube)
 	gl.Texture(6, dithernoise2d)
