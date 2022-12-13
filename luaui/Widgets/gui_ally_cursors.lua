@@ -300,7 +300,7 @@ function widget:Initialize()
 		return showSpectatorName
 	end
 	WG['allycursors'].getCursors = function()
-		return cursors
+		return cursors, notIdle
 	end
 
 	local now = clock() - (idleCursorTime * 0.95)
