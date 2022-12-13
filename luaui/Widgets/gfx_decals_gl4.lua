@@ -661,16 +661,16 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		-- reduce severity when explosion is above ground
 	local heightMult = 1 - (exploheight / radius)
 	local alpha = (math.random() * 1.0 + 1.5) * (1.0 - exploheight/radius) * heightMult
-	local alphadecay = (math.random() * 0.2 + 0.1) / (4 * radius)
+	local alphadecay = (math.random() * 0.3 + 0.2) / (4 * radius)
 	local bwfactor = 0.5 --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
 	local glowsustain = math.random() * 20 -- how many frames to elapse before glow starts to recede
 	local glowadd = math.random() * 2 -- how much additional, non-transparency controlled heat glow should the decal get
 
 	if weaponDef.paralyzer then
-		if math.random(1,2) == 1 then
-			idx = groundscarsPath.."t_groundcrack_10_a.png"
-		else
+		if math.random(1,3) == 1 then
 			idx = groundscarsPath.."t_groundcrack_17_a.png"
+		else
+			idx = groundscarsPath.."t_groundcrack_10_a.png"
 		end
 		heatstart = 0
 		glowadd = 0
@@ -684,7 +684,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	elseif string.find(weaponDef.name, 'juno') then
 		radius = 180
 
-	elseif string.find(weaponDef.name, 'armadvbomb' or 'coradvbomb') then
+	elseif string.find(weaponDef.name, '.advbomb') then
 		idx = groundscarsPath.."t_groundcrack_09_a.png"
 		radius = radius * 1.5
 		heatstart = 5500
@@ -693,7 +693,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		glowadd = 4
 		bwfactor = 0.01
 
-	elseif string.find(weaponDef.name, 'armbomb' or 'corbomb') then
+	elseif string.find(weaponDef.name, '.bomb') then
 		idx = groundscarsPath.."t_groundcrack_09_a.png"
 		radius = radius * 0.8
 		heatstart = 3500
@@ -702,13 +702,22 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		glowadd = 1.2
 		bwfactor = 0.01
 
-	elseif string.find(weaponDef.name, 'nuketest') then
+	elseif string.find(weaponDef.name, 'nuclear_missile') then
 		idx = groundscarsPath.."t_groundcrack_09_a.png"
-		radius = 512
-		heatstart = 5800
+		--radius = radius * 1.2
+		heatstart = 5500
 		heatdecay = 0.5
-		glowsustain = 175
-		glowadd = 2
+		glowsustain = 150
+		glowadd = 1.5
+		bwfactor = 0.1
+
+	elseif string.find(weaponDef.name, 'crblmssl') then
+		idx = groundscarsPath.."t_groundcrack_09_a.png"
+		--radius = radius * 1.8
+		heatstart = 5500
+		heatdecay = 0.5
+		glowsustain = 125
+		glowadd = 1.5
 		bwfactor = 0.1
 
 	elseif string.find(weaponDef.name, 'tremor') then

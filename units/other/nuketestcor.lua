@@ -49,7 +49,7 @@ return {
 			},
 		},
 		weapondefs = {
-			weapon = {
+			nuketestcor = {
 				alwaysvisible = true,
 				areaofeffect = 1920,
 				avoidfriendly = false,
@@ -92,7 +92,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "WEAPON",
+				def = "NUKETESTCOR",
 			},
 		},
 	},
