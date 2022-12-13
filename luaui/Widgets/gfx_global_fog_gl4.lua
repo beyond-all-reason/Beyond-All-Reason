@@ -43,7 +43,7 @@ local shaderConfig = {
 	RAYMARCHSTEPS = 32, -- must be at least one, quite expensive
 	RESOLUTION = 2, -- THIS IS EXTREMELY IMPORTANT and specifies the fog plane resolution as a whole! 1 = max, 2 = half, 4 = quarter etc.
 	FOGTOP = 300, -- deprecated
-	NOISESAMPLES = 8, -- how many samples of 3D noise to take
+	NOISESAMPLES = 6, -- how many samples of 3D noise to take
 	NOISESCALE = 1.2,
 	NOISETHRESHOLD = -0.0,
 	INFOLOSAPI = 0,
@@ -51,17 +51,17 @@ local shaderConfig = {
 
 local minHeight, maxHeight = Spring.GetGroundExtremes()
 local fogUniforms = {
-	fogGlobalColor = {0.5,0.6,0.7,1}, -- bluish
+	fogGlobalColor = {0.41,0.38,0.32,1}, -- bluish
 	fogSunColor = {1.0,0.9,0.8,1}, -- yellowish
 	fogShadowedColor = {0.1,0.05,0.1,1}, -- purleish tint
-	fogPlaneHeight = (math.max(minHeight,0) + maxHeight) /2 ,
-	fogGlobalDensity = 1.0,
-	fogGroundDensity = 0.3,
-	fogExpFactor = -0.0001, -- yes these are small negative numbers
+	fogPlaneHeight = (math.max(minHeight,0) + maxHeight) /1.1 ,
+	fogGlobalDensity = 0.5,
+	fogGroundDensity = 0.1,
+	fogExpFactor = -0.000075, -- yes these are small negative numbers
 	noiseParams = {
-		4.2, -- high-frequency cloud noise, lower numbers = lower frequency
-		0.0, -- noise bias, [-1,1] high numbers denser
-		1.5, -- low frequency big cloud noise, lower numbers = lower frequency
+		1.4, -- high-frequency cloud noise, lower numbers = lower frequency
+		0.2, -- noise bias, [-1,1] high numbers denser
+		1.4, -- low frequency big cloud noise, lower numbers = lower frequency
 		0.0,
 		},
 	}
