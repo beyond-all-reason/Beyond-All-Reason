@@ -53,9 +53,9 @@ local shaderConfig = {
 	AMBIENTOCCLUSION = 0, -- 1 for on, do not use
 	USEGLOW = 1, -- 1 for on, kinda wierd at the moment
 	GLOWTHRESHOLD = 0.99,
-	FADEINTIME = 4, -- number of frames to fade in over
-	SPECULAREXPONENT = 4.0, -- how shiny decal surface is?
-	SPECULARSTRENGTH = 0.40, -- how strong specular highlights are
+	FADEINTIME = 6, -- number of frames to fade in over
+	SPECULAREXPONENT = 5.0, -- how shiny decal surface is?
+	SPECULARSTRENGTH = 0.3, -- how strong specular highlights are
 	--BLACKANDWHITEFACTOR = 0.5, -- set to between [0,1] to set how strong the black and white conversion should be, 0 = original color, 1 = full black and white, deprecated, now controllable per-decal
 	MINIMAPCOLORBLENDFACTOR = 1, -- How much minimap color should affect decal color
 }
@@ -641,12 +641,17 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	local heatdecay = math.random() + 1.1
 	-- Or hard code it:
 	if true then
-		idx = groundscarsPath.."t_groundcrack_09_a.png"
+		if math.random(1,2) == 1 then
+			idx = groundscarsPath.."t_groundcrack_10_a.png"
+		else
+			idx = groundscarsPath.."t_groundcrack_17_a.png"
+		end
+		--idx = groundscarsPath.."t_groundcrack_09_a.png"
 		heatstart = (math.random() * 0.2 + 0.9) * 4900
 		heatdecay = (math.random() * 0.4 + 2.0) - (weaponDef.damageAreaOfEffect/2250)
 	end
 
-	local radius = (weaponDef.damageAreaOfEffect * 1.5) * (math.random() * 0.44 + 0.80)
+	local radius = (weaponDef.damageAreaOfEffect * 1.4) * (math.random() * 0.48 + 0.72)
 	local gh = spGetGroundHeight(px,pz)
 	-- dont spawn decals into the air
 	-- also, modulate their alphastart by how far above ground they are
@@ -656,8 +661,9 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		-- reduce severity when explosion is above ground
 	local heightMult = 1 - (exploheight / radius)
 	local alpha = (math.random() * 1.0 + 1.5) * (1.0 - exploheight/radius) * heightMult
-	local bwfactor = 0.15 --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
-	local glowsustain = math.random() * 25 -- how many frames to elapse before glow starts to recede
+	local alphadecay = (math.random() * 0.2 + 0.1) / (4 * radius)
+	local bwfactor = 0.5 --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
+	local glowsustain = math.random() * 20 -- how many frames to elapse before glow starts to recede
 	local glowadd = math.random() * 2 -- how much additional, non-transparency controlled heat glow should the decal get
 
 	if weaponDef.paralyzer then
@@ -679,25 +685,36 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		radius = 180
 
 	elseif string.find(weaponDef.name, 'armadvbomb' or 'coradvbomb') then
-		radius = radius * 1.8
-		heatstart = 5500
-		heatdecay = 2.0
-		glowsustain = 45
-		glowadd = 4
-
-	elseif string.find(weaponDef.name, 'armbomb' or 'corbomb') then
+		idx = groundscarsPath.."t_groundcrack_09_a.png"
 		radius = radius * 1.5
 		heatstart = 5500
-		heatdecay = 4.9
-		glowadd = 2.5
+		heatdecay = 2.0
+		glowsustain = 35
+		glowadd = 4
+		bwfactor = 0.01
+
+	elseif string.find(weaponDef.name, 'armbomb' or 'corbomb') then
+		idx = groundscarsPath.."t_groundcrack_09_a.png"
+		radius = radius * 0.8
+		heatstart = 3500
+		heatdecay = 2.7
+		glowsustain = 20
+		glowadd = 1.2
+		bwfactor = 0.01
 
 	elseif string.find(weaponDef.name, 'nuketest') then
-		radius = 513
-		heatstart = 5500
-		heatdecay = 0.8
-		glowsustain = 45
-		glowadd = 1
-		bwfactor = 0.01
+		idx = groundscarsPath.."t_groundcrack_09_a.png"
+		radius = 512
+		heatstart = 5800
+		heatdecay = 0.5
+		glowsustain = 175
+		glowadd = 2
+		bwfactor = 0.1
+
+	elseif string.find(weaponDef.name, 'tremor') then
+		idx = groundscarsPath.."t_groundcrack_09_a.png"
+		alphadecay = 0.0024
+		--bwfactor = 0.1	
 
 	end
 
@@ -711,7 +728,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		heatstart * heightMult, -- heatstart
 		heatdecay * (1+(1-heightMult)), -- heatdecay
 		(math.random() * 0.38 + 0.72) * alpha, -- alphastart
-		(math.random() * 0.4 + 0.6) / (4 * radius), -- alphadecay
+		alphadecay, -- alphadecay
 		math.random() * 0.2 + 0.8, -- maxalpha
 		bwfactor,
 		glowsustain,
