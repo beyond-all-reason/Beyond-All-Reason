@@ -54,7 +54,7 @@ void offsetVertex4( float x, float y, float z, float u, float v){
 	worldPos.y = textureLod(heightmapTex, uvhm, 0.0).x + HEIGHTOFFSET;
 	gl_Position = cameraViewProj * worldPos;
 	gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in Z
-	g_uv.zw = dataIn[0].v_parameters.zw;
+	//g_uv.zw = dataIn[0].v_parameters.zw; //unused
 	g_position.xyz = worldPos.xyz;
 	g_position.w = dataIn[0].v_lengthwidthrotation.w;
 	//g_mapnormal = textureLod(mapNormalsTex, uvhm, 0.0).raaa;
