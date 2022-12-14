@@ -26,7 +26,7 @@ uniform sampler2D heightmapTex;
 uniform sampler2D infoTex;
 uniform sampler2DShadow shadowTex;
 uniform sampler3D noise64cube;
-uniform sampler2D dithernoise2d;
+uniform sampler2D miniMapTex;
 uniform sampler2D simpledither;
 uniform sampler3D worley3d3level;
 
@@ -52,7 +52,7 @@ float shadowAtWorldPos(vec3 worldPos){
 		return clamp(textureProj(shadowTex, shadowVertexPos), 0.0, 1.0);
 }
 float losLevelAtWorldPos(vec3 worldPos){ // this returns 
-	#if (INFOLOSAPI == 1)
+	#if 1
 		vec2 losUV = clamp(worldPos.xz, vec2(0.0), mapSize.xy ) / mapSize.xy;
 		vec4 infoTexSample = texture(infoTex, losUV);
 		return infoTexSample.r;
@@ -225,8 +225,15 @@ void main(void)
 	// TODO: FIX ABOVE FOG TOP!
 	// TODO: fix warps sampling zero simplex!
 	
-	if (rayLength> 0.0001 ) { 
-		#if 0
+	// reduce height-based fog for in-los areas:
+	#if (LOSREDUCEFOG < 1)
+		float inlos = losLevelAtWorldPos( mapWorldPos.xyz);
+	#else
+		float inlos = 0;
+	#endif
+	
+	if (rayLength> 0.0001 && inlos < 0.95) { 
+		#if 0 // old deprecated method
 			float rayJitterOffset = (1 * rand(screenUV)) / steps ;
 			#if (RAYMARCHSTEPS > 0)
 			for (uint i = 0; i < steps; i++){
@@ -260,7 +267,7 @@ void main(void)
 				heightBasedFog *= collectedNoise/(NOISESAMPLES);
 			#endif
 			
-		#else
+		#else// new interleaved sampling
 			
 			#if ((RAYMARCHSTEPS > 0) && (NOISESAMPLES >0))
 				float numShadowSamplesTaken = 0.001;
@@ -304,6 +311,8 @@ void main(void)
 			#endif
 		
 		#endif
+	}else{
+		collectedShadow = 1.0;
 	}
 	if (mapWorldPos.y >= fogPlaneHeight){
 		//collectedShadow = 1.0; 
@@ -317,15 +326,15 @@ void main(void)
 	// calculate the distance fog density
 	float distanceFogAmount = fogGlobalDensity * length(mapToCam);
 	
-	// reduce height-based fog for in-los areas:
-	float inlos = losLevelAtWorldPos( mapWorldPos.xyz);
-	heightBasedFog *= (1.0 - inlos);
+
 	//fragColor.a = 1.0;
 	//fragColor.rgb = vec3(inlos);
 	//return;
 	
+	// reduce height-based fog for in-los areas:
+	heightBasedFog *= (1.0 - inlos *(1.0- LOSREDUCEFOG));
 	
-	// Modulate the amount of fog based on how shadowed it is?
+	// Modulate the amount of fog based on how shadowed it is, by adding more fog to shadowed areas
 	heightBasedFog += heightBasedFog * smoothstep( 0.0,1.0, 1.0 - collectedShadow); 
 	
 	float heightBasedFogExp = exp(heightBasedFog * expfactor);
@@ -349,13 +358,19 @@ void main(void)
 	// shadowed components should tend toward fogGlobalColor
 	vec3 heightFogColor = mix(fogGlobalColor.rgb, fogColor, collectedShadow);
 	
+
+	
 	// Darkened the shadowed bits towards fogShadowedColor
 	fragColor.rgb = mix(vec3(fogShadowedColor), heightFogColor.rgb, collectedShadow);
 	
 	// Above that, mix back regular fog color for distance based fog
 	fragColor.rgb = mix( fogColor.rgb, fragColor.rgb,distanceFogAmountExp);
 	//fragColor.rgb = mix (fragColor.rgb, fogColor.rgb, shadowColorization);
-	
+		//Calculate backscatter color from minimap if possible?
+	#if (USEMINIMAP == 1) 
+		vec4 minimapcolor = textureLod(miniMapTex, heighmapUVatWorldPosMirrored(mapWorldPos.xz), 4.0);
+		fragColor.rgb = mix(fragColor.rgb, minimapcolor.rgb, MINIMAPSCATTER);
+	#endif
 	//fragColor.rgb= vec3(1.0);
 	//fragColor.rgba = vec4(heightBasedFogExp, distanceFogAmountExp,0,1);
 	//fragColor.rgba = vec4(shadowColorization,shadowColorization,shadowColorization,1);

@@ -23,34 +23,66 @@ local GL_RGBA32F_ARB = 0x8814
 	-- Fog Plane Height
 	-- Height-based fog density
 -- Pre optimization at full screen on Colorado is 190 -> 120fps, after 190->150fps
--- Fix mixing of shadow marching and noise sampling, with conditional shadow marching
+-- DONE: Fix mixing of shadow marching and noise sampling, with conditional shadow marching
 -- Fix colorization based on sun angle
 -- Use a spherical harmonics equation for this?
--- Fix colorization of height based and distance based fog
+-- DONE: Fix colorization of height based and distance based fog
 -- Use non constant density fog (maybe exponential is better?) 
 -- Create a better noise texture (also use this for other occasions!)
 -- Expose params to be easily tunable
 -- Create quality 'presets' and auto apply them?
 -- copy the whole self-illumination and shading thing from the fog volumes gl4 shader?
--- better LOS shader usage?
-
+-- DONE: better LOS shader usage?
+-- minimap color backscatter
+-- handle out-of-map better!
 
 
 ---- CONFIGURABLE PARAMETERS: -----------------------------------------
+
 
 local shaderConfig = {
 	-- These are static parameters, cannot be changed during runtime
 	RAYMARCHSTEPS = 32, -- must be at least one, quite expensive
 	RESOLUTION = 2, -- THIS IS EXTREMELY IMPORTANT and specifies the fog plane resolution as a whole! 1 = max, 2 = half, 4 = quarter etc.
-	FOGTOP = 300, -- deprecated
-	NOISESAMPLES = 8, -- how many samples of 3D noise to take
+	NOISESAMPLES = 6, -- how many samples of 3D noise to take
+	NOISESCALE = 1.2, -- The tiling pattern of noise
+	NOISETHRESHOLD = -0.0, -- The 0 level of noise
+	LOSREDUCEFOG = 0, -- how much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los
+	USEMINIMAP = 1, -- 0 or 1 to use the minimap for back-scatter
+	MINIMAPSCATTER = 0.33, -- How much the minimap color back-scatters into fog color, 0 is off
+}
+
+
+local shaderConfigNoNoise = {
+	-- These are static parameters, cannot be changed during runtime
+	RAYMARCHSTEPS = 32, -- must be at least one, quite expensive
+	RESOLUTION = 2, -- THIS IS EXTREMELY IMPORTANT and specifies the fog plane resolution as a whole! 1 = max, 2 = half, 4 = quarter etc.
+	NOISESAMPLES = 6, -- how many samples of 3D noise to take
 	NOISESCALE = 1.2,
 	NOISETHRESHOLD = -0.0,
-	INFOLOSAPI = 0,
+	LOSREDUCEFOG = 0,	
+	MINIMAPSCATTER = 0.15, -- How much the minimap color back-scatters into fog color, 0 is off
 }
+--shaderConfig = shaderConfigNoNoise
 
 local minHeight, maxHeight = Spring.GetGroundExtremes()
 local fogUniforms = {
+	fogGlobalColor = {0.41,0.38,0.32,1}, -- bluish
+	fogSunColor = {1.0,0.9,0.8,1}, -- yellowish
+	fogShadowedColor = {0.1,0.05,0.1,1}, -- purleish tint
+	fogPlaneHeight = (math.max(minHeight,0) + maxHeight) /1.1 ,
+	fogGlobalDensity = 0.5,
+	fogGroundDensity = 0.1,
+	fogExpFactor = -0.000075, -- yes these are small negative numbers
+	noiseParams = {
+		1.4, -- high-frequency cloud noise, lower numbers = lower frequency
+		0.2, -- noise bias, [-1,1] high numbers denser
+		1.4, -- low frequency big cloud noise, lower numbers = lower frequency
+		0.0,
+		},
+	}
+	
+local fogUniformsBluish = { -- bluish tint, not very good
 	fogGlobalColor = {0.5,0.6,0.7,1}, -- bluish
 	fogSunColor = {1.0,0.9,0.8,1}, -- yellowish
 	fogShadowedColor = {0.1,0.05,0.1,1}, -- purleish tint
@@ -109,7 +141,7 @@ local shaderSourceCache = {
 			infoTex = 3,
 			shadowTex = 4,
 			noise64cube = 5,
-			dithernoise2d = 6,
+			miniMapTex = 6,
 			worley3d3level = 7,
 		},
 		uniformFloat = {
@@ -173,10 +205,11 @@ end
 
 function widget:Initialize()
 	minHeight, maxHeight = Spring.GetGroundExtremes()
-	shaderConfig.FOGTOP = (math.max(minHeight,0) + maxHeight ) /2 
 	if WG['infolosapi'] then 
 		Spring.Echo("Global Fog using INFOLOS api")
-		shaderConfig.INFOLOSAPI = 1 
+	else
+		goodbye("Global Fog REQUIRES Infolos API widget, please enable it first")
+		return
 	end
 	if Spring.GetConfigString("AllowDeferredMapRendering") == '0' or Spring.GetConfigString("AllowDeferredModelRendering") == '0' then
 		Spring.Echo('Ground Fog GL4 requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!')
@@ -262,14 +295,16 @@ function widget:DrawWorld()
 	gl.Texture(0, "$map_gbuffer_zvaltex")
 	gl.Texture(1, "$model_gbuffer_zvaltex")
 	gl.Texture(2, "$heightmap")
-	if shaderConfig.INFOLOSAPI == 1 then 
+	if shaderConfig.LOSREDUCEFOG < 1 and WG['infolosapi'].GetInfoLOSTexture then 
 		gl.Texture(3, WG['infolosapi'].GetInfoLOSTexture()) --$info:los
 	else
 		gl.Texture(3, "$info") --$info:los
 	end
 	gl.Texture(4, "$shadow")
 	gl.Texture(5, noisetex3dcube)
-	gl.Texture(6, dithernoise2d)
+	if shaderConfig.MINIMAPSCATTER > 0 then 
+		gl.Texture(6, '$minimap')
+	end
 	gl.Texture(7, worley3d128)
 	
 	groundFogShader:Activate()
