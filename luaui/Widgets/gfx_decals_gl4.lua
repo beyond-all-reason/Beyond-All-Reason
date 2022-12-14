@@ -648,10 +648,12 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	local heatdecay = math.random() + 1.1
 	-- Or hard code it:
 	if true then
-		if math.random(1,2) == 1 then
-			idx = groundscarsPath.."t_groundcrack_10_a.png"
-		else
+		if math.random(1,3) == 1 then
 			idx = groundscarsPath.."t_groundcrack_17_a.png"
+		elseif math.random(1,3) == 2 then
+			idx = groundscarsPath.."t_groundcrack_21_a.png"
+		else
+			idx = groundscarsPath.."t_groundcrack_10_a.png"
 		end
 		--idx = groundscarsPath.."t_groundcrack_09_a.png"
 		heatstart = (math.random() * 0.2 + 0.9) * 4900
@@ -692,7 +694,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		radius = 180
 
 	elseif string.find(weaponDef.name, '.advbomb') then
-		idx = groundscarsPath.."t_groundcrack_09_a.png"
+		--idx = groundscarsPath.."t_groundcrack_09_a.png"
 		radius = radius * 1.5
 		heatstart = 5500
 		heatdecay = 2.0
@@ -701,13 +703,22 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		bwfactor = 0.01
 
 	elseif string.find(weaponDef.name, '.bomb') then
-		idx = groundscarsPath.."t_groundcrack_09_a.png"
+		--idx = groundscarsPath.."t_groundcrack_09_a.png"
 		radius = radius * 0.8
 		heatstart = 3500
 		heatdecay = 2.7
 		glowsustain = 20
 		glowadd = 1.2
 		bwfactor = 0.01
+
+	elseif string.find(weaponDef.name, 'nuketestcor') then
+		idx = groundscarsPath.."t_groundcrack_21_a.png"
+		--radius = radius * 1.2
+		heatstart = 5500
+		heatdecay = 0.5
+		glowsustain = 150
+		glowadd = 1.5
+		bwfactor = 0.1
 
 	elseif string.find(weaponDef.name, 'nuclear_missile') then
 		idx = groundscarsPath.."t_groundcrack_09_a.png"
