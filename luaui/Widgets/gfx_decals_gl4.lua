@@ -38,12 +38,13 @@ end
 		-- determine clan from first [] of playername
 		-- which can be done on initialize?
 		-- cursor
-	-- SHADOWS SUPPORT!
+	-- DONE: SHADOWS SUPPORT!
 	-- FOG SUPPORT?
-	-- DONE LOS SUPPORT
-	-- BWfactor
-	-- glowsustain
-	-- glowadd
+	-- Better LOS SUPPORT
+	-- DONE: BWfactor
+	-- DONE: glowsustain
+	-- DONE: glowadd
+	-- Fix unused decals having 1.0 alpha in normal resulting in heavy glow on zoomed out small decals bleeding
 ------------------------ CONFIGURABLES -----------------------------------------------
 
 local shaderConfig = {
@@ -101,7 +102,7 @@ local function addDirToAtlas(atlas, path, key, filelist)
 	for i=1, #files do
 		local lowerfile = string.lower(files[i])
 		if imgExts[string.sub(lowerfile,-3,-1)] and string.find(lowerfile, key, nil, true) then
-			--Spring.Echo(files[i])
+			Spring.Echo(files[i])
 			gl.AddAtlasTexture(atlas,lowerfile)
 			atlassedImages[lowerfile] = atlas
 			filelist[lowerfile] = true
@@ -121,7 +122,7 @@ local function makeAtlases()
 	-- read back the UVs:
 	for filepath, _ in pairs(decalImageCoords) do
 		local p,q,s,t = gl.GetAtlasTexture(atlasColorAlpha, filepath)
-		local texel = 0.5/atlasSize
+		local texel = 1.0/atlasSize -- shrink UV areas for less mip bleed
 		decalImageCoords[filepath] =  {p+texel,q-texel,s+texel,t-texel}
 	end
 
@@ -332,6 +333,7 @@ end
 local function AddDecalToArea(instanceID, posx, posz, width, length)
 	local hash = hashPos(posx,posz)
 	local maparea = areaDecals[hash]
+	if maparea == nil then return end
 	local area = width * length
 	maparea.instanceIDs[instanceID] =  area
 	maparea.totalarea = maparea.totalarea + area
@@ -342,7 +344,7 @@ local function RemoveDecalFromArea(instanceID)
 	local hashpos = decalToArea[instanceID]
 	if hashpos then
 		local maparea = areaDecals[hashpos]
-		if maparea.instanceIDs[instanceID] then
+		if maparea and maparea.instanceIDs[instanceID] then
 			maparea.totalarea = math.max(0,maparea.totalarea - maparea.instanceIDs[instanceID])
 			maparea.instanceIDs[instanceID] = nil
 		end
@@ -634,7 +636,7 @@ end
 local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	local weaponDef = WeaponDefs[weaponID]
 	--Spring.Echo("GadgetWeaponExplosionDecal",px, py, pz, weaponID, ownerID, weaponDef.damageAreaOfEffect, weaponDef.name)
-
+	
 	local aa = string.find(weaponDef.cegTag, 'aa')
 	if aa then
 		return
