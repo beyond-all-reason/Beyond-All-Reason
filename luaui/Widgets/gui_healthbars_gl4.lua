@@ -1029,7 +1029,7 @@ local function updateReloadBar(unitID, unitDefID, reason)
 		addBarForUnit(unitID, unitDefID, "reload", reason)
 	end
 
-	if (reloadFrame and reloadTime) then
+	if (reloadFrame and reloadTime and gl.SetUnitBufferUniforms) then
 		uniformcache[1] = reloadFrame - 30 * reloadTime
 		gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
 		uniformcache[1] = reloadFrame
