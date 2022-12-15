@@ -45,6 +45,8 @@ local modrules = {
 
 	flankingBonus = {
 		defaultMode = 1, -- default: 1.  The default flankingBonusMode for units. Can be 0 - No flanking bonus. Mode 1 builds up the ability to move over time, and swings to face attacks, but does not respect the way the unit is facing. Mode 2 also can swing, but moves with the unit as it turns. Mode 3 stays with the unit as it turns and otherwise doesn't move, the ideal mode to simulate something such as tank armour.
+		defaultMin = 1,
+		defaultMax = 2,
 	},
 
 	sensors = {
