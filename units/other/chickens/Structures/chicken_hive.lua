@@ -24,7 +24,7 @@ return {
 		idletime = 90,
 		levelground = false,
 		mass = 165.75,
-		maxdamage = 30000,
+		maxdamage = 33500,
 		maxvelocity = 0,
 		noautofire = false,
 		objectname = "Chickens/chicken_hive.s3o",

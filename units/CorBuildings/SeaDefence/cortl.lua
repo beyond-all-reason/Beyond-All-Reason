@@ -17,7 +17,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1300,
+		maxdamage = 1440,
 		maxslope = 10,
 		minwaterdepth = 12,
 		objectname = "Units/CORTL.s3o",

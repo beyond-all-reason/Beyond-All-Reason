@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1500,
+		maxdamage = 1670,
 		maxslope = 20,
 		maxwaterdepth = 0,
 		objectname = "Units/ARMMERCURY.s3o",

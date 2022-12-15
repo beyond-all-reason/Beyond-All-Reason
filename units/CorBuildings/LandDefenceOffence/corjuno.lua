@@ -17,7 +17,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2250,
+		maxdamage = 2500,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/CORJUNO.s3o",

@@ -21,7 +21,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2140,
+		maxdamage = 2400,
 		maxslope = 10,
 		minwaterdepth = 24,
 		objectname = "Units/CORASON.s3o",

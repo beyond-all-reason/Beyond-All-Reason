@@ -25,7 +25,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		initcloaked = true,
-		maxdamage = 1450,
+		maxdamage = 1610,
 		maxslope = 30,
 		maxwaterdepth = 20,
 		metalstorage = 75,

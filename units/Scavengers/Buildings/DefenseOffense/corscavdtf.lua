@@ -21,7 +21,7 @@ return {
 		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
-		maxdamage = 1450,
+		maxdamage = 1610,
 		maxslope = 18,
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",

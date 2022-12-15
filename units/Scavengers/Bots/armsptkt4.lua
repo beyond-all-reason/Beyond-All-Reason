@@ -18,7 +18,7 @@ return {
 		idleautoheal = 5,
 		idletime = 600,
 		mass = 5000,
-		maxdamage = 25000,
+		maxdamage = 28000,
 		maxvelocity = 1.2,
 		maxwaterdepth = 12,
 		movementclass = "EPICALLTERRAIN",

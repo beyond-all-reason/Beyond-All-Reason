@@ -18,7 +18,7 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1280,
+		maxdamage = 1420,
 		maxvelocity = 1.15,
 		movementclass = "ABOT2",
 		nochasecategory = "NOTAIR",

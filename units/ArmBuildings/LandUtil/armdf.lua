@@ -21,7 +21,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 4650,
+		maxdamage = 5200,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/ARMFUS.s3o",

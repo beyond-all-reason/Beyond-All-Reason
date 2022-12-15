@@ -19,7 +19,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 500,
+		maxdamage = 560,
 		maxslope = 20,
 		maxwaterdepth = 0,
 		objectname = "Units/freefusion.s3o",

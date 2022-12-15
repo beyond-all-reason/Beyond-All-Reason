@@ -18,7 +18,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 10500,
+		maxdamage = 11700,
 		maxslope = 20,
 		maxwaterdepth = 9999,
 		objectname = "Units/ARMUWADVES.s3o",

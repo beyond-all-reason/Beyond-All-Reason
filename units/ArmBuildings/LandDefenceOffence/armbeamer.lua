@@ -21,7 +21,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 7500,
-		maxdamage = 1290,
+		maxdamage = 1430,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/ARMBEAMER.s3o",

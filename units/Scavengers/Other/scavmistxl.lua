@@ -21,7 +21,7 @@ return {
 		idleautoheal = 5,
 		idletime = 600,
 		mass = 1000,
-		maxdamage = 1700,
+		maxdamage = 1890,
 		maxvelocity = 2.1,
 		maxwaterdepth = 0,
 		movementclass = "SCAVMIST",

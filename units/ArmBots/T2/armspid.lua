@@ -25,7 +25,7 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 600,
-		maxdamage = 1000,
+		maxdamage = 1110,
 		maxvelocity = 2.385,
 		maxwaterdepth = 16,
 		movementclass = "TBOT2",

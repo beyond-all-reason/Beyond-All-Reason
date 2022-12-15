@@ -22,7 +22,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 340,
+		maxdamage = 380,
 		minwaterdepth = 2,
 		nochasecategory = "ALL",
 		objectname = "Units/ARMFRT.s3o",

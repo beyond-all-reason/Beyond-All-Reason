@@ -27,7 +27,7 @@ return {
 		idletime = 1800,
 		losemitheight = 64,
 		mass = 1000000,
-		maxdamage = 60000,
+		maxdamage = 67000,
 		maxvelocity = 0.6,
 		maxwaterdepth = 15,
 		objectname = "Units/scavboss/corfblackhyt4.s3o",

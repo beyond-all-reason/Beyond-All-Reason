@@ -19,7 +19,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		losemitheight = 40,
-		maxdamage = 320,
+		maxdamage = 355,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/ARMARAD.s3o",

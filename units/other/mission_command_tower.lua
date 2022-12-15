@@ -18,7 +18,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 100,
-		maxdamage = 10000,
+		maxdamage = 11100,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/mission_command_tower.s3o",

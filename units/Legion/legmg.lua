@@ -22,7 +22,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 7500,
-		maxdamage = 2100,
+		maxdamage = 2350,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/LEGMG.s3o",

@@ -25,7 +25,7 @@ return {
 		impulsefactor = 0,
 		levelground = false,
 		mass = 10,
-		maxdamage = 10,
+		maxdamage = 11,
 		maxvelocity = 0,
 		noautofire = false,
 		objectname = "scavs/cube.s3o",

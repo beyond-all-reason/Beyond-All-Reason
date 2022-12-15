@@ -23,7 +23,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 320,
+		maxdamage = 355,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		objectname = "Units/CORSOLAR.s3o",

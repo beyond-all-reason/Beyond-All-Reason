@@ -18,7 +18,7 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 580,
+		maxdamage = 640,
 		maxslope = 15,
 		maxvelocity = 1.783,
 		movementclass = "ABOT2",
