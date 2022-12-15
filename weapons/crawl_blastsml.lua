@@ -15,9 +15,9 @@ return {
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {
-			commanders = 900,
-			crawlingbombs = 99,
-			default = 1800,
+			commanders = 1000,
+			crawlingbombs = 110,
+			default = 2000,
 		},
 	},
 	
@@ -38,8 +38,8 @@ return {
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {
-			commanders = 500,
-			default = 50000,
+			commanders = 560,
+			default = 56000,
 		},
 	},
 	fb_blastsml = {
@@ -59,8 +59,8 @@ return {
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {
-			commanders = 300,
-			default = 600,
+			commanders = 335,
+			default = 670,
 		},
 	},
 }

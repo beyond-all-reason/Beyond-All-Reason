@@ -30,7 +30,7 @@ unitDeaths = {
 		soundhit = "EMGPULS1",
 		soundstart = "bombrel",
 		damage = {
-			default = 4000,
+			default = 4450,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -52,7 +52,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large-fire",
 		damage = {
-			default = 50,
+			default = 56,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -74,7 +74,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-huge-fire",
 		damage = {
-			default = 1000,
+			default = 1110,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -96,7 +96,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-medium-fire",
 		damage = {
-			default = 35,
+			default = 39,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -118,7 +118,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large-fire",
 		damage = {
-			default = 650,
+			default = 720,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -141,7 +141,7 @@ unitDeaths = {
 		soundhit = "xplosml3",
 		soundstart = "largegun",
 		damage = {
-			default = 150,
+			default = 167,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -159,7 +159,7 @@ unitDeaths = {
 		soundhit = "xplosml3",
 		soundstart = "largegun",
 		damage = {
-			default = 300,
+			default = 335,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -177,8 +177,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-nano",
 		damage = {
-			default = 10,
-			nanos = 480,
+			default = 11,
+			nanos = 530,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -200,8 +200,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-nano",
 		damage = {
-			default = 5,
-			nanos = 70,
+			default = 6,
+			nanos = 78,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -223,7 +223,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small-builder",
 		damage = {
-			default = 25,
+			default = 28,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -244,7 +244,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large-builder",
 		damage = {
-			default = 350,
+			default = 390,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -267,7 +267,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-wind",
 		damage = {
-			default = 80,
+			default = 89,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -286,7 +286,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-metalmaker",
 		damage = {
-			default = 590,
+			default = 660,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -307,7 +307,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-metalmakerselfd",
 		damage = {
-			default = 950,
+			default = 1060,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -329,8 +329,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-advmetalmaker",
 		damage = {
-			commanders = 900,
-			default = 1100,
+			commanders = 1000,
+			default = 1220,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -351,8 +351,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-advmetalmakerselfd",
 		damage = {
-			commanders = 1400,
-			default = 2400,
+			commanders = 1560,
+			default = 2650,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -374,7 +374,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-large",
 		damage = {
-			default = 880,
+			default = 980,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -395,7 +395,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge",
 		damage = {
-			default = 1280,
+			default = 1420,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -416,7 +416,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-large-uw",
 		damage = {
-			default = 880,
+			default = 980,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -436,7 +436,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge-uw",
 		damage = {
-			default = 1280,
+			default = 1420,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -457,8 +457,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge",
 		damage = {
-			commanders = 1400,
-			default = 2400,
+			commanders = 1560,
+			default = 2650,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -479,8 +479,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-gigantic",
 		damage = {
-			commanders = 2200,
-			default = 7500,
+			commanders = 2450,
+			default = 8300,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -501,8 +501,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge-uw",
 		damage = {
-			commanders = 1400,
-			default = 2400,
+			commanders = 1560,
+			default = 2650,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -522,8 +522,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-gigantic-uw",
 		damage = {
-			commanders = 2200,
-			default = 7500,
+			commanders = 2450,
+			default = 8300,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -544,7 +544,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-large",
 		damage = {
-			default = 1280,
+			default = 1420,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -566,8 +566,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:nukedatbewm",
 		damage = {
-			commanders = 2500,
-			default = 9500,
+			commanders = 2800,
+			default = 10600,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -589,8 +589,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge",
 		damage = {
-			commanders = 1400,
-			default = 2400,
+			commanders = 1560,
+			default = 2650,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -609,8 +609,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:nukedatbewm",
 		damage = {
-			commanders = 2500,
-			default = 9500,
+			commanders = 2800,
+			default = 10600,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -630,7 +630,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-large",
 		damage = {
-			default = 880,
+			default = 980,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -649,7 +649,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge",
 		damage = {
-			default = 1280,
+			default = 1420,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -669,8 +669,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionxxl",
 		damage = {
-			commanders = 1250,
-			default = 3500,
+			commanders = 1390,
+			default = 3900,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -691,8 +691,8 @@ unitDeaths = {
 		soundstart = "misicbm1",
 		explosiongenerator = "custom:t3unitexplosionxxxl",
 		damage = {
-			commanders = 2000,
-			default = 4500,
+			commanders = 2200,
+			default = 5000,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -713,8 +713,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:newnuke",
 		damage = {
-			commanders = 2500,
-			default = 9500,
+			commanders = 2800,
+			default = 10600,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -735,8 +735,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:newnukecor",
 		damage = {
-			commanders = 2700,
-			default = 11500,
+			commanders = 3000,
+			default = 12800,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -757,9 +757,9 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionxl",
 		damage = {
-			commanders = 900,
-			crawlingbombs = 99,
-			default = 1800,
+			commanders = 1000,
+			crawlingbombs = 110,
+			default = 2000,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -780,9 +780,9 @@ unitDeaths = {
 		soundstart = "misicbm1",
 		explosiongenerator = "custom:newnuketac",
 		damage = {
-			commanders = 1250,
-			crawlingbombs = 199,
-			default = 3000,
+			commanders = 1390,
+			crawlingbombs = 220,
+			default = 3350,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -804,8 +804,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosion",
 		damage = {
-			commanders = 1400,
-			default = 2400,
+			commanders = 1560,
+			default = 2650,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -825,8 +825,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionxl",
 		damage = {
-			commanders = 1900,
-			default = 5000,
+			commanders = 2100,
+			default = 5600,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -848,7 +848,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:decoycommander",
 		damage = {
-			default = 18,
+			default = 20,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -868,7 +868,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:decoycommander-selfd",
 		damage = {
-			default = 280,
+			default = 310,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -888,8 +888,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:fusexpl",
 		damage = {
-			commanders = 900,
-			default = 1600,
+			commanders = 1000,
+			default = 1780,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -911,8 +911,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:fusexpl",
 		damage = {
-			commanders = 1400,
-			default = 2400,
+			commanders = 1560,
+			default = 2650,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -934,8 +934,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:fusexpl",
 		damage = {
-			commanders = 2200,
-			default = 7500,
+			commanders = 2450,
+			default = 8300,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -958,8 +958,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge-uw",
 		damage = {
-			commanders = 1400,
-			default = 2400,
+			commanders = 1560,
+			default = 2650,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -980,8 +980,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-gigantic-uw",
 		damage = {
-			commanders = 2200,
-			default = 7500,
+			commanders = 2450,
+			default = 8300,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1003,8 +1003,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:afusexpl",
 		damage = {
-			commanders = 2500,
-			default = 9500,
+			commanders = 2800,
+			default = 10600,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1026,8 +1026,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:afusexpl",
 		damage = {
-			commanders = 2700,
-			default = 11500,
+			commanders = 3000,
+			default = 12800,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1050,8 +1050,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:scav_commander_explosion",
 		damage = {
-			commanders = 1250,
-			default = 5000,
+			commanders = 1390,
+			default = 5600,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1074,8 +1074,8 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:newnukehuge",
 		damage = {
-			commanders = 1950,
-			default = 15000,
+			commanders = 2150,
+			default = 16700,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1107,8 +1107,8 @@ unitDeaths = {
 		cratermult = 2,
 		edgeeffectiveness = 0.3,
 		damage = {
-			default = 50000,
-			commanders = 12500,
+			default = 56000,
+			commanders = 13900,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1134,7 +1134,7 @@ unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-metal",
 		damage = {
-			default = 550,
+			default = 610,
 			walls = 0,
 		},
 		customparams = {
@@ -1156,7 +1156,7 @@ unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-metal",
 		damage = {
-			default = 1375,
+			default = 1530,
 			walls = 0,
 		},
 		customparams = {
@@ -1178,7 +1178,7 @@ unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-concrete",
 		damage = {
-			default = 550,
+			default = 610,
 			walls = 0,
 		},
 		customparams = {
@@ -1200,7 +1200,7 @@ unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-concrete",
 		damage = {
-			default = 1375,
+			default = 1530,
 			walls = 0,
 		},
 		customparams = {
@@ -1222,7 +1222,7 @@ unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-water",
 		damage = {
-			default = 500,
+			default = 560,
 			walls = 0,
 		},
 		customparams = {
@@ -1244,7 +1244,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-tiny",
 		damage = {
-			default = 10,
+			default = 11,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1265,7 +1265,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-small",
 		damage = {
-			default = 30,
+			default = 33,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1286,7 +1286,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-tiny-uw",
 		damage = {
-			default = 10,
+			default = 11,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1306,7 +1306,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-small-uw",
 		damage = {
-			default = 30,
+			default = 33,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1327,7 +1327,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-small",
 		damage = {
-			default = 80,
+			default = 89,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1348,7 +1348,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-medium",
 		damage = {
-			default = 900,
+			default = 1000,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1369,7 +1369,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-small",
 		damage = {
-			default = 350,
+			default = 390,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1390,7 +1390,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-small-uw",
 		damage = {
-			default = 80,
+			default = 89,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1410,7 +1410,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-medium-uw",
 		damage = {
-			default = 900,
+			default = 1000,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1431,7 +1431,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-medium",
 		damage = {
-			default = 200,
+			default = 220,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1452,7 +1452,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-large",
 		damage = {
-			default = 1400,
+			default = 1560,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1473,7 +1473,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-medium-uw",
 		damage = {
-			default = 200,
+			default = 220,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1493,7 +1493,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-large-uw",
 		damage = {
-			default = 1400,
+			default = 1560,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1514,7 +1514,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-large",
 		damage = {
-			default = 600,
+			default = 670,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1535,7 +1535,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge",
 		damage = {
-			default = 1800,
+			default = 2000,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1556,7 +1556,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-large-uw",
 		damage = {
-			default = 600,
+			default = 670,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1576,7 +1576,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge-uw",
 		damage = {
-			default = 1800,
+			default = 2000,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1597,7 +1597,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-huge",
 		damage = {
-			default = 1200,
+			default = 1330,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1618,7 +1618,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-gigantic",
 		damage = {
-			default = 2800,
+			default = 3100,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1643,7 +1643,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-tiny",
 		damage = {
-			default = 5,
+			default = 6,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1664,7 +1664,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small",
 		damage = {
-			default = 50,
+			default = 56,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1685,7 +1685,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-tiny-builder",
 		damage = {
-			default = 5,
+			default = 6,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1706,7 +1706,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small-builder",
 		damage = {
-			default = 50,
+			default = 56,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1727,7 +1727,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-tiny-uw",
 		damage = {
-			default = 5,
+			default = 6,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1747,7 +1747,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small-uw",
 		damage = {
-			default = 50,
+			default = 56,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1767,7 +1767,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-tiny-phib",
 		damage = {
-			default = 5,
+			default = 6,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1788,7 +1788,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small-phib",
 		damage = {
-			default = 50,
+			default = 56,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1810,7 +1810,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small",
 		damage = {
-			default = 5,
+			default = 6,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1832,7 +1832,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small",
 		damage = {
-			default = 10,
+			default = 11,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1853,7 +1853,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-medium",
 		damage = {
-			default = 200,
+			default = 220,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1874,7 +1874,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small-builder",
 		damage = {
-			default = 10,
+			default = 11,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1895,7 +1895,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-medium-builder",
 		damage = {
-			default = 200,
+			default = 220,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1916,7 +1916,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small-uw",
 		damage = {
-			default = 10,
+			default = 11,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1936,7 +1936,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-medium-uw",
 		damage = {
-			default = 200,
+			default = 220,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1956,7 +1956,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-small-phib",
 		damage = {
-			default = 10,
+			default = 11,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1977,7 +1977,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-medium-phib",
 		damage = {
-			default = 200,
+			default = 220,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1999,7 +1999,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-medium",
 		damage = {
-			default = 18,
+			default = 20,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2020,7 +2020,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large",
 		damage = {
-			default = 280,
+			default = 310,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2041,7 +2041,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-medium-builder",
 		damage = {
-			default = 18,
+			default = 20,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2062,7 +2062,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large-builder",
 		damage = {
-			default = 280,
+			default = 310,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2083,7 +2083,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-medium-uw",
 		damage = {
-			default = 18,
+			default = 20,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2103,7 +2103,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large-uw",
 		damage = {
-			default = 280,
+			default = 310,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2123,7 +2123,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-medium-phib",
 		damage = {
-			default = 18,
+			default = 20,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2144,7 +2144,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large-phib",
 		damage = {
-			default = 280,
+			default = 310,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2166,7 +2166,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large",
 		damage = {
-			default = 25,
+			default = 28,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2187,7 +2187,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-huge",
 		damage = {
-			default = 350,
+			default = 390,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2208,7 +2208,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large-builder",
 		damage = {
-			default = 25,
+			default = 28,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2229,7 +2229,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-huge-builder",
 		damage = {
-			default = 350,
+			default = 390,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2250,7 +2250,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large-uw",
 		damage = {
-			default = 25,
+			default = 28,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2270,7 +2270,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-huge-uw",
 		damage = {
-			default = 350,
+			default = 390,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2290,7 +2290,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-large-phib",
 		damage = {
-			default = 25,
+			default = 28,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2311,7 +2311,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-huge-phib",
 		damage = {
-			default = 350,
+			default = 390,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2333,7 +2333,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-huge",
 		damage = {
-			default = 35,
+			default = 39,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2354,7 +2354,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosion",
 		damage = {
-			default = 70,
+			default = 78,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2375,7 +2375,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionmed",
 		damage = {
-			default = 18,
+			default = 20,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2396,7 +2396,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionxl",
 		damage = {
-			default = 1000,
+			default = 1110,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2417,7 +2417,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionxxxl",
 		damage = {
-			default = 1800,
+			default = 2000,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2438,7 +2438,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-gigantic",
 		damage = {
-			default = 500,
+			default = 560,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2459,7 +2459,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-huge-builder",
 		damage = {
-			default = 35,
+			default = 39,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2480,7 +2480,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-gigantic-builder",
 		damage = {
-			default = 500,
+			default = 560,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2501,7 +2501,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-huge-uw",
 		damage = {
-			default = 35,
+			default = 39,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2521,7 +2521,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-gigantic-uw",
 		damage = {
-			default = 500,
+			default = 560,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2541,7 +2541,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-huge-phib",
 		damage = {
-			default = 35,
+			default = 39,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2562,7 +2562,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericunitexplosion-gigantic-phib",
 		damage = {
-			default = 500,
+			default = 560,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2583,7 +2583,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionxl",
 		damage = {
-			default = 600,
+			default = 670,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2604,7 +2604,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionxxl",
 		damage = {
-			default = 1200,
+			default = 1330,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2625,7 +2625,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionxxxl",
 		damage = {
-			default = 2400,
+			default = 2650,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2646,7 +2646,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator = "custom:t3unitexplosionxxxxl",
 		damage = {
-			default = 4800,
+			default = 5300,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2673,7 +2673,7 @@ unitDeaths = {
 		soundhit = "xploelc1",
 		soundstart = "bombrel",
 		damage = {
-			default = 1500,
+			default = 1670,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2700,7 +2700,7 @@ unitDeaths = {
 		soundhit = "xploelc1",
 		soundstart = "bombrel",
 		damage = {
-			default = 2500,
+			default = 2800,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -2727,7 +2727,7 @@ unitDeaths = {
 		soundhit = "xploelc1",
 		soundstart = "bombrel",
 		damage = {
-			default = 3500,
+			default = 3900,
 		},
 		customparams = {
 			unitexplosion = 1,

@@ -10,8 +10,8 @@ return {
 		soundhitdry = "fireburnshort",
 		soundhitvolume = 2.1,
 		damage = {
-			commanders = 2.5,
-			crawlingbombs = 2.5,
+			commanders = 3,
+			crawlingbombs = 3,
 			default = 4,
 		},
 		customparams = {
@@ -36,7 +36,7 @@ return {
 		damage = {
 			commanders = 3,
 			crawlingbombs = 3,
-			default = 5,
+			default = 6,
 		},
 		customparams = {
 			expl_light_color = "1 0.33 0.07",
@@ -59,9 +59,9 @@ return {
 		soundhitdry = "fireburnshort",
 		soundhitvolume = 2.3,
 		damage = {
-			commanders = 3.5,
-			crawlingbombs = 3.5,
-			default = 6,
+			commanders = 4,
+			crawlingbombs = 4,
+			default = 7,
 		},
 		customparams = {
 			expl_light_color = "1 0.33 0.07",
@@ -85,7 +85,7 @@ return {
 		damage = {
 			commanders = 4,
 			crawlingbombs = 4,
-			default = 7,
+			default = 8,
 		},
 		customparams = {
 			expl_light_color = "1 0.33 0.07",

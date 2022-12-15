@@ -13,7 +13,7 @@ return {
 		turret = 1,
 		weaponvelocity = 70,
 		damage = {
-			default = 450,
+			default = 500,
 		},
 	},
 }

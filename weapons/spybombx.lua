@@ -21,7 +21,7 @@ return {
 		tolerance = 7000,
 		turret = 1,
 		damage = {
-			default = 50000,
+			default = 56000,
 		},
 		customparams = {
 			expl_light_radius_mult = 1.2,
@@ -51,7 +51,7 @@ return {
 		tolerance = 7000,
 		turret = 1,
 		damage = {
-			default = 50000,
+			default = 56000,
 		},
 		customparams = {
 			expl_light_radius_mult = 1.2,
