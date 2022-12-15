@@ -649,7 +649,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	-- Or hard code it:
 	if true then
 		if math.random(1,3) == 1 then
-			idx = groundscarsPath.."t_groundcrack_17_a.png"
+			idx = groundscarsPath.."t_groundcrack_16_a.png"
 		elseif math.random(1,3) == 2 then
 			idx = groundscarsPath.."t_groundcrack_21_a.png"
 		else
@@ -685,13 +685,27 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		glowadd = 0
 	end
 
-	if weaponDef.type == 'DGun' then
-		radius = radius * 2.5
-		heatdecay = 0.6
-		bwfactor = 0
+	-- if weaponDef.type == 'DGun' then
+	-- 	idx = groundscarsPath.."t_groundcrack_16_a.png"
+	-- 	radius = radius * 2.5
+	-- 	heatdecay = 0.6
+	-- 	bwfactor = 0
 
-	elseif string.find(weaponDef.name, 'juno') then
+	if string.find(weaponDef.name, 'juno') then
 		radius = 180
+
+	elseif string.find(weaponDef.name, 'disintegrator') then
+	  if math.random(1,2) == 1 then
+			idx = groundscarsPath.."t_groundcrack_16_a.png"
+		else
+			idx = groundscarsPath.."t_groundcrack_17_a.png"
+		end
+   	radius = radius * 2.5
+	 	heatdecay = 0.7
+	 	glowsustain = 40
+	 	glowadd = 2.5
+	 	bwfactor = 0
+	
 
 	elseif string.find(weaponDef.name, '.advbomb') then
 		--idx = groundscarsPath.."t_groundcrack_09_a.png"
@@ -736,6 +750,19 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		heatdecay = 0.5
 		glowsustain = 125
 		glowadd = 1.5
+		bwfactor = 0.1
+
+	elseif string.find(weaponDef.name, 'juggernaut_fire') then
+		if math.random(1,2) == 1 then
+			idx = groundscarsPath.."t_groundcrack_16_a.png"
+		else
+			idx = groundscarsPath.."t_groundcrack_17_a.png"
+		end
+		--heatstart = 5500
+		radius = radius * 2.4
+		heatdecay = 0.65
+		glowsustain = 40
+		glowadd = 1.3
 		bwfactor = 0.1
 
 	elseif string.find(weaponDef.name, 'tremor') then
