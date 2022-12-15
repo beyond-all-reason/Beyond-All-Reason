@@ -739,7 +739,11 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		bwfactor = 0.1
 
 	elseif string.find(weaponDef.name, 'tremor') then
-		idx = groundscarsPath.."t_groundcrack_09_a.png"
+		if math.random(1,2) == 1 then
+			idx = groundscarsPath.."t_groundcrack_21_a.png"
+		else
+			idx = groundscarsPath.."t_groundcrack_17_a.png"
+		end
 		alphadecay = 0.0024
 		--bwfactor = 0.1	
 
