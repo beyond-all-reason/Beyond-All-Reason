@@ -215,7 +215,7 @@ void main(void)
 		//experiment with glowadd:
 		// we kinda need to additively blend here... 
 		float heatalpha = dot (vec3(1.0),heatColor);
-		fragColor.rgba += g_parameters.z * heatalpha * vec4(heatColor.rgb ,1.0); 
+		fragColor.rgba +=  g_parameters.z * heatalpha * vec4(heatColor.rgb ,g_position.w); 
 	#endif 
 	
 	//fragColor.a = 1.0;
