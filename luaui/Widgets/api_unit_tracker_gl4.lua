@@ -41,6 +41,9 @@ local debugdrawvisible = false
 -- todo: fix drawdebugvisible to be changeable - done
 -- todo: test this in singleplayer scenarios, and loaded games!
 
+-- SUPER IMPORTANT: NEVER EVER ADD UNITS TO A VBO TABLE THAT ARE IN unitDefIgnore!
+-- As the unit tracker api wont track them as actual units, and wont ever remove them either!
+
 
 local alliedUnits = {} -- table of unitID : unitDefID
 local numAlliedUnits = 0
