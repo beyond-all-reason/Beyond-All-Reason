@@ -1,6 +1,6 @@
 return {
 	queen_death = {
-		areaofeffect = 16,
+		areaofeffect = 512,
 		craterboost = 0,
 		cratermult = 0,
 		impulseboost = 0,
