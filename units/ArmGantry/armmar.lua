@@ -22,7 +22,7 @@ return {
 		maxslope = 17,
 		maxvelocity = 3.15,
 		maxwaterdepth = 32,
-		movementclass = "ATANK3",
+		movementclass = "HABOT3", --"ATANK3",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMMAR.s3o",
 		script = "Units/armmar.cob",
@@ -87,6 +87,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
+				[2] = "custom:subbubbles",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
