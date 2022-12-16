@@ -822,13 +822,13 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		else
 			idx = groundscarsPath.."t_groundcrack_25_a.png"
 		end
-		alpha = 10
+		alpha = 15
 		radius = (radius * 10) * (math.random() * 0.7 + 0.52)
 		heatstart = 490
 		heatdecay = 0.1
 		alphadecay = 0.002
 		glowadd = 2.5
-		bwfactor = 0.7
+		bwfactor = 0.64
 
 	elseif string.find(weaponDef.name, 'bloodyeggs') then
 		idx = groundscarsPath.."t_groundcrack_23_a.png"
@@ -838,7 +838,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		heatdecay = 0.1
 		alphadecay = 0.005
 		glowadd = 2.5
-		bwfactor = 0.7
+		bwfactor = 0.64
 
 	elseif string.find(weaponDef.name, 'dodo') then
 		if math.random(1,2) == 1 then
@@ -847,7 +847,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 			idx = groundscarsPath.."t_groundcrack_24_a.png"
 		end
 		alpha = 10
-		radius = (radius * 1.2) * (math.random() * 0.65 + 0.52)
+		radius = (radius * 1.2) * (math.random() * 0.15 + 0.85)
 		heatstart = 490
 		heatdecay = 0.1
 		alphadecay = 0.002
