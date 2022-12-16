@@ -54,7 +54,7 @@ local shaderConfig = {
 	AMBIENTOCCLUSION = 0, -- 1 for on, do not use
 	USEGLOW = 1, -- 1 for on, kinda wierd at the moment
 	GLOWTHRESHOLD = 0.99,
-	FADEINTIME = 6, -- number of frames to fade in over
+	FADEINTIME = 24, -- number of frames to fade in over
 	SPECULAREXPONENT = 5.0, -- how shiny decal surface is?
 	SPECULARSTRENGTH = 0.3, -- how strong specular highlights are
 	--BLACKANDWHITEFACTOR = 0.5, -- set to between [0,1] to set how strong the black and white conversion should be, 0 = original color, 1 = full black and white, deprecated, now controllable per-decal
@@ -649,7 +649,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	-- Or hard code it:
 	if true then
 		if math.random(1,3) == 1 then
-			idx = groundscarsPath.."t_groundcrack_16_a.png"
+			idx = groundscarsPath.."t_groundcrack_17_a.png"
 		elseif math.random(1,3) == 2 then
 			idx = groundscarsPath.."t_groundcrack_21_a.png"
 		else
@@ -705,6 +705,17 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	 	glowsustain = 40
 	 	glowadd = 2.5
 	 	bwfactor = 0
+
+	elseif string.find(weaponDef.name, 'acid') then
+		idx = groundscarsPath.."t_groundcrack_26_a.png"
+		alpha = 6
+		radius = (radius * 5) * (math.random() * 0.15 + 0.85)
+		heatstart = 500
+		heatdecay = 10
+		alphadecay = 0.012
+		--glowadd = 2.5
+		--glowsustain = 0
+		bwfactor = 0.17
 	
 
 	elseif string.find(weaponDef.name, '.advbomb') then
@@ -734,8 +745,17 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		glowadd = 1.5
 		bwfactor = 0.1
 
+	elseif string.find(weaponDef.name, 'nuketest') then
+		idx = groundscarsPath.."t_groundcrack_21_a.png"
+		--radius = radius * 1.2
+		heatstart = 5500
+		heatdecay = 0.5
+		glowsustain = 150
+		glowadd = 1.5
+		bwfactor = 0.1
+
 	elseif string.find(weaponDef.name, 'nuclear_missile') then
-		idx = groundscarsPath.."t_groundcrack_09_a.png"
+		idx = groundscarsPath.."t_groundcrack_21_a.png"
 		--radius = radius * 1.2
 		heatstart = 5500
 		heatdecay = 0.5
@@ -744,11 +764,21 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		bwfactor = 0.1
 
 	elseif string.find(weaponDef.name, 'crblmssl') then
-		idx = groundscarsPath.."t_groundcrack_09_a.png"
+		idx = groundscarsPath.."t_groundcrack_21_a.png"
 		--radius = radius * 1.8
 		heatstart = 5500
 		heatdecay = 0.5
 		glowsustain = 125
+		glowadd = 1.5
+		bwfactor = 0.1
+
+  --armliche 
+	elseif string.find(weaponDef.name, 'arm_pidr') then
+		idx = groundscarsPath.."t_groundcrack_21_a.png"
+		radius = radius * 1.8
+		heatstart = 5500
+		heatdecay = 0.66
+		glowsustain = 100
 		glowadd = 1.5
 		bwfactor = 0.1
 
@@ -769,10 +799,60 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		if math.random(1,2) == 1 then
 			idx = groundscarsPath.."t_groundcrack_21_a.png"
 		else
-			idx = groundscarsPath.."t_groundcrack_17_a.png"
+			idx = groundscarsPath.."t_groundcrack_22_a.png"
 		end
 		alphadecay = 0.0024
-		--bwfactor = 0.1	
+		--bwfactor = 0.1
+
+	elseif string.find(weaponDef.name, 'death_acid') then
+		idx = groundscarsPath.."t_groundcrack_26_a.png"
+		alpha = 6
+		radius = (radius * 5.5) * (math.random() * 0.25 + 0.75)
+		heatstart = 550
+		heatdecay = 0.1
+		alphadecay = 0.012
+		glowadd = 2.5
+		bwfactor = 0.17
+
+	elseif string.find(weaponDef.name, 'bug') then
+		if math.random(1,3) == 1 then
+			idx = groundscarsPath.."t_groundcrack_23_a.png"
+		elseif math.random(1,3) == 2 then
+			idx = groundscarsPath.."t_groundcrack_24_a.png"
+		else
+			idx = groundscarsPath.."t_groundcrack_25_a.png"
+		end
+		alpha = 10
+		radius = (radius * 10) * (math.random() * 0.7 + 0.52)
+		heatstart = 490
+		heatdecay = 0.1
+		alphadecay = 0.002
+		glowadd = 2.5
+		bwfactor = 0.4
+
+	elseif string.find(weaponDef.name, 'bloodyeggs') then
+		idx = groundscarsPath.."t_groundcrack_23_a.png"
+		alpha = 10
+		radius = (radius * 1.5) * (math.random() * 1.2 + 0.25)
+		heatstart = 490
+		heatdecay = 0.1
+		alphadecay = 0.005
+		glowadd = 2.5
+		bwfactor = 0.4
+
+	elseif string.find(weaponDef.name, 'dodo') then
+		if math.random(1,2) == 1 then
+			idx = groundscarsPath.."t_groundcrack_23_a.png"
+		else
+			idx = groundscarsPath.."t_groundcrack_24_a.png"
+		end
+		alpha = 10
+		radius = (radius * 1.2) * (math.random() * 0.65 + 0.52)
+		heatstart = 490
+		heatdecay = 0.1
+		alphadecay = 0.002
+		glowadd = 2.5
+		bwfactor = 0.4
 
 	end
 
