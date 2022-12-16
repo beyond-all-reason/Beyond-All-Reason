@@ -1,7 +1,7 @@
 -- the commented out slopemod were there to compensate for modoption betterunitmovement
 
 local moveDatas = {
-	
+
 	COMMANDERBOT = {
 		crushstrength = 50,
 		depthModParams = {
@@ -145,7 +145,7 @@ local moveDatas = {
 	-- 	crushstrength = 5,
 	-- 	subMarine = 1,
 	-- },
-	
+
 	HOVER2 = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -341,7 +341,7 @@ local moveDatas = {
 			minHeight = 4,
 			linearCoeff = 0.03,
 			maxValue = 0.7,
-		}	
+		}
 	},
 	BOT2 = {
 		crushstrength = 10,
@@ -412,6 +412,16 @@ local moveDatas = {
 		depthmod = 0,
 		footprintx = 4,
 		footprintz = 4,
+		maxslope = 36,
+		maxwaterdepth = 5000,
+		maxwaterslope = 80,
+	},
+	-- marauder
+	HABOT3 = {
+		crushstrength = 252,
+		depthmod = 0,
+		footprintx = 3,
+		footprintz = 3,
 		maxslope = 36,
 		maxwaterdepth = 5000,
 		maxwaterslope = 80,
@@ -574,7 +584,7 @@ local moveDatas = {
 		speedmodclass = 2, -- hover
 	},
 
-	
+
 
 	NANO = {
 		crushstrength = 0,
@@ -602,7 +612,7 @@ local moveDatas = {
 		crushStrength = 0,
 		speedModClass = 1, -- 0 = tank, 1 = bot, 2 = hover, 3 = ship
 	},
-	
+
 	-- Scavenger Boss units
 	SCAVCOMMANDERBOT = {
 		crushstrength = 50,
@@ -659,7 +669,7 @@ local moveDatas = {
 		maxwaterslope = 50,
 		speedModClass = 1,
 	},
-	
+
 	EPICVEH = {
 		crushstrength = 9999,
 		depthmod = 0,
@@ -726,7 +736,7 @@ for moveName, moveData in pairs(moveDatas) do
 			moveData.maxslope = math.max(moveData.maxslope, 36)
 		end
 	end
-	
+
 	moveData.heatmapping = true
 	moveData.name = moveName
 	moveData.allowRawMovement = true
@@ -746,4 +756,3 @@ for moveName, moveData in pairs(moveDatas) do
 end
 
 return defs
-
