@@ -115,16 +115,26 @@ local function makeAtlases()
 	local success
 	atlasColorAlpha = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
 
-	addDirToAtlas(atlasColorAlpha, groundscarsPath, '_a.png', decalImageCoords)
+	addDirToAtlas(atlasColorAlpha, groundscarsPath, '_a.', decalImageCoords)
 	--addDirToAtlas(atlasColorAlpha, oldgroundscarsPath, 'scar', decalImageCoords)
 	success = gl.FinalizeTextureAtlas(atlasColorAlpha)
 	if success == false then return false end
+	local atlasInfo = gl.TextureInfo(atlasColorAlpha)
+	local usedpixels = 0
 	-- read back the UVs:
 	for filepath, _ in pairs(decalImageCoords) do
-		local p,q,s,t = gl.GetAtlasTexture(atlasColorAlpha, filepath)
-		local texel = 1.0/atlasSize -- shrink UV areas for less mip bleed
-		decalImageCoords[filepath] =  {p+texel,q-texel,s+texel,t-texel}
+		local p,q,s,t = gl.GetAtlasTexture(atlasColorAlpha, filepath) --xXyY
+		local texelX = 1.0/atlasInfo.xsize -- shrink UV areas for less mip bleed
+		local texelY = 1.0/atlasInfo.ysize -- shrink UV areas for less mip bleed
+		usedpixels = usedpixels + (math.abs(p-q) * atlasInfo.xsize ) * (math.abs(s-t) * atlasInfo.ysize)
+		if autoreload then Spring.Echo(filepath) end 
+		decalImageCoords[filepath] =  {p+texelX,q-texelX,s+texelY,t-texelY}
 	end
+	
+	Spring.Echo(string.format("Decals GL4 Atlas is %dx%d, used %.1f%%", 
+		atlasInfo.xsize, atlasInfo.ysize,
+		usedpixels * 100 / (atlasInfo.xsize * atlasInfo.ysize)
+		))
 
 	atlasNormals = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
 	addDirToAtlas(atlasNormals, groundscarsPath, '_n.')
