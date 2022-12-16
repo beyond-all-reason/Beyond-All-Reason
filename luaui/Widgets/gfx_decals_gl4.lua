@@ -715,7 +715,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		alphadecay = 0.012
 		--glowadd = 2.5
 		--glowsustain = 0
-		bwfactor = 0.17
+		bwfactor = 0.17 --0.17
 	
 
 	elseif string.find(weaponDef.name, '.advbomb') then
@@ -828,7 +828,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		heatdecay = 0.1
 		alphadecay = 0.002
 		glowadd = 2.5
-		bwfactor = 0.4
+		bwfactor = 0.7
 
 	elseif string.find(weaponDef.name, 'bloodyeggs') then
 		idx = groundscarsPath.."t_groundcrack_23_a.png"
@@ -838,7 +838,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		heatdecay = 0.1
 		alphadecay = 0.005
 		glowadd = 2.5
-		bwfactor = 0.4
+		bwfactor = 0.7
 
 	elseif string.find(weaponDef.name, 'dodo') then
 		if math.random(1,2) == 1 then
@@ -852,7 +852,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		heatdecay = 0.1
 		alphadecay = 0.002
 		glowadd = 2.5
-		bwfactor = 0.4
+		bwfactor = 0.7
 
 	end
 
