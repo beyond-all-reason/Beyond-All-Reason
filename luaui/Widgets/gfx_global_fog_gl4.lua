@@ -37,6 +37,12 @@ local GL_RGBA32F_ARB = 0x8814
 -- handle out-of-map better!
 
 
+------------- Literature and Reading: ---
+-- blue noise sampling:  https://blog.demofox.org/2020/05/10/ray-marching-fog-with-blue-noise/
+-- Inigo quliez fog lighting tips: https://iquilezles.org/articles/fog/
+-- Analyitic fog density: https://blog.demofox.org/2014/06/22/analytic-fog-density/
+
+
 ---- CONFIGURABLE PARAMETERS: -----------------------------------------
 
 
@@ -49,7 +55,8 @@ local shaderConfig = {
 	NOISETHRESHOLD = -0.0, -- The 0 level of noise
 	LOSREDUCEFOG = 0, -- how much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los
 	USEMINIMAP = 1, -- 0 or 1 to use the minimap for back-scatter
-	MINIMAPSCATTER = 0.33, -- How much the minimap color back-scatters into fog color, 0 is off
+	MINIMAPSCATTER = 0.1, -- How much the minimap color sdditively back-scatters into fog color, 0 is off
+
 }
 
 
@@ -302,9 +309,11 @@ function widget:DrawWorld()
 	end
 	gl.Texture(4, "$shadow")
 	gl.Texture(5, noisetex3dcube)
-	if shaderConfig.MINIMAPSCATTER > 0 then 
+
+	if shaderConfig.USEMINIMAP > 0 then 
 		gl.Texture(6, '$minimap')
 	end
+
 	gl.Texture(7, worley3d128)
 	
 	groundFogShader:Activate()
