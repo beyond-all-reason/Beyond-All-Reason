@@ -1,6 +1,6 @@
 return {
 	bigbug_death = {
-		areaofeffect = 16,
+		areaofeffect = 42,
 		craterboost = 0,
 		cratermult = 0,
 		explosiongenerator = "custom:chickenunitexplosion-large-red",
