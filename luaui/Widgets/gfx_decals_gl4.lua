@@ -54,7 +54,7 @@ local shaderConfig = {
 	AMBIENTOCCLUSION = 0, -- 1 for on, do not use
 	USEGLOW = 1, -- 1 for on, kinda wierd at the moment
 	GLOWTHRESHOLD = 0.99,
-	FADEINTIME = 24, -- number of frames to fade in over
+	FADEINTIME = 20, -- number of frames to fade in over
 	SPECULAREXPONENT = 5.0, -- how shiny decal surface is?
 	SPECULARSTRENGTH = 0.3, -- how strong specular highlights are
 	--BLACKANDWHITEFACTOR = 0.5, -- set to between [0,1] to set how strong the black and white conversion should be, 0 = original color, 1 = full black and white, deprecated, now controllable per-decal
@@ -834,9 +834,10 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		end
 		alpha = 15
 		radius = (radius * 10) * (math.random() * 0.7 + 0.52)
-		heatstart = 490
-		heatdecay = 0.1
+		heatstart = 500
+		heatdecay = 0.12
 		alphadecay = 0.002
+		glowsustain = 15
 		glowadd = 2.5
 		bwfactor = 0.6
 
