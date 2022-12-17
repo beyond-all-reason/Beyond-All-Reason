@@ -17,6 +17,9 @@ local selectBuildingsWithMobile = false		-- whether to select buildings when mob
 local includeNanosAsMobile = true
 local includeBuilders = false
 
+-- CONFIG(int, MouseDragSelectionThreshold).defaultValue(4).description("Distance in pixels which the mouse must be dragged to trigger a selection box.");
+local dragSelectionThreshold
+
 -- selection modifiers
 local mods = {
  idle     = false, -- whether to select only idle units
@@ -87,6 +90,12 @@ local function sort(v1, v2)
 	else
 		return v1, v2
 	end
+end
+
+local function getDist(coords1, coords2)
+  local dx = coords1[1] - coords2[1]
+  local dy = coords1[2] - coords2[2]
+  return math.sqrt (dx * dx + dy * dy)
 end
 
 local function MinimapToWorldCoords(x, y)
@@ -216,6 +225,8 @@ function widget:Update()
 
 		if x1 then
 			mouseSelection = spGetUnitsInScreenRectangle(x1, y1, x2, y2, nil) or {}
+		elseif getDist(referenceScreenCoords, lastCoords) <= dragSelectionThreshold then -- empty selection if didnt make drag threshold
+			mouseSelection = {}
 		else -- if not x1 selection box is not valid anymore (mouserelease/minimum threshold/chorded/etc)
 			mouseSelection = selectedUnits
 		end
@@ -379,6 +390,8 @@ function widget:Shutdown()
 end
 
 function widget:Initialize()
+	dragSelectionThreshold = Spring.GetConfigInt("MouseDragSelectionThreshold")
+
 	WG.SmartSelect_MousePress2 = mousePress
 
 	for modifierName, _ in pairs(mods) do
