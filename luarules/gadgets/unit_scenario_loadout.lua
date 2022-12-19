@@ -37,7 +37,15 @@ local function rot_to_facing(rotation)
 	return 2
 end
 
+local startMetal = 1000
+local startEnergy = 1000
+local teamList = {}
+local additionalStorage = {}
+
 function gadget:Initialize()
+	teamList = Spring.GetTeamList()
+	startMetal = Spring.GetModOptions().startmetal
+	startEnergy = Spring.GetModOptions().startenergy
 	local gaiateamid = Spring.GetGaiaTeamID()
 end
 
@@ -65,6 +73,13 @@ function gadget:GamePreload()
 							local unitID = Spring.CreateUnit(unit.name, unit.x, Spring.GetGroundHeight(unit.x, unit.z), unit.z, rot, unit.team)
 							if unitID then
 								Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+								if UnitDefNames[unit.name].energyStorage > 0 or UnitDefNames[unit.name].metalStorage > 0 then 
+									if additionalStorage[unit.team] == nil then 
+										additionalStorage[unit.team] = {metal = 0, energy = 0}
+									end
+									additionalStorage[unit.team].metal  = additionalStorage[unit.team].metal + (UnitDefNames[unit.name].metalStorage  or 0 )
+									additionalStorage[unit.team].energy  = additionalStorage[unit.team].energy + (UnitDefNames[unit.name].energyStorage or 0 )
+								end
 							end
 							if unit.name == "armnanotc" or unit.name == "cornanotc" or unit.name == "armnanotcplat" or unit.name == "cornanotcplat" then
 								nanoturretunitIDs[unitID] = true
@@ -103,13 +118,33 @@ end
 
 
 function gadget:GameFrame(n)
-	if n > 1 then
-		gadgetHandler:RemoveGadget(self)
+	if n == 1 then
+		if next(nanoturretunitIDs) then
+			for unitID, _ in pairs(nanoturretunitIDs) do
+				Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+			end
+		end
+		if next(additionalStorage) then 
+			for teamID, additionalstorage in pairs(additionalStorage) do 
+				local m, mstore = Spring.GetTeamResources(teamID, "metal")
+				local e, estore = Spring.GetTeamResources(teamID, "energy")
+				Spring.SetTeamResource(teamID, 'ms', mstore + additionalstorage.metal)
+				Spring.SetTeamResource(teamID, 'es', estore + additionalstorage.energy)
+			end
+			additionalStorage = nil
+		end
+		gadgetHandler:RemoveGadget()
 	end
-
-	if n == 1 and next(nanoturretunitIDs) then
-		for unitID, _ in pairs(nanoturretunitIDs) do
-			Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+	--[[ periodic checking isnt very good
+	if n %17 == 7 then
+		local teamList = Spring.GetTeamList()
+		for i = 1, #teamList do
+			local teamID = teamList[i]
+			local m, mstore = Spring.GetTeamResources(teamID, "metal")
+			local e, estore = Spring.GetTeamResources(teamID, "energy")
+			if mstore < 500 then Spring.SetTeamResource(teamID, 'ms', 500) end 
+			if estore < 500 then Spring.SetTeamResource(teamID, 'es', 500) end 
 		end
 	end
+	]]--
 end
