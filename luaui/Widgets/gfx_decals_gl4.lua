@@ -643,225 +643,211 @@ function widget:Explosion(weaponDefID, px, py, pz, AttackerID, ProjectileID) -- 
 	---Spring.Echo("widget:Explosion",weaponDefID, px, py, pz, AttackerID, ProjectileID)
 end
 
+local globalDamageMult = Spring.GetModOptions().multiplier_weapondamage or 1
+local weaponConfig = {}
+for weaponDefID=1, #WeaponDefs do
+	local weaponDef = WeaponDefs[weaponDefID]
+
+	if not string.find(weaponDef.cegTag, 'aa') then
+		local radius = weaponDef.damageAreaOfEffect * 1.4
+
+		local damage = 100
+		for cat=0, #weaponDef.damages do
+			if Game.armorTypes[cat] and Game.armorTypes[cat] == 'default' then
+				damage = weaponDef.damages[cat]
+				break
+			end
+		end
+
+		-- correct damage multiplier modoption to more sane value
+		damage = (damage / globalDamageMult) + ((damage * (globalDamageMult-1))*0.25)
+
+		--local damageEffectiveness = weaponDef.edgeEffectiveness
+
+		local bwfactor = 0.5 --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
+		local radiusVariation = 0.3	-- 0.3 -> 30% larger or smaller radius
+		local alpha
+		local alphadecay
+		local heatstart
+		local heatdecay
+		local glowsustain
+		local glowadd
+
+		local textures = { "t_groundcrack_17_a.png", "t_groundcrack_21_a.png", "t_groundcrack_10_a.png" }
+		if weaponDef.paralyzer then
+			textures = { "t_groundcrack_17_a.png", "t_groundcrack_10_a.png", "t_groundcrack_10_a.png" }
+			heatstart = 0
+			glowadd = 0
+
+		elseif weaponDef.type == 'Cannon' then
+			if weaponDef.highTrajectory == 1 then
+				textures = { "t_groundcrack_21_a.png", "t_groundcrack_22_a.png", "t_groundcrack_10_a.png" }
+				alphadecay = 0.0024
+			end
+
+		elseif weaponDef.type == 'Flame' then
+
+		elseif weaponDef.type == 'LightningCannon' then
+
+		elseif weaponDef.type == 'BeamLaser' then
+
+		elseif weaponDef.type == 'LaserCannon' then
+
+		elseif weaponDef.type == 'StarburstLauncher' then
+
+		elseif weaponDef.type == 'AircraftBomb' then
+			if string.find(weaponDef.name, '.advbomb') then
+				radius = radius * 1.5
+				heatstart = 5500
+				heatdecay = 2.0
+				glowsustain = 35
+				glowadd = 4
+			else
+				radius = radius * 0.8
+				heatstart = 3500
+				heatdecay = 2.7
+				glowsustain = 20
+				glowadd = 1.2
+			end
+			bwfactor = 0.01
+
+		elseif weaponDef.type == 'DGun' then
+			textures = { "t_groundcrack_16_a.png", "t_groundcrack_17_a.png" }
+			if string.find(weaponDef.name, 'juggernaut_fire') then
+				radius = radius * 2.4
+				heatdecay = 0.65
+				glowsustain = 40
+				glowadd = 1.3
+				bwfactor = 0.1
+			else
+				radius = radius * 2.5
+				heatdecay = 0.7
+				glowsustain = 40
+				glowadd = 2.5
+				bwfactor = 0
+			end
+		end
+
+		if radius > 500 then
+			textures = { "t_groundcrack_21_a.png" }
+			heatstart = 5500
+			heatdecay = 0.5
+			glowsustain = 150
+			glowadd = 1.5
+			bwfactor = 0.1
+		end
+
+		if string.find(weaponDef.name, 'juno') then
+			radius = 180
+
+		elseif string.find(weaponDef.name, 'acid') then
+			textures = { "t_groundcrack_26_a.png" }
+			radius = (radius * 5)-- * (math.random() * 0.15 + 0.85)
+			alpha = 6
+			heatstart = 500
+			heatdecay = 10
+			alphadecay = 0.012
+			--glowadd = 2.5
+			--glowsustain = 0
+			bwfactor = 0.17 --0.17
+
+			--armliche
+		elseif string.find(weaponDef.name, 'arm_pidr') then
+			textures = { "t_groundcrack_21_a.png" }
+			radius = radius * 1.8
+			heatstart = 5500
+			heatdecay = 0.66
+			glowsustain = 100
+			glowadd = 1.5
+			bwfactor = 0.1
+
+		elseif string.find(weaponDef.name, 'death_acid') then
+			textures = { "t_groundcrack_26_a.png" }
+			radius = (radius * 5.5)-- * (math.random() * 0.25 + 0.75)
+			alpha = 6
+			heatstart = 550
+			heatdecay = 0.1
+			alphadecay = 0.012
+			glowadd = 2.5
+			bwfactor = 0.17
+
+		elseif string.find(weaponDef.name, 'bug') then
+			textures = { "t_groundcrack_23_a.png", "t_groundcrack_24_a.png", "t_groundcrack_25_a.png" }
+			radius = (radius * 10)-- * (math.random() * 0.7 + 0.52)
+			alpha = 15
+			heatstart = 500
+			heatdecay = 0.12
+			alphadecay = 0.002
+			glowsustain = 15
+			glowadd = 2.5
+			bwfactor = 0.6
+
+		elseif string.find(weaponDef.name, 'bloodyeggs') then
+			textures = { "t_groundcrack_23_a.png" }
+			radius = (radius * 1.5)-- * (math.random() * 1.2 + 0.25)
+			alpha = 10
+			heatstart = 490
+			heatdecay = 0.1
+			alphadecay = 0.005
+			glowadd = 2.5
+			bwfactor = 0.6
+
+		elseif string.find(weaponDef.name, 'dodo') then
+			textures = { "t_groundcrack_23_a.png", "t_groundcrack_24_a.png" }
+			radius = (radius * 1.2)-- * (math.random() * 0.15 + 0.85)
+			alpha = 10
+			heatstart = 490
+			heatdecay = 0.1
+			alphadecay = 0.002
+			glowadd = 2.5
+			bwfactor = 0.7
+		end
+
+		weaponConfig[weaponDefID] = {
+			textures,
+			radius,
+			radiusVariation,
+			heatstart, -- 4
+			heatdecay, -- 5
+			alpha, -- 6
+			alphadecay, -- 7
+			bwfactor,	-- 8
+			glowsustain,
+			glowadd,
+			weaponDef.damageAreaOfEffect,	-- 11
+			damage,	-- 12
+		}
+	end
+end
+
 local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
-	local weaponDef = WeaponDefs[weaponID]
 	--Spring.Echo("GadgetWeaponExplosionDecal",px, py, pz, weaponID, ownerID, weaponDef.damageAreaOfEffect, weaponDef.name)
 
-	if string.find(weaponDef.cegTag, 'aa') then
+	local params = weaponConfig[weaponID]
+	if not params then
 		return
 	end
 
-	local texture
-	if math.random(1,3) == 1 then
-		texture = "t_groundcrack_17_a.png"
-	elseif math.random(1,3) == 2 then
-		texture = "t_groundcrack_21_a.png"
-	else
-		texture = "t_groundcrack_10_a.png"
-	end
-	local heatstart = (math.random() * 0.2 + 0.9) * 4900
-	local heatdecay = (math.random() * 0.4 + 2.0) - (weaponDef.damageAreaOfEffect/2250)
-
-	local radius = (weaponDef.damageAreaOfEffect * 1.4) * (math.random() * 0.48 + 0.72)
-
-	-- modulate their alphastart by how far above ground they are
+	local radius = params[2] + ((params[2] * (math.random()-0.5)) * params[3])
 	local exploHeight = py - spGetGroundHeight(px,pz)
-
-	-- dont spawn decals into the air
 	if exploHeight >= radius then
 		return
 	end
 
+	local texture = params[1][ math.random(1,#params[1]) ]
+
 	-- reduce severity when explosion is above ground
 	local heightMult = 1 - (exploHeight / radius)
-	local alpha = (math.random() * 1.0 + 1.5) * (1.0 - exploHeight/radius) * heightMult
-	local alphadecay = (math.random() * 0.3 + 0.2) / (4 * radius)
-	local bwfactor = 0.5 --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
-	local glowsustain = math.random() * 20 -- how many frames to elapse before glow starts to recede
-	local glowadd = math.random() * 2 -- how much additional, non-transparency controlled heat glow should the decal get
 
-	if weaponDef.paralyzer then
-		if math.random(1,3) == 1 then
-			texture = "t_groundcrack_17_a.png"
-		else
-			texture = "t_groundcrack_10_a.png"
-		end
-		heatstart = 0
-		glowadd = 0
+	local heatstart = params[4] or ((math.random() * 0.2 + 0.9) * 4900)
+	local heatdecay = params[5] or ((math.random() * 0.4 + 2.0) - (params[11]/2250))
 
-	elseif weaponDef.type == 'Cannon' then
-		if weaponDef.highTrajectory == 1 then
-			if math.random(1,2) == 1 then
-				texture = "t_groundcrack_21_a.png"
-			else
-				texture = "t_groundcrack_22_a.png"
-			end
-			alphadecay = 0.0024
-		end
+	local alpha = params[6] or ((math.random() * 1.0 + 1.5) * (1.0 - exploHeight/radius) * heightMult)
+	local alphadecay = params[7] or (params[7] or ((math.random() * 0.3 + 0.2) / (4 * radius)))
 
-	elseif weaponDef.type == 'Flame' then
-
-	elseif weaponDef.type == 'LightningCannon' then
-
-	elseif weaponDef.type == 'BeamLaser' then
-
-	elseif weaponDef.type == 'LaserCannon' then
-
-	elseif weaponDef.type == 'StarburstLauncher' then
-
-	elseif weaponDef.type == 'AircraftBomb' then
-		if string.find(weaponDef.name, '.advbomb') then
-			radius = radius * 1.5
-			heatstart = 5500
-			heatdecay = 2.0
-			glowsustain = 35
-			glowadd = 4
-		else
-			radius = radius * 0.8
-			heatstart = 3500
-			heatdecay = 2.7
-			glowsustain = 20
-			glowadd = 1.2
-		end
-		bwfactor = 0.01
-
-	elseif weaponDef.type == 'DGun' then
-		if math.random(1,2) == 1 then
-			texture = "t_groundcrack_16_a.png"
-		else
-			texture = "t_groundcrack_17_a.png"
-		end
-		if string.find(weaponDef.name, 'juggernaut_fire') then
-			radius = radius * 2.4
-			heatdecay = 0.65
-			glowsustain = 40
-			glowadd = 1.3
-			bwfactor = 0.1
-		else
-			radius = radius * 2.5
-			heatdecay = 0.7
-			glowsustain = 40
-			glowadd = 2.5
-			bwfactor = 0
-		end
-	end
-
-	if string.find(weaponDef.name, 'juno') then
-		radius = 180
-
-	--elseif string.find(weaponDef.name, 'disintegrator') then
-	--	if math.random(1,2) == 1 then
-	--		texture = "t_groundcrack_16_a.png"
-	--	else
-	--		texture = "t_groundcrack_17_a.png"
-	--	end
-	--	radius = radius * 2.5
-	--	heatdecay = 0.7
-	--	glowsustain = 40
-	--	glowadd = 2.5
-	--	bwfactor = 0
-
-	elseif string.find(weaponDef.name, 'acid') then
-		texture = "t_groundcrack_26_a.png"
-		alpha = 6
-		radius = (radius * 5) * (math.random() * 0.15 + 0.85)
-		heatstart = 500
-		heatdecay = 10
-		alphadecay = 0.012
-		--glowadd = 2.5
-		--glowsustain = 0
-		bwfactor = 0.17 --0.17
-
-	elseif string.find(weaponDef.name, 'nuketest') then
-		texture = "t_groundcrack_21_a.png"
-		--radius = radius * 1.2
-		heatstart = 5500
-		heatdecay = 0.5
-		glowsustain = 150
-		glowadd = 1.5
-		bwfactor = 0.1
-
-	elseif string.find(weaponDef.name, 'nuclear_missile') then
-		texture = "t_groundcrack_21_a.png"
-		--radius = radius * 1.2
-		heatstart = 5500
-		heatdecay = 0.5
-		glowsustain = 150
-		glowadd = 1.5
-		bwfactor = 0.1
-
-	elseif string.find(weaponDef.name, 'crblmssl') then
-		texture = "t_groundcrack_21_a.png"
-		--radius = radius * 1.8
-		heatstart = 5500
-		heatdecay = 0.5
-		glowsustain = 125
-		glowadd = 1.5
-		bwfactor = 0.1
-
-		--armliche
-	elseif string.find(weaponDef.name, 'arm_pidr') then
-		texture = "t_groundcrack_21_a.png"
-		radius = radius * 1.8
-		heatstart = 5500
-		heatdecay = 0.66
-		glowsustain = 100
-		glowadd = 1.5
-		bwfactor = 0.1
-
-
-	elseif string.find(weaponDef.name, 'death_acid') then
-		texture = "t_groundcrack_26_a.png"
-		alpha = 6
-		radius = (radius * 5.5) * (math.random() * 0.25 + 0.75)
-		heatstart = 550
-		heatdecay = 0.1
-		alphadecay = 0.012
-		glowadd = 2.5
-		bwfactor = 0.17
-
-	elseif string.find(weaponDef.name, 'bug') then
-		if math.random(1,3) == 1 then
-			texture = "t_groundcrack_23_a.png"
-		elseif math.random(1,3) == 2 then
-			texture = "t_groundcrack_24_a.png"
-		else
-			texture = "t_groundcrack_25_a.png"
-		end
-		alpha = 15
-		radius = (radius * 10) * (math.random() * 0.7 + 0.52)
-		heatstart = 500
-		heatdecay = 0.12
-		alphadecay = 0.002
-		glowsustain = 15
-		glowadd = 2.5
-		bwfactor = 0.6
-
-	elseif string.find(weaponDef.name, 'bloodyeggs') then
-		texture = "t_groundcrack_23_a.png"
-		alpha = 10
-		radius = (radius * 1.5) * (math.random() * 1.2 + 0.25)
-		heatstart = 490
-		heatdecay = 0.1
-		alphadecay = 0.005
-		glowadd = 2.5
-		bwfactor = 0.6
-
-	elseif string.find(weaponDef.name, 'dodo') then
-		if math.random(1,2) == 1 then
-			texture = "t_groundcrack_23_a.png"
-		else
-			texture = "t_groundcrack_24_a.png"
-		end
-		alpha = 10
-		radius = (radius * 1.2) * (math.random() * 0.15 + 0.85)
-		heatstart = 490
-		heatdecay = 0.1
-		alphadecay = 0.002
-		glowadd = 2.5
-		bwfactor = 0.7
-
-	end
+	local bwfactor = params[8] or 0.5 --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
+	local glowsustain = params[9] or (math.random() * 20) -- how many frames to elapse before glow starts to recede
+	local glowadd = params[10] or (math.random() * 2) -- how much additional, non-transparency controlled heat glow should the decal get
 
 	AddDecal(
 		groundscarsPath..texture,
