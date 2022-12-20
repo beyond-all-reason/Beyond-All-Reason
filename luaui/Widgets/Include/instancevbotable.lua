@@ -525,7 +525,7 @@ function popElementInstance(iT, instanceID, noUpload)
 						if iT.numZombies and iT.numZombies > 0 then -- WE HAVE ZOMBIES AAAAARGH
 							local s = "Warning: We have " .. tostring(iT.numZombies) .. " zombie units left over in " .. iT.myName
 							for zombie, gf in pairs(iT.zombies) do 
-								s = s .. " " .. tostring(zombie)
+								s = s .. " " .. tostring(zombie) ..'/'..tostring(gf)
 								Spring.Echo("ZOMBIE AT", zombie, Spring.GetUnitPosition(zombie))
 								--Spring.SendCommands({"pause 1"})
 								Spring.Debug.TraceFullEcho(nil,nil,nil, iT.myName)

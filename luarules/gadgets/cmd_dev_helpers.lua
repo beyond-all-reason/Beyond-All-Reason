@@ -243,6 +243,8 @@ if gadgetHandler:IsSyncedCode() then
 			ClearWrecks()
 		elseif words[1] == "fightertest" then
 			fightertest(words)
+		elseif words[1] == 'desync' then
+			Spring.SendCommands("desync")
 		end
 	end
 
@@ -511,6 +513,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('clearwrecks', clearWrecks, "") -- /luarules clearwrecks removes all wrecks and heaps from the map
 
 		gadgetHandler:AddChatAction('fightertest', fightertest, "") -- /luarules fightertest unitdefname1 unitdefname2 count
+		gadgetHandler:AddChatAction('desync', desync) -- /luarules fightertest unitdefname1 unitdefname2 count
 	end
 
 	function gadget:Shutdown()
@@ -525,7 +528,9 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('dumpfeatures')
 		gadgetHandler:RemoveChatAction('removeunitdefs')
 		gadgetHandler:RemoveChatAction('clearwrecks')
-		gadgetHandler:RemoveChatAction('fightertest')
+		gadgetHandler:RemoveChatAction('fightertest')		
+		gadgetHandler:RemoveChatAction('desync') -- /luarules fightertest unitdefname1 unitdefname2 count
+
 	end
 
 	function xpUnits(_, line, words, playerID)
@@ -636,6 +641,10 @@ else	-- UNSYNCED
 		Spring.SendLuaRulesMsg(msg)
 	end
 
+	function desync()
+		local msg = PACKET_HEADER .. ':desync'
+		Spring.SendLuaRulesMsg(msg)
+	end
 
 	function spawnceg(_, line, words, playerID)
 		--spawnceg usage:

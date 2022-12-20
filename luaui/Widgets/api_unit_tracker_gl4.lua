@@ -41,6 +41,9 @@ local debugdrawvisible = false
 -- todo: fix drawdebugvisible to be changeable - done
 -- todo: test this in singleplayer scenarios, and loaded games!
 
+-- SUPER IMPORTANT: NEVER EVER ADD UNITS TO A VBO TABLE THAT ARE IN unitDefIgnore!
+-- As the unit tracker api wont track them as actual units, and wont ever remove them either!
+
 
 local alliedUnits = {} -- table of unitID : unitDefID
 local numAlliedUnits = 0
@@ -324,9 +327,8 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 		end
 	end
 
-	if debuglevel >= 3 then Spring.Echo("UnitCreated", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, reason) end
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
-
+	if debuglevel >= 3 then Spring.Echo("UnitCreated", unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, reason) end
 
 	if isValidLivingSeenUnit(unitID, unitDefID, 3) == false then return end
 
@@ -342,7 +344,10 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, reason)
-	if debuglevel >= 3 then Spring.Echo("UnitDestroyed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, reason) end
+	if debuglevel >= 3 then 
+		unitDefID = unitDefID or spGetUnitDefID(unitID)
+		Spring.Echo("UnitDestroyed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, reason) 
+	end
 	visibleUnitsRemove(unitID, reason or "destroyed")
 	alliedUnitsRemove(unitID, reason or "destroyed")
 end

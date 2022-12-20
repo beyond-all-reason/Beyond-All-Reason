@@ -236,6 +236,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 
 			fontSize = fontSize * 0.85
 			font2:SetOutlineColor(0, 0, 0, 0.4)
+			font2:SetTextColor(1, 1, 1, 1)
 			font2:Print((weAreVoteOwner and Spring.I18N('ui.voting.endVote') or Spring.I18N('ui.voting.no')), noButtonArea[1] + ((noButtonArea[3] - noButtonArea[1]) / 2), noButtonArea[2] + ((noButtonArea[4] - noButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 
 			-- YES
