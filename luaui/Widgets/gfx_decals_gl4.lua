@@ -772,7 +772,7 @@ for weaponDefID=1, #WeaponDefs do
 			bwfactor = 0.17
 
 		elseif string.find(weaponDef.name, 'bug') then
-			textures = { "t_groundcrack_23_a.png", "t_groundcrack_24_a.png", "t_groundcrack_25_a.png" }
+			textures = { "t_groundcrack_23_a.png", "t_groundcrack_24_a.png", "t_groundcrack_25_a.png", "t_groundcrack_27_a.png" }
 			radius = (radius * 10)-- * (math.random() * 0.7 + 0.52)
 			alpha = 15
 			heatstart = 500
@@ -801,6 +801,16 @@ for weaponDefID=1, #WeaponDefs do
 			alphadecay = 0.002
 			glowadd = 2.5
 			bwfactor = 0.7
+
+		elseif string.find(weaponDef.name, 'armagmheat') then
+			textures = { "t_groundcrack_10_a.png" }
+			radius = (radius * 1.6)-- * (math.random() * 0.15 + 0.85)
+			alpha = 1
+			heatstart = 6500
+			heatdecay = 0.5
+			alphadecay = 0.002
+			glowadd = 2.5
+			--bwfactor = 0.15
 		end
 
 		weaponConfig[weaponDefID] = {
