@@ -1,16 +1,16 @@
 return {
 	bigbug_death = {
-		areaofeffect = 42,
+		areaofeffect = 38,
 		craterboost = 0,
 		cratermult = 0,
-		explosiongenerator = "custom:chickenunitexplosion-large-red",
+		explosiongenerator = "custom:chickenunitexplosion-huge-red",
 		impulseboost = 0,
 		impulsefactor = 0.4,
 		name = "bigbug_death",
 		range = 450,
 		reloadtime = 3.6,
 		soundhit = "bigbugdie",
-		soundhitvolume = 6.5,
+		soundhitvolume = 8.5,
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {
