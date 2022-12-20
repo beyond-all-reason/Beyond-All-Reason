@@ -38,12 +38,13 @@ end
 		-- determine clan from first [] of playername
 		-- which can be done on initialize?
 		-- cursor
-	-- SHADOWS SUPPORT!
+	-- DONE: SHADOWS SUPPORT!
 	-- FOG SUPPORT?
-	-- DONE LOS SUPPORT
-	-- BWfactor
-	-- glowsustain
-	-- glowadd
+	-- Better LOS SUPPORT
+	-- DONE: BWfactor
+	-- DONE: glowsustain
+	-- DONE: glowadd
+	-- Fix unused decals having 1.0 alpha in normal resulting in heavy glow on zoomed out small decals bleeding
 ------------------------ CONFIGURABLES -----------------------------------------------
 
 local shaderConfig = {
@@ -53,7 +54,7 @@ local shaderConfig = {
 	AMBIENTOCCLUSION = 0, -- 1 for on, do not use
 	USEGLOW = 1, -- 1 for on, kinda wierd at the moment
 	GLOWTHRESHOLD = 0.99,
-	FADEINTIME = 6, -- number of frames to fade in over
+	FADEINTIME = 20, -- number of frames to fade in over
 	SPECULAREXPONENT = 5.0, -- how shiny decal surface is?
 	SPECULARSTRENGTH = 0.3, -- how strong specular highlights are
 	--BLACKANDWHITEFACTOR = 0.5, -- set to between [0,1] to set how strong the black and white conversion should be, 0 = original color, 1 = full black and white, deprecated, now controllable per-decal
@@ -101,7 +102,7 @@ local function addDirToAtlas(atlas, path, key, filelist)
 	for i=1, #files do
 		local lowerfile = string.lower(files[i])
 		if imgExts[string.sub(lowerfile,-3,-1)] and string.find(lowerfile, key, nil, true) then
-			--Spring.Echo(files[i])
+			Spring.Echo(files[i])
 			gl.AddAtlasTexture(atlas,lowerfile)
 			atlassedImages[lowerfile] = atlas
 			filelist[lowerfile] = true
@@ -114,16 +115,26 @@ local function makeAtlases()
 	local success
 	atlasColorAlpha = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
 
-	addDirToAtlas(atlasColorAlpha, groundscarsPath, '_a.png', decalImageCoords)
+	addDirToAtlas(atlasColorAlpha, groundscarsPath, '_a.', decalImageCoords)
 	--addDirToAtlas(atlasColorAlpha, oldgroundscarsPath, 'scar', decalImageCoords)
 	success = gl.FinalizeTextureAtlas(atlasColorAlpha)
 	if success == false then return false end
+	local atlasInfo = gl.TextureInfo(atlasColorAlpha)
+	local usedpixels = 0
 	-- read back the UVs:
 	for filepath, _ in pairs(decalImageCoords) do
-		local p,q,s,t = gl.GetAtlasTexture(atlasColorAlpha, filepath)
-		local texel = 0.5/atlasSize
-		decalImageCoords[filepath] =  {p+texel,q-texel,s+texel,t-texel}
+		local p,q,s,t = gl.GetAtlasTexture(atlasColorAlpha, filepath) --xXyY
+		local texelX = 1.0/atlasInfo.xsize -- shrink UV areas for less mip bleed
+		local texelY = 1.0/atlasInfo.ysize -- shrink UV areas for less mip bleed
+		usedpixels = usedpixels + (math.abs(p-q) * atlasInfo.xsize ) * (math.abs(s-t) * atlasInfo.ysize)
+		if autoreload then Spring.Echo(filepath) end
+		decalImageCoords[filepath] =  {p+texelX,q-texelX,s+texelY,t-texelY}
 	end
+
+	Spring.Echo(string.format("Decals GL4 Atlas is %dx%d, used %.1f%%",
+		atlasInfo.xsize, atlasInfo.ysize,
+		usedpixels * 100 / (atlasInfo.xsize * atlasInfo.ysize)
+		))
 
 	atlasNormals = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
 	addDirToAtlas(atlasNormals, groundscarsPath, '_n.')
@@ -332,6 +343,7 @@ end
 local function AddDecalToArea(instanceID, posx, posz, width, length)
 	local hash = hashPos(posx,posz)
 	local maparea = areaDecals[hash]
+	if maparea == nil then return end
 	local area = width * length
 	maparea.instanceIDs[instanceID] =  area
 	maparea.totalarea = maparea.totalarea + area
@@ -342,7 +354,7 @@ local function RemoveDecalFromArea(instanceID)
 	local hashpos = decalToArea[instanceID]
 	if hashpos then
 		local maparea = areaDecals[hashpos]
-		if maparea.instanceIDs[instanceID] then
+		if maparea and maparea.instanceIDs[instanceID] then
 			maparea.totalarea = math.max(0,maparea.totalarea - maparea.instanceIDs[instanceID])
 			maparea.instanceIDs[instanceID] = nil
 		end
@@ -631,109 +643,214 @@ function widget:Explosion(weaponDefID, px, py, pz, AttackerID, ProjectileID) -- 
 	---Spring.Echo("widget:Explosion",weaponDefID, px, py, pz, AttackerID, ProjectileID)
 end
 
+local globalDamageMult = Spring.GetModOptions().multiplier_weapondamage or 1
+local weaponConfig = {}
+for weaponDefID=1, #WeaponDefs do
+	local weaponDef = WeaponDefs[weaponDefID]
+
+	if not string.find(weaponDef.cegTag, 'aa') then
+		local radius = weaponDef.damageAreaOfEffect * 1.4
+
+		local damage = 100
+		for cat=0, #weaponDef.damages do
+			if Game.armorTypes[cat] and Game.armorTypes[cat] == 'default' then
+				damage = weaponDef.damages[cat]
+				break
+			end
+		end
+
+		-- correct damage multiplier modoption to more sane value
+		damage = (damage / globalDamageMult) + ((damage * (globalDamageMult-1))*0.25)
+
+		--local damageEffectiveness = weaponDef.edgeEffectiveness
+
+		local bwfactor = 0.5 --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
+		local radiusVariation = 0.3	-- 0.3 -> 30% larger or smaller radius
+		local alpha
+		local alphadecay
+		local heatstart
+		local heatdecay
+		local glowsustain
+		local glowadd
+
+		local textures = { "t_groundcrack_17_a.png", "t_groundcrack_21_a.png", "t_groundcrack_10_a.png" }
+		if weaponDef.paralyzer then
+			textures = { "t_groundcrack_17_a.png", "t_groundcrack_10_a.png", "t_groundcrack_10_a.png" }
+			heatstart = 0
+			glowadd = 0
+
+		elseif weaponDef.type == 'Cannon' then
+			if weaponDef.highTrajectory == 1 then
+				textures = { "t_groundcrack_21_a.png", "t_groundcrack_22_a.png", "t_groundcrack_10_a.png" }
+				alphadecay = 0.0024
+			end
+
+		elseif weaponDef.type == 'Flame' then
+
+		elseif weaponDef.type == 'LightningCannon' then
+
+		elseif weaponDef.type == 'BeamLaser' then
+
+		elseif weaponDef.type == 'LaserCannon' then
+
+		elseif weaponDef.type == 'StarburstLauncher' then
+
+		elseif weaponDef.type == 'AircraftBomb' then
+			if string.find(weaponDef.name, '.advbomb') then
+				radius = radius * 1.5
+				heatstart = 5500
+				heatdecay = 2.0
+				glowsustain = 35
+				glowadd = 4
+			else
+				radius = radius * 0.8
+				heatstart = 3500
+				heatdecay = 2.7
+				glowsustain = 20
+				glowadd = 1.2
+			end
+			bwfactor = 0.01
+
+		elseif weaponDef.type == 'DGun' then
+			textures = { "t_groundcrack_16_a.png", "t_groundcrack_17_a.png" }
+			if string.find(weaponDef.name, 'juggernaut_fire') then
+				radius = radius * 2.4
+				heatdecay = 0.65
+				glowsustain = 40
+				glowadd = 1.3
+				bwfactor = 0.1
+			else
+				radius = radius * 2.5
+				heatdecay = 0.7
+				glowsustain = 40
+				glowadd = 2.5
+				bwfactor = 0
+			end
+		end
+
+		if radius > 500 then
+			textures = { "t_groundcrack_21_a.png" }
+			heatstart = 5500
+			heatdecay = 0.5
+			glowsustain = 150
+			glowadd = 1.5
+			bwfactor = 0.1
+		end
+
+		if string.find(weaponDef.name, 'juno') then
+			radius = 180
+
+		elseif string.find(weaponDef.name, 'acid') then
+			textures = { "t_groundcrack_26_a.png" }
+			radius = (radius * 5)-- * (math.random() * 0.15 + 0.85)
+			alpha = 6
+			heatstart = 500
+			heatdecay = 10
+			alphadecay = 0.012
+			--glowadd = 2.5
+			--glowsustain = 0
+			bwfactor = 0.17 --0.17
+
+			--armliche
+		elseif string.find(weaponDef.name, 'arm_pidr') then
+			textures = { "t_groundcrack_21_a.png" }
+			radius = radius * 1.8
+			heatstart = 5500
+			heatdecay = 0.66
+			glowsustain = 100
+			glowadd = 1.5
+			bwfactor = 0.1
+
+		elseif string.find(weaponDef.name, 'death_acid') then
+			textures = { "t_groundcrack_26_a.png" }
+			radius = (radius * 5.5)-- * (math.random() * 0.25 + 0.75)
+			alpha = 6
+			heatstart = 550
+			heatdecay = 0.1
+			alphadecay = 0.012
+			glowadd = 2.5
+			bwfactor = 0.17
+
+		elseif string.find(weaponDef.name, 'bug') then
+			textures = { "t_groundcrack_23_a.png", "t_groundcrack_24_a.png", "t_groundcrack_25_a.png" }
+			radius = (radius * 10)-- * (math.random() * 0.7 + 0.52)
+			alpha = 15
+			heatstart = 500
+			heatdecay = 0.12
+			alphadecay = 0.002
+			glowsustain = 15
+			glowadd = 2.5
+			bwfactor = 0.6
+
+		elseif string.find(weaponDef.name, 'bloodyeggs') then
+			textures = { "t_groundcrack_23_a.png" }
+			radius = (radius * 1.5)-- * (math.random() * 1.2 + 0.25)
+			alpha = 10
+			heatstart = 490
+			heatdecay = 0.1
+			alphadecay = 0.005
+			glowadd = 2.5
+			bwfactor = 0.6
+
+		elseif string.find(weaponDef.name, 'dodo') then
+			textures = { "t_groundcrack_23_a.png", "t_groundcrack_24_a.png" }
+			radius = (radius * 1.2)-- * (math.random() * 0.15 + 0.85)
+			alpha = 10
+			heatstart = 490
+			heatdecay = 0.1
+			alphadecay = 0.002
+			glowadd = 2.5
+			bwfactor = 0.7
+		end
+
+		weaponConfig[weaponDefID] = {
+			textures,
+			radius,
+			radiusVariation,
+			heatstart, -- 4
+			heatdecay, -- 5
+			alpha, -- 6
+			alphadecay, -- 7
+			bwfactor,	-- 8
+			glowsustain,
+			glowadd,
+			weaponDef.damageAreaOfEffect,	-- 11
+			damage,	-- 12
+		}
+	end
+end
+
 local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
-	local weaponDef = WeaponDefs[weaponID]
 	--Spring.Echo("GadgetWeaponExplosionDecal",px, py, pz, weaponID, ownerID, weaponDef.damageAreaOfEffect, weaponDef.name)
 
-	local aa = string.find(weaponDef.cegTag, 'aa')
-	if aa then
+	local params = weaponConfig[weaponID]
+	if not params then
 		return
 	end
 
-	-- randomly choose one decal
-	local heatstart = 0
-	local idx --= randtablechoice(decalImageCoords)
-	local heatdecay = math.random() + 1.1
-	-- Or hard code it:
-	if true then
-		if math.random(1,2) == 1 then
-			idx = groundscarsPath.."t_groundcrack_10_a.png"
-		else
-			idx = groundscarsPath.."t_groundcrack_17_a.png"
-		end
-		--idx = groundscarsPath.."t_groundcrack_09_a.png"
-		heatstart = (math.random() * 0.2 + 0.9) * 4900
-		heatdecay = (math.random() * 0.4 + 2.0) - (weaponDef.damageAreaOfEffect/2250)
+	local radius = params[2] + ((params[2] * (math.random()-0.5)) * params[3])
+	local exploHeight = py - spGetGroundHeight(px,pz)
+	if exploHeight >= radius then
+		return
 	end
 
-	local radius = (weaponDef.damageAreaOfEffect * 1.4) * (math.random() * 0.48 + 0.72)
-	local gh = spGetGroundHeight(px,pz)
-	-- dont spawn decals into the air
-	-- also, modulate their alphastart by how far above ground they are
-	local exploheight = py - gh
-	if (exploheight >= radius) then return end
+	local texture = params[1][ math.random(1,#params[1]) ]
 
-		-- reduce severity when explosion is above ground
-	local heightMult = 1 - (exploheight / radius)
-	local alpha = (math.random() * 1.0 + 1.5) * (1.0 - exploheight/radius) * heightMult
-	local alphadecay = (math.random() * 0.3 + 0.2) / (4 * radius)
-	local bwfactor = 0.5 --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
-	local glowsustain = math.random() * 20 -- how many frames to elapse before glow starts to recede
-	local glowadd = math.random() * 2 -- how much additional, non-transparency controlled heat glow should the decal get
+	-- reduce severity when explosion is above ground
+	local heightMult = 1 - (exploHeight / radius)
 
-	if weaponDef.paralyzer then
-		if math.random(1,3) == 1 then
-			idx = groundscarsPath.."t_groundcrack_17_a.png"
-		else
-			idx = groundscarsPath.."t_groundcrack_10_a.png"
-		end
-		heatstart = 0
-		glowadd = 0
-	end
+	local heatstart = params[4] or ((math.random() * 0.2 + 0.9) * 4900)
+	local heatdecay = params[5] or ((math.random() * 0.4 + 2.0) - (params[11]/2250))
 
-	if weaponDef.type == 'DGun' then
-		radius = radius * 2.5
-		heatdecay = 0.6
-		bwfactor = 0
+	local alpha = params[6] or ((math.random() * 1.0 + 1.5) * (1.0 - exploHeight/radius) * heightMult)
+	local alphadecay = params[7] or (params[7] or ((math.random() * 0.3 + 0.2) / (4 * radius)))
 
-	elseif string.find(weaponDef.name, 'juno') then
-		radius = 180
-
-	elseif string.find(weaponDef.name, '.advbomb') then
-		idx = groundscarsPath.."t_groundcrack_09_a.png"
-		radius = radius * 1.5
-		heatstart = 5500
-		heatdecay = 2.0
-		glowsustain = 35
-		glowadd = 4
-		bwfactor = 0.01
-
-	elseif string.find(weaponDef.name, '.bomb') then
-		idx = groundscarsPath.."t_groundcrack_09_a.png"
-		radius = radius * 0.8
-		heatstart = 3500
-		heatdecay = 2.7
-		glowsustain = 20
-		glowadd = 1.2
-		bwfactor = 0.01
-
-	elseif string.find(weaponDef.name, 'nuclear_missile') then
-		idx = groundscarsPath.."t_groundcrack_09_a.png"
-		--radius = radius * 1.2
-		heatstart = 5500
-		heatdecay = 0.5
-		glowsustain = 150
-		glowadd = 1.5
-		bwfactor = 0.1
-
-	elseif string.find(weaponDef.name, 'crblmssl') then
-		idx = groundscarsPath.."t_groundcrack_09_a.png"
-		--radius = radius * 1.8
-		heatstart = 5500
-		heatdecay = 0.5
-		glowsustain = 125
-		glowadd = 1.5
-		bwfactor = 0.1
-
-	elseif string.find(weaponDef.name, 'tremor') then
-		idx = groundscarsPath.."t_groundcrack_09_a.png"
-		alphadecay = 0.0024
-		--bwfactor = 0.1	
-
-	end
+	local bwfactor = params[8] or 0.5 --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
+	local glowsustain = params[9] or (math.random() * 20) -- how many frames to elapse before glow starts to recede
+	local glowadd = params[10] or (math.random() * 2) -- how much additional, non-transparency controlled heat glow should the decal get
 
 	AddDecal(
-		idx,
+		groundscarsPath..texture,
 		px, --posx
 		pz, --posz
 		math.random() * 6.28, -- rotation
@@ -767,11 +884,11 @@ function widget:Initialize()
 			local w = math.random() * 15 + 7
 			w = w * w
 			local j = math.floor(math.random()*20+1)
-			--local idx = string.format(groundscarsPath.."t_groundcrack_%02d_a.png", j)
-			local idx = randtablechoice(decalImageCoords)
-			--Spring.Echo(idx)
+			--local texture = string.format(groundscarsPath.."t_groundcrack_%02d_a.png", j)
+			local texture = randtablechoice(decalImageCoords)
+			--Spring.Echo(texture)
 			AddDecal(
-				idx,
+				texture,
 				Game.mapSizeX * math.random() * 1.0, --posx
 				Game.mapSizeZ * math.random() * 1.0, --posz
 				math.random() * 6.28, -- rotation

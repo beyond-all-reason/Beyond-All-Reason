@@ -26,7 +26,7 @@ uniform sampler2D heightmapTex;
 uniform sampler2D infoTex;
 uniform sampler2DShadow shadowTex;
 uniform sampler3D noise64cube;
-uniform sampler2D dithernoise2d;
+uniform sampler2D miniMapTex;
 uniform sampler2D simpledither;
 uniform sampler3D worley3d3level;
 
@@ -52,7 +52,7 @@ float shadowAtWorldPos(vec3 worldPos){
 		return clamp(textureProj(shadowTex, shadowVertexPos), 0.0, 1.0);
 }
 float losLevelAtWorldPos(vec3 worldPos){ // this returns 
-	#if (INFOLOSAPI == 1)
+	#if 1
 		vec2 losUV = clamp(worldPos.xz, vec2(0.0), mapSize.xy ) / mapSize.xy;
 		vec4 infoTexSample = texture(infoTex, losUV);
 		return infoTexSample.r;
@@ -81,6 +81,10 @@ float rand(vec2 co){
 float smoothmin(float a, float b, float k) {
 	float h = clamp(0.5 + 0.5*(a-b)/k, 0.0, 1.0);
 	return mix(a, b, h) - k*h*(1.0-h);
+}
+
+float fogAmountHeightBased(float h){
+	return h;
 }
 
 float SimplexPerlin3D( vec3 P ){
@@ -167,15 +171,14 @@ void main(void)
 	mapWorldPos = cameraViewProjInv * mapWorldPos;
 	mapWorldPos.xyz = mapWorldPos.xyz / mapWorldPos.w; // YAAAY this works!
 	
-	vec3 mapToCam = camPos - mapWorldPos.xyz;
+	vec3 mapFromCam = mapWorldPos.xyz - camPos.xyz;
 	
-	float distToCamSquared = dot(mapToCam, mapToCam);
+	float distToCamSquared = dot(mapFromCam, mapFromCam);
 	float underWaterFraction = 0;
 	// if mapworldpos is below 0, then adjust it back
-	if (mapWorldPos.y < -0){
-		underWaterFraction = (-mapWorldPos.y) / abs(mapToCam.y);
-		mapWorldPos.xyz = mapWorldPos.xyz + (mapToCam.xyz * underWaterFraction * 1.0001); // without the mult it NaN's the fuck out
-		//mapWorldPos.y = fract(underwaterfraction*0.1);
+	if (mapWorldPos.y < 0){
+		float abovewaterfraction = camPos.y / abs(mapFromCam.y);
+		mapWorldPos.xyz = (mapFromCam.xyz * abovewaterfraction) + camPos.xyz;
 	}
 	vec3 fragWorldPos = v_worldPos.xyz;
 
@@ -224,9 +227,20 @@ void main(void)
 	vec4 densityposition = vec4(0); // Ok, this contains the center-weighted sum of all positions, 
 	// TODO: FIX ABOVE FOG TOP!
 	// TODO: fix warps sampling zero simplex!
+	vec2 mymin = min(mapWorldPos.xz,mapSize.xy - mapWorldPos.xz);
+	float outofboundsness = min(mymin.x, mymin.y) ;
+	//outofboundsness /= min(mapSize.x, mapSize.y);
+	float inlos = 0;
+	#if (LOSREDUCEFOG < 1)
+		inlos = losLevelAtWorldPos( mapWorldPos.xyz);
+		
+		bool outofmap = any(lessThan(vec4(mapWorldPos.xz, mapSize.xy),  vec4(0.0, 0.0, mapWorldPos.xz)));
+		if (outofmap) inlos = 0;
+
+	#endif
 	
-	if (rayLength> 0.0001 ) { 
-		#if 0
+	if (rayLength> 0.0001 && inlos < 0.95) { 
+		#if 0 // old deprecated method
 			float rayJitterOffset = (1 * rand(screenUV)) / steps ;
 			#if (RAYMARCHSTEPS > 0)
 			for (uint i = 0; i < steps; i++){
@@ -260,7 +274,7 @@ void main(void)
 				heightBasedFog *= collectedNoise/(NOISESAMPLES);
 			#endif
 			
-		#else
+		#else// new interleaved sampling
 			
 			#if ((RAYMARCHSTEPS > 0) && (NOISESAMPLES >0))
 				float numShadowSamplesTaken = 0.001;
@@ -304,28 +318,35 @@ void main(void)
 			#endif
 		
 		#endif
+	}else{
+		collectedShadow = 1.0;
 	}
 	if (mapWorldPos.y >= fogPlaneHeight){
 		//collectedShadow = 1.0; 
 	}
-	
 	//modulate the height based component only, not the distance based component
 	
 	// but modulate _before_ addition!
 	const float expfactor = fogExpFactor;
 	
 	// calculate the distance fog density
-	float distanceFogAmount = fogGlobalDensity * length(mapToCam);
+	float distanceFogAmount = fogGlobalDensity * length(mapFromCam);
 	
-	// reduce height-based fog for in-los areas:
-	float inlos = losLevelAtWorldPos( mapWorldPos.xyz);
-	heightBasedFog *= (1.0 - inlos);
+	// Modulate distance fog density with angle of ray compared to sky?
+	vec3 fromCameraNormalized = normalize(mapFromCam);
+	if (fromCameraNormalized.y > 0) {
+		distanceFogAmount *= pow(1.0 - fromCameraNormalized.y, 16.0) ;
+	}
+	
+
 	//fragColor.a = 1.0;
 	//fragColor.rgb = vec3(inlos);
 	//return;
 	
+	// reduce height-based fog for in-los areas:
+	heightBasedFog *= (1.0 - inlos *(1.0- LOSREDUCEFOG));
 	
-	// Modulate the amount of fog based on how shadowed it is?
+	// Modulate the amount of fog based on how shadowed it is, by adding more fog to shadowed areas
 	heightBasedFog += heightBasedFog * smoothstep( 0.0,1.0, 1.0 - collectedShadow); 
 	
 	float heightBasedFogExp = exp(heightBasedFog * expfactor);
@@ -339,23 +360,46 @@ void main(void)
 	float shadowColorization = clamp(heightBasedFogExp/distanceFogAmountExp,0,1);
 	
 	// Colorize fog based on view angle: TODO do this on center weigth of both !
-	vec3 toCameraNormalized = normalize(mapToCam);
-	float sunAmount = dot(-toCameraNormalized, sunDir.xyz);
-	float sphericalharmonic = pow(2, (cos(cos(sunAmount) * 3.14*8)));
-	sphericalharmonic= abs(sunAmount);
-	vec3 fogColor = mix(fogGlobalColor.rgb, 2*fogSunColor.rgb, pow(sphericalharmonic,4.0));
+
+	float sunAngleCos =  dot( fromCameraNormalized, sunDir.xyz); // this goes from into sun at 1 to sun behind us at -1 
+	
+	float sphericalharmonic = 1.0;//pow(1.3, (cos(cos(sunAngleCos - 1.0) * 3.14*10)));
+	
+	//reduce sun back glare
+	if (sunAngleCos < 0.0) sunAngleCos = sunAngleCos * sunAngleCos*sunAngleCos*sunAngleCos*sunAngleCos*sunAngleCos*sunAngleCos;
+
+	//sunAngleCos *= ( step( sunAngleCos, 0) * 0.5 +0.5);
+	
+	sphericalharmonic *= abs(sunAngleCos);
+	
+	//sphericalharmonic *= abs(sunAngleCos);
+	vec3 fogColor = fogGlobalColor.rgb;
+	
+	//sphericalharmonic = step(sunAngleCos, 0.75);
+	fogColor = mix(fogColor, 2*fogSunColor.rgb, pow(sphericalharmonic,4.0));
 	
 	// Set the base color depending on how shadowed it is, 
 	// shadowed components should tend toward fogGlobalColor
 	vec3 heightFogColor = mix(fogGlobalColor.rgb, fogColor, collectedShadow);
 	
-	// Darkened the shadowed bits towards fogShadowedColor
-	fragColor.rgb = mix(vec3(fogShadowedColor), heightFogColor.rgb, collectedShadow);
+
 	
+	// Darkened the shadowed bits towards fogShadowedColor
+	fragColor.rgb = mix(vec3(fogShadowedColor), heightFogColor.rgb, collectedShadow);	
+	
+	//Calculate backscatter color from minimap if possible?
+	#if 1 // set to 1 or 0 to turn on/off
+		#if (USEMINIMAP == 1) 
+			vec4 minimapcolor = textureLod(miniMapTex, heighmapUVatWorldPosMirrored(mapWorldPos.xz), 4.0);
+			//fogColor.rgb = mix(fogColor.rgb, minimapcolor.rgb, MINIMAPSCATTER);
+			fragColor.rgb += minimapcolor.rgb * MINIMAPSCATTER * collectedShadow;
+		#endif
+	#endif
+	//fragColor.rgb = fract((mapWorldPos.xyz) / 32 -0.5);
+	//fragColor.a = 1.0;
 	// Above that, mix back regular fog color for distance based fog
 	fragColor.rgb = mix( fogColor.rgb, fragColor.rgb,distanceFogAmountExp);
-	//fragColor.rgb = mix (fragColor.rgb, fogColor.rgb, shadowColorization);
-	
+
 	//fragColor.rgb= vec3(1.0);
 	//fragColor.rgba = vec4(heightBasedFogExp, distanceFogAmountExp,0,1);
 	//fragColor.rgba = vec4(shadowColorization,shadowColorization,shadowColorization,1);

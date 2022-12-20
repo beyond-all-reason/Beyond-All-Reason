@@ -193,6 +193,17 @@ vec2 heighmapUVatWorldPos(vec2 worldpos){
 	return uvhm;
 }
 
+// This does 'mirror' style tiling of UVs like the way the map edge extension works
+vec2 heighmapUVatWorldPosMirrored(vec2 worldpos) { 
+	const vec2 inverseMapSize = 1.0 / mapSize.xy;
+	// Some texel magic to make the heightmap tex perfectly align:
+	const vec2 heightmaptexel = vec2(8.0, 8.0);
+	worldpos +=  vec2(-8.0, -8.0) * (worldpos * inverseMapSize) + vec2(4.0, 4.0) ;
+	vec2 uvhm = worldpos * inverseMapSize;
+	
+	return abs(fract(uvhm * 0.5 + 0.5) - 0.5) * 2.0;
+}
+
 // Note that this function does not check the Z or depth of the clip space, but in regular springrts top-down views, this isnt needed either. 
 // the radius to cameradist ratio is a good proxy for visibility in the XY plane
 bool isSphereVisibleXY(vec4 wP, float wR){ //worldPos, worldRadius

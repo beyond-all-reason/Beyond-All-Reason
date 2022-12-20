@@ -10,7 +10,8 @@ uniform vec2 radarTexSize;
 uniform sampler2D tex0;
 uniform sampler2D tex1;
 uniform sampler2D tex2;
-varying vec2 texCoord;
+in vec2 texCoord;
+out vec4 fragColor;
 
 
 //! source: http://www.ozone3d.net/blogs/lab/20110427/glsl-random-generator/
@@ -34,16 +35,16 @@ vec4 getTexel(in sampler2D tex, in vec2 p, in vec2 sizes)
 
 
 void main() {
-	gl_FragColor  = vec4(0.0);
+	fragColor  = vec4(0.0);
 
 	float los = getTexel(tex0, texCoord, vec2(LOSXSIZE,LOSYSIZE)).r;
 	float airlos = getTexel(tex1, texCoord, vec2(AIRLOSXSIZE,AIRLOSYSIZE)).r;
 	vec2 radarJammer = getTexel(tex2, texCoord, vec2(RADARXSIZE,RADARYSIZE)).rg;
 	
-	gl_FragColor.r = los;
-	gl_FragColor.g += airlos * 0.33;
-	gl_FragColor.b = 0.5;
-	gl_FragColor.b += radarJammer.r;
-	gl_FragColor.b -= 2*radarJammer.g;
-	gl_FragColor.a = outputAlpha;
+	fragColor.r = los;
+	fragColor.g += airlos * 0.33;
+	fragColor.b = 0.5;
+	fragColor.b += radarJammer.r;
+	fragColor.b -= 2*radarJammer.g;
+	fragColor.a = outputAlpha;
 }

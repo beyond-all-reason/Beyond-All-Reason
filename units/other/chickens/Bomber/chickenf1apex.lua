@@ -83,7 +83,7 @@ return {
 			},
 		},
 		weapondefs = {
-			weapon = {
+			bloodyeggs = {
 				accuracy = 1000,
 				collidefriendly = 0,
 				collidefeature = 0,
@@ -125,7 +125,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "WEAPON",
+				def = "bloodyeggs",
 			},
 		},
 	},
