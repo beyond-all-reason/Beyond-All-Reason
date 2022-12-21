@@ -34,6 +34,7 @@ return {
 		stealth = true,
 		turnrate = 0,
 		upright = true,
+		yardmap = "ffff",
 		customparams = {
 			usebuildinggrounddecal = false,
 			buildinggrounddecaltype = "decals/scavdtf_aoplane.dds",
