@@ -59,6 +59,8 @@ local interruptionEnabled
 local silenceTimerEnabled
 local deviceLostSafetyCheck = 0
 local interruptionTime = math.random(interruptionMinimumTime, interruptionMaximumTime)
+local gameFrame = 0
+local serverFrame = 0
 local bossHasSpawned = false
 
 local function ReloadMusicPlaylists()
@@ -900,7 +902,13 @@ function widget:UnitDamaged(unitID, unitDefID, _, damage)
 	end
 end
 
+function widget:GameProgress(n)
+	-- happens every 150 frames
+	serverFrame = n
+end
+
 function widget:GameFrame(n)
+	gameFrame = n
 	if n%1800 == 0 then
 		deviceLostSafetyCheck = 0
 	end
@@ -956,7 +964,7 @@ function widget:GameFrame(n)
 					if (bossHasSpawned and currentTrackListString ~= "bossFight") or ((not bossHasSpawned) and currentTrackListString == "bossFight") then
 						fadeDirection = -2
 						fadeOutSkipTrack = true
-					elseif (interruptionEnabled and (playedTime >= interruptionTime))
+					elseif (interruptionEnabled and (playedTime >= interruptionTime) and gameFrame >= serverFrame-300)
 					  and ((currentTrackListString == "intro" and n > 90)
 						or (currentTrackListString == "peace" and warMeter > warLowLevel * 2) -- Peace in battle times, let's play some WarLow music at double of WarLow threshold
 						or (currentTrackListString == "warLow" and warMeter > warHighLevel * 2) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at double of WarHigh threshold
