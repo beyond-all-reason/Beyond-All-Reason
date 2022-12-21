@@ -14,9 +14,11 @@ end
 		{name = 'armpw', x = 160, y = 432, z = 2649, rot = 0, teamID = 0, queue = {
 		{cmdID = CMD.PATROL, position = {px = 659, py = 435, pz = 2680}}
 		}},
-		{name = 'armrock', x = 156, y = 432, z = 2649, rot = 0, teamID = 0},
-		--{name = 'coradvsol', x = 82, y = 200, z = 3671, rot = 1, teamID = 1 },
-		--{name = 'armham', x = 152, y = 432, z = 2649, rot = 0, teamID = 0, px = 108, py = 426, pz = 2091},
+		{name = 'armrock', x = 156, y = 432, z = 2649, rot = 0, teamID = 0, queue = {}}, --empty table
+		{name = 'coradvsol', x = 82, y = 200, z = 3671, rot = 1, teamID = 1, queue = {}}, --empty table
+		{name = 'armham', x = 152, y = 432, z = 2649, rot = 0, teamID = 0, queue = {
+		{cmdID= CMD.PATROL, position = {px = 108, py = 426, pz = 2091}},
+		}}
 	}
 
 		for k , unit in pairs(objectiveUnits) do
