@@ -144,6 +144,7 @@ return {
 				areaofeffect = 16,
 				avoidfeature = false,
 				burnblow = true,
+				fixedLauncher = true,
 				canattackground = false,
 				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,
@@ -172,7 +173,7 @@ return {
 				soundhitwet = "splshbig",
 				soundstart = "packolau",
 				soundtrigger = false,
-				startvelocity = 520,
+				startvelocity = 820, --520
 				texture1 = "null",
 				texture2 = "smoketrailaa",
 				tolerance = 9950,
