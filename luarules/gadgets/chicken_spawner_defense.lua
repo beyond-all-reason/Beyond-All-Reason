@@ -87,7 +87,7 @@ if gadgetHandler:IsSyncedCode() then
 	local queenAngerAgressionLevel = 0
 	local difficultyCounter = 0
 	local airWaveCooldown = 0
-	local miniBossCooldown = 0
+	--local miniBossCooldown = 0
 	local specialWaveCooldown = 0
 	local firstSpawn = true
 	local gameOver = nil
@@ -1100,18 +1100,19 @@ if gadgetHandler:IsSyncedCode() then
 
 		local waveType = "normal"
 		if specialWaveCooldown <= 0 then
-			if miniBossCooldown <= 0 and currentWave >= 6 and mRandom() <= config.spawnChance then
-				miniBossCooldown = mRandom(10,20)
-				specialWaveCooldown = mRandom(2,4)
-				waveType = "miniboss"
-			elseif Spring.GetModOptions().unit_restrictions_noair == false and airWaveCooldown <= 0 and config.airWaves[currentWave] and mRandom() <= config.spawnChance then
+			-- if miniBossCooldown <= 0 and currentWave >= 6 and mRandom() <= config.spawnChance then
+			-- 	miniBossCooldown = mRandom(10,20)
+			-- 	specialWaveCooldown = mRandom(2,4)
+			-- 	waveType = "miniboss"
+			--elseif Spring.GetModOptions().unit_restrictions_noair == false and airWaveCooldown <= 0 and config.airWaves[currentWave] and mRandom() <= config.spawnChance then
+			if Spring.GetModOptions().unit_restrictions_noair == false and airWaveCooldown <= 0 and config.airWaves[currentWave] and mRandom() <= config.spawnChance then
 				airWaveCooldown = mRandom(5,10)
 				specialWaveCooldown = mRandom(2,4)
 				waveType = "air"
 			end
 		end
 
-		miniBossCooldown = miniBossCooldown - 1
+		--miniBossCooldown = miniBossCooldown - 1
 		airWaveCooldown = airWaveCooldown - 1
 		specialWaveCooldown = specialWaveCooldown - 1
 			
