@@ -615,6 +615,35 @@ GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.15,
 											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 4, sustain = 0})
+
+--cordoomt3
+projectileDefLights[WeaponDefNames["cordoomt3_armagmheat"].id] =
+GetLightClass("LaserProjectile", "HeatRay", "Larger", {a = 0.14,
+											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
+											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
+											lifetime = 4, sustain = 0})
+
+--armanni
+projectileDefLights[WeaponDefNames["armanni_ata"].id] =
+GetLightClass("LaserProjectile", "Blue", "Large", {a = 0.11,
+											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
+											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
+											lifetime = 0, sustain = 0})
+
+--armannit3
+projectileDefLights[WeaponDefNames["armannit3_ata"].id] =
+GetLightClass("LaserProjectile", "Blue", "Larger", {a = 0.12,
+											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
+											modelfactor = 0.4, specular = 0.2, scattering = 0.1, lensflare = 0,
+											lifetime = 0, sustain = 0})
+
+--armannit3_scav
+projectileDefLights[WeaponDefNames["armannit3_scav_ata"].id] =
+GetLightClass("LaserProjectile", "Purple", "Larger", {a = 0.12,
+											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
+											modelfactor = 0.4, specular = 0.2, scattering = 0.1, lensflare = 0,
+											lifetime = 0, sustain = 0})
+
 --[[
 --armpw
 explosionLights[WeaponDefNames["armpw_emg"].id] =
@@ -637,13 +666,6 @@ GetLightClass("CannonProjectile", "Emg", "Tiny", {a = 0.1, radius = 25,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 3, sustain = 0})
 
---armanni
-projectileDefLights[WeaponDefNames["armanni_ata"].id] =
-GetLightClass("LaserProjectile", "Blue", "Larger", {a = 0.14,
-											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
-											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 0, sustain = 0})
-
 --armanni_scav
 -- could use a custom script that replaces color for all _scav units with "purple"
 projectileDefLights[WeaponDefNames["armanni_scav_ata"].id] =
@@ -652,19 +674,6 @@ GetLightClass("LaserProjectile", "Purple", "Larger", {a = 0.12,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 0, sustain = 0})
 
---armannit3
-projectileDefLights[WeaponDefNames["armannit3_ata"].id] =
-GetLightClass("LaserProjectile", "Blue", "Largest", {a = 0.14,
-											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
-											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 0, sustain = 0})
-
---armannit3_scav
-projectileDefLights[WeaponDefNames["armannit3_scav_ata"].id] =
-GetLightClass("LaserProjectile", "Purple", "Largest", {a = 0.14,
-											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
-											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 0, sustain = 0})
 
 --cordoom
 projectileDefLights[WeaponDefNames["cordoom_atadr"].id] =
@@ -735,8 +744,6 @@ GetLightClass("Explosion", nil, "Mediumer", {r = 3, g = 2.5, b = 2.0, a = 0.25,
 										color2r = 0.8, color2g = 0.43, color2b = 0.11, colortime = 5,
 										sustain = 10, lifetime = 38,
 										modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
-
-
 
 --armrl engine
 projectileDefLights[WeaponDefNames["armrl_armrl_missile"].id] =
