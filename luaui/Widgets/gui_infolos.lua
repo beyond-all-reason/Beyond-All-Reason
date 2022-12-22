@@ -44,7 +44,7 @@ local GL_RGBA32F_ARB = 0x8814
 -- TODO 2022.12.20
 	-- Read miplevels from modrules?
 
-local autoreload = true
+local autoreload = false
 ---- CONFIGURABLE PARAMETERS: -----------------------------------------
 
 local shaderConfig = {

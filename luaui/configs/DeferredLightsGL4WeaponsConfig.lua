@@ -597,6 +597,24 @@ GetLightClass("Explosion", nil, "Large", {r = 2, g = 1.5, b = 1.0, a = 0.22,
 										  sustain = 4, lifetime = 55,
 										  modelfactor = 0.1, specular = 0.2, scattering = 0.2, lensflare = 4})
 
+--corkorg
+projectileDefLights[WeaponDefNames["corkorg_corkorg_laser"].id] =
+GetLightClass("LaserProjectile", "HeatRay", "Large", {a = 0.14,
+											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
+											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
+											lifetime = 4, sustain = 0})
+
+--corkorg_shotgun
+projectileDefLights[WeaponDefNames["corkorg_corkorg_fire"].id] =
+GetLightClass("CannonProjectile", "Plasma", "Small", {a = 0.05,
+											modelfactor = 0.2, specular = 0.1, scattering = 0.9, lensflare = 3})
+
+--corkorg_scav
+projectileDefLights[WeaponDefNames["corkorg_scav_corkorg_laser"].id] =
+GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.15,
+											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
+											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
+											lifetime = 4, sustain = 0})
 --[[
 --armpw
 explosionLights[WeaponDefNames["armpw_emg"].id] =
@@ -675,26 +693,6 @@ GetLightClass("LaserProjectile", "Purple", "Larger", {a = 0.14,
 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
 											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
 											lifetime = 0, sustain = 0})
-
---corkorg
-projectileDefLights[WeaponDefNames["corkorg_corkorg_laser"].id] =
-GetLightClass("LaserProjectile", "HeatRay", "Large", {a = 0.15,
-											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
-											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 4, sustain = 0})
-
---corkorg_shotgun
-projectileDefLights[WeaponDefNames["corkorg_corkorg_fire"].id] =
-GetLightClass("CannonProjectile", "Plasma", "Small", {a = 0.05,
-											modelfactor = 0.2, specular = 0.1, scattering = 0.9, lensflare = 3})
-
---corkorg_scav
-projectileDefLights[WeaponDefNames["corkorg_scav_corkorg_laser"].id] =
-GetLightClass("LaserProjectile", "Purple", "Large", {a = 0.15,
-											color2r = 0.5, color2g = 0.3, color2b = 0.2, colortime = 10,
-											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 4, sustain = 0})
-
 --armcom
 muzzleFlashLights[WeaponDefNames["armcom_disintegrator"].id] =
 GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
