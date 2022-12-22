@@ -683,9 +683,26 @@ for weaponDefID=1, #WeaponDefs do
 			if weaponDef.highTrajectory == 1 then
 				textures = { "t_groundcrack_21_a.png", "t_groundcrack_22_a.png", "t_groundcrack_10_a.png" }
 				alphadecay = 0.0024
+
+			elseif string.find(weaponDef.name, 'lrpc') then
+				textures = { "t_groundcrack_21_a.png", "t_groundcrack_22_a.png", "t_groundcrack_10_a.png" }
+				radius = radius * 1.8
+				heatstart = 6000
+				heatdecay = 0.78
+				glowadd = 2
 			end
 
 		elseif weaponDef.type == 'Flame' then
+			-- FLAME does not work - probably does not apply a decal on engine level
+			-- textures = { "t_groundcrack_16_a.png", "t_groundcrack_17_a.png" }
+			-- if string.find(weaponDef.name, 'flamethrower') then
+			-- 	radius = radius * 5.8
+			-- 	heatstart = 6000
+			-- 	heatdecay = 0.78
+			-- 	alpha = 6
+			-- 	alphadecay = 0.0024
+			-- 	glowadd = 2
+			-- end
 
 		elseif weaponDef.type == 'LightningCannon' then
 
@@ -750,6 +767,16 @@ for weaponDefID=1, #WeaponDefs do
 			--glowadd = 2.5
 			--glowsustain = 0
 			bwfactor = 0.17 --0.17
+
+		elseif string.find(weaponDef.name, 'napalm') then
+			textures = { "t_groundcrack_16_a.png" }
+			radius = radius * 1.6
+			heatstart = 4000
+			heatdecay = 0.33
+			alpha = 0.4
+			alphadecay = 0.0002
+			glowsustain = 225
+			glowadd = 4.5
 
 			--armliche
 		elseif string.find(weaponDef.name, 'arm_pidr') then

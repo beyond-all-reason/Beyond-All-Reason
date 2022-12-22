@@ -113,7 +113,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corbuzz_weapon = {
+			rflrpc = {
 				accuracy = 750,
 				areaofeffect = 256,
 				avoidfeature = false,
@@ -155,7 +155,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "MOBILE",
-				def = "CORBUZZ_WEAPON",
+				def = "RFLRPC",
 				onlytargetcategory = "SURFACE",
 			},
 		},

@@ -115,7 +115,7 @@ return {
 			},
 		},
 		weapondefs = {
-			cor_intimidator = {
+			lrpc = {
 				accuracy = 335,
 				areaofeffect = 157,
 				avoidfeature = false,
@@ -161,7 +161,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "MOBILE",
-				def = "COR_INTIMIDATOR",
+				def = "LRPC",
 				onlytargetcategory = "SURFACE",
 			},
 		},

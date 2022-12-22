@@ -115,7 +115,7 @@ return {
 			},
 		},
 		weapondefs = {
-			arm_berthacannon = {
+			lrpc = {
 				accuracy = 300,
 				areaofeffect = 135,
 				avoidfeature = false,
@@ -161,7 +161,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "MOBILE",
-				def = "ARM_BERTHACANNON",
+				def = "LRPC",
 				onlytargetcategory = "SURFACE",
 			},
 		},

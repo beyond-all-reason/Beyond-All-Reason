@@ -113,7 +113,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armvulc_weapon = {
+			rflrpc = {
 				accuracy = 700,
 				areaofeffect = 224,
 				avoidfeature = false,
@@ -155,7 +155,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "MOBILE",
-				def = "ARMVULC_WEAPON",
+				def = "RFLRPC",
 				onlytargetcategory = "SURFACE",
 			},
 		},

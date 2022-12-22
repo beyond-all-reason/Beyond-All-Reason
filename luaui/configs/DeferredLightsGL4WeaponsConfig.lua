@@ -505,35 +505,35 @@ AssignLightsToAllWeapons()
 -----------------Manual Overrides--------------------
 
 --corint
-muzzleFlashLights[WeaponDefNames["corint_cor_intimidator"].id] =
+muzzleFlashLights[WeaponDefNames["corint_lrpc"].id] =
 GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 0, posz = 0, radius = 240,
 											color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 50,
 											r = 1.2, g = 1.0, b = 0.9, a = 0.5,
 											modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
 											lifetime = 17, sustain = 2})
-muzzleFlashLights[WeaponDefNames["corint_cor_intimidator"].id].yOffset = 16
+muzzleFlashLights[WeaponDefNames["corint_lrpc"].id].yOffset = 16
 
 
 --armbrtha
-muzzleFlashLights[WeaponDefNames["armbrtha_arm_berthacannon"].id] =
+muzzleFlashLights[WeaponDefNames["armbrtha_lrpc"].id] =
 GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
 											 color2r = 0.3, color2g = 0.1, color2b = 0.05, colortime = 13,
 											 r = 1.2, g = 1.1, b = 1.0, a = 0.6,
 											 modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
 											 lifetime = 20, sustain = 2})
-muzzleFlashLights[WeaponDefNames["armbrtha_arm_berthacannon"].id].yOffset = 8
-explosionLights[WeaponDefNames["armbrtha_arm_berthacannon"].id] =
+muzzleFlashLights[WeaponDefNames["armbrtha_lrpc"].id].yOffset = 8
+explosionLights[WeaponDefNames["armbrtha_lrpc"].id] =
 GetLightClass("Explosion", nil, "Large", {colortime = 4, sustain = 12, lifetime = 26, scattering = 0.7})
 
 --armvulc
-muzzleFlashLights[WeaponDefNames["armvulc_armvulc_weapon"].id] =
+muzzleFlashLights[WeaponDefNames["armvulc_rflrpc"].id] =
 GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
 											 r = 1.2, g = 1.1, b = 1.0, a = 0.5,
 											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
 											 modelfactor = 0.5, specular = 0.3, scattering = 2.8, lensflare = 4,
 											 lifetime = 20, sustain = 2})
-muzzleFlashLights[WeaponDefNames["armvulc_armvulc_weapon"].id].yOffset = 4
-explosionLights[WeaponDefNames["armvulc_armvulc_weapon"].id] =
+muzzleFlashLights[WeaponDefNames["armvulc_rflrpc"].id].yOffset = 4
+explosionLights[WeaponDefNames["armvulc_rflrpc"].id] =
 GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
 
 
