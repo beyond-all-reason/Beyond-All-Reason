@@ -136,14 +136,14 @@ function actionHandler:RemoveAction(widget, cmd, types)
 
   -- default to removing all
   local text, keyPress, keyRepeat, keyRelease = ParseTypes(types, "tpRr")
-  
+
   local tSuccess, pSuccess, RSuccess, rSuccess = false, false, false, false
 
   if (text)       then tSuccess = remove(self.textActions)       end
   if (keyPress)   then pSuccess = remove(self.keyPressActions)   end
   if (keyRepeat)  then RSuccess = remove(self.keyRepeatActions)  end
   if (keyRelease) then rSuccess = remove(self.keyReleaseActions) end
-  
+
   return tSuccess, pSuccess, RSuccess, rSuccess
 end
 
@@ -168,7 +168,7 @@ end
 
 function actionHandler:RemoveWidgetActions(widget)
   local function clearActionList(actionMap)
-    for cmd, callInfoList in pairs(actionMap) do
+    for _, callInfoList in pairs(actionMap) do
       RemoveCallInfo(callInfoList, widget)
     end
   end
@@ -194,18 +194,6 @@ local function MakeWords(line)
 end
 
 
-local function MakeKeySetString(key, mods, getSymbol)
-  getSymbol = getSymbol or Spring.GetKeySymbol
-  local keyset = ""
-  if (mods.alt)   then keyset = keyset .. "A+" end
-  if (mods.ctrl)  then keyset = keyset .. "C+" end
-  if (mods.meta)  then keyset = keyset .. "M+" end
-  if (mods.shift) then keyset = keyset .. "S+" end
-  local _, defSym = getSymbol(key)
-  return (keyset .. defSym)
-end
-
-
 local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, actions)
   local callInfoList = actionMap[cmd]
   if (callInfoList == nil) then
@@ -223,14 +211,7 @@ local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, a
 end
 
 
-function actionHandler:KeyAction(press, key, mods, isRepeat, scanCode, actions)
-  if (not actions) then -- engine does not support actions sent in Key(Press|Release)
-    local keyset = MakeKeySetString(key, mods, Spring.GetKeySymbol)
-    local scanset = MakeKeySetString(scanCode, mods, Spring.GetScanSymbol)
-
-    actions = Spring.GetKeyBindings(keyset, scanset)
-  end
-
+function actionHandler:KeyAction(press, _, _, isRepeat, _, actions)
   if (not(actions and next(actions))) then return false end
 
   local actionSet
@@ -262,7 +243,7 @@ function actionHandler:TextAction(line)
   end
   -- remove the command from the words list and the raw line
   table.remove(words, 1)
-  local _,_,line = string.find(line, "[^%s]+[%s]+(.*)")
+  _,_,line = string.find(line, "[^%s]+[%s]+(.*)")
   if (line == nil) then
     line = ""  -- no args
   end
@@ -296,7 +277,7 @@ function actionHandler:RecvFromSynced(...)
     end
     return false
   end
-  
+
   return false -- unknown type
 end
 
