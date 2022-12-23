@@ -888,6 +888,7 @@ layout (location = 6) in float pieceindex;
 layout (location = 7) in vec4 instancePosRotSize; //x, rot, z, size
 
 uniform vec4 grassuniforms; //windx, windz, 0, globalalpha
+uniform float distanceMult; //yes this is the additional distance multiplier
 
 uniform sampler2D grassBladeColorTex;
 
@@ -990,7 +991,7 @@ void main() {
   //--- DISTANCE FADE ---
   vec4 camPos = cameraViewInv[3];
   float distToCam = length(grassVertWorldPos.xyz - camPos.xyz); //dist from cam
-  instanceParamsVS.x = clamp((FADEEND - distToCam)/(FADEEND- FADESTART),0.0,1.0);
+  instanceParamsVS.x = clamp((FADEEND * distanceMult - distToCam)/(FADEEND * distanceMult - FADESTART * distanceMult),0.0,1.0);
 
 
   //--- ALPHA CULLING BASED ON QUAD NORMAL
@@ -1109,7 +1110,7 @@ local fsSrc = [[
 /*
 #define    MAPCOLORFACTOR 0.4
 #define    DARKENBASE 0.5
-#define    ALPHATHRESHOLD 0.02
+#define    ALPHATHRESHOLD 0.01
 #define    WINDSTRENGTH 1.0
 #define    WINDSCALE 0.33
 #define    FADESTART 2000
@@ -1117,6 +1118,8 @@ local fsSrc = [[
 */
 
 uniform vec4 grassuniforms; //windx, windz, windstrength, globalalpha
+
+uniform float distanceMult; //yes this is the additional distance multiplier
 
 uniform sampler2D grassBladeColorTex;
 uniform sampler2D mapGrassColorModTex;
@@ -1193,6 +1196,7 @@ local function makeShaderVAO()
         },
       uniformFloat = {
         grassuniforms = {1,1,1,1},
+		distanceMult = distanceMult,
       },
     },
     "GrassShaderGL4"
@@ -1499,6 +1503,8 @@ function widget:DrawWorldPreUnit()
     --Spring.Echo("globalgrassfade",globalgrassfade)
     local windStrength = math.min(grassConfig.maxWindSpeed, math.max(4.0, math.abs(windDirX) + math.abs(windDirZ)))
     grassShader:SetUniform("grassuniforms", offsetX, offsetZ, windStrength, globalgrassfade)
+    grassShader:SetUniform("distanceMult", distanceMult)
+
 
     grassVAO:DrawArrays(GL.TRIANGLES, grassPatchVBOsize, 0, instanceCount, startInstanceIndex)
     if placementMode and Spring.GetGameFrame()%30 == 0 then Spring.Echo("Drawing",instanceCount,"grass patches") end
