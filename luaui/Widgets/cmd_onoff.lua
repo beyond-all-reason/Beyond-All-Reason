@@ -13,12 +13,13 @@ end
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGetUnitStates = Spring.GetUnitStates
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetUnitDefID = Spring.GetUnitDefID
 
-local function onoff()
+local function onoff(_, _, args)
+	local state = args[1]
+	if state ~= nil and (state ~= "0" and state ~= "1") then return end
+
 	--Should return { [number unitDefID] = { [1] = [number unitID], etc... }, ... }
 	local selectedUnitsSorted = spGetSelectedUnitsSorted()
-	local firstOnoff = nil
 
 	for unitDefId, units in pairs(selectedUnitsSorted) do
 		--Actual return doesn't seem to match documentation
@@ -26,13 +27,13 @@ local function onoff()
 		--Skip that
 		if unitDefId ~= "n" then
 			if UnitDefs[unitDefId].onOffable == true then
-				if firstOnoff == nil then
+				if state == nil then
 					local isActive = spGetUnitStates(units[1])["active"]
-					if isActive then firstOnoff = 0 else firstOnoff = 1 end
+					if isActive then state = 0 else state = 1 end
 				end
 
 				for _, unit in pairs(units) do
-					spGiveOrderToUnit(unit, CMD.ONOFF, { firstOnoff }, 0)
+					spGiveOrderToUnit(unit, CMD.ONOFF, { state }, 0)
 				end
 			end
 		end
@@ -41,5 +42,5 @@ local function onoff()
 end
 
 function widget:Initialize()
-	widgetHandler:AddAction("onoff", onoff, nil, "t")
+	widgetHandler:AddAction("onoff", onoff, nil, "p")
 end
