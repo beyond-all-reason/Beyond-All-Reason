@@ -35,6 +35,15 @@ if gadgetHandler:IsSyncedCode() then
         end
     end
 
+    function gadget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
+        if isObject[unitDefID] and Spring.ValidUnitID(unitID) then
+            Spring.SetUnitStealth(unitID, true)
+            Spring.SetUnitSonarStealth(unitID, true)
+            Spring.SetUnitNeutral(unitID, true)
+            Spring.SetUnitBlocking(unitID, true, true, true, true, true, true, false) -- set as crushable
+        end
+    end
+
     function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
         if isObject[unitDefID] and not paralyzer then
             local health,maxHealth,_,_,buildProgress = Spring.GetUnitHealth(unitID)
