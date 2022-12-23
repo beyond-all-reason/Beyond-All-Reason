@@ -1457,6 +1457,9 @@ local function GetStartEndRows() -- returns start and end indices of the instanc
 
 local glTexture = gl.Texture
 
+local smoothGrassFadeExp = 1
+
+
 function widget:DrawWorldPreUnit()
   local mapDrawMode = Spring.GetMapDrawMode()
   if mapDrawMode ~= 'normal' and mapDrawMode ~= 'los' then return end
@@ -1469,9 +1472,18 @@ function widget:DrawWorldPreUnit()
   local newGameSeconds = os.clock()
   local timePassed = newGameSeconds - oldGameSeconds
   oldGameSeconds = newGameSeconds
-
+  
   local cx, cy, cz = Spring.GetCameraPosition()
   local gh = (Spring.GetGroundHeight(cx,cz) or 0)
+  
+  local globalgrassfade = math.max(0.0,math.min(1.0,
+		((grassConfig.grassShaderParams.FADEEND*distanceMult) - (cy-gh))/((grassConfig.grassShaderParams.FADEEND*distanceMult)-(grassConfig.grassShaderParams.FADESTART*distanceMult))))
+
+  local expFactor = math.min(1.0, 3 * timePassed) -- ADJUST THE TEMPORAL FACTOR OF 3
+  smoothGrassFadeExp = smoothGrassFadeExp * (1.0 - expFactor) + globalgrassfade * expFactor 
+  --Spring.Echo(smoothGrassFadeExp, globalgrassfade)  
+  
+
   if cy  < ((grassConfig.grassShaderParams.FADEEND*distanceMult) + gh) and grassVAO ~= nil and #grassInstanceData > 0 then
 	local startInstanceIndex = 0
 	local instanceCount =  #grassInstanceData/4
@@ -1485,8 +1497,6 @@ function widget:DrawWorldPreUnit()
       offsetZ = offsetZ - ((windDirZ * grassConfig.grassWindMult) * timePassed)
     end
 
-    local globalgrassfade = math.max(0.0,math.min(1.0,
-		((grassConfig.grassShaderParams.FADEEND*distanceMult) - (cy-gh))/((grassConfig.grassShaderParams.FADEEND*distanceMult)-(grassConfig.grassShaderParams.FADESTART*distanceMult))))
 
     gl.DepthTest(GL.LEQUAL)
     gl.DepthMask(true)
@@ -1502,7 +1512,7 @@ function widget:DrawWorldPreUnit()
     grassShader:Activate()
     --Spring.Echo("globalgrassfade",globalgrassfade)
     local windStrength = math.min(grassConfig.maxWindSpeed, math.max(4.0, math.abs(windDirX) + math.abs(windDirZ)))
-    grassShader:SetUniform("grassuniforms", offsetX, offsetZ, windStrength, globalgrassfade)
+    grassShader:SetUniform("grassuniforms", offsetX, offsetZ, windStrength, smoothGrassFadeExp)
     grassShader:SetUniform("distanceMult", distanceMult)
 
 
