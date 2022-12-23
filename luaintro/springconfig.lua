@@ -147,3 +147,19 @@ if Spring.GetConfigInt("version", 0) < version then
 		Spring.SetConfigInt("UnitIconFadeVanish", 3000)
 	end
 end
+
+-- Configure sane keychain settings, this is to provide a standard experience
+-- for users that is acceptable
+local springKeyChainTimeout = 750 -- expected engine default in ms
+local barKeyChainTimeout = 333 -- the setting we want to apply in ms
+local userKeyChainTimeout = Spring.GetConfigInt("KeyChainTimeout")
+-- Only apply BARs default if current setting is equal to engine default
+-- Reason is engine is unable to distinguish between:
+--   - user configuring the setting to be equal to default
+--   - the actual setting being empty and engine using default
+if userKeyChainTimeout == springKeyChainTimeout then
+	-- Setting a standardized keychain timeout, 750ms is too long
+	-- A side benefit of making it smaller is reduced complexity of actions handling
+	-- since there are fewer complex and long chains between keystrokes
+	Spring.SetConfigInt("KeyChainTimeout", barKeyChainTimeout)
+end
