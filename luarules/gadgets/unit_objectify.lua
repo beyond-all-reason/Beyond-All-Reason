@@ -24,23 +24,24 @@ for udefID,def in ipairs(UnitDefs) do
     end
 end
 
+local function objectifyUnit(unitID)
+    Spring.SetUnitStealth(unitID, true)
+    Spring.SetUnitSonarStealth(unitID, true)
+    Spring.SetUnitNeutral(unitID, true)
+    Spring.SetUnitBlocking(unitID, true, true, true, true, true, true, false) -- set as crushable
+end
+
 if gadgetHandler:IsSyncedCode() then
 
     function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
         if isObject[unitDefID] and Spring.ValidUnitID(unitID) then
-            Spring.SetUnitStealth(unitID, true)
-            Spring.SetUnitSonarStealth(unitID, true)
-            Spring.SetUnitNeutral(unitID, true)
-            Spring.SetUnitBlocking(unitID, true, true, true, true, true, true, false) -- set as crushable
+            objectifyUnit(unitID)
         end
     end
 
     function gadget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
         if isObject[unitDefID] and Spring.ValidUnitID(unitID) then
-            Spring.SetUnitStealth(unitID, true)
-            Spring.SetUnitSonarStealth(unitID, true)
-            Spring.SetUnitNeutral(unitID, true)
-            Spring.SetUnitBlocking(unitID, true, true, true, true, true, true, false) -- set as crushable
+            objectifyUnit(unitID)
         end
     end
 
