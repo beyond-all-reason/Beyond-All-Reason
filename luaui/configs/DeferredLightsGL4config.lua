@@ -8976,7 +8976,7 @@ local unitDefLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 		thrusteractive = {
-			lightType = 'point',
+			lightType = 'cone',
 			pieceName = 'thrustc',
 			lightConfig = { posx = -2, posy = 0, posz = -2, radius = 50,
 							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
