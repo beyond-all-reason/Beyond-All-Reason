@@ -10,7 +10,7 @@ layout (location = 0) in vec4 lengthwidthrotation; // l w rot and maxalpha
 layout (location = 1) in vec4 uvoffsets;
 layout (location = 2) in vec4 alphastart_alphadecay_heatstart_heatdecay;
 layout (location = 3) in vec4 worldPos; // w = also gameframe it was created on
-layout (location = 4) in vec4 parameters; // x: BWfactor, y:glowsustain, z:glowadd,
+layout (location = 4) in vec4 parameters; // x: BWfactor, y:glowsustain, z:glowadd, w: fadeintime
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
@@ -59,7 +59,7 @@ void main()
 	float alphadecay = alphastart_alphadecay_heatstart_heatdecay.y;
 	// fade in the decal over 200 ms?
 	
-	float currentAlpha = min(1.0, (lifetonow / FADEINTIME))  * alphastart - lifetonow* alphadecay;
+	float currentAlpha = min(1.0, (lifetonow / parameters.w))  * alphastart - lifetonow* alphadecay;
 	currentAlpha = clamp(currentAlpha, 0.0, lengthwidthrotation.w);
 	v_lengthwidthrotation.w = currentAlpha;
 	

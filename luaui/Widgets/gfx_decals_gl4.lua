@@ -443,7 +443,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	width, length,
 	heatstart, heatdecay, alphastart, alphadecay,
 	maxalpha,
-	bwfactor, glowsustain, glowadd, spawnframe)
+	bwfactor, glowsustain, glowadd, fadeintime, spawnframe)
 	-- Documentation
 	-- decaltexturename, full path to the decal texture name, it must have been added to the atlasses, e.g. 'bitmaps/scars/scar1.bmp'
 	-- posx, posz, world pos to place center of decal
@@ -457,6 +457,8 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	-- bwfactor: the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
 	-- glowsustain: how many frames to elapse before glow starts to recede
 	-- glowadd: how much additional, non-transparency controlled heat glow should the decal get
+	-- fadeintime: how many frames it takes for a decal to reach its max alpha after spawning
+	-- spawnframe: really shouldnt be touched (pass nil) unless you want to modify the params of an existing decal, then specify the frame that decal was spawned on.
 	heatstart = heatstart or 0
 	heatdecay = heatdecay or 1
 	alphastart = alphastart or 1
@@ -465,6 +467,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	bwfactor = bwfactor or 1 -- default force to black and white
 	glowsustain = glowsustain or 1 -- how many frames to keep max heat for
 	glowadd = glowadd or 0 -- how much additional additive glow to add
+	fadeintime = fadeintime or shaderConfig.FADEINTIME
 
 	if CheckDecalAreaSaturation(posx, posz, width, length) then
 		Spring.Echo("Map area is oversaturated with decals!", posx, posz, width, length)
@@ -506,8 +509,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 			p,q,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
 			alphastart, alphadecay, heatstart, heatdecay, -- alphastart_alphadecay_heatstart_heatdecay
 			posx, posy, posz, spawnframe,
-
-			bwfactor,glowsustain,glowadd,0}, -- params
+			bwfactor, glowsustain, glowadd, fadeintime}, -- params
 		decalIndex, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		false) -- noupload, dont use unless you know what you want to batch push/pop
