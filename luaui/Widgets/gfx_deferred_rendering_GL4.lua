@@ -1012,7 +1012,7 @@ function widget:PlayerChanged(playerID)
 	elseif r and g and b then
 		teamColors[playerID] = { r, g, b }
 	end
-	if cursorLights[playerID] then
+	if cursorLights and cursorLights[playerID] then
 		RemoveLight('point', cursorLights[playerID])
 		cursorLights[playerID] = nil
 	end
