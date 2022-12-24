@@ -846,31 +846,6 @@ local function RemoveLight(lightshape, instanceID, unitID, noUpload)
 	return nil
 end
 
-local function RemoveProjectileLight(lightshape, instanceID, unitID, noUpload)
-	if lightshape == 'point' then
-		if unitID then return popElementInstance(unitPointLightVBO, instanceID)
-		else return popElementInstance(pointLightVBO, instanceID) end
-	elseif lightshape =='beam' then
-		if unitID then return popElementInstance(unitBeamLightVBO, instanceID)
-		else return popElementInstance(beamLightVBO, instanceID) end
-	elseif lightshape =='cone' then
-		if unitID then return popElementInstance(unitConeLightVBO, instanceID)
-		else return popElementInstance(coneLightVBO, instanceID) end
-	else return nil end
-end
-
-local function InterpolateBeam(x, y, z, dx, dy, dz)
-	local finalDx, finalDy, finalDz = 0, 0, 0
-	for _ = 1, 10 do
-		local h = spGetGroundHeight(x + dx + finalDx, z + dz + finalDz)
-		dx, dy, dz = dx*0.5, dy*0.5, dz*0.5
-		if h < y + dy + finalDy then
-			finalDx, finalDy, finalDz = finalDx + dx, finalDy + dy, finalDz + dz
-		end
-	end
-	return finalDx, finalDy, finalDz
-end
-
 
 function AddRandomLight(which)
 	local gf = gameFrame
@@ -1013,8 +988,7 @@ function widget:PlayerChanged(playerID)
 		teamColors[playerID] = { r, g, b }
 	end
 	if cursorLights and cursorLights[playerID] then
-		RemoveLight('point', cursorLights[playerID])
-		cursorLights[playerID] = nil
+		popElementInstance(cursorPointLightVBO, cursorLights[playerID])
 	end
 end
 
@@ -1301,7 +1275,6 @@ local function updateProjectileLights(newgameframe)
 
 						if lightType == 'beam' then
 							local dx,dy,dz = spGetProjectileVelocity(projectileID)
-							--dx, dy, dz = InterpolateBeam(px,py,pz, dx, dy,dz)
 							lightParamTable[5] = px + dx
 							lightParamTable[6] = py + dy
 							lightParamTable[7] = pz + dz
@@ -1396,12 +1369,8 @@ function widget:Update(dt)
 			if cursorLightAlpha ~= WG['allycursors'].getLightStrength() or cursorLightRadius ~= WG['allycursors'].getLightRadius() then
 				cursorLightAlpha = WG['allycursors'].getLightStrength()
 				cursorLightRadius = WG['allycursors'].getLightRadius()
-				if cursorLights then
-					for playerID, instanceID in pairs(cursorLights) do
-						popElementInstance(cursorPointLightVBO, instanceID)
-					end
-					cursorLights = nil
-				end
+				clearInstanceTable(cursorPointLightVBO)
+				cursorLights = nil
 			end
 		end
 		if not cursorLights then
@@ -1425,9 +1394,7 @@ function widget:Update(dt)
 		uploadAllElements(cursorPointLightVBO)
 	else
 		if cursorLights then
-			for playerID, instanceID in pairs(cursorLights) do
-				popElementInstance(cursorPointLightVBO, instanceID)
-			end
+			clearInstanceTable(cursorPointLightVBO)
 			cursorLights = nil
 		end
 	end
