@@ -7024,6 +7024,15 @@ local unitDefLights = {
 							modelfactor = 0.2, specular = 0.2, scattering = 2, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
+		mainlight = {
+			lightType = 'cone',
+			pieceName = 'mainbarrel',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 350,
+							dirx = 0, diry = 0, dirz = 1, theta = 0.15,
+							r = 1, g = 1, b = 1, a = 0.45,
+							modelfactor = 0, specular = 1, scattering = 2, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
 	},
 	[UnitDefNames['armvang'].id] = {
 		top = {
@@ -9728,10 +9737,10 @@ local unitDefLights = {
 		eyeglow = {
 			lightType = 'point',
 			pieceName = 'sphere',
-			lightConfig = { posx = 0, posy = 22, posz = 0, radius = 75,
+			lightConfig = { posx = 0, posy = 22, posz = 0, radius = 200,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-							r = 0.8, g = 0.8, b = 0.8, a = 0.09,
-							modelfactor = 0.4, specular = 0.1, scattering = 0.8, lensflare = 1,
+							r = 0.8, g = 0.8, b = 0.8, a = 0.20,
+							modelfactor = 0.1, specular = 0.1, scattering = 0.8, lensflare = 1,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
@@ -9739,10 +9748,10 @@ local unitDefLights = {
 		eyeglow = {
 			lightType = 'point',
 			pieceName = 'sphere',
-			lightConfig = { posx = 0, posy = 22, posz = 0, radius = 75,
+			lightConfig = { posx = 0, posy = 22, posz = 0, radius = 200,
 				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-				r = 0.8, g = 0.8, b = 0.8, a = 0.09,
-				modelfactor = 0.4, specular = 0.1, scattering = 0.8, lensflare = 1,
+				r = 0.8, g = 0.8, b = 0.8, a = 0.20,
+				modelfactor = 0.1, specular = 0.1, scattering = 0.8, lensflare = 1,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		eyes1 = {

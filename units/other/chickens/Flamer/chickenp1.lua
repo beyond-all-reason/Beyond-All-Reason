@@ -63,10 +63,10 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:blank",
-				[2] = "custom:blood_spray",
-				[3] = "custom:blood_explode",
-				[4] = "custom:dirt",
+				--[1] = "custom:blank", --left over from morph of arty chick
+				[1] = "custom:blood_spray",
+				[2] = "custom:blood_explode",
+				[3] = "custom:dirt",
 			},
 			pieceexplosiongenerators = {
 				[1] = "blood_spray",

@@ -800,16 +800,32 @@ for weaponDefID=1, #WeaponDefs do
 			glowadd = 2.5
 			bwfactor = 0.17
 
-		elseif string.find(weaponDef.name, 'bug') then
+		elseif string.find(weaponDef.name, 'flamebug') then
 			textures = { "t_groundcrack_23_a.png", "t_groundcrack_24_a.png", "t_groundcrack_25_a.png", "t_groundcrack_27_a.png" }
-			radius = (radius * 10)-- * (math.random() * 0.7 + 0.52)
+			radius = (radius * 5)-- * (math.random() * 0.7 + 0.52)
 			alpha = 15
 			heatstart = 500
 			heatdecay = 0.12
 			alphadecay = 0.002
 			glowsustain = 15
 			glowadd = 2.5
+			--fadeintime = 150
 			bwfactor = 0.6
+
+		elseif string.find(weaponDef.name, 'bug') then
+			textures = { "t_groundcrack_23_a.png", "t_groundcrack_24_a.png", "t_groundcrack_25_a.png", "t_groundcrack_27_a.png" }
+			if string.find(weaponDef.name, 'flamebug') then
+				radius = (radius * 5)
+			else
+				radius = (radius * 10)-- * (math.random() * 0.7 + 0.52)
+				alpha = 15
+				heatstart = 500
+				heatdecay = 0.12
+				alphadecay = 0.002
+				glowsustain = 15
+				glowadd = 2.5
+				bwfactor = 0.6
+			end
 
 		elseif string.find(weaponDef.name, 'bloodyeggs') then
 			textures = { "t_groundcrack_23_a.png" }
