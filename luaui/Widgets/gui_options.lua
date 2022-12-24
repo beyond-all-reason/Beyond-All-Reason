@@ -2191,11 +2191,11 @@ function init()
 		{ id = "label_gfx_game_spacer", group = "gfx", category = types.basic },
 		{ id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos GL4", name = texts.option.resurrectionhalos, type = "bool", value = GetWidgetToggleValue("Resurrection Halos GL4"), description = texts.option.resurrectionhalos_descr },
 
-		{ id = "xmas", group = "gfx", name = texts.option.xmas, category = types.basic, type = "bool", value = (Spring.GetConfigFloat("decorationsize", 1) == 1), description = texts.option.xmas_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigFloat("decorationsize", (value and 1 or 0))
-		  end,
-		},
+		--{ id = "xmas", group = "gfx", name = texts.option.xmas, category = types.basic, type = "bool", value = (Spring.GetConfigFloat("decorationsize", 1) == 1), description = texts.option.xmas_descr,
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigFloat("decorationsize", (value and 1 or 0))
+		--  end,
+		--},
 
 
 		-- SOUND
@@ -4743,9 +4743,9 @@ function init()
 		--planeColor = {number r, number g, number b},
 	}
 
-	if os.date("%m") ~= "12"  or  os.date("%d") < "12" then
-		options[getOptionByID('xmas')] = nil
-	end
+	--if os.date("%m") ~= "12"  or  os.date("%d") < "12" then
+	--	options[getOptionByID('xmas')] = nil
+	--end
 
 	-- reset tonemap defaults (only once)
 	if not resettedTonemapDefault then

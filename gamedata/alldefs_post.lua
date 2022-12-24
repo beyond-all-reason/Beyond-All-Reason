@@ -685,7 +685,7 @@ function UnitDef_Post(name, uDef)
 		uDef.maxslope = math.floor((uDef.maxslope * 1.5) + 0.5)
 	end
 
-	-- make sure all paralyzable units have the correct EMPABLE category allied (or removed)
+	-- make sure all paralyzable units have the correct EMPABLE category applied (or removed)
 	if uDef.category then
 		local empable = string.find(uDef.category, "EMPABLE")
 		if uDef.customparams and uDef.customparams.paralyzemultiplier then
