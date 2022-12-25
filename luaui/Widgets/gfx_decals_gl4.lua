@@ -674,6 +674,7 @@ for weaponDefID=1, #WeaponDefs do
 		local heatdecay
 		local glowsustain
 		local glowadd
+		local fadeintime
 
 		local textures = { "t_groundcrack_17_a.png", "t_groundcrack_21_a.png", "t_groundcrack_10_a.png" }
 		if weaponDef.paralyzer then
@@ -867,10 +868,11 @@ for weaponDefID=1, #WeaponDefs do
 			alpha, -- 6
 			alphadecay, -- 7
 			bwfactor,	-- 8
-			glowsustain,
-			glowadd,
+			glowsustain, --9
+			glowadd, -- 10 
 			weaponDef.damageAreaOfEffect,	-- 11
 			damage,	-- 12
+			fadeintime, -- 13
 		}
 	end
 end
@@ -903,6 +905,7 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	local bwfactor = params[8] or 0.5 --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
 	local glowsustain = params[9] or (math.random() * 20) -- how many frames to elapse before glow starts to recede
 	local glowadd = params[10] or (math.random() * 2) -- how much additional, non-transparency controlled heat glow should the decal get
+	local fadeintime = params[13]
 
 	AddDecal(
 		groundscarsPath..texture,
@@ -918,7 +921,8 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 		math.random() * 0.2 + 0.8, -- maxalpha
 		bwfactor,
 		glowsustain,
-		glowadd
+		glowadd,
+		fadeintime
 	)
 end
 
