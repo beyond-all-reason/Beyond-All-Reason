@@ -769,6 +769,7 @@ for weaponDefID=1, #WeaponDefs do
 			alphadecay = 0.012
 			--glowadd = 2.5
 			--glowsustain = 0
+			fadeintime = 200
 			bwfactor = 0.17 --0.17
 
 		elseif string.find(weaponDef.name, 'napalm') then
@@ -799,6 +800,7 @@ for weaponDefID=1, #WeaponDefs do
 			heatdecay = 0.1
 			alphadecay = 0.012
 			glowadd = 2.5
+			fadeintime = 200
 			bwfactor = 0.17
 
 		elseif string.find(weaponDef.name, 'flamebug') then
@@ -810,7 +812,7 @@ for weaponDefID=1, #WeaponDefs do
 			alphadecay = 0.002
 			glowsustain = 15
 			glowadd = 2.5
-			--fadeintime = 150
+			fadeintime = 150
 			bwfactor = 0.6
 
 		elseif string.find(weaponDef.name, 'bug') then
@@ -825,6 +827,7 @@ for weaponDefID=1, #WeaponDefs do
 				alphadecay = 0.002
 				glowsustain = 15
 				glowadd = 2.5
+				fadeintime = 75
 				bwfactor = 0.6
 			end
 
@@ -836,6 +839,7 @@ for weaponDefID=1, #WeaponDefs do
 			heatdecay = 0.1
 			alphadecay = 0.005
 			glowadd = 2.5
+			fadeintime = 75
 			bwfactor = 0.6
 
 		elseif string.find(weaponDef.name, 'dodo') then
