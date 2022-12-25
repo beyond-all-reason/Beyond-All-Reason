@@ -1385,11 +1385,9 @@ if gadgetHandler:IsSyncedCode() then
 				if curH and maxH then
 					local spawnChance = math.max(0, math.ceil(curH/maxH*10000))
 					if mRandom(0,spawnChance) == 1 then
-						for i = 1,SetCount(humanTeams) do
-							SpawnRandomOffWaveSquad(unitID, "chickenh1", 5)
-							SpawnRandomOffWaveSquad(unitID, "chickenh1b", 5)
-							SpawnRandomOffWaveSquad(unitID)
-						end
+						SpawnRandomOffWaveSquad(unitID, "chickenh1", 5)
+						SpawnRandomOffWaveSquad(unitID, "chickenh1b", 5)
+						SpawnRandomOffWaveSquad(unitID)
 					end
 				end
 			end
@@ -1536,14 +1534,12 @@ if gadgetHandler:IsSyncedCode() then
 				Spring.SetGameRulesParam("BossFightStarted", 1)
 			end
 		else
-			if mRandom() < config.spawnChance / 30 then
-				for i = 1,SetCount(humanTeams) do
-					SpawnRandomOffWaveSquad(queenID, "chickenh2", 1)
-					SpawnRandomOffWaveSquad(queenID, "chickenh3", 2)
-					SpawnRandomOffWaveSquad(queenID, "chickenh4", 5)
-					if Spring.GetModOptions().unit_restrictions_noair == false then
-						SpawnRandomOffWaveSquad(queenID, "chickenw2", 4)
-					end
+			if mRandom() < config.spawnChance / 15 then
+				SpawnRandomOffWaveSquad(queenID, "chickenh2", 1)
+				SpawnRandomOffWaveSquad(queenID, "chickenh3", 2)
+				SpawnRandomOffWaveSquad(queenID, "chickenh4", 5)
+				if Spring.GetModOptions().unit_restrictions_noair == false then
+					SpawnRandomOffWaveSquad(queenID, "chickenw2", 4)
 				end
 				SpawnRandomOffWaveSquad(queenID)
 			end
