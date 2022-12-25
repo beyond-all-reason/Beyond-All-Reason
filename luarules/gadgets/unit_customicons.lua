@@ -353,9 +353,9 @@ local units = {
 	chicken_turretl_acid  = { "chicken_tentacle2.png", 2.9 },
 	chicken_hive = { "chicken_roost.png", 1.99499993 },
 
-	chicken_miniqueen_electric = { "chicken_queen.png", 4.19999981 },
-	chicken_miniqueen_acid = { "chicken_queen.png", 4.19999981 },
-	chicken_miniqueen_healer = { "chicken_queen.png", 4.19999981 },
+	chicken_miniqueen_electric = { "chicken_queen.png", 2 },
+	chicken_miniqueen_acid = { "chicken_queen.png", 2 },
+	chicken_miniqueen_healer = { "chicken_queen.png", 2 },
 
 	ve_chickenq = { "chicken_queen.png", 4.19999981 },
 	e_chickenq = { "chicken_queen.png", 4.19999981 },

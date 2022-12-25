@@ -416,7 +416,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local SKIRMISH = {
-		[UnitDefNames["chickens1"].id] = { distance = 270, chance = 0.33 },
+		[UnitDefNames["chickens1"].id] = { distance = 270, chance = 0.5 },
 		[UnitDefNames["chickens2"].id] = { distance = 250, chance = 0.5, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["chickenr1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenr2"].id] = { distance = 500, chance = 1 },
@@ -435,6 +435,7 @@ if gadgetHandler:IsSyncedCode() then
 	local COWARD = {
 		[UnitDefNames["chickenh1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenh1b"].id] = { distance = 500, chance = 1 },
+		[UnitDefNames["chickens1"].id] = { distance = 270, chance = 0.5 },
 		[UnitDefNames["chickens2"].id] = { distance = 250, chance = 0.5, teleport = true, teleportcooldown = 2,},
 		[UnitDefNames["chickenr1"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenr2"].id] = { distance = 500, chance = 0.1 },
@@ -471,9 +472,9 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenp2"].id] = { chance = 0.2 },
 		[UnitDefNames["chickenpyroallterrain"].id] = { chance = 0.2 },
 		[UnitDefNames["chickenh4"].id] = { chance = 1 },
-		[UnitDefNames["chicken_miniqueen_electric"].id] = { chance = 0.01 },
-		[UnitDefNames["chicken_miniqueen_acid"].id] = { chance = 0.01 },
-		[UnitDefNames["chicken_miniqueen_healer"].id] = { chance = 0.01 },
+		[UnitDefNames["chicken_miniqueen_electric"].id] = { chance = 1 },
+		[UnitDefNames["chicken_miniqueen_acid"].id] = { chance = 1 },
+		[UnitDefNames["chicken_miniqueen_healer"].id] = { chance = 1 },
 	}
 	local HEALER = {
 		[UnitDefNames["chickenh1"].id] = true,
@@ -936,7 +937,7 @@ if gadgetHandler:IsSyncedCode() then
 				if canSpawnBurrow then
 					for burrowID, _ in pairs(burrows) do
 						local bx, _, bz = Spring.GetUnitPosition(burrowID)
-						local spread = 100*SetCount(burrows)
+						local spread = 750 --100*SetCount(burrows)
 						if x > bx-spread and x < bx+spread and z > bz-spread and z < bz+spread then
 							canSpawnBurrow = false
 							break
@@ -1305,7 +1306,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if not chickenteamhasplayers then
-			if SKIRMISH[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < SKIRMISH[attackerDefID].chance) then
+			if SKIRMISH[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < SKIRMISH[attackerDefID].chance) and unitTeam ~= attackerTeam then
 				local ux, uy, uz = GetUnitPosition(unitID)
 				local x, y, z = GetUnitPosition(attackerID)
 				if x and ux then
@@ -1322,7 +1323,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					unitCowardCooldown[attackerID] = Spring.GetGameFrame() + 900
 				end
-			elseif COWARD[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < COWARD[unitDefID].chance) then
+			elseif COWARD[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < COWARD[unitDefID].chance) and unitTeam ~= attackerTeam then
 				local curH, maxH = GetUnitHealth(unitID)
 				if curH and maxH and curH < (maxH * 0.8) then
 					local ax, ay, az = GetUnitPosition(attackerID)
@@ -1342,7 +1343,7 @@ if gadgetHandler:IsSyncedCode() then
 						unitCowardCooldown[unitID] = Spring.GetGameFrame() + 900
 					end
 				end
-			elseif BERSERK[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < BERSERK[unitDefID].chance) then
+			elseif BERSERK[unitDefID] and (unitTeam == chickenTeamID) and attackerID and (mRandom() < BERSERK[unitDefID].chance) and unitTeam ~= attackerTeam then
 				local ax, ay, az = GetUnitPosition(attackerID)
 				local x, y, z = GetUnitPosition(unitID)
 				local separation = Spring.GetUnitSeparation(unitID, attackerID)
@@ -1360,7 +1361,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					unitCowardCooldown[unitID] = Spring.GetGameFrame() + 900
 				end
-			elseif BERSERK[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < BERSERK[attackerDefID].chance) then
+			elseif BERSERK[attackerDefID] and (unitTeam ~= chickenTeamID) and attackerID and (mRandom() < BERSERK[attackerDefID].chance) and unitTeam ~= attackerTeam then
 				local ax, ay, az = GetUnitPosition(unitID)
 				local x, y, z = GetUnitPosition(attackerID)
 				local separation = Spring.GetUnitSeparation(unitID, attackerID)
@@ -1525,8 +1526,11 @@ if gadgetHandler:IsSyncedCode() then
 				SetUnitExperience(queenID, config.maxXP)
 				timeOfLastWave = t
 				for i = 1,SetCount(humanTeams) do
-					if mRandom() < config.spawnChance then
-						SpawnRandomOffWaveSquad(queenID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
+					SpawnRandomOffWaveSquad(queenID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
+					for burrowID, _ in pairs(burrows) do
+						if mRandom() < config.spawnChance then
+							SpawnRandomOffWaveSquad(burrowID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
+						end
 					end
 				end
 				Spring.SetGameRulesParam("BossFightStarted", 1)
