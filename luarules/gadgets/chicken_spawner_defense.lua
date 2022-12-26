@@ -71,14 +71,12 @@ if gadgetHandler:IsSyncedCode() then
 	local chickenUnitCap = math.floor(Game.maxUnits*0.95)
 	local damageMod = config.damageMod
 	local currentWave = 1
-	local lastWaveUnitCount = 0
 	local minBurrows = 1
 	local timeOfLastSpawn = -999999
 	local timeOfLastFakeSpawn = 0
 	local timeOfLastWave = 0
 	local chickenCount = 0
 	local t = 0 -- game time in secondstarget
-	local timeCounter = 0
 	local queenAnger = 0
 	local techAnger = 0
 	local queenMaxHP = 0
@@ -1693,7 +1691,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if n%30 == 16 then
 			t = GetGameSeconds()
-			playerAgression = playerAgression*0.99
+			playerAgression = playerAgression*0.995
 			playerAgressionLevel = math.floor(playerAgression)
 			SetGameRulesParam("chickenPlayerAgressionLevel", playerAgressionLevel)
 			currentMaxWaveSize = (config.minChickens + math.ceil((queenAnger*0.01)*(maxWaveSize - config.minChickens)))
@@ -1759,7 +1757,6 @@ if gadgetHandler:IsSyncedCode() then
 				and ((config.chickenMaxSpawnRate) < (t - timeOfLastWave) or (chickenCount < currentMaxWaveSize))
 				and ((not config.swarmMode) or (t - timeOfLastWave) > 300) then
 					local cCount = Wave()
-					lastWaveUnitCount = cCount
 					timeOfLastWave = t
 				end
 			end
@@ -1775,7 +1772,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			updateRaptorSpawnBox()
 		end
-		if playerAgressionLevel > 0 and n%((math.ceil(config.turretSpawnRate/playerAgressionLevel))*100) == 0 and chickenTeamUnitCount < chickenUnitCap then
+		if n%((math.ceil(config.turretSpawnRate/(playerAgressionLevel+1)))*100) == 0 and chickenTeamUnitCount < chickenUnitCap then
 			queueTurretSpawnIfNeeded()
 		end
 		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands
@@ -1889,7 +1886,6 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
 		if unitTeam == chickenTeamID then
-			playerAgression = playerAgression+(0.01/config.chickenSpawnMultiplier)
 			local x,y,z = Spring.GetUnitPosition(unitID)
 			if unitDefID == config.burrowDef then
 				for turret, burrow in pairs(burrowTurrets) do
