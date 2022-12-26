@@ -91,6 +91,9 @@ local chickenTypes = {
 	chicken_miniqueen_electric			=  true,
 	chicken_miniqueen_acid				=  true,
 	chicken_miniqueen_healer			=  true,
+	chicken_miniqueen_basic 			=  true,
+	chicken_miniqueen_fire 				=  true,
+	chicken_miniqueen_warp 				=  true,
   }
 
   local defenders = {
@@ -163,6 +166,9 @@ local chickenTypes = {
 	chicken_miniqueen_electric			=   "blue",
 	chicken_miniqueen_acid				=   "acidgreen",
 	chicken_miniqueen_healer			=  	"white",
+	chicken_miniqueen_basic 			=  	"pink",
+	chicken_miniqueen_fire 				=  	"darkred",
+	chicken_miniqueen_warp 				=  	"yellow",
   }
 
 local optionValues = {
@@ -388,6 +394,9 @@ local miniBosses = {
 	"chicken_miniqueen_electric", 	-- Electric Miniqueen
 	"chicken_miniqueen_acid", 		-- Acid Miniqueen
 	"chicken_miniqueen_healer", 	-- Healer Miniqueen
+	"chicken_miniqueen_basic",		-- Basic Miniqueen
+	"chicken_miniqueen_fire",		-- Pyro Miniqueen
+	"chicken_miniqueen_warp",		-- Spectre Miniqueen
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

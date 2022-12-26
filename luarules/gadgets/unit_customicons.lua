@@ -356,6 +356,9 @@ local units = {
 	chicken_miniqueen_electric = { "chicken_queen.png", 2 },
 	chicken_miniqueen_acid = { "chicken_queen.png", 2 },
 	chicken_miniqueen_healer = { "chicken_queen.png", 2 },
+	chicken_miniqueen_basic = { "chicken_queen.png", 2 },
+	chicken_miniqueen_fire = { "chicken_queen.png", 2 },
+	chicken_miniqueen_warp = { "chicken_queen.png", 2 },
 
 	ve_chickenq = { "chicken_queen.png", 4.19999981 },
 	e_chickenq = { "chicken_queen.png", 4.19999981 },

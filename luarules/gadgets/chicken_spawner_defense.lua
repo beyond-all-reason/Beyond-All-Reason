@@ -153,6 +153,20 @@ if gadgetHandler:IsSyncedCode() then
 			"chickenh1",
 			"chickenh1b",
 		},
+		["chicken_miniqueen_basic"] = {
+			"chicken2",
+			"chicken2b",
+			"chickenc3c",
+		},
+		["chicken_miniqueen_fire"] = {
+			"chickenp1",
+			"chickenp2",
+			"chickenpyroallterrain",
+		},
+		["chicken_miniqueen_warp"] = {
+			"chickens2",
+			"chickens2",
+		},
 	}
 
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -429,6 +443,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenacidarty"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenacidallterrain"].id] = { distance = 300, chance = 1 },
 		[UnitDefNames["chickenh2"].id] = { distance = 500, chance = 0.25 },
+		[UnitDefNames["chicken_miniqueen_warp"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 5,},
 	}
 	local COWARD = {
 		[UnitDefNames["chickenh1"].id] = { distance = 500, chance = 1 },
@@ -441,6 +456,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chickenacidarty"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenh2"].id] = { distance = 500, chance = 1 },
 		[UnitDefNames["chickenh3"].id] = { distance = 500, chance = 0.25 },
+		[UnitDefNames["chicken_miniqueen_warp"].id] = { distance = 500, chance = 0.25, teleport = true, teleportcooldown = 5,},
 	}
 	local BERSERK = {
 		[UnitDefNames["ve_chickenq"].id] = { chance = 0.01 },
@@ -473,6 +489,8 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["chicken_miniqueen_electric"].id] = { chance = 1 },
 		[UnitDefNames["chicken_miniqueen_acid"].id] = { chance = 1 },
 		[UnitDefNames["chicken_miniqueen_healer"].id] = { chance = 1 },
+		[UnitDefNames["chicken_miniqueen_basic"].id] = { chance = 1 },
+		[UnitDefNames["chicken_miniqueen_fire"].id] = { chance = 1 },
 	}
 	local HEALER = {
 		[UnitDefNames["chickenh1"].id] = true,
@@ -1522,7 +1540,6 @@ if gadgetHandler:IsSyncedCode() then
 				SetUnitExperience(queenID, config.maxXP)
 				timeOfLastWave = t
 				for i = 1,SetCount(humanTeams) do
-					SpawnRandomOffWaveSquad(queenID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
 					for burrowID, _ in pairs(burrows) do
 						if mRandom() < config.spawnChance then
 							SpawnRandomOffWaveSquad(burrowID, config.miniBosses[mRandom(1,#config.miniBosses)], 1)
