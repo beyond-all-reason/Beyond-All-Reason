@@ -87,13 +87,18 @@ local chickenTypes = {
 	chickenacidbomber 					=  true,
 	chickenacidallterrain				=  true,
 	chickenacidallterrainassault		=  true,
+	chicken1x_spectre					=  true,
+	chicken2_spectre					=  true,
+	chickena1_spectre					=  true,
+	chickena2_spectre					=  true,
+	chickens2_spectre					=  true,
 
 	chicken_miniqueen_electric			=  true,
 	chicken_miniqueen_acid				=  true,
 	chicken_miniqueen_healer			=  true,
 	chicken_miniqueen_basic 			=  true,
 	chicken_miniqueen_fire 				=  true,
-	chicken_miniqueen_warp 				=  true,
+	chicken_miniqueen_spectre 				=  true,
   }
 
   local defenders = {
@@ -122,14 +127,14 @@ local chickenTypes = {
 	chickenapexallterrainassault 		=   "red",
 	chickenapexallterrainassaultb 		=   "red",
 	chickens1      						=   "green",
-	chickens2      						=   "yellow",
+	chickens2      						=   "green",
 	chicken_dodo1  						=   "red",
 	chicken_dodo2  						=   "red",
 	chicken_dodoair  					=   "red",
-	chickenf1      						=   "yellow",
-	chickenf1b     						=   "yellow",
-	chickenf1apex      					=   "yellow",
-	chickenf1apexb     					=   "yellow",
+	chickenf1      						=   "darkgreen",
+	chickenf1b     						=   "darkgreen",
+	chickenf1apex      					=   "darkgreen",
+	chickenf1apexb     					=   "darkgreen",
 	chickenf2      						=   "white",
 	chickenc3      						=   "white",
 	chickenc3b     						=   "white",
@@ -162,13 +167,18 @@ local chickenTypes = {
 	chickenacidbomber 					=   "acidgreen",
 	chickenacidallterrain				=	"acidgreen",
 	chickenacidallterrainassault		=   "acidgreen",
+	chicken1x_spectre					=   "yellow",
+	chicken2_spectre					=   "yellow",
+	chickena1_spectre					=   "yellow",
+	chickena2_spectre					=   "yellow",
+	chickens2_spectre					=   "yellow",
 
 	chicken_miniqueen_electric			=   "blue",
 	chicken_miniqueen_acid				=   "acidgreen",
 	chicken_miniqueen_healer			=  	"white",
 	chicken_miniqueen_basic 			=  	"pink",
 	chicken_miniqueen_fire 				=  	"darkred",
-	chicken_miniqueen_warp 				=  	"yellow",
+	chicken_miniqueen_spectre 				=  	"yellow",
   }
 
 local optionValues = {
@@ -396,7 +406,7 @@ local miniBosses = {
 	"chicken_miniqueen_healer", 	-- Healer Miniqueen
 	"chicken_miniqueen_basic",		-- Basic Miniqueen
 	"chicken_miniqueen_fire",		-- Pyro Miniqueen
-	"chicken_miniqueen_warp",		-- Spectre Miniqueen
+	"chicken_miniqueen_spectre",		-- Spectre Miniqueen
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -414,6 +424,7 @@ local miniBosses = {
 
 	addSpecialSquad(5, { "3 chickene2" 																	}) -- EMP Brawler
 	addSpecialSquad(5, { "10 chickenacidswarmer" 														}) -- Acid Swarmer
+	addSpecialSquad(5, { "10 chicken1x_spectre" 														}) -- Spectre Swarmer
 
 	addSpecialSquad(6, { "10 chickenpyroallterrain" 													}) -- Pyro AllTerrain
 	addSpecialSquad(6, { "10 chickenelectricallterrain" 												}) -- EMP AllTerrain
@@ -425,13 +436,16 @@ local miniBosses = {
 	addSpecialSquad(6, { "6 chickenallterraina1" 														}) -- AllTerrain Brawler
 	addSpecialSquad(6, { "6 chickenallterraina1b" 														}) -- AllTerrain Brawler
 	addSpecialSquad(6, { "6 chickenallterraina1c" 														}) -- AllTerrain Brawler
+	addSpecialSquad(6, { "6 chickena1_spectre" 															}) -- Spectre Brawler
 	addSpecialSquad(6, { "5 chickenelectricallterrain", "5 chickenacidallterrain" 						}) -- EMP and Acid AllTerrain Combo
+	
 
 	addSpecialSquad(7, { "3 chickenearty1" 																}) -- EMP Artillery
 	addSpecialSquad(7, { "8 chickenp2" 																	}) -- Apex Pyro
 	addSpecialSquad(7, { "3 chickene2" 																	}) -- EMP Brawler
 	addSpecialSquad(7, { "3 chickenelectricallterrainassault" 											}) -- EMP AllTerrain Brawler
 	addSpecialSquad(7, { "10 chickens2" 																}, 2) -- Apex Spiker
+	
 
 	addSpecialSquad(8, { "25 chicken_dodo2" 															}) -- Big Kamikaze
 	addSpecialSquad(8, { "10 chickenacidallterrain" 													}) -- Acid AllTerrain 
@@ -440,8 +454,12 @@ local miniBosses = {
 	addSpecialSquad(8, { "4 chickenacidallterrainassault" 												}) -- Acid AllTerrain  Brawler
 	addSpecialSquad(8, { "3 chickenacidarty" 															}) -- Acid Artillery
 	addSpecialSquad(8, { "5 chickenh4" 																	}) -- Hatchling
+	addSpecialSquad(8, { "5 chicken2_spectre" 															}) -- Hatchling
+	addSpecialSquad(8, { "10 chickens2_spectre" 														}, 2) -- Spectre Apex Spiker
 
 	addSpecialSquad(9, { "2 chickenapexallterrainassault", "2 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
+	addSpecialSquad(9, { "4 chickena2_spectre"															}) -- Apex Spectre Brawler
+	
 	addSpecialSquad(9, { "3 chickenr1" 																	}) -- Artillery
 	if not Spring.GetModOptions().unit_restrictions_nonukes then
 		addSpecialSquad(9, { "1 chickenr2"																}) -- Meteor Artillery
@@ -450,6 +468,7 @@ local miniBosses = {
 	addSpecialSquad(9, { "10 chickenh4" 																}) -- Hatchling
 
 	addSpecialSquad(10, { "2 chickenapexallterrainassault", "2 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
+	addSpecialSquad(10, { "4 chickena2_spectre"															}) -- Apex Spectre Brawler
 	addSpecialSquad(10, { "3 chickenr1" 																}) -- Artillery
 	if not Spring.GetModOptions().unit_restrictions_nonukes then
 		addSpecialSquad(10, { "1 chickenr2"																}) -- Meteor Artillery
@@ -462,6 +481,7 @@ local miniBosses = {
 if difficulty >= 3 then
 	for i = 11,wavesAmount do
 	addSpecialSquad(i, { "5 chickenapexallterrainassault", "5 chickenapexallterrainassaultb"			}) -- Apex AllTerrain Brawler
+	addSpecialSquad(i, { "10 chickena2_spectre"															}) -- Apex Spectre Brawler
 	addSpecialSquad(i, { "3 chickenr1", "3 chickenearty1", "3 chickenacidarty" 							}) -- Artillery
 	if not Spring.GetModOptions().unit_restrictions_nonukes then
 		addSpecialSquad(i, { "1 chickenr2" 																}) -- Meteor Artillery
@@ -474,6 +494,7 @@ if difficulty >= 3 then
 	addSpecialSquad(i, { "25 chicken_dodo2" 															}) -- Kamikaze
 	addSpecialSquad(i, { "10 chickenp2" 																}) -- Apex Pyro
 	addSpecialSquad(i, { "10 chickens2" 																}, 2) -- Apex Spiker
+	addSpecialSquad(i, { "10 chickens2_spectre" 														}, 2) -- Spectre Apex Spiker
 	end
 end
 

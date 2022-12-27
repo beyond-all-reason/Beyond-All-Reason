@@ -1,5 +1,5 @@
 return {
-	chicken_miniqueen_warp = {
+	chicken_miniqueen_spectre = {
 		acceleration = 0.1,
 		airsightdistance = 2400,
 		autoheal = 5,
@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 50000,
 		builddistance = 1000,
 		builder = false,
-		buildpic = "chickens/chicken_miniqueen_warp.DDS",
+		buildpic = "chickens/chicken_miniqueen_spectre.DDS",
 		buildtime = 1500000,
 		canattack = true,
 		canguard = true,
@@ -33,14 +33,14 @@ return {
 		leavetracks = true,
 		maneuverleashlength = 2000,
 		mass = 2000000,
-		maxdamage = 60000,
+		maxdamage = 120000,
 		maxslope = 40,
 		maxvelocity = 1.5,
 		maxwaterdepth = 0,
 		movementclass = "CHICKQUEENHOVER",
 		noautofire = false,
 		nochasecategory = "VTOL",
-		objectname = "Chickens/chicken_miniqueen_warp.s3o",
+		objectname = "Chickens/chicken_miniqueen_spectre.s3o",
 		pushresistant = true,
 		script = "Chickens/chicken_miniqueen.cob",
 		seismicsignature = 0,
@@ -100,7 +100,7 @@ return {
 				noselfdamage = true,
 				proximitypriority = -4,
 				range = 1000,
-				reloadtime = 10,
+				reloadtime = 20,
 				rgbcolor = "0.1 0.6 1",
 				size = 8,
 				sizedecay = 0,
@@ -112,7 +112,7 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 400,
 				damage = {
-					default = 500,
+					default = 1000,
 				},
 			},
 			melee = {
@@ -141,7 +141,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
 				damage = {
-					default = 150,
+					default = 300,
 				},
 			},
 			yellow_missile = {
@@ -189,7 +189,7 @@ return {
 				weaponvelocity = 475,
 				wobble = 32000,
 				damage = {
-					default = 750,
+					default = 1500,
 				},
 				customparams = {
 					expl_light_life_mult = 1.5,

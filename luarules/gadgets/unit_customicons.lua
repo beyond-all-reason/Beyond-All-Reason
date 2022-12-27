@@ -267,7 +267,7 @@ local units = {
 	-- Chickens -----------------------------------------------------------
 
 	chicken1 = { "chicken.png", 0.94499993 },
-	chicken1_mini = { "chicken.png", 0.5 },
+	chicken1_mini = { "chicken.png", 0.75 },
 	chicken1b = { "chicken.png", 0.94499993 },
 	chicken1c = { "chicken.png", 0.94499993 },
 	chicken1d = { "chicken.png", 0.94499993 },
@@ -286,13 +286,13 @@ local units = {
 	chickena1 = { "chicken.png", 1.57499993 },
 	chickena1b = { "chicken.png", 1.57499993 },
 	chickena1c = { "chicken.png", 1.57499993 },
-	chickena2 = { "chicken.png", 1.57499993 },
-	chickena2b = { "chicken.png", 1.57499993 },
+	chickena2 = { "chicken.png", 1.77499993 },
+	chickena2b = { "chicken.png", 1.77499993 },
 	chickenallterraina1 = { "chicken.png", 1.57499993 },
 	chickenallterraina1b = { "chicken.png", 1.57499993 },
 	chickenallterraina1c = { "chicken.png", 1.57499993 },
-	chickenapexallterrainassault = { "chicken.png", 1.57499993 },
-	chickenapexallterrainassaultb = { "chicken.png", 1.57499993 },
+	chickenapexallterrainassault = { "chicken.png", 1.77499993 },
+	chickenapexallterrainassaultb = { "chicken.png", 1.77499993 },
 
 	chickenc3 = { "chicken.png", 1.25999999 },
 	chickenc3b = { "chicken.png", 1.25999999 },
@@ -352,6 +352,12 @@ local units = {
 	chicken_turrets_acid  = { "chicken_tentacle.png", 1.57499993 },
 	chicken_turretl_acid  = { "chicken_tentacle2.png", 2.9 },
 	chicken_hive = { "chicken_roost.png", 1.99499993 },
+
+	chicken1x_spectre = { "chicken.png", 1.1 },
+	chicken2_spectre = { "chicken.png", 1.25999999 },
+	chickena1_spectre = { "chicken.png", 1.57499993 },
+	chickena2_spectre = { "chicken.png", 1.77499993 },
+	chickens2_spectre = { "chicken_spike.png", 1.77499993 },
 
 	chicken_miniqueen_electric = { "chicken_queen.png", 2 },
 	chicken_miniqueen_acid = { "chicken_queen.png", 2 },
