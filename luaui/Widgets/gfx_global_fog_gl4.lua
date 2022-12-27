@@ -53,7 +53,7 @@ local shaderConfig = {
 	NOISESAMPLES = 6, -- how many samples of 3D noise to take
 	NOISESCALE = 1.2, -- The tiling pattern of noise
 	NOISETHRESHOLD = -0.0, -- The 0 level of noise
-	LOSREDUCEFOG = 0, -- how much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los
+	LOSREDUCEFOG = 1, -- how much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los
 	USEMINIMAP = 1, -- 0 or 1 to use the minimap for back-scatter
 	MINIMAPSCATTER = 0.1, -- How much the minimap color sdditively back-scatters into fog color, 0 is off
 
@@ -74,17 +74,17 @@ local shaderConfigNoNoise = {
 
 local minHeight, maxHeight = Spring.GetGroundExtremes()
 local fogUniforms = {
-	fogGlobalColor = {0.41,0.38,0.32,1}, -- bluish
+	fogGlobalColor = {0.29,0.23,0.17,1}, -- bluish
 	fogSunColor = {1.0,0.9,0.8,1}, -- yellowish
 	fogShadowedColor = {0.1,0.05,0.1,1}, -- purleish tint
-	fogPlaneHeight = (math.max(minHeight,0) + maxHeight) /1.1 ,
-	fogGlobalDensity = 0.5,
-	fogGroundDensity = 0.1,
-	fogExpFactor = -0.000075, -- yes these are small negative numbers
+	fogPlaneHeight = (math.max(minHeight,0) + maxHeight) /1.7 ,
+	fogGlobalDensity = 0.50,
+	fogGroundDensity = 0.15,
+	fogExpFactor = -0.000110, -- yes these are small negative numbers
 	noiseParams = {
 		1.4, -- high-frequency cloud noise, lower numbers = lower frequency
 		0.2, -- noise bias, [-1,1] high numbers denser
-		1.4, -- low frequency big cloud noise, lower numbers = lower frequency
+		1.2, -- low frequency big cloud noise, lower numbers = lower frequency
 		0.0,
 		},
 	}
