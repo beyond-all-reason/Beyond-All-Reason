@@ -1234,12 +1234,14 @@ if gadgetHandler:IsSyncedCode() then
 								end
 							end
 						end
-						if mRandom(0,1) == 0 and mRandom() <= config.spawnChance then
-							table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = 1 })
-							cCount = cCount + 1
-						else
-							table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = 1 })
-							cCount = cCount + 1
+						if mRandom() <= config.spawnChancethen
+							if mRandom(0,1) == 0 then
+								table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = 1 })
+								cCount = cCount + 1
+							else
+								table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = 1 })
+								cCount = cCount + 1
+							end
 						end
 					end
 				end
