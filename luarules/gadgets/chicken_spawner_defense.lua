@@ -753,20 +753,23 @@ if gadgetHandler:IsSyncedCode() then
 			-- Spring.Echo("Failed to create new squad, something went wrong")
 		end
 		squadCreationQueue = table.copy(squadCreationQueueDefaults)
+		return squadID
 		-- Spring.Echo("----------------------------------------------------------------------------------------------------------------------------")
 	end
 
 	local function manageAllSquads() -- Get new target for all squads that need it
 		for i = 1,#squadsTable do
-			local hasTarget = false
-			for squad, target in pairs(unitTargetPool) do
-				if i == squad then
-					hasTarget = true
-					break
+			if math.random(1,100) = 1 then
+				local hasTarget = false
+				for squad, target in pairs(unitTargetPool) do
+					if i == squad then
+						hasTarget = true
+						break
+					end
 				end
-			end
-			if not hasTarget then
-				refreshSquad(i)
+				if not hasTarget then
+					refreshSquad(i)
+				end
 			end
 		end
 	end
@@ -1465,11 +1468,11 @@ if gadgetHandler:IsSyncedCode() then
 		if not i or not defs then
 			if #squadCreationQueue.units > 0 then
 				if mRandom(1,5) == 1 then
-					squadCreationQueue.regroup = false
+					squadCreationQueue.regroup = falsecreateSquad
 				end
-				createSquad(squadCreationQueue)
+				local squadID = createSquad(squadCreationQueue)
 				squadCreationQueue.units = {}
-				manageAllSquads()
+				refreshSquad(squadID)
 				-- Spring.Echo("[RAPTOR] Number of active Squads: ".. #squadsTable)
 				-- Spring.Echo("[RAPTOR] Wave spawn complete.")
 				-- Spring.Echo(" ")
@@ -1893,6 +1896,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
+		manageAllSquads()
 	end
 
 	local chickenEggColors = {"pink","white","red", "blue", "darkgreen", "purple", "green", "yellow", "darkred", "acidgreen"}
