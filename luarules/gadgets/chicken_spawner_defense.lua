@@ -94,9 +94,7 @@ if gadgetHandler:IsSyncedCode() then
 			cooldown = 10,
 		},
 	}
-	local airWaveCooldown = 0
 	--local miniBossCooldown = 0
-	local specialWaveCooldown = 0
 	local firstSpawn = true
 	local gameOver = nil
 	local humanTeams = {}
@@ -1185,7 +1183,6 @@ if gadgetHandler:IsSyncedCode() then
 		local cCount = 0
 		local loopCounter = 0
 		local squadCounter = 0
-		local cleanerSpawned = 0
 		if waveType == "miniboss" then
 			repeat
 				for burrowID in pairs(burrows) do
@@ -1233,22 +1230,12 @@ if gadgetHandler:IsSyncedCode() then
 								end
 							end
 						end
-					end
-				end
-				
-				local aliveCleaners = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1"].id) + Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames["chickenh1b"].id)
-				local targetCleaners = currentMaxWaveSize*0.1
-				local cleanerSpawnCount = math.ceil((targetCleaners - aliveCleaners)*0.25)
-				if targetCleaners - cleanerSpawned > 0 and cleanerSpawnCount > 0 then
-					if mRandom(0,1) == 0 then
-						for i = 1,math.ceil(cleanerSpawnCount) do
-							table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = i })
-							cleanerSpawned = cleanerSpawned + 1
-						end
-					else
-						for i = 1,math.ceil(cleanerSpawnCount) do
-							table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = i })
-							cleanerSpawned = cleanerSpawned + 1
+						if mRandom(0,1) == 0 and mRandom() <= config.spawnChance then
+							table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1", team = chickenTeamID, squadID = 1 })
+							cCount = cCount + 1
+						else
+							table.insert(spawnQueue, { burrow = burrowID, unitName = "chickenh1b", team = chickenTeamID, squadID = 1 })
+							cCount = cCount + 1
 						end
 					end
 				end
