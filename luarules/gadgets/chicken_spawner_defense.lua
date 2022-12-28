@@ -759,7 +759,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function manageAllSquads() -- Get new target for all squads that need it
 		for i = 1,#squadsTable do
-			if math.random(1,100) = 1 then
+			if mRandom(1,100) == 1 then
 				local hasTarget = false
 				for squad, target in pairs(unitTargetPool) do
 					if i == squad then
@@ -838,9 +838,9 @@ if gadgetHandler:IsSyncedCode() then
 
 			local waveLevel = currentWave
 			local squad = config.basicWaves[waveLevel][mRandom(1, #config.basicWaves[waveLevel])]
-			if config.specialWaves[waveLevel] and math.random(1,100) <= 33 then
+			if config.specialWaves[waveLevel] and mRandom(1,100) <= 33 then
 				squad = config.specialWaves[waveLevel][mRandom(1, #config.specialWaves[waveLevel])]
-			elseif config.superWaves[waveLevel] and math.random(1,100) <= 1 then
+			elseif config.superWaves[waveLevel] and mRandom(1,100) <= 1 then
 				squad = config.superWaves[waveLevel][mRandom(1, #config.superWaves[waveLevel])]
 			end
 			for i, sString in pairs(squad) do
@@ -1052,7 +1052,7 @@ if gadgetHandler:IsSyncedCode() then
 			local x, y, z = GetUnitPosition(burrowID)
 			if x and y and z then
 				local score = 0
-				score = math.random(1,1000)
+				score = mRandom(1,1000)
 				if score > bestScore then
 					bestScore = score
 					sx = x
@@ -1182,9 +1182,9 @@ if gadgetHandler:IsSyncedCode() then
 							squad = config.airWaves[currentWave][mRandom(1, #config.airWaves[currentWave])]
 						else
 							squad = config.basicWaves[currentWave][mRandom(1, #config.basicWaves[currentWave])]
-							if config.specialWaves[currentWave] and math.random(1,100) <= 33 then
+							if config.specialWaves[currentWave] and mRandom(1,100) <= 33 then
 								squad = config.specialWaves[currentWave][mRandom(1, #config.specialWaves[currentWave])]
-							elseif config.superWaves[currentWave] and math.random(1,100) <= 1 then
+							elseif config.superWaves[currentWave] and mRandom(1,100) <= 1 then
 								squad = config.superWaves[currentWave][mRandom(1, #config.superWaves[currentWave])]
 							end
 						end
@@ -1336,7 +1336,7 @@ if gadgetHandler:IsSyncedCode() then
 		local unitName = UnitDefs[unitDefID].name
 		if miniQueenMinions[unitName] then
 			if mRandom(1,100) == 1 and mRandom() < config.spawnChance then
-				local minion = miniQueenMinions[unitName][math.random(1,#miniQueenMinions[unitName])]
+				local minion = miniQueenMinions[unitName][mRandom(1,#miniQueenMinions[unitName])]
 				SpawnRandomOffWaveSquad(unitID, minion, 3)
 			end
 		end
@@ -1828,7 +1828,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n%7 == 3 and not chickenteamhasplayers then
 			local chickens = GetTeamUnits(chickenTeamID)
 			for i = 1,#chickens do
-				if math.random(1,15) == 1 then 
+				if mRandom(1,15) == 1 then 
 					if unitCowardCooldown[chickens[i]] and (Spring.GetGameFrame() > unitCowardCooldown[chickens[i]]) then
 						unitCowardCooldown[chickens[i]] = nil
 						Spring.GiveOrderToUnit(chickens[i], CMD.STOP, 0, 0)
