@@ -1822,28 +1822,30 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		if n%100 == 50 and not chickenteamhasplayers then
+		if n%7 == 3 and not chickenteamhasplayers then
 			local chickens = GetTeamUnits(chickenTeamID)
-			for i = 1,#chickens do 
-				if unitCowardCooldown[chickens[i]] and (Spring.GetGameFrame() > unitCowardCooldown[chickens[i]]) then
-					unitCowardCooldown[chickens[i]] = nil
-					Spring.GiveOrderToUnit(chickens[i], CMD.STOP, 0, 0)
-				end
-				if Spring.GetCommandQueue(chickens[i], 0) <= 0 then
-					if unitCowardCooldown[chickens[i]] then
+			for i = 1,#chickens do
+				if math.random(1,15) == 1 then 
+					if unitCowardCooldown[chickens[i]] and (Spring.GetGameFrame() > unitCowardCooldown[chickens[i]]) then
 						unitCowardCooldown[chickens[i]] = nil
+						Spring.GiveOrderToUnit(chickens[i], CMD.STOP, 0, 0)
 					end
-					local squadID = unitSquadTable[chickens[i]]
-					if squadID then
-						local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
-						if targetx then
-							squadCommanderGiveOrders(squadID, targetx, targety, targetz)
-						else
-							refreshSquad(squadID)
+					if Spring.GetCommandQueue(chickens[i], 0) <= 0 then
+						if unitCowardCooldown[chickens[i]] then
+							unitCowardCooldown[chickens[i]] = nil
 						end
-					else
-						local pos = getRandomEnemyPos()
-						Spring.GiveOrderToUnit(chickens[i], CMD.FIGHT, {pos.x, pos.y, pos.z}, {})
+						local squadID = unitSquadTable[chickens[i]]
+						if squadID then
+							local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
+							if targetx then
+								squadCommanderGiveOrders(squadID, targetx, targety, targetz)
+							else
+								refreshSquad(squadID)
+							end
+						else
+							local pos = getRandomEnemyPos()
+							Spring.GiveOrderToUnit(chickens[i], CMD.FIGHT, {pos.x, pos.y, pos.z}, {})
+						end
 					end
 				end
 			end
