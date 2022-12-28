@@ -38,6 +38,7 @@ return {
 		turninplacespeedlimit = 1.155,
 		turnrate = 1290.29993,
 		upright = true,
+		initcloaked = true,
 		customparams = {
 			unitgroup = 'explo',
 			model_author = "Beherith",
