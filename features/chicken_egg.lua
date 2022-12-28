@@ -47,7 +47,7 @@ for _, size in pairs(sizes) do
         def.metal = mvalues[size]
         def.energy = evalues[size]
         def.reclaimtime = evalues[size]
-        def.damage = evalues[size]*5
+        def.damage = evalues[size]*2
         eggs[name] = def
     end
 end

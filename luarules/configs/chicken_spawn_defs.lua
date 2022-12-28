@@ -98,7 +98,7 @@ local chickenTypes = {
 	chicken_miniqueen_healer			=  true,
 	chicken_miniqueen_basic 			=  true,
 	chicken_miniqueen_fire 				=  true,
-	chicken_miniqueen_spectre 				=  true,
+	chicken_miniqueen_spectre 			=  true,
   }
 
   local defenders = {
@@ -406,7 +406,7 @@ local miniBosses = {
 	"chicken_miniqueen_healer", 	-- Healer Miniqueen
 	"chicken_miniqueen_basic",		-- Basic Miniqueen
 	"chicken_miniqueen_fire",		-- Pyro Miniqueen
-	"chicken_miniqueen_spectre",		-- Spectre Miniqueen
+	"chicken_miniqueen_spectre",	-- Spectre Miniqueen
 }
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
