@@ -846,7 +846,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			local waveLevel = currentWave
 			local squad = config.basicWaves[waveLevel][mRandom(1, #config.basicWaves[waveLevel])]
-			if config.specialWaves[waveLevel] and mRandom(1,100) <= 33 then
+			if config.specialWaves[waveLevel] and mRandom(1,100) <= waveParameters.specialSquadsPercentage then
 				squad = config.specialWaves[waveLevel][mRandom(1, #config.specialWaves[waveLevel])]
 			elseif config.superWaves[waveLevel] and mRandom(1,100) <= 1 then
 				squad = config.superWaves[waveLevel][mRandom(1, #config.superWaves[waveLevel])]
@@ -1160,11 +1160,15 @@ if gadgetHandler:IsSyncedCode() then
 		
 
 		if waveParameters.baseCooldown <= 0 then
+			-- special waves
 			if Spring.GetModOptions().unit_restrictions_noair == false and waveParameters.airWave.cooldown <= 0 and config.airWaves[currentWave] and mRandom() <= config.spawnChance then
 				waveParameters.airWave.cooldown = mRandom(5,10)
 				waveParameters.baseCooldown = mRandom(2,4)
 				waveType = "air"
-			elseif waveParameters.typeBoost.cooldown <= 0 and mRandom() <= config.spawnChance then
+			end
+			
+			-- random mutators
+			if waveParameters.typeBoost.cooldown <= 0 and mRandom() <= config.spawnChance then
 				waveParameters.typeBoost.cooldown = mRandom(5,8)
 				waveParameters.specialSquadsPercentage = math.random(-10,110)
 			end
