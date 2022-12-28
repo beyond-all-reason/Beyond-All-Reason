@@ -84,6 +84,16 @@ if gadgetHandler:IsSyncedCode() then
 	local playerAgressionLevel = 0
 	local queenAngerAgressionLevel = 0
 	local difficultyCounter = 0
+	local waveParameters = {
+		baseCooldown = 0,
+		specialSquadsPercentage = 33,
+		airWave = {
+			cooldown = 0,
+		},
+		typeBoost = {
+			cooldown = 10,
+		},
+	}
 	local airWaveCooldown = 0
 	--local miniBossCooldown = 0
 	local specialWaveCooldown = 0
@@ -1138,23 +1148,39 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local waveType = "normal"
-		if specialWaveCooldown <= 0 then
-			-- if miniBossCooldown <= 0 and currentWave >= 6 and mRandom() <= config.spawnChance then
-			-- 	miniBossCooldown = mRandom(10,20)
-			-- 	specialWaveCooldown = mRandom(2,4)
-			-- 	waveType = "miniboss"
-			--elseif Spring.GetModOptions().unit_restrictions_noair == false and airWaveCooldown <= 0 and config.airWaves[currentWave] and mRandom() <= config.spawnChance then
-			if Spring.GetModOptions().unit_restrictions_noair == false and airWaveCooldown <= 0 and config.airWaves[currentWave] and mRandom() <= config.spawnChance then
-				airWaveCooldown = mRandom(5,10)
-				specialWaveCooldown = mRandom(2,4)
-				waveType = "air"
-			end
-		end
 
-		--miniBossCooldown = miniBossCooldown - 1
-		airWaveCooldown = airWaveCooldown - 1
-		specialWaveCooldown = specialWaveCooldown - 1
+		waveParameters.baseCooldown = waveParameters.baseCooldown - 1
+		waveParameters.airWave.cooldown = waveParameters.airWave.cooldown - 1
+		--waveParameters.miniBoss.cooldown = waveParameters.miniBoss.cooldown - 1
+		if waveParameters.specialSquadsPercentage > 40 then
+			waveParameters.specialSquadsPercentage = waveParameters.specialSquadsPercentage - 5
+		elseif waveParameters.specialSquadsPercentage < 30 then
+			waveParameters.specialSquadsPercentage = waveParameters.specialSquadsPercentage + 5
+		else
+			waveParameters.typeBoost.cooldown = waveParameters.typeBoost.cooldown - 1
+		end
+		
+
+		if waveParameters.baseCooldown <= 0 then
+			if Spring.GetModOptions().unit_restrictions_noair == false and waveParameters.airWave.cooldown <= 0 and config.airWaves[currentWave] and mRandom() <= config.spawnChance then
+				waveParameters.airWave.cooldown = mRandom(5,10)
+				waveParameters.baseCooldown = mRandom(2,4)
+				waveType = "air"
+			elseif waveParameters.typeBoost.cooldown <= 0 and mRandom() <= config.spawnChance then
+				waveParameters.typeBoost.cooldown = mRandom(5,8)
+				waveParameters.specialSquadsPercentage = math.random(-10,110)
+			end
+
+
+
 			
+			
+			-- if waveParameters.miniBoss.cooldown <= 0 and currentWave >= 6 and mRandom() <= config.spawnChance then
+			-- 	waveParameters.miniBoss.cooldown = mRandom(10,20)
+			-- 	waveParameters.baseCooldown = mRandom(2,4)
+			-- 	waveType = "miniboss"
+			
+		end
 
 		local cCount = 0
 		local loopCounter = 0
@@ -1182,10 +1208,11 @@ if gadgetHandler:IsSyncedCode() then
 							squad = config.airWaves[currentWave][mRandom(1, #config.airWaves[currentWave])]
 						else
 							squad = config.basicWaves[currentWave][mRandom(1, #config.basicWaves[currentWave])]
-							if config.specialWaves[currentWave] and mRandom(1,100) <= 33 then
+							if config.specialWaves[currentWave] and mRandom(1,100) <= waveParameters.specialSquadsPercentage then
 								squad = config.specialWaves[currentWave][mRandom(1, #config.specialWaves[currentWave])]
-							elseif config.superWaves[currentWave] and mRandom(1,100) <= 1 then
-								squad = config.superWaves[currentWave][mRandom(1, #config.superWaves[currentWave])]
+								if config.superWaves[currentWave] and mRandom(1,100) <= 3 then
+									squad = config.superWaves[currentWave][mRandom(1, #config.superWaves[currentWave])]
+								end
 							end
 						end
 						local skipSpawn = false
@@ -1900,27 +1927,33 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local chickenEggColors = {"pink","white","red", "blue", "darkgreen", "purple", "green", "yellow", "darkred", "acidgreen"}
-	local function spawnRandomEgg(x,y,z,name)
-		local r = mRandom(1,100)
-		local size = "s"
-		if r <= 5 then
-			size = "l"
-		elseif r <= 20 then
-			size = "m"
-		end
-		if config.chickenEggs[name] and config.chickenEggs[name] ~= "" then
-			color = config.chickenEggs[name]
-		else
-			color = chickenEggColors[mRandom(1,#chickenEggColors)]
-		end
-		
-		
-		
-			local egg = Spring.CreateFeature("chicken_egg_"..size.."_"..color, x, y, z, mRandom(-999999,999999), chickenTeamID)
-		if egg then
-			Spring.SetFeatureMoveCtrl(egg, false,1,1,1,1,1,1,1,1,1)
-			Spring.SetFeatureVelocity(egg, mRandom(-195,195)*0.01, mRandom(130,335)*0.01, mRandom(-195,195)*0.01)
-			--Spring.SetFeatureRotation(egg, mRandom(-175,175)*50000, mRandom(110,275)*50000, mRandom(-175,175)*50000)
+	local function spawnRandomEgg(x,y,z,name,spread)
+		if name then
+			local totalEggValue = 0
+			repeat
+				local rSize = mRandom(1,100)
+				local eggValue = 100
+				local size = "s"
+				if rSize <= 5 then
+					size = "l"
+					eggValue = 200
+				elseif rSize <= 20 then
+					size = "m"
+					eggValue = 500
+				end
+				totalEggValue = totalEggValue + eggValue
+				if config.chickenEggs[name] and config.chickenEggs[name] ~= "" then
+					color = config.chickenEggs[name]
+				else
+					color = chickenEggColors[mRandom(1,#chickenEggColors)]
+				end
+				local egg = Spring.CreateFeature("chicken_egg_"..size.."_"..color, x + mRandom(-spread,spread), y + 20, z + mRandom(-spread,spread), mRandom(-999999,999999), chickenTeamID)
+				if egg then
+					Spring.SetFeatureMoveCtrl(egg, false,1,1,1,1,1,1,1,1,1)
+					Spring.SetFeatureVelocity(egg, mRandom(-195,195)*0.01, mRandom(130,335)*0.01, mRandom(-195,195)*0.01)
+					--Spring.SetFeatureRotation(egg, mRandom(-175,175)*50000, mRandom(110,275)*50000, mRandom(-175,175)*50000)
+				end
+			until totalEggValue >= UnitDefNames[name].metalCost*0.5
 		end
 	end
 
@@ -1941,43 +1974,18 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					deleteBurrowTurrets = {}
 				end
-				for i = 1,mRandom(10,40) do
-					local x = x + mRandom(-64,64)
-					local z = z + mRandom(-64,64)
-					local y = GetGroundHeight(x, z)
-					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
-				end
+				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 64)
 			elseif UnitDefs[unitDefID].name == "chicken_turretl" then
-				for i = 1,mRandom(10,40) do
-					local x = x + mRandom(-32,32)
-					local z = z + mRandom(-32,32)
-					local y = GetGroundHeight(x, z)
-					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
-				end
+				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 32)
 			elseif UnitDefs[unitDefID].name == "chicken_turrets" then
-				for i = 1,mRandom(3,10) do
-					local x = x + mRandom(-16,16)
-					local z = z + mRandom(-16,16)
-					local y = GetGroundHeight(x, z)
-					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
-				end
+				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 16)
 			elseif UnitDefs[unitDefID].name == "chicken_turrets_burrow" then
 				burrowTurrets[unitID] = nil
-				for i = 1,mRandom(3,10) do
-					local x = x + mRandom(-16,16)
-					local z = z + mRandom(-16,16)
-					local y = GetGroundHeight(x, z)
-					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
-				end
+				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 16)
 			elseif miniQueenMinions[UnitDefs[unitDefID].name] then
-				for i = 1,mRandom(100,200) do
-					local x = x + mRandom(-16,16)
-					local z = z + mRandom(-16,16)
-					local y = GetGroundHeight(x, z)
-					spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
-				end
+				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 16)
 			else
-				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
+				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name, 1)
 			end
 		end
 		
