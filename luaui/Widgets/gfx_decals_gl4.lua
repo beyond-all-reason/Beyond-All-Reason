@@ -570,13 +570,8 @@ function widget:DrawWorldPreUnit()
 
 		-- Restore the GL state
 		for i = 0, 8 do glTexture(i, false) end
-		glCulling(GL.BACK) -- This is the correct default mode!
-		glDepthTest(GL_LEQUAL)
-		--gl.Blending(GL.SRC_ALPHA, GL.ONE)
-
+		glCulling(false) -- This is the correct default mode!
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
-
-		--gl.DepthMask(false) --"BK OpenGL state resets", already set as false
 
 		if false then
 			local tricount = 4*4*2 * decalVBO.usedElements + resolution*resolution*2*decalLargeVBO.usedElements + 4*4*resolution*resolution*2*decalExtraLargeVBO.usedElements
