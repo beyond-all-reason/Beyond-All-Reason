@@ -56,7 +56,7 @@ local shaderConfig = {
 local alwaysColor, losColor, radarColor, jamColor, radarColor2 = Spring.GetLosViewColors() --unused
 local outputAlpha = 0.07
 local numFastUpdates = 10	 -- how many quick updates to do on large-scale changes
-local updateRate = 20 -- on each Nth frame
+local updateRate = 2 -- on each Nth frame
 local updateInfoLOSTexture = 0 -- how many updates to do on next draw
 local delay = 1
 
