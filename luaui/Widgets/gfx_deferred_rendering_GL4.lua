@@ -113,8 +113,23 @@ local cursorLightParams = {
 		lifetime = 0, sustain = 0, aninmtype = 0 -- unused
 	}
 }
+
 local cursorLightAlpha = 0.5
 local cursorLightRadius = 0.85
+
+-- This is for the player himself!
+local playerCursorLightParams = {
+	lightType = 'point', -- or cone or beam
+	pieceName = nil, -- optional
+	lightConfig = {
+		posx = 0, posy = 0, posz = 0, radius = 250,
+		r = 1, g = 0.8, b = 0.6, a = 0.1,	-- (alpha is set elsewhere)
+		color2r = 0, color2g = 0, color2b = 0, colortime = 0, -- point lights only, colortime in seconds for unit-attache
+		modelfactor = 0.3, specular = 0.4, scattering = 0, lensflare = 0,
+		lifetime = 0, sustain = 0, aninmtype = 0 -- unused
+	}
+}
+
 
 local teamColors = {}
 local function loadTeamColors()
@@ -173,6 +188,9 @@ local shaderConfig = {
 	BLEEDFACTOR = 0.5, -- How much oversaturated color channels will bleed into other color channels.
 	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
 }
+
+local radiusMultiplier = 1.0
+local intensityMultiplier = 1.0
 
 -- the 3d noise texture used for this shader
 local noisetex3dcube =  "LuaUI/images/noise64_cube_3.dds"
@@ -289,6 +307,8 @@ local shaderSourceCache = {
 		nightFactor = 1.0,
 		windX = 0.0,
 		windZ = 0.0,
+		radiusMultiplier = 1.0,
+		intensityMultiplier = 1.0, 
 	  },
 }
 local testprojlighttable = {0,16,0,200, --pos + radius
@@ -385,10 +405,9 @@ local function InitializeLight(lightTable, unitID)
 			for paramname, tablepos in pairs(lightParamKeyOrder) do
 				lightparams[tablepos] = lightTable.lightConfig[paramname] or lightparams[tablepos]
 			end
-			lightparams[lightParamKeyOrder.radius] = deferredLightGL4Config.globalRadiusMult * lightparams[lightParamKeyOrder.radius]
-			lightparams[lightParamKeyOrder.a] = deferredLightGL4Config.globalLightMult * lightparams[lightParamKeyOrder.a]
-			lightparams[lightParamKeyOrder.lifetime] = math.floor(deferredLightGL4Config.globalLifeMult * lightparams[lightParamKeyOrder.lifetime] )
-			--lightparams[lightParamKeyOrder.sustain] = math.floor(deferredLightGL4Config.globalLifeMult * lightparams[lightParamKeyOrder.sustain] ) -- not needed yet
+			lightparams[lightParamKeyOrder.radius] = lightparams[lightParamKeyOrder.radius]
+			lightparams[lightParamKeyOrder.a] =  lightparams[lightParamKeyOrder.a]
+			lightparams[lightParamKeyOrder.lifetime] = math.floor( lightparams[lightParamKeyOrder.lifetime] )
 			lightTable.lightParamTable = lightparams
 		end
 
@@ -416,6 +435,7 @@ local function InitializeLight(lightTable, unitID)
 	return true
 end
 InitializeLight(cursorLightParams)
+InitializeLight(playerCursorLightParams)
 
 --------------------------------------------------------------------------------
 
@@ -1398,6 +1418,21 @@ function widget:Update(dt)
 			cursorLights = nil
 		end
 	end
+	
+	-- This is the player cursor!
+	if false then 
+		local mx,my,m1,m2,m3, _ , camPanning = Spring.GetMouseState()
+		local traceType, tracedScreenRay = Spring.TraceScreenRay(mx, my, true)
+		if not camPanning and tracedScreenRay ~= nil then
+			local params = playerCursorLightParams.lightParamTable
+			params[1], params[2], params[3] = tracedScreenRay[1],tracedScreenRay[2] + cursorLightHeight,tracedScreenRay[3]
+			AddLight("PLAYERCURSOR", nil, nil, cursorPointLightVBO, params)
+		else
+			if cursorPointLightVBO.instanceIDtoIndex["PLAYERCURSOR"] then
+				popElementInstance(cursorPointLightVBO, "PLAYERCURSOR")
+			end
+		end
+	end
 
 	updateProjectileLights()
 	expavg = expavg * 0.98 + 0.02 * Spring.DiffTimers(Spring.GetTimerMicros(),tus)
@@ -1447,8 +1482,9 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 
 		deferredLightShader:Activate()
 		deferredLightShader:SetUniformFloat("nightFactor", nightFactor)
-		deferredLightShader:SetUniformFloat("windX", windX)
-		deferredLightShader:SetUniformFloat("windZ", windZ)
+
+		deferredLightShader:SetUniformFloat("intensityMultiplier", intensityMultiplier)
+		deferredLightShader:SetUniformFloat("radiusMultiplier", radiusMultiplier)
 		--Spring.Echo(windX, windZ)
 
 

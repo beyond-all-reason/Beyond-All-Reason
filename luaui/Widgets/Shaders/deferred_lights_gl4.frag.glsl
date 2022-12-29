@@ -35,6 +35,9 @@ uniform sampler3D noise3DCube;
 uniform float pointbeamcone = 0;
 uniform float nightFactor = 1.0;
 // = 0; // 0 = point, 1 = beam, 2 = cone
+uniform float radiusMultiplier = 1.0;
+uniform float intensityMultiplier = 1.0;
+
 out vec4 fragColor;
 
 float smoothmin(float a, float b, float k) {
@@ -830,6 +833,8 @@ void main(void)
 	
 	// bleeding makes the other channels brighter when we 'overflow' with lighting
 	fragColor.rgb = (blendedlights*0.9  + additivelights*0.5) + vec3(bleed)* BLEEDFACTOR; 
+	
+	fragColor.rgb *= intensityMultiplier;
 	//fragColor.rgb *= v_lightcolor.a;
 	//fragColor.rgb = vec3(bleed);
 	//fragColor.rgb = vec3(targetcolor.rgb + blendedlights + additivelights);
