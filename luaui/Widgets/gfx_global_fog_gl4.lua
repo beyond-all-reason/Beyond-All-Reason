@@ -53,7 +53,7 @@ local shaderConfig = {
 	NOISESAMPLES = 6, -- how many samples of 3D noise to take
 	NOISESCALE = 1.2, -- The tiling pattern of noise
 	NOISETHRESHOLD = -0.0, -- The 0 level of noise
-	LOSREDUCEFOG = 1, -- how much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los
+	LOSREDUCEFOG = 0, -- how much less fog there is in LOS , 0 is no height based fog in los, 1 is full fog in los
 	USEMINIMAP = 1, -- 0 or 1 to use the minimap for back-scatter
 	MINIMAPSCATTER = 0.1, -- How much the minimap color sdditively back-scatters into fog color, 0 is off
 
