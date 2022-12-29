@@ -118,6 +118,10 @@ local cursorLightAlpha = 0.5
 local cursorLightRadius = 0.85
 
 -- This is for the player himself!
+local showPlayerCursorLight = false
+
+local playerCursorLightRadius = 1
+local playerCursorLightBrightness = 1
 local playerCursorLightParams = {
 	lightType = 'point', -- or cone or beam
 	pieceName = nil, -- optional
@@ -308,7 +312,7 @@ local shaderSourceCache = {
 		windX = 0.0,
 		windZ = 0.0,
 		radiusMultiplier = 1.0,
-		intensityMultiplier = 1.0, 
+		intensityMultiplier = 1.0,
 	  },
 }
 local testprojlighttable = {0,16,0,200, --pos + radius
@@ -1069,6 +1073,16 @@ function widget:Initialize()
 	WG['lightsgl4'].RemoveLight  = RemoveLight
 	WG['lightsgl4'].GetLightVBO  = GetLightVBO
 
+	WG['lightsgl4'].ShowPlayerCursorLight = function(value)
+		showPlayerCursorLight = value
+	end
+	WG['lightsgl4'].PlayerCursorLightRadius = function(value)
+		playerCursorLightRadius = value
+	end
+	WG['lightsgl4'].PlayerCursorLightBrightness = function(value)
+		playerCursorLightBrightness = value
+	end
+
 	widgetHandler:RegisterGlobal('AddPointLight', WG['lightsgl4'].AddPointLight)
 	widgetHandler:RegisterGlobal('AddBeamLight', WG['lightsgl4'].AddBeamLight)
 	widgetHandler:RegisterGlobal('AddConeLight', WG['lightsgl4'].AddConeLight)
@@ -1418,14 +1432,16 @@ function widget:Update(dt)
 			cursorLights = nil
 		end
 	end
-	
+
 	-- This is the player cursor!
-	if false then 
+	if showPlayerCursorLight then
 		local mx,my,m1,m2,m3, _ , camPanning = Spring.GetMouseState()
 		local traceType, tracedScreenRay = Spring.TraceScreenRay(mx, my, true)
 		if not camPanning and tracedScreenRay ~= nil then
 			local params = playerCursorLightParams.lightParamTable
 			params[1], params[2], params[3] = tracedScreenRay[1],tracedScreenRay[2] + cursorLightHeight,tracedScreenRay[3]
+			params[4] = playerCursorLightRadius * 250
+			params[12] = playerCursorLightBrightness * 0.1
 			AddLight("PLAYERCURSOR", nil, nil, cursorPointLightVBO, params)
 		else
 			if cursorPointLightVBO.instanceIDtoIndex["PLAYERCURSOR"] then
@@ -1549,6 +1565,9 @@ function widget:GetConfigData(_) -- Called by RemoveWidget
 		globalLightMult = deferredLightGL4Config.globalLightMult,
 		globalRadiusMult = deferredLightGL4Config.globalRadiusMult,
 		globalLifeMult = deferredLightGL4Config.globalLifeMult,
+		showPlayerCursorLight = showPlayerCursorLight,
+		playerCursorLightRadius = playerCursorLightRadius,
+		playerCursorLightBrightness = playerCursorLightBrightness,
 		resetted = 1.65,
 	}
 	return savedTable
@@ -1566,6 +1585,15 @@ function widget:SetConfigData(data) -- Called on load (and config change), just 
 		if data.globalLifeMult ~= nil then
 			deferredLightGL4Config.globalLifeMult =  data.globalLifeMult
 		end
+	end
+	if data.showPlayerCursorLight ~= nil then
+		showPlayerCursorLight = data.showPlayerCursorLight
+	end
+	if data.playerCursorLightRadius ~= nil then
+		playerCursorLightRadius = data.playerCursorLightRadius
+	end
+	if data.playerCursorLightBrightness ~= nil then
+		playerCursorLightBrightness = data.playerCursorLightBrightness
 	end
 	--Spring.Debug.TableEcho(deferredLightGL4Config)
 	--deferredLightGL4Config = data
