@@ -347,7 +347,7 @@ if not gadgetHandler:IsSyncedCode() then
 	local nightmodecommand = "nightmode"
 	function gadget:TextCommand(msg)
 		if string.sub(msg, 1, string.len(nightmodecommand)) == nightmodecommand then
-			SetNightMode(
+			--SetNightMode(
 		end
 	end
 
