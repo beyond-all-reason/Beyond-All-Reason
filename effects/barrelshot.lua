@@ -68,6 +68,35 @@ local definitions = {
 	      useairlos          = true,
 	    },
 	  },
+    flare = {
+      air                = true,
+      class              = [[CSimpleParticleSystem]],
+      count              = 0,
+      ground             = true,
+      water              = true,
+      properties = {
+        airdrag            = 0,
+        colormap           = [[0.95 0.90 0.7 0.55   0.1 0.07 0.05 0.01]],
+        directional        = false,
+        emitrot            = 90,
+        emitrotspread      = 0,
+        emitvector         = [[0.0, 1, 0.0]],
+        gravity            = [[0.0, 0.0, 0.0]],
+        numparticles       = 1,
+        particlelife       = 8,
+        particlelifespread = 3,
+        particlesize       = 60,
+        particlesizespread = 12,
+        particlespeed      = 0,
+        particlespeedspread = 0,
+        pos                = [[0.0, 0, 0.0]],
+        rotParams          = [[60 r220, -60 r120, -180 r360]],
+        sizegrowth         = -4.5,
+        sizemod            = 1,
+        texture            = [[flare2]],
+        useairlos          = true,
+      },
+    },
     -- TEST for waterwave on (big) ship guns
     -- waterring = {
     --   air                = false,
@@ -558,7 +587,7 @@ definitions["barrelshot-huge"].smoke2.properties.particlelifespread			= definiti
 definitions["barrelshot-huge"].smoke2.properties.particlesize				    = definitions["barrelshot-huge"].smoke2.properties.particlesize * size * 1.3
 definitions["barrelshot-huge"].smoke2.properties.particlesizespread			= definitions["barrelshot-huge"].smoke2.properties.particlesizespread * size
 definitions["barrelshot-huge"].smoke2.properties.particlespeed          = definitions["barrelshot-huge"].smoke2.properties.particlespeed * size * 1.2
-definitions["barrelshot-huge"].smoke2.properties.particlespeedspread    = definitions["barrelshot-huge"].smoke2.properties.particlespeedspread * size * 1.4
+definitions["barrelshot-huge"].smoke2.properties.particlespeedspread    = definitions["barrelshot-huge"].smoke2.properties.particlespeedspread * size * 1.6
 --definitions["barrelshot-huge"].smoke2.properties.numparticles				    = 4
 --definitions["barrelshot-huge"].smoke2.properties.colormap               = [[0 0 0 0    0.90 0.58 0.16 0.70    0.12 0.12 0.12 0.38   0.011 0.011 0.11 0.22   0.010 0.010 0.10 0.16   0 0 0 0.01]]
 definitions["barrelshot-huge"].smoke.properties.particlelife            = definitions["barrelshot-huge"].smoke.properties.particlelife * size
@@ -567,6 +596,7 @@ definitions["barrelshot-huge"].smoke.properties.particlesize				    = definition
 definitions["barrelshot-huge"].smoke.properties.particlesizespread			= definitions["barrelshot-huge"].smoke.properties.particlesizespread * size
 definitions["barrelshot-huge"].smoke.properties.particlespeed           = definitions["barrelshot-huge"].smoke.properties.particlespeed * size * 0.95
 definitions["barrelshot-huge"].smoke.properties.airdrag                 = .96
+definitions["barrelshot-huge"].smoke2.properties.airdrag                 = .95
 definitions["barrelshot-huge"].smoke.properties.numparticles				    = 1
 --definitions["barrelshot-huge"].smoke.properties.particlespeedspread			= definitions["barrelshot-huge"].smoke.properties.particlespeedspread * size
 --definitions["barrelshot-huge"].clouddust.properties.particlesize				= definitions["barrelshot-huge"].clouddust.properties.particlesize * size
@@ -660,7 +690,7 @@ definitions["barrelshot-sniper"].fire.properties.length                         
 definitions["barrelshot-sniper"].fire.properties.size                                    = definitions["barrelshot-sniper"].fire.properties.size * size * 0.8
 definitions["barrelshot-sniper"].fire2.properties.length                                 = definitions["barrelshot-sniper"].fire.properties.length * size * 1.3
 definitions["barrelshot-sniper"].fire2.properties.size                                   = definitions["barrelshot-sniper"].fire.properties.size * size * 0.8
-definitions["barrelshot-sniper"].fireglow.properties.particlesize                        = definitions["barrelshot-sniper"].fireglow.properties.particlesize * size * 0.95
+definitions["barrelshot-sniper"].flare.count                                             = 1       
 --definitions["barrelshot-sniper"].fire.properties.colormap = [[1 0.33 0.15 0.015   0.7 0.17 0.08 0.01   0.4 0.06 0.03 0.01   0 0 0 0.01]]
 --definitions["barrelshot-sniper"].fire2.properties.colormap = [[1 0.33 0.15 0.015   0.7 0.17 0.08 0.01   0.4 0.06 0.03 0.01   0 0 0 0.01]]
 --definitions["barrelshot-sniper"].fireglow.properties.colormap = [[0.122 0.066 0.025 0.04   0 0 0 0.01]]

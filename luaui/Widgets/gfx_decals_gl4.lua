@@ -678,6 +678,14 @@ for weaponDefID=1, #WeaponDefs do
 			glowadd = 0
 
 		elseif weaponDef.type == 'Cannon' then
+			if string.find(weaponDef.name, 'old_armsnipe_weapon') then
+				textures = { "t_groundcrack_16_a.png", "t_groundcrack_17_a.png" }
+				radius = 50
+				heatstart = 6000
+				heatdecay = 2.0
+				glowsustain = 35
+				glowadd = 4
+			end
 			if weaponDef.highTrajectory == 1 then
 				textures = { "t_groundcrack_21_a.png", "t_groundcrack_22_a.png", "t_groundcrack_10_a.png" }
 				alphadecay = 0.0024
