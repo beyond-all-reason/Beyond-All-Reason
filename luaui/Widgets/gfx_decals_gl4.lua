@@ -102,7 +102,7 @@ local function addDirToAtlas(atlas, path, key, filelist)
 	for i=1, #files do
 		local lowerfile = string.lower(files[i])
 		if imgExts[string.sub(lowerfile,-3,-1)] and string.find(lowerfile, key, nil, true) then
-			Spring.Echo(files[i])
+			--Spring.Echo(files[i])
 			gl.AddAtlasTexture(atlas,lowerfile)
 			atlassedImages[lowerfile] = atlas
 			filelist[lowerfile] = true
@@ -123,18 +123,21 @@ local function makeAtlases()
 	local usedpixels = 0
 	-- read back the UVs:
 	for filepath, _ in pairs(decalImageCoords) do
-		local p,q,s,t = gl.GetAtlasTexture(atlasColorAlpha, filepath) --xXyY
+		local p,q,s,t = gl.GetAtlasTexture(atlasColorAlpha, filepath) --xXyY, wow, default are texel centers, e.g. [0.5; 1023.5]
 		local texelX = 1.0/atlasInfo.xsize -- shrink UV areas for less mip bleed
 		local texelY = 1.0/atlasInfo.ysize -- shrink UV areas for less mip bleed
 		usedpixels = usedpixels + (math.abs(p-q) * atlasInfo.xsize ) * (math.abs(s-t) * atlasInfo.ysize)
 		if autoreload then Spring.Echo(filepath) end
 		decalImageCoords[filepath] =  {p+texelX,q-texelX,s+texelY,t-texelY}
+		--Spring.Echo(atlasInfo.xsize * (p+texelX), atlasInfo.xsize * (q-texelX),texelX * atlasInfo.xsize)
 	end
 
-	Spring.Echo(string.format("Decals GL4 Atlas is %dx%d, used %.1f%%",
-		atlasInfo.xsize, atlasInfo.ysize,
-		usedpixels * 100 / (atlasInfo.xsize * atlasInfo.ysize)
+	if autoreload then 
+		Spring.Echo(string.format("Decals GL4 Atlas is %dx%d, used %.1f%%",
+			atlasInfo.xsize, atlasInfo.ysize,
+			usedpixels * 100 / (atlasInfo.xsize * atlasInfo.ysize)
 		))
+	end
 
 	atlasNormals = gl.CreateTextureAtlas(atlasSize,atlasSize,atlasType)
 	addDirToAtlas(atlasNormals, groundscarsPath, '_n.')
@@ -525,9 +528,10 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	return decalIndex, lifetime
 end
 
-function widget:DrawWorldPreUnit()
+local function DrawDecals()
 	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
 
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--Spring.Echo(decalVBO.usedElements,decalLargeVBO.usedElements)
 		glCulling(GL.BACK)
@@ -583,6 +587,17 @@ function widget:DrawWorldPreUnit()
 		end
 	end
 end
+
+if Spring.Utilities.EngineVersionAtLeast(105,1,1,1422) then 
+	function widget:DrawPreDecals()
+		DrawDecals()
+	end
+else
+	function widget:DrawWorldPreUnit()
+		DrawDecals()
+	end
+end
+
 
 local function RemoveDecal(instanceID)
 	RemoveDecalFromArea(instanceID)
@@ -984,6 +999,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('AddDecalGL4', WG['decalsgl4'].AddDecalGL4)
 	widgetHandler:RegisterGlobal('RemoveDecalGL4', WG['decalsgl4'].RemoveDecalGL4)
 	widgetHandler:RegisterGlobal('GadgetWeaponExplosionDecal', GadgetWeaponExplosionDecal)
+
 end
 
 
