@@ -734,6 +734,15 @@ for weaponDefID=1, #WeaponDefs do
 				glowsustain = 40
 				glowadd = 1.3
 				bwfactor = 0.1
+			elseif string.find(weaponDef.name, 'disintegratorxl') then
+				textures = { "t_groundcrack_21_a.png", "t_groundcrack_16_a.png" }
+				alphadecay = 0.004
+				radius = radius * 1.7 --* (math.random() * 20 + 0.2)
+				radiusVariation = 1.65
+				heatdecay = 0.75
+				glowsustain = 30
+				glowadd = 1.8
+				bwfactor = 0.1
 			else
 				radius = radius * 2.5
 				heatdecay = 0.7
