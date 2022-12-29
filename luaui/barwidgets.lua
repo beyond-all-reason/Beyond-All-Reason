@@ -289,7 +289,16 @@ end
 
 
 --------------------------------------------------------------------------------
+local doMoreYield = (Spring.Yield ~= nil);
 
+local function Yield()
+	if doMoreYield then
+		local doMoreYield = Spring.Yield()
+		if doMoreYield == false then --GetThreadSafety == false
+			Spring.Echo("WidgetHandler Yield: entering critical section") 
+		end
+	end
+end
 
 local function GetWidgetInfo(name, mode)
 
@@ -363,6 +372,7 @@ function widgetHandler:Initialize()
 			local widget = self:LoadWidget(wf, false)
 			if widget and not zipOnly[widget.whInfo.name] then
 				table.insert(unsortedWidgets, widget)
+				Yield()
 			end
 		end
 	end
@@ -374,6 +384,7 @@ function widgetHandler:Initialize()
 		local widget = self:LoadWidget(wf, true)
 		if widget then
 			table.insert(unsortedWidgets, widget)
+			Yield()
 		end
 	end
 
@@ -384,6 +395,7 @@ function widgetHandler:Initialize()
 		local widget = self:LoadWidget(wf, true)
 		if widget then
 			table.insert(unsortedWidgets, widget)
+			Yield()
 		end
 	end
 
@@ -411,7 +423,7 @@ function widgetHandler:Initialize()
 		local basename = w.whInfo.basename
 		local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
 		Spring.Echo(string.format("Loading widget from %s  %-18s  <%s> ...", source, name, basename))
-
+		Yield()
 		widgetHandler:InsertWidget(w)
 	end
 
