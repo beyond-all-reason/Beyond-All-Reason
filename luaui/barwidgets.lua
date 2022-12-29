@@ -137,6 +137,7 @@ local flexCallIns = {
 	'DrawGenesis',
 	'DrawWorld',
 	'DrawWorldPreUnit',
+	'DrawPreDecals',
 	'DrawWorldPreParticles',
 	'DrawWorldShadow',
 	'DrawWorldReflection',
@@ -1317,6 +1318,13 @@ end
 function widgetHandler:DrawShadowFeaturesLua()
 	for _, w in r_ipairs(self.DrawShadowFeaturesLuaList) do
 		w:DrawShadowFeaturesLua()
+	end
+	return
+end
+
+function widgetHandler:DrawPreDecals()
+	for _, w in r_ipairs(self.DrawPreDecalsList) do
+		w:DrawPreDecals()
 	end
 	return
 end
