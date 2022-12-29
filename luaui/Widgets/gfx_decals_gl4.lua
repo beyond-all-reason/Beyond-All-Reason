@@ -74,7 +74,7 @@ local autoupdate = false -- auto update shader, for debugging only!
 
 -- for automatic oversaturation prevention, not sure if it even works, but hey!
 local areaResolution = 256 -- elmos per square, for a 64x map this is uh, big? for 32x32 its 4k
-local saturationThreshold = 100 * areaResolution
+local saturationThreshold = 16 * areaResolution
 
 ------------------------ GL4 BACKEND -----------------------------------
 
@@ -473,7 +473,9 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	fadeintime = fadeintime or shaderConfig.FADEINTIME
 
 	if CheckDecalAreaSaturation(posx, posz, width, length) then
-		Spring.Echo("Map area is oversaturated with decals!", posx, posz, width, length)
+		if autoupdate then 
+			Spring.Echo("Map area is oversaturated with decals!", posx, posz, width, length)
+		end
 		return nil
 	else
 
@@ -528,7 +530,11 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	return decalIndex, lifetime
 end
 
+local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+
 local function DrawDecals()
+	local alt, ctrl = Spring.GetModKeyState()
+	if alt and (isSinglePlayer) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
 	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
 
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
