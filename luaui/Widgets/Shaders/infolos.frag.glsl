@@ -30,6 +30,8 @@ vec4 getTexel(in sampler2D tex, in vec2 p, in vec2 sizes)
 		off = off / sizes;
 		//off = (off * abs(off)) / sizes;
 		c += texture2D(tex, p + off * RESOLUTION);
+		// USE DFDX!
+		
 	}
 	c *= 1.0/SAMPLES;
 	return c;
@@ -37,16 +39,38 @@ vec4 getTexel(in sampler2D tex, in vec2 p, in vec2 sizes)
 }
 
 
+float getTexelF(in sampler2D tex, in vec2 p, in vec2 sizes)
+{
+	float c = 0.0;
+	for (int i = 0; i<SAMPLES; i++) {
+		vec2 off = vec2(time + float(i)*0.02);
+		off = (vec2(rand(p.st + off.st), rand(p.ts - off.ts)) * 2.0 - 1.0); 
+		off = off / sizes;
+		//off = (off * abs(off)) / sizes;
+		float t = texture2D(tex, p + off * RESOLUTION).r;
+		//float tx = dFdx(t);
+		//float ty = dFdy(t);
+		//vec4 neighbours = vec4(t, t + tx, t + ty, t + tx + ty);
+		c += t;
+		//c += dot(vec4(0.5, 0.125, 0.125, 0.125), neighbours); 
+		// USE DFDX!
+		
+	}
+	c *= 1.0/SAMPLES;
+	return smoothstep(0.0, 1.0, c);
+}
+
+
+
 void main() {
 	fragColor  = vec4(0.0);
 
-	float los = getTexel(tex0, texCoord, vec2(LOSXSIZE,LOSYSIZE) * 1.5).r;
-	float airlos = getTexel(tex1, texCoord, vec2(AIRLOSXSIZE,AIRLOSYSIZE) * 1.5).r;
-	vec2 radarJammer = getTexel(tex2, texCoord, vec2(RADARXSIZE,RADARYSIZE) * 1.5).rg;
+	float los = getTexelF(tex0, texCoord, vec2(LOSXSIZE,LOSYSIZE) * 2.5);
+	float airlos = getTexelF(tex1, texCoord, vec2(AIRLOSXSIZE,AIRLOSYSIZE) * 2.5);
+	vec2 radarJammer = getTexel(tex2, texCoord, vec2(RADARXSIZE,RADARYSIZE) * 2.5).rg;
 	
 	fragColor.r = 0.2 + 0.8 * los; // 0.4
 	fragColor.g += 0.2 + 0.8 * airlos;
-	
 	
 	fragColor.b = 0.2 + 0.8 * clamp(0.75 * radarJammer.r - 0.5 * (radarJammer.g - 0.5),0,1);
 	//gl_FragColor.b += radarJammer.r;
