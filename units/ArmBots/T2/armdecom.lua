@@ -39,7 +39,7 @@ return {
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "VTOL",
-		objectname = "Units/ARMCOM-XMAS.s3o",
+		objectname = "Units/ARMCOM.s3o",
 		radardistance = 50,
 		reclaimable = false,
     	releaseheld  = true,

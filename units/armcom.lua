@@ -43,7 +43,7 @@ return {
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "ALL",
-		objectname = "Units/ARMCOM-XMAS.s3o",
+		objectname = "Units/ARMCOM.s3o",
 		pushresistant = true,
 		radardistance = 700,
 		radaremitheight = 40,
