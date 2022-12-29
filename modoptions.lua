@@ -1497,6 +1497,15 @@ local options={
 		section = 'options_experimental',
 		type    = "string",
 		def     = "",
+	},	
+	
+	{
+		key     = "defaultdecals",
+		name    = "Default Decals",
+		desc    = "Use the default explosion decals instead of Decals GL4", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+		section = 'options_experimental',
+		type    = "bool",
+		def     =  true,
 	},
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

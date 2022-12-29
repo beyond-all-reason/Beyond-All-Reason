@@ -1233,7 +1233,13 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 			ud.transportbyenemy = false
 		end
 	end
-
+	
+	if Spring.GetModOptions().defaultdecals == false then -- For Decals GL4
+		for id,wDef in pairs(WeaponDefs) do
+			wDef.explosionScar = false
+		end
+	end
+	
 	--[[
 	-- Make BeamLasers do their damage up front instead of over time
 	-- Do this at the end so that we don't mess up any magic math
