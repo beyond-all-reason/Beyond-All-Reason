@@ -1,8 +1,3 @@
-local allowXmas = true
-if Spring.GetModOptions().disablexmas ~= nil and Spring.GetModOptions().disablexmas then
-	allowXmas = false
-end
-
 function gadget:GetInfo()
 	return {
 		name		= "Xmas effects",
@@ -11,7 +6,7 @@ function gadget:GetInfo()
 		date		= "October 2017",
 		license     = "GNU GPL, v2 or later",
 		layer		= 0,
-		enabled		= allowXmas,
+		enabled		= false,
 	}
 end
 

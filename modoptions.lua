@@ -170,14 +170,6 @@ local options={
 		section		= 'restrictions',
 		def    		= false,
 	},
-	{
-		key    		= "disablexmas",
-		name   		= "Disable Xmas",
-		desc   		= "Disable Xmas decorations",
-		type   		= "bool",
-		def    		= false,
-		section		= 'restrictions',
-	},
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1497,8 +1489,8 @@ local options={
 		section = 'options_experimental',
 		type    = "string",
 		def     = "",
-	},	
-	
+	},
+
 	{
 		key     = "defaultdecals",
 		name    = "Default Decals",
