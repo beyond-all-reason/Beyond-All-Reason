@@ -235,7 +235,7 @@ return {
 					vtol = 4000,
 				},
 			},
-			disintegrator = {
+			disintegratorxl = {
 				areaofeffect = 65,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -296,7 +296,7 @@ return {
 				def = "ARMCOMSEALASERBOSS",
 			},
 			[3] = {
-				def = "DISINTEGRATOR",
+				def = "DISINTEGRATORXL",
 				--badtargetcategory = "VTOL",
 			},
 		},
