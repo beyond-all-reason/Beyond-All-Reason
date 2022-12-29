@@ -87,7 +87,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-large",
+				[1] = "custom:barrelshot-larger",
 				[2] = "custom:waterwake-huge",
 				[3] = "custom:bowsplash-huge",
 				[4] = "custom:enginespurt-huge",
