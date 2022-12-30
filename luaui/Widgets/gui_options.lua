@@ -1937,45 +1937,6 @@ function init()
 		},
 
 
-		{ id = "lighteffects", group = "gfx", category = types.basic, name = texts.option.lighteffects, type = "bool", value = GetWidgetToggleValue("Light Effects"), description = texts.option.lighteffects_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  if value then
-				  if widgetHandler.orderList["Deferred rendering"] ~= nil then
-					  widgetHandler:EnableWidget("Deferred rendering")
-				  end
-				  widgetHandler:EnableWidget("Light Effects")
-
-				  local id = getOptionByID('lighteffects2')
-				  if options[id].value then
-					  options[id].onchange(id, false)
-				  end
-			  else
-				  if widgetHandler.orderList["Deferred rendering"] ~= nil then
-					  widgetHandler:DisableWidget("Deferred rendering")
-				  end
-				  widgetHandler:DisableWidget("Light Effects")
-			  end
-		  end,
-		},
-		{ id = "lighteffects_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_brightness, min = 0.65, max = 2, step = 0.05, type = "slider", value = 1.4, description = texts.option.lighteffects_brightness_descr,
-		  onload = function(i)
-			  loadWidgetData("Light Effects", "lighteffects_brightness", { 'globalLightMult' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Light Effects', 'lighteffects', 'setGlobalBrightness', { 'globalLightMult' }, value)
-		  end,
-		},
-		{ id = "lighteffects_additionalflashes", category = types.dev, group = "gfx", name = widgetOptionColor .. "   " .. texts.option.lighteffects_additionalflashes, type = "bool", value = true, description = texts.option.lighteffects_additionalflashes_descr,
-		  onload = function(i)
-			  loadWidgetData("Light Effects", "lighteffects_additionalflashes", { 'additionalLightingFlashes' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Light Effects', 'lighteffects', 'setAdditionalFlashes', { 'additionalLightingFlashes' }, value)
-		  end,
-		},
-
 		{ id = "lighteffects2", group = "gfx", category = types.dev, name = texts.option.lighteffects2, type = "bool", value = GetWidgetToggleValue("Deferred rendering GL4"), description = texts.option.lighteffects2_descr,
 		  onload = function(i)
 		  end,
