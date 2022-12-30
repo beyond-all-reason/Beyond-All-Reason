@@ -102,21 +102,9 @@ return {
 				turret = 1,
 				weaponvelocity = 1500,
 				-- customparams = {
-				-- 	expl_light_color = "1 0.9 0.7",
-				-- 	expl_light_life_mult = 1.6,
-				-- 	expl_light_mult = 1.3,
-				-- 	expl_light_radius_mult = 1.5,
-				-- },
+				--				--				--				--				-- },
 				damage = {
 					default = 15000,
-				},
-				customparams = {
-					expl_light_life_mult = 1.6,
-					expl_light_radius_mult = 1.5,
-					expl_light_mult = 1.3,
-					light_radius_mult = "0.95",
-					light_mult = 2.2,
-					light_color = "1 0.7 0.5",
 				},
 			},
 		},

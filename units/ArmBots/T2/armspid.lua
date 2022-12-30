@@ -155,10 +155,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
-				customparams = {
-					expl_light_color = "0.7 0.7 1",
-					light_color = "0.7 0.7 1",
-				},
 				damage = {
 					default = 850,
 				},

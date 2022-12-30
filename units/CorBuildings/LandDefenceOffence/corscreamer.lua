@@ -160,14 +160,6 @@ return {
 				weaponacceleration = 1000,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1850,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 1.05,
-					expl_light_radius_mult = 0.55,
-					light_color = "1 0.5 0.6",
-					light_radius_mult = 0.82,
-					light_mult = 1.22,
-				},
 				damage = {
 					bombers = 750,
 					fighters = 750,

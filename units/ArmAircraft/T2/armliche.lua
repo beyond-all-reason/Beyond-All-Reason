@@ -121,15 +121,6 @@ return {
 				weapontimer = 6,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 420,
-				customparams = {
-					expl_light_life_mult = 1.7,
-					expl_light_mult = 1.3,
-					expl_light_radius_mult = 1.3,
-					expl_light_nuke = 1,
-					light_color = "1 0.5 0.05",
-					light_mult = "0.6",
-					light_radius_mult = "0.4",
-				},
 				damage = {
 					commanders = 3150,
 					default = 5625,
@@ -171,15 +162,6 @@ return {
 				weapontimer = 0,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 0,
-				customparams = {
-					expl_light_color = "1 0.9 0.7",
-					expl_light_life_mult = 1.7,
-					expl_light_mult = 1.3,
-					expl_light_radius_mult = 1.3,
-					expl_light_nuke = 1,
-					light_mult = "0.6",
-					light_radius_mult = "0.4",
-				},
 				damage = {
 					commanders = 3350,
 					default = 5625,

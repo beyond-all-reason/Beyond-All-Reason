@@ -154,10 +154,6 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 450,
-				customparams = {
-					expl_light_color = "1 0.4 0.5",
-					light_color = "1 0.5 0.6",
-				},
 				damage = {
 					bombers = 138,
 					fighters = 138,
@@ -203,15 +199,7 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cegtag = "missiletrailcorroyspecial",
-					def = "cormship_rocket_split",
-					expl_light_color = "1 0.5 0.05",
-					expl_light_heat_radius_mult = 3,
-					expl_light_life_mult = 1.25,
-					expl_light_mult = 1.2,
-					expl_light_radius_mult = 1.25,
-					light_color = "1 0.6 0.15",
-					light_mult = 1.66,
-					model = "airbomb",
+					def = "cormship_rocket_split",					model = "airbomb",
 					number = "8",
 					speceffect = "split",
 					splitexplosionceg = "genericshellexplosion-medium",
@@ -259,15 +247,6 @@ return {
 				weapontimer = 5,
 				weapontype = "Cannon",
 				weaponvelocity = 480,
-				customparams = {
-					expl_light_color = "1 0.5 0.05",
-					expl_light_heat_radius_mult = 3,
-					expl_light_life_mult = 1.25,
-					expl_light_mult = 1.2,
-					expl_light_radius_mult = 1.25,
-					light_color = "1 0.6 0.15",
-					light_skip = true,
-				},
 				damage = {
 					commanders = 223,
 					default = 350,

@@ -105,16 +105,7 @@ return {
 				tolerance = 6000,
 				turret = false,
 				weapontype = "LaserCannon",
-				weaponvelocity = 800,
-				customparams = {
-					light_color = "1 0.9 0.15",
-					light_radius_mult = 0.6,
-					light_mult = 1.5,
-					expl_light_radius_mult = 0.1,
-					expl_light_mult = 0.1,
-					expl_light_color = "1 0.9 0.15",
-				},
-				damage = {
+				weaponvelocity = 800,				damage = {
 					bombers = 1,
 					commanders = 5,
 					default = 11,

@@ -139,11 +139,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
-				customparams = {
-					expl_light_life_mult = 1.1,
-					light_mult = 1.2,
-					light_radius_mult = 1.3,
-				},
 				damage = {
 					bombers = 65,
 					default = 265,

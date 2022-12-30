@@ -236,12 +236,6 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
-				customparams = {
-					expl_light_heat_radius = 12,
-					expl_light_opacity = 0.32,
-					expl_light_radius = 340,
-					expl_light_color = "1 0.83 0.53",
-				},
 				damage = {
 					default = 40,
 				},

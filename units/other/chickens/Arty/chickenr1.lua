@@ -116,14 +116,6 @@ return {
 					default = 3200,
 					shields = 800,
 				},
-				customparams = {
-					expl_light_life_mult = 1.0,
-					expl_light_radius_mult = 1.0,
-					expl_light_mult = 1.05,
-					light_radius_mult = "0.95",
-					light_mult = 1.5,
-					light_color = "1 0.65 0.15",
-				},
 			},
 		},
 		weapons = {

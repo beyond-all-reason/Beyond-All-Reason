@@ -177,15 +177,6 @@ return {
 				weapontimer = 2.5,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 6000,
-				customparams = {
-					expl_light_color = "1 0.5 0.75",
-					expl_light_life_mult = 1.3,
-					expl_light_mult = 1.3,
-					expl_light_radius_mult = 1.3,
-					light_color = "1 0.5 0.75",
-					light_mult = 4,
-					light_radius_mult = 1.25,
-				},
 				damage = {
 					default = 1500,
 				},

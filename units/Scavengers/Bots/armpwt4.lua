@@ -124,9 +124,6 @@ return {
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 800,
-				customparams = {
-					light_mult = "1.3",
-				},
 				damage = {
 					bombers = 50,
 					commanders = 50,

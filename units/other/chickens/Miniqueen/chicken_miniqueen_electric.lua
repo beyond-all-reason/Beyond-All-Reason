@@ -117,14 +117,6 @@ return {
 					default = 9000,
 					shields = 1000,
 				},
-				customparams = {
-					expl_light_life_mult = 1.45,
-					expl_light_radius_mult = 1.2,
-					expl_light_mult = 1.2,
-					light_radius_mult = "0.95",
-					light_mult = 1.6,
-					light_color = "0.05 0.45 1",
-				},
 			},
 			melee = {
 				areaofeffect = 30,
@@ -168,10 +160,6 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				waterweapon = true,
-				customparams = {
-					expl_light_color = "0.2 0.5 1",
-					light_color = "0.2 0.5 1",
-				},
 				damage = {
 					default = 1400,
 				},
@@ -217,14 +205,6 @@ return {
 				damage = {
 					default = 9000,
 					shields = 1000,
-				},
-				customparams = {
-					expl_light_life_mult = 1.45,
-					expl_light_radius_mult = 1.2,
-					expl_light_mult = 1.2,
-					light_radius_mult = "0.95",
-					light_mult = 1.6,
-					light_color = "0.05 0.45 1",
 				},
 			},
 		},
