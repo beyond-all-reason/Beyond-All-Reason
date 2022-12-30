@@ -19,7 +19,7 @@ local types = {
 	dev      = 3,
 }
 
-local version = 1.2	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
+local version = 1.3	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
 local newerVersion = false	-- configdata will set this true if it's a newer version
 
 local texts = {}    -- loaded from external language file
@@ -5084,25 +5084,9 @@ function widget:Initialize()
 
 	-- enable previous default disabled widgets to their new default state
 	if newerVersion then
-		if version <= 1 then
-			if widgetHandler.orderList["DrawUnitShape GL4"] and widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
-				widgetHandler:EnableWidget("DrawUnitShape GL4")
-			end
-			if widgetHandler.orderList["HighlightUnit GL4"] and widgetHandler.orderList["HighlightUnit GL4"] < 0.5 then
-				widgetHandler:EnableWidget("HighlightUnit GL4")
-			end
-			if widgetHandler.orderList["Rank Icons GL4"] and widgetHandler.orderList["Rank Icons GL4"] < 0.5 then
-				widgetHandler:EnableWidget("Rank Icons GL4")
-			end
-		end
-		if version <= 1.1 then
-			if widgetHandler.orderList["Health Bars GL4"] and widgetHandler.orderList["Health Bars GL4"] < 0.5 then
-				widgetHandler:EnableWidget("Health Bars GL4")
-			end
-		end
-		if version <= 1.2 then
-			if widgetHandler.orderList["Resurrection Halos GL4"] and widgetHandler.orderList["Resurrection Halos GL4"] < 0.5 then
-				widgetHandler:EnableWidget("Resurrection Halos GL4")
+		if version <= 1.3 then
+			if widgetHandler.orderList["Deferred rendering GL4"] and widgetHandler.orderList["Deferred rendering GL4"] < 0.5 then
+				widgetHandler:EnableWidget("Deferred rendering GL4")
 			end
 		end
 	end
