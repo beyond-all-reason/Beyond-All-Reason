@@ -1980,8 +1980,6 @@ function init()
 		  end,
 		},
 
-		{ id = "heatdistortion", group = "gfx", category = types.dev, widget = "Lups", name = texts.option.heatdistortion, type = "bool", value = GetWidgetToggleValue("Lups"), description = texts.option.heatdistortion_descr },
-
 		{ id = "darkenmap", group = "gfx", category = types.advanced, name = texts.option.darkenmap, min = 0, max = 0.33, step = 0.01, type = "slider", value = 0, description = texts.option.darkenmap_descr,
 		  onload = function(i)
 			  local mapDarkening = widgetHandler.configData["Darken map"].maps[Game.mapName:lower()]
