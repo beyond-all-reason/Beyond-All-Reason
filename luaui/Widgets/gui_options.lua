@@ -2057,6 +2057,8 @@ function init()
 		  end,
 		},
 
+		{ id = "decalsgl4", group = "gfx", category = types.basic, widget = "Decals GL4", name = texts.option.decalsgl4, type = "bool", value = GetWidgetToggleValue("Decals GL4"), description = texts.option.decalsgl4_desc },
+
 		{ id = "decals", group = "gfx", category = types.advanced, name = texts.option.decals, restart = true, type = "bool", value = tonumber(Spring.GetConfigInt("GroundDecals", 3) or 3) >= 1, description = texts.option.decals_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("GroundDecals", (value and 3 or 0))
@@ -5077,6 +5079,9 @@ function widget:Initialize()
 		widgetHandler:EnableWidget("Language")
 	end
 
+	if widgetHandler.orderList["Infolos API"] and widgetHandler.orderList["Infolos API"] < 0.5 then
+		widgetHandler:EnableWidget("Infolos API")
+	end
 
 	if WG['lang'] then
 		texts = WG['lang'].getText('options')
