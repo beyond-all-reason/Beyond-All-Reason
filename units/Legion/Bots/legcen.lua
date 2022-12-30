@@ -130,7 +130,7 @@ return {
 				noselfdamage = true,
 				--projectiles = 2,
 				range = 210,
-				reloadtime = 2,
+				reloadtime = 2.25,
 				size = 2,
 				soundhit = "xplomed1",
 				soundhitwet = "splshmed",
