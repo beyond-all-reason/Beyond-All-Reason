@@ -111,7 +111,7 @@ return {
 		},
 		weapondefs = {
 			cortron_weapon = {
-				areaofeffect = 512,
+				areaofeffect = 380, --512,
 				avoidfeature = false,
 				avoidfriendly = false,
 				cegtag = "cruisemissiletrail-tacnuke",
@@ -131,7 +131,7 @@ return {
 				model = "cortronmissile.s3o",
 				name = "Long range tactical g2g nuclear warheads",
 				noselfdamage = true,
-				range = 2750,
+				range = 2250,
 				reloadtime = 2,
 				smoketrail = true,
 				smokePeriod = 9,
@@ -163,8 +163,8 @@ return {
 					light_radius_mult = 1.4,
 				},
 				damage = {
-					commanders = 499,
-					default = 2500,
+					commanders = 750,
+					default = 4000,
 				},
 			},
 		},
