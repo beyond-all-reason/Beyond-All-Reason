@@ -111,8 +111,6 @@ return {
 		-- 		damage = {
 		-- 			default = 250,
 		-- 		},
-		-- 		customparams = {
-		--		--		--		--		-- 			--		-- 			--		--		-- 		},
 		-- 	},
 		-- },
 		-- weapons = {

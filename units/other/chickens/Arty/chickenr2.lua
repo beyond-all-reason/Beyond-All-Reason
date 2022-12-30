@@ -59,11 +59,10 @@ return {
 		waterline = 70,
 		workertime = 0,
 		customparams = {
-			subfolder = "other/chickens",			
+			subfolder = "other/chickens",
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -101,8 +100,6 @@ return {
 				targetborder = 0.75,
 				turret = 1,
 				weaponvelocity = 1500,
-				-- customparams = {
-				--				--				--				--				-- },
 				damage = {
 					default = 15000,
 				},

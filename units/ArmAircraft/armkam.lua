@@ -105,7 +105,8 @@ return {
 				tolerance = 6000,
 				turret = false,
 				weapontype = "LaserCannon",
-				weaponvelocity = 800,				damage = {
+				weaponvelocity = 800,
+				damage = {
 					bombers = 1,
 					commanders = 5,
 					default = 11,

@@ -208,7 +208,8 @@ return {
 				turret = true,
 				weaponacceleration = 200,
 				weapontype = "MissileLauncher",
-				weaponvelocity = 500,				damage = {
+				weaponvelocity = 500,
+				damage = {
 					default = 80000,
 				},
 			},
@@ -246,7 +247,8 @@ return {
 				thickness = 1.2,
 				turret = true,
 				weapontype = "BeamLaser",
-				weaponvelocity = 800,				damage = {
+				weaponvelocity = 800,
+				damage = {
 					default = 300,
 				},
 			},
