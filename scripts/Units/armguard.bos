@@ -137,12 +137,26 @@ FireSecondary()
 
 QueryPrimary(piecenum)
 {
-	piecenum = flare1;
+	if( nextBarrel == 0 )
+	{
+		piecenum = flare1;
+	}
+	if( nextBarrel == 1 )
+	{
+		piecenum = flare2;
+	}
 }
 
 QuerySecondary(piecenum)
 {
-	piecenum = flare1;
+	if( nextBarrel == 0 )
+	{
+		piecenum = flare1;
+	}
+	if( nextBarrel == 1 )
+	{
+		piecenum = flare2;
+	}
 }
 
 SweetSpot(piecenum)
