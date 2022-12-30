@@ -145,10 +145,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
-				customparams = {
-					light_color = "1 0.65 0.20",
-					light_mult = 2,
-				},
 				damage = {
 					commanders = 1100,
 					default = 1265,
@@ -186,10 +182,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
-				customparams = {
-					light_color = "1 0.65 0.20",
-					light_mult = 2,
-				},
 				damage = {
 					commanders = 1100,
 					default = 1265,

@@ -81,9 +81,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1500,
 				wobble = 50,
-				customparams = {
-					expl_light_color = "1 0.85 0.55",
-				},
 				damage = {
 					commanders = 2500,
 					default = 9500,

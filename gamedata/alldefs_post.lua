@@ -1234,11 +1234,11 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		end
 	end
 	
-	if Spring.GetModOptions().defaultdecals == false then -- For Decals GL4
-		for id,wDef in pairs(WeaponDefs) do
-			wDef.explosionScar = false
-		end
+	-- For Decals GL4, disables default groundscars for explosions
+	for id,wDef in pairs(WeaponDefs) do
+		wDef.explosionScar = false
 	end
+
 	
 	--[[
 	-- Make BeamLasers do their damage up front instead of over time

@@ -122,10 +122,6 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				waterweapon = true,
-				customparams = {
-					expl_light_color = "0.2 0.5 1",
-					light_color = "0.2 0.5 1",
-				},
 				damage = {
 					default = 1400,
 				},

@@ -106,10 +106,6 @@ return {
 				turret = true,
 				weapontype = "LightningCannon",
 				weaponvelocity = 100,
-				customparams = {
-					expl_light_color = "0.7 0.3 1",
-					light_color = "0.0 0.0 0",
-				},
 				damage = {
 					commanders = 50,
 					bombers = 52,

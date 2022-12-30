@@ -152,15 +152,6 @@ return {
 				--weapontimer = 1,
 				weapontype = "LaserCannon",
 				weaponvelocity = 950,
-				customparams = {
-					light_color = "1 0.9 0.15",
-					light_radius_mult = 0.5,
-					light_mult = 1.7,
-					expl_light_life_mult = 0.1,
-					expl_light_radius_mult = 0.01,
-					expl_light_mult = 0.01,
-					expl_light_color = "0.45 0.40 0.35",
-				},
 				damage = {
 					bombers = 3,
 					default = 9,

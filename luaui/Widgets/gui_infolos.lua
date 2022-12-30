@@ -9,7 +9,7 @@ function widget:GetInfo()
 		date = "2022.12.12",
 		license = "Lua code is GPL V2, GLSL is (c) Beherith",
 		layer = -10000, -- lol this isnt even a number
-		enabled = false
+		enabled = true
 	}
 end
 
@@ -25,22 +25,22 @@ local GL_RGBA32F_ARB = 0x8814
 	-- the GREEN channel contains AIRLOS level
 		-- 0.2-1.0 is LOS level
 		-- < 0.2 is _never_been_in_los!
-	
+
 	-- the BLUE channel contains RADAR coverage
 		-- < 0.2 = never been in radar
 		-- fragColor.b = 0.2 + 0.8 * clamp(0.75 * radarJammer.r - 0.5 * (radarJammer.g - 0.5),0,1);
 		-- >0.2 = radar coverage
 		-- <0.5 = jammer
 	-- It runs every gameFrame
-	
-	
-	
+
+
+
 -- TODO: 2022.12.12
 	-- make it work?
 	-- make api share?
 	-- a clever thing might be to have 1 texture per allyteam?
 	-- some bugginess with jammer range?
-	
+
 -- TODO 2022.12.20
 	-- Read miplevels from modrules?
 
@@ -112,7 +112,7 @@ local function CreateLosTexture()
 end
 
 local function renderToTextureFunc() -- this draws the fogspheres onto the texture
-	--gl.DepthMask(false) 
+	--gl.DepthMask(false)
 	gl.Texture(0, "$info:los")
 	gl.Texture(1, "$info:airlos")
 	gl.Texture(2, "$info:radar") --$info:los
@@ -129,8 +129,8 @@ local function UpdateInfoLOSTexture(count)
 	gl.Culling(false) -- cause our tris are reversed in plane vbo
 	infoShader:Activate()
 	infoShader:SetUniformFloat("outputAlpha", outputAlpha)
-	for i = 1, count do 
-		if i == count then 
+	for i = 1, count do
+		if i == count then
 			infoShader:SetUniformFloat("time", (Spring.GetDrawFrame() + 0) / 1000)
 		else
 			infoShader:SetUniformFloat("time", (Spring.GetDrawFrame() + math.random()) / 1000)
@@ -144,12 +144,12 @@ end
 
 function widget:PlayerChanged(playerID)
 	local newAllyTeam = Spring.GetMyAllyTeamID()
-	if currentAllyTeam ~= newAllyTeam then -- do a few quick renders 
+	if currentAllyTeam ~= newAllyTeam then -- do a few quick renders
 		currentAllyTeam = newAllyTeam
 		updateInfoLOSTexture = numFastUpdates
 		delay = 5
 	end
-	if updateInfoLOSTexture > 0 and autoreload  then 
+	if updateInfoLOSTexture > 0 and autoreload  then
 		Spring.Echo("Fast Updating infolos texture for", currentAllyTeam, updateInfoLOSTexture, "times")
 	end
 end
@@ -158,7 +158,7 @@ function widget:Initialize()
 	--local alwaysColor, losColor, radarColor, jamColor, radarColor2 = Spring.GetLosViewColors()
 	texX = (Game.mapSizeX/8)/shaderConfig.RESOLUTION
 	texY = (Game.mapSizeZ/8)/shaderConfig.RESOLUTION
-	
+
 	for name, tex in pairs({LOS = "$info:los", AIRLOS = "$info:airlos", RADAR = "$info:radar" }) do
 		local texInfo = gl.TextureInfo(tex)
 		shaderConfig[name .. 'XSIZE'] = texInfo.xsize
@@ -166,18 +166,18 @@ function widget:Initialize()
 		Spring.Debug.TableEcho(texInfo)
 	end
 	currentAllyTeam = Spring.GetMyAllyTeamID()
-	
-	for _, a in ipairs(Spring.GetAllyTeamList()) do 
+
+	for _, a in ipairs(Spring.GetAllyTeamList()) do
 		infoTextures[a] = CreateLosTexture()
 	end
-	
-	
+
+
 	infoShader =  LuaShader.CheckShaderUpdates(shaderSourceCache)
 	shaderCompiled = infoShader:Initialize()
-	if not shaderCompiled then Spring.Echo("Failed to compile InfoLOS GL4") end 
-	
+	if not shaderCompiled then Spring.Echo("Failed to compile InfoLOS GL4") end
 
-	
+
+
 	WG['infolosapi'] = {}
 	WG['infolosapi'].GetInfoLOSTexture = GetInfoLOSTexture
 	widgetHandler:RegisterGlobal('GetInfoLOSTexture', WG['infolosapi'].GetInfoLOSTexture)
@@ -190,7 +190,7 @@ function widget:Shutdown()
 end
 
 function widget:GameFrame(n)
-	if (n % updateRate) == 0 then 
+	if (n % updateRate) == 0 then
 		updateInfoLOSTexture = math.max(1,updateInfoLOSTexture)
 	end
 end
@@ -200,18 +200,18 @@ end
 
 --local lastUpdate = Spring.GetTimer()
 
-function widget:DrawWorldPreUnit() 
+function widget:DrawWorldPreUnit()
 	-- local nowtime = Spring.GetTimer()
 	-- local deltat = Spring.DiffTimers(nowtime, lastUpdate)
 	-- keeping outputAlpha identical is a very important trick for never-before-seen areas!
 	-- outputAlpha = math.min(1.0, math.max(0.07,deltat))
 	-- Spring.Echo(deltat,outputAlpha)
-	
-	
+
+
 	if updateInfoLOSTexture > 0 then
-		if delay > 0 then 
+		if delay > 0 then
 			delay = delay -1
-		else 
+		else
 			UpdateInfoLOSTexture(updateInfoLOSTexture)
 			updateInfoLOSTexture = 0
 			delay = 0
@@ -220,13 +220,13 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:DrawScreen() -- the debug display output
-	if autoreload then 
+	if autoreload then
 		infoShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or infoShader
 		gl.Color(1,1,1,1) -- use this to show individual channels of the texture!
 		gl.Texture(0, infoTextures[currentAllyTeam])
 		gl.Blending(GL.ONE, GL.ZERO)
 		gl.TexRect(0, 0, texX, texY, 0, 1, 1, 0)
-		
+
 		gl.Text(tostring(currentAllyTeam), texX, texY,16)
 		gl.Texture(0,"$info:los")
 		gl.TexRect(texX, 0, texX + shaderConfig['LOSXSIZE'], shaderConfig['LOSYSIZE'], 0, 1, 1, 0)

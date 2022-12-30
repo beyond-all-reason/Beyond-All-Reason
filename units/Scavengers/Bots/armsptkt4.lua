@@ -150,9 +150,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
 				wobble = 2000,
-				customparams = {
-					light_mult = "0.66",
-				},
 				damage = {
 					default = 500,
 					subs = 200,

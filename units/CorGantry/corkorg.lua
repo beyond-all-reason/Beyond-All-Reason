@@ -143,9 +143,6 @@ return {
 				weapontimer = 2,
 				weapontype = "Cannon",
 				weaponvelocity = 900,
-				customparams = {
-					light_mult = "0.03",
-				},
 				damage = {
 					default = 165,
 				},
@@ -183,11 +180,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
-				customparams = {
-					expl_light_life_mult = 1.1,
-					light_mult = 2.66,
-					light_radius_mult = 0.6,
-				},
 				damage = {
 					commanders = 1200,
 					default = 5500,
@@ -233,16 +225,6 @@ return {
 				weapontimer = 1,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 2600,
-				customparams = {
-					expl_light_color = "1 0.5 0.05",
-					expl_light_heat_radius_mult = 1.25,
-					expl_light_life_mult = 1.3,
-					expl_light_mult = 1.25,
-					expl_light_radius_mult = 1.3,
-					light_color = "1 0.6 0.15",
-					light_mult = 3.5,
-					light_radius_mult = 1.2,
-				},
 				damage = {
 					default = 800,
 				},
@@ -276,7 +258,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1650,
 				customparams = {
-					expl_light_skip = true,
 					lups_noshockwave = true,
 					nofire = true,
 				},

@@ -156,8 +156,6 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 450,
 				customparams = {
-					expl_light_color = "0.2 0.5 1",
-					light_color = "0.2 0.5 1",
 					spark_ceg = "genericshellexplosion-splash-lightning",
 					spark_forkdamage = "0.33",
 					spark_maxunits = "2",

@@ -9,7 +9,7 @@ function widget:GetInfo()
 		date = "2022.06.10",
 		license = "Lua code is GPL V2, GLSL is (c) Beherith (mysterme@gmail.com)",
 		layer = -99999990,
-		enabled = false
+		enabled = true
 	}
 end
 
@@ -181,8 +181,6 @@ local explosionLights  -- one light per weaponDefID
 local gibLight  -- one light for all pieceprojectiles
 
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
-
-local deferredLightGL4Config = {globalLightMult = 1, globalRadiusMult = 1, globalLifeMult = 1}  -- Changing any of these requires the entire widget to be reloaded!
 
 local shaderConfig = {
 	MIERAYLEIGHRATIO = 0.1, -- The ratio of Rayleigh scattering to Mie scattering
@@ -944,7 +942,6 @@ local function LoadLightConfig()
 	else
 		Spring.Echo("Failed to load GL4 weapon light config", success2, result2)
 	end
-	--deferredLightGL4Config = nil -- clean up our global after load is done
 	return success and success2
 end
 
@@ -1072,6 +1069,13 @@ function widget:Initialize()
 	WG['lightsgl4'].AddLight  = AddLight
 	WG['lightsgl4'].RemoveLight  = RemoveLight
 	WG['lightsgl4'].GetLightVBO  = GetLightVBO
+
+	WG['lightsgl4'].IntensityMultiplier = function(value)
+		intensityMultiplier = value
+	end
+	WG['lightsgl4'].RadiusMultiplier = function(value)
+		radiusMultiplier = value
+	end
 
 	WG['lightsgl4'].ShowPlayerCursorLight = function(value)
 		showPlayerCursorLight = value
@@ -1560,31 +1564,22 @@ end
 --------------------------- Ingame Configurables -------------------
 
 function widget:GetConfigData(_) -- Called by RemoveWidget
-	--Spring.Debug.TraceEcho("GetConfigData DLGL4")
 	local savedTable = {
-		globalLightMult = deferredLightGL4Config.globalLightMult,
-		globalRadiusMult = deferredLightGL4Config.globalRadiusMult,
-		globalLifeMult = deferredLightGL4Config.globalLifeMult,
+		intensityMultiplier = intensityMultiplier,
+		radiusMultiplier = radiusMultiplier,
 		showPlayerCursorLight = showPlayerCursorLight,
 		playerCursorLightRadius = playerCursorLightRadius,
 		playerCursorLightBrightness = playerCursorLightBrightness,
-		resetted = 1.65,
 	}
 	return savedTable
 end
 
 function widget:SetConfigData(data) -- Called on load (and config change), just before Initialize!
-	--Spring.Debug.TraceEcho("SetConfigData DLGL4")
-	if data.globalLifeMult ~= nil and data.resetted ~= nil and data.resetted == 1.65 then
-		if data.globalLightMult ~= nil then
-			deferredLightGL4Config.globalLightMult =  data.globalLightMult
-		end
-		if data.globalRadiusMult ~= nil then
-			deferredLightGL4Config.globalRadiusMult =  data.globalRadiusMult
-		end
-		if data.globalLifeMult ~= nil then
-			deferredLightGL4Config.globalLifeMult =  data.globalLifeMult
-		end
+	if data.intensityMultiplier ~= nil then
+		intensityMultiplier = data.intensityMultiplier
+	end
+	if data.radiusMultiplier ~= nil then
+		radiusMultiplier = data.radiusMultiplier
 	end
 	if data.showPlayerCursorLight ~= nil then
 		showPlayerCursorLight = data.showPlayerCursorLight
@@ -1595,6 +1590,4 @@ function widget:SetConfigData(data) -- Called on load (and config change), just 
 	if data.playerCursorLightBrightness ~= nil then
 		playerCursorLightBrightness = data.playerCursorLightBrightness
 	end
-	--Spring.Debug.TableEcho(deferredLightGL4Config)
-	--deferredLightGL4Config = data
 end

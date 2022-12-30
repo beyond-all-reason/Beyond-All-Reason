@@ -19,7 +19,7 @@ local types = {
 	dev      = 3,
 }
 
-local version = 1.2	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
+local version = 1.3	-- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
 local newerVersion = false	-- configdata will set this true if it's a newer version
 
 local texts = {}    -- loaded from external language file
@@ -1936,47 +1936,7 @@ function init()
 		  end,
 		},
 
-
-		{ id = "lighteffects", group = "gfx", category = types.basic, name = texts.option.lighteffects, type = "bool", value = GetWidgetToggleValue("Light Effects"), description = texts.option.lighteffects_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  if value then
-				  if widgetHandler.orderList["Deferred rendering"] ~= nil then
-					  widgetHandler:EnableWidget("Deferred rendering")
-				  end
-				  widgetHandler:EnableWidget("Light Effects")
-
-				  local id = getOptionByID('lighteffects2')
-				  if options[id].value then
-					  options[id].onchange(id, false)
-				  end
-			  else
-				  if widgetHandler.orderList["Deferred rendering"] ~= nil then
-					  widgetHandler:DisableWidget("Deferred rendering")
-				  end
-				  widgetHandler:DisableWidget("Light Effects")
-			  end
-		  end,
-		},
-		{ id = "lighteffects_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_brightness, min = 0.65, max = 2, step = 0.05, type = "slider", value = 1.4, description = texts.option.lighteffects_brightness_descr,
-		  onload = function(i)
-			  loadWidgetData("Light Effects", "lighteffects_brightness", { 'globalLightMult' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Light Effects', 'lighteffects', 'setGlobalBrightness', { 'globalLightMult' }, value)
-		  end,
-		},
-		{ id = "lighteffects_additionalflashes", category = types.dev, group = "gfx", name = widgetOptionColor .. "   " .. texts.option.lighteffects_additionalflashes, type = "bool", value = true, description = texts.option.lighteffects_additionalflashes_descr,
-		  onload = function(i)
-			  loadWidgetData("Light Effects", "lighteffects_additionalflashes", { 'additionalLightingFlashes' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Light Effects', 'lighteffects', 'setAdditionalFlashes', { 'additionalLightingFlashes' }, value)
-		  end,
-		},
-
-		{ id = "lighteffects2", group = "gfx", category = types.dev, name = texts.option.lighteffects2, type = "bool", value = GetWidgetToggleValue("Deferred rendering GL4"), description = texts.option.lighteffects2_descr,
+		{ id = "lighteffects", group = "gfx", category = types.basic, name = texts.option.lighteffects, type = "bool", value = GetWidgetToggleValue("Deferred rendering GL4"), description = texts.option.lighteffects_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -1994,7 +1954,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "lighteffects2_headlights", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.lighteffects2_headlights, type = "bool", value = Spring.GetConfigInt("headlights", 1) == 1, description = texts.option.lighteffects2_headlights_descr,
+		{ id = "lighteffects_headlights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_headlights, type = "bool", value = Spring.GetConfigInt("headlights", 1) == 1, description = texts.option.lighteffects_headlights_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt("headlights", value and 1 or 0)
 				if widgetHandler.orderList["Deferred rendering GL4"] ~= nil then
@@ -2003,8 +1963,22 @@ function init()
 				end
 			end,
 		},
-
-		{ id = "heatdistortion", group = "gfx", category = types.dev, widget = "Lups", name = texts.option.heatdistortion, type = "bool", value = GetWidgetToggleValue("Lups"), description = texts.option.heatdistortion_descr },
+		{ id = "lighteffects_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_brightness, min = 0.6, max = 2, step = 0.05, type = "slider", value = 1, description = texts.option.lighteffects_brightness_descr,
+		  onload = function(i)
+			  loadWidgetData("Deferred rendering GL4", "lighteffects_brightness", { 'intensityMultiplier' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'IntensityMultiplier', { 'intensityMultiplier' }, value)
+		  end,
+		},
+		{ id = "lighteffects_radius", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.lighteffects_radius, min = 0.6, max = 1.2, step = 0.05, type = "slider", value = 1, description = texts.option.lighteffects_radius_descr,
+		  onload = function(i)
+			  loadWidgetData("Deferred rendering GL4", "lighteffects_brightness", { 'radiusMultiplier' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'RadiusMultiplier', { 'radiusMultiplier' }, value)
+		  end,
+		},
 
 		{ id = "darkenmap", group = "gfx", category = types.advanced, name = texts.option.darkenmap, min = 0, max = 0.33, step = 0.01, type = "slider", value = 0, description = texts.option.darkenmap_descr,
 		  onload = function(i)
@@ -2080,6 +2054,8 @@ function init()
 			  saveOptionValue('Map Edge Extension', 'mapedgeextension', 'setCurvature', { 'curvature' }, value)
 		  end,
 		},
+
+		{ id = "decalsgl4", group = "gfx", category = types.basic, widget = "Decals GL4", name = texts.option.decalsgl4, type = "bool", value = GetWidgetToggleValue("Decals GL4"), description = texts.option.decalsgl4_desc },
 
 		{ id = "decals", group = "gfx", category = types.advanced, name = texts.option.decals, restart = true, type = "bool", value = tonumber(Spring.GetConfigInt("GroundDecals", 3) or 3) >= 1, description = texts.option.decals_descr,
 		  onchange = function(i, value)
@@ -3145,48 +3121,30 @@ function init()
 		--  end,
 		--},
 
-		{ id = "cursorlight", group = "ui", category = types.advanced, widget = "Cursor Light", name = texts.option.cursorlight, type = "bool", value = GetWidgetToggleValue("Cursor Light"), description = texts.option.cursorlight_descr },
-		{ id = "cursorlight_lightradius", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightradius, type = "slider", min = 0.15, max = 1, step = 0.05, value = 1.5, description = '',
+		{ id = "cursorlight", group = "ui", category = types.advanced, name = texts.option.cursorlight, type = "bool", value = false, description = texts.option.cursorlight_descr,
 		  onload = function(i)
-			  loadWidgetData("Cursor Light", "cursorlight_lightradius", { 'lightRadiusMult' })
+			loadWidgetData("Deferred rendering GL4", "cursorlight", { 'showPlayerCursorLight' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Cursor Light', 'cursorlight', 'setLightRadius', { 'lightRadiusMult' }, value)
+			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'ShowPlayerCursorLight', { 'showPlayerCursorLight' }, value)
 		  end,
 		},
-		{ id = "cursorlight_lightstrength", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightstrength, type = "slider", min = 0.1, max = 1.2, step = 0.05, value = 0.2, description = '',
+		{ id = "cursorlight_lightradius", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightradius, type = "slider", min = 0.3, max = 2, step = 0.05, value = 1, description = '',
 		  onload = function(i)
-			  loadWidgetData("Cursor Light", "cursorlight_lightstrength", { 'lightStrengthMult' })
+			  loadWidgetData("Deferred rendering GL4", "cursorlight_lightradius", { 'playerCursorLightRadius' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Cursor Light', 'cursorlight', 'setLightStrength', { 'lightStrengthMult' }, value)
+			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'PlayerCursorLightRadius', { 'playerCursorLightRadius' }, value)
 		  end,
 		},
-
-		--{ id = "cursorlight", group = "ui", category = types.advanced, name = texts.option.cursorlight, type = "bool", value = false, description = texts.option.cursorlight_descr,
-		--  onload = function(i)
-		--	loadWidgetData("Deferred rendering GL4", "cursorlight", { 'showPlayerCursorLight' })
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'ShowPlayerCursorLight', { 'showPlayerCursorLight' }, value)
-		--  end,
-		--},
-		--{ id = "cursorlight_lightradius", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightradius, type = "slider", min = 0.3, max = 2, step = 0.05, value = 1, description = '',
-		--  onload = function(i)
-		--	  loadWidgetData("Deferred rendering GL4", "cursorlight_lightradius", { 'playerCursorLightRadius' })
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'PlayerCursorLightRadius', { 'playerCursorLightRadius' }, value)
-		--  end,
-		--},
-		--{ id = "cursorlight_lightstrength", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightstrength, type = "slider", min = 0.3, max = 2, step = 0.05, value = 1, description = '',
-		--  onload = function(i)
-		--	  loadWidgetData("Cursor Light", "cursorlight_lightstrength", { 'playerCursorLightBrightness' })
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'PlayerCursorLightBrightness', { 'playerCursorLightBrightness' }, value)
-		--  end,
-		--},
+		{ id = "cursorlight_lightstrength", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightstrength, type = "slider", min = 0.3, max = 2, step = 0.05, value = 1, description = '',
+		  onload = function(i)
+			  loadWidgetData("Cursor Light", "cursorlight_lightstrength", { 'playerCursorLightBrightness' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'PlayerCursorLightBrightness', { 'playerCursorLightBrightness' }, value)
+		  end,
+		},
 
 
 		{ id = "label_ui_info", group = "ui", name = texts.option.label_info, category = types.basic },
@@ -5102,25 +5060,12 @@ function widget:Initialize()
 
 	-- enable previous default disabled widgets to their new default state
 	if newerVersion then
-		if version <= 1 then
-			if widgetHandler.orderList["DrawUnitShape GL4"] and widgetHandler.orderList["DrawUnitShape GL4"] < 0.5 then
-				widgetHandler:EnableWidget("DrawUnitShape GL4")
+		if version <= 1.3 then
+			if widgetHandler.orderList["Deferred rendering GL4"] and widgetHandler.orderList["Deferred rendering GL4"] < 0.5 then
+				widgetHandler:EnableWidget("Deferred rendering GL4")
 			end
-			if widgetHandler.orderList["HighlightUnit GL4"] and widgetHandler.orderList["HighlightUnit GL4"] < 0.5 then
-				widgetHandler:EnableWidget("HighlightUnit GL4")
-			end
-			if widgetHandler.orderList["Rank Icons GL4"] and widgetHandler.orderList["Rank Icons GL4"] < 0.5 then
-				widgetHandler:EnableWidget("Rank Icons GL4")
-			end
-		end
-		if version <= 1.1 then
-			if widgetHandler.orderList["Health Bars GL4"] and widgetHandler.orderList["Health Bars GL4"] < 0.5 then
-				widgetHandler:EnableWidget("Health Bars GL4")
-			end
-		end
-		if version <= 1.2 then
-			if widgetHandler.orderList["Resurrection Halos GL4"] and widgetHandler.orderList["Resurrection Halos GL4"] < 0.5 then
-				widgetHandler:EnableWidget("Resurrection Halos GL4")
+			if widgetHandler.orderList["Decals GL4"] and widgetHandler.orderList["Decals GL4"] < 0.5 then
+				widgetHandler:EnableWidget("Decals GL4")
 			end
 		end
 	end
@@ -5132,6 +5077,9 @@ function widget:Initialize()
 		widgetHandler:EnableWidget("Language")
 	end
 
+	if widgetHandler.orderList["Infolos API"] and widgetHandler.orderList["Infolos API"] < 0.5 then
+		widgetHandler:EnableWidget("Infolos API")
+	end
 
 	if WG['lang'] then
 		texts = WG['lang'].getText('options')

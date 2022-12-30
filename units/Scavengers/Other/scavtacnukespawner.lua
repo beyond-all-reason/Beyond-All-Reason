@@ -79,17 +79,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1500,
 				wobble = 50,
-				customparams = {
-					expl_light_color = "0.5 0.5 1",
-					expl_light_life_mult = 5.5,
-					expl_light_mult = 3,
-					expl_light_radius_mult = 1,
-					expl_light_heat_life_mult = 1.2,
-					expl_light_heat_strength_mult = 2,
-					light_color = "0.7 0.7 1",
-					light_mult = 3.5,
-					light_radius_mult = 1.4,
-				},
 				damage = {
 					commanders = 500,
 					scavboss = 1,

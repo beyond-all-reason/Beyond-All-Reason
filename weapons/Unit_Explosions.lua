@@ -34,12 +34,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_radius_mult = 1.15,
-			expl_light_mult = 1,
-			expl_light_color = "0.5 0.5 1",
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 
 	pyro = {
@@ -56,12 +51,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.5 0.2",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	pyroselfd = {
 		weaponType = "Cannon",
@@ -78,12 +68,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.5 0.2",
-			expl_light_mult = 1.15,
-			expl_light_radius_mult = 1.15,
-			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 
 	flamethrower = {
@@ -100,12 +85,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.5 0.15",
-			expl_light_mult = 1.15,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	flamethrowerSelfd = {
 		weaponType = "Cannon",
@@ -122,12 +102,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.5 0.15",
-			expl_light_mult = 1.2,
-			expl_light_radius_mult = 1.15,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 
 	tidal = {
@@ -182,11 +157,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.7 0.3",
-			expl_light_mult = 1.04,
-			expl_light_radius_mult = 1.04,
-			expl_light_life_mult = 1.06,
-		},
+		}
 	},
 
 	nanoselfd = {
@@ -205,12 +176,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "0.8 1 0.3",
-			expl_light_mult = 1.05,
-			expl_light_radius_mult = 1.05,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 
 	smallbuilder = {
@@ -227,12 +193,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.3",
-			expl_light_mult = 1.03,
-			expl_light_radius_mult = 1.03,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	smallbuilderSelfd = {
 		weaponType = "Cannon",
@@ -248,12 +209,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.3",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 
 	windboom = {
@@ -271,9 +227,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_mult = 0.88,
-			expl_light_radius_mult = 0.88,
-		},
+		}
 	},
 
 	metalmaker = {
@@ -290,12 +244,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.6 0.3",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	metalmakerSelfd = {
 		weaponType = "Cannon",
@@ -311,12 +260,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.6 0.3",
-			expl_light_mult = 1.12,
-			expl_light_radius_mult = 1.12,
-			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 
 	advmetalmaker = {
@@ -334,12 +278,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.6 0.3",
-			expl_light_mult = 1.12,
-			expl_light_radius_mult = 1.12,
-			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	advmetalmakerSelfd = {
 		weaponType = "Cannon",
@@ -356,12 +295,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.6 0.3",
-			expl_light_mult = 1.2,
-			expl_light_radius_mult = 1.2,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 
 	energystorage = {
@@ -378,12 +312,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.12,
-			expl_light_radius_mult = 1.12,
-			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	energystorageSelfd = {
 		weaponType = "Cannon",
@@ -399,12 +328,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.16,
-			expl_light_radius_mult = 1.16,
-			expl_light_life_mult = 1.22,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	['energystorage-uw'] = {
 		weaponType = "Cannon",
@@ -420,11 +344,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.12,
-			expl_light_radius_mult = 1.12,
-			expl_light_life_mult = 1.15,
-		},
+		}
 	},
 	['energystorageSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -440,11 +360,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.16,
-			expl_light_radius_mult = 1.16,
-			expl_light_life_mult = 1.22,
-		},
+		}
 	},
 
 	advenergystorage = {
@@ -462,12 +378,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.16,
-			expl_light_radius_mult = 1.16,
-			expl_light_life_mult = 1.22,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	advenergystorageSelfd = {
 		weaponType = "Cannon",
@@ -484,12 +395,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.2,
-			expl_light_radius_mult = 1.2,
-			expl_light_life_mult = 1.25,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	['advenergystorage-uw'] = {
 		weaponType = "Cannon",
@@ -506,11 +412,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.16,
-			expl_light_radius_mult = 1.16,
-			expl_light_life_mult = 1.22,
-		},
+		}
 	},
 	['advenergystorageSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -527,11 +429,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.2,
-			expl_light_radius_mult = 1.2,
-			expl_light_life_mult = 1.25,
-		},
+		}
 	},
 
 	geo = {
@@ -548,12 +446,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.16,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 
 	advgeo = {
@@ -571,12 +464,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.5",
-			expl_light_mult = 1.2,
-			expl_light_radius_mult = 1.2,
-			expl_light_life_mult = 1.25,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 
 	nukeBuilding = {
@@ -594,10 +482,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.66",
-			expl_light_life_mult = 1.25,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	nukeBuildingSelfd = {
 		weaponType = "Cannon",
@@ -614,10 +499,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.66",
-			expl_light_life_mult = 1.25,
-			expl_light_heat_radius_mult = 1.3,
-		},
+		}
 	},
 
 	penetrator = {
@@ -634,10 +516,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.6 0.75",
-			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	penetratorSelfd = {
 		weaponType = "Cannon",
@@ -653,10 +532,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.6 0.75",
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 
 	bantha = {
@@ -674,12 +550,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.88 0.6",
-			expl_light_mult = 1.22,
-			expl_light_radius_mult = 1.22,
-			expl_light_life_mult = 1.4,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	banthaSelfd = {
 		weaponType = "Cannon",
@@ -696,12 +567,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.88 0.6",
-			expl_light_mult = 1.25,
-			expl_light_radius_mult = 1.25,
-			expl_light_life_mult = 1.5,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	korgExplosion = {
 		weaponType = "Cannon",
@@ -718,12 +584,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.88 0.6",
-			expl_light_mult = 1.2,
-			expl_light_radius_mult = 1.22,
-			expl_light_life_mult = 1.45,
-			expl_light_heat_radius_mult = 1.3,
-		},
+		}
 	},
 	korgExplosionSelfd = {
 		weaponType = "Cannon",
@@ -740,12 +601,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.88 0.6",
-			expl_light_mult = 1.25,
-			expl_light_radius_mult = 1.25,
-			expl_light_life_mult = 1.5,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	juggernaut = {
 		weaponType = "Cannon",
@@ -763,12 +619,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.88 0.6",
-			expl_light_mult = 1.22,
-			expl_light_radius_mult = 1.22,
-			expl_light_life_mult = 1.4,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	juggernautSelfd = {
 		weaponType = "Cannon",
@@ -786,12 +637,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.88 0.6",
-			expl_light_mult = 1.25,
-			expl_light_radius_mult = 1.25,
-			expl_light_life_mult = 1.5,
-			expl_light_heat_radius_mult = 1.35,
-		},
+		}
 	},
 
 	flagshipExplosion = {
@@ -809,11 +655,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_mult = 1.22,
-			expl_light_radius_mult = 1.22,
-			expl_light_life_mult = 1.4,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	flagshipExplosionSelfd = {
 		weaponType = "Cannon",
@@ -830,11 +672,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_mult = 1.25,
-			expl_light_radius_mult = 1.25,
-			expl_light_life_mult = 1.5,
-			expl_light_heat_radius_mult = 1.35,
-		},
+		}
 	},
 
 
@@ -852,11 +690,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	decoycommanderSelfd = {
 		weaponType = "Cannon",
@@ -872,11 +706,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_mult = 1.13,
-			expl_light_radius_mult = 1.13,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	minifusionExplosion = {
 		weaponType = "Cannon",
@@ -893,13 +723,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.66",
-			expl_light_mult = 1.5,
-			expl_light_radius_mult = 1.4,
-			expl_light_life_mult = 1.75,
-			expl_light_heat_radius_mult = 1.2,
-			expl_light_nuke = 1,
-		},
+		}
 	},
 	fusionExplosion = {
 		weaponType = "Cannon",
@@ -916,13 +740,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.66",
-			expl_light_mult = 1.5,
-			expl_light_radius_mult = 1.4,
-			expl_light_life_mult = 1.75,
-			expl_light_heat_radius_mult = 1.2,
-			expl_light_nuke = 1,
-		},
+		}
 	},
 	fusionExplosionSelfd = {
 		weaponType = "Cannon",
@@ -939,13 +757,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.66",
-			expl_light_mult = 1.55,
-			expl_light_radius_mult = 1.5,
-			expl_light_life_mult = 1.85,
-			expl_light_heat_radius_mult = 1.25,
-			expl_light_nuke = 1,
-		},
+		}
 	},
 
 	['fusionExplosion-uw'] = {
@@ -963,12 +775,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.66",
-			expl_light_mult = 1.3,
-			expl_light_radius_mult = 1.35,
-			expl_light_life_mult = 1.5,
-			expl_light_nuke = 1,
-		},
+		}
 	},
 	['fusionExplosionSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -985,12 +792,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 1 0.66",
-			expl_light_mult = 1.35,
-			expl_light_radius_mult = 1.4,
-			expl_light_life_mult = 1.6,
-			expl_light_nuke = 1,
-		},
+		}
 	},
 
 	advancedFusionExplosion = {
@@ -1008,13 +810,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.78 0.45",
-			expl_light_mult = 1.15,
-			expl_light_radius_mult = 1.2,
-			expl_light_life_mult = 1.4,
-			expl_light_heat_radius_mult = 1.1,
-			expl_light_nuke = 1,
-		},
+		}
 	},
 	advancedFusionExplosionSelfd = {
 		weaponType = "Cannon",
@@ -1031,13 +827,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.75 0.45",
-			expl_light_mult = 1.3,
-			expl_light_radius_mult = 1.3,
-			expl_light_life_mult = 1.5,
-			expl_light_heat_radius_mult = 1.12,
-			expl_light_nuke = 1,
-		},
+		}
 	},
 
 	scavcomexplosion = {
@@ -1055,12 +845,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "0.6 0.15 1",
-			expl_light_mult = 3,
-			expl_light_radius_mult = 1.15,
-			expl_light_life_mult = 2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 
 	ScavComBossExplo = {
@@ -1079,12 +864,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "0.6 0.15 1",
-			expl_light_mult = 1.95,
-			expl_light_radius_mult = 1.75,
-			expl_light_life_mult = 2.5,
-			expl_light_heat_radius_mult = 1.5,
-		},
+		}
 	},
 
 	--NUKE EXPLOSIONS WITH DAMAGE--
@@ -1112,13 +892,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.5",
-			expl_light_mult = 1.6,
-			expl_light_radius_mult = 1.33,
-			expl_light_life_mult = 1.55,
-			expl_light_heat_radius_mult = 1.3,
-			expl_light_nuke = 1,
-		},
+		}
 	},
 
 
@@ -1139,11 +913,6 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		-- 	expl_light_color = "1 0.45 0.25",
-		-- 	expl_light_mult = 1.03,
-		-- 	expl_light_radius_mult = 1.03,
-		-- 	expl_light_life_mult = 1.2,
-		-- 	expl_light_heat_radius_mult = 1.1,
 		},
 	},
 	WallExplosionMetalXL = {
@@ -1161,11 +930,6 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		-- 	expl_light_color = "1 0.45 0.25",
-		-- 	expl_light_mult = 1.03,
-		-- 	expl_light_radius_mult = 1.03,
-		-- 	expl_light_life_mult = 1.2,
-		-- 	expl_light_heat_radius_mult = 1.1,
 		},
 	},
 	WallExplosionConcrete = {
@@ -1183,11 +947,6 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		-- 	expl_light_color = "1 0.45 0.25",
-		-- 	expl_light_mult = 1.03,
-		-- 	expl_light_radius_mult = 1.03,
-		-- 	expl_light_life_mult = 1.2,
-		-- 	expl_light_heat_radius_mult = 1.1,
 		},
 	},
 	WallExplosionConcreteXL = {
@@ -1205,11 +964,6 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		-- 	expl_light_color = "1 0.45 0.25",
-		-- 	expl_light_mult = 1.03,
-		-- 	expl_light_radius_mult = 1.03,
-		-- 	expl_light_life_mult = 1.2,
-		-- 	expl_light_heat_radius_mult = 1.1,
 		},
 	},
 	WallExplosionWater = {
@@ -1227,11 +981,6 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		-- 	expl_light_color = "1 0.45 0.25",
-		-- 	expl_light_mult = 1.03,
-		-- 	expl_light_radius_mult = 1.03,
-		-- 	expl_light_life_mult = 1.2,
-		-- 	expl_light_heat_radius_mult = 1.1,
 		},
 	},
 	tinyBuildingExplosionGeneric = {
@@ -1248,12 +997,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.03,
-			expl_light_radius_mult = 1.03,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.1,
-		},
+		}
 	},
 	tinyBuildingExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -1269,12 +1013,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.05,
-			expl_light_radius_mult = 1.05,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['tinyBuildingExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
@@ -1290,11 +1029,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.03,
-			expl_light_radius_mult = 1.03,
-			expl_light_life_mult = 1.2,
-		},
+		}
 	},
 	['tinyBuildingExplosionGenericSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -1310,11 +1045,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.05,
-			expl_light_radius_mult = 1.05,
-			expl_light_life_mult = 1.2,
-		},
+		}
 	},
 
 	smallBuildingExplosionGeneric = {
@@ -1331,12 +1062,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.05,
-			expl_light_radius_mult = 1.05,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.1,
-		},
+		}
 	},
 	smallBuildingExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -1352,12 +1078,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.07,
-			expl_light_radius_mult = 1.07,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	smallMex = {
 		weaponType = "Cannon",
@@ -1373,12 +1094,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.07,
-			expl_light_radius_mult = 1.07,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	['smallBuildingExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
@@ -1394,11 +1110,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.05,
-			expl_light_radius_mult = 1.05,
-			expl_light_life_mult = 1.2,
-		},
+		}
 	},
 	['smallBuildingExplosionGenericSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -1414,11 +1126,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.07,
-			expl_light_radius_mult = 1.07,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 
 	mediumBuildingExplosionGeneric = {
@@ -1435,12 +1143,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.07,
-			expl_light_radius_mult = 1.07,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	mediumBuildingExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -1456,12 +1159,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.09,
-			expl_light_radius_mult = 1.09,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	['mediumBuildingExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
@@ -1477,11 +1175,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.07,
-			expl_light_radius_mult = 1.07,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 	['mediumBuildingExplosionGenericSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -1497,11 +1191,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.09,
-			expl_light_radius_mult = 1.09,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 
 	largeBuildingExplosionGeneric = {
@@ -1518,12 +1208,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.09,
-			expl_light_radius_mult = 1.09,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	largeBuildingExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -1539,12 +1224,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.11,
-			expl_light_radius_mult = 1.11,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	['largeBuildingExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
@@ -1560,11 +1240,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.09,
-			expl_light_radius_mult = 1.09,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 	['largeBuildingExplosionGenericSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -1580,11 +1256,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.11,
-			expl_light_radius_mult = 1.11,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 
 	hugeBuildingExplosionGeneric = {
@@ -1601,12 +1273,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.11,
-			expl_light_radius_mult = 1.11,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	hugeBuildingExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -1622,12 +1289,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.13,
-			expl_light_radius_mult = 1.13,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 
 
@@ -1647,12 +1309,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.05,
-			expl_light_radius_mult = 1.03,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	tinyExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -1668,12 +1325,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.1,
-		},
+		}
 	},
 	['tinyExplosionGeneric-builder'] = {
 		weaponType = "Cannon",
@@ -1689,12 +1341,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.05,
-			expl_light_radius_mult = 1.03,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['tinyExplosionGenericSelfd-builder'] = {
 		weaponType = "Cannon",
@@ -1710,12 +1357,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.1,
-		},
+		}
 	},
 	['tinyExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
@@ -1731,11 +1373,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1,
-			expl_light_radius_mult = 1,
-			expl_light_life_mult = 1.02,
-		},
+		}
 	},
 	['tinyExplosionGenericSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -1751,11 +1389,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.02,
-			expl_light_radius_mult = 1.02,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 	['tinyExplosionGeneric-phib'] = {
 		weaponType = "Cannon",
@@ -1771,12 +1405,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.02,
-			expl_light_radius_mult = 1.02,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['tinyExplosionGenericSelfd-phib'] = {
 		weaponType = "Cannon",
@@ -1792,12 +1421,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.04,
-			expl_light_radius_mult = 1.04,
-			expl_light_life_mult = 1.06,
-			expl_light_heat_radius_mult = 1.1,
-		},
+		}
 	},
 
 	smallExplosionGenericAir = {
@@ -1814,12 +1438,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.04,
-			expl_light_radius_mult = 1.04,
-			expl_light_life_mult = 1.06,
-			expl_light_heat_radius_mult = 1.1,
-		},
+		}
 	},
 
 	smallExplosionGeneric = {
@@ -1836,12 +1455,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.04,
-			expl_light_radius_mult = 1.04,
-			expl_light_life_mult = 1.06,
-			expl_light_heat_radius_mult = 1.1,
-		},
+		}
 	},
 	smallExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -1857,12 +1471,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['smallExplosionGeneric-builder'] = {
 		weaponType = "Cannon",
@@ -1878,12 +1487,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.04,
-			expl_light_radius_mult = 1.04,
-			expl_light_life_mult = 1.06,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['smallExplosionGenericSelfd-builder'] = {
 		weaponType = "Cannon",
@@ -1899,12 +1503,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['smallExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
@@ -1920,11 +1519,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.04,
-			expl_light_radius_mult = 1.04,
-			expl_light_life_mult = 1.06,
-		},
+		}
 	},
 	['smallExplosionGenericSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -1940,11 +1535,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-		},
+		}
 	},
 	['smallExplosionGeneric-phib'] = {
 		weaponType = "Cannon",
@@ -1960,12 +1551,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.04,
-			expl_light_radius_mult = 1.04,
-			expl_light_life_mult = 1.06,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['smallExplosionGenericSelfd-phib'] = {
 		weaponType = "Cannon",
@@ -1981,12 +1567,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 
 	mediumExplosionGeneric = {
@@ -2003,12 +1584,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	mediumExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -2024,12 +1600,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	['mediumExplosionGeneric-builder'] = {
 		weaponType = "Cannon",
@@ -2045,12 +1616,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['mediumExplosionGenericSelfd-builder'] = {
 		weaponType = "Cannon",
@@ -2066,12 +1632,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	['mediumExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
@@ -2087,11 +1648,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-		},
+		}
 	},
 	['mediumExplosionGenericSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -2107,11 +1664,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 	['mediumExplosionGeneric-phib'] = {
 		weaponType = "Cannon",
@@ -2127,12 +1680,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['mediumExplosionGenericSelfd-phib'] = {
 		weaponType = "Cannon",
@@ -2148,12 +1696,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 
 	largeExplosionGeneric = {
@@ -2170,12 +1713,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	largeExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -2191,12 +1729,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	['largeExplosionGeneric-builder'] = {
 		weaponType = "Cannon",
@@ -2212,12 +1745,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['largeExplosionGenericSelfd-builder'] = {
 		weaponType = "Cannon",
@@ -2233,12 +1761,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	['largeExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
@@ -2254,11 +1777,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 	['largeExplosionGenericSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -2274,11 +1793,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 	['largeExplosionGeneric-phib'] = {
 		weaponType = "Cannon",
@@ -2294,12 +1809,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	['largeExplosionGenericSelfd-phib'] = {
 		weaponType = "Cannon",
@@ -2315,12 +1825,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 
 	hugeExplosionGeneric = {
@@ -2337,12 +1842,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	explosiont3 = {
 		weaponType = "Cannon",
@@ -2358,12 +1858,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	explosiont3med = {
 		weaponType = "Cannon",
@@ -2379,12 +1874,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.26,
-			expl_light_radius_mult = 1.26,
-			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	explosiont3xl = {
 		weaponType = "Cannon",
@@ -2400,12 +1890,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.11,
-			expl_light_radius_mult = 1.11,
-			expl_light_life_mult = 1.16,
-			expl_light_heat_radius_mult = 1.22,
-		},
+		}
 	},
 	explosiont3xxl = {
 		weaponType = "Cannon",
@@ -2421,12 +1906,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.15,
-			expl_light_radius_mult = 1.20,
-			expl_light_life_mult = 1.24,
-			expl_light_heat_radius_mult = 1.28,
-		},
+		}
 	},
 	hugeExplosionGenericSelfd = {
 		weaponType = "Cannon",
@@ -2442,12 +1922,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.12,
-			expl_light_radius_mult = 1.12,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	['hugeExplosionGeneric-builder'] = {
 		weaponType = "Cannon",
@@ -2463,12 +1938,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	['hugeExplosionGenericSelfd-builder'] = {
 		weaponType = "Cannon",
@@ -2484,12 +1954,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.82 0.25",
-			expl_light_mult = 1.12,
-			expl_light_radius_mult = 1.12,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	['hugeExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
@@ -2505,11 +1970,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 	['hugeExplosionGenericSelfd-uw'] = {
 		weaponType = "Cannon",
@@ -2525,11 +1986,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.12,
-			expl_light_radius_mult = 1.12,
-			expl_light_life_mult = 1.3,
-		},
+		}
 	},
 	['hugeExplosionGeneric-phib'] = {
 		weaponType = "Cannon",
@@ -2545,12 +2002,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.2,
-		},
+		}
 	},
 	['hugeExplosionGenericSelfd-phib'] = {
 		weaponType = "Cannon",
@@ -2566,12 +2018,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.85 0.7",
-			expl_light_mult = 1.12,
-			expl_light_radius_mult = 1.12,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 	lootboxExplosion1 = {
 		weaponType = "Cannon",
@@ -2587,12 +2034,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.09,
-			expl_light_radius_mult = 1.09,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 	lootboxExplosion2 = {
 		weaponType = "Cannon",
@@ -2608,12 +2050,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.1,
-			expl_light_radius_mult = 1.1,
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.16,
-		},
+		}
 	},
 	lootboxExplosion3 = {
 		weaponType = "Cannon",
@@ -2629,12 +2066,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.12,
-			expl_light_radius_mult = 1.12,
-			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.17,
-		},
+		}
 	},
 	lootboxExplosion4 = {
 		weaponType = "Cannon",
@@ -2650,12 +2082,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_color = "1 0.45 0.25",
-			expl_light_mult = 1.13,
-			expl_light_radius_mult = 1.13,
-			expl_light_life_mult = 1.16,
-			expl_light_heat_radius_mult = 1.18,
-		},
+		}
 	},
 
 	mistexplosm = {    -- for scavmist
@@ -2677,12 +2104,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_radius_mult = 1.05,
-			expl_light_mult = 1,
-			expl_light_color = "0.7 0.3 1",
-			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 
 	mistexplo = {    -- for scavmist
@@ -2704,12 +2126,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_radius_mult = 1.15,
-			expl_light_mult = 1,
-			expl_light_color = "0.7 0.3 1",
-			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.05,
-		},
+		}
 	},
 
 	mistexploxl = {    -- for scavmist
@@ -2731,12 +2148,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-			expl_light_radius_mult = 1.25,
-			expl_light_mult = 1.1,
-			expl_light_color = "0.7 0.3 1",
-			expl_light_life_mult = 1.4,
-			expl_light_heat_radius_mult = 1.25,
-		},
+		}
 	},
 
 }

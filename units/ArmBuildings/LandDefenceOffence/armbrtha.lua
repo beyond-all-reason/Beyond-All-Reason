@@ -146,11 +146,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1100,
-				customparams = {
-					expl_light_heat_radius_mult = 2,
-					expl_light_mult = 1.5,
-					expl_light_radius_mult = 1.5,
-				},
 				damage = {
 					default = 1625,
 					shields = 812,

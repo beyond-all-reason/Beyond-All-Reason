@@ -228,15 +228,6 @@ return {
 				--weapontimer = 1,
 				weapontype = "LaserCannon",
 				weaponvelocity = 950,
-				customparams = {
-					light_color = "1 0.9 0.15",
-					light_radius_mult = 0.5,
-					light_mult = 1.7,
-					expl_light_life_mult = 0.1,
-					expl_light_radius_mult = 0.01,
-					expl_light_mult = 0.01,
-					expl_light_color = "0.45 0.40 0.35",
-				},
 				damage = {
 					bombers = 44,
 					commanders = 22,
@@ -317,15 +308,6 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3000,
-				customparams = {
-					light_color = "0.66 0.83 1",
-					light_radius_mult = 0.5,
-					light_mult = 1.7,
-					expl_light_life_mult = 0.1,
-					expl_light_radius_mult = 0.01,
-					expl_light_mult = 0.01,
-					expl_light_color = "0.42 0.7 0.98",
-				},
 				damage = {
 					commanders = 250,
 					default = 500,
@@ -372,13 +354,6 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 650,
-				customparams = {
-					expl_light_color = "1 0.5 0.05",
-					expl_light_radius_mult = 1.25,
-					expl_light_mult = "1.25",
-					light_color = "1 0.6 0.05",
-					light_mult = "0.45",
-				},
 				damage = {
 					default = 50,
 				},
