@@ -1936,8 +1936,7 @@ function init()
 		  end,
 		},
 
-
-		{ id = "lighteffects2", group = "gfx", category = types.dev, name = texts.option.lighteffects2, type = "bool", value = GetWidgetToggleValue("Deferred rendering GL4"), description = texts.option.lighteffects2_descr,
+		{ id = "lighteffects", group = "gfx", category = types.basic, name = texts.option.lighteffects, type = "bool", value = GetWidgetToggleValue("Deferred rendering GL4"), description = texts.option.lighteffects_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -1955,7 +1954,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "lighteffects2_headlights", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.lighteffects2_headlights, type = "bool", value = Spring.GetConfigInt("headlights", 1) == 1, description = texts.option.lighteffects2_headlights_descr,
+		{ id = "lighteffects_headlights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_headlights, type = "bool", value = Spring.GetConfigInt("headlights", 1) == 1, description = texts.option.lighteffects_headlights_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt("headlights", value and 1 or 0)
 				if widgetHandler.orderList["Deferred rendering GL4"] ~= nil then
@@ -1963,6 +1962,22 @@ function init()
 					widgetHandler:EnableWidget("Deferred rendering GL4")
 				end
 			end,
+		},
+		{ id = "lighteffects_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_brightness, min = 0.6, max = 2, step = 0.05, type = "slider", value = 1, description = texts.option.lighteffects_brightness_descr,
+		  onload = function(i)
+			  loadWidgetData("Deferred rendering GL4", "lighteffects_brightness", { 'intensityMultiplier' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'IntensityMultiplier', { 'intensityMultiplier' }, value)
+		  end,
+		},
+		{ id = "lighteffects_radius", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.lighteffects_radius, min = 0.6, max = 1.2, step = 0.05, type = "slider", value = 1, description = texts.option.lighteffects_radius_descr,
+		  onload = function(i)
+			  loadWidgetData("Deferred rendering GL4", "lighteffects_brightness", { 'radiusMultiplier' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'RadiusMultiplier', { 'radiusMultiplier' }, value)
+		  end,
 		},
 
 		{ id = "heatdistortion", group = "gfx", category = types.dev, widget = "Lups", name = texts.option.heatdistortion, type = "bool", value = GetWidgetToggleValue("Lups"), description = texts.option.heatdistortion_descr },
