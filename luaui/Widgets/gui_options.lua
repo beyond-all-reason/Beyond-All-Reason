@@ -5088,6 +5088,9 @@ function widget:Initialize()
 			if widgetHandler.orderList["Deferred rendering GL4"] and widgetHandler.orderList["Deferred rendering GL4"] < 0.5 then
 				widgetHandler:EnableWidget("Deferred rendering GL4")
 			end
+			if widgetHandler.orderList["Decals GL4"] and widgetHandler.orderList["Decals GL4"] < 0.5 then
+				widgetHandler:EnableWidget("Decals GL4")
+			end
 		end
 	end
 

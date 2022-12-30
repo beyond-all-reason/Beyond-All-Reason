@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "2021.11.02",
 		license = "Lua code: GNU GPL, v2 or later, Shader GLSL code: (c) Beherith (mysterme@gmail.com)",
 		layer = 999,
-		enabled = false,
+		enabled = true,
 	}
 end
 
@@ -132,7 +132,7 @@ local function makeAtlases()
 		--Spring.Echo(atlasInfo.xsize * (p+texelX), atlasInfo.xsize * (q-texelX),texelX * atlasInfo.xsize)
 	end
 
-	if autoreload then 
+	if autoreload then
 		Spring.Echo(string.format("Decals GL4 Atlas is %dx%d, used %.1f%%",
 			atlasInfo.xsize, atlasInfo.ysize,
 			usedpixels * 100 / (atlasInfo.xsize * atlasInfo.ysize)
@@ -473,7 +473,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	fadeintime = fadeintime or shaderConfig.FADEINTIME
 
 	if CheckDecalAreaSaturation(posx, posz, width, length) then
-		if autoupdate then 
+		if autoupdate then
 			Spring.Echo("Map area is oversaturated with decals!", posx, posz, width, length)
 		end
 		return nil
@@ -594,7 +594,7 @@ local function DrawDecals()
 	end
 end
 
-if Spring.Utilities.EngineVersionAtLeast(105,1,1,1422) then 
+if Spring.Utilities.EngineVersionAtLeast(105,1,1,1422) then
 	function widget:DrawPreDecals()
 		DrawDecals()
 	end
@@ -906,7 +906,7 @@ for weaponDefID=1, #WeaponDefs do
 			alphadecay, -- 7
 			bwfactor,	-- 8
 			glowsustain, --9
-			glowadd, -- 10 
+			glowadd, -- 10
 			weaponDef.damageAreaOfEffect,	-- 11
 			damage,	-- 12
 			fadeintime, -- 13
