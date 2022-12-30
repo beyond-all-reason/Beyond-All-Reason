@@ -3145,48 +3145,30 @@ function init()
 		--  end,
 		--},
 
-		{ id = "cursorlight", group = "ui", category = types.advanced, widget = "Cursor Light", name = texts.option.cursorlight, type = "bool", value = GetWidgetToggleValue("Cursor Light"), description = texts.option.cursorlight_descr },
-		{ id = "cursorlight_lightradius", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightradius, type = "slider", min = 0.15, max = 1, step = 0.05, value = 1.5, description = '',
+		{ id = "cursorlight", group = "ui", category = types.advanced, name = texts.option.cursorlight, type = "bool", value = false, description = texts.option.cursorlight_descr,
 		  onload = function(i)
-			  loadWidgetData("Cursor Light", "cursorlight_lightradius", { 'lightRadiusMult' })
+			loadWidgetData("Deferred rendering GL4", "cursorlight", { 'showPlayerCursorLight' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Cursor Light', 'cursorlight', 'setLightRadius', { 'lightRadiusMult' }, value)
+			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'ShowPlayerCursorLight', { 'showPlayerCursorLight' }, value)
 		  end,
 		},
-		{ id = "cursorlight_lightstrength", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightstrength, type = "slider", min = 0.1, max = 1.2, step = 0.05, value = 0.2, description = '',
+		{ id = "cursorlight_lightradius", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightradius, type = "slider", min = 0.3, max = 2, step = 0.05, value = 1, description = '',
 		  onload = function(i)
-			  loadWidgetData("Cursor Light", "cursorlight_lightstrength", { 'lightStrengthMult' })
+			  loadWidgetData("Deferred rendering GL4", "cursorlight_lightradius", { 'playerCursorLightRadius' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Cursor Light', 'cursorlight', 'setLightStrength', { 'lightStrengthMult' }, value)
+			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'PlayerCursorLightRadius', { 'playerCursorLightRadius' }, value)
 		  end,
 		},
-
-		--{ id = "cursorlight", group = "ui", category = types.advanced, name = texts.option.cursorlight, type = "bool", value = false, description = texts.option.cursorlight_descr,
-		--  onload = function(i)
-		--	loadWidgetData("Deferred rendering GL4", "cursorlight", { 'showPlayerCursorLight' })
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'ShowPlayerCursorLight', { 'showPlayerCursorLight' }, value)
-		--  end,
-		--},
-		--{ id = "cursorlight_lightradius", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightradius, type = "slider", min = 0.3, max = 2, step = 0.05, value = 1, description = '',
-		--  onload = function(i)
-		--	  loadWidgetData("Deferred rendering GL4", "cursorlight_lightradius", { 'playerCursorLightRadius' })
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'PlayerCursorLightRadius', { 'playerCursorLightRadius' }, value)
-		--  end,
-		--},
-		--{ id = "cursorlight_lightstrength", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightstrength, type = "slider", min = 0.3, max = 2, step = 0.05, value = 1, description = '',
-		--  onload = function(i)
-		--	  loadWidgetData("Cursor Light", "cursorlight_lightstrength", { 'playerCursorLightBrightness' })
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'PlayerCursorLightBrightness', { 'playerCursorLightBrightness' }, value)
-		--  end,
-		--},
+		{ id = "cursorlight_lightstrength", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightstrength, type = "slider", min = 0.3, max = 2, step = 0.05, value = 1, description = '',
+		  onload = function(i)
+			  loadWidgetData("Cursor Light", "cursorlight_lightstrength", { 'playerCursorLightBrightness' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'PlayerCursorLightBrightness', { 'playerCursorLightBrightness' }, value)
+		  end,
+		},
 
 
 		{ id = "label_ui_info", group = "ui", name = texts.option.label_info, category = types.basic },
