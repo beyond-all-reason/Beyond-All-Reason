@@ -1709,14 +1709,24 @@ if gadgetHandler:IsSyncedCode() then
 	function spawnRandomEgg(x,y,z,name,spread)
 		if name then
 			local totalEggValue = 0
+			local targetEggValue = UnitDefNames[name].metalCost*0.5
 			repeat
-				local rSize = mRandom(1,100)
+				-- local rSize = mRandom(1,100)
+				-- local eggValue = 100
+				-- local size = "s"
+				-- if rSize <= 5 then
+				-- 	size = "l"
+				-- 	eggValue = 500
+				-- elseif rSize <= 20 then
+				-- 	size = "m"
+				-- 	eggValue = 200
+				-- end
 				local eggValue = 100
 				local size = "s"
-				if rSize <= 5 then
+				if targetEggValue - totalEggValue > 1500 then
 					size = "l"
 					eggValue = 500
-				elseif rSize <= 20 then
+				elseif targetEggValue - totalEggValue > 600 then
 					size = "m"
 					eggValue = 200
 				end
@@ -1732,7 +1742,22 @@ if gadgetHandler:IsSyncedCode() then
 					Spring.SetFeatureVelocity(egg, mRandom(-195,195)*0.01, mRandom(130,335)*0.01, mRandom(-195,195)*0.01)
 					--Spring.SetFeatureRotation(egg, mRandom(-175,175)*50000, mRandom(110,275)*50000, mRandom(-175,175)*50000)
 				end
-			until totalEggValue >= UnitDefNames[name].metalCost*0.5
+			until totalEggValue >= targetEggValue
+		else
+			local rSize = mRandom(1,100)
+			local size = "s"
+			if rSize <= 5 then
+				size = "l"
+			elseif rSize <= 20 then
+				size = "m"
+			end
+			local color = chickenEggColors[mRandom(1,#chickenEggColors)]
+			local egg = Spring.CreateFeature("chicken_egg_"..size.."_"..color, x + mRandom(-spread,spread), y + 20, z + mRandom(-spread,spread), mRandom(-999999,999999), chickenTeamID)
+			if egg then
+				Spring.SetFeatureMoveCtrl(egg, false,1,1,1,1,1,1,1,1,1)
+				Spring.SetFeatureVelocity(egg, mRandom(-195,195)*0.01, mRandom(130,335)*0.01, mRandom(-195,195)*0.01)
+				--Spring.SetFeatureRotation(egg, mRandom(-175,175)*50000, mRandom(110,275)*50000, mRandom(-175,175)*50000)
+			end
 		end
 	end
 
@@ -1740,7 +1765,6 @@ if gadgetHandler:IsSyncedCode() then
 		for eggID, _ in pairs(aliveEggsTable) do
 			if mRandom(1,18) == 1 then -- scaled to decay 1000hp egg in about 3 minutes +/- RNG
 				local fx, fy, fz = Spring.GetFeaturePosition(eggID)
-				Spring.SpawnCEG("blood_hit_small", fx, fy, fz, 0,0,0)
 				Spring.SetFeatureHealth(eggID, Spring.GetFeatureHealth(eggID) - 20)
 				if Spring.GetFeatureHealth(eggID) <= 0 then
 					Spring.DestroyFeature(eggID)
