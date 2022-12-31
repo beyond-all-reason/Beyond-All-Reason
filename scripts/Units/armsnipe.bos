@@ -7,7 +7,7 @@ piece  flare, torso, head, pelvis, rthigh, rleg, lleg, lthigh,
        ruparm, luparm, lloarm, lhand, rloarm, gun1, gun2,
        barrel1, barrel2, laser, rhand, rfoot, lfoot, aimy1;
 
-static-var  Static_Var_1, bMoving, Static_Var_3, Static_Var_4, restore_delay, wpn1_lasthead, animSpeed, maxSpeed,
+static-var  GunOpen, bMoving, Static_Var_3, Static_Var_4, restore_delay, wpn1_lasthead, animSpeed, maxSpeed,
 			statechg_DesiredState, statechg_StateChanging, animFramesPerKeyframe,isAiming;
 
 // Signal definitions
@@ -665,7 +665,6 @@ OpenGun()
 	sleep 78;
 	move barrel2 to y-axis [1.5] speed [4.000000];
 	sleep 18;
-	show laser;
 }
 
 FoldGun()
@@ -739,22 +738,22 @@ FoldGun()
 Go()
 {
 	Static_Var_3 = 1;
-	if( !Static_Var_1 )
+	if( !GunOpen )
 	{
 		while( !Static_Var_4 )
 		{
 			sleep 150;
 		}
 		call-script OpenGun();
-		Static_Var_1 = 1;
+		GunOpen = 1;
 	}
 }
 
 Stop()
 {
-	if( Static_Var_1 )
+	if( GunOpen )
 	{
-		Static_Var_1 = 0;
+		GunOpen = 0;
 		call-script FoldGun();
 		isAiming = FALSE;
 	}
@@ -808,7 +807,7 @@ Create()
 	bMoving = FALSE;
 	Static_Var_3 = 0;
 	Static_Var_4 = 1;
-	Static_Var_1 = 0;
+	GunOpen = 0;
 	hide flare;
 	animSpeed = 5;
 	turn flare to x-axis <-90> now;
@@ -845,7 +844,10 @@ SetStunned(State)
 RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM;
-	sleep restore_delay;
+	// hide laser after 3 sec inactivity
+	sleep 9000;
+	hide laser;
+	sleep (restore_delay - 9000);
 	start-script ExecuteRestoreAfterDelay();
 }
 AimPrimary(heading, pitch)
@@ -853,10 +855,14 @@ AimPrimary(heading, pitch)
 	isAiming = TRUE;
 	start-script RequestState(0);
 	signal SIG_AIM;
-	while( !Static_Var_1 )
+	while( !GunOpen )
 	{
-		show laser;
 		return(0);
+	}
+	//GET PRINT(1, GET GAME_FRAME, GET WEAPON_RELOADSTATE(1), GET WEAPON_RELOADTIME(1));
+	// Only show the aim laser if sniper will fire in 3 secs
+	if ((GET WEAPON_RELOADSTATE(1) - GET GAME_FRAME ) < 90){ // GET WEAPON_RELOADSTATE(1) gives the frame weapon 1 can fire on
+		show laser;
 	}
 	turn aimy1 to y-axis heading speed <210.000000>;
 	turn rloarm to x-axis <-23.005495> speed <50.000000>;
@@ -873,6 +879,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
+	hide laser;
 	emit-sfx 1024 + 0 from flare;
 	turn rloarm to x-axis <-45.010989> speed <200.000000>;
 	sleep 50;
