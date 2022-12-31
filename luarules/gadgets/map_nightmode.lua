@@ -16,10 +16,14 @@ end
 -- TODO LIST
 	-- Maybe fuck with shadowdensity?
 	-- Needs a callin for widgets on sunchange!
+	-- Minimap slowly updates only
 	
 -- Effects needing fixing:
 	-- Map edge extension
-	-- Map Grass	
+	-- Map Grass
+	-- Decals
+	-- Features brightness
+	-- Creep shader
 
 -- Configuration options:
 	-- Definition of a nightmode is:
@@ -227,10 +231,13 @@ if not gadgetHandler:IsSyncedCode() then
 					for i =1, #v2 do 
 						endlight[atmlight][k2][i] = endlight[atmlight][k2][i] * math.mix(nightfactor[i], 1.0, unitmod)
 					end
+				elseif string.find(k2, "ShadowDensity", nil, true) then 
+					-- New shadow factor is a product of old and nightfactor[4]
+					endlight[atmlight][k2] = endlight[atmlight][k2] * (nightfactor[4] or 1)
 				end
 			end
 		end
-		
+
 		-- New sun height is weighted factor of old sun height
 		endlight.sunDir[2] = fromlight.sunDir[2] * altitude
 		
@@ -249,7 +256,7 @@ if not gadgetHandler:IsSyncedCode() then
 		return endlight
 	end
 	
-
+	local transitionenabled = false
 	local nightModeConfig = {
 		{
 			nightFactor = {0.3, 0.3, 0.45, 1.0},
@@ -267,10 +274,31 @@ if not gadgetHandler:IsSyncedCode() then
 
 	
 	local function SetNightMode(cmd, line, words, playerID)
+		-- line is the full line
+		-- words is a table here, of each of the words AFTER /luarules NightMode a b c -> {a,b,c}
 		Spring.Echo("SetNightMode",cmd, line, words, playerID)
+		Spring.Echo("Expecting /luarules NightMode nightR nightG nightB azimuth altitude shadowfactor")
+		--Spring.Debug.TableEcho(words)
+		local nightR = (words[1] and tonumber(words[1])) or 1
+		local nightG = (words[2] and tonumber(words[2])) or 1
+		local nightB = (words[3] and tonumber(words[3])) or 1
+		local azimuth = (words[4] and tonumber(words[4])) or 0
+		local altitude = (words[5] and tonumber(words[5])) or 1
+		local shadowfactor = (words[5] and tonumber(words[5])) or 1
+		
+		local newNightLight = GetNightLight(nil, { nightR, nightG,nightB,shadowfactor}, azimuth, altitude)
+		Spring.Debug.TableEcho(newNightLight)
+		-- If this command is recieved, immediately stop any existing nightModeConfig
+		transitionenabled = false
+		SetLightingAndAtmosphere(newNightLight)
+	end
+	
+	local function NightModeToggle(cmd, line, words, playerID)
+		transitionenabled = not transitionenabled
 	end
 
 	function gadget:GameFrame(n)
+		if transitionenabled == false then return end
 		for i, nc in ipairs(nightModeConfig) do 
 			local currentseconds = n / 30 - nc.startTime
 
@@ -344,11 +372,9 @@ if not gadgetHandler:IsSyncedCode() then
 		
 	end
 	
-	local nightmodecommand = "nightmode"
-	function gadget:TextCommand(msg)
-		if string.sub(msg, 1, string.len(nightmodecommand)) == nightmodecommand then
-			--SetNightMode(
-		end
+	function gadget:SunChanged(a,b,c,d,e,f)
+		Spring.Echo("gadget:SunChanged",Spring.GetGameFrame())
+
 	end
 
 	function gadget:Initialize()
@@ -360,15 +386,16 @@ if not gadgetHandler:IsSyncedCode() then
 		gadgetHandler:AddSyncAction("GetLightingAndAtmosphere", GetLightingAndAtmosphere)
 		gadgetHandler:AddSyncAction("SetLightingAndAtmosphere", SetLightingAndAtmosphere)
 		gadgetHandler:AddSyncAction("MixLightingAndAtmosphere", MixLightingAndAtmosphere)
-		
-		gadgetHandler:AddChatAction("NightMode", NightMode)
-		gadgetHandler:AddChatAction("MixLightingAndAtmosphere", MixLightingAndAtmosphere)
+		gadgetHandler:AddChatAction("NightMode", SetNightMode)
+		gadgetHandler:AddChatAction("NightModeToggle", NightModeToggle)
 	end
 
 	function gadget:Shutdown()
 		gadgetHandler:RemoveSyncAction("SetLightingAndAtmosphere")
 		gadgetHandler:RemoveSyncAction("GetLightingAndAtmosphere")
 		gadgetHandler:RemoveSyncAction("MixLightingAndAtmosphere")
+		gadgetHandler:RemoveChatAction('NightMode')
+		gadgetHandler:RemoveChatAction('NightModeToggle')
 		SetLightingAndAtmosphere(initial_atmosphere_lighting)
 	end
 end
