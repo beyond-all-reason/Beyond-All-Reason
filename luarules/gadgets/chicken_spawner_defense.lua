@@ -1715,10 +1715,10 @@ if gadgetHandler:IsSyncedCode() then
 				local size = "s"
 				if rSize <= 5 then
 					size = "l"
-					eggValue = 200
+					eggValue = 500
 				elseif rSize <= 20 then
 					size = "m"
-					eggValue = 500
+					eggValue = 200
 				end
 				totalEggValue = totalEggValue + eggValue
 				if config.chickenEggs[name] and config.chickenEggs[name] ~= "" then
