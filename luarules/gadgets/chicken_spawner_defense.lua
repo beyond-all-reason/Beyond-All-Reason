@@ -110,6 +110,7 @@ if gadgetHandler:IsSyncedCode() then
 	local broodRaptors1 = {}
 	local broodRaptors2 = {}
 	local broodRaptors3 = {}
+	local aliveEggsTable = {}
 	local unitName = {}
 	local unitShortName = {}
 	local squadsTable = {}
@@ -247,7 +248,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- Utility
 	--
 
-	local function SetToList(set)
+	function SetToList(set)
 		local list = {}
 		local count = 0
 		for k in pairs(set) do
@@ -257,7 +258,7 @@ if gadgetHandler:IsSyncedCode() then
 		return list
 	end
 
-	local function SetCount(set)
+	function SetCount(set)
 		local count = 0
 		for k in pairs(set) do
 			count = count + 1
@@ -265,14 +266,14 @@ if gadgetHandler:IsSyncedCode() then
 		return count
 	end
 
-	local function getRandomMapPos()
+	function getRandomMapPos()
 		local x = mRandom(16, MAPSIZEX - 16)
 		local z = mRandom(16, MAPSIZEZ - 16)
 		local y = GetGroundHeight(x, z)
 		return { x = x, y = y, z = z }
 	end
 
-	local function getRandomEnemyPos()
+	function getRandomEnemyPos()
 		local loops = 0
 		local targetCount = SetCount(squadPotentialTarget)
 		local pos = {}
@@ -299,7 +300,7 @@ if gadgetHandler:IsSyncedCode() then
 		return pos, pickedTarget
 	end
 
-	local function setChickenXP(unitID)
+	function setChickenXP(unitID)
 		local maxXP = config.maxXP
 		local queenAnger = queenAnger or 0
 		local xp = mRandom(0, math.ceil((queenAnger*0.01) * maxXP * 1000))*0.001
@@ -324,7 +325,7 @@ if gadgetHandler:IsSyncedCode() then
 	local queenTime = (config.queenTime + config.gracePeriod)
 	local maxWaveSize = ((config.maxChickens*0.75)+(config.maxChickens*0.25)*SetCount(humanTeams))*config.chickenSpawnMultiplier
 	local currentMaxWaveSize = config.minChickens
-	local function updateDifficultyForSurvival()
+	function updateDifficultyForSurvival()
 		t = GetGameSeconds()
 		config.gracePeriod = t-1
 		queenTime = (config.queenTime + config.gracePeriod)
@@ -388,7 +389,7 @@ if gadgetHandler:IsSyncedCode() then
 		unitCounts[string.sub(unitName, 1, -2)] = { count = 0, lastCount = 0 }
 	end
 
-	local function SetupUnit(unitName)
+	function SetupUnit(unitName)
 		SetGameRulesParam(unitName .. "Count", 0)
 		SetGameRulesParam(unitName .. "Kills", 0)
 	end
@@ -410,7 +411,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	SetGameRulesParam("difficulty", config.difficulty)
 
-	local function UpdateUnitCount()
+	function UpdateUnitCount()
 		local teamUnitCounts = GetTeamUnitsCounts(chickenTeamID)
 		local total = 0
 
@@ -532,7 +533,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- local MEDIUM_UNIT = UnitDefNames["chicken1"].id
 	-- local LARGE_UNIT = UnitDefNames["chicken1"].id
 
-	local function chickenEvent(type, num, tech)
+	function chickenEvent(type, num, tech)
 		SendToUnsynced("ChickenEvent", type, num, tech)
 	end
 
@@ -563,7 +564,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	]]
-	local function squadManagerKillerLoop() -- Kills squads that have been alive for too long (most likely stuck somewhere on the map)
+	function squadManagerKillerLoop() -- Kills squads that have been alive for too long (most likely stuck somewhere on the map)
 		--squadsTable
 		for i = 1,#squadsTable do
 			
@@ -601,7 +602,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	--or Spring.GetGameSeconds() <= config.gracePeriod
-	local function squadCommanderGiveOrders(squadID, targetx, targety, targetz)
+	function squadCommanderGiveOrders(squadID, targetx, targety, targetz)
 		local units = squadsTable[squadID].squadUnits
 		local role = squadsTable[squadID].squadRole
 		if SetCount(units) > 0 and squadsTable[squadID].target and squadsTable[squadID].target.x then
@@ -656,7 +657,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	-- local function refreshSquad(squadID) -- Get new target for a squad
+	-- function refreshSquad(squadID) -- Get new target for a squad
 	-- 	local targetCount = SetCount(squadPotentialTarget)
 	-- 	local pos = false
 	-- 	unitTargetPool[squadID] = nil
@@ -689,7 +690,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- 	squadCommanderGiveOrders(squadID, targetx, targety, targetz)
 	-- end
 
-	local function refreshSquad(squadID) -- Get new target for a squad
+	function refreshSquad(squadID) -- Get new target for a squad
 		local pos, pickedTarget = getRandomEnemyPos()
 		--Spring.Echo(pos.x, pos.y, pos.z, pickedTarget)
 		unitTargetPool[squadID] = pickedTarget
@@ -699,7 +700,7 @@ if gadgetHandler:IsSyncedCode() then
 		squadCommanderGiveOrders(squadID, targetx, targety, targetz)
 	end
 
-	local function createSquad(newSquad)
+	function createSquad(newSquad)
 		-- Spring.Echo("----------------------------------------------------------------------------------------------------------------------------")
 		-- Check if there's any free squadID to recycle
 		local squadID = 0
@@ -759,7 +760,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- Spring.Echo("----------------------------------------------------------------------------------------------------------------------------")
 	end
 
-	local function manageAllSquads() -- Get new target for all squads that need it
+	function manageAllSquads() -- Get new target for all squads that need it
 		for i = 1,#squadsTable do
 			if mRandom(1,100) == 1 then
 				local hasTarget = false
@@ -777,7 +778,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 
-	local function getChickenSpawnLoc(burrowID, size)
+	function getChickenSpawnLoc(burrowID, size)
 		local x, y, z
 		local bx, by, bz = GetUnitPosition(burrowID)
 		if not bx or not bz then
@@ -809,7 +810,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	end
 
-	local function SpawnRandomOffWaveSquad(burrowID, chickenType, count)
+	function SpawnRandomOffWaveSquad(burrowID, chickenType, count)
 		if gameOver then
 			return
 		end
@@ -858,7 +859,7 @@ if gadgetHandler:IsSyncedCode() then
 		return squadCounter
 	end
 	
-	local function SetupBurrow(unitID, x, y, z)
+	function SetupBurrow(unitID, x, y, z)
 		burrows[unitID] = 0
 		SetUnitBlocking(unitID, false, false)
 		setChickenXP(unitID)
@@ -932,7 +933,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function SpawnBurrow(number)
+	function SpawnBurrow(number)
 
 		local unitDefID = UnitDefNames[config.burrowName].id
 
@@ -1032,7 +1033,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function updateQueenLife()
+	function updateQueenLife()
 		if not queenID then
 			SetGameRulesParam("queenLife", 0)
 			return
@@ -1046,7 +1047,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function SpawnQueen()
+	function SpawnQueen()
 		local bestScore = 0
 		local sx, sy, sz
 		for burrowID, _ in pairs(burrows) do
@@ -1122,7 +1123,7 @@ if gadgetHandler:IsSyncedCode() then
 		return nil
 	end
 
-	local function Wave()
+	function Wave()
 		if gameOver then
 			return
 		end
@@ -1477,7 +1478,7 @@ if gadgetHandler:IsSyncedCode() then
 		if not lsz2 then lsz2 = Game.mapSizeZ end
 	end
 
-	local function SpawnChickens()
+	function SpawnChickens()
 		local i, defs = next(spawnQueue)
 		if not i or not defs then
 			if #squadCreationQueue.units > 0 then
@@ -1560,7 +1561,7 @@ if gadgetHandler:IsSyncedCode() then
 		spawnQueue[i] = nil
 	end
 
-	local function updateSpawnQueen()
+	function updateSpawnQueen()
 		if not queenID and not gameOver then
 			-- spawn queen if not exists
 			queenID = SpawnQueen()
@@ -1597,7 +1598,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function spawnCreepStructure(unitDefName, spread)
+	function spawnCreepStructure(unitDefName, spread)
 		local structureDefID = UnitDefNames[unitDefName].id
 		local canSpawnStructure = true
 		local spread = spread or 128
@@ -1637,7 +1638,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function queueTurretSpawnIfNeeded()
+	function queueTurretSpawnIfNeeded()
 
 		local burrowCount = SetCount(burrows)
 		local heavyTurretCount = Spring.GetTeamUnitDefCount(chickenTeamID, UnitDefNames[heavyTurret].id)
@@ -1695,12 +1696,57 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function updateRaptorSpawnBox()
+	function updateRaptorSpawnBox()
 		if config.burrowSpawnType == "initialbox_post" then
 			lsx1 = math.max(RaptorStartboxXMin - ((MAPSIZEX*0.01) * queenAnger), 0)
 			lsz1 = math.max(RaptorStartboxZMin - ((MAPSIZEZ*0.01) * queenAnger), 0)
 			lsx2 = math.min(RaptorStartboxXMax + ((MAPSIZEX*0.01) * queenAnger), MAPSIZEX)
 			lsz2 = math.min(RaptorStartboxZMax + ((MAPSIZEZ*0.01) * queenAnger), MAPSIZEZ)
+		end
+	end
+
+	local chickenEggColors = {"pink","white","red", "blue", "darkgreen", "purple", "green", "yellow", "darkred", "acidgreen"}
+	function spawnRandomEgg(x,y,z,name,spread)
+		if name then
+			local totalEggValue = 0
+			repeat
+				local rSize = mRandom(1,100)
+				local eggValue = 100
+				local size = "s"
+				if rSize <= 5 then
+					size = "l"
+					eggValue = 200
+				elseif rSize <= 20 then
+					size = "m"
+					eggValue = 500
+				end
+				totalEggValue = totalEggValue + eggValue
+				if config.chickenEggs[name] and config.chickenEggs[name] ~= "" then
+					color = config.chickenEggs[name]
+				else
+					color = chickenEggColors[mRandom(1,#chickenEggColors)]
+				end
+				local egg = Spring.CreateFeature("chicken_egg_"..size.."_"..color, x + mRandom(-spread,spread), y + 20, z + mRandom(-spread,spread), mRandom(-999999,999999), chickenTeamID)
+				if egg then
+					Spring.SetFeatureMoveCtrl(egg, false,1,1,1,1,1,1,1,1,1)
+					Spring.SetFeatureVelocity(egg, mRandom(-195,195)*0.01, mRandom(130,335)*0.01, mRandom(-195,195)*0.01)
+					--Spring.SetFeatureRotation(egg, mRandom(-175,175)*50000, mRandom(110,275)*50000, mRandom(-175,175)*50000)
+				end
+			until totalEggValue >= UnitDefNames[name].metalCost*0.5
+		end
+	end
+
+	function decayRandomEggs()
+		for eggID, _ in pairs(aliveEggsTable) do
+			Spring.Echo(eggID)
+			if mRandom(1,18) == 1 then -- scaled to decay 1000hp egg in about 3 minutes +/- RNG
+				local fx, fy, fz = Spring.GetFeaturePosition(eggID)
+				Spring.SpawnCEG("blood_hit_small", fx, fy, fz, 0,0,0)
+				Spring.SetFeatureHealth(eggID, Spring.GetFeatureHealth(eggID) - 20)
+				if Spring.GetFeatureHealth(eggID) <= 0 then
+					Spring.DestroyFeature(eggID)
+				end
+			end
 		end
 	end
 
@@ -1910,38 +1956,10 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		manageAllSquads()
-	end
-
-	local chickenEggColors = {"pink","white","red", "blue", "darkgreen", "purple", "green", "yellow", "darkred", "acidgreen"}
-	local function spawnRandomEgg(x,y,z,name,spread)
-		if name then
-			local totalEggValue = 0
-			repeat
-				local rSize = mRandom(1,100)
-				local eggValue = 100
-				local size = "s"
-				if rSize <= 5 then
-					size = "l"
-					eggValue = 200
-				elseif rSize <= 20 then
-					size = "m"
-					eggValue = 500
-				end
-				totalEggValue = totalEggValue + eggValue
-				if config.chickenEggs[name] and config.chickenEggs[name] ~= "" then
-					color = config.chickenEggs[name]
-				else
-					color = chickenEggColors[mRandom(1,#chickenEggColors)]
-				end
-				local egg = Spring.CreateFeature("chicken_egg_"..size.."_"..color, x + mRandom(-spread,spread), y + 20, z + mRandom(-spread,spread), mRandom(-999999,999999), chickenTeamID)
-				if egg then
-					Spring.SetFeatureMoveCtrl(egg, false,1,1,1,1,1,1,1,1,1)
-					Spring.SetFeatureVelocity(egg, mRandom(-195,195)*0.01, mRandom(130,335)*0.01, mRandom(-195,195)*0.01)
-					--Spring.SetFeatureRotation(egg, mRandom(-175,175)*50000, mRandom(110,275)*50000, mRandom(-175,175)*50000)
-				end
-			until totalEggValue >= UnitDefNames[name].metalCost*0.5
+		if n%6 == 2 then
+			decayRandomEggs()
 		end
+		manageAllSquads()
 	end
 
 	local deleteBurrowTurrets = {}
@@ -2095,6 +2113,21 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	function gadget:FeatureCreated(featureID, featureAllyTeamID)
+		if featureAllyTeamID == chickenAllyTeamID then
+			local egg = string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].name, "chicken_egg")
+			if egg then
+				aliveEggsTable[featureID] = true
+			end
+		end
+	end
+
+	function gadget:FeatureDestroyed(featureID, featureAllyTeamID)
+		if aliveEggsTable[featureID] then
+			aliveEggsTable[featureID] = nil
+		end
+	end
+
 	function gadget:GameOver()
 		-- don't end game in survival mode
 		if config.difficulty ~= config.difficulties.survival then
@@ -2107,11 +2140,11 @@ else	-- UNSYNCED
 	local hasChickenEvent = false
 	local mRandom = math.random
 
-	local function HasChickenEvent(ce)
+	function HasChickenEvent(ce)
 		hasChickenEvent = (ce ~= "0")
 	end
 
-	local function WrapToLuaUI(_, type, num, tech)
+	function WrapToLuaUI(_, type, num, tech)
 		if hasChickenEvent then
 			local chickenEventArgs = {}
 			if type ~= nil then
