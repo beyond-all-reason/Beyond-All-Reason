@@ -29,6 +29,7 @@ local sizes = {"s","m","l",}
 local colors = {"pink","white","red", "blue", "darkgreen", "purple", "green", "yellow", "darkred", "acidgreen"}
 local mvalues = {s = 100, m = 200, l = 500}
 local evalues = {s = 1000, m = 2000, l = 5000}
+local healthvalues = {s = 1000, m = 2000, l = 3000}
 
 for _, size in pairs(sizes) do
     for _, color in pairs(colors) do
@@ -47,7 +48,7 @@ for _, size in pairs(sizes) do
         def.metal = mvalues[size]
         def.energy = evalues[size]
         def.reclaimtime = evalues[size]
-        def.damage = evalues[size]
+        def.damage = healthvalues[size]
         eggs[name] = def
     end
 end
