@@ -1480,12 +1480,12 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 
 		local alt, ctrl = Spring.GetModKeyState()
 
-		if ctrl and (isSinglePlayer or spec) and (Spring.GetConfigInt('DevUI', 0) == 1) then
+		if autoupdate and ctrl and (isSinglePlayer or spec) and (Spring.GetConfigInt('DevUI', 0) == 1) then
 			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		else
 			glBlending(GL.SRC_ALPHA, GL.ONE)
 		end
-		if alt and (isSinglePlayer or spec) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
+		if autoupdate and alt and (isSinglePlayer or spec) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
 
 		gl.Culling(GL.BACK)
 		gl.DepthTest(false)
