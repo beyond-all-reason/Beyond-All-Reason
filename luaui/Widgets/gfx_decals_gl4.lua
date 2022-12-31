@@ -627,7 +627,7 @@ function widget:GameFrame(n)
 		decalRemoveQueue[n] = nil
 	end
 
-	if n % 91 == 0 then
+	if n % 271 == 0 then
 		local removed = 0
 		removed = removed + compactInstanceVBO(decalVBO, decalRemoveList)
 		removed = removed + compactInstanceVBO(decalLargeVBO, decalRemoveList)
