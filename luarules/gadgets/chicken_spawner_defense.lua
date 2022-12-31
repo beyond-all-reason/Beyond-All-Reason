@@ -1738,7 +1738,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	function decayRandomEggs()
 		for eggID, _ in pairs(aliveEggsTable) do
-			Spring.Echo(eggID)
 			if mRandom(1,18) == 1 then -- scaled to decay 1000hp egg in about 3 minutes +/- RNG
 				local fx, fy, fz = Spring.GetFeaturePosition(eggID)
 				Spring.SpawnCEG("blood_hit_small", fx, fy, fz, 0,0,0)
