@@ -71,6 +71,6 @@ void main()
 	v_parameters.w = currentheat;
 
 	vec3 toCamera = cameraViewInv[3].xyz - v_centerpos.xyz;
-	if (dot(toCamera, toCamera) >  fadeDistance * fadeDistance) v_skipdraw = 1u;
+	//if (dot(toCamera, toCamera) >  fadeDistance * fadeDistance) v_skipdraw = 1u;
 	gl_Position = cameraViewProj * v_centerpos;
 }
