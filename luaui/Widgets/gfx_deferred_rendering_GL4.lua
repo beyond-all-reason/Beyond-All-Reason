@@ -322,6 +322,7 @@ local testprojlighttable = {0,16,0,200, --pos + radius
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
 								}
+local numAddLights = 0 -- how many times AddLight was called
 
 local spec = Spring.GetSpectatingState()
 
@@ -484,6 +485,7 @@ local function AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, 
 			unitAttachedLights[unitID][instanceID] = targetVBO
 		end
 	end
+	numAddLights = numAddLights + 1
 	return instanceID
 end
 
@@ -1562,6 +1564,21 @@ function widget:RecvLuaMsg(msg)
 		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 	end
 end
+
+-- Register /luaui dlgl4stats to dump light statistics
+function widget:TextCommand(command) 
+	if string.find(command, "dlgl4stats", nil, true) then
+		Spring.Echo(string.format("DLGLStats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d), Cursor = %d",
+				numAddLights,
+				pointLightVBO.usedElements, beamLightVBO.usedElements, coneLightVBO.usedElements,
+				unitPointLightVBO.usedElements, unitBeamLightVBO.usedElements, unitConeLightVBO.usedElements,
+				projectilePointLightVBO.usedElements, projectileBeamLightVBO.usedElements, projectileConeLightVBO.usedElements,
+				cursorPointLightVBO.usedElements))
+		return true
+	end
+	return false
+end
+
 --------------------------- Ingame Configurables -------------------
 
 function widget:GetConfigData(_) -- Called by RemoveWidget
