@@ -1008,8 +1008,9 @@ function widget:PlayerChanged(playerID)
 	elseif r and g and b then
 		teamColors[playerID] = { r, g, b }
 	end
-	if cursorLights and cursorLights[playerID] then
+	if cursorLights and cursorLights[playerID] and cursorPointLightVBO.instanceIDtoIndex["PLAYERCURSOR"] then
 		popElementInstance(cursorPointLightVBO, cursorLights[playerID])
+		cursorLights[playerID] = nil
 	end
 end
 
