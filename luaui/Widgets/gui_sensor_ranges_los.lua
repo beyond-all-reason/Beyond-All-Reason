@@ -376,11 +376,13 @@ function widget:GameFrame(n)
 	if n % 10 == 0 then
 		-- this 15 frames is important, as the vertex shader is interpolating at this rate too!
 		local instanceData = circleInstanceVBO.instanceData -- ok this is so nasty that it makes all my prev pop-push work obsolete
+		local instanceIDtoIndex = circleInstanceVBO.instanceIDtoIndex
+		local instanceStep = circleInstanceVBO.instanceStep
 		for unitID, unitDefID in pairs(unitList) do
 			if not isBuilding[unitDefID] then
 				local x, y, z = spGetUnitPosition(unitID)
 
-				local instanceDataOffset = (circleInstanceVBO.instanceIDtoIndex[unitID] - 1) * circleInstanceVBO.instanceStep
+				local instanceDataOffset = (instanceIDtoIndex[unitID] - 1) * instanceStep
 
 				for i = instanceDataOffset + 1, instanceDataOffset + 4 do
 					instanceData[i] = instanceData[i + 4]
