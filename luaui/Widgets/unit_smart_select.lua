@@ -136,13 +136,17 @@ function widget:ViewResize()
 end
 
 function widget:SelectionChanged(sel)
-	local equalSelection = true
-	for i = 1, #sel do
-		if selectedUnits[i] ~= sel[i] then
-			equalSelection = false
-			break
+	local equalSelection = #selectedUnits == #sel
+
+	if equalSelection then
+		for i = 1, #sel do
+			if selectedUnits[i] ~= sel[i] then
+				equalSelection = false
+				break
+			end
 		end
 	end
+
 	selectedUnits = sel
 	if referenceCoords ~= nil and spGetActiveCommand() == 0 then
 		if not select(3, spGetMouseState()) and referenceSelection ~= nil and lastSelection ~= nil and equalSelection then
