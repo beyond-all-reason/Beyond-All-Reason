@@ -123,13 +123,19 @@ if gadgetHandler:IsSyncedCode() then
 		units = {},
 		role = false,
 		life = 10,
-		regroup = true,
+		regroupenabled = true,
+		regrouping = false,
+		needsregroup = false,
+		needsrefresh = true,
 	}
 	squadCreationQueueDefaults = {
 		units = {},
 		role = false,
 		life = 10,
-		regroup = true,
+		regroupenabled = true,
+		regrouping = false,
+		needsregroup = false,
+		needsrefresh = true,
 	}
 	
 	heavyTurret = "chicken_turretl"
@@ -569,8 +575,8 @@ if gadgetHandler:IsSyncedCode() then
 		for i = 1,#squadsTable do
 			
 			squadsTable[i].squadLife = squadsTable[i].squadLife - 1
-			if squadsTable[i].squadLife < 3 and squadsTable[i].squadRegroup then
-				squadsTable[i].squadRegroup = false
+			if squadsTable[i].squadLife < 3 and squadsTable[i].squadRegroupEnabled then
+				squadsTable[i].squadRegroupEnabled = false
 			end
 			-- Spring.Echo("SquadLifeReport - SquadID: #".. i .. ", LifetimeRemaining: ".. squadsTable[i].squadLife)
 			
@@ -606,7 +612,7 @@ if gadgetHandler:IsSyncedCode() then
 		local units = squadsTable[squadID].squadUnits
 		local role = squadsTable[squadID].squadRole
 		if SetCount(units) > 0 and squadsTable[squadID].target and squadsTable[squadID].target.x then
-			if squadsTable[squadID].squadRegroup then
+			if squadsTable[squadID].squadRegroupEnabled then
 				local xmin = 999999
 				local xmax = 0
 				local zmin = 999999
@@ -630,28 +636,42 @@ if gadgetHandler:IsSyncedCode() then
 				if count > 0 then
 					local xaverage = xsum/count
 					local zaverage = zsum/count
-					if xmin < xaverage-384 or xmax > xaverage+384 or zmin < zaverage-384 or zmax > zaverage+384 then
+					if xmin < xaverage-512 or xmax > xaverage+512 or zmin < zaverage-512 or zmax > zaverage+512 then
 						targetx = xaverage
 						targetz = zaverage
 						targety = Spring.GetGroundHeight(targetx, targetz)
 						role = "raid"
+						squadsTable[squadID].squadNeedsRegroup = true
+					else
+						squadsTable[squadID].squadNeedsRegroup = false
 					end
 				end
+			else
+				squadsTable[squadID].squadNeedsRegroup = false
 			end
 
-			for i, unitID in pairs(units) do
-				if ValidUnitID(unitID) and not GetUnitIsDead(unitID) and not GetUnitNeutral(unitID) then
-					-- Spring.Echo("GiveOrderToUnit #" .. i)
-					if not unitCowardCooldown[unitID] then
-						if role == "assault" or role == "healer" or role == "artillery" then
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
-						elseif role == "raid" or role == "kamikaze" then
-							Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
-						elseif role == "aircraft" then
-							local pos = getRandomEnemyPos()
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x, pos.y, pos.z} , {})
+
+			if (squadsTable[squadID].squadNeedsRefresh) or (squadsTable[squadID].squadNeedsRegroup == true and squadsTable[squadID].squadRegrouping == false) or (squadsTable[squadID].squadNeedsRegroup == false and squadsTable[squadID].squadRegrouping == true) then
+				for i, unitID in pairs(units) do
+					if ValidUnitID(unitID) and not GetUnitIsDead(unitID) and not GetUnitNeutral(unitID) then
+						-- Spring.Echo("GiveOrderToUnit #" .. i)
+						if not unitCowardCooldown[unitID] then
+							if role == "assault" or role == "healer" or role == "artillery" then
+								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
+							elseif role == "raid" or role == "kamikaze" then
+								Spring.GiveOrderToUnit(unitID, CMD.MOVE, {targetx+mRandom(-256, 256), targety, targetz+mRandom(-256, 256)} , {})
+							elseif role == "aircraft" then
+								local pos = getRandomEnemyPos()
+								Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x, pos.y, pos.z} , {})
+							end
 						end
 					end
+				end
+				squadsTable[squadID].squadNeedsRefresh = false
+				if squadsTable[squadID].squadNeedsRegroup == true then
+					squadsTable[squadID].squadRegrouping = true
+				elseif squadsTable[squadID].squadNeedsRegroup == false then
+					squadsTable[squadID].squadRegrouping = false
 				end
 			end
 		end
@@ -697,6 +717,7 @@ if gadgetHandler:IsSyncedCode() then
 		squadsTable[squadID].target = pos
 		-- Spring.MarkerAddPoint (squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z, "Squad #" .. squadID .. " target")
 		local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
+		squadsTable[squadID].squadNeedsRefresh = true
 		squadCommanderGiveOrders(squadID, targetx, targety, targetz)
 	end
 
@@ -739,7 +760,10 @@ if gadgetHandler:IsSyncedCode() then
 				squadUnits = newSquad.units,
 				squadLife = newSquad.life,
 				squadRole = role,
-				squadRegroup = newSquad.regroup,
+				squadRegroupEnabled = newSquad.regroupenabled,
+				squadRegrouping = newSquad.regrouping,
+				squadNeedsRegroup = newSquad.needsregroup,
+				squadNeedsRefresh = newSquad.needsrefresh,
 				squadBurrow = newSquad.burrow,
 			}
 			
@@ -1483,7 +1507,7 @@ if gadgetHandler:IsSyncedCode() then
 		if not i or not defs then
 			if #squadCreationQueue.units > 0 then
 				if mRandom(1,5) == 1 then
-					squadCreationQueue.regroup = falsecreateSquad
+					squadCreationQueue.regroupenabled = false
 				end
 				local squadID = createSquad(squadCreationQueue)
 				squadCreationQueue.units = {}
@@ -1505,7 +1529,7 @@ if gadgetHandler:IsSyncedCode() then
 			if (not defs.squadID) or (defs.squadID and defs.squadID == 1) then
 				if #squadCreationQueue.units > 0 then
 					if mRandom(1,5) == 1 then
-						squadCreationQueue.regroup = false
+						squadCreationQueue.regroupenabled = false
 					end
 					createSquad(squadCreationQueue)
 				end
@@ -1522,21 +1546,21 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			if ARTILLERY[UnitDefNames[defs.unitName].id] then
 				squadCreationQueue.role = "artillery"
-				squadCreationQueue.regroup = false
+				squadCreationQueue.regroupenabled = false
 				if squadCreationQueue.life < 100 then
 					squadCreationQueue.life = 100
 				end
 			end
 			if KAMIKAZE[UnitDefNames[defs.unitName].id] then
 				squadCreationQueue.role = "kamikaze"
-				squadCreationQueue.regroup = false
+				squadCreationQueue.regroupenabled = false
 				if squadCreationQueue.life < 100 then
 					squadCreationQueue.life = 100
 				end
 			end
 			if UnitDefNames[defs.unitName].canFly then
 				squadCreationQueue.role = "aircraft"
-				squadCreationQueue.regroup = false
+				squadCreationQueue.regroupenabled = false
 				if squadCreationQueue.life < 100 then
 					squadCreationQueue.life = 100
 				end
@@ -1899,7 +1923,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands
 		if not chickenteamhasplayers then
-			if squadID and squadsTable[squadID] and squadsTable[squadID].squadRegroup then
+			if squadID and squadsTable[squadID] and squadsTable[squadID].squadRegroupEnabled then
 				local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
 				if targetx then
 					squadCommanderGiveOrders(squadID, targetx, targety, targetz)
@@ -1924,6 +1948,7 @@ if gadgetHandler:IsSyncedCode() then
 						if squadID then
 							local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
 							if targetx then
+								squadsTable[squadID].squadNeedsRefresh = true
 								squadCommanderGiveOrders(squadID, targetx, targety, targetz)
 							else
 								refreshSquad(squadID)
