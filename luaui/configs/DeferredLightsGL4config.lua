@@ -16430,6 +16430,31 @@ local unitEventLights = {
 					lifetime = 400, sustain = 2},
 			},
 		},
+
+		[UnitDefNames['armbrtha'].id] = {
+			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'barrel', --seems it spawns not from this piece, but from center of model/unit.
+				lightName = 'armbrthabarrelglow',
+				alwaysVisible = true,
+				lightConfig = { posx = -12, posy = 2, posz = 65, radius = 26,
+					color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 280,
+					r = 1, g = 0.3, b = 0, a = 0.55,
+					modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
+					lifetime = 350, sustain = 2},
+			},
+			[2] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'barrel', --seems it spawns not from this piece, but from center of model/unit.
+				lightName = 'armbrthabarrelglow',
+				alwaysVisible = true,
+				lightConfig = { posx = 12, posy = 2, posz = 65, radius = 26,
+					color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 280,
+					r = 1, g = 0.3, b = 0, a = 0.55,
+					modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
+					lifetime = 350, sustain = 2},
+			},
+		},
 	},
 
 	------------------------------- Put additional lights tied to events here! --------------------------------

@@ -213,7 +213,7 @@ local examplePointLight = {
 ]]--
 
 ------------------------------ Debug switches ------------------------------
-local autoupdate = true
+local autoupdate = false
 local debugproj = false
 local addrandomlights = false
 
