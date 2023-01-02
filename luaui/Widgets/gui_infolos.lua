@@ -163,7 +163,7 @@ function widget:Initialize()
 		local texInfo = gl.TextureInfo(tex)
 		shaderConfig[name .. 'XSIZE'] = texInfo.xsize
 		shaderConfig[name .. 'YSIZE'] = texInfo.ysize
-		Spring.Debug.TableEcho(texInfo)
+		--Spring.Debug.TableEcho(texInfo)
 	end
 	currentAllyTeam = Spring.GetMyAllyTeamID()
 
