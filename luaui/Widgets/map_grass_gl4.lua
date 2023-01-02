@@ -829,7 +829,7 @@ local function makeGrassInstanceVBO()
 	else -- try to load builtin grass type
 
 		local maphasgrass = mapHasSMFGrass()
-		--Spring.Echo("mapHasSMFGrass",maphasgrass)
+		--Spring.Echo("mapHasSMFGrass",maphasgrass, placementMode)
 		if (maphasgrass == 0 or maphasgrass == 255) and (not placementMode) then return nil end -- bail if none specified at all anywhere
 
 		local rowIndex = 1
@@ -1248,6 +1248,7 @@ function widget:Initialize()
 		end
 	end
 	WG['grassgl4'].removeGrassBelowHeight = function(height)
+		if #grassInstanceData == 0 then return nil end
 		if not removedBelowHeight or height > removedBelowHeight then
 			removedBelowHeight = height
 
@@ -1461,6 +1462,7 @@ local smoothGrassFadeExp = 1
 
 
 function widget:DrawWorldPreUnit()
+  if #grassInstanceData == 0 then return end
   local mapDrawMode = Spring.GetMapDrawMode()
   if mapDrawMode ~= 'normal' and mapDrawMode ~= 'los' then return end
 	if placementMode then
@@ -1490,6 +1492,7 @@ function widget:DrawWorldPreUnit()
     if not placementMode then
 		startInstanceIndex, instanceCount = GetStartEndRows()
 	end
+	if instanceCount == 0 then return end
     local _, _, isPaused = Spring.GetGameSpeed()
     if not isPaused then
       getWindSpeed()
