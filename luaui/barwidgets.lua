@@ -295,7 +295,7 @@ local function Yield()
 	if doMoreYield then
 		local doMoreYield = Spring.Yield()
 		if doMoreYield == false then --GetThreadSafety == false
-			Spring.Echo("WidgetHandler Yield: entering critical section") 
+			--Spring.Echo("WidgetHandler Yield: entering critical section") 
 		end
 	end
 end
@@ -1405,8 +1405,9 @@ function widgetHandler:DrawInMiniMap(xSize, ySize)
 end
 
 function widgetHandler:SunChanged()
+	local nmp = _G['NightModeParams']
 	for _, w in r_ipairs(self.SunChangedList) do
-		w:SunChanged()
+		w:SunChanged(nmp)
 	end
 	return
 end

@@ -171,7 +171,7 @@ function gadgetHandler:Initialize()
 			if not IsSyncedCode() and doMoreYield then
 				doMoreYield = Spring.Yield()
 				if doMoreYield == false then --GetThreadSafety == false
-					Spring.Echo("GadgetHandler Yield: entering critical section") 
+					--Spring.Echo("GadgetHandler Yield: entering critical section") 
 				end
 			end
 		end
